@@ -9,7 +9,7 @@ import { compareBusinessDates, formatBusinessDate, type BusinessDate } from '@/s
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { hasPermission } from '@/shared/permissions/assert';
 import { formatMoneyDisplay } from '@/shared/money/format';
-import { fromNumericString, type MoneyValue } from '@/shared/money';
+import { fromNumericString, isPositiveMoney, isZeroMoney, type MoneyValue } from '@/shared/money';
 import { localizeProjectDisplayName } from '@/shared/i18n/code-display';
 import {
   listExpensePaymentsForOrg,
@@ -273,7 +273,9 @@ export async function collectPayrollDueToday(ctx: CollectContext): Promise<Comma
     );
 
     const expected = fromNumericString(row.expectedAmount, row.currency);
-    const amountLabel = expected ? moneyLabel(expected, locale) : `${row.expectedAmount} ${row.currency}`;
+    if (!expected || isZeroMoney(expected) || !isPositiveMoney(expected)) continue;
+
+    const amountLabel = moneyLabel(expected, locale);
 
     const base = {
       sourceId: row.id,

@@ -5,6 +5,7 @@ import { todayInTimeZone, type BusinessDate } from '@/shared/dates';
 import { recordAuditEvent } from '@/shared/audit';
 import { AUDIT_ACTIONS } from '@/shared/audit/actions';
 import { DomainRuleError, NotFoundError } from '@/shared/errors';
+import { fromNumericString, isPositiveMoney } from '@/shared/money';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { getOrgFinancialPolicies } from '@/modules/tenancy/application/org-financial-policies';
@@ -25,9 +26,8 @@ export async function upsertPayrollPaymentExpected(
   const policies = await getOrgFinancialPolicies(context);
   const dueDate = salaryDueDateForPeriod(input.yearMonth, policies.salaryPaymentDay);
   const today = todayInTimeZone(context.organization.timezone);
-  let status: 'upcoming' | 'due' | 'overdue' = 'upcoming';
-  if (dueDate < today) status = 'overdue';
-  else if (dueDate === today) status = 'due';
+  const expectedMoney = fromNumericString(input.expectedAmount, input.currency);
+  const zeroOrNegative = !expectedMoney || !isPositiveMoney(expectedMoney);
 
   const [existing] = await context.db
     .select({ id: employeePayrollPayments.id, paidAt: employeePayrollPayments.paidAt })
@@ -43,6 +43,28 @@ export async function upsertPayrollPaymentExpected(
     .limit(1);
 
   if (existing?.paidAt) return;
+
+  if (zeroOrNegative) {
+    if (existing) {
+      await context.db
+        .update(employeePayrollPayments)
+        .set({
+          expectedAmount: input.expectedAmount,
+          currency: input.currency,
+          dueDate,
+          paymentStatus: 'paid',
+          paidAt: today,
+          paidAmount: '0',
+          paymentConfirmationSource: 'automatic_policy',
+        })
+        .where(eq(employeePayrollPayments.id, existing.id));
+    }
+    return;
+  }
+
+  let status: 'upcoming' | 'due' | 'overdue' = 'upcoming';
+  if (dueDate < today) status = 'overdue';
+  else if (dueDate === today) status = 'due';
 
   if (existing) {
     await context.db
@@ -254,6 +276,7 @@ export async function listUnpaidPayrollPayments(context: OrgContext) {
         eq(employeePayrollPayments.organizationId, context.organizationId),
         isNull(employeePayrollPayments.paidAt),
         isNull(employeePayrollPayments.voidedAt),
+        sql`${employeePayrollPayments.expectedAmount} > 0`,
       ),
     );
 }

@@ -6,6 +6,7 @@
 import { and, asc, eq, isNull, lt, lte, sql, inArray } from 'drizzle-orm';
 import {
   approvalRequests,
+  employeeMonthCosts,
   laborAllocationRuns,
   monthClosePeriods,
   planningWorkItems,
@@ -17,6 +18,7 @@ import { listComplianceArtifactsForOrg } from '@/modules/compliance';
 import { getOrganizationApPayables } from '@/modules/ap';
 import { listMaintenanceScheduleForOrg } from '@/modules/assets';
 import { listAttendanceDaysForOrg, listEmployeesWithoutAttendanceToday, listTimesheetsForOrg } from '@/modules/workforce';
+import { employeeExpectsProjectLaborAllocation } from '@/modules/workforce/application/labor-allocation-alerts';
 import { getOrganizationProjectRollup } from '@/modules/financials/application/get-organization-project-rollup';
 import { getOrganizationEarlyWarnings } from '@/modules/forecast';
 import { isOcrReviewUiAllowed, listOcrCandidates } from '@/modules/ocr';
@@ -232,37 +234,63 @@ export async function collectUnallocatedEmployeeCost(
       currency: laborAllocationRuns.currency,
       employeeMonthCostId: laborAllocationRuns.employeeMonthCostId,
       status: laborAllocationRuns.status,
+      employeeId: employeeMonthCosts.employeeId,
+      yearMonth: employeeMonthCosts.yearMonth,
+      knownAmount: employeeMonthCosts.knownAmount,
     })
     .from(laborAllocationRuns)
+    .innerJoin(
+      employeeMonthCosts,
+      and(
+        eq(laborAllocationRuns.employeeMonthCostId, employeeMonthCosts.id),
+        eq(laborAllocationRuns.organizationId, employeeMonthCosts.organizationId),
+      ),
+    )
     .where(
       and(
         eq(laborAllocationRuns.organizationId, ctx.context.organizationId),
         inArray(laborAllocationRuns.status, ['applied', 'draft']),
         sql`(${laborAllocationRuns.unallocatedAmount})::numeric > 0`,
+        sql`(${employeeMonthCosts.knownAmount})::numeric > 0`,
       ),
     )
     .limit(PER_SOURCE_CAP);
 
   const locale = localeOf(ctx);
-  return rows.map((row) => {
+  const items: CommandCenterItem[] = [];
+  for (const row of rows) {
+    if (items.length >= PER_SOURCE_CAP) break;
+    const expectsProjectAllocation = await employeeExpectsProjectLaborAllocation(
+      ctx.context,
+      row.employeeId,
+      row.yearMonth,
+    );
+    if (!expectsProjectAllocation) continue;
+
     const copy = unallocatedEmployeeCostCopy(locale, {
       amount: row.unallocatedAmount,
       currency: row.currency,
       status: row.status,
     });
-    return withItemDefaults({
-      sourceType: 'unallocated_employee_cost',
-      sourceId: row.id,
-      what: copy.what,
-      why: copy.why,
-      where: fallbackWhere(locale, 'workforce'),
-      href: '/workforce/employees',
-      meta: {
-        unallocated: row.unallocatedAmount,
-        employeeMonthCostId: row.employeeMonthCostId,
-      },
-    });
-  });
+    items.push(
+      withItemDefaults({
+        sourceType: 'unallocated_employee_cost',
+        sourceId: row.id,
+        what: copy.what,
+        why: copy.why,
+        where: fallbackWhere(locale, 'workforce'),
+        href: '/workforce/employees',
+        meta: {
+          unallocated: row.unallocatedAmount,
+          employeeMonthCostId: row.employeeMonthCostId,
+          employeeId: row.employeeId,
+          yearMonth: row.yearMonth,
+          knownAmount: row.knownAmount,
+        },
+      }),
+    );
+  }
+  return items;
 }
 
 export async function collectUnallocatedVendorBills(

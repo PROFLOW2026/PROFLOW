@@ -8,6 +8,7 @@ import { businessDate, type BusinessDate } from '@/shared/dates';
 import { ORG_LIST_EXPORT_CAP } from '@/shared/db/list-limits';
 import { assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { listAttendanceOutcomesInRange } from './attendance-outcomes';
 import { listAttendanceDays } from '../data/attendance.repository';
 import { listEmployees } from '../data/employees.repository';
 import { listTimeEntries } from '../data/time-entries.repository';
@@ -39,6 +40,7 @@ export type MonthlyCellKind =
   | 'approved'
   | 'pending'
   | 'worked'
+  | 'absence'
   | 'missing'
   | 'dayOff'
   | 'future'
@@ -132,7 +134,7 @@ async function loadOwnerMonthFacts(
     hasPermission(context, PERMISSIONS.TIME_APPROVE) ||
     hasPermission(context, PERMISSIONS.WORKFORCE_READ);
 
-  const [days, timeEntries] = await Promise.all([
+  const [days, timeEntries, outcomes] = await Promise.all([
     listAttendanceDays(context.db, context.organizationId, {
       employeeId,
       fromDate,
@@ -150,9 +152,14 @@ async function loadOwnerMonthFacts(
           limit: ORG_LIST_EXPORT_CAP,
         })
       : Promise.resolve([]),
+    listAttendanceOutcomesInRange(context, {
+      fromDate: businessDate(fromDate),
+      toDate: businessDate(toDate),
+      employeeId,
+    }),
   ]);
 
-  return { days, timeEntries };
+  return { days, timeEntries, outcomes };
 }
 
 export async function getTodayAttendanceOverview(
@@ -165,9 +172,12 @@ export async function getTodayAttendanceOverview(
     status: 'active',
     asOfDate: workDate,
   });
-  const { days, timeEntries } = await loadOwnerMonthFacts(context, workDate, workDate);
+  const { days, timeEntries, outcomes } = await loadOwnerMonthFacts(context, workDate, workDate);
 
   const dayByEmployee = new Map(days.filter((day) => day.status !== 'void').map((day) => [day.employeeId, day]));
+  const outcomeByEmployee = new Map(
+    outcomes.map((outcome) => [outcome.employeeId, outcome]),
+  );
   const timeByEmployee = new Map<string, TimeEntryListItem[]>();
   for (const entry of timeEntries) {
     const list = timeByEmployee.get(entry.employeeId) ?? [];
@@ -179,9 +189,14 @@ export async function getTodayAttendanceOverview(
     .filter((employee) => !employee.archivedAt)
     .map((employee) => {
       const day = dayByEmployee.get(employee.id) ?? null;
+      const explicitOutcome = outcomeByEmployee.get(employee.id) ?? null;
       const entries = timeByEmployee.get(employee.id) ?? [];
-      const reported = day != null;
-      const approval: TodayApprovalStatus = reported ? rollupApproval(entries) : 'missing';
+      const reported = day != null || explicitOutcome != null;
+      const approval: TodayApprovalStatus = reported
+        ? explicitOutcome?.outcome === 'not_worked'
+          ? 'awaiting'
+          : rollupApproval(entries)
+        : 'missing';
       return {
         employeeId: employee.id,
         employeeName: employee.name,
@@ -233,7 +248,7 @@ export async function getMonthlyAttendanceGrid(
     return true;
   });
 
-  const { days: attendanceDays, timeEntries } = await loadOwnerMonthFacts(
+  const { days: attendanceDays, timeEntries, outcomes } = await loadOwnerMonthFacts(
     context,
     fromDate,
     toDate,
@@ -243,6 +258,11 @@ export async function getMonthlyAttendanceGrid(
   const dayByEmployeeDate = new Map<string, (typeof attendanceDays)[number]>();
   for (const day of attendanceDays) {
     dayByEmployeeDate.set(`${day.employeeId}:${day.workDate}`, day);
+  }
+
+  const outcomeByEmployeeDate = new Map<string, (typeof outcomes)[number]>();
+  for (const outcome of outcomes) {
+    outcomeByEmployeeDate.set(`${outcome.employeeId}:${outcome.workDate}`, outcome);
   }
 
   const timeByEmployeeDate = new Map<string, TimeEntryListItem[]>();
@@ -257,6 +277,7 @@ export async function getMonthlyAttendanceGrid(
     const cells: MonthlyAttendanceCell[] = days.map((workDate) => {
       const isWorkday = workdaySet.has(weekdayUtc(workDate));
       const day = dayByEmployeeDate.get(`${employee.id}:${workDate}`) ?? null;
+      const explicitOutcome = outcomeByEmployeeDate.get(`${employee.id}:${workDate}`) ?? null;
       const entries = timeByEmployeeDate.get(`${employee.id}:${workDate}`) ?? [];
       const hours = sumHours(entries) ?? hoursFromClock(day?.clockInAt ?? null, day?.clockOutAt ?? null);
       const projectNames = uniqueProjectNames(entries);
@@ -266,6 +287,15 @@ export async function getMonthlyAttendanceGrid(
       }
       if (day?.status === 'void') {
         return { workDate, kind: 'void', dayId: day.id, hours, projectNames };
+      }
+      if (!day && explicitOutcome) {
+        return {
+          workDate,
+          kind: explicitOutcome.outcome === 'not_worked' ? 'absence' : 'worked',
+          dayId: null,
+          hours,
+          projectNames,
+        };
       }
       if (!day) {
         return {

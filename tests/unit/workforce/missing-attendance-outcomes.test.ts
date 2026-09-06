@@ -26,4 +26,17 @@ describe('missing attendance vs explicit outcomes', () => {
     });
     expect(state).toBe('missing');
   });
+
+  it('treats explicit vacation + unpaid as complete report — not missing', () => {
+    const state = resolveAttendanceDayState({
+      workDate: businessDate('2026-03-05'),
+      employment: openEmployment,
+      outcome: {
+        outcome: 'not_worked',
+        absenceCompensation: 'unpaid',
+      },
+    });
+    expect(state).toBe('not_worked_unpaid');
+    expect(state).not.toBe('missing');
+  });
 });

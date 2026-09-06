@@ -2,7 +2,7 @@
  * MONTHLY accrued Actual — working-days denominator (not calendar 31, not hourly/daily).
  */
 import { describe, expect, it } from 'vitest';
-import { money, toNumericString } from '@/shared/money';
+import { money, toNumericString, addMoney } from '@/shared/money';
 import { allocateConservedAmountByHours } from '@/modules/workforce/domain/conserved-hour-allocation';
 import { calculateDailyEmployerCostPool } from '@/modules/workforce/domain/employer-cost-pool';
 import {
@@ -122,6 +122,28 @@ describe('monthly working-days accrual', () => {
       Number(recognized.recognizedPool.amount),
       5,
     );
+  });
+
+  it('conserves sub-cent recognized pool exactly (unpaid-absence recompute path)', () => {
+    const pool = money('2967.391304', 'ILS');
+    const full = money('9750', 'ILS');
+    const workDates = Array.from({ length: 23 }, (_, i) => {
+      const day = i + 1;
+      return `2026-03-${String(day).padStart(2, '0')}`;
+    });
+    const alloc = allocateMonthlyRecognizedPoolByWorkDays({
+      recognizedPool: pool,
+      fullMonthlyEmployerCost: full,
+      workingDaysPerMonth: '23',
+      workDates,
+      hoursByDate: new Map(),
+    });
+    expect(toNumericString(alloc.knownAmount)).toBe('2967.391304');
+    expect(toNumericString(alloc.allocatedToProjects)).toBe('0.000000');
+    expect(toNumericString(alloc.nonProjectOrUnallocated)).toBe('2967.391304');
+    expect(
+      toNumericString(addMoney(alloc.allocatedToProjects, alloc.nonProjectOrUnallocated)),
+    ).toBe('2967.391304');
   });
 
   it('rate-version override wins; null falls back to org; both missing → null', () => {

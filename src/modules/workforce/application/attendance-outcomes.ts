@@ -211,6 +211,50 @@ export async function countUnpaidAbsenceDaysInMonth(
   return rows.length;
 }
 
+export async function listAttendanceOutcomesInRange(
+  context: OrgContext,
+  input: {
+    readonly fromDate: BusinessDate;
+    readonly toDate: BusinessDate;
+    readonly employeeId?: string;
+  },
+): Promise<
+  readonly {
+    readonly employeeId: string;
+    readonly workDate: BusinessDate;
+    readonly outcome: 'worked' | 'not_worked';
+    readonly absenceCompensation: 'paid' | 'unpaid' | null;
+  }[]
+> {
+  assertPermission(context, PERMISSIONS.ATTENDANCE_MANAGE);
+
+  const conditions = [
+    eq(employeeAttendanceOutcomes.organizationId, context.organizationId),
+    gte(employeeAttendanceOutcomes.workDate, input.fromDate),
+    lte(employeeAttendanceOutcomes.workDate, input.toDate),
+  ];
+  if (input.employeeId) {
+    conditions.push(eq(employeeAttendanceOutcomes.employeeId, input.employeeId));
+  }
+
+  const rows = await context.db
+    .select({
+      employeeId: employeeAttendanceOutcomes.employeeId,
+      workDate: employeeAttendanceOutcomes.workDate,
+      outcome: employeeAttendanceOutcomes.outcome,
+      absenceCompensation: employeeAttendanceOutcomes.absenceCompensation,
+    })
+    .from(employeeAttendanceOutcomes)
+    .where(and(...conditions));
+
+  return rows.map((row) => ({
+    employeeId: row.employeeId,
+    workDate: row.workDate as BusinessDate,
+    outcome: row.outcome as 'worked' | 'not_worked',
+    absenceCompensation: row.absenceCompensation as 'paid' | 'unpaid' | null,
+  }));
+}
+
 export function mapOutcomeState(
   workDate: BusinessDate,
   employment: EmploymentRange,

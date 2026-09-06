@@ -82,6 +82,7 @@ export async function attendanceOutcomeAction(
       const t = await getTranslations('workforce');
       const key = error.messageKey;
       if (key === 'workforce.errors.attendanceClosedPeriod') return { error: t('errors.attendanceClosedPeriod') };
+      if (key === 'workforce.errors.monthCostClosed') return { error: t('errors.monthCostClosed') };
       if (key === 'workforce.errors.invalidBulkRange') return { error: t('errors.invalidBulkRange') };
       if (key.startsWith('workforce.errors.')) {
         const short = key.slice('workforce.errors.'.length);

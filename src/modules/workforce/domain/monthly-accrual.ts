@@ -299,8 +299,8 @@ export function allocateMonthlyRecognizedPoolByWorkDays(input: {
   let allocatedToProjects = projectLines.length
     ? roundMoney(sumMoney(projectLines.map((l) => l.amount), currency))
     : money('0', currency);
-  let nonProjectFinal = roundMoney(nonProject);
-  const check = addMoney(allocatedToProjects, nonProjectFinal);
+  let nonProjectFinal = nonProject;
+  const check = addMoney(allocatedToProjects, roundMoney(nonProjectFinal));
   if (toNumericString(check) !== toNumericString(recognizedPool)) {
     const gap = subtractMoney(recognizedPool, check);
     if (projectLines.length > 0 && toDecimalValue(gap).abs().lte(1)) {
@@ -314,20 +314,24 @@ export function allocateMonthlyRecognizedPoolByWorkDays(input: {
     } else {
       nonProjectFinal = subtractMoney(recognizedPool, allocatedToProjects);
     }
+  } else {
+    nonProjectFinal = subtractMoney(recognizedPool, allocatedToProjects);
   }
+
+  const conservedUnallocated = subtractMoney(recognizedPool, allocatedToProjects);
 
   return {
     buckets: [
       ...projectLines,
-      ...(toDecimalValue(nonProjectFinal).gt(0)
+      ...(toDecimalValue(conservedUnallocated).gt(0)
         ? [
             {
               key: NON_PROJECT_COST_BUCKET,
               hours: '0',
-              amount: roundMoney(nonProjectFinal),
+              amount: conservedUnallocated,
               percent: toDecimalValue(recognizedPool).isZero()
                 ? '0'
-                : toDecimalValue(nonProjectFinal)
+                : toDecimalValue(conservedUnallocated)
                     .times(100)
                     .dividedBy(toDecimalValue(recognizedPool))
                     .toFixed(4),
@@ -337,7 +341,7 @@ export function allocateMonthlyRecognizedPoolByWorkDays(input: {
     ],
     projectLines,
     allocatedToProjects,
-    nonProjectOrUnallocated: roundMoney(nonProjectFinal),
+    nonProjectOrUnallocated: conservedUnallocated,
     knownAmount: recognizedPool,
     dayUnitCount,
     dailyBasis,

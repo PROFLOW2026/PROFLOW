@@ -20,7 +20,7 @@ import {
   resolveOrgWorkWeekdays,
   getOrganizationSettingValue,
 } from '@/modules/tenancy';
-import { todayInTimeZone } from '@/shared/dates';
+import { todayInTimeZone, businessDate } from '@/shared/dates';
 import { findEmployeeById } from '../data/employees.repository';
 import {
   findEmployeeMonthCostByEmployeeMonth,
@@ -43,7 +43,7 @@ import { listTimeEntries } from '../data/time-entries.repository';
 import { NON_PROJECT_COST_BUCKET } from '../domain/conserved-hour-allocation';
 import { calculateMonthlyEmployerCostPoolForMonth } from '../domain/employer-cost-pool';
 import { adjustMonthlyCompensationForUnpaidAbsence } from '../domain/employment-active-range';
-import { countUnpaidAbsenceDaysInMonth } from './attendance-outcomes';
+import { countUnpaidAbsenceDaysInMonth, listAttendanceOutcomesForEmployeeMonth } from './attendance-outcomes';
 import { upsertPayrollPaymentExpected } from './payroll-payments';
 import { areEmployeeMonthCostsAvailable } from '../domain/monthly-cost-gates';
 import {
@@ -274,6 +274,14 @@ export async function computeMonthlyEmployeeLaborAllocationDraft(
   }
 
   const unpaidAbsenceDays = await countUnpaidAbsenceDaysInMonth(context, employeeId, yearMonth);
+  const outcomeRows = await listAttendanceOutcomesForEmployeeMonth(context, employeeId, yearMonth);
+  const unpaidAbsenceDates = new Set(
+    outcomeRows
+      .filter((row) => row.outcome === 'not_worked' && row.absenceCompensation === 'unpaid')
+      .map((row) => row.workDate),
+  );
+  const billableWorkDates = workDates.filter((date) => !unpaidAbsenceDates.has(businessDate(date)));
+
   const adjustedRecognizedPool = money(
     adjustMonthlyCompensationForUnpaidAbsence({
       baseAmount: toNumericString(recognition.recognizedPool),
@@ -287,7 +295,7 @@ export async function computeMonthlyEmployeeLaborAllocationDraft(
     recognizedPool: adjustedRecognizedPool,
     fullMonthlyEmployerCost: poolResult.pool,
     workingDaysPerMonth,
-    workDates,
+    workDates: billableWorkDates,
     hoursByDate,
   });
 
