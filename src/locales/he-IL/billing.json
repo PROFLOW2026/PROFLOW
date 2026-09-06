@@ -153,7 +153,7 @@
     "billingRecordPlaceholder": "בחרו חיוב",
     "amount": "סכום שהתקבל בפועל",
     "amountDescription": "מזומן שנכנס לבנק. לא נטו ולא מע״מ נפרדים.",
-    "unallocatedAmountDescription": "סכום שהתקבל בפועל. טרם שויך לחיוב — מע״מ נקבע רק מהחיוב שאליו יוקצה בהמשך.",
+    "unallocatedAmountDescription": "סכום שהתקבל בפועל. טרם שויך לחיוב. מע״מ נקבע רק מהחיוב שאליו יוקצה בהמשך.",
     "partialAllowed": "תשלום חלקי מותר.",
     "cashAgainstGrossHint": "התקבול מקטין את יתרת הלקוח בברוטו. הרכב נטו/מע״מ מגיע מהחיוב.",
     "billingContextTitle": "חיוב",
