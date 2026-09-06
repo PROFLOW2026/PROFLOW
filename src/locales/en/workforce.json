@@ -504,6 +504,22 @@
       "approved": "Approved",
       "pending": "Pending",
       "void": "Void",
+      "worked": "Worked",
+      "absencePaid": "Not worked — paid",
+      "absenceUnpaid": "Not worked — unpaid",
+      "notApplicable": "Outside employment",
+      "status": {
+        "not_applicable": "N/A",
+        "nonWorkday": "Day off",
+        "outcome_worked": "Worked",
+        "outcome_absence_paid": "Not worked · paid",
+        "outcome_absence_unpaid": "Not worked · unpaid",
+        "complete": "Approved",
+        "open": "Pending",
+        "void": "Void",
+        "missing": "Missing report",
+        "future": "Future"
+      },
       "workday": "Workday",
       "holiday": "Day off",
       "noData": "No data"
@@ -562,6 +578,42 @@
     },
     "description": "Clock in and out for presence. Attendance is not project time and never creates labor Actual by itself.",
     "updateCta": "Update attendance",
+    "outcomes": {
+      "title": "Day status (worked / not worked)",
+      "subtitle": "Mark work days, leave, or absence — separate from clock in/out.",
+      "employee": "Employee",
+      "prevEmployee": "Previous employee",
+      "nextEmployee": "Next employee",
+      "entryMode": "Date range",
+      "workDate": "Date",
+      "fromDate": "From",
+      "toDate": "To",
+      "dayStatus": "Day status",
+      "absenceReason": "Reason",
+      "absenceCompensation": "Pay",
+      "notes": "Notes",
+      "savedCount": "{count, plural, one {One day updated} other {{count} days updated}}",
+      "modes": {
+        "single": "Single date",
+        "range": "Date range"
+      },
+      "status": {
+        "worked": "Worked",
+        "notWorked": "Did not work"
+      },
+      "reasons": {
+        "paid_leave": "Unpaid leave (חל״ת)",
+        "unpaid_leave": "Unpaid leave (חל״ת)",
+        "vacation": "Vacation",
+        "sick": "Sick",
+        "rest_day": "Rest day",
+        "other": "Other"
+      },
+      "compensation": {
+        "paid": "Paid",
+        "unpaid": "Unpaid"
+      }
+    },
     "filteredEmployee": "Showing attendance for {name}. You can update historical dates below.",
     "scopeDisclaimer": "Attendance records site presence only — not project management, not project hours, and not labor cost. Billable or project hours belong under Time.",
     "disclaimer": "Presence only - not project hours and not cost.",

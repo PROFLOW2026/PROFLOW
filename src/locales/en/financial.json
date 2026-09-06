@@ -58,6 +58,7 @@
     "billedVat": "VAT",
     "billedVatHint": "VAT on finalized billings. Not revenue and not profit.",
     "billedGross": "Total due including VAT",
+    "includingVat": "Including VAT",
     "billedGrossHint": "Gross amount the customer owes - collections basis, not revenue.",
     "paid": "Cash received",
     "paidHint": "Cash actually received from clients - not revenue and not billed amount.",
@@ -386,7 +387,7 @@
     "recognizedActual": "Recognized actual",
     "recognizedActualHint": "Cost recognized in the period — not cash and not advances.",
     "cashPaid": "Cash paid",
-    "cashPaidHint": "Vendor payments and subcontract advances paid in the period.",
+    "cashPaidHint": "Actual cash out: vendor payments, advances, paid expenses, and paid payroll in the period.",
     "openPayables": "Open vendor bills",
     "openPayablesHint": "Unpaid vendor-bill cash outstanding.",
     "commitments": "Commitments",
@@ -401,6 +402,9 @@
     "openReceivablesHint": "Outstanding client balances not yet collected.",
     "overdueAr": "Overdue AR",
     "overdueArHint": "Receivables past their due date.",
+    "cashOutTitle": "Cash out",
+    "upcomingCashOut": "Upcoming cash out",
+    "upcomingCashOutHint": "Expenses, payroll, and vendor bills due in the next 30 days.",
     "drilldown": "Open list",
     "unavailable": "No permission"
   }

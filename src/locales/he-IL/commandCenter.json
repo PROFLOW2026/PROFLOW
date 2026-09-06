@@ -8,6 +8,7 @@
   },
   "actions": {
     "open": "פתיחה",
+    "confirmPaid": "אשר ששולם",
     "handle": "סימון כטופל",
     "snooze1d": "דחייה ליום אחד",
     "snooze7d": "דחייה ל-7 ימים"
@@ -58,7 +59,11 @@
     "communication_failed": "הודעה לא נשלחה",
     "billing_plan_cycle_draft": "חשבון התקדמות להנפקה",
     "billing_plan_milestone_due": "אבן דרך לחיוב",
-    "billing_plan_retention_release_due": "שחרור עיכבון לביצוע"
+    "billing_plan_retention_release_due": "שחרור עיכבון לביצוע",
+    "missing_attendance_today": "חסר דיווח נוכחות",
+    "expense_due_today": "הוצאה לתשלום",
+    "expense_overdue": "הוצאה באיחור",
+    "payroll_due_today": "שכר לתשלום"
   },
   "empty": {
     "title": "הכול בסדר",

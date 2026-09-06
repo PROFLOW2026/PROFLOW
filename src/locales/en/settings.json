@@ -170,6 +170,23 @@
     "hintProjects": "Projects appear in the main navigation. Jobs stay available when needed. Bill of quantities stays hidden unless you turn that feature on.",
     "saved": "Business focus updated."
   },
+  "orgFinancialPolicies": {
+    "title": "Payment policies",
+    "subtitle": "Expense and salary payment confirmation — manual by default.",
+    "expensePaymentLabel": "Expense payment confirmation",
+    "expensePaymentHint": "Manual: confirm Paid on due date. Automatic: mark paid on due date with audit trail.",
+    "expensePaymentModes": {
+      "manual": "Manual",
+      "automatic_on_due": "Automatic on due date"
+    },
+    "salaryPaymentDayLabel": "Salary payment day (of month)",
+    "salaryPaymentLabel": "Salary payment confirmation",
+    "salaryPaymentHint": "Manual: confirm on payment day. Automatic: mark paid on the chosen day with audit trail.",
+    "salaryPaymentModes": {
+      "manual": "Manual",
+      "automatic_on_day": "Automatic on payment day"
+    }
+  },
   "projectProfitabilityMode": {
     "title": "Project profitability",
     "subtitle": "How project Actual cost and profit appear on project pages. Does not change allocations or company-level totals.",
@@ -551,7 +568,9 @@
         "created": "Expense created",
         "updated": "Expense updated",
         "finalized": "Expense finalized",
-        "voided": "Expense voided"
+        "voided": "Expense voided",
+        "payment_confirmed": "Expense payment confirmed",
+        "payment_confirmation_voided": "Expense payment confirmation voided"
       },
       "change_request": {
         "created": "Change request created",
@@ -601,6 +620,10 @@
         "updated": "Employee updated",
         "archived": "Employee archived",
         "restored": "Employee restored"
+      },
+      "payroll": {
+        "payment_confirmed": "Payroll payment confirmed",
+        "payment_confirmation_voided": "Payroll payment confirmation voided"
       },
       "rate_version": {
         "created": "Rate version created"

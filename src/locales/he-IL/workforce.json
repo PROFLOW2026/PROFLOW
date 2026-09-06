@@ -476,6 +476,22 @@
       "approved": "אושר",
       "pending": "ממתין",
       "void": "בוטל",
+      "worked": "עבד",
+      "absencePaid": "לא עבד: בתשלום",
+      "absenceUnpaid": "לא עבד: ללא תשלום",
+      "notApplicable": "מחוץ לתקופה",
+      "status": {
+        "not_applicable": "לא רלוונטי",
+        "nonWorkday": "לא יום עבודה",
+        "outcome_worked": "עבד",
+        "outcome_absence_paid": "לא עבד · בתשלום",
+        "outcome_absence_unpaid": "לא עבד · ללא תשלום",
+        "complete": "אושר",
+        "open": "ממתין",
+        "void": "בוטל",
+        "missing": "חסר דיווח",
+        "future": "עתידי"
+      },
       "workday": "יום עבודה",
       "holiday": "חופש",
       "noData": "אין נתונים"
@@ -534,6 +550,42 @@
     },
     "description": "כניסה ויציאה לנוכחות. נוכחות אינה דיווח שעות לפרויקט ואינה יוצרת עלות עבודה בפועל לבדה.",
     "updateCta": "עדכון נוכחות",
+    "outcomes": {
+      "title": "סטטוס יום (עבד / לא עבד)",
+      "subtitle": "סימון יום עבודה, חופשה או היעדרות, נפרד מכניסה/יציאה.",
+      "employee": "עובד",
+      "prevEmployee": "העובד הקודם",
+      "nextEmployee": "העובד הבא",
+      "entryMode": "טווח תאריכים",
+      "workDate": "תאריך",
+      "fromDate": "מתאריך",
+      "toDate": "עד תאריך",
+      "dayStatus": "סטטוס יום",
+      "absenceReason": "סיבה",
+      "absenceCompensation": "תשלום",
+      "notes": "הערות",
+      "savedCount": "{count, plural, one {יום אחד עודכן} other {{count} ימים עודכנו}}",
+      "modes": {
+        "single": "תאריך בודד",
+        "range": "טווח תאריכים"
+      },
+      "status": {
+        "worked": "עבד",
+        "notWorked": "לא עבד"
+      },
+      "reasons": {
+        "paid_leave": "חל״ת",
+        "unpaid_leave": "חל״ת",
+        "vacation": "חופשה",
+        "sick": "מחלה",
+        "rest_day": "יום מנוחה",
+        "other": "אחר"
+      },
+      "compensation": {
+        "paid": "בתשלום",
+        "unpaid": "ללא תשלום"
+      }
+    },
     "filteredEmployee": "מציגים נוכחות עבור {name}. ניתן לעדכן תאריכים היסטוריים למטה.",
     "scopeDisclaimer": "נוכחות היא רישום כניסה/יציאה בלבד - לא ניהול פרויקט, לא שעות לפרויקט, ולא עלות עבודה. שעות לעלות ולפרויקט נרשמות תחת דיווחי שעות.",
     "disclaimer": "נוכחות בלבד - לא שעות פרויקט ולא עלות.",

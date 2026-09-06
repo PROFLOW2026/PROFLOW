@@ -1,4 +1,5 @@
 import { MetricDrilldown } from './metric-drilldown';
+import { MoneyText } from '@/components/patterns/money-text';
 import { AllocatedGeneralOfWhichNote } from './project-actual-breakdown-view';
 import { DataConfidenceBadge } from './data-confidence-badge';
 import { resolveExplanationSourceHref } from './explainability-links';
@@ -535,6 +536,12 @@ export function ProjectFinancialsKpiPanel({
             explanation={t('kpis.billedHint')}
             basis={t('basis.billingNet')}
             whyLabel={t('explain.whyThisNumber')}
+            subtitle={
+              <p className="text-end text-xs text-[var(--pf-text-muted)] tabular-nums">
+                ({t('kpis.includingVat')}:{' '}
+                <MoneyText value={kpis.billedGross} className="inline font-medium" />)
+              </p>
+            }
             lines={[
               {
                 label: t('kpis.billedVat'),

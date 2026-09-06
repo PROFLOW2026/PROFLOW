@@ -15,6 +15,8 @@ export interface OrgCommercialTotals {
 
 export interface OrgCashTotals {
   readonly invoiced: MoneyReportMetric;
+  /** GROSS billed (incl. VAT) — secondary presentation only. */
+  readonly invoicedGross: MoneyReportMetric;
   readonly paid: MoneyReportMetric;
   readonly outstanding: MoneyReportMetric;
 }
@@ -164,6 +166,13 @@ export function aggregateOrgCash(
       key: 'invoiced',
       kind: 'actual',
       value: sumField(rows, currency, (r) => r.invoiced),
+      inclusions: ['finalizedBilling'],
+      exclusions: [...fx, 'contractValue', 'pendingChanges'],
+    }),
+    invoicedGross: moneyMetric({
+      key: 'invoicedGross',
+      kind: 'actual',
+      value: sumField(rows, currency, (r) => r.invoicedGross ?? r.invoiced),
       inclusions: ['finalizedBilling'],
       exclusions: [...fx, 'contractValue', 'pendingChanges'],
     }),

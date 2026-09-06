@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card';
 import { getCompanyProfile } from '@/modules/branding';
 import { withOrgContext } from '@/shared/auth/session';
 import { getBusinessProfileKeyForOrg, getOrganizationLegalIdentity } from '@/modules/tenancy';
+import { getOrgFinancialPolicies } from '@/modules/tenancy/application/org-financial-policies';
 import { canAccessSection, canManageSection, SETTINGS_SECTIONS } from '../_lib/access';
 import { SettingsNotAllowed } from '../settings-not-allowed';
 import { SettingsPageShell, settingsMetadata } from '../settings-shell';
@@ -11,6 +12,7 @@ import { BusinessProfileForm } from './business-profile-form';
 import { BusinessProfilePresetForm } from './business-profile-preset-form';
 import { CompanyDetailsForm } from './company-details-form';
 import { LegalIdentityForm } from './legal-identity-form';
+import { OrgFinancialPoliciesPanel } from './org-financial-policies-panel';
 
 export async function generateMetadata(): Promise<Metadata> {
   return settingsMetadata('business');
@@ -25,10 +27,11 @@ export default async function BusinessSettingsPage() {
       return { allowed: false as const };
     }
 
-    const [companyProfile, currentProfileKey, legalIdentity] = await Promise.all([
+    const [companyProfile, currentProfileKey, legalIdentity, financialPolicies] = await Promise.all([
       getCompanyProfile(context),
       getBusinessProfileKeyForOrg(context.db, context.organizationId),
       getOrganizationLegalIdentity(context.db, context.organizationId),
+      getOrgFinancialPolicies(context),
     ]);
 
     return {
@@ -38,6 +41,7 @@ export default async function BusinessSettingsPage() {
       currentProfileKey,
       companyProfile,
       legalIdentity,
+      financialPolicies,
     };
   });
 
@@ -87,6 +91,7 @@ export default async function BusinessSettingsPage() {
             canEdit={data.canEdit}
           />
           <BusinessProfilePresetForm canEdit={data.canEdit} currentProfileKey={data.currentProfileKey} />
+          <OrgFinancialPoliciesPanel initialPolicies={data.financialPolicies} canEdit={data.canEdit} />
         </Card>
       </div>
     </SettingsPageShell>

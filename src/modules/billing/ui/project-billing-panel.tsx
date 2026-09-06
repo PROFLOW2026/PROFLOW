@@ -1,6 +1,7 @@
 import { getLocale, getTranslations } from 'next-intl/server';
 import { Receipt } from 'lucide-react';
 import { MoneyText } from '@/components/patterns/money-text';
+import { BillingNetPrimaryDisplay } from '@/components/patterns/billing-net-primary-display';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -83,10 +84,13 @@ export async function ProjectBillingPanel({ projectId, contractId }: ProjectBill
         <CardContent className="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <div className="min-w-0 text-start">
             <p className="text-xs text-[var(--pf-text-muted)]">{tFinancial('invoiced')}</p>
-            <p className="text-lg font-semibold">
-              <MoneyText value={position.netInvoiced} />
-            </p>
-            <p className="text-xs text-[var(--pf-text-secondary)]">{tFinancial('basis.billingNet')}</p>
+            <BillingNetPrimaryDisplay
+              netAmount={position.netInvoiced}
+              grossAmount={position.invoiced}
+              netLabel={t('list.beforeVat')}
+              grossLabel={t('list.includingVat')}
+              netClassName="text-lg"
+            />
           </div>
           <div className="min-w-0 text-start">
             <p className="text-xs text-[var(--pf-text-muted)]">{tFinancial('kpis.billedVat')}</p>
@@ -179,8 +183,7 @@ export async function ProjectBillingPanel({ projectId, contractId }: ProjectBill
                         <TableHead>{t('list.issueDate')}</TableHead>
                         <TableHead>{t('list.kind')}</TableHead>
                         <TableHead>{t('list.contract')}</TableHead>
-                        <TableHead numeric>{t('list.amountNet')}</TableHead>
-                        <TableHead numeric>{t('list.amountGross')}</TableHead>
+                        <TableHead numeric>{t('list.amount')}</TableHead>
                         <TableHead numeric>{t('list.outstanding')}</TableHead>
                         <TableHead>{t('list.status')}</TableHead>
                       </TableRow>
@@ -198,10 +201,12 @@ export async function ProjectBillingPanel({ projectId, contractId }: ProjectBill
                             {record.contractName ?? '-'}
                           </TableCell>
                           <TableCell numeric>
-                            <MoneyText value={record.subtotalAmount ?? record.totalAmount} />
-                          </TableCell>
-                          <TableCell numeric>
-                            <MoneyText value={record.totalAmount} />
+                            <BillingNetPrimaryDisplay
+                              netAmount={record.subtotalAmount ?? record.totalAmount}
+                              grossAmount={record.totalAmount}
+                              netLabel={t('list.beforeVat')}
+                              grossLabel={t('list.includingVat')}
+                            />
                           </TableCell>
                           <TableCell numeric>
                             <MoneyText value={record.outstandingAmount} colorizeNegative />
@@ -237,18 +242,17 @@ export async function ProjectBillingPanel({ projectId, contractId }: ProjectBill
                     {t(`kinds.${record.kind}`)}
                     {record.contractName ? ` · ${record.contractName}` : ''}
                   </p>
-                  <div className="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm">
-                    <span>
-                      {t('list.amountNet')}:{' '}
-                      <MoneyText value={record.subtotalAmount ?? record.totalAmount} />
-                    </span>
-                    <span>
-                      {t('list.amountGross')}: <MoneyText value={record.totalAmount} />
-                    </span>
-                    <span>
+                  <div className="mt-2">
+                    <BillingNetPrimaryDisplay
+                      netAmount={record.subtotalAmount ?? record.totalAmount}
+                      grossAmount={record.totalAmount}
+                      netLabel={t('list.beforeVat')}
+                      grossLabel={t('list.includingVat')}
+                    />
+                    <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
                       {t('list.outstanding')}:{' '}
                       <MoneyText value={record.outstandingAmount} colorizeNegative />
-                    </span>
+                    </p>
                   </div>
                 </Link>
               )}

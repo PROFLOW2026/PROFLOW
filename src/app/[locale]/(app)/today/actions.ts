@@ -78,3 +78,45 @@ export async function handleCommandCenterItemAction(input: {
     throw error;
   }
 }
+
+export async function confirmTodayPaymentAction(input: {
+  readonly sourceType: 'expense_due_today' | 'expense_overdue' | 'payroll_due_today';
+  readonly sourceId: string;
+}): Promise<CommandCenterActionResult> {
+  const tErrors = await getTranslations('errors');
+
+  try {
+    await withOrgContext(async (context) => {
+      if (
+        input.sourceType === 'expense_due_today' ||
+        input.sourceType === 'expense_overdue'
+      ) {
+        const { confirmExpensePaid } = await import(
+          '@/modules/expenses/application/expense-payments'
+        );
+        await confirmExpensePaid(context, input.sourceId);
+        return;
+      }
+      if (input.sourceType === 'payroll_due_today') {
+        const { confirmPayrollPaid } = await import(
+          '@/modules/workforce/application/payroll-payments'
+        );
+        await confirmPayrollPaid(context, input.sourceId);
+      }
+    });
+    revalidatePath('/today');
+    revalidatePath('/financial');
+    revalidatePath('/financials/overview');
+    return {};
+  } catch (error) {
+    if (error instanceof DomainRuleError) {
+      return { error: tErrors('unexpected') };
+    }
+    if (error instanceof ValidationError || error instanceof AppError) {
+      return mapServerActionError(error, {
+        tErrors: (key) => tErrors(key as 'unexpected'),
+      });
+    }
+    throw error;
+  }
+}

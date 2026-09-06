@@ -428,13 +428,13 @@ export function forecastWarningCopy(
         };
       case 'forecast_margin_negative':
         return {
-          what: 'בדיקת מרווח תחזית שלילי',
-          why: 'מרווח התחזית מתחת לאפס לפי החוזה ותחזית העלות',
+          what: 'בדיקת שיעור יתרת חוזה תחזית שלילי',
+          why: 'שיעור יתרת החוזה התחזיתי מתחת לאפס לפי החוזה ותחזית העלות',
         };
       case 'margin_deterioration':
         return {
-          what: 'בדיקת הידרדרות מרווח',
-          why: 'מרווח התחזית נמוך ממרווח בפועל ב־3 נקודות אחוז או יותר',
+          what: 'בדיקת הידרדרות יתרת חוזה',
+          why: 'שיעור יתרת החוזה התחזיתי נמוך משיעור יתרת החוזה בפועל ב־3 נקודות אחוז או יותר',
         };
       case 'commitment_pressure':
         return {
@@ -701,7 +701,7 @@ function automationPresetLabel(locale: string, presetKey: string): string {
       case 'forecast_over_budget':
         return 'תחזית מעל התקציב';
       case 'forecast_margin_low':
-        return 'מרווח תחזית נמוך';
+        return 'שיעור יתרת חוזה תחזית נמוך';
       case 'warranty_expiring':
         return 'אחריות לקראת פקיעה';
       case 'compliance_expiring':

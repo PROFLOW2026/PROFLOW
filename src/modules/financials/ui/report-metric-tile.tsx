@@ -8,6 +8,8 @@ export interface ReportMetricTileCopy {
   readonly inclusionLabels: readonly string[];
   readonly exclusionLabels: readonly string[];
   readonly basisLabel?: string;
+  readonly secondaryMoney?: { amount: string; currency: string };
+  readonly secondaryLabel?: string;
 }
 
 function ReportMetricShell({
@@ -18,6 +20,8 @@ function ReportMetricShell({
   inclusionLabels,
   exclusionLabels,
   basisLabel,
+  secondaryMoney,
+  secondaryLabel,
 }: {
   readonly label: string;
   readonly natureLabel: string;
@@ -26,6 +30,8 @@ function ReportMetricShell({
   readonly inclusionLabels: readonly string[];
   readonly exclusionLabels: readonly string[];
   readonly basisLabel?: string;
+  readonly secondaryMoney?: { amount: string; currency: string };
+  readonly secondaryLabel?: string;
 }) {
   return (
     <div className="min-w-0 max-w-full rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-3 text-start">
@@ -43,6 +49,11 @@ function ReportMetricShell({
       <div className="mt-1 min-w-0 max-w-full overflow-x-auto text-base font-semibold">
         {value}
       </div>
+      {secondaryMoney && secondaryLabel ? (
+        <p className="text-xs text-[var(--pf-text-muted)] tabular-nums">
+          ({secondaryLabel}: <MoneyText value={secondaryMoney} className="inline font-medium" />)
+        </p>
+      ) : null}
       {currency ? (
         <p className="mt-0.5 text-[10px] text-[var(--pf-text-muted)]" dir="ltr">
           {currency}
@@ -80,6 +91,8 @@ export function MoneyReportMetricTile({
       inclusionLabels={copy.inclusionLabels}
       exclusionLabels={copy.exclusionLabels}
       basisLabel={copy.basisLabel}
+      secondaryMoney={copy.secondaryMoney}
+      secondaryLabel={copy.secondaryLabel}
     />
   );
 }

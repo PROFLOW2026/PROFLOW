@@ -168,7 +168,7 @@ describe('report packs', () => {
     });
     expect(presented.omitted.profit).toBe(true);
     expect(presented.sections.find((section) => section.id === 'profit')).toBeUndefined();
-    expect(presented.notices.some((notice) => notice.includes('רווח'))).toBe(true);
+    expect(presented.notices.some((notice) => notice.includes('יתרת חוזה'))).toBe(true);
     const profitValues = presented.sections.flatMap((section) => section.rows ?? []).filter((row) =>
       row.label.includes('רווח'),
     );

@@ -124,7 +124,7 @@ describe('mobile money surfaces @390px', () => {
     const viewport = screen.getByTestId('mobile-viewport');
     expect(viewport.getBoundingClientRect().width).toBeLessThanOrEqual(MOBILE_WIDTH_PX + 1);
 
-    for (const label of [/^סכום החוזה הנוכחי/, /^עלות מוכרת/, /^רווח צפוי/]) {
+    for (const label of [/^סכום החוזה הנוכחי/, /^עלות מוכרת/, /^יתרת חוזה צפויה/]) {
       const button = screen.getByRole('button', { name: label });
       expect(button).toBeVisible();
       expect(button.getBoundingClientRect().width).toBeLessThanOrEqual(MOBILE_WIDTH_PX + 1);
@@ -141,7 +141,7 @@ describe('mobile money surfaces @390px', () => {
     expect(screen.getByText('עלות מוכרת')).toBeVisible();
     expect(screen.getByText('חיובים ללקוח')).toBeVisible();
     expect(screen.getByText('יתרה לגבייה כולל מע״מ')).toBeVisible();
-    expect(screen.getByText('רווח צפוי')).toBeVisible();
+    expect(screen.getByText('יתרת חוזה צפויה')).toBeVisible();
   });
 
   it('ExpenseForm exposes primary capture fields at mobile width', () => {

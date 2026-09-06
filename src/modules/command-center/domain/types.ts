@@ -38,6 +38,9 @@ export const COMMAND_CENTER_SOURCE_TYPES = [
   'billing_plan_milestone_due',
   'billing_plan_retention_release_due',
   'missing_attendance_today',
+  'expense_due_today',
+  'expense_overdue',
+  'payroll_due_today',
 ] as const;
 
 export type CommandCenterSourceType = (typeof COMMAND_CENTER_SOURCE_TYPES)[number];
@@ -61,6 +64,9 @@ export const FINANCIAL_SOURCE_TYPES = [
   'cash_flow_risk',
   'billing_plan_cycle_draft',
   'billing_plan_retention_release_due',
+  'expense_due_today',
+  'expense_overdue',
+  'payroll_due_today',
 ] as const satisfies readonly CommandCenterSourceType[];
 
 export type FinancialSourceType = (typeof FINANCIAL_SOURCE_TYPES)[number];
@@ -87,6 +93,8 @@ export interface CommandCenterItem {
   readonly isFinancial: boolean;
   readonly allowHandle: boolean;
   readonly allowSnooze: boolean;
+  /** When set, Today shows "אשר ששולם" for manual payment confirmation. */
+  readonly confirmPaid?: 'expense' | 'payroll';
   readonly meta?: Readonly<Record<string, string | number | boolean | null>>;
 }
 

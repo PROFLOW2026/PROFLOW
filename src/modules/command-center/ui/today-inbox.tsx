@@ -83,6 +83,7 @@ export async function TodayInboxPanel({ inbox }: { readonly inbox: CommandCenter
     snooze1d: t('actions.snooze1d'),
     snooze7d: t('actions.snooze7d'),
     financialGuard: t('financialGuard'),
+    confirmPaid: t('actions.confirmPaid'),
   };
 
   if (inbox.items.length === 0) {

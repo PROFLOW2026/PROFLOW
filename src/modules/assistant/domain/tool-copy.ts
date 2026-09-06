@@ -14,7 +14,7 @@ export function assistantToolTitle(locale: string, tool: AssistantToolKey): stri
       case 'today_attention':
         return 'היום';
       case 'explain_project_profit':
-        return 'רווח פרויקט';
+        return 'יתרת חוזה פרויקט';
       case 'clients_owing_money':
         return 'לקוחות עם יתרה';
       case 'pay_this_week':
@@ -71,9 +71,9 @@ export function warningKindLabel(locale: string, kind: string): string {
       case 'insufficient_remaining_budget':
         return 'תקציב שנותר אינו מספיק';
       case 'forecast_margin_negative':
-        return 'מרווח תחזית שלילי';
+        return 'שיעור יתרת חוזה תחזית שלילי';
       case 'margin_deterioration':
-        return 'שחיקת מרווח';
+        return 'שחיקת יתרת חוזה';
       case 'commitment_pressure':
         return 'לחץ מהתחייבויות';
       case 'billing_lag':
@@ -119,17 +119,17 @@ export const assistantToolCopy = {
     he(locale) ? 'אין פריטים לטיפול בהיום.' : 'No Today items in the current inbox.',
   profitNeedProject: (locale: string) =>
     he(locale)
-      ? 'ציינו פרויקט כדי להסביר רווח מהנתונים הקיימים.'
-      : 'Name a project to explain profit from composed financials.',
+      ? 'ציינו פרויקט כדי להסביר יתרת חוזה מהנתונים הקיימים.'
+      : 'Name a project to explain contract balance from composed financials.',
   profitNotSet: (locale: string) =>
-    he(locale) ? 'לא הוגדר מחיר. לא מחושב רווח.' : 'Price is not set. Profit is not claimed.',
+    he(locale) ? 'לא הוגדר מחיר. לא מחושבת יתרת חוזה.' : 'Price is not set. Contract balance is not claimed.',
   profitHidden: (locale: string) =>
     he(locale)
-      ? 'הרווח אינו זמין לצופה הזה או לפרויקט הזה.'
-      : 'Profit is not available for this viewer or project.',
+      ? 'יתרת החוזה אינה זמינה לצופה הזה או לפרויקט הזה.'
+      : 'Contract balance is not available for this viewer or project.',
   profitBody: (locale: string, forecast: string, actual: string, currency: string) =>
     he(locale)
-      ? `מרווח תחזית ${forecast} ${currency}. מרווח בפועל ${actual} ${currency}.`
+      ? `שיעור יתרת חוזה תחזית ${forecast} ${currency}. שיעור יתרת חוזה בפועל ${actual} ${currency}.`
       : `Forecast margin ${forecast} ${currency}. Actual margin ${actual} ${currency}.`,
   clientsEmpty: (locale: string) =>
     he(locale) ? 'אין חיובים באיחור ברשימה הזו.' : 'No overdue billing records in this list.',

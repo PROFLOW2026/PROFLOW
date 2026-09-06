@@ -192,5 +192,8 @@ export async function finalizeExpense(context: OrgContext, expenseId: string) {
     expenseDate: finalized.expenseDate,
   });
 
+  const { initializeExpensePaymentOnFinalize } = await import('./expense-payments');
+  await initializeExpensePaymentOnFinalize(context, expenseId);
+
   return finalized;
 }

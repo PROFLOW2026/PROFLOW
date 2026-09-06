@@ -4,6 +4,7 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import { Link } from '@/shared/i18n/navigation';
 import { CoverageDisclosure } from '@/components/patterns/coverage-disclosure';
 import { MoneyText } from '@/components/patterns/money-text';
+import { BillingNetPrimaryDisplay } from '@/components/patterns/billing-net-primary-display';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -440,6 +441,9 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
               <KpiCard
                 title={tFinancial('kpis.billed')}
                 money={data.billing.netInvoiced}
+                grossMoney={data.billing.invoiced}
+                netLabel={tFinancial('basis.billingNet')}
+                grossLabel={tFinancial('kpis.includingVat')}
                 hint={tFinancial('kpis.billedHint')}
                 footer={(() => {
                   if (!data.billingCoverage) return null;
@@ -775,6 +779,9 @@ function MonthNavigation({
 function KpiCard({
   title,
   money,
+  grossMoney,
+  netLabel,
+  grossLabel,
   value,
   hint,
   footer,
@@ -784,6 +791,9 @@ function KpiCard({
 }: {
   title: string;
   money?: { amount: string; currency: string };
+  grossMoney?: { amount: string; currency: string };
+  netLabel?: string;
+  grossLabel?: string;
   value?: string;
   hint?: string;
   footer?: ReactNode;
@@ -810,6 +820,14 @@ function KpiCard({
               </p>
             ) : null}
           </>
+        ) : money && grossMoney && netLabel && grossLabel ? (
+          <BillingNetPrimaryDisplay
+            netAmount={money}
+            grossAmount={grossMoney}
+            netLabel={netLabel}
+            grossLabel={grossLabel}
+            netClassName="text-lg"
+          />
         ) : money ? (
           <div className="min-w-0 max-w-full overflow-x-auto">
             <MoneyText value={money} className="text-lg font-semibold" />

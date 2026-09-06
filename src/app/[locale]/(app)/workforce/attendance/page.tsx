@@ -14,7 +14,9 @@ import {
   listAttendanceDaysForOrg,
   listEmployeesForOrg,
   listProjectsForTimeLog,
+  findEmployeeById,
 } from '@/modules/workforce';
+import { listAttendanceOutcomesForEmployeeMonth } from '@/modules/workforce/application/attendance-outcomes';
 import { getLaborCostDefaultsForApply } from '@/modules/tenancy';
 import { resolveOrgWorkWeekdays } from '@/modules/tenancy/domain/labor-cost-defaults';
 import { DateRangeSelector } from '@/components/patterns/date-range-selector';
@@ -22,6 +24,7 @@ import { AttendanceClockPanel } from '@/modules/workforce/ui/attendance-clock-pa
 import { AttendanceDayDetailPanel } from '@/modules/workforce/ui/attendance-day-detail-panel';
 import { AttendanceDaysTable } from '@/modules/workforce/ui/attendance-days-table';
 import { AttendanceManualEntryForm } from '@/modules/workforce/ui/attendance-manual-entry-form';
+import { AttendanceOutcomeForm } from '@/modules/workforce/ui/attendance-outcome-form';
 import { AttendanceMonthCalendar } from '@/modules/workforce/ui/attendance-month-calendar';
 import { AttendanceDailyRoster } from '@/modules/workforce/ui/attendance-daily-roster';
 import { WorkforceSubNav } from '@/modules/workforce/ui/workforce-sub-nav';
@@ -32,9 +35,10 @@ import {
   clockBreakEndAction,
   manualAttendanceAction,
 } from '@/app/[locale]/(app)/workforce/attendance/actions';
+import { attendanceOutcomeAction } from '@/app/[locale]/(app)/workforce/attendance/outcome-actions';
 import { withOrgContext } from '@/shared/auth/session';
 import { AuthorizationError } from '@/shared/errors';
-import { todayInTimeZone, businessDate } from '@/shared/dates';
+import { todayInTimeZone, businessDate, type BusinessDate } from '@/shared/dates';
 import { Link } from '@/shared/i18n/navigation';
 
 export async function generateMetadata({
@@ -106,7 +110,7 @@ export default async function AttendancePage({
       ? businessDate(`${calendarMonth}-${String(new Date(Number(calendarMonth.split('-')[0]), Number(calendarMonth.split('-')[1]), 0).getDate()).padStart(2, '0')}`)
       : undefined;
 
-    const [clock, days, calendarDays, employees, detail, laborDefaults, projects, todayOverview] =
+    const [clock, days, calendarDays, calendarOutcomes, employmentRange, employees, detail, laborDefaults, projects, todayOverview] =
       await Promise.all([
         allowClock ? getAttendanceClockSurface(context) : Promise.resolve(null),
         listAttendanceDaysForOrg(context, filters),
@@ -119,6 +123,19 @@ export default async function AttendancePage({
               status: 'all',
             })
           : Promise.resolve([]),
+        filters.employeeId
+          ? listAttendanceOutcomesForEmployeeMonth(context, filters.employeeId, calendarMonth)
+          : Promise.resolve([]),
+        filters.employeeId
+          ? findEmployeeById(context.db, context.organizationId, filters.employeeId).then((row) =>
+              row
+                ? {
+                    hireDate: (row.hireDate as BusinessDate | null) ?? null,
+                    endDate: (row.endDate as BusinessDate | null) ?? null,
+                  }
+                : { hireDate: null, endDate: null },
+            )
+          : Promise.resolve({ hireDate: null, endDate: null }),
         allowManage
           ? listEmployeesForOrg(context).then((rows) =>
               rows.map((row) => ({ id: row.id, name: row.name, status: row.status })),
@@ -149,6 +166,8 @@ export default async function AttendancePage({
       clock,
       days,
       calendarDays,
+      calendarOutcomes,
+      employmentRange,
       employees,
       detail,
       selectedEmployee,
@@ -204,16 +223,24 @@ export default async function AttendancePage({
         ) : null}
 
         {data.allowManage ? (
-          <AttendanceManualEntryForm
-            action={manualAttendanceAction}
-            employees={data.employees}
-            projects={data.projects}
-            defaultDate={formDefaultDate}
-            defaultEmployeeId={filters.employeeId ?? null}
-            employeeLocked={Boolean(filters.employeeId)}
-            emphasize={focusUpdate}
-            defaultWeekdays={data.defaultWeekdays}
-          />
+          <>
+            <AttendanceOutcomeForm
+              action={attendanceOutcomeAction}
+              employees={data.employees}
+              defaultDate={formDefaultDate}
+              defaultEmployeeId={filters.employeeId ?? null}
+            />
+            <AttendanceManualEntryForm
+              action={manualAttendanceAction}
+              employees={data.employees}
+              projects={data.projects}
+              defaultDate={formDefaultDate}
+              defaultEmployeeId={filters.employeeId ?? null}
+              employeeLocked={Boolean(filters.employeeId)}
+              emphasize={focusUpdate}
+              defaultWeekdays={data.defaultWeekdays}
+            />
+          </>
         ) : null}
 
         {data.selectedEmployee ? (
@@ -229,6 +256,8 @@ export default async function AttendancePage({
             employeeName={data.selectedEmployee.name}
             yearMonth={data.calendarMonth}
             attendanceDays={data.calendarDays}
+            attendanceOutcomes={data.calendarOutcomes}
+            employmentRange={data.employmentRange}
             defaultWeekdays={data.defaultWeekdays}
             today={data.today}
           />

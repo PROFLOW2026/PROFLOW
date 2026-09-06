@@ -171,7 +171,11 @@ export async function ReportsAnalyticsView({
             <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-3">
               <MoneyReportMetricTile
                 metric={analytics.cash.invoiced}
-                copy={moneyCopy(analytics.cash.invoiced, tFinancial('invoiced'), 'billingNet')}
+                copy={{
+                  ...moneyCopy(analytics.cash.invoiced, tFinancial('invoiced'), 'billingNet'),
+                  secondaryMoney: analytics.cash.invoicedGross.value,
+                  secondaryLabel: tFinancial('kpis.includingVat'),
+                }}
               />
               <MoneyReportMetricTile
                 metric={analytics.cash.paid}

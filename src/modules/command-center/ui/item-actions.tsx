@@ -5,6 +5,7 @@ import { useTransition } from 'react';
 import { Button } from '@/components/ui/button';
 import type { CommandCenterItem } from '@/modules/command-center';
 import {
+  confirmTodayPaymentAction,
   handleCommandCenterItemAction,
   snoozeCommandCenterItemAction,
 } from '@/app/[locale]/(app)/today/actions';
@@ -14,6 +15,7 @@ export interface CommandCenterItemActionLabels {
   readonly snooze1d: string;
   readonly snooze7d: string;
   readonly financialGuard: string;
+  readonly confirmPaid: string;
 }
 
 export function CommandCenterItemActions({
@@ -28,6 +30,27 @@ export function CommandCenterItemActions({
 
   return (
     <div className="mt-3 flex flex-wrap gap-2">
+      {item.confirmPaid ? (
+        <Button
+          type="button"
+          size="sm"
+          disabled={pending}
+          onClick={() => {
+            startTransition(async () => {
+              await confirmTodayPaymentAction({
+                sourceType: item.sourceType as
+                  | 'expense_due_today'
+                  | 'expense_overdue'
+                  | 'payroll_due_today',
+                sourceId: item.sourceId,
+              });
+              router.refresh();
+            });
+          }}
+        >
+          {labels.confirmPaid}
+        </Button>
+      ) : null}
       {item.allowHandle ? (
         <Button
           type="button"
@@ -90,7 +113,7 @@ export function CommandCenterItemActions({
           </Button>
         </>
       ) : null}
-      {item.isFinancial ? (
+      {item.isFinancial && !item.confirmPaid ? (
         <p className="w-full text-xs text-[var(--pf-text-muted)]">{labels.financialGuard}</p>
       ) : null}
     </div>

@@ -1,28 +1,35 @@
 import { getTranslations } from 'next-intl/server';
-import { ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
 import type { AttendanceDayListItem } from '@/modules/workforce';
+import type { AttendanceOutcomeListItem } from '@/modules/workforce/application/attendance-outcomes';
+import type { BusinessDate } from '@/shared/dates';
+import type { EmploymentRange } from '@/modules/workforce/domain/employment-active-range';
+import { isWithinEmploymentRange } from '@/modules/workforce/domain/employment-active-range';
 
 interface AttendanceMonthCalendarProps {
   readonly employeeId: string;
   readonly employeeName: string;
-  /** YYYY-MM, e.g. "2026-09" */
   readonly yearMonth: string;
   readonly attendanceDays: readonly AttendanceDayListItem[];
-  /** Array of 0-6 numbers representing configured work weekdays (0=Sunday) */
+  readonly attendanceOutcomes: readonly AttendanceOutcomeListItem[];
+  readonly employmentRange: EmploymentRange;
   readonly defaultWeekdays: readonly number[];
-  /** Today's date in org timezone, "YYYY-MM-DD" */
   readonly today: string;
 }
 
 type DayStatus =
+  | 'not_applicable'
+  | 'nonWorkday'
+  | 'outcome_worked'
+  | 'outcome_absence_paid'
+  | 'outcome_absence_unpaid'
   | 'complete'
   | 'open'
   | 'void'
-  | 'missing'   // past workday with no record
-  | 'future'    // future workday (no record yet)
-  | 'nonWorkday'; // weekend or non-configured workday
+  | 'missing'
+  | 'future';
 
 function getDaysInMonth(yearMonth: string): number {
   const [year, month] = yearMonth.split('-').map(Number);
@@ -31,7 +38,7 @@ function getDaysInMonth(yearMonth: string): number {
 
 function getFirstDayOfWeek(yearMonth: string): number {
   const [year, month] = yearMonth.split('-').map(Number);
-  return new Date(year!, month! - 1, 1).getDay(); // 0=Sun
+  return new Date(year!, month! - 1, 1).getDay();
 }
 
 function prevMonthStr(yearMonth: string): string {
@@ -53,41 +60,66 @@ function formatMonthTitle(yearMonth: string, locale: string): string {
 }
 
 function getDayStatus(
-  dateStr: string,
+  dateStr: BusinessDate,
   today: string,
   isWorkday: boolean,
+  employmentRange: EmploymentRange,
   dayMap: Map<string, AttendanceDayListItem>,
+  outcomeMap: Map<string, AttendanceOutcomeListItem>,
 ): DayStatus {
+  if (!isWithinEmploymentRange(dateStr, employmentRange)) {
+    return 'not_applicable';
+  }
   if (!isWorkday) return 'nonWorkday';
+
+  const outcome = outcomeMap.get(dateStr);
+  if (outcome) {
+    if (outcome.outcome === 'worked') return 'outcome_worked';
+    if (outcome.absenceCompensation === 'paid') return 'outcome_absence_paid';
+    return 'outcome_absence_unpaid';
+  }
 
   const record = dayMap.get(dateStr);
   if (record) {
     if (record.status === 'void') return 'void';
     if (record.status === 'complete') return 'complete';
-    return 'open'; // 'open' = pending/still working
+    return 'open';
   }
 
-  // No record
   if (dateStr > today) return 'future';
-  return 'missing'; // past workday with no record
+  return 'missing';
 }
 
 const DAY_CELL_STYLES: Record<DayStatus, string> = {
-  complete: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 border-green-200 dark:border-green-800',
-  open: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300 border-yellow-200 dark:border-yellow-700',
-  void: 'bg-gray-100 text-gray-400 dark:bg-gray-800/50 dark:text-gray-500 border-gray-200 dark:border-gray-700 line-through',
-  missing: 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400 border-red-200 dark:border-red-800',
+  outcome_worked:
+    'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 border-green-200 dark:border-green-800',
+  outcome_absence_paid:
+    'bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-300 border-sky-200 dark:border-sky-800',
+  outcome_absence_unpaid:
+    'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300 border-orange-200 dark:border-orange-800',
+  complete:
+    'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
+  open:
+    'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300 border-yellow-200 dark:border-yellow-700',
+  void:
+    'bg-gray-100 text-gray-400 dark:bg-gray-800/50 dark:text-gray-500 border-gray-200 dark:border-gray-700 line-through',
+  missing:
+    'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400 border-red-200 dark:border-red-800',
   future: 'bg-[var(--pf-bg-subtle)] text-[var(--pf-text-muted)] border-[var(--pf-border-default)]',
   nonWorkday: 'bg-transparent text-[var(--pf-text-muted)] border-transparent opacity-40',
+  not_applicable:
+    'bg-[var(--pf-bg-muted)] text-[var(--pf-text-muted)] border-[var(--pf-border-default)] opacity-60',
 };
 
-const WEEKDAY_HEADERS = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'] as const; // Sun=0 … Sat=6
+const WEEKDAY_HEADERS = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'] as const;
 
 export async function AttendanceMonthCalendar({
   employeeId,
   employeeName,
   yearMonth,
   attendanceDays,
+  attendanceOutcomes,
+  employmentRange,
   defaultWeekdays,
   today,
 }: AttendanceMonthCalendarProps) {
@@ -104,40 +136,36 @@ export async function AttendanceMonthCalendar({
     }
   }
 
+  const outcomeMap = new Map<string, AttendanceOutcomeListItem>();
+  for (const outcome of attendanceOutcomes) {
+    outcomeMap.set(outcome.workDate, outcome);
+  }
+
   const prevMonth = prevMonthStr(yearMonth);
   const nextMonth = nextMonthStr(yearMonth);
-
-  // Build current year-month display in locale
   const [yearNum, monthNum] = yearMonth.split('-').map(Number);
-  const monthTitle = formatMonthTitle(yearMonth, 'he-IL'); // TODO: use locale from context
+  const monthTitle = formatMonthTitle(yearMonth, 'he-IL');
 
-  // Build calendar grid — pad start with empty cells
-  const cells: Array<{ day: number | null; dateStr: string | null; status: DayStatus | null }> = [];
+  const cells: Array<{ day: number | null; dateStr: BusinessDate | null; status: DayStatus | null }> =
+    [];
   for (let i = 0; i < firstDayOfWeek; i++) {
     cells.push({ day: null, dateStr: null, status: null });
   }
   for (let day = 1; day <= daysInMonth; day++) {
     const dayStr = String(day).padStart(2, '0');
-    const dateStr = `${yearMonth}-${dayStr}`;
+    const dateStr = `${yearMonth}-${dayStr}` as BusinessDate;
     const dayOfWeek = new Date(yearNum!, monthNum! - 1, day).getDay();
     const isWorkday = workdaySet.has(dayOfWeek);
-    const status = getDayStatus(dateStr, today, isWorkday, dayMap);
+    const status = getDayStatus(dateStr, today, isWorkday, employmentRange, dayMap, outcomeMap);
     cells.push({ day, dateStr, status });
   }
 
-  // Pad to complete last week
   while (cells.length % 7 !== 0) {
     cells.push({ day: null, dateStr: null, status: null });
   }
 
-  const weeks: typeof cells[] = [];
-  for (let i = 0; i < cells.length; i += 7) {
-    weeks.push(cells.slice(i, i + 7));
-  }
-
   return (
     <div className="rounded-xl border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 shadow-sm">
-      {/* Header */}
       <div className="mb-4 flex items-center justify-between">
         <div>
           <h3 className="text-base font-semibold text-[var(--pf-text-primary)]">{t('title')}</h3>
@@ -164,15 +192,16 @@ export async function AttendanceMonthCalendar({
         </div>
       </div>
 
-      {/* Legend */}
       <div className="mb-3 flex flex-wrap gap-3 text-xs">
-        <LegendItem color="bg-green-100 dark:bg-green-900/30" label={t('approved')} />
+        <LegendItem color="bg-green-100 dark:bg-green-900/30" label={t('worked')} />
+        <LegendItem color="bg-sky-100 dark:bg-sky-900/30" label={t('absencePaid')} />
+        <LegendItem color="bg-orange-100 dark:bg-orange-900/30" label={t('absenceUnpaid')} />
+        <LegendItem color="bg-emerald-100 dark:bg-emerald-900/30" label={t('approved')} />
         <LegendItem color="bg-yellow-100 dark:bg-yellow-900/30" label={t('pending')} />
         <LegendItem color="bg-red-50 dark:bg-red-900/20" label={t('missing')} />
-        <LegendItem color="bg-gray-100 dark:bg-gray-800/50" label={t('void')} />
+        <LegendItem color="bg-[var(--pf-bg-muted)]" label={t('notApplicable')} />
       </div>
 
-      {/* Day-of-week header row */}
       <div className="grid grid-cols-7 gap-1">
         {WEEKDAY_HEADERS.map((hdr, i) => (
           <div
@@ -188,29 +217,35 @@ export async function AttendanceMonthCalendar({
           </div>
         ))}
 
-        {/* Calendar cells */}
         {cells.map((cell, idx) => {
           if (!cell.day || !cell.dateStr || !cell.status) {
             return <div key={idx} className="aspect-square" />;
           }
 
-          const isMissing = cell.status === 'missing';
           const isToday = cell.dateStr === today;
+          const statusLabel = t(`status.${cell.status}`);
 
           const cellContent = (
             <div
               className={cn(
-                'relative flex aspect-square flex-col items-center justify-center rounded-md border text-xs font-medium transition-opacity',
+                'relative flex aspect-square flex-col items-center justify-center rounded-md border px-0.5 text-center text-[10px] font-medium leading-tight transition-opacity',
                 DAY_CELL_STYLES[cell.status],
                 isToday && 'ring-2 ring-[var(--pf-action-primary)] ring-offset-1',
               )}
+              title={statusLabel}
             >
-              <span>{cell.day}</span>
-              {isMissing && (
-                <AlertCircle className="absolute bottom-0.5 right-0.5 h-2.5 w-2.5 text-red-500" />
-              )}
+              <span className="text-xs">{cell.day}</span>
+              <span className="mt-0.5 line-clamp-2 max-w-full text-[9px] font-normal opacity-90">
+                {cell.status === 'not_applicable' || cell.status === 'nonWorkday'
+                  ? ''
+                  : statusLabel}
+              </span>
             </div>
           );
+
+          if (cell.status === 'not_applicable') {
+            return <div key={idx}>{cellContent}</div>;
+          }
 
           const dayRecord = dayMap.get(cell.dateStr);
           const href = dayRecord

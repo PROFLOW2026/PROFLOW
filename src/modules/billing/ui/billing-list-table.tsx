@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { MoneyText } from '@/components/patterns/money-text';
+import { BillingNetPrimaryDisplay } from '@/components/patterns/billing-net-primary-display';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/ui/pressable';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -38,8 +39,7 @@ export function BillingListTable({ records, locale }: BillingListTableProps) {
                 <TableHead>{t('list.reference')}</TableHead>
                 <TableHead>{t('list.kind')}</TableHead>
                 <TableHead>{t('list.issueDate')}</TableHead>
-                <TableHead numeric>{t('list.amountNet')}</TableHead>
-                <TableHead numeric>{t('list.amountGross')}</TableHead>
+                <TableHead numeric>{t('list.amount')}</TableHead>
                 <TableHead numeric>{t('list.paid')}</TableHead>
                 <TableHead numeric>{t('list.outstanding')}</TableHead>
                 <TableHead>{t('list.status')}</TableHead>
@@ -67,10 +67,13 @@ export function BillingListTable({ records, locale }: BillingListTableProps) {
                     <span dir="ltr">{formatBusinessDate(record.issueDate, locale, 'short')}</span>
                   </TableCell>
                   <TableCell numeric>
-                    <MoneyText value={record.subtotalAmount ?? record.totalAmount} />
-                  </TableCell>
-                  <TableCell numeric>
-                    <MoneyText value={record.totalAmount} />
+                    <BillingNetPrimaryDisplay
+                      netAmount={record.subtotalAmount ?? record.totalAmount}
+                      grossAmount={record.totalAmount}
+                      netLabel={t('list.beforeVat')}
+                      grossLabel={t('list.includingVat')}
+                      netClassName="text-sm"
+                    />
                   </TableCell>
                   <TableCell numeric>
                     <MoneyText value={record.paidAmount} />
@@ -111,13 +114,12 @@ export function BillingListTable({ records, locale }: BillingListTableProps) {
             <span dir="ltr">{formatBusinessDate(record.issueDate, locale, 'short')}</span>
           </p>
           <div className="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm">
-            <span>
-              {t('list.amountNet')}:{' '}
-              <MoneyText value={record.subtotalAmount ?? record.totalAmount} />
-            </span>
-            <span>
-              {t('list.amountGross')}: <MoneyText value={record.totalAmount} />
-            </span>
+            <BillingNetPrimaryDisplay
+              netAmount={record.subtotalAmount ?? record.totalAmount}
+              grossAmount={record.totalAmount}
+              netLabel={t('list.beforeVat')}
+              grossLabel={t('list.includingVat')}
+            />
             <span>
               {t('list.outstanding')}:{' '}
               <MoneyText value={record.outstandingAmount} colorizeNegative />

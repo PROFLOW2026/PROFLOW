@@ -37,6 +37,7 @@ import { ExpenseEditForm } from './expense-edit-form';
 import { PromoteVendorPanel } from './promote-vendor-panel';
 import { ExpenseDetailAttentionFocus } from '@/modules/expenses/ui/expense-detail-attention-focus';
 import { ExpenseDetailAttentionPanel } from '@/modules/expenses/ui/expense-detail-attention-panel';
+import { ExpensePaymentPanel } from '@/modules/expenses/ui/expense-payment-panel';
 import { resolveExpenseDetailAttention } from '@/modules/expenses/domain/expense-attention';
 import { resolveExpenseBackNavigation } from '@/modules/expenses/domain/expense-return-navigation';
 import { textNavLinkClassName } from '@/components/ui/pressable';
@@ -227,6 +228,10 @@ export default async function ExpenseDetailPage({
           expenseDate={expense.expenseDate}
         />
       </div>
+
+      {expense.status === 'finalized' ? (
+        <ExpensePaymentPanel expense={expense} locale={locale} canManage={canFinalizeExpense} />
+      ) : null}
 
       {readOnly ? (
         <Card>

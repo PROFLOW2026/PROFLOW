@@ -123,6 +123,22 @@ export async function FinancialsOverviewView({ data }: { readonly data: Financia
           />
         </div>
       </section>
+
+      {data.upcomingCashOut ? (
+        <section className="flex min-w-0 flex-col gap-3">
+          <h2 className="text-base font-semibold">{t('cashOutTitle')}</h2>
+          <div className="grid min-w-0 gap-3 sm:grid-cols-2">
+            <OverviewKpiCard
+              title={t('upcomingCashOut')}
+              hint={t('upcomingCashOutHint')}
+              kpi={data.upcomingCashOut}
+              drillLabel={t('drilldown')}
+              unavailable={!data.canReadAp && !data.canReadCosts}
+              unavailableLabel={t('unavailable')}
+            />
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }

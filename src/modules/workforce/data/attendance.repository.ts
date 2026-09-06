@@ -359,6 +359,8 @@ export async function listEmployeesWithoutAttendanceToday(
         eq(employees.organizationId, organizationId),
         isNull(employees.archivedAt),
         eq(employees.status, 'active'),
+        sql`(${employees.hireDate} IS NULL OR ${employees.hireDate} <= ${workDate})`,
+        sql`(${employees.endDate} IS NULL OR ${employees.endDate} >= ${workDate})`,
       ),
     )
     .orderBy(asc(employees.name));

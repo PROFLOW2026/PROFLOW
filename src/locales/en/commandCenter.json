@@ -8,6 +8,7 @@
   },
   "actions": {
     "open": "Open",
+    "confirmPaid": "Confirm paid",
     "handle": "Mark as handled",
     "snooze1d": "Snooze 1 day",
     "snooze7d": "Snooze 7 days"
@@ -58,7 +59,11 @@
     "communication_failed": "Message not sent",
     "billing_plan_cycle_draft": "Progress account to issue",
     "billing_plan_milestone_due": "Billing milestone due",
-    "billing_plan_retention_release_due": "Retention release due"
+    "billing_plan_retention_release_due": "Retention release due",
+    "missing_attendance_today": "Missing attendance",
+    "expense_due_today": "Expense due",
+    "expense_overdue": "Expense overdue",
+    "payroll_due_today": "Payroll due"
   },
   "empty": {
     "title": "You're clear",

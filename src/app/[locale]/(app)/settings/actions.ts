@@ -35,6 +35,14 @@ import {
   updateOrganizationLegalIdentity,
   dismissUnusedCapabilitySuggestion,
 } from '@/modules/tenancy';
+import {
+  saveOrgFinancialPolicies,
+} from '@/modules/tenancy/application/org-financial-policies';
+import {
+  parseExpensePaymentMode,
+  parseSalaryPaymentDay,
+  parseSalaryPaymentMode,
+} from '@/modules/tenancy/domain/org-financial-policies';
 import { upsertCompanyProfile } from '@/modules/branding';
 import { setRolePermissionToggle } from '@/modules/rbac';
 import { updateProfile } from '@/modules/identity';
@@ -471,6 +479,33 @@ export async function setWorkMixAction(
     await withOrgContext((context) => saveWorkMix(context, workMix));
     revalidatePath('/settings/features');
     revalidatePath('/', 'layout');
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof AppError) return { error: tErrors('unexpected') };
+    throw error;
+  }
+}
+
+export async function saveOrgFinancialPoliciesAction(
+  _prev: SettingsActionState,
+  formData: FormData,
+): Promise<SettingsActionState> {
+  const tErrors = await getTranslations('errors');
+  const expenseMode = parseExpensePaymentMode(formValue(formData, 'expensePaymentConfirmationMode'));
+  const salaryMode = parseSalaryPaymentMode(formValue(formData, 'salaryPaymentConfirmationMode'));
+  const salaryDay = parseSalaryPaymentDay(formValue(formData, 'salaryPaymentDay'));
+
+  try {
+    await withOrgContext((context) =>
+      saveOrgFinancialPolicies(context, {
+        expensePaymentConfirmationMode: expenseMode,
+        salaryPaymentConfirmationMode: salaryMode,
+        salaryPaymentDay: salaryDay,
+      }),
+    );
+    revalidatePath('/settings/business');
+    revalidatePath('/today');
+    revalidatePath('/financial');
     return { ok: true };
   } catch (error) {
     if (error instanceof AppError) return { error: tErrors('unexpected') };

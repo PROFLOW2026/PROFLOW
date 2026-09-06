@@ -10,7 +10,7 @@
  */
 
 import { DomainRuleError, NotFoundError } from '@/shared/errors';
-import { toNumericString } from '@/shared/money';
+import { money, toNumericString } from '@/shared/money';
 import { withTransaction } from '@/shared/db';
 import type { OrgContext } from '@/shared/auth/context';
 import { isMonthClosed } from '@/modules/month-close';
@@ -42,6 +42,9 @@ import {
 import { listTimeEntries } from '../data/time-entries.repository';
 import { NON_PROJECT_COST_BUCKET } from '../domain/conserved-hour-allocation';
 import { calculateMonthlyEmployerCostPoolForMonth } from '../domain/employer-cost-pool';
+import { adjustMonthlyCompensationForUnpaidAbsence } from '../domain/employment-active-range';
+import { countUnpaidAbsenceDaysInMonth } from './attendance-outcomes';
+import { upsertPayrollPaymentExpected } from './payroll-payments';
 import { areEmployeeMonthCostsAvailable } from '../domain/monthly-cost-gates';
 import {
   allocateMonthlyRecognizedPoolByWorkDays,
@@ -270,8 +273,18 @@ export async function computeMonthlyEmployeeLaborAllocationDraft(
     hoursByDate.set(entry.workDate, list);
   }
 
+  const unpaidAbsenceDays = await countUnpaidAbsenceDaysInMonth(context, employeeId, yearMonth);
+  const adjustedRecognizedPool = money(
+    adjustMonthlyCompensationForUnpaidAbsence({
+      baseAmount: toNumericString(recognition.recognizedPool),
+      relevantWorkDays: totalEligibleWorkDates.length,
+      unpaidAbsenceDays,
+    }),
+    currency,
+  );
+
   const allocation = allocateMonthlyRecognizedPoolByWorkDays({
-    recognizedPool: recognition.recognizedPool,
+    recognizedPool: adjustedRecognizedPool,
     fullMonthlyEmployerCost: poolResult.pool,
     workingDaysPerMonth,
     workDates,
@@ -284,7 +297,7 @@ export async function computeMonthlyEmployeeLaborAllocationDraft(
     yearMonth,
     employeeId,
     currency,
-    knownAmount: toNumericString(recognition.recognizedPool),
+    knownAmount: toNumericString(adjustedRecognizedPool),
     allocation,
     workingDaysPerMonth,
     recognizedWorkDayCount: recognition.recognizedWorkDayCount,
@@ -459,6 +472,13 @@ export async function recomputeMonthlyEmployeeCostForOpenMonth(
 
     const applied = await applyLaborAllocationRun(tx, context.organizationId, run.id);
     if (!applied) throw new NotFoundError('Labor allocation run');
+  });
+
+  await upsertPayrollPaymentExpected(context, {
+    employeeId,
+    yearMonth,
+    expectedAmount: knownAmountStr,
+    currency,
   });
 
   return {

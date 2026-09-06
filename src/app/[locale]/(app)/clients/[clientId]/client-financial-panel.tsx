@@ -1,5 +1,6 @@
 import { getTranslations } from 'next-intl/server';
 import { MoneyText } from '@/components/patterns/money-text';
+import { BillingNetPrimaryDisplay } from '@/components/patterns/billing-net-primary-display';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import type { ClientFinancialView } from '@/modules/clients/application/get-client-financials';
 import { BillingListTable } from '@/modules/billing/ui/billing-list-table';
@@ -28,10 +29,14 @@ export async function ClientFinancialPanel({ financials, locale }: ClientFinanci
           <div className="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <div className="min-w-0 rounded-md bg-[var(--pf-bg-muted)] p-3 text-start">
               <p className="text-xs text-[var(--pf-text-secondary)]">{t('invoiced')}</p>
-              <p className="mt-1 break-words text-base font-semibold">
-                <MoneyText value={snapshot.netInvoiced} />
-              </p>
-              <p className="mt-1 text-xs text-[var(--pf-text-secondary)]">{tFinancial('basis.billingNet')}</p>
+              <div className="mt-1">
+                <BillingNetPrimaryDisplay
+                  netAmount={snapshot.netInvoiced}
+                  grossAmount={snapshot.invoiced}
+                  netLabel={tFinancial('basis.billingNet')}
+                  grossLabel={tFinancial('kpis.includingVat')}
+                />
+              </div>
             </div>
             <div className="min-w-0 rounded-md bg-[var(--pf-bg-muted)] p-3 text-start">
               <p className="text-xs text-[var(--pf-text-secondary)]">{tFinancial('kpis.billedVat')}</p>

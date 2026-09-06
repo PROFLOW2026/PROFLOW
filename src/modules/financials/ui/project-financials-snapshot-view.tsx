@@ -1,5 +1,6 @@
 import { CoverageDisclosure } from '@/components/patterns/coverage-disclosure';
 import { MoneyText } from '@/components/patterns/money-text';
+import { BillingNetPrimaryDisplay } from '@/components/patterns/billing-net-primary-display';
 import type { ProjectFinancials } from '../domain/types';
 import type { ProjectKpiAvailability } from '../domain/financial-slice-availability';
 import { mapCoverageToSources } from './map-coverage-sources';
@@ -104,7 +105,13 @@ export function ProjectFinancialsSnapshotView({
         <>
           <div className="flex justify-between gap-2">
             <span className="text-[var(--pf-text-secondary)]">{t('kpis.billed')}</span>
-            <MoneyText value={kpis.billed} />
+            <BillingNetPrimaryDisplay
+              netAmount={kpis.billed}
+              grossAmount={kpis.billedGross}
+              netLabel={t('basis.billingNet')}
+              grossLabel={t('kpis.includingVat')}
+              className="items-end text-end"
+            />
           </div>
           <div className="flex justify-between gap-2">
             <span className="text-[var(--pf-text-secondary)]">{t('kpis.paid')}</span>

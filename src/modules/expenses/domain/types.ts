@@ -168,6 +168,12 @@ export interface ExpenseDetail extends ExpenseSummary {
   readonly vatMode: ExpenseVatMode | null;
   readonly finalizedAt: BusinessDate | null;
   readonly paymentMethod: string | null;
+  readonly paymentTermId: string | null;
+  readonly dueDate: BusinessDate | null;
+  readonly paymentStatus: string | null;
+  readonly paidAt: BusinessDate | null;
+  readonly paymentConfirmationSource: string | null;
+  readonly paidGrossAmount: string | null;
   readonly notes: string | null;
   readonly adjustsExpenseId: string | null;
   readonly isRecurringTemplate: boolean;

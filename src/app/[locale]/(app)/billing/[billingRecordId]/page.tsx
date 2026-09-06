@@ -152,6 +152,7 @@ export default async function BillingDetailPage({
                 net: t('detail.beforeVat'),
                 tax: t('detail.vat'),
                 gross: t('detail.totalDue'),
+                includingVat: t('list.includingVat'),
               }}
               className="grid gap-3 text-sm sm:grid-cols-3"
             />

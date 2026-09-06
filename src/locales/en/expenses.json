@@ -297,6 +297,26 @@
       "action": "Add expense"
     }
   },
+  "payment": {
+    "title": "Expense payment",
+    "dueDate": "Due date",
+    "paidAt": "Paid on",
+    "paidAmount": "Amount paid",
+    "payableAmount": "Amount payable",
+    "confirmPaid": "Confirm paid",
+    "voidConfirmation": "Void payment confirmation",
+    "confirmed": "Payment confirmed",
+    "status": {
+      "upcoming": "Upcoming",
+      "due": "Due today",
+      "overdue": "Overdue",
+      "paid": "Paid"
+    },
+    "source": {
+      "manual": "Confirmed manually",
+      "automatic_policy": "Confirmed automatically per organization policy"
+    }
+  },
   "allocation": {
     "title": "Allocate to projects",
     "subtitle": "Without allocation lines, general or shared business costs stay off every project’s cost.",

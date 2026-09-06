@@ -48,8 +48,8 @@
     "outstandingClient": "יתרת לקוח",
     "supplierOutstanding": "יתרת ספקים",
     "retentionHeld": "עיכבון מוחזק",
-    "expectedProfit": "רווח צפוי",
-    "margin": "מרווח",
+    "expectedProfit": "יתרת חוזה צפויה",
+    "margin": "מיתרת חוזה לאחר עלויות מוכרות",
     "unavailable": "לא זמין לפי ההרשאות הנוכחיות."
   },
   "actions": {

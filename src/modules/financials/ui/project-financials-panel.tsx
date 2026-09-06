@@ -1,6 +1,7 @@
 import { getTranslations } from 'next-intl/server';
 import { CoverageDisclosure } from '@/components/patterns/coverage-disclosure';
 import { MoneyText } from '@/components/patterns/money-text';
+import { BillingNetPrimaryDisplay } from '@/components/patterns/billing-net-primary-display';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { pressableClassName } from '@/components/ui/pressable';
 import { Separator } from '@/components/ui/separator';
@@ -91,17 +92,19 @@ export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPan
             ) : null}
             <div className="flex justify-between gap-2">
               <span className="text-[var(--pf-text-secondary)]">{t('ownerStory.billed')}</span>
-              <MoneyText value={financials.billing.netInvoiced} />
+              <BillingNetPrimaryDisplay
+                netAmount={financials.billing.netInvoiced}
+                grossAmount={financials.billing.invoiced}
+                netLabel={t('basis.billingNet')}
+                grossLabel={t('kpis.includingVat')}
+                className="items-end text-end"
+              />
             </div>
             <div className="flex justify-between gap-2">
               <span className="text-[var(--pf-text-secondary)]">{t('ownerStory.billedVat')}</span>
               <MoneyText
                 value={subtractMoney(financials.billing.invoiced, financials.billing.netInvoiced)}
               />
-            </div>
-            <div className="flex justify-between gap-2">
-              <span className="text-[var(--pf-text-secondary)]">{t('ownerStory.billedGross')}</span>
-              <MoneyText value={financials.billing.invoiced} />
             </div>
             <div className="flex justify-between gap-2">
               <span className="text-[var(--pf-text-secondary)]">{t('ownerStory.collected')}</span>

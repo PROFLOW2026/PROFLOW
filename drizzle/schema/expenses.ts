@@ -123,6 +123,17 @@ export const expenses = pgTable(
     status: expenseStatusEnum('status').notNull().default('draft'),
     finalizedAt: date('finalized_at'),
     paymentMethod: text('payment_method'),
+    /** Optional payment term — derives/suggests dueDate (0078). */
+    paymentTermId: uuid('payment_term_id'),
+    /** Cash obligation due date. Distinct from expenseDate (recognition). */
+    dueDate: date('due_date'),
+    /** upcoming | due | paid | overdue — finalized expenses only. */
+    paymentStatus: text('payment_status'),
+    paidAt: date('paid_at'),
+    /** manual | automatic_policy when paid. */
+    paymentConfirmationSource: text('payment_confirmation_source'),
+    /** GROSS cash that left when paid — never inferred from recognition alone. */
+    paidGrossAmount: moneyAmount('paid_gross_amount'),
     notes: text('notes'),
 
     /**
@@ -200,6 +211,23 @@ export const expenses = pgTable(
     check(
       'expenses_classification_status_known',
       sql`${table.classificationStatus} IN ('classified', 'needs_classification')`,
+    ),
+    check(
+      'expenses_payment_status_known',
+      sql`${table.paymentStatus} IS NULL
+          OR ${table.paymentStatus} IN ('upcoming', 'due', 'paid', 'overdue')`,
+    ),
+    check(
+      'expenses_payment_confirmation_source_known',
+      sql`${table.paymentConfirmationSource} IS NULL
+          OR ${table.paymentConfirmationSource} IN ('manual', 'automatic_policy')`,
+    ),
+    check(
+      'expenses_paid_fields_coupled',
+      sql`(${table.paymentStatus} IS DISTINCT FROM 'paid')
+          OR (${table.paidAt} IS NOT NULL
+              AND ${table.paymentConfirmationSource} IS NOT NULL
+              AND ${table.paidGrossAmount} IS NOT NULL)`,
     ),
     // inventory_item_id → inventory_items (org composite FK, ON DELETE RESTRICT) — see migration 0069.
   ],

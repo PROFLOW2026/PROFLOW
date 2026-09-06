@@ -49,6 +49,9 @@ export const SOURCE_DEFAULT_SEVERITY: Record<CommandCenterSourceType, CommandCen
   billing_plan_milestone_due: 'medium',
   billing_plan_retention_release_due: 'high',
   missing_attendance_today: 'medium',
+  expense_due_today: 'high',
+  expense_overdue: 'critical',
+  payroll_due_today: 'high',
 };
 
 export const INBOX_SECTION_ORDER = ['critical', 'high', 'medium', 'low'] as const;
@@ -119,6 +122,7 @@ export function withItemDefaults(input: {
   readonly severity?: CommandCenterSeverity;
   readonly urgencyBump?: number;
   readonly meta?: CommandCenterItem['meta'];
+  readonly confirmPaid?: CommandCenterItem['confirmPaid'];
 }): CommandCenterItem {
   const severity = input.severity ?? SOURCE_DEFAULT_SEVERITY[input.sourceType];
   const isFinancial = isFinancialSourceType(input.sourceType);
@@ -135,6 +139,7 @@ export function withItemDefaults(input: {
     isFinancial,
     allowHandle: !isFinancial,
     allowSnooze: true,
+    confirmPaid: input.confirmPaid,
     meta: input.meta,
   };
 }

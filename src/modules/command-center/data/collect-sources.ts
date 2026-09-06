@@ -31,6 +31,7 @@ import {
   collectFailedCommunications,
   collectWarrantyExpiring,
 } from './collect-next-gen';
+import { collectExpensesDueToday, collectPayrollDueToday } from './collect-owner-payments';
 import { fromNumericString, isPositiveMoney, isZeroMoney } from '@/shared/money';
 import type { OrgContext } from '@/shared/auth/context';
 import { hasAnyPermission, hasPermission } from '@/shared/permissions/assert';
@@ -1263,6 +1264,8 @@ export async function collectAllSources(ctx: CollectContext): Promise<CommandCen
     collectBillingPlanMilestonesDue,
     collectBillingPlanRetentionReleaseDue,
     collectMissingAttendanceToday,
+    collectExpensesDueToday,
+    collectPayrollDueToday,
   ];
 
   const settled = await Promise.allSettled(collectors.map((fn) => fn(ctx)));

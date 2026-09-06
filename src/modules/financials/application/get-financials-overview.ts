@@ -7,6 +7,11 @@
 import { getOrganizationApPayables, sumApPaymentsMadeInDateRange } from '@/modules/ap';
 import { listBillingRecords, computeReceivablesSummary } from '@/modules/billing';
 import { sumPaidSubcontractAdvancesInDateRange } from '@/modules/vendors';
+import { sumPaidExpensesInDateRange, sumUpcomingExpenseCash } from '@/modules/expenses/application/expense-payments';
+import {
+  sumPaidPayrollInDateRange,
+  sumUpcomingPayrollCash,
+} from '@/modules/workforce/application/payroll-payments';
 import type { OrgContext } from '@/shared/auth/context';
 import {
   addDays,
@@ -53,6 +58,7 @@ export interface FinancialsOverviewData {
     readonly openReceivables: FinancialsOverviewKpi;
     readonly overdueAr: FinancialsOverviewKpi;
   };
+  readonly upcomingCashOut: FinancialsOverviewKpi | null;
 }
 
 function resolvePeriod(
@@ -146,10 +152,26 @@ export async function getFinancialsOverview(
   ]);
 
   let cashPaid: MoneyValue | null = null;
-  if (apCashPaid != null) {
-    const ap = fromNumericString(apCashPaid, currency) ?? zeroMoney(currency);
-    const advances = fromNumericString(advanceCashPaid ?? '0', currency) ?? zeroMoney(currency);
-    cashPaid = addMoney(ap, advances);
+  if (canReadAp || canReadCosts) {
+    let total = zeroMoney(currency);
+    if (apCashPaid != null) {
+      total = addMoney(total, fromNumericString(apCashPaid, currency) ?? zeroMoney(currency));
+    }
+    if (advanceCashPaid != null) {
+      total = addMoney(
+        total,
+        fromNumericString(advanceCashPaid ?? '0', currency) ?? zeroMoney(currency),
+      );
+    }
+    if (canReadCosts) {
+      const [expensePaid, payrollPaid] = await Promise.all([
+        sumPaidExpensesInDateRange(context, currency, period.fromDate, period.toDate),
+        sumPaidPayrollInDateRange(context, currency, period.fromDate, period.toDate),
+      ]);
+      total = addMoney(total, fromNumericString(expensePaid, currency) ?? zeroMoney(currency));
+      total = addMoney(total, fromNumericString(payrollPaid, currency) ?? zeroMoney(currency));
+    }
+    cashPaid = total;
   }
 
   let upcomingDue: MoneyValue | null = null;
@@ -168,6 +190,27 @@ export async function getFinancialsOverview(
 
   const receivables =
     billingRecords != null ? computeReceivablesSummary(billingRecords, currency, today) : null;
+
+  let upcomingCashOut: MoneyValue | null = null;
+  if (canReadAp || canReadCosts) {
+    const horizon = addDays(today, 30);
+    const [expenseUpcoming, payrollUpcoming, apUpcoming] = await Promise.all([
+      canReadCosts
+        ? sumUpcomingExpenseCash(context, currency, today, horizon)
+        : Promise.resolve('0'),
+      canReadCosts
+        ? sumUpcomingPayrollCash(context, currency, today, horizon)
+        : Promise.resolve('0'),
+      Promise.resolve(upcomingDue),
+    ]);
+    upcomingCashOut = addMoney(
+      addMoney(
+        fromNumericString(expenseUpcoming, currency) ?? zeroMoney(currency),
+        fromNumericString(payrollUpcoming, currency) ?? zeroMoney(currency),
+      ),
+      apUpcoming ?? zeroMoney(currency),
+    );
+  }
 
   return {
     currency,
@@ -216,5 +259,8 @@ export async function getFinancialsOverview(
         href: '/billing?filter=overdue',
       },
     },
+    upcomingCashOut: upcomingCashOut
+      ? { value: upcomingCashOut, href: '/cash-flow' }
+      : null,
   };
 }
