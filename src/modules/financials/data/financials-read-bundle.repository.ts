@@ -159,10 +159,12 @@ export async function loadFinancialsBillingBundle(
             'dueDate', br.due_date,
             'kind', br.kind,
             'status', br.status,
-            'totalAmount', br.total_amount,
-            'subtotalAmount', br.subtotal_amount,
+            -- NUMERIC must be ::text: jsonb otherwise decodes fractional money as JS number
+            -- and money() refuses non-integer floats (e.g. 42758.5 on project financials).
+            'totalAmount', br.total_amount::text,
+            'subtotalAmount', br.subtotal_amount::text,
             'currency', br.currency,
-            'retentionHeldRemaining', br.retention_held_remaining
+            'retentionHeldRemaining', br.retention_held_remaining::text
           ) order by br.created_at)
           from billing_records br
           where br.organization_id = ${organizationId}::uuid
@@ -172,7 +174,7 @@ export async function loadFinancialsBillingBundle(
         'payments', coalesce((
           select jsonb_agg(jsonb_build_object(
             'billingRecordId', pay_rows.billing_record_id,
-            'amount', pay_rows.amount,
+            'amount', pay_rows.amount::text,
             'currency', pay_rows.currency,
             'status', pay_rows.status
           ))
@@ -292,10 +294,10 @@ export async function loadFinancialsApOrgFactsBundle(
             'id', b.id,
             'projectId', b.project_id,
             'status', b.status,
-            'totalAmount', b.total_amount,
-            'netAmount', b.net_amount,
+            'totalAmount', b.total_amount::text,
+            'netAmount', b.net_amount::text,
             'currency', b.currency,
-            'retentionHeldRemaining', b.retention_held_remaining,
+            'retentionHeldRemaining', b.retention_held_remaining::text,
             'billDate', b.bill_date
           ))
           from ap_bills b
@@ -305,7 +307,7 @@ export async function loadFinancialsApOrgFactsBundle(
           select jsonb_agg(jsonb_build_object(
             'apBillId', a.ap_bill_id,
             'projectId', a.project_id,
-            'amount', a.amount,
+            'amount', a.amount::text,
             'currency', a.currency,
             'targetType', a.target_type,
             'status', a.status
@@ -318,10 +320,10 @@ export async function loadFinancialsApOrgFactsBundle(
         'creditReductions', coalesce((
           select jsonb_agg(jsonb_build_object(
             'apBillId', ca.ap_bill_id,
-            'appliedGross', ca.amount,
+            'appliedGross', ca.amount::text,
             'currency', ca.currency,
-            'creditNet', vc.net_amount,
-            'creditGross', vc.gross_amount,
+            'creditNet', vc.net_amount::text,
+            'creditGross', vc.gross_amount::text,
             'creditProjectId', vc.project_id
           ))
           from ap_credit_applications ca
@@ -333,7 +335,7 @@ export async function loadFinancialsApOrgFactsBundle(
         'vendorPayments', coalesce((
           select jsonb_agg(jsonb_build_object(
             'apBillId', pa.ap_bill_id,
-            'amount', pa.applied_amount,
+            'amount', pa.applied_amount::text,
             'currency', pay.currency,
             'paymentStatus', pay.status
           ))
@@ -347,7 +349,7 @@ export async function loadFinancialsApOrgFactsBundle(
           select jsonb_agg(jsonb_build_object(
             'apBillId', m.ap_bill_id,
             'expenseId', m.expense_id,
-            'matchedAmount', m.matched_amount,
+            'matchedAmount', m.matched_amount::text,
             'expenseCurrency', e.currency
           ))
           from ap_po_matches m

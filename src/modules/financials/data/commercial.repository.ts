@@ -177,10 +177,10 @@ async function fetchProjectCommercialInputs(
           'contract_id', cr.contract_id,
           'status', cr.status,
           'direction', cr.direction,
-          'requested_amount', cr.requested_amount,
+          'requested_amount', cr.requested_amount::text,
           'currency', cr.currency,
           'priced_amount', (
-            select qv.subtotal_amount
+            select qv.subtotal_amount::text
             from quote_versions qv
             inner join quotes q on q.id = qv.quote_id
             where q.change_request_id = cr.id and qv.is_selected = true

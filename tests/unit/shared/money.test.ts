@@ -4,6 +4,7 @@ import {
   MoneyError,
   addMoney,
   compareMoney,
+  fromNumericString,
   isNegativeMoney,
   money,
   multiplyMoney,
@@ -30,6 +31,16 @@ describe('money construction', () => {
   it('refuses a non-integer JS number, the usual source of float drift', () => {
     expect(() => money(0.1 + 0.2, 'ILS')).toThrow(MoneyError);
     expect(money(1200, 'ILS').amount).toBe('1200.000000');
+  });
+
+  it('fromNumericString accepts JSON-decoded fractional NUMERIC as number', () => {
+    // jsonb_build_object without ::text yields JS number 42758.5 for billing totals.
+    expect(fromNumericString(42758.5, 'ILS')).toEqual({
+      amount: '42758.500000',
+      currency: 'ILS',
+    });
+    expect(fromNumericString('42758.500000', 'ILS')?.amount).toBe('42758.500000');
+    expect(fromNumericString(null, 'ILS')).toBeNull();
   });
 
   it('refuses text that is not a plain decimal string', () => {

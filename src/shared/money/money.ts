@@ -276,7 +276,22 @@ export function toNumericString(value: MoneyValue): string {
   return value.amount;
 }
 
-export function fromNumericString(amount: string | null | undefined, currency: CurrencyCode): MoneyValue | null {
+/**
+ * Parse a DB/JSON numeric amount into MoneyValue.
+ *
+ * Accepts strings (preferred) and JS numbers. Numbers appear when Postgres
+ * `jsonb_build_object` encodes NUMERIC without `::text` - fractional values
+ * then become non-integer floats and must be re-encoded as decimal text before
+ * {@link money} (which refuses non-integer number literals).
+ */
+export function fromNumericString(
+  amount: string | number | null | undefined,
+  currency: CurrencyCode,
+): MoneyValue | null {
   if (amount === null || amount === undefined) return null;
+  if (typeof amount === 'number') {
+    if (!Number.isFinite(amount)) return null;
+    return money(new Decimal(amount).toFixed(MONEY_STORAGE_SCALE), currency);
+  }
   return money(amount, currency);
 }
