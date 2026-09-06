@@ -179,6 +179,7 @@ export interface ExpenseDetail extends ExpenseSummary {
   readonly isRecurringTemplate: boolean;
   readonly recurrenceRule: string | null;
   readonly recurringTemplateId: string | null;
+  readonly sourceRecurringDraftId?: string | null;
   readonly createdByUserId: string | null;
   readonly allocationPeriodStart: BusinessDate | null;
   readonly allocationPeriodEnd: BusinessDate | null;

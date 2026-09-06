@@ -88,5 +88,5 @@ export type {
 } from './validation/schemas';
 
 /** Cross-module org-scoped lookups (FK / tenancy guards). */
-export { findExpenseById, findCostCategoryById } from './data/expenses.repository';
+export { findExpenseById, findCostCategoryById, updateExpenseRow } from './data/expenses.repository';
 export { listScheduleLines } from './data/managerial-schedule.repository';

@@ -88,6 +88,18 @@ describe('automatic payment behavior', () => {
     expect(expenseRequiresOwnerPaymentConfirmation(kind, true)).toBe(false);
   });
 
+  it('recurring template automatic skips Owner confirmation without vendor', () => {
+    const kind = resolveExpenseAutomaticPaymentKind({
+      automaticInstallmentPayment: false,
+      installmentCount: 1,
+      vendor: null,
+      recurringDraft: { paymentConfirmationOverride: 'automatic' },
+      policies,
+    });
+    expect(kind).toBe('template_recurring_automatic');
+    expect(expenseRequiresOwnerPaymentConfirmation(kind, true)).toBe(false);
+  });
+
   it('automatic installment schedule skips Owner confirmation', () => {
     const kind = resolveExpenseAutomaticPaymentKind({
       automaticInstallmentPayment: true,

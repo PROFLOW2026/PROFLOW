@@ -119,10 +119,18 @@ function buildPayload(kind: string, formData: FormData, title: string): unknown 
 
 function trueCostFields(kind: string, formData: FormData) {
   if (kind !== 'expense') {
-    return { autoFinalizeExpense: false, managerialCostKind: null as null };
+    return {
+      autoFinalizeExpense: false,
+      managerialCostKind: null as null,
+      paymentConfirmationOverride: 'org_default' as const,
+      recurringPaymentDay: null as number | null,
+      paymentTermId: null as string | null,
+    };
   }
   const managerialRaw = formValue(formData, 'managerialCostKind') ?? null;
   const expenseDestination = formValue(formData, 'expenseDestination');
+  const paymentBehavior = formValue(formData, 'paymentConfirmationOverride') ?? 'org_default';
+  const dayRaw = formValue(formData, 'recurringPaymentDay');
   return {
     autoFinalizeExpense: resolveAutoFinalizeFromCreationMode(formValue(formData, 'creationMode')),
     managerialCostKind:
@@ -131,6 +139,10 @@ function trueCostFields(kind: string, formData: FormData) {
         : managerialRaw && isManagerialCostKind(managerialRaw)
           ? managerialRaw
           : null,
+    paymentConfirmationOverride:
+      paymentBehavior === 'automatic' ? ('automatic' as const) : ('org_default' as const),
+    recurringPaymentDay: dayRaw ? Number(dayRaw) : null,
+    paymentTermId: emptyToNull(formValue(formData, 'paymentTermId') ?? null),
   };
 }
 

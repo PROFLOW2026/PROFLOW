@@ -200,6 +200,12 @@ export const recurringFinancialDrafts = pgTable(
     autoFinalizeExpense: boolean('auto_finalize_expense').notNull().default(false),
     /** direct_project | general_business — Owner attribution for generated expenses. */
     managerialCostKind: text('managerial_cost_kind'),
+    /** org_default | automatic — template is source-of-truth for recurring payment behavior. */
+    paymentConfirmationOverride: text('payment_confirmation_override').notNull().default('org_default'),
+    /** Day-of-month (1–28) for automatic recurring payment when override is automatic. */
+    recurringPaymentDay: integer('recurring_payment_day'),
+    /** Explicit payment term for generated expenses; wins over vendor/org defaults. */
+    paymentTermId: uuid('payment_term_id'),
     archivedAt: archivedAt(),
     ...timestamps(),
   },
@@ -225,6 +231,15 @@ export const recurringFinancialDrafts = pgTable(
       'recurring_financial_drafts_managerial_cost_kind_known',
       sql`${table.managerialCostKind} IS NULL
           OR ${table.managerialCostKind} IN ('direct_project', 'general_business')`,
+    ),
+    check(
+      'recurring_financial_drafts_payment_confirmation_override_known',
+      sql`${table.paymentConfirmationOverride} IN ('org_default', 'automatic')`,
+    ),
+    check(
+      'recurring_financial_drafts_recurring_payment_day_range',
+      sql`${table.recurringPaymentDay} IS NULL
+          OR (${table.recurringPaymentDay} >= 1 AND ${table.recurringPaymentDay} <= 28)`,
     ),
   ],
 );

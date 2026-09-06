@@ -834,7 +834,7 @@ export function ExpenseForm({
             <input type="hidden" name="paymentTermId" value={paymentTermId} />
           )}
 
-          <Field label={t('dueDate')} optionalLabel={tCommon('labels.optional')}>
+          <Field label={t('payment.dueDate')} optionalLabel={tCommon('labels.optional')}>
             {(controlProps) => (
               <Input
                 {...controlProps}

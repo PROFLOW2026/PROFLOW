@@ -11,6 +11,7 @@ import {
   listExpensePaymentsForOrg,
   syncAutomaticExpensePayments,
 } from '@/modules/expenses/application/expense-payments';
+import { ensureRecurringDraftOccurrencesForOrg } from '@/modules/recurring-drafts/application/ensure-occurrences';
 import {
   isExpenseDueSoon,
   isExpenseDueToday,
@@ -24,6 +25,7 @@ import {
   resolveExpenseAutomaticPaymentKind,
 } from '@/modules/expenses/domain/payment-behavior';
 import { findVendorById } from '@/modules/vendors';
+import { findRecurringDraftForGeneratedExpense } from '@/modules/recurring-drafts';
 import {
   listUnpaidPayrollPayments,
   syncAutomaticPayrollPayments,
@@ -54,6 +56,7 @@ function expenseItem(input: {
 export async function collectExpensesDueToday(ctx: CollectContext): Promise<CommandCenterItem[]> {
   if (!hasPermission(ctx.context, PERMISSIONS.EXPENSES_READ)) return [];
 
+  await ensureRecurringDraftOccurrencesForOrg(ctx.context);
   await syncAutomaticExpensePayments(ctx.context, ctx.today);
 
   const policies = await getOrgFinancialPolicies(ctx.context);
@@ -71,10 +74,16 @@ export async function collectExpensesDueToday(ctx: CollectContext): Promise<Comm
     const vendor = row.vendorId
       ? await findVendorById(ctx.context.db, ctx.context.organizationId, row.vendorId)
       : null;
+    const recurringDraft = await findRecurringDraftForGeneratedExpense(
+      ctx.context.db,
+      ctx.context.organizationId,
+      row.id,
+    );
     const autoKind = resolveExpenseAutomaticPaymentKind({
       automaticInstallmentPayment: row.automaticInstallmentPayment ?? false,
       installmentCount: row.installmentCount ?? 1,
       vendor,
+      recurringDraft,
       policies,
     });
     if (!expenseRequiresOwnerPaymentConfirmation(autoKind, manualConfirm)) continue;

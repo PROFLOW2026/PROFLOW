@@ -9,12 +9,18 @@ export type ExpenseAutomaticPaymentKind =
   | 'none'
   | 'org_automatic_on_due'
   | 'vendor_recurring_automatic'
+  | 'template_recurring_automatic'
   | 'installment_automatic';
+
+export interface RecurringTemplatePaymentBehavior {
+  readonly paymentConfirmationOverride: 'org_default' | 'automatic';
+}
 
 export interface ExpensePaymentBehaviorInput {
   readonly automaticInstallmentPayment: boolean;
   readonly installmentCount: number;
   readonly vendor: Pick<VendorRecord, 'paymentConfirmationOverride'> | null;
+  readonly recurringDraft?: RecurringTemplatePaymentBehavior | null;
   readonly policies: OrgFinancialPolicies;
 }
 
@@ -23,6 +29,9 @@ export function resolveExpenseAutomaticPaymentKind(
 ): ExpenseAutomaticPaymentKind {
   if (input.automaticInstallmentPayment && input.installmentCount > 1) {
     return 'installment_automatic';
+  }
+  if (input.recurringDraft?.paymentConfirmationOverride === 'automatic') {
+    return 'template_recurring_automatic';
   }
   if (input.vendor?.paymentConfirmationOverride === 'automatic') {
     return 'vendor_recurring_automatic';

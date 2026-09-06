@@ -318,7 +318,9 @@
     },
     "source": {
       "manual": "אושר ידנית",
-      "automatic_policy": "אושר אוטומטית לפי מדיניות הארגון"
+      "automatic_policy": "אושר אוטומטית לפי מדיניות הארגון",
+      "automatic_recurring_policy": "אושר אוטומטית לפי מדיניות הוצאה חוזרת",
+      "automatic_installment_policy": "אושר אוטומטית לפי לוח תשלומים"
     }
   },
   "allocation": {

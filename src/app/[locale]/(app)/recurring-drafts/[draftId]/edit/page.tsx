@@ -112,6 +112,8 @@ export default async function EditRecurringDraftPage({
           endDate: detail.draft.endDate,
           autoFinalizeExpense: detail.draft.autoFinalizeExpense,
           managerialCostKind: detail.draft.managerialCostKind,
+          paymentConfirmationOverride: detail.draft.paymentConfirmationOverride,
+          recurringPaymentDay: detail.draft.recurringPaymentDay,
           payload: detail.payload,
         }}
       />

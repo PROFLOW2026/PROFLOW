@@ -115,6 +115,14 @@
     "created": "Missing expenses were created.",
     "upToDate": "Everything is up to date"
   },
+  "payment": {
+    "title": "Payment behavior",
+    "orgDefaultLabel": "Per organization policy",
+    "orgDefaultHint": "Payment confirmation follows org settings or linked vendor defaults.",
+    "automaticLabel": "Automatic payment",
+    "automaticHint": "The system confirms payment on a fixed day each month with no monthly approval.",
+    "dayLabel": "Payment day of month"
+  },
   "advanced": {
     "title": "Advanced options",
     "creationMode": "Creation mode",

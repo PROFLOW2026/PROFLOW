@@ -112,11 +112,17 @@ function refineDateRange(
 const trueCostFieldsCreate = {
   autoFinalizeExpense: z.boolean().optional().default(true),
   managerialCostKind: z.enum(MANAGERIAL_COST_KINDS).nullable().optional(),
+  paymentConfirmationOverride: z.enum(['org_default', 'automatic']).optional().default('org_default'),
+  recurringPaymentDay: z.coerce.number().int().min(1).max(28).nullable().optional(),
+  paymentTermId: z.string().uuid().nullable().optional(),
 };
 
 const trueCostFieldsUpdate = {
   autoFinalizeExpense: z.boolean().optional(),
   managerialCostKind: z.enum(MANAGERIAL_COST_KINDS).nullable().optional(),
+  paymentConfirmationOverride: z.enum(['org_default', 'automatic']).optional(),
+  recurringPaymentDay: z.coerce.number().int().min(1).max(28).nullable().optional(),
+  paymentTermId: z.string().uuid().nullable().optional(),
 };
 
 export const createRecurringDraftSchema = z

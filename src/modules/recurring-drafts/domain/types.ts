@@ -40,6 +40,9 @@ export interface RecurringFinancialDraftRecord {
   readonly autoFinalizeExpense: boolean;
   /** Owner attribution for generated expenses (0069). */
   readonly managerialCostKind: ManagerialCostKind | null;
+  readonly paymentConfirmationOverride: 'org_default' | 'automatic';
+  readonly recurringPaymentDay: number | null;
+  readonly paymentTermId: string | null;
   readonly archivedAt: Date | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;

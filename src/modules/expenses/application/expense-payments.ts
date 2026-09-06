@@ -18,6 +18,11 @@ import { getOrgFinancialPolicies } from '@/modules/tenancy/application/org-finan
 import type { PaymentConfirmationSource } from '@/modules/tenancy/domain/org-financial-policies';
 import { findVendorById } from '@/modules/vendors';
 import {
+  findRecurringDraftById,
+  findRecurringDraftForGeneratedExpense,
+} from '@/modules/recurring-drafts';
+import type { RecurringFinancialDraftRecord } from '@/modules/recurring-drafts/domain/types';
+import {
   effectiveExpensePaymentStatus,
   type ExpensePaymentRow,
 } from '../domain/payment-lifecycle';
@@ -48,7 +53,19 @@ type ExpenseSyncRow = {
   readonly automaticInstallmentPayment: boolean;
   readonly installmentsPaidCount: number;
   readonly paidGrossAmount: string | null;
+  readonly sourceRecurringDraftId?: string | null;
 };
+
+async function loadRecurringDraftForExpense(
+  context: OrgContext,
+  expenseId: string,
+  sourceRecurringDraftId?: string | null,
+): Promise<RecurringFinancialDraftRecord | null> {
+  if (sourceRecurringDraftId) {
+    return findRecurringDraftById(context.db, context.organizationId, sourceRecurringDraftId);
+  }
+  return findRecurringDraftForGeneratedExpense(context.db, context.organizationId, expenseId);
+}
 
 async function markExpensePaid(
   context: OrgContext,
@@ -170,7 +187,7 @@ async function syncDueAutomaticPayment(
   if (!row.dueDate || row.dueDate > today) return false;
 
   const source: PaymentConfirmationSource =
-    kind === 'vendor_recurring_automatic'
+    kind === 'vendor_recurring_automatic' || kind === 'template_recurring_automatic'
       ? 'automatic_recurring_policy'
       : 'automatic_policy';
 
@@ -179,9 +196,11 @@ async function syncDueAutomaticPayment(
     paidGrossAmount: row.grossAmount,
     source,
     note:
-      kind === 'vendor_recurring_automatic'
-        ? 'אושר אוטומטית לפי מדיניות ספק חוזר'
-        : 'אושר אוטומטית לפי מדיניות הארגון',
+      kind === 'template_recurring_automatic'
+        ? 'אושר אוטומטית לפי מדיניות הוצאה חוזרת'
+        : kind === 'vendor_recurring_automatic'
+          ? 'אושר אוטומטית לפי מדיניות ספק חוזר'
+          : 'אושר אוטומטית לפי מדיניות הארגון',
   });
   return true;
 }
@@ -198,6 +217,7 @@ export async function initializeExpensePaymentOnFinalize(
     vendorId: row.vendorId,
     paymentTermId: row.paymentTermId,
     dueDate: row.dueDate,
+    recurringDraft: await loadRecurringDraftForExpense(context, expenseId, row.sourceRecurringDraftId),
   });
 
   const dueDate = schedule.dueDate;
@@ -317,6 +337,7 @@ export async function syncAutomaticExpensePayments(
       automaticInstallmentPayment: expenses.automaticInstallmentPayment,
       installmentsPaidCount: expenses.installmentsPaidCount,
       paidGrossAmount: expenses.paidGrossAmount,
+      sourceRecurringDraftId: expenses.sourceRecurringDraftId,
     })
     .from(expenses)
     .where(
@@ -333,10 +354,16 @@ export async function syncAutomaticExpensePayments(
     const vendor = row.vendorId
       ? await findVendorById(context.db, context.organizationId, row.vendorId)
       : null;
+    const recurringDraft = await loadRecurringDraftForExpense(
+      context,
+      row.id,
+      row.sourceRecurringDraftId,
+    );
     const kind = resolveExpenseAutomaticPaymentKind({
       automaticInstallmentPayment: row.automaticInstallmentPayment,
       installmentCount: row.installmentCount,
       vendor,
+      recurringDraft,
       policies,
     });
 
@@ -345,7 +372,11 @@ export async function syncAutomaticExpensePayments(
       continue;
     }
 
-    if (kind === 'vendor_recurring_automatic' || kind === 'org_automatic_on_due') {
+    if (
+      kind === 'template_recurring_automatic' ||
+      kind === 'vendor_recurring_automatic' ||
+      kind === 'org_automatic_on_due'
+    ) {
       if (await syncDueAutomaticPayment(context, row, today, kind)) count += 1;
     }
   }

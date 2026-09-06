@@ -73,6 +73,7 @@ export interface ExpenseInsertRow {
   readonly isRecurringTemplate: boolean;
   readonly recurrenceRule: string | null;
   readonly recurringTemplateId: string | null;
+  readonly sourceRecurringDraftId?: string | null;
   readonly allocationPeriodStart?: string | null;
   readonly allocationPeriodEnd?: string | null;
   readonly allocationDriverMethod?: AllocationMethod | null;
@@ -353,6 +354,7 @@ export async function findExpenseById(
       isRecurringTemplate: expenses.isRecurringTemplate,
       recurrenceRule: expenses.recurrenceRule,
       recurringTemplateId: expenses.recurringTemplateId,
+      sourceRecurringDraftId: expenses.sourceRecurringDraftId,
       allocationPeriodStart: expenses.allocationPeriodStart,
       allocationPeriodEnd: expenses.allocationPeriodEnd,
       allocationDriverMethod: expenses.allocationDriverMethod,
@@ -433,6 +435,7 @@ export async function findExpenseById(
     isRecurringTemplate: row.isRecurringTemplate,
     recurrenceRule: row.recurrenceRule,
     recurringTemplateId: row.recurringTemplateId,
+    sourceRecurringDraftId: row.sourceRecurringDraftId ?? null,
     createdByUserId: row.createdByUserId,
     allocationPeriodStart: (row.allocationPeriodStart as BusinessDate | null) ?? null,
     allocationPeriodEnd: (row.allocationPeriodEnd as BusinessDate | null) ?? null,

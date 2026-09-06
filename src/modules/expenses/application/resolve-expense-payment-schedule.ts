@@ -9,6 +9,7 @@ import {
 } from '@/modules/business-catalog';
 import { findVendorById } from '@/modules/vendors';
 import { nextOccurrenceOfDayOfMonth } from '../domain/cash-installment-schedule';
+import type { RecurringFinancialDraftRecord } from '@/modules/recurring-drafts/domain/types';
 
 export interface ResolvedExpensePaymentSchedule {
   readonly paymentTermId: string | null;
@@ -22,6 +23,10 @@ export async function resolveExpensePaymentSchedule(
     readonly vendorId?: string | null;
     readonly paymentTermId?: string | null;
     readonly dueDate?: string | null;
+    readonly recurringDraft?: Pick<
+      RecurringFinancialDraftRecord,
+      'paymentTermId' | 'paymentConfirmationOverride' | 'recurringPaymentDay'
+    > | null;
   },
 ): Promise<ResolvedExpensePaymentSchedule> {
   const vendor = input.vendorId
@@ -30,7 +35,7 @@ export async function resolveExpensePaymentSchedule(
   const orgDefaultId = await resolveOrgDefaultPaymentTermIdForContext(context);
 
   const paymentTermId = resolveExpensePaymentTermId({
-    explicitId: input.paymentTermId,
+    explicitId: input.recurringDraft?.paymentTermId ?? input.paymentTermId,
     vendorDefaultId: vendor?.defaultPaymentTermId ?? null,
     orgDefaultId,
   });
@@ -52,6 +57,14 @@ export async function resolveExpensePaymentSchedule(
   });
 
   let dueDate: BusinessDate | null = termDueRaw ? businessDate(termDueRaw) : null;
+
+  if (
+    !dueDate &&
+    input.recurringDraft?.paymentConfirmationOverride === 'automatic' &&
+    input.recurringDraft.recurringPaymentDay
+  ) {
+    dueDate = nextOccurrenceOfDayOfMonth(input.expenseDate, input.recurringDraft.recurringPaymentDay);
+  }
 
   if (
     !dueDate &&

@@ -54,6 +54,10 @@ function mapDraft(row: typeof recurringFinancialDrafts.$inferSelect): RecurringF
     lastGeneratedAt: row.lastGeneratedAt,
     autoFinalizeExpense: row.autoFinalizeExpense,
     managerialCostKind: mapManagerialCostKind(row.managerialCostKind),
+    paymentConfirmationOverride:
+      row.paymentConfirmationOverride === 'automatic' ? 'automatic' : 'org_default',
+    recurringPaymentDay: row.recurringPaymentDay,
+    paymentTermId: row.paymentTermId,
     archivedAt: row.archivedAt,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -152,6 +156,9 @@ export async function insertRecurringDraft(
     readonly status?: DraftStatus;
     readonly autoFinalizeExpense?: boolean;
     readonly managerialCostKind?: ManagerialCostKind | null;
+    readonly paymentConfirmationOverride?: 'org_default' | 'automatic';
+    readonly recurringPaymentDay?: number | null;
+    readonly paymentTermId?: string | null;
   },
 ): Promise<RecurringFinancialDraftRecord> {
   const [row] = await db
@@ -168,6 +175,9 @@ export async function insertRecurringDraft(
       status: values.status ?? 'active',
       autoFinalizeExpense: values.autoFinalizeExpense ?? false,
       managerialCostKind: values.managerialCostKind ?? null,
+      paymentConfirmationOverride: values.paymentConfirmationOverride ?? 'org_default',
+      recurringPaymentDay: values.recurringPaymentDay ?? null,
+      paymentTermId: values.paymentTermId ?? null,
     })
     .returning();
   if (!row) throw new Error('Failed to insert recurring financial draft');
@@ -189,6 +199,9 @@ export async function updateRecurringDraftById(
     readonly lastGeneratedAt?: Date | null;
     readonly autoFinalizeExpense?: boolean;
     readonly managerialCostKind?: ManagerialCostKind | null;
+    readonly paymentConfirmationOverride?: 'org_default' | 'automatic';
+    readonly recurringPaymentDay?: number | null;
+    readonly paymentTermId?: string | null;
   },
 ): Promise<RecurringFinancialDraftRecord | null> {
   const [row] = await db
@@ -241,6 +254,48 @@ export async function findRunByDraftAndDate(
     )
     .limit(1);
   return row ? mapRun(row) : null;
+}
+
+export async function findRecurringDraftForGeneratedExpense(
+  db: DbExecutor,
+  organizationId: string,
+  expenseId: string,
+): Promise<RecurringFinancialDraftRecord | null> {
+  const [row] = await db
+    .select({ draft: recurringFinancialDrafts })
+    .from(recurringFinancialDraftRuns)
+    .innerJoin(
+      recurringFinancialDrafts,
+      and(
+        eq(recurringFinancialDrafts.id, recurringFinancialDraftRuns.draftId),
+        eq(recurringFinancialDrafts.organizationId, recurringFinancialDraftRuns.organizationId),
+      ),
+    )
+    .where(
+      and(
+        eq(recurringFinancialDraftRuns.organizationId, organizationId),
+        eq(recurringFinancialDraftRuns.generatedEntityType, 'expense'),
+        eq(recurringFinancialDraftRuns.generatedEntityId, expenseId),
+      ),
+    )
+    .limit(1);
+  return row?.draft ? mapDraft(row.draft) : null;
+}
+
+export async function listOrgIdsWithActiveRecurringExpenseDrafts(
+  db: DbExecutor,
+): Promise<readonly string[]> {
+  const rows = await db
+    .selectDistinct({ organizationId: recurringFinancialDrafts.organizationId })
+    .from(recurringFinancialDrafts)
+    .where(
+      and(
+        eq(recurringFinancialDrafts.draftKind, 'expense'),
+        eq(recurringFinancialDrafts.status, 'active'),
+        isNull(recurringFinancialDrafts.archivedAt),
+      ),
+    );
+  return rows.map((row) => row.organizationId);
 }
 
 export async function findRunByDraftAndYearMonth(

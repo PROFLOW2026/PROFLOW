@@ -89,6 +89,8 @@ export function RecurringDraftForm({
     readonly endDate: string | null;
     readonly autoFinalizeExpense?: boolean;
     readonly managerialCostKind?: ManagerialCostKind | null;
+    readonly paymentConfirmationOverride?: 'org_default' | 'automatic';
+    readonly recurringPaymentDay?: number | null;
     readonly payload?: StoredDraftPayload;
   };
 }) {
@@ -117,6 +119,12 @@ export function RecurringDraftForm({
     initial?.payload?.kind === 'expense' ? (initial.payload.data.costCategoryId ?? '') : '',
   );
   const [generateRetro, setGenerateRetro] = useState(true);
+  const [paymentBehavior, setPaymentBehavior] = useState<'org_default' | 'automatic'>(
+    initial?.paymentConfirmationOverride ?? 'org_default',
+  );
+  const [recurringPaymentDay, setRecurringPaymentDay] = useState(
+    initial?.recurringPaymentDay != null ? String(initial.recurringPaymentDay) : '10',
+  );
   const [vatMode, setVatMode] = useState<ExpenseVatMode>(() => {
     if (initial?.payload?.kind === 'expense' && isExpenseVatMode(initial.payload.data.vatMode)) {
       return initial.payload.data.vatMode;
@@ -362,6 +370,63 @@ export function RecurringDraftForm({
                 </span>
               </label>
             </div>
+          ) : null}
+
+          {showExpensePrimary ? (
+            <fieldset className="flex flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-3">
+              <legend className="px-1 text-sm font-medium">{t('payment.title')}</legend>
+              <label className="flex items-start gap-3 text-sm">
+                <input
+                  type="radio"
+                  name="paymentConfirmationOverride"
+                  value="org_default"
+                  checked={paymentBehavior === 'org_default'}
+                  onChange={() => setPaymentBehavior('org_default')}
+                  className="mt-1 size-4"
+                />
+                <span>
+                  <span className="font-medium">{t('payment.orgDefaultLabel')}</span>
+                  <span className="mt-1 block text-[var(--pf-text-secondary)]">
+                    {t('payment.orgDefaultHint')}
+                  </span>
+                </span>
+              </label>
+              <label className="flex items-start gap-3 text-sm">
+                <input
+                  type="radio"
+                  name="paymentConfirmationOverride"
+                  value="automatic"
+                  checked={paymentBehavior === 'automatic'}
+                  onChange={() => setPaymentBehavior('automatic')}
+                  className="mt-1 size-4"
+                />
+                <span>
+                  <span className="font-medium">{t('payment.automaticLabel')}</span>
+                  <span className="mt-1 block text-[var(--pf-text-secondary)]">
+                    {t('payment.automaticHint')}
+                  </span>
+                </span>
+              </label>
+              {paymentBehavior === 'automatic' ? (
+                <Field label={t('payment.dayLabel')} required>
+                  {(controlProps) => (
+                    <Input
+                      {...controlProps}
+                      name="recurringPaymentDay"
+                      type="number"
+                      min={1}
+                      max={28}
+                      value={recurringPaymentDay}
+                      onChange={(event) => setRecurringPaymentDay(event.target.value)}
+                      dir="ltr"
+                      className="max-w-[8rem]"
+                    />
+                  )}
+                </Field>
+              ) : (
+                <input type="hidden" name="recurringPaymentDay" value="" />
+              )}
+            </fieldset>
           ) : null}
 
           <details className="rounded-lg border border-[var(--pf-border-default)] p-3">

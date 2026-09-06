@@ -149,6 +149,8 @@ export const expenses = pgTable(
     recurringTemplateId: uuid('recurring_template_id').references((): AnyPgColumn => expenses.id, {
       onDelete: 'set null',
     }),
+    /** Recurring financial draft that generated this expense occurrence (0080). */
+    sourceRecurringDraftId: uuid('source_recurring_draft_id'),
 
     /** Inclusive period for automatic weight drivers (contract / hours / direct). */
     allocationPeriodStart: date('allocation_period_start'),

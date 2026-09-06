@@ -1,73 +1,21 @@
 import 'server-only';
 
-import { and, eq, isNull, lte } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import {
   organizationMemberships,
   organizations,
-  recurringFinancialDrafts,
   roleAssignments,
   roles,
 } from '@drizzle/schema';
-import { generateRecurringDraftNow } from './generate';
 import type { OrgContext } from '@/shared/auth/context';
-import { addDays, businessDate, todayInTimeZone } from '@/shared/dates';
 import { getAdminDb, withUserContext } from '@/shared/db/client';
 import type { DbExecutor } from '@/shared/db/types';
 import { resolveOrgContext } from '@/modules/tenancy';
-import { runDueRecurringDrafts } from '../domain/ops-run';
+import { ensureRecurringDraftOccurrencesForOrg } from './ensure-occurrences';
 import type { RecurringOpsRunResult } from '../domain/ops-run';
-
-const MAX_TEMPLATES_PER_RUN = 40;
+import { listOrgIdsWithActiveRecurringExpenseDrafts } from '../data/recurring-drafts.repository';
 
 export type RecurringOpsWorkerResult = RecurringOpsRunResult;
-
-export interface DueRecurringDraft {
-  readonly id: string;
-  readonly organizationId: string;
-  readonly nextRunDate: string;
-  readonly timezone: string;
-  readonly locale: string;
-}
-
-export async function listDueActiveRecurringDrafts(
-  db: DbExecutor,
-): Promise<DueRecurringDraft[]> {
-  const utcToday = todayInTimeZone('UTC');
-  const horizon = addDays(utcToday, 1);
-  const rows = await db
-    .select({
-      id: recurringFinancialDrafts.id,
-      organizationId: recurringFinancialDrafts.organizationId,
-      nextRunDate: recurringFinancialDrafts.nextRunDate,
-      timezone: organizations.timezone,
-      locale: organizations.defaultLocale,
-    })
-    .from(recurringFinancialDrafts)
-    .innerJoin(organizations, eq(organizations.id, recurringFinancialDrafts.organizationId))
-    .where(
-      and(
-        eq(recurringFinancialDrafts.status, 'active'),
-        isNull(recurringFinancialDrafts.archivedAt),
-        isNull(organizations.archivedAt),
-        lte(recurringFinancialDrafts.nextRunDate, horizon),
-      ),
-    )
-    .limit(MAX_TEMPLATES_PER_RUN * 4);
-
-  return rows
-    .filter((row) => {
-      const today = todayInTimeZone(row.timezone || 'UTC');
-      return businessDate(row.nextRunDate) <= today;
-    })
-    .slice(0, MAX_TEMPLATES_PER_RUN)
-    .map((row) => ({
-      id: row.id,
-      organizationId: row.organizationId,
-      nextRunDate: businessDate(row.nextRunDate),
-      timezone: row.timezone || 'UTC',
-      locale: row.locale || 'en',
-    }));
-}
 
 export async function findActiveOrgOwnerUserId(
   db: DbExecutor,
@@ -103,16 +51,53 @@ async function withOrgOwnerContext<T>(
 }
 
 /**
- * Cron path: generate due active templates as drafts. One template failure
- * never aborts the run. Already-generated-today is success (idempotent).
+ * Cron path: ensure missing monthly occurrences through today for every org
+ * with active expense templates, then sync automatic payments.
  */
 export async function generateDueRecurringDrafts(): Promise<RecurringOpsWorkerResult> {
   const db = getAdminDb();
-  const due = await listDueActiveRecurringDrafts(db);
-  return runDueRecurringDrafts({
-    due,
-    findOwner: (organizationId) => findActiveOrgOwnerUserId(db, organizationId),
-    withActor: withOrgOwnerContext,
-    generate: generateRecurringDraftNow,
-  });
+  const orgIds = await listOrgIdsWithActiveRecurringExpenseDrafts(db);
+
+  let generated = 0;
+  let skipped = 0;
+  let failed = 0;
+  const failures: { draftId: string; error: string }[] = [];
+
+  for (const organizationId of orgIds) {
+    try {
+      const owner = await findActiveOrgOwnerUserId(db, organizationId);
+      if (!owner) {
+        failed += 1;
+        failures.push({ draftId: organizationId, error: 'no_org_owner' });
+        continue;
+      }
+
+      const [orgRow] = await db
+        .select({ locale: organizations.defaultLocale })
+        .from(organizations)
+        .where(eq(organizations.id, organizationId))
+        .limit(1);
+      const locale = orgRow?.locale || 'he-IL';
+
+      const result = await withOrgOwnerContext(owner.userId, organizationId, locale, (context) =>
+        ensureRecurringDraftOccurrencesForOrg(context),
+      );
+      generated += result.monthsGenerated;
+      skipped += result.skippedExisting;
+    } catch (error) {
+      failed += 1;
+      failures.push({
+        draftId: organizationId,
+        error: error instanceof Error && error.message.trim() ? error.message : 'unknown',
+      });
+    }
+  }
+
+  return {
+    scanned: orgIds.length,
+    generated,
+    skipped,
+    failed,
+    failures,
+  };
 }

@@ -87,6 +87,11 @@ export default async function ExpensesPage({
   };
 
   const [listResult, projects, categories, attentionCount, today] = await withOrgContext(async (context) => {
+    const { ensureRecurringDraftOccurrencesForOrg } = await import(
+      '@/modules/recurring-drafts/application/ensure-occurrences'
+    );
+    await ensureRecurringDraftOccurrencesForOrg(context);
+
     const provisional = await listExpensesForOrg(context, {
       ...baseListFilters,
       limit: EXPENSE_LIST_PAGE_SIZE,

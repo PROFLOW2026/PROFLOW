@@ -6,7 +6,13 @@ import {
 } from '@/modules/ap';
 import { allocateApLineMonetarySplits } from '@/modules/ap/domain/bill-line-monetary';
 import { createBillingRecord } from '@/modules/billing';
-import { createExpense, finalizeExpense, findExpenseById } from '@/modules/expenses';
+import {
+  createExpense,
+  finalizeExpense,
+  findExpenseById,
+  updateExpenseRow,
+} from '@/modules/expenses';
+import { nextOccurrenceOfDayOfMonth } from '@/modules/expenses/domain/cash-installment-schedule';
 import { isMonthClosed, yearMonthFromBusinessDate } from '@/modules/month-close';
 import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
 import type { OrgContext } from '@/shared/auth/context';
@@ -27,7 +33,11 @@ import {
   withResolvedAmount,
 } from '../domain/payload';
 import { applyManagerialCostKindToExpensePayload } from '../domain/managerial-cost';
-import { resolveAmountForDate, yearMonthFromBusinessDate as draftYearMonth, firstBusinessDateOfYearMonth } from '../domain/amount-versions';
+import {
+  resolveAmountForDate,
+  yearMonthFromBusinessDate as draftYearMonth,
+  firstBusinessDateOfYearMonth,
+} from '../domain/amount-versions';
 import { bumpScheduleAfterGenerate } from '../domain/schedule';
 import type { RecurringOccurrenceOutcome } from '../domain/occurrence-outcome';
 import type {
@@ -48,6 +58,7 @@ import {
 import { generateRecurringDraftSchema } from '../validation/schemas';
 import { parseStoredPayload } from './parse-payload';
 import { hasExplicitRecurringCategory } from './resolve-expense-category';
+import { recurringDraftGeneratedNote } from '../domain/generated-note';
 
 export interface GenerateRecurringDraftResult {
   readonly draftId: string;
@@ -141,8 +152,9 @@ async function createDraftEntity(
   payload: StoredDraftPayload,
   runDate: BusinessDate,
   templateTitle: string,
-  _draft: RecurringFinancialDraftRecord,
+  draft: RecurringFinancialDraftRecord,
 ): Promise<{ id: string; status: string }> {
+  const locale = context.locale ?? context.organization.defaultLocale ?? 'he-IL';
   switch (kind) {
     case 'expense': {
       assertPermission(context, PERMISSIONS.EXPENSES_CREATE);
@@ -150,10 +162,18 @@ async function createDraftEntity(
         throw new DomainRuleError('Payload kind mismatch', 'recurringDrafts.errors.kindMismatch');
       }
       const input = expenseInputFromPayload(payload.data, runDate, templateTitle);
-      const note = `Generated from recurring draft “${templateTitle}”.`;
+      const note = recurringDraftGeneratedNote(templateTitle, locale);
       const created = await createExpense(context, {
         ...input,
         notes: [input.notes?.trim() || null, note].filter(Boolean).join('\n'),
+        paymentTermId: draft.paymentTermId,
+        dueDate:
+          draft.paymentConfirmationOverride === 'automatic' && draft.recurringPaymentDay
+            ? nextOccurrenceOfDayOfMonth(runDate, draft.recurringPaymentDay)
+            : undefined,
+      });
+      await updateExpenseRow(context.db, context.organizationId, created.id, {
+        sourceRecurringDraftId: draft.id,
       });
       return { id: created.id, status: created.status };
     }
@@ -239,7 +259,7 @@ async function createDraftEntity(
         throw new DomainRuleError('Payload kind mismatch', 'recurringDrafts.errors.kindMismatch');
       }
       const input = billingInputFromPayload(payload.data, runDate);
-      const note = `Generated from recurring draft “${templateTitle}”. Draft only.`;
+      const note = recurringDraftGeneratedNote(templateTitle, locale, { draftOnly: true });
       const created = await createBillingRecord(context, {
         ...input,
         notes: [input.notes?.trim() || null, note].filter(Boolean).join('\n'),

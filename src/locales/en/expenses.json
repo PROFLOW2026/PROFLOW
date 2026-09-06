@@ -318,7 +318,9 @@
     },
     "source": {
       "manual": "Confirmed manually",
-      "automatic_policy": "Confirmed automatically per organization policy"
+      "automatic_policy": "Confirmed automatically per organization policy",
+      "automatic_recurring_policy": "Confirmed automatically per recurring expense policy",
+      "automatic_installment_policy": "Confirmed automatically per installment schedule"
     }
   },
   "allocation": {

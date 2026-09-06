@@ -115,8 +115,8 @@ describe('subcontractor drill-down reconciliation', () => {
     expect(drillRoot).toHaveTextContent('60,500');
     expect(screen.getByText('הוצאה — ינואר')).toBeInTheDocument();
     expect(screen.getByText('חשבונית ספק — פברואר')).toBeInTheDocument();
-    expect(screen.getByText('30,800 ₪')).toBeInTheDocument();
-    expect(screen.getByText('29,700 ₪')).toBeInTheDocument();
+    expect(screen.getByText('30,800.00 ₪')).toBeInTheDocument();
+    expect(screen.getByText('29,700.00 ₪')).toBeInTheDocument();
     expect(Number(breakdown.categories.find((c) => c.key === 'subcontractors')!.amount.amount)).toBe(
       60500,
     );

@@ -16,6 +16,8 @@ export { generateRecurringDraftHistory } from './application/generate-history';
 export type { GenerateRecurringDraftHistoryResult } from './application/generate-history';
 export { generateDueRecurringDrafts } from './application/ops-worker';
 export type { RecurringOpsWorkerResult } from './application/ops-worker';
+export { ensureRecurringDraftOccurrencesForOrg } from './application/ensure-occurrences';
+export type { EnsureRecurringOccurrencesResult } from './application/ensure-occurrences';
 export { runDueRecurringDrafts, isAlreadyGeneratedTodayError } from './domain/ops-run';
 export type { RecurringOpsRunResult, DueRecurringDraftRef } from './domain/ops-run';
 
@@ -92,7 +94,7 @@ export {
   recurringDraftIdSchema,
   emptyToNull,
 } from './validation/schemas';
-export { findRecurringDraftById, updateRecurringDraftById } from './data/recurring-drafts.repository';
+export { findRecurringDraftById, updateRecurringDraftById, findRecurringDraftForGeneratedExpense } from './data/recurring-drafts.repository';
 export type {
   CreateRecurringDraftInput,
   UpdateRecurringDraftInput,
