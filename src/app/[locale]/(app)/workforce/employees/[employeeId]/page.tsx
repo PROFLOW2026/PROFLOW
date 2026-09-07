@@ -465,6 +465,7 @@ export default async function EmployeeDetailPage({
           </summary>
           <div className="mt-4">
             <MonthlyEmployerCostReview
+              key={`${employee.id}:${defaultYearMonth}`}
               employeeId={employee.id}
               employeeName={employee.name}
               currency={currency}
