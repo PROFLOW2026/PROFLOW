@@ -72,12 +72,6 @@ export function AttendanceOutcomeForm({
       <input type="hidden" name="employeeId" value={employeeId} />
       <input type="hidden" name="entryMode" value={entryMode} />
       <input type="hidden" name="outcome" value={outcome} />
-      {outcome === 'not_worked' ? (
-        <>
-          <input type="hidden" name="absenceReason" value={absenceReason} />
-          <input type="hidden" name="absenceCompensation" value={absenceCompensation} />
-        </>
-      ) : null}
 
       <Field label={t('employee')}>
         {(control) => (
@@ -196,42 +190,47 @@ export function AttendanceOutcomeForm({
         <>
           <Field label={t('absenceReason')}>
             {(control) => (
-              <Select
-                value={absenceReason}
-                onValueChange={(value) => {
-                  const reason = value as (typeof ABSENCE_REASONS)[number];
-                  setAbsenceReason(reason);
-                  if (reason === 'unpaid_leave') setAbsenceCompensation('unpaid');
-                  if (reason === 'vacation') setAbsenceCompensation('paid');
-                }}
-              >
-                <SelectTrigger id={control.id}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {ABSENCE_REASONS.map((reason) => (
-                    <SelectItem key={reason} value={reason}>
-                      {t(`reasons.${reason}`)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <>
+                <Select
+                  value={absenceReason}
+                  onValueChange={(value) => {
+                    const reason = value as (typeof ABSENCE_REASONS)[number];
+                    setAbsenceReason(reason);
+                    if (reason === 'unpaid_leave') setAbsenceCompensation('unpaid');
+                  }}
+                >
+                  <SelectTrigger id={control.id}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ABSENCE_REASONS.map((reason) => (
+                      <SelectItem key={reason} value={reason}>
+                        {t(`reasons.${reason}`)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <input type="hidden" name="absenceReason" value={absenceReason} />
+              </>
             )}
           </Field>
           <Field label={t('absenceCompensation')}>
             {(control) => (
-              <Select
-                value={absenceCompensation}
-                onValueChange={(value) => setAbsenceCompensation(value as 'paid' | 'unpaid')}
-              >
-                <SelectTrigger id={control.id}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="paid">{t('compensation.paid')}</SelectItem>
-                  <SelectItem value="unpaid">{t('compensation.unpaid')}</SelectItem>
-                </SelectContent>
-              </Select>
+              <>
+                <Select
+                  value={absenceCompensation}
+                  onValueChange={(value) => setAbsenceCompensation(value as 'paid' | 'unpaid')}
+                >
+                  <SelectTrigger id={control.id}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="paid">{t('compensation.paid')}</SelectItem>
+                    <SelectItem value="unpaid">{t('compensation.unpaid')}</SelectItem>
+                  </SelectContent>
+                </Select>
+                <input type="hidden" name="absenceCompensation" value={absenceCompensation} />
+              </>
             )}
           </Field>
         </>

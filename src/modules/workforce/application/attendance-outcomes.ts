@@ -4,6 +4,8 @@ import type { OrgContext } from '@/shared/auth/context';
 import type { BusinessDate } from '@/shared/dates';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { getLaborCostDefaultsForApply, resolveOrgWorkWeekdays } from '@/modules/tenancy';
+import { listConfiguredWorkDatesInRange } from '../domain/monthly-accrual';
 import {
   isWithinEmploymentRange,
   resolveAttendanceDayState,
@@ -156,7 +158,11 @@ export async function saveAttendanceOutcomeRange(
   const dates =
     input.workDates && input.workDates.length > 0
       ? input.workDates
-      : enumerateBusinessDates(input.fromDate, input.toDate);
+      : await resolveEligibleWorkDatesInAttendanceRange(context, {
+          employeeId: input.employeeId,
+          fromDate: input.fromDate,
+          toDate: input.toDate,
+        });
 
   let count = 0;
   for (const workDate of dates) {
@@ -181,6 +187,53 @@ export function enumerateBusinessDates(from: BusinessDate, to: BusinessDate): Bu
     out.push(d.toISOString().slice(0, 10) as BusinessDate);
   }
   return out;
+}
+
+/** Employment-eligible org workdays within an inclusive range (weekends excluded). */
+export function filterEligibleWorkDatesInRange(input: {
+  readonly fromDate: BusinessDate;
+  readonly toDate: BusinessDate;
+  readonly workWeekdays: readonly number[];
+  readonly employment: EmploymentRange;
+}): BusinessDate[] {
+  return listConfiguredWorkDatesInRange({
+    fromDate: input.fromDate,
+    toDate: input.toDate,
+    workWeekdays: input.workWeekdays,
+    hasCoverage: (date) => isWithinEmploymentRange(date as BusinessDate, input.employment),
+  }) as BusinessDate[];
+}
+
+export async function resolveEligibleWorkDatesInAttendanceRange(
+  context: OrgContext,
+  input: {
+    readonly employeeId: string;
+    readonly fromDate: BusinessDate;
+    readonly toDate: BusinessDate;
+  },
+): Promise<readonly BusinessDate[]> {
+  const [employee] = await context.db
+    .select({ hireDate: employees.hireDate, endDate: employees.endDate })
+    .from(employees)
+    .where(
+      and(eq(employees.id, input.employeeId), eq(employees.organizationId, context.organizationId)),
+    )
+    .limit(1);
+  if (!employee) return [];
+
+  const laborDefaults = await getLaborCostDefaultsForApply(context);
+  const workWeekdays = resolveOrgWorkWeekdays(laborDefaults);
+  const employment: EmploymentRange = {
+    hireDate: (employee.hireDate as BusinessDate | null) ?? null,
+    endDate: (employee.endDate as BusinessDate | null) ?? null,
+  };
+
+  return filterEligibleWorkDatesInRange({
+    fromDate: input.fromDate,
+    toDate: input.toDate,
+    workWeekdays,
+    employment,
+  });
 }
 
 /** Every YYYY-MM touched by an inclusive business-date range (cross-month safe). */

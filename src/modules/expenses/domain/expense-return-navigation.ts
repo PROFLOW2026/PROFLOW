@@ -2,7 +2,7 @@ import { LOCALES } from '@/shared/i18n/config';
 
 export const EXPENSE_RETURN_TO_PARAM = 'returnTo';
 
-export const EXPENSE_DETAIL_FOCUS_PARAMS = ['allocation', 'classification', 'approval'] as const;
+export const EXPENSE_DETAIL_FOCUS_PARAMS = ['allocation', 'classification', 'approval', 'payment'] as const;
 export type ExpenseDetailFocusParam = (typeof EXPENSE_DETAIL_FOCUS_PARAMS)[number];
 
 export type ExpenseBackLabelKey =

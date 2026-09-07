@@ -54,7 +54,7 @@ export function ExpensePaymentPanel({
           : 'pending';
 
   return (
-    <Card>
+    <Card id="expense-payment" className="scroll-mt-24">
       <CardHeader>
         <CardTitle className="flex flex-wrap items-center gap-2">
           {t('title')}

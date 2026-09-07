@@ -454,6 +454,21 @@
     "laborActualCostUnavailable": "Cost unavailable",
     "laborPoolEquation": "Allocated {allocated} + pending {unallocated} = {total} labor pool"
   },
+  "payrollPayment": {
+    "title": "Payroll payment · {yearMonth}",
+    "dueDate": "Due date",
+    "expectedAmount": "Expected amount",
+    "paidAmount": "Paid amount",
+    "paidAt": "Paid on",
+    "readOnlyHint": "You cannot confirm payroll payment. Contact an administrator.",
+    "status": {
+      "paid": "Paid",
+      "overdue": "Overdue",
+      "due": "Due",
+      "upcoming": "Upcoming",
+      "pending_review": "Pending confirmation"
+    }
+  },
   "monthReview": {
     "title": "Monthly employer cost (optional advanced)",
     "description": "Optional month review and project allocation. Not the employee's normal salary.",
@@ -776,6 +791,7 @@
     "invalidTimesheetPeriod": "The timesheet period is invalid.",
     "attendanceRangeAllExisting": "Every selected day already has attendance. Double confirmation is required to correct, or choose other days.",
     "attendanceClosedPeriod": "The selected period intersects a closed financial month. Attendance/hours/costs cannot be rewritten here — use the controlled closed-month correction path.",
+    "absenceCompensationRequired": "For \"not worked\" days you must choose paid or unpaid absence.",
     "attendanceProjectTimeFailed": "Attendance was saved, but project time could not be synchronized. Check approvals / closed month.",
     "attendanceProjectTimeNoPermission": "Attendance was saved. You do not have permission to create project time from this screen.",
     "attendanceProjectTimePendingApproval": "Project work was recorded and is pending approval. Until approved it does not count toward Actual cost.",

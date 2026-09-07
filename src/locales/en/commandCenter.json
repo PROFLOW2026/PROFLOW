@@ -75,7 +75,8 @@
     "payroll_due_soon": "Payroll due soon",
     "payroll_overdue": "Payroll overdue",
     "payroll_upcoming": "Payroll upcoming",
-    "payroll_pending_review": "Payroll pending review"
+    "payroll_pending_review": "Payroll pending review",
+    "expense_needs_allocation": "Expense needs project allocation"
   },
   "empty": {
     "title": "You're clear",

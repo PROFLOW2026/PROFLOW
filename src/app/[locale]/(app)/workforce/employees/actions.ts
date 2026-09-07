@@ -370,3 +370,29 @@ export async function applyMonthlyEmployerCostAllocationAction(input: {
     return mapEmployeeActionError(error, tErrors('unexpected'));
   }
 }
+
+export async function confirmPayrollPaymentAction(input: {
+  readonly employeeId: string;
+  readonly paymentId: string;
+  readonly paidAt: string;
+}): Promise<WorkforceFormState> {
+  const tErrors = await getTranslations('errors');
+
+  try {
+    await withOrgContext(async (context) => {
+      const { confirmPayrollPaid } = await import(
+        '@/modules/workforce/application/payroll-payments'
+      );
+      const { businessDate } = await import('@/shared/dates');
+      await confirmPayrollPaid(context, input.paymentId, {
+        paidAt: businessDate(input.paidAt),
+      });
+    });
+    revalidatePath(`/workforce/employees/${input.employeeId}`);
+    revalidatePath('/today');
+    revalidatePath('/notifications');
+    return { ok: true };
+  } catch (error) {
+    return mapEmployeeActionError(error, tErrors('unexpected'));
+  }
+}

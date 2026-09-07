@@ -5,12 +5,15 @@ import { getTranslations } from 'next-intl/server';
 import {
   saveAttendanceOutcome,
   saveAttendanceOutcomeRange,
-  type AbsenceReason,
 } from '@/modules/workforce/application/attendance-outcomes';
 import { recomputeDerivedLaborAfterAttendanceOutcomeChange } from '@/modules/workforce/application/monthly-cost-recompute';
 import { withOrgContext } from '@/shared/auth/session';
 import { AppError, DomainRuleError } from '@/shared/errors';
 import { businessDate, isBusinessDate } from '@/shared/dates';
+import {
+  AttendanceOutcomeFormValidationError,
+  parseAttendanceOutcomeFormPayload,
+} from '@/app/[locale]/(app)/workforce/attendance/parse-attendance-outcome-form-payload';
 
 export interface AttendanceOutcomeActionState {
   ok?: boolean;
@@ -23,21 +26,27 @@ export async function attendanceOutcomeAction(
   formData: FormData,
 ): Promise<AttendanceOutcomeActionState> {
   const tErrors = await getTranslations('errors');
-  const employeeId = String(formData.get('employeeId') ?? '').trim();
-  const entryMode = String(formData.get('entryMode') ?? 'single');
-  const outcome = formData.get('outcome') === 'not_worked' ? 'not_worked' : 'worked';
-  const absenceReason = parseAbsenceReason(formData.get('absenceReason'));
-  const absenceCompensation =
-    formData.get('absenceCompensation') === 'unpaid' ? 'unpaid' : 'paid';
-  const notes = String(formData.get('notes') ?? '').trim() || null;
+  const tWorkforce = await getTranslations('workforce');
+
+  let payload;
+  try {
+    payload = parseAttendanceOutcomeFormPayload(formData);
+  } catch (error) {
+    if (error instanceof AttendanceOutcomeFormValidationError) {
+      return { error: tWorkforce('errors.absenceCompensationRequired') };
+    }
+    return { error: tErrors('validationFailed') };
+  }
+
+  const { employeeId, entryMode, outcome, absenceReason, absenceCompensation, notes } = payload;
 
   if (!employeeId) return { error: tErrors('validationFailed') };
 
   try {
     const savedCount = await withOrgContext(async (context) => {
       if (entryMode === 'range') {
-        const fromDate = String(formData.get('fromDate') ?? '');
-        const toDate = String(formData.get('toDate') ?? '');
+        const fromDate = payload.fromDate ?? '';
+        const toDate = payload.toDate ?? '';
         if (!isBusinessDate(fromDate) || !isBusinessDate(toDate)) {
           throw new DomainRuleError('Invalid date range', 'workforce.errors.invalidBulkRange');
         }
@@ -60,7 +69,7 @@ export async function attendanceOutcomeAction(
         return count;
       }
 
-      const workDate = String(formData.get('workDate') ?? '');
+      const workDate = payload.workDate ?? '';
       if (!isBusinessDate(workDate)) {
         throw new DomainRuleError('Invalid work date', 'workforce.errors.invalidBulkRange');
       }
@@ -106,12 +115,4 @@ export async function attendanceOutcomeAction(
     console.error('[attendance outcome action]', error);
     return { error: tErrors('unexpected') };
   }
-}
-
-function parseAbsenceReason(value: FormDataEntryValue | null): AbsenceReason {
-  const raw = String(value ?? 'other');
-  if (raw === 'unpaid_leave' || raw === 'vacation' || raw === 'sick' || raw === 'rest_day') {
-    return raw;
-  }
-  return 'other';
 }

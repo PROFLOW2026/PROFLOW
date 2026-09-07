@@ -7,6 +7,7 @@ import { and, asc, eq, isNull, lt, lte, sql, inArray } from 'drizzle-orm';
 import {
   approvalRequests,
   employeeMonthCosts,
+  employees,
   laborAllocationRuns,
   monthClosePeriods,
   planningWorkItems,
@@ -33,7 +34,12 @@ import {
   collectFailedCommunications,
   collectWarrantyExpiring,
 } from './collect-next-gen';
-import { collectExpensesDueToday, collectPayrollDueToday } from './collect-owner-payments';
+import { collectExpensesDueToday, collectExpensesNeedingAllocation, collectPayrollDueToday } from './collect-owner-payments';
+import {
+  attendanceEmployeeDateAlertHref,
+  employeeLaborAllocationAlertHref,
+  missingAttendanceTodayAlertHref,
+} from '../domain/alert-deep-links';
 import { fromNumericString, isPositiveMoney, isZeroMoney } from '@/shared/money';
 import type { OrgContext } from '@/shared/auth/context';
 import { hasAnyPermission, hasPermission } from '@/shared/permissions/assert';
@@ -192,7 +198,10 @@ export async function collectOpenAttendance(ctx: CollectContext): Promise<Comman
       what: copy.what,
       why: copy.why,
       where: day.employeeName,
-      href: '/workforce/attendance',
+      href: attendanceEmployeeDateAlertHref({
+        employeeId: day.employeeId,
+        workDate: day.workDate,
+      }),
       meta: { workDate: day.workDate, employeeId: day.employeeId },
     });
   });
@@ -207,19 +216,19 @@ export async function collectMissingAttendanceToday(
   if (missing.length === 0) return [];
 
   const locale = localeOf(ctx);
-  const copy = missingAttendanceTodayCopy(locale, { count: missing.length, date: ctx.today });
-  return [
-    withItemDefaults({
+  return missing.slice(0, PER_SOURCE_CAP).map((employee) => {
+    const copy = missingAttendanceTodayCopy(locale, { count: 1, date: ctx.today });
+    return withItemDefaults({
       sourceType: 'missing_attendance_today',
-      sourceId: `${ctx.today}`,
+      sourceId: `${employee.employeeId}:${ctx.today}`,
       what: copy.what,
-      why: copy.why,
-      where: fallbackWhere(locale, 'workforce'),
-      href: '/workforce/attendance',
+      why: `${employee.employeeName} · ${copy.why}`,
+      where: employee.employeeName,
+      href: missingAttendanceTodayAlertHref({ employeeId: employee.employeeId, workDate: ctx.today }),
       severity: 'medium' as const,
-      meta: { count: missing.length, date: ctx.today },
-    }),
-  ];
+      meta: { employeeId: employee.employeeId, date: ctx.today },
+    });
+  });
 }
 
 export async function collectUnallocatedEmployeeCost(
@@ -231,12 +240,14 @@ export async function collectUnallocatedEmployeeCost(
     .select({
       id: laborAllocationRuns.id,
       unallocatedAmount: laborAllocationRuns.unallocatedAmount,
+      allocatedAmount: laborAllocationRuns.allocatedAmount,
       currency: laborAllocationRuns.currency,
       employeeMonthCostId: laborAllocationRuns.employeeMonthCostId,
       status: laborAllocationRuns.status,
       employeeId: employeeMonthCosts.employeeId,
       yearMonth: employeeMonthCosts.yearMonth,
       knownAmount: employeeMonthCosts.knownAmount,
+      employeeName: employees.name,
     })
     .from(laborAllocationRuns)
     .innerJoin(
@@ -244,6 +255,13 @@ export async function collectUnallocatedEmployeeCost(
       and(
         eq(laborAllocationRuns.employeeMonthCostId, employeeMonthCosts.id),
         eq(laborAllocationRuns.organizationId, employeeMonthCosts.organizationId),
+      ),
+    )
+    .innerJoin(
+      employees,
+      and(
+        eq(employees.id, employeeMonthCosts.employeeId),
+        eq(employees.organizationId, employeeMonthCosts.organizationId),
       ),
     )
     .where(
@@ -268,7 +286,11 @@ export async function collectUnallocatedEmployeeCost(
     if (!expectsProjectAllocation) continue;
 
     const copy = unallocatedEmployeeCostCopy(locale, {
-      amount: row.unallocatedAmount,
+      employeeName: row.employeeName,
+      yearMonth: row.yearMonth,
+      knownAmount: row.knownAmount,
+      allocatedAmount: row.allocatedAmount,
+      unallocatedAmount: row.unallocatedAmount,
       currency: row.currency,
       status: row.status,
     });
@@ -278,8 +300,11 @@ export async function collectUnallocatedEmployeeCost(
         sourceId: row.id,
         what: copy.what,
         why: copy.why,
-        where: fallbackWhere(locale, 'workforce'),
-        href: '/workforce/employees',
+        where: `${row.employeeName} · ${row.yearMonth}`,
+        href: employeeLaborAllocationAlertHref({
+          employeeId: row.employeeId,
+          yearMonth: row.yearMonth,
+        }),
         meta: {
           unallocated: row.unallocatedAmount,
           employeeMonthCostId: row.employeeMonthCostId,
@@ -1292,6 +1317,7 @@ export async function collectAllSources(ctx: CollectContext): Promise<CommandCen
     collectBillingPlanRetentionReleaseDue,
     collectMissingAttendanceToday,
     collectExpensesDueToday,
+    collectExpensesNeedingAllocation,
     collectPayrollDueToday,
   ];
 

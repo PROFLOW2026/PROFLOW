@@ -34,6 +34,11 @@ import {
 } from '@/modules/workforce/application/payroll-payments';
 import { getOrgFinancialPolicies } from '@/modules/tenancy/application/org-financial-policies';
 import { displayCostCategoryName } from '@/modules/expenses/domain/cost-category-display';
+import {
+  expenseAllocationAlertHref,
+  expensePaymentAlertHref,
+  payrollAlertHref,
+} from '../domain/alert-deep-links';
 import { withItemDefaults } from '../domain/ranking';
 import type { CommandCenterItem, CommandCenterSourceType } from '../domain/types';
 import type { CollectContext } from './collect-sources';
@@ -196,7 +201,7 @@ export async function collectExpensesDueToday(ctx: CollectContext): Promise<Comm
           what: 'הוצאה ממתינה לאישור תשלום',
           why,
           where,
-          href: `/expenses/${row.id}`,
+          href: expensePaymentAlertHref(row.id),
           urgencyBump: 15,
           confirmPaid: 'expense',
           meta,
@@ -213,7 +218,7 @@ export async function collectExpensesDueToday(ctx: CollectContext): Promise<Comm
           what: 'הוצאה באיחור לתשלום',
           why,
           where,
-          href: `/expenses/${row.id}`,
+          href: expensePaymentAlertHref(row.id),
           urgencyBump: 40,
           confirmPaid: 'expense',
           meta,
@@ -230,7 +235,7 @@ export async function collectExpensesDueToday(ctx: CollectContext): Promise<Comm
           what: 'הוצאה לתשלום היום',
           why,
           where,
-          href: `/expenses/${row.id}`,
+          href: expensePaymentAlertHref(row.id),
           urgencyBump: 25,
           confirmPaid: 'expense',
           meta,
@@ -277,11 +282,16 @@ export async function collectPayrollDueToday(ctx: CollectContext): Promise<Comma
 
     const amountLabel = moneyLabel(expected, locale);
 
+    const dueLabel = row.dueDate ? formatBusinessDate(row.dueDate as BusinessDate, locale) : null;
     const base = {
       sourceId: row.id,
-      why: `${row.employeeName} · ${amountLabel}`,
-      where: row.employeeName,
-      href: `/workforce/employees/${row.employeeId}`,
+      why: `${row.employeeName} · ${amountLabel}${dueLabel ? ` · מועד: ${dueLabel}` : ''}`,
+      where: `${row.employeeName} · ${row.yearMonth}`,
+      href: payrollAlertHref({
+        employeeId: row.employeeId,
+        yearMonth: row.yearMonth,
+        paymentId: row.id,
+      }),
       meta: {
         yearMonth: row.yearMonth,
         dueDate: row.dueDate,
@@ -331,4 +341,39 @@ export async function collectPayrollDueToday(ctx: CollectContext): Promise<Comma
   }
 
   return items;
+}
+
+export async function collectExpensesNeedingAllocation(
+  ctx: CollectContext,
+): Promise<CommandCenterItem[]> {
+  if (!hasPermission(ctx.context, PERMISSIONS.EXPENSES_READ)) return [];
+
+  const { listExpensesForOrg } = await import('@/modules/expenses/application/queries');
+  const locale = ctx.context.locale ?? 'he-IL';
+  const rows = (
+    await listExpensesForOrg(ctx.context, {
+      attentionFilter: 'project_allocation',
+      limit: 20,
+    })
+  ).items;
+
+  return rows.map((row) => {
+    const title = row.description?.trim() || row.supplierName?.trim() || 'הוצאה';
+    const amount = row.grossAmount ? formatMoneyDisplay(row.grossAmount, locale) : '';
+    const where = row.projectName ? `פרויקט: ${row.projectName}` : GENERAL_BUSINESS_ATTRIBUTION;
+    return withItemDefaults({
+      sourceType: 'expense_needs_allocation',
+      sourceId: row.id,
+      what: 'הוצאה ללא שיוך פרויקט',
+      why: [title, amount, `תאריך: ${formatBusinessDate(row.expenseDate, locale)}`]
+        .filter(Boolean)
+        .join(' · '),
+      where,
+      href: expenseAllocationAlertHref(row.id),
+      urgencyBump: 20,
+      meta: {
+        expenseId: row.id,
+      },
+    });
+  });
 }

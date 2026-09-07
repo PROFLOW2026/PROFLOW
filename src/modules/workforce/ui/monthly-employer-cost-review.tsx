@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useTransition } from 'react';
+import { useEffect, useMemo, useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import {
   applyMonthlyEmployerCostAllocationAction,
@@ -65,6 +65,17 @@ export function MonthlyEmployerCostReview({
   const [savedDraft, setSavedDraft] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [applied, setApplied] = useState(false);
+
+  useEffect(() => {
+    setYearMonth(defaultYearMonth);
+    const month = initialReview?.yearMonth === defaultYearMonth ? initialReview?.month : undefined;
+    setEstimated(month?.estimatedAmount ?? '');
+    setActual(month?.actualAmount ?? month?.knownAmount ?? '');
+    setAllocated('');
+    setSavedDraft(false);
+    setApplied(false);
+    setActionError(null);
+  }, [defaultYearMonth, initialReview]);
 
   const preview = useMemo(
     () =>

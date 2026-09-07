@@ -36,7 +36,7 @@ import { ExpenseCorrectionHistory } from './expense-correction-history';
 import { ExpenseDetailActions } from './expense-detail-actions';
 import { ExpenseEditForm } from './expense-edit-form';
 import { PromoteVendorPanel } from './promote-vendor-panel';
-import { ExpenseDetailAttentionFocus } from '@/modules/expenses/ui/expense-detail-attention-focus';
+import { ExpenseDetailResolveFocus } from '@/modules/expenses/ui/expense-detail-resolve-focus';
 import { ExpenseDetailAttentionPanel } from '@/modules/expenses/ui/expense-detail-attention-panel';
 import { ExpensePaymentPanel } from '@/modules/expenses/ui/expense-payment-panel';
 import { resolveExpenseDetailAttention } from '@/modules/expenses/domain/expense-attention';
@@ -183,7 +183,7 @@ export default async function ExpenseDetailPage({
   return (
     <div className="mx-auto flex min-w-0 w-full max-w-2xl flex-col gap-6">
       <Suspense fallback={null}>
-        <ExpenseDetailAttentionFocus attention={detailAttention} />
+        <ExpenseDetailResolveFocus attention={detailAttention} />
       </Suspense>
       <PageHeader
         title={t('detail.title')}
@@ -197,7 +197,7 @@ export default async function ExpenseDetailPage({
 
       {detailAttention ? <ExpenseDetailAttentionPanel attention={detailAttention} /> : null}
 
-      {detailAttention === 'project_allocation' && readOnly && expense.allocations.length === 0 ? (
+      {detailAttention === 'project_allocation' && readOnly ? (
         <div id="expense-allocation" className="scroll-mt-24" aria-hidden />
       ) : null}
 
@@ -370,12 +370,7 @@ export default async function ExpenseDetailPage({
       ) : null}
 
       {expense.allocations.length > 0 ? (
-        <Card
-          className="min-w-0 scroll-mt-24"
-          id={
-            detailAttention === 'project_allocation' && readOnly ? 'expense-allocation' : undefined
-          }
-        >
+        <Card className="min-w-0 scroll-mt-24" id="expense-allocation">
           <CardHeader>
             <CardTitle className="text-start">{t('allocation.title')}</CardTitle>
           </CardHeader>

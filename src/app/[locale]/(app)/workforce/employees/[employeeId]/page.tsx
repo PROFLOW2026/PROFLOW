@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
@@ -33,6 +34,8 @@ import { EmployeePeriodSummaryPanel } from '@/modules/workforce/ui/employee-peri
 import { DateRangeSelector } from '@/components/patterns/date-range-selector';
 import { EmployeeEditPanel } from '@/modules/workforce/ui/employee-edit-panel';
 import { MonthlyEmployerCostReview } from '@/modules/workforce/ui/monthly-employer-cost-review';
+import { EmployeePayrollMonthPanel } from '@/modules/workforce/ui/employee-payroll-month-panel';
+import { EmployeePageAlertFocus } from '@/modules/workforce/ui/employee-page-alert-focus';
 import { AddRateVersionForm } from '@/modules/workforce/ui/add-rate-version-form';
 import { RateHistoryTable } from '@/modules/workforce/ui/rate-history-table';
 import { OrgWorkFrameworkForm } from '@/modules/workforce/ui/org-work-framework-form';
@@ -72,6 +75,11 @@ export default async function EmployeeDetailPage({
     getTranslations('status.compliance'),
     getLocale(),
   ]);
+
+  const alertYearMonth =
+    typeof rawSearchParams.yearMonth === 'string' ? rawSearchParams.yearMonth : undefined;
+  const alertPaymentId =
+    typeof rawSearchParams.paymentId === 'string' ? rawSearchParams.paymentId : undefined;
 
   const data = await withOrgContext(async (context) => {
     try {
@@ -119,6 +127,7 @@ export default async function EmployeeDetailPage({
           : Promise.resolve([]),
       ]);
       const today = todayInTimeZone(context.organization.timezone);
+      const reviewYearMonth = alertYearMonth ?? today.slice(0, 7);
       // Read-only page load: never mutate/reconcile costs here (Owner perf rule).
       const currentRate = resolveCurrentCompensationForDisplay(
         employee.rateVersions,
@@ -144,9 +153,19 @@ export default async function EmployeeDetailPage({
       const monthReview = canReadRates
         ? await loadMonthlyEmployerCostReview(context, {
             employeeId,
-            yearMonth: today.slice(0, 7),
+            yearMonth: reviewYearMonth,
           }).catch(() => null)
         : null;
+
+      const payrollPayment =
+        canReadRates && alertPaymentId
+          ? await import('@/modules/workforce/application/payroll-payments').then((m) =>
+              m.getPayrollPayment(context, {
+                paymentId: alertPaymentId,
+                employeeId,
+              }),
+            )
+          : null;
 
       return {
         employee,
@@ -155,6 +174,7 @@ export default async function EmployeeDetailPage({
         compensationSummary,
         laborDefaults,
         monthReview,
+        payrollPayment,
         rateHistory,
         currentRate,
         today,
@@ -174,7 +194,7 @@ export default async function EmployeeDetailPage({
         allowLog: canLogTime(context),
         allowManage,
         currency: context.organization.baseCurrency,
-        defaultYearMonth: today.slice(0, 7),
+        defaultYearMonth: reviewYearMonth,
         workWeekStartDay: context.organization.workWeekStartDay,
       };
     } catch {
@@ -196,6 +216,7 @@ export default async function EmployeeDetailPage({
     compensationSummary,
     laborDefaults,
     monthReview,
+    payrollPayment,
     rateHistory,
     currentRate,
     documentsPanel,
@@ -237,6 +258,9 @@ export default async function EmployeeDetailPage({
 
   return (
     <div className="flex flex-col gap-6">
+      <Suspense fallback={null}>
+        <EmployeePageAlertFocus />
+      </Suspense>
       <PageHeader
         title={employee.name}
         meta={
@@ -414,8 +438,28 @@ export default async function EmployeeDetailPage({
         </div>
       ) : null}
 
+      {payrollPayment ? (
+        <EmployeePayrollMonthPanel
+          employeeId={employee.id}
+          employeeName={employee.name}
+          yearMonth={payrollPayment.yearMonth}
+          paymentId={payrollPayment.id}
+          expectedAmount={payrollPayment.expectedAmount}
+          currency={payrollPayment.currency}
+          dueDate={payrollPayment.dueDate}
+          paymentStatus={payrollPayment.paymentStatus}
+          paidAt={payrollPayment.paidAt}
+          locale={locale}
+          canManage={canManageCosts}
+          defaultPaymentDate={today}
+        />
+      ) : null}
+
       {showMonthReview ? (
-        <details className="rounded-lg border border-[var(--pf-border-default)] p-4 sm:p-6">
+        <details
+          id="employee-labor-allocation"
+          className="scroll-mt-24 rounded-lg border border-[var(--pf-border-default)] p-4 sm:p-6"
+        >
           <summary className="cursor-pointer text-sm font-medium text-[var(--pf-text-secondary)]">
             {t('monthReview.advancedSummary')}
           </summary>

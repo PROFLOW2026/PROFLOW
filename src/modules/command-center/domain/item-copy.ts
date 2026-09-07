@@ -1,5 +1,8 @@
 /** Locale-aware WHAT / WHY / WHERE fallbacks. Entity names stay as stored. */
 
+import { formatMoneyDisplay } from '@/shared/money/format';
+import { fromNumericString } from '@/shared/money';
+
 function he(locale: string): boolean {
   return locale.toLowerCase().startsWith('he');
 }
@@ -155,20 +158,36 @@ export function openAttendanceCopy(locale: string, workDate: string): { what: st
   };
 }
 
+function formatAlertMoney(locale: string, amount: string, currency: string): string {
+  const money = fromNumericString(amount, currency);
+  return money ? formatMoneyDisplay(money, locale) : `${amount} ${currency}`;
+}
+
 export function unallocatedEmployeeCostCopy(
   locale: string,
-  input: { amount: string; currency: string; status: string },
+  input: {
+    readonly employeeName: string;
+    readonly yearMonth: string;
+    readonly knownAmount: string;
+    readonly allocatedAmount: string;
+    readonly unallocatedAmount: string;
+    readonly currency: string;
+    readonly status: string;
+  },
 ): { what: string; why: string } {
   const status = allocationStatusLabel(locale, input.status);
+  const recognized = formatAlertMoney(locale, input.knownAmount, input.currency);
+  const allocated = formatAlertMoney(locale, input.allocatedAmount, input.currency);
+  const remaining = formatAlertMoney(locale, input.unallocatedAmount, input.currency);
   if (he(locale)) {
     return {
-      what: 'הקצאת יתרת עלות עובד',
-      why: `לא הוקצה ${input.amount} ${input.currency} בהקצאת עבודה (${status})`,
+      what: `הקצאת יתרת עלות · ${input.employeeName} · ${input.yearMonth}`,
+      why: `עלות מוכרת: ${recognized} · הוקצה: ${allocated} · נותר להקצאה: ${remaining} (${status})`,
     };
   }
   return {
-    what: 'Allocate employee cost remainder',
-    why: `Unallocated ${input.amount} ${input.currency} on labor allocation (${status})`,
+    what: `Allocate labor remainder · ${input.employeeName} · ${input.yearMonth}`,
+    why: `Recognized: ${recognized} · Allocated: ${allocated} · Remaining: ${remaining} (${status})`,
   };
 }
 

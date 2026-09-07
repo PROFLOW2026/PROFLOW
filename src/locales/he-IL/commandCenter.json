@@ -71,6 +71,7 @@
     "expense_overdue": "הוצאה באיחור",
     "expense_upcoming": "הוצאה צפויה לתשלום",
     "expense_pending_review": "הוצאה ממתינה לאישור",
+    "expense_needs_allocation": "הוצאה ללא שיוך פרויקט",
     "payroll_due_today": "שכר לתשלום",
     "payroll_due_soon": "שכר לתשלום בקרוב",
     "payroll_overdue": "שכר באיחור",

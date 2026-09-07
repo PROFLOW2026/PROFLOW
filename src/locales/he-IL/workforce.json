@@ -426,6 +426,21 @@
     "laborActualCostUnavailable": "עלות לא זמינה",
     "laborPoolEquation": "הוקצה {allocated} + ממתין {unallocated} = {total} מאגר עבודה"
   },
+  "payrollPayment": {
+    "title": "תשלום שכר · {yearMonth}",
+    "dueDate": "מועד תשלום",
+    "expectedAmount": "סכום צפוי",
+    "paidAmount": "סכום ששולם",
+    "paidAt": "שולם בתאריך",
+    "readOnlyHint": "אין הרשאה לאשר תשלום שכר. פנו למנהל המערכת.",
+    "status": {
+      "paid": "שולם",
+      "overdue": "באיחור",
+      "due": "לתשלום",
+      "upcoming": "צפוי",
+      "pending_review": "ממתין לאישור"
+    }
+  },
   "monthReview": {
     "title": "עלות מעסיק חודשית (מתקדם, אופציונלי)",
     "description": "סקירת עלות מעסיק חודשית והקצאה לפרויקטים. זה אינו השכר הרגיל של העובד.",
@@ -747,6 +762,7 @@
     "invalidTimesheetPeriod": "תקופת גיליון השעות אינה תקינה.",
     "attendanceRangeAllExisting": "כל הימים שנבחרו כבר כוללים נוכחות. נדרש אישור כפול לתיקון, או בחירת ימים אחרים.",
     "attendanceClosedPeriod": "התקופה שנבחרה חופפת לחודש כספי סגור. לא ניתן לשכתב נוכחות/שעות/עלויות בחודש סגור בנתיב זה - השתמשו בנתיב התיקון המבוקר לחודש סגור.",
+    "absenceCompensationRequired": "לימי \"לא עבד\" חובה לבחור האם ההיעדרות בתשלום או ללא תשלום.",
     "attendanceProjectTimeFailed": "הנוכחות נשמרה, אך לא ניתן היה לסנכרן את דיווח השעות לפרויקט. בדקו אישור שעות / חודש סגור.",
     "attendanceProjectTimeNoPermission": "הנוכחות נשמרה. אין הרשאה ליצירת דיווח שעות לפרויקט ממסך זה.",
     "attendanceProjectTimePendingApproval": "העבודה נרשמה לפרויקט וממתינה לאישור. עד לאישור היא לא נספרת בעלות בפועל.",
