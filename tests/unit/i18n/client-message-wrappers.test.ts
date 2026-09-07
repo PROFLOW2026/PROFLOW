@@ -141,3 +141,21 @@ describe('client message wrappers for Hebrew closure', () => {
     expect(assertClientNamespaceShipped('imports')).toBe(false);
   });
 });
+
+describe('intl client provider RSC boundary', () => {
+  it('does not pass getMessageFallback from the server locale layout', () => {
+    const layout = readFileSync(join(process.cwd(), 'src/app/[locale]/layout.tsx'), 'utf8');
+    expect(layout).not.toMatch(/NextIntlClientProvider[\s\S]*getMessageFallback/);
+    expect(layout).toContain('IntlClientProvider');
+  });
+
+  it('wires getMessageFallback and locale inside the client provider wrapper', () => {
+    const provider = readFileSync(
+      join(process.cwd(), 'src/shared/i18n/intl-client-provider.tsx'),
+      'utf8',
+    );
+    expect(provider).toMatch(/^'use client'/m);
+    expect(provider).toContain('getMessageFallback={pfGetMessageFallback}');
+    expect(provider).toMatch(/locale:\s*string/);
+  });
+});

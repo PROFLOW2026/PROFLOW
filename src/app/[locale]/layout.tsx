@@ -1,12 +1,12 @@
 import type { Metadata, Viewport } from 'next';
-import { hasLocale, NextIntlClientProvider } from 'next-intl';
+import { hasLocale } from 'next-intl';
 import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { ToastProvider } from '@/components/ui/toast';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { PwaBootstrap } from '@/modules/offline/ui/pwa-bootstrap';
-import { pfGetMessageFallback } from '@/shared/i18n/message-fallback';
+import { IntlClientProvider } from '@/shared/i18n/intl-client-provider';
 import { pickClientMessages } from '@/shared/i18n/pick-client-messages';
 import { LocaleDocumentAttributes } from '@/shared/i18n/locale-document-attributes';
 import { routing } from '@/shared/i18n/routing';
@@ -66,12 +66,12 @@ export default async function LocaleLayout({
   const clientMessages = pickClientMessages(await getMessages());
 
   return (
-    <NextIntlClientProvider messages={clientMessages} getMessageFallback={pfGetMessageFallback}>
+    <IntlClientProvider locale={locale} messages={clientMessages}>
       <LocaleDocumentAttributes />
       <PwaBootstrap />
       <TooltipProvider delayDuration={200}>
         <ToastProvider>{children}</ToastProvider>
       </TooltipProvider>
-    </NextIntlClientProvider>
+    </IntlClientProvider>
   );
 }
