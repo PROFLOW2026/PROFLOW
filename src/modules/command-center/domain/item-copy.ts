@@ -163,6 +163,26 @@ function formatAlertMoney(locale: string, amount: string, currency: string): str
   return money ? formatMoneyDisplay(money, locale) : `${amount} ${currency}`;
 }
 
+export function unattributedProjectLaborCopy(
+  locale: string,
+  input: {
+    readonly employeeName: string;
+    readonly workDate: string;
+    readonly hours: string;
+  },
+): { what: string; why: string } {
+  if (he(locale)) {
+    return {
+      what: 'יום עבודה ללא שיוך לפרויקט',
+      why: `${input.employeeName} · ${input.workDate} · ${input.hours} שעות`,
+    };
+  }
+  return {
+    what: 'Work day without project attribution',
+    why: `${input.employeeName} · ${input.workDate} · ${input.hours} h`,
+  };
+}
+
 export function unallocatedEmployeeCostCopy(
   locale: string,
   input: {

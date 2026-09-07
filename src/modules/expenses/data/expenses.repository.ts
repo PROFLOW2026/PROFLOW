@@ -492,26 +492,8 @@ export async function listExpenses(
     filters.unallocatedOnly || filters.attentionFilter === 'project_allocation';
 
   if (projectAllocationAttention) {
-    conditions.push(isNull(expenses.projectId));
-    conditions.push(eq(expenses.status, 'finalized'));
-    conditions.push(eq(expenses.inventoryStockPurchase, false));
-    conditions.push(
-      not(
-        exists(
-          db
-            .select({ id: expenseAllocations.id })
-            .from(expenseAllocations)
-            .where(
-              and(
-                eq(expenseAllocations.expenseId, expenses.id),
-                eq(expenseAllocations.organizationId, organizationId),
-                sql`${expenseAllocations.projectId} is not null`,
-              ),
-            ),
-        ),
-      ),
-    );
-    appendActionableExpenseAttentionConditions(db, organizationId, conditions);
+    // Canonical rule: only shared costs require project allocation (see expense-allocation-attention.ts).
+    conditions.push(sql`${needsProjectAllocationSelect(db, organizationId)}`);
   }
 
   if (filters.attentionFilter === 'classification') {

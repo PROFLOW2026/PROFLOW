@@ -3,12 +3,9 @@
  * Each collector skips silently when permission / optional module is missing.
  */
 
-import { and, asc, eq, isNull, lt, lte, sql, inArray } from 'drizzle-orm';
+import { and, asc, eq, inArray, isNull, lt, lte, sql } from 'drizzle-orm';
 import {
   approvalRequests,
-  employeeMonthCosts,
-  employees,
-  laborAllocationRuns,
   monthClosePeriods,
   planningWorkItems,
   projectBudgets,
@@ -19,7 +16,11 @@ import { listComplianceArtifactsForOrg } from '@/modules/compliance';
 import { getOrganizationApPayables } from '@/modules/ap';
 import { listMaintenanceScheduleForOrg } from '@/modules/assets';
 import { listAttendanceDaysForOrg, listEmployeesWithoutAttendanceToday, listTimesheetsForOrg } from '@/modules/workforce';
-import { employeeExpectsProjectLaborAllocation } from '@/modules/workforce/application/labor-allocation-alerts';
+import {
+  listUnattributedProjectLaborSources,
+  reconcileStaleLaborAllocations,
+} from '@/modules/workforce/application/labor-allocation-alerts';
+import { getLaborCostDefaultsForApply, resolveOrgWorkWeekdays } from '@/modules/tenancy';
 import { getOrganizationProjectRollup } from '@/modules/financials/application/get-organization-project-rollup';
 import { getOrganizationEarlyWarnings } from '@/modules/forecast';
 import { isOcrReviewUiAllowed, listOcrCandidates } from '@/modules/ocr';
@@ -37,7 +38,6 @@ import {
 import { collectExpensesDueToday, collectExpensesNeedingAllocation, collectPayrollDueToday } from './collect-owner-payments';
 import {
   attendanceEmployeeDateAlertHref,
-  employeeLaborAllocationAlertHref,
   missingAttendanceTodayAlertHref,
 } from '../domain/alert-deep-links';
 import { fromNumericString, isPositiveMoney, isZeroMoney } from '@/shared/money';
@@ -60,7 +60,7 @@ import {
   overdueMaintenanceCopy,
   overduePlanningCopy,
   staleProjectCopy,
-  unallocatedEmployeeCostCopy,
+  unattributedProjectLaborCopy,
   unallocatedVendorBillCopy,
   vendorBillDueCopy,
   boqMeasurementAwaitingCopy,
@@ -212,6 +212,12 @@ export async function collectMissingAttendanceToday(
 ): Promise<CommandCenterItem[]> {
   if (!hasPermission(ctx.context, PERMISSIONS.ATTENDANCE_MANAGE)) return [];
 
+  const laborDefaults = await getLaborCostDefaultsForApply(ctx.context);
+  const workWeekdays = resolveOrgWorkWeekdays(laborDefaults);
+  const [year, month, day] = ctx.today.split('-').map(Number);
+  const weekday = new Date(Date.UTC(year!, month! - 1, day!)).getUTCDay();
+  if (!workWeekdays.includes(weekday)) return [];
+
   const missing = await listEmployeesWithoutAttendanceToday(ctx.context, ctx.today);
   if (missing.length === 0) return [];
 
@@ -236,86 +242,33 @@ export async function collectUnallocatedEmployeeCost(
 ): Promise<CommandCenterItem[]> {
   if (!hasPermission(ctx.context, PERMISSIONS.WORKFORCE_COST_READ)) return [];
 
-  const rows = await ctx.context.db
-    .select({
-      id: laborAllocationRuns.id,
-      unallocatedAmount: laborAllocationRuns.unallocatedAmount,
-      allocatedAmount: laborAllocationRuns.allocatedAmount,
-      currency: laborAllocationRuns.currency,
-      employeeMonthCostId: laborAllocationRuns.employeeMonthCostId,
-      status: laborAllocationRuns.status,
-      employeeId: employeeMonthCosts.employeeId,
-      yearMonth: employeeMonthCosts.yearMonth,
-      knownAmount: employeeMonthCosts.knownAmount,
-      employeeName: employees.name,
-    })
-    .from(laborAllocationRuns)
-    .innerJoin(
-      employeeMonthCosts,
-      and(
-        eq(laborAllocationRuns.employeeMonthCostId, employeeMonthCosts.id),
-        eq(laborAllocationRuns.organizationId, employeeMonthCosts.organizationId),
-      ),
-    )
-    .innerJoin(
-      employees,
-      and(
-        eq(employees.id, employeeMonthCosts.employeeId),
-        eq(employees.organizationId, employeeMonthCosts.organizationId),
-      ),
-    )
-    .where(
-      and(
-        eq(laborAllocationRuns.organizationId, ctx.context.organizationId),
-        inArray(laborAllocationRuns.status, ['applied', 'draft']),
-        sql`(${laborAllocationRuns.unallocatedAmount})::numeric > 0`,
-        sql`(${employeeMonthCosts.knownAmount})::numeric > 0`,
-      ),
-    )
-    .limit(PER_SOURCE_CAP);
+  await reconcileStaleLaborAllocations(ctx.context, { maxRepairs: 8 });
+
+  const sources = await listUnattributedProjectLaborSources(ctx.context, {
+    limit: PER_SOURCE_CAP,
+  });
+  if (sources.length === 0) return [];
 
   const locale = localeOf(ctx);
-  const items: CommandCenterItem[] = [];
-  for (const row of rows) {
-    if (items.length >= PER_SOURCE_CAP) break;
-    const expectsProjectAllocation = await employeeExpectsProjectLaborAllocation(
-      ctx.context,
-      row.employeeId,
-      row.yearMonth,
-    );
-    if (!expectsProjectAllocation) continue;
-
-    const copy = unallocatedEmployeeCostCopy(locale, {
-      employeeName: row.employeeName,
-      yearMonth: row.yearMonth,
-      knownAmount: row.knownAmount,
-      allocatedAmount: row.allocatedAmount,
-      unallocatedAmount: row.unallocatedAmount,
-      currency: row.currency,
-      status: row.status,
-    });
-    items.push(
-      withItemDefaults({
-        sourceType: 'unallocated_employee_cost',
-        sourceId: row.id,
-        what: copy.what,
-        why: copy.why,
-        where: `${row.employeeName} · ${row.yearMonth}`,
-        href: employeeLaborAllocationAlertHref({
-          employeeId: row.employeeId,
-          yearMonth: row.yearMonth,
-        }),
-        meta: {
-          unallocated: row.unallocatedAmount,
-          employeeMonthCostId: row.employeeMonthCostId,
-          employeeId: row.employeeId,
-          yearMonth: row.yearMonth,
-          knownAmount: row.knownAmount,
-        },
+  return sources.map((source) => {
+    const copy = unattributedProjectLaborCopy(locale, source);
+    return withItemDefaults({
+      sourceType: 'unallocated_employee_cost',
+      sourceId: source.timeEntryId,
+      what: copy.what,
+      why: copy.why,
+      where: `${source.employeeName} · ${source.workDate}`,
+      href: attendanceEmployeeDateAlertHref({
+        employeeId: source.employeeId,
+        workDate: source.workDate,
       }),
-    );
-  }
-  return items;
+      meta: {
+        employeeId: source.employeeId,
+        workDate: source.workDate,
+        timeEntryId: source.timeEntryId,
+      },
+    });
+  });
 }
 
 export async function collectUnallocatedVendorBills(

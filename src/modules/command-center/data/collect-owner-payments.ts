@@ -360,7 +360,7 @@ export async function collectExpensesNeedingAllocation(
   return rows.map((row) => {
     const title = row.description?.trim() || row.supplierName?.trim() || 'הוצאה';
     const amount = row.grossAmount ? formatMoneyDisplay(row.grossAmount, locale) : '';
-    const where = row.projectName ? `פרויקט: ${row.projectName}` : GENERAL_BUSINESS_ATTRIBUTION;
+    const where = row.projectName ? `פרויקט: ${row.projectName}` : 'הוצאה משותפת — דורש שיוך לפרויקט';
     return withItemDefaults({
       sourceType: 'expense_needs_allocation',
       sourceId: row.id,
