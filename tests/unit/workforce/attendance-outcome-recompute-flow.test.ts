@@ -30,15 +30,13 @@ describe('affected year-month resolution (systemic)', () => {
     expect(distinctYearMonthsFromWorkDates(dates)).toEqual(['2026-01']);
   });
 
-  it('merges save range + stored outcomes + derived rows without duplicates', () => {
+  it('merges save-range months without duplicates', () => {
     expect(
       mergeYearMonths(
-        ['2026-03', '2026-04'],
-        ['2026-04', '2026-08'],
-        ['2026-01', '2026-08'],
-        ['2026-02'],
+        yearMonthsInBusinessDateRange(businessDate('2026-03-28'), businessDate('2026-05-02')),
+        ['2026-04'],
       ),
-    ).toEqual(['2026-01', '2026-02', '2026-03', '2026-04', '2026-08']);
+    ).toEqual(['2026-03', '2026-04', '2026-05']);
   });
 });
 

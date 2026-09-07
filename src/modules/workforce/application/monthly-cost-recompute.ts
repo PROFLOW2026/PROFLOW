@@ -45,10 +45,13 @@ import { calculateMonthlyEmployerCostPoolForMonth } from '../domain/employer-cos
 import { adjustMonthlyCompensationForUnpaidAbsence } from '../domain/employment-active-range';
 import {
   listAttendanceOutcomesForEmployeeMonth,
-  resolveYearMonthsAffectedByAttendanceOutcomeChange,
+  resolveYearMonthsForAttendanceSaveRange,
   type AttendanceOutcomeChangeScope,
 } from './attendance-outcomes';
-import { upsertPayrollPaymentExpected } from './payroll-payments';
+import {
+  syncPayrollExpectedFromLaborRecompute,
+  type PayrollSyncFromLabor,
+} from './payroll-payments';
 import { areEmployeeMonthCostsAvailable } from '../domain/monthly-cost-gates';
 import {
   allocateMonthlyRecognizedPoolByWorkDays,
@@ -334,9 +337,15 @@ export async function computeMonthlyEmployeeLaborAllocationDraft(
  */
 export async function recomputeMonthlyEmployeeCostForOpenMonth(
   context: OrgContext,
-  input: { readonly employeeId: string; readonly yearMonth: string },
+  input: {
+    readonly employeeId: string;
+    readonly yearMonth: string;
+    /** Attendance path must use updateExistingOnly — never invent payroll rows. */
+    readonly payrollSync?: PayrollSyncFromLabor;
+  },
 ): Promise<MonthlyCostRecomputeResult> {
   const { employeeId, yearMonth } = input;
+  const payrollSync = input.payrollSync ?? 'upsert';
   const base = {
     skipped: true as const,
     yearMonth,
@@ -497,11 +506,12 @@ export async function recomputeMonthlyEmployeeCostForOpenMonth(
     if (!applied) throw new NotFoundError('Labor allocation run');
   });
 
-  await upsertPayrollPaymentExpected(context, {
+  await syncPayrollExpectedFromLaborRecompute(context, {
     employeeId,
     yearMonth,
     expectedAmount: knownAmountStr,
     currency,
+    mode: payrollSync,
   });
 
   return {
@@ -519,20 +529,21 @@ export async function recomputeMonthlyEmployeeCostForOpenMonth(
 }
 
 /**
- * Recompute derived labor/payroll/allocation for every month affected by an
- * attendance-outcome change (save range + stored outcomes + stale derived rows).
+ * Recompute labor/allocation for months in the attendance save range only.
+ * Payroll: update existing lifecycle rows only — never INSERT from this path.
  */
 export async function recomputeDerivedLaborAfterAttendanceOutcomeChange(
   context: OrgContext,
   input: AttendanceOutcomeChangeScope,
 ): Promise<readonly MonthlyCostRecomputeResult[]> {
-  const yearMonths = await resolveYearMonthsAffectedByAttendanceOutcomeChange(context, input);
+  const yearMonths = resolveYearMonthsForAttendanceSaveRange(input);
   const results: MonthlyCostRecomputeResult[] = [];
   for (const yearMonth of yearMonths) {
     results.push(
       await recomputeMonthlyEmployeeCostForOpenMonth(context, {
         employeeId: input.employeeId,
         yearMonth,
+        payrollSync: 'updateExistingOnly',
       }),
     );
   }

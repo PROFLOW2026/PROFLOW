@@ -14,6 +14,91 @@ import { salaryDueDateForPeriod } from '@/modules/tenancy/domain/org-financial-p
 const PAYROLL_CONFIRMED = AUDIT_ACTIONS.PAYROLL_PAYMENT_CONFIRMED;
 const PAYROLL_VOIDED = AUDIT_ACTIONS.PAYROLL_PAYMENT_CONFIRMATION_VOIDED;
 
+export type PayrollSyncFromLabor = 'upsert' | 'updateExistingOnly';
+
+/**
+ * Sync payroll expected amount after labor recompute.
+ * - upsert: create row when missing (compensation/bootstrap paths)
+ * - updateExistingOnly: attendance path — never INSERT; paid rows untouched
+ */
+export async function syncPayrollExpectedFromLaborRecompute(
+  context: OrgContext,
+  input: {
+    readonly employeeId: string;
+    readonly yearMonth: string;
+    readonly expectedAmount: string;
+    readonly currency: string;
+    readonly mode: PayrollSyncFromLabor;
+  },
+): Promise<'inserted' | 'updated' | 'closed_zero' | 'skipped_paid' | 'skipped_no_row'> {
+  if (input.mode === 'upsert') {
+    await upsertPayrollPaymentExpected(context, {
+      employeeId: input.employeeId,
+      yearMonth: input.yearMonth,
+      expectedAmount: input.expectedAmount,
+      currency: input.currency,
+    });
+    return 'updated';
+  }
+
+  const policies = await getOrgFinancialPolicies(context);
+  const dueDate = salaryDueDateForPeriod(input.yearMonth, policies.salaryPaymentDay);
+  const today = todayInTimeZone(context.organization.timezone);
+  const expectedMoney = fromNumericString(input.expectedAmount, input.currency);
+  const zeroOrNegative = !expectedMoney || !isPositiveMoney(expectedMoney);
+
+  const [existing] = await context.db
+    .select({
+      id: employeePayrollPayments.id,
+      paidAt: employeePayrollPayments.paidAt,
+      paymentConfirmationSource: employeePayrollPayments.paymentConfirmationSource,
+    })
+    .from(employeePayrollPayments)
+    .where(
+      and(
+        eq(employeePayrollPayments.organizationId, context.organizationId),
+        eq(employeePayrollPayments.employeeId, input.employeeId),
+        eq(employeePayrollPayments.yearMonth, input.yearMonth),
+        isNull(employeePayrollPayments.voidedAt),
+      ),
+    )
+    .limit(1);
+
+  if (!existing) return 'skipped_no_row';
+  if (existing.paidAt) return 'skipped_paid';
+
+  if (zeroOrNegative) {
+    await context.db
+      .update(employeePayrollPayments)
+      .set({
+        expectedAmount: input.expectedAmount,
+        currency: input.currency,
+        dueDate,
+        paymentStatus: 'paid',
+        paidAt: today,
+        paidAmount: '0',
+        paymentConfirmationSource: 'automatic_policy',
+      })
+      .where(eq(employeePayrollPayments.id, existing.id));
+    return 'closed_zero';
+  }
+
+  let status: 'upcoming' | 'due' | 'overdue' = 'upcoming';
+  if (dueDate < today) status = 'overdue';
+  else if (dueDate === today) status = 'due';
+
+  await context.db
+    .update(employeePayrollPayments)
+    .set({
+      expectedAmount: input.expectedAmount,
+      currency: input.currency,
+      dueDate,
+      paymentStatus: status,
+    })
+    .where(eq(employeePayrollPayments.id, existing.id));
+  return 'updated';
+}
+
 export async function upsertPayrollPaymentExpected(
   context: OrgContext,
   input: {

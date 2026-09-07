@@ -1,5 +1,5 @@
-import { and, eq, gte, inArray, isNull, lte } from 'drizzle-orm';
-import { employeeAttendanceOutcomes, employeeMonthCosts, employeePayrollPayments, employees } from '@drizzle/schema';
+import { and, eq, gte, lte } from 'drizzle-orm';
+import { employeeAttendanceOutcomes, employees } from '@drizzle/schema';
 import type { OrgContext } from '@/shared/auth/context';
 import type { BusinessDate } from '@/shared/dates';
 import { assertPermission } from '@/shared/permissions/assert';
@@ -225,53 +225,26 @@ export interface AttendanceOutcomeChangeScope {
 }
 
 /**
- * All calendar months that must refresh after attendance-outcome edits:
- * save range months + stored outcome months + derived payroll / month-cost months.
+ * Runtime attendance save: only calendar months touched by the inclusive save range.
  */
+export function resolveYearMonthsForAttendanceSaveRange(
+  input: AttendanceOutcomeChangeScope,
+): readonly string[] {
+  if (input.fromDate != null && input.toDate != null) {
+    return yearMonthsInBusinessDateRange(input.fromDate, input.toDate);
+  }
+  if (input.fromDate != null) {
+    return [input.fromDate.slice(0, 7)];
+  }
+  return [];
+}
+
+/** @deprecated Narrow runtime scope — use resolveYearMonthsForAttendanceSaveRange */
 export async function resolveYearMonthsAffectedByAttendanceOutcomeChange(
-  context: OrgContext,
+  _context: OrgContext,
   input: AttendanceOutcomeChangeScope,
 ): Promise<readonly string[]> {
-  const saveRangeMonths =
-    input.fromDate != null && input.toDate != null
-      ? yearMonthsInBusinessDateRange(input.fromDate, input.toDate)
-      : input.fromDate != null
-        ? [input.fromDate.slice(0, 7)]
-        : [];
-
-  const outcomeMonths = await listYearMonthsWithAttendanceOutcomesForEmployee(
-    context,
-    input.employeeId,
-  );
-
-  const payrollRows = await context.db
-    .select({ yearMonth: employeePayrollPayments.yearMonth })
-    .from(employeePayrollPayments)
-    .where(
-      and(
-        eq(employeePayrollPayments.organizationId, context.organizationId),
-        eq(employeePayrollPayments.employeeId, input.employeeId),
-        isNull(employeePayrollPayments.voidedAt),
-      ),
-    );
-
-  const costRows = await context.db
-    .select({ yearMonth: employeeMonthCosts.yearMonth })
-    .from(employeeMonthCosts)
-    .where(
-      and(
-        eq(employeeMonthCosts.organizationId, context.organizationId),
-        eq(employeeMonthCosts.employeeId, input.employeeId),
-        inArray(employeeMonthCosts.status, ['draft', 'applied', 'closed']),
-      ),
-    );
-
-  return mergeYearMonths(
-    saveRangeMonths,
-    outcomeMonths,
-    payrollRows.map((row) => row.yearMonth),
-    costRows.map((row) => row.yearMonth),
-  );
+  return resolveYearMonthsForAttendanceSaveRange(input);
 }
 
 /** @deprecated Use resolveYearMonthsAffectedByAttendanceOutcomeChange */

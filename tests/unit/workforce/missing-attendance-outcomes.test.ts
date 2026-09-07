@@ -55,10 +55,10 @@ describe('historical attendance outcome months', () => {
     ).toEqual(['2026-03', '2026-04']);
   });
 
-  it('merges outcome, payroll, and month-cost year-months without duplicates', () => {
+  it('merges save-range months without historical expansion', () => {
     expect(
-      mergeYearMonths(['2026-03', '2026-04'], ['2026-04', '2026-08'], ['2026-01']),
-    ).toEqual(['2026-01', '2026-03', '2026-04', '2026-08']);
+      mergeYearMonths(['2026-03', '2026-04'], ['2026-04']),
+    ).toEqual(['2026-03', '2026-04']);
   });
 
   it('full-month unpaid → zero recognized salary', () => {
