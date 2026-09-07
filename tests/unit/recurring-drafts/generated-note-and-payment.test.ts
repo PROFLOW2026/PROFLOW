@@ -25,8 +25,8 @@ describe('recurring draft generated notes', () => {
 });
 
 describe('template recurring automatic payment kind', () => {
-  it('prefers template automatic over vendor org_default', () => {
-    const kind = resolveExpenseAutomaticPaymentKind({
+  it('requires org automatic_on_due even when template override is automatic', () => {
+    const manualKind = resolveExpenseAutomaticPaymentKind({
       automaticInstallmentPayment: false,
       installmentCount: 1,
       vendor: { paymentConfirmationOverride: 'org_default' },
@@ -37,6 +37,19 @@ describe('template recurring automatic payment kind', () => {
         salaryPaymentDay: 10,
       },
     });
-    expect(kind).toBe('template_recurring_automatic');
+    expect(manualKind).toBe('none');
+
+    const autoKind = resolveExpenseAutomaticPaymentKind({
+      automaticInstallmentPayment: false,
+      installmentCount: 1,
+      vendor: { paymentConfirmationOverride: 'org_default' },
+      recurringDraft: { paymentConfirmationOverride: 'automatic' },
+      policies: {
+        expensePaymentConfirmationMode: 'automatic_on_due',
+        salaryPaymentConfirmationMode: 'manual',
+        salaryPaymentDay: 10,
+      },
+    });
+    expect(autoKind).toBe('org_automatic_on_due');
   });
 });

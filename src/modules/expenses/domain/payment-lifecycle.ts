@@ -27,6 +27,8 @@ export interface ExpensePaymentRow {
   readonly costCategoryId?: string | null;
   readonly automaticInstallmentPayment?: boolean;
   readonly installmentCount?: number;
+  readonly installmentStartDate?: BusinessDate | null;
+  readonly installmentsPaidCount?: number;
   readonly voidsExpenseId?: string | null;
   readonly adjustsExpenseId?: string | null;
   readonly hasActiveReversal?: boolean;

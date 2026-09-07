@@ -189,6 +189,8 @@ export interface ExpenseDetail extends ExpenseSummary {
   /** Managerial Actual spread; 1 = full NET in the start month. */
   readonly installmentCount: number;
   readonly installmentStartDate: BusinessDate | null;
+  readonly installmentsPaidCount: number;
+  readonly automaticInstallmentPayment: boolean;
   /**
    * When true, finalized NET books to inventory cost basis — not operating Actual.
    */

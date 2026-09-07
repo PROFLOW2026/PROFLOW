@@ -13,6 +13,7 @@ import {
   sumMoney,
   toDecimalValue,
   toNumericString,
+  zeroMoney,
 } from '@/shared/money';
 import { DomainRuleError } from '@/shared/errors';
 
@@ -118,4 +119,24 @@ export function installmentCashInDateRange(input: {
     }
   }
   return total;
+}
+
+/** Derive fully-paid installment count from cumulative paid gross (sequential schedule). */
+export function installmentsPaidCountFromPaidGross(input: {
+  readonly schedule: readonly CashInstallmentLine[];
+  readonly paidGross: MoneyValue;
+}): number {
+  let cumulative = zeroMoney(input.paidGross.currency);
+  let count = 0;
+  for (let index = 0; index < input.schedule.length; index += 1) {
+    const line = input.schedule[index];
+    if (!line) break;
+    cumulative = addMoney(cumulative, line.amount);
+    if (Number(input.paidGross.amount) + 0.000001 >= Number(cumulative.amount)) {
+      count = index + 1;
+    } else {
+      break;
+    }
+  }
+  return count;
 }

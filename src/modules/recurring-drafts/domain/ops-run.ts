@@ -11,6 +11,8 @@ export interface RecurringOpsRunResult {
   readonly generated: number;
   readonly skipped: number;
   readonly failed: number;
+  /** Automatic payment confirmations applied (org automatic_on_due only). */
+  readonly paymentsApplied: number;
   readonly failures: readonly { readonly draftId: string; readonly error: string }[];
 }
 
@@ -78,5 +80,5 @@ export async function runDueRecurringDrafts<TContext>(input: {
     }
   }
 
-  return { scanned: input.due.length, generated, skipped, failed, failures };
+  return { scanned: input.due.length, generated, skipped, failed, paymentsApplied: 0, failures };
 }

@@ -59,6 +59,8 @@ function expense(partial: Partial<ExpenseDetail> = {}): ExpenseDetail {
     allocationScheduleMode: null,
     installmentCount: 1,
     installmentStartDate: null,
+    installmentsPaidCount: 0,
+    automaticInstallmentPayment: false,
     inventoryStockPurchase: false,
     inventoryItemId: null,
     inventoryPurchaseQty: null,

@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, type ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -10,8 +10,10 @@ import { Input } from '@/components/ui/input';
 import { MoneyText } from '@/components/patterns/money-text';
 import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
 import { formatBusinessDate } from '@/shared/dates/format';
-import { money } from '@/shared/money';
+import { businessDate } from '@/shared/dates';
+import { isPositiveMoney } from '@/shared/money';
 import { isExpensePaymentObligationEligible } from '@/modules/expenses/domain/payment-lifecycle';
+import { resolveExpensePaymentObligation } from '@/modules/expenses/domain/resolve-expense-payment-obligation';
 import type { ExpenseDetail } from '@/modules/expenses/domain/types';
 import {
   confirmExpensePaidAction,
@@ -53,7 +55,23 @@ export function ExpensePaymentPanel({
     currency: expense.grossAmount.currency,
   });
 
-  const status = expense.paymentStatus ?? 'upcoming';
+  const obligation = resolveExpensePaymentObligation(
+    {
+      grossAmount: expense.grossAmount.amount,
+      currency: expense.grossAmount.currency,
+      expenseDate: expense.expenseDate,
+      installmentCount: expense.installmentCount,
+      installmentStartDate: expense.installmentStartDate,
+      installmentsPaidCount: expense.installmentsPaidCount,
+      paidGrossAmount: expense.paidGrossAmount,
+      dueDate: expense.dueDate,
+      paymentStatus: expense.paymentStatus,
+      paidAt: expense.paidAt,
+    },
+    businessDate(defaultPaymentDate),
+  );
+
+  const status = obligation.paymentStatus ?? expense.paymentStatus ?? 'upcoming';
   const statusShape: StatusShape =
     status === 'paid'
       ? 'approved'
@@ -62,6 +80,10 @@ export function ExpensePaymentPanel({
         : status === 'due'
           ? 'pending'
           : 'pending';
+
+  const hasPaidProgress = isPositiveMoney(obligation.totalPaid);
+  const showConfirm =
+    canManage && paymentActionable && !obligation.isFullyPaid && isPositiveMoney(obligation.payableAmount);
 
   return (
     <Card id="expense-payment" className="scroll-mt-24">
@@ -72,41 +94,74 @@ export function ExpensePaymentPanel({
         </CardTitle>
       </CardHeader>
       <CardContent className="grid gap-3 text-sm">
-        <Detail label={t('dueDate')} value={expense.dueDate ? formatBusinessDate(expense.dueDate, locale) : '—'} />
-        {expense.paidAt ? (
+        <Detail
+          label={t('dueDate')}
+          value={
+            obligation.effectiveDueDate
+              ? formatBusinessDate(obligation.effectiveDueDate, locale)
+              : expense.dueDate
+                ? formatBusinessDate(expense.dueDate, locale)
+                : '—'
+          }
+        />
+
+        {expense.installmentCount > 1 ? (
           <>
-            <Detail label={t('paidAt')} value={formatBusinessDate(expense.paidAt, locale)} />
-            <div>
-              <span className="text-xs text-[var(--pf-text-muted)]">{t('paidAmount')}</span>
-              <div>
-                <MoneyText
-                  value={
-                    expense.paidGrossAmount
-                      ? money(expense.paidGrossAmount, expense.grossAmount.currency)
-                      : expense.grossAmount
-                  }
-                  className="font-medium"
-                />
-              </div>
-            </div>
+            <Detail
+              label={t('transactionTotal')}
+              value={<MoneyText value={obligation.transactionTotal} className="font-medium" />}
+            />
+            {hasPaidProgress ? (
+              <Detail
+                label={t('paidAmount')}
+                value={<MoneyText value={obligation.totalPaid} className="font-medium" />}
+              />
+            ) : null}
+            <Detail
+              label={t('remainingBalance')}
+              value={<MoneyText value={obligation.totalRemaining} className="font-medium" />}
+            />
+          </>
+        ) : null}
+
+        {hasPaidProgress || obligation.isFullyPaid ? (
+          <>
+            {expense.paidAt ? (
+              <Detail label={t('paidAt')} value={formatBusinessDate(expense.paidAt, locale)} />
+            ) : null}
             {expense.paymentConfirmationSource ? (
               <p className="text-xs text-[var(--pf-text-muted)]">
                 {t(`source.${expense.paymentConfirmationSource}`)}
               </p>
             ) : null}
           </>
-        ) : (
+        ) : null}
+
+        {!obligation.isFullyPaid ? (
           <div>
             <span className="text-xs text-[var(--pf-text-muted)]">{t('payableAmount')}</span>
             <div>
-              <MoneyText value={expense.grossAmount} className="font-medium" />
+              <MoneyText value={obligation.payableAmount} className="font-medium" />
             </div>
+            {expense.installmentCount > 1 && obligation.currentInstallmentIndex != null ? (
+              <p className="text-xs text-[var(--pf-text-muted)]">
+                {t('installmentProgress', {
+                  current: obligation.currentInstallmentIndex + 1,
+                  total: expense.installmentCount,
+                })}
+              </p>
+            ) : null}
           </div>
-        )}
+        ) : null}
 
-        {canManage && !expense.paidAt && paymentActionable ? (
+        {showConfirm ? (
           <form action={confirmAction} className="flex flex-col gap-2">
             <input type="hidden" name="expenseId" value={expense.id} />
+            <input
+              type="hidden"
+              name="paidGrossAmount"
+              value={obligation.payableAmount.amount}
+            />
             <Field label={t('paymentDateLabel')} required>
               {(controlProps) => (
                 <Input
@@ -126,7 +181,7 @@ export function ExpensePaymentPanel({
           </form>
         ) : null}
 
-        {canManage && expense.paidAt ? (
+        {canManage && hasPaidProgress ? (
           <form action={voidAction} className="flex flex-col gap-2">
             <input type="hidden" name="expenseId" value={expense.id} />
             <Button type="submit" size="sm" variant="secondary" loading={voidPending} className="self-start">
@@ -140,13 +195,23 @@ export function ExpensePaymentPanel({
   );
 }
 
-function Detail({ label, value }: { label: string; value: string }) {
+function Detail({
+  label,
+  value,
+}: {
+  label: string;
+  value: ReactNode;
+}) {
   return (
     <div className="grid gap-0.5">
       <span className="text-xs text-[var(--pf-text-muted)]">{label}</span>
-      <span dir="ltr" className="font-medium">
-        {value}
-      </span>
+      {typeof value === 'string' ? (
+        <span dir="ltr" className="font-medium">
+          {value}
+        </span>
+      ) : (
+        value
+      )}
     </div>
   );
 }

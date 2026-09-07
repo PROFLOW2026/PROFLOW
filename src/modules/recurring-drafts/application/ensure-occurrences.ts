@@ -147,11 +147,11 @@ async function ensureNonMonthlyDueDraft(
 
 /**
  * Idempotent runtime sync: backfill missing monthly occurrences through today,
- * advance schedules, then apply automatic payment policies.
+ * advance schedules. Does not apply payment policies — caller runs sync separately.
  */
-export async function ensureRecurringDraftOccurrencesForOrg(
+export async function ensureRecurringDraftOccurrencesOnly(
   context: OrgContext,
-): Promise<EnsureRecurringOccurrencesResult> {
+): Promise<Omit<EnsureRecurringOccurrencesResult, never>> {
   const today = todayInTimeZone(context.organization.timezone);
   const drafts = await listRecurringDrafts(context.db, context.organizationId, {
     kind: 'expense',
@@ -173,12 +173,22 @@ export async function ensureRecurringDraftOccurrencesForOrg(
     if (outcome.advanced) schedulesAdvanced += 1;
   }
 
-  await syncAutomaticExpensePayments(context, today);
-
   return {
     templatesScanned: drafts.length,
     monthsGenerated,
     schedulesAdvanced,
     skippedExisting,
   };
+}
+
+/**
+ * Page-load path: ensure occurrences then apply automatic payment policies.
+ */
+export async function ensureRecurringDraftOccurrencesForOrg(
+  context: OrgContext,
+): Promise<EnsureRecurringOccurrencesResult> {
+  const today = todayInTimeZone(context.organization.timezone);
+  const result = await ensureRecurringDraftOccurrencesOnly(context);
+  await syncAutomaticExpensePayments(context, today);
+  return result;
 }

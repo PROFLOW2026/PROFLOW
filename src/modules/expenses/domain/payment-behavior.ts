@@ -8,8 +8,6 @@ export const PAYMENT_DUE_SOON_DAYS = 7;
 export type ExpenseAutomaticPaymentKind =
   | 'none'
   | 'org_automatic_on_due'
-  | 'vendor_recurring_automatic'
-  | 'template_recurring_automatic'
   | 'installment_automatic';
 
 export interface RecurringTemplatePaymentBehavior {
@@ -24,27 +22,22 @@ export interface ExpensePaymentBehaviorInput {
   readonly policies: OrgFinancialPolicies;
 }
 
+/**
+ * Auto payment confirmation is opt-in at org level only.
+ * Vendor/template overrides affect due-date scheduling, not auto-approval.
+ */
 export function resolveExpenseAutomaticPaymentKind(
   input: ExpensePaymentBehaviorInput,
 ): ExpenseAutomaticPaymentKind {
-  // Installment schedules pre-authorize each due payment — no monthly Owner confirm.
+  if (input.policies.expensePaymentConfirmationMode !== 'automatic_on_due') {
+    return 'none';
+  }
+
   if (input.installmentCount > 1) {
     return 'installment_automatic';
   }
-  // Recurring expense templates with a schedule are pre-authorized operational payments.
-  if (input.recurringDraft?.draftKind === 'expense') {
-    return 'template_recurring_automatic';
-  }
-  if (input.recurringDraft?.paymentConfirmationOverride === 'automatic') {
-    return 'template_recurring_automatic';
-  }
-  if (input.vendor?.paymentConfirmationOverride === 'automatic') {
-    return 'vendor_recurring_automatic';
-  }
-  if (input.policies.expensePaymentConfirmationMode === 'automatic_on_due') {
-    return 'org_automatic_on_due';
-  }
-  return 'none';
+
+  return 'org_automatic_on_due';
 }
 
 /** Automatic policies never surface Owner confirmation alerts. */

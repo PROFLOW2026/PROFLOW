@@ -167,6 +167,20 @@ export async function listMembershipsForUser(
   }));
 }
 
+/** Active (non-archived) organizations — used by daily ops worker. */
+export async function listActiveOrganizationIds(db: DbExecutor): Promise<
+  readonly { readonly id: string; readonly defaultLocale: string }[]
+> {
+  const rows = await db
+    .select({
+      id: organizations.id,
+      defaultLocale: organizations.defaultLocale,
+    })
+    .from(organizations)
+    .where(isNull(organizations.archivedAt));
+  return rows;
+}
+
 export async function seedDefaultCostCategories(db: DbExecutor, organizationId: string): Promise<void> {
   await db
     .insert(costCategories)

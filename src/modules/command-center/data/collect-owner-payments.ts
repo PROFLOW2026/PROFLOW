@@ -40,7 +40,11 @@ import {
   expensePaymentAlertHref,
   payrollAlertHref,
 } from '../domain/alert-deep-links';
-import { withItemDefaults } from '../domain/ranking';
+import { buildItemKey, withItemDefaults } from '../domain/ranking';
+import {
+  obligationAlertSourceId,
+  resolveExpensePaymentObligation,
+} from '@/modules/expenses/domain/resolve-expense-payment-obligation';
 import type { CommandCenterItem, CommandCenterSourceType } from '../domain/types';
 import type { CollectContext } from './collect-sources';
 
@@ -51,6 +55,7 @@ function moneyLabel(value: MoneyValue, locale: string): string {
 function expenseItem(input: {
   readonly sourceType: CommandCenterSourceType;
   readonly sourceId: string;
+  readonly itemKey?: string;
   readonly what: string;
   readonly why: string;
   readonly where: string;
@@ -59,7 +64,19 @@ function expenseItem(input: {
   readonly confirmPaid?: 'expense';
   readonly meta?: CommandCenterItem['meta'];
 }): CommandCenterItem {
-  return withItemDefaults(input);
+  const base = withItemDefaults({
+    sourceType: input.sourceType,
+    sourceId: input.sourceId,
+    what: input.what,
+    why: input.why,
+    where: input.where,
+    href: input.href,
+    urgencyBump: input.urgencyBump,
+    confirmPaid: input.confirmPaid,
+    meta: input.meta,
+  });
+  if (!input.itemKey) return base;
+  return { ...base, itemKey: input.itemKey };
 }
 
 const GENERAL_BUSINESS_ATTRIBUTION = 'שיוך: הוצאה כללית של העסק';
@@ -164,18 +181,40 @@ export async function collectExpensesDueToday(ctx: CollectContext): Promise<Comm
     });
     if (!expenseRequiresOwnerPaymentConfirmation(autoKind, manualConfirm)) continue;
 
+    const obligation = resolveExpensePaymentObligation(
+      {
+        grossAmount: row.grossAmount,
+        currency: row.currency,
+        expenseDate: row.expenseDate,
+        installmentCount: row.installmentCount ?? 1,
+        installmentStartDate: row.installmentStartDate ?? null,
+        installmentsPaidCount: row.installmentsPaidCount ?? 0,
+        paidGrossAmount: row.paidGrossAmount,
+        dueDate: row.dueDate,
+        paymentStatus: row.paymentStatus,
+        paidAt: row.paidAt,
+      },
+      ctx.today,
+    );
+
+    if (obligation.isFullyPaid || !isPositiveMoney(obligation.payableAmount)) continue;
+
+    const effectiveDueDate = obligation.effectiveDueDate;
+    const alertSourceId = obligationAlertSourceId(row.id, obligation);
+
     // Actionable payments only when due today, overdue, or missing due date (review).
-    // Future due_date (> today) is upcoming — never surfaces in Today / Bell / badge.
+    // Future effective due date (> today) is upcoming — never surfaces in Today / Bell / badge.
     if (
-      row.dueDate &&
+      effectiveDueDate &&
       !isExpensePendingReview(row) &&
-      compareBusinessDates(row.dueDate, ctx.today) > 0
+      compareBusinessDates(effectiveDueDate, ctx.today) > 0
     ) {
       continue;
     }
 
     const expenseTitle = row.description?.trim() || row.supplierName?.trim() || vendor?.name || 'הוצאה';
-    const amount = moneyLabel(gross, locale);
+    const payableLabel = moneyLabel(obligation.payableAmount, locale);
+    const remainingLabel = moneyLabel(obligation.totalRemaining, locale);
     const expenseDateLabel = formatBusinessDate(row.expenseDate, locale);
     const vendorLabel = vendor?.name ?? row.supplierName ?? null;
     const projectName = row.projectId ? projectNameById.get(row.projectId) ?? null : null;
@@ -184,74 +223,84 @@ export async function collectExpensesDueToday(ctx: CollectContext): Promise<Comm
       ? `פרויקט: ${projectName}`
       : GENERAL_BUSINESS_ATTRIBUTION;
 
+    const installmentNote =
+      (row.installmentCount ?? 1) > 1 && obligation.currentInstallmentIndex != null
+        ? `תשלום ${obligation.currentInstallmentIndex + 1}/${row.installmentCount}`
+        : null;
+
     const detailParts = [
       expenseTitle,
-      amount,
+      `לתשלום: ${payableLabel}`,
+      installmentNote,
+      (row.installmentCount ?? 1) > 1 ? `יתרת עסקה: ${remainingLabel}` : null,
       `תאריך הוצאה: ${expenseDateLabel}`,
-    ];
+    ].filter(Boolean) as string[];
     if (vendorLabel) detailParts.push(`ספק: ${vendorLabel}`);
     if (categoryName) detailParts.push(`קטגוריה: ${categoryName}`);
-    if (row.dueDate) detailParts.push(`מועד תשלום: ${formatBusinessDate(row.dueDate, locale)}`);
+    if (effectiveDueDate) {
+      detailParts.push(`מועד תשלום: ${formatBusinessDate(effectiveDueDate, locale)}`);
+    }
 
     const why = detailParts.join(' · ');
     const meta: CommandCenterItem['meta'] = {
       expenseDate: row.expenseDate,
-      dueDate: row.dueDate,
-      amount: gross.amount,
-      currency: gross.currency,
+      dueDate: effectiveDueDate,
+      amount: obligation.payableAmount.amount,
+      currency: obligation.payableAmount.currency,
       expenseTitle,
       vendorName: vendorLabel,
       projectName,
       categoryName,
       isGeneralBusiness: !row.projectId,
+      installmentIndex: obligation.currentInstallmentIndex,
+      transactionRemaining: obligation.totalRemaining.amount,
+    };
+
+    const alertBase = {
+      sourceId: row.id,
+      why,
+      where,
+      href: expensePaymentAlertHref(row.id),
+      confirmPaid: 'expense' as const,
+      meta,
     };
 
     if (isExpensePendingReview(row)) {
       items.push(
         expenseItem({
+          ...alertBase,
           sourceType: 'expense_pending_review',
-          sourceId: row.id,
+          itemKey: buildItemKey('expense_pending_review', alertSourceId),
           what: 'הוצאה ממתינה לאישור תשלום',
-          why,
-          where,
-          href: expensePaymentAlertHref(row.id),
           urgencyBump: 15,
-          confirmPaid: 'expense',
-          meta,
         }),
       );
       continue;
     }
 
-    if (isExpenseOverdue(row, ctx.today)) {
+    const statusRow = { ...row, dueDate: effectiveDueDate, paymentStatus: obligation.paymentStatus };
+
+    if (isExpenseOverdue(statusRow, ctx.today)) {
       items.push(
         expenseItem({
+          ...alertBase,
           sourceType: 'expense_overdue',
-          sourceId: row.id,
-          what: 'הוצאה באיחור לתשלום',
-          why,
-          where,
-          href: expensePaymentAlertHref(row.id),
+          itemKey: buildItemKey('expense_overdue', alertSourceId),
+          what: installmentNote ? `תשלום באיחור · ${installmentNote}` : 'הוצאה באיחור לתשלום',
           urgencyBump: 40,
-          confirmPaid: 'expense',
-          meta,
         }),
       );
       continue;
     }
 
-    if (isExpenseDueToday(row, ctx.today)) {
+    if (isExpenseDueToday(statusRow, ctx.today)) {
       items.push(
         expenseItem({
+          ...alertBase,
           sourceType: 'expense_due_today',
-          sourceId: row.id,
-          what: 'הוצאה לתשלום היום',
-          why,
-          where,
-          href: expensePaymentAlertHref(row.id),
+          itemKey: buildItemKey('expense_due_today', alertSourceId),
+          what: installmentNote ? `תשלום היום · ${installmentNote}` : 'הוצאה לתשלום היום',
           urgencyBump: 25,
-          confirmPaid: 'expense',
-          meta,
         }),
       );
       continue;

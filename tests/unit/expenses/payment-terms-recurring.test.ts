@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { deriveDueDate, suggestDueDateFromPaymentTerm } from '@/modules/business-catalog';
+import { businessDate } from '@/shared/dates';
+import { money } from '@/shared/money';
 import {
   buildCashInstallmentSchedule,
   nextOccurrenceOfDayOfMonth,
@@ -12,9 +13,12 @@ import {
   isExpenseDueSoon,
   isExpensePendingReview,
 } from '@/modules/expenses/domain/payment-lifecycle';
+import {
+  obligationAlertSourceId,
+  resolveExpensePaymentObligation,
+} from '@/modules/expenses/domain/resolve-expense-payment-obligation';
 import { resolveExpensePaymentStatus } from '@/modules/tenancy/domain/org-financial-policies';
-import { money } from '@/shared/money';
-import { businessDate } from '@/shared/dates';
+import { deriveDueDate, suggestDueDateFromPaymentTerm } from '@/modules/business-catalog';
 
 describe('vendor payment terms drive due date', () => {
   it('derives eom+120 from August 2026 document date to late December 2026', () => {
@@ -55,12 +59,14 @@ describe('payment alert relevance', () => {
   });
 
   it('does not surface September 2026 actionable alerts for December due date', () => {
-    expect(resolveExpensePaymentStatus({
-      paymentStatus: 'upcoming',
-      dueDate: row.dueDate,
-      paidAt: null,
-      today: '2026-09-01',
-    })).toBe('upcoming');
+    expect(
+      resolveExpensePaymentStatus({
+        paymentStatus: 'upcoming',
+        dueDate: row.dueDate,
+        paidAt: null,
+        today: '2026-09-01',
+      }),
+    ).toBe('upcoming');
     expect(isExpenseDueSoon(row, businessDate('2026-09-01'))).toBe(false);
   });
 
@@ -70,67 +76,71 @@ describe('payment alert relevance', () => {
   });
 });
 
-describe('automatic payment behavior', () => {
-  const policies = {
+describe('automatic payment behavior — org opt-in only', () => {
+  const manualPolicies = {
     expensePaymentConfirmationMode: 'manual' as const,
     salaryPaymentConfirmationMode: 'manual' as const,
     salaryPaymentDay: 10,
   };
+  const autoPolicies = {
+    ...manualPolicies,
+    expensePaymentConfirmationMode: 'automatic_on_due' as const,
+  };
 
-  it('recurring automatic vendor skips Owner confirmation', () => {
+  it('manual org requires Owner confirmation even for recurring vendor override', () => {
     const kind = resolveExpenseAutomaticPaymentKind({
       automaticInstallmentPayment: false,
       installmentCount: 1,
       vendor: { paymentConfirmationOverride: 'automatic' },
-      policies,
+      policies: manualPolicies,
     });
-    expect(kind).toBe('vendor_recurring_automatic');
-    expect(expenseRequiresOwnerPaymentConfirmation(kind, true)).toBe(false);
+    expect(kind).toBe('none');
+    expect(expenseRequiresOwnerPaymentConfirmation(kind, true)).toBe(true);
   });
 
-  it('recurring template automatic skips Owner confirmation without vendor', () => {
-    const kind = resolveExpenseAutomaticPaymentKind({
-      automaticInstallmentPayment: false,
-      installmentCount: 1,
-      vendor: null,
-      recurringDraft: { paymentConfirmationOverride: 'automatic' },
-      policies,
-    });
-    expect(kind).toBe('template_recurring_automatic');
-    expect(expenseRequiresOwnerPaymentConfirmation(kind, true)).toBe(false);
-  });
-
-  it('recurring expense template defaults to automatic even with org_default override', () => {
+  it('manual org requires Owner confirmation for recurring expense templates', () => {
     const kind = resolveExpenseAutomaticPaymentKind({
       automaticInstallmentPayment: false,
       installmentCount: 1,
       vendor: null,
       recurringDraft: { paymentConfirmationOverride: 'org_default', draftKind: 'expense' },
-      policies,
+      policies: manualPolicies,
     });
-    expect(kind).toBe('template_recurring_automatic');
-    expect(expenseRequiresOwnerPaymentConfirmation(kind, true)).toBe(false);
+    expect(kind).toBe('none');
+    expect(expenseRequiresOwnerPaymentConfirmation(kind, true)).toBe(true);
   });
 
-  it('automatic installment schedule skips Owner confirmation even without explicit flag', () => {
+  it('manual org requires Owner confirmation for installment schedules', () => {
     const kind = resolveExpenseAutomaticPaymentKind({
       automaticInstallmentPayment: false,
       installmentCount: 12,
       vendor: null,
-      policies,
+      policies: manualPolicies,
+    });
+    expect(kind).toBe('none');
+    expect(expenseRequiresOwnerPaymentConfirmation(kind, true)).toBe(true);
+  });
+
+  it('auto org enables installment automatic payments', () => {
+    const kind = resolveExpenseAutomaticPaymentKind({
+      automaticInstallmentPayment: false,
+      installmentCount: 12,
+      vendor: null,
+      policies: autoPolicies,
     });
     expect(kind).toBe('installment_automatic');
     expect(expenseRequiresOwnerPaymentConfirmation(kind, true)).toBe(false);
   });
 
-  it('automatic installment schedule skips Owner confirmation with explicit flag', () => {
+  it('auto org enables single-payment automatic confirmation', () => {
     const kind = resolveExpenseAutomaticPaymentKind({
-      automaticInstallmentPayment: true,
-      installmentCount: 12,
+      automaticInstallmentPayment: false,
+      installmentCount: 1,
       vendor: null,
-      policies,
+      recurringDraft: { paymentConfirmationOverride: 'automatic', draftKind: 'expense' },
+      policies: autoPolicies,
     });
-    expect(kind).toBe('installment_automatic');
+    expect(kind).toBe('org_automatic_on_due');
     expect(expenseRequiresOwnerPaymentConfirmation(kind, true)).toBe(false);
   });
 });
@@ -150,5 +160,102 @@ describe('cash installment schedule', () => {
 
   it('finds next recurring payment day after mid-month expense', () => {
     expect(nextOccurrenceOfDayOfMonth(businessDate('2026-08-15'), 10)).toBe('2026-09-10');
+  });
+});
+
+describe('payment obligation scenarios A–J', () => {
+  const today = businessDate('2026-09-05');
+
+  it('A — 4200 in 12 payments shows 350 payable for the next sequential installment', () => {
+    const obligation = resolveExpensePaymentObligation(
+      {
+        grossAmount: '4200.000000',
+        currency: 'ILS',
+        expenseDate: businessDate('2026-01-05'),
+        installmentCount: 12,
+        installmentStartDate: businessDate('2026-01-05'),
+        installmentsPaidCount: 8,
+        paidGrossAmount: '2800.000000',
+        dueDate: businessDate('2026-09-05'),
+        paymentStatus: 'due',
+        paidAt: businessDate('2026-08-05'),
+      },
+      today,
+    );
+    expect(obligation.payableAmount.amount).toBe('350.000000');
+    expect(obligation.transactionTotal.amount).toBe('4200.000000');
+    expect(obligation.effectiveDueDate).toBe('2026-09-05');
+  });
+
+  it('B — first installment paid leaves 750 remaining and 250 next payable', () => {
+    const obligation = resolveExpensePaymentObligation(
+      {
+        grossAmount: '1000.000000',
+        currency: 'ILS',
+        expenseDate: businessDate('2026-06-01'),
+        installmentCount: 4,
+        installmentStartDate: businessDate('2026-06-01'),
+        installmentsPaidCount: 1,
+        paidGrossAmount: '250.000000',
+        dueDate: businessDate('2026-09-01'),
+        paymentStatus: 'upcoming',
+        paidAt: businessDate('2026-06-01'),
+      },
+      today,
+    );
+    expect(obligation.totalPaid.amount).toBe('250.000000');
+    expect(obligation.totalRemaining.amount).toBe('750.000000');
+    expect(obligation.payableAmount.amount).toBe('250.000000');
+    expect(obligation.currentInstallmentIndex).toBe(1);
+  });
+
+  it('C — rounding split sums to exactly 1000', () => {
+    const schedule = buildCashInstallmentSchedule({
+      totalGross: money('1000', 'ILS'),
+      installmentCount: 3,
+      startDate: businessDate('2026-01-01'),
+    });
+    const sum = schedule.reduce((acc, line) => acc + Number(line.amount.amount), 0);
+    expect(sum).toBeCloseTo(1000, 5);
+  });
+
+  it('H — partial payment leaves 150 open on current installment', () => {
+    const obligation = resolveExpensePaymentObligation(
+      {
+        grossAmount: '4200.000000',
+        currency: 'ILS',
+        expenseDate: businessDate('2026-09-05'),
+        installmentCount: 12,
+        installmentStartDate: businessDate('2026-09-05'),
+        installmentsPaidCount: 0,
+        paidGrossAmount: '200.000000',
+        dueDate: businessDate('2026-09-05'),
+        paymentStatus: 'upcoming',
+        paidAt: null,
+      },
+      today,
+    );
+    expect(obligation.payableAmount.amount).toBe('150.000000');
+    expect(obligation.isFullyPaid).toBe(false);
+    expect(obligation.currentInstallmentIndex).toBe(0);
+  });
+
+  it('J — installment alert source id is stable per installment index', () => {
+    const obligation = resolveExpensePaymentObligation(
+      {
+        grossAmount: '1000.000000',
+        currency: 'ILS',
+        expenseDate: businessDate('2026-06-01'),
+        installmentCount: 4,
+        installmentStartDate: businessDate('2026-06-01'),
+        installmentsPaidCount: 2,
+        paidGrossAmount: '500.000000',
+        dueDate: businessDate('2026-08-01'),
+        paymentStatus: 'upcoming',
+        paidAt: null,
+      },
+      today,
+    );
+    expect(obligationAlertSourceId('exp-1', obligation)).toBe('exp-1:inst-2');
   });
 });

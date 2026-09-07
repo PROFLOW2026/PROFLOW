@@ -25,7 +25,7 @@ export async function resolveExpensePaymentSchedule(
     readonly dueDate?: string | null;
     readonly recurringDraft?: Pick<
       RecurringFinancialDraftRecord,
-      'paymentTermId' | 'paymentConfirmationOverride' | 'recurringPaymentDay'
+      'paymentTermId' | 'paymentConfirmationOverride' | 'recurringPaymentDay' | 'draftKind'
     > | null;
   },
 ): Promise<ResolvedExpensePaymentSchedule> {
@@ -58,20 +58,13 @@ export async function resolveExpensePaymentSchedule(
 
   let dueDate: BusinessDate | null = termDueRaw ? businessDate(termDueRaw) : null;
 
+  // Recurring payment day applies only to recurring draft expenses — never overrides vendor terms on invoices.
   if (
     !dueDate &&
-    input.recurringDraft?.paymentConfirmationOverride === 'automatic' &&
+    input.recurringDraft?.draftKind === 'expense' &&
     input.recurringDraft.recurringPaymentDay
   ) {
     dueDate = nextOccurrenceOfDayOfMonth(input.expenseDate, input.recurringDraft.recurringPaymentDay);
-  }
-
-  if (
-    !dueDate &&
-    vendor?.paymentConfirmationOverride === 'automatic' &&
-    vendor.recurringPaymentDay
-  ) {
-    dueDate = nextOccurrenceOfDayOfMonth(input.expenseDate, vendor.recurringPaymentDay);
   }
 
   if (!dueDate && input.dueDate) {

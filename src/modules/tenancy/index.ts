@@ -30,6 +30,7 @@ export {
   listMembershipsForUser,
   findActiveMembership,
   findOrganizationById,
+  listActiveOrganizationIds,
 } from './data/organizations.repository';
 export {
   OPTIONAL_MODULE_KEYS,

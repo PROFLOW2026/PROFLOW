@@ -11,6 +11,9 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import {
   addMoney,
   fromNumericString,
+  isPositiveMoney,
+  subtractMoney,
+  toDecimalValue,
   toNumericString,
   zeroMoney,
   type MoneyValue,
@@ -26,18 +29,20 @@ import {
 } from '@/modules/recurring-drafts';
 import type { RecurringFinancialDraftRecord } from '@/modules/recurring-drafts/domain/types';
 import {
-  effectiveExpensePaymentStatus,
   isExpensePaymentObligationEligible,
   type ExpensePaymentRow,
 } from '../domain/payment-lifecycle';
 import {
   buildCashInstallmentSchedule,
   installmentCashInDateRange,
+  installmentsPaidCountFromPaidGross,
 } from '../domain/cash-installment-schedule';
+import { resolveExpenseAutomaticPaymentKind } from '../domain/payment-behavior';
 import {
-  resolveExpenseAutomaticPaymentKind,
-  type ExpenseAutomaticPaymentKind,
-} from '../domain/payment-behavior';
+  formatObligationAmount,
+  resolveExpensePaymentObligation,
+  type ExpensePaymentObligationInput,
+} from '../domain/resolve-expense-payment-obligation';
 import { findExpenseById } from '../data/expenses.repository';
 import { resolveExpensePaymentSchedule } from './resolve-expense-payment-schedule';
 
@@ -64,6 +69,21 @@ type ExpenseSyncRow = {
   readonly sourceRecurringDraftId?: string | null;
 };
 
+function obligationInputFromRow(row: ExpenseSyncRow): ExpensePaymentObligationInput {
+  return {
+    grossAmount: row.grossAmount,
+    currency: row.currency,
+    expenseDate: businessDate(row.expenseDate),
+    installmentCount: row.installmentCount,
+    installmentStartDate: row.installmentStartDate ? businessDate(row.installmentStartDate) : null,
+    installmentsPaidCount: row.installmentsPaidCount,
+    paidGrossAmount: row.paidGrossAmount,
+    dueDate: row.dueDate ? businessDate(row.dueDate) : null,
+    paymentStatus: row.paymentStatus,
+    paidAt: row.paidAt ? businessDate(row.paidAt) : null,
+  };
+}
+
 async function loadRecurringDraftForExpense(
   context: OrgContext,
   expenseId: string,
@@ -75,41 +95,34 @@ async function loadRecurringDraftForExpense(
   return findRecurringDraftForGeneratedExpense(context.db, context.organizationId, expenseId);
 }
 
-async function markExpensePaid(
+async function persistObligationState(
   context: OrgContext,
   expenseId: string,
-  input: {
-    readonly paidAt: BusinessDate;
-    readonly paidGrossAmount: string;
-    readonly source: PaymentConfirmationSource;
-    readonly note?: string;
+  row: ExpenseSyncRow,
+  today: BusinessDate,
+  extra?: {
+    readonly paidAt?: BusinessDate;
+    readonly paidGrossAmount?: string;
     readonly installmentsPaidCount?: number;
+    readonly paymentConfirmationSource?: PaymentConfirmationSource;
   },
 ): Promise<void> {
+  const obligation = resolveExpensePaymentObligation(obligationInputFromRow(row), today);
   await context.db
     .update(expenses)
     .set({
-      paymentStatus: 'paid',
-      paidAt: input.paidAt,
-      paidGrossAmount: input.paidGrossAmount,
-      paymentConfirmationSource: input.source,
-      ...(input.installmentsPaidCount != null
-        ? { installmentsPaidCount: input.installmentsPaidCount }
+      dueDate: obligation.effectiveDueDate,
+      paymentStatus: obligation.paymentStatus ?? 'upcoming',
+      ...(extra?.paidAt != null ? { paidAt: extra.paidAt } : {}),
+      ...(extra?.paidGrossAmount != null ? { paidGrossAmount: extra.paidGrossAmount } : {}),
+      ...(extra?.installmentsPaidCount != null
+        ? { installmentsPaidCount: extra.installmentsPaidCount }
+        : {}),
+      ...(extra?.paymentConfirmationSource != null
+        ? { paymentConfirmationSource: extra.paymentConfirmationSource }
         : {}),
     })
     .where(and(eq(expenses.id, expenseId), eq(expenses.organizationId, context.organizationId)));
-
-  await recordAuditEvent(context, {
-    action: EXPENSE_PAYMENT_CONFIRMED,
-    entityType: 'expense',
-    entityId: expenseId,
-    after: {
-      paidAt: input.paidAt,
-      paidGrossAmount: input.paidGrossAmount,
-      source: input.source,
-      ...(input.note ? { note: input.note } : {}),
-    },
-  });
 }
 
 async function applyInstallmentPayment(
@@ -117,7 +130,8 @@ async function applyInstallmentPayment(
   row: ExpenseSyncRow,
   lineIndex: number,
   scheduleDueDate: BusinessDate,
-  lineAmount: MoneyValue,
+  paymentAmount: MoneyValue,
+  today: BusinessDate,
 ): Promise<void> {
   const instrument = row.paymentInstrumentId
     ? await findPaymentInstrumentById(context.db, context.organizationId, row.paymentInstrumentId)
@@ -132,20 +146,35 @@ async function applyInstallmentPayment(
   }) ?? scheduleDueDate;
 
   const priorPaid = fromNumericString(row.paidGrossAmount ?? '0', row.currency) ?? zeroMoney(row.currency);
-  const nextPaid = addMoney(priorPaid, lineAmount);
-  const nextCount = lineIndex + 1;
-  const fullyPaid = nextCount >= row.installmentCount;
+  const nextPaid = addMoney(priorPaid, paymentAmount);
 
-  await context.db
-    .update(expenses)
-    .set({
-      installmentsPaidCount: nextCount,
-      paidGrossAmount: toNumericString(nextPaid),
-      paidAt,
-      paymentConfirmationSource: 'automatic_installment_policy',
-      paymentStatus: fullyPaid ? 'paid' : 'upcoming',
-    })
-    .where(and(eq(expenses.id, row.id), eq(expenses.organizationId, context.organizationId)));
+  const totalGross = fromNumericString(row.grossAmount, row.currency);
+  const schedule =
+    totalGross && row.installmentCount > 1
+      ? buildCashInstallmentSchedule({
+          totalGross,
+          installmentCount: row.installmentCount,
+          startDate: businessDate(row.installmentStartDate ?? row.expenseDate),
+        })
+      : [];
+  const nextCount =
+    schedule.length > 0
+      ? installmentsPaidCountFromPaidGross({ schedule, paidGross: nextPaid })
+      : lineIndex + 1;
+
+  const nextRow: ExpenseSyncRow = {
+    ...row,
+    installmentsPaidCount: nextCount,
+    paidGrossAmount: toNumericString(nextPaid),
+    paidAt,
+  };
+
+  await persistObligationState(context, row.id, nextRow, today, {
+    paidAt,
+    paidGrossAmount: toNumericString(nextPaid),
+    installmentsPaidCount: nextCount,
+    paymentConfirmationSource: 'automatic_installment_policy',
+  });
 
   await recordAuditEvent(context, {
     action: EXPENSE_PAYMENT_CONFIRMED,
@@ -153,7 +182,7 @@ async function applyInstallmentPayment(
     entityId: row.id,
     after: {
       paidAt,
-      paidGrossAmount: toNumericString(lineAmount),
+      paidGrossAmount: toNumericString(paymentAmount),
       cumulativePaidGrossAmount: toNumericString(nextPaid),
       installmentIndex: lineIndex,
       source: 'automatic_installment_policy',
@@ -195,14 +224,10 @@ async function backfillInstallmentPaidCountFromExistingCash(
 
   if (targetCount <= row.installmentsPaidCount) return 0;
 
-  const fullyPaid = targetCount >= row.installmentCount;
-  await context.db
-    .update(expenses)
-    .set({
-      installmentsPaidCount: targetCount,
-      paymentStatus: fullyPaid ? 'paid' : 'upcoming',
-    })
-    .where(and(eq(expenses.id, row.id), eq(expenses.organizationId, context.organizationId)));
+  const nextRow: ExpenseSyncRow = { ...row, installmentsPaidCount: targetCount };
+  await persistObligationState(context, row.id, nextRow, today, {
+    installmentsPaidCount: targetCount,
+  });
 
   return targetCount - row.installmentsPaidCount;
 }
@@ -218,33 +243,49 @@ async function syncInstallmentAutomaticPayments(
     return backfillInstallmentPaidCountFromExistingCash(context, row, today);
   }
 
-  const startDate = businessDate(row.installmentStartDate ?? row.expenseDate);
   const totalGross = fromNumericString(row.grossAmount, row.currency);
   if (!totalGross) return 0;
 
   const schedule = buildCashInstallmentSchedule({
     totalGross,
     installmentCount: row.installmentCount,
-    startDate,
+    startDate: businessDate(row.installmentStartDate ?? row.expenseDate),
   });
 
   let count = 0;
-  for (let index = row.installmentsPaidCount; index < schedule.length; index += 1) {
-    const line = schedule[index]!;
-    if (line.dueDate > today) break;
-    await applyInstallmentPayment(context, row, index, line.dueDate, line.amount);
+  let workingRow = row;
+
+  while (true) {
+    const obligation = resolveExpensePaymentObligation(obligationInputFromRow(workingRow), today);
+    if (obligation.isFullyPaid || !isPositiveMoney(obligation.payableAmount)) break;
+    if (!obligation.effectiveDueDate || obligation.effectiveDueDate > today) break;
+
+    const index = obligation.currentInstallmentIndex ?? workingRow.installmentsPaidCount;
+    const line = schedule[index];
+    if (!line || line.dueDate > today) break;
+
+    await applyInstallmentPayment(
+      context,
+      workingRow,
+      index,
+      line.dueDate,
+      obligation.payableAmount,
+      today,
+    );
     count += 1;
-    row = {
-      ...row,
-      installmentsPaidCount: index + 1,
-      paidGrossAmount: toNumericString(
-        addMoney(
-          fromNumericString(row.paidGrossAmount ?? '0', row.currency) ?? zeroMoney(row.currency),
-          line.amount,
-        ),
-      ),
+
+    const priorPaid =
+      fromNumericString(workingRow.paidGrossAmount ?? '0', workingRow.currency) ??
+      zeroMoney(workingRow.currency);
+    const nextPaid = addMoney(priorPaid, obligation.payableAmount);
+    workingRow = {
+      ...workingRow,
+      installmentsPaidCount: installmentsPaidCountFromPaidGross({ schedule, paidGross: nextPaid }),
+      paidGrossAmount: toNumericString(nextPaid),
+      paidAt: line.dueDate,
     };
   }
+
   return count;
 }
 
@@ -252,25 +293,39 @@ async function syncDueAutomaticPayment(
   context: OrgContext,
   row: ExpenseSyncRow,
   today: BusinessDate,
-  kind: ExpenseAutomaticPaymentKind,
 ): Promise<boolean> {
-  if (!row.dueDate || row.dueDate > today) return false;
+  const obligation = resolveExpensePaymentObligation(obligationInputFromRow(row), today);
+  if (obligation.isFullyPaid || !isPositiveMoney(obligation.payableAmount)) return false;
+  if (!obligation.effectiveDueDate || obligation.effectiveDueDate > today) return false;
 
-  const source: PaymentConfirmationSource =
-    kind === 'vendor_recurring_automatic' || kind === 'template_recurring_automatic'
-      ? 'automatic_recurring_policy'
-      : 'automatic_policy';
+  const paidAt = obligation.effectiveDueDate;
+  const paidAmount = formatObligationAmount(obligation.payableAmount);
+  const priorPaid =
+    fromNumericString(row.paidGrossAmount ?? '0', row.currency) ?? zeroMoney(row.currency);
+  const nextPaid = addMoney(priorPaid, obligation.payableAmount);
+  const nextRow: ExpenseSyncRow = {
+    ...row,
+    paidGrossAmount: toNumericString(nextPaid),
+    paidAt,
+  };
 
-  await markExpensePaid(context, row.id, {
-    paidAt: businessDate(row.dueDate),
-    paidGrossAmount: row.grossAmount,
-    source,
-    note:
-      kind === 'template_recurring_automatic'
-        ? 'אושר אוטומטית לפי מדיניות הוצאה חוזרת'
-        : kind === 'vendor_recurring_automatic'
-          ? 'אושר אוטומטית לפי מדיניות ספק חוזר'
-          : 'אושר אוטומטית לפי מדיניות הארגון',
+  await persistObligationState(context, row.id, nextRow, today, {
+    paidAt,
+    paidGrossAmount: toNumericString(nextPaid),
+    paymentConfirmationSource: 'automatic_policy',
+  });
+
+  await recordAuditEvent(context, {
+    action: EXPENSE_PAYMENT_CONFIRMED,
+    entityType: 'expense',
+    entityId: row.id,
+    after: {
+      paidAt,
+      paidGrossAmount: paidAmount,
+      cumulativePaidGrossAmount: toNumericString(nextPaid),
+      source: 'automatic_policy',
+      note: 'אושר אוטומטית לפי מדיניות הארגון',
+    },
   });
   return true;
 }
@@ -282,27 +337,48 @@ export async function initializeExpensePaymentOnFinalize(
   const row = await findExpenseById(context.db, context.organizationId, expenseId);
   if (!row || row.status !== 'finalized') return;
 
+  const recurringDraft = await loadRecurringDraftForExpense(
+    context,
+    expenseId,
+    row.sourceRecurringDraftId,
+  );
   const schedule = await resolveExpensePaymentSchedule(context, {
     expenseDate: row.expenseDate,
     vendorId: row.vendorId,
     paymentTermId: row.paymentTermId,
     dueDate: row.dueDate,
-    recurringDraft: await loadRecurringDraftForExpense(context, expenseId, row.sourceRecurringDraftId),
+    recurringDraft,
   });
 
-  const dueDate = schedule.dueDate;
   const today = todayInTimeZone(context.organization.timezone);
-  const status = effectiveExpensePaymentStatus(
-    { paymentStatus: null, dueDate, paidAt: null },
-    today,
-  );
+  const syncRow: ExpenseSyncRow = {
+    id: expenseId,
+    grossAmount: row.grossAmount.amount,
+    currency: row.grossAmount.currency,
+    dueDate: schedule.dueDate,
+    expenseDate: row.expenseDate,
+    vendorId: row.vendorId,
+    paymentTermId: schedule.paymentTermId,
+    installmentCount: row.installmentCount,
+    installmentStartDate: row.installmentStartDate,
+    automaticInstallmentPayment: row.automaticInstallmentPayment ?? false,
+    installmentsPaidCount: row.installmentsPaidCount ?? 0,
+    paidGrossAmount: null,
+    paymentStatus: null,
+    paidAt: null,
+    paymentMethod: row.paymentMethod,
+    paymentInstrumentId: row.paymentInstrumentId ?? null,
+    sourceRecurringDraftId: row.sourceRecurringDraftId,
+  };
+
+  const obligation = resolveExpensePaymentObligation(obligationInputFromRow(syncRow), today);
 
   await context.db
     .update(expenses)
     .set({
       paymentTermId: schedule.paymentTermId,
-      dueDate,
-      paymentStatus: status ?? 'upcoming',
+      dueDate: obligation.effectiveDueDate,
+      paymentStatus: obligation.paymentStatus ?? 'upcoming',
     })
     .where(and(eq(expenses.id, expenseId), eq(expenses.organizationId, context.organizationId)));
 
@@ -321,40 +397,122 @@ export async function confirmExpensePaid(
   if (row.status !== 'finalized') {
     throw new DomainRuleError('Only finalized expenses can be marked paid', 'expenses.errors.notFinalized');
   }
-  if (row.paidAt && row.paymentStatus === 'paid') {
+
+  const today = todayInTimeZone(context.organization.timezone);
+  const syncRow: ExpenseSyncRow = {
+    id: expenseId,
+    grossAmount: row.grossAmount.amount,
+    currency: row.grossAmount.currency,
+    dueDate: row.dueDate,
+    expenseDate: row.expenseDate,
+    vendorId: row.vendorId,
+    paymentTermId: row.paymentTermId,
+    installmentCount: row.installmentCount,
+    installmentStartDate: row.installmentStartDate,
+    automaticInstallmentPayment: row.automaticInstallmentPayment ?? false,
+    installmentsPaidCount: row.installmentsPaidCount ?? 0,
+    paidGrossAmount: row.paidGrossAmount,
+    paymentStatus: row.paymentStatus,
+    paidAt: row.paidAt,
+    paymentMethod: row.paymentMethod,
+    paymentInstrumentId: row.paymentInstrumentId ?? null,
+    sourceRecurringDraftId: row.sourceRecurringDraftId,
+  };
+
+  const obligation = resolveExpensePaymentObligation(obligationInputFromRow(syncRow), today);
+  if (obligation.isFullyPaid) {
     throw new DomainRuleError('Expense already marked paid', 'expenses.errors.alreadyPaid');
+  }
+  if (!isPositiveMoney(obligation.payableAmount)) {
+    throw new DomainRuleError('Nothing payable on this expense', 'expenses.errors.nothingPayable');
+  }
+
+  const requestedPaid = input?.paidGrossAmount
+    ? fromNumericString(input.paidGrossAmount, row.grossAmount.currency)
+    : null;
+  const paymentAmount = requestedPaid ?? obligation.payableAmount;
+
+  if (
+    toDecimalValue(paymentAmount).gt(toDecimalValue(obligation.payableAmount)) ||
+    !isPositiveMoney(paymentAmount)
+  ) {
+    throw new DomainRuleError(
+      'Payment exceeds current payable amount',
+      'expenses.errors.paymentExceedsPayable',
+    );
   }
 
   const paidAtInput = input?.paidAt ?? null;
   const instrument = row.paymentInstrumentId
     ? await findPaymentInstrumentById(context.db, context.organizationId, row.paymentInstrumentId)
     : null;
+  const currentInstallmentDue =
+    obligation.currentInstallmentIndex != null
+      ? obligation.installmentSchedule[obligation.currentInstallmentIndex]?.dueDate ?? null
+      : null;
   const resolvedCashOut = resolveExpenseCashOutDate({
     expenseDate: businessDate(row.expenseDate),
     explicitPaidAt: paidAtInput,
     paymentMethod: row.paymentMethod,
     cardMonthlyDebitDay: instrument?.monthlyDebitDay ?? null,
-    installmentDueDate: null,
+    installmentDueDate: currentInstallmentDue,
     termDueDate: row.dueDate ? businessDate(row.dueDate) : null,
   });
-  const paidAt = resolvedCashOut ?? paidAtInput ?? todayInTimeZone(context.organization.timezone);
-  const paidGross = input?.paidGrossAmount ?? toNumericString(row.grossAmount);
+  const paidAt = resolvedCashOut ?? paidAtInput ?? today;
 
-  await context.db
-    .update(expenses)
-    .set({
-      paymentStatus: 'paid',
-      paidAt,
-      paidGrossAmount: paidGross,
-      paymentConfirmationSource: 'manual',
-    })
-    .where(and(eq(expenses.id, expenseId), eq(expenses.organizationId, context.organizationId)));
+  const priorPaid =
+    fromNumericString(row.paidGrossAmount ?? '0', row.grossAmount.currency) ??
+    zeroMoney(row.grossAmount.currency);
+  const nextPaid = addMoney(priorPaid, paymentAmount);
+
+  let nextInstallmentsPaidCount = syncRow.installmentsPaidCount;
+  if (row.installmentCount > 1) {
+    const schedule = buildCashInstallmentSchedule({
+      totalGross: row.grossAmount,
+      installmentCount: row.installmentCount,
+      startDate: businessDate(row.installmentStartDate ?? row.expenseDate),
+    });
+    let cumulative = zeroMoney(row.grossAmount.currency);
+    for (let index = 0; index < schedule.length; index += 1) {
+      cumulative = addMoney(cumulative, schedule[index]!.amount);
+      if (Number(nextPaid.amount) + 0.000001 >= Number(cumulative.amount)) {
+        nextInstallmentsPaidCount = index + 1;
+      } else {
+        break;
+      }
+    }
+  } else {
+    const remainingAfter = subtractMoney(obligation.payableAmount, paymentAmount);
+    if (!isPositiveMoney(remainingAfter)) {
+      nextInstallmentsPaidCount = 1;
+    }
+  }
+
+  const nextRow: ExpenseSyncRow = {
+    ...syncRow,
+    paidGrossAmount: toNumericString(nextPaid),
+    paidAt,
+    installmentsPaidCount: nextInstallmentsPaidCount,
+  };
+
+  await persistObligationState(context, expenseId, nextRow, today, {
+    paidAt,
+    paidGrossAmount: toNumericString(nextPaid),
+    installmentsPaidCount: nextInstallmentsPaidCount,
+    paymentConfirmationSource: 'manual',
+  });
 
   await recordAuditEvent(context, {
     action: EXPENSE_PAYMENT_CONFIRMED,
     entityType: 'expense',
     entityId: expenseId,
-    after: { paidAt, paidGrossAmount: paidGross, source: 'manual' },
+    after: {
+      paidAt,
+      paidGrossAmount: toNumericString(paymentAmount),
+      cumulativePaidGrossAmount: toNumericString(nextPaid),
+      installmentIndex: obligation.currentInstallmentIndex,
+      source: 'manual',
+    },
   });
 }
 
@@ -366,22 +524,40 @@ export async function voidExpensePaymentConfirmation(
 
   const row = await findExpenseById(context.db, context.organizationId, expenseId);
   if (!row) throw new NotFoundError('Expense');
-  if (!row.paidAt) {
+  if (!row.paidAt && !row.paidGrossAmount) {
     throw new DomainRuleError('Expense is not marked paid', 'expenses.errors.notPaid');
   }
 
   const today = todayInTimeZone(context.organization.timezone);
   const prior = { paidAt: row.paidAt, paidGrossAmount: row.paidGrossAmount, source: row.paymentConfirmationSource };
 
-  const status = effectiveExpensePaymentStatus(
-    { paymentStatus: null, dueDate: row.dueDate ?? null, paidAt: null },
-    today,
-  );
+  const resetRow: ExpenseSyncRow = {
+    id: expenseId,
+    grossAmount: row.grossAmount.amount,
+    currency: row.grossAmount.currency,
+    dueDate: row.dueDate,
+    expenseDate: row.expenseDate,
+    vendorId: row.vendorId,
+    paymentTermId: row.paymentTermId,
+    installmentCount: row.installmentCount,
+    installmentStartDate: row.installmentStartDate,
+    automaticInstallmentPayment: row.automaticInstallmentPayment ?? false,
+    installmentsPaidCount: 0,
+    paidGrossAmount: null,
+    paymentStatus: null,
+    paidAt: null,
+    paymentMethod: row.paymentMethod,
+    paymentInstrumentId: row.paymentInstrumentId ?? null,
+    sourceRecurringDraftId: row.sourceRecurringDraftId,
+  };
+
+  const obligation = resolveExpensePaymentObligation(obligationInputFromRow(resetRow), today);
 
   await context.db
     .update(expenses)
     .set({
-      paymentStatus: status ?? 'upcoming',
+      paymentStatus: obligation.paymentStatus ?? 'upcoming',
+      dueDate: obligation.effectiveDueDate,
       paidAt: null,
       paidGrossAmount: null,
       paymentConfirmationSource: null,
@@ -394,16 +570,19 @@ export async function voidExpensePaymentConfirmation(
     entityType: 'expense',
     entityId: expenseId,
     before: prior,
-    after: { paymentStatus: status },
+    after: { paymentStatus: obligation.paymentStatus },
   });
 }
 
-/** Auto-mark due / installment expenses paid per org, vendor, or schedule policy. */
+/** Auto-mark due / installment expenses paid per org policy only (opt-in). */
 export async function syncAutomaticExpensePayments(
   context: OrgContext,
   today: BusinessDate,
 ): Promise<number> {
   const policies = await getOrgFinancialPolicies(context);
+  if (policies.expensePaymentConfirmationMode !== 'automatic_on_due') {
+    return 0;
+  }
 
   const rows = await context.db
     .select({
@@ -444,33 +623,29 @@ export async function syncAutomaticExpensePayments(
 
   let count = 0;
   for (const row of rows) {
-    const vendor = row.vendorId
-      ? await findVendorById(context.db, context.organizationId, row.vendorId)
-      : null;
-    const recurringDraft = await loadRecurringDraftForExpense(
-      context,
-      row.id,
-      row.sourceRecurringDraftId,
-    );
     const kind = resolveExpenseAutomaticPaymentKind({
       automaticInstallmentPayment: row.automaticInstallmentPayment,
       installmentCount: row.installmentCount,
-      vendor,
-      recurringDraft,
+      vendor: row.vendorId
+        ? await findVendorById(context.db, context.organizationId, row.vendorId)
+        : null,
+      recurringDraft: await loadRecurringDraftForExpense(
+        context,
+        row.id,
+        row.sourceRecurringDraftId,
+      ),
       policies,
     });
+
+    if (kind === 'none') continue;
 
     if (kind === 'installment_automatic') {
       count += await syncInstallmentAutomaticPayments(context, row, today);
       continue;
     }
 
-    if (
-      kind === 'template_recurring_automatic' ||
-      kind === 'vendor_recurring_automatic' ||
-      kind === 'org_automatic_on_due'
-    ) {
-      if (await syncDueAutomaticPayment(context, row, today, kind)) count += 1;
+    if (kind === 'org_automatic_on_due') {
+      if (await syncDueAutomaticPayment(context, row, today)) count += 1;
     }
   }
   return count;
@@ -538,6 +713,8 @@ export async function listExpensePaymentsForOrg(
       vendorId: expenses.vendorId,
       automaticInstallmentPayment: expenses.automaticInstallmentPayment,
       installmentCount: expenses.installmentCount,
+      installmentStartDate: expenses.installmentStartDate,
+      installmentsPaidCount: expenses.installmentsPaidCount,
       voidsExpenseId: expenses.voidsExpenseId,
       adjustsExpenseId: expenses.adjustsExpenseId,
       hasActiveReversal: sql<boolean>`${hasActiveReversalExists(context.db, context.organizationId)}`,
@@ -560,14 +737,16 @@ export async function listExpensePaymentsForOrg(
         : true,
     )
     .map((row) => ({
-    ...row,
-    expenseDate: row.expenseDate as BusinessDate,
-    dueDate: (row.dueDate as BusinessDate | null) ?? null,
-    paidAt: (row.paidAt as BusinessDate | null) ?? null,
-    paymentStatus: row.paymentStatus as ExpensePaymentRow['paymentStatus'],
-    paymentConfirmationSource:
-      row.paymentConfirmationSource as ExpensePaymentRow['paymentConfirmationSource'],
-  }));
+      ...row,
+      expenseDate: row.expenseDate as BusinessDate,
+      dueDate: (row.dueDate as BusinessDate | null) ?? null,
+      paidAt: (row.paidAt as BusinessDate | null) ?? null,
+      paymentStatus: row.paymentStatus as ExpensePaymentRow['paymentStatus'],
+      paymentConfirmationSource:
+        row.paymentConfirmationSource as ExpensePaymentRow['paymentConfirmationSource'],
+      installmentStartDate: (row.installmentStartDate as BusinessDate | null) ?? null,
+      installmentsPaidCount: row.installmentsPaidCount ?? 0,
+    }));
 }
 
 export async function sumPaidExpensesInDateRange(
@@ -589,7 +768,7 @@ export async function sumPaidExpensesInDateRange(
         eq(expenses.paymentStatus, 'paid'),
         sql`${expenses.paidAt} >= ${fromDate}`,
         sql`${expenses.paidAt} <= ${toDate}`,
-        sql`NOT (${expenses.automaticInstallmentPayment} = true AND ${expenses.installmentCount} > 1 AND ${expenses.installmentsPaidCount} < ${expenses.installmentCount})`,
+        sql`${expenses.installmentCount} <= 1`,
       ),
     );
 
@@ -607,7 +786,6 @@ export async function sumPaidExpensesInDateRange(
         eq(expenses.organizationId, context.organizationId),
         eq(expenses.status, 'finalized'),
         eq(expenses.currency, currency),
-        eq(expenses.automaticInstallmentPayment, true),
         sql`${expenses.installmentCount} > 1`,
         sql`${expenses.installmentsPaidCount} > 0`,
       ),
@@ -644,9 +822,18 @@ export async function sumUpcomingExpenseCash(
   today: BusinessDate,
   horizonEnd: BusinessDate,
 ): Promise<string> {
-  const [row] = await context.db
+  const rows = await context.db
     .select({
-      total: sql<string>`coalesce(sum(${expenses.grossAmount}), 0)`,
+      grossAmount: expenses.grossAmount,
+      currency: expenses.currency,
+      expenseDate: expenses.expenseDate,
+      dueDate: expenses.dueDate,
+      installmentCount: expenses.installmentCount,
+      installmentStartDate: expenses.installmentStartDate,
+      installmentsPaidCount: expenses.installmentsPaidCount,
+      paidGrossAmount: expenses.paidGrossAmount,
+      paymentStatus: expenses.paymentStatus,
+      paidAt: expenses.paidAt,
     })
     .from(expenses)
     .where(
@@ -655,9 +842,39 @@ export async function sumUpcomingExpenseCash(
         eq(expenses.status, 'finalized'),
         eq(expenses.currency, currency),
         or(isNull(expenses.paymentStatus), sql`${expenses.paymentStatus} <> 'paid'`),
-        sql`${expenses.dueDate} >= ${today}`,
-        sql`${expenses.dueDate} <= ${horizonEnd}`,
       ),
     );
-  return row?.total ?? '0';
+
+  let total = zeroMoney(currency);
+  for (const row of rows) {
+    if (row.currency !== currency) continue;
+    const obligation = resolveExpensePaymentObligation(
+      {
+        grossAmount: row.grossAmount,
+        currency: row.currency,
+        expenseDate: businessDate(row.expenseDate),
+        installmentCount: row.installmentCount,
+        installmentStartDate: row.installmentStartDate
+          ? businessDate(row.installmentStartDate)
+          : null,
+        installmentsPaidCount: row.installmentsPaidCount ?? 0,
+        paidGrossAmount: row.paidGrossAmount,
+        dueDate: row.dueDate ? businessDate(row.dueDate) : null,
+        paymentStatus: row.paymentStatus,
+        paidAt: row.paidAt ? businessDate(row.paidAt) : null,
+      },
+      today,
+    );
+    if (
+      !obligation.effectiveDueDate ||
+      obligation.effectiveDueDate < today ||
+      obligation.effectiveDueDate > horizonEnd ||
+      !isPositiveMoney(obligation.payableAmount)
+    ) {
+      continue;
+    }
+    total = addMoney(total, obligation.payableAmount);
+  }
+
+  return toNumericString(total);
 }

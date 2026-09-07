@@ -24,10 +24,14 @@ export async function confirmExpensePaidAction(
 
   const paidAtRaw = String(formData.get('paidAt') ?? '').trim();
   const paidAt = isBusinessDate(paidAtRaw) ? businessDate(paidAtRaw) : undefined;
+  const paidGrossRaw = String(formData.get('paidGrossAmount') ?? '').trim();
 
   try {
     await withOrgContext((context) =>
-      confirmExpensePaid(context, expenseId.trim(), paidAt ? { paidAt } : undefined),
+      confirmExpensePaid(context, expenseId.trim(), {
+        ...(paidAt ? { paidAt } : {}),
+        ...(paidGrossRaw ? { paidGrossAmount: paidGrossRaw } : {}),
+      }),
     );
     revalidatePath(`/expenses/${expenseId.trim()}`);
     revalidatePath('/today');
