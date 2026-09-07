@@ -2,6 +2,11 @@ import type { BusinessDate } from '@/shared/dates';
 import { addDays, compareBusinessDates } from '@/shared/dates';
 import type { ExpensePaymentStatus, PaymentConfirmationSource } from '@/modules/tenancy/domain/org-financial-policies';
 import { resolveExpensePaymentStatus } from '@/modules/tenancy/domain/org-financial-policies';
+import { fromNumericString, isPositiveMoney } from '@/shared/money';
+import {
+  isExpenseAttentionEligible,
+  type ExpenseAttentionEligibility,
+} from './expense-attention';
 import { PAYMENT_DUE_SOON_DAYS } from './payment-behavior';
 
 export interface ExpensePaymentRow {
@@ -22,6 +27,23 @@ export interface ExpensePaymentRow {
   readonly costCategoryId?: string | null;
   readonly automaticInstallmentPayment?: boolean;
   readonly installmentCount?: number;
+  readonly voidsExpenseId?: string | null;
+  readonly adjustsExpenseId?: string | null;
+  readonly hasActiveReversal?: boolean;
+}
+
+export type ExpensePaymentObligationInput = ExpenseAttentionEligibility &
+  Pick<ExpensePaymentRow, 'grossAmount' | 'currency'>;
+
+/**
+ * Canonical payment-action eligibility: financially active obligation with positive payable.
+ * Reuses expense attention lifecycle (void / reversal / adjustment neutralization).
+ */
+export function isExpensePaymentObligationEligible(expense: ExpensePaymentObligationInput): boolean {
+  if (!isExpenseAttentionEligible(expense)) return false;
+  const gross = fromNumericString(expense.grossAmount, expense.currency);
+  if (!gross || !isPositiveMoney(gross)) return false;
+  return true;
 }
 
 export function effectiveExpensePaymentStatus(

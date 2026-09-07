@@ -148,4 +148,5 @@ export const APP_CLIENT_MESSAGE_NAMESPACES = [
   'communications',
   'calendar',
   'assistant',
+  'commandCenter',
 ] as const satisfies readonly MessageNamespace[];

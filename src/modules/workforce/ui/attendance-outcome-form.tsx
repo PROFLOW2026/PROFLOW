@@ -33,11 +33,13 @@ export function AttendanceOutcomeForm({
   employees,
   defaultDate,
   defaultEmployeeId,
+  onEmployeeChange,
 }: {
   readonly action: typeof attendanceOutcomeAction;
   readonly employees: readonly EmployeeOption[];
   readonly defaultDate: string;
   readonly defaultEmployeeId?: string | null;
+  readonly onEmployeeChange?: (employeeId: string) => void;
 }) {
   const t = useTranslations('workforce.attendance.outcomes');
   const tCommon = useTranslations('common');
@@ -82,12 +84,22 @@ export function AttendanceOutcomeForm({
                 size="sm"
                 variant="secondary"
                 disabled={employeeIndex <= 0}
-                onClick={() => setEmployeeId(employees[Math.max(0, employeeIndex - 1)]!.id)}
+                onClick={() => {
+                  const next = employees[Math.max(0, employeeIndex - 1)]!.id;
+                  setEmployeeId(next);
+                  onEmployeeChange?.(next);
+                }}
               >
                 {t('prevEmployee')}
               </Button>
             ) : null}
-            <Select value={employeeId} onValueChange={setEmployeeId}>
+            <Select
+              value={employeeId}
+              onValueChange={(value) => {
+                setEmployeeId(value);
+                onEmployeeChange?.(value);
+              }}
+            >
               <SelectTrigger id={control.id} className="min-w-[12rem] flex-1">
                 <SelectValue />
               </SelectTrigger>
@@ -105,9 +117,11 @@ export function AttendanceOutcomeForm({
                 size="sm"
                 variant="secondary"
                 disabled={employeeIndex < 0 || employeeIndex >= employees.length - 1}
-                onClick={() =>
-                  setEmployeeId(employees[Math.min(employees.length - 1, employeeIndex + 1)]!.id)
-                }
+                onClick={() => {
+                  const next = employees[Math.min(employees.length - 1, employeeIndex + 1)]!.id;
+                  setEmployeeId(next);
+                  onEmployeeChange?.(next);
+                }}
               >
                 {t('nextEmployee')}
               </Button>

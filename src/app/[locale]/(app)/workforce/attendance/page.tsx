@@ -23,8 +23,9 @@ import { DateRangeSelector } from '@/components/patterns/date-range-selector';
 import { AttendanceClockPanel } from '@/modules/workforce/ui/attendance-clock-panel';
 import { AttendanceDayDetailPanel } from '@/modules/workforce/ui/attendance-day-detail-panel';
 import { AttendanceDaysTable } from '@/modules/workforce/ui/attendance-days-table';
-import { AttendanceManualEntryForm } from '@/modules/workforce/ui/attendance-manual-entry-form';
-import { AttendanceOutcomeForm } from '@/modules/workforce/ui/attendance-outcome-form';
+import { AttendanceManageSections } from '@/modules/workforce/ui/attendance-manage-sections';
+import { AttendanceEmployeeSelectorBar } from '@/modules/workforce/ui/attendance-employee-selector-bar';
+import { resolveCanonicalAttendanceEmployeeId } from '@/modules/workforce/domain/attendance-canonical-employee';
 import { AttendanceMonthCalendar } from '@/modules/workforce/ui/attendance-month-calendar';
 import { AttendanceDailyRoster } from '@/modules/workforce/ui/attendance-daily-roster';
 import { WorkforceSubNav } from '@/modules/workforce/ui/workforce-sub-nav';
@@ -178,6 +179,19 @@ export default async function AttendancePage({
   });
 
   const formDefaultDate = preferredWorkDate ?? data.detail?.workDate ?? data.today;
+  const canonicalEmployeeId = resolveCanonicalAttendanceEmployeeId(
+    filters.employeeId,
+    data.employees,
+  );
+  const attendanceSearchParams = new URLSearchParams();
+  if (filters.employeeId) attendanceSearchParams.set('employeeId', filters.employeeId);
+  if (filters.fromDate) attendanceSearchParams.set('fromDate', filters.fromDate);
+  if (filters.toDate) attendanceSearchParams.set('toDate', filters.toDate);
+  if (filters.status) attendanceSearchParams.set('status', filters.status);
+  if (rawFilters.workDate) attendanceSearchParams.set('workDate', rawFilters.workDate);
+  if (rawFilters.month) attendanceSearchParams.set('month', rawFilters.month);
+  if (rawFilters.update) attendanceSearchParams.set('update', rawFilters.update);
+  const attendanceSearch = attendanceSearchParams.toString();
 
   return (
     <div className="flex flex-col gap-6">
@@ -224,21 +238,21 @@ export default async function AttendancePage({
 
         {data.allowManage ? (
           <>
-            <AttendanceOutcomeForm
-              action={attendanceOutcomeAction}
+            <AttendanceEmployeeSelectorBar
               employees={data.employees}
-              defaultDate={formDefaultDate}
-              defaultEmployeeId={filters.employeeId ?? null}
+              canonicalEmployeeId={canonicalEmployeeId}
+              searchParams={attendanceSearch}
             />
-            <AttendanceManualEntryForm
-              action={manualAttendanceAction}
+            <AttendanceManageSections
               employees={data.employees}
-              projects={data.projects}
+              canonicalEmployeeId={canonicalEmployeeId}
+              searchParams={attendanceSearch}
               defaultDate={formDefaultDate}
-              defaultEmployeeId={filters.employeeId ?? null}
-              employeeLocked={Boolean(filters.employeeId)}
-              emphasize={focusUpdate}
+              focusUpdate={focusUpdate}
               defaultWeekdays={data.defaultWeekdays}
+              manualAction={manualAttendanceAction}
+              outcomeAction={attendanceOutcomeAction}
+              projects={data.projects}
             />
           </>
         ) : null}
@@ -306,6 +320,23 @@ export default async function AttendancePage({
               }}
             />
             <div className="flex flex-wrap items-end gap-3">
+            {data.allowManage ? (
+              <label className="flex flex-col gap-1 text-sm">
+                <span>{t('attendance.manual.employee')}</span>
+                <select
+                  name="employeeId"
+                  defaultValue={filters.employeeId ?? ''}
+                  className="h-11 min-w-[12rem] rounded-md border border-[var(--pf-border-default)] bg-transparent px-3"
+                >
+                  <option value="">{t('attendance.filters.allEmployees')}</option>
+                  {data.employees.map((employee) => (
+                    <option key={employee.id} value={employee.id}>
+                      {employee.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
             <label className="flex flex-col gap-1 text-sm">
               <span>{t('attendance.filters.status')}</span>
               <select
@@ -319,9 +350,6 @@ export default async function AttendancePage({
                 <option value="void">{t('attendance.dayStatus.void')}</option>
               </select>
             </label>
-            {filters.employeeId ? (
-              <input type="hidden" name="employeeId" value={filters.employeeId} />
-            ) : null}
             {rawFilters.update ? <input type="hidden" name="update" value="1" /> : null}
             {/* Preserve the month param if set */}
             {rawFilters.month ? (

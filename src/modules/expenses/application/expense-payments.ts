@@ -1,4 +1,5 @@
-import { and, eq, gte, isNull, lte, or, sql } from 'drizzle-orm';
+import { and, eq, exists, gte, isNull, lte, not, or, sql } from 'drizzle-orm';
+import { alias } from 'drizzle-orm/pg-core';
 import { expenses } from '@drizzle/schema';
 import type { OrgContext } from '@/shared/auth/context';
 import { todayInTimeZone, businessDate, type BusinessDate } from '@/shared/dates';
@@ -26,6 +27,7 @@ import {
 import type { RecurringFinancialDraftRecord } from '@/modules/recurring-drafts/domain/types';
 import {
   effectiveExpensePaymentStatus,
+  isExpensePaymentObligationEligible,
   type ExpensePaymentRow,
 } from '../domain/payment-lifecycle';
 import {
@@ -474,6 +476,24 @@ export async function syncAutomaticExpensePayments(
   return count;
 }
 
+const expenseReversals = alias(expenses, 'expense_reversals_for_payment');
+
+function hasActiveReversalExists(db: OrgContext['db'], organizationId: string) {
+  return exists(
+    db
+      .select({ id: expenseReversals.id })
+      .from(expenseReversals)
+      .where(
+        and(
+          eq(expenseReversals.voidsExpenseId, expenses.id),
+          eq(expenseReversals.organizationId, organizationId),
+          eq(expenseReversals.status, 'finalized'),
+          isNull(expenseReversals.archivedAt),
+        ),
+      ),
+  );
+}
+
 export async function listExpensePaymentsForOrg(
   context: OrgContext,
   filter: {
@@ -493,6 +513,10 @@ export async function listExpensePaymentsForOrg(
   if (filter.dueTo) conditions.push(lte(expenses.dueDate, filter.dueTo));
   if (filter.unpaidOnly) {
     conditions.push(or(isNull(expenses.paymentStatus), sql`${expenses.paymentStatus} <> 'paid'`)!);
+    conditions.push(isNull(expenses.voidsExpenseId));
+    conditions.push(isNull(expenses.adjustsExpenseId));
+    conditions.push(not(hasActiveReversalExists(context.db, context.organizationId)));
+    conditions.push(sql`${expenses.grossAmount} > 0`);
   }
 
   const rows = await context.db
@@ -514,12 +538,28 @@ export async function listExpensePaymentsForOrg(
       vendorId: expenses.vendorId,
       automaticInstallmentPayment: expenses.automaticInstallmentPayment,
       installmentCount: expenses.installmentCount,
+      voidsExpenseId: expenses.voidsExpenseId,
+      adjustsExpenseId: expenses.adjustsExpenseId,
+      hasActiveReversal: sql<boolean>`${hasActiveReversalExists(context.db, context.organizationId)}`,
     })
     .from(expenses)
     .where(and(...conditions))
     .orderBy(expenses.dueDate);
 
-  return rows.map((row) => ({
+  return rows
+    .filter((row) =>
+      filter.unpaidOnly
+        ? isExpensePaymentObligationEligible({
+            status: row.status,
+            voidsExpenseId: row.voidsExpenseId,
+            adjustsExpenseId: row.adjustsExpenseId,
+            hasActiveReversal: row.hasActiveReversal === true,
+            grossAmount: row.grossAmount,
+            currency: row.currency,
+          })
+        : true,
+    )
+    .map((row) => ({
     ...row,
     expenseDate: row.expenseDate as BusinessDate,
     dueDate: (row.dueDate as BusinessDate | null) ?? null,

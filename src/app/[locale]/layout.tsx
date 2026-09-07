@@ -6,6 +6,7 @@ import type { ReactNode } from 'react';
 import { ToastProvider } from '@/components/ui/toast';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { PwaBootstrap } from '@/modules/offline/ui/pwa-bootstrap';
+import { pfGetMessageFallback } from '@/shared/i18n/message-fallback';
 import { pickClientMessages } from '@/shared/i18n/pick-client-messages';
 import { LocaleDocumentAttributes } from '@/shared/i18n/locale-document-attributes';
 import { routing } from '@/shared/i18n/routing';
@@ -65,7 +66,7 @@ export default async function LocaleLayout({
   const clientMessages = pickClientMessages(await getMessages());
 
   return (
-    <NextIntlClientProvider messages={clientMessages}>
+    <NextIntlClientProvider messages={clientMessages} getMessageFallback={pfGetMessageFallback}>
       <LocaleDocumentAttributes />
       <PwaBootstrap />
       <TooltipProvider delayDuration={200}>

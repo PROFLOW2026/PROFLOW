@@ -691,6 +691,7 @@
       "workDateHint": "Filters use the work date — not the time the record was entered.",
       "status": "Status",
       "allStatuses": "All statuses (including void)",
+      "allEmployees": "All employees",
       "activeStatuses": "Active (excluding void)",
       "apply": "Apply filters"
     },

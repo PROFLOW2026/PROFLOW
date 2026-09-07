@@ -11,6 +11,7 @@ import { MoneyText } from '@/components/patterns/money-text';
 import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
 import { formatBusinessDate } from '@/shared/dates/format';
 import { money } from '@/shared/money';
+import { isExpensePaymentObligationEligible } from '@/modules/expenses/domain/payment-lifecycle';
 import type { ExpenseDetail } from '@/modules/expenses/domain/types';
 import {
   confirmExpensePaidAction,
@@ -42,6 +43,15 @@ export function ExpensePaymentPanel({
   );
 
   if (expense.status !== 'finalized') return null;
+
+  const paymentActionable = isExpensePaymentObligationEligible({
+    status: expense.status,
+    voidsExpenseId: expense.voidsExpenseId,
+    adjustsExpenseId: expense.adjustsExpenseId,
+    hasActiveReversal: expense.hasActiveReversal ?? false,
+    grossAmount: expense.grossAmount.amount,
+    currency: expense.grossAmount.currency,
+  });
 
   const status = expense.paymentStatus ?? 'upcoming';
   const statusShape: StatusShape =
@@ -94,7 +104,7 @@ export function ExpensePaymentPanel({
           </div>
         )}
 
-        {canManage && !expense.paidAt ? (
+        {canManage && !expense.paidAt && paymentActionable ? (
           <form action={confirmAction} className="flex flex-col gap-2">
             <input type="hidden" name="expenseId" value={expense.id} />
             <Field label={t('paymentDateLabel')} required>

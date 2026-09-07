@@ -1,9 +1,14 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { MESSAGE_NAMESPACES } from '@/shared/i18n/config';
+import { MESSAGE_NAMESPACES, APP_CLIENT_MESSAGE_NAMESPACES } from '@/shared/i18n/config';
 import { flattenLocaleCatalog, readLocaleCatalog } from '../shared/i18n-messages.test';
-
+import {
+  analyzeTranslationCoverage,
+  assertClientNamespaceShipped,
+  assertReferencedHebrewTranslationExists,
+  sourceTreeExists,
+} from './scan-referenced-translations';
 /**
  * Client components that call useTranslations(ns) must receive `ns` through
  * APP_CLIENT_MESSAGE_NAMESPACES or a route `WithClientMessages` layout.
@@ -90,5 +95,49 @@ describe('client message wrappers for Hebrew closure', () => {
     expect(text).toMatch(/WithClientMessages/);
     expect(text).toContain("'settings'");
     expect(text).toMatch(/ProjectScopedAccessPanel/);
+  });
+
+  it('ships commandCenter in default client namespaces for payroll payment actions', () => {
+    expect(APP_CLIENT_MESSAGE_NAMESPACES).toContain('commandCenter');
+    const he = flattenLocaleCatalog(readLocaleCatalog('he-IL', 'commandCenter'));
+    for (const key of [
+      'actions.confirmPaid',
+      'actions.paymentDateLabel',
+      'actions.paymentConfirm',
+      'actions.cancel',
+    ]) {
+      const value = he.get(key);
+      expect(value, key).toBeTruthy();
+      expect(value, key).not.toMatch(/^commandCenter\./);
+    }
+  });
+
+  it('fails when a statically referenced Hebrew translation key is missing', () => {
+    expect(sourceTreeExists()).toBe(true);
+    const { missingHebrewKeys } = analyzeTranslationCoverage();
+    expect(
+      missingHebrewKeys.map(
+        (ref) => `${ref.file} → he-IL/${ref.rootNamespace}.json:${ref.catalogKey}`,
+      ),
+    ).toEqual([]);
+  });
+
+  it('fails when a client component references a namespace not shipped to the browser', () => {
+    expect(sourceTreeExists()).toBe(true);
+    const { missingClientNamespaces } = analyzeTranslationCoverage();
+    expect(
+      missingClientNamespaces.map((entry) => `${entry.file} → ${entry.namespace}`),
+    ).toEqual([]);
+  });
+
+  it('detects missing referenced Hebrew keys deterministically (guard self-test)', () => {
+    expect(assertReferencedHebrewTranslationExists('commandCenter', 'actions.confirmPaid')).toBe(
+      true,
+    );
+    expect(assertReferencedHebrewTranslationExists('commandCenter', '__missing_guard_key__')).toBe(
+      false,
+    );
+    expect(assertClientNamespaceShipped('commandCenter')).toBe(true);
+    expect(assertClientNamespaceShipped('imports')).toBe(false);
   });
 });

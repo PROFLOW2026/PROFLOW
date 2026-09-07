@@ -20,6 +20,7 @@ import {
   isExpenseDueToday,
   isExpenseOverdue,
   isExpensePendingReview,
+  isExpensePaymentObligationEligible,
   sortByDueDate,
 } from '@/modules/expenses/domain/payment-lifecycle';
 import {
@@ -131,6 +132,18 @@ export async function collectExpensesDueToday(ctx: CollectContext): Promise<Comm
 
   for (const row of rows) {
     if (items.length >= 20) break;
+    if (
+      !isExpensePaymentObligationEligible({
+        status: row.status as 'draft' | 'finalized' | 'void',
+        voidsExpenseId: row.voidsExpenseId ?? null,
+        adjustsExpenseId: row.adjustsExpenseId ?? null,
+        hasActiveReversal: row.hasActiveReversal === true,
+        grossAmount: row.grossAmount,
+        currency: row.currency,
+      })
+    ) {
+      continue;
+    }
     const gross = fromNumericString(row.grossAmount, row.currency);
     if (!gross) continue;
 

@@ -66,9 +66,10 @@ interface AttendanceManualEntryFormProps {
   readonly employees: readonly EmployeeOption[];
   readonly projects?: readonly ProjectOption[];
   readonly defaultDate: string;
-  /** When set, employee is preselected (and locked when employeeLocked). */
+  /** When set, employee is preselected from canonical attendance context. */
   readonly defaultEmployeeId?: string | null;
-  readonly employeeLocked?: boolean;
+  /** Updates URL canonical employee when the user picks another employee. */
+  readonly onEmployeeChange?: (employeeId: string) => void;
   /** Highlight as primary Owner update flow. */
   readonly emphasize?: boolean;
   /** Initial weekday selection from org work framework (JS 0=Sun … 6=Sat). */
@@ -81,7 +82,7 @@ export function AttendanceManualEntryForm({
   projects = [],
   defaultDate,
   defaultEmployeeId = null,
-  employeeLocked = false,
+  onEmployeeChange,
   emphasize = false,
   defaultWeekdays,
 }: AttendanceManualEntryFormProps) {
@@ -255,12 +256,7 @@ export function AttendanceManualEntryForm({
 
       <Field label={t('manual.employee')} required>
         {(control) =>
-          employeeLocked && lockedEmployee ? (
-            <>
-              <input type="hidden" name="employeeId" value={employeeId} />
-              <Input {...control} readOnly value={lockedEmployee.name} />
-            </>
-          ) : fieldsLocked ? (
+          fieldsLocked ? (
             <>
               <input type="hidden" name="employeeId" value={employeeId} />
               <Input
@@ -276,6 +272,7 @@ export function AttendanceManualEntryForm({
                 value={employeeId}
                 onValueChange={(value) => {
                   setEmployeeId(value);
+                  onEmployeeChange?.(value);
                   resetConfirmFlow();
                 }}
               >

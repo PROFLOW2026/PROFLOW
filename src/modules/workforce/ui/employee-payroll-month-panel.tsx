@@ -43,7 +43,7 @@ export function EmployeePayrollMonthPanel({
   defaultPaymentDate,
 }: EmployeePayrollMonthPanelProps) {
   const t = useTranslations('workforce.payrollPayment');
-  const tActions = useTranslations('commandCenter.actions');
+  const tActions = useTranslations('commandCenter');
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
@@ -90,11 +90,11 @@ export function EmployeePayrollMonthPanel({
 
         {canManage && !paidAt ? (
           <ConfirmPaymentButton
-            label={tActions('confirmPaid')}
-            paymentDateLabel={tActions('paymentDateLabel')}
-            paymentDateHint={tActions('paymentDateHint')}
-            confirmLabel={tActions('paymentConfirm')}
-            cancelLabel={tActions('cancel')}
+            label={tActions('actions.confirmPaid')}
+            paymentDateLabel={tActions('actions.paymentDateLabel')}
+            paymentDateHint={tActions('actions.paymentDateHint')}
+            confirmLabel={tActions('actions.paymentConfirm')}
+            cancelLabel={tActions('actions.cancel')}
             defaultPaymentDate={defaultPaymentDate}
             disabled={pending}
             onConfirm={async (paidAtDate) => {
