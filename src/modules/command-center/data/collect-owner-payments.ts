@@ -282,7 +282,12 @@ export async function collectPayrollDueToday(ctx: CollectContext): Promise<Comma
       why: `${row.employeeName} · ${amountLabel}`,
       where: row.employeeName,
       href: `/workforce/employees/${row.employeeId}`,
-      meta: { yearMonth: row.yearMonth, dueDate: row.dueDate },
+      meta: {
+        yearMonth: row.yearMonth,
+        dueDate: row.dueDate,
+        employeeId: row.employeeId,
+        expectedAmount: row.expectedAmount,
+      },
     };
 
     if (status === 'pending_review') {

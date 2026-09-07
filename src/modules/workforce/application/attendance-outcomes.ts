@@ -1,5 +1,5 @@
-import { and, eq, gte, lte } from 'drizzle-orm';
-import { employeeAttendanceOutcomes, employees } from '@drizzle/schema';
+import { and, eq, gte, inArray, isNull, lte } from 'drizzle-orm';
+import { employeeAttendanceOutcomes, employeeMonthCosts, employeePayrollPayments, employees } from '@drizzle/schema';
 import type { OrgContext } from '@/shared/auth/context';
 import type { BusinessDate } from '@/shared/dates';
 import { assertPermission } from '@/shared/permissions/assert';
@@ -156,7 +156,7 @@ export async function saveAttendanceOutcomeRange(
   const dates =
     input.workDates && input.workDates.length > 0
       ? input.workDates
-      : enumerateDates(input.fromDate, input.toDate);
+      : enumerateBusinessDates(input.fromDate, input.toDate);
 
   let count = 0;
   for (const workDate of dates) {
@@ -173,7 +173,7 @@ export async function saveAttendanceOutcomeRange(
   return count;
 }
 
-function enumerateDates(from: BusinessDate, to: BusinessDate): BusinessDate[] {
+export function enumerateBusinessDates(from: BusinessDate, to: BusinessDate): BusinessDate[] {
   const out: BusinessDate[] = [];
   const start = new Date(`${from}T12:00:00Z`);
   const end = new Date(`${to}T12:00:00Z`);
@@ -181,6 +181,105 @@ function enumerateDates(from: BusinessDate, to: BusinessDate): BusinessDate[] {
     out.push(d.toISOString().slice(0, 10) as BusinessDate);
   }
   return out;
+}
+
+/** Every YYYY-MM touched by an inclusive business-date range (cross-month safe). */
+export function yearMonthsInBusinessDateRange(
+  fromDate: BusinessDate,
+  toDate: BusinessDate,
+): string[] {
+  return distinctYearMonthsFromWorkDates(enumerateBusinessDates(fromDate, toDate));
+}
+
+/** Distinct YYYY-MM values with at least one stored outcome for this employee. */
+export async function listYearMonthsWithAttendanceOutcomesForEmployee(
+  context: OrgContext,
+  employeeId: string,
+): Promise<readonly string[]> {
+  const rows = await context.db
+    .select({ workDate: employeeAttendanceOutcomes.workDate })
+    .from(employeeAttendanceOutcomes)
+    .where(
+      and(
+        eq(employeeAttendanceOutcomes.organizationId, context.organizationId),
+        eq(employeeAttendanceOutcomes.employeeId, employeeId),
+      ),
+    );
+
+  return distinctYearMonthsFromWorkDates(rows.map((row) => row.workDate));
+}
+
+export function distinctYearMonthsFromWorkDates(workDates: readonly string[]): string[] {
+  return [...new Set(workDates.map((date) => date.slice(0, 7)))].sort();
+}
+
+export function mergeYearMonths(...groups: readonly (readonly string[])[]): string[] {
+  return [...new Set(groups.flat())].sort();
+}
+
+export interface AttendanceOutcomeChangeScope {
+  readonly employeeId: string;
+  /** Inclusive save range — every crossed calendar month is affected. */
+  readonly fromDate?: BusinessDate;
+  readonly toDate?: BusinessDate;
+}
+
+/**
+ * All calendar months that must refresh after attendance-outcome edits:
+ * save range months + stored outcome months + derived payroll / month-cost months.
+ */
+export async function resolveYearMonthsAffectedByAttendanceOutcomeChange(
+  context: OrgContext,
+  input: AttendanceOutcomeChangeScope,
+): Promise<readonly string[]> {
+  const saveRangeMonths =
+    input.fromDate != null && input.toDate != null
+      ? yearMonthsInBusinessDateRange(input.fromDate, input.toDate)
+      : input.fromDate != null
+        ? [input.fromDate.slice(0, 7)]
+        : [];
+
+  const outcomeMonths = await listYearMonthsWithAttendanceOutcomesForEmployee(
+    context,
+    input.employeeId,
+  );
+
+  const payrollRows = await context.db
+    .select({ yearMonth: employeePayrollPayments.yearMonth })
+    .from(employeePayrollPayments)
+    .where(
+      and(
+        eq(employeePayrollPayments.organizationId, context.organizationId),
+        eq(employeePayrollPayments.employeeId, input.employeeId),
+        isNull(employeePayrollPayments.voidedAt),
+      ),
+    );
+
+  const costRows = await context.db
+    .select({ yearMonth: employeeMonthCosts.yearMonth })
+    .from(employeeMonthCosts)
+    .where(
+      and(
+        eq(employeeMonthCosts.organizationId, context.organizationId),
+        eq(employeeMonthCosts.employeeId, input.employeeId),
+        inArray(employeeMonthCosts.status, ['draft', 'applied', 'closed']),
+      ),
+    );
+
+  return mergeYearMonths(
+    saveRangeMonths,
+    outcomeMonths,
+    payrollRows.map((row) => row.yearMonth),
+    costRows.map((row) => row.yearMonth),
+  );
+}
+
+/** @deprecated Use resolveYearMonthsAffectedByAttendanceOutcomeChange */
+export async function listYearMonthsForAttendanceOutcomeRecompute(
+  context: OrgContext,
+  employeeId: string,
+): Promise<readonly string[]> {
+  return resolveYearMonthsAffectedByAttendanceOutcomeChange(context, { employeeId });
 }
 
 export async function countUnpaidAbsenceDaysInMonth(

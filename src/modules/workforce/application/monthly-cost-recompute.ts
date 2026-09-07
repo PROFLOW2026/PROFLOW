@@ -43,7 +43,11 @@ import { listTimeEntries } from '../data/time-entries.repository';
 import { NON_PROJECT_COST_BUCKET } from '../domain/conserved-hour-allocation';
 import { calculateMonthlyEmployerCostPoolForMonth } from '../domain/employer-cost-pool';
 import { adjustMonthlyCompensationForUnpaidAbsence } from '../domain/employment-active-range';
-import { countUnpaidAbsenceDaysInMonth, listAttendanceOutcomesForEmployeeMonth } from './attendance-outcomes';
+import {
+  listAttendanceOutcomesForEmployeeMonth,
+  resolveYearMonthsAffectedByAttendanceOutcomeChange,
+  type AttendanceOutcomeChangeScope,
+} from './attendance-outcomes';
 import { upsertPayrollPaymentExpected } from './payroll-payments';
 import { areEmployeeMonthCostsAvailable } from '../domain/monthly-cost-gates';
 import {
@@ -273,11 +277,22 @@ export async function computeMonthlyEmployeeLaborAllocationDraft(
     hoursByDate.set(entry.workDate, list);
   }
 
-  const unpaidAbsenceDays = await countUnpaidAbsenceDaysInMonth(context, employeeId, yearMonth);
   const outcomeRows = await listAttendanceOutcomesForEmployeeMonth(context, employeeId, yearMonth);
+  const eligibleWorkDateSet = new Set(totalEligibleWorkDates.map((date) => businessDate(date)));
+  const unpaidAbsenceDays = outcomeRows.filter(
+    (row) =>
+      row.outcome === 'not_worked' &&
+      row.absenceCompensation === 'unpaid' &&
+      eligibleWorkDateSet.has(row.workDate),
+  ).length;
   const unpaidAbsenceDates = new Set(
     outcomeRows
-      .filter((row) => row.outcome === 'not_worked' && row.absenceCompensation === 'unpaid')
+      .filter(
+        (row) =>
+          row.outcome === 'not_worked' &&
+          row.absenceCompensation === 'unpaid' &&
+          eligibleWorkDateSet.has(row.workDate),
+      )
       .map((row) => row.workDate),
   );
   const billableWorkDates = workDates.filter((date) => !unpaidAbsenceDates.has(businessDate(date)));
@@ -501,6 +516,35 @@ export async function recomputeMonthlyEmployeeCostForOpenMonth(
     recognizedWorkDayCount,
     recognizeFullMonth,
   };
+}
+
+/**
+ * Recompute derived labor/payroll/allocation for every month affected by an
+ * attendance-outcome change (save range + stored outcomes + stale derived rows).
+ */
+export async function recomputeDerivedLaborAfterAttendanceOutcomeChange(
+  context: OrgContext,
+  input: AttendanceOutcomeChangeScope,
+): Promise<readonly MonthlyCostRecomputeResult[]> {
+  const yearMonths = await resolveYearMonthsAffectedByAttendanceOutcomeChange(context, input);
+  const results: MonthlyCostRecomputeResult[] = [];
+  for (const yearMonth of yearMonths) {
+    results.push(
+      await recomputeMonthlyEmployeeCostForOpenMonth(context, {
+        employeeId: input.employeeId,
+        yearMonth,
+      }),
+    );
+  }
+  return results;
+}
+
+/** @deprecated Use recomputeDerivedLaborAfterAttendanceOutcomeChange */
+export async function recomputeMonthlyEmployeeCostsForAttendanceOutcomes(
+  context: OrgContext,
+  employeeId: string,
+): Promise<readonly MonthlyCostRecomputeResult[]> {
+  return recomputeDerivedLaborAfterAttendanceOutcomeChange(context, { employeeId });
 }
 
 /** Recompute open months touched by the given work dates (plus optional extras). */
