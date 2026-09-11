@@ -54,9 +54,9 @@
   },
   "businessSummary": {
     "title": "תמונת מצב עסקית",
-    "outstanding": "יתרה פתוחה לגבייה כולל מע״מ",
-    "invoicedThisMonth": "סכום חשבוניות החודש",
-    "collectionsThisMonth": "גבייה בפועל החודש",
+    "outstanding": "יתרה לגבייה",
+    "invoicedThisMonth": "חיובים החודש",
+    "collectionsThisMonth": "גבייה החודש",
     "costsThisMonth": "עלות מוכרת החודש",
     "prevMonth": "חודש קודם",
     "nextMonth": "חודש הבא",

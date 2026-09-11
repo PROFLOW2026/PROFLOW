@@ -477,11 +477,11 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
             <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-3">
               {hasAr ? (
                 <KpiCard
-                  title={tFinancial('kpis.outstanding')}
+                  title={tFinancial('kpis.outstandingNet')}
                   money={data.billing!.netOutstanding}
                   grossMoney={data.billing!.outstanding}
                   grossLabel={tFinancial('kpis.includingVat')}
-                  hint={tFinancial('basis.outstandingCash')}
+                  hint={tFinancial('basis.outstandingNet')}
                 />
               ) : null}
               {data.organizationSummary && data.showBilling ? (
@@ -490,7 +490,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                   money={data.organizationSummary.netOutstanding}
                   grossMoney={data.organizationSummary.outstanding}
                   grossLabel={tFinancial('kpis.includingVat')}
-                  hint={tFinancial('basis.outstandingCash')}
+                  hint={tFinancial('basis.outstandingNet')}
                 />
               ) : null}
               {hasAp ? (

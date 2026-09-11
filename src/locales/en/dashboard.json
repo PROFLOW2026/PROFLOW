@@ -54,8 +54,8 @@
   },
   "businessSummary": {
     "title": "Business summary",
-    "outstanding": "Outstanding including VAT",
-    "invoicedThisMonth": "Invoice total this month",
+    "outstanding": "Outstanding to collect",
+    "invoicedThisMonth": "Billed this month",
     "collectionsThisMonth": "Collections this month",
     "costsThisMonth": "Costs this month net",
     "prevMonth": "Previous month",

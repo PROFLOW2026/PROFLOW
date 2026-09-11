@@ -63,7 +63,9 @@
     "paid": "Cash received",
     "paidHint": "Cash actually received from clients - not revenue and not billed amount.",
     "outstanding": "Outstanding including VAT",
+    "outstandingNet": "Outstanding to collect",
     "outstandingHint": "What the customer still owes in cash, including VAT.",
+    "outstandingNetHint": "Outstanding before VAT. Total including VAT is shown in parentheses.",
     "retentionHeld": "Held retainage",
     "actualMargin": "Expected profit",
     "actualMarginHint": "Estimated profit based on the data entered so far.",
@@ -166,6 +168,7 @@
     "billingNet": "Billing before VAT - project revenue. VAT is not profit.",
     "profitNet": "Profit on net contract, excluding VAT.",
     "outstandingCash": "Outstanding including VAT — what the customer still owes in cash.",
+    "outstandingNet": "Outstanding before VAT. Gross to collect is shown in parentheses.",
     "cashNotProfit": "Cash/billing amount - not profit and not Actual Cost net.",
     "recognizedCost": "Recognized cost (expenses + vendor bills + labor) — net, ex-VAT. Includes vendor bills not yet paid in cash.",
     "actualNotCash": "Recognized cost — includes vendor bills not yet paid in cash"

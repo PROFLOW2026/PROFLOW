@@ -45,7 +45,10 @@ describe('financial basis labels distinguish invoice cash from net profit', () =
     expect(financial.get('basis.billingNet') ?? '').toMatch(/לפני מע״מ|הכנסת הפרויקט/);
     expect(financial.get('kpis.billedGross') ?? '').toMatch(/סה״כ לגבייה כולל מע״מ/);
     expect(financial.get('kpis.billedVat') ?? '').toMatch(/מע״מ/);
-    expect(dashboard.get('businessSummary.invoicedThisMonth')).toMatch(/חשבוניות/);
+    expect(financial.get('kpis.outstandingNet') ?? '').toMatch(/יתרה לגבייה(?! כולל)/);
+    expect(financial.get('kpis.outstandingNet') ?? '').not.toMatch(/כולל מע״מ/);
+    expect(dashboard.get('businessSummary.outstanding') ?? '').toBe('יתרה לגבייה');
+    expect(dashboard.get('businessSummary.invoicedThisMonth')).toMatch(/חיוב/);
     expect(dashboard.get('reports.columns.profit')).toMatch(/נטו/);
     expect(dashboard.get('reports.columns.invoiced')).not.toBe(
       dashboard.get('reports.columns.profit'),
@@ -82,7 +85,10 @@ describe('financial basis labels distinguish invoice cash from net profit', () =
     expect(outstanding.toLowerCase()).toMatch(/outstanding including vat/);
     expect(financial.get('basis.billingNet')?.toLowerCase()).toMatch(/before vat|project revenue/);
     expect(financial.get('kpis.billedGross')?.toLowerCase()).toMatch(/including vat/);
-    expect(dashboard.get('businessSummary.invoicedThisMonth')?.toLowerCase()).toMatch(/invoice/);
+    expect(financial.get('kpis.outstandingNet')?.toLowerCase()).toMatch(/outstanding to collect/);
+    expect(financial.get('kpis.outstandingNet')?.toLowerCase()).not.toMatch(/including vat/);
+    expect(dashboard.get('businessSummary.outstanding')?.toLowerCase()).toBe('outstanding to collect');
+    expect(dashboard.get('businessSummary.invoicedThisMonth')?.toLowerCase()).toMatch(/bill/);
     expect(dashboard.get('reports.columns.profit')?.toLowerCase()).toMatch(/net/);
     expect(dashboard.get('reports.columns.invoiced')).not.toBe(
       dashboard.get('reports.columns.profit'),
