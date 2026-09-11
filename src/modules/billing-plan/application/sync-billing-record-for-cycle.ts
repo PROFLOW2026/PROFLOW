@@ -74,6 +74,7 @@ export async function syncBillingRecordForCycle(
         projectId: cycle.projectId,
         contractId: cycle.contractId,
         amount: toNumericString(amountDue),
+        vatMode: 'exclusive',
         ...(input.taxAmount
           ? { netAmount: toNumericString(amountDue), taxAmount: input.taxAmount }
           : {}),
@@ -122,6 +123,7 @@ export async function syncBillingRecordForCycle(
         projectId: cycle.projectId,
         contractId: cycle.contractId,
         amount: toNumericString(amountDue),
+        vatMode: 'exclusive',
         ...(input.taxAmount
           ? { netAmount: toNumericString(amountDue), taxAmount: input.taxAmount }
           : {}),
@@ -170,6 +172,7 @@ export async function syncBillingRecordForCycle(
       projectId: cycle.projectId,
       contractId: cycle.contractId,
       amount: toNumericString(increase),
+      vatMode: 'exclusive',
       currency,
       issueDate: input.issueDate,
       dueDate: input.dueDate ?? existing.dueDate,

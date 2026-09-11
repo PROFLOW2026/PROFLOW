@@ -507,10 +507,11 @@ describe('BOQ final pattern-sweep adversarial', () => {
         await db.execute(sql`
           INSERT INTO billing_records (
             organization_id, project_id, kind, status, issue_date,
-            subtotal_amount, tax_amount, total_amount, currency, retention_amount, retention_held_remaining
+            subtotal_amount, tax_amount, total_amount, currency, retention_amount, retention_held_remaining,
+            vat_mode
           ) VALUES (
             ${orgId}::uuid, ${projectId}::uuid, 'credit_note', 'finalized', CURRENT_DATE,
-            50, 0, 50, 'ILS', 0, 0
+            50, 0, 50, 'ILS', 0, 0, 'zero'
           ) RETURNING id
         `),
       );

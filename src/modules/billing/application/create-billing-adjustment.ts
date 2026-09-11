@@ -10,7 +10,15 @@ import {
   rethrowClosedPeriodRewrite,
   yearMonthFromBusinessDate,
 } from '@/modules/month-close';
-import { captureTaxSnapshot, resolveTaxAmounts } from '../domain/tax';
+import {
+  assertBillingVatExplicitForFinalize,
+  captureTaxSnapshot,
+  inferBillingVatModeForCapture,
+  resolveTaxAmounts,
+  taxAmountForStorage,
+} from '../domain/tax';
+import type { BillingVatMode } from '../domain/tax';
+import { resolveApplicableDefaultTax } from '@/modules/tax';
 import {
   findBillingRecordById,
   insertBillingRecord,
@@ -54,12 +62,32 @@ export async function createBillingAdjustment(context: OrgContext, rawInput: Cre
   }
 
   const currency = original.totalAmount.currency;
+  const issueDate = businessDate(input.issueDate);
+  const inheritedVatMode = (original.vatMode ?? 'exclusive') as BillingVatMode;
+  const taxResolution =
+    inheritedVatMode !== 'zero'
+      ? await resolveApplicableDefaultTax(context, issueDate)
+      : null;
   const amounts = resolveTaxAmounts({
     amount: input.amount,
     currency,
+    vatMode: inheritedVatMode,
+    resolved: taxResolution?.resolved ?? null,
+  });
+  const vatModeStored =
+    inferBillingVatModeForCapture({
+      vatMode: inheritedVatMode,
+      netAmount: null,
+      taxAmount: amounts.taxAmount?.amount ?? null,
+      resolvedTaxAmount: amounts.taxAmount,
+    }) ?? inheritedVatMode;
+  assertBillingVatExplicitForFinalize({
+    vatMode: vatModeStored,
+    subtotalAmount: amounts.subtotalAmount,
+    taxAmount: amounts.taxAmount,
+    totalAmount: amounts.totalAmount,
   });
 
-  const issueDate = businessDate(input.issueDate);
   let creditNoteId: string;
   try {
     await assertMonthOpenForRewrite(context, yearMonthFromBusinessDate(issueDate));
@@ -72,8 +100,9 @@ export async function createBillingAdjustment(context: OrgContext, rawInput: Cre
       issueDate,
       dueDate: null,
       subtotalAmount: toNumericString(amounts.subtotalAmount),
-      taxAmount: amounts.taxAmount ? toNumericString(amounts.taxAmount) : null,
+      taxAmount: taxAmountForStorage(vatModeStored, amounts.taxAmount, currency),
       totalAmount: toNumericString(amounts.totalAmount),
+      vatMode: vatModeStored,
       currency,
       externalDocumentId: null,
       notes: input.notes?.trim() || null,

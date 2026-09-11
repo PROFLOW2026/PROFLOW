@@ -9,7 +9,8 @@ import {
   yearMonthFromBusinessDate,
 } from '@/modules/month-close';
 import { assertFinalizable } from '../domain/lifecycle';
-import { captureTaxSnapshot } from '../domain/tax';
+import { assertBillingVatExplicitForFinalize, captureTaxSnapshot } from '../domain/tax';
+import type { BillingVatMode } from '../domain/tax';
 import { money } from '@/shared/money';
 import { heldRemainingOnPost } from '@/modules/retention';
 import { findBillingRecordById, updateBillingRecordRow } from '../data/billing.repository';
@@ -37,6 +38,12 @@ export async function finalizeBillingRecordCore(
   );
   if (!existing) throw new NotFoundError('Billing record');
   assertFinalizable(existing.status);
+  assertBillingVatExplicitForFinalize({
+    vatMode: existing.vatMode as BillingVatMode | null | undefined,
+    subtotalAmount: existing.subtotalAmount,
+    taxAmount: existing.taxAmount,
+    totalAmount: existing.totalAmount,
+  });
 
   const finalizedAt = new Date();
   const taxSnapshot = captureTaxSnapshot(

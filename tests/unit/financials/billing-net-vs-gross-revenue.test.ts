@@ -25,6 +25,7 @@ describe('billing NET vs GROSS for project revenue', () => {
         status: 'finalized' as const,
         totalAmount: money('91351.47', ILS),
         subtotalAmount: money('77416.5', ILS),
+        taxAmount: money('13934.97', ILS),
         payments: [],
       },
     ];
@@ -41,6 +42,27 @@ describe('billing NET vs GROSS for project revenue', () => {
         Number(position.invoiced.amount) - Number(position.netInvoiced.amount)
       ).toFixed(2),
     ).toBe('13934.97');
+  });
+
+  it('uses subtotal + tax for GROSS when total_amount is stale (missing VAT)', () => {
+    const records = [
+      {
+        kind: 'invoice' as const,
+        status: 'finalized' as const,
+        totalAmount: money('77416.5', ILS),
+        subtotalAmount: money('77416.5', ILS),
+        taxAmount: money('13934.97', ILS),
+        payments: [],
+      },
+    ];
+
+    const position = aggregateBillingPosition(records, ILS);
+    expect(position.netInvoiced.amount).toBe('77416.500000');
+    expect(position.invoiced.amount).toBe('91351.470000');
+    expect(Number(position.invoiced.amount) - Number(position.netInvoiced.amount)).toBeCloseTo(
+      13934.97,
+      2,
+    );
   });
 
   it('resolveProjectKpiDisplay.billed uses NET, not GROSS', () => {

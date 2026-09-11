@@ -442,7 +442,6 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                 title={tFinancial('kpis.billed')}
                 money={data.billing.netInvoiced}
                 grossMoney={data.billing.invoiced}
-                netLabel={tFinancial('basis.billingNet')}
                 grossLabel={tFinancial('kpis.includingVat')}
                 hint={tFinancial('kpis.billedHint')}
                 footer={(() => {
@@ -460,7 +459,9 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
               />
               <KpiCard
                 title={tFinancial('kpis.paid')}
-                money={data.billing.paid}
+                money={data.billing.netPaid}
+                grossMoney={data.billing.paid}
+                grossLabel={tFinancial('kpis.includingVat')}
                 hint={tFinancial('kpis.paidHint')}
               />
             </div>
@@ -477,14 +478,18 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
               {hasAr ? (
                 <KpiCard
                   title={tFinancial('kpis.outstanding')}
-                  money={data.billing!.outstanding}
+                  money={data.billing!.netOutstanding}
+                  grossMoney={data.billing!.outstanding}
+                  grossLabel={tFinancial('kpis.includingVat')}
                   hint={tFinancial('basis.outstandingCash')}
                 />
               ) : null}
               {data.organizationSummary && data.showBilling ? (
                 <KpiCard
                   title={t('businessSummary.outstanding')}
-                  money={data.organizationSummary.outstanding}
+                  money={data.organizationSummary.netOutstanding}
+                  grossMoney={data.organizationSummary.outstanding}
+                  grossLabel={tFinancial('kpis.includingVat')}
                   hint={tFinancial('basis.outstandingCash')}
                 />
               ) : null}
@@ -668,13 +673,17 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                 <KpiCard
                   title={t('businessSummary.invoicedThisMonth')}
                   money={data.organizationSummary.invoicedThisMonth}
+                  grossMoney={data.organizationSummary.grossInvoicedThisMonth}
+                  grossLabel={tFinancial('kpis.includingVat')}
                   hint={tFinancial('kpis.billedHint')}
                 />
               ) : null}
               {data.showBilling && cardSet.has('collections') ? (
                 <KpiCard
                   title={t('businessSummary.collectionsThisMonth')}
-                  money={data.organizationSummary.collectionsThisMonth}
+                  money={data.organizationSummary.netCollectionsThisMonth}
+                  grossMoney={data.organizationSummary.collectionsThisMonth}
+                  grossLabel={tFinancial('kpis.includingVat')}
                   hint={tFinancial('kpis.paidHint')}
                 />
               ) : null}
@@ -750,6 +759,7 @@ function MonthNavigation({
         href={buildUrl(prevMonthStr)}
         className={cn(textNavLinkClassName, 'flex items-center rounded p-1')}
         prefetch={false}
+        scroll={false}
         aria-label={prevLabel}
       >
         <ChevronLeft className="size-4" aria-hidden />
@@ -760,6 +770,7 @@ function MonthNavigation({
           href={buildUrl(nextMonthStr)}
           className={cn(textNavLinkClassName, 'flex items-center rounded p-1')}
           prefetch={false}
+          scroll={false}
           aria-label={nextLabel}
         >
           <ChevronRight className="size-4" aria-hidden />
@@ -820,7 +831,7 @@ function KpiCard({
               </p>
             ) : null}
           </>
-        ) : money && grossMoney && netLabel && grossLabel ? (
+        ) : money && grossMoney && grossLabel ? (
           <BillingNetPrimaryDisplay
             netAmount={money}
             grossAmount={grossMoney}

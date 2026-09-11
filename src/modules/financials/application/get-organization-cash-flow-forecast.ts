@@ -1,10 +1,10 @@
 import type { OrgContext } from '@/shared/auth/context';
 import { addDays, todayInTimeZone, type BusinessDate } from '@/shared/dates';
 import { ORG_LIST_EXPORT_CAP } from '@/shared/db/list-limits';
-import { isPositiveMoney, isZeroMoney, money, type MoneyValue } from '@/shared/money';
+import { isPositiveMoney, isZeroMoney, money, multiplyMoney, type MoneyValue } from '@/shared/money';
 import { assertPermission, hasAnyPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import { listBillingRecords } from '@/modules/billing';
+import { billingNetToGrossRatio, listBillingRecords } from '@/modules/billing';
 import type { BillingRecordSummary } from '@/modules/billing/domain/types';
 import {
   computeRemaining,
@@ -92,11 +92,21 @@ function incomingFromBilling(
   for (const record of records) {
     if (record.totalAmount.currency !== currency) continue;
     if (isZeroMoney(record.outstandingAmount)) continue;
+    const grossOutstanding = record.outstandingAmount;
+    const netOutstanding = multiplyMoney(
+      grossOutstanding,
+      billingNetToGrossRatio({
+        totalAmount: record.totalAmount,
+        subtotalAmount: record.subtotalAmount ?? record.totalAmount,
+        taxAmount: record.taxAmount ?? null,
+      }),
+    );
     items.push({
       id: `billing:${record.id}`,
       href: `/billing/${record.id}`,
       label: billingLabel(record),
-      amount: record.outstandingAmount,
+      amount: netOutstanding,
+      grossAmount: grossOutstanding,
       dueDate: record.dueDate,
       certainty: certaintyForDatedSource({
         dueDate: record.dueDate,

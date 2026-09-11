@@ -61,6 +61,8 @@ export const billingRecords = pgTable(
     subtotalAmount: moneyAmount('subtotal_amount').notNull(),
     taxAmount: moneyAmount('tax_amount'),
     totalAmount: moneyAmount('total_amount').notNull(),
+    /** Explicit VAT classification — required when status = finalized. */
+    vatMode: text('vat_mode'),
     /** Held cash timing — does NOT reduce recognized invoiced. */
     retentionAmount: moneyAmount('retention_amount').notNull().default('0'),
     retentionHeldRemaining: moneyAmount('retention_held_remaining').notNull().default('0'),

@@ -203,6 +203,7 @@ export async function submitBillingCycle(context: OrgContext, raw: IssueCycleInp
         projectId: cycle.projectId,
         contractId: cycle.contractId,
         amount: toNumericString(cycleTotal),
+        vatMode: 'exclusive',
         ...(input.taxAmount
           ? { netAmount: toNumericString(cycleTotal), taxAmount: input.taxAmount }
           : {}),

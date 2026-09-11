@@ -21,7 +21,12 @@ import {
 import { findClientById, listContactsForClient, pickBillingClientContact } from '@/modules/clients';
 import { assertBillingCurrencyMatchesProject } from '../domain/currency';
 import { resolveApplicableDefaultTax } from '@/modules/tax';
-import { resolveTaxAmounts } from '../domain/tax';
+import {
+  assertBillingVatExplicitForFinalize,
+  inferBillingVatModeForCapture,
+  resolveTaxAmounts,
+  taxAmountForStorage,
+} from '../domain/tax';
 import {
   findBillingRecordById,
   findChangeOrdersInProject,
@@ -131,10 +136,11 @@ export async function createBillingRecordWithPermission(
 
   const currency = await resolveCurrency(context, input.projectId, input.currency);
   const issueDate = businessDate(input.issueDate);
-  const taxResolution =
-    input.vatMode != null
-      ? await resolveApplicableDefaultTax(context, issueDate)
-      : null;
+  const needsTaxResolution =
+    input.vatMode != null || (Boolean(input.netAmount?.trim()) && Boolean(input.taxAmount?.trim()));
+  const taxResolution = needsTaxResolution
+    ? await resolveApplicableDefaultTax(context, issueDate)
+    : null;
   const amounts = resolveTaxAmounts({
     amount: input.amount,
     netAmount: input.netAmount,
@@ -143,6 +149,20 @@ export async function createBillingRecordWithPermission(
     vatMode: input.vatMode,
     resolved: taxResolution?.resolved ?? null,
   });
+  const vatModeStored = inferBillingVatModeForCapture({
+    vatMode: input.vatMode,
+    netAmount: input.netAmount,
+    taxAmount: input.taxAmount,
+    resolvedTaxAmount: amounts.taxAmount,
+  });
+  if (input.finalize) {
+    assertBillingVatExplicitForFinalize({
+      vatMode: vatModeStored,
+      subtotalAmount: amounts.subtotalAmount,
+      taxAmount: amounts.taxAmount,
+      totalAmount: amounts.totalAmount,
+    });
+  }
 
   const changeOrderIds = input.changeOrderIds ?? [];
   const changeOrders = await findChangeOrdersInProject(
@@ -217,8 +237,9 @@ export async function createBillingRecordWithPermission(
     dueDate,
     paymentTermId,
     subtotalAmount: toNumericString(amounts.subtotalAmount),
-    taxAmount: amounts.taxAmount ? toNumericString(amounts.taxAmount) : null,
+    taxAmount: taxAmountForStorage(vatModeStored, amounts.taxAmount, currency),
     totalAmount: toNumericString(amounts.totalAmount),
+    vatMode: vatModeStored,
     currency,
     retentionAmount: toNumericString(retention),
     retentionHeldRemaining: toNumericString(money('0', currency)),

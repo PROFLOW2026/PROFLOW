@@ -159,7 +159,7 @@ function ProjectTabsEnhancerChrome({
         }
         const query = params.toString();
         const path = pathnameRef.current;
-        router.replace(query ? `${path}?${query}` : path);
+        router.replace(query ? `${path}?${query}` : path, { scroll: false });
       });
     }
 

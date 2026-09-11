@@ -175,6 +175,7 @@ export async function AttendanceMonthCalendar({
           <Link
             href={`/workforce/attendance?employeeId=${employeeId}&month=${prevMonth}`}
             className="flex h-8 w-8 items-center justify-center rounded-md border border-[var(--pf-border-default)] text-[var(--pf-text-secondary)] transition-colors hover:bg-[var(--pf-bg-subtle)]"
+            scroll={false}
             aria-label={t('prevMonth')}
           >
             <ChevronRight className="h-4 w-4" />
@@ -185,6 +186,7 @@ export async function AttendanceMonthCalendar({
           <Link
             href={`/workforce/attendance?employeeId=${employeeId}&month=${nextMonth}`}
             className="flex h-8 w-8 items-center justify-center rounded-md border border-[var(--pf-border-default)] text-[var(--pf-text-secondary)] transition-colors hover:bg-[var(--pf-bg-subtle)]"
+            scroll={false}
             aria-label={t('nextMonth')}
           >
             <ChevronLeft className="h-4 w-4" />

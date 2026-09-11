@@ -141,7 +141,7 @@ describe('ProjectTabsShell pending behavior', () => {
 
     await user.click(screen.getByRole('tab', { name: 'Money' }));
 
-    expect(navState.replace).toHaveBeenCalledWith('/projects/proj-1?tab=financials');
+    expect(navState.replace).toHaveBeenCalledWith('/projects/proj-1?tab=financials', { scroll: false });
     expect(screen.queryByText('Overview body')).toBeNull();
     expect(screen.getByRole('status')).toBeVisible();
     expect(screen.getByRole('tablist')).toHaveAttribute('aria-busy', 'true');
@@ -168,6 +168,6 @@ describe('ProjectTabsShell pending behavior', () => {
     );
 
     await user.click(screen.getByRole('tab', { name: 'Overview' }));
-    expect(navState.replace).toHaveBeenCalledWith('/projects/proj-1');
+    expect(navState.replace).toHaveBeenCalledWith('/projects/proj-1', { scroll: false });
   });
 });

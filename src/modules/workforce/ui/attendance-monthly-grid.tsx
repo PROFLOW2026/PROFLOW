@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
 import type { MonthlyAttendanceGrid, MonthlyCellKind } from '../application/attendance-owner-views';
+import { AttendanceMonthlyGridFilter } from './attendance-monthly-grid-filter';
 
 interface AttendanceMonthlyGridProps {
   readonly grid: MonthlyAttendanceGrid;
@@ -75,42 +76,25 @@ export async function AttendanceMonthlyGrid({
 
   return (
     <section className="flex flex-col gap-4">
-      <form method="get" className="flex flex-col gap-3 rounded-xl border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4">
-        <input type="hidden" name="month" value={grid.yearMonth} />
-        <div className="flex flex-wrap items-end gap-3">
-          <label className="flex min-w-[12rem] flex-col gap-1 text-sm">
-            <span>{t('employee')}</span>
-            <select
-              name="employeeId"
-              defaultValue={selectedEmployeeId ?? ''}
-              className="h-11 rounded-md border border-[var(--pf-border-default)] bg-transparent px-3"
-            >
-              <option value="">{t('allEmployees')}</option>
-              {employees.map((employee) => (
-                <option key={employee.id} value={employee.id}>
-                  {employee.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" name="missingOnly" value="1" defaultChecked={missingOnly} />
-            <span>{t('missingOnly')}</span>
-          </label>
-          <button
-            type="submit"
-            className="h-11 rounded-md border border-[var(--pf-border-strong)] px-4 text-sm font-medium"
-          >
-            {t('apply')}
-          </button>
-        </div>
-      </form>
+      <AttendanceMonthlyGridFilter
+        yearMonth={grid.yearMonth}
+        employees={employees}
+        selectedEmployeeId={selectedEmployeeId ?? null}
+        missingOnly={Boolean(missingOnly)}
+        labels={{
+          employee: t('employee'),
+          allEmployees: t('allEmployees'),
+          missingOnly: t('missingOnly'),
+          apply: t('apply'),
+        }}
+      />
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <Link
             href={monthlyHref({ yearMonth: prevMonth, employeeId: selectedEmployeeId, missingOnly })}
             className="flex h-8 w-8 items-center justify-center rounded-md border border-[var(--pf-border-default)]"
+            scroll={false}
             aria-label={t('prevMonth')}
           >
             <ChevronRight className="h-4 w-4" />
@@ -119,6 +103,7 @@ export async function AttendanceMonthlyGrid({
           <Link
             href={monthlyHref({ yearMonth: nextMonth, employeeId: selectedEmployeeId, missingOnly })}
             className="flex h-8 w-8 items-center justify-center rounded-md border border-[var(--pf-border-default)]"
+            scroll={false}
             aria-label={t('nextMonth')}
           >
             <ChevronLeft className="h-4 w-4" />

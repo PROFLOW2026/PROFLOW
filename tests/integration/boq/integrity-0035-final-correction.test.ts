@@ -435,10 +435,11 @@ describe('BOQ final integrity correction adversarial', () => {
         await db.execute(sql`
           INSERT INTO billing_records (
             organization_id, project_id, kind, status, issue_date,
-            subtotal_amount, total_amount, currency, retention_amount, retention_held_remaining
+            subtotal_amount, total_amount, currency, retention_amount, retention_held_remaining,
+            vat_mode, tax_amount
           ) VALUES (
             ${orgAId}::uuid, ${projectA}::uuid, 'invoice', 'finalized', CURRENT_DATE,
-            200, 200, 'ILS', 0, 0
+            200, 200, 'ILS', 0, 0, 'zero', 0
           ) RETURNING id
         `),
       );

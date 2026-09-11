@@ -3,7 +3,7 @@
 const Module = require('node:module');
 const originalLoad = Module._load;
 Module._load = function patchedLoad(request, parent, isMain) {
-  if (request === 'server-only') {
+  if (request === 'server-only' || /[/\\]server-only(?:[/\\]index\.js)?$/.test(String(request))) {
     return {};
   }
   return originalLoad.call(this, request, parent, isMain);

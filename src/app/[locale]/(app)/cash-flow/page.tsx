@@ -24,6 +24,7 @@ export async function generateMetadata({
 export default async function CashFlowPage() {
   const t = await getTranslations('financial.cashFlowForecast');
   const tCash = await getTranslations('financial.cashFlow');
+  const tFinancial = await getTranslations('financial');
 
   const result = await withOrgContext(async (context) => {
     const allowed = hasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ);
@@ -75,6 +76,7 @@ export default async function CashFlowPage() {
           sourceLabel: (key) => t(`sources.${key}`),
           directionLabel: (key) => t(`direction.${key}`),
           itemCount: (count) => t('itemCount', { count }),
+          includingVatLabel: tFinancial('kpis.includingVat'),
         }}
       />
 

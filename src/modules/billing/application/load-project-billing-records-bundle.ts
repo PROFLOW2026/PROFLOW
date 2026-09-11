@@ -30,6 +30,8 @@ function buildRecordSummary(
     status: BillingRecordStatus;
     kind: BillingKind;
     totalAmount: string;
+    subtotalAmount?: string;
+    taxAmount?: string | null;
     currency: string;
     retentionAmount?: string;
     retentionHeldRemaining?: string;
@@ -38,6 +40,13 @@ function buildRecordSummary(
   today: BusinessDate,
 ): BillingRecordSummary {
   const totalAmount = mapMoney(row.totalAmount, row.currency);
+  const subtotalAmount = row.subtotalAmount
+    ? mapMoney(row.subtotalAmount, row.currency)
+    : totalAmount;
+  const taxAmount =
+    row.taxAmount != null && row.taxAmount !== ''
+      ? mapMoney(row.taxAmount, row.currency)
+      : null;
   const retentionHeldRemaining = row.retentionHeldRemaining
     ? mapMoney(row.retentionHeldRemaining, row.currency)
     : undefined;
@@ -47,6 +56,8 @@ function buildRecordSummary(
     row.kind,
     row.status,
     retentionHeldRemaining,
+    taxAmount,
+    subtotalAmount,
   );
   const collectionStatus = deriveCollectionStatus(
     outstandingAmount,
@@ -69,6 +80,8 @@ function buildRecordSummary(
     status: row.status,
     kind: row.kind,
     totalAmount,
+    subtotalAmount,
+    taxAmount,
     paidAmount,
     outstandingAmount,
     retentionAmount: row.retentionAmount
@@ -106,6 +119,7 @@ export async function loadProjectBillingRecordsBundle(
       kind: billingRecords.kind,
       totalAmount: billingRecords.totalAmount,
       subtotalAmount: billingRecords.subtotalAmount,
+      taxAmount: billingRecords.taxAmount,
       currency: billingRecords.currency,
       retentionAmount: billingRecords.retentionAmount,
       retentionHeldRemaining: billingRecords.retentionHeldRemaining,
@@ -161,6 +175,7 @@ export async function loadProjectBillingRecordsBundle(
       status: record.status,
       totalAmount: mapMoney(record.totalAmount, record.currency),
       subtotalAmount: mapMoney(record.subtotalAmount, record.currency),
+      taxAmount: record.taxAmount ? mapMoney(record.taxAmount, record.currency) : null,
       payments: paymentsByRecord.get(record.id) ?? [],
       retentionHeldRemaining: record.retentionHeldRemaining
         ? mapMoney(record.retentionHeldRemaining, record.currency)

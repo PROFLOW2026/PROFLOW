@@ -4,14 +4,17 @@ import {
   aggregateBillingPositionInCurrency,
   isOverdueOn,
   recordOutstanding,
+  sumInvoicedAmounts,
   sumNetInvoicedAmounts,
   sumPaidAmountsForRecord,
+  billingNetToGrossRatio,
+  resolveBillingGrossAmount,
   type BillingAmountInput,
   type PaymentAmountInput,
 } from '@/modules/billing/domain/outstanding';
 import { listPaidAmountRowsByBillingRecordIds } from '@/modules/billing';
 import { businessDate, type BusinessDate } from '@/shared/dates';
-import { fromNumericString, type MoneyValue } from '@/shared/money';
+import { fromNumericString, multiplyMoney, type MoneyValue } from '@/shared/money';
 import type { DbExecutor } from '@/shared/db/types';
 
 export interface ProjectBillingRows {
@@ -21,6 +24,7 @@ export interface ProjectBillingRows {
     readonly payments: readonly PaymentAmountInput[];
     readonly retentionHeldRemaining?: MoneyValue;
     readonly subtotalAmount: MoneyValue;
+    readonly taxAmount?: MoneyValue | null;
   })[];
   readonly currency: string;
 }
@@ -55,6 +59,9 @@ async function mapBillingRecords(
     status: record.status,
     totalAmount: fromNumericString(record.totalAmount, record.currency)!,
     subtotalAmount: fromNumericString(record.subtotalAmount, record.currency)!,
+    taxAmount: record.taxAmount
+      ? fromNumericString(record.taxAmount, record.currency)
+      : null,
     payments: paymentsByRecord.get(record.id) ?? [],
     retentionHeldRemaining: fromNumericString(record.retentionHeldRemaining, record.currency) ?? undefined,
   }));
@@ -150,6 +157,9 @@ export async function loadBillingRowsGroupedByProject(
         status: record.status,
         totalAmount: fromNumericString(record.totalAmount, record.currency)!,
         subtotalAmount: fromNumericString(record.subtotalAmount, record.currency)!,
+        taxAmount: record.taxAmount
+          ? fromNumericString(record.taxAmount, record.currency)
+          : null,
         payments: paymentsByRecord.get(record.id) ?? [],
         retentionHeldRemaining:
           fromNumericString(record.retentionHeldRemaining, record.currency) ?? undefined,
@@ -180,6 +190,8 @@ export function countOverdueFromBillingRows(
       record.kind,
       record.status,
       record.retentionHeldRemaining,
+      record.taxAmount,
+      record.subtotalAmount,
     );
 
     if (isOverdueOn(outstanding, record.dueDate, today)) {
@@ -216,17 +228,54 @@ export async function sumInvoicedInDateRange(
       ),
     );
 
-  const inputs: (BillingAmountInput & { readonly subtotalAmount: MoneyValue })[] = records.map(
-    (record) => ({
-      kind: record.kind,
-      status: record.status,
-      totalAmount: fromNumericString(record.totalAmount, record.currency)!,
-      subtotalAmount: fromNumericString(record.subtotalAmount, record.currency)!,
-    }),
-  );
+  const inputs: (BillingAmountInput & {
+    readonly subtotalAmount: MoneyValue;
+    readonly taxAmount: MoneyValue | null;
+  })[] = records.map((record) => ({
+    kind: record.kind,
+    status: record.status,
+    totalAmount: fromNumericString(record.totalAmount, record.currency)!,
+    subtotalAmount: fromNumericString(record.subtotalAmount, record.currency)!,
+    taxAmount: record.taxAmount
+      ? fromNumericString(record.taxAmount, record.currency)
+      : null,
+  }));
 
   // Period "billed" / revenue KPIs are NET (ex-VAT). GROSS is for AR only.
   return sumNetInvoicedAmounts(inputs, currency);
+}
+
+export async function sumGrossInvoicedInDateRange(
+  db: DbExecutor,
+  organizationId: string,
+  currency: string,
+  fromDate: BusinessDate,
+  toDate: BusinessDate,
+): Promise<MoneyValue> {
+  const records = await db
+    .select()
+    .from(billingRecords)
+    .where(
+      and(
+        eq(billingRecords.organizationId, organizationId),
+        eq(billingRecords.currency, currency),
+        isNull(billingRecords.archivedAt),
+        gte(billingRecords.issueDate, fromDate),
+        lte(billingRecords.issueDate, toDate),
+      ),
+    );
+
+  const inputs: BillingAmountInput[] = records.map((record) => ({
+    kind: record.kind,
+    status: record.status,
+    totalAmount: fromNumericString(record.totalAmount, record.currency)!,
+    subtotalAmount: fromNumericString(record.subtotalAmount, record.currency)!,
+    taxAmount: record.taxAmount
+      ? fromNumericString(record.taxAmount, record.currency)
+      : null,
+  }));
+
+  return sumInvoicedAmounts(inputs, currency);
 }
 
 /**
@@ -266,6 +315,103 @@ export async function sumCollectionsInDateRange(
     total = { amount: sum.toFixed(2), currency };
   }
   return { amount: total.amount, currency };
+}
+
+/**
+ * NET cash collected in a date range — proportional to each invoice's net/gross split.
+ * Unallocated payment remainder is treated as gross=net (no invoice VAT context).
+ */
+export async function sumNetCollectionsInDateRange(
+  db: DbExecutor,
+  organizationId: string,
+  currency: string,
+  fromDate: BusinessDate,
+  toDate: BusinessDate,
+): Promise<MoneyValue> {
+  const paymentRows = await db
+    .select({
+      id: payments.id,
+      amount: payments.amount,
+      paymentCurrency: payments.currency,
+    })
+    .from(payments)
+    .where(
+      and(
+        eq(payments.organizationId, organizationId),
+        eq(payments.currency, currency),
+        sql`${payments.status} = 'recorded'`,
+        gte(payments.paymentDate, fromDate),
+        lte(payments.paymentDate, toDate),
+      ),
+    );
+
+  if (paymentRows.length === 0) {
+    return { amount: '0', currency };
+  }
+
+  const paymentIds = paymentRows.map((row) => row.id);
+  const applicationRows = await db
+    .select({
+      paymentId: paymentApplications.paymentId,
+      appliedAmount: paymentApplications.appliedAmount,
+      appliedCurrency: paymentApplications.currency,
+      subtotalAmount: billingRecords.subtotalAmount,
+      totalAmount: billingRecords.totalAmount,
+      taxAmount: billingRecords.taxAmount,
+      recordCurrency: billingRecords.currency,
+    })
+    .from(paymentApplications)
+    .innerJoin(billingRecords, eq(billingRecords.id, paymentApplications.billingRecordId))
+    .where(
+      and(
+        eq(paymentApplications.organizationId, organizationId),
+        inArray(paymentApplications.paymentId, paymentIds),
+      ),
+    );
+
+  const netByPayment = new Map<string, number>();
+  const grossAppliedByPayment = new Map<string, number>();
+  for (const row of applicationRows) {
+    if (row.recordCurrency.toUpperCase() !== currency.toUpperCase()) continue;
+    const applied = fromNumericString(row.appliedAmount, row.appliedCurrency);
+    if (!applied) continue;
+    const grossTotal = resolveBillingGrossAmount({
+      totalAmount: fromNumericString(row.totalAmount, row.recordCurrency)!,
+      subtotalAmount: fromNumericString(row.subtotalAmount, row.recordCurrency)!,
+      taxAmount: row.taxAmount
+        ? fromNumericString(row.taxAmount, row.recordCurrency)
+        : null,
+    });
+    const ratio = billingNetToGrossRatio({
+      totalAmount: grossTotal,
+      subtotalAmount: fromNumericString(row.subtotalAmount, row.recordCurrency)!,
+      taxAmount: row.taxAmount
+        ? fromNumericString(row.taxAmount, row.recordCurrency)
+        : null,
+    });
+    const netApplied = multiplyMoney(applied, ratio);
+    netByPayment.set(row.paymentId, (netByPayment.get(row.paymentId) ?? 0) + Number(netApplied.amount));
+    grossAppliedByPayment.set(
+      row.paymentId,
+      (grossAppliedByPayment.get(row.paymentId) ?? 0) + Number(row.appliedAmount),
+    );
+  }
+
+  let totalNet = 0;
+  for (const row of paymentRows) {
+    const gross = fromNumericString(row.amount, row.paymentCurrency);
+    if (!gross) continue;
+    const appliedNet = netByPayment.get(row.id);
+    if (appliedNet != null) {
+      const grossApplied = grossAppliedByPayment.get(row.id) ?? 0;
+      const unallocated = Math.max(0, Number(gross.amount) - grossApplied);
+      totalNet += appliedNet + unallocated;
+    } else {
+      totalNet += Number(gross.amount);
+    }
+  }
+
+  return { amount: totalNet.toFixed(2), currency };
 }
 
 export async function countOverdueBillingRecords(

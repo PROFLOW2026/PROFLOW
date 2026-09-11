@@ -30,10 +30,10 @@ describe('overnight 0036–0045 concurrency', () => {
       await harness.sqlA`
         INSERT INTO billing_records (
           id, organization_id, client_id, issue_date, status,
-          subtotal_amount, total_amount, currency
+          subtotal_amount, total_amount, currency, vat_mode, tax_amount
         ) VALUES (
           ${billId}::uuid, ${orgId}::uuid, ${clientId}::uuid, '2026-08-01', 'finalized',
-          1000, 1000, 'ILS'
+          1000, 1000, 'ILS', 'zero', 0
         )
       `;
       await harness.sqlA`
@@ -111,10 +111,10 @@ describe('overnight 0036–0045 concurrency', () => {
       await harness.sqlA`
         INSERT INTO billing_records (
           id, organization_id, client_id, issue_date, status,
-          subtotal_amount, total_amount, currency
+          subtotal_amount, total_amount, currency, vat_mode, tax_amount
         ) VALUES (
           ${billId}::uuid, ${orgId}::uuid, ${clientId}::uuid, '2026-08-01', 'finalized',
-          100, 100, 'ILS'
+          100, 100, 'ILS', 'zero', 0
         )
       `;
       await harness.sqlA`

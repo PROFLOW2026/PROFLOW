@@ -5,7 +5,12 @@ import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { assertEditable } from '../domain/lifecycle';
 import { assertBillingCurrencyMatchesProject } from '../domain/currency';
-import { resolveTaxAmounts } from '../domain/tax';
+import {
+  inferBillingVatModeForCapture,
+  resolveTaxAmounts,
+  taxAmountForStorage,
+  type BillingVatMode,
+} from '../domain/tax';
 import { money, toNumericString } from '@/shared/money';
 import { assertRetentionFitsTotal, resolveRetentionCapture } from '@/modules/retention';
 import { businessDate } from '@/shared/dates';
@@ -68,7 +73,15 @@ export async function updateBillingRecord(context: OrgContext, rawInput: UpdateB
     netAmount: input.netAmount,
     taxAmount: input.taxAmount,
     currency,
+    vatMode: input.vatMode ?? (existing.vatMode as typeof input.vatMode),
   });
+  const vatModeStored: BillingVatMode | null =
+    inferBillingVatModeForCapture({
+      vatMode: input.vatMode ?? (existing.vatMode as BillingVatMode | null | undefined),
+      netAmount: input.netAmount,
+      taxAmount: input.taxAmount,
+      resolvedTaxAmount: amounts.taxAmount,
+    }) ?? (existing.vatMode as BillingVatMode | null);
 
   const changeOrderIds = input.changeOrderIds;
   try {
@@ -119,8 +132,9 @@ export async function updateBillingRecord(context: OrgContext, rawInput: UpdateB
       dueDate:
         input.dueDate === undefined ? undefined : input.dueDate ? businessDate(input.dueDate) : null,
       subtotalAmount: toNumericString(amounts.subtotalAmount),
-      taxAmount: amounts.taxAmount ? toNumericString(amounts.taxAmount) : null,
+      taxAmount: taxAmountForStorage(vatModeStored, amounts.taxAmount, currency),
       totalAmount: toNumericString(amounts.totalAmount),
+      vatMode: vatModeStored,
       currency,
       retentionAmount: toNumericString(retention),
       retentionHeldRemaining: toNumericString(money('0', currency)),

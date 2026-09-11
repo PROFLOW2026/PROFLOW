@@ -115,10 +115,10 @@ describe('overnight 0036–0045 SQL adversarial', () => {
       await db.execute(sql`
         INSERT INTO billing_records (
           id, organization_id, client_id, issue_date, status,
-          subtotal_amount, total_amount, currency
+          subtotal_amount, total_amount, currency, vat_mode, tax_amount
         ) VALUES (
           ${billId}::uuid, ${orgId}::uuid, ${clientId}::uuid, '2024-01-10', 'finalized',
-          100, 100, 'ILS'
+          100, 100, 'ILS', 'zero', 0
         )
       `);
       await db.execute(sql`
@@ -350,10 +350,10 @@ describe('overnight 0036–0045 SQL adversarial', () => {
       await db.execute(sql`
         INSERT INTO billing_records (
           id, organization_id, client_id, issue_date, status,
-          subtotal_amount, total_amount, currency
+          subtotal_amount, total_amount, currency, vat_mode, tax_amount
         ) VALUES (
           ${billId}::uuid, ${orgId}::uuid, ${clientId}::uuid, '2026-08-01', 'finalized',
-          1000, 1000, 'ILS'
+          1000, 1000, 'ILS', 'zero', 0
         )
       `);
 
@@ -458,19 +458,19 @@ describe('overnight 0036–0045 SQL adversarial', () => {
         INSERT INTO billing_records (
           id, organization_id, client_id, issue_date, status,
           subtotal_amount, total_amount, currency,
-          retention_amount, retention_held_remaining
+          retention_amount, retention_held_remaining, vat_mode, tax_amount
         ) VALUES (
           ${billHeld}::uuid, ${orgId}::uuid, ${clientA}::uuid, '2026-08-01', 'finalized',
-          1000, 1000, 'ILS', 100, 100
+          1000, 1000, 'ILS', 100, 100, 'zero', 0
         )
       `);
       await db.execute(sql`
         INSERT INTO billing_records (
           id, organization_id, client_id, issue_date, status,
-          subtotal_amount, total_amount, currency
+          subtotal_amount, total_amount, currency, vat_mode, tax_amount
         ) VALUES
-          (${billA}::uuid, ${orgId}::uuid, ${clientA}::uuid, '2026-08-02', 'finalized', 500, 500, 'ILS'),
-          (${billOther}::uuid, ${orgId}::uuid, ${clientB}::uuid, '2026-08-02', 'finalized', 500, 500, 'ILS')
+          (${billA}::uuid, ${orgId}::uuid, ${clientA}::uuid, '2026-08-02', 'finalized', 500, 500, 'ILS', 'zero', 0),
+          (${billOther}::uuid, ${orgId}::uuid, ${clientB}::uuid, '2026-08-02', 'finalized', 500, 500, 'ILS', 'zero', 0)
       `);
 
       await db.execute(sql`

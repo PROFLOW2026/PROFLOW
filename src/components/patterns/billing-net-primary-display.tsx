@@ -19,7 +19,7 @@ export function BillingNetPrimaryDisplay({
 }: {
   readonly netAmount: MoneyValue;
   readonly grossAmount: MoneyValue;
-  readonly netLabel: string;
+  readonly netLabel?: string;
   readonly grossLabel: string;
   readonly className?: string;
   readonly netClassName?: string;
@@ -30,9 +30,9 @@ export function BillingNetPrimaryDisplay({
       <div className={cn('font-semibold tabular-nums', netClassName)}>
         <MoneyText value={netAmount} />
       </div>
-      <p className={cn('text-xs text-[var(--pf-text-muted)]', grossClassName)}>
-        {netLabel}
-      </p>
+      {netLabel ? (
+        <p className={cn('text-xs text-[var(--pf-text-muted)]', grossClassName)}>{netLabel}</p>
+      ) : null}
       <p className={cn('text-xs text-[var(--pf-text-muted)] tabular-nums', grossClassName)}>
         ({grossLabel}: <MoneyText value={grossAmount} className="inline font-medium" />)
       </p>

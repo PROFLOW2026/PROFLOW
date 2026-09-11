@@ -59,8 +59,10 @@ import {
   countOverdueFromBillingRows,
   hasAnyBillingUsage,
   loadOrganizationBillingRows,
+  sumGrossInvoicedInDateRange,
   sumInvoicedInDateRange,
   sumCollectionsInDateRange,
+  sumNetCollectionsInDateRange,
 } from '../data/billing.repository';
 import {
   countPendingChanges,
@@ -169,13 +171,18 @@ export interface HomeDashboardData {
     /** NET billed revenue (ex-VAT) — project income / billed KPIs. */
     readonly netInvoiced: MoneyValue;
     readonly paid: MoneyValue;
+    readonly netPaid: MoneyValue;
     readonly outstanding: MoneyValue;
+    readonly netOutstanding: MoneyValue;
   } | null;
   readonly billingCoverage: FinancialCoverage | null;
   readonly organizationSummary: {
     readonly outstanding: MoneyValue;
+    readonly netOutstanding: MoneyValue;
     readonly invoicedThisMonth: MoneyValue;
+    readonly grossInvoicedThisMonth: MoneyValue;
     readonly collectionsThisMonth: MoneyValue;
+    readonly netCollectionsThisMonth: MoneyValue;
     readonly costsThisMonth: MoneyValue;
   } | null;
   readonly attention: DashboardAttention;
@@ -451,8 +458,10 @@ export async function getHomeDashboard(
   const [
     billingRows,
     invoicedThisMonth,
+    grossInvoicedThisMonth,
     costsThisMonth,
     collectionsThisMonth,
+    netCollectionsThisMonth,
     generalPoolTotals,
     apPayablesSummary,
   ] = await Promise.all([
@@ -461,6 +470,15 @@ export async function getHomeDashboard(
       : Promise.resolve(null),
     wantMonthInvoiced
       ? sumInvoicedInDateRange(
+          context.db,
+          context.organizationId,
+          currency,
+          monthStart,
+          monthEnd,
+        )
+      : Promise.resolve(null),
+    wantMonthInvoiced
+      ? sumGrossInvoicedInDateRange(
           context.db,
           context.organizationId,
           currency,
@@ -479,6 +497,15 @@ export async function getHomeDashboard(
       : Promise.resolve(null),
     wantMonthCollections
       ? sumCollectionsInDateRange(
+          context.db,
+          context.organizationId,
+          currency,
+          monthStart,
+          monthEnd,
+        )
+      : Promise.resolve(null),
+    wantMonthCollections
+      ? sumNetCollectionsInDateRange(
           context.db,
           context.organizationId,
           currency,
@@ -633,7 +660,9 @@ export async function getHomeDashboard(
       invoiced: position.invoiced,
       netInvoiced: position.netInvoiced,
       paid: position.paid,
+      netPaid: position.netPaid,
       outstanding: position.outstanding,
+      netOutstanding: position.netOutstanding,
     };
     if (position.excludedForeignCurrencyRecordCount > 0) {
       billingCoverage = buildFinancialCoverage([], new Date(), [
@@ -644,19 +673,25 @@ export async function getHomeDashboard(
       ]);
     }
 
-    if (canReadFinancials && invoicedThisMonth && costsThisMonth) {
+    if (canReadFinancials && invoicedThisMonth && grossInvoicedThisMonth && costsThisMonth) {
       organizationSummary = {
         outstanding: position.outstanding,
+        netOutstanding: position.netOutstanding,
         invoicedThisMonth,
+        grossInvoicedThisMonth,
         collectionsThisMonth: collectionsThisMonth ?? zeroMoney(currency),
+        netCollectionsThisMonth: netCollectionsThisMonth ?? zeroMoney(currency),
         costsThisMonth,
       };
     }
   } else if (!slimOwnerDashboard && canReadFinancials && hasExpenses && costsThisMonth) {
     organizationSummary = {
       outstanding: zeroMoney(currency),
+      netOutstanding: zeroMoney(currency),
       invoicedThisMonth: zeroMoney(currency),
+      grossInvoicedThisMonth: zeroMoney(currency),
       collectionsThisMonth: zeroMoney(currency),
+      netCollectionsThisMonth: zeroMoney(currency),
       costsThisMonth,
     };
   }

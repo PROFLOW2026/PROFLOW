@@ -9,6 +9,7 @@ import {
 import { createOrganization } from '@/modules/tenancy';
 import { DomainRuleError } from '@/shared/errors';
 import { createTestDatabase, type TestDatabase } from '@tests/setup/database';
+import { finalizedZeroVatFields } from '@tests/setup/finalized-billing-vat';
 import { createTestUser, seedSystem, type TestUser } from '@tests/setup/fixtures';
 
 async function provision(database: TestDatabase, owner: TestUser, name: string) {
@@ -46,6 +47,7 @@ describe('invoicing-integration persistence (L + cross-tenant)', () => {
           totalAmount: '100.000000',
           currency: 'ILS',
           createdByUserId: userA.id,
+          ...finalizedZeroVatFields,
         })
         .returning({ id: billingRecords.id });
       return row!.id;
@@ -63,6 +65,7 @@ describe('invoicing-integration persistence (L + cross-tenant)', () => {
           totalAmount: '50.000000',
           currency: 'ILS',
           createdByUserId: userB.id,
+          ...finalizedZeroVatFields,
         })
         .returning({ id: billingRecords.id });
       return row!.id;

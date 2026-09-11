@@ -259,7 +259,7 @@ describe('billing plan flow', () => {
     expect(issued.cycle.billingRecordId).toBe(issued.billing.id);
     expect(issued.cycle.status).toBe('approved');
     expect(issued.billing.status).toBe('finalized');
-    expect(issued.billing.totalAmount.amount).toBe('6000.000000');
+    expect(issued.billing.totalAmount.amount).toBe('7080.000000');
     expect(issued.payments).toHaveLength(0);
     const approvedLine = issued.lines.find((l) => l.planLineId === seeded.line1Id)!;
     expect(approvedLine.approvedAmount).toBe('6000.000000');
@@ -688,6 +688,6 @@ describe('billing plan flow', () => {
       });
       return getBillingRecord(context, detail.cycle.billingRecordId!);
     });
-    expect(billing.totalAmount.amount).toBe('80000.000000');
+    expect(billing.totalAmount.amount).toBe('94400.000000');
   });
 });

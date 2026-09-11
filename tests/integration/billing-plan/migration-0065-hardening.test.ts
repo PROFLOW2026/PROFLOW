@@ -332,12 +332,12 @@ describe('migration 0065 billing plan hardening', () => {
         INSERT INTO billing_records (
           id, organization_id, project_id, client_id, issue_date, status, kind,
           subtotal_amount, total_amount, currency, retention_amount, retention_held_remaining,
-          source_kind, finalized_at
+          source_kind, finalized_at, vat_mode, tax_amount
         ) VALUES (
           ${billingRecordId}::uuid, ${orgId}::uuid, ${projectId}::uuid, ${clientId}::uuid,
           CURRENT_DATE, 'finalized', 'invoice',
           500, 500, 'ILS', 0, 0,
-          'billing_plan', now()
+          'billing_plan', now(), 'zero', 0
         )
       `);
       // payments_legacy_application_default auto-creates the application row.

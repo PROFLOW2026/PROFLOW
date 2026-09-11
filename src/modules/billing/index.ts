@@ -40,9 +40,12 @@ export {
   computeOutstanding,
   deriveCollectionStatus,
   matchesListFilter,
+  billingNetToGrossRatio,
   recordOutstanding,
+  resolveBillingGrossAmount,
   signedBillingAmount,
   sumInvoicedAmounts,
+  sumNetPaidAmountsForRecord,
   sumPaidAmounts,
   sumPaidAmountsForRecord,
 } from './domain/outstanding';

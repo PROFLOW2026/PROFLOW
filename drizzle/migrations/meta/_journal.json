@@ -568,6 +568,13 @@
                         "when":  1788500000000,
                         "tag":  "0081_payment_instruments",
                         "breakpoints":  true
+                    },
+                    {
+                        "idx":  81,
+                        "version":  "7",
+                        "when":  1788586400000,
+                        "tag":  "0082_billing_vat_repair_and_invariant",
+                        "breakpoints":  true
                     }
                 ]
 }

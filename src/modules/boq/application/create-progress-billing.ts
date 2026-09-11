@@ -143,6 +143,7 @@ export async function createProgressBilling(context: OrgContext, raw: CreateProg
       projectId: batch.projectId,
       contractId: boq.contractId ?? undefined,
       amount: periodNet,
+      vatMode: 'exclusive',
       ...(input.taxAmount
         ? { netAmount: periodNet, taxAmount: input.taxAmount }
         : {}),

@@ -105,6 +105,7 @@ export interface BillingRecordDetail extends BillingRecordSummary {
   readonly clientId: string | null;
   readonly subtotalAmount: MoneyValue;
   readonly taxAmount: MoneyValue | null;
+  readonly vatMode: string | null;
   readonly taxSnapshot: TaxSnapshot | null;
   readonly finalizedAt: Date | null;
   readonly voidedAt: Date | null;

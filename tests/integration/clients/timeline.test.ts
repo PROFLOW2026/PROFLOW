@@ -72,6 +72,7 @@ describe('client timeline', () => {
         projectId: project.projectId,
         amount: '1800',
         issueDate: '2026-08-01',
+        vatMode: 'exclusive',
         finalize: true,
       });
       await recordActivityEvent(context, {

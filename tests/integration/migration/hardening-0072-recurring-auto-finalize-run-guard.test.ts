@@ -375,10 +375,10 @@ describe('0072 recurring auto-finalize run guard', () => {
         await db.execute(sql`
           INSERT INTO billing_records (
             organization_id, project_id, issue_date, status,
-            subtotal_amount, total_amount, currency
+            subtotal_amount, total_amount, currency, vat_mode, tax_amount
           ) VALUES (
             ${organizationId}::uuid, ${refs.projectId}::uuid, '2026-06-01', 'finalized',
-            1000, 1000, 'ILS'
+            1000, 1000, 'ILS', 'zero', 0
           )
         `);
       });

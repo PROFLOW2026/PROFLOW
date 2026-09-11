@@ -44,6 +44,7 @@ describe('billing tenant isolation', () => {
         projectId: project.projectId,
         amount: '15000',
         issueDate: '2026-08-01',
+        vatMode: 'zero',
         finalize: true,
       });
       return { projectId: project.projectId, billingRecordId: billing.id };

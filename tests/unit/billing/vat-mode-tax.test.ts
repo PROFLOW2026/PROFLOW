@@ -30,7 +30,7 @@ describe('billing tax resolution (VAT entry modes)', () => {
     expect(amounts.taxAmount?.amount).toBe('11211.864407');
   });
 
-  it('zero (no VAT): entered is NET = GROSS; tax is null', () => {
+  it('zero (no VAT): entered is NET = GROSS; tax is explicit zero', () => {
     const amounts = resolveTaxAmounts({
       amount: '73500',
       currency: 'ILS',
@@ -39,7 +39,7 @@ describe('billing tax resolution (VAT entry modes)', () => {
     });
 
     expect(amounts.subtotalAmount.amount).toBe('73500.000000');
-    expect(amounts.taxAmount).toBeNull();
+    expect(amounts.taxAmount?.amount).toBe('0.000000');
     expect(amounts.totalAmount.amount).toBe('73500.000000');
   });
 

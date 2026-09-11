@@ -1,3 +1,4 @@
+import { BillingNetPrimaryDisplay } from '@/components/patterns/billing-net-primary-display';
 import { MoneyText } from '@/components/patterns/money-text';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { Link } from '@/shared/i18n/navigation';
@@ -20,6 +21,7 @@ export interface CashFlowForecastViewCopy {
   readonly sourceLabel: (key: CashFlowForecast['items'][number]['sourceType']) => string;
   readonly directionLabel: (key: 'in' | 'out') => string;
   readonly itemCount: (count: number) => string;
+  readonly includingVatLabel: string;
 }
 
 export function CashFlowForecastView({
@@ -51,9 +53,18 @@ export function CashFlowForecastView({
                   <p className="break-words text-xs text-[var(--pf-text-secondary)]">
                     {copy.bucketLabel(period.key)}
                   </p>
-                  <p className="mt-1 max-w-full overflow-x-auto text-base font-semibold">
-                    <MoneyText value={period.expectedIn} />
-                  </p>
+                  <div className="mt-1 max-w-full overflow-x-auto text-base font-semibold">
+                    {period.expectedInGross ? (
+                      <BillingNetPrimaryDisplay
+                        netAmount={period.expectedIn}
+                        grossAmount={period.expectedInGross}
+                        grossLabel={copy.includingVatLabel}
+                        netClassName="text-base"
+                      />
+                    ) : (
+                      <MoneyText value={period.expectedIn} />
+                    )}
+                  </div>
                   <p className="text-xs text-[var(--pf-text-secondary)]">
                     {copy.itemCount(period.inCount)}
                   </p>
@@ -127,9 +138,17 @@ export function CashFlowForecastView({
                       )}
                     </p>
                   </div>
-                  <p className="shrink-0 text-sm font-semibold">
-                    <MoneyText value={item.amount} colorizeNegative />
-                  </p>
+                  <div className="shrink-0 text-sm font-semibold">
+                    {item.direction === 'in' && item.grossAmount ? (
+                      <BillingNetPrimaryDisplay
+                        netAmount={item.amount}
+                        grossAmount={item.grossAmount}
+                        grossLabel={copy.includingVatLabel}
+                      />
+                    ) : (
+                      <MoneyText value={item.amount} colorizeNegative />
+                    )}
+                  </div>
                 </div>
               </li>
             ))}

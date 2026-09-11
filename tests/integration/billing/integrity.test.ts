@@ -71,6 +71,7 @@ describe('billing integrity', () => {
         projectId,
         amount: '10000',
         issueDate: '2026-08-01',
+        vatMode: 'exclusive',
         finalize: true,
       });
       await recordPayment(context, {
@@ -124,6 +125,8 @@ describe('billing integrity', () => {
         totalAmount: '1000.000000',
         currency: 'USD',
         finalizedAt: new Date(),
+        vatMode: 'zero',
+        taxAmount: '0',
       });
     });
 
@@ -137,6 +140,7 @@ describe('billing integrity', () => {
         projectId,
         amount: '5000',
         issueDate: '2026-08-02',
+        vatMode: 'exclusive',
         finalize: true,
       });
       expect(billing.totalAmount.currency).toBe('ILS');
@@ -151,6 +155,7 @@ describe('billing integrity', () => {
       return getProjectFinancials(context, projectId);
     });
 
-    expect(financials.billing.invoiced.amount).toBe('5000.000000');
+    expect(financials.billing.netInvoiced.amount).toBe('5000.000000');
+    expect(financials.billing.invoiced.amount).toBe('5900.000000');
   });
 });

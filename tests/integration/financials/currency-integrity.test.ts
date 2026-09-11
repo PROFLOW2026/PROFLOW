@@ -23,6 +23,7 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { rolePermissions } from '@drizzle/schema';
 import { and, eq, inArray } from 'drizzle-orm';
 import { createTestDatabase, type TestDatabase } from '../../setup/database';
+import { finalizedZeroVatFields } from '../../setup/finalized-billing-vat';
 import {
   ensureMaterialsCategory,
   zeroVatFinalizedExpenseRow,
@@ -315,6 +316,7 @@ describe('financials currency integrity', () => {
           totalAmount: '5000.000000',
           currency: 'ILS',
           issueDate: '2026-04-01',
+          ...finalizedZeroVatFields,
         },
         {
           organizationId: orgId,
@@ -325,6 +327,7 @@ describe('financials currency integrity', () => {
           totalAmount: '1000.000000',
           currency: 'USD',
           issueDate: '2026-04-02',
+          ...finalizedZeroVatFields,
         },
       ]);
     });

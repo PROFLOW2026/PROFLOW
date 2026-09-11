@@ -16,6 +16,7 @@ import {
   parseExpenseVatModeFromForm,
   resolveExpenseVatMode,
 } from '@/modules/expenses/domain/vat-mode';
+import { DomainRuleError } from '@/shared/errors';
 import type { TaxSnapshot } from './types';
 
 export type BillingVatMode = ExpenseVatMode;
@@ -75,7 +76,7 @@ export function resolveTaxAmounts(input: TaxInput): {
 
     if (vatMode === 'zero') {
       const entered = money(input.amount, currency);
-      return { subtotalAmount: entered, taxAmount: null, totalAmount: entered };
+      return { subtotalAmount: entered, taxAmount: money('0', currency), totalAmount: entered };
     }
 
     const amountIncludesTax = vatMode === 'inclusive';
@@ -94,9 +95,81 @@ export function resolveTaxAmounts(input: TaxInput): {
     };
   }
 
-  // Legacy fast capture: entered amount is both subtotal and total.
+  // Draft-only legacy path — finalize must supply vatMode or explicit net/tax.
   const totalAmount = money(input.amount, currency);
   return { subtotalAmount: totalAmount, taxAmount: null, totalAmount };
+}
+
+/** Infer stored vat_mode when callers pass net/tax overrides without an explicit mode. */
+export function inferBillingVatModeForCapture(input: {
+  readonly vatMode?: BillingVatMode | null;
+  readonly netAmount?: string | null;
+  readonly taxAmount?: string | null;
+  readonly resolvedTaxAmount: MoneyValue | null;
+}): BillingVatMode | null {
+  if (input.vatMode != null) {
+    return resolveExpenseVatMode({ vatMode: input.vatMode, forCreate: true });
+  }
+  if (input.netAmount?.trim() && input.taxAmount?.trim()) {
+    return 'exclusive';
+  }
+  if (input.resolvedTaxAmount && !toDecimalValue(input.resolvedTaxAmount).isZero()) {
+    return 'exclusive';
+  }
+  if (input.resolvedTaxAmount && toDecimalValue(input.resolvedTaxAmount).isZero()) {
+    return 'zero';
+  }
+  return null;
+}
+
+/** Finalized rows must never have ambiguous VAT (matches DB constraint 0082). */
+export function assertBillingVatExplicitForFinalize(input: {
+  readonly vatMode: BillingVatMode | null | undefined;
+  readonly subtotalAmount: MoneyValue;
+  readonly taxAmount: MoneyValue | null;
+  readonly totalAmount: MoneyValue;
+}): void {
+  if (!input.vatMode) {
+    throw new DomainRuleError(
+      'VAT mode is required before finalizing a billing record',
+      'billing.errors.vatModeRequiredForFinalize',
+    );
+  }
+
+  if (input.vatMode === 'zero') {
+    const tax = input.taxAmount ?? money('0', input.totalAmount.currency);
+    if (!toDecimalValue(tax).isZero() || input.subtotalAmount.amount !== input.totalAmount.amount) {
+      throw new DomainRuleError(
+        'Zero-rated billing must have no VAT and matching subtotal/total',
+        'billing.errors.zeroVatInconsistent',
+      );
+    }
+    return;
+  }
+
+  if (!input.taxAmount || toDecimalValue(input.taxAmount).isZero()) {
+    throw new DomainRuleError(
+      'Standard VAT billing must include a tax amount before finalization',
+      'billing.errors.taxRequiredForFinalize',
+    );
+  }
+
+  const recomputed = addMoney(input.subtotalAmount, input.taxAmount);
+  if (recomputed.amount !== input.totalAmount.amount) {
+    throw new DomainRuleError(
+      'Billing total must equal subtotal plus tax before finalization',
+      'billing.errors.vatTotalsMismatch',
+    );
+  }
+}
+
+export function taxAmountForStorage(
+  vatMode: BillingVatMode | null | undefined,
+  taxAmount: MoneyValue | null,
+  _currency: string,
+): string | null {
+  if (vatMode === 'zero') return '0';
+  return taxAmount ? taxAmount.amount : null;
 }
 
 export function parseBillingVatModeFromForm(value: unknown): BillingVatMode | undefined {

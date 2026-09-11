@@ -50,6 +50,7 @@ describe('client financials', () => {
         amount: '1000',
         issueDate: '2026-08-01',
         dueDate: '2026-08-20',
+        vatMode: 'zero',
         finalize: true,
       });
       await recordPayment(context, {
@@ -61,6 +62,7 @@ describe('client financials', () => {
         projectId: betaProject.projectId,
         amount: '5000',
         issueDate: '2026-08-01',
+        vatMode: 'zero',
         finalize: true,
       });
       const financials = await getClientFinancials(context, alpha.id);
@@ -92,6 +94,7 @@ describe('client financials', () => {
         projectId: project.projectId,
         amount: '8800',
         issueDate: '2026-08-01',
+        vatMode: 'zero',
         finalize: true,
       });
       return client.id;
@@ -145,6 +148,7 @@ describe('client financials', () => {
         projectId: project.projectId,
         amount: '2500',
         issueDate: '2026-08-01',
+        vatMode: 'zero',
         finalize: true,
       });
       return client.id;

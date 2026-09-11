@@ -544,10 +544,10 @@ describe('migration hardening 0030', () => {
             INSERT INTO billing_records (
               organization_id, project_id, issue_date, status,
               subtotal_amount, total_amount, currency,
-              retention_amount, retention_held_remaining
+              retention_amount, retention_held_remaining, vat_mode, tax_amount
             ) VALUES (
               ${organizationId}::uuid, ${project.projectId}::uuid, '2026-08-01', 'finalized',
-              100000, 100000, 'ILS', 8000, 8000
+              100000, 100000, 'ILS', 8000, 8000, 'zero', 0
             )
             RETURNING id
           `),
@@ -1059,10 +1059,10 @@ describe('migration hardening 0030', () => {
           await tx.execute(sql`
             INSERT INTO billing_records (
               organization_id, project_id, issue_date, status,
-              subtotal_amount, total_amount, currency
+              subtotal_amount, total_amount, currency, vat_mode, tax_amount
             ) VALUES (
               ${organizationId}::uuid, ${project.projectId}::uuid, '2026-09-01', 'finalized',
-              1000, 1000, 'ILS'
+              1000, 1000, 'ILS', 'zero', 0
             )
             RETURNING id
           `),

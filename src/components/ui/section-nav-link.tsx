@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import * as React from 'react';
 import { pressableClassName, textNavLinkClassName as textNavLinkClassNameBase } from '@/components/ui/pressable';
 import { Link, usePathname } from '@/shared/i18n/navigation';
+import { preserveScrollOnQueryNav } from '@/shared/i18n/soft-navigation';
 import { cn } from '@/shared/ui/cn';
 
 /**
@@ -78,6 +79,7 @@ export function SectionNavLink({
     <Link
       href={href}
       prefetch={prefetch}
+      scroll={preserveScrollOnQueryNav.scroll}
       aria-current={active ? 'page' : undefined}
       aria-busy={busy || undefined}
       aria-disabled={busy || undefined}

@@ -58,6 +58,7 @@ describe('AR split payment applications', () => {
           amount,
           issueDate: `2026-08-0${index + 1}`,
           reference: `INV-${index + 1}`,
+          vatMode: 'zero',
           finalize: true,
         });
         invoices.push(billing);

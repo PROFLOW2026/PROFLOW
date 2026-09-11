@@ -62,6 +62,7 @@ export interface BillingRecordInsertRow {
   readonly subtotalAmount: string;
   readonly taxAmount: string | null;
   readonly totalAmount: string;
+  readonly vatMode?: string | null;
   readonly currency: string;
   readonly retentionAmount?: string;
   readonly retentionHeldRemaining?: string;
@@ -88,6 +89,7 @@ export interface BillingRecordUpdateRow {
   readonly subtotalAmount?: string;
   readonly taxAmount?: string | null;
   readonly totalAmount?: string;
+  readonly vatMode?: string | null;
   readonly currency?: string;
   readonly retentionAmount?: string;
   readonly retentionHeldRemaining?: string;
@@ -160,6 +162,8 @@ function buildSummary(
     row.kind,
     row.status,
     retentionHeldRemaining,
+    taxAmount,
+    subtotalAmount,
   );
   const collectionStatus = deriveCollectionStatus(
     outstandingAmount,
@@ -350,6 +354,7 @@ export async function findBillingRecordById(
       subtotalAmount: billingRecords.subtotalAmount,
       taxAmount: billingRecords.taxAmount,
       totalAmount: billingRecords.totalAmount,
+      vatMode: billingRecords.vatMode,
       currency: billingRecords.currency,
       retentionAmount: billingRecords.retentionAmount,
       retentionHeldRemaining: billingRecords.retentionHeldRemaining,
@@ -442,6 +447,7 @@ export async function findBillingRecordById(
     clientId: row.clientId ?? row.projectClientId,
     subtotalAmount: mapMoney(row.subtotalAmount, row.currency),
     taxAmount: row.taxAmount ? mapMoney(row.taxAmount, row.currency) : null,
+    vatMode: row.vatMode ?? null,
     taxSnapshot: mapTaxSnapshot(row.taxSnapshot),
     finalizedAt: row.finalizedAt,
     voidedAt: row.voidedAt,

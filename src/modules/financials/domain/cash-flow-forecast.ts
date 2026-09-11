@@ -37,7 +37,10 @@ export interface CashFlowForecastItem {
   readonly id: string;
   readonly href: string;
   readonly label: string;
+  /** Primary display amount (NET for client inflows when grossAmount is set). */
   readonly amount: MoneyValue;
+  /** GROSS cash for client inflows — shown in parentheses when present. */
+  readonly grossAmount?: MoneyValue;
   readonly dueDate: BusinessDate | null;
   readonly certainty: CashFlowCertainty;
   readonly direction: CashFlowDirection;
@@ -48,6 +51,8 @@ export interface CashFlowForecastItem {
 export interface CashFlowForecastPeriod {
   readonly key: CashFlowBucketKey;
   readonly expectedIn: MoneyValue;
+  /** GROSS client inflows when NET is primary in expectedIn. */
+  readonly expectedInGross?: MoneyValue;
   readonly expectedOut: MoneyValue;
   readonly inCount: number;
   readonly outCount: number;
@@ -133,11 +138,13 @@ export function buildCashFlowForecast(input: {
   });
 
   const inTotals = new Map<CashFlowBucketKey, MoneyValue>();
+  const inGrossTotals = new Map<CashFlowBucketKey, MoneyValue>();
   const outTotals = new Map<CashFlowBucketKey, MoneyValue>();
   const inCounts = new Map<CashFlowBucketKey, number>();
   const outCounts = new Map<CashFlowBucketKey, number>();
   for (const key of CASH_FLOW_BUCKET_KEYS) {
     inTotals.set(key, zeroMoney(currency));
+    inGrossTotals.set(key, zeroMoney(currency));
     outTotals.set(key, zeroMoney(currency));
     inCounts.set(key, 0);
     outCounts.set(key, 0);
@@ -150,6 +157,9 @@ export function buildCashFlowForecast(input: {
     const key = bucketForForecastItem(item, asOf);
     if (item.direction === 'in') {
       inTotals.set(key, addMoney(inTotals.get(key)!, item.amount));
+      if (item.grossAmount) {
+        inGrossTotals.set(key, addMoney(inGrossTotals.get(key)!, item.grossAmount));
+      }
       inCounts.set(key, (inCounts.get(key) ?? 0) + 1);
       incomingByCertainty = addCertainty(incomingByCertainty, item.certainty, item.amount);
     } else {
@@ -159,13 +169,17 @@ export function buildCashFlowForecast(input: {
     }
   }
 
-  const periods: CashFlowForecastPeriod[] = CASH_FLOW_BUCKET_KEYS.map((key) => ({
-    key,
-    expectedIn: inTotals.get(key)!,
-    expectedOut: outTotals.get(key)!,
-    inCount: inCounts.get(key) ?? 0,
-    outCount: outCounts.get(key) ?? 0,
-  }));
+  const periods: CashFlowForecastPeriod[] = CASH_FLOW_BUCKET_KEYS.map((key) => {
+    const expectedInGross = inGrossTotals.get(key)!;
+    return {
+      key,
+      expectedIn: inTotals.get(key)!,
+      expectedInGross: isZeroMoney(expectedInGross) ? undefined : expectedInGross,
+      expectedOut: outTotals.get(key)!,
+      inCount: inCounts.get(key) ?? 0,
+      outCount: outCounts.get(key) ?? 0,
+    };
+  });
 
   return {
     currency,

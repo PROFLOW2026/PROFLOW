@@ -17,7 +17,7 @@ const businessDateSchema = z
   .trim()
   .regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD');
 
-export const createBillingRecordSchema = z.object({
+const billingRecordFieldsSchema = z.object({
   projectId: z.string().uuid('Project is required'),
   contractId: z.string().uuid().nullable().optional(),
   amount: moneyAmountSchema,
@@ -44,16 +44,35 @@ export const createBillingRecordSchema = z.object({
   sourceId: z.string().uuid().optional().nullable(),
 });
 
+function requireVatModeWhenFinalizing(
+  value: { finalize?: boolean; vatMode?: 'inclusive' | 'exclusive' | 'zero' | null; netAmount?: string | null; taxAmount?: string | null },
+  ctx: z.RefinementCtx,
+): void {
+  if (!value.finalize) return;
+  const hasExplicitVatMode = value.vatMode != null;
+  const hasManualNetTax = Boolean(value.netAmount?.trim()) && Boolean(value.taxAmount?.trim());
+  if (!hasExplicitVatMode && !hasManualNetTax) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['vatMode'],
+      message: 'VAT mode is required when finalizing a billing record',
+    });
+  }
+}
+
+export const createBillingRecordSchema = billingRecordFieldsSchema.superRefine(requireVatModeWhenFinalizing);
+
 export type CreateBillingRecordInput = z.infer<typeof createBillingRecordSchema>;
 
-export const updateBillingRecordSchema = createBillingRecordSchema
+export const updateBillingRecordSchema = billingRecordFieldsSchema
   .partial()
   .extend({
     billingRecordId: z.string().uuid(),
   })
   .refine((value) => Object.keys(value).length > 1, {
     message: 'At least one field must be updated',
-  });
+  })
+  .superRefine(requireVatModeWhenFinalizing);
 
 export type UpdateBillingRecordInput = z.infer<typeof updateBillingRecordSchema>;
 
