@@ -8,8 +8,8 @@ import {
 } from '@drizzle/schema';
 import { todayInTimeZone, type BusinessDate } from '@/shared/dates';
 import type { DbExecutor } from '@/shared/db/types';
-import { addMoney, fromNumericString, zeroMoney, type MoneyValue } from '@/shared/money';
-import { signedBillingAmount, sumPaidAmountsForRecord } from '../domain/outstanding';
+import { fromNumericString, type MoneyValue } from '@/shared/money';
+import { signedBillingAmount } from '../domain/outstanding';
 import {
   computeRecordRevenuePosition,
   deriveCollectionStatusFromOpen,

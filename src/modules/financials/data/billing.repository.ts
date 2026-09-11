@@ -16,7 +16,7 @@ import {
 } from '@/modules/billing/domain/revenue-position';
 import { listPaidAmountRowsByBillingRecordIds } from '@/modules/billing';
 import { businessDate, type BusinessDate } from '@/shared/dates';
-import { fromNumericString, multiplyMoney, type MoneyValue } from '@/shared/money';
+import { fromNumericString, type MoneyValue } from '@/shared/money';
 import type { DbExecutor } from '@/shared/db/types';
 
 export interface ProjectBillingRows {
