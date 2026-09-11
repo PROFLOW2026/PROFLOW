@@ -37,6 +37,8 @@ export type { ClientReceivablesSnapshot } from './domain/client-receivables';
 export {
   aggregateBillingPosition,
   aggregateBillingPositionInCurrency,
+  aggregateRevenuePosition,
+  aggregateRevenuePositionInCurrency,
   computeOutstanding,
   deriveCollectionStatus,
   matchesListFilter,
@@ -49,6 +51,14 @@ export {
   sumPaidAmounts,
   sumPaidAmountsForRecord,
 } from './domain/outstanding';
+export {
+  resolvePaymentTriplet,
+  sumPaymentTripletsForRecord,
+  computeRecordRevenuePosition,
+  type PaymentAmountBasis,
+  type RevenuePosition,
+  type RevenueTriplet,
+} from './domain/revenue-position';
 export { recordStatusShape } from './domain/lifecycle';
 export {
   assertCustomerPaymentApplicationsValid,

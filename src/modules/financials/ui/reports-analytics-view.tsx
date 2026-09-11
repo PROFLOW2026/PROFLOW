@@ -179,11 +179,19 @@ export async function ReportsAnalyticsView({
               />
               <MoneyReportMetricTile
                 metric={analytics.cash.paid}
-                copy={moneyCopy(analytics.cash.paid, tFinancial('paid'), 'billingCash')}
+                copy={{
+                  ...moneyCopy(analytics.cash.paid, tFinancial('paid'), 'billingCash'),
+                  secondaryMoney: analytics.cash.paidGross.value,
+                  secondaryLabel: tFinancial('kpis.includingVat'),
+                }}
               />
               <MoneyReportMetricTile
                 metric={analytics.cash.outstanding}
-                copy={moneyCopy(analytics.cash.outstanding, tFinancial('outstanding'), 'outstandingCash')}
+                copy={{
+                  ...moneyCopy(analytics.cash.outstanding, tFinancial('outstanding'), 'outstandingCash'),
+                  secondaryMoney: analytics.cash.outstandingGross.value,
+                  secondaryLabel: tFinancial('kpis.includingVat'),
+                }}
                 colorizeNegative
               />
             </div>

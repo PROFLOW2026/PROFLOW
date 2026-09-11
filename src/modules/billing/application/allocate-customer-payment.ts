@@ -96,6 +96,12 @@ export async function allocateCustomerPayment(
         kind: billingRecord.kind,
         status: billingRecord.status,
         totalAmount: toNumericString(billingRecord.totalAmount),
+        subtotalAmount: toNumericString(
+          billingRecord.subtotalAmount ?? billingRecord.totalAmount,
+        ),
+        taxAmount: billingRecord.taxAmount
+          ? toNumericString(billingRecord.taxAmount)
+          : null,
         priorAppliedAmounts: prior,
         priorRetentionHeldRemaining: toNumericString(
           billingRecord.retentionHeldRemaining ?? money('0', currency),

@@ -17,8 +17,14 @@ export interface OrgCashTotals {
   readonly invoiced: MoneyReportMetric;
   /** GROSS billed (incl. VAT) — secondary presentation only. */
   readonly invoicedGross: MoneyReportMetric;
+  /** NET collected — primary KPI. */
   readonly paid: MoneyReportMetric;
+  /** GROSS collected — secondary presentation only. */
+  readonly paidGross: MoneyReportMetric;
+  /** NET open AR — primary KPI. */
   readonly outstanding: MoneyReportMetric;
+  /** GROSS open AR — secondary presentation only. */
+  readonly outstandingGross: MoneyReportMetric;
 }
 
 export interface OrgCostTotals {
@@ -183,10 +189,24 @@ export function aggregateOrgCash(
       inclusions: ['recordedPayments'],
       exclusions: [...fx, 'outstanding', 'forecastIncoming'],
     }),
+    paidGross: moneyMetric({
+      key: 'paidGross',
+      kind: 'actual',
+      value: sumField(rows, currency, (r) => r.paidGross ?? r.paid),
+      inclusions: ['recordedPayments'],
+      exclusions: [...fx, 'outstanding', 'forecastIncoming'],
+    }),
     outstanding: moneyMetric({
       key: 'outstanding',
       kind: 'actual',
       value: sumField(rows, currency, (r) => r.outstanding),
+      inclusions: ['invoicedMinusPaid'],
+      exclusions: [...fx, 'contractValue', VAT_EXCL],
+    }),
+    outstandingGross: moneyMetric({
+      key: 'outstandingGross',
+      kind: 'actual',
+      value: sumField(rows, currency, (r) => r.outstandingGross ?? r.outstanding),
       inclusions: ['invoicedMinusPaid'],
       exclusions: [...fx, 'contractValue', VAT_EXCL],
     }),

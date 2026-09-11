@@ -57,7 +57,11 @@ function buildRealProjectFinancials(): ProjectFinancials {
       invoiced: money('0', ILS),
       netInvoiced: money('0', ILS),
       paid: money('0', ILS),
+
+      netPaid: money('0', ILS),
       outstanding: money('0', ILS),
+
+      netOutstanding: money('0', ILS),
       monthCloseRevenueNet: money('0', ILS),
       hasBillingData: false,
     },

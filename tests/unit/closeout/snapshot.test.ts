@@ -32,7 +32,11 @@ function financials(overrides: Partial<ProjectFinancials> = {}): ProjectFinancia
     billing: {
       invoiced: money('20000', currency),
       paid: money('8000', currency),
+
+      netPaid: money('8000', currency),
       outstanding: money('12000', currency),
+
+      netOutstanding: money('12000', currency),
       netInvoiced: money('20000', currency),
       hasBillingData: true,
       monthCloseRevenueNet: zeroMoney(currency),

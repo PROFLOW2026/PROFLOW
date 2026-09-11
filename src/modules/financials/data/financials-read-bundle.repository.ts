@@ -136,6 +136,7 @@ export type BillingRecordRow = {
 export type BillingPaymentRow = {
   readonly billingRecordId: string;
   readonly amount: string;
+  readonly amountBasis?: string | null;
   readonly currency: string;
   readonly status: string;
 };
@@ -175,6 +176,7 @@ export async function loadFinancialsBillingBundle(
           select jsonb_agg(jsonb_build_object(
             'billingRecordId', pay_rows.billing_record_id,
             'amount', pay_rows.amount::text,
+            'amountBasis', pay_rows.amount_basis,
             'currency', pay_rows.currency,
             'status', pay_rows.status
           ))
@@ -182,6 +184,7 @@ export async function loadFinancialsBillingBundle(
             select
               pa.billing_record_id,
               pa.applied_amount as amount,
+              pay.amount_basis,
               pa.currency,
               pay.status
             from payment_applications pa
@@ -198,6 +201,7 @@ export async function loadFinancialsBillingBundle(
             select
               pay.billing_record_id,
               pay.amount,
+              pay.amount_basis,
               pay.currency,
               pay.status
             from payments pay

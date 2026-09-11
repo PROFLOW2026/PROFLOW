@@ -28,7 +28,11 @@ function buildFinancials(): ProjectFinancials {
       invoiced: zero,
       netInvoiced: zero,
       paid: zero,
+
+      netPaid: zero,
       outstanding: zero,
+
+      netOutstanding: zero,
       hasBillingData: false,
       monthCloseRevenueNet: zero,
     },

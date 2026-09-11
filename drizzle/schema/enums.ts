@@ -110,6 +110,9 @@ export const billingKindEnum = pgEnum('billing_kind', ['invoice', 'credit_note',
 
 export const paymentStatusEnum = pgEnum('payment_status', ['recorded', 'void']);
 
+/** NET = business collection ex-VAT; GROSS = cash received incl. VAT. */
+export const paymentAmountBasisEnum = pgEnum('payment_amount_basis', ['net', 'gross']);
+
 export const documentStatusEnum = pgEnum('document_status', ['pending', 'available', 'deleted']);
 
 export const documentOwnerTypeEnum = pgEnum('document_owner_type', [

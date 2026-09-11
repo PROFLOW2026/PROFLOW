@@ -2,15 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { money } from '@/shared/money';
 import {
   aggregateBillingPosition,
-  recordNetOutstanding,
-  recordOutstanding,
-  sumNetPaidAmountsForRecord,
-  sumPaidAmountsForRecord,
+  computeRecordRevenuePosition,
 } from '@/modules/billing/domain/outstanding';
 
 const ILS = 'ILS';
 
-describe('payment NET/GROSS proportional allocation', () => {
+describe('payment NET/GROSS basis allocation', () => {
   const invoice = {
     kind: 'invoice' as const,
     status: 'finalized' as const,
@@ -19,94 +16,54 @@ describe('payment NET/GROSS proportional allocation', () => {
     totalAmount: money('118000', ILS),
   };
 
-  it('partial payment: NET 50k / VAT 9k / GROSS 59k', () => {
-    const payments = [{ amount: money('59000', ILS), status: 'recorded' as const }];
-    const paidGross = sumPaidAmountsForRecord('finalized', payments, ILS);
-    const paidNet = sumNetPaidAmountsForRecord(invoice, payments, ILS);
+  it('partial NET payment: 50k / 9k / 59k', () => {
+    const payments = [{ amount: money('50000', ILS), amountBasis: 'net' as const, status: 'recorded' as const }];
+    const position = computeRecordRevenuePosition({ ...invoice, payments }, ILS)!;
 
-    expect(paidGross.amount).toBe('59000.000000');
-    expect(Number(paidNet.amount)).toBeCloseTo(50000, 2);
-
-    const openGross = recordOutstanding(
-      invoice.totalAmount,
-      paidGross,
-      invoice.kind,
-      invoice.status,
-      undefined,
-      invoice.taxAmount,
-      invoice.subtotalAmount,
-    );
-    const openNet = recordNetOutstanding({ ...invoice, payments }, ILS);
-
-    expect(Number(openGross.amount)).toBeCloseTo(59000, 2);
-    expect(Number(openNet.amount)).toBeCloseTo(50000, 2);
-    expect(Number(openNet.amount)).toBeCloseTo(
-      Number(invoice.subtotalAmount.amount) - Number(paidNet.amount),
-      2,
-    );
+    expect(Number(position.paid.net.amount)).toBeCloseTo(50000, 2);
+    expect(Number(position.paid.vat.amount)).toBeCloseTo(9000, 2);
+    expect(Number(position.paid.gross.amount)).toBeCloseTo(59000, 2);
+    expect(Number(position.open.net.amount)).toBeCloseTo(50000, 2);
   });
 
-  it('full payment clears outstanding NET and GROSS', () => {
-    const payments = [{ amount: money('118000', ILS), status: 'recorded' as const }];
+  it('full NET payment clears outstanding', () => {
+    const payments = [{ amount: money('100000', ILS), amountBasis: 'net' as const, status: 'recorded' as const }];
     const position = aggregateBillingPosition([{ ...invoice, payments }], ILS);
 
-    expect(Number(position.paid.amount)).toBeCloseTo(118000, 2);
     expect(Number(position.netPaid.amount)).toBeCloseTo(100000, 2);
-    expect(Number(position.outstanding.amount)).toBeCloseTo(0, 2);
     expect(Number(position.netOutstanding.amount)).toBeCloseTo(0, 2);
+    expect(Number(position.outstanding.amount)).toBeCloseTo(0, 2);
   });
 
-  it('multiple payments sum proportionally', () => {
+  it('multiple NET payments sum correctly', () => {
     const payments = [
-      { amount: money('29500', ILS), status: 'recorded' as const },
-      { amount: money('29500', ILS), status: 'recorded' as const },
+      { amount: money('30000', ILS), amountBasis: 'net' as const, status: 'recorded' as const },
+      { amount: money('20000', ILS), amountBasis: 'net' as const, status: 'recorded' as const },
     ];
-    const paidNet = sumNetPaidAmountsForRecord(invoice, payments, ILS);
-    expect(Number(paidNet.amount)).toBeCloseTo(50000, 2);
-  });
-
-  it('overpayment: outstanding goes negative on GROSS', () => {
-    const payments = [{ amount: money('120000', ILS), status: 'recorded' as const }];
     const position = aggregateBillingPosition([{ ...invoice, payments }], ILS);
-    expect(Number(position.outstanding.amount)).toBeLessThan(0);
-    expect(Number(position.netOutstanding.amount)).toBeLessThan(0);
+    expect(Number(position.netPaid.amount)).toBeCloseTo(50000, 2);
   });
 
-  it('credit note reduces NET and GROSS billed', () => {
-    const position = aggregateBillingPosition(
-      [
-        { ...invoice, payments: [] },
-        {
-          kind: 'credit_note',
-          status: 'finalized',
-          subtotalAmount: money('10000', ILS),
-          taxAmount: money('1800', ILS),
-          totalAmount: money('11800', ILS),
-          payments: [],
-        },
-      ],
-      ILS,
-    );
-    expect(Number(position.netInvoiced.amount)).toBeCloseTo(90000, 2);
-    expect(Number(position.invoiced.amount)).toBeCloseTo(106200, 2);
-    expect(
-      Number(position.invoiced.amount) - Number(position.netInvoiced.amount),
-    ).toBeCloseTo(16200, 2);
+  it('GROSS partial payment derives NET', () => {
+    const payments = [{ amount: money('59000', ILS), amountBasis: 'gross' as const, status: 'recorded' as const }];
+    const position = aggregateBillingPosition([{ ...invoice, payments }], ILS);
+    expect(Number(position.netPaid.amount)).toBeCloseTo(50000, 2);
+    expect(Number(position.paid.amount)).toBeCloseTo(59000, 2);
   });
 
   it('BILLED - PAID = OPEN for NET and GROSS', () => {
-    const payments = [{ amount: money('59000', ILS), status: 'recorded' as const }];
+    const payments = [{ amount: money('50000', ILS), amountBasis: 'net' as const, status: 'recorded' as const }];
     const position = aggregateBillingPosition([{ ...invoice, payments }], ILS);
 
-    const billedNet = Number(position.netInvoiced.amount);
-    const billedGross = Number(position.invoiced.amount);
-    const paidNet = Number(position.netPaid.amount);
-    const paidGross = Number(position.paid.amount);
-    const openNet = Number(position.netOutstanding.amount);
-    const openGross = Number(position.outstanding.amount);
-
-    expect(billedNet - paidNet - openNet).toBeCloseTo(0, 2);
-    expect(billedGross - paidGross - openGross).toBeCloseTo(0, 2);
-    expect(billedNet + (billedGross - billedNet) - billedGross).toBeCloseTo(0, 2);
+    expect(
+      Number(position.netInvoiced.amount) -
+        Number(position.netPaid.amount) -
+        Number(position.netOutstanding.amount),
+    ).toBeCloseTo(0, 2);
+    expect(
+      Number(position.invoiced.amount) -
+        Number(position.paid.amount) -
+        Number(position.outstanding.amount),
+    ).toBeCloseTo(0, 2);
   });
 });

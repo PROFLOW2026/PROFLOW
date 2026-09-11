@@ -4,7 +4,6 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { getOrganizationCashFlowForecast } from '@/modules/financials/application/get-organization-cash-flow-forecast';
 import { CashFlowForecastView } from '@/modules/financials/ui/cash-flow-forecast-view';
-import { CashFlowView } from '@/modules/financials/ui/cash-flow-view';
 import { withOrgContext } from '@/shared/auth/session';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -23,8 +22,8 @@ export async function generateMetadata({
 
 export default async function CashFlowPage() {
   const t = await getTranslations('financial.cashFlowForecast');
-  const tCash = await getTranslations('financial.cashFlow');
   const tFinancial = await getTranslations('financial');
+  const tCash = await getTranslations('financial.cashFlow');
 
   const result = await withOrgContext(async (context) => {
     const allowed = hasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ);
@@ -80,23 +79,6 @@ export default async function CashFlowPage() {
         }}
       />
 
-      <CashFlowView
-        cashFlow={forecast.outlook}
-        copy={{
-          title: tCash('title'),
-          actualTitle: tCash('actualTitle'),
-          actualHint: tCash('actualHint'),
-          forecastTitle: tCash('forecastTitle'),
-          forecastHint: tCash('forecastHint'),
-          outgoingTitle: tCash('outgoingTitle'),
-          outgoingDisclosure: tCash('outgoingDisclosure'),
-          outgoingAvailableHint: tCash('outgoingAvailableHint'),
-          undatedNote: tCash('undatedNote'),
-          bucketLabel: (key) => tCash(`buckets.${key}`),
-          paymentCount: (count) => tCash('paymentCount', { count }),
-          billCount: (count) => tCash('billCount', { count }),
-        }}
-      />
     </div>
   );
 }

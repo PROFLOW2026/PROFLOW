@@ -20,6 +20,7 @@ export interface PaymentInsertRow {
   readonly billingRecordId: string | null;
   readonly clientId?: string | null;
   readonly amount: string;
+  readonly amountBasis?: 'net' | 'gross';
   readonly currency: string;
   readonly paymentDate: BusinessDate;
   readonly method: string | null;
@@ -77,6 +78,7 @@ export interface BillingRecordPaymentRow {
 export interface PaidAmountRow {
   readonly billingRecordId: string;
   readonly amount: string;
+  readonly amountBasis: 'net' | 'gross';
   readonly currency: string;
   readonly status: PaymentRecordStatus;
 }
@@ -95,6 +97,7 @@ export async function insertPayment(
       billingRecordId: row.billingRecordId,
       clientId: row.clientId ?? null,
       amount: row.amount,
+      amountBasis: row.amountBasis ?? 'net',
       currency: row.currency,
       paymentDate: row.paymentDate,
       method: row.method,
@@ -306,6 +309,7 @@ export async function listPaidAmountRowsByBillingRecordIds(
     .select({
       billingRecordId: paymentApplications.billingRecordId,
       amount: paymentApplications.appliedAmount,
+      amountBasis: payments.amountBasis,
       currency: paymentApplications.currency,
       status: payments.status,
     })
@@ -323,6 +327,7 @@ export async function listPaidAmountRowsByBillingRecordIds(
     .select({
       billingRecordId: payments.billingRecordId,
       amount: payments.amount,
+      amountBasis: payments.amountBasis,
       currency: payments.currency,
       status: payments.status,
     })
@@ -343,6 +348,7 @@ export async function listPaidAmountRowsByBillingRecordIds(
   const rows: PaidAmountRow[] = applicationRows.map((row) => ({
     billingRecordId: row.billingRecordId,
     amount: row.amount,
+    amountBasis: row.amountBasis ?? 'net',
     currency: row.currency,
     status: row.status,
   }));
@@ -352,6 +358,7 @@ export async function listPaidAmountRowsByBillingRecordIds(
     rows.push({
       billingRecordId: row.billingRecordId,
       amount: row.amount,
+      amountBasis: row.amountBasis ?? 'net',
       currency: row.currency,
       status: row.status,
     });

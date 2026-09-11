@@ -3,12 +3,12 @@ import { billingRecords, contracts, projects } from '@drizzle/schema';
 import type { ProjectBillingRows } from '@/modules/financials';
 import { businessDate, todayInTimeZone, type BusinessDate } from '@/shared/dates';
 import type { DbExecutor } from '@/shared/db/types';
-import { addMoney, fromNumericString, type MoneyValue, zeroMoney } from '@/shared/money';
+import { fromNumericString, type MoneyValue } from '@/shared/money';
 import {
-  deriveCollectionStatus,
-  recordOutstanding,
+  computeRecordRevenuePosition,
+  deriveCollectionStatusFromOpen,
   type PaymentAmountInput,
-} from '../domain/outstanding';
+} from '../domain/revenue-position';
 import type { BillingKind, BillingRecordStatus, BillingRecordSummary } from '../domain/types';
 import { listPaidAmountRowsByBillingRecordIds } from '../data/payments.repository';
 
@@ -36,7 +36,7 @@ function buildRecordSummary(
     retentionAmount?: string;
     retentionHeldRemaining?: string;
   },
-  paidAmount: MoneyValue,
+  payments: readonly PaymentAmountInput[],
   today: BusinessDate,
 ): BillingRecordSummary {
   const totalAmount = mapMoney(row.totalAmount, row.currency);
@@ -50,22 +50,34 @@ function buildRecordSummary(
   const retentionHeldRemaining = row.retentionHeldRemaining
     ? mapMoney(row.retentionHeldRemaining, row.currency)
     : undefined;
-  const outstandingAmount = recordOutstanding(
-    totalAmount,
-    paidAmount,
-    row.kind,
-    row.status,
-    retentionHeldRemaining,
-    taxAmount,
-    subtotalAmount,
+
+  const position = computeRecordRevenuePosition(
+    {
+      kind: row.kind,
+      status: row.status,
+      totalAmount,
+      subtotalAmount,
+      taxAmount,
+      payments,
+      retentionHeldRemaining,
+    },
+    row.currency,
   );
-  const collectionStatus = deriveCollectionStatus(
-    outstandingAmount,
-    paidAmount,
-    row.dueDate as BusinessDate | null,
-    today,
-    row.status,
-  );
+
+  const paidAmount = position?.paid.net ?? mapMoney('0', row.currency);
+  const paidGrossAmount = position?.paid.gross ?? mapMoney('0', row.currency);
+  const outstandingAmount = position?.open.net ?? mapMoney('0', row.currency);
+  const outstandingGrossAmount = position?.open.gross ?? mapMoney('0', row.currency);
+
+  const collectionStatus = position
+    ? deriveCollectionStatusFromOpen(
+        position.open,
+        position.paid,
+        row.dueDate as BusinessDate | null,
+        today,
+        row.status,
+      )
+    : null;
 
   return {
     id: row.id,
@@ -83,7 +95,9 @@ function buildRecordSummary(
     subtotalAmount,
     taxAmount,
     paidAmount,
+    paidGrossAmount,
     outstandingAmount,
+    outstandingGrossAmount,
     retentionAmount: row.retentionAmount
       ? mapMoney(row.retentionAmount, row.currency)
       : mapMoney('0', row.currency),
@@ -147,23 +161,16 @@ export async function loadProjectBillingRecordsBundle(
   const paymentRows = await listPaidAmountRowsByBillingRecordIds(db, organizationId, ids);
 
   const paymentsByRecord = new Map<string, PaymentAmountInput[]>();
-  const paidByRecord = new Map<string, MoneyValue>();
-  for (const row of rows) {
-    paidByRecord.set(row.id, zeroMoney(row.currency));
-  }
-
   for (const payment of paymentRows) {
     const amount = fromNumericString(payment.amount, payment.currency);
     if (!amount) continue;
     const list = paymentsByRecord.get(payment.billingRecordId) ?? [];
-    list.push({ amount, status: payment.status });
+    list.push({
+      amount,
+      amountBasis: payment.amountBasis,
+      status: payment.status,
+    });
     paymentsByRecord.set(payment.billingRecordId, list);
-    if (payment.status === 'recorded') {
-      const current = paidByRecord.get(payment.billingRecordId);
-      if (current) {
-        paidByRecord.set(payment.billingRecordId, addMoney(current, amount));
-      }
-    }
   }
 
   const billingRows: ProjectBillingRows = {
@@ -190,7 +197,7 @@ export async function loadProjectBillingRecordsBundle(
         clientId: row.clientId ?? row.projectClientId,
         contractName: row.contractName ?? row.contractNumber,
       },
-      paidByRecord.get(row.id) ?? zeroMoney(row.currency),
+      paymentsByRecord.get(row.id) ?? [],
       today,
     ),
   );

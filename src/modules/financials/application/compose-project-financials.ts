@@ -127,7 +127,9 @@ export function composeProjectFinancials(
     invoiced: zeroMoney(currency),
     netInvoiced: zeroMoney(currency),
     paid: zeroMoney(currency),
+    netPaid: zeroMoney(currency),
     outstanding: zeroMoney(currency),
+    netOutstanding: zeroMoney(currency),
     monthCloseRevenueNet: zeroMoney(currency),
     hasBillingData: false,
   };
@@ -140,7 +142,9 @@ export function composeProjectFinancials(
       invoiced: position.invoiced,
       netInvoiced: position.netInvoiced,
       paid: position.paid,
+      netPaid: position.netPaid,
       outstanding: position.outstanding,
+      netOutstanding: position.netOutstanding,
       monthCloseRevenueNet: zeroMoney(currency),
       hasBillingData: position.hasBillingData,
     };

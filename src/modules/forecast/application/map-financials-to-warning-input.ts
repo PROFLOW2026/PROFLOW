@@ -22,7 +22,7 @@ export function mapFinancialsToWarningInput(input: {
     expectedRemainingAmount: financials.cost.expectedRemainingCost.amount,
     invoicedAmount: financials.billing.netInvoiced.amount,
     grossInvoicedAmount: financials.billing.invoiced.amount,
-    outstandingAmount: financials.billing.outstanding.amount,
+    outstandingAmount: financials.billing.netOutstanding.amount,
     actualMarginPercent: financials.profit?.actualMarginPercent ?? null,
     forecastMarginPercent: financials.profit?.marginPercent ?? null,
     budgetAmount: input.budgetAmount,

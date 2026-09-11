@@ -209,7 +209,12 @@ export async function ProjectBillingPanel({ projectId, contractId }: ProjectBill
                             />
                           </TableCell>
                           <TableCell numeric>
-                            <MoneyText value={record.outstandingAmount} colorizeNegative />
+                            <BillingNetPrimaryDisplay
+                              netAmount={record.outstandingAmount}
+                              grossAmount={record.outstandingGrossAmount ?? record.outstandingAmount}
+                              grossLabel={t('list.includingVat')}
+                              className="items-end text-end"
+                            />
                           </TableCell>
                           <TableCell>
                             <BillingStatusBadge
@@ -251,7 +256,12 @@ export async function ProjectBillingPanel({ projectId, contractId }: ProjectBill
                     />
                     <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
                       {t('list.outstanding')}:{' '}
-                      <MoneyText value={record.outstandingAmount} colorizeNegative />
+                      <BillingNetPrimaryDisplay
+                        netAmount={record.outstandingAmount}
+                        grossAmount={record.outstandingGrossAmount ?? record.outstandingAmount}
+                        grossLabel={t('list.includingVat')}
+                        className="inline-flex flex-row items-baseline gap-1"
+                      />
                     </p>
                   </div>
                 </Link>

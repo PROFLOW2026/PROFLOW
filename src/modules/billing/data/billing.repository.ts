@@ -9,12 +9,12 @@ import {
 import { todayInTimeZone, type BusinessDate } from '@/shared/dates';
 import type { DbExecutor } from '@/shared/db/types';
 import { addMoney, fromNumericString, zeroMoney, type MoneyValue } from '@/shared/money';
+import { signedBillingAmount, sumPaidAmountsForRecord } from '../domain/outstanding';
 import {
-  deriveCollectionStatus,
-  recordOutstanding,
-  signedBillingAmount,
-  sumPaidAmountsForRecord,
-} from '../domain/outstanding';
+  computeRecordRevenuePosition,
+  deriveCollectionStatusFromOpen,
+  type PaymentAmountInput,
+} from '../domain/revenue-position';
 import type {
   BillingKind,
   BillingLineRecord,
@@ -142,7 +142,7 @@ function buildSummary(
     retentionAmount?: string;
     retentionHeldRemaining?: string;
   },
-  paidAmount: MoneyValue,
+  payments: readonly PaymentAmountInput[],
   today: BusinessDate,
 ): BillingRecordSummary {
   const totalAmount = mapMoney(row.totalAmount, row.currency);
@@ -156,22 +156,33 @@ function buildSummary(
   const retentionHeldRemaining = row.retentionHeldRemaining
     ? mapMoney(row.retentionHeldRemaining, row.currency)
     : undefined;
-  const outstandingAmount = recordOutstanding(
-    totalAmount,
-    paidAmount,
-    row.kind,
-    row.status,
-    retentionHeldRemaining,
-    taxAmount,
-    subtotalAmount,
+
+  const position = computeRecordRevenuePosition(
+    {
+      kind: row.kind,
+      status: row.status,
+      totalAmount,
+      subtotalAmount,
+      taxAmount,
+      payments,
+      retentionHeldRemaining,
+    },
+    row.currency,
   );
-  const collectionStatus = deriveCollectionStatus(
-    outstandingAmount,
-    paidAmount,
-    row.dueDate as BusinessDate | null,
-    today,
-    row.status,
-  );
+
+  const paidAmount = position?.paid.net ?? mapMoney('0', row.currency);
+  const paidGrossAmount = position?.paid.gross ?? mapMoney('0', row.currency);
+  const outstandingAmount = position?.open.net ?? mapMoney('0', row.currency);
+  const outstandingGrossAmount = position?.open.gross ?? mapMoney('0', row.currency);
+  const collectionStatus = position
+    ? deriveCollectionStatusFromOpen(
+        position.open,
+        position.paid,
+        row.dueDate as BusinessDate | null,
+        today,
+        row.status,
+      )
+    : null;
 
   return {
     id: row.id,
@@ -189,7 +200,9 @@ function buildSummary(
     subtotalAmount,
     taxAmount,
     paidAmount,
+    paidGrossAmount,
     outstandingAmount,
+    outstandingGrossAmount,
     retentionAmount: row.retentionAmount
       ? mapMoney(row.retentionAmount, row.currency)
       : mapMoney('0', row.currency),
@@ -399,14 +412,14 @@ export async function findBillingRecordById(
     )
     .orderBy(billingLines.sortOrder);
 
-  const paidAmount = sumPaidAmountsForRecord(
-    row.status,
-    paymentRows.map((payment) => ({
-      amount: mapMoney(payment.amount, payment.currency),
-      status: payment.status,
-    })),
-    row.currency,
-  );
+  const appliedRows = await listPaidAmountRowsByBillingRecordIds(db, organizationId, [
+    billingRecordId,
+  ]);
+  const paymentInputs: PaymentAmountInput[] = appliedRows.map((payment) => ({
+    amount: mapMoney(payment.amount, payment.currency),
+    amountBasis: payment.amountBasis,
+    status: payment.status,
+  }));
 
   const summary = buildSummary(
     {
@@ -428,7 +441,7 @@ export async function findBillingRecordById(
       retentionAmount: row.retentionAmount,
       retentionHeldRemaining: row.retentionHeldRemaining,
     },
-    paidAmount,
+    paymentInputs,
     today,
   );
 
@@ -519,19 +532,12 @@ export async function listBillingRecords(
 
   const paymentRows = await listPaidAmountRowsByBillingRecordIds(db, organizationId, ids);
 
-  const paidByRecord = new Map<string, MoneyValue>();
-  for (const row of rows) {
-    paidByRecord.set(row.id, zeroMoney(row.currency));
-  }
-
+  const paymentsByRecord = new Map<string, PaymentAmountInput[]>();
   for (const payment of paymentRows) {
-    if (payment.status !== 'recorded') continue;
-    const current = paidByRecord.get(payment.billingRecordId);
-    if (!current) continue;
-    paidByRecord.set(
-      payment.billingRecordId,
-      addMoney(current, mapMoney(payment.amount, payment.currency)),
-    );
+    const amount = mapMoney(payment.amount, payment.currency);
+    const list = paymentsByRecord.get(payment.billingRecordId) ?? [];
+    list.push({ amount, amountBasis: payment.amountBasis, status: payment.status });
+    paymentsByRecord.set(payment.billingRecordId, list);
   }
 
   const summaries = rows.map((row) =>
@@ -541,7 +547,7 @@ export async function listBillingRecords(
         clientId: row.clientId ?? row.projectClientId,
         contractName: row.contractName ?? row.contractNumber,
       },
-      paidByRecord.get(row.id) ?? zeroMoney(row.currency),
+      paymentsByRecord.get(row.id) ?? [],
       today,
     ),
   );

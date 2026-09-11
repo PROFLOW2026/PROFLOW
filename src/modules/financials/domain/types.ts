@@ -97,8 +97,14 @@ export interface BillingPosition {
   invoiced: MoneyValue;
   /** Net ex-VAT billed total — pairs with contract CCV for unbilled backlog. */
   netInvoiced: MoneyValue;
+  /** GROSS collected (incl. VAT share). */
   paid: MoneyValue;
+  /** NET collected — primary KPI. */
+  netPaid: MoneyValue;
+  /** GROSS open AR. */
   outstanding: MoneyValue;
+  /** NET open AR — primary KPI. */
+  netOutstanding: MoneyValue;
   /**
    * Closed-month economic revenue correction net (surviving rows only).
    * Folded into invoiced / outstanding once - not a second billing engine.

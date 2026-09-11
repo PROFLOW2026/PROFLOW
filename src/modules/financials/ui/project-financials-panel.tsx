@@ -108,11 +108,21 @@ export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPan
             </div>
             <div className="flex justify-between gap-2">
               <span className="text-[var(--pf-text-secondary)]">{t('ownerStory.collected')}</span>
-              <MoneyText value={financials.billing.paid} />
+              <BillingNetPrimaryDisplay
+                netAmount={financials.billing.netPaid}
+                grossAmount={financials.billing.paid}
+                grossLabel={t('kpis.includingVat')}
+                className="items-end text-end"
+              />
             </div>
             <div className="flex justify-between gap-2">
-              <span className="text-[var(--pf-text-secondary)]">{t('ownerStory.outstanding')}</span>
-              <MoneyText value={financials.billing.outstanding} />
+              <span className="text-[var(--pf-text-secondary)]">{t('kpis.outstandingNet')}</span>
+              <BillingNetPrimaryDisplay
+                netAmount={financials.billing.netOutstanding}
+                grossAmount={financials.billing.outstanding}
+                grossLabel={t('kpis.includingVat')}
+                className="items-end text-end"
+              />
             </div>
           </CardContent>
         </Card>

@@ -89,7 +89,11 @@ export interface BillingRecordSummary {
   readonly kind: BillingKind;
   readonly totalAmount: MoneyValue;
   readonly paidAmount: MoneyValue;
+  /** GROSS cash collected — secondary display. */
+  readonly paidGrossAmount?: MoneyValue;
   readonly outstandingAmount: MoneyValue;
+  /** GROSS AR remaining — secondary display. */
+  readonly outstandingGrossAmount?: MoneyValue;
   /** NET / before VAT — same currency as total. */
   readonly subtotalAmount?: MoneyValue;
   /** VAT portion; null/zero means no VAT on this billing. */

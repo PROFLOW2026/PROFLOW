@@ -49,7 +49,11 @@ function buildFinancials(): ProjectFinancials {
       invoiced: { amount: '40000.000000', currency },
       netInvoiced: { amount: '40000.000000', currency },
       paid: { amount: '10000.000000', currency },
+
+      netPaid: { amount: '10000.000000', currency },
       outstanding: { amount: '30000.000000', currency },
+
+      netOutstanding: { amount: '30000.000000', currency },
       hasBillingData: true,
       monthCloseRevenueNet: zero,
     },

@@ -15,6 +15,18 @@ import {
 } from '@/shared/money';
 import { zeroMoney } from '@/shared/money';
 import type { BillingKind, BillingRecordStatus, CollectionStatus } from './types';
+import {
+  aggregateRevenuePosition,
+  aggregateRevenuePositionInCurrency,
+  computeRecordRevenuePosition,
+  deriveCollectionStatusFromOpen,
+  sumPaymentTripletsForRecord,
+  type BillingRecordRevenueInput,
+  type PaymentAmountInput,
+  type PaymentAmountBasis,
+} from './revenue-position';
+
+export type { PaymentAmountInput, PaymentAmountBasis };
 
 export interface BillingAmountInput {
   readonly kind: BillingKind;
@@ -45,11 +57,6 @@ export function billingNetToGrossRatio(
     return toDecimalValue(money('1', net.currency));
   }
   return toDecimalValue(net).dividedBy(toDecimalValue(gross));
-}
-
-export interface PaymentAmountInput {
-  readonly amount: MoneyValue;
-  readonly status: 'recorded' | 'void';
 }
 
 /** Credit notes reduce invoiced; other kinds add to it. Uses document GROSS. */
@@ -111,16 +118,13 @@ export function sumPaidAmountsForRecord(
   return sumPaidAmounts(payments, currency);
 }
 
+/** @deprecated Use sumPaymentTripletsForRecord from revenue-position. */
 export function sumNetPaidAmountsForRecord(
   record: BillingAmountInput,
   payments: readonly PaymentAmountInput[],
   currency: string,
 ): MoneyValue {
-  const paidGross = sumPaidAmountsForRecord(record.status, payments, currency);
-  if (record.status === 'void' || record.status === 'draft') {
-    return zeroMoney(currency);
-  }
-  return multiplyMoney(paidGross, billingNetToGrossRatio(record));
+  return sumPaymentTripletsForRecord(record, payments, currency).net;
 }
 
 export function computeOutstanding(invoiced: MoneyValue, paid: MoneyValue): MoneyValue {
@@ -162,22 +166,18 @@ export function recordOutstanding(
   taxAmount?: MoneyValue | null,
   subtotalAmount?: MoneyValue,
 ): MoneyValue {
-  const grossAmount = resolveBillingGrossAmount({ totalAmount, subtotalAmount, taxAmount });
-  const invoiced = signedBillingAmount({
+  const record: BillingRecordRevenueInput = {
     kind,
     status,
-    totalAmount: grossAmount,
+    totalAmount,
     subtotalAmount,
     taxAmount,
-  });
-  if (invoiced === null) return money('0', totalAmount.currency);
-  const held =
-    kind !== 'credit_note' &&
-    retentionHeldRemaining &&
-    retentionHeldRemaining.currency === totalAmount.currency
-      ? retentionHeldRemaining
-      : money('0', totalAmount.currency);
-  return subtractMoney(subtractMoney(invoiced, paidAmount), held);
+    payments: [{ amount: paidAmount, amountBasis: 'gross', status: 'recorded' }],
+    retentionHeldRemaining,
+  };
+  const position = computeRecordRevenuePosition(record, totalAmount.currency);
+  if (!position) return money('0', totalAmount.currency);
+  return position.open.gross;
 }
 
 export function recordNetOutstanding(
@@ -187,17 +187,9 @@ export function recordNetOutstanding(
   },
   currency: string,
 ): MoneyValue {
-  const signedNet = signedBillingNetAmount(record);
-  if (signedNet === null) return zeroMoney(currency);
-  const paidNet = sumNetPaidAmountsForRecord(record, record.payments, currency);
-  const ratio = billingNetToGrossRatio(record);
-  const heldNet =
-    record.kind !== 'credit_note' &&
-    record.retentionHeldRemaining &&
-    !isZeroMoney(record.retentionHeldRemaining)
-      ? multiplyMoney(record.retentionHeldRemaining, ratio)
-      : zeroMoney(currency);
-  return subtractMoney(subtractMoney(signedNet, paidNet), heldNet);
+  const position = computeRecordRevenuePosition(record, currency);
+  if (!position) return zeroMoney(currency);
+  return position.open.net;
 }
 
 export function isOverpaid(outstanding: MoneyValue): boolean {
@@ -233,36 +225,15 @@ export function aggregateBillingPosition(
   outstanding: MoneyValue;
   netOutstanding: MoneyValue;
 } {
-  const invoiced = sumInvoicedAmounts(records, currency);
-  const netInvoiced = sumNetInvoicedAmounts(records, currency);
-  const paid = sumMoney(
-    records.map((record) => sumPaidAmountsForRecord(record.status, record.payments, currency)),
-    currency,
-  );
-  const netPaid = sumMoney(
-    records.map((record) => sumNetPaidAmountsForRecord(record, record.payments, currency)),
-    currency,
-  );
-  const outstanding = sumMoney(
-    records.map((record) => {
-      const paidOnRecord = sumPaidAmountsForRecord(record.status, record.payments, currency);
-      return recordOutstanding(
-        record.totalAmount,
-        paidOnRecord,
-        record.kind,
-        record.status,
-        record.retentionHeldRemaining,
-        record.taxAmount,
-        record.subtotalAmount,
-      );
-    }),
-    currency,
-  );
-  const netOutstanding = sumMoney(
-    records.map((record) => recordNetOutstanding(record, currency)),
-    currency,
-  );
-  return { invoiced, netInvoiced, paid, netPaid, outstanding, netOutstanding };
+  const position = aggregateRevenuePosition(records, currency);
+  return {
+    invoiced: position.billed.gross,
+    netInvoiced: position.billed.net,
+    paid: position.paid.gross,
+    netPaid: position.paid.net,
+    outstanding: position.open.gross,
+    netOutstanding: position.open.net,
+  };
 }
 
 export function aggregateBillingPositionInCurrency(
@@ -283,29 +254,23 @@ export function aggregateBillingPositionInCurrency(
   hasBillingData: boolean;
   excludedForeignCurrencyRecordCount: number;
 } {
-  if (records.length === 0) {
-    const zero = zeroMoney(currency);
-    return {
-      invoiced: zero,
-      netInvoiced: zero,
-      paid: zero,
-      netPaid: zero,
-      outstanding: zero,
-      netOutstanding: zero,
-      hasBillingData: false,
-      excludedForeignCurrencyRecordCount: 0,
-    };
-  }
-
-  const matchingRecords = records.filter((record) => record.totalAmount.currency === currency);
-  const excludedForeignCurrencyRecordCount = records.length - matchingRecords.length;
-  const position = aggregateBillingPosition(matchingRecords, currency);
-
+  const result = aggregateRevenuePositionInCurrency(records, currency);
   return {
-    ...position,
-    hasBillingData: matchingRecords.some(
-      (record) => record.status !== 'draft' && record.status !== 'void',
-    ),
-    excludedForeignCurrencyRecordCount,
+    invoiced: result.billed.gross,
+    netInvoiced: result.billed.net,
+    paid: result.paid.gross,
+    netPaid: result.paid.net,
+    outstanding: result.open.gross,
+    netOutstanding: result.open.net,
+    hasBillingData: result.hasBillingData,
+    excludedForeignCurrencyRecordCount: result.excludedForeignCurrencyRecordCount,
   };
 }
+
+export {
+  aggregateRevenuePosition,
+  aggregateRevenuePositionInCurrency,
+  computeRecordRevenuePosition,
+  deriveCollectionStatusFromOpen,
+  sumPaymentTripletsForRecord,
+} from './revenue-position';

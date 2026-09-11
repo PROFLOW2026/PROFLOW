@@ -25,7 +25,11 @@ function baseFinancials(overrides: Partial<ProjectFinancials> = {}): ProjectFina
       invoiced: zeroMoney(currency),
       netInvoiced: zeroMoney(currency),
       paid: zeroMoney(currency),
+
+      netPaid: zeroMoney(currency),
       outstanding: zeroMoney(currency),
+
+      netOutstanding: zeroMoney(currency),
       monthCloseRevenueNet: zeroMoney(currency),
       hasBillingData: false,
     },

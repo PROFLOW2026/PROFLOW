@@ -42,8 +42,12 @@ export interface ProjectRollupRow {
   readonly invoiced: MoneyValue | null;
   /** GROSS billed (incl. VAT) — AR / collection share only; never revenue. */
   readonly invoicedGross?: MoneyValue | null;
+  /** NET collected — primary rollup KPI. */
   readonly paid: MoneyValue | null;
+  readonly paidGross?: MoneyValue | null;
+  /** NET open AR — primary rollup KPI. */
   readonly outstanding: MoneyValue | null;
+  readonly outstandingGross?: MoneyValue | null;
   readonly actualCost: MoneyValue | null;
   readonly laborActual: MoneyValue | null;
   readonly vendorActual: MoneyValue | null;
@@ -300,8 +304,10 @@ async function computeOrganizationProjectRollup(
       priceNotSet,
       invoiced: financials.billing.netInvoiced,
       invoicedGross: financials.billing.invoiced,
-      paid: financials.billing.paid,
-      outstanding: financials.billing.outstanding,
+      paid: financials.billing.netPaid,
+      paidGross: financials.billing.paid,
+      outstanding: financials.billing.netOutstanding,
+      outstandingGross: financials.billing.outstanding,
       actualCost: financials.cost.actualCostToDate,
       laborActual: financials.cost.laborActual,
       vendorActual: financials.cost.vendorActual,
@@ -342,7 +348,9 @@ async function computeOrganizationProjectRollup(
       invoiced: kpiMoney.invoiced,
       invoicedGross: kpiMoney.invoicedGross,
       paid: kpiMoney.paid,
+      paidGross: kpiMoney.paidGross,
       outstanding: kpiMoney.outstanding,
+      outstandingGross: kpiMoney.outstandingGross,
       actualCost: kpiMoney.actualCost,
       laborActual: kpiMoney.laborActual,
       vendorActual: kpiMoney.vendorActual,

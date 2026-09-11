@@ -28,7 +28,14 @@ function toPositionRecord(record: BillingRecordSummary) {
     status: record.status,
     totalAmount: record.totalAmount,
     subtotalAmount: record.subtotalAmount ?? record.totalAmount,
-    payments: [{ amount: record.paidAmount, status: 'recorded' as const }],
+    taxAmount: record.taxAmount ?? null,
+    payments: [
+      {
+        amount: record.paidAmount,
+        amountBasis: 'net' as const,
+        status: 'recorded' as const,
+      },
+    ],
     retentionHeldRemaining: record.retentionHeldRemaining,
   };
 }

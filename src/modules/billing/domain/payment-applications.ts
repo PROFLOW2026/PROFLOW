@@ -1,12 +1,8 @@
 /**
  * Customer payment applications (AR cash).
  *
- * Outstanding is derived: finalized billing − Σ(applications of non-void payments)
- * − held retention. Applications are immutable history; void the payment to reverse.
- *
- * Unlike AP vendor payments, the payment header may exceed the sum of applications
- * (unapplied remainder / cash on account is allowed). Over-application of an
- * invoice or of the payment itself is rejected.
+ * Outstanding is derived from canonical revenue position.
+ * Payment amounts are NET business collections by default.
  */
 
 import { DomainRuleError } from '@/shared/errors';
@@ -20,8 +16,8 @@ import {
   zeroMoney,
 } from '@/shared/money';
 import { assertPaymentTarget } from './lifecycle';
-import { recordOutstanding } from './outstanding';
 import type { BillingKind, BillingRecordStatus } from './types';
+import { computeRecordRevenuePosition } from './revenue-position';
 
 export interface CustomerPaymentApplicationDraft {
   readonly billingRecordId: string;
@@ -29,6 +25,8 @@ export interface CustomerPaymentApplicationDraft {
   readonly kind: BillingKind;
   readonly status: BillingRecordStatus;
   readonly totalAmount: string;
+  readonly subtotalAmount?: string;
+  readonly taxAmount?: string | null;
   readonly priorAppliedAmounts: readonly string[];
   readonly priorRetentionHeldRemaining?: string;
   readonly invoiceClientId: string | null;
@@ -36,28 +34,38 @@ export interface CustomerPaymentApplicationDraft {
 }
 
 /**
- * Remaining receivable-now after prior *active* applications (and held retention).
+ * Remaining NET receivable after prior active applications.
  */
 export function computeInvoiceRemainingOutstanding(input: {
   readonly currency: string;
   readonly totalAmount: string;
+  readonly subtotalAmount?: string;
+  readonly taxAmount?: string | null;
   readonly kind: BillingKind;
   readonly status: BillingRecordStatus;
   readonly priorAppliedAmounts: readonly string[];
   readonly priorRetentionHeldRemaining?: string;
 }) {
   const currency = input.currency.toUpperCase();
-  const paid = sumMoney(
-    input.priorAppliedAmounts.map((amount) => money(amount, currency)),
+  const subtotal = input.subtotalAmount ?? input.totalAmount;
+  const priorPayments = input.priorAppliedAmounts.map((amount) => ({
+    amount: money(amount, currency),
+    amountBasis: 'net' as const,
+    status: 'recorded' as const,
+  }));
+  const position = computeRecordRevenuePosition(
+    {
+      kind: input.kind,
+      status: input.status,
+      totalAmount: money(input.totalAmount, currency),
+      subtotalAmount: money(subtotal, currency),
+      taxAmount: input.taxAmount ? money(input.taxAmount, currency) : null,
+      payments: priorPayments,
+      retentionHeldRemaining: money(input.priorRetentionHeldRemaining ?? '0', currency),
+    },
     currency,
   );
-  return recordOutstanding(
-    money(input.totalAmount, currency),
-    paid,
-    input.kind,
-    input.status,
-    money(input.priorRetentionHeldRemaining ?? '0', currency),
-  );
+  return position?.open.net ?? zeroMoney(currency);
 }
 
 export function assertCustomerPaymentCurrencyMatch(
@@ -73,11 +81,6 @@ export function assertCustomerPaymentCurrencyMatch(
   }
 }
 
-/**
- * Validates a customer payment header + applications.
- * Partial allocation and unapplied remainder are allowed.
- * Applications may be empty (cash on account / standalone receipt).
- */
 export function assertCustomerPaymentApplicationsValid(input: {
   readonly currency: string;
   readonly paymentAmount: string;
@@ -126,6 +129,8 @@ export function assertCustomerPaymentApplicationsValid(input: {
     const outstanding = computeInvoiceRemainingOutstanding({
       currency,
       totalAmount: app.totalAmount,
+      subtotalAmount: app.subtotalAmount,
+      taxAmount: app.taxAmount,
       kind: app.kind,
       status: app.status,
       priorAppliedAmounts: app.priorAppliedAmounts,
@@ -149,10 +154,6 @@ export function assertCustomerPaymentApplicationsValid(input: {
   }
 }
 
-/**
- * Validates *additional* applications against an existing payment's remaining
- * unallocated cash (payment header − already applied).
- */
 export function assertAdditionalCustomerPaymentApplicationsValid(input: {
   readonly currency: string;
   readonly paymentAmount: string;
@@ -189,7 +190,6 @@ export function assertAdditionalCustomerPaymentApplicationsValid(input: {
   });
 }
 
-/** Payment remaining after proposed applications - may be unapplied cash. */
 export function computeCustomerPaymentUnapplied(input: {
   readonly currency: string;
   readonly paymentAmount: string;

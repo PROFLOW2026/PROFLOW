@@ -46,7 +46,11 @@ describe('project profit permission shape', () => {
     billing: {
       invoiced: zero,
       paid: zero,
+
+      netPaid: zero,
       outstanding: zero,
+
+      netOutstanding: zero,
       netInvoiced: zero,
       hasBillingData: false,
       monthCloseRevenueNet: zero,

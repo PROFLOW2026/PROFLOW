@@ -76,10 +76,20 @@ export function BillingListTable({ records, locale }: BillingListTableProps) {
                     />
                   </TableCell>
                   <TableCell numeric>
-                    <MoneyText value={record.paidAmount} />
+                    <BillingNetPrimaryDisplay
+                      netAmount={record.paidAmount}
+                      grossAmount={record.paidGrossAmount ?? record.paidAmount}
+                      grossLabel={t('list.includingVat')}
+                      netClassName="text-sm"
+                    />
                   </TableCell>
                   <TableCell numeric>
-                    <MoneyText value={record.outstandingAmount} colorizeNegative />
+                    <BillingNetPrimaryDisplay
+                      netAmount={record.outstandingAmount}
+                      grossAmount={record.outstandingGrossAmount ?? record.outstandingAmount}
+                      grossLabel={t('list.includingVat')}
+                      netClassName="text-sm"
+                    />
                   </TableCell>
                   <TableCell>
                     <BillingStatusBadge status={record.status} collectionStatus={record.collectionStatus} />

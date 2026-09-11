@@ -3,15 +3,17 @@ import { billingRecords, paymentApplications, payments } from '@drizzle/schema';
 import {
   aggregateBillingPositionInCurrency,
   isOverdueOn,
-  recordOutstanding,
+  recordNetOutstanding,
   sumInvoicedAmounts,
   sumNetInvoicedAmounts,
-  sumPaidAmountsForRecord,
-  billingNetToGrossRatio,
-  resolveBillingGrossAmount,
   type BillingAmountInput,
   type PaymentAmountInput,
 } from '@/modules/billing/domain/outstanding';
+import {
+  resolvePaymentTriplet,
+  zeroTriplet,
+  type RevenueTriplet,
+} from '@/modules/billing/domain/revenue-position';
 import { listPaidAmountRowsByBillingRecordIds } from '@/modules/billing';
 import { businessDate, type BusinessDate } from '@/shared/dates';
 import { fromNumericString, multiplyMoney, type MoneyValue } from '@/shared/money';
@@ -48,7 +50,7 @@ async function mapBillingRecords(
     const amount = fromNumericString(payment.amount, payment.currency);
     if (!amount) continue;
     const list = paymentsByRecord.get(payment.billingRecordId) ?? [];
-    list.push({ amount, status: payment.status });
+    list.push({ amount, amountBasis: payment.amountBasis, status: payment.status });
     paymentsByRecord.set(payment.billingRecordId, list);
   }
 
@@ -141,7 +143,7 @@ export async function loadBillingRowsGroupedByProject(
     const amount = fromNumericString(payment.amount, payment.currency);
     if (!amount) continue;
     const list = paymentsByRecord.get(payment.billingRecordId) ?? [];
-    list.push({ amount, status: payment.status });
+    list.push({ amount, amountBasis: payment.amountBasis, status: payment.status });
     paymentsByRecord.set(payment.billingRecordId, list);
   }
 
@@ -179,20 +181,7 @@ export function countOverdueFromBillingRows(
   for (const record of rows.records) {
     if (record.status === 'draft' || record.status === 'void' || !record.dueDate) continue;
 
-    const paid = sumPaidAmountsForRecord(
-      record.status,
-      record.payments,
-      rows.currency || record.totalAmount.currency,
-    );
-    const outstanding = recordOutstanding(
-      record.totalAmount,
-      paid,
-      record.kind,
-      record.status,
-      record.retentionHeldRemaining,
-      record.taxAmount,
-      record.subtotalAmount,
-    );
+    const outstanding = recordNetOutstanding(record, rows.currency || record.totalAmount.currency);
 
     if (isOverdueOn(outstanding, record.dueDate, today)) {
       overdueCount += 1;
@@ -278,60 +267,19 @@ export async function sumGrossInvoicedInDateRange(
   return sumInvoicedAmounts(inputs, currency);
 }
 
-/**
- * Sum of actually recorded payment collections in a date range.
- * Uses paymentDate (when cash was received), not issueDate.
- * "Void" payments are excluded.
- *
- * Authority is the payment header cash amount — including split/customer
- * payments where `billing_record_id` is null. Do not join invoices here;
- * that dropped multi-invoice receipts from org "collected" KPIs.
- */
-export async function sumCollectionsInDateRange(
+/** Canonical NET/VAT/GROSS collections by paymentDate. */
+export async function sumCollectionTripletsInDateRange(
   db: DbExecutor,
   organizationId: string,
   currency: string,
   fromDate: BusinessDate,
   toDate: BusinessDate,
-): Promise<MoneyValue> {
-  const rows = await db
-    .select({ amount: payments.amount, currency: payments.currency })
-    .from(payments)
-    .where(
-      and(
-        eq(payments.organizationId, organizationId),
-        eq(payments.currency, currency),
-        sql`${payments.status} = 'recorded'`,
-        gte(payments.paymentDate, fromDate),
-        lte(payments.paymentDate, toDate),
-      ),
-    );
-
-  let total = { amount: '0', currency };
-  for (const row of rows) {
-    const amt = fromNumericString(row.amount, row.currency);
-    if (!amt || amt.currency.toUpperCase() !== currency.toUpperCase()) continue;
-    const sum = parseFloat(total.amount) + parseFloat(amt.amount);
-    total = { amount: sum.toFixed(2), currency };
-  }
-  return { amount: total.amount, currency };
-}
-
-/**
- * NET cash collected in a date range — proportional to each invoice's net/gross split.
- * Unallocated payment remainder is treated as gross=net (no invoice VAT context).
- */
-export async function sumNetCollectionsInDateRange(
-  db: DbExecutor,
-  organizationId: string,
-  currency: string,
-  fromDate: BusinessDate,
-  toDate: BusinessDate,
-): Promise<MoneyValue> {
+): Promise<RevenueTriplet> {
   const paymentRows = await db
     .select({
       id: payments.id,
       amount: payments.amount,
+      amountBasis: payments.amountBasis,
       paymentCurrency: payments.currency,
     })
     .from(payments)
@@ -346,7 +294,7 @@ export async function sumNetCollectionsInDateRange(
     );
 
   if (paymentRows.length === 0) {
-    return { amount: '0', currency };
+    return zeroTriplet(currency);
   }
 
   const paymentIds = paymentRows.map((row) => row.id);
@@ -369,49 +317,109 @@ export async function sumNetCollectionsInDateRange(
       ),
     );
 
-  const netByPayment = new Map<string, number>();
-  const grossAppliedByPayment = new Map<string, number>();
-  for (const row of applicationRows) {
-    if (row.recordCurrency.toUpperCase() !== currency.toUpperCase()) continue;
-    const applied = fromNumericString(row.appliedAmount, row.appliedCurrency);
-    if (!applied) continue;
-    const grossTotal = resolveBillingGrossAmount({
-      totalAmount: fromNumericString(row.totalAmount, row.recordCurrency)!,
-      subtotalAmount: fromNumericString(row.subtotalAmount, row.recordCurrency)!,
-      taxAmount: row.taxAmount
-        ? fromNumericString(row.taxAmount, row.recordCurrency)
-        : null,
-    });
-    const ratio = billingNetToGrossRatio({
-      totalAmount: grossTotal,
-      subtotalAmount: fromNumericString(row.subtotalAmount, row.recordCurrency)!,
-      taxAmount: row.taxAmount
-        ? fromNumericString(row.taxAmount, row.recordCurrency)
-        : null,
-    });
-    const netApplied = multiplyMoney(applied, ratio);
-    netByPayment.set(row.paymentId, (netByPayment.get(row.paymentId) ?? 0) + Number(netApplied.amount));
-    grossAppliedByPayment.set(
-      row.paymentId,
-      (grossAppliedByPayment.get(row.paymentId) ?? 0) + Number(row.appliedAmount),
-    );
-  }
+  let total = zeroTriplet(currency);
 
-  let totalNet = 0;
   for (const row of paymentRows) {
-    const gross = fromNumericString(row.amount, row.paymentCurrency);
-    if (!gross) continue;
-    const appliedNet = netByPayment.get(row.id);
-    if (appliedNet != null) {
-      const grossApplied = grossAppliedByPayment.get(row.id) ?? 0;
-      const unallocated = Math.max(0, Number(gross.amount) - grossApplied);
-      totalNet += appliedNet + unallocated;
-    } else {
-      totalNet += Number(gross.amount);
+    const header = fromNumericString(row.amount, row.paymentCurrency);
+    if (!header) continue;
+    const basis = row.amountBasis ?? 'net';
+    const apps = applicationRows.filter((app) => app.paymentId === row.id);
+    let appliedHeader = 0;
+
+    for (const app of apps) {
+      if (app.recordCurrency.toUpperCase() !== currency.toUpperCase()) continue;
+      const applied = fromNumericString(app.appliedAmount, app.appliedCurrency);
+      if (!applied) continue;
+      appliedHeader += Number(applied.amount);
+      const invoice = {
+        totalAmount: fromNumericString(app.totalAmount, app.recordCurrency)!,
+        subtotalAmount: fromNumericString(app.subtotalAmount, app.recordCurrency)!,
+        taxAmount: app.taxAmount
+          ? fromNumericString(app.taxAmount, app.recordCurrency)
+          : null,
+      };
+      const triplet = resolvePaymentTriplet(applied, basis, invoice);
+      total = {
+        net: { amount: (Number(total.net.amount) + Number(triplet.net.amount)).toFixed(6), currency },
+        vat: { amount: (Number(total.vat.amount) + Number(triplet.vat.amount)).toFixed(6), currency },
+        gross: {
+          amount: (Number(total.gross.amount) + Number(triplet.gross.amount)).toFixed(6),
+          currency,
+        },
+      };
+    }
+
+    const unallocated = Math.max(0, Number(header.amount) - appliedHeader);
+    if (unallocated > 0) {
+      const triplet = resolvePaymentTriplet(
+        { amount: unallocated.toFixed(6), currency },
+        basis,
+        null,
+      );
+      total = {
+        net: { amount: (Number(total.net.amount) + Number(triplet.net.amount)).toFixed(6), currency },
+        vat: { amount: (Number(total.vat.amount) + Number(triplet.vat.amount)).toFixed(6), currency },
+        gross: {
+          amount: (Number(total.gross.amount) + Number(triplet.gross.amount)).toFixed(6),
+          currency,
+        },
+      };
+    }
+
+    if (apps.length === 0) {
+      const triplet = resolvePaymentTriplet(header, basis, null);
+      total = {
+        net: { amount: (Number(total.net.amount) + Number(triplet.net.amount)).toFixed(6), currency },
+        vat: { amount: (Number(total.vat.amount) + Number(triplet.vat.amount)).toFixed(6), currency },
+        gross: {
+          amount: (Number(total.gross.amount) + Number(triplet.gross.amount)).toFixed(6),
+          currency,
+        },
+      };
     }
   }
 
-  return { amount: totalNet.toFixed(2), currency };
+  return {
+    net: { amount: Number(total.net.amount).toFixed(2), currency },
+    vat: { amount: Number(total.vat.amount).toFixed(2), currency },
+    gross: { amount: Number(total.gross.amount).toFixed(2), currency },
+  };
+}
+
+/** @deprecated Use sumCollectionTripletsInDateRange().gross */
+export async function sumCollectionsInDateRange(
+  db: DbExecutor,
+  organizationId: string,
+  currency: string,
+  fromDate: BusinessDate,
+  toDate: BusinessDate,
+): Promise<MoneyValue> {
+  const triplet = await sumCollectionTripletsInDateRange(
+    db,
+    organizationId,
+    currency,
+    fromDate,
+    toDate,
+  );
+  return triplet.gross;
+}
+
+/** @deprecated Use sumCollectionTripletsInDateRange().net */
+export async function sumNetCollectionsInDateRange(
+  db: DbExecutor,
+  organizationId: string,
+  currency: string,
+  fromDate: BusinessDate,
+  toDate: BusinessDate,
+): Promise<MoneyValue> {
+  const triplet = await sumCollectionTripletsInDateRange(
+    db,
+    organizationId,
+    currency,
+    fromDate,
+    toDate,
+  );
+  return triplet.net;
 }
 
 export async function countOverdueBillingRecords(

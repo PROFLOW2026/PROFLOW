@@ -575,6 +575,13 @@
                         "when":  1788586400000,
                         "tag":  "0082_billing_vat_repair_and_invariant",
                         "breakpoints":  true
+                    },
+                    {
+                        "idx":  82,
+                        "version":  "7",
+                        "when":  1788672800000,
+                        "tag":  "0083_payment_amount_basis",
+                        "breakpoints":  true
                     }
                 ]
 }

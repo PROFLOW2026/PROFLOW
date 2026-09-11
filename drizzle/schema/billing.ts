@@ -20,7 +20,12 @@ import {
   quantityAmount,
   timestamps,
 } from './_shared';
-import { billingKindEnum, billingStatusEnum, paymentStatusEnum } from './enums';
+import {
+  billingKindEnum,
+  billingStatusEnum,
+  paymentAmountBasisEnum,
+  paymentStatusEnum,
+} from './enums';
 import { changeOrders } from './changes';
 import { clients } from './clients';
 import { contracts } from './contracts';
@@ -151,6 +156,7 @@ export const payments = pgTable(
     }),
     clientId: uuid('client_id').references(() => clients.id, { onDelete: 'restrict' }),
     amount: moneyAmount('amount').notNull(),
+    amountBasis: paymentAmountBasisEnum('amount_basis'),
     currency: currencyCode().notNull(),
     paymentDate: date('payment_date').notNull(),
     method: text('method'),

@@ -17,7 +17,11 @@ export function foldBillingRowsFromBundle(bundle: FinancialsBillingBundle): Proj
     const amount = fromNumericString(payment.amount, payment.currency);
     if (!amount) continue;
     const list = paymentsByRecord.get(payment.billingRecordId) ?? [];
-    list.push({ amount, status: payment.status as PaymentAmountInput['status'] });
+    list.push({
+      amount,
+      amountBasis: (payment.amountBasis as PaymentAmountInput['amountBasis']) ?? 'net',
+      status: payment.status as PaymentAmountInput['status'],
+    });
     paymentsByRecord.set(payment.billingRecordId, list);
   }
 

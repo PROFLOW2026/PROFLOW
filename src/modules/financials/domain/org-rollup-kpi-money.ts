@@ -27,7 +27,9 @@ export interface OrgRollupKpiMoneyFields {
   readonly invoiced: MoneyValue | null;
   readonly invoicedGross: MoneyValue | null;
   readonly paid: MoneyValue | null;
+  readonly paidGross: MoneyValue | null;
   readonly outstanding: MoneyValue | null;
+  readonly outstandingGross: MoneyValue | null;
   readonly actualCost: MoneyValue | null;
   readonly laborActual: MoneyValue | null;
   readonly vendorActual: MoneyValue | null;
@@ -54,7 +56,9 @@ export function resolveOrgRollupKpiMoneyFields(input: {
   readonly invoiced: MoneyValue | null;
   readonly invoicedGross?: MoneyValue | null;
   readonly paid: MoneyValue | null;
+  readonly paidGross?: MoneyValue | null;
   readonly outstanding: MoneyValue | null;
+  readonly outstandingGross?: MoneyValue | null;
   readonly actualCost: MoneyValue | null;
   readonly laborActual: MoneyValue | null;
   readonly vendorActual: MoneyValue | null;
@@ -79,7 +83,9 @@ export function resolveOrgRollupKpiMoneyFields(input: {
     invoiced: billingUnavailable ? null : input.invoiced,
     invoicedGross: billingUnavailable ? null : (input.invoicedGross ?? input.invoiced),
     paid: billingUnavailable ? null : input.paid,
+    paidGross: billingUnavailable ? null : (input.paidGross ?? input.paid),
     outstanding: billingUnavailable ? null : input.outstanding,
+    outstandingGross: billingUnavailable ? null : (input.outstandingGross ?? input.outstanding),
     actualCost: moneyForRollupKpi(kpi?.actualCost, input.actualCost),
     laborActual: actualIncomplete ? null : input.laborActual,
     vendorActual: actualIncomplete ? null : input.vendorActual,

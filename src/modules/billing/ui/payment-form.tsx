@@ -15,6 +15,7 @@ import {
   addMoney,
   compareMoney,
   isPositiveMoney,
+  isZeroMoney,
   money,
   subtractMoney,
   zeroMoney,
@@ -93,6 +94,22 @@ export function PaymentForm({
       ? currency
       : (selected?.totalAmount.currency ?? sameClientRecords[0]?.totalAmount.currency ?? currency);
   const symbol = currencyGlyph(activeCurrency);
+
+  const grossPreview = useMemo(() => {
+    if (entryMode !== 'invoice' || !selected || !activeCurrency || !amount.trim()) return null;
+    const sub = selected.subtotalAmount ?? selected.totalAmount;
+    const tax = selected.taxAmount;
+    if (!tax || isZeroMoney(tax) || isZeroMoney(sub)) return null;
+    try {
+      const net = money(amount, activeCurrency);
+      if (!isPositiveMoney(net)) return null;
+      const rate = Number(tax.amount) / Number(sub.amount);
+      const gross = Number(net.amount) * (1 + rate);
+      return money(gross.toFixed(2), activeCurrency);
+    } catch {
+      return null;
+    }
+  }, [entryMode, selected, activeCurrency, amount]);
 
   const singlePreview = useMemo(() => {
     if (entryMode !== 'invoice' || splitMode || !selected || !activeCurrency || !amount.trim()) {
@@ -300,9 +317,6 @@ export function PaymentForm({
               <MoneyText value={selected.retentionHeldRemaining} />
             </p>
           ) : null}
-          <p className="mt-1 text-xs text-[var(--pf-text-secondary)]">
-            {t('paymentForm.cashAgainstGrossHint')}
-          </p>
         </div>
       ) : null}
 
@@ -333,6 +347,12 @@ export function PaymentForm({
               currencySymbol={symbol || undefined}
             />
             <input type="hidden" name="amount" value={amount} />
+            {grossPreview ? (
+              <p className="mt-1 text-xs text-[var(--pf-text-secondary)] tabular-nums">
+                ({t('paymentForm.grossPreview')}:{' '}
+                <MoneyText value={grossPreview} className="inline font-medium" />)
+              </p>
+            ) : null}
           </>
         )}
       </Field>

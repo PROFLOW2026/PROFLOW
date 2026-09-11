@@ -62,6 +62,8 @@ export async function recordCustomerPayment(
         kind: 'invoice' | 'credit_note' | 'advance' | 'retention_release';
         status: 'draft' | 'finalized' | 'void';
         totalAmount: string;
+        subtotalAmount: string;
+        taxAmount: string | null;
         priorAppliedAmounts: readonly string[];
         priorRetentionHeldRemaining: string;
         invoiceClientId: string | null;
@@ -96,6 +98,12 @@ export async function recordCustomerPayment(
           kind: billingRecord.kind,
           status: billingRecord.status,
           totalAmount: toNumericString(billingRecord.totalAmount),
+          subtotalAmount: toNumericString(
+            billingRecord.subtotalAmount ?? billingRecord.totalAmount,
+          ),
+          taxAmount: billingRecord.taxAmount
+            ? toNumericString(billingRecord.taxAmount)
+            : null,
           priorAppliedAmounts: prior,
           priorRetentionHeldRemaining: toNumericString(
             billingRecord.retentionHeldRemaining ?? money('0', currency),
@@ -119,6 +127,7 @@ export async function recordCustomerPayment(
         billingRecordId: null,
         clientId: input.clientId,
         amount: toNumericString(paymentAmount),
+        amountBasis: 'net',
         currency,
         paymentDate,
         method: input.method?.trim() || null,
