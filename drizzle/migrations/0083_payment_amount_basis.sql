@@ -1,10 +1,14 @@
 -- Explicit payment amount basis (NET business vs GROSS cash).
 -- Owner applies manually. Do not modify 0000–0082.
 
-CREATE TYPE payment_amount_basis AS ENUM ('net', 'gross');
+DO $$ BEGIN
+  CREATE TYPE public.payment_amount_basis AS ENUM ('net', 'gross');
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
 
 ALTER TABLE public.payments
-  ADD COLUMN IF NOT EXISTS amount_basis payment_amount_basis;
+  ADD COLUMN IF NOT EXISTS amount_basis public.payment_amount_basis;
 
 COMMENT ON COLUMN public.payments.amount_basis IS
   'Semantic of payments.amount: net = business collection ex-VAT; gross = cash incl. VAT.';

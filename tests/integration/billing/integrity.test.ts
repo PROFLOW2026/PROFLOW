@@ -97,8 +97,10 @@ describe('billing integrity', () => {
     });
 
     expect(position.invoiced.amount).toBe('0.000000');
-    expect(position.paid.amount).toBe('3000.000000');
-    expect(position.outstanding.amount).toBe('-3000.000000');
+    expect(position.netPaid.amount).toBe('3000.000000');
+    expect(position.paid.amount).toBe('3540.000000');
+    expect(position.netOutstanding.amount).toBe('-3000.000000');
+    expect(position.outstanding.amount).toBe('-3540.000000');
 
     const original = await database.asUser(userId, async (tx) => {
       const context = await resolveOrgContext(tx, {
