@@ -1,4 +1,8 @@
-import 'dotenv/config';
+import dotenv from 'dotenv';
+
+// `.env.local` overrides `.env` — matches Next.js / Owner workstation layout.
+dotenv.config();
+dotenv.config({ path: '.env.local', override: true });
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { migrate } from 'drizzle-orm/postgres-js/migrator';
 import postgres from 'postgres';
