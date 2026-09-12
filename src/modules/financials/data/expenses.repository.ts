@@ -22,6 +22,10 @@ import {
 } from '@/shared/money';
 import type { DbExecutor } from '@/shared/db/types';
 import type { DbCostFamily, ProjectExpenseContribution } from '../domain/cost-aggregation';
+import {
+  isAllocationIntentSchemaReady,
+  sqlExpenseAutoPoolFilterIfReady,
+} from '../domain/allocation-intent-schema';
 import { isInternalEmployeePayrollCategoryKey } from '../domain/labor-expense-integrity';
 import { sqlFirstRow, sqlRows } from './sql-rows';
 
@@ -428,6 +432,7 @@ export async function sumUnallocatedExpensesForMonth(
   currency: string,
   yearMonth: string,
 ): Promise<MoneyValue> {
+  const autoPoolFilter = await sqlExpenseAutoPoolFilterIfReady(db);
   const row = sqlFirstRow<{ total: string }>(
     await db.execute(sql`
       select coalesce(sum(s.contrib), 0)::text as total
@@ -461,7 +466,7 @@ export async function sumUnallocatedExpensesForMonth(
           and e.archived_at is null
           and coalesce(e.inventory_stock_purchase, false) = false
           and e.project_id is null
-          and e.allocation_intent = 'auto_pool'
+          ${autoPoolFilter}
           and not exists (
             select 1 from expense_allocations a
             where a.expense_id = e.id
@@ -481,6 +486,9 @@ export async function sumCompanyOnlyExpensesForMonth(
   currency: string,
   yearMonth: string,
 ): Promise<MoneyValue> {
+  if (!(await isAllocationIntentSchemaReady(db))) {
+    return zeroMoney(currency);
+  }
   const row = sqlFirstRow<{ total: string }>(
     await db.execute(sql`
       select coalesce(sum(s.contrib), 0)::text as total
@@ -549,6 +557,9 @@ export async function sumOrganizationCompanyOnlyExpenses(
   organizationId: string,
   currency: string,
 ): Promise<MoneyValue> {
+  if (!(await isAllocationIntentSchemaReady(db))) {
+    return zeroMoney(currency);
+  }
   const row = sqlFirstRow<{ total: string }>(
     await db.execute(sql`
       select coalesce(sum(s.contrib), 0)::text as total
@@ -599,6 +610,7 @@ export async function sumUnallocatedExpensesGroupedByYearMonth(
 ): Promise<Map<string, MoneyValue>> {
   const result = new Map<string, MoneyValue>();
   if (yearMonths.length === 0) return result;
+  const autoPoolFilter = await sqlExpenseAutoPoolFilterIfReady(db);
   const rows = sqlRows<{ yearMonth: string; total: string }>(
     await db.execute(sql`
       select s.ym as "yearMonth", coalesce(sum(s.contrib), 0)::text as total
@@ -618,7 +630,7 @@ export async function sumUnallocatedExpensesGroupedByYearMonth(
           and e.archived_at is null
           and coalesce(e.inventory_stock_purchase, false) = false
           and e.project_id is null
-          and e.allocation_intent = 'auto_pool'
+          ${autoPoolFilter}
           and e.installment_count > 1
           and not exists (
             select 1 from expense_allocations a
@@ -637,7 +649,7 @@ export async function sumUnallocatedExpensesGroupedByYearMonth(
           and e.archived_at is null
           and coalesce(e.inventory_stock_purchase, false) = false
           and e.project_id is null
-          and e.allocation_intent = 'auto_pool'
+          ${autoPoolFilter}
           and to_char(e.expense_date::date, 'YYYY-MM') in (${sql.join(yearMonths.map((ym) => sql`${ym}`), sql`, `)})
           and not (
             e.installment_count > 1 and exists (
@@ -686,6 +698,7 @@ export async function listUnallocatedExpenseContributionsForMonth(
   currency: string,
   yearMonth: string,
 ): Promise<readonly UnallocatedExpenseMonthContribution[]> {
+  const autoPoolFilter = await sqlExpenseAutoPoolFilterIfReady(db);
   return sqlRows<UnallocatedExpenseMonthContribution>(
     await db.execute(sql`
       select
@@ -732,7 +745,7 @@ export async function listUnallocatedExpenseContributionsForMonth(
           and e.archived_at is null
           and coalesce(e.inventory_stock_purchase, false) = false
           and e.project_id is null
-          and e.allocation_intent = 'auto_pool'
+          ${autoPoolFilter}
           and not exists (
             select 1 from expense_allocations a
             where a.expense_id = e.id
@@ -763,6 +776,7 @@ export async function listUnallocatedExpenseContributionsForYearMonths(
   yearMonths: readonly string[],
 ): Promise<readonly UnallocatedExpenseMonthContribution[]> {
   if (yearMonths.length === 0) return [];
+  const autoPoolFilter = await sqlExpenseAutoPoolFilterIfReady(db);
   return sqlRows<UnallocatedExpenseMonthContribution>(
     await db.execute(sql`
       select
@@ -795,7 +809,7 @@ export async function listUnallocatedExpenseContributionsForYearMonths(
           and e.archived_at is null
           and coalesce(e.inventory_stock_purchase, false) = false
           and e.project_id is null
-          and e.allocation_intent = 'auto_pool'
+          ${autoPoolFilter}
           and e.installment_count > 1
           and l.amount <> 0
           and not exists (
@@ -816,7 +830,7 @@ export async function listUnallocatedExpenseContributionsForYearMonths(
           and e.archived_at is null
           and coalesce(e.inventory_stock_purchase, false) = false
           and e.project_id is null
-          and e.allocation_intent = 'auto_pool'
+          ${autoPoolFilter}
           and to_char(e.expense_date::date, 'YYYY-MM') in (${sql.join(yearMonths.map((ym) => sql`${ym}`), sql`, `)})
           and e.net_amount <> 0
           and not (

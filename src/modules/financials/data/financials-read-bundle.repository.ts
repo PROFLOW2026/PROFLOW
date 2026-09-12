@@ -5,6 +5,7 @@
 
 import { sql } from 'drizzle-orm';
 import type { DbExecutor } from '@/shared/db/types';
+import { isAllocationIntentSchemaReady } from '../domain/allocation-intent-schema';
 import { sqlFirstRow } from './sql-rows';
 import { LABOR_COST_DEFAULTS_SETTING_KEY } from '@/modules/tenancy/domain/labor-cost-defaults';
 import { PROJECT_PROFITABILITY_MODE_SETTING_KEY } from '@/modules/tenancy/domain/project-profitability-mode';
@@ -285,6 +286,10 @@ export async function loadFinancialsApOrgFactsBundle(
   db: DbExecutor,
   organizationId: string,
 ): Promise<FinancialsApFactsBundle> {
+  const intentReady = await isAllocationIntentSchemaReady(db);
+  const remainderIntentExpr = intentReady
+    ? sql`b.remainder_allocation_intent`
+    : sql`'auto_pool'::text`;
   const row = sqlFirstRow<{ payload: FinancialsApFactsBundle | null }>(
     await db.execute(sql`
       with candidate_bills as (
@@ -304,7 +309,7 @@ export async function loadFinancialsApOrgFactsBundle(
             'currency', b.currency,
             'retentionHeldRemaining', b.retention_held_remaining::text,
             'billDate', b.bill_date,
-            'remainderAllocationIntent', b.remainder_allocation_intent
+            'remainderAllocationIntent', ${remainderIntentExpr}
           ))
           from ap_bills b
           where b.id in (select id from candidate_bills)

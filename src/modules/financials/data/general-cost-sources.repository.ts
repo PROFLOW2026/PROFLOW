@@ -6,6 +6,10 @@
 import { sql } from 'drizzle-orm';
 import type { DbExecutor } from '@/shared/db/types';
 import { fromNumericString, zeroMoney, type MoneyValue } from '@/shared/money';
+import {
+  isAllocationIntentSchemaReady,
+  sqlExpenseAutoPoolFilterIfReady,
+} from '../domain/allocation-intent-schema';
 import type { GeneralCostSourceKind } from '../domain/company-actual';
 import { sqlRows } from './sql-rows';
 
@@ -45,6 +49,8 @@ export async function loadGeneralCostNonApSourceTotalsByMonths(
   const normalized = currency.toUpperCase();
   const ymList = sql.join(yearMonths.map((ym) => sql`${ym}`), sql`, `);
   const { startDate, endDate } = yearMonthDateBounds(yearMonths);
+  const intentReady = await isAllocationIntentSchemaReady(db);
+  const autoPoolFilter = intentReady ? sql`and e.allocation_intent = 'auto_pool'` : sql``;
 
   const expensePart = options.includeExpenses
     ? sql`
@@ -61,7 +67,7 @@ export async function loadGeneralCostNonApSourceTotalsByMonths(
             and e.archived_at is null
             and coalesce(e.inventory_stock_purchase, false) = false
             and e.project_id is null
-            and e.allocation_intent = 'auto_pool'
+            ${autoPoolFilter}
             and e.installment_count > 1
             and not exists (
               select 1 from expense_allocations a
@@ -76,7 +82,7 @@ export async function loadGeneralCostNonApSourceTotalsByMonths(
             and e.archived_at is null
             and coalesce(e.inventory_stock_purchase, false) = false
             and e.project_id is null
-            and e.allocation_intent = 'auto_pool'
+            ${autoPoolFilter}
             and to_char(e.expense_date::date, 'YYYY-MM') in (${ymList})
             and not (
               e.installment_count > 1 and exists (
@@ -91,6 +97,9 @@ export async function loadGeneralCostNonApSourceTotalsByMonths(
             )
         ) s
         group by s.ym
+        ${
+          intentReady
+            ? sql`
         union all
         select s.ym as "yearMonth", 'expense_company_only'::text as "sourceKind", coalesce(sum(s.contrib), 0)::text as total
         from (
@@ -118,6 +127,9 @@ export async function loadGeneralCostNonApSourceTotalsByMonths(
             and to_char(e.expense_date::date, 'YYYY-MM') in (${ymList})
         ) s
         group by s.ym
+              `
+            : sql``
+        }
       `
     : sql`select null::text as "yearMonth", null::text as "sourceKind", null::text as total where false`;
 
@@ -137,6 +149,9 @@ export async function loadGeneralCostNonApSourceTotalsByMonths(
           and emc.year_month in (${ymList})
           and lar.unallocated_amount::numeric > 0
         group by emc.year_month
+        ${
+          intentReady
+            ? sql`
         union all
         select emc.year_month as "yearMonth",
                'labor_company_only'::text as "sourceKind",
@@ -152,6 +167,9 @@ export async function loadGeneralCostNonApSourceTotalsByMonths(
           and emc.year_month in (${ymList})
           and lar.company_only_amount::numeric > 0
         group by emc.year_month
+              `
+            : sql``
+        }
       `
     : sql`select null::text as "yearMonth", null::text as "sourceKind", null::text as total where false`;
 

@@ -11,6 +11,7 @@ import { getInventoryItemById, normalizeQuantity } from '@/modules/assets';
 import { resolveExpenseClassificationStatus, assertCostCategoryFamilyConsistent } from '@/modules/financials/domain/economic-classification';
 import { assertInternalPayrollExpenseAllowed } from '@/modules/financials/domain/labor-expense-integrity';
 import { resolveExpenseAllocationIntent } from '@/modules/financials/domain/allocation-intent';
+import { isAllocationIntentSchemaReady } from '@/modules/financials/domain/allocation-intent-schema';
 import { resolveAllocationLines } from '../domain/allocation';
 import { resolveExpenseCurrency } from '../domain/currency';
 import { isOverheadTargeting, resolveExpenseTargeting, assertNoAllocationsOnProjectExpense } from '../domain/targeting';
@@ -32,6 +33,7 @@ import {
   insertExpense,
   replaceExpenseAllocations,
   type AllocationInsertRow,
+  type ExpenseInsertRow,
 } from '../data/expenses.repository';
 import type { CreateExpenseInput } from '../validation/schemas';
 import { resolveExpensePaymentSchedule } from './resolve-expense-payment-schedule';
@@ -398,11 +400,9 @@ export async function buildExpensePayload(
     dueDate: input.dueDate,
   });
 
-  return {
-    expenseDate,
-    targeting,
-    amounts,
-    row: {
+  const intentReady = await isAllocationIntentSchemaReady(context.db);
+
+  const row: ExpenseInsertRow = {
       expenseDate,
       description: input.description?.trim() || null,
       supplierName: input.supplierName?.trim() || null,
@@ -417,7 +417,7 @@ export async function buildExpensePayload(
       grossAmount: toNumericString(amounts.grossAmount),
       currency: amounts.grossAmount.currency,
       taxSnapshot: null,
-      status: 'draft',
+      status: 'draft' as const,
       finalizedAt: null,
       paymentMethod: input.paymentMethod?.trim() || null,
       paymentInstrumentId: input.paymentInstrumentId ?? null,
@@ -435,7 +435,7 @@ export async function buildExpensePayload(
       allocationPeriodEnd: input.allocationPeriodEnd ? businessDate(input.allocationPeriodEnd) : null,
       allocationDriverMethod: input.allocationDriverMethod ?? null,
       allocationScheduleMode: input.allocationScheduleMode ?? null,
-      allocationIntent,
+      ...(intentReady ? { allocationIntent } : {}),
       installmentCount: input.installmentCount ?? 1,
       installmentStartDate: input.installmentStartDate
         ? businessDate(input.installmentStartDate)
@@ -452,7 +452,13 @@ export async function buildExpensePayload(
       }),
       vatMode,
       createdByUserId: context.userId,
-    },
+    };
+
+  return {
+    expenseDate,
+    targeting,
+    amounts,
+    row,
   };
 }
 

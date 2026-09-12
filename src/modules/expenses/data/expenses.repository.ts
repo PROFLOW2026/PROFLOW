@@ -14,6 +14,7 @@ import {
 import type { BusinessDate } from '@/shared/dates';
 import type { DbExecutor } from '@/shared/db/types';
 import { fromNumericString, type MoneyValue } from '@/shared/money';
+import { isAllocationIntentSchemaReady } from '@/modules/financials/domain/allocation-intent-schema';
 import type { ExpenseAttentionFilter } from '../domain/expense-attention';
 import type {
   AllocationMethod,
@@ -191,11 +192,30 @@ function appendActionableExpenseAttentionConditions(
   conditions.push(not(hasActiveReversalExists(db, organizationId)));
 }
 
-function needsProjectAllocationSelect(db: DbExecutor, organizationId: string) {
+async function needsProjectAllocationSelect(db: DbExecutor, organizationId: string) {
+  const intentReady = await isAllocationIntentSchemaReady(db);
+  if (intentReady) {
+    return sql<boolean>`(
+      ${expenses.projectId} is null
+      and ${expenses.status} = 'finalized'
+      and ${expenses.allocationIntent} = 'project_allocate'
+      and ${expenses.costFamily} = 'shared'
+      and coalesce(${expenses.inventoryStockPurchase}, false) = false
+      and ${expenses.voidsExpenseId} is null
+      and ${expenses.adjustsExpenseId} is null
+      and not ${hasActiveReversalExists(db, organizationId)}
+      and not exists (
+        select 1
+        from ${expenseAllocations}
+        where ${expenseAllocations.expenseId} = ${expenses.id}
+          and ${expenseAllocations.organizationId} = ${organizationId}
+          and ${expenseAllocations.projectId} is not null
+      )
+    )`;
+  }
   return sql<boolean>`(
     ${expenses.projectId} is null
     and ${expenses.status} = 'finalized'
-    and ${expenses.allocationIntent} = 'project_allocate'
     and ${expenses.costFamily} = 'shared'
     and coalesce(${expenses.inventoryStockPurchase}, false) = false
     and ${expenses.voidsExpenseId} is null
@@ -321,6 +341,7 @@ export async function findExpenseById(
   organizationId: string,
   expenseId: string,
 ): Promise<ExpenseDetail | null> {
+  const intentReady = await isAllocationIntentSchemaReady(db);
   const [row] = await db
     .select({
       id: expenses.id,
@@ -363,7 +384,7 @@ export async function findExpenseById(
       allocationPeriodEnd: expenses.allocationPeriodEnd,
       allocationDriverMethod: expenses.allocationDriverMethod,
       allocationScheduleMode: expenses.allocationScheduleMode,
-      allocationIntent: expenses.allocationIntent,
+      ...(intentReady ? { allocationIntent: expenses.allocationIntent } : {}),
       installmentCount: expenses.installmentCount,
       installmentStartDate: expenses.installmentStartDate,
       installmentsPaidCount: expenses.installmentsPaidCount,
@@ -449,7 +470,10 @@ export async function findExpenseById(
     allocationPeriodEnd: (row.allocationPeriodEnd as BusinessDate | null) ?? null,
     allocationDriverMethod: row.allocationDriverMethod,
     allocationScheduleMode: row.allocationScheduleMode ?? null,
-    allocationIntent: row.allocationIntent ?? 'auto_pool',
+    allocationIntent:
+      intentReady && 'allocationIntent' in row
+        ? (row.allocationIntent ?? 'auto_pool')
+        : 'auto_pool',
     installmentCount: row.installmentCount,
     installmentStartDate: (row.installmentStartDate as BusinessDate | null) ?? null,
     installmentsPaidCount: row.installmentsPaidCount ?? 0,
@@ -499,9 +523,13 @@ export async function listExpenses(
   const projectAllocationAttention =
     filters.unallocatedOnly || filters.attentionFilter === 'project_allocation';
 
-  if (projectAllocationAttention) {
+  const projectAllocationCondition = projectAllocationAttention
+    ? await needsProjectAllocationSelect(db, organizationId)
+    : null;
+
+  if (projectAllocationCondition) {
     // Canonical rule: only shared costs require project allocation (see expense-allocation-attention.ts).
-    conditions.push(sql`${needsProjectAllocationSelect(db, organizationId)}`);
+    conditions.push(sql`${projectAllocationCondition}`);
   }
 
   if (filters.attentionFilter === 'classification') {
@@ -542,7 +570,7 @@ export async function listExpenses(
       status: expenses.status,
       voidsExpenseId: expenses.voidsExpenseId,
       adjustsExpenseId: expenses.adjustsExpenseId,
-      needsProjectAllocation: needsProjectAllocationSelect(db, organizationId),
+      needsProjectAllocation: projectAllocationCondition ?? sql<boolean>`false`,
       hasActiveReversal: hasActiveReversalSelect(db, organizationId),
       recurringSourceTitle: recurringFinancialDrafts.title,
     })

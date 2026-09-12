@@ -114,6 +114,12 @@ export async function sumOrganizationMonthlyLaborCompanyOnly(
   currency: string,
   options?: { readonly yearMonth?: string },
 ): Promise<{ totalAmount: string; currency: string }> {
+  const { isAllocationIntentSchemaReady } = await import(
+    '@/modules/financials/domain/allocation-intent-schema'
+  );
+  if (!(await isAllocationIntentSchemaReady(db))) {
+    return { totalAmount: '0', currency: currency.toUpperCase() };
+  }
   const conditions = [
     eq(laborAllocationRuns.organizationId, organizationId),
     eq(laborAllocationRuns.status, 'applied'),
