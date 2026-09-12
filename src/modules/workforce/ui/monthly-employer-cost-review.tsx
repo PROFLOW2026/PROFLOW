@@ -23,17 +23,39 @@ import {
 } from '@/modules/workforce/domain/monthly-cost-gates';
 import type { MonthlyEmployerCostReview as MonthlyEmployerCostReviewData } from '@/modules/workforce/application/employer-month-costs';
 
+export interface MonthlyEmployerCostProjectOption {
+  readonly id: string;
+  readonly name: string;
+}
+
+interface AllocationLineDraft {
+  readonly key: string;
+  projectId: string;
+  percent: string;
+  days: string;
+  amount: string;
+}
+
 export interface MonthlyEmployerCostReviewProps {
   readonly employeeId: string;
   readonly employeeName: string;
   readonly currency: string;
   readonly defaultYearMonth: string;
+  readonly projects?: readonly MonthlyEmployerCostProjectOption[];
   /** Permissioned finance / workforce costs viewers only. */
   readonly canReview: boolean;
   /** When true and gate ready, shows Apply (requires cost.manage). */
   readonly canManage?: boolean;
   /** Server-loaded month row for the default month (existing Owner data). */
   readonly initialReview?: MonthlyEmployerCostReviewData | null;
+}
+
+function newLineKey(): string {
+  return globalThis.crypto?.randomUUID?.() ?? `line-${Date.now()}`;
+}
+
+function emptyAllocationLine(projectId = ''): AllocationLineDraft {
+  return { key: newLineKey(), projectId, percent: '', days: '', amount: '' };
 }
 
 /**
@@ -46,6 +68,7 @@ export function MonthlyEmployerCostReview({
   employeeName,
   currency,
   defaultYearMonth,
+  projects = [],
   canReview,
   canManage = false,
   initialReview = null,
@@ -66,6 +89,35 @@ export function MonthlyEmployerCostReview({
   const [savedDraft, setSavedDraft] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [applied, setApplied] = useState(false);
+  const [remainderAllocationIntent, setRemainderAllocationIntent] = useState<
+    'auto_pool' | 'company_only'
+  >('auto_pool');
+  const [allocationLines, setAllocationLines] = useState<AllocationLineDraft[]>(() => {
+    const fromReview = initialReview?.lines ?? [];
+    if (fromReview.length === 0) {
+      return [emptyAllocationLine(projects[0]?.id ?? '')];
+    }
+    return fromReview.map((line) => ({
+      key: newLineKey(),
+      projectId: line.projectId ?? '',
+      percent: line.percent ?? '',
+      days: line.basisDays ?? '',
+      amount: line.amount ?? '',
+    }));
+  });
+
+  function buildAllocationLinesJson(): string | undefined {
+    const rows = allocationLines
+      .filter((line) => line.projectId)
+      .map((line) => ({
+        projectId: line.projectId,
+        percent: method === 'percent' ? line.percent || null : null,
+        days: method === 'days' ? line.days || null : null,
+        hours: method === 'hours' ? line.days || null : null,
+        amount: method === 'fixed_amount' ? line.amount || null : null,
+      }));
+    return rows.length > 0 ? JSON.stringify(rows) : undefined;
+  }
 
   const preview = useMemo(
     () =>
@@ -92,6 +144,9 @@ export function MonthlyEmployerCostReview({
         estimatedAmount: estimated,
         actualAmount: actual,
         method: showAdvanced ? method : undefined,
+        allocationLinesJson: showAdvanced ? buildAllocationLinesJson() : undefined,
+        remainderAllocationIntent:
+          Number(preview.unallocatedAmount) > 0 ? remainderAllocationIntent : undefined,
       });
       if (result.error) {
         setActionError(result.error);
@@ -112,6 +167,9 @@ export function MonthlyEmployerCostReview({
         estimatedAmount: estimated,
         actualAmount: actual,
         method: showAdvanced ? method : 'fixed_amount',
+        allocationLinesJson: showAdvanced ? buildAllocationLinesJson() : undefined,
+        remainderAllocationIntent:
+          Number(preview.unallocatedAmount) > 0 ? remainderAllocationIntent : undefined,
       });
       if (saveResult.error) {
         setActionError(saveResult.error);
@@ -213,6 +271,29 @@ export function MonthlyEmployerCostReview({
         </Field>
       </div>
 
+      {Number(preview.unallocatedAmount) > 0 ? (
+        <Field label={t('monthReview.remainderIntent')}>
+          {(control) => (
+            <Select
+              value={remainderAllocationIntent}
+              onValueChange={(value) =>
+                setRemainderAllocationIntent(value as typeof remainderAllocationIntent)
+              }
+            >
+              <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="auto_pool">{t('monthReview.remainderAutoPool')}</SelectItem>
+                <SelectItem value="company_only">
+                  {t('monthReview.remainderCompanyOnly')}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+        </Field>
+      ) : null}
+
       {!showAdvanced ? (
         <Button type="button" variant="ghost" className="self-start" onClick={() => setShowAdvanced(true)}>
           {tCommon('actions.showAdvanced')}
@@ -238,20 +319,140 @@ export function MonthlyEmployerCostReview({
               </Select>
             )}
           </Field>
-          <Field
-            label={t('monthReview.allocatedInput')}
-            optionalLabel={tCommon('labels.optional')}
-            description={t('monthReview.allocatedInputHint')}
-          >
-            {(control) => (
-              <MoneyInput
-                {...control}
-                value={allocated}
-                onValueChange={setAllocated}
-                currencySymbol={currency}
-              />
-            )}
-          </Field>
+          {projects.length > 0 ? (
+            <div className="flex flex-col gap-3">
+              <p className="text-xs font-medium text-[var(--pf-text-secondary)]">
+                {t('monthReview.projectLinesTitle')}
+              </p>
+              {allocationLines.map((line, index) => (
+                <div
+                  key={line.key}
+                  className="flex flex-col gap-2 rounded-md border border-[var(--pf-border-default)] p-3"
+                >
+                  <Field label={t('monthReview.projectLine', { row: index + 1 })}>
+                    {(control) => (
+                      <Select
+                        value={line.projectId}
+                        onValueChange={(value) =>
+                          setAllocationLines((prev) =>
+                            prev.map((item) =>
+                              item.key === line.key ? { ...item, projectId: value } : item,
+                            ),
+                          )
+                        }
+                      >
+                        <SelectTrigger id={control.id}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {projects.map((project) => (
+                            <SelectItem key={project.id} value={project.id}>
+                              {project.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  </Field>
+                  {method === 'percent' ? (
+                    <Field label={t('monthReview.methods.percent')}>
+                      {(control) => (
+                        <Input
+                          {...control}
+                          inputMode="decimal"
+                          value={line.percent}
+                          onChange={(event) =>
+                            setAllocationLines((prev) =>
+                              prev.map((item) =>
+                                item.key === line.key
+                                  ? { ...item, percent: event.target.value }
+                                  : item,
+                              ),
+                            )
+                          }
+                          dir="ltr"
+                        />
+                      )}
+                    </Field>
+                  ) : null}
+                  {method === 'days' || method === 'hours' ? (
+                    <Field
+                      label={
+                        method === 'days'
+                          ? t('monthReview.methods.days')
+                          : t('monthReview.methods.hours')
+                      }
+                    >
+                      {(control) => (
+                        <Input
+                          {...control}
+                          inputMode="decimal"
+                          value={line.days}
+                          onChange={(event) =>
+                            setAllocationLines((prev) =>
+                              prev.map((item) =>
+                                item.key === line.key
+                                  ? { ...item, days: event.target.value }
+                                  : item,
+                              ),
+                            )
+                          }
+                          dir="ltr"
+                        />
+                      )}
+                    </Field>
+                  ) : null}
+                  {method === 'fixed_amount' ? (
+                    <Field label={t('monthReview.methods.fixed_amount')}>
+                      {(control) => (
+                        <MoneyInput
+                          {...control}
+                          value={line.amount}
+                          onValueChange={(value) =>
+                            setAllocationLines((prev) =>
+                              prev.map((item) =>
+                                item.key === line.key ? { ...item, amount: value } : item,
+                              ),
+                            )
+                          }
+                          currencySymbol={currency}
+                        />
+                      )}
+                    </Field>
+                  ) : null}
+                </div>
+              ))}
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="self-start"
+                onClick={() =>
+                  setAllocationLines((prev) => [
+                    ...prev,
+                    emptyAllocationLine(projects[0]?.id ?? ''),
+                  ])
+                }
+              >
+                {t('monthReview.addProjectLine')}
+              </Button>
+            </div>
+          ) : (
+            <Field
+              label={t('monthReview.allocatedInput')}
+              optionalLabel={tCommon('labels.optional')}
+              description={t('monthReview.allocatedInputHint')}
+            >
+              {(control) => (
+                <MoneyInput
+                  {...control}
+                  value={allocated}
+                  onValueChange={setAllocated}
+                  currencySymbol={currency}
+                />
+              )}
+            </Field>
+          )}
         </div>
       )}
 

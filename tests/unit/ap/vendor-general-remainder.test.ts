@@ -136,8 +136,28 @@ describe('sumVendorBillGeneralRemainders', () => {
     );
 
     expect(totals.remainderFromUnderAllocatedBills).toEqual(money('30', 'ILS'));
+    expect(totals.remainderFromUnderAllocatedBillsCompanyOnly).toEqual(money('0', 'ILS'));
     expect(totals.remainderFromNullProjectBills).toEqual(money('25', 'ILS'));
     expect(totals.totalGeneralRemainder).toEqual(money('55', 'ILS'));
+  });
+
+  it('routes under-allocated remainder to company-only bucket when intent says so', () => {
+    const totals = sumVendorBillGeneralRemainders(
+      [
+        {
+          currency: 'ILS',
+          projectId: 'p1',
+          billNetAmount: '100',
+          appliedProjectAllocationAmounts: ['60'],
+          hasAppliedAllocationLines: true,
+          hasAppliedProjectAllocationLines: true,
+          remainderAllocationIntent: 'company_only',
+        },
+      ],
+      'ILS',
+    );
+    expect(totals.remainderFromUnderAllocatedBills).toEqual(money('0', 'ILS'));
+    expect(totals.remainderFromUnderAllocatedBillsCompanyOnly).toEqual(money('40', 'ILS'));
   });
 
   it('conserves NET = project slices + remainder for an under-allocated bill', () => {

@@ -9,6 +9,7 @@ export type ApBillFactRow = {
   readonly currency: string;
   readonly retentionHeldRemaining: string;
   readonly billDate: string | null;
+  readonly remainderAllocationIntent?: 'auto_pool' | 'company_only' | null;
 };
 
 export type ApAllocationFactRow = {

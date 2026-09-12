@@ -82,6 +82,9 @@ export function VendorBillAllocationPanel({
   const [draftSaved, setDraftSaved] = useState(false);
   const [applied, setApplied] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [remainderAllocationIntent, setRemainderAllocationIntent] = useState<
+    'auto_pool' | 'company_only'
+  >('auto_pool');
 
   const preview = useMemo(() => {
     if (mode === 'single') {
@@ -146,6 +149,8 @@ export function VendorBillAllocationPanel({
         apBillId: billId,
         linesJson: JSON.stringify(buildPersistLines()),
         apply,
+        remainderAllocationIntent:
+          Number(preview.unallocated) > 0 ? remainderAllocationIntent : undefined,
       });
       if (result.error) {
         setActionError(result.error);
@@ -183,6 +188,27 @@ export function VendorBillAllocationPanel({
 
       {preview.exceeds ? (
         <Alert tone="danger">{t('allocation.exceedsNet')}</Alert>
+      ) : null}
+
+      {mode === 'split' && Number(preview.unallocated) > 0 ? (
+        <Field label={t('allocation.remainderIntent')}>
+          {(control) => (
+            <Select
+              value={remainderAllocationIntent}
+              onValueChange={(value) =>
+                setRemainderAllocationIntent(value as typeof remainderAllocationIntent)
+              }
+            >
+              <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="auto_pool">{t('allocation.remainderAutoPool')}</SelectItem>
+                <SelectItem value="company_only">{t('allocation.remainderCompanyOnly')}</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+        </Field>
       ) : null}
 
       <Field label={t('allocation.mode')}>

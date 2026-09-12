@@ -151,6 +151,8 @@ export function foldMonthlyLaborPreviewBundle(
         endDate: row.endDate,
         employmentBasis: null,
         standardHoursPerDay: null,
+        compensationClass: 'standard',
+        defaultLaborAllocationIntent: 'auto_pool',
         archivedAt: null,
         createdAt: new Date(0),
         updatedAt: new Date(0),

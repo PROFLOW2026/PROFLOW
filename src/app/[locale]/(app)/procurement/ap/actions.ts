@@ -293,6 +293,7 @@ export async function saveBillProjectAllocationsAction(input: {
   apBillId: string;
   linesJson: string;
   apply?: boolean;
+  remainderAllocationIntent?: 'auto_pool' | 'company_only';
 }): Promise<ApFormState> {
   try {
     await withOrgContext((context) =>
@@ -300,6 +301,7 @@ export async function saveBillProjectAllocationsAction(input: {
         apBillId: input.apBillId,
         lines: parseBillAllocationLines(input.linesJson),
         apply: input.apply === true,
+        remainderAllocationIntent: input.remainderAllocationIntent,
       }),
     );
     revalidatePath(`/procurement/ap/${input.apBillId}`);

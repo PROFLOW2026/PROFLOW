@@ -7,7 +7,7 @@ import {
   assertMonthOpenForRewrite,
   yearMonthFromBusinessDate,
 } from '@/modules/month-close';
-import { findApBillById } from '../data/ap.repository';
+import { findApBillById, updateApBillFields } from '../data/ap.repository';
 import {
   applyDraftBillAllocations,
   deleteDraftBillAllocations,
@@ -165,6 +165,12 @@ export async function saveBillProjectAllocations(
     // Supersede applied + clear drafts so conservation cap does not double-count.
     await supersedeActiveBillAllocations(tx, context.organizationId, bill.id);
     await deleteDraftBillAllocations(tx, context.organizationId, bill.id);
+
+    if (parsed.data.remainderAllocationIntent) {
+      await updateApBillFields(tx, context.organizationId, bill.id, {
+        remainderAllocationIntent: parsed.data.remainderAllocationIntent,
+      });
+    }
 
     if (resolved.lines.length === 0) {
       return { lines: [] };

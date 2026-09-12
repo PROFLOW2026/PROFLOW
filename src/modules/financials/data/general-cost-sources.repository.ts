@@ -61,6 +61,7 @@ export async function loadGeneralCostNonApSourceTotalsByMonths(
             and e.archived_at is null
             and coalesce(e.inventory_stock_purchase, false) = false
             and e.project_id is null
+            and e.allocation_intent = 'auto_pool'
             and e.installment_count > 1
             and not exists (
               select 1 from expense_allocations a
@@ -75,6 +76,7 @@ export async function loadGeneralCostNonApSourceTotalsByMonths(
             and e.archived_at is null
             and coalesce(e.inventory_stock_purchase, false) = false
             and e.project_id is null
+            and e.allocation_intent = 'auto_pool'
             and to_char(e.expense_date::date, 'YYYY-MM') in (${ymList})
             and not (
               e.installment_count > 1 and exists (
@@ -87,6 +89,33 @@ export async function loadGeneralCostNonApSourceTotalsByMonths(
               select 1 from expense_allocations a
               where a.expense_id = e.id and a.organization_id = e.organization_id and a.project_id is not null
             )
+        ) s
+        group by s.ym
+        union all
+        select s.ym as "yearMonth", 'expense_company_only'::text as "sourceKind", coalesce(sum(s.contrib), 0)::text as total
+        from (
+          select to_char(e.expense_date::date, 'YYYY-MM') as ym, e.net_amount as contrib
+          from expenses e
+          where e.organization_id = ${organizationId}
+            and e.currency = ${normalized}
+            and e.status = 'finalized'
+            and e.archived_at is null
+            and coalesce(e.inventory_stock_purchase, false) = false
+            and e.project_id is null
+            and e.allocation_intent = 'company_only'
+            and to_char(e.expense_date::date, 'YYYY-MM') in (${ymList})
+          union all
+          select to_char(e.expense_date::date, 'YYYY-MM') as ym, a.amount as contrib
+          from expense_allocations a
+          inner join expenses e on e.id = a.expense_id and e.organization_id = a.organization_id
+          where a.organization_id = ${organizationId}
+            and e.currency = ${normalized}
+            and e.status = 'finalized'
+            and e.archived_at is null
+            and e.project_id is null
+            and e.allocation_intent = 'project_allocate'
+            and a.target_type = 'overhead'
+            and to_char(e.expense_date::date, 'YYYY-MM') in (${ymList})
         ) s
         group by s.ym
       `
@@ -106,6 +135,22 @@ export async function loadGeneralCostNonApSourceTotalsByMonths(
           and emc.recognition_source = 'monthly_allocated'
           and upper(lar.currency) = upper(${normalized})
           and emc.year_month in (${ymList})
+          and lar.unallocated_amount::numeric > 0
+        group by emc.year_month
+        union all
+        select emc.year_month as "yearMonth",
+               'labor_company_only'::text as "sourceKind",
+               coalesce(sum(lar.company_only_amount), 0)::text as total
+        from labor_allocation_runs lar
+        inner join employee_month_costs emc
+          on lar.employee_month_cost_id = emc.id and lar.organization_id = emc.organization_id
+        where lar.organization_id = ${organizationId}
+          and lar.status = 'applied'
+          and emc.status in ('applied', 'closed')
+          and emc.recognition_source = 'monthly_allocated'
+          and upper(lar.currency) = upper(${normalized})
+          and emc.year_month in (${ymList})
+          and lar.company_only_amount::numeric > 0
         group by emc.year_month
       `
     : sql`select null::text as "yearMonth", null::text as "sourceKind", null::text as total where false`;
@@ -179,12 +224,16 @@ export function foldGeneralCostNonApSourceRows(
   yearMonths: readonly string[],
 ): {
   expenseByMonth: Map<string, MoneyValue>;
+  expenseCompanyOnlyByMonth: Map<string, MoneyValue>;
   laborMonthlyByMonth: Map<string, string>;
+  laborCompanyOnlyByMonth: Map<string, string>;
   laborNonProjectByMonth: Map<string, string>;
   writeoffsByMonth: Map<string, MoneyValue>;
 } {
   const expenseByMonth = new Map<string, MoneyValue>();
+  const expenseCompanyOnlyByMonth = new Map<string, MoneyValue>();
   const laborMonthlyByMonth = new Map<string, string>();
+  const laborCompanyOnlyByMonth = new Map<string, string>();
   const laborNonProjectByMonth = new Map<string, string>();
   const writeoffsByMonth = new Map<string, MoneyValue>();
   const allowed = new Set(yearMonths);
@@ -196,8 +245,15 @@ export function foldGeneralCostNonApSourceRows(
         row.yearMonth,
         fromNumericString(row.total, currency) ?? zeroMoney(currency),
       );
+    } else if (row.sourceKind === 'expense_company_only') {
+      expenseCompanyOnlyByMonth.set(
+        row.yearMonth,
+        fromNumericString(row.total, currency) ?? zeroMoney(currency),
+      );
     } else if (row.sourceKind === 'labor_monthly_unallocated') {
       laborMonthlyByMonth.set(row.yearMonth, row.total);
+    } else if (row.sourceKind === 'labor_company_only') {
+      laborCompanyOnlyByMonth.set(row.yearMonth, row.total);
     } else if (row.sourceKind === 'labor_non_project') {
       laborNonProjectByMonth.set(row.yearMonth, row.total);
     } else if (row.sourceKind === 'inventory_writeoff') {
@@ -207,5 +263,12 @@ export function foldGeneralCostNonApSourceRows(
       );
     }
   }
-  return { expenseByMonth, laborMonthlyByMonth, laborNonProjectByMonth, writeoffsByMonth };
+  return {
+    expenseByMonth,
+    expenseCompanyOnlyByMonth,
+    laborMonthlyByMonth,
+    laborCompanyOnlyByMonth,
+    laborNonProjectByMonth,
+    writeoffsByMonth,
+  };
 }

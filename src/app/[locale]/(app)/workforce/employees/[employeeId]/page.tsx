@@ -470,6 +470,10 @@ export default async function EmployeeDetailPage({
               employeeName={employee.name}
               currency={currency}
               defaultYearMonth={defaultYearMonth}
+              projects={candidateProjects.map((project) => ({
+                id: project.id,
+                name: project.name,
+              }))}
               canReview={canReadRates}
               canManage={canManageCosts}
               initialReview={monthReview}

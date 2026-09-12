@@ -24,7 +24,10 @@ import { netRecognizedBillAfterCredits, scaleBillSliceAfterCredits } from './ven
 export type VendorBillGeneralRemainderKind = 'under_allocated' | 'null_project' | 'none';
 
 export interface VendorBillGeneralRemainderBuckets {
+  /** Under-NET remainder routed to GCM auto-pool. */
   readonly remainderFromUnderAllocatedBills: MoneyValue;
+  /** Under-NET remainder explicitly marked company-only on the bill. */
+  readonly remainderFromUnderAllocatedBillsCompanyOnly: MoneyValue;
   readonly remainderFromNullProjectBills: MoneyValue;
   readonly totalGeneralRemainder: MoneyValue;
 }
@@ -97,6 +100,7 @@ export interface VendorBillGeneralRemainderInput {
   readonly appliedProjectAllocationAmounts: readonly string[];
   readonly hasAppliedAllocationLines: boolean;
   readonly hasAppliedProjectAllocationLines: boolean;
+  readonly remainderAllocationIntent?: 'auto_pool' | 'company_only';
 }
 
 export function splitVendorBillGeneralRemainder(
@@ -123,23 +127,36 @@ export function sumVendorBillGeneralRemainders(
   currency: string,
 ): VendorBillGeneralRemainderBuckets {
   const code = currency.toUpperCase();
-  let under = zeroMoney(code);
+  let underAutoPool = zeroMoney(code);
+  let underCompanyOnly = zeroMoney(code);
   let nullProject = zeroMoney(code);
 
   for (const bill of bills) {
     if (bill.currency.toUpperCase() !== code) continue;
     const { kind, remainder } = splitVendorBillGeneralRemainder(bill);
-    if (kind === 'under_allocated') under = addMoney(under, remainder);
-    else if (kind === 'null_project') nullProject = addMoney(nullProject, remainder);
+    if (kind === 'under_allocated') {
+      if (bill.remainderAllocationIntent === 'company_only') {
+        underCompanyOnly = addMoney(underCompanyOnly, remainder);
+      } else {
+        underAutoPool = addMoney(underAutoPool, remainder);
+      }
+    } else if (kind === 'null_project') {
+      nullProject = addMoney(nullProject, remainder);
+    }
   }
 
-  const remainderFromUnderAllocatedBills = roundMoney(under);
+  const remainderFromUnderAllocatedBills = roundMoney(underAutoPool);
+  const remainderFromUnderAllocatedBillsCompanyOnly = roundMoney(underCompanyOnly);
   const remainderFromNullProjectBills = roundMoney(nullProject);
   return {
     remainderFromUnderAllocatedBills,
+    remainderFromUnderAllocatedBillsCompanyOnly,
     remainderFromNullProjectBills,
     totalGeneralRemainder: roundMoney(
-      addMoney(remainderFromUnderAllocatedBills, remainderFromNullProjectBills),
+      addMoney(
+        addMoney(remainderFromUnderAllocatedBills, remainderFromUnderAllocatedBillsCompanyOnly),
+        remainderFromNullProjectBills,
+      ),
     ),
   };
 }

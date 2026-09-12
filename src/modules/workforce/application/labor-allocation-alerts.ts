@@ -49,6 +49,24 @@ export async function employeeExpectsProjectLaborAllocation(
   employeeId: string,
   yearMonth: string,
 ): Promise<boolean> {
+  const [employee] = await context.db
+    .select({
+      compensationClass: employees.compensationClass,
+      defaultLaborAllocationIntent: employees.defaultLaborAllocationIntent,
+    })
+    .from(employees)
+    .where(
+      and(eq(employees.organizationId, context.organizationId), eq(employees.id, employeeId)),
+    )
+    .limit(1);
+
+  if (
+    employee?.compensationClass === 'owner_manager' &&
+    employee.defaultLaborAllocationIntent === 'company_only'
+  ) {
+    return false;
+  }
+
   const { fromDate, toDate } = monthDateBounds(yearMonth);
 
   const [assignment] = await context.db

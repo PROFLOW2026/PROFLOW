@@ -23,6 +23,7 @@ import {
   timestamps,
 } from './_shared';
 import {
+  allocationIntentEnum,
   allocationMethodEnum,
   allocationRunStatusEnum,
   allocationScheduleModeEnum,
@@ -164,6 +165,12 @@ export const expenses = pgTable(
      * Null means one_time for backwards compatibility.
      */
     allocationScheduleMode: allocationScheduleModeEnum('allocation_schedule_mode'),
+
+    /**
+     * How this expense's org-level cost is routed (0084):
+     * project_allocate | auto_pool | company_only.
+     */
+    allocationIntent: allocationIntentEnum('allocation_intent').notNull().default('auto_pool'),
 
     /**
      * Managerial installment spread (0069). Default 1 = full NET in start month.

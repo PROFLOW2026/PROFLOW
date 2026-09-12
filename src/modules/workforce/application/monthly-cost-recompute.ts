@@ -481,25 +481,44 @@ export async function recomputeMonthlyEmployeeCostForOpenMonth(
       await deleteDraftLaborAllocationRun(tx, context.organizationId, prior.id);
     }
 
+    const employee = await findEmployeeById(tx, context.organizationId, employeeId);
+    const ownerCompanyOnly =
+      employee?.compensationClass === 'owner_manager' &&
+      employee.defaultLaborAllocationIntent === 'company_only';
+    const allocatedAmount = ownerCompanyOnly
+      ? money('0', currency)
+      : allocation.allocatedToProjects;
+    const companyOnlyAmount = ownerCompanyOnly
+      ? money(knownAmountStr, currency)
+      : money('0', currency);
+    const unallocatedAmount = ownerCompanyOnly
+      ? money('0', currency)
+      : allocation.nonProjectOrUnallocated;
+
     const run = await insertDraftLaborAllocationRun(tx, {
       organizationId: context.organizationId,
       employeeMonthCostId: month.id,
       method: 'days',
       currency,
-      allocatedAmount: toNumericString(allocation.allocatedToProjects),
-      unallocatedAmount: toNumericString(allocation.nonProjectOrUnallocated),
-      explanation: `Monthly accrued allocation (${recognizedWorkDayCount} work day(s) × derived daily)`,
+      allocatedAmount: toNumericString(allocatedAmount),
+      unallocatedAmount: toNumericString(unallocatedAmount),
+      companyOnlyAmount: toNumericString(companyOnlyAmount),
+      explanation: ownerCompanyOnly
+        ? 'Owner/manager company-only employer cost (no project attribution)'
+        : `Monthly accrued allocation (${recognizedWorkDayCount} work day(s) × derived daily)`,
       supersedesRunId: prior?.status === 'applied' ? prior.id : null,
-      lines: allocation.projectLines.map((line, index) => ({
-        projectId: line.key,
-        amount: toNumericString(line.amount),
-        currency,
-        percent: line.percent,
-        basisHours: line.hours,
-        basisDays: null,
-        sortOrder: index,
-        notes: null,
-      })),
+      lines: ownerCompanyOnly
+        ? []
+        : allocation.projectLines.map((line, index) => ({
+            projectId: line.key,
+            amount: toNumericString(line.amount),
+            currency,
+            percent: line.percent,
+            basisHours: line.hours,
+            basisDays: null,
+            sortOrder: index,
+            notes: null,
+          })),
     });
 
     const applied = await applyLaborAllocationRun(tx, context.organizationId, run.id);

@@ -582,6 +582,13 @@
                         "when":  1788672800000,
                         "tag":  "0083_payment_amount_basis",
                         "breakpoints":  true
+                    },
+                    {
+                        "idx":  83,
+                        "version":  "7",
+                        "when":  1788759200000,
+                        "tag":  "0084_allocation_intent_company_only",
+                        "breakpoints":  true
                     }
                 ]
 }

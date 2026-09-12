@@ -227,9 +227,12 @@ export const generalCostMonthSources = pgTable(
       'general_cost_month_sources_kind_known',
       sql`${table.sourceKind} IN (
         'expense_unallocated',
+        'expense_company_only',
         'labor_monthly_unallocated',
+        'labor_company_only',
         'labor_non_project',
         'ap_bill_remainder',
+        'ap_bill_remainder_company_only',
         'ap_bill_null_project',
         'inventory_writeoff',
         'other'

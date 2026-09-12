@@ -43,7 +43,10 @@ export interface ResolvedMonthlyAllocationLine {
 export interface MonthlyAllocationResolution {
   readonly lines: readonly ResolvedMonthlyAllocationLine[];
   readonly allocatedAmount: MoneyValue;
+  /** Auto-pool portion (GCM) — not project-attributed. */
   readonly unallocatedAmount: MoneyValue;
+  /** Explicit company-only portion. */
+  readonly companyOnlyAmount: MoneyValue;
 }
 
 function parseNonNegative(value: string | null | undefined, label: string): Decimal {
@@ -65,13 +68,30 @@ export function resolveMonthlyAllocationAmounts(input: {
   readonly knownAmount: MoneyValue;
   readonly method: MonthlyAllocationMethod;
   readonly lines: readonly MonthlyAllocationLineInput[];
+  readonly companyOnlyAmount?: string | null;
+  readonly remainderAllocationIntent?: 'auto_pool' | 'company_only';
 }): MonthlyAllocationResolution {
   const { knownAmount, method, lines } = input;
+  const explicitCompanyOnly = input.companyOnlyAmount?.trim()
+    ? money(input.companyOnlyAmount, knownAmount.currency)
+    : money('0', knownAmount.currency);
   if (lines.length === 0) {
+    const remainder = subtractMoney(knownAmount, explicitCompanyOnly);
+    const companyOnly =
+      toDecimalValue(explicitCompanyOnly).greaterThan(0)
+        ? explicitCompanyOnly
+        : input.remainderAllocationIntent === 'company_only'
+          ? remainder
+          : money('0', knownAmount.currency);
+    const autoPool =
+      input.remainderAllocationIntent === 'company_only'
+        ? money('0', knownAmount.currency)
+        : subtractMoney(knownAmount, companyOnly);
     return {
       lines: [],
       allocatedAmount: money('0', knownAmount.currency),
-      unallocatedAmount: knownAmount,
+      unallocatedAmount: autoPool,
+      companyOnlyAmount: companyOnly,
     };
   }
 
@@ -90,18 +110,22 @@ export function resolveMonthlyAllocationAmounts(input: {
   }
 
   if (method === 'hours' || method === 'days') {
-    return resolveByWeights(knownAmount, method, lines);
+    return resolveByWeights(knownAmount, method, lines, input);
   }
   if (method === 'percent') {
-    return resolveByPercent(knownAmount, lines);
+    return resolveByPercent(knownAmount, lines, input);
   }
-  return resolveByFixedAmount(knownAmount, lines);
+  return resolveByFixedAmount(knownAmount, lines, input);
 }
 
 function resolveByWeights(
   knownAmount: MoneyValue,
   method: 'hours' | 'days',
   lines: readonly MonthlyAllocationLineInput[],
+  input: {
+    readonly companyOnlyAmount?: string | null;
+    readonly remainderAllocationIntent?: 'auto_pool' | 'company_only';
+  },
 ): MonthlyAllocationResolution {
   const bases = lines.map((line) => {
     const raw =
@@ -152,16 +176,57 @@ function resolveByWeights(
     };
   });
 
-  return {
+  const resolution = {
     lines: resolved.filter((line) => toDecimalValue(line.amount).greaterThan(0)),
     allocatedAmount: knownAmount,
     unallocatedAmount: money('0', knownAmount.currency),
+    companyOnlyAmount: money('0', knownAmount.currency),
+  };
+  return applyCompanyOnlySplit(resolution, knownAmount, input);
+}
+
+function applyCompanyOnlySplit(
+  base: MonthlyAllocationResolution,
+  knownAmount: MoneyValue,
+  input: {
+    readonly companyOnlyAmount?: string | null;
+    readonly remainderAllocationIntent?: 'auto_pool' | 'company_only';
+  },
+): MonthlyAllocationResolution {
+  let companyOnly = input.companyOnlyAmount?.trim()
+    ? money(input.companyOnlyAmount, knownAmount.currency)
+    : money('0', knownAmount.currency);
+  let unallocated = base.unallocatedAmount;
+  if (
+    toDecimalValue(companyOnly).isZero() &&
+    toDecimalValue(unallocated).greaterThan(0) &&
+    input.remainderAllocationIntent === 'company_only'
+  ) {
+    companyOnly = unallocated;
+    unallocated = money('0', knownAmount.currency);
+  } else if (toDecimalValue(companyOnly).greaterThan(0)) {
+    unallocated = subtractMoney(unallocated, companyOnly);
+    if (toDecimalValue(unallocated).isNegative()) {
+      throw new DomainRuleError(
+        'Company-only amount exceeds remaining employer cost',
+        'workforce.errors.allocationOverKnown',
+      );
+    }
+  }
+  return {
+    ...base,
+    unallocatedAmount: unallocated,
+    companyOnlyAmount: companyOnly,
   };
 }
 
 function resolveByPercent(
   knownAmount: MoneyValue,
   lines: readonly MonthlyAllocationLineInput[],
+  input: {
+    readonly companyOnlyAmount?: string | null;
+    readonly remainderAllocationIntent?: 'auto_pool' | 'company_only';
+  },
 ): MonthlyAllocationResolution {
   let percentTotal = new Decimal(0);
   const resolvedAmounts: MoneyValue[] = [];
@@ -204,16 +269,25 @@ function resolveByPercent(
     sortOrder: index,
   }));
 
-  return {
-    lines: resolved.filter((line) => toDecimalValue(line.amount).greaterThan(0)),
-    allocatedAmount: allocated,
-    unallocatedAmount: unallocated,
-  };
+  return applyCompanyOnlySplit(
+    {
+      lines: resolved.filter((line) => toDecimalValue(line.amount).greaterThan(0)),
+      allocatedAmount: allocated,
+      unallocatedAmount: unallocated,
+      companyOnlyAmount: money('0', knownAmount.currency),
+    },
+    knownAmount,
+    input,
+  );
 }
 
 function resolveByFixedAmount(
   knownAmount: MoneyValue,
   lines: readonly MonthlyAllocationLineInput[],
+  input: {
+    readonly companyOnlyAmount?: string | null;
+    readonly remainderAllocationIntent?: 'auto_pool' | 'company_only';
+  },
 ): MonthlyAllocationResolution {
   const resolvedAmounts: MoneyValue[] = [];
 
@@ -259,11 +333,16 @@ function resolveByFixedAmount(
     };
   });
 
-  return {
-    lines: resolved,
-    allocatedAmount: allocated,
-    unallocatedAmount: unallocated,
-  };
+  return applyCompanyOnlySplit(
+    {
+      lines: resolved,
+      allocatedAmount: allocated,
+      unallocatedAmount: unallocated,
+      companyOnlyAmount: money('0', knownAmount.currency),
+    },
+    knownAmount,
+    input,
+  );
 }
 
 /** Derive known employer cost from estimated/actual draft fields (actual wins when > 0). */

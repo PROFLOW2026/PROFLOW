@@ -51,7 +51,7 @@ import {
   deriveRecognizedCompanyRevenue,
 } from '../domain/aggregate-org-report';
 import {
-  computeUnallocatedOrganizationCosts,
+  computeAwaitingAllocationOrganizationCosts,
   sumProjectTouchingExpenseNets,
 } from '../domain/org-cost-reconciliation';
 import {
@@ -73,6 +73,7 @@ import {
   listUnallocatedBusinessExpenses,
   loadOrganizationExpenseContributions,
   sumOrganizationActualCosts,
+  sumOrganizationCompanyOnlyExpenses,
   sumOrganizationRecognizedCostsInDateRange,
 } from '../data/expenses.repository';
 import {
@@ -866,7 +867,8 @@ async function collectOrgExpenseLayer(
   const canReadExpenses = hasPermission(context, PERMISSIONS.EXPENSES_READ);
   const monthCostsReady = canReadWorkforce && areEmployeeMonthCostsAvailable();
 
-  const [contributions, laborAgg, monthlyLaborByProject, orgExpense] = await Promise.all([
+  const [contributions, laborAgg, monthlyLaborByProject, orgExpense, companyOnlyExpenses] =
+    await Promise.all([
     canReadExpenses
       ? (contributionsPromise ??
         loadOrganizationExpenseContributions(context.db, context.organizationId))
@@ -880,14 +882,18 @@ async function collectOrgExpenseLayer(
     canReadExpenses
       ? sumOrganizationActualCosts(context.db, context.organizationId, currency)
       : Promise.resolve({ total: zeroMoney(currency), hasExpenseData: false }),
+    canReadExpenses
+      ? sumOrganizationCompanyOnlyExpenses(context.db, context.organizationId, currency)
+      : Promise.resolve(zeroMoney(currency)),
   ]);
 
   const projectTouching = sumProjectTouchingExpenseNets(contributions, currency);
   // Do not invent a confident zero unallocated when expenses are permission-denied.
   const unallocatedBusinessCosts = canReadExpenses
-    ? computeUnallocatedOrganizationCosts({
+    ? computeAwaitingAllocationOrganizationCosts({
         orgFinalizedExpenseTotal: orgExpense.total,
         projectTouchingExpenseTotal: projectTouching,
+        intentionalCompanyOnly: companyOnlyExpenses,
       })
     : null;
 

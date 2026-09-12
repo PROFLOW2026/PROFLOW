@@ -56,6 +56,8 @@ export type AllocationScheduleMode = 'one_time' | 'monthly' | 'annual' | 'custom
 
 export type ExpenseTargetingMode = 'project' | 'overhead';
 
+export type ExpenseAllocationIntent = 'project_allocate' | 'auto_pool' | 'company_only';
+
 export interface ExpenseTargeting {
   readonly mode: ExpenseTargetingMode;
   readonly projectId: string | null;
@@ -186,6 +188,7 @@ export interface ExpenseDetail extends ExpenseSummary {
   readonly allocationPeriodEnd: BusinessDate | null;
   readonly allocationDriverMethod: AllocationMethod | null;
   readonly allocationScheduleMode: AllocationScheduleMode | null;
+  readonly allocationIntent?: ExpenseAllocationIntent;
   /** Managerial Actual spread; 1 = full NET in the start month. */
   readonly installmentCount: number;
   readonly installmentStartDate: BusinessDate | null;

@@ -146,6 +146,7 @@ function sampleDetail(overrides: Partial<ExpenseDetail> = {}): ExpenseDetail {
     allocationPeriodEnd: null,
     allocationDriverMethod: null,
     allocationScheduleMode: null,
+    allocationIntent: 'auto_pool',
     installmentCount: 1,
     installmentStartDate: null,
     installmentsPaidCount: 0,
@@ -167,6 +168,7 @@ describe('expense detail attention', () => {
         sampleDetail({
           status: 'finalized',
           costFamily: 'shared',
+          allocationIntent: 'project_allocate',
           projectId: null,
           allocations: [{ targetType: 'overhead', projectId: null } as never],
         }),
@@ -212,6 +214,7 @@ describe('expense detail attention', () => {
         sampleDetail({
           status: 'finalized',
           costFamily: 'shared',
+          allocationIntent: 'project_allocate',
           projectId: null,
           allocations: [{ targetType: 'overhead', projectId: null } as never],
         }),

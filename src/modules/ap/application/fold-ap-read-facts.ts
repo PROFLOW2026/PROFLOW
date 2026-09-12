@@ -105,6 +105,9 @@ export function foldApGeneralRemaindersByYearMonthFromFacts(
         : [],
       hasAppliedAllocationLines: billsWithAnyApplied.has(row.id),
       hasAppliedProjectAllocationLines: billsWithProjectApplied.has(row.id),
+      remainderAllocationIntent:
+        (row.remainderAllocationIntent as 'auto_pool' | 'company_only' | undefined) ??
+        'auto_pool',
     };
     const list = byMonth.get(ym) ?? [];
     list.push(input);

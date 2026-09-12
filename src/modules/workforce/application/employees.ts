@@ -222,6 +222,11 @@ export async function createEmployee(
       endDate: input.endDate ? coerceBusinessDate(input.endDate) : null,
       employmentBasis: input.baseRate ? input.rateUnit : null,
       standardHoursPerDay: standardHours,
+      compensationClass: input.compensationClass ?? 'standard',
+      defaultLaborAllocationIntent:
+        input.rateUnit === 'monthly'
+          ? (input.defaultLaborAllocationIntent ?? 'auto_pool')
+          : 'auto_pool',
     });
   } catch (error) {
     if (isUniqueViolation(error)) {
@@ -353,6 +358,12 @@ export async function updateEmployee(
         input.standardHoursPerDay === '' || input.standardHoursPerDay === undefined
           ? undefined
           : input.standardHoursPerDay,
+      ...(input.compensationClass !== undefined
+        ? { compensationClass: input.compensationClass }
+        : {}),
+      ...(input.defaultLaborAllocationIntent !== undefined
+        ? { defaultLaborAllocationIntent: input.defaultLaborAllocationIntent }
+        : {}),
     });
   } catch (error) {
     if (isUniqueViolation(error)) {

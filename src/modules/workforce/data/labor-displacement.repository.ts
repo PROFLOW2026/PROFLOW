@@ -107,7 +107,45 @@ export async function sumMonthlyAllocatedLaborForProject(
   );
 }
 
-/** Σ run.unallocated_amount for applied runs on applied/closed months. */
+/** Σ run.company_only_amount for applied runs (excluded from GCM and project Actual). */
+export async function sumOrganizationMonthlyLaborCompanyOnly(
+  db: DbExecutor,
+  organizationId: string,
+  currency: string,
+  options?: { readonly yearMonth?: string },
+): Promise<{ totalAmount: string; currency: string }> {
+  const conditions = [
+    eq(laborAllocationRuns.organizationId, organizationId),
+    eq(laborAllocationRuns.status, 'applied'),
+    inArray(employeeMonthCosts.status, [...appliedClosedStatuses]),
+    eq(employeeMonthCosts.recognitionSource, 'monthly_allocated'),
+    sql`upper(${laborAllocationRuns.currency}) = upper(${currency})`,
+  ];
+  if (options?.yearMonth) {
+    conditions.push(eq(employeeMonthCosts.yearMonth, options.yearMonth));
+  }
+
+  const [row] = await db
+    .select({
+      totalAmount: sql<string>`coalesce(sum(${laborAllocationRuns.companyOnlyAmount}), 0)::text`,
+    })
+    .from(laborAllocationRuns)
+    .innerJoin(
+      employeeMonthCosts,
+      and(
+        eq(laborAllocationRuns.employeeMonthCostId, employeeMonthCosts.id),
+        eq(laborAllocationRuns.organizationId, employeeMonthCosts.organizationId),
+      ),
+    )
+    .where(and(...conditions));
+
+  return {
+    totalAmount: row?.totalAmount ?? '0',
+    currency: currency.toUpperCase(),
+  };
+}
+
+/** Σ run.unallocated_amount (auto-pool / GCM) for applied runs on applied/closed months. */
 export async function sumOrganizationMonthlyLaborUnallocated(
   db: DbExecutor,
   organizationId: string,

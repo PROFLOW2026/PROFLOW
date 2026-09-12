@@ -57,6 +57,8 @@ export async function createEmployeeAction(
     userId: formData.get('userId') || null,
     standardHoursPerDay: formData.get('standardHoursPerDay') || null,
     workingDaysPerMonth: formData.get('workingDaysPerMonth') || null,
+    compensationClass: formData.get('compensationClass') || undefined,
+    defaultLaborAllocationIntent: formData.get('defaultLaborAllocationIntent') || undefined,
   });
 
   if (!parsed.success) {
@@ -130,6 +132,8 @@ export async function updateEmployeeAction(
     endDate: formData.has('endDate') ? formData.get('endDate') || null : undefined,
     standardHoursPerDay: formData.get('standardHoursPerDay') || null,
     userId: formData.has('userId') ? formData.get('userId') || null : undefined,
+    compensationClass: formData.get('compensationClass') || undefined,
+    defaultLaborAllocationIntent: formData.get('defaultLaborAllocationIntent') || undefined,
   });
 
   if (!parsed.success) {
@@ -321,6 +325,8 @@ export async function saveMonthlyEmployerCostDraftAction(input: {
   actualAmount?: string;
   method?: string;
   allocationLinesJson?: string;
+  companyOnlyAmount?: string;
+  remainderAllocationIntent?: 'auto_pool' | 'company_only';
 }): Promise<MonthlyEmployerCostActionState> {
   const tErrors = await getTranslations('errors');
 
@@ -338,6 +344,8 @@ export async function saveMonthlyEmployerCostDraftAction(input: {
           | 'fixed_amount'
           | undefined,
         allocationLines: parseAllocationLinesJson(input.allocationLinesJson ?? null),
+        companyOnlyAmount: input.companyOnlyAmount ?? null,
+        remainderAllocationIntent: input.remainderAllocationIntent,
       }),
     );
     revalidatePath(`/workforce/employees/${input.employeeId}`);

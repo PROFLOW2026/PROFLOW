@@ -10,6 +10,7 @@ import { noteModuleUsage } from '@/modules/tenancy';
 import { getInventoryItemById, normalizeQuantity } from '@/modules/assets';
 import { resolveExpenseClassificationStatus, assertCostCategoryFamilyConsistent } from '@/modules/financials/domain/economic-classification';
 import { assertInternalPayrollExpenseAllowed } from '@/modules/financials/domain/labor-expense-integrity';
+import { resolveExpenseAllocationIntent } from '@/modules/financials/domain/allocation-intent';
 import { resolveAllocationLines } from '../domain/allocation';
 import { resolveExpenseCurrency } from '../domain/currency';
 import { isOverheadTargeting, resolveExpenseTargeting, assertNoAllocationsOnProjectExpense } from '../domain/targeting';
@@ -373,6 +374,23 @@ export async function buildExpensePayload(
 
   const inventoryStock = await resolveInventoryStockPurchaseFields(context, input);
 
+  const allocationLines = input.allocations ?? [];
+  const usesAutomaticDriver =
+    Boolean(input.allocationDriverMethod) &&
+    isWeightAllocationMethod(input.allocationDriverMethod as AllocationLineInput['method']);
+  const hasProjectAllocationLine = allocationLines.some(
+    (line) => line.targetType === 'project' && Boolean(line.projectId),
+  );
+  const hasOverheadAllocationLine = allocationLines.some((line) => line.targetType === 'overhead');
+  const allocationIntent = resolveExpenseAllocationIntent({
+    explicitIntent: input.allocationIntent ?? null,
+    projectId: targeting.projectId,
+    usesAutomaticDriver,
+    hasProjectAllocationLine,
+    hasOverheadAllocationLine,
+    costFamily: targeting.costFamily,
+  });
+
   const paymentSchedule = await resolveExpensePaymentSchedule(context, {
     expenseDate,
     vendorId,
@@ -417,6 +435,7 @@ export async function buildExpensePayload(
       allocationPeriodEnd: input.allocationPeriodEnd ? businessDate(input.allocationPeriodEnd) : null,
       allocationDriverMethod: input.allocationDriverMethod ?? null,
       allocationScheduleMode: input.allocationScheduleMode ?? null,
+      allocationIntent,
       installmentCount: input.installmentCount ?? 1,
       installmentStartDate: input.installmentStartDate
         ? businessDate(input.installmentStartDate)

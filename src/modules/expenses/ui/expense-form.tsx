@@ -138,6 +138,7 @@ export interface ExpenseFormValues {
   inventoryStockPurchase: boolean;
   inventoryItemId: string;
   inventoryPurchaseQty: string;
+  allocationIntent: 'project_allocate' | 'auto_pool' | 'company_only';
 }
 
 export interface ExpenseFormProps {
@@ -277,6 +278,9 @@ export function ExpenseForm({
     initialValues?.inventoryPurchaseQty ?? '',
   );
   const [policyOverridden, setPolicyOverridden] = React.useState(false);
+  const [allocationIntent, setAllocationIntent] = React.useState<
+    ExpenseFormValues['allocationIntent']
+  >(initialValues?.allocationIntent ?? 'auto_pool');
 
   const isOverhead = targeting === OVERHEAD_VALUE;
   const projectId = isOverhead || targeting === NONE_VALUE ? '' : targeting;
@@ -289,13 +293,15 @@ export function ExpenseForm({
   const selectedCategory = costCategoryId
     ? categories.find((category) => category.id === costCategoryId) ?? null
     : null;
+  const showAllocationControls = isOverhead && allocationIntent === 'project_allocate';
   const showSharedAllocationWarning =
-    isOverhead &&
+    showAllocationControls &&
     selectedCategory?.family === 'shared' &&
     !hasProjectAllocation &&
     !usesAutomaticDriver;
-  const showCompanyOnlyOverheadHint =
-    primaryDestination === 'general' && selectedCategory?.family === 'business_overhead';
+  const showGeneralIntentHint =
+    primaryDestination === 'general' &&
+    (allocationIntent === 'company_only' || allocationIntent === 'auto_pool');
 
   const isInternalPayrollCategory =
     selectedCategory?.key.trim().toLowerCase() === INTERNAL_EMPLOYEE_PAYROLL_CATEGORY_KEY;
@@ -714,12 +720,46 @@ export function ExpenseForm({
         )}
 
         {primaryDestination === 'general' ? (
+          <Field label={t('allocationIntent.label')}>
+            {(controlProps) => (
+              <Select
+                value={allocationIntent}
+                onValueChange={(value) => {
+                  const next = value as ExpenseFormValues['allocationIntent'];
+                  setAllocationIntent(next);
+                  if (next !== 'project_allocate') {
+                    setAllocationDriverMethod('');
+                    setAllocations([]);
+                  }
+                }}
+                disabled={readOnly}
+              >
+                <SelectTrigger {...controlProps}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="project_allocate">
+                    {t('allocationIntent.project_allocate')}
+                  </SelectItem>
+                  <SelectItem value="auto_pool">{t('allocationIntent.auto_pool')}</SelectItem>
+                  <SelectItem value="company_only">
+                    {t('allocationIntent.company_only')}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          </Field>
+        ) : null}
+
+        {showGeneralIntentHint ? (
           <p className="rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-3 py-2 text-start text-sm text-[var(--pf-text-secondary)]">
-            {showCompanyOnlyOverheadHint
-              ? t('lifecycle.companyOnlyOverheadHint')
-              : t('allocation.subtitle')}
+            {allocationIntent === 'company_only'
+              ? t('allocationIntent.companyOnlyHint')
+              : t('allocationIntent.autoPoolHint')}
           </p>
         ) : null}
+
+        <input type="hidden" name="allocationIntent" value={allocationIntent} />
 
         {showSharedAllocationWarning ? (
           <p
@@ -1119,7 +1159,7 @@ export function ExpenseForm({
           <input type="hidden" name="recurrenceCadence" value={recurrenceCadence} />
           <input type="hidden" name="recurrenceCustomLabel" value={recurrenceCustomLabel} />
 
-          {isOverhead ? (
+          {showAllocationControls ? (
             <div id="expense-allocation" className="flex scroll-mt-24 flex-col gap-3">
               <Field label={t('allocation.driverLabel')}>
                 {(controlProps) => (

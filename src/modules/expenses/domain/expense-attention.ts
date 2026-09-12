@@ -79,6 +79,7 @@ export function expenseNeedsProjectAllocationFromDetail(expense: ExpenseDetail):
     projectId: expense.projectId,
     costFamily: expense.costFamily,
     inventoryStockPurchase: expense.inventoryStockPurchase,
+    allocationIntent: expense.allocationIntent,
     hasProjectAllocationLine: expense.allocations.some(
       (line) => line.targetType === 'project' && line.projectId != null,
     ),

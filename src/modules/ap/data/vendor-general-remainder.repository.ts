@@ -37,6 +37,7 @@ function emptyBuckets(currency: string): VendorBillGeneralRemainderBuckets {
   const zero = zeroMoney(currency.toUpperCase());
   return {
     remainderFromUnderAllocatedBills: zero,
+    remainderFromUnderAllocatedBillsCompanyOnly: zero,
     remainderFromNullProjectBills: zero,
     totalGeneralRemainder: zero,
   };
@@ -64,6 +65,7 @@ export async function sumRecognizedApGeneralRemainders(
       netAmount: apBills.netAmount,
       totalAmount: apBills.totalAmount,
       currency: apBills.currency,
+      remainderAllocationIntent: apBills.remainderAllocationIntent,
     })
     .from(apBills)
     .where(
@@ -139,6 +141,8 @@ export async function sumRecognizedApGeneralRemainders(
       appliedProjectAllocationAmounts: projectAmountsByBill.get(row.id) ?? [],
       hasAppliedAllocationLines,
       hasAppliedProjectAllocationLines,
+      remainderAllocationIntent:
+        (row.remainderAllocationIntent as 'auto_pool' | 'company_only' | null) ?? 'auto_pool',
     };
   });
 
@@ -172,6 +176,7 @@ export async function sumRecognizedApGeneralRemaindersByYearMonth(
       totalAmount: apBills.totalAmount,
       currency: apBills.currency,
       billDate: apBills.billDate,
+      remainderAllocationIntent: apBills.remainderAllocationIntent,
     })
     .from(apBills)
     .where(
@@ -247,6 +252,8 @@ export async function sumRecognizedApGeneralRemaindersByYearMonth(
       appliedProjectAllocationAmounts: projectAmountsByBill.get(row.id) ?? [],
       hasAppliedAllocationLines: billsWithAnyApplied.has(row.id),
       hasAppliedProjectAllocationLines: billsWithProjectApplied.has(row.id),
+      remainderAllocationIntent:
+        (row.remainderAllocationIntent as 'auto_pool' | 'company_only' | null) ?? 'auto_pool',
     };
     const list = byMonth.get(ym) ?? [];
     list.push(input);
@@ -260,8 +267,4 @@ export async function sumRecognizedApGeneralRemaindersByYearMonth(
 }
 
 export type { VendorBillGeneralRemainderBuckets };
-export type ApGeneralRemainderTotals = {
-  readonly remainderFromUnderAllocatedBills: MoneyValue;
-  readonly remainderFromNullProjectBills: MoneyValue;
-  readonly totalGeneralRemainder: MoneyValue;
-};
+export type ApGeneralRemainderTotals = VendorBillGeneralRemainderBuckets;

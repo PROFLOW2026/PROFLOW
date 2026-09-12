@@ -1,5 +1,6 @@
 import { and, eq, inArray, isNull } from 'drizzle-orm';
 import {
+  apBillProjectAllocations,
   apBills,
   committedCosts,
   purchaseOrders,
@@ -42,6 +43,21 @@ async function loadRecognizedActualByAgreement(
   if (agreementIds.length === 0) return result;
 
   const normalized = currency.toUpperCase();
+
+  const agreements = await db
+    .select({
+      id: subcontractAgreements.id,
+      projectId: subcontractAgreements.projectId,
+    })
+    .from(subcontractAgreements)
+    .where(
+      and(
+        eq(subcontractAgreements.organizationId, organizationId),
+        inArray(subcontractAgreements.id, [...agreementIds]),
+      ),
+    );
+  const agreementProjectById = new Map(agreements.map((row) => [row.id, row.projectId]));
+
   const bills = await db
     .select({
       id: apBills.id,
@@ -68,6 +84,32 @@ async function loadRecognizedActualByAgreement(
     billIds,
   );
 
+  const allocationRows =
+    billIds.length === 0
+      ? []
+      : await db
+          .select({
+            apBillId: apBillProjectAllocations.apBillId,
+            projectId: apBillProjectAllocations.projectId,
+            amount: apBillProjectAllocations.amount,
+          })
+          .from(apBillProjectAllocations)
+          .where(
+            and(
+              eq(apBillProjectAllocations.organizationId, organizationId),
+              inArray(apBillProjectAllocations.apBillId, billIds),
+              eq(apBillProjectAllocations.status, 'applied'),
+              eq(apBillProjectAllocations.targetType, 'project'),
+            ),
+          );
+
+  const allocationsByBill = new Map<string, typeof allocationRows>();
+  for (const row of allocationRows) {
+    const list = allocationsByBill.get(row.apBillId) ?? [];
+    list.push(row);
+    allocationsByBill.set(row.apBillId, list);
+  }
+
   for (const agreementId of agreementIds) {
     result.set(agreementId, zeroMoney(normalized));
   }
@@ -75,21 +117,30 @@ async function loadRecognizedActualByAgreement(
   for (const bill of bills) {
     if (!bill.subcontractAgreementId) continue;
     if (bill.currency.toUpperCase() !== normalized) continue;
+    const agreementProjectId = agreementProjectById.get(bill.subcontractAgreementId);
+    if (!agreementProjectId) continue;
+
     const net = bill.netAmount ?? bill.totalAmount;
-    const netted = bill.projectId
-      ? netProjectSliceAfterCredits({
-          currency: normalized,
-          billNetAmount: net,
-          sliceAmount: net,
-          creditActualReductions: creditsByBill.get(bill.id) ?? [],
-          projectId: bill.projectId,
-        })
-      : scaleBillSliceAfterCredits({
-          currency: normalized,
-          billNetAmount: net,
-          sliceAmount: net,
-          creditActualReductions: (creditsByBill.get(bill.id) ?? []).map((row) => row.amount),
-        });
+    const credits = creditsByBill.get(bill.id) ?? [];
+    const appliedAllocations = allocationsByBill.get(bill.id) ?? [];
+
+    let sliceAmount = net;
+    if (appliedAllocations.length > 0) {
+      const agreementSlice = appliedAllocations.find(
+        (row) => row.projectId === agreementProjectId,
+      );
+      sliceAmount = agreementSlice?.amount ?? '0';
+    } else if (bill.projectId && bill.projectId !== agreementProjectId) {
+      continue;
+    }
+
+    const netted = netProjectSliceAfterCredits({
+      currency: normalized,
+      billNetAmount: net,
+      sliceAmount,
+      creditActualReductions: credits,
+      projectId: agreementProjectId,
+    });
     if (isZeroMoney(netted) || !isPositiveMoney(netted)) continue;
     const current = result.get(bill.subcontractAgreementId) ?? zeroMoney(normalized);
     result.set(bill.subcontractAgreementId, addMoney(current, netted));

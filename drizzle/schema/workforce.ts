@@ -23,6 +23,7 @@ import {
   timestamps,
 } from './_shared';
 import {
+  allocationIntentEnum,
   employeeStatusEnum,
   laborComponentBasisEnum,
   rateUnitEnum,
@@ -61,6 +62,12 @@ export const employees = pgTable(
     standardHoursPerDay: numeric('standard_hours_per_day', { precision: 8, scale: 4 }),
     hireDate: date('hire_date', { mode: 'string' }),
     endDate: date('end_date', { mode: 'string' }),
+    /** Workforce costing class — not login role (0084). */
+    compensationClass: text('compensation_class').notNull().default('standard'),
+    /** Default routing for monthly employer cost when not manually split. */
+    defaultLaborAllocationIntent: allocationIntentEnum('default_labor_allocation_intent')
+      .notNull()
+      .default('auto_pool'),
     archivedAt: archivedAt(),
     ...timestamps(),
   },
@@ -78,6 +85,10 @@ export const employees = pgTable(
       'employees_standard_hours_per_day_range',
       sql`${table.standardHoursPerDay} IS NULL
           OR (${table.standardHoursPerDay} > 0 AND ${table.standardHoursPerDay} <= 24)`,
+    ),
+    check(
+      'employees_compensation_class_known',
+      sql`${table.compensationClass} IN ('standard', 'owner_manager')`,
     ),
   ],
 );
@@ -297,7 +308,10 @@ export const laborAllocationRuns = pgTable(
     status: text('status').notNull().default('draft'),
     currency: currencyCode().notNull(),
     allocatedAmount: moneyAmount('allocated_amount').notNull().default('0'),
+    /** Auto-pool portion (GCM) — not project-attributed. */
     unallocatedAmount: moneyAmount('unallocated_amount').notNull().default('0'),
+    /** Explicit company-only portion — excluded from GCM and project Actual. */
+    companyOnlyAmount: moneyAmount('company_only_amount').notNull().default('0'),
     explanation: text('explanation'),
     supersedesRunId: uuid('supersedes_run_id'),
     appliedAt: timestamp('applied_at', { withTimezone: true, mode: 'date' }),
@@ -327,7 +341,9 @@ export const laborAllocationRuns = pgTable(
     ),
     check(
       'labor_allocation_runs_amounts_non_negative',
-      sql`${table.allocatedAmount} >= 0 AND ${table.unallocatedAmount} >= 0`,
+      sql`${table.allocatedAmount} >= 0
+          AND ${table.unallocatedAmount} >= 0
+          AND ${table.companyOnlyAmount} >= 0`,
     ),
   ],
 );

@@ -19,13 +19,14 @@ import {
   type OrgProfitTotals,
 } from '../domain/aggregate-org-report';
 import {
-  computeUnallocatedOrganizationCosts,
+  computeAwaitingAllocationOrganizationCosts,
   sumProjectTouchingExpenseNets,
 } from '../domain/org-cost-reconciliation';
 import { hasNonZeroMoney, moneyMetric, type CountReportMetric } from '../domain/report-metric';
 import {
   loadOrganizationExpenseContributions,
   sumOrganizationActualCosts,
+  sumOrganizationCompanyOnlyExpenses,
 } from '../data/expenses.repository';
 import { loadOperationsReportCounts } from '../data/operations-report.repository';
 import { sumOrganizationGeneralPoolTotals } from '../data/general-cost-months.repository';
@@ -476,13 +477,15 @@ async function loadUnallocatedBusinessCosts(
     return null;
   }
 
-  const [orgExpense, contributions] = await Promise.all([
+  const [orgExpense, contributions, companyOnlyExpenses] = await Promise.all([
     sumOrganizationActualCosts(context.db, context.organizationId, currency),
     loadOrganizationExpenseContributions(context.db, context.organizationId),
+    sumOrganizationCompanyOnlyExpenses(context.db, context.organizationId, currency),
   ]);
 
-  return computeUnallocatedOrganizationCosts({
+  return computeAwaitingAllocationOrganizationCosts({
     orgFinalizedExpenseTotal: orgExpense.total,
     projectTouchingExpenseTotal: sumProjectTouchingExpenseNets(contributions, currency),
+    intentionalCompanyOnly: companyOnlyExpenses,
   });
 }

@@ -375,6 +375,7 @@ export {
   listDisplacedEmployeeMonthKeys,
   sumMonthlyAllocatedLaborByProject,
   sumMonthlyAllocatedLaborForProject,
+  sumOrganizationMonthlyLaborCompanyOnly,
   sumOrganizationMonthlyLaborUnallocated,
   sumOrganizationMonthlyLaborUnallocatedByMonth,
 } from './data/labor-displacement.repository';

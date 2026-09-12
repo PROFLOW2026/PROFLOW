@@ -64,6 +64,13 @@ export const expenseStatusEnum = pgEnum('expense_status', ['draft', 'finalized',
 
 export const allocationTargetEnum = pgEnum('allocation_target', ['project', 'overhead']);
 
+/** Explicit org vs project cost routing (0084). */
+export const allocationIntentEnum = pgEnum('allocation_intent', [
+  'project_allocate',
+  'auto_pool',
+  'company_only',
+]);
+
 export const allocationMethodEnum = pgEnum('allocation_method', [
   'manual_amount',
   'manual_percent',

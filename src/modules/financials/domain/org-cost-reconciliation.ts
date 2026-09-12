@@ -41,6 +41,25 @@ export function computeUnallocatedOrganizationCosts(input: {
   return subtractMoney(input.orgFinalizedExpenseTotal, input.projectTouchingExpenseTotal);
 }
 
+/**
+ * Expense-layer remainder that still needs project attribution (excludes intentional company-only).
+ */
+export function computeAwaitingAllocationOrganizationCosts(input: {
+  readonly orgFinalizedExpenseTotal: MoneyValue;
+  readonly projectTouchingExpenseTotal: MoneyValue;
+  readonly intentionalCompanyOnly: MoneyValue;
+}): MoneyValue {
+  const raw = computeUnallocatedOrganizationCosts({
+    orgFinalizedExpenseTotal: input.orgFinalizedExpenseTotal,
+    projectTouchingExpenseTotal: input.projectTouchingExpenseTotal,
+  });
+  const adjusted = subtractMoney(raw, input.intentionalCompanyOnly);
+  if (Number(adjusted.amount) < 0) {
+    return zeroMoney(raw.currency);
+  }
+  return adjusted;
+}
+
 /** True when project-touching + unallocated equals the org finalized expense total. */
 export function expenseTotalsReconcile(input: {
   readonly projectTouching: MoneyValue;

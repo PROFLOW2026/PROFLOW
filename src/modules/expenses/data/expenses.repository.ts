@@ -79,6 +79,7 @@ export interface ExpenseInsertRow {
   readonly allocationPeriodEnd?: string | null;
   readonly allocationDriverMethod?: AllocationMethod | null;
   readonly allocationScheduleMode?: AllocationScheduleMode | null;
+  readonly allocationIntent?: 'project_allocate' | 'auto_pool' | 'company_only';
   readonly installmentCount?: number;
   readonly installmentStartDate?: BusinessDate | null;
   readonly automaticInstallmentPayment?: boolean;
@@ -194,6 +195,7 @@ function needsProjectAllocationSelect(db: DbExecutor, organizationId: string) {
   return sql<boolean>`(
     ${expenses.projectId} is null
     and ${expenses.status} = 'finalized'
+    and ${expenses.allocationIntent} = 'project_allocate'
     and ${expenses.costFamily} = 'shared'
     and coalesce(${expenses.inventoryStockPurchase}, false) = false
     and ${expenses.voidsExpenseId} is null
@@ -361,6 +363,7 @@ export async function findExpenseById(
       allocationPeriodEnd: expenses.allocationPeriodEnd,
       allocationDriverMethod: expenses.allocationDriverMethod,
       allocationScheduleMode: expenses.allocationScheduleMode,
+      allocationIntent: expenses.allocationIntent,
       installmentCount: expenses.installmentCount,
       installmentStartDate: expenses.installmentStartDate,
       installmentsPaidCount: expenses.installmentsPaidCount,
@@ -446,6 +449,7 @@ export async function findExpenseById(
     allocationPeriodEnd: (row.allocationPeriodEnd as BusinessDate | null) ?? null,
     allocationDriverMethod: row.allocationDriverMethod,
     allocationScheduleMode: row.allocationScheduleMode ?? null,
+    allocationIntent: row.allocationIntent ?? 'auto_pool',
     installmentCount: row.installmentCount,
     installmentStartDate: (row.installmentStartDate as BusinessDate | null) ?? null,
     installmentsPaidCount: row.installmentsPaidCount ?? 0,

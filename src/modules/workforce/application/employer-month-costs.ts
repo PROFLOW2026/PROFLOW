@@ -286,6 +286,8 @@ export async function saveMonthlyEmployerCostDraft(
     const resolution = resolveMonthlyAllocationAmounts({
       knownAmount: money(month.knownAmount, month.currency),
       method,
+      companyOnlyAmount: parsed.data.companyOnlyAmount ?? null,
+      remainderAllocationIntent: parsed.data.remainderAllocationIntent ?? 'auto_pool',
       lines: allocationLines.map((line) => ({
         projectId: line.projectId,
         hours: emptyToNull(line.hours),
@@ -310,6 +312,7 @@ export async function saveMonthlyEmployerCostDraft(
       currency: month.currency,
       allocatedAmount: resolution.allocatedAmount.amount,
       unallocatedAmount: resolution.unallocatedAmount.amount,
+      companyOnlyAmount: resolution.companyOnlyAmount.amount,
       supersedesRunId: prior?.status === 'applied' ? prior.id : null,
       lines: resolution.lines.map((line) => ({
         projectId: line.projectId,

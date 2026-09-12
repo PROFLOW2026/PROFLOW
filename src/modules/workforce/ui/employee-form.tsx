@@ -47,6 +47,10 @@ export function EmployeeForm({
   );
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [linkedUserId, setLinkedUserId] = useState(UNLINKED);
+  const [compensationClass, setCompensationClass] = useState<'standard' | 'owner_manager'>('standard');
+  const [defaultLaborAllocationIntent, setDefaultLaborAllocationIntent] = useState<
+    'project_allocate' | 'auto_pool' | 'company_only'
+  >('auto_pool');
   const [state, formAction, pending] = useActionState(action, {});
 
   return (
@@ -82,6 +86,53 @@ export function EmployeeForm({
         {(control) => <Input {...control} name="jobTitle" />}
       </Field>
 
+      <Field label={t('employees.form.compensationClass')}>
+        {(control) => (
+          <Select
+            value={compensationClass}
+            onValueChange={(value) => setCompensationClass(value as typeof compensationClass)}
+          >
+            <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="standard">{t('employees.form.compensationClassStandard')}</SelectItem>
+              <SelectItem value="owner_manager">
+                {t('employees.form.compensationClassOwnerManager')}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        )}
+      </Field>
+
+      {rateUnit === 'monthly' ? (
+        <Field label={t('employees.form.defaultLaborAllocationIntent')}>
+          {(control) => (
+            <Select
+              value={defaultLaborAllocationIntent}
+              onValueChange={(value) =>
+                setDefaultLaborAllocationIntent(value as typeof defaultLaborAllocationIntent)
+              }
+            >
+              <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="company_only">
+                  {t('employees.form.laborIntentCompanyOnly')}
+                </SelectItem>
+                <SelectItem value="auto_pool">{t('employees.form.laborIntentAutoPool')}</SelectItem>
+                <SelectItem value="project_allocate">
+                  {t('employees.form.laborIntentProjectAllocate')}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+        </Field>
+      ) : null}
+
+      <input type="hidden" name="compensationClass" value={compensationClass} />
+      <input type="hidden" name="defaultLaborAllocationIntent" value={defaultLaborAllocationIntent} />
       <input type="hidden" name="rateUnit" value={rateUnit} />
       <input type="hidden" name="currency" value={defaultCurrency} />
 

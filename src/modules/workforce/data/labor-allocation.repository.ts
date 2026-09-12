@@ -86,6 +86,7 @@ export async function insertDraftLaborAllocationRun(
     currency: string;
     allocatedAmount: string;
     unallocatedAmount: string;
+    companyOnlyAmount?: string;
     explanation?: string | null;
     supersedesRunId?: string | null;
     lines: readonly {
@@ -110,6 +111,7 @@ export async function insertDraftLaborAllocationRun(
       currency: input.currency,
       allocatedAmount: input.allocatedAmount,
       unallocatedAmount: input.unallocatedAmount,
+      companyOnlyAmount: input.companyOnlyAmount ?? '0',
       explanation: input.explanation ?? null,
       supersedesRunId: input.supersedesRunId ?? null,
     })

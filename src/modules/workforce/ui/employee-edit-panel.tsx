@@ -33,6 +33,12 @@ export function EmployeeEditPanel({ employee, linkableUsers }: EmployeeEditPanel
   const tCommon = useTranslations('common');
   const [status, setStatus] = useState<(typeof EMPLOYEE_STATUSES)[number]>(employee.status);
   const [linkedUserId, setLinkedUserId] = useState(employee.userId ?? UNLINKED);
+  const [compensationClass, setCompensationClass] = useState<'standard' | 'owner_manager'>(
+    employee.compensationClass ?? 'standard',
+  );
+  const [defaultLaborAllocationIntent, setDefaultLaborAllocationIntent] = useState<
+    'project_allocate' | 'auto_pool' | 'company_only'
+  >(employee.defaultLaborAllocationIntent ?? 'auto_pool');
   const [state, formAction, pending] = useActionState<WorkforceFormState, FormData>(
     updateEmployeeAction,
     {},
@@ -102,6 +108,65 @@ export function EmployeeEditPanel({ employee, linkableUsers }: EmployeeEditPanel
               <Input {...control} name="jobTitle" defaultValue={employee.jobTitle ?? ''} />
             )}
           </Field>
+
+          <Field label={t('employees.form.compensationClass')}>
+            {(control) => (
+              <>
+                <input type="hidden" name="compensationClass" value={compensationClass} />
+                <Select
+                  value={compensationClass}
+                  onValueChange={(value) => setCompensationClass(value as typeof compensationClass)}
+                >
+                  <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="standard">
+                      {t('employees.form.compensationClassStandard')}
+                    </SelectItem>
+                    <SelectItem value="owner_manager">
+                      {t('employees.form.compensationClassOwnerManager')}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </>
+            )}
+          </Field>
+
+          {employee.employmentBasis === 'monthly' ? (
+            <Field label={t('employees.form.defaultLaborAllocationIntent')}>
+              {(control) => (
+                <>
+                  <input
+                    type="hidden"
+                    name="defaultLaborAllocationIntent"
+                    value={defaultLaborAllocationIntent}
+                  />
+                  <Select
+                    value={defaultLaborAllocationIntent}
+                    onValueChange={(value) =>
+                      setDefaultLaborAllocationIntent(value as typeof defaultLaborAllocationIntent)
+                    }
+                  >
+                    <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="company_only">
+                        {t('employees.form.laborIntentCompanyOnly')}
+                      </SelectItem>
+                      <SelectItem value="auto_pool">
+                        {t('employees.form.laborIntentAutoPool')}
+                      </SelectItem>
+                      <SelectItem value="project_allocate">
+                        {t('employees.form.laborIntentProjectAllocate')}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </>
+              )}
+            </Field>
+          ) : null}
 
           <Field
             label={t('employees.form.hireDate')}

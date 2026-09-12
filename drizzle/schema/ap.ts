@@ -23,7 +23,7 @@ import {
   quantityAmount,
   timestamps,
 } from './_shared';
-import { costFamilyEnum } from './enums';
+import { allocationIntentEnum, costFamilyEnum } from './enums';
 import { costCategories, expenses } from './expenses';
 import { profiles } from './identity';
 import { organizations } from './tenancy';
@@ -82,6 +82,10 @@ export const apBills = pgTable(
     retentionAmount: moneyAmount('retention_amount').notNull().default('0'),
     retentionHeldRemaining: moneyAmount('retention_held_remaining').notNull().default('0'),
     subcontractAgreementId: uuid('subcontract_agreement_id'),
+    /** Intent for NET remainder after applied project allocations (0084). */
+    remainderAllocationIntent: allocationIntentEnum('remainder_allocation_intent')
+      .notNull()
+      .default('auto_pool'),
     notes: text('notes'),
     /**
      * Optional header entry default for line prefill — NOT authoritative Actual classification.

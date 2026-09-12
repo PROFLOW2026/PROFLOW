@@ -461,12 +461,126 @@ export async function sumUnallocatedExpensesForMonth(
           and e.archived_at is null
           and coalesce(e.inventory_stock_purchase, false) = false
           and e.project_id is null
+          and e.allocation_intent = 'auto_pool'
           and not exists (
             select 1 from expense_allocations a
             where a.expense_id = e.id
               and a.organization_id = e.organization_id
               and a.project_id is not null
           )
+      ) s
+    `),
+  );
+  return fromNumericString(row?.total ?? '0', currency) ?? zeroMoney(currency);
+}
+
+/** Company-only general expenses — excluded from GCM auto-allocation and project Actual. */
+export async function sumCompanyOnlyExpensesForMonth(
+  db: DbExecutor,
+  organizationId: string,
+  currency: string,
+  yearMonth: string,
+): Promise<MoneyValue> {
+  const row = sqlFirstRow<{ total: string }>(
+    await db.execute(sql`
+      select coalesce(sum(s.contrib), 0)::text as total
+      from (
+        select
+          case
+            when e.installment_count > 1 and exists (
+              select 1
+              from expense_managerial_schedule_lines l
+              where l.expense_id = e.id
+                and l.organization_id = e.organization_id
+                and l.status in ('scheduled', 'recognized')
+            )
+            then coalesce((
+              select sum(l2.amount)
+              from expense_managerial_schedule_lines l2
+              where l2.expense_id = e.id
+                and l2.organization_id = e.organization_id
+                and l2.year_month = ${yearMonth}
+                and l2.status in ('scheduled', 'recognized')
+            ), 0)
+            else case
+              when to_char(e.expense_date::date, 'YYYY-MM') = ${yearMonth} then e.net_amount
+              else 0
+            end
+          end as contrib
+        from expenses e
+        where e.organization_id = ${organizationId}
+          and e.currency = ${currency}
+          and e.status = 'finalized'
+          and e.archived_at is null
+          and coalesce(e.inventory_stock_purchase, false) = false
+          and e.project_id is null
+          and e.allocation_intent = 'company_only'
+        union all
+        select coalesce((
+          select sum(a.amount)
+          from expense_allocations a
+          where a.expense_id = e.id
+            and a.organization_id = e.organization_id
+            and a.target_type = 'overhead'
+        ), 0) as contrib
+        from expenses e
+        where e.organization_id = ${organizationId}
+          and e.currency = ${currency}
+          and e.status = 'finalized'
+          and e.archived_at is null
+          and coalesce(e.inventory_stock_purchase, false) = false
+          and e.project_id is null
+          and e.allocation_intent = 'project_allocate'
+          and exists (
+            select 1 from expense_allocations a
+            where a.expense_id = e.id
+              and a.organization_id = e.organization_id
+              and a.target_type = 'overhead'
+          )
+      ) s
+    `),
+  );
+  return fromNumericString(row?.total ?? '0', currency) ?? zeroMoney(currency);
+}
+
+/** Org-wide intentional company-only expense NET (excluded from awaiting-allocation metrics). */
+export async function sumOrganizationCompanyOnlyExpenses(
+  db: DbExecutor,
+  organizationId: string,
+  currency: string,
+): Promise<MoneyValue> {
+  const row = sqlFirstRow<{ total: string }>(
+    await db.execute(sql`
+      select coalesce(sum(s.contrib), 0)::text as total
+      from (
+        select e.net_amount as contrib
+        from expenses e
+        where e.organization_id = ${organizationId}
+          and e.currency = ${currency}
+          and e.status = 'finalized'
+          and e.archived_at is null
+          and coalesce(e.inventory_stock_purchase, false) = false
+          and e.project_id is null
+          and e.allocation_intent = 'company_only'
+          and not (
+            e.installment_count > 1 and exists (
+              select 1 from expense_managerial_schedule_lines l
+              where l.expense_id = e.id and l.organization_id = e.organization_id
+                and l.status in ('scheduled', 'recognized')
+            )
+          )
+        union all
+        select a.amount as contrib
+        from expense_allocations a
+        inner join expenses e on e.id = a.expense_id and e.organization_id = a.organization_id
+        where a.organization_id = ${organizationId}
+          and e.currency = ${currency}
+          and e.status = 'finalized'
+          and e.archived_at is null
+          and coalesce(e.inventory_stock_purchase, false) = false
+          and e.project_id is null
+          and e.allocation_intent = 'project_allocate'
+          and a.target_type = 'overhead'
       ) s
     `),
   );
@@ -504,6 +618,7 @@ export async function sumUnallocatedExpensesGroupedByYearMonth(
           and e.archived_at is null
           and coalesce(e.inventory_stock_purchase, false) = false
           and e.project_id is null
+          and e.allocation_intent = 'auto_pool'
           and e.installment_count > 1
           and not exists (
             select 1 from expense_allocations a
@@ -522,6 +637,7 @@ export async function sumUnallocatedExpensesGroupedByYearMonth(
           and e.archived_at is null
           and coalesce(e.inventory_stock_purchase, false) = false
           and e.project_id is null
+          and e.allocation_intent = 'auto_pool'
           and to_char(e.expense_date::date, 'YYYY-MM') in (${sql.join(yearMonths.map((ym) => sql`${ym}`), sql`, `)})
           and not (
             e.installment_count > 1 and exists (
@@ -616,6 +732,7 @@ export async function listUnallocatedExpenseContributionsForMonth(
           and e.archived_at is null
           and coalesce(e.inventory_stock_purchase, false) = false
           and e.project_id is null
+          and e.allocation_intent = 'auto_pool'
           and not exists (
             select 1 from expense_allocations a
             where a.expense_id = e.id
@@ -678,6 +795,7 @@ export async function listUnallocatedExpenseContributionsForYearMonths(
           and e.archived_at is null
           and coalesce(e.inventory_stock_purchase, false) = false
           and e.project_id is null
+          and e.allocation_intent = 'auto_pool'
           and e.installment_count > 1
           and l.amount <> 0
           and not exists (
@@ -698,6 +816,7 @@ export async function listUnallocatedExpenseContributionsForYearMonths(
           and e.archived_at is null
           and coalesce(e.inventory_stock_purchase, false) = false
           and e.project_id is null
+          and e.allocation_intent = 'auto_pool'
           and to_char(e.expense_date::date, 'YYYY-MM') in (${sql.join(yearMonths.map((ym) => sql`${ym}`), sql`, `)})
           and e.net_amount <> 0
           and not (

@@ -144,6 +144,7 @@ export function ExpenseEditForm({
           allocationPeriodStart: expense.allocationPeriodStart ?? '',
           allocationPeriodEnd: expense.allocationPeriodEnd ?? '',
           allocationScheduleMode: expense.allocationScheduleMode ?? '',
+          allocationIntent: expense.allocationIntent ?? 'auto_pool',
           installmentCount: String(expense.installmentCount ?? 1),
           installmentStartDate: expense.installmentStartDate ?? expense.expenseDate,
           inventoryStockPurchase: expense.inventoryStockPurchase,

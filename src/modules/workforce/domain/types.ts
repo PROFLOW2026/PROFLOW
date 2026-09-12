@@ -54,6 +54,8 @@ export interface EmployeeRecord {
   readonly employmentBasis: RateUnit | null;
   /** Optional daily work-hour framework override; null inherits org default. */
   readonly standardHoursPerDay: string | null;
+  readonly compensationClass?: 'standard' | 'owner_manager';
+  readonly defaultLaborAllocationIntent?: 'project_allocate' | 'auto_pool' | 'company_only';
   readonly archivedAt: Date | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;

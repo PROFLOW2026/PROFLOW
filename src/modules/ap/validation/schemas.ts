@@ -146,6 +146,8 @@ export const saveBillProjectAllocationsSchema = z.object({
   lines: z.array(billProjectAllocationLineSchema).default([]),
   /** When true, persist as applied (supersedes prior applied). Default: draft. */
   apply: z.boolean().optional().default(false),
+  /** Intent for under-allocated bill NET remainder after project lines. */
+  remainderAllocationIntent: z.enum(['auto_pool', 'company_only']).optional(),
 });
 
 export type SaveBillProjectAllocationsInput = z.input<typeof saveBillProjectAllocationsSchema>;

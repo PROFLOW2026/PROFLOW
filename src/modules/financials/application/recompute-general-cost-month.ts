@@ -8,15 +8,17 @@ import { projects } from '@drizzle/schema';
 import type { OrgContext } from '@/shared/auth/context';
 import { assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import { fromNumericString, money, toNumericString, zeroMoney } from '@/shared/money';
+import { addMoney, fromNumericString, money, roundMoney, toNumericString, zeroMoney } from '@/shared/money';
 import { isMonthClosed, yearMonthFromBusinessDate } from '@/modules/month-close';
 import { todayInTimeZone } from '@/shared/dates';
 import {
+  sumOrganizationMonthlyLaborCompanyOnly,
   sumOrganizationMonthlyLaborUnallocated,
   sumOrganizationNonProjectLaborCost,
 } from '@/modules/workforce';
 import { sumRecognizedApGeneralRemainders } from '@/modules/ap';
 import {
+  sumCompanyOnlyExpensesForMonth,
   sumUnallocatedExpensesForMonth,
 } from '../data/expenses.repository';
 import { sumInventoryWriteoffsForMonth } from '../data/inventory-consumptions.repository';
@@ -110,12 +112,10 @@ export async function recomputeGeneralCostMonth(
   const sources: GeneralCostSourceAtom[] = [];
 
   if (canExpenses) {
-    const monthExpenseGeneral = await sumUnallocatedExpensesForMonth(
-      context.db,
-      context.organizationId,
-      currency,
-      yearMonth,
-    );
+    const [monthExpenseGeneral, monthExpenseCompanyOnly] = await Promise.all([
+      sumUnallocatedExpensesForMonth(context.db, context.organizationId, currency, yearMonth),
+      sumCompanyOnlyExpensesForMonth(context.db, context.organizationId, currency, yearMonth),
+    ]);
     if (Number(monthExpenseGeneral.amount) !== 0) {
       sources.push({
         kind: 'expense_unallocated',
@@ -123,11 +123,21 @@ export async function recomputeGeneralCostMonth(
         label: 'expense_unallocated',
       });
     }
+    if (Number(monthExpenseCompanyOnly.amount) !== 0) {
+      sources.push({
+        kind: 'expense_company_only',
+        amount: monthExpenseCompanyOnly,
+        label: 'expense_company_only',
+      });
+    }
   }
 
   if (canWorkforce) {
-    const [monthlyUnalloc, nonProject] = await Promise.all([
+    const [monthlyUnalloc, monthlyCompanyOnly, nonProject] = await Promise.all([
       sumOrganizationMonthlyLaborUnallocated(context.db, context.organizationId, currency, {
+        yearMonth,
+      }),
+      sumOrganizationMonthlyLaborCompanyOnly(context.db, context.organizationId, currency, {
         yearMonth,
       }),
       sumOrganizationNonProjectLaborCost(context.db, context.organizationId, currency, {
@@ -141,6 +151,15 @@ export async function recomputeGeneralCostMonth(
         kind: 'labor_monthly_unallocated',
         amount: monthlyAmount,
         label: 'labor_monthly_unallocated',
+      });
+    }
+    const companyOnlyLaborAmount =
+      fromNumericString(monthlyCompanyOnly.totalAmount, currency) ?? zeroMoney(currency);
+    if (Number(companyOnlyLaborAmount.amount) !== 0) {
+      sources.push({
+        kind: 'labor_company_only',
+        amount: companyOnlyLaborAmount,
+        label: 'labor_company_only',
       });
     }
     const nonProjectAmount =
@@ -166,6 +185,13 @@ export async function recomputeGeneralCostMonth(
         kind: 'ap_bill_remainder',
         amount: ap.remainderFromUnderAllocatedBills,
         label: 'ap_bill_remainder',
+      });
+    }
+    if (Number(ap.remainderFromUnderAllocatedBillsCompanyOnly.amount) !== 0) {
+      sources.push({
+        kind: 'ap_bill_remainder_company_only',
+        amount: ap.remainderFromUnderAllocatedBillsCompanyOnly,
+        label: 'ap_bill_remainder_company_only',
       });
     }
     if (Number(ap.remainderFromNullProjectBills.amount) !== 0) {
@@ -194,6 +220,15 @@ export async function recomputeGeneralCostMonth(
     }
   }
 
+  const companyOnlyKinds = new Set([
+    'expense_company_only',
+    'labor_company_only',
+    'ap_bill_remainder_company_only',
+  ]);
+  const autoPoolSources = sources.filter((source) => !companyOnlyKinds.has(source.kind));
+  const companyOnlySources = sources.filter((source) => companyOnlyKinds.has(source.kind));
+  const autoPool = sumGeneralCostSources(autoPoolSources, currency);
+  const companyOnlyPool = sumGeneralCostSources(companyOnlySources, currency);
   const pool = sumGeneralCostSources(sources, currency);
 
   // Eligible projects: active, not archived, base currency.
@@ -258,16 +293,19 @@ export async function recomputeGeneralCostMonth(
     };
   });
 
-  const allocation = allocateGeneralPoolByDirectActual({ pool, projects: bases });
+  const allocation = allocateGeneralPoolByDirectActual({ pool: autoPool, projects: bases });
   assertGeneralPoolConserves(allocation);
+  const unallocatableWithCompanyOnly = roundMoney(
+    addMoney(allocation.unallocatable, companyOnlyPool),
+  );
 
   await persistGeneralCostMonthRecompute(context.db, {
     organizationId: context.organizationId,
     yearMonth,
     currency,
-    poolAmount: toNumericString(allocation.pool),
+    poolAmount: toNumericString(pool),
     allocatedAmount: toNumericString(allocation.allocated),
-    unallocatableAmount: toNumericString(allocation.unallocatable),
+    unallocatableAmount: toNumericString(unallocatableWithCompanyOnly),
     basisMode: allocation.basisMode,
     allocations: allocation.lines.map((line) => ({
       projectId: line.projectId,

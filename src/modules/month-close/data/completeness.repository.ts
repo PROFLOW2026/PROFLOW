@@ -196,6 +196,7 @@ async function countUnallocatedEmployeeCost(
         eq(laborAllocationRuns.status, 'applied'),
         eq(employeeMonthCosts.yearMonth, yearMonth),
         sql`${laborAllocationRuns.unallocatedAmount}::numeric > 0`,
+        sql`${laborAllocationRuns.companyOnlyAmount}::numeric = 0`,
       ),
     )
     .limit(200);
@@ -239,6 +240,9 @@ async function countVendorBillsUnallocated(
               AND a.status = 'applied'
           ), 0)
       ) > 0.000001
+      AND NOT (
+        COALESCE(b.remainder_allocation_intent, 'auto_pool') = 'company_only'
+      )
     ORDER BY b.id
     LIMIT 200
   `);
@@ -329,21 +333,35 @@ async function countMissingProjectAllocations(
   startDate: string,
   endDate: string,
 ): Promise<{ count: number; ids: string[] }> {
-  const expenseRows = await db
-    .select({ id: expenses.id })
-    .from(expenses)
-    .where(
-      and(
-        eq(expenses.organizationId, organizationId),
-        eq(expenses.status, 'finalized'),
-        eq(expenses.costFamily, 'direct_project'),
-        isNull(expenses.projectId),
-        isNull(expenses.archivedAt),
-        gte(expenses.expenseDate, startDate),
-        lte(expenses.expenseDate, endDate),
-      ),
-    )
-    .limit(100);
+  const expenseResult = await db.execute(sql`
+    SELECT e.id
+    FROM expenses e
+    WHERE e.organization_id = ${organizationId}::uuid
+      AND e.status = 'finalized'
+      AND e.archived_at IS NULL
+      AND e.expense_date >= ${startDate}
+      AND e.expense_date <= ${endDate}
+      AND e.project_id IS NULL
+      AND coalesce(e.inventory_stock_purchase, false) = false
+      AND (
+        e.cost_family = 'direct_project'
+        OR (
+          e.cost_family = 'shared'
+          AND e.allocation_intent = 'project_allocate'
+        )
+      )
+      AND e.allocation_intent <> 'company_only'
+      AND e.allocation_intent <> 'auto_pool'
+      AND NOT EXISTS (
+        SELECT 1 FROM expense_allocations a
+        WHERE a.expense_id = e.id
+          AND a.organization_id = e.organization_id
+          AND a.project_id IS NOT NULL
+      )
+    ORDER BY e.id
+    LIMIT 100
+  `);
+  const expenseRows = rowsFromExecute<{ id: string }>(expenseResult);
 
   const billResult = await db.execute(sql`
     SELECT b.id
@@ -366,7 +384,7 @@ async function countMissingProjectAllocations(
   `);
 
   const bills = rowsFromExecute<{ id: string }>(billResult);
-  const combined = [...expenseRows.map((r) => r.id), ...bills.map((r) => String(r.id))];
+  const combined = [...expenseRows.map((r) => String(r.id)), ...bills.map((r) => String(r.id))];
   return {
     count: combined.length,
     ids: combined.slice(0, SAMPLE_LIMIT),
@@ -517,6 +535,7 @@ async function countOpenOverheadAllocation(
         eq(allocationRuns.organizationId, organizationId),
         eq(allocationRuns.status, 'draft'),
         inArray(expenses.costFamily, ['shared', 'business_overhead']),
+        eq(expenses.allocationIntent, 'project_allocate'),
         isNull(expenses.archivedAt),
         ne(expenses.status, 'void'),
         sql`(

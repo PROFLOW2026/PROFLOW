@@ -112,6 +112,8 @@ const expenseFieldsSchema = z.object({
    * Annual/custom/monthly distribute evenly across overlapping calendar months.
    */
   allocationScheduleMode: z.enum(['one_time', 'monthly', 'annual', 'custom']).nullable().optional(),
+  /** Explicit org vs project routing (0084). */
+  allocationIntent: z.enum(['project_allocate', 'auto_pool', 'company_only']).optional(),
   /** Optional project filter for SHARED / explicit eligibility. */
   allocationProjectIds: z.array(z.string().uuid()).optional(),
   /** Managerial Actual spread (1–120). Default 1 = full NET in the start month. */

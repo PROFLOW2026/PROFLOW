@@ -106,7 +106,9 @@ async function loadDirectActualAllocationBasesUncachedInner(
 function sourcesFromMonthTotals(input: {
   readonly currency: string;
   readonly expense: MoneyValue | undefined;
+  readonly expenseCompanyOnly: MoneyValue | undefined;
   readonly laborMonthly: string | undefined;
+  readonly laborCompanyOnly: string | undefined;
   readonly laborNonProject: string | undefined;
   readonly ap: ApGeneralRemainderTotals | undefined;
   readonly writeoffs: MoneyValue | undefined;
@@ -120,12 +122,28 @@ function sourcesFromMonthTotals(input: {
       label: 'expense_unallocated',
     });
   }
+  if (input.expenseCompanyOnly && Number(input.expenseCompanyOnly.amount) !== 0) {
+    sources.push({
+      kind: 'expense_company_only',
+      amount: input.expenseCompanyOnly,
+      label: 'expense_company_only',
+    });
+  }
   const monthlyAmount = fromNumericString(input.laborMonthly ?? '0', currency) ?? zeroMoney(currency);
   if (Number(monthlyAmount.amount) !== 0) {
     sources.push({
       kind: 'labor_monthly_unallocated',
       amount: monthlyAmount,
       label: 'labor_monthly_unallocated',
+    });
+  }
+  const laborCompanyOnlyAmount =
+    fromNumericString(input.laborCompanyOnly ?? '0', currency) ?? zeroMoney(currency);
+  if (Number(laborCompanyOnlyAmount.amount) !== 0) {
+    sources.push({
+      kind: 'labor_company_only',
+      amount: laborCompanyOnlyAmount,
+      label: 'labor_company_only',
     });
   }
   const nonProjectAmount =
@@ -142,6 +160,13 @@ function sourcesFromMonthTotals(input: {
       kind: 'ap_bill_remainder',
       amount: input.ap.remainderFromUnderAllocatedBills,
       label: 'ap_bill_remainder',
+    });
+  }
+  if (input.ap && Number(input.ap.remainderFromUnderAllocatedBillsCompanyOnly.amount) !== 0) {
+    sources.push({
+      kind: 'ap_bill_remainder_company_only',
+      amount: input.ap.remainderFromUnderAllocatedBillsCompanyOnly,
+      label: 'ap_bill_remainder_company_only',
     });
   }
   if (input.ap && Number(input.ap.remainderFromNullProjectBills.amount) !== 0) {
@@ -188,8 +213,14 @@ export async function gatherGeneralCostSourcesByMonths(
       : Promise.resolve(new Map()),
   ]);
 
-  const { expenseByMonth, laborMonthlyByMonth, laborNonProjectByMonth, writeoffsByMonth } =
-    foldGeneralCostNonApSourceRows(nonApRows, currency, yearMonths);
+  const {
+    expenseByMonth,
+    expenseCompanyOnlyByMonth,
+    laborMonthlyByMonth,
+    laborCompanyOnlyByMonth,
+    laborNonProjectByMonth,
+    writeoffsByMonth,
+  } = foldGeneralCostNonApSourceRows(nonApRows, currency, yearMonths);
 
   for (const yearMonth of yearMonths) {
     result.set(
@@ -197,7 +228,9 @@ export async function gatherGeneralCostSourcesByMonths(
       sourcesFromMonthTotals({
         currency,
         expense: expenseByMonth.get(yearMonth),
+        expenseCompanyOnly: expenseCompanyOnlyByMonth.get(yearMonth),
         laborMonthly: laborMonthlyByMonth.get(yearMonth),
+        laborCompanyOnly: laborCompanyOnlyByMonth.get(yearMonth),
         laborNonProject: laborNonProjectByMonth.get(yearMonth),
         ap: apByMonth.get(yearMonth),
         writeoffs: writeoffsByMonth.get(yearMonth),

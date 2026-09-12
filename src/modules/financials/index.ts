@@ -144,6 +144,7 @@ export { loadRecognizedVendorBillsForProject } from './data/committed-costs.repo
 export {
   sumProjectTouchingExpenseNets,
   computeUnallocatedOrganizationCosts,
+  computeAwaitingAllocationOrganizationCosts,
   expenseTotalsReconcile,
 } from './domain/org-cost-reconciliation';
 export {

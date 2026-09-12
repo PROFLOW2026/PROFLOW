@@ -27,6 +27,10 @@ function mapEmployee(row: typeof employees.$inferSelect): EmployeeRecord {
     endDate: row.endDate ?? null,
     employmentBasis: (row.employmentBasis as EmployeeRecord['employmentBasis']) ?? null,
     standardHoursPerDay: row.standardHoursPerDay ?? null,
+    compensationClass: (row.compensationClass as EmployeeRecord['compensationClass']) ?? 'standard',
+    defaultLaborAllocationIntent:
+      (row.defaultLaborAllocationIntent as EmployeeRecord['defaultLaborAllocationIntent']) ??
+      'auto_pool',
     archivedAt: row.archivedAt,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -49,6 +53,8 @@ export async function insertEmployee(
     endDate?: string | null;
     employmentBasis?: EmployeeRecord['employmentBasis'];
     standardHoursPerDay?: string | null;
+    compensationClass?: EmployeeRecord['compensationClass'];
+    defaultLaborAllocationIntent?: EmployeeRecord['defaultLaborAllocationIntent'];
   },
 ): Promise<EmployeeRecord> {
   const [row] = await db
@@ -67,6 +73,8 @@ export async function insertEmployee(
       endDate: input.endDate ?? null,
       employmentBasis: input.employmentBasis ?? null,
       standardHoursPerDay: input.standardHoursPerDay ?? null,
+      compensationClass: input.compensationClass ?? 'standard',
+      defaultLaborAllocationIntent: input.defaultLaborAllocationIntent ?? 'auto_pool',
     })
     .returning();
 
@@ -90,6 +98,8 @@ export async function updateEmployeeById(
     endDate: string | null;
     employmentBasis: EmployeeRecord['employmentBasis'];
     standardHoursPerDay: string | null;
+    compensationClass: EmployeeRecord['compensationClass'];
+    defaultLaborAllocationIntent: EmployeeRecord['defaultLaborAllocationIntent'];
     archivedAt: Date | null;
   }>,
 ): Promise<EmployeeRecord | null> {

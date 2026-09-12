@@ -92,6 +92,10 @@ export const createEmployeeSchema = z
       .nullable()
       .or(z.literal('')),
     components: z.array(laborComponentSchema).optional(),
+    compensationClass: z.enum(['standard', 'owner_manager']).optional(),
+    defaultLaborAllocationIntent: z
+      .enum(['project_allocate', 'auto_pool', 'company_only'])
+      .optional(),
   })
   .superRefine((value, ctx) => {
     if (value.hireDate && value.endDate && value.endDate < value.hireDate) {
@@ -109,6 +113,10 @@ export const updateEmployeeSchema = z
   .object({
     name: z.string().trim().min(1).max(200).optional(),
     status: z.enum(EMPLOYEE_STATUSES).optional(),
+    compensationClass: z.enum(['standard', 'owner_manager']).optional(),
+    defaultLaborAllocationIntent: z
+      .enum(['project_allocate', 'auto_pool', 'company_only'])
+      .optional(),
     userId: z.preprocess(
       (value) => (value === '' ? null : value),
       z.string().uuid().nullable().optional(),
@@ -403,6 +411,8 @@ export const saveMonthlyEmployerCostDraftSchema = z.object({
   notes: z.string().trim().max(4000).optional().nullable(),
   method: z.enum(MONTHLY_ALLOCATION_METHODS).optional(),
   allocationLines: z.array(monthlyAllocationLineSchema).optional(),
+  companyOnlyAmount: optionalMoneySchema,
+  remainderAllocationIntent: z.enum(['auto_pool', 'company_only']).optional(),
 });
 
 export type SaveMonthlyEmployerCostDraftInput = z.infer<typeof saveMonthlyEmployerCostDraftSchema>;

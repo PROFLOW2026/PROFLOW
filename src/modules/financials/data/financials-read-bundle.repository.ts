@@ -238,6 +238,7 @@ export type ApBillFactRow = {
   readonly currency: string;
   readonly retentionHeldRemaining: string;
   readonly billDate: string | null;
+  readonly remainderAllocationIntent?: 'auto_pool' | 'company_only' | null;
 };
 
 export type ApAllocationFactRow = {
@@ -302,7 +303,8 @@ export async function loadFinancialsApOrgFactsBundle(
             'netAmount', b.net_amount::text,
             'currency', b.currency,
             'retentionHeldRemaining', b.retention_held_remaining::text,
-            'billDate', b.bill_date
+            'billDate', b.bill_date,
+            'remainderAllocationIntent', b.remainder_allocation_intent
           ))
           from ap_bills b
           where b.id in (select id from candidate_bills)
