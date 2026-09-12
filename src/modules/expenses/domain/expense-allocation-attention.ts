@@ -18,8 +18,11 @@ export function expenseRowRequiresProjectAllocation(input: {
   if (input.status !== 'finalized') return false;
   if (input.inventoryStockPurchase) return false;
   if (input.projectId) return false;
+  const allocationIntent =
+    input.allocationIntent ??
+    (input.costFamily === 'shared' ? 'project_allocate' : 'auto_pool');
   return expenseMissingProjectAllocation({
-    allocationIntent: input.allocationIntent ?? 'auto_pool',
+    allocationIntent,
     costFamily: input.costFamily,
     projectId: input.projectId,
     hasProjectAllocationLine: input.hasProjectAllocationLine,

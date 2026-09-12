@@ -67,6 +67,14 @@
     "fromPolicy": "From category policy",
     "overridden": "Overridden for this expense"
   },
+  "allocationIntent": {
+    "label": "Where should this cost land?",
+    "project_allocate": "Projects - manual or automatic split",
+    "auto_pool": "Automatic split across projects (general cost pool)",
+    "company_only": "General business cost with no project assignment",
+    "autoPoolHint": "The cost enters the company general-cost pool and is split automatically across active projects by direct cost.",
+    "companyOnlyHint": "The cost stays at company level only - it will not enter project cost or auto-allocation."
+  },
   "lifecycle": {
     "draftHint": "Saving creates a draft only. Approve it into costs when the amount is ready.",
     "overheadUnallocatedWarning": "This is a general business cost with no project allocation. It will not appear in any project’s Actual Cost or general business costs allocated to the project until you add allocation lines.",
