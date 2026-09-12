@@ -329,7 +329,10 @@ describe('migration journal', () => {
     expect(tags.indexOf('0083_payment_amount_basis')).toBeLessThan(
       tags.indexOf('0084_allocation_intent_company_only'),
     );
-    expect(tags.at(-1)).toBe('0084_allocation_intent_company_only');
+    expect(tags.indexOf('0084_allocation_intent_company_only')).toBeLessThan(
+      tags.indexOf('0085_labor_allocation_company_only_conservation'),
+    );
+    expect(tags.at(-1)).toBe('0085_labor_allocation_company_only_conservation');
 
     const sql66 = await readFile(
       path.join(MIGRATIONS_DIR, '0066_workforce_time_integrity.sql'),
