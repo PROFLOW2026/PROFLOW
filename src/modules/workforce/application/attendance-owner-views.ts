@@ -12,6 +12,7 @@ import { listAttendanceOutcomesInRange } from './attendance-outcomes';
 import { listAttendanceDays } from '../data/attendance.repository';
 import { listEmployees } from '../data/employees.repository';
 import { listTimeEntries } from '../data/time-entries.repository';
+import { employeeRequiresAttendanceReporting } from '../domain/attendance-requirement';
 import type { TimeApprovalStatus, TimeEntryListItem } from '../domain/types';
 
 export type TodayApprovalStatus = TimeApprovalStatus | 'awaiting' | 'missing';
@@ -42,6 +43,7 @@ export type MonthlyCellKind =
   | 'worked'
   | 'absence'
   | 'missing'
+  | 'exempt'
   | 'dayOff'
   | 'future'
   | 'void';
@@ -191,12 +193,18 @@ export async function getTodayAttendanceOverview(
       const day = dayByEmployee.get(employee.id) ?? null;
       const explicitOutcome = outcomeByEmployee.get(employee.id) ?? null;
       const entries = timeByEmployee.get(employee.id) ?? [];
-      const reported = day != null || explicitOutcome != null;
-      const approval: TodayApprovalStatus = reported
-        ? explicitOutcome?.outcome === 'not_worked'
-          ? 'awaiting'
-          : rollupApproval(entries)
-        : 'missing';
+      const attendanceRequired = employeeRequiresAttendanceReporting(employee);
+      const reported =
+        !attendanceRequired || day != null || explicitOutcome != null;
+      const approval: TodayApprovalStatus = !attendanceRequired
+        ? entries.length > 0
+          ? rollupApproval(entries)
+          : 'approved'
+        : reported
+          ? explicitOutcome?.outcome === 'not_worked'
+            ? 'awaiting'
+            : rollupApproval(entries)
+          : 'missing';
       return {
         employeeId: employee.id,
         employeeName: employee.name,
@@ -274,6 +282,7 @@ export async function getMonthlyAttendanceGrid(
   }
 
   const rows: MonthlyAttendanceEmployeeRow[] = scopedEmployees.map((employee) => {
+    const attendanceRequired = employeeRequiresAttendanceReporting(employee);
     const cells: MonthlyAttendanceCell[] = days.map((workDate) => {
       const isWorkday = workdaySet.has(weekdayUtc(workDate));
       const day = dayByEmployeeDate.get(`${employee.id}:${workDate}`) ?? null;
@@ -284,6 +293,15 @@ export async function getMonthlyAttendanceGrid(
 
       if (!isWorkday) {
         return { workDate, kind: 'dayOff', dayId: day?.id ?? null, hours, projectNames };
+      }
+      if (!attendanceRequired && !day && !explicitOutcome) {
+        return {
+          workDate,
+          kind: workDate > input.today ? 'future' : 'exempt',
+          dayId: null,
+          hours,
+          projectNames,
+        };
       }
       if (day?.status === 'void') {
         return { workDate, kind: 'void', dayId: day.id, hours, projectNames };

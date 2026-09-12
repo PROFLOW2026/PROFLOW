@@ -17,6 +17,8 @@ interface AttendanceMonthCalendarProps {
   readonly employmentRange: EmploymentRange;
   readonly defaultWeekdays: readonly number[];
   readonly today: string;
+  /** When false (owner_manager), missing workdays are not flagged. */
+  readonly attendanceRequired?: boolean;
 }
 
 type DayStatus =
@@ -29,6 +31,7 @@ type DayStatus =
   | 'open'
   | 'void'
   | 'missing'
+  | 'exempt'
   | 'future';
 
 function getDaysInMonth(yearMonth: string): number {
@@ -66,6 +69,7 @@ function getDayStatus(
   employmentRange: EmploymentRange,
   dayMap: Map<string, AttendanceDayListItem>,
   outcomeMap: Map<string, AttendanceOutcomeListItem>,
+  attendanceRequired: boolean,
 ): DayStatus {
   if (!isWithinEmploymentRange(dateStr, employmentRange)) {
     return 'not_applicable';
@@ -87,6 +91,7 @@ function getDayStatus(
   }
 
   if (dateStr > today) return 'future';
+  if (!attendanceRequired) return 'exempt';
   return 'missing';
 }
 
@@ -105,6 +110,7 @@ const DAY_CELL_STYLES: Record<DayStatus, string> = {
     'bg-gray-100 text-gray-400 dark:bg-gray-800/50 dark:text-gray-500 border-gray-200 dark:border-gray-700 line-through',
   missing:
     'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400 border-red-200 dark:border-red-800',
+  exempt: 'bg-[var(--pf-bg-subtle)] text-[var(--pf-text-muted)] border-[var(--pf-border-default)]',
   future: 'bg-[var(--pf-bg-subtle)] text-[var(--pf-text-muted)] border-[var(--pf-border-default)]',
   nonWorkday: 'bg-transparent text-[var(--pf-text-muted)] border-transparent opacity-40',
   not_applicable:
@@ -122,6 +128,7 @@ export async function AttendanceMonthCalendar({
   employmentRange,
   defaultWeekdays,
   today,
+  attendanceRequired = true,
 }: AttendanceMonthCalendarProps) {
   const t = await getTranslations('workforce.attendance.monthCalendar');
 
@@ -156,7 +163,15 @@ export async function AttendanceMonthCalendar({
     const dateStr = `${yearMonth}-${dayStr}` as BusinessDate;
     const dayOfWeek = new Date(yearNum!, monthNum! - 1, day).getDay();
     const isWorkday = workdaySet.has(dayOfWeek);
-    const status = getDayStatus(dateStr, today, isWorkday, employmentRange, dayMap, outcomeMap);
+    const status = getDayStatus(
+      dateStr,
+      today,
+      isWorkday,
+      employmentRange,
+      dayMap,
+      outcomeMap,
+      attendanceRequired,
+    );
     cells.push({ day, dateStr, status });
   }
 

@@ -26,6 +26,7 @@ import { AttendanceDaysTable } from '@/modules/workforce/ui/attendance-days-tabl
 import { AttendanceManageSections } from '@/modules/workforce/ui/attendance-manage-sections';
 import { AttendanceEmployeeSelectorBar } from '@/modules/workforce/ui/attendance-employee-selector-bar';
 import { resolveCanonicalAttendanceEmployeeId } from '@/modules/workforce/domain/attendance-canonical-employee';
+import { employeeRequiresAttendanceReporting } from '@/modules/workforce/domain/attendance-requirement';
 import { AttendanceMonthCalendar } from '@/modules/workforce/ui/attendance-month-calendar';
 import { AttendanceDailyRoster } from '@/modules/workforce/ui/attendance-daily-roster';
 import { WorkforceSubNav } from '@/modules/workforce/ui/workforce-sub-nav';
@@ -111,7 +112,18 @@ export default async function AttendancePage({
       ? businessDate(`${calendarMonth}-${String(new Date(Number(calendarMonth.split('-')[0]), Number(calendarMonth.split('-')[1]), 0).getDate()).padStart(2, '0')}`)
       : undefined;
 
-    const [clock, days, calendarDays, calendarOutcomes, employmentRange, employees, detail, laborDefaults, projects, todayOverview] =
+    const [
+      clock,
+      days,
+      calendarDays,
+      calendarOutcomes,
+      selectedEmployeeProfile,
+      employees,
+      detail,
+      laborDefaults,
+      projects,
+      todayOverview,
+    ] =
       await Promise.all([
         allowClock ? getAttendanceClockSurface(context) : Promise.resolve(null),
         listAttendanceDaysForOrg(context, filters),
@@ -133,10 +145,11 @@ export default async function AttendancePage({
                 ? {
                     hireDate: (row.hireDate as BusinessDate | null) ?? null,
                     endDate: (row.endDate as BusinessDate | null) ?? null,
+                    compensationClass: row.compensationClass ?? 'standard',
                   }
-                : { hireDate: null, endDate: null },
+                : { hireDate: null, endDate: null, compensationClass: 'standard' as const },
             )
-          : Promise.resolve({ hireDate: null, endDate: null }),
+          : Promise.resolve({ hireDate: null, endDate: null, compensationClass: 'standard' as const }),
         allowManage
           ? listEmployeesForOrg(context).then((rows) =>
               rows.map((row) => ({ id: row.id, name: row.name, status: row.status })),
@@ -168,7 +181,11 @@ export default async function AttendancePage({
       days,
       calendarDays,
       calendarOutcomes,
-      employmentRange,
+      employmentRange: {
+        hireDate: selectedEmployeeProfile.hireDate,
+        endDate: selectedEmployeeProfile.endDate,
+      },
+      selectedCompensationClass: selectedEmployeeProfile.compensationClass,
       employees,
       detail,
       selectedEmployee,
@@ -274,6 +291,9 @@ export default async function AttendancePage({
             employmentRange={data.employmentRange}
             defaultWeekdays={data.defaultWeekdays}
             today={data.today}
+            attendanceRequired={employeeRequiresAttendanceReporting({
+              compensationClass: data.selectedCompensationClass,
+            })}
           />
         )}
 

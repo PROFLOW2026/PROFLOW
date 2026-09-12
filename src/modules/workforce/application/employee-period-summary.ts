@@ -20,7 +20,9 @@ import {
   type MoneyValue,
 } from '@/shared/money';
 import { listAttendanceDays } from '../data/attendance.repository';
+import { findEmployeeById } from '../data/employees.repository';
 import { listTimeEntries } from '../data/time-entries.repository';
+import { employeeRequiresAttendanceReporting } from '../domain/attendance-requirement';
 
 export interface EmployeePeriodProjectRow {
   readonly projectId: string;
@@ -91,6 +93,11 @@ export async function getEmployeePeriodSummary(
 
   const { employeeId, fromDate, toDate } = input;
   const currency = context.organization.baseCurrency.toUpperCase();
+
+  const employee = await findEmployeeById(context.db, context.organizationId, employeeId);
+  const attendanceRequired = employee
+    ? employeeRequiresAttendanceReporting(employee)
+    : true;
 
   // Run attendance + time queries in parallel (set-based, no N+1).
   const [attendanceDays, timeEntries] = await Promise.all([
@@ -197,7 +204,7 @@ export async function getEmployeePeriodSummary(
 
   // Missing days: work-days in range with no attendance record.
   const missingDays: string[] = [];
-  if (input.workWeekdays && input.workWeekdays.length > 0) {
+  if (attendanceRequired && input.workWeekdays && input.workWeekdays.length > 0) {
     const workWeekSet = new Set(input.workWeekdays);
     let cursor = fromDate;
     while (cursor <= toDate) {

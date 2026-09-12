@@ -504,21 +504,25 @@ async function countIncompleteAttendance(
     SELECT id FROM (
       SELECT d.id
       FROM attendance_days d
+      JOIN employees e ON e.id = d.employee_id AND e.organization_id = d.organization_id
       WHERE d.organization_id = ${organizationId}::uuid
         AND d.archived_at IS NULL
         AND d.status = 'open'
         AND d.work_date >= ${startDate}
         AND d.work_date <= ${endDate}
+        AND e.compensation_class <> 'owner_manager'
 
       UNION
 
       SELECT te.id
       FROM time_entries te
+      JOIN employees e ON e.id = te.employee_id AND e.organization_id = te.organization_id
       WHERE te.organization_id = ${organizationId}::uuid
         AND te.status = 'recorded'
         AND te.archived_at IS NULL
         AND te.work_date >= ${startDate}
         AND te.work_date <= ${endDate}
+        AND e.compensation_class <> 'owner_manager'
         AND EXISTS (
           SELECT 1
           FROM attendance_days any_day
