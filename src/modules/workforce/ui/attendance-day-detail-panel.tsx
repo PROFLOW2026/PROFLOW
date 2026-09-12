@@ -4,9 +4,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import type { AttendanceDayDetail } from '@/modules/workforce';
 import {
   replaceAttendanceEventAction,
+  updateAttendanceOvertimeAction,
   voidAttendanceDayAction,
   voidAttendanceEventAction,
 } from '@/app/[locale]/(app)/workforce/attendance/actions';
+import { AttendanceOvertimeForm } from './attendance-overtime-form';
 import { AttendanceVoidEventButton } from './attendance-void-event-button';
 import { AttendanceReplaceEventForm } from './attendance-replace-event-form';
 import { AttendanceVoidDayButton } from './attendance-void-day-button';
@@ -50,6 +52,9 @@ export async function AttendanceDayDetailPanel({
             }
             label={t(`dayStatus.${detail.status}`)}
           />
+          {detail.isOvertime ? (
+            <StatusBadge shape="pending" label={t('overtime.badge')} />
+          ) : null}
           {canManage && detail.status !== 'void' ? (
             <a
               href="#update-attendance"
@@ -63,6 +68,14 @@ export async function AttendanceDayDetailPanel({
           ) : null}
         </div>
       </div>
+
+      {canManage && detail.status !== 'void' ? (
+        <AttendanceOvertimeForm
+          dayId={detail.id}
+          isOvertime={detail.isOvertime}
+          action={updateAttendanceOvertimeAction}
+        />
+      ) : null}
 
       <div className="overflow-x-auto rounded-lg border border-[var(--pf-border-default)]">
         <Table>

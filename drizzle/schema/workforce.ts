@@ -1,5 +1,6 @@
 import { relations, sql } from 'drizzle-orm';
 import {
+  boolean,
   char,
   check,
   date,
@@ -565,6 +566,8 @@ export const attendanceDays = pgTable(
       .references(() => employees.id, { onDelete: 'cascade' }),
     workDate: date('work_date').notNull(),
     status: text('status').notNull().default('open'),
+    /** Owner/manager explicit classification — never inferred from calendar. */
+    isOvertime: boolean('is_overtime').notNull().default(false),
     notes: text('notes'),
     createdByUserId: uuid('created_by_user_id').references(() => profiles.id, { onDelete: 'set null' }),
     archivedAt: archivedAt(),

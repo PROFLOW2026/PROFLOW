@@ -74,16 +74,18 @@ function getDayStatus(
   if (!isWithinEmploymentRange(dateStr, employmentRange)) {
     return 'not_applicable';
   }
-  if (!isWorkday) return 'nonWorkday';
+  const recordEarly = dayMap.get(dateStr);
+  const outcomeEarly = outcomeMap.get(dateStr);
+  if (!isWorkday && !recordEarly && !outcomeEarly) return 'nonWorkday';
 
-  const outcome = outcomeMap.get(dateStr);
+  const outcome = outcomeEarly ?? outcomeMap.get(dateStr);
   if (outcome) {
     if (outcome.outcome === 'worked') return 'outcome_worked';
     if (outcome.absenceCompensation === 'paid') return 'outcome_absence_paid';
     return 'outcome_absence_unpaid';
   }
 
-  const record = dayMap.get(dateStr);
+  const record = recordEarly ?? dayMap.get(dateStr);
   if (record) {
     if (record.status === 'void') return 'void';
     if (record.status === 'complete') return 'complete';
@@ -91,7 +93,7 @@ function getDayStatus(
   }
 
   if (dateStr > today) return 'future';
-  if (!attendanceRequired) return 'exempt';
+  if (!isWorkday || !attendanceRequired) return 'exempt';
   return 'missing';
 }
 

@@ -133,6 +133,7 @@ export {
   recordManualAttendanceEvent,
   replaceAttendanceEvent,
   requiresAttendanceOverwriteApproval,
+  setAttendanceDayOvertime,
   voidAttendanceDay,
   voidAttendanceEvent,
 } from './application/attendance';

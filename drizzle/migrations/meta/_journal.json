@@ -596,6 +596,13 @@
                         "when":  1788845600000,
                         "tag":  "0085_labor_allocation_company_only_conservation",
                         "breakpoints":  true
+                    },
+                    {
+                        "idx":  85,
+                        "version":  "7",
+                        "when":  1788932000000,
+                        "tag":  "0086_attendance_overtime_flag",
+                        "breakpoints":  true
                     }
                 ]
 }

@@ -4,7 +4,8 @@ import { withExecutor } from '@/shared/auth/context';
 import { withTransaction } from '@/shared/db';
 import { todayInTimeZone } from '@/shared/dates';
 import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
-import { noteModuleUsage } from '@/modules/tenancy';
+import { getLaborCostDefaultsForApply, noteModuleUsage, resolveOrgWorkWeekdays } from '@/modules/tenancy';
+import { isConfiguredOrgWorkday } from '../domain/attendance-workday';
 import {
   assertAnyPermission,
   assertPermission,
@@ -39,6 +40,7 @@ import {
   listAttendanceDays,
   listAttendanceEventsForDay,
   listEmployeesWithoutAttendanceToday as listEmployeesWithoutAttendanceTodayDb,
+  updateAttendanceDayOvertime,
   updateAttendanceDayStatus,
   voidAttendanceEventById,
 } from '../data/attendance.repository';
@@ -48,6 +50,7 @@ import {
   manualAttendanceEventSchema,
   manualAttendanceWorkdayRangeSchema,
   replaceAttendanceEventSchema,
+  updateAttendanceDayOvertimeSchema,
   voidAttendanceDaySchema,
   voidAttendanceEventSchema,
   type AttendanceFiltersInput,
@@ -661,6 +664,39 @@ export async function voidAttendanceDay(
   return updated;
 }
 
+/** Owner/authorized manager explicit overtime classification (never employee self-service). */
+export async function setAttendanceDayOvertime(
+  context: OrgContext,
+  rawInput: unknown,
+): Promise<AttendanceDayRecord> {
+  assertPermission(context, PERMISSIONS.ATTENDANCE_MANAGE);
+
+  const input = parseOrThrow(updateAttendanceDayOvertimeSchema, rawInput);
+  const day = await findAttendanceDayById(context.db, context.organizationId, input.dayId);
+  if (!day || day.archivedAt) throw new NotFoundError('Attendance day');
+  if (day.status === 'void') {
+    throw new DomainRuleError('Attendance day is void', 'workforce.errors.attendanceDayVoid');
+  }
+
+  const updated = await updateAttendanceDayOvertime(
+    context.db,
+    context.organizationId,
+    day.id,
+    input.isOvertime,
+  );
+  if (!updated) throw new NotFoundError('Attendance day');
+
+  await recordAuditEvent(context, {
+    action: AUDIT_ACTIONS.ATTENDANCE_DAY_OVERTIME_UPDATED,
+    entityType: 'attendance_day',
+    entityId: day.id,
+    before: { isOvertime: day.isOvertime },
+    after: { isOvertime: updated.isOvertime, employeeId: day.employeeId, workDate: day.workDate },
+  });
+
+  return updated;
+}
+
 function localWallTimeToDate(workDate: string, timeOfDay: string): Date {
   const normalized = timeOfDay.length === 5 ? `${timeOfDay}:00` : timeOfDay;
   const parsed = new Date(`${workDate}T${normalized}`);
@@ -1237,5 +1273,8 @@ export async function listEmployeesWithoutAttendanceToday(
   workDate: string,
 ): Promise<{ employeeId: string; employeeName: string }[]> {
   assertPermission(context, PERMISSIONS.ATTENDANCE_MANAGE);
+  const laborDefaults = await getLaborCostDefaultsForApply(context);
+  const workWeekdays = resolveOrgWorkWeekdays(laborDefaults);
+  if (!isConfiguredOrgWorkday(workDate, workWeekdays)) return [];
   return listEmployeesWithoutAttendanceTodayDb(context.db, context.organizationId, workDate);
 }

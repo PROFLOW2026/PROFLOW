@@ -576,7 +576,8 @@
         "event_recorded": "רישום אירוע נוכחות",
         "event_voided": "ביטול אירוע נוכחות",
         "event_replaced": "החלפת אירוע נוכחות",
-        "day_voided": "ביטול יום נוכחות"
+        "day_voided": "ביטול יום נוכחות",
+        "day_overtime_updated": "עדכון סיווג שעות נוספות בנוכחות"
       },
       "project_team_member": {
         "added": "הוספת עובד לצוות הפרויקט",

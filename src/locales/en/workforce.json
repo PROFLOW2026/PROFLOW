@@ -604,6 +604,16 @@
         "void": "Void"
       }
     },
+    "overtime": {
+      "label": "Overtime",
+      "yes": "Yes",
+      "no": "No",
+      "hint": "Default: No. Overtime is an explicit manager decision, never inferred from the day of week.",
+      "save": "Save classification",
+      "saving": "Saving…",
+      "saved": "Overtime classification updated.",
+      "badge": "Overtime"
+    },
     "description": "Clock in and out for presence. Attendance is not project time and never creates labor Actual by itself.",
     "updateCta": "Update attendance",
     "outcomes": {

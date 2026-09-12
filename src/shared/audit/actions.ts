@@ -145,6 +145,7 @@ export const AUDIT_ACTIONS = {
   ATTENDANCE_EVENT_VOIDED: 'attendance.event_voided',
   ATTENDANCE_EVENT_REPLACED: 'attendance.event_replaced',
   ATTENDANCE_DAY_VOIDED: 'attendance.day_voided',
+  ATTENDANCE_DAY_OVERTIME_UPDATED: 'attendance.day_overtime_updated',
   PROJECT_TEAM_ASSIGNMENT_UPDATED: 'project_team_assignment.updated',
   PROJECT_TEAM_ASSIGNMENT_CANCELLED: 'project_team_assignment.cancelled',
 

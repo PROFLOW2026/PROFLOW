@@ -520,6 +520,13 @@ export const manualAttendanceWorkdayRangeSchema = z
 
 export type ManualAttendanceWorkdayRangeInput = z.infer<typeof manualAttendanceWorkdayRangeSchema>;
 
+export const updateAttendanceDayOvertimeSchema = z.object({
+  dayId: z.string().uuid(),
+  isOvertime: z.boolean(),
+});
+
+export type UpdateAttendanceDayOvertimeInput = z.infer<typeof updateAttendanceDayOvertimeSchema>;
+
 /** Hours between two same-day HH:mm values, as a positive decimal string. */
 export function hoursBetweenClockTimes(clockInTime: string, clockOutTime: string): string {
   const toMinutes = (value: string): number => {

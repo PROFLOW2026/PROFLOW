@@ -306,6 +306,8 @@ export interface AttendanceDayRecord {
   readonly employeeId: string;
   readonly workDate: string;
   readonly status: AttendanceDayStatus;
+  /** Explicit manager classification; default false on every new day. */
+  readonly isOvertime: boolean;
   readonly notes: string | null;
   readonly createdByUserId: string | null;
   readonly archivedAt: Date | null;

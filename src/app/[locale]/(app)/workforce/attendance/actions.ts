@@ -9,6 +9,7 @@ import {
   manualAttendanceWorkdayRangeSchema,
   recordManualAttendanceEvent,
   replaceAttendanceEvent,
+  setAttendanceDayOvertime,
   voidAttendanceDay,
   voidAttendanceEvent,
 } from '@/modules/workforce';
@@ -369,6 +370,27 @@ export async function replaceAttendanceEventAction(
         })(),
         occurredAt,
         notes: String(formData.get('notes') ?? '') || null,
+      }),
+    );
+    revalidatePath('/workforce/attendance');
+    return { ok: true };
+  } catch (error) {
+    return { error: await mapAttendanceError(error) };
+  }
+}
+
+export async function updateAttendanceOvertimeAction(
+  _prev: AttendanceActionState,
+  formData: FormData,
+): Promise<AttendanceActionState> {
+  const raw = String(formData.get('isOvertime') ?? 'false');
+  const isOvertime = raw === 'true' || raw === '1' || raw === 'on';
+
+  try {
+    await withOrgContext((context) =>
+      setAttendanceDayOvertime(context, {
+        dayId: String(formData.get('dayId') ?? ''),
+        isOvertime,
       }),
     );
     revalidatePath('/workforce/attendance');

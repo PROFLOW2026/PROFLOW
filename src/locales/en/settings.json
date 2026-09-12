@@ -664,7 +664,8 @@
         "event_recorded": "Attendance event recorded",
         "event_voided": "Attendance event voided",
         "event_replaced": "Attendance event replaced",
-        "day_voided": "Attendance day voided"
+        "day_voided": "Attendance day voided",
+        "day_overtime_updated": "Attendance overtime classification updated"
       },
       "project_team_member": {
         "added": "Employee added to project team",

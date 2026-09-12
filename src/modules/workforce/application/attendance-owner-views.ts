@@ -6,6 +6,7 @@
 import type { OrgContext } from '@/shared/auth/context';
 import { businessDate, type BusinessDate } from '@/shared/dates';
 import { ORG_LIST_EXPORT_CAP } from '@/shared/db/list-limits';
+import { getLaborCostDefaultsForApply, resolveOrgWorkWeekdays } from '@/modules/tenancy';
 import { assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { listAttendanceOutcomesInRange } from './attendance-outcomes';
@@ -13,6 +14,7 @@ import { listAttendanceDays } from '../data/attendance.repository';
 import { listEmployees } from '../data/employees.repository';
 import { listTimeEntries } from '../data/time-entries.repository';
 import { employeeRequiresAttendanceReporting } from '../domain/attendance-requirement';
+import { isConfiguredOrgWorkday } from '../domain/attendance-workday';
 import type { TimeApprovalStatus, TimeEntryListItem } from '../domain/types';
 
 export type TodayApprovalStatus = TimeApprovalStatus | 'awaiting' | 'missing';
@@ -170,6 +172,10 @@ export async function getTodayAttendanceOverview(
 ): Promise<TodayAttendanceOverview> {
   assertPermission(context, PERMISSIONS.ATTENDANCE_MANAGE);
 
+  const laborDefaults = await getLaborCostDefaultsForApply(context);
+  const workWeekdays = resolveOrgWorkWeekdays(laborDefaults);
+  const isRequiredWorkday = isConfiguredOrgWorkday(workDate, workWeekdays);
+
   const employees = await listEmployees(context.db, context.organizationId, {
     status: 'active',
     asOfDate: workDate,
@@ -193,7 +199,8 @@ export async function getTodayAttendanceOverview(
       const day = dayByEmployee.get(employee.id) ?? null;
       const explicitOutcome = outcomeByEmployee.get(employee.id) ?? null;
       const entries = timeByEmployee.get(employee.id) ?? [];
-      const attendanceRequired = employeeRequiresAttendanceReporting(employee);
+      const attendanceRequired =
+        employeeRequiresAttendanceReporting(employee) && isRequiredWorkday;
       const reported =
         !attendanceRequired || day != null || explicitOutcome != null;
       const approval: TodayApprovalStatus = !attendanceRequired
@@ -282,17 +289,18 @@ export async function getMonthlyAttendanceGrid(
   }
 
   const rows: MonthlyAttendanceEmployeeRow[] = scopedEmployees.map((employee) => {
-    const attendanceRequired = employeeRequiresAttendanceReporting(employee);
     const cells: MonthlyAttendanceCell[] = days.map((workDate) => {
       const isWorkday = workdaySet.has(weekdayUtc(workDate));
+      const attendanceRequired =
+        employeeRequiresAttendanceReporting(employee) && isWorkday;
       const day = dayByEmployeeDate.get(`${employee.id}:${workDate}`) ?? null;
       const explicitOutcome = outcomeByEmployeeDate.get(`${employee.id}:${workDate}`) ?? null;
       const entries = timeByEmployeeDate.get(`${employee.id}:${workDate}`) ?? [];
       const hours = sumHours(entries) ?? hoursFromClock(day?.clockInAt ?? null, day?.clockOutAt ?? null);
       const projectNames = uniqueProjectNames(entries);
 
-      if (!isWorkday) {
-        return { workDate, kind: 'dayOff', dayId: day?.id ?? null, hours, projectNames };
+      if (!isWorkday && !day && !explicitOutcome && entries.length === 0) {
+        return { workDate, kind: 'dayOff', dayId: null, hours, projectNames };
       }
       if (!attendanceRequired && !day && !explicitOutcome) {
         return {

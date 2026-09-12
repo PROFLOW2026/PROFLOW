@@ -25,6 +25,7 @@ function mapDay(row: typeof attendanceDays.$inferSelect): AttendanceDayRecord {
     employeeId: row.employeeId,
     workDate: row.workDate,
     status: row.status as AttendanceDayStatus,
+    isOvertime: row.isOvertime ?? false,
     notes: row.notes,
     createdByUserId: row.createdByUserId,
     archivedAt: row.archivedAt,
@@ -125,6 +126,21 @@ export async function updateAttendanceDayStatus(
   const [row] = await db
     .update(attendanceDays)
     .set({ status, updatedAt: new Date() })
+    .where(and(eq(attendanceDays.id, dayId), eq(attendanceDays.organizationId, organizationId)))
+    .returning();
+
+  return row ? mapDay(row) : null;
+}
+
+export async function updateAttendanceDayOvertime(
+  db: DbExecutor,
+  organizationId: string,
+  dayId: string,
+  isOvertime: boolean,
+): Promise<AttendanceDayRecord | null> {
+  const [row] = await db
+    .update(attendanceDays)
+    .set({ isOvertime, updatedAt: new Date() })
     .where(and(eq(attendanceDays.id, dayId), eq(attendanceDays.organizationId, organizationId)))
     .returning();
 

@@ -7,6 +7,12 @@ import {
 } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 import { isAllocationIntentSchemaReady } from '@/modules/financials';
+import {
+  getOrganizationSettingValue,
+  LABOR_COST_DEFAULTS_SETTING_KEY,
+  parseLaborCostDefaults,
+  resolveOrgWorkWeekdays,
+} from '@/modules/tenancy';
 import type { CompletenessCheckInput } from '../domain/completeness';
 import { yearMonthBounds } from '../domain/year-month';
 
@@ -38,6 +44,13 @@ export async function gatherCompletenessSignals(
   yearMonth: string,
 ): Promise<CompletenessCheckInput[]> {
   const { startDate, endDate } = yearMonthBounds(yearMonth);
+  const laborDefaultsRaw = await getOrganizationSettingValue<unknown>(
+    db,
+    organizationId,
+    LABOR_COST_DEFAULTS_SETTING_KEY,
+  );
+  const workWeekdays = resolveOrgWorkWeekdays(parseLaborCostDefaults(laborDefaultsRaw));
+  const configuredDowSql = sql.raw(`ARRAY[${workWeekdays.join(',')}]::int[]`);
 
   const [
     missingEmployerCost,
@@ -59,7 +72,7 @@ export async function gatherCompletenessSignals(
     countMissingProjectAllocations(db, organizationId, startDate, endDate),
     countUnresolvedExpenseDrafts(db, organizationId, startDate, endDate),
     orgUsesAttendanceThisMonth(db, organizationId, startDate, endDate),
-    countIncompleteAttendance(db, organizationId, startDate, endDate),
+    countIncompleteAttendance(db, organizationId, startDate, endDate, configuredDowSql),
     countOpenOverheadAllocation(db, organizationId, startDate, endDate),
   ]);
 
@@ -499,6 +512,7 @@ async function countIncompleteAttendance(
   organizationId: string,
   startDate: string,
   endDate: string,
+  configuredDowSql: ReturnType<typeof sql.raw>,
 ): Promise<{ count: number; ids: string[] }> {
   const result = await db.execute(sql`
     SELECT id FROM (
@@ -511,6 +525,7 @@ async function countIncompleteAttendance(
         AND d.work_date >= ${startDate}
         AND d.work_date <= ${endDate}
         AND e.compensation_class <> 'owner_manager'
+        AND EXTRACT(DOW FROM d.work_date)::int = ANY(${configuredDowSql})
 
       UNION
 
@@ -523,6 +538,7 @@ async function countIncompleteAttendance(
         AND te.work_date >= ${startDate}
         AND te.work_date <= ${endDate}
         AND e.compensation_class <> 'owner_manager'
+        AND EXTRACT(DOW FROM te.work_date)::int = ANY(${configuredDowSql})
         AND EXISTS (
           SELECT 1
           FROM attendance_days any_day
