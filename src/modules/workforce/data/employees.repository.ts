@@ -5,7 +5,7 @@ import {
   employeeSelectColumns,
   omitEmployeeInsertValues,
   omitEmployeePatchValues,
-} from '@/modules/financials/data/allocation-intent-schema';
+} from '@/modules/financials';
 import type { EmployeeListItem, EmployeeRecord, RateUnit } from '../domain/types';
 import { calculateUnitEmployerCostPool } from '../domain/employer-cost-pool';
 import { toNumericString } from '@/shared/money';

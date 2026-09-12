@@ -20,7 +20,7 @@ import {
   omitApBillInsertValues,
   omitApBillPatchValues,
   withApBillLegacyDefaults,
-} from '@/modules/financials/data/allocation-intent-schema';
+} from '@/modules/financials';
 import type { ApBillStatus, ApMatchStatus } from '../domain/matching';
 
 /**

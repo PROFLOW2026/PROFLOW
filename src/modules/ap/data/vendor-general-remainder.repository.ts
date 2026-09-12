@@ -1,7 +1,7 @@
 import { and, eq, gte, inArray, isNotNull, isNull, lte } from 'drizzle-orm';
 import { apBillProjectAllocations, apBills } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
-import { isAllocationIntentSchemaReady } from '@/modules/financials/data/allocation-intent-schema';
+import { isAllocationIntentSchemaReady } from '@/modules/financials';
 import { ValidationError } from '@/shared/errors';
 import { zeroMoney } from '@/shared/money';
 import { foldApGeneralRemaindersByYearMonthFromFacts } from '../application/fold-ap-read-facts';

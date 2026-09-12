@@ -62,6 +62,24 @@ import {
 } from '../domain/monthly-accrual';
 import type { EmployeeRecord, LaborCostComponentRecord, RateVersionRecord, TimeEntryRecord } from '../domain/types';
 
+function listYearMonthsInclusive(fromYearMonth: string, toYearMonth: string): string[] {
+  if (fromYearMonth > toYearMonth) return [];
+  const months: string[] = [];
+  let year = Number(fromYearMonth.slice(0, 4));
+  let month = Number(fromYearMonth.slice(5, 7));
+  const endYear = Number(toYearMonth.slice(0, 4));
+  const endMonth = Number(toYearMonth.slice(5, 7));
+  while (year < endYear || (year === endYear && month <= endMonth)) {
+    months.push(`${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}`);
+    month += 1;
+    if (month > 12) {
+      month = 1;
+      year += 1;
+    }
+  }
+  return months;
+}
+
 export interface MonthlyCostRecomputeResult {
   readonly skipped: boolean;
   readonly reason:
@@ -533,6 +551,11 @@ export async function recomputeMonthlyEmployeeCostForOpenMonth(
     mode: payrollSync,
   });
 
+  const { tryRecomputeOpenGeneralCostMonth } = await import(
+    '@/modules/financials/application/recompute-general-cost-month'
+  );
+  await tryRecomputeOpenGeneralCostMonth(context, { yearMonth });
+
   return {
     skipped: false,
     reason: null,
@@ -598,16 +621,18 @@ export async function recomputeMonthlyEmployeeCostsForDates(
 /**
  * After compensation change: recompute open months that have approved time,
  * plus the current calendar month (so admin/no-time months still accrue).
+ *
+ * Owner/manager + company_only: every calendar month from hire (or earliest
+ * monthly rate) through the current month — no timesheet required.
  */
 export async function recomputeOpenMonthsAfterCompensationChange(
   context: OrgContext,
   employeeId: string,
 ): Promise<readonly MonthlyCostRecomputeResult[]> {
-  const versions = await listRateVersionsByEmployee(
-    context.db,
-    context.organizationId,
-    employeeId,
-  );
+  const [employee, versions] = await Promise.all([
+    findEmployeeById(context.db, context.organizationId, employeeId),
+    listRateVersionsByEmployee(context.db, context.organizationId, employeeId),
+  ]);
   if (!versions.some((v) => v.rateUnit === 'monthly')) {
     return [];
   }
@@ -619,7 +644,24 @@ export async function recomputeOpenMonthsAfterCompensationChange(
   });
   const months = new Set(entries.map((e) => e.workDate.slice(0, 7)));
   const today = todayInTimeZone(context.organization.timezone);
-  months.add(today.slice(0, 7));
+  const currentYearMonth = today.slice(0, 7);
+  months.add(currentYearMonth);
+
+  if (
+    employee?.compensationClass === 'owner_manager' &&
+    employee.defaultLaborAllocationIntent === 'company_only'
+  ) {
+    const monthlyVersions = versions.filter((v) => v.rateUnit === 'monthly');
+    const earliestRateMonth = monthlyVersions.reduce(
+      (min, version) => (version.validFrom.slice(0, 7) < min ? version.validFrom.slice(0, 7) : min),
+      monthlyVersions[0]!.validFrom.slice(0, 7),
+    );
+    const hireMonth = employee.hireDate?.slice(0, 7) ?? earliestRateMonth;
+    const fromYearMonth = hireMonth > earliestRateMonth ? hireMonth : earliestRateMonth;
+    for (const yearMonth of listYearMonthsInclusive(fromYearMonth, currentYearMonth)) {
+      months.add(yearMonth);
+    }
+  }
 
   const results: MonthlyCostRecomputeResult[] = [];
   for (const yearMonth of [...months].sort()) {

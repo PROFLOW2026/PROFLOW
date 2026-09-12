@@ -14,7 +14,7 @@ import {
   timeEntries,
 } from '@drizzle/schema';
 import type { OrgContext } from '@/shared/auth/context';
-import { isAllocationIntentSchemaReady } from '@/modules/financials/data/allocation-intent-schema';
+import { isAllocationIntentSchemaReady } from '@/modules/financials';
 import { todayInTimeZone } from '@/shared/dates';
 import { money, toDecimalValue } from '@/shared/money';
 import { isMonthClosed } from '@/modules/month-close';

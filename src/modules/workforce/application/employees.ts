@@ -303,6 +303,13 @@ export async function createEmployee(
     },
   });
 
+  if (input.baseRate && input.rateUnit === 'monthly') {
+    const { recomputeOpenMonthsAfterCompensationChange } = await import(
+      './monthly-cost-recompute'
+    );
+    await recomputeOpenMonthsAfterCompensationChange(context, employee.id);
+  }
+
   return getEmployee(context, employee.id);
 }
 

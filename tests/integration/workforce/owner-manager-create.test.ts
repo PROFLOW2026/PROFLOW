@@ -4,9 +4,11 @@ import { sql } from 'drizzle-orm';
 import { organizationMemberships, organizations, profiles } from '@drizzle/schema';
 import { seedSystemData } from '@drizzle/seed/system';
 import { assignRole, provisionOrganizationRoles } from '@/modules/rbac';
+import { and, eq } from 'drizzle-orm';
+import { employeeMonthCosts, laborAllocationRuns } from '@drizzle/schema';
 import { createEmployee, getEmployee } from '@/modules/workforce/application/employees';
 import { resolveOrgContext } from '@/modules/tenancy';
-import { businessDate } from '@/shared/dates';
+import { businessDate, todayInTimeZone } from '@/shared/dates';
 import { createTestDatabase, type TestDatabase } from '../../setup/database';
 
 describe('owner / manager employee create (0084)', () => {
@@ -97,6 +99,35 @@ describe('owner / manager employee create (0084)', () => {
       const loaded = await getEmployee(context, employeeId);
       expect(loaded.compensationClass).toBe('owner_manager');
       expect(loaded.defaultLaborAllocationIntent).toBe('company_only');
+
+      const currentYearMonth = todayInTimeZone('Asia/Jerusalem').slice(0, 7);
+      const monthRows = await tx
+        .select({
+          yearMonth: employeeMonthCosts.yearMonth,
+          knownAmount: employeeMonthCosts.knownAmount,
+          companyOnlyAmount: laborAllocationRuns.companyOnlyAmount,
+          allocatedAmount: laborAllocationRuns.allocatedAmount,
+          unallocatedAmount: laborAllocationRuns.unallocatedAmount,
+        })
+        .from(employeeMonthCosts)
+        .leftJoin(
+          laborAllocationRuns,
+          and(
+            eq(laborAllocationRuns.employeeMonthCostId, employeeMonthCosts.id),
+            eq(laborAllocationRuns.status, 'applied'),
+          ),
+        )
+        .where(eq(employeeMonthCosts.employeeId, employeeId))
+        .orderBy(employeeMonthCosts.yearMonth);
+
+      expect(monthRows.length).toBeGreaterThan(0);
+      expect(monthRows.some((row) => row.yearMonth === currentYearMonth)).toBe(true);
+      for (const row of monthRows) {
+        expect(Number(row.knownAmount)).toBeGreaterThan(0);
+        expect(row.companyOnlyAmount).toBe(row.knownAmount);
+        expect(row.allocatedAmount).toBe('0.000000');
+        expect(row.unallocatedAmount).toBe('0.000000');
+      }
     });
   });
 

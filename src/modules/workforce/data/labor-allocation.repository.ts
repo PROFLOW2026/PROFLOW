@@ -5,7 +5,7 @@ import {
   laborAllocationRunSelectColumns,
   omitLaborAllocationRunInsertValues,
   withLaborAllocationRunLegacyDefaults,
-} from '@/modules/financials/data/allocation-intent-schema';
+} from '@/modules/financials';
 import type { MonthlyAllocationMethod } from '../domain/monthly-cost-gates';
 
 export type LaborAllocationRunRow = typeof laborAllocationRuns.$inferSelect;

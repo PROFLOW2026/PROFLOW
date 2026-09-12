@@ -63,6 +63,13 @@ export interface ProjectRiskRow {
 export interface ManagementAnalytics {
   readonly activeProjectValue: MoneyValue | null;
   readonly unbilledBacklog: MoneyValue | null;
+  /** Explicit company_only costs (card A). */
+  readonly companyOnlyCost: MoneyValue | null;
+  /** Project-attributed costs — direct + allocated overhead (card B). */
+  readonly allocatedCost: MoneyValue | null;
+  /** Action-needed costs — excludes company_only (card C). */
+  readonly unallocatedCost: MoneyValue | null;
+  readonly costBreakdownReconciles: boolean | null;
   readonly totalActualCost: MoneyValue | null;
   readonly totalCommitments: MoneyValue | null;
   readonly expectedProfit: MoneyValue | null;
@@ -264,6 +271,10 @@ export function emptyManagementAnalytics(): ManagementAnalytics {
   return {
     activeProjectValue: null,
     unbilledBacklog: null,
+    companyOnlyCost: null,
+    allocatedCost: null,
+    unallocatedCost: null,
+    costBreakdownReconciles: null,
     totalActualCost: null,
     totalCommitments: null,
     expectedProfit: null,

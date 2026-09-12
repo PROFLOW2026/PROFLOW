@@ -1,5 +1,7 @@
 import { listBillingRecords, computeReceivablesAging } from '@/modules/billing';
 import type { ReceivablesAging } from '@/modules/billing';
+import { sumRecognizedApGeneralRemainders } from '@/modules/ap';
+import { sumOrganizationMonthlyLaborCompanyOnly } from '@/modules/workforce';
 import type { OrgContext } from '@/shared/auth/context';
 import { todayInTimeZone } from '@/shared/dates';
 import { ORG_LIST_EXPORT_CAP } from '@/shared/db/list-limits';
@@ -45,6 +47,10 @@ import {
 } from './get-organization-project-rollup';
 import { composeManagementAnalytics } from './compose-management-analytics';
 import type { ManagementAnalytics } from '../domain/management-analytics';
+import {
+  composeOrganizationCostBreakdown,
+  type OrganizationCostBreakdown,
+} from '../domain/organization-cost-breakdown';
 
 export interface OperationsReportSection {
   readonly progressAveragePercent: string | null;
@@ -439,7 +445,18 @@ export async function getOrganizationReportsAnalytics(
       ? profitability
       : null;
 
-  const management = await composeManagementAnalytics(context, {
+  const costBreakdown =
+    workKindFilter === 'all' && companyComposition
+      ? await loadOrganizationCostBreakdown(context, {
+          currency,
+          directProjectActual: companyComposition.directProjectActual,
+          allocatedGeneralToProjects: companyComposition.allocatedGeneralToProjects,
+          companyActual: companyComposition.companyActual,
+          gcmUnallocatable: companyComposition.unallocatableGeneral,
+        })
+      : null;
+
+  const managementBase = await composeManagementAnalytics(context, {
     rollup,
     cashFlow,
     commercialCurrent: commercialVisible?.current.value ?? null,
@@ -449,6 +466,16 @@ export async function getOrganizationReportsAnalytics(
     expectedProfit: profitVisible?.estimatedProfit?.value ?? null,
     clientOutstanding: cashVisible?.outstanding.value ?? null,
   });
+  const management: ManagementAnalytics = {
+    ...managementBase,
+    companyOnlyCost:
+      costBreakdown && !isZeroMoney(costBreakdown.companyOnly) ? costBreakdown.companyOnly : null,
+    allocatedCost:
+      costBreakdown && !isZeroMoney(costBreakdown.allocated) ? costBreakdown.allocated : null,
+    unallocatedCost:
+      costBreakdown && !isZeroMoney(costBreakdown.unallocated) ? costBreakdown.unallocated : null,
+    costBreakdownReconciles: costBreakdown?.reconciles ?? null,
+  };
 
   return {
     currency,
@@ -487,5 +514,50 @@ async function loadUnallocatedBusinessCosts(
     orgFinalizedExpenseTotal: orgExpense.total,
     projectTouchingExpenseTotal: sumProjectTouchingExpenseNets(contributions, currency),
     intentionalCompanyOnly: companyOnlyExpenses,
+  });
+}
+
+async function loadOrganizationCostBreakdown(
+  context: OrgContext,
+  input: {
+    readonly currency: string;
+    readonly directProjectActual: ReturnType<typeof zeroMoney>;
+    readonly allocatedGeneralToProjects: ReturnType<typeof zeroMoney>;
+    readonly companyActual: ReturnType<typeof zeroMoney>;
+    readonly gcmUnallocatable: ReturnType<typeof zeroMoney>;
+  },
+): Promise<OrganizationCostBreakdown> {
+  const canReadExpenses = hasPermission(context, PERMISSIONS.EXPENSES_READ);
+  const canReadAp = hasPermission(context, PERMISSIONS.AP_READ);
+  const canReadWorkforce = hasPermission(context, PERMISSIONS.WORKFORCE_READ);
+
+  const [expenseCompanyOnly, laborCompanyOnly, apRemainders] = await Promise.all([
+    canReadExpenses
+      ? sumOrganizationCompanyOnlyExpenses(context.db, context.organizationId, input.currency)
+      : Promise.resolve(zeroMoney(input.currency)),
+    canReadWorkforce
+      ? sumOrganizationMonthlyLaborCompanyOnly(
+          context.db,
+          context.organizationId,
+          input.currency,
+        ).then(
+          (row) => fromNumericString(row.totalAmount, input.currency) ?? zeroMoney(input.currency),
+        )
+      : Promise.resolve(zeroMoney(input.currency)),
+    canReadAp
+      ? sumRecognizedApGeneralRemainders(context.db, context.organizationId, input.currency)
+      : Promise.resolve(null),
+  ]);
+
+  return composeOrganizationCostBreakdown({
+    currency: input.currency,
+    directProjectActual: input.directProjectActual,
+    allocatedGeneralToProjects: input.allocatedGeneralToProjects,
+    companyActual: input.companyActual,
+    gcmUnallocatable: input.gcmUnallocatable,
+    expenseCompanyOnly,
+    laborCompanyOnly,
+    apCompanyOnly:
+      apRemainders?.remainderFromUnderAllocatedBillsCompanyOnly ?? zeroMoney(input.currency),
   });
 }

@@ -383,6 +383,9 @@ export async function ReportsAnalyticsView({
             labels: {
               activeProjectValue: t('management.activeProjectValue'),
               unbilledBacklog: t('management.unbilledBacklog'),
+              companyOnlyCost: t('management.companyOnlyCost'),
+              allocatedCost: t('management.allocatedCost'),
+              unallocatedCost: t('management.unallocatedCost'),
               totalActualCost: t('management.totalActualCost'),
               totalCommitments: t('management.totalCommitments'),
               expectedProfit: t('management.expectedProfit'),

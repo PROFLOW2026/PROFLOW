@@ -589,6 +589,13 @@
                         "when":  1788759200000,
                         "tag":  "0084_allocation_intent_company_only",
                         "breakpoints":  true
+                    },
+                    {
+                        "idx":  84,
+                        "version":  "7",
+                        "when":  1788845600000,
+                        "tag":  "0085_labor_allocation_company_only_conservation",
+                        "breakpoints":  true
                     }
                 ]
 }

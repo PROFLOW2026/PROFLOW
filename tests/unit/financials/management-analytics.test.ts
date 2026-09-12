@@ -16,6 +16,9 @@ describe('management analytics uncovered metrics stay null', () => {
     const empty = emptyManagementAnalytics();
     expect(empty.activeProjectValue).toBeNull();
     expect(empty.unbilledBacklog).toBeNull();
+    expect(empty.companyOnlyCost).toBeNull();
+    expect(empty.allocatedCost).toBeNull();
+    expect(empty.unallocatedCost).toBeNull();
     expect(empty.expectedProfit).toBeNull();
     expect(empty.quotesConversion).toBeNull();
     expect(empty.workforceHours).toBeNull();

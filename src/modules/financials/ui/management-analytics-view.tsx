@@ -11,6 +11,9 @@ export interface ManagementAnalyticsViewCopy {
   readonly labels: {
     readonly activeProjectValue: string;
     readonly unbilledBacklog: string;
+    readonly companyOnlyCost: string;
+    readonly allocatedCost: string;
+    readonly unallocatedCost: string;
     readonly totalActualCost: string;
     readonly totalCommitments: string;
     readonly expectedProfit: string;
@@ -61,6 +64,9 @@ export function ManagementAnalyticsView({
   const hasAny =
     management.activeProjectValue ||
     management.unbilledBacklog ||
+    management.companyOnlyCost ||
+    management.allocatedCost ||
+    management.unallocatedCost ||
     management.totalActualCost ||
     management.totalCommitments ||
     management.expectedProfit ||
@@ -110,6 +116,21 @@ export function ManagementAnalyticsView({
         {management.unbilledBacklog ? (
           <MetricCard label={copy.labels.unbilledBacklog}>
             <MoneyText value={management.unbilledBacklog} />
+          </MetricCard>
+        ) : null}
+        {management.companyOnlyCost ? (
+          <MetricCard label={copy.labels.companyOnlyCost}>
+            <MoneyText value={management.companyOnlyCost} />
+          </MetricCard>
+        ) : null}
+        {management.allocatedCost ? (
+          <MetricCard label={copy.labels.allocatedCost}>
+            <MoneyText value={management.allocatedCost} />
+          </MetricCard>
+        ) : null}
+        {management.unallocatedCost ? (
+          <MetricCard label={copy.labels.unallocatedCost}>
+            <MoneyText value={management.unallocatedCost} colorizeNegative />
           </MetricCard>
         ) : null}
         {management.totalActualCost ? (
