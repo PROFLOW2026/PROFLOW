@@ -1,6 +1,11 @@
 import { and, asc, eq, ilike, isNotNull, isNull, ne, or, sql } from 'drizzle-orm';
 import { employees, organizationMemberships, profiles } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
+import {
+  employeeSelectColumns,
+  omitEmployeeInsertValues,
+  omitEmployeePatchValues,
+} from '@/modules/financials/data/allocation-intent-schema';
 import type { EmployeeListItem, EmployeeRecord, RateUnit } from '../domain/types';
 import { calculateUnitEmployerCostPool } from '../domain/employer-cost-pool';
 import { toNumericString } from '@/shared/money';
@@ -11,18 +16,21 @@ export interface OrgMemberLinkOption {
   readonly displayName: string | null;
 }
 
-function mapEmployee(row: typeof employees.$inferSelect): EmployeeRecord {
+function mapEmployee(
+  row: Partial<typeof employees.$inferSelect> &
+    Pick<typeof employees.$inferSelect, 'id' | 'organizationId' | 'name' | 'status'>,
+): EmployeeRecord {
   return {
     id: row.id,
     organizationId: row.organizationId,
     name: row.name,
     status: row.status,
-    userId: row.userId,
-    employeeNumber: row.employeeNumber,
-    jobTitle: row.jobTitle,
-    email: row.email,
-    phone: row.phone,
-    notes: row.notes,
+    userId: row.userId ?? null,
+    employeeNumber: row.employeeNumber ?? null,
+    jobTitle: row.jobTitle ?? null,
+    email: row.email ?? null,
+    phone: row.phone ?? null,
+    notes: row.notes ?? null,
     hireDate: row.hireDate ?? null,
     endDate: row.endDate ?? null,
     employmentBasis: (row.employmentBasis as EmployeeRecord['employmentBasis']) ?? null,
@@ -31,9 +39,9 @@ function mapEmployee(row: typeof employees.$inferSelect): EmployeeRecord {
     defaultLaborAllocationIntent:
       (row.defaultLaborAllocationIntent as EmployeeRecord['defaultLaborAllocationIntent']) ??
       'auto_pool',
-    archivedAt: row.archivedAt,
-    createdAt: row.createdAt,
-    updatedAt: row.updatedAt,
+    archivedAt: row.archivedAt ?? null,
+    createdAt: row.createdAt!,
+    updatedAt: row.updatedAt!,
   };
 }
 
@@ -57,26 +65,29 @@ export async function insertEmployee(
     defaultLaborAllocationIntent?: EmployeeRecord['defaultLaborAllocationIntent'];
   },
 ): Promise<EmployeeRecord> {
+  const employeeCols = await employeeSelectColumns(db);
   const [row] = await db
     .insert(employees)
-    .values({
-      organizationId: input.organizationId,
-      name: input.name,
-      status: input.status ?? 'active',
-      userId: input.userId ?? null,
-      employeeNumber: input.employeeNumber ?? null,
-      jobTitle: input.jobTitle ?? null,
-      email: input.email ?? null,
-      phone: input.phone ?? null,
-      notes: input.notes ?? null,
-      hireDate: input.hireDate ?? null,
-      endDate: input.endDate ?? null,
-      employmentBasis: input.employmentBasis ?? null,
-      standardHoursPerDay: input.standardHoursPerDay ?? null,
-      compensationClass: input.compensationClass ?? 'standard',
-      defaultLaborAllocationIntent: input.defaultLaborAllocationIntent ?? 'auto_pool',
-    })
-    .returning();
+    .values(
+      await omitEmployeeInsertValues(db, {
+        organizationId: input.organizationId,
+        name: input.name,
+        status: input.status ?? 'active',
+        userId: input.userId ?? null,
+        employeeNumber: input.employeeNumber ?? null,
+        jobTitle: input.jobTitle ?? null,
+        email: input.email ?? null,
+        phone: input.phone ?? null,
+        notes: input.notes ?? null,
+        hireDate: input.hireDate ?? null,
+        endDate: input.endDate ?? null,
+        employmentBasis: input.employmentBasis ?? null,
+        standardHoursPerDay: input.standardHoursPerDay ?? null,
+        compensationClass: input.compensationClass ?? 'standard',
+        defaultLaborAllocationIntent: input.defaultLaborAllocationIntent ?? 'auto_pool',
+      }),
+    )
+    .returning(employeeCols);
 
   return mapEmployee(row!);
 }
@@ -103,11 +114,12 @@ export async function updateEmployeeById(
     archivedAt: Date | null;
   }>,
 ): Promise<EmployeeRecord | null> {
+  const employeeCols = await employeeSelectColumns(db);
   const [row] = await db
     .update(employees)
-    .set({ ...patch, updatedAt: new Date() })
+    .set({ ...(await omitEmployeePatchValues(db, patch)), updatedAt: new Date() })
     .where(and(eq(employees.id, employeeId), eq(employees.organizationId, organizationId)))
-    .returning();
+    .returning(employeeCols);
 
   return row ? mapEmployee(row) : null;
 }
@@ -117,8 +129,9 @@ export async function findEmployeeById(
   organizationId: string,
   employeeId: string,
 ): Promise<EmployeeRecord | null> {
+  const employeeCols = await employeeSelectColumns(db);
   const [row] = await db
-    .select()
+    .select(employeeCols)
     .from(employees)
     .where(and(eq(employees.id, employeeId), eq(employees.organizationId, organizationId)))
     .limit(1);
@@ -171,9 +184,11 @@ export async function listEmployees(
   // (always null). Qualify the outer employee id explicitly.
   const employeeIdRef = sql.raw('"employees"."id"');
 
+  const employeeCols = await employeeSelectColumns(db);
+  const employeeKeys = Object.keys(employeeCols);
   const rows = await db
     .select({
-      employee: employees,
+      ...employeeCols,
       currentRate: sql<string | null>`(
         coalesce(
           (
@@ -272,6 +287,9 @@ export async function listEmployees(
     .orderBy(asc(employees.name));
 
   return rows.map((row) => {
+    const employeeRow = Object.fromEntries(
+      employeeKeys.map((key) => [key, row[key as keyof typeof row]]),
+    );
     const currentEmployerCost =
       row.currentRate && row.currentRateCurrency
         ? toNumericString(
@@ -284,7 +302,7 @@ export async function listEmployees(
         : null;
 
     return {
-      ...mapEmployee(row.employee),
+      ...mapEmployee(employeeRow as typeof employees.$inferSelect),
       currentRate: row.currentRate,
       currentRateUnit: row.currentRateUnit,
       currentRateCurrency: row.currentRateCurrency,
@@ -298,8 +316,9 @@ export async function findEmployeeByUserId(
   organizationId: string,
   userId: string,
 ): Promise<EmployeeRecord | null> {
+  const employeeCols = await employeeSelectColumns(db);
   const [row] = await db
-    .select()
+    .select(employeeCols)
     .from(employees)
     .where(
       and(
@@ -335,7 +354,8 @@ export async function findEmployeeByLinkedUserId(
   if (exceptEmployeeId) {
     conditions.push(ne(employees.id, exceptEmployeeId));
   }
-  const [row] = await db.select().from(employees).where(and(...conditions)).limit(1);
+  const employeeCols = await employeeSelectColumns(db);
+  const [row] = await db.select(employeeCols).from(employees).where(and(...conditions)).limit(1);
   return row ? mapEmployee(row) : null;
 }
 

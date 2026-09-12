@@ -14,6 +14,7 @@ import {
   timeEntries,
 } from '@drizzle/schema';
 import type { OrgContext } from '@/shared/auth/context';
+import { isAllocationIntentSchemaReady } from '@/modules/financials/data/allocation-intent-schema';
 import { todayInTimeZone } from '@/shared/dates';
 import { money, toDecimalValue } from '@/shared/money';
 import { isMonthClosed } from '@/modules/month-close';
@@ -49,22 +50,25 @@ export async function employeeExpectsProjectLaborAllocation(
   employeeId: string,
   yearMonth: string,
 ): Promise<boolean> {
-  const [employee] = await context.db
-    .select({
-      compensationClass: employees.compensationClass,
-      defaultLaborAllocationIntent: employees.defaultLaborAllocationIntent,
-    })
-    .from(employees)
-    .where(
-      and(eq(employees.organizationId, context.organizationId), eq(employees.id, employeeId)),
-    )
-    .limit(1);
+  const schemaReady = await isAllocationIntentSchemaReady(context.db);
+  if (schemaReady) {
+    const [employee] = await context.db
+      .select({
+        compensationClass: employees.compensationClass,
+        defaultLaborAllocationIntent: employees.defaultLaborAllocationIntent,
+      })
+      .from(employees)
+      .where(
+        and(eq(employees.organizationId, context.organizationId), eq(employees.id, employeeId)),
+      )
+      .limit(1);
 
-  if (
-    employee?.compensationClass === 'owner_manager' &&
-    employee.defaultLaborAllocationIntent === 'company_only'
-  ) {
-    return false;
+    if (
+      employee?.compensationClass === 'owner_manager' &&
+      employee.defaultLaborAllocationIntent === 'company_only'
+    ) {
+      return false;
+    }
   }
 
   const { fromDate, toDate } = monthDateBounds(yearMonth);

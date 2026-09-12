@@ -227,7 +227,19 @@ export type {
 } from './domain/project-actual-breakdown';
 export { sumCollectionsInDateRange } from './data/billing.repository';
 export {
+  apBillSelectColumns,
+  employeeSelectColumns,
+  expenseSelectColumns,
   isAllocationIntentSchemaReady,
+  laborAllocationRunSelectColumns,
+  omitApBillInsertValues,
+  omitApBillPatchValues,
+  omitEmployeeInsertValues,
+  omitEmployeePatchValues,
+  omitLaborAllocationRunInsertValues,
   setAllocationIntentSchemaReadyForTests,
+  sqlExpenseAutoPoolFilterIfReady,
+  withApBillLegacyDefaults,
+  withLaborAllocationRunLegacyDefaults,
 } from './data/allocation-intent-schema';
 

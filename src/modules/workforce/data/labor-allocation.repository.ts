@@ -1,6 +1,11 @@
 import { and, asc, eq, inArray } from 'drizzle-orm';
 import { laborAllocationRunLines, laborAllocationRuns } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
+import {
+  laborAllocationRunSelectColumns,
+  omitLaborAllocationRunInsertValues,
+  withLaborAllocationRunLegacyDefaults,
+} from '@/modules/financials/data/allocation-intent-schema';
 import type { MonthlyAllocationMethod } from '../domain/monthly-cost-gates';
 
 export type LaborAllocationRunRow = typeof laborAllocationRuns.$inferSelect;
@@ -13,8 +18,9 @@ export async function findActiveLaborAllocationRun(
   organizationId: string,
   employeeMonthCostId: string,
 ): Promise<LaborAllocationRunRow | null> {
+  const runCols = await laborAllocationRunSelectColumns(db);
   const [row] = await db
-    .select()
+    .select(runCols)
     .from(laborAllocationRuns)
     .where(
       and(
@@ -24,7 +30,7 @@ export async function findActiveLaborAllocationRun(
       ),
     )
     .limit(1);
-  return row ?? null;
+  return row ? withLaborAllocationRunLegacyDefaults(row) : null;
 }
 
 export async function findLaborAllocationRunById(
@@ -32,14 +38,15 @@ export async function findLaborAllocationRunById(
   organizationId: string,
   runId: string,
 ): Promise<LaborAllocationRunRow | null> {
+  const runCols = await laborAllocationRunSelectColumns(db);
   const [row] = await db
-    .select()
+    .select(runCols)
     .from(laborAllocationRuns)
     .where(
       and(eq(laborAllocationRuns.id, runId), eq(laborAllocationRuns.organizationId, organizationId)),
     )
     .limit(1);
-  return row ?? null;
+  return row ? withLaborAllocationRunLegacyDefaults(row) : null;
 }
 
 export async function listLaborAllocationRunLines(
@@ -101,23 +108,26 @@ export async function insertDraftLaborAllocationRun(
     }[];
   },
 ): Promise<LaborAllocationRunRow> {
+  const runCols = await laborAllocationRunSelectColumns(db);
   const [run] = await db
     .insert(laborAllocationRuns)
-    .values({
-      organizationId: input.organizationId,
-      employeeMonthCostId: input.employeeMonthCostId,
-      method: input.method,
-      status: 'draft',
-      currency: input.currency,
-      allocatedAmount: input.allocatedAmount,
-      unallocatedAmount: input.unallocatedAmount,
-      companyOnlyAmount: input.companyOnlyAmount ?? '0',
-      explanation: input.explanation ?? null,
-      supersedesRunId: input.supersedesRunId ?? null,
-    })
-    .returning();
+    .values(
+      await omitLaborAllocationRunInsertValues(db, {
+        organizationId: input.organizationId,
+        employeeMonthCostId: input.employeeMonthCostId,
+        method: input.method,
+        status: 'draft',
+        currency: input.currency,
+        allocatedAmount: input.allocatedAmount,
+        unallocatedAmount: input.unallocatedAmount,
+        companyOnlyAmount: input.companyOnlyAmount ?? '0',
+        explanation: input.explanation ?? null,
+        supersedesRunId: input.supersedesRunId ?? null,
+      }),
+    )
+    .returning(runCols);
 
-  const runId = run!.id;
+  const runId = withLaborAllocationRunLegacyDefaults(run!).id;
   if (input.lines.length > 0) {
     await db.insert(laborAllocationRunLines).values(
       input.lines.map((line) => ({
@@ -135,7 +145,7 @@ export async function insertDraftLaborAllocationRun(
     );
   }
 
-  return run!;
+  return withLaborAllocationRunLegacyDefaults(run!);
 }
 
 /**
@@ -147,6 +157,7 @@ export async function applyLaborAllocationRun(
   organizationId: string,
   runId: string,
 ): Promise<LaborAllocationRunRow | null> {
+  const runCols = await laborAllocationRunSelectColumns(db);
   const [row] = await db
     .update(laborAllocationRuns)
     .set({
@@ -161,8 +172,8 @@ export async function applyLaborAllocationRun(
         eq(laborAllocationRuns.status, 'draft'),
       ),
     )
-    .returning();
-  return row ?? null;
+    .returning(runCols);
+  return row ? withLaborAllocationRunLegacyDefaults(row) : null;
 }
 
 /** Delete a draft run (and cascade lines) so amounts can be rewritten. */

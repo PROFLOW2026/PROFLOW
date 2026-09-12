@@ -15,6 +15,12 @@ import {
   resolveListOffset,
 } from '@/shared/db/list-limits';
 import type { DbExecutor } from '@/shared/db/types';
+import {
+  apBillSelectColumns,
+  omitApBillInsertValues,
+  omitApBillPatchValues,
+  withApBillLegacyDefaults,
+} from '@/modules/financials/data/allocation-intent-schema';
 import type { ApBillStatus, ApMatchStatus } from '../domain/matching';
 
 /**
@@ -50,9 +56,10 @@ export async function listApBills(
   if (options.fromDate) conditions.push(gte(apBills.billDate, options.fromDate));
   if (options.toDate) conditions.push(lte(apBills.billDate, options.toDate));
 
+  const billCols = await apBillSelectColumns(db);
   const rows = await db
     .select({
-      bill: apBills,
+      ...billCols,
       vendorName: vendors.name,
     })
     .from(apBills)
@@ -62,10 +69,14 @@ export async function listApBills(
     .limit(resolveListLimit(options.limit, { hardCap }))
     .offset(resolveListOffset(options.offset));
 
-  return rows.map((row) => ({
-    ...row.bill,
-    vendorName: row.vendorName,
-  }));
+  const billKeys = Object.keys(billCols);
+  return rows.map((row) => {
+    const bill = Object.fromEntries(billKeys.map((key) => [key, row[key as keyof typeof row]]));
+    return {
+      ...withApBillLegacyDefaults(bill as typeof apBills.$inferSelect),
+      vendorName: row.vendorName,
+    };
+  });
 }
 
 export async function findApBillById(
@@ -73,21 +84,26 @@ export async function findApBillById(
   organizationId: string,
   id: string,
 ): Promise<ApBillRow | null> {
+  const billCols = await apBillSelectColumns(db);
   const [row] = await db
-    .select()
+    .select(billCols)
     .from(apBills)
     .where(and(eq(apBills.id, id), eq(apBills.organizationId, organizationId)))
     .limit(1);
-  return row ?? null;
+  return row ? withApBillLegacyDefaults(row) : null;
 }
 
 export async function insertApBill(
   db: DbExecutor,
   values: typeof apBills.$inferInsert,
 ): Promise<ApBillRow> {
-  const [row] = await db.insert(apBills).values(values).returning();
+  const billCols = await apBillSelectColumns(db);
+  const [row] = await db
+    .insert(apBills)
+    .values(await omitApBillInsertValues(db, values))
+    .returning(billCols);
   if (!row) throw new Error('Failed to insert AP bill');
-  return row;
+  return withApBillLegacyDefaults(row);
 }
 
 export async function insertApBillLines(
@@ -116,12 +132,13 @@ export async function updateApBillStatus(
   id: string,
   status: ApBillStatus,
 ): Promise<ApBillRow | null> {
+  const billCols = await apBillSelectColumns(db);
   const [row] = await db
     .update(apBills)
     .set({ status, updatedAt: new Date() })
     .where(and(eq(apBills.id, id), eq(apBills.organizationId, organizationId)))
-    .returning();
-  return row ?? null;
+    .returning(billCols);
+  return row ? withApBillLegacyDefaults(row) : null;
 }
 
 export async function updateApBillFields(
@@ -130,12 +147,13 @@ export async function updateApBillFields(
   id: string,
   patch: Partial<Omit<typeof apBills.$inferInsert, 'id' | 'organizationId'>>,
 ): Promise<ApBillRow | null> {
+  const billCols = await apBillSelectColumns(db);
   const [row] = await db
     .update(apBills)
-    .set({ ...patch, updatedAt: new Date() })
+    .set({ ...(await omitApBillPatchValues(db, patch)), updatedAt: new Date() })
     .where(and(eq(apBills.id, id), eq(apBills.organizationId, organizationId)))
-    .returning();
-  return row ?? null;
+    .returning(billCols);
+  return row ? withApBillLegacyDefaults(row) : null;
 }
 
 export async function updateApBillLine(
