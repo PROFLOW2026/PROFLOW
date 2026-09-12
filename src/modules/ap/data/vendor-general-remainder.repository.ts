@@ -2,7 +2,7 @@ import { and, eq, gte, inArray, isNotNull, isNull, lte } from 'drizzle-orm';
 import { apBillProjectAllocations, apBills } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 import { ValidationError } from '@/shared/errors';
-import { zeroMoney, type MoneyValue } from '@/shared/money';
+import { zeroMoney } from '@/shared/money';
 import { foldApGeneralRemaindersByYearMonthFromFacts } from '../application/fold-ap-read-facts';
 import { getApOrgReadFactsCache } from './ap-read-facts-cache';
 import { listActiveCreditActualReductionsForBills, creditActualReductionAmounts } from './credits.repository';

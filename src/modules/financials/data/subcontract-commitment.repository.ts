@@ -10,7 +10,6 @@ import {
 import {
   listActiveCreditActualReductionsForBills,
   netProjectSliceAfterCredits,
-  scaleBillSliceAfterCredits,
 } from '@/modules/ap';
 import { RECOGNIZED_VENDOR_BILL_STATUSES } from '@/modules/ap/domain/vendor-cost-recognition';
 import { computeCurrentSubcontractValue } from '@/modules/vendors/domain/subcontract-value';
