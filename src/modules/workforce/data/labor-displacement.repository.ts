@@ -5,6 +5,7 @@ import {
   laborAllocationRuns,
 } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
+import { isAllocationIntentSchemaReady } from '@/modules/financials';
 import { displacedEmployeeMonthKey } from '../domain/labor-recognition';
 
 export interface MonthlyAllocatedLaborAggregate {
@@ -114,9 +115,6 @@ export async function sumOrganizationMonthlyLaborCompanyOnly(
   currency: string,
   options?: { readonly yearMonth?: string },
 ): Promise<{ totalAmount: string; currency: string }> {
-  const { isAllocationIntentSchemaReady } = await import(
-    '@/modules/financials/domain/allocation-intent-schema'
-  );
   if (!(await isAllocationIntentSchemaReady(db))) {
     return { totalAmount: '0', currency: currency.toUpperCase() };
   }

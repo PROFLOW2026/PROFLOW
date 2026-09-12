@@ -11,7 +11,7 @@ import { getInventoryItemById, normalizeQuantity } from '@/modules/assets';
 import { resolveExpenseClassificationStatus, assertCostCategoryFamilyConsistent } from '@/modules/financials/domain/economic-classification';
 import { assertInternalPayrollExpenseAllowed } from '@/modules/financials/domain/labor-expense-integrity';
 import { resolveExpenseAllocationIntent } from '@/modules/financials/domain/allocation-intent';
-import { isAllocationIntentSchemaReady } from '@/modules/financials/domain/allocation-intent-schema';
+import { isAllocationIntentSchemaReady } from '@/modules/financials';
 import { resolveAllocationLines } from '../domain/allocation';
 import { resolveExpenseCurrency } from '../domain/currency';
 import { isOverheadTargeting, resolveExpenseTargeting, assertNoAllocationsOnProjectExpense } from '../domain/targeting';

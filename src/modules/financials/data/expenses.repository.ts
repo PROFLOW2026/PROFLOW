@@ -25,7 +25,7 @@ import type { DbCostFamily, ProjectExpenseContribution } from '../domain/cost-ag
 import {
   isAllocationIntentSchemaReady,
   sqlExpenseAutoPoolFilterIfReady,
-} from '../domain/allocation-intent-schema';
+} from './allocation-intent-schema';
 import { isInternalEmployeePayrollCategoryKey } from '../domain/labor-expense-integrity';
 import { sqlFirstRow, sqlRows } from './sql-rows';
 

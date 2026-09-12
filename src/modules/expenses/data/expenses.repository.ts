@@ -14,7 +14,7 @@ import {
 import type { BusinessDate } from '@/shared/dates';
 import type { DbExecutor } from '@/shared/db/types';
 import { fromNumericString, type MoneyValue } from '@/shared/money';
-import { isAllocationIntentSchemaReady } from '@/modules/financials/domain/allocation-intent-schema';
+import { isAllocationIntentSchemaReady } from '@/modules/financials';
 import type { ExpenseAttentionFilter } from '../domain/expense-attention';
 import type {
   AllocationMethod,

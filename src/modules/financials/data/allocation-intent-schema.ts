@@ -5,7 +5,7 @@
 
 import { sql, type SQL } from 'drizzle-orm';
 import type { DbExecutor } from '@/shared/db/types';
-import { sqlFirstRow } from '../data/sql-rows';
+import { sqlFirstRow } from './sql-rows';
 
 let cachedReady: boolean | null = null;
 let probeInFlight: Promise<boolean> | null = null;
@@ -55,14 +55,6 @@ export async function isAllocationIntentSchemaReady(db: DbExecutor): Promise<boo
 /** 0084+: auto-pool general expenses only. Pre-0084: no intent column (handled by caller omitting filter). */
 export function sqlExpenseAutoPoolFilter(expenseAlias = 'e'): SQL {
   return sql.raw(`and ${expenseAlias}.allocation_intent = 'auto_pool'`);
-}
-
-export function sqlExpenseCompanyOnlyFilter(expenseAlias = 'e'): SQL {
-  return sql.raw(`and ${expenseAlias}.allocation_intent = 'company_only'`);
-}
-
-export function sqlExpenseProjectAllocateFilter(expenseAlias = 'e'): SQL {
-  return sql.raw(`and ${expenseAlias}.allocation_intent = 'project_allocate'`);
 }
 
 export async function sqlExpenseAutoPoolFilterIfReady(

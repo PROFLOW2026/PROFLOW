@@ -6,10 +6,7 @@
 import { sql } from 'drizzle-orm';
 import type { DbExecutor } from '@/shared/db/types';
 import { fromNumericString, zeroMoney, type MoneyValue } from '@/shared/money';
-import {
-  isAllocationIntentSchemaReady,
-  sqlExpenseAutoPoolFilterIfReady,
-} from '../domain/allocation-intent-schema';
+import { isAllocationIntentSchemaReady } from './allocation-intent-schema';
 import type { GeneralCostSourceKind } from '../domain/company-actual';
 import { sqlRows } from './sql-rows';
 

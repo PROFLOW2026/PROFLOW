@@ -226,4 +226,8 @@ export type {
   ProjectActualBreakdownCategoryKey,
 } from './domain/project-actual-breakdown';
 export { sumCollectionsInDateRange } from './data/billing.repository';
+export {
+  isAllocationIntentSchemaReady,
+  setAllocationIntentSchemaReadyForTests,
+} from './data/allocation-intent-schema';
 

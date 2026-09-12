@@ -6,7 +6,7 @@ import {
   laborAllocationRuns,
 } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
-import { isAllocationIntentSchemaReady } from '@/modules/financials/domain/allocation-intent-schema';
+import { isAllocationIntentSchemaReady } from '@/modules/financials';
 import type { CompletenessCheckInput } from '../domain/completeness';
 import { yearMonthBounds } from '../domain/year-month';
 

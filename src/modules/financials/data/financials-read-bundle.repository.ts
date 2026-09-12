@@ -5,7 +5,7 @@
 
 import { sql } from 'drizzle-orm';
 import type { DbExecutor } from '@/shared/db/types';
-import { isAllocationIntentSchemaReady } from '../domain/allocation-intent-schema';
+import { isAllocationIntentSchemaReady } from './allocation-intent-schema';
 import { sqlFirstRow } from './sql-rows';
 import { LABOR_COST_DEFAULTS_SETTING_KEY } from '@/modules/tenancy/domain/labor-cost-defaults';
 import { PROJECT_PROFITABILITY_MODE_SETTING_KEY } from '@/modules/tenancy/domain/project-profitability-mode';
