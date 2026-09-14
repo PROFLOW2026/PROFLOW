@@ -50,6 +50,7 @@ describe('settings section grouping', () => {
       'forms',
       'banking',
       'integrations',
+      'storage',
       'activity',
       'offlineDrafts',
       'app',

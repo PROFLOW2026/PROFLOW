@@ -595,6 +595,13 @@
         "storage_cleanup_failed": "ניקוי קובץ המסמך באחסון נכשל",
         "storage_cleanup_completed": "ניקוי קובץ המסמך באחסון הושלם"
       },
+      "storage": {
+        "connection_connected": "חיבור שירות אחסון",
+        "connection_disconnected": "ניתוק שירות אחסון",
+        "primary_changed": "שינוי אחסון ראשי",
+        "file_uploaded": "העלאת קובץ לאחסון חיצוני",
+        "file_deleted": "מחיקת קובץ מאחסון חיצוני"
+      },
       "tax_rule": {
         "created": "יצירת כלל מס",
         "updated": "עדכון כלל מס"

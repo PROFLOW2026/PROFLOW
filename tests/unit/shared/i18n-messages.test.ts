@@ -129,6 +129,11 @@ const IDENTICAL_MESSAGE_ALLOWLIST = new Set([
   'marketing.faq.groups.1.id',
   'marketing.faq.groups.2.id',
   'marketing.faq.groups.3.id',
+  // Cloud provider product names (proper nouns).
+  'externalStorage.providers.onedrive',
+  'externalStorage.providers.google_drive',
+  'externalStorage.providers.dropbox',
+  'externalStorage.providers.box',
 ]);
 
 function hasActivityAction(catalog: Catalog, action: string): boolean {

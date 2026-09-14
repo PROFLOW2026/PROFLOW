@@ -683,6 +683,13 @@
         "storage_cleanup_failed": "Document file cleanup failed",
         "storage_cleanup_completed": "Document file cleanup completed"
       },
+      "storage": {
+        "connection_connected": "Storage connected",
+        "connection_disconnected": "Storage disconnected",
+        "primary_changed": "Primary storage changed",
+        "file_uploaded": "File uploaded to external storage",
+        "file_deleted": "File deleted from external storage"
+      },
       "tax_rule": {
         "created": "Tax rule created",
         "updated": "Tax rule updated"

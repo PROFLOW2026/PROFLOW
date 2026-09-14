@@ -18,6 +18,7 @@ describe('serverEnv', () => {
     delete process.env.DATABASE_URL;
     delete process.env.SUPABASE_SERVICE_ROLE_KEY;
     delete process.env.WEBHOOK_SECRET_KEK;
+    delete process.env.STORAGE_TOKEN_ENCRYPTION_KEY;
     delete process.env.EMAIL_DRIVER;
     delete process.env.RESEND_API_KEY;
     delete process.env.LOG_LEVEL;
@@ -40,6 +41,7 @@ describe('serverEnv', () => {
     process.env.APP_URL = 'https://app.example.com';
     process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-role-for-tests';
     process.env.WEBHOOK_SECRET_KEK = 'a'.repeat(64);
+    process.env.STORAGE_TOKEN_ENCRYPTION_KEY = 'b'.repeat(64);
     delete process.env.DATABASE_URL;
     resetServerEnvCache();
     expect(() => serverEnv()).toThrow(/DATABASE_URL/);
@@ -50,6 +52,7 @@ describe('serverEnv', () => {
     process.env.APP_URL = 'https://app.example.com';
     process.env.DATABASE_URL = 'postgres://example/db';
     process.env.WEBHOOK_SECRET_KEK = 'a'.repeat(64);
+    process.env.STORAGE_TOKEN_ENCRYPTION_KEY = 'b'.repeat(64);
     delete process.env.SUPABASE_SERVICE_ROLE_KEY;
     resetServerEnvCache();
     expect(() => serverEnv()).toThrow(/SUPABASE_SERVICE_ROLE_KEY/);
@@ -60,6 +63,8 @@ describe('serverEnv', () => {
     process.env.APP_URL = 'https://app.example.com';
     process.env.DATABASE_URL = 'postgres://example/db';
     process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-role-for-tests';
+    process.env.WEBHOOK_SECRET_KEK = 'a'.repeat(64);
+    process.env.STORAGE_TOKEN_ENCRYPTION_KEY = 'b'.repeat(64);
     delete process.env.WEBHOOK_SECRET_KEK;
     resetServerEnvCache();
     expect(() => serverEnv()).toThrow(/WEBHOOK_SECRET_KEK/);
@@ -71,6 +76,7 @@ describe('serverEnv', () => {
     process.env.DATABASE_URL = 'postgres://example/db';
     process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-role-for-tests';
     process.env.WEBHOOK_SECRET_KEK = 'a'.repeat(64);
+    process.env.STORAGE_TOKEN_ENCRYPTION_KEY = 'b'.repeat(64);
     resetServerEnvCache();
     expect(() => serverEnv()).toThrow(/localhost/);
   });
@@ -81,6 +87,7 @@ describe('serverEnv', () => {
     process.env.DATABASE_URL = 'postgres://example/db';
     process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-role-for-tests';
     process.env.WEBHOOK_SECRET_KEK = 'a'.repeat(64);
+    process.env.STORAGE_TOKEN_ENCRYPTION_KEY = 'b'.repeat(64);
     resetServerEnvCache();
     expect(() => serverEnv()).toThrow(/HTTPS/);
   });
@@ -91,6 +98,7 @@ describe('serverEnv', () => {
     process.env.DATABASE_URL = 'postgres://example/db';
     process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-role-for-tests';
     process.env.WEBHOOK_SECRET_KEK = 'a'.repeat(64);
+    process.env.STORAGE_TOKEN_ENCRYPTION_KEY = 'b'.repeat(64);
     process.env.EMAIL_DRIVER = 'resend';
     delete process.env.RESEND_API_KEY;
     resetServerEnvCache();

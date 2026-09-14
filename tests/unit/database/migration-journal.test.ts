@@ -335,7 +335,10 @@ describe('migration journal', () => {
     expect(tags.indexOf('0085_labor_allocation_company_only_conservation')).toBeLessThan(
       tags.indexOf('0086_attendance_overtime_flag'),
     );
-    expect(tags.at(-1)).toBe('0086_attendance_overtime_flag');
+    expect(tags.indexOf('0086_attendance_overtime_flag')).toBeLessThan(
+      tags.indexOf('0087_external_organization_storage'),
+    );
+    expect(tags.at(-1)).toBe('0087_external_organization_storage');
 
     const sql66 = await readFile(
       path.join(MIGRATIONS_DIR, '0066_workforce_time_integrity.sql'),
