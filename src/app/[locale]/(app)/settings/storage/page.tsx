@@ -66,7 +66,7 @@ export default async function StorageSettingsPage({
 
 function AlertSuccess({ message }: { message: string }) {
   return (
-    <div className="mb-4 rounded-md border border-[var(--pf-success-border)] bg-[var(--pf-success-bg)] px-4 py-3 text-sm">
+    <div className="mb-4 rounded-md border border-[var(--pf-status-success-border)] bg-[var(--pf-status-success-bg)] px-4 py-3 text-sm">
       {message}
     </div>
   );
@@ -74,7 +74,7 @@ function AlertSuccess({ message }: { message: string }) {
 
 function AlertFailed({ message }: { message: string }) {
   return (
-    <div className="mb-4 rounded-md border border-[var(--pf-danger-border)] bg-[var(--pf-danger-bg)] px-4 py-3 text-sm">
+    <div className="mb-4 rounded-md border border-[var(--pf-status-danger-border)] bg-[var(--pf-status-danger-bg)] px-4 py-3 text-sm">
       {message}
     </div>
   );

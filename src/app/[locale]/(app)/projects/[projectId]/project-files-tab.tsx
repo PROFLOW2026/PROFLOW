@@ -402,7 +402,7 @@ export function ProjectFilesTab({
       <nav aria-label={t('breadcrumb')} className="flex flex-wrap items-center gap-1 text-sm">
         <button
           type="button"
-          className="text-[var(--pf-text-link)] underline-offset-2 hover:underline"
+          className="text-[var(--pf-text-brand)] underline-offset-2 hover:underline"
           onClick={() => navigateBreadcrumb(-1)}
         >
           {t(`folders.${activeFolder}`)}
@@ -412,7 +412,7 @@ export function ProjectFilesTab({
             <span className="text-[var(--pf-text-muted)]">/</span>
             <button
               type="button"
-              className="text-[var(--pf-text-link)] underline-offset-2 hover:underline"
+              className="text-[var(--pf-text-brand)] underline-offset-2 hover:underline"
               onClick={() => navigateBreadcrumb(index)}
             >
               {segment.name}
@@ -641,7 +641,7 @@ function BrowserRow({
   t: ReturnType<typeof useTranslations<'externalStorage.projectFiles'>>;
 }) {
   return (
-    <li className="flex items-center justify-between gap-3 rounded-md border border-[var(--pf-border)] px-3 py-2 text-sm">
+    <li className="flex items-center justify-between gap-3 rounded-md border border-[var(--pf-border-default)] px-3 py-2 text-sm">
       <button
         type="button"
         className="flex min-w-0 flex-1 items-center gap-2 text-start hover:underline"
