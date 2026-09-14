@@ -70,7 +70,7 @@ export default async function NewDailyLogPage({
         assets: assetRows.map((a) => ({ id: a.id, name: a.name })),
         timezone: context.organization.timezone,
         canManageDocuments: hasPermission(context, PERMISSIONS.DOCUMENTS_MANAGE),
-        storageConfigured: isStorageConfigured(),
+        storageConfigured: await isStorageConfigured(context),
       };
     });
 

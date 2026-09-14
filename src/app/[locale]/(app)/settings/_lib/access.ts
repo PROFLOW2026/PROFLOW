@@ -27,7 +27,8 @@ export type SettingsSectionKey =
   | 'banking'
   | 'ocr'
   | 'profile'
-  | 'integrations';
+  | 'integrations'
+  | 'storage';
 
 export type SettingsNavGroup = 'myBusiness' | 'workflow' | 'advanced' | 'developers';
 
@@ -71,6 +72,12 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
   {
     key: 'integrations',
     href: '/settings/integrations',
+    permission: PERMISSIONS.INTEGRATIONS_READ,
+    group: 'advanced',
+  },
+  {
+    key: 'storage',
+    href: '/settings/storage',
     permission: PERMISSIONS.INTEGRATIONS_READ,
     group: 'advanced',
   },

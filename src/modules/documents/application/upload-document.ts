@@ -4,7 +4,13 @@ import { DomainRuleError, NotFoundError, ServiceUnavailableError, ValidationErro
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
-import { getStoragePort, StorageNotConfiguredError } from '@/shared/ports/storage';
+import { serverEnv } from '@/shared/env/server';
+import {
+  assertOrganizationStorageAvailable,
+  isOrganizationStorageConfigured,
+  resolveUploadFolderEntityContext,
+  semanticFolderForDocumentOwner,
+} from '@/modules/external-storage/server';
 import { noteModuleUsage } from '@/modules/tenancy';
 import { resolveAccessibleProjectIds } from '@/modules/projects/application/project-access';
 import { validateUploadConstraints } from '../domain/file-rules';
@@ -25,10 +31,15 @@ import {
   canReadCompensationDocuments,
 } from './document-visibility';
 
-const DEFAULT_BUCKET = 'documents';
+const EXTERNAL_UPLOAD_TTL_MS = 2 * 60 * 60 * 1000;
 
-export function isStorageConfigured(): boolean {
-  return getStoragePort().configured;
+export async function isStorageConfigured(context: OrgContext): Promise<boolean> {
+  return isOrganizationStorageConfigured(context);
+}
+
+/** @deprecated Use isStorageConfigured(context) — kept for legacy call sites during migration. */
+export function isStorageConfiguredSync(): boolean {
+  return false;
 }
 
 export async function prepareDocumentUpload(
@@ -66,27 +77,31 @@ export async function prepareDocumentUpload(
     throw new NotFoundError('Document owner');
   }
 
-  const storage = getStoragePort();
-  if (!storage.configured) {
+  let connection;
+  try {
+    connection = await assertOrganizationStorageAvailable(context);
+  } catch {
     throw new ServiceUnavailableError(
-      'File storage is not configured',
-      'documents.errors.storageNotConfigured',
+      'Organization storage is not connected',
+      'externalStorage.errors.notConnected',
     );
   }
 
   const documentId = randomUUID();
-  const storagePath = storage.buildKey({
-    organizationId: context.organizationId,
-    entityType: 'documents',
-    entityId: documentId,
-    fileName: input.fileName,
-  });
+  const semanticFolder = semanticFolderForDocumentOwner(input.ownerType, input.label);
+  const folderEntity = await resolveUploadFolderEntityContext(
+    context.db,
+    context.organizationId,
+    input.ownerType,
+    input.ownerId,
+  );
+  const placeholderPath = `pending://${documentId}`;
 
   const document = await insertDocument(context.db, {
     id: documentId,
     organizationId: context.organizationId,
-    storageBucket: process.env.SUPABASE_STORAGE_BUCKET ?? DEFAULT_BUCKET,
-    storagePath,
+    storageBucket: `external:${connection.provider}`,
+    storagePath: placeholderPath,
     originalFilename: input.fileName,
     mimeType: input.mimeType,
     sizeBytes: input.sizeBytes,
@@ -96,6 +111,11 @@ export async function prepareDocumentUpload(
       requested: input.privacyClass,
       canReadWorkforceCost: canReadCompensationDocuments(context),
     }),
+  });
+
+  await updateDocumentById(context.db, context.organizationId, document.id, {
+    storageBackend: 'external',
+    externalConnectionId: connection.id,
   });
 
   await flushDocumentCurrentVersionGuards(context.db);
@@ -110,40 +130,38 @@ export async function prepareDocumentUpload(
 
   await noteModuleUsage(context.db, context.organizationId, 'documents');
 
-  let signed;
-  try {
-    signed = await storage.createUploadUrl(storagePath, input.mimeType);
-  } catch (error) {
-    await updateDocumentById(context.db, context.organizationId, document.id, {
-      status: 'deleted',
-      deletedAt: new Date(),
-    });
-    if (error instanceof StorageNotConfiguredError) {
-      throw new ServiceUnavailableError(
-        'File storage is not configured',
-        'documents.errors.storageNotConfigured',
-      );
-    }
-    throw new ServiceUnavailableError(
-      'Could not create a signed upload target',
-      'documents.errors.signedTargetFailed',
-    );
+  const baseUrl = serverEnv().APP_URL.replace(/\/+$/, '');
+  const uploadParams = new URLSearchParams({
+    semantic: semanticFolder,
+    entityType: folderEntity.entityType ?? input.ownerType,
+    entityId: folderEntity.entityId ?? input.ownerId,
+  });
+  if (input.browserParentFolderId) {
+    uploadParams.set('parentFolderId', input.browserParentFolderId);
   }
+  const uploadUrl = `${baseUrl}/api/org-storage/upload/${document.id}?${uploadParams.toString()}`;
 
   await recordAuditEvent(context, {
     action: AUDIT_ACTIONS.DOCUMENT_UPLOADED,
     entityType: 'document',
     entityId: document.id,
-    after: { id: document.id, filename: document.originalFilename, ownerType: input.ownerType },
+    after: {
+      id: document.id,
+      filename: document.originalFilename,
+      ownerType: input.ownerType,
+      storageBackend: 'external',
+      semanticFolder,
+    },
   });
 
   return {
-    document,
-    uploadUrl: signed.url,
-    uploadToken: signed.token,
-    uploadPath: signed.path,
-    uploadBucket: document.storageBucket,
-    uploadExpiresAt: signed.expiresAt,
+    document: { ...document, storageBackend: 'external', externalConnectionId: connection.id, externalFileId: null, externalParentFolderId: null, externalEtag: null },
+    uploadMode: 'external',
+    uploadUrl,
+    uploadToken: null,
+    uploadPath: document.id,
+    uploadBucket: `external:${connection.provider}`,
+    uploadExpiresAt: new Date(Date.now() + EXTERNAL_UPLOAD_TTL_MS),
   };
 }
 

@@ -76,5 +76,10 @@ export async function createClient(
     after: client,
   });
 
+  const { provisionClientStorageFolder } = await import(
+    '@/modules/external-storage/application/provision-hooks'
+  );
+  await provisionClientStorageFolder(context, client.id, client.name);
+
   return client;
 }

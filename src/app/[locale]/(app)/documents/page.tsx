@@ -74,10 +74,10 @@ export default async function DocumentsPage({
     folderId !== 'all' ||
     category !== 'all' ||
     Boolean(tags?.trim());
-  const storageConfigured = isStorageConfigured();
   const vendorsEnabled = Boolean(shell?.modules?.vendors);
 
   const loaded = await withOrgContext(async (context) => {
+    const storageConfigured = await isStorageConfigured(context);
     const [documents, folders] = await Promise.all([
       listDocumentsForOrg(context, {
         search: q,
@@ -91,6 +91,7 @@ export default async function DocumentsPage({
     return {
       documents,
       folders,
+      storageConfigured,
       canRead: hasPermission(context, PERMISSIONS.DOCUMENTS_READ),
       canManage: hasPermission(context, PERMISSIONS.DOCUMENTS_MANAGE),
     };
@@ -104,7 +105,7 @@ export default async function DocumentsPage({
         actions={<OcrEntryLink workflow="general" />}
       />
 
-      {!storageConfigured ? <Alert tone="info">{t('storageNotConfigured')}</Alert> : null}
+      {!loaded.storageConfigured ? <Alert tone="info">{t('storageNotConfigured')}</Alert> : null}
 
       <DocumentListFilters
         initialQuery={q ?? ''}
@@ -149,7 +150,7 @@ export default async function DocumentsPage({
           documents={loaded.documents}
           canRead={loaded.canRead}
           canManage={loaded.canManage}
-          storageConfigured={storageConfigured}
+          storageConfigured={loaded.storageConfigured}
           folders={loaded.folders}
         />
       )}

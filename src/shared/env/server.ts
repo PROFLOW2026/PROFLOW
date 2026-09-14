@@ -90,6 +90,22 @@ const serverEnvSchema = z.object({
    */
   WEBHOOK_SECRET_KEK: optionalNonEmpty,
 
+  /** AES-256-GCM KEK for OAuth tokens at rest (external storage). Required in production. */
+  STORAGE_TOKEN_ENCRYPTION_KEY: optionalNonEmpty,
+
+  MICROSOFT_STORAGE_CLIENT_ID: optionalNonEmpty,
+  MICROSOFT_STORAGE_CLIENT_SECRET: optionalNonEmpty,
+  MICROSOFT_STORAGE_TENANT_ID: z.preprocess(emptyToUndefined, z.string().optional()),
+
+  GOOGLE_STORAGE_CLIENT_ID: optionalNonEmpty,
+  GOOGLE_STORAGE_CLIENT_SECRET: optionalNonEmpty,
+
+  DROPBOX_STORAGE_CLIENT_ID: optionalNonEmpty,
+  DROPBOX_STORAGE_CLIENT_SECRET: optionalNonEmpty,
+
+  BOX_STORAGE_CLIENT_ID: optionalNonEmpty,
+  BOX_STORAGE_CLIENT_SECRET: optionalNonEmpty,
+
   /**
    * Owner experience preview switcher. Local/preview are on by role alone;
    * production stays off unless explicitly set to 1/true for staging Owners.
@@ -106,6 +122,7 @@ function assertProductionGuards(env: ServerEnv): void {
   if (!env.DATABASE_URL) missing.push('DATABASE_URL');
   if (!env.SUPABASE_SERVICE_ROLE_KEY) missing.push('SUPABASE_SERVICE_ROLE_KEY');
   if (!env.WEBHOOK_SECRET_KEK) missing.push('WEBHOOK_SECRET_KEK');
+  if (!env.STORAGE_TOKEN_ENCRYPTION_KEY) missing.push('STORAGE_TOKEN_ENCRYPTION_KEY');
   if (missing.length > 0) {
     throw new Error(`Missing required production environment variables: ${missing.join(', ')}`);
   }
@@ -181,5 +198,15 @@ export const SERVER_ENV_EXAMPLE_KEYS = [
   'OCR_E2E_MOCK_PROVIDER',
   'E2E_INMEMORY_STORAGE',
   'WEBHOOK_SECRET_KEK',
+  'STORAGE_TOKEN_ENCRYPTION_KEY',
+  'MICROSOFT_STORAGE_CLIENT_ID',
+  'MICROSOFT_STORAGE_CLIENT_SECRET',
+  'MICROSOFT_STORAGE_TENANT_ID',
+  'GOOGLE_STORAGE_CLIENT_ID',
+  'GOOGLE_STORAGE_CLIENT_SECRET',
+  'DROPBOX_STORAGE_CLIENT_ID',
+  'DROPBOX_STORAGE_CLIENT_SECRET',
+  'BOX_STORAGE_CLIENT_ID',
+  'BOX_STORAGE_CLIENT_SECRET',
   'PF_EXPERIENCE_PREVIEW',
 ] as const;

@@ -50,7 +50,7 @@ export async function getEntityDocumentPanelData(
     linkCandidates,
     canRead,
     canManage,
-    storageConfigured: isStorageConfigured(),
+    storageConfigured: await isStorageConfigured(context),
     canClassifyCompensation: canReadCompensationDocuments(context),
   };
 }

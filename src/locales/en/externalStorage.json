@@ -1,0 +1,88 @@
+{
+  "title": "File storage",
+  "description": "Connect your organization's cloud storage for documents, photos, and files in ProjectFlow.",
+  "notConnectedNotice": "Connect organization storage to save files.",
+  "connectAction": "Connect storage",
+  "providers": {
+    "onedrive": "Microsoft OneDrive",
+    "google_drive": "Google Drive",
+    "dropbox": "Dropbox",
+    "box": "Box"
+  },
+  "status": {
+    "disconnected": "Not connected",
+    "connecting": "Connecting",
+    "connected": "Connected",
+    "reconnect_required": "Reconnect required",
+    "error": "Error"
+  },
+  "actions": {
+    "connect": "Connect",
+    "validate": "Test connection",
+    "openRoot": "Open ProjectFlow folder",
+    "reconnect": "Reconnect",
+    "disconnect": "Disconnect",
+    "setPrimary": "Set as primary"
+  },
+  "quota": {
+    "used": "Used: {used}",
+    "available": "Available: {available}",
+    "unknown": "Quota information unavailable from this provider"
+  },
+  "primaryRequiredNotice": "This provider is connected but not set as primary. Set it as primary to enable file uploads.",
+  "disconnectWarning": "Disconnecting temporarily removes file access in ProjectFlow. Cloud files are not deleted.",
+  "oauthSuccess": "Storage connected successfully.",
+  "oauthFailed": "Connection failed. Try again.",
+  "errors": {
+    "notConnected": "Connect organization storage to save files.",
+    "quotaFull": "Cloud storage is full.",
+    "fileUnavailable": "File unavailable — reconnect storage.",
+    "reconnectRequired": "Reconnect storage service.",
+    "providerNotConfigured": "Provider not configured in this environment.",
+    "connectionNotFound": "Storage connection not found.",
+    "rootNotReady": "Storage is connected but the ProjectFlow folder is not ready yet. Reconnect or test the connection.",
+    "outOfScope": "Item is outside the project folder tree.",
+    "folderNotEmpty": "Cannot delete a folder that is not empty.",
+    "invalidName": "Invalid name.",
+    "managedFolder": "System-managed folders cannot be changed.",
+    "invalidMoveTarget": "Invalid move destination.",
+    "operationFailed": "Operation failed. Try again."
+  },
+  "projectFiles": {
+    "title": "Files",
+    "folders": {
+      "quotes": "Quotes",
+      "contracts": "Contracts",
+      "billing": "Billing",
+      "vendor_invoices": "Vendor invoices",
+      "plans": "Plans",
+      "photos": "Photos",
+      "documents": "Documents",
+      "general_files": "General files"
+    },
+    "upload": "Upload file",
+    "capture": "Camera",
+    "createFolder": "New folder",
+    "rename": "Rename",
+    "delete": "Delete",
+    "preview": "Preview",
+    "openInProvider": "Open in {provider}",
+    "missingFile": "File unavailable in cloud",
+    "empty": "No files in this folder",
+    "move": "Move",
+    "moveTitle": "Move item",
+    "moveDescription": "Choose a destination for {name}",
+    "selectDestination": "Select destination folder",
+    "createFolderTitle": "New folder",
+    "createFolderDescription": "Enter a name for the new folder",
+    "folderNamePlaceholder": "Folder name",
+    "renameTitle": "Rename",
+    "deleteFileTitle": "Delete file",
+    "deleteFileDescription": "Delete {name}? This cannot be undone.",
+    "deleteFolderTitle": "Delete folder",
+    "deleteFolderDescription": "Delete folder {name}? Only empty folders can be deleted.",
+    "actions": "Actions",
+    "breadcrumb": "Folder navigation",
+    "loading": "Loading…"
+  }
+}

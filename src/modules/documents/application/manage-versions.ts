@@ -41,8 +41,6 @@ import {
 } from '../validation/schemas';
 import { assertCanReadStoredDocument } from './document-visibility';
 
-const DEFAULT_BUCKET = 'documents';
-
 function isUniqueViolation(error: unknown): boolean {
   let current: unknown = error;
   for (let depth = 0; depth < 4 && current && typeof current === 'object'; depth += 1) {
@@ -91,47 +89,23 @@ export async function prepareNewVersionUpload(
   );
   await assertCanReadStoredDocument(context, document);
 
-  const storage = getStoragePort();
-  if (!storage.configured) {
-    throw new ServiceUnavailableError(
-      'File storage is not configured',
-      'documents.errors.storageNotConfigured',
-    );
-  }
-
-  const storagePath = storage.buildKey({
-    organizationId: context.organizationId,
-    entityType: 'documents',
-    entityId: document.id,
-    fileName: parsed.data.fileName,
-  });
+  const { assertOrganizationStorageAvailable } = await import('@/modules/external-storage/server');
+  const connection = await assertOrganizationStorageAvailable(context);
+  const { serverEnv } = await import('@/shared/env/server');
 
   const nextVersionNumber = (await findMaxVersionNumber(context.db, context.organizationId, document.id)) + 1;
-
-  let signed;
-  try {
-    signed = await storage.createUploadUrl(storagePath, parsed.data.mimeType);
-  } catch (error) {
-    if (error instanceof StorageNotConfiguredError) {
-      throw new ServiceUnavailableError(
-        'File storage is not configured',
-        'documents.errors.storageNotConfigured',
-      );
-    }
-    throw new ServiceUnavailableError(
-      'Could not create a signed upload target',
-      'documents.errors.signedTargetFailed',
-    );
-  }
+  const baseUrl = serverEnv().APP_URL.replace(/\/+$/, '');
+  const uploadUrl = `${baseUrl}/api/org-storage/upload/${document.id}?versionNumber=${nextVersionNumber}&fileName=${encodeURIComponent(parsed.data.fileName)}`;
 
   return {
     document,
     nextVersionNumber,
-    uploadUrl: signed.url,
-    uploadToken: signed.token,
-    uploadPath: signed.path,
-    uploadBucket: process.env.SUPABASE_STORAGE_BUCKET ?? document.storageBucket ?? DEFAULT_BUCKET,
-    uploadExpiresAt: signed.expiresAt,
+    uploadMode: 'external',
+    uploadUrl,
+    uploadToken: null,
+    uploadPath: document.id,
+    uploadBucket: `external:${connection.provider}`,
+    uploadExpiresAt: new Date(Date.now() + 2 * 60 * 60 * 1000),
   };
 }
 
@@ -163,7 +137,14 @@ export async function uploadNewVersion(
     await findDocumentById(context.db, context.organizationId, parsed.data.documentId),
   );
 
+  const refreshed = await findDocumentById(context.db, context.organizationId, parsed.data.documentId);
+  const docForVersion = refreshed ?? document;
+  const externalVersion =
+    docForVersion.storageBackend === 'external' &&
+    (parsed.data.storagePath === docForVersion.externalFileId ||
+      parsed.data.storagePath === docForVersion.id);
   if (
+    !externalVersion &&
     !isDocumentOwnedStoragePath(context.organizationId, document.id, parsed.data.storagePath)
   ) {
     throw new DomainRuleError(
@@ -183,26 +164,46 @@ export async function uploadNewVersion(
     );
   }
 
-  const storage = getStoragePort();
   let verifiedSize = parsed.data.sizeBytes;
   let checksum: string | null = null;
-  if (storage.configured) {
-    try {
-      const downloaded = await storage.downloadBytes(parsed.data.storagePath);
-      if (downloaded.size <= 0) {
+  let versionStoragePath = parsed.data.storagePath;
+  if (externalVersion) {
+    if (!docForVersion.externalFileId || !docForVersion.externalConnectionId) {
+      throw new ServiceUnavailableError(
+        'Uploaded file could not be verified',
+        'documents.errors.storageVerifyFailed',
+      );
+    }
+    versionStoragePath = docForVersion.externalFileId;
+    const { findStorageFileByExternalId } = await import('@/modules/external-storage/data/files.repository');
+    const externalFile = await findStorageFileByExternalId(
+      context.db,
+      context.organizationId,
+      docForVersion.externalConnectionId,
+      docForVersion.externalFileId,
+    );
+    if (externalFile?.checksum) checksum = externalFile.checksum;
+    if (externalFile?.sizeBytes) verifiedSize = externalFile.sizeBytes;
+  } else {
+    const storage = getStoragePort();
+    if (storage.configured) {
+      try {
+        const downloaded = await storage.downloadBytes(parsed.data.storagePath);
+        if (downloaded.size <= 0) {
+          throw new ServiceUnavailableError(
+            'Uploaded file could not be verified',
+            'documents.errors.storageVerifyFailed',
+          );
+        }
+        verifiedSize = downloaded.size;
+        checksum = createHash('sha256').update(downloaded.bytes).digest('hex');
+      } catch (error) {
+        if (error instanceof ServiceUnavailableError) throw error;
         throw new ServiceUnavailableError(
           'Uploaded file could not be verified',
           'documents.errors.storageVerifyFailed',
         );
       }
-      verifiedSize = downloaded.size;
-      checksum = createHash('sha256').update(downloaded.bytes).digest('hex');
-    } catch (error) {
-      if (error instanceof ServiceUnavailableError) throw error;
-      throw new ServiceUnavailableError(
-        'Uploaded file could not be verified',
-        'documents.errors.storageVerifyFailed',
-      );
     }
   }
 
@@ -230,7 +231,7 @@ export async function uploadNewVersion(
         documentId: locked.id,
         versionNumber: nextVersionNumber,
         storageBucket: locked.storageBucket,
-        storagePath: parsed.data.storagePath,
+        storagePath: versionStoragePath,
         originalFilename: parsed.data.originalFilename,
         mimeType: parsed.data.mimeType,
         sizeBytes: verifiedSize,
@@ -329,6 +330,31 @@ export async function createDocumentVersionDownloadUrl(
     throw new NotFoundError('Document');
   }
   await assertCanReadStoredDocument(context, document);
+
+  if (document.storageBackend === 'external' && document.externalConnectionId) {
+    const { getExternalFileDownload } = await import('@/modules/external-storage/server');
+    const { serverEnv } = await import('@/shared/env/server');
+    const external = await getExternalFileDownload(context, {
+      connectionId: document.externalConnectionId,
+      externalFileId: version.storagePath,
+      filename: version.originalFilename,
+      mimeType: version.mimeType,
+      documentId: document.id,
+    });
+    if ('url' in external) {
+      return {
+        url: external.url,
+        expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+        filename: external.filename,
+      };
+    }
+    const baseUrl = serverEnv().APP_URL.replace(/\/+$/, '');
+    return {
+      url: `${baseUrl}/api/org-storage/download/${document.id}`,
+      expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+      filename: external.filename,
+    };
+  }
 
   const storage = getStoragePort();
   if (!storage.configured) {

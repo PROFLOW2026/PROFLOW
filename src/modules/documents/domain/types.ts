@@ -47,9 +47,16 @@ export type DocumentOwnerType = (typeof DOCUMENT_OWNER_TYPES)[number];
  * Logical document (authorization + current pointer).
  * A stored file is `DocumentVersion`. The storage path is operational, not authorization.
  */
+export type DocumentStorageBackend = 'supabase_legacy' | 'external';
+
 export interface DocumentRecord {
   readonly id: string;
   readonly organizationId: string;
+  readonly storageBackend: DocumentStorageBackend;
+  readonly externalConnectionId: string | null;
+  readonly externalFileId: string | null;
+  readonly externalParentFolderId: string | null;
+  readonly externalEtag: string | null;
   readonly storageBucket: string;
   readonly storagePath: string;
   readonly originalFilename: string;
@@ -172,6 +179,7 @@ export interface EntityDocumentFilters {
 
 export interface PrepareUploadResult {
   readonly document: DocumentRecord;
+  readonly uploadMode: 'external' | 'legacy';
   readonly uploadUrl: string;
   readonly uploadToken: string | null;
   readonly uploadPath: string;
@@ -188,6 +196,7 @@ export interface DownloadUrlResult {
 export interface PrepareNewVersionResult {
   readonly document: DocumentRecord;
   readonly nextVersionNumber: number;
+  readonly uploadMode?: 'external' | 'legacy';
   readonly uploadUrl: string;
   readonly uploadToken: string | null;
   readonly uploadPath: string;

@@ -32,6 +32,7 @@ export interface ActionResult {
 
 export interface PrepareUploadActionResult extends ActionResult {
   documentId?: string;
+  uploadMode?: 'external' | 'legacy';
   uploadUrl?: string;
   uploadToken?: string | null;
   uploadPath?: string;
@@ -45,8 +46,13 @@ export interface DownloadActionResult extends ActionResult {
 
 async function mapDocumentError(error: unknown): Promise<string> {
   const t = await getTranslations('documents.errors');
+  const tStorage = await getTranslations('externalStorage.errors');
   if (error instanceof AppError) {
-    if (error.messageKey === 'documents.errors.storageNotConfigured') return t('storageNotConfigured');
+    if (error.messageKey === 'externalStorage.errors.notConnected') return tStorage('notConnected');
+    if (error.messageKey === 'externalStorage.errors.quotaFull') return tStorage('quotaFull');
+    if (error.messageKey === 'externalStorage.errors.fileUnavailable') return tStorage('fileUnavailable');
+    if (error.messageKey === 'externalStorage.errors.reconnectRequired') return tStorage('reconnectRequired');
+    if (error.messageKey === 'documents.errors.storageNotConfigured') return tStorage('notConnected');
     if (error.messageKey === 'documents.errors.mimeNotAllowed') return t('mimeNotAllowed');
     if (error.messageKey === 'documents.errors.fileTooLarge') return t('fileTooLarge');
     if (error.messageKey === 'errors.notFound') return t('notFound');
@@ -80,6 +86,7 @@ export async function prepareDocumentUploadAction(
     const result = await withOrgContext((context) => prepareDocumentUpload(context, input));
     return {
       documentId: result.document.id,
+      uploadMode: result.uploadMode,
       uploadUrl: result.uploadUrl,
       uploadToken: result.uploadToken,
       uploadPath: result.uploadPath,
@@ -232,6 +239,7 @@ export async function listDocumentVersionsAction(input: {
 
 export interface PrepareNewVersionActionResult extends ActionResult {
   documentId?: string;
+  uploadMode?: 'external' | 'legacy';
   uploadUrl?: string;
   uploadToken?: string | null;
   uploadPath?: string;
@@ -248,6 +256,7 @@ export async function prepareNewVersionUploadAction(input: {
     const result = await withOrgContext((context) => prepareNewVersionUpload(context, input));
     return {
       documentId: result.document.id,
+      uploadMode: result.uploadMode,
       uploadUrl: result.uploadUrl,
       uploadToken: result.uploadToken,
       uploadPath: result.uploadPath,

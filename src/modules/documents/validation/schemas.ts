@@ -23,6 +23,8 @@ export const prepareUploadSchema = z.object({
   ownerId: z.string().uuid(),
   label: optionalText,
   privacyClass: z.enum(DOCUMENT_PRIVACY_CLASSES).optional(),
+  /** Project file browser — upload into a nested folder within project storage. */
+  browserParentFolderId: z.preprocess(emptyToNull, z.string().trim().min(1).nullable().optional()),
 });
 
 export type PrepareUploadInput = z.input<typeof prepareUploadSchema>;

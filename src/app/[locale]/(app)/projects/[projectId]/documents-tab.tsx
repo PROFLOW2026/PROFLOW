@@ -5,6 +5,7 @@ import {
 } from '@/modules/documents';
 import { DocumentAttachments } from '@/modules/documents/ui';
 import { withOrgContext } from '@/shared/auth/session';
+import { ProjectFilesTab } from './project-files-tab';
 
 /** Documents tagged as contract files on the project owner or linked on the contract owner. */
 function isContractCategoryDocument(document: DocumentListItem): boolean {
@@ -71,6 +72,11 @@ export async function DocumentsTab({
 
   return (
     <div className="flex flex-col gap-6">
+      <ProjectFilesTab
+        projectId={projectId}
+        storageConfigured={projectPanel.storageConfigured}
+        canManage={projectPanel.canManage}
+      />
       {hasContract ? (
         <DocumentAttachments
           ownerType="project"

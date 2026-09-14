@@ -58,6 +58,12 @@ export const documents = pgTable(
     /** standard = ordinary file; compensation = rates/pay docs — requires workforce.cost.read */
     privacyClass: text('privacy_class').notNull().default('standard'),
     deletedAt: timestamp('deleted_at', { withTimezone: true, mode: 'date' }),
+    /** supabase_legacy = historical bucket rows; external = org cloud provider. */
+    storageBackend: text('storage_backend').notNull().default('supabase_legacy'),
+    externalConnectionId: uuid('external_connection_id'),
+    externalFileId: text('external_file_id'),
+    externalParentFolderId: text('external_parent_folder_id'),
+    externalEtag: text('external_etag'),
     ...timestamps(),
   },
   (table) => [
@@ -73,6 +79,10 @@ export const documents = pgTable(
     check(
       'documents_storage_cleanup_status_known',
       sql`${table.storageCleanupStatus} IS NULL OR ${table.storageCleanupStatus} IN ('pending', 'succeeded', 'failed')`,
+    ),
+    check(
+      'documents_storage_backend_known',
+      sql`${table.storageBackend} IN ('supabase_legacy', 'external')`,
     ),
   ],
 );

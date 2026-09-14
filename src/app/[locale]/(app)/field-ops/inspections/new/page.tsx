@@ -49,7 +49,7 @@ export default async function NewInspectionPage({
         employees: employeeRows.map((row) => ({ id: row.id, name: row.name })),
         formTemplates: templates,
         canManageDocuments: hasPermission(context, PERMISSIONS.DOCUMENTS_MANAGE),
-        storageConfigured: isStorageConfigured(),
+        storageConfigured: await isStorageConfigured(context),
       };
     });
 

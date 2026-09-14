@@ -3,7 +3,7 @@
 import { Camera, FileText, Upload } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useTranslations } from 'next-intl';
-import { useRouter } from '@/shared/i18n/navigation';
+import { Link, useRouter } from '@/shared/i18n/navigation';
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { ConfirmAction } from '@/components/patterns/confirm-action';
 import { Alert } from '@/components/ui/alert';
@@ -92,6 +92,7 @@ export function DocumentAttachments({
 }: DocumentAttachmentsProps) {
   const t = useTranslations('documents.attachments');
   const tErrors = useTranslations('documents.errors');
+  const tStorage = useTranslations('externalStorage');
   const tStatus = useTranslations('documents.status');
   const tCategories = useTranslations('documents.categories');
   const tFileSize = useTranslations('documents.fileSize');
@@ -227,7 +228,8 @@ export function DocumentAttachments({
       const documentId = prepared.documentId;
       const uploaded = await uploadDocumentBytes(
         {
-          uploadUrl: prepared.uploadUrl,
+          uploadUrl: prepared.uploadUrl!,
+          uploadMode: prepared.uploadMode,
           uploadToken: prepared.uploadToken,
           uploadPath: prepared.uploadPath,
           uploadBucket: prepared.uploadBucket,
@@ -538,7 +540,12 @@ export function DocumentAttachments({
         ) : null}
 
         {!storageConfigured ? (
-          <Alert tone="info">{t('storageNotConfigured')}</Alert>
+          <Alert tone="info">
+            {t('storageNotConfigured')}{' '}
+            <Link href="/settings/storage" className="underline">
+              {tStorage('connectAction')}
+            </Link>
+          </Alert>
         ) : null}
 
         {uploadSuccess ? (

@@ -20,6 +20,11 @@ export {
   retryFailedDocumentCleanups,
   getDocumentById,
 } from './application/manage-document';
+export {
+  findDocumentById,
+  updateDocumentById,
+  findPrimaryDocumentLink,
+} from './data/documents.repository';
 export type { StorageCleanupRetryResult } from './application/manage-document';
 export { linkDocumentToEntity, unlinkDocumentFromEntity } from './application/link-document';
 export {

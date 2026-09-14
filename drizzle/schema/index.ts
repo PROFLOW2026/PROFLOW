@@ -17,6 +17,7 @@ export * from './branding';
 export * from './rbac';
 export * from './audit';
 export * from './documents';
+export * from './external-storage';
 export * from './clients';
 export * from './vendors';
 export * from './projects';

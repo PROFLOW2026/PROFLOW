@@ -171,6 +171,11 @@ export const documentVersions = pgTable(
     }),
     uploadedAt: timestamp('uploaded_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
     notes: text('notes'),
+    storageBackend: text('storage_backend').notNull().default('supabase_legacy'),
+    externalConnectionId: uuid('external_connection_id'),
+    externalFileId: text('external_file_id'),
+    externalParentFolderId: text('external_parent_folder_id'),
+    externalEtag: text('external_etag'),
     ...timestamps(),
   },
   (table) => [
@@ -192,6 +197,10 @@ export const documentVersions = pgTable(
       foreignColumns: [documents.id, documents.organizationId],
     }).onDelete('cascade'),
     check('document_versions_number_positive', sql`${table.versionNumber} >= 1`),
+    check(
+      'document_versions_storage_backend_known',
+      sql`${table.storageBackend} IN ('supabase_legacy', 'external')`,
+    ),
   ],
 );
 

@@ -59,26 +59,44 @@ export async function finalizeDocumentUpload(
     throw new DomainRuleError('File is too large', 'documents.errors.fileTooLarge');
   }
 
-  const storage = getStoragePort();
   let verifiedSize = parsed.data.sizeBytes;
   let checksum = parsed.data.checksum ?? null;
-  if (storage.configured) {
-    try {
-      const downloaded = await storage.downloadBytes(existing.storagePath);
-      if (downloaded.size <= 0) {
+
+  if (existing.storageBackend === 'external') {
+    if (!existing.externalFileId) {
+      throw new ServiceUnavailableError(
+        'Uploaded file could not be verified',
+        'documents.errors.storageVerifyFailed',
+      );
+    }
+    const { findStorageFileByDocumentId } = await import('@/modules/external-storage/data/files.repository');
+    const externalFile = await findStorageFileByDocumentId(
+      context.db,
+      context.organizationId,
+      existing.id,
+    );
+    if (externalFile?.checksum) checksum = externalFile.checksum;
+    if (externalFile?.sizeBytes) verifiedSize = externalFile.sizeBytes;
+  } else {
+    const storage = getStoragePort();
+    if (storage.configured) {
+      try {
+        const downloaded = await storage.downloadBytes(existing.storagePath);
+        if (downloaded.size <= 0) {
+          throw new ServiceUnavailableError(
+            'Uploaded file could not be verified',
+            'documents.errors.storageVerifyFailed',
+          );
+        }
+        verifiedSize = downloaded.size;
+        checksum = createHash('sha256').update(downloaded.bytes).digest('hex');
+      } catch (error) {
+        if (error instanceof ServiceUnavailableError) throw error;
         throw new ServiceUnavailableError(
           'Uploaded file could not be verified',
           'documents.errors.storageVerifyFailed',
         );
       }
-      verifiedSize = downloaded.size;
-      checksum = createHash('sha256').update(downloaded.bytes).digest('hex');
-    } catch (error) {
-      if (error instanceof ServiceUnavailableError) throw error;
-      throw new ServiceUnavailableError(
-        'Uploaded file could not be verified',
-        'documents.errors.storageVerifyFailed',
-      );
     }
   }
 
@@ -146,6 +164,25 @@ export async function createDocumentDownloadUrl(
 
   if (document.status !== 'available' || document.deletedAt) {
     throw new NotFoundError('Document');
+  }
+
+  if (document.storageBackend === 'external') {
+    const { getExternalDocumentDownload } = await import('@/modules/external-storage/server');
+    const { serverEnv } = await import('@/shared/env/server');
+    const external = await getExternalDocumentDownload(context, document.id);
+    if ('url' in external) {
+      return {
+        url: external.url,
+        expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+        filename: external.filename,
+      };
+    }
+    const baseUrl = serverEnv().APP_URL.replace(/\/+$/, '');
+    return {
+      url: `${baseUrl}/api/org-storage/download/${document.id}`,
+      expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+      filename: external.filename,
+    };
   }
 
   const storage = getStoragePort();

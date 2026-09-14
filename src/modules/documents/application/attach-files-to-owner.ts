@@ -2,6 +2,10 @@ import { AuthorizationError } from '@/shared/errors';
 import { assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
+import {
+  semanticFolderForDocumentOwner,
+  uploadDocumentToExternalStorage,
+} from '@/modules/external-storage/server';
 import { normalizeUploadMime } from '../domain/file-rules';
 import type { DocumentOwnerType } from '../domain/types';
 import { prepareDocumentUpload } from './upload-document';
@@ -20,7 +24,7 @@ export interface AttachFilesToOwnerResult {
 }
 
 /**
- * After an owner row exists: prepare → private signed PUT → finalize.
+ * After an owner row exists: prepare → upload bytes → finalize.
  * Requires documents.manage. Failed uploads are soft-deleted (no orphan pending docs).
  */
 export async function attachFilesToOwner(
@@ -54,15 +58,27 @@ export async function attachFilesToOwner(
       });
       documentId = prepared.document.id;
 
-      const uploaded = await putBytesToSignedUploadUrl(
-        prepared.uploadUrl,
-        file,
-        mime.mimeType,
-      );
-      if (!uploaded.ok) {
-        await softDeleteDocument(context, { documentId });
-        failed += 1;
-        continue;
+      if (prepared.uploadMode === 'external') {
+        const bytes = new Uint8Array(await file.arrayBuffer());
+        await uploadDocumentToExternalStorage(context, {
+          documentId,
+          parentSemanticFolder: semanticFolderForDocumentOwner(input.ownerType),
+          fileName: file.name,
+          mimeType: mime.mimeType,
+          body: bytes,
+          sizeBytes: bytes.length,
+        });
+      } else {
+        const uploaded = await putBytesToSignedUploadUrl(
+          prepared.uploadUrl,
+          file,
+          mime.mimeType,
+        );
+        if (!uploaded.ok) {
+          await softDeleteDocument(context, { documentId });
+          failed += 1;
+          continue;
+        }
       }
 
       await finalizeDocumentUpload(context, {

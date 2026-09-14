@@ -138,6 +138,7 @@ export function DocumentVersionHistoryDialog({
       const uploaded = await uploadDocumentBytes(
         {
           uploadUrl: prepared.uploadUrl,
+          uploadMode: prepared.uploadMode,
           uploadToken: prepared.uploadToken,
           uploadPath: prepared.uploadPath,
           uploadBucket: prepared.uploadBucket,

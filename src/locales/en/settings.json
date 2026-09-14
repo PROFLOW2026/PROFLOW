@@ -30,7 +30,8 @@
     "banking": "Banking",
     "ocr": "Invoice capture",
     "profile": "Your profile",
-    "integrations": "External connections"
+    "integrations": "External connections",
+    "storage": "File storage"
   },
   "people": {
     "linkCopied": "Link copied",

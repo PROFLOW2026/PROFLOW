@@ -1,0 +1,88 @@
+{
+  "title": "אחסון קבצים",
+  "description": "חברו את שירות הענן של הארגון כדי לשמור מסמכים, תמונות וקבצים ב-ProjectFlow.",
+  "notConnectedNotice": "כדי לשמור קבצים יש לחבר שירות אחסון לארגון.",
+  "connectAction": "חיבור אחסון",
+  "providers": {
+    "onedrive": "Microsoft OneDrive",
+    "google_drive": "Google Drive",
+    "dropbox": "Dropbox",
+    "box": "Box"
+  },
+  "status": {
+    "disconnected": "לא מחובר",
+    "connecting": "מתחבר",
+    "connected": "מחובר",
+    "reconnect_required": "דורש חיבור מחדש",
+    "error": "שגיאה"
+  },
+  "actions": {
+    "connect": "חבר",
+    "validate": "בדוק חיבור",
+    "openRoot": "פתח תיקיית ProjectFlow",
+    "reconnect": "חבר מחדש",
+    "disconnect": "נתק",
+    "setPrimary": "קבע כאחסון ראשי"
+  },
+  "quota": {
+    "used": " בשימוש: {used}",
+    "available": "זמין: {available}",
+    "unknown": "מידע נפח לא זמין מספק זה"
+  },
+  "primaryRequiredNotice": "הספק מחובר אך לא מוגדר כאחסון ראשי. קבעו אותו כראשי כדי לאפשר העלאת קבצים.",
+  "disconnectWarning": "ניתוק יגרום לאובדן זמני של גישה לקבצים ב-ProjectFlow. הקבצים בענן לא יימחקו.",
+  "oauthSuccess": "החיבור הושלם בהצלחה.",
+  "oauthFailed": "החיבור נכשל. נסו שוב.",
+  "errors": {
+    "notConnected": "כדי לשמור קבצים יש לחבר שירות אחסון לארגון.",
+    "quotaFull": "שטח האחסון בענן מלא. יש לפנות מקום או לשדרג את התוכנית אצל ספק האחסון.",
+    "fileUnavailable": "קובץ אינו זמין - יש לחבר מחדש את שירות האחסון.",
+    "reconnectRequired": "יש לחבר מחדש את שירות האחסון.",
+    "providerNotConfigured": "ספק זה אינו מוגדר בסביבה.",
+    "connectionNotFound": "חיבור האחסון לא נמצא.",
+    "rootNotReady": "האחסון מחובר אך תיקיית ProjectFlow עדיין לא מוכנה. חברו מחדש או בדקו את החיבור.",
+    "outOfScope": "הפריט אינו שייך לתיקיית הפרויקט.",
+    "folderNotEmpty": "לא ניתן למחוק תיקייה שאינה ריקה.",
+    "invalidName": "שם לא תקין.",
+    "managedFolder": "לא ניתן לשנות תיקייה מנוהלת של המערכת.",
+    "invalidMoveTarget": "יעד ההעברה אינו תקין.",
+    "operationFailed": "הפעולה נכשלה. נסו שוב."
+  },
+  "projectFiles": {
+    "title": "קבצים",
+    "folders": {
+      "quotes": "הצעות מחיר",
+      "contracts": "חוזים",
+      "billing": "חשבונות חיוב",
+      "vendor_invoices": "חשבוניות ספקים",
+      "plans": "תוכניות",
+      "photos": "תמונות",
+      "documents": "מסמכים",
+      "general_files": "קבצים כלליים"
+    },
+    "upload": "העלאת קובץ",
+    "capture": "צילום",
+    "createFolder": "תיקייה חדשה",
+    "rename": "שינוי שם",
+    "delete": "מחיקה",
+    "preview": "תצוגה מקדימה",
+    "openInProvider": "פתח ב-{provider}",
+    "missingFile": "קובץ אינו זמין בענן",
+    "empty": "אין קבצים בתיקייה זו",
+    "move": "העברה",
+    "moveTitle": "העברת פריט",
+    "moveDescription": "בחרו יעד עבור {name}",
+    "selectDestination": "בחרו תיקיית יעד",
+    "createFolderTitle": "תיקייה חדשה",
+    "createFolderDescription": "הזינו שם לתיקייה החדשה",
+    "folderNamePlaceholder": "שם התיקייה",
+    "renameTitle": "שינוי שם",
+    "deleteFileTitle": "מחיקת קובץ",
+    "deleteFileDescription": "האם למחוק את {name}? פעולה זו אינה ניתנת לביטול.",
+    "deleteFolderTitle": "מחיקת תיקייה",
+    "deleteFolderDescription": "האם למחוק את התיקייה {name}? ניתן למחוק רק תיקיות ריקות.",
+    "actions": "פעולות",
+    "breadcrumb": "ניווט בתיקיות",
+    "loading": "טוען…"
+  }
+}

@@ -38,6 +38,11 @@ function mapDocument(row: typeof documents.$inferSelect): DocumentRecord {
   return {
     id: row.id,
     organizationId: row.organizationId,
+    storageBackend: (row.storageBackend as DocumentRecord['storageBackend']) ?? 'supabase_legacy',
+    externalConnectionId: row.externalConnectionId ?? null,
+    externalFileId: row.externalFileId ?? null,
+    externalParentFolderId: row.externalParentFolderId ?? null,
+    externalEtag: row.externalEtag ?? null,
     storageBucket: row.storageBucket,
     storagePath: row.storagePath,
     originalFilename: row.originalFilename,
@@ -138,6 +143,11 @@ export async function updateDocumentById(
     currentVersionId: string | null;
     uploadedByUserId: string | null;
     privacyClass: DocumentPrivacyClass;
+    storageBackend: DocumentRecord['storageBackend'];
+    externalConnectionId: string | null;
+    externalFileId: string | null;
+    externalParentFolderId: string | null;
+    externalEtag: string | null;
   }>,
 ): Promise<DocumentRecord | null> {
   const [row] = await db
@@ -240,6 +250,30 @@ export async function insertDocumentLink(
     .returning();
 
   return mapLink(row!);
+}
+
+/** First link on a document — used to resolve external upload folder scope. */
+export async function findPrimaryDocumentLink(
+  db: DbExecutor,
+  organizationId: string,
+  documentId: string,
+): Promise<Pick<DocumentLinkRecord, 'ownerType' | 'ownerId'> | null> {
+  const [row] = await db
+    .select({
+      ownerType: documentLinks.ownerType,
+      ownerId: documentLinks.ownerId,
+    })
+    .from(documentLinks)
+    .where(
+      and(eq(documentLinks.organizationId, organizationId), eq(documentLinks.documentId, documentId)),
+    )
+    .limit(1);
+
+  if (!row) return null;
+  return {
+    ownerType: row.ownerType as DocumentOwnerType,
+    ownerId: row.ownerId,
+  };
 }
 
 export async function findDocumentLinkById(

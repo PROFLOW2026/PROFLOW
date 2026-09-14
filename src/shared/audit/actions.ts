@@ -155,6 +155,12 @@ export const AUDIT_ACTIONS = {
   DOCUMENT_STORAGE_CLEANUP_FAILED: 'document.storage_cleanup_failed',
   DOCUMENT_STORAGE_CLEANUP_COMPLETED: 'document.storage_cleanup_completed',
 
+  STORAGE_CONNECTION_CONNECTED: 'storage.connection_connected',
+  STORAGE_CONNECTION_DISCONNECTED: 'storage.connection_disconnected',
+  STORAGE_PRIMARY_CHANGED: 'storage.primary_changed',
+  STORAGE_FILE_UPLOADED: 'storage.file_uploaded',
+  STORAGE_FILE_DELETED: 'storage.file_deleted',
+
   CRM_PROSPECT_CREATED: 'crm.prospect_created',
   CRM_PROSPECT_UPDATED: 'crm.prospect_updated',
   CRM_LEAD_CREATED: 'crm.lead_created',

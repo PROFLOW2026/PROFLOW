@@ -140,7 +140,7 @@ export async function withOrgContextFor<T>(
  * `(userId, organizationId, locale)` - never across requests or tenants, and
  * never for financial payloads.
  */
-async function runInOrgContext<T>(
+export async function runInOrgContext<T>(
   userId: string,
   organizationId: string,
   fn: (context: OrgContext) => Promise<T>,

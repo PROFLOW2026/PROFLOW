@@ -105,6 +105,7 @@ export const MESSAGE_NAMESPACES = [
   'automations',
   'assistant',
   'integrations',
+  'externalStorage',
 ] as const;
 
 export type MessageNamespace = (typeof MESSAGE_NAMESPACES)[number];
@@ -132,6 +133,7 @@ export const APP_CLIENT_MESSAGE_NAMESPACES = [
   'billing',
   'billingPlan',
   'documents',
+  'externalStorage',
   'workforce',
   'clients',
   'vendors',

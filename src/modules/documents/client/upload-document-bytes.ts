@@ -12,6 +12,7 @@ export type SignedUploadTarget = {
   uploadToken?: string | null;
   uploadPath?: string | null;
   uploadBucket?: string | null;
+  uploadMode?: 'external' | 'legacy';
 };
 
 export type UploadDocumentBytesResult =
@@ -52,6 +53,19 @@ export async function uploadDocumentBytes(
   const token = target.uploadToken?.trim() || '';
   const path = target.uploadPath?.trim() || '';
   const bucket = target.uploadBucket?.trim() || '';
+
+  if (target.uploadMode === 'external') {
+    const response = await fetch(target.uploadUrl, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': contentType },
+      body: file,
+    });
+    if (!response.ok) {
+      return { ok: false, stage: 'storage_upload', status: response.status };
+    }
+    return { ok: true };
+  }
 
   if (token && path && bucket) {
     try {

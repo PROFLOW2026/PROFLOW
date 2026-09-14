@@ -43,7 +43,7 @@ export default async function NewPunchPage({
         projects: projectRows,
         workPackages: packages,
         canManageDocuments: hasPermission(context, PERMISSIONS.DOCUMENTS_MANAGE),
-        storageConfigured: isStorageConfigured(),
+        storageConfigured: await isStorageConfigured(context),
         employees: canManage ? await listPunchAssigneeOptions(context) : [],
       };
     },
