@@ -1,6 +1,6 @@
 import { uploadDocumentToExternalStorage } from '@/modules/external-storage/server';
 import type { SemanticFolderType } from '@/modules/external-storage/server';
-import { findDocumentById } from '@/modules/documents/data/documents.repository';
+import { findDocumentById } from '@/modules/documents';
 import { requireSession, runInOrgContext } from '@/shared/auth/session';
 import { AppError, NotFoundError } from '@/shared/errors';
 
