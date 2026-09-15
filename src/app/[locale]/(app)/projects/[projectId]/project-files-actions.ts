@@ -76,6 +76,7 @@ export async function loadProjectFileBrowserInitialAction(projectId: string) {
 export async function browseProjectFolderAction(input: {
   projectId: string;
   folderExternalId?: string | null;
+  folderName?: string | null;
 }) {
   try {
     const result = await withOrgContext((context) =>

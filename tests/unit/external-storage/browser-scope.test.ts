@@ -31,6 +31,20 @@ function mockAdapter(
 }
 
 describe('assertFolderWithinProjectTree', () => {
+  it('uses isFolderUnderRoots when available instead of parent walk', async () => {
+    const isFolderUnderRoots = vi.fn(async () => true);
+    const getFolder = vi.fn();
+    const adapter = {
+      provider: 'dropbox',
+      isFolderUnderRoots,
+      getFolder,
+    } as unknown as StorageProviderAdapter;
+
+    await assertFolderWithinProjectTree(adapter, 'token', 'nested', new Set(['org-root']));
+    expect(isFolderUnderRoots).toHaveBeenCalledOnce();
+    expect(getFolder).not.toHaveBeenCalled();
+  });
+
   it('allows semantic project root folders', async () => {
     const roots = new Set(['photos-root']);
     const adapter = mockAdapter({});

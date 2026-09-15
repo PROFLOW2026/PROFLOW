@@ -148,8 +148,10 @@ export function CompanyFilesTab({
         const folderExternalId = resolveFolderExternalId(path);
         if (!folderExternalId) return;
 
+        const segment = path.length > 0 ? path[path.length - 1] : null;
         const result = await browseCompanyFolderAction({
           folderExternalId,
+          folderName: segment?.name ?? null,
         });
         if (result.error) {
           setError(result.error);

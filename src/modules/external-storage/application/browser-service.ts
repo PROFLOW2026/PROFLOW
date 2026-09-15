@@ -166,6 +166,7 @@ async function assertFolderScope(
   folderId: string,
 ): Promise<void> {
   if (folderId === runtime.projectRootFolderId) return;
+  if (runtime.protectedFolderIds.has(folderId)) return;
   await assertFolderWithinProjectTree(
     runtime.adapter,
     runtime.accessToken,
@@ -357,6 +358,7 @@ export async function browseProjectStorageFolder(
     projectId: string;
     /** Omit or null to list the project root folder. */
     folderExternalId?: string | null;
+    folderName?: string | null;
   },
 ): Promise<ProjectBrowserListingResult> {
   assertPermission(context, PERMISSIONS.DOCUMENTS_READ);
@@ -365,9 +367,11 @@ export async function browseProjectStorageFolder(
   const isProjectRoot = folderExternalId === runtime.projectRootFolderId;
   await assertFolderScope(runtime, folderExternalId);
 
+  const hintedName = input.folderName?.trim();
   const folderName = isProjectRoot
     ? runtime.projectRootMapping.displayName
-    : ((await runtime.adapter.getFolder(runtime.accessToken, folderExternalId))?.name ?? 'Folder');
+    : hintedName ||
+      ((await runtime.adapter.getFolder(runtime.accessToken, folderExternalId))?.name ?? 'Folder');
 
   const listing = await runtime.adapter.listFolder(runtime.accessToken, folderExternalId);
   return {

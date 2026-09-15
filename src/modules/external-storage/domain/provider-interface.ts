@@ -32,6 +32,12 @@ export interface StorageProviderAdapter {
     input: { name: string; parentId: string | null },
   ): Promise<ProviderFolderItem>;
   getFolder(accessToken: string, folderId: string): Promise<ProviderFolderItem | null>;
+  /** When implemented, verifies folder ancestry without walking each parent via getFolder. */
+  isFolderUnderRoots?(
+    accessToken: string,
+    folderId: string,
+    rootFolderIds: ReadonlySet<string>,
+  ): Promise<boolean>;
   getChildFolderByName?(
     accessToken: string,
     parentId: string | null,

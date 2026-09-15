@@ -170,6 +170,24 @@ export async function listFolderMappingsForConnection(
   return rows.map(mapRow);
 }
 
+export async function listOrgLevelFolderMappingsForConnection(
+  db: DbExecutor,
+  organizationId: string,
+  connectionId: string,
+): Promise<FolderMappingRecord[]> {
+  const rows = await db
+    .select()
+    .from(storageFolderMappings)
+    .where(
+      and(
+        eq(storageFolderMappings.organizationId, organizationId),
+        eq(storageFolderMappings.connectionId, connectionId),
+        isNull(storageFolderMappings.entityId),
+      ),
+    );
+  return rows.map(mapRow);
+}
+
 export async function deleteFolderMappingsForConnection(
   db: DbExecutor,
   organizationId: string,

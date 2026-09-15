@@ -383,6 +383,32 @@ describe('DropboxStorageProvider adapter contract', () => {
     expect(bytes).toEqual(new Uint8Array([1, 2, 3]));
   });
 
+  it('isFolderUnderRoots checks path prefix without walking parents', async () => {
+    const fetchMock = vi.fn(async (_url: string, init?: RequestInit) => {
+      const body = JSON.parse(String(init?.body));
+      if (body.path === 'id:nested') {
+        return jsonResponse({
+          path_lower: '/projectflow/clients/nested',
+          '.tag': 'folder',
+          id: 'id:nested',
+        });
+      }
+      if (body.path === 'id:root') {
+        return jsonResponse({
+          path_lower: '/projectflow',
+          '.tag': 'folder',
+          id: 'id:root',
+        });
+      }
+      throw new Error(`unexpected path ${body.path}`);
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const under = await dropboxProvider.isFolderUnderRoots!(TOKEN, 'id:nested', new Set(['id:root']));
+    expect(under).toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
   it('downloadFileStream uses Dropbox file id for non-ASCII paths (content header safety)', async () => {
     const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
       if (url.endsWith('/files/get_metadata')) {

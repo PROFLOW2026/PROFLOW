@@ -277,6 +277,20 @@ export class DropboxStorageProvider implements StorageProviderAdapter {
     return listing.folders.find((folder) => folder.name === name) ?? null;
   }
 
+  async isFolderUnderRoots(
+    accessToken: string,
+    folderId: string,
+    rootFolderIds: ReadonlySet<string>,
+  ): Promise<boolean> {
+    const folderPath = await this.resolvePath(accessToken, folderId);
+    for (const rootId of rootFolderIds) {
+      const rootPath = await this.resolvePath(accessToken, rootId);
+      if (folderPath === rootPath) return true;
+      if (rootPath && folderPath.startsWith(`${rootPath}/`)) return true;
+    }
+    return false;
+  }
+
   async getFolder(accessToken: string, folderId: string): Promise<ProviderFolderItem | null> {
     if (folderId === 'root' || folderId === '') {
       return this.getDriveRoot(accessToken);

@@ -9,7 +9,7 @@ import { ORGANIZATION_BASE_FOLDERS } from '../domain/semantic-folders';
 import type { SemanticFolderType } from '@drizzle/schema/external-storage';
 import {
   findFolderMapping,
-  listFolderMappingsForConnection,
+  listOrgLevelFolderMappingsForConnection,
 } from '../data/folder-mappings.repository';
 import type {
   FolderMappingRecord,
@@ -25,7 +25,6 @@ import {
   assertOrganizationStorageAvailable,
   resolveValidAccessToken,
 } from './connection-service';
-import { ensureOrganizationRootFolder } from './folder-provisioning';
 import { assertFolderWithinProjectTree, isFolderDescendantOf } from './browser-scope';
 
 const MAX_MOVE_TARGETS = 250;
@@ -138,13 +137,6 @@ export async function resolveOrgBrowserRuntime(context: OrgContext): Promise<Org
     connection,
   );
 
-  await ensureOrganizationRootFolder(
-    context.db,
-    context.organizationId,
-    connection,
-    accessToken,
-  );
-
   const organizationRootMapping = await findFolderMapping(context.db, {
     organizationId: context.organizationId,
     connectionId: connection.id,
@@ -157,12 +149,11 @@ export async function resolveOrgBrowserRuntime(context: OrgContext): Promise<Org
     );
   }
 
-  const mappings = await listFolderMappingsForConnection(
+  const orgLevelMappings = await listOrgLevelFolderMappingsForConnection(
     context.db,
     context.organizationId,
     connection.id,
   );
-  const orgLevelMappings = mappings.filter((m) => !m.entityId);
   const protectedFolderIds = new Set(
     orgLevelMappings.filter((m) => m.status === 'ready').map((m) => m.externalFolderId),
   );
@@ -180,6 +171,7 @@ export async function resolveOrgBrowserRuntime(context: OrgContext): Promise<Org
 
 async function assertOrgFolderScope(runtime: OrgBrowserRuntime, folderId: string): Promise<void> {
   if (folderId === runtime.organizationRootFolderId) return;
+  if (runtime.protectedFolderIds.has(folderId)) return;
   await assertFolderWithinProjectTree(
     runtime.adapter,
     runtime.accessToken,
@@ -229,7 +221,7 @@ export async function loadOrgFileBrowserInitial(
 
 export async function browseOrgStorageFolder(
   context: OrgContext,
-  input: { folderExternalId?: string | null },
+  input: { folderExternalId?: string | null; folderName?: string | null },
 ): Promise<OrgBrowserListingResult> {
   assertPermission(context, PERMISSIONS.DOCUMENTS_READ);
   const runtime = await resolveOrgBrowserRuntime(context);
@@ -237,9 +229,11 @@ export async function browseOrgStorageFolder(
   const isOrgRoot = folderExternalId === runtime.organizationRootFolderId;
   await assertOrgFolderScope(runtime, folderExternalId);
 
+  const hintedName = input.folderName?.trim();
   const folderName = isOrgRoot
     ? runtime.organizationRootMapping.displayName
-    : ((await runtime.adapter.getFolder(runtime.accessToken, folderExternalId))?.name ?? 'Folder');
+    : hintedName ||
+      ((await runtime.adapter.getFolder(runtime.accessToken, folderExternalId))?.name ?? 'Folder');
 
   const listing = await runtime.adapter.listFolder(runtime.accessToken, folderExternalId);
   return {

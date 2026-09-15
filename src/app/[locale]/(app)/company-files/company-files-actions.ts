@@ -59,7 +59,10 @@ export async function loadCompanyFileBrowserInitialAction() {
   }
 }
 
-export async function browseCompanyFolderAction(input: { folderExternalId?: string | null }) {
+export async function browseCompanyFolderAction(input: {
+  folderExternalId?: string | null;
+  folderName?: string | null;
+}) {
   try {
     const result = await withOrgContext((context) => browseOrgStorageFolder(context, input));
     return {

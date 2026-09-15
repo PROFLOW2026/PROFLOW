@@ -29,6 +29,19 @@ export async function assertFolderWithinProjectTree(
 ): Promise<void> {
   if (projectRootFolderIds.has(folderId)) return;
 
+  if (adapter.isFolderUnderRoots) {
+    const underRoots = await adapter.isFolderUnderRoots(
+      accessToken,
+      folderId,
+      projectRootFolderIds,
+    );
+    if (underRoots) return;
+    throw new DomainRuleError(
+      'Folder is outside project storage scope',
+      'externalStorage.errors.outOfScope',
+    );
+  }
+
   let current = folderId;
   for (let depth = 0; depth < MAX_PARENT_WALK; depth++) {
     const folder = await adapter.getFolder(accessToken, current);
