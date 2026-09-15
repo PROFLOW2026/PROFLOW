@@ -144,12 +144,13 @@
     --pf-sidebar-collapsed-width: 4.5rem;
     --pf-topbar-height: 3.5rem;
     --pf-bottomnav-height: 4rem;
+    --pf-bottomnav-safe-area: env(safe-area-inset-bottom, 0px);
+    --pf-bottomnav-total-height: calc(var(--pf-bottomnav-height) + var(--pf-bottomnav-safe-area));
     /* Mobile FAB (size-14) sits above the bottom nav; content must clear both. */
     --pf-fab-size: 3.5rem;
     --pf-fab-gap: 1rem;
     --pf-mobile-content-bottom: calc(
-      var(--pf-bottomnav-height) + var(--pf-fab-gap) + var(--pf-fab-size) + 1rem +
-        env(safe-area-inset-bottom, 0px)
+      var(--pf-bottomnav-total-height) + var(--pf-fab-gap) + var(--pf-fab-size) + 1rem
     );
   }
 }

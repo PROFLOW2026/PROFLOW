@@ -17,9 +17,15 @@ export async function DashboardCompanyDocumentsLink() {
   if (!allowed) return null;
 
   return (
-    <Button asChild variant="secondary" size="sm" className="w-fit">
+    <Button
+      asChild
+      variant="secondary"
+      size="sm"
+      className="w-fit max-w-full"
+      data-pf-dashboard-company-documents=""
+    >
       <Link href="/company-files" prefetch={false}>
-        <FileText className="size-4" aria-hidden />
+        <FileText className="size-4 shrink-0" aria-hidden />
         {t('companyDocuments')}
       </Link>
     </Button>

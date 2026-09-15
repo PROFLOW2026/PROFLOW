@@ -110,6 +110,23 @@ describe('MobileNav More interaction', () => {
     navState.pathname = '/projects';
   });
 
+  it('keeps bottom nav in a fixed safe-area-aware shell', () => {
+    renderWithIntl(<MobileNav items={ITEMS} />, {
+      locale: 'en',
+      messages: { nav: enNav },
+    });
+
+    const nav = document.querySelector('[data-pf-mobile-nav]') as HTMLElement;
+    expect(nav).toBeTruthy();
+    expect(nav.getAttribute('data-pf-mobile-nav')).toBe('');
+    expect(nav.className).toContain('fixed');
+    expect(nav.className).toContain('z-40');
+    expect(nav.className).toContain('pb-[env(safe-area-inset-bottom,0px)]');
+
+    const list = nav.querySelector('ul');
+    expect(list?.className).toContain('h-[var(--pf-bottomnav-height)]');
+  });
+
   it('marks More expanded immediately on click before the sheet finishes opening', async () => {
     const user = userEvent.setup();
     renderWithIntl(<MobileNav items={ITEMS} />, {

@@ -16,7 +16,6 @@ import type { HomeDashboardData } from '../application/get-home-dashboard';
 import { partitionDashboardCompletenessItems } from '../domain/dashboard-missing-data';
 import { DashboardMissingDataTrigger } from './dashboard-missing-data-trigger';
 import { HomeLaborReconciliation, HomePendingTimeAlert } from './home-labor-alerts';
-import { DashboardCompanyDocumentsLink } from '@/modules/external-storage/ui/dashboard-company-documents-link';
 import { mapDashboardMissingDataToView } from './map-dashboard-missing-data-view';
 
 interface HomeDashboardOwnerViewProps {
@@ -327,7 +326,6 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
       <section>
         <h2 className="mb-3 text-sm font-semibold">{t('quickActions')}</h2>
         <div className="flex flex-wrap gap-2">
-          <DashboardCompanyDocumentsLink />
           {data.canCreateExpense ? (
             <Button asChild size="sm">
               <Link href="/expenses/new" prefetch={false}>

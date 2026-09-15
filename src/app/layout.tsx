@@ -18,7 +18,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   return (
     <html lang={metadata.htmlLang} dir={metadata.dir} suppressHydrationWarning>
       <body
-        className="min-h-dvh bg-page text-content antialiased"
+        className="min-h-dvh min-w-0 max-w-full bg-page text-content antialiased"
         dir={metadata.dir}
         suppressHydrationWarning
       >

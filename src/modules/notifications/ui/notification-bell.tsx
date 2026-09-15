@@ -113,7 +113,7 @@ export function NotificationBell({
       </PopoverTrigger>
       <PopoverContent
         align="end"
-        className="w-[min(100vw-2rem,24rem)] p-0"
+        className="w-[min(100dvw-2rem,24rem)] max-w-[calc(100%-2rem)] p-0"
         aria-label={t('title')}
       >
         <NotificationPanel

@@ -6,6 +6,33 @@ import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/shared/ui/cn';
 
+function lockBodyScroll(): () => void {
+  const body = document.body;
+  const scrollY = window.scrollY;
+  const previous = {
+    overflow: body.style.overflow,
+    position: body.style.position,
+    top: body.style.top,
+    width: body.style.width,
+    touchAction: body.style.touchAction,
+  };
+
+  body.style.overflow = 'hidden';
+  body.style.position = 'fixed';
+  body.style.top = `-${scrollY}px`;
+  body.style.width = '100%';
+  body.style.touchAction = 'none';
+
+  return () => {
+    body.style.overflow = previous.overflow;
+    body.style.position = previous.position;
+    body.style.top = previous.top;
+    body.style.width = previous.width;
+    body.style.touchAction = previous.touchAction;
+    window.scrollTo(0, scrollY);
+  };
+}
+
 export function StorageFilePreviewShell({
   open,
   onClose,
@@ -23,8 +50,7 @@ export function StorageFilePreviewShell({
 }) {
   useEffect(() => {
     if (!open) return;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    const unlockBodyScroll = lockBodyScroll();
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose();
@@ -32,7 +58,7 @@ export function StorageFilePreviewShell({
     window.addEventListener('keydown', onKeyDown);
 
     return () => {
-      document.body.style.overflow = previousOverflow;
+      unlockBodyScroll();
       window.removeEventListener('keydown', onKeyDown);
     };
   }, [open, onClose]);
@@ -46,7 +72,7 @@ export function StorageFilePreviewShell({
       aria-label={title}
       className={cn(
         'fixed z-[70] flex flex-col bg-[var(--pf-bg-elevated)] text-[var(--pf-text-primary)]',
-        'inset-0 h-dvh w-screen max-h-dvh',
+        'inset-0 h-dvh max-h-dvh w-full max-w-full',
         'md:inset-auto md:left-1/2 md:top-1/2 md:h-[92vh] md:w-[92vw] md:max-h-[92vh] md:max-w-[92vw] md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-lg md:border md:border-[var(--pf-border-default)] md:shadow-[var(--pf-shadow-lg)]',
       )}
     >
@@ -63,7 +89,7 @@ export function StorageFilePreviewShell({
         </p>
         {headerActions ? <div className="flex shrink-0 items-center gap-1">{headerActions}</div> : null}
       </header>
-      <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">{children}</div>
+      <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">{children}</div>
     </div>,
     document.body,
   );

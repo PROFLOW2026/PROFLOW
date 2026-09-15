@@ -51,7 +51,10 @@ export async function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <OfflineSyncProvider organizationId={shell.organizationId} userId={shell.user.id}>
-      <div className="flex min-h-dvh w-full max-w-full" data-pf-shell="app">
+      <div
+        className="flex min-h-dvh min-w-0 w-full max-w-full overflow-x-clip"
+        data-pf-shell="app"
+      >
         <Sidebar
           items={items}
           organizationName={shell.organization.name}
