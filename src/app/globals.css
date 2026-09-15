@@ -274,6 +274,27 @@
     text-rendering: optimizeLegibility;
   }
 
+  /*
+   * Android: layout viewport (innerWidth) is often wider than visualViewport.width.
+   * w-full descendants otherwise extend past the visible edge and allow sideways drag
+   * even when scrollWidth === clientWidth. Width tracks MobileShellViewportSync vars.
+   */
+  @media (max-width: 1023px) {
+    html {
+      width: var(--pf-visual-viewport-width, 100%);
+      max-width: var(--pf-visual-viewport-width, 100%);
+      min-width: 0;
+      /* offsetLeft is physical px from layout viewport left (not logical start). */
+      margin-left: var(--pf-visual-viewport-offset-left, 0px);
+    }
+
+    body,
+    [data-pf-shell='app'] {
+      min-width: 0;
+      max-width: 100%;
+    }
+  }
+
   h1,
   h2,
   h3,

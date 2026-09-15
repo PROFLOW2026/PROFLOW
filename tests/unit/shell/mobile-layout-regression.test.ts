@@ -71,6 +71,21 @@ describe('mobile layout regressions', () => {
     expect(css).toContain('--pf-mobile-chrome-bottom');
   });
 
+  it('constrains document width to visual viewport on mobile (Android layout vs visual gap)', () => {
+    const css = read('src/app/globals.css');
+    expect(css).toContain('width: var(--pf-visual-viewport-width, 100%)');
+    expect(css).toContain('margin-left: var(--pf-visual-viewport-offset-left, 0px)');
+  });
+
+  it('does not use layout-viewport inset-x-0 on mobile toast chrome', () => {
+    const toast = read('src/components/ui/toast.tsx');
+    const statusToast = read('src/components/ui/status-toast.tsx');
+    expect(toast).toContain('--pf-visual-viewport-width');
+    expect(toast).not.toMatch(/fixed inset-x-0/);
+    expect(statusToast).toContain('--pf-visual-viewport-width');
+    expect(statusToast).toMatch(/lg:inset-x-0/);
+  });
+
   it('uses feedback sync for bottom HUD clipping correction', () => {
     const chrome = read('src/shared/ui/visual-viewport-chrome.ts');
     expect(chrome).toContain('syncVisualViewportChromeWithFeedback');
