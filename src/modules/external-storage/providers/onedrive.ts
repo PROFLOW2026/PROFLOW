@@ -352,7 +352,10 @@ export class OneDriveStorageProvider implements StorageProviderAdapter {
   async downloadFileStream(
     accessToken: string,
     fileId: string,
-    options?: { byteRange?: { start: number; end: number } },
+    options?: {
+      byteRange?: { start: number; end: number };
+      knownMeta?: ProviderFileItem | null;
+    },
   ): Promise<{
     stream: ReadableStream<Uint8Array>;
     mimeType: string;
@@ -360,7 +363,7 @@ export class OneDriveStorageProvider implements StorageProviderAdapter {
     httpStatus?: number;
     contentRange?: string | null;
   }> {
-    const meta = await this.getFileMetadata(accessToken, fileId);
+    const meta = options?.knownMeta ?? (await this.getFileMetadata(accessToken, fileId));
     const headers: Record<string, string> = { Authorization: `Bearer ${accessToken}` };
     if (options?.byteRange) {
       headers.Range = `bytes=${options.byteRange.start}-${options.byteRange.end}`;

@@ -3,23 +3,28 @@
 import { ChevronLeft, ChevronRight, Minus, Plus, RotateCcw, Scan, Square } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Document, Page, pdfjs } from 'react-pdf';
+import { Document, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { cn } from '@/shared/ui/cn';
+import { PdfLazyPage } from './pdf-lazy-page';
 import { PDFJS_WORKER_PUBLIC_PATH } from './pdf-viewer-config';
+import {
+  PDF_LOAD_TIMEOUT_MS,
+  PDF_PINCH_COMMIT_MS,
+  clampPdfZoom,
+  computePdfPageWidth,
+  createPdfPreviewTimings,
+  elapsedMs,
+  readDevicePixelRatio,
+  type PdfFitMode,
+  type PdfPreviewTimings,
+} from './pdf-viewer-utils';
 
-/** Worker must be configured in this module (react-pdf requirement). */
 pdfjs.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_PUBLIC_PATH;
-
-const MIN_ZOOM = 0.25;
-const MAX_ZOOM = 10;
-const LOAD_TIMEOUT_MS = 45_000;
-
-type FitMode = 'width' | 'page' | 'custom';
 
 export function PdfJsViewer({
   url,
@@ -34,27 +39,34 @@ export function PdfJsViewer({
   const scrollRef = useRef<HTMLDivElement>(null);
   const pageRefs = useRef<Map<number, HTMLDivElement>>(new Map());
   const loadTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pinchCommitRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pinchRef = useRef<{ distance: number; zoom: number } | null>(null);
+  const gestureScaleRef = useRef(1);
+  const timingsRef = useRef<PdfPreviewTimings>(createPdfPreviewTimings());
+  const [scrollRoot, setScrollRoot] = useState<HTMLElement | null>(null);
   const [numPages, setNumPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [containerWidth, setContainerWidth] = useState(640);
   const [containerHeight, setContainerHeight] = useState(480);
-  const [fitMode, setFitMode] = useState<FitMode>('width');
+  const [fitMode, setFitMode] = useState<PdfFitMode>('width');
   const [zoomFactor, setZoomFactor] = useState(1);
+  const [gestureScale, setGestureScale] = useState(1);
+  const [isPinching, setIsPinching] = useState(false);
   const [pageAspect, setPageAspect] = useState(1.414);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [deliveryChecked, setDeliveryChecked] = useState(false);
-  const pinchRef = useRef<{ distance: number; zoom: number } | null>(null);
+  const [devicePixelRatio, setDevicePixelRatio] = useState(1);
 
-  const clampZoom = (value: number) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, value));
-
-  const pageWidth = useMemo(() => {
-    if (fitMode === 'page') {
-      const fitByHeight = containerHeight * pageAspect;
-      const fitByWidth = containerWidth;
-      return Math.min(fitByWidth, fitByHeight) * zoomFactor;
-    }
-    return containerWidth * zoomFactor;
-  }, [containerHeight, containerWidth, fitMode, pageAspect, zoomFactor]);
+  const pageWidth = useMemo(
+    () =>
+      computePdfPageWidth({
+        fitMode,
+        containerWidth,
+        containerHeight,
+        pageAspect,
+        zoomFactor,
+      }),
+    [containerHeight, containerWidth, fitMode, pageAspect, zoomFactor],
+  );
 
   const clearLoadTimeout = useCallback(() => {
     if (loadTimeoutRef.current) {
@@ -71,6 +83,20 @@ export function PdfJsViewer({
     [clearLoadTimeout, t],
   );
 
+  const commitGestureZoom = useCallback(() => {
+    const scale = gestureScaleRef.current;
+    if (scale === 1) return;
+    setZoomFactor((current) => clampPdfZoom(current * scale));
+    setGestureScale(1);
+    gestureScaleRef.current = 1;
+    setFitMode('custom');
+  }, []);
+
+  useEffect(() => {
+    setScrollRoot(scrollRef.current);
+    setDevicePixelRatio(readDevicePixelRatio());
+  }, []);
+
   useEffect(() => {
     const node = scrollRef.current;
     if (!node) return;
@@ -85,59 +111,23 @@ export function PdfJsViewer({
   }, []);
 
   useEffect(() => {
+    timingsRef.current = createPdfPreviewTimings();
     setLoadError(null);
     setNumPages(0);
     setCurrentPage(1);
     setFitMode('width');
     setZoomFactor(1);
-    setDeliveryChecked(false);
+    setGestureScale(1);
+    setIsPinching(false);
     clearLoadTimeout();
-
-    let cancelled = false;
-
-    async function verifyDelivery() {
-      try {
-        const response = await fetch(url, {
-          method: 'GET',
-          credentials: 'include',
-          headers: { Range: 'bytes=0-4' },
-        });
-
-        if (cancelled) return;
-
-        if (!response.ok && response.status !== 206) {
-          failLoad(t('failed'));
-          return;
-        }
-
-        const contentType = response.headers.get('content-type') ?? '';
-        if (!contentType.toLowerCase().includes('pdf') && !contentType.includes('octet-stream')) {
-          failLoad(t('failed'));
-          return;
-        }
-
-        const bytes = new Uint8Array(await response.arrayBuffer());
-        const signature = String.fromCharCode(...bytes.slice(0, Math.min(5, bytes.length)));
-        if (!signature.startsWith('%PDF-')) {
-          failLoad(t('failed'));
-          return;
-        }
-
-        setDeliveryChecked(true);
-      } catch {
-        if (!cancelled) failLoad(t('failed'));
-      }
-    }
-
-    void verifyDelivery();
 
     loadTimeoutRef.current = setTimeout(() => {
       failLoad(t('failed'));
-    }, LOAD_TIMEOUT_MS);
+    }, PDF_LOAD_TIMEOUT_MS);
 
     return () => {
-      cancelled = true;
       clearLoadTimeout();
+      if (pinchCommitRef.current) clearTimeout(pinchCommitRef.current);
     };
   }, [url, reloadKey, clearLoadTimeout, failLoad, t]);
 
@@ -161,6 +151,55 @@ export function PdfJsViewer({
     return () => observer.disconnect();
   }, [numPages, pageWidth]);
 
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const onTouchStart = (event: TouchEvent) => {
+      if (event.touches.length !== 2) return;
+      const [a, b] = [event.touches[0]!, event.touches[1]!];
+      pinchRef.current = {
+        distance: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY),
+        zoom: gestureScale,
+      };
+      setIsPinching(true);
+      setFitMode('custom');
+      if (pinchCommitRef.current) clearTimeout(pinchCommitRef.current);
+    };
+
+    const onTouchMove = (event: TouchEvent) => {
+      if (event.touches.length !== 2 || !pinchRef.current) return;
+      event.preventDefault();
+      const [a, b] = [event.touches[0]!, event.touches[1]!];
+      const distance = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+      const next = Math.min(4, Math.max(0.25, (pinchRef.current.zoom * distance) / pinchRef.current.distance));
+      gestureScaleRef.current = next;
+      setGestureScale(next);
+    };
+
+    const onTouchEnd = () => {
+      if (!pinchRef.current) return;
+      pinchRef.current = null;
+      setIsPinching(false);
+      if (pinchCommitRef.current) clearTimeout(pinchCommitRef.current);
+      pinchCommitRef.current = setTimeout(() => {
+        commitGestureZoom();
+      }, PDF_PINCH_COMMIT_MS);
+    };
+
+    el.addEventListener('touchstart', onTouchStart, { passive: true });
+    el.addEventListener('touchmove', onTouchMove, { passive: false });
+    el.addEventListener('touchend', onTouchEnd, { passive: true });
+    el.addEventListener('touchcancel', onTouchEnd, { passive: true });
+
+    return () => {
+      el.removeEventListener('touchstart', onTouchStart);
+      el.removeEventListener('touchmove', onTouchMove);
+      el.removeEventListener('touchend', onTouchEnd);
+      el.removeEventListener('touchcancel', onTouchEnd);
+    };
+  }, [commitGestureZoom, gestureScale]);
+
   const scrollToPage = useCallback((page: number) => {
     const node = pageRefs.current.get(page);
     node?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -171,6 +210,7 @@ export function PdfJsViewer({
     clearLoadTimeout();
     setLoadError(null);
     setNumPages(total);
+    timingsRef.current.documentLoadedAt = performance.now();
   };
 
   const onDocumentLoadError = (error: Error) => {
@@ -178,32 +218,19 @@ export function PdfJsViewer({
     failLoad(t('failed'));
   };
 
-  const onPageLoadSuccess = (page: { width: number; height: number }) => {
-    if (page.height > 0) setPageAspect(page.width / page.height);
-  };
-
-  const onTouchStart = (event: React.TouchEvent) => {
-    if (event.touches.length === 2) {
-      const [a, b] = [event.touches[0]!, event.touches[1]!];
-      pinchRef.current = {
-        distance: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY),
-        zoom: zoomFactor,
-      };
-      setFitMode('custom');
+  const onFirstPageRendered = useCallback(() => {
+    const timings = timingsRef.current;
+    if (timings.firstPageRenderedAt) return;
+    timings.firstPageRenderedAt = performance.now();
+    if (process.env.NODE_ENV === 'development') {
+      console.info('[PdfJsViewer] timings (ms)', {
+        documentLoad: timings.documentLoadedAt
+          ? elapsedMs(timings.openedAt, timings.documentLoadedAt)
+          : null,
+        firstPageRender: elapsedMs(timings.openedAt, timings.firstPageRenderedAt),
+      });
     }
-  };
-
-  const onTouchMove = (event: React.TouchEvent) => {
-    if (event.touches.length !== 2 || !pinchRef.current) return;
-    event.preventDefault();
-    const [a, b] = [event.touches[0]!, event.touches[1]!];
-    const distance = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
-    setZoomFactor(clampZoom((pinchRef.current.zoom * distance) / pinchRef.current.distance));
-  };
-
-  const onTouchEnd = () => {
-    pinchRef.current = null;
-  };
+  }, []);
 
   const fileSource = useMemo(
     () => ({ url, withCredentials: true as const }),
@@ -211,6 +238,7 @@ export function PdfJsViewer({
   );
 
   const documentKey = `${url}:${reloadKey}`;
+  const visualScale = gestureScale;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -221,7 +249,8 @@ export function PdfJsViewer({
           variant="secondary"
           onClick={() => {
             setFitMode('custom');
-            setZoomFactor((z) => clampZoom(z - 0.25));
+            setGestureScale(1);
+            setZoomFactor((z) => clampPdfZoom(z - 0.25));
           }}
         >
           <Minus className="size-4" aria-hidden />
@@ -233,6 +262,7 @@ export function PdfJsViewer({
           variant="secondary"
           onClick={() => {
             setFitMode('width');
+            setGestureScale(1);
             setZoomFactor(1);
           }}
         >
@@ -245,7 +275,8 @@ export function PdfJsViewer({
           variant="secondary"
           onClick={() => {
             setFitMode('custom');
-            setZoomFactor((z) => clampZoom(z + 0.25));
+            setGestureScale(1);
+            setZoomFactor((z) => clampPdfZoom(z + 0.25));
           }}
         >
           <Plus className="size-4" aria-hidden />
@@ -257,6 +288,7 @@ export function PdfJsViewer({
           variant="secondary"
           onClick={() => {
             setFitMode('width');
+            setGestureScale(1);
             setZoomFactor(1);
           }}
         >
@@ -269,6 +301,7 @@ export function PdfJsViewer({
           variant="secondary"
           onClick={() => {
             setFitMode('page');
+            setGestureScale(1);
             setZoomFactor(1);
           }}
         >
@@ -307,11 +340,9 @@ export function PdfJsViewer({
       <div
         ref={scrollRef}
         className={cn(
-          'relative min-h-0 flex-1 touch-manipulation overflow-auto overscroll-contain bg-[var(--pf-surface-muted)]',
+          'relative min-h-0 flex-1 overflow-auto overscroll-contain bg-[var(--pf-surface-muted)]',
+          isPinching ? 'touch-none' : 'touch-pan-x touch-pan-y',
         )}
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
       >
         {loadError ? (
           <div className="flex h-full min-h-[40vh] flex-col items-center justify-center gap-3 p-4">
@@ -320,15 +351,7 @@ export function PdfJsViewer({
               {t('retry')}
             </Button>
           </div>
-        ) : null}
-
-        {!loadError && !deliveryChecked ? (
-          <div className="flex h-full min-h-[40vh] items-center justify-center">
-            <Spinner className="size-6" label={t('loading')} />
-          </div>
-        ) : null}
-
-        {!loadError && deliveryChecked ? (
+        ) : (
           <Document
             key={documentKey}
             file={fileSource}
@@ -350,36 +373,41 @@ export function PdfJsViewer({
             onLoadError={onDocumentLoadError}
             className="flex flex-col items-center gap-4 px-2 py-4"
           >
-            {Array.from({ length: numPages }, (_, index) => {
-              const pageNumber = index + 1;
-              return (
-                <div
-                  key={pageNumber}
-                  ref={(node) => {
-                    if (node) pageRefs.current.set(pageNumber, node);
-                    else pageRefs.current.delete(pageNumber);
-                  }}
-                  data-page={pageNumber}
-                  className="shadow-sm"
-                >
-                  <Page
-                    pageNumber={pageNumber}
-                    width={pageWidth}
-                    suspense={false}
-                    onLoadSuccess={pageNumber === 1 ? onPageLoadSuccess : undefined}
-                    renderTextLayer={false}
-                    renderAnnotationLayer={false}
-                    loading={
-                      <div className="flex h-48 w-full items-center justify-center">
-                        <Spinner className="size-5" label={t('loading')} />
-                      </div>
-                    }
-                  />
-                </div>
-              );
-            })}
+            <div
+              className="flex w-full flex-col items-center gap-4 origin-top"
+              style={
+                visualScale !== 1
+                  ? { transform: `scale(${visualScale})`, transformOrigin: 'top center' }
+                  : undefined
+              }
+            >
+              {Array.from({ length: numPages }, (_, index) => {
+                const pageNumber = index + 1;
+                return (
+                  <div
+                    key={`${pageNumber}:${Math.round(pageWidth)}:${devicePixelRatio}`}
+                    ref={(node) => {
+                      if (node) pageRefs.current.set(pageNumber, node);
+                      else pageRefs.current.delete(pageNumber);
+                    }}
+                  >
+                    <PdfLazyPage
+                      pageNumber={pageNumber}
+                      pageWidth={pageWidth}
+                      pageAspect={pageAspect}
+                      devicePixelRatio={devicePixelRatio}
+                      eager={pageNumber === 1}
+                      scrollRoot={scrollRoot}
+                      loadingLabel={t('loading')}
+                      onFirstPageMetrics={onFirstPageRendered}
+                      onPageAspect={setPageAspect}
+                    />
+                  </div>
+                );
+              })}
+            </div>
           </Document>
-        ) : null}
+        )}
       </div>
     </div>
   );

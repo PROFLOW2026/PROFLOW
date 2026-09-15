@@ -6,6 +6,7 @@ import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
 import { updateDocumentById } from '@/modules/documents';
+import { parseByteRangeHeader } from '../server/byte-range';
 import { PROJECT_SEMANTIC_FOLDERS } from '../domain/semantic-folders';
 import type { SemanticFolderType } from '@drizzle/schema/external-storage';
 import {
@@ -590,6 +591,50 @@ export async function listProjectStorageMoveTargets(
   return targets;
 }
 
+export async function streamProjectStorageFileDownload(
+  context: OrgContext,
+  input: { projectId: string; fileId: string; rangeHeader: string | null },
+): Promise<
+  | { unsatisfiable: true; sizeBytes: number | null }
+  | {
+      stream: ReadableStream<Uint8Array>;
+      filename: string;
+      mimeType: string;
+      sizeBytes: number | null;
+      httpStatus: number;
+      contentRange: string | null;
+      byteRange: { start: number; end: number } | null;
+    }
+> {
+  assertPermission(context, PERMISSIONS.DOCUMENTS_READ);
+  const runtime = await resolveProjectBrowserRuntime(context, input.projectId);
+  const meta = await assertFileScope(runtime, input.fileId);
+
+  let byteRange: { start: number; end: number } | null = null;
+  if (input.rangeHeader) {
+    const parsed = parseByteRangeHeader(input.rangeHeader, meta.sizeBytes ?? 0);
+    if (parsed === 'unsatisfiable') {
+      return { unsatisfiable: true, sizeBytes: meta.sizeBytes ?? null };
+    }
+    if (parsed) byteRange = parsed;
+  }
+
+  const downloaded = await runtime.adapter.downloadFileStream(runtime.accessToken, input.fileId, {
+    byteRange: byteRange ?? undefined,
+    knownMeta: meta,
+  });
+
+  return {
+    stream: downloaded.stream,
+    filename: meta.name,
+    mimeType: downloaded.mimeType,
+    sizeBytes: meta.sizeBytes ?? downloaded.sizeBytes ?? null,
+    httpStatus: downloaded.httpStatus ?? 200,
+    contentRange: downloaded.contentRange ?? null,
+    byteRange,
+  };
+}
+
 export async function getProjectStorageFileDownloadMeta(
   context: OrgContext,
   input: { projectId: string; fileId: string },
@@ -625,7 +670,10 @@ export async function getProjectStorageFileDownload(
   const downloaded = await runtime.adapter.downloadFileStream(
     runtime.accessToken,
     input.fileId,
-    input.byteRange ? { byteRange: input.byteRange } : undefined,
+    {
+      byteRange: input.byteRange ?? undefined,
+      knownMeta: meta,
+    },
   );
   return {
     stream: downloaded.stream,

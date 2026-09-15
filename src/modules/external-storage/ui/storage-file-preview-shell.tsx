@@ -44,7 +44,7 @@ export function StorageFilePreviewShell({
       aria-label={title}
       className={cn(
         'fixed z-[70] flex flex-col bg-[var(--pf-bg-elevated)] text-[var(--pf-text-primary)]',
-        'inset-0 h-dvh w-screen max-h-dvh touch-manipulation',
+        'inset-0 h-dvh w-screen max-h-dvh',
         'md:inset-auto md:left-1/2 md:top-1/2 md:h-[92vh] md:w-[92vw] md:max-h-[92vh] md:max-w-[92vw] md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-lg md:border md:border-[var(--pf-border-default)] md:shadow-[var(--pf-shadow-lg)]',
       )}
     >

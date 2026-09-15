@@ -34,6 +34,15 @@ const nextConfig: NextConfig = {
         source: '/manifest.webmanifest',
         headers: [{ key: 'Cache-Control', value: 'public, max-age=0, must-revalidate' }],
       },
+      {
+        source: '/pdf.worker.min.mjs',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
     ];
   },
 };

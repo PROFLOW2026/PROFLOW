@@ -1,13 +1,10 @@
 import {
-  getOrgStorageFileDownload,
-  getOrgStorageFileDownloadMeta,
-  getProjectStorageFileDownload,
-  getProjectStorageFileDownloadMeta,
+  streamOrgStorageFileDownload,
+  streamProjectStorageFileDownload,
 } from '@/modules/external-storage/server';
 import {
   buildContentDisposition,
   buildContentRange,
-  parseByteRangeHeader,
 } from '@/modules/external-storage/server/byte-range';
 import { requireSession, runInOrgContext } from '@/shared/auth/session';
 import { AppError } from '@/shared/errors';
@@ -27,6 +24,7 @@ export async function GET(request: Request) {
     const dispositionParam = url.searchParams.get('disposition');
     const disposition = dispositionParam === 'attachment' ? 'attachment' : 'inline';
     const projectId = url.searchParams.get('projectId');
+    const rangeHeader = request.headers.get('range');
 
     if (!fileId) {
       return Response.json({ error: 'missing_params' }, { status: 400 });
@@ -35,43 +33,20 @@ export async function GET(request: Request) {
       return Response.json({ error: 'missing_params' }, { status: 400 });
     }
 
-    const rangeHeader = request.headers.get('range');
-
     const payload = await runInOrgContext(
       session.user.id,
       session.activeOrganizationId,
-      async (orgContext) => {
-        const meta =
-          scope === 'org'
-            ? await getOrgStorageFileDownloadMeta(orgContext, { fileId })
-            : await getProjectStorageFileDownloadMeta(orgContext, {
-                projectId: projectId!,
-                fileId,
-              });
-
-        let byteRange: { start: number; end: number } | null = null;
-        if (rangeHeader) {
-          const parsed = parseByteRangeHeader(rangeHeader, meta.sizeBytes ?? 0);
-          if (parsed === 'unsatisfiable') {
-            return { unsatisfiable: true as const, sizeBytes: meta.sizeBytes };
-          }
-          if (parsed) byteRange = parsed;
-        }
-
-        const downloaded =
-          scope === 'org'
-            ? await getOrgStorageFileDownload(orgContext, { fileId, byteRange })
-            : await getProjectStorageFileDownload(orgContext, {
-                projectId: projectId!,
-                fileId,
-                byteRange,
-              });
-
-        return { ...downloaded, byteRange };
-      },
+      async (orgContext) =>
+        scope === 'org'
+          ? streamOrgStorageFileDownload(orgContext, { fileId, rangeHeader })
+          : streamProjectStorageFileDownload(orgContext, {
+              projectId: projectId!,
+              fileId,
+              rangeHeader,
+            }),
     );
 
-    if ('unsatisfiable' in payload && payload.unsatisfiable) {
+    if ('unsatisfiable' in payload) {
       const total = payload.sizeBytes ?? '*';
       return new Response(null, {
         status: 416,

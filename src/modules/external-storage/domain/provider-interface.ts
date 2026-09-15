@@ -63,7 +63,10 @@ export interface StorageProviderAdapter {
   downloadFileStream(
     accessToken: string,
     fileId: string,
-    options?: { byteRange?: { start: number; end: number } },
+    options?: {
+      byteRange?: { start: number; end: number };
+      knownMeta?: ProviderFileItem | null;
+    },
   ): Promise<{
     stream: ReadableStream<Uint8Array>;
     mimeType: string;
