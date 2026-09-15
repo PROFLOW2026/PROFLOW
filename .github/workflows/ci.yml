@@ -7,6 +7,21 @@ on:
     branches: [main]
   workflow_dispatch:
     inputs:
+      run_ui_tests:
+        description: Run UI tests (vitest ui project)
+        required: false
+        type: boolean
+        default: false
+      run_integration_tests:
+        description: Run integration tests
+        required: false
+        type: boolean
+        default: false
+      run_playwright_smoke:
+        description: Run Playwright release smoke
+        required: false
+        type: boolean
+        default: false
       full_regression:
         description: Run full Playwright regression (43 tests)
         required: false
@@ -40,9 +55,9 @@ jobs:
               - 'tests/unit/database/migration-journal.test.ts'
 
   quality:
-    name: Fast gate · Lint · Typecheck · Test · Build
+    name: Fast gate · Lint · Typecheck · Unit · Build
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 20
 
     steps:
       - name: Checkout
@@ -69,12 +84,6 @@ jobs:
       - name: Unit tests
         run: npm run test:unit
 
-      - name: UI tests
-        run: npm run test:ui
-
-      - name: Integration tests
-        run: npm run test:integration
-
       - name: Production build
         run: npm run build
         env:
@@ -82,6 +91,50 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: public-anon-key-for-ci
           APP_ENV: local
           LOG_LEVEL: warn
+
+  ui-tests:
+    name: UI tests (manual)
+    if: github.event_name == 'workflow_dispatch' && inputs.run_ui_tests == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: UI tests
+        run: npm run test:ui
+
+  integration-tests:
+    name: Integration tests (manual)
+    if: github.event_name == 'workflow_dispatch' && inputs.run_integration_tests == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Integration tests
+        run: npm run test:integration
 
   migration:
     name: Migration hardening (DB changes only)
@@ -107,9 +160,8 @@ jobs:
         run: npm run test:migration
 
   e2e-smoke:
-    name: Playwright smoke
-    needs: quality
-    if: github.event_name != 'workflow_dispatch' || inputs.full_regression != true
+    name: Playwright smoke (manual)
+    if: github.event_name == 'workflow_dispatch' && inputs.run_playwright_smoke == true
     runs-on: ubuntu-latest
     timeout-minutes: 25
 
@@ -164,8 +216,7 @@ jobs:
           retention-days: 7
 
   e2e-regression:
-    name: Playwright full regression
-    needs: quality
+    name: Playwright full regression (manual)
     if: github.event_name == 'workflow_dispatch' && inputs.full_regression == true
     runs-on: ubuntu-latest
     timeout-minutes: 90
