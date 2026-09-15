@@ -1,5 +1,6 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -16,9 +17,20 @@ import {
   buildStorageFileDownloadUrl,
   type StorageBrowserScope,
 } from '../client/storage-file-urls';
-import { PdfJsViewer } from './pdf-js-viewer';
 import { StorageFilePreviewShell } from './storage-file-preview-shell';
 import { ZoomablePreviewImage } from './zoomable-preview-image';
+
+const PdfJsViewer = dynamic(
+  () => import('./pdf-js-viewer').then((module) => module.PdfJsViewer),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex min-h-0 flex-1 items-center justify-center">
+        <Spinner className="size-6" />
+      </div>
+    ),
+  },
+);
 
 type PreviewTarget = {
   fileId: string;

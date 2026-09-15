@@ -88,6 +88,9 @@ export async function GET(request: Request) {
 
     if (payload.sizeBytes != null) {
       headers['Accept-Ranges'] = 'bytes';
+      if (!isPartial) {
+        headers['Content-Length'] = String(payload.sizeBytes);
+      }
     }
 
     if (isPartial && payload.byteRange && payload.sizeBytes != null) {

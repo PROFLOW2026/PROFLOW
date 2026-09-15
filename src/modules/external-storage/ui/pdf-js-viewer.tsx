@@ -3,17 +3,21 @@
 import { ChevronLeft, ChevronRight, Minus, Plus, RotateCcw, Scan, Square } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Document, Page } from 'react-pdf';
+import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { cn } from '@/shared/ui/cn';
-import './pdf-worker';
+import { PDFJS_WORKER_PUBLIC_PATH } from './pdf-viewer-config';
+
+/** Worker must be configured in this module (react-pdf requirement). */
+pdfjs.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_PUBLIC_PATH;
 
 const MIN_ZOOM = 0.25;
 const MAX_ZOOM = 10;
+const LOAD_TIMEOUT_MS = 45_000;
 
 type FitMode = 'width' | 'page' | 'custom';
 
@@ -29,6 +33,7 @@ export function PdfJsViewer({
   const t = useTranslations('externalStorage.preview');
   const scrollRef = useRef<HTMLDivElement>(null);
   const pageRefs = useRef<Map<number, HTMLDivElement>>(new Map());
+  const loadTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [numPages, setNumPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [containerWidth, setContainerWidth] = useState(640);
@@ -36,8 +41,8 @@ export function PdfJsViewer({
   const [fitMode, setFitMode] = useState<FitMode>('width');
   const [zoomFactor, setZoomFactor] = useState(1);
   const [pageAspect, setPageAspect] = useState(1.414);
-  const [loadError, setLoadError] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [deliveryChecked, setDeliveryChecked] = useState(false);
   const pinchRef = useRef<{ distance: number; zoom: number } | null>(null);
 
   const clampZoom = (value: number) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, value));
@@ -50,6 +55,21 @@ export function PdfJsViewer({
     }
     return containerWidth * zoomFactor;
   }, [containerHeight, containerWidth, fitMode, pageAspect, zoomFactor]);
+
+  const clearLoadTimeout = useCallback(() => {
+    if (loadTimeoutRef.current) {
+      clearTimeout(loadTimeoutRef.current);
+      loadTimeoutRef.current = null;
+    }
+  }, []);
+
+  const failLoad = useCallback(
+    (message?: string) => {
+      clearLoadTimeout();
+      setLoadError(message ?? t('failed'));
+    },
+    [clearLoadTimeout, t],
+  );
 
   useEffect(() => {
     const node = scrollRef.current;
@@ -65,13 +85,61 @@ export function PdfJsViewer({
   }, []);
 
   useEffect(() => {
-    setLoadError(false);
-    setLoading(true);
+    setLoadError(null);
     setNumPages(0);
     setCurrentPage(1);
     setFitMode('width');
     setZoomFactor(1);
-  }, [url, reloadKey]);
+    setDeliveryChecked(false);
+    clearLoadTimeout();
+
+    let cancelled = false;
+
+    async function verifyDelivery() {
+      try {
+        const response = await fetch(url, {
+          method: 'GET',
+          credentials: 'include',
+          headers: { Range: 'bytes=0-4' },
+        });
+
+        if (cancelled) return;
+
+        if (!response.ok && response.status !== 206) {
+          failLoad(t('failed'));
+          return;
+        }
+
+        const contentType = response.headers.get('content-type') ?? '';
+        if (!contentType.toLowerCase().includes('pdf') && !contentType.includes('octet-stream')) {
+          failLoad(t('failed'));
+          return;
+        }
+
+        const bytes = new Uint8Array(await response.arrayBuffer());
+        const signature = String.fromCharCode(...bytes.slice(0, Math.min(5, bytes.length)));
+        if (!signature.startsWith('%PDF-')) {
+          failLoad(t('failed'));
+          return;
+        }
+
+        setDeliveryChecked(true);
+      } catch {
+        if (!cancelled) failLoad(t('failed'));
+      }
+    }
+
+    void verifyDelivery();
+
+    loadTimeoutRef.current = setTimeout(() => {
+      failLoad(t('failed'));
+    }, LOAD_TIMEOUT_MS);
+
+    return () => {
+      cancelled = true;
+      clearLoadTimeout();
+    };
+  }, [url, reloadKey, clearLoadTimeout, failLoad, t]);
 
   useEffect(() => {
     const root = scrollRef.current;
@@ -100,14 +168,14 @@ export function PdfJsViewer({
   }, []);
 
   const onDocumentLoadSuccess = ({ numPages: total }: { numPages: number }) => {
+    clearLoadTimeout();
+    setLoadError(null);
     setNumPages(total);
-    setLoading(false);
-    setLoadError(false);
   };
 
-  const onDocumentLoadError = () => {
-    setLoading(false);
-    setLoadError(true);
+  const onDocumentLoadError = (error: Error) => {
+    console.error('[PdfJsViewer] document load failed', error);
+    failLoad(t('failed'));
   };
 
   const onPageLoadSuccess = (page: { width: number; height: number }) => {
@@ -141,6 +209,8 @@ export function PdfJsViewer({
     () => ({ url, withCredentials: true as const }),
     [url],
   );
+
+  const documentKey = `${url}:${reloadKey}`;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -243,28 +313,41 @@ export function PdfJsViewer({
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
       >
-        {loading ? (
-          <div className="flex h-full min-h-[40vh] items-center justify-center">
-            <Spinner className="size-6" label={t('loading')} />
-          </div>
-        ) : null}
-
         {loadError ? (
           <div className="flex h-full min-h-[40vh] flex-col items-center justify-center gap-3 p-4">
-            <Alert tone="danger">{t('failed')}</Alert>
+            <Alert tone="danger">{loadError}</Alert>
             <Button type="button" variant="secondary" onClick={onRetry}>
               {t('retry')}
             </Button>
           </div>
         ) : null}
 
-        {!loadError ? (
+        {!loadError && !deliveryChecked ? (
+          <div className="flex h-full min-h-[40vh] items-center justify-center">
+            <Spinner className="size-6" label={t('loading')} />
+          </div>
+        ) : null}
+
+        {!loadError && deliveryChecked ? (
           <Document
-            key={`${url}:${reloadKey}`}
+            key={documentKey}
             file={fileSource}
+            suspense={false}
+            loading={
+              <div className="flex h-full min-h-[40vh] items-center justify-center">
+                <Spinner className="size-6" label={t('loading')} />
+              </div>
+            }
+            error={
+              <div className="flex h-full min-h-[40vh] flex-col items-center justify-center gap-3 p-4">
+                <Alert tone="danger">{t('failed')}</Alert>
+                <Button type="button" variant="secondary" onClick={onRetry}>
+                  {t('retry')}
+                </Button>
+              </div>
+            }
             onLoadSuccess={onDocumentLoadSuccess}
             onLoadError={onDocumentLoadError}
-            loading=""
             className="flex flex-col items-center gap-4 px-2 py-4"
           >
             {Array.from({ length: numPages }, (_, index) => {
@@ -282,6 +365,7 @@ export function PdfJsViewer({
                   <Page
                     pageNumber={pageNumber}
                     width={pageWidth}
+                    suspense={false}
                     onLoadSuccess={pageNumber === 1 ? onPageLoadSuccess : undefined}
                     renderTextLayer={false}
                     renderAnnotationLayer={false}
