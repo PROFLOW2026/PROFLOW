@@ -15,17 +15,15 @@ describe('getStorageProviderCapabilities', () => {
   });
 
   it('marks range download support per provider', () => {
-    expect(getStorageProviderCapabilities('onedrive').supportsRangeDownload).toBe(true);
-    expect(getStorageProviderCapabilities('box').supportsRangeDownload).toBe(true);
-    expect(getStorageProviderCapabilities('google_drive').supportsRangeDownload).toBe(false);
-    expect(getStorageProviderCapabilities('dropbox').supportsRangeDownload).toBe(false);
+    for (const provider of PROVIDERS) {
+      expect(getStorageProviderCapabilities(provider).supportsRangeDownload).toBe(true);
+    }
   });
 
   it('marks provider web URL support per provider', () => {
-    expect(getStorageProviderCapabilities('onedrive').supportsProviderWebUrl).toBe(true);
-    expect(getStorageProviderCapabilities('google_drive').supportsProviderWebUrl).toBe(true);
-    expect(getStorageProviderCapabilities('box').supportsProviderWebUrl).toBe(true);
-    expect(getStorageProviderCapabilities('dropbox').supportsProviderWebUrl).toBe(false);
+    for (const provider of PROVIDERS) {
+      expect(getStorageProviderCapabilities(provider).supportsProviderWebUrl).toBe(true);
+    }
   });
 
   it('marks resumable upload support for OneDrive only', () => {

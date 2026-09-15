@@ -28,7 +28,7 @@ const CAPABILITIES: Record<StorageProviderKey, StorageProviderCapabilities> = {
     isGoogleNativeDoc: () => false,
   },
   google_drive: {
-    supportsRangeDownload: false,
+    supportsRangeDownload: true,
     supportsProviderWebUrl: true,
     supportsRefreshToken: true,
     supportsMoveFolder: true,
@@ -36,8 +36,8 @@ const CAPABILITIES: Record<StorageProviderKey, StorageProviderCapabilities> = {
     isGoogleNativeDoc: isGoogleNativeDocumentMime,
   },
   dropbox: {
-    supportsRangeDownload: false,
-    supportsProviderWebUrl: false,
+    supportsRangeDownload: true,
+    supportsProviderWebUrl: true,
     supportsRefreshToken: true,
     supportsMoveFolder: true,
     supportsResumableUpload: false,
