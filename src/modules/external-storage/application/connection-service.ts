@@ -31,6 +31,11 @@ import { getStorageProviderAdapter, isStorageProviderConfigured } from '../provi
 import { bootstrapOrganizationStorageTree } from './bootstrap';
 import { deleteFolderMappingsForConnection } from '../data/folder-mappings.repository';
 import { ensureOrganizationRootFolder } from './folder-provisioning';
+import {
+  formatGoogleDriveOAuthScope,
+  googleDriveGrantedFullScope,
+  resolveGoogleDriveOAuthAuthorizeOptions,
+} from '../providers/google-drive-oauth-url';
 import { resolveOneDriveOAuthAuthorizeOptions } from '../providers/onedrive-oauth-url';
 import { buildOAuthRedirectUri, createOAuthState, verifyOAuthState } from './oauth-state';
 
@@ -77,6 +82,19 @@ export async function beginStorageOAuth(
     );
   }
 
+  const priorConnection = await findStorageConnectionByProvider(
+    context.db,
+    context.organizationId,
+    provider,
+  );
+  const priorCreds = priorConnection
+    ? await loadStorageConnectionCredentials(
+        context.db,
+        context.organizationId,
+        priorConnection.id,
+      )
+    : null;
+
   const connection = await upsertStorageConnection(context.db, {
     organizationId: context.organizationId,
     provider,
@@ -92,12 +110,31 @@ export async function beginStorageOAuth(
 
   const adapter = getStorageProviderAdapter(provider);
   const onedriveOAuth = provider === 'onedrive' ? resolveOneDriveOAuthAuthorizeOptions() : null;
+  const googleOAuth =
+    provider === 'google_drive'
+      ? resolveGoogleDriveOAuthAuthorizeOptions({
+          connectionStatus: priorConnection?.status ?? 'disconnected',
+          priorScopes: priorCreds?.scopes?.length
+            ? priorCreds.scopes
+            : (priorConnection?.scopesJson ?? []),
+          priorRefreshTokenPresent: Boolean(priorCreds?.refreshToken),
+          lastError: priorConnection?.lastError ?? null,
+        })
+      : null;
+
+  if (provider === 'google_drive' && googleOAuth?.prompt === 'consent' && priorConnection) {
+    await deleteStorageConnectionCredentials(
+      context.db,
+      context.organizationId,
+      priorConnection.id,
+    );
+  }
 
   const authorizationUrl = adapter.buildAuthorizationUrl({
     redirectUri: buildOAuthRedirectUri(provider),
     state,
-    loginHint: onedriveOAuth?.loginHint ?? null,
-    prompt: onedriveOAuth?.prompt ?? null,
+    loginHint: onedriveOAuth?.loginHint ?? googleOAuth?.loginHint ?? null,
+    prompt: onedriveOAuth?.prompt ?? googleOAuth?.prompt ?? null,
   });
 
   return { authorizationUrl };
@@ -221,7 +258,40 @@ export async function completeStorageOAuth(input: {
     provider: input.provider,
     hasRefreshToken: Boolean(tokens.refreshToken),
     scopeCount: tokens.scopes.length,
+    grantedScopes: tokens.scopes,
   });
+
+  if (input.provider === 'google_drive') {
+    if (tokens.scopes.length > 0 && !googleDriveGrantedFullScope(tokens.scopes)) {
+      throw new DomainRuleError(
+        'Google OAuth did not grant full Drive scope',
+        'externalStorage.errors.reconnectRequired',
+      );
+    }
+    if (!adapter.getQuotaInfo) {
+      throw new DomainRuleError(
+        'Google Drive adapter missing quota probe',
+        'externalStorage.errors.reconnectRequired',
+      );
+    }
+    console.info('[org-storage/oauth/callback] step=google_drive_probe begin', {
+      provider: input.provider,
+    });
+    try {
+      await adapter.getQuotaInfo(tokens.accessToken);
+    } catch (error) {
+      const detail = sanitizeOAuthLogDetail(error);
+      throw new DomainRuleError(
+        detail.includes('ACCESS_TOKEN_SCOPE_INSUFFICIENT')
+          ? 'Google Drive scope insufficient — reconnect with consent'
+          : `Google Drive probe failed: ${detail}`,
+        'externalStorage.errors.reconnectRequired',
+      );
+    }
+    console.info('[org-storage/oauth/callback] step=google_drive_probe pass', {
+      provider: input.provider,
+    });
+  }
 
   console.info('[org-storage/oauth/callback] step=graph_me begin', {
     provider: input.provider,
@@ -266,7 +336,25 @@ export async function completeStorageOAuth(input: {
       connectionId: connection.id,
     });
     const priorCreds = await loadStorageConnectionCredentials(db, parsed.organizationId, connection.id);
-    const refreshToken = tokens.refreshToken ?? priorCreds?.refreshToken ?? null;
+    let refreshToken = tokens.refreshToken ?? null;
+    if (
+      !refreshToken &&
+      priorCreds?.refreshToken &&
+      input.provider === 'google_drive'
+    ) {
+      const priorScopes = priorCreds.scopes.length
+        ? priorCreds.scopes
+        : connection.scopesJson;
+      const grantedScopes = tokens.scopes.length ? tokens.scopes : priorScopes;
+      if (
+        googleDriveGrantedFullScope(priorScopes) &&
+        googleDriveGrantedFullScope(grantedScopes)
+      ) {
+        refreshToken = priorCreds.refreshToken;
+      }
+    } else if (!refreshToken && input.provider !== 'google_drive') {
+      refreshToken = priorCreds?.refreshToken ?? null;
+    }
     if (!refreshToken) {
       throw new DomainRuleError(
         'OAuth did not return a refresh token',
@@ -280,7 +368,12 @@ export async function completeStorageOAuth(input: {
         accessToken: tokens.accessToken,
         refreshToken,
         expiresAt: tokens.expiresAt?.toISOString() ?? null,
-        scopes: [...tokens.scopes],
+        scopes:
+          tokens.scopes.length > 0
+            ? [...tokens.scopes]
+            : input.provider === 'google_drive'
+              ? formatGoogleDriveOAuthScope().split(' ')
+              : [],
       },
       tokenExpiresAt: tokens.expiresAt,
     });
@@ -290,6 +383,12 @@ export async function completeStorageOAuth(input: {
 
     const existingPrimary = await getPrimaryStorageConnection(db, parsed.organizationId);
     const promoteToPrimary = shouldPromoteConnectedStorageToPrimary(existingPrimary);
+    const persistedScopes =
+      tokens.scopes.length > 0
+        ? [...tokens.scopes]
+        : input.provider === 'google_drive'
+          ? formatGoogleDriveOAuthScope().split(' ')
+          : [];
     const updated = await updateStorageConnection(db, parsed.organizationId, connection.id, {
       status: 'connected',
       isPrimary: promoteToPrimary,
@@ -297,7 +396,7 @@ export async function completeStorageOAuth(input: {
       externalAccountName: account.displayName,
       externalAccountEmail: account.email,
       externalTenantId: account.tenantId ?? null,
-      scopesJson: [...tokens.scopes],
+      scopesJson: persistedScopes,
       tokenExpiresAt: tokens.expiresAt,
       connectedByUserId: parsed.userId,
       connectedAt: new Date(),

@@ -10,6 +10,7 @@ import type {
   ProviderQuotaInfo,
 } from '../domain/types';
 import { ProviderHttpError, providerJson, toUint8Array } from './http-utils';
+import { formatGoogleDriveOAuthScope } from './google-drive-oauth-url';
 
 const DRIVE = 'https://www.googleapis.com/drive/v3';
 const UPLOAD = 'https://www.googleapis.com/upload/drive/v3';
@@ -79,15 +80,11 @@ export class GoogleDriveStorageProvider implements StorageProviderAdapter {
     prompt?: 'select_account' | 'login' | 'consent' | null;
   }): string {
     const clientId = readEnv('GOOGLE_STORAGE_CLIENT_ID');
-    const scopes = [
-      'https://www.googleapis.com/auth/drive',
-      'https://www.googleapis.com/auth/userinfo.email',
-    ].join(' ');
     const params = new URLSearchParams({
       client_id: clientId,
       redirect_uri: input.redirectUri,
       response_type: 'code',
-      scope: scopes,
+      scope: formatGoogleDriveOAuthScope(),
       state: input.state,
       access_type: 'offline',
       prompt: input.prompt ?? 'select_account',
