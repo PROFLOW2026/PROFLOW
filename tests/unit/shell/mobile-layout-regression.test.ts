@@ -25,11 +25,11 @@ describe('mobile layout regressions', () => {
     );
   });
 
-  it('does not clip main content to hide horizontal overflow', () => {
+  it('does not clip main content or sync visual viewport on scroll', () => {
     const shell = read('src/components/shell/app-shell.tsx');
     expect(shell).toMatch(/min-w-0/);
     expect(shell).not.toMatch(/overflow-x-clip/);
-    expect(shell).toContain('MobileShellViewportSync');
+    expect(shell).not.toContain('MobileShellViewportSync');
   });
 
   it('keeps skip link vertically off-screen so hidden 1px box does not widen RTL viewport', () => {
@@ -38,23 +38,23 @@ describe('mobile layout regressions', () => {
     expect(shell).toContain('skipToContent');
   });
 
-  it('portals mobile nav with visual viewport width and bottom tracking', () => {
+  it('uses stable fixed bottom nav without dynamic visual viewport geometry', () => {
     const nav = read('src/components/shell/mobile-nav.tsx');
     expect(nav).toContain('createPortal');
-    expect(nav).toContain('--pf-visual-viewport-width');
-    expect(nav).toContain('--pf-visual-viewport-offset-left');
-    expect(nav).toContain('--pf-visual-viewport-bottom-offset');
-    expect(nav).not.toMatch(/\bwidth:\s*['"]100%/);
-    expect(nav).not.toMatch(/\binset-x-0\b/);
+    expect(nav).toContain('inset-x-0');
+    expect(nav).toContain('bottom-0');
+    expect(nav).not.toContain('--pf-visual-viewport-width');
+    expect(nav).not.toContain('--pf-visual-viewport-bottom-offset');
+    expect(nav).not.toContain('mobileNavPositionStyle');
   });
 
-  it('portals mobile FAB with shared chrome bottom and viewport-bounded inline end', () => {
+  it('positions mobile FAB with stable bottom-nav clearance only', () => {
     const quickCreate = read('src/components/shell/quick-create.tsx');
     expect(quickCreate).toContain('QuickCreateFabPortal');
-    expect(quickCreate).toContain('--pf-mobile-chrome-bottom');
-    expect(quickCreate).toContain('--pf-visual-viewport-offset-left');
+    expect(quickCreate).toContain('--pf-bottomnav-total-height');
     expect(quickCreate).toContain('insetInlineEnd');
     expect(quickCreate).not.toMatch(/\b100vw\b/);
+    expect(quickCreate).not.toContain('--pf-visual-viewport');
   });
 
   it('avoids w-screen on the storage preview shell (100vw page overflow)', () => {
@@ -63,33 +63,21 @@ describe('mobile layout regressions', () => {
     expect(preview).toContain('lockBodyScroll');
   });
 
-  it('accounts for visual viewport geometry in mobile shell CSS vars', () => {
+  it('uses constant mobile content padding from bottom nav and FAB only', () => {
     const css = read('src/app/globals.css');
-    expect(css).toContain('--pf-visual-viewport-width');
-    expect(css).toContain('--pf-visual-viewport-offset-left');
-    expect(css).toContain('--pf-mobile-chrome-safety-inset');
-    expect(css).toContain('--pf-mobile-chrome-bottom');
+    expect(css).toContain('--pf-bottomnav-total-height');
+    expect(css).toContain('--pf-mobile-content-bottom');
+    expect(css).not.toContain('--pf-visual-viewport-width');
+    expect(css).not.toContain('--pf-visual-viewport-bottom-offset');
+    expect(css).not.toContain('--pf-mobile-chrome-safety-inset');
   });
 
-  it('constrains document width to visual viewport on mobile (Android layout vs visual gap)', () => {
-    const css = read('src/app/globals.css');
-    expect(css).toContain('width: var(--pf-visual-viewport-width, 100%)');
-    expect(css).toContain('margin-left: var(--pf-visual-viewport-offset-left, 0px)');
-  });
-
-  it('does not use layout-viewport inset-x-0 on mobile toast chrome', () => {
+  it('uses normal fixed toast containers without visual viewport width tracking', () => {
     const toast = read('src/components/ui/toast.tsx');
     const statusToast = read('src/components/ui/status-toast.tsx');
-    expect(toast).toContain('--pf-visual-viewport-width');
-    expect(toast).not.toMatch(/fixed inset-x-0/);
-    expect(statusToast).toContain('--pf-visual-viewport-width');
-    expect(statusToast).toMatch(/lg:inset-x-0/);
-  });
-
-  it('uses feedback sync for bottom HUD clipping correction', () => {
-    const chrome = read('src/shared/ui/visual-viewport-chrome.ts');
-    expect(chrome).toContain('syncVisualViewportChromeWithFeedback');
-    expect(chrome).toContain('measureNavVisualViewportOvershoot');
-    expect(chrome).toContain('MOBILE_CHROME_BOTTOM_SAFETY_PX');
+    expect(toast).toContain('inset-x-0');
+    expect(toast).not.toContain('--pf-visual-viewport');
+    expect(statusToast).toContain('inset-x-0');
+    expect(statusToast).not.toContain('--pf-visual-viewport');
   });
 });

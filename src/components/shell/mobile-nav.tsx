@@ -35,18 +35,11 @@ const MobileNavMore = dynamic(
   },
 );
 
-const mobileNavPositionStyle: React.CSSProperties = {
-  bottom: 'var(--pf-visual-viewport-bottom-offset, 0px)',
-  left: 'var(--pf-visual-viewport-offset-left, 0px)',
-  width: 'var(--pf-visual-viewport-width, 100%)',
-  maxWidth: 'var(--pf-visual-viewport-width, 100%)',
-};
-
 /**
  * Mobile bottom navigation (doc 62).
  *
- * Portaled to `document.body`. Width/left track visualViewport (RTL-safe);
- * bottom tracks visual viewport + measured safety inset.
+ * Fixed to the layout viewport bottom with safe-area padding only.
+ * Geometry does not change during scroll.
  */
 export function MobileNav({
   items,
@@ -80,10 +73,9 @@ export function MobileNav({
       aria-label={tCommon('a11y.mainNavigation')}
       data-pf-mobile-nav=""
       className={cn(
-        'fixed z-40 box-border flex min-w-0 flex-col border-t border-[var(--pf-border-default)]',
+        'fixed inset-x-0 bottom-0 z-40 box-border flex min-w-0 flex-col border-t border-[var(--pf-border-default)]',
         'bg-[var(--pf-bg-surface)] pb-[env(safe-area-inset-bottom,0px)] print:hidden lg:hidden',
       )}
-      style={mobileNavPositionStyle}
     >
       <ul className="flex h-[var(--pf-bottomnav-height)] w-full min-w-0 items-stretch">
         {primary.map((item) => {

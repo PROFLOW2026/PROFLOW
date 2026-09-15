@@ -43,9 +43,7 @@ export function StatusToast({ open, tone, message, onDismiss, className }: Statu
   return createPortal(
     <div
       className={cn(
-        'pointer-events-none fixed z-50 box-border flex justify-center px-4',
-        'left-[var(--pf-visual-viewport-offset-left,0px)] w-[var(--pf-visual-viewport-width,100%)] max-w-[var(--pf-visual-viewport-width,100%)]',
-        'bottom-[calc(var(--pf-bottomnav-height)+1rem+env(safe-area-inset-bottom,0px))] lg:bottom-6 lg:inset-x-0 lg:left-0 lg:w-auto lg:max-w-none',
+        'pointer-events-none fixed inset-x-0 bottom-[calc(var(--pf-bottomnav-total-height)+1rem)] z-50 flex justify-center px-4 lg:bottom-6',
         className,
       )}
       data-pf-status-toast=""

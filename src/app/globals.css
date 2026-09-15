@@ -145,19 +145,12 @@
     --pf-topbar-height: 3.5rem;
     --pf-bottomnav-height: 4rem;
     --pf-bottomnav-safe-area: env(safe-area-inset-bottom, 0px);
-    --pf-visual-viewport-bottom-offset: 0px;
-    --pf-visual-viewport-width: 100%;
-    --pf-visual-viewport-offset-left: 0px;
-    --pf-mobile-chrome-safety-inset: 0px;
     --pf-bottomnav-total-height: calc(var(--pf-bottomnav-height) + var(--pf-bottomnav-safe-area));
-    --pf-mobile-chrome-bottom: calc(
-      var(--pf-bottomnav-total-height) + var(--pf-visual-viewport-bottom-offset)
-    );
     /* Mobile FAB (size-14) sits above the bottom nav; content must clear both. */
     --pf-fab-size: 3.5rem;
     --pf-fab-gap: 1rem;
     --pf-mobile-content-bottom: calc(
-      var(--pf-mobile-chrome-bottom) + var(--pf-fab-gap) + var(--pf-fab-size) + 1rem
+      var(--pf-bottomnav-total-height) + var(--pf-fab-gap) + var(--pf-fab-size) + 1rem
     );
   }
 }
@@ -272,27 +265,6 @@
     line-height: 1.55;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
-  }
-
-  /*
-   * Android: layout viewport (innerWidth) is often wider than visualViewport.width.
-   * w-full descendants otherwise extend past the visible edge and allow sideways drag
-   * even when scrollWidth === clientWidth. Width tracks MobileShellViewportSync vars.
-   */
-  @media (max-width: 1023px) {
-    html {
-      width: var(--pf-visual-viewport-width, 100%);
-      max-width: var(--pf-visual-viewport-width, 100%);
-      min-width: 0;
-      /* offsetLeft is physical px from layout viewport left (not logical start). */
-      margin-left: var(--pf-visual-viewport-offset-left, 0px);
-    }
-
-    body,
-    [data-pf-shell='app'] {
-      min-width: 0;
-      max-width: 100%;
-    }
   }
 
   h1,

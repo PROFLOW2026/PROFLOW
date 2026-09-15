@@ -10,7 +10,6 @@ import { isExperiencePreviewEnvironment } from '@/modules/tenancy/domain/experie
 import { serverEnv } from '@/shared/env/server';
 import { ExperiencePreviewSwitcher } from './experience-preview-switcher';
 import { MobileNav } from './mobile-nav';
-import { MobileShellViewportSync } from './mobile-shell-viewport-sync';
 import { visibleNavItems } from './navigation';
 import { QuickCreateDeferred } from './quick-create-deferred';
 import { Sidebar } from './sidebar';
@@ -52,7 +51,6 @@ export async function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <OfflineSyncProvider organizationId={shell.organizationId} userId={shell.user.id}>
-      <MobileShellViewportSync />
       <div className="flex min-h-dvh min-w-0 w-full max-w-full" data-pf-shell="app">
         <Sidebar
           items={items}

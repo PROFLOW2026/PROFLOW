@@ -122,9 +122,11 @@ describe('MobileNav More interaction', () => {
     expect(nav.className).toContain('fixed');
     expect(nav.className).toContain('z-40');
     expect(nav.className).toContain('pb-[env(safe-area-inset-bottom,0px)]');
-    expect(nav.style.bottom).toBe('var(--pf-visual-viewport-bottom-offset, 0px)');
-    expect(nav.style.width).toBe('var(--pf-visual-viewport-width, 100%)');
-    expect(nav.style.left).toBe('var(--pf-visual-viewport-offset-left, 0px)');
+    expect(nav.className).toContain('inset-x-0');
+    expect(nav.className).toContain('bottom-0');
+    expect(nav.style.bottom).toBe('');
+    expect(nav.style.width).toBe('');
+    expect(nav.style.left).toBe('');
 
     const list = nav.querySelector('ul');
     expect(list?.className).toContain('h-[var(--pf-bottomnav-height)]');

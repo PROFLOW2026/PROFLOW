@@ -23,9 +23,8 @@ export interface QuickCreateAction {
 }
 
 const mobileFabPositionStyle: CSSProperties = {
-  bottom: 'calc(var(--pf-mobile-chrome-bottom) + var(--pf-fab-gap))',
-  insetInlineEnd:
-    'max(1rem, calc(var(--pf-visual-viewport-offset-left, 0px) + 1rem))',
+  bottom: 'calc(var(--pf-bottomnav-total-height) + var(--pf-fab-gap))',
+  insetInlineEnd: '1rem',
 };
 
 function QuickCreateFabPortal({ children }: { children: ReactNode }) {
