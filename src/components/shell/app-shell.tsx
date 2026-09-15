@@ -10,6 +10,7 @@ import { isExperiencePreviewEnvironment } from '@/modules/tenancy/domain/experie
 import { serverEnv } from '@/shared/env/server';
 import { ExperiencePreviewSwitcher } from './experience-preview-switcher';
 import { MobileNav } from './mobile-nav';
+import { MobileShellViewportSync } from './mobile-shell-viewport-sync';
 import { visibleNavItems } from './navigation';
 import { QuickCreateDeferred } from './quick-create-deferred';
 import { Sidebar } from './sidebar';
@@ -51,10 +52,8 @@ export async function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <OfflineSyncProvider organizationId={shell.organizationId} userId={shell.user.id}>
-      <div
-        className="flex min-h-dvh min-w-0 w-full max-w-full overflow-x-clip"
-        data-pf-shell="app"
-      >
+      <MobileShellViewportSync />
+      <div className="flex min-h-dvh min-w-0 w-full max-w-full" data-pf-shell="app">
         <Sidebar
           items={items}
           organizationName={shell.organization.name}
@@ -97,7 +96,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
 
           <main
             id="main"
-            className="min-w-0 w-full flex-1 px-4 pt-5 pb-[var(--pf-mobile-content-bottom)] sm:px-6 lg:pb-8"
+            className="min-w-0 w-full max-w-full flex-1 overflow-x-clip px-4 pt-5 pb-[var(--pf-mobile-content-bottom)] sm:px-6 lg:overflow-x-visible lg:pb-8"
           >
             <div className="mx-auto w-full min-w-0 max-w-6xl">
               <HiddenCapabilityNotice modules={shell.modules} />

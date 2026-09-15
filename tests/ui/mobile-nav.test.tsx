@@ -122,6 +122,7 @@ describe('MobileNav More interaction', () => {
     expect(nav.className).toContain('fixed');
     expect(nav.className).toContain('z-40');
     expect(nav.className).toContain('pb-[env(safe-area-inset-bottom,0px)]');
+    expect(nav.style.bottom).toBe('var(--pf-visual-viewport-bottom-offset, 0px)');
 
     const list = nav.querySelector('ul');
     expect(list?.className).toContain('h-[var(--pf-bottomnav-height)]');

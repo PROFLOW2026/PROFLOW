@@ -236,6 +236,7 @@ export {
   dashboardCardsForPersona,
 } from './domain/experience-dashboard';
 export type { ExperienceDashboardCard } from './domain/experience-dashboard';
+export { DASHBOARD_UNUSED_CAPABILITY_TIP_VISIBLE } from './domain/dashboard-ui-flags';
 export {
   todayCategoryForSource,
   PERSONA_TODAY_FOCUS,

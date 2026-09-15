@@ -4,6 +4,7 @@ import { MoreHorizontal } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useTranslations } from 'next-intl';
 import * as React from 'react';
+import { createPortal } from 'react-dom';
 import { Spinner } from '@/components/ui/spinner';
 import { pressableChromeClassName } from '@/components/ui/pressable';
 import { usePathname } from '@/shared/i18n/navigation';
@@ -37,8 +38,8 @@ const MobileNavMore = dynamic(
 /**
  * Mobile bottom navigation (doc 62).
  *
- * At most four destinations plus "More": a phone bar with nine icons is a
- * compressed desktop sidebar, which is exactly what V1 must not ship.
+ * Portaled to `document.body` so fixed positioning is not affected by shell
+ * overflow/containing blocks. Bottom offset tracks Visual Viewport via CSS var.
  */
 export function MobileNav({
   items,
@@ -51,8 +52,13 @@ export function MobileNav({
   const tCommon = useTranslations('common');
   const pathname = usePathname();
   const [moreOpen, setMoreOpen] = React.useState(false);
+  const [mounted, setMounted] = React.useState(false);
   /** Keep the lazy sheet mounted after first open so reopen is instant. */
   const [moreMounted, setMoreMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const primary = selectMobilePrimaryItems(items);
   const overflow = items.filter((item) => !primary.includes(item));
@@ -62,55 +68,68 @@ export function MobileNav({
     setMoreOpen(true);
   }
 
+  const navBar = (
+    <nav
+      aria-label={tCommon('a11y.mainNavigation')}
+      data-pf-mobile-nav=""
+      className={cn(
+        'fixed z-40 flex min-w-0 max-w-full flex-col border-t border-[var(--pf-border-default)]',
+        'bg-[var(--pf-bg-surface)] pb-[env(safe-area-inset-bottom,0px)] print:hidden lg:hidden',
+        'start-0 end-0',
+      )}
+      style={{
+        bottom: 'var(--pf-visual-viewport-bottom-offset, 0px)',
+        width: '100%',
+        maxWidth: '100%',
+      }}
+    >
+      <ul className="flex h-[var(--pf-bottomnav-height)] w-full min-w-0 max-w-full items-stretch">
+        {primary.map((item) => {
+          const active = isNavItemActive(pathname, item.href);
+
+          return (
+            <li key={item.key} className="min-w-0 flex-1">
+              <ShellNavLink
+                href={item.href}
+                label={t(item.labelKey)}
+                iconKey={item.iconKey}
+                active={active}
+                variant="mobile"
+              />
+            </li>
+          );
+        })}
+
+        {overflow.length > 0 ? (
+          <li className="min-w-0 flex-1">
+            <button
+              type="button"
+              onClick={openMore}
+              aria-expanded={moreOpen}
+              aria-haspopup="dialog"
+              aria-controls="pf-mobile-nav-more"
+              data-pf-mobile-nav-more=""
+              className={cn(
+                pressableChromeClassName,
+                'flex h-[var(--pf-bottomnav-height)] w-full min-w-0 flex-col items-center justify-center gap-1 px-1 text-[0.6875rem] font-medium',
+                'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
+                moreOpen
+                  ? 'text-[var(--pf-text-brand)]'
+                  : 'text-[var(--pf-text-secondary)] active:bg-[var(--pf-action-subtle-active)] active:text-[var(--pf-text-primary)]',
+              )}
+            >
+              <MoreHorizontal className="size-5 shrink-0" aria-hidden />
+              <span className="max-w-full truncate">{t('more')}</span>
+            </button>
+          </li>
+        ) : null}
+      </ul>
+    </nav>
+  );
+
   return (
     <>
-      <nav
-        aria-label={tCommon('a11y.mainNavigation')}
-        data-pf-mobile-nav=""
-        className="fixed inset-x-0 bottom-0 z-40 flex w-full min-w-0 max-w-full flex-col border-t border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] pb-[env(safe-area-inset-bottom,0px)] print:hidden lg:hidden"
-      >
-        <ul className="flex h-[var(--pf-bottomnav-height)] w-full min-w-0 max-w-full items-stretch">
-          {primary.map((item) => {
-            const active = isNavItemActive(pathname, item.href);
-
-            return (
-              <li key={item.key} className="min-w-0 flex-1">
-                <ShellNavLink
-                  href={item.href}
-                  label={t(item.labelKey)}
-                  iconKey={item.iconKey}
-                  active={active}
-                  variant="mobile"
-                />
-              </li>
-            );
-          })}
-
-          {overflow.length > 0 ? (
-            <li className="min-w-0 flex-1">
-              <button
-                type="button"
-                onClick={openMore}
-                aria-expanded={moreOpen}
-                aria-haspopup="dialog"
-                aria-controls="pf-mobile-nav-more"
-                data-pf-mobile-nav-more=""
-                className={cn(
-                  pressableChromeClassName,
-                  'flex h-[var(--pf-bottomnav-height)] w-full min-w-0 flex-col items-center justify-center gap-1 px-1 text-[0.6875rem] font-medium',
-                  'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
-                  moreOpen
-                    ? 'text-[var(--pf-text-brand)]'
-                    : 'text-[var(--pf-text-secondary)] active:bg-[var(--pf-action-subtle-active)] active:text-[var(--pf-text-primary)]',
-                )}
-              >
-                <MoreHorizontal className="size-5 shrink-0" aria-hidden />
-                <span className="max-w-full truncate">{t('more')}</span>
-              </button>
-            </li>
-          ) : null}
-        </ul>
-      </nav>
+      {mounted && typeof document !== 'undefined' ? createPortal(navBar, document.body) : null}
 
       {moreMounted ? (
         <MobileNavMore

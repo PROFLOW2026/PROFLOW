@@ -11,6 +11,7 @@ import { WorkKindFilterChrome } from '@/modules/financials/ui/work-kind-filter-c
 import { DashboardQuickAccessBar } from '@/modules/external-storage/ui/dashboard-quick-access-bar';
 import { PwaInstallCta } from '@/modules/offline/ui/pwa-install-cta';
 import {
+  DASHBOARD_UNUSED_CAPABILITY_TIP_VISIBLE,
   getUnusedCapabilityDismissals,
   isOptionalModuleKey,
   suggestUnusedCapabilities,
@@ -155,6 +156,8 @@ async function AuthenticatedDashboardHome({
 }
 
 async function DashboardCapabilityTip() {
+  if (!DASHBOARD_UNUSED_CAPABILITY_TIP_VISIBLE) return null;
+
   const tip = await withOrgContext(async (context) => {
     if (!context.permissions.has(PERMISSIONS.SETTINGS_MANAGE)) {
       return null as OptionalModuleKey | null;
