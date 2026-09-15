@@ -6,6 +6,7 @@ import {
   formatOneDriveOAuthScope,
   looksLikeMicrosoftClientSecretId,
   ONEDRIVE_OAUTH_SCOPES,
+  resolveOneDriveOAuthAuthorizeOptions,
 } from '@/modules/external-storage/providers/onedrive-oauth-url';
 
 describe('OneDrive OAuth URL', () => {
@@ -31,6 +32,25 @@ describe('OneDrive OAuth URL', () => {
     expect(parsed.searchParams.get('state')).toBe('state-token');
     expect(parsed.searchParams.get('scope')).toBe(ONEDRIVE_OAUTH_SCOPES.join(' '));
     expect(parsed.searchParams.get('login_hint')).toBeNull();
+  });
+
+  it('resolveOneDriveOAuthAuthorizeOptions uses select_account without login_hint', () => {
+    expect(resolveOneDriveOAuthAuthorizeOptions()).toEqual({
+      prompt: 'select_account',
+      loginHint: null,
+    });
+    const url = buildOneDriveAuthorizationUrl({
+      tenant: 'common',
+      clientId: 'client-id-test',
+      redirectUri: 'http://localhost:3100/api/org-storage/oauth/onedrive/callback',
+      state: 'state-token',
+      ...resolveOneDriveOAuthAuthorizeOptions(),
+    });
+    const parsed = new URL(url);
+    expect(parsed.searchParams.get('prompt')).toBe('select_account');
+    expect(parsed.searchParams.get('login_hint')).toBeNull();
+    expect(parsed.searchParams.get('client_id')).toBe('client-id-test');
+    expect(url).not.toMatch(/%0[aAdD]/);
   });
 
   it('includes login_hint when provided', () => {

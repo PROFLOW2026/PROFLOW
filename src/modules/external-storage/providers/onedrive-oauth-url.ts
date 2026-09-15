@@ -27,6 +27,14 @@ export function formatOneDriveOAuthScope(): string {
   return ONEDRIVE_OAUTH_SCOPES.join(' ');
 }
 
+/** Connect/reconnect: account picker, no login_hint, no forced consent. */
+export function resolveOneDriveOAuthAuthorizeOptions(): {
+  readonly prompt: 'select_account';
+  readonly loginHint: null;
+} {
+  return { prompt: 'select_account', loginHint: null };
+}
+
 export function buildOneDriveAuthorizationUrl(input: {
   tenant: string;
   clientId: string;

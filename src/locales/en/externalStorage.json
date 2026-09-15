@@ -30,7 +30,6 @@
     "unknown": "Quota information unavailable from this provider"
   },
   "primaryRequiredNotice": "This provider is connected but not set as primary. Set it as primary to enable file uploads.",
-  "disconnectWarning": "Disconnecting temporarily removes file access in ProjectFlow. Cloud files are not deleted.",
   "oauthSuccess": "Storage connected successfully.",
   "oauthFailed": "Connection failed. Try again.",
   "errors": {

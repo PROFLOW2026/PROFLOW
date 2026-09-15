@@ -169,3 +169,22 @@ export async function listFolderMappingsForConnection(
     );
   return rows.map(mapRow);
 }
+
+export async function deleteFolderMappingsForConnection(
+  db: DbExecutor,
+  organizationId: string,
+  connectionId: string,
+): Promise<number> {
+  return asServiceRoleWrite(db, async () => {
+    const deleted = await db
+      .delete(storageFolderMappings)
+      .where(
+        and(
+          eq(storageFolderMappings.organizationId, organizationId),
+          eq(storageFolderMappings.connectionId, connectionId),
+        ),
+      )
+      .returning({ id: storageFolderMappings.id });
+    return deleted.length;
+  });
+}

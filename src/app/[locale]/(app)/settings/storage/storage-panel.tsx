@@ -174,9 +174,6 @@ export function StorageSettingsPanel({
                       </Button>
                     ) : null}
                   </div>
-                  {connection && canManageConnection(status) ? (
-                    <Alert tone="warning">{t('disconnectWarning')}</Alert>
-                  ) : null}
                 </CardContent>
               </Card>
             </li>

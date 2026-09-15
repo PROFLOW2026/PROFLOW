@@ -1,7 +1,5 @@
 import 'server-only';
 
-import { eq } from 'drizzle-orm';
-import { profiles } from '@drizzle/schema';
 import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
 import { DomainRuleError, ServiceUnavailableError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
@@ -31,7 +29,9 @@ import { ensureUsablePrimaryStorageConnection } from './reconcile-primary-storag
 import { ProviderHttpError } from '../providers/http-utils';
 import { getStorageProviderAdapter, isStorageProviderConfigured } from '../providers/registry';
 import { bootstrapOrganizationStorageTree } from './bootstrap';
+import { deleteFolderMappingsForConnection } from '../data/folder-mappings.repository';
 import { ensureOrganizationRootFolder } from './folder-provisioning';
+import { resolveOneDriveOAuthAuthorizeOptions } from '../providers/onedrive-oauth-url';
 import { buildOAuthRedirectUri, createOAuthState, verifyOAuthState } from './oauth-state';
 
 export async function listOrganizationStorageConnections(
@@ -77,8 +77,6 @@ export async function beginStorageOAuth(
     );
   }
 
-  const existing = await findStorageConnectionByProvider(context.db, context.organizationId, provider);
-
   const connection = await upsertStorageConnection(context.db, {
     organizationId: context.organizationId,
     provider,
@@ -92,35 +90,14 @@ export async function beginStorageOAuth(
     provider,
   });
 
-  const [profile] = await context.db
-    .select({ email: profiles.email })
-    .from(profiles)
-    .where(eq(profiles.id, context.userId))
-    .limit(1);
-
   const adapter = getStorageProviderAdapter(provider);
-  const ownerEmail = profile?.email ?? null;
-  const priorEmail = existing?.externalAccountEmail?.trim().toLowerCase() ?? null;
-  const ownerEmailLower = ownerEmail?.trim().toLowerCase() ?? null;
-  const needsAccountSelection =
-    Boolean(priorEmail && ownerEmailLower && priorEmail !== ownerEmailLower) ||
-    existing?.status === 'error';
-  const needsConsentForRefreshToken =
-    existing?.status === 'disconnected' ||
-    existing?.status === 'reconnect_required' ||
-    existing?.status === 'connected' ||
-    existing?.status === 'connecting';
-
-  let oauthPrompt: 'select_account' | 'consent' | null = null;
-  if (provider === 'onedrive') {
-    oauthPrompt = needsAccountSelection ? 'select_account' : needsConsentForRefreshToken ? 'consent' : null;
-  }
+  const onedriveOAuth = provider === 'onedrive' ? resolveOneDriveOAuthAuthorizeOptions() : null;
 
   const authorizationUrl = adapter.buildAuthorizationUrl({
     redirectUri: buildOAuthRedirectUri(provider),
     state,
-    loginHint: ownerEmail,
-    prompt: oauthPrompt,
+    loginHint: onedriveOAuth?.loginHint ?? null,
+    prompt: onedriveOAuth?.prompt ?? null,
   });
 
   return { authorizationUrl };
@@ -165,35 +142,55 @@ export async function provisionConnectedStorage(input: {
   userId: string;
   organizationId: string;
   connectionId: string;
+  /** Same Microsoft account as before disconnect — reuse folder mappings, skip full bootstrap. */
+  reconnectSameAccount?: boolean;
+  /** Different Microsoft account — drop stale external folder IDs before provisioning. */
+  accountChanged?: boolean;
 }): Promise<void> {
   const { withUserContext } = await import('@/shared/db/client');
   await withUserContext(input.userId, async (db) => {
     const connection = await findStorageConnectionById(db, input.organizationId, input.connectionId);
     if (!connection || connection.status !== 'connected') return;
 
+    if (input.accountChanged) {
+      await deleteFolderMappingsForConnection(db, input.organizationId, connection.id);
+      await updateStorageConnection(db, input.organizationId, connection.id, {
+        rootFolderExternalId: null,
+      });
+    }
+
     const accessToken = await resolveValidAccessToken(db, input.organizationId, connection);
     console.info('[org-storage/oauth/provision] step=root_folder begin', {
       connectionId: input.connectionId,
+      reconnectSameAccount: Boolean(input.reconnectSameAccount),
     });
     await ensureOrganizationRootFolder(db, input.organizationId, connection, accessToken);
     console.info('[org-storage/oauth/provision] step=root_folder pass', {
       connectionId: input.connectionId,
     });
 
-    console.info('[org-storage/oauth/provision] step=bootstrap begin', {
-      connectionId: input.connectionId,
-    });
-    const bootstrapped = await bootstrapOrganizationStorageTree(
-      db,
-      input.organizationId,
-      connection.id,
-      accessToken,
-    );
-    console.info('[org-storage/oauth/provision] step=bootstrap pass', {
-      connectionId: input.connectionId,
-      clients: bootstrapped.clients,
-      projects: bootstrapped.projects,
-    });
+    if (!input.reconnectSameAccount || input.accountChanged) {
+      console.info('[org-storage/oauth/provision] step=bootstrap begin', {
+        connectionId: input.connectionId,
+      });
+      const bootstrapped = await bootstrapOrganizationStorageTree(
+        db,
+        input.organizationId,
+        connection.id,
+        accessToken,
+      );
+      console.info('[org-storage/oauth/provision] step=bootstrap pass', {
+        connectionId: input.connectionId,
+        clients: bootstrapped.clients,
+        projects: bootstrapped.projects,
+      });
+    } else {
+      console.info('[org-storage/oauth/provision] step=bootstrap skipped', {
+        connectionId: input.connectionId,
+        reason: 'same_account_reconnect',
+      });
+    }
+
     await updateStorageConnection(db, input.organizationId, connection.id, {
       lastError: null,
     });
@@ -257,11 +254,13 @@ export async function completeStorageOAuth(input: {
   }
 
   const { withUserContext } = await import('@/shared/db/client');
+  let priorExternalAccountId: string | null = null;
   const connected = await withUserContext(parsed.userId, async (db) => {
     const connection = await findStorageConnectionByProvider(db, parsed.organizationId, input.provider);
     if (!connection || connection.id !== parsed.connectionId) {
       throw new DomainRuleError('Connection not found', 'externalStorage.errors.connectionNotFound');
     }
+    priorExternalAccountId = connection.externalAccountId;
 
     console.info('[org-storage/oauth/callback] step=credential_persist begin', {
       connectionId: connection.id,
@@ -323,11 +322,20 @@ export async function completeStorageOAuth(input: {
     return { organizationId: parsed.organizationId, connectionId: connection.id };
   });
 
+  const accountChanged = Boolean(
+    priorExternalAccountId && priorExternalAccountId !== account.accountId,
+  );
+  const reconnectSameAccount = Boolean(
+    priorExternalAccountId && priorExternalAccountId === account.accountId,
+  );
+
   try {
     await provisionConnectedStorage({
       userId: parsed.userId,
       organizationId: connected.organizationId,
       connectionId: connected.connectionId,
+      reconnectSameAccount,
+      accountChanged,
     });
   } catch (error) {
     const detail = sanitizeOAuthLogDetail(error);
