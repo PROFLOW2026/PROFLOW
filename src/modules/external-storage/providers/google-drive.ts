@@ -16,10 +16,10 @@ const DRIVE = 'https://www.googleapis.com/drive/v3';
 const UPLOAD = 'https://www.googleapis.com/upload/drive/v3';
 
 const LIST_FIELDS =
-  'nextPageToken,files(id,name,parents,mimeType,size,modifiedTime,webViewLink,md5Checksum,etag)';
+  'nextPageToken,files(id,name,parents,mimeType,size,modifiedTime,webViewLink,md5Checksum)';
 const ITEM_FIELDS = 'id,name,parents,mimeType,webViewLink';
 const FILE_FIELDS =
-  'id,name,parents,mimeType,size,modifiedTime,webViewLink,md5Checksum,etag';
+  'id,name,parents,mimeType,size,modifiedTime,webViewLink,md5Checksum';
 
 function readEnv(name: string): string {
   const value = process.env[name]?.trim();
@@ -62,11 +62,7 @@ function mapFile(item: Record<string, unknown>): ProviderFileItem | ProviderFold
     mimeType: mime,
     sizeBytes: isGoogleNativeDoc(mime) ? null : item.size ? Number(item.size) : null,
     modifiedAt: modified,
-    etag: item.md5Checksum
-      ? String(item.md5Checksum)
-      : item.etag
-        ? String(item.etag)
-        : null,
+    etag: item.md5Checksum ? String(item.md5Checksum) : null,
   } as ProviderFileItem;
 }
 

@@ -181,6 +181,7 @@ describe('GoogleDriveStorageProvider', () => {
         vi.fn(async (url: string) => {
           const parsed = new URL(url);
           expect(parsed.searchParams.get('pageSize')).toBe('200');
+          expect(parsed.searchParams.get('fields')).not.toMatch(/etag/);
           const pageToken = parsed.searchParams.get('pageToken');
           if (!pageToken) {
             return jsonResponse({
