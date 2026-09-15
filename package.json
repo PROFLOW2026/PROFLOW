@@ -9,9 +9,8 @@
   "scripts": {
     "copy-pdf-worker": "node scripts/copy-pdf-worker.mjs",
     "predev": "npm run copy-pdf-worker",
-    "prebuild": "npm run copy-pdf-worker",
     "dev": "next dev",
-    "build": "next build",
+    "build": "node scripts/copy-pdf-worker.mjs && next build",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
