@@ -2,7 +2,7 @@
 
 import { Plus } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { Suspense, useEffect, useState, type ReactNode } from 'react';
+import { Suspense, useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import {
   DropdownMenu,
@@ -21,6 +21,12 @@ export interface QuickCreateAction {
   href: string;
   labelKey: string;
 }
+
+const mobileFabPositionStyle: CSSProperties = {
+  bottom: 'calc(var(--pf-mobile-chrome-bottom) + var(--pf-fab-gap))',
+  insetInlineEnd:
+    'max(1rem, calc(var(--pf-visual-viewport-offset-left, 0px) + 1rem))',
+};
 
 function QuickCreateFabPortal({ children }: { children: ReactNode }) {
   const [mounted, setMounted] = useState(false);
@@ -48,20 +54,19 @@ function QuickCreateMenu({ actions }: { actions: QuickCreateAction[] }) {
       data-pf-quick-create={demoteFab ? 'toolbar' : 'fab'}
       className={cn(
         pressableChromeClassName,
-        'z-30 flex items-center justify-center gap-2 rounded-full font-medium',
+        'z-30 flex shrink-0 items-center justify-center gap-2 rounded-full font-medium',
         'bg-[var(--pf-action-primary)] text-[var(--pf-action-primary-fg)]',
         'active:bg-[var(--pf-action-primary-active)]',
         'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
         demoteFab
           ? 'static size-auto h-11 min-h-11 shrink-0 rounded-md px-3 text-[0.8125rem] shadow-none hover:bg-[var(--pf-action-primary-hover)]'
           : cn(
-              'fixed max-w-[calc(100%-2rem)] shadow-[var(--pf-shadow-lg)]',
-              'bottom-[calc(var(--pf-bottomnav-total-height)+var(--pf-fab-gap)+env(safe-area-inset-bottom,0px)+var(--pf-visual-viewport-bottom-offset,0px))]',
-              'end-4 size-[var(--pf-fab-size)]',
+              'fixed size-[var(--pf-fab-size)] max-w-[var(--pf-fab-size)] shadow-[var(--pf-shadow-lg)]',
               'lg:static lg:bottom-auto lg:end-auto lg:size-auto lg:h-11 lg:min-h-11 lg:max-w-none lg:rounded-md lg:px-3 lg:text-[0.8125rem] lg:shadow-none',
               'lg:hover:bg-[var(--pf-action-primary-hover)]',
             ),
       )}
+      style={demoteFab ? undefined : mobileFabPositionStyle}
     >
       <Plus className={cn(demoteFab ? 'size-4' : 'size-6 lg:size-4')} aria-hidden />
       <span className={cn(demoteFab ? 'inline' : 'hidden lg:inline')}>{t('trigger')}</span>

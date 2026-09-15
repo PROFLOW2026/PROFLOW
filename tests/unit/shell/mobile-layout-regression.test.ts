@@ -25,28 +25,36 @@ describe('mobile layout regressions', () => {
     );
   });
 
-  it('clips horizontal overflow on main content, not the shell root (fixed chrome safe)', () => {
+  it('does not clip main content to hide horizontal overflow', () => {
     const shell = read('src/components/shell/app-shell.tsx');
     expect(shell).toMatch(/min-w-0/);
-    expect(shell).toMatch(/id="main"[\s\S]*overflow-x-clip/);
-    const shellRoot = shell.match(/<div className="([^"]*)" data-pf-shell="app"/)?.[1] ?? '';
-    expect(shellRoot).not.toContain('overflow-x-clip');
+    expect(shell).not.toMatch(/overflow-x-clip/);
     expect(shell).toContain('MobileShellViewportSync');
   });
 
-  it('portals mobile nav and tracks visual viewport bottom offset', () => {
+  it('keeps skip link vertically off-screen so hidden 1px box does not widen RTL viewport', () => {
+    const shell = read('src/components/shell/app-shell.tsx');
+    expect(shell).toContain('-top-[100vh]');
+    expect(shell).toContain('skipToContent');
+  });
+
+  it('portals mobile nav with visual viewport width and bottom tracking', () => {
     const nav = read('src/components/shell/mobile-nav.tsx');
     expect(nav).toContain('createPortal');
+    expect(nav).toContain('--pf-visual-viewport-width');
+    expect(nav).toContain('--pf-visual-viewport-offset-left');
     expect(nav).toContain('--pf-visual-viewport-bottom-offset');
-    expect(nav).toMatch(/z-40/);
+    expect(nav).not.toMatch(/\bwidth:\s*['"]100%/);
     expect(nav).not.toMatch(/\binset-x-0\b/);
   });
 
-  it('portals mobile FAB and includes visual viewport offset in bottom calc', () => {
+  it('portals mobile FAB with shared chrome bottom and viewport-bounded inline end', () => {
     const quickCreate = read('src/components/shell/quick-create.tsx');
     expect(quickCreate).toContain('QuickCreateFabPortal');
-    expect(quickCreate).toContain('--pf-visual-viewport-bottom-offset');
-    expect(quickCreate).toContain('max-w-[calc(100%-2rem)]');
+    expect(quickCreate).toContain('--pf-mobile-chrome-bottom');
+    expect(quickCreate).toContain('--pf-visual-viewport-offset-left');
+    expect(quickCreate).toContain('insetInlineEnd');
+    expect(quickCreate).not.toMatch(/\b100vw\b/);
   });
 
   it('avoids w-screen on the storage preview shell (100vw page overflow)', () => {
@@ -55,10 +63,18 @@ describe('mobile layout regressions', () => {
     expect(preview).toContain('lockBodyScroll');
   });
 
-  it('accounts for safe area and visual viewport in mobile main content bottom padding', () => {
+  it('accounts for visual viewport geometry in mobile shell CSS vars', () => {
     const css = read('src/app/globals.css');
-    expect(css).toContain('--pf-bottomnav-total-height');
-    expect(css).toContain('--pf-visual-viewport-bottom-offset');
+    expect(css).toContain('--pf-visual-viewport-width');
+    expect(css).toContain('--pf-visual-viewport-offset-left');
+    expect(css).toContain('--pf-mobile-chrome-safety-inset');
     expect(css).toContain('--pf-mobile-chrome-bottom');
+  });
+
+  it('uses feedback sync for bottom HUD clipping correction', () => {
+    const chrome = read('src/shared/ui/visual-viewport-chrome.ts');
+    expect(chrome).toContain('syncVisualViewportChromeWithFeedback');
+    expect(chrome).toContain('measureNavVisualViewportOvershoot');
+    expect(chrome).toContain('MOBILE_CHROME_BOTTOM_SAFETY_PX');
   });
 });

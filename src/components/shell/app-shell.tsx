@@ -64,7 +64,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
         <div className="relative flex min-w-0 max-w-full flex-1 flex-col">
           <a
             href="#main"
-            className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:start-2 focus:z-100 focus:rounded-md focus:bg-[var(--pf-bg-surface)] focus:px-3 focus:py-2 focus:text-sm focus:outline-2 focus:outline-offset-2 focus:outline-[var(--pf-focus-ring)] focus:shadow-[var(--pf-shadow-md)]"
+            className="absolute start-2 -top-[100vh] z-100 h-px w-px overflow-hidden border-0 p-0 whitespace-nowrap opacity-0 focus:top-2 focus:h-auto focus:w-auto focus:overflow-visible focus:opacity-100 focus:rounded-md focus:bg-[var(--pf-bg-surface)] focus:px-3 focus:py-2 focus:text-sm focus:outline-2 focus:outline-offset-2 focus:outline-[var(--pf-focus-ring)] focus:shadow-[var(--pf-shadow-md)]"
           >
             {tCommon('a11y.skipToContent')}
           </a>
@@ -96,7 +96,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
 
           <main
             id="main"
-            className="min-w-0 w-full max-w-full flex-1 overflow-x-clip px-4 pt-5 pb-[var(--pf-mobile-content-bottom)] sm:px-6 lg:overflow-x-visible lg:pb-8"
+            className="min-w-0 w-full max-w-full flex-1 px-4 pt-5 pb-[var(--pf-mobile-content-bottom)] sm:px-6 lg:pb-8"
           >
             <div className="mx-auto w-full min-w-0 max-w-6xl">
               <HiddenCapabilityNotice modules={shell.modules} />

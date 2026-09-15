@@ -96,7 +96,7 @@ export default defineConfig({
     },
     {
       name: 'mobile-he',
-      testMatch: /mobile\.spec\.ts|authenticated\/workforce-discoverability\.spec\.ts|authenticated\/ocr-review\.spec\.ts|authenticated\/hebrew-runtime-closure\.spec\.ts|authenticated\/overnight-surfaces\.spec\.ts|authenticated\/billing-plan\.spec\.ts|authenticated\/mobile-money-journeys\.spec\.ts/,
+      testMatch: /mobile\.spec\.ts|mobile-shell-audit\.spec\.ts|authenticated\/workforce-discoverability\.spec\.ts|authenticated\/ocr-review\.spec\.ts|authenticated\/hebrew-runtime-closure\.spec\.ts|authenticated\/overnight-surfaces\.spec\.ts|authenticated\/billing-plan\.spec\.ts|authenticated\/mobile-money-journeys\.spec\.ts/,
       dependencies: ['setup-owner'],
       use: {
         ...devices['Pixel 7'],

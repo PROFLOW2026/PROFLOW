@@ -146,6 +146,9 @@
     --pf-bottomnav-height: 4rem;
     --pf-bottomnav-safe-area: env(safe-area-inset-bottom, 0px);
     --pf-visual-viewport-bottom-offset: 0px;
+    --pf-visual-viewport-width: 100%;
+    --pf-visual-viewport-offset-left: 0px;
+    --pf-mobile-chrome-safety-inset: 0px;
     --pf-bottomnav-total-height: calc(var(--pf-bottomnav-height) + var(--pf-bottomnav-safe-area));
     --pf-mobile-chrome-bottom: calc(
       var(--pf-bottomnav-total-height) + var(--pf-visual-viewport-bottom-offset)
