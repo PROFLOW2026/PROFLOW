@@ -378,8 +378,46 @@ describe('DropboxStorageProvider adapter contract', () => {
 
     expect(result.httpStatus).toBe(206);
     expect(result.contentRange).toBe('bytes 0-99/1000');
+    expect(result.mimeType).toBe('application/pdf');
     const bytes = new Uint8Array(await new Response(result.stream).arrayBuffer());
     expect(bytes).toEqual(new Uint8Array([1, 2, 3]));
+  });
+
+  it('downloadFileStream uses Dropbox file id for non-ASCII paths (content header safety)', async () => {
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url.endsWith('/files/get_metadata')) {
+        return jsonResponse({
+          '.tag': 'file',
+          id: 'id:hebrew-file',
+          path_lower: '/projectflow/לקוחות/doc.pdf',
+          name: 'doc.pdf',
+          size: 1000,
+        });
+      }
+      const headers = init?.headers as Record<string, string>;
+      const apiArg = JSON.parse(String(headers['Dropbox-API-Arg']));
+      expect(apiArg.path).toBe('id:hebrew-file');
+      return new Response(new Uint8Array([37, 80, 68, 70, 45]), { status: 200 });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const result = await dropboxProvider.downloadFileStream(TOKEN, 'id:hebrew-file', {
+      knownMeta: {
+        id: 'id:hebrew-file',
+        name: 'doc.pdf',
+        parentId: 'id:parent',
+        webUrl: null,
+        mimeType: null,
+        sizeBytes: 1000,
+        modifiedAt: null,
+        etag: null,
+      },
+    });
+
+    expect(result.mimeType).toBe('application/pdf');
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const bytes = new Uint8Array(await new Response(result.stream).arrayBuffer());
+    expect(Array.from(bytes.slice(0, 5))).toEqual([37, 80, 68, 70, 45]);
   });
 
   it('renameFile moves file to sibling path', async () => {

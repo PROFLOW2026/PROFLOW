@@ -35,6 +35,22 @@ function toListingFolderId(folderId: string): string {
   return folderId === 'root' ? '' : folderId;
 }
 
+/** Dropbox content endpoints require ASCII-safe Dropbox-API-Arg; prefer stable file ids over paths. */
+function isAsciiOnly(value: string): boolean {
+  return /^[\x00-\x7F]*$/.test(value);
+}
+
+function inferMimeTypeFromFilename(name: string | undefined): string {
+  if (!name) return 'application/octet-stream';
+  const lower = name.toLowerCase();
+  if (lower.endsWith('.pdf')) return 'application/pdf';
+  if (lower.endsWith('.png')) return 'image/png';
+  if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg';
+  if (lower.endsWith('.gif')) return 'image/gif';
+  if (lower.endsWith('.webp')) return 'image/webp';
+  return 'application/octet-stream';
+}
+
 function mapEntry(
   entry: Record<string, unknown>,
   parentId: string | null = null,
@@ -173,6 +189,31 @@ export class DropboxStorageProvider implements StorageProviderAdapter {
       body: JSON.stringify({ path: normalized }),
     });
     return meta.path_lower ?? normalized;
+  }
+
+  /** Content API ref: use id:… so Dropbox-API-Arg stays ASCII (Unicode paths break Node fetch headers). */
+  private async resolveContentDownloadRef(
+    accessToken: string,
+    fileId: string,
+  ): Promise<string> {
+    const normalized = this.normalizeRootFolderId(fileId);
+    if (normalized.startsWith('id:')) return normalized;
+    if (normalized.startsWith('/') && isAsciiOnly(normalized)) return normalized;
+    const meta = await providerJson<{ id?: string; path_lower?: string }>(
+      `${API}/files/get_metadata`,
+      {
+        method: 'POST',
+        accessToken,
+        body: JSON.stringify({ path: normalized }),
+      },
+    );
+    if (meta.id) return String(meta.id);
+    const pathLower = meta.path_lower ? String(meta.path_lower) : normalized;
+    if (isAsciiOnly(pathLower)) return pathLower;
+    throw new ProviderHttpError(
+      400,
+      'Dropbox file path is not ASCII-safe for content download; missing file id',
+    );
   }
 
   private async resolveParentId(
@@ -410,10 +451,10 @@ export class DropboxStorageProvider implements StorageProviderAdapter {
     contentRange?: string | null;
   }> {
     const meta = options?.knownMeta ?? (await this.getFileMetadata(accessToken, fileId));
-    const path = await this.resolvePath(accessToken, fileId);
+    const downloadRef = await this.resolveContentDownloadRef(accessToken, fileId);
     const headers: Record<string, string> = {
       Authorization: `Bearer ${accessToken}`,
-      'Dropbox-API-Arg': JSON.stringify({ path }),
+      'Dropbox-API-Arg': JSON.stringify({ path: downloadRef }),
     };
     if (options?.byteRange) {
       headers.Range = `bytes=${options.byteRange.start}-${options.byteRange.end}`;
@@ -427,7 +468,8 @@ export class DropboxStorageProvider implements StorageProviderAdapter {
     }
     return {
       stream: response.body,
-      mimeType: 'application/octet-stream',
+      mimeType:
+        meta?.mimeType ?? inferMimeTypeFromFilename(meta?.name) ?? 'application/octet-stream',
       sizeBytes: meta?.sizeBytes ?? null,
       httpStatus: response.status,
       contentRange: response.headers.get('content-range'),
