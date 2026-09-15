@@ -88,5 +88,52 @@
     "shortcutsLabel": "קיצורי דרך:",
     "folderKind": "תיקייה",
     "fileKind": "קובץ"
+  },
+  "orgFiles": {
+    "title": "קבצי החברה",
+    "description": "עיון וניהול של כל התיקיות והקבצים תחת ProjectFlow באחסון הענן.",
+    "orgFolders": {
+      "clients_root": "לקוחות",
+      "vendors_root": "ספקים",
+      "employees_root": "עובדים",
+      "organization_documents": "מסמכי חברה"
+    },
+    "upload": "העלאת קובץ",
+    "uploading": "מעלה…",
+    "uploadFailed": "ההעלאה נכשלה",
+    "createFolder": "תיקייה חדשה",
+    "rename": "שינוי שם",
+    "delete": "מחיקה",
+    "empty": "אין קבצים בתיקייה זו",
+    "move": "העברה",
+    "moveTitle": "העברת פריט",
+    "moveDescription": "בחרו יעד עבור {name}",
+    "selectDestination": "בחרו תיקיית יעד",
+    "createFolderTitle": "תיקייה חדשה",
+    "createFolderDescription": "הזינו שם לתיקייה החדשה",
+    "folderNamePlaceholder": "שם התיקייה",
+    "renameTitle": "שינוי שם",
+    "deleteFileTitle": "מחיקת קובץ",
+    "deleteFileDescription": "האם למחוק את {name}? פעולה זו אינה ניתנת לביטול.",
+    "deleteFolderTitle": "מחיקת תיקייה",
+    "deleteFolderDescription": "האם למחוק את התיקייה {name}? ניתן למחוק רק תיקיות ריקות.",
+    "actions": "פעולות",
+    "breadcrumb": "ניווט בתיקיות",
+    "loading": "טוען…",
+    "refresh": "רענון",
+    "back": "חזרה",
+    "shortcutsLabel": "קיצורי דרך:",
+    "folderKind": "תיקייה",
+    "fileKind": "קובץ"
+  },
+  "preview": {
+    "title": "תצוגה מקדימה",
+    "loading": "טוען…",
+    "failed": "לא ניתן להציג את הקובץ",
+    "unsupported": "פורמט זה אינו נתמך לתצוגה מקדימה. השתמשו ב\"פתח במכשיר\" או \"פתח ב-OneDrive\".",
+    "openOnDevice": "פתח במכשיר",
+    "openInOneDrive": "פתח ב-OneDrive",
+    "previous": "הקודם",
+    "next": "הבא"
   }
 }

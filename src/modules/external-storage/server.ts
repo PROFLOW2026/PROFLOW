@@ -41,6 +41,7 @@ export {
   deleteProjectStorageItem,
   getProjectStorageBrowserContext,
   getProjectStorageFileDownload,
+  getProjectStorageProviderWebUrl,
   listProjectStorageMoveTargets,
   loadProjectFileBrowserInitial,
   moveProjectStorageItem,
@@ -51,6 +52,24 @@ export type {
   ProjectFileBrowserInitialLoad,
   ProjectStorageBrowserContext,
 } from './application/browser-service';
+export {
+  browseOrgStorageFolder,
+  createOrgStorageSubfolder,
+  deleteOrgStorageItem,
+  getOrgStorageBrowserContext,
+  getOrgStorageFileDownload,
+  getOrgStorageProviderWebUrl,
+  listOrgStorageMoveTargets,
+  loadOrgFileBrowserInitial,
+  moveOrgStorageItem,
+  renameOrgStorageItem,
+  uploadOrgStorageFile,
+} from './application/org-browser-service';
+export type {
+  OrgBrowserListingResult,
+  OrgFileBrowserInitialLoad,
+  OrgStorageBrowserContext,
+} from './application/org-browser-service';
 export { bootstrapOrganizationStorageTree } from './application/bootstrap';
 export {
   ensureClientFolderTree,

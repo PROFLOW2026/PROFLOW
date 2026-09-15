@@ -88,5 +88,52 @@
     "shortcutsLabel": "Shortcuts:",
     "folderKind": "Folder",
     "fileKind": "File"
+  },
+  "orgFiles": {
+    "title": "Company files",
+    "description": "Browse and manage every folder and file under ProjectFlow in cloud storage.",
+    "orgFolders": {
+      "clients_root": "Clients",
+      "vendors_root": "Vendors",
+      "employees_root": "Employees",
+      "organization_documents": "Company documents"
+    },
+    "upload": "Upload file",
+    "uploading": "Uploading…",
+    "uploadFailed": "Upload failed",
+    "createFolder": "New folder",
+    "rename": "Rename",
+    "delete": "Delete",
+    "empty": "No files in this folder",
+    "move": "Move",
+    "moveTitle": "Move item",
+    "moveDescription": "Choose a destination for {name}",
+    "selectDestination": "Select destination folder",
+    "createFolderTitle": "New folder",
+    "createFolderDescription": "Enter a name for the new folder",
+    "folderNamePlaceholder": "Folder name",
+    "renameTitle": "Rename",
+    "deleteFileTitle": "Delete file",
+    "deleteFileDescription": "Delete {name}? This cannot be undone.",
+    "deleteFolderTitle": "Delete folder",
+    "deleteFolderDescription": "Delete folder {name}? Only empty folders can be deleted.",
+    "actions": "Actions",
+    "breadcrumb": "Folder navigation",
+    "loading": "Loading…",
+    "refresh": "Refresh",
+    "back": "Back",
+    "shortcutsLabel": "Shortcuts:",
+    "folderKind": "Folder",
+    "fileKind": "File"
+  },
+  "preview": {
+    "title": "Preview",
+    "loading": "Loading…",
+    "failed": "Could not preview this file",
+    "unsupported": "This format is not supported for in-app preview. Use Open on device or Open in OneDrive.",
+    "openOnDevice": "Open on device",
+    "openInOneDrive": "Open in OneDrive",
+    "previous": "Previous",
+    "next": "Next"
   }
 }

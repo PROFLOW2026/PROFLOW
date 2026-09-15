@@ -73,6 +73,7 @@
   },
   "attachments": {
     "title": "מסמכים",
+    "panelSummary": "{count, plural, =0 {אין מסמכים} one {מסמך אחד} other {# מסמכים}}",
     "contractTitle": "מסמכי חוזה",
     "upload": "צירוף קבלה או חשבונית",
     "capture": "צילום קבלה או חשבונית",

@@ -1,16 +1,11 @@
 import {
-  getOrgStorageFileDownload,
-  getProjectStorageFileDownload,
+  getOrgStorageProviderWebUrl,
+  getProjectStorageProviderWebUrl,
 } from '@/modules/external-storage/server';
 import { requireSession, runInOrgContext } from '@/shared/auth/session';
 import { AppError } from '@/shared/errors';
 
 export const runtime = 'nodejs';
-
-function contentDisposition(filename: string, disposition: 'inline' | 'attachment'): string {
-  const encoded = encodeURIComponent(filename);
-  return `${disposition}; filename="${encoded}"; filename*=UTF-8''${encoded}`;
-}
 
 export async function GET(request: Request) {
   try {
@@ -22,8 +17,6 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const scope = url.searchParams.get('scope') ?? 'project';
     const fileId = url.searchParams.get('fileId');
-    const dispositionParam = url.searchParams.get('disposition');
-    const disposition = dispositionParam === 'attachment' ? 'attachment' : 'inline';
     const projectId = url.searchParams.get('projectId');
 
     if (!fileId) {
@@ -38,23 +31,17 @@ export async function GET(request: Request) {
       session.activeOrganizationId,
       async (orgContext) => {
         if (scope === 'org') {
-          return getOrgStorageFileDownload(orgContext, { fileId });
+          return getOrgStorageProviderWebUrl(orgContext, { fileId });
         }
-        return getProjectStorageFileDownload(orgContext, { projectId: projectId!, fileId });
+        return getProjectStorageProviderWebUrl(orgContext, { projectId: projectId!, fileId });
       },
     );
 
-    return new Response(payload.stream, {
-      headers: {
-        'Content-Type': payload.mimeType,
-        'Content-Disposition': contentDisposition(payload.filename, disposition),
-        'Cache-Control': 'private, no-store',
-      },
-    });
+    return Response.json({ url: payload.url, filename: payload.filename });
   } catch (error) {
     if (error instanceof AppError) {
       return Response.json({ error: error.messageKey ?? error.message }, { status: error.status });
     }
-    return Response.json({ error: 'download_failed' }, { status: 500 });
+    return Response.json({ error: 'provider_url_failed' }, { status: 500 });
   }
 }

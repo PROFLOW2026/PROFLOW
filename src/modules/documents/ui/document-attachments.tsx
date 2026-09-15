@@ -68,6 +68,8 @@ export interface DocumentAttachmentsProps {
   /** When the owner is an employee, allow marking compensation files. */
   canClassifyCompensation?: boolean;
   className?: string;
+  /** Hide duplicate title when wrapped in a collapsible section. */
+  suppressCardHeader?: boolean;
 }
 
 function statusShape(status: string): 'pending' | 'active' | 'void' {
@@ -89,6 +91,7 @@ export function DocumentAttachments({
   afterFinalizeAction,
   canClassifyCompensation = false,
   className,
+  suppressCardHeader = false,
 }: DocumentAttachmentsProps) {
   const t = useTranslations('documents.attachments');
   const tErrors = useTranslations('documents.errors');
@@ -342,9 +345,11 @@ export function DocumentAttachments({
   const showManageUpload = canManage && storageConfigured;
 
   return (
-    <Card className={className}>
-      <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2 pb-3">
-        <CardTitle className="text-base">{t(titleKey)}</CardTitle>
+    <Card className={suppressCardHeader ? `border-0 shadow-none ${className ?? ''}` : className}>
+      <CardHeader
+        className={`flex flex-row flex-wrap items-center gap-2 pb-3 ${suppressCardHeader ? 'justify-end' : 'justify-between'}`}
+      >
+        {suppressCardHeader ? null : <CardTitle className="text-base">{t(titleKey)}</CardTitle>}
         {showManageUpload ? (
           <div className="flex flex-wrap gap-2">
             <input

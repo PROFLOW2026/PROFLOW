@@ -73,6 +73,7 @@
   },
   "attachments": {
     "title": "Documents",
+    "panelSummary": "{count, plural, =0 {No documents} one {1 document} other {# documents}}",
     "contractTitle": "Contract documents",
     "upload": "Attach receipt or invoice",
     "capture": "Photograph receipt or invoice",

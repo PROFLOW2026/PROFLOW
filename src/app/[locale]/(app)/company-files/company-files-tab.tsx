@@ -38,33 +38,25 @@ import type {
   ProviderFolderItem,
   SemanticFolderType,
 } from '@/modules/external-storage/client';
-import {
-  prepareDocumentUploadAction,
-  finalizeDocumentUploadAction,
-} from '@/modules/documents/application/document-actions';
 import { openFilePicker } from '@/modules/documents/client/open-file-picker';
-import { uploadDocumentBytes } from '@/modules/documents/client/upload-document-bytes';
-import { normalizeUploadMime } from '@/modules/documents/domain/file-rules';
-import {
-  buildStorageFileDownloadUrl,
-} from '@/modules/external-storage/client/storage-file-urls';
+import { buildStorageFileDownloadUrl } from '@/modules/external-storage/client/storage-file-urls';
 import { StorageFilePreviewDialog } from '@/modules/external-storage/ui/storage-file-preview-dialog';
 import {
-  browseProjectFolderAction,
-  createProjectSubfolderAction,
-  deleteProjectStorageItemAction,
-  getProjectFileProviderUrlAction,
-  listProjectMoveTargetsAction,
-  loadProjectFileBrowserInitialAction,
-  moveProjectStorageItemAction,
-  renameProjectStorageItemAction,
-} from './project-files-actions';
+  browseCompanyFolderAction,
+  createCompanySubfolderAction,
+  deleteCompanyStorageItemAction,
+  getCompanyFileProviderUrlAction,
+  listCompanyMoveTargetsAction,
+  loadCompanyFileBrowserInitialAction,
+  moveCompanyStorageItemAction,
+  renameCompanyStorageItemAction,
+} from './company-files-actions';
 
 type BrowseSegment = { readonly id: string; readonly name: string };
 
 type BrowserContext = {
-  projectRootFolderId: string;
-  projectRootFolderName: string;
+  organizationRootFolderId: string;
+  organizationRootFolderName: string;
   semanticShortcuts: ReadonlyArray<{
     semanticFolderType: SemanticFolderType;
     externalFolderId: string;
@@ -89,25 +81,21 @@ type DeleteTarget = {
   itemName: string;
 };
 
-export function ProjectFilesTab({
-  projectId,
+export function CompanyFilesTab({
   storageConfigured,
   canManage,
 }: {
-  projectId: string;
   storageConfigured: boolean;
   canManage: boolean;
 }) {
-  const t = useTranslations('externalStorage.projectFiles');
+  const t = useTranslations('externalStorage.orgFiles');
   const tPreview = useTranslations('externalStorage.preview');
   const tStorage = useTranslations('externalStorage');
   const tErrors = useTranslations('externalStorage.errors');
   const tFileSize = useTranslations('documents.fileSize');
-  const tAttach = useTranslations('documents.attachments');
   const tCommon = useTranslations('common');
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const captureInputRef = useRef<HTMLInputElement>(null);
 
   const [browserContext, setBrowserContext] = useState<BrowserContext | null>(null);
   const [contextError, setContextError] = useState<string | null>(null);
@@ -141,20 +129,10 @@ export function ProjectFilesTab({
 
   const [previewFile, setPreviewFile] = useState<ProviderFileItem | null>(null);
 
-  const photosFolderId = browserContext?.semanticShortcuts.find(
-    (s) => s.semanticFolderType === 'photos',
-  )?.externalFolderId;
-
-  const inPhotosTree = Boolean(
-    photosFolderId &&
-      (currentFolderId === photosFolderId ||
-        browsePath.some((segment) => segment.id === photosFolderId)),
-  );
-
   const resolveFolderExternalId = useCallback(
     (path: readonly BrowseSegment[]) =>
-      path.length > 0 ? path[path.length - 1]!.id : browserContext?.projectRootFolderId,
-    [browserContext?.projectRootFolderId],
+      path.length > 0 ? path[path.length - 1]!.id : browserContext?.organizationRootFolderId,
+    [browserContext?.organizationRootFolderId],
   );
 
   const loadFolder = useCallback(
@@ -165,8 +143,7 @@ export function ProjectFilesTab({
         const folderExternalId = resolveFolderExternalId(path);
         if (!folderExternalId) return;
 
-        const result = await browseProjectFolderAction({
-          projectId,
+        const result = await browseCompanyFolderAction({
           folderExternalId,
         });
         if (result.error) {
@@ -181,7 +158,7 @@ export function ProjectFilesTab({
         setFiles(result.files ?? []);
       });
     },
-    [browserContext, projectId, resolveFolderExternalId],
+    [browserContext, resolveFolderExternalId],
   );
 
   useEffect(() => {
@@ -191,7 +168,7 @@ export function ProjectFilesTab({
     startLoad(async () => {
       setContextError(null);
       setError(null);
-      const result = await loadProjectFileBrowserInitialAction(projectId);
+      const result = await loadCompanyFileBrowserInitialAction();
       if (result.error || !result.context) {
         setContextError(result.error ?? tErrors('fileUnavailable'));
         return;
@@ -203,7 +180,7 @@ export function ProjectFilesTab({
       setFiles(result.files ?? []);
       setInitialLoaded(true);
     });
-  }, [projectId, tErrors]);
+  }, [tErrors]);
 
   useEffect(() => {
     if (!browserContext || !initialLoaded) return;
@@ -270,45 +247,16 @@ export function ProjectFilesTab({
     if (!currentFolderId) return;
     startUpload(async () => {
       setError(null);
-      const mime = normalizeUploadMime(file.type, file.name);
-      if (!mime.ok) {
-        setError(tAttach('uploadFailed'));
-        return;
-      }
-      const prepared = await prepareDocumentUploadAction({
-        fileName: file.name,
-        mimeType: mime.mimeType,
-        sizeBytes: file.size,
-        ownerType: 'project',
-        ownerId: projectId,
-        label: inPhotosTree ? 'photo' : undefined,
-        browserParentFolderId: currentFolderId,
+      const formData = new FormData();
+      formData.set('file', file);
+      formData.set('parentFolderExternalId', currentFolderId);
+      const response = await fetch('/api/org-storage/org-browser-upload', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
       });
-      if (prepared.error || !prepared.documentId || !prepared.uploadUrl) {
-        setError(prepared.error ?? tAttach('uploadFailed'));
-        return;
-      }
-      const uploaded = await uploadDocumentBytes(
-        {
-          uploadUrl: prepared.uploadUrl,
-          uploadMode: prepared.uploadMode,
-          uploadToken: prepared.uploadToken,
-          uploadPath: prepared.uploadPath,
-          uploadBucket: prepared.uploadBucket,
-        },
-        file,
-        { contentType: mime.mimeType },
-      );
-      if (!uploaded.ok) {
-        setError(tAttach('uploadFailed'));
-        return;
-      }
-      const finalized = await finalizeDocumentUploadAction({
-        documentId: prepared.documentId,
-        sizeBytes: file.size,
-      });
-      if (finalized.error) {
-        setError(finalized.error);
+      if (!response.ok) {
+        setError(t('uploadFailed'));
         return;
       }
       refreshListing();
@@ -334,8 +282,7 @@ export function ProjectFilesTab({
     try {
       if (nameDialog.kind === 'create') {
         if (!currentFolderId) return;
-        const result = await createProjectSubfolderAction({
-          projectId,
+        const result = await createCompanySubfolderAction({
           parentFolderExternalId: currentFolderId,
           name: nameValue.trim(),
         });
@@ -344,8 +291,7 @@ export function ProjectFilesTab({
           return;
         }
       } else {
-        const result = await renameProjectStorageItemAction({
-          projectId,
+        const result = await renameCompanyStorageItemAction({
           itemId: nameDialog.itemId,
           itemKind: nameDialog.itemKind,
           name: nameValue.trim(),
@@ -379,8 +325,7 @@ export function ProjectFilesTab({
     setMoveTargets([]);
     setMoveTargetsLoading(true);
     try {
-      const result = await listProjectMoveTargetsAction({
-        projectId,
+      const result = await listCompanyMoveTargetsAction({
         excludeFolderId: itemKind === 'folder' ? itemId : null,
       });
       if (result.error) {
@@ -399,8 +344,7 @@ export function ProjectFilesTab({
     setMovePending(true);
     setMoveError(null);
     try {
-      const result = await moveProjectStorageItemAction({
-        projectId,
+      const result = await moveCompanyStorageItemAction({
         itemId: moveDialog.itemId,
         itemKind: moveDialog.itemKind,
         targetFolderExternalId: moveTargetId,
@@ -427,8 +371,7 @@ export function ProjectFilesTab({
     setDeletePending(true);
     setDeleteError(null);
     try {
-      const result = await deleteProjectStorageItemAction({
-        projectId,
+      const result = await deleteCompanyStorageItemAction({
         itemId: deleteDialog.itemId,
         itemKind: deleteDialog.itemKind,
       });
@@ -449,8 +392,7 @@ export function ProjectFilesTab({
 
   const openFileOnDevice = (file: ProviderFileItem) => {
     const url = buildStorageFileDownloadUrl({
-      scope: 'project',
-      projectId,
+      scope: 'org',
       fileId: file.id,
       disposition: 'attachment',
     });
@@ -458,7 +400,7 @@ export function ProjectFilesTab({
   };
 
   const openFileInOneDrive = async (file: ProviderFileItem) => {
-    const result = await getProjectFileProviderUrlAction({ projectId, fileId: file.id });
+    const result = await getCompanyFileProviderUrlAction({ fileId: file.id });
     if (result.error || !result.url) {
       setError(result.error ?? tErrors('fileUnavailable'));
       return;
@@ -468,8 +410,8 @@ export function ProjectFilesTab({
 
   const breadcrumbTitle =
     browsePath.length === 0
-      ? browserContext.projectRootFolderName
-      : `${browserContext.projectRootFolderName} / ${browsePath.map((s) => s.name).join(' / ')}`;
+      ? browserContext.organizationRootFolderName
+      : `${browserContext.organizationRootFolderName} / ${browsePath.map((s) => s.name).join(' / ')}`;
 
   const isEmpty = folders.length === 0 && files.length === 0;
 
@@ -485,7 +427,7 @@ export function ProjectFilesTab({
             variant="secondary"
             onClick={() => jumpToSemanticFolder(shortcut)}
           >
-            {t(`folders.${shortcut.semanticFolderType}`)}
+            {t(`orgFolders.${shortcut.semanticFolderType}`)}
           </Button>
         ))}
       </div>
@@ -496,7 +438,7 @@ export function ProjectFilesTab({
           className="text-[var(--pf-text-brand)] underline-offset-2 hover:underline"
           onClick={() => navigateBreadcrumb(-1)}
         >
-          {browserContext.projectRootFolderName}
+          {browserContext.organizationRootFolderName}
         </button>
         {browsePath.map((segment, index) => (
           <span key={segment.id} className="flex items-center gap-1">
@@ -537,15 +479,6 @@ export function ProjectFilesTab({
               type="button"
               size="sm"
               variant="secondary"
-              onClick={() => openFilePicker(captureInputRef.current)}
-              disabled={uploading || loading}
-            >
-              {t('capture')}
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant="secondary"
               onClick={openCreateFolderDialog}
               disabled={loading}
             >
@@ -561,23 +494,11 @@ export function ProjectFilesTab({
                 e.target.value = '';
               }}
             />
-            <input
-              ref={captureInputRef}
-              type="file"
-              accept="image/*"
-              capture="environment"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) handleUpload(file);
-                e.target.value = '';
-              }}
-            />
           </>
         ) : null}
       </div>
 
-      {loading || uploading ? <Spinner label={loading ? t('loading') : tAttach('uploading')} /> : null}
+      {loading || uploading ? <Spinner label={loading ? t('loading') : t('uploading')} /> : null}
       {error ? <Alert tone="danger">{error}</Alert> : null}
 
       <Card>
@@ -742,8 +663,7 @@ export function ProjectFilesTab({
       <StorageFilePreviewDialog
         open={previewFile !== null}
         onOpenChange={(open) => !open && setPreviewFile(null)}
-        scope="project"
-        projectId={projectId}
+        scope="org"
         file={
           previewFile
             ? {
@@ -785,7 +705,7 @@ function BrowserRow({
   onRename: () => void;
   onMove: () => void;
   onDelete: () => void;
-  t: ReturnType<typeof useTranslations<'externalStorage.projectFiles'>>;
+  t: ReturnType<typeof useTranslations<'externalStorage.orgFiles'>>;
   tPreview?: ReturnType<typeof useTranslations<'externalStorage.preview'>>;
 }) {
   return (

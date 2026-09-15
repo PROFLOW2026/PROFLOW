@@ -1,15 +1,14 @@
 'use server';
 
 import {
-  browseProjectStorageFolder,
-  createProjectStorageSubfolder,
-  deleteProjectStorageItem,
-  getProjectStorageBrowserContext,
-  getProjectStorageProviderWebUrl,
-  listProjectStorageMoveTargets,
-  loadProjectFileBrowserInitial,
-  moveProjectStorageItem,
-  renameProjectStorageItem,
+  browseOrgStorageFolder,
+  createOrgStorageSubfolder,
+  deleteOrgStorageItem,
+  getOrgStorageProviderWebUrl,
+  listOrgStorageMoveTargets,
+  loadOrgFileBrowserInitial,
+  moveOrgStorageItem,
+  renameOrgStorageItem,
 } from '@/modules/external-storage/server';
 import { withOrgContext } from '@/shared/auth/session';
 import { getTranslations } from 'next-intl/server';
@@ -45,22 +44,9 @@ async function mapStorageActionError(error: unknown): Promise<string> {
   return t('operationFailed');
 }
 
-export async function getProjectFileBrowserContextAction(projectId: string) {
+export async function loadCompanyFileBrowserInitialAction() {
   try {
-    const context = await withOrgContext((orgContext) =>
-      getProjectStorageBrowserContext(orgContext, projectId),
-    );
-    return { context };
-  } catch (error) {
-    return { error: await mapStorageActionError(error) };
-  }
-}
-
-export async function loadProjectFileBrowserInitialAction(projectId: string) {
-  try {
-    const result = await withOrgContext((orgContext) =>
-      loadProjectFileBrowserInitial(orgContext, projectId),
-    );
+    const result = await withOrgContext((orgContext) => loadOrgFileBrowserInitial(orgContext));
     return {
       context: result.context,
       folderExternalId: result.folderExternalId,
@@ -73,18 +59,13 @@ export async function loadProjectFileBrowserInitialAction(projectId: string) {
   }
 }
 
-export async function browseProjectFolderAction(input: {
-  projectId: string;
-  folderExternalId?: string | null;
-}) {
+export async function browseCompanyFolderAction(input: { folderExternalId?: string | null }) {
   try {
-    const result = await withOrgContext((context) =>
-      browseProjectStorageFolder(context, input),
-    );
+    const result = await withOrgContext((context) => browseOrgStorageFolder(context, input));
     return {
       folderExternalId: result.folderExternalId,
       folderName: result.folderName,
-      projectRootFolderId: result.projectRootFolderId,
+      organizationRootFolderId: result.organizationRootFolderId,
       folders: result.listing.folders,
       files: result.listing.files,
     };
@@ -93,84 +74,68 @@ export async function browseProjectFolderAction(input: {
   }
 }
 
-export async function createProjectSubfolderAction(input: {
-  projectId: string;
+export async function createCompanySubfolderAction(input: {
   parentFolderExternalId: string;
   name: string;
 }) {
   try {
-    const folder = await withOrgContext((context) =>
-      createProjectStorageSubfolder(context, input),
-    );
+    const folder = await withOrgContext((context) => createOrgStorageSubfolder(context, input));
     return { folder };
   } catch (error) {
     return { error: await mapStorageActionError(error) };
   }
 }
 
-export async function renameProjectStorageItemAction(input: {
-  projectId: string;
+export async function renameCompanyStorageItemAction(input: {
   itemId: string;
   itemKind: 'file' | 'folder';
   name: string;
 }) {
   try {
-    const item = await withOrgContext((context) => renameProjectStorageItem(context, input));
+    const item = await withOrgContext((context) => renameOrgStorageItem(context, input));
     return { item };
   } catch (error) {
     return { error: await mapStorageActionError(error) };
   }
 }
 
-export async function moveProjectStorageItemAction(input: {
-  projectId: string;
+export async function moveCompanyStorageItemAction(input: {
   itemId: string;
   itemKind: 'file' | 'folder';
   targetFolderExternalId: string;
 }) {
   try {
-    const item = await withOrgContext((context) => moveProjectStorageItem(context, input));
+    const item = await withOrgContext((context) => moveOrgStorageItem(context, input));
     return { item };
   } catch (error) {
     return { error: await mapStorageActionError(error) };
   }
 }
 
-export async function deleteProjectStorageItemAction(input: {
-  projectId: string;
+export async function deleteCompanyStorageItemAction(input: {
   itemId: string;
   itemKind: 'file' | 'folder';
 }) {
   try {
-    await withOrgContext((context) => deleteProjectStorageItem(context, input));
+    await withOrgContext((context) => deleteOrgStorageItem(context, input));
     return {};
   } catch (error) {
     return { error: await mapStorageActionError(error) };
   }
 }
 
-export async function listProjectMoveTargetsAction(input: {
-  projectId: string;
-  excludeFolderId?: string | null;
-}) {
+export async function listCompanyMoveTargetsAction(input: { excludeFolderId?: string | null }) {
   try {
-    const targets = await withOrgContext((context) =>
-      listProjectStorageMoveTargets(context, input),
-    );
+    const targets = await withOrgContext((context) => listOrgStorageMoveTargets(context, input));
     return { targets };
   } catch (error) {
     return { error: await mapStorageActionError(error) };
   }
 }
 
-export async function getProjectFileProviderUrlAction(input: {
-  projectId: string;
-  fileId: string;
-}) {
+export async function getCompanyFileProviderUrlAction(input: { fileId: string }) {
   try {
-    const result = await withOrgContext((context) =>
-      getProjectStorageProviderWebUrl(context, input),
-    );
+    const result = await withOrgContext((context) => getOrgStorageProviderWebUrl(context, input));
     return { url: result.url, filename: result.filename };
   } catch (error) {
     return { error: await mapStorageActionError(error) };

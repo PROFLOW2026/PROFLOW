@@ -593,27 +593,36 @@ export async function listProjectStorageMoveTargets(
 export async function getProjectStorageFileDownload(
   context: OrgContext,
   input: { projectId: string; fileId: string },
-): Promise<
-  | { url: string; filename: string; mimeType: string }
-  | { stream: ReadableStream<Uint8Array>; filename: string; mimeType: string }
-> {
+): Promise<{ stream: ReadableStream<Uint8Array>; filename: string; mimeType: string }> {
   assertPermission(context, PERMISSIONS.DOCUMENTS_READ);
   const runtime = await resolveProjectBrowserRuntime(context, input.projectId);
   const meta = await assertFileScope(runtime, input.fileId);
-
-  if (runtime.adapter.getProviderWebUrl) {
-    const webUrl = await runtime.adapter.getProviderWebUrl(runtime.accessToken, input.fileId);
-    if (webUrl) {
-      return { url: webUrl, filename: meta.name, mimeType: meta.mimeType ?? 'application/octet-stream' };
-    }
-  }
-
   const downloaded = await runtime.adapter.downloadFileStream(runtime.accessToken, input.fileId);
   return {
     stream: downloaded.stream,
     filename: meta.name,
     mimeType: downloaded.mimeType,
   };
+}
+
+export async function getProjectStorageProviderWebUrl(
+  context: OrgContext,
+  input: { projectId: string; fileId: string },
+): Promise<{ url: string; filename: string }> {
+  assertPermission(context, PERMISSIONS.DOCUMENTS_READ);
+  const runtime = await resolveProjectBrowserRuntime(context, input.projectId);
+  const meta = await assertFileScope(runtime, input.fileId);
+  if (!runtime.adapter.getProviderWebUrl) {
+    throw new ServiceUnavailableError(
+      'Provider web URL unavailable',
+      'externalStorage.errors.operationFailed',
+    );
+  }
+  const url = await runtime.adapter.getProviderWebUrl(runtime.accessToken, input.fileId);
+  if (!url) {
+    throw new NotFoundError('File');
+  }
+  return { url, filename: meta.name };
 }
 
 export async function assertProjectBrowserUploadFolder(

@@ -4,11 +4,12 @@ import {
   type DocumentLinkCandidate,
   type DocumentListItem,
 } from '@/modules/documents';
-import { DocumentAttachments } from '@/modules/documents/ui';
 import { isOrganizationStorageConfigured } from '@/modules/external-storage/server';
 import { withOrgContext } from '@/shared/auth/session';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { getTranslations } from 'next-intl/server';
+import { CollapsibleDocumentAttachments } from './collapsible-document-attachments';
 import { ProjectFilesTab } from './project-files-tab';
 
 /** Documents tagged as contract files on the project owner or linked on the contract owner. */
@@ -48,6 +49,7 @@ async function DocumentAttachmentsSection({
   projectId: string;
   primaryContractId?: string | null;
 }) {
+  const tAttach = await getTranslations('documents.attachments');
   const { projectPanel, contractPanel } = await withOrgContext(async (context) => {
     const projectPanel = await getEntityDocumentPanelData(context, 'project', projectId);
     if (!primaryContractId) {
@@ -70,10 +72,14 @@ async function DocumentAttachmentsSection({
     ...(contractPanel?.linkCandidates ?? []),
   ]);
 
+  const otherDocuments = hasContract ? otherDocs : projectPanel.documents;
+
   return (
     <>
       {hasContract ? (
-        <DocumentAttachments
+        <CollapsibleDocumentAttachments
+          panelTitle={tAttach('contractTitle')}
+          panelSummary={tAttach('panelSummary', { count: contractDocs.length })}
           ownerType="project"
           ownerId={projectId}
           documents={contractDocs}
@@ -85,10 +91,12 @@ async function DocumentAttachmentsSection({
           defaultCategory="contract"
         />
       ) : null}
-      <DocumentAttachments
+      <CollapsibleDocumentAttachments
+        panelTitle={tAttach('title')}
+        panelSummary={tAttach('panelSummary', { count: otherDocuments.length })}
         ownerType="project"
         ownerId={projectId}
-        documents={hasContract ? otherDocs : projectPanel.documents}
+        documents={otherDocuments}
         linkCandidates={linkCandidates}
         canRead={projectPanel.canRead}
         canManage={projectPanel.canManage}

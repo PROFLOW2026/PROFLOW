@@ -463,7 +463,15 @@ export const NAV_ITEMS: readonly NavItem[] = [
     iconKey: 'documents',
     permission: PERMISSIONS.DOCUMENTS_READ,
     module: 'documents',
-    moreGroup: 'operations',
+    moreGroup: 'documents',
+  },
+  {
+    key: 'companyFiles',
+    href: '/company-files',
+    labelKey: 'companyFiles',
+    iconKey: 'documents',
+    permission: PERMISSIONS.DOCUMENTS_READ,
+    moreGroup: 'documents',
   },
   {
     key: 'imports',
