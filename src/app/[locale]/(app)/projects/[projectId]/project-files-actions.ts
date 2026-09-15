@@ -4,12 +4,12 @@ import {
   browseProjectStorageFolder,
   createProjectStorageSubfolder,
   deleteProjectStorageItem,
+  getProjectStorageBrowserContext,
   getProjectStorageFileDownload,
   listProjectStorageMoveTargets,
   moveProjectStorageItem,
   renameProjectStorageItem,
 } from '@/modules/external-storage/server';
-import type { SemanticFolderType } from '@/modules/external-storage/server';
 import { withOrgContext } from '@/shared/auth/session';
 import { serverEnv } from '@/shared/env/server';
 import { getTranslations } from 'next-intl/server';
@@ -45,9 +45,19 @@ async function mapStorageActionError(error: unknown): Promise<string> {
   return t('operationFailed');
 }
 
+export async function getProjectFileBrowserContextAction(projectId: string) {
+  try {
+    const context = await withOrgContext((orgContext) =>
+      getProjectStorageBrowserContext(orgContext, projectId),
+    );
+    return { context };
+  } catch (error) {
+    return { error: await mapStorageActionError(error) };
+  }
+}
+
 export async function browseProjectFolderAction(input: {
   projectId: string;
-  semanticFolderType: SemanticFolderType;
   folderExternalId?: string | null;
 }) {
   try {
@@ -57,6 +67,7 @@ export async function browseProjectFolderAction(input: {
     return {
       folderExternalId: result.folderExternalId,
       folderName: result.folderName,
+      projectRootFolderId: result.projectRootFolderId,
       folders: result.listing.folders,
       files: result.listing.files,
     };
@@ -158,12 +169,4 @@ export async function getProjectFileDownloadAction(input: {
   } catch (error) {
     return { error: await mapStorageActionError(error) };
   }
-}
-
-/** @deprecated Use browseProjectFolderAction */
-export async function listProjectFolderAction(input: {
-  projectId: string;
-  semanticFolderType: SemanticFolderType;
-}) {
-  return browseProjectFolderAction(input);
 }

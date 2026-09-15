@@ -1,6 +1,6 @@
 'use client';
 
-import { Folder, FileText, MoreHorizontal } from 'lucide-react';
+import { ArrowRight, Folder, FileText, MoreHorizontal, RefreshCw } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Link, useRouter } from '@/shared/i18n/navigation';
 import { useCallback, useEffect, useRef, useState, useTransition, type ReactNode } from 'react';
@@ -33,11 +33,10 @@ import {
 } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
 import { formatFileSize } from '@/modules/documents/domain/format-file-size';
-import {
-  PROJECT_SEMANTIC_FOLDERS,
-  type ProviderFileItem,
-  type ProviderFolderItem,
-  type SemanticFolderType,
+import type {
+  ProviderFileItem,
+  ProviderFolderItem,
+  SemanticFolderType,
 } from '@/modules/external-storage/client';
 import {
   prepareDocumentUploadAction,
@@ -50,6 +49,7 @@ import {
   browseProjectFolderAction,
   createProjectSubfolderAction,
   deleteProjectStorageItemAction,
+  getProjectFileBrowserContextAction,
   getProjectFileDownloadAction,
   listProjectMoveTargetsAction,
   moveProjectStorageItemAction,
@@ -57,6 +57,16 @@ import {
 } from './project-files-actions';
 
 type BrowseSegment = { readonly id: string; readonly name: string };
+
+type BrowserContext = {
+  projectRootFolderId: string;
+  projectRootFolderName: string;
+  semanticShortcuts: ReadonlyArray<{
+    semanticFolderType: SemanticFolderType;
+    externalFolderId: string;
+    displayName: string;
+  }>;
+};
 
 type NameDialogState =
   | { kind: 'create' }
@@ -94,7 +104,8 @@ export function ProjectFilesTab({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const captureInputRef = useRef<HTMLInputElement>(null);
 
-  const [activeFolder, setActiveFolder] = useState<SemanticFolderType>('documents');
+  const [browserContext, setBrowserContext] = useState<BrowserContext | null>(null);
+  const [contextError, setContextError] = useState<string | null>(null);
   const [browsePath, setBrowsePath] = useState<readonly BrowseSegment[]>([]);
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
   const [currentFolderName, setCurrentFolderName] = useState<string>('');
@@ -120,14 +131,32 @@ export function ProjectFilesTab({
   const [deletePending, setDeletePending] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
+  const photosFolderId = browserContext?.semanticShortcuts.find(
+    (s) => s.semanticFolderType === 'photos',
+  )?.externalFolderId;
+
+  const inPhotosTree = Boolean(
+    photosFolderId &&
+      (currentFolderId === photosFolderId ||
+        browsePath.some((segment) => segment.id === photosFolderId)),
+  );
+
+  const resolveFolderExternalId = useCallback(
+    (path: readonly BrowseSegment[]) =>
+      path.length > 0 ? path[path.length - 1]!.id : browserContext?.projectRootFolderId,
+    [browserContext?.projectRootFolderId],
+  );
+
   const loadFolder = useCallback(
-    (semanticFolder: SemanticFolderType, path: readonly BrowseSegment[] = []) => {
+    (path: readonly BrowseSegment[] = browsePath) => {
+      if (!browserContext) return;
       startLoad(async () => {
         setError(null);
-        const folderExternalId = path.length > 0 ? path[path.length - 1]!.id : undefined;
+        const folderExternalId = resolveFolderExternalId(path);
+        if (!folderExternalId) return;
+
         const result = await browseProjectFolderAction({
           projectId,
-          semanticFolderType: semanticFolder,
           folderExternalId,
         });
         if (result.error) {
@@ -142,17 +171,25 @@ export function ProjectFilesTab({
         setFiles(result.files ?? []);
       });
     },
-    [projectId],
+    [browserContext, browsePath, projectId, resolveFolderExternalId],
   );
 
   useEffect(() => {
-    loadFolder(activeFolder, browsePath);
-  }, [activeFolder, browsePath, loadFolder]);
+    startLoad(async () => {
+      setContextError(null);
+      const result = await getProjectFileBrowserContextAction(projectId);
+      if (result.error || !result.context) {
+        setContextError(result.error ?? tErrors('fileUnavailable'));
+        return;
+      }
+      setBrowserContext(result.context);
+    });
+  }, [projectId, tErrors]);
 
-  const switchSemanticFolder = (folder: SemanticFolderType) => {
-    setActiveFolder(folder);
-    setBrowsePath([]);
-  };
+  useEffect(() => {
+    if (!browserContext) return;
+    loadFolder(browsePath);
+  }, [browserContext, browsePath, loadFolder]);
 
   const openSubfolder = (folder: ProviderFolderItem) => {
     setBrowsePath((prev) => [...prev, { id: folder.id, name: folder.name }]);
@@ -166,8 +203,16 @@ export function ProjectFilesTab({
     setBrowsePath((prev) => prev.slice(0, index + 1));
   };
 
+  const goBack = () => {
+    setBrowsePath((prev) => (prev.length > 0 ? prev.slice(0, -1) : prev));
+  };
+
+  const jumpToSemanticFolder = (folder: { externalFolderId: string; displayName: string }) => {
+    setBrowsePath([{ id: folder.externalFolderId, name: folder.displayName }]);
+  };
+
   const refreshListing = () => {
-    loadFolder(activeFolder, browsePath);
+    loadFolder(browsePath);
     router.refresh();
   };
 
@@ -190,6 +235,14 @@ export function ProjectFilesTab({
     );
   }
 
+  if (contextError) {
+    return <Alert tone="danger">{contextError}</Alert>;
+  }
+
+  if (!browserContext) {
+    return <Spinner label={t('loading')} />;
+  }
+
   const handleUpload = (file: File) => {
     if (!currentFolderId) return;
     startUpload(async () => {
@@ -205,7 +258,7 @@ export function ProjectFilesTab({
         sizeBytes: file.size,
         ownerType: 'project',
         ownerId: projectId,
-        label: activeFolder === 'photos' ? 'photo' : undefined,
+        label: inPhotosTree ? 'photo' : undefined,
         browserParentFolderId: currentFolderId,
       });
       if (prepared.error || !prepared.documentId || !prepared.uploadUrl) {
@@ -376,25 +429,26 @@ export function ProjectFilesTab({
     window.open(result.url, '_blank', 'noopener,noreferrer');
   };
 
-  const breadcrumbLabel =
+  const breadcrumbTitle =
     browsePath.length === 0
-      ? t(`folders.${activeFolder}`)
-      : `${t(`folders.${activeFolder}`)} / ${browsePath.map((s) => s.name).join(' / ')}`;
+      ? browserContext.projectRootFolderName
+      : `${browserContext.projectRootFolderName} / ${browsePath.map((s) => s.name).join(' / ')}`;
 
   const isEmpty = folders.length === 0 && files.length === 0;
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap gap-2">
-        {PROJECT_SEMANTIC_FOLDERS.map((folder) => (
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-sm text-[var(--pf-text-secondary)]">{t('shortcutsLabel')}</span>
+        {browserContext.semanticShortcuts.map((shortcut) => (
           <Button
-            key={folder}
+            key={shortcut.semanticFolderType}
             type="button"
             size="sm"
-            variant={activeFolder === folder ? 'primary' : 'secondary'}
-            onClick={() => switchSemanticFolder(folder)}
+            variant="secondary"
+            onClick={() => jumpToSemanticFolder(shortcut)}
           >
-            {t(`folders.${folder}`)}
+            {t(`folders.${shortcut.semanticFolderType}`)}
           </Button>
         ))}
       </div>
@@ -405,7 +459,7 @@ export function ProjectFilesTab({
           className="text-[var(--pf-text-brand)] underline-offset-2 hover:underline"
           onClick={() => navigateBreadcrumb(-1)}
         >
-          {t(`folders.${activeFolder}`)}
+          {browserContext.projectRootFolderName}
         </button>
         {browsePath.map((segment, index) => (
           <span key={segment.id} className="flex items-center gap-1">
@@ -421,54 +475,77 @@ export function ProjectFilesTab({
         ))}
       </nav>
 
-      {canManage ? (
-        <div className="flex flex-wrap gap-2">
-          <Button type="button" size="sm" onClick={() => openFilePicker(fileInputRef.current)} disabled={uploading}>
-            {t('upload')}
+      <div className="flex flex-wrap gap-2">
+        {browsePath.length > 0 ? (
+          <Button type="button" size="sm" variant="secondary" onClick={goBack} disabled={loading}>
+            <ArrowRight className="size-4 rotate-180" aria-hidden />
+            {t('back')}
           </Button>
-          <Button
-            type="button"
-            size="sm"
-            variant="secondary"
-            onClick={() => openFilePicker(captureInputRef.current)}
-            disabled={uploading}
-          >
-            {t('capture')}
-          </Button>
-          <Button type="button" size="sm" variant="secondary" onClick={openCreateFolderDialog} disabled={loading}>
-            {t('createFolder')}
-          </Button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            className="hidden"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) handleUpload(file);
-              e.target.value = '';
-            }}
-          />
-          <input
-            ref={captureInputRef}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            className="hidden"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) handleUpload(file);
-              e.target.value = '';
-            }}
-          />
-        </div>
-      ) : null}
+        ) : null}
+        <Button type="button" size="sm" variant="secondary" onClick={refreshListing} disabled={loading}>
+          <RefreshCw className="size-4" aria-hidden />
+          {t('refresh')}
+        </Button>
+        {canManage ? (
+          <>
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => openFilePicker(fileInputRef.current)}
+              disabled={uploading || loading}
+            >
+              {t('upload')}
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              onClick={() => openFilePicker(captureInputRef.current)}
+              disabled={uploading || loading}
+            >
+              {t('capture')}
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              onClick={openCreateFolderDialog}
+              disabled={loading}
+            >
+              {t('createFolder')}
+            </Button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handleUpload(file);
+                e.target.value = '';
+              }}
+            />
+            <input
+              ref={captureInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handleUpload(file);
+                e.target.value = '';
+              }}
+            />
+          </>
+        ) : null}
+      </div>
 
       {loading || uploading ? <Spinner label={loading ? t('loading') : tAttach('uploading')} /> : null}
       {error ? <Alert tone="danger">{error}</Alert> : null}
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{breadcrumbLabel || currentFolderName}</CardTitle>
+          <CardTitle className="text-base">{breadcrumbTitle || currentFolderName}</CardTitle>
         </CardHeader>
         <CardContent>
           {isEmpty && !loading ? (
@@ -480,12 +557,15 @@ export function ProjectFilesTab({
                   key={folder.id}
                   icon={<Folder className="size-4 shrink-0 text-[var(--pf-text-secondary)]" aria-hidden />}
                   name={folder.name}
+                  kind="folder"
                   meta="—"
                   canManage={canManage}
                   onOpen={() => openSubfolder(folder)}
                   onRename={() => openRenameDialog(folder.id, 'folder', folder.name)}
                   onMove={() => void openMoveDialog(folder.id, 'folder', folder.name)}
-                  onDelete={() => setDeleteDialog({ itemId: folder.id, itemKind: 'folder', itemName: folder.name })}
+                  onDelete={() =>
+                    setDeleteDialog({ itemId: folder.id, itemKind: 'folder', itemName: folder.name })
+                  }
                   t={t}
                 />
               ))}
@@ -494,12 +574,15 @@ export function ProjectFilesTab({
                   key={file.id}
                   icon={<FileText className="size-4 shrink-0 text-[var(--pf-text-secondary)]" aria-hidden />}
                   name={file.name}
+                  kind="file"
                   meta={file.sizeBytes != null ? formatFileSize(file.sizeBytes, tFileSize) : '—'}
                   canManage={canManage}
                   onOpen={() => void previewFile(file.id)}
                   onRename={() => openRenameDialog(file.id, 'file', file.name)}
                   onMove={() => void openMoveDialog(file.id, 'file', file.name)}
-                  onDelete={() => setDeleteDialog({ itemId: file.id, itemKind: 'file', itemName: file.name })}
+                  onDelete={() =>
+                    setDeleteDialog({ itemId: file.id, itemKind: 'file', itemName: file.name })
+                  }
                   t={t}
                 />
               ))}
@@ -622,6 +705,7 @@ export function ProjectFilesTab({
 function BrowserRow({
   icon,
   name,
+  kind,
   meta,
   canManage,
   onOpen,
@@ -632,6 +716,7 @@ function BrowserRow({
 }: {
   icon: ReactNode;
   name: string;
+  kind: 'file' | 'folder';
   meta: string;
   canManage: boolean;
   onOpen: () => void;
@@ -649,6 +734,7 @@ function BrowserRow({
       >
         {icon}
         <span className="truncate">{name}</span>
+        <span className="sr-only">{kind === 'folder' ? t('folderKind') : t('fileKind')}</span>
       </button>
       <div className="flex shrink-0 items-center gap-2">
         <span className="text-[var(--pf-text-secondary)]">{meta}</span>

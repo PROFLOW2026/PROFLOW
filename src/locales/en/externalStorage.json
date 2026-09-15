@@ -82,6 +82,11 @@
     "deleteFolderDescription": "Delete folder {name}? Only empty folders can be deleted.",
     "actions": "Actions",
     "breadcrumb": "Folder navigation",
-    "loading": "Loading…"
+    "loading": "Loading…",
+    "refresh": "Refresh",
+    "back": "Back",
+    "shortcutsLabel": "Shortcuts:",
+    "folderKind": "Folder",
+    "fileKind": "File"
   }
 }

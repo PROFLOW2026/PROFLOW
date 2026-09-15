@@ -82,6 +82,11 @@
     "deleteFolderDescription": "האם למחוק את התיקייה {name}? ניתן למחוק רק תיקיות ריקות.",
     "actions": "פעולות",
     "breadcrumb": "ניווט בתיקיות",
-    "loading": "טוען…"
+    "loading": "טוען…",
+    "refresh": "רענון",
+    "back": "חזרה",
+    "shortcutsLabel": "קיצורי דרך:",
+    "folderKind": "תיקייה",
+    "fileKind": "קובץ"
   }
 }

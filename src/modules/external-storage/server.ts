@@ -39,10 +39,15 @@ export {
   browseProjectStorageFolder,
   createProjectStorageSubfolder,
   deleteProjectStorageItem,
+  getProjectStorageBrowserContext,
   getProjectStorageFileDownload,
   listProjectStorageMoveTargets,
   moveProjectStorageItem,
   renameProjectStorageItem,
+} from './application/browser-service';
+export type {
+  ProjectBrowserListingResult,
+  ProjectStorageBrowserContext,
 } from './application/browser-service';
 export { bootstrapOrganizationStorageTree } from './application/bootstrap';
 export {

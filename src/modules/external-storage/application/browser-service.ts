@@ -6,6 +6,7 @@ import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
 import { updateDocumentById } from '@/modules/documents';
+import { PROJECT_SEMANTIC_FOLDERS } from '../domain/semantic-folders';
 import type { SemanticFolderType } from '@drizzle/schema/external-storage';
 import {
   findStorageFileByExternalId,
@@ -13,7 +14,6 @@ import {
   updateStorageFileByExternalId,
 } from '../data/files.repository';
 import {
-  findFolderMapping,
   findFolderMappingByExternalFolderId,
   listFolderMappingsForProject,
   updateFolderMapping,
@@ -42,17 +42,30 @@ export interface ProjectBrowserFolderTarget {
 }
 
 export interface ProjectBrowserListingResult {
-  readonly semanticFolderType: SemanticFolderType;
   readonly folderExternalId: string;
   readonly folderName: string;
+  readonly projectRootFolderId: string;
   readonly listing: ProviderFolderListing;
+}
+
+export interface ProjectStorageBrowserContext {
+  readonly projectRootFolderId: string;
+  readonly projectRootFolderName: string;
+  readonly semanticShortcuts: ReadonlyArray<{
+    readonly semanticFolderType: SemanticFolderType;
+    readonly externalFolderId: string;
+    readonly displayName: string;
+  }>;
 }
 
 interface ProjectBrowserRuntime {
   readonly connection: StorageConnectionRecord;
   readonly accessToken: string;
   readonly adapter: StorageProviderAdapter;
-  readonly projectRootFolderIds: ReadonlySet<string>;
+  /** Hard security boundary — descendants of this folder only. */
+  readonly projectRootFolderId: string;
+  /** Bootstrap/system mapped folders — no rename/move/delete. */
+  readonly protectedFolderIds: ReadonlySet<string>;
 }
 
 async function resolveProjectBrowserRuntime(
@@ -70,19 +83,26 @@ async function resolveProjectBrowserRuntime(
     connection.id,
     projectId,
   );
-  const readyRoots = mappings.filter((m) => m.status === 'ready').map((m) => m.externalFolderId);
-
-  if (readyRoots.length === 0) {
+  const projectRootMapping = mappings.find(
+    (m) => m.semanticFolderType === 'project_root' && m.status === 'ready',
+  );
+  if (!projectRootMapping) {
     throw new ServiceUnavailableError(
       'Project folders not provisioned',
       'externalStorage.errors.fileUnavailable',
     );
   }
+
+  const protectedFolderIds = new Set(
+    mappings.filter((m) => m.status === 'ready').map((m) => m.externalFolderId),
+  );
+
   return {
     connection,
     accessToken,
     adapter: getStorageProviderAdapter(connection.provider),
-    projectRootFolderIds: new Set(readyRoots),
+    projectRootFolderId: projectRootMapping.externalFolderId,
+    protectedFolderIds,
   };
 }
 
@@ -94,7 +114,7 @@ async function assertFolderScope(
     runtime.adapter,
     runtime.accessToken,
     folderId,
-    runtime.projectRootFolderIds,
+    new Set([runtime.projectRootFolderId]),
   );
 }
 
@@ -245,55 +265,69 @@ function mapProviderError(error: unknown): never {
   throw error;
 }
 
-async function resolveSemanticFolderId(
+export async function getProjectStorageBrowserContext(
   context: OrgContext,
-  runtime: ProjectBrowserRuntime,
   projectId: string,
-  semanticFolderType: SemanticFolderType,
-): Promise<{ externalFolderId: string; folderName: string }> {
-  const mapping = await findFolderMapping(context.db, {
-    organizationId: context.organizationId,
-    connectionId: runtime.connection.id,
-    semanticFolderType,
-    entityType: 'project',
-    entityId: projectId,
+): Promise<ProjectStorageBrowserContext> {
+  assertPermission(context, PERMISSIONS.DOCUMENTS_READ);
+  const runtime = await resolveProjectBrowserRuntime(context, projectId);
+  const mappings = await listFolderMappingsForProject(
+    context.db,
+    context.organizationId,
+    runtime.connection.id,
+    projectId,
+  );
+
+  const projectRootMapping = mappings.find(
+    (m) => m.semanticFolderType === 'project_root' && m.status === 'ready',
+  );
+  const projectRootFolderName =
+    projectRootMapping?.displayName ??
+    (await runtime.adapter.getFolder(runtime.accessToken, runtime.projectRootFolderId))?.name ??
+    'ProjectFlow';
+
+  const semanticShortcuts = PROJECT_SEMANTIC_FOLDERS.flatMap((semanticFolderType) => {
+    const mapping = mappings.find(
+      (m) => m.semanticFolderType === semanticFolderType && m.status === 'ready',
+    );
+    if (!mapping) return [];
+    return [
+      {
+        semanticFolderType,
+        externalFolderId: mapping.externalFolderId,
+        displayName: mapping.displayName,
+      },
+    ];
   });
-  if (!mapping || mapping.status !== 'ready') {
-    throw new NotFoundError('Folder');
-  }
-  return { externalFolderId: mapping.externalFolderId, folderName: mapping.displayName };
+
+  return {
+    projectRootFolderId: runtime.projectRootFolderId,
+    projectRootFolderName,
+    semanticShortcuts,
+  };
 }
 
 export async function browseProjectStorageFolder(
   context: OrgContext,
   input: {
     projectId: string;
-    semanticFolderType: SemanticFolderType;
+    /** Omit or null to list the project root folder. */
     folderExternalId?: string | null;
   },
 ): Promise<ProjectBrowserListingResult> {
   assertPermission(context, PERMISSIONS.DOCUMENTS_READ);
   const runtime = await resolveProjectBrowserRuntime(context, input.projectId);
-  const semantic = await resolveSemanticFolderId(
-    context,
-    runtime,
-    input.projectId,
-    input.semanticFolderType,
-  );
-  const folderExternalId = input.folderExternalId?.trim() || semantic.externalFolderId;
+  const folderExternalId = input.folderExternalId?.trim() || runtime.projectRootFolderId;
   await assertFolderScope(runtime, folderExternalId);
 
-  let folderName = semantic.folderName;
-  if (folderExternalId !== semantic.externalFolderId) {
-    const folder = await runtime.adapter.getFolder(runtime.accessToken, folderExternalId);
-    folderName = folder?.name ?? folderName;
-  }
+  const folder = await runtime.adapter.getFolder(runtime.accessToken, folderExternalId);
+  const folderName = folder?.name ?? 'ProjectFlow';
 
   const listing = await runtime.adapter.listFolder(runtime.accessToken, folderExternalId);
   return {
-    semanticFolderType: input.semanticFolderType,
     folderExternalId,
     folderName,
+    projectRootFolderId: runtime.projectRootFolderId,
     listing,
   };
 }
@@ -337,7 +371,7 @@ export async function renameProjectStorageItem(
   try {
     if (input.itemKind === 'folder') {
       await assertFolderScope(runtime, input.itemId);
-      if (runtime.projectRootFolderIds.has(input.itemId)) {
+      if (runtime.protectedFolderIds.has(input.itemId)) {
         throw new DomainRuleError(
           'Cannot rename managed folder',
           'externalStorage.errors.managedFolder',
@@ -371,7 +405,7 @@ export async function moveProjectStorageItem(
   await assertFolderScope(runtime, input.targetFolderExternalId);
 
   if (input.itemKind === 'folder') {
-    if (runtime.projectRootFolderIds.has(input.itemId)) {
+    if (runtime.protectedFolderIds.has(input.itemId)) {
       throw new DomainRuleError(
         'Cannot move managed folder',
         'externalStorage.errors.managedFolder',
@@ -434,7 +468,7 @@ export async function deleteProjectStorageItem(
 
   try {
     if (input.itemKind === 'folder') {
-      if (runtime.projectRootFolderIds.has(input.itemId)) {
+      if (runtime.protectedFolderIds.has(input.itemId)) {
         throw new DomainRuleError(
           'Cannot delete managed folder',
           'externalStorage.errors.managedFolder',
@@ -472,18 +506,17 @@ export async function listProjectStorageMoveTargets(
 ): Promise<readonly ProjectBrowserFolderTarget[]> {
   assertPermission(context, PERMISSIONS.DOCUMENTS_READ);
   const runtime = await resolveProjectBrowserRuntime(context, input.projectId);
-  const mappings = await listFolderMappingsForProject(
-    context.db,
-    context.organizationId,
-    runtime.connection.id,
-    input.projectId,
+  const rootFolder = await runtime.adapter.getFolder(
+    runtime.accessToken,
+    runtime.projectRootFolderId,
   );
+  const rootLabel = rootFolder?.name ?? 'ProjectFlow';
 
   const targets: ProjectBrowserFolderTarget[] = [];
   const seen = new Set<string>();
-  const queue: Array<{ id: string; pathLabel: string }> = mappings
-    .filter((m) => m.status === 'ready')
-    .map((m) => ({ id: m.externalFolderId, pathLabel: m.displayName }));
+  const queue: Array<{ id: string; pathLabel: string }> = [
+    { id: runtime.projectRootFolderId, pathLabel: rootLabel },
+  ];
 
   while (queue.length > 0 && targets.length < MAX_MOVE_TARGETS) {
     const current = queue.shift()!;
