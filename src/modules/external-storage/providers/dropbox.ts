@@ -26,6 +26,15 @@ function deriveParentPath(pathLower: string | undefined): string | null {
   return parent.length > 0 ? parent : null;
 }
 
+function normalizeFolderId(folderId: string | null): string | null {
+  if (folderId === null || folderId === 'root' || folderId === '') return null;
+  return folderId;
+}
+
+function toListingFolderId(folderId: string): string {
+  return folderId === 'root' ? '' : folderId;
+}
+
 function mapEntry(
   entry: Record<string, unknown>,
   parentId: string | null = null,
@@ -146,14 +155,24 @@ export class DropboxStorageProvider implements StorageProviderAdapter {
     };
   }
 
+  async getDriveRoot(_accessToken: string): Promise<ProviderFolderItem> {
+    return { id: '', name: 'root', parentId: null, webUrl: null };
+  }
+
+  private normalizeRootFolderId(folderId: string): string {
+    return folderId === 'root' ? '' : folderId;
+  }
+
   private async resolvePath(accessToken: string, folderId: string): Promise<string> {
-    if (folderId.startsWith('/')) return folderId;
+    const normalized = this.normalizeRootFolderId(folderId);
+    if (normalized === '') return '';
+    if (normalized.startsWith('/')) return normalized;
     const meta = await providerJson<{ path_lower?: string }>(`${API}/files/get_metadata`, {
       method: 'POST',
       accessToken,
-      body: JSON.stringify({ path: folderId }),
+      body: JSON.stringify({ path: normalized }),
     });
-    return meta.path_lower ?? folderId;
+    return meta.path_lower ?? normalized;
   }
 
   private async resolveParentId(
@@ -191,8 +210,9 @@ export class DropboxStorageProvider implements StorageProviderAdapter {
     accessToken: string,
     input: { name: string; parentId: string | null },
   ): Promise<ProviderFolderItem> {
-    const parentPath = input.parentId ? await this.resolvePath(accessToken, input.parentId) : '';
-    const path = `${parentPath}/${input.name}`.replace(/\/+/g, '/');
+    const parentId = normalizeFolderId(input.parentId);
+    const parentPath = parentId ? await this.resolvePath(accessToken, parentId) : '';
+    const path = parentPath ? `${parentPath}/${input.name}` : `/${input.name}`;
     const created = await providerJson<Record<string, unknown>>(`${API}/files/create_folder_v2`, {
       method: 'POST',
       accessToken,
@@ -202,16 +222,29 @@ export class DropboxStorageProvider implements StorageProviderAdapter {
     return (await this.mapEntryWithParent(
       accessToken,
       metadata,
-      input.parentId,
+      parentId,
     )) as ProviderFolderItem;
   }
 
+  async getChildFolderByName(
+    accessToken: string,
+    parentId: string | null,
+    name: string,
+  ): Promise<ProviderFolderItem | null> {
+    const listingFolderId = parentId === null ? 'root' : parentId;
+    const listing = await this.listFolder(accessToken, listingFolderId);
+    return listing.folders.find((folder) => folder.name === name) ?? null;
+  }
+
   async getFolder(accessToken: string, folderId: string): Promise<ProviderFolderItem | null> {
+    if (folderId === 'root' || folderId === '') {
+      return this.getDriveRoot(accessToken);
+    }
     try {
       const meta = await providerJson<Record<string, unknown>>(`${API}/files/get_metadata`, {
         method: 'POST',
         accessToken,
-        body: JSON.stringify({ path: folderId }),
+        body: JSON.stringify({ path: this.normalizeRootFolderId(folderId) }),
       });
       if (meta['.tag'] !== 'folder') return null;
       return (await this.mapEntryWithParent(accessToken, meta)) as ProviderFolderItem;
@@ -223,18 +256,40 @@ export class DropboxStorageProvider implements StorageProviderAdapter {
 
   async listFolder(accessToken: string, folderId: string): Promise<ProviderFolderListing> {
     const path = await this.resolvePath(accessToken, folderId);
-    const data = await providerJson<{ entries?: Record<string, unknown>[] }>(
-      `${API}/files/list_folder`,
-      {
-        method: 'POST',
-        accessToken,
-        body: JSON.stringify({ path, recursive: false }),
-      },
-    );
+    const listingParentId = toListingFolderId(folderId);
+    const entries: Record<string, unknown>[] = [];
+    let cursor: string | undefined;
+    let hasMore = true;
+
+    while (hasMore) {
+      const data = cursor
+        ? await providerJson<{
+            entries?: Record<string, unknown>[];
+            has_more?: boolean;
+            cursor?: string;
+          }>(`${API}/files/list_folder/continue`, {
+            method: 'POST',
+            accessToken,
+            body: JSON.stringify({ cursor }),
+          })
+        : await providerJson<{
+            entries?: Record<string, unknown>[];
+            has_more?: boolean;
+            cursor?: string;
+          }>(`${API}/files/list_folder`, {
+            method: 'POST',
+            accessToken,
+            body: JSON.stringify({ path, recursive: false }),
+          });
+      entries.push(...(data.entries ?? []));
+      hasMore = Boolean(data.has_more);
+      cursor = data.cursor;
+    }
+
     const folders: ProviderFolderItem[] = [];
     const files: ProviderFileItem[] = [];
-    for (const entry of data.entries ?? []) {
-      const mapped = await this.mapEntryWithParent(accessToken, entry, folderId);
+    for (const entry of entries) {
+      const mapped = await this.mapEntryWithParent(accessToken, entry, listingParentId);
       if (entry['.tag'] === 'folder') folders.push(mapped as ProviderFolderItem);
       else files.push(mapped as ProviderFileItem);
     }
@@ -281,10 +336,11 @@ export class DropboxStorageProvider implements StorageProviderAdapter {
   }
 
   async deleteFolder(accessToken: string, folderId: string): Promise<void> {
+    const path = await this.resolvePath(accessToken, folderId);
     await providerJson(`${API}/files/delete_v2`, {
       method: 'POST',
       accessToken,
-      body: JSON.stringify({ path: folderId }),
+      body: JSON.stringify({ path }),
     });
   }
 
@@ -327,7 +383,7 @@ export class DropboxStorageProvider implements StorageProviderAdapter {
       const meta = await providerJson<Record<string, unknown>>(`${API}/files/get_metadata`, {
         method: 'POST',
         accessToken,
-        body: JSON.stringify({ path: fileId }),
+        body: JSON.stringify({ path: this.normalizeRootFolderId(fileId) }),
       });
       if (meta['.tag'] === 'folder') return null;
       return (await this.mapEntryWithParent(accessToken, meta)) as ProviderFileItem;
@@ -342,14 +398,29 @@ export class DropboxStorageProvider implements StorageProviderAdapter {
   async downloadFileStream(
     accessToken: string,
     fileId: string,
-  ): Promise<{ stream: ReadableStream<Uint8Array>; mimeType: string; sizeBytes: number | null }> {
-    const meta = await this.getFileMetadata(accessToken, fileId);
+    options?: {
+      byteRange?: { start: number; end: number };
+      knownMeta?: ProviderFileItem | null;
+    },
+  ): Promise<{
+    stream: ReadableStream<Uint8Array>;
+    mimeType: string;
+    sizeBytes: number | null;
+    httpStatus?: number;
+    contentRange?: string | null;
+  }> {
+    const meta = options?.knownMeta ?? (await this.getFileMetadata(accessToken, fileId));
+    const path = await this.resolvePath(accessToken, fileId);
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${accessToken}`,
+      'Dropbox-API-Arg': JSON.stringify({ path }),
+    };
+    if (options?.byteRange) {
+      headers.Range = `bytes=${options.byteRange.start}-${options.byteRange.end}`;
+    }
     const response = await fetch(`${CONTENT}/files/download`, {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Dropbox-API-Arg': JSON.stringify({ path: fileId }),
-      },
+      headers,
     });
     if (!response.ok || !response.body) {
       throw new ProviderHttpError(response.status, 'download failed');
@@ -358,6 +429,8 @@ export class DropboxStorageProvider implements StorageProviderAdapter {
       stream: response.body,
       mimeType: 'application/octet-stream',
       sizeBytes: meta?.sizeBytes ?? null,
+      httpStatus: response.status,
+      contentRange: response.headers.get('content-range'),
     };
   }
 
@@ -397,11 +470,58 @@ export class DropboxStorageProvider implements StorageProviderAdapter {
   }
 
   async deleteFile(accessToken: string, fileId: string): Promise<void> {
+    const path = await this.resolvePath(accessToken, fileId);
     await providerJson(`${API}/files/delete_v2`, {
       method: 'POST',
       accessToken,
-      body: JSON.stringify({ path: fileId }),
+      body: JSON.stringify({ path }),
     });
+  }
+
+  async getProviderWebUrl(accessToken: string, itemId: string): Promise<string | null> {
+    const path = await this.resolvePath(accessToken, itemId);
+    try {
+      const existing = await providerJson<{ links?: { url?: string }[] }>(
+        `${API}/sharing/list_shared_links`,
+        {
+          method: 'POST',
+          accessToken,
+          body: JSON.stringify({ path, direct_only: true }),
+        },
+      );
+      const existingUrl = existing.links?.[0]?.url;
+      if (existingUrl) return existingUrl;
+    } catch {
+      // Fall through to create a shared link.
+    }
+
+    try {
+      const created = await providerJson<{ url?: string }>(
+        `${API}/sharing/create_shared_link_with_settings`,
+        {
+          method: 'POST',
+          accessToken,
+          body: JSON.stringify({
+            path,
+            settings: { requested_visibility: { '.tag': 'public' } },
+          }),
+        },
+      );
+      return created.url ?? null;
+    } catch (error) {
+      if (error instanceof ProviderHttpError && error.status === 409) {
+        const existing = await providerJson<{ links?: { url?: string }[] }>(
+          `${API}/sharing/list_shared_links`,
+          {
+            method: 'POST',
+            accessToken,
+            body: JSON.stringify({ path, direct_only: true }),
+          },
+        );
+        return existing.links?.[0]?.url ?? null;
+      }
+      return null;
+    }
   }
 }
 

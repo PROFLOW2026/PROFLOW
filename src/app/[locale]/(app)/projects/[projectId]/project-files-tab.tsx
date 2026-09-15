@@ -38,7 +38,9 @@ import type {
   ProviderFileItem,
   ProviderFolderItem,
   SemanticFolderType,
+  StorageProviderKey,
 } from '@/modules/external-storage/client';
+import { STORAGE_PROVIDER_LABELS } from '@/modules/external-storage/client';
 import {
   prepareDocumentUploadAction,
   finalizeDocumentUploadAction,
@@ -64,6 +66,7 @@ import {
 type BrowseSegment = { readonly id: string; readonly name: string };
 
 type BrowserContext = {
+  provider: StorageProviderKey;
   projectRootFolderId: string;
   projectRootFolderName: string;
   semanticShortcuts: ReadonlyArray<{
@@ -463,7 +466,7 @@ export function ProjectFilesTab({
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
-  const openFileInOneDrive = async (file: ProviderFileItem) => {
+  const openFileInProvider = async (file: ProviderFileItem) => {
     const result = await getProjectFileProviderUrlAction({ projectId, fileId: file.id });
     if (result.error || !result.url) {
       setError(result.error ?? tErrors('fileUnavailable'));
@@ -492,6 +495,9 @@ export function ProjectFilesTab({
       : `${browserContext.projectRootFolderName} / ${browsePath.map((s) => s.name).join(' / ')}`;
 
   const isEmpty = folders.length === 0 && files.length === 0;
+  const providerLabel = browserContext
+    ? STORAGE_PROVIDER_LABELS[browserContext.provider]
+    : null;
 
   return (
     <div className="flex flex-col gap-4">
@@ -642,7 +648,8 @@ export function ProjectFilesTab({
                   canManage={canManage}
                   onOpen={() => openFilePreview(file)}
                   onOpenOnDevice={() => openFileOnDevice(file)}
-                  onOpenInProvider={() => void openFileInOneDrive(file)}
+                  onOpenInProvider={() => void openFileInProvider(file)}
+                  providerLabel={providerLabel}
                   onShare={() => shareStorageItem(file)}
                   onRename={() => openRenameDialog(file.id, 'file', file.name)}
                   onMove={() => void openMoveDialog(file.id, 'file', file.name)}
@@ -790,10 +797,11 @@ export function ProjectFilesTab({
           });
           window.open(url, '_blank', 'noopener,noreferrer');
         }}
-        onOpenInOneDrive={(target) => {
+        onOpenInProvider={(target) => {
           const file = files.find((item) => item.id === target.fileId);
-          if (file) void openFileInOneDrive(file);
+          if (file) void openFileInProvider(file);
         }}
+        provider={browserContext.provider}
       />
     </div>
   );
@@ -808,6 +816,7 @@ function BrowserRow({
   onOpen,
   onOpenOnDevice,
   onOpenInProvider,
+  providerLabel,
   onShare,
   onRename,
   onMove,
@@ -823,6 +832,7 @@ function BrowserRow({
   onOpen: () => void;
   onOpenOnDevice?: () => void;
   onOpenInProvider?: () => void;
+  providerLabel?: string | null;
   onShare?: () => void;
   onRename: () => void;
   onMove: () => void;
@@ -857,8 +867,10 @@ function BrowserRow({
                   {onOpenOnDevice ? (
                     <DropdownMenuItem onSelect={onOpenOnDevice}>{tPreview('openOnDevice')}</DropdownMenuItem>
                   ) : null}
-                  {onOpenInProvider ? (
-                    <DropdownMenuItem onSelect={onOpenInProvider}>{tPreview('openInOneDrive')}</DropdownMenuItem>
+                  {onOpenInProvider && providerLabel ? (
+                    <DropdownMenuItem onSelect={onOpenInProvider}>
+                      {tPreview('openInProvider', { provider: providerLabel })}
+                    </DropdownMenuItem>
                   ) : null}
                   {onShare ? (
                     <DropdownMenuItem onSelect={onShare}>{tPreview('share')}</DropdownMenuItem>

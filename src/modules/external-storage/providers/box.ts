@@ -13,6 +13,11 @@ import { ProviderHttpError, providerJson, toUint8Array } from './http-utils';
 
 const API = 'https://api.box.com/2.0';
 const UPLOAD = 'https://upload.box.com/api/2.0';
+const LIST_PAGE_SIZE = 1000;
+
+function normalizeFolderId(folderId: string): string {
+  return folderId === 'root' ? '0' : folderId;
+}
 
 function readEnv(name: string): string {
   const value = process.env[name]?.trim();
@@ -105,11 +110,21 @@ export class BoxStorageProvider implements StorageProviderAdapter {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: body.toString(),
     });
+    const rotatedRefreshToken = token.refresh_token?.trim();
     return {
       accessToken: token.access_token,
-      refreshToken: token.refresh_token ?? refreshToken,
+      refreshToken: rotatedRefreshToken || refreshToken,
       expiresAt: token.expires_in ? new Date(Date.now() + token.expires_in * 1000) : null,
       scopes: (token.scope ?? '').split(' ').filter(Boolean),
+    };
+  }
+
+  async getDriveRoot(_accessToken: string): Promise<ProviderFolderItem> {
+    return {
+      id: '0',
+      name: 'All Files',
+      parentId: null,
+      webUrl: null,
     };
   }
 
@@ -152,7 +167,7 @@ export class BoxStorageProvider implements StorageProviderAdapter {
     accessToken: string,
     input: { name: string; parentId: string | null },
   ): Promise<ProviderFolderItem> {
-    const parentId = input.parentId ?? '0';
+    const parentId = input.parentId ? normalizeFolderId(input.parentId) : '0';
     const created = await providerJson<Record<string, unknown>>(`${API}/folders`, {
       method: 'POST',
       accessToken,
@@ -161,10 +176,19 @@ export class BoxStorageProvider implements StorageProviderAdapter {
     return mapItem(created) as ProviderFolderItem;
   }
 
+  async getChildFolderByName(
+    accessToken: string,
+    parentId: string | null,
+    name: string,
+  ): Promise<ProviderFolderItem | null> {
+    const listing = await this.listFolder(accessToken, parentId ?? 'root');
+    return listing.folders.find((folder) => folder.name === name) ?? null;
+  }
+
   async getFolder(accessToken: string, folderId: string): Promise<ProviderFolderItem | null> {
     try {
       const item = await providerJson<Record<string, unknown>>(
-        `${API}/folders/${folderId}`,
+        `${API}/folders/${normalizeFolderId(folderId)}`,
         { accessToken },
       );
       if (item.type !== 'folder') return null;
@@ -176,13 +200,27 @@ export class BoxStorageProvider implements StorageProviderAdapter {
   }
 
   async listFolder(accessToken: string, folderId: string): Promise<ProviderFolderListing> {
-    const data = await providerJson<{ entries?: Record<string, unknown>[] }>(
-      `${API}/folders/${folderId}/items?limit=1000`,
-      { accessToken },
-    );
+    const resolvedId = normalizeFolderId(folderId);
+    const entries: Record<string, unknown>[] = [];
+    let offset = 0;
+
+    while (true) {
+      const data = await providerJson<{
+        entries?: Record<string, unknown>[];
+        total_count?: number;
+      }>(
+        `${API}/folders/${resolvedId}/items?limit=${LIST_PAGE_SIZE}&offset=${offset}`,
+        { accessToken },
+      );
+      const page = data.entries ?? [];
+      entries.push(...page);
+      offset += page.length;
+      if (page.length === 0 || offset >= (data.total_count ?? offset)) break;
+    }
+
     const folders: ProviderFolderItem[] = [];
     const files: ProviderFileItem[] = [];
-    for (const entry of data.entries ?? []) {
+    for (const entry of entries) {
       const mapped = mapItem(entry);
       if (entry.type === 'folder') folders.push(mapped as ProviderFolderItem);
       else files.push(mapped as ProviderFileItem);
@@ -276,18 +314,32 @@ export class BoxStorageProvider implements StorageProviderAdapter {
   async downloadFileStream(
     accessToken: string,
     fileId: string,
-  ): Promise<{ stream: ReadableStream<Uint8Array>; mimeType: string; sizeBytes: number | null }> {
-    const meta = await this.getFileMetadata(accessToken, fileId);
-    const response = await fetch(`${API}/files/${fileId}/content`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    });
+    options?: {
+      byteRange?: { start: number; end: number };
+      knownMeta?: ProviderFileItem | null;
+    },
+  ): Promise<{
+    stream: ReadableStream<Uint8Array>;
+    mimeType: string;
+    sizeBytes: number | null;
+    httpStatus?: number;
+    contentRange?: string | null;
+  }> {
+    const meta = options?.knownMeta ?? (await this.getFileMetadata(accessToken, fileId));
+    const headers: Record<string, string> = { Authorization: `Bearer ${accessToken}` };
+    if (options?.byteRange) {
+      headers.Range = `bytes=${options.byteRange.start}-${options.byteRange.end}`;
+    }
+    const response = await fetch(`${API}/files/${fileId}/content`, { headers });
     if (!response.ok || !response.body) {
       throw new ProviderHttpError(response.status, 'download failed');
     }
     return {
       stream: response.body,
-      mimeType: 'application/octet-stream',
+      mimeType: meta?.mimeType ?? response.headers.get('content-type') ?? 'application/octet-stream',
       sizeBytes: meta?.sizeBytes ?? null,
+      httpStatus: response.status,
+      contentRange: response.headers.get('content-range'),
     };
   }
 
@@ -321,6 +373,33 @@ export class BoxStorageProvider implements StorageProviderAdapter {
 
   async deleteFile(accessToken: string, fileId: string): Promise<void> {
     await providerJson(`${API}/files/${fileId}`, { method: 'DELETE', accessToken });
+  }
+
+  async getProviderWebUrl(accessToken: string, itemId: string): Promise<string | null> {
+    try {
+      const file = await providerJson<{
+        type?: string;
+        shared_link?: { url?: string };
+      }>(`${API}/files/${itemId}?fields=shared_link,type`, { accessToken });
+      if (file.shared_link?.url) return file.shared_link.url;
+      if (file.type === 'file') return `https://app.box.com/file/${itemId}`;
+    } catch (error) {
+      if (!(error instanceof ProviderHttpError && error.status === 404)) throw error;
+    }
+
+    try {
+      const folder = await providerJson<{
+        type?: string;
+        shared_link?: { url?: string };
+      }>(`${API}/folders/${itemId}?fields=shared_link,type`, { accessToken });
+      if (folder.shared_link?.url) return folder.shared_link.url;
+      if (folder.type === 'folder') return `https://app.box.com/folder/${itemId}`;
+    } catch (error) {
+      if (error instanceof ProviderHttpError && error.status === 404) return null;
+      throw error;
+    }
+
+    return null;
   }
 }
 

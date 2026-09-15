@@ -31,6 +31,7 @@ import { assertFolderWithinProjectTree, isFolderDescendantOf } from './browser-s
 const MAX_MOVE_TARGETS = 250;
 
 export interface OrgStorageBrowserContext {
+  readonly provider: StorageConnectionRecord['provider'];
   readonly organizationRootFolderId: string;
   readonly organizationRootFolderName: string;
   readonly semanticShortcuts: ReadonlyArray<{
@@ -122,6 +123,7 @@ function buildOrgSemanticShortcuts(
 
 function buildOrgBrowserContext(runtime: OrgBrowserRuntime): OrgStorageBrowserContext {
   return {
+    provider: runtime.connection.provider,
     organizationRootFolderId: runtime.organizationRootFolderId,
     organizationRootFolderName: runtime.organizationRootMapping.displayName,
     semanticShortcuts: buildOrgSemanticShortcuts(runtime.mappings),

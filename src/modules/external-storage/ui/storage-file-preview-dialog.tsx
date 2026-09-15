@@ -11,7 +11,8 @@ import {
   isBrowserPreviewableMime,
   isBrowserPreviewablePdfMime,
 } from '@/modules/documents/domain/file-rules';
-import type { ProviderFileItem } from '../client';
+import type { ProviderFileItem, StorageProviderKey } from '../client';
+import { STORAGE_PROVIDER_LABELS } from '../client';
 import {
   buildStorageFileDownloadUrl,
   type StorageBrowserScope,
@@ -54,7 +55,8 @@ export function StorageFilePreviewDialog({
   file,
   siblingFiles,
   onOpenOnDevice,
-  onOpenInOneDrive,
+  onOpenInProvider,
+  provider,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -63,7 +65,8 @@ export function StorageFilePreviewDialog({
   file: PreviewTarget | null;
   siblingFiles?: readonly ProviderFileItem[];
   onOpenOnDevice?: (file: PreviewTarget) => void;
-  onOpenInOneDrive?: (file: PreviewTarget) => void;
+  onOpenInProvider?: (file: PreviewTarget) => void;
+  provider?: StorageProviderKey;
 }) {
   const t = useTranslations('externalStorage.preview');
   const tCommon = useTranslations('common');
@@ -120,6 +123,7 @@ export function StorageFilePreviewDialog({
   const showPdf = isBrowserPreviewablePdfMime(mime);
   const isPreviewable = showImage || showPdf;
   const canNavigate = previewableSiblings.length > 1;
+  const providerLabel = provider ? STORAGE_PROVIDER_LABELS[provider] : null;
 
   useEffect(() => {
     if (!open) return;
@@ -183,7 +187,11 @@ export function StorageFilePreviewDialog({
 
       {!isPreviewable ? (
         <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 p-6 text-center">
-          <Alert tone="info">{t('unsupported')}</Alert>
+          <Alert tone="info">
+            {providerLabel
+              ? t('unsupportedWithProvider', { provider: providerLabel })
+              : t('unsupported')}
+          </Alert>
           <div className="flex flex-wrap items-center justify-center gap-2">
             <Button type="button" variant="primary" onClick={handleShare} disabled={sharing}>
               {t('share')}
@@ -193,9 +201,9 @@ export function StorageFilePreviewDialog({
                 {t('openOnDevice')}
               </Button>
             ) : null}
-            {onOpenInOneDrive ? (
-              <Button type="button" variant="secondary" onClick={() => onOpenInOneDrive(activeFile)}>
-                {t('openInOneDrive')}
+            {onOpenInProvider && providerLabel ? (
+              <Button type="button" variant="secondary" onClick={() => onOpenInProvider(activeFile)}>
+                {t('openInProvider', { provider: providerLabel })}
               </Button>
             ) : null}
             <Button type="button" variant="ghost" onClick={handleClose}>

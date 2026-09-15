@@ -64,7 +64,7 @@ See `.env.example` — `STORAGE_TOKEN_ENCRYPTION_KEY` and per-provider OAuth cli
 - Console: [Google Cloud Console → Credentials](https://console.cloud.google.com/apis/credentials)
 - Type: OAuth client (Web)
 - Redirect URI: `https://<APP_URL>/api/org-storage/oauth/google_drive/callback`
-- Scopes: `drive.file`, `userinfo.email`
+- Scopes: `drive`, `userinfo.email`
 - Env: `GOOGLE_STORAGE_CLIENT_ID`, `GOOGLE_STORAGE_CLIENT_SECRET`
 
 ### Dropbox

@@ -14,9 +14,29 @@ import {
   resolveSemanticFolderDisplayName,
 } from '../domain/semantic-folders';
 import { sanitizeProviderFolderName } from '../domain/folder-names';
+import {
+  normalizeProviderFolderId,
+  resolveProviderRootFolderId,
+} from '../domain/provider-roots';
 import type { ProviderFolderItem, StorageConnectionRecord } from '../domain/types';
 import { ProviderHttpError } from '../providers/http-utils';
 import { getStorageProviderAdapter } from '../providers/registry';
+
+async function resolveListFolderParentId(
+  accessToken: string,
+  provider: StorageConnectionRecord['provider'],
+  parentId: string | null,
+): Promise<string> {
+  if (parentId !== null) {
+    return normalizeProviderFolderId(provider, parentId);
+  }
+  const adapter = getStorageProviderAdapter(provider);
+  if (adapter.getDriveRoot) {
+    const driveRoot = await adapter.getDriveRoot(accessToken);
+    return driveRoot.id;
+  }
+  return resolveProviderRootFolderId(provider);
+}
 
 async function findChildFolderByName(
   accessToken: string,
@@ -28,7 +48,8 @@ async function findChildFolderByName(
   if (adapter.getChildFolderByName) {
     return adapter.getChildFolderByName(accessToken, parentId, name);
   }
-  const listing = await adapter.listFolder(accessToken, parentId ?? 'root');
+  const listParentId = await resolveListFolderParentId(accessToken, provider, parentId);
+  const listing = await adapter.listFolder(accessToken, listParentId);
   return listing.folders.find((folder) => folder.name === name) ?? null;
 }
 

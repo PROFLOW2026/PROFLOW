@@ -51,6 +51,7 @@ export interface ProjectBrowserListingResult {
 }
 
 export interface ProjectStorageBrowserContext {
+  readonly provider: StorageConnectionRecord['provider'];
   readonly projectRootFolderId: string;
   readonly projectRootFolderName: string;
   readonly semanticShortcuts: ReadonlyArray<{
@@ -100,6 +101,7 @@ function buildSemanticShortcuts(
 
 function buildBrowserContext(runtime: ProjectBrowserRuntime): ProjectStorageBrowserContext {
   return {
+    provider: runtime.connection.provider,
     projectRootFolderId: runtime.projectRootFolderId,
     projectRootFolderName: runtime.projectRootMapping.displayName,
     semanticShortcuts: buildSemanticShortcuts(runtime.mappings),
