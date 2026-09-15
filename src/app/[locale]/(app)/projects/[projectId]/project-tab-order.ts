@@ -46,6 +46,14 @@ export const PROJECT_TAB_PRIORITY: readonly ProjectTabKey[] = [
   'details',
 ] as const;
 
+/**
+ * Project OneDrive file manager (`?tab=documents` / hub `documents`).
+ * Permission-gated only — not hidden by the optional documents module toggle.
+ */
+export function resolveProjectFilesTabVisible(canReadDocuments: boolean): boolean {
+  return canReadDocuments;
+}
+
 export interface ProjectTabVisibility {
   readonly financials: boolean;
   readonly expenses: boolean;

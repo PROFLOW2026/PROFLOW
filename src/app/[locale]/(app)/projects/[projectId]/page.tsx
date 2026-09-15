@@ -33,6 +33,7 @@ import {
 } from './project-hub-order';
 import {
   applyProjectProfileToTabVisibility,
+  resolveProjectFilesTabVisible,
 } from './project-tab-order';
 import { resolveProjectExperienceProfile } from '@/modules/tenancy';
 import { getShellContext } from '@/shared/auth/session';
@@ -310,7 +311,7 @@ async function ModuleTabWithHubNav(input: {
         team: can(PERMISSIONS.WORKFORCE_READ),
         schedule: can(PERMISSIONS.PLANNING_READ),
         time: can(PERMISSIONS.WORKFORCE_READ),
-        documents: Boolean(modules.documents) && can(PERMISSIONS.DOCUMENTS_READ),
+        documents: resolveProjectFilesTabVisible(can(PERMISSIONS.DOCUMENTS_READ)),
         usage: can(PERMISSIONS.MATERIALS_READ) || can(PERMISSIONS.ASSETS_READ),
         work: detail.showWorkPackages,
         closeout: true,

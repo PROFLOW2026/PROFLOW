@@ -112,7 +112,7 @@ describe('ProjectTabsShell encounter order', () => {
       'סקירה',
       'כספים',
       'עבודה',
-      'מסמכים',
+      'קבצים',
       'פרטים',
     ]);
   });

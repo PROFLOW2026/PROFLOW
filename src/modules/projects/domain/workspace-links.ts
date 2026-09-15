@@ -114,7 +114,7 @@ export function selectProjectWorkspaceLinks(input: WorkspaceLinkInput): ProjectW
     );
   }
 
-  if (moduleOn(input.modules, 'documents') && can(input.permissions, PERMISSIONS.DOCUMENTS_READ)) {
+  if (can(input.permissions, PERMISSIONS.DOCUMENTS_READ)) {
     links.push({ key: 'documents', href: tab('documents'), inProject: true });
   }
 

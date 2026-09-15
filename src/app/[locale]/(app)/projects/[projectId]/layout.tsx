@@ -22,6 +22,7 @@ import { ProjectHeaderMetrics } from './project-header-metrics';
 import { ProjectStatusBadge } from '../project-status-badge';
 import {
   applyProjectProfileToTabVisibility,
+  resolveProjectFilesTabVisible,
 } from './project-tab-order';
 import {
   resolveProjectHubs,
@@ -65,7 +66,7 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
   // Schedule is permission-gated (not module) - `planning` is not in OPTIONAL_MODULE_KEYS.
   const showScheduleTab = can(PERMISSIONS.PLANNING_READ);
   const showTimeTab = can(PERMISSIONS.WORKFORCE_READ);
-  const showDocumentsTab = Boolean(modules?.documents) && can(PERMISSIONS.DOCUMENTS_READ);
+  const showDocumentsTab = resolveProjectFilesTabVisible(can(PERMISSIONS.DOCUMENTS_READ));
   const showUsageTab = can(PERMISSIONS.MATERIALS_READ) || can(PERMISSIONS.ASSETS_READ);
 
   const [t, tHubs, tStatus, tCloseout, detail, locale, closeoutStatus] = await Promise.all([

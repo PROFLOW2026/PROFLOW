@@ -40,6 +40,7 @@ import {
 import { TabPanelSkeleton } from '../../projects/[projectId]/tab-panel-skeleton';
 import { ProjectStatusBadge } from '../../projects/project-status-badge';
 import { resolveJobTabs } from '../job-tab-order';
+import { resolveProjectFilesTabVisible } from '../../projects/[projectId]/project-tab-order';
 import { ConvertJobButton } from './convert-job-button';
 import { JobOpenPricePanel } from './job-open-price-panel';
 import { textNavLinkClassName } from '@/components/ui/pressable';
@@ -102,7 +103,7 @@ export default async function JobPage({ params, searchParams }: JobPageProps) {
   // Team is permission-gated (not module) - parity with projects.
   const showTeamTab = can(PERMISSIONS.WORKFORCE_READ);
   const showTimeTab = Boolean(modules?.workforce) && can(PERMISSIONS.WORKFORCE_READ);
-  const showDocumentsTab = Boolean(modules?.documents) && can(PERMISSIONS.DOCUMENTS_READ);
+  const showDocumentsTab = resolveProjectFilesTabVisible(can(PERMISSIONS.DOCUMENTS_READ));
   const showBudgetsTab = Boolean(modules?.budgets) && can(PERMISSIONS.BUDGETS_READ);
   const showUsageTab = can(PERMISSIONS.MATERIALS_READ) || can(PERMISSIONS.ASSETS_READ);
 
