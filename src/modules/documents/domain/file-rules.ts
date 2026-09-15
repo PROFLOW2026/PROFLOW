@@ -39,7 +39,7 @@ export function isBrowserPreviewableImageMime(mimeType: string): boolean {
   return BROWSER_PREVIEWABLE_IMAGE_MIMES.has(mimeType.trim().toLowerCase());
 }
 
-/** True when a signed URL may be embedded in an `<iframe>` for PDF preview. */
+/** True when a signed URL may be rendered in the in-app PDF viewer. */
 export function isBrowserPreviewablePdfMime(mimeType: string): boolean {
   return mimeType.trim().toLowerCase() === 'application/pdf';
 }

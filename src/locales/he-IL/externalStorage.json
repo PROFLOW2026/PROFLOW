@@ -130,10 +130,16 @@
     "title": "תצוגה מקדימה",
     "loading": "טוען…",
     "failed": "לא ניתן להציג את הקובץ",
+    "retry": "נסה שוב",
     "unsupported": "פורמט זה אינו נתמך לתצוגה מקדימה. השתמשו ב\"פתח במכשיר\" או \"פתח ב-OneDrive\".",
     "openOnDevice": "פתח במכשיר",
     "openInOneDrive": "פתח ב-OneDrive",
     "previous": "הקודם",
-    "next": "הבא"
+    "next": "הבא",
+    "zoomIn": "הגדלה",
+    "zoomOut": "הקטנה",
+    "reset": "איפוס",
+    "fitWidth": "התאם לרוחב",
+    "fitPage": "התאם לעמוד"
   }
 }

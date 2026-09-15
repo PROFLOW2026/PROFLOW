@@ -63,7 +63,14 @@ export interface StorageProviderAdapter {
   downloadFileStream(
     accessToken: string,
     fileId: string,
-  ): Promise<{ stream: ReadableStream<Uint8Array>; mimeType: string; sizeBytes: number | null }>;
+    options?: { byteRange?: { start: number; end: number } },
+  ): Promise<{
+    stream: ReadableStream<Uint8Array>;
+    mimeType: string;
+    sizeBytes: number | null;
+    httpStatus?: number;
+    contentRange?: string | null;
+  }>;
   renameFile(accessToken: string, fileId: string, name: string): Promise<ProviderFileItem>;
   moveFile(
     accessToken: string,

@@ -352,11 +352,20 @@ export class OneDriveStorageProvider implements StorageProviderAdapter {
   async downloadFileStream(
     accessToken: string,
     fileId: string,
-  ): Promise<{ stream: ReadableStream<Uint8Array>; mimeType: string; sizeBytes: number | null }> {
+    options?: { byteRange?: { start: number; end: number } },
+  ): Promise<{
+    stream: ReadableStream<Uint8Array>;
+    mimeType: string;
+    sizeBytes: number | null;
+    httpStatus?: number;
+    contentRange?: string | null;
+  }> {
     const meta = await this.getFileMetadata(accessToken, fileId);
-    const response = await fetch(`${GRAPH}/me/drive/items/${fileId}/content`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    });
+    const headers: Record<string, string> = { Authorization: `Bearer ${accessToken}` };
+    if (options?.byteRange) {
+      headers.Range = `bytes=${options.byteRange.start}-${options.byteRange.end}`;
+    }
+    const response = await fetch(`${GRAPH}/me/drive/items/${fileId}/content`, { headers });
     if (!response.ok || !response.body) {
       throw new ProviderHttpError(response.status, 'download failed');
     }
@@ -364,6 +373,8 @@ export class OneDriveStorageProvider implements StorageProviderAdapter {
       stream: response.body,
       mimeType: meta?.mimeType ?? response.headers.get('content-type') ?? 'application/octet-stream',
       sizeBytes: meta?.sizeBytes ?? null,
+      httpStatus: response.status,
+      contentRange: response.headers.get('content-range'),
     };
   }
 

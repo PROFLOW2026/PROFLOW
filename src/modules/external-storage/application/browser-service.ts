@@ -590,18 +590,50 @@ export async function listProjectStorageMoveTargets(
   return targets;
 }
 
-export async function getProjectStorageFileDownload(
+export async function getProjectStorageFileDownloadMeta(
   context: OrgContext,
   input: { projectId: string; fileId: string },
-): Promise<{ stream: ReadableStream<Uint8Array>; filename: string; mimeType: string }> {
+): Promise<{ filename: string; mimeType: string; sizeBytes: number | null }> {
   assertPermission(context, PERMISSIONS.DOCUMENTS_READ);
   const runtime = await resolveProjectBrowserRuntime(context, input.projectId);
   const meta = await assertFileScope(runtime, input.fileId);
-  const downloaded = await runtime.adapter.downloadFileStream(runtime.accessToken, input.fileId);
+  return {
+    filename: meta.name,
+    mimeType: meta.mimeType ?? 'application/octet-stream',
+    sizeBytes: meta.sizeBytes ?? null,
+  };
+}
+
+export async function getProjectStorageFileDownload(
+  context: OrgContext,
+  input: {
+    projectId: string;
+    fileId: string;
+    byteRange?: { start: number; end: number } | null;
+  },
+): Promise<{
+  stream: ReadableStream<Uint8Array>;
+  filename: string;
+  mimeType: string;
+  sizeBytes: number | null;
+  httpStatus: number;
+  contentRange: string | null;
+}> {
+  assertPermission(context, PERMISSIONS.DOCUMENTS_READ);
+  const runtime = await resolveProjectBrowserRuntime(context, input.projectId);
+  const meta = await assertFileScope(runtime, input.fileId);
+  const downloaded = await runtime.adapter.downloadFileStream(
+    runtime.accessToken,
+    input.fileId,
+    input.byteRange ? { byteRange: input.byteRange } : undefined,
+  );
   return {
     stream: downloaded.stream,
     filename: meta.name,
     mimeType: downloaded.mimeType,
+    sizeBytes: downloaded.sizeBytes ?? meta.sizeBytes ?? null,
+    httpStatus: downloaded.httpStatus ?? 200,
+    contentRange: downloaded.contentRange ?? null,
   };
 }
 

@@ -674,6 +674,18 @@ export function CompanyFilesTab({
             : null
         }
         siblingFiles={files}
+        onOpenOnDevice={(target) => {
+          const url = buildStorageFileDownloadUrl({
+            scope: 'org',
+            fileId: target.fileId,
+            disposition: 'attachment',
+          });
+          window.open(url, '_blank', 'noopener,noreferrer');
+        }}
+        onOpenInOneDrive={(target) => {
+          const file = files.find((item) => item.id === target.fileId);
+          if (file) void openFileInOneDrive(file);
+        }}
       />
     </div>
   );
