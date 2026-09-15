@@ -7,6 +7,7 @@ import {
   getProjectStorageBrowserContext,
   getProjectStorageFileDownload,
   listProjectStorageMoveTargets,
+  loadProjectFileBrowserInitial,
   moveProjectStorageItem,
   renameProjectStorageItem,
 } from '@/modules/external-storage/server';
@@ -51,6 +52,23 @@ export async function getProjectFileBrowserContextAction(projectId: string) {
       getProjectStorageBrowserContext(orgContext, projectId),
     );
     return { context };
+  } catch (error) {
+    return { error: await mapStorageActionError(error) };
+  }
+}
+
+export async function loadProjectFileBrowserInitialAction(projectId: string) {
+  try {
+    const result = await withOrgContext((orgContext) =>
+      loadProjectFileBrowserInitial(orgContext, projectId),
+    );
+    return {
+      context: result.context,
+      folderExternalId: result.folderExternalId,
+      folderName: result.folderName,
+      folders: result.folders,
+      files: result.files,
+    };
   } catch (error) {
     return { error: await mapStorageActionError(error) };
   }

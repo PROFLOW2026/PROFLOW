@@ -1,10 +1,14 @@
+import { Suspense } from 'react';
 import {
   getEntityDocumentPanelData,
   type DocumentLinkCandidate,
   type DocumentListItem,
 } from '@/modules/documents';
 import { DocumentAttachments } from '@/modules/documents/ui';
+import { isOrganizationStorageConfigured } from '@/modules/external-storage/server';
 import { withOrgContext } from '@/shared/auth/session';
+import { hasPermission } from '@/shared/permissions/assert';
+import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { ProjectFilesTab } from './project-files-tab';
 
 /** Documents tagged as contract files on the project owner or linked on the contract owner. */
@@ -37,11 +41,7 @@ function dedupeLinkCandidates(
   return merged;
 }
 
-/**
- * Server half of the project Documents tab: loads attachments and optional
- * contract-owner links, then hands them to the client upload/link component.
- */
-export async function DocumentsTab({
+async function DocumentAttachmentsSection({
   projectId,
   primaryContractId,
 }: {
@@ -71,12 +71,7 @@ export async function DocumentsTab({
   ]);
 
   return (
-    <div className="flex flex-col gap-6">
-      <ProjectFilesTab
-        projectId={projectId}
-        storageConfigured={projectPanel.storageConfigured}
-        canManage={projectPanel.canManage}
-      />
+    <>
       {hasContract ? (
         <DocumentAttachments
           ownerType="project"
@@ -99,6 +94,35 @@ export async function DocumentsTab({
         canManage={projectPanel.canManage}
         storageConfigured={projectPanel.storageConfigured}
       />
+    </>
+  );
+}
+
+/**
+ * Server half of the project Documents tab: file manager first, attachments deferred.
+ */
+export async function DocumentsTab({
+  projectId,
+  primaryContractId,
+}: {
+  projectId: string;
+  primaryContractId?: string | null;
+}) {
+  const { storageConfigured, canManage } = await withOrgContext(async (context) => ({
+    storageConfigured: await isOrganizationStorageConfigured(context),
+    canManage: hasPermission(context, PERMISSIONS.DOCUMENTS_MANAGE),
+  }));
+
+  return (
+    <div className="flex flex-col gap-6">
+      <ProjectFilesTab
+        projectId={projectId}
+        storageConfigured={storageConfigured}
+        canManage={canManage}
+      />
+      <Suspense fallback={null}>
+        <DocumentAttachmentsSection projectId={projectId} primaryContractId={primaryContractId} />
+      </Suspense>
     </div>
   );
 }

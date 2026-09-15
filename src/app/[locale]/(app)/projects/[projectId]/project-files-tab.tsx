@@ -49,9 +49,9 @@ import {
   browseProjectFolderAction,
   createProjectSubfolderAction,
   deleteProjectStorageItemAction,
-  getProjectFileBrowserContextAction,
   getProjectFileDownloadAction,
   listProjectMoveTargetsAction,
+  loadProjectFileBrowserInitialAction,
   moveProjectStorageItemAction,
   renameProjectStorageItemAction,
 } from './project-files-actions';
@@ -106,6 +106,9 @@ export function ProjectFilesTab({
 
   const [browserContext, setBrowserContext] = useState<BrowserContext | null>(null);
   const [contextError, setContextError] = useState<string | null>(null);
+  const [initialLoaded, setInitialLoaded] = useState(false);
+  const initialLoadStartedRef = useRef(false);
+  const skipInitialRootBrowseRef = useRef(true);
   const [browsePath, setBrowsePath] = useState<readonly BrowseSegment[]>([]);
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
   const [currentFolderName, setCurrentFolderName] = useState<string>('');
@@ -148,7 +151,7 @@ export function ProjectFilesTab({
   );
 
   const loadFolder = useCallback(
-    (path: readonly BrowseSegment[] = browsePath) => {
+    (path: readonly BrowseSegment[]) => {
       if (!browserContext) return;
       startLoad(async () => {
         setError(null);
@@ -171,25 +174,38 @@ export function ProjectFilesTab({
         setFiles(result.files ?? []);
       });
     },
-    [browserContext, browsePath, projectId, resolveFolderExternalId],
+    [browserContext, projectId, resolveFolderExternalId],
   );
 
   useEffect(() => {
+    if (initialLoadStartedRef.current) return;
+    initialLoadStartedRef.current = true;
+
     startLoad(async () => {
       setContextError(null);
-      const result = await getProjectFileBrowserContextAction(projectId);
+      setError(null);
+      const result = await loadProjectFileBrowserInitialAction(projectId);
       if (result.error || !result.context) {
         setContextError(result.error ?? tErrors('fileUnavailable'));
         return;
       }
       setBrowserContext(result.context);
+      setCurrentFolderId(result.folderExternalId ?? null);
+      setCurrentFolderName(result.folderName ?? '');
+      setFolders(result.folders ?? []);
+      setFiles(result.files ?? []);
+      setInitialLoaded(true);
     });
   }, [projectId, tErrors]);
 
   useEffect(() => {
-    if (!browserContext) return;
+    if (!browserContext || !initialLoaded) return;
+    if (browsePath.length === 0 && skipInitialRootBrowseRef.current) {
+      skipInitialRootBrowseRef.current = false;
+      return;
+    }
     loadFolder(browsePath);
-  }, [browserContext, browsePath, loadFolder]);
+  }, [browserContext, browsePath, initialLoaded, loadFolder]);
 
   const openSubfolder = (folder: ProviderFolderItem) => {
     setBrowsePath((prev) => [...prev, { id: folder.id, name: folder.name }]);

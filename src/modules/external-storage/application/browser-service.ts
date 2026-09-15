@@ -19,6 +19,7 @@ import {
   updateFolderMapping,
 } from '../data/folder-mappings.repository';
 import type {
+  FolderMappingRecord,
   ProviderFileItem,
   ProviderFolderItem,
   ProviderFolderListing,
@@ -31,7 +32,7 @@ import {
   assertOrganizationStorageAvailable,
   resolveValidAccessToken,
 } from './connection-service';
-import { ensureOrganizationStorageProvisioned } from './provision-storage';
+import { commitOrganizationStorageProvision } from './provision-storage';
 import { assertFolderWithinProjectTree, isFolderDescendantOf } from './browser-scope';
 
 const MAX_MOVE_TARGETS = 250;
@@ -58,14 +59,50 @@ export interface ProjectStorageBrowserContext {
   }>;
 }
 
+export interface ProjectFileBrowserInitialLoad {
+  readonly context: ProjectStorageBrowserContext;
+  readonly folderExternalId: string;
+  readonly folderName: string;
+  readonly folders: readonly ProviderFolderItem[];
+  readonly files: readonly ProviderFileItem[];
+}
+
 interface ProjectBrowserRuntime {
   readonly connection: StorageConnectionRecord;
   readonly accessToken: string;
   readonly adapter: StorageProviderAdapter;
   /** Hard security boundary — descendants of this folder only. */
   readonly projectRootFolderId: string;
+  readonly projectRootMapping: FolderMappingRecord;
+  readonly mappings: readonly FolderMappingRecord[];
   /** Bootstrap/system mapped folders — no rename/move/delete. */
   readonly protectedFolderIds: ReadonlySet<string>;
+}
+
+function buildSemanticShortcuts(
+  mappings: readonly FolderMappingRecord[],
+): ProjectStorageBrowserContext['semanticShortcuts'] {
+  return PROJECT_SEMANTIC_FOLDERS.flatMap((semanticFolderType) => {
+    const mapping = mappings.find(
+      (m) => m.semanticFolderType === semanticFolderType && m.status === 'ready',
+    );
+    if (!mapping) return [];
+    return [
+      {
+        semanticFolderType,
+        externalFolderId: mapping.externalFolderId,
+        displayName: mapping.displayName,
+      },
+    ];
+  });
+}
+
+function buildBrowserContext(runtime: ProjectBrowserRuntime): ProjectStorageBrowserContext {
+  return {
+    projectRootFolderId: runtime.projectRootFolderId,
+    projectRootFolderName: runtime.projectRootMapping.displayName,
+    semanticShortcuts: buildSemanticShortcuts(runtime.mappings),
+  };
 }
 
 async function resolveProjectBrowserRuntime(
@@ -75,14 +112,27 @@ async function resolveProjectBrowserRuntime(
   const connection = await assertOrganizationStorageAvailable(context);
   const accessToken = await resolveValidAccessToken(context.db, context.organizationId, connection);
 
-  await ensureOrganizationStorageProvisioned(context, projectId);
-
-  const mappings = await listFolderMappingsForProject(
+  let mappings = await listFolderMappingsForProject(
     context.db,
     context.organizationId,
     connection.id,
     projectId,
   );
+  if (!mappings.some((m) => m.status === 'ready')) {
+    await commitOrganizationStorageProvision({
+      userId: context.userId,
+      organizationId: context.organizationId,
+      connectionId: connection.id,
+      projectId,
+    });
+    mappings = await listFolderMappingsForProject(
+      context.db,
+      context.organizationId,
+      connection.id,
+      projectId,
+    );
+  }
+
   const projectRootMapping = mappings.find(
     (m) => m.semanticFolderType === 'project_root' && m.status === 'ready',
   );
@@ -102,6 +152,8 @@ async function resolveProjectBrowserRuntime(
     accessToken,
     adapter: getStorageProviderAdapter(connection.provider),
     projectRootFolderId: projectRootMapping.externalFolderId,
+    projectRootMapping,
+    mappings,
     protectedFolderIds,
   };
 }
@@ -110,6 +162,7 @@ async function assertFolderScope(
   runtime: ProjectBrowserRuntime,
   folderId: string,
 ): Promise<void> {
+  if (folderId === runtime.projectRootFolderId) return;
   await assertFolderWithinProjectTree(
     runtime.adapter,
     runtime.accessToken,
@@ -271,39 +324,27 @@ export async function getProjectStorageBrowserContext(
 ): Promise<ProjectStorageBrowserContext> {
   assertPermission(context, PERMISSIONS.DOCUMENTS_READ);
   const runtime = await resolveProjectBrowserRuntime(context, projectId);
-  const mappings = await listFolderMappingsForProject(
-    context.db,
-    context.organizationId,
-    runtime.connection.id,
-    projectId,
+  return buildBrowserContext(runtime);
+}
+
+/** Single round-trip initial load: context + project_root children only. */
+export async function loadProjectFileBrowserInitial(
+  context: OrgContext,
+  projectId: string,
+): Promise<ProjectFileBrowserInitialLoad> {
+  assertPermission(context, PERMISSIONS.DOCUMENTS_READ);
+  const runtime = await resolveProjectBrowserRuntime(context, projectId);
+  const listing = await runtime.adapter.listFolder(
+    runtime.accessToken,
+    runtime.projectRootFolderId,
   );
-
-  const projectRootMapping = mappings.find(
-    (m) => m.semanticFolderType === 'project_root' && m.status === 'ready',
-  );
-  const projectRootFolderName =
-    projectRootMapping?.displayName ??
-    (await runtime.adapter.getFolder(runtime.accessToken, runtime.projectRootFolderId))?.name ??
-    'ProjectFlow';
-
-  const semanticShortcuts = PROJECT_SEMANTIC_FOLDERS.flatMap((semanticFolderType) => {
-    const mapping = mappings.find(
-      (m) => m.semanticFolderType === semanticFolderType && m.status === 'ready',
-    );
-    if (!mapping) return [];
-    return [
-      {
-        semanticFolderType,
-        externalFolderId: mapping.externalFolderId,
-        displayName: mapping.displayName,
-      },
-    ];
-  });
-
+  const browserContext = buildBrowserContext(runtime);
   return {
-    projectRootFolderId: runtime.projectRootFolderId,
-    projectRootFolderName,
-    semanticShortcuts,
+    context: browserContext,
+    folderExternalId: runtime.projectRootFolderId,
+    folderName: browserContext.projectRootFolderName,
+    folders: listing.folders,
+    files: listing.files,
   };
 }
 
@@ -318,10 +359,12 @@ export async function browseProjectStorageFolder(
   assertPermission(context, PERMISSIONS.DOCUMENTS_READ);
   const runtime = await resolveProjectBrowserRuntime(context, input.projectId);
   const folderExternalId = input.folderExternalId?.trim() || runtime.projectRootFolderId;
+  const isProjectRoot = folderExternalId === runtime.projectRootFolderId;
   await assertFolderScope(runtime, folderExternalId);
 
-  const folder = await runtime.adapter.getFolder(runtime.accessToken, folderExternalId);
-  const folderName = folder?.name ?? 'ProjectFlow';
+  const folderName = isProjectRoot
+    ? runtime.projectRootMapping.displayName
+    : ((await runtime.adapter.getFolder(runtime.accessToken, folderExternalId))?.name ?? 'Folder');
 
   const listing = await runtime.adapter.listFolder(runtime.accessToken, folderExternalId);
   return {
