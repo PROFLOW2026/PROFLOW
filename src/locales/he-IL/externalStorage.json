@@ -140,6 +140,17 @@
     "zoomOut": "הקטנה",
     "reset": "איפוס",
     "fitWidth": "התאם לרוחב",
-    "fitPage": "התאם לעמוד"
+    "fitPage": "התאם לעמוד",
+    "handTool": "יד",
+    "zoomLevel": "רמת הגדלה",
+    "pageNumber": "מספר עמוד",
+    "more": "עוד",
+    "rotate": "סיבוב",
+    "fullscreen": "מסך מלא",
+    "exitFullscreen": "יציאה ממסך מלא",
+    "share": "שתף",
+    "sharePreparing": "מתכונן לשיתוף…",
+    "shareUnsupported": "הדפדפן הזה אינו תומך בשיתוף קבצים ישיר.",
+    "shareFailed": "לא ניתן לשתף את הקובץ. נסו שוב."
   }
 }

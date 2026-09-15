@@ -1,12 +1,11 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Share2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Spinner } from '@/components/ui/spinner';
 import {
   isBrowserPreviewableImageMime,
   isBrowserPreviewableMime,
@@ -18,17 +17,15 @@ import {
   type StorageBrowserScope,
 } from '../client/storage-file-urls';
 import { StorageFilePreviewShell } from './storage-file-preview-shell';
+import { StorageLoadingOverlay } from './storage-loading-overlay';
+import { useShareStorageFile } from './use-share-storage-file';
 import { ZoomablePreviewImage } from './zoomable-preview-image';
 
 const PdfJsViewer = dynamic(
   () => import('./pdf-js-viewer').then((module) => module.PdfJsViewer),
   {
     ssr: false,
-    loading: () => (
-      <div className="flex min-h-0 flex-1 items-center justify-center">
-        <Spinner className="size-6" />
-      </div>
-    ),
+    loading: () => <div className="relative min-h-0 flex-1" aria-busy="true" />,
   },
 );
 
@@ -70,6 +67,7 @@ export function StorageFilePreviewDialog({
 }) {
   const t = useTranslations('externalStorage.preview');
   const tCommon = useTranslations('common');
+  const { sharing, shareError, setShareError, shareFile } = useShareStorageFile();
   const [imageError, setImageError] = useState(false);
   const [imageLoading, setImageLoading] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
@@ -103,6 +101,16 @@ export function StorageFilePreviewDialog({
     });
   }, [activeFile, projectId, scope]);
 
+  const shareDownloadUrl = useMemo(() => {
+    if (!activeFile) return null;
+    return buildStorageFileDownloadUrl({
+      scope,
+      fileId: activeFile.fileId,
+      projectId,
+      disposition: 'attachment',
+    });
+  }, [activeFile, projectId, scope]);
+
   const previewUrlWithReload = previewUrl
     ? `${previewUrl}${previewUrl.includes('?') ? '&' : '?'}_r=${reloadKey}`
     : null;
@@ -123,8 +131,9 @@ export function StorageFilePreviewDialog({
     if (!open || !activeFile) return;
     setImageError(false);
     setImageLoading(showImage);
+    setShareError(null);
     setReloadKey((key) => key + 1);
-  }, [open, activeFile?.fileId, showImage]);
+  }, [open, activeFile?.fileId, showImage, setShareError]);
 
   const handleClose = useCallback(() => onOpenChange(false), [onOpenChange]);
 
@@ -134,6 +143,15 @@ export function StorageFilePreviewDialog({
     setReloadKey((key) => key + 1);
   }, [showImage]);
 
+  const handleShare = useCallback(() => {
+    if (!activeFile || !shareDownloadUrl) return;
+    void shareFile({
+      downloadUrl: shareDownloadUrl,
+      filename: activeFile.filename,
+      mimeType: activeFile.mimeType,
+    });
+  }, [activeFile, shareDownloadUrl, shareFile]);
+
   if (!open || !activeFile) return null;
 
   return (
@@ -142,13 +160,36 @@ export function StorageFilePreviewDialog({
       onClose={handleClose}
       closeLabel={tCommon('actions.close')}
       title={activeFile.filename}
+      headerActions={
+        <Button
+          type="button"
+          size="sm"
+          variant="secondary"
+          disabled={sharing}
+          onClick={handleShare}
+          aria-label={t('share')}
+        >
+          <Share2 className="size-4" aria-hidden />
+          <span className="hidden sm:inline">{t('share')}</span>
+        </Button>
+      }
     >
+      {sharing ? <StorageLoadingOverlay label={t('sharePreparing')} blocking /> : null}
+      {shareError ? (
+        <div className="absolute inset-x-0 top-0 z-30 px-3 py-2">
+          <Alert tone="danger">{shareError}</Alert>
+        </div>
+      ) : null}
+
       {!isPreviewable ? (
         <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 p-6 text-center">
           <Alert tone="info">{t('unsupported')}</Alert>
           <div className="flex flex-wrap items-center justify-center gap-2">
+            <Button type="button" variant="primary" onClick={handleShare} disabled={sharing}>
+              {t('share')}
+            </Button>
             {onOpenOnDevice ? (
-              <Button type="button" variant="primary" onClick={() => onOpenOnDevice(activeFile)}>
+              <Button type="button" variant="secondary" onClick={() => onOpenOnDevice(activeFile)}>
                 {t('openOnDevice')}
               </Button>
             ) : null}
@@ -169,12 +210,8 @@ export function StorageFilePreviewDialog({
       ) : null}
 
       {isPreviewable && showImage && previewUrlWithReload ? (
-        <>
-          {imageLoading ? (
-            <div className="absolute inset-x-0 top-16 flex justify-center py-8">
-              <Spinner className="size-6" label={t('loading')} />
-            </div>
-          ) : null}
+        <div className="relative min-h-0 flex-1">
+          {imageLoading ? <StorageLoadingOverlay label={t('loading')} /> : null}
           {imageError ? (
             <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 p-4">
               <Alert tone="danger">{t('failed')}</Alert>
@@ -196,7 +233,7 @@ export function StorageFilePreviewDialog({
               }}
             />
           )}
-        </>
+        </div>
       ) : null}
 
       {canNavigate && isPreviewable ? (

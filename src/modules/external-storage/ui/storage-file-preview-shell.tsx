@@ -11,12 +11,14 @@ export function StorageFilePreviewShell({
   onClose,
   closeLabel,
   title,
+  headerActions,
   children,
 }: {
   open: boolean;
   onClose: () => void;
   closeLabel: string;
   title: string;
+  headerActions?: ReactNode;
   children: ReactNode;
 }) {
   useEffect(() => {
@@ -59,8 +61,9 @@ export function StorageFilePreviewShell({
         >
           {title}
         </p>
+        {headerActions ? <div className="flex shrink-0 items-center gap-1">{headerActions}</div> : null}
       </header>
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">{children}</div>
+      <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">{children}</div>
     </div>,
     document.body,
   );

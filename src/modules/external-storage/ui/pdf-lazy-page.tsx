@@ -10,6 +10,7 @@ export function PdfLazyPage({
   pageWidth,
   pageAspect,
   devicePixelRatio,
+  rotation = 0,
   eager,
   scrollRoot,
   loadingLabel,
@@ -20,6 +21,7 @@ export function PdfLazyPage({
   pageWidth: number;
   pageAspect: number;
   devicePixelRatio: number;
+  rotation?: number;
   eager: boolean;
   scrollRoot: HTMLElement | null;
   loadingLabel: string;
@@ -60,6 +62,7 @@ export function PdfLazyPage({
         <Page
           pageNumber={pageNumber}
           width={pageWidth}
+          rotate={rotation}
           devicePixelRatio={devicePixelRatio}
           suspense={false}
           onLoadSuccess={

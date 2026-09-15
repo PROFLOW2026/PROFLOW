@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
   PDF_LAZY_ROOT_MARGIN,
+  PDF_ZOOM_PRESETS,
   clampPdfZoom,
   computePdfPageWidth,
+  computePdfZoomPercent,
   estimatePageHeight,
+  zoomPresetToPercent,
 } from '@/modules/external-storage/ui/pdf-viewer-utils';
 
 describe('pdf viewer utils', () => {
@@ -42,5 +45,16 @@ describe('pdf viewer utils', () => {
 
   it('uses generous lazy root margin for prefetch', () => {
     expect(PDF_LAZY_ROOT_MARGIN).toContain('320px');
+  });
+
+  it('exposes standard zoom presets including 100% and 400%', () => {
+    expect(PDF_ZOOM_PRESETS).toEqual([0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4]);
+    expect(zoomPresetToPercent(1)).toBe(100);
+    expect(zoomPresetToPercent(4)).toBe(400);
+  });
+
+  it('computes rounded zoom percent from rendered page width', () => {
+    expect(computePdfZoomPercent({ containerWidth: 800, pageWidth: 1200 })).toBe(150);
+    expect(computePdfZoomPercent({ containerWidth: 0, pageWidth: 500 })).toBe(100);
   });
 });

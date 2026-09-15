@@ -140,6 +140,17 @@
     "zoomOut": "Zoom out",
     "reset": "Reset",
     "fitWidth": "Fit width",
-    "fitPage": "Fit page"
+    "fitPage": "Fit page",
+    "handTool": "Hand",
+    "zoomLevel": "Zoom level",
+    "pageNumber": "Page number",
+    "more": "More",
+    "rotate": "Rotate",
+    "fullscreen": "Fullscreen",
+    "exitFullscreen": "Exit fullscreen",
+    "share": "Share",
+    "sharePreparing": "Preparing to share…",
+    "shareUnsupported": "This browser does not support direct file sharing.",
+    "shareFailed": "Could not share this file. Try again."
   }
 }

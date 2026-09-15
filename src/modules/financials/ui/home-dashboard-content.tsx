@@ -19,6 +19,7 @@ import { DashboardMissingDataTrigger } from './dashboard-missing-data-trigger';
 import { mapDashboardMissingDataToView } from './map-dashboard-missing-data-view';
 import { partitionDashboardCompletenessItems } from '../domain/dashboard-missing-data';
 import { HomeDashboardOwnerView } from './home-dashboard-owner-view';
+import { DashboardCompanyDocumentsLink } from '@/modules/external-storage/ui/dashboard-company-documents-link';
 import { HomeLaborReconciliation, HomePendingTimeAlert } from './home-labor-alerts';
 import type { DashboardKpiKey } from '../domain/dashboard-missing-data';
 
@@ -578,11 +579,11 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
         );
 
       case 'firstActions':
-        if (!(data.canCreateProject || data.canCreateExpense)) return null;
         return (
           <section key={card} className="min-w-0 max-w-full">
             <h2 className="mb-3 text-sm font-semibold">{t('quickActions')}</h2>
             <div className="flex min-w-0 max-w-full flex-wrap gap-2">
+              <DashboardCompanyDocumentsLink />
               {data.canCreateProject ? (
                 <Button asChild size="sm" variant="secondary">
                   <Link

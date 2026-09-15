@@ -3,6 +3,7 @@
   "greeting": "Hello {name}",
   "greetingNoName": "Hello",
   "quickActions": "Quick actions",
+  "companyDocuments": "Company documents",
   "activeProjects": "Active projects",
   "recentExpenses": "Recent expenses",
   "attention": {

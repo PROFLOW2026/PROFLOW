@@ -3,6 +3,7 @@
   "greeting": "שלום {name}",
   "greetingNoName": "שלום",
   "quickActions": "פעולות מהירות",
+  "companyDocuments": "מסמכי חברה",
   "activeProjects": "פרויקטים פעילים",
   "recentExpenses": "הוצאות אחרונות",
   "attention": {

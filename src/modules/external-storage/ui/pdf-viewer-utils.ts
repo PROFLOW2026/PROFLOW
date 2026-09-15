@@ -1,5 +1,24 @@
 export const MIN_PDF_ZOOM = 0.25;
 export const MAX_PDF_ZOOM = 10;
+
+/** Preset zoom levels shown in the viewer selector (fraction of fit-width baseline). */
+export const PDF_ZOOM_PRESETS = [0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4] as const;
+
+export function zoomPresetToPercent(fraction: number): number {
+  return Math.round(fraction * 100);
+}
+
+export function computePdfZoomPercent(input: {
+  containerWidth: number;
+  pageWidth: number;
+}): number {
+  if (input.containerWidth <= 0) return 100;
+  return Math.round((input.pageWidth / input.containerWidth) * 100);
+}
+
+export function nearestZoomPresetLabel(percent: number): string {
+  return `${percent}%`;
+}
 export const PDF_LOAD_TIMEOUT_MS = 45_000;
 export const PDF_PINCH_COMMIT_MS = 120;
 export const PDF_LAZY_ROOT_MARGIN = '320px 0px';

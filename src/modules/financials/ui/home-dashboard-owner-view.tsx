@@ -16,6 +16,7 @@ import type { HomeDashboardData } from '../application/get-home-dashboard';
 import { partitionDashboardCompletenessItems } from '../domain/dashboard-missing-data';
 import { DashboardMissingDataTrigger } from './dashboard-missing-data-trigger';
 import { HomeLaborReconciliation, HomePendingTimeAlert } from './home-labor-alerts';
+import { DashboardCompanyDocumentsLink } from '@/modules/external-storage/ui/dashboard-company-documents-link';
 import { mapDashboardMissingDataToView } from './map-dashboard-missing-data-view';
 
 interface HomeDashboardOwnerViewProps {
@@ -323,29 +324,28 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
         </section>
       ) : null}
 
-      {(data.canCreateProject || data.canCreateExpense) && (
-        <section>
-          <h2 className="mb-3 text-sm font-semibold">{t('quickActions')}</h2>
-          <div className="flex flex-wrap gap-2">
-            {data.canCreateExpense ? (
-              <Button asChild size="sm">
-                <Link href="/expenses/new" prefetch={false}>
-                  <Receipt aria-hidden />
-                  {tNav('newMenu.expense')}
-                </Link>
-              </Button>
-            ) : null}
-            {data.canCreateProject ? (
-              <Button asChild size="sm" variant="secondary">
-                <Link href="/projects/new" prefetch={false}>
-                  <Plus aria-hidden />
-                  {tNav('newMenu.project')}
-                </Link>
-              </Button>
-            ) : null}
-          </div>
-        </section>
-      )}
+      <section>
+        <h2 className="mb-3 text-sm font-semibold">{t('quickActions')}</h2>
+        <div className="flex flex-wrap gap-2">
+          <DashboardCompanyDocumentsLink />
+          {data.canCreateExpense ? (
+            <Button asChild size="sm">
+              <Link href="/expenses/new" prefetch={false}>
+                <Receipt aria-hidden />
+                {tNav('newMenu.expense')}
+              </Link>
+            </Button>
+          ) : null}
+          {data.canCreateProject ? (
+            <Button asChild size="sm" variant="secondary">
+              <Link href="/projects/new" prefetch={false}>
+                <Plus aria-hidden />
+                {tNav('newMenu.project')}
+              </Link>
+            </Button>
+          ) : null}
+        </div>
+      </section>
 
       <p className="text-sm">
         <Link href="/reports" className={textNavLinkClassName} prefetch={false}>

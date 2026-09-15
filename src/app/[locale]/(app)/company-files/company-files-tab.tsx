@@ -31,7 +31,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Spinner } from '@/components/ui/spinner';
+import { StorageLoadingOverlay } from '@/modules/external-storage/ui/storage-loading-overlay';
+import { useShareStorageFile } from '@/modules/external-storage/ui/use-share-storage-file';
 import { formatFileSize } from '@/modules/documents/domain/format-file-size';
 import type {
   ProviderFileItem,
@@ -90,6 +91,7 @@ export function CompanyFilesTab({
 }) {
   const t = useTranslations('externalStorage.orgFiles');
   const tPreview = useTranslations('externalStorage.preview');
+  const { sharing, shareError, setShareError, shareFile } = useShareStorageFile();
   const tStorage = useTranslations('externalStorage');
   const tErrors = useTranslations('externalStorage.errors');
   const tFileSize = useTranslations('documents.fileSize');
@@ -240,7 +242,11 @@ export function CompanyFilesTab({
   }
 
   if (!browserContext) {
-    return <Spinner label={t('loading')} />;
+    return (
+      <div className="relative min-h-[12rem]">
+        <StorageLoadingOverlay label={t('loading')} />
+      </div>
+    );
   }
 
   const handleUpload = (file: File) => {
@@ -408,6 +414,19 @@ export function CompanyFilesTab({
     window.open(result.url, '_blank', 'noopener,noreferrer');
   };
 
+  const shareStorageItem = (file: ProviderFileItem) => {
+    setShareError(null);
+    void shareFile({
+      downloadUrl: buildStorageFileDownloadUrl({
+        scope: 'org',
+        fileId: file.id,
+        disposition: 'attachment',
+      }),
+      filename: file.name,
+      mimeType: file.mimeType ?? '',
+    });
+  };
+
   const breadcrumbTitle =
     browsePath.length === 0
       ? browserContext.organizationRootFolderName
@@ -498,10 +517,16 @@ export function CompanyFilesTab({
         ) : null}
       </div>
 
-      {loading || uploading ? <Spinner label={loading ? t('loading') : t('uploading')} /> : null}
       {error ? <Alert tone="danger">{error}</Alert> : null}
+      {shareError ? <Alert tone="danger">{shareError}</Alert> : null}
 
-      <Card>
+      <Card className="relative">
+        {loading || uploading || sharing ? (
+          <StorageLoadingOverlay
+            label={sharing ? tPreview('sharePreparing') : loading ? t('loading') : t('uploading')}
+            blocking={uploading || sharing}
+          />
+        ) : null}
         <CardHeader>
           <CardTitle className="text-base">{breadcrumbTitle || currentFolderName}</CardTitle>
         </CardHeader>
@@ -538,6 +563,7 @@ export function CompanyFilesTab({
                   onOpen={() => openFilePreview(file)}
                   onOpenOnDevice={() => openFileOnDevice(file)}
                   onOpenInProvider={() => void openFileInOneDrive(file)}
+                  onShare={() => shareStorageItem(file)}
                   onRename={() => openRenameDialog(file.id, 'file', file.name)}
                   onMove={() => void openMoveDialog(file.id, 'file', file.name)}
                   onDelete={() =>
@@ -700,6 +726,7 @@ function BrowserRow({
   onOpen,
   onOpenOnDevice,
   onOpenInProvider,
+  onShare,
   onRename,
   onMove,
   onDelete,
@@ -714,6 +741,7 @@ function BrowserRow({
   onOpen: () => void;
   onOpenOnDevice?: () => void;
   onOpenInProvider?: () => void;
+  onShare?: () => void;
   onRename: () => void;
   onMove: () => void;
   onDelete: () => void;
@@ -749,6 +777,9 @@ function BrowserRow({
                   ) : null}
                   {onOpenInProvider ? (
                     <DropdownMenuItem onSelect={onOpenInProvider}>{tPreview('openInOneDrive')}</DropdownMenuItem>
+                  ) : null}
+                  {onShare ? (
+                    <DropdownMenuItem onSelect={onShare}>{tPreview('share')}</DropdownMenuItem>
                   ) : null}
                 </>
               ) : null}
