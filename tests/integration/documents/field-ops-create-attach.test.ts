@@ -12,6 +12,11 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { StoragePort } from '@/shared/ports/storage';
 import { setStoragePort } from '@/shared/ports/storage';
 import { createTestDatabase, type TestDatabase } from '../../setup/database';
+import {
+  installExternalStorageServerMocks,
+  restoreExternalStorageServerMocks,
+  seedOrganizationStorageConnection,
+} from '../../setup/external-storage-fixture';
 import { createTestUser, seedSystem } from '../../setup/fixtures';
 
 class MockStoragePort implements StoragePort {
@@ -66,9 +71,11 @@ describe('field-ops create then attach photos', () => {
     database = await createTestDatabase();
     storage = new MockStoragePort();
     setStoragePort(storage);
+    installExternalStorageServerMocks();
   });
 
   afterAll(async () => {
+    restoreExternalStorageServerMocks();
     setStoragePort(undefined);
     await database.close();
   });
@@ -101,6 +108,9 @@ describe('field-ops create then attach photos', () => {
     const created = await database.asService(async (db) =>
       createOrganization(db, owner.id, { name: 'Field Photos Co', countryCode: 'IL' }),
     );
+    await database.asService(async (db) => {
+      await seedOrganizationStorageConnection(db, created.organization.id, owner.id);
+    });
 
     await database.asUser(owner.id, async (tx) => {
       const context = await resolveOrgContext(tx, {
@@ -135,7 +145,7 @@ describe('field-ops create then attach photos', () => {
       expect(documents).toHaveLength(1);
       expect(documents[0]?.originalFilename).toBe('קיר.jpg');
       expect(documents[0]?.status).toBe('available');
-      expect(documents[0]?.storagePath.startsWith(`${created.organization.id}/`)).toBe(true);
+      expect(documents[0]?.storagePath.startsWith('test-ext-')).toBe(true);
     });
   });
 

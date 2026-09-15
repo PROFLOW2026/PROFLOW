@@ -9,11 +9,17 @@ import {
   finalizeDocumentUpload,
 } from '@/modules/documents/application/manage-document';
 import { prepareDocumentUpload } from '@/modules/documents/application/upload-document';
+import { semanticFolderForDocumentOwner, uploadDocumentToExternalStorage } from '@/modules/external-storage/server';
 import { createVendor } from '@/modules/vendors';
 import { NotFoundError } from '@/shared/errors';
 import type { StoragePort } from '@/shared/ports/storage';
 import { setStoragePort } from '@/shared/ports/storage';
 import { createTestDatabase, type TestDatabase } from '../../setup/database';
+import {
+  installExternalStorageServerMocks,
+  restoreExternalStorageServerMocks,
+  seedOrganizationStorageConnection,
+} from '../../setup/external-storage-fixture';
 import { createTestUser, seedSystem } from '../../setup/fixtures';
 
 class MockStoragePort implements StoragePort {
@@ -69,6 +75,9 @@ async function provisionTenant(database: TestDatabase, email: string, orgName: s
   const result = await database.asService(async (db) =>
     createOrganization(db, owner.id, { name: orgName, countryCode: 'IL' }),
   );
+  await database.asService(async (db) => {
+    await seedOrganizationStorageConnection(db, result.organization.id, owner.id);
+  });
   return { owner, organizationId: result.organization.id };
 }
 
@@ -80,9 +89,11 @@ describe('documents tenant isolation', () => {
     database = await createTestDatabase();
     storage = new MockStoragePort();
     setStoragePort(storage);
+    installExternalStorageServerMocks();
   });
 
   afterAll(async () => {
+    restoreExternalStorageServerMocks();
     setStoragePort(undefined);
     await database.close();
   });
@@ -112,14 +123,22 @@ describe('documents tenant isolation', () => {
         ownerId: vendor.id,
       });
 
-      storage.keys.add(prepared.document.storagePath);
+      const body = new Uint8Array([0x25, 0x50, 0x44, 0x46]);
+      await uploadDocumentToExternalStorage(context, {
+        documentId: prepared.document.id,
+        parentSemanticFolder: semanticFolderForDocumentOwner('vendor'),
+        fileName: 'invoice.pdf',
+        mimeType: 'application/pdf',
+        body,
+        sizeBytes: body.length,
+      });
 
       await finalizeDocumentUpload(context, {
         documentId: prepared.document.id,
-        sizeBytes: 2048,
+        sizeBytes: body.length,
       });
 
-      expect(prepared.document.storagePath.startsWith(`${orgA.organizationId}/`)).toBe(true);
+      expect(prepared.document.storagePath.startsWith('pending://')).toBe(true);
       return prepared.document.id;
     });
 
@@ -155,15 +174,23 @@ describe('documents tenant isolation', () => {
         ownerId: vendor.id,
       });
 
-      storage.keys.add(prepared.document.storagePath);
+      const body = new Uint8Array([0x89, 0x50, 0x4e, 0x47]);
+      await uploadDocumentToExternalStorage(context, {
+        documentId: prepared.document.id,
+        parentSemanticFolder: semanticFolderForDocumentOwner('vendor'),
+        fileName: 'receipt.png',
+        mimeType: 'image/png',
+        body,
+        sizeBytes: body.length,
+      });
 
       await finalizeDocumentUpload(context, {
         documentId: prepared.document.id,
-        sizeBytes: 512,
+        sizeBytes: body.length,
       });
 
       const download = await createDocumentDownloadUrl(context, { documentId: prepared.document.id });
-      expect(download.url).toContain(encodeURIComponent(prepared.document.storagePath));
+      expect(download.url).toContain(encodeURIComponent(`test-ext-${prepared.document.id}`));
     });
   });
 });

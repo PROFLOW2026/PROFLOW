@@ -20,6 +20,7 @@ import { AUDIT_ACTIONS } from '@/shared/audit/actions';
 import type { StoragePort } from '@/shared/ports/storage';
 import { setStoragePort } from '@/shared/ports/storage';
 import { createTestDatabase, type TestDatabase } from '../../setup/database';
+import { seedOrganizationStorageConnection } from '../../setup/external-storage-fixture';
 import { createTestUser, seedSystem } from '../../setup/fixtures';
 
 class ControllableStorage implements StoragePort {
@@ -102,9 +103,13 @@ describe('failed upload orphan cleanup', () => {
     ownerId = owner.id;
   });
 
-  it('marks the pending document deleted when signed-upload URL creation fails after insert', async () => {
-    storage.failCreateUpload = true;
+  async function provisionStorage() {
+    await database.asService(async (db) => {
+      await seedOrganizationStorageConnection(db, organizationId, ownerId);
+    });
+  }
 
+  it('rejects prepare when organization storage is not connected', async () => {
     await database.asUser(ownerId, async (tx) => {
       const context = await resolveOrgContext(tx, {
         userId: ownerId,
@@ -120,7 +125,7 @@ describe('failed upload orphan cleanup', () => {
           mimeType: 'image/jpeg',
           sizeBytes: 128,
         }),
-      ).rejects.toThrow(/Could not create a signed upload target/);
+      ).rejects.toThrow(/Organization storage is not connected/);
     });
 
     const rows = await database.asService(async (db) =>
@@ -135,12 +140,11 @@ describe('failed upload orphan cleanup', () => {
         ),
     );
 
-    expect(rows).toHaveLength(1);
-    expect(rows[0]?.status).toBe('deleted');
-    expect(rows[0]?.deletedAt).toBeTruthy();
+    expect(rows).toHaveLength(0);
   });
 
   it('soft-deletes a pending document after a simulated client storage upload failure', async () => {
+    await provisionStorage();
     const prepared = await database.asUser(ownerId, async (tx) => {
       const context = await resolveOrgContext(tx, {
         userId: ownerId,
@@ -176,6 +180,7 @@ describe('failed upload orphan cleanup', () => {
   });
 
   it('retries storage remove on soft-delete until it succeeds', async () => {
+    await provisionStorage();
     storage.failRemoveRemaining = 1;
 
     const prepared = await database.asUser(ownerId, async (tx) => {
@@ -226,6 +231,7 @@ describe('failed upload orphan cleanup', () => {
   });
 
   it('keeps deleted metadata and records an audit event when storage remove keeps failing', async () => {
+    await provisionStorage();
     storage.failRemoveRemaining = STORAGE_CLEANUP_RETRY_ATTEMPTS + 2;
 
     const prepared = await database.asUser(ownerId, async (tx) => {
@@ -331,6 +337,7 @@ describe('failed upload orphan cleanup', () => {
   });
 
   it('retries pending and failed deleted rows and restores a leftover checksum prefix', async () => {
+    await provisionStorage();
     const prepared = await database.asUser(ownerId, async (tx) => {
       const context = await resolveOrgContext(tx, {
         userId: ownerId,
@@ -385,6 +392,7 @@ describe('failed upload orphan cleanup', () => {
   });
 
   it('does not list deleted documents whose cleanup already succeeded', async () => {
+    await provisionStorage();
     const prepared = await database.asUser(ownerId, async (tx) => {
       const context = await resolveOrgContext(tx, {
         userId: ownerId,
