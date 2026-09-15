@@ -98,9 +98,11 @@ export function installExternalStorageServerMocks(): {
       return {
         id: uploaded.id,
         name: input.fileName,
+        parentId: null,
         etag: 'test-etag',
         sizeBytes: input.sizeBytes,
         mimeType: input.mimeType,
+        modifiedAt: new Date(),
       };
     });
 
