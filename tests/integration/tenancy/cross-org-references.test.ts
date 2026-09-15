@@ -12,6 +12,7 @@ import { NotFoundError } from '@/shared/errors';
 import type { StoragePort } from '@/shared/ports/storage';
 import { setStoragePort } from '@/shared/ports/storage';
 import { createTestDatabase, type TestDatabase } from '../../setup/database';
+import { seedOrganizationStorageConnection } from '../../setup/external-storage-fixture';
 import { createTestUser, seedSystem } from '../../setup/fixtures';
 
 class MockStoragePort implements StoragePort {
@@ -58,6 +59,9 @@ async function provisionTenant(database: TestDatabase, email: string, orgName: s
   const result = await database.asService(async (db) =>
     createOrganization(db, owner.id, { name: orgName, countryCode: 'IL' }),
   );
+  await database.asService(async (db) => {
+    await seedOrganizationStorageConnection(db, result.organization.id, owner.id);
+  });
   return { owner, organizationId: result.organization.id };
 }
 

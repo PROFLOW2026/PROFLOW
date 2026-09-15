@@ -14,6 +14,10 @@ import {
   uploadNewVersion,
 } from '@/modules/documents/application/manage-versions';
 import { prepareDocumentUpload } from '@/modules/documents/application/upload-document';
+import {
+  semanticFolderForDocumentOwner,
+  uploadDocumentToExternalStorage,
+} from '@/modules/external-storage/server';
 import { createVendor } from '@/modules/vendors';
 import { AuthorizationError, NotFoundError } from '@/shared/errors';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -21,12 +25,16 @@ import type { OrgContext } from '@/shared/auth/context';
 import type { StoragePort } from '@/shared/ports/storage';
 import { setStoragePort } from '@/shared/ports/storage';
 import { createTestDatabase, type TestDatabase } from '../../setup/database';
+import {
+  installExternalStorageServerMocks,
+  restoreExternalStorageServerMocks,
+  seedOrganizationStorageConnection,
+} from '../../setup/external-storage-fixture';
 import { createTestUser, seedSystem } from '../../setup/fixtures';
 
 class MockStoragePort implements StoragePort {
   readonly configured = true;
   readonly keys = new Set<string>();
-  private sequence = 0;
 
   buildKey(input: {
     organizationId: string;
@@ -34,8 +42,7 @@ class MockStoragePort implements StoragePort {
     entityId: string;
     fileName: string;
   }): string {
-    this.sequence += 1;
-    return `${input.organizationId}/${input.entityType}/${input.entityId}/${this.sequence}-${input.fileName}`;
+    return `${input.organizationId}/${input.entityType}/${input.entityId}/${input.fileName}`;
   }
 
   async createUploadUrl(key: string): Promise<{
@@ -63,7 +70,7 @@ class MockStoragePort implements StoragePort {
 
   async downloadBytes(key: string): Promise<{ bytes: Uint8Array; contentType: string; size: number }> {
     if (!this.keys.has(key)) throw new Error('missing object');
-    const bytes = new Uint8Array([0x25, 0x50, 0x44, 0x46, this.sequence]);
+    const bytes = new Uint8Array([0x25, 0x50, 0x44, 0x46]);
     return { bytes, contentType: 'application/pdf', size: bytes.length };
   }
 
@@ -78,6 +85,9 @@ async function provisionTenant(database: TestDatabase, email: string, orgName: s
   const result = await database.asService(async (db) =>
     createOrganization(db, owner.id, { name: orgName, countryCode: 'IL' }),
   );
+  await database.asService(async (db) => {
+    await seedOrganizationStorageConnection(db, result.organization.id, owner.id);
+  });
   return { owner, organizationId: result.organization.id };
 }
 
@@ -88,6 +98,34 @@ function contextWithoutDocumentsRead(base: OrgContext): OrgContext {
   return { ...base, permissions };
 }
 
+async function uploadVendorDocument(
+  context: OrgContext,
+  vendorId: string,
+  file: { name: string; mimeType: string; body: Uint8Array },
+) {
+  const prepared = await prepareDocumentUpload(context, {
+    fileName: file.name,
+    mimeType: file.mimeType,
+    sizeBytes: file.body.length,
+    ownerType: 'vendor',
+    ownerId: vendorId,
+  });
+
+  await uploadDocumentToExternalStorage(context, {
+    documentId: prepared.document.id,
+    parentSemanticFolder: semanticFolderForDocumentOwner('vendor'),
+    fileName: file.name,
+    mimeType: file.mimeType,
+    body: file.body,
+    sizeBytes: file.body.length,
+  });
+
+  return finalizeDocumentUpload(context, {
+    documentId: prepared.document.id,
+    sizeBytes: file.body.length,
+  });
+}
+
 describe('document versioning', () => {
   let database: TestDatabase;
   let storage: MockStoragePort;
@@ -96,9 +134,11 @@ describe('document versioning', () => {
     database = await createTestDatabase();
     storage = new MockStoragePort();
     setStoragePort(storage);
+    installExternalStorageServerMocks();
   });
 
   afterAll(async () => {
+    restoreExternalStorageServerMocks();
     setStoragePort(undefined);
     await database.close();
   });
@@ -119,18 +159,11 @@ describe('document versioning', () => {
       });
 
       const vendor = await createVendor(context, { name: 'Doc Vendor' });
-      const prepared = await prepareDocumentUpload(context, {
-        fileName: 'contract.pdf',
+      const firstBody = new Uint8Array([0x25, 0x50, 0x44, 0x46]);
+      const first = await uploadVendorDocument(context, vendor.id, {
+        name: 'contract.pdf',
         mimeType: 'application/pdf',
-        sizeBytes: 2048,
-        ownerType: 'vendor',
-        ownerId: vendor.id,
-      });
-
-      storage.keys.add(prepared.document.storagePath);
-      const first = await finalizeDocumentUpload(context, {
-        documentId: prepared.document.id,
-        sizeBytes: 2048,
+        body: firstBody,
       });
 
       expect(first.currentVersionId).toBeTruthy();
@@ -148,20 +181,29 @@ describe('document versioning', () => {
         mimeType: 'application/pdf',
         sizeBytes: 4096,
       });
-      storage.keys.add(next.uploadPath);
+
+      const secondBody = new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d, 0x53]);
+      await uploadDocumentToExternalStorage(context, {
+        documentId: first.id,
+        parentSemanticFolder: semanticFolderForDocumentOwner('vendor'),
+        fileName: 'contract-signed.pdf',
+        mimeType: 'application/pdf',
+        body: secondBody,
+        sizeBytes: secondBody.length,
+      });
 
       const uploaded = await uploadNewVersion(context, {
         documentId: first.id,
         storagePath: next.uploadPath,
         originalFilename: 'contract-signed.pdf',
         mimeType: 'application/pdf',
-        sizeBytes: 4096,
+        sizeBytes: secondBody.length,
       });
 
       expect(uploaded.version.versionNumber).toBe(2);
       expect(uploaded.version.isCurrent).toBe(true);
       expect(uploaded.document.currentVersionId).toBe(uploaded.version.id);
-      expect(uploaded.document.storagePath).toBe(next.uploadPath);
+      expect(uploaded.document.storagePath).toBe(`test-ext-${first.id}-contract-signed.pdf`);
       expect(uploaded.document.originalFilename).toBe('contract-signed.pdf');
 
       const versions = await listVersions(context, { documentId: first.id });
@@ -170,11 +212,12 @@ describe('document versioning', () => {
       expect(versions.find((version) => version.versionNumber === 1)?.id).toBe(version1Id);
       expect(versions.find((version) => version.versionNumber === 1)?.storagePath).toBe(version1Path);
       expect(versions.find((version) => version.versionNumber === 1)?.isCurrent).toBe(false);
-      expect(storage.keys.has(version1Path)).toBe(true);
-      expect(storage.keys.has(next.uploadPath)).toBe(true);
+      expect(version1Path).not.toBe(uploaded.document.storagePath);
 
       const currentDownload = await createDocumentDownloadUrl(context, { documentId: first.id });
-      expect(currentDownload.url).toContain(encodeURIComponent(next.uploadPath));
+      expect(currentDownload.url).toContain(
+        encodeURIComponent(`test-ext-${first.id}-contract-signed.pdf`),
+      );
 
       const oldDownload = await createDocumentVersionDownloadUrl(context, { versionId: version1Id });
       expect(oldDownload.url).toContain(encodeURIComponent(version1Path));
@@ -192,20 +235,14 @@ describe('document versioning', () => {
         locale: 'en',
       });
       const vendor = await createVendor(context, { name: 'Alpha Vendor' });
-      const prepared = await prepareDocumentUpload(context, {
-        fileName: 'secret.pdf',
+      const body = new Uint8Array([0x25, 0x50, 0x44, 0x46]);
+      const finalized = await uploadVendorDocument(context, vendor.id, {
+        name: 'secret.pdf',
         mimeType: 'application/pdf',
-        sizeBytes: 1024,
-        ownerType: 'vendor',
-        ownerId: vendor.id,
+        body,
       });
-      storage.keys.add(prepared.document.storagePath);
-      await finalizeDocumentUpload(context, {
-        documentId: prepared.document.id,
-        sizeBytes: 1024,
-      });
-      const versions = await listVersions(context, { documentId: prepared.document.id });
-      return { documentId: prepared.document.id, versionId: versions[0]!.id };
+      const versions = await listVersions(context, { documentId: finalized.id });
+      return { documentId: finalized.id, versionId: versions[0]!.id };
     });
 
     await database.asUser(orgB.owner.id, async (tx) => {
@@ -237,25 +274,19 @@ describe('document versioning', () => {
         locale: 'en',
       });
       const vendor = await createVendor(context, { name: 'Perm Vendor' });
-      const prepared = await prepareDocumentUpload(context, {
-        fileName: 'permit.pdf',
+      const body = new Uint8Array([0x25, 0x50, 0x44, 0x46]);
+      const finalized = await uploadVendorDocument(context, vendor.id, {
+        name: 'permit.pdf',
         mimeType: 'application/pdf',
-        sizeBytes: 512,
-        ownerType: 'vendor',
-        ownerId: vendor.id,
-      });
-      storage.keys.add(prepared.document.storagePath);
-      await finalizeDocumentUpload(context, {
-        documentId: prepared.document.id,
-        sizeBytes: 512,
+        body,
       });
 
       const denied = contextWithoutDocumentsRead(context);
-      await expect(listVersions(denied, { documentId: prepared.document.id })).rejects.toBeInstanceOf(
+      await expect(listVersions(denied, { documentId: finalized.id })).rejects.toBeInstanceOf(
         AuthorizationError,
       );
       await expect(
-        createDocumentDownloadUrl(denied, { documentId: prepared.document.id }),
+        createDocumentDownloadUrl(denied, { documentId: finalized.id }),
       ).rejects.toBeInstanceOf(AuthorizationError);
     });
   });

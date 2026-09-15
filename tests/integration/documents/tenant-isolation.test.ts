@@ -190,7 +190,9 @@ describe('documents tenant isolation', () => {
       });
 
       const download = await createDocumentDownloadUrl(context, { documentId: prepared.document.id });
-      expect(download.url).toContain(encodeURIComponent(`test-ext-${prepared.document.id}`));
+      expect(download.url).toContain(
+        encodeURIComponent(`test-ext-${prepared.document.id}-receipt.png`),
+      );
     });
   });
 });

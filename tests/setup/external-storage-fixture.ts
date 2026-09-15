@@ -4,7 +4,11 @@ import type { Mock } from 'vitest';
 import { vi } from 'vitest';
 import { findDocumentById, updateDocumentById } from '@/modules/documents/data/documents.repository';
 import { getPrimaryStorageConnection } from '@/modules/external-storage/data/connections.repository';
-import { insertStorageFile } from '@/modules/external-storage/data/files.repository';
+import {
+  findStorageFileByDocumentId,
+  insertStorageFile,
+  updateStorageFile,
+} from '@/modules/external-storage/data/files.repository';
 import * as externalStorageServer from '@/modules/external-storage/server';
 import type { OrgContext } from '@/shared/auth/context';
 import type { DbExecutor } from '@/shared/db/types';
@@ -42,27 +46,44 @@ export async function simulateExternalStorageUpload(
     mimeType: string;
     sizeBytes: number;
     body: Uint8Array;
+    externalFileId?: string;
   },
 ): Promise<{ id: string }> {
   const connection = await getPrimaryStorageConnection(context.db, context.organizationId);
   if (!connection) throw new Error('missing test storage connection');
 
-  const fileId = `test-ext-${input.documentId}`;
+  const fileId = input.externalFileId ?? `test-ext-${input.documentId}-${input.fileName}`;
   const checksum = createHash('sha256').update(input.body).digest('hex');
 
-  await insertStorageFile(context.db, {
-    organizationId: context.organizationId,
-    connectionId: connection.id,
-    documentId: input.documentId,
-    externalFileId: fileId,
-    externalParentFolderId: connection.rootFolderExternalId,
-    originalFilename: input.fileName,
-    mimeType: input.mimeType,
-    sizeBytes: input.sizeBytes,
-    externalEtag: 'test-etag',
-    checksum,
-    createdByUserId: context.userId,
-  });
+  const existing = await findStorageFileByDocumentId(
+    context.db,
+    context.organizationId,
+    input.documentId,
+  );
+  if (existing) {
+    await updateStorageFile(context.db, context.organizationId, existing.id, {
+      externalFileId: fileId,
+      originalFilename: input.fileName,
+      mimeType: input.mimeType,
+      sizeBytes: input.sizeBytes,
+      externalEtag: 'test-etag',
+      checksum,
+    });
+  } else {
+    await insertStorageFile(context.db, {
+      organizationId: context.organizationId,
+      connectionId: connection.id,
+      documentId: input.documentId,
+      externalFileId: fileId,
+      externalParentFolderId: connection.rootFolderExternalId,
+      originalFilename: input.fileName,
+      mimeType: input.mimeType,
+      sizeBytes: input.sizeBytes,
+      externalEtag: 'test-etag',
+      checksum,
+      createdByUserId: context.userId,
+    });
+  }
 
   await updateDocumentById(context.db, context.organizationId, input.documentId, {
     storageBackend: 'external',
@@ -80,6 +101,7 @@ export async function simulateExternalStorageUpload(
 export function installExternalStorageServerMocks(): {
   uploadSpy: Mock;
   downloadSpy: Mock;
+  externalFileDownloadSpy: Mock;
 } {
   const uploadSpy = vi
     .spyOn(externalStorageServer, 'uploadDocumentToExternalStorage')
@@ -118,7 +140,15 @@ export function installExternalStorageServerMocks(): {
       };
     });
 
-  return { uploadSpy, downloadSpy };
+  const externalFileDownloadSpy = vi
+    .spyOn(externalStorageServer, 'getExternalFileDownload')
+    .mockImplementation(async (_context, input) => ({
+      url: `https://storage.test/download/${encodeURIComponent(input.externalFileId)}`,
+      filename: input.filename,
+      mimeType: input.mimeType,
+    }));
+
+  return { uploadSpy, downloadSpy, externalFileDownloadSpy };
 }
 
 export function restoreExternalStorageServerMocks(): void {

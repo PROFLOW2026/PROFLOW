@@ -145,7 +145,7 @@ describe('field-ops create then attach photos', () => {
       expect(documents).toHaveLength(1);
       expect(documents[0]?.originalFilename).toBe('קיר.jpg');
       expect(documents[0]?.status).toBe('available');
-      expect(documents[0]?.storagePath.startsWith('test-ext-')).toBe(true);
+      expect(documents[0]?.storagePath).toBe(`test-ext-${documents[0]!.id}-קיר.jpg`);
     });
   });
 
