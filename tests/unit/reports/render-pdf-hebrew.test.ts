@@ -89,7 +89,28 @@ function pdfBytesContain(fragment: string, bytes: Uint8Array): boolean {
   return Buffer.from(bytes).includes(Buffer.from(fragment, 'utf8'));
 }
 
+type PromiseWithResolvers = <T>() => {
+  promise: Promise<T>;
+  resolve: (value: T | PromiseLike<T>) => void;
+  reject: (reason?: unknown) => void;
+};
+
+function ensurePromiseWithResolvers(): void {
+  const promiseCtor = Promise as PromiseConstructor & { withResolvers?: PromiseWithResolvers };
+  if (typeof promiseCtor.withResolvers === 'function') return;
+  promiseCtor.withResolvers = function withResolvers<T>() {
+    let resolve!: (value: T | PromiseLike<T>) => void;
+    let reject!: (reason?: unknown) => void;
+    const promise = new Promise<T>((res, rej) => {
+      resolve = res;
+      reject = rej;
+    });
+    return { promise, resolve, reject };
+  };
+}
+
 async function extractPdfText(bytes: Uint8Array): Promise<string> {
+  ensurePromiseWithResolvers();
   const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
   const doc = await pdfjs.getDocument({ data: bytes, useSystemFonts: true }).promise;
   const parts: string[] = [];
