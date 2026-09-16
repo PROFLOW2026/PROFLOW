@@ -128,6 +128,6 @@ describe('route capability + today bias', () => {
   it('boosts profile-relevant today sources softly', () => {
     expect(todayEmphasisUrgencyBump('punch_open', 'field')).toBeGreaterThan(0);
     expect(todayEmphasisUrgencyBump('overdue_ar', 'dashboard')).toBeGreaterThan(0);
-    expect(todayEmphasisUrgencyBump('stale_project', 'field')).toBe(0);
+    expect(todayEmphasisUrgencyBump('ocr_needs_review', 'field')).toBe(0);
   });
 });

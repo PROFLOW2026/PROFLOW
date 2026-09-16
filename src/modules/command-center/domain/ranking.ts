@@ -40,7 +40,6 @@ export const SOURCE_DEFAULT_SEVERITY: Record<CommandCenterSourceType, CommandCen
   overdue_planning: 'medium',
   expiring_compliance: 'medium',
   overdue_maintenance: 'medium',
-  stale_project: 'low',
   closeout_blockers: 'high',
   warranty_expiring: 'medium',
   cash_flow_risk: 'critical',

@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useActionState, useMemo, useState } from 'react';
 import { MoneyInput } from '@/components/patterns/money-input';
 import { MoneyText } from '@/components/patterns/money-text';
@@ -20,6 +20,7 @@ import {
   subtractMoney,
   zeroMoney,
 } from '@/shared/money/money';
+import { formatMoneyString } from '@/shared/money/format';
 import { createPaymentAction, type BillingFormState } from './actions';
 
 interface ClientOption {
@@ -58,6 +59,7 @@ export function PaymentForm({
   defaultPaymentDate,
   defaultCurrency,
 }: PaymentFormProps) {
+  const locale = useLocale();
   const t = useTranslations('billing');
   const tCommon = useTranslations('common');
   const [entryMode, setEntryMode] = useState<EntryMode>(
@@ -436,7 +438,7 @@ export function PaymentForm({
               <Field
                 key={record.id}
                 label={`${record.projectName ?? t('list.unknownProject')} · ${record.reference ?? record.id.slice(0, 8)}`}
-                description={`${t('paymentForm.invoiceBalanceBefore')}: ${record.outstandingAmount.amount} ${record.outstandingAmount.currency}`}
+                description={`${t('paymentForm.invoiceBalanceBefore')}: ${formatMoneyString(record.outstandingAmount.amount, record.outstandingAmount.currency, locale)}`}
               >
                 {(controlProps) => (
                   <>

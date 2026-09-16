@@ -1,4 +1,11 @@
-import { displayScaleFor, isNegativeMoney, isZeroMoney, toDecimalValue, type MoneyValue } from './money';
+import {
+  displayScaleFor,
+  fromNumericString,
+  isNegativeMoney,
+  isZeroMoney,
+  toDecimalValue,
+  type MoneyValue,
+} from './money';
 
 /**
  * Locale-aware money presentation (doc 58 §4).
@@ -147,4 +154,17 @@ export function bidiIsolate(text: string): string {
 /** Server-side display helper — always 2 decimal places (presentation only). */
 export function formatMoneyDisplay(value: MoneyValue, locale = 'he-IL'): string {
   return formatMoney(value, locale, { decimals: 'minor-units' });
+}
+
+/**
+ * Format a raw DB numeric string (or JSON-decoded number) for UI copy.
+ * Presentation only — never changes stored precision.
+ */
+export function formatMoneyString(
+  amount: string | number | null | undefined,
+  currency: string,
+  locale = 'he-IL',
+): string {
+  const parsed = fromNumericString(amount, currency);
+  return parsed ? formatMoneyDisplay(parsed, locale) : `${amount ?? '0'} ${currency}`;
 }

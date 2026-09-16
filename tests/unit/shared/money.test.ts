@@ -15,7 +15,7 @@ import {
   sumMoney,
   zeroMoney,
 } from '@/shared/money/money';
-import { formatMoney, formatMoneyDelta } from '@/shared/money/format';
+import { formatMoney, formatMoneyDelta, formatMoneyString } from '@/shared/money/format';
 
 describe('money construction', () => {
   it('normalises every amount to the storage scale', () => {
@@ -130,5 +130,11 @@ describe('formatting', () => {
     expect(formatted).not.toMatch(/[\u200E\u200F]/);
     expect(formatted.endsWith('₪')).toBe(true);
     expect(formatted.startsWith('₪')).toBe(false);
+  });
+
+  it('formatMoneyString normalises raw storage-scale strings for display', () => {
+    expect(formatMoneyString('77416.500000', 'ILS', 'he-IL')).toBe('77,416.50 ₪');
+    expect(formatMoneyString('0.000000', 'ILS', 'he-IL')).toBe('0.00 ₪');
+    expect(formatMoneyString('9131.000000', 'ILS', 'he-IL')).toBe('9,131.00 ₪');
   });
 });

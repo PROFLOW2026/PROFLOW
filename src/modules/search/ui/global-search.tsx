@@ -16,11 +16,14 @@ import { pressableChromeClassName } from '@/components/ui/pressable';
 import { globalSearchAction } from '@/modules/search/application/search-actions';
 import type { GlobalSearchGroup, GlobalSearchHit, SearchCommandHit } from '@/modules/search/domain/types';
 import { localizeCode } from '@/shared/i18n/code-display';
+import { formatMoneyString } from '@/shared/money/format';
 import { cn } from '@/shared/ui/cn';
 
 function formatHitMeta(hit: GlobalSearchHit, locale: string): string | null {
   const status = hit.status ? localizeCode(locale, hit.status) : null;
-  const parts = [hit.contextLabel, status, hit.date, hit.amount && hit.currency ? `${hit.amount} ${hit.currency}` : hit.amount]
+  const amountLabel =
+    hit.amount && hit.currency ? formatMoneyString(hit.amount, hit.currency, locale) : hit.amount;
+  const parts = [hit.contextLabel, status, hit.date, amountLabel]
     .filter(Boolean);
   if (parts.length === 0) return hit.subtitle;
   return parts.join(' · ');

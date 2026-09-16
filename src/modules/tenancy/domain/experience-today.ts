@@ -24,7 +24,6 @@ const SOURCE_CATEGORY: Readonly<Record<string, TodayFocusCategory>> = {
   unallocated_employee_cost: 'money',
   project_over_budget: 'project_risk',
   forecast_warning: 'project_risk',
-  stale_project: 'project_risk',
   punch_open: 'field',
   inspection_open: 'field',
   safety_open: 'field',

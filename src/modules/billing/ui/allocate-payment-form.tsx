@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useActionState, useMemo, useState } from 'react';
 import { MoneyInput } from '@/components/patterns/money-input';
 import { MoneyText } from '@/components/patterns/money-text';
@@ -15,6 +15,7 @@ import {
   subtractMoney,
   zeroMoney,
 } from '@/shared/money/money';
+import { formatMoneyString } from '@/shared/money/format';
 import { allocatePaymentAction, type BillingFormState } from './actions';
 
 interface AllocatePaymentFormProps {
@@ -36,6 +37,7 @@ function currencyGlyph(currency: string): string {
 }
 
 export function AllocatePaymentForm({ payment, billingRecords }: AllocatePaymentFormProps) {
+  const locale = useLocale();
   const t = useTranslations('billing');
   const [allocations, setAllocations] = useState<Record<string, string>>({});
   const [state, formAction, pending] = useActionState<BillingFormState, FormData>(
@@ -120,7 +122,7 @@ export function AllocatePaymentForm({ payment, billingRecords }: AllocatePayment
               <Field
                 key={record.id}
                 label={`${record.projectName ?? t('list.unknownProject')} · ${record.reference ?? record.id.slice(0, 8)}`}
-                description={`${t('paymentForm.invoiceBalanceBefore')}: ${record.outstandingAmount.amount} ${record.outstandingAmount.currency}`}
+                description={`${t('paymentForm.invoiceBalanceBefore')}: ${formatMoneyString(record.outstandingAmount.amount, record.outstandingAmount.currency, locale)}`}
               >
                 {(controlProps) => (
                   <>

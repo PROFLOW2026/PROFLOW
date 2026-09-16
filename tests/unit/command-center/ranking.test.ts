@@ -27,7 +27,7 @@ describe('command center ranking', () => {
     expect(computeRankScore('critical', 5)).toBeGreaterThan(computeRankScore('high', 99));
   });
 
-  it('sorts critical overdue AR ahead of stale projects', () => {
+  it('sorts critical overdue AR ahead of low-priority OCR review items', () => {
     const overdue = withItemDefaults({
       sourceType: 'overdue_ar',
       sourceId: 'a',
@@ -37,17 +37,17 @@ describe('command center ranking', () => {
       href: '/billing/a',
       urgencyBump: 20,
     });
-    const stale = withItemDefaults({
-      sourceType: 'stale_project',
+    const ocr = withItemDefaults({
+      sourceType: 'ocr_needs_review',
       sourceId: 'b',
-      what: 'Check',
-      why: 'Quiet',
-      where: 'Project B',
-      href: '/projects/b',
+      what: 'Review',
+      why: 'Waiting',
+      where: 'OCR',
+      href: '/settings/ocr',
     });
-    const sorted = sortCommandCenterItems([stale, overdue]);
+    const sorted = sortCommandCenterItems([ocr, overdue]);
     expect(sorted[0]?.itemKey).toBe(overdue.itemKey);
-    expect(compareCommandCenterItems(overdue, stale)).toBeLessThan(0);
+    expect(compareCommandCenterItems(overdue, ocr)).toBeLessThan(0);
   });
 
   it('marks financial sources and blocks handle/dismiss', () => {
@@ -159,12 +159,13 @@ describe('command center ranking', () => {
       href: '/billing/a',
     });
     const info = withItemDefaults({
-      sourceType: 'stale_project',
+      sourceType: 'ocr_needs_review',
       sourceId: 'b',
-      what: 'Check',
-      why: 'Quiet',
+      what: 'Review',
+      why: 'Waiting',
       where: 'B',
-      href: '/projects/b',
+      href: '/settings/ocr',
+      severity: 'low',
     });
     const sections = groupInboxBySeverity([info, critical]);
     expect(sections.map((section) => section.severity)).toEqual(['critical', 'low']);

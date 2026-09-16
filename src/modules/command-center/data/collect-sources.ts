@@ -59,7 +59,6 @@ import {
   overdueArCopy,
   overdueMaintenanceCopy,
   overduePlanningCopy,
-  staleProjectCopy,
   unattributedProjectLaborCopy,
   unallocatedVendorBillCopy,
   vendorBillDueCopy,
@@ -83,7 +82,6 @@ import {
 
 const PER_SOURCE_CAP = 15;
 const OCR_CAP = 10;
-const STALE_PROJECT_DAYS = 14;
 const VENDOR_BILL_APPROACHING_DAYS = 7;
 
 export interface CollectContext {
@@ -535,45 +533,6 @@ export async function collectOverdueMaintenance(
       meta: { assetId: record.assetId },
     });
   });
-}
-
-export async function collectStaleProjects(ctx: CollectContext): Promise<CommandCenterItem[]> {
-  if (!hasPermission(ctx.context, PERMISSIONS.PROJECTS_READ)) return [];
-
-  const cutoff = new Date();
-  cutoff.setUTCDate(cutoff.getUTCDate() - STALE_PROJECT_DAYS);
-
-  const rows = await ctx.context.db
-    .select({
-      id: projects.id,
-      name: projects.name,
-      updatedAt: projects.updatedAt,
-      workKind: projects.workKind,
-    })
-    .from(projects)
-    .where(
-      and(
-        eq(projects.organizationId, ctx.context.organizationId),
-        eq(projects.status, 'active'),
-        isNull(projects.archivedAt),
-        lt(projects.updatedAt, cutoff),
-      ),
-    )
-    .orderBy(asc(projects.updatedAt))
-    .limit(PER_SOURCE_CAP);
-
-  const copy = staleProjectCopy(localeOf(ctx), STALE_PROJECT_DAYS);
-  return rows.map((row) =>
-    withItemDefaults({
-      sourceType: 'stale_project',
-      sourceId: row.id,
-      what: copy.what,
-      why: copy.why,
-      where: row.name,
-      href: row.workKind === 'job' ? `/jobs/${row.id}` : `/projects/${row.id}`,
-      meta: { updatedAt: row.updatedAt.toISOString() },
-    }),
-  );
 }
 
 export async function collectCreditVoidIssues(ctx: CollectContext): Promise<CommandCenterItem[]> {
@@ -1247,7 +1206,6 @@ export async function collectAllSources(ctx: CollectContext): Promise<CommandCen
     collectOverduePlanning,
     collectExpiringCompliance,
     collectOverdueMaintenance,
-    collectStaleProjects,
     collectCreditVoidIssues,
     collectMonthCloseIncomplete,
     collectBoqMeasurementAwaitingApproval,

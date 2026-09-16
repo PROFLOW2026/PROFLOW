@@ -2,6 +2,7 @@ import { getTranslations } from 'next-intl/server';
 import type { StoredDraftPayload } from '../domain/types';
 import type { previewPayloadForRun } from '../domain/payload';
 import { formatSafeBusinessDate } from '../domain/safe-dates';
+import { formatMoneyString } from '@/shared/money/format';
 
 export async function PayloadPreview({
   payload,
@@ -22,7 +23,7 @@ export async function PayloadPreview({
     rows.push(
       {
         label: t('fields.amount'),
-        value: `${preview.expense.amount} ${preview.expense.currency}`,
+        value: formatMoneyString(preview.expense.amount, preview.expense.currency, locale),
         ltr: true,
       },
       {
@@ -54,7 +55,7 @@ export async function PayloadPreview({
     rows.push(
       {
         label: t('fields.amount'),
-        value: `${preview.vendorBill.totalAmount} ${preview.vendorBill.currency}`,
+        value: formatMoneyString(preview.vendorBill.totalAmount, preview.vendorBill.currency, locale),
         ltr: true,
       },
       { label: t('list.columns.status'), value: t('fields.draftStatus') },
@@ -68,7 +69,9 @@ export async function PayloadPreview({
     rows.push(
       {
         label: t('fields.amount'),
-        value: `${preview.billing.amount} ${preview.billing.currency ?? ''}`.trim(),
+        value: preview.billing.currency
+          ? formatMoneyString(preview.billing.amount, preview.billing.currency, locale)
+          : preview.billing.amount,
         ltr: true,
       },
       { label: t('fields.reference'), value: preview.billing.reference?.trim() || t('fields.none') },

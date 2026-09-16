@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useMemo, useState, useTransition } from 'react';
 import { useRouter } from '@/shared/i18n/navigation';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Textarea } from '@/components/ui/textarea';
 import { MoneyText } from '@/components/patterns/money-text';
+import { formatMoneyString } from '@/shared/money/format';
 import {
   explainMonthCloseAdjustments,
   isEconomicAdjustment,
@@ -444,6 +445,7 @@ function EconomicAdjustmentForm({
   readonly pending: boolean;
   readonly state: MonthCloseActionState;
 }) {
+  const locale = useLocale();
   const t = useTranslations('monthClose');
   const [amount, setAmount] = useState('');
   const [currency, setCurrency] = useState(baseCurrency);
@@ -572,7 +574,9 @@ function EconomicAdjustmentForm({
                 {(row.projectName ?? t('adjustments.noProject')) +
                   ' · ' +
                   t(`adjustments.sides.${row.effectSide ?? 'cost'}`) +
-                  (row.amount && row.currency ? ` · ${row.amount} ${row.currency}` : '')}
+                  (row.amount && row.currency
+                    ? ` · ${formatMoneyString(row.amount, row.currency, locale)}`
+                    : '')}
               </option>
             ))}
           </select>

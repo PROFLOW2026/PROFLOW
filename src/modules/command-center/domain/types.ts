@@ -16,7 +16,6 @@ export const COMMAND_CENTER_SOURCE_TYPES = [
   'overdue_planning',
   'expiring_compliance',
   'overdue_maintenance',
-  'stale_project',
   'credit_void_issue',
   'month_close_incomplete',
   'boq_measurement_awaiting_approval',

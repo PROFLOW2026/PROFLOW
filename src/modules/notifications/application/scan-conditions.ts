@@ -17,6 +17,7 @@ import {
   listPlansWithRetentionHeld,
 } from '@/modules/billing-plan';
 import { fromNumericString, isPositiveMoney, isZeroMoney } from '@/shared/money';
+import { formatMoneyString } from '@/shared/money/format';
 import type { OrgContext } from '@/shared/auth/context';
 import { todayInTimeZone, type BusinessDate } from '@/shared/dates';
 import { ValidationError } from '@/shared/errors';
@@ -172,7 +173,11 @@ async function scanBillingOverdue(ctx: ScannerContext): Promise<{ emitted: numbe
     .map((record) => ({
       id: record.id,
       reference: record.reference,
-      extra: `${record.outstandingAmount.amount} ${record.outstandingAmount.currency}`,
+      extra: formatMoneyString(
+        record.outstandingAmount.amount,
+        record.outstandingAmount.currency,
+        ctx.locale,
+      ),
       deepLink: `/billing/${record.id}`,
     }));
   const emitted = await emitLive(
@@ -626,7 +631,7 @@ async function scanBillingPlanRetentionHeld(
   const entities: ScanEntity[] = rows.map((row) => ({
     id: row.planId,
     reference: row.planName,
-    extra: `${row.heldRemaining} ${row.currency}`,
+    extra: formatMoneyString(row.heldRemaining, row.currency, ctx.locale),
     deepLink: `/projects/${row.projectId}?tab=billingPlan`,
     projectId: row.projectId,
   }));

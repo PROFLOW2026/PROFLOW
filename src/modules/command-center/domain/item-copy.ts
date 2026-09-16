@@ -1,7 +1,6 @@
 /** Locale-aware WHAT / WHY / WHERE fallbacks. Entity names stay as stored. */
 
-import { formatMoneyDisplay } from '@/shared/money/format';
-import { fromNumericString } from '@/shared/money';
+import { formatMoneyString } from '@/shared/money/format';
 
 function he(locale: string): boolean {
   return locale.toLowerCase().startsWith('he');
@@ -113,19 +112,20 @@ export function overdueArCopy(
   locale: string,
   input: { reference: string | null; dueDate: string | null; outstanding: string; currency: string },
 ): { what: string; why: string } {
+  const outstanding = formatMoneyString(input.outstanding, input.currency, locale);
   if (he(locale)) {
     return {
       what: input.reference ? `גבייה - ${input.reference}` : 'גביית חיוב באיחור',
       why: input.dueDate
-        ? `באיחור מאז ${input.dueDate} · יתרה ${input.outstanding} ${input.currency}`
-        : `באיחור · יתרה ${input.outstanding} ${input.currency}`,
+        ? `באיחור מאז ${input.dueDate} · יתרה ${outstanding}`
+        : `באיחור · יתרה ${outstanding}`,
     };
   }
   return {
     what: input.reference ? `Collect ${input.reference}` : 'Collect overdue billing',
     why: input.dueDate
-      ? `Past due since ${input.dueDate} · outstanding ${input.outstanding} ${input.currency}`
-      : `Past due · outstanding ${input.outstanding} ${input.currency}`,
+      ? `Past due since ${input.dueDate} · outstanding ${outstanding}`
+      : `Past due · outstanding ${outstanding}`,
   };
 }
 
@@ -133,15 +133,16 @@ export function vendorBillDueCopy(
   locale: string,
   input: { reference: string | null; dueDate: string; outstanding: string; currency: string },
 ): { what: string; why: string } {
+  const outstanding = formatMoneyString(input.outstanding, input.currency, locale);
   if (he(locale)) {
     return {
       what: input.reference ? `תשלום חשבונית ספק ${input.reference}` : 'תשלום חשבונית ספק באיחור',
-      why: `לתשלום עד ${input.dueDate} · יתרה ${input.outstanding} ${input.currency}`,
+      why: `לתשלום עד ${input.dueDate} · יתרה ${outstanding}`,
     };
   }
   return {
     what: input.reference ? `Pay vendor bill ${input.reference}` : 'Pay overdue vendor bill',
-    why: `Due ${input.dueDate} · outstanding ${input.outstanding} ${input.currency}`,
+    why: `Due ${input.dueDate} · outstanding ${outstanding}`,
   };
 }
 
@@ -156,11 +157,6 @@ export function openAttendanceCopy(locale: string, workDate: string): { what: st
     what: 'Close open attendance day',
     why: `Attendance for ${workDate} is still open (no clock-out / not closed)`,
   };
-}
-
-function formatAlertMoney(locale: string, amount: string, currency: string): string {
-  const money = fromNumericString(amount, currency);
-  return money ? formatMoneyDisplay(money, locale) : `${amount} ${currency}`;
 }
 
 export function unattributedProjectLaborCopy(
@@ -196,9 +192,9 @@ export function unallocatedEmployeeCostCopy(
   },
 ): { what: string; why: string } {
   const status = allocationStatusLabel(locale, input.status);
-  const recognized = formatAlertMoney(locale, input.knownAmount, input.currency);
-  const allocated = formatAlertMoney(locale, input.allocatedAmount, input.currency);
-  const remaining = formatAlertMoney(locale, input.unallocatedAmount, input.currency);
+  const recognized = formatMoneyString(input.knownAmount, input.currency, locale);
+  const allocated = formatMoneyString(input.allocatedAmount, input.currency, locale);
+  const remaining = formatMoneyString(input.unallocatedAmount, input.currency, locale);
   if (he(locale)) {
     return {
       what: `הקצאת יתרת עלות · ${input.employeeName} · ${input.yearMonth}`,
@@ -215,15 +211,16 @@ export function unallocatedVendorBillCopy(
   locale: string,
   input: { outstanding: string; currency: string },
 ): { what: string; why: string } {
+  const outstanding = formatMoneyString(input.outstanding, input.currency, locale);
   if (he(locale)) {
     return {
       what: 'שיוך חשבונית ספק לפרויקט',
-      why: `חשבונית נרשמה בלי פרויקט · ${input.outstanding} ${input.currency}`,
+      why: `חשבונית נרשמה בלי פרויקט · ${outstanding}`,
     };
   }
   return {
     what: 'Assign vendor bill to a project',
-    why: `Posted bill with no project · ${input.outstanding} ${input.currency}`,
+    why: `Posted bill with no project · ${outstanding}`,
   };
 }
 
@@ -231,15 +228,18 @@ export function overBudgetCopy(
   locale: string,
   input: { actual: string; budget: string; currency: string; overBy: string },
 ): { what: string; why: string } {
+  const actual = formatMoneyString(input.actual, input.currency, locale);
+  const budget = formatMoneyString(input.budget, input.currency, locale);
+  const overBy = formatMoneyString(input.overBy, input.currency, locale);
   if (he(locale)) {
     return {
       what: 'בדיקת פרויקט שחרג מהתקציב',
-      why: `בפועל ${input.actual} מעל תקציב ${input.budget} ${input.currency} (חריגה ${input.overBy})`,
+      why: `בפועל ${actual} מעל תקציב ${budget} (חריגה ${overBy})`,
     };
   }
   return {
     what: 'Review over-budget project',
-    why: `Actual ${input.actual} exceeds budget ${input.budget} ${input.currency} (over by ${input.overBy})`,
+    why: `Actual ${actual} exceeds budget ${budget} (over by ${overBy})`,
   };
 }
 
@@ -249,7 +249,9 @@ export function openApprovalCopy(
 ): { what: string; why: string } {
   const entity = entityTypeLabel(locale, input.entityType);
   const money =
-    input.amount && input.currency ? ` · ${input.amount} ${input.currency}` : '';
+    input.amount && input.currency
+      ? ` · ${formatMoneyString(input.amount, input.currency, locale)}`
+      : '';
   if (he(locale)) {
     return {
       what: 'החלטה על אישור ממתין',
@@ -310,19 +312,6 @@ export function overdueMaintenanceCopy(
   return {
     what: 'Complete overdue maintenance',
     why: `Scheduled ${input.performedOn ?? 'without date'} · status ${status}`,
-  };
-}
-
-export function staleProjectCopy(locale: string, days: number): { what: string; why: string } {
-  if (he(locale)) {
-    return {
-      what: 'בדיקת עבודה לא פעילה',
-      why: `אין עדכונים כבר ${days}+ ימים`,
-    };
-  }
-  return {
-    what: 'Check inactive work',
-    why: `No updates for ${days}+ days`,
   };
 }
 
@@ -409,15 +398,16 @@ export function vendorBillApproachingCopy(
   locale: string,
   input: { reference: string | null; dueDate: string; outstanding: string; currency: string },
 ): { what: string; why: string } {
+  const outstanding = formatMoneyString(input.outstanding, input.currency, locale);
   if (he(locale)) {
     return {
       what: input.reference ? `חשבונית ספק מתקרבת לפירעון ${input.reference}` : 'חשבונית ספק מתקרבת לפירעון',
-      why: `לתשלום עד ${input.dueDate} · יתרה ${input.outstanding} ${input.currency}`,
+      why: `לתשלום עד ${input.dueDate} · יתרה ${outstanding}`,
     };
   }
   return {
     what: input.reference ? `Vendor bill due soon ${input.reference}` : 'Vendor bill due soon',
-    why: `Due ${input.dueDate} · outstanding ${input.outstanding} ${input.currency}`,
+    why: `Due ${input.dueDate} · outstanding ${outstanding}`,
   };
 }
 
@@ -710,15 +700,17 @@ export function cashFlowRiskCopy(
   locale: string,
   input: { overdueIn: string; overdueOut: string; currency: string },
 ): { what: string; why: string } {
+  const overdueIn = formatMoneyString(input.overdueIn, input.currency, locale);
+  const overdueOut = formatMoneyString(input.overdueOut, input.currency, locale);
   if (he(locale)) {
     return {
       what: 'סיכון תזרים לטיפול',
-      why: `גבייה באיחור ${input.overdueIn} ${input.currency} · תשלומים באיחור ${input.overdueOut} ${input.currency}`,
+      why: `גבייה באיחור ${overdueIn} · תשלומים באיחור ${overdueOut}`,
     };
   }
   return {
     what: 'Cash flow risk to review',
-    why: `Overdue collections ${input.overdueIn} ${input.currency} · overdue payables ${input.overdueOut} ${input.currency}`,
+    why: `Overdue collections ${overdueIn} · overdue payables ${overdueOut}`,
   };
 }
 
@@ -856,15 +848,16 @@ export function billingPlanRetentionReleaseDueCopy(
   locale: string,
   input: { heldRemaining: string; currency: string },
 ): { what: string; why: string } {
+  const heldRemaining = formatMoneyString(input.heldRemaining, input.currency, locale);
   if (he(locale)) {
     return {
       what: 'שחרור עיכבון מתוכנית חיובים',
-      why: `יתרת עיכבון מוחזק ${input.heldRemaining} ${input.currency} — ניתן לשחרר לחיוב.`,
+      why: `יתרת עיכבון מוחזק ${heldRemaining} — ניתן לשחרר לחיוב.`,
     };
   }
   return {
     what: 'Release billing-plan retention',
-    why: `${input.heldRemaining} ${input.currency} retention held remaining — ready to release as billing.`,
+    why: `${heldRemaining} retention held remaining — ready to release as billing.`,
   };
 }
 

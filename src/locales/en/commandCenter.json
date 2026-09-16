@@ -44,7 +44,6 @@
     "overdue_planning": "Planning",
     "expiring_compliance": "Expiring compliance",
     "overdue_maintenance": "Maintenance",
-    "stale_project": "Inactive work",
     "credit_void_issue": "Credit / void",
     "month_close_incomplete": "Month close",
     "boq_measurement_awaiting_approval": "BOQ measurement",

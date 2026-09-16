@@ -11,6 +11,7 @@ import {
   timesheetMissingCopy,
   boqVsContractMismatchCopy,
   billingPlanRetentionReleaseDueCopy,
+  cashFlowRiskCopy,
 } from '@/modules/command-center/domain/item-copy';
 
 describe('command center item copy', () => {
@@ -92,16 +93,29 @@ describe('command center item copy', () => {
 
   it('localizes billing-plan retention release due copy', () => {
     const he = billingPlanRetentionReleaseDueCopy('he-IL', {
-      heldRemaining: '1500.00',
+      heldRemaining: '1500.000000',
       currency: 'ILS',
     });
     expect(he.what).toContain('עיכבון');
-    expect(he.why).toContain('1500.00');
+    expect(he.why).toContain('1,500.00');
+    expect(he.why).not.toContain('1500.000000');
 
     const en = billingPlanRetentionReleaseDueCopy('en', {
-      heldRemaining: '1500.00',
+      heldRemaining: '1500.000000',
       currency: 'ILS',
     });
     expect(en.what.toLowerCase()).toContain('retention');
+  });
+
+  it('formats cash-flow risk copy with at most two decimal places', () => {
+    const he = cashFlowRiskCopy('he-IL', {
+      overdueIn: '77416.500000',
+      overdueOut: '0.000000',
+      currency: 'ILS',
+    });
+    expect(he.what).toBe('סיכון תזרים לטיפול');
+    expect(he.why).toContain('77,416.50');
+    expect(he.why).toContain('0.00');
+    expect(he.why).not.toMatch(/77416\.500000|0\.000000/);
   });
 });
