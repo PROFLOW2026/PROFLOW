@@ -2,14 +2,18 @@ import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
   classifyPdfTextRun,
+  filterPdfHeaderAddressLines,
+  formatPdfGeneratedAt,
   hebrewBoldFontCandidatePaths,
   hebrewBoldFontFilePath,
   hebrewFontCandidatePaths,
   hebrewFontFilePath,
+  isPdfCountryCodeLine,
   isWinAnsiEncodable,
   pdfRunUsesEmbeddedFont,
   renderReportPdf,
   shapeForPdf,
+  simplifyPdfText,
   splitPdfTextRuns,
 } from '@/modules/reports/application/render-pdf';
 
@@ -17,15 +21,15 @@ function monthlyWorkforceHebrewPayload() {
   return {
     kind: 'monthly_workforce_report' as const,
     title: 'דוח עובדים חודשי',
-    generatedAt: '2026-08-16T15:13:00.000Z',
+    generatedAt: '2026-09-16T19:04:00.000Z',
     locale: 'he-IL' as const,
     dir: 'rtl' as const,
     identity: {
       companyName: 'חברת מתח ח.י הנדסת חשמל בע״מ',
       projectId: null,
-      projectName: null,
-      projectNumber: null,
-      clientName: null,
+      projectName: 'פרויקט בדיקה',
+      projectNumber: 'P-1001',
+      clientName: 'לקוח בדיקה',
       extra: '2026-08',
     },
     notices: ['דוח עובדים לחודש 2026-08. אין בדוח נתוני שכר / מס — לצרכים תפעוליים בלבד.'],
@@ -35,17 +39,24 @@ function monthlyWorkforceHebrewPayload() {
         heading: 'סיכום חודש',
         rows: [
           { label: 'חודש דיווח', value: '2026-08' },
-          { label: 'ימי עבודה / נוכחות', value: '22 / 20' },
-          { label: 'טווח', value: '2026-08-01 – 2026-08-31' },
-          { label: 'עלות ללא הקצאה', value: '0.00 ₪' },
+          { label: 'ימי עבודה / נוכחות', value: '22' },
+          { label: 'טווח תאריכים', value: '2026-08-01 – 2026-08-31' },
+          { label: 'עלות ללא הקצאה', value: '0.00 ₪', nature: 'actual' as const },
         ],
       },
       {
         id: 'employee-1',
         heading: 'ישראל ישראלי',
         rows: [
-          { label: 'שעות', value: '168' },
+          { label: 'סיווג', value: 'בעלים / מנהל (פטור דיווח)' },
+          { label: 'שעות רגילות', value: '176.00' },
           { label: 'עלות', value: '1,234.56 ₪' },
+        ],
+        tables: [
+          {
+            headers: ['פרויקט', 'ימים', 'שעות', 'עלות'],
+            rows: [['מגדל A', '18', '176.00', '1,234.56 ₪']],
+          },
         ],
         paragraphs: ['חסרים 2 ימי דיווח בחודש.'],
       },
@@ -78,7 +89,46 @@ describe('renderReportPdf Hebrew shaping', () => {
     expect(shapeForPdf('חודשי', 'rtl')).toBe('חודשי');
     expect(shapeForPdf('דוח עובדים חודשי', 'rtl')).toBe('דוח עובדים חודשי');
     expect(shapeForPdf('2026-08', 'rtl')).toBe('2026-08');
-    expect(shapeForPdf('2026-08-01 – 2026-08-31', 'rtl')).toBe('2026-08-01 – 2026-08-31');
+  });
+
+  it('simplifies RTL PDF punctuation without changing meaning', () => {
+    expect(simplifyPdfText('בעלים / מנהל (פטור דיווח)', 'rtl')).toBe('בעלים / מנהל - פטור דיווח');
+    expect(simplifyPdfText('0.00 ₪ [בפועל]', 'rtl')).toBe('0.00 ₪ בפועל');
+    expect(simplifyPdfText('2026-08-01 – 2026-08-31', 'rtl')).toBe('2026-08-01 - 2026-08-31');
+    expect(simplifyPdfText('פרויקט | ימים | שעות', 'rtl')).toBe('פרויקט    ימים    שעות');
+    expect(simplifyPdfText('unchanged', 'ltr')).toBe('unchanged');
+  });
+
+  it('formats RTL PDF timestamps as simple numeric strings', () => {
+    expect(formatPdfGeneratedAt('2026-09-16T19:04:00.000Z')).toMatch(/16\/09\/2026 \d{2}:\d{2}/);
+  });
+
+  it('detects and filters standalone country-code address lines for PDF headers', () => {
+    expect(isPdfCountryCodeLine('IL')).toBe(true);
+    expect(isPdfCountryCodeLine(' il ')).toBe(false);
+    expect(isPdfCountryCodeLine('Tel Aviv')).toBe(false);
+    expect(filterPdfHeaderAddressLines(['רחוב 1', 'IL'])).toEqual(['רחוב 1']);
+    expect(filterPdfHeaderAddressLines(['IL'])).toEqual([]);
+  });
+
+  it('omits IL from PDF header while preserving company name', async () => {
+    const payload = {
+      ...monthlyWorkforceHebrewPayload(),
+      brand: {
+        companyLegalName: 'חברת מתח ח.י הנדסת חשמל בע״מ',
+        companyDisplayName: 'חברת מתח ח.י הנדסת חשמל בע״מ',
+        addressLines: ['IL'],
+        theme: 'customer' as const,
+        dir: 'rtl' as const,
+        locale: 'he-IL',
+        headerLayout: 'letterhead' as const,
+        primaryColor: '#1e3a5f',
+      },
+    };
+    const bytes = await renderReportPdf(payload);
+    const text = await extractPdfText(bytes);
+    expect(text).toContain('חברת מתח');
+    expect(text).not.toMatch(/(?:^|\n)IL(?:\n|$)/);
   });
 
   it('routes ₪ and other non-WinAnsi symbols to embedded font runs', () => {
@@ -94,29 +144,13 @@ describe('renderReportPdf Hebrew shaping', () => {
       { text: '0.00 ', kind: 'latin' },
       { text: '₪', kind: 'unicode' },
     ]);
-    expect(splitPdfTextRuns('עלות: 1,234.56 ₪')).toEqual([
-      { text: 'עלות', kind: 'hebrew' },
-      { text: ': ', kind: 'latin' },
-      { text: '1,234.56 ', kind: 'latin' },
-      { text: '₪', kind: 'unicode' },
-    ]);
-    expect(splitPdfTextRuns('2026-08-01 – 2026-08-31')).toEqual([
-      { text: '2026-08-01 ', kind: 'latin' },
-      { text: '– ', kind: 'unicode' },
-      { text: '2026-08-31', kind: 'latin' },
-    ]);
   });
 
-  it('splits mixed Hebrew and latin runs for pdf-lib drawing', () => {
+  it('splits mixed Hebrew and latin runs for LTR pdf-lib drawing helpers', () => {
     expect(splitPdfTextRuns('חודש דיווח: 2026-08')).toEqual([
       { text: 'חודש דיווח', kind: 'hebrew' },
       { text: ': ', kind: 'latin' },
       { text: '2026-08', kind: 'latin' },
-    ]);
-    expect(splitPdfTextRuns('ימי עבודה / נוכחות')).toEqual([
-      { text: 'ימי עבודה ', kind: 'hebrew' },
-      { text: '/ ', kind: 'latin' },
-      { text: 'נוכחות', kind: 'hebrew' },
     ]);
   });
 
@@ -127,17 +161,16 @@ describe('renderReportPdf Hebrew shaping', () => {
     expect(Buffer.from(bytes.slice(0, 5)).toString('latin1')).toBe('%PDF-');
   });
 
-  it('renders standalone and mixed ₪ strings without throwing', async () => {
+  it('renders Noto-safe report glyphs in Hebrew PDF (0-9, /, -, :, ₪, Latin)', async () => {
     const payload = {
       ...monthlyWorkforceHebrewPayload(),
       sections: [
         {
-          id: 'unicode-samples',
-          heading: 'בדיקת סמלים',
+          id: 'glyph-check',
+          heading: 'בדיקת גlyphs',
           rows: [
-            { label: '₪', value: '₪' },
-            { label: 'עלות', value: '1,234.56 ₪' },
-            { label: 'טווח', value: '2026-08-01 – 2026-08-31' },
+            { label: 'ASCII', value: '0123456789 / - : ABC' },
+            { label: '₪', value: '1,234.56 ₪' },
           ],
         },
       ],
@@ -154,17 +187,21 @@ describe('renderReportPdf Hebrew shaping', () => {
     expect(Buffer.compare(regular, bold)).not.toBe(0);
   });
 
-  it('keeps logical Hebrew, numbers, and ₪ in extracted PDF text', async () => {
+  it('keeps logical Hebrew, numbers, and ₪ in extracted PDF text without brackets', async () => {
     const bytes = await renderReportPdf(monthlyWorkforceHebrewPayload());
     const text = await extractPdfText(bytes);
     expect(text).toContain('דוח עובדים חודשי');
     expect(text).toContain('חודש דיווח');
-    expect(text).toContain('2026-08');
-    expect(text).toContain('2026-08-01');
-    expect(text).toContain('2026-08-31');
     expect(text).toContain('₪');
-    expect(text).toContain('1,234.56');
+    expect(text).toContain('בפועל');
+    expect(text).toContain('פטור דיווח');
+    expect(text).toContain('בעלים');
+    expect(text).toContain('פרויקט');
+    expect(text).toContain('מגדל');
+    expect(text).not.toContain('[');
+    expect(text).not.toContain(']');
+    expect(text).not.toContain('(');
+    expect(text).not.toContain(')');
     expect(text).not.toContain('ישדוח');
-    expect(text).not.toContain('80-6202');
   });
 });

@@ -173,6 +173,78 @@ export function shapeForPdf(text: string, _dir: 'rtl' | 'ltr'): string {
   return text.replace(/\s+/g, ' ').trim();
 }
 
+const RTL_ROW_GAP = '    ';
+
+/** PDF-only copy cleanup for RTL — does not affect HTML preview or payload builders. */
+export function simplifyPdfText(text: string, dir: 'rtl' | 'ltr'): string {
+  if (dir !== 'rtl') return text;
+  return text
+    .replace(/\s*\(([^)]+)\)/g, ' - $1')
+    .replace(/\s*\[([^\]]+)\]/g, ' $1')
+    .replace(/[\u2013\u2014–—]/g, '-')
+    .replace(/\s*\|\s*/g, RTL_ROW_GAP);
+}
+
+function normalizePdfText(text: string, dir: 'rtl' | 'ltr'): string {
+  return simplifyPdfText(shapeForPdf(text, dir), dir);
+}
+
+/** Simple numeric timestamp for RTL PDF footers (avoids localized punctuation). */
+export function formatPdfGeneratedAt(generatedAtIso: string): string {
+  const d = new Date(generatedAtIso);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function pdfGeneratedLabel(
+  copy: ReturnType<typeof getReportsCopy>,
+  generatedAtIso: string,
+  locale: string,
+  dir: 'rtl' | 'ltr',
+): string {
+  if (dir === 'rtl') {
+    return `נוצר: ${formatPdfGeneratedAt(generatedAtIso)}`;
+  }
+  return `${copy.generatedAt} ${formatReportGeneratedAt(generatedAtIso, locale)}`;
+}
+
+function pdfTableSeparator(dir: 'rtl' | 'ltr'): string {
+  return dir === 'rtl' ? RTL_ROW_GAP : ' | ';
+}
+
+function pdfTableLine(cells: readonly string[], dir: 'rtl' | 'ltr'): string {
+  const ordered = dir === 'rtl' ? [...cells].reverse() : cells;
+  return ordered.join(pdfTableSeparator(dir));
+}
+
+function pdfBodyFont(fonts: PdfFonts, dir: 'rtl' | 'ltr', bold: boolean): PDFFont {
+  if (dir === 'rtl') return bold ? fonts.hebrewBold : fonts.hebrew;
+  return bold ? fonts.latinBold : fonts.latin;
+}
+
+/** Standalone ISO 3166-1 alpha-2 line — omitted from PDF letterhead only. */
+export function isPdfCountryCodeLine(line: string): boolean {
+  return /^[A-Z]{2}$/.test(line.trim());
+}
+
+/** PDF header: drop country-code address lines without mutating stored org/brand data. */
+export function filterPdfHeaderAddressLines(
+  addressLines: readonly string[] | undefined,
+): readonly string[] {
+  return (addressLines ?? []).filter((line) => !isPdfCountryCodeLine(line));
+}
+
+function pdfBrandForRendering(brand: DocumentBrandContext): DocumentBrandContext {
+  const addressLines = filterPdfHeaderAddressLines(brand.addressLines);
+  if (addressLines.length === (brand.addressLines ?? []).length) return brand;
+  return { ...brand, addressLines };
+}
+
+/** RTL lines with Hebrew + digits need per-run placement; all runs still use Noto. */
+function rtlNeedsRunSplit(text: string): boolean {
+  return splitPdfTextRuns(text).length > 1;
+}
+
 type PdfFonts = {
   hebrew: PDFFont;
   hebrewBold: PDFFont;
@@ -185,13 +257,6 @@ function pickFont(run: PdfTextRun, fonts: PdfFonts, bold: boolean): PDFFont {
   return bold ? fonts.hebrewBold : fonts.hebrew;
 }
 
-function primaryFontForText(text: string, fonts: PdfFonts, bold: boolean): PDFFont {
-  if (HEBREW_RE.test(text) || !isWinAnsiEncodable(text)) {
-    return bold ? fonts.hebrewBold : fonts.hebrew;
-  }
-  return bold ? fonts.latinBold : fonts.latin;
-}
-
 function measurePdfText(
   text: string,
   fonts: PdfFonts,
@@ -199,10 +264,20 @@ function measurePdfText(
   bold: boolean,
   dir: 'rtl' | 'ltr',
 ): number {
-  const normalized = shapeForPdf(text, dir);
+  const normalized = normalizePdfText(text, dir);
   if (!normalized) return 0;
+  if (dir === 'rtl') {
+    const font = pdfBodyFont(fonts, dir, bold);
+    if (!rtlNeedsRunSplit(normalized)) {
+      return font.widthOfTextAtSize(normalized, size);
+    }
+    return splitPdfTextRuns(normalized).reduce(
+      (sum, run) => sum + font.widthOfTextAtSize(run.text, size),
+      0,
+    );
+  }
   if (!needsSplitFontRendering(normalized)) {
-    return primaryFontForText(normalized, fonts, bold).widthOfTextAtSize(normalized, size);
+    return pdfBodyFont(fonts, dir, bold).widthOfTextAtSize(normalized, size);
   }
   return splitPdfTextRuns(normalized).reduce(
     (sum, run) => sum + pickFont(run, fonts, bold).widthOfTextAtSize(run.text, size),
@@ -221,15 +296,34 @@ function drawPdfText(
   color: RGB,
   bold: boolean,
 ): void {
-  const normalized = shapeForPdf(text, dir);
+  const normalized = normalizePdfText(text, dir);
   if (!normalized) return;
+
+  if (dir === 'rtl') {
+    const font = pdfBodyFont(fonts, dir, bold);
+    if (!rtlNeedsRunSplit(normalized)) {
+      page.drawText(normalized, { x: xLeft, y, size, font, color });
+      return;
+    }
+    const parts = splitPdfTextRuns(normalized).map((run) => ({
+      text: run.text,
+      font,
+      width: font.widthOfTextAtSize(run.text, size),
+    }));
+    let x = xLeft;
+    for (const part of [...parts].reverse()) {
+      page.drawText(part.text, { x, y, size, font: part.font, color });
+      x += part.width;
+    }
+    return;
+  }
 
   if (!needsSplitFontRendering(normalized)) {
     page.drawText(normalized, {
       x: xLeft,
       y,
       size,
-      font: primaryFontForText(normalized, fonts, bold),
+      font: pdfBodyFont(fonts, dir, bold),
       color,
     });
     return;
@@ -240,9 +334,8 @@ function drawPdfText(
     font: pickFont(run, fonts, bold),
     width: pickFont(run, fonts, bold).widthOfTextAtSize(run.text, size),
   }));
-  const visual = dir === 'rtl' ? [...parts].reverse() : parts;
   let x = xLeft;
-  for (const part of visual) {
+  for (const part of parts) {
     page.drawText(part.text, { x, y, size, font: part.font, color });
     x += part.width;
   }
@@ -543,7 +636,7 @@ class PdfCursor {
   }
 
   drawFooter(pageNumber: number, pageCount: number, brand: DocumentBrandContext | null) {
-    const label = brand
+    const rawLabel = brand
       ? buildFooterLine(
           buildFooterParts(brand, {
             pageNumber,
@@ -552,6 +645,8 @@ class PdfCursor {
           }),
         )
       : `${this.footerLabel}  ·  ${pageNumber}/${pageCount}`;
+    const label =
+      this.dir === 'rtl' ? simplifyPdfText(rawLabel.replace(/\s·\s/g, '  '), this.dir) : rawLabel;
     const width = measurePdfText(label, this.fonts, 8, false, this.dir);
     // accent line above footer
     if (brand) {
@@ -580,8 +675,21 @@ class PdfCursor {
   }
 
   row(label: string, value: string, nature?: string) {
+    if (this.dir === 'rtl') {
+      const suffix = nature ? ` ${nature}` : '';
+      this.text(`${label}${RTL_ROW_GAP}${value}${suffix}`);
+      return;
+    }
     const suffix = nature ? ` [${nature}]` : '';
     this.text(`${label}: ${value}${suffix}`);
+  }
+
+  identityLine(label: string, value: string) {
+    if (this.dir === 'rtl') {
+      this.text(`${label}${RTL_ROW_GAP}${value}`);
+      return;
+    }
+    this.text(`${label}: ${value}`);
   }
 }
 
@@ -623,7 +731,7 @@ export async function renderReportPdf(payload: ReportPayload): Promise<Uint8Arra
     }
   }
 
-  const generatedLabel = `${copy.generatedAt} ${formatReportGeneratedAt(payload.generatedAt, payload.locale)}`;
+  const generatedLabel = pdfGeneratedLabel(copy, payload.generatedAt, payload.locale, payload.dir);
   const brand = resolveEffectiveBrand(
     payload.brand,
     payload.identity.companyName,
@@ -631,7 +739,11 @@ export async function renderReportPdf(payload: ReportPayload): Promise<Uint8Arra
     payload.dir,
   );
   // Align brand dir with report payload (RTL Hebrew reports).
-  const brandAligned: DocumentBrandContext = { ...brand, dir: payload.dir, locale: payload.locale };
+  const brandAligned: DocumentBrandContext = pdfBrandForRendering({
+    ...brand,
+    dir: payload.dir,
+    locale: payload.locale,
+  });
   const logo = await embedBrandLogo(doc, brandAligned);
   const colors = resolvePdfBrandColors(brandAligned);
   const brandCtx: BrandDrawCtx = {
@@ -648,19 +760,19 @@ export async function renderReportPdf(payload: ReportPayload): Promise<Uint8Arra
 
   // Project / client identity under letterhead (company already in branded header)
   if (payload.identity.projectName) {
-    cursor.text(`${copy.identity.project}: ${payload.identity.projectName}`);
+    cursor.identityLine(copy.identity.project, payload.identity.projectName);
   }
   if (payload.identity.projectNumber) {
-    cursor.text(`${copy.identity.projectNumber}: ${payload.identity.projectNumber}`);
+    cursor.identityLine(copy.identity.projectNumber, payload.identity.projectNumber);
   }
   if (payload.identity.clientName) {
-    cursor.text(`${copy.identity.client}: ${payload.identity.clientName}`);
+    cursor.identityLine(copy.identity.client, payload.identity.clientName);
   }
   cursor.text(generatedLabel, { gap: 10 });
   cursor.text(copy.snapshotNote, { size: 10, gap: 16 });
 
   for (const notice of payload.notices) {
-    cursor.text(`• ${notice}`, { size: 10, gap: 12 });
+    cursor.text(payload.dir === 'rtl' ? notice : `• ${notice}`, { size: 10, gap: 12 });
   }
   cursor.text('', { gap: 8 });
 
@@ -671,9 +783,9 @@ export async function renderReportPdf(payload: ReportPayload): Promise<Uint8Arra
       cursor.row(row.label, row.value, nature);
     }
     for (const table of section.tables ?? []) {
-      cursor.text(table.headers.join(' | '), { bold: true, size: 10 });
+      cursor.text(pdfTableLine(table.headers, payload.dir), { bold: true, size: 10 });
       for (const row of table.rows) {
-        cursor.text(row.join(' | '), { size: 10 });
+        cursor.text(pdfTableLine(row, payload.dir), { size: 10, bold: false });
       }
     }
     for (const paragraph of section.paragraphs ?? []) {
