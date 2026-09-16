@@ -54,7 +54,8 @@
     "service_completion": "Service completion report",
     "timesheet": "Timesheet",
     "project_billing_account": "Progress account / payment request",
-    "project_billing_plan_status": "Billing plan status"
+    "project_billing_plan_status": "Billing plan status",
+    "monthly_workforce_report": "Monthly workforce report"
   },
   "documentKinds": {
     "progress_account": "Progress account",

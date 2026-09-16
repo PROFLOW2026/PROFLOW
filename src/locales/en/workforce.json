@@ -9,6 +9,16 @@
     "monthlyAttendance": "Monthly grid",
     "approvals": "Timesheet approvals"
   },
+  "reports": {
+    "monthly": {
+      "title": "Monthly workforce report",
+      "description": "Generate, preview, and save attendance and hours for a month.",
+      "monthLabel": "Month",
+      "loadMonth": "Load month",
+      "latestCompleted": "Latest completed month",
+      "openPreview": "Preview"
+    }
+  },
   "timesheets": {
     "title": "Timesheets",
     "description": "Employee period timesheets — draft, submit, approve or return, then lock. Not payroll.",

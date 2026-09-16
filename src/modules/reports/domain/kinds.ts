@@ -49,6 +49,11 @@ export const REPORT_KIND_DEFINITIONS: readonly ReportKindDefinition[] = [
     permission: PERMISSIONS.BILLING_READ,
     projectScoped: true,
   },
+  {
+    kind: 'monthly_workforce_report',
+    permission: PERMISSIONS.ATTENDANCE_MANAGE,
+    projectScoped: false,
+  },
 ] as const;
 
 const BY_KIND = new Map(REPORT_KIND_DEFINITIONS.map((item) => [item.kind, item]));

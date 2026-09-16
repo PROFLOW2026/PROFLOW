@@ -23,6 +23,7 @@ import { listAttendanceDays } from '../data/attendance.repository';
 import { findEmployeeById } from '../data/employees.repository';
 import { listTimeEntries } from '../data/time-entries.repository';
 import { employeeRequiresAttendanceReporting } from '../domain/attendance-requirement';
+import { computeApprovedHoursBreakdown } from '../domain/approved-hours-breakdown';
 
 export interface EmployeePeriodProjectRow {
   readonly projectId: string;
@@ -40,8 +41,13 @@ export interface EmployeePeriodSummary {
   readonly toDate: BusinessDate;
   /** Non-void attendance days in range. */
   readonly totalDays: number;
-  /** Sum of approved hours from time entries in range. */
+  /** Sum of recorded hours from time entries in range. */
   readonly totalHours: number;
+  /** Approved-entry hours total. */
+  readonly approvedTotalHours: number;
+  readonly approvedRegularHours: number | null;
+  readonly approvedOvertimeHours: number | null;
+  readonly canSplitRegularOvertime: boolean;
   /** Project-level breakdown (approved time entries). */
   readonly projectBreakdown: readonly EmployeePeriodProjectRow[];
   /** Days with attendance but no project time entry logged. */
@@ -201,6 +207,7 @@ export async function getEmployeePeriodSummary(
 
   // Total hours across all entries.
   const totalHours = timeEntries.reduce((sum, e) => sum + (Number(e.hours) || 0), 0);
+  const approvedBreakdown = computeApprovedHoursBreakdown(timeEntries);
 
   // Missing days: work-days in range with no attendance record.
   const missingDays: string[] = [];
@@ -222,6 +229,10 @@ export async function getEmployeePeriodSummary(
     toDate,
     totalDays,
     totalHours,
+    approvedTotalHours: approvedBreakdown.approvedTotalHours,
+    approvedRegularHours: approvedBreakdown.approvedRegularHours,
+    approvedOvertimeHours: approvedBreakdown.approvedOvertimeHours,
+    canSplitRegularOvertime: approvedBreakdown.canSplitRegularOvertime,
     projectBreakdown,
     unallocatedDays,
     unallocatedHours,

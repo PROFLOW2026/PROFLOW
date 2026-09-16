@@ -69,7 +69,9 @@ function InboxItemCard({
             'inline-flex min-h-11 items-center justify-center px-3 py-2 text-sm font-medium',
           )}
         >
-          {t('actions.open')}
+          {item.sourceType === 'monthly_workforce_report_ready'
+            ? t('actions.generateMonthlyReport')
+            : t('actions.open')}
         </Link>
       </div>
 
@@ -92,8 +94,10 @@ export async function TodayInboxPanel({
   const t = await getTranslations('commandCenter');
   const actionLabels = {
     handle: t('actions.handle'),
+    dismiss: t('actions.dismiss'),
     snooze1d: t('actions.snooze1d'),
     snooze7d: t('actions.snooze7d'),
+    notNow: t('actions.notNow'),
     financialGuard: t('financialGuard'),
     confirmPaid: t('actions.confirmPaid'),
     paymentDateLabel: t('actions.paymentDateLabel'),

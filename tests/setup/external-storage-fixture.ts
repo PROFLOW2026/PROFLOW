@@ -17,12 +17,13 @@ export async function seedOrganizationStorageConnection(
   db: DbExecutor,
   organizationId: string,
   connectedByUserId: string,
+  provider: 'onedrive' | 'google_drive' | 'dropbox' = 'onedrive',
 ): Promise<string> {
   const connectionId = randomUUID();
   await db.insert(organizationStorageConnections).values({
     id: connectionId,
     organizationId,
-    provider: 'onedrive',
+    provider,
     status: 'connected',
     isPrimary: true,
     externalAccountId: 'integration-test-account',

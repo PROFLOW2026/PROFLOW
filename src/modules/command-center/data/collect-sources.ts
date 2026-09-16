@@ -36,6 +36,7 @@ import {
   collectWarrantyExpiring,
 } from './collect-next-gen';
 import { collectExpensesDueToday, collectExpensesNeedingAllocation, collectPayrollDueToday } from './collect-owner-payments';
+import { collectMonthlyWorkforceReportReady } from './collect-monthly-workforce-report';
 import {
   attendanceEmployeeDateAlertHref,
   missingAttendanceTodayAlertHref,
@@ -1230,6 +1231,7 @@ export async function collectAllSources(ctx: CollectContext): Promise<CommandCen
     collectExpensesDueToday,
     collectExpensesNeedingAllocation,
     collectPayrollDueToday,
+    collectMonthlyWorkforceReportReady,
   ];
 
   const settled = await Promise.allSettled(collectors.map((fn) => fn(ctx)));

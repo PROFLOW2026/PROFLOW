@@ -894,6 +894,51 @@ export function billingPlanRetentionReleaseDueCopy(
   };
 }
 
+const HEBREW_MONTH_NAMES = [
+  'ינואר',
+  'פברואר',
+  'מרץ',
+  'אפריל',
+  'מאי',
+  'יוני',
+  'יולי',
+  'אוגוסט',
+  'ספטמבר',
+  'אוקטובר',
+  'נובמבר',
+  'דצמבר',
+] as const;
+
+function formatReportMonthLabel(locale: string, yearMonth: string): string {
+  const match = /^(\d{4})-(\d{2})$/.exec(yearMonth);
+  if (!match) return yearMonth;
+  const year = match[1]!;
+  const monthIndex = Number(match[2]) - 1;
+  if (he(locale) && monthIndex >= 0 && monthIndex < 12) {
+    return `${HEBREW_MONTH_NAMES[monthIndex]!} ${year}`;
+  }
+  return yearMonth;
+}
+
+export function monthlyWorkforceReportReadyCopy(
+  locale: string,
+  yearMonth: string,
+): { what: string; why: string; where: string } {
+  const monthLabel = formatReportMonthLabel(locale, yearMonth);
+  if (he(locale)) {
+    return {
+      what: 'דוח עובדים חודשי מוכן להפקה',
+      why: `ניתן להפיק ולשמור את דוח העובדים לחודש ${monthLabel}.`,
+      where: 'עובדים · דוחות חודשיים',
+    };
+  }
+  return {
+    what: 'Monthly workforce report ready',
+    why: `You can generate and save the workforce report for ${monthLabel}.`,
+    where: 'Workforce · monthly reports',
+  };
+}
+
 export function missingAttendanceTodayCopy(
   locale: string,
   input: { count: number; date: string },

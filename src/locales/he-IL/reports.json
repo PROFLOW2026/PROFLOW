@@ -54,7 +54,8 @@
     "service_completion": "דוח השלמת שירות",
     "timesheet": "גיליון שעות",
     "project_billing_account": "חשבון התקדמות / דרישת תשלום",
-    "project_billing_plan_status": "סטטוס תוכנית חיוב"
+    "project_billing_plan_status": "סטטוס תוכנית חיוב",
+    "monthly_workforce_report": "דוח עובדים חודשי"
   },
   "documentKinds": {
     "progress_account": "חשבון התקדמות",

@@ -373,6 +373,25 @@ export async function ensureProjectFolderTree(
   return projectRootId;
 }
 
+/** Idempotent nested folder chain under an existing provider folder (generated docs). */
+export async function ensureNestedFolderPath(
+  accessToken: string,
+  connection: StorageConnectionRecord,
+  parentFolderId: string,
+  segmentNames: readonly string[],
+): Promise<string> {
+  let currentParentId = parentFolderId;
+  for (const rawName of segmentNames) {
+    const name = sanitizeProviderFolderName(rawName);
+    const folder = await resolveOrCreateFolder(accessToken, connection, {
+      name,
+      parentId: currentParentId,
+    });
+    currentParentId = folder.id;
+  }
+  return currentParentId;
+}
+
 export async function resolveUploadFolderId(
   db: DbExecutor,
   input: {

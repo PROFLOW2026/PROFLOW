@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { generateReport, isReportKind } from '@/modules/reports';
-import { ReportPrintButton, ReportPrintView } from '@/modules/reports/ui';
+import { ReportDownloadButtons, ReportPrintButton, ReportPrintView } from '@/modules/reports/ui';
+import { supportsGeneratedStorageSave } from '@/modules/generated-documents/domain/supported-kinds';
 import { AppError } from '@/shared/errors';
 import { withOrgContext } from '@/shared/auth/session';
 
@@ -19,11 +20,12 @@ export async function generateMetadata({
 export default async function ReportPreviewPage({
   searchParams,
 }: {
-  searchParams: Promise<{ kind?: string; id?: string }>;
+  searchParams: Promise<{ kind?: string; id?: string; month?: string }>;
 }) {
   const params = await searchParams;
   const kind = params.kind ?? '';
   const id = params.id ?? '';
+  const reportMonth = params.month;
   if (!isReportKind(kind) || !id) notFound();
 
   const t = await getTranslations('reports');
@@ -42,6 +44,14 @@ export default async function ReportPreviewPage({
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center gap-2 print:hidden">
         <ReportPrintButton label={t('print')} />
+        {isReportKind(kind) && supportsGeneratedStorageSave(kind) ? (
+          <ReportDownloadButtons
+            kind={kind}
+            id={id}
+            hidePreview
+            reportMonth={reportMonth ?? (kind === 'monthly_workforce_report' ? id : undefined)}
+          />
+        ) : null}
       </div>
       <ReportPrintView payload={payload} />
     </div>

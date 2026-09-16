@@ -1,0 +1,17 @@
+{
+  "saveToStorage": "שמור באחסון",
+  "storedStatus": "נשמר באחסון · {date}",
+  "openStoredFile": "פתח קובץ",
+  "versionCount": "{count} גרסאות",
+  "duplicate": {
+    "title": "קובץ קיים",
+    "body": "כבר קיים דוח שנשמר לאחסון. לפתוח את הקובץ, להפיק גרסה חדשה, או לבטל?",
+    "openExisting": "פתח קובץ קיים",
+    "saveNewVersion": "הפק גרסה חדשה",
+    "cancel": "בטל"
+  },
+  "errors": {
+    "storageNotConfigured": "לא מוגדר אחסון חיצוני פעיל. ניתן להגדיר אחסון דרך ההגדרות.",
+    "unsupportedKind": "סוג מסמך זה אינו נתמך לשמירה באחסון."
+  }
+}

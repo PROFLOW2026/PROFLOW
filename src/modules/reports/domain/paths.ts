@@ -40,6 +40,7 @@ const KIND_FILENAME_STEM: Record<ReportKind, string> = {
   timesheet: 'Timesheet',
   project_billing_account: 'Progress-Account',
   project_billing_plan_status: 'Billing-Plan-Status',
+  monthly_workforce_report: 'Monthly-Workforce-Report',
 };
 
 /**

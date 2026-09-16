@@ -15,7 +15,11 @@
     "cancel": "ביטול",
     "handle": "סימון כטופל",
     "snooze1d": "דחייה ליום אחד",
-    "snooze7d": "דחייה ל-7 ימים"
+    "snooze7d": "דחייה ל-7 ימים",
+    "generateMonthlyReport": "הפק ושמור",
+    "skipMonth": "דלג על החודש",
+    "notNow": "לא עכשיו",
+    "dismiss": "דלג על החודש"
   },
   "financialGuard": "פריט כספי אפשר רק לפתוח או לדחות - הוא נשאר ברשימה עד שמטפלים בו במקור.",
   "severity": {
@@ -73,7 +77,8 @@
     "payroll_due_today": "שכר לתשלום",
     "payroll_due_soon": "שכר לתשלום בקרוב",
     "payroll_overdue": "שכר באיחור",
-    "payroll_pending_review": "שכר ממתין לאישור"
+    "payroll_pending_review": "שכר ממתין לאישור",
+    "monthly_workforce_report_ready": "דוח עובדים חודשי"
   },
   "empty": {
     "title": "הכול בסדר",

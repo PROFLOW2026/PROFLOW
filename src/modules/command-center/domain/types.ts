@@ -46,6 +46,7 @@ export const COMMAND_CENTER_SOURCE_TYPES = [
   'payroll_due_soon',
   'payroll_overdue',
   'payroll_pending_review',
+  'monthly_workforce_report_ready',
 ] as const;
 
 export type CommandCenterSourceType = (typeof COMMAND_CENTER_SOURCE_TYPES)[number];

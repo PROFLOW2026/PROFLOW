@@ -58,6 +58,7 @@ export const SOURCE_DEFAULT_SEVERITY: Record<CommandCenterSourceType, CommandCen
   payroll_due_soon: 'medium',
   payroll_overdue: 'critical',
   payroll_pending_review: 'medium',
+  monthly_workforce_report_ready: 'low',
 };
 
 export const INBOX_SECTION_ORDER = ['critical', 'high', 'medium', 'low'] as const;

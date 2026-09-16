@@ -15,7 +15,11 @@
     "cancel": "Cancel",
     "handle": "Mark as handled",
     "snooze1d": "Snooze 1 day",
-    "snooze7d": "Snooze 7 days"
+    "snooze7d": "Snooze 7 days",
+    "generateMonthlyReport": "Generate and save",
+    "skipMonth": "Skip this month",
+    "notNow": "Not now",
+    "dismiss": "Skip this month"
   },
   "financialGuard": "Financial items can only be opened or snoozed - they stay visible until resolved at the source.",
   "severity": {
@@ -73,7 +77,8 @@
     "payroll_due_soon": "Payroll due soon",
     "payroll_overdue": "Payroll overdue",
     "payroll_pending_review": "Payroll pending review",
-    "expense_needs_allocation": "Expense needs project allocation"
+    "expense_needs_allocation": "Expense needs project allocation",
+    "monthly_workforce_report_ready": "Monthly workforce report"
   },
   "empty": {
     "title": "You're clear",

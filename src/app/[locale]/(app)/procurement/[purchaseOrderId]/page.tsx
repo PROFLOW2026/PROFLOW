@@ -24,6 +24,7 @@ import { textNavLinkClassName, textNavLinkMutedClassName } from '@/components/ui
 import { CancelPurchaseOrderButton, ClosePurchaseOrderButton } from '../po-lifecycle-buttons';
 import { PurchaseOrderReceiveForm } from './po-receive-form';
 import { PrepareMessageLink } from '@/modules/communications/ui/prepare-message-link';
+import { ReportDownloadButtons } from '@/modules/reports/ui';
 
 export async function generateMetadata({
   params,
@@ -109,12 +110,15 @@ export default async function PurchaseOrderDetailPage({
           />
         }
         actions={
-          <PrepareMessageLink
-            entityType="purchase_order"
-            entityId={order.id}
-            vendorId={order.vendorId}
-            subject={order.reference}
-          />
+          <div className="flex flex-wrap gap-2">
+            <ReportDownloadButtons kind="purchase_order" id={order.id} compact />
+            <PrepareMessageLink
+              entityType="purchase_order"
+              entityId={order.id}
+              vendorId={order.vendorId}
+              subject={order.reference}
+            />
+          </div>
         }
       />
 

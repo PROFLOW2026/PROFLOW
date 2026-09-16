@@ -26,6 +26,7 @@ import { Link } from '@/shared/i18n/navigation';
 import { formatBusinessDate } from '@/shared/dates/format';
 import { notFound } from 'next/navigation';
 import { PrepareMessageLink } from '@/modules/communications/ui/prepare-message-link';
+import { ReportDownloadButtons } from '@/modules/reports/ui';
 
 export async function generateMetadata({
   params,
@@ -90,6 +91,7 @@ export default async function BillingDetailPage({
                 </Link>
               </Button>
             ) : null}
+            <ReportDownloadButtons kind="customer_statement" id={record.id} compact />
             <PrepareMessageLink
               entityType="billing_record"
               entityId={record.id}

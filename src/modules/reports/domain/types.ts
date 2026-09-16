@@ -31,6 +31,7 @@ export const REPORT_KINDS = [
   'timesheet',
   'project_billing_account',
   'project_billing_plan_status',
+  'monthly_workforce_report',
 ] as const;
 
 export type ReportKind = (typeof REPORT_KINDS)[number];

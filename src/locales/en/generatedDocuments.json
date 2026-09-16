@@ -1,0 +1,17 @@
+{
+  "saveToStorage": "Save to storage",
+  "storedStatus": "Saved to storage · {date}",
+  "openStoredFile": "Open file",
+  "versionCount": "{count} versions",
+  "duplicate": {
+    "title": "Existing file",
+    "body": "A stored copy already exists. Open it, generate a new version, or cancel?",
+    "openExisting": "Open existing file",
+    "saveNewVersion": "Generate new version",
+    "cancel": "Cancel"
+  },
+  "errors": {
+    "storageNotConfigured": "No active external storage is configured. Set up storage in Settings.",
+    "unsupportedKind": "This document type cannot be saved to storage."
+  }
+}

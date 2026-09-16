@@ -52,6 +52,38 @@ export async function snoozeCommandCenterItemAction(input: {
   }
 }
 
+export async function dismissCommandCenterItemAction(input: {
+  readonly itemKey: string;
+  readonly sourceType: CommandCenterSourceType;
+  readonly sourceId: string;
+}): Promise<CommandCenterActionResult> {
+  const tErrors = await getTranslations('errors');
+  const t = await getTranslations('commandCenter');
+
+  try {
+    await withOrgContext((context) =>
+      updateCommandCenterItemState(context, {
+        itemKey: input.itemKey,
+        sourceType: input.sourceType,
+        sourceId: input.sourceId,
+        state: 'dismissed',
+      }),
+    );
+    revalidatePath('/today');
+    return {};
+  } catch (error) {
+    if (error instanceof DomainRuleError) {
+      return { error: t('errors.unsafeState') };
+    }
+    if (error instanceof ValidationError || error instanceof AppError) {
+      return mapServerActionError(error, {
+        tErrors: (key) => tErrors(key as 'unexpected'),
+      });
+    }
+    throw error;
+  }
+}
+
 export async function handleCommandCenterItemAction(input: {
   readonly itemKey: string;
   readonly sourceType: CommandCenterSourceType;

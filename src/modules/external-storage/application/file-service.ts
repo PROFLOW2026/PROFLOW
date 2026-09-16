@@ -31,6 +31,8 @@ export async function uploadDocumentToExternalStorage(
     entityType?: string | null;
     entityId?: string | null;
     parentFolderExternalId?: string | null;
+    /** Pre-resolved upload folder (generated artifacts, nested paths). Skips semantic lookup. */
+    resolvedParentFolderId?: string | null;
     fileName: string;
     mimeType: string;
     body: ReadableStream<Uint8Array> | Uint8Array;
@@ -66,7 +68,9 @@ export async function uploadDocumentToExternalStorage(
   const folderEntityId = folderEntity.entityId ?? input.entityId;
 
   let parentFolderId: string | undefined;
-  if (input.parentFolderExternalId?.trim()) {
+  if (input.resolvedParentFolderId?.trim()) {
+    parentFolderId = input.resolvedParentFolderId.trim();
+  } else if (input.parentFolderExternalId?.trim()) {
     if (folderEntityType !== 'project' || !folderEntityId) {
       throw new DomainRuleError(
         'Browser upload folder requires project scope',

@@ -44,6 +44,7 @@ import {
 } from '../domain/types';
 import { generateReportSchema } from '../validation/schemas';
 import { buildExtendedReport } from './generate-extended-reports';
+import { buildMonthlyWorkforceReport } from './generate-monthly-workforce-report';
 import { resolveReportBrand } from './resolve-report-brand';
 import type { DocumentBrandContext } from '@/modules/branding';
 
@@ -206,6 +207,15 @@ export async function generateReport(
     case 'vendor_subcontract_summary':
       payload = await buildVendors(context, id, { locale, copy, generatedAt, companyName, deps });
       brandEntity = { projectId: id, preferSnapshot: false };
+      break;
+    case 'monthly_workforce_report':
+      payload = await buildMonthlyWorkforceReport(context, id, {
+        locale,
+        copy,
+        generatedAt,
+        companyName,
+      });
+      brandEntity = { preferSnapshot: false };
       break;
     default: {
       const extended = await buildExtendedReport(context, kind, id, {

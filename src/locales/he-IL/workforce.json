@@ -9,6 +9,16 @@
     "approvals": "אישורי שעות",
     "timesheets": "גיליונות שעות"
   },
+  "reports": {
+    "monthly": {
+      "title": "דוח עובדים חודשי",
+      "description": "הפקה, תצוגה מקדימה ושמירה של דוח נוכחות ושעות לחודש.",
+      "monthLabel": "חודש",
+      "loadMonth": "טען חודש",
+      "latestCompleted": "חודש אחרון שהסתיים",
+      "openPreview": "תצוגה מקדימה"
+    }
+  },
   "rateUnits": {
     "hourly": "שעתי",
     "daily": "יומי",
