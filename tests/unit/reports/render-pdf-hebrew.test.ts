@@ -15,6 +15,7 @@ import {
   renderReportPdf,
   shapeForPdf,
   simplifyPdfText,
+  splitLegalNameRuns,
   splitPdfTextRuns,
 } from '@/modules/reports/application/render-pdf';
 
@@ -119,6 +120,42 @@ describe('renderReportPdf Hebrew shaping', () => {
       expect(normalizeExactPdfText(name, 'rtl')).toBe(name);
     }
     expect(simplifyPdfText('א.ב. כהן (1995) בע"מ', 'rtl')).toBe('א.ב. כהן - 1995 בע"מ');
+  });
+
+  it('splits legal company names into Hebrew and ASCII runs without extra spaces', () => {
+    expect(splitLegalNameRuns('מתח ח.י הנדסת חשמל בע"מ')).toEqual([
+      { text: 'מתח ח', hebrew: true },
+      { text: '.', hebrew: false },
+      { text: 'י הנדסת חשמל בע', hebrew: true },
+      { text: '"', hebrew: false },
+      { text: 'מ', hebrew: true },
+    ]);
+    expect(splitLegalNameRuns('א.ב. כהן (1995) בע"מ')).toEqual([
+      { text: 'א', hebrew: true },
+      { text: '.', hebrew: false },
+      { text: 'ב', hebrew: true },
+      { text: '. ', hebrew: false },
+      { text: 'כהן ', hebrew: true },
+      { text: '(1995) ', hebrew: false },
+      { text: 'בע', hebrew: true },
+      { text: '"', hebrew: false },
+      { text: 'מ', hebrew: true },
+    ]);
+    expect(splitLegalNameRuns('ABC ישראל בע"מ')).toEqual([
+      { text: 'ABC ', hebrew: false },
+      { text: 'ישראל בע', hebrew: true },
+      { text: '"', hebrew: false },
+      { text: 'מ', hebrew: true },
+    ]);
+    expect(splitLegalNameRuns('חברה (ישראל) בע"מ')).toEqual([
+      { text: 'חברה ', hebrew: true },
+      { text: '(', hebrew: false },
+      { text: 'ישראל', hebrew: true },
+      { text: ') ', hebrew: false },
+      { text: 'בע', hebrew: true },
+      { text: '"', hebrew: false },
+      { text: 'מ', hebrew: true },
+    ]);
   });
 
   it('simplifies ordinary RTL PDF rows without changing exact legal names', () => {

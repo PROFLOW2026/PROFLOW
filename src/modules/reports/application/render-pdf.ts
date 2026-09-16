@@ -231,6 +231,87 @@ export function drawPdfTextExact(
   });
 }
 
+export type LegalNameRun = {
+  text: string;
+  hebrew: boolean;
+};
+
+/** Split legal company names into Hebrew vs ASCII punctuation/Latin runs (logical order). */
+export function splitLegalNameRuns(text: string): LegalNameRun[] {
+  const runs: LegalNameRun[] = [];
+  let current = '';
+  let isHebrew: boolean | null = null;
+
+  const flush = () => {
+    if (!current) return;
+    runs.push({ text: current, hebrew: isHebrew ?? HEBREW_RE.test(current) });
+    current = '';
+    isHebrew = null;
+  };
+
+  for (const char of text) {
+    if (char === ' ') {
+      current += char;
+      continue;
+    }
+    const charIsHebrew = HEBREW_RE.test(char);
+    if (isHebrew === null) {
+      isHebrew = charIsHebrew;
+      current += char;
+    } else if (isHebrew === charIsHebrew) {
+      current += char;
+    } else {
+      flush();
+      isHebrew = charIsHebrew;
+      current = char;
+    }
+  }
+  flush();
+  return runs;
+}
+
+function legalNameRunFont(run: LegalNameRun, fonts: PdfFonts, bold: boolean): PDFFont {
+  if (run.hebrew) return bold ? fonts.hebrewBold : fonts.hebrew;
+  return bold ? fonts.latinBold : fonts.latin;
+}
+
+/** Exact RTL legal-name width — Noto for Hebrew, Helvetica Bold for ASCII runs. */
+export function measureRtlLegalName(
+  text: string,
+  fonts: PdfFonts,
+  size: number,
+  bold: boolean,
+): number {
+  const normalized = normalizeExactPdfText(text, 'rtl');
+  if (!normalized) return 0;
+  return splitLegalNameRuns(normalized).reduce(
+    (sum, run) => sum + legalNameRunFont(run, fonts, bold).widthOfTextAtSize(run.text, size),
+    0,
+  );
+}
+
+/** Draw exact RTL legal name right-anchored; logical runs placed right-to-left. */
+export function drawRtlLegalName(
+  page: PDFPage,
+  text: string,
+  rightX: number,
+  y: number,
+  size: number,
+  fonts: PdfFonts,
+  color: RGB,
+  bold: boolean,
+): void {
+  const normalized = normalizeExactPdfText(text, 'rtl');
+  if (!normalized) return;
+  let xRight = rightX;
+  for (const run of splitLegalNameRuns(normalized)) {
+    const font = legalNameRunFont(run, fonts, bold);
+    const width = font.widthOfTextAtSize(run.text, size);
+    xRight -= width;
+    page.drawText(run.text, { x: xRight, y, size, font, color });
+  }
+}
+
 /** Simple numeric timestamp for RTL PDF footers (avoids localized punctuation). */
 export function formatPdfGeneratedAt(generatedAtIso: string): string {
   const d = new Date(generatedAtIso);
@@ -467,6 +548,16 @@ function logoBlockDimensions(ctx: BrandDrawCtx): { width: number; height: number
   return { width: badge, height: badge };
 }
 
+function measureHeaderLegalName(
+  name: string,
+  fonts: PdfFonts,
+  size: number,
+  dir: 'rtl' | 'ltr',
+): number {
+  if (dir === 'rtl') return measureRtlLegalName(name, fonts, size, true);
+  return measurePdfTextExact(name, fonts, size, true, dir);
+}
+
 function fitHeaderNameSize(
   name: string,
   fonts: PdfFonts,
@@ -475,13 +566,13 @@ function fitHeaderNameSize(
   gap: number,
 ): { size: number; width: number } {
   for (let size = HEADER_NAME_MAX_SIZE; size >= HEADER_NAME_MIN_SIZE; size -= 1) {
-    const width = measurePdfTextExact(name, fonts, size, true, dir);
+    const width = measureHeaderLegalName(name, fonts, size, dir);
     if (width + gap + logoWidth <= contentWidth()) {
       return { size, width };
     }
   }
   const size = HEADER_NAME_MIN_SIZE;
-  return { size, width: measurePdfTextExact(name, fonts, size, true, dir) };
+  return { size, width: measureHeaderLegalName(name, fonts, size, dir) };
 }
 
 /** Company name + logo/initials as one centered horizontal group (RTL letterhead). */
@@ -501,26 +592,41 @@ function drawCenteredNameLogoRow(
   );
   const groupWidth = nameWidth + HEADER_NAME_LOGO_GAP + logoDim.width;
   const groupLeft = (PAGE_WIDTH - groupWidth) / 2;
+  const nameX = groupLeft;
+  const logoX = groupLeft + nameWidth + HEADER_NAME_LOGO_GAP;
   const rowBottom = top - logoDim.height;
   const textBaseline = top - logoDim.height / 2 - size / 3;
 
+  if (ctx.dir === 'rtl') {
+    drawRtlLegalName(
+      page,
+      companyName,
+      nameX + nameWidth,
+      textBaseline,
+      size,
+      ctx.fonts,
+      BODY_COLOR,
+      true,
+    );
+  } else {
+    drawPdfTextExact(
+      page,
+      companyName,
+      nameX,
+      textBaseline,
+      size,
+      ctx.fonts,
+      ctx.dir,
+      BODY_COLOR,
+      true,
+    );
+  }
   drawLogoOrInitials(page, ctx, {
-    x: groupLeft,
+    x: logoX,
     y: top,
     maxW: LOGO_MAX_WIDTH,
     maxH: LOGO_MAX_HEIGHT,
   });
-  drawPdfTextExact(
-    page,
-    companyName,
-    groupLeft + logoDim.width + HEADER_NAME_LOGO_GAP,
-    textBaseline,
-    size,
-    ctx.fonts,
-    ctx.dir,
-    BODY_COLOR,
-    true,
-  );
   return rowBottom;
 }
 
