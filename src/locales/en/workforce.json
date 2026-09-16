@@ -626,6 +626,15 @@
     },
     "description": "Clock in and out for presence. Attendance is not project time and never creates labor Actual by itself.",
     "updateCta": "Update attendance",
+    "reports": {
+      "title": "Attendance reports",
+      "description": "Choose a month to view, print, or save the monthly workforce report.",
+      "reportsCta": "Attendance reports",
+      "monthlyReportTitle": "Monthly workforce report",
+      "monthLabel": "Month",
+      "showReport": "Show report",
+      "backToAttendance": "Back to attendance"
+    },
     "outcomes": {
       "title": "Day status (worked / not worked)",
       "subtitle": "Mark work days, leave, or absence — separate from clock in/out.",

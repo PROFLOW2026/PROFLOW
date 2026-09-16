@@ -217,9 +217,14 @@ export default async function AttendancePage({
         description={t('attendance.description')}
         actions={
           data.allowManage ? (
-            <Button asChild size="lg">
-              <a href="#update-attendance">{t('attendance.updateCta')}</a>
-            </Button>
+            <div className="flex max-w-full flex-wrap gap-2">
+              <Button asChild size="lg">
+                <a href="#update-attendance">{t('attendance.updateCta')}</a>
+              </Button>
+              <Button asChild size="lg" variant="secondary">
+                <Link href="/workforce/attendance/reports">{t('attendance.reports.reportsCta')}</Link>
+              </Button>
+            </div>
           ) : undefined
         }
       />
