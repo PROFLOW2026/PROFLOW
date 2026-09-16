@@ -34,8 +34,10 @@ const HEADING_SIZE = 13;
 const LINE_HEIGHT = 15;
 const BODY_COLOR = rgb(0.05, 0.05, 0.05);
 const HEBREW_RE = /[\u0590-\u05FF]/;
+/** Printable ASCII safe for pdf-lib StandardFonts (WinAnsi). */
+const WIN_ANSI_SAFE_RE = /^[\t\n\r\x20-\x7E]*$/;
 const TEXT_RUN_RE =
-  /[\u0590-\u05FF][\u0590-\u05FF\s]*|[0-9A-Za-z][0-9A-Za-z\s.,:/\-–]*|[^\u0590-\u05FF0-9A-Za-z]+/g;
+  /[\u0590-\u05FF][\u0590-\u05FF\s]*|[0-9A-Za-z][0-9A-Za-z\s.,:/\-]*|[^\u0590-\u05FF0-9A-Za-z]+/g;
 
 const HEBREW_FONT_REGULAR = 'NotoSansHebrew-Regular.ttf';
 const HEBREW_FONT_BOLD = 'NotoSansHebrew-Bold.ttf';
@@ -113,14 +115,31 @@ async function loadHebrewBoldFontBytes(): Promise<Uint8Array | null> {
   );
 }
 
-export type PdfTextRunKind = 'hebrew' | 'latin';
+export type PdfTextRunKind = 'hebrew' | 'latin' | 'unicode';
 
 export type PdfTextRun = {
   text: string;
   kind: PdfTextRunKind;
 };
 
-/** Split mixed Hebrew/Latin strings for pdf-lib (logical order, no BiDi reversal). */
+/** True when every codepoint is encodable by StandardFonts Helvetica (WinAnsi). */
+export function isWinAnsiEncodable(text: string): boolean {
+  return WIN_ANSI_SAFE_RE.test(text);
+}
+
+/** Classify a text chunk for pdf-lib font selection (logical order, no BiDi reversal). */
+export function classifyPdfTextRun(text: string): PdfTextRunKind {
+  if (HEBREW_RE.test(text)) return 'hebrew';
+  if (isWinAnsiEncodable(text)) return 'latin';
+  return 'unicode';
+}
+
+/** Embedded Noto Sans Hebrew is used for Hebrew and non-WinAnsi Unicode (e.g. ₪, –, ״). */
+export function pdfRunUsesEmbeddedFont(kind: PdfTextRunKind): boolean {
+  return kind !== 'latin';
+}
+
+/** Split mixed Hebrew/Latin/Unicode strings for pdf-lib (logical order, no BiDi reversal). */
 export function splitPdfTextRuns(text: string): PdfTextRun[] {
   const runs: PdfTextRun[] = [];
   for (const match of text.matchAll(TEXT_RUN_RE)) {
@@ -128,17 +147,21 @@ export function splitPdfTextRuns(text: string): PdfTextRun[] {
     if (!chunk) continue;
     runs.push({
       text: chunk,
-      kind: HEBREW_RE.test(chunk) ? 'hebrew' : 'latin',
+      kind: classifyPdfTextRun(chunk),
     });
   }
   if (runs.length === 0) {
-    return [{ text, kind: HEBREW_RE.test(text) ? 'hebrew' : 'latin' }];
+    return [{ text, kind: classifyPdfTextRun(text) }];
   }
   return runs;
 }
 
-function hasLatinRun(text: string): boolean {
-  return splitPdfTextRuns(text).some((run) => run.kind === 'latin' && /[0-9A-Za-z]/.test(run.text));
+function needsSplitFontRendering(text: string): boolean {
+  const runs = splitPdfTextRuns(text);
+  if (runs.length <= 1) return false;
+  const hasLatin = runs.some((run) => run.kind === 'latin');
+  const hasEmbedded = runs.some((run) => pdfRunUsesEmbeddedFont(run.kind));
+  return hasLatin && hasEmbedded;
 }
 
 function pdfRenderFailedError(detail: string): ServiceUnavailableError {
@@ -163,7 +186,9 @@ function pickFont(run: PdfTextRun, fonts: PdfFonts, bold: boolean): PDFFont {
 }
 
 function primaryFontForText(text: string, fonts: PdfFonts, bold: boolean): PDFFont {
-  if (HEBREW_RE.test(text)) return bold ? fonts.hebrewBold : fonts.hebrew;
+  if (HEBREW_RE.test(text) || !isWinAnsiEncodable(text)) {
+    return bold ? fonts.hebrewBold : fonts.hebrew;
+  }
   return bold ? fonts.latinBold : fonts.latin;
 }
 
@@ -176,7 +201,7 @@ function measurePdfText(
 ): number {
   const normalized = shapeForPdf(text, dir);
   if (!normalized) return 0;
-  if (dir === 'ltr' || !hasLatinRun(normalized)) {
+  if (!needsSplitFontRendering(normalized)) {
     return primaryFontForText(normalized, fonts, bold).widthOfTextAtSize(normalized, size);
   }
   return splitPdfTextRuns(normalized).reduce(
@@ -199,7 +224,7 @@ function drawPdfText(
   const normalized = shapeForPdf(text, dir);
   if (!normalized) return;
 
-  if (dir === 'ltr' || !hasLatinRun(normalized)) {
+  if (!needsSplitFontRendering(normalized)) {
     page.drawText(normalized, {
       x: xLeft,
       y,

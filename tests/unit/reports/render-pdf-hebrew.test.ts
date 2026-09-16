@@ -1,10 +1,13 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
+  classifyPdfTextRun,
   hebrewBoldFontCandidatePaths,
   hebrewBoldFontFilePath,
   hebrewFontCandidatePaths,
   hebrewFontFilePath,
+  isWinAnsiEncodable,
+  pdfRunUsesEmbeddedFont,
   renderReportPdf,
   shapeForPdf,
   splitPdfTextRuns,
@@ -34,12 +37,16 @@ function monthlyWorkforceHebrewPayload() {
           { label: 'חודש דיווח', value: '2026-08' },
           { label: 'ימי עבודה / נוכחות', value: '22 / 20' },
           { label: 'טווח', value: '2026-08-01 – 2026-08-31' },
+          { label: 'עלות ללא הקצאה', value: '0.00 ₪' },
         ],
       },
       {
         id: 'employee-1',
         heading: 'ישראל ישראלי',
-        rows: [{ label: 'שעות', value: '168' }],
+        rows: [
+          { label: 'שעות', value: '168' },
+          { label: 'עלות', value: '1,234.56 ₪' },
+        ],
         paragraphs: ['חסרים 2 ימי דיווח בחודש.'],
       },
     ],
@@ -74,6 +81,32 @@ describe('renderReportPdf Hebrew shaping', () => {
     expect(shapeForPdf('2026-08-01 – 2026-08-31', 'rtl')).toBe('2026-08-01 – 2026-08-31');
   });
 
+  it('routes ₪ and other non-WinAnsi symbols to embedded font runs', () => {
+    expect(isWinAnsiEncodable('₪')).toBe(false);
+    expect(isWinAnsiEncodable('2026-08')).toBe(true);
+    expect(isWinAnsiEncodable('–')).toBe(false);
+
+    expect(classifyPdfTextRun('₪')).toBe('unicode');
+    expect(pdfRunUsesEmbeddedFont('unicode')).toBe(true);
+    expect(pdfRunUsesEmbeddedFont('latin')).toBe(false);
+
+    expect(splitPdfTextRuns('0.00 ₪')).toEqual([
+      { text: '0.00 ', kind: 'latin' },
+      { text: '₪', kind: 'unicode' },
+    ]);
+    expect(splitPdfTextRuns('עלות: 1,234.56 ₪')).toEqual([
+      { text: 'עלות', kind: 'hebrew' },
+      { text: ': ', kind: 'latin' },
+      { text: '1,234.56 ', kind: 'latin' },
+      { text: '₪', kind: 'unicode' },
+    ]);
+    expect(splitPdfTextRuns('2026-08-01 – 2026-08-31')).toEqual([
+      { text: '2026-08-01 ', kind: 'latin' },
+      { text: '– ', kind: 'unicode' },
+      { text: '2026-08-31', kind: 'latin' },
+    ]);
+  });
+
   it('splits mixed Hebrew and latin runs for pdf-lib drawing', () => {
     expect(splitPdfTextRuns('חודש דיווח: 2026-08')).toEqual([
       { text: 'חודש דיווח', kind: 'hebrew' },
@@ -87,11 +120,30 @@ describe('renderReportPdf Hebrew shaping', () => {
     ]);
   });
 
-  it('renders a Hebrew monthly workforce payload without throwing', async () => {
+  it('renders a Hebrew monthly workforce payload with ₪ without throwing', async () => {
     const bytes = await renderReportPdf(monthlyWorkforceHebrewPayload());
     expect(bytes).toBeInstanceOf(Uint8Array);
     expect(bytes.length).toBeGreaterThan(500);
     expect(Buffer.from(bytes.slice(0, 5)).toString('latin1')).toBe('%PDF-');
+  });
+
+  it('renders standalone and mixed ₪ strings without throwing', async () => {
+    const payload = {
+      ...monthlyWorkforceHebrewPayload(),
+      sections: [
+        {
+          id: 'unicode-samples',
+          heading: 'בדיקת סמלים',
+          rows: [
+            { label: '₪', value: '₪' },
+            { label: 'עלות', value: '1,234.56 ₪' },
+            { label: 'טווח', value: '2026-08-01 – 2026-08-31' },
+          ],
+        },
+      ],
+    };
+    const bytes = await renderReportPdf(payload);
+    expect(bytes.length).toBeGreaterThan(500);
   });
 
   it('loads distinct Hebrew regular and bold font binaries', () => {
@@ -102,7 +154,7 @@ describe('renderReportPdf Hebrew shaping', () => {
     expect(Buffer.compare(regular, bold)).not.toBe(0);
   });
 
-  it('keeps logical Hebrew and numbers in extracted PDF text', async () => {
+  it('keeps logical Hebrew, numbers, and ₪ in extracted PDF text', async () => {
     const bytes = await renderReportPdf(monthlyWorkforceHebrewPayload());
     const text = await extractPdfText(bytes);
     expect(text).toContain('דוח עובדים חודשי');
@@ -110,6 +162,8 @@ describe('renderReportPdf Hebrew shaping', () => {
     expect(text).toContain('2026-08');
     expect(text).toContain('2026-08-01');
     expect(text).toContain('2026-08-31');
+    expect(text).toContain('₪');
+    expect(text).toContain('1,234.56');
     expect(text).not.toContain('ישדוח');
     expect(text).not.toContain('80-6202');
   });
