@@ -28,6 +28,9 @@ import {
 const PAGE_WIDTH = 595.28;
 const PAGE_HEIGHT = 841.89;
 const MARGIN = 48;
+const HEADER_NAME_LOGO_GAP = 14;
+const HEADER_NAME_MIN_SIZE = 11;
+const HEADER_NAME_MAX_SIZE = 13;
 const FONT_SIZE = 11;
 const TITLE_SIZE = 18;
 const HEADING_SIZE = 13;
@@ -187,6 +190,45 @@ export function simplifyPdfText(text: string, dir: 'rtl' | 'ltr'): string {
 
 function normalizePdfText(text: string, dir: 'rtl' | 'ltr'): string {
   return simplifyPdfText(shapeForPdf(text, dir), dir);
+}
+
+/** Whitespace only — preserves legal/display punctuation exactly. */
+export function normalizeExactPdfText(text: string, dir: 'rtl' | 'ltr'): string {
+  return shapeForPdf(text, dir);
+}
+
+export function measurePdfTextExact(
+  text: string,
+  fonts: PdfFonts,
+  size: number,
+  bold: boolean,
+  dir: 'rtl' | 'ltr',
+): number {
+  const normalized = normalizeExactPdfText(text, dir);
+  if (!normalized) return 0;
+  return pdfBodyFont(fonts, dir, bold).widthOfTextAtSize(normalized, size);
+}
+
+export function drawPdfTextExact(
+  page: PDFPage,
+  text: string,
+  xLeft: number,
+  y: number,
+  size: number,
+  fonts: PdfFonts,
+  dir: 'rtl' | 'ltr',
+  color: RGB,
+  bold: boolean,
+): void {
+  const normalized = normalizeExactPdfText(text, dir);
+  if (!normalized) return;
+  page.drawText(normalized, {
+    x: xLeft,
+    y,
+    size,
+    font: pdfBodyFont(fonts, dir, bold),
+    color,
+  });
 }
 
 /** Simple numeric timestamp for RTL PDF footers (avoids localized punctuation). */
@@ -417,6 +459,71 @@ function drawAccentBar(page: PDFPage, colors: BrandDrawCtx['colors']) {
   });
 }
 
+function logoBlockDimensions(ctx: BrandDrawCtx): { width: number; height: number } {
+  if (ctx.logo) {
+    return logoContainSize(ctx.logo.width, ctx.logo.height, LOGO_MAX_WIDTH, LOGO_MAX_HEIGHT);
+  }
+  const badge = Math.min(LOGO_MAX_WIDTH, LOGO_MAX_HEIGHT, 40);
+  return { width: badge, height: badge };
+}
+
+function fitHeaderNameSize(
+  name: string,
+  fonts: PdfFonts,
+  dir: 'rtl' | 'ltr',
+  logoWidth: number,
+  gap: number,
+): { size: number; width: number } {
+  for (let size = HEADER_NAME_MAX_SIZE; size >= HEADER_NAME_MIN_SIZE; size -= 1) {
+    const width = measurePdfTextExact(name, fonts, size, true, dir);
+    if (width + gap + logoWidth <= contentWidth()) {
+      return { size, width };
+    }
+  }
+  const size = HEADER_NAME_MIN_SIZE;
+  return { size, width: measurePdfTextExact(name, fonts, size, true, dir) };
+}
+
+/** Company name + logo/initials as one centered horizontal group (RTL letterhead). */
+function drawCenteredNameLogoRow(
+  page: PDFPage,
+  ctx: BrandDrawCtx,
+  companyName: string,
+  top: number,
+): number {
+  const logoDim = logoBlockDimensions(ctx);
+  const { size, width: nameWidth } = fitHeaderNameSize(
+    companyName,
+    ctx.fonts,
+    ctx.dir,
+    logoDim.width,
+    HEADER_NAME_LOGO_GAP,
+  );
+  const groupWidth = nameWidth + HEADER_NAME_LOGO_GAP + logoDim.width;
+  const groupLeft = (PAGE_WIDTH - groupWidth) / 2;
+  const rowBottom = top - logoDim.height;
+  const textBaseline = top - logoDim.height / 2 - size / 3;
+
+  drawLogoOrInitials(page, ctx, {
+    x: groupLeft,
+    y: top,
+    maxW: LOGO_MAX_WIDTH,
+    maxH: LOGO_MAX_HEIGHT,
+  });
+  drawPdfTextExact(
+    page,
+    companyName,
+    groupLeft + logoDim.width + HEADER_NAME_LOGO_GAP,
+    textBaseline,
+    size,
+    ctx.fonts,
+    ctx.dir,
+    BODY_COLOR,
+    true,
+  );
+  return rowBottom;
+}
+
 function drawLogoOrInitials(
   page: PDFPage,
   ctx: BrandDrawCtx,
@@ -458,11 +565,11 @@ function drawLogoOrInitials(
 function drawCompanyTextBlock(
   page: PDFPage,
   ctx: BrandDrawCtx,
-  opts: { x: number; y: number; maxWidth: number; alignCenter?: boolean },
+  opts: { x: number; y: number; maxWidth: number; alignCenter?: boolean; skipPrimary?: boolean },
 ): number {
   const details = buildCompanyDetailsBlock(ctx.brand);
   const lines = [
-    details.primaryName,
+    ...(opts.skipPrimary ? [] : [details.primaryName]),
     details.secondaryName,
     ...companyDetailLines(details),
   ].filter(Boolean);
@@ -470,16 +577,17 @@ function drawCompanyTextBlock(
   let y = opts.y;
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]!;
-    const size = i === 0 ? 13 : 9;
-    const bold = i === 0;
-    const width = measurePdfText(line, ctx.fonts, size, bold, ctx.dir);
+    const isPrimary = !opts.skipPrimary && i === 0;
+    const size = isPrimary ? 13 : 9;
+    const bold = isPrimary;
+    const width = measurePdfTextExact(line, ctx.fonts, size, bold, ctx.dir);
     let x = opts.x;
     if (opts.alignCenter) {
       x = opts.x + (opts.maxWidth - width) / 2;
     } else if (ctx.dir === 'rtl') {
       x = opts.x + opts.maxWidth - width;
     }
-    drawPdfText(page, line, x, y, size, ctx.fonts, ctx.dir, BODY_COLOR, bold);
+    drawPdfTextExact(page, line, x, y, size, ctx.fonts, ctx.dir, BODY_COLOR, bold);
     y -= size + 4;
   }
   return y;
@@ -499,8 +607,8 @@ function drawBrandedHeader(page: PDFPage, ctx: BrandDrawCtx): number {
   if (layout === 'minimal') {
     const details = buildCompanyDetailsBlock(ctx.brand);
     const size = 12;
-    const width = measurePdfText(details.primaryName, ctx.fonts, size, true, ctx.dir);
-    drawPdfText(
+    const width = measurePdfTextExact(details.primaryName, ctx.fonts, size, true, ctx.dir);
+    drawPdfTextExact(
       page,
       details.primaryName,
       xFor(ctx.dir, width),
@@ -543,46 +651,59 @@ function drawBrandedHeader(page: PDFPage, ctx: BrandDrawCtx): number {
     return bottom;
   }
 
-  // letterhead | logo_sides: logo on start edge, details on the other side
+  // letterhead | logo_sides
   const logoOnStart = layout === 'letterhead' || layout === 'logo_sides';
-  const logoMaxW = LOGO_MAX_WIDTH;
-  const logoMaxH = LOGO_MAX_HEIGHT;
-  const gap = 12;
-  const logoW = ctx.logo
-    ? logoContainSize(ctx.logo.width, ctx.logo.height, logoMaxW, logoMaxH).width
-    : Math.min(40, logoMaxW);
+  const details = buildCompanyDetailsBlock(ctx.brand);
 
-  let logoX: number;
-  let textX: number;
-  let textW: number;
-
-  if (ctx.dir === 'rtl') {
-    // start edge is right
-    logoX = PAGE_WIDTH - MARGIN - logoW;
-    textX = MARGIN;
-    textW = contentWidth() - logoW - gap;
+  if (ctx.dir === 'rtl' && logoOnStart) {
+    const rowBottom = drawCenteredNameLogoRow(page, ctx, details.primaryName, top);
+    const hasExtraLines =
+      Boolean(details.secondaryName) || companyDetailLines(details).length > 0;
+    if (hasExtraLines) {
+      drawCompanyTextBlock(page, ctx, {
+        x: MARGIN,
+        y: rowBottom - 6,
+        maxWidth: contentWidth(),
+        alignCenter: true,
+        skipPrimary: true,
+      });
+    }
   } else {
-    logoX = MARGIN;
-    textX = MARGIN + logoW + gap;
-    textW = contentWidth() - logoW - gap;
-  }
+    const logoMaxW = LOGO_MAX_WIDTH;
+    const logoMaxH = LOGO_MAX_HEIGHT;
+    const gap = 12;
+    const logoW = logoBlockDimensions(ctx).width;
 
-  if (logoOnStart) {
-    drawLogoOrInitials(page, ctx, { x: logoX, y: top, maxW: logoMaxW, maxH: logoMaxH });
-  }
+    let logoX: number;
+    let textX: number;
+    let textW: number;
 
-  if (layout === 'logo_sides') {
-    // push company block toward the opposite edge
     if (ctx.dir === 'rtl') {
+      logoX = PAGE_WIDTH - MARGIN - logoW;
       textX = MARGIN;
       textW = contentWidth() - logoW - gap;
     } else {
+      logoX = MARGIN;
       textX = MARGIN + logoW + gap;
       textW = contentWidth() - logoW - gap;
     }
-  }
 
-  drawCompanyTextBlock(page, ctx, { x: textX, y: top - 2, maxWidth: textW });
+    if (logoOnStart) {
+      drawLogoOrInitials(page, ctx, { x: logoX, y: top, maxW: logoMaxW, maxH: logoMaxH });
+    }
+
+    if (layout === 'logo_sides') {
+      if (ctx.dir === 'rtl') {
+        textX = MARGIN;
+        textW = contentWidth() - logoW - gap;
+      } else {
+        textX = MARGIN + logoW + gap;
+        textW = contentWidth() - logoW - gap;
+      }
+    }
+
+    drawCompanyTextBlock(page, ctx, { x: textX, y: top - 2, maxWidth: textW });
+  }
 
   page.drawRectangle({
     x: MARGIN,
@@ -645,8 +766,7 @@ class PdfCursor {
           }),
         )
       : `${this.footerLabel}  ·  ${pageNumber}/${pageCount}`;
-    const label =
-      this.dir === 'rtl' ? simplifyPdfText(rawLabel.replace(/\s·\s/g, '  '), this.dir) : rawLabel;
+    const label = this.dir === 'rtl' ? rawLabel.replace(/\s·\s/g, '  ') : rawLabel;
     const width = measurePdfText(label, this.fonts, 8, false, this.dir);
     // accent line above footer
     if (brand) {
@@ -674,6 +794,25 @@ class PdfCursor {
     }
   }
 
+  textExact(raw: string, opts: { size?: number; bold?: boolean; gap?: number } = {}) {
+    const size = opts.size ?? FONT_SIZE;
+    const bold = opts.bold ?? false;
+    this.ensure(LINE_HEIGHT);
+    const width = measurePdfTextExact(raw, this.fonts, size, bold, this.dir);
+    drawPdfTextExact(
+      this.page,
+      raw,
+      this.xFor(width),
+      this.y,
+      size,
+      this.fonts,
+      this.dir,
+      BODY_COLOR,
+      bold,
+    );
+    this.y -= opts.gap ?? LINE_HEIGHT;
+  }
+
   row(label: string, value: string, nature?: string) {
     if (this.dir === 'rtl') {
       const suffix = nature ? ` ${nature}` : '';
@@ -686,10 +825,10 @@ class PdfCursor {
 
   identityLine(label: string, value: string) {
     if (this.dir === 'rtl') {
-      this.text(`${label}${RTL_ROW_GAP}${value}`);
+      this.textExact(`${label}${RTL_ROW_GAP}${value}`);
       return;
     }
-    this.text(`${label}: ${value}`);
+    this.textExact(`${label}: ${value}`);
   }
 }
 
@@ -756,7 +895,7 @@ export async function renderReportPdf(payload: ReportPayload): Promise<Uint8Arra
 
   const cursor = new PdfCursor(doc, fonts, payload.dir, generatedLabel, brandCtx);
 
-  cursor.text(payload.title, { size: TITLE_SIZE, bold: true, gap: 18 });
+  cursor.textExact(payload.title, { size: TITLE_SIZE, bold: true, gap: 18 });
 
   // Project / client identity under letterhead (company already in branded header)
   if (payload.identity.projectName) {
@@ -777,7 +916,7 @@ export async function renderReportPdf(payload: ReportPayload): Promise<Uint8Arra
   cursor.text('', { gap: 8 });
 
   for (const section of payload.sections) {
-    cursor.text(section.heading, { size: HEADING_SIZE, bold: true, gap: 16 });
+    cursor.textExact(section.heading, { size: HEADING_SIZE, bold: true, gap: 16 });
     for (const row of section.rows ?? []) {
       const nature = row.nature ? copy.natures[row.nature] : undefined;
       cursor.row(row.label, row.value, nature);

@@ -10,12 +10,21 @@ import {
   hebrewFontFilePath,
   isPdfCountryCodeLine,
   isWinAnsiEncodable,
+  normalizeExactPdfText,
   pdfRunUsesEmbeddedFont,
   renderReportPdf,
   shapeForPdf,
   simplifyPdfText,
   splitPdfTextRuns,
 } from '@/modules/reports/application/render-pdf';
+
+const EXACT_LEGAL_NAME_SAMPLES = [
+  'מתח ח.י הנדסת חשמל בע"מ',
+  'א.ב. כהן (1995) בע"מ',
+  'י.ש. חשמל ואחזקות בע"מ',
+  'ABC ישראל בע"מ',
+  'חברה (ישראל) בע"מ',
+] as const;
 
 function monthlyWorkforceHebrewPayload() {
   return {
@@ -25,7 +34,7 @@ function monthlyWorkforceHebrewPayload() {
     locale: 'he-IL' as const,
     dir: 'rtl' as const,
     identity: {
-      companyName: 'חברת מתח ח.י הנדסת חשמל בע״מ',
+      companyName: 'מתח ח.י הנדסת חשמל בע"מ',
       projectId: null,
       projectName: 'פרויקט בדיקה',
       projectNumber: 'P-1001',
@@ -62,7 +71,21 @@ function monthlyWorkforceHebrewPayload() {
       },
     ],
     omitted: { compensation: true },
+    brand: {
+      companyLegalName: 'מתח ח.י הנדסת חשמל בע"מ',
+      companyDisplayName: 'מתח ח.י הנדסת חשמל בע"מ',
+      addressLines: ['IL'],
+      theme: 'customer' as const,
+      dir: 'rtl' as const,
+      locale: 'he-IL',
+      headerLayout: 'letterhead' as const,
+      primaryColor: '#1e3a5f',
+    },
   };
+}
+
+function pdfBytesContain(fragment: string, bytes: Uint8Array): boolean {
+  return Buffer.from(bytes).includes(Buffer.from(fragment, 'utf8'));
 }
 
 async function extractPdfText(bytes: Uint8Array): Promise<string> {
@@ -91,7 +114,14 @@ describe('renderReportPdf Hebrew shaping', () => {
     expect(shapeForPdf('2026-08', 'rtl')).toBe('2026-08');
   });
 
-  it('simplifies RTL PDF punctuation without changing meaning', () => {
+  it('does not simplify punctuation in exact PDF text normalization', () => {
+    for (const name of EXACT_LEGAL_NAME_SAMPLES) {
+      expect(normalizeExactPdfText(name, 'rtl')).toBe(name);
+    }
+    expect(simplifyPdfText('א.ב. כהן (1995) בע"מ', 'rtl')).toBe('א.ב. כהן - 1995 בע"מ');
+  });
+
+  it('simplifies ordinary RTL PDF rows without changing exact legal names', () => {
     expect(simplifyPdfText('בעלים / מנהל (פטור דיווח)', 'rtl')).toBe('בעלים / מנהל - פטור דיווח');
     expect(simplifyPdfText('0.00 ₪ [בפועל]', 'rtl')).toBe('0.00 ₪ בפועל');
     expect(simplifyPdfText('2026-08-01 – 2026-08-31', 'rtl')).toBe('2026-08-01 - 2026-08-31');
@@ -111,23 +141,44 @@ describe('renderReportPdf Hebrew shaping', () => {
     expect(filterPdfHeaderAddressLines(['IL'])).toEqual([]);
   });
 
-  it('omits IL from PDF header while preserving company name', async () => {
-    const payload = {
-      ...monthlyWorkforceHebrewPayload(),
-      brand: {
-        companyLegalName: 'חברת מתח ח.י הנדסת חשמל בע״מ',
-        companyDisplayName: 'חברת מתח ח.י הנדסת חשמל בע״מ',
-        addressLines: ['IL'],
-        theme: 'customer' as const,
-        dir: 'rtl' as const,
-        locale: 'he-IL',
-        headerLayout: 'letterhead' as const,
-        primaryColor: '#1e3a5f',
-      },
+  it('preserves exact legal-name punctuation in PDF header for all sample strings', async () => {
+    const expectations: Record<(typeof EXACT_LEGAL_NAME_SAMPLES)[number], readonly string[]> = {
+      'מתח ח.י הנדסת חשמל בע"מ': ['ח.י', '"'],
+      'א.ב. כהן (1995) בע"מ': ['א.ב', '1995', '"'],
+      'י.ש. חשמל ואחזקות בע"מ': ['י.ש', '"'],
+      'ABC ישראל בע"מ': ['ABC', '"'],
+      'חברה (ישראל) בע"מ': ['ישראל', '"'],
     };
-    const bytes = await renderReportPdf(payload);
+
+    for (const companyLegalName of EXACT_LEGAL_NAME_SAMPLES) {
+      const payload = {
+        ...monthlyWorkforceHebrewPayload(),
+        identity: { ...monthlyWorkforceHebrewPayload().identity, companyName: companyLegalName },
+        brand: {
+          ...monthlyWorkforceHebrewPayload().brand!,
+          companyLegalName,
+          companyDisplayName: companyLegalName,
+        },
+      };
+      const bytes = await renderReportPdf(payload);
+      expect(bytes.length).toBeGreaterThan(500);
+      expect(pdfBytesContain('.', bytes)).toBe(true);
+      expect(pdfBytesContain('"', bytes)).toBe(true);
+      const text = await extractPdfText(bytes);
+      for (const fragment of expectations[companyLegalName]) {
+        expect(text).toContain(fragment);
+      }
+      expect(text).not.toMatch(/(?:^|\n)IL(?:\n|$)/);
+    }
+  });
+
+  it('preserves production company name dots and gershayim quote in header', async () => {
+    const bytes = await renderReportPdf(monthlyWorkforceHebrewPayload());
     const text = await extractPdfText(bytes);
-    expect(text).toContain('חברת מתח');
+    expect(text).toContain('ח.י');
+    expect(text).toContain('בע"מ');
+    expect(text).toContain('מתח');
+    expect(text).not.toContain('בעמ');
     expect(text).not.toMatch(/(?:^|\n)IL(?:\n|$)/);
   });
 
@@ -187,7 +238,7 @@ describe('renderReportPdf Hebrew shaping', () => {
     expect(Buffer.compare(regular, bold)).not.toBe(0);
   });
 
-  it('keeps logical Hebrew, numbers, and ₪ in extracted PDF text without brackets', async () => {
+  it('keeps logical Hebrew, numbers, and ₪ in extracted PDF text without brackets in body rows', async () => {
     const bytes = await renderReportPdf(monthlyWorkforceHebrewPayload());
     const text = await extractPdfText(bytes);
     expect(text).toContain('דוח עובדים חודשי');
@@ -200,8 +251,6 @@ describe('renderReportPdf Hebrew shaping', () => {
     expect(text).toContain('מגדל');
     expect(text).not.toContain('[');
     expect(text).not.toContain(']');
-    expect(text).not.toContain('(');
-    expect(text).not.toContain(')');
     expect(text).not.toContain('ישדוח');
   });
 });
