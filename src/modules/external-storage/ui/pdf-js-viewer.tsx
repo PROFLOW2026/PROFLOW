@@ -482,18 +482,19 @@ export function PdfJsViewer({
           </Button>
         </>
       ) : null}
-      <DropdownMenu>
+      <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
           <Button type="button" size="sm" variant="secondary" className="md:hidden" aria-label={t('more')}>
             <MoreHorizontal className="size-4" aria-hidden />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
+        <DropdownMenuContent align="end" className="z-[80]">
           <DropdownMenuItem onSelect={() => setHandToolActive((active) => !active)}>
             {t('handTool')}
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => setRotation((r) => (r + 90) % 360)}>
-            {t('rotate')}
+            <RotateCw className="size-4" aria-hidden />
+            {t('rotate90')}
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => void toggleFullscreen()}>
             {isFullscreen ? t('exitFullscreen') : t('fullscreen')}
@@ -525,7 +526,7 @@ export function PdfJsViewer({
         onClick={() => setRotation((r) => (r + 90) % 360)}
       >
         <RotateCw className="size-4" aria-hidden />
-        <span className="sr-only">{t('rotate')}</span>
+        <span className="sr-only">{t('rotate90')}</span>
       </Button>
       <Button
         type="button"

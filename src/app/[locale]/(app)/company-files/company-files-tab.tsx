@@ -445,7 +445,6 @@ export function CompanyFilesTab({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-sm text-[var(--pf-text-secondary)]">{t('shortcutsLabel')}</span>
         {browserContext.semanticShortcuts.map((shortcut) => (
           <Button
             key={shortcut.semanticFolderType}
