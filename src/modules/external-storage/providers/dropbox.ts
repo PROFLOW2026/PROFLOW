@@ -9,6 +9,7 @@ import type {
   ProviderOAuthTokens,
   ProviderQuotaInfo,
 } from '../domain/types';
+import { stringifyDropboxApiArgHeader } from './dropbox-api-arg';
 import { ProviderHttpError, providerJson, toUint8Array } from './http-utils';
 
 const API = 'https://api.dropboxapi.com/2';
@@ -417,7 +418,12 @@ export class DropboxStorageProvider implements StorageProviderAdapter {
       headers: {
         Authorization: `Bearer ${accessToken}`,
         'Content-Type': 'application/octet-stream',
-        'Dropbox-API-Arg': JSON.stringify({ path, mode: 'add', autorename: false, mute: false }),
+        'Dropbox-API-Arg': stringifyDropboxApiArgHeader({
+          path,
+          mode: 'add',
+          autorename: false,
+          mute: false,
+        }),
       },
       body: Buffer.from(bytes),
     });
@@ -468,7 +474,7 @@ export class DropboxStorageProvider implements StorageProviderAdapter {
     const downloadRef = await this.resolveContentDownloadRef(accessToken, fileId);
     const headers: Record<string, string> = {
       Authorization: `Bearer ${accessToken}`,
-      'Dropbox-API-Arg': JSON.stringify({ path: downloadRef }),
+      'Dropbox-API-Arg': stringifyDropboxApiArgHeader({ path: downloadRef }),
     };
     if (options?.byteRange) {
       headers.Range = `bytes=${options.byteRange.start}-${options.byteRange.end}`;
