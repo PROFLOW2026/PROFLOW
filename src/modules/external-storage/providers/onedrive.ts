@@ -9,6 +9,10 @@ import type {
   ProviderOAuthTokens,
   ProviderQuotaInfo,
 } from '../domain/types';
+import {
+  isLatin1FileName,
+  toProviderUploadPathFileName,
+} from '../domain/provider-filenames';
 import { ProviderHttpError, providerJson, toUint8Array } from './http-utils';
 import {
   buildOneDriveAuthorizationUrl,
@@ -279,7 +283,8 @@ export class OneDriveStorageProvider implements StorageProviderAdapter {
     },
   ): Promise<ProviderFileItem> {
     const bytes = await toUint8Array(input.body);
-    const encodedName = encodeURIComponent(input.fileName);
+    const pathFileName = toProviderUploadPathFileName(input.fileName);
+    const encodedName = encodeURIComponent(pathFileName);
     const simpleLimit = 4 * 1024 * 1024;
     if (input.sizeBytes <= simpleLimit) {
       const created = await providerJson<Record<string, unknown>>(
@@ -291,7 +296,11 @@ export class OneDriveStorageProvider implements StorageProviderAdapter {
           body: Buffer.from(bytes),
         },
       );
-      return mapDriveItem(created) as ProviderFileItem;
+      let uploaded = mapDriveItem(created) as ProviderFileItem;
+      if (pathFileName !== input.fileName && !isLatin1FileName(input.fileName)) {
+        uploaded = await this.renameFile(accessToken, uploaded.id, input.fileName);
+      }
+      return uploaded;
     }
 
     const session = await providerJson<{ uploadUrl?: string }>(
@@ -332,7 +341,11 @@ export class OneDriveStorageProvider implements StorageProviderAdapter {
       offset += chunk.length;
     }
     if (!result) throw new Error('OneDrive upload session did not complete');
-    return mapDriveItem(result) as ProviderFileItem;
+    let uploaded = mapDriveItem(result) as ProviderFileItem;
+    if (pathFileName !== input.fileName && !isLatin1FileName(input.fileName)) {
+      uploaded = await this.renameFile(accessToken, uploaded.id, input.fileName);
+    }
+    return uploaded;
   }
 
   async getFileMetadata(accessToken: string, fileId: string): Promise<ProviderFileItem | null> {

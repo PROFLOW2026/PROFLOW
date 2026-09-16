@@ -110,6 +110,12 @@ export async function saveGeneratedReportToStorage(
     locale: context.locale,
   });
   const pdfBytes = await renderReportPdf(payload);
+  console.info('[generated-save] pdf-rendered', {
+    organizationId: context.organizationId,
+    kind: raw.kind,
+    entityId: raw.entityId,
+    bytes: pdfBytes.length,
+  });
   const generatedAt = new Date().toISOString();
 
   const tags = serializeGeneratedDocumentTags({
@@ -135,6 +141,11 @@ export async function saveGeneratedReportToStorage(
       privacyClass: binding.privacyClass ?? 'standard',
     });
     documentId = prepared.document.id;
+    console.info('[generated-save] document-prepared', {
+      organizationId: context.organizationId,
+      documentId,
+      fileName,
+    });
 
     await updateDocumentById(context.db, context.organizationId, documentId, {
       category: GENERATED_DOCUMENT_CATEGORY,
@@ -143,7 +154,17 @@ export async function saveGeneratedReportToStorage(
     });
 
     const parentFolderId = await resolveGeneratedUploadFolderId(context, binding);
+    console.info('[generated-save] folder-resolved', {
+      organizationId: context.organizationId,
+      documentId,
+      parentFolderId,
+    });
 
+    console.info('[generated-save] provider-upload-start', {
+      organizationId: context.organizationId,
+      documentId,
+      fileName,
+    });
     const uploaded = await uploadDocumentToExternalStorage(context, {
       documentId,
       parentSemanticFolder: binding.semanticFolder,
@@ -155,10 +176,19 @@ export async function saveGeneratedReportToStorage(
       body: pdfBytes,
       sizeBytes: pdfBytes.length,
     });
+    console.info('[generated-save] provider-upload-success', {
+      organizationId: context.organizationId,
+      documentId,
+      externalFileId: uploaded.id,
+    });
 
     await finalizeDocumentUpload(context, {
       documentId,
       sizeBytes: pdfBytes.length,
+    });
+    console.info('[generated-save] finalized', {
+      organizationId: context.organizationId,
+      documentId,
     });
 
     await recordAuditEvent(context, {
@@ -172,10 +202,18 @@ export async function saveGeneratedReportToStorage(
         externalFileId: uploaded.id,
       },
     });
+    console.info('[generated-save] audit-recorded', {
+      organizationId: context.organizationId,
+      documentId,
+    });
 
     if (raw.kind === 'monthly_workforce_report') {
       const month = raw.reportMonth ?? raw.entityId;
       await markMonthlyWorkforceReportNotificationHandled(context, month);
+      console.info('[generated-save] notification-handled', {
+        organizationId: context.organizationId,
+        reportMonth: month,
+      });
     }
 
     return {
