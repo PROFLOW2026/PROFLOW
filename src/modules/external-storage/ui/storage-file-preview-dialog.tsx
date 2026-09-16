@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic';
 import { ChevronLeft, ChevronRight, Share2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
@@ -74,13 +74,26 @@ export function StorageFilePreviewDialog({
   const [imageError, setImageError] = useState(false);
   const [imageLoading, setImageLoading] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
+  const previewableSiblings = useMemo(
+    () =>
+      siblingFiles?.filter((item) => {
+        const mime = inferMimeType(item.name, item.mimeType);
+        return isBrowserPreviewableMime(mime);
+      }) ?? [],
+    [siblingFiles],
+  );
   const [activeIndex, setActiveIndex] = useState(0);
-
-  const previewableSiblings =
-    siblingFiles?.filter((item) => {
-      const mime = inferMimeType(item.name, item.mimeType);
-      return isBrowserPreviewableMime(mime);
-    }) ?? [];
+  const [activeIndexAnchor, setActiveIndexAnchor] = useState('');
+  const fileSelectionAnchor = open && file?.fileId ? file.fileId : '';
+  if (activeIndexAnchor !== fileSelectionAnchor) {
+    setActiveIndexAnchor(fileSelectionAnchor);
+    if (fileSelectionAnchor) {
+      const index = previewableSiblings.findIndex((item) => item.id === file?.fileId);
+      setActiveIndex(index >= 0 ? index : 0);
+    } else {
+      setActiveIndex(0);
+    }
+  }
 
   const activeFile = (() => {
     if (!file) return null;
@@ -125,19 +138,17 @@ export function StorageFilePreviewDialog({
   const canNavigate = previewableSiblings.length > 1;
   const providerLabel = provider ? STORAGE_PROVIDER_LABELS[provider] : null;
 
-  useEffect(() => {
-    if (!open) return;
-    const index = previewableSiblings.findIndex((item) => item.id === file?.fileId);
-    setActiveIndex(index >= 0 ? index : 0);
-  }, [open, file?.fileId, previewableSiblings]);
-
-  useEffect(() => {
-    if (!open || !activeFile) return;
+  const [mediaAnchor, setMediaAnchor] = useState('');
+  const activeMediaId = open && activeFile ? activeFile.fileId : '';
+  if (mediaAnchor !== activeMediaId) {
+    setMediaAnchor(activeMediaId);
     setImageError(false);
-    setImageLoading(showImage);
+    setImageLoading(Boolean(activeMediaId && showImage));
     setShareError(null);
-    setReloadKey((key) => key + 1);
-  }, [open, activeFile?.fileId, showImage, setShareError]);
+    if (activeMediaId) {
+      setReloadKey((key) => key + 1);
+    }
+  }
 
   const handleClose = useCallback(() => onOpenChange(false), [onOpenChange]);
 

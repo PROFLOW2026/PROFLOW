@@ -8,7 +8,7 @@ import {
   ensureNestedFolderPath,
   resolveUploadFolderId,
 } from '@/modules/external-storage/application/folder-provisioning';
-import { findFolderMapping } from '@/modules/external-storage/data/folder-mappings.repository';
+import { findFolderMapping } from '@/modules/external-storage/server';
 import { resolveSemanticFolderDisplayName } from '@/modules/external-storage/domain/semantic-folders';
 import type { OrgContext } from '@/shared/auth/context';
 import type { GeneratedDocumentBinding } from '../domain/types';

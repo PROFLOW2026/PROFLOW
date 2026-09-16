@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { listDocumentsForEntity } from '@/modules/documents/data/documents.repository';
+import { listDocumentsForEntity } from '@/modules/documents';
 import type { DocumentOwnerType } from '@/modules/documents';
 import type { OrgContext } from '@/shared/auth/context';
 import { assertPermission } from '@/shared/permissions/assert';

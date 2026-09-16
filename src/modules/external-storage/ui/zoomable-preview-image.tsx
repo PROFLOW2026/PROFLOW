@@ -2,7 +2,7 @@
 
 import { Minus, Plus, RotateCcw, Scan } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/shared/ui/cn';
 
@@ -36,9 +36,13 @@ export function ZoomablePreviewImage({
     setFitWidth(true);
   }, []);
 
-  useEffect(() => {
-    resetView();
-  }, [src, resetView]);
+  const [trackedSrc, setTrackedSrc] = useState(src);
+  if (trackedSrc !== src) {
+    setTrackedSrc(src);
+    setScale(1);
+    setOffset({ x: 0, y: 0 });
+    setFitWidth(true);
+  }
 
   const onWheel = (event: React.WheelEvent) => {
     event.preventDefault();

@@ -4,6 +4,7 @@ import { MoreHorizontal } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useTranslations } from 'next-intl';
 import * as React from 'react';
+import { useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
 import { Spinner } from '@/components/ui/spinner';
 import { pressableChromeClassName } from '@/components/ui/pressable';
@@ -52,13 +53,13 @@ export function MobileNav({
   const tCommon = useTranslations('common');
   const pathname = usePathname();
   const [moreOpen, setMoreOpen] = React.useState(false);
-  const [mounted, setMounted] = React.useState(false);
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
   /** Keep the lazy sheet mounted after first open so reopen is instant. */
   const [moreMounted, setMoreMounted] = React.useState(false);
-
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const primary = selectMobilePrimaryItems(items);
   const overflow = items.filter((item) => !primary.includes(item));

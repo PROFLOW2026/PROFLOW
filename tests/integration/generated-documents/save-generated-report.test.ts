@@ -1,9 +1,10 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import type * as ReportsModule from '@/modules/reports';
 
 vi.mock('server-only', () => ({}));
 
 vi.mock('@/modules/reports', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/modules/reports')>();
+  const actual = await importOriginal<typeof ReportsModule>();
   return {
     ...actual,
     generateReport: vi.fn().mockResolvedValue({

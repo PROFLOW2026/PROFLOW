@@ -3,7 +3,7 @@
  * Each collector skips silently when permission / optional module is missing.
  */
 
-import { and, asc, eq, inArray, isNull, lt, lte, sql } from 'drizzle-orm';
+import { and, eq, inArray, isNull, lt, lte, sql } from 'drizzle-orm';
 import {
   approvalRequests,
   monthClosePeriods,

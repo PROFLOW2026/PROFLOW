@@ -49,7 +49,7 @@ describe('nav grouping', () => {
     expect(byKey.procurement?.moreGroup).toBe('purchasing');
     expect(byKey.materials?.moreGroup).toBe('purchasing');
     expect(byKey.fieldOps?.moreGroup).toBe('operations');
-    expect(byKey.documents?.moreGroup).toBe('operations');
+    expect(byKey.documents?.moreGroup).toBe('documents');
     expect(byKey.quotes?.moreGroup).toBe('business');
     expect(byKey.crm?.moreGroup).toBe('business');
 

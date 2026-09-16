@@ -2,21 +2,21 @@ import 'server-only';
 
 import { resolveOrgWorkWeekdays } from '@/modules/tenancy';
 import { CANONICAL_WORK_WEEKDAYS } from '@/modules/tenancy/domain/labor-cost-defaults';
-import { getMonthlyAttendanceGrid } from '@/modules/workforce';
+import { findEmployeeById, getMonthlyAttendanceGrid } from '@/modules/workforce';
 import { getEmployeePeriodSummary } from '@/modules/workforce/application/employee-period-summary';
-import { findEmployeeById } from '@/modules/workforce/data/employees.repository';
 import type { OrgContext } from '@/shared/auth/context';
 import { businessDate, todayInTimeZone } from '@/shared/dates';
 import { formatMoney } from '@/shared/money/format';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import { getReportsCopy, reportDirection, reportTitle, resolveReportLocale } from '../domain/copy';
+import { reportDirection, reportTitle, resolveReportLocale } from '../domain/copy';
+import type { ReportsCopy } from '../domain/copy';
 import { localizeCode } from '@/shared/i18n/code-display';
 import type { ReportPayload, ReportSection } from '../domain/types';
 
 type BuildCtx = {
   locale: string;
-  copy: ReturnType<typeof getReportsCopy>;
+  copy: ReportsCopy;
   generatedAt: Date;
   companyName: string;
 };

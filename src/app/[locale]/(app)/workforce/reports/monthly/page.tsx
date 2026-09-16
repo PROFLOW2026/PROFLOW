@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
-import { latestCompletedMonth } from '@/modules/command-center/data/collect-monthly-workforce-report';
+import { latestCompletedMonth } from '@/modules/command-center';
 import { listGeneratedArtifacts } from '@/modules/generated-documents/application/list-artifacts';
 import { resolveGeneratedDocumentBinding } from '@/modules/generated-documents/application/resolve-binding';
 import { GeneratedDocumentStatus } from '@/modules/generated-documents/ui/generated-document-status';

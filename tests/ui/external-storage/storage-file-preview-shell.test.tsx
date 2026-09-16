@@ -1,5 +1,4 @@
 import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it } from 'vitest';
 import { StorageFilePreviewShell } from '@/modules/external-storage/ui/storage-file-preview-shell';
 
@@ -16,7 +15,6 @@ describe('StorageFilePreviewShell', () => {
     window.scrollTo(0, 120);
     document.body.style.overflow = 'auto';
 
-    const user = userEvent.setup();
     const { rerender } = render(
       <StorageFilePreviewShell
         open={false}

@@ -64,6 +64,18 @@ export function PdfJsViewer({
   reloadKey: number;
   onRetry: () => void;
 }) {
+  return <PdfJsViewerInner key={`${url}:${reloadKey}`} url={url} reloadKey={reloadKey} onRetry={onRetry} />;
+}
+
+function PdfJsViewerInner({
+  url,
+  reloadKey,
+  onRetry,
+}: {
+  url: string;
+  reloadKey: number;
+  onRetry: () => void;
+}) {
   const t = useTranslations('externalStorage.preview');
   const scrollRef = useRef<HTMLDivElement>(null);
   const pageRefs = useRef<Map<number, HTMLDivElement>>(new Map());
@@ -78,7 +90,8 @@ export function PdfJsViewer({
   const [scrollRoot, setScrollRoot] = useState<HTMLElement | null>(null);
   const [numPages, setNumPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageInput, setPageInput] = useState('1');
+  const [pageInputDraft, setPageInputDraft] = useState<string | null>(null);
+  const pageInput = pageInputDraft ?? String(currentPage);
   const [containerWidth, setContainerWidth] = useState(640);
   const [containerHeight, setContainerHeight] = useState(480);
   const [fitMode, setFitMode] = useState<PdfFitMode>('width');
@@ -163,17 +176,6 @@ export function PdfJsViewer({
 
   useEffect(() => {
     timingsRef.current = createPdfPreviewTimings();
-    setLoadError(null);
-    setDocumentLoading(true);
-    setNumPages(0);
-    setCurrentPage(1);
-    setPageInput('1');
-    setFitMode('width');
-    setZoomFactor(1);
-    setGestureScale(1);
-    setIsPinching(false);
-    setHandToolActive(false);
-    setRotation(0);
     clearLoadTimeout();
 
     loadTimeoutRef.current = setTimeout(() => {
@@ -185,10 +187,6 @@ export function PdfJsViewer({
       if (pinchCommitRef.current) clearTimeout(pinchCommitRef.current);
     };
   }, [url, reloadKey, clearLoadTimeout, failLoad, t]);
-
-  useEffect(() => {
-    setPageInput(String(currentPage));
-  }, [currentPage]);
 
   useEffect(() => {
     const root = scrollRef.current;
@@ -278,10 +276,11 @@ export function PdfJsViewer({
   const commitPageInput = useCallback(() => {
     const parsed = Number.parseInt(pageInput, 10);
     if (!Number.isFinite(parsed) || numPages <= 0) {
-      setPageInput(String(currentPage));
+      setPageInputDraft(null);
       return;
     }
     const clamped = Math.min(numPages, Math.max(1, parsed));
+    setPageInputDraft(null);
     scrollToPage(clamped);
   }, [currentPage, numPages, pageInput, scrollToPage]);
 
@@ -463,7 +462,7 @@ export function PdfJsViewer({
             inputMode="numeric"
             value={pageInput}
             aria-label={t('pageNumber')}
-            onChange={(event) => setPageInput(event.target.value.replace(/\D/g, ''))}
+            onChange={(event) => setPageInputDraft(event.target.value.replace(/\D/g, ''))}
             onBlur={commitPageInput}
             onKeyDown={(event) => {
               if (event.key === 'Enter') commitPageInput();

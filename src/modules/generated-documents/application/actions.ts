@@ -10,7 +10,7 @@ import {
   mapServerActionError,
   translateMessageKey,
 } from '@/shared/errors';
-import { isReportKind } from '@/modules/reports';
+import { isReportKind, type ReportKind } from '@/modules/reports';
 import { listGeneratedArtifacts } from './list-artifacts';
 import { resolveGeneratedDocumentBinding } from './resolve-binding';
 import { saveGeneratedReportToStorage } from './save-generated-report';
@@ -39,7 +39,7 @@ export async function saveGeneratedReportToStorageAction(input: {
   try {
     const result = await withOrgContext((context) =>
       saveGeneratedReportToStorage(context, {
-        kind: input.kind as import('@/modules/reports').ReportKind,
+        kind: input.kind as ReportKind,
         entityId: input.entityId,
         forceNewVersion: input.forceNewVersion,
         idempotencyKey: input.idempotencyKey,
@@ -84,7 +84,7 @@ export async function listGeneratedArtifactsAction(input: {
 
   try {
     const artifacts = await withOrgContext(async (context) => {
-      const kind = input.kind as import('@/modules/reports').ReportKind;
+      const kind = input.kind as ReportKind;
       const binding = await resolveGeneratedDocumentBinding(
         context,
         kind,

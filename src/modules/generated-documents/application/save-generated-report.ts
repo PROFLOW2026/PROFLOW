@@ -5,9 +5,13 @@ import { ServiceUnavailableError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
-import { finalizeDocumentUpload, prepareDocumentUpload, softDeleteDocument } from '@/modules/documents';
-import { updateDocumentById } from '@/modules/documents/data/documents.repository';
-import { listAllDocuments } from '@/modules/documents/data/documents.repository';
+import {
+  finalizeDocumentUpload,
+  listAllDocuments,
+  prepareDocumentUpload,
+  softDeleteDocument,
+  updateDocumentById,
+} from '@/modules/documents';
 import { isOrganizationStorageConfigured, uploadDocumentToExternalStorage } from '@/modules/external-storage/server';
 import { assertReportKindPermission, generateReport, renderReportPdf } from '@/modules/reports';
 import { buildGeneratedPdfFileName } from '../domain/filenames';

@@ -1,4 +1,5 @@
 export { getTodayInbox } from './application/get-today-inbox';
+export { latestCompletedMonth } from './data/collect-monthly-workforce-report';
 export { getActionableInbox, getActionableInboxIfAllowed } from './application/get-actionable-inbox';
 export { updateCommandCenterItemState } from './application/update-item-state';
 

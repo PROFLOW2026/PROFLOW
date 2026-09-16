@@ -16,6 +16,7 @@ const config = [
       'drizzle/migrations/**',
       '.tmp/**',
       'next-env.d.ts',
+      'public/pdf.worker.min.mjs',
     ],
   },
   ...nextCoreWebVitals,
