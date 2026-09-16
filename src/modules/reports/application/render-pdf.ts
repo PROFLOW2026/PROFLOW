@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFImage, type PDFPage } from 'pdf-lib';
 import fontkit from '@pdf-lib/fontkit';
 import bidiFactory from 'bidi-js';
+import { ServiceUnavailableError } from '@/shared/errors';
 import type { DocumentBrandContext, HeaderLayout } from '@/modules/branding/domain/document-brand';
 import { reportFilename } from '../domain/paths';
 import type { ReportPayload } from '../domain/types';
@@ -36,21 +37,41 @@ const HEBREW_RE = /[\u0590-\u05FF]/;
 
 const bidi = bidiFactory();
 
+const HEBREW_FONT_FILE = 'NotoSansHebrew-Regular.ttf';
+const HEBREW_FONT_PROJECT_REL = path.join('src', 'modules', 'reports', 'fonts', HEBREW_FONT_FILE);
+
 let hebrewFontBytes: Uint8Array | null | undefined;
 
+/** Stable project-root path — matches Vercel output file tracing includes. */
 export function hebrewFontFilePath(): string {
-  return path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'fonts', 'NotoSansHebrew-Regular.ttf');
+  return path.join(process.cwd(), HEBREW_FONT_PROJECT_REL);
+}
+
+/** Module-relative path — works in local dev / vitest without a production bundle. */
+export function hebrewFontModulePath(): string {
+  return path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'fonts', HEBREW_FONT_FILE);
+}
+
+export function hebrewFontCandidatePaths(): readonly string[] {
+  return [hebrewFontFilePath(), hebrewFontModulePath()];
 }
 
 async function loadHebrewFontBytes(): Promise<Uint8Array | null> {
   if (hebrewFontBytes !== undefined) return hebrewFontBytes;
-  try {
-    hebrewFontBytes = await readFile(hebrewFontFilePath());
-    return hebrewFontBytes;
-  } catch {
-    hebrewFontBytes = null;
-    return null;
+  for (const candidate of hebrewFontCandidatePaths()) {
+    try {
+      hebrewFontBytes = await readFile(candidate);
+      return hebrewFontBytes;
+    } catch (error) {
+      console.warn('[renderReportPdf] Hebrew font not readable at', candidate, error);
+    }
   }
+  hebrewFontBytes = null;
+  return null;
+}
+
+function pdfRenderFailedError(detail: string): ServiceUnavailableError {
+  return new ServiceUnavailableError(detail, 'generatedDocuments.errors.pdfRenderFailed');
 }
 
 function shapeForPdf(text: string, dir: 'rtl' | 'ltr'): string {
@@ -427,9 +448,6 @@ export async function renderReportPdf(payload: ReportPayload): Promise<Uint8Arra
   const doc = await PDFDocument.create();
   const latin = await doc.embedFont(StandardFonts.Helvetica);
   const latinBold = await doc.embedFont(StandardFonts.HelveticaBold);
-  const hebrewBytes = await loadHebrewFontBytes();
-  let font = latin;
-  let fontBold = latinBold;
   const needsHebrew =
     payload.dir === 'rtl' ||
     HEBREW_RE.test(payload.title) ||
@@ -437,15 +455,22 @@ export async function renderReportPdf(payload: ReportPayload): Promise<Uint8Arra
     (payload.brand
       ? HEBREW_RE.test(payload.brand.companyLegalName) || HEBREW_RE.test(payload.brand.companyDisplayName)
       : false);
+  const hebrewBytes = await loadHebrewFontBytes();
+  if (needsHebrew && !hebrewBytes) {
+    throw pdfRenderFailedError('Hebrew PDF font asset could not be loaded');
+  }
+
+  let font = latin;
+  let fontBold = latinBold;
   if (hebrewBytes && needsHebrew) {
     doc.registerFontkit(fontkit);
     try {
       const embedded = await doc.embedFont(hebrewBytes, { subset: true });
       font = embedded;
       fontBold = embedded;
-    } catch {
-      font = latin;
-      fontBold = latinBold;
+    } catch (error) {
+      console.error('[renderReportPdf] Failed to embed Hebrew font', error);
+      throw pdfRenderFailedError('Hebrew PDF font could not be embedded');
     }
   }
 

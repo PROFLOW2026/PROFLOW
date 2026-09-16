@@ -9,6 +9,10 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ['127.0.0.1', 'localhost'],
   // exceljs is large and export/import only — keep it out of the client graph.
   serverExternalPackages: ['postgres', 'exceljs', 'drizzle-orm', 'pdf-lib', '@pdf-lib/fontkit', 'bidi-js'],
+  // Hebrew PDF font is read via fs at runtime — include it in every serverless trace.
+  outputFileTracingIncludes: {
+    '/*': ['./src/modules/reports/fonts/**/*'],
+  },
   typedRoutes: false,
   // package-lock.json lives beside this file, not at the drive root Next infers.
   turbopack: { root: import.meta.dirname },

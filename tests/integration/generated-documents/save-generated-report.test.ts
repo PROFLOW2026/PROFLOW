@@ -8,25 +8,28 @@ vi.mock('@/modules/reports', async (importOriginal) => {
     ...actual,
     generateReport: vi.fn().mockResolvedValue({
       kind: 'monthly_workforce_report',
-      title: 'Monthly workforce report',
+      title: 'דוח עובדים חודשי',
       generatedAt: new Date().toISOString(),
-      locale: 'en',
-      dir: 'ltr',
+      locale: 'he-IL',
+      dir: 'rtl',
       identity: {
-        companyName: 'Test Co',
+        companyName: 'חברת בדיקה',
         projectId: null,
         projectName: null,
         projectNumber: null,
         clientName: null,
         extra: '2026-08',
       },
-      sections: [],
-      notices: [],
-      omitted: {},
+      sections: [
+        {
+          id: 'summary',
+          heading: 'סיכום חודש',
+          rows: [{ label: 'חודש דיווח', value: '2026-08' }],
+        },
+      ],
+      notices: ['דוח עובדים לחודש 2026-08.'],
+      omitted: { compensation: true },
     }),
-    renderReportPdf: vi
-      .fn()
-      .mockResolvedValue(new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d, 0x31, 0x2e, 0x34])),
   };
 });
 
@@ -129,6 +132,7 @@ describe('saveGeneratedReportToStorage integration', () => {
         const download = await getExternalDocumentDownload(context, result.documentId);
         expect('url' in download && download.url).toContain('storage.test/download');
         expect(download.filename).toContain('.pdf');
+        expect(document?.sizeBytes).toBeGreaterThan(500);
       });
     });
   }

@@ -12,6 +12,7 @@
   },
   "errors": {
     "storageNotConfigured": "No active external storage is configured. Set up storage in Settings.",
-    "unsupportedKind": "This document type cannot be saved to storage."
+    "unsupportedKind": "This document type cannot be saved to storage.",
+    "pdfRenderFailed": "The PDF could not be generated. Please try again later."
   }
 }

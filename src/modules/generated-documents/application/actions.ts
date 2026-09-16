@@ -3,7 +3,13 @@
 import { revalidatePath } from 'next/cache';
 import { getTranslations } from 'next-intl/server';
 import { withOrgContext } from '@/shared/auth/session';
-import { AppError, ServiceUnavailableError, ValidationError, mapServerActionError } from '@/shared/errors';
+import {
+  AppError,
+  ServiceUnavailableError,
+  ValidationError,
+  mapServerActionError,
+  translateMessageKey,
+} from '@/shared/errors';
 import { isReportKind } from '@/modules/reports';
 import { listGeneratedArtifacts } from './list-artifacts';
 import { resolveGeneratedDocumentBinding } from './resolve-binding';
@@ -44,14 +50,25 @@ export async function saveGeneratedReportToStorageAction(input: {
     return { result };
   } catch (error) {
     if (error instanceof ServiceUnavailableError) {
+      const translated = translateMessageKey(error.messageKey, {
+        tErrors: (key) => tErrors(key as 'unexpected'),
+        namespaces: { generatedDocuments: (key) => t(key as 'errors.storageNotConfigured') },
+      });
+      if (translated) return { error: translated };
       return { error: t('errors.storageNotConfigured') };
     }
     if (error instanceof ValidationError || error instanceof AppError) {
       return mapServerActionError(error, {
         tErrors: (key) => tErrors(key as 'unexpected'),
+        namespaces: { generatedDocuments: (key) => t(key as 'errors.storageNotConfigured') },
       });
     }
-    throw error;
+    console.error('[saveGeneratedReportToStorageAction]', error);
+    return mapServerActionError(error, {
+      tErrors: (key) => tErrors(key as 'unexpected'),
+      namespaces: { generatedDocuments: (key) => t(key as 'errors.storageNotConfigured') },
+      rethrowUnknown: false,
+    });
   }
 }
 
