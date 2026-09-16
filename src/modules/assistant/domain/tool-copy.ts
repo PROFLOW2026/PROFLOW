@@ -1,3 +1,4 @@
+import { formatMoneyString } from '@/shared/money/format';
 import type { AssistantToolKey } from './types';
 
 function he(locale: string): boolean {
@@ -85,7 +86,7 @@ export function warningKindLabel(locale: string, kind: string): string {
       case 'missing_data':
         return 'חסרים נתונים';
       default:
-        return kind;
+        return 'אזהרת תחזית';
     }
   }
   switch (kind) {
@@ -110,7 +111,7 @@ export function warningKindLabel(locale: string, kind: string): string {
     case 'missing_data':
       return 'Missing data';
     default:
-      return kind;
+      return 'Forecast warning';
   }
 }
 
@@ -127,10 +128,13 @@ export const assistantToolCopy = {
     he(locale)
       ? 'יתרת החוזה אינה זמינה לצופה הזה או לפרויקט הזה.'
       : 'Contract balance is not available for this viewer or project.',
-  profitBody: (locale: string, forecast: string, actual: string, currency: string) =>
-    he(locale)
-      ? `שיעור יתרת חוזה תחזית ${forecast} ${currency}. שיעור יתרת חוזה בפועל ${actual} ${currency}.`
-      : `Forecast margin ${forecast} ${currency}. Actual margin ${actual} ${currency}.`,
+  profitBody: (locale: string, forecast: string, actual: string, currency: string) => {
+    const forecastLabel = formatMoneyString(forecast, currency, locale);
+    const actualLabel = formatMoneyString(actual, currency, locale);
+    return he(locale)
+      ? `יתרת חוזה תחזית ${forecastLabel}. יתרת חוזה בפועל ${actualLabel}.`
+      : `Forecast contract balance ${forecastLabel}. Actual contract balance ${actualLabel}.`;
+  },
   clientsEmpty: (locale: string) =>
     he(locale) ? 'אין חיובים באיחור ברשימה הזו.' : 'No overdue billing records in this list.',
   payEmpty: (locale: string) =>

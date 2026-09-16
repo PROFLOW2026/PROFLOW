@@ -8,6 +8,7 @@ import { addDays, todayInTimeZone } from '@/shared/dates';
 import type { OrgContext } from '@/shared/auth/context';
 import { AuthorizationError } from '@/shared/errors';
 import { assertAssistantToolAllowed } from '../domain/tools';
+import { formatMoneyString } from '@/shared/money/format';
 import { assistantDeniedBody, assistantToolCopy, assistantToolTitle, warningKindLabel } from '../domain/tool-copy';
 import type { AssistantToolKey, AssistantToolResult } from '../domain/types';
 
@@ -130,7 +131,7 @@ export async function executeAssistantTool(
                 .slice(0, 8)
                 .map(
                   (row) =>
-                    `${row.reference ?? row.id}: ${row.outstandingAmount.amount} ${row.outstandingAmount.currency}`,
+                    `${row.reference ?? row.id}: ${formatMoneyString(row.outstandingAmount.amount, row.outstandingAmount.currency, locale)}`,
                 )
                 .join('\n'),
         citations: records.slice(0, 8).map((row) => ({

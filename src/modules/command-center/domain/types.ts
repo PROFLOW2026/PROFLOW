@@ -40,13 +40,11 @@ export const COMMAND_CENTER_SOURCE_TYPES = [
   'expense_due_today',
   'expense_due_soon',
   'expense_overdue',
-  'expense_upcoming',
   'expense_pending_review',
   'expense_needs_allocation',
   'payroll_due_today',
   'payroll_due_soon',
   'payroll_overdue',
-  'payroll_upcoming',
   'payroll_pending_review',
 ] as const;
 
@@ -74,13 +72,11 @@ export const FINANCIAL_SOURCE_TYPES = [
   'expense_due_today',
   'expense_due_soon',
   'expense_overdue',
-  'expense_upcoming',
   'expense_pending_review',
   'expense_needs_allocation',
   'payroll_due_today',
   'payroll_due_soon',
   'payroll_overdue',
-  'payroll_upcoming',
   'payroll_pending_review',
 ] as const satisfies readonly CommandCenterSourceType[];
 

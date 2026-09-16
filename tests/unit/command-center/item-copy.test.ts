@@ -12,6 +12,9 @@ import {
   boqVsContractMismatchCopy,
   billingPlanRetentionReleaseDueCopy,
   cashFlowRiskCopy,
+  approvalEntityTypeLabel,
+  automationPresetLabel,
+  openApprovalCopy,
 } from '@/modules/command-center/domain/item-copy';
 
 describe('command center item copy', () => {
@@ -105,6 +108,23 @@ describe('command center item copy', () => {
       currency: 'ILS',
     });
     expect(en.what.toLowerCase()).toContain('retention');
+  });
+
+  it('never exposes raw approval entity codes in open approval copy', () => {
+    const copy = openApprovalCopy('he-IL', {
+      entityType: 'purchase_order',
+      amount: '1200.000000',
+      currency: 'ILS',
+    });
+    expect(copy.why).toContain('הזמנת רכש');
+    expect(copy.why).not.toMatch(/purchase_order/);
+    expect(copy.why).toContain('1,200.00');
+  });
+
+  it('falls back to generic labels for unknown approval and automation keys', () => {
+    expect(approvalEntityTypeLabel('he-IL', 'unknown_entity')).toBe('בקשה לאישור');
+    expect(automationPresetLabel('he-IL', 'unknown_preset')).toBe('כלל אוטומציה');
+    expect(automationPresetLabel('en', 'unknown_preset')).toBe('Automation rule');
   });
 
   it('formats cash-flow risk copy with at most two decimal places', () => {

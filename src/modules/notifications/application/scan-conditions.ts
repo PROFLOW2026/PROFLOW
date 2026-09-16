@@ -18,6 +18,10 @@ import {
 } from '@/modules/billing-plan';
 import { fromNumericString, isPositiveMoney, isZeroMoney } from '@/shared/money';
 import { formatMoneyString } from '@/shared/money/format';
+import {
+  approvalEntityTypeLabel,
+  automationPresetLabel,
+} from '@/modules/command-center/domain/item-copy';
 import type { OrgContext } from '@/shared/auth/context';
 import { todayInTimeZone, type BusinessDate } from '@/shared/dates';
 import { ValidationError } from '@/shared/errors';
@@ -236,8 +240,11 @@ async function scanApprovals(ctx: ScannerContext): Promise<{ emitted: number; re
   const pending = await listPendingApprovals(ctx.context, { limit: ctx.cap });
   const entities: ScanEntity[] = pending.map((item) => ({
     id: item.id,
-    reference: item.entityType,
-    extra: item.amount,
+    reference: approvalEntityTypeLabel(ctx.locale, item.entityType),
+    extra:
+      item.amount && item.currency
+        ? formatMoneyString(item.amount, item.currency, ctx.locale)
+        : item.amount,
     deepLink: '/approvals',
   }));
   const emitted = await emitLive(
@@ -511,11 +518,16 @@ async function scanAutomationOutputs(ctx: ScannerContext): Promise<{ emitted: nu
   if (!hasPermission(ctx.context, PERMISSIONS.AUTOMATIONS_READ)) {
     return { emitted: 0, resolved: 0 };
   }
-  const entities = await listAutomationFollowups(
+  const entities = (await listAutomationFollowups(
     ctx.context.db,
     ctx.context.organizationId,
     ctx.cap,
-  );
+  )).map((entity) => ({
+    ...entity,
+    reference: entity.reference
+      ? automationPresetLabel(ctx.locale, entity.reference)
+      : entity.reference,
+  }));
   const emitted = await emitLive(
     ctx,
     'automation_output',

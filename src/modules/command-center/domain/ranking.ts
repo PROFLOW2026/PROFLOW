@@ -52,13 +52,11 @@ export const SOURCE_DEFAULT_SEVERITY: Record<CommandCenterSourceType, CommandCen
   expense_due_today: 'high',
   expense_due_soon: 'medium',
   expense_overdue: 'critical',
-  expense_upcoming: 'medium',
   expense_pending_review: 'medium',
   expense_needs_allocation: 'medium',
   payroll_due_today: 'high',
   payroll_due_soon: 'medium',
   payroll_overdue: 'critical',
-  payroll_upcoming: 'medium',
   payroll_pending_review: 'medium',
 };
 

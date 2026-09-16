@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/ui/pressable';
 import { listCostCategoriesForOrg, findExpenseById } from '@/modules/expenses';
 import { displayCostCategoryName } from '@/modules/expenses/domain/cost-category-display';
+import { formatMoneyString } from '@/shared/money/format';
 import { isMonthClosed } from '@/modules/month-close';
 import { hasExplicitRecurringCategory } from '@/modules/recurring-drafts/application/resolve-expense-category';
 import {
@@ -379,7 +380,7 @@ export default async function RecurringDraftDetailPage({
                         <TableCell dir="ltr">
                           {run.occurrenceYearMonth ?? t('fields.none')}
                           {isMonthlyExpense && preview.expense
-                            ? ` · ${preview.expense.amount} ${preview.expense.currency}`
+                            ? ` · ${formatMoneyString(preview.expense.amount, preview.expense.currency, locale)}`
                             : ''}
                         </TableCell>
                         <TableCell>

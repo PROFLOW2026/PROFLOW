@@ -247,7 +247,7 @@ export function openApprovalCopy(
   locale: string,
   input: { entityType: string; amount: string | null; currency: string | null },
 ): { what: string; why: string } {
-  const entity = entityTypeLabel(locale, input.entityType);
+  const entity = approvalEntityTypeLabel(locale, input.entityType);
   const money =
     input.amount && input.currency
       ? ` · ${formatMoneyString(input.amount, input.currency, locale)}`
@@ -490,6 +490,11 @@ export function forecastWarningCopy(
           what: 'השלמת נתונים לתחזית',
           why: 'חסרים נתונים כדי להעריך את מצב הפרויקט בביטחון',
         };
+      case 'actual_over_budget':
+        return {
+          what: 'בדיקת פרויקט שחרג מהתקציב',
+          why: 'העלות בפועל עולה על התקציב הפעיל',
+        };
       default:
         return { what: 'בדיקת אזהרת תחזית', why: 'יש סיכון כספי צפוי שדורש בדיקה' };
     }
@@ -539,6 +544,11 @@ export function forecastWarningCopy(
       return {
         what: 'Complete forecast inputs',
         why: 'Not enough data to assess project position with confidence',
+      };
+    case 'actual_over_budget':
+      return {
+        what: 'Review over-budget project',
+        why: 'Actual cost exceeds the active budget',
       };
     default:
       return { what: 'Review forecast warning', why: 'A projected financial risk needs a look' };
@@ -616,22 +626,44 @@ function boqReconStatusLabel(locale: string, status: string): string {
 }
 
 function allocationStatusLabel(locale: string, status: string): string {
-  if (!he(locale)) return status;
-  if (status === 'applied') return 'הוחל';
-  if (status === 'draft') return 'טיוטה';
-  return status;
+  if (he(locale)) {
+    if (status === 'applied') return 'הוחל';
+    if (status === 'draft') return 'טיוטה';
+    return 'סטטוס הקצאה';
+  }
+  if (status === 'applied') return 'Applied';
+  if (status === 'draft') return 'Draft';
+  return 'Allocation status';
 }
 
-function entityTypeLabel(locale: string, entityType: string): string {
-  if (!he(locale)) return entityType;
+/** Human label for approval / notification entity types — never expose raw codes in UI. */
+export function approvalEntityTypeLabel(locale: string, entityType: string): string {
+  if (he(locale)) {
+    const map: Record<string, string> = {
+      expense: 'הוצאה',
+      vendor_bill: 'חשבונית ספק',
+      vendor_credit: 'זיכוי ספק',
+      purchase_order: 'הזמנת רכש',
+      time_correction: 'תיקון שעות',
+      quote_discount: 'הנחה בהצעת מחיר',
+      budget_revision: 'עדכון תקציב',
+      billing_record: 'חיוב',
+      payment: 'תשלום',
+    };
+    return map[entityType] ?? 'בקשה לאישור';
+  }
   const map: Record<string, string> = {
-    expense: 'הוצאה',
-    vendor_bill: 'חשבונית ספק',
-    vendor_credit: 'זיכוי ספק',
-    billing_record: 'חיוב',
-    payment: 'תשלום',
+    expense: 'Expense',
+    vendor_bill: 'Vendor bill',
+    vendor_credit: 'Vendor credit',
+    purchase_order: 'Purchase order',
+    time_correction: 'Time correction',
+    quote_discount: 'Quote discount',
+    budget_revision: 'Budget revision',
+    billing_record: 'Billing',
+    payment: 'Payment',
   };
-  return map[entityType] ?? entityType;
+  return map[entityType] ?? 'Approval request';
 }
 
 function complianceStatusLabel(locale: string, status: string): string {
@@ -714,7 +746,8 @@ export function cashFlowRiskCopy(
   };
 }
 
-function automationPresetLabel(locale: string, presetKey: string): string {
+/** Human label for automation preset keys — never expose raw keys in UI. */
+export function automationPresetLabel(locale: string, presetKey: string): string {
   if (he(locale)) {
     switch (presetKey) {
       case 'client_balance_overdue':
@@ -744,7 +777,7 @@ function automationPresetLabel(locale: string, presetKey: string): string {
       case 'closeout_has_blockers':
         return 'חסמים בסגירת פרויקט';
       default:
-        return presetKey;
+        return 'כלל אוטומציה';
     }
   }
   switch (presetKey) {
@@ -775,7 +808,7 @@ function automationPresetLabel(locale: string, presetKey: string): string {
     case 'closeout_has_blockers':
       return 'Closeout blockers';
     default:
-      return presetKey;
+      return 'Automation rule';
   }
 }
 

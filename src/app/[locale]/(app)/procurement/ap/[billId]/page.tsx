@@ -27,6 +27,7 @@ import { getEntityDocumentPanelData } from '@/modules/documents';
 import { DocumentAttachments } from '@/modules/documents/ui';
 import { listExpensesForOrg, listCostCategoriesForOrg } from '@/modules/expenses';
 import { displayCostCategoryName } from '@/modules/expenses/domain/cost-category-display';
+import { formatMoneyString } from '@/shared/money/format';
 import { listPurchaseOrdersForOrg } from '@/modules/procurement';
 import { listProjectsForOrg } from '@/modules/projects';
 import { listVendorsForOrg } from '@/modules/vendors';
@@ -180,7 +181,7 @@ export default async function ApBillDetailPage({
         })),
       expenses: expensesResult.items.map((expense) => ({
         id: expense.id,
-        label: `${expense.description || expense.id.slice(0, 8)} · ${expense.grossAmount.amount} ${expense.grossAmount.currency}`,
+        label: `${expense.description || expense.id.slice(0, 8)} · ${formatMoneyString(expense.grossAmount.amount, expense.grossAmount.currency, locale)}`,
       })),
       vendors: vendors.map((vendor) => ({ id: vendor.id, name: vendor.name })),
       costCategories: costCategories.map((category) => ({

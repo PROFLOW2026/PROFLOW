@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState, useTransition } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -11,6 +11,7 @@ import { getDefaultAttachmentStore } from '../data/attachment-store';
 import { mirrorDraftsToLocalStorage } from '../data/queue-index';
 import type { DraftKind, OfflineDraftRecord, SyncStatus } from '../domain/types';
 import { truthfulSyncLabel } from '../domain/sync-labels';
+import { formatMoneyString } from '@/shared/money/format';
 import { ConnectivityIndicator } from './connectivity-banner';
 import { useOfflineScope } from './use-offline-aware-form-action';
 
@@ -35,15 +36,15 @@ const STATUS_ORDER: readonly SyncStatus[] = [
   'synced',
 ];
 
-function summarizePayload(draft: OfflineDraftRecord): string {
+function summarizePayload(draft: OfflineDraftRecord, locale: string): string {
   const p = draft.payload;
   if (typeof p.title === 'string' && p.title.trim()) return p.title.trim();
   if (typeof p.summary === 'string' && p.summary.trim()) return p.summary.trim();
   if (typeof p.description === 'string' && p.description.trim()) return p.description.trim();
   if (typeof p.fileName === 'string' && p.fileName.trim()) return p.fileName.trim();
   if (typeof p.amount === 'string' && p.amount.trim()) {
-    const currency = typeof p.currency === 'string' ? p.currency : '';
-    return `${p.amount} ${currency}`.trim();
+    const currency = typeof p.currency === 'string' ? p.currency : 'ILS';
+    return formatMoneyString(p.amount, currency, locale);
   }
   if (typeof p.hours === 'string' && p.hours.trim()) return `${p.hours}h`;
   if (typeof p.body === 'string' && p.body.trim()) return p.body.trim();
@@ -51,6 +52,7 @@ function summarizePayload(draft: OfflineDraftRecord): string {
 }
 
 export function OfflineDraftsPanel({ organizationId }: { organizationId: string }) {
+  const locale = useLocale();
   const t = useTranslations('offline');
   const scope = useOfflineScope();
   const userId = scope?.userId ?? '';
@@ -293,7 +295,7 @@ export function OfflineDraftsPanel({ organizationId }: { organizationId: string 
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium">{t(`kinds.${draft.kind}`)}</p>
                   <p className="truncate text-sm text-[var(--pf-text-primary)]">
-                    {summarizePayload(draft)}
+                    {summarizePayload(draft, locale)}
                   </p>
                   <p className="text-xs text-[var(--pf-text-secondary)]">
                     {t('page.updated', { when: draft.updatedAt })}
@@ -378,7 +380,7 @@ export function OfflineDraftsPanel({ organizationId }: { organizationId: string 
                             disabled={pending || busyId === draft.localId}
                             onClick={() => {
                               setEditingId(draft.localId);
-                              setEditText(summarizePayload(draft));
+                              setEditText(summarizePayload(draft, locale));
                             }}
                           >
                             {t('actions.edit')}
