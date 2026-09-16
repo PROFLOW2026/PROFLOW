@@ -68,8 +68,9 @@ export async function uploadDocumentToExternalStorage(
   const folderEntityId = folderEntity.entityId ?? input.entityId;
 
   let parentFolderId: string | undefined;
-  if (input.resolvedParentFolderId?.trim()) {
-    parentFolderId = input.resolvedParentFolderId.trim();
+  const hasPreResolvedParent = Boolean(input.resolvedParentFolderId?.trim());
+  if (hasPreResolvedParent) {
+    parentFolderId = input.resolvedParentFolderId!.trim();
   } else if (input.parentFolderExternalId?.trim()) {
     if (folderEntityType !== 'project' || !folderEntityId) {
       throw new DomainRuleError(
@@ -97,7 +98,12 @@ export async function uploadDocumentToExternalStorage(
   if (!parentFolderId) {
     parentFolderId = parentMapping?.externalFolderId;
   }
-  if (!parentFolderId || (!input.parentFolderExternalId && parentMapping?.status !== 'ready')) {
+  if (
+    !parentFolderId ||
+    (!hasPreResolvedParent &&
+      !input.parentFolderExternalId?.trim() &&
+      parentMapping?.status !== 'ready')
+  ) {
     const projectRoot = folderEntityType === 'project' && folderEntityId
       ? await findFolderMapping(context.db, {
           organizationId: context.organizationId,
