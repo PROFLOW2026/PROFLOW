@@ -1,9 +1,8 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFImage, type PDFPage } from 'pdf-lib';
+import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFImage, type PDFPage, type RGB } from 'pdf-lib';
 import fontkit from '@pdf-lib/fontkit';
-import bidiFactory from 'bidi-js';
 import { ServiceUnavailableError } from '@/shared/errors';
 import type { DocumentBrandContext, HeaderLayout } from '@/modules/branding/domain/document-brand';
 import { reportFilename } from '../domain/paths';
@@ -29,18 +28,21 @@ import {
 const PAGE_WIDTH = 595.28;
 const PAGE_HEIGHT = 841.89;
 const MARGIN = 48;
-const FONT_SIZE = 10;
-const TITLE_SIZE = 16;
-const HEADING_SIZE = 12;
-const LINE_HEIGHT = 14;
+const FONT_SIZE = 11;
+const TITLE_SIZE = 18;
+const HEADING_SIZE = 13;
+const LINE_HEIGHT = 15;
+const BODY_COLOR = rgb(0.05, 0.05, 0.05);
 const HEBREW_RE = /[\u0590-\u05FF]/;
+const TEXT_RUN_RE =
+  /[\u0590-\u05FF][\u0590-\u05FF\s]*|[0-9A-Za-z][0-9A-Za-z\s.,:/\-–]*|[^\u0590-\u05FF0-9A-Za-z]+/g;
 
-const bidi = bidiFactory();
-
-const HEBREW_FONT_FILE = 'NotoSansHebrew-Regular.ttf';
-const HEBREW_FONT_PROJECT_REL = path.join('src', 'modules', 'reports', 'fonts', HEBREW_FONT_FILE);
+const HEBREW_FONT_REGULAR = 'NotoSansHebrew-Regular.ttf';
+const HEBREW_FONT_BOLD = 'NotoSansHebrew-Bold.ttf';
+const HEBREW_FONT_PROJECT_REL = path.join('src', 'modules', 'reports', 'fonts', HEBREW_FONT_REGULAR);
 
 let hebrewFontBytes: Uint8Array | null | undefined;
+let hebrewBoldFontBytes: Uint8Array | null | undefined;
 
 /** Stable project-root path — matches Vercel output file tracing includes. */
 export function hebrewFontFilePath(): string {
@@ -49,57 +51,192 @@ export function hebrewFontFilePath(): string {
 
 /** Module-relative path — works in local dev / vitest without a production bundle. */
 export function hebrewFontModulePath(): string {
-  return path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'fonts', HEBREW_FONT_FILE);
+  return path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'fonts', HEBREW_FONT_REGULAR);
+}
+
+export function hebrewBoldFontFilePath(): string {
+  return path.join(process.cwd(), 'src', 'modules', 'reports', 'fonts', HEBREW_FONT_BOLD);
+}
+
+export function hebrewBoldFontModulePath(): string {
+  return path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'fonts', HEBREW_FONT_BOLD);
+}
+
+export function hebrewBoldFontCandidatePaths(): readonly string[] {
+  return [hebrewBoldFontFilePath(), hebrewBoldFontModulePath()];
 }
 
 export function hebrewFontCandidatePaths(): readonly string[] {
   return [hebrewFontFilePath(), hebrewFontModulePath()];
 }
 
-async function loadHebrewFontBytes(): Promise<Uint8Array | null> {
-  if (hebrewFontBytes !== undefined) return hebrewFontBytes;
-  for (const candidate of hebrewFontCandidatePaths()) {
+async function loadFontBytes(
+  readCache: () => Uint8Array | null | undefined,
+  writeCache: (value: Uint8Array | null) => void,
+  candidates: readonly string[],
+  label: string,
+): Promise<Uint8Array | null> {
+  const cached = readCache();
+  if (cached !== undefined) return cached;
+  for (const candidate of candidates) {
     try {
-      hebrewFontBytes = await readFile(candidate);
-      return hebrewFontBytes;
+      const bytes = await readFile(candidate);
+      writeCache(bytes);
+      return bytes;
     } catch (error) {
-      console.warn('[renderReportPdf] Hebrew font not readable at', candidate, error);
+      console.warn(`[renderReportPdf] ${label} not readable at`, candidate, error);
     }
   }
-  hebrewFontBytes = null;
+  writeCache(null);
   return null;
+}
+
+async function loadHebrewFontBytes(): Promise<Uint8Array | null> {
+  return loadFontBytes(
+    () => hebrewFontBytes,
+    (value) => {
+      hebrewFontBytes = value;
+    },
+    hebrewFontCandidatePaths(),
+    'Hebrew regular font',
+  );
+}
+
+async function loadHebrewBoldFontBytes(): Promise<Uint8Array | null> {
+  return loadFontBytes(
+    () => hebrewBoldFontBytes,
+    (value) => {
+      hebrewBoldFontBytes = value;
+    },
+    hebrewBoldFontCandidatePaths(),
+    'Hebrew bold font',
+  );
+}
+
+export type PdfTextRunKind = 'hebrew' | 'latin';
+
+export type PdfTextRun = {
+  text: string;
+  kind: PdfTextRunKind;
+};
+
+/** Split mixed Hebrew/Latin strings for pdf-lib (logical order, no BiDi reversal). */
+export function splitPdfTextRuns(text: string): PdfTextRun[] {
+  const runs: PdfTextRun[] = [];
+  for (const match of text.matchAll(TEXT_RUN_RE)) {
+    const chunk = match[0];
+    if (!chunk) continue;
+    runs.push({
+      text: chunk,
+      kind: HEBREW_RE.test(chunk) ? 'hebrew' : 'latin',
+    });
+  }
+  if (runs.length === 0) {
+    return [{ text, kind: HEBREW_RE.test(text) ? 'hebrew' : 'latin' }];
+  }
+  return runs;
+}
+
+function hasLatinRun(text: string): boolean {
+  return splitPdfTextRuns(text).some((run) => run.kind === 'latin' && /[0-9A-Za-z]/.test(run.text));
 }
 
 function pdfRenderFailedError(detail: string): ServiceUnavailableError {
   return new ServiceUnavailableError(detail, 'generatedDocuments.errors.pdfRenderFailed');
 }
 
-function shapeForPdf(text: string, dir: 'rtl' | 'ltr'): string {
-  const normalized = text.replace(/\s+/g, ' ').trim();
-  if (!normalized) return '';
-  try {
-    const embedding = bidi.getEmbeddingLevels(normalized, dir);
-    const chars = [...normalized];
-    const segments = bidi.getReorderSegments(normalized, embedding);
-    for (const range of segments) {
-      const start = range[0] ?? 0;
-      const end = range[1] ?? start;
-      const slice = chars.slice(start, end + 1).reverse();
-      chars.splice(start, end - start + 1, ...slice);
-    }
-    return chars.join('');
-  } catch {
-    return normalized;
+/** Normalize whitespace; preserve logical Hebrew order (pdf-lib + Noto render RTL correctly). */
+export function shapeForPdf(text: string, _dir: 'rtl' | 'ltr'): string {
+  return text.replace(/\s+/g, ' ').trim();
+}
+
+type PdfFonts = {
+  hebrew: PDFFont;
+  hebrewBold: PDFFont;
+  latin: PDFFont;
+  latinBold: PDFFont;
+};
+
+function pickFont(run: PdfTextRun, fonts: PdfFonts, bold: boolean): PDFFont {
+  if (run.kind === 'latin') return bold ? fonts.latinBold : fonts.latin;
+  return bold ? fonts.hebrewBold : fonts.hebrew;
+}
+
+function primaryFontForText(text: string, fonts: PdfFonts, bold: boolean): PDFFont {
+  if (HEBREW_RE.test(text)) return bold ? fonts.hebrewBold : fonts.hebrew;
+  return bold ? fonts.latinBold : fonts.latin;
+}
+
+function measurePdfText(
+  text: string,
+  fonts: PdfFonts,
+  size: number,
+  bold: boolean,
+  dir: 'rtl' | 'ltr',
+): number {
+  const normalized = shapeForPdf(text, dir);
+  if (!normalized) return 0;
+  if (dir === 'ltr' || !hasLatinRun(normalized)) {
+    return primaryFontForText(normalized, fonts, bold).widthOfTextAtSize(normalized, size);
+  }
+  return splitPdfTextRuns(normalized).reduce(
+    (sum, run) => sum + pickFont(run, fonts, bold).widthOfTextAtSize(run.text, size),
+    0,
+  );
+}
+
+function drawPdfText(
+  page: PDFPage,
+  text: string,
+  xLeft: number,
+  y: number,
+  size: number,
+  fonts: PdfFonts,
+  dir: 'rtl' | 'ltr',
+  color: RGB,
+  bold: boolean,
+): void {
+  const normalized = shapeForPdf(text, dir);
+  if (!normalized) return;
+
+  if (dir === 'ltr' || !hasLatinRun(normalized)) {
+    page.drawText(normalized, {
+      x: xLeft,
+      y,
+      size,
+      font: primaryFontForText(normalized, fonts, bold),
+      color,
+    });
+    return;
+  }
+
+  const parts = splitPdfTextRuns(normalized).map((run) => ({
+    ...run,
+    font: pickFont(run, fonts, bold),
+    width: pickFont(run, fonts, bold).widthOfTextAtSize(run.text, size),
+  }));
+  const visual = dir === 'rtl' ? [...parts].reverse() : parts;
+  let x = xLeft;
+  for (const part of visual) {
+    page.drawText(part.text, { x, y, size, font: part.font, color });
+    x += part.width;
   }
 }
 
-function wrapText(text: string, font: PDFFont, size: number, maxWidth: number): string[] {
+function wrapText(
+  text: string,
+  fonts: PdfFonts,
+  size: number,
+  maxWidth: number,
+  dir: 'rtl' | 'ltr',
+  bold: boolean,
+): string[] {
   const words = text.split(' ');
   const lines: string[] = [];
   let current = '';
   for (const word of words) {
     const trial = current ? `${current} ${word}` : word;
-    if (font.widthOfTextAtSize(trial, size) <= maxWidth) {
+    if (measurePdfText(trial, fonts, size, bold, dir) <= maxWidth) {
       current = trial;
       continue;
     }
@@ -134,8 +271,7 @@ async function embedBrandLogo(
 }
 
 type BrandDrawCtx = {
-  font: PDFFont;
-  fontBold: PDFFont;
+  fonts: PdfFonts;
   dir: 'rtl' | 'ltr';
   brand: DocumentBrandContext;
   logo: PDFImage | null;
@@ -191,12 +327,12 @@ function drawLogoOrInitials(
   });
   const shaped = shapeForPdf(initials, ctx.dir);
   const size = 11;
-  const w = ctx.fontBold.widthOfTextAtSize(shaped, size);
+  const w = ctx.fonts.hebrewBold.widthOfTextAtSize(shaped, size);
   page.drawText(shaped, {
     x: box.x + (badge - w) / 2,
     y: box.y - badge / 2 - size / 3,
     size,
-    font: ctx.fontBold,
+    font: ctx.fonts.hebrewBold,
     color: rgb(...ctx.colors.textOnPrimary),
   });
 }
@@ -216,23 +352,16 @@ function drawCompanyTextBlock(
   let y = opts.y;
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]!;
-    const size = i === 0 ? 12 : 8;
-    const font = i === 0 ? ctx.fontBold : ctx.font;
-    const shaped = shapeForPdf(line, ctx.dir);
-    const width = font.widthOfTextAtSize(shaped, size);
+    const size = i === 0 ? 13 : 9;
+    const bold = i === 0;
+    const width = measurePdfText(line, ctx.fonts, size, bold, ctx.dir);
     let x = opts.x;
     if (opts.alignCenter) {
       x = opts.x + (opts.maxWidth - width) / 2;
     } else if (ctx.dir === 'rtl') {
       x = opts.x + opts.maxWidth - width;
     }
-    page.drawText(shaped, {
-      x,
-      y,
-      size,
-      font,
-      color: rgb(0.1, 0.1, 0.1),
-    });
+    drawPdfText(page, line, x, y, size, ctx.fonts, ctx.dir, BODY_COLOR, bold);
     y -= size + 4;
   }
   return y;
@@ -251,16 +380,19 @@ function drawBrandedHeader(page: PDFPage, ctx: BrandDrawCtx): number {
 
   if (layout === 'minimal') {
     const details = buildCompanyDetailsBlock(ctx.brand);
-    const shaped = shapeForPdf(details.primaryName, ctx.dir);
-    const size = 11;
-    const width = ctx.fontBold.widthOfTextAtSize(shaped, size);
-    page.drawText(shaped, {
-      x: xFor(ctx.dir, width),
-      y: top - 14,
+    const size = 12;
+    const width = measurePdfText(details.primaryName, ctx.fonts, size, true, ctx.dir);
+    drawPdfText(
+      page,
+      details.primaryName,
+      xFor(ctx.dir, width),
+      top - 14,
       size,
-      font: ctx.fontBold,
-      color: rgb(0.1, 0.1, 0.1),
-    });
+      ctx.fonts,
+      ctx.dir,
+      BODY_COLOR,
+      true,
+    );
     // thin accent underline
     page.drawRectangle({
       x: MARGIN,
@@ -352,8 +484,7 @@ class PdfCursor {
 
   constructor(
     private readonly doc: PDFDocument,
-    private readonly font: PDFFont,
-    private readonly fontBold: PDFFont,
+    private readonly fonts: PdfFonts,
     private readonly dir: 'rtl' | 'ltr',
     private readonly footerLabel: string,
     private readonly brandCtx: BrandDrawCtx | null,
@@ -396,8 +527,7 @@ class PdfCursor {
           }),
         )
       : `${this.footerLabel}  ·  ${pageNumber}/${pageCount}`;
-    const shaped = shapeForPdf(label, this.dir);
-    const width = this.font.widthOfTextAtSize(shaped, 8);
+    const width = measurePdfText(label, this.fonts, 8, false, this.dir);
     // accent line above footer
     if (brand) {
       const colors = resolvePdfBrandColors(brand);
@@ -409,30 +539,17 @@ class PdfCursor {
         color: rgb(...colors.accent),
       });
     }
-    this.page.drawText(shaped, {
-      x: this.xFor(width),
-      y: 28,
-      size: 8,
-      font: this.font,
-      color: rgb(0.35, 0.35, 0.35),
-    });
+    drawPdfText(this.page, label, this.xFor(width), 28, 8, this.fonts, this.dir, rgb(0.35, 0.35, 0.35), false);
   }
 
   text(raw: string, opts: { size?: number; bold?: boolean; gap?: number } = {}) {
     const size = opts.size ?? FONT_SIZE;
-    const font = opts.bold ? this.fontBold : this.font;
-    const shaped = shapeForPdf(raw, this.dir);
-    const lines = wrapText(shaped, font, size, this.contentWidth());
+    const bold = opts.bold ?? false;
+    const lines = wrapText(raw, this.fonts, size, this.contentWidth(), this.dir, bold);
     for (const line of lines) {
       this.ensure(LINE_HEIGHT);
-      const width = font.widthOfTextAtSize(line, size);
-      this.page.drawText(line, {
-        x: this.xFor(width),
-        y: this.y,
-        size,
-        font,
-        color: rgb(0.1, 0.1, 0.1),
-      });
+      const width = measurePdfText(line, this.fonts, size, bold, this.dir);
+      drawPdfText(this.page, line, this.xFor(width), this.y, size, this.fonts, this.dir, BODY_COLOR, bold);
       this.y -= opts.gap ?? LINE_HEIGHT;
     }
   }
@@ -456,21 +573,28 @@ export async function renderReportPdf(payload: ReportPayload): Promise<Uint8Arra
       ? HEBREW_RE.test(payload.brand.companyLegalName) || HEBREW_RE.test(payload.brand.companyDisplayName)
       : false);
   const hebrewBytes = await loadHebrewFontBytes();
-  if (needsHebrew && !hebrewBytes) {
-    throw pdfRenderFailedError('Hebrew PDF font asset could not be loaded');
+  const hebrewBoldBytes = await loadHebrewBoldFontBytes();
+  if (needsHebrew && (!hebrewBytes || !hebrewBoldBytes)) {
+    throw pdfRenderFailedError('Hebrew PDF font assets could not be loaded');
   }
 
-  let font = latin;
-  let fontBold = latinBold;
-  if (hebrewBytes && needsHebrew) {
+  let fonts: PdfFonts = {
+    hebrew: latin,
+    hebrewBold: latinBold,
+    latin,
+    latinBold,
+  };
+  if (hebrewBytes && hebrewBoldBytes && needsHebrew) {
     doc.registerFontkit(fontkit);
     try {
-      const embedded = await doc.embedFont(hebrewBytes, { subset: true });
-      font = embedded;
-      fontBold = embedded;
+      const [hebrew, hebrewBold] = await Promise.all([
+        doc.embedFont(hebrewBytes, { subset: true }),
+        doc.embedFont(hebrewBoldBytes, { subset: true }),
+      ]);
+      fonts = { hebrew, hebrewBold, latin, latinBold };
     } catch (error) {
-      console.error('[renderReportPdf] Failed to embed Hebrew font', error);
-      throw pdfRenderFailedError('Hebrew PDF font could not be embedded');
+      console.error('[renderReportPdf] Failed to embed Hebrew fonts', error);
+      throw pdfRenderFailedError('Hebrew PDF fonts could not be embedded');
     }
   }
 
@@ -486,15 +610,14 @@ export async function renderReportPdf(payload: ReportPayload): Promise<Uint8Arra
   const logo = await embedBrandLogo(doc, brandAligned);
   const colors = resolvePdfBrandColors(brandAligned);
   const brandCtx: BrandDrawCtx = {
-    font,
-    fontBold,
+    fonts,
     dir: payload.dir,
     brand: brandAligned,
     logo,
     colors,
   };
 
-  const cursor = new PdfCursor(doc, font, fontBold, payload.dir, generatedLabel, brandCtx);
+  const cursor = new PdfCursor(doc, fonts, payload.dir, generatedLabel, brandCtx);
 
   cursor.text(payload.title, { size: TITLE_SIZE, bold: true, gap: 18 });
 
@@ -509,10 +632,10 @@ export async function renderReportPdf(payload: ReportPayload): Promise<Uint8Arra
     cursor.text(`${copy.identity.client}: ${payload.identity.clientName}`);
   }
   cursor.text(generatedLabel, { gap: 10 });
-  cursor.text(copy.snapshotNote, { size: 9, gap: 16 });
+  cursor.text(copy.snapshotNote, { size: 10, gap: 16 });
 
   for (const notice of payload.notices) {
-    cursor.text(`• ${notice}`, { size: 9, gap: 12 });
+    cursor.text(`• ${notice}`, { size: 10, gap: 12 });
   }
   cursor.text('', { gap: 8 });
 
@@ -523,13 +646,13 @@ export async function renderReportPdf(payload: ReportPayload): Promise<Uint8Arra
       cursor.row(row.label, row.value, nature);
     }
     for (const table of section.tables ?? []) {
-      cursor.text(table.headers.join(' | '), { bold: true, size: 9 });
+      cursor.text(table.headers.join(' | '), { bold: true, size: 10 });
       for (const row of table.rows) {
-        cursor.text(row.join(' | '), { size: 9 });
+        cursor.text(row.join(' | '), { size: 10 });
       }
     }
     for (const paragraph of section.paragraphs ?? []) {
-      cursor.text(paragraph, { size: 9, gap: 12 });
+      cursor.text(paragraph, { size: 10, gap: 12 });
     }
     cursor.text('', { gap: 8 });
   }
