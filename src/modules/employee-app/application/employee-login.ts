@@ -194,21 +194,37 @@ export async function employeeSetPermanentPin(input: {
   const account = await findEmployeeAppAccountByUserId(db, input.organizationId, input.userId);
   if (!account) throw new NotFoundError('Employee app account');
 
-  if (!isSupabaseAdminConfigured()) {
-    throw new DomainRuleError('Auth admin is not configured', 'employeeApp.errors.notConfigured');
+  const nextPassword = employeeSupabaseAuthPassword(input.newPin);
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+  let passwordUpdated = false;
+
+  if (!userError && user?.id === account.userId) {
+    const { error } = await supabase.auth.updateUser({ password: nextPassword });
+    if (error) {
+      throw new DomainRuleError(error.message, 'employeeApp.errors.pinUpdateFailed');
+    }
+    passwordUpdated = true;
   }
 
-  const admin = getSupabaseAdminClient();
-  const { error } = await admin.auth.admin.updateUserById(account.userId, {
-    password: employeeSupabaseAuthPassword(input.newPin),
-  });
-  if (error) {
-    throw new DomainRuleError(error.message, 'employeeApp.errors.pinUpdateFailed');
-  }
-
-  const { error: signInError } = await signInWithEmployeeCredentials(account.authEmail, input.newPin);
-  if (signInError) {
-    throw new DomainRuleError(signInError.message, 'employeeApp.errors.pinUpdateFailed');
+  if (!passwordUpdated) {
+    if (!isSupabaseAdminConfigured()) {
+      throw new DomainRuleError('Auth admin is not configured', 'employeeApp.errors.notConfigured');
+    }
+    const admin = getSupabaseAdminClient();
+    const { error } = await admin.auth.admin.updateUserById(account.userId, {
+      password: nextPassword,
+    });
+    if (error) {
+      throw new DomainRuleError(error.message, 'employeeApp.errors.pinUpdateFailed');
+    }
+    const { error: signInError } = await signInWithEmployeeCredentials(account.authEmail, input.newPin);
+    if (signInError) {
+      throw new DomainRuleError(signInError.message, 'employeeApp.errors.pinUpdateFailed');
+    }
   }
 
   await updateEmployeeAppAccount(db, account.organizationId, account.id, {
