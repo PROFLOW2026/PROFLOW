@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
 import type { Metadata } from 'next';
+import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
@@ -203,6 +204,8 @@ export default async function EmployeeDetailPage({
         defaultYearMonth: reviewYearMonth,
         workWeekStartDay: context.organization.workWeekStartDay,
         appAdminView,
+        organizationId: context.organizationId,
+        organizationName: context.organization.name,
       };
     } catch {
       return null;
@@ -246,7 +249,14 @@ export default async function EmployeeDetailPage({
     today,
     workWeekStartDay,
     appAdminView,
+    organizationId,
+    organizationName,
   } = data;
+
+  const headerList = await headers();
+  const appOrigin =
+    process.env.NEXT_PUBLIC_APP_URL ??
+    `${headerList.get('x-forwarded-proto') ?? 'http'}://${headerList.get('x-forwarded-host') ?? headerList.get('host') ?? 'localhost:3000'}`;
 
   const orgFrameworkConfigured = Boolean(laborDefaults?.standardHoursPerDay);
   const workWeekSummary = (() => {
@@ -316,7 +326,14 @@ export default async function EmployeeDetailPage({
         <EmployeeAppAccessPanel
           key={appAdminView?.account?.id ?? 'no-account'}
           employeeId={employee.id}
+          employeeName={employee.name}
           employeeNumber={employee.employeeNumber}
+          employeePhone={employee.phone}
+          employeeEmail={employee.email}
+          organizationId={organizationId}
+          organizationName={organizationName}
+          locale={locale}
+          appOrigin={appOrigin}
           account={appAdminView?.account ?? null}
           grants={appAdminView?.grants ?? []}
           documentCategories={appAdminView?.categories ?? new Map()}

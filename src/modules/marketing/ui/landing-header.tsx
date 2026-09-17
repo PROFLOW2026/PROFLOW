@@ -55,6 +55,9 @@ export function LandingHeader() {
           <div className="hidden sm:block">
             <PwaInstallCta variant="marketing" className="max-w-none [&_button]:min-h-11" />
           </div>
+          <Button asChild variant="ghost" size="sm" className="hidden min-h-11 sm:inline-flex">
+            <Link href="/employee/login">{t('employeeLogin')}</Link>
+          </Button>
           <Button asChild variant="primary" size="sm" className="min-h-11">
             <Link href="/sign-in">{t('signIn')}</Link>
           </Button>
@@ -94,6 +97,15 @@ export function LandingHeader() {
         </nav>
         <div className="mt-3 sm:hidden">
           <PwaInstallCta variant="marketing" />
+        </div>
+        <div className="mt-3 border-t border-[var(--pf-border-default)] pt-3">
+          <Link
+            href="/employee/login"
+            className="flex min-h-11 items-center rounded-md px-3 text-sm font-medium text-[var(--pf-text-secondary)] no-underline hover:bg-[var(--pf-action-subtle-hover)] hover:text-[var(--pf-text-primary)]"
+            onClick={() => setOpen(false)}
+          >
+            {t('employeeLogin')}
+          </Link>
         </div>
       </div>
     </header>

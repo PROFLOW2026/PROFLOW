@@ -11,11 +11,13 @@ import {
   findEmployeeAppAccountByUsername,
   updateEmployeeAppAccount,
 } from '../data/accounts.repository';
+import { resolveEmployeeLoginOrganizationId } from './resolve-login-organization';
 import { insertEmployeeAppAuditEvent } from '../data/audit.repository';
 import { getSupabaseAdminClient, isSupabaseAdminConfigured } from '@/shared/supabase/admin';
 
 export interface EmployeeLoginInput {
   organizationId: string;
+  companyName?: string;
   username: string;
   pin: string;
 }
@@ -65,10 +67,16 @@ export async function employeeLogin(input: EmployeeLoginInput): Promise<Employee
     throw new DomainRuleError('Invalid credentials', 'employeeApp.errors.invalidCredentials');
   }
 
+  const organizationId = await resolveEmployeeLoginOrganizationId({
+    organizationId: input.organizationId,
+    companyName: input.companyName ?? '',
+    username: input.username,
+  });
+
   const db = getAdminDb();
   const account = await findEmployeeAppAccountByUsername(
     db,
-    input.organizationId,
+    organizationId,
     usernameNormalized,
   );
   if (!account) {

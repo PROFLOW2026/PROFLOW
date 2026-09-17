@@ -6,7 +6,9 @@ import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import { CollapsibleSection } from '@/components/ui/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useOptionalToast } from '@/components/ui/toast';
 import { EMPLOYEE_PRESETS, type EmployeePresetKey } from '@/modules/employee-app/application/presets';
 import {
   EMPLOYEE_DOCUMENT_CATEGORY_KEYS,
@@ -22,6 +24,15 @@ import {
   type EditorGrantState,
 } from '@/modules/employee-app/application/permission-editor';
 import {
+  deriveEmployeeAccessStatusView,
+  hasActiveTempPinWindow,
+  hasPersonalPinSet,
+} from '@/modules/employee-app/domain/access-status';
+import {
+  buildEmployeeLoginUrl,
+  formatCredentialExpiry,
+} from '@/modules/employee-app/domain/credentials-share';
+import {
   activateEmployeeAppAction,
   blockEmployeeAppAction,
   disableEmployeeAppAction,
@@ -35,10 +46,26 @@ import type { EmployeeAppAccountRecord, EmployeePermissionGrantRecord } from '@/
 import { PERMISSIONS, type PermissionKey } from '@/shared/permissions/catalog';
 import type { PermissionScope } from '@/shared/permissions/scopes';
 import type { DocumentCategory } from '@/modules/documents/domain/categories';
+import { AccessInfoField } from './access-info-field';
+import { EmployeeCredentialsShareDialog } from './employee-credentials-share-dialog';
+
+interface ShareableCredentials {
+  readonly username: string;
+  readonly temporaryPin: string;
+  readonly temporaryPinExpiresAt: string;
+  readonly loginUrl: string;
+}
 
 interface Props {
   readonly employeeId: string;
+  readonly employeeName: string;
   readonly employeeNumber: string | null;
+  readonly employeePhone: string | null;
+  readonly employeeEmail: string | null;
+  readonly organizationId: string;
+  readonly organizationName: string;
+  readonly locale: string;
+  readonly appOrigin: string;
   readonly account: EmployeeAppAccountRecord | null;
   readonly grants: readonly EmployeePermissionGrantRecord[];
   readonly documentCategories: ReadonlyMap<DocumentCategory, boolean>;
@@ -52,7 +79,14 @@ function scopeLabelKey(scope: PermissionScope): string {
 
 export function EmployeeAppAccessPanel({
   employeeId,
+  employeeName,
   employeeNumber,
+  employeePhone,
+  employeeEmail,
+  organizationId,
+  organizationName,
+  locale,
+  appOrigin,
   account,
   grants: initialGrants,
   documentCategories: initialCategories,
@@ -62,6 +96,12 @@ export function EmployeeAppAccessPanel({
   const tPresets = useTranslations('employeeApp.presets');
   const tPermissions = useTranslations('employeeApp.permissions');
   const tDocCategories = useTranslations('documents.categories');
+  const toast = useOptionalToast();
+
+  const loginUrl = useMemo(
+    () => buildEmployeeLoginUrl(appOrigin, locale, organizationId),
+    [appOrigin, locale, organizationId],
+  );
 
   const initialGrantMap = useMemo(
     () =>
@@ -85,15 +125,20 @@ export function EmployeeAppAccessPanel({
   const [grantState, setGrantState] = useState(() => initialGrantMap);
   const [categoryState, setCategoryState] = useState(() => initialCategorySet);
   const [selectedPreset, setSelectedPreset] = useState<EmployeePresetKey>(() => initialPreset);
-  const [credentials, setCredentials] = useState<{
-    username: string;
-    pin: string;
-    loginPath: string;
-  } | null>(null);
+  const [shareCredentials, setShareCredentials] = useState<ShareableCredentials | null>(null);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [saveMessage, setSaveMessage] = useState<'success' | 'error' | null>(null);
   const [pending, startTransition] = useTransition();
 
   const documentsReadGranted = grantState.get(PERMISSIONS.DOCUMENTS_READ)?.granted === true;
+  const statusView = account ? deriveEmployeeAccessStatusView(account) : null;
+  const tempPinActive = account ? hasActiveTempPinWindow(account) : false;
+  const personalPinSet = account ? hasPersonalPinSet(account) : false;
+  const canShare = Boolean(
+    shareCredentials &&
+      new Date(shareCredentials.temporaryPinExpiresAt) > new Date() &&
+      shareCredentials.temporaryPin,
+  );
 
   const syncPresetDetection = useCallback(
     (grants: Map<PermissionKey, EditorGrantState>, categories: Set<DocumentCategory>) => {
@@ -102,10 +147,37 @@ export function EmployeeAppAccessPanel({
     [],
   );
 
+  function openShareDialog(credentials: ShareableCredentials) {
+    setShareCredentials(credentials);
+    setShareDialogOpen(true);
+  }
+
+  function buildSharePayload(input: {
+    username: string;
+    temporaryPin: string;
+    temporaryPinExpiresAt: string;
+  }): ShareableCredentials {
+    return {
+      username: input.username,
+      temporaryPin: input.temporaryPin,
+      temporaryPinExpiresAt: input.temporaryPinExpiresAt,
+      loginUrl,
+    };
+  }
+
   function run(action: () => Promise<unknown>) {
     startTransition(() => {
       void action();
     });
+  }
+
+  async function copyText(text: string, successMessage: string) {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast?.push(successMessage, 'success');
+    } catch {
+      toast?.push(t('copyFailed'), 'danger');
+    }
   }
 
   function applyPreset(key: EmployeePresetKey) {
@@ -200,17 +272,28 @@ export function EmployeeAppAccessPanel({
       documentCategories: [...categoryState],
     });
 
-    setCredentials({
-      username: result.username,
-      pin: result.temporaryPin,
-      loginPath: result.loginPath,
-    });
+    openShareDialog(buildSharePayload(result));
+  }
+
+  async function handleResetPin() {
+    if (!account) return;
+    const result = await resetEmployeeAppPinAction(employeeId);
+    openShareDialog(
+      buildSharePayload({
+        username: account.username,
+        temporaryPin: result.temporaryPin,
+        temporaryPinExpiresAt: result.temporaryPinExpiresAt,
+      }),
+    );
+  }
+
+  async function handleCreateTempPin() {
+    await handleResetPin();
   }
 
   const permissionEditor = (
     <div className="space-y-4">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <h3 className="text-sm font-semibold">{t('permissions')}</h3>
         <div className="flex min-w-[220px] flex-col gap-1">
           <span className="text-xs text-[var(--pf-text-secondary)]">{t('preset')}</span>
           <Select
@@ -292,26 +375,6 @@ export function EmployeeAppAccessPanel({
         ))}
       </div>
 
-      {documentsReadGranted ? (
-        <section className="space-y-2">
-          <h4 className="text-sm font-medium">{t('documentCategoriesHint')}</h4>
-          <ul className="grid gap-2 sm:grid-cols-2">
-            {EMPLOYEE_DOCUMENT_CATEGORY_KEYS.map((category) => (
-              <li key={category}>
-                <label className="flex items-center gap-2 text-sm">
-                  <Checkbox
-                    checked={categoryState.has(category)}
-                    disabled={pending}
-                    onCheckedChange={(value) => toggleCategory(category, value === true)}
-                  />
-                  <span>{tDocCategories(category)}</span>
-                </label>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
-
       {account && account.status !== 'inactive' ? (
         <div className="flex flex-col gap-2">
           <Button type="button" disabled={pending} onClick={() => run(savePermissions)}>
@@ -328,135 +391,281 @@ export function EmployeeAppAccessPanel({
     </div>
   );
 
+  const documentsSection =
+    documentsReadGranted ? (
+      <section className="space-y-2">
+        <h4 className="text-sm font-medium">{t('documentCategoriesHint')}</h4>
+        <ul className="grid gap-2 sm:grid-cols-2">
+          {EMPLOYEE_DOCUMENT_CATEGORY_KEYS.map((category) => (
+            <li key={category}>
+              <label className="flex items-center gap-2 text-sm">
+                <Checkbox
+                  checked={categoryState.has(category)}
+                  disabled={pending}
+                  onCheckedChange={(value) => toggleCategory(category, value === true)}
+                />
+                <span>{tDocCategories(category)}</span>
+              </label>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ) : null;
+
+  const accessDetailsSection =
+    account && account.status !== 'inactive' ? (
+      <section className="space-y-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <AccessInfoField
+            label={t('status')}
+            value={
+              <span className="flex flex-col gap-0.5">
+                <span>{tStatus(statusView!.statusKey)}</span>
+                {statusView?.hintKey ? (
+                  <span className="text-xs font-normal text-[var(--pf-text-secondary)]">
+                    {tStatus(statusView.hintKey)}
+                  </span>
+                ) : null}
+              </span>
+            }
+          />
+          <AccessInfoField
+            label={t('appUsername')}
+            value={account.username}
+            valueDir="ltr"
+            actions={
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => void copyText(account.username, t('usernameCopied'))}
+              >
+                {t('copy')}
+              </Button>
+            }
+          />
+          {employeeNumber ? (
+            <AccessInfoField
+              label={t('employeeNumber')}
+              value={employeeNumber}
+              valueDir="ltr"
+              hint={t('employeeNumberHint')}
+            />
+          ) : null}
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {personalPinSet ? (
+            <AccessInfoField label={t('personalPinLabel')} value={t('personalPinSet')} />
+          ) : tempPinActive && shareCredentials?.temporaryPin ? (
+            <>
+              <AccessInfoField
+                label={t('tempPinLabel')}
+                value={shareCredentials.temporaryPin}
+                valueDir="ltr"
+                actions={
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() =>
+                      void copyText(shareCredentials.temporaryPin, t('pinCopied'))
+                    }
+                  >
+                    {t('copy')}
+                  </Button>
+                }
+              />
+              <AccessInfoField
+                label={t('tempPinExpiry')}
+                value={formatCredentialExpiry(new Date(shareCredentials.temporaryPinExpiresAt))}
+                valueDir="ltr"
+              />
+            </>
+          ) : tempPinActive && account.temporaryPinExpiresAt ? (
+            <AccessInfoField
+              label={t('tempPinLabel')}
+              value={t('tempPinActiveHidden')}
+              hint={formatCredentialExpiry(account.temporaryPinExpiresAt)}
+            />
+          ) : (
+            <AccessInfoField label={t('tempPinLabel')} value={t('tempPinInactive')} />
+          )}
+        </div>
+
+        <AccessInfoField
+          label={t('loginLinkLabel')}
+          value={<span className="break-all text-xs font-normal">{loginUrl}</span>}
+          valueDir="ltr"
+          actions={
+            <div className="flex flex-wrap gap-1">
+              <Button type="button" variant="ghost" size="sm" asChild>
+                <a href={loginUrl} target="_blank" rel="noopener noreferrer">
+                  {t('openLoginPage')}
+                </a>
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => void copyText(loginUrl, t('linkCopied'))}
+              >
+                {t('copy')}
+              </Button>
+            </div>
+          }
+        />
+
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+          {canShare ? (
+            <Button type="button" disabled={pending} onClick={() => setShareDialogOpen(true)}>
+              {t('shareCredentials')}
+            </Button>
+          ) : tempPinActive ? (
+            <Button type="button" variant="secondary" disabled={pending} onClick={() => run(handleCreateTempPin)}>
+              {t('createTempPin')}
+            </Button>
+          ) : (
+            <>
+              <p className="w-full text-sm text-[var(--pf-text-secondary)]">{t('tempPinInactive')}</p>
+              <Button type="button" variant="secondary" disabled={pending} onClick={() => run(handleCreateTempPin)}>
+                {t('createTempPin')}
+              </Button>
+            </>
+          )}
+          {canShare ? (
+            <>
+              <Button type="button" variant="secondary" asChild>
+                <a href={loginUrl} target="_blank" rel="noopener noreferrer">
+                  {t('openLoginPage')}
+                </a>
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => void copyText(loginUrl, t('linkCopied'))}
+              >
+                {t('copyLoginLink')}
+              </Button>
+            </>
+          ) : null}
+        </div>
+      </section>
+    ) : (
+      <section className="space-y-4">
+        <p className="text-sm text-[var(--pf-text-secondary)]">{t('noAccessHint')}</p>
+        <Button type="button" disabled={pending} onClick={() => run(handleActivate)}>
+          {t('activate')}
+        </Button>
+      </section>
+    );
+
+  const accountActionsSection =
+    account && account.status !== 'inactive' ? (
+      <section className="space-y-3">
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={pending}
+            onClick={() => run(handleResetPin)}
+          >
+            {t('resetPin')}
+          </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={pending}
+            onClick={() => run(() => revokeEmployeeAppSessionsAction(employeeId))}
+          >
+            {t('revokeSessions')}
+          </Button>
+          {account.status === 'active' ? (
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={pending}
+              onClick={() => run(() => suspendEmployeeAppAction(employeeId))}
+            >
+              {t('suspend')}
+            </Button>
+          ) : null}
+          {account.status === 'suspended' ? (
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={pending}
+              onClick={() => run(() => resumeEmployeeAppAction(employeeId))}
+            >
+              {t('resume')}
+            </Button>
+          ) : null}
+          {account.status !== 'blocked' ? (
+            <Button
+              type="button"
+              variant="danger"
+              disabled={pending}
+              onClick={() => run(() => blockEmployeeAppAction(employeeId))}
+            >
+              {t('block')}
+            </Button>
+          ) : null}
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={pending}
+            onClick={() => run(() => disableEmployeeAppAction(employeeId))}
+          >
+            {t('disable')}
+          </Button>
+        </div>
+      </section>
+    ) : null;
+
   return (
     <Card className="space-y-6 p-4">
       <h2 className="text-lg font-semibold">{t('title')}</h2>
 
-      {employeeNumber ? (
-        <dl className="grid grid-cols-2 gap-2 text-sm">
-          <dt className="text-[var(--pf-text-secondary)]">{t('employeeNumber')}</dt>
-          <dd dir="ltr">{employeeNumber}</dd>
-        </dl>
+      <CollapsibleSection title={t('sectionAccess')} defaultOpen>
+        {accessDetailsSection}
+      </CollapsibleSection>
+
+      {accountActionsSection ? (
+        <CollapsibleSection title={t('sectionAccountActions')} defaultOpen>
+          {accountActionsSection}
+        </CollapsibleSection>
       ) : null}
 
-      {account && account.status !== 'inactive' ? (
-        <>
-          <dl className="grid grid-cols-2 gap-2 text-sm">
-            <dt className="text-[var(--pf-text-secondary)]">{t('status')}</dt>
-            <dd>{tStatus(account.status)}</dd>
-            <dt className="text-[var(--pf-text-secondary)]">{t('appUsername')}</dt>
-            <dd dir="ltr">{account.username}</dd>
-            {account.firstLoginAt ? (
-              <>
-                <dt className="text-[var(--pf-text-secondary)]">{t('firstLogin')}</dt>
-                <dd>{account.firstLoginAt.toLocaleString('he-IL')}</dd>
-              </>
-            ) : null}
-            {account.lastLoginAt ? (
-              <>
-                <dt className="text-[var(--pf-text-secondary)]">{t('lastLogin')}</dt>
-                <dd>{account.lastLoginAt.toLocaleString('he-IL')}</dd>
-              </>
-            ) : null}
-            {account.temporaryPinExpiresAt ? (
-              <>
-                <dt className="text-[var(--pf-text-secondary)]">{t('tempPinExpiry')}</dt>
-                <dd>{account.temporaryPinExpiresAt.toLocaleString('he-IL')}</dd>
-              </>
-            ) : null}
-          </dl>
+      <CollapsibleSection
+        title={t('sectionPermissions')}
+        summary={tPresets(presetTranslationKey(selectedPreset))}
+        defaultOpen={!account || account.status === 'inactive'}
+      >
+        {permissionEditor}
+      </CollapsibleSection>
 
-          <div className="flex flex-wrap gap-2">
-            {account.status === 'active' ? (
-              <Button
-                type="button"
-                variant="secondary"
-                disabled={pending}
-                onClick={() => run(() => suspendEmployeeAppAction(employeeId))}
-              >
-                {t('suspend')}
-              </Button>
-            ) : null}
-            {account.status === 'suspended' ? (
-              <Button
-                type="button"
-                variant="secondary"
-                disabled={pending}
-                onClick={() => run(() => resumeEmployeeAppAction(employeeId))}
-              >
-                {t('resume')}
-              </Button>
-            ) : null}
-            {account.status !== 'blocked' ? (
-              <Button
-                type="button"
-                variant="danger"
-                disabled={pending}
-                onClick={() => run(() => blockEmployeeAppAction(employeeId))}
-              >
-                {t('block')}
-              </Button>
-            ) : null}
-            <Button
-              type="button"
-              variant="secondary"
-              disabled={pending}
-              onClick={() =>
-                run(async () => {
-                  const result = await resetEmployeeAppPinAction(employeeId);
-                  setCredentials({
-                    username: account.username,
-                    pin: result.temporaryPin,
-                    loginPath: `/${'he-IL'}/employee/login?org=${account.organizationId}`,
-                  });
-                })
-              }
-            >
-              {t('resetPin')}
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              disabled={pending}
-              onClick={() => run(() => revokeEmployeeAppSessionsAction(employeeId))}
-            >
-              {t('revokeSessions')}
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              disabled={pending}
-              onClick={() => run(() => disableEmployeeAppAction(employeeId))}
-            >
-              {t('disable')}
-            </Button>
-          </div>
-        </>
-      ) : (
-        <div className="space-y-4">
-          <p className="text-sm text-[var(--pf-text-secondary)]">{t('noAccessHint')}</p>
-          <Button type="button" disabled={pending} onClick={() => run(handleActivate)}>
-            {t('activate')}
-          </Button>
-        </div>
-      )}
-
-      {credentials ? (
-        <div className="rounded-lg border border-[var(--pf-border)] bg-[var(--pf-surface-muted)] p-3 text-sm">
-          <p className="font-medium">{t('credentialsTitle')}</p>
-          <p>
-            {t('appUsername')}: <strong dir="ltr">{credentials.username}</strong>
-          </p>
-          <p>
-            PIN: <strong dir="ltr">{credentials.pin}</strong>
-          </p>
-          <p className="break-all text-[var(--pf-text-secondary)]">{credentials.loginPath}</p>
-        </div>
+      {documentsSection ? (
+        <CollapsibleSection title={t('sectionDocuments')} defaultOpen={false}>
+          {documentsSection}
+        </CollapsibleSection>
       ) : null}
 
-      <hr className="border-[var(--pf-border)]" />
-
-      {permissionEditor}
+      {shareCredentials && canShare ? (
+        <EmployeeCredentialsShareDialog
+          open={shareDialogOpen}
+          onOpenChange={setShareDialogOpen}
+          credentials={{
+            employeeName,
+            organizationName,
+            username: shareCredentials.username,
+            temporaryPin: shareCredentials.temporaryPin,
+            temporaryPinExpiresAt: new Date(shareCredentials.temporaryPinExpiresAt),
+            loginUrl: shareCredentials.loginUrl,
+          }}
+          employeePhone={employeePhone}
+          employeeEmail={employeeEmail}
+        />
+      ) : null}
     </Card>
   );
 }

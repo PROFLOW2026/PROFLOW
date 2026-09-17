@@ -72,6 +72,12 @@ export function SignInForm({ next }: { next?: string }) {
             {t('createAccount')}
           </Link>
         </p>
+        <p className="text-[var(--pf-text-secondary)]">
+          {t('employeePrompt')}{' '}
+          <Link href="/employee/login" className={cn(textNavLinkClassName, 'font-medium')}>
+            {t('employeeLogin')}
+          </Link>
+        </p>
       </div>
     </form>
   );

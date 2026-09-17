@@ -17,18 +17,23 @@ export async function employeeLoginAction(
   const t = await getTranslations('employeeApp');
   const locale = await getLocale();
   const organizationId = String(formData.get('organizationId') ?? '');
+  const companyName = String(formData.get('companyName') ?? '');
   const username = String(formData.get('username') ?? '');
   const pin = String(formData.get('pin') ?? '');
 
   try {
-    const result = await employeeLogin({ organizationId, username, pin });
+    const result = await employeeLogin({ organizationId, companyName, username, pin });
     if (result.pinMustChange) {
       redirect({ href: '/employee/set-pin', locale });
     }
     redirect({ href: '/employee', locale });
   } catch (error) {
     if (error instanceof DomainRuleError) {
-      return { error: t(`errors.${error.messageKey?.split('.').pop() ?? 'invalidCredentials'}`) };
+      const key = error.messageKey?.replace('employeeApp.errors.', '') ?? 'invalidCredentials';
+      if (key === 'companyNotFound' || key === 'companyRequired' || key === 'companyAmbiguous') {
+        return { error: t(`errors.${key}`) };
+      }
+      return { error: t(`errors.${key.split('.').pop() ?? 'invalidCredentials'}`) };
     }
     return { error: t('login.invalidCredentials') };
   }

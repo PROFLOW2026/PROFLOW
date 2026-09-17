@@ -19,13 +19,19 @@ import { isDocumentCategory } from '@/modules/documents/domain/categories';
 export async function activateEmployeeAppAction(
   employeeId: string,
   presetKey: EmployeePresetKey = 'field_worker',
-): Promise<{ username: string; temporaryPin: string; loginPath: string }> {
+): Promise<{
+  username: string;
+  temporaryPin: string;
+  temporaryPinExpiresAt: string;
+  loginPath: string;
+}> {
   return withOrgContext(async (context) => {
     const result = await activateEmployeeAppAccess(context, { employeeId, presetKey });
     revalidatePath(`/workforce/employees/${employeeId}`);
     return {
       username: result.username,
       temporaryPin: result.temporaryPin,
+      temporaryPinExpiresAt: result.temporaryPinExpiresAt.toISOString(),
       loginPath: result.loginPath,
     };
   });
@@ -61,11 +67,14 @@ export async function disableEmployeeAppAction(employeeId: string): Promise<void
 
 export async function resetEmployeeAppPinAction(
   employeeId: string,
-): Promise<{ temporaryPin: string }> {
+): Promise<{ temporaryPin: string; temporaryPinExpiresAt: string }> {
   return withOrgContext(async (context) => {
     const result = await resetEmployeeAppPin(context, employeeId);
     revalidatePath(`/workforce/employees/${employeeId}`);
-    return { temporaryPin: result.temporaryPin };
+    return {
+      temporaryPin: result.temporaryPin,
+      temporaryPinExpiresAt: result.temporaryPinExpiresAt.toISOString(),
+    };
   });
 }
 

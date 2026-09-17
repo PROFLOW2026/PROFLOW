@@ -1,5 +1,5 @@
-import { and, eq } from 'drizzle-orm';
-import { employeeAppAccounts } from '@drizzle/schema';
+import { and, eq, inArray } from 'drizzle-orm';
+import { employeeAppAccounts, organizations } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 import type { EmployeeAppAccountRecord, EmployeeAppStatus } from '../domain/types';
 
@@ -59,6 +59,31 @@ export async function findEmployeeAppAccountByUserId(
     )
     .limit(1);
   return row ? mapRow(row) : null;
+}
+
+export async function findActiveEmployeeAppAccountsByUsername(
+  db: DbExecutor,
+  usernameNormalized: string,
+): Promise<
+  ReadonlyArray<{
+    organizationId: string;
+    organizationName: string;
+  }>
+> {
+  const rows = await db
+    .select({
+      organizationId: employeeAppAccounts.organizationId,
+      organizationName: organizations.name,
+    })
+    .from(employeeAppAccounts)
+    .innerJoin(organizations, eq(organizations.id, employeeAppAccounts.organizationId))
+    .where(
+      and(
+        eq(employeeAppAccounts.usernameNormalized, usernameNormalized),
+        inArray(employeeAppAccounts.status, ['invited', 'active', 'suspended']),
+      ),
+    );
+  return rows;
 }
 
 export async function findEmployeeAppAccountByUsername(
