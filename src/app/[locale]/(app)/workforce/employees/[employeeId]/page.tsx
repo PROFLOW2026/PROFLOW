@@ -249,7 +249,6 @@ export default async function EmployeeDetailPage({
     today,
     workWeekStartDay,
     appAdminView,
-    organizationId,
     organizationName,
   } = data;
 
