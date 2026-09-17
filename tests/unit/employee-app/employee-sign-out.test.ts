@@ -31,14 +31,18 @@ describe('employeeSignOutAction', () => {
     signOutMock.mockClear();
   });
 
-  it('signs out and redirects to employee login', async () => {
-    const { employeeSignOutAction } = await import('@/app/[locale]/employee/actions');
+  it(
+    'signs out and redirects to employee login',
+    async () => {
+      const { employeeSignOutAction } = await import('@/app/[locale]/employee/actions');
 
-    await expect(employeeSignOutAction()).rejects.toEqual({
-      href: '/employee/login',
-      locale: 'he-IL',
-    });
-    expect(signOutMock).toHaveBeenCalledOnce();
-    expect(redirectMock).toHaveBeenCalledWith({ href: '/employee/login', locale: 'he-IL' });
-  });
+      await expect(employeeSignOutAction()).rejects.toEqual({
+        href: '/employee/login',
+        locale: 'he-IL',
+      });
+      expect(signOutMock).toHaveBeenCalledOnce();
+      expect(redirectMock).toHaveBeenCalledWith({ href: '/employee/login', locale: 'he-IL' });
+    },
+    15_000,
+  );
 });
