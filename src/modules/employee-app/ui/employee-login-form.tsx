@@ -11,28 +11,17 @@ import {
   type EmployeeAuthFormState,
 } from '@/app/[locale]/employee/actions';
 
-export function EmployeeLoginForm({ organizationId }: { organizationId: string }) {
+export function EmployeeLoginForm({ defaultUsername = '' }: { defaultUsername?: string }) {
   const t = useTranslations('employeeApp.login');
   const [state, formAction, pending] = useActionState(employeeLoginAction, {} as EmployeeAuthFormState);
-  const hasOrg = organizationId.trim().length > 0;
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
       <div>
         <h1 className="text-2xl font-bold">{t('title')}</h1>
-        {!hasOrg ? (
-          <p className="mt-2 text-sm text-[var(--pf-text-secondary)]">{t('companyHint')}</p>
-        ) : null}
+        <p className="mt-2 text-sm text-[var(--pf-text-secondary)]">{t('hint')}</p>
       </div>
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
-      <input type="hidden" name="organizationId" value={organizationId} />
-      {!hasOrg ? (
-        <div className="space-y-2">
-          <Label htmlFor="companyName">{t('companyName')}</Label>
-          <Input id="companyName" name="companyName" autoComplete="organization" className="text-lg" />
-          <p className="text-xs text-[var(--pf-text-secondary)]">{t('companyNameHelp')}</p>
-        </div>
-      ) : null}
       <div className="space-y-2">
         <Label htmlFor="username">{t('username')}</Label>
         <Input
@@ -41,6 +30,7 @@ export function EmployeeLoginForm({ organizationId }: { organizationId: string }
           autoComplete="username"
           required
           dir="ltr"
+          defaultValue={defaultUsername}
           className="text-lg"
         />
       </div>

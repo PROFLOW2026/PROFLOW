@@ -330,7 +330,6 @@ export default async function EmployeeDetailPage({
           employeeNumber={employee.employeeNumber}
           employeePhone={employee.phone}
           employeeEmail={employee.email}
-          organizationId={organizationId}
           organizationName={organizationName}
           locale={locale}
           appOrigin={appOrigin}

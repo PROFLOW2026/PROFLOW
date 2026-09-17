@@ -6,9 +6,7 @@
     "username": "Username",
     "pin": "PIN",
     "submit": "Sign in",
-    "companyName": "Company name",
-    "companyNameHelp": "Enter your company name as registered in the system",
-    "companyHint": "Enter your company name and the login details from your manager",
+    "hint": "Enter the username and PIN you received from your employer.",
     "invalidCredentials": "Invalid username or PIN",
     "accountBlocked": "Account is blocked or suspended",
     "accountLocked": "Too many attempts. Try again later",
@@ -169,8 +167,7 @@
     "tempPinExpired": "Temporary PIN has expired",
     "pinInvalid": "PIN must be 6 digits and match",
     "providerLinkDenied": "Direct file links are not available",
-    "companyNotFound": "No company found with that name",
-    "companyRequired": "Company name is required",
-    "companyAmbiguous": "This username exists in multiple companies — enter the company name"
+    "usernameTaken": "Username is already taken",
+    "usernameUnavailable": "Could not allocate a username — try again"
   }
 }

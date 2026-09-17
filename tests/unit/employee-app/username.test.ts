@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildEmployeeAuthEmail,
+  buildUsernameCandidates,
   generateDefaultUsername,
   normalizeUsername,
   validateUsername,
@@ -26,5 +27,18 @@ describe('employee app username', () => {
   it('generates owner-visible username from employee', () => {
     const username = generateDefaultUsername('Yossi Cohen', '42');
     expect(username.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('builds employee number first with suffix fallbacks', () => {
+    const candidates = buildUsernameCandidates('2485', 'Yossi Cohen');
+    expect(candidates[0]).toBe('2485');
+    expect(candidates).toContain('2485A');
+    expect(candidates).toContain('2485B');
+  });
+
+  it('pads short employee numbers to valid length', () => {
+    const candidates = buildUsernameCandidates('2', 'Yossi Cohen');
+    expect(candidates[0]).toBe('002');
+    expect(candidates).toContain('002A');
   });
 });

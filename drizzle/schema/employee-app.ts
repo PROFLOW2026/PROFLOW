@@ -94,6 +94,7 @@ export const employeeAppAccounts = pgTable(
       table.organizationId,
       table.usernameNormalized,
     ),
+    uniqueIndex('employee_app_accounts_username_global_uq').on(table.usernameNormalized),
     uniqueIndex('employee_app_accounts_auth_email_uq').on(table.authEmail),
     index('employee_app_accounts_org_idx').on(table.organizationId),
     index('employee_app_accounts_status_idx').on(table.organizationId, table.status),

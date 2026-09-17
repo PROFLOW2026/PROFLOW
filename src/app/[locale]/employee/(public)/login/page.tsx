@@ -18,11 +18,16 @@ export default async function EmployeeLoginPage({
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const raw = (await searchParams) ?? {};
-  const organizationId = typeof raw.org === 'string' ? raw.org : '';
+  const defaultUsername =
+    typeof raw.u === 'string'
+      ? raw.u
+      : typeof raw.username === 'string'
+        ? raw.username
+        : '';
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-4 py-8">
-      <EmployeeLoginForm organizationId={organizationId} />
+      <EmployeeLoginForm defaultUsername={defaultUsername} />
     </div>
   );
 }

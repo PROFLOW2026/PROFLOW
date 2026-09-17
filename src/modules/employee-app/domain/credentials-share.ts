@@ -20,14 +20,16 @@ export function formatCredentialExpiry(date: Date, locale = 'he-IL'): string {
 export function buildEmployeeLoginUrl(
   appOrigin: string,
   locale: string,
-  organizationId: string,
+  username?: string,
 ): string {
   const base = appOrigin.replace(/\/$/, '');
-  return `${base}/${locale}/employee/login?org=${organizationId}`;
+  const path = `${base}/${locale}/employee/login`;
+  const trimmed = username?.trim();
+  if (!trimmed) return path;
+  return `${path}?u=${encodeURIComponent(trimmed)}`;
 }
 
 export function buildCredentialsShareMessage(input: EmployeeCredentialsShareInput): string {
-  const expiry = formatCredentialExpiry(input.temporaryPinExpiresAt);
   return [
     `שלום ${input.employeeName},`,
     '',
@@ -42,9 +44,7 @@ export function buildCredentialsShareMessage(input: EmployeeCredentialsShareInpu
     'PIN זמני:',
     input.temporaryPin,
     '',
-    `ה-PIN הזמני תקף עד ${expiry}.`,
-    '',
-    'בכניסה הראשונה תתבקש/י לבחור PIN אישי חדש.',
+    'בכניסה הראשונה תתבקש לבחור PIN אישי חדש.',
   ].join('\n');
 }
 

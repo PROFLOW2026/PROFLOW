@@ -14,7 +14,7 @@ describe('credentials-share', () => {
     username: '2485',
     temporaryPin: '123456',
     temporaryPinExpiresAt: new Date('2026-09-18T07:49:00.000Z'),
-    loginUrl: 'https://app.example/he-IL/employee/login?org=abc',
+    loginUrl: 'https://app.example/he-IL/employee/login?u=2485',
   };
 
   it('builds Hebrew share message with login details', () => {
@@ -25,11 +25,15 @@ describe('credentials-share', () => {
     expect(message).toContain('123456');
     expect(message).toContain('PIN אישי');
     expect(message).not.toMatch(/supabase|auth/i);
+    expect(message).not.toContain('org=');
   });
 
-  it('builds employee login URL with locale and org query', () => {
-    expect(buildEmployeeLoginUrl('https://app.example/', 'he-IL', 'org-1')).toBe(
-      'https://app.example/he-IL/employee/login?org=org-1',
+  it('builds employee login URL without org parameter', () => {
+    expect(buildEmployeeLoginUrl('https://app.example/', 'he-IL')).toBe(
+      'https://app.example/he-IL/employee/login',
+    );
+    expect(buildEmployeeLoginUrl('https://app.example/', 'he-IL', '2485')).toBe(
+      'https://app.example/he-IL/employee/login?u=2485',
     );
   });
 

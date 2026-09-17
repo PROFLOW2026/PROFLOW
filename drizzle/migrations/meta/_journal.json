@@ -624,6 +624,13 @@
                         "when":  1789191200000,
                         "tag":  "0089_employee_app_table_grants",
                         "breakpoints":  true
+                    },
+                    {
+                        "idx":  89,
+                        "version":  "7",
+                        "when":  1789277600000,
+                        "tag":  "0090_employee_app_global_username",
+                        "breakpoints":  true
                     }
                 ]
 }

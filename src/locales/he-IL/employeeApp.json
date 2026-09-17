@@ -6,9 +6,7 @@
     "username": "שם משתמש",
     "pin": "קוד PIN",
     "submit": "כניסה",
-    "companyName": "שם החברה",
-    "companyNameHelp": "הזינו את שם החברה כפי שמופיע במערכת",
-    "companyHint": "הזינו את שם החברה ואת פרטי הכניסה שקיבלתם מהמנהל",
+    "hint": "הזינו את שם המשתמש וה-PIN שקיבלתם מהמעסיק.",
     "invalidCredentials": "שם משתמש או PIN שגויים",
     "accountBlocked": "החשבון חסום או מושהה",
     "accountLocked": "יותר מדי ניסיונות. נסה שוב מאוחר יותר",
@@ -169,8 +167,7 @@
     "tempPinExpired": "PIN זמני פג תוקף",
     "pinInvalid": "PIN חייב להיות 6 ספרות ולהתאים",
     "providerLinkDenied": "גישה ישירה לקבצים אינה זמינה",
-    "companyNotFound": "לא נמצאה חברה בשם זה",
-    "companyRequired": "יש להזין את שם החברה",
-    "companyAmbiguous": "שם המשתמש קיים במספר חברות — הזינו את שם החברה"
+    "usernameTaken": "שם המשתמש כבר בשימוש",
+    "usernameUnavailable": "לא ניתן להקצות שם משתמש — נסו שוב"
   }
 }

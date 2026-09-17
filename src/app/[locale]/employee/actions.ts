@@ -16,13 +16,11 @@ export async function employeeLoginAction(
 ): Promise<EmployeeAuthFormState> {
   const t = await getTranslations('employeeApp');
   const locale = await getLocale();
-  const organizationId = String(formData.get('organizationId') ?? '');
-  const companyName = String(formData.get('companyName') ?? '');
   const username = String(formData.get('username') ?? '');
   const pin = String(formData.get('pin') ?? '');
 
   try {
-    const result = await employeeLogin({ organizationId, companyName, username, pin });
+    const result = await employeeLogin({ username, pin });
     if (result.pinMustChange) {
       redirect({ href: '/employee/set-pin', locale });
     }
@@ -30,10 +28,7 @@ export async function employeeLoginAction(
   } catch (error) {
     if (error instanceof DomainRuleError) {
       const key = error.messageKey?.replace('employeeApp.errors.', '') ?? 'invalidCredentials';
-      if (key === 'companyNotFound' || key === 'companyRequired' || key === 'companyAmbiguous') {
-        return { error: t(`errors.${key}`) };
-      }
-      return { error: t(`errors.${key.split('.').pop() ?? 'invalidCredentials'}`) };
+      return { error: t(`errors.${key}`) };
     }
     return { error: t('login.invalidCredentials') };
   }

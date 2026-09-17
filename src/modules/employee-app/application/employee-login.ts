@@ -8,16 +8,13 @@ import { employeeSupabaseAuthPassword } from '../domain/auth-password';
 import { isValidPin, LOGIN_LOCK_MS, MAX_LOGIN_ATTEMPTS } from '../domain/pin';
 import { normalizeUsername } from '../domain/username';
 import {
-  findEmployeeAppAccountByUsername,
+  findEmployeeAppAccountByUsernameGlobal,
   updateEmployeeAppAccount,
 } from '../data/accounts.repository';
-import { resolveEmployeeLoginOrganizationId } from './resolve-login-organization';
 import { insertEmployeeAppAuditEvent } from '../data/audit.repository';
 import { getSupabaseAdminClient, isSupabaseAdminConfigured } from '@/shared/supabase/admin';
 
 export interface EmployeeLoginInput {
-  organizationId: string;
-  companyName?: string;
   username: string;
   pin: string;
 }
@@ -67,18 +64,8 @@ export async function employeeLogin(input: EmployeeLoginInput): Promise<Employee
     throw new DomainRuleError('Invalid credentials', 'employeeApp.errors.invalidCredentials');
   }
 
-  const organizationId = await resolveEmployeeLoginOrganizationId({
-    organizationId: input.organizationId,
-    companyName: input.companyName ?? '',
-    username: input.username,
-  });
-
   const db = getAdminDb();
-  const account = await findEmployeeAppAccountByUsername(
-    db,
-    organizationId,
-    usernameNormalized,
-  );
+  const account = await findEmployeeAppAccountByUsernameGlobal(db, usernameNormalized);
   if (!account) {
     throw new DomainRuleError('Invalid credentials', 'employeeApp.errors.invalidCredentials');
   }

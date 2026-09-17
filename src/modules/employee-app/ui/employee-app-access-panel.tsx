@@ -62,7 +62,6 @@ interface Props {
   readonly employeeNumber: string | null;
   readonly employeePhone: string | null;
   readonly employeeEmail: string | null;
-  readonly organizationId: string;
   readonly organizationName: string;
   readonly locale: string;
   readonly appOrigin: string;
@@ -83,7 +82,6 @@ export function EmployeeAppAccessPanel({
   employeeNumber,
   employeePhone,
   employeeEmail,
-  organizationId,
   organizationName,
   locale,
   appOrigin,
@@ -99,8 +97,8 @@ export function EmployeeAppAccessPanel({
   const toast = useOptionalToast();
 
   const loginUrl = useMemo(
-    () => buildEmployeeLoginUrl(appOrigin, locale, organizationId),
-    [appOrigin, locale, organizationId],
+    () => buildEmployeeLoginUrl(appOrigin, locale, account?.username),
+    [appOrigin, locale, account?.username],
   );
 
   const initialGrantMap = useMemo(

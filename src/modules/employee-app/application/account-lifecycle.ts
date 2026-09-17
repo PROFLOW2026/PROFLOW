@@ -5,7 +5,7 @@ import { organizationMemberships } from '@drizzle/schema';
 import { revalidateTag } from 'next/cache';
 import type { OrgContext } from '@/shared/auth/context';
 import { orgAuthzCacheTag } from '@/shared/auth/cached-authz';
-import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
+import { DomainRuleError, NotFoundError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { getSupabaseAdminClient, isSupabaseAdminConfigured } from '@/shared/supabase/admin';
@@ -24,11 +24,8 @@ import {
   upsertEmployeePermissionGrant,
 } from '../data/grants.repository';
 import { insertEmployeeAppAuditEvent } from '../data/audit.repository';
-import {
-  buildEmployeeAuthEmail,
-  generateDefaultUsername,
-  validateUsername,
-} from '../domain/username';
+import { buildEmployeeAuthEmail } from '../domain/username';
+import { allocateGloballyUniqueUsername } from './allocate-username';
 import { employeeSupabaseAuthPassword } from '../domain/auth-password';
 import { generateTemporaryPin, pinExpiryFromNow } from '../domain/pin';
 import { employeePreset, type EmployeePresetKey } from './presets';
@@ -153,13 +150,14 @@ export async function activateEmployeeAppAccess(
     );
   }
 
-  const usernameRaw =
-    input.username ??
-    generateDefaultUsername(employee.name, employee.employeeNumber ?? null);
-  const usernameCheck = validateUsername(usernameRaw);
-  if (!usernameCheck.valid) {
-    throw new ValidationError([{ path: 'username', message: 'Invalid username' }]);
-  }
+  const allocated = await allocateGloballyUniqueUsername(context.db, {
+    employeeName: employee.name,
+    employeeNumber: employee.employeeNumber ?? null,
+    requestedUsername: input.username,
+    exceptAccountId: existing?.id,
+  });
+  const usernameRaw = allocated.username;
+  const usernameCheck = { valid: true as const, normalized: allocated.normalized };
 
   const temporaryPin = generateTemporaryPin();
   const temporaryPinExpiresAt = pinExpiryFromNow();
@@ -254,7 +252,7 @@ export async function activateEmployeeAppAccess(
     username: usernameRaw.toUpperCase(),
     temporaryPin,
     temporaryPinExpiresAt,
-    loginPath: `/${context.locale}/employee/login?org=${context.organizationId}`,
+    loginPath: `/${context.locale}/employee/login?u=${encodeURIComponent(usernameRaw)}`,
   };
 }
 
