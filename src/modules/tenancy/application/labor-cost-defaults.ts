@@ -12,6 +12,7 @@ import {
   emptyLaborCostDefaults,
   laborCostDefaultsSchema,
   parseLaborCostDefaults,
+  parseOrgStandardWorkTimePair,
   type LaborCostDefaults,
 } from '../domain/labor-cost-defaults';
 
@@ -53,6 +54,10 @@ export async function saveOrgWorkFrameworkHours(
     readonly workingDaysPerMonth?: string | null;
     /** Explicit org work week; omit to leave existing; null clears to canonical default. */
     readonly workWeekdays?: readonly number[] | null;
+    /** Org default clock-in (HH:mm); omit to leave existing. */
+    readonly standardWorkStartTime?: string | null;
+    /** Org default clock-out (HH:mm); omit to leave existing. */
+    readonly standardWorkEndTime?: string | null;
   },
 ): Promise<LaborCostDefaults> {
   assertAnyPermission(context, [
@@ -97,11 +102,32 @@ export async function saveOrgWorkFrameworkHours(
     }
   }
 
+  let standardWorkStartTime = existing.standardWorkStartTime ?? null;
+  let standardWorkEndTime = existing.standardWorkEndTime ?? null;
+  if (
+    input.standardWorkStartTime !== undefined ||
+    input.standardWorkEndTime !== undefined
+  ) {
+    const parsedTimes = parseOrgStandardWorkTimePair({
+      start: input.standardWorkStartTime ?? '',
+      end: input.standardWorkEndTime ?? '',
+    });
+    if (!parsedTimes.ok) {
+      throw new ValidationError([
+        { path: parsedTimes.path, message: parsedTimes.message },
+      ]);
+    }
+    standardWorkStartTime = parsedTimes.standardWorkStartTime;
+    standardWorkEndTime = parsedTimes.standardWorkEndTime;
+  }
+
   return saveLaborCostDefaults(context, {
     ...existing,
     standardHoursPerDay: hours,
     workingDaysPerMonth,
     workWeekdays,
+    standardWorkStartTime,
+    standardWorkEndTime,
   });
 }
 

@@ -19,6 +19,8 @@ export function AttendanceManageSections({
   defaultDate,
   focusUpdate,
   defaultWeekdays,
+  defaultClockInTime,
+  defaultClockOutTime,
   manualAction,
   outcomeAction,
   projects,
@@ -29,6 +31,8 @@ export function AttendanceManageSections({
   readonly defaultDate: string;
   readonly focusUpdate: boolean;
   readonly defaultWeekdays: readonly number[];
+  readonly defaultClockInTime: string;
+  readonly defaultClockOutTime: string;
   readonly manualAction: typeof manualAttendanceAction;
   readonly outcomeAction: typeof attendanceOutcomeAction;
   readonly projects: readonly ProjectOption[];
@@ -62,6 +66,8 @@ export function AttendanceManageSections({
                 onEmployeeChange={onEmployeeChange}
                 emphasize={focusUpdate}
                 defaultWeekdays={defaultWeekdays}
+                defaultClockInTime={defaultClockInTime}
+                defaultClockOutTime={defaultClockOutTime}
               />
             </>
           )}

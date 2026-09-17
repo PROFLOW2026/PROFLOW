@@ -74,6 +74,10 @@ interface AttendanceManualEntryFormProps {
   readonly emphasize?: boolean;
   /** Initial weekday selection from org work framework (JS 0=Sun … 6=Sat). */
   readonly defaultWeekdays?: readonly number[];
+  /** Org default clock-in for new manual entries (HH:mm). */
+  readonly defaultClockInTime?: string;
+  /** Org default clock-out for new manual entries (HH:mm). */
+  readonly defaultClockOutTime?: string;
 }
 
 export function AttendanceManualEntryForm({
@@ -85,6 +89,8 @@ export function AttendanceManualEntryForm({
   onEmployeeChange,
   emphasize = false,
   defaultWeekdays,
+  defaultClockInTime = '09:00',
+  defaultClockOutTime = '17:00',
 }: AttendanceManualEntryFormProps) {
   const t = useTranslations('workforce.attendance');
   const tCommon = useTranslations('common');
@@ -106,8 +112,8 @@ export function AttendanceManualEntryForm({
   const [workScope, setWorkScope] = useState<WorkScope>('general');
   const [projectId, setProjectId] = useState(projects[0]?.id ?? '');
   const [notes, setNotes] = useState('');
-  const [clockInTime, setClockInTime] = useState('09:00');
-  const [clockOutTime, setClockOutTime] = useState('17:00');
+  const [clockInTime, setClockInTime] = useState(defaultClockInTime);
+  const [clockOutTime, setClockOutTime] = useState(defaultClockOutTime);
   const [confirmStage, setConfirmStage] = useState<ConfirmStage>(0);
   const [seenOverwriteKey, setSeenOverwriteKey] = useState<string | null>(null);
   const [state, formAction, pending] = useActionState(action, {} as AttendanceActionState);

@@ -17,6 +17,10 @@ import Decimal from 'decimal.js';
 export interface OrgWorkFrameworkFormProps {
   readonly standardHoursPerDay: string | null;
   readonly workingDaysPerMonth: string | null;
+  /** Org default clock-in for manual attendance (HH:mm). Null → unset. */
+  readonly standardWorkStartTime?: string | null;
+  /** Org default clock-out for manual attendance (HH:mm). Null → unset. */
+  readonly standardWorkEndTime?: string | null;
   /** Explicit org work week (0=Sun … 6=Sat). Null → show canonical א׳–ה׳. */
   readonly workWeekdays?: readonly number[] | null;
   /** When true, show setup panel OPEN / prominent. */
@@ -53,6 +57,8 @@ function formatWeekdaySummary(
 export function OrgWorkFrameworkForm({
   standardHoursPerDay,
   workingDaysPerMonth,
+  standardWorkStartTime = null,
+  standardWorkEndTime = null,
   workWeekdays = null,
   setupRequired,
   canBootstrapCosting = false,
@@ -61,6 +67,8 @@ export function OrgWorkFrameworkForm({
   const t = useTranslations('workforce');
   const [hoursPerDay, setHoursPerDay] = useState(standardHoursPerDay ?? '');
   const [daysPerMonth, setDaysPerMonth] = useState(workingDaysPerMonth ?? '');
+  const [workStartTime, setWorkStartTime] = useState(standardWorkStartTime ?? '');
+  const [workEndTime, setWorkEndTime] = useState(standardWorkEndTime ?? '');
   const [weekdays, setWeekdays] = useState<number[]>(() =>
     workWeekdays && workWeekdays.length > 0 ? [...workWeekdays] : [0, 1, 2, 3, 4],
   );
@@ -92,6 +100,10 @@ export function OrgWorkFrameworkForm({
     workWeekdays && workWeekdays.length > 0 ? workWeekdays : [0, 1, 2, 3, 4],
     (key) => t(`time.weekdays.${key}`),
   );
+  const summaryWorkTimes =
+    standardWorkStartTime && standardWorkEndTime
+      ? `${standardWorkStartTime}–${standardWorkEndTime}`
+      : null;
 
   const showCollapsedSummary = collapseWhenConfigured && !setupRequired && !expanded;
 
@@ -137,6 +149,35 @@ export function OrgWorkFrameworkForm({
               value={daysPerMonth}
               onChange={(event) => setDaysPerMonth(event.target.value)}
               dir="ltr"
+            />
+          )}
+        </Field>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Field label={t('workFramework.standardWorkStartTime')}>
+          {(control) => (
+            <Input
+              {...control}
+              name="standardWorkStartTime"
+              type="time"
+              value={workStartTime}
+              onChange={(event) => setWorkStartTime(event.target.value)}
+              dir="ltr"
+              className="min-w-0"
+            />
+          )}
+        </Field>
+        <Field label={t('workFramework.standardWorkEndTime')}>
+          {(control) => (
+            <Input
+              {...control}
+              name="standardWorkEndTime"
+              type="time"
+              value={workEndTime}
+              onChange={(event) => setWorkEndTime(event.target.value)}
+              dir="ltr"
+              className="min-w-0"
             />
           )}
         </Field>
@@ -209,6 +250,11 @@ export function OrgWorkFrameworkForm({
                     weekdays: summaryWeek,
                   })
                 : summaryWeek}
+              {summaryWorkTimes ? (
+                <span className="mt-1 block font-mono text-xs" dir="ltr">
+                  {summaryWorkTimes}
+                </span>
+              ) : null}
             </p>
           </div>
           <Button type="button" variant="secondary" size="sm" onClick={() => setExpanded(true)}>

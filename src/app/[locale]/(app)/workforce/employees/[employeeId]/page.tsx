@@ -308,6 +308,8 @@ export default async function EmployeeDetailPage({
         <OrgWorkFrameworkForm
           standardHoursPerDay={laborDefaults?.standardHoursPerDay ?? null}
           workingDaysPerMonth={laborDefaults?.workingDaysPerMonth ?? null}
+          standardWorkStartTime={laborDefaults?.standardWorkStartTime ?? null}
+          standardWorkEndTime={laborDefaults?.standardWorkEndTime ?? null}
           workWeekdays={laborDefaults?.workWeekdays ?? null}
           setupRequired
           canBootstrapCosting={false}
@@ -613,6 +615,8 @@ export default async function EmployeeDetailPage({
         <OrgWorkFrameworkForm
           standardHoursPerDay={laborDefaults?.standardHoursPerDay ?? null}
           workingDaysPerMonth={laborDefaults?.workingDaysPerMonth ?? null}
+          standardWorkStartTime={laborDefaults?.standardWorkStartTime ?? null}
+          standardWorkEndTime={laborDefaults?.standardWorkEndTime ?? null}
           workWeekdays={laborDefaults?.workWeekdays ?? null}
           setupRequired={false}
           canBootstrapCosting={false}

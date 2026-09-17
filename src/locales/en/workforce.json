@@ -404,6 +404,8 @@
     "description": "Hours per work day for attendance, expected day length, and excess-hour warnings. Optional days/month is legacy metadata only — monthly project cost uses the monthly salary pool, not days×hours.",
     "setupRequired": "Set hours per work day once for attendance and excess warnings. Monthly salaries do not need working days per month for project costing.",
     "hoursPerDay": "Hours per work day",
+    "standardWorkStartTime": "Standard start time",
+    "standardWorkEndTime": "Standard end time",
     "daysPerMonth": "Working days per month",
     "daysPerMonthOptional": "Optional — not required for monthly project costing",
     "workWeek": "Work weekdays",
@@ -632,6 +634,8 @@
       "reportsCta": "Attendance reports",
       "monthlyReportTitle": "Monthly workforce report",
       "monthLabel": "Month",
+      "yearLabel": "Year",
+      "selectedMonthCompact": "Selected month {value}",
       "showReport": "Show report",
       "backToAttendance": "Back to attendance"
     },

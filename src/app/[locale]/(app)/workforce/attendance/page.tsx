@@ -18,7 +18,10 @@ import {
 } from '@/modules/workforce';
 import { listAttendanceOutcomesForEmployeeMonth } from '@/modules/workforce/application/attendance-outcomes';
 import { getLaborCostDefaultsForApply } from '@/modules/tenancy';
-import { resolveOrgWorkWeekdays } from '@/modules/tenancy/domain/labor-cost-defaults';
+import {
+  resolveOrgStandardWorkTimes,
+  resolveOrgWorkWeekdays,
+} from '@/modules/tenancy/domain/labor-cost-defaults';
 import { DateRangeSelector } from '@/components/patterns/date-range-selector';
 import { AttendanceClockPanel } from '@/modules/workforce/ui/attendance-clock-panel';
 import { AttendanceDayDetailPanel } from '@/modules/workforce/ui/attendance-day-detail-panel';
@@ -190,6 +193,7 @@ export default async function AttendancePage({
       detail,
       selectedEmployee,
       defaultWeekdays: resolveOrgWorkWeekdays(laborDefaults),
+      defaultWorkTimes: resolveOrgStandardWorkTimes(laborDefaults),
       projects,
       todayOverview,
     };
@@ -272,6 +276,8 @@ export default async function AttendancePage({
               defaultDate={formDefaultDate}
               focusUpdate={focusUpdate}
               defaultWeekdays={data.defaultWeekdays}
+              defaultClockInTime={data.defaultWorkTimes.start}
+              defaultClockOutTime={data.defaultWorkTimes.end}
               manualAction={manualAttendanceAction}
               outcomeAction={attendanceOutcomeAction}
               projects={data.projects}

@@ -231,6 +231,8 @@ export async function saveOrgWorkFrameworkAction(
     .filter((day) => Number.isInteger(day) && day >= 0 && day <= 6);
   const workWeekdays =
     workWeekdaysRaw.length > 0 ? [...new Set(workWeekdaysRaw)].sort((a, b) => a - b) : null;
+  const standardWorkStartTime = String(formData.get('standardWorkStartTime') ?? '').trim();
+  const standardWorkEndTime = String(formData.get('standardWorkEndTime') ?? '').trim();
 
   if (!standardHoursPerDay) {
     return { error: t('workFramework.validationRequired') };
@@ -243,6 +245,8 @@ export async function saveOrgWorkFrameworkAction(
         standardHoursPerDay,
         workingDaysPerMonth: workingDaysPerMonth || null,
         workWeekdays,
+        standardWorkStartTime,
+        standardWorkEndTime,
       }),
     );
     revalidatePath('/workforce', 'layout');
