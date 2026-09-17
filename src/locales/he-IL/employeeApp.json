@@ -45,7 +45,27 @@
     "iosStepShare": "לחצו על כפתור השיתוף בדפדפן",
     "iosStepAdd": "בחרו \"הוסף למסך הבית\"",
     "iosStepConfirm": "לחצו \"הוסף\"",
-    "iosDismiss": "הבנתי"
+    "iosDismiss": "הבנתי",
+    "manualTitle": "התקנה מהדפדפן",
+    "manualStepMenu": "לחצו על תפריט הדפדפן (⋮ או ⋯)",
+    "manualStepInstall": "בחרו \"התקן אפליקציה\" או \"הוסף למסך הבית\"",
+    "manualHint": "אם כפתור ההתקנה לא מופיע, רעננו את העמוד או חזרו מאוחר יותר.",
+    "manualDismiss": "הבנתי",
+    "installedTitle": "האפליקציה מותקנת",
+    "installedDescription": "ProjectFlow זמין במסך הבית שלכם."
+  },
+  "attendance": {
+    "empty": "עדיין אין רישומי נוכחות",
+    "monthDayCount": "{count, plural, one {# יום עבודה} two {# ימי עבודה} many {# ימי עבודה} other {# ימי עבודה}}",
+    "monthHoursTotal": "סה\"כ {hours}",
+    "clockIn": "כניסה",
+    "clockOut": "יציאה",
+    "totalHours": "סה\"כ שעות",
+    "dayStatus": {
+      "open": "יום פתוח",
+      "complete": "יום עבודה הושלם",
+      "void": "בוטל"
+    }
   },
   "home": {
     "clockIn": "כניסה לעבודה",

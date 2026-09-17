@@ -45,7 +45,27 @@
     "iosStepShare": "Tap the browser Share button",
     "iosStepAdd": "Choose Add to Home Screen",
     "iosStepConfirm": "Tap Add",
-    "iosDismiss": "Got it"
+    "iosDismiss": "Got it",
+    "manualTitle": "Install from browser",
+    "manualStepMenu": "Open the browser menu (⋮ or ⋯)",
+    "manualStepInstall": "Choose Install app or Add to Home Screen",
+    "manualHint": "If install is not offered, refresh the page or try again later.",
+    "manualDismiss": "Got it",
+    "installedTitle": "App installed",
+    "installedDescription": "ProjectFlow is on your home screen."
+  },
+  "attendance": {
+    "empty": "No attendance records yet",
+    "monthDayCount": "{count, plural, one {# work day} other {# work days}}",
+    "monthHoursTotal": "Total {hours}",
+    "clockIn": "Clock in",
+    "clockOut": "Clock out",
+    "totalHours": "Total hours",
+    "dayStatus": {
+      "open": "Open day",
+      "complete": "Work day complete",
+      "void": "Voided"
+    }
   },
   "home": {
     "clockIn": "Clock in",

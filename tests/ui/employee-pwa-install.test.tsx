@@ -60,9 +60,10 @@ describe('EmployeePwaInstall', () => {
     vi.restoreAllMocks();
   });
 
-  it('renders nothing when install is unavailable', () => {
-    const { container } = renderInstall(<EmployeePwaInstall />);
-    expect(container.firstChild).toBeNull();
+  it('shows install card even before beforeinstallprompt fires', async () => {
+    renderInstall(<EmployeePwaInstall />);
+    expect(await screen.findByRole('heading', { name: heEmployeeApp.install.title })).toBeVisible();
+    expect(screen.getByRole('button', { name: heEmployeeApp.install.cta })).toBeVisible();
   });
 
   it('shows Hebrew install card when beforeinstallprompt is captured', async () => {
@@ -85,10 +86,22 @@ describe('EmployeePwaInstall', () => {
     expect(screen.getByText(heEmployeeApp.install.iosStepShare)).toBeVisible();
   });
 
-  it('hides install promotion in standalone mode', () => {
+  it('shows installed message in standalone mode', async () => {
     matchMediaState.standalone = true;
     fireBip();
-    const { container } = renderInstall(<EmployeePwaInstall />);
-    expect(container.firstChild).toBeNull();
+    renderInstall(<EmployeePwaInstall />);
+    expect(await screen.findByRole('heading', { name: heEmployeeApp.install.installedTitle })).toBeVisible();
+  });
+
+  it('opens manual install sheet on desktop Chrome without BIP', async () => {
+    vi.stubGlobal('navigator', {
+      ...navigator,
+      userAgent:
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    });
+    renderInstall(<EmployeePwaInstall />);
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole('button', { name: heEmployeeApp.install.cta }));
+    expect(await screen.findByText(heEmployeeApp.install.manualTitle)).toBeVisible();
   });
 });

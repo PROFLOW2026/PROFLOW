@@ -9,6 +9,7 @@ import { useOptionalToast } from '@/components/ui/toast';
 import { usePwaInstall } from '@/modules/offline/ui/use-pwa-install';
 import { cn } from '@/shared/ui/cn';
 import { EmployeePwaInstallIosSheet } from './employee-pwa-install-ios-sheet';
+import { EmployeePwaInstallManualSheet } from './employee-pwa-install-manual-sheet';
 
 type Variant = 'card' | 'header';
 
@@ -17,9 +18,18 @@ export function EmployeePwaInstall({ variant = 'card' }: { variant?: Variant }) 
   const toast = useOptionalToast();
   const { capability, installing, promptInstall } = usePwaInstall();
   const [iosOpen, setIosOpen] = useState(false);
+  const [manualOpen, setManualOpen] = useState(false);
 
-  if (capability === 'installed' || capability === 'unavailable') {
-    return null;
+  if (capability === 'installed') {
+    if (variant === 'header') return null;
+    return (
+      <Card className="border border-[var(--pf-border)] p-4">
+        <div className="space-y-1">
+          <h2 className="text-base font-semibold">{t('installedTitle')}</h2>
+          <p className="text-sm text-[var(--pf-text-secondary)]">{t('installedDescription')}</p>
+        </div>
+      </Card>
+    );
   }
 
   async function handleInstallClick(): Promise<void> {
@@ -27,9 +37,23 @@ export function EmployeePwaInstall({ variant = 'card' }: { variant?: Variant }) 
       setIosOpen(true);
       return;
     }
+
+    if (capability === 'prompt_available') {
+      const outcome = await promptInstall();
+      if (outcome === 'accepted') {
+        toast?.push(t('success'), 'success');
+      }
+      return;
+    }
+
     const outcome = await promptInstall();
     if (outcome === 'accepted') {
       toast?.push(t('success'), 'success');
+      return;
+    }
+
+    if (capability === 'manual_browser' || capability === 'unavailable') {
+      setManualOpen(true);
     }
   }
 
@@ -61,7 +85,7 @@ export function EmployeePwaInstall({ variant = 'card' }: { variant?: Variant }) 
   return (
     <>
       {variant === 'card' ? (
-        <Card className="space-y-3 border border-[var(--pf-border)] p-4">
+        <Card className="space-y-3 border border-[var(--pf-border)] p-4" data-pf-employee-pwa-install>
           <div className="space-y-1">
             <h2 className="text-base font-semibold">{t('title')}</h2>
             <p className="text-sm text-[var(--pf-text-secondary)]">{t('description')}</p>
@@ -72,6 +96,7 @@ export function EmployeePwaInstall({ variant = 'card' }: { variant?: Variant }) 
         trigger
       )}
       <EmployeePwaInstallIosSheet open={iosOpen} onOpenChange={setIosOpen} />
+      <EmployeePwaInstallManualSheet open={manualOpen} onOpenChange={setManualOpen} />
     </>
   );
 }
