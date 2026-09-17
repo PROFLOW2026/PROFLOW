@@ -34,7 +34,7 @@ export function EmployeeShellHeader() {
   }
 
   return (
-    <header className="sticky top-0 z-30 -mx-4 mb-4 border-b border-[var(--pf-border)] bg-[var(--pf-bg)]/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-[var(--pf-bg)]/80">
+    <header className="-mx-4 mb-4 border-b border-[var(--pf-border)] px-4 py-3">
       <div className="flex items-center gap-2">
         {header.showBack ? (
           <button

@@ -10,7 +10,8 @@
     "invalidCredentials": "Invalid username or PIN",
     "accountBlocked": "Account is blocked or suspended",
     "accountLocked": "Too many attempts. Try again later",
-    "tempPinExpired": "Temporary PIN expired. Contact your manager"
+    "tempPinExpired": "Temporary PIN expired. Contact your manager",
+    "backToCustomerLogin": "Back to customer sign in"
   },
   "setPin": {
     "title": "Set new PIN",

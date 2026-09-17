@@ -10,7 +10,8 @@
     "invalidCredentials": "שם משתמש או PIN שגויים",
     "accountBlocked": "החשבון חסום או מושהה",
     "accountLocked": "יותר מדי ניסיונות. נסה שוב מאוחר יותר",
-    "tempPinExpired": "PIN זמני פג תוקף. פנה למנהל"
+    "tempPinExpired": "PIN זמני פג תוקף. פנה למנהל",
+    "backToCustomerLogin": "חזרה לכניסת לקוחות"
   },
   "setPin": {
     "title": "הגדרת PIN חדש",

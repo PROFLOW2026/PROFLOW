@@ -6,10 +6,13 @@ import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { textNavLinkClassName } from '@/components/ui/pressable';
 import {
   employeeLoginAction,
   type EmployeeAuthFormState,
 } from '@/app/[locale]/employee/actions';
+import { Link } from '@/shared/i18n/navigation';
+import { cn } from '@/shared/ui/cn';
 
 export function EmployeeLoginForm({ defaultUsername = '' }: { defaultUsername?: string }) {
   const t = useTranslations('employeeApp.login');
@@ -52,6 +55,11 @@ export function EmployeeLoginForm({ defaultUsername = '' }: { defaultUsername?: 
       <Button type="submit" size="lg" disabled={pending} className="w-full">
         {t('submit')}
       </Button>
+      <p className="text-center text-sm text-[var(--pf-text-secondary)]">
+        <Link href="/sign-in" className={cn(textNavLinkClassName, 'font-medium')}>
+          {t('backToCustomerLogin')}
+        </Link>
+      </p>
     </form>
   );
 }

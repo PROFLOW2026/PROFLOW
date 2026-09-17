@@ -12,6 +12,7 @@ export interface EmployeeNavItem {
 
 export interface EmployeeShellData {
   readonly employeeName: string;
+  readonly organizationName: string;
   readonly linked: boolean;
   readonly nav: readonly EmployeeNavItem[];
   readonly clock: Awaited<ReturnType<typeof getAttendanceClockSurface>> | null;
@@ -56,6 +57,7 @@ export async function getEmployeeShellData(context: OrgContext): Promise<Employe
   if (!isEmployeeAppUser(context)) {
     return {
       employeeName: '',
+      organizationName: '',
       linked: false,
       nav: [],
       clock: null,
@@ -77,6 +79,7 @@ export async function getEmployeeShellData(context: OrgContext): Promise<Employe
 
   return {
     employeeName: employee?.name ?? '',
+    organizationName: context.organization.name,
     linked: Boolean(employee),
     nav,
     clock,
