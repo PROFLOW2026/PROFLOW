@@ -4,6 +4,7 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { getTodayInbox } from '@/modules/command-center';
 import { TodayInboxPanel } from '@/modules/command-center/ui/today-inbox';
+import { isEmployeeAppUser } from '@/modules/employee-app/application/load-employee-app-context';
 import { withOrgContext } from '@/shared/auth/session';
 import { redirect } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
@@ -45,6 +46,9 @@ async function TodayInboxBody() {
   const locale = await getLocale();
 
   const result = await withOrgContext(async (context) => {
+    if (isEmployeeAppUser(context)) {
+      return { kind: 'employee' as const };
+    }
     if (!hasPermission(context, PERMISSIONS.COMMAND_CENTER_READ)) {
       return { kind: 'forbidden' as const };
     }
@@ -54,6 +58,9 @@ async function TodayInboxBody() {
     return { kind: 'ok' as const, inbox, defaultPaymentDate };
   });
 
+  if (result.kind === 'employee') {
+    redirect({ href: '/employee', locale });
+  }
   if (result.kind !== 'ok') {
     redirect({ href: '/', locale });
   }

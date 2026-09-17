@@ -214,6 +214,11 @@ export const getShellContext = cache(async () => {
 
   try {
     return await runInOrgContext(session.user.id, session.activeOrganizationId, async (context) => {
+      const { assertOwnerAppSurface } = await import(
+        '@/modules/employee-app/application/session-guard'
+      );
+      assertOwnerAppSurface(context);
+
       const [modules, orgSettings, previewSelection, organizationLogoUrl] = await Promise.all([
         getModuleVisibility(context),
         loadShellOrgSettings(context.db, context.organizationId),

@@ -106,14 +106,12 @@ export async function loadEmployeeAppContextByEmployeeId(
   return { account, employeeId, grants, allowedDocumentCategories };
 }
 
-/** Effective permission for employee app users: role union + explicit grants. */
+/** Effective permission for employee app users (grants + attendance baseline only). */
 export function employeeHasPermission(
   context: OrgContext,
   permission: PermissionKey,
 ): boolean {
-  if (context.permissions.has(permission)) return true;
-  const grant = context.employeeApp?.grants.get(permission);
-  return Boolean(grant?.granted);
+  return context.permissions.has(permission);
 }
 
 export function employeePermissionScope(
@@ -123,7 +121,7 @@ export function employeePermissionScope(
   const grant = context.employeeApp?.grants.get(permission);
   if (grant?.granted) return grant.scope;
   if (context.permissions.has(permission)) {
-    return 'all_organization';
+    return 'self_only';
   }
   return null;
 }

@@ -4,6 +4,11 @@ import type { OrgContext } from '@/shared/auth/context';
 import { hasPermission } from '@/shared/permissions/assert';
 import { isOcrIngestionFlagOn } from '@/modules/ocr/domain/feature-gate';
 
+/** Client-safe — settings nav runs in the browser; do not import server DB modules here. */
+function isEmployeeAppUser(context: OrgContext): boolean {
+  return context.roleKeys.includes('employee') && Boolean(context.employeeApp);
+}
+
 export type SettingsSectionKey =
   | 'business'
   | 'branding'
@@ -120,6 +125,7 @@ export const SETTINGS_NAV_GROUP_ORDER: readonly SettingsNavGroup[] = [
 ];
 
 export function canAccessSection(context: OrgContext, section: SettingsSection): boolean {
+  if (isEmployeeAppUser(context)) return false;
   if (!section.permission) return true;
   return hasPermission(context, section.permission);
 }

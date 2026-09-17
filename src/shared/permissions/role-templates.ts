@@ -105,11 +105,8 @@ const MANAGER_PERMISSIONS: readonly PermissionKey[] = [
   PERMISSIONS.INTEGRATIONS_READ,
 ];
 
-/** Minimal Employee App role — attendance only; extended via employee_permission_grants. */
-const EMPLOYEE_PERMISSIONS: readonly PermissionKey[] = [
-  PERMISSIONS.ORG_READ,
-  PERMISSIONS.ATTENDANCE_SELF,
-];
+/** Minimal Employee App role — attendance baseline; extended via employee_permission_grants. */
+const EMPLOYEE_PERMISSIONS: readonly PermissionKey[] = [PERMISSIONS.ATTENDANCE_SELF];
 
 const WORKER_PERMISSIONS: readonly PermissionKey[] = [
   PERMISSIONS.ORG_READ,

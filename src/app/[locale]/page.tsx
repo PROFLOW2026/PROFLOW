@@ -101,6 +101,15 @@ export default async function LocaleRootPage({
     redirect({ href: '/onboarding', locale });
   }
 
+  await withOrgContext(async (context) => {
+    const { isEmployeeAppUser } = await import(
+      '@/modules/employee-app/application/load-employee-app-context'
+    );
+    if (isEmployeeAppUser(context)) {
+      redirect({ href: '/employee', locale });
+    }
+  });
+
   // Suspense around the dashboard body so AppShell (nav) can stream first paint
   // without waiting for org financial rollup — PWA splash dismisses on shell paint.
   const tCommon = await getTranslations('common');

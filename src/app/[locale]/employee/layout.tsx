@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, getTranslations } from 'next-intl/server';
+import { PwaBootstrap } from '@/modules/offline/ui/pwa-bootstrap';
 import { clientMessageNamespaces, pickClientMessages } from '@/shared/i18n/pick-client-messages';
 
 export async function generateMetadata({
@@ -34,6 +35,7 @@ export default async function EmployeeRootLayout({ children }: { children: React
 
   return (
     <NextIntlClientProvider messages={messages}>
+      <PwaBootstrap />
       <div className="min-h-dvh bg-[var(--pf-bg)]">{children}</div>
     </NextIntlClientProvider>
   );
