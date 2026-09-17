@@ -20,6 +20,39 @@ export function isWithinEmploymentRange(
   return true;
 }
 
+/** Employment period overlaps an inclusive business-date range (e.g. report month). */
+export function employmentOverlapsDateRange(
+  range: EmploymentRange,
+  fromDate: BusinessDate,
+  toDate: BusinessDate,
+): boolean {
+  if (range.hireDate && compareBusinessDates(range.hireDate, toDate) > 0) {
+    return false;
+  }
+  if (range.endDate && compareBusinessDates(range.endDate, fromDate) < 0) {
+    return false;
+  }
+  return true;
+}
+
+/** Clamp a period range to the employee's active employment within inclusive bounds. */
+export function effectiveEmploymentBoundsInRange(
+  range: EmploymentRange,
+  fromDate: BusinessDate,
+  toDate: BusinessDate,
+): { fromDate: BusinessDate; toDate: BusinessDate } | null {
+  if (!employmentOverlapsDateRange(range, fromDate, toDate)) {
+    return null;
+  }
+  const effectiveFrom =
+    range.hireDate && compareBusinessDates(range.hireDate, fromDate) > 0
+      ? range.hireDate
+      : fromDate;
+  const effectiveTo =
+    range.endDate && compareBusinessDates(range.endDate, toDate) < 0 ? range.endDate : toDate;
+  return { fromDate: effectiveFrom, toDate: effectiveTo };
+}
+
 export type AttendanceDayState =
   | 'not_applicable'
   | 'worked'

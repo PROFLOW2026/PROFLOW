@@ -4,6 +4,10 @@ import { resolveOrgWorkWeekdays } from '@/modules/tenancy';
 import { CANONICAL_WORK_WEEKDAYS } from '@/modules/tenancy/domain/labor-cost-defaults';
 import { findEmployeeById, getMonthlyAttendanceGrid } from '@/modules/workforce';
 import { getEmployeePeriodSummary } from '@/modules/workforce/application/employee-period-summary';
+import {
+  effectiveEmploymentBoundsInRange,
+  employmentOverlapsDateRange,
+} from '@/modules/workforce/domain/employment-active-range';
 import type { OrgContext } from '@/shared/auth/context';
 import { businessDate, todayInTimeZone } from '@/shared/dates';
 import { formatMoney } from '@/shared/money/format';
@@ -63,13 +67,28 @@ export async function buildMonthlyWorkforceReport(
   const includeCost = hasPermission(context, PERMISSIONS.WORKFORCE_COST_READ);
 
   const employeeSections: ReportSection[] = [];
+  const monthFrom = businessDate(fromDate);
+  const monthTo = businessDate(toDate);
 
   for (const row of grid.rows) {
     const employee = await findEmployeeById(context.db, context.organizationId, row.employeeId);
+    if (!employee) continue;
+
+    const employment = {
+      hireDate: employee.hireDate ? businessDate(employee.hireDate) : null,
+      endDate: employee.endDate ? businessDate(employee.endDate) : null,
+    };
+    if (!employmentOverlapsDateRange(employment, monthFrom, monthTo)) {
+      continue;
+    }
+
+    const effectiveBounds = effectiveEmploymentBoundsInRange(employment, monthFrom, monthTo);
+    if (!effectiveBounds) continue;
+
     const summary = await getEmployeePeriodSummary(context, {
       employeeId: row.employeeId,
-      fromDate: businessDate(fromDate),
-      toDate: businessDate(toDate),
+      fromDate: effectiveBounds.fromDate,
+      toDate: effectiveBounds.toDate,
       workWeekdays,
     });
 
@@ -197,7 +216,7 @@ export async function buildMonthlyWorkforceReport(
           },
           {
             label: ctx.locale.startsWith('he') ? 'עובדים בדוח' : 'Employees',
-            value: String(grid.rows.length),
+            value: String(employeeSections.length),
           },
           {
             label: ctx.locale.startsWith('he') ? 'טווח תאריכים' : 'Date range',

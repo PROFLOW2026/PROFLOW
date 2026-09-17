@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   adjustMonthlyCompensationForUnpaidAbsence,
+  effectiveEmploymentBoundsInRange,
+  employmentOverlapsDateRange,
   isWithinEmploymentRange,
   resolveAttendanceDayState,
 } from '@/modules/workforce/domain/employment-active-range';
@@ -31,6 +33,29 @@ describe('Owner business decisions — employment active range', () => {
         endDate: null,
       }),
     ).toBe(true);
+  });
+
+  it('excludes employment that ends before a report month', () => {
+    expect(
+      employmentOverlapsDateRange(
+        { hireDate: businessDate('2025-01-01'), endDate: businessDate('2026-02-28') },
+        businessDate('2026-03-01'),
+        businessDate('2026-03-31'),
+      ),
+    ).toBe(false);
+  });
+
+  it('keeps full-month bounds when employment spans the whole month', () => {
+    expect(
+      effectiveEmploymentBoundsInRange(
+        { hireDate: businessDate('2025-01-01'), endDate: null },
+        businessDate('2026-01-01'),
+        businessDate('2026-01-31'),
+      ),
+    ).toEqual({
+      fromDate: businessDate('2026-01-01'),
+      toDate: businessDate('2026-01-31'),
+    });
   });
 
   it('marks pre-employment as not applicable, not missing', () => {

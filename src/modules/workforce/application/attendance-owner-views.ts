@@ -15,6 +15,10 @@ import { listEmployees } from '../data/employees.repository';
 import { listTimeEntries } from '../data/time-entries.repository';
 import { employeeRequiresAttendanceReporting } from '../domain/attendance-requirement';
 import { isConfiguredOrgWorkday } from '../domain/attendance-workday';
+import {
+  employmentOverlapsDateRange,
+  isWithinEmploymentRange,
+} from '../domain/employment-active-range';
 import type { TimeApprovalStatus, TimeEntryListItem } from '../domain/types';
 
 export type TodayApprovalStatus = TimeApprovalStatus | 'awaiting' | 'missing';
@@ -254,13 +258,20 @@ export async function getMonthlyAttendanceGrid(
   const workdaySet = new Set(input.workWeekdays);
 
   const employees = await listEmployees(context.db, context.organizationId, {
-    status: 'active',
-    asOfDate: input.today,
+    status: 'all',
+    asOfDate: toDate,
   });
   const scopedEmployees = employees.filter((employee) => {
     if (employee.archivedAt) return false;
-    if (input.employeeId) return employee.id === input.employeeId;
-    return true;
+    if (input.employeeId && employee.id !== input.employeeId) return false;
+    return employmentOverlapsDateRange(
+      {
+        hireDate: employee.hireDate ? businessDate(employee.hireDate) : null,
+        endDate: employee.endDate ? businessDate(employee.endDate) : null,
+      },
+      fromDate,
+      toDate,
+    );
   });
 
   const { days: attendanceDays, timeEntries, outcomes } = await loadOwnerMonthFacts(
@@ -289,15 +300,24 @@ export async function getMonthlyAttendanceGrid(
   }
 
   const rows: MonthlyAttendanceEmployeeRow[] = scopedEmployees.map((employee) => {
+    const employment = {
+      hireDate: employee.hireDate ? businessDate(employee.hireDate) : null,
+      endDate: employee.endDate ? businessDate(employee.endDate) : null,
+    };
     const cells: MonthlyAttendanceCell[] = days.map((workDate) => {
       const isWorkday = workdaySet.has(weekdayUtc(workDate));
-      const attendanceRequired =
-        employeeRequiresAttendanceReporting(employee) && isWorkday;
       const day = dayByEmployeeDate.get(`${employee.id}:${workDate}`) ?? null;
       const explicitOutcome = outcomeByEmployeeDate.get(`${employee.id}:${workDate}`) ?? null;
       const entries = timeByEmployeeDate.get(`${employee.id}:${workDate}`) ?? [];
       const hours = sumHours(entries) ?? hoursFromClock(day?.clockInAt ?? null, day?.clockOutAt ?? null);
       const projectNames = uniqueProjectNames(entries);
+
+      if (!isWithinEmploymentRange(businessDate(workDate), employment)) {
+        return { workDate, kind: 'exempt', dayId: null, hours, projectNames };
+      }
+
+      const attendanceRequired =
+        employeeRequiresAttendanceReporting(employee) && isWorkday;
 
       if (!isWorkday && !day && !explicitOutcome && entries.length === 0) {
         return { workDate, kind: 'dayOff', dayId: null, hours, projectNames };
