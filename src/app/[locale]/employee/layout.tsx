@@ -11,7 +11,7 @@ export default async function EmployeeRootLayout({ children }: { children: React
 
   return (
     <NextIntlClientProvider messages={messages}>
-      <div className="min-h-dvh bg-[var(--pf-bg)]">{children}</div>
+      <div className="bg-[var(--pf-bg)]">{children}</div>
     </NextIntlClientProvider>
   );
 }

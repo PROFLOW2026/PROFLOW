@@ -146,6 +146,8 @@
     --pf-bottomnav-height: 4rem;
     --pf-bottomnav-safe-area: env(safe-area-inset-bottom, 0px);
     --pf-bottomnav-total-height: calc(var(--pf-bottomnav-height) + var(--pf-bottomnav-safe-area));
+    /* Employee main clearance: bottom nav + safe area + 1px top border (fixed overlay). */
+    --pf-employee-main-bottom: calc(var(--pf-bottomnav-total-height) + 1px);
     /* Mobile FAB (size-14) sits above the bottom nav; content must clear both. */
     --pf-fab-size: 3.5rem;
     --pf-fab-gap: 1rem;
@@ -346,6 +348,17 @@
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /*
+   * Employee App: body min-h-dvh uses dynamic viewport height, which exceeds the
+   * visible mobile viewport when browser chrome is shown — causing empty scroll.
+   */
+  html:has([data-pf-employee-app]),
+  body:has([data-pf-employee-app]) {
+    min-height: auto;
+    height: auto;
     overflow: hidden;
   }
 }
