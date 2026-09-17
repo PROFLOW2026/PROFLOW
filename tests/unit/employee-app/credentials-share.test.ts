@@ -20,6 +20,9 @@ describe('credentials-share', () => {
   it('builds Hebrew share message with login details', () => {
     const message = buildCredentialsShareMessage(baseInput);
     expect(message).toContain('שלום מוחמד נציר');
+    expect(message).toContain('הוזמנת על ידי');
+    expect(message).toContain('ProjectFlow');
+    expect(message).toContain(baseInput.organizationName);
     expect(message).toContain(baseInput.loginUrl);
     expect(message).toContain('2485');
     expect(message).toContain('123456');

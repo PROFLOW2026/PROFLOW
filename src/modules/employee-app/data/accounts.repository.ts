@@ -43,6 +43,25 @@ export async function findEmployeeAppAccountByEmployeeId(
   return row ? mapRow(row) : null;
 }
 
+export async function findEmployeeAppAccountSealedPinByEmployeeId(
+  db: DbExecutor,
+  organizationId: string,
+  employeeId: string,
+): Promise<{ account: EmployeeAppAccountRecord; temporaryPinSealed: string | null } | null> {
+  const [row] = await db
+    .select()
+    .from(employeeAppAccounts)
+    .where(
+      and(
+        eq(employeeAppAccounts.organizationId, organizationId),
+        eq(employeeAppAccounts.employeeId, employeeId),
+      ),
+    )
+    .limit(1);
+  if (!row) return null;
+  return { account: mapRow(row), temporaryPinSealed: row.temporaryPinSealed ?? null };
+}
+
 export async function findEmployeeAppAccountByUserId(
   db: DbExecutor,
   organizationId: string,
@@ -114,6 +133,7 @@ export async function insertEmployeeAppAccount(
     status: EmployeeAppStatus;
     pinMustChange: boolean;
     temporaryPinExpiresAt: Date | null;
+    temporaryPinSealed?: string | null;
     createdByUserId: string;
   },
 ): Promise<EmployeeAppAccountRecord> {
@@ -129,6 +149,7 @@ export async function insertEmployeeAppAccount(
       status: input.status,
       pinMustChange: input.pinMustChange,
       temporaryPinExpiresAt: input.temporaryPinExpiresAt,
+      temporaryPinSealed: input.temporaryPinSealed ?? null,
       createdByUserId: input.createdByUserId,
     })
     .returning();
@@ -145,6 +166,7 @@ export async function updateEmployeeAppAccount(
     usernameNormalized: string;
     pinMustChange: boolean;
     temporaryPinExpiresAt: Date | null;
+    temporaryPinSealed: string | null;
     firstLoginAt: Date | null;
     lastLoginAt: Date | null;
     accessStartsAt: Date | null;

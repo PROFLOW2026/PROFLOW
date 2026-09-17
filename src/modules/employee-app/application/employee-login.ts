@@ -165,6 +165,7 @@ export async function employeeSetPermanentPin(input: {
   await updateEmployeeAppAccount(db, account.organizationId, account.id, {
     pinMustChange: false,
     temporaryPinExpiresAt: null,
+    temporaryPinSealed: null,
     firstLoginAt: account.firstLoginAt ?? new Date(),
     status: 'active',
   });

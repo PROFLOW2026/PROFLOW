@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useMemo, useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -26,7 +27,6 @@ import {
 import {
   deriveEmployeeAccessStatusView,
   hasActiveTempPinWindow,
-  hasPersonalPinSet,
 } from '@/modules/employee-app/domain/access-status';
 import {
   buildEmployeeLoginUrl,
@@ -53,7 +53,6 @@ interface ShareableCredentials {
   readonly username: string;
   readonly temporaryPin: string;
   readonly temporaryPinExpiresAt: string;
-  readonly loginUrl: string;
 }
 
 interface Props {
@@ -68,6 +67,7 @@ interface Props {
   readonly account: EmployeeAppAccountRecord | null;
   readonly grants: readonly EmployeePermissionGrantRecord[];
   readonly documentCategories: ReadonlyMap<DocumentCategory, boolean>;
+  readonly shareableCredentials: ShareableCredentials | null;
 }
 
 const PRESET_SELECT_KEYS = EMPLOYEE_PRESETS.filter((preset) => preset.key !== 'custom');
@@ -79,7 +79,6 @@ function scopeLabelKey(scope: PermissionScope): string {
 export function EmployeeAppAccessPanel({
   employeeId,
   employeeName,
-  employeeNumber,
   employeePhone,
   employeeEmail,
   organizationName,
@@ -88,6 +87,7 @@ export function EmployeeAppAccessPanel({
   account,
   grants: initialGrants,
   documentCategories: initialCategories,
+  shareableCredentials: serverShareableCredentials,
 }: Props) {
   const t = useTranslations('employeeApp.admin');
   const tStatus = useTranslations('employeeApp.status');
@@ -95,6 +95,7 @@ export function EmployeeAppAccessPanel({
   const tPermissions = useTranslations('employeeApp.permissions');
   const tDocCategories = useTranslations('documents.categories');
   const toast = useOptionalToast();
+  const router = useRouter();
 
   const loginUrl = useMemo(
     () => buildEmployeeLoginUrl(appOrigin, locale, account?.username),
@@ -123,7 +124,8 @@ export function EmployeeAppAccessPanel({
   const [grantState, setGrantState] = useState(() => initialGrantMap);
   const [categoryState, setCategoryState] = useState(() => initialCategorySet);
   const [selectedPreset, setSelectedPreset] = useState<EmployeePresetKey>(() => initialPreset);
-  const [shareCredentials, setShareCredentials] = useState<ShareableCredentials | null>(null);
+  const [actionShareableCredentials, setActionShareableCredentials] =
+    useState<ShareableCredentials | null>(null);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [saveMessage, setSaveMessage] = useState<'success' | 'error' | null>(null);
   const [pending, startTransition] = useTransition();
@@ -131,12 +133,32 @@ export function EmployeeAppAccessPanel({
   const documentsReadGranted = grantState.get(PERMISSIONS.DOCUMENTS_READ)?.granted === true;
   const statusView = account ? deriveEmployeeAccessStatusView(account) : null;
   const tempPinActive = account ? hasActiveTempPinWindow(account) : false;
-  const personalPinSet = account ? hasPersonalPinSet(account) : false;
+
+  const effectiveShareableCredentials =
+    serverShareableCredentials ?? actionShareableCredentials;
   const canShare = Boolean(
-    shareCredentials &&
-      new Date(shareCredentials.temporaryPinExpiresAt) > new Date() &&
-      shareCredentials.temporaryPin,
+    effectiveShareableCredentials &&
+      new Date(effectiveShareableCredentials.temporaryPinExpiresAt) > new Date() &&
+      effectiveShareableCredentials.temporaryPin,
   );
+
+  const shareDialogCredentials = useMemo(() => {
+    if (!canShare || !effectiveShareableCredentials) return null;
+    return {
+      employeeName,
+      organizationName,
+      username: effectiveShareableCredentials.username,
+      temporaryPin: effectiveShareableCredentials.temporaryPin,
+      temporaryPinExpiresAt: new Date(effectiveShareableCredentials.temporaryPinExpiresAt),
+      loginUrl,
+    };
+  }, [
+    canShare,
+    effectiveShareableCredentials,
+    employeeName,
+    organizationName,
+    loginUrl,
+  ]);
 
   const syncPresetDetection = useCallback(
     (grants: Map<PermissionKey, EditorGrantState>, categories: Set<DocumentCategory>) => {
@@ -146,21 +168,8 @@ export function EmployeeAppAccessPanel({
   );
 
   function openShareDialog(credentials: ShareableCredentials) {
-    setShareCredentials(credentials);
+    setActionShareableCredentials(credentials);
     setShareDialogOpen(true);
-  }
-
-  function buildSharePayload(input: {
-    username: string;
-    temporaryPin: string;
-    temporaryPinExpiresAt: string;
-  }): ShareableCredentials {
-    return {
-      username: input.username,
-      temporaryPin: input.temporaryPin,
-      temporaryPinExpiresAt: input.temporaryPinExpiresAt,
-      loginUrl,
-    };
   }
 
   function run(action: () => Promise<unknown>) {
@@ -270,19 +279,23 @@ export function EmployeeAppAccessPanel({
       documentCategories: [...categoryState],
     });
 
-    openShareDialog(buildSharePayload(result));
+    openShareDialog({
+      username: result.username,
+      temporaryPin: result.temporaryPin,
+      temporaryPinExpiresAt: result.temporaryPinExpiresAt,
+    });
+    router.refresh();
   }
 
   async function handleResetPin() {
     if (!account) return;
     const result = await resetEmployeeAppPinAction(employeeId);
-    openShareDialog(
-      buildSharePayload({
-        username: account.username,
-        temporaryPin: result.temporaryPin,
-        temporaryPinExpiresAt: result.temporaryPinExpiresAt,
-      }),
-    );
+    openShareDialog({
+      username: account.username,
+      temporaryPin: result.temporaryPin,
+      temporaryPinExpiresAt: result.temporaryPinExpiresAt,
+    });
+    router.refresh();
   }
 
   async function handleCreateTempPin() {
@@ -413,141 +426,100 @@ export function EmployeeAppAccessPanel({
   const accessDetailsSection =
     account && account.status !== 'inactive' ? (
       <section className="space-y-4">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <AccessInfoField
-            label={t('status')}
-            value={
-              <span className="flex flex-col gap-0.5">
-                <span>{tStatus(statusView!.statusKey)}</span>
-                {statusView?.hintKey ? (
-                  <span className="text-xs font-normal text-[var(--pf-text-secondary)]">
-                    {tStatus(statusView.hintKey)}
-                  </span>
-                ) : null}
-              </span>
-            }
-          />
-          <AccessInfoField
-            label={t('appUsername')}
-            value={account.username}
-            valueDir="ltr"
-            actions={
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => void copyText(account.username, t('usernameCopied'))}
-              >
-                {t('copy')}
-              </Button>
-            }
-          />
-          {employeeNumber ? (
-            <AccessInfoField
-              label={t('employeeNumber')}
-              value={employeeNumber}
-              valueDir="ltr"
-              hint={t('employeeNumberHint')}
-            />
-          ) : null}
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {personalPinSet ? (
-            <AccessInfoField label={t('personalPinLabel')} value={t('personalPinSet')} />
-          ) : tempPinActive && shareCredentials?.temporaryPin ? (
-            <>
-              <AccessInfoField
-                label={t('tempPinLabel')}
-                value={shareCredentials.temporaryPin}
-                valueDir="ltr"
-                actions={
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() =>
-                      void copyText(shareCredentials.temporaryPin, t('pinCopied'))
-                    }
-                  >
-                    {t('copy')}
-                  </Button>
-                }
-              />
-              <AccessInfoField
-                label={t('tempPinExpiry')}
-                value={formatCredentialExpiry(new Date(shareCredentials.temporaryPinExpiresAt))}
-                valueDir="ltr"
-              />
-            </>
-          ) : tempPinActive && account.temporaryPinExpiresAt ? (
-            <AccessInfoField
-              label={t('tempPinLabel')}
-              value={t('tempPinActiveHidden')}
-              hint={formatCredentialExpiry(account.temporaryPinExpiresAt)}
-            />
-          ) : (
-            <AccessInfoField label={t('tempPinLabel')} value={t('tempPinInactive')} />
-          )}
-        </div>
-
         <AccessInfoField
-          label={t('loginLinkLabel')}
-          value={<span className="break-all text-xs font-normal">{loginUrl}</span>}
-          valueDir="ltr"
-          actions={
-            <div className="flex flex-wrap gap-1">
-              <Button type="button" variant="ghost" size="sm" asChild>
-                <a href={loginUrl} target="_blank" rel="noopener noreferrer">
-                  {t('openLoginPage')}
-                </a>
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => void copyText(loginUrl, t('linkCopied'))}
-              >
-                {t('copy')}
-              </Button>
-            </div>
+          label={t('status')}
+          value={
+            <span className="flex flex-col gap-0.5">
+              <span>{tStatus(statusView!.statusKey)}</span>
+              {statusView?.hintKey ? (
+                <span className="text-xs font-normal text-[var(--pf-text-secondary)]">
+                  {tStatus(statusView.hintKey)}
+                </span>
+              ) : null}
+            </span>
           }
         />
+
+        <AccessInfoField
+          label={t('username')}
+          value={account.username}
+          valueDir="ltr"
+          actions={
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => void copyText(account.username, t('usernameCopied'))}
+            >
+              {t('copy')}
+            </Button>
+          }
+        />
+
+        {canShare && effectiveShareableCredentials ? (
+          <>
+            <AccessInfoField
+              label={t('tempPinLabel')}
+              value={effectiveShareableCredentials.temporaryPin}
+              valueDir="ltr"
+              actions={
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() =>
+                    void copyText(effectiveShareableCredentials.temporaryPin, t('pinCopied'))
+                  }
+                >
+                  {t('copy')}
+                </Button>
+              }
+            />
+            <AccessInfoField
+              label={t('tempPinExpiry')}
+              value={formatCredentialExpiry(
+                new Date(effectiveShareableCredentials.temporaryPinExpiresAt),
+              )}
+              valueDir="ltr"
+            />
+          </>
+        ) : (
+          <AccessInfoField label={t('tempPinLabel')} value={t('tempPinInactive')} />
+        )}
 
         <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
           {canShare ? (
             <Button type="button" disabled={pending} onClick={() => setShareDialogOpen(true)}>
               {t('shareCredentials')}
             </Button>
-          ) : tempPinActive ? (
-            <Button type="button" variant="secondary" disabled={pending} onClick={() => run(handleCreateTempPin)}>
+          ) : (
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={pending}
+              onClick={() => run(handleCreateTempPin)}
+            >
               {t('createTempPin')}
             </Button>
-          ) : (
-            <>
-              <p className="w-full text-sm text-[var(--pf-text-secondary)]">{t('tempPinInactive')}</p>
-              <Button type="button" variant="secondary" disabled={pending} onClick={() => run(handleCreateTempPin)}>
-                {t('createTempPin')}
-              </Button>
-            </>
           )}
-          {canShare ? (
-            <>
-              <Button type="button" variant="secondary" asChild>
-                <a href={loginUrl} target="_blank" rel="noopener noreferrer">
-                  {t('openLoginPage')}
-                </a>
-              </Button>
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => void copyText(loginUrl, t('linkCopied'))}
-              >
-                {t('copyLoginLink')}
-              </Button>
-            </>
-          ) : null}
+          <Button type="button" variant="ghost" size="sm" asChild>
+            <a href={loginUrl} target="_blank" rel="noopener noreferrer">
+              {t('openLoginPage')}
+            </a>
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => void copyText(loginUrl, t('linkCopied'))}
+          >
+            {t('copyLoginLink')}
+          </Button>
         </div>
+
+        {!canShare && tempPinActive ? (
+          <p className="text-xs text-[var(--pf-text-secondary)]">{t('legacyTempPinHint')}</p>
+        ) : null}
       </section>
     ) : (
       <section className="space-y-4">
@@ -648,18 +620,11 @@ export function EmployeeAppAccessPanel({
         </CollapsibleSection>
       ) : null}
 
-      {shareCredentials && canShare ? (
+      {shareDialogCredentials ? (
         <EmployeeCredentialsShareDialog
           open={shareDialogOpen}
           onOpenChange={setShareDialogOpen}
-          credentials={{
-            employeeName,
-            organizationName,
-            username: shareCredentials.username,
-            temporaryPin: shareCredentials.temporaryPin,
-            temporaryPinExpiresAt: new Date(shareCredentials.temporaryPinExpiresAt),
-            loginUrl: shareCredentials.loginUrl,
-          }}
+          credentials={shareDialogCredentials}
           employeePhone={employeePhone}
           employeeEmail={employeeEmail}
         />

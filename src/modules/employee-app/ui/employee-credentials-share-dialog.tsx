@@ -59,9 +59,8 @@ export function EmployeeCredentialsShareDialog({
         </DialogHeader>
 
         <div className="flex flex-col gap-4">
-          <AccessInfoField label={t('shareEmployeeName')} value={credentials.employeeName} />
           <AccessInfoField
-            label={t('appUsername')}
+            label={t('username')}
             value={credentials.username}
             valueDir="ltr"
             actions={
@@ -91,13 +90,6 @@ export function EmployeeCredentialsShareDialog({
             }
           />
           <AccessInfoField label={t('tempPinExpiry')} value={expiryLabel} valueDir="ltr" />
-          <AccessInfoField
-            label={t('loginLinkLabel')}
-            value={
-              <span className="break-all text-xs font-normal">{credentials.loginUrl}</span>
-            }
-            valueDir="ltr"
-          />
 
           <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
             <Button type="button" asChild variant="secondary" className="flex-1">
@@ -119,14 +111,6 @@ export function EmployeeCredentialsShareDialog({
               onClick={() => void copyText(message, t('messageCopied'))}
             >
               {t('copyMessage')}
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              className="flex-1"
-              onClick={() => void copyText(credentials.loginUrl, t('linkCopied'))}
-            >
-              {t('copyLoginLink')}
             </Button>
           </div>
         </div>

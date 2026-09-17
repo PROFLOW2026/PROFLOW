@@ -15,9 +15,12 @@ import { ensureRoleAssigned, findRoleByKey } from '@/modules/rbac';
 import { findEmployeeById, updateEmployeeById } from '@/modules/workforce';
 import {
   findEmployeeAppAccountByEmployeeId,
+  findEmployeeAppAccountSealedPinByEmployeeId,
   insertEmployeeAppAccount,
   updateEmployeeAppAccount,
 } from '../data/accounts.repository';
+import { resolveShareableCredentials } from './shareable-credentials';
+import { sealTemporaryPin } from '../domain/temporary-pin-seal';
 import {
   deleteEmployeePermissionGrants,
   replaceEmployeeDocumentCategoryGrants,
@@ -200,6 +203,7 @@ export async function activateEmployeeAppAccess(
       status: 'invited',
       pinMustChange: true,
       temporaryPinExpiresAt,
+      temporaryPinSealed: sealTemporaryPin(temporaryPin),
       createdByUserId: context.userId,
     }));
 
@@ -209,6 +213,7 @@ export async function activateEmployeeAppAccess(
     usernameNormalized: usernameCheck.normalized,
     pinMustChange: true,
     temporaryPinExpiresAt,
+    temporaryPinSealed: sealTemporaryPin(temporaryPin),
     disabledAt: null,
     failedLoginCount: 0,
     lockedUntil: null,
@@ -329,6 +334,7 @@ export async function resetEmployeeAppPin(
   await updateEmployeeAppAccount(context.db, context.organizationId, account.id, {
     pinMustChange: true,
     temporaryPinExpiresAt,
+    temporaryPinSealed: sealTemporaryPin(temporaryPin),
     failedLoginCount: 0,
     lockedUntil: null,
     status: account.status === 'inactive' ? 'invited' : account.status,
@@ -414,11 +420,12 @@ export async function saveEmployeeAppGrants(
 
 export async function getEmployeeAppAdminView(context: OrgContext, employeeId: string) {
   await assertWorkforceManage(context);
-  const account = await findEmployeeAppAccountByEmployeeId(
+  const row = await findEmployeeAppAccountSealedPinByEmployeeId(
     context.db,
     context.organizationId,
     employeeId,
   );
+  const account = row?.account ?? null;
   const { listEmployeePermissionGrants, listEmployeeDocumentCategoryGrants } = await import(
     '../data/grants.repository'
   );
@@ -434,5 +441,15 @@ export async function getEmployeeAppAdminView(context: OrgContext, employeeId: s
     ? await listRecentEmployeeAppAuditEvents(context.db, context.organizationId, employeeId)
     : [];
 
-  return { account, grants, categories, audit };
+  const shareableCredentials =
+    account && row
+      ? await resolveShareableCredentials(
+          context.db,
+          context.organizationId,
+          account,
+          row.temporaryPinSealed,
+        )
+      : null;
+
+  return { account, grants, categories, audit, shareableCredentials };
 }

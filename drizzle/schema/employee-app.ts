@@ -75,6 +75,8 @@ export const employeeAppAccounts = pgTable(
     authEmail: text('auth_email').notNull(),
     pinMustChange: boolean('pin_must_change').notNull().default(true),
     temporaryPinExpiresAt: timestamp('temporary_pin_expires_at', { withTimezone: true }),
+    /** AES-256-GCM sealed temp PIN — owner share only; never logged in audit. */
+    temporaryPinSealed: text('temporary_pin_sealed'),
     firstLoginAt: timestamp('first_login_at', { withTimezone: true }),
     lastLoginAt: timestamp('last_login_at', { withTimezone: true }),
     accessStartsAt: timestamp('access_starts_at', { withTimezone: true }),

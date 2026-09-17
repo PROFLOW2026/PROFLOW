@@ -335,6 +335,16 @@ export default async function EmployeeDetailPage({
           account={appAdminView?.account ?? null}
           grants={appAdminView?.grants ?? []}
           documentCategories={appAdminView?.categories ?? new Map()}
+          shareableCredentials={
+            appAdminView?.shareableCredentials
+              ? {
+                  username: appAdminView.shareableCredentials.username,
+                  temporaryPin: appAdminView.shareableCredentials.temporaryPin,
+                  temporaryPinExpiresAt:
+                    appAdminView.shareableCredentials.temporaryPinExpiresAt.toISOString(),
+                }
+              : null
+          }
         />
       ) : null}
 

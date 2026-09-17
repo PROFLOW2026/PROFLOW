@@ -631,6 +631,13 @@
                         "when":  1789277600000,
                         "tag":  "0090_employee_app_global_username",
                         "breakpoints":  true
+                    },
+                    {
+                        "idx":  90,
+                        "version":  "7",
+                        "when":  1789364000000,
+                        "tag":  "0091_employee_app_temp_pin_sealed",
+                        "breakpoints":  true
                     }
                 ]
 }

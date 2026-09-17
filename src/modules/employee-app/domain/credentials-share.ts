@@ -33,7 +33,7 @@ export function buildCredentialsShareMessage(input: EmployeeCredentialsShareInpu
   return [
     `שלום ${input.employeeName},`,
     '',
-    `נפתחה עבורך גישה לאפליקציית העובדים של ${input.organizationName}.`,
+    `הוזמנת על ידי ${input.organizationName} להשתמש באפליקציית העובדים של ProjectFlow.`,
     '',
     'קישור לכניסה:',
     input.loginUrl,
