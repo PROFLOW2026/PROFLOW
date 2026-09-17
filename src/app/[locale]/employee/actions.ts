@@ -1,9 +1,11 @@
 'use server';
 
+import { revalidatePath } from 'next/cache';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { redirect } from '@/shared/i18n/navigation';
 import { getAdminDb } from '@/shared/db/client';
 import { getSessionState } from '@/shared/auth/session';
+import { createSupabaseServerClient, isSupabaseConfigured } from '@/shared/supabase/server';
 import {
   employeeLogin,
   employeeSetPermanentPin,
@@ -40,6 +42,17 @@ export async function employeeLoginAction(
     console.error('[employeeLoginAction] unexpected failure', error);
     return { error: t('errors.notConfigured') };
   }
+}
+
+/** Employee App sign-out — redirects to employee login, not Owner sign-in. */
+export async function employeeSignOutAction(): Promise<void> {
+  if (isSupabaseConfigured()) {
+    const supabase = await createSupabaseServerClient();
+    await supabase.auth.signOut();
+  }
+
+  revalidatePath('/employee', 'layout');
+  redirect({ href: '/employee/login', locale: await getLocale() });
 }
 
 export async function employeeSetPinAction(

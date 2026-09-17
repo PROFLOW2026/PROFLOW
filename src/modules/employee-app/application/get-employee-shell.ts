@@ -17,23 +17,9 @@ export interface EmployeeShellData {
   readonly clock: Awaited<ReturnType<typeof getAttendanceClockSurface>> | null;
 }
 
-export async function getEmployeeShellData(context: OrgContext): Promise<EmployeeShellData> {
-  if (!isEmployeeAppUser(context)) {
-    return {
-      employeeName: '',
-      linked: false,
-      nav: [],
-      clock: null,
-    };
-  }
-
-  const employee = await findEmployeeByUserId(
-    context.db,
-    context.organizationId,
-    context.userId,
-  );
-
-  const nav: EmployeeNavItem[] = [
+/** Employee bottom nav — visibility driven only by effective grants (+ always home). */
+export function buildEmployeeNavItems(context: OrgContext): EmployeeNavItem[] {
+  return [
     { href: '/employee', labelKey: 'employeeApp.nav.home', visible: true },
     {
       href: '/employee/attendance',
@@ -64,6 +50,25 @@ export async function getEmployeeShellData(context: OrgContext): Promise<Employe
       visible: employeeHasPermission(context, PERMISSIONS.DOCUMENTS_READ),
     },
   ];
+}
+
+export async function getEmployeeShellData(context: OrgContext): Promise<EmployeeShellData> {
+  if (!isEmployeeAppUser(context)) {
+    return {
+      employeeName: '',
+      linked: false,
+      nav: [],
+      clock: null,
+    };
+  }
+
+  const employee = await findEmployeeByUserId(
+    context.db,
+    context.organizationId,
+    context.userId,
+  );
+
+  const nav = buildEmployeeNavItems(context);
 
   let clock: EmployeeShellData['clock'] = null;
   if (employee && employeeHasPermission(context, PERMISSIONS.ATTENDANCE_SELF)) {

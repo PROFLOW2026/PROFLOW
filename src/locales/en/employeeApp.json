@@ -30,6 +30,7 @@
   "back": {
     "label": "Back"
   },
+  "signOut": "Sign out",
   "pwa": {
     "name": "ProjectFlow Employee",
     "shortName": "ProjectFlow"

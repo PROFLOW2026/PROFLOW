@@ -30,6 +30,7 @@
   "back": {
     "label": "חזרה"
   },
+  "signOut": "התנתקות",
   "pwa": {
     "name": "ProjectFlow עובדים",
     "shortName": "ProjectFlow"
