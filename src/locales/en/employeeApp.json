@@ -36,6 +36,8 @@
     "title": "App access",
     "status": "Status",
     "username": "Username",
+    "appUsername": "App username",
+    "employeeNumber": "Employee number",
     "firstLogin": "First login",
     "lastLogin": "Last login",
     "tempPinExpiry": "Temporary PIN expiry",
@@ -49,10 +51,15 @@
     "disable": "Disable app access",
     "credentialsTitle": "Login credentials to share",
     "preset": "Permission preset",
-    "permissions": "Permissions",
+    "permissions": "Employee permissions",
     "documentCategories": "Document categories",
+    "documentCategoriesHint": "Document types this employee can view",
+    "scopeLabel": "Access scope",
+    "noAccessHint": "This employee has no app access yet. Enable access and set permissions.",
     "audit": "Activity log",
-    "savePermissions": "Save permissions"
+    "savePermissions": "Save permissions",
+    "permissionsSaved": "Permissions saved successfully",
+    "permissionsSaveFailed": "Could not save permissions. Try again."
   },
   "presets": {
     "fieldWorker": "Field worker",
@@ -60,7 +67,57 @@
     "foreman": "Foreman",
     "projectManager": "Project manager",
     "office": "Office",
-    "management": "Management"
+    "management": "Management",
+    "custom": "Custom"
+  },
+  "permissions": {
+    "groups": {
+      "attendance": "Attendance",
+      "time": "Work hours",
+      "projects": "Projects",
+      "tasks": "Tasks",
+      "documents": "Documents",
+      "workforce": "Employees",
+      "clients": "Clients",
+      "vendors": "Vendors / subcontractors",
+      "expenses": "Expenses",
+      "financials": "Financials",
+      "forms": "Reports"
+    },
+    "items": {
+      "attendanceSelf": "View own attendance",
+      "attendanceRead": "View employee attendance",
+      "attendanceManage": "Manage attendance",
+      "timeManage": "Log / view hours",
+      "timeApprove": "Approve hours",
+      "projectsRead": "View projects",
+      "projectsManage": "Manage projects",
+      "planningRead": "Planning / schedule",
+      "tasksRead": "View tasks",
+      "tasksManage": "Manage tasks",
+      "serviceRead": "View service calls",
+      "documentsRead": "View documents",
+      "documentsManage": "Manage documents",
+      "workforceRead": "View employees",
+      "workforceManage": "Manage employees",
+      "workforceCostRead": "View employee costs",
+      "clientsRead": "View clients",
+      "clientsManage": "Manage clients",
+      "vendorsRead": "View vendors",
+      "vendorsManage": "Manage vendors",
+      "expensesRead": "View expenses",
+      "expensesCreate": "Create expenses",
+      "projectFinancialsRead": "View project financials",
+      "billingRead": "View billing",
+      "formsRead": "View forms / reports",
+      "formsSubmit": "Submit forms / reports"
+    },
+    "scopes": {
+      "self_only": "Self only",
+      "assigned_only": "Assigned projects only",
+      "granted_projects": "Selected projects",
+      "all_organization": "All organization projects"
+    }
   },
   "status": {
     "inactive": "Inactive",
