@@ -49,6 +49,7 @@ import {
   type AttendanceOutcomeChangeScope,
 } from './attendance-outcomes';
 import {
+  ensurePayrollObligationFromAccrual,
   syncPayrollExpectedFromLaborRecompute,
   type PayrollSyncFromLabor,
 } from './payroll-payments';
@@ -358,12 +359,11 @@ export async function recomputeMonthlyEmployeeCostForOpenMonth(
   input: {
     readonly employeeId: string;
     readonly yearMonth: string;
-    /** Attendance path must use updateExistingOnly — never invent payroll rows. */
+    /** @deprecated Ignored — recompute never INSERTs payroll rows. */
     readonly payrollSync?: PayrollSyncFromLabor;
   },
 ): Promise<MonthlyCostRecomputeResult> {
   const { employeeId, yearMonth } = input;
-  const payrollSync = input.payrollSync ?? 'upsert';
   const base = {
     skipped: true as const,
     yearMonth,
@@ -548,7 +548,13 @@ export async function recomputeMonthlyEmployeeCostForOpenMonth(
     yearMonth,
     expectedAmount: knownAmountStr,
     currency,
-    mode: payrollSync,
+  });
+
+  await ensurePayrollObligationFromAccrual(context, {
+    employeeId,
+    yearMonth,
+    expectedAmount: knownAmountStr,
+    currency,
   });
 
   const { tryRecomputeOpenGeneralCostMonth } = await import(

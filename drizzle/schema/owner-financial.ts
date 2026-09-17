@@ -41,6 +41,8 @@ export const employeePayrollPayments = pgTable(
     dueDate: date('due_date', { mode: 'string' }),
     paidAt: date('paid_at', { mode: 'string' }),
     paymentConfirmationSource: text('payment_confirmation_source'),
+    /** Provenance: period_accrual | manual_correction | recompute_legacy | migration_unknown */
+    obligationSource: text('obligation_source'),
     voidedAt: timestamp('voided_at', { withTimezone: true, mode: 'date' }),
     voidedByUserId: uuid('voided_by_user_id').references(() => profiles.id, {
       onDelete: 'set null',
@@ -72,6 +74,11 @@ export const employeePayrollPayments = pgTable(
       'employee_payroll_payments_confirmation_source_known',
       sql`${table.paymentConfirmationSource} IS NULL
           OR ${table.paymentConfirmationSource} IN ('manual', 'automatic_policy')`,
+    ),
+    check(
+      'employee_payroll_payments_obligation_source_known',
+      sql`${table.obligationSource} IS NULL
+          OR ${table.obligationSource} IN ('period_accrual', 'manual_correction', 'recompute_legacy', 'migration_unknown')`,
     ),
     check('employee_payroll_payments_expected_non_negative', sql`${table.expectedAmount} >= 0`),
     check(

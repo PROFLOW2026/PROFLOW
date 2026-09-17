@@ -1,6 +1,6 @@
 /**
- * Remove the 6 proven invented payroll rows (dry-run unless EXECUTE=1).
- * Raw postgres — does NOT touch attendance source data.
+ * Void proven invented payroll rows (dry-run unless EXECUTE=1).
+ * Raw postgres — does NOT touch attendance source data. Never hard-deletes payroll history.
  */
 import dotenv from 'dotenv';
 import postgres from 'postgres';
@@ -45,20 +45,26 @@ if (candidates.length !== 6) {
 }
 
 if (!EXECUTE) {
-  console.log(JSON.stringify({ dryRun: true, execute: false, rowsToDelete: candidates }, null, 2));
+  console.log(JSON.stringify({ dryRun: true, execute: false, rowsToVoid: candidates }, null, 2));
   await sql.end();
   process.exit(0);
 }
 
-const ids = candidates.map((r) => r.id);
-await sql`
-  DELETE FROM employee_payroll_payments
-  WHERE organization_id = ${PROD_ORG}
-    AND id = ANY(${ids})
-`;
+const now = new Date();
+for (const row of candidates) {
+  await sql`
+    UPDATE employee_payroll_payments
+    SET voided_at = ${now},
+        notes = COALESCE(notes, '') || ' repair-invented-payroll-rows: recompute backfill without payment workflow'
+    WHERE organization_id = ${PROD_ORG}
+      AND id = ${row.id}
+      AND voided_at IS NULL
+      AND paid_at IS NULL
+  `;
+}
 
 const remaining = await sql`
-  SELECT id, year_month, expected_amount, payment_status, paid_at, payment_confirmation_source, created_at
+  SELECT id, year_month, expected_amount, payment_status, paid_at, voided_at, payment_confirmation_source, created_at
   FROM employee_payroll_payments
   WHERE organization_id = ${PROD_ORG}
     AND employee_id = ${EMPLOYEE_ID}
@@ -73,8 +79,8 @@ const preserved = remaining.filter((r) => PRESERVE_MONTHS.includes(r.year_month)
 console.log(
   JSON.stringify(
     {
-      deleted: ids.length,
-      remainingCount: remaining.length,
+      voided: candidates.length,
+      remainingActiveCount: remaining.length,
       inventedAfter: inventedAfter.length,
       preservedMonths: preserved.map((r) => r.year_month),
       remaining,

@@ -172,29 +172,4 @@ describe('syncPayrollExpectedFromLaborRecompute', () => {
     );
   });
 
-  it('upsert mode delegates to insert path when row missing', async () => {
-    const insertValues = vi.fn(async () => undefined);
-    const db = {
-      select: vi.fn(() => ({
-        from: vi.fn(() => ({
-          where: vi.fn(() => ({
-            limit: vi.fn(async () => []),
-          })),
-        })),
-      })),
-      insert: vi.fn(() => ({ values: insertValues })),
-      update: vi.fn(),
-    } as unknown as OrgContext['db'];
-
-    const result = await syncPayrollExpectedFromLaborRecompute(mockContext(db), {
-      employeeId: 'emp-1',
-      yearMonth: '2026-09',
-      expectedAmount: '8250',
-      currency: 'ILS',
-      mode: 'upsert',
-    });
-
-    expect(result).toBe('updated');
-    expect(insertValues).toHaveBeenCalled();
-  });
 });
