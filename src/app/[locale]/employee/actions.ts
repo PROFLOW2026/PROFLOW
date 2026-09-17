@@ -4,6 +4,7 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import { redirect } from '@/shared/i18n/navigation';
 import { getSessionState } from '@/shared/auth/session';
 import { employeeLogin, employeeSetPermanentPin } from '@/modules/employee-app/application/employee-login';
+import { isRedirectError } from '@/modules/workforce/application/map-workforce-action-error';
 import { DomainRuleError } from '@/shared/errors';
 
 export interface EmployeeAuthFormState {
@@ -26,6 +27,7 @@ export async function employeeLoginAction(
     }
     redirect({ href: '/employee', locale });
   } catch (error) {
+    if (isRedirectError(error)) throw error;
     if (error instanceof DomainRuleError) {
       const key = error.messageKey?.replace('employeeApp.errors.', '') ?? 'invalidCredentials';
       return { error: t(`errors.${key}`) };
@@ -58,6 +60,7 @@ export async function employeeSetPinAction(
     });
     redirect({ href: '/employee', locale });
   } catch (error) {
+    if (isRedirectError(error)) throw error;
     if (error instanceof DomainRuleError) {
       return { error: t('errors.pinInvalid') };
     }
