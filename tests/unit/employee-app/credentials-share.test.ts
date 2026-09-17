@@ -57,4 +57,32 @@ describe('credentials-share', () => {
     expect(url).toContain('subject=');
     expect(url).toContain('body=');
   });
+
+  it('encodes mailto subject/body with encodeURIComponent (no + for spaces)', () => {
+    const subject = 'פרטי כניסה — מתח ח.י';
+    const body = buildCredentialsShareMessage({ ...baseInput, temporaryPin: '272482' });
+    const url = buildMailtoUrl('worker@example.com', subject, body);
+
+    expect(url).not.toMatch(/[?&]body=[^&]*\+/);
+    expect(url).not.toMatch(/[?&]subject=[^&]*\+/);
+
+    const query = url.split('?')[1]!;
+    const encodedSubject = query.match(/^subject=([^&]*)/)?.[1];
+    const encodedBody = query.match(/&body=(.*)$/)?.[1];
+    expect(encodedSubject).toBeTruthy();
+    expect(encodedBody).toBeTruthy();
+    expect(decodeURIComponent(encodedSubject!)).toBe(subject);
+    expect(decodeURIComponent(encodedBody!)).toBe(body);
+
+    expect(body).toContain('שלום מוחמד נציר');
+    expect(body).toContain('https://app.example/he-IL/employee/login?u=2485');
+    expect(body).toContain('272482');
+    expect(body.split('\n').length).toBeGreaterThan(5);
+  });
+
+  it('builds mailto without recipient when email is missing', () => {
+    const url = buildMailtoUrl(null, 'נושא', 'שורה אחת');
+    expect(url.startsWith('mailto:?subject=')).toBe(true);
+    expect(url).not.toContain('+');
+  });
 });

@@ -73,10 +73,9 @@ export function buildMailtoUrl(
   subject: string,
   body: string,
 ): string {
-  const params = new URLSearchParams();
-  params.set('subject', subject);
-  params.set('body', body);
+  // encodeURIComponent (%20 for spaces) — not URLSearchParams (+ for spaces), which Outlook mishandles.
+  const query = `subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   const recipient = email?.trim();
-  if (recipient) return `mailto:${recipient}?${params.toString()}`;
-  return `mailto:?${params.toString()}`;
+  if (recipient) return `mailto:${recipient}?${query}`;
+  return `mailto:?${query}`;
 }
