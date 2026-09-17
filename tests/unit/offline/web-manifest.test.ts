@@ -2,7 +2,11 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { SHELL_CACHE_NAME, SHELL_NAVIGATION_PRELOAD } from '@/modules/offline/domain/sw-policy';
-import { buildWebManifest, manifestLocaleFromCookie } from '@/modules/offline/domain/web-manifest';
+import {
+  buildEmployeeWebManifest,
+  buildWebManifest,
+  manifestLocaleFromCookie,
+} from '@/modules/offline/domain/web-manifest';
 
 describe('PWA web manifest start_url', () => {
   it('prefixes start_url with the cookie locale so launch skips the / redirect', () => {
@@ -12,6 +16,15 @@ describe('PWA web manifest start_url', () => {
     expect(buildWebManifest('en').start_url).toBe('/en');
     expect(buildWebManifest('he-IL').display).toBe('standalone');
     expect(buildWebManifest('he-IL').id).toBe('/');
+  });
+
+  it('builds employee manifest that launches into the employee app', () => {
+    const manifest = buildEmployeeWebManifest('he-IL');
+    expect(manifest.start_url).toBe('/he-IL/employee');
+    expect(manifest.id).toBe('/he-IL/employee');
+    expect(manifest.name).toBe('ProjectFlow עובדים');
+    expect(manifest.short_name).toBe('ProjectFlow');
+    expect(manifest.scope).toBe('/');
   });
 });
 

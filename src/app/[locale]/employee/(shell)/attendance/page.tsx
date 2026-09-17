@@ -1,4 +1,3 @@
-import { getTranslations } from 'next-intl/server';
 import { authorize } from '@/shared/permissions/authorize';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { withOrgContext } from '@/shared/auth/session';
@@ -6,7 +5,6 @@ import { resolveLinkedEmployee } from '@/modules/workforce/application/time-scop
 import { listAttendanceDays } from '@/modules/workforce';
 
 export default async function EmployeeAttendancePage() {
-  const t = await getTranslations('employeeApp');
   const rows = await withOrgContext(async (context) => {
     await authorize(context, { permission: PERMISSIONS.ATTENDANCE_SELF, scope: 'self_only' });
     const employee = await resolveLinkedEmployee(context);
@@ -18,7 +16,6 @@ export default async function EmployeeAttendancePage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-bold">{t('nav.attendance')}</h1>
       <ul className="divide-y divide-[var(--pf-border)] rounded-lg border border-[var(--pf-border)]">
         {rows.map((day) => (
           <li key={day.id} className="flex items-center justify-between px-4 py-3 text-sm">

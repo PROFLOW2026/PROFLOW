@@ -1,4 +1,3 @@
-import { getTranslations } from 'next-intl/server';
 import { authorize } from '@/shared/permissions/authorize';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { withOrgContext } from '@/shared/auth/session';
@@ -7,7 +6,6 @@ import { resolveLinkedEmployee } from '@/modules/workforce/application/time-scop
 import { canReadDocumentCategoryForContext } from '@/modules/documents/application/document-visibility';
 
 export default async function EmployeeDocumentsPage() {
-  const t = await getTranslations('employeeApp');
   const docs = await withOrgContext(async (context) => {
     await authorize(context, { permission: PERMISSIONS.DOCUMENTS_READ, scope: 'assigned_only' });
     const employee = await resolveLinkedEmployee(context);
@@ -21,7 +19,6 @@ export default async function EmployeeDocumentsPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-bold">{t('nav.documents')}</h1>
       <ul className="divide-y divide-[var(--pf-border)] rounded-lg border border-[var(--pf-border)]">
         {docs.map((doc) => (
           <li key={doc.id} className="px-4 py-3 text-sm">

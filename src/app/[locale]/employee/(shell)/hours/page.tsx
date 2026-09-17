@@ -1,4 +1,3 @@
-import { getTranslations } from 'next-intl/server';
 import { authorize } from '@/shared/permissions/authorize';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { withOrgContext } from '@/shared/auth/session';
@@ -6,7 +5,6 @@ import { resolveSelfScopedEmployeeId } from '@/modules/workforce/application/tim
 import { listTimeEntries } from '@/modules/workforce';
 
 export default async function EmployeeHoursPage() {
-  const t = await getTranslations('employeeApp');
   const entries = await withOrgContext(async (context) => {
     await authorize(context, { permission: PERMISSIONS.TIME_MANAGE, scope: 'self_only' });
     const employeeId = await resolveSelfScopedEmployeeId(context);
@@ -24,7 +22,6 @@ export default async function EmployeeHoursPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-bold">{t('nav.hours')}</h1>
       <ul className="divide-y divide-[var(--pf-border)] rounded-lg border border-[var(--pf-border)]">
         {entries.map((entry) => (
           <li key={entry.id} className="flex items-center justify-between px-4 py-3 text-sm">

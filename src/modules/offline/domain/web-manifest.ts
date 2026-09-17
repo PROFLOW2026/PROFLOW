@@ -29,6 +29,31 @@ export function manifestLocaleFromCookie(value: string | undefined | null): Loca
   return isLocale(value) ? value : DEFAULT_LOCALE;
 }
 
+const MANIFEST_ICONS: ProjectFlowWebManifest['icons'] = [
+  {
+    src: '/icons/icon-192.png',
+    sizes: '192x192',
+    type: 'image/png',
+    purpose: 'any',
+  },
+  {
+    src: '/icons/icon-512.png',
+    sizes: '512x512',
+    type: 'image/png',
+    purpose: 'any',
+  },
+  {
+    src: '/icons/icon-512.png',
+    sizes: '512x512',
+    type: 'image/png',
+    purpose: 'maskable',
+  },
+];
+
+function manifestLang(locale: Locale): 'he' | 'en' {
+  return locale === 'en' ? 'en' : 'he';
+}
+
 export function buildWebManifest(locale: Locale): ProjectFlowWebManifest {
   return {
     id: '/',
@@ -41,27 +66,43 @@ export function buildWebManifest(locale: Locale): ProjectFlowWebManifest {
     orientation: 'any',
     background_color: '#f8fafc',
     theme_color: '#0f766e',
-    lang: locale === 'en' ? 'en' : 'he',
+    lang: manifestLang(locale),
     dir: 'auto',
-    icons: [
-      {
-        src: '/icons/icon-192.png',
-        sizes: '192x192',
-        type: 'image/png',
-        purpose: 'any',
-      },
-      {
-        src: '/icons/icon-512.png',
-        sizes: '512x512',
-        type: 'image/png',
-        purpose: 'any',
-      },
-      {
-        src: '/icons/icon-512.png',
-        sizes: '512x512',
-        type: 'image/png',
-        purpose: 'maskable',
-      },
-    ],
+    icons: MANIFEST_ICONS,
+  };
+}
+
+/** Employee App install manifest — same scope/icons as owner PWA, employee start_url. */
+export interface EmployeeWebManifest {
+  readonly id: `/${string}/employee`;
+  readonly name: 'ProjectFlow עובדים';
+  readonly short_name: 'ProjectFlow';
+  readonly description: string;
+  readonly start_url: `/${string}/employee`;
+  readonly scope: '/';
+  readonly display: 'standalone';
+  readonly orientation: 'any';
+  readonly background_color: '#f8fafc';
+  readonly theme_color: '#0f766e';
+  readonly lang: 'he' | 'en';
+  readonly dir: 'auto';
+  readonly icons: ProjectFlowWebManifest['icons'];
+}
+
+export function buildEmployeeWebManifest(locale: Locale): EmployeeWebManifest {
+  return {
+    id: `/${locale}/employee`,
+    name: 'ProjectFlow עובדים',
+    short_name: 'ProjectFlow',
+    description: 'אפליקציית העובדים של ProjectFlow',
+    start_url: `/${locale}/employee`,
+    scope: '/',
+    display: 'standalone',
+    orientation: 'any',
+    background_color: '#f8fafc',
+    theme_color: '#0f766e',
+    lang: manifestLang(locale),
+    dir: 'auto',
+    icons: MANIFEST_ICONS,
   };
 }

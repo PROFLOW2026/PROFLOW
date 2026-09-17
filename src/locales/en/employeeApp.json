@@ -27,6 +27,26 @@
     "tasks": "Tasks",
     "documents": "Documents"
   },
+  "back": {
+    "label": "Back"
+  },
+  "pwa": {
+    "name": "ProjectFlow Employee",
+    "shortName": "ProjectFlow"
+  },
+  "install": {
+    "title": "Install the app",
+    "description": "Add ProjectFlow to your home screen for quick access.",
+    "cta": "Install the app",
+    "installing": "Opening install dialog…",
+    "success": "App installed successfully",
+    "alreadyInstalled": "App is already installed",
+    "iosTitle": "Install ProjectFlow on iPhone",
+    "iosStepShare": "Tap the browser Share button",
+    "iosStepAdd": "Choose Add to Home Screen",
+    "iosStepConfirm": "Tap Add",
+    "iosDismiss": "Got it"
+  },
   "home": {
     "clockIn": "Clock in",
     "clockOut": "Clock out",

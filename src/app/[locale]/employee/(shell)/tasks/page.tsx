@@ -1,11 +1,9 @@
-import { getTranslations } from 'next-intl/server';
 import { authorize } from '@/shared/permissions/authorize';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { withOrgContext } from '@/shared/auth/session';
 import { listEmployeeAssignedTasks } from '@/modules/employee-app';
 
 export default async function EmployeeTasksPage() {
-  const t = await getTranslations('employeeApp');
   const tasks = await withOrgContext(async (context) => {
     if (
       !context.permissions.has(PERMISSIONS.FIELD_OPS_READ) &&
@@ -20,7 +18,6 @@ export default async function EmployeeTasksPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-bold">{t('nav.tasks')}</h1>
       <ul className="divide-y divide-[var(--pf-border)] rounded-lg border border-[var(--pf-border)]">
         {tasks.map((task) => (
           <li key={task.id} className="px-4 py-3 text-sm">

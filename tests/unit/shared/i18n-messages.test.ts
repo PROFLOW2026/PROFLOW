@@ -134,6 +134,9 @@ const IDENTICAL_MESSAGE_ALLOWLIST = new Set([
   'externalStorage.providers.google_drive',
   'externalStorage.providers.dropbox',
   'externalStorage.providers.box',
+  // Brand / product names in employee app surfaces.
+  'employeeApp.pwa.shortName',
+  'employeeApp.admin.shareWhatsApp',
 ]);
 
 function hasActivityAction(catalog: Catalog, action: string): boolean {

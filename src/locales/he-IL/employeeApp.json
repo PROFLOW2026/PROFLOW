@@ -27,6 +27,26 @@
     "tasks": "משימות",
     "documents": "מסמכים"
   },
+  "back": {
+    "label": "חזרה"
+  },
+  "pwa": {
+    "name": "ProjectFlow עובדים",
+    "shortName": "ProjectFlow"
+  },
+  "install": {
+    "title": "התקנת האפליקציה",
+    "description": "הוסיפו את ProjectFlow למסך הבית לגישה מהירה ונוחה.",
+    "cta": "התקנת האפליקציה",
+    "installing": "פותח חלון התקנה…",
+    "success": "האפליקציה הותקנה בהצלחה",
+    "alreadyInstalled": "האפליקציה כבר מותקנת",
+    "iosTitle": "התקנת ProjectFlow באייפון",
+    "iosStepShare": "לחצו על כפתור השיתוף בדפדפן",
+    "iosStepAdd": "בחרו \"הוסף למסך הבית\"",
+    "iosStepConfirm": "לחצו \"הוסף\"",
+    "iosDismiss": "הבנתי"
+  },
   "home": {
     "clockIn": "כניסה לעבודה",
     "clockOut": "יציאה מהעבודה",
@@ -56,8 +76,8 @@
     "shareEmployeeName": "שם העובד",
     "tempPinLabel": "PIN זמני",
     "tempPinInactive": "אין PIN זמני פעיל",
-    "tempPinActiveHidden": "PIN זמני פעיל — לשיתוף יש ליצור PIN חדש",
-    "legacyTempPinHint": "PIN זמני קיים אך לא ניתן לשיתוף — צור PIN זמני חדש.",
+    "tempPinActiveHidden": "PIN זמני פעיל. לשיתוף יש ליצור PIN חדש",
+    "legacyTempPinHint": "PIN זמני קיים אך לא ניתן לשיתוף. צור PIN זמני חדש.",
     "createTempPin": "צור PIN זמני",
     "personalPinLabel": "PIN אישי",
     "personalPinSet": "הוגדר",
@@ -73,7 +93,7 @@
     "linkCopied": "הקישור הועתק",
     "usernameCopied": "שם המשתמש הועתק",
     "pinCopied": "ה-PIN הועתק",
-    "employeeNumberHint": "מספר פנימי במערכת — אינו משמש לכניסה",
+    "employeeNumberHint": "מספר פנימי במערכת. אינו משמש לכניסה",
     "sectionAccess": "פרטי גישה",
     "sectionAccountActions": "פעולות חשבון",
     "sectionPermissions": "הרשאות",
@@ -169,6 +189,6 @@
     "pinInvalid": "PIN חייב להיות 6 ספרות ולהתאים",
     "providerLinkDenied": "גישה ישירה לקבצים אינה זמינה",
     "usernameTaken": "שם המשתמש כבר בשימוש",
-    "usernameUnavailable": "לא ניתן להקצות שם משתמש — נסו שוב"
+    "usernameUnavailable": "לא ניתן להקצות שם משתמש. נסו שוב"
   }
 }

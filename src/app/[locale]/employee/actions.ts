@@ -4,8 +4,11 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import { redirect } from '@/shared/i18n/navigation';
 import { getAdminDb } from '@/shared/db/client';
 import { getSessionState } from '@/shared/auth/session';
-import { employeeLogin, employeeSetPermanentPin } from '@/modules/employee-app/application/employee-login';
-import { findEmployeeAppAccountByUserId } from '@/modules/employee-app/data/accounts.repository';
+import {
+  employeeLogin,
+  employeeSetPermanentPin,
+  findEmployeeAppAccountByUserId,
+} from '@/modules/employee-app';
 import { isRedirectError } from '@/modules/workforce/application/map-workforce-action-error';
 import { DomainRuleError } from '@/shared/errors';
 

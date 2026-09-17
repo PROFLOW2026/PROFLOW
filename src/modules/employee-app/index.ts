@@ -20,7 +20,10 @@ export {
   loadEmployeeAppContextByEmployeeId,
 } from './application/load-employee-app-context';
 export { EMPLOYEE_PRESETS, employeePreset, type EmployeePresetKey } from './application/presets';
-export { findEmployeeAppAccountByEmployeeId } from './data/accounts.repository';
+export {
+  findEmployeeAppAccountByEmployeeId,
+  findEmployeeAppAccountByUserId,
+} from './data/accounts.repository';
 export {
   listEmployeeAssignedProjects,
   listEmployeeAssignedTasks,

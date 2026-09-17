@@ -13,6 +13,7 @@ import { withOrgContext } from '@/shared/auth/session';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { Link } from '@/shared/i18n/navigation';
 import { pressableCardLinkClassName } from '@/components/ui/pressable';
+import { EmployeePwaInstall } from '@/modules/employee-app/ui/employee-pwa-install';
 import { cn } from '@/shared/ui/cn';
 
 export async function generateMetadata({
@@ -37,6 +38,8 @@ export default async function EmployeeHomePage() {
       <header>
         <h1 className="text-2xl font-bold">{t('greeting', { name: data.employeeName || '—' })}</h1>
       </header>
+
+      <EmployeePwaInstall />
 
       {data.clock && data.linked ? (
         <AttendanceClockPanel
