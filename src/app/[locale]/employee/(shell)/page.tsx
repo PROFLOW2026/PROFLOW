@@ -28,9 +28,10 @@ export async function generateMetadata({
 
 export default async function EmployeeHomePage() {
   const t = await getTranslations('employeeApp');
-  const { data, canAttendance } = await withOrgContext(async (context) => ({
+  const { data, canAttendance, canLogTime } = await withOrgContext(async (context) => ({
     data: await getEmployeeShellData(context),
     canAttendance: employeeHasPermission(context, PERMISSIONS.ATTENDANCE_SELF),
+    canLogTime: employeeHasPermission(context, PERMISSIONS.TIME_MANAGE),
   }));
 
   return (
@@ -55,6 +56,8 @@ export default async function EmployeeHomePage() {
           clockBreakStartAction={clockBreakStartAction}
           clockBreakEndAction={clockBreakEndAction}
           linked={data.linked}
+          showTimeHints={false}
+          logHoursHref={canLogTime ? '/employee/hours/new' : null}
         />
       ) : (
         <p className="text-sm text-[var(--pf-text-secondary)]">{t('home.notLinked')}</p>

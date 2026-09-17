@@ -53,6 +53,8 @@ export interface TimeEntryFormProps {
   readonly defaultWeekdays?: readonly number[];
   /** When true, show "Save and approve" for owner/admin time entry. */
   readonly canApproveOnCreate?: boolean;
+  /** Post-save redirect target for server action (Employee App). */
+  readonly returnPath?: '/employee/hours';
 }
 
 const WEEKDAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const;
@@ -74,6 +76,7 @@ export function TimeEntryForm({
   initialTimeCodeId = null,
   defaultWeekdays,
   canApproveOnCreate = false,
+  returnPath,
 }: TimeEntryFormProps) {
   const t = useTranslations('workforce');
   const tCommon = useTranslations('common');
@@ -248,6 +251,7 @@ export function TimeEntryForm({
       <input type="hidden" name="kind" value={kind} />
       <input type="hidden" name="entryMode" value={entryMode} />
       {correctsEntryId ? <input type="hidden" name="correctsEntryId" value={correctsEntryId} /> : null}
+      {returnPath ? <input type="hidden" name="returnPath" value={returnPath} /> : null}
       {clientRequestId ? (
         <input type="hidden" name="clientRequestId" value={clientRequestId} />
       ) : null}

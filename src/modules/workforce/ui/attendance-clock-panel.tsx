@@ -27,6 +27,10 @@ interface AttendanceClockPanelProps {
   readonly clockBreakStartAction: typeof clockBreakStartAction;
   readonly clockBreakEndAction: typeof clockBreakEndAction;
   readonly linked: boolean;
+  /** Owner clock copy + disclaimer (hidden on Employee App home). */
+  readonly showTimeHints?: boolean;
+  /** When null, the log-hours link is hidden. Defaults to Owner time list. */
+  readonly logHoursHref?: string | null;
 }
 
 export function AttendanceClockPanel({
@@ -42,6 +46,8 @@ export function AttendanceClockPanel({
   clockBreakStartAction,
   clockBreakEndAction,
   linked,
+  showTimeHints = true,
+  logHoursHref = '/workforce/time',
 }: AttendanceClockPanelProps) {
   const t = useTranslations('workforce.attendance');
   const [inState, inFormAction, inPending] = useActionState(clockInAction, {} as AttendanceActionState);
@@ -72,13 +78,19 @@ export function AttendanceClockPanel({
         <p className="mt-2 text-sm text-[var(--pf-text-secondary)]">
           {t(`presence.${presence}`)}
         </p>
-        <p className="mt-2 text-sm text-[var(--pf-text-secondary)]">{t('clock.presenceVsTime')}</p>
-        <p className="mt-1 text-xs text-[var(--pf-text-muted)]">{t('disclaimer')}</p>
-        <p className="mt-2 text-sm">
-          <Link href="/workforce/time" className="font-medium underline">
-            {t('clock.logHoursLink')}
-          </Link>
-        </p>
+        {showTimeHints ? (
+          <>
+            <p className="mt-2 text-sm text-[var(--pf-text-secondary)]">{t('clock.presenceVsTime')}</p>
+            <p className="mt-1 text-xs text-[var(--pf-text-muted)]">{t('disclaimer')}</p>
+          </>
+        ) : null}
+        {logHoursHref ? (
+          <p className="mt-2 text-sm">
+            <Link href={logHoursHref} className="font-medium underline">
+              {t('clock.logHoursLink')}
+            </Link>
+          </p>
+        ) : null}
       </div>
 
       {error ? <Alert tone="danger">{error}</Alert> : null}

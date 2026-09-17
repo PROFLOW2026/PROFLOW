@@ -30,6 +30,11 @@ import {
   isRedirectError,
   mapWorkforceActionError,
 } from '@/modules/workforce/application/map-workforce-action-error';
+import {
+  EMPLOYEE_TIME_ENTRIES_PATH,
+  resolveTimeEntryReturnPath,
+  type TimeEntrySuccessPath,
+} from '@/modules/workforce/application/time-entry-return-path';
 
 export interface TimeEntryFormState {
   error?: string;
@@ -54,12 +59,19 @@ async function mapActionError(error: unknown, fallback: string): Promise<TimeEnt
 }
 
 /** Workforce time mutations must refresh Project Actual / workforce surfaces too. */
-function revalidateWorkforceProjectSurfaces(projectId?: string | null) {
-  revalidateWorkforceProjectSurfaces();
+function revalidateAfterTimeEntryMutation(
+  returnPath: TimeEntrySuccessPath,
+  projectId?: string | null,
+) {
+  revalidatePath('/workforce/time');
   revalidatePath('/projects', 'layout');
   revalidatePath('/dashboard');
   if (projectId) {
     revalidatePath(`/projects/${projectId}`);
+  }
+  if (returnPath === EMPLOYEE_TIME_ENTRIES_PATH) {
+    revalidatePath(EMPLOYEE_TIME_ENTRIES_PATH);
+    revalidatePath('/employee');
   }
 }
 
@@ -111,6 +123,7 @@ export async function createTimeEntryAction(
 
   const mode = String(formData.get('entryMode') ?? 'single');
   const correctsEntryId = formData.get('correctsEntryId');
+  const returnPath = resolveTimeEntryReturnPath(formData);
 
   if (typeof correctsEntryId === 'string' && correctsEntryId.trim()) {
     const parsed = correctTimeEntrySchema.safeParse({
@@ -128,8 +141,8 @@ export async function createTimeEntryAction(
     if (!parsed.success) return { error: tErrors('validationFailed') };
     try {
       await withOrgContext((context) => correctTimeEntry(context, parsed.data));
-      revalidateWorkforceProjectSurfaces();
-      redirect({ href: '/workforce/time', locale });
+      revalidateAfterTimeEntryMutation(returnPath, parsed.data.projectId);
+      redirect({ href: returnPath, locale });
     } catch (error) {
       return mapActionError(error, fallback);
     }
@@ -153,7 +166,7 @@ export async function createTimeEntryAction(
     if (!parsed.success) return { error: tErrors('validationFailed') };
     try {
       const result = await withOrgContext((context) => createBulkTimeEntries(context, parsed.data));
-      revalidateWorkforceProjectSurfaces();
+      revalidateAfterTimeEntryMutation(returnPath, parsed.data.projectId);
       if (result.entries.length === 0 && result.skippedDuplicateCount > 0) {
         const tWorkforce = await getTranslations('workforce');
         return {
@@ -173,7 +186,7 @@ export async function createTimeEntryAction(
           }),
         };
       }
-      redirect({ href: '/workforce/time', locale });
+      redirect({ href: returnPath, locale });
     } catch (error) {
       return mapActionError(error, fallback);
     }
@@ -200,8 +213,8 @@ export async function createTimeEntryAction(
 
   try {
     await withOrgContext((context) => createTimeEntry(context, parsed.data));
-    revalidateWorkforceProjectSurfaces();
-    redirect({ href: '/workforce/time', locale });
+    revalidateAfterTimeEntryMutation(returnPath, parsed.data.projectId);
+    redirect({ href: returnPath, locale });
   } catch (error) {
     return mapActionError(error, fallback);
   }
@@ -227,7 +240,7 @@ export async function submitTimeEntriesAction(
           })
         : submitTimeEntries(context, { entryIds }),
     );
-    revalidateWorkforceProjectSurfaces();
+    revalidateAfterTimeEntryMutation('/workforce/time');
     return { ok: true };
   } catch (error) {
     return mapActionError(error, fallback);
@@ -257,7 +270,7 @@ export async function approveTimesheetAction(
         await approveTimeEntry(context, { timeEntryId });
       }
     });
-    revalidateWorkforceProjectSurfaces();
+    revalidateAfterTimeEntryMutation('/workforce/time');
     return { ok: true };
   } catch (error) {
     return mapActionError(error, fallback);
@@ -274,7 +287,7 @@ export async function returnTimesheetAction(
   const managerNote = String(formData.get('managerNote') ?? '');
   try {
     await withOrgContext((context) => returnTimesheet(context, { timesheetId, managerNote }));
-    revalidateWorkforceProjectSurfaces();
+    revalidateAfterTimeEntryMutation('/workforce/time');
     return { ok: true };
   } catch (error) {
     return mapActionError(error, fallback);
@@ -290,7 +303,7 @@ export async function deleteDraftTimeEntryAction(
   const timeEntryId = String(formData.get('timeEntryId') ?? '');
   try {
     await withOrgContext((context) => deleteDraftTimeEntry(context, { timeEntryId }));
-    revalidateWorkforceProjectSurfaces();
+    revalidateAfterTimeEntryMutation('/workforce/time');
     return { ok: true };
   } catch (error) {
     return mapActionError(error, fallback);
@@ -318,7 +331,7 @@ export async function purgeExactDuplicateDraftsAction(
         })(),
       }),
     );
-    revalidateWorkforceProjectSurfaces();
+    revalidateAfterTimeEntryMutation('/workforce/time');
     return { ok: true, removedCount: result.removedCount };
   } catch (error) {
     return mapActionError(error, fallback);
@@ -349,7 +362,7 @@ export async function excessTimeEntryDecisionAction(
       }
       throw new Error('Unknown excess decision');
     });
-    revalidateWorkforceProjectSurfaces();
+    revalidateAfterTimeEntryMutation('/workforce/time');
     return { ok: true };
   } catch (error) {
     return mapActionError(error, fallback);
@@ -370,7 +383,7 @@ export async function updateTimeEntryAction(
   if (!parsed.success) return { error: tErrors('validationFailed') };
   try {
     await withOrgContext((context) => updateTimeEntry(context, parsed.data));
-    revalidateWorkforceProjectSurfaces();
+    revalidateAfterTimeEntryMutation('/workforce/time');
     return { ok: true };
   } catch (error) {
     return mapActionError(error, fallback);

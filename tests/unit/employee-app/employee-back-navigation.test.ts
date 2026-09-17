@@ -35,6 +35,15 @@ describe('employee-back-navigation', () => {
     });
   });
 
+  it('falls back to hours list from retroactive log form', () => {
+    expect(resolveEmployeeShellHeader('/employee/hours/new')).toEqual({
+      showHeader: true,
+      showBack: true,
+      fallbackHref: '/employee/hours',
+      titleKey: 'nav.hours',
+    });
+  });
+
   it('uses employee referrer for safe history back', () => {
     vi.stubGlobal('window', { history: { length: 2 } });
 
