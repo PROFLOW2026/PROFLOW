@@ -97,6 +97,13 @@ const MANAGEMENT: EmployeePreset = {
   documentCategories: ['photo', 'drawing', 'certificate', 'contract', 'other'],
 };
 
+const CUSTOM: EmployeePreset = {
+  key: 'custom',
+  labelKey: 'employeeApp.presets.custom',
+  grants: [],
+  documentCategories: [],
+};
+
 export const EMPLOYEE_PRESETS: readonly EmployeePreset[] = [
   FIELD_WORKER,
   FIELD_WORKER_TIME,
@@ -104,9 +111,11 @@ export const EMPLOYEE_PRESETS: readonly EmployeePreset[] = [
   PROJECT_MANAGER,
   OFFICE,
   MANAGEMENT,
+  CUSTOM,
 ];
 
 export function employeePreset(key: EmployeePresetKey): EmployeePreset {
+  if (key === 'custom') return CUSTOM;
   const preset = EMPLOYEE_PRESETS.find((candidate) => candidate.key === key);
   if (!preset) return FIELD_WORKER;
   return preset;

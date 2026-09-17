@@ -80,28 +80,53 @@ export async function loadEmployeeAppAdminAction(employeeId: string) {
   return withOrgContext((context) => getEmployeeAppAdminView(context, employeeId));
 }
 
+export type SaveEmployeeAppGrantsPayload = {
+  readonly grants: ReadonlyArray<{
+    readonly permissionKey: PermissionKey;
+    readonly scope: PermissionScope;
+    readonly granted: boolean;
+  }>;
+  readonly documentCategories: readonly DocumentCategory[];
+};
+
+export async function saveEmployeeAppGrantsEditorAction(
+  employeeId: string,
+  payload: SaveEmployeeAppGrantsPayload,
+): Promise<void> {
+  return withOrgContext(async (context) => {
+    const categories = new Map<DocumentCategory, boolean>();
+    for (const category of payload.documentCategories) {
+      if (isDocumentCategory(category)) categories.set(category, true);
+    }
+
+    await saveEmployeeAppGrants(context, {
+      employeeId,
+      grants: [...payload.grants],
+      documentCategories: categories,
+    });
+    revalidatePath(`/workforce/employees/${employeeId}`);
+  });
+}
+
 export async function saveEmployeeAppGrantsAction(
   employeeId: string,
   formData: FormData,
 ): Promise<void> {
-  return withOrgContext(async (context) => {
-    const grants: Array<{ permissionKey: PermissionKey; scope: PermissionScope; granted: boolean }> =
-      [];
-    for (const [key, value] of formData.entries()) {
-      if (!key.startsWith('perm:') || value !== 'on') continue;
-      const permissionKey = key.slice(5) as PermissionKey;
-      const scope = String(formData.get(`scope:${permissionKey}`) ?? 'self_only') as PermissionScope;
-      grants.push({ permissionKey, scope, granted: true });
-    }
+  const grants: Array<{ permissionKey: PermissionKey; scope: PermissionScope; granted: boolean }> =
+    [];
+  for (const [key, value] of formData.entries()) {
+    if (!key.startsWith('perm:') || value !== 'on') continue;
+    const permissionKey = key.slice(5) as PermissionKey;
+    const scope = String(formData.get(`scope:${permissionKey}`) ?? 'self_only') as PermissionScope;
+    grants.push({ permissionKey, scope, granted: true });
+  }
 
-    const categories = new Map<DocumentCategory, boolean>();
-    for (const [key, value] of formData.entries()) {
-      if (!key.startsWith('cat:') || value !== 'on') continue;
-      const category = key.slice(4);
-      if (isDocumentCategory(category)) categories.set(category, true);
-    }
+  const documentCategories: DocumentCategory[] = [];
+  for (const [key, value] of formData.entries()) {
+    if (!key.startsWith('cat:') || value !== 'on') continue;
+    const category = key.slice(4);
+    if (isDocumentCategory(category)) documentCategories.push(category);
+  }
 
-    await saveEmployeeAppGrants(context, { employeeId, grants, documentCategories: categories });
-    revalidatePath(`/workforce/employees/${employeeId}`);
-  });
+  return saveEmployeeAppGrantsEditorAction(employeeId, { grants, documentCategories });
 }

@@ -48,7 +48,7 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
 import { upsertEntityFieldValueAction } from '../../../settings/custom-fields/actions';
-import { findEmployeeAppAccountByEmployeeId } from '@/modules/employee-app';
+import { getEmployeeAppAdminView } from '@/modules/employee-app';
 import { EmployeeAppAccessPanel } from '@/modules/employee-app/ui/employee-app-access-panel';
 
 export async function generateMetadata({
@@ -169,8 +169,8 @@ export default async function EmployeeDetailPage({
             )
           : null;
 
-      const appAccount = allowManage
-        ? await findEmployeeAppAccountByEmployeeId(context.db, context.organizationId, employeeId)
+      const appAdminView = allowManage
+        ? await getEmployeeAppAdminView(context, employeeId).catch(() => null)
         : null;
 
       return {
@@ -202,7 +202,7 @@ export default async function EmployeeDetailPage({
         currency: context.organization.baseCurrency,
         defaultYearMonth: reviewYearMonth,
         workWeekStartDay: context.organization.workWeekStartDay,
-        appAccount,
+        appAdminView,
       };
     } catch {
       return null;
@@ -245,7 +245,7 @@ export default async function EmployeeDetailPage({
     defaultYearMonth,
     today,
     workWeekStartDay,
-    appAccount,
+    appAdminView,
   } = data;
 
   const orgFrameworkConfigured = Boolean(laborDefaults?.standardHoursPerDay);
@@ -313,7 +313,14 @@ export default async function EmployeeDetailPage({
       />
 
       {allowManage ? (
-        <EmployeeAppAccessPanel employeeId={employee.id} account={appAccount} />
+        <EmployeeAppAccessPanel
+          key={appAdminView?.account?.id ?? 'no-account'}
+          employeeId={employee.id}
+          employeeNumber={employee.employeeNumber}
+          account={appAdminView?.account ?? null}
+          grants={appAdminView?.grants ?? []}
+          documentCategories={appAdminView?.categories ?? new Map()}
+        />
       ) : null}
 
       {!orgFrameworkConfigured && (allowManage || canManageCosts) ? (

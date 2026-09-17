@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { MoneyInput } from '@/components/patterns/money-input';
 import { RATE_UNITS } from '@/modules/workforce/domain/types';
 import type { createEmployeeAction } from '@/app/[locale]/(app)/workforce/employees/actions';
+import { formatOrgMemberLabel } from '@/modules/employee-app/domain/auth-email';
 import type { OrgMemberLinkOption } from '@/modules/workforce';
 
 const UNLINKED = '__none__';
@@ -237,7 +238,7 @@ export function EmployeeForm({
                 <SelectItem value={UNLINKED}>{t('employees.form.linkedUserNone')}</SelectItem>
                 {linkableUsers.map((member) => (
                   <SelectItem key={member.userId} value={member.userId}>
-                    {member.displayName ? `${member.displayName} · ${member.email}` : member.email}
+                    {formatOrgMemberLabel(member)}
                   </SelectItem>
                 ))}
               </SelectContent>

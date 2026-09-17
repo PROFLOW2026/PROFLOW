@@ -16,6 +16,7 @@ import {
   updateEmployeeAction,
   type WorkforceFormState,
 } from '@/app/[locale]/(app)/workforce/employees/actions';
+import { formatOrgMemberLabel } from '@/modules/employee-app/domain/auth-email';
 import type { OrgMemberLinkOption } from '@/modules/workforce';
 
 const UNLINKED = '__none__';
@@ -94,7 +95,7 @@ export function EmployeeEditPanel({ employee, linkableUsers }: EmployeeEditPanel
                     <SelectItem value={UNLINKED}>{t('employees.form.linkedUserUnlink')}</SelectItem>
                     {linkableUsers.map((member) => (
                       <SelectItem key={member.userId} value={member.userId}>
-                        {member.displayName ? `${member.displayName} · ${member.email}` : member.email}
+                        {formatOrgMemberLabel(member)}
                       </SelectItem>
                     ))}
                   </SelectContent>
