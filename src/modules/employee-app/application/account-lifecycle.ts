@@ -30,6 +30,7 @@ import { insertEmployeeAppAuditEventTrusted } from '../data/audit.repository';
 import { buildEmployeeAuthEmail } from '../domain/username';
 import { allocateGloballyUniqueUsername } from './allocate-username';
 import { employeeSupabaseAuthPassword } from '../domain/auth-password';
+import { withEmployeeAppAuditMeta, type EmployeeAppAuditMeta } from '../domain/audit-meta';
 import { generateTemporaryPin, pinExpiryFromNow } from '../domain/pin';
 import { employeePreset, type EmployeePresetKey } from './presets';
 import type { PermissionScope } from '@/shared/permissions/scopes';
@@ -128,6 +129,10 @@ async function ensureEmployeeMembershipAndRole(
   });
 }
 
+export interface EmployeeAppLifecycleOptions {
+  readonly auditMeta?: EmployeeAppAuditMeta;
+}
+
 export async function activateEmployeeAppAccess(
   context: OrgContext,
   input: {
@@ -135,6 +140,7 @@ export async function activateEmployeeAppAccess(
     username?: string;
     presetKey?: EmployeePresetKey;
   },
+  options?: EmployeeAppLifecycleOptions,
 ): Promise<ActivateEmployeeAppResult> {
   await assertWorkforceManage(context);
 
@@ -247,7 +253,10 @@ export async function activateEmployeeAppAccess(
     employeeId: employee.id,
     actorUserId: context.userId,
     action: 'activated',
-    detailJson: { username: usernameRaw.toUpperCase(), preset: preset.key },
+    detailJson: withEmployeeAppAuditMeta(
+      { username: usernameRaw.toUpperCase(), preset: preset.key },
+      options?.auditMeta,
+    ),
   });
 
   safeRevalidateAuthzCache(userId, context.organizationId);
@@ -317,6 +326,7 @@ export async function updateEmployeeAppStatus(
 export async function resetEmployeeAppPin(
   context: OrgContext,
   employeeId: string,
+  options?: EmployeeAppLifecycleOptions,
 ): Promise<{ temporaryPin: string; temporaryPinExpiresAt: Date }> {
   await assertWorkforceManage(context);
   const account = await findEmployeeAppAccountByEmployeeId(
@@ -345,6 +355,7 @@ export async function resetEmployeeAppPin(
     employeeId,
     actorUserId: context.userId,
     action: 'pin_reset',
+    detailJson: withEmployeeAppAuditMeta(null, options?.auditMeta),
   });
 
   return { temporaryPin, temporaryPinExpiresAt };
