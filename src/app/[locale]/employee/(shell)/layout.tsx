@@ -20,13 +20,13 @@ export default async function EmployeeShellLayout({ children }: { children: Reac
   });
 
   return (
-    <div className="flex min-h-dvh flex-col">
+    <div className="flex flex-col">
       <EmployeeTopBar
         employeeName={shell.employeeName}
         email={session.user.email}
         organizationName={shell.organizationName}
       />
-      <main className="mx-auto w-full max-w-lg flex-1 px-4 pb-24 pt-4">
+      <main className="mx-auto w-full max-w-lg px-4 pb-[var(--pf-bottomnav-total-height)] pt-4">
         <EmployeeShellHeader />
         {children}
       </main>
