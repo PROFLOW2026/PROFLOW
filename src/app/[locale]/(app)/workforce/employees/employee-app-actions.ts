@@ -108,11 +108,23 @@ export async function saveEmployeeAppGrantsEditorAction(
       if (isDocumentCategory(category)) categories.set(category, true);
     }
 
-    await saveEmployeeAppGrants(context, {
-      employeeId,
-      grants: [...payload.grants],
-      documentCategories: categories,
-    });
+    try {
+      await saveEmployeeAppGrants(context, {
+        employeeId,
+        grants: [...payload.grants],
+        documentCategories: categories,
+      });
+    } catch (error) {
+      console.error('employee_app.grants_save_failed', {
+        employeeId,
+        organizationId: context.organizationId,
+        actorUserId: context.userId,
+        grantCount: payload.grants.length,
+        categoryCount: payload.documentCategories.length,
+        cause: error instanceof Error ? error.message : String(error),
+      });
+      throw error;
+    }
     revalidatePath(`/workforce/employees/${employeeId}`);
   });
 }

@@ -26,7 +26,7 @@ import {
   replaceEmployeeDocumentCategoryGrants,
   upsertEmployeePermissionGrant,
 } from '../data/grants.repository';
-import { insertEmployeeAppAuditEvent } from '../data/audit.repository';
+import { insertEmployeeAppAuditEventTrusted } from '../data/audit.repository';
 import { buildEmployeeAuthEmail } from '../domain/username';
 import { allocateGloballyUniqueUsername } from './allocate-username';
 import { employeeSupabaseAuthPassword } from '../domain/auth-password';
@@ -242,7 +242,7 @@ export async function activateEmployeeAppAccess(
     context.userId,
   );
 
-  await insertEmployeeAppAuditEvent(context.db, {
+  await insertEmployeeAppAuditEventTrusted({
     organizationId: context.organizationId,
     employeeId: employee.id,
     actorUserId: context.userId,
@@ -300,7 +300,7 @@ export async function updateEmployeeAppStatus(
           ? 'resumed'
           : 'app_access_disabled';
 
-  await insertEmployeeAppAuditEvent(context.db, {
+  await insertEmployeeAppAuditEventTrusted({
     organizationId: context.organizationId,
     employeeId,
     actorUserId: context.userId,
@@ -340,7 +340,7 @@ export async function resetEmployeeAppPin(
     status: account.status === 'inactive' ? 'invited' : account.status,
   });
 
-  await insertEmployeeAppAuditEvent(context.db, {
+  await insertEmployeeAppAuditEventTrusted({
     organizationId: context.organizationId,
     employeeId,
     actorUserId: context.userId,
@@ -362,7 +362,7 @@ export async function revokeEmployeeAppSessions(
   );
   if (!account) throw new NotFoundError('Employee app account');
   await revokeSupabaseSessions(account.userId);
-  await insertEmployeeAppAuditEvent(context.db, {
+  await insertEmployeeAppAuditEventTrusted({
     organizationId: context.organizationId,
     employeeId,
     actorUserId: context.userId,
@@ -410,7 +410,7 @@ export async function saveEmployeeAppGrants(
     safeRevalidateAuthzCache(employee.userId, context.organizationId);
   }
 
-  await insertEmployeeAppAuditEvent(context.db, {
+  await insertEmployeeAppAuditEventTrusted({
     organizationId: context.organizationId,
     employeeId: input.employeeId,
     actorUserId: context.userId,

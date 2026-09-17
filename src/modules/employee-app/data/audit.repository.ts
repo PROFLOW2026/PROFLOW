@@ -1,5 +1,6 @@
 import { desc, eq, and } from 'drizzle-orm';
 import { employeeAppAuditEvents } from '@drizzle/schema';
+import { getAdminDb } from '@/shared/db/client';
 import type { DbExecutor } from '@/shared/db/types';
 
 export type EmployeeAppAuditAction =
@@ -38,6 +39,19 @@ export async function insertEmployeeAppAuditEvent(
     detail: input.detail ?? null,
     detailJson: input.detailJson ?? null,
   });
+}
+
+export type EmployeeAppAuditEventInput = Parameters<typeof insertEmployeeAppAuditEvent>[1];
+
+/**
+ * Writes audit rows via the trusted admin connection.
+ * RLS on `employee_app_audit_events` allows authenticated SELECT only;
+ * owner lifecycle actions run under the authenticated role.
+ */
+export async function insertEmployeeAppAuditEventTrusted(
+  input: EmployeeAppAuditEventInput,
+): Promise<void> {
+  await insertEmployeeAppAuditEvent(getAdminDb(), input);
 }
 
 export async function listRecentEmployeeAppAuditEvents(
