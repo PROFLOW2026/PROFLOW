@@ -384,19 +384,20 @@ export async function updateEmployee(
 
   if (!updated) throw new NotFoundError('Employee');
 
-  if (nextHireDate) {
+  const { resolveEmployeeHireEndDateChanges } = await import('../domain/employee-date-changes');
+  const { hireDateChanged, endDateChanged } = resolveEmployeeHireEndDateChanges(existing, {
+    hireDate: nextHireDate,
+    endDate: nextEndDate,
+  });
+
+  if (hireDateChanged && nextHireDate) {
     await alignInitialCompensationToHireDate(context, employeeId, nextHireDate);
   } else if (updated.standardHoursPerDay !== existing.standardHoursPerDay) {
     await reconcileMissingTimeEntryCosts(context, { employeeId });
   }
 
   // Hire/end corrections refresh open-period monthly allocation (no bootstrap).
-  if (
-    nextHireDate !== undefined ||
-    nextEndDate !== undefined ||
-    updated.hireDate !== existing.hireDate ||
-    updated.endDate !== existing.endDate
-  ) {
+  if (hireDateChanged || endDateChanged) {
     const { recomputeOpenMonthsAfterCompensationChange } = await import(
       './monthly-cost-recompute'
     );

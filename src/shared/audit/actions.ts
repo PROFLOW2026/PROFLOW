@@ -125,6 +125,7 @@ export const AUDIT_ACTIONS = {
   RATE_VERSION_CREATED: 'rate_version.created',
   PAYROLL_PAYMENT_CONFIRMED: 'payroll.payment_confirmed',
   PAYROLL_PAYMENT_CONFIRMATION_VOIDED: 'payroll.payment_confirmation_voided',
+  PAYROLL_OBLIGATION_VOIDED: 'payroll.obligation_voided',
   TIME_ENTRY_CREATED: 'time_entry.created',
   TIME_ENTRY_VOIDED: 'time_entry.voided',
   TIME_ENTRY_CORRECTED: 'time_entry.corrected',

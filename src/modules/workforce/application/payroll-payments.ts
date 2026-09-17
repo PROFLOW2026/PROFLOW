@@ -13,6 +13,7 @@ import { salaryDueDateForPeriod } from '@/modules/tenancy/domain/org-financial-p
 
 const PAYROLL_CONFIRMED = AUDIT_ACTIONS.PAYROLL_PAYMENT_CONFIRMED;
 const PAYROLL_VOIDED = AUDIT_ACTIONS.PAYROLL_PAYMENT_CONFIRMATION_VOIDED;
+const PAYROLL_OBLIGATION_VOIDED = AUDIT_ACTIONS.PAYROLL_OBLIGATION_VOIDED;
 
 export type PayrollSyncFromLabor = 'upsert' | 'updateExistingOnly';
 
@@ -261,6 +262,61 @@ export async function voidPayrollPaymentConfirmation(
     action: PAYROLL_VOIDED,
     entityType: 'employee_payroll_payment',
     entityId: paymentId,
+  });
+}
+
+/** Soft-void an unpaid payroll obligation row (removes it from alerts and upsert paths). */
+export async function voidPayrollObligation(
+  context: OrgContext,
+  paymentId: string,
+  input?: { readonly reason?: string },
+): Promise<void> {
+  assertPermission(context, PERMISSIONS.WORKFORCE_MANAGE);
+
+  const [row] = await context.db
+    .select()
+    .from(employeePayrollPayments)
+    .where(
+      and(
+        eq(employeePayrollPayments.id, paymentId),
+        eq(employeePayrollPayments.organizationId, context.organizationId),
+        isNull(employeePayrollPayments.voidedAt),
+      ),
+    )
+    .limit(1);
+
+  if (!row) throw new NotFoundError('Payroll payment');
+  if (row.paidAt) {
+    throw new DomainRuleError(
+      'Paid payroll obligations cannot be voided',
+      'workforce.errors.payrollAlreadyPaid',
+    );
+  }
+
+  const voidedAt = new Date();
+  await context.db
+    .update(employeePayrollPayments)
+    .set({
+      voidedAt,
+      voidedByUserId: context.userId,
+      notes: input?.reason ?? row.notes,
+    })
+    .where(eq(employeePayrollPayments.id, paymentId));
+
+  await recordAuditEvent(context, {
+    action: PAYROLL_OBLIGATION_VOIDED,
+    entityType: 'employee_payroll_payment',
+    entityId: paymentId,
+    before: {
+      yearMonth: row.yearMonth,
+      employeeId: row.employeeId,
+      expectedAmount: row.expectedAmount,
+      paymentStatus: row.paymentStatus,
+    },
+    after: {
+      voidedAt: voidedAt.toISOString(),
+      reason: input?.reason ?? null,
+    },
   });
 }
 
