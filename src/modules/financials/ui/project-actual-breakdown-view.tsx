@@ -426,7 +426,7 @@ export type SubcontractCommercialDrillRow = {
 function resolveAtomDisplay(copy: OwnerStoryCopy, locale: string): ActualAtomDisplayCopy {
   return {
     employees: copy.categories.employees,
-    monthClose: copy.sourceMonthClose ?? 'סגירת חודש',
+    monthClose: copy.sourceMonthClose ?? copy.unavailable,
     unnamed: copy.unnamedSource ?? copy.unavailable,
     translateCostCategory: (key) => {
       const stripped = key.replace(/^costCategories\./, '');

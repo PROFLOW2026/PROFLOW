@@ -60,6 +60,7 @@
     "empty": "No attendance records yet",
     "monthDayCount": "{count, plural, one {# work day} other {# work days}}",
     "monthHoursTotal": "Total {hours}",
+    "hoursShort": "{hours} h",
     "clockIn": "Clock in",
     "clockOut": "Clock out",
     "totalHours": "Total hours",
@@ -131,7 +132,16 @@
     "audit": "Activity log",
     "savePermissions": "Save permissions",
     "permissionsSaved": "Permissions saved successfully",
-    "permissionsSaveFailed": "Could not save permissions. Try again."
+    "permissionsSaveFailed": "Could not save permissions. Try again.",
+    "credentialsShare": {
+      "greeting": "Hello {name},",
+      "invitedBy": "You were invited by {organization} to use the ProjectFlow employee app.",
+      "loginLinkLabel": "Login link:",
+      "usernameLabel": "Username:",
+      "tempPinLabel": "Temporary PIN:",
+      "firstLoginHint": "On first login you will be asked to choose a new personal PIN.",
+      "emailSubject": "Employee app login details — {organization}"
+    }
   },
   "presets": {
     "fieldWorker": "Field worker",

@@ -180,9 +180,11 @@ describe('imports kinds', () => {
       },
     ]);
     expect(rowHasErrors(rows[0]!)).toBe(true);
-    expect(rows[0]!.issues.some((i) => i.severity === 'error' && /opening_values/i.test(i.message))).toBe(
-      true,
-    );
+    expect(
+      rows[0]!.issues.some(
+        (i) => i.severity === 'error' && i.message === 'validation.financialAmountsNotOnProjects',
+      ),
+    ).toBe(true);
   });
 
   it('confirm rejects unknown kind before create* APIs run', async () => {

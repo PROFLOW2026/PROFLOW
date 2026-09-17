@@ -1,5 +1,5 @@
 import type { DocumentBrandContext } from '@/modules/branding/domain/document-brand';
-import { getReportsCopy } from '../domain/copy';
+import { getReportsCopy, reportHtmlLang } from '../domain/copy';
 import type { ReportPayload } from '../domain/types';
 import { formatReportGeneratedAt } from './generate-report';
 import {
@@ -89,7 +89,7 @@ export function renderReportHtmlDocument(payload: ReportPayload): string {
       : '';
 
   return `<!DOCTYPE html>
-<html lang="${payload.locale === 'he-IL' ? 'he' : 'en'}" dir="${payload.dir}">
+<html lang="${reportHtmlLang(payload.locale)}" dir="${payload.dir}">
 <head>
   <meta charset="utf-8" />
   <title>${escapeHtml(payload.title)}</title>

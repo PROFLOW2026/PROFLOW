@@ -61,7 +61,10 @@ export async function createProgressBilling(context: OrgContext, raw: CreateProg
     batch.id,
   );
   if (existingLink) {
-    throw new ConflictError('This progress batch already has billing - duplicate billing blocked');
+    throw new ConflictError(
+      'This progress batch already has billing - duplicate billing blocked',
+      'boq.errors.duplicateBilling',
+    );
   }
 
   if (
@@ -69,7 +72,10 @@ export async function createProgressBilling(context: OrgContext, raw: CreateProg
       batch.status as 'draft' | 'approved' | 'billed' | 'superseded' | 'voided',
     )
   ) {
-    throw new ConflictError('Only approved (unbilled) progress batches can create billing');
+    throw new ConflictError(
+      'Only approved (unbilled) progress batches can create billing',
+      'boq.errors.billingRequiresApproved',
+    );
   }
 
   const boq = await findBoqById(context.db, context.organizationId, batch.boqId);
@@ -114,7 +120,11 @@ export async function createProgressBilling(context: OrgContext, raw: CreateProg
 
   if (isZeroMoney(certificate.currentPeriodValue)) {
     throw new ValidationError([
-      { path: 'batchId', message: 'Progress period value is zero - nothing to bill' },
+      {
+        path: 'batchId',
+        message: 'Progress period value is zero - nothing to bill',
+        messageKey: 'boq.errors.zeroPeriod',
+      },
     ]);
   }
 

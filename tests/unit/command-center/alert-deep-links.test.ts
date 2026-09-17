@@ -8,7 +8,8 @@ import {
   payrollAlertHref,
 } from '@/modules/command-center/domain/alert-deep-links';
 import { commandCenterItemToNotificationItem } from '@/modules/notifications/application/actionable-inbox';
-import { unallocatedEmployeeCostCopy } from '@/modules/command-center/domain/item-copy';
+import { commandCenterCopyScope, unallocatedEmployeeCostCopy } from '@/modules/command-center/domain/item-copy';
+import { commandCenterCopyTranslator } from '@/shared/i18n/sync-namespace-translator';
 import { withItemDefaults } from '@/modules/command-center/domain/ranking';
 
 describe('alert deep links', () => {
@@ -56,7 +57,9 @@ describe('alert deep links', () => {
 
 describe('alert copy and inbox parity', () => {
   it('includes employee/month/amount context for unallocated labor', () => {
-    const copy = unallocatedEmployeeCostCopy('he-IL', {
+    const copy = unallocatedEmployeeCostCopy(
+      commandCenterCopyScope(commandCenterCopyTranslator('he-IL'), 'he-IL'),
+      {
       employeeName: 'מוחמד נציר',
       yearMonth: '2026-08',
       knownAmount: '8863.64',
@@ -64,7 +67,8 @@ describe('alert copy and inbox parity', () => {
       unallocatedAmount: '375.00',
       currency: 'ILS',
       status: 'partial',
-    });
+      },
+    );
 
     expect(copy.what).toContain('מוחמד נציר');
     expect(copy.what).toContain('2026-08');

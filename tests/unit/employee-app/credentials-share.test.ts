@@ -6,6 +6,7 @@ import {
   buildWhatsAppShareUrl,
   normalizeWhatsAppPhone,
 } from '@/modules/employee-app/domain/credentials-share';
+import { employeeAppCopyTranslator } from '@/shared/i18n/sync-namespace-translator';
 
 describe('credentials-share', () => {
   const baseInput = {
@@ -18,7 +19,8 @@ describe('credentials-share', () => {
   };
 
   it('builds Hebrew share message with login details', () => {
-    const message = buildCredentialsShareMessage(baseInput);
+    const t = employeeAppCopyTranslator('he-IL');
+    const message = buildCredentialsShareMessage(baseInput, t);
     expect(message).toContain('שלום מוחמד נציר');
     expect(message).toContain('הוזמנת על ידי');
     expect(message).toContain('ProjectFlow');
@@ -29,6 +31,21 @@ describe('credentials-share', () => {
     expect(message).toContain('PIN אישי');
     expect(message).not.toMatch(/supabase|auth/i);
     expect(message).not.toContain('org=');
+  });
+
+  it('builds English share message from catalog', () => {
+    const t = employeeAppCopyTranslator('en');
+    const message = buildCredentialsShareMessage(
+      {
+        ...baseInput,
+        employeeName: 'Alex',
+        organizationName: 'Acme Electric',
+      },
+      t,
+    );
+    expect(message).toContain('Hello Alex');
+    expect(message).toContain('Acme Electric');
+    expect(message).toContain('Temporary PIN');
   });
 
   it('builds employee login URL without org parameter', () => {
@@ -59,8 +76,9 @@ describe('credentials-share', () => {
   });
 
   it('encodes mailto subject/body with encodeURIComponent (no + for spaces)', () => {
+    const t = employeeAppCopyTranslator('he-IL');
     const subject = 'פרטי כניסה — מתח ח.י';
-    const body = buildCredentialsShareMessage({ ...baseInput, temporaryPin: '272482' });
+    const body = buildCredentialsShareMessage({ ...baseInput, temporaryPin: '272482' }, t);
     const url = buildMailtoUrl('worker@example.com', subject, body);
 
     expect(url).not.toMatch(/[?&]body=[^&]*\+/);

@@ -1,6 +1,6 @@
 import { uploadOrgStorageFile } from '@/modules/external-storage/server';
 import { requireSession, runInOrgContext } from '@/shared/auth/session';
-import { AppError } from '@/shared/errors';
+import { apiRouteErrorFromUnknown, apiRouteErrorResponse } from '@/shared/errors';
 
 export const runtime = 'nodejs';
 
@@ -8,14 +8,14 @@ export async function POST(request: Request) {
   try {
     const session = await requireSession();
     if (!session.activeOrganizationId) {
-      return Response.json({ error: 'no_active_organization' }, { status: 403 });
+      return apiRouteErrorResponse('errors.organizationContextRequired', 403);
     }
 
     const formData = await request.formData();
     const file = formData.get('file');
     const parentFolderExternalId = formData.get('parentFolderExternalId');
     if (!(file instanceof File) || typeof parentFolderExternalId !== 'string' || !parentFolderExternalId) {
-      return Response.json({ error: 'missing_params' }, { status: 400 });
+      return apiRouteErrorResponse('errors.validationFailed', 400);
     }
 
     const uploaded = await runInOrgContext(
@@ -33,9 +33,6 @@ export async function POST(request: Request) {
 
     return Response.json({ file: uploaded });
   } catch (error) {
-    if (error instanceof AppError) {
-      return Response.json({ error: error.messageKey ?? error.message }, { status: error.status });
-    }
-    return Response.json({ error: 'upload_failed' }, { status: 500 });
+    return apiRouteErrorFromUnknown(error, 'externalStorage.errors.operationFailed');
   }
 }

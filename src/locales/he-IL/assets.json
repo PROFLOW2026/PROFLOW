@@ -158,6 +158,7 @@
     "updateStatusPending": "שומר…"
   },
   "inventory": {
+    "defaultLocationName": "ראשי",
     "title": "מלאי",
     "description": "המלאי מציג כמויות לצורך ניהול העבודה.",
     "detailDescription": "המלאי מציג כמויות לצורך ניהול העבודה.",

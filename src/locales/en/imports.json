@@ -136,5 +136,33 @@
     "nothingSelected": "Select at least one valid row to import.",
     "needProjectId": "Enter a project ID for BOQ import.",
     "needPlanOrProjectId": "Enter a billing plan ID or project ID for billing plan import."
+  },
+  "validation": {
+    "employeeCostPermission": "No permission to import employee rate or cost. Clear this field to import the employee without a rate.",
+    "fieldRequired": "{field} is required",
+    "duplicateItemCodeInFile": "Duplicate item code in file (same as row {row})",
+    "confirmBoq": {
+      "notFound": "Item was not found.",
+      "draftOnly": "Only a draft BOQ can be edited.",
+      "changeOrderInvalid": "Change order was not found or does not belong to this project.",
+      "generic": "Could not complete that BOQ action. Check the values and try again."
+    },
+    "boq": {
+      "blankSkip": "Blank or total row - will be skipped on import",
+      "descriptionRequired": "description is required",
+      "invalidQty": "Invalid quantity (remove currency symbols; use decimal commas or dots)",
+      "invalidPrice": "Invalid unit price (remove currency symbols; use decimal commas or dots)",
+      "invalidAmount": "Invalid amount (remove currency symbols; use decimal commas or dots)",
+      "noMoney": "No quantity, unit price, or amount - item will import as 0",
+      "amountMismatch": "Amount does not match quantity × unit price - import will use quantity × unit price"
+    },
+    "billingPlan": {
+      "labelRequired": "label is required",
+      "amountOrPercentRequired": "agreedAmount or agreedPercent is required",
+      "invalidAgreedAmount": "agreedAmount must be a positive number",
+      "invalidAgreedPercent": "agreedPercent must be between 0 and 100",
+      "invalidTargetDate": "targetDate must be YYYY-MM-DD",
+      "invalidLineKind": "Invalid lineKind (expected: {kinds})"
+    }
   }
 }

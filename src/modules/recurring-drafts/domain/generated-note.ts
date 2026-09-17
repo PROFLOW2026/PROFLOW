@@ -3,9 +3,11 @@
  * Only this known pattern is localized — user-written notes are never touched.
  */
 
+import { resolveLabelLocale } from '@/shared/i18n/intl-locale';
+import { recurringDraftsCopyTranslator } from '@/shared/i18n/sync-namespace-translator';
+
 const EN_PATTERN =
   /^Generated from recurring draft [“"](.+)[”"]\.(?: Draft only(?: - not posted)?)?$/;
-const HE_PREFIX = 'נוצר אוטומטית מהוצאה חוזרת';
 
 export function recurringDraftGeneratedNote(
   templateTitle: string,
@@ -13,16 +15,11 @@ export function recurringDraftGeneratedNote(
   options?: { readonly draftOnly?: boolean },
 ): string {
   const title = templateTitle.trim();
-  if (locale.startsWith('he')) {
-    if (options?.draftOnly) {
-      return `${HE_PREFIX} "${title}". טיוטה בלבד.`;
-    }
-    return `${HE_PREFIX} "${title}".`;
-  }
+  const t = recurringDraftsCopyTranslator(locale);
   if (options?.draftOnly) {
-    return `Generated from recurring draft "${title}". Draft only.`;
+    return t('generatedNote.bodyDraftOnly', { title });
   }
-  return `Generated from recurring draft "${title}".`;
+  return t('generatedNote.body', { title });
 }
 
 /** Detect English system note for display-time localization of legacy rows. */
@@ -30,7 +27,7 @@ export function localizeLegacyRecurringDraftNote(
   notes: string | null | undefined,
   locale: string,
 ): string | null {
-  if (!notes?.trim() || !locale.startsWith('he')) return notes ?? null;
+  if (!notes?.trim() || resolveLabelLocale(locale) !== 'he-IL') return notes ?? null;
   const lines = notes.split('\n');
   const localized = lines.map((line) => {
     const match = line.trim().match(EN_PATTERN);

@@ -1,3 +1,5 @@
+import { DEFAULT_LOCALE } from '@/shared/i18n/config';
+import { isHebrewLocale, resolveIntlLocale } from '@/shared/i18n/intl-locale';
 import {
   displayScaleFor,
   fromNumericString,
@@ -45,11 +47,6 @@ function getFormatter(locale: string, options: Intl.NumberFormatOptions): Intl.N
     formatterCache.set(key, formatter);
   }
   return formatter;
-}
-
-function isHebrewLocale(locale: string): boolean {
-  const base = locale.toLowerCase().split('-')[0];
-  return base === 'he' || base === 'iw';
 }
 
 function stripBidiMarks(value: string): string {
@@ -101,11 +98,12 @@ function formatCurrencyFromParts(
 
 export function formatMoney(value: MoneyValue, locale: string, options: FormatMoneyOptions = {}): string {
   const { decimals = 'minor-units', compact = false, signDisplay = 'auto', currencyDisplay = 'narrowSymbol' } = options;
+  const intlLocale = resolveIntlLocale(locale);
 
   const fractionDigits = resolveFractionDigits(value, decimals);
   const decimal = toDecimalValue(value);
 
-  const formatted = formatCurrencyFromParts(locale, Math.abs(decimal.toNumber()), {
+  const formatted = formatCurrencyFromParts(intlLocale, Math.abs(decimal.toNumber()), {
     style: 'currency',
     currency: value.currency,
     currencyDisplay,
@@ -127,7 +125,7 @@ export function formatMoneyDelta(value: MoneyValue, locale: string, options: For
 }
 
 export function formatNumber(value: number | string, locale: string, options: Intl.NumberFormatOptions = {}): string {
-  return getFormatter(locale, options).format(Number(value));
+  return getFormatter(resolveIntlLocale(locale), options).format(Number(value));
 }
 
 export function formatPercent(
@@ -136,7 +134,7 @@ export function formatPercent(
   options: { maximumFractionDigits?: number; signDisplay?: Intl.NumberFormatOptions['signDisplay'] } = {},
 ): string {
   const { maximumFractionDigits = 1, signDisplay = 'auto' } = options;
-  return getFormatter(locale, {
+  return getFormatter(resolveIntlLocale(locale), {
     style: 'percent',
     maximumFractionDigits,
     signDisplay,
@@ -152,7 +150,7 @@ export function bidiIsolate(text: string): string {
 }
 
 /** Server-side display helper — always 2 decimal places (presentation only). */
-export function formatMoneyDisplay(value: MoneyValue, locale = 'he-IL'): string {
+export function formatMoneyDisplay(value: MoneyValue, locale: string = DEFAULT_LOCALE): string {
   return formatMoney(value, locale, { decimals: 'minor-units' });
 }
 
@@ -163,7 +161,7 @@ export function formatMoneyDisplay(value: MoneyValue, locale = 'he-IL'): string 
 export function formatMoneyString(
   amount: string | number | null | undefined,
   currency: string,
-  locale = 'he-IL',
+  locale: string = DEFAULT_LOCALE,
 ): string {
   const parsed = fromNumericString(amount, currency);
   return parsed ? formatMoneyDisplay(parsed, locale) : `${amount ?? '0'} ${currency}`;

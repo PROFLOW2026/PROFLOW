@@ -49,7 +49,9 @@ import { addDays, businessDate, daysBetween, type BusinessDate } from '@/shared/
 import type { ModuleVisibility } from '@/modules/tenancy/domain/types';
 import { withItemDefaults } from '../domain/ranking';
 import type { CommandCenterItem, CommandCenterSeverity } from '../domain/types';
+import { createCommandCenterCopyTranslator } from '@/shared/i18n/namespace-translator';
 import {
+  commandCenterCopyScope,
   creditVoidIssueCopy,
   expiringComplianceCopy,
   fallbackWhere,
@@ -79,6 +81,7 @@ import {
   billingPlanMilestoneDueCopy,
   billingPlanRetentionReleaseDueCopy,
   missingAttendanceTodayCopy,
+  type CommandCenterCopyScope,
 } from '../domain/item-copy';
 
 const PER_SOURCE_CAP = 15;
@@ -89,14 +92,22 @@ export interface CollectContext {
   readonly context: OrgContext;
   readonly modules: ModuleVisibility;
   readonly today: BusinessDate;
+  readonly copyScope: CommandCenterCopyScope;
+}
+
+export async function buildCollectContext(
+  input: Omit<CollectContext, 'copyScope'>,
+): Promise<CollectContext> {
+  const locale = input.context.locale || 'he-IL';
+  const copyT = await createCommandCenterCopyTranslator(locale);
+  return {
+    ...input,
+    copyScope: commandCenterCopyScope(copyT, locale),
+  };
 }
 
 function moduleOn(modules: ModuleVisibility, key: keyof ModuleVisibility): boolean {
   return Boolean(modules[key]);
-}
-
-function localeOf(ctx: CollectContext): string {
-  return ctx.context.locale || 'he-IL';
 }
 
 export async function collectOverdueAr(ctx: CollectContext): Promise<CommandCenterItem[]> {
@@ -110,10 +121,9 @@ export async function collectOverdueAr(ctx: CollectContext): Promise<CommandCent
     limit: PER_SOURCE_CAP,
   });
 
-  const locale = localeOf(ctx);
   return records.map((record) => {
     const days = record.dueDate ? daysBetween(record.dueDate, ctx.today) : 0;
-    const copy = overdueArCopy(locale, {
+    const copy = overdueArCopy(ctx.copyScope, {
       reference: record.reference,
       dueDate: record.dueDate,
       outstanding: record.outstandingAmount.amount,
@@ -124,7 +134,7 @@ export async function collectOverdueAr(ctx: CollectContext): Promise<CommandCent
       sourceId: record.id,
       what: copy.what,
       why: copy.why,
-      where: record.projectName ?? fallbackWhere(locale, 'billing'),
+      where: record.projectName ?? fallbackWhere(ctx.copyScope, 'billing'),
       href: `/billing/${record.id}`,
       urgencyBump: Math.min(99, Math.max(0, days)),
       meta: {
@@ -149,7 +159,7 @@ export async function collectVendorBillsDue(ctx: CollectContext): Promise<Comman
     if (bill.dueDate >= ctx.today) continue;
 
     const days = daysBetween(bill.dueDate, ctx.today);
-    const copy = vendorBillDueCopy(localeOf(ctx), {
+    const copy = vendorBillDueCopy(ctx.copyScope, {
       reference: bill.reference,
       dueDate: bill.dueDate,
       outstanding: bill.outstanding,
@@ -161,7 +171,7 @@ export async function collectVendorBillsDue(ctx: CollectContext): Promise<Comman
         sourceId: bill.billId,
         what: copy.what,
         why: copy.why,
-        where: bill.vendorName ?? fallbackWhere(localeOf(ctx), 'vendorBills'),
+        where: bill.vendorName ?? fallbackWhere(ctx.copyScope, 'vendorBills'),
         href: `/procurement/ap/${bill.billId}`,
         urgencyBump: Math.min(99, Math.max(0, days)),
         meta: { dueDate: bill.dueDate, outstanding: bill.outstanding },
@@ -188,9 +198,8 @@ export async function collectOpenAttendance(ctx: CollectContext): Promise<Comman
     toDate: yesterday,
   });
 
-  const locale = localeOf(ctx);
   return days.slice(0, PER_SOURCE_CAP).map((day) => {
-    const copy = openAttendanceCopy(locale, day.workDate);
+    const copy = openAttendanceCopy(ctx.copyScope, day.workDate);
     return withItemDefaults({
       sourceType: 'attendance_open',
       sourceId: day.id,
@@ -220,9 +229,8 @@ export async function collectMissingAttendanceToday(
   const missing = await listEmployeesWithoutAttendanceToday(ctx.context, ctx.today);
   if (missing.length === 0) return [];
 
-  const locale = localeOf(ctx);
   return missing.slice(0, PER_SOURCE_CAP).map((employee) => {
-    const copy = missingAttendanceTodayCopy(locale, { count: 1, date: ctx.today });
+    const copy = missingAttendanceTodayCopy(ctx.copyScope, { count: 1, date: ctx.today });
     return withItemDefaults({
       sourceType: 'missing_attendance_today',
       sourceId: `${employee.employeeId}:${ctx.today}`,
@@ -248,9 +256,8 @@ export async function collectUnallocatedEmployeeCost(
   });
   if (sources.length === 0) return [];
 
-  const locale = localeOf(ctx);
   return sources.map((source) => {
-    const copy = unattributedProjectLaborCopy(locale, source);
+    const copy = unattributedProjectLaborCopy(ctx.copyScope, source);
     return withItemDefaults({
       sourceType: 'unallocated_employee_cost',
       sourceId: source.timeEntryId,
@@ -285,7 +292,7 @@ export async function collectUnallocatedVendorBills(
     const outstanding = fromNumericString(bill.outstanding, bill.currency);
     if (!outstanding || isZeroMoney(outstanding)) continue;
 
-    const copy = unallocatedVendorBillCopy(localeOf(ctx), {
+    const copy = unallocatedVendorBillCopy(ctx.copyScope, {
       outstanding: bill.outstanding,
       currency: bill.currency,
     });
@@ -295,7 +302,7 @@ export async function collectUnallocatedVendorBills(
         sourceId: bill.billId,
         what: copy.what,
         why: copy.why,
-        where: bill.vendorName ?? fallbackWhere(localeOf(ctx), 'vendorBills'),
+        where: bill.vendorName ?? fallbackWhere(ctx.copyScope, 'vendorBills'),
         href: `/procurement/ap/${bill.billId}`,
         meta: { outstanding: bill.outstanding },
       }),
@@ -353,7 +360,7 @@ export async function collectProjectOverBudget(
     if (actualNum <= budgetNum) continue;
 
     const overBy = (actualNum - budgetNum).toFixed(2);
-    const copy = overBudgetCopy(localeOf(ctx), {
+    const copy = overBudgetCopy(ctx.copyScope, {
       actual: actual.amount,
       budget: budget.totalBudgetAmount,
       currency: budget.currency,
@@ -402,9 +409,8 @@ export async function collectOpenApprovals(ctx: CollectContext): Promise<Command
     )
     .limit(PER_SOURCE_CAP);
 
-  const locale = localeOf(ctx);
   return rows.map((row) => {
-    const copy = openApprovalCopy(locale, {
+    const copy = openApprovalCopy(ctx.copyScope, {
       entityType: row.entityType,
       amount: row.amount,
       currency: row.currency,
@@ -414,7 +420,7 @@ export async function collectOpenApprovals(ctx: CollectContext): Promise<Command
       sourceId: row.id,
       what: copy.what,
       why: copy.why,
-      where: fallbackWhere(locale, 'approvals'),
+      where: fallbackWhere(ctx.copyScope, 'approvals'),
       href: '/approvals',
       meta: { entityType: row.entityType, entityId: row.entityId },
     });
@@ -460,14 +466,13 @@ export async function collectOverduePlanning(ctx: CollectContext): Promise<Comma
     for (const p of projectRows) projectNameById.set(p.id, p.name);
   }
 
-  const locale = localeOf(ctx);
   return rows.map((row) => {
-    const copy = overduePlanningCopy(locale, {
+    const copy = overduePlanningCopy(ctx.copyScope, {
       kind: row.kind,
       targetEndDate: row.targetEndDate ?? '',
       progressPercent: String(row.progressPercent),
     });
-    const projectName = projectNameById.get(row.projectId) ?? fallbackWhere(locale, 'project');
+    const projectName = projectNameById.get(row.projectId) ?? fallbackWhere(ctx.copyScope, 'project');
     return withItemDefaults({
       sourceType: 'overdue_planning',
       sourceId: row.id,
@@ -491,9 +496,8 @@ export async function collectExpiringCompliance(
     (a) => a.status === 'expiring_soon' || a.status === 'expired',
   );
 
-  const locale = localeOf(ctx);
   return actionable.slice(0, PER_SOURCE_CAP).map((artifact) => {
-    const copy = expiringComplianceCopy(locale, {
+    const copy = expiringComplianceCopy(ctx.copyScope, {
       status: artifact.status,
       expiresOn: artifact.expiresOn,
     });
@@ -518,9 +522,8 @@ export async function collectOverdueMaintenance(
 
   const schedule = await listMaintenanceScheduleForOrg(ctx.context);
 
-  const locale = localeOf(ctx);
   return schedule.overdue.slice(0, PER_SOURCE_CAP).map((record) => {
-    const copy = overdueMaintenanceCopy(locale, {
+    const copy = overdueMaintenanceCopy(ctx.copyScope, {
       performedOn: record.performedOn,
       status: record.status,
     });
@@ -529,7 +532,7 @@ export async function collectOverdueMaintenance(
       sourceId: record.id,
       what: copy.what,
       why: copy.why,
-      where: record.assetName || fallbackWhere(locale, 'assets'),
+      where: record.assetName || fallbackWhere(ctx.copyScope, 'assets'),
       href: '/assets/maintenance',
       meta: { assetId: record.assetId },
     });
@@ -552,14 +555,14 @@ export async function collectCreditVoidIssues(ctx: CollectContext): Promise<Comm
       record.collectionStatus &&
       record.collectionStatus !== 'paid'
     ) {
-      const copy = creditVoidIssueCopy(localeOf(ctx), record.collectionStatus);
+      const copy = creditVoidIssueCopy(ctx.copyScope, record.collectionStatus);
       items.push(
         withItemDefaults({
           sourceType: 'credit_void_issue',
           sourceId: record.id,
           what: copy.what,
           why: copy.why,
-          where: record.projectName ?? record.reference ?? fallbackWhere(localeOf(ctx), 'billing'),
+          where: record.projectName ?? record.reference ?? fallbackWhere(ctx.copyScope, 'billing'),
           href: `/billing/${record.id}`,
           meta: { kind: record.kind, status: record.status },
         }),
@@ -597,10 +600,9 @@ export async function collectMonthCloseIncomplete(
     )
     .limit(PER_SOURCE_CAP);
 
-  const locale = localeOf(ctx);
   return rows.map((row) => {
     const pct = row.completenessPercent ?? '0';
-    const copy = monthCloseIncompleteCopy(locale, {
+    const copy = monthCloseIncompleteCopy(ctx.copyScope, {
       yearMonth: row.yearMonth,
       status: row.status,
       completenessPercent: pct,
@@ -610,7 +612,7 @@ export async function collectMonthCloseIncomplete(
       sourceId: row.id,
       what: copy.what,
       why: copy.why,
-      where: fallbackWhere(locale, 'monthClose'),
+      where: fallbackWhere(ctx.copyScope, 'monthClose'),
       href: '/month-close',
       meta: { yearMonth: row.yearMonth, status: row.status, completeness: pct },
     });
@@ -650,9 +652,8 @@ export async function collectBoqMeasurementAwaitingApproval(
     for (const p of projectRows) projectNameById.set(p.id, p.name);
   }
 
-  const locale = localeOf(ctx);
   return rows.slice(0, PER_SOURCE_CAP).map((row) => {
-    const copy = boqMeasurementAwaitingCopy(locale, {
+    const copy = boqMeasurementAwaitingCopy(ctx.copyScope, {
       periodLabel: row.periodLabel,
       certificateNumber: row.certificateNumber,
     });
@@ -661,7 +662,7 @@ export async function collectBoqMeasurementAwaitingApproval(
       sourceId: row.id,
       what: copy.what,
       why: copy.why,
-      where: projectNameById.get(row.projectId) ?? fallbackWhere(locale, 'boq'),
+      where: projectNameById.get(row.projectId) ?? fallbackWhere(ctx.copyScope, 'boq'),
       href: `/projects/${row.projectId}?tab=boq`,
       meta: { projectId: row.projectId, boqId: row.boqId },
     });
@@ -698,9 +699,8 @@ export async function collectBoqProgressReadyToBill(
     for (const p of projectRows) projectNameById.set(p.id, p.name);
   }
 
-  const locale = localeOf(ctx);
   return rows.slice(0, PER_SOURCE_CAP).map((row) => {
-    const copy = boqProgressReadyToBillCopy(locale, {
+    const copy = boqProgressReadyToBillCopy(ctx.copyScope, {
       periodLabel: row.periodLabel,
       certificateNumber: row.certificateNumber,
     });
@@ -709,7 +709,7 @@ export async function collectBoqProgressReadyToBill(
       sourceId: row.id,
       what: copy.what,
       why: copy.why,
-      where: projectNameById.get(row.projectId) ?? fallbackWhere(locale, 'boq'),
+      where: projectNameById.get(row.projectId) ?? fallbackWhere(ctx.copyScope, 'boq'),
       href: `/projects/${row.projectId}?tab=boq`,
       meta: { projectId: row.projectId, boqId: row.boqId },
     });
@@ -740,8 +740,6 @@ export async function collectBoqVsContractMismatch(
     ctx.context.organizationId,
   );
   const items: CommandCenterItem[] = [];
-  const locale = localeOf(ctx);
-
   for (const row of boqs) {
     if (items.length >= PER_SOURCE_CAP) break;
     const commercial = await loadProjectCommercialData(
@@ -777,14 +775,14 @@ export async function collectBoqVsContractMismatch(
       )
       .limit(1);
 
-    const copy = boqVsContractMismatchCopy(locale, { status: recon.status });
+    const copy = boqVsContractMismatchCopy(ctx.copyScope, { status: recon.status });
     items.push(
       withItemDefaults({
         sourceType: 'boq_vs_contract_mismatch',
         sourceId: row.boqId,
         what: copy.what,
         why: copy.why,
-        where: project?.name ?? fallbackWhere(locale, 'boq'),
+        where: project?.name ?? fallbackWhere(ctx.copyScope, 'boq'),
         href: `/projects/${row.projectId}?tab=boq`,
         meta: { projectId: row.projectId, status: recon.status },
       }),
@@ -833,7 +831,7 @@ export async function collectVendorBillsApproaching(
     if (bill.dueDate > horizon) continue;
 
     const daysLeft = daysBetween(ctx.today, bill.dueDate);
-    const copy = vendorBillApproachingCopy(localeOf(ctx), {
+    const copy = vendorBillApproachingCopy(ctx.copyScope, {
       reference: bill.reference,
       dueDate: bill.dueDate,
       outstanding: bill.outstanding,
@@ -845,7 +843,7 @@ export async function collectVendorBillsApproaching(
         sourceId: bill.billId,
         what: copy.what,
         why: copy.why,
-        where: bill.vendorName ?? fallbackWhere(localeOf(ctx), 'vendorBills'),
+        where: bill.vendorName ?? fallbackWhere(ctx.copyScope, 'vendorBills'),
         href: `/procurement/ap/${bill.billId}`,
         urgencyBump: Math.min(99, Math.max(0, (VENDOR_BILL_APPROACHING_DAYS - daysLeft) * 10)),
         meta: { dueDate: bill.dueDate, outstanding: bill.outstanding },
@@ -861,16 +859,15 @@ export async function collectOcrNeedsReview(ctx: CollectContext): Promise<Comman
   if (!hasPermission(ctx.context, PERMISSIONS.DOCUMENTS_READ)) return [];
 
   const jobs = await listOcrCandidates(ctx.context, { status: ['needs_review'] });
-  const locale = localeOf(ctx);
   return jobs.slice(0, OCR_CAP).map((job) => {
     const filename = job.sourceDocument.filename ?? null;
-    const copy = ocrNeedsReviewCopy(locale, filename);
+    const copy = ocrNeedsReviewCopy(ctx.copyScope, filename);
     return withItemDefaults({
       sourceType: 'ocr_needs_review',
       sourceId: job.id,
       what: copy.what,
       why: copy.why,
-      where: filename ?? fallbackWhere(locale, 'ocr'),
+      where: filename ?? fallbackWhere(ctx.copyScope, 'ocr'),
       href: '/documents/ocr-review',
       meta: { status: job.status },
     });
@@ -882,16 +879,15 @@ export async function collectOcrFailed(ctx: CollectContext): Promise<CommandCent
   if (!hasPermission(ctx.context, PERMISSIONS.DOCUMENTS_READ)) return [];
 
   const jobs = await listOcrCandidates(ctx.context, { status: ['failed'] });
-  const locale = localeOf(ctx);
   return jobs.slice(0, OCR_CAP).map((job) => {
     const filename = job.sourceDocument.filename ?? null;
-    const copy = ocrFailedCopy(locale, filename);
+    const copy = ocrFailedCopy(ctx.copyScope, filename);
     return withItemDefaults({
       sourceType: 'ocr_failed',
       sourceId: job.id,
       what: copy.what,
       why: copy.why,
-      where: filename ?? fallbackWhere(locale, 'ocr'),
+      where: filename ?? fallbackWhere(ctx.copyScope, 'ocr'),
       href: '/documents/ocr-review',
       meta: { status: job.status },
     });
@@ -907,19 +903,18 @@ export async function collectForecastWarnings(ctx: CollectContext): Promise<Comm
     ctx,
     actionable.map((warning) => warning.projectId),
   );
-  const locale = localeOf(ctx);
   const items: CommandCenterItem[] = [];
 
   for (const warning of actionable) {
     if (items.length >= PER_SOURCE_CAP) break;
-    const copy = forecastWarningCopy(locale, warning.kind);
+    const copy = forecastWarningCopy(ctx.copyScope, warning.kind);
     items.push(
       withItemDefaults({
         sourceType: 'forecast_warning',
         sourceId: `${warning.kind}:${warning.projectId}`,
         what: copy.what,
         why: copy.why,
-        where: names.get(warning.projectId) ?? fallbackWhere(locale, 'project'),
+        where: names.get(warning.projectId) ?? fallbackWhere(ctx.copyScope, 'project'),
         href: warning.href,
         severity: mapForecastSeverity(warning.severity),
         meta: { kind: warning.kind, projectId: warning.projectId, warningClass: warning.warningClass },
@@ -943,10 +938,8 @@ export async function collectOpenPunch(ctx: CollectContext): Promise<CommandCent
     ctx,
     rows.map((row) => row.projectId),
   );
-  const locale = localeOf(ctx);
-
   return rows.map((row) => {
-    const copy = punchOpenCopy(locale, row.title);
+    const copy = punchOpenCopy(ctx.copyScope, row.title);
     const severity: CommandCenterSeverity | undefined =
       row.priority === 'critical' ? 'critical' : row.priority === 'high' ? 'high' : undefined;
     return withItemDefaults({
@@ -954,7 +947,7 @@ export async function collectOpenPunch(ctx: CollectContext): Promise<CommandCent
       sourceId: row.id,
       what: copy.what,
       why: copy.why,
-      where: names.get(row.projectId) ?? fallbackWhere(locale, 'fieldOps'),
+      where: names.get(row.projectId) ?? fallbackWhere(ctx.copyScope, 'fieldOps'),
       href: `/field-ops/punch/${row.id}`,
       severity,
       meta: { projectId: row.projectId, status: row.status, priority: row.priority },
@@ -974,10 +967,8 @@ export async function collectOpenSafety(ctx: CollectContext): Promise<CommandCen
     ctx,
     rows.map((row) => row.projectId).filter((id): id is string => Boolean(id)),
   );
-  const locale = localeOf(ctx);
-
   return rows.map((row) => {
-    const copy = safetyOpenCopy(locale, row.title);
+    const copy = safetyOpenCopy(ctx.copyScope, row.title);
     const severity: CommandCenterSeverity =
       row.severity === 'critical' ? 'critical' : row.severity === 'high' ? 'high' : 'medium';
     return withItemDefaults({
@@ -985,7 +976,7 @@ export async function collectOpenSafety(ctx: CollectContext): Promise<CommandCen
       sourceId: row.id,
       what: copy.what,
       why: copy.why,
-      where: (row.projectId ? names.get(row.projectId) : null) ?? fallbackWhere(locale, 'safety'),
+      where: (row.projectId ? names.get(row.projectId) : null) ?? fallbackWhere(ctx.copyScope, 'safety'),
       href: `/safety/${row.id}`,
       severity,
       meta: { projectId: row.projectId, recordSeverity: row.severity },
@@ -1008,17 +999,15 @@ export async function collectOpenInspections(ctx: CollectContext): Promise<Comma
     ctx,
     overdue.map((row) => row.projectId),
   );
-  const locale = localeOf(ctx);
-
   return overdue.map((row) => {
-    const copy = inspectionOpenCopy(locale, row.title, row.scheduledOn);
+    const copy = inspectionOpenCopy(ctx.copyScope, row.title, row.scheduledOn);
     const days = row.scheduledOn ? daysBetween(businessDate(row.scheduledOn), ctx.today) : 0;
     return withItemDefaults({
       sourceType: 'inspection_open',
       sourceId: row.id,
       what: copy.what,
       why: copy.why,
-      where: names.get(row.projectId) ?? fallbackWhere(locale, 'fieldOps'),
+      where: names.get(row.projectId) ?? fallbackWhere(ctx.copyScope, 'fieldOps'),
       href: `/field-ops/inspections/${row.id}`,
       urgencyBump: Math.min(99, Math.max(0, days)),
       meta: { projectId: row.projectId, scheduledOn: row.scheduledOn, status: row.status },
@@ -1035,16 +1024,14 @@ export async function collectRecurringDraftIssues(
   const stuck = drafts
     .filter((draft) => draft.nextRunDate < ctx.today)
     .slice(0, PER_SOURCE_CAP);
-  const locale = localeOf(ctx);
-
   return stuck.map((draft) => {
-    const copy = recurringDraftIssueCopy(locale, draft.title, draft.nextRunDate);
+    const copy = recurringDraftIssueCopy(ctx.copyScope, draft.title, draft.nextRunDate);
     return withItemDefaults({
       sourceType: 'recurring_draft_issue',
       sourceId: draft.id,
       what: copy.what,
       why: copy.why,
-      where: fallbackWhere(locale, 'recurring'),
+      where: fallbackWhere(ctx.copyScope, 'recurring'),
       href: `/recurring-drafts/${draft.id}`,
       meta: { nextRunDate: draft.nextRunDate, draftKind: draft.draftKind },
     });
@@ -1059,16 +1046,14 @@ export async function collectMissingTimesheets(ctx: CollectContext): Promise<Com
   const missing = sheets
     .filter((sheet) => sheet.periodEnd < ctx.today)
     .slice(0, PER_SOURCE_CAP);
-  const locale = localeOf(ctx);
-
   return missing.map((sheet) => {
-    const copy = timesheetMissingCopy(locale, sheet.periodEnd);
+    const copy = timesheetMissingCopy(ctx.copyScope, sheet.periodEnd);
     return withItemDefaults({
       sourceType: 'timesheet_missing',
       sourceId: sheet.id,
       what: copy.what,
       why: copy.why,
-      where: sheet.employeeName || fallbackWhere(locale, 'timesheets'),
+      where: sheet.employeeName || fallbackWhere(ctx.copyScope, 'timesheets'),
       href: '/workforce/time',
       meta: { periodStart: sheet.periodStart, periodEnd: sheet.periodEnd },
     });
@@ -1090,9 +1075,8 @@ export async function collectBillingPlanDraftCycles(
       ctx.context.organizationId,
       PER_SOURCE_CAP,
     );
-    const locale = localeOf(ctx);
     return rows.map((row) => {
-      const copy = billingPlanCycleDraftCopy(locale, {
+      const copy = billingPlanCycleDraftCopy(ctx.copyScope, {
         title: row.title,
         cycleNumber: row.cycleNumber,
       });
@@ -1101,7 +1085,7 @@ export async function collectBillingPlanDraftCycles(
         sourceId: row.cycleId,
         what: copy.what,
         why: copy.why,
-        where: row.projectName || fallbackWhere(locale, 'billing'),
+        where: row.projectName || fallbackWhere(ctx.copyScope, 'billing'),
         href: `/projects/${row.projectId}?tab=billingPlan`,
         meta: { accountDate: row.accountDate, status: row.status },
       });
@@ -1129,9 +1113,8 @@ export async function collectBillingPlanMilestonesDue(
       7,
       PER_SOURCE_CAP,
     );
-    const locale = localeOf(ctx);
     return rows.map((row) => {
-      const copy = billingPlanMilestoneDueCopy(locale, {
+      const copy = billingPlanMilestoneDueCopy(ctx.copyScope, {
         label: row.label,
         targetDate: row.targetDate,
       });
@@ -1141,7 +1124,7 @@ export async function collectBillingPlanMilestonesDue(
         sourceId: row.lineId,
         what: copy.what,
         why: copy.why,
-        where: row.projectName || fallbackWhere(locale, 'billing'),
+        where: row.projectName || fallbackWhere(ctx.copyScope, 'billing'),
         href: `/projects/${row.projectId}?tab=billingPlan`,
         urgencyBump: Math.min(99, Math.max(0, days >= 0 ? days : 0)),
         meta: { targetDate: row.targetDate, planId: row.planId },
@@ -1167,9 +1150,8 @@ export async function collectBillingPlanRetentionReleaseDue(
       ctx.context.organizationId,
       PER_SOURCE_CAP,
     );
-    const locale = localeOf(ctx);
     return rows.map((row) => {
-      const copy = billingPlanRetentionReleaseDueCopy(locale, {
+      const copy = billingPlanRetentionReleaseDueCopy(ctx.copyScope, {
         heldRemaining: row.heldRemaining,
         currency: row.currency,
       });
@@ -1178,7 +1160,7 @@ export async function collectBillingPlanRetentionReleaseDue(
         sourceId: row.projectId,
         what: copy.what,
         why: copy.why,
-        where: row.projectName || fallbackWhere(locale, 'billing'),
+        where: row.projectName || fallbackWhere(ctx.copyScope, 'billing'),
         href: `/projects/${row.projectId}?tab=billingPlan`,
         meta: {
           heldRemaining: row.heldRemaining,

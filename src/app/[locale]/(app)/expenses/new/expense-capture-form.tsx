@@ -92,7 +92,7 @@ export function ExpenseCaptureForm({
         initialValues={{
           targeting: initialProjectId ?? '__overhead__',
           projectId: initialProjectId,
-          /** Default for new expenses: כולל מע״מ */
+          /** Default for new expenses: VAT-inclusive (`inclusive`). */
           vatMode: 'inclusive' as const,
         }}
         error={state.error ?? null}

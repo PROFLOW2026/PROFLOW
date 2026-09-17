@@ -46,11 +46,13 @@ function requiredFormValue(formData: FormData, key: string): string {
 
 async function mapAppError(error: unknown): Promise<ApFormState> {
   const tErrors = await getTranslations('errors');
+  const tValidation = await getTranslations('validation');
   const tAp = await getTranslations('ap');
   const tMonthClose = await getTranslations('monthClose');
   const tApprovals = await getTranslations('approvals');
   return mapServerActionError(error, {
     tErrors: (key) => tErrors(key as 'unexpected'),
+    tValidation: (key) => tValidation(key as 'invalidDate'),
     namespaces: {
       ap: (key) => tAp(key as 'errors.targetRequired'),
       monthClose: (key) => tMonthClose(key as 'errors.monthClosed'),

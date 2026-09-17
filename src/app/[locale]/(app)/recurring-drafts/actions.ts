@@ -30,6 +30,7 @@ import {
   ConflictError,
   DomainRuleError,
   ValidationError,
+  mapServerActionError,
 } from '@/shared/errors';
 import { redirect } from '@/shared/i18n/navigation';
 
@@ -180,18 +181,24 @@ function historyRedirectQuery(summary: HistoryOutcomeSummary): string {
 
 async function mapError(error: unknown): Promise<RecurringDraftFormState> {
   const tErrors = await getTranslations('errors');
+  const tValidation = await getTranslations('validation');
   const t = await getTranslations('recurringDrafts');
 
   if (error instanceof ValidationError) {
-    const fieldErrors: Record<string, string> = {};
-    for (const issue of error.issues) {
-      if (!issue.path) continue;
-      fieldErrors[issue.path] =
-        issue.path === 'costCategoryId'
-          ? t('errors.categoryRequiredForActual')
-          : issue.message;
+    const mapped = mapServerActionError(error, {
+      tErrors: (key) => tErrors(key as 'validationFailed'),
+      tValidation: (key) => tValidation(key as 'invalidDate'),
+    });
+    if (mapped.fieldErrors?.costCategoryId) {
+      return {
+        error: mapped.error,
+        fieldErrors: {
+          ...mapped.fieldErrors,
+          costCategoryId: t('errors.categoryRequiredForActual'),
+        },
+      };
     }
-    return { error: tErrors('validationFailed'), fieldErrors };
+    return mapped;
   }
   if (error instanceof DomainRuleError) {
     const key = error.messageKey;

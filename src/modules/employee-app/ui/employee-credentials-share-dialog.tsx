@@ -43,8 +43,8 @@ export function EmployeeCredentialsShareDialog({
   const t = useTranslations('employeeApp.admin');
   const tCommon = useTranslations('common');
   const toast = useOptionalToast();
-  const message = buildCredentialsShareMessage(credentials);
-  const subject = buildCredentialsEmailSubject(credentials.organizationName);
+  const message = buildCredentialsShareMessage(credentials, t);
+  const subject = buildCredentialsEmailSubject(credentials.organizationName, t);
   const expiryLabel = formatCredentialExpiry(credentials.temporaryPinExpiresAt);
 
   async function copyText(text: string, successMessage: string) {

@@ -20,7 +20,7 @@ const optionalDate = z.preprocess(
   emptyToNull,
   z
     .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD')
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'validation.invalidDate')
     .nullable()
     .optional(),
 );
@@ -31,7 +31,7 @@ const optionalMoney = z.preprocess(
   emptyToNull,
   z
     .string()
-    .regex(/^-?\d+(\.\d+)?$/, 'Invalid amount')
+    .regex(/^-?\d+(\.\d+)?$/, 'validation.invalidAmount')
     .nullable()
     .optional(),
 );
@@ -39,10 +39,10 @@ const optionalMoney = z.preprocess(
 const requiredQuantity = z
   .string()
   .trim()
-  .regex(/^\d+(\.\d+)?$/, 'Quantity must be a positive number')
-  .refine((value) => Number(value) > 0, 'Quantity must be greater than zero');
+  .regex(/^\d+(\.\d+)?$/, 'validation.invalidAmount')
+  .refine((value) => Number(value) > 0, 'validation.quantityMustBePositive');
 
-const requiredDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD');
+const requiredDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'validation.invalidDate');
 
 /** Optional acquisition / source-link fields. Never posts Actual. */
 const acquisitionFields = {
@@ -218,7 +218,7 @@ const signedAdjustQuantity = z
   .string()
   .trim()
   .regex(/^-?\d+(\.\d+)?$/, 'Quantity must be a number')
-  .refine((value) => Number(value) !== 0, 'Adjustment quantity must be non-zero');
+  .refine((value) => Number(value) !== 0, 'validation.amountMustBeNonZero');
 
 export const recordInventoryMovementSchema = z
   .object({

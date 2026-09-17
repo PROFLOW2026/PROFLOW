@@ -203,6 +203,10 @@
     "endBody": "Ended templates stop generating. Existing drafts are unchanged.",
     "endConfirm": "End template"
   },
+  "generatedNote": {
+    "body": "Generated from recurring draft \"{title}\".",
+    "bodyDraftOnly": "Generated from recurring draft \"{title}\". Draft only."
+  },
   "errors": {
     "notActive": "Paused templates cannot generate drafts. Resume the template first.",
     "ended": "Ended templates cannot generate drafts.",

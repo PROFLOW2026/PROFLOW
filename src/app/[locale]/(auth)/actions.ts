@@ -9,6 +9,7 @@ import {
 } from '@/shared/auth/password-policy';
 import { buildAuthCallbackUrl, safeAppPath } from '@/shared/i18n/auth-locale';
 import { isLocale, type Locale } from '@/shared/i18n/config';
+import { resolveLocaleAfterAuth } from '@/shared/i18n/persist-locale-preference';
 import { redirect } from '@/shared/i18n/navigation';
 import { createSupabaseServerClient, isSupabaseConfigured } from '@/shared/supabase/server';
 
@@ -55,10 +56,10 @@ export async function signInAction(
   if (!parsed.success) return { error: t('signIn.invalidCredentials') };
 
   const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.auth.signInWithPassword(parsed.data);
+  const { data, error } = await supabase.auth.signInWithPassword(parsed.data);
   if (error) return { error: t('signIn.invalidCredentials'), email: parsed.data.email };
 
-  const locale = await activeLocale();
+  const locale = await resolveLocaleAfterAuth(data.user?.id, await activeLocale());
   redirect({ href: safeAppPath(stringField(formData.get('next'))) ?? '/', locale });
 }
 
@@ -109,7 +110,10 @@ export async function signUpAction(
   });
 
   if (error) {
-    return { error: mapSignUpProviderError(error.message, t, tValidation), email: parsed.data.email };
+    return {
+      error: mapSignUpProviderError(error.message, error.code, t, tValidation),
+      email: parsed.data.email,
+    };
   }
 
   // With email confirmation on, there is no session yet; tell the user to check
@@ -162,9 +166,13 @@ export async function updatePasswordAction(
 
 function mapSignUpProviderError(
   message: string,
+  code: string | undefined,
   t: Awaited<ReturnType<typeof getTranslations<'auth'>>>,
   tValidation: Awaited<ReturnType<typeof getTranslations<'validation'>>>,
 ): string {
+  if (code === 'user_already_exists' || code === 'email_exists') {
+    return t('signUp.emailAlreadyRegistered');
+  }
   const lower = message.toLowerCase();
   if (lower.includes('already') || lower.includes('registered') || lower.includes('exists')) {
     return t('signUp.emailAlreadyRegistered');

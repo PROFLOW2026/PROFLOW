@@ -17,7 +17,7 @@ import {
   type BoqUserAllocationKind,
 } from '@/modules/boq/domain/types';
 import { withOrgContext } from '@/shared/auth/session';
-import { AppError } from '@/shared/errors';
+import { isAppError, mapServerActionError } from '@/shared/errors';
 
 export interface BoqFormState {
   error?: string;
@@ -26,53 +26,15 @@ export interface BoqFormState {
   message?: string;
 }
 
-function mapError(error: unknown, t: (key: string) => string): BoqFormState {
-  if (!(error instanceof AppError)) {
-    return { error: t('errors.generic') };
-  }
-  // Prefer messageKey when present — never surface English AppError.message to UI.
-  if (error.messageKey.startsWith('boq.')) {
-    const key = error.messageKey.replace(/^boq\./, '');
-    try {
-      const translated = t(key);
-      if (translated && translated !== key && translated !== error.messageKey) {
-        return { error: translated };
-      }
-    } catch {
-      /* fall through to legacy message matching */
-    }
-  }
-  // Legacy: some BOQ domain paths still encode rule identity in English message text.
-  // Matching is internal only — the returned string is always a localized boq.errors.* key.
-  const message = error.message || '';
-  if (/already has billing|duplicate billing|already being billed/i.test(message)) {
-    return { error: t('errors.duplicateBilling') };
-  }
-  if (/Only approved \(unbilled\)|Only approved/i.test(message)) {
-    return { error: t('errors.billingRequiresApproved') };
-  }
-  if (/Over-measurement|exceeds current quantity/i.test(message)) {
-    return { error: t('errors.overMeasurement') };
-  }
-  if (/Negative period quantities/i.test(message)) {
-    return { error: t('errors.negativePeriod') };
-  }
-  if (/Only draft BOQ/i.test(message)) {
-    return { error: t('errors.draftOnly') };
-  }
-  if (/Progress requires an active BOQ|Change allocation requires an active BOQ/i.test(message)) {
-    return { error: t('errors.activeRequired') };
-  }
-  if (/zero - nothing to bill|period value is zero/i.test(message)) {
-    return { error: t('errors.zeroPeriod') };
-  }
-  if (/Change order must belong|Change order/i.test(message) && /same project|NotFound/i.test(message)) {
-    return { error: t('errors.changeOrderInvalid') };
-  }
-  if (error.name === 'NotFoundError' || /not found/i.test(message)) {
-    return { error: t('errors.notFound') };
-  }
-  return { error: t('errors.generic') };
+async function mapBoqError(error: unknown): Promise<BoqFormState> {
+  const tErrors = await getTranslations('errors');
+  const t = await getTranslations('boq');
+  return mapServerActionError(error, {
+    tErrors: (key) => tErrors(key as 'unexpected'),
+    namespaces: {
+      boq: (key) => t(key as 'errors.generic'),
+    },
+  });
 }
 
 function revalidateProject(projectId: string) {
@@ -100,7 +62,7 @@ export async function createProjectBoqAction(
     revalidateProject(projectId);
     return { ok: true, message: t('actions.created') };
   } catch (error) {
-    if (error instanceof AppError) return mapError(error, t);
+    if (isAppError(error)) return mapBoqError(error);
     throw error;
   }
 }
@@ -150,7 +112,7 @@ export async function upsertBoqNodeAction(
     revalidateProject(projectId);
     return { ok: true, message: t('actions.saveItem') };
   } catch (error) {
-    if (error instanceof AppError) return mapError(error, t);
+    if (isAppError(error)) return mapBoqError(error);
     throw error;
   }
 }
@@ -168,7 +130,7 @@ export async function activateBoqAction(
     revalidateProject(projectId);
     return { ok: true, message: t('actions.activated') };
   } catch (error) {
-    if (error instanceof AppError) return mapError(error, t);
+    if (isAppError(error)) return mapBoqError(error);
     throw error;
   }
 }
@@ -184,7 +146,7 @@ export async function removeBoqNodeAction(
     revalidateProject(projectId);
     return { ok: true };
   } catch (error) {
-    if (error instanceof AppError) return mapError(error, t);
+    if (isAppError(error)) return mapBoqError(error);
     throw error;
   }
 }
@@ -220,7 +182,7 @@ export async function createProgressBatchAction(
     revalidatePath(`/projects/${projectId}/boq-measure`);
     return { ok: true, message: t('actions.progressCreated') };
   } catch (error) {
-    if (error instanceof AppError) return mapError(error, t);
+    if (isAppError(error)) return mapBoqError(error);
     throw error;
   }
 }
@@ -249,7 +211,7 @@ export async function approveProgressBatchAction(
     revalidateProject(projectId);
     return { ok: true, message: t('actions.progressApproved') };
   } catch (error) {
-    if (error instanceof AppError) return mapError(error, t);
+    if (isAppError(error)) return mapBoqError(error);
     throw error;
   }
 }
@@ -276,7 +238,7 @@ export async function createProgressBillingAction(
     revalidatePath('/billing');
     return { ok: true, message: t('actions.billingCreated') };
   } catch (error) {
-    if (error instanceof AppError) return mapError(error, t);
+    if (isAppError(error)) return mapBoqError(error);
     throw error;
   }
 }
@@ -317,7 +279,7 @@ export async function allocateApprovedChangeToBoqAction(
     revalidateProject(projectId);
     return { ok: true };
   } catch (error) {
-    if (error instanceof AppError) return mapError(error, t);
+    if (isAppError(error)) return mapBoqError(error);
     throw error;
   }
 }
@@ -345,7 +307,7 @@ export async function updateBoqNodeMappingsAction(
     revalidateProject(projectId);
     return { ok: true, message: t('mappings.saved') };
   } catch (error) {
-    if (error instanceof AppError) return mapError(error, t);
+    if (isAppError(error)) return mapBoqError(error);
     throw error;
   }
 }
@@ -373,7 +335,7 @@ export async function createSubcontractorScheduleAction(
     revalidateProject(projectId);
     return { ok: true };
   } catch (error) {
-    if (error instanceof AppError) return mapError(error, t);
+    if (isAppError(error)) return mapBoqError(error);
     throw error;
   }
 }
@@ -397,7 +359,7 @@ export async function addSubcontractorScheduleLineAction(
     revalidateProject(projectId);
     return { ok: true };
   } catch (error) {
-    if (error instanceof AppError) return mapError(error, t);
+    if (isAppError(error)) return mapBoqError(error);
     throw error;
   }
 }
@@ -433,7 +395,7 @@ export async function createSubcontractorValuationDraftAction(
     revalidateProject(projectId);
     return { ok: true, message: t('subcontractor.valuationCreated') };
   } catch (error) {
-    if (error instanceof AppError) return mapError(error, t);
+    if (isAppError(error)) return mapBoqError(error);
     throw error;
   }
 }
@@ -454,7 +416,7 @@ export async function activateSubcontractorScheduleAction(
     revalidateProject(projectId);
     return { ok: true, message: t('subcontractor.activated') };
   } catch (error) {
-    if (error instanceof AppError) return mapError(error, t);
+    if (isAppError(error)) return mapBoqError(error);
     throw error;
   }
 }
@@ -475,7 +437,7 @@ export async function approveSubcontractorValuationAction(
     revalidateProject(projectId);
     return { ok: true, message: t('subcontractor.valuationApproved') };
   } catch (error) {
-    if (error instanceof AppError) return mapError(error, t);
+    if (isAppError(error)) return mapBoqError(error);
     throw error;
   }
 }
@@ -500,7 +462,7 @@ export async function createDraftApFromSubcontractorValuationAction(
     revalidateProject(projectId);
     return { ok: true, message: t('subcontractor.draftApCreated') };
   } catch (error) {
-    if (error instanceof AppError) return mapError(error, t);
+    if (isAppError(error)) return mapBoqError(error);
     throw error;
   }
 }
@@ -522,7 +484,7 @@ export async function proposeSubcontractorValuationApAction(
     revalidateProject(projectId);
     return { ok: true, message: t('subcontractor.proposedAp') };
   } catch (error) {
-    if (error instanceof AppError) return mapError(error, t);
+    if (isAppError(error)) return mapBoqError(error);
     throw error;
   }
 }

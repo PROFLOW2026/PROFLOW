@@ -19,5 +19,55 @@
   },
   "actions": {
     "draftOnly": "הוכנה טיוטה. לא נרשם דבר."
+  },
+  "unconfiguredReply": {
+    "noTools": "אין מודל חי מחובר. לא נמצאו כלים להרצה על השאלה הזו.",
+    "permissionDenied": "אין הרשאה: {title}"
+  },
+  "toolCopy": {
+    "tools": {
+      "today_attention": "היום",
+      "explain_project_profit": "יתרת חוזה פרויקט",
+      "clients_owing_money": "לקוחות עם יתרה",
+      "pay_this_week": "לתשלום השבוע",
+      "projects_at_risk": "פרויקטים בסיכון",
+      "supplier_bills_needing_review": "חשבוניות ספק לבדיקה",
+      "forecast_over_budget": "תחזית מעל התקציב",
+      "explain_number": "הסבר מספר",
+      "find_document": "מסמכים",
+      "prepare_draft_expense": "טיוטת הוצאה",
+      "prepare_payment_reminder_draft": "טיוטת תזכורת תשלום"
+    },
+    "warningKinds": {
+      "actual_over_budget": "עלות בפועל מעל התקציב",
+      "projected_cost_over_budget": "תחזית עלות מעל התקציב",
+      "insufficient_remaining_budget": "תקציב שנותר אינו מספיק",
+      "forecast_margin_negative": "שיעור יתרת חוזה תחזית שלילי",
+      "margin_deterioration": "שחיקת יתרת חוזה",
+      "commitment_pressure": "לחץ מהתחייבויות",
+      "billing_lag": "פיגור בחיוב",
+      "collection_risk": "סיכון גבייה",
+      "high_consumption_vs_progress": "צריכה גבוהה מול התקדמות",
+      "missing_data": "חסרים נתונים",
+      "fallback": "אזהרת תחזית"
+    },
+    "todayEmpty": "אין פריטים לטיפול בהיום.",
+    "profitNeedProject": "ציינו פרויקט כדי להסביר יתרת חוזה מהנתונים הקיימים.",
+    "profitNotSet": "לא הוגדר מחיר. לא מחושבת יתרת חוזה.",
+    "profitHidden": "יתרת החוזה אינה זמינה לצופה הזה או לפרויקט הזה.",
+    "profitBody": "יתרת חוזה תחזית {forecastLabel}. יתרת חוזה בפועל {actualLabel}.",
+    "clientsEmpty": "אין חיובים באיחור ברשימה הזו.",
+    "payEmpty": "אין חשבוניות ספק לפירעון השבוע עם תאריך רשום.",
+    "riskEmpty": "אין אזהרות מוקדמות לצופה הזה.",
+    "billsEmpty": "אין חשבוניות ספק בטיוטה ברשימה הזו.",
+    "billsCount": "{count} חשבוניות ספק בטיוטה.",
+    "explainNumber": "פתחו את הפרויקט, החיוב או ההוצאה. המספרים מגיעים מהפיננסים הקיימים - העוזר לא מחשב מחדש.",
+    "documentsEmpty": "לא נמצאו מסמכים. החיפוש משתמש רק ברשומות שמותר לכם לראות.",
+    "draftExpense": "לא נוצרה הוצאה. פתחו הוצאה חדשה כדי להכין טיוטה. לא נרשם דבר.",
+    "draftReminder": "לא נוצרה הודעה. פתחו הודעה חדשה כדי להכין תזכורת. לא נשלח דבר.",
+    "financialsLabel": "פיננסים לפרויקט",
+    "expensesLabel": "הוצאה חדשה",
+    "reminderLabel": "תזכורת תשלום",
+    "messagesLabel": "הודעות"
   }
 }

@@ -1,5 +1,6 @@
 'use client';
 
+import { useLocale } from 'next-intl';
 import { useState } from 'react';
 import { MoneyText } from '@/components/patterns/money-text';
 import { textNavLinkClassName } from '@/components/ui/pressable';
@@ -9,6 +10,7 @@ import {
   buildProjectReturnTo,
 } from '@/modules/expenses/domain/expense-return-navigation';
 import { showsCanonicalPoolWeight } from '../domain/allocated-general-percent-display';
+import { resolveIntlLocale } from '@/shared/i18n/intl-locale';
 import type { ProjectAllocatedGeneralDetail } from '../domain/project-allocated-general-detail';
 
 export type AllocatedGeneralDetailCopy = {
@@ -37,11 +39,11 @@ function resolveMethodLabel(
   return row.allocationMethodLabel;
 }
 
-function formatYearMonthLabel(yearMonth: string): string {
+function formatYearMonthLabel(yearMonth: string, locale: string): string {
   const [year, month] = yearMonth.split('-');
   if (!year || !month) return yearMonth;
   const date = new Date(Number(year), Number(month) - 1, 1);
-  return new Intl.DateTimeFormat('he-IL', { month: 'long', year: 'numeric' }).format(date);
+  return new Intl.DateTimeFormat(resolveIntlLocale(locale), { month: 'long', year: 'numeric' }).format(date);
 }
 
 export function AllocatedGeneralDetailPanel({
@@ -57,6 +59,7 @@ export function AllocatedGeneralDetailPanel({
   inlineExpanded?: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const locale = useLocale();
   const projectReturnTo = buildProjectReturnTo(projectId, 'financials');
   if (detail.rows.length === 0) return null;
 
@@ -132,7 +135,7 @@ export function AllocatedGeneralDetailPanel({
                       {row.monthSlices.map((slice) => (
                         <li key={slice.yearMonth} data-pf-allocated-general-month={slice.yearMonth}>
                           <p className="font-medium text-[var(--pf-text-primary)]">
-                            {formatYearMonthLabel(slice.yearMonth)}
+                            {formatYearMonthLabel(slice.yearMonth, locale)}
                           </p>
                           {slice.poolWeightPercent ? (
                             <p>

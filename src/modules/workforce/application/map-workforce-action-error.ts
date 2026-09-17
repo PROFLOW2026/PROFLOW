@@ -1,5 +1,11 @@
 import { getTranslations } from 'next-intl/server';
-import { ValidationError, isAppError, type AppError } from '@/shared/errors';
+import {
+  ValidationError,
+  inferMessageKey,
+  isAppError,
+  translateMessageKey,
+  type AppError,
+} from '@/shared/errors';
 
 const WORKFORCE_ERROR_KEYS = [
   'invalidBulkRange',
@@ -113,16 +119,20 @@ export async function mapWorkforceActionError(
 
   if (error instanceof ValidationError) {
     const first = error.issues[0];
-    if (first?.messageKey) {
-      // Prefer i18n key when present
-      try {
-        if (first.messageKey.startsWith('workforce.')) {
-          const tWorkforce = await getTranslations('workforce');
-          return { error: tWorkforce(first.messageKey.slice('workforce.'.length) as 'errors.invalidBulkRange') };
-        }
-      } catch {
-        /* fall through */
-      }
+    if (first) {
+      const tValidation = await getTranslations('validation');
+      const tWorkforce = await getTranslations('workforce');
+      const resolvedKey = first.messageKey ?? inferMessageKey(first.message);
+      const translated = resolvedKey
+        ? translateMessageKey(resolvedKey, {
+        tErrors,
+        tValidation: (key) => tValidation(key as 'invalidDate'),
+        namespaces: {
+          workforce: (key) => tWorkforce(key as 'errors.invalidBulkRange'),
+        },
+      })
+        : null;
+      if (translated) return { error: translated };
     }
     return { error: tErrors('validationFailed') };
   }

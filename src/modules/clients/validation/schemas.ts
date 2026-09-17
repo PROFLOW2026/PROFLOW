@@ -11,8 +11,8 @@ const optionalText = z.preprocess(emptyToNull, z.string().trim().max(500).nullab
 export const clientNameSchema = z
   .string()
   .trim()
-  .min(1, 'Client name is required')
-  .max(200, 'Client name must be at most 200 characters');
+  .min(1, 'validation.clientNameRequired')
+  .max(200, 'validation.clientNameTooLong');
 
 export const createClientSchema = z
   .object({
@@ -54,14 +54,14 @@ export const createClientSchema = z
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['primaryContactName'],
-        message: 'Contact person name is required',
+        message: 'validation.contactPersonNameRequired',
       });
     }
     if (!value.primaryContactPhone) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['primaryContactPhone'],
-        message: 'Contact person phone is required',
+        message: 'validation.contactPersonPhoneRequired',
       });
     }
   });

@@ -8,6 +8,7 @@ import { withOrgContext } from '@/shared/auth/session';
 import { todayInTimeZone } from '@/shared/dates';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { resolveLabelLocale } from '@/shared/i18n/intl-locale';
 import { ProjectPlanningPanel } from './project-planning-panel';
 import type { PlanningLocale } from './messages';
 
@@ -21,7 +22,7 @@ export interface ProjectSchedulePanelProps {
  */
 export async function ProjectSchedulePanel({ projectId }: ProjectSchedulePanelProps) {
   const locale = await getLocale();
-  const planningLocale: PlanningLocale = locale === 'he-IL' ? 'he-IL' : 'en';
+  const planningLocale = resolveLabelLocale(locale) as PlanningLocale;
 
   const data = await withOrgContext(async (context) => {
     if (!hasPermission(context, PERMISSIONS.PLANNING_READ)) {

@@ -3,6 +3,8 @@
  * DB `name` may be English; UI overlays these labels by key for isSystem entries.
  */
 
+import { resolveLabelLocale } from '@/shared/i18n/intl-locale';
+
 export type VendorCapabilityLabelLocale = 'en' | 'he-IL';
 
 export const VENDOR_CAPABILITY_LABELS_EN: Readonly<Record<string, string>> = {
@@ -43,7 +45,7 @@ const LABELS_BY_LOCALE: Readonly<
 };
 
 export function resolveVendorCapabilityLabelLocale(locale: string): VendorCapabilityLabelLocale {
-  return locale === 'he-IL' || locale.startsWith('he') ? 'he-IL' : 'en';
+  return resolveLabelLocale(locale);
 }
 
 /**

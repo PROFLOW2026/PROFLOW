@@ -80,6 +80,301 @@
     "expense_needs_allocation": "Expense needs project allocation",
     "monthly_workforce_report_ready": "Monthly workforce report"
   },
+  "itemCopy": {
+    "where": {
+      "billing": "Billing",
+      "vendorBills": "Vendor bills",
+      "workforce": "Workforce · employer cost",
+      "approvals": "Approvals",
+      "project": "Project",
+      "assets": "Assets",
+      "monthClose": "Month close",
+      "boq": "BOQ",
+      "ocr": "Invoice capture",
+      "fieldOps": "Field operations",
+      "safety": "Safety",
+      "recurring": "Recurring drafts",
+      "timesheets": "Timesheet approvals",
+      "closeout": "Closeout",
+      "warranty": "Warranty",
+      "cashFlow": "Cash flow",
+      "automations": "Automations",
+      "communications": "Messages"
+    },
+    "overdueAr": {
+      "whatWithReference": "Collect {reference}",
+      "whatDefault": "Collect overdue billing",
+      "whyWithDueDate": "Past due since {dueDate} · outstanding {outstanding}",
+      "whyDefault": "Past due · outstanding {outstanding}"
+    },
+    "vendorBillDue": {
+      "whatWithReference": "Pay vendor bill {reference}",
+      "whatDefault": "Pay overdue vendor bill",
+      "why": "Due {dueDate} · outstanding {outstanding}"
+    },
+    "openAttendance": {
+      "what": "Close open attendance day",
+      "why": "Attendance for {workDate} is still open (no clock-out / not closed)"
+    },
+    "unattributedProjectLabor": {
+      "what": "Work day without project attribution",
+      "why": "{employeeName} · {workDate} · {hours} h"
+    },
+    "unallocatedEmployeeCost": {
+      "what": "Allocate labor remainder · {employeeName} · {yearMonth}",
+      "why": "Recognized: {recognized} · Allocated: {allocated} · Remaining: {remaining} ({status})"
+    },
+    "unallocatedVendorBill": {
+      "what": "Assign vendor bill to a project",
+      "why": "Posted bill with no project · {outstanding}"
+    },
+    "overBudget": {
+      "what": "Review over-budget project",
+      "why": "Actual {actual} exceeds budget {budget} (over by {overBy})"
+    },
+    "openApproval": {
+      "what": "Decide pending approval",
+      "why": "{entity} awaits decision{money}"
+    },
+    "overduePlanning": {
+      "whatMilestone": "Update overdue milestone",
+      "whatPlanItem": "Update overdue plan item",
+      "why": "Target end {targetEndDate} · progress {progressPercent}%"
+    },
+    "expiringCompliance": {
+      "whatExpired": "Renew expired compliance",
+      "whatExpiring": "Review expiring compliance",
+      "whyWithDate": "Expires {expiresOn} · {status}",
+      "whyStatusOnly": "{status}"
+    },
+    "overdueMaintenance": {
+      "what": "Complete overdue maintenance",
+      "why": "Scheduled {performedOn} · status {status}",
+      "noDate": "without date"
+    },
+    "creditVoidIssue": {
+      "what": "Resolve open credit note",
+      "why": "Credit note collection is {status}"
+    },
+    "monthCloseIncomplete": {
+      "what": "Complete month close {yearMonth}",
+      "why": "Status {status} · completeness {completenessPercent}%"
+    },
+    "boqMeasurementAwaiting": {
+      "what": "Approve BOQ measurement",
+      "why": "Certificate {certificateNumber} · {periodLabel} awaits approval"
+    },
+    "boqProgressReadyToBill": {
+      "what": "Create BOQ progress bill",
+      "why": "Certificate {certificateNumber} · {periodLabel} approved and ready to bill"
+    },
+    "boqVsContractMismatch": {
+      "what": "Reconcile BOQ vs contract",
+      "why": "Contract and BOQ diverge. {statusLabel}"
+    },
+    "vendorBillApproaching": {
+      "whatWithReference": "Vendor bill due soon {reference}",
+      "whatDefault": "Vendor bill due soon",
+      "why": "Due {dueDate} · outstanding {outstanding}"
+    },
+    "ocrNeedsReview": {
+      "what": "Review scanned document",
+      "whyWithFilename": "{filename} needs explicit confirmation before a draft is created",
+      "whyDefault": "Needs explicit confirmation before a draft is created"
+    },
+    "ocrFailed": {
+      "what": "Retry a failed document read",
+      "whyWithFilename": "{filename} failed and can be retried",
+      "whyDefault": "Reading failed and can be retried"
+    },
+    "forecastWarning": {
+      "default": {
+        "what": "Review forecast warning",
+        "why": "A projected financial risk needs a look"
+      },
+      "kinds": {
+        "projected_cost_over_budget": {
+          "what": "Review projected budget overrun",
+          "why": "Forecast cost exceeds the active budget - a projection, not an actual overrun"
+        },
+        "insufficient_remaining_budget": {
+          "what": "Review remaining budget shortfall",
+          "why": "Open commitments plus remaining expected cost exceed remaining budget"
+        },
+        "forecast_margin_negative": {
+          "what": "Review negative forecast margin",
+          "why": "Forecast margin is below zero on contract versus forecast cost"
+        },
+        "margin_deterioration": {
+          "what": "Review margin deterioration",
+          "why": "Forecast margin is at least 3 points below actual margin"
+        },
+        "commitment_pressure": {
+          "what": "Review commitment pressure",
+          "why": "Open commitments are pressing remaining budget"
+        },
+        "billing_lag": {
+          "what": "Review billing lag",
+          "why": "Cost has advanced well ahead of invoicing against the contract"
+        },
+        "collection_risk": {
+          "what": "Review collection risk",
+          "why": "A large share of invoiced amounts is still outstanding"
+        },
+        "high_consumption_vs_progress": {
+          "what": "Review budget consumption vs progress",
+          "why": "Budget consumed is running ahead of physical progress"
+        },
+        "missing_data": {
+          "what": "Complete forecast inputs",
+          "why": "Not enough data to assess project position with confidence"
+        },
+        "actual_over_budget": {
+          "what": "Review over-budget project",
+          "why": "Actual cost exceeds the active budget"
+        }
+      }
+    },
+    "punchOpen": {
+      "what": "Close open punch item - {title}",
+      "why": "Punch item is still open"
+    },
+    "safetyOpen": {
+      "what": "Resolve safety record - {title}",
+      "why": "Safety record is still open"
+    },
+    "inspectionOpen": {
+      "what": "Complete inspection - {title}",
+      "whyScheduled": "Scheduled {scheduledOn} and still open",
+      "whyOpen": "Inspection is still open"
+    },
+    "recurringDraftIssue": {
+      "what": "Fix recurring draft - {title}",
+      "why": "Next run {nextRunDate} is overdue while the draft is still active"
+    },
+    "timesheetMissing": {
+      "what": "Submit an overdue timesheet",
+      "why": "Period ending {periodEnd} is still a draft"
+    },
+    "closeoutBlockers": {
+      "what": "Finish closeout - {projectName}",
+      "whyReopened": "The project was reopened. Review closeout readiness.",
+      "whyDefault": "Review closeout readiness on the Closeout tab."
+    },
+    "warrantyExpiring": {
+      "what": "Warranty ending - {title}",
+      "why": "Coverage ends {endDate}"
+    },
+    "cashFlowRisk": {
+      "what": "Cash flow risk to review",
+      "why": "Overdue collections {overdueIn} · overdue payables {overdueOut}"
+    },
+    "automationFollowup": {
+      "what": "Automation needs follow-up",
+      "why": "{preset} · {ranAt}"
+    },
+    "communicationFailed": {
+      "what": "Message not sent - {subject}",
+      "why": "Delivery failed or was not confirmed by the provider."
+    },
+    "billingPlanCycleDraft": {
+      "what": "Progress account awaiting issue - {title}",
+      "why": "Account #{cycleNumber} is draft/ready to issue as billing (not payment)."
+    },
+    "billingPlanMilestoneDue": {
+      "what": "Billing milestone due - {label}",
+      "why": "Target date {targetDate}"
+    },
+    "billingPlanRetentionReleaseDue": {
+      "what": "Release billing-plan retention",
+      "why": "{heldRemaining} retention held remaining — ready to release as billing."
+    },
+    "monthlyWorkforceReportReady": {
+      "what": "Monthly workforce report ready",
+      "why": "You can generate and save the workforce report for {monthLabel}.",
+      "where": "Workforce · monthly reports"
+    },
+    "missingAttendanceToday": {
+      "whatOne": "{count} employee has not reported attendance today",
+      "whatOther": "{count} employees have not reported attendance today",
+      "why": "Date {date} — attendance is missing for these employees."
+    },
+    "reportMonthLabel": "{month} {year}",
+    "reportMonths": {
+      "1": "January",
+      "2": "February",
+      "3": "March",
+      "4": "April",
+      "5": "May",
+      "6": "June",
+      "7": "July",
+      "8": "August",
+      "9": "September",
+      "10": "October",
+      "11": "November",
+      "12": "December"
+    },
+    "labels": {
+      "boqReconStatus": {
+        "matched": "matched",
+        "variance": "variance",
+        "unallocated_contract_value": "unallocated contract value",
+        "unallocated_approved_change": "approved change not yet allocated",
+        "fallback": "{status}"
+      },
+      "allocationStatus": {
+        "applied": "Applied",
+        "draft": "Draft",
+        "fallback": "Allocation status"
+      },
+      "approvalEntityType": {
+        "expense": "Expense",
+        "vendor_bill": "Vendor bill",
+        "vendor_credit": "Vendor credit",
+        "purchase_order": "Purchase order",
+        "time_correction": "Time correction",
+        "quote_discount": "Quote discount",
+        "budget_revision": "Budget revision",
+        "billing_record": "Billing",
+        "payment": "Payment",
+        "fallback": "Approval request"
+      },
+      "complianceStatus": {
+        "expired": "expired",
+        "expiring_soon": "expiring soon",
+        "fallback": "{status}"
+      },
+      "collectionStatus": {
+        "open": "open",
+        "partial": "partial",
+        "overdue": "overdue",
+        "paid": "paid",
+        "fallback": "{status}"
+      },
+      "monthCloseStatus": {
+        "open": "open",
+        "ready": "ready",
+        "closed": "closed",
+        "fallback": "{status}"
+      },
+      "automationPreset": {
+        "client_balance_overdue": "Client balance overdue",
+        "quote_no_followup": "Quote without follow-up",
+        "vendor_bill_due": "Vendor bill due",
+        "timesheet_not_submitted": "Timesheet not submitted",
+        "timesheet_waiting_approval": "Timesheet waiting for approval",
+        "ocr_waiting_review": "Invoice capture waiting for review",
+        "forecast_over_budget": "Forecast over budget",
+        "forecast_margin_low": "Forecast margin low",
+        "warranty_expiring": "Warranty ending",
+        "compliance_expiring": "Compliance document ending",
+        "asset_service_due": "Equipment service due",
+        "retention_release_date": "Retention release date",
+        "closeout_has_blockers": "Closeout blockers",
+        "fallback": "Automation rule"
+      }
+    }
+  },
   "empty": {
     "title": "You're clear",
     "body": "Nothing needs handling right now."

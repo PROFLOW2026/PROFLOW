@@ -27,6 +27,11 @@ import { todayInTimeZone, type BusinessDate } from '@/shared/dates';
 import { ValidationError } from '@/shared/errors';
 import { assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS, type PermissionKey } from '@/shared/permissions/catalog';
+import {
+  createCommandCenterCopyTranslator,
+  createNotificationsCopyTranslator,
+} from '@/shared/i18n/namespace-translator';
+import type { NamespaceTranslator } from '@/shared/i18n/namespace-translator';
 import { notificationCopy } from '../domain/copy';
 import { buildDedupeKey } from '../domain/dedupe';
 import { selectActorRecipients } from '../domain/recipients';
@@ -70,6 +75,8 @@ interface ScannerContext {
   readonly cap: number;
   readonly locale: string;
   readonly holders: Map<PermissionKey, Promise<string[]>>;
+  readonly notificationT: NamespaceTranslator;
+  readonly commandCenterT: NamespaceTranslator;
 }
 
 async function holdersFor(
@@ -101,7 +108,7 @@ async function emitLive(
     const recipients = await recipientsFor(entity);
     for (const recipientUserId of recipients) {
       if (!recipientUserId) continue;
-      const copy = notificationCopy(ctx.locale, type, {
+      const copy = notificationCopy(ctx.notificationT, type, {
         reference: entity.reference,
         extra: entity.extra,
       });
@@ -240,7 +247,7 @@ async function scanApprovals(ctx: ScannerContext): Promise<{ emitted: number; re
   const pending = await listPendingApprovals(ctx.context, { limit: ctx.cap });
   const entities: ScanEntity[] = pending.map((item) => ({
     id: item.id,
-    reference: approvalEntityTypeLabel(ctx.locale, item.entityType),
+    reference: approvalEntityTypeLabel(ctx.commandCenterT, item.entityType),
     extra:
       item.amount && item.currency
         ? formatMoneyString(item.amount, item.currency, ctx.locale)
@@ -525,7 +532,7 @@ async function scanAutomationOutputs(ctx: ScannerContext): Promise<{ emitted: nu
   )).map((entity) => ({
     ...entity,
     reference: entity.reference
-      ? automationPresetLabel(ctx.locale, entity.reference)
+      ? automationPresetLabel(ctx.commandCenterT, entity.reference)
       : entity.reference,
   }));
   const emitted = await emitLive(
@@ -704,12 +711,19 @@ export async function runNotificationScan(
   const cap = parsed.data.perScannerCap ?? SCAN_SOURCE_CAP;
   const deadline = Date.now() + maxMs;
   const today = todayInTimeZone(context.organization.timezone);
+  const locale = context.locale || 'he-IL';
+  const [notificationT, commandCenterT] = await Promise.all([
+    createNotificationsCopyTranslator(locale),
+    createCommandCenterCopyTranslator(locale),
+  ]);
   const ctx: ScannerContext = {
     context,
     today,
     cap,
-    locale: context.locale || 'he-IL',
+    locale,
     holders: new Map(),
+    notificationT,
+    commandCenterT,
   };
 
   let scannersRun = 0;

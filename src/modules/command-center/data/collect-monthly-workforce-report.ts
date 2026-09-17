@@ -60,7 +60,7 @@ export async function collectMonthlyWorkforceReportReady(
     }
   }
 
-  const copy = monthlyWorkforceReportReadyCopy(context.locale, completedMonth);
+  const copy = monthlyWorkforceReportReadyCopy(ctx.copyScope, completedMonth);
   return [
     withItemDefaults({
       sourceType: 'monthly_workforce_report_ready',

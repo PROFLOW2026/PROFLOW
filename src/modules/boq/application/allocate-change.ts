@@ -42,7 +42,7 @@ export async function allocateApprovedChangeToBoq(
   const boq = await findBoqById(context.db, context.organizationId, input.boqId);
   if (!boq) throw new NotFoundError('BOQ');
   if (!canAllocateChange(boq.status as 'draft' | 'active' | 'superseded' | 'archived')) {
-    throw new ConflictError('Change allocation requires an active BOQ');
+    throw new ConflictError('Change allocation requires an active BOQ', 'boq.errors.activeRequired');
   }
 
   const [changeOrder] = await context.db
@@ -60,7 +60,10 @@ export async function allocateApprovedChangeToBoq(
     .limit(1);
   if (!changeOrder) throw new NotFoundError('Change order');
   if (changeOrder.projectId !== boq.projectId) {
-    throw new ConflictError('Change order must belong to the same project as the BOQ');
+    throw new ConflictError(
+      'Change order must belong to the same project as the BOQ',
+      'boq.errors.changeOrderInvalid',
+    );
   }
 
   const createdIds: string[] = [];

@@ -21,6 +21,7 @@ import { partitionDashboardCompletenessItems } from '../domain/dashboard-missing
 import { HomeDashboardOwnerView } from './home-dashboard-owner-view';
 import { HomeLaborReconciliation, HomePendingTimeAlert } from './home-labor-alerts';
 import type { DashboardKpiKey } from '../domain/dashboard-missing-data';
+import { resolveIntlLocale } from '@/shared/i18n/intl-locale';
 
 interface HomeDashboardContentProps {
   data: HomeDashboardData;
@@ -738,7 +739,7 @@ function MonthNavigation({
 
   // Format month display label in the UI locale.
   const displayDate = new Date(year, month - 1, 1);
-  const monthLabel = new Intl.DateTimeFormat(locale, {
+  const monthLabel = new Intl.DateTimeFormat(resolveIntlLocale(locale), {
     month: 'long',
     year: 'numeric',
   }).format(displayDate);

@@ -6,7 +6,7 @@ export const taxRuleKeySchema = z
   .trim()
   .min(2)
   .max(64)
-  .regex(/^[a-z0-9_]+$/, 'Key must use lowercase letters, numbers and underscores');
+  .regex(/^[a-z0-9_]+$/, 'validation.taxKeyFormat');
 
 export const createTaxRuleSchema = z
   .object({
@@ -14,7 +14,7 @@ export const createTaxRuleSchema = z
     name: z.string().trim().min(2).max(120),
     method: z.enum(['percentage', 'exempt', 'zero_rated']).default('percentage'),
     ratePercent: z.string().trim().optional().nullable(),
-    validFrom: z.string().refine(isBusinessDate, 'Invalid date'),
+    validFrom: z.string().refine(isBusinessDate, 'validation.invalidDate'),
     validTo: z
       .string()
       .optional()
@@ -24,12 +24,12 @@ export const createTaxRuleSchema = z
   })
   .superRefine((data, ctx) => {
     if (data.method === 'percentage' && !data.ratePercent?.trim()) {
-      ctx.addIssue({ code: 'custom', path: ['ratePercent'], message: 'Rate is required for percentage tax' });
+      ctx.addIssue({ code: 'custom', path: ['ratePercent'], message: 'validation.taxRateRequiredForPercentage' });
     }
     const from = businessDate(data.validFrom);
     const to = data.validTo?.trim() ? businessDate(data.validTo) : null;
     if (to && to < from) {
-      ctx.addIssue({ code: 'custom', path: ['validTo'], message: 'End date must be on or after start date' });
+      ctx.addIssue({ code: 'custom', path: ['validTo'], message: 'validation.endBeforeStart' });
     }
   });
 
@@ -57,7 +57,7 @@ export const updateTaxRuleSchema = z
       const from = businessDate(data.validFrom);
       const to = businessDate(data.validTo);
       if (to < from) {
-        ctx.addIssue({ code: 'custom', path: ['validTo'], message: 'End date must be on or after start date' });
+        ctx.addIssue({ code: 'custom', path: ['validTo'], message: 'validation.endBeforeStart' });
       }
     }
   });
@@ -65,6 +65,6 @@ export const updateTaxRuleSchema = z
 export type UpdateTaxRuleInput = z.input<typeof updateTaxRuleSchema>;
 
 export const resolveTaxSchema = z.object({
-  date: z.string().refine(isBusinessDate, 'Invalid date'),
+  date: z.string().refine(isBusinessDate, 'validation.invalidDate'),
   key: taxRuleKeySchema.optional(),
 });

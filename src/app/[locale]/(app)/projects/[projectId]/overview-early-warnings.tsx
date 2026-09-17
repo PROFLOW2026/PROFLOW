@@ -10,16 +10,13 @@ import { Link } from '@/shared/i18n/navigation';
 import { pressableCardLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
 
-const FORECAST_COPY_FALLBACK = 'לא ניתן להציג את הפרט הזה.';
-
 function forecastCopyUnavailable(
   tForecast: Awaited<ReturnType<typeof getTranslations>>,
 ): string {
   try {
-    const fallback = tForecast('copyUnavailable');
-    return typeof fallback === 'string' && fallback.trim() ? fallback : FORECAST_COPY_FALLBACK;
+    return tForecast('copyUnavailable');
   } catch {
-    return FORECAST_COPY_FALLBACK;
+    return '';
   }
 }
 

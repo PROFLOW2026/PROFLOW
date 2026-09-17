@@ -13,7 +13,7 @@ import {
   submitChangeRequestForApproval,
   updateChangeRequest,
 } from '@/modules/commercial';
-import { AppError, isAppError } from '@/shared/errors';
+import { isAppError, mapServerActionError } from '@/shared/errors';
 import { withOrgContext } from '@/shared/auth/session';
 import { redirect } from '@/shared/i18n/navigation';
 
@@ -24,16 +24,21 @@ export interface FormActionState {
   offlineQueued?: boolean;
 }
 
-function errorMessage(error: unknown, fallback: string): string {
-  if (isAppError(error)) return fallback;
-  return fallback;
+async function mapChangesActionError(error: unknown): Promise<FormActionState> {
+  const tErrors = await getTranslations('errors');
+  const t = await getTranslations('changes');
+  return mapServerActionError(error, {
+    tErrors: (key) => tErrors(key as 'unexpected'),
+    namespaces: {
+      changes: (key) => t(key as 'errors.notDraft'),
+    },
+  });
 }
 
 export async function createChangeRequestAction(
   _prev: FormActionState,
   formData: FormData,
 ): Promise<FormActionState> {
-  const t = await getTranslations('errors');
   const locale = await getLocale();
 
   try {
@@ -51,8 +56,7 @@ export async function createChangeRequestAction(
     revalidatePath('/changes');
     redirect({ href: `/changes/${result.changeRequestId}`, locale });
   } catch (error) {
-    if (error instanceof AppError && error.messageKey) return { error: t('validationFailed') };
-    if (isAppError(error)) return { error: t('unexpected') };
+    if (isAppError(error)) return mapChangesActionError(error);
     throw error;
   }
 }
@@ -61,7 +65,6 @@ export async function submitForApprovalAction(
   _prev: FormActionState,
   formData: FormData,
 ): Promise<FormActionState> {
-  const t = await getTranslations('errors');
   const changeRequestId = String(formData.get('changeRequestId') ?? '');
   const recordSent = formData.get('recordSent') === 'true';
 
@@ -72,7 +75,8 @@ export async function submitForApprovalAction(
     revalidatePath(`/changes/${changeRequestId}`);
     return { success: true };
   } catch (error) {
-    return { error: errorMessage(error, t('unexpected')) };
+    if (isAppError(error)) return mapChangesActionError(error);
+    throw error;
   }
 }
 
@@ -80,7 +84,6 @@ export async function rejectChangeAction(
   _prev: FormActionState,
   formData: FormData,
 ): Promise<FormActionState> {
-  const t = await getTranslations('errors');
   const changeRequestId = String(formData.get('changeRequestId') ?? '');
 
   try {
@@ -90,7 +93,8 @@ export async function rejectChangeAction(
     revalidatePath(`/changes/${changeRequestId}`);
     return { success: true };
   } catch (error) {
-    return { error: errorMessage(error, t('unexpected')) };
+    if (isAppError(error)) return mapChangesActionError(error);
+    throw error;
   }
 }
 
@@ -98,7 +102,6 @@ export async function cancelChangeAction(
   _prev: FormActionState,
   formData: FormData,
 ): Promise<FormActionState> {
-  const t = await getTranslations('errors');
   const changeRequestId = String(formData.get('changeRequestId') ?? '');
 
   try {
@@ -108,7 +111,8 @@ export async function cancelChangeAction(
     revalidatePath(`/changes/${changeRequestId}`);
     return { success: true };
   } catch (error) {
-    return { error: errorMessage(error, t('unexpected')) };
+    if (isAppError(error)) return mapChangesActionError(error);
+    throw error;
   }
 }
 
@@ -116,7 +120,6 @@ export async function createQuoteVersionAction(
   _prev: FormActionState,
   formData: FormData,
 ): Promise<FormActionState> {
-  const t = await getTranslations('errors');
   const locale = await getLocale();
   const changeRequestId = String(formData.get('changeRequestId') ?? '');
 
@@ -143,7 +146,7 @@ export async function createQuoteVersionAction(
     revalidatePath(`/changes/${changeRequestId}`);
     redirect({ href: `/changes/${changeRequestId}`, locale });
   } catch (error) {
-    if (isAppError(error)) return { error: t('validationFailed') };
+    if (isAppError(error)) return mapChangesActionError(error);
     throw error;
   }
 }
@@ -152,7 +155,6 @@ export async function approveChangeAction(
   _prev: FormActionState,
   formData: FormData,
 ): Promise<FormActionState> {
-  const t = await getTranslations('errors');
   const locale = await getLocale();
   const changeRequestId = String(formData.get('changeRequestId') ?? '');
 
@@ -170,23 +172,9 @@ export async function approveChangeAction(
     revalidatePath(`/changes/${changeRequestId}`);
     redirect({ href: `/changes/${changeRequestId}`, locale });
   } catch (error) {
-    if (isAppError(error)) return { error: t('validationFailed') };
+    if (isAppError(error)) return mapChangesActionError(error);
     throw error;
   }
-}
-
-async function mapChangesError(error: unknown): Promise<FormActionState> {
-  const tErrors = await getTranslations('errors');
-  const t = await getTranslations('changes');
-  if (!isAppError(error)) throw error;
-  if (error.messageKey.startsWith('changes.')) {
-    const key = error.messageKey.replace(/^changes\./, '') as
-      | 'errors.alreadyReversed'
-      | 'errors.cannotReverseReversal'
-      | 'errors.unsafeBilling';
-    return { error: t(key) };
-  }
-  return { error: tErrors('unexpected') };
 }
 
 export async function reverseChangeOrderAction(
@@ -210,7 +198,8 @@ export async function reverseChangeOrderAction(
     if (changeRequestId) revalidatePath(`/changes/${changeRequestId}`);
     return { success: true };
   } catch (error) {
-    return mapChangesError(error);
+    if (isAppError(error)) return mapChangesActionError(error);
+    throw error;
   }
 }
 
@@ -218,8 +207,6 @@ export async function updateChangeRequestAction(
   _prev: FormActionState,
   formData: FormData,
 ): Promise<FormActionState> {
-  const t = await getTranslations('errors');
-
   try {
     await withOrgContext(async (context) =>
       updateChangeRequest(context, {
@@ -232,6 +219,7 @@ export async function updateChangeRequestAction(
     );
     return { success: true };
   } catch (error) {
-    return { error: errorMessage(error, t('unexpected')) };
+    if (isAppError(error)) return mapChangesActionError(error);
+    throw error;
   }
 }

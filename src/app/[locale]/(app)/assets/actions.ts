@@ -65,9 +65,11 @@ function optionalTextOrNull(formData: FormData, key: string): string | null | un
 
 async function mapAppError(error: unknown): Promise<AssetsFormState> {
   const tErrors = await getTranslations('errors');
+  const tValidation = await getTranslations('validation');
   const t = await getTranslations('assets');
   return mapServerActionError(error, {
     tErrors: (key) => tErrors(key as 'unexpected'),
+    tValidation: (key) => tValidation(key as 'invalidDate'),
     namespaces: {
       assets: (key) => t(key as 'errors.insufficientQuantity'),
     },

@@ -3,6 +3,8 @@
  * DB `name` stays English; UI overlays these labels by key.
  */
 
+import { resolveLabelLocale } from '@/shared/i18n/intl-locale';
+
 export type PaymentTermLabelLocale = 'en' | 'he-IL';
 
 /** Canonical English labels for system keys (aligned with DEFAULT_PAYMENT_TERMS). */
@@ -48,7 +50,7 @@ const LABELS_BY_LOCALE: Readonly<Record<PaymentTermLabelLocale, Readonly<Record<
   };
 
 export function resolvePaymentTermLabelLocale(locale: string): PaymentTermLabelLocale {
-  return locale === 'he-IL' || locale.startsWith('he') ? 'he-IL' : 'en';
+  return resolveLabelLocale(locale);
 }
 
 /**

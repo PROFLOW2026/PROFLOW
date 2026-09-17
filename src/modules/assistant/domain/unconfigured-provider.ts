@@ -1,3 +1,4 @@
+import { assistantCopyTranslator } from '@/shared/i18n/sync-namespace-translator';
 import type { AssistantProvider } from './provider';
 import type {
   AssistantCitation,
@@ -10,12 +11,11 @@ function formatToolBody(input: AssistantCompletionInput): {
   content: string;
   citations: AssistantCitation[];
 } {
+  const t = assistantCopyTranslator(input.locale);
+
   if (input.toolResults.length === 0) {
     return {
-      content:
-        input.locale.startsWith('he')
-          ? 'אין מודל חי מחובר. לא נמצאו כלים להרצה על השאלה הזו.'
-          : 'No live model is connected. No local tools ran for this question.',
+      content: t('unconfiguredReply.noTools'),
       citations: [],
     };
   }
@@ -25,37 +25,21 @@ function formatToolBody(input: AssistantCompletionInput): {
   const denied = input.toolResults.filter((item) => item.permissionDenied);
   const usable = input.toolResults.filter((item) => !item.permissionDenied);
 
-  if (input.locale.startsWith('he')) {
-    lines.push('אין עוזר חי מחובר. התשובה מבוססת על רשומות שמותר לכם לראות.');
-  } else {
-    lines.push('A live assistant is not connected. Answers use ProjectFlow records you can already see.');
-  }
+  lines.push(t('unconfigured'));
 
   for (const result of usable) {
     const kindLabel =
-      result.claimKind === 'fact'
-        ? input.locale.startsWith('he')
-          ? 'עובדה'
-          : 'Fact'
-        : input.locale.startsWith('he')
-          ? 'הסקה'
-          : 'Inference';
+      result.claimKind === 'fact' ? t('facts') : t('inference');
     lines.push(`${kindLabel}: ${result.title}`);
     lines.push(result.body);
     if (result.draftOnly) {
-      lines.push(
-        input.locale.startsWith('he') ? 'הוכנה טיוטה. לא נרשם דבר.' : 'This prepared a draft. Nothing was posted.',
-      );
+      lines.push(t('actions.draftOnly'));
     }
     citations.push(...result.citations);
   }
 
   for (const result of denied) {
-    lines.push(
-      input.locale.startsWith('he')
-        ? `אין הרשאה: ${result.title}`
-        : `No permission: ${result.title}`,
-    );
+    lines.push(t('unconfiguredReply.permissionDenied', { title: result.title }));
   }
 
   return { content: lines.join('\n\n'), citations };

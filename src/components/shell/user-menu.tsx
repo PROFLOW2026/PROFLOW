@@ -14,6 +14,7 @@ import {
 import { pressableClassName } from '@/components/ui/pressable';
 import { signOutAction, switchOrganizationAction } from '@/shared/auth/actions';
 import { LOCALES, LOCALE_METADATA, type Locale } from '@/shared/i18n/config';
+import { persistLocalePreferenceAction } from '@/shared/i18n/persist-locale-preference';
 import { Link, usePathname, useRouter } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
 
@@ -125,8 +126,9 @@ export function UserMenu({
             key={option}
             disabled={pending}
             onSelect={() => {
-              startTransition(() => {
-                // Same route, different locale prefix - the user keeps their place.
+              if (option === locale) return;
+              startTransition(async () => {
+                await persistLocalePreferenceAction(option);
                 router.replace(pathname, { locale: option });
               });
             }}

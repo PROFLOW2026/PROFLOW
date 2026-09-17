@@ -13,9 +13,11 @@ export interface BudgetActionState {
 
 async function mapError(error: unknown): Promise<BudgetActionState> {
   const tErrors = await getTranslations('errors');
+  const tValidation = await getTranslations('validation');
   const t = await getTranslations('budgets');
   return mapServerActionError(error, {
     tErrors: (key) => tErrors(key as 'unexpected'),
+    tValidation: (key) => tValidation(key as 'invalidDate'),
     namespaces: {
       budgets: (key) => {
         // messageKeys are budgets.activeExists / budgets.notActive (not budgets.errors.*)

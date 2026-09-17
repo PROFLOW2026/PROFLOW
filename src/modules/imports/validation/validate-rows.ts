@@ -8,6 +8,7 @@ import { createProjectSchema } from '@/modules/projects/validation/schemas';
 import { PROJECT_STATUSES, WORK_KINDS } from '@/modules/projects/domain/types';
 import { createExpenseSchema } from '@/modules/expenses/validation/schemas';
 import { createInventoryItemSchema } from '@/modules/assets/validation/schemas';
+import { importsCopyTranslator } from '@/shared/i18n/sync-namespace-translator';
 import type { EnabledImportKind, ImportIssue, MappedImportRow } from '../domain/types';
 import { fieldDefsForKind } from '../domain/field-defs';
 import { isBlankOrTotalBoqRow, parseImportDecimal } from '../domain/boq-import-parse';
@@ -66,11 +67,11 @@ function validateContacts(values: Readonly<Record<string, string>>): ImportIssue
     issues.push({
       severity: 'error',
       field: 'clientName',
-      message: 'clientName or clientId is required',
+      message: 'validation.clientNameOrClientIdRequired',
     });
   }
   if (clientId && !UUID_RE.test(clientId)) {
-    issues.push({ severity: 'error', field: 'clientId', message: 'clientId must be a UUID' });
+    issues.push({ severity: 'error', field: 'clientId', message: 'validation.uuidInvalid' });
   }
 
   const roleRaw = emptyToUndefined(values.role)?.toLowerCase();
@@ -84,12 +85,12 @@ function validateContacts(values: Readonly<Record<string, string>>): ImportIssue
 
   const name = emptyToUndefined(values.name);
   if (!name) {
-    issues.push({ severity: 'error', field: 'name', message: 'name is required' });
+    issues.push({ severity: 'error', field: 'name', message: 'validation.nameRequired' });
   }
 
   const email = emptyToUndefined(values.email);
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    issues.push({ severity: 'error', field: 'email', message: 'Invalid email' });
+    issues.push({ severity: 'error', field: 'email', message: 'validation.invalidEmail' });
   }
 
   return issues;
@@ -122,10 +123,7 @@ function validateVendors(values: Readonly<Record<string, string>>): ImportIssue[
 }
 
 function employeeCostPermissionMessage(locale = 'en'): string {
-  const he = locale.startsWith('he');
-  return he
-    ? 'אין הרשאה לייבא תעריף או עלות עובד. נקו את השדה כדי לייבא את העובד בלי תעריף.'
-    : 'No permission to import employee rate or cost. Clear this field to import the employee without a rate.';
+  return importsCopyTranslator(locale)('validation.employeeCostPermission');
 }
 
 function validateEmployees(
@@ -157,7 +155,7 @@ function validateEmployees(
 
   const baseRate = emptyToUndefined(values.baseRate);
   if (baseRate && !AMOUNT_RE.test(baseRate)) {
-    issues.push({ severity: 'error', field: 'baseRate', message: 'Invalid amount' });
+    issues.push({ severity: 'error', field: 'baseRate', message: 'validation.invalidAmount' });
   }
 
   const parsed = createEmployeeSchema.safeParse({
@@ -178,7 +176,7 @@ function validateEmployees(
     issues.push({
       severity: 'warning',
       field: 'baseRate',
-      message: 'No base rate - employee will be created without a cost rate',
+      message: 'validation.importNoBaseRateWarning',
     });
   }
 
@@ -207,7 +205,7 @@ function validateProjects(values: Readonly<Record<string, string>>): ImportIssue
 
   const clientId = emptyToUndefined(values.clientId);
   if (clientId && !UUID_RE.test(clientId)) {
-    issues.push({ severity: 'error', field: 'clientId', message: 'clientId must be a UUID' });
+    issues.push({ severity: 'error', field: 'clientId', message: 'validation.uuidInvalid' });
   }
 
   for (const dateField of ['startDate', 'targetEndDate'] as const) {
@@ -216,7 +214,7 @@ function validateProjects(values: Readonly<Record<string, string>>): ImportIssue
       issues.push({
         severity: 'error',
         field: dateField,
-        message: 'Date must be YYYY-MM-DD',
+        message: 'validation.dateMustBeYyyyMmDd',
       });
     }
   }
@@ -240,8 +238,7 @@ function validateProjects(values: Readonly<Record<string, string>>): ImportIssue
       issues.push({
         severity: 'error',
         field: key,
-        message:
-          'Financial amounts are not imported with projects; use the opening_values import kind',
+        message: 'validation.financialAmountsNotOnProjects',
       });
     }
   }
@@ -271,11 +268,11 @@ function validateOpeningValues(values: Readonly<Record<string, string>>): Import
     issues.push({
       severity: 'error',
       field: 'projectName',
-      message: 'projectName or projectId is required',
+      message: 'validation.projectNameOrProjectIdRequired',
     });
   }
   if (projectId && !UUID_RE.test(projectId)) {
-    issues.push({ severity: 'error', field: 'projectId', message: 'projectId must be a UUID' });
+    issues.push({ severity: 'error', field: 'projectId', message: 'validation.uuidInvalid' });
   }
 
   const amount = emptyToUndefined(values.contractValueAmount);
@@ -283,7 +280,7 @@ function validateOpeningValues(values: Readonly<Record<string, string>>): Import
     issues.push({
       severity: 'error',
       field: 'contractValueAmount',
-      message: 'Valid contractValueAmount is required',
+      message: 'validation.contractValueRequired',
     });
   }
 
@@ -292,7 +289,7 @@ function validateOpeningValues(values: Readonly<Record<string, string>>): Import
     issues.push({
       severity: 'error',
       field: 'openingReductionAmount',
-      message: 'Invalid opening reduction amount',
+      message: 'validation.invalidOpeningReduction',
     });
   }
 
@@ -301,7 +298,7 @@ function validateOpeningValues(values: Readonly<Record<string, string>>): Import
     issues.push({
       severity: 'error',
       field: 'currency',
-      message: 'Currency must be a 3-letter ISO code',
+      message: 'validation.currencyIsoCode',
     });
   }
 
@@ -313,7 +310,7 @@ function validateOpeningValues(values: Readonly<Record<string, string>>): Import
     issues.push({
       severity: 'error',
       field: 'amountIncludesTax',
-      message: 'amountIncludesTax must be true/false',
+      message: 'validation.booleanRequired',
     });
   }
 
@@ -324,7 +321,7 @@ function validateCostCategories(values: Readonly<Record<string, string>>): Impor
   const issues: ImportIssue[] = [];
   const name = emptyToUndefined(values.name);
   if (!name || name.length < 2) {
-    issues.push({ severity: 'error', field: 'name', message: 'name is required (min 2 characters)' });
+    issues.push({ severity: 'error', field: 'name', message: 'validation.nameMinTwoChars' });
   }
   const family = emptyToUndefined(values.family)?.toLowerCase();
   if (!family || !(COST_FAMILIES as readonly string[]).includes(family)) {
@@ -352,13 +349,13 @@ export function validateExpenses(
     issues.push({
       severity: 'error',
       field: 'expenseDate',
-      message: 'Date must be YYYY-MM-DD',
+      message: 'validation.dateMustBeYyyyMmDd',
     });
   }
 
   const amount = emptyToUndefined(values.amount);
   if (amount && !AMOUNT_RE.test(amount)) {
-    issues.push({ severity: 'error', field: 'amount', message: 'Invalid amount' });
+    issues.push({ severity: 'error', field: 'amount', message: 'validation.invalidAmount' });
   }
 
   const currency = (emptyToUndefined(values.currency) ?? baseCurrency).toUpperCase();
@@ -366,7 +363,7 @@ export function validateExpenses(
     issues.push({
       severity: 'error',
       field: 'currency',
-      message: 'Currency must be a 3-letter ISO code',
+      message: 'validation.currencyIsoCode',
     });
   }
 
@@ -376,7 +373,7 @@ export function validateExpenses(
       issues.push({
         severity: 'error',
         field: refField,
-        message: `${refField} must be a UUID in this organization`,
+        message: 'validation.orgUuidRequired',
       });
     }
   }
@@ -395,7 +392,7 @@ export function validateExpenses(
       issues.push({
         severity: 'warning',
         field: banned,
-        message: 'Tax/VAT fields are not imported (VAT is not profit); enter tax on the expense form if needed',
+        message: 'validation.taxVatNotImported',
       });
     }
   }
@@ -419,7 +416,7 @@ export function validateExpenses(
     issues.push({
       severity: 'warning',
       field: 'projectId',
-      message: 'No project - expense will be created as business overhead (draft)',
+      message: 'validation.noProjectOverheadWarning',
     });
   }
 
@@ -434,27 +431,15 @@ export function validateBoqItems(
   values: Readonly<Record<string, string>>,
   locale = 'en',
 ): ImportIssue[] {
-  const he = locale.startsWith('he');
+  const t = importsCopyTranslator(locale);
   const msg = {
-    blankSkip: he
-      ? 'שורה ריקה או שורת סה״כ - תדולג בייבוא'
-      : 'Blank or total row - will be skipped on import',
-    descriptionRequired: he ? 'תיאור הוא שדה חובה' : 'description is required',
-    invalidQty: he
-      ? 'כמות לא תקינה (הסירו סמלי מטבע; השתמשו בפסיק או נקודה עשרונית)'
-      : 'Invalid quantity (remove currency symbols; use decimal commas or dots)',
-    invalidPrice: he
-      ? 'מחיר יחידה לא תקין (הסירו סמלי מטבע; השתמשו בפסיק או נקודה עשרונית)'
-      : 'Invalid unit price (remove currency symbols; use decimal commas or dots)',
-    invalidAmount: he
-      ? 'סכום לא תקין (הסירו סמלי מטבע; השתמשו בפסיק או נקודה עשרונית)'
-      : 'Invalid amount (remove currency symbols; use decimal commas or dots)',
-    noMoney: he
-      ? 'אין כמות, מחיר או סכום - הסעיף ייובא כ־0'
-      : 'No quantity, unit price, or amount - item will import as 0',
-    amountMismatch: he
-      ? 'הסכום אינו תואם לכמות × מחיר - הייבוא ישתמש בכמות × מחיר'
-      : 'Amount does not match quantity × unit price - import will use quantity × unit price',
+    blankSkip: t('validation.boq.blankSkip'),
+    descriptionRequired: t('validation.boq.descriptionRequired'),
+    invalidQty: t('validation.boq.invalidQty'),
+    invalidPrice: t('validation.boq.invalidPrice'),
+    invalidAmount: t('validation.boq.invalidAmount'),
+    noMoney: t('validation.boq.noMoney'),
+    amountMismatch: t('validation.boq.amountMismatch'),
   } as const;
 
   const issues: ImportIssue[] = [];
@@ -581,13 +566,13 @@ function validateBillingPlan(
   options: { locale?: string } = {},
 ): ImportIssue[] {
   const issues: ImportIssue[] = [];
-  const he = (options.locale ?? 'en').startsWith('he');
+  const t = importsCopyTranslator(options.locale ?? 'en');
   const label = emptyToUndefined(values.label);
   if (!label) {
     issues.push({
       severity: 'error',
       field: 'label',
-      message: he ? 'label הוא שדה חובה' : 'label is required',
+      message: t('validation.billingPlan.labelRequired'),
     });
   }
   const amountRaw = emptyToUndefined(values.agreedAmount);
@@ -596,16 +581,14 @@ function validateBillingPlan(
     issues.push({
       severity: 'error',
       field: 'agreedAmount',
-      message: he
-        ? 'נדרש סכום מוסכם או אחוז מוסכם'
-        : 'agreedAmount or agreedPercent is required',
+      message: t('validation.billingPlan.amountOrPercentRequired'),
     });
   }
   if (amountRaw && !AMOUNT_RE.test(amountRaw)) {
     issues.push({
       severity: 'error',
       field: 'agreedAmount',
-      message: he ? 'סכום מוסכם אינו תקין' : 'agreedAmount must be a positive number',
+      message: t('validation.billingPlan.invalidAgreedAmount'),
     });
   }
   if (percentRaw) {
@@ -614,9 +597,7 @@ function validateBillingPlan(
       issues.push({
         severity: 'error',
         field: 'agreedPercent',
-        message: he
-          ? 'אחוז מוסכם חייב להיות בין 0 ל-100'
-          : 'agreedPercent must be between 0 and 100',
+        message: t('validation.billingPlan.invalidAgreedPercent'),
       });
     }
   }
@@ -625,7 +606,7 @@ function validateBillingPlan(
     issues.push({
       severity: 'error',
       field: 'targetDate',
-      message: he ? 'תאריך יעד חייב להיות YYYY-MM-DD' : 'targetDate must be YYYY-MM-DD',
+      message: t('validation.billingPlan.invalidTargetDate'),
     });
   }
   const kindRaw = emptyToUndefined(values.lineKind)?.toLowerCase();
@@ -633,9 +614,9 @@ function validateBillingPlan(
     issues.push({
       severity: 'error',
       field: 'lineKind',
-      message: he
-        ? `סוג שורה לא תקין (צפוי: ${BILLING_PLAN_LINE_KINDS.join(', ')})`
-        : `Invalid lineKind (expected: ${BILLING_PLAN_LINE_KINDS.join(', ')})`,
+      message: t('validation.billingPlan.invalidLineKind', {
+        kinds: BILLING_PLAN_LINE_KINDS.join(', '),
+      }),
     });
   }
   return issues;
@@ -686,6 +667,7 @@ export function validateMappedRows(
   } = {},
 ): MappedImportRow[] {
   const fields = fieldDefsForKind(kind);
+  const t = importsCopyTranslator(options.locale ?? 'en');
   return rows.map((row) => {
     const issues: ImportIssue[] = [];
     const skipRequired =
@@ -693,11 +675,10 @@ export function validateMappedRows(
     for (const field of fields) {
       if (skipRequired) break;
       if (field.required && !(row.values[field.key] ?? '').trim()) {
-        const he = (options.locale ?? 'en').startsWith('he');
         issues.push({
           severity: 'error',
           field: field.key,
-          message: he ? `${field.key} הוא שדה חובה` : `${field.key} is required`,
+          message: t('validation.fieldRequired', { field: field.key }),
         });
       }
     }

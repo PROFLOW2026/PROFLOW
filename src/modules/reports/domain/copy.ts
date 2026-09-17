@@ -1,5 +1,5 @@
 import type { Locale } from '@/shared/i18n/config';
-import { DEFAULT_LOCALE, isLocale, localeDirection } from '@/shared/i18n/config';
+import { DEFAULT_LOCALE, isLocale, localeDirection, LOCALE_METADATA } from '@/shared/i18n/config';
 import en from '@/locales/en/reports.json';
 import heIL from '@/locales/he-IL/reports.json';
 import type { ReportKind } from './types';
@@ -25,4 +25,8 @@ export function reportTitle(copy: ReportsCopy, kind: ReportKind): string {
 
 export function reportDirection(locale: string | null | undefined): 'rtl' | 'ltr' {
   return localeDirection(resolveReportLocale(locale));
+}
+
+export function reportHtmlLang(locale: string | null | undefined): string {
+  return LOCALE_METADATA[resolveReportLocale(locale)].htmlLang;
 }

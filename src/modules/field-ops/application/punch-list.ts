@@ -6,6 +6,8 @@ import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { assertCanAccessProject, isAccessibleProjectId, resolveAccessibleProjectIds } from '@/modules/projects';
 import { emitNotification } from '@/modules/notifications';
+import { notificationCopy } from '@/modules/notifications/domain/copy';
+import { notificationsCopyTranslator } from '@/shared/i18n/sync-namespace-translator';
 import { noteModuleUsage } from '@/modules/tenancy';
 import { findEmployeeById } from '@/modules/workforce';
 import {
@@ -38,19 +40,6 @@ async function assertAssigneeInOrg(
   if (!employee || employee.archivedAt) throw new NotFoundError('Employee');
 }
 
-function punchAssignedCopy(locale: string, title: string): { title: string; body: string } {
-  if (locale.toLowerCase().startsWith('he')) {
-    return {
-      title: `שובצת לפריט תיקון - ${title}`,
-      body: 'פריט תיקון שויך אליך.',
-    };
-  }
-  return {
-    title: `Punch item assigned - ${title}`,
-    body: 'A punch list item was assigned to you.',
-  };
-}
-
 async function notifyPunchAssignee(
   context: OrgContext,
   input: {
@@ -70,7 +59,9 @@ async function notifyPunchAssignee(
   );
   if (!employee?.userId) return;
 
-  const copy = punchAssignedCopy(context.locale, input.title);
+  const copy = notificationCopy(notificationsCopyTranslator(context.locale), 'punch_assigned', {
+    reference: input.title,
+  });
   await emitNotification(context, {
     recipientUserId: employee.userId,
     type: 'punch_assigned',

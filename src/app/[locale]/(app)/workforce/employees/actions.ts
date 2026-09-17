@@ -15,7 +15,7 @@ import {
   updateEmployeeSchema,
 } from '@/modules/workforce';
 import { withOrgContext } from '@/shared/auth/session';
-import { ValidationError } from '@/shared/errors';
+import { inferMessageKey, translateMessageKey } from '@/shared/errors';
 import { redirect } from '@/shared/i18n/navigation';
 import {
   isRedirectError,
@@ -76,39 +76,22 @@ export async function createEmployeeAction(
   return {};
 }
 
-function firstValidationMessage(
-  source:
-    | ValidationError
-    | {
-        readonly success: false;
-        readonly error: {
-          readonly issues: readonly { path: readonly PropertyKey[]; message: string }[];
-        };
-      },
+async function zodValidationMessage(
+  issue: { readonly path: readonly PropertyKey[]; readonly message: string } | undefined,
   fallback: string,
-): string {
-  if (source instanceof ValidationError) {
-    return source.issues[0]?.message ?? source.message ?? fallback;
+): Promise<string> {
+  if (!issue) return fallback;
+  const tErrors = await getTranslations('errors');
+  const tValidation = await getTranslations('validation');
+  const resolvedKey = inferMessageKey(issue.message);
+  if (resolvedKey) {
+    const translated = translateMessageKey(resolvedKey, {
+      tErrors: (key) => tErrors(key as 'validationFailed'),
+      tValidation: (key) => tValidation(key as 'invalidDate'),
+    });
+    if (translated) return translated;
   }
-  return source.error.issues[0]?.message ?? fallback;
-}
-
-function mapRateVersionValidationMessage(
-  issue: { readonly path: readonly PropertyKey[]; readonly message: string },
-  tWorkforce: (key: string) => string,
-  fallback: string,
-): string {
-  const path = issue.path.map(String).join('.');
-  if (path === 'validFrom' || issue.message === 'Invalid date') {
-    return tWorkforce('employees.validation.invalidDate');
-  }
-  if (path === 'baseRate' || issue.message === 'Invalid amount') {
-    return tWorkforce('employees.validation.invalidAmount');
-  }
-  if (path === 'burdenPercent' || issue.message === 'Invalid percent') {
-    return tWorkforce('employees.validation.invalidPercent');
-  }
-  return issue.message || fallback;
+  return fallback;
 }
 
 export async function updateEmployeeAction(
@@ -137,7 +120,9 @@ export async function updateEmployeeAction(
   });
 
   if (!parsed.success) {
-    return { error: firstValidationMessage(parsed, tErrors('validationFailed')) };
+    return {
+      error: await zodValidationMessage(parsed.error.issues[0], tErrors('validationFailed')),
+    };
   }
 
   try {
@@ -182,7 +167,6 @@ export async function createRateVersionAction(
   formData: FormData,
 ): Promise<WorkforceFormState> {
   const tErrors = await getTranslations('errors');
-  const tWorkforce = await getTranslations('workforce');
 
   const parsed = createRateVersionSchema.safeParse({
     employeeId: formData.get('employeeId'),
@@ -199,7 +183,7 @@ export async function createRateVersionAction(
     const issue = parsed.error.issues[0];
     return {
       error: issue
-        ? mapRateVersionValidationMessage(issue, tWorkforce, tErrors('validationFailed'))
+        ? await zodValidationMessage(issue, tErrors('validationFailed'))
         : tErrors('validationFailed'),
     };
   }

@@ -52,7 +52,7 @@ export async function createProgressBatch(context: OrgContext, raw: CreateProgre
   const boq = await findBoqById(context.db, context.organizationId, input.boqId);
   if (!boq) throw new NotFoundError('BOQ');
   if (!canRecordProgress(boq.status as 'draft' | 'active' | 'superseded' | 'archived')) {
-    throw new ConflictError('Progress requires an active BOQ');
+    throw new ConflictError('Progress requires an active BOQ', 'boq.errors.activeRequired');
   }
 
   const prepared: {
@@ -90,6 +90,7 @@ export async function createProgressBatch(context: OrgContext, raw: CreateProgre
         {
           path: 'lines',
           message: 'Negative period quantities require an explicit correction workflow',
+          messageKey: 'boq.errors.negativePeriod',
         },
       ]);
     }

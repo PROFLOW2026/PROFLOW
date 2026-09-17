@@ -137,6 +137,9 @@ const IDENTICAL_MESSAGE_ALLOWLIST = new Set([
   // Brand / product names in employee app surfaces.
   'employeeApp.pwa.shortName',
   'employeeApp.admin.shareWhatsApp',
+  // ICU placeholder templates — month/year and automation metadata are localized via values.
+  'commandCenter.itemCopy.reportMonthLabel',
+  'commandCenter.itemCopy.automationFollowup.why',
 ]);
 
 function hasActivityAction(catalog: Catalog, action: string): boolean {

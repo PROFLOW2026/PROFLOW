@@ -38,16 +38,17 @@ function monthBounds(yearMonth: string): { fromDate: string; toDate: string } {
 
 function classificationLabel(
   locale: string,
+  copy: ReportsCopy,
   compensationClass: string | undefined,
   employmentBasis: string | null,
 ): string {
   if (compensationClass === 'owner_manager') {
-    return locale.startsWith('he') ? 'בעלים / מנהל (פטור דיווח)' : 'Owner / manager (exempt)';
+    return copy.workforceReport.classificationOwnerManager;
   }
   if (employmentBasis) {
     return localizeCode(locale, employmentBasis);
   }
-  return locale.startsWith('he') ? 'עובד' : 'Employee';
+  return copy.workforceReport.classificationEmployee;
 }
 
 export async function buildMonthlyWorkforceReport(
@@ -93,24 +94,25 @@ export async function buildMonthlyWorkforceReport(
     });
 
     const workdays = String(summary.totalDays);
+    const wr = ctx.copy.workforceReport;
     const hourRows: ReportSection['rows'] = summary.canSplitRegularOvertime
       ? [
           {
-            label: ctx.locale.startsWith('he') ? 'שעות רגילות' : 'Regular hours',
+            label: wr.regularHours,
             value: (summary.approvedRegularHours ?? 0).toFixed(2),
           },
           {
-            label: ctx.locale.startsWith('he') ? 'שעות נוספות' : 'Overtime hours',
+            label: wr.overtimeHours,
             value: (summary.approvedOvertimeHours ?? 0).toFixed(2),
           },
           {
-            label: ctx.locale.startsWith('he') ? 'סה"כ שעות מאושרות' : 'Total approved hours',
+            label: wr.totalApprovedHours,
             value: summary.approvedTotalHours.toFixed(2),
           },
         ]
       : [
           {
-            label: ctx.locale.startsWith('he') ? 'סה"כ שעות מאושרות' : 'Total approved hours',
+            label: wr.totalApprovedHours,
             value: summary.approvedTotalHours.toFixed(2),
           },
         ];
@@ -125,42 +127,44 @@ export async function buildMonthlyWorkforceReport(
 
     const classification = classificationLabel(
       ctx.locale,
+      ctx.copy,
       employee?.compensationClass,
       employee?.employmentBasis ?? null,
     );
+    const table = wr.allocationTable;
 
     employeeSections.push({
       id: row.employeeId,
       heading: row.employeeName,
       rows: [
         {
-          label: ctx.locale.startsWith('he') ? 'סיווג' : 'Classification',
+          label: wr.classification,
           value: classification,
         },
         {
-          label: ctx.locale.startsWith('he') ? 'ימי עבודה / נוכחות' : 'Workdays',
+          label: wr.workdays,
           value: workdays,
         },
         ...hourRows,
         {
-          label: ctx.locale.startsWith('he') ? 'ימים ללא הקצאה' : 'Unallocated days',
+          label: wr.unallocatedDays,
           value: String(summary.unallocatedDays),
         },
         {
-          label: ctx.locale.startsWith('he') ? 'שעות ללא פרויקט' : 'Non-project hours',
+          label: wr.nonProjectHours,
           value: summary.unallocatedHours.toFixed(2),
         },
         ...(includeCost && summary.unallocatedCost
           ? [
               {
-                label: ctx.locale.startsWith('he') ? 'עלות ללא הקצאה' : 'Unallocated cost',
+                label: wr.unallocatedCost,
                 value: formatMoney(summary.unallocatedCost, ctx.locale),
                 nature: 'actual' as const,
               },
             ]
           : []),
         {
-          label: ctx.locale.startsWith('he') ? 'ממתין לאישור' : 'Pending approval',
+          label: wr.pendingApproval,
           value: String(summary.pendingApprovalCount),
         },
       ],
@@ -168,20 +172,14 @@ export async function buildMonthlyWorkforceReport(
         allocationRows.length > 0
           ? [
               {
-                headers: ctx.locale.startsWith('he')
-                  ? ['פרויקט', 'ימים', 'שעות', 'עלות']
-                  : ['Project', 'Days', 'Hours', 'Cost'],
+                headers: [table.project, table.days, table.hours, table.cost],
                 rows: allocationRows,
               },
             ]
           : undefined,
       paragraphs:
         row.missingCount > 0
-          ? [
-              ctx.locale.startsWith('he')
-                ? `חסרים ${row.missingCount} ימי דיווח בחודש.`
-                : `${row.missingCount} missing attendance day(s) in month.`,
-            ]
+          ? [wr.missingAttendanceDays.replace('{count}', String(row.missingCount))]
           : undefined,
     });
   }
@@ -200,26 +198,22 @@ export async function buildMonthlyWorkforceReport(
       clientName: null,
       extra: yearMonth,
     },
-    notices: [
-      ctx.locale.startsWith('he')
-        ? `דוח עובדים לחודש ${yearMonth}. אין בדוח נתוני שכר / מס — לצרכים תפעוליים בלבד.`
-        : `Workforce summary for ${yearMonth}. Not payroll or tax data.`,
-    ],
+    notices: [ctx.copy.workforceReport.notice.replace('{yearMonth}', yearMonth)],
     sections: [
       {
         id: 'summary',
-        heading: ctx.locale.startsWith('he') ? 'סיכום חודש' : 'Month summary',
+        heading: ctx.copy.workforceReport.monthSummary,
         rows: [
           {
-            label: ctx.locale.startsWith('he') ? 'חודש דיווח' : 'Report month',
+            label: ctx.copy.workforceReport.reportMonth,
             value: yearMonth,
           },
           {
-            label: ctx.locale.startsWith('he') ? 'עובדים בדוח' : 'Employees',
+            label: ctx.copy.workforceReport.employees,
             value: String(employeeSections.length),
           },
           {
-            label: ctx.locale.startsWith('he') ? 'טווח תאריכים' : 'Date range',
+            label: ctx.copy.workforceReport.dateRange,
             value: `${fromDate} – ${toDate}`,
           },
         ],

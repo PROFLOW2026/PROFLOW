@@ -5,6 +5,7 @@ import {
   ValidationError,
   isAppError,
 } from './app-error';
+import { inferMessageKey } from './infer-message-key';
 
 /** next-intl (or compatible) translator: key → localized string. */
 export type MessageTranslator = (key: string) => string;
@@ -12,6 +13,8 @@ export type MessageTranslator = (key: string) => string;
 export interface MapServerActionErrorOptions {
   /** Translator for the `errors` namespace (keys without the `errors.` prefix). */
   readonly tErrors: MessageTranslator;
+  /** Translator for the `validation` namespace (keys without the `validation.` prefix). */
+  readonly tValidation?: MessageTranslator;
   /**
    * Domain translators keyed by messageKey namespace root.
    * For `assets.errors.foo`, calls `namespaces.assets('errors.foo')`.
@@ -51,7 +54,7 @@ function isUnresolvedTranslation(
  */
 export function translateMessageKey(
   messageKey: string,
-  options: Pick<MapServerActionErrorOptions, 'tErrors' | 'namespaces'>,
+  options: Pick<MapServerActionErrorOptions, 'tErrors' | 'tValidation' | 'namespaces'>,
 ): string | null {
   if (!messageKey) return null;
 
@@ -62,6 +65,28 @@ export function translateMessageKey(
       if (!isUnresolvedTranslation(translated, short, messageKey)) return translated;
     } catch {
       /* fall through */
+    }
+    return null;
+  }
+
+  if (messageKey.startsWith('validation.')) {
+    const short = messageKey.slice('validation.'.length);
+    if (options.tValidation) {
+      try {
+        const translated = options.tValidation(short);
+        if (!isUnresolvedTranslation(translated, short, messageKey)) return translated;
+      } catch {
+        /* fall through */
+      }
+    }
+    const tNs = options.namespaces?.validation;
+    if (tNs) {
+      try {
+        const translated = tNs(short);
+        if (!isUnresolvedTranslation(translated, short, messageKey)) return translated;
+      } catch {
+        /* fall through */
+      }
     }
     return null;
   }
@@ -92,9 +117,9 @@ function mapValidationFieldErrors(
   for (const issue of error.issues) {
     if (!issue.path) continue;
 
-    if (issue.messageKey) {
-      fieldErrors[issue.path] =
-        translateMessageKey(issue.messageKey, options) ?? fallback;
+    const resolvedKey = issue.messageKey ?? inferMessageKey(issue.message);
+    if (resolvedKey) {
+      fieldErrors[issue.path] = translateMessageKey(resolvedKey, options) ?? fallback;
       continue;
     }
 

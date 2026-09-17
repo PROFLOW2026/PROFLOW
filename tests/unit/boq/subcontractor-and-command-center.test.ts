@@ -5,8 +5,15 @@ import {
   boqMeasurementAwaitingCopy,
   boqProgressReadyToBillCopy,
   boqVsContractMismatchCopy,
+  commandCenterCopyScope,
 } from '@/modules/command-center/domain/item-copy';
+import { commandCenterCopyTranslator } from '@/shared/i18n/sync-namespace-translator';
 import { SOURCE_DEFAULT_SEVERITY } from '@/modules/command-center/domain/ranking';
+
+function scope(locale: string) {
+  const t = commandCenterCopyTranslator(locale);
+  return commandCenterCopyScope(t, locale);
+}
 
 describe('boq subcontractor cost rates stay off client revenue math', () => {
   it('computes cost line amount independently of client unit price', () => {
@@ -28,14 +35,14 @@ describe('boq subcontractor cost rates stay off client revenue math', () => {
 
 describe('command center BOQ copy', () => {
   it('localizes measurement awaiting approval', () => {
-    const he = boqMeasurementAwaitingCopy('he-IL', {
+    const he = boqMeasurementAwaitingCopy(scope('he-IL'), {
       periodLabel: 'מרץ',
       certificateNumber: 2,
     });
     expect(he.what).toContain('אישור');
     expect(he.why).toContain('2');
 
-    const en = boqMeasurementAwaitingCopy('en', {
+    const en = boqMeasurementAwaitingCopy(scope('en'), {
       periodLabel: 'March',
       certificateNumber: 2,
     });
@@ -43,7 +50,7 @@ describe('command center BOQ copy', () => {
   });
 
   it('localizes progress ready to bill', () => {
-    const en = boqProgressReadyToBillCopy('en', {
+    const en = boqProgressReadyToBillCopy(scope('en'), {
       periodLabel: 'March',
       certificateNumber: 3,
     });
@@ -51,7 +58,7 @@ describe('command center BOQ copy', () => {
   });
 
   it('localizes contract mismatch', () => {
-    const en = boqVsContractMismatchCopy('en', { status: 'variance' });
+    const en = boqVsContractMismatchCopy(scope('en'), { status: 'variance' });
     expect(en.what).toContain('Reconcile');
     expect(en.why).toContain('variance');
   });

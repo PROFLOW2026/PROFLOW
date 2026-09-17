@@ -4,7 +4,7 @@ import { AP_BILL_STATUSES, AP_MATCH_STATUSES } from '../domain/matching';
 const moneyString = z
   .string()
   .trim()
-  .regex(/^\d+(\.\d{1,6})?$/, 'Invalid money amount');
+  .regex(/^\d+(\.\d{1,6})?$/, 'validation.invalidMoneyAmount');
 
 export const createApBillSchema = z.object({
   vendorId: z.string().uuid(),
@@ -64,7 +64,7 @@ export const proposeApMatchSchema = z
       ctx.addIssue({
         code: 'custom',
         path: ['purchaseOrderId'],
-        message: 'At least one of purchaseOrderId or expenseId is required',
+        message: 'validation.poOrExpenseRequired',
       });
     }
   });
@@ -120,7 +120,7 @@ export const updateVendorPaymentMetadataSchema = z
   .refine(
     (data) =>
       data.method !== undefined || data.reference !== undefined || data.notes !== undefined,
-    { message: 'At least one metadata field is required' },
+    { message: 'validation.atLeastOneFieldRequired' },
   );
 
 export type UpdateVendorPaymentMetadataInput = z.input<typeof updateVendorPaymentMetadataSchema>;

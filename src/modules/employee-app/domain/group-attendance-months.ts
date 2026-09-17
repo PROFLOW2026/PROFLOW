@@ -1,4 +1,5 @@
 import type { AttendanceDayStatus } from '@/modules/workforce';
+import { resolveIntlLocale } from '@/shared/i18n/intl-locale';
 
 export interface EmployeeAttendanceDayRow {
   readonly id: string;
@@ -33,7 +34,7 @@ export function groupEmployeeAttendanceByMonth(
   locale: string,
   timeZone: string,
 ): EmployeeAttendanceMonthGroup[] {
-  const monthFormatter = new Intl.DateTimeFormat(locale === 'en' ? 'en' : 'he-IL', {
+  const monthFormatter = new Intl.DateTimeFormat(resolveIntlLocale(locale), {
     month: 'long',
     year: 'numeric',
     timeZone,

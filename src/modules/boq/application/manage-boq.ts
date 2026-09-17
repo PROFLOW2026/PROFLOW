@@ -133,7 +133,7 @@ export async function upsertBoqNode(context: OrgContext, raw: UpsertBoqNodeInput
   const boq = await findBoqById(context.db, context.organizationId, input.boqId);
   if (!boq) throw new NotFoundError('BOQ');
   if (!canEditBoqBaseline(boq.status as 'draft' | 'active' | 'superseded' | 'archived')) {
-    throw new ConflictError('Only draft BOQ baselines can be edited');
+    throw new ConflictError('Only draft BOQ baselines can be edited', 'boq.errors.draftOnly');
   }
 
   const pricingType = (input.pricingType ?? 'quantity_unit_price') as BoqPricingType;
@@ -214,7 +214,7 @@ export async function activateBoq(context: OrgContext, raw: ActivateBoqInput) {
   const boq = await findBoqById(context.db, context.organizationId, parsed.data.boqId);
   if (!boq) throw new NotFoundError('BOQ');
   if (!canActivateBoq(boq.status as 'draft' | 'active' | 'superseded' | 'archived')) {
-    throw new ConflictError('Only draft BOQ can be activated');
+    throw new ConflictError('Only draft BOQ can be activated', 'boq.errors.draftOnly');
   }
 
   const nodes = await listBoqNodes(context.db, context.organizationId, boq.id);

@@ -36,19 +36,10 @@ import {
   warrantyExpiringCopy,
 } from '../domain/item-copy';
 import type { CommandCenterItem } from '../domain/types';
-
-interface CollectContext {
-  readonly context: OrgContext;
-  readonly modules: ModuleVisibility;
-  readonly today: BusinessDate;
-}
+import type { CollectContext } from './collect-sources';
 
 const PER_SOURCE_CAP = 15;
 const WARRANTY_LOOKAHEAD_DAYS = 90;
-
-function localeOf(ctx: CollectContext): string {
-  return ctx.context.locale || 'he-IL';
-}
 
 function isMissingRelation(error: unknown): boolean {
   if (!error || typeof error !== 'object') return false;
@@ -101,9 +92,8 @@ export async function collectCloseoutBlockers(ctx: CollectContext): Promise<Comm
       .limit(PER_SOURCE_CAP),
   );
 
-  const locale = localeOf(ctx);
   return rows.map((row) => {
-    const copy = closeoutBlockersCopy(locale, {
+    const copy = closeoutBlockersCopy(ctx.copyScope, {
       projectName: row.projectName,
       status: row.status,
     });
@@ -112,7 +102,7 @@ export async function collectCloseoutBlockers(ctx: CollectContext): Promise<Comm
       sourceId: row.id,
       what: copy.what,
       why: copy.why,
-      where: row.projectName || fallbackWhere(locale, 'closeout'),
+      where: row.projectName || fallbackWhere(ctx.copyScope, 'closeout'),
       href: `/projects/${row.projectId}?tab=closeout`,
       urgencyBump: row.status === 'reopened' ? 20 : 10,
       meta: { projectId: row.projectId, status: row.status },
@@ -156,7 +146,6 @@ export async function collectWarrantyExpiring(ctx: CollectContext): Promise<Comm
       .limit(PER_SOURCE_CAP * 2),
   );
 
-  const locale = localeOf(ctx);
   const items: CommandCenterItem[] = [];
   for (const row of rows) {
     if (!row.endDate) continue;
@@ -164,14 +153,14 @@ export async function collectWarrantyExpiring(ctx: CollectContext): Promise<Comm
     const daysLeft = daysBetween(ctx.today, endDate);
     const reminder = Math.max(0, row.reminderDaysBefore ?? 30);
     if (daysLeft > reminder) continue;
-    const copy = warrantyExpiringCopy(locale, { title: row.title, endDate });
+    const copy = warrantyExpiringCopy(ctx.copyScope, { title: row.title, endDate });
     items.push(
       withItemDefaults({
         sourceType: 'warranty_expiring',
         sourceId: row.id,
         what: copy.what,
         why: copy.why,
-        where: row.projectName || fallbackWhere(locale, 'warranty'),
+        where: row.projectName || fallbackWhere(ctx.copyScope, 'warranty'),
         href: `/projects/${row.projectId}?tab=warranty`,
         urgencyBump: Math.min(99, Math.max(0, reminder - daysLeft)),
         meta: { projectId: row.projectId, endDate: row.endDate },
@@ -210,8 +199,7 @@ export async function collectCashFlowRisk(ctx: CollectContext): Promise<CommandC
   const hasOut = isPositiveMoney(outAmount) && !isZeroMoney(outAmount);
   if (!hasIn && !hasOut) return [];
 
-  const locale = localeOf(ctx);
-  const copy = cashFlowRiskCopy(locale, {
+  const copy = cashFlowRiskCopy(ctx.copyScope, {
     overdueIn: inAmount.amount,
     overdueOut: outAmount.amount,
     currency: outlook.currency,
@@ -222,7 +210,7 @@ export async function collectCashFlowRisk(ctx: CollectContext): Promise<CommandC
       sourceId: `org:${ctx.context.organizationId}`,
       what: copy.what,
       why: copy.why,
-      where: fallbackWhere(locale, 'cashFlow'),
+      where: fallbackWhere(ctx.copyScope, 'cashFlow'),
       href: '/cash-flow',
       urgencyBump: Math.min(99, (overdueIn?.count ?? 0) + (overdueOut?.count ?? 0)),
       meta: {
@@ -265,16 +253,15 @@ export async function collectAutomationFollowups(ctx: CollectContext): Promise<C
       .limit(PER_SOURCE_CAP),
   );
 
-  const locale = localeOf(ctx);
   return rows.map((row) => {
     const ranAt = row.ranAt.toISOString().slice(0, 10);
-    const copy = automationFollowupCopy(locale, { presetKey: row.presetKey, ranAt });
+    const copy = automationFollowupCopy(ctx.copyScope, { presetKey: row.presetKey, ranAt });
     return withItemDefaults({
       sourceType: 'automation_followup',
       sourceId: row.id,
       what: copy.what,
       why: copy.why,
-      where: fallbackWhere(locale, 'automations'),
+      where: fallbackWhere(ctx.copyScope, 'automations'),
       href: '/automations',
       meta: { presetKey: row.presetKey, status: row.status },
     });
@@ -304,15 +291,14 @@ export async function collectFailedCommunications(ctx: CollectContext): Promise<
       .limit(PER_SOURCE_CAP),
   );
 
-  const locale = localeOf(ctx);
   return rows.map((row) => {
-    const copy = communicationFailedCopy(locale, { subject: row.subject });
+    const copy = communicationFailedCopy(ctx.copyScope, { subject: row.subject });
     return withItemDefaults({
       sourceType: 'communication_failed',
       sourceId: row.id,
       what: copy.what,
       why: copy.why,
-      where: fallbackWhere(locale, 'communications'),
+      where: fallbackWhere(ctx.copyScope, 'communications'),
       href: `/communications/${row.id}`,
       meta: { projectId: row.projectId, lastError: row.lastError },
     });

@@ -22,7 +22,7 @@ import {
   type PrepareUploadInput,
 } from '@/modules/documents';
 import { withOrgContext } from '@/shared/auth/session';
-import { AppError } from '@/shared/errors';
+import { AppError, mapServerActionError } from '@/shared/errors';
 import type { DocumentRuntimeStage } from '../domain/runtime-stage';
 
 export interface ActionResult {
@@ -45,23 +45,21 @@ export interface DownloadActionResult extends ActionResult {
 }
 
 async function mapDocumentError(error: unknown): Promise<string> {
-  const t = await getTranslations('documents.errors');
-  const tStorage = await getTranslations('externalStorage.errors');
+  const tErrors = await getTranslations('errors');
+  const tDocuments = await getTranslations('documents');
+  const tExternalStorage = await getTranslations('externalStorage');
+  const mapped = mapServerActionError(error, {
+    tErrors: (key) => tErrors(key as 'unexpected'),
+    namespaces: {
+      documents: (key) => tDocuments(key as 'errors.uploadFailed'),
+      externalStorage: (key) => tExternalStorage(key as 'errors.operationFailed'),
+    },
+    rethrowUnknown: false,
+  });
   if (error instanceof AppError) {
-    if (error.messageKey === 'externalStorage.errors.notConnected') return tStorage('notConnected');
-    if (error.messageKey === 'externalStorage.errors.quotaFull') return tStorage('quotaFull');
-    if (error.messageKey === 'externalStorage.errors.fileUnavailable') return tStorage('fileUnavailable');
-    if (error.messageKey === 'externalStorage.errors.reconnectRequired') return tStorage('reconnectRequired');
-    if (error.messageKey === 'documents.errors.storageNotConfigured') return tStorage('notConnected');
-    if (error.messageKey === 'documents.errors.mimeNotAllowed') return t('mimeNotAllowed');
-    if (error.messageKey === 'documents.errors.fileTooLarge') return t('fileTooLarge');
-    if (error.messageKey === 'errors.notFound') return t('notFound');
-    if (error.messageKey === 'documents.errors.notAvailable') return t('notAvailable');
-    if (error.messageKey === 'documents.errors.versionPathInvalid') return t('versionPathInvalid');
-    if (error.messageKey === 'documents.errors.folderNotFound') return t('folderNotFound');
-    return t('uploadFailed');
+    return mapped.error;
   }
-  return t('uploadFailed');
+  return tDocuments('errors.uploadFailed');
 }
 
 function prepareErrorCode(error: unknown): DocumentRuntimeStage {

@@ -80,6 +80,301 @@
     "payroll_pending_review": "שכר ממתין לאישור",
     "monthly_workforce_report_ready": "דוח עובדים חודשי"
   },
+  "itemCopy": {
+    "where": {
+      "billing": "חיוב",
+      "vendorBills": "חשבוניות ספק",
+      "workforce": "עובדים · עלות מעסיק",
+      "approvals": "אישורים",
+      "project": "פרויקט",
+      "assets": "ציוד",
+      "monthClose": "סגירת חודש",
+      "boq": "כתב כמויות",
+      "ocr": "קליטת חשבונית",
+      "fieldOps": "עבודה בשטח",
+      "safety": "בטיחות",
+      "recurring": "טיוטות חוזרות",
+      "timesheets": "אישורי שעות",
+      "closeout": "סגירת פרויקט",
+      "warranty": "אחריות",
+      "cashFlow": "תזרים",
+      "automations": "אוטומציות",
+      "communications": "הודעות"
+    },
+    "overdueAr": {
+      "whatWithReference": "גבייה - {reference}",
+      "whatDefault": "גביית חיוב באיחור",
+      "whyWithDueDate": "באיחור מאז {dueDate} · יתרה {outstanding}",
+      "whyDefault": "באיחור · יתרה {outstanding}"
+    },
+    "vendorBillDue": {
+      "whatWithReference": "תשלום חשבונית ספק {reference}",
+      "whatDefault": "תשלום חשבונית ספק באיחור",
+      "why": "לתשלום עד {dueDate} · יתרה {outstanding}"
+    },
+    "openAttendance": {
+      "what": "סגירת יום נוכחות פתוח",
+      "why": "נוכחות ב־{workDate} עדיין פתוחה (בלי יציאה / לא נסגרה)"
+    },
+    "unattributedProjectLabor": {
+      "what": "יום עבודה ללא שיוך לפרויקט",
+      "why": "{employeeName} · {workDate} · {hours} שעות"
+    },
+    "unallocatedEmployeeCost": {
+      "what": "הקצאת יתרת עלות · {employeeName} · {yearMonth}",
+      "why": "עלות מוכרת: {recognized} · הוקצה: {allocated} · נותר להקצאה: {remaining} ({status})"
+    },
+    "unallocatedVendorBill": {
+      "what": "שיוך חשבונית ספק לפרויקט",
+      "why": "חשבונית נרשמה בלי פרויקט · {outstanding}"
+    },
+    "overBudget": {
+      "what": "בדיקת פרויקט שחרג מהתקציב",
+      "why": "בפועל {actual} מעל תקציב {budget} (חריגה {overBy})"
+    },
+    "openApproval": {
+      "what": "החלטה על אישור ממתין",
+      "why": "{entity} ממתין להחלטה{money}"
+    },
+    "overduePlanning": {
+      "whatMilestone": "עדכון אבן דרך באיחור",
+      "whatPlanItem": "עדכון פריט תכנון באיחור",
+      "why": "יעד סיום {targetEndDate} · התקדמות {progressPercent}%"
+    },
+    "expiringCompliance": {
+      "whatExpired": "חידוש ציות שפג תוקף",
+      "whatExpiring": "בדיקת ציות שעומד לפוג",
+      "whyWithDate": "תוקף עד {expiresOn} · {status}",
+      "whyStatusOnly": "{status}"
+    },
+    "overdueMaintenance": {
+      "what": "השלמת תחזוקה באיחור",
+      "why": "מתוזמן {performedOn} · סטטוס {status}",
+      "noDate": "בלי תאריך"
+    },
+    "creditVoidIssue": {
+      "what": "טיפול בזיכוי פתוח",
+      "why": "סטטוס גבייה של הזיכוי: {status}"
+    },
+    "monthCloseIncomplete": {
+      "what": "השלמת סגירת חודש {yearMonth}",
+      "why": "סטטוס {status} · שלמות {completenessPercent}%"
+    },
+    "boqMeasurementAwaiting": {
+      "what": "אישור מדידת כתב כמויות",
+      "why": "חשבון {certificateNumber} · {periodLabel} ממתין לאישור"
+    },
+    "boqProgressReadyToBill": {
+      "what": "יצירת חשבון חלקי מכתב כמויות",
+      "why": "חשבון {certificateNumber} · {periodLabel} מאושר ומוכן לחיוב"
+    },
+    "boqVsContractMismatch": {
+      "what": "התאמת כתב כמויות לחוזה",
+      "why": "פער בין חוזה לכתב כמויות. {statusLabel}"
+    },
+    "vendorBillApproaching": {
+      "whatWithReference": "חשבונית ספק מתקרבת לפירעון {reference}",
+      "whatDefault": "חשבונית ספק מתקרבת לפירעון",
+      "why": "לתשלום עד {dueDate} · יתרה {outstanding}"
+    },
+    "ocrNeedsReview": {
+      "what": "בדיקת חשבונית",
+      "whyWithFilename": "{filename} ממתין לבדיקה לפני יצירת טיוטה",
+      "whyDefault": "מסמך ממתין לבדיקה לפני יצירת טיוטה"
+    },
+    "ocrFailed": {
+      "what": "ניסיון חוזר לקריאת מסמך",
+      "whyWithFilename": "{filename} נכשל - אפשר לנסות שוב",
+      "whyDefault": "קריאה נכשלה - אפשר לנסות שוב"
+    },
+    "forecastWarning": {
+      "default": {
+        "what": "בדיקת אזהרת תחזית",
+        "why": "יש סיכון כספי צפוי שדורש בדיקה"
+      },
+      "kinds": {
+        "projected_cost_over_budget": {
+          "what": "בדיקת חריגת תקציב צפויה",
+          "why": "תחזית העלות עולה על התקציב הפעיל - זו הערכה, לא חריגה בפועל"
+        },
+        "insufficient_remaining_budget": {
+          "what": "בדיקת יתרת תקציב לא מספקת",
+          "why": "התחייבויות ועלויות צפויות שנותרו גדולות מיתרת התקציב"
+        },
+        "forecast_margin_negative": {
+          "what": "בדיקת שיעור יתרת חוזה תחזית שלילי",
+          "why": "שיעור יתרת החוזה התחזיתי מתחת לאפס לפי החוזה ותחזית העלות"
+        },
+        "margin_deterioration": {
+          "what": "בדיקת הידרדרות יתרת חוזה",
+          "why": "שיעור יתרת החוזה התחזיתי נמוך משיעור יתרת החוזה בפועל ב־3 נקודות אחוז או יותר"
+        },
+        "commitment_pressure": {
+          "what": "בדיקת לחץ התחייבויות",
+          "why": "התחייבויות פתוחות לוחצות על יתרת התקציב"
+        },
+        "billing_lag": {
+          "what": "בדיקת פיגור בחיוב",
+          "why": "העלות התקדמה משמעותית יותר מהחיוב מול החוזה"
+        },
+        "collection_risk": {
+          "what": "בדיקת סיכון גבייה",
+          "why": "חלק גדול מהחיוב עדיין פתוח לגבייה"
+        },
+        "high_consumption_vs_progress": {
+          "what": "בדיקת צריכת תקציב מול התקדמות",
+          "why": "שיעור צריכת התקציב גבוה מההתקדמות הפיזית"
+        },
+        "missing_data": {
+          "what": "השלמת נתונים לתחזית",
+          "why": "חסרים נתונים כדי להעריך את מצב הפרויקט בביטחון"
+        },
+        "actual_over_budget": {
+          "what": "בדיקת פרויקט שחרג מהתקציב",
+          "why": "העלות בפועל עולה על התקציב הפעיל"
+        }
+      }
+    },
+    "punchOpen": {
+      "what": "סגירת ליקוי פתוח - {title}",
+      "why": "פריט תיקון עדיין פתוח"
+    },
+    "safetyOpen": {
+      "what": "טיפול ברשומת בטיחות - {title}",
+      "why": "רשומת בטיחות עדיין פתוחה"
+    },
+    "inspectionOpen": {
+      "what": "השלמת בדיקה - {title}",
+      "whyScheduled": "מתוכננת ל־{scheduledOn} ועדיין פתוחה",
+      "whyOpen": "בדיקה עדיין פתוחה"
+    },
+    "recurringDraftIssue": {
+      "what": "טיפול בטיוטה חוזרת - {title}",
+      "why": "מועד היצירה {nextRunDate} עבר והטיוטה עדיין פעילה"
+    },
+    "timesheetMissing": {
+      "what": "הגשת גיליון שעות שטרם הוגש",
+      "why": "תקופה שהסתיימה ב־{periodEnd} עדיין בטיוטה"
+    },
+    "closeoutBlockers": {
+      "what": "סגירת פרויקט ממתינה - {projectName}",
+      "whyReopened": "הפרויקט נפתח מחדש. בדקו את מוכנות הסגירה.",
+      "whyDefault": "בדקו את מוכנות הסגירה בלשונית הסגירה."
+    },
+    "warrantyExpiring": {
+      "what": "אחריות שעומדת לפוג - {title}",
+      "why": "תוקף עד {endDate}"
+    },
+    "cashFlowRisk": {
+      "what": "סיכון תזרים לטיפול",
+      "why": "גבייה באיחור {overdueIn} · תשלומים באיחור {overdueOut}"
+    },
+    "automationFollowup": {
+      "what": "אוטומציה דורשת מעקב",
+      "why": "{preset} · {ranAt}"
+    },
+    "communicationFailed": {
+      "what": "הודעה לא נשלחה - {subject}",
+      "why": "השליחה נכשלה או לא אושרה על ידי הספק."
+    },
+    "billingPlanCycleDraft": {
+      "what": "חשבון התקדמות ממתין להנפקה - {title}",
+      "why": "חשבון מס׳ {cycleNumber} בטיוטה או מוכן להנפקה כחיוב."
+    },
+    "billingPlanMilestoneDue": {
+      "what": "אבן דרך לחיוב - {label}",
+      "why": "תאריך יעד {targetDate}"
+    },
+    "billingPlanRetentionReleaseDue": {
+      "what": "שחרור עיכבון מתוכנית חיובים",
+      "why": "יתרת עיכבון מוחזק {heldRemaining} — ניתן לשחרר לחיוב."
+    },
+    "monthlyWorkforceReportReady": {
+      "what": "דוח עובדים חודשי מוכן להפקה",
+      "why": "ניתן להפיק ולשמור את דוח העובדים לחודש {monthLabel}.",
+      "where": "עובדים · דוחות חודשיים"
+    },
+    "missingAttendanceToday": {
+      "whatOne": "{count} עובד לא דיווח נוכחות היום",
+      "whatOther": "{count} עובדים לא דיווחו נוכחות היום",
+      "why": "תאריך {date} — יש לדווח נוכחות לעובדים שטרם דיווחו."
+    },
+    "reportMonthLabel": "{month} {year}",
+    "reportMonths": {
+      "1": "ינואר",
+      "2": "פברואר",
+      "3": "מרץ",
+      "4": "אפריל",
+      "5": "מאי",
+      "6": "יוני",
+      "7": "יולי",
+      "8": "אוגוסט",
+      "9": "ספטמבר",
+      "10": "אוקטובר",
+      "11": "נובמבר",
+      "12": "דצמבר"
+    },
+    "labels": {
+      "boqReconStatus": {
+        "matched": "תואם",
+        "variance": "סטייה",
+        "unallocated_contract_value": "ערך חוזה לא משויך",
+        "unallocated_approved_change": "שינוי מאושר לא משויך",
+        "fallback": "{status}"
+      },
+      "allocationStatus": {
+        "applied": "הוחל",
+        "draft": "טיוטה",
+        "fallback": "סטטוס הקצאה"
+      },
+      "approvalEntityType": {
+        "expense": "הוצאה",
+        "vendor_bill": "חשבונית ספק",
+        "vendor_credit": "זיכוי ספק",
+        "purchase_order": "הזמנת רכש",
+        "time_correction": "תיקון שעות",
+        "quote_discount": "הנחה בהצעת מחיר",
+        "budget_revision": "עדכון תקציב",
+        "billing_record": "חיוב",
+        "payment": "תשלום",
+        "fallback": "בקשה לאישור"
+      },
+      "complianceStatus": {
+        "expired": "פג תוקף",
+        "expiring_soon": "עומד לפוג",
+        "fallback": "{status}"
+      },
+      "collectionStatus": {
+        "open": "פתוח",
+        "partial": "חלקי",
+        "overdue": "באיחור",
+        "paid": "שולם",
+        "fallback": "{status}"
+      },
+      "monthCloseStatus": {
+        "open": "פתוח",
+        "ready": "מוכן לסגירה",
+        "closed": "סגור",
+        "fallback": "{status}"
+      },
+      "automationPreset": {
+        "client_balance_overdue": "יתרת לקוח באיחור",
+        "quote_no_followup": "הצעת מחיר בלי מעקב",
+        "vendor_bill_due": "חשבונית ספק לפירעון",
+        "timesheet_not_submitted": "גיליון שעות לא הוגש",
+        "timesheet_waiting_approval": "גיליון שעות ממתין לאישור",
+        "ocr_waiting_review": "קליטת חשבונית ממתינה לבדיקה",
+        "forecast_over_budget": "תחזית מעל התקציב",
+        "forecast_margin_low": "שיעור יתרת חוזה תחזית נמוך",
+        "warranty_expiring": "אחריות לקראת פקיעה",
+        "compliance_expiring": "מסמך ציות לקראת פקיעה",
+        "asset_service_due": "טיפול בציוד לפירעון",
+        "retention_release_date": "מועד שחרור עיכבון",
+        "closeout_has_blockers": "חסמים בסגירת פרויקט",
+        "fallback": "כלל אוטומציה"
+      }
+    }
+  },
   "empty": {
     "title": "הכול בסדר",
     "body": "אין כרגע פריטים שדורשים טיפול."

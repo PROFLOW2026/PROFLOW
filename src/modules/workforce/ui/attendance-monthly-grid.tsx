@@ -1,9 +1,10 @@
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
 import type { MonthlyAttendanceGrid, MonthlyCellKind } from '../application/attendance-owner-views';
 import { AttendanceMonthlyGridFilter } from './attendance-monthly-grid-filter';
+import { resolveIntlLocale } from '@/shared/i18n/intl-locale';
 
 interface AttendanceMonthlyGridProps {
   readonly grid: MonthlyAttendanceGrid;
@@ -44,9 +45,9 @@ function nextMonthStr(yearMonth: string): string {
   return `${year!}-${String(month! + 1).padStart(2, '0')}`;
 }
 
-function formatMonthTitle(yearMonth: string): string {
+function formatMonthTitle(yearMonth: string, locale: string): string {
   const [year, month] = yearMonth.split('-').map(Number);
-  return new Intl.DateTimeFormat('he-IL', { month: 'long', year: 'numeric' }).format(
+  return new Intl.DateTimeFormat(resolveIntlLocale(locale), { month: 'long', year: 'numeric' }).format(
     new Date(year!, month! - 1, 1),
   );
 }
@@ -72,7 +73,10 @@ export async function AttendanceMonthlyGrid({
   missingOnly,
   selectedDay,
 }: AttendanceMonthlyGridProps) {
-  const t = await getTranslations('workforce.attendance.monthlyGrid');
+  const [t, locale] = await Promise.all([
+    getTranslations('workforce.attendance.monthlyGrid'),
+    getLocale(),
+  ]);
   const prevMonth = prevMonthStr(grid.yearMonth);
   const nextMonth = nextMonthStr(grid.yearMonth);
 
@@ -101,7 +105,7 @@ export async function AttendanceMonthlyGrid({
           >
             <ChevronRight className="h-4 w-4" />
           </Link>
-          <span className="min-w-[10rem] text-center text-sm font-medium">{formatMonthTitle(grid.yearMonth)}</span>
+          <span className="min-w-[10rem] text-center text-sm font-medium">{formatMonthTitle(grid.yearMonth, locale)}</span>
           <Link
             href={monthlyHref({ yearMonth: nextMonth, employeeId: selectedEmployeeId, missingOnly })}
             className="flex h-8 w-8 items-center justify-center rounded-md border border-[var(--pf-border-default)]"

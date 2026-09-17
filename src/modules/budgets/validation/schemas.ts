@@ -4,7 +4,7 @@ import { BUDGET_LINE_TYPES } from '../domain/types';
 const moneyAmountSchema = z
   .string()
   .trim()
-  .regex(/^[+]?\d+(\.\d+)?$/, 'Amount must be a positive decimal');
+  .regex(/^[+]?\d+(\.\d+)?$/, 'validation.positiveDecimalRequired');
 
 const optionalMoneyAmountSchema = moneyAmountSchema.optional().nullable();
 
@@ -42,7 +42,7 @@ export const createProjectBudgetSchema = z
     if (!hasLines && !hasTotal) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Provide totalBudgetAmount or lines',
+        message: 'validation.budgetTotalOrLinesRequired',
         path: ['totalBudgetAmount'],
       });
     }
@@ -63,7 +63,7 @@ export const reviseProjectBudgetSchema = z
     if (!hasLines && !hasTotal) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Provide totalBudgetAmount or lines',
+        message: 'validation.budgetTotalOrLinesRequired',
         path: ['totalBudgetAmount'],
       });
     }

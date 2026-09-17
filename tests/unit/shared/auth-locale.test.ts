@@ -27,6 +27,16 @@ describe('resolveAuthLocale', () => {
     expect(resolveAuthLocale([null, null, 'he-IL'])).toBe('he-IL');
     expect(resolveAuthLocale([undefined, undefined, 'en'])).toBe('en');
   });
+
+  it('prefers stored profile locale over the sign-in URL locale', () => {
+    expect(resolveAuthLocale(['en', 'he-IL'])).toBe('en');
+    expect(resolveAuthLocale(['he-IL', 'en'])).toBe('he-IL');
+  });
+
+  it('prefers profile locale over cookie on auth callback when query is missing', () => {
+    expect(resolveAuthLocale([null, 'en', 'he-IL'])).toBe('en');
+    expect(resolveAuthLocale([undefined, 'he-IL', 'en'])).toBe('he-IL');
+  });
 });
 
 describe('localeFromAuthMetadata', () => {

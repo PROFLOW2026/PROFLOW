@@ -3,6 +3,8 @@
  * Keys mirror `src/locales/{en,he-IL}/planning.json`.
  */
 
+import { resolveLabelLocale } from '@/shared/i18n/intl-locale';
+
 export type PlanningLocale = 'he-IL' | 'en';
 
 export interface PlanningMessages {
@@ -92,7 +94,7 @@ const EN: PlanningMessages = {
 };
 
 export function planningMessages(locale: PlanningLocale): PlanningMessages {
-  return locale === 'en' ? EN : HE;
+  return resolveLabelLocale(locale) === 'en' ? EN : HE;
 }
 
 export function formatPlanningMessage(

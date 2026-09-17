@@ -77,6 +77,7 @@ export async function listGeneratedArtifactsAction(input: {
   readonly entityId: string;
   readonly reportMonth?: string;
 }): Promise<GeneratedDocumentActionResult> {
+  const tErrors = await getTranslations('errors');
   const t = await getTranslations('generatedDocuments');
   if (!isReportKind(input.kind)) {
     return { error: t('errors.unsupportedKind') };
@@ -103,7 +104,11 @@ export async function listGeneratedArtifactsAction(input: {
     return { artifacts };
   } catch (error) {
     if (error instanceof AppError) {
-      return { error: error.message };
+      return mapServerActionError(error, {
+        tErrors: (key) => tErrors(key as 'unexpected'),
+        namespaces: { generatedDocuments: (key) => t(key as 'errors.storageNotConfigured') },
+        rethrowUnknown: false,
+      });
     }
     throw error;
   }

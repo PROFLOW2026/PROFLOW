@@ -1,13 +1,48 @@
 /** Locale-aware WHAT / WHY / WHERE fallbacks. Entity names stay as stored. */
 
 import { formatMoneyString } from '@/shared/money/format';
+import type { NamespaceTranslator } from '@/shared/i18n/namespace-translator';
 
-function he(locale: string): boolean {
-  return locale.toLowerCase().startsWith('he');
+/** @deprecated Use NamespaceTranslator directly */
+export type CommandCenterCopyTranslator = NamespaceTranslator;
+
+export interface CommandCenterCopyScope {
+  readonly t: NamespaceTranslator;
+  readonly locale: string;
+}
+
+export function commandCenterCopyScope(
+  t: NamespaceTranslator,
+  locale: string,
+): CommandCenterCopyScope {
+  return { t, locale };
+}
+
+function label(
+  t: NamespaceTranslator,
+  group: string,
+  value: string,
+  fallbackValues?: Record<string, string>,
+): string {
+  const key = `itemCopy.labels.${group}.${value}`;
+  if (t.has(key)) return t(key);
+  return t(`itemCopy.labels.${group}.fallback`, fallbackValues);
+}
+
+function formatReportMonthLabel(t: NamespaceTranslator, yearMonth: string): string {
+  const match = /^(\d{4})-(\d{2})$/.exec(yearMonth);
+  if (!match) return yearMonth;
+  const year = match[1]!;
+  const monthIndex = Number(match[2]);
+  const monthKey = `itemCopy.reportMonths.${monthIndex}`;
+  if (t.has(monthKey)) {
+    return t('itemCopy.reportMonthLabel', { month: t(monthKey), year });
+  }
+  return yearMonth;
 }
 
 export function fallbackWhere(
-  locale: string,
+  scope: CommandCenterCopyScope,
   key:
     | 'billing'
     | 'vendorBills'
@@ -28,159 +63,63 @@ export function fallbackWhere(
     | 'automations'
     | 'communications',
 ): string {
-  if (he(locale)) {
-    switch (key) {
-      case 'billing':
-        return 'חיוב';
-      case 'vendorBills':
-        return 'חשבוניות ספק';
-      case 'workforce':
-        return 'עובדים · עלות מעסיק';
-      case 'approvals':
-        return 'אישורים';
-      case 'project':
-        return 'פרויקט';
-      case 'assets':
-        return 'ציוד';
-      case 'monthClose':
-        return 'סגירת חודש';
-      case 'boq':
-        return 'כתב כמויות';
-      case 'ocr':
-        return 'קליטת חשבונית';
-      case 'fieldOps':
-        return 'עבודה בשטח';
-      case 'safety':
-        return 'בטיחות';
-      case 'recurring':
-        return 'טיוטות חוזרות';
-      case 'timesheets':
-        return 'אישורי שעות';
-      case 'closeout':
-        return 'סגירת פרויקט';
-      case 'warranty':
-        return 'אחריות';
-      case 'cashFlow':
-        return 'תזרים';
-      case 'automations':
-        return 'אוטומציות';
-      case 'communications':
-        return 'הודעות';
-    }
-  }
-  switch (key) {
-    case 'billing':
-      return 'Billing';
-    case 'vendorBills':
-      return 'Vendor bills';
-    case 'workforce':
-      return 'Workforce · employer cost';
-    case 'approvals':
-      return 'Approvals';
-    case 'project':
-      return 'Project';
-    case 'assets':
-      return 'Assets';
-    case 'monthClose':
-      return 'Month close';
-    case 'boq':
-      return 'BOQ';
-    case 'ocr':
-      return 'Invoice capture';
-    case 'fieldOps':
-      return 'Field operations';
-    case 'safety':
-      return 'Safety';
-    case 'recurring':
-      return 'Recurring drafts';
-    case 'timesheets':
-      return 'Timesheet approvals';
-    case 'closeout':
-      return 'Closeout';
-    case 'warranty':
-      return 'Warranty';
-    case 'cashFlow':
-      return 'Cash flow';
-    case 'automations':
-      return 'Automations';
-    case 'communications':
-      return 'Messages';
-  }
+  return scope.t(`itemCopy.where.${key}`);
 }
 
 export function overdueArCopy(
-  locale: string,
+  scope: CommandCenterCopyScope,
   input: { reference: string | null; dueDate: string | null; outstanding: string; currency: string },
 ): { what: string; why: string } {
-  const outstanding = formatMoneyString(input.outstanding, input.currency, locale);
-  if (he(locale)) {
-    return {
-      what: input.reference ? `גבייה - ${input.reference}` : 'גביית חיוב באיחור',
-      why: input.dueDate
-        ? `באיחור מאז ${input.dueDate} · יתרה ${outstanding}`
-        : `באיחור · יתרה ${outstanding}`,
-    };
-  }
+  const outstanding = formatMoneyString(input.outstanding, input.currency, scope.locale);
   return {
-    what: input.reference ? `Collect ${input.reference}` : 'Collect overdue billing',
+    what: input.reference
+      ? scope.t('itemCopy.overdueAr.whatWithReference', { reference: input.reference })
+      : scope.t('itemCopy.overdueAr.whatDefault'),
     why: input.dueDate
-      ? `Past due since ${input.dueDate} · outstanding ${outstanding}`
-      : `Past due · outstanding ${outstanding}`,
+      ? scope.t('itemCopy.overdueAr.whyWithDueDate', { dueDate: input.dueDate, outstanding })
+      : scope.t('itemCopy.overdueAr.whyDefault', { outstanding }),
   };
 }
 
 export function vendorBillDueCopy(
-  locale: string,
+  scope: CommandCenterCopyScope,
   input: { reference: string | null; dueDate: string; outstanding: string; currency: string },
 ): { what: string; why: string } {
-  const outstanding = formatMoneyString(input.outstanding, input.currency, locale);
-  if (he(locale)) {
-    return {
-      what: input.reference ? `תשלום חשבונית ספק ${input.reference}` : 'תשלום חשבונית ספק באיחור',
-      why: `לתשלום עד ${input.dueDate} · יתרה ${outstanding}`,
-    };
-  }
+  const outstanding = formatMoneyString(input.outstanding, input.currency, scope.locale);
   return {
-    what: input.reference ? `Pay vendor bill ${input.reference}` : 'Pay overdue vendor bill',
-    why: `Due ${input.dueDate} · outstanding ${outstanding}`,
+    what: input.reference
+      ? scope.t('itemCopy.vendorBillDue.whatWithReference', { reference: input.reference })
+      : scope.t('itemCopy.vendorBillDue.whatDefault'),
+    why: scope.t('itemCopy.vendorBillDue.why', { dueDate: input.dueDate, outstanding }),
   };
 }
 
-export function openAttendanceCopy(locale: string, workDate: string): { what: string; why: string } {
-  if (he(locale)) {
-    return {
-      what: 'סגירת יום נוכחות פתוח',
-      why: `נוכחות ב־${workDate} עדיין פתוחה (בלי יציאה / לא נסגרה)`,
-    };
-  }
+export function openAttendanceCopy(
+  scope: CommandCenterCopyScope,
+  workDate: string,
+): { what: string; why: string } {
   return {
-    what: 'Close open attendance day',
-    why: `Attendance for ${workDate} is still open (no clock-out / not closed)`,
+    what: scope.t('itemCopy.openAttendance.what'),
+    why: scope.t('itemCopy.openAttendance.why', { workDate }),
   };
 }
 
 export function unattributedProjectLaborCopy(
-  locale: string,
+  scope: CommandCenterCopyScope,
   input: {
     readonly employeeName: string;
     readonly workDate: string;
     readonly hours: string;
   },
 ): { what: string; why: string } {
-  if (he(locale)) {
-    return {
-      what: 'יום עבודה ללא שיוך לפרויקט',
-      why: `${input.employeeName} · ${input.workDate} · ${input.hours} שעות`,
-    };
-  }
   return {
-    what: 'Work day without project attribution',
-    why: `${input.employeeName} · ${input.workDate} · ${input.hours} h`,
+    what: scope.t('itemCopy.unattributedProjectLabor.what'),
+    why: scope.t('itemCopy.unattributedProjectLabor.why', input),
   };
 }
 
 export function unallocatedEmployeeCostCopy(
-  locale: string,
+  scope: CommandCenterCopyScope,
   input: {
     readonly employeeName: string;
     readonly yearMonth: string;
@@ -191,766 +130,402 @@ export function unallocatedEmployeeCostCopy(
     readonly status: string;
   },
 ): { what: string; why: string } {
-  const status = allocationStatusLabel(locale, input.status);
-  const recognized = formatMoneyString(input.knownAmount, input.currency, locale);
-  const allocated = formatMoneyString(input.allocatedAmount, input.currency, locale);
-  const remaining = formatMoneyString(input.unallocatedAmount, input.currency, locale);
-  if (he(locale)) {
-    return {
-      what: `הקצאת יתרת עלות · ${input.employeeName} · ${input.yearMonth}`,
-      why: `עלות מוכרת: ${recognized} · הוקצה: ${allocated} · נותר להקצאה: ${remaining} (${status})`,
-    };
-  }
+  const status = allocationStatusLabel(scope.t, input.status);
+  const recognized = formatMoneyString(input.knownAmount, input.currency, scope.locale);
+  const allocated = formatMoneyString(input.allocatedAmount, input.currency, scope.locale);
+  const remaining = formatMoneyString(input.unallocatedAmount, input.currency, scope.locale);
   return {
-    what: `Allocate labor remainder · ${input.employeeName} · ${input.yearMonth}`,
-    why: `Recognized: ${recognized} · Allocated: ${allocated} · Remaining: ${remaining} (${status})`,
+    what: scope.t('itemCopy.unallocatedEmployeeCost.what', {
+      employeeName: input.employeeName,
+      yearMonth: input.yearMonth,
+    }),
+    why: scope.t('itemCopy.unallocatedEmployeeCost.why', {
+      recognized,
+      allocated,
+      remaining,
+      status,
+    }),
   };
 }
 
 export function unallocatedVendorBillCopy(
-  locale: string,
+  scope: CommandCenterCopyScope,
   input: { outstanding: string; currency: string },
 ): { what: string; why: string } {
-  const outstanding = formatMoneyString(input.outstanding, input.currency, locale);
-  if (he(locale)) {
-    return {
-      what: 'שיוך חשבונית ספק לפרויקט',
-      why: `חשבונית נרשמה בלי פרויקט · ${outstanding}`,
-    };
-  }
+  const outstanding = formatMoneyString(input.outstanding, input.currency, scope.locale);
   return {
-    what: 'Assign vendor bill to a project',
-    why: `Posted bill with no project · ${outstanding}`,
+    what: scope.t('itemCopy.unallocatedVendorBill.what'),
+    why: scope.t('itemCopy.unallocatedVendorBill.why', { outstanding }),
   };
 }
 
 export function overBudgetCopy(
-  locale: string,
+  scope: CommandCenterCopyScope,
   input: { actual: string; budget: string; currency: string; overBy: string },
 ): { what: string; why: string } {
-  const actual = formatMoneyString(input.actual, input.currency, locale);
-  const budget = formatMoneyString(input.budget, input.currency, locale);
-  const overBy = formatMoneyString(input.overBy, input.currency, locale);
-  if (he(locale)) {
-    return {
-      what: 'בדיקת פרויקט שחרג מהתקציב',
-      why: `בפועל ${actual} מעל תקציב ${budget} (חריגה ${overBy})`,
-    };
-  }
+  const actual = formatMoneyString(input.actual, input.currency, scope.locale);
+  const budget = formatMoneyString(input.budget, input.currency, scope.locale);
+  const overBy = formatMoneyString(input.overBy, input.currency, scope.locale);
   return {
-    what: 'Review over-budget project',
-    why: `Actual ${actual} exceeds budget ${budget} (over by ${overBy})`,
+    what: scope.t('itemCopy.overBudget.what'),
+    why: scope.t('itemCopy.overBudget.why', { actual, budget, overBy }),
   };
 }
 
 export function openApprovalCopy(
-  locale: string,
+  scope: CommandCenterCopyScope,
   input: { entityType: string; amount: string | null; currency: string | null },
 ): { what: string; why: string } {
-  const entity = approvalEntityTypeLabel(locale, input.entityType);
+  const entity = approvalEntityTypeLabel(scope.t, input.entityType);
   const money =
     input.amount && input.currency
-      ? ` · ${formatMoneyString(input.amount, input.currency, locale)}`
+      ? ` · ${formatMoneyString(input.amount, input.currency, scope.locale)}`
       : '';
-  if (he(locale)) {
-    return {
-      what: 'החלטה על אישור ממתין',
-      why: `${entity} ממתין להחלטה${money}`,
-    };
-  }
   return {
-    what: 'Decide pending approval',
-    why: `${entity} awaits decision${money}`,
+    what: scope.t('itemCopy.openApproval.what'),
+    why: scope.t('itemCopy.openApproval.why', { entity, money }),
   };
 }
 
 export function overduePlanningCopy(
-  locale: string,
+  scope: CommandCenterCopyScope,
   input: { kind: string; targetEndDate: string; progressPercent: string },
 ): { what: string; why: string } {
-  if (he(locale)) {
-    return {
-      what: input.kind === 'milestone' ? 'עדכון אבן דרך באיחור' : 'עדכון פריט תכנון באיחור',
-      why: `יעד סיום ${input.targetEndDate} · התקדמות ${input.progressPercent}%`,
-    };
-  }
   return {
-    what: input.kind === 'milestone' ? 'Update overdue milestone' : 'Update overdue plan item',
-    why: `Target end ${input.targetEndDate} · progress ${input.progressPercent}%`,
+    what:
+      input.kind === 'milestone'
+        ? scope.t('itemCopy.overduePlanning.whatMilestone')
+        : scope.t('itemCopy.overduePlanning.whatPlanItem'),
+    why: scope.t('itemCopy.overduePlanning.why', {
+      targetEndDate: input.targetEndDate,
+      progressPercent: input.progressPercent,
+    }),
   };
 }
 
 export function expiringComplianceCopy(
-  locale: string,
+  scope: CommandCenterCopyScope,
   input: { status: string; expiresOn: string | null },
 ): { what: string; why: string } {
   const expired = input.status === 'expired';
-  const status = complianceStatusLabel(locale, input.status);
-  if (he(locale)) {
-    return {
-      what: expired ? 'חידוש ציות שפג תוקף' : 'בדיקת ציות שעומד לפוג',
-      why: input.expiresOn ? `תוקף עד ${input.expiresOn} · ${status}` : status,
-    };
-  }
+  const status = complianceStatusLabel(scope.t, input.status);
   return {
-    what: expired ? 'Renew expired compliance' : 'Review expiring compliance',
-    why: input.expiresOn ? `Expires ${input.expiresOn} · ${status}` : status,
+    what: expired
+      ? scope.t('itemCopy.expiringCompliance.whatExpired')
+      : scope.t('itemCopy.expiringCompliance.whatExpiring'),
+    why: input.expiresOn
+      ? scope.t('itemCopy.expiringCompliance.whyWithDate', { expiresOn: input.expiresOn, status })
+      : scope.t('itemCopy.expiringCompliance.whyStatusOnly', { status }),
   };
 }
 
 export function overdueMaintenanceCopy(
-  locale: string,
+  scope: CommandCenterCopyScope,
   input: { performedOn: string | null; status: string },
 ): { what: string; why: string } {
-  const status = input.status;
-  if (he(locale)) {
-    return {
-      what: 'השלמת תחזוקה באיחור',
-      why: `מתוזמן ${input.performedOn ?? 'בלי תאריך'} · סטטוס ${status}`,
-    };
-  }
   return {
-    what: 'Complete overdue maintenance',
-    why: `Scheduled ${input.performedOn ?? 'without date'} · status ${status}`,
+    what: scope.t('itemCopy.overdueMaintenance.what'),
+    why: scope.t('itemCopy.overdueMaintenance.why', {
+      performedOn: input.performedOn ?? scope.t('itemCopy.overdueMaintenance.noDate'),
+      status: input.status,
+    }),
   };
 }
 
-export function creditVoidIssueCopy(locale: string, collectionStatus: string): { what: string; why: string } {
-  const status = collectionStatusLabel(locale, collectionStatus);
-  if (he(locale)) {
-    return {
-      what: 'טיפול בזיכוי פתוח',
-      why: `סטטוס גבייה של הזיכוי: ${status}`,
-    };
-  }
+export function creditVoidIssueCopy(
+  scope: CommandCenterCopyScope,
+  collectionStatus: string,
+): { what: string; why: string } {
+  const status = collectionStatusLabel(scope.t, collectionStatus);
   return {
-    what: 'Resolve open credit note',
-    why: `Credit note collection is ${status}`,
+    what: scope.t('itemCopy.creditVoidIssue.what'),
+    why: scope.t('itemCopy.creditVoidIssue.why', { status }),
   };
 }
 
 export function monthCloseIncompleteCopy(
-  locale: string,
+  scope: CommandCenterCopyScope,
   input: { yearMonth: string; status: string; completenessPercent: string },
 ): { what: string; why: string } {
-  const status = monthCloseStatusLabel(locale, input.status);
-  if (he(locale)) {
-    return {
-      what: `השלמת סגירת חודש ${input.yearMonth}`,
-      why: `סטטוס ${status} · שלמות ${input.completenessPercent}%`,
-    };
-  }
+  const status = monthCloseStatusLabel(scope.t, input.status);
   return {
-    what: `Complete month close ${input.yearMonth}`,
-    why: `Status ${status} · completeness ${input.completenessPercent}%`,
+    what: scope.t('itemCopy.monthCloseIncomplete.what', { yearMonth: input.yearMonth }),
+    why: scope.t('itemCopy.monthCloseIncomplete.why', {
+      status,
+      completenessPercent: input.completenessPercent,
+    }),
   };
 }
 
 export function boqMeasurementAwaitingCopy(
-  locale: string,
+  scope: CommandCenterCopyScope,
   input: { periodLabel: string; certificateNumber: number },
 ): { what: string; why: string } {
-  if (he(locale)) {
-    return {
-      what: 'אישור מדידת כתב כמויות',
-      why: `חשבון ${input.certificateNumber} · ${input.periodLabel} ממתין לאישור`,
-    };
-  }
   return {
-    what: 'Approve BOQ measurement',
-    why: `Certificate ${input.certificateNumber} · ${input.periodLabel} awaits approval`,
+    what: scope.t('itemCopy.boqMeasurementAwaiting.what'),
+    why: scope.t('itemCopy.boqMeasurementAwaiting.why', input),
   };
 }
 
 export function boqProgressReadyToBillCopy(
-  locale: string,
+  scope: CommandCenterCopyScope,
   input: { periodLabel: string; certificateNumber: number },
 ): { what: string; why: string } {
-  if (he(locale)) {
-    return {
-      what: 'יצירת חשבון חלקי מכתב כמויות',
-      why: `חשבון ${input.certificateNumber} · ${input.periodLabel} מאושר ומוכן לחיוב`,
-    };
-  }
   return {
-    what: 'Create BOQ progress bill',
-    why: `Certificate ${input.certificateNumber} · ${input.periodLabel} approved and ready to bill`,
+    what: scope.t('itemCopy.boqProgressReadyToBill.what'),
+    why: scope.t('itemCopy.boqProgressReadyToBill.why', input),
   };
 }
 
 export function boqVsContractMismatchCopy(
-  locale: string,
+  scope: CommandCenterCopyScope,
   input: { status: string },
 ): { what: string; why: string } {
-  if (he(locale)) {
-    return {
-      what: 'התאמת כתב כמויות לחוזה',
-      why: `פער בין חוזה לכתב כמויות. ${boqReconStatusLabel(locale, input.status)}`,
-    };
-  }
   return {
-    what: 'Reconcile BOQ vs contract',
-    why: `Contract and BOQ diverge. ${boqReconStatusLabel(locale, input.status)}`,
+    what: scope.t('itemCopy.boqVsContractMismatch.what'),
+    why: scope.t('itemCopy.boqVsContractMismatch.why', {
+      statusLabel: boqReconStatusLabel(scope.t, input.status),
+    }),
   };
 }
 
 export function vendorBillApproachingCopy(
-  locale: string,
+  scope: CommandCenterCopyScope,
   input: { reference: string | null; dueDate: string; outstanding: string; currency: string },
 ): { what: string; why: string } {
-  const outstanding = formatMoneyString(input.outstanding, input.currency, locale);
-  if (he(locale)) {
-    return {
-      what: input.reference ? `חשבונית ספק מתקרבת לפירעון ${input.reference}` : 'חשבונית ספק מתקרבת לפירעון',
-      why: `לתשלום עד ${input.dueDate} · יתרה ${outstanding}`,
-    };
-  }
+  const outstanding = formatMoneyString(input.outstanding, input.currency, scope.locale);
   return {
-    what: input.reference ? `Vendor bill due soon ${input.reference}` : 'Vendor bill due soon',
-    why: `Due ${input.dueDate} · outstanding ${outstanding}`,
+    what: input.reference
+      ? scope.t('itemCopy.vendorBillApproaching.whatWithReference', { reference: input.reference })
+      : scope.t('itemCopy.vendorBillApproaching.whatDefault'),
+    why: scope.t('itemCopy.vendorBillApproaching.why', { dueDate: input.dueDate, outstanding }),
   };
 }
 
-export function ocrNeedsReviewCopy(locale: string, filename: string | null): { what: string; why: string } {
-  if (he(locale)) {
-    return {
-      what: 'בדיקת חשבונית',
-      why: filename ? `${filename} ממתין לבדיקה לפני יצירת טיוטה` : 'מסמך ממתין לבדיקה לפני יצירת טיוטה',
-    };
-  }
+export function ocrNeedsReviewCopy(
+  scope: CommandCenterCopyScope,
+  filename: string | null,
+): { what: string; why: string } {
   return {
-    what: 'Review scanned document',
+    what: scope.t('itemCopy.ocrNeedsReview.what'),
     why: filename
-      ? `${filename} needs explicit confirmation before a draft is created`
-      : 'Needs explicit confirmation before a draft is created',
+      ? scope.t('itemCopy.ocrNeedsReview.whyWithFilename', { filename })
+      : scope.t('itemCopy.ocrNeedsReview.whyDefault'),
   };
 }
 
-export function ocrFailedCopy(locale: string, filename: string | null): { what: string; why: string } {
-  if (he(locale)) {
-    return {
-      what: 'ניסיון חוזר לקריאת מסמך',
-      why: filename ? `${filename} נכשל - אפשר לנסות שוב` : 'קריאה נכשלה - אפשר לנסות שוב',
-    };
-  }
+export function ocrFailedCopy(
+  scope: CommandCenterCopyScope,
+  filename: string | null,
+): { what: string; why: string } {
   return {
-    what: 'Retry a failed document read',
-    why: filename ? `${filename} failed and can be retried` : 'Reading failed and can be retried',
+    what: scope.t('itemCopy.ocrFailed.what'),
+    why: filename
+      ? scope.t('itemCopy.ocrFailed.whyWithFilename', { filename })
+      : scope.t('itemCopy.ocrFailed.whyDefault'),
   };
 }
 
 export function forecastWarningCopy(
-  locale: string,
+  scope: CommandCenterCopyScope,
   kind: string,
 ): { what: string; why: string } {
-  if (he(locale)) {
-    switch (kind) {
-      case 'projected_cost_over_budget':
-        return {
-          what: 'בדיקת חריגת תקציב צפויה',
-          why: 'תחזית העלות עולה על התקציב הפעיל - זו הערכה, לא חריגה בפועל',
-        };
-      case 'insufficient_remaining_budget':
-        return {
-          what: 'בדיקת יתרת תקציב לא מספקת',
-          why: 'התחייבויות ועלויות צפויות שנותרו גדולות מיתרת התקציב',
-        };
-      case 'forecast_margin_negative':
-        return {
-          what: 'בדיקת שיעור יתרת חוזה תחזית שלילי',
-          why: 'שיעור יתרת החוזה התחזיתי מתחת לאפס לפי החוזה ותחזית העלות',
-        };
-      case 'margin_deterioration':
-        return {
-          what: 'בדיקת הידרדרות יתרת חוזה',
-          why: 'שיעור יתרת החוזה התחזיתי נמוך משיעור יתרת החוזה בפועל ב־3 נקודות אחוז או יותר',
-        };
-      case 'commitment_pressure':
-        return {
-          what: 'בדיקת לחץ התחייבויות',
-          why: 'התחייבויות פתוחות לוחצות על יתרת התקציב',
-        };
-      case 'billing_lag':
-        return {
-          what: 'בדיקת פיגור בחיוב',
-          why: 'העלות התקדמה משמעותית יותר מהחיוב מול החוזה',
-        };
-      case 'collection_risk':
-        return {
-          what: 'בדיקת סיכון גבייה',
-          why: 'חלק גדול מהחיוב עדיין פתוח לגבייה',
-        };
-      case 'high_consumption_vs_progress':
-        return {
-          what: 'בדיקת צריכת תקציב מול התקדמות',
-          why: 'שיעור צריכת התקציב גבוה מההתקדמות הפיזית',
-        };
-      case 'missing_data':
-        return {
-          what: 'השלמת נתונים לתחזית',
-          why: 'חסרים נתונים כדי להעריך את מצב הפרויקט בביטחון',
-        };
-      case 'actual_over_budget':
-        return {
-          what: 'בדיקת פרויקט שחרג מהתקציב',
-          why: 'העלות בפועל עולה על התקציב הפעיל',
-        };
-      default:
-        return { what: 'בדיקת אזהרת תחזית', why: 'יש סיכון כספי צפוי שדורש בדיקה' };
-    }
-  }
-  switch (kind) {
-    case 'projected_cost_over_budget':
-      return {
-        what: 'Review projected budget overrun',
-        why: 'Forecast cost exceeds the active budget - a projection, not an actual overrun',
-      };
-    case 'insufficient_remaining_budget':
-      return {
-        what: 'Review remaining budget shortfall',
-        why: 'Open commitments plus remaining expected cost exceed remaining budget',
-      };
-    case 'forecast_margin_negative':
-      return {
-        what: 'Review negative forecast margin',
-        why: 'Forecast margin is below zero on contract versus forecast cost',
-      };
-    case 'margin_deterioration':
-      return {
-        what: 'Review margin deterioration',
-        why: 'Forecast margin is at least 3 points below actual margin',
-      };
-    case 'commitment_pressure':
-      return {
-        what: 'Review commitment pressure',
-        why: 'Open commitments are pressing remaining budget',
-      };
-    case 'billing_lag':
-      return {
-        what: 'Review billing lag',
-        why: 'Cost has advanced well ahead of invoicing against the contract',
-      };
-    case 'collection_risk':
-      return {
-        what: 'Review collection risk',
-        why: 'A large share of invoiced amounts is still outstanding',
-      };
-    case 'high_consumption_vs_progress':
-      return {
-        what: 'Review budget consumption vs progress',
-        why: 'Budget consumed is running ahead of physical progress',
-      };
-    case 'missing_data':
-      return {
-        what: 'Complete forecast inputs',
-        why: 'Not enough data to assess project position with confidence',
-      };
-    case 'actual_over_budget':
-      return {
-        what: 'Review over-budget project',
-        why: 'Actual cost exceeds the active budget',
-      };
-    default:
-      return { what: 'Review forecast warning', why: 'A projected financial risk needs a look' };
-  }
-}
-
-export function punchOpenCopy(locale: string, title: string): { what: string; why: string } {
-  if (he(locale)) {
-    return { what: `סגירת ליקוי פתוח - ${title}`, why: 'פריט תיקון עדיין פתוח' };
-  }
-  return { what: `Close open punch item - ${title}`, why: 'Punch item is still open' };
-}
-
-export function safetyOpenCopy(locale: string, title: string): { what: string; why: string } {
-  if (he(locale)) {
-    return { what: `טיפול ברשומת בטיחות - ${title}`, why: 'רשומת בטיחות עדיין פתוחה' };
-  }
-  return { what: `Resolve safety record - ${title}`, why: 'Safety record is still open' };
-}
-
-export function inspectionOpenCopy(locale: string, title: string, scheduledOn: string | null): { what: string; why: string } {
-  if (he(locale)) {
-    return {
-      what: `השלמת בדיקה - ${title}`,
-      why: scheduledOn ? `מתוכננת ל־${scheduledOn} ועדיין פתוחה` : 'בדיקה עדיין פתוחה',
-    };
-  }
+  const whatKey = `itemCopy.forecastWarning.kinds.${kind}.what`;
+  const whyKey = `itemCopy.forecastWarning.kinds.${kind}.why`;
   return {
-    what: `Complete inspection - ${title}`,
-    why: scheduledOn ? `Scheduled ${scheduledOn} and still open` : 'Inspection is still open',
+    what: scope.t.has(whatKey) ? scope.t(whatKey) : scope.t('itemCopy.forecastWarning.default.what'),
+    why: scope.t.has(whyKey) ? scope.t(whyKey) : scope.t('itemCopy.forecastWarning.default.why'),
   };
 }
 
-export function recurringDraftIssueCopy(locale: string, title: string, nextRunDate: string): { what: string; why: string } {
-  if (he(locale)) {
-    return {
-      what: `טיפול בטיוטה חוזרת - ${title}`,
-      why: `מועד היצירה ${nextRunDate} עבר והטיוטה עדיין פעילה`,
-    };
-  }
+export function punchOpenCopy(scope: CommandCenterCopyScope, title: string): { what: string; why: string } {
   return {
-    what: `Fix recurring draft - ${title}`,
-    why: `Next run ${nextRunDate} is overdue while the draft is still active`,
+    what: scope.t('itemCopy.punchOpen.what', { title }),
+    why: scope.t('itemCopy.punchOpen.why'),
   };
 }
 
-export function timesheetMissingCopy(locale: string, periodEnd: string): { what: string; why: string } {
-  if (he(locale)) {
-    return {
-      what: 'הגשת גיליון שעות שטרם הוגש',
-      why: `תקופה שהסתיימה ב־${periodEnd} עדיין בטיוטה`,
-    };
-  }
+export function safetyOpenCopy(scope: CommandCenterCopyScope, title: string): { what: string; why: string } {
   return {
-    what: 'Submit an overdue timesheet',
-    why: `Period ending ${periodEnd} is still a draft`,
+    what: scope.t('itemCopy.safetyOpen.what', { title }),
+    why: scope.t('itemCopy.safetyOpen.why'),
   };
 }
 
-function boqReconStatusLabel(locale: string, status: string): string {
-  const heMap: Record<string, string> = {
-    matched: 'תואם',
-    variance: 'סטייה',
-    unallocated_contract_value: 'ערך חוזה לא משויך',
-    unallocated_approved_change: 'שינוי מאושר לא משויך',
+export function inspectionOpenCopy(
+  scope: CommandCenterCopyScope,
+  title: string,
+  scheduledOn: string | null,
+): { what: string; why: string } {
+  return {
+    what: scope.t('itemCopy.inspectionOpen.what', { title }),
+    why: scheduledOn
+      ? scope.t('itemCopy.inspectionOpen.whyScheduled', { scheduledOn })
+      : scope.t('itemCopy.inspectionOpen.whyOpen'),
   };
-  const enMap: Record<string, string> = {
-    matched: 'matched',
-    variance: 'variance',
-    unallocated_contract_value: 'unallocated contract value',
-    unallocated_approved_change: 'approved change not yet allocated',
-  };
-  if (he(locale)) return heMap[status] ?? status;
-  return enMap[status] ?? status.replaceAll('_', ' ');
 }
 
-function allocationStatusLabel(locale: string, status: string): string {
-  if (he(locale)) {
-    if (status === 'applied') return 'הוחל';
-    if (status === 'draft') return 'טיוטה';
-    return 'סטטוס הקצאה';
-  }
-  if (status === 'applied') return 'Applied';
-  if (status === 'draft') return 'Draft';
-  return 'Allocation status';
+export function recurringDraftIssueCopy(
+  scope: CommandCenterCopyScope,
+  title: string,
+  nextRunDate: string,
+): { what: string; why: string } {
+  return {
+    what: scope.t('itemCopy.recurringDraftIssue.what', { title }),
+    why: scope.t('itemCopy.recurringDraftIssue.why', { nextRunDate }),
+  };
+}
+
+export function timesheetMissingCopy(
+  scope: CommandCenterCopyScope,
+  periodEnd: string,
+): { what: string; why: string } {
+  return {
+    what: scope.t('itemCopy.timesheetMissing.what'),
+    why: scope.t('itemCopy.timesheetMissing.why', { periodEnd }),
+  };
+}
+
+function boqReconStatusLabel(t: NamespaceTranslator, status: string): string {
+  return label(t, 'boqReconStatus', status, {
+    status: status.replaceAll('_', ' '),
+  });
+}
+
+function allocationStatusLabel(t: NamespaceTranslator, status: string): string {
+  return label(t, 'allocationStatus', status);
 }
 
 /** Human label for approval / notification entity types — never expose raw codes in UI. */
-export function approvalEntityTypeLabel(locale: string, entityType: string): string {
-  if (he(locale)) {
-    const map: Record<string, string> = {
-      expense: 'הוצאה',
-      vendor_bill: 'חשבונית ספק',
-      vendor_credit: 'זיכוי ספק',
-      purchase_order: 'הזמנת רכש',
-      time_correction: 'תיקון שעות',
-      quote_discount: 'הנחה בהצעת מחיר',
-      budget_revision: 'עדכון תקציב',
-      billing_record: 'חיוב',
-      payment: 'תשלום',
-    };
-    return map[entityType] ?? 'בקשה לאישור';
-  }
-  const map: Record<string, string> = {
-    expense: 'Expense',
-    vendor_bill: 'Vendor bill',
-    vendor_credit: 'Vendor credit',
-    purchase_order: 'Purchase order',
-    time_correction: 'Time correction',
-    quote_discount: 'Quote discount',
-    budget_revision: 'Budget revision',
-    billing_record: 'Billing',
-    payment: 'Payment',
-  };
-  return map[entityType] ?? 'Approval request';
+export function approvalEntityTypeLabel(t: NamespaceTranslator, entityType: string): string {
+  return label(t, 'approvalEntityType', entityType);
 }
 
-function complianceStatusLabel(locale: string, status: string): string {
-  if (!he(locale)) return status;
-  if (status === 'expired') return 'פג תוקף';
-  if (status === 'expiring_soon') return 'עומד לפוג';
-  return status;
+function complianceStatusLabel(t: NamespaceTranslator, status: string): string {
+  return label(t, 'complianceStatus', status, { status });
 }
 
-function collectionStatusLabel(locale: string, status: string): string {
-  if (!he(locale)) return status;
-  if (status === 'open') return 'פתוח';
-  if (status === 'partial') return 'חלקי';
-  if (status === 'overdue') return 'באיחור';
-  if (status === 'paid') return 'שולם';
-  return status;
+function collectionStatusLabel(t: NamespaceTranslator, status: string): string {
+  return label(t, 'collectionStatus', status, { status });
 }
 
-function monthCloseStatusLabel(locale: string, status: string): string {
-  if (!he(locale)) return status;
-  if (status === 'open') return 'פתוח';
-  if (status === 'ready') return 'מוכן לסגירה';
-  if (status === 'closed') return 'סגור';
-  return status;
+function monthCloseStatusLabel(t: NamespaceTranslator, status: string): string {
+  return label(t, 'monthCloseStatus', status, { status });
 }
 
 export function closeoutBlockersCopy(
-  locale: string,
+  scope: CommandCenterCopyScope,
   input: { projectName: string; status: string },
 ): { what: string; why: string } {
-  if (he(locale)) {
-    return {
-      what: `סגירת פרויקט ממתינה - ${input.projectName}`,
-      why:
-        input.status === 'reopened'
-          ? 'הפרויקט נפתח מחדש. בדקו את מוכנות הסגירה.'
-          : 'בדקו את מוכנות הסגירה בלשונית הסגירה.',
-    };
-  }
   return {
-    what: `Finish closeout - ${input.projectName}`,
-      why:
-        input.status === 'reopened'
-          ? 'The project was reopened. Review closeout readiness.'
-          : 'Review closeout readiness on the Closeout tab.',
+    what: scope.t('itemCopy.closeoutBlockers.what', { projectName: input.projectName }),
+    why:
+      input.status === 'reopened'
+        ? scope.t('itemCopy.closeoutBlockers.whyReopened')
+        : scope.t('itemCopy.closeoutBlockers.whyDefault'),
   };
 }
 
 export function warrantyExpiringCopy(
-  locale: string,
+  scope: CommandCenterCopyScope,
   input: { title: string; endDate: string },
 ): { what: string; why: string } {
-  if (he(locale)) {
-    return {
-      what: `אחריות שעומדת לפוג - ${input.title}`,
-      why: `תוקף עד ${input.endDate}`,
-    };
-  }
   return {
-    what: `Warranty ending - ${input.title}`,
-    why: `Coverage ends ${input.endDate}`,
+    what: scope.t('itemCopy.warrantyExpiring.what', { title: input.title }),
+    why: scope.t('itemCopy.warrantyExpiring.why', { endDate: input.endDate }),
   };
 }
 
 export function cashFlowRiskCopy(
-  locale: string,
+  scope: CommandCenterCopyScope,
   input: { overdueIn: string; overdueOut: string; currency: string },
 ): { what: string; why: string } {
-  const overdueIn = formatMoneyString(input.overdueIn, input.currency, locale);
-  const overdueOut = formatMoneyString(input.overdueOut, input.currency, locale);
-  if (he(locale)) {
-    return {
-      what: 'סיכון תזרים לטיפול',
-      why: `גבייה באיחור ${overdueIn} · תשלומים באיחור ${overdueOut}`,
-    };
-  }
+  const overdueIn = formatMoneyString(input.overdueIn, input.currency, scope.locale);
+  const overdueOut = formatMoneyString(input.overdueOut, input.currency, scope.locale);
   return {
-    what: 'Cash flow risk to review',
-    why: `Overdue collections ${overdueIn} · overdue payables ${overdueOut}`,
+    what: scope.t('itemCopy.cashFlowRisk.what'),
+    why: scope.t('itemCopy.cashFlowRisk.why', { overdueIn, overdueOut }),
   };
 }
 
 /** Human label for automation preset keys — never expose raw keys in UI. */
-export function automationPresetLabel(locale: string, presetKey: string): string {
-  if (he(locale)) {
-    switch (presetKey) {
-      case 'client_balance_overdue':
-        return 'יתרת לקוח באיחור';
-      case 'quote_no_followup':
-        return 'הצעת מחיר בלי מעקב';
-      case 'vendor_bill_due':
-        return 'חשבונית ספק לפירעון';
-      case 'timesheet_not_submitted':
-        return 'גיליון שעות לא הוגש';
-      case 'timesheet_waiting_approval':
-        return 'גיליון שעות ממתין לאישור';
-      case 'ocr_waiting_review':
-        return 'קליטת חשבונית ממתינה לבדיקה';
-      case 'forecast_over_budget':
-        return 'תחזית מעל התקציב';
-      case 'forecast_margin_low':
-        return 'שיעור יתרת חוזה תחזית נמוך';
-      case 'warranty_expiring':
-        return 'אחריות לקראת פקיעה';
-      case 'compliance_expiring':
-        return 'מסמך ציות לקראת פקיעה';
-      case 'asset_service_due':
-        return 'טיפול בציוד לפירעון';
-      case 'retention_release_date':
-        return 'מועד שחרור עיכבון';
-      case 'closeout_has_blockers':
-        return 'חסמים בסגירת פרויקט';
-      default:
-        return 'כלל אוטומציה';
-    }
-  }
-  switch (presetKey) {
-    case 'client_balance_overdue':
-      return 'Client balance overdue';
-    case 'quote_no_followup':
-      return 'Quote without follow-up';
-    case 'vendor_bill_due':
-      return 'Vendor bill due';
-    case 'timesheet_not_submitted':
-      return 'Timesheet not submitted';
-    case 'timesheet_waiting_approval':
-      return 'Timesheet waiting for approval';
-    case 'ocr_waiting_review':
-      return 'Invoice capture waiting for review';
-    case 'forecast_over_budget':
-      return 'Forecast over budget';
-    case 'forecast_margin_low':
-      return 'Forecast margin low';
-    case 'warranty_expiring':
-      return 'Warranty ending';
-    case 'compliance_expiring':
-      return 'Compliance document ending';
-    case 'asset_service_due':
-      return 'Equipment service due';
-    case 'retention_release_date':
-      return 'Retention release date';
-    case 'closeout_has_blockers':
-      return 'Closeout blockers';
-    default:
-      return 'Automation rule';
-  }
+export function automationPresetLabel(t: NamespaceTranslator, presetKey: string): string {
+  return label(t, 'automationPreset', presetKey);
 }
 
 export function automationFollowupCopy(
-  locale: string,
+  scope: CommandCenterCopyScope,
   input: { presetKey: string; ranAt: string },
 ): { what: string; why: string } {
-  const preset = automationPresetLabel(locale, input.presetKey);
-  if (he(locale)) {
-    return {
-      what: 'אוטומציה דורשת מעקב',
-      why: `${preset} · ${input.ranAt}`,
-    };
-  }
+  const preset = automationPresetLabel(scope.t, input.presetKey);
   return {
-    what: 'Automation needs follow-up',
-    why: `${preset} · ${input.ranAt}`,
+    what: scope.t('itemCopy.automationFollowup.what'),
+    why: scope.t('itemCopy.automationFollowup.why', { preset, ranAt: input.ranAt }),
   };
 }
 
 export function communicationFailedCopy(
-  locale: string,
+  scope: CommandCenterCopyScope,
   input: { subject: string },
 ): { what: string; why: string } {
-  if (he(locale)) {
-    return {
-      what: `הודעה לא נשלחה - ${input.subject}`,
-      why: 'השליחה נכשלה או לא אושרה על ידי הספק.',
-    };
-  }
   return {
-    what: `Message not sent - ${input.subject}`,
-    why: 'Delivery failed or was not confirmed by the provider.',
+    what: scope.t('itemCopy.communicationFailed.what', { subject: input.subject }),
+    why: scope.t('itemCopy.communicationFailed.why'),
   };
 }
 
 export function billingPlanCycleDraftCopy(
-  locale: string,
+  scope: CommandCenterCopyScope,
   input: { title: string; cycleNumber: number },
 ): { what: string; why: string } {
-  if (he(locale)) {
-    return {
-      what: `חשבון התקדמות ממתין להנפקה - ${input.title}`,
-      why: `חשבון מס׳ ${input.cycleNumber} בטיוטה או מוכן להנפקה כחיוב.`,
-    };
-  }
   return {
-    what: `Progress account awaiting issue - ${input.title}`,
-    why: `Account #${input.cycleNumber} is draft/ready to issue as billing (not payment).`,
+    what: scope.t('itemCopy.billingPlanCycleDraft.what', { title: input.title }),
+    why: scope.t('itemCopy.billingPlanCycleDraft.why', { cycleNumber: input.cycleNumber }),
   };
 }
 
 export function billingPlanMilestoneDueCopy(
-  locale: string,
+  scope: CommandCenterCopyScope,
   input: { label: string; targetDate: string },
 ): { what: string; why: string } {
-  if (he(locale)) {
-    return {
-      what: `אבן דרך לחיוב - ${input.label}`,
-      why: `תאריך יעד ${input.targetDate}`,
-    };
-  }
   return {
-    what: `Billing milestone due - ${input.label}`,
-    why: `Target date ${input.targetDate}`,
+    what: scope.t('itemCopy.billingPlanMilestoneDue.what', { label: input.label }),
+    why: scope.t('itemCopy.billingPlanMilestoneDue.why', { targetDate: input.targetDate }),
   };
 }
 
 export function billingPlanRetentionReleaseDueCopy(
-  locale: string,
+  scope: CommandCenterCopyScope,
   input: { heldRemaining: string; currency: string },
 ): { what: string; why: string } {
-  const heldRemaining = formatMoneyString(input.heldRemaining, input.currency, locale);
-  if (he(locale)) {
-    return {
-      what: 'שחרור עיכבון מתוכנית חיובים',
-      why: `יתרת עיכבון מוחזק ${heldRemaining} — ניתן לשחרר לחיוב.`,
-    };
-  }
+  const heldRemaining = formatMoneyString(input.heldRemaining, input.currency, scope.locale);
   return {
-    what: 'Release billing-plan retention',
-    why: `${heldRemaining} retention held remaining — ready to release as billing.`,
+    what: scope.t('itemCopy.billingPlanRetentionReleaseDue.what'),
+    why: scope.t('itemCopy.billingPlanRetentionReleaseDue.why', { heldRemaining }),
   };
 }
 
-const HEBREW_MONTH_NAMES = [
-  'ינואר',
-  'פברואר',
-  'מרץ',
-  'אפריל',
-  'מאי',
-  'יוני',
-  'יולי',
-  'אוגוסט',
-  'ספטמבר',
-  'אוקטובר',
-  'נובמבר',
-  'דצמבר',
-] as const;
-
-function formatReportMonthLabel(locale: string, yearMonth: string): string {
-  const match = /^(\d{4})-(\d{2})$/.exec(yearMonth);
-  if (!match) return yearMonth;
-  const year = match[1]!;
-  const monthIndex = Number(match[2]) - 1;
-  if (he(locale) && monthIndex >= 0 && monthIndex < 12) {
-    return `${HEBREW_MONTH_NAMES[monthIndex]!} ${year}`;
-  }
-  return yearMonth;
-}
-
 export function monthlyWorkforceReportReadyCopy(
-  locale: string,
+  scope: CommandCenterCopyScope,
   yearMonth: string,
 ): { what: string; why: string; where: string } {
-  const monthLabel = formatReportMonthLabel(locale, yearMonth);
-  if (he(locale)) {
-    return {
-      what: 'דוח עובדים חודשי מוכן להפקה',
-      why: `ניתן להפיק ולשמור את דוח העובדים לחודש ${monthLabel}.`,
-      where: 'עובדים · דוחות חודשיים',
-    };
-  }
+  const monthLabel = formatReportMonthLabel(scope.t, yearMonth);
   return {
-    what: 'Monthly workforce report ready',
-    why: `You can generate and save the workforce report for ${monthLabel}.`,
-    where: 'Workforce · monthly reports',
+    what: scope.t('itemCopy.monthlyWorkforceReportReady.what'),
+    why: scope.t('itemCopy.monthlyWorkforceReportReady.why', { monthLabel }),
+    where: scope.t('itemCopy.monthlyWorkforceReportReady.where'),
   };
 }
 
 export function missingAttendanceTodayCopy(
-  locale: string,
+  scope: CommandCenterCopyScope,
   input: { count: number; date: string },
 ): { what: string; why: string } {
-  if (he(locale)) {
-    return {
-      what: `${input.count} עובדים לא דיווחו נוכחות היום`,
-      why: `תאריך ${input.date} — יש לדווח נוכחות לעובדים שטרם דיווחו.`,
-    };
-  }
   return {
-    what: `${input.count} employee${input.count === 1 ? '' : 's'} have not reported attendance today`,
-    why: `Date ${input.date} — attendance is missing for these employees.`,
+    what:
+      input.count === 1
+        ? scope.t('itemCopy.missingAttendanceToday.whatOne', { count: input.count })
+        : scope.t('itemCopy.missingAttendanceToday.whatOther', { count: input.count }),
+    why: scope.t('itemCopy.missingAttendanceToday.why', { date: input.date }),
   };
 }

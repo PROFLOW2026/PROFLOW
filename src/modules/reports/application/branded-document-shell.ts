@@ -13,6 +13,7 @@
 
 import type { DocumentBrandContext, HeaderLayout } from '@/modules/branding/domain/document-brand';
 import { minimalBrandContext } from '@/modules/branding/domain/document-brand';
+import { getReportsCopy } from '../domain/copy';
 
 // ── Color utilities ──────────────────────────────────────────────────────────
 
@@ -140,6 +141,7 @@ export interface CompanyDetailsBlock {
 const DETAIL_SEP = '  ·  ';
 
 export function buildCompanyDetailsBlock(brand: DocumentBrandContext): CompanyDetailsBlock {
+  const copy = getReportsCopy(brand.locale);
   const legal = brand.companyLegalName;
   const display = brand.companyDisplayName;
   const primaryName = legal || display;
@@ -150,10 +152,12 @@ export function buildCompanyDetailsBlock(brand: DocumentBrandContext): CompanyDe
   const emails = (brand.emails ?? []).join(DETAIL_SEP);
   const website = brand.showWebsite !== false ? (brand.website ?? '') : '';
   const vatLine =
-    brand.showVatNumber !== false && brand.vatNumber ? `VAT: ${brand.vatNumber}` : '';
+    brand.showVatNumber !== false && brand.vatNumber
+      ? copy.documentShell.vatLabel.replace('{number}', brand.vatNumber)
+      : '';
   const regLine =
     brand.showRegistrationNumber !== false && brand.registrationNumber
-      ? `Reg: ${brand.registrationNumber}`
+      ? copy.documentShell.registrationLabel.replace('{number}', brand.registrationNumber)
       : '';
 
   return { primaryName, secondaryName, address, phones, emails, website, vatLine, regLine };
@@ -200,7 +204,8 @@ export function resolveEffectiveBrand(
   dir: 'rtl' | 'ltr',
 ): DocumentBrandContext {
   if (brand) return brand;
-  return minimalBrandContext(companyName || 'Company', locale, dir, 'customer');
+  const fallbackName = companyName || getReportsCopy(locale).documentShell.companyFallback;
+  return minimalBrandContext(fallbackName, locale, dir, 'customer');
 }
 
 // ── PDF-specific brand helpers ───────────────────────────────────────────────
@@ -484,13 +489,15 @@ export function buildHtmlLetterhead(
   opts: { escapeHtml: (s: string) => string },
 ): string {
   const { escapeHtml } = opts;
+  const copy = getReportsCopy(brand.locale);
   const layout = brand.headerLayout ?? 'letterhead';
   const details = buildCompanyDetailsBlock(brand);
   const detailLines = companyDetailLines(details);
   const logo = selectLogoForWhitePaper(brand);
+  const logoAlt = copy.documentShell.logoAlt.replace('{company}', details.primaryName);
 
   const logoHtml = logo.bytes
-    ? `<img class="brand-logo" src="${bytesToDataUrl(logo.bytes, logo.mime!)}" alt="${escapeHtml(details.primaryName)} logo" />`
+    ? `<img class="brand-logo" src="${bytesToDataUrl(logo.bytes, logo.mime!)}" alt="${escapeHtml(logoAlt)}" />`
     : details.primaryName
       ? `<div class="brand-initials" aria-hidden="true">${escapeHtml(companyInitials(details.primaryName))}</div>`
       : '';
@@ -556,33 +563,26 @@ export function buildHtmlFooter(
   </footer>`;
 }
 
-const VISUAL_ACKNOWLEDGEMENT_NOTE_HE =
-  'חתימה או חותמת זו היא אישור חזותי בלבד ואינה מהווה חתימה אלקטרונית מחייבת.';
-const VISUAL_ACKNOWLEDGEMENT_NOTE_EN =
-  'This signature/stamp is a visual acknowledgement only and does not constitute a legally binding electronic signature.';
-
 /**
  * Builds the visual-acknowledgement disclaimer for signature/stamp sections.
  * IMPORTANT: must remain visible whenever a signature or stamp image is shown.
  */
 export function visualAcknowledgementNote(locale?: string | null): string {
-  return locale === 'he-IL' || (locale ?? '').startsWith('he')
-    ? VISUAL_ACKNOWLEDGEMENT_NOTE_HE
-    : VISUAL_ACKNOWLEDGEMENT_NOTE_EN;
+  return getReportsCopy(locale).documentShell.visualAcknowledgementNote;
 }
 
 /** English default for tests and non-Hebrew renderers. Prefer visualAcknowledgementNote(locale). */
-export const VISUAL_ACKNOWLEDGEMENT_NOTE = VISUAL_ACKNOWLEDGEMENT_NOTE_EN;
+export const VISUAL_ACKNOWLEDGEMENT_NOTE = getReportsCopy('en').documentShell.visualAcknowledgementNote;
 
 export function buildSignatureSection(
   brand: DocumentBrandContext,
   opts: { escapeHtml: (s: string) => string },
 ): string {
   const { escapeHtml } = opts;
-  const note = visualAcknowledgementNote(brand.locale);
-  const hebrew = brand.locale === 'he-IL' || brand.locale.startsWith('he');
-  const signatureAlt = hebrew ? 'חתימה' : 'signature';
-  const stampAlt = hebrew ? 'חותמת' : 'stamp';
+  const shell = getReportsCopy(brand.locale).documentShell;
+  const note = shell.visualAcknowledgementNote;
+  const signatureAlt = shell.signatureAlt;
+  const stampAlt = shell.stampAlt;
   const parts: string[] = [];
 
   if (brand.includeSignature && brand.signatureBytes) {

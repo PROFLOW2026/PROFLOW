@@ -33,7 +33,131 @@
     "closeout_blockers": "סגירת פרויקט חסומה",
     "communication_failed": "הודעה לא נשלחה",
     "automation_output": "מעקב אוטומציה",
+    "billing_plan_cycle_draft": "חשבון התקדמות ממתין להנפקה",
+    "billing_plan_milestone_due": "אבן דרך לחיוב מתקרבת",
+    "billing_plan_retention_held": "עיכבון מוחזק לשחרור",
     "action_required": "דורש טיפול"
+  },
+  "copy": {
+    "billing_overdue": {
+      "titleWithReference": "חיוב לקוח באיחור - {reference}",
+      "titleDefault": "חיוב לקוח באיחור",
+      "bodyWithExtra": "יתרה פתוחה · {extra}",
+      "bodyDefault": "חיוב סופי עם יתרה שטרם נפרעה."
+    },
+    "ap_due_soon": {
+      "titleWithReference": "חשבון ספק מתקרב לפירעון - {reference}",
+      "titleDefault": "חשבון ספק מתקרב לפירעון",
+      "bodyWithExtra": "לתשלום עד {extra}",
+      "bodyDefault": "פירעון בתוך שבעה ימים."
+    },
+    "ap_overdue": {
+      "titleWithReference": "חשבון ספק באיחור - {reference}",
+      "titleDefault": "חשבון ספק באיחור",
+      "bodyWithExtra": "עבר את מועד הפירעון {extra}",
+      "bodyDefault": "חשבון ספק שעבר את מועד הפירעון."
+    },
+    "approval_waiting": {
+      "title": "ממתין לאישור",
+      "bodyWithReference": "{reference} ממתין להחלטה.",
+      "bodyDefault": "בקשה ממתינה לאישור."
+    },
+    "timesheet_waiting": {
+      "title": "גיליון שעות ממתין",
+      "bodyWithExtra": "תקופה {extra}",
+      "bodyDefault": "גיליון שעות הוגש וממתין לאישור."
+    },
+    "employee_missing_report": {
+      "title": "חסר דיווח שעות",
+      "body": "חסר דיווח נדרש לעובד."
+    },
+    "document_expiring": {
+      "titleWithReference": "מסמך שפג תוקף בקרוב - {reference}",
+      "titleDefault": "מסמך שפג תוקף בקרוב",
+      "bodyWithExtra": "תוקף עד {extra}",
+      "bodyDefault": "יש לחדש או להחליף את המסמך."
+    },
+    "task_overdue": {
+      "titleWithReference": "משימה באיחור - {reference}",
+      "titleDefault": "משימה באיחור",
+      "bodyWithExtra": "יעד {extra}",
+      "bodyDefault": "פריט תכנון שעבר את תאריך היעד."
+    },
+    "boq_awaiting_approval": {
+      "title": "כתב כמויות ממתין לאישור",
+      "bodyWithExtra": "{extra}",
+      "bodyDefault": "אצוות מדידה ממתינה לאישור."
+    },
+    "work_order_assigned": {
+      "titleWithReference": "שובצת לקריאת שירות - {reference}",
+      "titleDefault": "שובצת לקריאת שירות",
+      "body": "קריאת שירות שויכה אליך."
+    },
+    "punch_assigned": {
+      "titleWithReference": "שובצת לפריט תיקון - {reference}",
+      "titleDefault": "שובצת לפריט תיקון",
+      "body": "פריט תיקון שויך אליך."
+    },
+    "low_stock": {
+      "titleWithReference": "מלאי נמוך - {reference}",
+      "titleDefault": "מלאי נמוך",
+      "bodyWithExtra": "{extra}",
+      "bodyDefault": "הכמות במלאי ירדה מתחת לסף."
+    },
+    "safety_action_due": {
+      "titleWithReference": "פעולת בטיחות לטיפול - {reference}",
+      "titleDefault": "פעולת בטיחות לטיפול",
+      "bodyWithExtra": "יעד {extra}",
+      "bodyDefault": "פעולה מתקנת שעברה את המועד."
+    },
+    "warranty_expiring": {
+      "titleWithReference": "אחריות שעומדת לפוג - {reference}",
+      "titleDefault": "אחריות שעומדת לפוג",
+      "bodyWithExtra": "תוקף עד {extra}",
+      "bodyDefault": "כיסוי אחריות מתקרב לסיום."
+    },
+    "closeout_blockers": {
+      "titleWithReference": "סגירת פרויקט חסומה - {reference}",
+      "titleDefault": "סגירת פרויקט חסומה",
+      "bodyWithExtra": "{extra}",
+      "bodyDefault": "יש פריטים שחוסמים סגירה מסודרת."
+    },
+    "communication_failed": {
+      "titleWithReference": "הודעה לא נשלחה - {reference}",
+      "titleDefault": "הודעה לא נשלחה",
+      "bodyWithExtra": "{extra}",
+      "bodyDefault": "השליחה נכשלה או לא אושרה על ידי הספק."
+    },
+    "automation_output": {
+      "titleWithReference": "אוטומציה דורשת מעקב - {reference}",
+      "titleDefault": "אוטומציה דורשת מעקב",
+      "bodyWithExtra": "{extra}",
+      "bodyDefault": "ריצת אוטומציה נכשלה או הפיקה פלט לטיפול."
+    },
+    "billing_plan_cycle_draft": {
+      "titleWithReference": "חשבון התקדמות ממתין להנפקה - {reference}",
+      "titleDefault": "חשבון התקדמות ממתין להנפקה",
+      "bodyWithExtra": "סטטוס {extra} · מוכן להנפקה כחיוב לקוח.",
+      "bodyDefault": "מחזור טיוטה או מוכן ממתין להנפקה."
+    },
+    "billing_plan_milestone_due": {
+      "titleWithReference": "אבן דרך לחיוב מתקרבת - {reference}",
+      "titleDefault": "אבן דרך לחיוב מתקרבת",
+      "bodyWithExtra": "יעד {extra}",
+      "bodyDefault": "שורה בתוכנית החיוב מתקרבת לתאריך היעד."
+    },
+    "billing_plan_retention_held": {
+      "titleWithReference": "עיכבון מוחזק לשחרור - {reference}",
+      "titleDefault": "עיכבון מוחזק לשחרור",
+      "bodyWithExtra": "יתרת עיכבון מוחזקת · {extra}",
+      "bodyDefault": "יש יתרת עיכבון מוחזקת בתוכנית החיוב."
+    },
+    "action_required": {
+      "titleWithReference": "{reference}",
+      "titleDefault": "דורש טיפול",
+      "bodyWithExtra": "{extra}",
+      "bodyDefault": "פריט שדורש טיפול מיידי."
+    }
   },
   "viewAll": "כל ההתראות",
   "scan": "רענון",

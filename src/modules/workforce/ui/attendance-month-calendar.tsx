@@ -1,4 +1,4 @@
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
@@ -7,6 +7,7 @@ import type { AttendanceOutcomeListItem } from '@/modules/workforce/application/
 import type { BusinessDate } from '@/shared/dates';
 import type { EmploymentRange } from '@/modules/workforce/domain/employment-active-range';
 import { isWithinEmploymentRange } from '@/modules/workforce/domain/employment-active-range';
+import { resolveIntlLocale } from '@/shared/i18n/intl-locale';
 
 interface AttendanceMonthCalendarProps {
   readonly employeeId: string;
@@ -59,7 +60,7 @@ function nextMonthStr(yearMonth: string): string {
 function formatMonthTitle(yearMonth: string, locale: string): string {
   const [year, month] = yearMonth.split('-').map(Number);
   const date = new Date(year!, month! - 1, 1);
-  return new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(date);
+  return new Intl.DateTimeFormat(resolveIntlLocale(locale), { month: 'long', year: 'numeric' }).format(date);
 }
 
 function getDayStatus(
@@ -119,7 +120,7 @@ const DAY_CELL_STYLES: Record<DayStatus, string> = {
     'bg-[var(--pf-bg-muted)] text-[var(--pf-text-muted)] border-[var(--pf-border-default)] opacity-60',
 };
 
-const WEEKDAY_HEADERS = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'] as const;
+const WEEKDAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const;
 
 export async function AttendanceMonthCalendar({
   employeeId,
@@ -132,7 +133,12 @@ export async function AttendanceMonthCalendar({
   today,
   attendanceRequired = true,
 }: AttendanceMonthCalendarProps) {
-  const t = await getTranslations('workforce.attendance.monthCalendar');
+  const [t, tWeekdays, locale] = await Promise.all([
+    getTranslations('workforce.attendance.monthCalendar'),
+    getTranslations('workforce.weekdays'),
+    getLocale(),
+  ]);
+  const weekdayHeaders = WEEKDAY_KEYS.map((key) => tWeekdays(key));
 
   const daysInMonth = getDaysInMonth(yearMonth);
   const firstDayOfWeek = getFirstDayOfWeek(yearMonth);
@@ -153,7 +159,7 @@ export async function AttendanceMonthCalendar({
   const prevMonth = prevMonthStr(yearMonth);
   const nextMonth = nextMonthStr(yearMonth);
   const [yearNum, monthNum] = yearMonth.split('-').map(Number);
-  const monthTitle = formatMonthTitle(yearMonth, 'he-IL');
+  const monthTitle = formatMonthTitle(yearMonth, locale);
 
   const cells: Array<{ day: number | null; dateStr: BusinessDate | null; status: DayStatus | null }> =
     [];
@@ -222,7 +228,7 @@ export async function AttendanceMonthCalendar({
       </div>
 
       <div className="grid grid-cols-7 gap-1">
-        {WEEKDAY_HEADERS.map((hdr, i) => (
+        {weekdayHeaders.map((hdr, i) => (
           <div
             key={i}
             className={cn(

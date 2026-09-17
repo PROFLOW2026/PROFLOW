@@ -30,9 +30,11 @@ function requiredFormValue(formData: FormData, key: string): string {
 
 async function mapError(error: unknown): Promise<CloseoutFormState> {
   const tErrors = await getTranslations('errors');
+  const tValidation = await getTranslations('validation');
   const t = await getTranslations('closeout');
   return mapServerActionError(error, {
     tErrors: (key) => tErrors(key as 'unexpected'),
+    tValidation: (key) => tValidation(key as 'invalidDate'),
     namespaces: {
       closeout: (key) => t(key as 'errors.notCloseable'),
     },

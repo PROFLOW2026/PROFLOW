@@ -23,6 +23,7 @@ import enFieldOps from '@/locales/en/fieldOps.json';
 import enStatus from '@/locales/en/status.json';
 import enVendors from '@/locales/en/vendors.json';
 import enWorkforce from '@/locales/en/workforce.json';
+import { isHebrewLocale } from '@/shared/i18n/intl-locale';
 
 const HEBREW_UNKNOWN = 'לא ידוע';
 const ENGLISH_UNKNOWN = 'Unknown';
@@ -152,15 +153,15 @@ const EN_EXTRAS: Readonly<Record<string, string>> = {
 };
 
 function catalogFor(locale: string | null | undefined): Map<string, string> {
-  return locale === 'he-IL' || (locale ?? '').startsWith('he') ? HE_CATALOG : EN_CATALOG;
+  return isHebrewLocale(locale) ? HE_CATALOG : EN_CATALOG;
 }
 
 function extrasFor(locale: string | null | undefined): Readonly<Record<string, string>> {
-  return locale === 'he-IL' || (locale ?? '').startsWith('he') ? HE_EXTRAS : EN_EXTRAS;
+  return isHebrewLocale(locale) ? HE_EXTRAS : EN_EXTRAS;
 }
 
 function unknownFor(locale: string | null | undefined): string {
-  return locale === 'he-IL' || (locale ?? '').startsWith('he') ? HEBREW_UNKNOWN : ENGLISH_UNKNOWN;
+  return isHebrewLocale(locale) ? HEBREW_UNKNOWN : ENGLISH_UNKNOWN;
 }
 
 /**
@@ -174,9 +175,9 @@ export function localizeProjectDisplayName(
   const trimmed = name?.trim() ?? '';
   if (!trimmed) return '-';
   if (trimmed === 'General') {
-    return locale === 'he-IL' || (locale ?? '').startsWith('he') ? 'כללי' : 'General';
+    return isHebrewLocale(locale) ? 'כללי' : 'General';
   }
-  if (looksLikeEnglishDisplayName(trimmed) && (locale === 'he-IL' || (locale ?? '').startsWith('he'))) {
+  if (looksLikeEnglishDisplayName(trimmed) && isHebrewLocale(locale)) {
     const mapped = HE_EXTRAS[trimmed] ?? HE_EXTRAS[trimmed.toLowerCase()];
     if (mapped) return mapped;
   }

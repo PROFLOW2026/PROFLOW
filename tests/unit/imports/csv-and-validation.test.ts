@@ -124,7 +124,9 @@ describe('row validation', () => {
       },
     ]);
     expect(rowHasErrors(projects[0]!)).toBe(true);
-    expect(projects[0]!.issues.some((i) => i.message.includes('opening_values'))).toBe(true);
+    expect(
+      projects[0]!.issues.some((i) => i.message === 'validation.financialAmountsNotOnProjects'),
+    ).toBe(true);
   });
 
   it('validates opening values and cost categories', () => {

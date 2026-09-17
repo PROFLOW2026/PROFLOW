@@ -46,6 +46,7 @@ import {
   finalizeDocumentUploadAction,
 } from '@/modules/documents/application/document-actions';
 import { openFilePicker } from '@/modules/documents/client/open-file-picker';
+import { useTranslateDocumentApiError } from '@/modules/documents/client/use-translate-document-api-error';
 import { uploadDocumentBytes } from '@/modules/documents/client/upload-document-bytes';
 import { normalizeUploadMime } from '@/modules/documents/domain/file-rules';
 import {
@@ -110,6 +111,7 @@ export function ProjectFilesTab({
   const tFileSize = useTranslations('documents.fileSize');
   const tAttach = useTranslations('documents.attachments');
   const tCommon = useTranslations('common');
+  const { translate: translateDocumentApiError } = useTranslateDocumentApiError();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const captureInputRef = useRef<HTMLInputElement>(null);
@@ -311,7 +313,7 @@ export function ProjectFilesTab({
         { contentType: mime.mimeType },
       );
       if (!uploaded.ok) {
-        setError(tAttach('uploadFailed'));
+        setError(translateDocumentApiError(uploaded.messageKey, tAttach('uploadFailed')));
         return;
       }
       const finalized = await finalizeDocumentUploadAction({

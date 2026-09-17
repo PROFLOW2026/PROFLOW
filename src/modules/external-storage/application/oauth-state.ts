@@ -2,6 +2,7 @@ import 'server-only';
 
 import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
 import { serverEnv } from '@/shared/env/server';
+import { isLocale, type Locale } from '@/shared/i18n/config';
 import type { StorageProviderKey } from '../domain/types';
 import { DomainRuleError } from '@/shared/errors';
 
@@ -27,10 +28,16 @@ export function createOAuthState(input: {
   userId: string;
   connectionId: string;
   provider: StorageProviderKey;
+  locale?: string;
 }): string {
   const nonce = randomBytes(16).toString('base64url');
+  const locale = input.locale && isLocale(input.locale) ? input.locale : undefined;
   const payload = JSON.stringify({
-    ...input,
+    organizationId: input.organizationId,
+    userId: input.userId,
+    connectionId: input.connectionId,
+    provider: input.provider,
+    ...(locale ? { locale } : {}),
     exp: Date.now() + STATE_TTL_MS,
     nonce,
   });
@@ -44,6 +51,7 @@ export function verifyOAuthState(state: string): {
   userId: string;
   connectionId: string;
   provider: StorageProviderKey;
+  locale?: Locale;
 } {
   const [encoded, sig] = state.split('.');
   if (!encoded || !sig) {
@@ -61,6 +69,7 @@ export function verifyOAuthState(state: string): {
     userId: string;
     connectionId: string;
     provider: StorageProviderKey;
+    locale?: string;
     exp: number;
   };
 
@@ -68,5 +77,12 @@ export function verifyOAuthState(state: string): {
     throw new DomainRuleError('OAuth state expired', 'externalStorage.errors.oauthState');
   }
 
-  return parsed;
+  const locale = parsed.locale && isLocale(parsed.locale) ? parsed.locale : undefined;
+  return {
+    organizationId: parsed.organizationId,
+    userId: parsed.userId,
+    connectionId: parsed.connectionId,
+    provider: parsed.provider,
+    ...(locale ? { locale } : {}),
+  };
 }

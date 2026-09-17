@@ -158,6 +158,7 @@
     "updateStatusPending": "Saving…"
   },
   "inventory": {
+    "defaultLocationName": "Main",
     "title": "Inventory",
     "description": "Inventory shows quantities for managing the work.",
     "detailDescription": "Inventory shows quantities for managing the work.",

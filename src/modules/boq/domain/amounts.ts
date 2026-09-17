@@ -1,4 +1,5 @@
 import Decimal from 'decimal.js';
+import { DomainRuleError } from '@/shared/errors';
 import { money, multiplyMoney, toNumericString, type MoneyValue } from '@/shared/money';
 import type { BoqPricingType } from './types';
 
@@ -86,12 +87,16 @@ export function assertWithinCurrentQuantity(input: {
   const current = parseQuantity(input.currentQuantity);
   const after = parseQuantity(input.cumulativeApprovedAfter);
   if (after.greaterThan(current)) {
-    throw new Error(
+    throw new DomainRuleError(
       `Over-measurement: cumulative approved ${after.toFixed()} exceeds current quantity ${current.toFixed()}`,
+      'boq.errors.overMeasurement',
     );
   }
   if (after.isNegative()) {
-    throw new Error('Cumulative approved quantity cannot be negative');
+    throw new DomainRuleError(
+      'Cumulative approved quantity cannot be negative',
+      'boq.errors.negativePeriod',
+    );
   }
 }
 

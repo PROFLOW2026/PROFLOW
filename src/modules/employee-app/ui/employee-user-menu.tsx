@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { pressableClassName } from '@/components/ui/pressable';
 import { LOCALES, LOCALE_METADATA, type Locale } from '@/shared/i18n/config';
+import { persistLocalePreferenceAction } from '@/shared/i18n/persist-locale-preference';
 import { usePathname, useRouter } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
 
@@ -79,7 +80,9 @@ export function EmployeeUserMenu({
             key={option}
             disabled={pending}
             onSelect={() => {
-              startTransition(() => {
+              if (option === locale) return;
+              startTransition(async () => {
+                await persistLocalePreferenceAction(option);
                 router.replace(pathname, { locale: option });
               });
             }}

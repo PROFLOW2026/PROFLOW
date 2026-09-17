@@ -24,7 +24,7 @@ const optionalText = z.preprocess(emptyToNull, z.string().trim().max(500).nullab
 const businessDateSchema = z
   .string()
   .trim()
-  .refine(isBusinessDate, { message: 'Invalid date' });
+  .refine(isBusinessDate, { message: 'validation.invalidDate' });
 
 const optionalBusinessDate = z.preprocess(
   emptyToNull,
@@ -34,8 +34,8 @@ const optionalBusinessDate = z.preprocess(
 export const vendorNameSchema = z
   .string()
   .trim()
-  .min(1, 'Vendor name is required')
-  .max(200, 'Vendor name must be at most 200 characters');
+  .min(1, 'validation.vendorNameRequired')
+  .max(200, 'validation.vendorNameTooLong');
 
 export const createVendorSchema = z.object({
   name: vendorNameSchema,
@@ -151,7 +151,7 @@ export const createEngagementSchema = z
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['endDate'],
-        message: 'End date must be on or after start date',
+        message: 'validation.endBeforeStart',
       });
     }
   });
@@ -196,14 +196,14 @@ export type PromoteVendorFromTransactionInput = z.input<typeof promoteVendorFrom
 const moneyAmountSchema = z
   .string()
   .trim()
-  .regex(/^\d+(\.\d+)?$/, 'Amount must be a non-negative decimal');
+  .regex(/^\d+(\.\d+)?$/, 'validation.nonNegativeDecimalRequired');
 
 const optionalPercentSchema = z.preprocess(
   emptyToNull,
   z
     .string()
     .trim()
-    .regex(/^\d+(\.\d+)?$/, 'Retention must be a non-negative percent')
+    .regex(/^\d+(\.\d+)?$/, 'validation.invalidRetentionPercent')
     .nullable()
     .optional(),
 );
@@ -232,7 +232,7 @@ export const createSubcontractSchema = z
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['endDate'],
-        message: 'End date must be on or after start date',
+        message: 'validation.endBeforeStart',
       });
     }
   });
@@ -271,7 +271,7 @@ export const updateSubcontractSchema = z
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['endDate'],
-        message: 'End date must be on or after start date',
+        message: 'validation.endBeforeStart',
       });
     }
   });

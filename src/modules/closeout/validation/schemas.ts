@@ -7,7 +7,7 @@ const emptyToNull = (value: unknown) => {
 
 const reasonSchema = z.preprocess(
   emptyToNull,
-  z.string().trim().min(1, 'A reason is required').max(2000),
+  z.string().trim().min(1, 'validation.reasonRequired').max(2000),
 );
 
 export const closeProjectSchema = z.object({

@@ -638,7 +638,8 @@
       },
       "payroll": {
         "payment_confirmed": "Payroll payment confirmed",
-        "payment_confirmation_voided": "Payroll payment confirmation voided"
+        "payment_confirmation_voided": "Payroll payment confirmation voided",
+        "obligation_voided": "Payroll obligation voided"
       },
       "rate_version": {
         "created": "Rate version created"

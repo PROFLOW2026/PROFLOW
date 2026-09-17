@@ -33,7 +33,131 @@
     "closeout_blockers": "Closeout blocked",
     "communication_failed": "Message not sent",
     "automation_output": "Automation follow-up",
+    "billing_plan_cycle_draft": "Progress account awaiting issue",
+    "billing_plan_milestone_due": "Billing milestone due soon",
+    "billing_plan_retention_held": "Retention held for release",
     "action_required": "Action required"
+  },
+  "copy": {
+    "billing_overdue": {
+      "titleWithReference": "Overdue customer billing - {reference}",
+      "titleDefault": "Overdue customer billing",
+      "bodyWithExtra": "Outstanding {extra}",
+      "bodyDefault": "Finalized billing still has an outstanding balance."
+    },
+    "ap_due_soon": {
+      "titleWithReference": "Vendor bill due soon - {reference}",
+      "titleDefault": "Vendor bill due soon",
+      "bodyWithExtra": "Due {extra}",
+      "bodyDefault": "Due within seven days."
+    },
+    "ap_overdue": {
+      "titleWithReference": "Vendor bill overdue - {reference}",
+      "titleDefault": "Vendor bill overdue",
+      "bodyWithExtra": "Past due since {extra}",
+      "bodyDefault": "Vendor bill is past its due date."
+    },
+    "approval_waiting": {
+      "title": "Waiting for approval",
+      "bodyWithReference": "{reference} is waiting for a decision.",
+      "bodyDefault": "A request is waiting for approval."
+    },
+    "timesheet_waiting": {
+      "title": "Timesheet waiting",
+      "bodyWithExtra": "Period {extra}",
+      "bodyDefault": "A submitted timesheet is waiting for approval."
+    },
+    "employee_missing_report": {
+      "title": "Missing time report",
+      "body": "A required employee report is missing."
+    },
+    "document_expiring": {
+      "titleWithReference": "Document expiring - {reference}",
+      "titleDefault": "Document expiring",
+      "bodyWithExtra": "Expires {extra}",
+      "bodyDefault": "Renew or replace this document."
+    },
+    "task_overdue": {
+      "titleWithReference": "Overdue task - {reference}",
+      "titleDefault": "Overdue task",
+      "bodyWithExtra": "Target {extra}",
+      "bodyDefault": "A planning item is past its target date."
+    },
+    "boq_awaiting_approval": {
+      "title": "BOQ awaiting approval",
+      "bodyWithExtra": "{extra}",
+      "bodyDefault": "A progress measurement batch is waiting for approval."
+    },
+    "work_order_assigned": {
+      "titleWithReference": "Work order assigned - {reference}",
+      "titleDefault": "Work order assigned",
+      "body": "A work order was assigned to you."
+    },
+    "punch_assigned": {
+      "titleWithReference": "Punch item assigned - {reference}",
+      "titleDefault": "Punch item assigned",
+      "body": "A punch list item was assigned to you."
+    },
+    "low_stock": {
+      "titleWithReference": "Low stock - {reference}",
+      "titleDefault": "Low stock",
+      "bodyWithExtra": "{extra}",
+      "bodyDefault": "On-hand quantity is at or below the reorder threshold."
+    },
+    "safety_action_due": {
+      "titleWithReference": "Safety action due - {reference}",
+      "titleDefault": "Safety action due",
+      "bodyWithExtra": "Due {extra}",
+      "bodyDefault": "A corrective action is past due."
+    },
+    "warranty_expiring": {
+      "titleWithReference": "Warranty ending - {reference}",
+      "titleDefault": "Warranty ending",
+      "bodyWithExtra": "Ends {extra}",
+      "bodyDefault": "Warranty coverage is near its end date."
+    },
+    "closeout_blockers": {
+      "titleWithReference": "Closeout blocked - {reference}",
+      "titleDefault": "Closeout blocked",
+      "bodyWithExtra": "{extra}",
+      "bodyDefault": "Blocking items remain before the project can close."
+    },
+    "communication_failed": {
+      "titleWithReference": "Message not sent - {reference}",
+      "titleDefault": "Message not sent",
+      "bodyWithExtra": "{extra}",
+      "bodyDefault": "Delivery failed or was not confirmed by the provider."
+    },
+    "automation_output": {
+      "titleWithReference": "Automation needs follow-up - {reference}",
+      "titleDefault": "Automation needs follow-up",
+      "bodyWithExtra": "{extra}",
+      "bodyDefault": "An automation run failed or produced output to review."
+    },
+    "billing_plan_cycle_draft": {
+      "titleWithReference": "Progress account awaiting issue - {reference}",
+      "titleDefault": "Progress account awaiting issue",
+      "bodyWithExtra": "Status {extra} · ready to issue as customer billing.",
+      "bodyDefault": "A draft or ready cycle is waiting to be issued."
+    },
+    "billing_plan_milestone_due": {
+      "titleWithReference": "Billing milestone due soon - {reference}",
+      "titleDefault": "Billing milestone due soon",
+      "bodyWithExtra": "Target {extra}",
+      "bodyDefault": "A billing-plan line is approaching its target date."
+    },
+    "billing_plan_retention_held": {
+      "titleWithReference": "Retention held for release - {reference}",
+      "titleDefault": "Retention held for release",
+      "bodyWithExtra": "Held retention remaining · {extra}",
+      "bodyDefault": "A billing plan still holds retention that can be released."
+    },
+    "action_required": {
+      "titleWithReference": "{reference}",
+      "titleDefault": "Action required",
+      "bodyWithExtra": "{extra}",
+      "bodyDefault": "An item needs your attention now."
+    }
   },
   "viewAll": "View all",
   "scan": "Refresh",

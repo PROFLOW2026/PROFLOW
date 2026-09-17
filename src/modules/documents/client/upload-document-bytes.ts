@@ -17,7 +17,7 @@ export type SignedUploadTarget = {
 
 export type UploadDocumentBytesResult =
   | { ok: true }
-  | { ok: false; stage: 'storage_upload'; status?: number; message?: string };
+  | { ok: false; stage: 'storage_upload'; status?: number; message?: string; messageKey?: string };
 
 function resolveContentType(file: Blob, explicit?: string): string {
   if (explicit?.trim()) return explicit.trim();
@@ -62,7 +62,14 @@ export async function uploadDocumentBytes(
       body: file,
     });
     if (!response.ok) {
-      return { ok: false, stage: 'storage_upload', status: response.status };
+      let messageKey: string | undefined;
+      try {
+        const body = (await response.json()) as { error?: string };
+        messageKey = body.error;
+      } catch {
+        /* non-JSON error body */
+      }
+      return { ok: false, stage: 'storage_upload', status: response.status, messageKey };
     }
     return { ok: true };
   }

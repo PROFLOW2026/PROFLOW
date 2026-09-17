@@ -5,6 +5,7 @@ import {
   isNotificationEventType,
 } from '@/modules/notifications/domain/types';
 import { notificationCopy } from '@/modules/notifications/domain/copy';
+import { notificationsCopyTranslator } from '@/shared/i18n/sync-namespace-translator';
 
 describe('next-gen notification event types', () => {
   it('registers warranty, closeout, communication, automation, and billing-plan events', () => {
@@ -36,25 +37,27 @@ describe('next-gen notification event types', () => {
   });
 
   it('uses issued/product copy without developer text', () => {
-    const warranty = notificationCopy('en', 'warranty_expiring', {
+    const warranty = notificationCopy(notificationsCopyTranslator('en'), 'warranty_expiring', {
       reference: 'Roof',
       extra: '2026-09-01',
     });
     expect(warranty.title).toContain('Roof');
     expect(warranty.body).toContain('2026-09-01');
 
-    const failed = notificationCopy('he-IL', 'communication_failed', { reference: 'Quote' });
+    const failed = notificationCopy(notificationsCopyTranslator('he-IL'), 'communication_failed', {
+      reference: 'Quote',
+    });
     expect(failed.title).toContain('Quote');
     expect(failed.body).not.toMatch(/TODO|FIXME|lorem/i);
 
-    const draftHe = notificationCopy('he-IL', 'billing_plan_cycle_draft', {
+    const draftHe = notificationCopy(notificationsCopyTranslator('he-IL'), 'billing_plan_cycle_draft', {
       reference: 'חשבון 3',
       extra: 'ready',
     });
     expect(draftHe.title).toContain('חשבון 3');
     expect(draftHe.body).toMatch(/[\u0590-\u05FF]/);
 
-    const retentionHe = notificationCopy('he-IL', 'billing_plan_retention_held', {
+    const retentionHe = notificationCopy(notificationsCopyTranslator('he-IL'), 'billing_plan_retention_held', {
       reference: 'תוכנית',
       extra: '1000 ILS',
     });

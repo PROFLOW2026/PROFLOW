@@ -19,5 +19,55 @@
   },
   "actions": {
     "draftOnly": "This prepared a draft. Nothing was posted."
+  },
+  "unconfiguredReply": {
+    "noTools": "No live model is connected. No local tools ran for this question.",
+    "permissionDenied": "No permission: {title}"
+  },
+  "toolCopy": {
+    "tools": {
+      "today_attention": "Today",
+      "explain_project_profit": "Project profit",
+      "clients_owing_money": "Clients owing money",
+      "pay_this_week": "Pay this week",
+      "projects_at_risk": "Projects at risk",
+      "supplier_bills_needing_review": "Supplier bills needing review",
+      "forecast_over_budget": "Forecast over budget",
+      "explain_number": "Explain a number",
+      "find_document": "Documents",
+      "prepare_draft_expense": "Draft expense",
+      "prepare_payment_reminder_draft": "Payment reminder draft"
+    },
+    "warningKinds": {
+      "actual_over_budget": "Actual cost over budget",
+      "projected_cost_over_budget": "Forecast cost over budget",
+      "insufficient_remaining_budget": "Remaining budget is not enough",
+      "forecast_margin_negative": "Negative forecast margin",
+      "margin_deterioration": "Margin deterioration",
+      "commitment_pressure": "Commitment pressure",
+      "billing_lag": "Billing lag",
+      "collection_risk": "Collection risk",
+      "high_consumption_vs_progress": "High consumption vs progress",
+      "missing_data": "Missing data",
+      "fallback": "Forecast warning"
+    },
+    "todayEmpty": "No Today items in the current inbox.",
+    "profitNeedProject": "Name a project to explain contract balance from composed financials.",
+    "profitNotSet": "Price is not set. Contract balance is not claimed.",
+    "profitHidden": "Contract balance is not available for this viewer or project.",
+    "profitBody": "Forecast contract balance {forecastLabel}. Actual contract balance {actualLabel}.",
+    "clientsEmpty": "No overdue billing records in this list.",
+    "payEmpty": "No supplier bills due this week with a recorded due date.",
+    "riskEmpty": "No early-warning rows for this viewer.",
+    "billsEmpty": "No draft supplier bills in this list.",
+    "billsCount": "{count} draft supplier bills.",
+    "explainNumber": "Open the related project, bill, or expense. Figures come from existing financials — this assistant does not recalculate them.",
+    "documentsEmpty": "No documents matched. Search uses records you can already see.",
+    "draftExpense": "No expense was created. Open a new expense to prepare a draft. Nothing was posted.",
+    "draftReminder": "No message was created. Open Messages to prepare a payment reminder draft. Nothing was sent.",
+    "financialsLabel": "Project financials",
+    "expensesLabel": "New expense",
+    "reminderLabel": "Payment reminder",
+    "messagesLabel": "Messages"
   }
 }

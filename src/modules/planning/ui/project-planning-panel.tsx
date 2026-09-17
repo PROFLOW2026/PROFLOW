@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { pressableClassName } from '@/components/ui/pressable';
 import { StatusBadge } from '@/components/ui/status-badge';
+import { DEFAULT_LOCALE, localeDirection } from '@/shared/i18n/config';
 import { cn } from '@/shared/ui/cn';
 import { collectPredecessorChain } from '../domain/dependencies';
 import type {
@@ -35,7 +36,7 @@ export interface ProjectPlanningPanelProps {
 
 export function ProjectPlanningPanel({
   workKind,
-  locale = 'he-IL',
+  locale = DEFAULT_LOCALE,
   workItems,
   dependencies,
   gantt,
@@ -45,7 +46,7 @@ export function ProjectPlanningPanel({
   phaseNames = {},
 }: ProjectPlanningPanelProps) {
   const t = planningMessages(locale);
-  const dir = locale === 'he-IL' ? 'rtl' : 'ltr';
+  const dir = localeDirection(locale);
   const [focusId, setFocusId] = useState<string | null>(null);
 
   const overdueIds = useMemo(() => new Set(overdue.map((o) => o.workItemId)), [overdue]);

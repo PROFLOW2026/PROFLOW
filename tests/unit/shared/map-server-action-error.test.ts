@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   DomainRuleError,
   ValidationError,
+  inferMessageKey,
   mapServerActionError,
   translateMessageKey,
 } from '@/shared/errors';
@@ -22,6 +23,11 @@ const EN_ERRORS: Record<string, string> = {
   organizationContextRequired: 'No active organization selected',
 };
 
+const EN_VALIDATION: Record<string, string> = {
+  invalidDate: 'Enter a valid date.',
+  invalidAmount: 'Enter a valid amount.',
+};
+
 const EN_ASSETS: Record<string, string> = {
   'errors.insufficientQuantityOnHand': 'Not enough quantity on hand for this issue.',
   'errors.movementQuantityPositive': 'Movement quantity must be positive.',
@@ -38,6 +44,10 @@ function tErrors(key: string): string {
 
 function tAssets(key: string): string {
   return EN_ASSETS[key] ?? key;
+}
+
+function tValidation(key: string): string {
+  return EN_VALIDATION[key] ?? key;
 }
 
 describe('mapServerActionError', () => {
@@ -79,6 +89,29 @@ describe('mapServerActionError', () => {
       namespaces: { assets: tAssets },
     });
     expect(mapped.fieldErrors?.qty).toBe(EN_ASSETS['errors.movementQuantityPositive']);
+  });
+
+  it('infers validation.* from Zod issue.message for field errors', () => {
+    const error = new ValidationError([
+      { path: 'validFrom', message: 'validation.invalidDate' },
+    ]);
+    const mapped = mapServerActionError(error, { tErrors, tValidation });
+    expect(mapped.fieldErrors?.validFrom).toBe(EN_VALIDATION.invalidDate);
+    expect(mapped.fieldErrors?.validFrom).not.toBe('validation.invalidDate');
+  });
+
+  it('translateMessageKey resolves validation namespace keys', () => {
+    const translated = translateMessageKey('validation.invalidAmount', {
+      tErrors,
+      tValidation,
+    });
+    expect(translated).toBe(EN_VALIDATION.invalidAmount);
+  });
+
+  it('inferMessageKey detects dotted i18n keys only', () => {
+    expect(inferMessageKey('validation.invalidDate')).toBe('validation.invalidDate');
+    expect(inferMessageKey('assets.errors.foo')).toBe('assets.errors.foo');
+    expect(inferMessageKey('Invalid date')).toBeNull();
   });
 
   it('translateMessageKey resolves namespace keys without leaking message', () => {

@@ -4,7 +4,13 @@ import { getTranslations } from 'next-intl/server';
 import { createExpense } from '@/modules/expenses';
 import { listVendorsForOrg } from '@/modules/vendors';
 import { withOrgContext } from '@/shared/auth/session';
-import { AppError, AuthorizationError, DomainRuleError } from '@/shared/errors';
+import {
+  AppError,
+  AuthorizationError,
+  DomainRuleError,
+  inferMessageKey,
+  translateMessageKey,
+} from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { createOcrBatch, getOcrBatchProgress } from './batches';
@@ -57,6 +63,24 @@ async function failMessage(error: unknown): Promise<string> {
   return t('unexpected');
 }
 
+async function zodValidationError(
+  issues: readonly { message: string }[],
+): Promise<string> {
+  const tErrors = await getTranslations('errors');
+  const tValidation = await getTranslations('validation');
+  const issue = issues[0];
+  if (!issue) return tErrors('validationFailed');
+  const resolvedKey = inferMessageKey(issue.message);
+  if (resolvedKey) {
+    const translated = translateMessageKey(resolvedKey, {
+      tErrors: (key) => tErrors(key as 'validationFailed'),
+      tValidation: (key) => tValidation(key as 'invalidDate'),
+    });
+    if (translated) return translated;
+  }
+  return tErrors('validationFailed');
+}
+
 function assertReviewSurfaceAllowed(): void {
   if (!isOcrReviewUiAllowed()) {
     throw new DomainRuleError(
@@ -105,8 +129,7 @@ export async function getOcrReviewSuggestionsAction(
 ): Promise<OcrActionResult<OcrReviewSuggestions>> {
   const parsed = ocrReviewSuggestionsProbeSchema.safeParse(raw);
   if (!parsed.success) {
-    const t = await getTranslations('errors');
-    return { ok: false, error: parsed.error.issues[0]?.message ?? t('validationFailed') };
+    return { ok: false, error: await zodValidationError(parsed.error.issues) };
   }
   try {
     assertReviewSurfaceAllowed();
@@ -125,8 +148,7 @@ export async function extractReceiptAction(
 ): Promise<OcrActionResult<ExtractionJob>> {
   const parsed = extractReceiptSchema.safeParse(raw);
   if (!parsed.success) {
-    const t = await getTranslations('errors');
-    return { ok: false, error: parsed.error.issues[0]?.message ?? t('validationFailed') };
+    return { ok: false, error: await zodValidationError(parsed.error.issues) };
   }
   try {
     if (!isOcrIngestionEnabled()) {
@@ -148,8 +170,7 @@ export async function createOcrBatchAction(
 ): Promise<OcrActionResult<{ batch: OcrBatch; jobs: ExtractionJob[] }>> {
   const parsed = createOcrBatchSchema.safeParse(raw);
   if (!parsed.success) {
-    const t = await getTranslations('errors');
-    return { ok: false, error: parsed.error.issues[0]?.message ?? t('validationFailed') };
+    return { ok: false, error: await zodValidationError(parsed.error.issues) };
   }
   try {
     if (!isOcrIngestionEnabled()) {
@@ -171,8 +192,7 @@ export async function cancelOcrJobAction(
 ): Promise<OcrActionResult<ExtractionJob>> {
   const parsed = cancelOcrJobSchema.safeParse(raw);
   if (!parsed.success) {
-    const t = await getTranslations('errors');
-    return { ok: false, error: parsed.error.issues[0]?.message ?? t('validationFailed') };
+    return { ok: false, error: await zodValidationError(parsed.error.issues) };
   }
   try {
     assertReviewSurfaceAllowed();
@@ -214,8 +234,7 @@ export async function confirmOcrCandidateAction(
 > {
   const parsed = confirmOcrCandidateSchema.safeParse(raw);
   if (!parsed.success) {
-    const t = await getTranslations('errors');
-    return { ok: false, error: parsed.error.issues[0]?.message ?? t('validationFailed') };
+    return { ok: false, error: await zodValidationError(parsed.error.issues) };
   }
   try {
     assertReviewSurfaceAllowed();
@@ -280,8 +299,7 @@ export async function rejectOcrCandidateAction(
 ): Promise<OcrActionResult<ExtractionJob>> {
   const parsed = rejectOcrCandidateSchema.safeParse(raw);
   if (!parsed.success) {
-    const t = await getTranslations('errors');
-    return { ok: false, error: parsed.error.issues[0]?.message ?? t('validationFailed') };
+    return { ok: false, error: await zodValidationError(parsed.error.issues) };
   }
   try {
     assertReviewSurfaceAllowed();

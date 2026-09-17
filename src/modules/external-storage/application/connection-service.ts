@@ -73,6 +73,7 @@ export async function assertOrganizationStorageAvailable(context: OrgContext): P
 export async function beginStorageOAuth(
   context: OrgContext,
   provider: StorageProviderKey,
+  options?: { readonly locale?: string },
 ): Promise<{ authorizationUrl: string }> {
   assertPermission(context, PERMISSIONS.SETTINGS_MANAGE);
   if (!isStorageProviderConfigured(provider)) {
@@ -106,6 +107,7 @@ export async function beginStorageOAuth(
     userId: context.userId,
     connectionId: connection.id,
     provider,
+    locale: options?.locale,
   });
 
   const adapter = getStorageProviderAdapter(provider);

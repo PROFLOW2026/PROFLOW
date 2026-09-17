@@ -18,7 +18,7 @@ import {
 import { readExperiencePreviewCookie } from '@/modules/tenancy/application/experience-preview';
 import { serverEnv } from '@/shared/env/server';
 import { todayInTimeZone } from '@/shared/dates';
-import { collectAllSources } from '../data/collect-sources';
+import { buildCollectContext, collectAllSources } from '../data/collect-sources';
 import { listCommandCenterItemStates } from '../data/item-states.repository';
 import { computeRankScore, sortCommandCenterItems } from '../domain/ranking';
 import type {
@@ -76,8 +76,10 @@ export async function getActionableInbox(context: OrgContext): Promise<CommandCe
   const today = todayInTimeZone(context.organization.timezone);
   const now = new Date();
 
+  const collectCtx = await buildCollectContext({ context, modules, today });
+
   const [rawItems, states] = await Promise.all([
-    collectAllSources({ context, modules, today }),
+    collectAllSources(collectCtx),
     listCommandCenterItemStates(context.db, context.organizationId),
   ]);
 

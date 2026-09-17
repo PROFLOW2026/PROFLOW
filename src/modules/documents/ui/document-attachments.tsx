@@ -35,6 +35,7 @@ import {
   unlinkDocumentAction,
 } from '../application/document-actions';
 import { openFilePicker } from '../client/open-file-picker';
+import { useTranslateDocumentApiError } from '../client/use-translate-document-api-error';
 import { uploadDocumentBytes } from '../client/upload-document-bytes';
 import { DocumentExpiryBadge, DocumentRequiredBadge } from './document-expiry-badge';
 import { DocumentFoldersPanel } from './document-folders-panel';
@@ -101,6 +102,7 @@ export function DocumentAttachments({
   const tFileSize = useTranslations('documents.fileSize');
   const tCommon = useTranslations('common');
   const tOffline = useTranslations('offline');
+  const { translate: translateDocumentApiError } = useTranslateDocumentApiError();
   const router = useRouter();
   const offlineScope = useOfflineScope();
   const organizationId = offlineScope?.organizationId ?? null;
@@ -243,7 +245,7 @@ export function DocumentAttachments({
 
       if (!uploaded.ok) {
         await softDeleteDocumentAction({ documentId });
-        setError(t('uploadFailed'));
+        setError(translateDocumentApiError(uploaded.messageKey, t('uploadFailed')));
         return;
       }
 

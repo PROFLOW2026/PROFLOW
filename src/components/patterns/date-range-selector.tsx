@@ -12,10 +12,11 @@
  *    Falls back to `new Date().toISOString().slice(0, 10)` when omitted.
  *  - `fromName` / `toName` – <input name> attributes (defaults: "fromDate" / "toDate").
  *  - `defaultFrom` / `defaultTo` – initial input values.
- *  - `labels` – override button / label text (falls back to hard-coded Hebrew).
+ *  - `labels` – override button / label text (falls back to `common.dateRange` translations).
  */
 
 import * as React from 'react';
+import { useTranslations } from 'next-intl';
 
 export interface DateRangeSelectorLabels {
   today?: string;
@@ -56,27 +57,13 @@ export interface DateRangeSelectorProps {
   fromName?: string;
   /** Name attribute for the to-date input (default: "toDate"). */
   toName?: string;
-  /** Optional label overrides (falls back to Hebrew). */
+  /** Optional label overrides (falls back to `common.dateRange` translations). */
   labels?: DateRangeSelectorLabels;
   /** Extra CSS classes on the root element. */
   className?: string;
   /** JS weekday that starts the week (0=Sunday … 6=Saturday). Default 0. */
   weekStartDay?: number;
 }
-
-const DEFAULT_LABELS: Required<DateRangeSelectorLabels> = {
-  today: 'היום',
-  thisWeek: 'השבוע',
-  thisMonth: 'החודש',
-  lastMonth: 'חודש קודם',
-  last30Days: '30 יום אחרונים',
-  last90Days: '90 יום אחרונים',
-  thisYear: 'השנה',
-  lastYear: 'שנה קודמת',
-  from: 'מ-',
-  to: 'עד',
-  apply: 'החל',
-};
 
 /** Add integer `days` to a YYYY-MM-DD string, returns YYYY-MM-DD. */
 function shiftDate(isoDate: string, days: number): string {
@@ -160,7 +147,20 @@ export function DateRangeSelector({
   className,
   weekStartDay = 0,
 }: DateRangeSelectorProps) {
-  const labels: Required<DateRangeSelectorLabels> = { ...DEFAULT_LABELS, ...labelsProp };
+  const t = useTranslations('common.dateRange');
+  const labels: Required<DateRangeSelectorLabels> = {
+    today: labelsProp?.today ?? t('today'),
+    thisWeek: labelsProp?.thisWeek ?? t('thisWeek'),
+    thisMonth: labelsProp?.thisMonth ?? t('thisMonth'),
+    lastMonth: labelsProp?.lastMonth ?? t('lastMonth'),
+    last30Days: labelsProp?.last30Days ?? t('last30Days'),
+    last90Days: labelsProp?.last90Days ?? t('last90Days'),
+    thisYear: labelsProp?.thisYear ?? t('thisYear'),
+    lastYear: labelsProp?.lastYear ?? t('lastYear'),
+    from: labelsProp?.from ?? t('from'),
+    to: labelsProp?.to ?? t('to'),
+    apply: labelsProp?.apply ?? t('apply'),
+  };
   const today = todayProp ?? new Date().toISOString().slice(0, 10);
 
   // Support both controlled (from/to + onChange) and uncontrolled (defaultFrom/To) modes.

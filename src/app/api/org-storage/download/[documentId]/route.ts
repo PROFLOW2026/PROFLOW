@@ -1,6 +1,6 @@
 import { getExternalDocumentDownload } from '@/modules/external-storage/server';
 import { requireSession, runInOrgContext } from '@/shared/auth/session';
-import { AppError } from '@/shared/errors';
+import { apiRouteErrorFromUnknown, apiRouteErrorResponse } from '@/shared/errors';
 
 export const runtime = 'nodejs';
 
@@ -11,7 +11,7 @@ export async function GET(
   try {
     const session = await requireSession();
     if (!session.activeOrganizationId) {
-      return Response.json({ error: 'no_active_organization' }, { status: 403 });
+      return apiRouteErrorResponse('errors.organizationContextRequired', 403);
     }
 
     const { documentId } = await context.params;
@@ -33,9 +33,6 @@ export async function GET(
       },
     });
   } catch (error) {
-    if (error instanceof AppError) {
-      return Response.json({ error: error.messageKey ?? error.message }, { status: error.status });
-    }
-    return Response.json({ error: 'download_failed' }, { status: 500 });
+    return apiRouteErrorFromUnknown(error, 'externalStorage.errors.operationFailed');
   }
 }

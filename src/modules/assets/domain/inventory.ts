@@ -1,4 +1,5 @@
 import Decimal from 'decimal.js';
+import { assetsCopyTranslator } from '@/shared/i18n/sync-namespace-translator';
 import { DomainRuleError } from '@/shared/errors';
 import type { InventoryMovementType } from './types';
 
@@ -37,10 +38,7 @@ export function sumQuantities(values: readonly string[]): string {
 }
 
 export function defaultInventoryLocationName(locale: string | null | undefined): string {
-  const normalized = (locale ?? '').toLowerCase();
-  return normalized.startsWith('he')
-    ? DEFAULT_INVENTORY_LOCATION_NAME_HE
-    : DEFAULT_INVENTORY_LOCATION_NAME_EN;
+  return assetsCopyTranslator(locale ?? 'en')('inventory.defaultLocationName');
 }
 
 /**

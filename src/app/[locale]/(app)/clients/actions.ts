@@ -35,12 +35,14 @@ function requiredFormValue(formData: FormData, key: string): string {
   return formValue(formData, key) ?? '';
 }
 
-function mapValidationError(
+async function mapValidationError(
   error: ValidationError,
   tErrors: Awaited<ReturnType<typeof getTranslations>>,
-): ClientFormState {
+): Promise<ClientFormState> {
+  const tValidation = await getTranslations('validation');
   return mapServerActionError(error, {
     tErrors: (key) => tErrors(key as 'validationFailed'),
+    tValidation: (key) => tValidation(key as 'invalidDate'),
   });
 }
 

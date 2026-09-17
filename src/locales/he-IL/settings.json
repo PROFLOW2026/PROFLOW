@@ -550,7 +550,8 @@
       },
       "payroll": {
         "payment_confirmed": "אישור תשלום שכר",
-        "payment_confirmation_voided": "ביטול אישור תשלום שכר"
+        "payment_confirmation_voided": "ביטול אישור תשלום שכר",
+        "obligation_voided": "ביטול התחייבות שכר"
       },
       "rate_version": {
         "created": "יצירת תעריף"

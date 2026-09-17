@@ -7,6 +7,7 @@ import {
   groupEmployeeAttendanceByMonth,
   type EmployeeAttendanceDayRow,
 } from '../domain/group-attendance-months';
+import { resolveIntlLocale, resolveIntlTimeLocale } from '@/shared/i18n/intl-locale';
 
 interface Props {
   readonly days: readonly EmployeeAttendanceDayRow[];
@@ -22,7 +23,7 @@ function formatWorkDate(workDate: string, locale: string): string {
   const day = Number(parts[2]);
   if (!year || !month || !day) return workDate;
   const date = new Date(year, month - 1, day);
-  return new Intl.DateTimeFormat(locale === 'en' ? 'en-GB' : 'he-IL', {
+  return new Intl.DateTimeFormat(resolveIntlLocale(locale), {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
@@ -31,29 +32,32 @@ function formatWorkDate(workDate: string, locale: string): string {
 
 function formatClockTime(iso: string | null, locale: string, timeZone: string): string {
   if (!iso) return '—';
-  return new Intl.DateTimeFormat(locale === 'en' ? 'en' : 'he-IL', {
+  return new Intl.DateTimeFormat(resolveIntlTimeLocale(locale), {
     hour: '2-digit',
     minute: '2-digit',
     timeZone,
   }).format(new Date(iso));
 }
 
-function formatHoursTotal(hours: number, locale: string): string {
+function formatHoursTotal(
+  hours: number,
+  t: (key: 'hoursShort', values: { hours: number }) => string,
+): string {
   const rounded = Math.round(hours * 10) / 10;
-  return locale === 'en' ? `${rounded} h` : `${rounded} ש'`;
+  return t('hoursShort', { hours: rounded });
 }
 
 function dayHoursLabel(
   clockInAt: string | null,
   clockOutAt: string | null,
-  locale: string,
+  t: (key: 'hoursShort', values: { hours: number }) => string,
 ): string {
   if (!clockInAt || !clockOutAt) return '—';
   const start = new Date(clockInAt).getTime();
   const end = new Date(clockOutAt).getTime();
   if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return '—';
   const hours = (end - start) / (1000 * 60 * 60);
-  return formatHoursTotal(hours, locale);
+  return formatHoursTotal(hours, t);
 }
 
 export function EmployeeAttendanceHistory({
@@ -82,7 +86,7 @@ export function EmployeeAttendanceHistory({
       {groups.map((group) => {
         const summaryParts = [t('monthDayCount', { count: group.dayCount })];
         if (group.totalHours != null) {
-          summaryParts.push(t('monthHoursTotal', { hours: formatHoursTotal(group.totalHours, locale) }));
+          summaryParts.push(t('monthHoursTotal', { hours: formatHoursTotal(group.totalHours, t) }));
         }
 
         return (
@@ -117,7 +121,7 @@ export function EmployeeAttendanceHistory({
                     <div className="col-span-2">
                       <dt className="inline">{t('totalHours')}: </dt>
                       <dd className="inline text-[var(--pf-text-primary)]">
-                        {dayHoursLabel(day.clockInAt, day.clockOutAt, locale)}
+                        {dayHoursLabel(day.clockInAt, day.clockOutAt, t)}
                       </dd>
                     </div>
                   </dl>

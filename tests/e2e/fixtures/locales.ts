@@ -20,6 +20,11 @@ function loadLocale<T>(name: string): T {
   return JSON.parse(readFileSync(filePath, 'utf8')) as T;
 }
 
+function loadEnLocale<T>(name: string): T {
+  const filePath = path.resolve(process.cwd(), 'src/locales/en', `${name}.json`);
+  return JSON.parse(readFileSync(filePath, 'utf8')) as T;
+}
+
 export const he = {
   auth: loadLocale<typeof auth>('auth'),
   billing: loadLocale<typeof billing>('billing'),
@@ -35,6 +40,13 @@ export const he = {
   organization: loadLocale<typeof organization>('organization'),
   projects: loadLocale<typeof projects>('projects'),
   settings: loadLocale<typeof settings>('settings'),
+};
+
+export const en = {
+  auth: loadEnLocale<typeof auth>('auth'),
+  common: loadEnLocale<typeof common>('common'),
+  dashboard: loadEnLocale<typeof dashboard>('dashboard'),
+  nav: loadEnLocale<typeof nav>('nav'),
 };
 
 /** Known English UI strings that must not appear on he-IL critical surfaces. */

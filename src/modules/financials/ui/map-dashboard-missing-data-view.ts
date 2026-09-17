@@ -3,6 +3,8 @@ import { buildExpenseDetailHref } from '@/modules/expenses/domain/expense-return
 import type { DashboardMissingDataItem } from '../domain/dashboard-missing-data';
 import type { DashboardMissingDataItemView } from './dashboard-missing-data-trigger';
 import { formatBusinessDate } from '@/shared/dates/format';
+import { DEFAULT_LOCALE } from '@/shared/i18n/config';
+import { resolveIntlLocale } from '@/shared/i18n/intl-locale';
 import { fromNumericString } from '@/shared/money';
 import { formatMoney } from '@/shared/money/format';
 
@@ -11,9 +13,10 @@ type TranslateFn = (key: string, values?: Record<string, string | number>) => st
 export function mapDashboardMissingDataToView(
   items: readonly DashboardMissingDataItem[],
   t: TranslateFn,
-  options: { readonly locale: string } = { locale: 'he-IL' },
+  options: { readonly locale: string } = { locale: DEFAULT_LOCALE },
 ): DashboardMissingDataItemView[] {
   const { locale } = options;
+  const intlLocale = resolveIntlLocale(locale);
 
   return items.map((item) => {
     const countSuffix =
@@ -38,7 +41,7 @@ export function mapDashboardMissingDataToView(
           fromNumericString(expense.netAmount, expense.currency) ??
           ({ amount: expense.netAmount, currency: expense.currency } as const);
         const parts = [
-          formatBusinessDate(expense.expenseDate as never, locale, 'short'),
+          formatBusinessDate(expense.expenseDate as never, intlLocale, 'short'),
           supplier,
         ];
         if (description && description !== supplier) {

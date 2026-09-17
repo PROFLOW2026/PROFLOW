@@ -1,4 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
+import { findProfile } from '@/modules/identity';
+import { isDatabaseConfigured, withUserContext } from '@/shared/db/client';
 import { createSupabaseServerClient, isSupabaseConfigured } from '@/shared/supabase/server';
 import {
   joinLocalizedPath,
@@ -49,10 +51,19 @@ export async function GET(request: NextRequest) {
     return redirectInLocale(localeBeforeSession, '/sign-in?error=auth-callback');
   }
 
-  // Sign-up stores locale_preference in auth metadata; honour it when the email
-  // link dropped `locale=` (e.g. opened on another device without NEXT_LOCALE).
+  const userId = data.session?.user?.id;
+  let profileLocale: string | null = null;
+  if (userId && isDatabaseConfigured()) {
+    profileLocale = await withUserContext(userId, async (tx) => {
+      const profile = await findProfile(tx, userId);
+      return profile?.localePreference ?? null;
+    });
+  }
+
+  // Explicit link locale wins; then stored profile preference, cookie, sign-up metadata.
   const locale = resolveAuthLocale([
     searchParams.get('locale'),
+    profileLocale,
     request.cookies.get(LOCALE_COOKIE_NAME)?.value,
     localeFromAuthMetadata(data.session?.user?.user_metadata),
   ]);

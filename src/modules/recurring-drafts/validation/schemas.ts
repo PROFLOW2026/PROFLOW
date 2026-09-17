@@ -5,18 +5,18 @@ import { DRAFT_FREQUENCIES, DRAFT_KINDS, DRAFT_STATUSES } from '../domain/types'
 const yearMonthSchema = z
   .string()
   .trim()
-  .regex(/^\d{4}-(0[1-9]|1[0-2])$/, 'Month must be YYYY-MM');
+  .regex(/^\d{4}-(0[1-9]|1[0-2])$/, 'validation.invalidYearMonth');
 
 const businessDateSchema = z
   .string()
   .trim()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD');
+  .regex(/^\d{4}-\d{2}-\d{2}$/, 'validation.dateMustBeYyyyMmDd');
 
 const moneyString = z
   .string()
   .trim()
-  .min(1, 'Amount is required')
-  .regex(/^\d+(\.\d{1,6})?$/, 'Invalid money amount');
+  .min(1, 'validation.amountRequired')
+  .regex(/^\d+(\.\d{1,6})?$/, 'validation.invalidMoneyAmount');
 
 const currencySchema = z
   .string()
@@ -77,7 +77,7 @@ export const billingRecordDraftPayloadSchema = z
       ctx.addIssue({
         code: 'custom',
         path: ['finalize'],
-        message: 'Recurring templates cannot auto-finalize billing',
+        message: 'validation.recurringNoAutoFinalizeBilling',
       });
     }
   });
@@ -104,7 +104,7 @@ function refineDateRange(
     ctx.addIssue({
       code: 'custom',
       path: ['endDate'],
-      message: 'End date cannot be before the next generation date',
+      message: 'validation.endBeforeNextRun',
     });
   }
 }
@@ -166,7 +166,7 @@ export const generateRecurringDraftHistorySchema = z
       ctx.addIssue({
         code: 'custom',
         path: ['toYearMonth'],
-        message: 'toYearMonth must be on or after fromYearMonth',
+        message: 'validation.toYearMonthBeforeFrom',
       });
     }
   });

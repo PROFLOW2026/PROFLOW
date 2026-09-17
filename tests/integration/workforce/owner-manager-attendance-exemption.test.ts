@@ -18,7 +18,7 @@ import {
   getTodayAttendanceOverview,
   listEmployeesWithoutAttendanceToday,
 } from '@/modules/workforce';
-import { collectMissingAttendanceToday } from '@/modules/command-center/data/collect-sources';
+import { buildCollectContext, collectMissingAttendanceToday } from '@/modules/command-center/data/collect-sources';
 import { createTestDatabase, type TestDatabase } from '../../setup/database';
 
 describe('owner_manager attendance exemption', () => {
@@ -122,11 +122,12 @@ describe('owner_manager attendance exemption', () => {
         OPTIONAL_MODULE_KEYS.map((key) => [key, true]),
       ) as ModuleVisibility;
 
-      const alerts = await collectMissingAttendanceToday({
+      const collectCtx = await buildCollectContext({
         context,
         modules,
         today: workDate,
       });
+      const alerts = await collectMissingAttendanceToday(collectCtx);
       expect(alerts).toHaveLength(1);
       expect(alerts[0]?.where).toBe('Regular Worker');
       expect(alerts.some((item) => item.where === 'Owner Manager')).toBe(false);

@@ -43,6 +43,7 @@ import type {
 import { STORAGE_PROVIDER_LABELS } from '@/modules/external-storage/client';
 import { openFilePicker } from '@/modules/documents/client/open-file-picker';
 import { buildStorageFileDownloadUrl } from '@/modules/external-storage/client/storage-file-urls';
+import { useTranslateStorageApiError } from '@/modules/external-storage/client/use-translate-storage-api-error';
 import { StorageFilePreviewDialog } from '@/modules/external-storage/ui/storage-file-preview-dialog';
 import {
   browseCompanyFolderAction,
@@ -99,6 +100,7 @@ export function CompanyFilesTab({
   const tErrors = useTranslations('externalStorage.errors');
   const tFileSize = useTranslations('documents.fileSize');
   const tCommon = useTranslations('common');
+  const { fromResponse: translateUploadError } = useTranslateStorageApiError();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -267,7 +269,7 @@ export function CompanyFilesTab({
         credentials: 'include',
       });
       if (!response.ok) {
-        setError(t('uploadFailed'));
+        setError(await translateUploadError(response, t('uploadFailed')));
         return;
       }
       refreshListing();

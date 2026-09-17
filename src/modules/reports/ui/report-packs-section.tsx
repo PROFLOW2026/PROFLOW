@@ -258,7 +258,7 @@ export function ReportPacksSection({
             <CardTitle>{t('kinds.vendor_360')}</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
-            <Field label="Vendor">
+            <Field label={t('fields.vendor')}>
               {(control) => (
                 <Select value={vendorId} onValueChange={setVendorId}>
                   <SelectTrigger id={control.id}>

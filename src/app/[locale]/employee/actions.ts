@@ -2,10 +2,12 @@
 
 import { revalidatePath } from 'next/cache';
 import { getLocale, getTranslations } from 'next-intl/server';
+import { isLocale, type Locale } from '@/shared/i18n/config';
 import { redirect } from '@/shared/i18n/navigation';
+import { resolveLocaleAfterAuth } from '@/shared/i18n/persist-locale-preference';
 import { getAdminDb } from '@/shared/db/client';
 import { getSessionState } from '@/shared/auth/session';
-import { createSupabaseServerClient, isSupabaseConfigured } from '@/shared/supabase/server';
+import { createSupabaseServerClient, getSupabaseUser, isSupabaseConfigured } from '@/shared/supabase/server';
 import {
   employeeLogin,
   employeeSetPermanentPin,
@@ -23,12 +25,13 @@ export async function employeeLoginAction(
   formData: FormData,
 ): Promise<EmployeeAuthFormState> {
   const t = await getTranslations('employeeApp');
-  const locale = await getLocale();
+  const urlLocale = await activeLocale();
   const username = String(formData.get('username') ?? '');
   const pin = String(formData.get('pin') ?? '');
 
   try {
     const result = await employeeLogin({ username, pin });
+    const locale = await resolveLocaleAfterAuth((await getSupabaseUser())?.id, urlLocale);
     if (result.pinMustChange) {
       redirect({ href: '/employee/set-pin', locale });
     }
@@ -52,7 +55,7 @@ export async function employeeSignOutAction(): Promise<void> {
   }
 
   revalidatePath('/employee', 'layout');
-  redirect({ href: '/employee/login', locale: await getLocale() });
+  redirect({ href: '/employee/login', locale: await activeLocale() });
 }
 
 export async function employeeSetPinAction(
@@ -60,10 +63,10 @@ export async function employeeSetPinAction(
   formData: FormData,
 ): Promise<EmployeeAuthFormState> {
   const t = await getTranslations('employeeApp');
-  const locale = await getLocale();
+  const urlLocale = await activeLocale();
   const session = await getSessionState();
   if (session.status !== 'authenticated') {
-    redirect({ href: '/employee/login', locale });
+    redirect({ href: '/employee/login', locale: urlLocale });
   }
 
   let organizationId = session.activeOrganizationId;
@@ -78,7 +81,7 @@ export async function employeeSetPinAction(
     }
   }
   if (!organizationId) {
-    redirect({ href: '/employee/login', locale });
+    redirect({ href: '/employee/login', locale: urlLocale });
   }
 
   const newPin = String(formData.get('newPin') ?? '');
@@ -91,6 +94,7 @@ export async function employeeSetPinAction(
       newPin,
       confirmPin,
     });
+    const locale = await resolveLocaleAfterAuth(session.user.id, urlLocale);
     redirect({ href: '/employee', locale });
   } catch (error) {
     if (isRedirectError(error)) throw error;
@@ -99,4 +103,9 @@ export async function employeeSetPinAction(
     }
     return { error: t('errors.pinInvalid') };
   }
+}
+
+async function activeLocale(): Promise<Locale> {
+  const locale = await getLocale();
+  return isLocale(locale) ? locale : 'he-IL';
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { LtrIsland, rtlFlipClassName } from '@/shared/i18n/ltr-island';
@@ -25,12 +26,15 @@ export function Pagination({
   page,
   pageCount,
   onPageChange,
-  previousLabel = 'Previous',
-  nextLabel = 'Next',
+  previousLabel,
+  nextLabel,
   statusLabel,
   className,
   ...props
 }: PaginationProps) {
+  const t = useTranslations('common');
+  const resolvedPreviousLabel = previousLabel ?? t('actions.previous');
+  const resolvedNextLabel = nextLabel ?? t('actions.next');
   const safeCount = Math.max(1, pageCount);
   const safePage = Math.min(Math.max(1, page), safeCount);
   const canPrev = safePage > 1;
@@ -38,7 +42,7 @@ export function Pagination({
 
   return (
     <nav
-      aria-label="Pagination"
+      aria-label={t('pagination.navLabel')}
       className={cn('flex flex-wrap items-center justify-between gap-3', className)}
       {...props}
     >
@@ -47,11 +51,11 @@ export function Pagination({
         variant="secondary"
         size="sm"
         disabled={!canPrev}
-        aria-label={previousLabel}
+        aria-label={resolvedPreviousLabel}
         onClick={() => onPageChange(safePage - 1)}
       >
         <ChevronLeft className={rtlFlipClassName('size-4')} aria-hidden />
-        <span className="hidden sm:inline">{previousLabel}</span>
+        <span className="hidden sm:inline">{resolvedPreviousLabel}</span>
       </Button>
 
       <LtrIsland className="text-sm text-[var(--pf-text-secondary)] tabular-nums">
@@ -63,10 +67,10 @@ export function Pagination({
         variant="secondary"
         size="sm"
         disabled={!canNext}
-        aria-label={nextLabel}
+        aria-label={resolvedNextLabel}
         onClick={() => onPageChange(safePage + 1)}
       >
-        <span className="hidden sm:inline">{nextLabel}</span>
+        <span className="hidden sm:inline">{resolvedNextLabel}</span>
         <ChevronRight className={rtlFlipClassName('size-4')} aria-hidden />
       </Button>
     </nav>

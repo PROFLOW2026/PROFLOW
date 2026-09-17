@@ -15,6 +15,7 @@ import type { OrgContext } from '@/shared/auth/context';
 import { AppError, NotFoundError, ValidationError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { importsCopyTranslator } from '@/shared/i18n/sync-namespace-translator';
 import { isBoqImportSkipRow, parseImportDecimal } from '../domain/boq-import-parse';
 import type { ImportRowResult, MappedImportRow } from '../domain/types';
 
@@ -28,33 +29,23 @@ function normKey(value: string): string {
 }
 
 function errorMessage(error: unknown, locale: string): string {
-  const he = locale.startsWith('he');
-  const map = {
-    notFound: he ? 'הפריט לא נמצא.' : 'Item was not found.',
-    draftOnly: he ? 'ניתן לערוך רק טיוטת כתב כמויות.' : 'Only a draft BOQ can be edited.',
-    changeOrderInvalid: he
-      ? 'הזמנת השינוי לא נמצאה או אינה שייכת לפרויקט.'
-      : 'Change order was not found or does not belong to this project.',
-    generic: he
-      ? 'לא ניתן להשלים את הפעולה. בדקו את הערכים ונסו שוב.'
-      : 'Could not complete that BOQ action. Check the values and try again.',
-  } as const;
+  const t = importsCopyTranslator(locale);
 
-  if (error instanceof NotFoundError) return map.notFound;
+  if (error instanceof NotFoundError) return t('validation.confirmBoq.notFound');
   if (error instanceof ValidationError) {
     const first = error.issues[0]?.message ?? error.message;
-    if (/draft/i.test(first)) return map.draftOnly;
-    if (/change order|project/i.test(first)) return map.changeOrderInvalid;
-    if (/not found/i.test(first)) return map.notFound;
-    return map.generic;
+    if (/draft/i.test(first)) return t('validation.confirmBoq.draftOnly');
+    if (/change order|project/i.test(first)) return t('validation.confirmBoq.changeOrderInvalid');
+    if (/not found/i.test(first)) return t('validation.confirmBoq.notFound');
+    return t('validation.confirmBoq.generic');
   }
   if (error instanceof AppError) {
-    if (/draft/i.test(error.message)) return map.draftOnly;
-    if (/not found/i.test(error.message)) return map.notFound;
-    return map.generic;
+    if (/draft/i.test(error.message)) return t('validation.confirmBoq.draftOnly');
+    if (/not found/i.test(error.message)) return t('validation.confirmBoq.notFound');
+    return t('validation.confirmBoq.generic');
   }
-  if (error instanceof Error && /draft/i.test(error.message)) return map.draftOnly;
-  return map.generic;
+  if (error instanceof Error && /draft/i.test(error.message)) return t('validation.confirmBoq.draftOnly');
+  return t('validation.confirmBoq.generic');
 }
 
 async function resolveDraftBoqId(

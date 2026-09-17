@@ -365,5 +365,39 @@
   "management": {
     "title": "ניתוח ניהול לבעלים",
     "hint": "משתמש באותו מנוע פיננסי של פיננסי פרויקט ותזרים. מדדים בלי כיסוי נשארים מוסתרים."
+  },
+  "documentShell": {
+    "companyFallback": "חברה",
+    "vatLabel": "מע״מ: {number}",
+    "registrationLabel": "ח.פ.: {number}",
+    "logoAlt": "לוגו {company}",
+    "visualAcknowledgementNote": "חתימה או חותמת זו היא אישור חזותי בלבד ואינה מהווה חתימה אלקטרונית מחייבת.",
+    "signatureAlt": "חתימה",
+    "stampAlt": "חותמת"
+  },
+  "workforceReport": {
+    "classificationOwnerManager": "בעלים / מנהל (פטור דיווח)",
+    "classificationEmployee": "עובד",
+    "regularHours": "שעות רגילות",
+    "overtimeHours": "שעות נוספות",
+    "totalApprovedHours": "סה״כ שעות מאושרות",
+    "classification": "סיווג",
+    "workdays": "ימי עבודה / נוכחות",
+    "unallocatedDays": "ימים ללא הקצאה",
+    "nonProjectHours": "שעות ללא פרויקט",
+    "unallocatedCost": "עלות ללא הקצאה",
+    "pendingApproval": "ממתין לאישור",
+    "allocationTable": {
+      "project": "פרויקט",
+      "days": "ימים",
+      "hours": "שעות",
+      "cost": "עלות"
+    },
+    "missingAttendanceDays": "חסרים {count} ימי דיווח בחודש.",
+    "notice": "דוח עובדים לחודש {yearMonth}. אין בדוח נתוני שכר / מס — לצרכים תפעוליים בלבד.",
+    "monthSummary": "סיכום חודש",
+    "reportMonth": "חודש דיווח",
+    "employees": "עובדים בדוח",
+    "dateRange": "טווח תאריכים"
   }
 }

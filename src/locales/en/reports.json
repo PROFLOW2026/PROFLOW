@@ -365,5 +365,39 @@
   "management": {
     "title": "Owner management analytics",
     "hint": "Uses the same financial engine as project financials and cash flow. Uncovered metrics stay hidden."
+  },
+  "documentShell": {
+    "companyFallback": "Company",
+    "vatLabel": "VAT: {number}",
+    "registrationLabel": "Reg: {number}",
+    "logoAlt": "{company} logo",
+    "visualAcknowledgementNote": "This signature/stamp is a visual acknowledgement only and does not constitute a legally binding electronic signature.",
+    "signatureAlt": "signature",
+    "stampAlt": "stamp"
+  },
+  "workforceReport": {
+    "classificationOwnerManager": "Owner / manager (exempt)",
+    "classificationEmployee": "Employee",
+    "regularHours": "Regular hours",
+    "overtimeHours": "Overtime hours",
+    "totalApprovedHours": "Total approved hours",
+    "classification": "Classification",
+    "workdays": "Workdays / attendance",
+    "unallocatedDays": "Unallocated days",
+    "nonProjectHours": "Non-project hours",
+    "unallocatedCost": "Unallocated cost",
+    "pendingApproval": "Pending approval",
+    "allocationTable": {
+      "project": "Project",
+      "days": "Days",
+      "hours": "Hours",
+      "cost": "Cost"
+    },
+    "missingAttendanceDays": "{count} missing attendance day(s) in month.",
+    "notice": "Workforce summary for {yearMonth}. Not payroll or tax data.",
+    "monthSummary": "Month summary",
+    "reportMonth": "Report month",
+    "employees": "Employees",
+    "dateRange": "Date range"
   }
 }

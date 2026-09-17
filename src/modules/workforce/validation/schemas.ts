@@ -11,25 +11,25 @@ import { EMPLOYEE_STATUSES, RATE_UNITS, TIME_APPROVAL_STATUSES, TIME_ENTRY_KINDS
 const businessDateSchema = z
   .string()
   .trim()
-  .refine(isBusinessDate, { message: 'Invalid date' });
+  .refine(isBusinessDate, { message: 'validation.invalidDate' });
 
 const moneyAmountSchema = z
   .string()
   .trim()
   .min(1)
-  .regex(/^[+]?\d+(\.\d+)?$/, { message: 'Invalid amount' });
+  .regex(/^[+]?\d+(\.\d+)?$/, { message: 'validation.invalidAmount' });
 
 const hoursSchema = z
   .string()
   .trim()
   .min(1)
-  .regex(/^[+]?\d+(\.\d+)?$/, { message: 'Invalid hours' })
-  .refine((value) => Number(value) > 0, { message: 'Hours must be positive' });
+  .regex(/^[+]?\d+(\.\d+)?$/, { message: 'validation.invalidHours' })
+  .refine((value) => Number(value) > 0, { message: 'validation.hoursMustBePositive' });
 
 const percentSchema = z
   .string()
   .trim()
-  .regex(/^[+]?\d+(\.\d+)?$/, { message: 'Invalid percent' })
+  .regex(/^[+]?\d+(\.\d+)?$/, { message: 'validation.invalidPercent' })
   .optional()
   .nullable();
 
@@ -44,10 +44,10 @@ const laborComponentSchema = z
   })
   .superRefine((value, ctx) => {
     if (value.basis === 'amount' && !value.amount) {
-      ctx.addIssue({ code: 'custom', path: ['amount'], message: 'Amount required' });
+      ctx.addIssue({ code: 'custom', path: ['amount'], message: 'validation.amountRequired' });
     }
     if (value.basis === 'percent' && !value.percent) {
-      ctx.addIssue({ code: 'custom', path: ['percent'], message: 'Percent required' });
+      ctx.addIssue({ code: 'custom', path: ['percent'], message: 'validation.percentRequired' });
     }
   });
 
@@ -102,7 +102,7 @@ export const createEmployeeSchema = z
       ctx.addIssue({
         code: 'custom',
         path: ['endDate'],
-        message: 'End date must be on or after employment start',
+        message: 'validation.employmentEndBeforeStart',
       });
     }
   });
@@ -141,7 +141,7 @@ export const updateEmployeeSchema = z
       ctx.addIssue({
         code: 'custom',
         path: ['endDate'],
-        message: 'End date must be on or after employment start',
+        message: 'validation.employmentEndBeforeStart',
       });
     }
   });
@@ -189,10 +189,10 @@ export const createTimeEntrySchema = z
   })
   .superRefine((value, ctx) => {
     if (value.kind === 'project' && !value.projectId) {
-      ctx.addIssue({ code: 'custom', path: ['projectId'], message: 'Project required' });
+      ctx.addIssue({ code: 'custom', path: ['projectId'], message: 'validation.projectRequired' });
     }
     if (value.kind === 'non_project' && !value.timeCodeId) {
-      ctx.addIssue({ code: 'custom', path: ['timeCodeId'], message: 'Time code required' });
+      ctx.addIssue({ code: 'custom', path: ['timeCodeId'], message: 'validation.timeCodeRequired' });
     }
   });
 
@@ -226,16 +226,16 @@ export const createBulkTimeEntriesSchema = z
   })
   .superRefine((value, ctx) => {
     if (value.toDate < value.fromDate) {
-      ctx.addIssue({ code: 'custom', path: ['toDate'], message: 'End date must be on or after start date' });
+      ctx.addIssue({ code: 'custom', path: ['toDate'], message: 'validation.endBeforeStart' });
     }
     if (!value.hours && !(value.dayHours && value.dayHours.length > 0)) {
-      ctx.addIssue({ code: 'custom', path: ['hours'], message: 'Hours required' });
+      ctx.addIssue({ code: 'custom', path: ['hours'], message: 'validation.hoursRequired' });
     }
     if (value.kind === 'project' && !value.projectId) {
-      ctx.addIssue({ code: 'custom', path: ['projectId'], message: 'Project required' });
+      ctx.addIssue({ code: 'custom', path: ['projectId'], message: 'validation.projectRequired' });
     }
     if (value.kind === 'non_project' && !value.timeCodeId) {
-      ctx.addIssue({ code: 'custom', path: ['timeCodeId'], message: 'Time code required' });
+      ctx.addIssue({ code: 'custom', path: ['timeCodeId'], message: 'validation.timeCodeRequired' });
     }
   });
 
@@ -370,7 +370,7 @@ export const updateProjectTeamAssignmentSchema = z
       value.role !== undefined ||
       value.plannedAllocationPercent !== undefined ||
       value.notes !== undefined,
-    { message: 'At least one field required' },
+    { message: 'validation.atLeastOneFieldRequired' },
   );
 
 export type UpdateProjectTeamAssignmentInput = z.infer<typeof updateProjectTeamAssignmentSchema>;
@@ -384,12 +384,12 @@ export type CancelProjectTeamAssignmentInput = z.infer<typeof cancelProjectTeamA
 const yearMonthSchema = z
   .string()
   .trim()
-  .regex(/^\d{4}-(0[1-9]|1[0-2])$/, { message: 'Invalid year-month' });
+  .regex(/^\d{4}-(0[1-9]|1[0-2])$/, { message: 'validation.invalidYearMonth' });
 
 const optionalMoneySchema = z
   .string()
   .trim()
-  .regex(/^[+]?\d+(\.\d+)?$/, { message: 'Invalid amount' })
+  .regex(/^[+]?\d+(\.\d+)?$/, { message: 'validation.invalidAmount' })
   .optional()
   .nullable()
   .or(z.literal(''));
@@ -439,7 +439,7 @@ const isoDateTimeSchema = z
   .string()
   .trim()
   .min(1)
-  .refine((value) => !Number.isNaN(new Date(value).getTime()), { message: 'Invalid timestamp' });
+  .refine((value) => !Number.isNaN(new Date(value).getTime()), { message: 'validation.invalidTimestamp' });
 
 export const clockAttendanceSchema = z.object({
   eventType: z.enum(['clock_in', 'clock_out', 'break_start', 'break_end']),
@@ -467,7 +467,7 @@ export type ManualAttendanceEventInput = z.infer<typeof manualAttendanceEventSch
 const timeOfDaySchema = z
   .string()
   .trim()
-  .regex(/^\d{2}:\d{2}(:\d{2})?$/, 'Invalid time of day');
+  .regex(/^\d{2}:\d{2}(:\d{2})?$/, 'validation.invalidTimeOfDay');
 
 export const manualAttendanceWorkdayRangeSchema = z
   .object({
@@ -497,7 +497,7 @@ export const manualAttendanceWorkdayRangeSchema = z
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['toDate'],
-        message: 'toDate must be on or after fromDate',
+        message: 'validation.endBeforeStart',
       });
     }
     const inNorm = value.clockInTime.length === 5 ? `${value.clockInTime}:00` : value.clockInTime;
@@ -506,14 +506,14 @@ export const manualAttendanceWorkdayRangeSchema = z
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['clockOutTime'],
-        message: 'clockOutTime must be after clockInTime',
+        message: 'validation.clockOutBeforeClockIn',
       });
     }
     if (value.workScope === 'project' && !value.projectId) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['projectId'],
-        message: 'Project required',
+        message: 'validation.projectRequired',
       });
     }
   });

@@ -1,3 +1,5 @@
+import type { NamespaceTranslator } from '@/shared/i18n/namespace-translator';
+
 export interface EmployeeCredentialsShareInput {
   readonly employeeName: string;
   readonly organizationName: string;
@@ -6,6 +8,8 @@ export interface EmployeeCredentialsShareInput {
   readonly temporaryPinExpiresAt: Date;
   readonly loginUrl: string;
 }
+
+export type CredentialsShareTranslator = NamespaceTranslator;
 
 export function formatCredentialExpiry(date: Date, locale = 'he-IL'): string {
   return date.toLocaleString(locale, {
@@ -29,27 +33,33 @@ export function buildEmployeeLoginUrl(
   return `${path}?u=${encodeURIComponent(trimmed)}`;
 }
 
-export function buildCredentialsShareMessage(input: EmployeeCredentialsShareInput): string {
+export function buildCredentialsShareMessage(
+  input: EmployeeCredentialsShareInput,
+  t: CredentialsShareTranslator,
+): string {
   return [
-    `שלום ${input.employeeName},`,
+    t('admin.credentialsShare.greeting', { name: input.employeeName }),
     '',
-    `הוזמנת על ידי ${input.organizationName} להשתמש באפליקציית העובדים של ProjectFlow.`,
+    t('admin.credentialsShare.invitedBy', { organization: input.organizationName }),
     '',
-    'קישור לכניסה:',
+    t('admin.credentialsShare.loginLinkLabel'),
     input.loginUrl,
     '',
-    'שם משתמש:',
+    t('admin.credentialsShare.usernameLabel'),
     input.username,
     '',
-    'PIN זמני:',
+    t('admin.credentialsShare.tempPinLabel'),
     input.temporaryPin,
     '',
-    'בכניסה הראשונה תתבקש לבחור PIN אישי חדש.',
+    t('admin.credentialsShare.firstLoginHint'),
   ].join('\n');
 }
 
-export function buildCredentialsEmailSubject(organizationName: string): string {
-  return `פרטי כניסה לאפליקציית העובדים — ${organizationName}`;
+export function buildCredentialsEmailSubject(
+  organizationName: string,
+  t: CredentialsShareTranslator,
+): string {
+  return t('admin.credentialsShare.emailSubject', { organization: organizationName });
 }
 
 export function normalizeWhatsAppPhone(raw: string | null | undefined): string | null {

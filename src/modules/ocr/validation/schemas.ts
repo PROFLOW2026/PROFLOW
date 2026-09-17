@@ -95,7 +95,7 @@ export const confirmOcrCandidateSchema = z
       ctx.addIssue({
         code: 'custom',
         path: ['vendorId'],
-        message: 'Vendor is required to create a draft vendor bill or credit',
+        message: 'validation.ocrVendorRequiredForDraft',
       });
     }
   });

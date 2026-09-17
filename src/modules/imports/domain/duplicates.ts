@@ -1,3 +1,4 @@
+import { importsCopyTranslator } from '@/shared/i18n/sync-namespace-translator';
 import type { EnabledImportKind, ImportIssue, MappedImportRow } from './types';
 
 function normKey(value: string | undefined): string {
@@ -73,7 +74,7 @@ export function flagBoqItemCodeDuplicates(
   rows: readonly MappedImportRow[],
   locale = 'en',
 ): MappedImportRow[] {
-  const he = locale.startsWith('he');
+  const t = importsCopyTranslator(locale);
   const seen = new Map<string, number>();
   return rows.map((row) => {
     const raw = (row.values.itemCode ?? '').trim();
@@ -87,9 +88,7 @@ export function flagBoqItemCodeDuplicates(
     const issue: ImportIssue = {
       severity: 'error',
       field: 'itemCode',
-      message: he
-        ? `קוד סעיף כפול בקובץ (כמו שורה ${firstRow})`
-        : `Duplicate item code in file (same as row ${firstRow})`,
+      message: t('validation.duplicateItemCodeInFile', { row: firstRow }),
     };
     return { ...row, issues: [...row.issues, issue] };
   });

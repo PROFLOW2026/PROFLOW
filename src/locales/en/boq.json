@@ -168,7 +168,8 @@
     "activeRequired": "An active BOQ is required.",
     "zeroPeriod": "Period value is zero - nothing to bill.",
     "changeOrderInvalid": "Change order was not found or does not belong to this project.",
-    "notFound": "Item was not found."
+    "notFound": "Item was not found.",
+    "boqOnBillingPlan": "This BOQ item is on an active billing plan — use the plan cycle instead."
   },
   "import": {
     "title": "Import from Excel / CSV",

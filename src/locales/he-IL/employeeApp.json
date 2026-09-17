@@ -60,6 +60,7 @@
     "empty": "עדיין אין רישומי נוכחות",
     "monthDayCount": "{count, plural, one {# יום עבודה} two {# ימי עבודה} many {# ימי עבודה} other {# ימי עבודה}}",
     "monthHoursTotal": "סה\"כ {hours}",
+    "hoursShort": "{hours} ש'",
     "clockIn": "כניסה",
     "clockOut": "יציאה",
     "totalHours": "סה\"כ שעות",
@@ -131,7 +132,16 @@
     "audit": "יומן פעילות",
     "savePermissions": "שמירת הרשאות",
     "permissionsSaved": "ההרשאות נשמרו בהצלחה",
-    "permissionsSaveFailed": "שמירת ההרשאות נכשלה. נסו שוב."
+    "permissionsSaveFailed": "שמירת ההרשאות נכשלה. נסו שוב.",
+    "credentialsShare": {
+      "greeting": "שלום {name},",
+      "invitedBy": "הוזמנת על ידי {organization} להשתמש באפליקציית העובדים של ProjectFlow.",
+      "loginLinkLabel": "קישור לכניסה:",
+      "usernameLabel": "שם משתמש:",
+      "tempPinLabel": "PIN זמני:",
+      "firstLoginHint": "בכניסה הראשונה תתבקש לבחור PIN אישי חדש.",
+      "emailSubject": "פרטי כניסה לאפליקציית העובדים — {organization}"
+    }
   },
   "presets": {
     "fieldWorker": "עובד שטח",

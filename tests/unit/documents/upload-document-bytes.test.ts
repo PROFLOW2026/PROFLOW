@@ -139,4 +139,32 @@ describe('uploadDocumentBytes', () => {
       expect(result.status).toBe(403);
     }
   });
+
+  it('returns messageKey from external upload API error JSON', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () =>
+        Response.json({ error: 'externalStorage.errors.quotaFull' }, { status: 422 }),
+      ),
+    );
+    const { uploadDocumentBytes } = await import(
+      '@/modules/documents/client/upload-document-bytes'
+    );
+    const file = new File([Uint8Array.from([1])], 'plan.pdf', { type: 'application/pdf' });
+
+    const result = await uploadDocumentBytes(
+      {
+        uploadUrl: '/api/org-storage/upload/doc-1',
+        uploadMode: 'external',
+      },
+      file,
+    );
+
+    expect(result).toEqual({
+      ok: false,
+      stage: 'storage_upload',
+      status: 422,
+      messageKey: 'externalStorage.errors.quotaFull',
+    });
+  });
 });
