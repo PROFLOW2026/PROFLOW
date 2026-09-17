@@ -16,7 +16,7 @@ export const SHELL_PRECACHE_URLS = [
 ] as const;
 
 /** Always try the network first so install metadata is not trapped on an old SW cache. */
-export const SHELL_NETWORK_FIRST_URLS = ['/manifest.webmanifest'] as const;
+export const SHELL_NETWORK_FIRST_URLS = ['/manifest.webmanifest', '/employee.webmanifest'] as const;
 
 /**
  * Path fragments that must never be SW-cached (sensitive financial surfaces).

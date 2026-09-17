@@ -77,6 +77,6 @@ export const config = {
     // (email confirmation / reset callback) stay outside next-intl so they are
     // not rewritten to `/en/...` via Accept-Language.
     // PWA shell + PDF.js worker must stay unprefixed or install/SW/PDF preview breaks.
-    '/((?!api|auth|_next/static|_next/image|favicon.ico|sw\\.js|manifest\\.webmanifest|offline\\.html|pdf\\.worker\\.min\\.mjs|pdf\\.worker\\.version\\.json|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?|mjs)$).*)',
+    '/((?!api|auth|_next/static|_next/image|favicon.ico|sw\\.js|manifest\\.webmanifest|employee\\.webmanifest|offline\\.html|pdf\\.worker\\.min\\.mjs|pdf\\.worker\\.version\\.json|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?|mjs)$).*)',
   ],
 };
