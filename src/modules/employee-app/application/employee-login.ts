@@ -61,7 +61,7 @@ async function recordLoginFailure(
   });
 }
 
-async function signInWithEmployeeCredentials(authEmail: string, pin: string) {
+export async function signInWithEmployeeCredentials(authEmail: string, pin: string) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !anon) {
@@ -204,6 +204,11 @@ export async function employeeSetPermanentPin(input: {
   });
   if (error) {
     throw new DomainRuleError(error.message, 'employeeApp.errors.pinUpdateFailed');
+  }
+
+  const { error: signInError } = await signInWithEmployeeCredentials(account.authEmail, input.newPin);
+  if (signInError) {
+    throw new DomainRuleError(signInError.message, 'employeeApp.errors.pinUpdateFailed');
   }
 
   await updateEmployeeAppAccount(db, account.organizationId, account.id, {
