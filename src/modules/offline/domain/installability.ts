@@ -7,8 +7,6 @@ export type InstallCapability =
   | 'installed'
   | 'prompt_available'
   | 'manual_ios'
-  /** Chromium desktop/Android before `beforeinstallprompt` or when only menu install exists. */
-  | 'manual_browser'
   | 'unavailable';
 
 export interface InstallEnvironmentSnapshot {
@@ -39,20 +37,10 @@ export function isIosInstallManual(userAgent: string): boolean {
   return iosDevice || ipadDesktopUa;
 }
 
-/** Desktop/Android Chromium-family browsers that support PWA install (menu or BIP). */
-export function isChromiumInstallBrowser(userAgent: string): boolean {
-  const ua = userAgent.toLowerCase();
-  const chromium =
-    /chrome|crios|crmo/.test(ua) || /edg\//.test(ua) || /samsungbrowser/.test(ua);
-  const excluded = /firefox|fxios|opr\//.test(ua);
-  return chromium && !excluded;
-}
-
 export function resolveInstallCapability(env: InstallEnvironmentSnapshot): InstallCapability {
   if (isStandaloneDisplay(env)) return 'installed';
   if (env.hasDeferredPrompt) return 'prompt_available';
   if (isIosInstallManual(env.userAgent)) return 'manual_ios';
-  if (isChromiumInstallBrowser(env.userAgent)) return 'manual_browser';
   return 'unavailable';
 }
 

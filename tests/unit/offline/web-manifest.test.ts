@@ -2,11 +2,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { SHELL_CACHE_NAME, SHELL_NAVIGATION_PRELOAD } from '@/modules/offline/domain/sw-policy';
-import {
-  buildEmployeeWebManifest,
-  buildWebManifest,
-  manifestLocaleFromCookie,
-} from '@/modules/offline/domain/web-manifest';
+import { buildWebManifest, manifestLocaleFromCookie } from '@/modules/offline/domain/web-manifest';
 
 describe('PWA web manifest start_url', () => {
   it('prefixes start_url with the cookie locale so launch skips the / redirect', () => {
@@ -18,24 +14,15 @@ describe('PWA web manifest start_url', () => {
     expect(buildWebManifest('he-IL').id).toBe('/');
   });
 
-  it('builds employee manifest that launches into the employee app', () => {
-    const manifest = buildEmployeeWebManifest('he-IL');
-    expect(manifest.start_url).toBe('/he-IL/employee');
-    expect(manifest.id).toBe('/he-IL/employee');
-    expect(manifest.name).toBe('ProjectFlow עובדים');
-    expect(manifest.short_name).toBe('ProjectFlow');
-    expect(manifest.scope).toBe('/');
-  });
 });
 
 describe('installed-app service worker', () => {
   it('enables navigation preload and serves preloadResponse for navigations', () => {
     expect(SHELL_NAVIGATION_PRELOAD).toBe(true);
-    expect(SHELL_CACHE_NAME).toBe('projectflow-shell-v5');
+    expect(SHELL_CACHE_NAME).toBe('projectflow-shell-v6');
 
     const source = readFileSync(path.join(process.cwd(), 'public/sw.js'), 'utf8');
-    expect(source).toContain('projectflow-shell-v5');
-    expect(source).toContain('/employee.webmanifest');
+    expect(source).toContain('projectflow-shell-v6');
     expect(source).toContain("cache: 'no-store'");
     expect(source).toContain('/documents');
     expect(source).toContain('navigationPreload.enable');

@@ -71,38 +71,3 @@ export function buildWebManifest(locale: Locale): ProjectFlowWebManifest {
     icons: MANIFEST_ICONS,
   };
 }
-
-/** Employee App install manifest — same scope/icons as owner PWA, employee start_url. */
-export interface EmployeeWebManifest {
-  readonly id: `/${string}/employee`;
-  readonly name: 'ProjectFlow עובדים';
-  readonly short_name: 'ProjectFlow';
-  readonly description: string;
-  readonly start_url: `/${string}/employee`;
-  readonly scope: '/';
-  readonly display: 'standalone';
-  readonly orientation: 'any';
-  readonly background_color: '#f8fafc';
-  readonly theme_color: '#0f766e';
-  readonly lang: 'he' | 'en';
-  readonly dir: 'auto';
-  readonly icons: ProjectFlowWebManifest['icons'];
-}
-
-export function buildEmployeeWebManifest(locale: Locale): EmployeeWebManifest {
-  return {
-    id: `/${locale}/employee`,
-    name: 'ProjectFlow עובדים',
-    short_name: 'ProjectFlow',
-    description: 'אפליקציית העובדים של ProjectFlow',
-    start_url: `/${locale}/employee`,
-    scope: '/',
-    display: 'standalone',
-    orientation: 'any',
-    background_color: '#f8fafc',
-    theme_color: '#0f766e',
-    lang: manifestLang(locale),
-    dir: 'auto',
-    icons: MANIFEST_ICONS,
-  };
-}

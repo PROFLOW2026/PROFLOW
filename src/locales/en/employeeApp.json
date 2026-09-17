@@ -71,7 +71,8 @@
     "clockIn": "Clock in",
     "clockOut": "Clock out",
     "myHours": "My hours",
-    "notLinked": "Employee account is not linked. Contact your manager"
+    "notLinked": "Employee account is not linked. Contact your manager",
+    "installApp": "Install app"
   },
   "admin": {
     "title": "App access",

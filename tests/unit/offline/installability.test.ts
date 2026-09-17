@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import {
-  isChromiumInstallBrowser,
   isIosInstallManual,
   isStandaloneDisplay,
   resolveInstallCapability,
@@ -26,13 +25,7 @@ describe('PWA install capability helpers', () => {
     expect(isIosInstallManual('Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120')).toBe(false);
   });
 
-  it('detects Chromium install browsers', () => {
-    expect(isChromiumInstallBrowser('Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120')).toBe(true);
-    expect(isChromiumInstallBrowser('Mozilla/5.0 (Linux; Android 13) Chrome/120 Mobile')).toBe(true);
-    expect(isChromiumInstallBrowser('Mozilla/5.0 Firefox/120')).toBe(false);
-  });
-
-  it('resolves capability precedence: installed > prompt > ios manual > chromium manual > unavailable', () => {
+  it('resolves capability precedence: installed > prompt > ios manual > unavailable', () => {
     expect(
       resolveInstallCapability({
         displayModeStandalone: true,
@@ -65,15 +58,6 @@ describe('PWA install capability helpers', () => {
         displayModeStandalone: false,
         iosNavigatorStandalone: false,
         userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120',
-        hasDeferredPrompt: false,
-      }),
-    ).toBe('manual_browser');
-
-    expect(
-      resolveInstallCapability({
-        displayModeStandalone: false,
-        iosNavigatorStandalone: false,
-        userAgent: 'Mozilla/5.0 Firefox/120',
         hasDeferredPrompt: false,
       }),
     ).toBe('unavailable');

@@ -8,7 +8,6 @@ import {
   resolveEmployeeShellHeader,
   shouldUseEmployeeHistoryBack,
 } from '@/modules/employee-app/domain/employee-back-navigation';
-import { EmployeePwaInstallHeaderAction } from './employee-pwa-install';
 import { cn } from '@/shared/ui/cn';
 
 export function EmployeeShellHeader() {
@@ -53,7 +52,6 @@ export function EmployeeShellHeader() {
           </button>
         ) : null}
         <h1 className="min-w-0 flex-1 truncate text-lg font-bold">{title}</h1>
-        <EmployeePwaInstallHeaderAction />
       </div>
     </header>
   );

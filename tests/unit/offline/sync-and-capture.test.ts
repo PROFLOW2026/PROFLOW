@@ -422,14 +422,6 @@ describe('offline shell cache policy', () => {
     ).toBe(true);
 
     expect(
-      shouldUseNetworkFirst({
-        method: 'GET',
-        mode: 'cors',
-        pathname: '/employee.webmanifest',
-      }),
-    ).toBe(true);
-
-    expect(
       shouldUseCacheFirst({
         method: 'GET',
         mode: 'cors',

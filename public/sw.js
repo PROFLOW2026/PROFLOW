@@ -6,14 +6,14 @@
  * start_url is locale-prefixed via the dynamic manifest. Bare "/" is still
  * rewritten to the cookie locale in src/proxy.ts for already-installed shells.
  */
-/* pf-sw-release: employee-manifest-v5-2026-09-17 */
-const SHELL_CACHE = 'projectflow-shell-v5';
+/* pf-sw-release: single-pwa-v6-2026-09-17 */
+const SHELL_CACHE = 'projectflow-shell-v6';
 const PRECACHE = [
   '/icons/icon-192.png',
   '/icons/icon-512.png',
   '/offline.html',
 ];
-const NETWORK_FIRST = ['/manifest.webmanifest', '/employee.webmanifest'];
+const NETWORK_FIRST = ['/manifest.webmanifest'];
 /** Never cache sensitive financial app routes (field offline is draft-queue only). */
 const SENSITIVE_MARKERS = [
   '/billing',

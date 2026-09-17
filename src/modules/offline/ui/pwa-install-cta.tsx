@@ -19,9 +19,12 @@ export type PwaInstallCtaVariant = 'auth' | 'dashboard' | 'inline' | 'marketing'
 export function PwaInstallCta({
   variant = 'inline',
   className,
+  ctaLabel: ctaLabelOverride,
 }: {
   variant?: PwaInstallCtaVariant;
   className?: string;
+  /** Optional button label override (e.g. employee home compact CTA). */
+  ctaLabel?: string;
 }) {
   const t = useTranslations('offline.install');
   const { capability, installing, promptOutcome, promptInstall } = usePwaInstall();
@@ -29,11 +32,7 @@ export function PwaInstallCta({
 
   if (capability === 'installed') return null;
 
-  const ctaLabel = installing
-    ? t('installing')
-    : variant === 'marketing'
-      ? t('shortCta')
-      : null;
+  const ctaLabel = installing ? t('installing') : (ctaLabelOverride ?? t('shortCta'));
 
   if (capability === 'prompt_available') {
     return (
@@ -57,7 +56,7 @@ export function PwaInstallCta({
           }}
         >
           <Download className="size-4 shrink-0" aria-hidden />
-          {ctaLabel ?? (installing ? t('installing') : t('shortCta'))}
+          {ctaLabel}
         </Button>
         {promptOutcome === 'dismissed' ? (
           <p className="w-full text-xs text-[var(--pf-text-secondary)]" role="status">
@@ -89,7 +88,7 @@ export function PwaInstallCta({
           onClick={() => setIosOpen((open) => !open)}
         >
           <Share className="size-4 shrink-0" aria-hidden />
-          {variant === 'marketing' ? t('shortCta') : t('iosCta')}
+          {ctaLabelOverride ?? (variant === 'marketing' ? t('shortCta') : t('iosCta'))}
         </Button>
         {iosOpen ? (
           <ol className="w-full list-decimal space-y-1 ps-5 text-start text-sm text-[var(--pf-text-primary)]">

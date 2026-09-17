@@ -39,10 +39,6 @@ const nextConfig: NextConfig = {
         headers: [{ key: 'Cache-Control', value: 'public, max-age=0, must-revalidate' }],
       },
       {
-        source: '/employee.webmanifest',
-        headers: [{ key: 'Cache-Control', value: 'public, max-age=0, must-revalidate' }],
-      },
-      {
         source: '/pdf.worker.min.mjs',
         headers: [
           {
