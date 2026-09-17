@@ -545,6 +545,15 @@ export async function getOrgStorageProviderWebUrl(
   input: { fileId: string },
 ): Promise<{ url: string; filename: string }> {
   assertPermission(context, PERMISSIONS.DOCUMENTS_READ);
+  const { isEmployeeAppUser } = await import(
+    '@/modules/employee-app/application/load-employee-app-context'
+  );
+  if (isEmployeeAppUser(context)) {
+    throw new ServiceUnavailableError(
+      'Company file provider links are not available for employee accounts',
+      'employeeApp.errors.providerLinkDenied',
+    );
+  }
   const runtime = await resolveOrgBrowserRuntime(context);
   const meta = await assertOrgFileScope(runtime, input.fileId);
   if (!runtime.adapter.getProviderWebUrl) {

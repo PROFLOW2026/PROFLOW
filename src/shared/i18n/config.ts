@@ -107,6 +107,7 @@ export const MESSAGE_NAMESPACES = [
   'integrations',
   'externalStorage',
   'generatedDocuments',
+  'employeeApp',
 ] as const;
 
 export type MessageNamespace = (typeof MESSAGE_NAMESPACES)[number];
@@ -153,4 +154,5 @@ export const APP_CLIENT_MESSAGE_NAMESPACES = [
   'assistant',
   'commandCenter',
   'generatedDocuments',
+  'employeeApp',
 ] as const satisfies readonly MessageNamespace[];

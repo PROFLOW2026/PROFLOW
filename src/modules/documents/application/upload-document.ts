@@ -77,6 +77,8 @@ export async function prepareDocumentUpload(
     throw new NotFoundError('Document owner');
   }
 
+  await assertCanListEntityDocuments(context, input.ownerType, input.ownerId);
+
   let connection;
   try {
     connection = await assertOrganizationStorageAvailable(context);

@@ -16,7 +16,6 @@ import {
   deleteProjectAccessGrant,
   getStoredProjectAccessMode,
   insertProjectAccessGrant,
-  listAccessibleProjectIdsForUser,
   listProjectAccessGrants,
   upsertProjectAccessMode,
   type ProjectAccessGrantRecord,
@@ -140,18 +139,20 @@ export async function revokeProjectAccess(context: OrgContext, grantId: string):
 export async function resolveAccessibleProjectIds(
   context: OrgContext,
 ): Promise<string[] | null> {
-  if (hasPermission(context, PERMISSIONS.PROJECTS_ACCESS_ALL)) return null;
-  const mode = await getStoredProjectAccessMode(context.db, context.organizationId);
-  return listAccessibleProjectIdsForUser(context.db, context.organizationId, context.userId, mode);
+  const { resolveAccessibleProjectIdsForUser } = await import(
+    '@/modules/employee-app/application/project-scope'
+  );
+  return resolveAccessibleProjectIdsForUser(context);
 }
 
 export async function assertCanAccessProject(
   context: OrgContext,
   projectId: string,
 ): Promise<void> {
-  const allowed = await resolveAccessibleProjectIds(context);
-  if (allowed === null) return;
-  if (!allowed.includes(projectId)) throw new NotFoundError('Project');
+  const { assertCanAccessProjectForUser } = await import(
+    '@/modules/employee-app/application/project-scope'
+  );
+  await assertCanAccessProjectForUser(context, projectId);
 }
 
 /** `null` allowed set means unrestricted. Rows with no project stay visible. */

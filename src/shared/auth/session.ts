@@ -149,13 +149,16 @@ export async function runInOrgContext<T>(
   const locale = await getLocale();
 
   if (nested) {
-    return fn(
-      orgContextFromAuthzSnapshot(nested.snapshot, {
-        userId,
-        locale,
-        db: nested.tx,
-      }),
+    const { enrichOrgContextWithEmployeeApp } = await import(
+      '@/modules/employee-app/application/enrich-context'
     );
+    const base = orgContextFromAuthzSnapshot(nested.snapshot, {
+      userId,
+      locale,
+      db: nested.tx,
+    });
+    const context = await enrichOrgContextWithEmployeeApp(base);
+    return fn(context);
   }
 
   const memo = getRequestOrgAuthzMemo();
@@ -170,15 +173,18 @@ export async function runInOrgContext<T>(
 
   return withUserContext(userId, async (tx) => {
     const frame: OrgRequestTxFrame = { tx: tx as OrgRequestTxFrame['tx'], snapshot };
-    return runInOrgRequestTxFrame(frame, () =>
-      fn(
-        orgContextFromAuthzSnapshot(snapshot, {
-          userId,
-          locale,
-          db: tx,
-        }),
-      ),
-    );
+    return runInOrgRequestTxFrame(frame, async () => {
+      const { enrichOrgContextWithEmployeeApp } = await import(
+        '@/modules/employee-app/application/enrich-context'
+      );
+      const base = orgContextFromAuthzSnapshot(snapshot, {
+        userId,
+        locale,
+        db: tx,
+      });
+      const context = await enrichOrgContextWithEmployeeApp(base);
+      return fn(context);
+    });
   });
 }
 

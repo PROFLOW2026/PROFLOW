@@ -48,6 +48,8 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
 import { upsertEntityFieldValueAction } from '../../../settings/custom-fields/actions';
+import { findEmployeeAppAccountByEmployeeId } from '@/modules/employee-app';
+import { EmployeeAppAccessPanel } from '@/modules/employee-app/ui/employee-app-access-panel';
 
 export async function generateMetadata({
   params,
@@ -167,6 +169,10 @@ export default async function EmployeeDetailPage({
             )
           : null;
 
+      const appAccount = allowManage
+        ? await findEmployeeAppAccountByEmployeeId(context.db, context.organizationId, employeeId)
+        : null;
+
       return {
         employee,
         dailyFramework,
@@ -196,6 +202,7 @@ export default async function EmployeeDetailPage({
         currency: context.organization.baseCurrency,
         defaultYearMonth: reviewYearMonth,
         workWeekStartDay: context.organization.workWeekStartDay,
+        appAccount,
       };
     } catch {
       return null;
@@ -238,6 +245,7 @@ export default async function EmployeeDetailPage({
     defaultYearMonth,
     today,
     workWeekStartDay,
+    appAccount,
   } = data;
 
   const orgFrameworkConfigured = Boolean(laborDefaults?.standardHoursPerDay);
@@ -303,6 +311,10 @@ export default async function EmployeeDetailPage({
           </div>
         }
       />
+
+      {allowManage ? (
+        <EmployeeAppAccessPanel employeeId={employee.id} account={appAccount} />
+      ) : null}
 
       {!orgFrameworkConfigured && (allowManage || canManageCosts) ? (
         <OrgWorkFrameworkForm

@@ -11,6 +11,8 @@ import {
   canSeeProjectLinkedDocument,
   isProjectScopedDocumentOwnerType,
 } from '../domain/privacy';
+import { assertCanReadDocumentForEmployee, canEmployeeReadDocumentCategory } from '@/modules/employee-app/application/document-access';
+import { isEmployeeAppUser } from '@/modules/employee-app/application/load-employee-app-context';
 import type { DocumentRecord } from '../domain/types';
 import { listProjectScopedOwnerIdsForDocument } from '../data/documents.repository';
 
@@ -20,10 +22,19 @@ export function canReadCompensationDocuments(context: OrgContext): boolean {
 
 export async function assertCanReadStoredDocument(
   context: OrgContext,
-  document: Pick<DocumentRecord, 'id' | 'privacyClass'>,
+  document: Pick<DocumentRecord, 'id' | 'privacyClass' | 'category'>,
 ): Promise<void> {
   if (!canSeeDocumentPrivacyClass(document.privacyClass, canReadCompensationDocuments(context))) {
     throw new NotFoundError('Document');
+  }
+
+  if (isEmployeeAppUser(context)) {
+    await assertCanReadDocumentForEmployee(context, {
+      documentId: document.id,
+      category: document.category ?? null,
+      privacyClass: document.privacyClass,
+    });
+    return;
   }
 
   const allowed = await resolveAccessibleProjectIds(context);
@@ -37,6 +48,16 @@ export async function assertCanReadStoredDocument(
   if (!canSeeProjectLinkedDocument(projectIds, allowed)) {
     throw new NotFoundError('Document');
   }
+}
+
+export function canReadDocumentCategoryForContext(
+  context: OrgContext,
+  category: string | null | undefined,
+): boolean {
+  if (isEmployeeAppUser(context)) {
+    return canEmployeeReadDocumentCategory(context, category);
+  }
+  return true;
 }
 
 export async function assertCanListEntityDocuments(

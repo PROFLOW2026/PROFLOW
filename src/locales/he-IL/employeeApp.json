@@ -1,0 +1,83 @@
+{
+  "title": "אפליקציית עובדים",
+  "greeting": "שלום {name}",
+  "login": {
+    "title": "כניסה לעובדים",
+    "username": "שם משתמש",
+    "pin": "קוד PIN",
+    "submit": "כניסה",
+    "invalidCredentials": "שם משתמש או PIN שגויים",
+    "accountBlocked": "החשבון חסום או מושהה",
+    "accountLocked": "יותר מדי ניסיונות. נסה שוב מאוחר יותר",
+    "tempPinExpired": "PIN זמני פג תוקף. פנה למנהל"
+  },
+  "setPin": {
+    "title": "הגדרת PIN חדש",
+    "description": "בחר PIN אישי בן 6 ספרות",
+    "newPin": "PIN חדש",
+    "confirmPin": "אימות PIN",
+    "submit": "שמירה והמשך"
+  },
+  "nav": {
+    "home": "בית",
+    "attendance": "נוכחות",
+    "hours": "שעות",
+    "projects": "פרויקטים",
+    "tasks": "משימות",
+    "documents": "מסמכים"
+  },
+  "home": {
+    "clockIn": "כניסה לעבודה",
+    "clockOut": "יציאה מהעבודה",
+    "myHours": "השעות שלי",
+    "notLinked": "חשבון העובד לא מקושר. פנה למנהל"
+  },
+  "admin": {
+    "title": "גישה לאפליקציה",
+    "status": "סטטוס",
+    "username": "שם משתמש",
+    "firstLogin": "כניסה ראשונה",
+    "lastLogin": "כניסה אחרונה",
+    "tempPinExpiry": "תוקף PIN זמני",
+    "activate": "הפעלת גישה",
+    "suspend": "השהיה",
+    "resume": "חידוש",
+    "block": "חסימה",
+    "unblock": "ביטול חסימה",
+    "resetPin": "איפוס PIN",
+    "revokeSessions": "ניתוק מכשירים",
+    "disable": "ביטול גישה לאפליקציה",
+    "credentialsTitle": "פרטי כניסה לשיתוף",
+    "preset": "תבנית הרשאות",
+    "permissions": "הרשאות",
+    "documentCategories": "קטגוריות מסמכים",
+    "audit": "יומן פעילות",
+    "savePermissions": "שמירת הרשאות"
+  },
+  "presets": {
+    "fieldWorker": "עובד שטח",
+    "fieldWorkerTime": "עובד שטח + דיווח שעות",
+    "foreman": "מנהל עבודה",
+    "projectManager": "מנהל פרויקט",
+    "office": "משרד",
+    "management": "הנהלה"
+  },
+  "status": {
+    "inactive": "לא פעיל",
+    "invited": "מוזמן",
+    "active": "פעיל",
+    "suspended": "מושהה",
+    "blocked": "חסום"
+  },
+  "errors": {
+    "notConfigured": "מערכת ההתחברות לא מוגדרת",
+    "invalidCredentials": "פרטי כניסה שגויים",
+    "accountBlocked": "החשבון אינו פעיל",
+    "accountLocked": "החשבון ננעל זמנית",
+    "accessNotStarted": "הגישה עדיין לא החלה",
+    "accessExpired": "תוקף הגישה פג",
+    "tempPinExpired": "PIN זמני פג תוקף",
+    "pinInvalid": "PIN חייב להיות 6 ספרות ולהתאים",
+    "providerLinkDenied": "גישה ישירה לקבצים אינה זמינה"
+  }
+}

@@ -116,7 +116,13 @@ export type {
 } from './data/project-labor-by-employee.repository';
 
 /** Cross-module org-scoped lookups (FK / assignment seeds). */
-export { findEmployeeById } from './data/employees.repository';
+export {
+  findEmployeeById,
+  findEmployeeByUserId,
+  updateEmployeeById,
+} from './data/employees.repository';
+export { listAttendanceDays } from './data/attendance.repository';
+export { listTimeEntries } from './data/time-entries.repository';
 export { insertEmployeeProjectAssignment } from './data/project-team.repository';
 
 export {

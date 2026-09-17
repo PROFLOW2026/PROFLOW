@@ -112,6 +112,11 @@ async function resolveProjectBrowserRuntime(
   context: OrgContext,
   projectId: string,
 ): Promise<ProjectBrowserRuntime> {
+  const { assertCanAccessProjectForUser } = await import(
+    '@/modules/employee-app/application/project-scope'
+  );
+  await assertCanAccessProjectForUser(context, projectId);
+
   const connection = await assertOrganizationStorageAvailable(context);
   const accessToken = await resolveValidAccessToken(context.db, context.organizationId, connection);
 
@@ -696,6 +701,15 @@ export async function getProjectStorageProviderWebUrl(
   input: { projectId: string; fileId: string },
 ): Promise<{ url: string; filename: string }> {
   assertPermission(context, PERMISSIONS.DOCUMENTS_READ);
+  const { isEmployeeAppUser } = await import(
+    '@/modules/employee-app/application/load-employee-app-context'
+  );
+  if (isEmployeeAppUser(context)) {
+    throw new ServiceUnavailableError(
+      'Direct provider links are not available for employee accounts',
+      'employeeApp.errors.providerLinkDenied',
+    );
+  }
   const runtime = await resolveProjectBrowserRuntime(context, input.projectId);
   const meta = await assertFileScope(runtime, input.fileId);
   if (!runtime.adapter.getProviderWebUrl) {

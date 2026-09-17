@@ -1,0 +1,83 @@
+{
+  "title": "Employee App",
+  "greeting": "Hello {name}",
+  "login": {
+    "title": "Employee sign in",
+    "username": "Username",
+    "pin": "PIN",
+    "submit": "Sign in",
+    "invalidCredentials": "Invalid username or PIN",
+    "accountBlocked": "Account is blocked or suspended",
+    "accountLocked": "Too many attempts. Try again later",
+    "tempPinExpired": "Temporary PIN expired. Contact your manager"
+  },
+  "setPin": {
+    "title": "Set new PIN",
+    "description": "Choose a personal 6-digit PIN",
+    "newPin": "New PIN",
+    "confirmPin": "Confirm PIN",
+    "submit": "Save and continue"
+  },
+  "nav": {
+    "home": "Home",
+    "attendance": "Attendance",
+    "hours": "Hours",
+    "projects": "Projects",
+    "tasks": "Tasks",
+    "documents": "Documents"
+  },
+  "home": {
+    "clockIn": "Clock in",
+    "clockOut": "Clock out",
+    "myHours": "My hours",
+    "notLinked": "Employee account is not linked. Contact your manager"
+  },
+  "admin": {
+    "title": "App access",
+    "status": "Status",
+    "username": "Username",
+    "firstLogin": "First login",
+    "lastLogin": "Last login",
+    "tempPinExpiry": "Temporary PIN expiry",
+    "activate": "Enable app access",
+    "suspend": "Suspend",
+    "resume": "Resume",
+    "block": "Block",
+    "unblock": "Unblock",
+    "resetPin": "Reset PIN",
+    "revokeSessions": "Revoke sessions",
+    "disable": "Disable app access",
+    "credentialsTitle": "Login credentials to share",
+    "preset": "Permission preset",
+    "permissions": "Permissions",
+    "documentCategories": "Document categories",
+    "audit": "Activity log",
+    "savePermissions": "Save permissions"
+  },
+  "presets": {
+    "fieldWorker": "Field worker",
+    "fieldWorkerTime": "Field worker + time",
+    "foreman": "Foreman",
+    "projectManager": "Project manager",
+    "office": "Office",
+    "management": "Management"
+  },
+  "status": {
+    "inactive": "Inactive",
+    "invited": "Invited",
+    "active": "Active",
+    "suspended": "Suspended",
+    "blocked": "Blocked"
+  },
+  "errors": {
+    "notConfigured": "Authentication is not configured",
+    "invalidCredentials": "Invalid credentials",
+    "accountBlocked": "Account is not active",
+    "accountLocked": "Account is temporarily locked",
+    "accessNotStarted": "Access has not started yet",
+    "accessExpired": "Access has expired",
+    "tempPinExpired": "Temporary PIN has expired",
+    "pinInvalid": "PIN must be 6 digits and match",
+    "providerLinkDenied": "Direct file links are not available"
+  }
+}

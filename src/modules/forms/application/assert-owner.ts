@@ -40,6 +40,10 @@ export async function assertFormOwnerExists(
     if (!row || row.workKind !== ownerType) {
       throw new NotFoundError('Form owner');
     }
+    const { assertCanAccessProjectForUser } = await import(
+      '@/modules/employee-app/application/project-scope'
+    );
+    await assertCanAccessProjectForUser(context, ownerId);
     return;
   }
 

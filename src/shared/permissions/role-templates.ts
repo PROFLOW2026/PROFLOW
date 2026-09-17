@@ -10,7 +10,7 @@ import { ALL_PERMISSION_KEYS, PERMISSIONS, type PermissionKey } from './catalog'
  * permission; the owner can grant it per organization.
  */
 
-export const ROLE_TEMPLATE_KEYS = ['owner', 'manager', 'worker', 'finance'] as const;
+export const ROLE_TEMPLATE_KEYS = ['owner', 'manager', 'worker', 'finance', 'employee'] as const;
 export type RoleTemplateKey = (typeof ROLE_TEMPLATE_KEYS)[number];
 
 export interface RoleTemplate {
@@ -103,6 +103,12 @@ const MANAGER_PERMISSIONS: readonly PermissionKey[] = [
   PERMISSIONS.AUTOMATIONS_MANAGE,
   PERMISSIONS.ASSISTANT_USE,
   PERMISSIONS.INTEGRATIONS_READ,
+];
+
+/** Minimal Employee App role — attendance only; extended via employee_permission_grants. */
+const EMPLOYEE_PERMISSIONS: readonly PermissionKey[] = [
+  PERMISSIONS.ORG_READ,
+  PERMISSIONS.ATTENDANCE_SELF,
 ];
 
 const WORKER_PERMISSIONS: readonly PermissionKey[] = [
@@ -219,6 +225,14 @@ export const ROLE_TEMPLATES: readonly RoleTemplate[] = [
     isProtected: false,
     permissions: WORKER_PERMISSIONS,
   },
+  {
+    key: 'employee',
+    name: 'Employee',
+    description: 'Employee App — attendance only by default. Owner extends via grants.',
+    rank: 5,
+    isProtected: false,
+    permissions: EMPLOYEE_PERMISSIONS,
+  },
 ];
 
 export function roleTemplate(key: RoleTemplateKey): RoleTemplate {
@@ -246,4 +260,5 @@ export const TOGGLEABLE_PERMISSIONS: Readonly<Record<RoleTemplateKey, readonly P
     PERMISSIONS.PROJECTS_ACCESS_ALL,
   ],
   worker: [PERMISSIONS.TIME_MANAGE, PERMISSIONS.DOCUMENTS_MANAGE, PERMISSIONS.VENDORS_READ],
+  employee: [],
 };

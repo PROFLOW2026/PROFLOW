@@ -30,6 +30,7 @@ export {
   listMembershipsForUser,
   findActiveMembership,
   findOrganizationById,
+  insertMembership,
   listActiveOrganizationIds,
 } from './data/organizations.repository';
 export {

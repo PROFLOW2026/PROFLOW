@@ -25,6 +25,7 @@ export * from './contracts';
 export * from './changes';
 export * from './expenses';
 export * from './workforce';
+export * from './employee-app';
 export * from './billing';
 export * from './billing-plans';
 export * from './tax';

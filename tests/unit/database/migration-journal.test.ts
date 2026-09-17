@@ -338,7 +338,13 @@ describe('migration journal', () => {
     expect(tags.indexOf('0086_attendance_overtime_flag')).toBeLessThan(
       tags.indexOf('0087_external_organization_storage'),
     );
-    expect(tags.at(-1)).toBe('0087_external_organization_storage');
+    expect(tags.indexOf('0087_external_organization_storage')).toBeLessThan(
+      tags.indexOf('0088_employee_app_foundations'),
+    );
+    expect(tags.indexOf('0088_employee_app_foundations')).toBeLessThan(
+      tags.indexOf('0089_employee_app_table_grants'),
+    );
+    expect(tags.at(-1)).toBe('0089_employee_app_table_grants');
 
     const sql66 = await readFile(
       path.join(MIGRATIONS_DIR, '0066_workforce_time_integrity.sql'),

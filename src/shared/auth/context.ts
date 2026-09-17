@@ -1,4 +1,5 @@
 import type { DbExecutor } from '@/shared/db/types';
+import type { EmployeeAppContext } from '@/modules/employee-app/domain/types';
 import type { PermissionKey } from '@/shared/permissions/catalog';
 
 /**
@@ -39,6 +40,8 @@ export interface OrgContext {
   /** RLS-bound executor. Repositories must never open their own connection. */
   readonly db: DbExecutor;
   readonly locale: string;
+  /** Loaded for users with the employee role — drives grants, scopes, document categories. */
+  readonly employeeApp?: EmployeeAppContext;
 }
 
 /** Returns a copy bound to a different executor, used to run inside a transaction. */
