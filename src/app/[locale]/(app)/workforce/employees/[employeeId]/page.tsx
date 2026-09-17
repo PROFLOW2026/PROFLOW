@@ -1,6 +1,5 @@
 import { Suspense } from 'react';
 import type { Metadata } from 'next';
-import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
@@ -50,6 +49,7 @@ import { textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
 import { upsertEntityFieldValueAction } from '../../../settings/custom-fields/actions';
 import { getEmployeeAppAdminView } from '@/modules/employee-app';
+import { resolveEmployeeAppPublicOrigin } from '@/modules/employee-app/domain/app-origin';
 import { EmployeeAppAccessPanel } from '@/modules/employee-app/ui/employee-app-access-panel';
 
 export async function generateMetadata({
@@ -252,10 +252,7 @@ export default async function EmployeeDetailPage({
     organizationName,
   } = data;
 
-  const headerList = await headers();
-  const appOrigin =
-    process.env.NEXT_PUBLIC_APP_URL ??
-    `${headerList.get('x-forwarded-proto') ?? 'http'}://${headerList.get('x-forwarded-host') ?? headerList.get('host') ?? 'localhost:3000'}`;
+  const appOrigin = resolveEmployeeAppPublicOrigin();
 
   const orgFrameworkConfigured = Boolean(laborDefaults?.standardHoursPerDay);
   const workWeekSummary = (() => {

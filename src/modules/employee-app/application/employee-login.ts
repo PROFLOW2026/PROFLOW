@@ -25,7 +25,49 @@ export interface EmployeeLoginResult {
   readonly employeeId: string;
 }
 
+type EmployeeLoginFailureReason =
+  | 'invalid_pin_format'
+  | 'username_not_found'
+  | 'account_blocked'
+  | 'account_locked'
+  | 'access_not_started'
+  | 'access_expired'
+  | 'temp_pin_expired'
+  | 'supabase_invalid_credentials'
+  | 'supabase_auth_error'
+  | 'auth_not_configured'
+  | 'unexpected_error';
+
+async function recordLoginFailure(
+  db: Awaited<ReturnType<typeof getAdminDb>>,
+  account: { organizationId: string; employeeId: string; id: string; failedLoginCount: number } | null,
+  reason: EmployeeLoginFailureReason,
+  detail: Record<string, unknown> = {},
+): Promise<void> {
+  if (!account) return;
+  const failed = account.failedLoginCount + 1;
+  const lockedUntil =
+    failed >= MAX_LOGIN_ATTEMPTS ? new Date(Date.now() + LOGIN_LOCK_MS) : null;
+  await updateEmployeeAppAccount(db, account.organizationId, account.id, {
+    failedLoginCount: failed,
+    lockedUntil,
+  });
+  await insertEmployeeAppAuditEvent(db, {
+    organizationId: account.organizationId,
+    employeeId: account.employeeId,
+    actorUserId: null,
+    action: 'login_failed',
+    detailJson: { reason, failedCount: failed, ...detail },
+  });
+}
+
 async function signInWithEmployeeCredentials(authEmail: string, pin: string) {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !anon) {
+    throw new DomainRuleError('Auth is not configured', 'employeeApp.errors.notConfigured');
+  }
+
   try {
     const supabase = await createSupabaseServerClient();
     return supabase.auth.signInWithPassword({
@@ -37,20 +79,13 @@ async function signInWithEmployeeCredentials(authEmail: string, pin: string) {
     if (!message.includes('outside a request scope') && !message.includes('`cookies`')) {
       throw error;
     }
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    if (!url || !anon) {
-      throw new DomainRuleError('Auth is not configured', 'employeeApp.errors.notConfigured');
-    }
     const client = createClient(url, anon, {
       auth: { persistSession: false, autoRefreshToken: false },
     });
-    const result = await client.auth.signInWithPassword({
+    return client.auth.signInWithPassword({
       email: authEmail,
       password: employeeSupabaseAuthPassword(pin),
     });
-    await client.auth.signOut();
-    return result;
   }
 }
 
@@ -60,17 +95,19 @@ export async function employeeLogin(input: EmployeeLoginInput): Promise<Employee
   }
 
   const usernameNormalized = normalizeUsername(input.username);
+  const db = getAdminDb();
+
   if (!isValidPin(input.pin)) {
     throw new DomainRuleError('Invalid credentials', 'employeeApp.errors.invalidCredentials');
   }
 
-  const db = getAdminDb();
   const account = await findEmployeeAppAccountByUsernameGlobal(db, usernameNormalized);
   if (!account) {
     throw new DomainRuleError('Invalid credentials', 'employeeApp.errors.invalidCredentials');
   }
 
   if (account.status === 'blocked' || account.status === 'suspended' || account.status === 'inactive') {
+    await recordLoginFailure(db, account, 'account_blocked', { status: account.status });
     throw new DomainRuleError('Account is not active', 'employeeApp.errors.accountBlocked');
   }
 
@@ -80,9 +117,11 @@ export async function employeeLogin(input: EmployeeLoginInput): Promise<Employee
   }
 
   if (account.accessStartsAt && account.accessStartsAt > now) {
+    await recordLoginFailure(db, account, 'access_not_started');
     throw new DomainRuleError('Access not yet available', 'employeeApp.errors.accessNotStarted');
   }
   if (account.accessEndsAt && account.accessEndsAt < now) {
+    await recordLoginFailure(db, account, 'access_expired');
     throw new DomainRuleError('Access has expired', 'employeeApp.errors.accessExpired');
   }
 
@@ -91,25 +130,30 @@ export async function employeeLogin(input: EmployeeLoginInput): Promise<Employee
     account.temporaryPinExpiresAt &&
     account.temporaryPinExpiresAt < now
   ) {
+    await recordLoginFailure(db, account, 'temp_pin_expired');
     throw new DomainRuleError('Temporary PIN has expired', 'employeeApp.errors.tempPinExpired');
   }
 
-  const { error } = await signInWithEmployeeCredentials(account.authEmail, input.pin);
-
-  if (error) {
-    const failed = account.failedLoginCount + 1;
-    const lockedUntil =
-      failed >= MAX_LOGIN_ATTEMPTS ? new Date(now.getTime() + LOGIN_LOCK_MS) : null;
-    await updateEmployeeAppAccount(db, account.organizationId, account.id, {
-      failedLoginCount: failed,
-      lockedUntil,
+  let signInResult: Awaited<ReturnType<typeof signInWithEmployeeCredentials>>;
+  try {
+    signInResult = await signInWithEmployeeCredentials(account.authEmail, input.pin);
+  } catch (error) {
+    await recordLoginFailure(db, account, 'unexpected_error', {
+      phase: 'sign_in',
+      message: error instanceof Error ? error.message : String(error),
     });
-    await insertEmployeeAppAuditEvent(db, {
-      organizationId: account.organizationId,
-      employeeId: account.employeeId,
-      actorUserId: null,
-      action: 'login_failed',
-      detailJson: { failedCount: failed },
+    throw new DomainRuleError('Auth is not configured', 'employeeApp.errors.notConfigured');
+  }
+
+  const { error } = signInResult;
+  if (error) {
+    const reason: EmployeeLoginFailureReason =
+      error.message === 'Invalid login credentials' || error.code === 'invalid_credentials'
+        ? 'supabase_invalid_credentials'
+        : 'supabase_auth_error';
+    await recordLoginFailure(db, account, reason, {
+      supabaseCode: error.code ?? null,
+      supabaseMessage: error.message,
     });
     throw new DomainRuleError('Invalid credentials', 'employeeApp.errors.invalidCredentials');
   }

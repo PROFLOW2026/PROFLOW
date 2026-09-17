@@ -30,7 +30,8 @@ export async function employeeLoginAction(
       const key = error.messageKey?.replace('employeeApp.errors.', '') ?? 'invalidCredentials';
       return { error: t(`errors.${key}`) };
     }
-    return { error: t('login.invalidCredentials') };
+    console.error('[employeeLoginAction] unexpected failure', error);
+    return { error: t('errors.notConfigured') };
   }
 }
 
