@@ -18,7 +18,7 @@ import {
   normalizeWhatsAppPhone,
   type EmployeeCredentialsShareInput,
 } from '@/modules/employee-app/domain/credentials-share';
-import { AccessInfoField } from './access-info-field';
+import { ACCESS_CREDENTIAL_VALUE_CLASS, AccessInfoField } from './access-info-field';
 
 interface Props {
   readonly open: boolean;
@@ -59,10 +59,12 @@ export function EmployeeCredentialsShareDialog({
         </DialogHeader>
 
         <div className="flex flex-col gap-4">
+          <div className="flex max-w-sm flex-col gap-4">
           <AccessInfoField
             label={t('username')}
             value={credentials.username}
             valueDir="ltr"
+            valueClassName={ACCESS_CREDENTIAL_VALUE_CLASS}
             actions={
               <Button
                 type="button"
@@ -78,6 +80,7 @@ export function EmployeeCredentialsShareDialog({
             label={t('tempPinLabel')}
             value={credentials.temporaryPin}
             valueDir="ltr"
+            valueClassName={ACCESS_CREDENTIAL_VALUE_CLASS}
             actions={
               <Button
                 type="button"
@@ -90,6 +93,7 @@ export function EmployeeCredentialsShareDialog({
             }
           />
           <AccessInfoField label={t('tempPinExpiry')} value={expiryLabel} valueDir="ltr" />
+          </div>
 
           <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
             <Button type="button" asChild variant="secondary" className="flex-1">

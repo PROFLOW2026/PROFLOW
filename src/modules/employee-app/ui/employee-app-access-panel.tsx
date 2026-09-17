@@ -46,7 +46,7 @@ import type { EmployeeAppAccountRecord, EmployeePermissionGrantRecord } from '@/
 import { PERMISSIONS, type PermissionKey } from '@/shared/permissions/catalog';
 import type { PermissionScope } from '@/shared/permissions/scopes';
 import type { DocumentCategory } from '@/modules/documents/domain/categories';
-import { AccessInfoField } from './access-info-field';
+import { ACCESS_CREDENTIAL_VALUE_CLASS, AccessInfoField } from './access-info-field';
 import { EmployeeCredentialsShareDialog } from './employee-credentials-share-dialog';
 
 interface ShareableCredentials {
@@ -425,7 +425,7 @@ export function EmployeeAppAccessPanel({
 
   const accessDetailsSection =
     account && account.status !== 'inactive' ? (
-      <section className="space-y-4">
+      <section className="max-w-sm space-y-4">
         <AccessInfoField
           label={t('status')}
           value={
@@ -444,6 +444,7 @@ export function EmployeeAppAccessPanel({
           label={t('username')}
           value={account.username}
           valueDir="ltr"
+          valueClassName={ACCESS_CREDENTIAL_VALUE_CLASS}
           actions={
             <Button
               type="button"
@@ -462,6 +463,7 @@ export function EmployeeAppAccessPanel({
               label={t('tempPinLabel')}
               value={effectiveShareableCredentials.temporaryPin}
               valueDir="ltr"
+              valueClassName={ACCESS_CREDENTIAL_VALUE_CLASS}
               actions={
                 <Button
                   type="button"
