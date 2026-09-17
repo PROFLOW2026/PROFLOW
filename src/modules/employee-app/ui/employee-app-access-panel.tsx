@@ -46,7 +46,12 @@ import type { EmployeeAppAccountRecord, EmployeePermissionGrantRecord } from '@/
 import { PERMISSIONS, type PermissionKey } from '@/shared/permissions/catalog';
 import type { PermissionScope } from '@/shared/permissions/scopes';
 import type { DocumentCategory } from '@/modules/documents/domain/categories';
-import { ACCESS_CREDENTIAL_VALUE_CLASS, AccessInfoField } from './access-info-field';
+import { cn } from '@/shared/ui/cn';
+import {
+  ACCESS_CREDENTIALS_INSET_CLASS,
+  ACCESS_CREDENTIAL_VALUE_CLASS,
+  AccessInfoField,
+} from './access-info-field';
 import { EmployeeCredentialsShareDialog } from './employee-credentials-share-dialog';
 
 interface ShareableCredentials {
@@ -440,54 +445,56 @@ export function EmployeeAppAccessPanel({
           }
         />
 
-        <AccessInfoField
-          label={t('username')}
-          value={account.username}
-          valueDir="ltr"
-          valueClassName={ACCESS_CREDENTIAL_VALUE_CLASS}
-          actions={
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => void copyText(account.username, t('usernameCopied'))}
-            >
-              {t('copy')}
-            </Button>
-          }
-        />
+        <div className={cn('flex flex-col gap-4', ACCESS_CREDENTIALS_INSET_CLASS)}>
+          <AccessInfoField
+            label={t('username')}
+            value={account.username}
+            valueDir="ltr"
+            valueClassName={ACCESS_CREDENTIAL_VALUE_CLASS}
+            actions={
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => void copyText(account.username, t('usernameCopied'))}
+              >
+                {t('copy')}
+              </Button>
+            }
+          />
 
-        {canShare && effectiveShareableCredentials ? (
-          <>
-            <AccessInfoField
-              label={t('tempPinLabel')}
-              value={effectiveShareableCredentials.temporaryPin}
-              valueDir="ltr"
-              valueClassName={ACCESS_CREDENTIAL_VALUE_CLASS}
-              actions={
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() =>
-                    void copyText(effectiveShareableCredentials.temporaryPin, t('pinCopied'))
-                  }
-                >
-                  {t('copy')}
-                </Button>
-              }
-            />
-            <AccessInfoField
-              label={t('tempPinExpiry')}
-              value={formatCredentialExpiry(
-                new Date(effectiveShareableCredentials.temporaryPinExpiresAt),
-              )}
-              valueDir="ltr"
-            />
-          </>
-        ) : (
-          <AccessInfoField label={t('tempPinLabel')} value={t('tempPinInactive')} />
-        )}
+          {canShare && effectiveShareableCredentials ? (
+            <>
+              <AccessInfoField
+                label={t('tempPinLabel')}
+                value={effectiveShareableCredentials.temporaryPin}
+                valueDir="ltr"
+                valueClassName={ACCESS_CREDENTIAL_VALUE_CLASS}
+                actions={
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() =>
+                      void copyText(effectiveShareableCredentials.temporaryPin, t('pinCopied'))
+                    }
+                  >
+                    {t('copy')}
+                  </Button>
+                }
+              />
+              <AccessInfoField
+                label={t('tempPinExpiry')}
+                value={formatCredentialExpiry(
+                  new Date(effectiveShareableCredentials.temporaryPinExpiresAt),
+                )}
+                valueDir="ltr"
+              />
+            </>
+          ) : (
+            <AccessInfoField label={t('tempPinLabel')} value={t('tempPinInactive')} />
+          )}
+        </div>
 
         <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
           {canShare ? (

@@ -18,7 +18,12 @@ import {
   normalizeWhatsAppPhone,
   type EmployeeCredentialsShareInput,
 } from '@/modules/employee-app/domain/credentials-share';
-import { ACCESS_CREDENTIAL_VALUE_CLASS, AccessInfoField } from './access-info-field';
+import { cn } from '@/shared/ui/cn';
+import {
+  ACCESS_CREDENTIALS_INSET_CLASS,
+  ACCESS_CREDENTIAL_VALUE_CLASS,
+  AccessInfoField,
+} from './access-info-field';
 
 interface Props {
   readonly open: boolean;
@@ -59,7 +64,7 @@ export function EmployeeCredentialsShareDialog({
         </DialogHeader>
 
         <div className="flex flex-col gap-4">
-          <div className="flex max-w-sm flex-col gap-4">
+          <div className={cn('flex max-w-sm flex-col gap-4', ACCESS_CREDENTIALS_INSET_CLASS)}>
           <AccessInfoField
             label={t('username')}
             value={credentials.username}

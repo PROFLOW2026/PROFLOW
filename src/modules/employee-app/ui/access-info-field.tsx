@@ -7,6 +7,9 @@ import { cn } from '@/shared/ui/cn';
 export const ACCESS_CREDENTIAL_VALUE_CLASS =
   'shrink-0 overflow-visible whitespace-nowrap font-mono tabular-nums text-clip';
 
+/** Compact inline inset so credential labels/values do not hug the container edge. */
+export const ACCESS_CREDENTIALS_INSET_CLASS = 'px-4';
+
 interface AccessInfoFieldProps {
   readonly label: string;
   readonly value: ReactNode;
