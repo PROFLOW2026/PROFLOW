@@ -47,7 +47,9 @@ interface SeedReport {
   vat: string | null;
   gross: string;
   customerSnapshot: unknown;
+  customerNoVat: boolean | null;
   taxSnapshot: unknown;
+  externalDocumentsCount: number;
   seedCreated: boolean;
   billingRecordId: string;
   billingRecordUrl: string;
@@ -125,15 +127,17 @@ async function main() {
 
   const { withUserContext } = await import('../src/shared/db/client.ts');
   const { resolveOrgContext } = await import('../src/modules/tenancy/index.ts');
-  const { clients, projects, billingRecords, partyIdentifiers } = await import('@drizzle/schema');
-  const { and, eq, inArray } = await import('drizzle-orm');
+  const { clients, projects, billingRecords, partyIdentifiers, externalStatutoryDocuments } =
+    await import('@drizzle/schema');
+  const { and, eq, inArray, sql } = await import('drizzle-orm');
   const { createClient } = await import('../src/modules/clients/index.ts');
   const { deleteClientIdentifier } = await import('../src/modules/clients/data/clients.repository.ts');
   const { createProject } = await import('../src/modules/projects/index.ts');
-  const { createBillingRecord, finalizeBillingRecord, getBillingRecord } = await import(
-    '../src/modules/billing/index.ts'
+  const { createBillingRecord, finalizeBillingRecord, getBillingRecord, voidBillingRecord } =
+    await import('../src/modules/billing/index.ts');
+  const { replaceBillingLines, updateBillingRecordRow } = await import(
+    '../src/modules/billing/data/billing.repository.ts'
   );
-  const { replaceBillingLines } = await import('../src/modules/billing/data/billing.repository.ts');
   const { getCatalogEntryByKey, parsePaymentTermMetadata, suggestDueDateFromPaymentTerm } =
     await import('../src/modules/business-catalog/index.ts');
   const { resolveApplicableDefaultTax } = await import('../src/modules/tax/index.ts');
@@ -235,14 +239,39 @@ async function main() {
       )
       .limit(1);
 
-    let billingRecordId: string;
+    let billingRecordId: string | null = null;
     let seedCreated = false;
     let resolvedVatRatePercent: string | null = null;
 
     if (existingBilling) {
-      billingRecordId = existingBilling.id;
-      notes.push('Billing record already existed; reused without re-finalizing.');
-    } else {
+      const current = await getBillingRecord(context, existingBilling.id);
+      const [{ count: externalDocumentsCount }] = await tx
+        .select({ count: sql<number>`count(*)::int` })
+        .from(externalStatutoryDocuments)
+        .where(eq(externalStatutoryDocuments.billingRecordId, existingBilling.id));
+
+      if (externalDocumentsCount > 0) {
+        throw new Error('Demo billing already has external statutory documents; refusing repair.');
+      }
+
+      const needsRepair =
+        current.customerSnapshot?.noVat === true ||
+        current.taxSnapshot?.vatRatePercent == null ||
+        current.taxSnapshot?.vatMode == null;
+
+      if (needsRepair) {
+        await voidBillingRecord(context, existingBilling.id);
+        await updateBillingRecordRow(context.db, target.organizationId, existingBilling.id, {
+          reference: `${DEMO_BILLING_REF}-בוטל`,
+        });
+        notes.push('Voided stale demo billing and freed reference for clean re-finalization.');
+      } else {
+        billingRecordId = existingBilling.id;
+        notes.push('Billing record already existed with clean snapshots; reused.');
+      }
+    }
+
+    if (!billingRecordId) {
       const issueDate = todayInTimeZone(context.organization.timezone);
       const dueDate = suggestDueDateFromPaymentTerm({
         baseDateIso: issueDate,
@@ -291,7 +320,11 @@ async function main() {
       notes.push(`Derived due date from ${DEMO_PAYMENT_TERM_KEY}: ${dueDate}`);
     }
 
-    const billing = await getBillingRecord(context, billingRecordId);
+    const billing = await getBillingRecord(context, billingRecordId!);
+    const [{ count: externalDocumentsCount }] = await tx
+      .select({ count: sql<number>`count(*)::int` })
+      .from(externalStatutoryDocuments)
+      .where(eq(externalStatutoryDocuments.billingRecordId, billingRecordId!));
     if (resolvedVatRatePercent == null) {
       const taxPreview = await resolveApplicableDefaultTax(context, billing.issueDate);
       resolvedVatRatePercent =
@@ -302,8 +335,11 @@ async function main() {
     const ready =
       billing.status === 'finalized' &&
       Boolean(billing.customerSnapshot?.name) &&
+      billing.customerSnapshot?.noVat === false &&
       !billing.customerSnapshot?.companyNumber &&
-      billing.taxSnapshot != null;
+      billing.taxSnapshot?.vatMode === 'exclusive' &&
+      billing.taxSnapshot?.vatRatePercent != null &&
+      externalDocumentsCount === 0;
 
     const seedReport: SeedReport = {
       targetUserEmail: DEMO_USER_EMAIL,
@@ -325,9 +361,11 @@ async function main() {
       vat: billing.taxAmount?.amount ?? null,
       gross: billing.totalAmount.amount,
       customerSnapshot: billing.customerSnapshot,
+      customerNoVat: billing.customerSnapshot?.noVat ?? null,
       taxSnapshot: billing.taxSnapshot,
+      externalDocumentsCount,
       seedCreated,
-      billingRecordId,
+      billingRecordId: billingRecordId!,
       billingRecordUrl: billingUrl,
       readyForOneSumitTestTaxInvoice: ready,
       notes,

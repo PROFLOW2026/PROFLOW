@@ -82,16 +82,17 @@ export class SumitStatutoryProvider implements StatutoryInvoicingProvider {
     return this.client.getDocumentDetails(documentId);
   }
 
-  /** Exposed for reconciliation after confirmed create. */
+  /** Exposed for reconciliation after confirmed create / getdetails refresh. */
   mapProviderAmounts(
-    billing: CreateExternalDocumentInput['billing'],
+    currency: string,
     response: { netAmount: string | null; vatAmount: string | null; grossAmount: string | null },
   ): ProviderAmountSnapshot | null {
-    if (!response.grossAmount) return null;
-    const currency = billing.totalAmount.currency;
+    if (!response.netAmount || !response.vatAmount || !response.grossAmount) {
+      return null;
+    }
     return {
-      net: money(response.netAmount ?? billing.subtotalAmount.amount, currency),
-      vat: response.vatAmount ? money(response.vatAmount, currency) : billing.taxAmount,
+      net: money(response.netAmount, currency),
+      vat: money(response.vatAmount, currency),
       gross: money(response.grossAmount, currency),
     };
   }
@@ -114,17 +115,18 @@ export class SumitStatutoryProvider implements StatutoryInvoicingProvider {
         payload: buildSumitCreatePayload(input.billing),
       });
 
+      const details = await this.client.getDocumentDetails(response.documentId!);
       const issuedAt = new Date().toISOString();
       return {
         ok: true,
         value: {
           externalId: response.documentId!,
-          externalNumber: response.documentNumber,
+          externalNumber: details.documentNumber ?? response.documentNumber,
           externalUrl: null,
           status: 'issued',
           pdf: null,
           issuedAt,
-          providerAmounts: this.mapProviderAmounts(input.billing, response),
+          providerAmounts: this.mapProviderAmounts(input.billing.totalAmount.currency, details),
         },
       };
     } catch (error) {

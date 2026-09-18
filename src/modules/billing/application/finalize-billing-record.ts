@@ -10,6 +10,7 @@ import {
 } from '@/modules/month-close';
 import { getClientDetail } from '@/modules/clients';
 import { heldRemainingOnPost } from '@/modules/retention';
+import { resolveApplicableDefaultTax } from '@/modules/tax';
 import { money } from '@/shared/money';
 import { findBillingRecordById, updateBillingRecordRow } from '../data/billing.repository';
 import { captureCustomerSnapshot } from '../domain/customer-snapshot';
@@ -49,11 +50,24 @@ export async function finalizeBillingRecordCore(
   });
 
   const finalizedAt = new Date();
+  const vatMode = existing.vatMode as BillingVatMode | null | undefined;
+  let vatRatePercent: number | null = null;
+  if (vatMode === 'zero') {
+    vatRatePercent = 0;
+  } else if (vatMode === 'exclusive' || vatMode === 'inclusive') {
+    const taxResolution = await resolveApplicableDefaultTax(context, existing.issueDate);
+    const rateRaw = taxResolution.resolved?.ratePercent;
+    if (rateRaw != null && rateRaw !== '') {
+      const parsed = Number(rateRaw);
+      vatRatePercent = Number.isFinite(parsed) ? parsed : null;
+    }
+  }
+
   const taxSnapshot = captureTaxSnapshot(
     existing.subtotalAmount,
     existing.taxAmount,
     existing.totalAmount,
-    { vatMode: existing.vatMode as BillingVatMode | null | undefined },
+    { vatMode, vatRatePercent },
   );
 
   let customerSnapshot: CustomerSnapshot | null = null;
@@ -61,7 +75,9 @@ export async function finalizeBillingRecordCore(
   if (clientId) {
     const clientDetail = await getClientDetail(context.db, context.organizationId, clientId);
     if (clientDetail) {
-      customerSnapshot = captureCustomerSnapshot(clientDetail, clientDetail.identifiers);
+      customerSnapshot = captureCustomerSnapshot(clientDetail, clientDetail.identifiers, {
+        billingVatMode: vatMode,
+      });
     }
   }
 

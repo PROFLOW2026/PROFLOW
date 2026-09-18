@@ -14,6 +14,7 @@ import {
   type SumitTestConnectionResult,
 } from './sumit-connection-diagnostics';
 import { assertSumitTestProviderEndpoint } from './sumit-provider-environment';
+import { parseSumitDocumentAmounts } from './sumit-document-amounts';
 
 export { SumitAmbiguousError } from './sumit-api-envelope';
 export type { SumitTestConnectionResult } from './sumit-connection-diagnostics';
@@ -136,7 +137,7 @@ export function createSumitHttpClient(
     }
   }
 
-  function mapCreateResponse(raw: unknown): SumitCreateDocumentResponse {
+  function mapDocumentResponse(raw: unknown): SumitCreateDocumentResponse {
     const data = raw as Record<string, unknown>;
     const dataObj =
       data.Data && typeof data.Data === 'object' ? (data.Data as Record<string, unknown>) : data;
@@ -146,6 +147,7 @@ export function createSumitHttpClient(
         : typeof dataObj.DocumentID === 'string'
           ? dataObj.DocumentID
           : null;
+    const amounts = parseSumitDocumentAmounts(raw);
     return {
       documentId,
       documentNumber:
@@ -154,9 +156,9 @@ export function createSumitHttpClient(
           : typeof dataObj.DocumentNumber === 'number'
             ? String(dataObj.DocumentNumber)
             : null,
-      netAmount: typeof dataObj.NetAmount === 'string' ? dataObj.NetAmount : null,
-      vatAmount: typeof dataObj.VATAmount === 'string' ? dataObj.VATAmount : null,
-      grossAmount: typeof dataObj.GrossAmount === 'string' ? dataObj.GrossAmount : null,
+      netAmount: amounts.netAmount,
+      vatAmount: amounts.vatAmount,
+      grossAmount: amounts.grossAmount,
       raw,
     };
   }
@@ -193,7 +195,7 @@ export function createSumitHttpClient(
         },
         ...restPayload,
       });
-      const mapped = mapCreateResponse(raw);
+      const mapped = mapDocumentResponse(raw);
       if (!mapped.documentId) {
         throw new Error('SUMIT create succeeded without DocumentID');
       }
@@ -204,7 +206,7 @@ export function createSumitHttpClient(
       const raw = await postJson<unknown>('/accounting/documents/getdetails/', {
         DocumentID: Number(documentId),
       });
-      return mapCreateResponse(raw);
+      return mapDocumentResponse(raw);
     },
   };
 }

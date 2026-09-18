@@ -68,7 +68,10 @@ export async function refreshExternalStatutoryStatus(
     const billing = await getBillingRecord(context, existing.billingRecordId);
     const { bridge } = buildStatutoryBridgeFromBillingRecord(context, billing);
     const details = await resolvedProvider.fetchDocumentDetails(existing.externalId);
-    const providerAmounts = resolvedProvider.mapProviderAmounts(bridge, details);
+    const providerAmounts = resolvedProvider.mapProviderAmounts(
+      bridge.totalAmount.currency,
+      details,
+    );
     const reconciliation = reconcileExternalAmounts(bridge, providerAmounts);
     reconciliationStatus = reconciliation.status;
     reconciliationMetadata = reconciliation.metadata;

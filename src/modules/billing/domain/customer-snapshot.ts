@@ -1,4 +1,5 @@
 import type { ClientRecord, PartyIdentifierRecord } from '@/modules/clients/domain/types';
+import type { BillingVatMode } from './tax';
 import type { CustomerSnapshot } from './types';
 
 function formatAddress(client: ClientRecord): string | null {
@@ -14,9 +15,22 @@ function pickCompanyNumber(identifiers: readonly PartyIdentifierRecord[]): strin
   return null;
 }
 
+/**
+ * Whether the buyer is VAT-exempt for external statutory issuance (SUMIT Customer.NoVAT).
+ * This is independent of whether a company registration number is stored on the client.
+ */
+export function resolveCustomerNoVat(
+  billingVatMode: BillingVatMode | null | undefined,
+): boolean {
+  return billingVatMode === 'zero';
+}
+
 export function captureCustomerSnapshot(
   client: ClientRecord,
   identifiers: readonly PartyIdentifierRecord[],
+  options?: {
+    readonly billingVatMode?: BillingVatMode | null;
+  },
 ): CustomerSnapshot {
   const companyNumber = pickCompanyNumber(identifiers);
   return {
@@ -28,6 +42,6 @@ export function captureCustomerSnapshot(
     address: formatAddress(client),
     city: client.city,
     postalCode: client.postalCode,
-    noVat: companyNumber == null,
+    noVat: resolveCustomerNoVat(options?.billingVatMode),
   };
 }

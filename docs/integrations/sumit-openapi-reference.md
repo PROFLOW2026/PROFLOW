@@ -65,7 +65,11 @@ Response fields used by ProjectFlow:
 
 - `DocumentID` → `external_statutory_documents.external_id`
 - `DocumentNumber` → `external_number`
-- Amount fields for reconciliation when present
+
+**Reconciliation amounts (getdetails only):** Create response does not include totals.
+ProjectFlow parses `Items[].TotalPrice`, `Items[].VAT`, and `Document.CompanyValue` /
+`Document.DocumentValue` from getdetails. Missing fields → `reconciliation_status=not_available`
+(never PF fallbacks).
 
 ## Idempotency
 
