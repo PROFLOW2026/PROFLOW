@@ -287,7 +287,7 @@
     },
     "billingPlanRetentionReleaseDue": {
       "what": "שחרור עיכבון מתוכנית חיובים",
-      "why": "יתרת עיכבון מוחזק {heldRemaining} — ניתן לשחרר לחיוב."
+      "why": "יתרת עיכבון מוחזק {heldRemaining} · ניתן לשחרר לחיוב."
     },
     "monthlyWorkforceReportReady": {
       "what": "דוח עובדים חודשי מוכן להפקה",
@@ -297,7 +297,7 @@
     "missingAttendanceToday": {
       "whatOne": "{count} עובד לא דיווח נוכחות היום",
       "whatOther": "{count} עובדים לא דיווחו נוכחות היום",
-      "why": "תאריך {date} — יש לדווח נוכחות לעובדים שטרם דיווחו."
+      "why": "תאריך {date} · יש לדווח נוכחות לעובדים שטרם דיווחו."
     },
     "reportMonthLabel": "{month} {year}",
     "reportMonths": {

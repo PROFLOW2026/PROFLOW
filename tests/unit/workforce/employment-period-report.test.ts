@@ -7,8 +7,8 @@ import {
 } from '@/modules/workforce/domain/employment-active-range';
 import { employeeRequiresAttendanceReporting } from '@/modules/workforce/domain/attendance-requirement';
 import { buildMonthlyWorkforceReport } from '@/modules/reports/application/generate-monthly-workforce-report';
+import { getReportsCopy } from '@/modules/reports/domain/copy';
 import type { OrgContext } from '@/shared/auth/context';
-import type { ReportsCopy } from '@/modules/reports/domain/copy';
 
 vi.mock('server-only', () => ({}));
 
@@ -86,11 +86,7 @@ const context = {
   permissions: new Set(['workforce.cost.read', 'attendance.manage']),
 } as unknown as OrgContext;
 
-const copy = {
-  kinds: {
-    monthly_workforce_report: 'דוח עובדים חודשי',
-  },
-} as ReportsCopy;
+const copy = getReportsCopy('he-IL');
 const buildCtx = {
   locale: 'he-IL',
   copy,

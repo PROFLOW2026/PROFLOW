@@ -282,7 +282,7 @@ function PdfJsViewerInner({
     const clamped = Math.min(numPages, Math.max(1, parsed));
     setPageInputDraft(null);
     scrollToPage(clamped);
-  }, [currentPage, numPages, pageInput, scrollToPage]);
+  }, [numPages, pageInput, scrollToPage]);
 
   const onDocumentLoadSuccess = ({ numPages: total }: { numPages: number }) => {
     clearLoadTimeout();

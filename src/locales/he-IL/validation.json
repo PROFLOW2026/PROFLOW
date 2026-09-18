@@ -54,7 +54,7 @@
   "clientNameOrClientIdRequired": "נדרש שם לקוח או מזהה לקוח.",
   "uuidInvalid": "חייב להיות UUID תקין.",
   "nameRequired": "שם הוא שדה חובה.",
-  "importNoBaseRateWarning": "אין תעריף בסיס — העובד ייווצר ללא תעריף עלות.",
+  "importNoBaseRateWarning": "אין תעריף בסיס. העובד ייווצר ללא תעריף עלות.",
   "projectNameOrProjectIdRequired": "נדרש שם פרויקט או מזהה פרויקט.",
   "contractValueRequired": "נדרש סכום ערך חוזה תקין.",
   "invalidOpeningReduction": "סכום הפחתת פתיחה לא תקין.",
@@ -62,7 +62,7 @@
   "booleanRequired": "חייב להיות true או false.",
   "nameMinTwoChars": "שם הוא שדה חובה (לפחות 2 תווים).",
   "taxVatNotImported": "שדות מס/מע״מ אינם מיובאים (מע״מ אינו רווח); הזינו מס בטופס ההוצאה במידת הצורך.",
-  "noProjectOverheadWarning": "אין פרויקט — ההוצאה תיווצר כהוצאה כללית (טיוטה).",
+  "noProjectOverheadWarning": "אין פרויקט. ההוצאה תיווצר כהוצאה כללית (טיוטה).",
   "orgUuidRequired": "חייב להיות UUID תקין בארגון זה.",
   "financialAmountsNotOnProjects": "סכומים כספיים אינם מיובאים עם פרויקטים; השתמשו בייבוא opening_values."
 }

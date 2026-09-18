@@ -3,6 +3,7 @@
  */
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import type { OrgContext } from '@/shared/auth/context';
+import type * as SharedDates from '@/shared/dates';
 import { businessDate } from '@/shared/dates';
 import {
   isPayrollObligationGenerationEligible,
@@ -10,7 +11,7 @@ import {
 } from '@/modules/workforce/domain/payroll-obligation';
 
 vi.mock('@/shared/dates', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/shared/dates')>();
+  const actual = await importOriginal<typeof SharedDates>();
   return {
     ...actual,
     todayInTimeZone: vi.fn(() => actual.businessDate('2026-09-17')),

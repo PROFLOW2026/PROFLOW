@@ -350,7 +350,10 @@ describe('migration journal', () => {
     expect(tags.indexOf('0090_employee_app_global_username')).toBeLessThan(
       tags.indexOf('0091_employee_app_temp_pin_sealed'),
     );
-    expect(tags.at(-1)).toBe('0091_employee_app_temp_pin_sealed');
+    expect(tags.indexOf('0091_employee_app_temp_pin_sealed')).toBeLessThan(
+      tags.indexOf('0092_payroll_obligation_source'),
+    );
+    expect(tags.at(-1)).toBe('0092_payroll_obligation_source');
 
     const sql66 = await readFile(
       path.join(MIGRATIONS_DIR, '0066_workforce_time_integrity.sql'),

@@ -20,12 +20,10 @@ import {
   warrantyCoverages,
 } from '@drizzle/schema';
 import { getOrganizationCashFlowOutlook } from '@/modules/financials/application/get-organization-cash-flow';
-import type { OrgContext } from '@/shared/auth/context';
-import { addDays, businessDate, daysBetween, type BusinessDate } from '@/shared/dates';
+import { addDays, businessDate, daysBetween } from '@/shared/dates';
 import { isPositiveMoney, isZeroMoney, zeroMoney } from '@/shared/money';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import type { ModuleVisibility } from '@/modules/tenancy/domain/types';
 import { withItemDefaults } from '../domain/ranking';
 import {
   automationFollowupCopy,

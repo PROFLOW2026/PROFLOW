@@ -139,7 +139,6 @@ export async function removeBoqNodeAction(
   _prev: BoqFormState,
   formData: FormData,
 ): Promise<BoqFormState> {
-  const t = await getTranslations('boq');
   const projectId = String(formData.get('projectId') ?? '');
   try {
     await withOrgContext((context) => removeBoqNode(context, String(formData.get('nodeId') ?? '')));
@@ -247,7 +246,6 @@ export async function allocateApprovedChangeToBoqAction(
   _prev: BoqFormState,
   formData: FormData,
 ): Promise<BoqFormState> {
-  const t = await getTranslations('boq');
   const projectId = String(formData.get('projectId') ?? '');
   try {
     await withOrgContext((context) =>
@@ -316,7 +314,6 @@ export async function createSubcontractorScheduleAction(
   _prev: BoqFormState,
   formData: FormData,
 ): Promise<BoqFormState> {
-  const t = await getTranslations('boq');
   const projectId = String(formData.get('projectId') ?? '');
   try {
     const { createSubcontractorSchedule } = await import('@/modules/boq');
@@ -344,7 +341,6 @@ export async function addSubcontractorScheduleLineAction(
   _prev: BoqFormState,
   formData: FormData,
 ): Promise<BoqFormState> {
-  const t = await getTranslations('boq');
   const projectId = String(formData.get('projectId') ?? '');
   try {
     const { addSubcontractorScheduleLine } = await import('@/modules/boq');

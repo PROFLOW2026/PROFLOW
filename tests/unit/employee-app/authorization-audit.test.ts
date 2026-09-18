@@ -14,7 +14,7 @@ import {
 import {
   canEmployeeReadDocumentCategory,
 } from '@/modules/employee-app/application/document-access';
-import type { DocumentCategory } from '@/modules/documents/domain/categories';
+import type { listEmployeeAssignedProjects } from '@/modules/employee-app/application/employee-surface-data';
 
 function employeeContextFromPreset(key: EmployeePresetKey): OrgContext {
   const grantStates = grantsMapFromPreset(key);
@@ -221,9 +221,7 @@ describe('employee authorization audit — external storage policy', () => {
 
 describe('employee authorization audit — project surface shape', () => {
   it('assigned project list type excludes financial fields', () => {
-    type ProjectRow = Awaited<
-      ReturnType<typeof import('@/modules/employee-app/application/employee-surface-data')['listEmployeeAssignedProjects']>
-    >[number];
+    type ProjectRow = Awaited<ReturnType<typeof listEmployeeAssignedProjects>>[number];
     const sample: ProjectRow = { id: 'p1', name: 'Project A' };
     expect(Object.keys(sample).sort()).toEqual(['id', 'name']);
   });

@@ -140,7 +140,7 @@
       "usernameLabel": "שם משתמש:",
       "tempPinLabel": "PIN זמני:",
       "firstLoginHint": "בכניסה הראשונה תתבקש לבחור PIN אישי חדש.",
-      "emailSubject": "פרטי כניסה לאפליקציית העובדים — {organization}"
+      "emailSubject": "פרטי כניסה לאפליקציית העובדים: {organization}"
     }
   },
   "presets": {
