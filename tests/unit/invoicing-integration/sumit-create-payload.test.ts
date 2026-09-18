@@ -3,7 +3,9 @@ import { buildStatutoryIdempotencyKey } from '@/modules/invoicing-integration';
 import {
   assembleSumitCreateRequestBody,
   buildSumitCreatePayload,
+  mapSumitDocumentItem,
   SUMIT_DOCUMENT_TYPE_INVOICE,
+  SUMIT_INCOME_ITEM_SEARCH_MODE_NONE,
 } from '@/modules/invoicing-integration/providers/sumit/sumit-create-payload';
 import type { BillingRecordBridgeRef } from '@/modules/invoicing-integration';
 
@@ -83,14 +85,22 @@ describe('SUMIT create payload shape', () => {
       },
       Items: [
         {
-          Description: 'עבודות חשמל כוח ותאורה',
+          Item: {
+            Name: 'עבודות חשמל כוח ותאורה',
+            SearchMode: SUMIT_INCOME_ITEM_SEARCH_MODE_NONE,
+          },
           Quantity: 1,
           UnitPrice: 30000,
+          TotalPrice: 30000,
         },
         {
-          Description: 'לוחות חשמל',
+          Item: {
+            Name: 'לוחות חשמל',
+            SearchMode: SUMIT_INCOME_ITEM_SEARCH_MODE_NONE,
+          },
           Quantity: 1,
           UnitPrice: 12500,
+          TotalPrice: 12500,
         },
       ],
       VATIncluded: false,
@@ -99,5 +109,24 @@ describe('SUMIT create payload shape', () => {
 
     expect(requestBody).not.toHaveProperty('Customer');
     expect((requestBody.Details as Record<string, unknown>).Customer).toBeTruthy();
+  });
+
+  it('maps each billing line to nested Item + quantity/price totals per Swagger', () => {
+    const mapped = mapSumitDocumentItem({
+      description: 'תשתיות ותקשורת',
+      lineNet: { amount: '6000.000000', currency: 'ILS' },
+      quantity: '2',
+      unitPrice: '3000.000000',
+    });
+
+    expect(mapped).toEqual({
+      Item: {
+        Name: 'תשתיות ותקשורת',
+        SearchMode: SUMIT_INCOME_ITEM_SEARCH_MODE_NONE,
+      },
+      Quantity: 2,
+      UnitPrice: 3000,
+      TotalPrice: 6000,
+    });
   });
 });

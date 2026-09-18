@@ -65,7 +65,7 @@ OpenAPI schema: `Accounting_Documents_Create_Request` (required: `Credentials`, 
 | `Details.Currency` | inside `Details` | defaults to company currency when null |
 | `Details.Customer` | inside `Details` | **required** — from frozen `customer_snapshot` |
 | `Details.ExternalReference` | inside `Details` | PF deterministic idempotency key |
-| `Items` | top-level | `Quantity`, `UnitPrice`, `Description` |
+| `Items[]` | top-level | Each `Accounting_Typed_DocumentItem` requires nested `Item` (`Accounting_Typed_IncomeItem`) with `Name` + `SearchMode`; plus `Quantity`, `UnitPrice`, `TotalPrice` |
 | `VATIncluded` | top-level | exclusive billing → `false` |
 | `VATRate` | top-level | frozen org rate (e.g. `18`) |
 
