@@ -74,7 +74,13 @@ export async function refreshExternalStatutoryStatus(
     );
     const reconciliation = reconcileExternalAmounts(bridge, providerAmounts);
     reconciliationStatus = reconciliation.status;
-    reconciliationMetadata = reconciliation.metadata;
+    reconciliationMetadata = {
+      ...reconciliation.metadata,
+      pdfStorageStatus:
+        existing.reconciliationMetadata?.pdfStorageStatus ??
+        (existing.pdf?.storageDocumentId ? 'saved' : undefined),
+      pdfStorageError: existing.reconciliationMetadata?.pdfStorageError ?? null,
+    };
   }
 
   const updated = await updateExternalDocument(context, existing.id, {

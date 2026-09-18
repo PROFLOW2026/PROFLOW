@@ -44,9 +44,22 @@ export interface SumitCreateDocumentResponse {
   readonly raw: unknown;
 }
 
+export interface SumitDocumentPdfResponse {
+  readonly bytes: Uint8Array;
+  readonly contentType: string;
+}
+
+export interface SumitSendDocumentRequest {
+  readonly documentId: string;
+  readonly emailAddress: string;
+  readonly original?: boolean;
+}
+
 export interface SumitHttpClient {
   createDocument(input: SumitCreateDocumentRequest): Promise<SumitCreateDocumentResponse>;
   getDocumentDetails(documentId: string): Promise<SumitCreateDocumentResponse>;
+  getDocumentPdf(documentId: string, original?: boolean): Promise<SumitDocumentPdfResponse>;
+  sendDocument(input: SumitSendDocumentRequest): Promise<void>;
   /** @deprecated Prefer testConnection() for credential verification. */
   ping(): Promise<boolean>;
   testConnection(): Promise<SumitTestConnectionResult>;
@@ -77,6 +90,10 @@ export function createSumitHttpClient(
   assertSumitTestProviderEndpoint(baseUrl);
   const fetchImpl = options.fetchImpl ?? fetch;
   const timeoutMs = options.timeoutMs ?? 30_000;
+
+  function isPdfBytes(bytes: Uint8Array): boolean {
+    return bytes.length >= 4 && bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46;
+  }
 
   async function postJson<T>(path: string, body: Record<string, unknown>): Promise<T> {
     const controller = new AbortController();
@@ -198,6 +215,83 @@ export function createSumitHttpClient(
         DocumentID: Number(documentId),
       });
       return mapDocumentResponse(raw);
+    },
+
+    async getDocumentPdf(documentId, original = true) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
+      try {
+        const response = await fetchImpl(`${baseUrl}/accounting/documents/getpdf/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/pdf, application/json' },
+          body: JSON.stringify({
+            Credentials: coreCredentials(credentials),
+            DocumentID: Number(documentId),
+            Original: original,
+          }),
+          signal: controller.signal,
+        });
+
+        const contentType = response.headers.get('content-type') ?? '';
+        const buffer = new Uint8Array(await response.arrayBuffer());
+
+        if (isPdfBytes(buffer)) {
+          return { bytes: buffer, contentType: 'application/pdf' };
+        }
+
+        if (contentType.includes('json') || buffer[0] === 0x7b) {
+          const text = new TextDecoder().decode(buffer);
+          let parsed: unknown = null;
+          try {
+            parsed = JSON.parse(text);
+          } catch {
+            parsed = { rawText: text.slice(0, 500) };
+          }
+          const envelope = parseSumitApiEnvelope(response.status, parsed);
+          if (response.status >= 500 || response.status === 408 || response.status === 429) {
+            throw new SumitAmbiguousError(`SUMIT ambiguous PDF response (${response.status})`);
+          }
+          if (!response.ok) {
+            throw new SumitHttpError(
+              response.status,
+              envelope,
+              envelope.userErrorMessage ?? `SUMIT PDF request failed (${response.status})`,
+            );
+          }
+          assertSumitEnvelopeSuccess(envelope);
+        }
+
+        throw new SumitHttpError(
+          response.status,
+          null,
+          'SUMIT getpdf did not return a PDF document',
+        );
+      } catch (error) {
+        if (
+          error instanceof SumitAmbiguousError ||
+          error instanceof SumitHttpError ||
+          error instanceof SumitApplicationError
+        ) {
+          throw error;
+        }
+        if (error instanceof Error && error.name === 'AbortError') {
+          throw new SumitAmbiguousError('SUMIT PDF request timed out');
+        }
+        if (error instanceof TypeError) {
+          throw new SumitAmbiguousError(error.message);
+        }
+        throw error;
+      } finally {
+        clearTimeout(timer);
+      }
+    },
+
+    async sendDocument(input) {
+      await postJson('/accounting/documents/send/', {
+        EntityID: Number(input.documentId),
+        EmailAddress: input.emailAddress,
+        Original: input.original ?? true,
+      });
     },
   };
 }

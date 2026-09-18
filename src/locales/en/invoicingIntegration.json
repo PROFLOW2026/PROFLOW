@@ -14,18 +14,48 @@
   "actions": {
     "requestDocument": "Request external tax invoice",
     "viewInProvider": "View in SUMIT",
+    "viewPdf": "View",
+    "downloadPdf": "Download",
+    "sendToCustomer": "Send to customer",
+    "sendConfirm": "Send",
+    "sendCancel": "Cancel",
+    "share": "Share",
+    "shareCopied": "Share link copied to clipboard",
+    "shareSuccess": "Share link shared",
     "refreshStatus": "Refresh status",
+    "saveStorageCopy": "Save copy",
+    "retryStorageSave": "Retry save",
     "credit": "Request credit note",
     "cancel": "Cancel external document",
     "allocate": "Save allocation reference"
   },
+  "issued": {
+    "title": "Tax invoice {number}",
+    "badge": "Issued",
+    "shareTitle": "Tax invoice {number}"
+  },
+  "storage": {
+    "savedIn": "Saved in {provider}",
+    "pending": "Pending save",
+    "failed": "Save failed"
+  },
+  "send": {
+    "title": "Send tax invoice {number}",
+    "description": "The invoice will be sent via SUMIT to the address you choose.",
+    "toLabel": "To",
+    "emailPlaceholder": "name@example.com",
+    "success": "Invoice sent successfully"
+  },
   "fields": {
     "externalNumber": "External number",
+    "documentNumber": "Document number",
     "externalUrl": "External link",
     "allocationReference": "Allocation / payment reference",
     "provider": "Provider",
     "status": "External status",
-    "pdf": "PDF"
+    "pdf": "PDF",
+    "storageCopy": "Copy saved",
+    "technicalDetails": "Technical details"
   },
   "documentStatus": {
     "requested": "Requested",
@@ -83,6 +113,9 @@
     "providerFailed": "The external invoicing provider could not complete the request.",
     "missingExternalId": "This record has no external provider id yet.",
     "creditUnsupported": "This provider does not support credit notes.",
-    "cancelUnsupported": "This provider does not support cancellation."
+    "cancelUnsupported": "This provider does not support cancellation.",
+    "sendEmailRequired": "Recipient email is required.",
+    "shareInvalid": "Share link is invalid.",
+    "shareExpired": "Share link has expired."
   }
 }

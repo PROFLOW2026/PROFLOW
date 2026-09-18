@@ -114,7 +114,7 @@ export function StorageSettingsPanel({
                         variant={status === 'connected' ? 'secondary' : 'primary'}
                         disabled={pending || status === 'connecting'}
                         onClick={() => {
-                          router.push(`/api/org-storage/oauth/${provider}/start`);
+                          window.location.assign(`/api/org-storage/oauth/${provider}/start`);
                         }}
                       >
                         {connectActionLabel(status, {

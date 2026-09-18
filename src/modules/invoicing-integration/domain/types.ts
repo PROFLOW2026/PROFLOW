@@ -87,6 +87,8 @@ export interface ReconciliationMetadata {
   readonly currency: string;
   readonly comparedAt: string;
   readonly tolerance: string;
+  readonly pdfStorageStatus?: 'pending' | 'saved' | 'failed';
+  readonly pdfStorageError?: string | null;
 }
 
 export interface StatutoryPartySnapshot {

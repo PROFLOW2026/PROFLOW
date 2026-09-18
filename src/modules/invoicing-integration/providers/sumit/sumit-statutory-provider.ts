@@ -29,6 +29,7 @@ import {
   createSumitHttpClient,
   SumitAmbiguousError,
   type SumitCreateDocumentResponse,
+  type SumitDocumentPdfResponse,
   type SumitHttpClient,
 } from './sumit-http-client';
 
@@ -81,6 +82,22 @@ export class SumitStatutoryProvider implements StatutoryInvoicingProvider {
 
   async fetchDocumentDetails(documentId: string): Promise<SumitCreateDocumentResponse> {
     return this.client.getDocumentDetails(documentId);
+  }
+
+  async fetchDocumentPdf(documentId: string): Promise<SumitDocumentPdfResponse> {
+    return this.client.getDocumentPdf(documentId, true);
+  }
+
+  async sendDocument(input: {
+    documentId: string;
+    emailAddress: string;
+    original?: boolean;
+  }): Promise<void> {
+    await this.client.sendDocument({
+      documentId: input.documentId,
+      emailAddress: input.emailAddress,
+      original: input.original,
+    });
   }
 
   /** Exposed for reconciliation after confirmed create / getdetails refresh. */

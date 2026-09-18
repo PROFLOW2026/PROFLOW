@@ -14,18 +14,48 @@
   "actions": {
     "requestDocument": "בקש חשבונית מס חיצונית",
     "viewInProvider": "צפייה ב-SUMIT",
+    "viewPdf": "צפייה",
+    "downloadPdf": "הורדה",
+    "sendToCustomer": "שליחה ללקוח",
+    "sendConfirm": "שליחה",
+    "sendCancel": "ביטול",
+    "share": "שיתוף",
+    "shareCopied": "קישור השיתוף הועתק ללוח",
+    "shareSuccess": "קישור השיתוף שותף",
     "refreshStatus": "רענון סטטוס",
+    "saveStorageCopy": "שמירת עותק",
+    "retryStorageSave": "נסה לשמור שוב",
     "credit": "בקש זיכוי",
     "cancel": "ביטול מסמך חיצוני",
     "allocate": "שמירת אסמכתת הקצאה"
   },
+  "issued": {
+    "title": "חשבונית מס {number}",
+    "badge": "הונפקה",
+    "shareTitle": "חשבונית מס {number}"
+  },
+  "storage": {
+    "savedIn": "נשמר ב-{provider}",
+    "pending": "ממתין לשמירה",
+    "failed": "שגיאה בשמירה"
+  },
+  "send": {
+    "title": "שליחת חשבונית מס {number}",
+    "description": "החשבונית תישלח באמצעות SUMIT לכתובת שתבחר.",
+    "toLabel": "אל",
+    "emailPlaceholder": "name@example.com",
+    "success": "החשבונית נשלחה בהצלחה"
+  },
   "fields": {
     "externalNumber": "מספר חיצוני",
+    "documentNumber": "מספר מסמך",
     "externalUrl": "קישור חיצוני",
     "allocationReference": "אסמכתת הקצאה / תשלום",
     "provider": "ספק",
     "status": "סטטוס חיצוני",
-    "pdf": "קובץ PDF"
+    "pdf": "קובץ PDF",
+    "storageCopy": "שמירת עותק",
+    "technicalDetails": "פרטים טכניים"
   },
   "documentStatus": {
     "requested": "בוקש",
@@ -83,6 +113,9 @@
     "providerFailed": "ספק ההנפקה החיצוני לא הצליח להשלים את הבקשה.",
     "missingExternalId": "לרשומה זו אין עדיין מזהה אצל הספק החיצוני.",
     "creditUnsupported": "ספק זה אינו תומך בזיכויים.",
-    "cancelUnsupported": "ספק זה אינו תומך בביטול."
+    "cancelUnsupported": "ספק זה אינו תומך בביטול.",
+    "sendEmailRequired": "יש להזין כתובת דוא״ל לנמען.",
+    "shareInvalid": "קישור השיתוף אינו תקין.",
+    "shareExpired": "קישור השיתוף פג תוקף."
   }
 }

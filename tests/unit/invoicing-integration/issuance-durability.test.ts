@@ -187,6 +187,12 @@ function mockSumitClient(options: {
         raw: {},
       };
     },
+    async getDocumentPdf() {
+      return { bytes: new Uint8Array([0x25, 0x50, 0x44, 0x46]), contentType: 'application/pdf' };
+    },
+    async sendDocument() {
+      return;
+    },
     async ping() {
       return true;
     },

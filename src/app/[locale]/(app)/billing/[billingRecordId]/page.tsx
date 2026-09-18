@@ -33,6 +33,11 @@ import {
 import { resolveStatutoryProviderForOrg } from '@/modules/invoicing-integration/server';
 import { ExternalStatutoryPanel } from '@/modules/invoicing-integration/ui/external-statutory-panel';
 import { ReportDownloadButtons } from '@/modules/reports/ui';
+import {
+  getOrganizationPrimaryStorage,
+  organizationHasActiveStorage,
+  type StorageProviderKey,
+} from '@/modules/external-storage/server';
 
 export async function generateMetadata({
   params,
@@ -63,6 +68,8 @@ export default async function BillingDetailPage({
   let externalDocuments: Awaited<ReturnType<typeof listExternalStatutoryDocumentsForBilling>> = [];
   let statutoryProviderStatus: Awaited<ReturnType<typeof getStatutoryProviderStatus>> | null =
     null;
+  let storageActive = false;
+  let primaryStorageProvider: StorageProviderKey | null = null;
 
   try {
     const result = await withOrgContext(async (context) => {
@@ -79,6 +86,7 @@ export default async function BillingDetailPage({
           billingRecordId,
         }).catch(() => []),
         statutoryProviderStatus: getStatutoryProviderStatus(context, provider),
+        primaryStorage: await getOrganizationPrimaryStorage(context),
       };
     });
     record = result.record;
@@ -88,6 +96,8 @@ export default async function BillingDetailPage({
     orgToday = result.orgToday;
     externalDocuments = result.externalDocuments;
     statutoryProviderStatus = result.statutoryProviderStatus;
+    storageActive = organizationHasActiveStorage(result.primaryStorage);
+    primaryStorageProvider = result.primaryStorage?.provider ?? null;
   } catch {
     notFound();
   }
@@ -142,6 +152,9 @@ export default async function BillingDetailPage({
           providerStatus={statutoryProviderStatus}
           documents={externalDocuments}
           hasCustomerSnapshot={Boolean(record.customerSnapshot?.name?.trim())}
+          customerEmail={record.customerSnapshot?.email ?? null}
+          storageActive={storageActive}
+          primaryStorageProvider={primaryStorageProvider}
         />
       ) : null}
 

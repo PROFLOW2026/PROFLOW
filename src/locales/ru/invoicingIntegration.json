@@ -13,18 +13,48 @@
   },
   "actions": {
     "requestDocument": "Запросить внешний документ",
+    "viewPdf": "Просмотр",
+    "downloadPdf": "Скачать",
+    "sendToCustomer": "Отправить клиенту",
+    "sendConfirm": "Отправить",
+    "sendCancel": "Отмена",
+    "share": "Поделиться",
+    "shareCopied": "Ссылка скопирована",
+    "shareSuccess": "Ссылка отправлена",
     "refreshStatus": "Обновить статус",
+    "saveStorageCopy": "Сохранить копию",
+    "retryStorageSave": "Повторить сохранение",
     "credit": "Запросить кредит-ноту",
     "cancel": "Отменить внешний документ",
     "allocate": "Сохранить ссылку на распределение"
   },
+  "issued": {
+    "title": "Счёт-фактура {number}",
+    "badge": "Выставлен",
+    "shareTitle": "Счёт-фактура {number}"
+  },
+  "storage": {
+    "savedIn": "Сохранено в {provider}",
+    "pending": "Ожидает сохранения",
+    "failed": "Ошибка сохранения"
+  },
+  "send": {
+    "title": "Отправка счёта {number}",
+    "description": "Счёт будет отправлен через SUMIT на указанный адрес.",
+    "toLabel": "Кому",
+    "emailPlaceholder": "name@example.com",
+    "success": "Счёт успешно отправлен"
+  },
   "fields": {
     "externalNumber": "Внешний номер",
+    "documentNumber": "Номер документа",
     "externalUrl": "Внешняя ссылка",
     "allocationReference": "Ссылка на распределение / платёж",
     "provider": "Провайдер",
     "status": "Внешний статус",
-    "pdf": "Файл PDF"
+    "pdf": "Файл PDF",
+    "storageCopy": "Копия в хранилище",
+    "technicalDetails": "Технические детали"
   },
   "documentStatus": {
     "requested": "Запрошен",
@@ -68,6 +98,9 @@
     "providerFailed": "Внешний провайдер выставления счетов не смог выполнить запрос.",
     "missingExternalId": "У этой записи пока нет внешнего id провайдера.",
     "creditUnsupported": "Этот провайдер не поддерживает кредит-ноты.",
-    "cancelUnsupported": "Этот провайдер не поддерживает отмену."
+    "cancelUnsupported": "Этот провайдер не поддерживает отмену.",
+    "sendEmailRequired": "Требуется email получателя.",
+    "shareInvalid": "Недействительная ссылка.",
+    "shareExpired": "Ссылка истекла."
   }
 }

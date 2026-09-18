@@ -13,18 +13,48 @@
   },
   "actions": {
     "requestDocument": "طلب مستند خارجي",
+    "viewPdf": "عرض",
+    "downloadPdf": "تنزيل",
+    "sendToCustomer": "إرسال للعميل",
+    "sendConfirm": "إرسال",
+    "sendCancel": "إلغاء",
+    "share": "مشاركة",
+    "shareCopied": "تم نسخ رابط المشاركة",
+    "shareSuccess": "تمت مشاركة الرابط",
     "refreshStatus": "تحديث الحالة",
+    "saveStorageCopy": "حفظ نسخة",
+    "retryStorageSave": "إعادة المحاولة",
     "credit": "طلب إشعار دائن",
     "cancel": "إلغاء المستند الخارجي",
     "allocate": "حفظ مرجع التخصيص"
   },
+  "issued": {
+    "title": "فاتورة ضريبية {number}",
+    "badge": "صُدرت",
+    "shareTitle": "فاتورة ضريبية {number}"
+  },
+  "storage": {
+    "savedIn": "محفوظة في {provider}",
+    "pending": "بانتظار الحفظ",
+    "failed": "فشل الحفظ"
+  },
+  "send": {
+    "title": "إرسال فاتورة {number}",
+    "description": "ستُرسل الفاتورة عبر SUMIT إلى العنوان الذي تختاره.",
+    "toLabel": "إلى",
+    "emailPlaceholder": "name@example.com",
+    "success": "تم إرسال الفاتورة بنجاح"
+  },
   "fields": {
     "externalNumber": "الرقم الخارجي",
+    "documentNumber": "رقم المستند",
     "externalUrl": "الرابط الخارجي",
     "allocationReference": "مرجع التخصيص / الدفع",
     "provider": "المزود",
     "status": "الحالة الخارجية",
-    "pdf": "ملف PDF"
+    "pdf": "ملف PDF",
+    "storageCopy": "نسخة محفوظة",
+    "technicalDetails": "تفاصيل تقنية"
   },
   "documentStatus": {
     "requested": "مطلوب",
@@ -68,6 +98,9 @@
     "providerFailed": "تعذّر على مزود الفوترة الخارجي إكمال الطلب.",
     "missingExternalId": "هذا السجل ليس له معرّف مزود خارجي بعد.",
     "creditUnsupported": "هذا المزود لا يدعم إشعارات الدائن.",
-    "cancelUnsupported": "هذا المزود لا يدعم الإلغاء."
+    "cancelUnsupported": "هذا المزود لا يدعم الإلغاء.",
+    "sendEmailRequired": "البريد الإلكتروني للمستلم مطلوب.",
+    "shareInvalid": "رابط المشاركة غير صالح.",
+    "shareExpired": "انتهت صلاحية رابط المشاركة."
   }
 }
