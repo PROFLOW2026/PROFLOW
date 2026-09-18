@@ -21,6 +21,11 @@ export async function ensureUsablePrimaryStorageConnection(
   organizationId: string,
   preferredConnectionId?: string,
 ): Promise<StorageConnectionRecord | null> {
+  const { reconcileProvisionedConnectingStorageConnections } = await import(
+    './reconcile-connecting-storage'
+  );
+  await reconcileProvisionedConnectingStorageConnections(db, organizationId);
+
   const designatedPrimary = await getPrimaryStorageConnection(db, organizationId);
   if (isUsableStorageConnection(designatedPrimary)) {
     return designatedPrimary;

@@ -42,6 +42,30 @@ describe('ensureUsablePrimaryStorageConnection', () => {
     await expect(ensureUsablePrimaryStorageConnection(db, 'org-1')).resolves.toEqual(primary);
   });
 
+  it('reconciles provisioned connecting connections before resolving primary', async () => {
+    const connecting = connection({
+      id: 'dropbox',
+      provider: 'dropbox',
+      status: 'connecting',
+      isPrimary: true,
+    });
+    const reconciled = connection({
+      id: 'dropbox',
+      provider: 'dropbox',
+      status: 'connected',
+      isPrimary: true,
+    });
+    const db = {} as never;
+    const repo = await import('@/modules/external-storage/data/connections.repository');
+    const reconcile = await import('@/modules/external-storage/application/reconcile-connecting-storage');
+    vi.spyOn(reconcile, 'reconcileProvisionedConnectingStorageConnections').mockResolvedValue(undefined);
+    vi.spyOn(repo, 'getPrimaryStorageConnection').mockResolvedValue(reconciled);
+    vi.spyOn(repo, 'listStorageConnections').mockResolvedValue([connecting]);
+
+    await expect(ensureUsablePrimaryStorageConnection(db, 'org-1')).resolves.toEqual(reconciled);
+    expect(reconcile.reconcileProvisionedConnectingStorageConnections).toHaveBeenCalledWith(db, 'org-1');
+  });
+
   it('promotes a usable connected provider when primary lacks root folder', async () => {
     const brokenPrimary = connection({ id: 'broken', isPrimary: true, rootFolderExternalId: null });
     const usable = connection({ id: 'usable', isPrimary: false });

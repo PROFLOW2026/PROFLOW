@@ -96,10 +96,12 @@ export async function beginStorageOAuth(
       )
     : null;
 
+  const preserveStatusDuringOAuth =
+    priorConnection?.status === 'connected' || priorConnection?.status === 'reconnect_required';
   const connection = await upsertStorageConnection(context.db, {
     organizationId: context.organizationId,
     provider,
-    status: 'connecting',
+    status: preserveStatusDuringOAuth ? priorConnection!.status : 'connecting',
   });
 
   const state = createOAuthState({
