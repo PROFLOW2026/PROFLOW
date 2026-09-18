@@ -645,6 +645,13 @@
                         "when":  1789450400000,
                         "tag":  "0092_payroll_obligation_source",
                         "breakpoints":  true
+                    },
+                    {
+                        "idx":  92,
+                        "version":  "7",
+                        "when":  1789536800000,
+                        "tag":  "0093_invoicing_sumit_hardening",
+                        "breakpoints":  true
                     }
                 ]
 }

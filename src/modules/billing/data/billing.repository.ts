@@ -26,6 +26,7 @@ import type {
   PaymentRecordStatus,
   PaymentSummary,
   ProjectOption,
+  CustomerSnapshot,
   TaxSnapshot,
   UnbilledChangeOrder,
 } from '../domain/types';
@@ -33,6 +34,13 @@ import { listPaidAmountRowsByBillingRecordIds, listPaymentRowsForBillingRecord }
 
 function mapMoney(amount: string, currency: string): MoneyValue {
   return fromNumericString(amount, currency)!;
+}
+
+function mapCustomerSnapshot(value: unknown): CustomerSnapshot | null {
+  if (!value || typeof value !== 'object') return null;
+  const row = value as CustomerSnapshot;
+  if (typeof row.name !== 'string') return null;
+  return row;
 }
 
 function mapTaxSnapshot(value: unknown): TaxSnapshot | null {
@@ -97,6 +105,7 @@ export interface BillingRecordUpdateRow {
   readonly notes?: string | null;
   readonly status?: BillingRecordStatus;
   readonly taxSnapshot?: TaxSnapshot | null;
+  readonly customerSnapshot?: CustomerSnapshot | null;
   readonly finalizedAt?: Date | null;
   readonly voidedAt?: Date | null;
 }
@@ -372,6 +381,7 @@ export async function findBillingRecordById(
       retentionAmount: billingRecords.retentionAmount,
       retentionHeldRemaining: billingRecords.retentionHeldRemaining,
       taxSnapshot: billingRecords.taxSnapshot,
+      customerSnapshot: billingRecords.customerSnapshot,
       finalizedAt: billingRecords.finalizedAt,
       voidedAt: billingRecords.voidedAt,
       voidsBillingRecordId: billingRecords.voidsBillingRecordId,
@@ -462,6 +472,7 @@ export async function findBillingRecordById(
     taxAmount: row.taxAmount ? mapMoney(row.taxAmount, row.currency) : null,
     vatMode: row.vatMode ?? null,
     taxSnapshot: mapTaxSnapshot(row.taxSnapshot),
+    customerSnapshot: mapCustomerSnapshot(row.customerSnapshot),
     finalizedAt: row.finalizedAt,
     voidedAt: row.voidedAt,
     voidsBillingRecordId: row.voidsBillingRecordId,

@@ -74,6 +74,8 @@ export const billingRecords = pgTable(
     currency: currencyCode().notNull(),
     /** Frozen at finalization (G1). */
     taxSnapshot: jsonb('tax_snapshot'),
+    /** Frozen buyer identity for external statutory issuance. */
+    customerSnapshot: jsonb('customer_snapshot'),
     finalizedAt: timestamp('finalized_at', { withTimezone: true, mode: 'date' }),
     voidedAt: timestamp('voided_at', { withTimezone: true, mode: 'date' }),
     /** Set on the correcting record, pointing at the record it reverses. */

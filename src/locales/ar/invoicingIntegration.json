@@ -39,11 +39,25 @@
     "title": "لا يوجد مستند قانوني خارجي",
     "body": "بعد ربط المزود، يمكنك طلب مستند قانوني لسجل فوترة منتهٍ."
   },
+  "settings": {
+    "sumitTitle": "SUMIT (test environment)",
+    "sumitDescription": "Connect your SUMIT Test Configuration account. Production is not available in this release.",
+    "companyId": "Company ID",
+    "apiKey": "API key",
+    "connect": "Connect test account",
+    "disconnect": "Disconnect",
+    "connectedAs": "Connected — Company ID {companyId}",
+    "testOnlyNotice": "Test environment only. Do not enter production credentials."
+  },
   "errors": {
     "connectionRequired": "اربط مزود فوترة خارجي قبل طلب مستند قانوني.",
+    "connectionFailed": "Could not verify SUMIT test credentials.",
+    "productionBlocked": "SUMIT production connections are not available in this release.",
     "billingNotFinalized": "سجلات الفوترة المنهية فقط يمكنها طلب مستند قانوني خارجي.",
     "localIssuanceForbidden": "إصدار فاتورة ضريبية محلية غير مسموح.",
     "orgMismatch": "سجل الفوترة لا ينتمي لهذه المنظمة.",
+    "duplicateIssuanceBlocked": "An external statutory document is already in progress or issued for this billing record.",
+    "ambiguousIssuance": "The provider response was ambiguous. Do not retry — use recovery or contact support.",
     "providerFailed": "تعذّر على مزود الفوترة الخارجي إكمال الطلب.",
     "missingExternalId": "هذا السجل ليس له معرّف مزود خارجي بعد.",
     "creditUnsupported": "هذا المزود لا يدعم إشعارات الدائن.",

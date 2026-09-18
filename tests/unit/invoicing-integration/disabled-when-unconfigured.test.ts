@@ -49,10 +49,18 @@ function finalizedBilling(): BillingRecordBridgeRef {
     kind: 'invoice',
     status: 'finalized',
     reference: 'BR-1',
+    subtotalAmount: { amount: '100.000000', currency: 'ILS' },
+    taxAmount: null,
     totalAmount: { amount: '100.000000', currency: 'ILS' },
+    vatMode: 'zero',
+    vatRatePercent: null,
+    lines: [],
+    issuer: null,
+    customer: null,
     issueDate: '2026-08-01',
     dueDate: null,
     notes: null,
+    externalReference: 'idem-unconfigured',
   };
 }
 

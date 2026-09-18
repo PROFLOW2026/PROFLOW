@@ -17,10 +17,18 @@ export interface BillingRecordBridgeRef {
   readonly kind: 'invoice' | 'credit_note' | 'advance' | 'retention_release';
   readonly status: 'draft' | 'finalized' | 'void';
   readonly reference: string | null;
+  readonly subtotalAmount: MoneyValue;
+  readonly taxAmount: MoneyValue | null;
   readonly totalAmount: MoneyValue;
+  readonly vatMode: 'inclusive' | 'exclusive' | 'zero';
+  readonly vatRatePercent: number | null;
+  readonly lines: StatutoryLineItem[];
+  readonly issuer: StatutoryPartySnapshot | null;
+  readonly customer: StatutoryPartySnapshot | null;
   readonly issueDate: string;
   readonly dueDate: string | null;
   readonly notes: string | null;
+  readonly externalReference: string;
 }
 
 export const EXTERNAL_DOCUMENT_KINDS = [
@@ -45,6 +53,61 @@ export const EXTERNAL_DOCUMENT_STATUSES = [
 
 export type ExternalDocumentStatus = (typeof EXTERNAL_DOCUMENT_STATUSES)[number];
 
+export const ISSUANCE_OUTCOMES = [
+  'in_flight',
+  'confirmed_rejected',
+  'confirmed_created',
+  'ambiguous',
+] as const;
+
+export type IssuanceOutcome = (typeof ISSUANCE_OUTCOMES)[number];
+
+export const BLOCKING_ISSUANCE_OUTCOMES: readonly IssuanceOutcome[] = [
+  'in_flight',
+  'ambiguous',
+  'confirmed_created',
+];
+
+export const RECONCILIATION_STATUSES = [
+  'pending',
+  'matched',
+  'mismatch',
+  'not_available',
+] as const;
+
+export type ReconciliationStatus = (typeof RECONCILIATION_STATUSES)[number];
+
+export interface ReconciliationMetadata {
+  readonly expectedNet: string;
+  readonly expectedVat: string | null;
+  readonly expectedGross: string;
+  readonly actualNet?: string | null;
+  readonly actualVat?: string | null;
+  readonly actualGross?: string | null;
+  readonly currency: string;
+  readonly comparedAt: string;
+  readonly tolerance: string;
+}
+
+export interface StatutoryPartySnapshot {
+  readonly name: string;
+  readonly companyNumber: string | null;
+  readonly externalIdentifier: string | null;
+  readonly email: string | null;
+  readonly phone: string | null;
+  readonly address: string | null;
+  readonly city: string | null;
+  readonly postalCode: string | null;
+  readonly noVat: boolean;
+}
+
+export interface StatutoryLineItem {
+  readonly description: string;
+  readonly lineNet: MoneyValue;
+  readonly quantity: string | null;
+  readonly unitPrice: string | null;
+}
+
 export interface ExternalPdfMetadata {
   readonly contentType: string | null;
   readonly byteSize: number | null;
@@ -66,6 +129,10 @@ export interface ExternalStatutoryDocument {
   readonly externalUrl: string | null;
   readonly pdf: ExternalPdfMetadata | null;
   readonly allocationReference: string | null;
+  readonly issuanceOutcome: IssuanceOutcome | null;
+  readonly reconciliationStatus: ReconciliationStatus | null;
+  readonly reconciliationMetadata: ReconciliationMetadata | null;
+  readonly idempotencyKey: string | null;
   readonly lastErrorCode: string | null;
   readonly lastErrorMessage: string | null;
   readonly requestedAt: string;
@@ -105,3 +172,11 @@ export const FULL_ADAPTER_CAPABILITIES: StatutoryProviderCapabilities = {
   cancelDocument: true,
   allocateReference: true,
 };
+
+/** SUMIT test-only statutory provider id for Milestone A/B. */
+export const SUMIT_PROVIDER_ID = 'sumit' as const;
+
+export interface InvoicingProviderCredentials {
+  readonly companyId: number;
+  readonly apiKey: string;
+}

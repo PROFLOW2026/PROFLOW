@@ -8,12 +8,15 @@ import {
   rethrowClosedPeriodRewrite,
   yearMonthFromBusinessDate,
 } from '@/modules/month-close';
+import { getClientDetail } from '@/modules/clients/data/clients.repository';
+import { heldRemainingOnPost } from '@/modules/retention';
+import { money } from '@/shared/money';
+import { findBillingRecordById, updateBillingRecordRow } from '../data/billing.repository';
+import { captureCustomerSnapshot } from '../domain/customer-snapshot';
 import { assertFinalizable } from '../domain/lifecycle';
 import { assertBillingVatExplicitForFinalize, captureTaxSnapshot } from '../domain/tax';
 import type { BillingVatMode } from '../domain/tax';
-import { money } from '@/shared/money';
-import { heldRemainingOnPost } from '@/modules/retention';
-import { findBillingRecordById, updateBillingRecordRow } from '../data/billing.repository';
+import type { CustomerSnapshot } from '../domain/types';
 
 const BILLING_AUDIT_FINALIZED = 'billing_record.finalized';
 
@@ -50,7 +53,17 @@ export async function finalizeBillingRecordCore(
     existing.subtotalAmount,
     existing.taxAmount,
     existing.totalAmount,
+    { vatMode: existing.vatMode as BillingVatMode | null | undefined },
   );
+
+  let customerSnapshot: CustomerSnapshot | null = null;
+  const clientId = existing.clientId;
+  if (clientId) {
+    const clientDetail = await getClientDetail(context.db, context.organizationId, clientId);
+    if (clientDetail) {
+      customerSnapshot = captureCustomerSnapshot(clientDetail, clientDetail.identifiers);
+    }
+  }
 
   let finalized;
   try {
@@ -63,6 +76,7 @@ export async function finalizeBillingRecordCore(
       status: 'finalized',
       finalizedAt,
       taxSnapshot,
+      customerSnapshot,
       retentionHeldRemaining: heldRemainingOnPost(
         existing.retentionAmount ?? money('0', existing.totalAmount.currency),
       ),

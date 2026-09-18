@@ -1,9 +1,29 @@
 import { z } from 'zod';
+import type { BillingRecordBridgeRef } from '../domain/types';
 import { EXTERNAL_DOCUMENT_KINDS } from '../domain/types';
 
 const moneySchema = z.object({
   amount: z.string().min(1),
   currency: z.string().length(3),
+});
+
+const partySnapshotSchema = z.object({
+  name: z.string().min(1),
+  companyNumber: z.string().max(64).nullable(),
+  externalIdentifier: z.string().max(128).nullable(),
+  email: z.string().max(320).nullable(),
+  phone: z.string().max(64).nullable(),
+  address: z.string().max(500).nullable(),
+  city: z.string().max(120).nullable(),
+  postalCode: z.string().max(32).nullable(),
+  noVat: z.boolean(),
+});
+
+const lineItemSchema = z.object({
+  description: z.string().min(1),
+  lineNet: moneySchema,
+  quantity: z.string().nullable(),
+  unitPrice: z.string().nullable(),
 });
 
 export const billingRecordBridgeSchema = z.object({
@@ -14,10 +34,18 @@ export const billingRecordBridgeSchema = z.object({
   kind: z.enum(['invoice', 'credit_note', 'advance', 'retention_release']),
   status: z.enum(['draft', 'finalized', 'void']),
   reference: z.string().max(120).nullable(),
+  subtotalAmount: moneySchema,
+  taxAmount: moneySchema.nullable(),
   totalAmount: moneySchema,
+  vatMode: z.enum(['inclusive', 'exclusive', 'zero']),
+  vatRatePercent: z.number().nullable(),
+  lines: z.array(lineItemSchema),
+  issuer: partySnapshotSchema.nullable(),
+  customer: partySnapshotSchema.nullable(),
   issueDate: z.string().min(1),
   dueDate: z.string().nullable(),
   notes: z.string().max(4000).nullable(),
+  externalReference: z.string().min(8).max(128),
 });
 
 export const requestExternalDocumentSchema = z.object({
@@ -51,7 +79,11 @@ export const listExternalDocumentsSchema = z.object({
   billingRecordId: z.string().uuid(),
 });
 
-export type RequestExternalDocumentInput = z.infer<typeof requestExternalDocumentSchema>;
+export type RequestExternalDocumentInput = {
+  billing: BillingRecordBridgeRef;
+  kind?: (typeof EXTERNAL_DOCUMENT_KINDS)[number];
+  idempotencyKey: string;
+};
 export type RefreshExternalStatusInput = z.infer<typeof refreshExternalStatusSchema>;
 export type CreditExternalDocumentInput = z.infer<typeof creditExternalDocumentSchema>;
 export type CancelExternalDocumentInput = z.infer<typeof cancelExternalDocumentSchema>;

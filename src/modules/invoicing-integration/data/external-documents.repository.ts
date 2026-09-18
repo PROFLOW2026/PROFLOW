@@ -14,6 +14,9 @@ import type {
   ExternalDocumentStatus,
   ExternalPdfMetadata,
   ExternalStatutoryDocument,
+  IssuanceOutcome,
+  ReconciliationMetadata,
+  ReconciliationStatus,
   StatutoryProviderCapabilities,
 } from '../domain/types';
 
@@ -28,6 +31,10 @@ export interface ExternalDocumentInsert {
   readonly externalUrl?: string | null;
   readonly pdf?: ExternalPdfMetadata | null;
   readonly allocationReference?: string | null;
+  readonly issuanceOutcome?: IssuanceOutcome | null;
+  readonly reconciliationStatus?: ReconciliationStatus | null;
+  readonly reconciliationMetadata?: ReconciliationMetadata | null;
+  readonly idempotencyKey?: string | null;
   readonly lastErrorCode?: string | null;
   readonly lastErrorMessage?: string | null;
   readonly issuedAt?: string | null;
@@ -41,6 +48,10 @@ export type ExternalDocumentPatch = Partial<{
   externalUrl: string | null;
   pdf: ExternalPdfMetadata | null;
   allocationReference: string | null;
+  issuanceOutcome: IssuanceOutcome | null;
+  reconciliationStatus: ReconciliationStatus | null;
+  reconciliationMetadata: ReconciliationMetadata | null;
+  idempotencyKey: string | null;
   lastErrorCode: string | null;
   lastErrorMessage: string | null;
   issuedAt: string | null;
@@ -100,6 +111,11 @@ function mapDocument(row: typeof externalStatutoryDocuments.$inferSelect): Exter
         }
       : null,
     allocationReference: row.allocationReference,
+    issuanceOutcome: (row.issuanceOutcome as IssuanceOutcome | null) ?? null,
+    reconciliationStatus: (row.reconciliationStatus as ReconciliationStatus | null) ?? null,
+    reconciliationMetadata:
+      (row.reconciliationMetadata as ReconciliationMetadata | null) ?? null,
+    idempotencyKey: row.idempotencyKey,
     lastErrorCode: row.lastErrorCode,
     lastErrorMessage: row.lastErrorMessage,
     requestedAt: toIso(row.requestedAt)!,
@@ -192,6 +208,10 @@ export const drizzleExternalDocumentsRepository: ExternalDocumentsRepository = {
         externalUrl: input.externalUrl ?? null,
         ...pdfColumns(input.pdf ?? null),
         allocationReference: input.allocationReference ?? null,
+        issuanceOutcome: input.issuanceOutcome ?? null,
+        reconciliationStatus: input.reconciliationStatus ?? null,
+        reconciliationMetadata: input.reconciliationMetadata ?? null,
+        idempotencyKey: input.idempotencyKey ?? null,
         lastErrorCode: input.lastErrorCode ?? null,
         lastErrorMessage: input.lastErrorMessage ?? null,
         issuedAt,
@@ -211,6 +231,14 @@ export const drizzleExternalDocumentsRepository: ExternalDocumentsRepository = {
     if (patch.allocationReference !== undefined) {
       set.allocationReference = patch.allocationReference;
     }
+    if (patch.issuanceOutcome !== undefined) set.issuanceOutcome = patch.issuanceOutcome;
+    if (patch.reconciliationStatus !== undefined) {
+      set.reconciliationStatus = patch.reconciliationStatus;
+    }
+    if (patch.reconciliationMetadata !== undefined) {
+      set.reconciliationMetadata = patch.reconciliationMetadata;
+    }
+    if (patch.idempotencyKey !== undefined) set.idempotencyKey = patch.idempotencyKey;
     if (patch.lastErrorCode !== undefined) set.lastErrorCode = patch.lastErrorCode;
     if (patch.lastErrorMessage !== undefined) set.lastErrorMessage = patch.lastErrorMessage;
     if (patch.issuedAt !== undefined) {

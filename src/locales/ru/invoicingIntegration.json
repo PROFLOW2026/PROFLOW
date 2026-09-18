@@ -39,11 +39,25 @@
     "title": "Нет внешнего налогового документа",
     "body": "После подключения провайдера вы сможете запросить юридический документ для завершённой записи выставления счёта."
   },
+  "settings": {
+    "sumitTitle": "SUMIT (test environment)",
+    "sumitDescription": "Connect your SUMIT Test Configuration account. Production is not available in this release.",
+    "companyId": "Company ID",
+    "apiKey": "API key",
+    "connect": "Connect test account",
+    "disconnect": "Disconnect",
+    "connectedAs": "Connected — Company ID {companyId}",
+    "testOnlyNotice": "Test environment only. Do not enter production credentials."
+  },
   "errors": {
     "connectionRequired": "Подключите внешнего провайдера выставления счетов перед запросом налогового документа.",
+    "connectionFailed": "Could not verify SUMIT test credentials.",
+    "productionBlocked": "SUMIT production connections are not available in this release.",
     "billingNotFinalized": "Только завершённые записи выставления счёта могут запрашивать внешний налоговый документ.",
     "localIssuanceForbidden": "Локальная выдача налоговых счетов-фактур не допускается.",
     "orgMismatch": "Запись выставления счёта не принадлежит этой организации.",
+    "duplicateIssuanceBlocked": "An external statutory document is already in progress or issued for this billing record.",
+    "ambiguousIssuance": "The provider response was ambiguous. Do not retry — use recovery or contact support.",
     "providerFailed": "Внешний провайдер выставления счетов не смог выполнить запрос.",
     "missingExternalId": "У этой записи пока нет внешнего id провайдера.",
     "creditUnsupported": "Этот провайдер не поддерживает кредит-ноты.",

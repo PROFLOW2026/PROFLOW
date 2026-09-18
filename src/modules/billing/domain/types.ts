@@ -14,6 +14,20 @@ export interface TaxSnapshot {
   readonly totalAmount: string;
   readonly currency: string;
   readonly capturedAt: string;
+  readonly vatMode?: 'inclusive' | 'exclusive' | 'zero';
+  readonly vatRatePercent?: number | null;
+}
+
+export interface CustomerSnapshot {
+  readonly name: string;
+  readonly companyNumber: string | null;
+  readonly externalIdentifier: string | null;
+  readonly email: string | null;
+  readonly phone: string | null;
+  readonly address: string | null;
+  readonly city: string | null;
+  readonly postalCode: string | null;
+  readonly noVat: boolean;
 }
 
 export interface BillingLineRecord {
@@ -111,6 +125,7 @@ export interface BillingRecordDetail extends BillingRecordSummary {
   readonly taxAmount: MoneyValue | null;
   readonly vatMode: string | null;
   readonly taxSnapshot: TaxSnapshot | null;
+  readonly customerSnapshot: CustomerSnapshot | null;
   readonly finalizedAt: Date | null;
   readonly voidedAt: Date | null;
   readonly voidsBillingRecordId: string | null;

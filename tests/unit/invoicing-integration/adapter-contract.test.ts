@@ -51,10 +51,25 @@ function finalizedBilling(overrides: Partial<BillingRecordBridgeRef> = {}): Bill
     kind: 'invoice',
     status: 'finalized',
     reference: 'BR-100',
+    subtotalAmount: { amount: '100.000000', currency: 'ILS' },
+    taxAmount: { amount: '17.000000', currency: 'ILS' },
     totalAmount: { amount: '117.000000', currency: 'ILS' },
+    vatMode: 'exclusive',
+    vatRatePercent: 17,
+    lines: [
+      {
+        description: 'Services',
+        lineNet: { amount: '100.000000', currency: 'ILS' },
+        quantity: '1',
+        unitPrice: '100.000000',
+      },
+    ],
+    issuer: null,
+    customer: null,
     issueDate: '2026-08-01',
     dueDate: '2026-08-31',
     notes: null,
+    externalReference: 'idem-create-1',
     ...overrides,
   };
 }
@@ -97,6 +112,8 @@ describe('StatutoryInvoicingProvider adapter contract', () => {
       idempotencyKey: 'idem-create-1',
     });
     expect(created.status).toBe('issued');
+    expect(created.issuanceOutcome).toBe('confirmed_created');
+    expect(created.reconciliationStatus).toBe('not_available');
     expect(created.externalNumber).toMatch(/^EXT-TEST-/);
     expect(created.externalUrl).toContain('https://example.test/statutory/');
     expect(created.pdf?.contentType).toBe('application/pdf');
@@ -127,6 +144,7 @@ describe('StatutoryInvoicingProvider adapter contract', () => {
     const cancelledSource = await requestExternalStatutoryDocument(ctx, {
       billing: finalizedBilling({
         billingRecordId: '01900000-0000-7000-8000-0000000000dd',
+        externalReference: 'idem-create-2',
       }),
       kind: 'tax_invoice',
       idempotencyKey: 'idem-create-2',

@@ -5,10 +5,13 @@ import { Alert } from '@/components/ui/alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { listAccountingIntegrations } from '@/modules/integrations';
+import { getSumitConnectionStatus } from '@/modules/invoicing-integration/server';
+import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { withOrgContext } from '@/shared/auth/session';
 import { canAccessSection, SETTINGS_SECTIONS } from '../_lib/access';
 import { SettingsNotAllowed } from '../settings-not-allowed';
 import { SettingsPageShell, settingsMetadata } from '../settings-shell';
+import { SumitIntegrationPanel } from './sumit-panel';
 
 export async function generateMetadata(): Promise<Metadata> {
   return settingsMetadata('integrations');
@@ -22,7 +25,9 @@ export default async function IntegrationsSettingsPage() {
     if (section && !canAccessSection(context, section)) return { allowed: false as const };
     try {
       const listed = await listAccountingIntegrations(context);
-      return { allowed: true as const, ...listed };
+      const sumit = await getSumitConnectionStatus(context);
+      const canManageSumit = context.permissions.has(PERMISSIONS.SETTINGS_MANAGE);
+      return { allowed: true as const, ...listed, sumit, canManageSumit };
     } catch {
       return {
         allowed: true as const,
@@ -31,6 +36,8 @@ export default async function IntegrationsSettingsPage() {
         syncJobs: [],
         adapterConnected: false as const,
         canManage: false,
+        sumit: { connected: false, companyId: null, providerId: null },
+        canManageSumit: false,
       };
     }
   });
@@ -47,6 +54,11 @@ export default async function IntegrationsSettingsPage() {
     <SettingsPageShell title={t('title')}>
       <div className="flex flex-col gap-4">
         <Alert tone="warning">{t('notice')}</Alert>
+        <SumitIntegrationPanel
+          connected={data.sumit.connected}
+          companyId={data.sumit.companyId}
+          canManage={data.canManageSumit}
+        />
         {data.catalog.length === 0 ? (
           <EmptyState icon={Plug} title={t('empty.title')} description={t('empty.body')} />
         ) : (

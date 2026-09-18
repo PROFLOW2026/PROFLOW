@@ -16,14 +16,23 @@ export type {
   ExternalDocumentStatus,
   ExternalPdfMetadata,
   ExternalStatutoryDocument,
+  InvoicingProviderCredentials,
+  IssuanceOutcome,
+  ReconciliationMetadata,
+  ReconciliationStatus,
+  StatutoryPartySnapshot,
   StatutoryProviderCapabilities,
   StatutoryProviderStatus,
 } from './domain/types';
 export {
+  BLOCKING_ISSUANCE_OUTCOMES,
   DISABLED_CAPABILITIES,
   EXTERNAL_DOCUMENT_KINDS,
   EXTERNAL_DOCUMENT_STATUSES,
   FULL_ADAPTER_CAPABILITIES,
+  ISSUANCE_OUTCOMES,
+  RECONCILIATION_STATUSES,
+  SUMIT_PROVIDER_ID,
 } from './domain/types';
 
 export type {
@@ -71,6 +80,7 @@ export {
 
 export {
   resetExternalDocumentsStoreForTests,
+  createExternalDocumentRow,
   findExternalDocumentById,
   listExternalDocumentsForBilling,
 } from './data/in-memory-external-documents.store';
@@ -99,7 +109,26 @@ export {
   getStatutoryProviderStatus,
   isStatutoryInvoicingFeatureEnabled,
 } from './application/provider-status';
+export {
+  sealInvoicingCredentials,
+  openInvoicingCredentials,
+} from './application/credential-seal';
 export { requestExternalStatutoryDocument } from './application/request-external-document';
+export {
+  assertIssuanceEligible,
+  findBlockingExternalDocument,
+  findReusableRejectedDocument,
+  isBlockingIssuanceOutcome,
+} from './domain/assert-issuance-eligible';
+export {
+  buildStatutoryExternalReference,
+  buildStatutoryIdempotencyKey,
+} from './domain/idempotency-key';
+export {
+  reconcileExternalAmounts,
+  type ProviderAmountSnapshot,
+  type ReconciliationResult,
+} from './domain/reconcile-external-amounts';
 export { refreshExternalStatutoryStatus } from './application/refresh-external-status';
 export {
   creditExternalStatutoryDocument,

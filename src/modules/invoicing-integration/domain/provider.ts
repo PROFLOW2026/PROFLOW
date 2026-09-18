@@ -1,3 +1,4 @@
+import type { ProviderAmountSnapshot } from './reconcile-external-amounts';
 import type { BillingRecordBridgeRef, ExternalDocumentKind, ExternalPdfMetadata } from './types';
 
 /**
@@ -36,6 +37,7 @@ export interface CreateExternalDocumentOutput {
   readonly status: 'pending' | 'issued';
   readonly pdf: ExternalPdfMetadata | null;
   readonly issuedAt: string | null;
+  readonly providerAmounts?: ProviderAmountSnapshot | null;
 }
 
 export interface RetrieveExternalStatusInput {

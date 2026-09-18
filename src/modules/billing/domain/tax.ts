@@ -181,6 +181,10 @@ export function captureTaxSnapshot(
   subtotalAmount: MoneyValue,
   taxAmount: MoneyValue | null,
   totalAmount: MoneyValue,
+  options?: {
+    readonly vatMode?: BillingVatMode | null;
+    readonly vatRatePercent?: number | null;
+  },
 ): TaxSnapshot {
   return {
     subtotalAmount: subtotalAmount.amount,
@@ -188,5 +192,7 @@ export function captureTaxSnapshot(
     totalAmount: totalAmount.amount,
     currency: totalAmount.currency,
     capturedAt: toIsoInstant(new Date()),
+    vatMode: options?.vatMode ?? undefined,
+    vatRatePercent: options?.vatRatePercent ?? undefined,
   };
 }

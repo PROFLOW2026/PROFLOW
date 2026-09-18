@@ -16,6 +16,9 @@ import type {
   ExternalDocumentStatus,
   ExternalPdfMetadata,
   ExternalStatutoryDocument,
+  IssuanceOutcome,
+  ReconciliationMetadata,
+  ReconciliationStatus,
 } from '../domain/types';
 import {
   createExternalDocumentRow as createInMemory,
@@ -77,6 +80,10 @@ export async function createExternalDocument(
     externalUrl?: string | null;
     pdf?: ExternalPdfMetadata | null;
     allocationReference?: string | null;
+    issuanceOutcome?: IssuanceOutcome | null;
+    reconciliationStatus?: ReconciliationStatus | null;
+    reconciliationMetadata?: ReconciliationMetadata | null;
+    idempotencyKey?: string | null;
     lastErrorCode?: string | null;
     lastErrorMessage?: string | null;
     issuedAt?: string | null;
@@ -100,6 +107,10 @@ export async function createExternalDocument(
       externalUrl: input.externalUrl,
       pdf: input.pdf,
       allocationReference: input.allocationReference,
+      issuanceOutcome: input.issuanceOutcome,
+      reconciliationStatus: input.reconciliationStatus,
+      reconciliationMetadata: input.reconciliationMetadata,
+      idempotencyKey: input.idempotencyKey,
       lastErrorCode: input.lastErrorCode,
       lastErrorMessage: input.lastErrorMessage,
       issuedAt: input.issuedAt,

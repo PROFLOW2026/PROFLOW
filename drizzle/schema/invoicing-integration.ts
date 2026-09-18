@@ -42,6 +42,10 @@ export const externalStatutoryDocuments = pgTable(
     pdfStorageDocumentId: uuid('pdf_storage_document_id'),
     pdfFileName: text('pdf_file_name'),
     allocationReference: text('allocation_reference'),
+    issuanceOutcome: text('issuance_outcome'),
+    reconciliationStatus: text('reconciliation_status'),
+    reconciliationMetadata: jsonb('reconciliation_metadata'),
+    idempotencyKey: text('idempotency_key'),
     lastErrorCode: text('last_error_code'),
     lastErrorMessage: text('last_error_message'),
     requestedAt: timestamp('requested_at', { withTimezone: true, mode: 'date' })
@@ -68,6 +72,26 @@ export const externalStatutoryDocuments = pgTable(
     check(
       'external_statutory_documents_status_known',
       sql`${table.status} IN ('requested', 'pending', 'issued', 'allocated', 'credited', 'cancelled', 'failed')`,
+    ),
+    check(
+      'external_statutory_documents_issuance_outcome_known',
+      sql`${table.issuanceOutcome} IS NULL OR ${table.issuanceOutcome} IN ('in_flight', 'confirmed_rejected', 'confirmed_created', 'ambiguous')`,
+    ),
+    check(
+      'external_statutory_documents_reconciliation_status_known',
+      sql`${table.reconciliationStatus} IS NULL OR ${table.reconciliationStatus} IN ('pending', 'matched', 'mismatch', 'not_available')`,
+    ),
+    uniqueIndex('idx_ext_stat_docs_blocking_tax_invoice_uq')
+      .on(table.organizationId, table.billingRecordId, table.kind)
+      .where(
+        sql`${table.kind} = 'tax_invoice' AND ${table.issuanceOutcome} IN ('in_flight', 'ambiguous', 'confirmed_created')`,
+      ),
+    uniqueIndex('idx_ext_stat_docs_org_idempotency_uq')
+      .on(table.organizationId, table.idempotencyKey)
+      .where(sql`${table.idempotencyKey} is not null`),
+    index('idx_ext_stat_docs_org_issuance_outcome').on(
+      table.organizationId,
+      table.issuanceOutcome,
     ),
     foreignKey({
       name: 'external_statutory_documents_billing_org_fk',
@@ -98,6 +122,10 @@ export const externalInvoicingProviderConnections = pgTable(
   },
   (table) => [
     uniqueIndex('external_invoicing_provider_connections_org_uq').on(table.organizationId),
+    uniqueIndex('external_invoicing_provider_connections_id_org_uq').on(
+      table.id,
+      table.organizationId,
+    ),
     check(
       'external_invoicing_provider_connections_provider_not_local',
       sql`${table.providerId} NOT IN ('local', 'projectflow-local')`,

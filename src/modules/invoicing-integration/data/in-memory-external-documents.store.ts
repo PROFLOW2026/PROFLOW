@@ -12,6 +12,9 @@ import type {
   ExternalDocumentStatus,
   ExternalPdfMetadata,
   ExternalStatutoryDocument,
+  IssuanceOutcome,
+  ReconciliationMetadata,
+  ReconciliationStatus,
 } from '../domain/types';
 
 type Row = ExternalStatutoryDocument;
@@ -46,6 +49,10 @@ export function createExternalDocumentRow(input: {
   externalUrl?: string | null;
   pdf?: ExternalPdfMetadata | null;
   allocationReference?: string | null;
+  issuanceOutcome?: IssuanceOutcome | null;
+  reconciliationStatus?: ReconciliationStatus | null;
+  reconciliationMetadata?: ReconciliationMetadata | null;
+  idempotencyKey?: string | null;
   lastErrorCode?: string | null;
   lastErrorMessage?: string | null;
   issuedAt?: string | null;
@@ -63,6 +70,10 @@ export function createExternalDocumentRow(input: {
     externalUrl: input.externalUrl ?? null,
     pdf: input.pdf ?? null,
     allocationReference: input.allocationReference ?? null,
+    issuanceOutcome: input.issuanceOutcome ?? null,
+    reconciliationStatus: input.reconciliationStatus ?? null,
+    reconciliationMetadata: input.reconciliationMetadata ?? null,
+    idempotencyKey: input.idempotencyKey ?? null,
     lastErrorCode: input.lastErrorCode ?? null,
     lastErrorMessage: input.lastErrorMessage ?? null,
     requestedAt,
@@ -83,6 +94,10 @@ export function updateExternalDocumentRow(
     externalUrl: string | null;
     pdf: ExternalPdfMetadata | null;
     allocationReference: string | null;
+    issuanceOutcome: IssuanceOutcome | null;
+    reconciliationStatus: ReconciliationStatus | null;
+    reconciliationMetadata: ReconciliationMetadata | null;
+    idempotencyKey: string | null;
     lastErrorCode: string | null;
     lastErrorMessage: string | null;
     issuedAt: string | null;

@@ -39,11 +39,25 @@
     "title": "No external statutory document",
     "body": "After the provider is connected, you can request a legal document for a finalized billing record."
   },
+  "settings": {
+    "sumitTitle": "SUMIT (test environment)",
+    "sumitDescription": "Connect your SUMIT Test Configuration account to issue tax invoices. Production is not available in this release.",
+    "companyId": "Company ID",
+    "apiKey": "API key",
+    "connect": "Connect test account",
+    "disconnect": "Disconnect",
+    "connectedAs": "Connected — Company ID {companyId}",
+    "testOnlyNotice": "Test environment only. Do not enter production credentials."
+  },
   "errors": {
     "connectionRequired": "Connect an external invoicing provider before requesting a statutory document.",
+    "connectionFailed": "Could not verify SUMIT test credentials.",
+    "productionBlocked": "SUMIT production connections are not available in this release.",
     "billingNotFinalized": "Only finalized billing records can request an external statutory document.",
     "localIssuanceForbidden": "Local statutory invoice issuance is not allowed.",
     "orgMismatch": "Billing record does not belong to this organization.",
+    "duplicateIssuanceBlocked": "An external statutory document is already in progress or issued for this billing record.",
+    "ambiguousIssuance": "The provider response was ambiguous. Do not retry — use recovery or contact support.",
     "providerFailed": "The external invoicing provider could not complete the request.",
     "missingExternalId": "This record has no external provider id yet.",
     "creditUnsupported": "This provider does not support credit notes.",
