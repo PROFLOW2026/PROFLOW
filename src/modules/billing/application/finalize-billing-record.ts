@@ -8,7 +8,7 @@ import {
   rethrowClosedPeriodRewrite,
   yearMonthFromBusinessDate,
 } from '@/modules/month-close';
-import { getClientDetail } from '@/modules/clients/data/clients.repository';
+import { getClientDetail } from '@/modules/clients';
 import { heldRemainingOnPost } from '@/modules/retention';
 import { money } from '@/shared/money';
 import { findBillingRecordById, updateBillingRecordRow } from '../data/billing.repository';
