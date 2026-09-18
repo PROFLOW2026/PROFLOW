@@ -292,6 +292,11 @@ async function main() {
     }
 
     const billing = await getBillingRecord(context, billingRecordId);
+    if (resolvedVatRatePercent == null) {
+      const taxPreview = await resolveApplicableDefaultTax(context, billing.issueDate);
+      resolvedVatRatePercent =
+        taxPreview.resolved.ratePercent != null ? String(taxPreview.resolved.ratePercent) : null;
+    }
     const billingUrl = `${PRODUCTION_APP_BASE}/he-IL/billing/${billingRecordId}`;
 
     const ready =
