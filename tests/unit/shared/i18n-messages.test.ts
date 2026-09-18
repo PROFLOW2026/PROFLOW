@@ -209,35 +209,41 @@ describe('message catalogs', () => {
     }
   });
 
-  it('he-IL includes every English key (completeness)', () => {
-    const gaps: Array<{ namespace: string; missing: string[] }> = [];
-    for (const namespace of MESSAGE_NAMESPACES) {
-      const missing = missingLocaleKeys(
-        flattenLocaleCatalog(readLocaleCatalog('en', namespace)),
-        flattenLocaleCatalog(readLocaleCatalog('he-IL', namespace)),
-      );
-      if (missing.length > 0) gaps.push({ namespace, missing });
-    }
-    expect(gaps).toEqual([]);
-  });
-
-  it('he-IL does not silently reuse English copy (except allowlisted LTR islands)', () => {
-    const residue: Array<{ namespace: string; key: string; value: string }> = [];
-    for (const namespace of MESSAGE_NAMESPACES) {
-      const english = flattenLocaleCatalog(readLocaleCatalog('en', namespace));
-      const hebrew = flattenLocaleCatalog(readLocaleCatalog('he-IL', namespace));
-      for (const [key, enValue] of english) {
-        const heValue = hebrew.get(key);
-        if (heValue === undefined || heValue !== enValue) continue;
-        if (!/[A-Za-z]{3,}/.test(enValue)) continue;
-        if (/^\{[^}]+\}$/.test(enValue.trim())) continue;
-        const dotted = `${namespace}.${key}`;
-        if (IDENTICAL_MESSAGE_ALLOWLIST.has(dotted)) continue;
-        residue.push({ namespace, key, value: enValue });
+  it.each(['he-IL', 'ar', 'ru'] as const)(
+    '%s includes every English key (completeness)',
+    (locale) => {
+      const gaps: Array<{ namespace: string; missing: string[] }> = [];
+      for (const namespace of MESSAGE_NAMESPACES) {
+        const missing = missingLocaleKeys(
+          flattenLocaleCatalog(readLocaleCatalog('en', namespace)),
+          flattenLocaleCatalog(readLocaleCatalog(locale, namespace)),
+        );
+        if (missing.length > 0) gaps.push({ namespace, missing });
       }
-    }
-    expect(residue).toEqual([]);
-  });
+      expect(gaps).toEqual([]);
+    },
+  );
+
+  it.each(['he-IL', 'ar', 'ru'] as const)(
+    '%s does not silently reuse English copy (except allowlisted LTR islands)',
+    (locale) => {
+      const residue: Array<{ namespace: string; key: string; value: string }> = [];
+      for (const namespace of MESSAGE_NAMESPACES) {
+        const english = flattenLocaleCatalog(readLocaleCatalog('en', namespace));
+        const translated = flattenLocaleCatalog(readLocaleCatalog(locale, namespace));
+        for (const [key, enValue] of english) {
+          const other = translated.get(key);
+          if (other === undefined || other !== enValue) continue;
+          if (!/[A-Za-z]{3,}/.test(enValue)) continue;
+          if (/^\{[^}]+\}$/.test(enValue.trim())) continue;
+          const dotted = `${namespace}.${key}`;
+          if (IDENTICAL_MESSAGE_ALLOWLIST.has(dotted)) continue;
+          residue.push({ namespace, key, value: enValue });
+        }
+      }
+      expect(residue).toEqual([]);
+    },
+  );
 
   it('settings.activity.actions covers every AUDIT_ACTION value', () => {
     const activity = readLocaleCatalog('en', 'settings').activity as Catalog | undefined;

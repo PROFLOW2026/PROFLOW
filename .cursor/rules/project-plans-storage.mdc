@@ -1,0 +1,64 @@
+---
+description: Save Owner build plans as Cursor .plan.md files under .cursor/plans/
+alwaysApply: true
+---
+
+# Project plans storage (mandatory)
+
+Read and obey whenever the Owner asks to **plan**, **design**, **prepare a build plan**,
+**Phase 0**, **MVP scope**, or similar.
+
+## Canonical location
+
+**All Owner build plans → `.cursor/plans/*.plan.md`**
+
+These are **Cursor Plans** (interactive todos + overview), **not** markdown docs in `docs/`.
+
+Do **not** save build plans under `docs/`, chat-only output, or global `~/.cursor/plans/`.
+
+If Plan mode / CreatePlan writes to the global Cursor folder, **immediately copy**
+the plan into `.cursor/plans/` with `isProject: true` and tell the Owner the
+project path — global-only is not acceptable.
+
+## When to save (automatic)
+
+Create or update a `.plan.md` file **without asking** when:
+
+1. The Owner requests a plan to build later
+2. You produce a structured multi-section plan (phases, scope, checklist, architecture)
+3. Plan-mode output is meant to be kept for future execution
+
+## Required file format
+
+Filename: `<topic_slug>.plan.md` (snake_case, e.g. `sumit_integration_phase_0.plan.md`)
+
+```yaml
+---
+name: Human-readable title
+overview: One-paragraph summary of goal and scope
+todos:
+  - id: kebab-case-id
+    content: "Actionable step"
+    status: pending
+isProject: true
+---
+
+# Plan body (markdown sections as needed)
+```
+
+Rules:
+- **`isProject: true`** always — ties the plan to this repo
+- **`todos`** must list concrete build steps the Owner can track in Cursor Plans UI
+- Update the same file in place unless the Owner asks for a new version
+
+## After saving
+
+Tell the Owner the exact path (e.g. `.cursor/plans/my_feature.plan.md`) in one short line.
+
+## Not plans (keep elsewhere)
+
+| Type | Location |
+|------|----------|
+| Audits, closure reports, investigations | `docs/audits/` |
+| Product specs / gap matrices | `docs/product/` |
+| Active wave implementation notes | `docs/implementation/` |

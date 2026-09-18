@@ -1,0 +1,88 @@
+{
+  "title": "إغلاق المشروع",
+  "navLabel": "الإغلاق",
+  "description": "نهاية مُتحكّم بها للمشروع. يُحفظ التاريخ.",
+  "lifecycle": {
+    "active": "نشط",
+    "ready": "جاهز للإغلاق",
+    "closed": "مغلق",
+    "reopened": "أُعيد فتحه"
+  },
+  "badge": {
+    "ready": "جاهز للإغلاق"
+  },
+  "readiness": {
+    "title": "جاهزية الإغلاق",
+    "hard": "يجب حلها قبل الإغلاق",
+    "warning": "تحذير",
+    "info": "للعلم",
+    "empty": "لا شيء معلّق لهذا الفحص.",
+    "items": {
+      "openDefects": "عيوب مفتوحة",
+      "openInspections": "تفتيشات مفتوحة أو فاشلة",
+      "incompleteForms": "نماذج مطلوبة غير مُرسَلة",
+      "openSafety": "بنود سلامة مفتوحة",
+      "unresolvedChanges": "تغييرات غير محلولة",
+      "unapprovedTime": "وقت غير معتمد",
+      "openCommitments": "التزامات مفتوحة",
+      "openPurchaseOrders": "أوامر شراء مفتوحة",
+      "noPurchaseRequestStage": "طلبات الشراء خارج النطاق عمداً — استخدم أوامر الشراء المفتوحة أو المصروفات بدلاً من ذلك.",
+      "openSupplierLiabilities": "أرصدة موردين مفتوحة",
+      "openClientBalances": "أرصدة عملاء مفتوحة",
+      "unbilledWork": "عمل معتمد غير مُفوتر بعد",
+      "remainingRetention": "حجز متبقٍ",
+      "openSubcontract": "بنود مقاولي باطن مفتوحة",
+      "missingDocuments": "مستندات إغلاق مطلوبة مفقودة",
+      "unfinishedMilestones": "معالم غير منجزة"
+    }
+  },
+  "snapshot": {
+    "title": "الصورة المالية النهائية",
+    "originalContract": "العقد الأصلي",
+    "currentContract": "العقد الحالي",
+    "approvedChanges": "التغييرات المعتمدة",
+    "actualCost": "التكلفة الفعلية",
+    "remainingCommitments": "الالتزامات المتبقية",
+    "totalBilling": "إجمالي الفوترة",
+    "paymentsReceived": "المدفوعات المستلمة",
+    "outstandingClient": "رصيد عميل مستحق",
+    "supplierOutstanding": "مستحقات موردين",
+    "retentionHeld": "حجز محتجز",
+    "expectedProfit": "الربح المتوقع",
+    "margin": "الهامش",
+    "unavailable": "غير متاح مع الصلاحيات الحالية."
+  },
+  "actions": {
+    "start": "بدء الإغلاق",
+    "markReady": "تحديد جاهز للإغلاق",
+    "close": "إغلاق المشروع",
+    "reopen": "إعادة فتح المشروع",
+    "closeConfirm": "إغلاق هذا المشروع؟ يبقى التاريخ. يمكنك إعادة الفتح لاحقاً مع سبب.",
+    "reopenConfirm": "إعادة فتح هذا المشروع؟ سجّل من ومتى ولماذا.",
+    "reason": "السبب",
+    "reasonRequired": "السبب مطلوب.",
+    "closed": "تم إغلاق المشروع.",
+    "reopened": "تمت إعادة فتح المشروع.",
+    "blocked": "حلّ البنود المانعة قبل الإغلاق.",
+    "jobsHint": "يمكن إكمال الأعمال وطلبات الخدمة دون إغلاق كامل."
+  },
+  "history": {
+    "title": "سجل الإغلاق",
+    "empty": "لا إجراءات إغلاق بعد.",
+    "actor": "بواسطة {name}",
+    "at": "في {date}"
+  },
+  "empty": {
+    "title": "لم يبدأ الإغلاق",
+    "body": "راجع الجاهزية، ثم أغلق المشروع عند انتهاء العمل."
+  },
+  "errors": {
+    "notCloseable": "لا يمكن إغلاق هذا المشروع بعد.",
+    "alreadyClosed": "هذا المشروع مغلق بالفعل.",
+    "notClosed": "هذا المشروع غير مغلق.",
+    "jobsUseComplete": "أكمل العمل من حالته بدلاً من إغلاق المشروع.",
+    "useCloseout": "أغلق هذا المشروع من الإغلاق، وليس من حقل الحالة.",
+    "useReopen": "أعد فتح هذا المشروع من الإغلاق، مع سبب. وليس من حقل الحالة.",
+    "reasonRequired": "السبب مطلوب."
+  }
+}

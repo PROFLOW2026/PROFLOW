@@ -37,7 +37,9 @@ export default async function EmployeeHomePage() {
   return (
     <div className="flex flex-col gap-6">
       <header>
-        <h1 className="text-2xl font-bold">{t('greeting', { name: data.employeeName || '—' })}</h1>
+        <h1 className="text-2xl font-bold">
+          {t('greeting', { name: data.employeeName || t('home.anonymousName') })}
+        </h1>
       </header>
 
       <EmployeeInstallButton />

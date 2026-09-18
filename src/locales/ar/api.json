@@ -1,0 +1,88 @@
+{
+  "title": "API و webhooks",
+  "subtitle": "سطح أساس للمطورين: إدارة مفاتيح الوصول وإشعارات webhook للأنظمة الخارجية.",
+  "versionNote": "هذه المفاتيح للمطورين الذين يربطون نظاماً خارجياً. تسجيل الدخول للتطبيق لا يستبدل المفتاح.",
+  "moreInfo": "مزيد من المعلومات",
+  "versionNoteDetails": "أرسل مفتاح API في رأس Authorization. تسجيل الدخول من المتصفح لا ينطبق على هذه المفاتيح.",
+  "addClient": "إنشاء عميل",
+  "clientSaved": "تم إنشاء عميل API.",
+  "addKey": "إنشاء مفتاح",
+  "keysTitle": "مفاتيح API",
+  "keysEmpty": "لا توجد مفاتيح API بعد.",
+  "keyOnce": "انسخ هذا المفتاح الآن. يُعرض مرة واحدة فقط.",
+  "secretOnce": "انسخ سر webhook الآن. يُعرض مرة واحدة فقط.",
+  "revoke": "إلغاء",
+  "rotate": "تدوير",
+  "rotateSecret": "تدوير السر",
+  "neverUsed": "أبداً",
+  "attempts": "{count} محاولات",
+  "addWebhook": "تسجيل نقطة نهاية",
+  "webhooksTitle": "نقاط نهاية webhook",
+  "webhooksEmpty": "لا توجد نقاط نهاية webhook بعد.",
+  "eventTypesHint": "HTTPS فقط (http مسموح لـ localhost). اختر من أنواع الأحداث المسموح بها.",
+  "enqueueTest": "إدراج اختبار",
+  "deliveriesTitle": "التسليمات الأخيرة",
+  "deliveriesEmpty": "لم تُسجّل تسليمات بعد.",
+  "deliveryQueued": "تم تسجيل التسليم كمعلق.",
+  "deliveryAttemptRecorded": "تم تسجيل محاولة تسليم (بدون HTTP صادر).",
+  "markDeliverySuccess": "تسجيل نجاح",
+  "markDeliveryFailure": "تسجيل فشل",
+  "fields": {
+    "clientName": "اسم العميل",
+    "keyName": "اسم المفتاح",
+    "apiClient": "عميل API",
+    "scopes": "النطاقات",
+    "url": "رابط نقطة النهاية",
+    "eventTypes": "أنواع الأحداث"
+  },
+  "columns": {
+    "name": "الاسم",
+    "prefix": "البادئة",
+    "scopes": "النطاقات",
+    "lastUsed": "آخر استخدام",
+    "status": "الحالة",
+    "actions": "الإجراءات",
+    "url": "الرابط",
+    "events": "الأحداث"
+  },
+  "status": {
+    "active": "نشط",
+    "revoked": "ملغى"
+  },
+  "scopes": {
+    "projects": {
+      "read": "قراءة المشاريع"
+    },
+    "clients": {
+      "read": "قراءة العملاء"
+    },
+    "billing": {
+      "read": "قراءة الفوترة"
+    },
+    "webhooks": {
+      "manage": "إدارة webhooks"
+    }
+  },
+  "events": {
+    "test": {
+      "ping": "اختبار اتصال"
+    },
+    "project": {
+      "created": "تم إنشاء مشروع",
+      "updated": "تم تحديث مشروع"
+    },
+    "client": {
+      "updated": "تم تحديث عميل"
+    },
+    "billing": {
+      "invoice": {
+        "issued": "تم إصدار فوترة"
+      }
+    },
+    "api": {
+      "key": {
+        "revoked": "تم إلغاء مفتاح الوصول"
+      }
+    }
+  }
+}

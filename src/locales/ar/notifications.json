@@ -1,0 +1,165 @@
+{
+  "title": "الإشعارات",
+  "bellLabel": "تنبيهات",
+  "unreadCount": "{count, plural, one {غير مقروء واحد} other {# غير مقروء}}",
+  "empty": "لا إشعارات",
+  "emptyHint": "تنبيهات عن بنود متأخرة وموافقات وانتهاء صلاحية. صندوق عمل اليوم صفحة منفصلة.",
+  "loading": "جاري تحميل الإشعارات…",
+  "error": "تعذّر تحميل الإشعارات.",
+  "retry": "حاول مرة أخرى",
+  "markRead": "تحديد كمقروء",
+  "markAllRead": "تحديد الكل كمقروء",
+  "allCaughtUp": "الكل مُطلَع عليه",
+  "severity": {
+    "info": "معلومة",
+    "warning": "تحذير",
+    "urgent": "عاجل"
+  },
+  "types": {
+    "billing_overdue": "فوترة عميل متأخرة",
+    "ap_due_soon": "حساب مورد يستحق قريباً",
+    "ap_overdue": "حساب مورد متأخر",
+    "approval_waiting": "بانتظار الموافقة",
+    "timesheet_waiting": "جدول وقت بانتظار",
+    "employee_missing_report": "تقرير وقت مفقود",
+    "document_expiring": "مستند ينتهي",
+    "task_overdue": "مهمة متأخرة",
+    "boq_awaiting_approval": "BOQ بانتظار الموافقة",
+    "work_order_assigned": "تعيين طلب خدمة",
+    "punch_assigned": "تعيين بند إصلاح",
+    "low_stock": "مخزون منخفض",
+    "safety_action_due": "إجراء سلامة مستحق",
+    "warranty_expiring": "ضمان ينتهي",
+    "closeout_blockers": "إغلاق محظور",
+    "communication_failed": "لم تُرسَل الرسالة",
+    "automation_output": "متابعة أتمتة",
+    "billing_plan_cycle_draft": "حساب تقدم بانتظار الإصدار",
+    "billing_plan_milestone_due": "معلم فوترة يستحق قريباً",
+    "billing_plan_retention_held": "حجز محتجز للإفراج",
+    "action_required": "إجراء مطلوب"
+  },
+  "copy": {
+    "billing_overdue": {
+      "titleWithReference": "فوترة عميل متأخرة - {reference}",
+      "titleDefault": "فوترة عميل متأخرة",
+      "bodyWithExtra": "مستحق {extra}",
+      "bodyDefault": "الفوترة المنهية لا تزال لها رصيد مستحق."
+    },
+    "ap_due_soon": {
+      "titleWithReference": "حساب مورد يستحق قريباً - {reference}",
+      "titleDefault": "حساب مورد يستحق قريباً",
+      "bodyWithExtra": "يستحق {extra}",
+      "bodyDefault": "يستحق خلال سبعة أيام."
+    },
+    "ap_overdue": {
+      "titleWithReference": "حساب مورد متأخر - {reference}",
+      "titleDefault": "حساب مورد متأخر",
+      "bodyWithExtra": "متأخر منذ {extra}",
+      "bodyDefault": "حساب المورد تجاوز تاريخ الاستحقاق."
+    },
+    "approval_waiting": {
+      "title": "بانتظار الموافقة",
+      "bodyWithReference": "{reference} بانتظار قرار.",
+      "bodyDefault": "طلب بانتظار الموافقة."
+    },
+    "timesheet_waiting": {
+      "title": "جدول وقت بانتظار",
+      "bodyWithExtra": "الفترة {extra}",
+      "bodyDefault": "جدول وقت مُرسَل بانتظار الموافقة."
+    },
+    "employee_missing_report": {
+      "title": "تقرير وقت مفقود",
+      "body": "تقرير موظف مطلوب مفقود."
+    },
+    "document_expiring": {
+      "titleWithReference": "مستند ينتهي - {reference}",
+      "titleDefault": "مستند ينتهي",
+      "bodyWithExtra": "ينتهي {extra}",
+      "bodyDefault": "جدّد أو استبدل هذا المستند."
+    },
+    "task_overdue": {
+      "titleWithReference": "مهمة متأخرة - {reference}",
+      "titleDefault": "مهمة متأخرة",
+      "bodyWithExtra": "الهدف {extra}",
+      "bodyDefault": "بند تخطيط تجاوز تاريخه المستهدف."
+    },
+    "boq_awaiting_approval": {
+      "title": "BOQ بانتظار الموافقة",
+      "bodyWithExtra": "{extra}",
+      "bodyDefault": "دفعة قياس تقدم بانتظار الموافقة."
+    },
+    "work_order_assigned": {
+      "titleWithReference": "تعيين طلب خدمة - {reference}",
+      "titleDefault": "تعيين طلب خدمة",
+      "body": "عُيّن لك طلب خدمة."
+    },
+    "punch_assigned": {
+      "titleWithReference": "تعيين بند إصلاح - {reference}",
+      "titleDefault": "تعيين بند إصلاح",
+      "body": "عُيّن لك بند قائمة إصلاح."
+    },
+    "low_stock": {
+      "titleWithReference": "مخزون منخفض - {reference}",
+      "titleDefault": "مخزون منخفض",
+      "bodyWithExtra": "{extra}",
+      "bodyDefault": "الكمية المتاحة عند أو دون حد إعادة الطلب."
+    },
+    "safety_action_due": {
+      "titleWithReference": "إجراء سلامة مستحق - {reference}",
+      "titleDefault": "إجراء سلامة مستحق",
+      "bodyWithExtra": "يستحق {extra}",
+      "bodyDefault": "إجراء تصحيحي تجاوز تاريخ الاستحقاق."
+    },
+    "warranty_expiring": {
+      "titleWithReference": "ضمان ينتهي - {reference}",
+      "titleDefault": "ضمان ينتهي",
+      "bodyWithExtra": "ينتهي {extra}",
+      "bodyDefault": "تغطية الضمان قرب تاريخ الانتهاء."
+    },
+    "closeout_blockers": {
+      "titleWithReference": "إغلاق محظور - {reference}",
+      "titleDefault": "إغلاق محظور",
+      "bodyWithExtra": "{extra}",
+      "bodyDefault": "بنود مانعة تبقى قبل إمكانية إغلاق المشروع."
+    },
+    "communication_failed": {
+      "titleWithReference": "لم تُرسَل الرسالة - {reference}",
+      "titleDefault": "لم تُرسَل الرسالة",
+      "bodyWithExtra": "{extra}",
+      "bodyDefault": "فشل التسليم أو لم يُؤكّد من المزود."
+    },
+    "automation_output": {
+      "titleWithReference": "الأتمتة تحتاج متابعة - {reference}",
+      "titleDefault": "الأتمتة تحتاج متابعة",
+      "bodyWithExtra": "{extra}",
+      "bodyDefault": "تشغيل أتمتة فشل أو أنتج مخرجات للمراجعة."
+    },
+    "billing_plan_cycle_draft": {
+      "titleWithReference": "حساب تقدم بانتظار الإصدار - {reference}",
+      "titleDefault": "حساب تقدم بانتظار الإصدار",
+      "bodyWithExtra": "الحالة {extra} · جاهز للإصدار كفوترة عميل.",
+      "bodyDefault": "دورة مسودة أو جاهزة بانتظار الإصدار."
+    },
+    "billing_plan_milestone_due": {
+      "titleWithReference": "معلم فوترة يستحق قريباً - {reference}",
+      "titleDefault": "معلم فوترة يستحق قريباً",
+      "bodyWithExtra": "الهدف {extra}",
+      "bodyDefault": "بند خطة فوترة يقترب من تاريخه المستهدف."
+    },
+    "billing_plan_retention_held": {
+      "titleWithReference": "حجز محتجز للإفراج - {reference}",
+      "titleDefault": "حجز محتجز للإفراج",
+      "bodyWithExtra": "حجز متبقٍ محتجز · {extra}",
+      "bodyDefault": "خطة فوترة لا تزال تحتجز حجزاً يمكن إفراجه."
+    },
+    "action_required": {
+      "titleWithReference": "{reference}",
+      "titleDefault": "إجراء مطلوب",
+      "bodyWithExtra": "{extra}",
+      "bodyDefault": "بند يحتاج انتباهك الآن."
+    }
+  },
+  "viewAll": "عرض الكل",
+  "scan": "تحديث",
+  "pageDescription": "تنبيهات تحتاج انتباهاً. صندوق عمل اليوم منفصل."
+}

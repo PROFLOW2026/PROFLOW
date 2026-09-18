@@ -19,6 +19,7 @@ import {
 } from '@/modules/tenancy';
 import { getSessionState, withOrgContext } from '@/shared/auth/session';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { isLocale } from '@/shared/i18n/config';
 import { redirect } from '@/shared/i18n/navigation';
 import { WithClientMessages } from '@/shared/i18n/with-client-messages';
 import { DashboardSkeleton } from './(app)/(home)/dashboard-skeleton';
@@ -38,7 +39,15 @@ export async function generateMetadata({
   const description = t('meta.description');
   const ogTitle = t('meta.ogTitle');
   const ogDescription = t('meta.ogDescription');
-  const canonicalPath = locale === 'en' ? '/en' : '/he-IL';
+  const canonicalPath = isLocale(locale) ? `/${locale}` : '/he-IL';
+  const ogLocale =
+    locale === 'en'
+      ? 'en_US'
+      : locale === 'ar'
+        ? 'ar_IL'
+        : locale === 'ru'
+          ? 'ru_IL'
+          : 'he_IL';
 
   return {
     title: { absolute: title },
@@ -47,7 +56,7 @@ export async function generateMetadata({
     openGraph: {
       title: ogTitle,
       description: ogDescription,
-      locale: locale === 'en' ? 'en_US' : 'he_IL',
+      locale: ogLocale,
       type: 'website',
       url: canonicalPath,
     },

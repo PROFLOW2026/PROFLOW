@@ -75,7 +75,16 @@
     "clockOut": "Clock out",
     "myHours": "My hours",
     "notLinked": "Employee account is not linked. Contact your manager",
-    "installApp": "Install app"
+    "installApp": "Install app",
+    "anonymousName": "there"
+  },
+  "lists": {
+    "tasksEmpty": "No tasks assigned yet",
+    "projectsEmpty": "No projects assigned yet",
+    "hoursEmpty": "No hours logged yet",
+    "documentsEmpty": "No documents yet",
+    "noCategory": "Uncategorized",
+    "noValue": "None"
   },
   "admin": {
     "title": "App access",

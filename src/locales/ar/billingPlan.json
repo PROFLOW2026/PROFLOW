@@ -1,0 +1,404 @@
+{
+  "title": "خطة فوترة المشروع",
+  "subtitle": "جدولة حسابات التقدم مقابل العقد. إصدار دورة ينشئ فوترة — وليس دفعة.",
+  "panel": {
+    "title": "خطة الفوترة",
+    "emptyTitle": "لا خطة فوترة بعد",
+    "emptyBody": "أنشئ خطة لجدولة حسابات جزئية مقابل قيمة العقد.",
+    "emptyAction": "إنشاء خطة فوترة",
+    "oneActiveHint": "خطة نشطة واحدة فقط مسموحة لكل مشروع وعقد.",
+    "noContract": "أضف مبلغ عقد أولاً، ثم أنشئ خطة فوترة.",
+    "selectContract": "العقد لهذه الخطة",
+    "simplifiedHint": "جدول ثلاث دفعات بسيط. فعّل الخطة، ثم أصدر حسابات التقدم."
+  },
+  "strip": {
+    "nextStage": "المرحلة التالية",
+    "billedPercent": "نسبة المفوتر %",
+    "unbilled": "متبقٍ غير مفوتر",
+    "draftAccount": "حساب مسودة",
+    "noDraftAccount": "لا شيء"
+  },
+  "summary": {
+    "contractValue": "قيمة العقد",
+    "planned": "مخطط",
+    "billed": "مفوتر حتى الآن",
+    "remainingPlanned": "متبقٍ للفوترة",
+    "unplanned": "غير مخطط",
+    "retentionHeld": "حجز مُتراكم",
+    "retentionReleased": "حجز مُفرج عنه",
+    "currentAccount": "الحساب الحالي"
+  },
+  "empty": {
+    "title": "خطة الفوترة",
+    "description": "أدِر كيف ومتى يُفوتر العميل عبر المشروع.",
+    "createPlan": "إنشاء خطة",
+    "fromTemplate": "اختر قالباً",
+    "importExcel": "استيراد من Excel"
+  },
+  "delete": {
+    "action": "حذف الخطة",
+    "confirm": "حذف خطة الفوترة هذه؟ لا يمكن التراجع."
+  },
+  "lines": {
+    "title": "بنود الخطة",
+    "label": "التسمية",
+    "base": "الأساس",
+    "prior": "سابق",
+    "current": "حالي",
+    "cumulative": "تراكمي",
+    "priorPercent": "سابق %",
+    "priorAmount": "سابق ₪",
+    "currentPercent": "حالي %",
+    "currentAmount": "حالي ₪",
+    "cumPercent": "تراكم %",
+    "cumAmount": "تراكم ₪",
+    "retention": "حجز",
+    "remaining": "متبقٍ",
+    "agreedPercent": "متفق %",
+    "moveUp": "تحريك لأعلى",
+    "moveDown": "تحريك لأسفل",
+    "rename": "إعادة تسمية",
+    "empty": "لا بنود بعد. أضف بنداً أو طبّق قالباً."
+  },
+  "cycles": {
+    "title": "حسابات التقدم",
+    "empty": "لا حسابات تقدم بعد.",
+    "draftWorkspace": "حساب مسودة",
+    "selectCycle": "فتح حساب",
+    "printPreview": "معاينة وطباعة",
+    "issueConfirm": "إصدار هذا الحساب كسجل فوترة؟ المدفوعات تُسجَّل منفصلة.",
+    "newTitlePlaceholder": "مثلاً: حساب تقدم 1",
+    "totalsCurrent": "إجمالي هذا الحساب",
+    "totalsRetention": "حجز هذا الحساب",
+    "accountSummaryTitle": "ملخص الحساب",
+    "accountApproved": "المبلغ المعتمد",
+    "accountRetentionPct": "حجز",
+    "accountRetentionHeld": "حجز مُمسك",
+    "accountNetPayable": "صافي مستحق",
+    "accountRetentionAccumulated": "حجز مُتراكم"
+  },
+  "create": {
+    "title": "إنشاء خطة فوترة",
+    "description": "اختر خطة فارغة، جدول 30/40/30 بسيط، أو قالب مهنة.",
+    "modeBlank": "خطة فارغة",
+    "modeSimple": "بسيط 30 / 40 / 30",
+    "modeTemplate": "من قالب",
+    "namePlaceholder": "خطة فوترة",
+    "templateLabel": "القالب",
+    "activate": "تفعيل فوراً",
+    "simpleLine1": "الدفعة الأولى (30%)",
+    "simpleLine2": "الدفعة الثانية (40%)",
+    "simpleLine3": "الدفعة النهائية (30%)"
+  },
+  "projectCreate": {
+    "sectionTitle": "خطة الفوترة",
+    "sectionHint": "اختياري. لا يمنع إنشاء المشروع.",
+    "none": "ليس الآن",
+    "simple": "إنشاء خطة بسيطة (30/40/30)",
+    "template": "إنشاء من قالب",
+    "templateLabel": "قالب خطة الفوترة"
+  },
+  "print": {
+    "documentTitle": "حساب تقدم",
+    "accountDate": "تاريخ الحساب",
+    "period": "الفترة",
+    "cycleNumber": "رقم الحساب",
+    "planName": "خطة الفوترة",
+    "contract": "العقد",
+    "line": "البند",
+    "prior": "مفوتر سابقاً",
+    "current": "هذا الحساب",
+    "cumulative": "تراكمي",
+    "remaining": "متبقٍ",
+    "retention": "حجز",
+    "total": "الإجمالي",
+    "printButton": "طباعة",
+    "integrityNote": "هذا المستند حساب تقدم للفوترة فقط — وليس إيصال دفع."
+  },
+  "status": {
+    "draft": "مسودة",
+    "active": "نشط",
+    "completed": "مكتمل",
+    "archived": "مؤرشف"
+  },
+  "cycleStatus": {
+    "draft": "مسودة",
+    "ready": "جاهز",
+    "submitted": "مُرسَل",
+    "partially_approved": "معتمد جزئياً",
+    "approved": "معتمد",
+    "void": "ملغى",
+    "issued": "مُرسَل"
+  },
+  "documentKind": {
+    "progress_account": "حساب تقدم",
+    "partial_account": "حساب جزئي",
+    "payment_request": "طلب دفع"
+  },
+  "lineKind": {
+    "fixed_amount": "مبلغ ثابت",
+    "percent_of_contract": "نسبة من العقد",
+    "percent_of_base": "نسبة من الأساس",
+    "milestone": "معلم",
+    "period": "فترة",
+    "boq_link": "ربط جدول كميات",
+    "manual": "يدوي"
+  },
+  "fields": {
+    "name": "اسم الخطة",
+    "contract": "العقد",
+    "currency": "العملة",
+    "defaultRetention": "نسبة حجز افتراضية %",
+    "notes": "ملاحظات",
+    "label": "تسمية البند",
+    "agreedAmount": "المبلغ المتفق",
+    "agreedPercent": "متفق %",
+    "currentPercent": "هذا الحساب %",
+    "currentAmount": "مبلغ هذا الحساب",
+    "priorAmount": "مفوتر سابقاً",
+    "cumulativeAmount": "مفوتر تراكمي",
+    "remainingAmount": "متبقٍ",
+    "retention": "حجز",
+    "accountDate": "تاريخ الحساب",
+    "period": "الفترة",
+    "cycleTitle": "عنوان الحساب",
+    "section": "القسم"
+  },
+  "actions": {
+    "createPlan": "إنشاء خطة",
+    "savePlan": "حفظ الخطة",
+    "activate": "تفعيل",
+    "complete": "تعليم كمكتمل",
+    "archive": "أرشفة",
+    "addLine": "إضافة بند",
+    "removeLine": "إزالة بند",
+    "reorder": "إعادة ترتيب",
+    "duplicate": "تكرار",
+    "split": "تقسيم بند",
+    "applyTemplate": "تطبيق قالب",
+    "saveAsTemplate": "حفظ كقالب منظمة",
+    "createCycle": "حساب تقدم جديد",
+    "updateCycle": "حفظ بنود الحساب",
+    "issueCycle": "إصدار كفوترة",
+    "viewBilling": "فتح سجل الفوترة",
+    "saveLines": "حفظ البنود"
+  },
+  "recon": {
+    "title": "الخطة مقابل العقد",
+    "contractValue": "قيمة العقد الحالية",
+    "plannedTotal": "الإجمالي المخطط",
+    "billedTotal": "مفوتر حتى الآن",
+    "unplanned": "غير مخطط (عقد − مخطط)",
+    "remainingPlanned": "متبقٍ مخطط",
+    "overPlanned": "الإجمالي المخطط يتجاوز قيمة العقد"
+  },
+  "integrity": {
+    "billingNotPayment": "إصدار دورة ينشئ سجل فوترة فقط. سجّل المدفوعات منفصلة تحت التحصيل.",
+    "cycleFullyPaidLocked": "حساب مدفوع بالكامل لا يمكن تعديله عادياً. استخدم تصحيح/عكس.",
+    "cannotReduceBelowPaid": "لا يمكن تخفيض المبلغ المعتمد دون ما دُفع بالفعل.",
+    "cycleNotSubmittable": "فقط حسابات مسودة أو جاهزة يمكن إرسالها.",
+    "cycleNotApprovable": "فقط حسابات مُرسَلة أو معتمدة جزئياً يمكن اعتمادها.",
+    "cycleNotEditable": "لا يمكن تعديل هذا الحساب.",
+    "issuedImmutable": "بنود حساب مدفوع بالكامل لا يمكن تعديلها عادياً.",
+    "overbillBlocked": "المفوتر التراكمي لا يمكن أن يتجاوز مبلغ البند المتفق."
+  },
+  "errors": {
+    "overbill": "هذا الحساب سيفوتر زيادة على البند — التراكمي يتجاوز المبلغ المتفق.",
+    "negativeAmount": "المبلغ لا يمكن أن يكون سالباً.",
+    "invalidPercent": "النسبة غير صالحة.",
+    "currencyMismatch": "العملات لا تتطابق.",
+    "agreedBelowBilled": "المبلغ المتفق لا يمكن أن يكون أقل من المفوتر.",
+    "activePlanExists": "خطة فوترة نشطة موجودة بالفعل لهذا المشروع والعقد.",
+    "invalidPlanTransition": "تغيير حالة الخطة هذا غير مسموح.",
+    "invalidCycleTransition": "تغيير حالة الحساب هذا غير مسموح.",
+    "planNotEditable": "فقط خطط مسودة أو نشطة يمكن تعديلها.",
+    "planNotDeletable": "لا يمكن حذف خطة الفوترة هذه.",
+    "planHasBillingHistory": "لا يمكن حذف خطة لها سجل فوترة.",
+    "planNotActive": "أنشئ أو أصدر حسابات على خطة نشطة فقط.",
+    "cycleNotIssuable": "فقط حسابات مسودة أو جاهزة يمكن إصدارها.",
+    "cycleLinesImmutable": "بنود الحساب الصادر ثابتة.",
+    "cycleAlreadyIssued": "هذا الحساب أُصدر للفوترة بالفعل.",
+    "lineAlreadyBilled": "هذا البند مُفوتر بالفعل ولا يمكن إزالته أو استبداله.",
+    "splitPercentsInvalid": "أجزاء التقسيم يجب أن تجمع 100%.",
+    "retentionOverRelease": "لا يمكن إفراج أكثر من الحجز المُمسك.",
+    "boqAlreadyBilled": "بند جدول الكميات هذا مُفوتر عبر فوترة تقدم ولا يمكن فوترته مرة أخرى من الخطة."
+  },
+  "templates": {
+    "sections": {
+      "cash": "نقد / دفعات مقدمة",
+      "structure": "هيكل",
+      "finishes": "تشطيبات",
+      "closeout": "إغلاق",
+      "supply": "توريد",
+      "install": "تركيب",
+      "prep": "تحضير",
+      "systems": "أنظمة",
+      "work": "عمل",
+      "design": "تصميم",
+      "supervision": "إشراف",
+      "phases": "مراحل",
+      "visits": "زيارات",
+      "deliverables": "مخرجات",
+      "milestones": "معالم",
+      "service": "خدمة"
+    },
+    "contractor": {
+      "name": "مقاول عام",
+      "description": "دفعة مقدمة، هيكل، تشطيبات وجدول تسليم.",
+      "lines": {
+        "advance": "دفعة مقدمة",
+        "foundation": "أساسات",
+        "structure": "هيكل",
+        "envelope": "غلاف",
+        "finishes": "تشطيبات",
+        "handover": "تسليم"
+      }
+    },
+    "electrical": {
+      "name": "كهرباء",
+      "description": "مواد، تمديدات، لوحات وتشغيل.",
+      "lines": {
+        "materials": "مواد",
+        "roughIn": "تمديدات",
+        "panels": "لوحات وأجهزة",
+        "commissioning": "تشغيل"
+      }
+    },
+    "renovation": {
+      "name": "تشطيبات",
+      "description": "من الهدم حتى الإنجاز لأعمال التشطيب.",
+      "lines": {
+        "demolition": "هدم",
+        "systems": "أنظمة",
+        "finishes": "تشطيبات",
+        "completion": "إنجاز"
+      }
+    },
+    "smallWorks": {
+      "name": "أعمال صغيرة",
+      "description": "جدول بسيط: عربون / تقدم / نهائي.",
+      "lines": {
+        "deposit": "عربون",
+        "progress": "تقدم",
+        "final": "نهائي"
+      }
+    },
+    "architecture": {
+      "name": "هندسة معمارية",
+      "description": "من المفهوم حتى أتعاب الإشراف.",
+      "lines": {
+        "concept": "تصميم مفهوم",
+        "permit": "رسومات ترخيص",
+        "detail": "تصميم تفصيلي",
+        "supervision": "إشراف موقع"
+      }
+    },
+    "consulting": {
+      "name": "استشارات",
+      "description": "أتعاب بدء ومنتصف وتسليم.",
+      "lines": {
+        "kickoff": "بدء",
+        "mid": "منتصف المدة",
+        "delivery": "تسليم"
+      }
+    },
+    "inspection": {
+      "name": "فحص",
+      "description": "زيارة موقع ومبالغ ثابتة للتقرير.",
+      "lines": {
+        "siteVisit": "زيارة موقع",
+        "report": "تقرير فحص"
+      }
+    },
+    "serviceInstall": {
+      "name": "تركيب خدمة",
+      "description": "معدات وتركيب وتدريب.",
+      "lines": {
+        "equipment": "معدات",
+        "install": "تركيب",
+        "training": "تدريب وتسليم"
+      }
+    },
+    "mixed": {
+      "name": "معالم مختلطة",
+      "description": "أربعة حسابات معالم متساوية.",
+      "lines": {
+        "milestone1": "معلم 1",
+        "milestone2": "معلم 2",
+        "milestone3": "معلم 3",
+        "milestone4": "معلم 4"
+      }
+    },
+    "plumbing": {
+      "name": "سباكة",
+      "description": "مواد وتمديدات وتجهيزات صحية.",
+      "lines": {
+        "materials": "مواد",
+        "roughIn": "تمديدات",
+        "sanitary": "تجهيزات صحية"
+      }
+    },
+    "hvac": {
+      "name": "تكييف",
+      "description": "معدات مجاري وتشغيل.",
+      "lines": {
+        "equipment": "معدات",
+        "ducting": "مجاري",
+        "commissioning": "تشغيل"
+      }
+    },
+    "design": {
+      "name": "تصميم",
+      "description": "مفهوم وتفصيل وتسليم.",
+      "lines": {
+        "concept": "مفهوم",
+        "detail": "تفصيل",
+        "delivery": "تسليم"
+      }
+    },
+    "engineering": {
+      "name": "هندسة",
+      "description": "مسح وحسابات واعتماد.",
+      "lines": {
+        "survey": "مسح",
+        "calculations": "حسابات",
+        "signOff": "اعتماد"
+      }
+    },
+    "maintenance": {
+      "name": "صيانة",
+      "description": "تعبئة وخدمة وإغلاق.",
+      "lines": {
+        "mobilization": "تعبئة",
+        "service": "خدمة",
+        "closeout": "إغلاق"
+      }
+    }
+  },
+  "retention": {
+    "globalLabel": "حجز",
+    "globalHint": "حجز عام لهذه الخطة، يُطبَّق تلقائياً على كل حساب معتمد.",
+    "heldTitle": "حجز مُتراكم",
+    "heldHint": "إجمالي الحجز المُمسك عبر الدورات الصادرة لهذه الخطة.",
+    "remainingAfter": "حجز لا يزال مُمسكاً",
+    "releaseAction": "إفراج عن الحجز",
+    "releaseTitle": "إفراج عن الحجز",
+    "releaseDescription": "إفراج جزئي أو كامل مقابل سجلات فوترة تحتفظ بالحجز. لا يمكن إفراج أكثر من المتبقي المُمسك.",
+    "amountLabel": "المبلغ للإفراج",
+    "dateLabel": "تاريخ الإفراج",
+    "notesLabel": "ملاحظات",
+    "maxHint": "الحد الأقصى للإفراج: {amount}",
+    "overRelease": "لا يمكن إفراج أكثر من الحجز المُمسك.",
+    "noneHeld": "لا حجز مُمسك للإفراج.",
+    "submit": "إفراج"
+  },
+  "orgTemplates": {
+    "saveAction": "حفظ كقالب منظمة",
+    "saveTitle": "حفظ الخطة كقالب",
+    "saveName": "اسم القالب",
+    "applyAction": "تطبيق قالب المنظمة",
+    "archiveAction": "أرشفة القالب",
+    "empty": "لا قوالب منظمة نشطة.",
+    "listLabel": "قوالب المنظمة"
+  }
+}

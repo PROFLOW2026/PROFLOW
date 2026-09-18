@@ -10,13 +10,19 @@ import {
 } from '@/shared/i18n/ltr-island';
 
 describe('locale direction', () => {
-  it('marks Hebrew as RTL and English as LTR', () => {
+  it('marks Hebrew and Arabic as RTL; English and Russian as LTR', () => {
     expect(localeDirection('he-IL')).toBe('rtl');
+    expect(localeDirection('ar')).toBe('rtl');
     expect(localeDirection('en')).toBe('ltr');
+    expect(localeDirection('ru')).toBe('ltr');
     expect(isRtl('he-IL')).toBe(true);
+    expect(isRtl('ar')).toBe(true);
     expect(isRtl('en')).toBe(false);
+    expect(isRtl('ru')).toBe(false);
     expect(LOCALE_METADATA['he-IL'].dir).toBe('rtl');
+    expect(LOCALE_METADATA.ar.dir).toBe('rtl');
     expect(LOCALE_METADATA.en.dir).toBe('ltr');
+    expect(LOCALE_METADATA.ru.dir).toBe('ltr');
   });
 
   it('falls back to LTR for unknown locales', () => {

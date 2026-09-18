@@ -9,6 +9,7 @@ import { Link } from '@/shared/i18n/navigation';
 
 export default async function EmployeeHoursPage() {
   const t = await getTranslations('workforce');
+  const tLists = await getTranslations('employeeApp.lists');
   const entries = await withOrgContext(async (context) => {
     await authorize(context, { permission: PERMISSIONS.TIME_MANAGE, scope: 'self_only' });
     const employeeId = await resolveSelfScopedEmployeeId(context);
@@ -37,7 +38,9 @@ export default async function EmployeeHoursPage() {
           </li>
         ))}
         {entries.length === 0 ? (
-          <li className="px-4 py-6 text-center text-sm text-[var(--pf-text-secondary)]">—</li>
+          <li className="px-4 py-6 text-center text-sm text-[var(--pf-text-secondary)]">
+            {tLists('hoursEmpty')}
+          </li>
         ) : null}
       </ul>
     </div>

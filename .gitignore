@@ -26,6 +26,15 @@ tests/e2e/.auth/
 .env.*.local
 .env.development
 .env.production
+scripts/.migration-new-keys.env
+scripts/.migration-eu-keys.env
+scripts/.region-correction-vercel-rollback.env
+scripts/.region-correction-vercel-probe.env
+scripts/.migration-dump-rc/
+scripts/.migration-manifest-tokyo.json
+scripts/.migration-validation-eu.json
+scripts/.migration-legacy-file.jpg
+scripts/.env.vercel.production
 *.pem
 *.key
 

@@ -1,0 +1,110 @@
+{
+  "project": {
+    "draft": "Черновик",
+    "active": "Активный",
+    "on_hold": "Приостановлен",
+    "completed": "Завершён",
+    "cancelled": "Отменён",
+    "archived": "Архивирован",
+    "ready_to_close": "Готов к закрытию",
+    "closed": "Закрыт"
+  },
+  "change": {
+    "draft": "Черновик",
+    "awaiting_approval": "Ожидает согласования",
+    "approved": "Согласовано",
+    "rejected": "Отклонено",
+    "cancelled": "Отменено"
+  },
+  "changeDirection": {
+    "addition": "Дополнение",
+    "reduction": "Уменьшение"
+  },
+  "billing": {
+    "draft": "Черновик",
+    "finalized": "Выставлен",
+    "void": "Аннулирован"
+  },
+  "payment": {
+    "paid": "Оплачено",
+    "partial": "Частично оплачено",
+    "open": "Открыт",
+    "overdue": "Просрочено",
+    "recorded": "Записано",
+    "void": "Аннулирован"
+  },
+  "expense": {
+    "draft": "Черновик",
+    "finalized": "Записано",
+    "void": "Аннулирован"
+  },
+  "quoteVersion": {
+    "draft": "Черновик",
+    "issued": "Отправлено",
+    "superseded": "Заменено",
+    "accepted": "Принято",
+    "rejected": "Отклонено"
+  },
+  "estimateQuote": {
+    "draft": "Черновик",
+    "ready": "Готов",
+    "sent": "Отправлено",
+    "accepted": "Принято",
+    "rejected": "Отклонено",
+    "expired": "Истёк",
+    "cancelled": "Отменено",
+    "converted": "Конвертирован"
+  },
+  "membership": {
+    "active": "Активный",
+    "invited": "Приглашён",
+    "suspended": "Приостановлен"
+  },
+  "generic": {
+    "active": "Активный",
+    "inactive": "Неактивный",
+    "archived": "Архивирован"
+  },
+  "compliance": {
+    "valid": "Действителен",
+    "expiring_soon": "Скоро истекает",
+    "expired": "Истёк",
+    "revoked": "Отозван",
+    "pending": "Ожидает"
+  },
+  "punch": {
+    "open": "Открыт",
+    "in_progress": "В работе",
+    "done": "Выполнено",
+    "cancelled": "Отменено"
+  },
+  "inspection": {
+    "scheduled": "Запланирован",
+    "in_progress": "В работе",
+    "passed": "Пройден",
+    "failed": "Не пройден",
+    "cancelled": "Отменён"
+  },
+  "asset": {
+    "active": "Активный",
+    "in_maintenance": "На обслуживании",
+    "retired": "Снят с эксплуатации",
+    "disposed": "Списан"
+  },
+  "maintenance": {
+    "planned": "Запланировано",
+    "in_progress": "В работе",
+    "completed": "Завершено",
+    "cancelled": "Отменено"
+  },
+  "approval": {
+    "submitted": "Ожидает",
+    "approved": "Согласовано",
+    "rejected": "Отклонено",
+    "cancelled": "Отменено"
+  },
+  "events": {
+    "sentAt": "Отправлено {date}",
+    "notSent": "Не отправлено"
+  }
+}

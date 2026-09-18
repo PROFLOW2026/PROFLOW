@@ -1,6 +1,7 @@
 import { getTranslations } from 'next-intl/server';
 import type { ReactNode } from 'react';
 import { PwaInstallCta } from '@/modules/offline/ui/pwa-install-cta';
+import { LocaleSwitcherInline } from '@/shared/i18n/locale-switcher-inline';
 import { WithClientMessages } from '@/shared/i18n/with-client-messages';
 
 export default async function AuthLayout({ children }: { children: ReactNode }) {
@@ -15,6 +16,8 @@ export default async function AuthLayout({ children }: { children: ReactNode }) 
           </span>
           <span className="min-w-0 truncate text-lg font-semibold">{t('appName')}</span>
         </div>
+
+        <LocaleSwitcherInline className="mb-4" />
 
         <div className="w-full min-w-0 max-w-sm rounded-xl border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 shadow-[var(--pf-shadow-sm)] sm:p-6">
           {children}

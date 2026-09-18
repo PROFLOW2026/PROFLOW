@@ -1,4 +1,4 @@
-import { DEFAULT_LOCALE, isLocale, type Locale } from '@/shared/i18n/config';
+import { DEFAULT_LOCALE, isLocale, LOCALE_METADATA, type Locale } from '@/shared/i18n/config';
 
 /**
  * Web app manifest body. `start_url` is locale-prefixed so an installed launch
@@ -15,8 +15,8 @@ export interface ProjectFlowWebManifest {
   readonly orientation: 'any';
   readonly background_color: '#f8fafc';
   readonly theme_color: '#0f766e';
-  readonly lang: 'he' | 'en';
-  readonly dir: 'auto';
+  readonly lang: 'he' | 'en' | 'ar' | 'ru';
+  readonly dir: 'rtl' | 'ltr' | 'auto';
   readonly icons: readonly {
     readonly src: string;
     readonly sizes: string;
@@ -50,11 +50,12 @@ const MANIFEST_ICONS: ProjectFlowWebManifest['icons'] = [
   },
 ];
 
-function manifestLang(locale: Locale): 'he' | 'en' {
-  return locale === 'en' ? 'en' : 'he';
+function manifestLang(locale: Locale): ProjectFlowWebManifest['lang'] {
+  return LOCALE_METADATA[locale].htmlLang as ProjectFlowWebManifest['lang'];
 }
 
 export function buildWebManifest(locale: Locale): ProjectFlowWebManifest {
+  const meta = LOCALE_METADATA[locale];
   return {
     id: '/',
     name: 'ProjectFlow',
@@ -67,7 +68,7 @@ export function buildWebManifest(locale: Locale): ProjectFlowWebManifest {
     background_color: '#f8fafc',
     theme_color: '#0f766e',
     lang: manifestLang(locale),
-    dir: 'auto',
+    dir: meta.dir,
     icons: MANIFEST_ICONS,
   };
 }

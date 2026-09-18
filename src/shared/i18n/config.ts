@@ -6,7 +6,7 @@
  * the English UI, and the country pack still drives tax and currency.
  */
 
-export const LOCALES = ['he-IL', 'en'] as const;
+export const LOCALES = ['he-IL', 'en', 'ar', 'ru'] as const;
 
 export type Locale = (typeof LOCALES)[number];
 
@@ -23,6 +23,8 @@ export interface LocaleMetadata {
 export const LOCALE_METADATA: Readonly<Record<Locale, LocaleMetadata>> = {
   'he-IL': { code: 'he-IL', dir: 'rtl', label: 'עברית', htmlLang: 'he' },
   en: { code: 'en', dir: 'ltr', label: 'English', htmlLang: 'en' },
+  ar: { code: 'ar', dir: 'rtl', label: 'العربية', htmlLang: 'ar' },
+  ru: { code: 'ru', dir: 'ltr', label: 'Русский', htmlLang: 'ru' },
 };
 
 export function isLocale(value: string | undefined | null): value is Locale {

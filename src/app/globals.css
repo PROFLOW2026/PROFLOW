@@ -234,8 +234,8 @@
    * target platform and costs nothing to load.
    */
   --font-sans:
-    'Assistant', 'Rubik', system-ui, -apple-system, 'Segoe UI', 'Noto Sans Hebrew', 'Arial Hebrew',
-    Arial, 'Helvetica Neue', sans-serif;
+    'Assistant', 'Rubik', 'Noto Sans Arabic', 'Noto Sans', system-ui, -apple-system, 'Segoe UI',
+    'Noto Sans Hebrew', 'Arial Hebrew', Arial, 'Helvetica Neue', sans-serif;
   --font-mono: ui-monospace, 'SFMono-Regular', 'Cascadia Code', 'Consolas', monospace;
 
   --z-index-sticky: 20;

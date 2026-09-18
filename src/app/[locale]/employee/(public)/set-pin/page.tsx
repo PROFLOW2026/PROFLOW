@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { EmployeeSetPinForm } from '@/modules/employee-app/ui/employee-set-pin-form';
+import { LocaleSwitcherInline } from '@/shared/i18n/locale-switcher-inline';
 
 export async function generateMetadata({
   params,
@@ -15,6 +16,7 @@ export async function generateMetadata({
 export default function EmployeeSetPinPage() {
   return (
     <div className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-4 py-8">
+      <LocaleSwitcherInline className="mb-6" />
       <EmployeeSetPinForm />
     </div>
   );

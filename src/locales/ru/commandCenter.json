@@ -1,0 +1,391 @@
+{
+  "title": "Сегодня",
+  "description": "Всё, что требует внимания прямо сейчас.",
+  "listLabel": "К обработке",
+  "summary": "{count, plural, =0 {Сейчас ничего не требует внимания} =1 {1 пункт к обработке} one {1 пункт к обработке} few {# пункта к обработке} many {# пунктов к обработке} other {# пункта к обработке}}",
+  "fields": {
+    "where": "Где"
+  },
+  "actions": {
+    "open": "Открыть",
+    "confirmPaid": "Подтвердить оплату",
+    "paymentDateLabel": "Дата платежа",
+    "paymentDateHint": "Фактическая дата платежа. По умолчанию — сегодня; можно выбрать более раннюю дату.",
+    "paymentConfirm": "Подтвердить",
+    "cancel": "Отмена",
+    "handle": "Отметить как обработано",
+    "snooze1d": "Отложить на 1 день",
+    "snooze7d": "Отложить на 7 дней",
+    "generateMonthlyReport": "Сформировать и сохранить",
+    "skipMonth": "Пропустить этот месяц",
+    "notNow": "Не сейчас",
+    "dismiss": "Пропустить этот месяц"
+  },
+  "financialGuard": "Финансовые пункты можно только открыть или отложить — они остаются видимыми, пока не будут урегулированы в источнике.",
+  "severity": {
+    "critical": "Критический",
+    "high": "Высокий",
+    "medium": "Средний",
+    "low": "Низкий"
+  },
+  "sections": {
+    "pendingPayments": "Платежи, ожидающие подтверждения",
+    "critical": "Критический",
+    "high": "Просрочено",
+    "medium": "Требует проверки",
+    "low": "К обработке"
+  },
+  "sources": {
+    "overdue_ar": "Просроченное выставление счетов",
+    "vendor_bill_due": "Срок оплаты счёта поставщика",
+    "vendor_bill_approaching": "Скоро срок оплаты счёта поставщика",
+    "attendance_open": "Посещаемость",
+    "unallocated_employee_cost": "Нераспределённая стоимость труда",
+    "unallocated_vendor_bill": "Нераспределённый счёт поставщика",
+    "project_over_budget": "Превышение бюджета",
+    "forecast_warning": "Предупреждение прогноза",
+    "open_approval": "Ожидает согласования",
+    "overdue_planning": "Планирование",
+    "expiring_compliance": "Истекающее соответствие",
+    "overdue_maintenance": "Обслуживание",
+    "credit_void_issue": "Кредит / аннулирование",
+    "month_close_incomplete": "Закрытие месяца",
+    "boq_measurement_awaiting_approval": "Замер BOQ",
+    "boq_progress_ready_to_bill": "Промежуточный счёт по прогрессу BOQ",
+    "boq_vs_contract_mismatch": "BOQ и договор",
+    "ocr_needs_review": "Проверка документа",
+    "ocr_failed": "Ошибка чтения документа",
+    "punch_open": "Открытый пункт punch",
+    "safety_open": "Открытая запись по безопасности",
+    "inspection_open": "Просроченная инспекция",
+    "recurring_draft_issue": "Повторяющийся черновик",
+    "timesheet_missing": "Отсутствует табель",
+    "closeout_blockers": "Блокировки закрытия",
+    "warranty_expiring": "Истекает гарантия",
+    "cash_flow_risk": "Риск денежного потока",
+    "automation_followup": "Автоматизация — требуется действие",
+    "communication_failed": "Сообщение не отправлено",
+    "billing_plan_cycle_draft": "Промежуточный счёт к выставлению",
+    "billing_plan_milestone_due": "Срок этапа выставления счетов",
+    "billing_plan_retention_release_due": "Срок высвобождения удержания",
+    "missing_attendance_today": "Отсутствует посещаемость",
+    "expense_due_today": "Срок расхода сегодня",
+    "expense_due_soon": "Скоро срок расхода",
+    "expense_overdue": "Просроченный расход",
+    "expense_pending_review": "Расход ожидает проверки",
+    "payroll_due_today": "Срок зарплаты сегодня",
+    "payroll_due_soon": "Скоро срок зарплаты",
+    "payroll_overdue": "Просроченная зарплата",
+    "payroll_pending_review": "Зарплата ожидает проверки",
+    "expense_needs_allocation": "Расход требует распределения по проекту",
+    "monthly_workforce_report_ready": "Ежемесячный отчёт по персоналу"
+  },
+  "itemCopy": {
+    "where": {
+      "billing": "Выставление счетов",
+      "vendorBills": "Счета поставщиков",
+      "workforce": "Персонал · затраты работодателя",
+      "approvals": "Согласования",
+      "project": "Проект",
+      "assets": "Активы",
+      "monthClose": "Закрытие месяца",
+      "boq": "Ведомость объёмов",
+      "ocr": "Захват счетов",
+      "fieldOps": "Полевые операции",
+      "safety": "Безопасность",
+      "recurring": "Повторяющиеся черновики",
+      "timesheets": "Согласование табелей",
+      "closeout": "Закрытие проекта",
+      "warranty": "Гарантия",
+      "cashFlow": "Денежный поток",
+      "automations": "Автоматизации",
+      "communications": "Сообщения"
+    },
+    "overdueAr": {
+      "whatWithReference": "Инкассировать {reference}",
+      "whatDefault": "Инкассировать просроченное выставление счетов",
+      "whyWithDueDate": "Просрочено с {dueDate} · задолженность {outstanding}",
+      "whyDefault": "Просрочено · задолженность {outstanding}"
+    },
+    "vendorBillDue": {
+      "whatWithReference": "Оплатить счёт поставщика {reference}",
+      "whatDefault": "Оплатить просроченный счёт поставщика",
+      "why": "Срок {dueDate} · задолженность {outstanding}"
+    },
+    "openAttendance": {
+      "what": "Закрыть открытый день посещаемости",
+      "why": "Посещаемость за {workDate} всё ещё открыта (нет отметки выхода / не закрыта)"
+    },
+    "unattributedProjectLabor": {
+      "what": "Рабочий день без привязки к проекту",
+      "why": "{employeeName} · {workDate} · {hours} ч"
+    },
+    "unallocatedEmployeeCost": {
+      "what": "Распределить остаток труда · {employeeName} · {yearMonth}",
+      "why": "Признано: {recognized} · Распределено: {allocated} · Остаток: {remaining} ({status})"
+    },
+    "unallocatedVendorBill": {
+      "what": "Привязать счёт поставщика к проекту",
+      "why": "Проведённый счёт без проекта · {outstanding}"
+    },
+    "overBudget": {
+      "what": "Проверить проект с превышением бюджета",
+      "why": "Факт {actual} превышает бюджет {budget} (превышение {overBy})"
+    },
+    "openApproval": {
+      "what": "Принять решение по ожидающему согласованию",
+      "why": "{entity} ожидает решения{money}"
+    },
+    "overduePlanning": {
+      "whatMilestone": "Обновить просроченную веху",
+      "whatPlanItem": "Обновить просроченный пункт плана",
+      "why": "Целевое окончание {targetEndDate} · прогресс {progressPercent}%"
+    },
+    "expiringCompliance": {
+      "whatExpired": "Обновить просроченное соответствие",
+      "whatExpiring": "Проверить истекающее соответствие",
+      "whyWithDate": "Истекает {expiresOn} · {status}",
+      "whyStatusOnly": "{status}"
+    },
+    "overdueMaintenance": {
+      "what": "Выполнить просроченное обслуживание",
+      "why": "Запланировано {performedOn} · статус {status}",
+      "noDate": "без даты"
+    },
+    "creditVoidIssue": {
+      "what": "Урегулировать открытую кредит-ноту",
+      "why": "Инкассация кредит-ноты: {status}"
+    },
+    "monthCloseIncomplete": {
+      "what": "Завершить закрытие месяца {yearMonth}",
+      "why": "Статус {status} · полнота {completenessPercent}%"
+    },
+    "boqMeasurementAwaiting": {
+      "what": "Согласовать замер BOQ",
+      "why": "Акт {certificateNumber} · {periodLabel} ожидает согласования"
+    },
+    "boqProgressReadyToBill": {
+      "what": "Создать промежуточный счёт по прогрессу BOQ",
+      "why": "Акт {certificateNumber} · {periodLabel} согласован и готов к выставлению"
+    },
+    "boqVsContractMismatch": {
+      "what": "Сверить BOQ и договор",
+      "why": "Договор и BOQ расходятся. {statusLabel}"
+    },
+    "vendorBillApproaching": {
+      "whatWithReference": "Скоро срок оплаты счёта поставщика {reference}",
+      "whatDefault": "Скоро срок оплаты счёта поставщика",
+      "why": "Срок {dueDate} · задолженность {outstanding}"
+    },
+    "ocrNeedsReview": {
+      "what": "Проверить отсканированный документ",
+      "whyWithFilename": "{filename} требует явного подтверждения перед созданием черновика",
+      "whyDefault": "Требуется явное подтверждение перед созданием черновика"
+    },
+    "ocrFailed": {
+      "what": "Повторить неудачное чтение документа",
+      "whyWithFilename": "{filename} — ошибка чтения, можно повторить",
+      "whyDefault": "Ошибка чтения, можно повторить"
+    },
+    "forecastWarning": {
+      "default": {
+        "what": "Проверить предупреждение прогноза",
+        "why": "Прогнозируемый финансовый риск требует внимания"
+      },
+      "kinds": {
+        "projected_cost_over_budget": {
+          "what": "Проверить прогнозируемое превышение бюджета",
+          "why": "Прогнозная стоимость превышает действующий бюджет — это прогноз, а не фактическое превышение"
+        },
+        "insufficient_remaining_budget": {
+          "what": "Проверить нехватку оставшегося бюджета",
+          "why": "Открытые обязательства плюс ожидаемая оставшаяся стоимость превышают оставшийся бюджет"
+        },
+        "forecast_margin_negative": {
+          "what": "Проверить отрицательную прогнозную маржу",
+          "why": "Прогнозная маржа ниже нуля по договору относительно прогнозной стоимости"
+        },
+        "margin_deterioration": {
+          "what": "Проверить ухудшение маржи",
+          "why": "Прогнозная маржа как минимум на 3 пункта ниже фактической"
+        },
+        "commitment_pressure": {
+          "what": "Проверить давление обязательств",
+          "why": "Открытые обязательства давят на оставшийся бюджет"
+        },
+        "billing_lag": {
+          "what": "Проверить отставание выставления счетов",
+          "why": "Затраты опережают выставление счетов по договору"
+        },
+        "collection_risk": {
+          "what": "Проверить риск инкассации",
+          "why": "Значительная доля выставленных сумм всё ещё не получена"
+        },
+        "high_consumption_vs_progress": {
+          "what": "Проверить расход бюджета относительно прогресса",
+          "why": "Расход бюджета опережает физический прогресс"
+        },
+        "missing_data": {
+          "what": "Заполнить данные прогноза",
+          "why": "Недостаточно данных для уверенной оценки положения проекта"
+        },
+        "actual_over_budget": {
+          "what": "Проверить проект с превышением бюджета",
+          "why": "Фактическая стоимость превышает действующий бюджет"
+        }
+      }
+    },
+    "punchOpen": {
+      "what": "Закрыть открытый пункт punch — {title}",
+      "why": "Пункт punch всё ещё открыт"
+    },
+    "safetyOpen": {
+      "what": "Урегулировать запись по безопасности — {title}",
+      "why": "Запись по безопасности всё ещё открыта"
+    },
+    "inspectionOpen": {
+      "what": "Завершить инспекцию — {title}",
+      "whyScheduled": "Запланирована {scheduledOn} и всё ещё открыта",
+      "whyOpen": "Инспекция всё ещё открыта"
+    },
+    "recurringDraftIssue": {
+      "what": "Исправить повторяющийся черновик — {title}",
+      "why": "Следующий запуск {nextRunDate} просрочен, а черновик всё ещё активен"
+    },
+    "timesheetMissing": {
+      "what": "Подать просроченный табель",
+      "why": "Период, заканчивающийся {periodEnd}, всё ещё в черновике"
+    },
+    "closeoutBlockers": {
+      "what": "Завершить закрытие — {projectName}",
+      "whyReopened": "Проект был повторно открыт. Проверьте готовность к закрытию.",
+      "whyDefault": "Проверьте готовность к закрытию на вкладке «Закрытие проекта»."
+    },
+    "warrantyExpiring": {
+      "what": "Истекает гарантия — {title}",
+      "why": "Покрытие заканчивается {endDate}"
+    },
+    "cashFlowRisk": {
+      "what": "Риск денежного потока — требует проверки",
+      "why": "Просроченная инкассация {overdueIn} · просроченные обязательства {overdueOut}"
+    },
+    "automationFollowup": {
+      "what": "Автоматизация требует действия",
+      "why": "{preset} · {ranAt}"
+    },
+    "communicationFailed": {
+      "what": "Сообщение не отправлено — {subject}",
+      "why": "Доставка не удалась или не подтверждена провайдером."
+    },
+    "billingPlanCycleDraft": {
+      "what": "Промежуточный счёт ожидает выставления — {title}",
+      "why": "Счёт №{cycleNumber} в черновике/готов к выставлению (выставление счетов, не платёж)."
+    },
+    "billingPlanMilestoneDue": {
+      "what": "Срок этапа выставления счетов — {label}",
+      "why": "Целевая дата {targetDate}"
+    },
+    "billingPlanRetentionReleaseDue": {
+      "what": "Высвободить удержание по плану выставления счетов",
+      "why": "Оставшееся удержание {heldRemaining} — готово к высвобождению при выставлении счетов."
+    },
+    "monthlyWorkforceReportReady": {
+      "what": "Ежемесячный отчёт по персоналу готов",
+      "why": "Можно сформировать и сохранить отчёт по персоналу за {monthLabel}.",
+      "where": "Персонал · ежемесячные отчёты"
+    },
+    "missingAttendanceToday": {
+      "whatOne": "{count} сотрудник не отметил посещаемость сегодня",
+      "whatOther": "{count} сотрудников не отметили посещаемость сегодня",
+      "why": "Дата {date} — посещаемость отсутствует у этих сотрудников."
+    },
+    "reportMonthLabel": "{month} {year}",
+    "reportMonths": {
+      "1": "Январь",
+      "2": "Февраль",
+      "3": "Март",
+      "4": "Апрель",
+      "5": "Май",
+      "6": "Июнь",
+      "7": "Июль",
+      "8": "Август",
+      "9": "Сентябрь",
+      "10": "Октябрь",
+      "11": "Ноябрь",
+      "12": "Декабрь"
+    },
+    "labels": {
+      "boqReconStatus": {
+        "matched": "сверено",
+        "variance": "расхождение",
+        "unallocated_contract_value": "нераспределённая сумма договора",
+        "unallocated_approved_change": "согласованное изменение ещё не распределено",
+        "fallback": "{status}"
+      },
+      "allocationStatus": {
+        "applied": "Применено",
+        "draft": "Черновик",
+        "fallback": "Статус распределения"
+      },
+      "approvalEntityType": {
+        "expense": "Расход",
+        "vendor_bill": "Счёт поставщика",
+        "vendor_credit": "Кредит поставщика",
+        "purchase_order": "Заказ на закупку",
+        "time_correction": "Корректировка времени",
+        "quote_discount": "Скидка по смете",
+        "budget_revision": "Корректировка бюджета",
+        "billing_record": "Выставление счетов",
+        "payment": "Платёж",
+        "fallback": "Запрос на согласование"
+      },
+      "complianceStatus": {
+        "expired": "истёк",
+        "expiring_soon": "скоро истекает",
+        "fallback": "{status}"
+      },
+      "collectionStatus": {
+        "open": "открыто",
+        "partial": "частично",
+        "overdue": "просрочено",
+        "paid": "оплачено",
+        "fallback": "{status}"
+      },
+      "monthCloseStatus": {
+        "open": "открыт",
+        "ready": "готов",
+        "closed": "закрыт",
+        "fallback": "{status}"
+      },
+      "automationPreset": {
+        "client_balance_overdue": "Просроченный баланс клиента",
+        "quote_no_followup": "Смета без последующих действий",
+        "vendor_bill_due": "Срок оплаты счёта поставщика",
+        "timesheet_not_submitted": "Табель не подан",
+        "timesheet_waiting_approval": "Табель ожидает согласования",
+        "ocr_waiting_review": "Захват счетов ожидает проверки",
+        "forecast_over_budget": "Прогноз превышает бюджет",
+        "forecast_margin_low": "Низкая прогнозная маржа",
+        "warranty_expiring": "Истекает гарантия",
+        "compliance_expiring": "Истекает документ соответствия",
+        "asset_service_due": "Срок обслуживания оборудования",
+        "retention_release_date": "Дата высвобождения удержания",
+        "closeout_has_blockers": "Блокировки закрытия",
+        "fallback": "Правило автоматизации"
+      }
+    }
+  },
+  "empty": {
+    "title": "Всё чисто",
+    "body": "Сейчас ничего не требует обработки."
+  },
+  "moduleOff": {
+    "title": "Нет доступа",
+    "body": "У вас нет разрешения на просмотр «Сегодня».",
+    "action": "Вернуться на панель"
+  },
+  "errors": {
+    "unsafeState": "Этот пункт нельзя закрыть — откройте или отложите его.",
+    "moduleOff": "У вас нет разрешения на просмотр «Сегодня»."
+  }
+}

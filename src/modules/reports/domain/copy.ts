@@ -1,7 +1,9 @@
 import type { Locale } from '@/shared/i18n/config';
 import { DEFAULT_LOCALE, isLocale, localeDirection, LOCALE_METADATA } from '@/shared/i18n/config';
+import ar from '@/locales/ar/reports.json';
 import en from '@/locales/en/reports.json';
 import heIL from '@/locales/he-IL/reports.json';
+import ru from '@/locales/ru/reports.json';
 import type { ReportKind } from './types';
 
 export type ReportsCopy = typeof en;
@@ -9,6 +11,8 @@ export type ReportsCopy = typeof en;
 const CATALOGS: Readonly<Record<Locale, ReportsCopy>> = {
   en,
   'he-IL': heIL,
+  ar,
+  ru,
 };
 
 export function resolveReportLocale(locale: string | null | undefined): Locale {

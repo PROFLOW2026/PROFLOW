@@ -3,30 +3,60 @@
  * Storage stays English; Owner UI must never render the raw token.
  */
 
-import heApprovals from '@/locales/he-IL/approvals.json';
-import heAp from '@/locales/he-IL/ap.json';
-import heBillingPlan from '@/locales/he-IL/billingPlan.json';
-import heCrm from '@/locales/he-IL/crm.json';
-import heExpenses from '@/locales/he-IL/expenses.json';
-import heFieldOps from '@/locales/he-IL/fieldOps.json';
-import heStatus from '@/locales/he-IL/status.json';
-import heVendors from '@/locales/he-IL/vendors.json';
-import heWorkforce from '@/locales/he-IL/workforce.json';
-import heMonthClose from '@/locales/he-IL/monthClose.json';
-import enMonthClose from '@/locales/en/monthClose.json';
+import arApprovals from '@/locales/ar/approvals.json';
+import arAp from '@/locales/ar/ap.json';
+import arBillingPlan from '@/locales/ar/billingPlan.json';
+import arCrm from '@/locales/ar/crm.json';
+import arExpenses from '@/locales/ar/expenses.json';
+import arFieldOps from '@/locales/ar/fieldOps.json';
+import arMonthClose from '@/locales/ar/monthClose.json';
+import arStatus from '@/locales/ar/status.json';
+import arVendors from '@/locales/ar/vendors.json';
+import arWorkforce from '@/locales/ar/workforce.json';
 import enApprovals from '@/locales/en/approvals.json';
 import enAp from '@/locales/en/ap.json';
 import enBillingPlan from '@/locales/en/billingPlan.json';
 import enCrm from '@/locales/en/crm.json';
 import enExpenses from '@/locales/en/expenses.json';
 import enFieldOps from '@/locales/en/fieldOps.json';
+import enMonthClose from '@/locales/en/monthClose.json';
 import enStatus from '@/locales/en/status.json';
 import enVendors from '@/locales/en/vendors.json';
 import enWorkforce from '@/locales/en/workforce.json';
-import { isHebrewLocale } from '@/shared/i18n/intl-locale';
+import heApprovals from '@/locales/he-IL/approvals.json';
+import heAp from '@/locales/he-IL/ap.json';
+import heBillingPlan from '@/locales/he-IL/billingPlan.json';
+import heCrm from '@/locales/he-IL/crm.json';
+import heExpenses from '@/locales/he-IL/expenses.json';
+import heFieldOps from '@/locales/he-IL/fieldOps.json';
+import heMonthClose from '@/locales/he-IL/monthClose.json';
+import heStatus from '@/locales/he-IL/status.json';
+import heVendors from '@/locales/he-IL/vendors.json';
+import heWorkforce from '@/locales/he-IL/workforce.json';
+import ruApprovals from '@/locales/ru/approvals.json';
+import ruAp from '@/locales/ru/ap.json';
+import ruBillingPlan from '@/locales/ru/billingPlan.json';
+import ruCrm from '@/locales/ru/crm.json';
+import ruExpenses from '@/locales/ru/expenses.json';
+import ruFieldOps from '@/locales/ru/fieldOps.json';
+import ruMonthClose from '@/locales/ru/monthClose.json';
+import ruStatus from '@/locales/ru/status.json';
+import ruVendors from '@/locales/ru/vendors.json';
+import ruWorkforce from '@/locales/ru/workforce.json';
+import { resolveLabelLocale } from '@/shared/i18n/intl-locale';
+import type { Locale } from '@/shared/i18n/config';
 
-const HEBREW_UNKNOWN = 'לא ידוע';
-const ENGLISH_UNKNOWN = 'Unknown';
+const UNKNOWN_BY_LOCALE: Readonly<Record<Locale, string>> = {
+  en: 'Unknown',
+  'he-IL': 'לא ידוע',
+  ar: 'غير معروف',
+  ru: 'Неизвестно',
+};
+
+type ExpensesCatalog = typeof enExpenses;
+type VendorsCatalog = typeof enVendors;
+type ApCatalog = typeof enAp;
+type WorkforceCatalog = typeof enWorkforce;
 
 export function looksLikeInternalCode(value: string | null | undefined): boolean {
   const trimmed = value?.trim() ?? '';
@@ -64,104 +94,217 @@ function buildCatalog(sources: readonly unknown[]): Map<string, string> {
   return map;
 }
 
-const HE_CATALOG = buildCatalog([
-  heStatus,
-  heExpenses.costCategories,
-  heExpenses.costFamilies,
-  heExpenses.recurrence,
-  heVendors.types,
-  heVendors.engagementStatus,
-  heVendors.list?.status,
-  heFieldOps.kinds,
-  heFieldOps.priorities,
-  heApprovals.entityTypes,
-  heAp.statuses,
-  heBillingPlan.status,
-  heBillingPlan.cycleStatus,
-  heCrm.statuses,
-  heWorkforce.employeeStatus,
-  heWorkforce.time?.approvalStatus,
-  heMonthClose.checks,
-]);
+function catalogSources(
+  status: typeof enStatus,
+  expenses: ExpensesCatalog,
+  vendors: VendorsCatalog,
+  fieldOps: typeof enFieldOps,
+  approvals: typeof enApprovals,
+  ap: ApCatalog,
+  billingPlan: typeof enBillingPlan,
+  crm: typeof enCrm,
+  workforce: WorkforceCatalog,
+  monthClose: typeof enMonthClose,
+): readonly unknown[] {
+  return [
+    status,
+    expenses.costCategories,
+    expenses.costFamilies,
+    expenses.recurrence,
+    vendors.types,
+    vendors.engagementStatus,
+    vendors.list?.status,
+    fieldOps.kinds,
+    fieldOps.priorities,
+    approvals.entityTypes,
+    ap.statuses,
+    billingPlan.status,
+    billingPlan.cycleStatus,
+    crm.statuses,
+    workforce.employeeStatus,
+    workforce.time?.approvalStatus,
+    monthClose.checks,
+  ];
+}
 
-const EN_CATALOG = buildCatalog([
-  enStatus,
-  enExpenses.costCategories,
-  enExpenses.costFamilies,
-  enExpenses.recurrence,
-  enVendors.types,
-  enVendors.engagementStatus,
-  enVendors.list?.status,
-  enFieldOps.kinds,
-  enFieldOps.priorities,
-  enApprovals.entityTypes,
-  enAp.statuses,
-  enBillingPlan.status,
-  enBillingPlan.cycleStatus,
-  enCrm.statuses,
-  enWorkforce.employeeStatus,
-  enWorkforce.time?.approvalStatus,
-  enMonthClose.checks,
-]);
-
-const HE_EXTRAS: Readonly<Record<string, string>> = {
-  workforce: 'עובדים',
-  month_close: 'סגירת חודש',
-  labor: 'עבודה',
-  expense: 'הוצאה',
-  ap_bill: 'חשבון ספק',
-  classified: 'מסווג',
-  needs_classification: 'דורש סיווג',
-  not_opened: 'לא נפתח',
-  'not opened': 'לא נפתח',
-  percent: 'אחוז',
-  fixed: 'סכום קבוע',
-  supplier: 'ספק',
-  subcontractor: 'קבלן משנה',
-  both: 'ספק וקבלן משנה',
-  other: 'אחר',
-  proposed_ap: 'חשבון ספק מוצע',
-  voided: 'בוטל',
-  pending: 'ממתין',
-  success: 'הצליח',
-  failed: 'נכשל',
-  high: 'גבוה',
-  medium: 'בינוני',
-  low: 'נמוך',
-  critical: 'קריטי',
-  general: 'כללי',
-  General: 'כללי',
+const CATALOG_BY_LOCALE: Readonly<Record<Locale, Map<string, string>>> = {
+  en: buildCatalog(
+    catalogSources(
+      enStatus,
+      enExpenses,
+      enVendors,
+      enFieldOps,
+      enApprovals,
+      enAp,
+      enBillingPlan,
+      enCrm,
+      enWorkforce,
+      enMonthClose,
+    ),
+  ),
+  'he-IL': buildCatalog(
+    catalogSources(
+      heStatus,
+      heExpenses,
+      heVendors,
+      heFieldOps,
+      heApprovals,
+      heAp,
+      heBillingPlan,
+      heCrm,
+      heWorkforce,
+      heMonthClose,
+    ),
+  ),
+  ar: buildCatalog(
+    catalogSources(
+      arStatus,
+      arExpenses,
+      arVendors,
+      arFieldOps,
+      arApprovals,
+      arAp,
+      arBillingPlan,
+      arCrm,
+      arWorkforce,
+      arMonthClose,
+    ),
+  ),
+  ru: buildCatalog(
+    catalogSources(
+      ruStatus,
+      ruExpenses,
+      ruVendors,
+      ruFieldOps,
+      ruApprovals,
+      ruAp,
+      ruBillingPlan,
+      ruCrm,
+      ruWorkforce,
+      ruMonthClose,
+    ),
+  ),
 };
 
-const EN_EXTRAS: Readonly<Record<string, string>> = {
-  workforce: 'Employees',
-  month_close: 'Month close',
-  labor: 'Labor',
-  expense: 'Expense',
-  ap_bill: 'Vendor bill',
-  classified: 'Classified',
-  needs_classification: 'Needs classification',
-  not_opened: 'Not opened',
-  'not opened': 'Not opened',
-  percent: 'Percent',
-  fixed: 'Fixed amount',
-  proposed_ap: 'Proposed vendor bill',
-  voided: 'Voided',
-  pending: 'Pending',
-  success: 'Success',
-  failed: 'Failed',
+const EXTRAS_BY_LOCALE: Readonly<Record<Locale, Readonly<Record<string, string>>>> = {
+  en: {
+    workforce: 'Employees',
+    month_close: 'Month close',
+    labor: 'Labor',
+    expense: 'Expense',
+    ap_bill: 'Vendor bill',
+    classified: 'Classified',
+    needs_classification: 'Needs classification',
+    not_opened: 'Not opened',
+    'not opened': 'Not opened',
+    percent: 'Percent',
+    fixed: 'Fixed amount',
+    proposed_ap: 'Proposed vendor bill',
+    voided: 'Voided',
+    pending: 'Pending',
+    success: 'Success',
+    failed: 'Failed',
+  },
+  'he-IL': {
+    workforce: 'עובדים',
+    month_close: 'סגירת חודש',
+    labor: 'עבודה',
+    expense: 'הוצאה',
+    ap_bill: 'חשבון ספק',
+    classified: 'מסווג',
+    needs_classification: 'דורש סיווג',
+    not_opened: 'לא נפתח',
+    'not opened': 'לא נפתח',
+    percent: 'אחוז',
+    fixed: 'סכום קבוע',
+    supplier: 'ספק',
+    subcontractor: 'קבלן משנה',
+    both: 'ספק וקבלן משנה',
+    other: 'אחר',
+    proposed_ap: 'חשבון ספק מוצע',
+    voided: 'בוטל',
+    pending: 'ממתין',
+    success: 'הצליח',
+    failed: 'נכשל',
+    high: 'גבוה',
+    medium: 'בינוני',
+    low: 'נמוך',
+    critical: 'קריטי',
+    general: 'כללי',
+    General: 'כללי',
+  },
+  ar: {
+    workforce: 'موظفون',
+    month_close: 'إغلاق شهر',
+    labor: 'عمل',
+    expense: 'مصروف',
+    ap_bill: 'فاتورة مورد',
+    classified: 'مصنّف',
+    needs_classification: 'يتطلب تصنيف',
+    not_opened: 'لم يُفتح',
+    'not opened': 'لم يُفتح',
+    percent: 'نسبة',
+    fixed: 'مبلغ ثابت',
+    supplier: 'مورد',
+    subcontractor: 'مقاول باطن',
+    both: 'مورد ومقاول باطن',
+    other: 'أخرى',
+    proposed_ap: 'فاتورة مورد مقترحة',
+    voided: 'ملغى',
+    pending: 'قيد الانتظار',
+    success: 'نجح',
+    failed: 'فشل',
+    high: 'مرتفع',
+    medium: 'متوسط',
+    low: 'منخفض',
+    critical: 'حرج',
+    general: 'عام',
+    General: 'عام',
+  },
+  ru: {
+    workforce: 'Сотрудники',
+    month_close: 'Закрытие месяца',
+    labor: 'Работа',
+    expense: 'Расход',
+    ap_bill: 'Счёт поставщика',
+    classified: 'Классифицировано',
+    needs_classification: 'Нужна классификация',
+    not_opened: 'Не открыто',
+    'not opened': 'Не открыто',
+    percent: 'Процент',
+    fixed: 'Фиксированная сумма',
+    supplier: 'Поставщик',
+    subcontractor: 'Субподрядчик',
+    both: 'Поставщик и субподрядчик',
+    other: 'Другое',
+    proposed_ap: 'Предложенный счёт поставщика',
+    voided: 'Аннулировано',
+    pending: 'Ожидание',
+    success: 'Успех',
+    failed: 'Ошибка',
+    high: 'Высокий',
+    medium: 'Средний',
+    low: 'Низкий',
+    critical: 'Критичный',
+    general: 'Общий',
+    General: 'Общий',
+  },
 };
+
+function labelLocale(locale: string | null | undefined): Locale {
+  return resolveLabelLocale(locale ?? 'en');
+}
 
 function catalogFor(locale: string | null | undefined): Map<string, string> {
-  return isHebrewLocale(locale) ? HE_CATALOG : EN_CATALOG;
+  return CATALOG_BY_LOCALE[labelLocale(locale)];
 }
 
 function extrasFor(locale: string | null | undefined): Readonly<Record<string, string>> {
-  return isHebrewLocale(locale) ? HE_EXTRAS : EN_EXTRAS;
+  return EXTRAS_BY_LOCALE[labelLocale(locale)];
 }
 
 function unknownFor(locale: string | null | undefined): string {
-  return isHebrewLocale(locale) ? HEBREW_UNKNOWN : ENGLISH_UNKNOWN;
+  return UNKNOWN_BY_LOCALE[labelLocale(locale)];
 }
 
 /**
@@ -174,11 +317,13 @@ export function localizeProjectDisplayName(
 ): string {
   const trimmed = name?.trim() ?? '';
   if (!trimmed) return '-';
+  const resolved = labelLocale(locale);
   if (trimmed === 'General') {
-    return isHebrewLocale(locale) ? 'כללי' : 'General';
+    return EXTRAS_BY_LOCALE[resolved].General ?? EXTRAS_BY_LOCALE[resolved].general ?? trimmed;
   }
-  if (looksLikeEnglishDisplayName(trimmed) && isHebrewLocale(locale)) {
-    const mapped = HE_EXTRAS[trimmed] ?? HE_EXTRAS[trimmed.toLowerCase()];
+  if (looksLikeEnglishDisplayName(trimmed) && resolved !== 'en') {
+    const mapped =
+      EXTRAS_BY_LOCALE[resolved][trimmed] ?? EXTRAS_BY_LOCALE[resolved][trimmed.toLowerCase()];
     if (mapped) return mapped;
   }
   return trimmed;

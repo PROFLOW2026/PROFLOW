@@ -1,0 +1,275 @@
+{
+  "title": "طلبات الخدمة",
+  "newWorkOrder": "طلب خدمة جديد",
+  "empty": {
+    "title": "لا طلبات خدمة بعد",
+    "body": "طلب الخدمة هو نفس السجل المالي للمشروع أو العمل، مع مساحة إرسال - وليس نظاماً مالياً ثانياً.",
+    "action": "إنشاء أول طلب خدمة",
+    "moduleLink": "إظهار الخدمة في التنقل (الإعدادات)"
+  },
+  "list": {
+    "searchPlaceholder": "بحث في طلبات الخدمة…",
+    "filterStatus": "الحالة",
+    "allStatuses": "جميع الحالات",
+    "unassigned": "غير معيّن",
+    "columns": {
+      "customer": "العميل",
+      "name": "طلب الخدمة",
+      "site": "الموقع",
+      "window": "النافذة",
+      "assignee": "المُعيَّن",
+      "status": "الحالة",
+      "priority": "الأولوية"
+    }
+  },
+  "status": {
+    "new": "جديد",
+    "scheduled": "مجدول",
+    "in_progress": "قيد التنفيذ",
+    "waiting": "بانتظار",
+    "completed": "مكتمل",
+    "cancelled": "ملغى"
+  },
+  "priority": {
+    "low": "منخفض",
+    "normal": "عادي",
+    "high": "مرتفع",
+    "urgent": "عاجل"
+  },
+  "pricing": {
+    "fixed": "سعر ثابت",
+    "open": "سعر مفتوح",
+    "priceNotSet": "السعر غير محدد بعد",
+    "priceLabel": "السعر",
+    "priceHint": "سعر طلب الخدمة. الحسابات التجارية تستخدم المبلغ الصافي (باستثناء ض.ق.م).",
+    "pricePlaceholder": "مثال: 800",
+    "taxModeHint": "ما إذا كان السعر يشمل ض.ق.م. المعدل يأتي من إعدادات ضريبة المنظمة."
+  },
+  "create": {
+    "title": "طلب خدمة جديد",
+    "description": "استقبال زيارة ميدانية - العميل والموقع والجدول. التكاليف والفوترة تبقى على نفس سجل العمل كالمشاريع والأعمال.",
+    "customerLabel": "العميل",
+    "customerNew": "زائر / عميل جديد",
+    "customerSelect": "عميل موجود",
+    "customerExample": "مثال: منزل كوهين",
+    "nameLabel": "ما المطلوب",
+    "namePlaceholder": "مثال: المكيف لا يبرد - غرفة المعيشة",
+    "siteLabel": "الموقع",
+    "contactNameLabel": "جهة اتصال الموقع",
+    "contactPhoneLabel": "هاتف الاتصال",
+    "categoryLabel": "الفئة",
+    "priorityLabel": "الأولوية",
+    "pricingModeLabel": "التسعير",
+    "requestedDateLabel": "التاريخ المطلوب",
+    "windowStartLabel": "بداية الجدول",
+    "windowEndLabel": "نهاية الجدول",
+    "assigneeLabel": "المُعيَّن",
+    "assigneeNone": "غير معيّن",
+    "assigneeHint": "من سيذهب - يمكن تغييره لاحقاً من الإرسال.",
+    "notesLabel": "ملاحظات الخدمة",
+    "statusLabel": "الحالة",
+    "quickStatusLabel": "تحديث الحالة",
+    "checklistLabel": "قائمة تحقق مطلوبة",
+    "checklistNone": "بدون قائمة",
+    "checklistHint": "إذا اخترت قالب نموذج، يجب على الفني إرساله قبل تحديد هذا الطلب مكتملاً.",
+    "checklistUnavailable": "قالب محفوظ (لم يعد في القائمة)",
+    "usualKind": {
+      "jobTitle": "منظمتك عادةً تنشئ أعمالاً",
+      "projectTitle": "منظمتك عادةً تنشئ مشاريع",
+      "workOrderTitle": "منظمتك عادةً تنشئ طلبات خدمة",
+      "goToJob": "إنشاء عمل",
+      "goToProject": "إنشاء مشروع",
+      "goToWorkOrder": "إنشاء طلب خدمة",
+      "stayHint": "هذا النموذج متاح إذا احتجت طلب خدمة.",
+      "sameEngine": "المشاريع والأعمال وطلبات الخدمة هي نفس السجل المالي بشاشات مختلفة.",
+      "switcherLabel": "نوع العمل"
+    },
+    "submit": "إنشاء طلب خدمة"
+  },
+  "fields": {
+    "site": "الموقع",
+    "priority": "الأولوية",
+    "contact": "جهة الاتصال",
+    "window": "نافذة الجدول",
+    "notes": "ملاحظات"
+  },
+  "workspace": {
+    "fallbackTitle": "طلب خدمة",
+    "backToList": "جميع طلبات الخدمة",
+    "openDispatch": "الإرسال اليومي",
+    "openField": "الميدان",
+    "openExpenses": "تسجيل مصروف",
+    "openTime": "الوقت",
+    "openWarranty": "الضمان",
+    "sameEngineHint": "التكاليف والفوترة تستخدم نفس المحرك المالي كالمشاريع والأعمال - بدون فعلي مكرر.",
+    "financialsTitle": "المالية",
+    "saved": "تم الحفظ",
+    "updateStatus": "تحديث الحالة"
+  },
+  "checklist": {
+    "title": "قائمة تحقق مطلوبة",
+    "untitled": "نموذج ميداني",
+    "requiredTitle": "قائمة تحقق مطلوبة",
+    "requiredBody": "أرسل هذا النموذج قبل تحديد طلب الخدمة مكتملاً.",
+    "submittedBody": "أُرسلت قائمة التحقق المطلوبة.",
+    "fill": "ملء قائمة التحقق",
+    "continue": "متابعة قائمة التحقق",
+    "view": "عرض قائمة التحقق",
+    "statusSubmitted": "مُرسَل",
+    "statusDraft": "مسودة",
+    "statusMissing": "لم يبدأ"
+  },
+  "errors": {
+    "checklistRequired": "أرسل قائمة التحقق المطلوبة قبل إكمال طلب الخدمة."
+  },
+  "billing": {
+    "title": "فوترة هذا العمل",
+    "hint": "ينشئ مسودة فاتورة بمحرك الفوترة الحالي. تُطبّق ض.ق.م هناك. الفوترة على طلب الخدمة هذا كمشروع؛ يُرفق عقد رئيسي عند وجوده. لا يمكنك فوترة نفس طلب الخدمة مرتين بينما توجد فاتورة حية.",
+    "submit": "إنشاء فوترة",
+    "created": "تم إنشاء مسودة فوترة",
+    "alreadyBilled": "لهذا طلب الخدمة فاتورة {status} بالفعل.",
+    "openBilling": "فتح سجل الفوترة",
+    "laborHours": "ساعات العمالة",
+    "laborRate": "معدل العمالة",
+    "materialsAmount": "المواد",
+    "callOutFee": "رسوم الزيارة",
+    "additionalCharges": "رسوم إضافية",
+    "discountAmount": "خصم",
+    "notes": "ملاحظات",
+    "invalidAmount": "مبلغ غير صالح",
+    "negativeAmount": "يجب أن تكون المبالغ صفراً أو أكثر",
+    "discountExceeds": "لا يمكن أن يتجاوز الخصم الرسوم",
+    "zeroAmount": "أدخل مبلغاً أكبر من صفر",
+    "notWorkOrder": "يمكن فوترة طلبات الخدمة فقط هنا",
+    "alreadyBilledError": "لهذا طلب الخدمة سجل فوترة حي بالفعل"
+  },
+  "dispatch": {
+    "title": "الإرسال",
+    "description": "تعيين وإعادة جدولة طلبات عمل اليوم. هذه لوحة اليوم - وليست تقويماً للموارد وليست تخطيط Gantt للمشروع.",
+    "overlapWarning": "للمُعيَّن حجز متداخل بالفعل. أكّد للإبقاء على كليهما، أو اختر وقتاً مختلفاً.",
+    "confirmOverlap": "تعيين على أي حال - الأوقات متداخلة",
+    "windowLabel": "النافذة",
+    "assigneeFilter": "المُعيَّن",
+    "allAssignees": "جميع المُعيَّنين",
+    "windows": {
+      "today": "اليوم",
+      "tomorrow": "غداً",
+      "week": "هذا الأسبوع"
+    },
+    "reschedule": "إعادة جدولة / تعيين",
+    "hideReschedule": "إخفاء",
+    "saveReschedule": "حفظ الجدول",
+    "empty": {
+      "title": "لا شيء مجدول في هذه النافذة",
+      "body": "جدول طلب خدمة مع وقت بداية لرؤيته هنا.",
+      "action": "تصفح طلبات الخدمة"
+    }
+  },
+  "recurring": {
+    "title": "عمل متكرر",
+    "description": "عقود خدمة وقوالب مجدولة. طلبات العمل المُنشأة تبقى مسودة حتى يُنجز العمل - لا إيراد صامت أبداً.",
+    "draftsLink": "للمسودات المتكررة للمصروف أو حساب المورد أو الفوترة، راجع المسودات المتكررة ضمن المال.",
+    "new": "قالب متكرر جديد",
+    "empty": {
+      "title": "لا قوالب متكررة بعد",
+      "body": "أنشئ جدول عميل/موقع. ProjectFlow يفتح مسودات طلبات عمل في كل occurrence - تؤكد العمل قبل تحريك المال.",
+      "action": "قالب متكرر جديد"
+    },
+    "list": {
+      "columns": {
+        "title": "العنوان",
+        "client": "العميل",
+        "frequency": "التكرار",
+        "next": "التالي",
+        "status": "الحالة",
+        "site": "الموقع"
+      },
+      "filters": {
+        "allOpen": "نشط ومتوقف",
+        "active": "نشط",
+        "paused": "متوقف",
+        "ended": "منتهٍ",
+        "includeEnded": "تضمين المنتهي"
+      }
+    },
+    "status": {
+      "active": "نشط",
+      "paused": "متوقف",
+      "ended": "منتهٍ"
+    },
+    "occurrenceStatus": {
+      "planned": "مخطّط",
+      "generated": "فُتح طلب عمل",
+      "skipped": "تُخطّى",
+      "cancelled": "ملغى"
+    },
+    "frequency": {
+      "daily": "يومي",
+      "weekly": "أسبوعي",
+      "monthly": "شهري",
+      "quarterly": "ربع سنوي",
+      "yearly": "سنوي"
+    },
+    "create": {
+      "title": "قالب متكرر جديد",
+      "description": "قالب عقد خدمة اختياري. التسعير هنا تلميح فقط - التوليد لا ينهي المالية أبداً.",
+      "submit": "إنشاء القالب"
+    },
+    "detail": {
+      "title": "قالب متكرر",
+      "history": "سجل occurrences",
+      "generatedCount": "فُتح {count} طلب عمل",
+      "noHistory": "لا occurrences بعد. ولّد التواريخ القادمة لفتح مسودات طلبات عمل.",
+      "openWorkOrder": "فتح طلب عمل",
+      "templatePriceHint": "سعر القالب (ليس إيراداً)",
+      "financialNote": "طلبات العمل المُنشأة مسودة/مجدولة فقط. التكلفة الفعلية والإيراد لا يزالان يتطلبان إكمال العمل والفوترة العادية."
+    },
+    "fields": {
+      "title": "العنوان",
+      "client": "العميل",
+      "siteAddress": "الموقع / العنوان",
+      "frequency": "التكرار",
+      "intervalCount": "كل N فترات",
+      "startDate": "تاريخ البدء",
+      "endDate": "تاريخ الانتهاء",
+      "durationMinutes": "المدة الافتراضية (دقائق)",
+      "pricingMode": "التسعير الافتراضي",
+      "priceAmount": "السعر الافتراضي",
+      "currency": "العملة",
+      "assignee": "المُعيَّن الافتراضي",
+      "checklistTemplateId": "معرّف قالب قائمة التحقق",
+      "notes": "ملاحظات",
+      "noClient": "بدون عميل",
+      "noAssignee": "بدون مُعيَّن افتراضي",
+      "pricing": {
+        "none": "لا شيء (تلميح لاحقاً)",
+        "fixed": "ثابت (القالب فقط)",
+        "open": "سعر مفتوح"
+      }
+    },
+    "actions": {
+      "generate": "توليد طلبات عمل قادمة",
+      "generateHint": "يفتح مسودات/مجدولة للـ 30 يوماً القادمة. لا ينشئ فعلياً أو فواتير.",
+      "pause": "إيقاف",
+      "resume": "استئناف",
+      "end": "إنهاء التكرار",
+      "skipNext": "تخطي occurrence التالي",
+      "skip": "تخطي",
+      "skipReason": "السبب (اختياري)",
+      "backToList": "جميع القوالب المتكررة"
+    },
+    "errors": {
+      "recurrenceNotActive": "القوالب النشطة فقط يمكنها توليد طلبات عمل.",
+      "recurrenceEnded": "انتهى هذا التكرار.",
+      "occurrenceAlreadyGenerated": "فتح هذا occurrence طلب عمل بالفعل."
+    },
+    "success": {
+      "created": "تم إنشاء القالب المتكرر.",
+      "generated": "فُتح {count} مسودة طلب عمل.",
+      "paused": "توقف التكرار.",
+      "resumed": "استُؤنف التكرار.",
+      "ended": "انتهى التكرار.",
+      "skipped": "تُخطّى occurrence."
+    }
+  }
+}

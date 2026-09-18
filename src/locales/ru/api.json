@@ -1,0 +1,88 @@
+{
+  "title": "API и вебхуки",
+  "subtitle": "Основа для разработчиков: управление ключами доступа и уведомлениями вебхуков для внешних систем.",
+  "versionNote": "Эти ключи предназначены для разработчиков, подключающих внешнюю систему. Вход в приложение не заменяет ключ.",
+  "moreInfo": "Подробнее",
+  "versionNoteDetails": "Передавайте API-ключ в заголовке Authorization. Вход через браузер не применяется к этим ключам.",
+  "addClient": "Создать клиента",
+  "clientSaved": "API-клиент создан.",
+  "addKey": "Сгенерировать ключ",
+  "keysTitle": "API-ключи",
+  "keysEmpty": "API-ключей пока нет.",
+  "keyOnce": "Скопируйте этот ключ сейчас. Он показывается только один раз.",
+  "secretOnce": "Скопируйте секрет вебхука сейчас. Он показывается только один раз.",
+  "revoke": "Отозвать",
+  "rotate": "Сменить",
+  "rotateSecret": "Сменить секрет",
+  "neverUsed": "Никогда",
+  "attempts": "{count} попыток",
+  "addWebhook": "Зарегистрировать endpoint",
+  "webhooksTitle": "Endpoint'ы вебхуков",
+  "webhooksEmpty": "Endpoint'ов вебхуков пока нет.",
+  "eventTypesHint": "Только HTTPS endpoint'ы (http разрешён для localhost). Выберите из разрешённых типов событий.",
+  "enqueueTest": "Поставить тест в очередь",
+  "deliveriesTitle": "Недавние доставки",
+  "deliveriesEmpty": "Доставок пока не зафиксировано.",
+  "deliveryQueued": "Доставка записана как ожидающая.",
+  "deliveryAttemptRecorded": "Попытка доставки записана (без исходящего HTTP).",
+  "markDeliverySuccess": "Записать успех",
+  "markDeliveryFailure": "Записать ошибку",
+  "fields": {
+    "clientName": "Имя клиента",
+    "keyName": "Имя ключа",
+    "apiClient": "API-клиент",
+    "scopes": "Области доступа",
+    "url": "URL endpoint'а",
+    "eventTypes": "Типы событий"
+  },
+  "columns": {
+    "name": "Название",
+    "prefix": "Префикс",
+    "scopes": "Области доступа",
+    "lastUsed": "Последнее использование",
+    "status": "Статус",
+    "actions": "Действия",
+    "url": "Адрес URL",
+    "events": "События"
+  },
+  "status": {
+    "active": "Активен",
+    "revoked": "Отозван"
+  },
+  "scopes": {
+    "projects": {
+      "read": "Чтение проектов"
+    },
+    "clients": {
+      "read": "Чтение клиентов"
+    },
+    "billing": {
+      "read": "Чтение выставления счетов"
+    },
+    "webhooks": {
+      "manage": "Управление вебхуками"
+    }
+  },
+  "events": {
+    "test": {
+      "ping": "Проверка соединения"
+    },
+    "project": {
+      "created": "Проект создан",
+      "updated": "Проект обновлён"
+    },
+    "client": {
+      "updated": "Клиент обновлён"
+    },
+    "billing": {
+      "invoice": {
+        "issued": "Счёт выставлен"
+      }
+    },
+    "api": {
+      "key": {
+        "revoked": "Ключ доступа отозван"
+      }
+    }
+  }
+}

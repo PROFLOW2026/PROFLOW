@@ -3,9 +3,10 @@
  * DB `name` may be English; UI overlays these labels by key for isSystem entries.
  */
 
+import type { Locale } from '@/shared/i18n/config';
 import { resolveLabelLocale } from '@/shared/i18n/intl-locale';
 
-export type VendorCapabilityLabelLocale = 'en' | 'he-IL';
+export type VendorCapabilityLabelLocale = Locale;
 
 export const VENDOR_CAPABILITY_LABELS_EN: Readonly<Record<string, string>> = {
   materials_supplier: 'Materials supplier',
@@ -37,11 +38,43 @@ export const VENDOR_CAPABILITY_LABELS_HE: Readonly<Record<string, string>> = {
   government: 'ממשלה / רשות',
 };
 
+export const VENDOR_CAPABILITY_LABELS_AR: Readonly<Record<string, string>> = {
+  materials_supplier: 'مورد مواد',
+  equipment_supplier: 'مورد معدات',
+  equipment_rental: 'تأجير معدات',
+  service_provider: 'مزود خدمة',
+  subcontractor: 'مقاول باطن',
+  external_manpower: 'قوة عاملة خارجية',
+  consultant: 'استشاري',
+  logistics: 'لوجستيات',
+  landlord: 'مالك عقار',
+  utility_provider: 'مزود مرافق',
+  insurance_provider: 'مزود تأمين',
+  government: 'جهة حكومية',
+};
+
+export const VENDOR_CAPABILITY_LABELS_RU: Readonly<Record<string, string>> = {
+  materials_supplier: 'Поставщик материалов',
+  equipment_supplier: 'Поставщик оборудования',
+  equipment_rental: 'Аренда оборудования',
+  service_provider: 'Поставщик услуг',
+  subcontractor: 'Субподрядчик',
+  external_manpower: 'Внешний персонал',
+  consultant: 'Консультант',
+  logistics: 'Логистика',
+  landlord: 'Арендодатель',
+  utility_provider: 'Поставщик коммунальных услуг',
+  insurance_provider: 'Страховая компания',
+  government: 'Госорган',
+};
+
 const LABELS_BY_LOCALE: Readonly<
   Record<VendorCapabilityLabelLocale, Readonly<Record<string, string>>>
 > = {
   en: VENDOR_CAPABILITY_LABELS_EN,
   'he-IL': VENDOR_CAPABILITY_LABELS_HE,
+  ar: VENDOR_CAPABILITY_LABELS_AR,
+  ru: VENDOR_CAPABILITY_LABELS_RU,
 };
 
 export function resolveVendorCapabilityLabelLocale(locale: string): VendorCapabilityLabelLocale {

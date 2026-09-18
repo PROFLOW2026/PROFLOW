@@ -1,3 +1,4 @@
+import { getTranslations } from 'next-intl/server';
 import { authorize } from '@/shared/permissions/authorize';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { withOrgContext } from '@/shared/auth/session';
@@ -6,6 +7,7 @@ import { resolveLinkedEmployee } from '@/modules/workforce/application/time-scop
 import { canReadDocumentCategoryForContext } from '@/modules/documents/application/document-visibility';
 
 export default async function EmployeeDocumentsPage() {
+  const t = await getTranslations('employeeApp.lists');
   const docs = await withOrgContext(async (context) => {
     await authorize(context, { permission: PERMISSIONS.DOCUMENTS_READ, scope: 'assigned_only' });
     const employee = await resolveLinkedEmployee(context);
@@ -23,11 +25,13 @@ export default async function EmployeeDocumentsPage() {
         {docs.map((doc) => (
           <li key={doc.id} className="px-4 py-3 text-sm">
             <div className="font-medium">{doc.originalFilename}</div>
-            <div className="text-[var(--pf-text-secondary)]">{doc.category ?? '—'}</div>
+            <div className="text-[var(--pf-text-secondary)]">{doc.category ?? t('noCategory')}</div>
           </li>
         ))}
         {docs.length === 0 ? (
-          <li className="px-4 py-6 text-center text-sm text-[var(--pf-text-secondary)]">—</li>
+          <li className="px-4 py-6 text-center text-sm text-[var(--pf-text-secondary)]">
+            {t('documentsEmpty')}
+          </li>
         ) : null}
       </ul>
     </div>

@@ -1,0 +1,53 @@
+{
+  "title": "حقول مخصصة",
+  "subtitle": "سمات اختيارية على السجلات — لا تستبدل الحقول المالية أبداً.",
+  "reportingNote": "الحقول المخصصة تسميات تشغيلية؛ قد لا تظهر في التقارير أو التصدير بعد.",
+  "listTitle": "تعريفات الحقول",
+  "empty": "لا توجد حقول مخصصة بعد",
+  "emptyHint": "أضف حقل اختياري عندما تحتاج تسمية تشغيلية.",
+  "addDefinition": "إضافة حقل",
+  "archive": "أرشفة",
+  "saved": "تم حفظ الحقل المخصص.",
+  "entityTitle": "حقول مخصصة",
+  "valueSaved": "تم حفظ الحقل المخصص.",
+  "saveValue": "حفظ",
+  "selectPlaceholder": "اختر…",
+  "selectNone": "لا شيء",
+  "multiSelectPlaceholder": "خيار أ، خيار ب",
+  "fields": {
+    "entityType": "الكيان",
+    "key": "المفتاح",
+    "label": "التسمية",
+    "fieldType": "النوع",
+    "required": "مطلوب",
+    "options": "الخيارات",
+    "optionsOptional": "لأنواع الاختيار",
+    "optionsPlaceholder": "أحمر، أخضر، أزرق",
+    "optionsHint": "مفصولة بفواصل. مطلوبة لـ Select و Multi-select."
+  },
+  "columns": {
+    "label": "التسمية",
+    "entity": "الكيان",
+    "key": "المفتاح",
+    "type": "النوع",
+    "actions": "الإجراءات"
+  },
+  "entityTypes": {
+    "client": "عميل",
+    "project": "مشروع",
+    "vendor": "مورد",
+    "employee": "موظف",
+    "opportunity": "فرصة",
+    "expense": "مصروف"
+  },
+  "fieldTypes": {
+    "text": "نص",
+    "number": "رقم",
+    "money": "مبلغ",
+    "date": "تاريخ",
+    "select": "اختيار",
+    "multi_select": "اختيار متعدد",
+    "boolean": "نعم / لا",
+    "reference": "مرجع"
+  }
+}

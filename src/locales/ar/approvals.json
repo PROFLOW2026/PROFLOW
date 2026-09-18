@@ -1,0 +1,93 @@
+{
+  "title": "الموافقات",
+  "description": "مراجعة الطلبات المعلقة وتحديد عتبات المبالغ. اختياري — معطّل حتى تستخدمه.",
+  "pendingTitle": "موافقات معلقة",
+  "pendingEmpty": {
+    "title": "لا شيء ينتظر",
+    "body": "عندما تطابق قاعدة، تظهر الطلبات هنا للموافقة أو الرفض."
+  },
+  "rulesTitle": "قواعد الموافقة",
+  "rulesDescription": "تتطلب قراراً عندما يكون المبلغ عند أو فوق عتبة. اتركها غير مستخدمة لعدم وجود احتكاك.",
+  "rulesEmpty": {
+    "title": "لا توجد قواعد بعد",
+    "body": "أضف عتبة للمصروفات وحسابات الموردين وأوامر الشراء وما شابه."
+  },
+  "addRule": "إضافة قاعدة",
+  "saved": "تم الحفظ.",
+  "approve": "موافقة",
+  "reject": "رفض",
+  "cancel": "إلغاء الطلب",
+  "decisionNote": "ملاحظة (اختياري)",
+  "columns": {
+    "entity": "النوع",
+    "amount": "المبلغ",
+    "status": "الحالة",
+    "submitted": "مُقدّم",
+    "name": "اسم القاعدة",
+    "threshold": "العتبة",
+    "enabled": "مفعّل"
+  },
+  "entityTypes": {
+    "expense": "مصروف",
+    "vendor_bill": "حساب مورد",
+    "purchase_order": "أمر شراء",
+    "vendor_credit": "إشعار دائن مورد",
+    "time_correction": "تصحيح وقت",
+    "quote_discount": "خصم عرض سعر",
+    "budget_revision": "مراجعة ميزانية"
+  },
+  "fields": {
+    "name": "الاسم",
+    "entityType": "ينطبق على",
+    "thresholdAmount": "مبلغ العتبة",
+    "currency": "العملة",
+    "enabled": "مفعّل",
+    "noThreshold": "أي مبلغ"
+  },
+  "errors": {
+    "pending": "هذا الإجراء بانتظار الموافقة.",
+    "rejected": "رُفض هذا الإجراء ولا يمكن المتابعة.",
+    "required": "الموافقة مطلوبة قبل هذا الإجراء.",
+    "submittedPending": "مُقدّم للموافقة — بانتظار قرار.",
+    "notSubmitted": "يمكن تحديث الطلبات المُقدّمة فقط.",
+    "notEligible": "أنت غير مؤهل لاتخاذ قرار في خطوة الموافقة هذه."
+  },
+  "settingsLink": "ضبط القواعد",
+  "openEntity": "فتح السجل ذي الصلة",
+  "inbox": {
+    "submitter": "مُقدّم من",
+    "unknownSubmitter": "غير معروف",
+    "age": "العمر",
+    "step": "الخطوة {current} من {total}"
+  },
+  "age": {
+    "minutes": "{count}د",
+    "hours": "{count}س",
+    "days": "{count}ي"
+  },
+  "steps": {
+    "title": "خطوات الموافقة",
+    "hint": "خطوات مرتبة. اتركها فارغة للخطوة الواحدة القديمة (أي شخص لديه approvals.decide).",
+    "createHint": "اختياري. فارغ = سلوك خطوة واحدة قديم.",
+    "legacySingle": "خطوة واحدة (قديم)",
+    "count": "{count} خطوات",
+    "order": "الترتيب",
+    "strategy": "استراتيجية الموافق",
+    "roleTemplate": "قالب الدور",
+    "permission": "مفتاح الصلاحية",
+    "userId": "معرّف المستخدم",
+    "add": "إضافة خطوة",
+    "remove": "إزالة خطوة",
+    "save": "حفظ الخطوات",
+    "strategies": {
+      "role_template": "قالب الدور",
+      "permission": "صلاحية",
+      "user": "مستخدم محدد"
+    }
+  },
+  "toggle": {
+    "enable": "تفعيل",
+    "disable": "تعطيل",
+    "off": "معطّل"
+  }
+}

@@ -30,8 +30,13 @@ function formatWorkDate(workDate: string, locale: string): string {
   }).format(date);
 }
 
-function formatClockTime(iso: string | null, locale: string, timeZone: string): string {
-  if (!iso) return '—';
+function formatClockTime(
+  iso: string | null,
+  locale: string,
+  timeZone: string,
+  emptyLabel: string,
+): string {
+  if (!iso) return emptyLabel;
   return new Intl.DateTimeFormat(resolveIntlTimeLocale(locale), {
     hour: '2-digit',
     minute: '2-digit',
@@ -51,11 +56,12 @@ function dayHoursLabel(
   clockInAt: string | null,
   clockOutAt: string | null,
   t: (key: 'hoursShort', values: { hours: number }) => string,
+  emptyLabel: string,
 ): string {
-  if (!clockInAt || !clockOutAt) return '—';
+  if (!clockInAt || !clockOutAt) return emptyLabel;
   const start = new Date(clockInAt).getTime();
   const end = new Date(clockOutAt).getTime();
-  if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return '—';
+  if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return emptyLabel;
   const hours = (end - start) / (1000 * 60 * 60);
   return formatHoursTotal(hours, t);
 }
@@ -67,6 +73,8 @@ export function EmployeeAttendanceHistory({
   currentMonthKey,
 }: Props) {
   const t = useTranslations('employeeApp.attendance');
+  const tLists = useTranslations('employeeApp.lists');
+  const emptyLabel = tLists('noValue');
   const groups = groupEmployeeAttendanceByMonth(days, locale, timeZone);
 
   if (groups.length === 0) {
@@ -109,19 +117,19 @@ export function EmployeeAttendanceHistory({
                     <div>
                       <dt className="inline">{t('clockIn')}: </dt>
                       <dd className="inline text-[var(--pf-text-primary)]">
-                        {formatClockTime(day.clockInAt, locale, timeZone)}
+                        {formatClockTime(day.clockInAt, locale, timeZone, emptyLabel)}
                       </dd>
                     </div>
                     <div>
                       <dt className="inline">{t('clockOut')}: </dt>
                       <dd className="inline text-[var(--pf-text-primary)]">
-                        {formatClockTime(day.clockOutAt, locale, timeZone)}
+                        {formatClockTime(day.clockOutAt, locale, timeZone, emptyLabel)}
                       </dd>
                     </div>
                     <div className="col-span-2">
                       <dt className="inline">{t('totalHours')}: </dt>
                       <dd className="inline text-[var(--pf-text-primary)]">
-                        {dayHoursLabel(day.clockInAt, day.clockOutAt, t)}
+                        {dayHoursLabel(day.clockInAt, day.clockOutAt, t, emptyLabel)}
                       </dd>
                     </div>
                   </dl>

@@ -1,0 +1,1270 @@
+{
+  "title": "الإعدادات",
+  "navLabel": "الإعدادات",
+  "groups": {
+    "myBusiness": "أعمالي",
+    "workflow": "كيف نعمل",
+    "advanced": "متقدم",
+    "developers": "المطوّرون"
+  },
+  "sections": {
+    "business": "تفاصيل الشركة",
+    "branding": "العلامة التجارية والمستندات",
+    "people": "المستخدمون والصلاحيات",
+    "roles": "الأدوار",
+    "features": "القدرات",
+    "costCategories": "فئات التكلفة",
+    "businessCatalogs": "فهارس الأعمال",
+    "catalog": "المجالات والأنواع",
+    "templates": "قوالب الهيكل",
+    "tax": "المالية وض.ق.م",
+    "numbering": "الترقيم",
+    "approvals": "الاعتمادات",
+    "portal": "وصول البوابة",
+    "customFields": "حقول مخصّصة",
+    "forms": "قوالب النماذج",
+    "api": "API وWebhooks",
+    "activity": "سجل النشاط",
+    "app": "التطبيق",
+    "offlineDrafts": "مسودات دون اتصال",
+    "banking": "الخدمات المصرفية",
+    "ocr": "التقاط الفواتير",
+    "profile": "ملفك الشخصي",
+    "integrations": "اتصالات خارجية",
+    "storage": "تخزين الملفات"
+  },
+  "people": {
+    "linkCopied": "تم نسخ الرابط",
+    "accessTitle": "وصول المشاريع",
+    "accessHint": "من يرى أي المشاريع. الافتراضي: كل من لديه صلاحية مشروع. التعويض يبقى مخفياً ما لم يكن للشخص وصول لتكلفة القوى العاملة.",
+    "accessMode": "الرؤية",
+    "modeAll": "جميع المشاريع",
+    "modeSelected": "مشاريع مختارة فقط",
+    "modeAssigned": "مشاريع مُخصّصة",
+    "assignedModeHint": "وضع «مُخصّص» يستخدم تخصيصات فريق المشروع ومنح إضافية. الأدوار على مستوى المنظمة — الدور غير مقيّد بمشروع واحد.",
+    "accessAllBypassWarning": "وضع «مختارة» أو «مُخصّصة» لا يخفي المشاريع عن من لديهم «رؤية كل مشروع» في دورهم حتى يُطفأ ذلك: {names}",
+    "grantUser": "شخص",
+    "grantProject": "مشروع",
+    "grantAdd": "منح وصول",
+    "grantEmpty": "لا منح إضافية بعد.",
+    "grantLevel": "مستوى الوصول",
+    "levelRead": "قراءة",
+    "levelManage": "إدارة",
+    "revoke": "إزالة",
+    "saveMode": "حفظ الرؤية",
+    "saved": "تم الحفظ"
+  },
+  "modules": {
+    "title": "القدرات",
+    "subtitle": "اختر أي القدرات تظهر في العمل. الإخفاء يزيلها من التنقل ولا يحذف البيانات أبداً.",
+    "visibilityLabel": "حالة {module}",
+    "on": "مفعّل",
+    "off": "معطّل",
+    "auto": "حسب الحاجة",
+    "autoHint": "حسب الحاجة — تظهر القدرة حسب نوع العمل وطريقة استخدام النظام.",
+    "billing": "الفوترة والتحصيل",
+    "workforce": "الأفراد والساعات",
+    "vendors": "الموردون",
+    "clients": "العملاء",
+    "documents": "المستندات",
+    "changes": "التغييرات",
+    "overhead": "مصاريف عامة للأعمال",
+    "crm": "المبيعات",
+    "compliance": "التأمين والامتثال",
+    "api": "API وWebhooks",
+    "procurement": "المشتريات والطلبات",
+    "materials": "المواد",
+    "field_ops": "عمليات الموقع",
+    "assets": "المعدات والمركبات",
+    "jobs": "الأعمال",
+    "quotes": "عروض الأسعار",
+    "service": "نداءات الخدمة",
+    "approvals": "الاعتمادات",
+    "month_close": "إغلاق الشهر",
+    "budgets": "الميزانيات",
+    "boq": "كشف كميات وفوترة تقدم",
+    "forms": "النماذج",
+    "command_center": "اليوم",
+    "safety": "السلامة / HSE",
+    "hints": {
+      "billing": "إدارة الفواتير الضريبية والفوترة والتحصيل.",
+      "workforce": "إدارة الموظفين وإدخالات الوقت.",
+      "vendors": "إدارة الموردين ومقاولي الباطن.",
+      "clients": "إدارة قائمة العملاء وتفاصيل الاتصال.",
+      "documents": "العقود والإيصالات والصور في مكان واحد.",
+      "changes": "إدارة تغييرات المشروع والإضافات.",
+      "overhead": "تتبّع المصاريف العامة للأعمال.",
+      "crm": "إدارة العملاء المحتملين والفرص وعروض المبيعات.",
+      "compliance": "تتبّع مستندات التأمين والامتثال.",
+      "api": "ربط أنظمة خارجية بمفاتيح وإشعارات.",
+      "procurement": "إدارة RFQ وأوامر الشراء واستلام الكميات.",
+      "materials": "فهرس مواد للمشاريع والأعمال.",
+      "field_ops": "يوميات موقع وفحوصات وقوائم نواقص.",
+      "assets": "إدارة المعدات والمركبات والصيانة.",
+      "jobs": "أعمال قصيرة ويومية إلى جانب المشاريع.",
+      "quotes": "عروض أسعار للعملاء قبل بدء العمل.",
+      "service": "إدارة نداءات الخدمة والإرسال.",
+      "approvals": "إدارة مسارات الاعتماد للمصروفات والشراء وإجراءات أخرى.",
+      "month_close": "إغلاق شهر تشغيلي للحفاظ على استقرار التاريخ.",
+      "budgets": "تتبّع الميزانية مقابل Actual والتوقع.",
+      "boq": "كشف كميات اختياري للبناء المقاس. اتركه معطّلاً ما لم تُفوتر من قائمة كميات — مزيج أعمال/خدمة لا يحتاجه.",
+      "forms": "قوائم تحقق ونماذج موقع قابلة لإعادة الاستخدام.",
+      "command_center": "عرض «اليوم» للعمل والمهام الحالية.",
+      "safety": "حوادث وحالات شبه حادث ومحادثات سلامة وإجراءات تصحيحية."
+    },
+    "saved": "تم تحديث ظهور القدرة.",
+    "hideNeverDeletes": "إخفاء القدرة لا يحذف البيانات أبداً — يمكنك إظهارها مجدداً في أي وقت.",
+    "existingDataNote": "توجد بيانات — الإخفاء لا يحذفها.",
+    "unusedSuggestion": "لم تستخدم {module} مؤخراً. إخفاؤه من القائمة؟",
+    "unusedHide": "إخفاء من القائمة",
+    "unusedDismiss": "ليس الآن",
+    "unusedHidden": "تم إخفاء القدرة من القائمة.",
+    "unusedDismissed": "تم تجاهل الاقتراح.",
+    "unusedOpenSettings": "إدارة القدرات",
+    "discoverabilityTitle": "يستحق المعرفة",
+    "unusedTipDetails": {
+      "boq": "قياس BOQ وفوترة التقدم متاحان عند تفعيل هذه القدرة.",
+      "month_close": "إغلاق الشهر يقفل فترة تشغيلية ليبقى التاريخ مستقراً.",
+      "budgets": "الميزانيات تقارن إجماليات الرقابة بـ Actual — وليست دفتراً ثانياً.",
+      "quotes": "عروض المنتج هي مسار عرض العميل (مختلف عن تقديرات CRM).",
+      "billing": "حجز الإفراج يظهر على مستندات الفوترة عند استخدام الحجز.",
+      "overhead": "المسودات المالية المتكررة تحت «مسودات متكررة» بجانب المصروفات وAP.",
+      "changes": "المشاريع متعددة العقود يمكن أن تحمل عقداً أساسياً وعقوداً إضافية."
+    },
+    "discoverabilityTips": {
+      "boq": "BOQ وقياس الموقع مفعّلان لكن هادئان — افتح مشروع → BOQ عند الفوترة من الكميات.",
+      "retention": "الحجز يُسجَّل على مستندات AR/AP — وليس وحدة منفصلة. ابحث عن hold/release على الفواتير والحسابات.",
+      "month_close": "إغلاق الشهر متاح تحت المالية عند تفعيل القدرة.",
+      "recurring_drafts": "المسودات المتكررة تنشئ مسودات مصروف/AP/فوترة بجدول — وليس Actual تلقائياً.",
+      "multi_contract": "المشروع يمكن أن يحمل أكثر من عقد (أساسي + إضافي). أدرها في قسم عقود المشروع."
+    },
+    "showAll": "إظهار الكل",
+    "showAllHint": "يفعّل كل القدرة المتاحة للعمل.",
+    "resetToProfile": "إعادة إلى توصيات الملف",
+    "resetToProfileHint": "يستعيد الظهور من ملف العمل الحالي. البيانات لا تُحذف أبداً.",
+    "resetNeedsProfile": "لم يُعيّن ملف عمل. اختر ملفاً أولاً.",
+    "foundationsNote": "فعّلت أيضاً قدرات أساس مطلوبة: {modules}.",
+    "bulkSaved": "تم تحديث القدرات.",
+    "bulkHint": "أظهر كل شيء دفعة واحدة، أو استعد التوصيات من ملف عملك. البيانات الموجودة لا تُحذف أبداً.",
+    "preserveHint": "إطفاء القدرة يخفيها من التنقل فقط — التاريخ والحسابات المالية والصلاحيات تبقى سليمة.",
+    "requiresHint": "مطلوب أيضاً: {modules}",
+    "capabilityGroups": {
+      "sales": "المبيعات والعملاء",
+      "work": "العمل",
+      "people": "الأفراد",
+      "purchasing": "الشراء والمواد",
+      "money": "المال",
+      "field": "الموقع",
+      "documents": "المستندات",
+      "advanced": "متقدم"
+    }
+  },
+  "workMix": {
+    "title": "تركيز الأعمال",
+    "subtitle": "اختر ما يبرز في التنقل: مشاريع أو أعمال أو كلاهما. نفس التطبيق ونفس المال — ليس منتجات منفصلة.",
+    "label": "تركيز التنقل",
+    "projects": "معظمه مشاريع",
+    "jobs": "معظمه أعمال",
+    "mixed": "مشاريع وأعمال",
+    "hintJobs": "الأعمال ونداءات الخدمة تظهر في التنقل الرئيسي. المشاريع تبقى متاحة. كشف الكميات يبقى مخفياً ما لم تفعّل تلك القدرة.",
+    "hintMixed": "المشاريع والأعمال ونداءات الخدمة تظهر معاً. يشاركون سجلاً مالياً واحداً — ليس منتجاً منفصلاً، وBOQ يبقى معطّلاً ما لم تفعّله.",
+    "hintProjects": "المشاريع تظهر في التنقل الرئيسي. الأعمال تبقى متاحة عند الحاجة. كشف الكميات يبقى مخفياً ما لم تفعّل تلك القدرة.",
+    "saved": "تم تحديث تركيز الأعمال."
+  },
+  "orgFinancialPolicies": {
+    "title": "سياسات الدفع",
+    "subtitle": "تأكيد دفع المصروفات والرواتب — يدوي افتراضياً.",
+    "expensePaymentLabel": "تأكيد دفع المصروف",
+    "expensePaymentHint": "يدوي: أكّد «مدفوع» في تاريخ الاستحقاق. تلقائي: علّم كمدفوع في تاريخ الاستحقاق مع سجل تدقيق.",
+    "expensePaymentModes": {
+      "manual": "يدوي",
+      "automatic_on_due": "تلقائي في تاريخ الاستحقاق"
+    },
+    "salaryPaymentDayLabel": "يوم دفع الراتب (من الشهر)",
+    "salaryPaymentLabel": "تأكيد دفع الراتب",
+    "salaryPaymentHint": "يدوي: أكّد في يوم الدفع. تلقائي: علّم كمدفوع في اليوم المختار مع سجل تدقيق.",
+    "salaryPaymentModes": {
+      "manual": "يدوي",
+      "automatic_on_day": "تلقائي في يوم الدفع"
+    }
+  },
+  "paymentInstruments": {
+    "title": "بطاقات ائتمان محفوظة",
+    "subtitle": "اللقب وآخر أربعة أرقام ويوم الخصم الشهري — كلها اختيارية.",
+    "empty": "لا بطاقات محفوظة بعد.",
+    "displayName": "الاسم / اللقب",
+    "displayNamePlaceholder": "مثل Visa أعمال",
+    "lastFour": "آخر أربعة أرقام",
+    "debitDay": "يوم الخصم الشهري",
+    "debitDayPlaceholder": "1–28",
+    "addCard": "إضافة بطاقة",
+    "remove": "إزالة",
+    "saved": "تم حفظ البطاقة.",
+    "removed": "تمت إزالة البطاقة."
+  },
+  "projectProfitabilityMode": {
+    "title": "ربحية المشروع",
+    "subtitle": "كيف تظهر تكلفة المشروع Actual والربح في صفحات المشروع. لا يغيّر التوزيعات أو إجماليات الشركة.",
+    "label": "العرض",
+    "direct": "ربحية مباشرة",
+    "include_general": "ربحية شاملة مصاريف عامة للأعمال",
+    "both": "إظهار كليهما",
+    "hintDirect": "تكلفة Actual والربح يستخدمان تكاليف المشروع المباشرة فقط (مصروفات، عمالة، حسابات موردين، إغلاق شهر). المصاريف العامة الموزّعة على المشروع تظهر منفصلة.",
+    "hintIncludeGeneral": "تكلفة Actual والربح يشملان المصاريف العامة للأعمال الموزّعة تلقائياً.",
+    "hintBoth": "يعرض الربح المباشر والربح بعد التوزيع العام جنباً إلى جنب.",
+    "explanation": "تُوزَّع المصاريف العامة للأعمال تلقائياً على المشاريع كل شهر بنسبة التكاليف المباشرة.",
+    "saved": "تم تحديث عرض ربحية المشروع."
+  },
+  "complexity": {
+    "title": "عمق التجربة",
+    "subtitle": "كم من ProjectFlow تُظهر لملف أعمالك. لا يغيّر الصلاحيات أو البيانات المخزّنة.",
+    "label": "التعقيد",
+    "simple": "تنقل أبسط",
+    "advanced": "متقدم",
+    "full": "كامل",
+    "hint": {
+      "simple": "الوجهات الأساسية فقط — يخفي عناصر الصلاحيات مثل الاستيراد وإغلاق الشهر وحسابات الموردين.",
+      "advanced": "يضيف المشتريات والتغييرات والعمل الميداني والمواد وأدوات ذات صلة مع إبقاء أثقل الوحدات معطّلة.",
+      "full": "يعرض توصية الملف الكاملة."
+    },
+    "saved": "تم تحديث عمق التجربة."
+  },
+  "businessProfiles": {
+    "title": "ملف الأعمال",
+    "subtitle": "اختر قالباً يناسب الأعمال. يمكنك تغيير كل شيء لاحقاً. البيانات الموجودة لا تُحذف أبداً.",
+    "firstRunTitle": "أكمل الإعداد بملف أعمال",
+    "firstRunBody": "موصى به بعد إنشاء المنظمة. يُنشئ الوحدات والمجلدات وقوالب النماذج وقوالب المشاريع كنسخ قابلة للتحرير — لا يخفي البيانات المالية أبداً، ولا يفعّل البوابة.",
+    "label": "الملف",
+    "apply": "تطبيق الملف",
+    "saved": "طُبّق الملف. يمكنك تغيير القدرات والأسماء والفئات في أي وقت.",
+    "previewTitle": "هذا الملف سيُعدّ",
+    "previewWorkMix": "تركيز التنقل",
+    "previewModules": "قدرات مقترحة",
+    "previewTerminology": "أسماء العرض",
+    "previewQuickCreate": "إنشاء سريع",
+    "previewCategories": "فئات تكلفة مقترحة",
+    "previewFolders": "مجلدات مستندات مقترحة",
+    "previewForms": "قوالب نماذج مقترحة",
+    "previewTemplates": "قوالب مشاريع مقترحة",
+    "previewToday": "اليوم / تركيز ميداني",
+    "previewHint": "يمكنك تغيير كل شيء بعد التطبيق. البيانات الموجودة لا تُحذف أبداً.",
+    "todayEmphasis": {
+      "field": "لوحة ميدانية",
+      "today": "صندوق اليوم",
+      "dashboard": "لوحة معلومات"
+    },
+    "workMix": {
+      "projects": "معظمه مشاريع",
+      "jobs": "معظمه أعمال",
+      "mixed": "مشاريع وأعمال"
+    }
+  },
+  "presets": {
+    "title": "مجموعة بداية",
+    "subtitle": "يضيف مجالات وفئات مقترحة. البيانات الموجودة لا تُحذف أو تُستبدل أبداً.",
+    "label": "المجموعة",
+    "apply": "تطبيق المجموعة",
+    "saved": "طُبّقت المجموعة. يمكنك تحرير أو إزالة ما أضافته.",
+    "previewTitle": "هذه المجموعة ستضيف",
+    "previewDomains": "المجالات",
+    "previewChecklist": "قائمة تحقق المستندات",
+    "previewCategories": "فئات المصروفات",
+    "previewWorkAreas": "مناطق عمل مقترحة (عند التقسيم)",
+    "previewHint": "أسماء مناطق العمل اقتراحات للمشاريع؛ ليست مقفلة على المنظمة."
+  },
+  "roles": {
+    "title": "الأدوار",
+    "subtitle": "أربعة أدوار. يمكن ضبط بعض الصلاحيات لكل دور.",
+    "toggleTitle": "صلاحيات قابلة للضبط",
+    "accessAllHint": "يتجاوز رؤية «مختارة» و«مُخصّصة». أطفئه لهذا الدور إذا كان يجب أن تخفي تلك الأوضاع المشاريع عنهم.",
+    "profitToggle": "السماح لهذا الدور برؤية الربح والهامش",
+    "protectedHint": "دور المالك دائماً وصول كامل.",
+    "saved": "تم تحديث الدور."
+  },
+  "costCategories": {
+    "title": "فئات التكلفة",
+    "subtitle": "اختياري. الفئات تساعدك على تجميع التكاليف وتعيين سياسة توزيع افتراضية. السياسة يختارها العمل — لا شيء مبرمج باسم الفئة.",
+    "family": "قسم التكلفة",
+    "addCategory": "إضافة فئة",
+    "renameLabel": "الاسم لـ {name}",
+    "emptyTitle": "لا فئات بعد",
+    "emptyHint": "أضف فئة عندما تريد تجميع التكاليف. يمكنك تخطي هذا تماماً.",
+    "archiveQuestion": "أرشفة الفئة «{name}»؟",
+    "archiveConsequence": "الفئات المؤرشفة لا تظهر في قوائم الاختيار الجديدة.",
+    "archiveSuccess": "تمت أرشفة الفئة.",
+    "defaultMethod": "طريقة توزيع افتراضية",
+    "defaultPeriod": "سلوك فترة افتراضي",
+    "noDefault": "لا افتراضي (اختر لكل مصروف)",
+    "policyHint": "يُطبّق عند تسجيل مصروف جديد؛ يمكن للمشغّل التجاوز.",
+    "savePolicy": "حفظ السياسة",
+    "methods": {
+      "manual_amount": "مبلغ ثابت",
+      "manual_percent": "نسبة مئوية",
+      "contract_weight": "حسب وزن العقد",
+      "labor_hours_weight": "حسب ساعات العمل",
+      "direct_cost_weight": "حسب التكلفة المباشرة",
+      "equal_split": "تقسيم متساوٍ"
+    },
+    "periods": {
+      "one_time": "مرة واحدة",
+      "monthly": "شهري",
+      "date_range": "نطاق تاريخ / فترة سنوية"
+    }
+  },
+  "businessCatalogs": {
+    "title": "فهارس الأعمال",
+    "subtitle": "قوائم مشتركة للعملاء والموردين وشروط الدفع وCRM والمزيد. عطّل القيم غير المستخدمة — لا تحذف نهائياً ما هو قيد الاستخدام.",
+    "tabsLabel": "أنواع الفهارس",
+    "addItem": "إضافة عنصر",
+    "emptyTitle": "لا عناصر بعد",
+    "emptyHint": "أضف القيم التي يستخدمها عملك، أو احتفظ بالافتراضيات المُنشأة.",
+    "inactive": "غير نشط",
+    "deactivate": "تعطيل",
+    "deactivateQuestion": "تعطيل «{name}»؟",
+    "deactivateSuccess": "تم التعطيل.",
+    "deactivateDocReqQuestion": "تعطيل المتطلب «{name}»؟",
+    "strategy": "استراتيجية تاريخ الاستحقاق",
+    "netDays": "أيام صافية",
+    "eomOffsetDays": "أيام بعد نهاية الشهر",
+    "code": "رمز",
+    "costCodesEnabled": "استخدام رموز التكلفة في المنتج",
+    "costCodesOptionalNote": "رموز التكلفة اختيارية. يمكن أن توجد صفوف والاستخدام معطّل.",
+    "costCodesEnabledOn": "الاستخدام مفعّل",
+    "costCodesEnabledOff": "الاستخدام معطّل",
+    "docReqsTitle": "متطلبات المستندات",
+    "docReqsHint": "مستندات مطلوبة مقترحة لأنواع الموردين والعقود الباطنة. ليست قانوناً نظامياً.",
+    "docReqsEmpty": "لا متطلبات مستندات بعد",
+    "addDocReq": "إضافة متطلب",
+    "unnamedRequirement": "متطلب مستند",
+    "contextKind": "السياق",
+    "contextKey": "نوع المورد",
+    "documentTypeKey": "مفتاح نوع المستند",
+    "label": "التسمية",
+    "kinds": {
+      "client_type": "أنواع العملاء",
+      "vendor_category": "فئات الموردين",
+      "vendor_specialty": "تخصصات الموردين",
+      "payment_term": "شروط الدفع",
+      "cost_code": "رموز التكلفة",
+      "lead_source": "مصادر العملاء المحتملين",
+      "lost_reason": "أسباب الخسارة",
+      "engagement_role": "أدوار المشاركة"
+    },
+    "kindHints": {
+      "client_type": "كيف تُصنّف العملاء (خاص، بلدية، …).",
+      "vendor_category": "فئات المورد / مقاول الباطن المستخدمة على الموردين.",
+      "vendor_specialty": "تخصصات اختيارية ضمن فئة مورد.",
+      "payment_term": "استراتيجيات تاريخ الاستحقاق للفواتير والحسابات. عيّن الافتراضي للمنظمة أدناه.",
+      "cost_code": "رموز تكلفة اختيارية. فعّل الاستخدام فقط إذا احتاج عملك ذلك.",
+      "lead_source": "من أين يأتي عملاء CRM المحتملون.",
+      "lost_reason": "لماذا فُقدت الفرص.",
+      "engagement_role": "كيف يشارك المورد في مشروع."
+    },
+    "defaultPaymentTermLabel": "شرط الدفع الافتراضي للمنظمة",
+    "defaultPaymentTermHint": "يُستخدم عندما لا تحدد الفواتير والحسابات والعقود والأطراف شرطاً.",
+    "defaultPaymentTermPlaceholder": "اختر الافتراضي…",
+    "defaultPaymentTermUnset": "غير معيّن",
+    "paymentTermLabels": {
+      "immediate": "فوري",
+      "net_7": "صافي 7",
+      "net_14": "صافي 14",
+      "net_30": "صافي 30",
+      "net_45": "صافي 45",
+      "net_60": "صافي 60",
+      "eom": "نهاية الشهر",
+      "eom_30": "ن.ش. + 30",
+      "eom_45": "ن.ش. + 45",
+      "eom_60": "ن.ش. + 60",
+      "eom_90": "ن.ش. + 90",
+      "eom_120": "ن.ش. + 120",
+      "milestone": "حسب المراحل",
+      "custom": "مخصّص"
+    },
+    "strategies": {
+      "immediate": "فوري",
+      "net_days": "أيام صافية",
+      "end_of_month": "نهاية الشهر",
+      "eom_plus_days": "نهاية الشهر + أيام",
+      "milestone": "حسب المراحل",
+      "custom": "مخصّص"
+    },
+    "contextKinds": {
+      "vendor_type": "نوع المورد",
+      "subcontract": "عقد باطن"
+    },
+    "vendorTypes": {
+      "supplier": "مورد",
+      "subcontractor": "مقاول باطن",
+      "both": "كلاهما",
+      "other": "أخرى"
+    }
+  },
+  "catalog": {
+    "title": "المجالات وأنواع المستندات",
+    "subtitle": "فهارس مُتحكَّم بها للخدمات وتسميات المستندات. ليست قاعدة بيانات حرة.",
+    "domainsTitle": "مجالات الخدمة / المهنة",
+    "domainsHint": "تُستخدم كاقتراحات على المشاريع. يمكنك أيضاً كتابة مجال مخصّص على مشروع.",
+    "domainsEmpty": "لا مجالات بعد",
+    "documentTypesTitle": "أنواع المستندات",
+    "documentTypesHint": "تسميات قائمة تحقق اختيارية لالتقاط المستندات. التسميات النصية الحرة تعمل أيضاً.",
+    "documentTypesEmpty": "لا أنواع مستندات بعد",
+    "addDomain": "إضافة مجال",
+    "addDocumentType": "إضافة نوع مستند",
+    "copySemantics": "تطبيق المجموعات أو التحرير هنا لا يعيد كتابة صفوف المشاريع التاريخية أبداً.",
+    "disabled": "معطّل",
+    "archiveQuestion": "أرشفة «{name}»؟",
+    "archiveSuccess": "تمت الأرشفة.",
+    "laborTitle": "افتراضيات تكلفة العمالة",
+    "laborHint": "تُنسخ إلى الموظفين الجدد عند تعيين معدل أساسي. المعدلات الموجودة لا تتغير.",
+    "burdenPercent": "عبء מעסיק افتراضي %",
+    "components": "مكوّنات تكلفة افتراضية",
+    "componentsHint": "اسم المكوّن، نسبة أو مبلغ ثابت، والقيمة. مثال: pension 6.5% أو travel 50.",
+    "componentName": "اسم المكوّن",
+    "componentBasis": "النوع",
+    "componentPercent": "نسبة",
+    "componentFixedAmount": "مبلغ ثابت",
+    "addComponent": "إضافة مكوّن",
+    "removeComponent": "إزالة مكوّن",
+    "laborSaved": "تم حفظ افتراضيات العمالة.",
+    "standardHoursPerDay": "ساعات قياسية في اليوم (تكلفة شهرية)",
+    "workingDaysPerMonth": "أيام عمل في الشهر",
+    "workCalendarHint": "مطلوب لتكلفة عمالة الموظف الشهرية. مثال: 8 ساعات × 22.75 يوم = 182 ساعة/شهر.",
+    "burdenDisplay": "عبء افتراضي {percent}%",
+    "noLaborDefaults": "لا افتراضيات عمالة مُعدّة."
+  },
+  "templates": {
+    "title": "قوالب الهيكل",
+    "subtitle": "حزم مشروع ومنطقة عمل ومرحلة قابلة لإعادة الاستخدام. التطبيق دائماً ينشئ نسخاً قابلة للتحرير.",
+    "projectTemplates": "قوالب هيكل المشروع",
+    "projectTemplatesHint": "سطر واحد لكل منطقة عمل. مراحل اختيارية بعد | وفواصل.",
+    "phasePacks": "حزم مراحل قابلة لإعادة الاستخدام",
+    "phasePacksHint": "طبّق على منطقة عمل موجودة كنسخ مراحل جديدة.",
+    "wpPacks": "حزم مناطق العمل",
+    "wpPacksHint": "أضف مجموعة مناطق عمل إلى مشروع.",
+    "emptyProject": "لا قوالب مشروع بعد",
+    "emptyPhase": "لا حزم مراحل بعد",
+    "emptyWp": "لا حزم مناطق عمل بعد",
+    "name": "الاسم",
+    "description": "الوصف",
+    "workPackagesText": "مناطق العمل",
+    "workPackagesPlaceholder": "كهرباء | تأسيس، تشطيب\nسباكة",
+    "milestonesText": "معالم",
+    "milestonesPlaceholder": "بدء العمل في الموقع @ 0\nتسليم @ 30",
+    "phasesText": "مراحل",
+    "phasesPlaceholder": "موجز\nخيارات\nتوثيق",
+    "wpNamesText": "أسماء مناطق العمل",
+    "wpNamesPlaceholder": "هيكل\nتشطيبات\nMEP",
+    "addProjectTemplate": "حفظ قالب مشروع",
+    "addPhasePack": "حفظ حزمة مراحل",
+    "addWpPack": "حفظ حزمة مناطق عمل",
+    "saved": "تم حفظ القالب.",
+    "delete": "حذف",
+    "deleteConfirm": "حذف «{name}»؟ المشاريع التي استخدمت نسخاً بالفعل لا تتغير.",
+    "deleted": "تم الحذف."
+  },
+  "activity": {
+    "title": "سجل النشاط",
+    "subtitle": "سجل للتغييرات الحساسة في المال والوصول والإعدادات.",
+    "columnWhen": "متى",
+    "columnWho": "من",
+    "columnAction": "الإجراء",
+    "columnEntity": "السجل",
+    "empty": "لا نشاط مسجّل بعد.",
+    "loadMore": "تحميل المزيد",
+    "exportCsv": "تصدير سجل النشاط (CSV)",
+    "actions": {
+      "_fallback": "{value}",
+      "organization": {
+        "created": "تم إنشاء الأعمال",
+        "updated": "تم تحديث الأعمال"
+      },
+      "branding": {
+        "company_profile_updated": "تم تحديث ملف الشركة",
+        "brand_profile_created": "تم إنشاء ملف العلامة التجارية",
+        "brand_profile_updated": "تم تحديث ملف العلامة التجارية",
+        "brand_profile_archived": "تم أرشفة ملف العلامة التجارية",
+        "brand_profile_default_set": "تم تعيين ملف العلامة التجارية الافتراضي",
+        "logo_changed": "تم تغيير شعار الشركة",
+        "signature_changed": "تم تغيير صورة التوقيع",
+        "stamp_changed": "تم تغيير صورة الختم",
+        "legal_text_changed": "تم تغيير نص الهوية القانونية"
+      },
+      "membership": {
+        "created": "تم منح الوصول",
+        "updated": "تم تحديث الوصول",
+        "removed": "تمت إزالة الوصول"
+      },
+      "role": {
+        "assigned": "تم تعيين الدور",
+        "permission_changed": "تم تغيير الصلاحية"
+      },
+      "invitation": {
+        "created": "تم إرسال الدعوة",
+        "accepted": "تم قبول الدعوة",
+        "revoked": "تم سحب الدعوة"
+      },
+      "settings": {
+        "updated": "تم تحديث الإعدادات"
+      },
+      "project": {
+        "created": "تم إنشاء المشروع",
+        "updated": "تم تحديث المشروع",
+        "archived": "تم أرشفة المشروع",
+        "restored": "تمت استعادة المشروع",
+        "template_applied": "تم تطبيق قالب المشروع"
+      },
+      "work_package": {
+        "created": "تم إنشاء منطقة العمل",
+        "updated": "تم تحديث منطقة العمل",
+        "archived": "تم أرشفة منطقة العمل"
+      },
+      "phase": {
+        "created": "تم إنشاء المرحلة",
+        "updated": "تم تحديث المرحلة",
+        "archived": "تم أرشفة المرحلة"
+      },
+      "milestone": {
+        "created": "تم إنشاء المعلم",
+        "updated": "تم تحديث المعلم",
+        "archived": "تم أرشفة المعلم"
+      },
+      "contract": {
+        "value_recorded": "تم تسجيل قيمة العقد",
+        "additional_created": "تم إنشاء عقد إضافي",
+        "updated": "تم تحديث العقد"
+      },
+      "project_access": {
+        "granted": "تم منح وصول المشروع",
+        "revoked": "تمت إزالة وصول المشروع"
+      },
+      "client": {
+        "created": "تم إنشاء العميل",
+        "updated": "تم تحديث العميل",
+        "archived": "تم أرشفة العميل",
+        "restored": "تمت استعادة العميل"
+      },
+      "client_contact": {
+        "created": "تمت إضافة جهة اتصال العميل",
+        "updated": "تم تحديث جهة اتصال العميل",
+        "deleted": "تمت إزالة جهة اتصال العميل",
+        "marked_primary": "تم تعيين جهة اتصال العميل كأساسية"
+      },
+      "party_identifier": {
+        "upserted": "تم تحديث معرّف العميل",
+        "deleted": "تمت إزالة معرّف العميل"
+      },
+      "vendor": {
+        "created": "تم إنشاء المورد",
+        "updated": "تم تحديث المورد",
+        "archived": "تم أرشفة المورد",
+        "restored": "تمت استعادة المورد",
+        "linked_from_expense": "تم ربط المورد من مصروف"
+      },
+      "vendor_contact": {
+        "created": "تمت إضافة جهة اتصال المورد",
+        "updated": "تم تحديث جهة اتصال المورد",
+        "deleted": "تمت إزالة جهة اتصال المورد"
+      },
+      "vendor_engagement": {
+        "created": "تم إنشاء مشاركة المورد",
+        "ended": "انتهت مشاركة المورد",
+        "cancelled": "أُلغيت مشاركة المورد",
+        "archived": "أُغلقت مشاركة المورد"
+      },
+      "subcontract": {
+        "created": "تم إنشاء عقد الباطن",
+        "updated": "تم تحديث عقد الباطن",
+        "status_changed": "تغيّرت حالة عقد الباطن",
+        "value_recorded": "تم تسجيل قيمة عقد الباطن",
+        "document_linked": "تم ربط مستند عقد الباطن",
+        "advance_recorded": "تم تسجيل دفعة مقدّمة لعقد الباطن"
+      },
+      "expense": {
+        "created": "تم إنشاء المصروف",
+        "updated": "تم تحديث المصروف",
+        "finalized": "تم اعتماد المصروف",
+        "voided": "أُلغي المصروف",
+        "payment_confirmed": "تم تأكيد دفع المصروف",
+        "payment_confirmation_voided": "أُلغي تأكيد دفع المصروف"
+      },
+      "change_request": {
+        "created": "تم إنشاء طلب التغيير",
+        "updated": "تم تحديث طلب التغيير",
+        "submitted": "تم تقديم طلب التغيير",
+        "sent": "تم إرسال طلب التغيير",
+        "rejected": "رُفض طلب التغيير",
+        "cancelled": "أُلغي طلب التغيير",
+        "approved": "اعتُمد التغيير"
+      },
+      "quote_version": {
+        "created": "تم إنشاء إصدار عرض السعر",
+        "issued": "صدر إصدار عرض السعر"
+      },
+      "change_order": {
+        "created": "تم إنشاء أمر التغيير",
+        "reversed": "عُكس أمر التغيير"
+      },
+      "billing_record": {
+        "created": "تم إنشاء سجل الفوترة",
+        "updated": "تم تحديث سجل الفوترة",
+        "finalized": "تم اعتماد سجل الفوترة",
+        "voided": "أُلغي سجل الفوترة",
+        "adjustment_created": "أُضيف تعديل فوترة"
+      },
+      "billing_plan": {
+        "created": "تم إنشاء خطة الفوترة",
+        "updated": "تم تحديث خطة الفوترة",
+        "activated": "فعّلت خطة الفوترة",
+        "completed": "اكتملت خطة الفوترة",
+        "archived": "أُرشفت خطة الفوترة",
+        "lines_changed": "تغيّرت بنود خطة الفوترة",
+        "cycle_created": "تم إنشاء دورة الفوترة",
+        "cycle_updated": "تم تحديث دورة الفوترة",
+        "cycle_issued": "صدرت دورة الفوترة",
+        "cycle_voided": "أُلغيت دورة الفوترة",
+        "template_applied": "طُبّق قالب خطة الفوترة",
+        "template_saved": "حُفظ قالب خطة الفوترة"
+      },
+      "payment": {
+        "recorded": "سُجّلت الدفعة",
+        "allocated": "خصّصت الدفعة لسجلات الفوترة",
+        "voided": "أُلغيت الدفعة"
+      },
+      "employee": {
+        "created": "تم إنشاء الموظف",
+        "updated": "تم تحديث الموظف",
+        "archived": "تم أرشفة الموظف",
+        "restored": "تمت استعادة الموظف"
+      },
+      "payroll": {
+        "payment_confirmed": "تم تأكيد دفع الرواتب",
+        "payment_confirmation_voided": "أُلغي تأكيد دفع الرواتب",
+        "obligation_voided": "أُلغي التزام الرواتب"
+      },
+      "rate_version": {
+        "created": "تم إنشاء إصدار المعدل"
+      },
+      "time_entry": {
+        "created": "سُجّل إدخال الوقت",
+        "voided": "أُلغي إدخال الوقت",
+        "corrected": "صُحّح إدخال الوقت",
+        "bulk_created": "أُنشئت إدخالات وقت مجمّعة",
+        "updated": "تم تحديث إدخال الوقت",
+        "deleted": "حُذف إدخال الوقت",
+        "approved": "اعتُمد إدخال الوقت",
+        "excess_approved": "اعتُمدت الساعات الزائدة",
+        "excess_rejected": "رُفضت الساعات الزائدة",
+        "bulk_approved": "اعتُمدت إدخالات الوقت مجمّعة"
+      },
+      "timesheet": {
+        "submitted": "قُدّم الجدول الزمني",
+        "returned": "أُعيد الجدول الزمني للتصحيح",
+        "approved": "اعتُمد الجدول الزمني"
+      },
+      "attendance": {
+        "clocked": "حدث تسجيل حضور",
+        "event_recorded": "سُجّل حدث حضور",
+        "event_voided": "أُلغي حدث حضور",
+        "event_replaced": "استُبدل حدث حضور",
+        "day_voided": "أُلغي يوم حضور",
+        "day_overtime_updated": "حدّثت تصنيفات الساعات الإضافية للحضور"
+      },
+      "project_team_member": {
+        "added": "أُضيف موظف إلى فريق المشروع",
+        "removed": "أُزيل موظف من فريق المشروع"
+      },
+      "project_team_assignment": {
+        "updated": "حدّث تعيين فريق المشروع",
+        "cancelled": "أُلغي تعيين فريق المشروع"
+      },
+      "document": {
+        "uploaded": "رُفع المستند",
+        "finalized": "اعتُمد المستند",
+        "deleted": "حُذف المستند",
+        "storage_cleanup_failed": "فشل تنظيف ملف المستند",
+        "storage_cleanup_completed": "اكتمل تنظيف ملف المستند"
+      },
+      "storage": {
+        "connection_connected": "اتصل التخزين",
+        "connection_disconnected": "انقطع التخزين",
+        "primary_changed": "تغيّر التخزين الأساسي",
+        "file_uploaded": "رُفع ملف إلى التخزين الخارجي",
+        "file_deleted": "حُذف ملف من التخزين الخارجي"
+      },
+      "tax_rule": {
+        "created": "تم إنشاء قاعدة ضريبية",
+        "updated": "تم تحديث قاعدة ضريبية"
+      },
+      "portal": {
+        "grant_created": "تم إنشاء منح بوابة",
+        "grant_revoked": "سُحب منح البوابة",
+        "vendor_ap_candidate": "قُدّم مرشّح حساب مورد",
+        "vendor_compliance_candidate": "قُدّم مرشّح امتثال مورد",
+        "vendor_candidate_reviewed": "رُاجع مرشّح بوابة المورد"
+      },
+      "custom_field": {
+        "definition_created": "تم إنشاء حقل مخصّص",
+        "definition_updated": "تم تحديث حقل مخصّص",
+        "definition_archived": "تم أرشفة حقل مخصّص"
+      },
+      "api": {
+        "client_created": "تم إنشاء عميل API",
+        "key_created": "تم إنشاء مفتاح API",
+        "key_revoked": "أُلغي مفتاح API",
+        "key_rotated": "دُوّر مفتاح API",
+        "webhook_created": "سُجّلت نقطة نهاية Webhook",
+        "webhook_revoked": "أُلغيت نقطة نهاية Webhook",
+        "webhook_secret_rotated": "دُوّر سر Webhook",
+        "webhook_delivery_enqueued": "أُدرج تسليم Webhook"
+      },
+      "crm": {
+        "prospect_created": "تم إنشاء عميل محتمل",
+        "prospect_updated": "تم تحديث عميل محتمل",
+        "lead_created": "تم إنشاء عميل محتمل CRM",
+        "lead_updated": "تم تحديث عميل محتمل CRM",
+        "opportunity_created": "تم إنشاء فرصة",
+        "opportunity_updated": "تم تحديث فرصة",
+        "opportunity_note_created": "أُضيفت ملاحظة فرصة",
+        "opportunity_converted": "حُوّلت الفرصة",
+        "estimate_created": "تم إنشاء تقدير",
+        "estimate_updated": "تم تحديث تقدير",
+        "sales_quote_created": "تم إنشاء عرض مبيعات",
+        "sales_quote_version_created": "تم إنشاء إصدار عرض مبيعات",
+        "sales_quote_version_issued": "صدر إصدار عرض مبيعات",
+        "quote_accepted": "قُبل عرض المبيعات"
+      },
+      "compliance": {
+        "artifact_created": "تم إنشاء أثر امتثال",
+        "artifact_updated": "تم تحديث أثر امتثال"
+      },
+      "material": {
+        "created": "تم إنشاء مادة"
+      },
+      "material_vendor_price": {
+        "created": "تم إنشاء سعر مورد",
+        "updated": "تم تحديث سعر مورد",
+        "deleted": "أُزيل سعر مورد"
+      },
+      "procurement_rfq": {
+        "created": "تم إنشاء RFQ",
+        "status_updated": "حدّثت حالة RFQ"
+      },
+      "supplier_quote": {
+        "created": "تم إنشاء عرض مورد",
+        "status_updated": "حدّثت حالة عرض المورد"
+      },
+      "purchase_order": {
+        "created": "تم إنشاء أمر شراء",
+        "issued": "صدر أمر الشراء",
+        "cancelled": "أُلغي أمر الشراء",
+        "closed": "أُغلق أمر الشراء",
+        "received": "استُلم أمر الشراء"
+      },
+      "procurement": {
+        "supplier_quote_received": "استُلم عرض مورد"
+      },
+      "ap": {
+        "bill_created": "تم إنشاء حساب مورد",
+        "bill_updated": "تم تحديث حساب مورد",
+        "bill_voided": "أُلغي حساب مورد",
+        "bill_restored": "استُعيد حساب مورد",
+        "match_proposed": "قُترحت مطابقة حساب مورد",
+        "match_accepted": "قُبلت مطابقة حساب مورد",
+        "match_rejected": "رُفضت مطابقة حساب مورد",
+        "payment_recorded": "سُجّلت دفعة مورد",
+        "payment_voided": "أُلغيت دفعة مورد",
+        "credit_created": "تم إنشاء إشعار دائن مورد",
+        "credit_updated": "تم تحديث إشعار دائن مورد",
+        "credit_posted": "رُحّل إشعار دائن مورد",
+        "credit_applied": "طُبّق إشعار دائن مورد",
+        "credit_voided": "أُلغي إشعار دائن مورد"
+      },
+      "daily_log": {
+        "created": "تم إنشاء يومية موقع",
+        "updated": "تم تحديث يومية موقع",
+        "submitted": "قُدّمت يومية موقع",
+        "finalized": "اعتُمدت يومية موقع",
+        "correction_added": "أُضيف تصحيح يومية موقع"
+      },
+      "punch_list_item": {
+        "created": "تم إنشاء بند نواقص",
+        "updated": "تم تحديث بند نواقص"
+      },
+      "inspection": {
+        "created": "تم إنشاء فحص",
+        "updated": "تم تحديث فحص"
+      },
+      "safety_record": {
+        "created": "تم إنشاء سجل سلامة",
+        "updated": "تم تحديث سجل سلامة"
+      },
+      "safety_action": {
+        "created": "تم إنشاء إجراء سلامة",
+        "updated": "تم تحديث إجراء سلامة"
+      },
+      "safety_attendee": {
+        "added": "أُضيف مشارك toolbox",
+        "acknowledged": "أُقرّ محادثة toolbox"
+      },
+      "asset": {
+        "created": "تم إنشاء أصل",
+        "updated": "تم تحديث أصل"
+      },
+      "fleet_vehicle": {
+        "created": "تم إنشاء مركبة أسطول",
+        "updated": "تم تحديث مركبة أسطول"
+      },
+      "maintenance_record": {
+        "created": "تم إنشاء سجل صيانة",
+        "updated": "تم تحديث سجل صيانة"
+      },
+      "inventory_item": {
+        "created": "تم إنشاء صنف مخزون"
+      },
+      "inventory_cost_layer": {
+        "booked": "حُجزت طبقة تكلفة مخزون",
+        "unbooked": "أُلغي حجز طبقة تكلفة مخزون"
+      },
+      "inventory_cost": {
+        "consumed": "استُهلكت تكلفة مخزون إلى Actual"
+      },
+      "inventory_movement": {
+        "recorded": "سُجّلت حركة مخزون"
+      },
+      "inventory_location": {
+        "created": "تم إنشاء موقع مخزون",
+        "updated": "تم تحديث موقع مخزون",
+        "archived": "أُرشف موقع مخزون"
+      },
+      "inventory_reservation": {
+        "created": "حُجز مخزون",
+        "released": "أُفرج عن حجز مخزون",
+        "consumed": "استُهلك حجز مخزون"
+      },
+      "inventory_count": {
+        "created": "تم إنشاء جرد مخزون",
+        "finalized": "اعتُمد جرد مخزون",
+        "voided": "أُلغي جرد مخزون"
+      },
+      "material_usage": {
+        "recorded": "سُجّل استخدام مادة",
+        "archived": "أُرشف استخدام مادة"
+      },
+      "equipment_usage": {
+        "recorded": "سُجّل استخدام معدات",
+        "archived": "أُرشف استخدام معدات"
+      },
+      "estimate_quote": {
+        "created": "تم إنشاء تقدير",
+        "updated": "تم تحديث تقدير",
+        "status_changed": "تغيّرت حالة التقدير",
+        "converted": "حُوّل التقدير إلى مشروع/عمل"
+      },
+      "budget": {
+        "created": "تم إنشاء الميزانية",
+        "revised": "رُاجعت الميزانية",
+        "archived": "أُرشفت الميزانية"
+      },
+      "approval_rule": {
+        "created": "تم إنشاء قاعدة اعتماد",
+        "updated": "تم تحديث قاعدة اعتماد"
+      },
+      "approval_request": {
+        "submitted": "طُلب اعتماد",
+        "approved": "اعتُمد الطلب",
+        "rejected": "رُفض الطلب",
+        "cancelled": "أُلغي الطلب"
+      },
+      "month_close": {
+        "period_opened": "فُتحت فترة الشهر",
+        "period_ready": "عُلّمت الفترة جاهزة للإغلاق",
+        "period_reopened": "أُعيد فتح الشهر",
+        "period_closed": "أُغلق الشهر",
+        "adjustment_created": "سُجّل تعديل إغلاق شهر"
+      },
+      "form_template": {
+        "created": "تم إنشاء قالب نموذج",
+        "updated": "تم تحديث قالب نموذج",
+        "archived": "أُرشف قالب نموذج"
+      },
+      "form_submission": {
+        "created": "تم إنشاء تقديم نموذج",
+        "updated": "تم تحديث تقديم نموذج",
+        "submitted": "قُدّم النموذج",
+        "voided": "أُلغي تقديم النموذج"
+      },
+      "service_recurrence": {
+        "created": "تم إنشاء خدمة متكررة",
+        "updated": "تم تحديث خدمة متكررة",
+        "paused": "أُوقفت الخدمة المتكررة",
+        "resumed": "استُؤنفت الخدمة المتكررة",
+        "ended": "انتهت الخدمة المتكررة",
+        "occurrence_skipped": "تُخطّى حدوث متكرر",
+        "generated": "أُنشئ أمر عمل متكرر"
+      },
+      "recurring_financial_draft": {
+        "created": "تم إنشاء قالب مسودة متكررة",
+        "updated": "تم تحديث قالب مسودة متكررة",
+        "paused": "أُوقف قالب مسودة متكررة",
+        "resumed": "استُؤنف قالب مسودة متكررة",
+        "ended": "انتهى قالب مسودة متكررة",
+        "generated": "أُنشئت مسودة مالية متكررة"
+      },
+      "retention": {
+        "released": "أُفرج عن الحجز"
+      },
+      "boq": {
+        "created": "تم إنشاء BOQ",
+        "updated": "تم تحديث BOQ",
+        "activated": "فعّل BOQ",
+        "superseded": "استُبدل BOQ",
+        "archived": "أُرشف BOQ",
+        "imported": "استُورد BOQ"
+      },
+      "boq_node": {
+        "created": "تم إنشاء بند BOQ",
+        "updated": "تم تحديث بند BOQ",
+        "archived": "أُرشف بند BOQ"
+      },
+      "boq_change": {
+        "allocated": "خصّص تغيير معتمد إلى BOQ"
+      },
+      "boq_progress": {
+        "created": "حُفظ تقدم BOQ",
+        "updated": "حدّث تقدم BOQ",
+        "approved": "اعتُمد تقدم BOQ",
+        "superseded": "استُبدل تقدم BOQ",
+        "billing_created": "أُنشئت فاتورة تقدم BOQ"
+      },
+      "boq_sub_schedule": {
+        "created": "تم إنشاء جدول مقاول باطن",
+        "activated": "فعّل جدول مقاول باطن"
+      },
+      "boq_sub_valuation": {
+        "created": "تم إنشاء تقييم مقاول باطن",
+        "approved": "اعتُمد تقييم مقاول باطن",
+        "proposed_ap": "قُترح تقييم مقاول باطن إلى AP",
+        "voided": "أُلغي تقييم مقاول باطن"
+      },
+      "closeout": {
+        "started": "بدأ الإغلاق",
+        "marked_ready": "عُلّم المشروع جاهزاً للإغلاق",
+        "closed": "أُغلق المشروع",
+        "reopened": "أُعيد فتح المشروع"
+      },
+      "warranty": {
+        "created": "تم إنشاء تغطية ضمان",
+        "updated": "تم تحديث تغطية ضمان",
+        "issue_created": "فُتحت مشكلة ضمان",
+        "issue_resolved": "حُلّت مشكلة ضمان"
+      },
+      "communication": {
+        "created": "أُنشئت مسودة رسالة",
+        "queued": "أُدرجت الرسالة",
+        "sent": "أُرسلت الرسالة",
+        "failed": "فشل إرسال الرسالة",
+        "cancelled": "أُلغيت الرسالة"
+      },
+      "calendar_event": {
+        "created": "تم إنشاء حدث تقويم",
+        "updated": "تم تحديث حدث تقويم",
+        "cancelled": "أُلغي حدث تقويم"
+      },
+      "automation_rule": {
+        "created": "تم إنشاء قاعدة أتمتة",
+        "updated": "تم تحديث قاعدة أتمتة",
+        "ran": "نفّذت قاعدة أتمتة"
+      },
+      "assistant": {
+        "conversation_created": "بدأت محادثة المساعد"
+      }
+    },
+    "entities": {
+      "_fallback": "{value}",
+      "organization": "الأعمال",
+      "organization_membership": "عضوية",
+      "organization_module_preference": "تفضيل القدرة",
+      "membership": "عضوية",
+      "role": "دور",
+      "invitation": "دعوة",
+      "project": "مشروع",
+      "work_package": "منطقة عمل",
+      "phase": "مرحلة",
+      "milestone": "معلم",
+      "contract": "عقد",
+      "client": "عميل",
+      "client_contact": "جهة اتصال عميل",
+      "party_identifier": "معرّف عميل",
+      "vendor": "مورد",
+      "vendor_contact": "جهة اتصال مورد",
+      "vendor_engagement": "مشاركة مورد",
+      "subcontract_agreement": "عقد باطن",
+      "expense": "مصروف",
+      "change_request": "طلب تغيير",
+      "change_order": "أمر تغيير",
+      "quote_version": "إصدار عرض سعر",
+      "billing_record": "سجل فوترة",
+      "payment": "دفعة",
+      "employee": "موظف",
+      "rate_version": "إصدار معدل",
+      "time_entry": "إدخال وقت",
+      "document": "مستند",
+      "documents": "مستندات",
+      "tax_rule": "قاعدة ضريبية",
+      "cost_category": "فئة تكلفة",
+      "external_access_grant": "منح بوابة",
+      "custom_field_definition": "حقل مخصّص",
+      "api_client": "عميل API",
+      "api_key": "مفتاح API",
+      "webhook_endpoint": "نقطة نهاية Webhook",
+      "webhook_delivery": "تسليم Webhook",
+      "crm_prospect": "عميل محتمل",
+      "crm_lead": "عميل محتمل",
+      "crm_opportunity": "فرصة",
+      "compliance_artifact": "أثر امتثال",
+      "material": "مادة",
+      "material_vendor_price": "سعر مورد",
+      "procurement_rfq": "طلب عروض أسعار",
+      "supplier_quote": "عرض مورد",
+      "purchase_order": "أمر شراء",
+      "ap_bill": "حساب مورد",
+      "ap_match": "مطابقة حساب مورد",
+      "ap_payment": "دفعة مورد",
+      "daily_log": "يومية موقع",
+      "punch_list_item": "بند نواقص",
+      "inspection": "فحص",
+      "asset": "أصل",
+      "fleet_vehicle": "مركبة أسطول",
+      "maintenance_record": "سجل صيانة",
+      "inventory_item": "صنف مخزون",
+      "inventory_movement": "حركة مخزون",
+      "inventory_location": "موقع مخزون",
+      "inventory_reservation": "حجز مخزون",
+      "inventory_count": "جرد مخزون",
+      "recurring_financial_draft": "قالب مسودة متكررة",
+      "recurring_financial_draft_run": "تشغيل مسودة متكررة",
+      "retention_release": "إفراج حجز",
+      "project_boq": "كشف كميات",
+      "boq_node": "بند BOQ",
+      "boq_change_allocation": "توزيع تغيير BOQ",
+      "boq_progress_batch": "دفعة تقدم BOQ",
+      "boq_subcontractor_schedule": "جدول مقاول باطن",
+      "boq_subcontractor_valuation": "تقييم مقاول باطن"
+    }
+  },
+  "profile": {
+    "title": "ملفك الشخصي",
+    "displayName": "اسمك",
+    "language": "لغة الواجهة",
+    "saved": "تم تحديث الملف."
+  },
+  "numbering": {
+    "title": "ترقيم المستندات",
+    "subtitle": "أرقام تتبّع داخلية تُعيَّن عند ترك المرجع فارغاً. طلبات التغيير وأوامر التغيير تحتفظ بأرقامها لكل مشروع. أرقام المشروع والعمل ونداء الخدمة تُعيَّن عند الإنشاء فقط — الصفوف الموجودة لا تُملأ بأثر رجعي.",
+    "legalDisclaimer": "أرقام تتبّع داخلية فقط. هذا ليس ترقيم فاتورة ضريبية إسرائيلية.",
+    "commercialNote": "هذه الأرقام للمتابعة داخل ProjectFlow. ليست فواتير نظامية ولا تصدر فاتورة ضريبية قانونية.",
+    "perProjectNote": "لا يُطبّق عند الإنشاء. طلبات التغيير وأوامر التغيير تحتفظ بأرقام لكل مشروع مثل CR-001 / CO-001.",
+    "prefix": "بادئة",
+    "padding": "حشو الأرقام",
+    "nextNumber": "الرقم التالي",
+    "save": "حفظ الترقيم",
+    "saving": "جاري الحفظ…",
+    "saved": "تم تحديث الترقيم.",
+    "kinds": {
+      "project": "مشروع",
+      "job": "عمل",
+      "work_order": "نداء خدمة",
+      "estimate": "تقدير ما قبل المشروع",
+      "change_request": "طلب تغيير",
+      "change_order": "أمر تغيير",
+      "purchase_order": "أمر شراء",
+      "vendor_bill": "حساب مورد",
+      "billing_record": "سجل فوترة"
+    }
+  },
+  "notAllowed": {
+    "title": "غير مسموح",
+    "body": "ليس لديك صلاحية لعرض منطقة الإعدادات هذه."
+  },
+  "ocr": {
+    "title": "التقاط الفواتير",
+    "description": "الحالة التشغيلية لقراءة المستندات تلقائياً. المعالجة عند الطلب عند الرفع. مسودات فقط — وليس Actual مرحّل أبداً. الأسرار لا تُعرض هنا أبداً.",
+    "ingestionLabel": "الاستيعاب",
+    "ingestionOn": "مفعّل",
+    "ingestionOff": "معطّل",
+    "providerLabel": "المزوّد",
+    "providerConfigured": "بيانات اعتماد موجودة",
+    "providerMissing": "غير مُعدّ",
+    "azureGuidance": "Azure Document Intelligence يحتاج مفتاح API ونقطة نهاية في متغيرات بيئة الخادم. القيم لا تُعرض هنا أبداً.",
+    "draftsOnly": "القراءة المؤكدة تنشئ مسودة مصروف أو مسودة حساب مورد أو مسودة إشعار دائن مورد فقط. لا ترحّل Actual أبداً.",
+    "queueTitle": "الطابور",
+    "queueHint": "تُعالَج المهام عند الطلب عند رفع مستند. cron استرداد يومي يعيد محاولة العالق فقط. مفاتيح API والأسرار لا تُعرض هنا أبداً.",
+    "queued": "في الانتظار",
+    "processing": "قيد المعالجة",
+    "failed": "فشل",
+    "needsReview": "يحتاج مراجعة",
+    "queueEmpty": "لا مهام في الانتظار أو قيد التنفيذ أو فاشلة.",
+    "reviewLink": "فتح مراجعة المستند"
+  },
+  "companyDetails": {
+    "pageTitle": "تفاصيل الشركة",
+    "pageDescription": "الهوية القانونية وبيانات الاتصال المستخدمة في عروض الأسعار والتقارير ومستندات أخرى.",
+    "title": "هوية الشركة",
+    "subtitle": "هذا مصدر الحقيقة لترويسات المستندات. لا يغيّر سمة التطبيق.",
+    "brandingLink": "أدر الشعارات والألوان وتخطيطات المستندات في <link>العلامة التجارية والمستندات</link>.",
+    "saved": "تم حفظ تفاصيل الشركة.",
+    "legalName": "الاسم القانوني",
+    "displayName": "اسم العرض",
+    "tradingName": "الاسم التجاري",
+    "vatTaxId": "ض.ق.م / الرقم الضريبي",
+    "vatTaxIdHint": "يُزامَن أيضاً لمطابقة OCR الفواتير.",
+    "registrationNumber": "رقم التسجيل",
+    "registrationNumberHint": "رقم الشركة / ח.פ. إذا اختلف عن الرقم الضريبي.",
+    "contactSection": "اتصال",
+    "addressSection": "العنوان",
+    "mainPhone": "الهاتف الرئيسي",
+    "secondaryPhone": "هاتف ثانوي",
+    "whatsappPhone": "واتساب",
+    "mainEmail": "البريد الرئيسي",
+    "billingEmail": "بريد الفوترة",
+    "salesEmail": "بريد المبيعات",
+    "supportEmail": "بريد الدعم",
+    "website": "الموقع",
+    "addressLine1": "سطر العنوان 1",
+    "addressLine2": "سطر العنوان 2",
+    "city": "المدينة",
+    "region": "المنطقة / الولاية",
+    "postalCode": "الرمز البريدي",
+    "country": "البلد",
+    "countryPlaceholder": "اختر البلد"
+  },
+  "workWeek": {
+    "startDay": "يوم بداية أسبوع العمل",
+    "startDayHint": "يتحكم في بداية أسبوع العمل للجداول الزمنية والجدولة والإعدادات المسبقة لنطاق التاريخ.",
+    "days": {
+      "0": "الأحد",
+      "1": "الاثنين",
+      "2": "الثلاثاء",
+      "3": "الأربعاء",
+      "4": "الخميس",
+      "5": "الجمعة",
+      "6": "السبت"
+    }
+  },
+  "branding": {
+    "pageTitle": "العلامة التجارية والمستندات",
+    "pageDescription": "الشعارات والألوان والتخطيطات لمستندات العملاء. هذه الألوان لا تُسمّ التطبيق كله.",
+    "subtitle": "اضبط كيف تعرض عروض الأسعار والتقارير ومخرجات أخرى شركتك.",
+    "companyLink": "حرّر الاسم القانوني وض.ق.م والعنوان في <link>تفاصيل الشركة</link>.",
+    "saved": "تم حفظ العلامة التجارية.",
+    "emptyLogo": {
+      "title": "أضف شعار شركتك",
+      "description": "المستندات تبدو أكثر احترافية بشعارك. PNG أو JPEG أو WebP حتى 5 MB.",
+      "cta": "رفع الشعار"
+    },
+    "emptyBrands": {
+      "title": "لا ملف علامة تجارية بعد",
+      "description": "أنشئ ملف علامة تجارية للتحكم بالشعارات والألوان وتذييلات المستندات."
+    },
+    "brands": {
+      "title": "ملفات العلامة التجارية",
+      "advancedHint": "متقدم — معظم الأعمال تستخدم علامة افتراضية واحدة.",
+      "default": "افتراضي",
+      "setDefault": "تعيين كافتراضي",
+      "archive": "أرشفة",
+      "add": "إضافة علامة",
+      "newName": "اسم العلامة",
+      "newPlaceholder": "مثل قسم المشاريع",
+      "defaultName": "افتراضي"
+    },
+    "sections": {
+      "identity": "اسم العلامة",
+      "logos": "الشعارات",
+      "colors": "ألوان المستند",
+      "layout": "التخطيط",
+      "visibility": "ما يُعرض",
+      "texts": "التذييلات والشروط",
+      "signature": "التوقيع والختم"
+    },
+    "fields": {
+      "brandName": "اسم العلامة",
+      "primaryColor": "اللون الأساسي",
+      "secondaryColor": "اللون الثانوي",
+      "headerLayout": "تخطيط الترويسة",
+      "footerStyle": "نمط التذييل",
+      "footerCustomText": "نص تذييل مخصّص",
+      "quoteTermsText": "شروط عرض السعر",
+      "quoteFooterText": "تذييل عرض السعر",
+      "reportFooterText": "تذييل التقرير",
+      "paymentInstructionsText": "تعليمات الدفع",
+      "emailSignatureText": "توقيع البريد",
+      "poTermsText": "شروط أمر الشراء",
+      "generalDocumentNote": "ملاحظة مستند عامة",
+      "serviceReportNote": "ملاحظة تقرير خدمة",
+      "reportDisclaimerText": "إخلاء مسؤولية التقرير"
+    },
+    "colors": {
+      "documentOnly": "هذه الألوان للمستندات فقط — وليس سمة واجهة التطبيق."
+    },
+    "headerLayouts": {
+      "letterhead": "ورق رسمي",
+      "logo_sides": "الشعار والتفاصيل جنباً إلى جنب",
+      "centered": "متمركز",
+      "minimal": "بسيط"
+    },
+    "footerStyles": {
+      "minimal": "بسيط",
+      "detailed": "مفصّل",
+      "legal": "قانوني"
+    },
+    "visibility": {
+      "showLogo": "إظهار الشعار",
+      "showDisplayName": "إظهار اسم العرض",
+      "showLegalName": "إظهار الاسم القانوني",
+      "showRegistrationNumber": "إظهار رقم التسجيل",
+      "showVatTaxId": "إظهار ض.ق.م / الرقم الضريبي",
+      "showAddress": "إظهار العنوان",
+      "showPhone": "إظهار الهاتف",
+      "showEmail": "إظهار البريد",
+      "showWebsite": "إظهار الموقع",
+      "showPageNumbers": "إظهار أرقام الصفحات",
+      "showGeneratedDate": "إظهار تاريخ الإنشاء",
+      "showDocumentReference": "إظهار مرجع المستند"
+    },
+    "assets": {
+      "logoPrimary": "الشعار الأساسي",
+      "logoPrimaryHint": "يُستخدم على ورق أبيض. PNG أو JPEG أو WebP فقط — بدون SVG.",
+      "logoCompact": "شعار مضغوط",
+      "logoDark": "شعار داكن",
+      "logoLight": "شعار فاتح",
+      "signature": "صورة التوقيع",
+      "signatureHint": "إقرار بصري فقط — وليس توقيعاً إلكترونياً قانونياً.",
+      "stamp": "صورة الختم",
+      "stampHint": "بصري فقط.",
+      "upload": "رفع",
+      "replace": "استبدال",
+      "noImage": "لا صورة",
+      "removed": "أُزيلت الصورة.",
+      "invalidType": "استخدم PNG أو JPEG أو WebP فقط.",
+      "tooLarge": "يجب أن يكون الملف 5 MB أو أقل.",
+      "uploadFailed": "فشل الرفع. حاول مجدداً."
+    },
+    "signature": {
+      "disclaimer": "صور التوقيع والختم بصرية فقط. ليست توقيعات إلكترونية قانونية.",
+      "allowOnQuotes": "السماح بالتوقيع على عروض الأسعار",
+      "allowOnReports": "السماح بالتوقيع على التقارير",
+      "allowStamp": "السماح بالختم على المستندات",
+      "includeByDefault": "تضمين التوقيع افتراضياً",
+      "includeStampByDefault": "تضمين الختم افتراضياً"
+    },
+    "preview": {
+      "label": "معاينة المستند",
+      "title": "معاينة حية",
+      "logoPlaceholder": "شعار",
+      "sampleTitle": "عرض سعر نموذجي",
+      "accentChip": "لون مميز",
+      "legalFooterNote": "نمط تذييل قانوني",
+      "documentOnlyNote": "معاينة علامة المستند — واجهة التطبيق تبقى دون تغيير."
+    }
+  }
+}

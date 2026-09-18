@@ -1,0 +1,18 @@
+{
+  "saveToStorage": "حفظ في التخزين",
+  "storedStatus": "محفوظ في التخزين · {date}",
+  "openStoredFile": "فتح الملف",
+  "versionCount": "{count} إصدارات",
+  "duplicate": {
+    "title": "ملف موجود",
+    "body": "توجد نسخة محفوظة بالفعل. هل تفتحها، أو تُنشئ إصداراً جديداً، أو تلغي؟",
+    "openExisting": "فتح الملف الموجود",
+    "saveNewVersion": "إنشاء إصدار جديد",
+    "cancel": "إلغاء"
+  },
+  "errors": {
+    "storageNotConfigured": "لم يُهيّأ تخزين خارجي نشط. أعد التخزين في الإعدادات.",
+    "unsupportedKind": "لا يمكن حفظ هذا النوع من المستندات في التخزين.",
+    "pdfRenderFailed": "تعذّر إنشاء ملف PDF. يرجى المحاولة لاحقاً."
+  }
+}

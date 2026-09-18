@@ -335,11 +335,26 @@ export function buildBrandCssVars(brand: DocumentBrandContext | null | undefined
   ].join('\n    ');
 }
 
+function documentFontFamily(locale: string | undefined): string {
+  const value = locale ?? 'he-IL';
+  if (value === 'ar' || value.startsWith('ar-')) {
+    return '"Noto Sans Arabic", "Segoe UI", Arial, sans-serif';
+  }
+  if (value === 'ru' || value.startsWith('ru-')) {
+    return '"Noto Sans", "Segoe UI", Arial, sans-serif';
+  }
+  if (value === 'en' || value.startsWith('en')) {
+    return '"Segoe UI", Arial, sans-serif';
+  }
+  return '"Noto Sans Hebrew", "Segoe UI", Arial, sans-serif';
+}
+
 /**
  * Shared print + brand stylesheet fragment (A4, page breaks, header layouts).
  */
 export function buildBrandedDocumentStyles(brand: DocumentBrandContext | null | undefined): string {
   const vars = buildBrandCssVars(brand);
+  const fontFamily = documentFontFamily(brand?.locale);
   return `
     :root {
       color-scheme: light;
@@ -347,7 +362,7 @@ export function buildBrandedDocumentStyles(brand: DocumentBrandContext | null | 
     }
     * { box-sizing: border-box; }
     body {
-      font-family: "Noto Sans Hebrew", "Segoe UI", Arial, sans-serif;
+      font-family: ${fontFamily};
       margin: 0;
       color: #111;
       background: #fff;

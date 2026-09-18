@@ -1,0 +1,165 @@
+{
+  "title": "Уведомления",
+  "bellLabel": "Оповещения",
+  "unreadCount": "{count, plural, one {# непрочитанное} few {# непрочитанных} many {# непрочитанных} other {# непрочитанных}}",
+  "empty": "Нет уведомлений",
+  "emptyHint": "Оповещения о просроченных пунктах, согласованиях и истечениях. Рабочий inbox «Сегодня» — отдельная страница.",
+  "loading": "Загрузка уведомлений…",
+  "error": "Не удалось загрузить уведомления.",
+  "retry": "Повторить",
+  "markRead": "Отметить как прочитанное",
+  "markAllRead": "Отметить все как прочитанные",
+  "allCaughtUp": "Всё просмотрено",
+  "severity": {
+    "info": "Информация",
+    "warning": "Предупреждение",
+    "urgent": "Срочно"
+  },
+  "types": {
+    "billing_overdue": "Просроченное выставление счетов клиенту",
+    "ap_due_soon": "Скоро срок оплаты счёта поставщика",
+    "ap_overdue": "Просроченный счёт поставщика",
+    "approval_waiting": "Ожидает согласования",
+    "timesheet_waiting": "Табель ожидает",
+    "employee_missing_report": "Отсутствует отчёт о времени",
+    "document_expiring": "Истекает документ",
+    "task_overdue": "Просроченная задача",
+    "boq_awaiting_approval": "BOQ ожидает согласования",
+    "work_order_assigned": "Назначен наряд",
+    "punch_assigned": "Назначен пункт punch",
+    "low_stock": "Низкий запас",
+    "safety_action_due": "Срок корректирующего действия по безопасности",
+    "warranty_expiring": "Истекает гарантия",
+    "closeout_blockers": "Закрытие заблокировано",
+    "communication_failed": "Сообщение не отправлено",
+    "automation_output": "Автоматизация — требуется действие",
+    "billing_plan_cycle_draft": "Промежуточный счёт ожидает выставления",
+    "billing_plan_milestone_due": "Скоро срок этапа выставления счетов",
+    "billing_plan_retention_held": "Удержание готово к высвобождению",
+    "action_required": "Требуется действие"
+  },
+  "copy": {
+    "billing_overdue": {
+      "titleWithReference": "Просроченное выставление счетов клиенту — {reference}",
+      "titleDefault": "Просроченное выставление счетов клиенту",
+      "bodyWithExtra": "Задолженность {extra}",
+      "bodyDefault": "У финализированного выставления счетов остаётся непогашенный баланс."
+    },
+    "ap_due_soon": {
+      "titleWithReference": "Скоро срок оплаты счёта поставщика — {reference}",
+      "titleDefault": "Скоро срок оплаты счёта поставщика",
+      "bodyWithExtra": "Срок {extra}",
+      "bodyDefault": "Срок в течение семи дней."
+    },
+    "ap_overdue": {
+      "titleWithReference": "Просроченный счёт поставщика — {reference}",
+      "titleDefault": "Просроченный счёт поставщика",
+      "bodyWithExtra": "Просрочено с {extra}",
+      "bodyDefault": "Счёт поставщика просрочен."
+    },
+    "approval_waiting": {
+      "title": "Ожидает согласования",
+      "bodyWithReference": "{reference} ожидает решения.",
+      "bodyDefault": "Запрос ожидает согласования."
+    },
+    "timesheet_waiting": {
+      "title": "Табель ожидает",
+      "bodyWithExtra": "Период {extra}",
+      "bodyDefault": "Поданный табель ожидает согласования."
+    },
+    "employee_missing_report": {
+      "title": "Отсутствует отчёт о времени",
+      "body": "Отсутствует обязательный отчёт сотрудника."
+    },
+    "document_expiring": {
+      "titleWithReference": "Истекает документ — {reference}",
+      "titleDefault": "Истекает документ",
+      "bodyWithExtra": "Истекает {extra}",
+      "bodyDefault": "Обновите или замените этот документ."
+    },
+    "task_overdue": {
+      "titleWithReference": "Просроченная задача — {reference}",
+      "titleDefault": "Просроченная задача",
+      "bodyWithExtra": "Цель {extra}",
+      "bodyDefault": "Пункт планирования просрочен."
+    },
+    "boq_awaiting_approval": {
+      "title": "BOQ ожидает согласования",
+      "bodyWithExtra": "{extra}",
+      "bodyDefault": "Пакет замеров прогресса ожидает согласования."
+    },
+    "work_order_assigned": {
+      "titleWithReference": "Назначен наряд — {reference}",
+      "titleDefault": "Назначен наряд",
+      "body": "Вам назначен наряд."
+    },
+    "punch_assigned": {
+      "titleWithReference": "Назначен пункт punch — {reference}",
+      "titleDefault": "Назначен пункт punch",
+      "body": "Вам назначен пункт punch-листа."
+    },
+    "low_stock": {
+      "titleWithReference": "Низкий запас — {reference}",
+      "titleDefault": "Низкий запас",
+      "bodyWithExtra": "{extra}",
+      "bodyDefault": "Остаток на складе на уровне или ниже порога дозаказа."
+    },
+    "safety_action_due": {
+      "titleWithReference": "Срок корректирующего действия — {reference}",
+      "titleDefault": "Срок корректирующего действия по безопасности",
+      "bodyWithExtra": "Срок {extra}",
+      "bodyDefault": "Корректирующее действие просрочено."
+    },
+    "warranty_expiring": {
+      "titleWithReference": "Истекает гарантия — {reference}",
+      "titleDefault": "Истекает гарантия",
+      "bodyWithExtra": "Заканчивается {extra}",
+      "bodyDefault": "Гарантийное покрытие близко к дате окончания."
+    },
+    "closeout_blockers": {
+      "titleWithReference": "Закрытие заблокировано — {reference}",
+      "titleDefault": "Закрытие заблокировано",
+      "bodyWithExtra": "{extra}",
+      "bodyDefault": "Остаются блокирующие пункты перед закрытием проекта."
+    },
+    "communication_failed": {
+      "titleWithReference": "Сообщение не отправлено — {reference}",
+      "titleDefault": "Сообщение не отправлено",
+      "bodyWithExtra": "{extra}",
+      "bodyDefault": "Доставка не удалась или не подтверждена провайдером."
+    },
+    "automation_output": {
+      "titleWithReference": "Автоматизация требует действия — {reference}",
+      "titleDefault": "Автоматизация требует действия",
+      "bodyWithExtra": "{extra}",
+      "bodyDefault": "Запуск автоматизации завершился с ошибкой или требует проверки результата."
+    },
+    "billing_plan_cycle_draft": {
+      "titleWithReference": "Промежуточный счёт ожидает выставления — {reference}",
+      "titleDefault": "Промежуточный счёт ожидает выставления",
+      "bodyWithExtra": "Статус {extra} · готов к выставлению клиенту.",
+      "bodyDefault": "Черновик или готовый цикл ожидает выставления."
+    },
+    "billing_plan_milestone_due": {
+      "titleWithReference": "Скоро срок этапа выставления счетов — {reference}",
+      "titleDefault": "Скоро срок этапа выставления счетов",
+      "bodyWithExtra": "Цель {extra}",
+      "bodyDefault": "Строка плана выставления счетов приближается к целевой дате."
+    },
+    "billing_plan_retention_held": {
+      "titleWithReference": "Удержание готово к высвобождению — {reference}",
+      "titleDefault": "Удержание готово к высвобождению",
+      "bodyWithExtra": "Оставшееся удержание · {extra}",
+      "bodyDefault": "План выставления счетов всё ещё удерживает сумму, которую можно высвободить."
+    },
+    "action_required": {
+      "titleWithReference": "{reference}",
+      "titleDefault": "Требуется действие",
+      "bodyWithExtra": "{extra}",
+      "bodyDefault": "Пункт требует вашего внимания."
+    }
+  },
+  "viewAll": "Показать все",
+  "scan": "Обновить",
+  "pageDescription": "Оповещения, требующие внимания. Рабочий inbox «Сегодня» — отдельно."
+}

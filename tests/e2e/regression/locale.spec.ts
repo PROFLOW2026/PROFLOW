@@ -24,6 +24,26 @@ test.describe('locale direction', () => {
     await expect(page.locator('body')).toHaveAttribute('dir', 'ltr');
     await expect(page.getByRole('heading', { name: 'Sign in' })).toBeVisible();
   });
+
+  test('Arabic critical route is dir=rtl lang=ar', async ({ page }) => {
+    await page.goto('/ar/sign-in');
+
+    const html = page.locator('html');
+    await expect(html).toHaveAttribute('dir', 'rtl');
+    await expect(html).toHaveAttribute('lang', 'ar');
+    await expect(page.locator('body')).toHaveAttribute('dir', 'rtl');
+    await expect(page.getByRole('heading', { name: 'تسجيل الدخول' })).toBeVisible();
+  });
+
+  test('Russian critical route is dir=ltr lang=ru', async ({ page }) => {
+    await page.goto('/ru/sign-in');
+
+    const html = page.locator('html');
+    await expect(html).toHaveAttribute('dir', 'ltr');
+    await expect(html).toHaveAttribute('lang', 'ru');
+    await expect(page.locator('body')).toHaveAttribute('dir', 'ltr');
+    await expect(page.getByRole('heading', { name: 'Вход' })).toBeVisible();
+  });
 });
 
 test.describe('locale persistence smoke', () => {
@@ -46,6 +66,26 @@ test.describe('locale persistence smoke', () => {
     await expect(page).toHaveURL(/\/he-IL\/sign-in/);
     await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
     await expect(page.getByRole('heading', { name: 'כניסה' })).toBeVisible();
+  });
+
+  test('visiting an Arabic URL remembers locale for bare redirects', async ({ page }) => {
+    await page.goto('/ar/sign-in');
+    await expect(page).toHaveURL(/\/ar\/sign-in/);
+
+    await page.goto('/sign-in');
+    await expect(page).toHaveURL(/\/ar\/sign-in/);
+    await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
+    await expect(page.getByRole('heading', { name: 'تسجيل الدخول' })).toBeVisible();
+  });
+
+  test('visiting a Russian URL remembers locale for bare redirects', async ({ page }) => {
+    await page.goto('/ru/sign-in');
+    await expect(page).toHaveURL(/\/ru\/sign-in/);
+
+    await page.goto('/sign-in');
+    await expect(page).toHaveURL(/\/ru\/sign-in/);
+    await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
+    await expect(page.getByRole('heading', { name: 'Вход' })).toBeVisible();
   });
 
   test('Hebrew sign-up stays he-IL across refresh and deep links', async ({ page }) => {
@@ -115,6 +155,16 @@ test.describe('auth callback locale persistence', () => {
   test('honors explicit en locale without trapping Hebrew default', async ({ page }) => {
     await page.goto('/auth/callback?locale=en');
     await expect(page).toHaveURL(/\/en\/sign-in\?error=auth-callback/);
+  });
+
+  test('honors explicit ar locale on the callback link', async ({ page }) => {
+    await page.goto('/auth/callback?locale=ar');
+    await expect(page).toHaveURL(/\/ar\/sign-in\?error=auth-callback/);
+  });
+
+  test('honors explicit ru locale on the callback link', async ({ page }) => {
+    await page.goto('/auth/callback?locale=ru');
+    await expect(page).toHaveURL(/\/ru\/sign-in\?error=auth-callback/);
   });
 
   test('uses NEXT_LOCALE cookie from a prior Hebrew visit', async ({ page, context }) => {

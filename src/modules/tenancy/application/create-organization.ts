@@ -96,7 +96,7 @@ export async function createOrganization(
       db,
       organization.id,
       profileKey,
-      organization.defaultLocale === 'en' ? 'en' : 'he-IL',
+      organization.defaultLocale === 'he-IL' ? 'he-IL' : 'en',
       {
         moduleMode,
         extraModules: input.extraModules,

@@ -1,9 +1,11 @@
+import { getTranslations } from 'next-intl/server';
 import { authorize } from '@/shared/permissions/authorize';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { withOrgContext } from '@/shared/auth/session';
 import { listEmployeeAssignedTasks } from '@/modules/employee-app';
 
 export default async function EmployeeTasksPage() {
+  const t = await getTranslations('employeeApp.lists');
   const tasks = await withOrgContext(async (context) => {
     if (
       !context.permissions.has(PERMISSIONS.FIELD_OPS_READ) &&
@@ -26,7 +28,9 @@ export default async function EmployeeTasksPage() {
           </li>
         ))}
         {tasks.length === 0 ? (
-          <li className="px-4 py-6 text-center text-sm text-[var(--pf-text-secondary)]">—</li>
+          <li className="px-4 py-6 text-center text-sm text-[var(--pf-text-secondary)]">
+            {t('tasksEmpty')}
+          </li>
         ) : null}
       </ul>
     </div>

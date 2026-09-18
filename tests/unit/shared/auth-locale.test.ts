@@ -55,8 +55,17 @@ describe('stripLocalePrefix / safeAppPath', () => {
   it('strips supported locale prefixes so redirects stay in the active locale', () => {
     expect(stripLocalePrefix('/he-IL/onboarding')).toBe('/onboarding');
     expect(stripLocalePrefix('/en/projects')).toBe('/projects');
+    expect(stripLocalePrefix('/ar/projects')).toBe('/projects');
+    expect(stripLocalePrefix('/ru/projects')).toBe('/projects');
     expect(stripLocalePrefix('/he-IL')).toBe('/');
     expect(stripLocalePrefix('/projects')).toBe('/projects');
+  });
+
+  it('accepts ar and ru in resolveAuthLocale', () => {
+    expect(resolveAuthLocale(['ar'])).toBe('ar');
+    expect(resolveAuthLocale(['ru'])).toBe('ru');
+    expect(resolveAuthLocale([null, 'ar'])).toBe('ar');
+    expect(localeFromAuthMetadata({ locale_preference: 'ru' })).toBe('ru');
   });
 
   it('rejects absolute and protocol-relative return paths', () => {

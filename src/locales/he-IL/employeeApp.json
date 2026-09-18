@@ -75,7 +75,16 @@
     "clockOut": "יציאה מהעבודה",
     "myHours": "השעות שלי",
     "notLinked": "חשבון העובד לא מקושר. פנה למנהל",
-    "installApp": "התקן אפליקציה"
+    "installApp": "התקן אפליקציה",
+    "anonymousName": "שם"
+  },
+  "lists": {
+    "tasksEmpty": "אין משימות משויכות",
+    "projectsEmpty": "אין פרויקטים משויכים",
+    "hoursEmpty": "אין שעות רשומות",
+    "documentsEmpty": "אין מסמכים",
+    "noCategory": "ללא קטגוריה",
+    "noValue": "אין"
   },
   "admin": {
     "title": "גישה לאפליקציה",

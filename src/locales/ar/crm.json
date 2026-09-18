@@ -1,0 +1,231 @@
+{
+  "title": "المبيعات",
+  "description": "تابع الاستفسارات والفرص حتى عرض السعر وإغلاق العمل.",
+  "quotesVsCrmBanner": "عروض الأسعار هي عطاءات. مسار CRM هذا اختياري ومنفصل عن دفتر عروض الأسعار.",
+  "navLabel": "أقسام CRM",
+  "nav": {
+    "prospects": "مرشحون",
+    "leads": "عملاء محتملون",
+    "opportunities": "فرص"
+  },
+  "empty": {
+    "opportunities": {
+      "title": "لا فرص بعد",
+      "body": "تتبع مساعي المبيعات المؤهلة هنا. التحويل إلى مشروع خطوة صريحة بعد قبول عرض السعر.",
+      "action": "فرصة جديدة"
+    },
+    "prospects": {
+      "title": "لا مرشحين بعد",
+      "body": "المرشحون عملاء محتملون قبل أن يصبحوا عملاء.",
+      "action": "مرشح جديد"
+    },
+    "leads": {
+      "title": "لا عملاء محتملين بعد",
+      "body": "سجّل الاهتمام المبكر قبل تأهيل فرصة.",
+      "action": "عميل محتمل جديد"
+    }
+  },
+  "list": {
+    "viewLabel": "عروض الفرص",
+    "boardView": "لوحة",
+    "tableView": "جدول",
+    "columns": {
+      "name": "الاسم",
+      "title": "العنوان",
+      "stage": "المرحلة",
+      "status": "الحالة",
+      "value": "القيمة المتوقعة",
+      "company": "الشركة"
+    }
+  },
+  "board": {
+    "emptyColumn": "لا شيء في هذه المرحلة",
+    "wonConvertHint": "الصفقات الرابحة تُحوّل في عروض الأسعار — اقبل عرض منتج هناك، ثم أنشئ المشروع أو العمل. CRM لا يحل محل دفتر عروض الأسعار."
+  },
+  "followUp": {
+    "title": "الإجراء التالي / المتابعة",
+    "description": "حدّد المتابعة التالية ووقت الاستحقاق. ملاحظات الفرصة تبقى على السجل؛ السجل أدناه تاريخ ملاحظات منفصل. لا يُرسل بريد.",
+    "notesLabel": "ملاحظات المتابعة",
+    "notesHint": "تُخزّن في حقل ملاحظات الفرصة. استخدم هذا للسياق؛ حقول الإجراء التالي هي تذكير الاستحقاق.",
+    "notesShort": "متابعة",
+    "nextActionLabel": "الإجراء التالي",
+    "nextActionHint": "تسمية قصيرة للمكالمة أو الزيارة أو الانتظار التالي. منفصلة عن الملاحظات العامة وسجل الملاحظات.",
+    "nextActionShort": "التالي",
+    "nextActionAtLabel": "استحقاق المتابعة",
+    "nextActionAtHint": "تاريخ ووقت المتابعة التالية. البدء المتوقع هو بدء المشروع، وليس وقت الاستحقاق هذا.",
+    "due": "مستحق",
+    "overdue": "متأخر",
+    "expectedStartLabel": "البدء المتوقع",
+    "expectedStartHint": "بدء المشروع المتوقع - وليس تاريخ استحقاق متابعة.",
+    "expectedStartShort": "البدء المتوقع",
+    "stageLabel": "المرحلة",
+    "stageHint": "ينقل الفرصة على لوحة المسار. التحويل للفوز يحدث في عروض الأسعار، وليس هنا.",
+    "empty": "لا إجراء تالي أو ملاحظات متابعة أو بدء متوقع مخزّن بعد.",
+    "save": "حفظ المتابعة"
+  },
+  "history": {
+    "title": "الملاحظات والتدقيق",
+    "description": "ملاحظات الفرصة المخزّنة وأحداث التدقيق لهذا السجل. هذا ليس موجز نشاط منفصل.",
+    "notesHeading": "ملاحظات",
+    "notesEmpty": "لا ملاحظات مخزّنة بعد.",
+    "auditHeading": "أحداث التدقيق",
+    "auditEmpty": "لا أحداث تدقيق لهذه الفرصة."
+  },
+  "stages": {
+    "qualify": "تأهيل",
+    "estimate": "تقدير",
+    "quote": "عرض سعر مبيعات",
+    "negotiation": "تفاوض",
+    "won": "رابح",
+    "lost": "خاسر"
+  },
+  "statuses": {
+    "opportunity": {
+      "open": "مفتوح",
+      "won": "رابح",
+      "lost": "خاسر",
+      "cancelled": "ملغى"
+    },
+    "prospect": {
+      "active": "نشط",
+      "converted": "مُحوّل",
+      "inactive": "غير نشط"
+    },
+    "lead": {
+      "new": "جديد",
+      "contacted": "تم التواصل",
+      "qualified": "مؤهّل",
+      "disqualified": "غير مؤهّل",
+      "converted": "مُحوّل"
+    },
+    "quote": {
+      "draft": "مسودة",
+      "issued": "صادر",
+      "accepted": "مقبول",
+      "rejected": "مرفوض",
+      "cancelled": "ملغى"
+    },
+    "version": {
+      "draft": "مسودة",
+      "issued": "صادر",
+      "superseded": "مُستبدَل",
+      "accepted": "مقبول",
+      "rejected": "مرفوض"
+    },
+    "estimate": {
+      "draft": "مسودة",
+      "final": "نهائي",
+      "superseded": "مُستبدَل"
+    }
+  },
+  "prospect": {
+    "new": "مرشح جديد",
+    "nameLabel": "الاسم",
+    "companyLabel": "الشركة",
+    "emailLabel": "البريد الإلكتروني",
+    "phoneLabel": "الهاتف",
+    "notesLabel": "ملاحظات",
+    "submit": "إنشاء مرشح",
+    "contacts": "جهات اتصال",
+    "addContact": "إضافة جهة اتصال",
+    "contactName": "اسم جهة الاتصال",
+    "contactRole": "الدور"
+  },
+  "lead": {
+    "new": "عميل محتمل جديد",
+    "titleLabel": "العنوان",
+    "sourceLabel": "المصدر",
+    "emailLabel": "البريد الإلكتروني",
+    "phoneLabel": "الهاتف",
+    "notesLabel": "ملاحظات",
+    "submit": "إنشاء عميل محتمل",
+    "statusSection": "حالة العميل المحتمل",
+    "statusLabel": "الحالة",
+    "updateStatus": "تحديث الحالة",
+    "createOpportunity": "إنشاء فرصة من العميل المحتمل"
+  },
+  "opportunity": {
+    "new": "فرصة جديدة",
+    "nameLabel": "اسم الفرصة",
+    "prospectLabel": "مرشح",
+    "leadLabel": "عميل محتمل",
+    "expectedValueLabel": "القيمة المتوقعة",
+    "currencyLabel": "العملة",
+    "expectedStartLabel": "البدء المتوقع",
+    "referralLabel": "مصدر الإحالة",
+    "notesLabel": "ملاحظات",
+    "lostReasonLabel": "سبب الخسارة",
+    "submit": "إنشاء فرصة",
+    "markLost": "تحديد كخاسرة",
+    "notesSection": "ملاحظات",
+    "addNote": "إضافة ملاحظة متابعة",
+    "noteBody": "ملاحظة متابعة",
+    "noteHint": "تُسجّل كملاحظة مؤرخة على هذه الفرصة. لا ترسل بريداً.",
+    "estimatesSection": "تقديرات",
+    "addEstimate": "إضافة تقدير",
+    "estimateName": "اسم التقدير",
+    "estimateAmount": "مبلغ داخلي",
+    "quotesSection": "عروض أسعار مبيعات CRM قديمة",
+    "addQuote": "إضافة عرض سعر مبيعات",
+    "quoteTitle": "عنوان عرض السعر",
+    "lineDescription": "وصف البند",
+    "lineQuantity": "الكمية",
+    "lineUnit": "مبلغ الوحدة",
+    "lineTotal": "إجمالي البند",
+    "issueVersion": "إصدار",
+    "acceptVersion": "قبول",
+    "versionLabel": "النسخة {number}",
+    "converted": "حُوّل إلى مشروع",
+    "openProject": "فتح المشروع",
+    "openClient": "فتح العميل",
+    "contractLinked": "عقد رئيسي مرتبط: {id}",
+    "pipelineLinks": "روابط المسار",
+    "openLead": "فتح العميل المحتمل المرتبط",
+    "openProspect": "مرشح: {name}",
+    "quoteNet": "صافي",
+    "quoteTax": "ض.ق.م/ضريبة",
+    "quoteTotal": "الإجمالي",
+    "quoteNotBilling": "عروض مبيعات CRM الداخلية ليست عطاء العميل. استخدم عروض الأسعار (Product Quote) بدلاً من ذلك.",
+    "useProductQuoteBannerTitle": "استخدم عرض سعر المنتج",
+    "useProductQuoteBanner": "عطاءات العملاء الجديدة تنتمي إلى عروض الأسعار (/quotes). عروض مبيعات CRM قديمة وللقراءة فقط.",
+    "legacyQuoteReadOnly": "عرض CRM قديم — للقراءة فقط. أنشئ عطاءات جديدة كعروض أسعار منتج.",
+    "legacyQuotesEmpty": "لا عروض مبيعات CRM قديمة على هذه الفرصة.",
+    "createProductQuote": "إنشاء عرض سعر",
+    "productQuotesSection": "عروض الأسعار (عطاءات)",
+    "productQuotesHint": "عطاءات العملاء في عروض الأسعار. اقبل وحوّل هناك - هذا ليس دفتر عروض ثانياً.",
+    "productQuotesEmpty": "لا عرض منتج بعد. أنشئ واحداً في عروض الأسعار.",
+    "advancedInternal": "عروض وتقديرات CRM داخلية (متقدم)",
+    "advancedInternalHint": "هذه تكتب crm_sales_quotes / crm_estimates. ليست عطاء العميل."
+  },
+  "convert": {
+    "title": "التحويل عبر عروض الأسعار",
+    "headline": "العمل الرابح يُنشأ من عرض منتج",
+    "description": "أنشئ واقبل عرضاً تحت عروض الأسعار، ثم حوّل هناك. عروض مبيعات CRM ليست عطاء العميل.",
+    "ctaHint": "عطاء العميل هو /quotes (تقديرات). حوّل بعد قبول العميل لذلك العرض.",
+    "projectNameLabel": "اسم المشروع",
+    "submit": "تحويل إلى مشروع الآن",
+    "blockedTitle": "أنشئ عرض سعر أولاً",
+    "requiresAcceptedQuote": "اقبل عرض منتج قبل التحويل.",
+    "requiresProductQuote": "أنشئ عرضاً تحت عروض الأسعار، ثم اقبله. التحويل على العرض - وليس من عرض CRM.",
+    "useQuotesConvert": "لهذه الفرصة عرض منتج مقبول. حوّله في صفحة العرض لإنشاء المشروع.",
+    "openProductQuote": "فتح عرض السعر",
+    "createQuote": "إنشاء عرض سعر",
+    "alreadyConverted": "حُوّلت هذه الفرصة بالفعل.",
+    "cannotConvert": "لا يمكن تحويل هذه الفرصة.",
+    "netBaseline": "أساس العقد يستخدم صافي {net} {currency} (ضريبة {tax}، إجمالي {total}).",
+    "vatNote": "ض.ق.م/الضريبة لا تُعامل أبداً كربح. العقد يخزّن المبلغ التجاري الصافي."
+  },
+  "errors": {
+    "alreadyConverted": "حُوّلت الفرصة بالفعل",
+    "cannotConvertLost": "لا يمكن تحويل فرص خاسرة أو ملغاة",
+    "cannotLoseConverted": "لا يمكن تحديد فرصة مُحوّلة كخاسرة",
+    "cannotConvert": "لا يمكن تحويل هذه الفرصة",
+    "quoteNotAccepted": "نسخة عرض مبيعات مقبولة فقط يمكنها تغذية صافي العقد",
+    "quoteOpportunityMismatch": "عرض المبيعات لا ينتمي لهذه الفرصة",
+    "acceptedQuoteRequired": "عرض منتج مقبول مطلوب للتحويل",
+    "useProductQuote": "أنشئ واقبل عرض منتج في /quotes قبل التحويل",
+    "quoteFinalized": "لا يمكن إضافة نسخ لعرض مبيعات منتهٍ",
+    "cannotIssueVersion": "يمكن إصدار نسخ المسودة فقط",
+    "cannotAcceptVersion": "يمكن قبول نسخ المسودة أو الصادرة فقط"
+  }
+}

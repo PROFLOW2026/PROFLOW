@@ -1,0 +1,90 @@
+{
+  "title": "الجدولة",
+  "description": "لوحة الموارد: من محجوز أو متاح أو غائب. ليست إرسالاً يومياً وليست تخطيط Gantt للمشروع.",
+  "loading": "جاري تحميل الجدول…",
+  "notAllowed": {
+    "title": "الجدولة غير متاحة",
+    "body": "ليس لديك صلاحية عرض جدول الموارد."
+  },
+  "empty": {
+    "title": "لا يوجد أشخاص في هذا الجدول بعد",
+    "body": "أضف موظفين، ثم احجز وقتاً أو سجّل غياباً. المشاريع المعيّنة وطلبات الخدمة المجدولة تظهر هنا تلقائياً.",
+    "action": "حجز جديد"
+  },
+  "view": {
+    "day": "يوم",
+    "week": "أسبوع",
+    "today": "اليوم",
+    "previous": "السابق",
+    "next": "التالي"
+  },
+  "signals": {
+    "available": "متاح",
+    "partially_booked": "محجوز جزئياً",
+    "fully_booked": "محجوز بالكامل",
+    "conflict": "تعارض",
+    "over_capacity": "فوق السعة",
+    "unavailable": "غير متاح"
+  },
+  "sources": {
+    "manual": "حجز",
+    "work_order": "طلب خدمة",
+    "assignment": "تعيين مشروع",
+    "recurring": "خدمة متكررة"
+  },
+  "status": {
+    "planned": "مخطّط",
+    "confirmed": "مؤكّد",
+    "cancelled": "ملغى"
+  },
+  "kinds": {
+    "leave": "إجازة",
+    "unavailable": "غير متاح",
+    "holiday": "عطلة"
+  },
+  "hours": "{hours} س",
+  "capacity": "{planned} من {capacity} س",
+  "assignmentBackground": "معيّن: {project}",
+  "readOnlyHint": "يُعرض من جدول الخدمة. غيّره في طلب الخدمة.",
+  "newBooking": "حجز جديد",
+  "newUnavailability": "تسجيل غياب",
+  "reschedule": "إعادة جدولة",
+  "hideReschedule": "إخفاء",
+  "cancelBooking": "إلغاء الحجز",
+  "cancelConfirmTitle": "إلغاء هذا الحجز؟",
+  "cancelConfirmBody": "سيُحرّر الموعد. هذا لا يغيّر إدخالات الوقت أو الأجر.",
+  "cancelConfirmAction": "إلغاء الحجز",
+  "cancelled": "تم إلغاء الحجز.",
+  "saved": "تم الحفظ.",
+  "confirmOverlap": "احجز على أي حال - الأوقات متداخلة",
+  "overlapWarning": "هذا يتداخل مع حجز آخر. أكّد للإبقاء على كليهما.",
+  "overCapacityHint": "الساعات المخططة فوق {hours} ساعة المعتادة لهذه الفترة.",
+  "fields": {
+    "employee": "موظف",
+    "employeePlaceholder": "اختر موظفاً",
+    "project": "مشروع",
+    "projectPlaceholder": "مشروع اختياري",
+    "projectNone": "بدون مشروع",
+    "startAt": "يبدأ",
+    "endAt": "ينتهي",
+    "plannedHours": "ساعات مخططة",
+    "plannedHoursHint": "اتركه فارغاً لاستخدام الوقت بين البداية والنهاية.",
+    "notes": "ملاحظات",
+    "kind": "النوع",
+    "startDate": "من",
+    "endDate": "حتى"
+  },
+  "actions": {
+    "createBooking": "حفظ الحجز",
+    "saveReschedule": "حفظ الأوقات",
+    "createUnavailability": "حفظ الغياب"
+  },
+  "errors": {
+    "bookingOverlap": "هذا يتداخل مع حجز آخر. أكّد للإبقاء على كليهما، أو اختر وقتاً مختلفاً.",
+    "unavailableOverlap": "هذا يتداخل مع غياب. اختر وقتاً مختلفاً، أو غيّر الغياب أولاً.",
+    "unavailabilityOverlap": "هذا يتداخل مع غياب موجود.",
+    "cancelledLocked": "لا يمكن تغيير حجز ملغى.",
+    "employeeRequired": "اختر موظفاً.",
+    "windowRequired": "البداية والنهاية مطلوبتان."
+  }
+}

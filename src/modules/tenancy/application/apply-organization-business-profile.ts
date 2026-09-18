@@ -6,6 +6,7 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { z } from 'zod';
 import { BUSINESS_PROFILE_KEYS, type BusinessProfileKey } from '../domain/business-profiles';
 import type { ApplyModulePreferenceMode } from '../domain/capability-overrides';
+import { resolveLabelLocale } from '@/shared/i18n/intl-locale';
 import { applyBusinessProfileConfig } from './apply-business-profile';
 
 const applySchema = z.object({
@@ -37,7 +38,8 @@ export async function applyOrganizationBusinessProfile(
       ? 'replace'
       : (parsed.data.moduleMode ?? 'additive');
 
-  const locale = context.organization.defaultLocale === 'en' ? 'en' : 'he-IL';
+  const labelLocale = resolveLabelLocale(context.organization.defaultLocale);
+  const locale = labelLocale === 'he-IL' ? 'he-IL' : 'en';
   const result = await applyBusinessProfileConfig(
     context.db,
     context.organizationId,

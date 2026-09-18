@@ -1,0 +1,110 @@
+{
+  "project": {
+    "draft": "مسودة",
+    "active": "نشط",
+    "on_hold": "معلق",
+    "completed": "مكتمل",
+    "cancelled": "ملغى",
+    "archived": "مؤرشف",
+    "ready_to_close": "جاهز للإغلاق",
+    "closed": "مغلق"
+  },
+  "change": {
+    "draft": "مسودة",
+    "awaiting_approval": "بانتظار الموافقة",
+    "approved": "موافق عليه",
+    "rejected": "مرفوض",
+    "cancelled": "ملغى"
+  },
+  "changeDirection": {
+    "addition": "إضافة",
+    "reduction": "تخفيض"
+  },
+  "billing": {
+    "draft": "مسودة",
+    "finalized": "صادر",
+    "void": "ملغى"
+  },
+  "payment": {
+    "paid": "مدفوع",
+    "partial": "مدفوع جزئياً",
+    "open": "مفتوح",
+    "overdue": "متأخر",
+    "recorded": "مسجّل",
+    "void": "ملغى"
+  },
+  "expense": {
+    "draft": "مسودة",
+    "finalized": "مسجّل",
+    "void": "ملغى"
+  },
+  "quoteVersion": {
+    "draft": "مسودة",
+    "issued": "صادر",
+    "superseded": "مستبدل",
+    "accepted": "مقبول",
+    "rejected": "مرفوض"
+  },
+  "estimateQuote": {
+    "draft": "مسودة",
+    "ready": "جاهز",
+    "sent": "صادر",
+    "accepted": "مقبول",
+    "rejected": "مرفوض",
+    "expired": "منتهي الصلاحية",
+    "cancelled": "ملغى",
+    "converted": "محوّل"
+  },
+  "membership": {
+    "active": "نشط",
+    "invited": "مدعو",
+    "suspended": "موقوف"
+  },
+  "generic": {
+    "active": "نشط",
+    "inactive": "غير نشط",
+    "archived": "مؤرشف"
+  },
+  "compliance": {
+    "valid": "ساري",
+    "expiring_soon": "ينتهي قريباً",
+    "expired": "منتهي",
+    "revoked": "ملغى",
+    "pending": "معلق"
+  },
+  "punch": {
+    "open": "مفتوح",
+    "in_progress": "قيد التنفيذ",
+    "done": "منجز",
+    "cancelled": "ملغى"
+  },
+  "inspection": {
+    "scheduled": "مجدول",
+    "in_progress": "قيد التنفيذ",
+    "passed": "ناجح",
+    "failed": "غير ناجح",
+    "cancelled": "ملغى"
+  },
+  "asset": {
+    "active": "نشط",
+    "in_maintenance": "قيد الصيانة",
+    "retired": "متقاعد",
+    "disposed": "مُستبعد"
+  },
+  "maintenance": {
+    "planned": "مخطط",
+    "in_progress": "قيد التنفيذ",
+    "completed": "مكتمل",
+    "cancelled": "ملغى"
+  },
+  "approval": {
+    "submitted": "معلق",
+    "approved": "موافق عليه",
+    "rejected": "مرفوض",
+    "cancelled": "ملغى"
+  },
+  "events": {
+    "sentAt": "أُرسل {date}",
+    "notSent": "لم يُرسل"
+  }
+}

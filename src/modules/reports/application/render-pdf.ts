@@ -37,17 +37,30 @@ const HEADING_SIZE = 13;
 const LINE_HEIGHT = 15;
 const BODY_COLOR = rgb(0.05, 0.05, 0.05);
 const HEBREW_RE = /[\u0590-\u05FF]/;
+const ARABIC_RE = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/;
+const CYRILLIC_RE = /[\u0400-\u04FF]/;
+const EMBEDDED_SCRIPT_RE = /[\u0590-\u05FF\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\u0400-\u04FF]/;
 /** Printable ASCII safe for pdf-lib StandardFonts (WinAnsi). */
 const WIN_ANSI_SAFE_RE = /^[\t\n\r\x20-\x7E]*$/;
 const TEXT_RUN_RE =
-  /[\u0590-\u05FF][\u0590-\u05FF\s]*|[0-9A-Za-z][0-9A-Za-z\s.,:/\-]*|[^\u0590-\u05FF0-9A-Za-z]+/g;
+  /[\u0590-\u05FF][\u0590-\u05FF\s]*|[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF][\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\s]*|[\u0400-\u04FF][\u0400-\u04FF\s]*|[0-9A-Za-z][0-9A-Za-z\s.,:/\-]*|[^\u0590-\u05FF\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\u0400-\u04FF0-9A-Za-z]+/g;
 
 const HEBREW_FONT_REGULAR = 'NotoSansHebrew-Regular.ttf';
 const HEBREW_FONT_BOLD = 'NotoSansHebrew-Bold.ttf';
+const ARABIC_FONT_REGULAR = 'NotoSansArabic-Regular.ttf';
+const ARABIC_FONT_BOLD = 'NotoSansArabic-Bold.ttf';
+const CYRILLIC_FONT_REGULAR = 'NotoSans-Regular.ttf';
+const CYRILLIC_FONT_BOLD = 'NotoSans-Bold.ttf';
 const HEBREW_FONT_PROJECT_REL = path.join('src', 'modules', 'reports', 'fonts', HEBREW_FONT_REGULAR);
+
+export type PdfEmbeddedFontProfile = 'hebrew' | 'arabic' | 'cyrillic';
 
 let hebrewFontBytes: Uint8Array | null | undefined;
 let hebrewBoldFontBytes: Uint8Array | null | undefined;
+let arabicFontBytes: Uint8Array | null | undefined;
+let arabicBoldFontBytes: Uint8Array | null | undefined;
+let cyrillicFontBytes: Uint8Array | null | undefined;
+let cyrillicBoldFontBytes: Uint8Array | null | undefined;
 
 /** Stable project-root path — matches Vercel output file tracing includes. */
 export function hebrewFontFilePath(): string {
@@ -118,6 +131,108 @@ async function loadHebrewBoldFontBytes(): Promise<Uint8Array | null> {
   );
 }
 
+function fontModulePath(fileName: string): string {
+  return path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'fonts', fileName);
+}
+
+function fontProjectPath(fileName: string): string {
+  return path.join(process.cwd(), 'src', 'modules', 'reports', 'fonts', fileName);
+}
+
+function fontCandidatePaths(fileName: string): readonly string[] {
+  return [fontProjectPath(fileName), fontModulePath(fileName)];
+}
+
+export function arabicFontFilePath(): string {
+  return fontProjectPath(ARABIC_FONT_REGULAR);
+}
+
+export function cyrillicFontFilePath(): string {
+  return fontProjectPath(CYRILLIC_FONT_REGULAR);
+}
+
+async function loadArabicFontBytes(): Promise<Uint8Array | null> {
+  return loadFontBytes(
+    () => arabicFontBytes,
+    (value) => {
+      arabicFontBytes = value;
+    },
+    fontCandidatePaths(ARABIC_FONT_REGULAR),
+    'Arabic regular font',
+  );
+}
+
+async function loadArabicBoldFontBytes(): Promise<Uint8Array | null> {
+  return loadFontBytes(
+    () => arabicBoldFontBytes,
+    (value) => {
+      arabicBoldFontBytes = value;
+    },
+    fontCandidatePaths(ARABIC_FONT_BOLD),
+    'Arabic bold font',
+  );
+}
+
+async function loadCyrillicFontBytes(): Promise<Uint8Array | null> {
+  return loadFontBytes(
+    () => cyrillicFontBytes,
+    (value) => {
+      cyrillicFontBytes = value;
+    },
+    fontCandidatePaths(CYRILLIC_FONT_REGULAR),
+    'Cyrillic regular font',
+  );
+}
+
+async function loadCyrillicBoldFontBytes(): Promise<Uint8Array | null> {
+  return loadFontBytes(
+    () => cyrillicBoldFontBytes,
+    (value) => {
+      cyrillicBoldFontBytes = value;
+    },
+    fontCandidatePaths(CYRILLIC_FONT_BOLD),
+    'Cyrillic bold font',
+  );
+}
+
+function payloadEmbeddedScriptSamples(payload: ReportPayload): string[] {
+  const samples = [payload.title, payload.identity.companyName];
+  if (payload.brand) {
+    samples.push(payload.brand.companyLegalName, payload.brand.companyDisplayName);
+  }
+  return samples.filter(Boolean);
+}
+
+/** Pick embedded Noto family for non-Latin PDF text. */
+export function resolveEmbeddedFontProfile(payload: ReportPayload): PdfEmbeddedFontProfile | null {
+  const samples = payloadEmbeddedScriptSamples(payload);
+  const joined = samples.join('\n');
+  if (payload.locale === 'ar' || (payload.dir === 'rtl' && ARABIC_RE.test(joined))) return 'arabic';
+  if (payload.locale === 'ru' || CYRILLIC_RE.test(joined)) return 'cyrillic';
+  if (payload.locale === 'he-IL' || payload.dir === 'rtl' || HEBREW_RE.test(joined)) return 'hebrew';
+  if (EMBEDDED_SCRIPT_RE.test(joined)) {
+    if (ARABIC_RE.test(joined)) return 'arabic';
+    if (CYRILLIC_RE.test(joined)) return 'cyrillic';
+    return 'hebrew';
+  }
+  return null;
+}
+
+async function loadEmbeddedFontBytes(
+  profile: PdfEmbeddedFontProfile,
+): Promise<{ regular: Uint8Array; bold: Uint8Array } | null> {
+  if (profile === 'arabic') {
+    const [regular, bold] = await Promise.all([loadArabicFontBytes(), loadArabicBoldFontBytes()]);
+    return regular && bold ? { regular, bold } : null;
+  }
+  if (profile === 'cyrillic') {
+    const [regular, bold] = await Promise.all([loadCyrillicFontBytes(), loadCyrillicBoldFontBytes()]);
+    return regular && bold ? { regular, bold } : null;
+  }
+  const [regular, bold] = await Promise.all([loadHebrewFontBytes(), loadHebrewBoldFontBytes()]);
+  return regular && bold ? { regular, bold } : null;
+}
+
 export type PdfTextRunKind = 'hebrew' | 'latin' | 'unicode';
 
 export type PdfTextRun = {
@@ -133,6 +248,7 @@ export function isWinAnsiEncodable(text: string): boolean {
 /** Classify a text chunk for pdf-lib font selection (logical order, no BiDi reversal). */
 export function classifyPdfTextRun(text: string): PdfTextRunKind {
   if (HEBREW_RE.test(text)) return 'hebrew';
+  if (ARABIC_RE.test(text) || CYRILLIC_RE.test(text)) return 'unicode';
   if (isWinAnsiEncodable(text)) return 'latin';
   return 'unicode';
 }
@@ -254,15 +370,15 @@ export function splitLegalNameRuns(text: string): LegalNameRun[] {
       current += char;
       continue;
     }
-    const charIsHebrew = HEBREW_RE.test(char);
+    const charIsEmbeddedScript = EMBEDDED_SCRIPT_RE.test(char);
     if (isHebrew === null) {
-      isHebrew = charIsHebrew;
+      isHebrew = charIsEmbeddedScript;
       current += char;
-    } else if (isHebrew === charIsHebrew) {
+    } else if (isHebrew === charIsEmbeddedScript) {
       current += char;
     } else {
       flush();
-      isHebrew = charIsHebrew;
+      isHebrew = charIsEmbeddedScript;
       current = char;
     }
   }
@@ -326,7 +442,10 @@ function pdfGeneratedLabel(
   dir: 'rtl' | 'ltr',
 ): string {
   if (dir === 'rtl') {
-    return `נוצר: ${formatPdfGeneratedAt(generatedAtIso)}`;
+    return `${copy.generatedAt} ${formatPdfGeneratedAt(generatedAtIso)}`;
+  }
+  if (locale === 'ru') {
+    return `${copy.generatedAt} ${formatPdfGeneratedAt(generatedAtIso)}`;
   }
   return `${copy.generatedAt} ${formatReportGeneratedAt(generatedAtIso, locale)}`;
 }
@@ -341,7 +460,7 @@ function pdfTableLine(cells: readonly string[], dir: 'rtl' | 'ltr'): string {
 }
 
 function pdfBodyFont(fonts: PdfFonts, dir: 'rtl' | 'ltr', bold: boolean): PDFFont {
-  if (dir === 'rtl') return bold ? fonts.hebrewBold : fonts.hebrew;
+  if (dir === 'rtl' || fonts.preferEmbeddedForLtr) return bold ? fonts.hebrewBold : fonts.hebrew;
   return bold ? fonts.latinBold : fonts.latin;
 }
 
@@ -373,6 +492,8 @@ type PdfFonts = {
   hebrewBold: PDFFont;
   latin: PDFFont;
   latinBold: PDFFont;
+  /** Cyrillic reports are LTR but still need embedded Noto Sans body text. */
+  preferEmbeddedForLtr?: boolean;
 };
 
 function pickFont(run: PdfTextRun, fonts: PdfFonts, bold: boolean): PDFFont {
@@ -943,17 +1064,10 @@ export async function renderReportPdf(payload: ReportPayload): Promise<Uint8Arra
   const doc = await PDFDocument.create();
   const latin = await doc.embedFont(StandardFonts.Helvetica);
   const latinBold = await doc.embedFont(StandardFonts.HelveticaBold);
-  const needsHebrew =
-    payload.dir === 'rtl' ||
-    HEBREW_RE.test(payload.title) ||
-    HEBREW_RE.test(payload.identity.companyName) ||
-    (payload.brand
-      ? HEBREW_RE.test(payload.brand.companyLegalName) || HEBREW_RE.test(payload.brand.companyDisplayName)
-      : false);
-  const hebrewBytes = await loadHebrewFontBytes();
-  const hebrewBoldBytes = await loadHebrewBoldFontBytes();
-  if (needsHebrew && (!hebrewBytes || !hebrewBoldBytes)) {
-    throw pdfRenderFailedError('Hebrew PDF font assets could not be loaded');
+  const embeddedProfile = resolveEmbeddedFontProfile(payload);
+  const embeddedBytes = embeddedProfile ? await loadEmbeddedFontBytes(embeddedProfile) : null;
+  if (embeddedProfile && !embeddedBytes) {
+    throw pdfRenderFailedError('PDF font assets could not be loaded');
   }
 
   let fonts: PdfFonts = {
@@ -962,17 +1076,23 @@ export async function renderReportPdf(payload: ReportPayload): Promise<Uint8Arra
     latin,
     latinBold,
   };
-  if (hebrewBytes && hebrewBoldBytes && needsHebrew) {
+  if (embeddedBytes) {
     doc.registerFontkit(fontkit);
     try {
-      const [hebrew, hebrewBold] = await Promise.all([
-        doc.embedFont(hebrewBytes, { subset: true }),
-        doc.embedFont(hebrewBoldBytes, { subset: true }),
+      const [embedded, embeddedBold] = await Promise.all([
+        doc.embedFont(embeddedBytes.regular, { subset: true }),
+        doc.embedFont(embeddedBytes.bold, { subset: true }),
       ]);
-      fonts = { hebrew, hebrewBold, latin, latinBold };
+      fonts = {
+        hebrew: embedded,
+        hebrewBold: embeddedBold,
+        latin,
+        latinBold,
+        preferEmbeddedForLtr: embeddedProfile === 'cyrillic',
+      };
     } catch (error) {
-      console.error('[renderReportPdf] Failed to embed Hebrew fonts', error);
-      throw pdfRenderFailedError('Hebrew PDF fonts could not be embedded');
+      console.error('[renderReportPdf] Failed to embed PDF fonts', embeddedProfile, error);
+      throw pdfRenderFailedError('PDF fonts could not be embedded');
     }
   }
 

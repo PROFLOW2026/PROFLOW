@@ -1,0 +1,469 @@
+{
+  "title": "المصروفات",
+  "subtitle": "سجّل تكاليف المشروع ومصروفات الأعمال في مكان واحد.",
+  "generalBusiness": "مصاريف عامة للأعمال",
+  "advancedOptions": "خيارات إضافية",
+  "historyAdvanced": "التاريخ / تفاصيل متقدمة",
+  "generalBusinessCostsAllocatedToProject": "مصاريف عامة للأعمال مُوزّعة على المشروع",
+  "directActualCost": "تكلفة مباشرة معترف بها",
+  "fullProjectActualCost": "تكلفة مشروع فعلية كاملة",
+  "companyActual": "تكلفة منظمة معترف بها",
+  "companyProfit": "ربح المنظمة",
+  "installmentCount": "عدد الأقساط",
+  "installmentStart": "تاريخ البدء",
+  "recurringMonthlyExpense": "مصروف شهري متكرر",
+  "inventoryStockValue": "قيمة مخزون",
+  "remainingScheduledCost": "تكلفة مجدولة متبقية",
+  "capture": {
+    "title": "مصروف جديد",
+    "subtitle": "الحفظ ينشئ مسودة فقط. يدخل المصروف تكاليف المشروع بعد اعتمادك. للمصاريف العامة، أضف بنود توزيع حتى لا تبقى غير مُوزّعة.",
+    "overlapWarningTitle": "حساب مورد مفتوح مشابه موجود",
+    "overlapWarningBody": "حساب مورد مفتوح بنفس المورد ومبلغ صافي مشابه يعترف بالفعل بالفعلي. اعتماد مصروف منفصل قد يُضاعف العد ما لم تربطهما.",
+    "overlapWarningHint": "افتح الحساب واقبل مطابقة لهذا المصروف بعد اعتماده، أو ألغِ الإدخال المكرر."
+  },
+  "detail": {
+    "title": "مصروف",
+    "summary": "الملخص",
+    "draftBanner": "حُفظ هذا المصروف كمسودة ولا يُضمّن في تكاليف المشروع بعد.",
+    "finalizedBanner": "سُجّل المصروف في تكاليف المشروع.",
+    "finalizedEditableBanner": "يمكنك التعديل والحفظ طالما هذا الشهر مفتوح.",
+    "reversalOf": "عكس مصروف {id}",
+    "adjustmentOf": "استبدال مصحّح لمصروف {id}",
+    "viewVendor": "فتح المورد المرتبط",
+    "correctionHistory": "تاريخ التصحيح",
+    "correctionHistoryHint": "الأصل والتصحيحات تبقى في التاريخ.",
+    "correctionRole": {
+      "original": "أصلي",
+      "reversal": "عكس",
+      "replacement": "استبدال مصحّح"
+    },
+    "correctionNet": "صافي بعد التصحيح",
+    "attention": {
+      "actionLabel": "ماذا تفعل",
+      "project_allocation": {
+        "title": "هذا المصروف يحتاج توزيعاً على مشروع",
+        "explain": "يُحسب بالفعل في مصاريف الأعمال لكن لم يُقسّم على المشاريع، فربحية المشروع قد تكون ناقصة.",
+        "action": "اختر مشروعاً أو قسّم على عدة مشاريع"
+      },
+      "classification": {
+        "title": "هذا المصروف يحتاج تصنيفاً",
+        "explain": "نوع التكلفة ناقص. اختر فئة تكلفة ليعرف النظام أين يعرضه.",
+        "action": "اختر فئة تكلفة"
+      },
+      "approval": {
+        "title": "هذا المصروف غير معتمد بعد",
+        "explain": "لا يزال مسودة ولا يُضمّن في التكاليف. اعتمده لإدخاله في الحسابات.",
+        "action": "اعتمد المصروف"
+      }
+    }
+  },
+  "categoryPolicy": {
+    "title": "سياسة الفئة",
+    "family": "قسم التكلفة",
+    "method": "طريقة توزيع افتراضية",
+    "period": "فترة افتراضية",
+    "none": "لا افتراضي",
+    "overrideHint": "يمكنك تغيير الطريقة والفترة أدناه — هذا المصروف يحتفظ بتجاوزك.",
+    "fromPolicy": "من سياسة الفئة",
+    "overridden": "مُتجاوَز لهذا المصروف"
+  },
+  "allocationIntent": {
+    "label": "أين يجب أن تستقر هذه التكلفة؟",
+    "project_allocate": "مشاريع — تقسيم يدوي أو تلقائي",
+    "auto_pool": "تقسيم تلقائي على المشاريع (مجموعة تكلفة عامة)",
+    "company_only": "مصروف عام للأعمال بدون تخصيص مشروع",
+    "autoPoolHint": "تدخل التكلفة مجموعة التكلفة العامة للشركة وتُقسّم تلقائياً على المشاريع النشطة حسب التكلفة المباشرة.",
+    "companyOnlyHint": "تبقى التكلفة على مستوى الشركة فقط — لن تدخل تكلفة مشروع أو توزيعاً تلقائياً."
+  },
+  "lifecycle": {
+    "draftHint": "الحفظ ينشئ مسودة فقط. اعتمده في التكاليف عندما يكون المبلغ جاهزاً.",
+    "overheadUnallocatedWarning": "هذا مصروف عام للأعمال بدون توزيع مشروع. لن يظهر في التكلفة الفعلية لأي مشروع أو في المصاريف العامة المُوزّعة على المشروع حتى تضيف بنود توزيع.",
+    "companyOnlyOverheadHint": "يُحسب هذا المصروف في مصاريف الأعمال ولا يُخصّص لمشروع.",
+    "sharedUnallocatedWarning": "هذه تكلفة مشتركة لم تُقسّم على المشاريع بعد. أضف توزيعاً ليظهر حصة كل مشروع في تكلفته.",
+    "overheadAllocatedHint": "بنود التوزيع تحدد أي المشاريع تتلقى حصة من هذه المصاريف العامة.",
+    "allocationPeriod": "الفترة",
+    "allocationMethodSummary": "الطريقة",
+    "allocationProjects": "المشاريع"
+  },
+  "promoteVendor": {
+    "title": "حفظ كمورد",
+    "description": "أنشئ أو اربط مورداً من «{name}». اسم المورد على هذا المصروف يبقى كما أُدخل.",
+    "cta": "حفظ / ربط كمورد",
+    "success": "تم ربط المورد. نص المورد على هذا المصروف بقي كما هو."
+  },
+  "actions": {
+    "add": "إضافة مصروف",
+    "saveDraft": "حفظ مسودة",
+    "finalize": "تسجيل المصروف",
+    "void": "إلغاء",
+    "reverse": "عكس (تسوية)",
+    "correct": "تصحيح مصروف",
+    "recurringExpenses": "مصروفات متكررة / ثابتة"
+  },
+  "backToList": "رجوع إلى المصروفات",
+  "backNavigation": {
+    "expenses": "رجوع إلى المصروفات",
+    "expensesAttention": "رجوع إلى مصروفات تحتاج إجراء",
+    "project": "رجوع إلى المشروع",
+    "projectFinancials": "رجوع إلى المالية",
+    "projectExpenses": "رجوع إلى مصروفات المشروع",
+    "vendor": "رجوع إلى المورد"
+  },
+  "correction": {
+    "title": "تصحيح مصروف",
+    "subtitle": "ينشئ نسخة مصحّحة ويحفظ التاريخ.",
+    "historyHint": "التصحيح ينشئ نسخة مصحّحة ويبقي السجلات الأصلية في التاريخ.",
+    "amountLabel": "مبلغ مصحّح",
+    "submit": "إنشاء تصحيح",
+    "success": "تم إنشاء مسودة تصحيح. اعتمد الاستبدال عند الجاهزية."
+  },
+  "confirm": {
+    "finalizeTitle": "تسجيل مصروف",
+    "finalizeQuestion": "تسجيل مصروف <amount></amount> بتاريخ <date></date>؟",
+    "finalizeConsequence": "سيُسجّل المصروف في تكاليف المشروع.",
+    "finalizeSuccess": "تم تسجيل المصروف.",
+    "voidTitle": "إلغاء مصروف",
+    "voidQuestion": "إلغاء مصروف <amount></amount> بتاريخ <date></date>؟",
+    "voidConsequence": "سيُستبعد من جميع أرقام التكلفة.",
+    "voidSuccess": "تم إلغاء المصروف.",
+    "reverseTitle": "عكس مصروف نهائي",
+    "reverseQuestion": "إنشاء قيد عكسي لمصروف <amount></amount> بتاريخ <date></date>؟",
+    "reverseConsequence": "الأصل يبقى في التاريخ. مصروف سالب مرتبط يُصفّر أثر التكلفة الفعلية.",
+    "reverseSuccess": "تم إنشاء قيد عكسي.",
+    "correctTitle": "تصحيح مصروف نهائي",
+    "correctQuestion": "إنشاء عكس ومسودة مصحّحة لمصروف <amount></amount> بتاريخ <date></date>؟",
+    "correctConsequence": "الأصل يبقى في التاريخ. قيد عكسي يُعوّضه، ومسودة جديدة تحمل المبلغ المصحّح.",
+    "correctSuccess": "تم إنشاء التصحيح."
+  },
+  "fields": {
+    "amount": "المبلغ",
+    "grossAmount": "المبلغ شامل ض.ق.م",
+    "netCostBasis": "تكلفة صافية (بدون ض.ق.م قابل للاسترداد)",
+    "description": "الوصف",
+    "date": "التاريخ",
+    "supplier": "المورد",
+    "linkedVendor": "مورد مرتبط",
+    "expenseType": "ما نوع هذه التكلفة؟",
+    "destination": "أين يجب أن تستقر هذه التكلفة؟",
+    "target": "مشروع أو مصاريف عامة",
+    "installmentCount": "عدد الأقساط",
+    "installmentStart": "تاريخ البدء",
+    "installmentEnd": "تاريخ الانتهاء",
+    "installmentHint": "الفعلي الصافي يُوزّع بالتساوي على هذه الأشهر. دفع النقد منفصل.",
+    "paymentTerm": "شروط الدفع",
+    "automaticInstallmentPaymentHint": "ادفع نقداً تلقائياً في كل تاريخ قسط (بدون تأكيد شهري من المالك).",
+    "inventoryStockPurchase": "شراء مخزون مركزي (ليس تكلفة تشغيل فورية)",
+    "inventoryItem": "بند مخزون",
+    "inventoryPurchaseQty": "الكمية المشتراة",
+    "inventoryPurchaseQtyHint": "الكمية المُستلمة في المخزون المركزي. صافي المصروف يُقسّم إلى طبقة تكلفة حسب هذه الكمية.",
+    "recurringMonthlyExpense": "مصروف شهري متكرر",
+    "fixedExpense": "مصروف ثابت",
+    "project": "المشروع",
+    "workPackage": "منطقة عمل",
+    "costFamily": "قسم التكلفة",
+    "category": "فئة تكلفة",
+    "categoryRequiredHint": "اختر فئة ليستطيع الفعلي تصنيف هذه التكلفة. بدونها تبقى «تحتاج تصنيف» ضمن مصروفات أخرى.",
+    "internalPayrollWarning": "القوى العاملة تحسب بالفعل رواتب الموظفين الداخلية. استخدم هذه الفئة فقط لمبلغ رواتب إضافي — وليس لمقاولي باطن أو عمالة خارجية.",
+    "status": "الحالة",
+    "amountTaxMode": "المبلغ المُدخل",
+    "amountTaxModeHint": "اختر هل المبلغ يشمل ض.ق.م. النسبة من قاعدة الضريبة النشطة للمنظمة. التكلفة الفعلية والربحية تستخدم الصافي.",
+    "amountExcludingTax": "بدون ض.ق.م",
+    "amountIncludingTax": "شامل ض.ق.م",
+    "amountZeroTax": "بدون ض.ق.م",
+    "previewNet": "صافي",
+    "previewTax": "ض.ق.م",
+    "previewGross": "الإجمالي",
+    "previewActualHint": "التكلفة الفعلية = صافي",
+    "netAmount": "مبلغ صافي",
+    "taxAmount": "ضريبة",
+    "paymentMethod": "طريقة الدفع",
+    "notes": "ملاحظات",
+    "recurrence": "التكرار",
+    "recurrenceCustom": "وتيرة مخصّصة",
+    "recurrenceUseDrafts": "هذا لا يُنشئ صفوف مصروف متكررة. استخدم المسودات المتكررة لجدولتها.",
+    "recurrenceDraftsLink": "فتح المسودات المتكررة",
+    "percent": "النسبة المئوية"
+  },
+  "placeholders": {
+    "description": "لماذا كان هذا؟",
+    "supplier": "اكتب اسم مورد",
+    "target": "اتركه فارغاً أو اختر مشروعاً",
+    "workPackageDefault": "منطقة عمل افتراضية",
+    "vendor": "اربط مورداً موجوداً",
+    "vendorNone": "لا مورد مرتبط",
+    "paymentTerm": "افتراضي مورد / منظمة",
+    "paymentTermNone": "افتراضي مورد / منظمة",
+    "costFamily": "يُستنتج من الاستهداف",
+    "category": "اختر فئة تكلفة",
+    "inventoryItem": "اختر بند مخزون",
+    "supplierSearch": "ابحث عن موردين أو اكتب اسماً حراً"
+  },
+  "vendor": {
+    "optional": "اختياري",
+    "noVendor": "لا مورد",
+    "linkedHint": "مرتبط بالمورد {name}",
+    "advancedSynced": "مورد مرتبط: {name}"
+  },
+  "destination": {
+    "label": "أين يجب أن تستقر هذه التكلفة؟",
+    "project": "مشروع",
+    "general": "مصاريف عامة للأعمال",
+    "inventory": "شراء مخزون",
+    "asset": "أصل / رأسمال"
+  },
+  "targeting": {
+    "none": "مصاريف عامة (بدون مشروع)",
+    "overhead": "مصاريف عامة للأعمال"
+  },
+  "costFamilies": {
+    "direct_project": "تكلفة مشروع مباشرة",
+    "shared": "تكلفة مشتركة",
+    "business_overhead": "مصاريف عامة للأعمال",
+    "asset_capital": "أصل / رأسمال"
+  },
+  "costCategories": {
+    "materials": "مواد",
+    "subcontractor": "مقاول باطن",
+    "labor": "عمالة",
+    "equipment_rental": "إيجار معدات",
+    "permits_fees": "تصاريح ورسوم",
+    "project_travel": "سفر مشروع",
+    "other_direct": "تكلفة مباشرة أخرى",
+    "shared_supervision": "إشراف مشترك",
+    "shared_equipment": "معدات مشتركة",
+    "shared_logistics": "لوجستيات مشتركة",
+    "rent": "إيجار",
+    "utilities": "مرافق",
+    "accounting_legal": "محاسبة وقانون",
+    "insurance": "تأمين",
+    "marketing": "تسويق",
+    "software": "برمجيات واشتراكات",
+    "bank_fees": "رسوم بنك ومالية",
+    "office_supplies": "لوازم مكتب",
+    "vehicle_fuel": "مركبات ووقود",
+    "other_overhead": "مصاريف عامة أخرى",
+    "equipment_purchase": "شراء معدات",
+    "vehicle_purchase": "شراء مركبة",
+    "tools": "أدوات",
+    "internal_employee_payroll": "رواتب موظفين داخليين",
+    "external_service": "خدمة خارجية",
+    "external_manpower": "قوى عاملة خارجية"
+  },
+  "recurrence": {
+    "one_time": "مرة واحدة",
+    "monthly": "شهري",
+    "quarterly": "ربع سنوي",
+    "yearly": "سنوي",
+    "custom": "مخصّص",
+    "date_range": "نطاق تاريخ / فترة سنوية"
+  },
+  "filters": {
+    "dateFrom": "تاريخ مصروف من",
+    "dateTo": "تاريخ مصروف إلى",
+    "expenseDateHint": "التصفية تستخدم تاريخ المصروف — وليس تاريخ الدفع.",
+    "project": "المشروع",
+    "family": "القسم",
+    "category": "الفئة",
+    "status": "الحالة",
+    "attention": "يحتاج إجراء",
+    "attentionAll": "الكل",
+    "attentionActiveLabel": "يحتاج إجراء:",
+    "allProjects": "جميع المشاريع",
+    "allFamilies": "جميع الأقسام",
+    "allCategories": "جميع الفئات",
+    "allStatuses": "جميع الحالات"
+  },
+  "attention": {
+    "options": {
+      "project_allocation": "يحتاج توزيع مشروع",
+      "classification": "يحتاج تصنيف",
+      "approval": "يحتاج اعتماد"
+    },
+    "required": {
+      "project_allocation": "يحتاج توزيع مشروع",
+      "classification": "يحتاج تصنيف",
+      "approval": "يحتاج اعتماد"
+    },
+    "compact": {
+      "project_allocation": "يحتاج توزيع",
+      "classification": "يحتاج تصنيف",
+      "approval": "يحتاج اعتماد"
+    },
+    "summaryStrip": "{count, plural, one {مصروف واحد يحتاج إجراء} other {# مصروفات تحتاج إجراء}}",
+    "rowAction": "اتخذ إجراء",
+    "clearFilter": "مسح تصفية «يحتاج إجراء»"
+  },
+  "list": {
+    "empty": {
+      "title": "تتبّع ما ينفقه العمل",
+      "description": "سجّل مواد ومقاولي باطن وإيجار وتكاليف أخرى. ابدأ بمبلغ — التفاصيل يمكن أن تنتظر.",
+      "action": "إضافة أول مصروف"
+    },
+    "noDescription": "بدون وصف",
+    "reversalPrefix": "عكس",
+    "adjustmentPrefix": "تصحيح",
+    "count": "عرض {count} من {total}",
+    "pageStatus": "صفحة {page} من {pageCount}",
+    "unallocatedBannerTitle": "مصروفات تحتاج توزيع مشروع",
+    "actionRequired": "إجراء مطلوب",
+    "rowAction": "إجراء"
+  },
+  "projectPanel": {
+    "title": "مصروفات حديثة",
+    "empty": {
+      "title": "لا مصروفات على هذا المشروع بعد",
+      "description": "سجّل مواد ومقاولي باطن وتكاليف مباشرة أخرى عند حدوثها.",
+      "action": "إضافة مصروف"
+    }
+  },
+  "payment": {
+    "title": "دفع مصروف",
+    "methodLabel": "طريقة الدفع",
+    "optional": "اختياري",
+    "markPaid": "مدفوع",
+    "paidDate": "تاريخ الدفع",
+    "otherDetail": "تفاصيل طريقة الدفع",
+    "otherPlaceholder": "مثلاً نقد، PayPal",
+    "cardSelect": "أي بطاقة؟",
+    "cardSelectPlaceholder": "اختر بطاقة محفوظة",
+    "cardGeneric": "ائتمان (بدون بطاقة محفوظة)",
+    "methods": {
+      "check": "شيك",
+      "credit_card": "بطاقة ائتمان",
+      "transfer": "حوالة",
+      "other": "أخرى"
+    },
+    "dueDate": "تاريخ الاستحقاق",
+    "paidAt": "دُفع في",
+    "paidAmount": "المبلغ المدفوع",
+    "payableAmount": "المبلغ المستحق",
+    "transactionTotal": "إجمالي المعاملة",
+    "remainingBalance": "الرصيد المتبقي",
+    "installmentProgress": "دفعة {current} من {total}",
+    "confirmPaid": "تأكيد الدفع",
+    "paymentDateLabel": "تاريخ الدفع",
+    "paymentDateHint": "تاريخ الدفع الفعلي. افتراضي اليوم؛ يمكنك اختيار تاريخاً سابقاً.",
+    "voidConfirmation": "إلغاء تأكيد الدفع",
+    "confirmed": "تم تأكيد الدفع",
+    "status": {
+      "upcoming": "قادم",
+      "due": "مستحق اليوم",
+      "overdue": "متأخر",
+      "paid": "مدفوع"
+    },
+    "source": {
+      "manual": "مؤكّد يدوياً",
+      "automatic_policy": "مؤكّد تلقائياً حسب سياسة المنظمة",
+      "automatic_recurring_policy": "مؤكّد تلقائياً حسب سياسة مصروف متكرر",
+      "automatic_installment_policy": "مؤكّد تلقائياً حسب جدول أقساط"
+    }
+  },
+  "allocation": {
+    "title": "توزيع على مشاريع",
+    "subtitle": "بدون بنود توزيع، المصاريف العامة أو المشتركة تبقى خارج تكلفة كل مشروع.",
+    "addLine": "إضافة بند",
+    "removeLine": "إزالة",
+    "empty": "أضف بنوداً ليرى المقاولون الطريقة والفترة وأي المشاريع تتلقى حصة.",
+    "target": "الهدف",
+    "method": "الطريقة",
+    "period": "الفترة (تكرار)",
+    "projectsLabel": "المشاريع في هذا التوزيع",
+    "targetRow": "الهدف — بند {row}",
+    "methodRow": "الطريقة — بند {row}",
+    "amountRow": "المبلغ — بند {row}",
+    "percentRow": "النسبة — بند {row}",
+    "categoryRow": "القسم — بند {row}",
+    "selectTarget": "اختر مشروعاً أو مصاريف عامة",
+    "methods": {
+      "amount": "مبلغ ثابت",
+      "percent": "نسبة مئوية",
+      "contract_weight": "حسب وزن العقد",
+      "labor_hours_weight": "حسب ساعات العمل",
+      "direct_cost_weight": "حسب التكلفة المباشرة",
+      "equal_split": "تقسيم متساوٍ"
+    },
+    "driverLabel": "طريقة توزيع تلقائية",
+    "driverManual": "يدوي (بنود توزيع)",
+    "periodStart": "بداية فترة التوزيع",
+    "periodEnd": "نهاية فترة التوزيع",
+    "autoDriverHint": "النظام يقسّم الصافي على المشاريع المؤهلة في الفترة ويخزّن لقطة تاريخية.",
+    "sumHintPrefix": "يجب أن تساوي البنود بالضبط",
+    "sumHintEnterAmount": "أدخل مبلغ مصروف لرؤية إجمالي التوزيع المطلوب.",
+    "unallocatedCallout": "لم يُختَر مشروع بعد — هذه المصاريف العامة لن تصل إلى التكلفة الفعلية للمشروع."
+  },
+  "errors": {
+    "inclusiveTaxRateRequired": "قاعدة ضريبة نسبة مئوية مطبّقة مطلوبة عندما يشمل المبلغ ض.ق.م.",
+    "workPackageRequiresProject": "منطقة عمل تتطلب مشروعاً.",
+    "directFamilyRequiresProject": "تكلفة مشروع مباشرة تتطلب مشروعاً.",
+    "overheadFamilyRequiresNoProject": "المصاريف العامة لا يمكن استخدامها على مصروف مشروع.",
+    "allocationAmountRequired": "أدخل مبلغاً لكل بند مبلغ ثابت.",
+    "allocationPercentRequired": "أدخل نسبة لكل بند نسبة.",
+    "allocationSumMismatch": "يجب أن تساوي بنود التوزيع مبلغ المصروف بالضبط.",
+    "allocationProjectRequired": "بنود توزيع المشروع تتطلب مشروعاً.",
+    "allocationOverheadNoProject": "بنود المصاريف العامة لا يمكن أن تشير لمشروع.",
+    "customRecurrenceRequired": "صف التكرار المخصّص.",
+    "notEditable": "فقط مسودات المصروف يمكن تعديلها.",
+    "notFinalizable": "فقط مسودات المصروف يمكن اعتمادها.",
+    "notVoidable": "فقط المصروفات النهائية يمكن إلغاؤها.",
+    "reversalNotVoidable": "قيود العكس لا يمكن إلغاؤها مرة أخرى.",
+    "alreadyReversed": "لهذا المصروف قيد عكسي بالفعل.",
+    "notReversible": "فقط المصروفات النهائية يمكن عكسها.",
+    "reversalNotReversible": "قيود العكس لا يمكن عكسها مرة أخرى.",
+    "adjustmentNotReversible": "قيود التعديل لا يمكن عكسها بهذه الطريقة.",
+    "notAdjustable": "فقط المصروفات النهائية يمكنها استقبال تعديل.",
+    "reversalNotAdjustable": "قيود العكس لا يمكن تعديلها.",
+    "currencyMustMatchProject": "عملة المصروف يجب أن تطابق عملة المشروع.",
+    "currencyMustMatchOrganization": "عملة المصروف العام يجب أن تطابق عملة المنظمة.",
+    "projectExpenseNoAllocations": "مصروفات المشروع لا يمكن تقسيمها على بنود توزيع.",
+    "phaseProjectMismatch": "المرحلة المختارة لا تنتمي لهذا المشروع.",
+    "invalidYearMonth": "أدخل سنة وشهراً صالحين.",
+    "invalidDate": "أدخل تاريخاً صالحاً.",
+    "installmentCountRange": "عدد الأقساط يجب أن يكون بين 1 و 120.",
+    "installmentTotal": "إجمالي الأقساط يجب أن يكون مبلغاً موجباً.",
+    "installmentConservation": "أشهر الأقساط يجب أن تساوي صافي المصروف بالضبط.",
+    "inventoryItemRequired": "اختر بند مخزون لشراء مخزون.",
+    "inventoryQtyRequired": "أدخل الكمية المُستلمة في المخزون.",
+    "inventoryStockPurchaseIncomplete": "مصروفات شراء مخزون تحتاج بنداً وكمية قبل الاعتماد.",
+    "classificationRequired": "اختر نوع مصروف قبل الاعتراف بهذه التكلفة."
+  },
+  "overheadHome": {
+    "title": "مصاريف عامة للأعمال",
+    "description": "مصاريف عامة ومصروفات مشتركة، زائد دورات توزيع — باستخدام محرك المصروف الحالي.",
+    "notAllowed": {
+      "title": "غير مسموح",
+      "body": "تحتاج صلاحية عرض المصروفات لفتح هذه الصفحة."
+    },
+    "actions": {
+      "addOverhead": "مصروف عام جديد",
+      "costCategories": "فئات التكلفة",
+      "viewOverheadExpenses": "جميع المصاريف العامة",
+      "viewSharedExpenses": "جميع المصروفات المشتركة"
+    },
+    "sections": {
+      "overhead": "مصاريف عامة للأعمال",
+      "shared": "مصروفات مشتركة",
+      "runs": "دورات توزيع",
+      "categories": "فئات التكلفة"
+    },
+    "empty": {
+      "overheadTitle": "لا مصاريف عامة بعد",
+      "overheadBody": "سجّل إيجاراً وتأميناً ومصاريف عامة أخرى بدون مشروع، ثم وزّعها على العمل النشط.",
+      "sharedTitle": "لا مصروفات مشتركة بعد",
+      "sharedBody": "التكاليف المشتركة تستخدم نفس طريقة التوزيع كالمصاريف العامة.",
+      "runsTitle": "لا دورات توزيع بعد",
+      "runsBody": "لقطات التوزيع التلقائي تظهر هنا بعد توزيع مصروف مشترك أو عام.",
+      "categoriesTitle": "لا فئات مصاريف عامة بعد"
+    },
+    "runs": {
+      "expense": "مصروف",
+      "period": "الفترة",
+      "method": "الطريقة",
+      "status": "الحالة",
+      "amount": "صافي مُوزّع",
+      "statusDraft": "مسودة",
+      "statusApplied": "مُطبّق",
+      "statusSuperseded": "مُستبدَل"
+    },
+    "showing": "عرض {count} من {total}"
+  }
+}

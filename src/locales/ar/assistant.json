@@ -1,0 +1,73 @@
+{
+  "title": "المساعد",
+  "description": "اسأل عن عمل لديك صلاحية لرؤيته. المساعد لا يُرحّل أموالاً ولا يوافق.",
+  "placeholder": "ما الذي يحتاج انتباهاً اليوم؟",
+  "send": "اسأل",
+  "unconfigured": "لم يُربَط مساعد فعّال. الإجابات تستخدم سجلات ProjectFlow التي يمكنك رؤيتها.",
+  "empty": "اطرح سؤالاً عن اليوم أو مشروع أو رقم تريد شرحه.",
+  "disclaimer": "الحقائق من سجلات ProjectFlow. الاقتراحات مُوسومة كذلك.",
+  "facts": "حقيقة",
+  "inference": "استنتاج",
+  "notAllowed": {
+    "title": "المساعد غير متاح",
+    "body": "ليس لديك صلاحية لاستخدام المساعد."
+  },
+  "citations": "المصادر",
+  "errors": {
+    "noPermission": "ليس لديك صلاحية لهذا.",
+    "noProvider": "لا يوجد نموذج فعّال متصل. الأدوات المحلية ما زالت تعمل على سجلاتك."
+  },
+  "actions": {
+    "draftOnly": "هذا أعد مسودة. لم يُرحّل شيء."
+  },
+  "unconfiguredReply": {
+    "noTools": "لا يوجد نموذج فعّال متصل. لم تُشغّل أدوات محلية لهذا السؤال.",
+    "permissionDenied": "لا صلاحية: {title}"
+  },
+  "toolCopy": {
+    "tools": {
+      "today_attention": "اليوم",
+      "explain_project_profit": "ربح المشروع",
+      "clients_owing_money": "عملاء مدينون",
+      "pay_this_week": "الدفع هذا الأسبوع",
+      "projects_at_risk": "مشاريع معرضة للخطر",
+      "supplier_bills_needing_review": "حسابات موردين تحتاج مراجعة",
+      "forecast_over_budget": "توقع يتجاوز الميزانية",
+      "explain_number": "شرح رقم",
+      "find_document": "مستندات",
+      "prepare_draft_expense": "مسودة مصروف",
+      "prepare_payment_reminder_draft": "مسودة تذكير دفع"
+    },
+    "warningKinds": {
+      "actual_over_budget": "تكلفة فعلية تتجاوز الميزانية",
+      "projected_cost_over_budget": "تكلفة متوقعة تتجاوز الميزانية",
+      "insufficient_remaining_budget": "الميزانية المتبقية غير كافية",
+      "forecast_margin_negative": "هامش توقع سالب",
+      "margin_deterioration": "تدهور الهامش",
+      "commitment_pressure": "ضغط التزامات",
+      "billing_lag": "تأخر الفوترة",
+      "collection_risk": "مخاطر التحصيل",
+      "high_consumption_vs_progress": "استهلاك مرتفع مقابل التقدم",
+      "missing_data": "بيانات ناقصة",
+      "fallback": "تحذير توقع"
+    },
+    "todayEmpty": "لا عناصر في اليوم في صندوق الوارد الحالي.",
+    "profitNeedProject": "سمّ مشروعاً لشرح رصيد العقد من البيانات المالية المركّبة.",
+    "profitNotSet": "السعر غير محدد. لا يُزعم رصيد العقد.",
+    "profitHidden": "رصيد العقد غير متاح لهذا العارض أو المشروع.",
+    "profitBody": "رصيد العقد المتوقع {forecastLabel}. رصيد العقد الفعلي {actualLabel}.",
+    "clientsEmpty": "لا سجلات فوترة متأخرة في هذه القائمة.",
+    "payEmpty": "لا حسابات موردين مستحقة هذا الأسبوع بتاريخ استحقاق مسجّل.",
+    "riskEmpty": "لا صفوف إنذار مبكر لهذا العارض.",
+    "billsEmpty": "لا مسودات حسابات موردين في هذه القائمة.",
+    "billsCount": "{count} مسودة حساب مورد.",
+    "explainNumber": "افتح المشروع أو الحساب أو المصروف ذي الصلة. الأرقام من البيانات المالية الموجودة — هذا المساعد لا يعيد حسابها.",
+    "documentsEmpty": "لا مستندات مطابقة. البحث يستخدم سجلات يمكنك رؤيتها.",
+    "draftExpense": "لم يُنشأ مصروف. افتح مصروفاً جديداً لإعداد مسودة. لم يُرحّل شيء.",
+    "draftReminder": "لم تُنشأ رسالة. افتح الرسائل لإعداد مسودة تذكير دفع. لم يُرسل شيء.",
+    "financialsLabel": "البيانات المالية للمشروع",
+    "expensesLabel": "مصروف جديد",
+    "reminderLabel": "تذكير دفع",
+    "messagesLabel": "الرسائل"
+  }
+}

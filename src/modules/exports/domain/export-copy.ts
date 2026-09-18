@@ -1,13 +1,17 @@
 import type { Locale } from '@/shared/i18n/config';
 import { isLocale, DEFAULT_LOCALE } from '@/shared/i18n/config';
+import ar from '@/locales/ar/exports.json';
 import en from '@/locales/en/exports.json';
 import heIL from '@/locales/he-IL/exports.json';
+import ru from '@/locales/ru/exports.json';
 
 type ExportCatalog = typeof en;
 
 const CATALOGS: Readonly<Record<Locale, ExportCatalog>> = {
   en,
   'he-IL': heIL,
+  ar,
+  ru,
 };
 
 export type ExportCopy = ExportCatalog;

@@ -1,0 +1,288 @@
+{
+  "title": "العمليات الميدانية",
+  "description": "سجلات يومية وقوائم عيوب وفحوصات للمشاريع.",
+  "cockpit": {
+    "title": "الميدان",
+    "description": "عمل اليوم، الحضور، والتسجيل السريع — تنقل أقل.",
+    "actions": {
+      "log": "سجل يومي",
+      "logHint": "ما حدث في الموقع",
+      "punch": "عيب",
+      "punchHint": "عيب / بند مفتوح",
+      "inspection": "فحص",
+      "inspectionHint": "قائمة تحقق أو فحص موقع",
+      "time": "سجل وقت",
+      "expense": "مصروف",
+      "expenseHint": "مسودة فقط — أتمم عبر الإنترنت",
+      "documents": "صور ومستندات",
+      "safety": "السلامة",
+      "dispatch": "الإرسال",
+      "offline": "مسودات دون اتصال",
+      "offlineHint": "محفوظة على الجهاز / بانتظار المزامنة"
+    },
+    "attendanceTitle": "الحضور",
+    "attendanceOnlineOnly": "تسجيل الدخول والاستراحات يحتاجان اتصالاً. لا تُحفظ كمسودات دون اتصال تتظاهر بأنها مُرحّلة.",
+    "noteTitle": "ملاحظة ميدانية",
+    "noteHint": "محفوظة على هذا الجهاز. تُزامن كمرشح سجل يومي عند إعادة الاتصال — ليست تسجيل دخول.",
+    "noteProject": "المشروع",
+    "noteBody": "ملاحظة",
+    "notePlaceholder": "ما تريد تذكّره…",
+    "noteSave": "حفظ على الجهاز",
+    "noteRequired": "اختر مشروعاً وأدخل ملاحظة.",
+    "todayDispatch": "إرسال اليوم",
+    "assignedWorkOrders": "زيارات خدمة معيّنة",
+    "assignedProjects": "مشاريعك",
+    "openPunch": "عيوب مفتوحة",
+    "inspections": "الفحوصات",
+    "todayLogs": "سجلات اليوم",
+    "viewAll": "عرض الكل",
+    "empty": "لا عمل معيّن لليوم بعد. استخدم الإجراءات أعلاه لتسجيل العمل."
+  },
+  "navLabel": "أقسام العمليات الميدانية",
+  "nav": {
+    "logs": "السجلات اليومية",
+    "punch": "قائمة العيوب",
+    "inspections": "الفحوصات"
+  },
+  "projectLinks": {
+    "title": "العمليات الميدانية",
+    "logs": "السجلات اليومية",
+    "punch": "قائمة العيوب",
+    "inspections": "الفحوصات"
+  },
+  "projectSummary": {
+    "title": "العمليات الميدانية",
+    "openPunch": "بنود عيوب مفتوحة",
+    "latestLog": "آخر سجل يومي",
+    "upcomingInspections": "فحوصات قادمة",
+    "noLog": "لا سجلات يومية بعد",
+    "noInspections": "لا فحوصات قادمة",
+    "unscheduled": "غير مجدول",
+    "addLog": "سجل يومي جديد",
+    "addPunch": "بند عيب جديد",
+    "addInspection": "فحص جديد",
+    "links": {
+      "logs": "جميع السجلات",
+      "punch": "قائمة العيوب",
+      "inspections": "الفحوصات"
+    }
+  },
+  "photoCapture": {
+    "title": "الصور",
+    "body": "أضف صوراً الآن. تُحفظ مع هذا السجل.",
+    "add": "إضافة صورة",
+    "capture": "التقاط صورة",
+    "remove": "إزالة",
+    "staged": "{count, plural, one {صورة واحدة ستُحفظ مع هذا السجل.} other {# صور ستُحفظ مع هذا السجل.}}",
+    "manageRequired": "يمكنك حفظ السجل. إرفاق الصور يحتاج صلاحية مستندات.",
+    "storageNotConfigured": "تخزين الملفات غير متاح، لذا لا يمكن إرفاق الصور بعد."
+  },
+  "filters": {
+    "status": "الحالة",
+    "priority": "الأولوية",
+    "all": "الكل"
+  },
+  "detail": {
+    "logTitle": "سجل يومي",
+    "punchTitle": "بند عيب",
+    "inspectionTitle": "فحص",
+    "unknownProject": "مشروع",
+    "saveLog": "حفظ التغييرات",
+    "saved": "تم الحفظ."
+  },
+  "newLog": "سجل يومي جديد",
+  "newPunch": "بند عيب جديد",
+  "newInspection": "فحص جديد",
+  "empty": {
+    "logs": {
+      "title": "لا سجلات يومية بعد",
+      "body": "سجّل العمل المنفّذ وملاحظات القوى العاملة والعوائق ليوم مشروع.",
+      "action": "سجل يومي جديد"
+    },
+    "punch": {
+      "title": "لا بنود عيوب بعد",
+      "body": "تتبّع البنود المفتوحة التي تحتاج إغلاقاً قبل التسليم.",
+      "action": "بند عيب جديد"
+    },
+    "inspections": {
+      "title": "لا فحوصات بعد",
+      "body": "جدول وسجّل فحوصات المشروع.",
+      "action": "فحص جديد"
+    },
+    "projectsRequired": {
+      "title": "أضف مشروعاً أولاً",
+      "body": "العمليات الميدانية مرتبطة بالمشروع. أنشئ مشروعاً ثم عد.",
+      "action": "المشاريع"
+    }
+  },
+  "list": {
+    "columns": {
+      "date": "التاريخ",
+      "project": "المشروع",
+      "summary": "العمل المنفّذ",
+      "weather": "الطقس",
+      "workforce": "القوى العاملة / الموقع",
+      "blockers": "العوائق",
+      "title": "العنوان",
+      "status": "الحالة",
+      "priority": "الأولوية",
+      "dueDate": "الاستحقاق",
+      "kind": "النوع",
+      "scheduledOn": "مجدول",
+      "completedOn": "مكتمل",
+      "result": "النتيجة"
+    }
+  },
+  "priorities": {
+    "low": "منخفض",
+    "normal": "عادي",
+    "high": "مرتفع",
+    "critical": "حرج"
+  },
+  "kinds": {
+    "general": "عام",
+    "safety": "سلامة",
+    "quality": "جودة",
+    "handover": "تسليم",
+    "other": "أخرى"
+  },
+  "createLog": {
+    "title": "سجل يومي جديد",
+    "description": "سجّل ما حدث في الموقع ليوم مشروع واحد.",
+    "submit": "حفظ السجل",
+    "projectLabel": "المشروع",
+    "projectPlaceholder": "اختر مشروعاً",
+    "workPackageLabel": "منطقة العمل",
+    "workPackagePlaceholder": "منطقة عمل اختيارية",
+    "workPackageNone": "بدون منطقة عمل",
+    "logDateLabel": "تاريخ السجل",
+    "weatherLabel": "الطقس",
+    "weatherHint": "ظروف الموقع اختيارية.",
+    "weatherPlaceholder": "مثلاً: صافٍ، أمطار خفيفة",
+    "summaryLabel": "العمل المنفّذ",
+    "summaryHint": "ما اكتمل في الموقع اليوم.",
+    "summaryPlaceholder": "صف العمل المنفّذ…",
+    "workforceNotesLabel": "ملاحظات القوى العاملة / الموقع",
+    "workforceNotesHint": "عدد الطاقم، الزوار، ظروف الموقع.",
+    "workforceNotesPlaceholder": "الطاقم، ملاحظات الموقع…",
+    "blockersLabel": "العوائق",
+    "blockersHint": "مشكلات أبطأت أو أوقفت العمل.",
+    "blockersPlaceholder": "مواد، وصول، تأخيرات طقس…",
+    "vendorsOnSite": "موردون / مقاولو باطن في الموقع",
+    "vendorsOnSiteHint": "يربط سجلات موردين حقيقية. لا ينشئ تكلفة فعلية. يُفضّل مقاولو الباطن.",
+    "employeesOnSite": "موظفون في الموقع",
+    "employeesOnSiteHint": "روابط اختيارية لمن كان في الموقع.",
+    "assetsOnSite": "أصول / معدات في الموقع",
+    "assetsOnSiteHint": "روابط معدات اختيارية. ملاحظات معدات نصية متاحة أدناه."
+  },
+  "extraFields": {
+    "title": "تفاصيل موقع إضافية",
+    "hint": "عمال، معدات، تأخيرات، وملاحظات — افتح فقط عند الحاجة.",
+    "workersOnSite": "عمال في الموقع",
+    "subcontractorsOnSite": "مقاولو باطن",
+    "equipmentOnSite": "معدات",
+    "deliveries": "تسليمات",
+    "delays": "تأخيرات",
+    "incidents": "حوادث",
+    "safetyNotes": "ملاحظات سلامة",
+    "visitorNotes": "زوار",
+    "managerNotes": "ملاحظات المدير"
+  },
+  "logStatus": {
+    "draft": "مسودة",
+    "submitted": "مُرسَل",
+    "finalized": "نهائي"
+  },
+  "lifecycle": {
+    "submit": "إرسال",
+    "finalize": "إنهاء",
+    "finalizeTitle": "إنهاء هذا السجل",
+    "finalizeBody": "السجل المُنهى مقفل. التصحيحات عبارة عن ملاحظة جديدة أو سجل جديد — الأصل لا يُعاد كتابته.",
+    "locked": "هذا السجل مُنهى ومقفل.",
+    "correctionLabel": "ملاحظة تصحيح",
+    "correctionHint": "تُلحق بالسجل المقفل. لا تستبدل السجل الأصلي.",
+    "correctionSubmit": "إضافة ملاحظة تصحيح",
+    "correctionHistory": "ملاحظات التصحيح",
+    "createSafety": "إنشاء سجل سلامة من ملاحظات الحادث",
+    "linkedSafety": "سجل سلامة مرتبط",
+    "saved": "تم الحفظ."
+  },
+  "createPunch": {
+    "title": "بند عيب جديد",
+    "description": "أضف بنداً مفتوحاً للإغلاق قبل التسليم.",
+    "submit": "حفظ البند",
+    "projectLabel": "المشروع",
+    "projectPlaceholder": "اختر مشروعاً",
+    "workPackageLabel": "منطقة العمل",
+    "workPackagePlaceholder": "منطقة عمل اختيارية",
+    "workPackageNone": "بدون منطقة عمل",
+    "titleLabel": "العنوان",
+    "descriptionLabel": "الوصف",
+    "priorityLabel": "الأولوية",
+    "locationLabel": "الموقع",
+    "dueDateLabel": "تاريخ الاستحقاق",
+    "assigneeLabel": "المُعيَّن",
+    "assigneeNone": "غير مُعيَّن",
+    "saveDetails": "حفظ التفاصيل"
+  },
+  "createInspection": {
+    "title": "فحص جديد",
+    "description": "جدول فحصاً لمشروع.",
+    "submit": "حفظ الفحص",
+    "projectLabel": "المشروع",
+    "projectPlaceholder": "اختر مشروعاً",
+    "workPackageLabel": "منطقة العمل",
+    "workPackagePlaceholder": "منطقة عمل اختيارية",
+    "workPackageNone": "بدون منطقة عمل",
+    "titleLabel": "العنوان",
+    "kindLabel": "النوع",
+    "scheduledOnLabel": "مجدول في",
+    "notesLabel": "ملاحظات",
+    "inspectorLabel": "المفتش",
+    "inspectorNone": "بدون مفتش",
+    "inspectorPlaceholder": "اختر مفتشاً"
+  },
+  "form": {
+    "title": "نموذج الفحص",
+    "untitled": "نموذج ميداني",
+    "templateLabel": "قالب النموذج",
+    "templateHint": "أعد استخدام نموذج موجود. إكمال ناجح/فاشل يتطلب نموذجاً مُرسَلاً عند تعيين قالب.",
+    "templateNone": "بدون نموذج",
+    "templateUnavailable": "قالب محفوظ (غير متاح)",
+    "requiredTitle": "النموذج مطلوب",
+    "requiredBody": "أرسل هذا النموذج قبل تسجيل ناجح أو فاشل.",
+    "submittedBody": "تم إرسال نموذج الفحص المطلوب.",
+    "fill": "ملء النموذج",
+    "continue": "متابعة النموذج",
+    "view": "عرض النموذج",
+    "statusSubmitted": "مُرسَل",
+    "statusDraft": "مسودة",
+    "statusMissing": "لم يبدأ"
+  },
+  "updateStatus": {
+    "label": "الحالة",
+    "submit": "تحديث",
+    "pending": "جاري التحديث…",
+    "resultLabel": "ملاحظات ناجح / فاشل",
+    "resultPlaceholder": "ما وُجد — ملاحظات اختيارية لنتيجة النجاح أو الفشل…",
+    "outcomeLabel": "النتيجة",
+    "pass": "ناجح",
+    "fail": "فاشل"
+  },
+  "updatePriority": {
+    "label": "الأولوية",
+    "submit": "تحديث الأولوية",
+    "pending": "جاري التحديث…"
+  },
+  "errors": {
+    "invalidPunchTransition": "تغيير حالة قائمة العيوب هذا غير مسموح.",
+    "invalidInspectionTransition": "تغيير حالة الفحص هذا غير مسموح.",
+    "projectRequired": "اختر مشروعاً.",
+    "photosRequireDocumentsManage": "إرفاق الصور يحتاج صلاحية مستندات. لم يُنشأ السجل.",
+    "invalidLogTransition": "تغيير حالة السجل اليومي هذا غير مسموح.",
+    "logFinalizedLocked": "هذا السجل مُنهى. أضف ملاحظة تصحيح أو سجلاً جديداً.",
+    "correctionRequiresFinalized": "ملاحظات التصحيح للسجلات المُنهاة.",
+    "duplicateLogDate": "يوجد سجل يومي لهذا اليوم في المشروع. افتحه، أو أضف تصحيحاً إن كان مُنهى.",
+    "formRequired": "أرسل نموذج الفحص المطلوب قبل تسجيل ناجح أو فاشل."
+  }
+}

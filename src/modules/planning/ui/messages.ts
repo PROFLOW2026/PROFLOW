@@ -3,9 +3,12 @@
  * Keys mirror `src/locales/{en,he-IL}/planning.json`.
  */
 
+import arPlanning from '@/locales/ar/planning.json';
+import ruPlanning from '@/locales/ru/planning.json';
+import type { Locale } from '@/shared/i18n/config';
 import { resolveLabelLocale } from '@/shared/i18n/intl-locale';
 
-export type PlanningLocale = 'he-IL' | 'en';
+export type PlanningLocale = Locale;
 
 export interface PlanningMessages {
   readonly title: string;
@@ -93,8 +96,45 @@ const EN: PlanningMessages = {
   noDates: 'No dates',
 };
 
+function pickPlanningMessages(source: typeof arPlanning): PlanningMessages {
+  return {
+    title: source.title,
+    subtitle: source.subtitle,
+    jobsOptOut: source.jobsOptOut,
+    empty: source.empty,
+    emptyHint: source.emptyHint,
+    timeline: source.timeline,
+    overdue: source.overdue,
+    overdueCount: source.overdueCount,
+    progress: source.progress,
+    milestone: source.milestone,
+    task: source.task,
+    dependency: source.dependency,
+    predecessors: source.predecessors,
+    start: source.start,
+    targetEnd: source.targetEnd,
+    actualEnd: source.actualEnd,
+    workArea: source.workArea,
+    phase: source.phase,
+    today: source.today,
+    criticalPathLimitation: source.criticalPathLimitation,
+    legendPlanned: source.legendPlanned,
+    legendOverdue: source.legendOverdue,
+    legendProgress: source.legendProgress,
+    legendMilestone: source.legendMilestone,
+    noDates: source.noDates,
+  };
+}
+
+const BY_LOCALE: Readonly<Record<Locale, PlanningMessages>> = {
+  en: EN,
+  'he-IL': HE,
+  ar: pickPlanningMessages(arPlanning),
+  ru: pickPlanningMessages(ruPlanning),
+};
+
 export function planningMessages(locale: PlanningLocale): PlanningMessages {
-  return resolveLabelLocale(locale) === 'en' ? EN : HE;
+  return BY_LOCALE[resolveLabelLocale(locale)] ?? EN;
 }
 
 export function formatPlanningMessage(

@@ -10,6 +10,7 @@ import {
   type BusinessProfileKey,
 } from '../domain/business-profiles';
 import { PROFESSION_PRESET_KEYS, type ProfessionPresetKey } from '../domain/profession-presets';
+import { resolveLabelLocale } from '@/shared/i18n/intl-locale';
 import { applyBusinessProfileConfig } from './apply-business-profile';
 import { applyProfessionPreset } from './apply-profession-preset';
 
@@ -35,7 +36,8 @@ export async function applyOrganizationProfessionPreset(
     );
   }
 
-  const locale = context.organization.defaultLocale === 'en' ? 'en' : 'he-IL';
+  const labelLocale = resolveLabelLocale(context.organization.defaultLocale);
+  const locale = labelLocale === 'he-IL' ? 'he-IL' : 'en';
   const profileKey =
     resolveBusinessProfileKey(parsed.data.businessProfile) ??
     resolveBusinessProfileKey(parsed.data.professionPreset);

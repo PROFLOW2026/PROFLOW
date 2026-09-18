@@ -1,0 +1,391 @@
+{
+  "title": "اليوم",
+  "description": "كل ما يحتاج معالجة الآن.",
+  "listLabel": "للمعالجة",
+  "summary": "{count, plural, =0 {لا شيء يحتاج انتباهاً الآن} =1 {بند واحد للمعالجة} other {# بنود للمعالجة}}",
+  "fields": {
+    "where": "أين"
+  },
+  "actions": {
+    "open": "فتح",
+    "confirmPaid": "تأكيد الدفع",
+    "paymentDateLabel": "تاريخ الدفع",
+    "paymentDateHint": "تاريخ الدفع الفعلي. الافتراضي اليوم؛ يمكنك اختيار تاريخ سابق.",
+    "paymentConfirm": "تأكيد",
+    "cancel": "إلغاء",
+    "handle": "تعليم كمُعالَج",
+    "snooze1d": "تأجيل يوم",
+    "snooze7d": "تأجيل 7 أيام",
+    "generateMonthlyReport": "توليد وحفظ",
+    "skipMonth": "تخطي هذا الشهر",
+    "notNow": "ليس الآن",
+    "dismiss": "تخطي هذا الشهر"
+  },
+  "financialGuard": "البنود المالية يمكن فقط فتحها أو تأجيلها — تبقى ظاهرة حتى تُحلّ في المصدر.",
+  "severity": {
+    "critical": "حرج",
+    "high": "مرتفع",
+    "medium": "متوسط",
+    "low": "منخفض"
+  },
+  "sections": {
+    "pendingPayments": "مدفوعات بانتظار التأكيد",
+    "critical": "حرج",
+    "high": "متأخر",
+    "medium": "يحتاج مراجعة",
+    "low": "للمعالجة"
+  },
+  "sources": {
+    "overdue_ar": "فوترة متأخرة",
+    "vendor_bill_due": "حساب مورد مستحق",
+    "vendor_bill_approaching": "حساب مورد يستحق قريباً",
+    "attendance_open": "الحضور",
+    "unallocated_employee_cost": "تكلفة عمالة غير مُخصَّصة",
+    "unallocated_vendor_bill": "حساب مورد غير مُخصَّص",
+    "project_over_budget": "تجاوز الميزانية",
+    "forecast_warning": "تحذير توقع",
+    "open_approval": "اعتماد معلّق",
+    "overdue_planning": "التخطيط",
+    "expiring_compliance": "امتثال ينتهي",
+    "overdue_maintenance": "صيانة",
+    "credit_void_issue": "إشعار دائن / إلغاء",
+    "month_close_incomplete": "إغلاق الشهر",
+    "boq_measurement_awaiting_approval": "قياس جدول كميات",
+    "boq_progress_ready_to_bill": "فاتورة تقدم جدول كميات",
+    "boq_vs_contract_mismatch": "جدول كميات مقابل العقد",
+    "ocr_needs_review": "مراجعة مستند",
+    "ocr_failed": "فشل قراءة المستند",
+    "punch_open": "عيب مفتوح",
+    "safety_open": "سلامة مفتوحة",
+    "inspection_open": "فحص متأخر",
+    "recurring_draft_issue": "مسودة متكررة",
+    "timesheet_missing": "جدول ساعات مفقود",
+    "closeout_blockers": "عوائق الإغلاق",
+    "warranty_expiring": "ضمان ينتهي",
+    "cash_flow_risk": "مخاطر تدفق نقدي",
+    "automation_followup": "متابعة أتمتة",
+    "communication_failed": "رسالة لم تُرسَل",
+    "billing_plan_cycle_draft": "حساب تقدم للإصدار",
+    "billing_plan_milestone_due": "معلم فوترة مستحق",
+    "billing_plan_retention_release_due": "إفراج حجز مستحق",
+    "missing_attendance_today": "حضور مفقود",
+    "expense_due_today": "مصروف مستحق اليوم",
+    "expense_due_soon": "مصروف يستحق قريباً",
+    "expense_overdue": "مصروف متأخر",
+    "expense_pending_review": "مصروف بانتظار المراجعة",
+    "payroll_due_today": "رواتب مستحقة اليوم",
+    "payroll_due_soon": "رواتب تستحق قريباً",
+    "payroll_overdue": "رواتب متأخرة",
+    "payroll_pending_review": "رواتب بانتظار المراجعة",
+    "expense_needs_allocation": "مصروف يحتاج تخصيص مشروع",
+    "monthly_workforce_report_ready": "تقرير موظفين شهري جاهز"
+  },
+  "itemCopy": {
+    "where": {
+      "billing": "الفوترة",
+      "vendorBills": "حسابات الموردين",
+      "workforce": "الموظفون · تكلفة صاحب العمل",
+      "approvals": "الاعتمادات",
+      "project": "المشروع",
+      "assets": "الأصول",
+      "monthClose": "إغلاق الشهر",
+      "boq": "جدول الكميات",
+      "ocr": "التقاط فاتورة",
+      "fieldOps": "العمليات الميدانية",
+      "safety": "السلامة",
+      "recurring": "مسودات متكررة",
+      "timesheets": "اعتمادات جداول الساعات",
+      "closeout": "الإغلاق",
+      "warranty": "الضمان",
+      "cashFlow": "التدفق النقدي",
+      "automations": "الأتمتة",
+      "communications": "الرسائل"
+    },
+    "overdueAr": {
+      "whatWithReference": "تحصيل {reference}",
+      "whatDefault": "تحصيل فوترة متأخرة",
+      "whyWithDueDate": "متأخر منذ {dueDate} · متبقٍ {outstanding}",
+      "whyDefault": "متأخر · متبقٍ {outstanding}"
+    },
+    "vendorBillDue": {
+      "whatWithReference": "دفع حساب مورد {reference}",
+      "whatDefault": "دفع حساب مورد متأخر",
+      "why": "مستحق {dueDate} · متبقٍ {outstanding}"
+    },
+    "openAttendance": {
+      "what": "إغلاق يوم حضور مفتوح",
+      "why": "حضور {workDate} لا يزال مفتوحاً (بدون تسجيل خروج / غير مُغلق)"
+    },
+    "unattributedProjectLabor": {
+      "what": "يوم عمل بدون إسناد مشروع",
+      "why": "{employeeName} · {workDate} · {hours} س"
+    },
+    "unallocatedEmployeeCost": {
+      "what": "تخصيص باقي العمالة · {employeeName} · {yearMonth}",
+      "why": "معترف: {recognized} · مُخصَّص: {allocated} · متبقٍ: {remaining} ({status})"
+    },
+    "unallocatedVendorBill": {
+      "what": "تعيين حساب مورد لمشروع",
+      "why": "حساب مُرحّل بدون مشروع · {outstanding}"
+    },
+    "overBudget": {
+      "what": "مراجعة مشروع تجاوز الميزانية",
+      "why": "فعلي {actual} يتجاوز الميزانية {budget} (تجاوز {overBy})"
+    },
+    "openApproval": {
+      "what": "قرار اعتماد معلّق",
+      "why": "{entity} بانتظار قرار{money}"
+    },
+    "overduePlanning": {
+      "whatMilestone": "تحديث معلم متأخر",
+      "whatPlanItem": "تحديث بند خطة متأخر",
+      "why": "نهاية مستهدفة {targetEndDate} · تقدم {progressPercent}%"
+    },
+    "expiringCompliance": {
+      "whatExpired": "تجديد امتثال منتهٍ",
+      "whatExpiring": "مراجعة امتثال ينتهي",
+      "whyWithDate": "ينتهي {expiresOn} · {status}",
+      "whyStatusOnly": "{status}"
+    },
+    "overdueMaintenance": {
+      "what": "إكمال صيانة متأخرة",
+      "why": "مجدول {performedOn} · حالة {status}",
+      "noDate": "بدون تاريخ"
+    },
+    "creditVoidIssue": {
+      "what": "حل إشعار دائن مفتوح",
+      "why": "تحصيل إشعار الدائن {status}"
+    },
+    "monthCloseIncomplete": {
+      "what": "إكمال إغلاق الشهر {yearMonth}",
+      "why": "حالة {status} · اكتمال {completenessPercent}%"
+    },
+    "boqMeasurementAwaiting": {
+      "what": "اعتماد قياس جدول كميات",
+      "why": "شهادة {certificateNumber} · {periodLabel} بانتظار الاعتماد"
+    },
+    "boqProgressReadyToBill": {
+      "what": "إنشاء فاتورة تقدم جدول كميات",
+      "why": "شهادة {certificateNumber} · {periodLabel} معتمدة وجاهزة للفوترة"
+    },
+    "boqVsContractMismatch": {
+      "what": "مطابقة جدول الكميات مع العقد",
+      "why": "العقد وجدول الكميات متباعدان. {statusLabel}"
+    },
+    "vendorBillApproaching": {
+      "whatWithReference": "حساب مورد يستحق قريباً {reference}",
+      "whatDefault": "حساب مورد يستحق قريباً",
+      "why": "مستحق {dueDate} · متبقٍ {outstanding}"
+    },
+    "ocrNeedsReview": {
+      "what": "مراجعة مستند ممسوح",
+      "whyWithFilename": "{filename} يحتاج تأكيداً صريحاً قبل إنشاء مسودة",
+      "whyDefault": "يحتاج تأكيداً صريحاً قبل إنشاء مسودة"
+    },
+    "ocrFailed": {
+      "what": "إعادة محاولة قراءة مستند فاشلة",
+      "whyWithFilename": "فشل {filename} ويمكن إعادة المحاولة",
+      "whyDefault": "فشلت القراءة ويمكن إعادة المحاولة"
+    },
+    "forecastWarning": {
+      "default": {
+        "what": "مراجعة تحذير توقع",
+        "why": "مخاطرة مالية متوقعة تحتاج نظرة"
+      },
+      "kinds": {
+        "projected_cost_over_budget": {
+          "what": "مراجعة تجاوز ميزانية متوقع",
+          "why": "تكلفة التوقع تتجاوز الميزانية النشطة — توقع وليس تجاوزاً فعلياً"
+        },
+        "insufficient_remaining_budget": {
+          "what": "مراجعة نقص الميزانية المتبقية",
+          "why": "الالتزامات المفتوحة والتكلفة المتوقعة المتبقية تتجاوز الميزانية المتبقية"
+        },
+        "forecast_margin_negative": {
+          "what": "مراجعة هامش توقع سالب",
+          "why": "هامش التوقع دون الصفر على العقد مقابل تكلفة التوقع"
+        },
+        "margin_deterioration": {
+          "what": "مراجعة تدهور الهامش",
+          "why": "هامش التوقع أقل بـ 3 نقاط على الأقل من الهامش الفعلي"
+        },
+        "commitment_pressure": {
+          "what": "مراجعة ضغط الالتزامات",
+          "why": "الالتزامات المفتوحة تضغط على الميزانية المتبقية"
+        },
+        "billing_lag": {
+          "what": "مراجعة تأخر الفوترة",
+          "why": "التكلفة تقدّمت بكثير عن الفوترة مقابل العقد"
+        },
+        "collection_risk": {
+          "what": "مراجعة مخاطر التحصيل",
+          "why": "حصة كبيرة من المبالغ المفوترة لا تزال متبقية"
+        },
+        "high_consumption_vs_progress": {
+          "what": "مراجعة استهلاك الميزانية مقابل التقدم",
+          "why": "استهلاك الميزانية يتقدّم على التقدم الفعلي"
+        },
+        "missing_data": {
+          "what": "إكمال مدخلات التوقع",
+          "why": "بيانات غير كافية لتقييم موقف المشروع بثقة"
+        },
+        "actual_over_budget": {
+          "what": "مراجعة مشروع تجاوز الميزانية",
+          "why": "التكلفة الفعلية تتجاوز الميزانية النشطة"
+        }
+      }
+    },
+    "punchOpen": {
+      "what": "إغلاق بند عيب مفتوح — {title}",
+      "why": "بند العيب لا يزال مفتوحاً"
+    },
+    "safetyOpen": {
+      "what": "حل سجل سلامة — {title}",
+      "why": "سجل السلامة لا يزال مفتوحاً"
+    },
+    "inspectionOpen": {
+      "what": "إكمال فحص — {title}",
+      "whyScheduled": "مجدول {scheduledOn} ولا يزال مفتوحاً",
+      "whyOpen": "الفحص لا يزال مفتوحاً"
+    },
+    "recurringDraftIssue": {
+      "what": "إصلاح مسودة متكررة — {title}",
+      "why": "التشغيل التالي {nextRunDate} متأخر بينما المسودة لا تزال نشطة"
+    },
+    "timesheetMissing": {
+      "what": "إرسال جدول ساعات متأخر",
+      "why": "الفترة المنتهية {periodEnd} لا تزال مسودة"
+    },
+    "closeoutBlockers": {
+      "what": "إنهاء الإغلاق — {projectName}",
+      "whyReopened": "أُعيد فتح المشروع. راجع جاهزية الإغلاق.",
+      "whyDefault": "راجع جاهزية الإغلاق في تبويب الإغلاق."
+    },
+    "warrantyExpiring": {
+      "what": "ضمان ينتهي — {title}",
+      "why": "التغطية تنتهي {endDate}"
+    },
+    "cashFlowRisk": {
+      "what": "مخاطر تدفق نقدي للمراجعة",
+      "why": "تحصيلات متأخرة {overdueIn} · مستحقات متأخرة {overdueOut}"
+    },
+    "automationFollowup": {
+      "what": "أتمتة تحتاج متابعة",
+      "why": "{preset} · {ranAt}"
+    },
+    "communicationFailed": {
+      "what": "رسالة لم تُرسَل — {subject}",
+      "why": "فشل التسليم أو لم يُؤكَّد من المزوّد."
+    },
+    "billingPlanCycleDraft": {
+      "what": "حساب تقدم بانتظار الإصدار — {title}",
+      "why": "حساب #{cycleNumber} مسودة/جاهز للإصدار كفوترة (وليس دفعة)."
+    },
+    "billingPlanMilestoneDue": {
+      "what": "معلم فوترة مستحق — {label}",
+      "why": "تاريخ مستهدف {targetDate}"
+    },
+    "billingPlanRetentionReleaseDue": {
+      "what": "إفراج حجز خطة الفوترة",
+      "why": "{heldRemaining} حجز متبقٍ مُمسك — جاهز للإفراج كفوترة."
+    },
+    "monthlyWorkforceReportReady": {
+      "what": "تقرير موظفين شهري جاهز",
+      "why": "يمكنك توليد وحفظ تقرير الموظفين لـ {monthLabel}.",
+      "where": "الموظفون · تقارير شهرية"
+    },
+    "missingAttendanceToday": {
+      "whatOne": "{count} موظف لم يُبلّغ حضوره اليوم",
+      "whatOther": "{count} موظفين لم يُبلّغوا حضورهم اليوم",
+      "why": "تاريخ {date} — الحضور مفقود لهؤلاء الموظفين."
+    },
+    "reportMonthLabel": "{month} {year}",
+    "reportMonths": {
+      "1": "يناير",
+      "2": "فبراير",
+      "3": "مارس",
+      "4": "أبريل",
+      "5": "مايو",
+      "6": "يونيو",
+      "7": "يوليو",
+      "8": "أغسطس",
+      "9": "سبتمبر",
+      "10": "أكتوبر",
+      "11": "نوفمبر",
+      "12": "ديسمبر"
+    },
+    "labels": {
+      "boqReconStatus": {
+        "matched": "متطابق",
+        "variance": "انحراف",
+        "unallocated_contract_value": "قيمة عقد غير مُخصَّصة",
+        "unallocated_approved_change": "تغيير معتمد لم يُخصَّص بعد",
+        "fallback": "{status}"
+      },
+      "allocationStatus": {
+        "applied": "مُطبَّق",
+        "draft": "مسودة",
+        "fallback": "حالة التخصيص"
+      },
+      "approvalEntityType": {
+        "expense": "مصروف",
+        "vendor_bill": "حساب مورد",
+        "vendor_credit": "إشعار دائن مورد",
+        "purchase_order": "أمر شراء",
+        "time_correction": "تصحيح وقت",
+        "quote_discount": "خصم عرض سعر",
+        "budget_revision": "مراجعة ميزانية",
+        "billing_record": "فوترة",
+        "payment": "دفعة",
+        "fallback": "طلب اعتماد"
+      },
+      "complianceStatus": {
+        "expired": "منتهٍ",
+        "expiring_soon": "ينتهي قريباً",
+        "fallback": "{status}"
+      },
+      "collectionStatus": {
+        "open": "مفتوح",
+        "partial": "جزئي",
+        "overdue": "متأخر",
+        "paid": "مدفوع",
+        "fallback": "{status}"
+      },
+      "monthCloseStatus": {
+        "open": "مفتوح",
+        "ready": "جاهز",
+        "closed": "مغلق",
+        "fallback": "{status}"
+      },
+      "automationPreset": {
+        "client_balance_overdue": "رصيد عميل متأخر",
+        "quote_no_followup": "عرض سعر بدون متابعة",
+        "vendor_bill_due": "حساب مورد مستحق",
+        "timesheet_not_submitted": "جدول ساعات غير مُرسَل",
+        "timesheet_waiting_approval": "جدول ساعات بانتظار الاعتماد",
+        "ocr_waiting_review": "التقاط فاتورة بانتظار المراجعة",
+        "forecast_over_budget": "توقع تجاوز ميزانية",
+        "forecast_margin_low": "هامش توقع منخفض",
+        "warranty_expiring": "ضمان ينتهي",
+        "compliance_expiring": "مستند امتثال ينتهي",
+        "asset_service_due": "صيانة معدات مستحقة",
+        "retention_release_date": "تاريخ إفراج حجز",
+        "closeout_has_blockers": "عوائق إغلاق",
+        "fallback": "قاعدة أتمتة"
+      }
+    }
+  },
+  "empty": {
+    "title": "أنت خالٍ",
+    "body": "لا شيء يحتاج معالجة الآن."
+  },
+  "moduleOff": {
+    "title": "لا صلاحية",
+    "body": "ليس لديك صلاحية فتح اليوم.",
+    "action": "العودة إلى لوحة التحكم"
+  },
+  "errors": {
+    "unsafeState": "لا يمكن تجاهل هذا البند — افتحه أو أجّله.",
+    "moduleOff": "ليس لديك صلاحية فتح اليوم."
+  }
+}

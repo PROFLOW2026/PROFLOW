@@ -1,0 +1,52 @@
+{
+  "title": "مستندات قانونية خارجية",
+  "subtitle": "اطلب وتتبع فواتير ضريبية قانونية في نظام محاسبة متصل. فوترة ProjectFlow تبقى سجل الإدارة لديك.",
+  "separation": {
+    "billingRecord": "سجل فوترة (إدارة)",
+    "externalDocument": "مستند قانوني خارجي",
+    "disclosure": "ProjectFlow لا يصدر فواتير ضريبية. الأرقام الخارجية تأتي فقط من مزود متصل."
+  },
+  "status": {
+    "connectionRequired": "اربط مزود فوترة خارجي لطلب مستندات قانونية.",
+    "providerConnected": "مزود الفوترة الخارجي متصل.",
+    "featureDisabled": "الفوترة القانونية الخارجية معطّلة حتى يُهيّأ مزود."
+  },
+  "actions": {
+    "requestDocument": "طلب مستند خارجي",
+    "refreshStatus": "تحديث الحالة",
+    "credit": "طلب إشعار دائن",
+    "cancel": "إلغاء المستند الخارجي",
+    "allocate": "حفظ مرجع التخصيص"
+  },
+  "fields": {
+    "externalNumber": "الرقم الخارجي",
+    "externalUrl": "الرابط الخارجي",
+    "allocationReference": "مرجع التخصيص / الدفع",
+    "provider": "المزود",
+    "status": "الحالة الخارجية",
+    "pdf": "ملف PDF"
+  },
+  "documentStatus": {
+    "requested": "مطلوب",
+    "pending": "قيد الانتظار عند المزود",
+    "issued": "صادر",
+    "allocated": "مُخصّص",
+    "credited": "مُدان",
+    "cancelled": "ملغى",
+    "failed": "فشل"
+  },
+  "empty": {
+    "title": "لا يوجد مستند قانوني خارجي",
+    "body": "بعد ربط المزود، يمكنك طلب مستند قانوني لسجل فوترة منتهٍ."
+  },
+  "errors": {
+    "connectionRequired": "اربط مزود فوترة خارجي قبل طلب مستند قانوني.",
+    "billingNotFinalized": "سجلات الفوترة المنهية فقط يمكنها طلب مستند قانوني خارجي.",
+    "localIssuanceForbidden": "إصدار فاتورة ضريبية محلية غير مسموح.",
+    "orgMismatch": "سجل الفوترة لا ينتمي لهذه المنظمة.",
+    "providerFailed": "تعذّر على مزود الفوترة الخارجي إكمال الطلب.",
+    "missingExternalId": "هذا السجل ليس له معرّف مزود خارجي بعد.",
+    "creditUnsupported": "هذا المزود لا يدعم إشعارات الدائن.",
+    "cancelUnsupported": "هذا المزود لا يدعم الإلغاء."
+  }
+}

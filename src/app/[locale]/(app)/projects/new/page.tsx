@@ -16,6 +16,7 @@ import {
 import { resolveApplicableDefaultTax } from '@/modules/tax';
 import { getShellContext, withOrgContext } from '@/shared/auth/session';
 import { todayInTimeZone } from '@/shared/dates';
+import { resolveLabelLocale } from '@/shared/i18n/intl-locale';
 import { formatMoney } from '@/shared/money/format';
 import { zeroMoney } from '@/shared/money';
 import { ProjectCreateForm } from './project-create-form';
@@ -40,7 +41,8 @@ export default async function NewProjectPage({
   const t = await getTranslations('projects');
   const shell = await getShellContext();
   const baseCurrency = shell?.organization.baseCurrency ?? 'ILS';
-  const nameLocale = locale === 'en' ? 'en' : 'he-IL';
+  const labelLocale = resolveLabelLocale(locale);
+  const nameLocale = labelLocale === 'he-IL' ? 'he-IL' : 'en';
 
   let clients: {
     id: string;

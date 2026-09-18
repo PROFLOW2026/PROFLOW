@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { LOCALES } from '@/shared/i18n/config';
 import { BUSINESS_PROFILE_KEYS } from '../domain/business-profiles';
 import { PROFESSION_PRESET_KEYS } from '../domain/profession-presets';
 import { OPTIONAL_MODULE_KEYS } from '../domain/types';
@@ -47,7 +48,7 @@ export const createOrganizationSchema = z.object({
     .transform((value) => value.toUpperCase())
     .optional(),
   timezone: z.string().trim().min(1).optional(),
-  defaultLocale: z.enum(['he-IL', 'en']).optional(),
+  defaultLocale: z.enum(LOCALES).optional(),
   /** Preferred: business profile configuration preset (not a separate product). */
   businessProfile: z
     .preprocess(optionalPresetToken, z.enum(BUSINESS_PROFILE_KEYS).optional()),
@@ -73,7 +74,7 @@ export const updateOrganizationSchema = z.object({
   baseCurrency: z.string().trim().length(3).optional(),
   timezone: z.string().trim().min(1).optional(),
   countryCode: z.string().trim().length(2).optional(),
-  defaultLocale: z.enum(['he-IL', 'en']).optional(),
+  defaultLocale: z.enum(LOCALES).optional(),
   workWeekStartDay: z.coerce.number().int().min(0).max(6).optional(),
 });
 

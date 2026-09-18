@@ -1,0 +1,108 @@
+{
+  "title": "السلامة / HSE",
+  "description": "حوادث، حوادث وشيكة، محادثات أدوات، وإجراءات تصحيحية.",
+  "newRecord": "سجل سلامة جديد",
+  "empty": "لا توجد سجلات سلامة بعد",
+  "emptyHint": "سجّل الحوادث والحوادث الوشيكة ومحادثات الأدوات من الميدان.",
+  "loading": "جاري تحميل سجلات السلامة…",
+  "error": "تعذّر تحميل سجلات السلامة.",
+  "types": {
+    "incident": "حادث",
+    "near_miss": "حادث وشيك",
+    "accident": "إصابة",
+    "hazard": "خطر",
+    "observation": "ملاحظة",
+    "toolbox_talk": "محادثة أدوات",
+    "ppe_issue": "مشكلة معدات حماية"
+  },
+  "severity": {
+    "low": "منخفض",
+    "medium": "متوسط",
+    "high": "مرتفع",
+    "critical": "حرج"
+  },
+  "status": {
+    "open": "مفتوح",
+    "in_progress": "قيد المعالجة",
+    "closed": "مغلق",
+    "cancelled": "ملغى",
+    "done": "منجز"
+  },
+  "fields": {
+    "title": "العنوان",
+    "description": "الوصف",
+    "project": "المشروع / الموقع",
+    "projectNone": "بدون مشروع",
+    "occurredAt": "التاريخ والوقت",
+    "peopleInvolved": "الأشخاص المعنيون",
+    "immediateAction": "إجراء فوري",
+    "correctiveAction": "إجراء تصحيحي",
+    "owner": "المسؤول",
+    "ownerNone": "بدون مسؤول",
+    "dueDate": "تاريخ الاستحقاق",
+    "topic": "الموضوع",
+    "talkDate": "تاريخ المحادثة",
+    "talkNotes": "ملاحظات المحادثة",
+    "attendees": "الحضور",
+    "attendeeName": "الاسم",
+    "acknowledged": "مُقرّ",
+    "notAcknowledged": "غير مُقرّ",
+    "type": "النوع",
+    "severity": "الخطورة",
+    "status": "الحالة"
+  },
+  "linkedDailyLog": "يومية مرتبطة",
+  "fromDailyLogHint": "يُعبّأ مسبقاً من يومية. الحفظ ينشئ سجل السلامة ثم يربطه - لا يُنشأ شيء حتى تحفظ.",
+  "actions": {
+    "create": "إنشاء",
+    "save": "حفظ",
+    "close": "إغلاق",
+    "addAction": "إضافة إجراء",
+    "acknowledge": "إقرار",
+    "addAttendee": "إضافة حاضر"
+  },
+  "summary": {
+    "open": "مفتوح",
+    "overdue": "متأخر",
+    "bySeverity": "حسب الخطورة",
+    "byProject": "حسب المشروع",
+    "byType": "حسب النوع"
+  },
+  "overdue": "متأخر",
+  "filters": {
+    "all": "الكل",
+    "type": "النوع",
+    "status": "الحالة",
+    "severity": "الخطورة"
+  },
+  "list": {
+    "columns": {
+      "title": "العنوان",
+      "type": "النوع",
+      "project": "المشروع",
+      "occurredAt": "متى",
+      "severity": "الخطورة",
+      "status": "الحالة"
+    }
+  },
+  "create": {
+    "title": "سجل سلامة جديد",
+    "description": "سجّل حادثاً أو خطراً أو محادثة أدوات.",
+    "attendeeNamesHint": "اسم واحد في كل سطر. اختياري."
+  },
+  "detail": {
+    "title": "سجل سلامة",
+    "actionsTitle": "إجراءات تصحيحية",
+    "noActions": "لا توجد إجراءات تصحيحية بعد.",
+    "toolboxTitle": "محادثة أدوات",
+    "noAttendees": "لا يوجد حضور بعد.",
+    "saved": "تم الحفظ."
+  },
+  "errors": {
+    "titleRequired": "العنوان مطلوب.",
+    "invalidRecordTransition": "تغيير الحالة هذا غير مسموح.",
+    "invalidActionTransition": "تغيير حالة الإجراء هذا غير مسموح.",
+    "toolboxTopicRequired": "محادثات الأدوات تحتاج موضوعاً.",
+    "attendeesRequireTalk": "يمكن إضافة الحضور لمحادثة أدوات فقط."
+  }
+}
