@@ -19,17 +19,18 @@ import type { ProviderAmountSnapshot } from '../../domain/reconcile-external-amo
 import {
   FULL_ADAPTER_CAPABILITIES,
   SUMIT_PROVIDER_ID,
-  type BillingRecordBridgeRef,
   type InvoicingProviderCredentials,
 } from '../../domain/types';
+import {
+  buildSumitCreatePayload,
+  SUMIT_DOCUMENT_TYPE_INVOICE,
+} from './sumit-create-payload';
 import {
   createSumitHttpClient,
   SumitAmbiguousError,
   type SumitCreateDocumentResponse,
   type SumitHttpClient,
 } from './sumit-http-client';
-
-const SUMIT_DOCUMENT_TYPE_INVOICE = 0;
 
 export class SumitAmbiguousCreateError extends Error {
   readonly partialExternalId: string | null;
@@ -201,47 +202,6 @@ export class SumitStatutoryProvider implements StatutoryInvoicingProvider {
   ): Promise<StatutoryProviderResult<AllocateExternalReferenceOutput>> {
     return unsupported('SUMIT allocation');
   }
-}
-
-function buildSumitCreatePayload(billing: BillingRecordBridgeRef): Record<string, unknown> {
-  const items =
-    billing.lines.length > 0
-      ? billing.lines.map((line) => ({
-          Description: line.description,
-          Quantity: line.quantity ? Number(line.quantity) : 1,
-          Price: Number.parseFloat(line.lineNet.amount),
-        }))
-      : [
-          {
-            Description: billing.reference?.trim() || 'Billing amount',
-            Quantity: 1,
-            Price: Number.parseFloat(billing.subtotalAmount.amount),
-          },
-        ];
-
-  return {
-    Details: {
-      Type: SUMIT_DOCUMENT_TYPE_INVOICE,
-      Date: billing.issueDate,
-      DueDate: billing.dueDate,
-      Currency: billing.totalAmount.currency,
-    },
-    Customer: billing.customer
-      ? {
-          Name: billing.customer.name,
-          CompanyNumber: billing.customer.companyNumber,
-          ExternalIdentifier: billing.customer.externalIdentifier,
-          EmailAddress: billing.customer.email,
-          Phone: billing.customer.phone,
-          Address: billing.customer.address,
-          City: billing.customer.city,
-          Zip: billing.customer.postalCode,
-        }
-      : undefined,
-    Items: items,
-    VATIncluded: billing.vatMode === 'inclusive',
-    VATRate: billing.vatRatePercent ?? undefined,
-  };
 }
 
 export function sumitProviderCapabilities() {

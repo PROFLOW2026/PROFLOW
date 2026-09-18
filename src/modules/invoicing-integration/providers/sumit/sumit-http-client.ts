@@ -14,6 +14,7 @@ import {
   type SumitTestConnectionResult,
 } from './sumit-connection-diagnostics';
 import { assertSumitTestProviderEndpoint } from './sumit-provider-environment';
+import { assembleSumitCreateRequestBody } from './sumit-create-payload';
 import { parseSumitDocumentAmounts } from './sumit-document-amounts';
 
 export { SumitAmbiguousError } from './sumit-api-envelope';
@@ -181,20 +182,10 @@ export function createSumitHttpClient(
     testConnection,
 
     async createDocument(input) {
-      const payload = input.payload;
-      const nestedDetails =
-        payload.Details && typeof payload.Details === 'object'
-          ? (payload.Details as Record<string, unknown>)
-          : {};
-      const { Details: _details, ...restPayload } = payload;
-      const raw = await postJson<unknown>('/accounting/documents/create/', {
-        DocumentType: input.documentType,
-        Details: {
-          ...nestedDetails,
-          ExternalReference: input.externalReference,
-        },
-        ...restPayload,
-      });
+      const raw = await postJson<unknown>(
+        '/accounting/documents/create/',
+        assembleSumitCreateRequestBody(input.payload, input.externalReference),
+      );
       const mapped = mapDocumentResponse(raw);
       if (!mapped.documentId) {
         throw new Error('SUMIT create succeeded without DocumentID');

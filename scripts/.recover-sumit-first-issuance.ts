@@ -195,6 +195,13 @@ async function main() {
     }
   }
 
+  const blocking = pfRows.filter(
+    (row) =>
+      row.issuance_outcome === 'in_flight' ||
+      row.issuance_outcome === 'ambiguous' ||
+      row.issuance_outcome === 'confirmed_created',
+  );
+
   console.log(
     JSON.stringify(
       {
@@ -202,6 +209,10 @@ async function main() {
         billingId: BILLING_ID,
         canonicalExternalReference: CANONICAL_REF,
         pfExternalDocRows: pfRows,
+        pfOutcomeSummary: {
+          confirmedRejected: pfRows.filter((r) => r.issuance_outcome === 'confirmed_rejected'),
+          blocking,
+        },
         sumit: sumitScan,
       },
       null,

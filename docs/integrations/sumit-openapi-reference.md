@@ -55,11 +55,21 @@ Paging (optional, nested — **not** top-level `PageNumber`):
 
 ## Create payload (tax invoice)
 
-ProjectFlow sends:
+OpenAPI schema: `Accounting_Documents_Create_Request` (required: `Credentials`, `Details`).
 
-- `DocumentType: 0` (Invoice)
-- `Details.ExternalReference` — PF deterministic idempotency key
-- `Customer` — from frozen `customer_snapshot` when available
+| Field | Nesting | Notes |
+|-------|---------|-------|
+| `Details.Type` | inside `Details` | Invoice = `0` |
+| `Details.Date` | inside `Details` | `YYYY-MM-DD` |
+| `Details.DueDate` | inside `Details` | optional |
+| `Details.Currency` | inside `Details` | defaults to company currency when null |
+| `Details.Customer` | inside `Details` | **required** — from frozen `customer_snapshot` |
+| `Details.ExternalReference` | inside `Details` | PF deterministic idempotency key |
+| `Items` | top-level | `Quantity`, `UnitPrice`, `Description` |
+| `VATIncluded` | top-level | exclusive billing → `false` |
+| `VATRate` | top-level | frozen org rate (e.g. `18`) |
+
+ProjectFlow does **not** send top-level `Customer` or `DocumentType` (type lives in `Details.Type`).
 
 Response fields used by ProjectFlow:
 
