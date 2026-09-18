@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { PwaInstallCta } from '@/modules/offline/ui/pwa-install-cta';
+import { LocaleSwitcherInline } from '@/shared/i18n/locale-switcher-inline';
 import { Link } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
 
@@ -52,6 +53,9 @@ export function LandingHeader() {
         </nav>
 
         <div className="flex items-center gap-2">
+          <div className="hidden md:block">
+            <LocaleSwitcherInline />
+          </div>
           <div className="hidden sm:block">
             <PwaInstallCta variant="marketing" className="max-w-none [&_button]:min-h-11" />
           </div>
@@ -74,6 +78,10 @@ export function LandingHeader() {
             {open ? <X aria-hidden /> : <Menu aria-hidden />}
           </Button>
         </div>
+      </div>
+
+      <div className="border-t border-[var(--pf-border-default)] px-4 py-2 md:hidden">
+        <LocaleSwitcherInline className="justify-center" />
       </div>
 
       <div

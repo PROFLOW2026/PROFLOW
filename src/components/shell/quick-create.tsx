@@ -2,7 +2,7 @@
 
 import { Plus } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { Suspense, useSyncExternalStore, type CSSProperties, type ReactNode } from 'react';
+import { Suspense, useSyncExternalStore, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import {
   DropdownMenu,
@@ -21,11 +21,6 @@ export interface QuickCreateAction {
   href: string;
   labelKey: string;
 }
-
-const mobileFabPositionStyle: CSSProperties = {
-  bottom: 'calc(var(--pf-bottomnav-total-height) + var(--pf-fab-gap))',
-  insetInlineEnd: '1rem',
-};
 
 function QuickCreateFabPortal({ children }: { children: ReactNode }) {
   const mounted = useSyncExternalStore(
@@ -63,15 +58,14 @@ function QuickCreateMenu({ actions }: { actions: QuickCreateAction[] }) {
         demoteFab
           ? 'static size-auto h-11 min-h-11 shrink-0 rounded-md px-3 text-[0.8125rem] shadow-none hover:bg-[var(--pf-action-primary-hover)]'
           : cn(
-              'fixed size-[var(--pf-fab-size)] max-w-[var(--pf-fab-size)] shadow-[var(--pf-shadow-lg)]',
-              'lg:static lg:bottom-auto lg:end-auto lg:size-auto lg:h-11 lg:min-h-11 lg:max-w-none lg:rounded-md lg:px-3 lg:text-[0.8125rem] lg:shadow-none',
-              'lg:hover:bg-[var(--pf-action-primary-hover)]',
+              'fixed inset-inline-end-4 z-50 size-[var(--pf-fab-size)] max-w-[var(--pf-fab-size)] shadow-[var(--pf-shadow-lg)]',
+              'bottom-[calc(var(--pf-bottomnav-total-height)+var(--pf-fab-gap))] lg:bottom-[var(--pf-fab-gap)]',
+              'hover:bg-[var(--pf-action-primary-hover)]',
             ),
       )}
-      style={demoteFab ? undefined : mobileFabPositionStyle}
     >
-      <Plus className={cn(demoteFab ? 'size-4' : 'size-6 lg:size-4')} aria-hidden />
-      <span className={cn(demoteFab ? 'inline' : 'hidden lg:inline')}>{t('trigger')}</span>
+      <Plus className={cn(demoteFab ? 'size-4' : 'size-6')} aria-hidden />
+      <span className={cn(demoteFab ? 'inline' : 'sr-only')}>{t('trigger')}</span>
     </button>
   );
 

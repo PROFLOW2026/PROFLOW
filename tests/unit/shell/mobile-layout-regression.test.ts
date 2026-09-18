@@ -48,13 +48,20 @@ describe('mobile layout regressions', () => {
     expect(nav).not.toContain('mobileNavPositionStyle');
   });
 
-  it('positions mobile FAB with stable bottom-nav clearance only', () => {
+  it('positions FAB fixed to viewport with bottom-nav clearance on mobile', () => {
     const quickCreate = read('src/components/shell/quick-create.tsx');
     expect(quickCreate).toContain('QuickCreateFabPortal');
     expect(quickCreate).toContain('--pf-bottomnav-total-height');
-    expect(quickCreate).toContain('insetInlineEnd');
+    expect(quickCreate).toContain('inset-inline-end-4');
+    expect(quickCreate).toContain('lg:bottom-[var(--pf-fab-gap)]');
+    expect(quickCreate).not.toContain('lg:static');
     expect(quickCreate).not.toMatch(/\b100vw\b/);
     expect(quickCreate).not.toContain('--pf-visual-viewport');
+  });
+
+  it('exposes locale switcher on the public marketing header', () => {
+    const header = read('src/modules/marketing/ui/landing-header.tsx');
+    expect(header).toContain('LocaleSwitcherInline');
   });
 
   it('avoids w-screen on the storage preview shell (100vw page overflow)', () => {
