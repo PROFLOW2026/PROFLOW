@@ -8,8 +8,6 @@ import {
   sealInvoicingCredentials,
 } from '../application/credential-seal';
 import type { InvoicingProviderCredentials } from '../domain/types';
-import { runCommittedInvoicingWrite } from './invoicing-admin-write';
-
 function sqlResultRows<T>(result: unknown): T[] {
   if (Array.isArray(result)) return result as T[];
   return ((result as { rows?: T[] }).rows ?? []) as T[];
@@ -38,18 +36,16 @@ async function writeInvoicingConnectionCredentials(
   `);
 }
 
-/** Persists credentials in a committed admin transaction (survives request tx rollback). */
+/** Persists credentials in the caller transaction (same commit as connection row). */
 export async function saveInvoicingConnectionCredentials(
-  _db: DbExecutor,
+  db: DbExecutor,
   input: {
     organizationId: string;
     connectionId: string;
     credentials: InvoicingProviderCredentials;
   },
 ): Promise<void> {
-  await runCommittedInvoicingWrite((adminDb) =>
-    writeInvoicingConnectionCredentials(adminDb, input),
-  );
+  await asServiceRoleWrite(db, async () => writeInvoicingConnectionCredentials(db, input));
 }
 
 export async function loadInvoicingConnectionCredentials(
