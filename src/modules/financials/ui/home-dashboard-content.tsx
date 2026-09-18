@@ -232,7 +232,6 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                                 amount: project.currentContractValue,
                                 currency: project.currency,
                               }}
-                              compact
                             />
                           </p>
                         ) : null}

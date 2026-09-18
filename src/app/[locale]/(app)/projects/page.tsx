@@ -198,7 +198,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
                         </div>
                       </TableCell>
                       <TableCell numeric>
-                        {money ? <MoneyText value={money} compact /> : t('noContractValue')}
+                        {money ? <MoneyText value={money} /> : t('noContractValue')}
                       </TableCell>
                     </TableRow>
                   );

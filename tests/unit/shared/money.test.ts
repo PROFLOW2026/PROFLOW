@@ -137,4 +137,28 @@ describe('formatting', () => {
     expect(formatMoneyString('0.000000', 'ILS', 'he-IL')).toBe('0.00 ₪');
     expect(formatMoneyString('9131.000000', 'ILS', 'he-IL')).toBe('9,131.00 ₪');
   });
+
+  const COMPACT_MONEY_PATTERN = /(?:^|[\s,.])(\d+(?:\.\d+)?)\s*[KMBkmb]\b|[ألف]|(?:^|[\s,.])(\d+(?:[.,]\d+)?)\s*(?:тыс|млн)/;
+
+  it('never uses compact currency notation in any supported locale', () => {
+    const locales = ['he-IL', 'en', 'ar', 'ru'] as const;
+    const amounts = ['470000', '820000', '2660000', '60407.24'] as const;
+
+    for (const locale of locales) {
+      for (const amount of amounts) {
+        const formatted = formatMoney(money(amount, 'ILS'), locale);
+        expect(formatted, `${locale} ${amount}`).not.toMatch(COMPACT_MONEY_PATTERN);
+        expect(formatted, `${locale} ${amount}`).toMatch(/\d/);
+      }
+    }
+  });
+
+  it('formats large ILS amounts as full values across locales', () => {
+    expect(formatMoney(money('470000', 'ILS'), 'he-IL')).toBe('470,000.00 ₪');
+    expect(formatMoney(money('820000', 'ILS'), 'en')).toBe('₪820,000.00');
+    expect(formatMoney(money('2660000', 'ILS'), 'ar')).toContain('2,660,000');
+    const ruFormatted = formatMoney(money('60407.24', 'ILS'), 'ru');
+    expect(ruFormatted).toMatch(/60[\s,]?407[.,]24/);
+    expect(ruFormatted).not.toMatch(/\b[\d.]+\s*[KMBkmb]\b|[тыс]|млн/);
+  });
 });

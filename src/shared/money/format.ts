@@ -30,8 +30,6 @@ export type MoneyDecimalsMode = 'minor-units' | 'whole' | 'auto';
 export interface FormatMoneyOptions {
   /** `minor-units` = always show the currency scale, `whole` = never, `auto` = hide `.00`. */
   decimals?: MoneyDecimalsMode;
-  /** Renders 310,000 as ₪310K - only for tight mobile cards, never on detail screens. */
-  compact?: boolean;
   /** Prefix positive values with `+`; negatives always keep their sign. */
   signDisplay?: 'auto' | 'always' | 'never';
   currencyDisplay?: 'symbol' | 'narrowSymbol' | 'code' | 'name';
@@ -76,8 +74,7 @@ function formatCurrencyFromParts(
       part.type === 'integer' ||
       part.type === 'group' ||
       part.type === 'decimal' ||
-      part.type === 'fraction' ||
-      part.type === 'compact',
+      part.type === 'fraction',
     )
     .map((part) => part.value)
     .join('');
@@ -97,7 +94,7 @@ function formatCurrencyFromParts(
 }
 
 export function formatMoney(value: MoneyValue, locale: string, options: FormatMoneyOptions = {}): string {
-  const { decimals = 'minor-units', compact = false, signDisplay = 'auto', currencyDisplay = 'narrowSymbol' } = options;
+  const { decimals = 'minor-units', signDisplay = 'auto', currencyDisplay = 'narrowSymbol' } = options;
   const intlLocale = resolveIntlLocale(locale);
 
   const fractionDigits = resolveFractionDigits(value, decimals);
@@ -107,9 +104,9 @@ export function formatMoney(value: MoneyValue, locale: string, options: FormatMo
     style: 'currency',
     currency: value.currency,
     currencyDisplay,
-    notation: compact ? 'compact' : 'standard',
-    minimumFractionDigits: compact ? 0 : fractionDigits,
-    maximumFractionDigits: compact ? 1 : fractionDigits,
+    notation: 'standard',
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits,
     signDisplay: 'never',
   });
 

@@ -53,7 +53,7 @@ export async function ProjectVendorActualPanel({ projectId }: ProjectVendorActua
               <Link href={`/vendors/${row.vendorId}`} className={textNavLinkClassName}>
                 {row.vendorName}
               </Link>
-              <MoneyText value={row.actual} compact />
+              <MoneyText value={row.actual} />
             </div>
           ))
         )}

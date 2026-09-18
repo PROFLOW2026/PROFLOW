@@ -151,10 +151,10 @@ export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPan
                 </div>
                 <div className="flex min-w-0 flex-col gap-0.5 text-sm sm:text-end">
                   <span className="text-[var(--pf-text-secondary)]">
-                    {t('perContract.original')}: <MoneyText value={slice.position.originalContractValue} compact />
+                    {t('perContract.original')}: <MoneyText value={slice.position.originalContractValue} />
                   </span>
                   <span>
-                    {t('perContract.current')}: <MoneyText value={slice.position.currentContractValue} compact />
+                    {t('perContract.current')}: <MoneyText value={slice.position.currentContractValue} />
                   </span>
                 </div>
               </div>

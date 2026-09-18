@@ -73,10 +73,10 @@ export async function OverviewContractHistoryPanel({
                 {historyRows.map(({ event, previousValue, newValue }) => (
                   <TableRow key={event.id}>
                     <TableCell numeric>
-                      <MoneyText value={previousValue} compact />
+                      <MoneyText value={previousValue} />
                     </TableCell>
                     <TableCell numeric>
-                      <MoneyText value={newValue} compact />
+                      <MoneyText value={newValue} />
                     </TableCell>
                     <TableCell>{formatContractReason(event, tHistory, tEvent)}</TableCell>
                     <TableCell>
@@ -106,7 +106,7 @@ export async function OverviewContractHistoryPanel({
                     {tHistory('previousValue')}
                   </dt>
                   <dd className="min-w-0 max-w-[55%] overflow-x-auto text-end">
-                    <MoneyText value={previousValue} compact />
+                    <MoneyText value={previousValue} />
                   </dd>
                 </div>
                 <div className="flex min-w-0 justify-between gap-3">
@@ -114,7 +114,7 @@ export async function OverviewContractHistoryPanel({
                     {tHistory('newValue')}
                   </dt>
                   <dd className="min-w-0 max-w-[55%] overflow-x-auto text-end">
-                    <MoneyText value={newValue} compact />
+                    <MoneyText value={newValue} />
                   </dd>
                 </div>
                 <div className="flex min-w-0 justify-between gap-3">

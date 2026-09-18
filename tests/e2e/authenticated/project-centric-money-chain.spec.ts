@@ -52,9 +52,10 @@ function normalizeMoneyText(text: string): string {
 
 function parseIlsAmount(text: string): number {
   const normalized = normalizeMoneyText(text);
-  const compact = normalized.match(/([\d]+(?:\.[\d]+)?)\s*K\s*₪/i);
-  if (compact?.[1]) return Math.round(Number(compact[1]) * 1000);
-  const full = normalized.match(/([\d,.]+)\s*₪/);
+  if (/\b[\d,.]+\s*[KMBkmb]\s*₪/i.test(normalized)) {
+    throw new Error(`Compact money display is forbidden: ${normalized}`);
+  }
+  const full = normalized.match(/([\d,.]+)\s*₪/) ?? normalized.match(/₪\s*([\d,.]+)/);
   if (full?.[1]) return Number(full[1].replace(/,/g, ''));
   throw new Error(`Could not parse ILS amount from: ${normalized}`);
 }

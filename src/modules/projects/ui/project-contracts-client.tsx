@@ -219,11 +219,11 @@ export function ProjectContractsClient({
                 <dl className="mt-3 flex flex-col gap-1 text-sm">
                   <div className="flex justify-between gap-2">
                     <dt className="text-[var(--pf-text-secondary)]">{t('original')}</dt>
-                    <dd>{original ? <MoneyText value={original} compact /> : '-'}</dd>
+                    <dd>{original ? <MoneyText value={original} /> : '-'}</dd>
                   </div>
                   <div className="flex justify-between gap-2">
                     <dt className="text-[var(--pf-text-secondary)]">{t('current')}</dt>
-                    <dd>{current ? <MoneyText value={current} compact /> : '-'}</dd>
+                    <dd>{current ? <MoneyText value={current} /> : '-'}</dd>
                   </div>
                   {contract.startDate || contract.endDate || contract.retentionPercent ? (
                     <div className="mt-1 text-xs text-[var(--pf-text-muted)]">
