@@ -47,7 +47,8 @@
     "connect": "חיבור חשבון בדיקות",
     "disconnect": "ניתוק",
     "connectedAs": "מחובר — מזהה חברה {companyId}",
-    "testOnlyNotice": "סביבת בדיקות בלבד. אל תזין פרטי Production."
+    "testOnlyNotice": "סביבת בדיקות בלבד. אל תזין פרטי Production.",
+    "invalidCompanyId": "מזהה החברה חייב להיות מספר חיובי."
   },
   "errors": {
     "connectionRequired": "יש לחבר ספק הנפקת חשבוניות חיצוני לפני בקשת מסמך סטטוטורי.",

@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useRouter } from '@/shared/i18n/navigation';
-import { useState, useTransition } from 'react';
+import { useState, useTransition, type FocusEvent } from 'react';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,6 +13,12 @@ import {
   connectSumitTestAction,
   disconnectSumitTestAction,
 } from './sumit-actions';
+import { isValidSumitCompanyIdInput } from './sumit-form-validation';
+
+/** Prevent password managers from treating credential fields as login inputs. */
+function unlockAutofillGuard(event: FocusEvent<HTMLInputElement>): void {
+  event.currentTarget.removeAttribute('readonly');
+}
 
 export function SumitIntegrationPanel({
   connected,
@@ -51,39 +57,71 @@ export function SumitIntegrationPanel({
         {canManage && !connected ? (
           <form
             className="flex flex-col gap-3"
+            autoComplete="off"
             onSubmit={(event) => {
               event.preventDefault();
               setError(null);
+
+              if (!isValidSumitCompanyIdInput(companyIdInput)) {
+                setError(t('settings.invalidCompanyId'));
+                return;
+              }
+
               startTransition(async () => {
                 const result = await connectSumitTestAction({
-                  companyId: Number(companyIdInput),
+                  companyId: Number(companyIdInput.trim()),
                   apiKey: apiKeyInput,
                 });
                 if (result.error) {
                   setError(result.error);
                   return;
                 }
+                setCompanyIdInput('');
                 setApiKeyInput('');
                 router.refresh();
               });
             }}
           >
             <div className="flex flex-col gap-1">
-              <Label htmlFor="sumit-company-id">{t('settings.companyId')}</Label>
+              <Label htmlFor="pf-sumit-company-id">{t('settings.companyId')}</Label>
               <Input
-                id="sumit-company-id"
+                id="pf-sumit-company-id"
+                name="pf-sumit-company-id"
+                numeric
                 inputMode="numeric"
+                pattern="[0-9]+"
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck={false}
+                data-1p-ignore
+                data-lpignore="true"
+                data-form-type="other"
+                readOnly
+                onFocus={unlockAutofillGuard}
                 value={companyIdInput}
-                onChange={(event) => setCompanyIdInput(event.target.value)}
+                onChange={(event) => {
+                  const next = event.target.value.replace(/\D/g, '');
+                  setCompanyIdInput(next);
+                }}
                 required
               />
             </div>
             <div className="flex flex-col gap-1">
-              <Label htmlFor="sumit-api-key">{t('settings.apiKey')}</Label>
+              <Label htmlFor="pf-sumit-api-key">{t('settings.apiKey')}</Label>
               <Input
-                id="sumit-api-key"
+                id="pf-sumit-api-key"
+                name="pf-sumit-api-key"
                 type="password"
-                autoComplete="off"
+                autoComplete="new-password"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck={false}
+                data-1p-ignore
+                data-lpignore="true"
+                data-form-type="other"
+                readOnly
+                onFocus={unlockAutofillGuard}
                 value={apiKeyInput}
                 onChange={(event) => setApiKeyInput(event.target.value)}
                 required

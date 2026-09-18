@@ -19,6 +19,7 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
         'forms',
         'safety',
         'integrations',
+        'invoicingIntegration',
       ]}
     >
       {children}

@@ -47,7 +47,8 @@
     "connect": "Connect test account",
     "disconnect": "Disconnect",
     "connectedAs": "Connected — Company ID {companyId}",
-    "testOnlyNotice": "Test environment only. Do not enter production credentials."
+    "testOnlyNotice": "Test environment only. Do not enter production credentials.",
+    "invalidCompanyId": "Company ID must be a positive number."
   },
   "errors": {
     "connectionRequired": "Подключите внешнего провайдера выставления счетов перед запросом налогового документа.",
