@@ -115,18 +115,29 @@ export class SumitStatutoryProvider implements StatutoryInvoicingProvider {
         payload: buildSumitCreatePayload(input.billing),
       });
 
-      const details = await this.client.getDocumentDetails(response.documentId!);
+      const documentId = response.documentId!;
+      let externalNumber = response.documentNumber;
+      let providerAmounts: ReturnType<SumitStatutoryProvider['mapProviderAmounts']> = null;
+
+      try {
+        const details = await this.client.getDocumentDetails(documentId);
+        externalNumber = details.documentNumber ?? externalNumber;
+        providerAmounts = this.mapProviderAmounts(input.billing.totalAmount.currency, details);
+      } catch {
+        // Create is confirmed once DocumentID exists; reconciliation can refresh later.
+      }
+
       const issuedAt = new Date().toISOString();
       return {
         ok: true,
         value: {
-          externalId: response.documentId!,
-          externalNumber: details.documentNumber ?? response.documentNumber,
+          externalId: documentId,
+          externalNumber,
           externalUrl: null,
           status: 'issued',
           pdf: null,
           issuedAt,
-          providerAmounts: this.mapProviderAmounts(input.billing.totalAmount.currency, details),
+          providerAmounts,
         },
       };
     } catch (error) {

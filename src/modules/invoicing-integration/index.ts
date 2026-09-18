@@ -113,7 +113,11 @@ export {
   sealInvoicingCredentials,
   openInvoicingCredentials,
 } from './application/credential-seal';
-export { requestExternalStatutoryDocument } from './application/request-external-document';
+export {
+  requestExternalStatutoryDocument,
+  requestExternalStatutoryDocumentCommitted,
+  setCommittedPhaseRunnerForTests,
+} from './application/request-external-document';
 export {
   assertIssuanceEligible,
   findBlockingExternalDocument,

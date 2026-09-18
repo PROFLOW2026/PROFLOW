@@ -1,11 +1,9 @@
 'use server';
 
-import { getBillingRecord } from '@/modules/billing';
-import { buildStatutoryBridgeFromBillingRecord } from '../application/build-statutory-bridge';
 import { listExternalStatutoryDocumentsForBilling } from '../application/get-external-documents';
 import { refreshExternalStatutoryStatus } from '../application/refresh-external-status';
-import { requestExternalStatutoryDocument } from '../application/request-external-document';
-import { withOrgContext } from '@/shared/auth/session';
+import { requestExternalStatutoryDocumentCommitted } from '../application/request-external-document';
+import { requireSession, withOrgContext } from '@/shared/auth/session';
 import { isAppError, mapServerActionError } from '@/shared/errors';
 import { getTranslations } from 'next-intl/server';
 import { revalidatePath } from 'next/cache';
@@ -43,15 +41,16 @@ export async function requestExternalStatutoryDocumentAction(
   billingRecordId: string,
 ): Promise<ExternalStatutoryActionResult> {
   try {
-    await withOrgContext(async (context) => {
-      const billing = await getBillingRecord(context, billingRecordId);
-      const { bridge, idempotencyKey } = buildStatutoryBridgeFromBillingRecord(context, billing);
-      await requestExternalStatutoryDocument(context, {
-        billing: bridge,
-        kind: 'tax_invoice',
-        idempotencyKey,
-      });
-    });
+    const session = await requireSession();
+    if (!session.activeOrganizationId) {
+      return { error: await mapExternalDocError(new Error('No active organization')) };
+    }
+
+    await requestExternalStatutoryDocumentCommitted(
+      session.user.id,
+      session.activeOrganizationId,
+      billingRecordId,
+    );
     revalidatePath(`/billing/${billingRecordId}`);
     return { ok: true };
   } catch (error) {
