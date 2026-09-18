@@ -12,6 +12,7 @@ import {
 import { getProviderConnectionsRepository } from '../data/external-documents';
 import { SUMIT_PROVIDER_ID, type InvoicingProviderCredentials } from '../domain/types';
 import { sumitConnectionFailureMessageKey } from '../providers/sumit/sumit-connection-diagnostics';
+import { assertSumitTestProviderEndpoint } from '../providers/sumit/sumit-provider-environment';
 import {
   createSumitHttpClient,
   SUMIT_TEST_API_BASE,
@@ -21,16 +22,6 @@ import {
   connectSumitTestSchema,
   type ConnectSumitTestInput,
 } from '../validation/connection-schemas';
-
-function assertTestEnvironmentOnly(): void {
-  const appEnv = process.env.APP_ENV?.trim() || 'local';
-  if (appEnv === 'production') {
-    throw new DomainRuleError(
-      'SUMIT production connections are not available in this release',
-      'invoicingIntegration.errors.productionBlocked',
-    );
-  }
-}
 
 function logSumitTestConnectionFailure(
   organizationId: string,
@@ -50,14 +41,38 @@ function logSumitTestConnectionFailure(
   });
 }
 
+function parseConnectSumitTestInput(rawInput: ConnectSumitTestInput): ConnectSumitTestInput {
+  const parsed = connectSumitTestSchema.safeParse(rawInput);
+  if (parsed.success) return parsed.data;
+
+  const field = parsed.error.issues[0]?.path[0];
+  if (field === 'companyId') {
+    throw new DomainRuleError(
+      'Invalid SUMIT company id',
+      'invoicingIntegration.errors.invalidCompanyId',
+    );
+  }
+  if (field === 'apiKey') {
+    throw new DomainRuleError(
+      'Invalid SUMIT API key',
+      'invoicingIntegration.errors.invalidApiKey',
+    );
+  }
+
+  throw new DomainRuleError(
+    'Invalid SUMIT connect input',
+    'invoicingIntegration.errors.connectionFailed',
+  );
+}
+
 export async function connectSumitTestConfiguration(
   context: OrgContext,
   rawInput: ConnectSumitTestInput,
 ): Promise<{ connectionId: string; companyId: number }> {
   assertPermission(context, PERMISSIONS.SETTINGS_MANAGE);
-  assertTestEnvironmentOnly();
+  assertSumitTestProviderEndpoint(SUMIT_TEST_API_BASE);
 
-  const input = connectSumitTestSchema.parse(rawInput);
+  const input = parseConnectSumitTestInput(rawInput);
   const credentials: InvoicingProviderCredentials = {
     companyId: input.companyId,
     apiKey: input.apiKey,

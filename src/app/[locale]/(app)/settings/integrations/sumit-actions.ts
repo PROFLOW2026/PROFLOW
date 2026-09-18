@@ -5,7 +5,7 @@ import {
   disconnectSumitProvider,
 } from '@/modules/invoicing-integration/server';
 import { withOrgContext } from '@/shared/auth/session';
-import { AppError } from '@/shared/errors';
+import { isAppError, mapServerActionError } from '@/shared/errors';
 import { getTranslations } from 'next-intl/server';
 
 export interface SumitActionResult {
@@ -13,30 +13,28 @@ export interface SumitActionResult {
   ok?: boolean;
 }
 
-const SUMIT_ERROR_KEYS = [
-  'connectionFailed',
-  'productionBlocked',
-  'invalidCredentials',
-  'moduleInactive',
-  'authRejected',
-  'providerUnreachable',
-] as const;
-
-type SumitErrorKey = (typeof SUMIT_ERROR_KEYS)[number];
-
-function isSumitErrorKey(key: string): key is SumitErrorKey {
-  return (SUMIT_ERROR_KEYS as readonly string[]).includes(key);
+function logUnmappedSumitConnectError(error: unknown): void {
+  if (error instanceof Error && isAppError(error)) return;
+  console.error('[invoicing][sumit] connect action unmapped error', {
+    name: error instanceof Error ? error.name : 'unknown',
+    message:
+      error instanceof Error ? error.message.slice(0, 200) : String(error).slice(0, 200),
+  });
 }
 
-async function mapError(error: unknown): Promise<string> {
-  const t = await getTranslations('invoicingIntegration.errors');
-  if (error instanceof AppError && error.messageKey?.startsWith('invoicingIntegration.errors.')) {
-    const key = error.messageKey.replace('invoicingIntegration.errors.', '');
-    if (isSumitErrorKey(key)) {
-      return t(key);
-    }
-  }
-  return t('connectionFailed');
+async function mapSumitConnectError(error: unknown): Promise<string> {
+  const tErrors = await getTranslations('errors');
+  const tInvoicing = await getTranslations('invoicingIntegration');
+
+  const mapped = mapServerActionError(error, {
+    tErrors: (key) => tErrors(key as 'unexpected'),
+    namespaces: {
+      invoicingIntegration: (key) => tInvoicing(key as 'errors.connectionFailed'),
+    },
+    rethrowUnknown: false,
+  });
+
+  return mapped.error;
 }
 
 export async function connectSumitTestAction(input: {
@@ -47,7 +45,8 @@ export async function connectSumitTestAction(input: {
     await withOrgContext((context) => connectSumitTestConfiguration(context, input));
     return { ok: true };
   } catch (error) {
-    return { error: await mapError(error) };
+    logUnmappedSumitConnectError(error);
+    return { error: await mapSumitConnectError(error) };
   }
 }
 
@@ -56,6 +55,7 @@ export async function disconnectSumitTestAction(): Promise<SumitActionResult> {
     await withOrgContext((context) => disconnectSumitProvider(context));
     return { ok: true };
   } catch (error) {
-    return { error: await mapError(error) };
+    logUnmappedSumitConnectError(error);
+    return { error: await mapSumitConnectError(error) };
   }
 }

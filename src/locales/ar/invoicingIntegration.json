@@ -53,6 +53,8 @@
   "errors": {
     "connectionRequired": "اربط مزود فوترة خارجي قبل طلب مستند قانوني.",
     "connectionFailed": "Could not verify SUMIT test credentials.",
+    "invalidCompanyId": "Company ID must be a positive number.",
+    "invalidApiKey": "API key is missing or invalid.",
     "invalidCredentials": "The connection details are not valid.",
     "moduleInactive": "The SUMIT income/API module is not active on this account.",
     "authRejected": "SUMIT rejected the verification request.",

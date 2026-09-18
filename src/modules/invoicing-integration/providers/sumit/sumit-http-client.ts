@@ -13,6 +13,7 @@ import {
   toSuccessfulSumitTestConnectionResult,
   type SumitTestConnectionResult,
 } from './sumit-connection-diagnostics';
+import { assertSumitTestProviderEndpoint } from './sumit-provider-environment';
 
 export { SumitAmbiguousError } from './sumit-api-envelope';
 export type { SumitTestConnectionResult } from './sumit-connection-diagnostics';
@@ -71,6 +72,7 @@ export function createSumitHttpClient(
   options: SumitHttpClientOptions = {},
 ): SumitHttpClient {
   const baseUrl = (options.baseUrl ?? SUMIT_TEST_API_BASE).replace(/\/$/, '');
+  assertSumitTestProviderEndpoint(baseUrl);
   const fetchImpl = options.fetchImpl ?? fetch;
   const timeoutMs = options.timeoutMs ?? 30_000;
 

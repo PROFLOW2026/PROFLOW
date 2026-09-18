@@ -10,6 +10,7 @@ import {
 import {
   buildSumitDocumentsListProbeBody,
   createSumitHttpClient,
+  SUMIT_TEST_API_BASE,
 } from '@/modules/invoicing-integration/providers/sumit/sumit-http-client';
 
 function jsonResponse(status: number, body: unknown): Response {
@@ -42,7 +43,7 @@ describe('SUMIT test connection diagnostics', () => {
 
     const client = createSumitHttpClient(
       { companyId: 999, apiKey: 'bad-key' },
-      { fetchImpl, baseUrl: 'https://api.example.test' },
+      { fetchImpl, baseUrl: SUMIT_TEST_API_BASE },
     );
 
     const result = await client.testConnection();
@@ -61,7 +62,7 @@ describe('SUMIT test connection diagnostics', () => {
 
     const client = createSumitHttpClient(
       { companyId: 1, apiKey: 'secret' },
-      { fetchImpl, baseUrl: 'https://api.example.test' },
+      { fetchImpl, baseUrl: SUMIT_TEST_API_BASE },
     );
 
     const result = await client.testConnection();
@@ -85,7 +86,7 @@ describe('SUMIT test connection diagnostics', () => {
 
     const client = createSumitHttpClient(
       { companyId: 1, apiKey: 'good-key' },
-      { fetchImpl, baseUrl: 'https://api.example.test' },
+      { fetchImpl, baseUrl: SUMIT_TEST_API_BASE },
     );
 
     const result = await client.testConnection();
