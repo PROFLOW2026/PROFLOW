@@ -33,6 +33,8 @@ export interface BillingRecordBridgeRef {
 
 export const EXTERNAL_DOCUMENT_KINDS = [
   'tax_invoice',
+  'tax_invoice_receipt',
+  'transaction_invoice',
   'credit_note',
   'receipt',
   'proforma',
@@ -118,11 +120,24 @@ export interface ExternalPdfMetadata {
   readonly fileName: string | null;
 }
 
+/** Frozen payment snapshot for receipt / combined statutory issuance. */
+export interface StatutoryPaymentSnapshot {
+  readonly paymentId: string;
+  readonly paymentDate: string;
+  readonly grossAmount: string;
+  readonly netAmount: string | null;
+  readonly currency: string;
+  readonly method: string | null;
+  readonly reference: string | null;
+}
+
 export interface ExternalStatutoryDocument {
   readonly id: string;
   readonly organizationId: string;
   /** Management-truth billing record this external doc is linked to. */
   readonly billingRecordId: string;
+  /** Confirmed payment — required for receipt kinds. */
+  readonly paymentId: string | null;
   readonly providerId: string;
   readonly kind: ExternalDocumentKind;
   readonly status: ExternalDocumentStatus;

@@ -5,7 +5,10 @@ import { Alert } from '@/components/ui/alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { listAccountingIntegrations } from '@/modules/integrations';
+import { getOrgInvoicingSettings } from '@/modules/invoicing-integration/data/org-invoicing-settings.repository';
+import { isSumitTransactionInvoiceSupported } from '@/modules/invoicing-integration/providers/sumit/sumit-create-payload';
 import { getSumitConnectionStatus } from '@/modules/invoicing-integration/server';
+import { InvoicingSettingsPanel } from './invoicing-settings-panel';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { withOrgContext } from '@/shared/auth/session';
 import { canAccessSection, SETTINGS_SECTIONS } from '../_lib/access';
@@ -26,8 +29,15 @@ export default async function IntegrationsSettingsPage() {
     try {
       const listed = await listAccountingIntegrations(context);
       const sumit = await getSumitConnectionStatus(context);
+      const invoicingSettings = await getOrgInvoicingSettings(context);
       const canManageSumit = context.permissions.has(PERMISSIONS.SETTINGS_MANAGE);
-      return { allowed: true as const, ...listed, sumit, canManageSumit };
+      return {
+        allowed: true as const,
+        ...listed,
+        sumit,
+        invoicingSettings,
+        canManageSumit,
+      };
     } catch {
       return {
         allowed: true as const,
@@ -37,6 +47,11 @@ export default async function IntegrationsSettingsPage() {
         adapterConnected: false as const,
         canManage: false,
         sumit: { connected: false, companyId: null, providerId: null },
+        invoicingSettings: {
+          mode: 'manual' as const,
+          paymentDocumentPolicy: 'tax_invoice_then_receipt' as const,
+          receiptIssuance: 'automatic' as const,
+        },
         canManageSumit: false,
       };
     }
@@ -54,6 +69,11 @@ export default async function IntegrationsSettingsPage() {
     <SettingsPageShell title={t('title')}>
       <div className="flex flex-col gap-4">
         <Alert tone="warning">{t('notice')}</Alert>
+        <InvoicingSettingsPanel
+          settings={data.invoicingSettings}
+          canManage={data.canManageSumit}
+          transactionInvoiceSupported={isSumitTransactionInvoiceSupported()}
+        />
         <SumitIntegrationPanel
           connected={data.sumit.connected}
           companyId={data.sumit.companyId}

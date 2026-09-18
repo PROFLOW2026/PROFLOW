@@ -23,6 +23,7 @@ import type {
 export interface ExternalDocumentInsert {
   readonly organizationId: string;
   readonly billingRecordId: string;
+  readonly paymentId?: string | null;
   readonly providerId: string;
   readonly kind: ExternalDocumentKind;
   readonly status?: ExternalDocumentStatus;
@@ -95,6 +96,7 @@ function mapDocument(row: typeof externalStatutoryDocuments.$inferSelect): Exter
     id: row.id,
     organizationId: row.organizationId,
     billingRecordId: row.billingRecordId,
+    paymentId: row.paymentId ?? null,
     providerId: row.providerId,
     kind: row.kind as ExternalDocumentKind,
     status: row.status as ExternalDocumentStatus,
@@ -200,6 +202,7 @@ export const drizzleExternalDocumentsRepository: ExternalDocumentsRepository = {
       .values({
         organizationId: input.organizationId,
         billingRecordId: input.billingRecordId,
+        paymentId: input.paymentId ?? null,
         providerId: input.providerId,
         kind: input.kind,
         status: input.status ?? 'requested',

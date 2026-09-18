@@ -33,7 +33,7 @@ import {
   requestExternalDocumentSchema,
   type RequestExternalDocumentInput,
 } from '../validation/schemas';
-import { assertStatutoryFeatureEnabled } from './assert-feature-enabled';
+import { assertStatutoryFeatureEnabledForOrg } from './assert-feature-enabled';
 import { buildStatutoryBridgeFromBillingRecord } from './build-statutory-bridge';
 import { resolveStatutoryProviderForOrg } from './resolve-statutory-provider';
 
@@ -85,7 +85,7 @@ async function prepareIssuanceLock(
 ): Promise<ExternalStatutoryDocument> {
   assertPermission(context, PERMISSIONS.BILLING_MANAGE);
   assertBillingIsNotStatutoryIssuer();
-  assertStatutoryFeatureEnabled(resolvedProvider);
+  await assertStatutoryFeatureEnabledForOrg(context, resolvedProvider);
   assertNotLocalStatutoryIssuance(resolvedProvider.id);
 
   await assertBillingBridgeSameOrg(

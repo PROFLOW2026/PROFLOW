@@ -21,6 +21,10 @@ import {
   type StatutoryProviderResult,
 } from '@/modules/invoicing-integration';
 import { SumitStatutoryProvider } from '@/modules/invoicing-integration/providers/sumit/sumit-statutory-provider';
+import {
+  enableExternalProviderSettingsForTests,
+  resetOrgInvoicingSettingsForTests,
+} from './test-external-provider-settings';
 import type { SumitHttpClient } from '@/modules/invoicing-integration/providers/sumit/sumit-http-client';
 const ORG_ID = '01900000-0000-7000-8000-0000000000aa';
 const USER_ID = 'user-issuance-durability';
@@ -204,6 +208,7 @@ function mockSumitClient(options: {
 
 describe('external statutory issuance durability', () => {
   beforeEach(() => {
+    enableExternalProviderSettingsForTests();
     setInvoicingIntegrationPersistenceReadyForTests(false);
     resetExternalDocumentsStoreForTests();
     setCommittedPhaseRunnerForTests(async (_userId, _organizationId, fn) =>
@@ -212,6 +217,7 @@ describe('external statutory issuance durability', () => {
   });
 
   afterEach(() => {
+    resetOrgInvoicingSettingsForTests();
     setInvoicingIntegrationPersistenceReadyForTests(null);
     setStatutoryInvoicingProviderForTests(null);
     setCommittedPhaseRunnerForTests(null);

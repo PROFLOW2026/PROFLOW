@@ -75,7 +75,30 @@
     "title": "Нет внешнего налогового документа",
     "body": "После подключения провайдера вы сможете запросить юридический документ для завершённой записи выставления счёта."
   },
+  "documentKinds": {
+    "receipt": "Квитанция {number}",
+    "tax_invoice_receipt": "Счёт-фактура/квитанция {number}",
+    "transaction_invoice": "Счёт на сделку {number}"
+  },
+  "payment": {
+    "received": "Платёж получен",
+    "receiptPending": "Квитанция ожидает выпуска",
+    "receiptIssued": "Квитанция выпущена"
+  },
   "settings": {
+    "title": "Счета и квитанции",
+    "modeLabel": "Режим налоговых документов",
+    "modeManual": "Только вручную — выставление и сбор без внешнего провайдера",
+    "modeExternal": "Внешний провайдер — налоговые документы через SUMIT",
+    "policyLabel": "Политика документов при оплате",
+    "policySplit": "Счёт-фактура, затем квитанция при оплате",
+    "policyCombined": "Объединённый счёт/квитанция при оплате",
+    "policyTransaction": "Счёт на сделку до оплаты (опционально)",
+    "receiptIssuanceLabel": "Выпуск квитанции",
+    "receiptAutomatic": "Автоматически после подтверждённого платежа",
+    "receiptManual": "Только вручную",
+    "save": "Сохранить настройки",
+    "saved": "Настройки сохранены",
     "sumitTitle": "SUMIT (test environment)",
     "sumitDescription": "Connect your SUMIT Test Configuration account. Production is not available in this release.",
     "companyId": "Company ID",
@@ -107,6 +130,9 @@
     "cancelUnsupported": "Этот провайдер не поддерживает отмену.",
     "sendEmailRequired": "Требуется email получателя.",
     "shareInvalid": "Недействительная ссылка.",
-    "shareExpired": "Ссылка истекла."
+    "shareExpired": "Ссылка истекла.",
+    "manualModeActive": "Активен ручной режим — внешний провайдер не требуется.",
+    "paymentVoid": "Нельзя выпустить квитанцию для аннулированного платежа.",
+    "invalidDocumentKind": "Этот тип налогового документа не поддерживается для данного действия."
   }
 }

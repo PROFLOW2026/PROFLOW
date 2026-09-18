@@ -75,7 +75,30 @@
     "title": "لا يوجد مستند قانوني خارجي",
     "body": "بعد ربط المزود، يمكنك طلب مستند قانوني لسجل فوترة منتهٍ."
   },
+  "documentKinds": {
+    "receipt": "إيصال {number}",
+    "tax_invoice_receipt": "فاتورة ضريبية/إيصال {number}",
+    "transaction_invoice": "فاتورة معاملة {number}"
+  },
+  "payment": {
+    "received": "تم استلام الدفعة",
+    "receiptPending": "الإيصال بانتظار الإصدار",
+    "receiptIssued": "تم إصدار الإيصال"
+  },
   "settings": {
+    "title": "الفواتير والإيصالات",
+    "modeLabel": "وضع المستندات القانونية",
+    "modeManual": "يدوي فقط — فوترة وتحصيل بدون مزود خارجي",
+    "modeExternal": "مزود خارجي — مستندات قانونية عبر SUMIT",
+    "policyLabel": "سياسة المستندات عند الدفع",
+    "policySplit": "فاتورة ضريبية ثم إيصال عند الدفع",
+    "policyCombined": "فاتورة ضريبية/إيصال مجمّعة عند الدفع",
+    "policyTransaction": "فاتورة معاملة قبل الدفع (اختياري)",
+    "receiptIssuanceLabel": "إصدار الإيصال",
+    "receiptAutomatic": "تلقائي بعد تأكيد الدفع",
+    "receiptManual": "يدوي فقط",
+    "save": "حفظ الإعدادات",
+    "saved": "تم حفظ الإعدادات",
     "sumitTitle": "SUMIT (test environment)",
     "sumitDescription": "Connect your SUMIT Test Configuration account. Production is not available in this release.",
     "companyId": "Company ID",
@@ -107,6 +130,9 @@
     "cancelUnsupported": "هذا المزود لا يدعم الإلغاء.",
     "sendEmailRequired": "البريد الإلكتروني للمستلم مطلوب.",
     "shareInvalid": "رابط المشاركة غير صالح.",
-    "shareExpired": "انتهت صلاحية رابط المشاركة."
+    "shareExpired": "انتهت صلاحية رابط المشاركة.",
+    "manualModeActive": "الوضع اليدوي مفعّل — لا يلزم مزود خارجي للعمليات.",
+    "paymentVoid": "لا يمكن إصدار إيصال لدفعة ملغاة.",
+    "invalidDocumentKind": "نوع المستند القانوني غير مدعوم لهذا الإجراء."
   }
 }

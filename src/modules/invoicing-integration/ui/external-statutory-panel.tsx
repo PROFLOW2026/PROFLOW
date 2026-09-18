@@ -83,6 +83,12 @@ export function ExternalStatutoryPanel({
   const [storageLocationUrl, setStorageLocationUrl] = useState<string | null>(null);
 
   const taxInvoice = documents.find((doc) => doc.kind === 'tax_invoice') ?? null;
+  const linkedDocuments = documents.filter(
+    (doc) =>
+      doc.kind === 'receipt' ||
+      doc.kind === 'tax_invoice_receipt' ||
+      doc.kind === 'transaction_invoice',
+  );
   const issued = taxInvoice?.issuanceOutcome === 'confirmed_created' && Boolean(taxInvoice.externalId);
   const blocking =
     taxInvoice &&
@@ -410,6 +416,45 @@ export function ExternalStatutoryPanel({
 
         {blocking && taxInvoice?.issuanceOutcome === 'confirmed_created' ? (
           <p className="text-sm text-[var(--pf-text-secondary)]">{t('errors.duplicateIssuanceBlocked')}</p>
+        ) : null}
+
+        {linkedDocuments.length > 0 ? (
+          <div className="mt-4 flex flex-col gap-3">
+            {linkedDocuments.map((doc) => {
+              const docIssued =
+                doc.issuanceOutcome === 'confirmed_created' && Boolean(doc.externalId);
+              return (
+                <div
+                  key={doc.id}
+                  className="rounded-lg border border-[var(--pf-border-default)] p-4"
+                >
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="font-medium">
+                      {t(`documentKinds.${doc.kind}`, {
+                        number: doc.externalNumber ?? '—',
+                      })}
+                    </p>
+                    {docIssued ? <Badge tone="success">{t('issued.badge')}</Badge> : null}
+                    {doc.issuanceOutcome === 'in_flight' || doc.issuanceOutcome === 'ambiguous' ? (
+                      <Badge tone="warning">{t('payment.receiptPending')}</Badge>
+                    ) : null}
+                  </div>
+                  {docIssued ? (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <Button asChild type="button" variant="secondary" size="sm">
+                        <a href={pdfUrl(doc.id, 'inline')} target="_blank" rel="noreferrer">
+                          {t('actions.viewPdf')}
+                        </a>
+                      </Button>
+                      <Button asChild type="button" variant="secondary" size="sm">
+                        <a href={pdfUrl(doc.id, 'attachment')}>{t('actions.downloadPdf')}</a>
+                      </Button>
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
         ) : null}
       </CardContent>
 

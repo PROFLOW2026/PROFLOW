@@ -23,7 +23,8 @@ import {
 } from '../../domain/types';
 import {
   buildSumitCreatePayload,
-  SUMIT_DOCUMENT_TYPE_INVOICE,
+  isSumitTransactionInvoiceSupported,
+  resolveSumitDocumentType,
 } from './sumit-create-payload';
 import {
   createSumitHttpClient,
@@ -126,11 +127,36 @@ export class SumitStatutoryProvider implements StatutoryInvoicingProvider {
       };
     }
 
+    if (
+      (input.kind === 'receipt' || input.kind === 'tax_invoice_receipt') &&
+      !input.payment?.paymentId
+    ) {
+      return {
+        ok: false,
+        errorCode: 'invalid_billing_state',
+        message: 'Receipt statutory documents require a confirmed payment snapshot',
+      };
+    }
+
+    if (input.kind === 'transaction_invoice' && !isSumitTransactionInvoiceSupported()) {
+      return {
+        ok: false,
+        errorCode: 'unsupported',
+        message: 'SUMIT transaction invoice (ProformaInvoice) is not supported',
+      };
+    }
+
     try {
+      const documentType = resolveSumitDocumentType(input.kind);
       const response = await this.client.createDocument({
-        documentType: SUMIT_DOCUMENT_TYPE_INVOICE,
+        documentType,
         externalReference: input.idempotencyKey,
-        payload: buildSumitCreatePayload(input.billing),
+        payload: buildSumitCreatePayload({
+          billing: input.billing,
+          kind: input.kind,
+          payment: input.payment ?? null,
+          linkedTaxInvoiceExternalId: input.linkedTaxInvoiceExternalId ?? null,
+        }),
       });
 
       const documentId = response.documentId!;

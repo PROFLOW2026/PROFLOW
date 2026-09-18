@@ -1,5 +1,10 @@
 import type { ProviderAmountSnapshot } from './reconcile-external-amounts';
-import type { BillingRecordBridgeRef, ExternalDocumentKind, ExternalPdfMetadata } from './types';
+import type {
+  BillingRecordBridgeRef,
+  ExternalDocumentKind,
+  ExternalPdfMetadata,
+  StatutoryPaymentSnapshot,
+} from './types';
 
 /**
  * Pluggable statutory invoicing provider (doc 28 AccountingConnector style).
@@ -28,6 +33,10 @@ export interface CreateExternalDocumentInput {
   readonly billing: BillingRecordBridgeRef;
   readonly kind: ExternalDocumentKind;
   readonly idempotencyKey: string;
+  /** Required for receipt / combined-on-payment kinds. */
+  readonly payment?: StatutoryPaymentSnapshot | null;
+  /** SUMIT OriginalDocumentID when issuing receipt after tax invoice. */
+  readonly linkedTaxInvoiceExternalId?: string | null;
 }
 
 export interface CreateExternalDocumentOutput {

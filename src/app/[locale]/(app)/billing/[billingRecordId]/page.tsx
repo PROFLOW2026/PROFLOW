@@ -26,6 +26,7 @@ import { Link } from '@/shared/i18n/navigation';
 import { formatBusinessDate } from '@/shared/dates/format';
 import { notFound } from 'next/navigation';
 import { PrepareMessageLink } from '@/modules/communications/ui/prepare-message-link';
+import { isExternalStatutoryUiEnabled } from '@/modules/invoicing-integration/application/assert-feature-enabled';
 import {
   getStatutoryProviderStatus,
   listExternalStatutoryDocumentsForBilling,
@@ -68,6 +69,7 @@ export default async function BillingDetailPage({
   let statutoryProviderStatus: Awaited<ReturnType<typeof getStatutoryProviderStatus>> | null =
     null;
   let primaryStorageProvider: StorageProviderKey | null = null;
+  let showExternalStatutory = false;
 
   try {
     const result = await withOrgContext(async (context) => {
@@ -84,6 +86,7 @@ export default async function BillingDetailPage({
           billingRecordId,
         }).catch(() => []),
         statutoryProviderStatus: getStatutoryProviderStatus(context, provider),
+        showExternalStatutory: await isExternalStatutoryUiEnabled(context, provider),
         primaryStorage: await getOrganizationPrimaryStorage(context),
       };
     });
@@ -95,6 +98,7 @@ export default async function BillingDetailPage({
     externalDocuments = result.externalDocuments;
     statutoryProviderStatus = result.statutoryProviderStatus;
     primaryStorageProvider = result.primaryStorage?.provider ?? null;
+    showExternalStatutory = result.showExternalStatutory;
   } catch {
     notFound();
   }
@@ -141,7 +145,7 @@ export default async function BillingDetailPage({
       />
       <p className="text-xs text-[var(--pf-text-muted)]">{t('statutoryDisclosure')}</p>
 
-      {statutoryProviderStatus ? (
+      {statutoryProviderStatus && showExternalStatutory ? (
         <ExternalStatutoryPanel
           billingRecordId={record.id}
           billingStatus={record.status}

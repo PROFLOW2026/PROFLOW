@@ -223,7 +223,19 @@ export async function createPaymentAction(
       notes: formData.get('notes') ? String(formData.get('notes')) : null,
     };
 
-    const result = await withOrgContext((context) => recordPayment(context, input));
+    const result = await withOrgContext(async (context) => {
+      const paymentResult = await recordPayment(context, input);
+      const { scheduleStatutoryAfterPayment } = await import(
+        '@/modules/invoicing-integration/application/trigger-statutory-after-payment'
+      );
+      scheduleStatutoryAfterPayment(
+        context.userId,
+        context.organizationId,
+        paymentResult.paymentId,
+        input.billingRecordId,
+      );
+      return paymentResult;
+    });
     revalidatePath(`/billing/${result.billingRecord.id}`);
     revalidatePath('/billing');
     if (result.billingRecord.projectId) {

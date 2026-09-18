@@ -72,6 +72,7 @@ export async function createExternalDocument(
   context: OrgContext,
   input: {
     billingRecordId: string;
+    paymentId?: string | null;
     providerId: string;
     kind: ExternalDocumentKind;
     status?: ExternalDocumentStatus;
@@ -99,6 +100,7 @@ export async function createExternalDocument(
     const insert: ExternalDocumentInsert = {
       organizationId: context.organizationId,
       billingRecordId: input.billingRecordId,
+      paymentId: input.paymentId ?? null,
       providerId: input.providerId,
       kind: input.kind,
       status: input.status,

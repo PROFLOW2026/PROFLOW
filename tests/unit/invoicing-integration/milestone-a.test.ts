@@ -3,6 +3,10 @@ import type { OrgContext } from '@/shared/auth/context';
 import { DomainRuleError } from '@/shared/errors';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import {
+  enableExternalProviderSettingsForTests,
+  resetOrgInvoicingSettingsForTests,
+} from './test-external-provider-settings';
+import {
   ScriptedStatutoryProvider,
   assertIssuanceEligible,
   buildStatutoryIdempotencyKey,
@@ -70,12 +74,14 @@ function bridge(overrides: Partial<BillingRecordBridgeRef> = {}): BillingRecordB
 
 describe('SUMIT Milestone A invariants', () => {
   beforeEach(() => {
+    enableExternalProviderSettingsForTests();
     setInvoicingIntegrationPersistenceReadyForTests(false);
     resetExternalDocumentsStoreForTests();
     setStatutoryInvoicingProviderForTests(new ScriptedStatutoryProvider());
   });
 
   afterEach(() => {
+    resetOrgInvoicingSettingsForTests();
     setInvoicingIntegrationPersistenceReadyForTests(null);
     setStatutoryInvoicingProviderForTests(null);
   });

@@ -3,6 +3,10 @@ import type { OrgContext } from '@/shared/auth/context';
 import { DomainRuleError } from '@/shared/errors';
 import { PERMISSIONS, type PermissionKey } from '@/shared/permissions/catalog';
 import {
+  enableExternalProviderSettingsForTests,
+  resetOrgInvoicingSettingsForTests,
+} from './test-external-provider-settings';
+import {
   ScriptedStatutoryProvider,
   UnconfiguredStatutoryProvider,
   allocateExternalStatutoryReference,
@@ -87,12 +91,14 @@ function assertAdapterSurface(provider: StatutoryInvoicingProvider): void {
 
 describe('StatutoryInvoicingProvider adapter contract', () => {
   beforeEach(() => {
+    enableExternalProviderSettingsForTests();
     setInvoicingIntegrationPersistenceReadyForTests(false);
     resetExternalDocumentsStoreForTests();
     setStatutoryInvoicingProviderForTests(null);
   });
 
   afterEach(() => {
+    resetOrgInvoicingSettingsForTests();
     setInvoicingIntegrationPersistenceReadyForTests(null);
   });
 

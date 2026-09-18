@@ -89,7 +89,30 @@
       "not_available": "לא זמין מהספק"
     }
   },
+  "documentKinds": {
+    "receipt": "קבלה {number}",
+    "tax_invoice_receipt": "חשבונית מס/קבלה {number}",
+    "transaction_invoice": "חשבונית עסקה {number}"
+  },
+  "payment": {
+    "received": "תשלום התקבל",
+    "receiptPending": "קבלה ממתינה להפקה",
+    "receiptIssued": "קבלה הונפקה"
+  },
   "settings": {
+    "title": "ניהול חשבוניות וקבלות",
+    "modeLabel": "מצב ניהול מסמכים",
+    "modeManual": "ידני בלבד — ניהול חיובים וגבייה ללא ספק חיצוני",
+    "modeExternal": "ספק חיצוני — הנפקת מסמכים סטטוטוריים דרך SUMIT",
+    "policyLabel": "מדיניות מסמכים בעת תשלום",
+    "policySplit": "חשבונית מס ולאחר תשלום קבלה",
+    "policyCombined": "חשבונית מס/קבלה בעת קבלת התשלום",
+    "policyTransaction": "חשבונית עסקה לפני התשלום (אופציונלי)",
+    "receiptIssuanceLabel": "הפקת קבלה",
+    "receiptAutomatic": "אוטומטית לאחר תשלום מאושר",
+    "receiptManual": "ידנית בלבד",
+    "save": "שמירת הגדרות",
+    "saved": "ההגדרות נשמרו",
     "sumitTitle": "SUMIT (סביבת בדיקות)",
     "sumitDescription": "חבר את חשבון Test Configuration של SUMIT להנפקת חשבוניות מס. Production אינו זמין בגרסה זו.",
     "companyId": "מזהה חברה",
@@ -122,6 +145,9 @@
     "cancelUnsupported": "ספק זה אינו תומך בביטול.",
     "sendEmailRequired": "יש להזין כתובת דוא״ל לנמען.",
     "shareInvalid": "קישור השיתוף אינו תקין.",
-    "shareExpired": "קישור השיתוף פג תוקף."
+    "shareExpired": "קישור השיתוף פג תוקף.",
+    "manualModeActive": "מצב ידני פעיל — חיבור ספק חיצוני אינו נדרש לניהול עסקי.",
+    "paymentVoid": "לא ניתן להנפיק קבלה עבור תשלום שבוטל.",
+    "invalidDocumentKind": "סוג מסמך סטטוטורי אינו נתמך לפעולה זו."
   }
 }

@@ -12,7 +12,7 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core';
 import { primaryId, updatedAt } from './_shared';
-import { billingRecords } from './billing';
+import { billingRecords, payments } from './billing';
 import { documents } from './documents';
 import { profiles } from './identity';
 import { organizations } from './tenancy';
@@ -30,6 +30,7 @@ export const externalStatutoryDocuments = pgTable(
       .notNull()
       .references(() => organizations.id, { onDelete: 'cascade' }),
     billingRecordId: uuid('billing_record_id').notNull(),
+    paymentId: uuid('payment_id'),
     providerId: text('provider_id').notNull(),
     kind: text('kind').notNull(),
     status: text('status').notNull(),
@@ -67,7 +68,7 @@ export const externalStatutoryDocuments = pgTable(
     ),
     check(
       'external_statutory_documents_kind_known',
-      sql`${table.kind} IN ('tax_invoice', 'credit_note', 'receipt', 'proforma', 'other')`,
+      sql`${table.kind} IN ('tax_invoice', 'credit_note', 'receipt', 'proforma', 'other', 'tax_invoice_receipt', 'transaction_invoice')`,
     ),
     check(
       'external_statutory_documents_status_known',
@@ -86,6 +87,24 @@ export const externalStatutoryDocuments = pgTable(
       .where(
         sql`${table.kind} = 'tax_invoice' AND ${table.issuanceOutcome} IN ('in_flight', 'ambiguous', 'confirmed_created')`,
       ),
+    uniqueIndex('idx_ext_stat_docs_blocking_receipt_payment_uq')
+      .on(table.organizationId, table.paymentId)
+      .where(
+        sql`${table.kind} = 'receipt' AND ${table.paymentId} IS NOT NULL AND ${table.issuanceOutcome} IN ('in_flight', 'ambiguous', 'confirmed_created')`,
+      ),
+    uniqueIndex('idx_ext_stat_docs_blocking_tax_invoice_receipt_payment_uq')
+      .on(table.organizationId, table.paymentId)
+      .where(
+        sql`${table.kind} = 'tax_invoice_receipt' AND ${table.paymentId} IS NOT NULL AND ${table.issuanceOutcome} IN ('in_flight', 'ambiguous', 'confirmed_created')`,
+      ),
+    uniqueIndex('idx_ext_stat_docs_blocking_transaction_invoice_uq')
+      .on(table.organizationId, table.billingRecordId, table.kind)
+      .where(
+        sql`${table.kind} = 'transaction_invoice' AND ${table.issuanceOutcome} IN ('in_flight', 'ambiguous', 'confirmed_created')`,
+      ),
+    index('idx_ext_stat_docs_org_payment')
+      .on(table.organizationId, table.paymentId)
+      .where(sql`${table.paymentId} IS NOT NULL`),
     uniqueIndex('idx_ext_stat_docs_org_idempotency_uq')
       .on(table.organizationId, table.idempotencyKey)
       .where(sql`${table.idempotencyKey} is not null`),
@@ -98,6 +117,11 @@ export const externalStatutoryDocuments = pgTable(
       columns: [table.billingRecordId, table.organizationId],
       foreignColumns: [billingRecords.id, billingRecords.organizationId],
     }).onDelete('cascade'),
+    foreignKey({
+      name: 'external_statutory_documents_payment_org_fk',
+      columns: [table.paymentId, table.organizationId],
+      foreignColumns: [payments.id, payments.organizationId],
+    }).onDelete('set null'),
     foreignKey({
       name: 'external_statutory_documents_pdf_doc_org_fk',
       columns: [table.pdfStorageDocumentId, table.organizationId],

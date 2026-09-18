@@ -10,6 +10,7 @@ function doc(partial: Partial<ExternalStatutoryDocument>): ExternalStatutoryDocu
     id: 'doc-id',
     organizationId: 'org-id',
     billingRecordId: 'billing-id',
+    paymentId: null,
     providerId: 'sumit',
     kind: 'tax_invoice',
     status: 'issued',

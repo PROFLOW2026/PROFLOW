@@ -41,6 +41,7 @@ export function resetExternalDocumentsStoreForTests(): void {
 export function createExternalDocumentRow(input: {
   organizationId: string;
   billingRecordId: string;
+  paymentId?: string | null;
   providerId: string;
   kind: ExternalDocumentKind;
   status?: ExternalDocumentStatus;
@@ -62,6 +63,7 @@ export function createExternalDocumentRow(input: {
     id: randomUUID(),
     organizationId: input.organizationId,
     billingRecordId: input.billingRecordId,
+    paymentId: input.paymentId ?? null,
     providerId: input.providerId,
     kind: input.kind,
     status: input.status ?? 'requested',

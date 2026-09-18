@@ -89,7 +89,30 @@
       "not_available": "Not available from provider"
     }
   },
+  "documentKinds": {
+    "receipt": "Receipt {number}",
+    "tax_invoice_receipt": "Tax invoice / receipt {number}",
+    "transaction_invoice": "Transaction invoice {number}"
+  },
+  "payment": {
+    "received": "Payment received",
+    "receiptPending": "Receipt pending issuance",
+    "receiptIssued": "Receipt issued"
+  },
   "settings": {
+    "title": "Invoices and receipts",
+    "modeLabel": "Statutory document mode",
+    "modeManual": "Manual only — billing and collections without an external provider",
+    "modeExternal": "External provider — statutory documents via SUMIT",
+    "policyLabel": "Payment document policy",
+    "policySplit": "Tax invoice, then receipt on payment",
+    "policyCombined": "Combined tax invoice/receipt on payment",
+    "policyTransaction": "Transaction invoice before payment (optional)",
+    "receiptIssuanceLabel": "Receipt issuance",
+    "receiptAutomatic": "Automatic after confirmed payment",
+    "receiptManual": "Manual only",
+    "save": "Save settings",
+    "saved": "Settings saved",
     "sumitTitle": "SUMIT (test environment)",
     "sumitDescription": "Connect your SUMIT Test Configuration account to issue tax invoices. Production is not available in this release.",
     "companyId": "Company ID",
@@ -122,6 +145,9 @@
     "cancelUnsupported": "This provider does not support cancellation.",
     "sendEmailRequired": "Recipient email is required.",
     "shareInvalid": "Share link is invalid.",
-    "shareExpired": "Share link has expired."
+    "shareExpired": "Share link has expired.",
+    "manualModeActive": "Manual mode is active — no external provider is required for business operations.",
+    "paymentVoid": "Cannot issue a receipt for a void payment.",
+    "invalidDocumentKind": "This statutory document kind is not supported for this action."
   }
 }

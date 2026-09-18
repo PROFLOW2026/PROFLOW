@@ -75,10 +75,11 @@ export function buildStatutoryBridgeFromBillingRecord(
   context: Pick<OrgContext, 'organizationId'>,
   billing: BillingRecordDetail,
   kind: ExternalDocumentKind = 'tax_invoice',
+  paymentId?: string | null,
 ): { bridge: BillingRecordBridgeRef; idempotencyKey: string } {
   const customerSnapshot = assertBillingHasCustomerSnapshot(billing);
   const vatMode = resolveVatMode(billing);
-  const idempotencyKey = buildStatutoryIdempotencyKey(billing.id, kind);
+  const idempotencyKey = buildStatutoryIdempotencyKey(billing.id, kind, paymentId);
 
   return {
     idempotencyKey,
@@ -101,7 +102,7 @@ export function buildStatutoryBridgeFromBillingRecord(
       issueDate: billing.issueDate,
       dueDate: billing.dueDate,
       notes: billing.notes,
-      externalReference: buildStatutoryExternalReference(billing.id, kind),
+      externalReference: buildStatutoryExternalReference(billing.id, kind, paymentId),
     },
   };
 }

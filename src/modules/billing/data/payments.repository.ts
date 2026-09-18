@@ -41,6 +41,7 @@ export interface PaymentRecordRow {
   readonly billingRecordId: string | null;
   readonly clientId: string | null;
   readonly amount: string;
+  readonly amountBasis: 'net' | 'gross' | null;
   readonly currency: string;
   readonly status: PaymentRecordStatus;
   readonly paymentDate: string;
@@ -152,6 +153,7 @@ export async function findPaymentById(
       billingRecordId: payments.billingRecordId,
       clientId: payments.clientId,
       amount: payments.amount,
+      amountBasis: payments.amountBasis,
       currency: payments.currency,
       status: payments.status,
       paymentDate: payments.paymentDate,

@@ -60,7 +60,7 @@ function demoBridge(): BillingRecordBridgeRef {
 
 describe('SUMIT create payload shape', () => {
   it('matches OpenAPI Accounting_Documents_Create_Request nesting', () => {
-    const payload = buildSumitCreatePayload(demoBridge());
+    const payload = buildSumitCreatePayload({ billing: demoBridge(), kind: 'tax_invoice' });
     const externalReference = buildStatutoryIdempotencyKey(BILLING_ID, 'tax_invoice');
     const requestBody = assembleSumitCreateRequestBody(payload, externalReference);
 
