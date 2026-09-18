@@ -19,6 +19,7 @@ import { ProcurementSectionNav } from '../../procurement-section-nav';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
 
+import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
 export async function generateMetadata({
   params,
 }: {
@@ -146,7 +147,7 @@ export default async function VendorCreditsPage() {
                       </TableCell>
                       <TableCell>
                         <span dir="ltr">
-                          {new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
+                          {intlDateTimeFormat(locale, { dateStyle: 'medium' }).format(
                             new Date(credit.creditDate),
                           )}
                         </span>
@@ -178,7 +179,7 @@ export default async function VendorCreditsPage() {
               </p>
               <MoneyText value={money(credit.amount, credit.currency)} />
               <p className="text-xs text-[var(--pf-text-muted)]" dir="ltr">
-                {new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
+                {intlDateTimeFormat(locale, { dateStyle: 'medium' }).format(
                   new Date(credit.creditDate),
                 )}
               </p>

@@ -14,6 +14,7 @@ import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { textNavLinkMutedClassName } from '@/components/ui/pressable';
 
+import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
 export async function generateMetadata({
   params,
 }: {
@@ -101,7 +102,7 @@ export default async function ApAgingPage({
         meta={
           <span className="text-xs text-[var(--pf-text-muted)]" dir="ltr">
             {t('aging.asOf', {
-              date: new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
+              date: intlDateTimeFormat(locale, { dateStyle: 'medium' }).format(
                 new Date(aging.asOf),
               ),
             })}

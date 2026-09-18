@@ -1,5 +1,6 @@
 'use client';
 
+import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
 import {
   CheckCircle2,
   ClipboardList,
@@ -71,7 +72,7 @@ function presentationShape(presentation: TimelinePresentation): StatusShape | nu
 function formatOccurredAt(iso: string, locale: string): string {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return iso;
-  return new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' }).format(date);
+  return intlDateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' }).format(date);
 }
 
 export interface ClientTimelineProps {

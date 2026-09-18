@@ -7,6 +7,7 @@ import { StatusBadge } from '@/components/ui/status-badge';
 import { DocumentPreviewDialog } from '@/modules/documents/ui/document-preview-dialog';
 import { documentTypeLabel } from '@/modules/ocr/domain/israeli-normalize';
 import type { ExtractionJob, OcrDocumentTypeKey, OcrDraftTarget } from '@/modules/ocr/domain/types';
+import { resolveIntlLocale } from '@/shared/i18n/intl-locale';
 import { Link } from '@/shared/i18n/navigation';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
@@ -55,7 +56,7 @@ function HistoryRow({ job }: { job: ExtractionJob }) {
   const accepted = job.status === 'succeeded' || job.reviewStatus === 'accepted';
   const documentId = job.sourceDocument.documentId;
   const href = targetHref(job);
-  const when = new Date(job.updatedAt).toLocaleString(locale);
+  const when = new Date(job.updatedAt).toLocaleString(resolveIntlLocale(locale));
 
   return (
     <li

@@ -1,4 +1,5 @@
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
+import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
 import { AlertCircle, CheckCircle2, Clock, UserPlus } from 'lucide-react';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Link } from '@/shared/i18n/navigation';
@@ -8,10 +9,10 @@ interface AttendanceDailyRosterProps {
   readonly overview: TodayAttendanceOverview;
 }
 
-function formatStartTime(value: Date | null): string {
+function formatStartTime(value: Date | null, locale: string): string {
   if (!value) return '—';
   const date = value instanceof Date ? value : new Date(value);
-  return new Intl.DateTimeFormat(undefined, {
+  return intlDateTimeFormat(locale, {
     hour: '2-digit',
     minute: '2-digit',
   }).format(date);
@@ -23,7 +24,10 @@ function formatHours(hours: number | null): string {
 }
 
 export async function AttendanceDailyRoster({ overview }: AttendanceDailyRosterProps) {
-  const t = await getTranslations('workforce.attendance');
+  const [t, locale] = await Promise.all([
+    getTranslations('workforce.attendance'),
+    getLocale(),
+  ]);
 
   return (
     <section
@@ -102,7 +106,7 @@ export async function AttendanceDailyRoster({ overview }: AttendanceDailyRosterP
                       : '—'}
                 </td>
                 <td className="py-2 pe-3" dir="ltr">
-                  {formatStartTime(row.startTime)}
+                  {formatStartTime(row.startTime, locale)}
                 </td>
                 <td className="py-2 pe-3" dir="ltr">
                   {formatHours(row.hours)}

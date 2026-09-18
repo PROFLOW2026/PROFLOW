@@ -5,6 +5,7 @@ import { MoneyText } from '@/components/patterns/money-text';
 import { Alert } from '@/components/ui/alert';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
+import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
 import {
   getVendorCreditDetail,
   isRecognizedVendorBillStatus,
@@ -163,7 +164,7 @@ export default async function VendorCreditDetailPage({
         <div className="min-w-0">
           <p className="text-xs text-[var(--pf-text-muted)]">{t('credits.detail.creditDate')}</p>
           <p dir="ltr">
-            {new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
+            {intlDateTimeFormat(locale, { dateStyle: 'medium' }).format(
               new Date(credit.creditDate),
             )}
           </p>

@@ -7,6 +7,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
 import {
   SAFETY_RECORD_STATUSES,
   SAFETY_RECORD_TYPES,
@@ -222,7 +223,7 @@ export default async function SafetyPage({
                       </TableCell>
                       <TableCell>
                         <span className="pf-ltr-island" dir="ltr">
-                          {new Intl.DateTimeFormat(locale, {
+                          {intlDateTimeFormat(locale, {
                             dateStyle: 'medium',
                             timeStyle: 'short',
                           }).format(record.occurredAt)}

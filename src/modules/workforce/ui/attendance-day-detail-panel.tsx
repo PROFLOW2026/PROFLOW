@@ -1,4 +1,5 @@
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
+import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import type { AttendanceDayDetail } from '@/modules/workforce';
@@ -18,8 +19,8 @@ interface AttendanceDayDetailPanelProps {
   readonly canManage: boolean;
 }
 
-function formatInstant(value: Date): string {
-  return new Intl.DateTimeFormat(undefined, {
+function formatInstant(value: Date, locale: string): string {
+  return intlDateTimeFormat(locale, {
     dateStyle: 'short',
     timeStyle: 'short',
   }).format(value instanceof Date ? value : new Date(value));
@@ -29,7 +30,10 @@ export async function AttendanceDayDetailPanel({
   detail,
   canManage,
 }: AttendanceDayDetailPanelProps) {
-  const t = await getTranslations('workforce.attendance');
+  const [t, locale] = await Promise.all([
+    getTranslations('workforce.attendance'),
+    getLocale(),
+  ]);
 
   return (
     <section className="flex flex-col gap-4 rounded-lg border border-[var(--pf-border-default)] p-4 sm:p-6">
@@ -91,7 +95,7 @@ export async function AttendanceDayDetailPanel({
           <TableBody>
             {detail.events.map((event) => (
               <TableRow key={event.id} className={event.voidedAt ? 'opacity-50' : undefined}>
-                <TableCell>{formatInstant(event.occurredAt)}</TableCell>
+                <TableCell>{formatInstant(event.occurredAt, locale)}</TableCell>
                 <TableCell>
                   {t(`eventTypes.${event.eventType}`)}
                   {event.voidedAt ? ` (${t('events.voided')})` : ''}

@@ -1,5 +1,7 @@
 'use client';
 
+import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
+
 import { useActionState, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { MoneyInput } from '@/components/patterns/money-input';
@@ -79,7 +81,7 @@ export function VendorCreditPanel({
                 </Link>
                 {' · '}
                 <span dir="ltr">
-                  {new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
+                  {intlDateTimeFormat(locale, { dateStyle: 'medium' }).format(
                     new Date(row.creditDate),
                   )}
                 </span>

@@ -8,6 +8,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { getCatalogEntryById, localizePaymentTermName } from '@/modules/business-catalog';
+import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
 import {
   getApBillDetail,
   getBillPayablePosition,
@@ -252,7 +253,7 @@ export default async function ApBillDetailPage({
           <p>
             {bill.billDate ? (
               <span dir="ltr">
-                {new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
+                {intlDateTimeFormat(locale, { dateStyle: 'medium' }).format(
                   new Date(bill.billDate),
                 )}
               </span>
@@ -266,7 +267,7 @@ export default async function ApBillDetailPage({
           <p>
             {bill.dueDate ? (
               <span dir="ltr">
-                {new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
+                {intlDateTimeFormat(locale, { dateStyle: 'medium' }).format(
                   new Date(bill.dueDate),
                 )}
               </span>

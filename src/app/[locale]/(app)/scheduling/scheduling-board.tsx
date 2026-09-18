@@ -1,6 +1,7 @@
 'use client';
 
-import { useFormatter, useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
+import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
 import { ConfirmAction } from '@/components/patterns/confirm-action';
 import { Badge, type BadgeTone } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -47,7 +48,7 @@ function BookingCard({
   canManage: boolean;
 }) {
   const t = useTranslations('scheduling');
-  const format = useFormatter();
+  const locale = useLocale();
 
   return (
     <div className="rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-3">
@@ -57,9 +58,13 @@ function BookingCard({
         {booking.readOnly ? ` · ${t('readOnlyHint')}` : ''}
       </p>
       <p className="mt-1 pf-ltr-island text-sm text-[var(--pf-text-secondary)]" dir="ltr">
-        {format.dateTime(new Date(booking.startAt), { dateStyle: 'short', timeStyle: 'short' })}
+        {intlDateTimeFormat(locale, { dateStyle: 'short', timeStyle: 'short' }).format(
+          new Date(booking.startAt),
+        )}
         {' → '}
-        {format.dateTime(new Date(booking.endAt), { dateStyle: 'short', timeStyle: 'short' })}
+        {intlDateTimeFormat(locale, { dateStyle: 'short', timeStyle: 'short' }).format(
+          new Date(booking.endAt),
+        )}
       </p>
       <p className="mt-1 text-sm">{t('hours', { hours: formatHours(booking.plannedHours) })}</p>
       {canManage && booking.id && !booking.readOnly ? (
@@ -126,13 +131,17 @@ function DayCellBody({
   );
 }
 
-function formatDayLabel(date: string, format: ReturnType<typeof useFormatter>): string {
-  return format.dateTime(new Date(`${date}T12:00:00`), { weekday: 'short', month: 'short', day: 'numeric' });
+function formatDayLabel(date: string, locale: string): string {
+  return intlDateTimeFormat(locale, {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+  }).format(new Date(`${date}T12:00:00`));
 }
 
 export function SchedulingBoardView({ board }: { board: SchedulingBoard }) {
   const t = useTranslations('scheduling');
-  const format = useFormatter();
+  const locale = useLocale();
 
   return (
     <>
@@ -154,7 +163,7 @@ export function SchedulingBoardView({ board }: { board: SchedulingBoard }) {
                   key={day}
                   className="min-w-48 border-b border-[var(--pf-border-default)] p-3 text-start text-sm font-semibold"
                 >
-                  {formatDayLabel(day, format)}
+                  {formatDayLabel(day, locale)}
                 </th>
               ))}
             </tr>
@@ -186,7 +195,7 @@ function EmployeeMobileCard({
   row: BoardEmployeeRow;
   canManage: boolean;
 }) {
-  const format = useFormatter();
+  const locale = useLocale();
 
   return (
     <Card>
@@ -196,7 +205,7 @@ function EmployeeMobileCard({
       <CardContent className="flex flex-col gap-4">
         {row.days.map((cell) => (
           <div key={cell.date} className="flex flex-col gap-2 border-t border-[var(--pf-border-default)] pt-3 first:border-t-0 first:pt-0">
-            <p className="text-sm font-medium">{formatDayLabel(cell.date, format)}</p>
+            <p className="text-sm font-medium">{formatDayLabel(cell.date, locale)}</p>
             <DayCellBody cell={cell} canManage={canManage} />
           </div>
         ))}

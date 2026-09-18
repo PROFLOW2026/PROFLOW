@@ -1,6 +1,7 @@
 import { hasLocale } from 'next-intl';
 import { getRequestConfig } from 'next-intl/server';
 import { DEFAULT_LOCALE, type Locale } from './config';
+import { buildNextIntlFormats } from './intl-locale';
 import { pfGetMessageFallback } from './message-fallback';
 import { loadMessages } from './messages';
 import { routing } from './routing';
@@ -15,15 +16,6 @@ export default getRequestConfig(async ({ requestLocale }) => {
     getMessageFallback: pfGetMessageFallback,
     // Organization time zone overrides this per layout once a tenant is active.
     timeZone: 'Asia/Jerusalem',
-    formats: {
-      dateTime: {
-        short: { year: 'numeric', month: '2-digit', day: '2-digit' },
-        medium: { year: 'numeric', month: 'short', day: 'numeric' },
-      },
-      number: {
-        // Money columns need stable digit widths to scan vertically.
-        tabular: { useGrouping: true },
-      },
-    },
+    formats: buildNextIntlFormats(locale),
   };
 });

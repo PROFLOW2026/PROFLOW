@@ -1,3 +1,4 @@
+import { resolveIntlLocale } from '@/shared/i18n/intl-locale';
 import type { NamespaceTranslator } from '@/shared/i18n/namespace-translator';
 
 export interface EmployeeCredentialsShareInput {
@@ -12,7 +13,7 @@ export interface EmployeeCredentialsShareInput {
 export type CredentialsShareTranslator = NamespaceTranslator;
 
 export function formatCredentialExpiry(date: Date, locale = 'he-IL'): string {
-  return date.toLocaleString(locale, {
+  return date.toLocaleString(resolveIntlLocale(locale), {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',

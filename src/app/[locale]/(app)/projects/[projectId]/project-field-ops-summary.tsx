@@ -1,5 +1,6 @@
 import { getLocale, getTranslations } from 'next-intl/server';
 import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
+import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
 import {
   getProjectFieldOpsSummary,
   type InspectionStatus,
@@ -95,7 +96,7 @@ export async function ProjectFieldOpsSummaryPanel({ projectId }: { projectId: st
                 className={textNavLinkClassName}
               >
                 <span className="font-medium">
-                  {new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
+                  {intlDateTimeFormat(locale, { dateStyle: 'medium' }).format(
                     new Date(summary.latestLog.logDate),
                   )}
                 </span>

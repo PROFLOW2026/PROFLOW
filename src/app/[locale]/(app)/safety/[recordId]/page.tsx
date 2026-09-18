@@ -21,6 +21,7 @@ import { SafetyRecordForm } from '../safety-record-form';
 import { CorrectiveActionForm, CorrectiveActionStatusForm } from '../corrective-action-form';
 import { AcknowledgeAttendeeButton, ToolboxAttendeeForm } from '../toolbox-attendees-form';
 
+import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
 export async function generateMetadata({
   params,
 }: {
@@ -99,7 +100,7 @@ export default async function SafetyRecordDetailPage({
               label={t(`severity.${record.severity}`)}
             />
             <span className="pf-ltr-island text-sm text-[var(--pf-text-secondary)]" dir="ltr">
-              {new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' }).format(
+              {intlDateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' }).format(
                 record.occurredAt,
               )}
             </span>

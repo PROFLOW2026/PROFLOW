@@ -1,4 +1,5 @@
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
+import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
 import { Clock } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { pressableCardLinkClassName } from '@/components/ui/pressable';
@@ -13,10 +14,10 @@ interface AttendanceDaysTableProps {
   readonly days: readonly AttendanceDayListItem[];
 }
 
-function formatInstant(value: Date | null): string {
+function formatInstant(value: Date | null, locale: string): string {
   if (!value) return '-';
   const date = value instanceof Date ? value : new Date(value);
-  return new Intl.DateTimeFormat(undefined, {
+  return intlDateTimeFormat(locale, {
     hour: '2-digit',
     minute: '2-digit',
   }).format(date);
@@ -29,7 +30,10 @@ function dayShape(status: AttendanceDayListItem['status']) {
 }
 
 export async function AttendanceDaysTable({ days }: AttendanceDaysTableProps) {
-  const t = await getTranslations('workforce.attendance');
+  const [t, locale] = await Promise.all([
+    getTranslations('workforce.attendance'),
+    getLocale(),
+  ]);
 
   if (days.length === 0) {
     return (
@@ -71,8 +75,8 @@ export async function AttendanceDaysTable({ days }: AttendanceDaysTableProps) {
                     </Link>
                   </TableCell>
                   <TableCell>{day.employeeName}</TableCell>
-                  <TableCell>{formatInstant(day.clockInAt)}</TableCell>
-                  <TableCell>{formatInstant(day.clockOutAt)}</TableCell>
+                  <TableCell>{formatInstant(day.clockInAt, locale)}</TableCell>
+                  <TableCell>{formatInstant(day.clockOutAt, locale)}</TableCell>
                   <TableCell>
                     <StatusBadge shape={dayShape(day.status)} label={t(`dayStatus.${day.status}`)} />
                   </TableCell>
@@ -105,8 +109,8 @@ export async function AttendanceDaysTable({ days }: AttendanceDaysTableProps) {
               <StatusBadge shape={dayShape(day.status)} label={t(`dayStatus.${day.status}`)} />
             </div>
             <p className="mt-2 text-start text-sm text-[var(--pf-text-secondary)]">
-              {t('clock.in')}: {formatInstant(day.clockInAt)} · {t('clock.out')}:{' '}
-              {formatInstant(day.clockOutAt)}
+              {t('clock.in')}: {formatInstant(day.clockInAt, locale)} · {t('clock.out')}:{' '}
+              {formatInstant(day.clockOutAt, locale)}
             </p>
           </Link>
           <Link

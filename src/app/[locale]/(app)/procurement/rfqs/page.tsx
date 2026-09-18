@@ -16,6 +16,7 @@ import { ProcurementSectionNav } from '../procurement-section-nav';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
 
+import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
 export async function generateMetadata({
   params,
 }: {
@@ -117,7 +118,7 @@ export default async function RfqsPage() {
                       <TableCell>
                         {rfq.dueDate ? (
                           <span dir="ltr">
-                            {new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
+                            {intlDateTimeFormat(locale, { dateStyle: 'medium' }).format(
                               new Date(rfq.dueDate),
                             )}
                           </span>
@@ -127,7 +128,7 @@ export default async function RfqsPage() {
                       </TableCell>
                       <TableCell>
                         <span dir="ltr">
-                          {new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
+                          {intlDateTimeFormat(locale, { dateStyle: 'medium' }).format(
                             rfq.createdAt,
                           )}
                         </span>
@@ -152,7 +153,7 @@ export default async function RfqsPage() {
               </div>
               <p className="text-sm text-[var(--pf-text-secondary)]" dir={rfq.dueDate ? 'ltr' : undefined}>
                 {rfq.dueDate
-                  ? new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
+                  ? intlDateTimeFormat(locale, { dateStyle: 'medium' }).format(
                       new Date(rfq.dueDate),
                     )
                   : t('rfq.noDueDate')}

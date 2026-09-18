@@ -2,6 +2,7 @@
 
 import { NextIntlClientProvider } from 'next-intl';
 import type { ReactNode } from 'react';
+import { buildNextIntlFormats } from '@/shared/i18n/intl-locale';
 import { pfGetMessageFallback } from '@/shared/i18n/message-fallback';
 
 /**
@@ -21,6 +22,7 @@ export function IntlClientProvider({
     <NextIntlClientProvider
       locale={locale}
       messages={messages}
+      formats={buildNextIntlFormats(locale)}
       timeZone="Asia/Jerusalem"
       getMessageFallback={pfGetMessageFallback}
     >

@@ -24,6 +24,7 @@ import { ReportsEntryLink } from '@/modules/financials/ui/reports-entry-link';
 import { SavedListViewsBar } from '@/modules/tenancy/ui/saved-list-views-bar';
 import { ApBillTaxSummary } from '@/modules/ap/ui/ap-bill-tax-summary';
 
+import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
 export async function generateMetadata({
   params,
 }: {
@@ -252,7 +253,7 @@ export default async function ApBillsPage({
                       <TableCell>
                         {bill.billDate ? (
                           <span dir="ltr">
-                            {new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
+                            {intlDateTimeFormat(locale, { dateStyle: 'medium' }).format(
                               new Date(bill.billDate),
                             )}
                           </span>
@@ -268,7 +269,7 @@ export default async function ApBillsPage({
                               ? 'text-[var(--pf-status-danger-fg)] font-medium'
                               : ''
                           }>
-                            {new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
+                            {intlDateTimeFormat(locale, { dateStyle: 'medium' }).format(
                               new Date(bill.dueDate),
                             )}
                           </span>
@@ -309,7 +310,7 @@ export default async function ApBillsPage({
               />
               {bill.billDate ? (
                 <p className="text-xs text-[var(--pf-text-muted)]" dir="ltr">
-                  {new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
+                  {intlDateTimeFormat(locale, { dateStyle: 'medium' }).format(
                     new Date(bill.billDate),
                   )}
                 </p>
@@ -322,7 +323,7 @@ export default async function ApBillsPage({
                       : 'text-[var(--pf-text-muted)]'
                   )
                 } dir="ltr">
-                  {t('list.columns.dueDate')}: {new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
+                  {t('list.columns.dueDate')}: {intlDateTimeFormat(locale, { dateStyle: 'medium' }).format(
                     new Date(bill.dueDate),
                   )}
                 </p>

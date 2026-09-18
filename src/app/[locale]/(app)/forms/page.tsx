@@ -6,6 +6,7 @@ import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
 import { Button } from '@/components/ui/button';
 import { Link } from '@/shared/i18n/navigation';
 import { textNavLinkClassName } from '@/components/ui/pressable';
+import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
 import {
   FORM_OWNER_TYPES,
   FORM_SUBMISSION_STATUSES,
@@ -122,7 +123,7 @@ export default async function FormsListPage({
                   label={t(`status.${submission.status}`)}
                 />
                 <time dateTime={submission.updatedAt.toISOString()}>
-                  {new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
+                  {intlDateTimeFormat(locale, { dateStyle: 'medium' }).format(
                     submission.updatedAt,
                   )}
                 </time>

@@ -1,5 +1,7 @@
 'use client';
 
+import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
+
 import { useActionState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { Columns3, Table2 } from 'lucide-react';
@@ -34,7 +36,7 @@ function NextActionBadge({
   const urgency = nextActionUrgency(nextActionAt);
   const dueLabel =
     nextActionAt != null && nextActionAt !== ''
-      ? new Intl.DateTimeFormat(locale, {
+      ? intlDateTimeFormat(locale, {
           year: 'numeric',
           month: 'short',
           day: 'numeric',

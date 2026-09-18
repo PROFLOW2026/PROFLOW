@@ -1,4 +1,5 @@
 import { getBoqFinancialComparison, getFieldMeasureWorkspace, percentComplete } from '@/modules/boq';
+import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
 import {
   getProjectCommercialSummary,
   listProjectChangeRequests,
@@ -132,12 +133,12 @@ function identityFromChrome(companyName: string, chrome: ProjectDetailChrome): R
 }
 
 function formatInstant(value: Date, locale: string): string {
-  return new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' }).format(value);
+  return intlDateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' }).format(value);
 }
 
 function formatDay(value: string | null | undefined, locale: string): string {
   if (!value) return '-';
-  return new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(`${value}T00:00:00Z`));
+  return intlDateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(`${value}T00:00:00Z`));
 }
 
 async function loadProjectChrome(

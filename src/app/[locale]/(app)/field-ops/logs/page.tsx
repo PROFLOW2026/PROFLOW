@@ -17,6 +17,7 @@ import { FieldOpsSectionNav } from '../field-ops-section-nav';
 import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
 
+import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
 export async function generateMetadata({
   params,
 }: {
@@ -139,7 +140,7 @@ export default async function FieldOpsLogsPage({
                           className={cn(textNavLinkClassName, 'pf-ltr-island')}
                           dir="ltr"
                         >
-                          {new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
+                          {intlDateTimeFormat(locale, { dateStyle: 'medium' }).format(
                             new Date(log.logDate),
                           )}
                         </Link>

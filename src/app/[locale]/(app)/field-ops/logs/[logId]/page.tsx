@@ -21,6 +21,7 @@ import { isDailyLogLocked } from '@/modules/field-ops/domain/daily-log-status';
 import { textNavLinkClassName, textNavLinkMutedClassName } from '@/components/ui/pressable';
 import { ReportDownloadButtons } from '@/modules/reports/ui';
 
+import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
 export async function generateMetadata({
   params,
 }: {
@@ -109,7 +110,7 @@ export default async function DailyLogDetailPage({
     employeeNames,
     assetNames,
   } = data;
-  const dateLabel = new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
+  const dateLabel = intlDateTimeFormat(locale, { dateStyle: 'medium' }).format(
     new Date(log.logDate),
   );
   const incidentNotes = [log.incidents, log.safetyNotes].filter(Boolean).join('\n\n');

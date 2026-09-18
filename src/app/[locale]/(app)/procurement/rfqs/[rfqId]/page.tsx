@@ -7,6 +7,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
 import {
   getQuoteComparisonForRfq,
   getRfqDetail,
@@ -182,7 +183,7 @@ export default async function RfqDetailPage({
           <p className="text-sm text-[var(--pf-text-secondary)]">
             {t('rfq.dueDate')}:{' '}
             <span dir="ltr">
-              {new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(rfq.dueDate))}
+              {intlDateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(rfq.dueDate))}
             </span>
           </p>
         ) : null}
@@ -232,7 +233,7 @@ export default async function RfqDetailPage({
                         <TableCell>
                           {quote.receivedOn ? (
                             <span dir="ltr">
-                              {new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
+                              {intlDateTimeFormat(locale, { dateStyle: 'medium' }).format(
                                 new Date(quote.receivedOn),
                               )}
                             </span>
@@ -274,7 +275,7 @@ export default async function RfqDetailPage({
                 ) : null}
                 {quote.receivedOn ? (
                   <p className="text-xs text-[var(--pf-text-secondary)]" dir="ltr">
-                    {new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
+                    {intlDateTimeFormat(locale, { dateStyle: 'medium' }).format(
                       new Date(quote.receivedOn),
                     )}
                   </p>

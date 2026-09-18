@@ -1,3 +1,4 @@
+import { resolveIntlLocale } from '@/shared/i18n/intl-locale';
 import type { BusinessDate } from './dates';
 
 const dateFormatterCache = new Map<string, Intl.DateTimeFormat>();
@@ -6,7 +7,7 @@ function getFormatter(locale: string, options: Intl.DateTimeFormatOptions): Intl
   const key = `${locale}|${JSON.stringify(options)}`;
   let formatter = dateFormatterCache.get(key);
   if (!formatter) {
-    formatter = new Intl.DateTimeFormat(locale, options);
+    formatter = new Intl.DateTimeFormat(resolveIntlLocale(locale), options);
     dateFormatterCache.set(key, formatter);
   }
   return formatter;
