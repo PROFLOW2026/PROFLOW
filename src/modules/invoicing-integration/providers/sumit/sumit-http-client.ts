@@ -179,12 +179,19 @@ export function createSumitHttpClient(
     testConnection,
 
     async createDocument(input) {
+      const payload = input.payload;
+      const nestedDetails =
+        payload.Details && typeof payload.Details === 'object'
+          ? (payload.Details as Record<string, unknown>)
+          : {};
+      const { Details: _details, ...restPayload } = payload;
       const raw = await postJson<unknown>('/accounting/documents/create/', {
         DocumentType: input.documentType,
         Details: {
+          ...nestedDetails,
           ExternalReference: input.externalReference,
         },
-        ...input.payload,
+        ...restPayload,
       });
       const mapped = mapCreateResponse(raw);
       if (!mapped.documentId) {

@@ -12,7 +12,8 @@
     "featureDisabled": "External statutory invoicing is turned off until a provider is configured."
   },
   "actions": {
-    "requestDocument": "Request external document",
+    "requestDocument": "Request external tax invoice",
+    "viewInProvider": "View in SUMIT",
     "refreshStatus": "Refresh status",
     "credit": "Request credit note",
     "cancel": "Cancel external document",
@@ -37,7 +38,20 @@
   },
   "empty": {
     "title": "No external statutory document",
-    "body": "After the provider is connected, you can request a legal document for a finalized billing record."
+    "body": "After SUMIT is connected, you can request a tax invoice for a finalized billing record."
+  },
+  "reconciliation": {
+    "title": "Amount reconciliation",
+    "expectedNet": "Net (ProjectFlow)",
+    "expectedVat": "VAT (ProjectFlow)",
+    "expectedGross": "Gross (ProjectFlow)",
+    "mismatchBanner": "The invoice was issued in SUMIT but amounts do not match — review required.",
+    "status": {
+      "pending": "Pending comparison",
+      "matched": "Amounts match",
+      "mismatch": "Amount mismatch",
+      "not_available": "Not available from provider"
+    }
   },
   "settings": {
     "sumitTitle": "SUMIT (test environment)",
@@ -64,6 +78,7 @@
     "localIssuanceForbidden": "Local statutory invoice issuance is not allowed.",
     "orgMismatch": "Billing record does not belong to this organization.",
     "duplicateIssuanceBlocked": "An external statutory document is already in progress or issued for this billing record.",
+    "missingCustomerSnapshot": "This billing record has no frozen customer snapshot. Link a client to the project before finalizing.",
     "ambiguousIssuance": "The provider response was ambiguous. Do not retry — use recovery or contact support.",
     "providerFailed": "The external invoicing provider could not complete the request.",
     "missingExternalId": "This record has no external provider id yet.",

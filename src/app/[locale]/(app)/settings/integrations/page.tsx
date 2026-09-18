@@ -59,9 +59,9 @@ export default async function IntegrationsSettingsPage() {
           companyId={data.sumit.companyId}
           canManage={data.canManageSumit}
         />
-        {data.catalog.length === 0 ? (
+        {data.catalog.length === 0 && !data.sumit.connected ? (
           <EmptyState icon={Plug} title={t('empty.title')} description={t('empty.body')} />
-        ) : (
+        ) : data.catalog.length > 0 ? (
           <ul className="flex flex-col gap-3">
             {data.catalog.map((item) => (
               <li key={item.providerKey}>
@@ -77,7 +77,7 @@ export default async function IntegrationsSettingsPage() {
               </li>
             ))}
           </ul>
-        )}
+        ) : null}
       </div>
     </SettingsPageShell>
   );

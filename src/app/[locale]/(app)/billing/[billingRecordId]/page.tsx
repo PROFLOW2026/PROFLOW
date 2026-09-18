@@ -26,6 +26,12 @@ import { Link } from '@/shared/i18n/navigation';
 import { formatBusinessDate } from '@/shared/dates/format';
 import { notFound } from 'next/navigation';
 import { PrepareMessageLink } from '@/modules/communications/ui/prepare-message-link';
+import {
+  getStatutoryProviderStatus,
+  listExternalStatutoryDocumentsForBilling,
+} from '@/modules/invoicing-integration';
+import { resolveStatutoryProviderForOrg } from '@/modules/invoicing-integration/server';
+import { ExternalStatutoryPanel } from '@/modules/invoicing-integration/ui/external-statutory-panel';
 import { ReportDownloadButtons } from '@/modules/reports/ui';
 
 export async function generateMetadata({
@@ -54,22 +60,34 @@ export default async function BillingDetailPage({
   let documentsPanel: Awaited<ReturnType<typeof getEntityDocumentPanelData>> | null = null;
   let retentionReleases: Awaited<ReturnType<typeof listBillingRetentionReleases>> = [];
   let orgToday = '';
+  let externalDocuments: Awaited<ReturnType<typeof listExternalStatutoryDocumentsForBilling>> = [];
+  let statutoryProviderStatus: Awaited<ReturnType<typeof getStatutoryProviderStatus>> | null =
+    null;
 
   try {
-    const result = await withOrgContext(async (context) => ({
-      record: await getBillingRecord(context, billingRecordId),
-      canManage: hasPermission(context, PERMISSIONS.BILLING_MANAGE),
-      documentsPanel: await getEntityDocumentPanelData(context, 'billing_record', billingRecordId),
-      retentionReleases: await listBillingRetentionReleases(context, billingRecordId).catch(
-        () => [],
-      ),
-      orgToday: todayInTimeZone(context.organization.timezone),
-    }));
+    const result = await withOrgContext(async (context) => {
+      const provider = await resolveStatutoryProviderForOrg(context);
+      return {
+        record: await getBillingRecord(context, billingRecordId),
+        canManage: hasPermission(context, PERMISSIONS.BILLING_MANAGE),
+        documentsPanel: await getEntityDocumentPanelData(context, 'billing_record', billingRecordId),
+        retentionReleases: await listBillingRetentionReleases(context, billingRecordId).catch(
+          () => [],
+        ),
+        orgToday: todayInTimeZone(context.organization.timezone),
+        externalDocuments: await listExternalStatutoryDocumentsForBilling(context, {
+          billingRecordId,
+        }).catch(() => []),
+        statutoryProviderStatus: getStatutoryProviderStatus(context, provider),
+      };
+    });
     record = result.record;
     canManage = result.canManage;
     documentsPanel = result.documentsPanel;
     retentionReleases = result.retentionReleases;
     orgToday = result.orgToday;
+    externalDocuments = result.externalDocuments;
+    statutoryProviderStatus = result.statutoryProviderStatus;
   } catch {
     notFound();
   }
@@ -115,6 +133,17 @@ export default async function BillingDetailPage({
         }
       />
       <p className="text-xs text-[var(--pf-text-muted)]">{t('statutoryDisclosure')}</p>
+
+      {statutoryProviderStatus ? (
+        <ExternalStatutoryPanel
+          billingRecordId={record.id}
+          billingStatus={record.status}
+          canManage={canManage}
+          providerStatus={statutoryProviderStatus}
+          documents={externalDocuments}
+          hasCustomerSnapshot={Boolean(record.customerSnapshot?.name?.trim())}
+        />
+      ) : null}
 
       <RetentionPanel
         side="ar"

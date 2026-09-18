@@ -125,6 +125,10 @@ export {
   buildStatutoryIdempotencyKey,
 } from './domain/idempotency-key';
 export {
+  assertBillingHasCustomerSnapshot,
+  buildStatutoryBridgeFromBillingRecord,
+} from './application/build-statutory-bridge';
+export {
   reconcileExternalAmounts,
   type ProviderAmountSnapshot,
   type ReconciliationResult,

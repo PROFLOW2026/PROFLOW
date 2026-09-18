@@ -12,7 +12,8 @@
     "featureDisabled": "הנפקה סטטוטורית חיצונית כבויה עד שיוגדר ספק."
   },
   "actions": {
-    "requestDocument": "בקש מסמך חיצוני",
+    "requestDocument": "בקש חשבונית מס חיצונית",
+    "viewInProvider": "צפייה ב-SUMIT",
     "refreshStatus": "רענון סטטוס",
     "credit": "בקש זיכוי",
     "cancel": "ביטול מסמך חיצוני",
@@ -37,7 +38,20 @@
   },
   "empty": {
     "title": "אין מסמך סטטוטורי חיצוני",
-    "body": "לאחר חיבור הספק ניתן לבקש מסמך חוקי עבור רשומת חיוב שסומנה כסופית."
+    "body": "לאחר חיבור SUMIT ניתן לבקש חשבונית מס עבור רשומת חיוב שסופימה."
+  },
+  "reconciliation": {
+    "title": "השוואת סכומים",
+    "expectedNet": "נטו (ProjectFlow)",
+    "expectedVat": "מע״מ (ProjectFlow)",
+    "expectedGross": "ברוטו (ProjectFlow)",
+    "mismatchBanner": "חשבונית הונפקה ב-SUMIT אך הסכומים אינם תואמים — נדרש טיפול.",
+    "status": {
+      "pending": "ממתין להשוואה",
+      "matched": "סכומים תואמים",
+      "mismatch": "אי-התאמה בסכומים",
+      "not_available": "לא זמין מהספק"
+    }
   },
   "settings": {
     "sumitTitle": "SUMIT (סביבת בדיקות)",
@@ -64,6 +78,7 @@
     "localIssuanceForbidden": "הנפקת חשבונית מס מקומית אינה מותרת.",
     "orgMismatch": "רשומת החיוב אינה שייכת לארגון זה.",
     "duplicateIssuanceBlocked": "כבר קיים מסמך סטטוטורי חיצוני בתהליך או שהונפק עבור רשומת חיוב זו.",
+    "missingCustomerSnapshot": "לרשומת החיוב אין צילום לקוח מוקפא. יש לוודא שלקוח משויך לפרויקט לפני סיום החיוב.",
     "ambiguousIssuance": "תגובת הספק לא הייתה חד-משמעית. אין לנסות שוב — יש להשתמש בשחזור או לפנות לתמיכה.",
     "providerFailed": "ספק ההנפקה החיצוני לא הצליח להשלים את הבקשה.",
     "missingExternalId": "לרשומה זו אין עדיין מזהה אצל הספק החיצוני.",
