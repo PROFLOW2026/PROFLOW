@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
+import { useRouter } from '@/shared/i18n/navigation';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,9 +26,14 @@ import type {
   StatutoryProviderStatus,
 } from '../domain/types';
 import {
+  resolveStatutoryStorageUiStatus,
+  shouldShowStatutoryStorageSaveButton,
+} from '../domain/statutory-storage-ui';
+import {
   createStatutoryShareLinkAction,
   refreshExternalStatutoryStatusAction,
   requestExternalStatutoryDocumentAction,
+  resolveStatutoryStorageLocationAction,
   saveStatutoryPdfToStorageAction,
   sendExternalStatutoryDocumentAction,
 } from './actions';
@@ -40,7 +46,6 @@ export interface ExternalStatutoryPanelProps {
   documents: readonly ExternalStatutoryDocument[];
   hasCustomerSnapshot: boolean;
   customerEmail: string | null;
-  storageActive: boolean;
   primaryStorageProvider: StorageProviderKey | null;
 }
 
@@ -56,13 +61,6 @@ function pdfUrl(externalDocumentId: string, disposition: 'inline' | 'attachment'
   return `/api/invoicing/statutory/${externalDocumentId}/pdf?disposition=${disposition}`;
 }
 
-function storageStatusKey(doc: ExternalStatutoryDocument): 'saved' | 'pending' | 'failed' {
-  if (doc.pdf?.storageDocumentId) return 'saved';
-  const status = doc.reconciliationMetadata?.pdfStorageStatus;
-  if (status === 'failed') return 'failed';
-  return 'pending';
-}
-
 export function ExternalStatutoryPanel({
   billingRecordId,
   billingStatus,
@@ -71,17 +69,18 @@ export function ExternalStatutoryPanel({
   documents,
   hasCustomerSnapshot,
   customerEmail,
-  storageActive,
   primaryStorageProvider,
 }: ExternalStatutoryPanelProps) {
   const t = useTranslations('invoicingIntegration');
   const tStorage = useTranslations('externalStorage.providers');
+  const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [sendOpen, setSendOpen] = useState(false);
   const [sendEmail, setSendEmail] = useState('');
   const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [storageLocationUrl, setStorageLocationUrl] = useState<string | null>(null);
 
   const taxInvoice = documents.find((doc) => doc.kind === 'tax_invoice') ?? null;
   const issued = taxInvoice?.issuanceOutcome === 'confirmed_created' && Boolean(taxInvoice.externalId);
@@ -147,7 +146,51 @@ export function ExternalStatutoryPanel({
     });
   }
 
-  const storageKey = taxInvoice ? storageStatusKey(taxInvoice) : 'pending';
+  const storageStatus = taxInvoice ? resolveStatutoryStorageUiStatus(taxInvoice) : 'pending';
+  const showSaveButton = taxInvoice
+    ? shouldShowStatutoryStorageSaveButton({
+        issued,
+        canManage,
+        storageStatus,
+      })
+    : false;
+
+  useEffect(() => {
+    const storageDocumentId = taxInvoice?.pdf?.storageDocumentId;
+    if (!storageDocumentId || storageStatus !== 'saved') {
+      setStorageLocationUrl(null);
+      return;
+    }
+    let cancelled = false;
+    void resolveStatutoryStorageLocationAction(storageDocumentId).then((result) => {
+      if (!cancelled && result.url) {
+        setStorageLocationUrl(result.url);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [taxInvoice?.pdf?.storageDocumentId, storageStatus]);
+
+  function handleSaveCopy() {
+    if (!taxInvoice) return;
+    setError(null);
+    setSuccess(null);
+    startTransition(async () => {
+      const result = await saveStatutoryPdfToStorageAction(taxInvoice.id, billingRecordId);
+      if (result.error) {
+        setError(result.error);
+        router.refresh();
+        return;
+      }
+      router.refresh();
+      setSuccess(
+        primaryStorageProvider
+          ? t('storage.savedStatus', { provider: tStorage(primaryStorageProvider) })
+          : t('storage.savedStatusGeneric'),
+      );
+    });
+  }
 
   return (
     <Card className="min-w-0">
@@ -217,14 +260,24 @@ export function ExternalStatutoryPanel({
               {issued ? (
                 <div className="sm:col-span-2">
                   <dt className="text-[var(--pf-text-secondary)]">{t('fields.storageCopy')}</dt>
-                  <dd>
-                    {storageKey === 'saved' && primaryStorageProvider ? (
-                      t('storage.savedIn', { provider: tStorage(primaryStorageProvider) })
-                    ) : storageKey === 'failed' ? (
-                      <span className="text-[var(--pf-text-warning)]">{t('storage.failed')}</span>
+                  <dd className="flex flex-col gap-1">
+                    {storageStatus === 'saved' && primaryStorageProvider ? (
+                      <span>{t('storage.savedStatus', { provider: tStorage(primaryStorageProvider) })}</span>
+                    ) : storageStatus === 'failed' ? (
+                      <span className="text-[var(--pf-text-warning)]">{t('storage.failedStatus')}</span>
                     ) : (
-                      t('storage.pending')
+                      <span>{t('storage.pendingStatus')}</span>
                     )}
+                    {storageStatus === 'saved' && storageLocationUrl ? (
+                      <a
+                        href={storageLocationUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[var(--pf-accent)] underline"
+                      >
+                        {t('actions.openStorageLocation')}
+                      </a>
+                    ) : null}
                   </dd>
                 </div>
               ) : null}
@@ -269,17 +322,17 @@ export function ExternalStatutoryPanel({
                 >
                   {t('actions.refreshStatus')}
                 </Button>
-                {storageKey !== 'saved' && storageActive ? (
+                {showSaveButton ? (
                   <Button
                     type="button"
-                    variant="secondary"
+                    variant="primary"
                     size="sm"
                     disabled={pending}
-                    onClick={() =>
-                      run(() => saveStatutoryPdfToStorageAction(taxInvoice.id, billingRecordId))
-                    }
+                    onClick={handleSaveCopy}
                   >
-                    {storageKey === 'failed' ? t('actions.retryStorageSave') : t('actions.saveStorageCopy')}
+                    {storageStatus === 'failed'
+                      ? t('actions.retryStorageSave')
+                      : t('actions.saveCopy')}
                   </Button>
                 ) : null}
               </div>

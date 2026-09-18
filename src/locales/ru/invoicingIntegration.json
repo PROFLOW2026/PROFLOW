@@ -22,8 +22,10 @@
     "shareCopied": "Ссылка скопирована",
     "shareSuccess": "Ссылка отправлена",
     "refreshStatus": "Обновить статус",
+    "saveCopy": "Сохранить копию",
     "saveStorageCopy": "Сохранить копию",
     "retryStorageSave": "Повторить сохранение",
+    "openStorageLocation": "Открыть расположение файла",
     "credit": "Запросить кредит-ноту",
     "cancel": "Отменить внешний документ",
     "allocate": "Сохранить ссылку на распределение"
@@ -36,7 +38,11 @@
   "storage": {
     "savedIn": "Сохранено в {provider}",
     "pending": "Ожидает сохранения",
-    "failed": "Ошибка сохранения"
+    "failed": "Ошибка сохранения",
+    "pendingStatus": "Копия: ожидает сохранения",
+    "savedStatus": "Копия: сохранена в {provider}",
+    "savedStatusGeneric": "Копия сохранена",
+    "failedStatus": "Копия: сохранение не удалось"
   },
   "send": {
     "title": "Отправка счёта {number}",

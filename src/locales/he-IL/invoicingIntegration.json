@@ -23,8 +23,10 @@
     "shareCopied": "קישור השיתוף הועתק ללוח",
     "shareSuccess": "קישור השיתוף שותף",
     "refreshStatus": "רענון סטטוס",
+    "saveCopy": "שמור עותק",
     "saveStorageCopy": "שמירת עותק",
     "retryStorageSave": "נסה לשמור שוב",
+    "openStorageLocation": "פתח מיקום הקובץ",
     "credit": "בקש זיכוי",
     "cancel": "ביטול מסמך חיצוני",
     "allocate": "שמירת אסמכתת הקצאה"
@@ -37,7 +39,11 @@
   "storage": {
     "savedIn": "נשמר ב-{provider}",
     "pending": "ממתין לשמירה",
-    "failed": "שגיאה בשמירה"
+    "failed": "שגיאה בשמירה",
+    "pendingStatus": "שמירת עותק: ממתין לשמירה",
+    "savedStatus": "שמירת עותק: נשמר ב-{provider}",
+    "savedStatusGeneric": "שמירת עותק: נשמר",
+    "failedStatus": "שמירת עותק: השמירה נכשלה"
   },
   "send": {
     "title": "שליחת חשבונית מס {number}",

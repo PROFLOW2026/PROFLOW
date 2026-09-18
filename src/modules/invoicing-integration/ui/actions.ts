@@ -17,6 +17,7 @@ import { revalidatePath } from 'next/cache';
 export interface ExternalStatutoryActionResult {
   error?: string;
   ok?: boolean;
+  storageDocumentId?: string;
 }
 
 function logUnmappedExternalDocError(action: string, error: unknown): void {
@@ -94,13 +95,50 @@ export async function saveStatutoryPdfToStorageAction(
   billingRecordId: string,
 ): Promise<ExternalStatutoryActionResult> {
   try {
-    await withOrgContext(async (context) => {
-      await saveStatutoryPdfToStorage(context, externalDocumentId);
-    });
+    const result = await withOrgContext(async (context) =>
+      saveStatutoryPdfToStorage(context, externalDocumentId),
+    );
     revalidatePath(`/billing/${billingRecordId}`);
-    return { ok: true };
+    if (result.status === 'failed') {
+      const tInvoicing = await getTranslations('invoicingIntegration');
+      return { error: tInvoicing('storage.failedStatus') };
+    }
+    return { ok: true, storageDocumentId: result.storageDocumentId };
   } catch (error) {
     logUnmappedExternalDocError('savePdf', error);
+    return { error: await mapExternalDocError(error) };
+  }
+}
+
+export async function resolveStatutoryStorageLocationAction(
+  storageDocumentId: string,
+): Promise<{ url?: string; error?: string }> {
+  try {
+    return await withOrgContext(async (context) => {
+      const { findDocumentById } = await import('@/modules/documents');
+      const { getExternalFileDownload } = await import('@/modules/external-storage/server');
+      const document = await findDocumentById(
+        context.db,
+        context.organizationId,
+        storageDocumentId,
+      );
+      if (!document?.externalConnectionId || !document.externalFileId) {
+        return { error: 'location_unavailable' };
+      }
+      const payload = await getExternalFileDownload(context, {
+        connectionId: document.externalConnectionId,
+        externalFileId: document.externalFileId,
+        filename: document.originalFilename,
+        mimeType: document.mimeType,
+        documentId: document.id,
+      });
+      if ('url' in payload && payload.url) {
+        return { url: payload.url };
+      }
+      return { error: 'location_unavailable' };
+    });
+  } catch (error) {
+    logUnmappedExternalDocError('storageLocation', error);
     return { error: await mapExternalDocError(error) };
   }
 }

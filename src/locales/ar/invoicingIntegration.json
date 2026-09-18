@@ -22,8 +22,10 @@
     "shareCopied": "تم نسخ رابط المشاركة",
     "shareSuccess": "تمت مشاركة الرابط",
     "refreshStatus": "تحديث الحالة",
+    "saveCopy": "حفظ نسخة",
     "saveStorageCopy": "حفظ نسخة",
     "retryStorageSave": "إعادة المحاولة",
+    "openStorageLocation": "فتح موقع الملف",
     "credit": "طلب إشعار دائن",
     "cancel": "إلغاء المستند الخارجي",
     "allocate": "حفظ مرجع التخصيص"
@@ -36,7 +38,11 @@
   "storage": {
     "savedIn": "محفوظة في {provider}",
     "pending": "بانتظار الحفظ",
-    "failed": "فشل الحفظ"
+    "failed": "فشل الحفظ",
+    "pendingStatus": "نسخة محفوظة: بانتظار الحفظ",
+    "savedStatus": "نسخة محفوظة: محفوظة في {provider}",
+    "savedStatusGeneric": "تم حفظ النسخة",
+    "failedStatus": "نسخة محفوظة: فشل الحفظ"
   },
   "send": {
     "title": "إرسال فاتورة {number}",

@@ -35,7 +35,6 @@ import { ExternalStatutoryPanel } from '@/modules/invoicing-integration/ui/exter
 import { ReportDownloadButtons } from '@/modules/reports/ui';
 import {
   getOrganizationPrimaryStorage,
-  organizationHasActiveStorage,
   type StorageProviderKey,
 } from '@/modules/external-storage/server';
 
@@ -68,7 +67,6 @@ export default async function BillingDetailPage({
   let externalDocuments: Awaited<ReturnType<typeof listExternalStatutoryDocumentsForBilling>> = [];
   let statutoryProviderStatus: Awaited<ReturnType<typeof getStatutoryProviderStatus>> | null =
     null;
-  let storageActive = false;
   let primaryStorageProvider: StorageProviderKey | null = null;
 
   try {
@@ -96,7 +94,6 @@ export default async function BillingDetailPage({
     orgToday = result.orgToday;
     externalDocuments = result.externalDocuments;
     statutoryProviderStatus = result.statutoryProviderStatus;
-    storageActive = organizationHasActiveStorage(result.primaryStorage);
     primaryStorageProvider = result.primaryStorage?.provider ?? null;
   } catch {
     notFound();
@@ -153,7 +150,6 @@ export default async function BillingDetailPage({
           documents={externalDocuments}
           hasCustomerSnapshot={Boolean(record.customerSnapshot?.name?.trim())}
           customerEmail={record.customerSnapshot?.email ?? null}
-          storageActive={storageActive}
           primaryStorageProvider={primaryStorageProvider}
         />
       ) : null}

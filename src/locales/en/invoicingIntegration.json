@@ -23,8 +23,10 @@
     "shareCopied": "Share link copied to clipboard",
     "shareSuccess": "Share link shared",
     "refreshStatus": "Refresh status",
+    "saveCopy": "Save copy",
     "saveStorageCopy": "Save copy",
     "retryStorageSave": "Retry save",
+    "openStorageLocation": "Open file location",
     "credit": "Request credit note",
     "cancel": "Cancel external document",
     "allocate": "Save allocation reference"
@@ -37,7 +39,11 @@
   "storage": {
     "savedIn": "Saved in {provider}",
     "pending": "Pending save",
-    "failed": "Save failed"
+    "failed": "Save failed",
+    "pendingStatus": "Copy saved: pending",
+    "savedStatus": "Copy saved: saved in {provider}",
+    "savedStatusGeneric": "Copy saved",
+    "failedStatus": "Copy saved: save failed"
   },
   "send": {
     "title": "Send tax invoice {number}",
