@@ -36,6 +36,7 @@ import { buildStatutoryBridgeFromBillingRecord } from './build-statutory-bridge'
 import { resolveStatutoryProviderForOrg } from './resolve-statutory-provider';
 import {
   requestExternalStatutoryDocumentCommitted,
+  runCommittedOrgPhase,
   setCommittedPhaseRunnerForTests,
 } from './request-external-document';
 
@@ -135,9 +136,7 @@ export async function requestExternalStatutoryDocumentForPaymentCommitted(
     );
   }
 
-  const { runInOrgContext } = await import('@/shared/auth/session');
-
-  const prepared = await runInOrgContext(userId, organizationId, async (context) => {
+  const prepared = await runCommittedOrgPhase(userId, organizationId, async (context) => {
     const resolvedProvider = await resolveProvider(context, provider);
     const paymentSnapshot = await buildPaymentStatutorySnapshot(context, paymentId);
     const lock = await preparePaymentIssuanceLock(
@@ -164,7 +163,7 @@ export async function requestExternalStatutoryDocumentForPaymentCommitted(
     result = await prepared.resolvedProvider.createDocument(createInput);
   } catch (error) {
     if (error instanceof SumitAmbiguousCreateError) {
-      await runInOrgContext(userId, organizationId, async (context) => {
+      await runCommittedOrgPhase(userId, organizationId, async (context) => {
         await updateExternalDocument(context, prepared.row.id, {
           status: 'pending',
           issuanceOutcome: 'ambiguous',
@@ -175,7 +174,7 @@ export async function requestExternalStatutoryDocumentForPaymentCommitted(
       });
       throw error;
     }
-    await runInOrgContext(userId, organizationId, async (context) => {
+    await runCommittedOrgPhase(userId, organizationId, async (context) => {
       await updateExternalDocument(context, prepared.row.id, {
         status: 'pending',
         issuanceOutcome: 'ambiguous',
@@ -187,7 +186,7 @@ export async function requestExternalStatutoryDocumentForPaymentCommitted(
   }
 
   if (!result.ok) {
-    await runInOrgContext(userId, organizationId, async (context) => {
+    await runCommittedOrgPhase(userId, organizationId, async (context) => {
       await updateExternalDocument(context, prepared.row.id, {
         status: 'cancelled',
         issuanceOutcome: 'confirmed_rejected',
@@ -202,7 +201,7 @@ export async function requestExternalStatutoryDocumentForPaymentCommitted(
     });
   }
 
-  return runInOrgContext(userId, organizationId, async (context) => {
+  return runCommittedOrgPhase(userId, organizationId, async (context) => {
     const billing = await getBillingRecord(context, billingRecordId);
     const { bridge } = buildStatutoryBridgeFromBillingRecord(context, billing, kind, paymentId);
     const reconciliation = reconcileExternalAmounts(bridge, result.value.providerAmounts ?? null);

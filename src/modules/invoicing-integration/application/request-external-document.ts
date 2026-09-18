@@ -57,7 +57,7 @@ export function setCommittedPhaseRunnerForTests(runner: CommittedPhaseRunner | n
   committedPhaseRunnerForTests = runner;
 }
 
-async function runCommittedOrgPhase<T>(
+export async function runCommittedOrgPhase<T>(
   userId: string,
   organizationId: string,
   fn: (context: OrgContext) => Promise<T>,

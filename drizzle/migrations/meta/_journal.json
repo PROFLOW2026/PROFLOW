@@ -652,6 +652,13 @@
                         "when":  1789536800000,
                         "tag":  "0093_invoicing_sumit_hardening",
                         "breakpoints":  true
+                    },
+                    {
+                        "idx":  93,
+                        "version":  "7",
+                        "when":  1789623200000,
+                        "tag":  "0094_statutory_receipt_payment_link",
+                        "breakpoints":  true
                     }
                 ]
 }

@@ -21,8 +21,8 @@ async function main() {
   const { upsertOrgInvoicingSettings } = await import(
     '../src/modules/invoicing-integration/data/org-invoicing-settings.repository.ts'
   );
-  const { triggerStatutoryAfterPayment } = await import(
-    '../src/modules/invoicing-integration/application/trigger-statutory-after-payment.ts'
+  const { requestExternalStatutoryDocumentForPaymentCommitted } = await import(
+    '../src/modules/invoicing-integration/application/request-external-statutory-for-payment.ts'
   );
   const { saveStatutoryPdfToStorage } = await import(
     '../src/modules/invoicing-integration/application/save-statutory-pdf-to-storage.ts'
@@ -41,17 +41,27 @@ async function main() {
     const userId = profiles[0]?.id;
     if (!userId) throw new Error(`No profile for ${DEMO_USER_EMAIL}`);
 
-    const report = await withUserContext(userId, async (tx) => {
+    const { bootstrapLiveDemoScripts } = await import('./live-demo-bootstrap.ts');
+    await bootstrapLiveDemoScripts(userId, DEMO_ORG_ID);
+
+    await withUserContext(userId, async (tx) => {
       const context = await resolveOrgContext(tx, {
         userId,
         organizationId: DEMO_ORG_ID,
         locale: 'he-IL',
       });
-
       await upsertOrgInvoicingSettings(context, {
         mode: 'external_provider',
         paymentDocumentPolicy: 'tax_invoice_then_receipt',
         receiptIssuance: 'automatic',
+      });
+    });
+
+    const prep = await withUserContext(userId, async (tx) => {
+      const context = await resolveOrgContext(tx, {
+        userId,
+        organizationId: DEMO_ORG_ID,
+        locale: 'he-IL',
       });
 
       const billing = await getBillingRecord(context, BILLING_ID);
@@ -89,24 +99,81 @@ async function main() {
           d.issuanceOutcome === 'ambiguous',
       );
 
+      const { payments } = await import('@drizzle/schema');
+      const [existingPayment] = await context.db
+        .select({ id: payments.id })
+        .from(payments)
+        .where(
+          and(
+            eq(payments.organizationId, DEMO_ORG_ID),
+            eq(payments.reference, 'PF-DEMO-RECEIPT-20000'),
+            eq(payments.status, 'recorded'),
+          ),
+        )
+        .limit(1);
+
       let paymentId: string;
+      let issuedReceipt = false;
       if (blockingReceipt?.paymentId) {
         paymentId = blockingReceipt.paymentId;
+        issuedReceipt = blockingReceipt.issuanceOutcome === 'confirmed_created';
+      } else if (existingPayment) {
+        paymentId = existingPayment.id;
       } else {
         const openNet = billing.outstandingAmount.amount;
+        if (Number(openNet) !== 48500) {
+          throw new Error(`Expected preserved billing open NET 48500, got ${openNet}`);
+        }
         const { paymentId: newPaymentId } = await recordPayment(context, {
           billingRecordId: BILLING_ID,
-          amount: openNet,
+          amount: '48500',
           paymentDate: todayInTimeZone(context.organization.timezone),
           method: 'העברה בנקאית',
           reference: 'PF-DEMO-RECEIPT-20000',
           notes: 'Live demo receipt test for invoice 20000',
         });
         paymentId = newPaymentId;
-        await triggerStatutoryAfterPayment(userId, DEMO_ORG_ID, paymentId, BILLING_ID);
       }
 
-      await new Promise((resolve) => setTimeout(resolve, 3000));
+      return {
+        paymentId,
+        taxInvoiceExternalId: taxInvoice.externalId,
+        issuedReceipt,
+      };
+    });
+
+    if (!prep.issuedReceipt) {
+      await requestExternalStatutoryDocumentForPaymentCommitted(
+        userId,
+        DEMO_ORG_ID,
+        prep.paymentId,
+        BILLING_ID,
+        'receipt',
+        PRESERVED_TAX_INVOICE_EXTERNAL_ID,
+      );
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+
+    const report = await withUserContext(userId, async (tx) => {
+      const context = await resolveOrgContext(tx, {
+        userId,
+        organizationId: DEMO_ORG_ID,
+        locale: 'he-IL',
+      });
+
+      const taxDocs = await tx
+        .select()
+        .from(externalStatutoryDocuments)
+        .where(
+          and(
+            eq(externalStatutoryDocuments.organizationId, DEMO_ORG_ID),
+            eq(externalStatutoryDocuments.billingRecordId, BILLING_ID),
+            eq(externalStatutoryDocuments.kind, 'tax_invoice'),
+          ),
+        );
+      const taxInvoice = taxDocs.find((d) => d.externalNumber === PRESERVED_TAX_INVOICE_NUMBER)!;
+      const paymentId = prep.paymentId;
 
       const receipts = await tx
         .select()
@@ -130,16 +197,24 @@ async function main() {
         };
       }
 
-      let storageResult: { storageDocumentId?: string | null; status?: string } = {};
+      let storageResult: { storageDocumentId?: string | null; status?: string; message?: string } = {};
       try {
         const saved = await saveStatutoryPdfToStorage(context, receipt.id);
-        storageResult = {
-          storageDocumentId: saved.pdf?.storageDocumentId ?? null,
-          status: saved.reconciliationMetadata?.pdfStorageStatus ?? 'saved',
-        };
+        storageResult =
+          saved.status === 'failed'
+            ? {
+                status: saved.status,
+                message: saved.message,
+                storageDocumentId: receipt.pdfStorageDocumentId,
+              }
+            : {
+                status: saved.status,
+                storageDocumentId: saved.storageDocumentId,
+              };
       } catch (error) {
         storageResult = {
           status: 'failed',
+          message: error instanceof Error ? error.message : String(error),
           storageDocumentId: receipt.pdfStorageDocumentId,
         };
       }
@@ -149,6 +224,9 @@ async function main() {
       return {
         status: 'ok',
         paymentId,
+        paymentNet: '48500',
+        paymentVat: '8730',
+        paymentGross: '57230',
         taxInvoicePreserved: {
           number: PRESERVED_TAX_INVOICE_NUMBER,
           externalId: PRESERVED_TAX_INVOICE_EXTERNAL_ID,

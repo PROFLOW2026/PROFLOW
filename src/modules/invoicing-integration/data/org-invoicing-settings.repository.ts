@@ -65,26 +65,25 @@ export async function upsertOrgInvoicingSettings(
     receiptIssuance: patch.receiptIssuance ?? current.receiptIssuance,
   };
 
-  await Promise.all([
-    upsertOrganizationSettingValue(
-      context.db,
-      context.organizationId,
-      INVOICING_STATUTORY_MODE_KEY,
-      next.mode,
-    ),
-    upsertOrganizationSettingValue(
-      context.db,
-      context.organizationId,
-      INVOICING_PAYMENT_DOCUMENT_POLICY_KEY,
-      next.paymentDocumentPolicy,
-    ),
-    upsertOrganizationSettingValue(
-      context.db,
-      context.organizationId,
-      INVOICING_RECEIPT_ISSUANCE_KEY,
-      next.receiptIssuance,
-    ),
-  ]);
+  // Sequential writes — avoids concurrent organization_settings row locks on one connection.
+  await upsertOrganizationSettingValue(
+    context.db,
+    context.organizationId,
+    INVOICING_STATUTORY_MODE_KEY,
+    next.mode,
+  );
+  await upsertOrganizationSettingValue(
+    context.db,
+    context.organizationId,
+    INVOICING_PAYMENT_DOCUMENT_POLICY_KEY,
+    next.paymentDocumentPolicy,
+  );
+  await upsertOrganizationSettingValue(
+    context.db,
+    context.organizationId,
+    INVOICING_RECEIPT_ISSUANCE_KEY,
+    next.receiptIssuance,
+  );
 
   return next;
 }
