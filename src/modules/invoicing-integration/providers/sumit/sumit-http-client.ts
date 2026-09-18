@@ -1,19 +1,24 @@
 import 'server-only';
 
 import type { InvoicingProviderCredentials } from '../../domain/types';
+import {
+  assertSumitEnvelopeSuccess,
+  parseSumitApiEnvelope,
+  SumitAmbiguousError,
+  SumitApplicationError,
+  SumitHttpError,
+} from './sumit-api-envelope';
+import {
+  classifySumitConnectionFailure,
+  toSuccessfulSumitTestConnectionResult,
+  type SumitTestConnectionResult,
+} from './sumit-connection-diagnostics';
+
+export { SumitAmbiguousError } from './sumit-api-envelope';
+export type { SumitTestConnectionResult } from './sumit-connection-diagnostics';
 
 /** SUMIT test environment base URL (Milestone A/B — production hard-denied). */
 export const SUMIT_TEST_API_BASE = 'https://api.sumit.co.il';
-
-export class SumitAmbiguousError extends Error {
-  readonly partialDocumentId: string | null;
-
-  constructor(message: string, partialDocumentId: string | null = null) {
-    super(message);
-    this.name = 'SumitAmbiguousError';
-    this.partialDocumentId = partialDocumentId;
-  }
-}
 
 export interface SumitHttpClientOptions {
   readonly baseUrl?: string;
@@ -39,13 +44,25 @@ export interface SumitCreateDocumentResponse {
 export interface SumitHttpClient {
   createDocument(input: SumitCreateDocumentRequest): Promise<SumitCreateDocumentResponse>;
   getDocumentDetails(documentId: string): Promise<SumitCreateDocumentResponse>;
+  /** @deprecated Prefer testConnection() for credential verification. */
   ping(): Promise<boolean>;
+  testConnection(): Promise<SumitTestConnectionResult>;
 }
 
 function coreCredentials(credentials: InvoicingProviderCredentials) {
   return {
     CompanyID: credentials.companyId,
     APIKey: credentials.apiKey,
+  };
+}
+
+/** OpenAPI: Accounting_Documents_List_Request uses nested Paging, not PageNumber. */
+export function buildSumitDocumentsListProbeBody(): Record<string, unknown> {
+  return {
+    Paging: {
+      StartIndex: 0,
+      PageSize: 10,
+    },
   };
 }
 
@@ -77,31 +94,34 @@ export function createSumitHttpClient(
         try {
           parsed = JSON.parse(text);
         } catch {
-          parsed = { rawText: text };
+          parsed = { rawText: text.slice(0, 500) };
         }
       }
+
+      const envelope = parseSumitApiEnvelope(response.status, parsed);
 
       if (response.status >= 500 || response.status === 408 || response.status === 429) {
         throw new SumitAmbiguousError(`SUMIT ambiguous response (${response.status})`);
       }
 
       if (!response.ok) {
-        const message =
-          typeof parsed === 'object' &&
-          parsed != null &&
-          'Message' in parsed &&
-          typeof (parsed as { Message?: unknown }).Message === 'string'
-            ? (parsed as { Message: string }).Message
-            : `SUMIT request failed (${response.status})`;
-        const error = new Error(message) as Error & { statusCode?: number; body?: unknown };
-        error.statusCode = response.status;
-        error.body = parsed;
-        throw error;
+        throw new SumitHttpError(
+          response.status,
+          envelope,
+          envelope.userErrorMessage ?? `SUMIT request failed (${response.status})`,
+        );
       }
 
-      return parsed as T;
+      assertSumitEnvelopeSuccess(envelope);
+      return (envelope.data ?? parsed) as T;
     } catch (error) {
-      if (error instanceof SumitAmbiguousError) throw error;
+      if (
+        error instanceof SumitAmbiguousError ||
+        error instanceof SumitHttpError ||
+        error instanceof SumitApplicationError
+      ) {
+        throw error;
+      }
       if (error instanceof Error && error.name === 'AbortError') {
         throw new SumitAmbiguousError('SUMIT request timed out');
       }
@@ -139,18 +159,22 @@ export function createSumitHttpClient(
     };
   }
 
+  async function testConnection(): Promise<SumitTestConnectionResult> {
+    try {
+      await postJson('/accounting/documents/list/', buildSumitDocumentsListProbeBody());
+      return toSuccessfulSumitTestConnectionResult();
+    } catch (error) {
+      return classifySumitConnectionFailure(error);
+    }
+  }
+
   return {
     async ping() {
-      try {
-        await postJson('/accounting/documents/list/', {
-          PageSize: 1,
-          PageNumber: 1,
-        });
-        return true;
-      } catch {
-        return false;
-      }
+      const result = await testConnection();
+      return result.ok;
     },
+
+    testConnection,
 
     async createDocument(input) {
       const raw = await postJson<unknown>('/accounting/documents/create/', {

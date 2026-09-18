@@ -13,13 +13,28 @@ export interface SumitActionResult {
   ok?: boolean;
 }
 
+const SUMIT_ERROR_KEYS = [
+  'connectionFailed',
+  'productionBlocked',
+  'invalidCredentials',
+  'moduleInactive',
+  'authRejected',
+  'providerUnreachable',
+] as const;
+
+type SumitErrorKey = (typeof SUMIT_ERROR_KEYS)[number];
+
+function isSumitErrorKey(key: string): key is SumitErrorKey {
+  return (SUMIT_ERROR_KEYS as readonly string[]).includes(key);
+}
+
 async function mapError(error: unknown): Promise<string> {
   const t = await getTranslations('invoicingIntegration.errors');
-  if (error instanceof AppError && error.messageKey?.startsWith('invoicingIntegration.')) {
-    const key = error.messageKey.replace('invoicingIntegration.errors.', '') as
-      | 'connectionFailed'
-      | 'productionBlocked';
-    return t(key);
+  if (error instanceof AppError && error.messageKey?.startsWith('invoicingIntegration.errors.')) {
+    const key = error.messageKey.replace('invoicingIntegration.errors.', '');
+    if (isSumitErrorKey(key)) {
+      return t(key);
+    }
   }
   return t('connectionFailed');
 }

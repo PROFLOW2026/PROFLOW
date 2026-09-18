@@ -53,6 +53,10 @@
   "errors": {
     "connectionRequired": "Connect an external invoicing provider before requesting a statutory document.",
     "connectionFailed": "Could not verify SUMIT test credentials.",
+    "invalidCredentials": "The connection details are not valid.",
+    "moduleInactive": "The SUMIT income/API module is not active on this account.",
+    "authRejected": "SUMIT rejected the verification request.",
+    "providerUnreachable": "SUMIT cannot be reached right now.",
     "productionBlocked": "SUMIT production connections are not available in this release.",
     "billingNotFinalized": "Only finalized billing records can request an external statutory document.",
     "localIssuanceForbidden": "Local statutory invoice issuance is not allowed.",

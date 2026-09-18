@@ -53,6 +53,10 @@
   "errors": {
     "connectionRequired": "اربط مزود فوترة خارجي قبل طلب مستند قانوني.",
     "connectionFailed": "Could not verify SUMIT test credentials.",
+    "invalidCredentials": "The connection details are not valid.",
+    "moduleInactive": "The SUMIT income/API module is not active on this account.",
+    "authRejected": "SUMIT rejected the verification request.",
+    "providerUnreachable": "SUMIT cannot be reached right now.",
     "productionBlocked": "SUMIT production connections are not available in this release.",
     "billingNotFinalized": "سجلات الفوترة المنهية فقط يمكنها طلب مستند قانوني خارجي.",
     "localIssuanceForbidden": "إصدار فاتورة ضريبية محلية غير مسموح.",

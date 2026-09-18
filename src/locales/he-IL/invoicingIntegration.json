@@ -53,6 +53,10 @@
   "errors": {
     "connectionRequired": "יש לחבר ספק הנפקת חשבוניות חיצוני לפני בקשת מסמך סטטוטורי.",
     "connectionFailed": "לא ניתן לאמת את פרטי SUMIT Test.",
+    "invalidCredentials": "פרטי החיבור אינם תקינים.",
+    "moduleInactive": "מודול ההכנסות/API אינו פעיל בחשבון SUMIT.",
+    "authRejected": "SUMIT דחה את בקשת האימות.",
+    "providerUnreachable": "לא ניתן להגיע כרגע ל-SUMIT.",
     "productionBlocked": "חיבור SUMIT Production אינו זמין בגרסה זו.",
     "billingNotFinalized": "ניתן לבקש מסמך סטטוטורי חיצוני רק עבור רשומות חיוב שסופימו.",
     "localIssuanceForbidden": "הנפקת חשבונית מס מקומית אינה מותרת.",

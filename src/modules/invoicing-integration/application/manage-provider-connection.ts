@@ -11,6 +11,7 @@ import {
 } from '../data/credentials.repository';
 import { getProviderConnectionsRepository } from '../data/external-documents';
 import { SUMIT_PROVIDER_ID, type InvoicingProviderCredentials } from '../domain/types';
+import { sumitConnectionFailureMessageKey } from '../providers/sumit/sumit-connection-diagnostics';
 import {
   createSumitHttpClient,
   SUMIT_TEST_API_BASE,
@@ -31,6 +32,24 @@ function assertTestEnvironmentOnly(): void {
   }
 }
 
+function logSumitTestConnectionFailure(
+  organizationId: string,
+  result: {
+    failureClass?: string;
+    httpStatus?: number | null;
+    providerErrorCode?: string | null;
+    safeProviderMessage?: string | null;
+  },
+): void {
+  console.error('[invoicing][sumit] test connection failed', {
+    organizationId,
+    failureClass: result.failureClass ?? 'unknown',
+    httpStatus: result.httpStatus ?? null,
+    providerErrorCode: result.providerErrorCode ?? null,
+    safeProviderMessage: result.safeProviderMessage ?? null,
+  });
+}
+
 export async function connectSumitTestConfiguration(
   context: OrgContext,
   rawInput: ConnectSumitTestInput,
@@ -45,11 +64,17 @@ export async function connectSumitTestConfiguration(
   };
 
   const client = createSumitHttpClient(credentials, { baseUrl: SUMIT_TEST_API_BASE });
-  const ok = await client.ping();
-  if (!ok) {
+  const verification = await client.testConnection();
+  if (!verification.ok) {
+    logSumitTestConnectionFailure(context.organizationId, verification);
     throw new DomainRuleError(
       'Could not verify SUMIT test credentials',
-      'invoicingIntegration.errors.connectionFailed',
+      sumitConnectionFailureMessageKey(verification.failureClass),
+      {
+        failureClass: verification.failureClass,
+        httpStatus: verification.httpStatus,
+        providerErrorCode: verification.providerErrorCode,
+      },
     );
   }
 
