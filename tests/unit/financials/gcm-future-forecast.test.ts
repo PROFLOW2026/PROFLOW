@@ -4,6 +4,7 @@ import {
   computeDirectForecastFinalCost,
   computeFullForecastFinalCost,
 } from '@/modules/financials/domain/cost-aggregation';
+import { isYearMonthRecognizedForActual } from '@/modules/financials/domain/general-cost-actual-recognition';
 
 const ILS = 'ILS';
 
@@ -47,10 +48,7 @@ describe('future general cost forecast chain', () => {
 });
 
 describe('September activation (unit)', () => {
-  it('September enters Actual only when through month is September', async () => {
-    const { isYearMonthRecognizedForActual } = await import(
-      '@/modules/financials/domain/general-cost-actual-recognition'
-    );
+  it('September enters Actual only when through month is September', () => {
     expect(isYearMonthRecognizedForActual('2026-09', '2026-08')).toBe(false);
     expect(isYearMonthRecognizedForActual('2026-09', '2026-09')).toBe(true);
     expect(isYearMonthRecognizedForActual('2026-10', '2026-09')).toBe(false);

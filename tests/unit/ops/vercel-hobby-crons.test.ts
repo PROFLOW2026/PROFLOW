@@ -26,12 +26,13 @@ describe('Vercel Hobby cron schedules', () => {
     readFileSync(path.join(process.cwd(), 'vercel.json'), 'utf8'),
   ) as { crons: VercelCron[] };
 
-  it('schedules OCR recovery and ops once per day only', () => {
-    expect(vercel.crons).toHaveLength(2);
+  it('schedules OCR recovery, ops, and SUMIT expense ingest once per day only', () => {
+    expect(vercel.crons).toHaveLength(3);
     expect(vercel.crons.every((cron) => isOncePerDay(cron.schedule))).toBe(true);
     expect(vercel.crons.map((cron) => cron.path).sort()).toEqual([
       '/api/internal/ocr-worker',
       '/api/internal/ops-worker',
+      '/api/internal/sumit-expense-worker',
     ]);
     expect(vercel.crons.find((cron) => cron.path === '/api/internal/ocr-worker')?.schedule).toBe(
       '0 5 * * *',
@@ -39,5 +40,8 @@ describe('Vercel Hobby cron schedules', () => {
     expect(vercel.crons.find((cron) => cron.path === '/api/internal/ops-worker')?.schedule).toBe(
       '0 6 * * *',
     );
+    expect(
+      vercel.crons.find((cron) => cron.path === '/api/internal/sumit-expense-worker')?.schedule,
+    ).toBe('30 6 * * *');
   });
 });

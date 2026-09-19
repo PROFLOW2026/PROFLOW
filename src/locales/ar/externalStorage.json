@@ -124,7 +124,27 @@
     "back": "رجوع",
     "shortcutsLabel": "اختصارات:",
     "folderKind": "مجلد",
-    "fileKind": "ملف"
+    "fileKind": "ملف",
+    "tabs": {
+      "cloudFiles": "ملفات السحابة",
+      "documentRegistry": "سجل المستندات",
+      "openFullRegistry": "فتح السجل الكامل"
+    },
+    "registry": {
+      "title": "جميع مستندات الأعمال",
+      "description": "تصفح بيانات مستندات ProjectFlow حسب العميل والمشروع والمورد والفوترة والمزيد. تبقى الملفات في التخزين المتصل.",
+      "hint": "استخدم السجل الكامل للبحث والوسوم والمجلدات والمعاينة."
+    },
+    "shortcuts": {
+      "clients": "العملاء",
+      "projects": "المشاريع",
+      "vendors": "الموردون",
+      "billing": "الفوترة",
+      "vendorInvoices": "فواتير الموردين",
+      "contracts": "العقود",
+      "quotes": "عروض الأسعار",
+      "employees": "الموظفون"
+    }
   },
   "preview": {
     "title": "معاينة",

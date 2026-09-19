@@ -140,6 +140,8 @@ const IDENTICAL_MESSAGE_ALLOWLIST = new Set([
   // ICU placeholder templates — month/year and automation metadata are localized via values.
   'commandCenter.itemCopy.reportMonthLabel',
   'commandCenter.itemCopy.automationFollowup.why',
+  'expenses.received.source.sumit',
+  'invoicingIntegration.send.emailPlaceholder',
 ]);
 
 function hasActivityAction(catalog: Catalog, action: string): boolean {

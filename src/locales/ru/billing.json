@@ -184,7 +184,9 @@
     "method": "Способ",
     "reference": "Номер",
     "notes": "Примечания",
-    "submit": "Сохранить платёж"
+    "submit": "Сохранить платёж",
+    "recordPaymentTitle": "Записать платёж",
+    "recordPaymentDescription": "Введите сумму, полученную от клиента."
   },
   "detail": {
     "title": "Запись о выставлении",
@@ -257,5 +259,17 @@
   "notAllowed": {
     "title": "Недоступно",
     "body": "У вас нет прав на просмотр выставления счетов и инкассации."
+  },
+  "collectionMode": {
+    "externalAccountingNote": "Счета и квитанции выставляются вне ProjectFlow.",
+    "connectAccountingLink": "Подключить учётную систему"
+  },
+  "paymentRecorded": {
+    "paymentSuccess": "Платёж успешно записан",
+    "fullyPaid": "Эта запись биллинга полностью оплачена",
+    "outstandingRemaining": "Остаток к оплате:",
+    "receiptIssued": "Квитанция выставлена через {provider}",
+    "receiptFailed": "Платёж записан, но выдача квитанции не удалась.",
+    "receiptPending": "Платёж записан. Выдача квитанции выполняется."
   }
 }

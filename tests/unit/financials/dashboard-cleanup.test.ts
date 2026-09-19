@@ -100,7 +100,7 @@ describe('dashboard cleanup — duplicates', () => {
     );
     expect(collectionsCase).not.toContain('organizationSummary.netOutstanding');
     expect(collectionsCase).not.toContain("title={t('businessSummary.outstanding')}");
-    expect(collectionsCase.match(/<KpiCard[\s\S]*?kpis\.outstandingNet/g)?.length).toBe(1);
+    expect(collectionsCase.match(/<DashboardKpiCard[\s\S]*?kpis\.outstandingNet/g)?.length).toBe(1);
   });
 
   it('owner view hides workValue headline when contract summary exists', () => {

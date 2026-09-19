@@ -28,7 +28,11 @@
     "openStorageLocation": "Открыть расположение файла",
     "credit": "Запросить кредит-ноту",
     "cancel": "Отменить внешний документ",
-    "allocate": "Сохранить ссылку на распределение"
+    "allocate": "Сохранить ссылку на распределение",
+    "viewInProvider": "Открыть в SUMIT",
+    "copyLink": "Копировать ссылку",
+    "linkCopied": "Ссылка скопирована в буфер",
+    "whatsapp": "Ватсап"
   },
   "issued": {
     "title": "Счёт-фактура {number}",
@@ -48,7 +52,7 @@
     "title": "Отправка счёта {number}",
     "description": "Счёт будет отправлен через SUMIT на указанный адрес.",
     "toLabel": "Кому",
-    "emailPlaceholder": "name@example.com",
+    "emailPlaceholder": "example@domain.com",
     "success": "Счёт успешно отправлен"
   },
   "fields": {
@@ -60,7 +64,9 @@
     "status": "Внешний статус",
     "pdf": "Файл PDF",
     "storageCopy": "Копия в хранилище",
-    "technicalDetails": "Технические детали"
+    "technicalDetails": "Технические детали",
+    "linkedPayment": "Связанный платёж",
+    "linkedPaymentHint": "Выдан для записанного платежа по этой записи биллинга"
   },
   "documentStatus": {
     "requested": "Запрошен",
@@ -78,7 +84,11 @@
   "documentKinds": {
     "receipt": "Квитанция {number}",
     "tax_invoice_receipt": "Счёт-фактура/квитанция {number}",
-    "transaction_invoice": "Счёт на сделку {number}"
+    "transaction_invoice": "Счёт на сделку {number}",
+    "tax_invoice": "Налоговый счёт {number}",
+    "credit_note": "Кредит-нота {number}",
+    "proforma": "Проформа {number}",
+    "other": "Документ {number}"
   },
   "payment": {
     "received": "Платёж получен",
@@ -99,38 +109,45 @@
     "receiptManual": "Только вручную",
     "save": "Сохранить настройки",
     "saved": "Настройки сохранены",
-    "sumitTitle": "SUMIT (test environment)",
+    "sumitTitle": "SUMIT (тестовая среда)",
     "sumitDescription": "Connect your SUMIT Test Configuration account. Production is not available in this release.",
-    "companyId": "Company ID",
-    "apiKey": "API key",
-    "connect": "Connect test account",
-    "disconnect": "Disconnect",
-    "connectedAs": "Connected — Company ID {companyId}",
-    "testOnlyNotice": "Test environment only. Do not enter production credentials.",
-    "invalidCompanyId": "Company ID must be a positive number.",
-    "expenseIngestionTitle": "Inbound expense capture (optional)",
-    "expenseIngestionDescription": "When enabled, ProjectFlow polls SUMIT for supplier expense documents and runs Azure OCR.",
-    "expenseIngestionEnable": "Enable SUMIT expense ingestion",
-    "expenseIngestionDisable": "Turn off ingestion",
-    "expenseIngestionEnabled": "Expense ingestion on",
-    "expenseIngestionDisabled": "Expense ingestion off",
-    "expenseIngestionOcrRequired": "Live OCR must be enabled before SUMIT expense capture."
+    "companyId": "ID компании",
+    "apiKey": "API-ключ",
+    "connect": "Подключить тестовый аккаунт",
+    "disconnect": "Отключить",
+    "connectedAs": "Подключено. ID компании {companyId}",
+    "testOnlyNotice": "Только тестовая среда. Не вводите production-учётные данные.",
+    "invalidCompanyId": "ID компании должен быть положительным числом.",
+    "expenseIngestionTitle": "Входящий захват расходов (опционально)",
+    "expenseIngestionDescription": "При включении ProjectFlow опрашивает SUMIT по расходным документам и запускает Azure OCR.",
+    "expenseIngestionEnable": "Включить захват расходов SUMIT",
+    "expenseIngestionDisable": "Выключить захват",
+    "expenseIngestionEnabled": "Захват расходов включён",
+    "expenseIngestionDisabled": "Захват расходов выключен",
+    "expenseIngestionOcrRequired": "Перед захватом расходов SUMIT должно быть включено распознавание документов.",
+    "intro": "Выберите, управляет ли ProjectFlow только сбором или также выдаёт счета и квитанции.",
+    "modeManualDescription": "ProjectFlow управляет биллингом, платежами и балансами. Счета и квитанции выдаются вне системы.",
+    "modeExternalDescription": "ProjectFlow управляет сбором и выдаёт счета и квитанции через подключённую учётную систему.",
+    "accountingSystemLabel": "Подключённая учётная система",
+    "providerConnectedInline": "{provider}: подключено",
+    "providerNotConnected": "Учётная система не подключена",
+    "connectProviderHint": "После выбора этого режима подключите учётную систему ниже."
   },
   "errors": {
     "connectionRequired": "Подключите внешнего провайдера выставления счетов перед запросом налогового документа.",
-    "connectionFailed": "Could not verify SUMIT test credentials.",
-    "invalidCompanyId": "Company ID must be a positive number.",
-    "invalidApiKey": "API key is missing or invalid.",
-    "invalidCredentials": "The connection details are not valid.",
-    "moduleInactive": "The SUMIT income/API module is not active on this account.",
-    "authRejected": "SUMIT rejected the verification request.",
-    "providerUnreachable": "SUMIT cannot be reached right now.",
-    "productionBlocked": "SUMIT production connections are not available in this release.",
+    "connectionFailed": "Не удалось проверить тестовые учётные данные SUMIT.",
+    "invalidCompanyId": "ID компании должен быть положительным числом.",
+    "invalidApiKey": "API-ключ отсутствует или недействителен.",
+    "invalidCredentials": "Данные подключения недействительны.",
+    "moduleInactive": "Модуль SUMIT income/API не активен для этого аккаунта.",
+    "authRejected": "SUMIT отклонил запрос проверки.",
+    "providerUnreachable": "SUMIT сейчас недоступен.",
+    "productionBlocked": "Production-подключения SUMIT недоступны в этом релизе.",
     "billingNotFinalized": "Только завершённые записи выставления счёта могут запрашивать внешний налоговый документ.",
     "localIssuanceForbidden": "Локальная выдача налоговых счетов-фактур не допускается.",
     "orgMismatch": "Запись выставления счёта не принадлежит этой организации.",
-    "duplicateIssuanceBlocked": "An external statutory document is already in progress or issued for this billing record.",
-    "ambiguousIssuance": "The provider response was ambiguous. Do not retry — use recovery or contact support.",
+    "duplicateIssuanceBlocked": "Внешний статutory-документ уже в процессе или выдан для этой записи биллинга.",
+    "ambiguousIssuance": "Ответ провайдера был неоднозначным. Не повторяйте попытку — используйте восстановление или поддержку.",
     "providerFailed": "Внешний провайдер выставления счетов не смог выполнить запрос.",
     "missingExternalId": "У этой записи пока нет внешнего id провайдера.",
     "creditUnsupported": "Этот провайдер не поддерживает кредит-ноты.",
@@ -140,6 +157,47 @@
     "shareExpired": "Ссылка истекла.",
     "manualModeActive": "Активен ручной режим — внешний провайдер не требуется.",
     "paymentVoid": "Нельзя выпустить квитанцию для аннулированного платежа.",
-    "invalidDocumentKind": "Этот тип налогового документа не поддерживается для данного действия."
+    "invalidDocumentKind": "Этот тип налогового документа не поддерживается для данного действия.",
+    "missingCustomerSnapshot": "У записи биллинга нет замороженного снимка клиента. Привяжите клиента к проекту перед финализацией.",
+    "shareFailed": "Не удалось создать ссылку для обмена."
+  },
+  "documentTypeLabels": {
+    "tax_invoice": "Налоговый счёт",
+    "receipt": "Квитанция",
+    "tax_invoice_receipt": "Налоговый счёт / квитанция",
+    "transaction_invoice": "Счёт на сделку",
+    "credit_note": "Кредит-нота",
+    "proforma": "Проформа",
+    "other": "Документ"
+  },
+  "share": {
+    "messageTemplate": "Документ {number} готов к просмотру:\n{link}"
+  },
+  "history": {
+    "hint": "Выданные документы остаются здесь после обновления или при возврате к записи биллинга."
+  },
+  "reconciliation": {
+    "title": "Сверка сумм",
+    "expectedNet": "Нетто (ProjectFlow)",
+    "expectedVat": "НДС (ProjectFlow)",
+    "expectedGross": "Брутто (ProjectFlow)",
+    "mismatchBanner": "Счёт выставлен в SUMIT, но суммы не совпадают. Требуется проверка.",
+    "status": {
+      "pending": "Ожидает сравнения",
+      "matched": "Суммы совпадают",
+      "mismatch": "Несовпадение сумм",
+      "not_available": "Недоступно от провайдера"
+    }
+  },
+  "accountingSection": {
+    "title": "Счета и квитанции",
+    "subtitle": "Выдача и отслеживание документов через подключённую учётную систему.",
+    "connectPrompt": "Подключите учётную систему для выдачи счетов и квитанций через ProjectFlow.",
+    "connectAction": "Подключить учётную систему",
+    "providerConnected": "Учётная система: {provider} • Подключена"
+  },
+  "historical": {
+    "title": "Ранее выданные документы",
+    "subtitle": "Документы, выданные ранее через подключённую учётную систему. Только просмотр и скачивание."
   }
 }

@@ -102,38 +102,48 @@
   },
   "backToList": "Назад к расходам",
   "received": {
-    "navLink": "Received expenses",
-    "title": "Received expenses",
-    "subtitle": "Supplier documents captured from SUMIT, ready for OCR review.",
-    "ingestionOff": "SUMIT expense ingestion is off for this organization.",
-    "openOcrReview": "Open OCR review",
-    "matchedVendor": "Matched vendor: {name}",
-    "empty": { "title": "No received expenses yet", "body": "Enable SUMIT expense ingestion to see documents here." },
+    "navLink": "Полученные расходы",
+    "title": "Полученные расходы",
+    "subtitle": "Документы поставщиков из SUMIT, готовые к проверке распознавания.",
+    "ingestionOff": "Захват расходов SUMIT отключён для этой организации.",
+    "openOcrReview": "Открыть проверку распознавания",
+    "matchedVendor": "Сопоставленный поставщик: {name}",
+    "empty": {
+      "title": "Пока нет полученных расходов",
+      "body": "Включите захват расходов SUMIT, чтобы видеть документы здесь."
+    },
     "columns": {
-      "source": "Source",
-      "received": "Received",
-      "status": "Status",
-      "supplier": "Supplier",
-      "reference": "Reference",
-      "gross": "Gross",
-      "actions": "Actions"
+      "source": "Источник",
+      "received": "Получено",
+      "status": "Статус",
+      "supplier": "Поставщик",
+      "reference": "Ссылка",
+      "gross": "Брутто",
+      "actions": "Действия"
     },
-    "source": { "sumit": "SUMIT", "manual": "Manual upload", "camera": "Photo" },
+    "source": {
+      "sumit": "SUMIT",
+      "manual": "Ручная загрузка",
+      "camera": "Фото"
+    },
     "status": {
-      "detected": "Waiting for OCR",
-      "ocr_queued": "Waiting for OCR",
-      "needs_review": "Ready for review",
-      "failed": "Needs manual entry",
-      "linked": "Recorded",
-      "ignored": "Ignored"
+      "detected": "Ожидает распознавания",
+      "ocr_queued": "Ожидает распознавания",
+      "needs_review": "Готово к проверке",
+      "failed": "Требуется ручной ввод",
+      "linked": "Записано",
+      "ignored": "Пропущено"
     },
-    "actions": { "preview": "Preview PDF", "review": "Review" },
+    "actions": {
+      "preview": "Предпросмотр PDF",
+      "review": "Проверить"
+    },
     "errors": {
-      "generic": "Processing failed",
-      "pdf_fetch": "Could not download the document",
-      "sumit_not_connected": "SUMIT is not connected",
-      "ocrRequired": "OCR must be enabled before SUMIT expense ingestion",
-      "pdfFailed": "Could not load document preview"
+      "generic": "Обработка не удалась",
+      "pdf_fetch": "Не удалось скачать документ",
+      "sumit_not_connected": "SUMIT не подключён",
+      "ocrRequired": "Перед захватом расходов SUMIT нужно включить распознавание документов",
+      "pdfFailed": "Не удалось загрузить предпросмотр документа"
     }
   },
   "backNavigation": {

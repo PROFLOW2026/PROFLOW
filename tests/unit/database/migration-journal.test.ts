@@ -353,7 +353,16 @@ describe('migration journal', () => {
     expect(tags.indexOf('0091_employee_app_temp_pin_sealed')).toBeLessThan(
       tags.indexOf('0092_payroll_obligation_source'),
     );
-    expect(tags.at(-1)).toBe('0092_payroll_obligation_source');
+    expect(tags.indexOf('0092_payroll_obligation_source')).toBeLessThan(
+      tags.indexOf('0093_invoicing_sumit_hardening'),
+    );
+    expect(tags.indexOf('0093_invoicing_sumit_hardening')).toBeLessThan(
+      tags.indexOf('0094_statutory_receipt_payment_link'),
+    );
+    expect(tags.indexOf('0094_statutory_receipt_payment_link')).toBeLessThan(
+      tags.indexOf('0095_external_expense_imports'),
+    );
+    expect(tags.at(-1)).toBe('0095_external_expense_imports');
 
     const sql66 = await readFile(
       path.join(MIGRATIONS_DIR, '0066_workforce_time_integrity.sql'),

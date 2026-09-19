@@ -401,16 +401,16 @@
     "dateRange": "Диапазон дат"
   },
   "customerStatement": {
-    "preview": "Preview statement",
-    "shareButton": "Share",
-    "copyLink": "Copy link",
-    "whatsapp": "WhatsApp",
-    "linkCopied": "Link copied to clipboard",
-    "shareSuccess": "Share link shared",
-    "shareFailed": "Could not copy share link",
-    "prepareSubject": "Account statement — {clientName}",
+    "preview": "Предпросмотр выписки",
+    "shareButton": "Поделиться",
+    "copyLink": "Копировать ссылку",
+    "whatsapp": "Ватсап",
+    "linkCopied": "Ссылка скопирована в буфер",
+    "shareSuccess": "Ссылка для обмена отправлена",
+    "shareFailed": "Не удалось скопировать ссылку",
+    "prepareSubject": "Выписка: {clientName}",
     "share": {
-      "messageTemplate": "Hello {clientName},\nYour updated account statement is ready.\nView:\n{link}"
+      "messageTemplate": "Здравствуйте, {clientName}!\nВаша обновлённая выписка готова.\nПросмотр:\n{link}"
     }
   }
 }

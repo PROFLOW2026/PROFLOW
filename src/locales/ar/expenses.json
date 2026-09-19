@@ -102,38 +102,48 @@
   },
   "backToList": "رجوع إلى المصروفات",
   "received": {
-    "navLink": "Received expenses",
-    "title": "Received expenses",
-    "subtitle": "Supplier documents captured from SUMIT, ready for OCR review.",
-    "ingestionOff": "SUMIT expense ingestion is off for this organization.",
-    "openOcrReview": "Open OCR review",
-    "matchedVendor": "Matched vendor: {name}",
-    "empty": { "title": "No received expenses yet", "body": "Enable SUMIT expense ingestion to see documents here." },
+    "navLink": "المصروفات الواردة",
+    "title": "المصروفات الواردة",
+    "subtitle": "مستندات الموردين الملتقطة من SUMIT، جاهزة لمراجعة قراءة المستندات.",
+    "ingestionOff": "استقبال مصروفات SUMIT متوقف لهذه المنظمة.",
+    "openOcrReview": "فتح مراجعة قراءة المستندات",
+    "matchedVendor": "مورد مطابق: {name}",
+    "empty": {
+      "title": "لا توجد مصروفات واردة بعد",
+      "body": "فعّل استقبال مصروفات SUMIT لرؤية المستندات هنا."
+    },
     "columns": {
-      "source": "Source",
-      "received": "Received",
-      "status": "Status",
-      "supplier": "Supplier",
-      "reference": "Reference",
-      "gross": "Gross",
-      "actions": "Actions"
+      "source": "المصدر",
+      "received": "تاريخ الاستلام",
+      "status": "الحالة",
+      "supplier": "المورد",
+      "reference": "المرجع",
+      "gross": "إجمالي",
+      "actions": "إجراءات"
     },
-    "source": { "sumit": "SUMIT", "manual": "Manual upload", "camera": "Photo" },
+    "source": {
+      "sumit": "SUMIT",
+      "manual": "رفع يدوي",
+      "camera": "صورة"
+    },
     "status": {
-      "detected": "Waiting for OCR",
-      "ocr_queued": "Waiting for OCR",
-      "needs_review": "Ready for review",
-      "failed": "Needs manual entry",
-      "linked": "Recorded",
-      "ignored": "Ignored"
+      "detected": "بانتظار قراءة المستند",
+      "ocr_queued": "بانتظار قراءة المستند",
+      "needs_review": "جاهز للمراجعة",
+      "failed": "يتطلب إدخالاً يدوياً",
+      "linked": "مسجل",
+      "ignored": "تم التجاهل"
     },
-    "actions": { "preview": "Preview PDF", "review": "Review" },
+    "actions": {
+      "preview": "معاينة PDF",
+      "review": "مراجعة"
+    },
     "errors": {
-      "generic": "Processing failed",
-      "pdf_fetch": "Could not download the document",
-      "sumit_not_connected": "SUMIT is not connected",
-      "ocrRequired": "OCR must be enabled before SUMIT expense ingestion",
-      "pdfFailed": "Could not load document preview"
+      "generic": "فشلت المعالجة",
+      "pdf_fetch": "تعذر تنزيل المستند",
+      "sumit_not_connected": "SUMIT غير متصل",
+      "ocrRequired": "يجب تفعيل قراءة المستندات قبل ك capture مصروفات SUMIT",
+      "pdfFailed": "تعذر تحميل معاينة المستند"
     }
   },
   "backNavigation": {

@@ -184,7 +184,9 @@
     "method": "الطريقة",
     "reference": "المرجع",
     "notes": "ملاحظات",
-    "submit": "حفظ الدفعة"
+    "submit": "حفظ الدفعة",
+    "recordPaymentTitle": "تسجيل دفعة",
+    "recordPaymentDescription": "أدخل المبلغ المستلم من العميل."
   },
   "detail": {
     "title": "سجل الفوترة",
@@ -257,5 +259,17 @@
   "notAllowed": {
     "title": "غير مسموح",
     "body": "ليس لديك صلاحية عرض الفوترة والتحصيل."
+  },
+  "collectionMode": {
+    "externalAccountingNote": "تُصدر الفواتير والإيصالات خارج ProjectFlow.",
+    "connectAccountingLink": "ربط نظام المحاسبة"
+  },
+  "paymentRecorded": {
+    "paymentSuccess": "تم تسجيل الدفعة بنجاح",
+    "fullyPaid": "سجل الفوترة هذا مدفوع بالكامل",
+    "outstandingRemaining": "الرصيد المستحق:",
+    "receiptIssued": "تم إصدار الإيصال عبر {provider}",
+    "receiptFailed": "تم تسجيل الدفعة، لكن إصدار الإيصال فشل.",
+    "receiptPending": "تم تسجيل الدفعة. إصدار الإيصال قيد التنفيذ."
   }
 }

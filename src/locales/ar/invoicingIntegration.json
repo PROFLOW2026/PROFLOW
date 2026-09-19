@@ -28,7 +28,11 @@
     "openStorageLocation": "فتح موقع الملف",
     "credit": "طلب إشعار دائن",
     "cancel": "إلغاء المستند الخارجي",
-    "allocate": "حفظ مرجع التخصيص"
+    "allocate": "حفظ مرجع التخصيص",
+    "viewInProvider": "عرض في SUMIT",
+    "copyLink": "نسخ الرابط",
+    "linkCopied": "تم نسخ الرابط إلى الحافظة",
+    "whatsapp": "واتساب"
   },
   "issued": {
     "title": "فاتورة ضريبية {number}",
@@ -48,7 +52,7 @@
     "title": "إرسال فاتورة {number}",
     "description": "ستُرسل الفاتورة عبر SUMIT إلى العنوان الذي تختاره.",
     "toLabel": "إلى",
-    "emailPlaceholder": "name@example.com",
+    "emailPlaceholder": "example@domain.com",
     "success": "تم إرسال الفاتورة بنجاح"
   },
   "fields": {
@@ -60,7 +64,9 @@
     "status": "الحالة الخارجية",
     "pdf": "ملف PDF",
     "storageCopy": "نسخة محفوظة",
-    "technicalDetails": "تفاصيل تقنية"
+    "technicalDetails": "تفاصيل تقنية",
+    "linkedPayment": "دفعة مرتبطة",
+    "linkedPaymentHint": "صُدرت لدفعة مسجلة في سجل الفوترة هذا"
   },
   "documentStatus": {
     "requested": "مطلوب",
@@ -78,7 +84,11 @@
   "documentKinds": {
     "receipt": "إيصال {number}",
     "tax_invoice_receipt": "فاتورة ضريبية/إيصال {number}",
-    "transaction_invoice": "فاتورة معاملة {number}"
+    "transaction_invoice": "فاتورة معاملة {number}",
+    "tax_invoice": "فاتورة ضريبية {number}",
+    "credit_note": "إشعار دائن {number}",
+    "proforma": "فاتورة أولية {number}",
+    "other": "مستند {number}"
   },
   "payment": {
     "received": "تم استلام الدفعة",
@@ -99,38 +109,45 @@
     "receiptManual": "يدوي فقط",
     "save": "حفظ الإعدادات",
     "saved": "تم حفظ الإعدادات",
-    "sumitTitle": "SUMIT (test environment)",
+    "sumitTitle": "SUMIT (بيئة اختبار)",
     "sumitDescription": "Connect your SUMIT Test Configuration account. Production is not available in this release.",
-    "companyId": "Company ID",
-    "apiKey": "API key",
-    "connect": "Connect test account",
-    "disconnect": "Disconnect",
-    "connectedAs": "Connected — Company ID {companyId}",
-    "testOnlyNotice": "Test environment only. Do not enter production credentials.",
-    "invalidCompanyId": "Company ID must be a positive number.",
-    "expenseIngestionTitle": "Inbound expense capture (optional)",
-    "expenseIngestionDescription": "When enabled, ProjectFlow polls SUMIT for supplier expense documents and runs Azure OCR.",
-    "expenseIngestionEnable": "Enable SUMIT expense ingestion",
-    "expenseIngestionDisable": "Turn off ingestion",
-    "expenseIngestionEnabled": "Expense ingestion on",
-    "expenseIngestionDisabled": "Expense ingestion off",
-    "expenseIngestionOcrRequired": "Live OCR must be enabled before SUMIT expense capture."
+    "companyId": "معرّف الشركة",
+    "apiKey": "مفتاح API",
+    "connect": "ربط حساب اختبار",
+    "disconnect": "قطع الاتصال",
+    "connectedAs": "متصل. معرّف الشركة {companyId}",
+    "testOnlyNotice": "بيئة اختبار فقط. لا تُدخل بيانات اعتماد الإنتاج.",
+    "invalidCompanyId": "يجب أن يكون معرّف الشركة رقماً موجباً.",
+    "expenseIngestionTitle": "استقبال مصروفات واردة (اختياري)",
+    "expenseIngestionDescription": "عند التفعيل، يستطلع ProjectFlow مستندات مصروفات SUMIT ويشغّل قراءة المستندات Azure.",
+    "expenseIngestionEnable": "تفعيل استقبال مصروفات SUMIT",
+    "expenseIngestionDisable": "إيقاف الاستقبال",
+    "expenseIngestionEnabled": "استقبال المصروفات مفعّل",
+    "expenseIngestionDisabled": "استقبال المصروفات متوقف",
+    "expenseIngestionOcrRequired": "يجب تفعيل قراءة المستندات قبل استقبال مصروفات SUMIT.",
+    "intro": "اختر ما إذا كان ProjectFlow يدير التحصيل فقط، أو يصدر أيضاً الفواتير والإيصالات.",
+    "modeManualDescription": "يدير ProjectFlow الفوترة والمدفوعات والأرصدة. تُصدر الفواتير والإيصالات خارج النظام.",
+    "modeExternalDescription": "يدير ProjectFlow التحصيل ويصدر الفواتير والإيصالات عبر نظام محاسبة متصل.",
+    "accountingSystemLabel": "نظام المحاسبة المتصل",
+    "providerConnectedInline": "{provider}: متصل",
+    "providerNotConnected": "لا يوجد نظام محاسبة متصل",
+    "connectProviderHint": "بعد اختيار هذا الوضع، اربط نظام محاسبة أدناه."
   },
   "errors": {
     "connectionRequired": "اربط مزود فوترة خارجي قبل طلب مستند قانوني.",
-    "connectionFailed": "Could not verify SUMIT test credentials.",
-    "invalidCompanyId": "Company ID must be a positive number.",
-    "invalidApiKey": "API key is missing or invalid.",
-    "invalidCredentials": "The connection details are not valid.",
-    "moduleInactive": "The SUMIT income/API module is not active on this account.",
-    "authRejected": "SUMIT rejected the verification request.",
-    "providerUnreachable": "SUMIT cannot be reached right now.",
-    "productionBlocked": "SUMIT production connections are not available in this release.",
+    "connectionFailed": "تعذر التحقق من بيانات اعتماد اختبار SUMIT.",
+    "invalidCompanyId": "يجب أن يكون معرّف الشركة رقماً موجباً.",
+    "invalidApiKey": "مفتاح API مفقود أو غير صالح.",
+    "invalidCredentials": "بيانات الاتصال غير صالحة.",
+    "moduleInactive": "وحدة SUMIT للدخل/API غير مفعّلة على هذا الحساب.",
+    "authRejected": "رفض SUMIT طلب التحقق.",
+    "providerUnreachable": "لا يمكن الوصول إلى SUMIT حالياً.",
+    "productionBlocked": "اتصالات SUMIT للإنتاج غير متاحة في هذا الإصدار.",
     "billingNotFinalized": "سجلات الفوترة المنهية فقط يمكنها طلب مستند قانوني خارجي.",
     "localIssuanceForbidden": "إصدار فاتورة ضريبية محلية غير مسموح.",
     "orgMismatch": "سجل الفوترة لا ينتمي لهذه المنظمة.",
-    "duplicateIssuanceBlocked": "An external statutory document is already in progress or issued for this billing record.",
-    "ambiguousIssuance": "The provider response was ambiguous. Do not retry — use recovery or contact support.",
+    "duplicateIssuanceBlocked": "يوجد مستند قانوني خارجي قيد التنفيذ أو صادر بالفعل لسجل الفوترة هذا.",
+    "ambiguousIssuance": "استجابة المزود كانت غامضة. لا تُعد المحاولة. استخدم الاستعادة أو تواصل مع الدعم.",
     "providerFailed": "تعذّر على مزود الفوترة الخارجي إكمال الطلب.",
     "missingExternalId": "هذا السجل ليس له معرّف مزود خارجي بعد.",
     "creditUnsupported": "هذا المزود لا يدعم إشعارات الدائن.",
@@ -140,6 +157,47 @@
     "shareExpired": "انتهت صلاحية رابط المشاركة.",
     "manualModeActive": "الوضع اليدوي مفعّل — لا يلزم مزود خارجي للعمليات.",
     "paymentVoid": "لا يمكن إصدار إيصال لدفعة ملغاة.",
-    "invalidDocumentKind": "نوع المستند القانوني غير مدعوم لهذا الإجراء."
+    "invalidDocumentKind": "نوع المستند القانوني غير مدعوم لهذا الإجراء.",
+    "missingCustomerSnapshot": "لا يوجد لقطة عميل مجمدة لسجل الفوترة. اربط عميلاً بالمشروع قبل الإنهاء.",
+    "shareFailed": "تعذر إنشاء رابط المشاركة."
+  },
+  "documentTypeLabels": {
+    "tax_invoice": "فاتورة ضريبية",
+    "receipt": "إيصال",
+    "tax_invoice_receipt": "فاتورة ضريبية / إيصال",
+    "transaction_invoice": "فاتورة معاملة",
+    "credit_note": "إشعار دائن",
+    "proforma": "فاتورة أولية",
+    "other": "مستند"
+  },
+  "share": {
+    "messageTemplate": "المستند {number} جاهز للعرض:\n{link}"
+  },
+  "history": {
+    "hint": "تبقى المستندات الصادرة متاحة هنا بعد التحديث أو عند العودة إلى سجل الفوترة."
+  },
+  "reconciliation": {
+    "title": "مطابقة المبالغ",
+    "expectedNet": "صافي (ProjectFlow)",
+    "expectedVat": "ضريبة (ProjectFlow)",
+    "expectedGross": "إجمالي (ProjectFlow)",
+    "mismatchBanner": "صُدرت الفاتورة في SUMIT لكن المبالغ لا تتطابق. يلزم المراجعة.",
+    "status": {
+      "pending": "مقارنة معلقة",
+      "matched": "المبالغ متطابقة",
+      "mismatch": "عدم تطابق المبالغ",
+      "not_available": "غير متاح من المزود"
+    }
+  },
+  "accountingSection": {
+    "title": "الفواتير والإيصالات",
+    "subtitle": "إصدار وتتبع المستندات عبر نظام المحاسبة المتصل.",
+    "connectPrompt": "اربط نظام محاسبة لإصدار الفواتير والإيصالات عبر ProjectFlow.",
+    "connectAction": "ربط نظام المحاسبة",
+    "providerConnected": "نظام المحاسبة: {provider} • متصل"
+  },
+  "historical": {
+    "title": "مستندات صادرة سابقاً",
+    "subtitle": "مستندات صُدرت سابقاً عبر نظام محاسبة متصل. للعرض والتنزيل فقط."
   }
 }

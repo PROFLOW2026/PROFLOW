@@ -26,6 +26,7 @@ const MODULE_PATH_NAMESPACE_ALLOW: ReadonlyArray<{
   { pathPrefix: 'src/modules/recurring-drafts/', namespaces: ['recurringDrafts'] },
   { pathPrefix: 'src/modules/crm/', namespaces: ['crm'] },
   { pathPrefix: 'src/modules/assets/', namespaces: ['assets'] },
+  { pathPrefix: 'src/modules/invoicing-integration/ui/', namespaces: ['invoicingIntegration'] },
   { pathPrefix: 'src/app/[locale]/(app)/contracts/', namespaces: ['contracts'] },
 ];
 
