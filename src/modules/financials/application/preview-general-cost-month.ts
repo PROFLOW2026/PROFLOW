@@ -321,8 +321,18 @@ export function previewAllocationFromPreparedInputs(input: {
       lines: [],
     };
   }
+  // Match recompute-general-cost-month: company_only sources stay unallocatable, not project weights.
+  const companyOnlyKinds: ReadonlySet<GeneralCostSourceAtom['kind']> = new Set([
+    'expense_company_only',
+    'labor_company_only',
+    'ap_bill_remainder_company_only',
+  ]);
+  const autoPool = sumGeneralCostSources(
+    input.sources.filter((source) => !companyOnlyKinds.has(source.kind)),
+    currency,
+  );
   const allocation = allocateGeneralPoolByDirectActual({
-    pool,
+    pool: autoPool,
     projects: [...input.bases],
   });
   assertGeneralPoolConserves(allocation);

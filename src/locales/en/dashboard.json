@@ -322,7 +322,7 @@
       "invoiced": "Invoice total (before VAT)",
       "paid": "Paid cash",
       "outstanding": "Outstanding including VAT",
-      "actualCost": "Cost actual net",
+      "actualCost": "Direct recognized cost net",
       "committed": "Committed (PO)",
       "apPayable": "Vendor bills payable (Forecast)",
       "profit": "Estimated profit net"
