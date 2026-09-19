@@ -101,6 +101,51 @@
     "recurringExpenses": "הוצאות קבועות / חוזרות"
   },
   "backToList": "חזרה להוצאות",
+  "received": {
+    "navLink": "הוצאות שהתקבלו",
+    "title": "הוצאות שהתקבלו",
+    "subtitle": "מסמכי ספק שנקלטו מ-SUMIT או ממקורות נכנסים אחרים, מוכנים לבדיקת OCR.",
+    "ingestionOff": "קליטת הוצאות מ-SUMIT כבויה בארגון זה. העלאה ידנית ו-OCR ישיר ממשיכים לעבוד כרגיל.",
+    "openOcrReview": "פתיחת בדיקת OCR",
+    "matchedVendor": "ספק מותאם: {name}",
+    "empty": {
+      "title": "אין עדיין הוצאות שהתקבלו",
+      "body": "כשקליטת הוצאות מ-SUMIT פעילה, מסמכי ספק חדשים יופיעו כאן אחרי זיהוי ו-OCR."
+    },
+    "columns": {
+      "source": "מקור",
+      "received": "התקבל",
+      "status": "סטטוס",
+      "supplier": "ספק",
+      "reference": "אסמכתא",
+      "gross": "ברוטו",
+      "actions": "פעולות"
+    },
+    "source": {
+      "sumit": "SUMIT",
+      "manual": "העלאה ידנית",
+      "camera": "צילום"
+    },
+    "status": {
+      "detected": "ממתין לקריאה",
+      "ocr_queued": "ממתין לקריאה",
+      "needs_review": "מוכן לבדיקה",
+      "failed": "דורש השלמה",
+      "linked": "נקלט",
+      "ignored": "התעלמות"
+    },
+    "actions": {
+      "preview": "תצוגת PDF",
+      "review": "בדיקה"
+    },
+    "errors": {
+      "generic": "העיבוד נכשל",
+      "pdf_fetch": "לא ניתן למשוך את המסמך",
+      "sumit_not_connected": "SUMIT לא מחובר",
+      "ocrRequired": "יש להפעיל OCR לפני הפעלת קליטת הוצאות מ-SUMIT",
+      "pdfFailed": "לא ניתן לטעון תצוגת מסמך"
+    }
+  },
   "backNavigation": {
     "expenses": "חזרה להוצאות",
     "expensesAttention": "חזרה להוצאות שדורשות טיפול",

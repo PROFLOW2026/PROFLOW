@@ -145,6 +145,8 @@ export interface OcrReviewPanelProps {
   readonly canCreateExpenses: boolean;
   readonly canManageAp: boolean;
   readonly offline?: boolean;
+  /** Deep-link from received-expense inbox. */
+  readonly initialSelectedJobId?: string | null;
 }
 
 export function OcrReviewPanel({
@@ -160,6 +162,7 @@ export function OcrReviewPanel({
   canCreateExpenses,
   canManageAp,
   offline = false,
+  initialSelectedJobId = null,
 }: OcrReviewPanelProps) {
   const t = useTranslations('documents.ocr');
   const activeInitialJobs = useMemo(
@@ -171,6 +174,12 @@ export function OcrReviewPanel({
   const [inboxTab, setInboxTab] = useState<OcrInboxTab>(initialInboxTab);
   const [selectedId, setSelectedId] = useState<string | null>(() => {
     const inDefaultTab = jobsForOcrInboxTab(activeInitialJobs, initialInboxTab);
+    if (
+      initialSelectedJobId &&
+      activeInitialJobs.some((job) => job.id === initialSelectedJobId)
+    ) {
+      return initialSelectedJobId;
+    }
     const remembered = ocrSelectionMemory.get(organizationId);
     if (remembered && inDefaultTab.some((job) => job.id === remembered)) {
       return remembered;

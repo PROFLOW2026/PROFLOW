@@ -55,10 +55,27 @@ export interface SumitSendDocumentRequest {
   readonly original?: boolean;
 }
 
+/** SUMIT expense document types (15–21). Type 22 SupplierPayment must not be batched with these. */
+export const SUMIT_EXPENSE_DOCUMENT_TYPES = [15, 16, 17, 18, 19, 20, 21] as const;
+
+export interface SumitExpenseListDocument {
+  readonly documentId: string;
+  readonly documentType: number | null;
+  readonly isDraft: boolean | null;
+  readonly date: string | null;
+}
+
 export interface SumitHttpClient {
   createDocument(input: SumitCreateDocumentRequest): Promise<SumitCreateDocumentResponse>;
   getDocumentDetails(documentId: string): Promise<SumitCreateDocumentResponse>;
   getDocumentPdf(documentId: string, original?: boolean): Promise<SumitDocumentPdfResponse>;
+  listExpenseDocuments(input?: {
+    readonly dateFrom?: string;
+    readonly dateTo?: string;
+    readonly includeDrafts?: boolean;
+    readonly startIndex?: number;
+    readonly pageSize?: number;
+  }): Promise<readonly SumitExpenseListDocument[]>;
   sendDocument(input: SumitSendDocumentRequest): Promise<void>;
   /** @deprecated Prefer testConnection() for credential verification. */
   ping(): Promise<boolean>;
@@ -215,6 +232,37 @@ export function createSumitHttpClient(
         DocumentID: Number(documentId),
       });
       return mapDocumentResponse(raw);
+    },
+
+    async listExpenseDocuments(input = {}) {
+      const raw = await postJson<Record<string, unknown>>('/accounting/documents/list/', {
+        DocumentTypes: [...SUMIT_EXPENSE_DOCUMENT_TYPES],
+        DateFrom: input.dateFrom ?? null,
+        DateTo: input.dateTo ?? null,
+        IncludeDrafts: input.includeDrafts ?? true,
+        Paging: {
+          StartIndex: input.startIndex ?? 0,
+          PageSize: Math.min(Math.max(input.pageSize ?? 100, 10), 1000),
+        },
+      });
+      const data =
+        raw.Data && typeof raw.Data === 'object'
+          ? (raw.Data as Record<string, unknown>)
+          : raw;
+      const docs = (data.Documents ?? []) as Array<Record<string, unknown>>;
+      return docs
+        .map((doc) => ({
+          documentId:
+            typeof doc.DocumentID === 'number'
+              ? String(doc.DocumentID)
+              : typeof doc.DocumentID === 'string'
+                ? doc.DocumentID
+                : '',
+          documentType: typeof doc.Type === 'number' ? doc.Type : null,
+          isDraft: typeof doc.IsDraft === 'boolean' ? doc.IsDraft : null,
+          date: typeof doc.Date === 'string' ? doc.Date : null,
+        }))
+        .filter((doc) => doc.documentId.length > 0);
     },
 
     async getDocumentPdf(documentId, original = true) {

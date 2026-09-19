@@ -203,6 +203,9 @@ function mockSumitClient(options: {
     async testConnection() {
       return { ok: true, environment: 'test' as const };
     },
+    async listExpenseDocuments() {
+      return [];
+    },
   };
 }
 

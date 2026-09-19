@@ -244,6 +244,10 @@ export interface OcrSafeRawMetadata {
     readonly queryFields: boolean;
     readonly queryFieldsCostNote: string | null;
   };
+  /** Optional inbound capture source (e.g. SUMIT file ingest). */
+  readonly importSource?: 'sumit' | 'direct';
+  readonly externalDocumentId?: string;
+  readonly externalExpenseImportId?: string;
 }
 
 export interface OcrVendorMatch {

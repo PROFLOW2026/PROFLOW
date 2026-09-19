@@ -101,6 +101,41 @@
     "recurringExpenses": "مصروفات متكررة / ثابتة"
   },
   "backToList": "رجوع إلى المصروفات",
+  "received": {
+    "navLink": "Received expenses",
+    "title": "Received expenses",
+    "subtitle": "Supplier documents captured from SUMIT, ready for OCR review.",
+    "ingestionOff": "SUMIT expense ingestion is off for this organization.",
+    "openOcrReview": "Open OCR review",
+    "matchedVendor": "Matched vendor: {name}",
+    "empty": { "title": "No received expenses yet", "body": "Enable SUMIT expense ingestion to see documents here." },
+    "columns": {
+      "source": "Source",
+      "received": "Received",
+      "status": "Status",
+      "supplier": "Supplier",
+      "reference": "Reference",
+      "gross": "Gross",
+      "actions": "Actions"
+    },
+    "source": { "sumit": "SUMIT", "manual": "Manual upload", "camera": "Photo" },
+    "status": {
+      "detected": "Waiting for OCR",
+      "ocr_queued": "Waiting for OCR",
+      "needs_review": "Ready for review",
+      "failed": "Needs manual entry",
+      "linked": "Recorded",
+      "ignored": "Ignored"
+    },
+    "actions": { "preview": "Preview PDF", "review": "Review" },
+    "errors": {
+      "generic": "Processing failed",
+      "pdf_fetch": "Could not download the document",
+      "sumit_not_connected": "SUMIT is not connected",
+      "ocrRequired": "OCR must be enabled before SUMIT expense ingestion",
+      "pdfFailed": "Could not load document preview"
+    }
+  },
   "backNavigation": {
     "expenses": "رجوع إلى المصروفات",
     "expensesAttention": "رجوع إلى مصروفات تحتاج إجراء",

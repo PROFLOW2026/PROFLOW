@@ -13,7 +13,9 @@ import {
   connectSumitTestAction,
   disconnectSumitTestAction,
 } from './sumit-actions';
+import { updateExpenseIngestionSettingsAction } from './expense-ingestion-actions';
 import { isValidSumitCompanyIdInput } from './sumit-form-validation';
+import type { ExpenseIngestionProvider } from '@/modules/expense-ingestion';
 
 /** Prevent password managers from treating credential fields as login inputs. */
 function unlockAutofillGuard(event: FocusEvent<HTMLInputElement>): void {
@@ -24,10 +26,14 @@ export function SumitIntegrationPanel({
   connected,
   companyId,
   canManage,
+  expenseIngestionProvider = 'none',
+  ocrLive = false,
 }: {
   connected: boolean;
   companyId: number | null;
   canManage: boolean;
+  expenseIngestionProvider?: ExpenseIngestionProvider;
+  ocrLive?: boolean;
 }) {
   const t = useTranslations('invoicingIntegration');
   const router = useRouter();
@@ -131,6 +137,65 @@ export function SumitIntegrationPanel({
               {t('settings.connect')}
             </Button>
           </form>
+        ) : null}
+        {connected ? (
+          <div className="flex flex-col gap-2 rounded-md border border-[var(--pf-border-default)] p-3">
+            <p className="font-medium">{t('settings.expenseIngestionTitle')}</p>
+            <p className="text-[var(--pf-text-secondary)]">
+              {t('settings.expenseIngestionDescription')}
+            </p>
+            {!ocrLive ? (
+              <Alert tone="warning">{t('settings.expenseIngestionOcrRequired')}</Alert>
+            ) : null}
+            {canManage ? (
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  variant={expenseIngestionProvider === 'sumit' ? 'primary' : 'secondary'}
+                  disabled={pending || !ocrLive}
+                  onClick={() => {
+                    setError(null);
+                    startTransition(async () => {
+                      const result = await updateExpenseIngestionSettingsAction({
+                        provider: 'sumit',
+                      });
+                      if (result.error) {
+                        setError(result.error);
+                        return;
+                      }
+                      router.refresh();
+                    });
+                  }}
+                >
+                  {t('settings.expenseIngestionEnable')}
+                </Button>
+                <Button
+                  type="button"
+                  variant={expenseIngestionProvider === 'none' ? 'primary' : 'secondary'}
+                  disabled={pending}
+                  onClick={() => {
+                    setError(null);
+                    startTransition(async () => {
+                      const result = await updateExpenseIngestionSettingsAction({
+                        provider: 'none',
+                      });
+                      if (result.error) {
+                        setError(result.error);
+                        return;
+                      }
+                      router.refresh();
+                    });
+                  }}
+                >
+                  {t('settings.expenseIngestionDisable')}
+                </Button>
+              </div>
+            ) : expenseIngestionProvider === 'sumit' ? (
+              <StatusBadge shape="active" label={t('settings.expenseIngestionEnabled')} />
+            ) : (
+              <StatusBadge shape="void" label={t('settings.expenseIngestionDisabled')} />
+            )}
+          </div>
         ) : null}
         {canManage && connected ? (
           <Button

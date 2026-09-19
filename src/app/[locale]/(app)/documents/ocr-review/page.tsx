@@ -51,13 +51,13 @@ export async function generateMetadata({
 export default async function OcrReviewPage({
   searchParams,
 }: {
-  searchParams: Promise<{ target?: string }>;
+  searchParams: Promise<{ target?: string; jobId?: string }>;
 }) {
   if (!isOcrReviewUiAllowed()) {
     redirect({ href: '/expenses', locale: await getLocale() });
   }
 
-  const [{ target }, t, tOcr] = await Promise.all([
+  const [{ target, jobId }, t, tOcr] = await Promise.all([
     searchParams,
     getTranslations('documents'),
     getTranslations('documents.ocr'),
@@ -145,6 +145,7 @@ export default async function OcrReviewPage({
           canManageDocuments={data.canManageDocuments}
           canCreateExpenses={data.canCreateExpenses}
           canManageAp={data.canManageAp}
+          initialSelectedJobId={jobId ?? null}
         />
       )}
     </div>

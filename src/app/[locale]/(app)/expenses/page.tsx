@@ -137,6 +137,9 @@ export default async function ExpensesPage({
         actions={
           <div className="flex max-w-full flex-wrap gap-2">
             <Button asChild variant="secondary" className="max-w-full">
+              <Link href="/expenses/received">{t('received.navLink')}</Link>
+            </Button>
+            <Button asChild variant="secondary" className="max-w-full">
               <Link href="/recurring-drafts?kind=expense">{t('actions.recurringExpenses')}</Link>
             </Button>
             <OcrEntryLink workflow="expense" />

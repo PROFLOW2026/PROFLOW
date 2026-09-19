@@ -107,7 +107,14 @@
     "disconnect": "Disconnect",
     "connectedAs": "Connected — Company ID {companyId}",
     "testOnlyNotice": "Test environment only. Do not enter production credentials.",
-    "invalidCompanyId": "Company ID must be a positive number."
+    "invalidCompanyId": "Company ID must be a positive number.",
+    "expenseIngestionTitle": "Inbound expense capture (optional)",
+    "expenseIngestionDescription": "When enabled, ProjectFlow polls SUMIT for supplier expense documents and runs Azure OCR.",
+    "expenseIngestionEnable": "Enable SUMIT expense ingestion",
+    "expenseIngestionDisable": "Turn off ingestion",
+    "expenseIngestionEnabled": "Expense ingestion on",
+    "expenseIngestionDisabled": "Expense ingestion off",
+    "expenseIngestionOcrRequired": "Live OCR must be enabled before SUMIT expense capture."
   },
   "errors": {
     "connectionRequired": "Подключите внешнего провайдера выставления счетов перед запросом налогового документа.",

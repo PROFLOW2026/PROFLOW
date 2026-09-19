@@ -8,6 +8,8 @@ import { listAccountingIntegrations } from '@/modules/integrations';
 import { getOrgInvoicingSettings } from '@/modules/invoicing-integration/data/org-invoicing-settings.repository';
 import { isSumitTransactionInvoiceSupported } from '@/modules/invoicing-integration/providers/sumit/sumit-create-payload';
 import { getSumitConnectionStatus } from '@/modules/invoicing-integration/server';
+import { getOrgExpenseIngestionSettings } from '@/modules/expense-ingestion/server';
+import { isOcrIngestionEnabled } from '@/modules/ocr/domain/feature-gate';
 import { InvoicingSettingsPanel } from './invoicing-settings-panel';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { withOrgContext } from '@/shared/auth/session';
@@ -30,12 +32,15 @@ export default async function IntegrationsSettingsPage() {
       const listed = await listAccountingIntegrations(context);
       const sumit = await getSumitConnectionStatus(context);
       const invoicingSettings = await getOrgInvoicingSettings(context);
+      const expenseIngestion = await getOrgExpenseIngestionSettings(context);
       const canManageSumit = context.permissions.has(PERMISSIONS.SETTINGS_MANAGE);
       return {
         allowed: true as const,
         ...listed,
         sumit,
         invoicingSettings,
+        expenseIngestion,
+        ocrLive: isOcrIngestionEnabled(),
         canManageSumit,
       };
     } catch {
@@ -52,6 +57,8 @@ export default async function IntegrationsSettingsPage() {
           paymentDocumentPolicy: 'tax_invoice_then_receipt' as const,
           receiptIssuance: 'automatic' as const,
         },
+        expenseIngestion: { provider: 'none' as const },
+        ocrLive: false,
         canManageSumit: false,
       };
     }
@@ -78,6 +85,8 @@ export default async function IntegrationsSettingsPage() {
           connected={data.sumit.connected}
           companyId={data.sumit.companyId}
           canManage={data.canManageSumit}
+          expenseIngestionProvider={data.expenseIngestion?.provider ?? 'none'}
+          ocrLive={data.ocrLive ?? false}
         />
         {data.catalog.length === 0 && !data.sumit.connected ? (
           <EmptyState icon={Plug} title={t('empty.title')} description={t('empty.body')} />

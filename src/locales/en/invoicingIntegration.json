@@ -121,7 +121,14 @@
     "disconnect": "Disconnect",
     "connectedAs": "Connected — Company ID {companyId}",
     "testOnlyNotice": "Test environment only. Do not enter production credentials.",
-    "invalidCompanyId": "Company ID must be a positive number."
+    "invalidCompanyId": "Company ID must be a positive number.",
+    "expenseIngestionTitle": "Inbound expense capture (optional)",
+    "expenseIngestionDescription": "When enabled, ProjectFlow polls SUMIT for supplier expense documents, downloads the PDF, and runs your existing Azure OCR. Statutory invoicing settings are separate.",
+    "expenseIngestionEnable": "Enable SUMIT expense ingestion",
+    "expenseIngestionDisable": "Turn off ingestion",
+    "expenseIngestionEnabled": "Expense ingestion on",
+    "expenseIngestionDisabled": "Expense ingestion off",
+    "expenseIngestionOcrRequired": "Live OCR must be enabled before SUMIT can feed expense documents."
   },
   "errors": {
     "connectionRequired": "Connect an external invoicing provider before requesting a statutory document.",
