@@ -78,7 +78,7 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
     key: 'integrations',
     href: '/settings/integrations',
     permission: PERMISSIONS.INTEGRATIONS_READ,
-    group: 'advanced',
+    group: 'myBusiness',
   },
   {
     key: 'storage',

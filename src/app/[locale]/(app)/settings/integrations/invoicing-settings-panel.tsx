@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useActionState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -11,14 +11,17 @@ import { saveInvoicingSettingsAction } from './invoicing-settings-actions';
 
 export interface InvoicingSettingsPanelProps {
   settings: OrgInvoicingSettings;
+  mode: OrgInvoicingSettings['mode'];
   canManage: boolean;
   transactionInvoiceSupported: boolean;
   providerConnected: boolean;
+  onModeChange: (mode: OrgInvoicingSettings['mode']) => void;
 }
 
 function RadioOption({
   name,
   value,
+  checked,
   defaultChecked,
   id,
   label,
@@ -28,7 +31,8 @@ function RadioOption({
 }: {
   name: string;
   value: string;
-  defaultChecked: boolean;
+  checked?: boolean;
+  defaultChecked?: boolean;
   id: string;
   label: string;
   description?: string;
@@ -43,6 +47,7 @@ function RadioOption({
           name={name}
           value={value}
           id={id}
+          checked={checked}
           defaultChecked={defaultChecked}
           disabled={disabled}
           className="mt-1 h-4 w-4"
@@ -63,13 +68,14 @@ function RadioOption({
 
 export function InvoicingSettingsPanel({
   settings,
+  mode,
   canManage,
   transactionInvoiceSupported,
   providerConnected,
+  onModeChange,
 }: InvoicingSettingsPanelProps) {
   const t = useTranslations('invoicingIntegration.settings');
   const [state, formAction, pending] = useActionState(saveInvoicingSettingsAction, {});
-  const [mode, setMode] = useState<'manual' | 'external_provider'>(settings.mode);
   const accountingMode = mode === 'external_provider';
 
   return (
@@ -87,26 +93,35 @@ export function InvoicingSettingsPanel({
                 name="mode"
                 value="manual"
                 id="mode-manual"
-                defaultChecked={settings.mode === 'manual'}
+                checked={mode === 'manual'}
                 label={t('modeManual')}
                 description={t('modeManualDescription')}
                 disabled={!canManage || pending}
-                onSelect={() => setMode('manual')}
+                onSelect={() => onModeChange('manual')}
               />
               <RadioOption
                 name="mode"
                 value="external_provider"
                 id="mode-external"
-                defaultChecked={settings.mode === 'external_provider'}
+                checked={mode === 'external_provider'}
                 label={t('modeExternal')}
                 description={t('modeExternalDescription')}
                 disabled={!canManage || pending}
-                onSelect={() => setMode('external_provider')}
+                onSelect={() => onModeChange('external_provider')}
               />
             </div>
 
-            {accountingMode && !providerConnected ? (
-              <Alert tone="warning">{t('connectProviderHint')}</Alert>
+            {accountingMode ? (
+              <div className="flex flex-col gap-2 rounded-md border border-[var(--pf-border-default)] p-3">
+                <Label>{t('accountingSystemLabel')}</Label>
+                {providerConnected ? (
+                  <p className="text-sm text-[var(--pf-text-secondary)]">
+                    {t('providerConnectedInline', { provider: 'SUMIT' })}
+                  </p>
+                ) : (
+                  <p className="text-sm text-[var(--pf-text-secondary)]">{t('providerNotConnected')}</p>
+                )}
+              </div>
             ) : null}
 
             {accountingMode ? (

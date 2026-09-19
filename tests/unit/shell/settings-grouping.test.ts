@@ -57,6 +57,7 @@ describe('settings section grouping', () => {
     ]);
 
     expect(listed.find((s) => s.key === 'business')?.group).toBe('myBusiness');
+    expect(listed.find((s) => s.key === 'integrations')?.group).toBe('myBusiness');
     expect(listed.find((s) => s.key === 'branding')?.group).toBe('myBusiness');
     expect(listed.find((s) => s.key === 'branding')?.href).toBe('/settings/branding');
     expect(listed.find((s) => s.key === 'features')?.group).toBe('workflow');

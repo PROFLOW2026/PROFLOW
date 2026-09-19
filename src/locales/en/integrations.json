@@ -1,6 +1,6 @@
 {
-  "title": "External connections",
-  "description": "Foundation for future accounting and other connections. Nothing is connected yet.",
+  "title": "Invoices & receipts",
+  "description": "Choose whether ProjectFlow handles collections only, or also issues invoices and receipts through a connected accounting system.",
   "status": {
     "unconfigured": "Not connected",
     "disconnected": "Disconnected",
@@ -14,10 +14,10 @@
   },
   "empty": {
     "title": "No live connection",
-    "body": "ProjectFlow does not issue tax invoices and is not connected to an accounting system. This page is a future connection area only."
+    "body": "No accounting system is connected. Connect one after choosing invoice and receipt issuance mode."
   },
-  "notice": "Do not treat this as a connected accounting product. Provider choice is an owner decision later.",
-  "neverConnected": "Not connected. Future connection only — no live accounting API and no tax invoice issuance.",
+  "notice": "Choose your operating mode and connect an accounting system if needed.",
+  "neverConnected": "Not connected",
   "providers": {
     "hashavshevet": "Hashavshevet",
     "priority": "Priority",
@@ -28,6 +28,6 @@
     "xero": "Xero"
   },
   "errors": {
-    "neverConnected": "This execution does not report a connected accounting system."
+    "neverConnected": "No connected accounting system is reported."
   }
 }
