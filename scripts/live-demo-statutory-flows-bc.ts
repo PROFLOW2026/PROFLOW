@@ -12,7 +12,6 @@ const PRESERVED_BILLING_ID = '4a5e81dc-42ba-440c-a129-2c23b2296d64';
 const COMBINED_BILLING_REF = 'PF-DEMO-BILL/26003/PROG';
 const TRANSACTION_BILLING_REF = 'PF-DEMO-BILL/26008/PROG';
 const COMBINED_PAY_REF = 'PF-DEMO-LIVE/COMBINED/26003';
-const TRANSACTION_PAY_REF = 'PF-DEMO-LIVE/TRANSACTION/26008';
 
 async function resolveUserId(): Promise<string> {
   const postgres = (await import('postgres')).default;

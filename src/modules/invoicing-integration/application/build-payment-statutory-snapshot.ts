@@ -1,5 +1,4 @@
-import { getBillingRecord } from '@/modules/billing';
-import { findPaymentById } from '@/modules/billing/data/payments.repository';
+import { findPaymentById, getBillingRecord } from '@/modules/billing';
 import { resolvePaymentTriplet } from '@/modules/billing/domain/revenue-position';
 import type { OrgContext } from '@/shared/auth/context';
 import { DomainRuleError, NotFoundError } from '@/shared/errors';

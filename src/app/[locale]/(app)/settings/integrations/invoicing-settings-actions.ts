@@ -1,6 +1,6 @@
 'use server';
 
-import { upsertOrgInvoicingSettings } from '@/modules/invoicing-integration/data/org-invoicing-settings.repository';
+import { upsertOrgInvoicingSettings } from '@/modules/invoicing-integration';
 import type {
   InvoicingPaymentDocumentPolicy,
   InvoicingReceiptIssuance,

@@ -2,7 +2,7 @@ import 'server-only';
 
 import type { OrgContext } from '@/shared/auth/context';
 import type { OcrFieldCandidate } from '@/modules/ocr/domain/types';
-import { getOcrRepository } from '@/modules/ocr/data/resolve-repository';
+import { getOcrRepository } from '@/modules/ocr';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { listImportsForOrg } from '../data/imports.repository';

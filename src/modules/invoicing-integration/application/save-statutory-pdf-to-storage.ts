@@ -7,8 +7,10 @@ import {
   prepareDocumentUpload,
   updateDocumentById,
 } from '@/modules/documents';
-import { findStorageFileByDocumentId } from '@/modules/external-storage/data/files.repository';
-import { uploadDocumentToExternalStorage } from '@/modules/external-storage/server';
+import {
+  findStorageFileByDocumentId,
+  uploadDocumentToExternalStorage,
+} from '@/modules/external-storage/server';
 import type { OrgContext } from '@/shared/auth/context';
 import { DomainRuleError, NotFoundError, ServiceUnavailableError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';

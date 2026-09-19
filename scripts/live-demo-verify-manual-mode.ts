@@ -40,15 +40,6 @@ async function main() {
     await sql.end();
   }
 
-  const priorSettings = await withUserContext(userId, async (tx) => {
-    const context = await resolveOrgContext(tx, {
-      userId,
-      organizationId: DEMO_ORG_ID,
-      locale: 'he-IL',
-    });
-    return getOrgInvoicingSettings(context);
-  });
-
   await withUserContext(userId, async (tx) => {
     const context = await resolveOrgContext(tx, {
       userId,

@@ -81,3 +81,4 @@ export {
 } from './application/folder-provisioning';
 export { listConfiguredStorageProviders, isStorageProviderConfigured } from './providers/registry';
 export { findFolderMapping } from './data/folder-mappings.repository';
+export { findStorageFileByDocumentId } from './data/files.repository';

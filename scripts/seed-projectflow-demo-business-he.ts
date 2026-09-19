@@ -208,7 +208,6 @@ async function main() {
   let preservedFound = false;
   let paymentsCreated = 0;
   let billingCreated = 0;
-  let employeesCreated = 0;
   let attendanceRangesApplied = 0;
   let timeEntryBatches = 0;
   let laborAllocationMonths = 0;
@@ -517,7 +516,6 @@ async function main() {
           notes: `${SEED_MARKER}:employee`,
         });
         employeeIds.set(spec.key, created.id);
-        employeesCreated += 1;
         await bootstrapOpenPeriodWorkforceCostingForEmployee(context, created.id);
       }
     }
@@ -878,7 +876,7 @@ async function main() {
   const report = await runPhase('summary', async (context) => {
     const { getOrganizationReceivablesSummary, getBillingRecord } = await import('../src/modules/billing/index.ts');
     const { payments } = await import('@drizzle/schema');
-    const { and, eq, sql } = await import('drizzle-orm');
+    const { and, eq } = await import('drizzle-orm');
 
     const preservedOpen = preservedFound
       ? (await getBillingRecord(context, PRESERVED_BILLING_ID)).outstandingAmount.amount

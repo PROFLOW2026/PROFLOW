@@ -5,7 +5,7 @@ import { Alert } from '@/components/ui/alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { listAccountingIntegrations } from '@/modules/integrations';
-import { getOrgInvoicingSettings } from '@/modules/invoicing-integration/data/org-invoicing-settings.repository';
+import { getOrgInvoicingSettings } from '@/modules/invoicing-integration';
 import { isSumitTransactionInvoiceSupported } from '@/modules/invoicing-integration/providers/sumit/sumit-create-payload';
 import { getSumitConnectionStatus } from '@/modules/invoicing-integration/server';
 import { getOrgExpenseIngestionSettings } from '@/modules/expense-ingestion/server';

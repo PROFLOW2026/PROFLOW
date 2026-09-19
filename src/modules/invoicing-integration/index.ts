@@ -147,6 +147,12 @@ export {
   getExternalStatutoryDocument,
   listExternalStatutoryDocumentsForBilling,
 } from './application/get-external-documents';
+export {
+  getOrgInvoicingSettings,
+  upsertOrgInvoicingSettings,
+  setOrgInvoicingSettingsForTests,
+} from './data/org-invoicing-settings.repository';
+export { loadInvoicingConnectionCredentials } from './data/credentials.repository';
 
 export {
   requestExternalDocumentSchema,

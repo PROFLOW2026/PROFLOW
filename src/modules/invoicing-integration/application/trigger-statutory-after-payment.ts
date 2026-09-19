@@ -1,7 +1,5 @@
 import 'server-only';
 
-import { getBillingRecord } from '@/modules/billing';
-import type { OrgContext } from '@/shared/auth/context';
 import { findBlockingExternalDocument } from '../domain/assert-issuance-eligible';
 import type { ExternalDocumentKind } from '../domain/types';
 import { getOrgInvoicingSettings } from '../data/org-invoicing-settings.repository';
@@ -26,7 +24,6 @@ export async function triggerStatutoryAfterPayment(
       return null;
     }
 
-    const billing = await getBillingRecord(context, billingRecordId);
     const existing = await listExternalDocuments(context, billingRecordId);
     const taxInvoice = findBlockingExternalDocument(existing, 'tax_invoice');
 

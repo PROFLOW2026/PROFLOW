@@ -15,8 +15,8 @@ async function main() {
   const { withUserContext } = await import('../src/shared/db/client.ts');
   const { resolveOrgContext } = await import('../src/modules/tenancy/index.ts');
   const { getOrganizationReceivablesSummary, getBillingRecord } = await import('../src/modules/billing/index.ts');
-  const { projects, externalStatutoryDocuments, payments } = await import('@drizzle/schema');
-  const { eq, and, sql: dsql } = await import('drizzle-orm');
+  const { externalStatutoryDocuments } = await import('@drizzle/schema');
+  const { eq } = await import('drizzle-orm');
 
   const report = await withUserContext(profile!.id, async (tx) => {
     const context = await resolveOrgContext(tx, {

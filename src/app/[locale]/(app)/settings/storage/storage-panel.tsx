@@ -109,18 +109,17 @@ export function StorageSettingsPanel({
                   <div className="flex flex-wrap gap-2">
                     {canManage && configured ? (
                       <Button
-                        type="button"
+                        asChild
                         size="sm"
                         variant={status === 'connected' ? 'secondary' : 'primary'}
                         disabled={pending || status === 'connecting'}
-                        onClick={() => {
-                          window.location.assign(`/api/org-storage/oauth/${provider}/start`);
-                        }}
                       >
-                        {connectActionLabel(status, {
-                          connect: t('actions.connect'),
-                          reconnect: t('actions.reconnect'),
-                        })}
+                        <a href={`/api/org-storage/oauth/${provider}/start`}>
+                          {connectActionLabel(status, {
+                            connect: t('actions.connect'),
+                            reconnect: t('actions.reconnect'),
+                          })}
+                        </a>
                       </Button>
                     ) : null}
                     {canManage && connection && status === 'connected' ? (

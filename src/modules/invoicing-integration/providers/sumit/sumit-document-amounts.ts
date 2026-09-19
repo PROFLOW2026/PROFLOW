@@ -73,7 +73,7 @@ export function parseSumitDocumentAmounts(raw: unknown): SumitParsedDocumentAmou
   const grossFromDocument =
     asFiniteNumber(document?.CompanyValue) ?? asFiniteNumber(document?.DocumentValue);
 
-  let net = netFromItems;
+  const net = netFromItems;
   let vat = vatFromItems;
   let gross = grossFromDocument;
 

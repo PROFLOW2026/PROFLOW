@@ -81,6 +81,9 @@ export function ExternalStatutoryPanel({
   const [sendEmail, setSendEmail] = useState('');
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [storageLocationUrl, setStorageLocationUrl] = useState<string | null>(null);
+  const [storageLocationResolvedFor, setStorageLocationResolvedFor] = useState<string | null>(
+    null,
+  );
 
   const taxInvoice = documents.find((doc) => doc.kind === 'tax_invoice') ?? null;
   const linkedDocuments = documents.filter(
@@ -161,22 +164,28 @@ export function ExternalStatutoryPanel({
       })
     : false;
 
+  const storageDocumentId =
+    storageStatus === 'saved' ? (taxInvoice?.pdf?.storageDocumentId ?? null) : null;
+  const effectiveStorageLocationUrl =
+    storageDocumentId && storageLocationResolvedFor === storageDocumentId
+      ? storageLocationUrl
+      : null;
+
   useEffect(() => {
-    const storageDocumentId = taxInvoice?.pdf?.storageDocumentId;
-    if (!storageDocumentId || storageStatus !== 'saved') {
-      setStorageLocationUrl(null);
+    if (!storageDocumentId) {
       return;
     }
     let cancelled = false;
     void resolveStatutoryStorageLocationAction(storageDocumentId).then((result) => {
-      if (!cancelled && result.url) {
-        setStorageLocationUrl(result.url);
+      if (!cancelled) {
+        setStorageLocationUrl(result.url ?? null);
+        setStorageLocationResolvedFor(storageDocumentId);
       }
     });
     return () => {
       cancelled = true;
     };
-  }, [taxInvoice?.pdf?.storageDocumentId, storageStatus]);
+  }, [storageDocumentId]);
 
   function handleSaveCopy() {
     if (!taxInvoice) return;
@@ -274,9 +283,9 @@ export function ExternalStatutoryPanel({
                     ) : (
                       <span>{t('storage.pendingStatus')}</span>
                     )}
-                    {storageStatus === 'saved' && storageLocationUrl ? (
+                    {storageStatus === 'saved' && effectiveStorageLocationUrl ? (
                       <a
-                        href={storageLocationUrl}
+                        href={effectiveStorageLocationUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-[var(--pf-accent)] underline"

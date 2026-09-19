@@ -4,7 +4,7 @@ import type { OrgContext } from '@/shared/auth/context';
 import { isOcrIngestionEnabled } from '@/modules/ocr/domain/feature-gate';
 import { extractReceiptJob } from '@/modules/ocr/application/extract-receipt';
 import { kickDurableOcrQueue } from '@/modules/ocr/application/kick-queue';
-import { getOcrRepository } from '@/modules/ocr/data/resolve-repository';
+import { getOcrRepository } from '@/modules/ocr';
 import { sha256Hex } from '@/modules/ocr/application/load-document-bytes';
 import { DomainRuleError } from '@/shared/errors';
 import type { ExternalExpenseImport } from '../domain/types';

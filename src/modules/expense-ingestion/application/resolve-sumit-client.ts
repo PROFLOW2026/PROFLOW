@@ -1,8 +1,10 @@
 import 'server-only';
 
 import type { OrgContext } from '@/shared/auth/context';
-import { loadInvoicingConnectionCredentials } from '@/modules/invoicing-integration/data/credentials.repository';
-import { getProviderConnectionsRepository } from '@/modules/invoicing-integration/data/external-documents';
+import {
+  getProviderConnectionsRepository,
+  loadInvoicingConnectionCredentials,
+} from '@/modules/invoicing-integration';
 import { SUMIT_PROVIDER_ID } from '@/modules/invoicing-integration/domain/types';
 import {
   createSumitHttpClient,

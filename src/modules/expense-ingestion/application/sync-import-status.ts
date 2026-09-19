@@ -2,7 +2,7 @@ import 'server-only';
 
 import type { OrgContext } from '@/shared/auth/context';
 import type { ExtractionJobStatus } from '@/modules/ocr/domain/types';
-import { getOcrRepository } from '@/modules/ocr/data/resolve-repository';
+import { getOcrRepository } from '@/modules/ocr';
 import type { ExternalExpenseImportStatus } from '../domain/types';
 import { findImportByOcrJobId, listImportsForOrg, updateImport } from '../data/imports.repository';
 

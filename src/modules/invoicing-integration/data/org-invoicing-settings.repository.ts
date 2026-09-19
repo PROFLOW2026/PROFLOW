@@ -2,7 +2,7 @@ import type { OrgContext } from '@/shared/auth/context';
 import {
   getOrganizationSettingValue,
   upsertOrganizationSettingValue,
-} from '@/modules/tenancy/data/organization-settings.repository';
+} from '@/modules/tenancy';
 import {
   DEFAULT_ORG_INVOICING_SETTINGS,
   INVOICING_PAYMENT_DOCUMENT_POLICY_KEY,
