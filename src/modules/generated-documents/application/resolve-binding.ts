@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { getBillingRecord } from '@/modules/billing';
+import { getClientById } from '@/modules/clients';
 import { getPurchaseOrderById } from '@/modules/procurement';
 import { findContractById } from '@/modules/projects';
 import { getQuoteById } from '@/modules/quotes';
@@ -67,15 +67,16 @@ export async function resolveGeneratedDocumentBinding(
   }
 
   if (kind === 'customer_statement') {
-    const record = await getBillingRecord(context, entityId);
+    const client = await getClientById(context, entityId);
+    if (!client) throw new NotFoundError('Client');
     return {
-      ownerType: 'billing_record',
-      ownerId: record.id,
-      sourceEntityType: 'billing_record',
-      sourceEntityId: record.id,
-      semanticFolder: 'billing',
-      folderEntityType: 'project',
-      folderEntityId: record.projectId,
+      ownerType: 'client',
+      ownerId: client.id,
+      sourceEntityType: 'client',
+      sourceEntityId: client.id,
+      semanticFolder: 'client_root',
+      folderEntityType: 'client',
+      folderEntityId: client.id,
       nestedPathSegments: [],
     };
   }
@@ -187,11 +188,12 @@ export async function resolveGeneratedFilenameContext(
   }
 
   if (kind === 'customer_statement') {
-    const record = await getBillingRecord(context, entityId);
+    const client = await getClientById(context, entityId);
+    if (!client) throw new NotFoundError('Client');
     return {
-      documentNumber: record.reference,
-      partyName: record.projectName,
-      projectName: record.projectName,
+      documentNumber: null,
+      partyName: client.name,
+      projectName: null,
       reportMonth: null,
     };
   }

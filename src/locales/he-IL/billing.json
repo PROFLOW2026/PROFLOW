@@ -196,6 +196,7 @@
     "void": "ביטול חיוב",
     "voidPayment": "ביטול תשלום",
     "recordPayment": "רישום תשלום",
+    "clientAccountStatementPreview": "תצוגה מקדימה / הדפסה - דף חשבון לקוח (כל החיובים)",
     "paymentsTitle": "תשלומים",
     "noPayments": "טרם נרשמו תשלומים.",
     "linesTitle": "שורות",

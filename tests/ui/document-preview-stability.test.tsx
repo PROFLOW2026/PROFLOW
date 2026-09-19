@@ -187,8 +187,8 @@ describe('document preview signed-URL stability', () => {
             open={open}
             onOpenChange={setOpen}
             documentId="doc-dialog"
-            filename="invoice.pdf"
-            mimeType="application/pdf"
+            filename="invoice.jpg"
+            mimeType="image/jpeg"
           />
         </>
       );

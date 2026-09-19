@@ -167,21 +167,12 @@ export async function createDocumentDownloadUrl(
   }
 
   if (document.storageBackend === 'external') {
-    const { getExternalDocumentDownload } = await import('@/modules/external-storage/server');
     const { serverEnv } = await import('@/shared/env/server');
-    const external = await getExternalDocumentDownload(context, document.id);
-    if ('url' in external) {
-      return {
-        url: external.url,
-        expiresAt: new Date(Date.now() + 5 * 60 * 1000),
-        filename: external.filename,
-      };
-    }
     const baseUrl = serverEnv().APP_URL.replace(/\/+$/, '');
     return {
-      url: `${baseUrl}/api/org-storage/download/${document.id}`,
+      url: `${baseUrl}/api/org-storage/download/${document.id}?disposition=attachment`,
       expiresAt: new Date(Date.now() + 5 * 60 * 1000),
-      filename: external.filename,
+      filename: document.originalFilename,
     };
   }
 

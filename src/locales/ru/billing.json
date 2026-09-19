@@ -196,6 +196,7 @@
     "void": "Аннулировать запись",
     "voidPayment": "Аннулировать платёж",
     "recordPayment": "Зафиксировать платёж",
+    "clientAccountStatementPreview": "Предпросмотр / печать выписки клиента (все начисления)",
     "paymentsTitle": "Платежи",
     "noPayments": "Платежи пока не зафиксированы.",
     "linesTitle": "Строки",

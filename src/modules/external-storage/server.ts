@@ -33,6 +33,7 @@ export {
   getExternalFileDownload,
   listProjectStorageFolder,
   refreshExternalFileMetadata,
+  streamExternalDocumentDownload,
   uploadDocumentToExternalStorage,
 } from './application/file-service';
 export {

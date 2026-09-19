@@ -14,22 +14,26 @@ export function ReportDownloadButtons({
   compact = false,
   reportMonth,
   hidePreview = false,
+  previewLabel,
 }: {
   kind: ReportKind;
   id: string;
   compact?: boolean;
   reportMonth?: string;
   hidePreview?: boolean;
+  /** Overrides the default preview/print label when the report scope differs from the page entity. */
+  previewLabel?: string;
 }) {
   const t = useTranslations('reports');
   const previewHref = reportPreviewPath(kind, id);
   const kindLabel = t(`kinds.${kind}`);
+  const previewText = previewLabel ?? t('previewKindPrint', { kind: kindLabel });
 
   return (
     <div className="flex flex-wrap items-center gap-2 print:hidden">
       {!hidePreview ? (
         <Button asChild variant={compact ? 'ghost' : 'secondary'} size="sm">
-          <Link href={previewHref}>{t('previewKindPrint', { kind: kindLabel })}</Link>
+          <Link href={previewHref}>{previewText}</Link>
         </Button>
       ) : null}
       {supportsGeneratedStorageSave(kind) ? (

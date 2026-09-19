@@ -19,6 +19,7 @@ import {
   isBrowserPreviewableImageMime,
   isBrowserPreviewablePdfMime,
 } from '../domain/file-rules';
+import { buildDocumentContentPath } from '../domain/content-path';
 import { downloadDocumentAction } from '../application/document-actions';
 
 const PdfJsViewer = dynamic(
@@ -61,12 +62,18 @@ export function DocumentPreviewDialog({
 
   const showImage = isBrowserPreviewableImageMime(mimeType);
   const showPdf = isBrowserPreviewablePdfMime(mimeType);
-  const url = fetched?.documentId === documentId ? fetched.url : null;
+  const pdfContentUrl = showPdf ? buildDocumentContentPath(documentId, 'inline') : null;
+  const url =
+    showPdf && pdfContentUrl
+      ? pdfContentUrl
+      : fetched?.documentId === documentId
+        ? fetched.url
+        : null;
   const error = fetched?.documentId === documentId ? fetched.error : null;
   const loading = open && !url && !error;
 
   useEffect(() => {
-    if (!open) return;
+    if (!open || showPdf) return;
 
     const requestedId = documentId;
     if (fetched?.documentId === requestedId && (fetched.url || fetched.error)) return;
@@ -90,8 +97,8 @@ export function DocumentPreviewDialog({
     };
     // Intentionally omit `t` and `fetched` - unstable t caused reload loops;
     // fetched-in-deps cancelled in-flight downloads during rapid switches.
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- open + documentId only
-  }, [open, documentId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- open + documentId + showPdf only
+  }, [open, documentId, showPdf]);
 
   const activeUrl = open ? url : null;
   const activeError = open ? error : null;

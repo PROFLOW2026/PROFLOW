@@ -196,6 +196,7 @@
     "void": "إلغاء السجل",
     "voidPayment": "إلغاء الدفعة",
     "recordPayment": "تسجيل دفعة",
+    "clientAccountStatementPreview": "معاينة / طباعة كشف حساب العميل (كل الفوترة)",
     "paymentsTitle": "المدفوعات",
     "noPayments": "لم تُسجَّل مدفوعات بعد.",
     "linesTitle": "البنود",

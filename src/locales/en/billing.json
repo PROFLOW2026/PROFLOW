@@ -196,6 +196,7 @@
     "void": "Void record",
     "voidPayment": "Void payment",
     "recordPayment": "Record payment",
+    "clientAccountStatementPreview": "Preview / print customer account statement (all billing)",
     "paymentsTitle": "Payments",
     "noPayments": "No payments recorded yet.",
     "linesTitle": "Lines",

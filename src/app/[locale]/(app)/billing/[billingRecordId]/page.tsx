@@ -120,7 +120,14 @@ export default async function BillingDetailPage({
                 </Link>
               </Button>
             ) : null}
-            <ReportDownloadButtons kind="customer_statement" id={record.id} compact />
+            {record.clientId ? (
+              <ReportDownloadButtons
+                kind="customer_statement"
+                id={record.clientId}
+                compact
+                previewLabel={t('detail.clientAccountStatementPreview')}
+              />
+            ) : null}
             <PrepareMessageLink
               entityType="billing_record"
               entityId={record.id}

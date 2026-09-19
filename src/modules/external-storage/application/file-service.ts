@@ -22,6 +22,7 @@ import { resolveUploadFolderId } from './folder-provisioning';
 import { assertProjectBrowserUploadFolder } from './browser-service';
 import { resolveUploadFolderEntityContext } from './resolve-upload-folder-context';
 import { findPrimaryDocumentLink } from '@/modules/documents';
+import { parseByteRangeHeader } from '../server/byte-range';
 
 export async function uploadDocumentToExternalStorage(
   context: OrgContext,
@@ -250,6 +251,92 @@ export async function getExternalFileDownload(
     stream: downloaded.stream,
     filename: input.filename,
     mimeType: downloaded.mimeType,
+  };
+}
+
+export async function streamExternalDocumentDownload(
+  context: OrgContext,
+  documentId: string,
+  input: { rangeHeader?: string | null } = {},
+): Promise<
+  | { unsatisfiable: true; sizeBytes: number | null }
+  | {
+      stream: ReadableStream<Uint8Array>;
+      filename: string;
+      mimeType: string;
+      sizeBytes: number | null;
+      httpStatus: number;
+      contentRange: string | null;
+      byteRange: { start: number; end: number } | null;
+    }
+> {
+  assertPermission(context, PERMISSIONS.DOCUMENTS_READ);
+  const document = await findDocumentById(context.db, context.organizationId, documentId);
+  if (!document || document.status !== 'available' || document.deletedAt) {
+    throw new NotFoundError('Document');
+  }
+
+  if (document.storageBackend !== 'external' || !document.externalConnectionId || !document.externalFileId) {
+    throw new DomainRuleError('Not an external document', 'documents.errors.notAvailable');
+  }
+
+  const { findStorageConnectionById } = await import('../data/connections.repository');
+  const connection = await findStorageConnectionById(
+    context.db,
+    context.organizationId,
+    document.externalConnectionId,
+  );
+  if (!connection || connection.status !== 'connected') {
+    throw new ServiceUnavailableError(
+      'Storage disconnected',
+      'externalStorage.errors.fileUnavailable',
+    );
+  }
+
+  const accessToken = await resolveValidAccessToken(context.db, context.organizationId, connection);
+  const adapter = getStorageProviderAdapter(connection.provider);
+  const meta = await adapter.getFileMetadata(accessToken, document.externalFileId);
+  if (!meta) {
+    const storageFile = await findStorageFileByDocumentId(
+      context.db,
+      context.organizationId,
+      document.id,
+    );
+    if (storageFile) {
+      await updateStorageFile(context.db, context.organizationId, storageFile.id, {
+        status: 'missing',
+        lastError: 'externally_deleted',
+      });
+    }
+    throw new ServiceUnavailableError(
+      'File missing in provider',
+      'externalStorage.errors.fileUnavailable',
+    );
+  }
+
+  const sizeBytes = meta.sizeBytes ?? document.sizeBytes ?? null;
+  let byteRange: { start: number; end: number } | null = null;
+  if (input.rangeHeader && sizeBytes != null && sizeBytes > 0) {
+    const parsed = parseByteRangeHeader(input.rangeHeader, sizeBytes);
+    if (parsed === 'unsatisfiable') {
+      return { unsatisfiable: true, sizeBytes };
+    }
+    if (parsed) byteRange = parsed;
+  }
+
+  const downloaded = await adapter.downloadFileStream(accessToken, document.externalFileId, {
+    byteRange: byteRange ?? undefined,
+    knownMeta: meta,
+  });
+
+  return {
+    stream: downloaded.stream,
+    filename: document.originalFilename,
+    mimeType: downloaded.mimeType || document.mimeType,
+    sizeBytes,
+    httpStatus: downloaded.httpStatus ?? (byteRange ? 206 : 200),
+    contentRange: downloaded.contentRange ?? null,
+    byteRange,
   };
 }
 
