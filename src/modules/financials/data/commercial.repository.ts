@@ -1,5 +1,6 @@
 import { and, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { changeRequests, contracts, contractValueEvents } from '@drizzle/schema';
+import type { WorkKindFilter } from '../domain/work-pricing';
 import { computeCommercialPosition } from '@/modules/commercial/domain/contract-value';
 import type {
   ContractValueEventRecord,
@@ -582,20 +583,49 @@ export async function sumUnbilledApprovedChanges(
   return { amount: row?.total ?? '0', count: row?.count ?? 0 };
 }
 
+function pendingChangesWorkKindSql(workKindFilter: WorkKindFilter) {
+  if (workKindFilter === 'job') {
+    return sql`and p.work_kind = 'job'`;
+  }
+  if (workKindFilter === 'project') {
+    return sql`and (p.work_kind is null or p.work_kind = 'project')`;
+  }
+  return sql``;
+}
+
 export async function countPendingChanges(
   db: DbExecutor,
   organizationId: string,
+  workKindFilter: WorkKindFilter = 'all',
 ): Promise<number> {
-  const [row] = await db
-    .select({ count: sql<number>`count(*)::int` })
-    .from(changeRequests)
-    .where(
-      and(
-        eq(changeRequests.organizationId, organizationId),
-        isNull(changeRequests.archivedAt),
-        sql`${changeRequests.status} in ('draft', 'awaiting_approval')`,
-      ),
-    );
+  if (workKindFilter === 'all') {
+    const [row] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(changeRequests)
+      .where(
+        and(
+          eq(changeRequests.organizationId, organizationId),
+          isNull(changeRequests.archivedAt),
+          sql`${changeRequests.status} in ('draft', 'awaiting_approval')`,
+        ),
+      );
+
+    return row?.count ?? 0;
+  }
+
+  const row = sqlFirstRow<{ count: number }>(
+    await db.execute(sql`
+      select count(*)::int as count
+      from change_requests cr
+      inner join projects p on p.id = cr.project_id
+      where cr.organization_id = ${organizationId}
+        and cr.archived_at is null
+        and cr.status in ('draft', 'awaiting_approval')
+        and p.organization_id = ${organizationId}
+        and p.archived_at is null
+        ${pendingChangesWorkKindSql(workKindFilter)}
+    `),
+  );
 
   return row?.count ?? 0;
 }
@@ -603,13 +633,19 @@ export async function countPendingChanges(
 export async function countUnbilledApprovedChanges(
   db: DbExecutor,
   organizationId: string,
+  workKindFilter: WorkKindFilter = 'all',
 ): Promise<number> {
+  const workKindClause = pendingChangesWorkKindSql(workKindFilter);
   const row = sqlFirstRow<{ count: number }>(
     await db.execute(sql`
       select count(*)::int as count
       from change_orders co
+      inner join projects p on p.id = co.project_id
       where co.organization_id = ${organizationId}
         and co.direction = 'addition'
+        and p.organization_id = ${organizationId}
+        and p.archived_at is null
+        ${workKindFilter === 'all' ? sql`` : workKindClause}
         and not exists (
           select 1 from billing_lines bl
           where bl.change_order_id = co.id

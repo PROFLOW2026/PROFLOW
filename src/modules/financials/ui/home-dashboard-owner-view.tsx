@@ -14,6 +14,12 @@ import { ProjectStatusBadge } from '@/app/[locale]/(app)/projects/project-status
 import type { ProjectStatus } from '@/modules/projects';
 import type { HomeDashboardData } from '../application/get-home-dashboard';
 import { partitionDashboardCompletenessItems } from '../domain/dashboard-missing-data';
+import {
+  buildActualCostDetail,
+  buildApOutstandingDetail,
+  buildCurrentProfitDetail,
+} from '../domain/dashboard-kpi-detail-builders';
+import type { DashboardKpiDetailContent } from '../domain/dashboard-kpi-detail';
 import { DashboardMissingDataTrigger } from './dashboard-missing-data-trigger';
 import { HomeLaborReconciliation, HomePendingTimeAlert } from './home-labor-alerts';
 import { mapDashboardMissingDataToView } from './map-dashboard-missing-data-view';
@@ -21,6 +27,11 @@ import { DashboardQuickAccessSection } from './dashboard-quick-access-section';
 import { DashboardAttentionCards } from './dashboard-attention-cards';
 import { DashboardContractSummaryRow } from './dashboard-contract-summary-row';
 import { DashboardRecentProjectsSection } from './dashboard-recent-projects-section';
+import { DashboardKpiDetailTrigger } from './dashboard-kpi-detail-trigger';
+import {
+  mapDashboardKpiDetailCopy,
+  mapDashboardKpiDetailTriggerCopy,
+} from './dashboard-kpi-detail-copy';
 
 interface HomeDashboardOwnerViewProps {
   readonly data: HomeDashboardData;
@@ -32,6 +43,8 @@ function KpiTile({
   percent,
   hint,
   footer,
+  detail,
+  detailCopy,
   unavailable,
   unavailableLabel,
 }: {
@@ -40,13 +53,20 @@ function KpiTile({
   percent?: string | null;
   hint?: string;
   footer?: React.ReactNode;
+  detail?: DashboardKpiDetailContent;
+  detailCopy?: ReturnType<typeof mapDashboardKpiDetailTriggerCopy>;
   unavailable?: boolean;
   unavailableLabel?: string;
 }) {
   return (
     <Card className="min-w-0 max-w-full">
       <CardContent className="flex min-w-0 flex-col gap-1 p-4">
-        <p className="text-xs text-[var(--pf-text-muted)]">{title}</p>
+        <div className="flex min-w-0 items-start justify-between gap-2">
+          <p className="text-xs text-[var(--pf-text-muted)]">{title}</p>
+          {detail && detailCopy ? (
+            <DashboardKpiDetailTrigger detail={detail} copy={detailCopy} />
+          ) : null}
+        </div>
         {unavailable ? (
           <p className="text-sm text-[var(--pf-text-secondary)]">{unavailableLabel}</p>
         ) : percent != null ? (
@@ -76,9 +96,33 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
     getLocale(),
   ]);
 
+  const detailCopy = mapDashboardKpiDetailCopy(t);
+  const triggerCopy = mapDashboardKpiDetailTriggerCopy(t);
+  const showContractHeadline = !data.contractSummary;
+
   const contractUnavailable = data.kpiAvailability?.contractValue === 'unavailable';
   const costUnavailable = data.kpiAvailability?.actualCost === 'unavailable';
   const profitUnavailable = data.kpiAvailability?.actualMargin === 'unavailable';
+
+  const actualCostMoney =
+    data.totalActualCost ?? data.forecast?.totalActualProjectCost ?? undefined;
+  const actualCostDetail =
+    actualCostMoney && !costUnavailable
+      ? buildActualCostDetail(actualCostMoney, tFinancial('actualCostToDate'), detailCopy)
+      : undefined;
+  const currentProfitDetail =
+    data.actualProfitTotal && !profitUnavailable
+      ? buildCurrentProfitDetail(
+          data.actualProfitTotal,
+          data.totalContractValue,
+          actualCostMoney ?? null,
+          t('ownerHeadline.actualProfit'),
+          detailCopy,
+        )
+      : undefined;
+  const apDetail = data.apOutstanding
+    ? buildApOutstandingDetail(data.apOutstanding, tFinancial('apOutstanding'), detailCopy)
+    : undefined;
 
   const completenessPartitions = partitionDashboardCompletenessItems(data.missingDataItems);
   const translateDashboard = (key: string, values?: Record<string, string | number>) =>
@@ -96,8 +140,12 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
   const hasCompletenessTrigger =
     missingDataItemsView.length > 0 || attentionItemsView.length > 0;
 
+  const kpiColumnClass = showContractHeadline
+    ? 'grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4'
+    : 'grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3';
+
   return (
-    <div className="flex min-w-0 max-w-full flex-col gap-6">
+    <div className="flex min-w-0 max-w-full flex-col gap-4">
       {data.pendingTime ? (
         <HomePendingTimeAlert pendingTime={data.pendingTime} canApproveTime={data.canApproveTime} />
       ) : null}
@@ -126,25 +174,40 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
           />
         </div>
       ) : null}
-      <section className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiTile
-          title={t('ownerHeadline.workValue')}
-          money={data.totalContractValue ?? undefined}
-          unavailable={contractUnavailable}
-          unavailableLabel={t('missingData.kpiUnavailable')}
+
+      {data.contractSummary ? (
+        <DashboardContractSummaryRow
+          summary={data.contractSummary}
+          netInvoiced={data.contractNetInvoiced}
         />
+      ) : null}
+
+      <section className={kpiColumnClass}>
+        {showContractHeadline ? (
+          <KpiTile
+            title={t('ownerHeadline.workValue')}
+            money={data.totalContractValue ?? undefined}
+            unavailable={contractUnavailable}
+            unavailableLabel={t('missingData.kpiUnavailable')}
+          />
+        ) : null}
         <KpiTile
           title={tFinancial('actualCostToDate')}
-          money={data.totalActualCost ?? data.forecast?.totalActualProjectCost ?? undefined}
+          money={actualCostMoney}
           unavailable={costUnavailable}
           unavailableLabel={t('missingData.kpiUnavailable')}
           hint={costUnavailable ? undefined : tFinancial('basis.actualNotCash')}
+          detail={actualCostDetail}
+          detailCopy={triggerCopy}
         />
         <KpiTile
           title={t('ownerHeadline.actualProfit')}
           money={data.actualProfitTotal ?? undefined}
           unavailable={profitUnavailable}
           unavailableLabel={t('missingData.kpiUnavailable')}
+          hint={profitUnavailable ? undefined : t('ownerHeadline.actualProfitHint')}
+          detail={currentProfitDetail}
+          detailCopy={triggerCopy}
         />
         <KpiTile
           title={t('ownerHeadline.profitability')}
@@ -154,17 +217,14 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
         />
       </section>
 
-      {data.contractSummary ? (
-        <DashboardContractSummaryRow summary={data.contractSummary} />
-      ) : null}
-
-      {/* FIN-HIGH-001: AP outstanding — what the business owes vendors in unpaid bills */}
       {data.apOutstanding ? (
-        <section className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <section className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
           <KpiTile
             title={tFinancial('apOutstanding')}
             money={data.apOutstanding}
             hint={tFinancial('apOutstandingHint')}
+            detail={apDetail}
+            detailCopy={triggerCopy}
             footer={
               <p className="break-words text-xs">
                 <Link
@@ -180,11 +240,14 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
         </section>
       ) : null}
 
-      <DashboardRecentProjectsSection projects={data.recentProjects} />
+      <DashboardRecentProjectsSection
+        projects={data.recentProjects}
+        workKindFilter={data.workKindFilter}
+      />
 
       {data.projectTableRows.length > 0 ? (
         <section className="min-w-0 max-w-full">
-          <h2 className="mb-3 text-sm font-semibold">{t('ownerHeadline.projectTableTitle')}</h2>
+          <h2 className="mb-2 text-sm font-semibold">{t('ownerHeadline.projectTableTitle')}</h2>
           <ResponsiveTable
             items={[...data.projectTableRows]}
             getRowKey={(row) => row.projectId}
@@ -297,7 +360,7 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
       ) : null}
 
       <section>
-        <h2 className="mb-3 text-sm font-semibold">{t('quickActions')}</h2>
+        <h2 className="mb-2 text-sm font-semibold">{t('quickActions')}</h2>
         <div className="flex flex-wrap gap-2">
           {data.canCreateExpense ? (
             <Button asChild size="sm">

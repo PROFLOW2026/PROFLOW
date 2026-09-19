@@ -93,12 +93,24 @@ export async function loadProjectBillingRows(
 export async function loadOrganizationBillingRows(
   db: DbExecutor,
   organizationId: string,
+  options: { readonly projectIds?: readonly string[] } = {},
 ): Promise<ProjectBillingRows> {
+  const { projectIds } = options;
+  if (projectIds && projectIds.length === 0) {
+    return { records: [], currency: '' };
+  }
+
   const records = await db
     .select()
     .from(billingRecords)
     .where(
-      and(eq(billingRecords.organizationId, organizationId), isNull(billingRecords.archivedAt)),
+      and(
+        eq(billingRecords.organizationId, organizationId),
+        isNull(billingRecords.archivedAt),
+        projectIds && projectIds.length > 0
+          ? inArray(billingRecords.projectId, [...projectIds])
+          : undefined,
+      ),
     );
 
   return mapBillingRecords(db, organizationId, records);

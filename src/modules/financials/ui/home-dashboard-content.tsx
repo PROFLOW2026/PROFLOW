@@ -25,6 +25,21 @@ import { DashboardContractSummaryRow } from './dashboard-contract-summary-row';
 import { DashboardRecentProjectsSection } from './dashboard-recent-projects-section';
 import type { DashboardKpiKey } from '../domain/dashboard-missing-data';
 import { resolveIntlLocale } from '@/shared/i18n/intl-locale';
+import type { DashboardKpiDetailContent } from '../domain/dashboard-kpi-detail';
+import {
+  buildApOutstandingDetail,
+  buildBillingInvoicedDetail,
+  buildBillingOutstandingDetail,
+  buildBillingPaidDetail,
+  buildCommitmentsDetail,
+  buildCurrentProfitDetail,
+  buildForecastCostDetail,
+} from '../domain/dashboard-kpi-detail-builders';
+import { DashboardKpiDetailTrigger } from './dashboard-kpi-detail-trigger';
+import {
+  mapDashboardKpiDetailCopy,
+  mapDashboardKpiDetailTriggerCopy,
+} from './dashboard-kpi-detail-copy';
 
 interface HomeDashboardContentProps {
   data: HomeDashboardData;
@@ -145,6 +160,9 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
   const hasCompletenessTrigger =
     missingDataItemsView.length > 0 || attentionItemsView.length > 0;
 
+  const detailCopy = mapDashboardKpiDetailCopy(t);
+  const triggerCopy = mapDashboardKpiDetailTriggerCopy(t);
+
   function isKpiUnavailable(key: DashboardKpiKey): boolean {
     return data.kpiAvailability?.[key] === 'unavailable';
   }
@@ -158,7 +176,10 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
         if (data.recentProjects.length === 0) return null;
         return (
           <section key={card} className="min-w-0 max-w-full">
-            <DashboardRecentProjectsSection projects={data.recentProjects} />
+            <DashboardRecentProjectsSection
+              projects={data.recentProjects}
+              workKindFilter={data.workKindFilter}
+            />
           </section>
         );
 
@@ -166,7 +187,10 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
         if (data.contractSummary) {
           return (
             <section key={card} className="min-w-0 max-w-full">
-              <DashboardContractSummaryRow summary={data.contractSummary} />
+              <DashboardContractSummaryRow
+                summary={data.contractSummary}
+                netInvoiced={data.contractNetInvoiced}
+              />
             </section>
           );
         }
@@ -204,10 +228,22 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
           <section key={card} className="min-w-0 max-w-full">
             <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <KpiCard
-                title={tFinancial('kpis.forecastMargin')}
+                title={t('kpiLabels.expectedProfit')}
                 money={
                   isKpiUnavailable('estimatedProfit') ? undefined : data.estimatedProfit ?? undefined
                 }
+                detail={
+                  data.estimatedProfit && !isKpiUnavailable('estimatedProfit')
+                    ? buildCurrentProfitDetail(
+                        data.estimatedProfit,
+                        data.totalContractValue,
+                        data.forecast?.totalActualProjectCost ?? data.totalActualCost,
+                        t('kpiLabels.expectedProfit'),
+                        detailCopy,
+                      )
+                    : undefined
+                }
+                detailCopy={triggerCopy}
                 unavailable={isKpiUnavailable('estimatedProfit')}
                 unavailableLabel={t('missingData.kpiUnavailable')}
                 unavailableHint={t('missingData.kpiUnavailableProfitHint')}
@@ -234,6 +270,17 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                 unavailableLabel={t('missingData.kpiUnavailable')}
                 unavailableHint={t('missingData.kpiUnavailableCostHint')}
                 hint={isKpiUnavailable('forecastCost') ? undefined : tFinancial('basis.netExVat')}
+                detail={
+                  data.forecast.totalForecastFinalCost && !isKpiUnavailable('forecastCost')
+                    ? buildForecastCostDetail(
+                        data.forecast.totalForecastFinalCost,
+                        data.forecast.totalActualProjectCost,
+                        tFinancial('kpis.forecast'),
+                        detailCopy,
+                      )
+                    : undefined
+                }
+                detailCopy={triggerCopy}
               />
               <KpiCard
                 title={tFinancial('kpis.expectedRemaining')}
@@ -259,7 +306,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
               />
               {data.showProfit && data.forecast.totalActualMargin ? (
                 <KpiCard
-                  title={tFinancial('kpis.actualMargin')}
+                  title={t('kpiLabels.currentProfit')}
                   money={
                     isKpiUnavailable('actualMargin')
                       ? undefined
@@ -269,10 +316,22 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                   unavailableLabel={t('missingData.kpiUnavailable')}
                   unavailableHint={t('missingData.kpiUnavailableProfitHint')}
                   hint={isKpiUnavailable('actualMargin') ? undefined : tFinancial('basis.profitNet')}
+                  detail={
+                    !isKpiUnavailable('actualMargin')
+                      ? buildCurrentProfitDetail(
+                          data.forecast.totalActualMargin,
+                          data.totalContractValue,
+                          data.forecast.totalActualProjectCost,
+                          t('kpiLabels.currentProfit'),
+                          detailCopy,
+                        )
+                      : undefined
+                  }
+                  detailCopy={triggerCopy}
                 />
               ) : isKpiUnavailable('actualMargin') ? (
                 <KpiCard
-                  title={tFinancial('kpis.actualMargin')}
+                  title={t('kpiLabels.currentProfit')}
                   unavailable
                   unavailableLabel={t('missingData.kpiUnavailable')}
                   unavailableHint={t('missingData.kpiUnavailableProfitHint')}
@@ -280,7 +339,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
               ) : null}
               {data.showProfit && data.forecast.totalForecastMargin ? (
                 <KpiCard
-                  title={tFinancial('kpis.forecastMargin')}
+                  title={t('kpiLabels.expectedProfit')}
                   money={
                     isKpiUnavailable('forecastMargin')
                       ? undefined
@@ -292,10 +351,22 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                   hint={
                     isKpiUnavailable('forecastMargin') ? undefined : tFinancial('basis.profitNet')
                   }
+                  detail={
+                    !isKpiUnavailable('forecastMargin')
+                      ? buildCurrentProfitDetail(
+                          data.forecast.totalForecastMargin,
+                          data.totalContractValue,
+                          data.forecast.totalForecastFinalCost,
+                          t('kpiLabels.expectedProfit'),
+                          detailCopy,
+                        )
+                      : undefined
+                  }
+                  detailCopy={triggerCopy}
                 />
               ) : isKpiUnavailable('forecastMargin') ? (
                 <KpiCard
-                  title={tFinancial('kpis.forecastMargin')}
+                  title={t('kpiLabels.expectedProfit')}
                   unavailable
                   unavailableLabel={t('missingData.kpiUnavailable')}
                   unavailableHint={t('missingData.kpiUnavailableProfitHint')}
@@ -353,6 +424,16 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                 unavailable={isKpiUnavailable('committed')}
                 unavailableLabel={t('missingData.kpiUnavailable')}
                 unavailableHint={t('missingData.kpiUnavailableCostHint')}
+                detail={
+                  data.forecast.totalRemainingCommitments && !isKpiUnavailable('committed')
+                    ? buildCommitmentsDetail(
+                        data.forecast.totalRemainingCommitments,
+                        tFinancial('kpis.committed'),
+                        detailCopy,
+                      )
+                    : undefined
+                }
+                detailCopy={triggerCopy}
               />
             </div>
           </section>
@@ -369,6 +450,13 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                 grossMoney={data.billing.invoiced}
                 grossLabel={tFinancial('kpis.includingVat')}
                 hint={tFinancial('kpis.billedHint')}
+                detail={buildBillingInvoicedDetail(
+                  data.billing.netInvoiced,
+                  data.billing.invoiced,
+                  tFinancial('kpis.billed'),
+                  detailCopy,
+                )}
+                detailCopy={triggerCopy}
                 footer={(() => {
                   if (!data.billingCoverage) return null;
                   const notes = standalonePartialNotes(data.billingCoverage, tFinancial, [
@@ -388,6 +476,13 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                 grossMoney={data.billing.paid}
                 grossLabel={tFinancial('kpis.includingVat')}
                 hint={tFinancial('kpis.paidHint')}
+                detail={buildBillingPaidDetail(
+                  data.billing.netPaid,
+                  data.billing.paid,
+                  tFinancial('kpis.paid'),
+                  detailCopy,
+                )}
+                detailCopy={triggerCopy}
               />
             </div>
           </section>
@@ -407,15 +502,15 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                   grossMoney={data.billing!.outstanding}
                   grossLabel={tFinancial('kpis.includingVat')}
                   hint={tFinancial('basis.outstandingNet')}
-                />
-              ) : null}
-              {data.organizationSummary && data.showBilling ? (
-                <KpiCard
-                  title={t('businessSummary.outstanding')}
-                  money={data.organizationSummary.netOutstanding}
-                  grossMoney={data.organizationSummary.outstanding}
-                  grossLabel={tFinancial('kpis.includingVat')}
-                  hint={tFinancial('basis.outstandingNet')}
+                  detail={buildBillingOutstandingDetail(
+                    data.billing!.netOutstanding,
+                    data.billing!.outstanding,
+                    data.billing!.netInvoiced,
+                    data.billing!.netPaid,
+                    tFinancial('kpis.outstandingNet'),
+                    detailCopy,
+                  )}
+                  detailCopy={triggerCopy}
                 />
               ) : null}
               {hasAp ? (
@@ -423,6 +518,12 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                   title={tFinancial('apOutstanding')}
                   money={data.apOutstanding!}
                   hint={tFinancial('apOutstandingHint')}
+                  detail={buildApOutstandingDetail(
+                    data.apOutstanding!,
+                    tFinancial('apOutstanding'),
+                    detailCopy,
+                  )}
+                  detailCopy={triggerCopy}
                   footer={
                     <p className="break-words text-xs">
                       <Link
@@ -547,7 +648,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
   }
 
   return (
-    <div className="flex min-w-0 max-w-full flex-col gap-6">
+    <div className="flex min-w-0 max-w-full flex-col gap-4">
       {showMoneyChrome ? (
         <div className="mb-0 flex min-w-0 flex-wrap items-center justify-between gap-2">
           <h2 className="text-sm font-semibold text-[var(--pf-text-secondary)]">
@@ -726,6 +827,8 @@ function KpiCard({
   value,
   hint,
   footer,
+  detail,
+  detailCopy,
   unavailable,
   unavailableLabel,
   unavailableHint,
@@ -738,6 +841,8 @@ function KpiCard({
   value?: string;
   hint?: string;
   footer?: ReactNode;
+  detail?: DashboardKpiDetailContent;
+  detailCopy?: ReturnType<typeof mapDashboardKpiDetailTriggerCopy>;
   unavailable?: boolean;
   unavailableLabel?: string;
   unavailableHint?: string;
@@ -745,9 +850,14 @@ function KpiCard({
   return (
     <Card className="min-w-0 max-w-full">
       <CardHeader className="pb-1">
-        <CardTitle className="break-words text-xs font-medium text-[var(--pf-text-secondary)]">
-          {title}
-        </CardTitle>
+        <div className="flex min-w-0 items-start justify-between gap-2">
+          <CardTitle className="break-words text-xs font-medium text-[var(--pf-text-secondary)]">
+            {title}
+          </CardTitle>
+          {detail && detailCopy ? (
+            <DashboardKpiDetailTrigger detail={detail} copy={detailCopy} />
+          ) : null}
+        </div>
       </CardHeader>
       <CardContent className="flex min-w-0 flex-col gap-1">
         {unavailable ? (

@@ -1,6 +1,7 @@
 import { and, eq, isNull, sql } from 'drizzle-orm';
 import { projects } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
+import type { WorkKindFilter } from '../domain/work-pricing';
 import { sqlRows } from './sql-rows';
 
 export interface ActiveProjectSummary {
@@ -14,11 +15,23 @@ export interface ActiveProjectSummary {
 
 export const RECENT_ACTIVE_PROJECTS_LIMIT = 6;
 
+function recentProjectsWorkKindClause(workKindFilter: WorkKindFilter) {
+  if (workKindFilter === 'job') {
+    return sql`and p.work_kind = 'job'`;
+  }
+  if (workKindFilter === 'project') {
+    return sql`and (p.work_kind is null or p.work_kind = 'project')`;
+  }
+  return sql``;
+}
+
 export async function listRecentActiveProjects(
   db: DbExecutor,
   organizationId: string,
   limit = RECENT_ACTIVE_PROJECTS_LIMIT,
+  workKindFilter: WorkKindFilter = 'all',
 ): Promise<ActiveProjectSummary[]> {
+  const workKindClause = recentProjectsWorkKindClause(workKindFilter);
   const rows = sqlRows<{
     id: string;
     name: string;
@@ -45,6 +58,7 @@ export async function listRecentActiveProjects(
     where p.organization_id = ${organizationId}
       and p.archived_at is null
       and p.status = 'active'
+      ${workKindClause}
     order by p.updated_at desc
     limit ${limit}
   `));

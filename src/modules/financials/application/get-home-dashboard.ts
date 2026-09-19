@@ -236,6 +236,8 @@ export interface HomeDashboardData {
   readonly workKindFilter: string | null;
   /** Four-card organization contract breakdown (original / approved / total / remaining). */
   readonly contractSummary: OrgContractSummary | null;
+  /** Net billed used for contract «יתרה לחיוב» (includes owner slim path). */
+  readonly contractNetInvoiced: MoneyValue | null;
   /** Resolved quick-access shortcuts for the signed-in user. */
   readonly quickAccessShortcuts: readonly DashboardQuickAccessDefinition[];
 }
@@ -319,6 +321,7 @@ export async function getHomeDashboard(
       persona === 'architecture' ||
       persona === 'consulting' ||
       persona === 'mixed');
+  const parsedWorkKindFilter = parseWorkKindFilter(options.workKindFilter);
   let emptyStartKind: 'project' | 'job' | 'work_order' = 'project';
   if (
     serviceReachable &&
@@ -375,12 +378,21 @@ export async function getHomeDashboard(
     hasAnyExpenseUsage(context.db, context.organizationId),
     hasAnyBillingUsage(context.db, context.organizationId),
     countActiveProjects(context.db, context.organizationId),
-    listRecentActiveProjects(context.db, context.organizationId, 6),
+    listRecentActiveProjects(
+      context.db,
+      context.organizationId,
+      6,
+      parsedWorkKindFilter,
+    ),
     canReadContracts
-      ? countPendingChanges(context.db, context.organizationId)
+      ? countPendingChanges(context.db, context.organizationId, parsedWorkKindFilter)
       : Promise.resolve(0),
     canReadContracts
-      ? countUnbilledApprovedChanges(context.db, context.organizationId)
+      ? countUnbilledApprovedChanges(
+          context.db,
+          context.organizationId,
+          parsedWorkKindFilter,
+        )
       : Promise.resolve(0),
     rollupPromise,
     expenseLayerPromise,
@@ -421,6 +433,7 @@ export async function getHomeDashboard(
       activeProjectCount,
       recentProjects,
       contractSummary: null,
+      contractNetInvoiced: null,
       quickAccessShortcuts,
       projectTableRows: [],
       actualProfitTotal: null,
@@ -463,9 +476,22 @@ export async function getHomeDashboard(
   }
 
   const wantBilling = canReadBilling && hasBilling;
-  const wantMonthInvoiced = !slimOwnerDashboard && canReadFinancials && wantBilling;
-  const wantMonthCosts = !slimOwnerDashboard && canReadFinancials && (wantBilling || hasExpenses);
-  const wantMonthCollections = !slimOwnerDashboard && canReadFinancials && wantBilling;
+  const wantMonthInvoiced =
+    !slimOwnerDashboard && parsedWorkKindFilter === 'all' && canReadFinancials && wantBilling;
+  const wantMonthCosts =
+    !slimOwnerDashboard &&
+    parsedWorkKindFilter === 'all' &&
+    canReadFinancials &&
+    (wantBilling || hasExpenses);
+  const wantMonthCollections =
+    !slimOwnerDashboard && parsedWorkKindFilter === 'all' && canReadFinancials && wantBilling;
+
+  const scopedProjectIds =
+    parsedWorkKindFilter !== 'all' && rollup
+      ? rollup.rows.map((row) => row.projectId)
+      : undefined;
+  const billingLoadOptions =
+    scopedProjectIds !== undefined ? { projectIds: scopedProjectIds } : {};
 
   const [
     billingRows,
@@ -478,7 +504,7 @@ export async function getHomeDashboard(
     apPayablesSummary,
   ] = await Promise.all([
     wantBilling
-      ? loadOrganizationBillingRows(context.db, context.organizationId)
+      ? loadOrganizationBillingRows(context.db, context.organizationId, billingLoadOptions)
       : Promise.resolve(null),
     wantMonthInvoiced
       ? sumInvoicedInDateRange(
@@ -608,9 +634,8 @@ export async function getHomeDashboard(
       }
     }
 
-    const workKindFilter = parseWorkKindFilter(options.workKindFilter);
     const companyComposition =
-      !slimOwnerDashboard && workKindFilter === 'all' && generalPoolTotals
+      !slimOwnerDashboard && parsedWorkKindFilter === 'all' && generalPoolTotals
         ? composeCompanyActual({
             currency,
             directProjectActual: cost.actual?.value ?? zeroMoney(currency),
@@ -711,8 +736,12 @@ export async function getHomeDashboard(
     };
   }
 
+  let contractNetInvoiced: MoneyValue | null = null;
   if (orgCommercial && rollup && rollup.totalEligibleProjectCount > 0) {
-    contractSummary = buildOrgContractSummary(orgCommercial, billing?.netInvoiced ?? null);
+    contractNetInvoiced = billingRows
+      ? computeBillingPositionFromRows(billingRows, currency).netInvoiced
+      : (billing?.netInvoiced ?? null);
+    contractSummary = buildOrgContractSummary(orgCommercial, contractNetInvoiced);
   }
 
   const dataConfidencePieces: DataConfidence[] = [];
@@ -858,6 +887,7 @@ export async function getHomeDashboard(
     selectedMonth: effectiveSelectedMonth,
     workKindFilter: options.workKindFilter ?? null,
     contractSummary,
+    contractNetInvoiced,
     quickAccessShortcuts,
   };
 }
