@@ -99,11 +99,26 @@
     "receiptPending": "קבלה ממתינה להפקה",
     "receiptIssued": "קבלה הונפקה"
   },
+  "accountingSection": {
+    "title": "חשבוניות וקבלות",
+    "subtitle": "הפקה ומעקב אחר מסמכים דרך מערכת החשבוניות המחוברת.",
+    "connectPrompt": "יש לחבר מערכת חשבוניות כדי להפיק חשבוניות וקבלות דרך ProjectFlow.",
+    "connectAction": "חיבור מערכת חשבוניות",
+    "providerConnected": "מערכת חשבוניות: {provider} • מחובר"
+  },
+  "historical": {
+    "title": "מסמכים שהופקו בעבר",
+    "subtitle": "מסמכים שהופקו בעבר דרך מערכת חשבוניות מחוברת. ניתן לצפות ולהוריד."
+  },
   "settings": {
-    "title": "ניהול חשבוניות וקבלות",
-    "modeLabel": "מצב ניהול מסמכים",
-    "modeManual": "ידני בלבד — ניהול חיובים וגבייה ללא ספק חיצוני",
-    "modeExternal": "ספק חיצוני — הנפקת מסמכים סטטוטוריים דרך SUMIT",
+    "title": "הפקת חשבוניות וקבלות",
+    "intro": "בחרו האם ProjectFlow מנהל גבייה בלבד, או גם מפיק חשבוניות וקבלות.",
+    "modeLabel": "אופן הפעלה",
+    "modeManual": "גבייה בלבד",
+    "modeManualDescription": "ProjectFlow ינהל חיובים, תשלומים ויתרות. חשבוניות וקבלות יופקו מחוץ למערכת.",
+    "modeExternal": "גבייה + חשבוניות וקבלות דרך ProjectFlow",
+    "modeExternalDescription": "ProjectFlow ינהל את הגבייה וגם יפיק מסמכים באמצעות מערכת חשבוניות מחוברת.",
+    "connectProviderHint": "לאחר בחירת מצב זה, חברו מערכת חשבוניות למטה.",
     "policyLabel": "מדיניות מסמכים בעת תשלום",
     "policySplit": "חשבונית מס ולאחר תשלום קבלה",
     "policyCombined": "חשבונית מס/קבלה בעת קבלת התשלום",

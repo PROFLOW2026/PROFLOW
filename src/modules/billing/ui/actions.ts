@@ -241,7 +241,10 @@ export async function createPaymentAction(
     if (result.billingRecord.projectId) {
       revalidatePath(`/projects/${result.billingRecord.projectId}`);
     }
-    redirect({ href: `/billing/${result.billingRecord.id}`, locale });
+    redirect({
+      href: `/billing/${result.billingRecord.id}?paymentRecorded=1&paymentId=${result.paymentId}`,
+      locale,
+    });
   } catch (error) {
     if (error instanceof AppError) return mapError(error, tErrors('validationFailed'));
     throw error;

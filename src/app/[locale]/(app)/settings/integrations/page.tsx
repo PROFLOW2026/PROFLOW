@@ -80,6 +80,7 @@ export default async function IntegrationsSettingsPage() {
           settings={data.invoicingSettings}
           canManage={data.canManageSumit}
           transactionInvoiceSupported={isSumitTransactionInvoiceSupported()}
+          providerConnected={data.sumit.connected}
         />
         <SumitIntegrationPanel
           connected={data.sumit.connected}

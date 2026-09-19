@@ -2,7 +2,19 @@
   "title": "Billing and collections",
   "subtitle": "Track invoice totals, what was collected, and cash still outstanding to collect. Billing is not a quote.",
   "reportsEntry": "Cash & receivables report",
-  "statutoryDisclosure": "Internal billing tracking only - not statutory invoice issuance.",
+  "statutoryDisclosure": "Track billing, payments, and outstanding balances in ProjectFlow.",
+  "collectionMode": {
+    "externalAccountingNote": "Invoices and receipts are issued outside ProjectFlow.",
+    "connectAccountingLink": "Connect accounting system"
+  },
+  "paymentRecorded": {
+    "paymentSuccess": "Payment recorded successfully",
+    "fullyPaid": "This billing record is fully paid",
+    "outstandingRemaining": "Outstanding balance:",
+    "receiptIssued": "Receipt issued via {provider}",
+    "receiptFailed": "Payment recorded, but receipt issuance failed.",
+    "receiptPending": "Payment recorded. Receipt issuance is in progress."
+  },
   "list": {
     "project": "Project",
     "reference": "Reference",
@@ -145,6 +157,8 @@
   },
   "paymentForm": {
     "title": "Record payment",
+    "recordPaymentTitle": "Record payment",
+    "recordPaymentDescription": "Enter the amount received from the customer.",
     "entryModeLegend": "Receipt type",
     "modeInvoice": "Allocate to existing billing record",
     "modeUnallocated": "Unallocated receipt",

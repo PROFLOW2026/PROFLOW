@@ -2,7 +2,19 @@
   "title": "חיובים וגבייה",
   "subtitle": "מעקב אחר סכום החיובים, מה נגבה ומה נותר לגבייה במזומן. חיוב אינו הצעת מחיר.",
   "reportsEntry": "דוח תזרים וחייבים",
-  "statutoryDisclosure": "מעקב חיובים פנימי בלבד - לא הנפקת חשבוניות מס.",
+  "statutoryDisclosure": "מעקב חיובים, תשלומים ויתרות לגבייה ב-ProjectFlow.",
+  "collectionMode": {
+    "externalAccountingNote": "חשבוניות וקבלות מופקות מחוץ ל־ProjectFlow.",
+    "connectAccountingLink": "חיבור מערכת חשבוניות"
+  },
+  "paymentRecorded": {
+    "paymentSuccess": "התשלום נרשם בהצלחה",
+    "fullyPaid": "החיוב שולם במלואו",
+    "outstandingRemaining": "יתרה לתשלום:",
+    "receiptIssued": "קבלה הופקה באמצעות {provider}",
+    "receiptFailed": "התשלום נרשם בהצלחה, אך הפקת הקבלה נכשלה.",
+    "receiptPending": "התשלום נרשם. הפקת הקבלה בתהליך."
+  },
   "list": {
     "project": "פרויקט",
     "reference": "אסמכתא",
@@ -145,6 +157,8 @@
   },
   "paymentForm": {
     "title": "תשלום חדש",
+    "recordPaymentTitle": "רישום תשלום",
+    "recordPaymentDescription": "הזינו את הסכום שהתקבל מהלקוח.",
     "entryModeLegend": "סוג תקבול",
     "modeInvoice": "שיוך לחיוב קיים",
     "modeUnallocated": "תקבול לא מוקצה",

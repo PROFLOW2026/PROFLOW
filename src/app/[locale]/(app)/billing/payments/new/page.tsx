@@ -67,8 +67,8 @@ export default async function NewPaymentPage({
   return (
     <div className="flex min-w-0 flex-col gap-6">
       <PageHeader
-        title={t('paymentForm.title')}
-        description={t('paymentForm.amountDescription')}
+        title={t('paymentForm.recordPaymentTitle')}
+        description={t('paymentForm.recordPaymentDescription')}
       />
       <PaymentForm
         billingRecords={records}

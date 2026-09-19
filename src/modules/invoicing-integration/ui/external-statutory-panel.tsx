@@ -61,6 +61,9 @@ export interface ExternalStatutoryPanelProps {
   hasCustomerSnapshot: boolean;
   customerEmail: string | null;
   primaryStorageProvider: StorageProviderKey | null;
+  /** Active issuance controls vs read-only historical documents. */
+  variant?: 'active' | 'historical';
+  providerDisplayName?: string | null;
 }
 
 function reconciliationTone(
@@ -84,8 +87,12 @@ export function ExternalStatutoryPanel({
   hasCustomerSnapshot,
   customerEmail,
   primaryStorageProvider,
+  variant = 'active',
+  providerDisplayName = null,
 }: ExternalStatutoryPanelProps) {
   const t = useTranslations('invoicingIntegration');
+  const isHistorical = variant === 'historical';
+  const providerLabel = providerDisplayName ?? 'SUMIT';
   const tCommon = useTranslations('common');
   const tStorage = useTranslations('externalStorage.providers');
   const router = useRouter();
@@ -117,6 +124,7 @@ export function ExternalStatutoryPanel({
       taxInvoice.issuanceOutcome === 'confirmed_created');
 
   const canRequest =
+    !isHistorical &&
     canManage &&
     providerStatus.featureEnabled &&
     billingStatus === 'finalized' &&
@@ -233,24 +241,36 @@ export function ExternalStatutoryPanel({
   return (
     <Card className="min-w-0">
       <CardHeader>
-        <CardTitle className="text-start text-base">{t('title')}</CardTitle>
-        <p className="text-start text-sm text-[var(--pf-text-secondary)]">{t('subtitle')}</p>
+        <CardTitle className="text-start text-base">
+          {isHistorical ? t('historical.title') : t('accountingSection.title')}
+        </CardTitle>
+        {!isHistorical ? (
+          <p className="text-start text-sm text-[var(--pf-text-secondary)]">
+            {t('accountingSection.subtitle')}
+          </p>
+        ) : (
+          <p className="text-start text-sm text-[var(--pf-text-secondary)]">
+            {t('historical.subtitle')}
+          </p>
+        )}
       </CardHeader>
       <CardContent className="flex flex-col gap-4 text-start">
-        <p className="text-xs text-[var(--pf-text-muted)]">{t('separation.disclosure')}</p>
+        {!isHistorical ? (
+          <>
+            <p className="text-xs text-[var(--pf-text-muted)]">{t('separation.disclosure')}</p>
 
-        {!providerStatus.featureEnabled ? (
-          <Alert tone="warning">{t(providerStatus.messageKey)}</Alert>
-        ) : (
-          <Alert tone="success">{t('status.providerConnected')}</Alert>
-        )}
+            {!providerStatus.featureEnabled ? (
+              <Alert tone="warning">{t(providerStatus.messageKey)}</Alert>
+            ) : null}
 
-        {billingStatus !== 'finalized' ? (
-          <p className="text-sm text-[var(--pf-text-secondary)]">{t('errors.billingNotFinalized')}</p>
-        ) : null}
+            {billingStatus !== 'finalized' ? (
+              <p className="text-sm text-[var(--pf-text-secondary)]">{t('errors.billingNotFinalized')}</p>
+            ) : null}
 
-        {!hasCustomerSnapshot && billingStatus === 'finalized' ? (
-          <Alert tone="warning">{t('errors.missingCustomerSnapshot')}</Alert>
+            {!hasCustomerSnapshot && billingStatus === 'finalized' ? (
+              <Alert tone="warning">{t('errors.missingCustomerSnapshot')}</Alert>
+            ) : null}
+          </>
         ) : null}
 
         {error ? <Alert tone="danger">{error}</Alert> : null}
@@ -285,7 +305,7 @@ export function ExternalStatutoryPanel({
             <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
               <div>
                 <dt className="text-[var(--pf-text-secondary)]">{t('fields.provider')}</dt>
-                <dd>SUMIT</dd>
+                <dd>{providerLabel}</dd>
               </div>
               {taxInvoice.externalNumber ? (
                 <div>
@@ -321,7 +341,7 @@ export function ExternalStatutoryPanel({
               ) : null}
             </dl>
 
-            {issued && canManage ? (
+            {issued ? (
               <div className="mt-4 flex flex-wrap gap-2">
                 <Button
                   type="button"
@@ -348,35 +368,39 @@ export function ExternalStatutoryPanel({
                 >
                   {t('actions.downloadPdf')}
                 </Button>
-                <Button type="button" variant="secondary" size="sm" disabled={pending} onClick={openSendDialog}>
-                  {t('actions.sendToCustomer')}
-                </Button>
-                <Button type="button" variant="secondary" size="sm" disabled={pending} onClick={handleShare}>
-                  {t('actions.share')}
-                </Button>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  disabled={pending}
-                  onClick={() =>
-                    run(() => refreshExternalStatutoryStatusAction(taxInvoice.id, billingRecordId))
-                  }
-                >
-                  {t('actions.refreshStatus')}
-                </Button>
-                {showSaveButton ? (
-                  <Button
-                    type="button"
-                    variant="primary"
-                    size="sm"
-                    disabled={pending}
-                    onClick={handleSaveCopy}
-                  >
-                    {storageStatus === 'failed'
-                      ? t('actions.retryStorageSave')
-                      : t('actions.saveCopy')}
-                  </Button>
+                {!isHistorical && canManage ? (
+                  <>
+                    <Button type="button" variant="secondary" size="sm" disabled={pending} onClick={openSendDialog}>
+                      {t('actions.sendToCustomer')}
+                    </Button>
+                    <Button type="button" variant="secondary" size="sm" disabled={pending} onClick={handleShare}>
+                      {t('actions.share')}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      disabled={pending}
+                      onClick={() =>
+                        run(() => refreshExternalStatutoryStatusAction(taxInvoice.id, billingRecordId))
+                      }
+                    >
+                      {t('actions.refreshStatus')}
+                    </Button>
+                    {showSaveButton ? (
+                      <Button
+                        type="button"
+                        variant="primary"
+                        size="sm"
+                        disabled={pending}
+                        onClick={handleSaveCopy}
+                      >
+                        {storageStatus === 'failed'
+                          ? t('actions.retryStorageSave')
+                          : t('actions.saveCopy')}
+                      </Button>
+                    ) : null}
+                  </>
                 ) : null}
               </div>
             ) : null}
@@ -434,12 +458,12 @@ export function ExternalStatutoryPanel({
               <p className="mt-3 text-sm text-[var(--pf-text-secondary)]">{taxInvoice.lastErrorMessage}</p>
             ) : null}
           </div>
-        ) : (
+        ) : !isHistorical ? (
           <div className="rounded-lg border border-dashed border-[var(--pf-border-default)] p-4">
             <p className="font-medium">{t('empty.title')}</p>
             <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">{t('empty.body')}</p>
           </div>
-        )}
+        ) : null}
 
         {canRequest ? (
           <Button
@@ -496,6 +520,19 @@ export function ExternalStatutoryPanel({
                       <Button asChild type="button" variant="secondary" size="sm">
                         <a href={pdfUrl(doc.id, 'attachment')}>{t('actions.downloadPdf')}</a>
                       </Button>
+                      {!isHistorical && canManage && doc.status === 'failed' ? (
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          disabled={pending}
+                          onClick={() =>
+                            run(() => refreshExternalStatutoryStatusAction(doc.id, billingRecordId))
+                          }
+                        >
+                          {t('actions.refreshStatus')}
+                        </Button>
+                      ) : null}
                     </div>
                   ) : null}
                 </div>

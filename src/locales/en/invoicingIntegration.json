@@ -99,11 +99,26 @@
     "receiptPending": "Receipt pending issuance",
     "receiptIssued": "Receipt issued"
   },
-  "settings": {
+  "accountingSection": {
     "title": "Invoices and receipts",
-    "modeLabel": "Statutory document mode",
-    "modeManual": "Manual only — billing and collections without an external provider",
-    "modeExternal": "External provider — statutory documents via SUMIT",
+    "subtitle": "Issue and track documents through your connected accounting system.",
+    "connectPrompt": "Connect an accounting system to issue invoices and receipts through ProjectFlow.",
+    "connectAction": "Connect accounting system",
+    "providerConnected": "Accounting system: {provider} • Connected"
+  },
+  "historical": {
+    "title": "Previously issued documents",
+    "subtitle": "Documents issued earlier through a connected accounting system. View and download only."
+  },
+  "settings": {
+    "title": "Invoice and receipt issuance",
+    "intro": "Choose whether ProjectFlow handles collections only, or also issues invoices and receipts.",
+    "modeLabel": "Operating mode",
+    "modeManual": "Collections only",
+    "modeManualDescription": "ProjectFlow manages billing, payments, and balances. Invoices and receipts are issued outside the system.",
+    "modeExternal": "Collections + invoices and receipts via ProjectFlow",
+    "modeExternalDescription": "ProjectFlow manages collections and issues documents through a connected accounting system.",
+    "connectProviderHint": "After choosing this mode, connect an accounting system below.",
     "policyLabel": "Payment document policy",
     "policySplit": "Tax invoice, then receipt on payment",
     "policyCombined": "Combined tax invoice/receipt on payment",

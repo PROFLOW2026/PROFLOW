@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import { getTranslations } from 'next-intl/server';
 import { MoneyText } from '@/components/patterns/money-text';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
@@ -26,13 +27,22 @@ import { Link } from '@/shared/i18n/navigation';
 import { formatBusinessDate } from '@/shared/dates/format';
 import { notFound } from 'next/navigation';
 import { PrepareMessageLink } from '@/modules/communications/ui/prepare-message-link';
+import { BillingPaymentRecordedAlert } from '@/modules/billing/ui/billing-payment-recorded-alert';
+import { CollectionModeNote } from '@/modules/billing/ui/collection-mode-note';
 import { isExternalStatutoryUiEnabled } from '@/modules/invoicing-integration/application/assert-feature-enabled';
 import {
+  getOrgInvoicingSettings,
   getStatutoryProviderStatus,
   listExternalStatutoryDocumentsForBilling,
 } from '@/modules/invoicing-integration';
+import {
+  isCollectionOnlyMode,
+  resolveAccountingProviderDisplayName,
+} from '@/modules/invoicing-integration/domain/collection-mode';
+import { resolvePaymentReceiptOutcome } from '@/modules/invoicing-integration/domain/payment-receipt-outcome';
 import { resolveStatutoryProviderForOrg } from '@/modules/invoicing-integration/server';
-import { ExternalStatutoryPanel } from '@/modules/invoicing-integration/ui/external-statutory-panel';
+import { BillingAccountingDocumentsSection } from '@/modules/invoicing-integration/ui/billing-accounting-documents-section';
+import { isZeroMoney } from '@/shared/money/money';
 import { ReportDownloadButtons } from '@/modules/reports/ui';
 import {
   getOrganizationPrimaryStorage,
@@ -51,10 +61,14 @@ export async function generateMetadata({
 
 export default async function BillingDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string; billingRecordId: string }>;
+  searchParams: Promise<{ paymentRecorded?: string; paymentId?: string }>;
 }) {
   const { locale, billingRecordId } = await params;
+  const query = await searchParams;
+  const paymentId = query.paymentId ?? null;
   const t = await getTranslations('billing');
   const tStatus = await getTranslations('status.billing');
   const tKind = await getTranslations('billing.kinds');
@@ -70,10 +84,12 @@ export default async function BillingDetailPage({
     null;
   let primaryStorageProvider: StorageProviderKey | null = null;
   let showExternalStatutory = false;
+  let invoicingSettings: Awaited<ReturnType<typeof getOrgInvoicingSettings>> | null = null;
 
   try {
     const result = await withOrgContext(async (context) => {
       const provider = await resolveStatutoryProviderForOrg(context);
+      const settings = await getOrgInvoicingSettings(context);
       return {
         record: await getBillingRecord(context, billingRecordId),
         canManage: hasPermission(context, PERMISSIONS.BILLING_MANAGE),
@@ -88,6 +104,7 @@ export default async function BillingDetailPage({
         statutoryProviderStatus: getStatutoryProviderStatus(context, provider),
         showExternalStatutory: await isExternalStatutoryUiEnabled(context, provider),
         primaryStorage: await getOrganizationPrimaryStorage(context),
+        invoicingSettings: settings,
       };
     });
     record = result.record;
@@ -99,9 +116,16 @@ export default async function BillingDetailPage({
     statutoryProviderStatus = result.statutoryProviderStatus;
     primaryStorageProvider = result.primaryStorage?.provider ?? null;
     showExternalStatutory = result.showExternalStatutory;
+    invoicingSettings = result.invoicingSettings;
   } catch {
     notFound();
   }
+
+  const receiptOutcome = resolvePaymentReceiptOutcome(externalDocuments, paymentId);
+  const providerDisplayName = statutoryProviderStatus
+    ? resolveAccountingProviderDisplayName(statutoryProviderStatus.providerId)
+    : null;
+  const fullyPaid = isZeroMoney(record.outstandingAmount);
 
   return (
     <div className="flex min-w-0 flex-col gap-6">
@@ -150,10 +174,21 @@ export default async function BillingDetailPage({
           </div>
         }
       />
-      <p className="text-xs text-[var(--pf-text-muted)]">{t('statutoryDisclosure')}</p>
 
-      {statutoryProviderStatus && showExternalStatutory ? (
-        <ExternalStatutoryPanel
+      <Suspense fallback={null}>
+        <BillingPaymentRecordedAlert
+          outstandingAmount={record.outstandingAmount}
+          fullyPaid={fullyPaid}
+          receiptOutcome={receiptOutcome}
+          providerDisplayName={providerDisplayName}
+        />
+      </Suspense>
+
+      {invoicingSettings && isCollectionOnlyMode(invoicingSettings) ? <CollectionModeNote /> : null}
+
+      {invoicingSettings && statutoryProviderStatus ? (
+        <BillingAccountingDocumentsSection
+          settings={invoicingSettings}
           billingRecordId={record.id}
           billingStatus={record.status}
           canManage={canManage}
@@ -162,6 +197,7 @@ export default async function BillingDetailPage({
           hasCustomerSnapshot={Boolean(record.customerSnapshot?.name?.trim())}
           customerEmail={record.customerSnapshot?.email ?? null}
           primaryStorageProvider={primaryStorageProvider}
+          accountingUiEnabled={showExternalStatutory}
         />
       ) : null}
 

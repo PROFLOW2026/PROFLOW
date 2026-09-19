@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,7 @@ export interface InvoicingSettingsPanelProps {
   settings: OrgInvoicingSettings;
   canManage: boolean;
   transactionInvoiceSupported: boolean;
+  providerConnected: boolean;
 }
 
 function RadioOption({
@@ -21,27 +22,41 @@ function RadioOption({
   defaultChecked,
   id,
   label,
+  description,
   disabled,
+  onSelect,
 }: {
   name: string;
   value: string;
   defaultChecked: boolean;
   id: string;
   label: string;
+  description?: string;
   disabled: boolean;
+  onSelect?: () => void;
 }) {
   return (
-    <div className="flex items-center gap-2">
-      <input
-        type="radio"
-        name={name}
-        value={value}
-        id={id}
-        defaultChecked={defaultChecked}
-        disabled={disabled}
-        className="h-4 w-4"
-      />
-      <Label htmlFor={id}>{label}</Label>
+    <div className="flex flex-col gap-1 rounded-md border border-[var(--pf-border-default)] p-3">
+      <div className="flex items-start gap-2">
+        <input
+          type="radio"
+          name={name}
+          value={value}
+          id={id}
+          defaultChecked={defaultChecked}
+          disabled={disabled}
+          className="mt-1 h-4 w-4"
+          onChange={() => onSelect?.()}
+        />
+        <div className="flex flex-col gap-1">
+          <Label htmlFor={id} className="font-medium">
+            {label}
+          </Label>
+          {description ? (
+            <p className="text-sm text-[var(--pf-text-secondary)]">{description}</p>
+          ) : null}
+        </div>
+      </div>
     </div>
   );
 }
@@ -50,14 +65,18 @@ export function InvoicingSettingsPanel({
   settings,
   canManage,
   transactionInvoiceSupported,
+  providerConnected,
 }: InvoicingSettingsPanelProps) {
   const t = useTranslations('invoicingIntegration.settings');
   const [state, formAction, pending] = useActionState(saveInvoicingSettingsAction, {});
+  const [mode, setMode] = useState<'manual' | 'external_provider'>(settings.mode);
+  const accountingMode = mode === 'external_provider';
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-base">{t('title')}</CardTitle>
+        <p className="text-sm text-[var(--pf-text-secondary)]">{t('intro')}</p>
       </CardHeader>
       <CardContent>
         <form action={formAction} className="flex flex-col gap-5">
@@ -70,7 +89,9 @@ export function InvoicingSettingsPanel({
                 id="mode-manual"
                 defaultChecked={settings.mode === 'manual'}
                 label={t('modeManual')}
+                description={t('modeManualDescription')}
                 disabled={!canManage || pending}
+                onSelect={() => setMode('manual')}
               />
               <RadioOption
                 name="mode"
@@ -78,61 +99,73 @@ export function InvoicingSettingsPanel({
                 id="mode-external"
                 defaultChecked={settings.mode === 'external_provider'}
                 label={t('modeExternal')}
+                description={t('modeExternalDescription')}
                 disabled={!canManage || pending}
+                onSelect={() => setMode('external_provider')}
               />
             </div>
 
-            <div className="flex flex-col gap-2">
-              <Label>{t('policyLabel')}</Label>
-              <RadioOption
-                name="paymentDocumentPolicy"
-                value="tax_invoice_then_receipt"
-                id="policy-split"
-                defaultChecked={settings.paymentDocumentPolicy === 'tax_invoice_then_receipt'}
-                label={t('policySplit')}
-                disabled={!canManage || pending}
-              />
-              <RadioOption
-                name="paymentDocumentPolicy"
-                value="tax_invoice_receipt_on_payment"
-                id="policy-combined"
-                defaultChecked={settings.paymentDocumentPolicy === 'tax_invoice_receipt_on_payment'}
-                label={t('policyCombined')}
-                disabled={!canManage || pending}
-              />
-              {transactionInvoiceSupported ? (
-                <RadioOption
-                  name="paymentDocumentPolicy"
-                  value="transaction_invoice_before_payment"
-                  id="policy-transaction"
-                  defaultChecked={
-                    settings.paymentDocumentPolicy === 'transaction_invoice_before_payment'
-                  }
-                  label={t('policyTransaction')}
-                  disabled={!canManage || pending}
-                />
-              ) : null}
-            </div>
+            {accountingMode && !providerConnected ? (
+              <Alert tone="warning">{t('connectProviderHint')}</Alert>
+            ) : null}
 
-            <div className="flex flex-col gap-2">
-              <Label>{t('receiptIssuanceLabel')}</Label>
-              <RadioOption
-                name="receiptIssuance"
-                value="automatic"
-                id="receipt-auto"
-                defaultChecked={settings.receiptIssuance === 'automatic'}
-                label={t('receiptAutomatic')}
-                disabled={!canManage || pending}
-              />
-              <RadioOption
-                name="receiptIssuance"
-                value="manual"
-                id="receipt-manual"
-                defaultChecked={settings.receiptIssuance === 'manual'}
-                label={t('receiptManual')}
-                disabled={!canManage || pending}
-              />
-            </div>
+            {accountingMode ? (
+              <>
+                <div className="flex flex-col gap-2">
+                  <Label>{t('policyLabel')}</Label>
+                  <RadioOption
+                    name="paymentDocumentPolicy"
+                    value="tax_invoice_then_receipt"
+                    id="policy-split"
+                    defaultChecked={settings.paymentDocumentPolicy === 'tax_invoice_then_receipt'}
+                    label={t('policySplit')}
+                    disabled={!canManage || pending}
+                  />
+                  <RadioOption
+                    name="paymentDocumentPolicy"
+                    value="tax_invoice_receipt_on_payment"
+                    id="policy-combined"
+                    defaultChecked={
+                      settings.paymentDocumentPolicy === 'tax_invoice_receipt_on_payment'
+                    }
+                    label={t('policyCombined')}
+                    disabled={!canManage || pending}
+                  />
+                  {transactionInvoiceSupported ? (
+                    <RadioOption
+                      name="paymentDocumentPolicy"
+                      value="transaction_invoice_before_payment"
+                      id="policy-transaction"
+                      defaultChecked={
+                        settings.paymentDocumentPolicy === 'transaction_invoice_before_payment'
+                      }
+                      label={t('policyTransaction')}
+                      disabled={!canManage || pending}
+                    />
+                  ) : null}
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <Label>{t('receiptIssuanceLabel')}</Label>
+                  <RadioOption
+                    name="receiptIssuance"
+                    value="automatic"
+                    id="receipt-auto"
+                    defaultChecked={settings.receiptIssuance === 'automatic'}
+                    label={t('receiptAutomatic')}
+                    disabled={!canManage || pending}
+                  />
+                  <RadioOption
+                    name="receiptIssuance"
+                    value="manual"
+                    id="receipt-manual"
+                    defaultChecked={settings.receiptIssuance === 'manual'}
+                    label={t('receiptManual')}
+                    disabled={!canManage || pending}
+                  />
+                </div>
+              </>
+            ) : null}
           </fieldset>
 
           {canManage ? (
