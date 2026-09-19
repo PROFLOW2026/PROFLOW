@@ -3,6 +3,7 @@ import 'server-only';
 import { and, eq, sql } from 'drizzle-orm';
 import { externalExpenseImports } from '@drizzle/schema';
 import { findOrganizationById } from '@/modules/tenancy';
+import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { EXPENSE_INGESTION_PROVIDER_KEY } from '../domain/settings';
 import { pollSumitExpensesForOrg } from './poll-sumit-expenses';
 import { getAdminDb } from '@/shared/db/client';
@@ -55,7 +56,7 @@ export async function drainSumitExpenseIngestion(): Promise<{
       organizationId,
       membershipId: WORKER_USER_ID,
       organization,
-      permissions: new Set(),
+      permissions: new Set([PERMISSIONS.DOCUMENTS_MANAGE]),
       roleKeys: ['sumit_expense_worker'],
       db,
       locale: organization.defaultLocale || 'en',
