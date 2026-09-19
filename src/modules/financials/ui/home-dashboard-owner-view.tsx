@@ -1,5 +1,5 @@
 import type React from 'react';
-import { AlertCircle, Plus, Receipt } from 'lucide-react';
+import { Plus, Receipt } from 'lucide-react';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { Link } from '@/shared/i18n/navigation';
 import { MoneyText } from '@/components/patterns/money-text';
@@ -17,6 +17,10 @@ import { partitionDashboardCompletenessItems } from '../domain/dashboard-missing
 import { DashboardMissingDataTrigger } from './dashboard-missing-data-trigger';
 import { HomeLaborReconciliation, HomePendingTimeAlert } from './home-labor-alerts';
 import { mapDashboardMissingDataToView } from './map-dashboard-missing-data-view';
+import { DashboardQuickAccessSection } from './dashboard-quick-access-section';
+import { DashboardAttentionCards } from './dashboard-attention-cards';
+import { DashboardContractSummaryRow } from './dashboard-contract-summary-row';
+import { DashboardRecentProjectsSection } from './dashboard-recent-projects-section';
 
 interface HomeDashboardOwnerViewProps {
   readonly data: HomeDashboardData;
@@ -72,11 +76,6 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
     getLocale(),
   ]);
 
-  const hasAttention =
-    data.attention.pendingChangesCount > 0 ||
-    data.attention.unbilledApprovedCount > 0 ||
-    data.attention.overdueBillingCount > 0;
-
   const contractUnavailable = data.kpiAvailability?.contractValue === 'unavailable';
   const costUnavailable = data.kpiAvailability?.actualCost === 'unavailable';
   const profitUnavailable = data.kpiAvailability?.actualMargin === 'unavailable';
@@ -105,6 +104,8 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
       {data.laborReconciliation ? (
         <HomeLaborReconciliation laborReconciliation={data.laborReconciliation} />
       ) : null}
+      <DashboardQuickAccessSection shortcuts={data.quickAccessShortcuts} />
+      <DashboardAttentionCards attention={data.attention} />
       {hasCompletenessTrigger ? (
         <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
           <DashboardMissingDataTrigger
@@ -153,6 +154,10 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
         />
       </section>
 
+      {data.contractSummary ? (
+        <DashboardContractSummaryRow summary={data.contractSummary} />
+      ) : null}
+
       {/* FIN-HIGH-001: AP outstanding — what the business owes vendors in unpaid bills */}
       {data.apOutstanding ? (
         <section className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -174,6 +179,8 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
           />
         </section>
       ) : null}
+
+      <DashboardRecentProjectsSection projects={data.recentProjects} />
 
       {data.projectTableRows.length > 0 ? (
         <section className="min-w-0 max-w-full">
@@ -276,50 +283,16 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
             )}
           />
         </section>
-      ) : data.activeProjectCount > 0 ? (
+      ) : data.activeProjectCount > 0 && data.recentProjects.length === 0 ? (
         <section>
-          <h2 className="mb-2 text-sm font-semibold">{t('activeProjects')}</h2>
           <p className="text-sm text-[var(--pf-text-secondary)]">
             {t('ownerHeadline.noFinancialRows', { count: data.activeProjectCount })}
           </p>
           <p className="mt-2">
             <Link href="/projects" className={textNavLinkClassName} prefetch={false}>
-              {tNav('projects')}
+              {t('allProjectsLink')}
             </Link>
           </p>
-        </section>
-      ) : null}
-
-      {hasAttention ? (
-        <section className="min-w-0 max-w-full">
-          <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold">
-            <AlertCircle className="size-4 shrink-0" aria-hidden />
-            {t('attention.title')}
-          </h2>
-          <ul className="flex min-w-0 flex-col gap-2 text-sm">
-            {data.attention.pendingChangesCount > 0 ? (
-              <li className="rounded-md border border-[var(--pf-border-default)] px-3 py-2">
-                {t('attention.pendingChanges', { count: data.attention.pendingChangesCount })}
-              </li>
-            ) : null}
-            {data.attention.unbilledApprovedCount > 0 ? (
-              <li className="rounded-md border border-[var(--pf-border-default)] px-3 py-2">
-                {t('attention.approvedNotBilled', { count: data.attention.unbilledApprovedCount })}
-              </li>
-            ) : null}
-            {data.attention.overdueBillingCount > 0 ? (
-              <li className="rounded-md border border-[var(--pf-border-default)] px-3 py-2">
-                {t('attention.overdueBilling', { count: data.attention.overdueBillingCount })}
-              </li>
-            ) : null}
-          </ul>
-          {data.canReadToday ? (
-            <p className="mt-3">
-              <Link href="/today" className={textNavLinkClassName} prefetch={false}>
-                {t('attention.linkToday')}
-              </Link>
-            </p>
-          ) : null}
         </section>
       ) : null}
 

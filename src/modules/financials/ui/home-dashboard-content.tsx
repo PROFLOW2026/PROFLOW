@@ -1,4 +1,4 @@
-import { AlertCircle, ChevronLeft, ChevronRight, FolderKanban, Plus, Receipt } from 'lucide-react';
+import { ChevronLeft, ChevronRight, FolderKanban, Plus, Receipt } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { Link } from '@/shared/i18n/navigation';
@@ -8,7 +8,6 @@ import { BillingNetPrimaryDisplay } from '@/components/patterns/billing-net-prim
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
-import { PrefetchOnIntentLink } from '@/components/ui/prefetch-on-intent-link';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
 import type { ExperienceDashboardCard } from '@/modules/tenancy';
@@ -20,6 +19,10 @@ import { mapDashboardMissingDataToView } from './map-dashboard-missing-data-view
 import { partitionDashboardCompletenessItems } from '../domain/dashboard-missing-data';
 import { HomeDashboardOwnerView } from './home-dashboard-owner-view';
 import { HomeLaborReconciliation, HomePendingTimeAlert } from './home-labor-alerts';
+import { DashboardQuickAccessSection } from './dashboard-quick-access-section';
+import { DashboardAttentionCards } from './dashboard-attention-cards';
+import { DashboardContractSummaryRow } from './dashboard-contract-summary-row';
+import { DashboardRecentProjectsSection } from './dashboard-recent-projects-section';
 import type { DashboardKpiKey } from '../domain/dashboard-missing-data';
 import { resolveIntlLocale } from '@/shared/i18n/intl-locale';
 
@@ -126,11 +129,6 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
       tFinancial,
     );
 
-  const hasAttention =
-    data.attention.pendingChangesCount > 0 ||
-    data.attention.unbilledApprovedCount > 0 ||
-    data.attention.overdueBillingCount > 0;
-
   const completenessPartitions = partitionDashboardCompletenessItems(data.missingDataItems);
   const translateDashboard = (key: string, values?: Record<string, string | number>) =>
     t(key, values as Record<string, string | number> | undefined);
@@ -154,97 +152,24 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
   function renderCard(card: ExperienceDashboardCard): ReactNode {
     switch (card) {
       case 'attention':
-        if (!hasAttention) return null;
-        return (
-          <section key={card} className="min-w-0 max-w-full">
-            <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold">
-              <AlertCircle className="size-4 shrink-0" aria-hidden />
-              {t('attention.title')}
-            </h2>
-            {data.canReadToday ? (
-              <p className="mb-3">
-                <Link href="/today" className={textNavLinkClassName} prefetch={false}>
-                  {t('attention.linkToday')}
-                </Link>
-              </p>
-            ) : null}
-            <ul className="flex min-w-0 flex-col gap-2 text-sm">
-              {(data.preferServiceSurface
-                ? (['overdueBilling', 'unbilledApproved', 'pendingChanges'] as const)
-                : (['pendingChanges', 'unbilledApproved', 'overdueBilling'] as const)
-              ).map((key) => {
-                const count =
-                  key === 'overdueBilling'
-                    ? data.attention.overdueBillingCount
-                    : key === 'unbilledApproved'
-                      ? data.attention.unbilledApprovedCount
-                      : data.attention.pendingChangesCount;
-                if (count <= 0) return null;
-                const text =
-                  key === 'overdueBilling'
-                    ? t('attention.overdueBilling', { count })
-                    : key === 'unbilledApproved'
-                      ? t('attention.approvedNotBilled', { count })
-                      : t('attention.pendingChanges', { count });
-                return (
-                  <li
-                    key={key}
-                    className="min-w-0 break-words rounded-md border border-[var(--pf-border-default)] px-3 py-2"
-                  >
-                    {text}
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
-        );
+        return null;
 
       case 'activeWork':
+        if (data.recentProjects.length === 0) return null;
         return (
           <section key={card} className="min-w-0 max-w-full">
-            <div className="mb-3 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
-              {data.activeProjectCount > 0 ? (
-                <KpiCard title={t('activeProjects')} value={String(data.activeProjectCount)} />
-              ) : null}
-            </div>
-            {data.recentProjects.length > 0 ? (
-              <>
-                <h2 className="mb-3 text-sm font-semibold">{t('activeProjects')}</h2>
-                <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
-                  {data.recentProjects.map((project) => (
-                    <Card key={project.id} className="min-w-0 max-w-full">
-                      <CardHeader className="py-3">
-                        <CardTitle className="min-w-0 break-words text-base">
-                          <PrefetchOnIntentLink
-                            href={`/projects/${project.id}`}
-                            className={cn(textNavLinkClassName, 'font-medium')}
-                          >
-                            {project.name}
-                          </PrefetchOnIntentLink>
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="min-w-0 pb-3 text-sm text-[var(--pf-text-secondary)]">
-                        {project.clientName ?? '-'}
-                        {project.currentContractValue && project.currency ? (
-                          <p className="mt-1 min-w-0 max-w-full overflow-x-auto">
-                            <MoneyText
-                              value={{
-                                amount: project.currentContractValue,
-                                currency: project.currency,
-                              }}
-                            />
-                          </p>
-                        ) : null}
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </>
-            ) : null}
+            <DashboardRecentProjectsSection projects={data.recentProjects} />
           </section>
         );
 
       case 'contractValue':
+        if (data.contractSummary) {
+          return (
+            <section key={card} className="min-w-0 max-w-full">
+              <DashboardContractSummaryRow summary={data.contractSummary} />
+            </section>
+          );
+        }
         if (!data.totalContractValue && !isKpiUnavailable('contractValue')) return null;
         return (
           <section key={card} className="min-w-0 max-w-full">
@@ -544,7 +469,10 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
               {data.activeProjectCount > 0 ? (
                 <KpiCard title={t('activeProjects')} value={String(data.activeProjectCount)} />
               ) : null}
-              {hasAttention ? (
+              {data.attention.pendingChangesCount +
+                data.attention.unbilledApprovedCount +
+                data.attention.overdueBillingCount >
+              0 ? (
                 <KpiCard
                   title={t('attention.title')}
                   value={String(
@@ -652,6 +580,9 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
       {data.laborReconciliation ? (
         <HomeLaborReconciliation laborReconciliation={data.laborReconciliation} />
       ) : null}
+
+      <DashboardQuickAccessSection shortcuts={data.quickAccessShortcuts} />
+      <DashboardAttentionCards attention={data.attention} />
 
       {data.dashboardCards.map((card) => renderCard(card))}
 

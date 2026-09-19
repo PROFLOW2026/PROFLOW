@@ -159,6 +159,21 @@
       "advanced": "Advanced"
     }
   },
+  "dashboardDisplay": {
+    "title": "Dashboard display",
+    "shortcuts": {
+      "title": "Shortcuts",
+      "subtitle": "Choose up to 8 shortcuts shown at the top of the dashboard. Add, remove, and reorder as needed.",
+      "add": "Add shortcut",
+      "addPlaceholder": "Choose a shortcut…",
+      "remove": "Remove shortcut",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "maxReached": "Maximum of 8 shortcuts reached.",
+      "saved": "Shortcuts saved",
+      "empty": "No shortcuts configured. Dashboard defaults will be shown."
+    }
+  },
   "workMix": {
     "title": "Business focus",
     "subtitle": "Choose what stands out in navigation: projects, jobs, or both. Same app and same money - not separate products.",

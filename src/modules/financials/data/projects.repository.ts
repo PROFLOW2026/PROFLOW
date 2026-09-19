@@ -12,10 +12,12 @@ export interface ActiveProjectSummary {
   readonly currency: string | null;
 }
 
+export const RECENT_ACTIVE_PROJECTS_LIMIT = 6;
+
 export async function listRecentActiveProjects(
   db: DbExecutor,
   organizationId: string,
-  limit = 5,
+  limit = RECENT_ACTIVE_PROJECTS_LIMIT,
 ): Promise<ActiveProjectSummary[]> {
   const rows = sqlRows<{
     id: string;

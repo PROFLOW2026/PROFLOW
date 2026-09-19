@@ -8,7 +8,6 @@ import { PublicHomepage } from '@/modules/marketing/ui';
 import { getHomeDashboard, parseWorkKindFilter } from '@/modules/financials';
 import { HomeDashboardContent } from '@/modules/financials/ui';
 import { WorkKindFilterChrome } from '@/modules/financials/ui/work-kind-filter-chrome';
-import { DashboardQuickAccessBar } from '@/modules/external-storage/ui/dashboard-quick-access-bar';
 import { PwaInstallCta } from '@/modules/offline/ui/pwa-install-cta';
 import {
   DASHBOARD_UNUSED_CAPABILITY_TIP_VISIBLE,
@@ -156,9 +155,6 @@ async function AuthenticatedDashboardHome({
   return (
     <div className="flex min-w-0 max-w-full flex-col gap-6" data-pf-dashboard-home>
       <PageHeader title={name ? t('greeting', { name }) : t('greetingNoName')} />
-      <Suspense fallback={null}>
-        <DashboardQuickAccessBar />
-      </Suspense>
       <Suspense fallback={null}>
         <DashboardCapabilityTip />
       </Suspense>

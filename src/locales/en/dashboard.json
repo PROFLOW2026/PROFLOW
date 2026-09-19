@@ -5,9 +5,30 @@
   "quickActions": "Quick actions",
   "companyDocuments": "Company documents",
   "activeProjects": "Active projects",
+  "recentProjects": "Recent projects",
+  "allProjectsLink": "All projects",
   "recentExpenses": "Recent expenses",
+  "quickAccess": {
+    "title": "Quick access",
+    "shortcuts": {
+      "invoicingSettings": "Invoices & receipts"
+    }
+  },
+  "contractSummary": {
+    "title": "Contracts",
+    "original": "Original contract total",
+    "approvedChanges": "Approved additions",
+    "total": "Total contracts incl. additions",
+    "remaining": "Contract balance",
+    "remainingHint": "Still to bill (contract − net billed)"
+  },
   "attention": {
     "title": "Worth a look",
+    "compact": {
+      "overdueBilling": "{count, plural, =1 {# overdue billing} other {# overdue billings}}",
+      "unbilledApproved": "{count, plural, =1 {# change not billed} other {# changes not billed}}",
+      "pendingChanges": "{count, plural, =1 {# pending approval} other {# pending approval}}"
+    },
     "approvedNotBilled": "{count, plural, =1 {# approved change is not billed yet} other {# approved changes are not billed yet}}",
     "overdueBilling": "{count, plural, =1 {# billing record is overdue} other {# billing records are overdue}}",
     "pendingChanges": "{count, plural, =1 {# change is waiting for approval} other {# changes are waiting for approval}}",

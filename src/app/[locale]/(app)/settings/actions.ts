@@ -36,6 +36,13 @@ import {
   dismissUnusedCapabilitySuggestion,
 } from '@/modules/tenancy';
 import {
+  saveDashboardQuickAccessPreference,
+} from '@/modules/tenancy/application/dashboard-quick-access';
+import {
+  isDashboardQuickAccessKey,
+  type DashboardQuickAccessKey,
+} from '@/modules/tenancy/domain/dashboard-quick-access';
+import {
   saveOrgFinancialPolicies,
 } from '@/modules/tenancy/application/org-financial-policies';
 import {
@@ -465,6 +472,42 @@ export async function resetCapabilitiesToProfileAction(
       }
       return { error: tErrors('unexpected') };
     }
+    throw error;
+  }
+}
+
+export async function saveDashboardQuickAccessAction(
+  _prev: SettingsActionState,
+  formData: FormData,
+): Promise<SettingsActionState> {
+  const tErrors = await getTranslations('errors');
+  const raw = formValue(formData, 'shortcutKeys');
+  if (!raw) {
+    return { error: tErrors('validationFailed') };
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return { error: tErrors('validationFailed') };
+  }
+
+  if (!Array.isArray(parsed)) {
+    return { error: tErrors('validationFailed') };
+  }
+
+  const keys = parsed.filter((item): item is DashboardQuickAccessKey =>
+    isDashboardQuickAccessKey(String(item)),
+  );
+
+  try {
+    await withOrgContext((context) => saveDashboardQuickAccessPreference(context, keys));
+    revalidatePath('/settings/app');
+    revalidatePath('/', 'layout');
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof AppError) return { error: tErrors('unexpected') };
     throw error;
   }
 }

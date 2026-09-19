@@ -5,9 +5,30 @@
   "quickActions": "Быстрые действия",
   "companyDocuments": "Документы компании",
   "activeProjects": "Активные проекты",
+  "recentProjects": "Недавние проекты",
+  "allProjectsLink": "Все проекты",
   "recentExpenses": "Последние расходы",
+  "quickAccess": {
+    "title": "Быстрый доступ",
+    "shortcuts": {
+      "invoicingSettings": "Счета и квитанции"
+    }
+  },
+  "contractSummary": {
+    "title": "Договоры",
+    "original": "Сумма исходных договоров",
+    "approvedChanges": "Утверждённые дополнения",
+    "total": "Итого договоров с дополнениями",
+    "remaining": "Остаток по договорам",
+    "remainingHint": "Ещё не выставлено (договор − нетто выставлено)"
+  },
   "attention": {
     "title": "Требует внимания",
+    "compact": {
+      "overdueBilling": "{count, plural, =1 {# просроченный счёт} other {# просроченных счетов}}",
+      "unbilledApproved": "{count, plural, =1 {# изменение не выставлено} other {# изменений не выставлено}}",
+      "pendingChanges": "{count, plural, =1 {# ожидает утверждения} other {# ожидают утверждения}}"
+    },
     "approvedNotBilled": "{count, plural, =1 {# утверждённое изменение ещё не выставлено} other {# утверждённых изменений ещё не выставлено}}",
     "overdueBilling": "{count, plural, =1 {# выставленный счёт просрочен} other {# выставленных счётов просрочено}}",
     "pendingChanges": "{count, plural, =1 {# изменение ожидает утверждения} other {# изменений ожидают утверждения}}",

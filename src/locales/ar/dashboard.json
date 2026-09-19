@@ -5,9 +5,30 @@
   "quickActions": "إجراءات سريعة",
   "companyDocuments": "مستندات الشركة",
   "activeProjects": "مشاريع نشطة",
+  "recentProjects": "مشاريع حديثة",
+  "allProjectsLink": "كل المشاريع",
   "recentExpenses": "مصروفات حديثة",
+  "quickAccess": {
+    "title": "وصول سريع",
+    "shortcuts": {
+      "invoicingSettings": "فواتير وإيصالات"
+    }
+  },
+  "contractSummary": {
+    "title": "العقود",
+    "original": "إجمالي العقود الأصلي",
+    "approvedChanges": "إضافات معتمدة",
+    "total": "إجمالي العقود شامل الإضافات",
+    "remaining": "رصيد العقد",
+    "remainingHint": "لم يُفوتر بعد (عقد − فوترة صافية)"
+  },
   "attention": {
     "title": "يستحق النظر",
+    "compact": {
+      "overdueBilling": "{count, plural, =1 {# فوترة متأخرة} other {# فوترات متأخرة}}",
+      "unbilledApproved": "{count, plural, =1 {# تغيير لم يُفوتر} other {# تغييرات لم تُفوتر}}",
+      "pendingChanges": "{count, plural, =1 {# بانتظار الاعتماد} other {# بانتظار الاعتماد}}"
+    },
     "approvedNotBilled": "{count, plural, =1 {تغيير معتمد واحد لم يُفوتر بعد} other {# تغييرات معتمدة لم تُفوتر بعد}}",
     "overdueBilling": "{count, plural, =1 {سجل فوترة واحد متأخر} other {# سجلات فوترة متأخرة}}",
     "pendingChanges": "{count, plural, =1 {تغيير ينتظر الاعتماد} other {# تغييرات تنتظر الاعتماد}}",

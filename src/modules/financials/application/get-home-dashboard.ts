@@ -92,6 +92,9 @@ import {
   shouldSurfaceCompanyProfit,
 } from '../domain/company-actual';
 import { parseWorkKindFilter } from '../domain/work-pricing';
+import { buildOrgContractSummary, type OrgContractSummary } from '../domain/dashboard-contract-summary';
+import { getDashboardQuickAccessShortcuts } from '@/modules/tenancy/application/dashboard-quick-access';
+import type { DashboardQuickAccessDefinition } from '@/modules/tenancy/domain/dashboard-quick-access';
 
 export interface DashboardAttention {
   readonly pendingChangesCount: number;
@@ -231,6 +234,10 @@ export interface HomeDashboardData {
    * Null / "all" means no filter.
    */
   readonly workKindFilter: string | null;
+  /** Four-card organization contract breakdown (original / approved / total / remaining). */
+  readonly contractSummary: OrgContractSummary | null;
+  /** Resolved quick-access shortcuts for the signed-in user. */
+  readonly quickAccessShortcuts: readonly DashboardQuickAccessDefinition[];
 }
 
 export interface HomeDashboardOptions {
@@ -368,7 +375,7 @@ export async function getHomeDashboard(
     hasAnyExpenseUsage(context.db, context.organizationId),
     hasAnyBillingUsage(context.db, context.organizationId),
     countActiveProjects(context.db, context.organizationId),
-    listRecentActiveProjects(context.db, context.organizationId),
+    listRecentActiveProjects(context.db, context.organizationId, 6),
     canReadContracts
       ? countPendingChanges(context.db, context.organizationId)
       : Promise.resolve(0),
@@ -406,11 +413,15 @@ export async function getHomeDashboard(
 
   const isBrandNew = !hasProjects && !hasExpenses && !hasBilling;
 
+  const quickAccessShortcuts = await getDashboardQuickAccessShortcuts(context);
+
   if (isBrandNew) {
     return {
       isBrandNew: true,
       activeProjectCount,
       recentProjects,
+      contractSummary: null,
+      quickAccessShortcuts,
       projectTableRows: [],
       actualProfitTotal: null,
       profitabilityPercent: null,
@@ -538,17 +549,20 @@ export async function getHomeDashboard(
   const unallocatedBusinessCosts = expenseLayer?.unallocatedBusinessCosts ?? null;
 
   let totalContractValue: MoneyValue | null = null;
+  let contractSummary: OrgContractSummary | null = null;
   let contractValueCoverage: FinancialCoverage | null = null;
   let totalActualCost: MoneyValue | null = null;
   let costCoverage: FinancialCoverage | null = null;
   let profitCoverage: FinancialCoverage | null = null;
   let estimatedProfit: MoneyValue | null = null;
   let forecast: OrganizationForecastSummary | null = null;
+  let orgCommercial: ReturnType<typeof aggregateOrgCommercial> | null = null;
 
   if (rollup) {
     const commercial = rollup.canReadCommercial
       ? aggregateOrgCommercial(rollup.rows, currency)
       : null;
+    orgCommercial = commercial;
     const cost = aggregateOrgCost(rollup.rows, currency, {
       unallocatedBusinessCosts,
     });
@@ -697,6 +711,10 @@ export async function getHomeDashboard(
     };
   }
 
+  if (orgCommercial && rollup && rollup.totalEligibleProjectCount > 0) {
+    contractSummary = buildOrgContractSummary(orgCommercial, billing?.netInvoiced ?? null);
+  }
+
   const dataConfidencePieces: DataConfidence[] = [];
   if (rollup?.dataConfidence) {
     dataConfidencePieces.push({
@@ -839,6 +857,8 @@ export async function getHomeDashboard(
     apOutstanding,
     selectedMonth: effectiveSelectedMonth,
     workKindFilter: options.workKindFilter ?? null,
+    contractSummary,
+    quickAccessShortcuts,
   };
 }
 

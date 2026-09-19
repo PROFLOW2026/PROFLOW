@@ -9,10 +9,15 @@ function read(relativePath: string): string {
 }
 
 describe('mobile layout regressions', () => {
-  it('places company documents quick access on the locale dashboard home', () => {
+  it('renders compact dashboard quick access with responsive wrapping on home', () => {
     const page = read('src/app/[locale]/page.tsx');
-    expect(page).toContain('DashboardQuickAccessBar');
+    const quickAccess = read('src/modules/financials/ui/dashboard-quick-access-section.tsx');
     expect(page).toContain('data-pf-dashboard-home');
+    expect(read('src/modules/financials/ui/home-dashboard-content.tsx')).toContain(
+      'DashboardQuickAccessSection',
+    );
+    expect(quickAccess).toContain('grid-cols-2');
+    expect(quickAccess).toContain('sm:flex-wrap');
   });
 
   it('hides dashboard unused-capability tip while preserving settings flow', () => {
