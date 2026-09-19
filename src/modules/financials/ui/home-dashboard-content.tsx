@@ -3,10 +3,7 @@ import type { ReactNode } from 'react';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { Link } from '@/shared/i18n/navigation';
 import { CoverageDisclosure } from '@/components/patterns/coverage-disclosure';
-import { MoneyText } from '@/components/patterns/money-text';
-import { BillingNetPrimaryDisplay } from '@/components/patterns/billing-net-primary-display';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
@@ -25,7 +22,6 @@ import { DashboardContractSummaryRow } from './dashboard-contract-summary-row';
 import { DashboardRecentProjectsSection } from './dashboard-recent-projects-section';
 import type { DashboardKpiKey } from '../domain/dashboard-missing-data';
 import { resolveIntlLocale } from '@/shared/i18n/intl-locale';
-import type { DashboardKpiDetailContent } from '../domain/dashboard-kpi-detail';
 import {
   buildApOutstandingDetail,
   buildBillingInvoicedDetail,
@@ -35,11 +31,11 @@ import {
   buildCurrentProfitDetail,
   buildForecastCostDetail,
 } from '../domain/dashboard-kpi-detail-builders';
-import { DashboardKpiDetailTrigger } from './dashboard-kpi-detail-trigger';
 import {
   mapDashboardKpiDetailCopy,
   mapDashboardKpiDetailTriggerCopy,
 } from './dashboard-kpi-detail-copy';
+import { DashboardKpiCard } from './dashboard-kpi-card';
 
 interface HomeDashboardContentProps {
   data: HomeDashboardData;
@@ -198,7 +194,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
         return (
           <section key={card} className="min-w-0 max-w-full">
             <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <KpiCard
+              <DashboardKpiCard
                 title={tFinancial('kpis.currentContract')}
                 money={isKpiUnavailable('contractValue') ? undefined : data.totalContractValue ?? undefined}
                 unavailable={isKpiUnavailable('contractValue')}
@@ -227,7 +223,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
         return (
           <section key={card} className="min-w-0 max-w-full">
             <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <KpiCard
+              <DashboardKpiCard
                 title={t('kpiLabels.expectedProfit')}
                 money={
                   isKpiUnavailable('estimatedProfit') ? undefined : data.estimatedProfit ?? undefined
@@ -259,7 +255,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
         return (
           <section key={card} className="min-w-0 max-w-full">
             <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <KpiCard
+              <DashboardKpiCard
                 title={tFinancial('kpis.forecast')}
                 money={
                   isKpiUnavailable('forecastCost')
@@ -282,7 +278,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                 }
                 detailCopy={triggerCopy}
               />
-              <KpiCard
+              <DashboardKpiCard
                 title={tFinancial('kpis.expectedRemaining')}
                 money={
                   isKpiUnavailable('forecastCost')
@@ -293,7 +289,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                 unavailableLabel={t('missingData.kpiUnavailable')}
                 unavailableHint={t('missingData.kpiUnavailableCostHint')}
               />
-              <KpiCard
+              <DashboardKpiCard
                 title={tFinancial('kpis.allocatedOverhead')}
                 money={
                   isKpiUnavailable('actualCost')
@@ -305,7 +301,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                 unavailableHint={t('missingData.kpiUnavailableCostHint')}
               />
               {data.showProfit && data.forecast.totalActualMargin ? (
-                <KpiCard
+                <DashboardKpiCard
                   title={t('kpiLabels.currentProfit')}
                   money={
                     isKpiUnavailable('actualMargin')
@@ -330,7 +326,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                   detailCopy={triggerCopy}
                 />
               ) : isKpiUnavailable('actualMargin') ? (
-                <KpiCard
+                <DashboardKpiCard
                   title={t('kpiLabels.currentProfit')}
                   unavailable
                   unavailableLabel={t('missingData.kpiUnavailable')}
@@ -338,7 +334,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                 />
               ) : null}
               {data.showProfit && data.forecast.totalForecastMargin ? (
-                <KpiCard
+                <DashboardKpiCard
                   title={t('kpiLabels.expectedProfit')}
                   money={
                     isKpiUnavailable('forecastMargin')
@@ -365,7 +361,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                   detailCopy={triggerCopy}
                 />
               ) : isKpiUnavailable('forecastMargin') ? (
-                <KpiCard
+                <DashboardKpiCard
                   title={t('kpiLabels.expectedProfit')}
                   unavailable
                   unavailableLabel={t('missingData.kpiUnavailable')}
@@ -373,21 +369,21 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                 />
               ) : null}
               {data.forecast.companyActual != null ? (
-                <KpiCard
+                <DashboardKpiCard
                   title={tFinancial('companyActual')}
                   money={data.forecast.companyActual}
                   hint={tFinancial('basis.actualNotCash')}
                 />
               ) : null}
               {data.forecast.companyProfit != null ? (
-                <KpiCard
+                <DashboardKpiCard
                   title={tFinancial('companyProfit')}
                   money={data.forecast.companyProfit}
                   hint={tFinancial('basis.profitNet')}
                 />
               ) : null}
               {data.forecast.unallocatedBusinessCosts != null ? (
-                <KpiCard
+                <DashboardKpiCard
                   title={tFinancial('unallocatedBusinessCosts')}
                   money={data.forecast.unallocatedBusinessCosts}
                   footer={
@@ -414,7 +410,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
         return (
           <section key={card} className="min-w-0 max-w-full">
             <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <KpiCard
+              <DashboardKpiCard
                 title={tFinancial('kpis.committed')}
                 money={
                   isKpiUnavailable('committed')
@@ -444,7 +440,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
         return (
           <section key={card} className="min-w-0 max-w-full">
             <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-3">
-              <KpiCard
+              <DashboardKpiCard
                 title={tFinancial('kpis.billed')}
                 money={data.billing.netInvoiced}
                 grossMoney={data.billing.invoiced}
@@ -470,7 +466,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                   ));
                 })()}
               />
-              <KpiCard
+              <DashboardKpiCard
                 title={tFinancial('kpis.paid')}
                 money={data.billing.netPaid}
                 grossMoney={data.billing.paid}
@@ -496,7 +492,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
           <section key={card} className="min-w-0 max-w-full">
             <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-3">
               {hasAr ? (
-                <KpiCard
+                <DashboardKpiCard
                   title={tFinancial('kpis.outstandingNet')}
                   money={data.billing!.netOutstanding}
                   grossMoney={data.billing!.outstanding}
@@ -514,7 +510,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                 />
               ) : null}
               {hasAp ? (
-                <KpiCard
+                <DashboardKpiCard
                   title={tFinancial('apOutstanding')}
                   money={data.apOutstanding!}
                   hint={tFinancial('apOutstandingHint')}
@@ -568,13 +564,13 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
             </p>
             <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
               {data.activeProjectCount > 0 ? (
-                <KpiCard title={t('activeProjects')} value={String(data.activeProjectCount)} />
+                <DashboardKpiCard title={t('activeProjects')} value={String(data.activeProjectCount)} />
               ) : null}
               {data.attention.pendingChangesCount +
                 data.attention.unbilledApprovedCount +
                 data.attention.overdueBillingCount >
               0 ? (
-                <KpiCard
+                <DashboardKpiCard
                   title={t('attention.title')}
                   value={String(
                     data.attention.pendingChangesCount +
@@ -701,7 +697,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
           <section className="min-w-0 max-w-full">
             <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-3">
               {data.showBilling && cardSet.has('billing') ? (
-                <KpiCard
+                <DashboardKpiCard
                   title={t('businessSummary.invoicedThisMonth')}
                   money={data.organizationSummary.invoicedThisMonth}
                   grossMoney={data.organizationSummary.grossInvoicedThisMonth}
@@ -710,7 +706,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                 />
               ) : null}
               {data.showBilling && cardSet.has('collections') ? (
-                <KpiCard
+                <DashboardKpiCard
                   title={t('businessSummary.collectionsThisMonth')}
                   money={data.organizationSummary.netCollectionsThisMonth}
                   grossMoney={data.organizationSummary.collectionsThisMonth}
@@ -718,7 +714,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                   hint={tFinancial('kpis.paidHint')}
                 />
               ) : null}
-              <KpiCard
+              <DashboardKpiCard
                 title={t('businessSummary.costsThisMonth')}
                 money={data.organizationSummary.costsThisMonth}
                 hint={tFinancial('basis.actualNotCash')}
@@ -815,82 +811,5 @@ function MonthNavigation({
         </span>
       )}
     </div>
-  );
-}
-
-function KpiCard({
-  title,
-  money,
-  grossMoney,
-  netLabel,
-  grossLabel,
-  value,
-  hint,
-  footer,
-  detail,
-  detailCopy,
-  unavailable,
-  unavailableLabel,
-  unavailableHint,
-}: {
-  title: string;
-  money?: { amount: string; currency: string };
-  grossMoney?: { amount: string; currency: string };
-  netLabel?: string;
-  grossLabel?: string;
-  value?: string;
-  hint?: string;
-  footer?: ReactNode;
-  detail?: DashboardKpiDetailContent;
-  detailCopy?: ReturnType<typeof mapDashboardKpiDetailTriggerCopy>;
-  unavailable?: boolean;
-  unavailableLabel?: string;
-  unavailableHint?: string;
-}) {
-  return (
-    <Card className="min-w-0 max-w-full">
-      <CardHeader className="pb-1">
-        <div className="flex min-w-0 items-start justify-between gap-2">
-          <CardTitle className="break-words text-xs font-medium text-[var(--pf-text-secondary)]">
-            {title}
-          </CardTitle>
-          {detail && detailCopy ? (
-            <DashboardKpiDetailTrigger detail={detail} copy={detailCopy} />
-          ) : null}
-        </div>
-      </CardHeader>
-      <CardContent className="flex min-w-0 flex-col gap-1">
-        {unavailable ? (
-          <>
-            <span className="text-lg font-semibold text-[var(--pf-status-warning-fg,var(--pf-text-primary))]">
-              {unavailableLabel}
-            </span>
-            {unavailableHint ? (
-              <p className="break-words text-xs text-[var(--pf-text-secondary)]">
-                {unavailableHint}
-              </p>
-            ) : null}
-          </>
-        ) : money && grossMoney && grossLabel ? (
-          <BillingNetPrimaryDisplay
-            netAmount={money}
-            grossAmount={grossMoney}
-            netLabel={netLabel}
-            grossLabel={grossLabel}
-            netClassName="text-lg"
-          />
-        ) : money ? (
-          <div className="min-w-0 max-w-full overflow-x-auto">
-            <MoneyText value={money} className="text-lg font-semibold" />
-          </div>
-        ) : (
-          <span className="text-lg font-semibold">{value}</span>
-        )}
-        {hint ? (
-          <p className="break-words text-xs text-[var(--pf-text-muted)]">{hint}</p>
-        ) : null}
-        {footer}
-      </CardContent>
-    </Card>
   );
 }

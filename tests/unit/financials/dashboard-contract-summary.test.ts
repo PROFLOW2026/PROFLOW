@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { aggregateOrgCommercial } from '@/modules/financials/domain/aggregate-org-report';
 import type { ProjectRollupRow } from '@/modules/financials/application/get-organization-project-rollup';
@@ -120,5 +122,22 @@ describe('dashboard attention routes', () => {
 describe('recent active projects limit', () => {
   it('uses limit 6 for dashboard recent projects', () => {
     expect(RECENT_ACTIVE_PROJECTS_LIMIT).toBe(6);
+  });
+});
+
+describe('contract summary card chrome', () => {
+  it('uses shared DashboardKpiCard with CardHeader separator structure', () => {
+    const source = readFileSync(
+      resolve(process.cwd(), 'src/modules/financials/ui/dashboard-contract-summary-row.tsx'),
+      'utf8',
+    );
+    expect(source).toContain('DashboardKpiCard');
+    expect(source).not.toContain('function ContractCard');
+    const kpiCardSource = readFileSync(
+      resolve(process.cwd(), 'src/modules/financials/ui/dashboard-kpi-card.tsx'),
+      'utf8',
+    );
+    expect(kpiCardSource).toContain('CardHeader');
+    expect(kpiCardSource).toContain('CardContent');
   });
 });
