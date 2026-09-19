@@ -14,7 +14,7 @@
   "actions": {
     "requestDocument": "בקש חשבונית מס חיצונית",
     "viewInProvider": "צפייה ב-SUMIT",
-    "viewPdf": "צפייה",
+    "viewPdf": "תצוגה מקדימה",
     "downloadPdf": "הורדה",
     "sendToCustomer": "שליחה ללקוח",
     "sendConfirm": "שליחה",

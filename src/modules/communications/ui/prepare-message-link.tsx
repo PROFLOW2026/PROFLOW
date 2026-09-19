@@ -13,6 +13,7 @@ export function PrepareMessageLink({
   vendorId,
   recipientEmail,
   subject,
+  disabled = true,
 }: {
   entityType: CommunicationEntityType;
   entityId?: string | null;
@@ -21,8 +22,19 @@ export function PrepareMessageLink({
   vendorId?: string | null;
   recipientEmail?: string | null;
   subject?: string | null;
+  /** Temporary UI gate — communications composer is not active yet. */
+  disabled?: boolean;
 }) {
   const t = useTranslations('communications');
+
+  if (disabled) {
+    return (
+      <Button type="button" variant="secondary" disabled title="בקרוב">
+        {t('prepareMessage')}
+      </Button>
+    );
+  }
+
   const params = new URLSearchParams();
   params.set('entityType', entityType);
   if (entityId) params.set('entityId', entityId);
@@ -32,7 +44,7 @@ export function PrepareMessageLink({
   if (recipientEmail) params.set('to', recipientEmail);
   if (subject) params.set('subject', subject);
   return (
-    <Button asChild variant="secondary" size="sm">
+    <Button asChild variant="secondary">
       <Link href={`/communications/new?${params.toString()}`}>{t('prepareMessage')}</Link>
     </Button>
   );

@@ -58,7 +58,7 @@ function QuickCreateMenu({ actions }: { actions: QuickCreateAction[] }) {
         demoteFab
           ? 'static size-auto h-11 min-h-11 shrink-0 rounded-md px-3 text-[0.8125rem] shadow-none hover:bg-[var(--pf-action-primary-hover)]'
           : cn(
-              'fixed inset-inline-end-4 z-50 size-[var(--pf-fab-size)] max-w-[var(--pf-fab-size)] shadow-[var(--pf-shadow-lg)]',
+              'fixed left-4 z-50 size-[var(--pf-fab-size)] max-w-[var(--pf-fab-size)] shadow-[var(--pf-shadow-lg)]',
               'bottom-[calc(var(--pf-bottomnav-total-height)+var(--pf-fab-gap))] lg:bottom-[var(--pf-fab-gap)]',
               'hover:bg-[var(--pf-action-primary-hover)]',
             ),
@@ -72,7 +72,7 @@ function QuickCreateMenu({ actions }: { actions: QuickCreateAction[] }) {
   const menu = (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>{triggerButton}</DropdownMenuTrigger>
-      <DropdownMenuContent align="end" side={demoteFab ? 'bottom' : 'top'}>
+      <DropdownMenuContent align={demoteFab ? 'end' : 'start'} side={demoteFab ? 'bottom' : 'top'}>
         {actions.map((action) => (
           <DropdownMenuItem key={action.key} asChild>
             <Link href={action.href} prefetch={false}>

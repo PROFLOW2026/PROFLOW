@@ -1,5 +1,6 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { useEffect, useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from '@/shared/i18n/navigation';
@@ -38,6 +39,19 @@ import {
   sendExternalStatutoryDocumentAction,
 } from './actions';
 
+const PdfJsViewer = dynamic(
+  () => import('@/modules/external-storage/ui/pdf-js-viewer').then((mod) => mod.PdfJsViewer),
+  {
+    ssr: false,
+    loading: () => null,
+  },
+);
+
+type PdfPreviewTarget = {
+  externalDocumentId: string;
+  title: string;
+};
+
 export interface ExternalStatutoryPanelProps {
   billingRecordId: string;
   billingStatus: 'draft' | 'finalized' | 'void';
@@ -72,12 +86,15 @@ export function ExternalStatutoryPanel({
   primaryStorageProvider,
 }: ExternalStatutoryPanelProps) {
   const t = useTranslations('invoicingIntegration');
+  const tCommon = useTranslations('common');
   const tStorage = useTranslations('externalStorage.providers');
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [sendOpen, setSendOpen] = useState(false);
+  const [pdfPreview, setPdfPreview] = useState<PdfPreviewTarget | null>(null);
+  const [pdfReloadKey, setPdfReloadKey] = useState(0);
   const [sendEmail, setSendEmail] = useState('');
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [storageLocationUrl, setStorageLocationUrl] = useState<string | null>(null);
@@ -120,6 +137,12 @@ export function ExternalStatutoryPanel({
     setSendOpen(true);
     setError(null);
     setSuccess(null);
+  }
+
+  function openPdfPreview(target: PdfPreviewTarget) {
+    setPdfReloadKey((key) => key + 1);
+    setPdfPreview(target);
+    setError(null);
   }
 
   function handleShare() {
@@ -305,7 +328,12 @@ export function ExternalStatutoryPanel({
                   variant="secondary"
                   size="sm"
                   disabled={pending}
-                  onClick={() => window.open(pdfUrl(taxInvoice.id, 'inline'), '_blank', 'noopener,noreferrer')}
+                  onClick={() =>
+                    openPdfPreview({
+                      externalDocumentId: taxInvoice.id,
+                      title: t('issued.title', { number: taxInvoice.externalNumber ?? '' }),
+                    })
+                  }
                 >
                   {t('actions.viewPdf')}
                 </Button>
@@ -450,10 +478,20 @@ export function ExternalStatutoryPanel({
                   </div>
                   {docIssued ? (
                     <div className="mt-3 flex flex-wrap gap-2">
-                      <Button asChild type="button" variant="secondary" size="sm">
-                        <a href={pdfUrl(doc.id, 'inline')} target="_blank" rel="noreferrer">
-                          {t('actions.viewPdf')}
-                        </a>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        onClick={() =>
+                          openPdfPreview({
+                            externalDocumentId: doc.id,
+                            title: t(`documentKinds.${doc.kind}`, {
+                              number: doc.externalNumber ?? '—',
+                            }),
+                          })
+                        }
+                      >
+                        {t('actions.viewPdf')}
                       </Button>
                       <Button asChild type="button" variant="secondary" size="sm">
                         <a href={pdfUrl(doc.id, 'attachment')}>{t('actions.downloadPdf')}</a>
@@ -466,6 +504,36 @@ export function ExternalStatutoryPanel({
           </div>
         ) : null}
       </CardContent>
+
+      <Dialog
+        open={pdfPreview != null}
+        onOpenChange={(open) => {
+          if (!open) setPdfPreview(null);
+        }}
+      >
+        <DialogContent closeLabel={tCommon('actions.close')} className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>{pdfPreview?.title ?? t('actions.viewPdf')}</DialogTitle>
+            <DialogDescription>{t('fields.pdf')}</DialogDescription>
+          </DialogHeader>
+          <DialogBody className="min-h-[70vh] p-0">
+            {pdfPreview ? (
+              <div className="h-[70vh] w-full min-w-0">
+                <PdfJsViewer
+                  url={pdfUrl(pdfPreview.externalDocumentId, 'inline')}
+                  reloadKey={pdfReloadKey}
+                  onRetry={() => setPdfReloadKey((key) => key + 1)}
+                />
+              </div>
+            ) : null}
+          </DialogBody>
+          <DialogFooter>
+            <Button type="button" variant="secondary" onClick={() => setPdfPreview(null)}>
+              {tCommon('actions.close')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={sendOpen} onOpenChange={setSendOpen}>
         <DialogContent closeLabel={t('actions.sendCancel')}>

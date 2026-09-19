@@ -14,7 +14,7 @@
   "actions": {
     "requestDocument": "Request external tax invoice",
     "viewInProvider": "View in SUMIT",
-    "viewPdf": "View",
+    "viewPdf": "Preview",
     "downloadPdf": "Download",
     "sendToCustomer": "Send to customer",
     "sendConfirm": "Send",

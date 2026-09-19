@@ -52,7 +52,7 @@ describe('mobile layout regressions', () => {
     const quickCreate = read('src/components/shell/quick-create.tsx');
     expect(quickCreate).toContain('QuickCreateFabPortal');
     expect(quickCreate).toContain('--pf-bottomnav-total-height');
-    expect(quickCreate).toContain('inset-inline-end-4');
+    expect(quickCreate).toContain('fixed left-4');
     expect(quickCreate).toContain('lg:bottom-[var(--pf-fab-gap)]');
     expect(quickCreate).not.toContain('lg:static');
     expect(quickCreate).not.toMatch(/\b100vw\b/);

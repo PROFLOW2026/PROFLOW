@@ -1,5 +1,6 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { Alert } from '@/components/ui/alert';
@@ -19,6 +20,14 @@ import {
   isBrowserPreviewablePdfMime,
 } from '../domain/file-rules';
 import { downloadDocumentAction } from '../application/document-actions';
+
+const PdfJsViewer = dynamic(
+  () => import('@/modules/external-storage/ui/pdf-js-viewer').then((mod) => mod.PdfJsViewer),
+  {
+    ssr: false,
+    loading: () => <Spinner className="size-6" />,
+  },
+);
 
 export interface DocumentPreviewDialogProps {
   open: boolean;
@@ -48,6 +57,7 @@ export function DocumentPreviewDialog({
   const t = useTranslations('documents.attachments');
   const tCommon = useTranslations('common');
   const [fetched, setFetched] = useState<PreviewFetch | null>(null);
+  const [pdfReloadKey, setPdfReloadKey] = useState(0);
 
   const showImage = isBrowserPreviewableImageMime(mimeType);
   const showPdf = isBrowserPreviewablePdfMime(mimeType);
@@ -120,12 +130,13 @@ export function DocumentPreviewDialog({
             />
           ) : null}
           {!activeLoading && activeUrl && showPdf ? (
-            <iframe
-              key={`${documentId}:${activeUrl}`}
-              title={filename}
-              src={activeUrl}
-              className="h-[70vh] w-full rounded-md border border-[var(--pf-border-default)]"
-            />
+            <div className="h-[70vh] w-full min-w-0">
+              <PdfJsViewer
+                url={activeUrl}
+                reloadKey={pdfReloadKey}
+                onRetry={() => setPdfReloadKey((key) => key + 1)}
+              />
+            </div>
           ) : null}
           {!activeLoading && activeUrl && !showImage && !showPdf ? (
             <Alert tone="info">{t('previewUnsupported')}</Alert>
