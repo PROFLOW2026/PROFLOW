@@ -20,6 +20,9 @@
     "sendConfirm": "Send",
     "sendCancel": "Cancel",
     "share": "Share",
+    "copyLink": "Copy link",
+    "linkCopied": "Link copied to clipboard",
+    "whatsapp": "WhatsApp",
     "shareCopied": "Share link copied to clipboard",
     "shareSuccess": "Share link shared",
     "refreshStatus": "Refresh status",
@@ -61,7 +64,24 @@
     "status": "External status",
     "pdf": "PDF",
     "storageCopy": "Copy saved",
+    "linkedPayment": "Linked payment",
+    "linkedPaymentHint": "Issued for a recorded payment on this billing record",
     "technicalDetails": "Technical details"
+  },
+  "documentTypeLabels": {
+    "tax_invoice": "Tax invoice",
+    "receipt": "Receipt",
+    "tax_invoice_receipt": "Tax invoice / receipt",
+    "transaction_invoice": "Transaction invoice",
+    "credit_note": "Credit note",
+    "proforma": "Proforma",
+    "other": "Document"
+  },
+  "share": {
+    "messageTemplate": "Document {number} is ready to view:\n{link}"
+  },
+  "history": {
+    "hint": "Issued documents stay available here after refresh or when you return to this billing record."
   },
   "documentStatus": {
     "requested": "Requested",
@@ -90,9 +110,13 @@
     }
   },
   "documentKinds": {
+    "tax_invoice": "Tax invoice {number}",
     "receipt": "Receipt {number}",
     "tax_invoice_receipt": "Tax invoice / receipt {number}",
-    "transaction_invoice": "Transaction invoice {number}"
+    "transaction_invoice": "Transaction invoice {number}",
+    "credit_note": "Credit note {number}",
+    "proforma": "Proforma {number}",
+    "other": "Document {number}"
   },
   "payment": {
     "received": "Payment received",
@@ -173,6 +197,7 @@
     "shareExpired": "Share link has expired.",
     "manualModeActive": "Manual mode is active — no external provider is required for business operations.",
     "paymentVoid": "Cannot issue a receipt for a void payment.",
-    "invalidDocumentKind": "This statutory document kind is not supported for this action."
+    "invalidDocumentKind": "This statutory document kind is not supported for this action.",
+    "shareFailed": "Could not create share link."
   }
 }

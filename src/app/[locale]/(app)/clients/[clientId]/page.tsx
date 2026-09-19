@@ -16,6 +16,8 @@ import { ClientDetailView } from './client-detail-view';
 import { ClientFinancialPanel } from './client-financial-panel';
 import { RelatedCommunicationsPanel } from '@/modules/communications/ui/related-panel';
 import { PrepareMessageLink } from '@/modules/communications/ui/prepare-message-link';
+import { CustomerStatementActions } from '@/modules/reports/ui';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface ClientPageProps {
   params: Promise<{ locale: string; clientId: string }>;
@@ -40,6 +42,8 @@ export default async function ClientPage({ params }: ClientPageProps) {
     getShellContext(),
   ]);
   const canManage = shell?.permissions.has(PERMISSIONS.CLIENTS_MANAGE) ?? false;
+  const canCommunicate = shell?.permissions.has(PERMISSIONS.COMMUNICATIONS_MANAGE) ?? false;
+  const canReadBilling = shell?.permissions.has(PERMISSIONS.BILLING_READ) ?? false;
 
   let client;
   let linkedProjects: Array<{
@@ -138,11 +142,29 @@ export default async function ClientPage({ params }: ClientPageProps) {
         quotes={quotes}
       />
       {financials ? <ClientFinancialPanel financials={financials} locale={locale} /> : null}
+      {canReadBilling && financials ? (
+        <Card className="min-w-0">
+          <CardHeader>
+            <CardTitle className="text-start text-base">{t('customerStatement.title')}</CardTitle>
+            <CardDescription className="text-start">{t('customerStatement.subtitle')}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <CustomerStatementActions
+              clientId={client.id}
+              clientName={client.name}
+              clientEmail={client.email}
+              clientPhone={client.phone}
+              canCommunicate={canCommunicate}
+            />
+          </CardContent>
+        </Card>
+      ) : null}
       <PrepareMessageLink
         entityType="other"
         clientId={client.id}
         recipientEmail={client.email}
         subject={client.name}
+        disabled={!canCommunicate}
       />
       <RelatedCommunicationsPanel clientId={client.id} />
       {documentsPanel ? (

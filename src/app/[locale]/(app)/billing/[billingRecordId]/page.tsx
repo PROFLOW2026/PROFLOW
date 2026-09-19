@@ -43,7 +43,7 @@ import { resolvePaymentReceiptOutcome } from '@/modules/invoicing-integration/do
 import { resolveStatutoryProviderForOrg } from '@/modules/invoicing-integration/server';
 import { BillingAccountingDocumentsSection } from '@/modules/invoicing-integration/ui/billing-accounting-documents-section';
 import { isZeroMoney } from '@/shared/money/money';
-import { ReportDownloadButtons } from '@/modules/reports/ui';
+import { CustomerStatementActions } from '@/modules/reports/ui';
 import {
   getOrganizationPrimaryStorage,
   type StorageProviderKey,
@@ -76,6 +76,7 @@ export default async function BillingDetailPage({
 
   let record;
   let canManage = false;
+  let canCommunicate = false;
   let documentsPanel: Awaited<ReturnType<typeof getEntityDocumentPanelData>> | null = null;
   let retentionReleases: Awaited<ReturnType<typeof listBillingRetentionReleases>> = [];
   let orgToday = '';
@@ -93,6 +94,7 @@ export default async function BillingDetailPage({
       return {
         record: await getBillingRecord(context, billingRecordId),
         canManage: hasPermission(context, PERMISSIONS.BILLING_MANAGE),
+        canCommunicate: hasPermission(context, PERMISSIONS.COMMUNICATIONS_MANAGE),
         documentsPanel: await getEntityDocumentPanelData(context, 'billing_record', billingRecordId),
         retentionReleases: await listBillingRetentionReleases(context, billingRecordId).catch(
           () => [],
@@ -109,6 +111,7 @@ export default async function BillingDetailPage({
     });
     record = result.record;
     canManage = result.canManage;
+    canCommunicate = result.canCommunicate;
     documentsPanel = result.documentsPanel;
     retentionReleases = result.retentionReleases;
     orgToday = result.orgToday;
@@ -145,9 +148,12 @@ export default async function BillingDetailPage({
               </Button>
             ) : null}
             {record.clientId ? (
-              <ReportDownloadButtons
-                kind="customer_statement"
-                id={record.clientId}
+              <CustomerStatementActions
+                clientId={record.clientId}
+                clientName={record.customerSnapshot?.name ?? record.clientId}
+                clientEmail={record.customerSnapshot?.email ?? null}
+                clientPhone={record.customerSnapshot?.phone ?? null}
+                canCommunicate={canCommunicate}
                 compact
                 previewLabel={t('detail.clientAccountStatementPreview')}
               />
@@ -157,7 +163,9 @@ export default async function BillingDetailPage({
               entityId={record.id}
               projectId={record.projectId}
               clientId={record.clientId}
+              recipientEmail={record.customerSnapshot?.email}
               subject={record.reference}
+              disabled={!canCommunicate}
             />
             <BillingDetailActions
               billingRecordId={record.id}
@@ -196,6 +204,7 @@ export default async function BillingDetailPage({
           documents={externalDocuments}
           hasCustomerSnapshot={Boolean(record.customerSnapshot?.name?.trim())}
           customerEmail={record.customerSnapshot?.email ?? null}
+          customerPhone={record.customerSnapshot?.phone ?? null}
           primaryStorageProvider={primaryStorageProvider}
           accountingUiEnabled={showExternalStatutory}
         />

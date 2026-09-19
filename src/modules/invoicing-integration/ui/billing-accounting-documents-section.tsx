@@ -22,6 +22,7 @@ export interface BillingAccountingDocumentsSectionProps {
   documents: readonly ExternalStatutoryDocument[];
   hasCustomerSnapshot: boolean;
   customerEmail: string | null;
+  customerPhone?: string | null;
   primaryStorageProvider: StorageProviderKey | null;
   accountingUiEnabled: boolean;
 }
@@ -41,6 +42,7 @@ export async function BillingAccountingDocumentsSection({
   documents,
   hasCustomerSnapshot,
   customerEmail,
+  customerPhone = null,
   primaryStorageProvider,
   accountingUiEnabled,
 }: BillingAccountingDocumentsSectionProps) {
@@ -59,6 +61,7 @@ export async function BillingAccountingDocumentsSection({
         documents={documents}
         hasCustomerSnapshot={hasCustomerSnapshot}
         customerEmail={customerEmail}
+        customerPhone={customerPhone}
         primaryStorageProvider={primaryStorageProvider}
         providerDisplayName={providerName}
       />
@@ -99,6 +102,7 @@ export async function BillingAccountingDocumentsSection({
         documents={documents}
         hasCustomerSnapshot={hasCustomerSnapshot}
         customerEmail={customerEmail}
+        customerPhone={customerPhone}
         primaryStorageProvider={primaryStorageProvider}
         providerDisplayName={providerName}
       />

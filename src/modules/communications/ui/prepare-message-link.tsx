@@ -13,7 +13,7 @@ export function PrepareMessageLink({
   vendorId,
   recipientEmail,
   subject,
-  disabled = true,
+  disabled = false,
 }: {
   entityType: CommunicationEntityType;
   entityId?: string | null;
@@ -22,7 +22,7 @@ export function PrepareMessageLink({
   vendorId?: string | null;
   recipientEmail?: string | null;
   subject?: string | null;
-  /** Temporary UI gate — communications composer is not active yet. */
+  /** Set when the user lacks communications.manage permission. */
   disabled?: boolean;
 }) {
   const t = useTranslations('communications');

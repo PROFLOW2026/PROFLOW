@@ -122,6 +122,10 @@
       "excludedForeign": "{count, plural, one {# record excluded (foreign currency)} other {# records excluded (foreign currency)}}",
       "integrityHint": "Billed = before VAT. Outstanding = gross including VAT − paid − held retention. Credit notes reduce both. Draft and voided records are excluded."
     },
+    "customerStatement": {
+      "title": "Customer account statement",
+      "subtitle": "On-demand management statement — preview, share, or send to the client. Not a statutory tax invoice."
+    },
     "timeline": {
       "title": "Activity",
       "subtitle": "A chronological view of this client from existing records. Voided billing is shown as void - never as an open invoice.",

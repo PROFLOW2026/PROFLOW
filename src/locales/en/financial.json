@@ -410,5 +410,53 @@
     "upcomingCashOutHint": "Expenses, payroll, and vendor bills due in the next 30 days.",
     "drilldown": "Open list",
     "unavailable": "No permission"
+  },
+  "businessProfitability": {
+    "pageTitle": "Business profitability",
+    "pageHint": "Management view of contract value, billing, collections, costs, and forecast — not formal accounting.",
+    "noAccessTitle": "No access to business profitability",
+    "noAccessBody": "Project financials, billing, or contract permission is required.",
+    "disclaimer": "Contract value, billed amounts, and collected cash are separate metrics. Collected cash is not revenue. VAT is excluded from profitability.",
+    "billingNote": "Billing and collections are cash-flow metrics — not revenue recognition.",
+    "forecastFormula": "Forecast final cost = actual to date + open commitments + expected remaining cost (+ general allocation where applicable).",
+    "unavailable": "No permission",
+    "sections": {
+      "commercial": "Contract & profitability",
+      "billing": "Billing & collections",
+      "costs": "Business costs",
+      "forecast": "Forecast"
+    },
+    "kpis": {
+      "currentContract": "Current contract value",
+      "currentContractHint": "Sum of project CCV after approved changes — contractual basis, not cash.",
+      "contractualCurrentProfit": "Contractual current profit",
+      "contractualCurrentProfitHint": "CCV minus recognized project cost to date.",
+      "forecastProfit": "Forecast profit",
+      "forecastProfitHint": "CCV minus forecast final cost across projects.",
+      "netBilled": "Billed (net)",
+      "netBilledHint": "Finalized client billings before VAT — not revenue.",
+      "netCollected": "Collected (net)",
+      "netCollectedHint": "Cash received from clients — not revenue and not billed amount.",
+      "netOutstandingAr": "Outstanding to collect (net)",
+      "netOutstandingArHint": "Client balances still to collect before VAT.",
+      "directProjectCost": "Direct project cost",
+      "directProjectCostHint": "Sum of project direct actual costs (expenses, labor, vendor bills).",
+      "allocatedOverhead": "Allocated general overhead",
+      "allocatedOverheadHint": "General business costs allocated to projects — not double-counted at company level.",
+      "companyOnlyCost": "Company-only costs",
+      "companyOnlyCostHint": "Expenses and labor marked company-only — not tied to a project.",
+      "companyActual": "Full business actual cost",
+      "companyActualHint": "Project direct + allocated overhead + company-only — without double counting general pool.",
+      "companyProfit": "Business profit (contractual basis)",
+      "companyProfitHint": "CCV minus full business actual cost.",
+      "apOutstanding": "Open vendor bills",
+      "apOutstandingHint": "Unpaid vendor-bill cash outstanding.",
+      "openCommitments": "Open commitments",
+      "openCommitmentsHint": "PO/subcontract amounts still expected to become cost.",
+      "expectedRemainingCost": "Expected remaining cost (ETC)",
+      "expectedRemainingCostHint": "Uncovenanted expected cost to complete across projects.",
+      "forecastFinalCost": "Forecast final cost",
+      "forecastFinalCostHint": "Estimated total business cost at completion."
+    }
   }
 }

@@ -12,10 +12,21 @@ vi.mock('@/shared/i18n/navigation', () => ({
 }));
 
 describe('PrepareMessageLink', () => {
-  it('remains disabled by default on billing detail', () => {
+  it('is enabled by default and links to the composer', () => {
     render(
       <NextIntlClientProvider locale="he-IL" messages={{ communications: enCommunications }} timeZone="Asia/Jerusalem">
         <PrepareMessageLink entityType="billing_record" entityId="billing-1" />
+      </NextIntlClientProvider>,
+    );
+
+    const link = screen.getByRole('link', { name: enCommunications.prepareMessage });
+    expect(link).toHaveAttribute('href', '/communications/new?entityType=billing_record&entityId=billing-1');
+  });
+
+  it('stays disabled when permission is missing', () => {
+    render(
+      <NextIntlClientProvider locale="he-IL" messages={{ communications: enCommunications }} timeZone="Asia/Jerusalem">
+        <PrepareMessageLink entityType="billing_record" entityId="billing-1" disabled />
       </NextIntlClientProvider>,
     );
 

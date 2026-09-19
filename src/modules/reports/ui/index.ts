@@ -4,3 +4,4 @@ export { ReportPacksSection } from './report-packs-section';
 export type { ReportPackOption } from '../domain/types';
 export { ReportPrintView } from './report-print-view';
 export { ProjectReportActions } from './project-report-actions';
+export { CustomerStatementActions } from './customer-statement-actions';

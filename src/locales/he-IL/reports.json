@@ -399,5 +399,18 @@
     "reportMonth": "חודש דיווח",
     "employees": "עובדים בדוח",
     "dateRange": "טווח תאריכים"
+  },
+  "customerStatement": {
+    "preview": "תצוגת דף חשבון",
+    "shareButton": "שיתוף",
+    "copyLink": "העתקת קישור",
+    "whatsapp": "וואטסאפ",
+    "linkCopied": "הקישור הועתק ללוח",
+    "shareSuccess": "קישור השיתוף שותף",
+    "shareFailed": "לא ניתן להעתיק את קישור השיתוף",
+    "prepareSubject": "דף חשבון — {clientName}",
+    "share": {
+      "messageTemplate": "שלום {clientName},\nמצורף דף החשבון המעודכן.\nלצפייה:\n{link}"
+    }
   }
 }

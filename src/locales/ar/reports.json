@@ -399,5 +399,18 @@
     "reportMonth": "شهر التقرير",
     "employees": "موظفون",
     "dateRange": "نطاق التاريخ"
+  },
+  "customerStatement": {
+    "preview": "Preview statement",
+    "shareButton": "Share",
+    "copyLink": "Copy link",
+    "whatsapp": "WhatsApp",
+    "linkCopied": "Link copied to clipboard",
+    "shareSuccess": "Share link shared",
+    "shareFailed": "Could not copy share link",
+    "prepareSubject": "Account statement — {clientName}",
+    "share": {
+      "messageTemplate": "Hello {clientName},\nYour updated account statement is ready.\nView:\n{link}"
+    }
   }
 }

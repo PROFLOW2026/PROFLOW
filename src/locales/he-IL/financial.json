@@ -410,5 +410,53 @@
     "upcomingCashOutHint": "הוצאות, שכר וחשבוניות ספק עם מועד פירעון ב־30 הימים הקרובים.",
     "drilldown": "פתיחת הרשימה",
     "unavailable": "אין הרשאה"
+  },
+  "businessProfitability": {
+    "pageTitle": "רווחיות העסק",
+    "pageHint": "תצוגה ניהולית של שווי חוזים, חיובים, גבייה, עלויות ותחזית — לא דוח חשבונאי רשמי.",
+    "noAccessTitle": "אין הרשאה לרווחיות העסק",
+    "noAccessBody": "נדרשת הרשאת כספי פרויקט, חיוב או חוזים.",
+    "disclaimer": "שווי חוזה, חיובים ומזומן שנגבה הם מדדים נפרדים. מזומן שנגבה אינו הכנסה. מע״מ אינו חלק מרווחיות.",
+    "billingNote": "חיובים וגבייה הם מדדי תזרים — לא הכרה בהכנסות.",
+    "forecastFormula": "עלות סופית צפויה = בפועל עד היום + התחייבויות פתוחות + עלות צפויה לסיום (+ הקצאה כללית where applicable).",
+    "unavailable": "אין הרשאה",
+    "sections": {
+      "commercial": "חוזים ורווחיות",
+      "billing": "חיובים וגבייה",
+      "costs": "עלויות העסק",
+      "forecast": "תחזית"
+    },
+    "kpis": {
+      "currentContract": "שווי חוזים נוכחי",
+      "currentContractHint": "סכום CCV של הפרויקטים לאחר שינויים מאושרים — בסיס חוזי, לא מזומן.",
+      "contractualCurrentProfit": "רווחיות חוזית נוכחית",
+      "contractualCurrentProfitHint": "CCV פחות עלות פרויקט מוכרת עד היום.",
+      "forecastProfit": "רווח צפוי",
+      "forecastProfitHint": "CCV פחות עלות סופית צפויה בכל הפרויקטים.",
+      "netBilled": "חויב (נטו)",
+      "netBilledHint": "חיובים סופיים לפני מע״מ — לא הכנסה.",
+      "netCollected": "נגבה (נטו)",
+      "netCollectedHint": "מזומן שהתקבל מלקוחות — לא הכנסה ולא סכום חיוב.",
+      "netOutstandingAr": "יתרה לגבייה (נטו)",
+      "netOutstandingArHint": "יתרת חייבים שטרם נגבתה לפני מע״מ.",
+      "directProjectCost": "עלות ישירה של פרויקטים",
+      "directProjectCostHint": "סכום עלויות ישירות מוכרות (הוצאות, שכר, חשבוניות ספק).",
+      "allocatedOverhead": "תקורה שהוקצתה",
+      "allocatedOverheadHint": "הוצאות כלליות שהוקצו לפרויקטים — ללא ספירה כפולה ברמת החברה.",
+      "companyOnlyCost": "עלויות company_only",
+      "companyOnlyCostHint": "הוצאות ושכר שסומנו כעלויות חברה בלבד.",
+      "companyActual": "עלות עסקית מלאה",
+      "companyActualHint": "ישיר + תקורה מוקצית + company_only — ללא ספירה כפולה של מאגר כללי.",
+      "companyProfit": "רווח עסקי (בסיס חוזי)",
+      "companyProfitHint": "CCV פחות עלות עסקית מלאה.",
+      "apOutstanding": "חשבוניות ספק פתוחות",
+      "apOutstandingHint": "יתרת מזומן לספקים שטרם שולמה.",
+      "openCommitments": "התחייבויות פתוחות",
+      "openCommitmentsHint": "סכומי PO/קבלני משנה שצפויים להפוך לעלות.",
+      "expectedRemainingCost": "עלות צפויה לסיום (ETC)",
+      "expectedRemainingCostHint": "עלות צפויה לסיום ללא התחייבות בכל הפרויקטים.",
+      "forecastFinalCost": "עלות סופית צפויה",
+      "forecastFinalCostHint": "הערכת עלות עסקית מלאה בסיום."
+    }
   }
 }

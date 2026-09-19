@@ -124,7 +124,27 @@
     "back": "חזרה",
     "shortcutsLabel": "קיצורי דרך:",
     "folderKind": "תיקייה",
-    "fileKind": "קובץ"
+    "fileKind": "קובץ",
+    "tabs": {
+      "cloudFiles": "קבצי ענן",
+      "documentRegistry": "רישום מסמכים",
+      "openFullRegistry": "פתיחת הרישום המלא"
+    },
+    "registry": {
+      "title": "כל מסמכי העסק",
+      "description": "עיון במטא-דאטה של מסמכי ProjectFlow לפי לקוח, פרויקט, ספק, חיוב ועוד. הקבצים נשארים באחסון המחובר.",
+      "hint": "ברישום המלא ניתן לחפש, לסנן לפי תגיות ותיקיות, ולהציג תצוגה מקדימה."
+    },
+    "shortcuts": {
+      "clients": "לקוחות",
+      "projects": "פרויקטים",
+      "vendors": "ספקים",
+      "billing": "חיובים",
+      "vendorInvoices": "חשבוניות ספק",
+      "contracts": "חוזים",
+      "quotes": "הצעות מחיר",
+      "employees": "עובדים"
+    }
   },
   "preview": {
     "title": "תצוגה מקדימה",

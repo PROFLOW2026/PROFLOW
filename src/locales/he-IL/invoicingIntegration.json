@@ -20,6 +20,9 @@
     "sendConfirm": "שליחה",
     "sendCancel": "ביטול",
     "share": "שיתוף",
+    "copyLink": "העתקת קישור",
+    "linkCopied": "הקישור הועתק ללוח",
+    "whatsapp": "וואטסאפ",
     "shareCopied": "קישור השיתוף הועתק ללוח",
     "shareSuccess": "קישור השיתוף שותף",
     "refreshStatus": "רענון סטטוס",
@@ -61,7 +64,24 @@
     "status": "סטטוס חיצוני",
     "pdf": "קובץ PDF",
     "storageCopy": "שמירת עותק",
+    "linkedPayment": "תשלום מקושר",
+    "linkedPaymentHint": "הופק עבור תשלום שנרשם ברשומת חיוב זו",
     "technicalDetails": "פרטים טכניים"
+  },
+  "documentTypeLabels": {
+    "tax_invoice": "חשבונית מס",
+    "receipt": "קבלה",
+    "tax_invoice_receipt": "חשבונית מס/קבלה",
+    "transaction_invoice": "חשבונית עסקה",
+    "credit_note": "זיכוי",
+    "proforma": "פרופורמה",
+    "other": "מסמך"
+  },
+  "share": {
+    "messageTemplate": "מסמך {number} מוכן לצפייה:\n{link}"
+  },
+  "history": {
+    "hint": "מסמכים שהופקו נשארים זמינים כאן גם אחרי רענון או כניסה מחדש לרשומת החיוב."
   },
   "documentStatus": {
     "requested": "בוקש",
@@ -90,9 +110,13 @@
     }
   },
   "documentKinds": {
+    "tax_invoice": "חשבונית מס {number}",
     "receipt": "קבלה {number}",
     "tax_invoice_receipt": "חשבונית מס/קבלה {number}",
-    "transaction_invoice": "חשבונית עסקה {number}"
+    "transaction_invoice": "חשבונית עסקה {number}",
+    "credit_note": "זיכוי {number}",
+    "proforma": "פרופורמה {number}",
+    "other": "מסמך {number}"
   },
   "payment": {
     "received": "תשלום התקבל",
@@ -173,6 +197,7 @@
     "shareExpired": "קישור השיתוף פג תוקף.",
     "manualModeActive": "מצב ידני פעיל — חיבור ספק חיצוני אינו נדרש לניהול עסקי.",
     "paymentVoid": "לא ניתן להנפיק קבלה עבור תשלום שבוטל.",
-    "invalidDocumentKind": "סוג מסמך סטטוטורי אינו נתמך לפעולה זו."
+    "invalidDocumentKind": "סוג מסמך סטטוטורי אינו נתמך לפעולה זו.",
+    "shareFailed": "לא ניתן ליצור קישור שיתוף."
   }
 }

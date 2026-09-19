@@ -124,7 +124,27 @@
     "back": "Back",
     "shortcutsLabel": "Shortcuts:",
     "folderKind": "Folder",
-    "fileKind": "File"
+    "fileKind": "File",
+    "tabs": {
+      "cloudFiles": "Cloud files",
+      "documentRegistry": "Document registry",
+      "openFullRegistry": "Open full registry"
+    },
+    "registry": {
+      "title": "All business documents",
+      "description": "Browse ProjectFlow document metadata by client, project, vendor, billing, and more. Files stay in your connected storage.",
+      "hint": "Use the full registry for search, tags, folders, and preview."
+    },
+    "shortcuts": {
+      "clients": "Clients",
+      "projects": "Projects",
+      "vendors": "Vendors",
+      "billing": "Billing",
+      "vendorInvoices": "Vendor invoices",
+      "contracts": "Contracts",
+      "quotes": "Quotes",
+      "employees": "Employees"
+    }
   },
   "preview": {
     "title": "Preview",

@@ -340,6 +340,14 @@ export const NAV_ITEMS: readonly NavItem[] = [
     moreGroup: 'business',
   },
   {
+    key: 'businessProfitability',
+    href: '/financials/business-profitability',
+    labelKey: 'businessProfitability',
+    iconKey: 'reports',
+    permission: PERMISSIONS.PROJECT_FINANCIALS_READ,
+    moreGroup: 'business',
+  },
+  {
     key: 'warranty',
     href: '/warranty',
     labelKey: 'warranty',

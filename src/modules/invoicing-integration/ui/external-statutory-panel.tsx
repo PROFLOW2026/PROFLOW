@@ -1,13 +1,11 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useEffect, useState, useTransition } from 'react';
+import { useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
-import { useRouter } from '@/shared/i18n/navigation';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import {
   Dialog,
   DialogBody,
@@ -19,25 +17,10 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { MoneyText } from '@/components/patterns/money-text';
 import type { StorageProviderKey } from '@/modules/external-storage/client';
-import type {
-  ExternalStatutoryDocument,
-  ReconciliationStatus,
-  StatutoryProviderStatus,
-} from '../domain/types';
-import {
-  resolveStatutoryStorageUiStatus,
-  shouldShowStatutoryStorageSaveButton,
-} from '../domain/statutory-storage-ui';
-import {
-  createStatutoryShareLinkAction,
-  refreshExternalStatutoryStatusAction,
-  requestExternalStatutoryDocumentAction,
-  resolveStatutoryStorageLocationAction,
-  saveStatutoryPdfToStorageAction,
-  sendExternalStatutoryDocumentAction,
-} from './actions';
+import type { ExternalStatutoryDocument, StatutoryProviderStatus } from '../domain/types';
+import { requestExternalStatutoryDocumentAction, sendExternalStatutoryDocumentAction } from './actions';
+import { StatutoryDocumentCard } from './statutory-document-card';
 
 const PdfJsViewer = dynamic(
   () => import('@/modules/external-storage/ui/pdf-js-viewer').then((mod) => mod.PdfJsViewer),
@@ -60,22 +43,34 @@ export interface ExternalStatutoryPanelProps {
   documents: readonly ExternalStatutoryDocument[];
   hasCustomerSnapshot: boolean;
   customerEmail: string | null;
+  customerPhone?: string | null;
   primaryStorageProvider: StorageProviderKey | null;
-  /** Active issuance controls vs read-only historical documents. */
   variant?: 'active' | 'historical';
   providerDisplayName?: string | null;
 }
 
-function reconciliationTone(
-  status: ReconciliationStatus | null | undefined,
-): 'success' | 'warning' | 'neutral' {
-  if (status === 'matched') return 'success';
-  if (status === 'mismatch') return 'warning';
-  return 'neutral';
+function pdfUrl(externalDocumentId: string): string {
+  return `/api/invoicing/statutory/${externalDocumentId}/pdf?disposition=inline`;
 }
 
-function pdfUrl(externalDocumentId: string, disposition: 'inline' | 'attachment'): string {
-  return `/api/invoicing/statutory/${externalDocumentId}/pdf?disposition=${disposition}`;
+function sortDocuments(docs: readonly ExternalStatutoryDocument[]): ExternalStatutoryDocument[] {
+  const kindOrder: Record<string, number> = {
+    tax_invoice: 0,
+    transaction_invoice: 1,
+    tax_invoice_receipt: 2,
+    receipt: 3,
+    credit_note: 4,
+    proforma: 5,
+    other: 6,
+  };
+  return [...docs].sort((a, b) => {
+    const ka = kindOrder[a.kind] ?? 99;
+    const kb = kindOrder[b.kind] ?? 99;
+    if (ka !== kb) return ka - kb;
+    const ta = Date.parse(a.issuedAt ?? a.requestedAt);
+    const tb = Date.parse(b.issuedAt ?? b.requestedAt);
+    return tb - ta;
+  });
 }
 
 export function ExternalStatutoryPanel({
@@ -86,38 +81,25 @@ export function ExternalStatutoryPanel({
   documents,
   hasCustomerSnapshot,
   customerEmail,
+  customerPhone = null,
   primaryStorageProvider,
   variant = 'active',
   providerDisplayName = null,
 }: ExternalStatutoryPanelProps) {
   const t = useTranslations('invoicingIntegration');
+  const tCommon = useTranslations('common');
   const isHistorical = variant === 'historical';
   const providerLabel = providerDisplayName ?? 'SUMIT';
-  const tCommon = useTranslations('common');
-  const tStorage = useTranslations('externalStorage.providers');
-  const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
-  const [sendOpen, setSendOpen] = useState(false);
   const [pdfPreview, setPdfPreview] = useState<PdfPreviewTarget | null>(null);
   const [pdfReloadKey, setPdfReloadKey] = useState(0);
+  const [sendDoc, setSendDoc] = useState<ExternalStatutoryDocument | null>(null);
   const [sendEmail, setSendEmail] = useState('');
-  const [shareUrl, setShareUrl] = useState<string | null>(null);
-  const [storageLocationUrl, setStorageLocationUrl] = useState<string | null>(null);
-  const [storageLocationResolvedFor, setStorageLocationResolvedFor] = useState<string | null>(
-    null,
-  );
 
+  const sortedDocs = sortDocuments(documents);
   const taxInvoice = documents.find((doc) => doc.kind === 'tax_invoice') ?? null;
-  const linkedDocuments = documents.filter(
-    (doc) =>
-      doc.kind === 'receipt' ||
-      doc.kind === 'tax_invoice_receipt' ||
-      doc.kind === 'transaction_invoice',
-  );
-  const issued = taxInvoice?.issuanceOutcome === 'confirmed_created' && Boolean(taxInvoice.externalId);
-  const blocking =
+  const blockingTaxInvoice =
     taxInvoice &&
     (taxInvoice.issuanceOutcome === 'in_flight' ||
       taxInvoice.issuanceOutcome === 'ambiguous' ||
@@ -129,113 +111,20 @@ export function ExternalStatutoryPanel({
     providerStatus.featureEnabled &&
     billingStatus === 'finalized' &&
     hasCustomerSnapshot &&
-    !blocking;
+    !blockingTaxInvoice;
 
   function run(action: () => Promise<{ error?: string; ok?: boolean }>) {
     setError(null);
-    setSuccess(null);
     startTransition(async () => {
       const result = await action();
       if (result.error) setError(result.error);
     });
   }
 
-  function openSendDialog() {
+  function openSendDialog(doc: ExternalStatutoryDocument) {
+    setSendDoc(doc);
     setSendEmail(customerEmail?.trim() ?? '');
-    setSendOpen(true);
     setError(null);
-    setSuccess(null);
-  }
-
-  function openPdfPreview(target: PdfPreviewTarget) {
-    setPdfReloadKey((key) => key + 1);
-    setPdfPreview(target);
-    setError(null);
-  }
-
-  function handleShare() {
-    if (!taxInvoice) return;
-    setError(null);
-    setSuccess(null);
-    startTransition(async () => {
-      const result = await createStatutoryShareLinkAction(taxInvoice.id);
-      if (result.error) {
-        setError(result.error);
-        return;
-      }
-      if (!result.shareUrl) return;
-      setShareUrl(result.shareUrl);
-      if (typeof navigator !== 'undefined' && navigator.share) {
-        try {
-          await navigator.share({
-            title: t('issued.shareTitle', { number: taxInvoice.externalNumber ?? '' }),
-            url: result.shareUrl,
-          });
-          setSuccess(t('actions.shareSuccess'));
-          return;
-        } catch {
-          // fall through to clipboard
-        }
-      }
-      try {
-        await navigator.clipboard.writeText(result.shareUrl);
-        setSuccess(t('actions.shareCopied'));
-      } catch {
-        setSuccess(result.shareUrl);
-      }
-    });
-  }
-
-  const storageStatus = taxInvoice ? resolveStatutoryStorageUiStatus(taxInvoice) : 'pending';
-  const showSaveButton = taxInvoice
-    ? shouldShowStatutoryStorageSaveButton({
-        issued,
-        canManage,
-        storageStatus,
-      })
-    : false;
-
-  const storageDocumentId =
-    storageStatus === 'saved' ? (taxInvoice?.pdf?.storageDocumentId ?? null) : null;
-  const effectiveStorageLocationUrl =
-    storageDocumentId && storageLocationResolvedFor === storageDocumentId
-      ? storageLocationUrl
-      : null;
-
-  useEffect(() => {
-    if (!storageDocumentId) {
-      return;
-    }
-    let cancelled = false;
-    void resolveStatutoryStorageLocationAction(storageDocumentId).then((result) => {
-      if (!cancelled) {
-        setStorageLocationUrl(result.url ?? null);
-        setStorageLocationResolvedFor(storageDocumentId);
-      }
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [storageDocumentId]);
-
-  function handleSaveCopy() {
-    if (!taxInvoice) return;
-    setError(null);
-    setSuccess(null);
-    startTransition(async () => {
-      const result = await saveStatutoryPdfToStorageAction(taxInvoice.id, billingRecordId);
-      if (result.error) {
-        setError(result.error);
-        router.refresh();
-        return;
-      }
-      router.refresh();
-      setSuccess(
-        primaryStorageProvider
-          ? t('storage.savedStatus', { provider: tStorage(primaryStorageProvider) })
-          : t('storage.savedStatusGeneric'),
-      );
-    });
   }
 
   return (
@@ -244,29 +133,20 @@ export function ExternalStatutoryPanel({
         <CardTitle className="text-start text-base">
           {isHistorical ? t('historical.title') : t('accountingSection.title')}
         </CardTitle>
-        {!isHistorical ? (
-          <p className="text-start text-sm text-[var(--pf-text-secondary)]">
-            {t('accountingSection.subtitle')}
-          </p>
-        ) : (
-          <p className="text-start text-sm text-[var(--pf-text-secondary)]">
-            {t('historical.subtitle')}
-          </p>
-        )}
+        <p className="text-start text-sm text-[var(--pf-text-secondary)]">
+          {isHistorical ? t('historical.subtitle') : t('accountingSection.subtitle')}
+        </p>
       </CardHeader>
       <CardContent className="flex flex-col gap-4 text-start">
         {!isHistorical ? (
           <>
             <p className="text-xs text-[var(--pf-text-muted)]">{t('separation.disclosure')}</p>
-
             {!providerStatus.featureEnabled ? (
               <Alert tone="warning">{t(providerStatus.messageKey)}</Alert>
             ) : null}
-
             {billingStatus !== 'finalized' ? (
               <p className="text-sm text-[var(--pf-text-secondary)]">{t('errors.billingNotFinalized')}</p>
             ) : null}
-
             {!hasCustomerSnapshot && billingStatus === 'finalized' ? (
               <Alert tone="warning">{t('errors.missingCustomerSnapshot')}</Alert>
             ) : null}
@@ -274,195 +154,37 @@ export function ExternalStatutoryPanel({
         ) : null}
 
         {error ? <Alert tone="danger">{error}</Alert> : null}
-        {success ? <Alert tone="success">{success}</Alert> : null}
 
-        {taxInvoice?.reconciliationStatus === 'mismatch' ? (
-          <Alert tone="warning">{t('reconciliation.mismatchBanner')}</Alert>
-        ) : null}
-
-        {taxInvoice ? (
-          <div className="rounded-lg border border-[var(--pf-border-default)] p-4">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-sm font-semibold">
-                  {issued && taxInvoice.externalNumber
-                    ? t('issued.title', { number: taxInvoice.externalNumber })
-                    : t('separation.externalDocument')}
-                </span>
-                {issued ? (
-                  <Badge tone="success">{t('issued.badge')}</Badge>
-                ) : (
-                  <Badge tone="neutral">{t(`documentStatus.${taxInvoice.status}`)}</Badge>
-                )}
-                {taxInvoice.reconciliationStatus ? (
-                  <Badge tone={reconciliationTone(taxInvoice.reconciliationStatus)}>
-                    {t(`reconciliation.status.${taxInvoice.reconciliationStatus}`)}
-                  </Badge>
-                ) : null}
-              </div>
-            </div>
-
-            <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
-              <div>
-                <dt className="text-[var(--pf-text-secondary)]">{t('fields.provider')}</dt>
-                <dd>{providerLabel}</dd>
-              </div>
-              {taxInvoice.externalNumber ? (
-                <div>
-                  <dt className="text-[var(--pf-text-secondary)]">{t('fields.documentNumber')}</dt>
-                  <dd dir="ltr" className="pf-numeric">
-                    {taxInvoice.externalNumber}
-                  </dd>
-                </div>
-              ) : null}
-              {issued ? (
-                <div className="sm:col-span-2">
-                  <dt className="text-[var(--pf-text-secondary)]">{t('fields.storageCopy')}</dt>
-                  <dd className="flex flex-col gap-1">
-                    {storageStatus === 'saved' && primaryStorageProvider ? (
-                      <span>{t('storage.savedStatus', { provider: tStorage(primaryStorageProvider) })}</span>
-                    ) : storageStatus === 'failed' ? (
-                      <span className="text-[var(--pf-text-warning)]">{t('storage.failedStatus')}</span>
-                    ) : (
-                      <span>{t('storage.pendingStatus')}</span>
-                    )}
-                    {storageStatus === 'saved' && effectiveStorageLocationUrl ? (
-                      <a
-                        href={effectiveStorageLocationUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[var(--pf-accent)] underline"
-                      >
-                        {t('actions.openStorageLocation')}
-                      </a>
-                    ) : null}
-                  </dd>
-                </div>
-              ) : null}
-            </dl>
-
-            {issued ? (
-              <div className="mt-4 flex flex-wrap gap-2">
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  disabled={pending}
-                  onClick={() =>
-                    openPdfPreview({
-                      externalDocumentId: taxInvoice.id,
-                      title: t('issued.title', { number: taxInvoice.externalNumber ?? '' }),
-                    })
-                  }
-                >
-                  {t('actions.viewPdf')}
-                </Button>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  disabled={pending}
-                  onClick={() => {
-                    window.location.assign(pdfUrl(taxInvoice.id, 'attachment'));
-                  }}
-                >
-                  {t('actions.downloadPdf')}
-                </Button>
-                {!isHistorical && canManage ? (
-                  <>
-                    <Button type="button" variant="secondary" size="sm" disabled={pending} onClick={openSendDialog}>
-                      {t('actions.sendToCustomer')}
-                    </Button>
-                    <Button type="button" variant="secondary" size="sm" disabled={pending} onClick={handleShare}>
-                      {t('actions.share')}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="sm"
-                      disabled={pending}
-                      onClick={() =>
-                        run(() => refreshExternalStatutoryStatusAction(taxInvoice.id, billingRecordId))
-                      }
-                    >
-                      {t('actions.refreshStatus')}
-                    </Button>
-                    {showSaveButton ? (
-                      <Button
-                        type="button"
-                        variant="primary"
-                        size="sm"
-                        disabled={pending}
-                        onClick={handleSaveCopy}
-                      >
-                        {storageStatus === 'failed'
-                          ? t('actions.retryStorageSave')
-                          : t('actions.saveCopy')}
-                      </Button>
-                    ) : null}
-                  </>
-                ) : null}
-              </div>
-            ) : null}
-
-            {taxInvoice.reconciliationMetadata ? (
-              <div className="mt-4 rounded-md bg-[var(--pf-bg-subtle)] p-3 text-sm">
-                <p className="font-medium">{t('reconciliation.title')}</p>
-                <div className="mt-2 grid gap-2 sm:grid-cols-3">
-                  <div>
-                    <p className="text-[var(--pf-text-secondary)]">{t('reconciliation.expectedNet')}</p>
-                    <MoneyText
-                      value={{
-                        amount: taxInvoice.reconciliationMetadata.expectedNet,
-                        currency: taxInvoice.reconciliationMetadata.currency,
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <p className="text-[var(--pf-text-secondary)]">{t('reconciliation.expectedVat')}</p>
-                    <MoneyText
-                      value={{
-                        amount: taxInvoice.reconciliationMetadata.expectedVat ?? '0',
-                        currency: taxInvoice.reconciliationMetadata.currency,
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <p className="text-[var(--pf-text-secondary)]">{t('reconciliation.expectedGross')}</p>
-                    <MoneyText
-                      value={{
-                        amount: taxInvoice.reconciliationMetadata.expectedGross,
-                        currency: taxInvoice.reconciliationMetadata.currency,
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
-            ) : null}
-
-            {taxInvoice.externalId ? (
-              <details className="mt-3 text-xs text-[var(--pf-text-muted)]">
-                <summary>{t('fields.technicalDetails')}</summary>
-                <p className="mt-1 break-all" dir="ltr">
-                  DocumentID: {taxInvoice.externalId}
-                </p>
-                {shareUrl ? (
-                  <p className="mt-1 break-all" dir="ltr">
-                    {shareUrl}
-                  </p>
-                ) : null}
-              </details>
-            ) : null}
-
-            {taxInvoice.lastErrorMessage ? (
-              <p className="mt-3 text-sm text-[var(--pf-text-secondary)]">{taxInvoice.lastErrorMessage}</p>
-            ) : null}
-          </div>
-        ) : !isHistorical ? (
+        {sortedDocs.length === 0 && !isHistorical ? (
           <div className="rounded-lg border border-dashed border-[var(--pf-border-default)] p-4">
             <p className="font-medium">{t('empty.title')}</p>
             <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">{t('empty.body')}</p>
           </div>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {sortedDocs.map((doc) => (
+              <StatutoryDocumentCard
+                key={doc.id}
+                doc={doc}
+                billingRecordId={billingRecordId}
+                canManage={canManage}
+                isHistorical={isHistorical}
+                customerEmail={customerEmail}
+                customerPhone={customerPhone}
+                primaryStorageProvider={primaryStorageProvider}
+                providerLabel={providerLabel}
+                onSendOpen={openSendDialog}
+                onPreview={(target) => {
+                  setPdfReloadKey((key) => key + 1);
+                  setPdfPreview(target);
+                }}
+              />
+            ))}
+          </div>
+        )}
+
+        {!isHistorical && canManage && sortedDocs.some((d) => d.issuanceOutcome === 'confirmed_created') ? (
+          <p className="text-xs text-[var(--pf-text-muted)]">{t('history.hint')}</p>
         ) : null}
 
         {canRequest ? (
@@ -475,70 +197,8 @@ export function ExternalStatutoryPanel({
           </Button>
         ) : null}
 
-        {blocking && taxInvoice?.issuanceOutcome === 'confirmed_created' ? (
+        {blockingTaxInvoice && taxInvoice?.issuanceOutcome === 'confirmed_created' ? (
           <p className="text-sm text-[var(--pf-text-secondary)]">{t('errors.duplicateIssuanceBlocked')}</p>
-        ) : null}
-
-        {linkedDocuments.length > 0 ? (
-          <div className="mt-4 flex flex-col gap-3">
-            {linkedDocuments.map((doc) => {
-              const docIssued =
-                doc.issuanceOutcome === 'confirmed_created' && Boolean(doc.externalId);
-              return (
-                <div
-                  key={doc.id}
-                  className="rounded-lg border border-[var(--pf-border-default)] p-4"
-                >
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="font-medium">
-                      {t(`documentKinds.${doc.kind}`, {
-                        number: doc.externalNumber ?? '—',
-                      })}
-                    </p>
-                    {docIssued ? <Badge tone="success">{t('issued.badge')}</Badge> : null}
-                    {doc.issuanceOutcome === 'in_flight' || doc.issuanceOutcome === 'ambiguous' ? (
-                      <Badge tone="warning">{t('payment.receiptPending')}</Badge>
-                    ) : null}
-                  </div>
-                  {docIssued ? (
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        size="sm"
-                        onClick={() =>
-                          openPdfPreview({
-                            externalDocumentId: doc.id,
-                            title: t(`documentKinds.${doc.kind}`, {
-                              number: doc.externalNumber ?? '—',
-                            }),
-                          })
-                        }
-                      >
-                        {t('actions.viewPdf')}
-                      </Button>
-                      <Button asChild type="button" variant="secondary" size="sm">
-                        <a href={pdfUrl(doc.id, 'attachment')}>{t('actions.downloadPdf')}</a>
-                      </Button>
-                      {!isHistorical && canManage && doc.status === 'failed' ? (
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          size="sm"
-                          disabled={pending}
-                          onClick={() =>
-                            run(() => refreshExternalStatutoryStatusAction(doc.id, billingRecordId))
-                          }
-                        >
-                          {t('actions.refreshStatus')}
-                        </Button>
-                      ) : null}
-                    </div>
-                  ) : null}
-                </div>
-              );
-            })}
-          </div>
         ) : null}
       </CardContent>
 
@@ -557,7 +217,7 @@ export function ExternalStatutoryPanel({
             {pdfPreview ? (
               <div className="h-[70vh] w-full min-w-0">
                 <PdfJsViewer
-                  url={pdfUrl(pdfPreview.externalDocumentId, 'inline')}
+                  url={pdfUrl(pdfPreview.externalDocumentId)}
                   reloadKey={pdfReloadKey}
                   onRetry={() => setPdfReloadKey((key) => key + 1)}
                 />
@@ -572,11 +232,11 @@ export function ExternalStatutoryPanel({
         </DialogContent>
       </Dialog>
 
-      <Dialog open={sendOpen} onOpenChange={setSendOpen}>
+      <Dialog open={sendDoc != null} onOpenChange={(open) => !open && setSendDoc(null)}>
         <DialogContent closeLabel={t('actions.sendCancel')}>
           <DialogHeader>
             <DialogTitle>
-              {t('send.title', { number: taxInvoice?.externalNumber ?? '' })}
+              {t('send.title', { number: sendDoc?.externalNumber ?? '' })}
             </DialogTitle>
             <DialogDescription>{t('send.description')}</DialogDescription>
           </DialogHeader>
@@ -594,24 +254,21 @@ export function ExternalStatutoryPanel({
             </div>
           </DialogBody>
           <DialogFooter>
-            <Button type="button" variant="ghost" disabled={pending} onClick={() => setSendOpen(false)}>
+            <Button type="button" variant="ghost" disabled={pending} onClick={() => setSendDoc(null)}>
               {t('actions.sendCancel')}
             </Button>
             <Button
               type="button"
-              disabled={pending || !sendEmail.trim()}
+              disabled={pending || !sendEmail.trim() || !sendDoc}
               onClick={() => {
-                if (!taxInvoice) return;
+                if (!sendDoc) return;
                 run(async () => {
                   const result = await sendExternalStatutoryDocumentAction(
-                    taxInvoice.id,
+                    sendDoc.id,
                     billingRecordId,
                     sendEmail,
                   );
-                  if (result.ok) {
-                    setSendOpen(false);
-                    setSuccess(t('send.success'));
-                  }
+                  if (result.ok) setSendDoc(null);
                   return result;
                 });
               }}
