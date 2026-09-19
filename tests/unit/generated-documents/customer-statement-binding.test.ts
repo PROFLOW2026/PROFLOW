@@ -5,12 +5,15 @@ import { resolveGeneratedDocumentBinding } from '@/modules/generated-documents/a
 import { createTestDatabase, type TestDatabase } from '../../setup/database';
 import { createTestUser, seedSystem } from '../../setup/fixtures';
 
+/** PGlite snapshot clone/build can exceed the unit project default hook timeout on cold CI. */
+const PGLITE_HOOK_TIMEOUT_MS = 180_000;
+
 describe('customer_statement generated document binding', () => {
   let database: TestDatabase;
 
   beforeAll(async () => {
     database = await createTestDatabase();
-  });
+  }, PGLITE_HOOK_TIMEOUT_MS);
 
   afterAll(async () => {
     await database.close();
