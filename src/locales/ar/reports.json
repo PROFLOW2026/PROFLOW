@@ -55,7 +55,15 @@
     "timesheet": "جدول ساعات",
     "project_billing_account": "حساب تقدم / طلب دفعة",
     "project_billing_plan_status": "حالة خطة الفوترة",
-    "monthly_workforce_report": "تقرير القوى العاملة الشهري"
+    "monthly_workforce_report": "تقرير القوى العاملة الشهري",
+    "project_task_status": "حالة مهام المشروع",
+    "overdue_tasks_org": "المهام المتأخرة",
+    "milestone_status": "حالة المعالم",
+    "team_workload": "عبء عمل الفريق",
+    "portfolio_status": "حالة المحفظة",
+    "stage_distribution": "المشاريع حسب المرحلة",
+    "stale_projects": "المشاريع غير النشطة",
+    "approval_queue_status": "قائمة الموافقات"
   },
   "documentKinds": {
     "progress_account": "حساب تقدم",

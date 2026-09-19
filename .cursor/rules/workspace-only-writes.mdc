@@ -19,8 +19,10 @@ There is **no approval** to touch other directories unless the Owner gives
 
 - Paths under the workspace root (repo): `src/`, `docs/`, `tests/`, `drizzle/`,
   `.cursor/rules/`, `scripts/`, etc.
-- Audits, reports, plans, notes → prefer `docs/audits/` (or other in-repo
-  paths the Owner named).
+- **Build plans** (Cursor Plans) → `.cursor/plans/*.plan.md` (mandatory; see
+  `project-plans-storage.mdc`).
+- Audits, reports, notes → prefer `docs/audits/` (or other in-repo paths the
+  Owner named).
 
 ## Forbidden without explicit Owner approval
 

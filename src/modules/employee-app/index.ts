@@ -28,3 +28,14 @@ export {
   listEmployeeAssignedProjects,
   listEmployeeAssignedTasks,
 } from './application/employee-surface-data';
+export {
+  listEmployeePmTasks,
+  getEmployeePmTaskDetail,
+  addEmployeePmTaskComment,
+  updateEmployeePmTaskStatus,
+  toggleEmployeePmTaskChecklistItem,
+  type EmployeePmTaskSummary,
+  type EmployeePmTaskDetail,
+  type EmployeePmTaskComment,
+  type EmployeePmTaskChecklistItem,
+} from './application/employee-pm-tasks';

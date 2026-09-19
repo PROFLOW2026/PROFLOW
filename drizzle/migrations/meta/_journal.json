@@ -666,6 +666,125 @@
                         "when":  1789709600000,
                         "tag":  "0095_external_expense_imports",
                         "breakpoints":  true
+                    },
+                    {
+                        "idx":  95,
+                        "version":  "7",
+                        "when":  1789710000000,
+                        "tag":  "0096_uwm_org_profile",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  96,
+                        "version":  "7",
+                        "when":  1789710060000,
+                        "tag":  "0097_uwm_workspaces",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  97,
+                        "version":  "7",
+                        "when":  1789710120000,
+                        "tag":  "0098_uwm_stages",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  98,
+                        "version":  "7",
+                        "when":  1789710180000,
+                        "tag":  "0099_uwm_boards",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  99,
+                        "version":  "7",
+                        "when":  1789710240000,
+                        "tag":  "0100_uwm_tasks_core",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  100,
+                        "version":  "7",
+                        "when":  1789710300000,
+                        "tag":  "0101_uwm_tasks_relations",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  101,
+                        "version":  "7",
+                        "when":  1789710360000,
+                        "tag":  "0102_uwm_comments_activity",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  102,
+                        "version":  "7",
+                        "when":  1789710420000,
+                        "tag":  "0103_uwm_recurrence",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  103,
+                        "version":  "7",
+                        "when":  1789710480000,
+                        "tag":  "0104_uwm_labels",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  104,
+                        "version":  "7",
+                        "when":  1789710540000,
+                        "tag":  "0105_uwm_templates",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  105,
+                        "version":  "7",
+                        "when":  1789710600000,
+                        "tag":  "0106_uwm_meetings",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  106,
+                        "version":  "7",
+                        "when":  1789710660000,
+                        "tag":  "0107_uwm_enum_extensions",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  107,
+                        "version":  "7",
+                        "when":  1789710720000,
+                        "tag":  "0108_uwm_automation_extensions",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  108,
+                        "version":  "7",
+                        "when":  1789710780000,
+                        "tag":  "0109_uwm_permissions",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  109,
+                        "version":  "7",
+                        "when":  1789710840000,
+                        "tag":  "0110_uwm_planning_task_link",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  110,
+                        "version":  "7",
+                        "when":  1789710900000,
+                        "tag":  "0111_uwm_project_closeout",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  111,
+                        "version":  "7",
+                        "when":  1789710960000,
+                        "tag":  "0112_uwm_approval_task_entity",
+                        "breakpoints":  true
                     }
                 ]
 }

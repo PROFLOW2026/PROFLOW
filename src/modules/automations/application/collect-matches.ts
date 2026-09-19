@@ -162,6 +162,19 @@ export async function collectPresetMatches(
     case 'retention_release_date':
     case 'closeout_has_blockers':
       return [];
+    // ── Universal Work Management preset matches ─────────────────────────────
+    // These delegates to the command-center task scanners' queries (read-only).
+    // Real match collection happens in the UWM task module when it lands.
+    // For now return empty so no automation fires incorrectly.
+    case 'task_status_changed_to':
+    case 'task_overdue':
+    case 'task_assigned_to':
+    case 'task_created_from_template':
+    case 'task_approval_rejected':
+    case 'task_dependency_resolved':
+    case 'milestone_approaching_days':
+    case 'project_created':
+      return [];
     default:
       return [];
   }

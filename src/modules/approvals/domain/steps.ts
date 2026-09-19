@@ -85,6 +85,8 @@ export function entitySourceHref(
       return `/quotes/${entityId}`;
     case 'budget_revision':
       return `/projects`;
+    case 'task':
+      return `/tasks/${entityId}`;
     case 'timesheet':
       return `/workforce/timesheets/${entityId}`;
     default:

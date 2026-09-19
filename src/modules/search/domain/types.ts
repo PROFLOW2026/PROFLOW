@@ -38,6 +38,8 @@ export const GLOBAL_SEARCH_KINDS = [
   'billing_cycle',
   'recurring_draft',
   'approval',
+  // ── Universal Work Management (Agent I) ─────────────────────────────────
+  'task',
 ] as const;
 
 export type GlobalSearchKind = (typeof GLOBAL_SEARCH_KINDS)[number];

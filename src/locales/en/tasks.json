@@ -1,0 +1,322 @@
+{
+  "workspaces": {
+    "pageTitle": "Workspaces",
+    "pageDescription": "Manage your work containers and boards",
+    "empty": {
+      "title": "No workspaces yet",
+      "description": "Create a workspace to organize your work"
+    },
+    "viewBoards": "View boards",
+    "type": {
+      "project_linked": "Project",
+      "org_internal": "Internal",
+      "team": "Team"
+    }
+  },
+  "board": {
+    "addTask": "Add task",
+    "addBucket": "Add column",
+    "noBuckets": "No columns yet",
+    "groupBy": "Group by",
+    "filter": "Filter",
+    "statusColumns": "Status columns",
+    "bucket": "Column",
+    "defaultBoard": "Default board",
+    "archivedBoards": "Archived boards",
+    "empty": {
+      "title": "No tasks here",
+      "description": "Add a task to this column to get started",
+      "globalDescription": "Add tasks to your projects to see them here"
+    }
+  },
+  "task": {
+    "title": "Title",
+    "description": "Description",
+    "status": "Status",
+    "priority": "Priority",
+    "dueDate": "Due date",
+    "startDate": "Start date",
+    "assignees": "Assignees",
+    "labels": "Labels",
+    "checklist": "Checklist",
+    "comments": "Comments",
+    "activity": "Activity",
+    "attachments": "Attachments",
+    "estimatedEffort": "Estimated effort",
+    "actualEffort": "Actual time",
+    "milestone": "Milestone",
+    "approvalRequired": "Approval required",
+    "create": "Create task",
+    "edit": "Edit task",
+    "archive": "Archive task",
+    "complete": "Mark complete",
+    "reopen": "Reopen",
+    "addChecklist": "Add checklist item",
+    "noTasks": "No tasks",
+    "subtasks": "Subtasks",
+    "dependencies": "Dependencies",
+    "blockedBy": "Blocked by",
+    "blocks": "Blocks",
+    "requestApproval": "Request approval",
+    "approvalPending": "Approval pending",
+    "approved": "Approved",
+    "rejected": "Rejected"
+  },
+  "status": {
+    "todo": "To do",
+    "in_progress": "In progress",
+    "in_review": "In review",
+    "blocked": "Blocked",
+    "done": "Done",
+    "cancelled": "Cancelled"
+  },
+  "priority": {
+    "none": "None",
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "urgent": "Urgent"
+  },
+  "myWork": {
+    "pageTitle": "My Work",
+    "tabsLabel": "My Work views",
+    "views": {
+      "today": "Today",
+      "overdue": "Overdue",
+      "this_week": "This week",
+      "upcoming": "Upcoming",
+      "waiting": "Waiting",
+      "assigned_to_me": "Assigned to me",
+      "created_by_me": "Created by me",
+      "following": "Following",
+      "completed": "Completed"
+    },
+    "empty": "No tasks in this view",
+    "noTasksToday": "No tasks due today"
+  },
+  "portfolio": {
+    "pageTitle": "Portfolio",
+    "columns": {
+      "project": "Project",
+      "client": "Client",
+      "stage": "Stage",
+      "status": "Status",
+      "openTasks": "Open",
+      "overdueTasks": "Overdue",
+      "blockedTasks": "Blocked",
+      "nextMilestone": "Next milestone",
+      "lastActivity": "Last activity",
+      "health": "Health"
+    },
+    "health": {
+      "formula": "Overdue×2 + Blocked",
+      "good": "On track",
+      "warning": "Needs attention",
+      "critical": "At risk"
+    },
+    "filters": {
+      "stage": "Stage",
+      "status": "Status",
+      "hasOverdue": "Has overdue tasks",
+      "stale": "Stale (14 days)",
+      "workKind": "Type"
+    },
+    "empty": "No projects found"
+  },
+  "workload": {
+    "pageTitle": "Team Workload",
+    "columns": {
+      "employee": "Employee",
+      "openTasks": "Open tasks",
+      "overdue": "Overdue",
+      "dueThisWeek": "Due this week",
+      "projects": "Projects",
+      "estimatedEffort": "Est. effort"
+    },
+    "noEffortData": "No effort estimates",
+    "reassign": "Reassign",
+    "expand": "View tasks",
+    "empty": "No team members found"
+  },
+  "operations": {
+    "pageTitle": "Operations",
+    "sections": {
+      "activeProjects": "Active projects",
+      "byStage": "Projects by stage",
+      "dueToday": "Due today",
+      "overdue": "Overdue",
+      "blocked": "Blocked",
+      "upcomingMilestones": "Upcoming milestones",
+      "pendingApprovals": "Pending approvals",
+      "staleProjects": "Stale projects",
+      "workloadSnapshot": "Workload",
+      "recentActivity": "Recent activity"
+    }
+  },
+  "meetings": {
+    "pageTitle": "Meetings",
+    "newMeeting": "New meeting",
+    "fields": {
+      "title": "Title",
+      "date": "Date",
+      "location": "Location",
+      "notes": "Notes",
+      "attendees": "Attendees",
+      "decisions": "Decisions",
+      "actionItems": "Action items"
+    },
+    "decision": {
+      "add": "Add decision",
+      "edit": "Edit decision"
+    },
+    "actionItem": {
+      "add": "Add action item",
+      "createTask": "Create task",
+      "status": {
+        "open": "Open",
+        "done": "Done",
+        "cancelled": "Cancelled"
+      }
+    },
+    "empty": "No meetings yet",
+    "noDecisions": "No decisions recorded"
+  },
+  "stages": {
+    "pageTitle": "Project Stages",
+    "addStage": "Add stage",
+    "editStage": "Edit stage",
+    "setDefault": "Set as default",
+    "currentStage": "Current stage",
+    "transitionTo": "Move to stage",
+    "history": "Stage history",
+    "noStages": "No stages defined",
+    "workKindFilter": {
+      "all": "All project types",
+      "project": "Projects only",
+      "job": "Jobs only",
+      "work_order": "Work orders only"
+    }
+  },
+  "labels": {
+    "pageTitle": "Task Labels",
+    "addLabel": "Add label",
+    "editLabel": "Edit label",
+    "noLabels": "No labels defined"
+  },
+  "templates": {
+    "taskTemplates": {
+      "pageTitle": "Task Templates",
+      "addTemplate": "New template",
+      "noTemplates": "No task templates"
+    },
+    "projectTemplates": {
+      "pageTitle": "Project Templates",
+      "addTemplate": "New template",
+      "noTemplates": "No project templates"
+    }
+  },
+  "create": {
+    "titleLabel": "Title",
+    "titlePlaceholder": "Task title...",
+    "titleRequired": "Title is required",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Optional description...",
+    "bucketLabel": "Column",
+    "noBucket": "No column",
+    "statusLabel": "Status",
+    "priorityLabel": "Priority",
+    "dueDateLabel": "Due date",
+    "assigneesLabel": "Assignees",
+    "labelsLabel": "Labels",
+    "submit": "Create task",
+    "saving": "Creating...",
+    "error": "Failed to create task"
+  },
+  "cancel": "Cancel",
+  "add": "Add",
+  "addTask": "Add task",
+  "taskTitlePlaceholder": "New task...",
+  "emptyColumn": "No tasks here",
+  "loadingTask": "Loading task...",
+  "groupBy": {
+    "bucket": "Column",
+    "assignee": "Assignee",
+    "priority": "Priority",
+    "label": "Label",
+    "status": "Status"
+  },
+  "filter": {
+    "all": "All",
+    "overdue": "Overdue",
+    "blocked": "Blocked",
+    "dueThisWeek": "Due this week",
+    "clear": "Clear filters"
+  },
+  "boards": {
+    "boardPageTitle": "Board",
+    "boardsPageTitle": "Boards",
+    "noBoardsYet": "No boards yet",
+    "switcherLabel": "Switch board",
+    "default": "Default",
+    "createBoard": "Create board"
+  },
+  "close": "Close",
+  "checklist": "Checklist",
+  "saving": "Saving...",
+  "task": "Task",
+  "unassigned": "Unassigned",
+  "wipLimitLabel": "WIP limit",
+  "groupByLabel": "Group by",
+  "approvalRequired": "Approval required",
+  "bucket": "Column",
+  "breadcrumb": "Task",
+  "removeLabel": "Remove",
+  "activityLabel": "Activity",
+  "activitySlot": "Activity",
+  "commentsLabel": "Comments",
+  "commentsSlot": "Comments",
+  "descriptionLabel": "Description",
+  "descriptionPlaceholder": "Add a description...",
+  "dueDateLabel": "Due date",
+  "assigneesLabel": "Assignees",
+  "labelsLabel": "Labels",
+  "priorityLabel": "Priority",
+  "statusLabel": "Status",
+  "attachmentsLabel": "Attachments",
+  "list": {
+    "columns": {
+      "title": "Title",
+      "status": "Status",
+      "priority": "Priority",
+      "assignees": "Assignees",
+      "dueDate": "Due date",
+      "project": "Project"
+    },
+    "empty": {
+      "title": "No tasks found",
+      "description": "Create a task to get started"
+    }
+  },
+  "create.title": "New task",
+  "activity": {
+    "created": "Created this task",
+    "status_changed": "Changed status",
+    "bucket_changed": "Moved to column",
+    "assigned": "Assigned",
+    "due_date_changed": "Changed due date",
+    "priority_changed": "Changed priority",
+    "comment_added": "Added a comment",
+    "attachment_added": "Added an attachment",
+    "checklist_completed": "Completed checklist item",
+    "approval_result": "Approval decision recorded",
+    "dependency_added": "Added dependency",
+    "dependency_removed": "Removed dependency",
+    "completed": "Marked complete",
+    "reopened": "Reopened",
+    "archived": "Archived",
+    "label_added": "Added label",
+    "recurrence_generated": "Recurring task generated",
+    "automation_changed": "Updated by automation",
+    "system_generated": "System action"
+  }
+}

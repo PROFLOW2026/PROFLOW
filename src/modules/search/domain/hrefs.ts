@@ -49,3 +49,8 @@ export function workEntityHref(workKind: string | null | undefined, id: string):
   if (workKind === 'work_order') return `/work-orders/${id}`;
   return `/projects/${id}`;
 }
+
+/** Deep-link to a task detail page. Route built by Agent B. */
+export function taskSearchHref(id: string): string {
+  return `/tasks/${id}`;
+}

@@ -20,6 +20,7 @@ export const PERMISSION_CATEGORIES = [
   'billing',
   'documents',
   'administration',
+  'work',
 ] as const;
 
 export type PermissionCategory = (typeof PERMISSION_CATEGORIES)[number];
@@ -153,6 +154,31 @@ export const PERMISSIONS = {
   AUTOMATIONS_MANAGE: 'automations.manage',
   ASSISTANT_USE: 'assistant.use',
   INTEGRATIONS_READ: 'integrations.read',
+
+  // ── Universal Work Management (0096+) ─────────────────────────────────────
+  TASKS_READ: 'tasks.read',
+  TASKS_CREATE: 'tasks.create',
+  TASKS_UPDATE: 'tasks.update',
+  TASKS_DELETE: 'tasks.delete',
+  TASKS_ASSIGN: 'tasks.assign',
+  TASKS_MANAGE_ALL: 'tasks.manage_all',
+  TASKS_COMMENT: 'tasks.comment',
+  TASKS_APPROVE: 'tasks.approve',
+
+  PORTFOLIO_READ: 'portfolio.read',
+  WORKLOAD_READ: 'workload.read',
+  OPERATIONS_READ: 'operations.read',
+
+  WORKSPACES_MANAGE: 'workspaces.manage',
+  STAGES_MANAGE: 'stages.manage',
+  MODULES_MANAGE: 'modules.manage',
+  LABELS_MANAGE: 'labels.manage',
+
+  TASK_TEMPLATES_MANAGE: 'task_templates.manage',
+  PROJECT_TEMPLATES_MANAGE: 'project_templates.manage',
+
+  MEETINGS_READ: 'meetings.read',
+  MEETINGS_MANAGE: 'meetings.manage',
 } as const;
 
 export type PermissionKey = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
@@ -435,6 +461,31 @@ export const PERMISSION_CATALOG: readonly PermissionDefinition[] = [
     category: 'administration',
     description: 'View external integration connection state',
   },
+
+  // ── Universal Work Management ──────────────────────────────────────────────
+  { key: PERMISSIONS.TASKS_READ, category: 'projects', description: 'View tasks and boards' },
+  { key: PERMISSIONS.TASKS_CREATE, category: 'projects', description: 'Create tasks' },
+  { key: PERMISSIONS.TASKS_UPDATE, category: 'projects', description: 'Update tasks assigned to self or in scope' },
+  { key: PERMISSIONS.TASKS_DELETE, category: 'projects', description: 'Archive and delete tasks' },
+  { key: PERMISSIONS.TASKS_ASSIGN, category: 'projects', description: 'Assign tasks to team members' },
+  { key: PERMISSIONS.TASKS_MANAGE_ALL, category: 'projects', description: 'Manage all tasks in accessible workspaces' },
+  { key: PERMISSIONS.TASKS_COMMENT, category: 'projects', description: 'Comment on tasks' },
+  { key: PERMISSIONS.TASKS_APPROVE, category: 'projects', description: 'Approve or reject task approval requests' },
+
+  { key: PERMISSIONS.PORTFOLIO_READ, category: 'projects', description: 'View portfolio health dashboard' },
+  { key: PERMISSIONS.WORKLOAD_READ, category: 'projects', description: 'View team workload' },
+  { key: PERMISSIONS.OPERATIONS_READ, category: 'organization', description: 'View operations dashboard' },
+
+  { key: PERMISSIONS.WORKSPACES_MANAGE, category: 'projects', description: 'Create and manage workspaces and boards' },
+  { key: PERMISSIONS.STAGES_MANAGE, category: 'projects', description: 'Manage project stage definitions' },
+  { key: PERMISSIONS.MODULES_MANAGE, category: 'administration', description: 'Enable and disable organization modules' },
+  { key: PERMISSIONS.LABELS_MANAGE, category: 'projects', description: 'Manage task labels' },
+
+  { key: PERMISSIONS.TASK_TEMPLATES_MANAGE, category: 'administration', description: 'Manage task templates' },
+  { key: PERMISSIONS.PROJECT_TEMPLATES_MANAGE, category: 'administration', description: 'Manage project templates' },
+
+  { key: PERMISSIONS.MEETINGS_READ, category: 'projects', description: 'View meeting records and decisions' },
+  { key: PERMISSIONS.MEETINGS_MANAGE, category: 'projects', description: 'Create and manage meetings and decisions' },
 ];
 
 export const ALL_PERMISSION_KEYS: readonly PermissionKey[] = PERMISSION_CATALOG.map((p) => p.key);

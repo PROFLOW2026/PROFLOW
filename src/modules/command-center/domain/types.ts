@@ -47,6 +47,15 @@ export const COMMAND_CENTER_SOURCE_TYPES = [
   'payroll_overdue',
   'payroll_pending_review',
   'monthly_workforce_report_ready',
+  // ── Universal Work Management ───────────────────────────────────────────────
+  'task_overdue',
+  'task_due_today',
+  'task_blocked_waiting',
+  'task_approval_requested',
+  'task_unassigned',
+  'milestone_approaching',
+  'project_stale',
+  'recurring_task_generated',
 ] as const;
 
 export type CommandCenterSourceType = (typeof COMMAND_CENTER_SOURCE_TYPES)[number];
@@ -112,6 +121,24 @@ export const PAYROLL_PAYMENT_SOURCE_TYPES = [
   'payroll_due_today',
   'payroll_overdue',
 ] as const satisfies readonly CommandCenterSourceType[];
+
+/** Universal Work Management task / project source types. */
+export const TASK_SOURCE_TYPES = [
+  'task_overdue',
+  'task_due_today',
+  'task_blocked_waiting',
+  'task_approval_requested',
+  'task_unassigned',
+  'milestone_approaching',
+  'project_stale',
+  'recurring_task_generated',
+] as const satisfies readonly CommandCenterSourceType[];
+
+export type TaskSourceType = (typeof TASK_SOURCE_TYPES)[number];
+
+export function isTaskSourceType(sourceType: string): sourceType is TaskSourceType {
+  return (TASK_SOURCE_TYPES as readonly string[]).includes(sourceType);
+}
 
 export type FinancialSourceType = (typeof FINANCIAL_SOURCE_TYPES)[number];
 

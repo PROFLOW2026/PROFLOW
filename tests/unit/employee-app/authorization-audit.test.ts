@@ -87,10 +87,17 @@ const OWNER_ONLY_PERMISSIONS: PermissionKey[] = [
 ];
 
 describe('employee authorization audit — presets', () => {
-  it('field_worker is attendance-only baseline', () => {
+  it('field_worker has attendance + task baseline', () => {
     const context = employeeContextFromPreset('field_worker');
-    expect(effectiveGrantKeys(context)).toEqual([PERMISSIONS.ATTENDANCE_SELF]);
-    expect(visibleNavHrefs(context)).toEqual(['/employee', '/employee/attendance']);
+    expect(effectiveGrantKeys(context)).toEqual(
+      expect.arrayContaining([
+        PERMISSIONS.ATTENDANCE_SELF,
+        PERMISSIONS.TASKS_READ,
+        PERMISSIONS.TASKS_UPDATE,
+        PERMISSIONS.TASKS_COMMENT,
+      ]),
+    );
+    expect(visibleNavHrefs(context)).toEqual(expect.arrayContaining(['/employee', '/employee/attendance']));
     for (const permission of OWNER_ONLY_PERMISSIONS) {
       expect(context.permissions.has(permission)).toBe(false);
     }

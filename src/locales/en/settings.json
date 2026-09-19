@@ -1281,5 +1281,29 @@
       "legalFooterNote": "Legal footer style",
       "documentOnlyNote": "Preview of document branding — app chrome stays unchanged."
     }
+  },
+  "stagesSection": {
+    "nav": "Project Stages",
+    "description": "Define the lifecycle stages for your projects"
+  },
+  "labelsSection": {
+    "nav": "Task Labels",
+    "description": "Manage task label colors and names"
+  },
+  "orgProfile": {
+    "nav": "Organization Profile",
+    "description": "Set your organization type and terminology"
+  },
+  "adoption": {
+    "nav": "Setup Defaults",
+    "description": "Apply profile-based defaults for stages and templates"
+  },
+  "taskTemplatesSection": {
+    "nav": "Task Templates",
+    "description": "Reusable task definitions"
+  },
+  "projectTemplatesSection": {
+    "nav": "Project Templates",
+    "description": "Project templates with stages and tasks"
   }
 }

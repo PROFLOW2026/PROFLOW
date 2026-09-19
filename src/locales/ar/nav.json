@@ -118,5 +118,11 @@
     "title": "{module} مخفي حالياً من القائمة",
     "body": "هذه الإمكانية معطّلة في الإعدادات، لكن السجل متاح لمن لديه صلاحية. يمكن استعادتها من <settings>ما يعرضه ProjectFlow</settings>."
   },
-  "businessProfitability": "ربحية الأعمال"
+  "businessProfitability": "ربحية الأعمال",
+  "operations": "العمليات",
+  "myWork": "مهامي",
+  "portfolio": "محفظة المشاريع",
+  "workload": "عبء الفريق",
+  "workspaces": "مساحات العمل",
+  "meetings": "الاجتماعات"
 }

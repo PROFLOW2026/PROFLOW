@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
 import { useActionState, useState, useTransition } from 'react';
 import { Alert } from '@/components/ui/alert';
@@ -26,6 +27,12 @@ interface MilestonesPanelProps {
   milestones: readonly MilestoneListRow[];
   canEdit: boolean;
   today: string;
+  /**
+   * Optional render prop: receives milestoneId and returns a linked-task
+   * badge/selector. Injected by MilestoneWithTasksPanel when task module
+   * is available. Absent = plain milestone cards (original behaviour).
+   */
+  linkedTaskSlot?: (milestoneId: string) => ReactNode;
 }
 
 function milestoneShape(status: MilestoneStatus): StatusShape {
@@ -41,7 +48,7 @@ function milestoneShape(status: MilestoneStatus): StatusShape {
   }
 }
 
-export function MilestonesPanel({ projectId, milestones, canEdit, today }: MilestonesPanelProps) {
+export function MilestonesPanel({ projectId, milestones, canEdit, today, linkedTaskSlot }: MilestonesPanelProps) {
   const t = useTranslations('projects.details');
   const tSchedule = useTranslations('projects.schedule');
   const tCommon = useTranslations('common');
@@ -87,6 +94,7 @@ export function MilestonesPanel({ projectId, milestones, canEdit, today }: Miles
                       <span className="text-[var(--pf-status-danger-fg)]">{tSchedule('overdue')}</span>
                     ) : null}
                   </div>
+                  {linkedTaskSlot ? linkedTaskSlot(milestone.id) : null}
                 </div>
                 {canEdit ? (
                   <div className="flex flex-wrap gap-2">

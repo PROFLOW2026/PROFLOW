@@ -27,6 +27,10 @@ describe('employee permission editor', () => {
 
   it('does not persist role baseline attendance in save payload', () => {
     const grants = grantsMapFromPreset('field_worker');
+    // Mark all grants as roleBaseline to simulate "loaded from role, not custom-granted"
+    for (const [key, grant] of grants.entries()) {
+      grants.set(key, { ...grant, roleBaseline: true });
+    }
     grants.set(PERMISSIONS.ATTENDANCE_SELF, {
       permissionKey: PERMISSIONS.ATTENDANCE_SELF,
       scope: 'self_only',

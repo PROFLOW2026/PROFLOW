@@ -115,5 +115,41 @@ export function notificationCopy(
         title: ref ? t('copy.action_required.titleWithReference', { reference: ref }) : t('copy.action_required.titleDefault'),
         body: bodyWithExtra(t, type, extra, 'bodyDefault', 'bodyWithExtra'),
       };
+    // ── Universal Work Management notifications ────────────────────────────
+    case 'task_assigned_to_you':
+      return {
+        title: titleWithReference(t, type, ref),
+        body: bodyWithExtra(t, type, extra),
+      };
+    case 'task_comment_mention':
+      return {
+        title: titleWithReference(t, type, ref),
+        body: bodyWithExtra(t, type, extra),
+      };
+    case 'task_due_soon':
+      return {
+        title: titleWithReference(t, type, ref),
+        body: bodyWithExtra(t, type, extra),
+      };
+    case 'task_approval_requested':
+      return {
+        title: titleWithReference(t, type, ref),
+        body: bodyWithExtra(t, type, extra),
+      };
+    case 'task_approval_decided':
+      return {
+        title: titleWithReference(t, type, ref),
+        body: bodyWithExtra(t, type, extra, 'bodyDefault', 'bodyWithExtra'),
+      };
+    case 'task_dependency_resolved':
+      return {
+        title: titleWithReference(t, type, ref),
+        body: bodyWithExtra(t, type, extra),
+      };
+    case 'milestone_approaching':
+      return {
+        title: titleWithReference(t, type, ref),
+        body: bodyWithExtra(t, type, extra),
+      };
   }
 }

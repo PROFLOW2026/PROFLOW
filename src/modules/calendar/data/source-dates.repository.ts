@@ -1,4 +1,4 @@
-import { and, eq, gte, isNotNull, isNull, lte, or } from 'drizzle-orm';
+import { and, eq, gte, isNotNull, isNull, lte, notInArray, or } from 'drizzle-orm';
 import {
   complianceArtifacts,
   crmOpportunities,
@@ -8,6 +8,7 @@ import {
   planningWorkItems,
   projectMilestones,
   projectServiceDetails,
+  tasks,
   warrantyCoverages,
 } from '@drizzle/schema';
 import { ORG_LIST_HARD_CAP, resolveListLimit } from '@/shared/db/list-limits';
@@ -351,6 +352,42 @@ export async function listExistingDatedSources(
       date,
       href: `/crm/${row.id}`,
       notes: row.nextActionText,
+    });
+  }
+
+  // Native tasks with due dates — kind='task', status not done/cancelled.
+  const taskRows = await safeQuery(() =>
+    db
+      .select({
+        id: tasks.id,
+        title: tasks.title,
+        dueDate: tasks.dueDate,
+        status: tasks.status,
+        projectId: tasks.projectId,
+      })
+      .from(tasks)
+      .where(
+        and(
+          eq(tasks.organizationId, organizationId),
+          eq(tasks.isArchived, false),
+          isNotNull(tasks.dueDate),
+          gte(tasks.dueDate, range.from),
+          lte(tasks.dueDate, range.to),
+          notInArray(tasks.status, ['done', 'cancelled']),
+        ),
+      )
+      .limit(resolveListLimit(undefined, LIST_CAP)),
+  );
+  for (const row of taskRows) {
+    if (!row.dueDate) continue;
+    sources.push({
+      id: `task:${row.id}`,
+      kind: 'task',
+      source: 'existing',
+      title: row.title,
+      date: row.dueDate,
+      href: `/work?task=${row.id}`,
+      projectId: row.projectId,
     });
   }
 

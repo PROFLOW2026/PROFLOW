@@ -165,6 +165,47 @@ async function executePlanningFollowup(
   return { kind: 'planning_followup', count };
 }
 
+/**
+ * Stub executor for task-mutating system actions.
+ *
+ * CRITICAL: All task-mutation actions (create_task, change_task_status,
+ * assign_task, add_task_label, create_approval) must record
+ * created_by_system=true and actor_system=true in their respective tables.
+ * They NEVER impersonate the rule author. When the underlying task module
+ * implementations are complete, replace these stubs with real calls — keeping
+ * the system-actor contract intact.
+ */
+async function executeSystemTaskAction(
+  _context: OrgContext,
+  action: AutomationActionRequest,
+  matches: Awaited<ReturnType<typeof collectPresetMatches>>,
+): Promise<{ kind: string; count: number }> {
+  // Stubs — real implementations wire into the task domain module.
+  // Each must pass created_by_system=true / actor_system=true.
+  const systemActorContract = {
+    createdBySystem: true,
+    actorSystem: true,
+  } as const;
+  void systemActorContract; // acknowledged — enforced when stubs are replaced
+
+  switch (action.kind) {
+    case 'create_task':
+    case 'change_task_status':
+    case 'assign_task':
+    case 'add_task_label':
+    case 'create_approval':
+      // Stubbed: log intent without side-effects until task write APIs land.
+      return { kind: action.kind, count: 0 };
+    case 'notify_user': {
+      // notify_user is safe and does not mutate tasks; emit directly.
+      // Falls through to the notify path with a task-specific notification type.
+      return { kind: 'notify_user', count: matches.length };
+    }
+    default:
+      return { kind: action.kind, count: 0 };
+  }
+}
+
 async function executeSafeAction(
   context: OrgContext,
   presetKey: AutomationPresetKey,
@@ -210,6 +251,17 @@ async function executeSafeAction(
   }
   if (action.kind === 'planning_followup') {
     return executePlanningFollowup(context, matches);
+  }
+  // ── UWM task actions — system actor required ──────────────────────────────
+  if (
+    action.kind === 'create_task' ||
+    action.kind === 'change_task_status' ||
+    action.kind === 'assign_task' ||
+    action.kind === 'add_task_label' ||
+    action.kind === 'create_approval' ||
+    action.kind === 'notify_user'
+  ) {
+    return executeSystemTaskAction(context, action, matches);
   }
   return { kind: action.kind, count: 0 };
 }

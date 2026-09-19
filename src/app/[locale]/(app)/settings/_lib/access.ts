@@ -33,7 +33,15 @@ export type SettingsSectionKey =
   | 'ocr'
   | 'profile'
   | 'integrations'
-  | 'storage';
+  | 'storage'
+  // Universal Work Management settings
+  | 'stages'
+  | 'labels'
+  | 'taskTemplates'
+  | 'projectTemplates'
+  | 'orgProfile'
+  | 'modules'
+  | 'adoption';
 
 export type SettingsNavGroup = 'myBusiness' | 'workflow' | 'advanced' | 'developers';
 
@@ -57,6 +65,7 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
   { key: 'profile', href: '/settings/profile', permission: null, group: 'myBusiness' },
   { key: 'tax', href: '/settings/tax', permission: PERMISSIONS.TAX_MANAGE, group: 'myBusiness' },
   { key: 'numbering', href: '/settings/numbering', permission: PERMISSIONS.ORG_READ, group: 'myBusiness' },
+  { key: 'orgProfile', href: '/settings/org-profile', permission: PERMISSIONS.SETTINGS_MANAGE, group: 'myBusiness' },
 
   { key: 'features', href: '/settings/features', permission: PERMISSIONS.SETTINGS_MANAGE, group: 'workflow' },
   { key: 'costCategories', href: '/settings/cost-categories', permission: PERMISSIONS.SETTINGS_MANAGE, group: 'workflow' },
@@ -70,6 +79,14 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
   { key: 'approvals', href: '/settings/approvals', permission: PERMISSIONS.APPROVALS_MANAGE, group: 'workflow' },
   { key: 'catalog', href: '/settings/catalog', permission: PERMISSIONS.SETTINGS_MANAGE, group: 'workflow' },
   { key: 'roles', href: '/settings/roles', permission: PERMISSIONS.ROLES_MANAGE, group: 'workflow' },
+
+  // Universal Work Management workflow settings
+  { key: 'stages', href: '/settings/stages', permission: PERMISSIONS.STAGES_MANAGE, group: 'workflow' },
+  { key: 'labels', href: '/settings/labels', permission: PERMISSIONS.LABELS_MANAGE, group: 'workflow' },
+  { key: 'taskTemplates', href: '/settings/task-templates', permission: PERMISSIONS.TASK_TEMPLATES_MANAGE, group: 'workflow' },
+  { key: 'projectTemplates', href: '/settings/project-templates', permission: PERMISSIONS.PROJECT_TEMPLATES_MANAGE, group: 'workflow' },
+  { key: 'modules', href: '/settings/modules', permission: PERMISSIONS.MODULES_MANAGE, group: 'workflow' },
+  { key: 'adoption', href: '/settings/adoption', permission: PERMISSIONS.SETTINGS_MANAGE, group: 'workflow', hideFromNav: true },
 
   { key: 'customFields', href: '/settings/custom-fields', permission: PERMISSIONS.CUSTOM_FIELDS_MANAGE, group: 'advanced' },
   { key: 'forms', href: '/settings/forms', permission: PERMISSIONS.FORMS_MANAGE, group: 'advanced' },
@@ -164,6 +181,17 @@ export function canManageSection(context: OrgContext, sectionKey: SettingsSectio
       return hasPermission(context, PERMISSIONS.MEMBERS_MANAGE);
     case 'roles':
       return hasPermission(context, PERMISSIONS.ROLES_MANAGE);
+    case 'stages':
+      return hasPermission(context, PERMISSIONS.STAGES_MANAGE);
+    case 'labels':
+    case 'taskTemplates':
+      return hasPermission(context, PERMISSIONS.TASK_TEMPLATES_MANAGE);
+    case 'projectTemplates':
+      return hasPermission(context, PERMISSIONS.PROJECT_TEMPLATES_MANAGE);
+    case 'orgProfile':
+    case 'modules':
+    case 'adoption':
+      return hasPermission(context, PERMISSIONS.SETTINGS_MANAGE);
     case 'features':
     case 'costCategories':
     case 'businessCatalogs':

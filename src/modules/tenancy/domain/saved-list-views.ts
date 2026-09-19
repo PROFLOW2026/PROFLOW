@@ -13,6 +13,8 @@ export const SAVED_LIST_KEYS = [
   'quotes',
   'punch',
   'inventory',
+  'portfolio',
+  'workload',
 ] as const;
 
 export type SavedListKey = (typeof SAVED_LIST_KEYS)[number];

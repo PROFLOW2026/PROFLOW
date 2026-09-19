@@ -54,6 +54,7 @@
   },
   "settingsLink": "ضبط القواعد",
   "openEntity": "فتح السجل ذي الصلة",
+  "openTask": "فتح المهمة",
   "inbox": {
     "submitter": "مُقدّم من",
     "unknownSubmitter": "غير معروف",

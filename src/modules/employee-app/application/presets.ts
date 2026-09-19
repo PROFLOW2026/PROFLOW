@@ -27,7 +27,12 @@ export interface EmployeePreset {
 const FIELD_WORKER: EmployeePreset = {
   key: 'field_worker',
   labelKey: 'employeeApp.presets.fieldWorker',
-  grants: [],
+  grants: [
+    // PM Tasks: own assigned tasks only
+    { permissionKey: PERMISSIONS.TASKS_READ, scope: 'self_only' },
+    { permissionKey: PERMISSIONS.TASKS_UPDATE, scope: 'self_only' },
+    { permissionKey: PERMISSIONS.TASKS_COMMENT, scope: 'self_only' },
+  ],
   documentCategories: [],
 };
 
@@ -48,6 +53,10 @@ const FOREMAN: EmployeePreset = {
     { permissionKey: PERMISSIONS.FIELD_OPS_READ, scope: 'assigned_only' },
     { permissionKey: PERMISSIONS.FIELD_OPS_MANAGE, scope: 'assigned_only' },
     { permissionKey: PERMISSIONS.DOCUMENTS_READ, scope: 'assigned_only' },
+    // PM Tasks: tasks in assigned projects
+    { permissionKey: PERMISSIONS.TASKS_READ, scope: 'assigned_only' },
+    { permissionKey: PERMISSIONS.TASKS_ASSIGN, scope: 'assigned_only' },
+    { permissionKey: PERMISSIONS.TASKS_COMMENT, scope: 'assigned_only' },
   ],
   documentCategories: ['photo', 'drawing', 'other'],
 };
@@ -65,6 +74,12 @@ const PROJECT_MANAGER: EmployeePreset = {
     { permissionKey: PERMISSIONS.DOCUMENTS_MANAGE, scope: 'assigned_only' },
     { permissionKey: PERMISSIONS.FORMS_READ, scope: 'assigned_only' },
     { permissionKey: PERMISSIONS.FORMS_SUBMIT, scope: 'assigned_only' },
+    // PM Tasks: full task management in assigned projects
+    { permissionKey: PERMISSIONS.TASKS_READ, scope: 'assigned_only' },
+    { permissionKey: PERMISSIONS.TASKS_MANAGE_ALL, scope: 'assigned_only' },
+    { permissionKey: PERMISSIONS.TASKS_ASSIGN, scope: 'assigned_only' },
+    { permissionKey: PERMISSIONS.TASKS_COMMENT, scope: 'assigned_only' },
+    { permissionKey: PERMISSIONS.TASKS_APPROVE, scope: 'assigned_only' },
   ],
   documentCategories: ['photo', 'drawing', 'certificate', 'other'],
 };

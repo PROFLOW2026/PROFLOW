@@ -9,7 +9,8 @@ export function isApprovalEntityType(value: string): value is ApprovalEntityType
     value === 'vendor_credit' ||
     value === 'time_correction' ||
     value === 'quote_discount' ||
-    value === 'budget_revision'
+    value === 'budget_revision' ||
+    value === 'task'
   );
 }
 

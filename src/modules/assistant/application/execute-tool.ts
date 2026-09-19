@@ -233,7 +233,7 @@ export async function executeAssistantTool(
     }
     case 'find_document': {
       const query = (options.question ?? '').slice(0, 80) || 'document';
-      const result = await globalSearch(context, { query, limitPerKind: 5 });
+      const result = await globalSearch(context, { query, limit: 5 });
       const docs = result.hits.filter((hit) => hit.kind === 'document');
       return {
         tool,

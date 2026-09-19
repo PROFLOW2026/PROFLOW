@@ -1,4 +1,6 @@
 import { BadgeCheck } from 'lucide-react';
+// eslint-disable-next-line no-restricted-imports
+import { inArray } from 'drizzle-orm';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
@@ -9,6 +11,8 @@ import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+// eslint-disable-next-line no-restricted-imports
+import { tasks } from '@drizzle/schema';
 import { PendingApprovalsList } from './pending-list';
 
 export async function generateMetadata({
@@ -29,10 +33,30 @@ export default async function ApprovalsPage() {
       return { allowed: false as const };
     }
     const items = await listPendingApprovals(context, { limit: 100 });
+
+    // Augment task items with title + project name for richer inbox display.
+    const taskIds = items
+      .filter((item) => item.entityType === 'task')
+      .map((item) => item.entityId);
+
+    let taskTitles: Record<string, { title: string; projectId: string | null }> = {};
+    if (taskIds.length > 0) {
+      const taskRows = await context.db
+        .select({ id: tasks.id, title: tasks.title, projectId: tasks.projectId })
+        .from(tasks)
+        .where(inArray(tasks.id, taskIds));
+      taskTitles = Object.fromEntries(
+        taskRows.map((row) => [row.id, { title: row.title, projectId: row.projectId }]),
+      );
+    }
+
     return {
       allowed: true as const,
       items,
-      canDecide: hasPermission(context, PERMISSIONS.APPROVALS_DECIDE),
+      taskTitles,
+      canDecide:
+        hasPermission(context, PERMISSIONS.APPROVALS_DECIDE) ||
+        hasPermission(context, PERMISSIONS.TASKS_APPROVE),
       canManage: hasPermission(context, PERMISSIONS.APPROVALS_MANAGE),
     };
   });
@@ -69,7 +93,11 @@ export default async function ApprovalsPage() {
             description={t('pendingEmpty.body')}
           />
         ) : (
-          <PendingApprovalsList items={data.items} canDecide={data.canDecide} />
+          <PendingApprovalsList
+            items={data.items}
+            canDecide={data.canDecide}
+            taskTitles={data.taskTitles}
+          />
         )}
       </section>
     </div>

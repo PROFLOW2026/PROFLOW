@@ -138,6 +138,7 @@ export {
   getOrganizationSettingValue,
   upsertOrganizationSettingValue,
 } from './data/organization-settings.repository';
+export { listModulePreferences } from './data/organizations.repository';
 export { seedBusinessProfileSetup } from './application/seed-business-profile-setup';
 export { applyOrganizationProfessionPreset } from './application/apply-organization-profession-preset';
 export { applyOrganizationBusinessProfile } from './application/apply-organization-business-profile';

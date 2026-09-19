@@ -75,6 +75,13 @@ export const NAV_ICON_KEYS = [
   'assistant',
   'automations',
   'fieldHome',
+  // UWM additions
+  'myWork',
+  'portfolio',
+  'workload',
+  'workspaces',
+  'operations',
+  'meetings',
 ] as const;
 
 export type NavIconKey = (typeof NAV_ICON_KEYS)[number];
@@ -146,6 +153,56 @@ export const NAV_ITEMS: readonly NavItem[] = [
     /** Core destination for eligible users - not an optional module. */
     primaryOnMobile: true,
   },
+  // ── Universal Work Management ────────────────────────────────────────────
+  {
+    key: 'operations',
+    href: '/operations',
+    labelKey: 'operations',
+    iconKey: 'operations',
+    permission: PERMISSIONS.OPERATIONS_READ,
+    moreGroup: 'work',
+  },
+  {
+    key: 'myWork',
+    href: '/work',
+    labelKey: 'myWork',
+    iconKey: 'myWork',
+    permission: PERMISSIONS.TASKS_READ,
+    moreGroup: 'work',
+  },
+  {
+    key: 'portfolio',
+    href: '/portfolio',
+    labelKey: 'portfolio',
+    iconKey: 'portfolio',
+    permission: PERMISSIONS.PORTFOLIO_READ,
+    moreGroup: 'work',
+  },
+  {
+    key: 'workload',
+    href: '/workload',
+    labelKey: 'workload',
+    iconKey: 'workload',
+    permission: PERMISSIONS.WORKLOAD_READ,
+    moreGroup: 'work',
+  },
+  {
+    key: 'workspaces',
+    href: '/workspaces',
+    labelKey: 'workspaces',
+    iconKey: 'workspaces',
+    permission: PERMISSIONS.WORKSPACES_MANAGE,
+    moreGroup: 'work',
+  },
+  {
+    key: 'meetings',
+    href: '/meetings',
+    labelKey: 'meetings',
+    iconKey: 'meetings',
+    permission: PERMISSIONS.MEETINGS_READ,
+    moreGroup: 'work',
+  },
+  // ── / Universal Work Management ──────────────────────────────────────────
   {
     key: 'projects',
     href: '/projects',

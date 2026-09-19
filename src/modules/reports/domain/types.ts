@@ -32,6 +32,15 @@ export const REPORT_KINDS = [
   'project_billing_account',
   'project_billing_plan_status',
   'monthly_workforce_report',
+  // ── Operational report kinds (Agent I) ─────────────────────────────────────
+  'project_task_status',
+  'overdue_tasks_org',
+  'milestone_status',
+  'team_workload',
+  'portfolio_status',
+  'stage_distribution',
+  'stale_projects',
+  'approval_queue_status',
 ] as const;
 
 export type ReportKind = (typeof REPORT_KINDS)[number];

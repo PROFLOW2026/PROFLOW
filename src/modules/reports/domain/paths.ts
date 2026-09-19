@@ -41,6 +41,15 @@ const KIND_FILENAME_STEM: Record<ReportKind, string> = {
   project_billing_account: 'Progress-Account',
   project_billing_plan_status: 'Billing-Plan-Status',
   monthly_workforce_report: 'Monthly-Workforce-Report',
+  // UWM operational reports
+  project_task_status: 'Project-Task-Status',
+  overdue_tasks_org: 'Overdue-Tasks',
+  milestone_status: 'Milestone-Status',
+  team_workload: 'Team-Workload',
+  portfolio_status: 'Portfolio-Status',
+  stage_distribution: 'Stage-Distribution',
+  stale_projects: 'Stale-Projects',
+  approval_queue_status: 'Approval-Queue',
 };
 
 /**

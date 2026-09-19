@@ -35,6 +35,13 @@ import {
   Mail,
   Sparkles,
   Workflow,
+  // UWM additions
+  CheckSquare,
+  BarChart3,
+  Users2,
+  Layers,
+  Activity,
+  Video,
   type LucideIcon,
 } from 'lucide-react';
 import type { NavIconKey } from './navigation';
@@ -80,6 +87,13 @@ const NAV_ICONS: Record<NavIconKey, LucideIcon> = {
   assistant: Sparkles,
   automations: Workflow,
   fieldHome: HardHat,
+  // UWM additions
+  myWork: CheckSquare,
+  portfolio: BarChart3,
+  workload: Users2,
+  workspaces: Layers,
+  operations: Activity,
+  meetings: Video,
 };
 
 export function NavIcon({

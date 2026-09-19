@@ -1,0 +1,322 @@
+{
+  "workspaces": {
+    "pageTitle": "مساحات العمل",
+    "pageDescription": "إدارة حاويات العمل واللوحات",
+    "empty": {
+      "title": "لا توجد مساحات عمل بعد",
+      "description": "أنشئ مساحة عمل لتنظيم مشاريعك"
+    },
+    "viewBoards": "عرض اللوحات",
+    "type": {
+      "project_linked": "مشروع",
+      "org_internal": "داخلي",
+      "team": "فريق"
+    }
+  },
+  "board": {
+    "addTask": "إضافة مهمة",
+    "addBucket": "إضافة عمود",
+    "noBuckets": "لا توجد أعمدة بعد",
+    "groupBy": "تجميع حسب",
+    "filter": "تصفية",
+    "statusColumns": "أعمدة الحالة",
+    "bucket": "عمود",
+    "defaultBoard": "اللوحة الافتراضية",
+    "archivedBoards": "اللوحات المؤرشفة",
+    "empty": {
+      "title": "لا توجد مهام هنا",
+      "description": "أضف مهمة إلى هذا العمود للبدء",
+      "globalDescription": "أضف مهام إلى مشاريعك لرؤيتها هنا"
+    }
+  },
+  "task": {
+    "title": "العنوان",
+    "description": "الوصف",
+    "status": "الحالة",
+    "priority": "الأولوية",
+    "dueDate": "تاريخ الاستحقاق",
+    "startDate": "تاريخ البدء",
+    "assignees": "المسؤولون",
+    "labels": "التسميات",
+    "checklist": "قائمة المراجعة",
+    "comments": "التعليقات",
+    "activity": "النشاط",
+    "attachments": "المرفقات",
+    "estimatedEffort": "الوقت المقدر",
+    "actualEffort": "الوقت الفعلي",
+    "milestone": "معلم المشروع",
+    "approvalRequired": "يتطلب موافقة",
+    "create": "إنشاء مهمة",
+    "edit": "تعديل المهمة",
+    "archive": "أرشفة",
+    "complete": "وضع علامة مكتمل",
+    "reopen": "إعادة فتح",
+    "addChecklist": "إضافة عنصر قائمة",
+    "noTasks": "لا توجد مهام",
+    "subtasks": "المهام الفرعية",
+    "dependencies": "الاعتماديات",
+    "blockedBy": "محجوب بواسطة",
+    "blocks": "يحجب",
+    "requestApproval": "طلب موافقة",
+    "approvalPending": "في انتظار الموافقة",
+    "approved": "معتمد",
+    "rejected": "مرفوض"
+  },
+  "status": {
+    "todo": "للتنفيذ",
+    "in_progress": "قيد التنفيذ",
+    "in_review": "قيد المراجعة",
+    "blocked": "محجوب",
+    "done": "مكتمل",
+    "cancelled": "ملغى"
+  },
+  "priority": {
+    "none": "بدون",
+    "low": "منخفضة",
+    "medium": "متوسطة",
+    "high": "عالية",
+    "urgent": "عاجل"
+  },
+  "myWork": {
+    "pageTitle": "مهامي",
+    "tabsLabel": "عروض مهامي",
+    "views": {
+      "today": "اليوم",
+      "overdue": "متأخر",
+      "this_week": "هذا الأسبوع",
+      "upcoming": "القادم",
+      "waiting": "في الانتظار",
+      "assigned_to_me": "مسندة إليّ",
+      "created_by_me": "أنشأتها",
+      "following": "متابع",
+      "completed": "مكتمل"
+    },
+    "empty": "لا توجد مهام في هذا العرض",
+    "noTasksToday": "لا توجد مهام مستحقة اليوم"
+  },
+  "portfolio": {
+    "pageTitle": "محفظة المشاريع",
+    "columns": {
+      "project": "المشروع",
+      "client": "العميل",
+      "stage": "المرحلة",
+      "status": "الحالة",
+      "openTasks": "مفتوحة",
+      "overdueTasks": "متأخرة",
+      "blockedTasks": "محجوبة",
+      "nextMilestone": "المعلم القادم",
+      "lastActivity": "آخر نشاط",
+      "health": "الصحة"
+    },
+    "health": {
+      "formula": "متأخرة×2 + محجوبة",
+      "good": "على المسار",
+      "warning": "يحتاج انتباهاً",
+      "critical": "في خطر"
+    },
+    "filters": {
+      "stage": "المرحلة",
+      "status": "الحالة",
+      "hasOverdue": "يحتوي مهام متأخرة",
+      "stale": "غير نشط (14 يوم)",
+      "workKind": "النوع"
+    },
+    "empty": "لم يتم العثور على مشاريع"
+  },
+  "workload": {
+    "pageTitle": "عبء عمل الفريق",
+    "columns": {
+      "employee": "الموظف",
+      "openTasks": "المهام المفتوحة",
+      "overdue": "متأخرة",
+      "dueThisWeek": "مستحقة هذا الأسبوع",
+      "projects": "المشاريع",
+      "estimatedEffort": "الوقت المقدر"
+    },
+    "noEffortData": "لا توجد تقديرات وقت",
+    "reassign": "إعادة تعيين",
+    "expand": "عرض المهام",
+    "empty": "لم يتم العثور على أعضاء الفريق"
+  },
+  "operations": {
+    "pageTitle": "العمليات",
+    "sections": {
+      "activeProjects": "المشاريع النشطة",
+      "byStage": "المشاريع حسب المرحلة",
+      "dueToday": "مستحق اليوم",
+      "overdue": "متأخر",
+      "blocked": "محجوب",
+      "upcomingMilestones": "معالم قادمة",
+      "pendingApprovals": "موافقات معلقة",
+      "staleProjects": "مشاريع غير نشطة",
+      "workloadSnapshot": "لمحة العبء",
+      "recentActivity": "النشاط الأخير"
+    }
+  },
+  "meetings": {
+    "pageTitle": "الاجتماعات",
+    "newMeeting": "اجتماع جديد",
+    "fields": {
+      "title": "الموضوع",
+      "date": "التاريخ",
+      "location": "الموقع",
+      "notes": "الملاحظات",
+      "attendees": "الحضور",
+      "decisions": "القرارات",
+      "actionItems": "بنود العمل"
+    },
+    "decision": {
+      "add": "إضافة قرار",
+      "edit": "تعديل القرار"
+    },
+    "actionItem": {
+      "add": "إضافة بند عمل",
+      "createTask": "إنشاء مهمة",
+      "status": {
+        "open": "مفتوح",
+        "done": "مكتمل",
+        "cancelled": "ملغى"
+      }
+    },
+    "empty": "لا توجد اجتماعات بعد",
+    "noDecisions": "لم يتم تسجيل قرارات"
+  },
+  "stages": {
+    "pageTitle": "مراحل المشروع",
+    "addStage": "إضافة مرحلة",
+    "editStage": "تعديل المرحلة",
+    "setDefault": "تعيين كافتراضي",
+    "currentStage": "المرحلة الحالية",
+    "transitionTo": "الانتقال إلى",
+    "history": "تاريخ المراحل",
+    "noStages": "لم يتم تعريف مراحل",
+    "workKindFilter": {
+      "all": "جميع أنواع المشاريع",
+      "project": "المشاريع فقط",
+      "job": "الأعمال فقط",
+      "work_order": "أوامر العمل فقط"
+    }
+  },
+  "labels": {
+    "pageTitle": "تسميات المهام",
+    "addLabel": "إضافة تسمية",
+    "editLabel": "تعديل التسمية",
+    "noLabels": "لم يتم تعريف تسميات"
+  },
+  "templates": {
+    "taskTemplates": {
+      "pageTitle": "قوالب المهام",
+      "addTemplate": "قالب جديد",
+      "noTemplates": "لا توجد قوالب مهام"
+    },
+    "projectTemplates": {
+      "pageTitle": "قوالب المشاريع",
+      "addTemplate": "قالب جديد",
+      "noTemplates": "لا توجد قوالب مشاريع"
+    }
+  },
+  "create": {
+    "titleLabel": "العنوان",
+    "titlePlaceholder": "عنوان المهمة...",
+    "titleRequired": "العنوان مطلوب",
+    "descriptionLabel": "الوصف",
+    "descriptionPlaceholder": "وصف اختياري...",
+    "bucketLabel": "العمود",
+    "noBucket": "بدون عمود",
+    "statusLabel": "الحالة",
+    "priorityLabel": "الأولوية",
+    "dueDateLabel": "تاريخ الاستحقاق",
+    "assigneesLabel": "المسؤولون",
+    "labelsLabel": "التسميات",
+    "submit": "إنشاء مهمة",
+    "saving": "جارٍ الإنشاء...",
+    "error": "فشل في إنشاء المهمة"
+  },
+  "cancel": "إلغاء",
+  "add": "إضافة",
+  "addTask": "إضافة مهمة",
+  "taskTitlePlaceholder": "مهمة جديدة...",
+  "emptyColumn": "لا توجد مهام هنا",
+  "loadingTask": "جارٍ تحميل المهمة...",
+  "groupBy": {
+    "bucket": "العمود",
+    "assignee": "المسؤول",
+    "priority": "الأولوية",
+    "label": "التسمية",
+    "status": "الحالة"
+  },
+  "filter": {
+    "all": "الكل",
+    "overdue": "متأخرة",
+    "blocked": "محجوبة",
+    "dueThisWeek": "مستحقة هذا الأسبوع",
+    "clear": "مسح التصفية"
+  },
+  "boards": {
+    "boardPageTitle": "اللوحة",
+    "boardsPageTitle": "اللوحات",
+    "noBoardsYet": "لا توجد لوحات بعد",
+    "switcherLabel": "تبديل اللوحة",
+    "default": "افتراضي",
+    "createBoard": "إنشاء لوحة"
+  },
+  "checklist": "قائمة المراجعة",
+  "close": "إغلاق",
+  "saving": "جارٍ الحفظ...",
+  "task": "مهمة",
+  "unassigned": "غير مسند",
+  "wipLimitLabel": "حد WIP",
+  "groupByLabel": "تجميع حسب",
+  "approvalRequired": "يتطلب موافقة",
+  "bucket": "عمود",
+  "breadcrumb": "مهمة",
+  "removeLabel": "إزالة",
+  "activityLabel": "النشاط",
+  "activitySlot": "النشاط",
+  "commentsLabel": "التعليقات",
+  "commentsSlot": "التعليقات",
+  "descriptionLabel": "الوصف",
+  "descriptionPlaceholder": "أضف وصفاً...",
+  "dueDateLabel": "تاريخ الاستحقاق",
+  "assigneesLabel": "المسؤولون",
+  "labelsLabel": "التسميات",
+  "priorityLabel": "الأولوية",
+  "statusLabel": "الحالة",
+  "attachmentsLabel": "المرفقات",
+  "list": {
+    "columns": {
+      "title": "العنوان",
+      "status": "الحالة",
+      "priority": "الأولوية",
+      "assignees": "المسؤولون",
+      "dueDate": "تاريخ الاستحقاق",
+      "project": "المشروع"
+    },
+    "empty": {
+      "title": "لا توجد مهام",
+      "description": "أنشئ مهمة للبدء"
+    }
+  },
+  "create.title": "مهمة جديدة",
+  "activity": {
+    "created": "أنشأ هذه المهمة",
+    "status_changed": "غيّر الحالة",
+    "bucket_changed": "نقل إلى عمود",
+    "assigned": "تم التعيين",
+    "due_date_changed": "غيّر تاريخ الاستحقاق",
+    "priority_changed": "غيّر الأولوية",
+    "comment_added": "أضاف تعليقاً",
+    "attachment_added": "أضاف مرفقاً",
+    "checklist_completed": "أكمل عنصر قائمة",
+    "approval_result": "تم تسجيل قرار الموافقة",
+    "dependency_added": "أضاف اعتمادية",
+    "dependency_removed": "حذف اعتمادية",
+    "completed": "تم وضع علامة مكتمل",
+    "reopened": "تم إعادة فتحه",
+    "archived": "تمت الأرشفة",
+    "label_added": "أضاف تسمية",
+    "recurrence_generated": "تم إنشاء مهمة متكررة",
+    "automation_changed": "تم التحديث بواسطة الأتمتة",
+    "system_generated": "إجراء النظام"
+  }
+}

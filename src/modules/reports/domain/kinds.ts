@@ -54,6 +54,47 @@ export const REPORT_KIND_DEFINITIONS: readonly ReportKindDefinition[] = [
     permission: PERMISSIONS.ATTENDANCE_MANAGE,
     projectScoped: false,
   },
+  // ── Operational report kinds (Agent I) ──────────────────────────────────────
+  {
+    kind: 'project_task_status',
+    permission: PERMISSIONS.TASKS_READ,
+    projectScoped: true,
+  },
+  {
+    kind: 'overdue_tasks_org',
+    permission: PERMISSIONS.TASKS_READ,
+    projectScoped: false,
+  },
+  {
+    kind: 'milestone_status',
+    permission: PERMISSIONS.PROJECTS_READ,
+    projectScoped: false,
+  },
+  {
+    kind: 'team_workload',
+    permission: PERMISSIONS.WORKLOAD_READ,
+    projectScoped: false,
+  },
+  {
+    kind: 'portfolio_status',
+    permission: PERMISSIONS.PORTFOLIO_READ,
+    projectScoped: false,
+  },
+  {
+    kind: 'stage_distribution',
+    permission: PERMISSIONS.PROJECTS_READ,
+    projectScoped: false,
+  },
+  {
+    kind: 'stale_projects',
+    permission: PERMISSIONS.OPERATIONS_READ,
+    projectScoped: false,
+  },
+  {
+    kind: 'approval_queue_status',
+    permission: PERMISSIONS.APPROVALS_READ,
+    projectScoped: false,
+  },
 ] as const;
 
 const BY_KIND = new Map(REPORT_KIND_DEFINITIONS.map((item) => [item.kind, item]));

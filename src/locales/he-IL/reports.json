@@ -55,7 +55,15 @@
     "timesheet": "גיליון שעות",
     "project_billing_account": "חשבון התקדמות / דרישת תשלום",
     "project_billing_plan_status": "סטטוס תוכנית חיוב",
-    "monthly_workforce_report": "דוח עובדים חודשי"
+    "monthly_workforce_report": "דוח עובדים חודשי",
+    "project_task_status": "סטטוס משימות פרויקט",
+    "overdue_tasks_org": "משימות באיחור",
+    "milestone_status": "סטטוס אבני דרך",
+    "team_workload": "עומס צוות",
+    "portfolio_status": "סטטוס תיק פרויקטים",
+    "stage_distribution": "פרויקטים לפי שלב",
+    "stale_projects": "פרויקטים לא פעילים",
+    "approval_queue_status": "תור אישורים"
   },
   "documentKinds": {
     "progress_account": "חשבון התקדמות",

@@ -54,6 +54,7 @@
   },
   "settingsLink": "Настроить правила",
   "openEntity": "Открыть связанную запись",
+  "openTask": "Открыть задачу",
   "inbox": {
     "submitter": "Отправил",
     "unknownSubmitter": "Неизвестно",

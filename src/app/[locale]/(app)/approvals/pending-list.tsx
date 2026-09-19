@@ -3,6 +3,7 @@
 import { useActionState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Alert } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import type { PendingApprovalItem } from '@/modules/approvals';
@@ -22,26 +23,36 @@ function PendingCard({
   item,
   canDecide,
   entityLabel,
+  taskTitle,
 }: {
   item: PendingApprovalItem;
   canDecide: boolean;
   entityLabel: string;
+  taskTitle?: string | null;
 }) {
   const t = useTranslations('approvals');
   const [state, action, pending] = useActionState(decideApprovalAction, {} as ApprovalsActionState);
+
+  const isTask = item.entityType === 'task';
+  const displayTitle = isTask && taskTitle ? taskTitle : entityLabel;
 
   return (
     <li className="rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4">
       <div className="flex flex-col gap-3">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div className="min-w-0">
-            <p className="font-semibold">{entityLabel}</p>
+            {/* Entity type badge */}
+            <div className="mb-1 flex items-center gap-1.5">
+              <Badge tone="neutral" className="text-xs">
+                {entityLabel}
+              </Badge>
+            </div>
+
+            <p className="font-semibold">{displayTitle}</p>
             <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
               {item.amount && item.currency ? (
                 <MoneyText value={money(item.amount, item.currency)} />
-              ) : (
-                '-'
-              )}
+              ) : null}
             </p>
             <p className="mt-1 text-xs text-[var(--pf-text-muted)]">
               {t('inbox.submitter')}: {item.submitterName ?? t('inbox.unknownSubmitter')}
@@ -54,7 +65,7 @@ function PendingCard({
             {item.sourceHref ? (
               <p className="mt-1 text-sm">
                 <Link href={item.sourceHref} className="text-[var(--pf-text-brand)] underline">
-                  {t('openEntity')}
+                  {isTask ? t('openTask') : t('openEntity')}
                 </Link>
               </p>
             ) : null}
@@ -109,9 +120,11 @@ function PendingCard({
 export function PendingApprovalsList({
   items,
   canDecide,
+  taskTitles = {},
 }: {
   items: readonly PendingApprovalItem[];
   canDecide: boolean;
+  taskTitles?: Record<string, { title: string; projectId: string | null }>;
 }) {
   const t = useTranslations('approvals');
 
@@ -123,6 +136,11 @@ export function PendingApprovalsList({
           item={item}
           canDecide={canDecide}
           entityLabel={t(`entityTypes.${item.entityType}`)}
+          taskTitle={
+            item.entityType === 'task'
+              ? (taskTitles[item.entityId]?.title ?? null)
+              : null
+          }
         />
       ))}
     </ul>

@@ -1281,5 +1281,29 @@
       "legalFooterNote": "סגנון כותרת תחתונה משפטית",
       "documentOnlyNote": "תצוגה מקדימה של מיתוג מסמכים  -  ממשק האפליקציה נשאר ללא שינוי."
     }
+  },
+  "stagesSection": {
+    "nav": "שלבי פרויקט",
+    "description": "הגדר שלבי מחזור חיים לפרויקטים"
+  },
+  "labelsSection": {
+    "nav": "תגיות משימה",
+    "description": "נהל צבעים ושמות תגיות"
+  },
+  "orgProfile": {
+    "nav": "פרופיל ארגוני",
+    "description": "הגדר את סוג הארגון והמינוח"
+  },
+  "adoption": {
+    "nav": "הגדרות ברירת מחדל",
+    "description": "החל ברירות מחדל לשלבים ותבניות"
+  },
+  "taskTemplatesSection": {
+    "nav": "תבניות משימה",
+    "description": "הגדרות משימה לשימוש חוזר"
+  },
+  "projectTemplatesSection": {
+    "nav": "תבניות פרויקט",
+    "description": "תבניות פרויקט עם שלבים ומשימות"
   }
 }

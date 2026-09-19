@@ -10,6 +10,14 @@ import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { resolveLabelLocale } from '@/shared/i18n/intl-locale';
 import { ProjectPlanningPanel } from './project-planning-panel';
+import { PlanningWritePanel } from './planning-write-panel';
+import {
+  createPlanningWorkItemAction,
+  updatePlanningWorkItemAction,
+  archivePlanningWorkItemAction,
+  setPlanningDependencyAction,
+  removePlanningDependencyAction,
+} from '@/app/[locale]/(app)/projects/planning-actions';
 import type { PlanningLocale } from './messages';
 
 export interface ProjectSchedulePanelProps {
@@ -32,10 +40,12 @@ export async function ProjectSchedulePanel({ projectId }: ProjectSchedulePanelPr
     const project = await findProjectById(context.db, context.organizationId, projectId);
     if (!project) return null;
 
+    const canWrite = hasPermission(context, PERMISSIONS.PLANNING_WRITE);
     const workKind = project.workKind === 'job' ? ('job' as const) : ('project' as const);
     if (workKind === 'job') {
       return {
         workKind,
+        canWrite,
         workItems: [] as const,
         dependencies: [] as const,
         gantt: null,
@@ -61,6 +71,7 @@ export async function ProjectSchedulePanel({ projectId }: ProjectSchedulePanelPr
 
       return {
         workKind: 'project' as const,
+        canWrite,
         workItems: view.snapshot.workItems,
         dependencies: view.snapshot.dependencies,
         gantt: view.gantt,
@@ -71,6 +82,7 @@ export async function ProjectSchedulePanel({ projectId }: ProjectSchedulePanelPr
       if (error instanceof PlanningEligibilityError) {
         return {
           workKind: 'job' as const,
+          canWrite,
           workItems: [] as const,
           dependencies: [] as const,
           gantt: null,
@@ -89,14 +101,29 @@ export async function ProjectSchedulePanel({ projectId }: ProjectSchedulePanelPr
   if (!data) return null;
 
   return (
-    <ProjectPlanningPanel
-      workKind={data.workKind}
-      locale={planningLocale}
-      workItems={data.workItems}
-      dependencies={data.dependencies}
-      gantt={data.gantt}
-      overdue={data.overdue}
-      criticalPathFoundation={data.criticalPathFoundation}
-    />
+    <div className="space-y-6">
+      <ProjectPlanningPanel
+        workKind={data.workKind}
+        locale={planningLocale}
+        workItems={data.workItems}
+        dependencies={data.dependencies}
+        gantt={data.gantt}
+        overdue={data.overdue}
+        criticalPathFoundation={data.criticalPathFoundation}
+      />
+
+      {data.canWrite && data.workKind === 'project' ? (
+        <PlanningWritePanel
+          projectId={projectId}
+          workItems={data.workItems}
+          dependencies={data.dependencies}
+          createAction={createPlanningWorkItemAction}
+          updateAction={updatePlanningWorkItemAction}
+          archiveAction={archivePlanningWorkItemAction}
+          setDepAction={setPlanningDependencyAction}
+          removeDepAction={removePlanningDependencyAction}
+        />
+      ) : null}
+    </div>
   );
 }

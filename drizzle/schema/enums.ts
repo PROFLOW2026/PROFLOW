@@ -158,6 +158,109 @@ export const documentOwnerTypeEnum = pgEnum('document_owner_type', [
 
 export const taxMethodEnum = pgEnum('tax_method', ['percentage', 'exempt', 'zero_rated']);
 
+// ─── Universal Work Management (0096+) ───────────────────────────────────────
+
+export const orgProfileTypeEnum = pgEnum('org_profile_type', [
+  'contractor',
+  'subcontractor',
+  'architect',
+  'engineer',
+  'consultant',
+  'project_manager',
+  'developer',
+  'supervisor',
+  'other',
+]);
+
+export const workspaceTypeEnum = pgEnum('workspace_type', [
+  'project_linked',
+  'org_internal',
+  'team',
+]);
+
+export const workspaceVisibilityEnum = pgEnum('workspace_visibility', [
+  'organization',
+  'restricted',
+  'team',
+]);
+
+export const workspaceMemberAccessLevelEnum = pgEnum('workspace_member_access_level', [
+  'viewer',
+  'contributor',
+  'manager',
+]);
+
+export const taskStatusEnum = pgEnum('task_status', [
+  'todo',
+  'in_progress',
+  'in_review',
+  'blocked',
+  'done',
+  'cancelled',
+]);
+
+export const taskPriorityEnum = pgEnum('task_priority', [
+  'none',
+  'low',
+  'medium',
+  'high',
+  'urgent',
+]);
+
+export const taskSourceEnum = pgEnum('task_source', [
+  'manual',
+  'template',
+  'automation',
+  'meeting_action',
+  'recurrence',
+]);
+
+export const taskDependencyTypeEnum = pgEnum('task_dependency_type', [
+  'finish_to_start',
+  'blocked_by',
+]);
+
+export const taskActivityEventTypeEnum = pgEnum('task_activity_event_type', [
+  'created',
+  'status_changed',
+  'bucket_changed',
+  'assigned',
+  'due_date_changed',
+  'priority_changed',
+  'comment_added',
+  'attachment_added',
+  'checklist_completed',
+  'approval_result',
+  'dependency_added',
+  'dependency_removed',
+  'completed',
+  'reopened',
+  'archived',
+  'label_added',
+  'recurrence_generated',
+  'automation_changed',
+  'system_generated',
+]);
+
+export const taskRecurrenceOccurrenceStatusEnum = pgEnum('task_recurrence_occurrence_status', [
+  'pending',
+  'generated',
+  'skipped',
+  'cancelled',
+]);
+
+export const savedListViewScopeEnum = pgEnum('saved_list_view_scope', [
+  'private',
+  'organization',
+]);
+
+export const meetingAttendeeTypeEnum = pgEnum('meeting_attendee_type', [
+  'org_member',
+  'employee',
+  'external_contact',
+  'display_name',
+]);
+
 export const contactRoleEnum = pgEnum('contact_role', ['primary', 'billing', 'site', 'other']);
 
 export const identifierTypeEnum = pgEnum('identifier_type', [

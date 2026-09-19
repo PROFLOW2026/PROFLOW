@@ -362,7 +362,10 @@ describe('migration journal', () => {
     expect(tags.indexOf('0094_statutory_receipt_payment_link')).toBeLessThan(
       tags.indexOf('0095_external_expense_imports'),
     );
-    expect(tags.at(-1)).toBe('0095_external_expense_imports');
+    expect(tags.indexOf('0095_external_expense_imports')).toBeLessThan(
+      tags.indexOf('0096_uwm_org_profile'),
+    );
+    expect(tags.at(-1)).toBe('0112_uwm_approval_task_entity');
 
     const sql66 = await readFile(
       path.join(MIGRATIONS_DIR, '0066_workforce_time_integrity.sql'),

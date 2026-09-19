@@ -11,6 +11,7 @@ export const APPROVAL_ENTITY_TYPES = [
   'time_correction',
   'quote_discount',
   'budget_revision',
+  'task',
 ] as const;
 
 export type ApprovalEntityType = (typeof APPROVAL_ENTITY_TYPES)[number];

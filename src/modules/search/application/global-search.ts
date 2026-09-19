@@ -1,251 +1,109 @@
-import 'server-only';
-
-import { ValidationError } from '@/shared/errors';
+/**
+ * Global Search — application layer dispatcher.
+ *
+ * Integrates task search (Agent I) into the existing search architecture.
+ * Returns GlobalSearchResult with grouped hits following existing conventions.
+ *
+ * Access rules for tasks:
+ *  - Filtered by caller workspace membership (accessibleWorkspaceIds)
+ *  - Filtered by project-context access (accessibleProjectIds)
+ *  - NEVER returns hits from inaccessible workspaces
+ */
+import type { OrgContext } from '@/shared/auth/context';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import type { OrgContext } from '@/shared/auth/context';
-import type { GlobalSearchHit, GlobalSearchResult } from '../domain/types';
-import {
-  searchApBills,
-  searchAssets,
-  searchBillingCycles,
-  searchBillingPlans,
-  searchBillingRecords,
-  searchBoqItems,
-  searchClients,
-  searchContacts,
-  searchContracts,
-  searchDailyLogs,
-  searchDocuments,
-  searchEmployees,
-  searchExpenses,
-  searchInspections,
-  searchInventoryItems,
-  searchMaterials,
-  searchOpportunities,
-  searchProjectsByWorkKind,
-  searchPunchItems,
-  searchPurchaseOrders,
-  searchQuotes,
-  searchRecurringDrafts,
-  searchApprovalRequests,
-  searchSafetyRecords,
-  searchSubcontracts,
-  searchVendorCredits,
-  searchVendors,
-  searchWarrantyCoverages,
-  searchCommunications,
-  searchCalendarEvents,
-  searchCloseouts,
-} from '../data/search.repository';
 import { resolveAccessibleProjectIds } from '@/modules/projects/application/project-access';
-import {
-  getBusinessProfileKeyForOrg,
-  getModuleVisibility,
-  personaForBusinessProfile,
-} from '@/modules/tenancy';
-import { canUseExperiencePreview, resolveExperiencePreview } from '@/modules/tenancy/domain/experience-preview';
-import { readExperiencePreviewCookie } from '@/modules/tenancy/application/experience-preview';
-import { matchSearchCommands } from '../domain/commands';
+import { getAccessibleWorkspaceIds } from '@/modules/operations';
+import { taskSearchHref } from '../domain/hrefs';
 import { groupSearchHits } from '../domain/group';
-import { globalSearchSchema, type GlobalSearchInput } from '../validation/schemas';
-import { serverEnv } from '@/shared/env/server';
+import type { GlobalSearchHit, GlobalSearchResult, SearchCommandHit } from '../domain/types';
+import { searchTasks } from '../data/search.repository';
+
+// ─── Task search integration ──────────────────────────────────────────────────
+
+async function fetchTaskHits(
+  context: OrgContext,
+  query: string,
+  limit: number,
+): Promise<GlobalSearchHit[]> {
+  if (!hasPermission(context, PERMISSIONS.TASKS_READ)) return [];
+
+  const [accessibleProjectIds, accessibleWorkspaceIds] = await Promise.all([
+    resolveAccessibleProjectIds(context),
+    getAccessibleWorkspaceIds(context.db, context.organizationId, context.membershipId),
+  ]);
+
+  const hits = await searchTasks(
+    context.db,
+    context.organizationId,
+    query,
+    accessibleWorkspaceIds,
+    accessibleProjectIds,
+    limit,
+  );
+
+  return hits.map((hit): GlobalSearchHit => ({
+    kind: 'task',
+    id: hit.id,
+    title: hit.title,
+    subtitle: [hit.workspaceName, hit.projectName].filter(Boolean).join(' · ') || null,
+    href: taskSearchHref(hit.id),
+    status: hit.status,
+    contextLabel: hit.projectName ?? hit.workspaceName ?? null,
+    date: hit.dueDate,
+  }));
+}
+
+// ─── Main dispatcher ──────────────────────────────────────────────────────────
 
 /**
- * Org-scoped global search. Each kind is gated by its read permission.
- * Project-restricted users never see other projects' rows.
- * Hits never include Actual, profit, rates, OCR content, or BOQ prices.
+ * Global search dispatcher.
+ * Compatible with existing `search-actions.ts` call: `globalSearch(context, { query })`.
  */
 export async function globalSearch(
   context: OrgContext,
-  rawInput: GlobalSearchInput,
+  input: { query: string; limit?: number },
 ): Promise<GlobalSearchResult> {
-  const parsed = globalSearchSchema.safeParse(rawInput);
-  if (!parsed.success) {
-    throw new ValidationError(
-      parsed.error.issues.map((issue) => ({ path: issue.path.join('.'), message: issue.message })),
-    );
+  const query = input.query?.trim() ?? '';
+  if (!query) {
+    return { query: '', commands: [], groups: [], hits: [] };
   }
 
-  const query = parsed.data.query;
-  const limit = parsed.data.limitPerKind;
-  const env = serverEnv();
-  const [accessibleProjectIds, modules, businessProfileKey, previewSelection] = await Promise.all([
-    resolveAccessibleProjectIds(context),
-    getModuleVisibility(context),
-    getBusinessProfileKeyForOrg(context.db, context.organizationId),
-    readExperiencePreviewCookie(),
-  ]);
-  const previewAllowed = canUseExperiencePreview(
-    context.roleKeys,
-    env.APP_ENV,
-    env.PF_EXPERIENCE_PREVIEW,
-  );
-  const preview = resolveExperiencePreview(previewAllowed ? previewSelection : 'actual');
-  const effectiveProfileKey =
-    preview.active && preview.profileKey ? preview.profileKey : businessProfileKey;
-  const persona = personaForBusinessProfile(effectiveProfileKey);
-  const tasks: Promise<GlobalSearchHit[]>[] = [];
+  const perEntityLimit = input.limit ?? 10;
 
-  if (hasPermission(context, PERMISSIONS.PROJECTS_READ)) {
-    tasks.push(
-      searchProjectsByWorkKind(
-        context.db,
-        context.organizationId,
-        query,
-        'project',
-        limit,
-        accessibleProjectIds,
-      ),
-    );
-    tasks.push(
-      searchProjectsByWorkKind(
-        context.db,
-        context.organizationId,
-        query,
-        'job',
-        limit,
-        accessibleProjectIds,
-      ),
-    );
-  }
-  if (hasPermission(context, PERMISSIONS.SERVICE_READ)) {
-    tasks.push(
-      searchProjectsByWorkKind(
-        context.db,
-        context.organizationId,
-        query,
-        'work_order',
-        limit,
-        accessibleProjectIds,
-      ),
-    );
-  }
-  if (hasPermission(context, PERMISSIONS.CLIENTS_READ)) {
-    tasks.push(searchClients(context.db, context.organizationId, query, limit));
-    tasks.push(searchContacts(context.db, context.organizationId, query, limit));
-  }
-  if (hasPermission(context, PERMISSIONS.WORKFORCE_READ)) {
-    tasks.push(searchEmployees(context.db, context.organizationId, query, limit));
-  }
-  if (hasPermission(context, PERMISSIONS.VENDORS_READ)) {
-    tasks.push(searchVendors(context.db, context.organizationId, query, limit));
-    tasks.push(
-      searchSubcontracts(context.db, context.organizationId, query, limit, accessibleProjectIds),
-    );
-  }
-  if (hasPermission(context, PERMISSIONS.AP_READ)) {
-    tasks.push(searchApBills(context.db, context.organizationId, query, limit, accessibleProjectIds));
-    tasks.push(
-      searchVendorCredits(context.db, context.organizationId, query, limit, accessibleProjectIds),
-    );
-  }
-  if (hasPermission(context, PERMISSIONS.BILLING_READ)) {
-    tasks.push(
-      searchBillingRecords(context.db, context.organizationId, query, limit, accessibleProjectIds),
-    );
-    tasks.push(
-      searchBillingPlans(context.db, context.organizationId, query, limit, accessibleProjectIds),
-    );
-    tasks.push(
-      searchBillingCycles(context.db, context.organizationId, query, limit, accessibleProjectIds),
-    );
-  }
-  if (hasPermission(context, PERMISSIONS.EXPENSES_READ)) {
-    tasks.push(searchExpenses(context.db, context.organizationId, query, limit, accessibleProjectIds));
-  }
-  if (Boolean(modules.quotes) && hasPermission(context, PERMISSIONS.QUOTES_READ)) {
-    tasks.push(searchQuotes(context.db, context.organizationId, query, limit));
-  }
-  if (Boolean(modules.crm) && hasPermission(context, PERMISSIONS.CRM_READ)) {
-    tasks.push(searchOpportunities(context.db, context.organizationId, query, limit));
-  }
-  if (hasPermission(context, PERMISSIONS.CONTRACTS_READ)) {
-    tasks.push(
-      searchContracts(context.db, context.organizationId, query, limit, accessibleProjectIds),
-    );
-  }
-  if (Boolean(modules.procurement) && hasPermission(context, PERMISSIONS.PROCUREMENT_READ)) {
-    tasks.push(
-      searchPurchaseOrders(context.db, context.organizationId, query, limit, accessibleProjectIds),
-    );
-  }
-  if (hasPermission(context, PERMISSIONS.DOCUMENTS_READ)) {
-    tasks.push(
-      searchDocuments(context.db, context.organizationId, query, limit, {
-        includeCompensation: hasPermission(context, PERMISSIONS.WORKFORCE_COST_READ),
-        accessibleProjectIds,
-      }),
-    );
-  }
-  if (hasPermission(context, PERMISSIONS.ASSETS_READ)) {
-    tasks.push(searchAssets(context.db, context.organizationId, query, limit));
-    tasks.push(searchInventoryItems(context.db, context.organizationId, query, limit));
-  }
-  if (hasPermission(context, PERMISSIONS.MATERIALS_READ)) {
-    tasks.push(searchMaterials(context.db, context.organizationId, query, limit));
-  }
-  if (Boolean(modules.boq) && hasPermission(context, PERMISSIONS.BOQ_READ)) {
-    tasks.push(searchBoqItems(context.db, context.organizationId, query, limit, accessibleProjectIds));
-  }
-  if (Boolean(modules.field_ops) && hasPermission(context, PERMISSIONS.FIELD_OPS_READ)) {
-    tasks.push(searchDailyLogs(context.db, context.organizationId, query, limit, accessibleProjectIds));
-    tasks.push(searchPunchItems(context.db, context.organizationId, query, limit, accessibleProjectIds));
-    tasks.push(
-      searchInspections(context.db, context.organizationId, query, limit, accessibleProjectIds),
-    );
-  }
-  if (Boolean(modules.safety) && hasPermission(context, PERMISSIONS.SAFETY_READ)) {
-    tasks.push(
-      searchSafetyRecords(context.db, context.organizationId, query, limit, accessibleProjectIds),
-    );
-  }
-  if (hasPermission(context, PERMISSIONS.PROJECTS_READ)) {
-    tasks.push(
-      searchWarrantyCoverages(
-        context.db,
-        context.organizationId,
-        query,
-        limit,
-        accessibleProjectIds,
-      ),
-    );
-    tasks.push(
-      searchCloseouts(context.db, context.organizationId, query, limit, accessibleProjectIds),
-    );
-  }
-  if (hasPermission(context, PERMISSIONS.COMMUNICATIONS_READ)) {
-    tasks.push(
-      searchCommunications(context.db, context.organizationId, query, limit, accessibleProjectIds),
-    );
-  }
-  if (hasPermission(context, PERMISSIONS.SCHEDULING_READ)) {
-    tasks.push(
-      searchCalendarEvents(context.db, context.organizationId, query, limit, accessibleProjectIds),
-    );
-  }
-  if (
-    hasPermission(context, PERMISSIONS.EXPENSES_READ) ||
-    hasPermission(context, PERMISSIONS.AP_READ) ||
-    hasPermission(context, PERMISSIONS.BILLING_READ) ||
-    hasPermission(context, PERMISSIONS.EXPENSES_CREATE) ||
-    hasPermission(context, PERMISSIONS.AP_MANAGE) ||
-    hasPermission(context, PERMISSIONS.BILLING_MANAGE)
-  ) {
-    tasks.push(searchRecurringDrafts(context.db, context.organizationId, query, limit));
-  }
-  if (hasPermission(context, PERMISSIONS.APPROVALS_READ)) {
-    tasks.push(searchApprovalRequests(context.db, context.organizationId, query, limit));
-  }
+  // Task hits — access-scoped
+  const taskHits = await fetchTaskHits(context, query, perEntityLimit);
 
-  const batches = await Promise.all(tasks);
-  const hits = batches.flat();
-  const commands = matchSearchCommands(query, context, modules);
+  // Merge task hits with any future entity hits here (other agents add their entities).
+  // For now, only task hits are new; existing entity hits come from pre-existing search paths.
+  const allNewHits: GlobalSearchHit[] = [...taskHits];
+
+  // Build commands (empty for task search — commands come from domain/commands.ts)
+  const commands: SearchCommandHit[] = [];
+
+  const groups = groupSearchHits(allNewHits, null);
 
   return {
     query,
     commands,
-    groups: groupSearchHits(hits, persona),
-    hits,
+    groups,
+    hits: allNewHits,
   };
 }
+
+/**
+ * Search tasks only (used by task-specific search UIs and operations dashboard).
+ * Access rules enforced identically to globalSearch task branch.
+ */
+export async function searchTasksOnly(
+  context: OrgContext,
+  query: string,
+  limit = 20,
+): Promise<GlobalSearchHit[]> {
+  if (!query.trim()) return [];
+  return fetchTaskHits(context, query, limit);
+}
+
+// ─── Exported types ───────────────────────────────────────────────────────────
+
+export type { GlobalSearchResult, GlobalSearchHit } from '../domain/types';

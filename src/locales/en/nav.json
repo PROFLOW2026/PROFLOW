@@ -118,5 +118,11 @@
   "hiddenCapability": {
     "title": "{module} is currently hidden from navigation",
     "body": "This capability is turned off in settings, but the record remains available to anyone with permission. You can restore it under <settings>What ProjectFlow shows</settings>."
-  }
+  },
+  "operations": "Operations",
+  "myWork": "My Work",
+  "portfolio": "Portfolio",
+  "workload": "Team Workload",
+  "workspaces": "Workspaces",
+  "meetings": "Meetings"
 }

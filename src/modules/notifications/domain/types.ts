@@ -27,6 +27,14 @@ export const NOTIFICATION_EVENT_TYPES = [
   'billing_plan_milestone_due',
   'billing_plan_retention_held',
   'action_required',
+  // ── Universal Work Management ──────────────────────────────────────────────
+  'task_assigned_to_you',
+  'task_comment_mention',
+  'task_due_soon',
+  'task_approval_requested',
+  'task_approval_decided',
+  'task_dependency_resolved',
+  'milestone_approaching',
 ] as const;
 export type NotificationEventType = (typeof NOTIFICATION_EVENT_TYPES)[number];
 
@@ -46,6 +54,7 @@ export const NOTIFICATION_DOMAINS = [
   'closeout',
   'communications',
   'automations',
+  'tasks',
 ] as const;
 export type NotificationDomain = (typeof NOTIFICATION_DOMAINS)[number];
 
@@ -71,6 +80,14 @@ export const EVENT_DOMAIN: Readonly<Record<NotificationEventType, NotificationDo
   billing_plan_milestone_due: 'billing',
   billing_plan_retention_held: 'billing',
   action_required: 'approvals',
+  // ── Universal Work Management ──────────────────────────────────────────────
+  task_assigned_to_you: 'tasks',
+  task_comment_mention: 'tasks',
+  task_due_soon: 'tasks',
+  task_approval_requested: 'tasks',
+  task_approval_decided: 'tasks',
+  task_dependency_resolved: 'tasks',
+  milestone_approaching: 'tasks',
 };
 
 export function isNotificationSeverity(value: string): value is NotificationSeverity {

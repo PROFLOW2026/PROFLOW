@@ -55,7 +55,15 @@
     "timesheet": "Timesheet",
     "project_billing_account": "Progress account / payment request",
     "project_billing_plan_status": "Billing plan status",
-    "monthly_workforce_report": "Monthly workforce report"
+    "monthly_workforce_report": "Monthly workforce report",
+    "project_task_status": "Project task status",
+    "overdue_tasks_org": "Overdue tasks",
+    "milestone_status": "Milestone status",
+    "team_workload": "Team workload",
+    "portfolio_status": "Portfolio status",
+    "stage_distribution": "Projects by stage",
+    "stale_projects": "Stale projects",
+    "approval_queue_status": "Approval queue"
   },
   "documentKinds": {
     "progress_account": "Progress account",

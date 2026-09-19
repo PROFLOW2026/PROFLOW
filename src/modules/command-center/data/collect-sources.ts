@@ -38,6 +38,16 @@ import {
 import { collectExpensesDueToday, collectExpensesNeedingAllocation, collectPayrollDueToday } from './collect-owner-payments';
 import { collectMonthlyWorkforceReportReady } from './collect-monthly-workforce-report';
 import {
+  collectMilestoneApproaching,
+  collectProjectStale,
+  collectRecurringTaskGenerated,
+  collectTaskApprovalRequested,
+  collectTaskBlockedWaiting,
+  collectTaskDueToday,
+  collectTaskOverdue,
+  collectTaskUnassigned,
+} from './collect-tasks';
+import {
   attendanceEmployeeDateAlertHref,
   missingAttendanceTodayAlertHref,
 } from '../domain/alert-deep-links';
@@ -83,6 +93,7 @@ import {
   missingAttendanceTodayCopy,
   type CommandCenterCopyScope,
 } from '../domain/item-copy';
+// (UWM copy helpers are imported directly in collect-tasks.ts)
 
 const PER_SOURCE_CAP = 15;
 const OCR_CAP = 10;
@@ -1214,6 +1225,15 @@ export async function collectAllSources(ctx: CollectContext): Promise<CommandCen
     collectExpensesNeedingAllocation,
     collectPayrollDueToday,
     collectMonthlyWorkforceReportReady,
+    // ── Universal Work Management ───────────────────────────────────────────
+    collectTaskOverdue,
+    collectTaskDueToday,
+    collectTaskBlockedWaiting,
+    collectTaskApprovalRequested,
+    collectTaskUnassigned,
+    collectMilestoneApproaching,
+    collectProjectStale,
+    collectRecurringTaskGenerated,
   ];
 
   const settled = await Promise.allSettled(collectors.map((fn) => fn(ctx)));

@@ -1,0 +1,322 @@
+{
+  "workspaces": {
+    "pageTitle": "Рабочие пространства",
+    "pageDescription": "Управление рабочими контейнерами и досками",
+    "empty": {
+      "title": "Нет рабочих пространств",
+      "description": "Создайте рабочее пространство для организации работы"
+    },
+    "viewBoards": "Открыть доски",
+    "type": {
+      "project_linked": "Проект",
+      "org_internal": "Внутреннее",
+      "team": "Команда"
+    }
+  },
+  "board": {
+    "addTask": "Добавить задачу",
+    "addBucket": "Добавить столбец",
+    "noBuckets": "Нет столбцов",
+    "groupBy": "Группировать по",
+    "filter": "Фильтр",
+    "statusColumns": "Столбцы статуса",
+    "bucket": "Столбец",
+    "defaultBoard": "Доска по умолчанию",
+    "archivedBoards": "Архивные доски",
+    "empty": {
+      "title": "Нет задач здесь",
+      "description": "Добавьте задачу в этот столбец для начала",
+      "globalDescription": "Добавьте задачи в проекты, чтобы увидеть их здесь"
+    }
+  },
+  "task": {
+    "title": "Название",
+    "description": "Описание",
+    "status": "Статус",
+    "priority": "Приоритет",
+    "dueDate": "Срок выполнения",
+    "startDate": "Дата начала",
+    "assignees": "Исполнители",
+    "labels": "Метки",
+    "checklist": "Чек-лист",
+    "comments": "Комментарии",
+    "activity": "Активность",
+    "attachments": "Вложения",
+    "estimatedEffort": "Оценка времени",
+    "actualEffort": "Фактическое время",
+    "milestone": "Веха",
+    "approvalRequired": "Требует согласования",
+    "create": "Создать задачу",
+    "edit": "Редактировать",
+    "archive": "Архивировать",
+    "complete": "Отметить выполненным",
+    "reopen": "Открыть повторно",
+    "addChecklist": "Добавить пункт",
+    "noTasks": "Нет задач",
+    "subtasks": "Подзадачи",
+    "dependencies": "Зависимости",
+    "blockedBy": "Заблокировано",
+    "blocks": "Блокирует",
+    "requestApproval": "Запросить согласование",
+    "approvalPending": "Ожидает согласования",
+    "approved": "Согласовано",
+    "rejected": "Отклонено"
+  },
+  "status": {
+    "todo": "К выполнению",
+    "in_progress": "В работе",
+    "in_review": "На проверке",
+    "blocked": "Заблокировано",
+    "done": "Выполнено",
+    "cancelled": "Отменено"
+  },
+  "priority": {
+    "none": "Без приоритета",
+    "low": "Низкий",
+    "medium": "Средний",
+    "high": "Высокий",
+    "urgent": "Срочный"
+  },
+  "myWork": {
+    "pageTitle": "Мои задачи",
+    "tabsLabel": "Виды моих задач",
+    "views": {
+      "today": "Сегодня",
+      "overdue": "Просроченные",
+      "this_week": "На этой неделе",
+      "upcoming": "Предстоящие",
+      "waiting": "В ожидании",
+      "assigned_to_me": "Назначено мне",
+      "created_by_me": "Созданные мной",
+      "following": "Наблюдаемые",
+      "completed": "Завершённые"
+    },
+    "empty": "Нет задач в этом представлении",
+    "noTasksToday": "Нет задач на сегодня"
+  },
+  "portfolio": {
+    "pageTitle": "Портфель проектов",
+    "columns": {
+      "project": "Проект",
+      "client": "Клиент",
+      "stage": "Этап",
+      "status": "Статус",
+      "openTasks": "Открытые",
+      "overdueTasks": "Просроченные",
+      "blockedTasks": "Заблокированные",
+      "nextMilestone": "Следующая веха",
+      "lastActivity": "Последняя активность",
+      "health": "Состояние"
+    },
+    "health": {
+      "formula": "Просроченные×2 + Заблокированные",
+      "good": "В норме",
+      "warning": "Требует внимания",
+      "critical": "Под угрозой"
+    },
+    "filters": {
+      "stage": "Этап",
+      "status": "Статус",
+      "hasOverdue": "Есть просроченные",
+      "stale": "Неактивные (14 дней)",
+      "workKind": "Тип"
+    },
+    "empty": "Проекты не найдены"
+  },
+  "workload": {
+    "pageTitle": "Нагрузка команды",
+    "columns": {
+      "employee": "Сотрудник",
+      "openTasks": "Открытые задачи",
+      "overdue": "Просроченные",
+      "dueThisWeek": "Срок на этой неделе",
+      "projects": "Проекты",
+      "estimatedEffort": "Оценка времени"
+    },
+    "noEffortData": "Нет оценок времени",
+    "reassign": "Переназначить",
+    "expand": "Показать задачи",
+    "empty": "Сотрудники не найдены"
+  },
+  "operations": {
+    "pageTitle": "Операции",
+    "sections": {
+      "activeProjects": "Активные проекты",
+      "byStage": "Проекты по этапам",
+      "dueToday": "Срок сегодня",
+      "overdue": "Просроченные",
+      "blocked": "Заблокированные",
+      "upcomingMilestones": "Предстоящие вехи",
+      "pendingApprovals": "Ожидающие согласования",
+      "staleProjects": "Неактивные проекты",
+      "workloadSnapshot": "Нагрузка",
+      "recentActivity": "Последняя активность"
+    }
+  },
+  "meetings": {
+    "pageTitle": "Совещания",
+    "newMeeting": "Новое совещание",
+    "fields": {
+      "title": "Тема",
+      "date": "Дата",
+      "location": "Место",
+      "notes": "Заметки",
+      "attendees": "Участники",
+      "decisions": "Решения",
+      "actionItems": "Действия"
+    },
+    "decision": {
+      "add": "Добавить решение",
+      "edit": "Редактировать решение"
+    },
+    "actionItem": {
+      "add": "Добавить действие",
+      "createTask": "Создать задачу",
+      "status": {
+        "open": "Открыто",
+        "done": "Выполнено",
+        "cancelled": "Отменено"
+      }
+    },
+    "empty": "Нет совещаний",
+    "noDecisions": "Решения не зафиксированы"
+  },
+  "stages": {
+    "pageTitle": "Этапы проекта",
+    "addStage": "Добавить этап",
+    "editStage": "Редактировать этап",
+    "setDefault": "По умолчанию",
+    "currentStage": "Текущий этап",
+    "transitionTo": "Перейти к этапу",
+    "history": "История этапов",
+    "noStages": "Этапы не определены",
+    "workKindFilter": {
+      "all": "Все типы проектов",
+      "project": "Только проекты",
+      "job": "Только работы",
+      "work_order": "Только наряды"
+    }
+  },
+  "labels": {
+    "pageTitle": "Метки задач",
+    "addLabel": "Добавить метку",
+    "editLabel": "Редактировать метку",
+    "noLabels": "Метки не определены"
+  },
+  "templates": {
+    "taskTemplates": {
+      "pageTitle": "Шаблоны задач",
+      "addTemplate": "Новый шаблон",
+      "noTemplates": "Нет шаблонов задач"
+    },
+    "projectTemplates": {
+      "pageTitle": "Шаблоны проектов",
+      "addTemplate": "Новый шаблон",
+      "noTemplates": "Нет шаблонов проектов"
+    }
+  },
+  "create": {
+    "titleLabel": "Название",
+    "titlePlaceholder": "Название задачи...",
+    "titleRequired": "Название обязательно",
+    "descriptionLabel": "Описание",
+    "descriptionPlaceholder": "Необязательное описание...",
+    "bucketLabel": "Столбец",
+    "noBucket": "Без столбца",
+    "statusLabel": "Статус",
+    "priorityLabel": "Приоритет",
+    "dueDateLabel": "Срок выполнения",
+    "assigneesLabel": "Исполнители",
+    "labelsLabel": "Метки",
+    "submit": "Создать задачу",
+    "saving": "Создание...",
+    "error": "Не удалось создать задачу"
+  },
+  "cancel": "Отмена",
+  "add": "Добавить",
+  "addTask": "Добавить задачу",
+  "taskTitlePlaceholder": "Новая задача...",
+  "emptyColumn": "Нет задач здесь",
+  "loadingTask": "Загрузка задачи...",
+  "groupBy": {
+    "bucket": "Столбец",
+    "assignee": "Исполнитель",
+    "priority": "Приоритет",
+    "label": "Метка",
+    "status": "Статус"
+  },
+  "filter": {
+    "all": "Все",
+    "overdue": "Просроченные",
+    "blocked": "Заблокированные",
+    "dueThisWeek": "Срок на этой неделе",
+    "clear": "Очистить фильтры"
+  },
+  "boards": {
+    "boardPageTitle": "Доска",
+    "boardsPageTitle": "Доски",
+    "noBoardsYet": "Нет досок",
+    "switcherLabel": "Переключить доску",
+    "default": "По умолчанию",
+    "createBoard": "Создать доску"
+  },
+  "checklist": "Чек-лист",
+  "close": "Закрыть",
+  "saving": "Сохранение...",
+  "task": "Задача",
+  "unassigned": "Не назначено",
+  "wipLimitLabel": "Лимит WIP",
+  "groupByLabel": "Группировать по",
+  "approvalRequired": "Требует согласования",
+  "bucket": "Столбец",
+  "breadcrumb": "Задача",
+  "removeLabel": "Удалить",
+  "activityLabel": "Активность",
+  "activitySlot": "Активность",
+  "commentsLabel": "Комментарии",
+  "commentsSlot": "Комментарии",
+  "descriptionLabel": "Описание",
+  "descriptionPlaceholder": "Добавить описание...",
+  "dueDateLabel": "Срок выполнения",
+  "assigneesLabel": "Исполнители",
+  "labelsLabel": "Метки",
+  "priorityLabel": "Приоритет",
+  "statusLabel": "Статус",
+  "attachmentsLabel": "Вложения",
+  "list": {
+    "columns": {
+      "title": "Название",
+      "status": "Статус",
+      "priority": "Приоритет",
+      "assignees": "Исполнители",
+      "dueDate": "Срок",
+      "project": "Проект"
+    },
+    "empty": {
+      "title": "Задачи не найдены",
+      "description": "Создайте задачу для начала работы"
+    }
+  },
+  "create.title": "Новая задача",
+  "activity": {
+    "created": "Создал задачу",
+    "status_changed": "Изменил статус",
+    "bucket_changed": "Перемещено в столбец",
+    "assigned": "Назначено",
+    "due_date_changed": "Изменил срок",
+    "priority_changed": "Изменил приоритет",
+    "comment_added": "Добавил комментарий",
+    "attachment_added": "Добавил вложение",
+    "checklist_completed": "Отметил пункт чек-листа",
+    "approval_result": "Зафиксировано решение о согласовании",
+    "dependency_added": "Добавил зависимость",
+    "dependency_removed": "Удалил зависимость",
+    "completed": "Отмечено выполненным",
+    "reopened": "Открыто повторно",
+    "archived": "Архивировано",
+    "label_added": "Добавил метку",
+    "recurrence_generated": "Сгенерирована повторяющаяся задача",
+    "automation_changed": "Обновлено автоматизацией",
+    "system_generated": "Системное действие"
+  }
+}

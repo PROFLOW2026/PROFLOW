@@ -59,6 +59,15 @@ export const SOURCE_DEFAULT_SEVERITY: Record<CommandCenterSourceType, CommandCen
   payroll_overdue: 'critical',
   payroll_pending_review: 'medium',
   monthly_workforce_report_ready: 'low',
+  // ── Universal Work Management ───────────────────────────────────────────────
+  task_overdue: 'high',
+  task_due_today: 'medium',
+  task_blocked_waiting: 'medium',
+  task_approval_requested: 'high',
+  task_unassigned: 'low',
+  milestone_approaching: 'medium',
+  project_stale: 'low',
+  recurring_task_generated: 'low',
 };
 
 export const INBOX_SECTION_ORDER = ['critical', 'high', 'medium', 'low'] as const;

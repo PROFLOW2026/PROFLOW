@@ -61,7 +61,8 @@ export function fallbackWhere(
     | 'warranty'
     | 'cashFlow'
     | 'automations'
-    | 'communications',
+    | 'communications'
+    | 'tasks',
 ): string {
   return scope.t(`itemCopy.where.${key}`);
 }
@@ -527,5 +528,93 @@ export function missingAttendanceTodayCopy(
         ? scope.t('itemCopy.missingAttendanceToday.whatOne', { count: input.count })
         : scope.t('itemCopy.missingAttendanceToday.whatOther', { count: input.count }),
     why: scope.t('itemCopy.missingAttendanceToday.why', { date: input.date }),
+  };
+}
+
+// ── Universal Work Management copy helpers ────────────────────────────────────
+
+export function taskOverdueCopy(
+  scope: CommandCenterCopyScope,
+  input: { title: string; dueDate: string; daysOverdue: number },
+): { what: string; why: string } {
+  return {
+    what: scope.t('itemCopy.taskOverdue.what', { title: input.title }),
+    why: scope.t('itemCopy.taskOverdue.why', {
+      dueDate: input.dueDate,
+      daysOverdue: input.daysOverdue,
+    }),
+  };
+}
+
+export function taskDueTodayCopy(
+  scope: CommandCenterCopyScope,
+  input: { title: string },
+): { what: string; why: string } {
+  return {
+    what: scope.t('itemCopy.taskDueToday.what', { title: input.title }),
+    why: scope.t('itemCopy.taskDueToday.why'),
+  };
+}
+
+export function taskBlockedWaitingCopy(
+  scope: CommandCenterCopyScope,
+  input: { title: string; daysBlocked: number },
+): { what: string; why: string } {
+  return {
+    what: scope.t('itemCopy.taskBlockedWaiting.what', { title: input.title }),
+    why: scope.t('itemCopy.taskBlockedWaiting.why', { daysBlocked: input.daysBlocked }),
+  };
+}
+
+export function taskApprovalRequestedCopy(
+  scope: CommandCenterCopyScope,
+  input: { title: string },
+): { what: string; why: string } {
+  return {
+    what: scope.t('itemCopy.taskApprovalRequested.what', { title: input.title }),
+    why: scope.t('itemCopy.taskApprovalRequested.why'),
+  };
+}
+
+export function taskUnassignedCopy(
+  scope: CommandCenterCopyScope,
+  input: { title: string; projectName: string },
+): { what: string; why: string } {
+  return {
+    what: scope.t('itemCopy.taskUnassigned.what', { title: input.title }),
+    why: scope.t('itemCopy.taskUnassigned.why', { projectName: input.projectName }),
+  };
+}
+
+export function milestoneApproachingCopy(
+  scope: CommandCenterCopyScope,
+  input: { name: string; targetDate: string; daysLeft: number },
+): { what: string; why: string } {
+  return {
+    what: scope.t('itemCopy.milestoneApproaching.what', { name: input.name }),
+    why: scope.t('itemCopy.milestoneApproaching.why', {
+      targetDate: input.targetDate,
+      daysLeft: input.daysLeft,
+    }),
+  };
+}
+
+export function projectStaleCopy(
+  scope: CommandCenterCopyScope,
+  input: { projectName: string; daysSinceActivity: number },
+): { what: string; why: string } {
+  return {
+    what: scope.t('itemCopy.projectStale.what', { projectName: input.projectName }),
+    why: scope.t('itemCopy.projectStale.why', { daysSinceActivity: input.daysSinceActivity }),
+  };
+}
+
+export function recurringTaskGeneratedCopy(
+  scope: CommandCenterCopyScope,
+  input: { title: string },
+): { what: string; why: string } {
+  return {
+    what: scope.t('itemCopy.recurringTaskGenerated.what', { title: input.title }),
+    why: scope.t('itemCopy.recurringTaskGenerated.why'),
   };
 }

@@ -55,7 +55,15 @@
     "timesheet": "Табель",
     "project_billing_account": "Промежуточный счёт / заявка на платёж",
     "project_billing_plan_status": "Статус плана выставления счетов",
-    "monthly_workforce_report": "Ежемесячный отчёт по персоналу"
+    "monthly_workforce_report": "Ежемесячный отчёт по персоналу",
+    "project_task_status": "Статус задач проекта",
+    "overdue_tasks_org": "Просроченные задачи",
+    "milestone_status": "Статус вех",
+    "team_workload": "Нагрузка команды",
+    "portfolio_status": "Статус портфеля",
+    "stage_distribution": "Проекты по этапам",
+    "stale_projects": "Неактивные проекты",
+    "approval_queue_status": "Очередь согласований"
   },
   "documentKinds": {
     "progress_account": "Промежуточный счёт",

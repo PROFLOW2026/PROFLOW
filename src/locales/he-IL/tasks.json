@@ -1,0 +1,322 @@
+{
+  "workspaces": {
+    "pageTitle": "סביבות עבודה",
+    "pageDescription": "נהל את מרחבי העבודה והלוחות שלך",
+    "empty": {
+      "title": "אין סביבות עבודה עדיין",
+      "description": "צור סביבת עבודה לארגון הפרויקטים שלך"
+    },
+    "viewBoards": "צפה בלוחות",
+    "type": {
+      "project_linked": "פרויקט",
+      "org_internal": "פנימי",
+      "team": "צוות"
+    }
+  },
+  "board": {
+    "addTask": "הוסף משימה",
+    "addBucket": "הוסף עמודה",
+    "noBuckets": "אין עמודות עדיין",
+    "groupBy": "קבץ לפי",
+    "filter": "סנן",
+    "statusColumns": "עמודות סטטוס",
+    "bucket": "עמודה",
+    "defaultBoard": "לוח ברירת מחדל",
+    "archivedBoards": "לוחות בארכיון",
+    "empty": {
+      "title": "אין משימות כאן",
+      "description": "הוסף משימה לעמודה זו כדי להתחיל",
+      "globalDescription": "הוסף משימות לפרויקטים שלך כדי לראות אותן כאן"
+    }
+  },
+  "task": {
+    "title": "כותרת",
+    "description": "תיאור",
+    "status": "סטטוס",
+    "priority": "עדיפות",
+    "dueDate": "תאריך יעד",
+    "startDate": "תאריך התחלה",
+    "assignees": "מוקצה ל",
+    "labels": "תגיות",
+    "checklist": "רשימת תיוג",
+    "comments": "הערות",
+    "activity": "פעילות",
+    "attachments": "קבצים מצורפים",
+    "estimatedEffort": "זמן משוער",
+    "actualEffort": "זמן בפועל",
+    "milestone": "אבן דרך",
+    "approvalRequired": "דרוש אישור",
+    "create": "צור משימה",
+    "edit": "ערוך משימה",
+    "archive": "העבר לארכיון",
+    "complete": "סמן כהושלם",
+    "reopen": "פתח מחדש",
+    "addChecklist": "הוסף פריט לרשימה",
+    "noTasks": "אין משימות",
+    "subtasks": "תת-משימות",
+    "dependencies": "תלויות",
+    "blockedBy": "חסום על ידי",
+    "blocks": "חוסם",
+    "requestApproval": "בקש אישור",
+    "approvalPending": "ממתין לאישור",
+    "approved": "אושר",
+    "rejected": "נדחה"
+  },
+  "status": {
+    "todo": "לביצוע",
+    "in_progress": "בביצוע",
+    "in_review": "בסקירה",
+    "blocked": "חסום",
+    "done": "הושלם",
+    "cancelled": "בוטל"
+  },
+  "priority": {
+    "none": "ללא",
+    "low": "נמוכה",
+    "medium": "בינונית",
+    "high": "גבוהה",
+    "urgent": "דחוף"
+  },
+  "myWork": {
+    "pageTitle": "המשימות שלי",
+    "tabsLabel": "תצוגות המשימות שלי",
+    "views": {
+      "today": "היום",
+      "overdue": "באיחור",
+      "this_week": "השבוע",
+      "upcoming": "הקרוב",
+      "waiting": "ממתין",
+      "assigned_to_me": "מוקצה לי",
+      "created_by_me": "יצרתי",
+      "following": "עוקב",
+      "completed": "הושלם"
+    },
+    "empty": "אין משימות בתצוגה זו",
+    "noTasksToday": "אין משימות להיום"
+  },
+  "portfolio": {
+    "pageTitle": "תיק פרויקטים",
+    "columns": {
+      "project": "פרויקט",
+      "client": "לקוח",
+      "stage": "שלב",
+      "status": "סטטוס",
+      "openTasks": "פתוחות",
+      "overdueTasks": "באיחור",
+      "blockedTasks": "חסומות",
+      "nextMilestone": "אבן דרך הבאה",
+      "lastActivity": "פעילות אחרונה",
+      "health": "מצב"
+    },
+    "health": {
+      "formula": "באיחור×2 + חסום",
+      "good": "תקין",
+      "warning": "דורש תשומת לב",
+      "critical": "בסיכון"
+    },
+    "filters": {
+      "stage": "שלב",
+      "status": "סטטוס",
+      "hasOverdue": "יש משימות באיחור",
+      "stale": "לא פעיל (14 יום)",
+      "workKind": "סוג"
+    },
+    "empty": "לא נמצאו פרויקטים"
+  },
+  "workload": {
+    "pageTitle": "עומס צוות",
+    "columns": {
+      "employee": "עובד",
+      "openTasks": "משימות פתוחות",
+      "overdue": "באיחור",
+      "dueThisWeek": "יעד השבוע",
+      "projects": "פרויקטים",
+      "estimatedEffort": "זמן משוער"
+    },
+    "noEffortData": "אין הערכות זמן",
+    "reassign": "הקצה מחדש",
+    "expand": "צפה במשימות",
+    "empty": "לא נמצאו עובדים"
+  },
+  "operations": {
+    "pageTitle": "תפעול",
+    "sections": {
+      "activeProjects": "פרויקטים פעילים",
+      "byStage": "פרויקטים לפי שלב",
+      "dueToday": "יעד היום",
+      "overdue": "באיחור",
+      "blocked": "חסום",
+      "upcomingMilestones": "אבני דרך קרובות",
+      "pendingApprovals": "אישורים ממתינים",
+      "staleProjects": "פרויקטים לא פעילים",
+      "workloadSnapshot": "עומס עבודה",
+      "recentActivity": "פעילות אחרונה"
+    }
+  },
+  "meetings": {
+    "pageTitle": "ישיבות",
+    "newMeeting": "ישיבה חדשה",
+    "fields": {
+      "title": "נושא",
+      "date": "תאריך",
+      "location": "מיקום",
+      "notes": "הערות",
+      "attendees": "משתתפים",
+      "decisions": "החלטות",
+      "actionItems": "פריטי פעולה"
+    },
+    "decision": {
+      "add": "הוסף החלטה",
+      "edit": "ערוך החלטה"
+    },
+    "actionItem": {
+      "add": "הוסף פריט פעולה",
+      "createTask": "צור משימה",
+      "status": {
+        "open": "פתוח",
+        "done": "הושלם",
+        "cancelled": "בוטל"
+      }
+    },
+    "empty": "אין ישיבות עדיין",
+    "noDecisions": "לא נרשמו החלטות"
+  },
+  "stages": {
+    "pageTitle": "שלבי פרויקט",
+    "addStage": "הוסף שלב",
+    "editStage": "ערוך שלב",
+    "setDefault": "הגדר כברירת מחדל",
+    "currentStage": "שלב נוכחי",
+    "transitionTo": "העבר לשלב",
+    "history": "היסטוריית שלבים",
+    "noStages": "לא הוגדרו שלבים",
+    "workKindFilter": {
+      "all": "כל סוגי הפרויקטים",
+      "project": "פרויקטים בלבד",
+      "job": "עבודות בלבד",
+      "work_order": "הזמנות עבודה בלבד"
+    }
+  },
+  "labels": {
+    "pageTitle": "תגיות משימה",
+    "addLabel": "הוסף תגית",
+    "editLabel": "ערוך תגית",
+    "noLabels": "לא הוגדרו תגיות"
+  },
+  "templates": {
+    "taskTemplates": {
+      "pageTitle": "תבניות משימה",
+      "addTemplate": "תבנית חדשה",
+      "noTemplates": "אין תבניות משימה"
+    },
+    "projectTemplates": {
+      "pageTitle": "תבניות פרויקט",
+      "addTemplate": "תבנית חדשה",
+      "noTemplates": "אין תבניות פרויקט"
+    }
+  },
+  "create": {
+    "titleLabel": "כותרת",
+    "titlePlaceholder": "כותרת משימה...",
+    "titleRequired": "כותרת חובה",
+    "descriptionLabel": "תיאור",
+    "descriptionPlaceholder": "תיאור אופציונלי...",
+    "bucketLabel": "עמודה",
+    "noBucket": "ללא עמודה",
+    "statusLabel": "סטטוס",
+    "priorityLabel": "עדיפות",
+    "dueDateLabel": "תאריך יעד",
+    "assigneesLabel": "מוקצה ל",
+    "labelsLabel": "תגיות",
+    "submit": "צור משימה",
+    "saving": "יוצר...",
+    "error": "שגיאה ביצירת משימה"
+  },
+  "cancel": "ביטול",
+  "add": "הוסף",
+  "addTask": "הוסף משימה",
+  "taskTitlePlaceholder": "משימה חדשה...",
+  "emptyColumn": "אין משימות כאן",
+  "loadingTask": "טוען משימה...",
+  "groupBy": {
+    "bucket": "עמודה",
+    "assignee": "אחראי",
+    "priority": "עדיפות",
+    "label": "תגית",
+    "status": "סטטוס"
+  },
+  "filter": {
+    "all": "הכל",
+    "overdue": "באיחור",
+    "blocked": "חסום",
+    "dueThisWeek": "יעד השבוע",
+    "clear": "נקה מסננים"
+  },
+  "boards": {
+    "boardPageTitle": "לוח",
+    "boardsPageTitle": "לוחות",
+    "noBoardsYet": "אין לוחות עדיין",
+    "switcherLabel": "בחר לוח",
+    "default": "ברירת מחדל",
+    "createBoard": "צור לוח"
+  },
+  "checklist": "רשימת תיוג",
+  "close": "סגור",
+  "saving": "שומר...",
+  "task": "משימה",
+  "unassigned": "לא מוקצה",
+  "wipLimitLabel": "מגבלת WIP",
+  "groupByLabel": "קבץ לפי",
+  "approvalRequired": "דרוש אישור",
+  "bucket": "עמודה",
+  "breadcrumb": "משימה",
+  "removeLabel": "הסר",
+  "activityLabel": "פעילות",
+  "activitySlot": "פעילות",
+  "commentsLabel": "הערות",
+  "commentsSlot": "הערות",
+  "descriptionLabel": "תיאור",
+  "descriptionPlaceholder": "הוסף תיאור...",
+  "dueDateLabel": "תאריך יעד",
+  "assigneesLabel": "מוקצה ל",
+  "labelsLabel": "תגיות",
+  "priorityLabel": "עדיפות",
+  "statusLabel": "סטטוס",
+  "attachmentsLabel": "קבצים מצורפים",
+  "list": {
+    "columns": {
+      "title": "כותרת",
+      "status": "סטטוס",
+      "priority": "עדיפות",
+      "assignees": "מוקצה",
+      "dueDate": "תאריך יעד",
+      "project": "פרויקט"
+    },
+    "empty": {
+      "title": "לא נמצאו משימות",
+      "description": "צור משימה כדי להתחיל"
+    }
+  },
+  "create.title": "משימה חדשה",
+  "activity": {
+    "created": "יצר משימה זו",
+    "status_changed": "שינה סטטוס",
+    "bucket_changed": "הועבר לעמודה",
+    "assigned": "הוקצה",
+    "due_date_changed": "שינה תאריך יעד",
+    "priority_changed": "שינה עדיפות",
+    "comment_added": "הוסיף הערה",
+    "attachment_added": "הוסיף קובץ",
+    "checklist_completed": "סימן פריט ברשימה",
+    "approval_result": "תוצאת אישור נרשמה",
+    "dependency_added": "הוסיף תלות",
+    "dependency_removed": "הסיר תלות",
+    "completed": "סומן כהושלם",
+    "reopened": "נפתח מחדש",
+    "archived": "הועבר לארכיון",
+    "label_added": "הוסיף תגית",
+    "recurrence_generated": "משימה חוזרת נוצרה",
+    "automation_changed": "עודכן על ידי אוטומציה",
+    "system_generated": "פעולת מערכת"
+  }
+}

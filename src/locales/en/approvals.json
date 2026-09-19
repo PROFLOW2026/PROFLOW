@@ -54,6 +54,7 @@
   },
   "settingsLink": "Configure rules",
   "openEntity": "Open related record",
+  "openTask": "Open task",
   "inbox": {
     "submitter": "Submitted by",
     "unknownSubmitter": "Unknown",

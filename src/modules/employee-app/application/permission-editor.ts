@@ -106,6 +106,42 @@ export const EMPLOYEE_PERMISSION_EDITOR_GROUPS: readonly EmployeePermissionEdito
     ],
   },
   {
+    id: 'pm_tasks',
+    labelKey: 'pmTasks',
+    items: [
+      {
+        permissionKey: PERMISSIONS.TASKS_READ,
+        labelKey: 'pmTasksRead',
+        scopes: ['self_only', 'assigned_only', 'all_organization'],
+      },
+      {
+        permissionKey: PERMISSIONS.TASKS_UPDATE,
+        labelKey: 'pmTasksUpdate',
+        scopes: ['self_only', 'assigned_only', 'all_organization'],
+      },
+      {
+        permissionKey: PERMISSIONS.TASKS_COMMENT,
+        labelKey: 'pmTasksComment',
+        scopes: ['self_only', 'assigned_only', 'all_organization'],
+      },
+      {
+        permissionKey: PERMISSIONS.TASKS_ASSIGN,
+        labelKey: 'pmTasksAssign',
+        scopes: ['assigned_only', 'all_organization'],
+      },
+      {
+        permissionKey: PERMISSIONS.TASKS_MANAGE_ALL,
+        labelKey: 'pmTasksManageAll',
+        scopes: ['assigned_only', 'all_organization'],
+      },
+      {
+        permissionKey: PERMISSIONS.TASKS_APPROVE,
+        labelKey: 'pmTasksApprove',
+        scopes: ['assigned_only', 'all_organization'],
+      },
+    ],
+  },
+  {
     id: 'documents',
     labelKey: 'documents',
     items: [
