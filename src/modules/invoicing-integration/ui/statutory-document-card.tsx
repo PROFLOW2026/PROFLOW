@@ -58,7 +58,6 @@ export type StatutoryDocumentCardProps = {
   billingRecordId: string;
   canManage: boolean;
   isHistorical: boolean;
-  customerEmail: string | null;
   customerPhone?: string | null;
   primaryStorageProvider: StorageProviderKey | null;
   providerLabel: string;
@@ -72,7 +71,6 @@ export function StatutoryDocumentCard({
   billingRecordId,
   canManage,
   isHistorical,
-  customerEmail,
   customerPhone = null,
   primaryStorageProvider,
   providerLabel,
@@ -86,7 +84,8 @@ export function StatutoryDocumentCard({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
-  const [storageLocationUrl, setStorageLocationUrl] = useState<string | null>(null);
+  const [resolvedStorageUrl, setResolvedStorageUrl] = useState<string | null>(null);
+  const [resolvedStorageDocumentId, setResolvedStorageDocumentId] = useState<string | null>(null);
 
   const issued = isDocIssued(doc);
   const storageStatus: StatutoryStorageUiStatus = issued
@@ -105,14 +104,19 @@ export function StatutoryDocumentCard({
   const pendingIssuance =
     doc.issuanceOutcome === 'in_flight' || doc.issuanceOutcome === 'ambiguous';
 
+  const storageLocationUrl =
+    storageDocumentId && resolvedStorageDocumentId === storageDocumentId
+      ? resolvedStorageUrl
+      : null;
+
   useEffect(() => {
-    if (!storageDocumentId) {
-      setStorageLocationUrl(null);
-      return;
-    }
+    if (!storageDocumentId) return;
     let cancelled = false;
     void resolveStatutoryStorageLocationAction(storageDocumentId).then((result) => {
-      if (!cancelled) setStorageLocationUrl(result.url ?? null);
+      if (!cancelled) {
+        setResolvedStorageUrl(result.url ?? null);
+        setResolvedStorageDocumentId(storageDocumentId);
+      }
     });
     return () => {
       cancelled = true;

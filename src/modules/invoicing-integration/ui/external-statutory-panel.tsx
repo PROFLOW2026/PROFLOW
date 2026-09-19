@@ -169,7 +169,6 @@ export function ExternalStatutoryPanel({
                 billingRecordId={billingRecordId}
                 canManage={canManage}
                 isHistorical={isHistorical}
-                customerEmail={customerEmail}
                 customerPhone={customerPhone}
                 primaryStorageProvider={primaryStorageProvider}
                 providerLabel={providerLabel}
