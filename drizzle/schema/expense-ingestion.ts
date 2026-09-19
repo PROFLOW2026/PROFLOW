@@ -45,8 +45,11 @@ export const externalExpenseImports = pgTable(
     index('external_expense_imports_org_status_idx').on(
       table.organizationId,
       table.status,
-      table.updatedAt,
+      table.updatedAt.desc(),
     ),
+    index('external_expense_imports_ocr_job_idx')
+      .on(table.ocrJobId)
+      .where(sql`${table.ocrJobId} IS NOT NULL`),
     check(
       'external_expense_imports_provider_known',
       sql`${table.provider} IN ('sumit')`,
