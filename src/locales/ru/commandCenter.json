@@ -99,7 +99,8 @@
       "warranty": "Гарантия",
       "cashFlow": "Денежный поток",
       "automations": "Автоматизации",
-      "communications": "Сообщения"
+      "communications": "Сообщения",
+      "tasks": "Задачи"
     },
     "overdueAr": {
       "whatWithReference": "Инкассировать {reference}",
@@ -298,6 +299,38 @@
       "whatOne": "{count} сотрудник не отметил посещаемость сегодня",
       "whatOther": "{count} сотрудников не отметили посещаемость сегодня",
       "why": "Дата {date} — посещаемость отсутствует у этих сотрудников."
+    },
+    "taskOverdue": {
+      "what": "Просроченная задача - {title}",
+      "why": "Срок был {dueDate} · просрочена на {daysOverdue} дн."
+    },
+    "taskDueToday": {
+      "what": "Срок сегодня - {title}",
+      "why": "Эта задача должна быть выполнена сегодня."
+    },
+    "taskBlockedWaiting": {
+      "what": "Заблокированная задача - {title}",
+      "why": "Ожидает {daysBlocked} дн."
+    },
+    "taskApprovalRequested": {
+      "what": "Запрошено одобрение - {title}",
+      "why": "Эта задача ожидает вашего одобрения."
+    },
+    "taskUnassigned": {
+      "what": "Неназначенная задача - {title}",
+      "why": "В проекте {projectName} · исполнитель не назначен"
+    },
+    "milestoneApproaching": {
+      "what": "Приближается веха - {name}",
+      "why": "Целевая дата {targetDate} · осталось {daysLeft} дн."
+    },
+    "projectStale": {
+      "what": "Неактивный проект - {projectName}",
+      "why": "Нет активности по задачам {daysSinceActivity} дн."
+    },
+    "recurringTaskGenerated": {
+      "what": "Создана повторяющаяся задача - {title}",
+      "why": "Создан новый экземпляр из повторяющегося шаблона."
     },
     "reportMonthLabel": "{month} {year}",
     "reportMonths": {

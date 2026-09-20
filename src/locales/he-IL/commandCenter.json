@@ -99,7 +99,8 @@
       "warranty": "אחריות",
       "cashFlow": "תזרים",
       "automations": "אוטומציות",
-      "communications": "הודעות"
+      "communications": "הודעות",
+      "tasks": "משימות"
     },
     "overdueAr": {
       "whatWithReference": "גבייה - {reference}",
@@ -298,6 +299,38 @@
       "whatOne": "{count} עובד לא דיווח נוכחות היום",
       "whatOther": "{count} עובדים לא דיווחו נוכחות היום",
       "why": "תאריך {date} · יש לדווח נוכחות לעובדים שטרם דיווחו."
+    },
+    "taskOverdue": {
+      "what": "משימה באיחור - {title}",
+      "why": "הייתה אמורה להסתיים ב-{dueDate} · {daysOverdue} ימים באיחור"
+    },
+    "taskDueToday": {
+      "what": "לסיום היום - {title}",
+      "why": "משימה זו אמורה להסתיים היום."
+    },
+    "taskBlockedWaiting": {
+      "what": "משימה חסומה - {title}",
+      "why": "ממתינה {daysBlocked} ימים"
+    },
+    "taskApprovalRequested": {
+      "what": "נדרש אישור - {title}",
+      "why": "משימה זו ממתינה לאישורך."
+    },
+    "taskUnassigned": {
+      "what": "משימה ללא שיוך - {title}",
+      "why": "בפרויקט {projectName} · עדיין ללא אחראי"
+    },
+    "milestoneApproaching": {
+      "what": "אבן דרך מתקרבת - {name}",
+      "why": "תאריך יעד {targetDate} · נותרו {daysLeft} ימים"
+    },
+    "projectStale": {
+      "what": "פרויקט ללא פעילות - {projectName}",
+      "why": "אין פעילות משימות כ-{daysSinceActivity} ימים"
+    },
+    "recurringTaskGenerated": {
+      "what": "נוצרה משימה חוזרת - {title}",
+      "why": "נוצרה עותק חדש מתבנית חוזרת."
     },
     "reportMonthLabel": "{month} {year}",
     "reportMonths": {

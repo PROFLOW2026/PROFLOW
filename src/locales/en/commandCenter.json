@@ -99,7 +99,8 @@
       "warranty": "Warranty",
       "cashFlow": "Cash flow",
       "automations": "Automations",
-      "communications": "Messages"
+      "communications": "Messages",
+      "tasks": "Tasks"
     },
     "overdueAr": {
       "whatWithReference": "Collect {reference}",
@@ -298,6 +299,38 @@
       "whatOne": "{count} employee has not reported attendance today",
       "whatOther": "{count} employees have not reported attendance today",
       "why": "Date {date} — attendance is missing for these employees."
+    },
+    "taskOverdue": {
+      "what": "Overdue task - {title}",
+      "why": "Was due {dueDate} · {daysOverdue} days overdue"
+    },
+    "taskDueToday": {
+      "what": "Due today - {title}",
+      "why": "This task is due today."
+    },
+    "taskBlockedWaiting": {
+      "what": "Blocked task - {title}",
+      "why": "Waiting for {daysBlocked} days"
+    },
+    "taskApprovalRequested": {
+      "what": "Approval requested - {title}",
+      "why": "This task is waiting for your approval."
+    },
+    "taskUnassigned": {
+      "what": "Unassigned task - {title}",
+      "why": "In project {projectName} · no assignee yet"
+    },
+    "milestoneApproaching": {
+      "what": "Milestone approaching - {name}",
+      "why": "Target date {targetDate} · {daysLeft} days left"
+    },
+    "projectStale": {
+      "what": "Inactive project - {projectName}",
+      "why": "No task activity for {daysSinceActivity} days"
+    },
+    "recurringTaskGenerated": {
+      "what": "Recurring task generated - {title}",
+      "why": "A new instance was created from a recurring template."
     },
     "reportMonthLabel": "{month} {year}",
     "reportMonths": {

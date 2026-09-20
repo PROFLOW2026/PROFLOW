@@ -99,7 +99,8 @@
       "warranty": "الضمان",
       "cashFlow": "التدفق النقدي",
       "automations": "الأتمتة",
-      "communications": "الرسائل"
+      "communications": "الرسائل",
+      "tasks": "المهام"
     },
     "overdueAr": {
       "whatWithReference": "تحصيل {reference}",
@@ -298,6 +299,38 @@
       "whatOne": "{count} موظف لم يُبلّغ حضوره اليوم",
       "whatOther": "{count} موظفين لم يُبلّغوا حضورهم اليوم",
       "why": "تاريخ {date} — الحضور مفقود لهؤلاء الموظفين."
+    },
+    "taskOverdue": {
+      "what": "مهمة متأخرة - {title}",
+      "why": "كان موعدها {dueDate} · متأخرة {daysOverdue} أيام"
+    },
+    "taskDueToday": {
+      "what": "مستحقة اليوم - {title}",
+      "why": "هذه المهمة مستحقة اليوم."
+    },
+    "taskBlockedWaiting": {
+      "what": "مهمة محجوبة - {title}",
+      "why": "في انتظار منذ {daysBlocked} أيام"
+    },
+    "taskApprovalRequested": {
+      "what": "مطلوب موافقة - {title}",
+      "why": "هذه المهمة بانتظار موافقتك."
+    },
+    "taskUnassigned": {
+      "what": "مهمة غير مُسندة - {title}",
+      "why": "في مشروع {projectName} · بدون مسؤول بعد"
+    },
+    "milestoneApproaching": {
+      "what": "معلم قريب - {name}",
+      "why": "تاريخ الهدف {targetDate} · متبقي {daysLeft} أيام"
+    },
+    "projectStale": {
+      "what": "مشروع غير نشط - {projectName}",
+      "why": "لا نشاط مهام منذ {daysSinceActivity} أيام"
+    },
+    "recurringTaskGenerated": {
+      "what": "تم إنشاء مهمة متكررة - {title}",
+      "why": "تم إنشاء نسخة جديدة من قالب متكرر."
     },
     "reportMonthLabel": "{month} {year}",
     "reportMonths": {
