@@ -190,7 +190,7 @@
       "monthsAgo": "לפני {count} חוד׳"
     },
     "pagination": {
-      "showing": "מציג {start}–{end} מתוך {total}",
+      "showing": "מציג {start}-{end} מתוך {total}",
       "label": "עימוד",
       "rowsPerPage": "שורות בעמוד:"
     },
@@ -244,7 +244,7 @@
       "overdue": "באיחור",
       "dueThisWeek": "יעד השבוע"
     },
-    "effortHidden": "זמן משוער מוסתר — אין משימות עם הערכת זמן.",
+    "effortHidden": "זמן משוער מוסתר: אין משימות עם הערכת זמן.",
     "preview": {
       "loading": "טוען…",
       "noTasks": "אין משימות פתוחות או קרובות.",
@@ -326,7 +326,7 @@
       "noAttendees": "לא נרשמו משתתפים.",
       "addAttendee": "+ הוסף משתתף",
       "decisionsHeading": "החלטות ({count})",
-      "canonicalBadge": "רשומות קנוניות — לא משימות",
+      "canonicalBadge": "רשומות קנוניות: לא משימות",
       "addDecision": "+ הוסף החלטה",
       "noDecisionsYet": "עדיין לא נרשמו החלטות.",
       "actionItemsHeading": "בני פעולה ({count})",

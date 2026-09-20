@@ -36,12 +36,48 @@ export interface FinalPassReport {
   activityDatesAdjusted: number;
 }
 
-function chunk<T>(items: readonly T[], size: number): T[][] {
-  const out: T[][] = [];
-  for (let i = 0; i < items.length; i += size) {
-    out.push(items.slice(i, i + size));
+/** Demo-only fast approve — per-timesheet canonical approve on 800+ rows exceeds seed timeouts. */
+async function fastApproveHistoricalDemoTime(
+  organizationId: string,
+  userId: string,
+  cutoff: string,
+): Promise<{ approved: number; timesheetsClosed: number }> {
+  const postgres = (await import('postgres')).default;
+  const cs = process.env.DIRECT_DATABASE_URL ?? process.env.DATABASE_URL;
+  if (!cs) throw new Error('DATABASE_URL missing');
+  const sql = postgres(cs, { prepare: false, max: 1 });
+  try {
+    const approvedRows = await sql<{ id: string }[]>`
+      update time_entries
+      set
+        approval_status = 'approved',
+        submitted_at = coalesce(submitted_at, now()),
+        submitted_by_user_id = coalesce(submitted_by_user_id, ${userId}::uuid),
+        decided_at = coalesce(decided_at, now()),
+        decided_by_user_id = coalesce(decided_by_user_id, ${userId}::uuid)
+      where organization_id = ${organizationId}::uuid
+        and status = 'recorded'
+        and work_date <= ${cutoff}::date
+        and approval_status in ('draft', 'returned', 'submitted')
+        and description like ${'%' + SEED_MARKER + '%'}
+      returning id`;
+    const closedSheets = await sql<{ id: string }[]>`
+      update timesheets
+      set
+        status = 'approved',
+        submitted_at = coalesce(submitted_at, now()),
+        submitted_by_user_id = coalesce(submitted_by_user_id, ${userId}::uuid),
+        decided_at = coalesce(decided_at, now()),
+        decided_by_user_id = coalesce(decided_by_user_id, ${userId}::uuid),
+        locked_at = coalesce(locked_at, now())
+      where organization_id = ${organizationId}::uuid
+        and period_end <= ${cutoff}::date
+        and status in ('draft', 'submitted', 'returned')
+      returning id`;
+    return { approved: approvedRows.length, timesheetsClosed: closedSheets.length };
+  } finally {
+    await sql.end();
   }
-  return out;
 }
 
 function hashSlot(key: string, slots: number): number {
@@ -379,78 +415,17 @@ export async function applyConsultancyFinalPass(
   });
 
   await runPhase('approve historical workforce time', target.organizationId, target.userId, async (context) => {
-    const { submitTimeEntries, bulkApproveTimeEntries } = await import('../../src/modules/workforce/index.ts');
     const { sumTimeLaborPeriodReconciliation } = await import(
       '../../src/modules/workforce/data/time-entries.repository.ts'
     );
-    const { timeEntries } = await import('@drizzle/schema');
-    const { and, eq, inArray, like, lte } = await import('drizzle-orm');
 
-    const pending = await context.db
-      .select({
-        id: timeEntries.id,
-        employeeId: timeEntries.employeeId,
-        approvalStatus: timeEntries.approvalStatus,
-      })
-      .from(timeEntries)
-      .where(
-        and(
-          eq(timeEntries.organizationId, target.organizationId),
-          eq(timeEntries.status, 'recorded'),
-          like(timeEntries.description, `%${SEED_MARKER}%`),
-          lte(timeEntries.workDate, SETTLEMENT_CUTOFF),
-          inArray(timeEntries.approvalStatus, ['draft', 'returned', 'submitted']),
-        ),
-      );
-
-    const draftByEmployee = new Map<string, string[]>();
-    for (const row of pending) {
-      if (row.approvalStatus !== 'draft' && row.approvalStatus !== 'returned') continue;
-      const bucket = draftByEmployee.get(row.employeeId) ?? [];
-      bucket.push(row.id);
-      draftByEmployee.set(row.employeeId, bucket);
-    }
-    const submittedIds = pending
-      .filter((row) => row.approvalStatus === 'submitted')
-      .map((row) => row.id);
-
-    for (const entryIds of draftByEmployee.values()) {
-      for (const batch of chunk(entryIds, 50)) {
-        if (batch.length === 0) continue;
-        try {
-          await submitTimeEntries(context, { entryIds: batch });
-          report.timeSubmitted += batch.length;
-        } catch (error) {
-          const message = error instanceof Error ? error.message : String(error);
-          if (message.includes('Nothing to submit')) {
-            report.timeSkipped += batch.length;
-          } else {
-            stats.notes.push(`Time submit batch skip: ${message}`);
-          }
-        }
-      }
-    }
-
-    const refreshedSubmitted = await context.db
-      .select({ id: timeEntries.id })
-      .from(timeEntries)
-      .where(
-        and(
-          eq(timeEntries.organizationId, target.organizationId),
-          eq(timeEntries.status, 'recorded'),
-          like(timeEntries.description, `%${SEED_MARKER}%`),
-          lte(timeEntries.workDate, SETTLEMENT_CUTOFF),
-          eq(timeEntries.approvalStatus, 'submitted'),
-        ),
-      );
-    const approveIds = [...new Set([...submittedIds, ...refreshedSubmitted.map((row) => row.id)])];
-
-    for (const batch of chunk(approveIds, 200)) {
-      if (batch.length === 0) continue;
-      const outcome = await bulkApproveTimeEntries(context, { timeEntryIds: batch });
-      report.timeApproved += outcome.approved.length;
-      report.timeSkipped += outcome.skippedIds.length;
-    }
+    const outcome = await fastApproveHistoricalDemoTime(
+      target.organizationId,
+      target.userId,
+      SETTLEMENT_CUTOFF,
+    );
+    report.timeSubmitted = outcome.approved;
+    report.timeApproved = outcome.approved;
 
     const monthStart = `${HISTORY_END.slice(0, 7)}-01`;
     const monthEnd = `${HISTORY_END.slice(0, 7)}-30`;
@@ -463,7 +438,7 @@ export async function applyConsultancyFinalPass(
     report.pendingHoursAfter = reconciliation.pendingHours;
 
     stats.notes.push(
-      `Workforce cleanup: submitted ${report.timeSubmitted}, approved ${report.timeApproved}, Sep pending hours ${report.pendingHoursAfter}.`,
+      `Workforce cleanup: fast-approved ${outcome.approved} entries, ${outcome.timesheetsClosed} timesheets; Sep pending hours ${report.pendingHoursAfter}.`,
     );
   });
 
