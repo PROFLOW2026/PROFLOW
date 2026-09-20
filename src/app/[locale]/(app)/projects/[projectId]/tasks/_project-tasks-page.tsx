@@ -8,7 +8,7 @@ import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
 // Agent A's real API
 import { listAccessibleTasks } from '@/modules/tasks';
-import { mapTaskToCardData } from '@/modules/tasks/ui/_task-api-stub';
+import { mapTasksToCardDataForOrg } from '@/modules/tasks/application/map-tasks-for-ui';
 import { ProjectTasksClient } from './_project-tasks-client';
 import { getTaskDetailAction, updateTaskFieldsAction } from '../../../work/actions';
 
@@ -22,7 +22,7 @@ export default async function ProjectTasksPage({
 
   const data = await withOrgContext(async (context) => {
     const rawTasks = await listAccessibleTasks(context, { projectId });
-    return { tasks: rawTasks.map((t) => mapTaskToCardData(t)) };
+    return { tasks: await mapTasksToCardDataForOrg(context, rawTasks) };
   });
 
   if (!data) notFound();

@@ -17,9 +17,9 @@ import type { CreateTaskInput } from '@/modules/tasks';
 import {
   mapBoardToUiBoard,
   mapBucketToUiBucket,
-  mapTaskToCardData,
 } from '@/modules/tasks/ui/_task-api-stub';
 import type { TaskCardData, TaskDetail } from '@/modules/tasks/ui/_task-api-stub';
+import { mapTaskDetailToUiForOrg, mapTasksToCardDataForOrg } from '@/modules/tasks/application/map-tasks-for-ui';
 import { BoardShell } from './_board-shell';
 
 export async function generateMetadata({
@@ -57,7 +57,7 @@ export default async function WorkspaceBoardPage({
     if (!activeBoard) return null;
 
     const boards = rawBoards.map((b) => mapBoardToUiBoard(b));
-    const taskCards = rawTasks.map((t) => mapTaskToCardData(t));
+    const taskCards = await mapTasksToCardDataForOrg(context, rawTasks);
 
     // Map buckets with their tasks
     const tasksByBucket = new Map<string, TaskCardData[]>();
@@ -95,28 +95,20 @@ export default async function WorkspaceBoardPage({
 
   async function createTaskAction(formData: CreateTaskInput) {
     'use server';
-    const task = await withOrgContext(async (ctx) => createTask(ctx, formData));
-    return mapTaskToCardData(task);
+    return withOrgContext(async (ctx) => {
+      const task = await createTask(ctx, formData);
+      const cards = await mapTasksToCardDataForOrg(ctx, [task]);
+      return cards[0]!;
+    });
   }
 
   async function getTaskDetailAction(taskId: string): Promise<TaskDetail | null> {
     'use server';
-    const result = await withOrgContext(async (ctx) => {
+    return withOrgContext(async (ctx) => {
       const detail = await getTaskDetail(ctx, taskId);
       if (!detail) return null;
-      return {
-        ...mapTaskToCardData(detail),
-        checklist: detail.checklistItems.map((ci) => ({
-          id: ci.id,
-          title: ci.title,
-          done: ci.isDone,
-        })),
-        attachments: [], // TODO: attachments from Agent responsible for file storage
-        comments: [],   // TODO: Agent E slot
-        activityFeed: [], // TODO: Agent E slot
-      } satisfies TaskDetail;
+      return mapTaskDetailToUiForOrg(ctx, detail);
     });
-    return result;
   }
 
   async function updateTaskAction(taskId: string, updateData: Record<string, unknown>) {

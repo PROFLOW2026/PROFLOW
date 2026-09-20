@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { getLocale } from 'next-intl/server';
-import { redirect } from 'next/navigation';
+import { redirect } from '@/shared/i18n/navigation';
 import { withOrgContext } from '@/shared/auth/session';
 import {
   addEmployeePmTaskComment,
@@ -34,8 +34,7 @@ export async function employeeAddTaskCommentAction(
     await assertEmployeeAppContext(context);
     await addEmployeePmTaskComment(context, taskId, body);
   });
-  const locale = await getLocale();
-  revalidatePath(`/${locale}/employee/tasks/${taskId}`);
+  revalidatePath(`/employee/tasks/${taskId}`);
 }
 
 /** Updates the status of a PM task (Employee App surface). */
@@ -48,9 +47,8 @@ export async function employeeUpdateTaskStatusAction(
       await assertEmployeeAppContext(context);
       await updateEmployeePmTaskStatus(context, taskId, newStatus);
     });
-    const locale = await getLocale();
-    revalidatePath(`/${locale}/employee/tasks/${taskId}`);
-    revalidatePath(`/${locale}/employee/tasks`);
+    revalidatePath(`/employee/tasks/${taskId}`);
+    revalidatePath('/employee/tasks');
     return {};
   } catch (error) {
     if (error instanceof DomainRuleError) return { error: error.message };
@@ -69,8 +67,7 @@ export async function employeeToggleChecklistItemAction(
       await assertEmployeeAppContext(context);
       await toggleEmployeePmTaskChecklistItem(context, taskId, checklistItemId, isDone);
     });
-    const locale = await getLocale();
-    revalidatePath(`/${locale}/employee/tasks/${taskId}`);
+    revalidatePath(`/employee/tasks/${taskId}`);
     return {};
   } catch (error) {
     if (error instanceof DomainRuleError) return { error: error.message };
@@ -79,7 +76,6 @@ export async function employeeToggleChecklistItemAction(
 }
 
 export async function employeeCreateTaskAction(formData: FormData): Promise<void> {
-  const locale = await getLocale();
   const projectId = String(formData.get('projectId') ?? '');
   const title = String(formData.get('title') ?? '');
   const description = String(formData.get('description') ?? '') || null;
@@ -97,8 +93,9 @@ export async function employeeCreateTaskAction(formData: FormData): Promise<void
     });
   });
 
-  revalidatePath(`/${locale}/employee/tasks`);
-  redirect(`/${locale}/employee/tasks/${created.id}`);
+  revalidatePath('/employee/tasks');
+  const locale = await getLocale();
+  redirect({ href: `/employee/tasks/${created.id}`, locale });
 }
 
 export async function employeeAssignTaskAction(taskId: string, formData: FormData): Promise<void> {
@@ -110,8 +107,7 @@ export async function employeeAssignTaskAction(taskId: string, formData: FormDat
     await assignEmployeePmTaskAssignee(context, taskId, assigneeEmployeeId);
   });
 
-  const locale = await getLocale();
-  revalidatePath(`/${locale}/employee/tasks/${taskId}`);
+  revalidatePath(`/employee/tasks/${taskId}`);
 }
 
 export async function employeeDecideTaskApprovalAction(
@@ -133,6 +129,5 @@ export async function employeeDecideTaskApprovalAction(
     );
   });
 
-  const locale = await getLocale();
-  revalidatePath(`/${locale}/employee/tasks/${taskId}`);
+  revalidatePath(`/employee/tasks/${taskId}`);
 }

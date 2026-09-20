@@ -4,6 +4,7 @@ import type { OrgContext } from '@/shared/auth/context';
 import { queryMyWork, type MyWorkView } from '../data/my-work.repository';
 import { findWorkspaceIdsByActor, listWorkspacesForOrg } from '@/modules/workspaces';
 import { getWorkspaceScope } from '@/modules/workspaces/domain/access';
+import { findEmployeeByUserId } from '@/modules/workforce';
 import type { Task } from '../domain/types';
 
 export type { MyWorkView };
@@ -53,8 +54,14 @@ export async function getMyWork(
     workspaceIds = Array.from(seen);
   }
 
+  const linkedEmployee =
+    context.employeeApp?.employeeId != null
+      ? { id: context.employeeApp.employeeId }
+      : await findEmployeeByUserId(context.db, context.organizationId, context.userId);
+
   return queryMyWork(context.db, {
     orgMemberId: context.membershipId,
+    assigneeEmployeeId: linkedEmployee?.id ?? null,
     organizationId: context.organizationId,
     workspaceIds,
     view: options.view,

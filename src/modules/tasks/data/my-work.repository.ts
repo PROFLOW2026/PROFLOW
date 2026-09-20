@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray, isNotNull, lte, gte, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, isNotNull, lte, gte, or, sql } from 'drizzle-orm';
 import { tasks, taskAssignees, taskFollowers } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 import type { Task, TaskStatus, TaskPriority, TaskSource } from '../domain/types';
@@ -72,6 +72,7 @@ function sevenDaysFromNow(): string {
 
 export interface MyWorkQueryOptions {
   readonly orgMemberId: string;
+  readonly assigneeEmployeeId?: string | null;
   readonly organizationId: string;
   readonly workspaceIds: string[];
   readonly view: MyWorkView;
@@ -87,7 +88,7 @@ export async function queryMyWork(
   db: DbExecutor,
   options: MyWorkQueryOptions,
 ): Promise<Task[]> {
-  const { orgMemberId, organizationId, workspaceIds, view } = options;
+  const { orgMemberId, assigneeEmployeeId, organizationId, workspaceIds, view } = options;
   const limit = Math.min(options.limit ?? 50, 200);
   const offset = options.offset ?? 0;
   const today = todayISOString();
@@ -194,16 +195,25 @@ export async function queryMyWork(
     }
 
     case 'assigned_to_me': {
+      const identityConditions = [];
+      if (orgMemberId) {
+        identityConditions.push(eq(taskAssignees.orgMemberId, orgMemberId));
+      }
+      if (assigneeEmployeeId) {
+        identityConditions.push(eq(taskAssignees.employeeId, assigneeEmployeeId));
+      }
+      if (identityConditions.length === 0) return [];
+
       const assignedTaskIds = await db
         .select({ taskId: taskAssignees.taskId })
         .from(taskAssignees)
         .where(
           and(
-            eq(taskAssignees.orgMemberId, orgMemberId),
             eq(taskAssignees.organizationId, organizationId),
+            or(...identityConditions),
           ),
         );
-      const ids = assignedTaskIds.map((r) => r.taskId);
+      const ids = [...new Set(assignedTaskIds.map((row) => row.taskId))];
       if (ids.length === 0) return [];
 
       const rows = await db

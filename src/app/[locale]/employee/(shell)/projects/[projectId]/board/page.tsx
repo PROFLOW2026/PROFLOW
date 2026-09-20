@@ -10,6 +10,10 @@ import {
   updateEmployeePmTaskStatus,
 } from '@/modules/employee-app/application/employee-pm-tasks';
 import {
+  assigneeDisplaysForTask,
+  loadTaskAssigneeDisplayMap,
+} from '@/modules/tasks/application/enrich-task-assignees';
+import {
   EMPLOYEE_STATUS_BOARD_COLUMNS,
   mapEmployeePmTaskToCardData,
 } from '@/modules/employee-app/application/map-employee-pm-task-card';
@@ -32,8 +36,16 @@ export default async function EmployeeProjectBoardPage({ params }: PageProps) {
     if (!overview) return null;
 
     const pmTasks = await listEmployeePmTasks(context, { projectId });
+    const assigneeMap = await loadTaskAssigneeDisplayMap(
+      context.db,
+      context.organizationId,
+      pmTasks.map((task) => task.id),
+    );
     const taskCards = pmTasks.map((task) =>
-      mapEmployeePmTaskToCardData(task, { projectName: overview.displayName }),
+      mapEmployeePmTaskToCardData(task, {
+        projectName: overview.displayName,
+        assignees: assigneeDisplaysForTask(task.id, assigneeMap),
+      }),
     );
 
     const tasksByStatus = new Map<string, typeof taskCards>();

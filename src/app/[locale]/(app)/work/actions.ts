@@ -59,14 +59,9 @@ export async function getTaskDetailAction(taskId: string) {
   return withOrgContext(async (context) => {
     try {
       const detail = await getTaskDetail(context, taskId);
-      const { mapTaskDetailToUi } = await import('@/modules/tasks/ui/_task-api-stub');
-      const { enrichTasksWithProjectDisplayNames, projectDisplayNameForTask } = await import(
-        '@/modules/tasks/application/enrich-task-project-labels'
-      );
-      const labels = await enrichTasksWithProjectDisplayNames(context, [detail]);
-      return mapTaskDetailToUi(detail, {
-        projectName: projectDisplayNameForTask(detail, labels),
-      });
+      if (!detail) return null;
+      const { mapTaskDetailToUiForOrg } = await import('@/modules/tasks/application/map-tasks-for-ui');
+      return mapTaskDetailToUiForOrg(context, detail);
     } catch {
       return null;
     }

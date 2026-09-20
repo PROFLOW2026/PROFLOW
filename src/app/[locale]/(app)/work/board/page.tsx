@@ -4,7 +4,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { withOrgContext } from '@/shared/auth/session';
 // Agent A's real API
 import { listAccessibleTasks } from '@/modules/tasks';
-import { mapTaskToCardData } from '@/modules/tasks/ui/_task-api-stub';
+import { mapTasksToCardDataForOrg } from '@/modules/tasks/application/map-tasks-for-ui';
 import { GlobalBoardView } from './_global-board-view';
 import { getTaskDetailAction, updateTaskFieldsAction } from '../actions';
 
@@ -29,11 +29,12 @@ export default async function GlobalBoardPage() {
   const t = await getTranslations('tasks');
 
   const tasks = await withOrgContext(async (context) => {
-    // 'all' fetches all statuses; UI will filter out 'cancelled' tasks for board display
     const rawTasks = await listAccessibleTasks(context, { status: 'all' });
-    return rawTasks
-      .filter((t) => t.status !== 'cancelled')
-      .map((t) => mapTaskToCardData(t));
+    const cards = await mapTasksToCardDataForOrg(
+      context,
+      rawTasks.filter((task) => task.status !== 'cancelled'),
+    );
+    return cards;
   });
 
   return (

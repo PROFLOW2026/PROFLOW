@@ -20,9 +20,9 @@ import type { CreateTaskInput } from '@/modules/tasks';
 import {
   mapBoardToUiBoard,
   mapBucketToUiBucket,
-  mapTaskToCardData,
 } from '@/modules/tasks/ui/_task-api-stub';
 import type { TaskCardData, TaskDetail } from '@/modules/tasks/ui/_task-api-stub';
+import { mapTaskDetailToUiForOrg, mapTasksToCardDataForOrg } from '@/modules/tasks/application/map-tasks-for-ui';
 import { ProjectBoardShell } from './_project-board-shell';
 
 export async function generateMetadata({
@@ -61,7 +61,7 @@ export default async function ProjectBoardPage({
     if (!activeBoard) return null;
 
     const boards = rawBoards.map((b) => mapBoardToUiBoard(b));
-    const taskCards = rawTasks.map((t) => mapTaskToCardData(t));
+    const taskCards = await mapTasksToCardDataForOrg(context, rawTasks);
 
     const tasksByBucket = new Map<string, TaskCardData[]>();
     for (const task of taskCards) {
@@ -99,8 +99,11 @@ export default async function ProjectBoardPage({
 
   async function createTaskAction(formData: CreateTaskInput) {
     'use server';
-    const task = await withOrgContext(async (ctx) => createTask(ctx, formData));
-    return mapTaskToCardData(task);
+    return withOrgContext(async (ctx) => {
+      const task = await createTask(ctx, formData);
+      const cards = await mapTasksToCardDataForOrg(ctx, [task]);
+      return cards[0]!;
+    });
   }
 
   async function getTaskDetailAction(taskId: string): Promise<TaskDetail | null> {
@@ -108,17 +111,7 @@ export default async function ProjectBoardPage({
     return withOrgContext(async (ctx) => {
       const detail = await getTaskDetail(ctx, taskId);
       if (!detail) return null;
-      return {
-        ...mapTaskToCardData(detail),
-        checklist: detail.checklistItems.map((ci) => ({
-          id: ci.id,
-          title: ci.title,
-          done: ci.isDone,
-        })),
-        attachments: [],
-        comments: [],
-        activityFeed: [],
-      } satisfies TaskDetail;
+      return mapTaskDetailToUiForOrg(ctx, detail);
     });
   }
 

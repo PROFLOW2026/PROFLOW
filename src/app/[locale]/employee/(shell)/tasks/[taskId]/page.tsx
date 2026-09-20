@@ -2,6 +2,10 @@ import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { withOrgContext } from '@/shared/auth/session';
 import { getEmployeePmTaskDetail, getEmployeePmTaskCapabilities, listEmployeePmTaskAssigneeOptions, listEmployeePmTaskPendingApprovals } from '@/modules/employee-app/application/employee-pm-tasks';
+import {
+  assigneeDisplaysForTask,
+  loadTaskAssigneeDisplayMap,
+} from '@/modules/tasks/application/enrich-task-assignees';
 import { employeeHasPermission } from '@/modules/employee-app/application/load-employee-app-context';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { assertEmployeeAppContext } from '@/modules/employee-app/application/session-guard';
@@ -57,20 +61,26 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
   let canApprove = false;
   let assigneeOptions: Awaited<ReturnType<typeof listEmployeePmTaskAssigneeOptions>> = [];
   let pendingApprovals: Awaited<ReturnType<typeof listEmployeePmTaskPendingApprovals>> = [];
+  let assigneeNames = '';
 
   try {
     const result = await withOrgContext(async (context) => {
       await assertEmployeeAppContext(context);
       const detail = await getEmployeePmTaskDetail(context, taskId);
       const capabilities = await getEmployeePmTaskCapabilities(context, detail);
-      const [assignees, approvals] = await Promise.all([
+      const [assignees, approvals, assigneeMap] = await Promise.all([
         capabilities.canAssign
           ? listEmployeePmTaskAssigneeOptions(context, detail.projectId)
           : Promise.resolve([]),
         capabilities.canApprove
           ? listEmployeePmTaskPendingApprovals(context, taskId)
           : Promise.resolve([]),
+        loadTaskAssigneeDisplayMap(context.db, context.organizationId, [taskId]),
       ]);
+      const assigneeLabels = assigneeDisplaysForTask(taskId, assigneeMap)
+        .map((assignee) => assignee.displayName)
+        .filter(Boolean)
+        .join(', ');
       return {
         task: detail,
         canUpdate: capabilities.canUpdate,
@@ -79,6 +89,7 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
         canApprove: capabilities.canApprove,
         assigneeOptions: assignees,
         pendingApprovals: approvals,
+        assigneeNames: assigneeLabels,
         canCreate: employeeHasPermission(context, PERMISSIONS.TASKS_CREATE),
       };
     });
@@ -89,6 +100,7 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
     canApprove = result.canApprove;
     assigneeOptions = result.assigneeOptions;
     pendingApprovals = result.pendingApprovals;
+    assigneeNames = result.assigneeNames;
   } catch (error) {
     if (error instanceof NotFoundError) notFound();
     throw error;
@@ -100,7 +112,7 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
   return (
     <div className="space-y-5 pb-8">
       <Link
-        href={`/${locale}/employee/tasks`}
+        href="/employee/tasks"
         className="inline-flex items-center gap-1.5 text-sm text-[var(--pf-text-secondary)] hover:text-[var(--pf-text)]"
       >
         {t('backToTasks')}
@@ -131,6 +143,11 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
         {task.description ? (
           <p className="whitespace-pre-line text-sm leading-relaxed text-[var(--pf-text-secondary)]">
             {task.description}
+          </p>
+        ) : null}
+        {assigneeNames ? (
+          <p className="text-sm text-[var(--pf-text-secondary)]">
+            {t('assigneesLabel', { defaultValue: 'Assignees' })}: {assigneeNames}
           </p>
         ) : null}
       </div>

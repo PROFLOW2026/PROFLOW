@@ -1,10 +1,10 @@
 import type { EmployeePmTaskSummary } from './employee-pm-tasks';
-import type { TaskCardData, TaskPriority, TaskStatus } from '@/modules/tasks/ui/_task-api-stub';
+import type { TaskAssigneeDisplay, TaskCardData, TaskPriority, TaskStatus } from '@/modules/tasks/ui/_task-api-stub';
 
 /** Maps employee PM task rows to TaskCardData for BoardView / TaskCard. */
 export function mapEmployeePmTaskToCardData(
   task: EmployeePmTaskSummary,
-  enrichment?: { projectName?: string | null },
+  enrichment?: { projectName?: string | null; assignees?: readonly TaskAssigneeDisplay[] },
 ): TaskCardData {
   const status = task.status as TaskStatus;
   const priority = task.priority as TaskPriority;
@@ -19,7 +19,7 @@ export function mapEmployeePmTaskToCardData(
     bucketId: status,
     bucketName: null,
     sortKey: task.dueDate ?? task.id,
-    assignees: [],
+    assignees: enrichment?.assignees ? [...enrichment.assignees] : [],
     dueDate: task.dueDate,
     labels: [],
     checklistTotal: 0,

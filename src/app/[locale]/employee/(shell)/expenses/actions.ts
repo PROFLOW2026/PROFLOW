@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { getLocale } from 'next-intl/server';
-import { redirect } from 'next/navigation';
+import { redirect } from '@/shared/i18n/navigation';
 import { withOrgContext } from '@/shared/auth/session';
 import { assertEmployeeAppContext } from '@/modules/employee-app/application/session-guard';
 import { createEmployeeOperationalExpense } from '@/modules/employee-app/application/employee-operational';
@@ -30,6 +30,6 @@ export async function employeeCreateExpenseAction(formData: FormData): Promise<v
     });
   });
 
-  revalidatePath(`/${locale}/employee/expenses`);
-  redirect(`/${locale}/employee/expenses`);
+  revalidatePath('/employee/expenses');
+  redirect({ href: '/employee/expenses', locale });
 }

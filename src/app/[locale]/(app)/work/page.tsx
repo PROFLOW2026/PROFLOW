@@ -6,8 +6,8 @@ import { withOrgContext, getShellContext } from '@/shared/auth/session';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { getMyWork } from '@/modules/tasks';
 import type { MyWorkView } from '@/modules/tasks';
-import { mapTaskToCardData } from '@/modules/tasks/ui/_task-api-stub';
-import type { MyWorkItem } from '@/modules/tasks/ui/_task-api-stub';
+import { mapTasksToCardDataForOrg } from '@/modules/tasks/application/map-tasks-for-ui';
+import type { MyWorkItem, TaskCardData } from '@/modules/tasks/ui/_task-api-stub';
 import { MyWorkView as MyWorkViewComponent } from '@/modules/tasks/ui/my-work-view';
 import { getTaskDetailAction, updateTaskFieldsAction } from './actions';
 
@@ -33,7 +33,7 @@ const MY_WORK_VIEWS: MyWorkView[] = [
 ];
 
 /** Ensures RSC → client boundary receives only JSON-serializable task cards. */
-function serializeMyWorkItems(tasks: ReturnType<typeof mapTaskToCardData>[]): MyWorkItem[] {
+function serializeMyWorkItems(tasks: TaskCardData[]): MyWorkItem[] {
   return tasks.map(
     (task) =>
       ({
@@ -59,24 +59,10 @@ export default async function MyWorkPage() {
   const t = await getTranslations('tasks');
 
   const tasksByView = await withOrgContext(async (context) => {
-    const { enrichTasksWithProjectDisplayNames, projectDisplayNameForTask } = await import(
-      '@/modules/tasks/application/enrich-task-project-labels'
-    );
-    const allTasks = (
-      await Promise.all(MY_WORK_VIEWS.map((view) => getMyWork(context, { view, limit: 100 })))
-    ).flat();
-    const labels = await enrichTasksWithProjectDisplayNames(context, allTasks);
-
     const results = await Promise.all(
       MY_WORK_VIEWS.map(async (view) => {
         const tasks = await getMyWork(context, { view, limit: 100 });
-        const items = serializeMyWorkItems(
-          tasks.map((task) =>
-            mapTaskToCardData(task, {
-              projectName: projectDisplayNameForTask(task, labels),
-            }),
-          ),
-        );
+        const items = serializeMyWorkItems(await mapTasksToCardDataForOrg(context, tasks));
         return [view, items] as const;
       }),
     );
