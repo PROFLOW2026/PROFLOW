@@ -41,6 +41,44 @@ async function listAssignedProjectIdsForEmployee(
 }
 
 /**
+ * Resolves project IDs accessible to the current user for a specific employee permission.
+ */
+export async function resolveAccessibleProjectIdsForEmployeePermission(
+  context: OrgContext,
+  permission: PermissionKey,
+): Promise<string[] | null> {
+  if (hasPermission(context, PERMISSIONS.PROJECTS_ACCESS_ALL)) {
+    return null;
+  }
+
+  if (isEmployeeAppUser(context) && context.employeeApp) {
+    if (!employeeHasPermission(context, permission)) return [];
+
+    const scope = employeePermissionScope(context, permission) ?? 'assigned_only';
+
+    if (scope === 'all_organization') return null;
+    if (scope === 'granted_projects') {
+      const mode = await getStoredProjectAccessMode(context.db, context.organizationId);
+      return listAccessibleProjectIdsForUser(
+        context.db,
+        context.organizationId,
+        context.userId,
+        mode,
+      );
+    }
+    return listAssignedProjectIdsForEmployee(context, context.employeeApp.employeeId);
+  }
+
+  const mode = await getStoredProjectAccessMode(context.db, context.organizationId);
+  return listAccessibleProjectIdsForUser(
+    context.db,
+    context.organizationId,
+    context.userId,
+    mode,
+  );
+}
+
+/**
  * Resolves project IDs accessible to the current user.
  * Employee App users primary source: employee_project_assignments.
  */
@@ -57,20 +95,7 @@ export async function resolveAccessibleProjectIdsForUser(
       hasPermission(context, PERMISSIONS.PROJECTS_READ);
     if (!projectsRead) return [];
 
-    const scope =
-      employeePermissionScope(context, PERMISSIONS.PROJECTS_READ) ?? 'assigned_only';
-
-    if (scope === 'all_organization') return null;
-    if (scope === 'granted_projects') {
-      const mode = await getStoredProjectAccessMode(context.db, context.organizationId);
-      return listAccessibleProjectIdsForUser(
-        context.db,
-        context.organizationId,
-        context.userId,
-        mode,
-      );
-    }
-    return listAssignedProjectIdsForEmployee(context, context.employeeApp.employeeId);
+    return resolveAccessibleProjectIdsForEmployeePermission(context, PERMISSIONS.PROJECTS_READ);
   }
 
   const mode = await getStoredProjectAccessMode(context.db, context.organizationId);

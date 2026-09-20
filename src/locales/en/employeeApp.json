@@ -28,7 +28,10 @@
     "projects": "Projects",
     "tasks": "Tasks",
     "documents": "Documents",
-    "meetings": "Meetings"
+    "meetings": "Meetings",
+    "team": "Team",
+    "forms": "Forms",
+    "expenses": "Expenses"
   },
   "back": {
     "label": "Back"
@@ -95,7 +98,35 @@
   },
   "time": {
     "attendanceSection": "Attendance",
-    "hoursSection": "Work hours"
+    "hoursSection": "Work hours",
+    "teamAttendanceSection": "Team attendance",
+    "teamAttendanceEmpty": "No team attendance records for today",
+    "approveSection": "Hours awaiting approval",
+    "approveEmpty": "No hours awaiting approval"
+  },
+  "team": {
+    "intro": "Operational team visibility for your permitted scope.",
+    "openTasks": "{count, plural, one {# open task} other {# open tasks}}",
+    "empty": "No team members in your scope"
+  },
+  "forms": {
+    "intro": "Permitted operational forms.",
+    "empty": "No forms available"
+  },
+  "expenses": {
+    "create": "New expense",
+    "empty": "No expenses in your scope",
+    "createForm": {
+      "back": "Back to expenses",
+      "project": "Project (optional)",
+      "noProject": "No project — office/overhead expense",
+      "noProjectScope": "No assigned projects — you can still submit a non-project operational expense below.",
+      "description": "Description",
+      "amount": "Amount ({currency})",
+      "date": "Date",
+      "vendor": "Vendor / supplier",
+      "submit": "Submit expense"
+    }
   },
   "tasks": {
     "tabs": {
@@ -113,6 +144,29 @@
     "commentAuthorEmployee": "Employee",
     "commentPlaceholder": "Add a comment…",
     "postComment": "Post Comment",
+    "assignSection": "Assign task",
+    "assignSelect": "Select team member",
+    "assignSubmit": "Assign",
+    "assignEmpty": "No project team members available to assign.",
+    "approveSection": "Pending approval",
+    "approveNotePlaceholder": "Optional note",
+    "approveAction": "Approve",
+    "rejectAction": "Reject",
+    "approveEmpty": "No pending approvals for this task.",
+    "create": {
+      "noProjects": "No projects available for task creation in your scope",
+      "project": "Project",
+      "title": "Title",
+      "description": "Description",
+      "priority": "Priority",
+      "priorityNone": "None",
+      "priorityLow": "Low",
+      "priorityMedium": "Medium",
+      "priorityHigh": "High",
+      "priorityUrgent": "Urgent",
+      "dueDate": "Due date",
+      "submit": "Create task"
+    },
     "status": {
       "todo": "To Do",
       "in_progress": "In Progress",
@@ -233,10 +287,17 @@
   "presets": {
     "fieldWorker": "Field worker",
     "fieldWorkerTime": "Field worker + time",
+    "technicalProfessional": "Technical professional",
+    "professionalEmployee": "Professional employee",
     "foreman": "Foreman",
+    "teamLead": "Team lead",
     "projectManager": "Project manager",
+    "officeAdmin": "Office admin",
     "office": "Office",
     "management": "Management",
+    "readOnlyProject": "Read-only project access",
+    "externalConsultant": "External consultant",
+    "supervisorInspector": "Supervisor / inspector",
     "custom": "Custom"
   },
   "permissions": {

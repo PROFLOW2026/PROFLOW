@@ -1,50 +1,30 @@
 import 'server-only';
 
-import { and, asc, eq, inArray, isNull, lte, or, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, isNull } from 'drizzle-orm';
 import {
   tasks,
   taskAssignees,
   taskChecklistItems,
   taskComments,
   taskActivity,
-  employeeProjectAssignments,
   projects,
+  approvalRequests,
+  employees,
 } from '@drizzle/schema';
 import type { OrgContext } from '@/shared/auth/context';
-import { DomainRuleError, NotFoundError } from '@/shared/errors';
+import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { todayInTimeZone } from '@/shared/dates';
 import { employeePermissionScope } from './load-employee-app-context';
-import { assertEmployeeProjectScope } from './project-scope';
+import { assertEmployeeProjectScope, resolveAccessibleProjectIdsForEmployeePermission } from './project-scope';
+import {
+  assertEmployeeCanExerciseTaskPermission,
+  employeeCanCreateTaskInProject,
+  employeeCanExerciseTaskPermission,
+  employeeCanUpdateTaskGrant,
+  employeeHasTaskMutationGrant,
+} from './task-permission-scope';
 import { formatProjectDisplayName } from '@/modules/projects/domain/display';
-
-// ─── Internal helpers ─────────────────────────────────────────────────────────
-
-/** Returns the project IDs the employee is currently assigned to (active, date-bounded). */
-async function getAssignedProjectIds(
-  context: OrgContext,
-  employeeId: string,
-): Promise<string[]> {
-  const today = todayInTimeZone(context.organization.timezone);
-  const rows = await context.db
-    .select({ projectId: employeeProjectAssignments.projectId })
-    .from(employeeProjectAssignments)
-    .where(
-      and(
-        eq(employeeProjectAssignments.organizationId, context.organizationId),
-        eq(employeeProjectAssignments.employeeId, employeeId),
-        eq(employeeProjectAssignments.status, 'active'),
-        lte(employeeProjectAssignments.startDate, today),
-        or(
-          isNull(employeeProjectAssignments.endDate),
-          sql`${employeeProjectAssignments.endDate} >= ${today}`,
-        ),
-      ),
-    );
-  return [...new Set(rows.map((r) => r.projectId))];
-}
-
-// ─── Public types ─────────────────────────────────────────────────────────────
 
 export interface EmployeePmTaskSummary {
   readonly id: string;
@@ -120,7 +100,7 @@ function requireEmployeeId(context: OrgContext): string {
  */
 async function resolveEmployeeTaskScope(
   context: OrgContext,
-  employeeId: string,
+  _employeeId: string,
 ): Promise<{ mode: 'none' } | { mode: 'self' } | { mode: 'projects'; projectIds: string[] } | { mode: 'all' }> {
   const scope = employeePermissionScope(context, PERMISSIONS.TASKS_READ);
   if (!scope) return { mode: 'none' };
@@ -129,8 +109,11 @@ async function resolveEmployeeTaskScope(
 
   if (scope === 'self_only') return { mode: 'self' };
 
-  // assigned_only or granted_projects → filter by assigned project IDs
-  const projectIds = await getAssignedProjectIds(context, employeeId);
+  const projectIds = await resolveAccessibleProjectIdsForEmployeePermission(
+    context,
+    PERMISSIONS.TASKS_READ,
+  );
+  if (projectIds === null) return { mode: 'all' };
   return { mode: 'projects', projectIds };
 }
 
@@ -425,13 +408,28 @@ export async function addEmployeePmTaskComment(
   body: string,
 ): Promise<void> {
   const employeeId = requireEmployeeId(context);
-  const scope = employeePermissionScope(context, PERMISSIONS.TASKS_COMMENT);
-  if (!scope) {
+  if (!employeeHasTaskMutationGrant(context, PERMISSIONS.TASKS_COMMENT)) {
     throw new DomainRuleError('No permission to comment on tasks', 'employeeApp.errors.notAuthorized');
   }
 
-  // Verify task access via tasks.read (comment implies read access)
-  await getEmployeePmTaskDetail(context, taskId);
+  const [task] = await context.db
+    .select({ id: tasks.id, projectId: tasks.projectId })
+    .from(tasks)
+    .where(
+      and(
+        eq(tasks.id, taskId),
+        eq(tasks.organizationId, context.organizationId),
+        isNull(tasks.archivedAt),
+      ),
+    );
+  if (!task) throw new NotFoundError('Task');
+
+  await assertEmployeeCanExerciseTaskPermission(
+    context,
+    PERMISSIONS.TASKS_COMMENT,
+    { taskId, projectId: task.projectId },
+    employeeId,
+  );
 
   const trimmedBody = body.trim();
   if (!trimmedBody) {
@@ -441,14 +439,12 @@ export async function addEmployeePmTaskComment(
   await context.db.insert(taskComments).values({
     taskId,
     organizationId: context.organizationId,
-    // CRITICAL: Employee App always uses authorEmployeeId, never authorOrgMemberId
     authorEmployeeId: employeeId,
     body: trimmedBody,
     isEdited: false,
     isDeleted: false,
   });
 
-  // Record activity — actor is the employee
   await context.db.insert(taskActivity).values({
     taskId,
     organizationId: context.organizationId,
@@ -468,21 +464,40 @@ export async function updateEmployeePmTaskStatus(
   newStatus: string,
 ): Promise<void> {
   const employeeId = requireEmployeeId(context);
-  const scope = employeePermissionScope(context, PERMISSIONS.TASKS_UPDATE);
-  if (!scope) {
+  if (!employeeCanUpdateTaskGrant(context)) {
     throw new DomainRuleError('No permission to update tasks', 'employeeApp.errors.notAuthorized');
   }
 
-  // Fetch current task (also verifies access)
-  const detail = await getEmployeePmTaskDetail(context, taskId);
-  const previousStatus = detail.status;
+  const [task] = await context.db
+    .select({
+      id: tasks.id,
+      projectId: tasks.projectId,
+      status: tasks.status,
+    })
+    .from(tasks)
+    .where(
+      and(
+        eq(tasks.id, taskId),
+        eq(tasks.organizationId, context.organizationId),
+        isNull(tasks.archivedAt),
+      ),
+    );
+  if (!task) throw new NotFoundError('Task');
 
-  if (previousStatus === newStatus) return; // no-op
+  const updateScope = employeePermissionScope(context, PERMISSIONS.TASKS_UPDATE);
+  const permissionKey = updateScope ? PERMISSIONS.TASKS_UPDATE : PERMISSIONS.TASKS_MANAGE_ALL;
+  await assertEmployeeCanExerciseTaskPermission(
+    context,
+    permissionKey,
+    { taskId, projectId: task.projectId },
+    employeeId,
+  );
+
+  const previousStatus = task.status;
+  if (previousStatus === newStatus) return;
 
   const isDone = newStatus === 'done';
-
-  // Apply the status update — CRITICAL: completedByEmployeeId only, never completedByOrgMemberId
-  await context.db
+  const updated = await context.db
     .update(tasks)
     .set({
       status: newStatus as typeof tasks.$inferSelect.status,
@@ -495,9 +510,13 @@ export async function updateEmployeePmTaskStatus(
         eq(tasks.id, taskId),
         eq(tasks.organizationId, context.organizationId),
       ),
-    );
+    )
+    .returning({ id: tasks.id });
 
-  // Record activity — CRITICAL: actor_employee_id only, never actor_org_member_id
+  if (updated.length === 0) {
+    throw new DomainRuleError('Task update was not permitted', 'employeeApp.errors.notAuthorized');
+  }
+
   await context.db.insert(taskActivity).values({
     taskId,
     organizationId: context.organizationId,
@@ -518,13 +537,30 @@ export async function toggleEmployeePmTaskChecklistItem(
   isDone: boolean,
 ): Promise<void> {
   const employeeId = requireEmployeeId(context);
-  const scope = employeePermissionScope(context, PERMISSIONS.TASKS_UPDATE);
-  if (!scope) {
+  if (!employeeCanUpdateTaskGrant(context)) {
     throw new DomainRuleError('No permission to update tasks', 'employeeApp.errors.notAuthorized');
   }
 
-  // Verify task access
-  await getEmployeePmTaskDetail(context, taskId);
+  const [task] = await context.db
+    .select({ id: tasks.id, projectId: tasks.projectId })
+    .from(tasks)
+    .where(
+      and(
+        eq(tasks.id, taskId),
+        eq(tasks.organizationId, context.organizationId),
+        isNull(tasks.archivedAt),
+      ),
+    );
+  if (!task) throw new NotFoundError('Task');
+
+  const updateScope = employeePermissionScope(context, PERMISSIONS.TASKS_UPDATE);
+  const permissionKey = updateScope ? PERMISSIONS.TASKS_UPDATE : PERMISSIONS.TASKS_MANAGE_ALL;
+  await assertEmployeeCanExerciseTaskPermission(
+    context,
+    permissionKey,
+    { taskId, projectId: task.projectId },
+    employeeId,
+  );
 
   await context.db
     .update(taskChecklistItems)
@@ -537,7 +573,6 @@ export async function toggleEmployeePmTaskChecklistItem(
       ),
     );
 
-  // Record activity only when marking as done (checklist_completed is the canonical event)
   if (isDone) {
     await context.db.insert(taskActivity).values({
       taskId,
@@ -547,4 +582,302 @@ export async function toggleEmployeePmTaskChecklistItem(
       eventType: 'checklist_completed',
     });
   }
+}
+
+export interface EmployeePmTaskCapabilities {
+  readonly canRead: boolean;
+  readonly canUpdate: boolean;
+  readonly canComment: boolean;
+  readonly canAssign: boolean;
+  readonly canApprove: boolean;
+}
+
+export async function getEmployeePmTaskCapabilities(
+  context: OrgContext,
+  task: { id: string; projectId: string | null },
+): Promise<EmployeePmTaskCapabilities> {
+  const employeeId = requireEmployeeId(context);
+  const taskRef = { taskId: task.id, projectId: task.projectId };
+  const [canUpdate, canComment, canAssign, canApprove] = await Promise.all([
+    employeeCanExerciseTaskPermission(context, PERMISSIONS.TASKS_UPDATE, taskRef, employeeId).then(
+      (direct) =>
+        direct ||
+        employeeCanExerciseTaskPermission(
+          context,
+          PERMISSIONS.TASKS_MANAGE_ALL,
+          taskRef,
+          employeeId,
+        ),
+    ),
+    employeeCanExerciseTaskPermission(context, PERMISSIONS.TASKS_COMMENT, taskRef, employeeId),
+    employeeCanExerciseTaskPermission(context, PERMISSIONS.TASKS_ASSIGN, taskRef, employeeId),
+    employeeCanExerciseTaskPermission(context, PERMISSIONS.TASKS_APPROVE, taskRef, employeeId),
+  ]);
+  return {
+    canRead: true,
+    canUpdate,
+    canComment,
+    canAssign,
+    canApprove,
+  };
+}
+
+export interface CreateEmployeePmTaskInput {
+  readonly projectId: string;
+  readonly title: string;
+  readonly description?: string | null;
+  readonly priority?: string;
+  readonly dueDate?: string | null;
+  readonly estimatedEffortMinutes?: number | null;
+  readonly assigneeEmployeeId?: string | null;
+}
+
+export async function createEmployeePmTask(
+  context: OrgContext,
+  input: CreateEmployeePmTaskInput,
+): Promise<{ id: string }> {
+  const employeeId = requireEmployeeId(context);
+  if (!employeeHasTaskMutationGrant(context, PERMISSIONS.TASKS_CREATE)) {
+    throw new DomainRuleError('No permission to create tasks', 'employeeApp.errors.notAuthorized');
+  }
+
+  const allowed = await employeeCanCreateTaskInProject(context, input.projectId, employeeId);
+  if (!allowed) throw new NotFoundError('Project');
+
+  const title = input.title.trim();
+  if (!title) {
+    throw new ValidationError([{ path: 'title', message: 'Title is required' }]);
+  }
+
+  const { listProjectWorkspaceLinksByProject } = await import('@/modules/workspaces');
+  const links = await listProjectWorkspaceLinksByProject(context.db, input.projectId);
+  const workspaceId = links[0]?.workspaceId;
+  if (!workspaceId) throw new DomainRuleError('Project has no workspace link', 'tasks.errors.noWorkspace');
+
+  const { insertTask, insertTaskAssignee, insertTaskActivity } = await import(
+    '@/modules/tasks/data/tasks.repository'
+  );
+  const { generateSortKey } = await import('@/modules/tasks/domain/lexorank');
+
+  const task = await insertTask(context.db, {
+    organizationId: context.organizationId,
+    workspaceId,
+    title,
+    description: input.description ?? null,
+    projectId: input.projectId,
+    priority: (input.priority as 'none') ?? 'none',
+    dueDate: input.dueDate ?? null,
+    estimatedEffortMinutes: input.estimatedEffortMinutes ?? null,
+    source: 'manual',
+    sortKey: generateSortKey(),
+    createdByOrgMemberId: null,
+    createdByEmployeeId: employeeId,
+    createdBySystem: false,
+  });
+
+  if (input.assigneeEmployeeId && employeeHasTaskMutationGrant(context, PERMISSIONS.TASKS_ASSIGN)) {
+    await insertTaskAssignee(context.db, {
+      taskId: task.id,
+      organizationId: context.organizationId,
+      employeeId: input.assigneeEmployeeId,
+      orgMemberId: null,
+      assignedByOrgMemberId: null,
+    });
+  }
+
+  await insertTaskActivity(context.db, {
+    taskId: task.id,
+    organizationId: context.organizationId,
+    actorEmployeeId: employeeId,
+    actorSystem: false,
+    eventType: 'created',
+    payload: { title: task.title },
+  });
+
+  return { id: task.id };
+}
+
+export async function assignEmployeePmTaskAssignee(
+  context: OrgContext,
+  taskId: string,
+  assigneeEmployeeId: string,
+): Promise<void> {
+  const employeeId = requireEmployeeId(context);
+  if (!employeeHasTaskMutationGrant(context, PERMISSIONS.TASKS_ASSIGN)) {
+    throw new DomainRuleError('No permission to assign tasks', 'employeeApp.errors.notAuthorized');
+  }
+
+  const [task] = await context.db
+    .select({ id: tasks.id, projectId: tasks.projectId })
+    .from(tasks)
+    .where(
+      and(
+        eq(tasks.id, taskId),
+        eq(tasks.organizationId, context.organizationId),
+        isNull(tasks.archivedAt),
+      ),
+    );
+  if (!task) throw new NotFoundError('Task');
+
+  await assertEmployeeCanExerciseTaskPermission(
+    context,
+    PERMISSIONS.TASKS_ASSIGN,
+    { taskId, projectId: task.projectId },
+    employeeId,
+  );
+
+  const { insertTaskAssignee, insertTaskActivity } = await import('@/modules/tasks/data/tasks.repository');
+  await insertTaskAssignee(context.db, {
+    taskId,
+    organizationId: context.organizationId,
+    employeeId: assigneeEmployeeId,
+    orgMemberId: null,
+    assignedByOrgMemberId: null,
+  });
+
+  await insertTaskActivity(context.db, {
+    taskId,
+    organizationId: context.organizationId,
+    actorEmployeeId: employeeId,
+    actorSystem: false,
+    eventType: 'assigned',
+    payload: { employeeId: assigneeEmployeeId },
+  });
+}
+
+export async function decideEmployeePmTaskApproval(
+  context: OrgContext,
+  taskId: string,
+  requestId: string,
+  decision: 'approved' | 'rejected',
+  decisionNote?: string | null,
+): Promise<void> {
+  const employeeId = requireEmployeeId(context);
+  const [task] = await context.db
+    .select({ id: tasks.id, projectId: tasks.projectId })
+    .from(tasks)
+    .where(
+      and(
+        eq(tasks.id, taskId),
+        eq(tasks.organizationId, context.organizationId),
+        isNull(tasks.archivedAt),
+      ),
+    );
+  if (!task) throw new NotFoundError('Task');
+
+  await assertEmployeeCanExerciseTaskPermission(
+    context,
+    PERMISSIONS.TASKS_APPROVE,
+    { taskId, projectId: task.projectId },
+    employeeId,
+  );
+
+  const { decideApprovalRequest } = await import('@/modules/approvals');
+  await decideApprovalRequest(context, {
+    requestId,
+    decision,
+    decisionNote: decisionNote ?? null,
+  });
+}
+
+export async function listEmployeePmCreatableProjects(
+  context: OrgContext,
+): Promise<Array<{ id: string; displayName: string }>> {
+  const employeeId = requireEmployeeId(context);
+  if (!employeeHasTaskMutationGrant(context, PERMISSIONS.TASKS_CREATE)) return [];
+
+  const allowed = await resolveAccessibleProjectIdsForEmployeePermission(
+    context,
+    PERMISSIONS.TASKS_CREATE,
+  );
+  if (allowed !== null && allowed.length === 0) return [];
+
+  const rows = await context.db
+    .select({ id: projects.id, name: projects.name, documentNumber: projects.documentNumber })
+    .from(projects)
+    .where(
+      and(
+        eq(projects.organizationId, context.organizationId),
+        isNull(projects.archivedAt),
+        ...(allowed ? [inArray(projects.id, allowed)] : []),
+      ),
+    )
+    .orderBy(asc(projects.documentNumber), asc(projects.name));
+
+  const result: Array<{ id: string; displayName: string }> = [];
+  for (const row of rows) {
+    if (await employeeCanCreateTaskInProject(context, row.id, employeeId)) {
+      result.push({
+        id: row.id,
+        displayName: formatProjectDisplayName(row.name, row.documentNumber),
+      });
+    }
+  }
+  return result;
+}
+
+export interface EmployeePmTaskAssigneeOption {
+  readonly id: string;
+  readonly name: string;
+}
+
+export async function listEmployeePmTaskAssigneeOptions(
+  context: OrgContext,
+  projectId: string | null,
+): Promise<EmployeePmTaskAssigneeOption[]> {
+  if (!projectId) return [];
+
+  const { listActiveAssignedEmployeeIds } = await import(
+    '@/modules/workforce/data/project-team.repository'
+  );
+  const employeeIds = await listActiveAssignedEmployeeIds(
+    context.db,
+    context.organizationId,
+    projectId,
+  );
+  if (employeeIds.length === 0) return [];
+
+  const rows = await context.db
+    .select({ id: employees.id, name: employees.name })
+    .from(employees)
+    .where(
+      and(
+        eq(employees.organizationId, context.organizationId),
+        inArray(employees.id, employeeIds),
+        isNull(employees.archivedAt),
+      ),
+    )
+    .orderBy(asc(employees.name));
+
+  return rows.map((row) => ({ id: row.id, name: row.name }));
+}
+
+export interface EmployeePmTaskPendingApproval {
+  readonly id: string;
+  readonly status: string;
+  readonly createdAt: Date;
+}
+
+export async function listEmployeePmTaskPendingApprovals(
+  context: OrgContext,
+  taskId: string,
+): Promise<EmployeePmTaskPendingApproval[]> {
+  const rows = await context.db
+    .select({
+      id: approvalRequests.id,
+      status: approvalRequests.status,
+      createdAt: approvalRequests.createdAt,
+    })
+    .from(approvalRequests)
+    .where(
+      and(
+        eq(approvalRequests.organizationId, context.organizationId),
+        eq(approvalRequests.entityType, 'task'),
+        eq(approvalRequests.entityId, taskId),
+        eq(approvalRequests.status, 'pending'),
+      ),
+    )
+    .orderBy(desc(approvalRequests.createdAt));
+
+  return rows;
 }

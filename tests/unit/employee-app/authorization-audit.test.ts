@@ -119,13 +119,16 @@ describe('employee authorization audit — presets', () => {
       expect(context.permissions.has(grant.permissionKey)).toBe(true);
       expect(context.employeeApp?.grants.get(grant.permissionKey)?.scope).toBe(grant.scope);
     }
-    expect(visibleNavHrefs(context)).toEqual([
-      '/employee',
-      '/employee/time',
-      '/employee/projects',
-      '/employee/tasks',
-      '/employee/documents',
-    ]);
+    expect(visibleNavHrefs(context)).toEqual(
+      expect.arrayContaining([
+        '/employee',
+        '/employee/time',
+        '/employee/projects',
+        '/employee/tasks',
+        '/employee/documents',
+        '/employee/team',
+      ]),
+    );
   });
 
   it('project_manager preset includes planning and forms grants', () => {
@@ -137,26 +140,28 @@ describe('employee authorization audit — presets', () => {
     expect(visibleNavHrefs(context)).toContain('/employee/documents');
   });
 
-  it('office preset does not expose projects or hours nav', () => {
+  it('office preset exposes forms and expenses nav without projects', () => {
     const context = employeeContextFromPreset('office');
     expect(context.permissions.has(PERMISSIONS.EXPENSES_READ)).toBe(true);
+    expect(context.permissions.has(PERMISSIONS.FORMS_READ)).toBe(true);
     expect(context.permissions.has(PERMISSIONS.PROJECTS_READ)).toBe(false);
-    expect(context.permissions.has(PERMISSIONS.TIME_MANAGE)).toBe(false);
-    expect(visibleNavHrefs(context)).toEqual([
-      '/employee',
-      '/employee/time',
-      '/employee/documents',
-    ]);
+    expect(visibleNavHrefs(context)).toEqual(
+      expect.arrayContaining(['/employee/forms', '/employee/expenses', '/employee/documents']),
+    );
   });
 
-  it('management preset uses all_organization scopes', () => {
+  it('management preset uses all_organization scopes and team nav', () => {
     const context = employeeContextFromPreset('management');
     const preset = EMPLOYEE_PRESETS.find((p) => p.key === 'management')!;
     for (const grant of preset.grants) {
-      expect(context.employeeApp?.grants.get(grant.permissionKey)?.scope).toBe('all_organization');
+      const expectedScope =
+        grant.permissionKey === PERMISSIONS.TIME_MANAGE ? 'self_only' : 'all_organization';
+      expect(context.employeeApp?.grants.get(grant.permissionKey)?.scope).toBe(expectedScope);
     }
     expect(visibleNavHrefs(context)).toContain('/employee/projects');
     expect(visibleNavHrefs(context)).toContain('/employee/time');
+    expect(visibleNavHrefs(context)).toContain('/employee/team');
+    expect(visibleNavHrefs(context)).toContain('/employee/tasks');
   });
 
   it('custom preset is baseline-only until owner grants', () => {

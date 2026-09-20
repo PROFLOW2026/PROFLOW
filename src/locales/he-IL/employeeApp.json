@@ -28,7 +28,10 @@
     "projects": "פרויקטים",
     "tasks": "משימות",
     "documents": "מסמכים",
-    "meetings": "ישיבות"
+    "meetings": "ישיבות",
+    "team": "צוות",
+    "forms": "טפסים",
+    "expenses": "הוצאות"
   },
   "back": {
     "label": "חזרה"
@@ -95,7 +98,35 @@
   },
   "time": {
     "attendanceSection": "נוכחות",
-    "hoursSection": "שעות עבודה"
+    "hoursSection": "שעות עבודה",
+    "teamAttendanceSection": "נוכחות צוות",
+    "teamAttendanceEmpty": "אין נוכחות צוות להיום",
+    "approveSection": "שעות ממתינות לאישור",
+    "approveEmpty": "אין שעות ממתינות לאישור"
+  },
+  "team": {
+    "intro": "תצוגת צוות תפעולית בהיקף ההרשאות שלך.",
+    "openTasks": "{count, plural, one {משימה פתוחה אחת} other {# משימות פתוחות}}",
+    "empty": "אין חברי צוות בהיקף שלך"
+  },
+  "forms": {
+    "intro": "טפסים תפעוליים מותרים.",
+    "empty": "אין טפסים זמינים"
+  },
+  "expenses": {
+    "create": "הוצאה חדשה",
+    "empty": "אין הוצאות בהיקף שלך",
+    "createForm": {
+      "back": "חזרה להוצאות",
+      "project": "פרויקט (אופציונלי)",
+      "noProject": "ללא פרויקט — הוצאה משרדית/כללית",
+      "noProjectScope": "אין פרויקטים משויכים — ניתן עדיין להגיש הוצאה תפעולית ללא פרויקט.",
+      "description": "תיאור",
+      "amount": "סכום ({currency})",
+      "date": "תאריך",
+      "vendor": "ספק / vendor",
+      "submit": "שליחת הוצאה"
+    }
   },
   "tasks": {
     "tabs": {
@@ -113,6 +144,15 @@
     "commentAuthorEmployee": "עובד",
     "commentPlaceholder": "הוסף תגובה…",
     "postComment": "פרסום תגובה",
+    "assignSection": "שיוך משימה",
+    "assignSelect": "בחר חבר צוות",
+    "assignSubmit": "שייך",
+    "assignEmpty": "אין חברי צוות זמינים לשיוך.",
+    "approveSection": "אישור ממתין",
+    "approveNotePlaceholder": "הערה (אופציונלי)",
+    "approveAction": "אשר",
+    "rejectAction": "דחה",
+    "approveEmpty": "אין בקשות אישור ממתינות למשימה זו.",
     "status": {
       "todo": "לביצוע",
       "in_progress": "בתהליך",
@@ -127,6 +167,20 @@
       "medium": "בינונית",
       "high": "גבוהה",
       "urgent": "דחוף"
+    },
+    "create": {
+      "noProjects": "אין פרויקטים זמינים ליצירת משימות בהיקף שלך",
+      "project": "פרויקט",
+      "title": "כותרת",
+      "description": "תיאור",
+      "priority": "עדיפות",
+      "priorityNone": "ללא",
+      "priorityLow": "נמוכה",
+      "priorityMedium": "בינונית",
+      "priorityHigh": "גבוהה",
+      "priorityUrgent": "דחוף",
+      "dueDate": "תאריך יעד",
+      "submit": "יצירת משימה"
     }
   },
   "projects": {
@@ -237,7 +291,14 @@
     "projectManager": "מנהל פרויקט",
     "office": "משרד",
     "management": "הנהלה",
-    "custom": "מותאם אישית"
+    "custom": "מותאם אישית",
+    "technicalProfessional": "איש מקצוע טכני",
+    "professionalEmployee": "עובד מקצועי",
+    "teamLead": "ראש צוות",
+    "officeAdmin": "מנהל/ת משרד",
+    "readOnlyProject": "צפייה בפרויקט בלבד",
+    "externalConsultant": "יועץ חיצוני",
+    "supervisorInspector": "מפקח / בודק"
   },
   "permissions": {
     "groups": {

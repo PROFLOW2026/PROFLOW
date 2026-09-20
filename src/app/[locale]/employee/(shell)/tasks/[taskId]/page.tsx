@@ -1,8 +1,8 @@
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { withOrgContext } from '@/shared/auth/session';
-import { getEmployeePmTaskDetail } from '@/modules/employee-app/application/employee-pm-tasks';
-import { employeePermissionScope } from '@/modules/employee-app/application/load-employee-app-context';
+import { getEmployeePmTaskDetail, getEmployeePmTaskCapabilities, listEmployeePmTaskAssigneeOptions, listEmployeePmTaskPendingApprovals } from '@/modules/employee-app/application/employee-pm-tasks';
+import { employeeHasPermission } from '@/modules/employee-app/application/load-employee-app-context';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { assertEmployeeAppContext } from '@/modules/employee-app/application/session-guard';
 import { Link } from '@/shared/i18n/navigation';
@@ -11,6 +11,8 @@ import {
   employeeUpdateTaskStatusAction,
   employeeToggleChecklistItemAction,
   employeeAddTaskCommentAction,
+  employeeAssignTaskAction,
+  employeeDecideTaskApprovalAction,
 } from '../actions';
 import { cn } from '@/shared/ui/cn';
 
@@ -51,22 +53,42 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
   let task: Awaited<ReturnType<typeof getEmployeePmTaskDetail>>;
   let canUpdate = false;
   let canComment = false;
+  let canAssign = false;
+  let canApprove = false;
+  let assigneeOptions: Awaited<ReturnType<typeof listEmployeePmTaskAssigneeOptions>> = [];
+  let pendingApprovals: Awaited<ReturnType<typeof listEmployeePmTaskPendingApprovals>> = [];
 
   try {
     const result = await withOrgContext(async (context) => {
       await assertEmployeeAppContext(context);
       const detail = await getEmployeePmTaskDetail(context, taskId);
-      const updateScope = employeePermissionScope(context, PERMISSIONS.TASKS_UPDATE);
-      const commentScope = employeePermissionScope(context, PERMISSIONS.TASKS_COMMENT);
+      const capabilities = await getEmployeePmTaskCapabilities(context, detail);
+      const [assignees, approvals] = await Promise.all([
+        capabilities.canAssign
+          ? listEmployeePmTaskAssigneeOptions(context, detail.projectId)
+          : Promise.resolve([]),
+        capabilities.canApprove
+          ? listEmployeePmTaskPendingApprovals(context, taskId)
+          : Promise.resolve([]),
+      ]);
       return {
         task: detail,
-        canUpdate: updateScope !== null,
-        canComment: commentScope !== null,
+        canUpdate: capabilities.canUpdate,
+        canComment: capabilities.canComment,
+        canAssign: capabilities.canAssign,
+        canApprove: capabilities.canApprove,
+        assigneeOptions: assignees,
+        pendingApprovals: approvals,
+        canCreate: employeeHasPermission(context, PERMISSIONS.TASKS_CREATE),
       };
     });
     task = result.task;
     canUpdate = result.canUpdate;
     canComment = result.canComment;
+    canAssign = result.canAssign;
+    canApprove = result.canApprove;
+    assigneeOptions = result.assigneeOptions;
+    pendingApprovals = result.pendingApprovals;
   } catch (error) {
     if (error instanceof NotFoundError) notFound();
     throw error;
@@ -112,6 +134,88 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
           </p>
         ) : null}
       </div>
+
+      {canAssign && assigneeOptions.length > 0 ? (
+        <section className="space-y-2">
+          <h2 className="px-1 text-sm font-semibold uppercase tracking-wide text-[var(--pf-text-secondary)]">
+            {t('assignSection')}
+          </h2>
+          <form action={employeeAssignTaskAction.bind(null, taskId)} className="flex flex-col gap-2 sm:flex-row">
+            <select
+              name="assigneeEmployeeId"
+              required
+              className="min-h-[44px] flex-1 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-surface)] px-3 py-2 text-sm"
+            >
+              <option value="">{t('assignSelect')}</option>
+              {assigneeOptions.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.name}
+                </option>
+              ))}
+            </select>
+            <button
+              type="submit"
+              className="min-h-[44px] rounded-lg bg-[var(--pf-primary)] px-4 py-2 text-sm font-medium text-white"
+            >
+              {t('assignSubmit')}
+            </button>
+          </form>
+        </section>
+      ) : canAssign ? (
+        <p className="px-1 text-xs text-[var(--pf-text-secondary)]">{t('assignEmpty')}</p>
+      ) : null}
+
+      {canApprove && pendingApprovals.length > 0 ? (
+        <section className="space-y-3">
+          <h2 className="px-1 text-sm font-semibold uppercase tracking-wide text-[var(--pf-text-secondary)]">
+            {t('approveSection')}
+          </h2>
+          {pendingApprovals.map((approval) => (
+            <div
+              key={approval.id}
+              className="space-y-2 rounded-xl border border-[var(--pf-border)] bg-[var(--pf-surface)] p-4"
+            >
+              <p className="text-xs text-[var(--pf-text-muted)]">
+                {new Date(approval.createdAt).toLocaleDateString(locale, {
+                  day: 'numeric',
+                  month: 'short',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
+              </p>
+              <form action={employeeDecideTaskApprovalAction.bind(null, taskId)} className="space-y-2">
+                <input type="hidden" name="requestId" value={approval.id} />
+                <textarea
+                  name="decisionNote"
+                  rows={2}
+                  placeholder={t('approveNotePlaceholder')}
+                  className="w-full rounded-lg border border-[var(--pf-border)] bg-[var(--pf-surface)] px-3 py-2 text-sm"
+                />
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="submit"
+                    name="decision"
+                    value="approved"
+                    className="min-h-[44px] rounded-lg bg-green-600 px-3 py-2 text-sm font-medium text-white"
+                  >
+                    {t('approveAction')}
+                  </button>
+                  <button
+                    type="submit"
+                    name="decision"
+                    value="rejected"
+                    className="min-h-[44px] rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm font-medium text-red-700"
+                  >
+                    {t('rejectAction')}
+                  </button>
+                </div>
+              </form>
+            </div>
+          ))}
+        </section>
+      ) : canApprove ? (
+        <p className="px-1 text-xs text-[var(--pf-text-secondary)]">{t('approveEmpty')}</p>
+      ) : null}
 
       {canUpdate ? (
         <section className="space-y-2">

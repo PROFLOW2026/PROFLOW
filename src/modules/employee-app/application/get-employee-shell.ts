@@ -18,17 +18,28 @@ export interface EmployeeShellData {
   readonly clock: Awaited<ReturnType<typeof getAttendanceClockSurface>> | null;
 }
 
-/** Employee bottom nav — visibility driven only by effective grants (+ always home). */
+/** Employee nav — visibility driven only by effective grants (+ always home). */
 export function buildEmployeeNavItems(context: OrgContext): EmployeeNavItem[] {
   const canAttendance = employeeHasPermission(context, PERMISSIONS.ATTENDANCE_SELF);
   const canHours = employeeHasPermission(context, PERMISSIONS.TIME_MANAGE);
+  const canTeamAttendance =
+    employeeHasPermission(context, PERMISSIONS.ATTENDANCE_READ) ||
+    employeeHasPermission(context, PERMISSIONS.ATTENDANCE_MANAGE);
+  const canTeam =
+    employeeHasPermission(context, PERMISSIONS.WORKFORCE_READ) || canTeamAttendance;
+  const canForms =
+    employeeHasPermission(context, PERMISSIONS.FORMS_READ) ||
+    employeeHasPermission(context, PERMISSIONS.FORMS_SUBMIT);
+  const canExpenses =
+    employeeHasPermission(context, PERMISSIONS.EXPENSES_READ) ||
+    employeeHasPermission(context, PERMISSIONS.EXPENSES_CREATE);
 
   return [
     { href: '/employee', labelKey: 'employeeApp.nav.home', visible: true },
     {
       href: '/employee/time',
       labelKey: 'employeeApp.nav.timeAndAttendance',
-      visible: canAttendance || canHours,
+      visible: canAttendance || canHours || canTeamAttendance || employeeHasPermission(context, PERMISSIONS.TIME_APPROVE),
     },
     {
       href: '/employee/projects',
@@ -40,9 +51,15 @@ export function buildEmployeeNavItems(context: OrgContext): EmployeeNavItem[] {
       labelKey: 'employeeApp.nav.tasks',
       visible:
         employeeHasPermission(context, PERMISSIONS.TASKS_READ) ||
+        employeeHasPermission(context, PERMISSIONS.TASKS_CREATE) ||
         employeeHasPermission(context, PERMISSIONS.FIELD_OPS_READ) ||
         employeeHasPermission(context, PERMISSIONS.SERVICE_READ) ||
         employeeHasPermission(context, PERMISSIONS.PLANNING_READ),
+    },
+    {
+      href: '/employee/team',
+      labelKey: 'employeeApp.nav.team',
+      visible: canTeam,
     },
     {
       href: '/employee/meetings',
@@ -53,6 +70,16 @@ export function buildEmployeeNavItems(context: OrgContext): EmployeeNavItem[] {
       href: '/employee/documents',
       labelKey: 'employeeApp.nav.documents',
       visible: employeeHasPermission(context, PERMISSIONS.DOCUMENTS_READ),
+    },
+    {
+      href: '/employee/forms',
+      labelKey: 'employeeApp.nav.forms',
+      visible: canForms,
+    },
+    {
+      href: '/employee/expenses',
+      labelKey: 'employeeApp.nav.expenses',
+      visible: canExpenses,
     },
   ];
 }

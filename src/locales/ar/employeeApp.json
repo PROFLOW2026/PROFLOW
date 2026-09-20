@@ -28,7 +28,10 @@
     "projects": "المشاريع",
     "tasks": "المهام",
     "documents": "المستندات",
-    "meetings": "الاجتماعات"
+    "meetings": "الاجتماعات",
+    "team": "الفريق",
+    "forms": "النماذج",
+    "expenses": "المصروفات"
   },
   "back": {
     "label": "رجوع"
@@ -95,7 +98,11 @@
   },
   "time": {
     "attendanceSection": "الحضور",
-    "hoursSection": "ساعات العمل"
+    "hoursSection": "ساعات العمل",
+    "teamAttendanceSection": "حضور الفريق",
+    "teamAttendanceEmpty": "لا يوجد حضور فريق لليوم",
+    "approveSection": "ساعات بانتظار الموافقة",
+    "approveEmpty": "لا توجد ساعات بانتظار الموافقة"
   },
   "tasks": {
     "tabs": {
@@ -127,6 +134,31 @@
       "medium": "متوسط",
       "high": "مرتفع",
       "urgent": "عاجل"
+    },
+    "assignSection": "إسناد المهمة",
+    "assignSelect": "اختر عضو الفريق",
+    "assignSubmit": "إسناد",
+    "assignEmpty": "لا يوجد أعضاء فريق متاحون للإسناد.",
+    "approveSection": "موافقة معلقة",
+    "approveNotePlaceholder": "ملاحظة (اختياري)",
+    "approveAction": "موافقة",
+    "rejectAction": "رفض",
+    "approveEmpty": "لا توجد طلبات موافقة معلقة لهذه المهمة.",
+    "assignHint": "يمكنك إسناد هذه المهمة ضمن سياق فريق المشروع.",
+    "approveHint": "إجراءات الموافقة متاحة عند وجود طلب موافقة معلق.",
+    "create": {
+      "noProjects": "لا توجد مشاريع متاحة لإنشاء مهام ضمن نطاقك",
+      "project": "المشروع",
+      "title": "العنوان",
+      "description": "الوصف",
+      "priority": "الأولوية",
+      "priorityNone": "بدون",
+      "priorityLow": "منخفضة",
+      "priorityMedium": "متوسطة",
+      "priorityHigh": "مرتفعة",
+      "priorityUrgent": "عاجلة",
+      "dueDate": "تاريخ الاستحقاق",
+      "submit": "إنشاء مهمة"
     }
   },
   "projects": {
@@ -237,7 +269,14 @@
     "projectManager": "مدير مشروع",
     "office": "مكتب",
     "management": "إدارة",
-    "custom": "مخصص"
+    "custom": "مخصص",
+    "technicalProfessional": "محترف تقني",
+    "professionalEmployee": "موظف مهني",
+    "teamLead": "قائد فريق",
+    "officeAdmin": "إدارة مكتب",
+    "readOnlyProject": "عرض مشروع للقراءة فقط",
+    "externalConsultant": "استشاري خارجي",
+    "supervisorInspector": "مشرف / مفتش"
   },
   "permissions": {
     "groups": {
@@ -320,5 +359,29 @@
     "providerLinkDenied": "روابط الملفات المباشرة غير متاحة",
     "usernameTaken": "اسم المستخدم مستخدم بالفعل",
     "usernameUnavailable": "تعذّر تخصيص اسم مستخدم — حاول مرة أخرى"
+  },
+  "team": {
+    "intro": "رؤية تشغيلية للفريق ضمن نطاق صلاحياتك.",
+    "openTasks": "{count, plural, one {مهمة مفتوحة واحدة} other {# مهام مفتوحة}}",
+    "empty": "لا يوجد أعضاء فريق في نطاقك"
+  },
+  "forms": {
+    "intro": "النماذج التشغيلية المسموح بها.",
+    "empty": "لا توجد نماذج متاحة"
+  },
+  "expenses": {
+    "create": "مصروف جديد",
+    "empty": "لا توجد مصروفات في نطاقك",
+    "createForm": {
+      "back": "العودة إلى المصروفات",
+      "project": "المشروع (اختياري)",
+      "noProject": "بدون مشروع — مصروف مكتبي/عام",
+      "noProjectScope": "لا توجد مشاريع معينة — يمكنك إرسال مصروف تشغيلي بدون مشروع.",
+      "description": "الوصف",
+      "amount": "المبلغ ({currency})",
+      "date": "التاريخ",
+      "vendor": "المورد",
+      "submit": "إرسال المصروف"
+    }
   }
 }

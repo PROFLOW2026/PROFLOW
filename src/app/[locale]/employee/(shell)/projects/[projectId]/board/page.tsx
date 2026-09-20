@@ -2,9 +2,8 @@ import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { withOrgContext } from '@/shared/auth/session';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import {
-  employeePermissionScope,
-} from '@/modules/employee-app/application/load-employee-app-context';
+import { employeePermissionScope } from '@/modules/employee-app/application/load-employee-app-context';
+import { employeeCanUpdateTaskGrant } from '@/modules/employee-app/application/task-permission-scope';
 import {
   getEmployeeProjectTaskOverview,
   listEmployeePmTasks,
@@ -55,7 +54,7 @@ export default async function EmployeeProjectBoardPage({ params }: PageProps) {
       tasks: tasksByStatus.get(status) ?? [],
     }));
 
-    const canUpdate = employeePermissionScope(context, PERMISSIONS.TASKS_UPDATE) !== null;
+    const canUpdate = employeeCanUpdateTaskGrant(context);
 
     return { overview, taskCards, buckets, canUpdate };
   });

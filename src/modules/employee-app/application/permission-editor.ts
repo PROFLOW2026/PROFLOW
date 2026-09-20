@@ -73,11 +73,6 @@ export const EMPLOYEE_PERMISSION_EDITOR_GROUPS: readonly EmployeePermissionEdito
         scopes: ['assigned_only', 'granted_projects', 'all_organization'],
       },
       {
-        permissionKey: PERMISSIONS.PROJECTS_UPDATE,
-        labelKey: 'projectsManage',
-        scopes: ['assigned_only', 'all_organization'],
-      },
-      {
         permissionKey: PERMISSIONS.PLANNING_READ,
         labelKey: 'planningRead',
         scopes: ['assigned_only', 'all_organization'],
@@ -171,48 +166,6 @@ export const EMPLOYEE_PERMISSION_EDITOR_GROUPS: readonly EmployeePermissionEdito
         labelKey: 'workforceRead',
         scopes: ['assigned_only', 'all_organization'],
       },
-      {
-        permissionKey: PERMISSIONS.WORKFORCE_MANAGE,
-        labelKey: 'workforceManage',
-        scopes: ['all_organization'],
-      },
-      {
-        permissionKey: PERMISSIONS.WORKFORCE_COST_READ,
-        labelKey: 'workforceCostRead',
-        scopes: ['all_organization'],
-      },
-    ],
-  },
-  {
-    id: 'clients',
-    labelKey: 'clients',
-    items: [
-      {
-        permissionKey: PERMISSIONS.CLIENTS_READ,
-        labelKey: 'clientsRead',
-        scopes: ['all_organization'],
-      },
-      {
-        permissionKey: PERMISSIONS.CLIENTS_MANAGE,
-        labelKey: 'clientsManage',
-        scopes: ['all_organization'],
-      },
-    ],
-  },
-  {
-    id: 'vendors',
-    labelKey: 'vendors',
-    items: [
-      {
-        permissionKey: PERMISSIONS.VENDORS_READ,
-        labelKey: 'vendorsRead',
-        scopes: ['all_organization'],
-      },
-      {
-        permissionKey: PERMISSIONS.VENDORS_MANAGE,
-        labelKey: 'vendorsManage',
-        scopes: ['all_organization'],
-      },
     ],
   },
   {
@@ -227,22 +180,6 @@ export const EMPLOYEE_PERMISSION_EDITOR_GROUPS: readonly EmployeePermissionEdito
       {
         permissionKey: PERMISSIONS.EXPENSES_CREATE,
         labelKey: 'expensesCreate',
-        scopes: ['assigned_only', 'all_organization'],
-      },
-    ],
-  },
-  {
-    id: 'financials',
-    labelKey: 'financials',
-    items: [
-      {
-        permissionKey: PERMISSIONS.PROJECT_FINANCIALS_READ,
-        labelKey: 'projectFinancialsRead',
-        scopes: ['assigned_only', 'all_organization'],
-      },
-      {
-        permissionKey: PERMISSIONS.BILLING_READ,
-        labelKey: 'billingRead',
         scopes: ['assigned_only', 'all_organization'],
       },
     ],
@@ -282,10 +219,17 @@ export function presetTranslationKey(key: EmployeePresetKey): string {
   const map: Record<EmployeePresetKey, string> = {
     field_worker: 'fieldWorker',
     field_worker_time: 'fieldWorkerTime',
+    technical_professional: 'technicalProfessional',
+    professional_employee: 'professionalEmployee',
     foreman: 'foreman',
+    team_lead: 'teamLead',
     project_manager: 'projectManager',
+    office_admin: 'officeAdmin',
     office: 'office',
     management: 'management',
+    read_only_project: 'readOnlyProject',
+    external_consultant: 'externalConsultant',
+    supervisor_inspector: 'supervisorInspector',
     custom: 'custom',
   };
   return map[key];

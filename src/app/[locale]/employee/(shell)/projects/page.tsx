@@ -9,7 +9,7 @@ import { EmployeeProjectSearch } from '@/modules/employee-app/ui/employee-projec
 export default async function EmployeeProjectsPage() {
   const t = await getTranslations('employeeApp.lists');
   const projectRows = await withOrgContext(async (context) => {
-    await authorize(context, { permission: PERMISSIONS.PROJECTS_READ, scope: 'assigned_only' });
+    await authorize(context, { permission: PERMISSIONS.PROJECTS_READ });
     return listEmployeeAssignedProjects(context);
   });
 

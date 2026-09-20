@@ -1,38 +1,34 @@
 import 'server-only';
 
-import { and, asc, eq, isNull, lte, or, sql } from 'drizzle-orm';
-import { employeeProjectAssignments, projects, punchListItems } from '@drizzle/schema';
+import { and, asc, eq, inArray, isNull } from 'drizzle-orm';
+import { projects, punchListItems } from '@drizzle/schema';
 import type { OrgContext } from '@/shared/auth/context';
-import { todayInTimeZone } from '@/shared/dates';
+import { employeeHasPermission } from './load-employee-app-context';
+import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { resolveAccessibleProjectIdsForUser } from './project-scope';
-
 import { formatProjectDisplayName } from '@/modules/projects/domain/display';
 
 export async function listEmployeeAssignedProjects(
   context: OrgContext,
 ): Promise<Array<{ id: string; name: string; documentNumber: string | null; displayName: string }>> {
-  const employeeId = context.employeeApp?.employeeId;
-  if (!employeeId) return [];
-  const today = todayInTimeZone(context.organization.timezone);
+  if (!context.employeeApp?.employeeId) return [];
+  if (!employeeHasPermission(context, PERMISSIONS.PROJECTS_READ)) return [];
+
+  const allowedProjectIds = await resolveAccessibleProjectIdsForUser(context);
+  if (allowedProjectIds !== null && allowedProjectIds.length === 0) return [];
+
   const rows = await context.db
     .select({
       id: projects.id,
       name: projects.name,
       documentNumber: projects.documentNumber,
     })
-    .from(employeeProjectAssignments)
-    .innerJoin(projects, eq(projects.id, employeeProjectAssignments.projectId))
+    .from(projects)
     .where(
       and(
-        eq(employeeProjectAssignments.organizationId, context.organizationId),
-        eq(employeeProjectAssignments.employeeId, employeeId),
-        eq(employeeProjectAssignments.status, 'active'),
-        lte(employeeProjectAssignments.startDate, today),
-        or(
-          isNull(employeeProjectAssignments.endDate),
-          sql`${employeeProjectAssignments.endDate} >= ${today}`,
-        ),
+        eq(projects.organizationId, context.organizationId),
         isNull(projects.archivedAt),
+        ...(allowedProjectIds ? [inArray(projects.id, allowedProjectIds)] : []),
       ),
     )
     .orderBy(asc(projects.documentNumber), asc(projects.name));

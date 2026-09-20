@@ -28,7 +28,10 @@
     "projects": "Проекты",
     "tasks": "Задачи",
     "documents": "Документы",
-    "meetings": "Встречи"
+    "meetings": "Встречи",
+    "team": "Команда",
+    "forms": "Формы",
+    "expenses": "Расходы"
   },
   "back": {
     "label": "Назад"
@@ -95,7 +98,11 @@
   },
   "time": {
     "attendanceSection": "Посещаемость",
-    "hoursSection": "Рабочие часы"
+    "hoursSection": "Рабочие часы",
+    "teamAttendanceSection": "Посещаемость команды",
+    "teamAttendanceEmpty": "Нет записей посещаемости команды на сегодня",
+    "approveSection": "Часы, ожидающие утверждения",
+    "approveEmpty": "Нет часов, ожидающих утверждения"
   },
   "tasks": {
     "tabs": {
@@ -127,6 +134,31 @@
       "medium": "Средний",
       "high": "Высокий",
       "urgent": "Срочный"
+    },
+    "assignSection": "Назначение задачи",
+    "assignSelect": "Выберите участника команды",
+    "assignSubmit": "Назначить",
+    "assignEmpty": "Нет доступных участников команды для назначения.",
+    "approveSection": "Ожидает утверждения",
+    "approveNotePlaceholder": "Примечание (необязательно)",
+    "approveAction": "Утвердить",
+    "rejectAction": "Отклонить",
+    "approveEmpty": "Нет ожидающих запросов утверждения для этой задачи.",
+    "assignHint": "Вы можете назначить эту задачу в контексте команды проекта.",
+    "approveHint": "Действия утверждения доступны при наличии ожидающего запроса.",
+    "create": {
+      "noProjects": "Нет проектов для создания задач в вашей области",
+      "project": "Проект",
+      "title": "Название",
+      "description": "Описание",
+      "priority": "Приоритет",
+      "priorityNone": "Нет",
+      "priorityLow": "Низкий",
+      "priorityMedium": "Средний",
+      "priorityHigh": "Высокий",
+      "priorityUrgent": "Срочный",
+      "dueDate": "Срок",
+      "submit": "Создать задачу"
     }
   },
   "projects": {
@@ -237,7 +269,14 @@
     "projectManager": "Руководитель проекта",
     "office": "Офис",
     "management": "Руководство",
-    "custom": "Пользовательский"
+    "custom": "Пользовательский",
+    "technicalProfessional": "Технический специалист",
+    "professionalEmployee": "Профессиональный сотрудник",
+    "teamLead": "Руководитель команды",
+    "officeAdmin": "Офис-администратор",
+    "readOnlyProject": "Только чтение проекта",
+    "externalConsultant": "Внешний консультант",
+    "supervisorInspector": "Супервайзер / инспектор"
   },
   "permissions": {
     "groups": {
@@ -320,5 +359,29 @@
     "providerLinkDenied": "Прямые ссылки на файлы недоступны",
     "usernameTaken": "Имя пользователя уже занято",
     "usernameUnavailable": "Не удалось назначить имя пользователя — попробуйте снова"
+  },
+  "team": {
+    "intro": "Оперативный обзор команды в рамках ваших прав.",
+    "openTasks": "{count, plural, one {# открытая задача} few {# открытые задачи} many {# открытых задач} other {# открытых задач}}",
+    "empty": "Нет сотрудников команды в вашей области"
+  },
+  "forms": {
+    "intro": "Разрешенные операционные формы.",
+    "empty": "Нет доступных форм"
+  },
+  "expenses": {
+    "create": "Новый расход",
+    "empty": "Нет расходов в вашей области",
+    "createForm": {
+      "back": "Назад к расходам",
+      "project": "Проект (необязательно)",
+      "noProject": "Без проекта — офисный/общий расход",
+      "noProjectScope": "Нет назначенных проектов — можно отправить операционный расход без проекта.",
+      "description": "Описание",
+      "amount": "Сумма ({currency})",
+      "date": "Дата",
+      "vendor": "Поставщик",
+      "submit": "Отправить расход"
+    }
   }
 }

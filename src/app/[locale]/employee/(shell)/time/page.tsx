@@ -12,12 +12,16 @@ import { authorize } from '@/shared/permissions/authorize';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { withOrgContext } from '@/shared/auth/session';
 import { resolveLinkedEmployee } from '@/modules/workforce/application/time-scope';
-import { listAttendanceDays } from '@/modules/workforce';
+import { listAttendanceDays, listTimeEntries } from '@/modules/workforce';
 import type { EmployeeAttendanceDayRow } from '@/modules/employee-app/domain/group-attendance-months';
 import { EmployeeAttendanceHistory } from '@/modules/employee-app/ui/employee-attendance-history';
 import { todayInTimeZone } from '@/shared/dates';
-import { resolveSelfScopedEmployeeId } from '@/modules/workforce/application/time-scope';
-import { listTimeEntries } from '@/modules/workforce';
+import {
+  listEmployeeTeamAttendanceToday,
+  listEmployeePendingTimeApprovals,
+  type EmployeePendingTimeRow,
+  type EmployeeTeamAttendanceRow,
+} from '@/modules/employee-app/application/employee-operational';
 import { Button } from '@/components/ui/button';
 import { Link } from '@/shared/i18n/navigation';
 
@@ -57,10 +61,12 @@ export default async function EmployeeTimePage() {
 
     let entries: Array<{ id: string; workDate: string; hours: string; projectId: string | null }> = [];
     if (canHours) {
-      await authorize(context, { permission: PERMISSIONS.TIME_MANAGE, scope: 'self_only' });
-      const employeeId = await resolveSelfScopedEmployeeId(context);
-      if (employeeId) {
-        const result = await listTimeEntries(context.db, context.organizationId, { employeeId });
+      await authorize(context, { permission: PERMISSIONS.TIME_MANAGE });
+      const linkedEmployee = await resolveLinkedEmployee(context);
+      if (linkedEmployee) {
+        const result = await listTimeEntries(context.db, context.organizationId, {
+          employeeId: linkedEmployee.id,
+        });
         entries = result.slice(0, 50).map((item) => ({
           id: item.id,
           workDate: item.workDate,
@@ -70,7 +76,31 @@ export default async function EmployeeTimePage() {
       }
     }
 
-    return { canAttendance, canHours, shell, days, locale, timeZone, currentMonthKey, entries };
+    const canTeamAttendance = employeeHasPermission(context, PERMISSIONS.ATTENDANCE_READ);
+    const canTimeApprove = employeeHasPermission(context, PERMISSIONS.TIME_APPROVE);
+    let teamAttendance: EmployeeTeamAttendanceRow[] = [];
+    let pendingTime: EmployeePendingTimeRow[] = [];
+    if (canTeamAttendance) {
+      teamAttendance = await listEmployeeTeamAttendanceToday(context);
+    }
+    if (canTimeApprove) {
+      pendingTime = await listEmployeePendingTimeApprovals(context);
+    }
+
+    return {
+      canAttendance,
+      canHours,
+      shell,
+      days,
+      locale,
+      timeZone,
+      currentMonthKey,
+      entries,
+      teamAttendance,
+      pendingTime,
+      canTeamAttendance,
+      canTimeApprove,
+    };
   });
 
   return (
@@ -119,6 +149,48 @@ export default async function EmployeeTimePage() {
             {payload.entries.length === 0 ? (
               <li className="px-4 py-6 text-center text-sm text-[var(--pf-text-secondary)]">
                 {tLists('hoursEmpty')}
+              </li>
+            ) : null}
+          </ul>
+        </section>
+      ) : null}
+
+      {payload.canTeamAttendance ? (
+        <section id="team-attendance" className="space-y-4">
+          <h2 className="text-sm font-semibold">{t('time.teamAttendanceSection')}</h2>
+          <ul className="divide-y divide-[var(--pf-border)] rounded-lg border border-[var(--pf-border)]">
+            {payload.teamAttendance.map((row) => (
+              <li key={`${row.employeeId}-${row.workDate}`} className="flex items-center justify-between px-4 py-3 text-sm">
+                <span>{row.employeeName}</span>
+                <span>{row.status}</span>
+              </li>
+            ))}
+            {payload.teamAttendance.length === 0 ? (
+              <li className="px-4 py-6 text-center text-sm text-[var(--pf-text-secondary)]">
+                {t('time.teamAttendanceEmpty')}
+              </li>
+            ) : null}
+          </ul>
+        </section>
+      ) : null}
+
+      {payload.canTimeApprove ? (
+        <section id="time-approve" className="space-y-4">
+          <h2 className="text-sm font-semibold">{t('time.approveSection')}</h2>
+          <ul className="divide-y divide-[var(--pf-border)] rounded-lg border border-[var(--pf-border)]">
+            {payload.pendingTime.map((row) => (
+              <li key={row.id} className="flex items-center justify-between px-4 py-3 text-sm">
+                <span>
+                  {row.employeeName} · {row.workDate}
+                </span>
+                <span>
+                  {row.hours}h · {row.approvalStatus}
+                </span>
+              </li>
+            ))}
+            {payload.pendingTime.length === 0 ? (
+              <li className="px-4 py-6 text-center text-sm text-[var(--pf-text-secondary)]">
+                {t('time.approveEmpty')}
               </li>
             ) : null}
           </ul>
