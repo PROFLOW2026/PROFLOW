@@ -1,9 +1,7 @@
 import { notFound } from 'next/navigation';
-import { getLocale } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { withOrgContext } from '@/shared/auth/session';
-import {
-  getEmployeePmTaskDetail,
-} from '@/modules/employee-app/application/employee-pm-tasks';
+import { getEmployeePmTaskDetail } from '@/modules/employee-app/application/employee-pm-tasks';
 import { employeePermissionScope } from '@/modules/employee-app/application/load-employee-app-context';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { assertEmployeeAppContext } from '@/modules/employee-app/application/session-guard';
@@ -14,16 +12,15 @@ import {
   employeeToggleChecklistItemAction,
   employeeAddTaskCommentAction,
 } from '../actions';
-
-// ─── Status config ────────────────────────────────────────────────────────────
+import { cn } from '@/shared/ui/cn';
 
 const TASK_STATUSES = [
-  { value: 'todo', label: 'To Do' },
-  { value: 'in_progress', label: 'In Progress' },
-  { value: 'in_review', label: 'In Review' },
-  { value: 'done', label: 'Done' },
-  { value: 'blocked', label: 'Blocked' },
-  { value: 'cancelled', label: 'Cancelled' },
+  'todo',
+  'in_progress',
+  'in_review',
+  'done',
+  'blocked',
+  'cancelled',
 ] as const;
 
 const STATUS_COLORS: Record<string, string> = {
@@ -35,15 +32,12 @@ const STATUS_COLORS: Record<string, string> = {
   blocked: 'bg-red-100 text-red-700',
 };
 
-const PRIORITY_BADGES: Record<string, { label: string; className: string }> = {
-  none: { label: '', className: '' },
-  low: { label: 'Low', className: 'bg-slate-100 text-slate-600' },
-  medium: { label: 'Medium', className: 'bg-yellow-100 text-yellow-700' },
-  high: { label: 'High', className: 'bg-orange-100 text-orange-700' },
-  urgent: { label: 'Urgent', className: 'bg-red-100 text-red-700' },
+const PRIORITY_BADGES: Record<string, string> = {
+  low: 'bg-slate-100 text-slate-600',
+  medium: 'bg-yellow-100 text-yellow-700',
+  high: 'bg-orange-100 text-orange-700',
+  urgent: 'bg-red-100 text-red-700',
 };
-
-// ─── Page ─────────────────────────────────────────────────────────────────────
 
 interface PageProps {
   params: Promise<{ taskId: string; locale: string }>;
@@ -52,6 +46,7 @@ interface PageProps {
 export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
   const { taskId } = await params;
   const locale = await getLocale();
+  const t = await getTranslations('employeeApp.tasks');
 
   let task: Awaited<ReturnType<typeof getEmployeePmTaskDetail>>;
   let canUpdate = false;
@@ -77,130 +72,107 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
     throw error;
   }
 
-  const priorityBadge = PRIORITY_BADGES[task.priority] ?? PRIORITY_BADGES['none'];
-  const statusColor = STATUS_COLORS[task.status] ?? STATUS_COLORS['todo'];
-
-  // Bound server actions — taskId is closed over
+  const statusColor = STATUS_COLORS[task.status] ?? STATUS_COLORS.todo;
   const addCommentForTask = employeeAddTaskCommentAction.bind(null, taskId);
 
   return (
     <div className="space-y-5 pb-8">
-      {/* ── Back navigation ── */}
       <Link
         href={`/${locale}/employee/tasks`}
         className="inline-flex items-center gap-1.5 text-sm text-[var(--pf-text-secondary)] hover:text-[var(--pf-text)]"
       >
-        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-        </svg>
-        Back to Tasks
+        {t('backToTasks')}
       </Link>
 
-      {/* ── Task header ── */}
-      <div className="rounded-xl border border-[var(--pf-border)] bg-[var(--pf-surface)] p-4 space-y-3">
+      <div className="space-y-3 rounded-xl border border-[var(--pf-border)] bg-[var(--pf-surface)] p-4">
         <h1 className="text-base font-semibold leading-snug">{task.title}</h1>
-
         <div className="flex flex-wrap gap-2">
-          <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${statusColor}`}>
-            {TASK_STATUSES.find((s) => s.value === task.status)?.label ?? task.status}
+          <span className={cn('inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium', statusColor)}>
+            {t(`status.${task.status}`, { defaultValue: task.status })}
           </span>
-          {task.priority && task.priority !== 'none' && priorityBadge && priorityBadge.label && (
-            <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${priorityBadge.className}`}>
-              {priorityBadge.label}
+          {task.priority && task.priority !== 'none' ? (
+            <span
+              className={cn(
+                'inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium',
+                PRIORITY_BADGES[task.priority] ?? '',
+              )}
+            >
+              {t(`priority.${task.priority}`, { defaultValue: task.priority })}
             </span>
-          )}
-          {task.dueDate && (
+          ) : null}
+          {task.dueDate ? (
             <span className="inline-flex items-center rounded-full bg-[var(--pf-surface-2)] px-2.5 py-1 text-xs font-medium text-[var(--pf-text-secondary)]">
-              Due {task.dueDate}
+              {t('dueDate', { date: task.dueDate })}
             </span>
-          )}
+          ) : null}
         </div>
-
-        {task.description && (
-          <p className="text-sm text-[var(--pf-text-secondary)] whitespace-pre-line leading-relaxed">
+        {task.description ? (
+          <p className="whitespace-pre-line text-sm leading-relaxed text-[var(--pf-text-secondary)]">
             {task.description}
           </p>
-        )}
+        ) : null}
       </div>
 
-      {/* ── Status update (if canUpdate) ── */}
-      {canUpdate && (
+      {canUpdate ? (
         <section className="space-y-2">
-          <h2 className="text-sm font-semibold text-[var(--pf-text-secondary)] uppercase tracking-wide px-1">
-            Update Status
+          <h2 className="px-1 text-sm font-semibold uppercase tracking-wide text-[var(--pf-text-secondary)]">
+            {t('updateStatus')}
           </h2>
           <div className="grid grid-cols-2 gap-2">
-            {TASK_STATUSES.map((s) => {
-              const isActive = s.value === task.status;
-              const updateWithStatus = updateEmployeeTaskStatus.bind(null, taskId, s.value);
+            {TASK_STATUSES.map((status) => {
+              const isActive = status === task.status;
+              const updateWithStatus = updateEmployeeTaskStatus.bind(null, taskId, status);
               return (
-                <form key={s.value} action={updateWithStatus}>
+                <form key={status} action={updateWithStatus}>
                   <button
                     type="submit"
                     disabled={isActive}
-                    className={`w-full rounded-lg border px-3 py-2.5 text-sm font-medium transition-colors min-h-[44px] ${
+                    className={cn(
+                      'min-h-[44px] w-full rounded-lg border px-3 py-2.5 text-sm font-medium transition-colors',
                       isActive
-                        ? 'border-[var(--pf-primary)] bg-[var(--pf-primary)] text-white cursor-default'
-                        : 'border-[var(--pf-border)] bg-[var(--pf-surface)] text-[var(--pf-text)] hover:bg-[var(--pf-surface-2)] active:bg-[var(--pf-surface-3)]'
-                    }`}
+                        ? 'cursor-default border-[var(--pf-primary)] bg-[var(--pf-primary)] text-white'
+                        : 'border-[var(--pf-border)] bg-[var(--pf-surface)] text-[var(--pf-text)] hover:bg-[var(--pf-surface-2)] active:bg-[var(--pf-surface-3)]',
+                    )}
                   >
-                    {s.label}
+                    {t(`status.${status}`, { defaultValue: status })}
                   </button>
                 </form>
               );
             })}
           </div>
         </section>
-      )}
+      ) : null}
 
-      {/* ── Checklist ── */}
-      {task.checklistItems.length > 0 && (
+      {task.checklistItems.length > 0 ? (
         <section className="space-y-2">
-          <h2 className="text-sm font-semibold text-[var(--pf-text-secondary)] uppercase tracking-wide px-1">
-            Checklist{' '}
-            <span className="font-normal">
-              ({task.checklistItems.filter((i) => i.isDone).length}/{task.checklistItems.length})
-            </span>
+          <h2 className="px-1 text-sm font-semibold uppercase tracking-wide text-[var(--pf-text-secondary)]">
+            {t('checklistTitle', {
+              done: task.checklistItems.filter((item) => item.isDone).length,
+              total: task.checklistItems.length,
+            })}
           </h2>
           <ul className="divide-y divide-[var(--pf-border)] rounded-xl border border-[var(--pf-border)] bg-[var(--pf-surface)]">
             {task.checklistItems.map((item) => {
               if (!canUpdate) {
                 return (
-                  <li key={item.id} className="flex items-center gap-3 px-4 py-3 min-h-[52px]">
-                    <span
-                      className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded border text-xs ${
-                        item.isDone
-                          ? 'border-green-500 bg-green-500 text-white'
-                          : 'border-[var(--pf-border)] bg-[var(--pf-surface)]'
-                      }`}
-                    >
-                      {item.isDone && '✓'}
-                    </span>
-                    <span className={`text-sm flex-1 ${item.isDone ? 'line-through text-[var(--pf-text-muted)]' : ''}`}>
+                  <li key={item.id} className="flex min-h-[52px] items-center gap-3 px-4 py-3">
+                    <ChecklistMark done={item.isDone} />
+                    <span className={cn('flex-1 text-sm', item.isDone && 'line-through text-[var(--pf-text-muted)]')}>
                       {item.title}
                     </span>
                   </li>
                 );
               }
-
               const toggleAction = toggleChecklistItem.bind(null, taskId, item.id, !item.isDone);
               return (
                 <li key={item.id} className="min-h-[52px]">
                   <form action={toggleAction}>
                     <button
                       type="submit"
-                      className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-[var(--pf-surface-2)] transition-colors active:bg-[var(--pf-surface-3)]"
+                      className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-[var(--pf-surface-2)] active:bg-[var(--pf-surface-3)]"
                     >
-                      <span
-                        className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded border text-xs ${
-                          item.isDone
-                            ? 'border-green-500 bg-green-500 text-white'
-                            : 'border-[var(--pf-border)] bg-[var(--pf-surface)]'
-                        }`}
-                      >
-                        {item.isDone && '✓'}
-                      </span>
-                      <span className={`text-sm flex-1 ${item.isDone ? 'line-through text-[var(--pf-text-muted)]' : ''}`}>
+                      <ChecklistMark done={item.isDone} />
+                      <span className={cn('flex-1 text-sm', item.isDone && 'line-through text-[var(--pf-text-muted)]')}>
                         {item.title}
                       </span>
                     </button>
@@ -210,22 +182,20 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
             })}
           </ul>
         </section>
-      )}
+      ) : null}
 
-      {/* ── Comments ── */}
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold text-[var(--pf-text-secondary)] uppercase tracking-wide px-1">
-          Comments
+        <h2 className="px-1 text-sm font-semibold uppercase tracking-wide text-[var(--pf-text-secondary)]">
+          {t('commentsTitle')}
         </h2>
-
-        {task.comments.length > 0 && (
+        {task.comments.length > 0 ? (
           <ul className="space-y-2">
             {task.comments.map((comment) => (
               <li
                 key={comment.id}
-                className="rounded-xl border border-[var(--pf-border)] bg-[var(--pf-surface)] px-4 py-3 space-y-1"
+                className="space-y-1 rounded-xl border border-[var(--pf-border)] bg-[var(--pf-surface)] px-4 py-3"
               >
-                <p className="text-sm leading-relaxed whitespace-pre-line">{comment.body}</p>
+                <p className="whitespace-pre-line text-sm leading-relaxed">{comment.body}</p>
                 <div className="flex items-center gap-2 text-xs text-[var(--pf-text-muted)]">
                   <span>
                     {new Date(comment.createdAt).toLocaleDateString(locale, {
@@ -235,34 +205,43 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
                       minute: '2-digit',
                     })}
                   </span>
-                  {comment.isEdited && <span>(edited)</span>}
-                  {comment.authorEmployeeId && (
-                    <span className="rounded bg-blue-50 px-1.5 py-0.5 text-blue-600 text-xs">
-                      Employee
+                  {comment.isEdited ? <span>{t('commentEdited')}</span> : null}
+                  {comment.authorEmployeeId ? (
+                    <span className="rounded bg-blue-50 px-1.5 py-0.5 text-xs text-blue-600">
+                      {t('commentAuthorEmployee')}
                     </span>
-                  )}
+                  ) : null}
                 </div>
               </li>
             ))}
           </ul>
+        ) : (
+          <p className="py-3 text-center text-sm text-[var(--pf-text-muted)]">{t('noComments')}</p>
         )}
-
-        {task.comments.length === 0 && (
-          <p className="text-sm text-center text-[var(--pf-text-muted)] py-3">No comments yet</p>
-        )}
-
-        {/* Add comment form — only if canComment */}
-        {canComment && (
-          <AddCommentForm addComment={addCommentForTask} />
-        )}
+        {canComment ? (
+          <AddCommentForm
+            addComment={addCommentForTask}
+            placeholder={t('commentPlaceholder')}
+            submitLabel={t('postComment')}
+          />
+        ) : null}
       </section>
     </div>
   );
 }
 
-// ─── Inline Server Action wrappers ───────────────────────────────────────────
-// These are inline server actions that close over taskId/itemId/isDone
-// and delegate to the 'use server' module actions.
+function ChecklistMark({ done }: { done: boolean }) {
+  return (
+    <span
+      className={cn(
+        'flex h-5 w-5 flex-shrink-0 items-center justify-center rounded border text-xs',
+        done ? 'border-green-500 bg-green-500 text-white' : 'border-[var(--pf-border)] bg-[var(--pf-surface)]',
+      )}
+    >
+      {done ? '✓' : null}
+    </span>
+  );
+}
 
 async function updateEmployeeTaskStatus(taskId: string, newStatus: string) {
   'use server';
@@ -274,23 +253,29 @@ async function toggleChecklistItem(taskId: string, itemId: string, isDone: boole
   await employeeToggleChecklistItemAction(taskId, itemId, isDone);
 }
 
-// ─── Add Comment Form ────────────────────────────────────────────────────────
-
-function AddCommentForm({ addComment }: { addComment: (formData: FormData) => Promise<void> }) {
+function AddCommentForm({
+  addComment,
+  placeholder,
+  submitLabel,
+}: {
+  addComment: (formData: FormData) => Promise<void>;
+  placeholder: string;
+  submitLabel: string;
+}) {
   return (
     <form action={addComment} className="space-y-2">
       <textarea
         name="body"
         rows={3}
-        placeholder="Add a comment…"
+        placeholder={placeholder}
         required
-        className="w-full rounded-xl border border-[var(--pf-border)] bg-[var(--pf-surface)] px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[var(--pf-primary)] focus:border-transparent placeholder:text-[var(--pf-text-muted)]"
+        className="w-full resize-none rounded-xl border border-[var(--pf-border)] bg-[var(--pf-surface)] px-4 py-3 text-sm placeholder:text-[var(--pf-text-muted)] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[var(--pf-primary)]"
       />
       <button
         type="submit"
-        className="w-full rounded-xl bg-[var(--pf-primary)] px-4 py-3 text-sm font-medium text-white hover:bg-[var(--pf-primary-hover)] active:bg-[var(--pf-primary-active)] transition-colors min-h-[48px]"
+        className="min-h-[48px] w-full rounded-xl bg-[var(--pf-primary)] px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-[var(--pf-primary-hover)] active:bg-[var(--pf-primary-active)]"
       >
-        Post Comment
+        {submitLabel}
       </button>
     </form>
   );

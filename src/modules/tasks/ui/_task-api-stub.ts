@@ -47,7 +47,7 @@ export {
 // UI-specific view types (enriched beyond Agent A's lean domain types)
 // ---------------------------------------------------------------------------
 
-import type { Task, TaskPriority, TaskStatus } from '@/modules/tasks';
+import type { Task, TaskDetail as AgentTaskDetail, TaskPriority, TaskStatus } from '@/modules/tasks';
 
 export interface TaskAssigneeDisplay {
   id: string;
@@ -228,6 +228,26 @@ export function mapBucketToUiBucket(
     statusOnEnter: bucket.statusOnEnter,
     sortKey: bucket.sortKey,
     tasks,
+  };
+}
+
+/**
+ * Maps Agent A's full TaskDetail domain type to the UI TaskDetail type.
+ */
+export function mapTaskDetailToUi(
+  detail: AgentTaskDetail,
+  enrichment?: Parameters<typeof mapTaskToCardData>[1],
+): TaskDetail {
+  return {
+    ...mapTaskToCardData(detail, enrichment),
+    checklist: detail.checklistItems.map((ci) => ({
+      id: ci.id,
+      title: ci.title,
+      done: ci.isDone,
+    })),
+    attachments: [],
+    comments: [],
+    activityFeed: detail.recentActivity ?? [],
   };
 }
 

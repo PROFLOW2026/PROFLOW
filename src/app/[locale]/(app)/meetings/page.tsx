@@ -23,11 +23,13 @@ import { textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
 
 export async function generateMetadata({
-  params: _params,
+  params,
 }: {
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
-  return { title: 'Meetings' };
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'tasks' });
+  return { title: t('meetings.pageTitle') };
 }
 
 interface MeetingsPageProps {
@@ -48,7 +50,11 @@ export default async function MeetingsPage({ searchParams }: MeetingsPageProps) 
   }
 
   const canManage = shell.permissions.has(PERMISSIONS.MEETINGS_MANAGE);
-  const [params, tCommon] = await Promise.all([searchParams, getTranslations('common')]);
+  const [params, t, tCommon] = await Promise.all([
+    searchParams,
+    getTranslations('tasks'),
+    getTranslations('common'),
+  ]);
   const requestedPage = parseOrgListPage(params.page);
 
   const baseFilters: MeetingListFilters = {
@@ -77,14 +83,14 @@ export default async function MeetingsPage({ searchParams }: MeetingsPageProps) 
   return (
     <div className="flex min-w-0 max-w-full flex-col gap-6">
       <PageHeader
-        title="Meetings"
-        description="Meeting records, decisions, and action items"
+        title={t('meetings.pageTitle')}
+        description={t('meetings.pageDescription')}
         actions={
           canManage ? (
             <Button asChild>
               <Link href="/meetings/new" prefetch={false}>
                 <Plus aria-hidden className="mr-1 h-4 w-4" />
-                New Meeting
+                {t('meetings.newMeeting')}
               </Link>
             </Button>
           ) : undefined
@@ -97,10 +103,10 @@ export default async function MeetingsPage({ searchParams }: MeetingsPageProps) 
         {params.workspace && <input type="hidden" name="workspace" value={params.workspace} />}
         {params.from && (
           <div className="flex items-center gap-1 text-sm">
-            <span className="text-[var(--pf-text-secondary)]">From:</span>
+            <span className="text-[var(--pf-text-secondary)]">{t('meetings.filters.from')}</span>
             <span>{params.from}</span>
             <Link href="/meetings" className="text-xs text-[var(--pf-accent)] hover:underline ml-1">
-              Clear
+              {t('meetings.filters.clear')}
             </Link>
           </div>
         )}
@@ -108,14 +114,16 @@ export default async function MeetingsPage({ searchParams }: MeetingsPageProps) 
 
       {meetings.length === 0 ? (
         <EmptyState
-          title="No meetings yet"
-          description={canManage ? 'Create your first meeting to start tracking decisions.' : 'No meetings have been recorded yet.'}
+          title={t('meetings.empty')}
+          description={
+            canManage ? t('meetings.emptyDescriptionManage') : t('meetings.emptyDescriptionRead')
+          }
           action={
             canManage ? (
               <Button asChild>
                 <Link href="/meetings/new" prefetch={false}>
                   <Plus aria-hidden className="mr-1 h-4 w-4" />
-                  New Meeting
+                  {t('meetings.newMeeting')}
                 </Link>
               </Button>
             ) : undefined
@@ -126,13 +134,13 @@ export default async function MeetingsPage({ searchParams }: MeetingsPageProps) 
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Title</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead>Context</TableHead>
-                <TableHead>Attendees</TableHead>
-                <TableHead>Decisions</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>{t('meetings.fields.title')}</TableHead>
+                <TableHead>{t('meetings.fields.date')}</TableHead>
+                <TableHead>{t('meetings.fields.location')}</TableHead>
+                <TableHead>{t('meetings.table.context')}</TableHead>
+                <TableHead>{t('meetings.fields.attendees')}</TableHead>
+                <TableHead>{t('meetings.fields.decisions')}</TableHead>
+                <TableHead>{t('meetings.table.actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -173,7 +181,7 @@ export default async function MeetingsPage({ searchParams }: MeetingsPageProps) 
                     ) : meeting.workspaceName ? (
                       meeting.workspaceName
                     ) : (
-                      <span className="text-[var(--pf-text-muted)]">Org-wide</span>
+                      <span className="text-[var(--pf-text-muted)]">{t('meetings.context.orgWide')}</span>
                     )}
                   </TableCell>
                   <TableCell className="text-sm">

@@ -31,6 +31,7 @@ import {
 import { ProjectTabsShell } from './project-tabs-shell';
 import { TabPanelSkeleton } from './tab-panel-skeleton';
 import { ProjectReportActions } from '@/modules/reports/ui';
+import { ProjectUwmLinks } from './project-uwm-links';
 
 interface ProjectLayoutProps {
   children: React.ReactNode;
@@ -90,6 +91,8 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
   const closeoutReady = closeoutStatus === 'ready';
   const showWorkTab = detail.showWorkPackages;
   const canArchive = shell?.permissions.has(PERMISSIONS.PROJECTS_ARCHIVE) ?? false;
+  const showUwmLinks =
+    Boolean(modules?.work_management) && (shell?.permissions.has(PERMISSIONS.TASKS_READ) ?? false);
 
   const experienceProfile = resolveProjectExperienceProfile({
     stored: detail.project.experienceProfile,
@@ -220,6 +223,8 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
             : null
         }
       />
+
+      {showUwmLinks ? <ProjectUwmLinks projectId={projectId} /> : null}
 
       {/*
         Tab list must not sit behind the page Suspense - otherwise open-project

@@ -57,8 +57,33 @@ export async function listTasksAction(filters: TaskListFilters & { workspaceId?:
 
 export async function getTaskDetailAction(taskId: string) {
   return withOrgContext(async (context) => {
-    return getTaskDetail(context, taskId);
+    try {
+      const detail = await getTaskDetail(context, taskId);
+      const { mapTaskDetailToUi } = await import('@/modules/tasks/ui/_task-api-stub');
+      return mapTaskDetailToUi(detail);
+    } catch {
+      return null;
+    }
   });
+}
+
+export async function updateTaskFieldsAction(
+  taskId: string,
+  data: Record<string, unknown>,
+): Promise<WorkActionState> {
+  const tErrors = await getTranslations('errors');
+
+  try {
+    await withOrgContext(async (context) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await updateTask(context, taskId, data as any);
+    });
+    return { success: true };
+  } catch (error) {
+    return mapServerActionError(error, {
+      tErrors: (key) => tErrors(key as 'unexpected'),
+    });
+  }
 }
 
 // ─── Create Task ─────────────────────────────────────────────────────────────

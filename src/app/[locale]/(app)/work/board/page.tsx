@@ -6,6 +6,7 @@ import { withOrgContext } from '@/shared/auth/session';
 import { listAccessibleTasks } from '@/modules/tasks';
 import { mapTaskToCardData } from '@/modules/tasks/ui/_task-api-stub';
 import { GlobalBoardView } from './_global-board-view';
+import { getTaskDetailAction, updateTaskFieldsAction } from '../actions';
 
 export async function generateMetadata({
   params,
@@ -42,7 +43,11 @@ export default async function GlobalBoardPage() {
         description={t('board.globalPageDescription')}
       />
 
-      <GlobalBoardView tasks={tasks} />
+      <GlobalBoardView
+        tasks={tasks}
+        onLoadTaskDetail={getTaskDetailAction}
+        onUpdateTask={updateTaskFieldsAction}
+      />
     </div>
   );
 }

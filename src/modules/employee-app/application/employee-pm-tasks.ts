@@ -8,12 +8,14 @@ import {
   taskComments,
   taskActivity,
   employeeProjectAssignments,
+  projects,
 } from '@drizzle/schema';
 import type { OrgContext } from '@/shared/auth/context';
 import { DomainRuleError, NotFoundError } from '@/shared/errors';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { todayInTimeZone } from '@/shared/dates';
 import { employeePermissionScope } from './load-employee-app-context';
+import { assertEmployeeProjectScope } from './project-scope';
 
 // ─── Internal helpers ─────────────────────────────────────────────────────────
 
@@ -75,6 +77,22 @@ export interface EmployeePmTaskDetail extends EmployeePmTaskSummary {
   readonly comments: readonly EmployeePmTaskComment[];
 }
 
+export interface EmployeePmTaskWorkSummary {
+  readonly dueToday: number;
+  readonly overdue: number;
+}
+
+export interface EmployeeProjectTaskOverview {
+  readonly id: string;
+  readonly name: string;
+  readonly totalTasks: number;
+  readonly openTasks: number;
+  readonly dueToday: number;
+  readonly overdue: number;
+}
+
+const CLOSED_STATUSES = ['done', 'cancelled'] as const;
+
 // ─── Scope resolution ─────────────────────────────────────────────────────────
 
 /**
@@ -115,25 +133,46 @@ async function resolveEmployeeTaskScope(
 
 // ─── Queries ──────────────────────────────────────────────────────────────────
 
-/**
- * Lists PM tasks visible to the current employee.
- * Returns [] if the employee has no tasks.read grant.
- */
-export async function listEmployeePmTasks(
-  context: OrgContext,
-): Promise<EmployeePmTaskSummary[]> {
-  const employeeId = requireEmployeeId(context);
-  const scopeResult = await resolveEmployeeTaskScope(context, employeeId);
-  if (scopeResult.mode === 'none') return [];
+function summarizeOpenTasks(
+  rows: ReadonlyArray<{ status: string; dueDate: string | null }>,
+  today: string,
+): EmployeePmTaskWorkSummary {
+  let dueToday = 0;
+  let overdue = 0;
+  for (const row of rows) {
+    if (CLOSED_STATUSES.includes(row.status as (typeof CLOSED_STATUSES)[number])) continue;
+    if (!row.dueDate) continue;
+    if (row.dueDate === today) dueToday += 1;
+    else if (row.dueDate < today) overdue += 1;
+  }
+  return { dueToday, overdue };
+}
 
+async function queryEmployeePmTaskRows(
+  context: OrgContext,
+  employeeId: string,
+  scopeResult: Awaited<ReturnType<typeof resolveEmployeeTaskScope>>,
+  options?: { projectId?: string; limit?: number },
+): Promise<
+  Array<{
+    id: string;
+    title: string;
+    description: string | null;
+    status: string;
+    priority: string;
+    dueDate: string | null;
+    projectId: string | null;
+  }>
+> {
   const baseWhere = and(
     eq(tasks.organizationId, context.organizationId),
     isNull(tasks.archivedAt),
+    ...(options?.projectId ? [eq(tasks.projectId, options.projectId)] : []),
   );
+  const limit = options?.limit ?? 100;
 
   if (scopeResult.mode === 'self') {
-    // Tasks where this employee is an assignee
-    const rows = await context.db
+    return context.db
       .select({
         id: tasks.id,
         title: tasks.title,
@@ -153,13 +192,13 @@ export async function listEmployeePmTasks(
       )
       .where(baseWhere)
       .orderBy(asc(tasks.dueDate), asc(tasks.sortKey))
-      .limit(100);
-    return rows;
+      .limit(limit);
   }
 
   if (scopeResult.mode === 'projects') {
     if (scopeResult.projectIds.length === 0) return [];
-    const rows = await context.db
+    if (options?.projectId && !scopeResult.projectIds.includes(options.projectId)) return [];
+    return context.db
       .select({
         id: tasks.id,
         title: tasks.title,
@@ -173,16 +212,14 @@ export async function listEmployeePmTasks(
       .where(
         and(
           baseWhere,
-          inArray(tasks.projectId, scopeResult.projectIds),
+          inArray(tasks.projectId, options?.projectId ? [options.projectId] : scopeResult.projectIds),
         ),
       )
       .orderBy(asc(tasks.dueDate), asc(tasks.sortKey))
-      .limit(100);
-    return rows;
+      .limit(limit);
   }
 
-  // all_organization scope — return org tasks (limit for safety)
-  const rows = await context.db
+  return context.db
     .select({
       id: tasks.id,
       title: tasks.title,
@@ -195,8 +232,82 @@ export async function listEmployeePmTasks(
     .from(tasks)
     .where(baseWhere)
     .orderBy(asc(tasks.dueDate), asc(tasks.sortKey))
-    .limit(100);
-  return rows;
+    .limit(limit);
+}
+
+/**
+ * Lists PM tasks visible to the current employee.
+ * Returns [] if the employee has no tasks.read grant.
+ */
+export async function listEmployeePmTasks(
+  context: OrgContext,
+  options?: { projectId?: string },
+): Promise<EmployeePmTaskSummary[]> {
+  const employeeId = requireEmployeeId(context);
+  const scopeResult = await resolveEmployeeTaskScope(context, employeeId);
+  if (scopeResult.mode === 'none') return [];
+  return queryEmployeePmTaskRows(context, employeeId, scopeResult, options);
+}
+
+/** Due-today and overdue counts for open PM tasks visible to the employee. */
+export async function getEmployeePmTaskWorkSummary(
+  context: OrgContext,
+): Promise<EmployeePmTaskWorkSummary | null> {
+  const employeeId = requireEmployeeId(context);
+  const scopeResult = await resolveEmployeeTaskScope(context, employeeId);
+  if (scopeResult.mode === 'none') return null;
+
+  const today = todayInTimeZone(context.organization.timezone);
+  const rows = await queryEmployeePmTaskRows(context, employeeId, scopeResult, { limit: 500 });
+  return summarizeOpenTasks(rows, today);
+}
+
+/** Project overview with task counts — no financial fields. */
+export async function getEmployeeProjectTaskOverview(
+  context: OrgContext,
+  projectId: string,
+): Promise<EmployeeProjectTaskOverview | null> {
+  const employeeId = requireEmployeeId(context);
+  const scopeResult = await resolveEmployeeTaskScope(context, employeeId);
+
+  await assertEmployeeProjectScope(context, PERMISSIONS.PROJECTS_READ, projectId);
+
+  const [project] = await context.db
+    .select({ id: projects.id, name: projects.name })
+    .from(projects)
+    .where(
+      and(
+        eq(projects.id, projectId),
+        eq(projects.organizationId, context.organizationId),
+        isNull(projects.archivedAt),
+      ),
+    );
+  if (!project) return null;
+
+  const today = todayInTimeZone(context.organization.timezone);
+  let taskRows: Array<{ status: string; dueDate: string | null }> = [];
+
+  if (scopeResult.mode !== 'none') {
+    const rows = await queryEmployeePmTaskRows(context, employeeId, scopeResult, {
+      projectId,
+      limit: 500,
+    });
+    taskRows = rows;
+  }
+
+  const openTasks = taskRows.filter(
+    (row) => !CLOSED_STATUSES.includes(row.status as (typeof CLOSED_STATUSES)[number]),
+  ).length;
+  const { dueToday, overdue } = summarizeOpenTasks(taskRows, today);
+
+  return {
+    id: project.id,
+    name: project.name,
+    totalTasks: taskRows.length,
+    openTasks,
+    dueToday,
+    overdue,
+  };
 }
 
 /**

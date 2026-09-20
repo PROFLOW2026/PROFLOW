@@ -26,7 +26,8 @@
     "hours": "الساعات",
     "projects": "المشاريع",
     "tasks": "المهام",
-    "documents": "المستندات"
+    "documents": "المستندات",
+    "meetings": "الاجتماعات"
   },
   "back": {
     "label": "رجوع"
@@ -76,7 +77,70 @@
     "myHours": "ساعاتي",
     "notLinked": "حساب الموظف غير مرتبط. تواصل مع المدير",
     "installApp": "تثبيت التطبيق",
-    "anonymousName": "هناك"
+    "anonymousName": "هناك",
+    "workSummary": {
+      "title": "عملي",
+      "dueToday": "مستحق اليوم",
+      "overdue": "متأخر",
+      "viewTasks": "عرض كل المهام"
+    }
+  },
+  "tasks": {
+    "tabs": {
+      "pmTasks": "مهام PM",
+      "fieldItems": "بنود ميدانية"
+    },
+    "emptyPmTasks": "لا مهام PM مسندة إليك",
+    "backToTasks": "العودة إلى المهام",
+    "dueDate": "مستحق {date}",
+    "updateStatus": "تحديث الحالة",
+    "checklistTitle": "قائمة التحقق ({done}/{total})",
+    "commentsTitle": "التعليقات",
+    "noComments": "لا تعليقات بعد",
+    "commentEdited": "(معدّل)",
+    "commentAuthorEmployee": "موظف",
+    "commentPlaceholder": "أضف تعليقاً…",
+    "postComment": "نشر التعليق",
+    "status": {
+      "todo": "للتنفيذ",
+      "in_progress": "قيد التنفيذ",
+      "in_review": "قيد المراجعة",
+      "done": "منجز",
+      "cancelled": "ملغى",
+      "blocked": "محظور"
+    },
+    "priority": {
+      "none": "",
+      "low": "منخفض",
+      "medium": "متوسط",
+      "high": "مرتفع",
+      "urgent": "عاجل"
+    }
+  },
+  "projects": {
+    "overview": {
+      "subtitle": "نظرة عامة على المشروع"
+    },
+    "stats": {
+      "totalTasks": "إجمالي المهام",
+      "openTasks": "مهام مفتوحة",
+      "dueToday": "مستحق اليوم",
+      "overdue": "متأخر"
+    },
+    "hub": {
+      "tasks": "المهام",
+      "board": "اللوحة",
+      "files": "الملفات",
+      "meetings": "الاجتماعات"
+    },
+    "openTaskDetail": "فتح تفاصيل المهمة",
+    "files": {
+      "empty": "لا ملفات متاحة",
+      "noCategory": "بدون تصنيف"
+    }
+  },
+  "meetings": {
+    "empty": "لا اجتماعات بعد"
   },
   "lists": {
     "tasksEmpty": "لا مهام مسندة بعد",
@@ -167,6 +231,8 @@
       "time": "ساعات العمل",
       "projects": "المشاريع",
       "tasks": "المهام",
+      "pmTasks": "مهام PM",
+      "meetings": "الاجتماعات",
       "documents": "المستندات",
       "workforce": "الموظفون",
       "clients": "العملاء",
@@ -201,7 +267,15 @@
       "projectFinancialsRead": "عرض مالية المشروع",
       "billingRead": "عرض الفوترة",
       "formsRead": "عرض النماذج / التقارير",
-      "formsSubmit": "إرسال نماذج / تقارير"
+      "formsSubmit": "إرسال نماذج / تقارير",
+      "pmTasksRead": "عرض مهام PM",
+      "pmTasksCreate": "إنشاء مهام PM",
+      "pmTasksUpdate": "تحديث مهام PM",
+      "pmTasksComment": "التعليق على مهام PM",
+      "pmTasksAssign": "إسناد مهام PM",
+      "pmTasksManageAll": "إدارة كل مهام PM",
+      "pmTasksApprove": "اعتماد مهام PM",
+      "meetingsRead": "عرض الاجتماعات"
     },
     "scopes": {
       "self_only": "ذاتي فقط",

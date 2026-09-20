@@ -115,6 +115,11 @@ export const EMPLOYEE_PERMISSION_EDITOR_GROUPS: readonly EmployeePermissionEdito
         scopes: ['self_only', 'assigned_only', 'all_organization'],
       },
       {
+        permissionKey: PERMISSIONS.TASKS_CREATE,
+        labelKey: 'pmTasksCreate',
+        scopes: ['assigned_only', 'all_organization'],
+      },
+      {
         permissionKey: PERMISSIONS.TASKS_UPDATE,
         labelKey: 'pmTasksUpdate',
         scopes: ['self_only', 'assigned_only', 'all_organization'],
@@ -238,6 +243,17 @@ export const EMPLOYEE_PERMISSION_EDITOR_GROUPS: readonly EmployeePermissionEdito
       {
         permissionKey: PERMISSIONS.BILLING_READ,
         labelKey: 'billingRead',
+        scopes: ['assigned_only', 'all_organization'],
+      },
+    ],
+  },
+  {
+    id: 'meetings',
+    labelKey: 'meetings',
+    items: [
+      {
+        permissionKey: PERMISSIONS.MEETINGS_READ,
+        labelKey: 'meetingsRead',
         scopes: ['assigned_only', 'all_organization'],
       },
     ],

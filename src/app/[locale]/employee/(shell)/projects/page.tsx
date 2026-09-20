@@ -3,6 +3,7 @@ import { authorize } from '@/shared/permissions/authorize';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { withOrgContext } from '@/shared/auth/session';
 import { listEmployeeAssignedProjects } from '@/modules/employee-app';
+import { Link } from '@/shared/i18n/navigation';
 
 export default async function EmployeeProjectsPage() {
   const t = await getTranslations('employeeApp.lists');
@@ -15,8 +16,13 @@ export default async function EmployeeProjectsPage() {
     <div className="space-y-4">
       <ul className="divide-y divide-[var(--pf-border)] rounded-lg border border-[var(--pf-border)]">
         {projectRows.map((project) => (
-          <li key={project.id} className="px-4 py-3 text-sm font-medium">
-            {project.name}
+          <li key={project.id}>
+            <Link
+              href={`/employee/projects/${project.id}`}
+              className="block px-4 py-3 text-sm font-medium hover:bg-[var(--pf-surface-2)] transition-colors"
+            >
+              {project.name}
+            </Link>
           </li>
         ))}
         {projectRows.length === 0 ? (

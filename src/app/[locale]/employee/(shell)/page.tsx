@@ -8,6 +8,7 @@ import {
   clockOutAction,
 } from '@/app/[locale]/(app)/workforce/attendance/actions';
 import { getEmployeeShellData } from '@/modules/employee-app/application/get-employee-shell';
+import { getEmployeePmTaskWorkSummary } from '@/modules/employee-app/application/employee-pm-tasks';
 import { employeeHasPermission } from '@/modules/employee-app/application/load-employee-app-context';
 import { withOrgContext } from '@/shared/auth/session';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -28,10 +29,13 @@ export async function generateMetadata({
 
 export default async function EmployeeHomePage() {
   const t = await getTranslations('employeeApp');
-  const { data, canAttendance, canLogTime } = await withOrgContext(async (context) => ({
+  const { data, canAttendance, canLogTime, taskSummary } = await withOrgContext(async (context) => ({
     data: await getEmployeeShellData(context),
     canAttendance: employeeHasPermission(context, PERMISSIONS.ATTENDANCE_SELF),
     canLogTime: employeeHasPermission(context, PERMISSIONS.TIME_MANAGE),
+    taskSummary: employeeHasPermission(context, PERMISSIONS.TASKS_READ)
+      ? await getEmployeePmTaskWorkSummary(context)
+      : null,
   }));
 
   return (
@@ -64,6 +68,27 @@ export default async function EmployeeHomePage() {
       ) : (
         <p className="text-sm text-[var(--pf-text-secondary)]">{t('home.notLinked')}</p>
       )}
+
+      {taskSummary ? (
+        <section className="rounded-xl border border-[var(--pf-border)] bg-[var(--pf-surface)] p-4 space-y-3">
+          <h2 className="text-sm font-semibold">{t('home.workSummary.title')}</h2>
+          <dl className="grid grid-cols-2 gap-3">
+            <div>
+              <dt className="text-xs text-[var(--pf-text-secondary)]">{t('home.workSummary.dueToday')}</dt>
+              <dd className="text-2xl font-bold">{taskSummary.dueToday}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-[var(--pf-text-secondary)]">{t('home.workSummary.overdue')}</dt>
+              <dd className={cn('text-2xl font-bold', taskSummary.overdue > 0 && 'text-red-600')}>
+                {taskSummary.overdue}
+              </dd>
+            </div>
+          </dl>
+          <Link href="/employee/tasks" className="text-sm font-medium text-[var(--pf-primary)] hover:underline">
+            {t('home.workSummary.viewTasks')}
+          </Link>
+        </section>
+      ) : null}
 
       {canAttendance ? (
         <Link href="/employee/attendance" className={cn(pressableCardLinkClassName, 'block p-4')}>

@@ -55,6 +55,7 @@ const FOREMAN: EmployeePreset = {
     { permissionKey: PERMISSIONS.DOCUMENTS_READ, scope: 'assigned_only' },
     // PM Tasks: tasks in assigned projects
     { permissionKey: PERMISSIONS.TASKS_READ, scope: 'assigned_only' },
+    { permissionKey: PERMISSIONS.TASKS_CREATE, scope: 'assigned_only' },
     { permissionKey: PERMISSIONS.TASKS_ASSIGN, scope: 'assigned_only' },
     { permissionKey: PERMISSIONS.TASKS_COMMENT, scope: 'assigned_only' },
   ],
@@ -76,10 +77,12 @@ const PROJECT_MANAGER: EmployeePreset = {
     { permissionKey: PERMISSIONS.FORMS_SUBMIT, scope: 'assigned_only' },
     // PM Tasks: full task management in assigned projects
     { permissionKey: PERMISSIONS.TASKS_READ, scope: 'assigned_only' },
+    { permissionKey: PERMISSIONS.TASKS_CREATE, scope: 'assigned_only' },
     { permissionKey: PERMISSIONS.TASKS_MANAGE_ALL, scope: 'assigned_only' },
     { permissionKey: PERMISSIONS.TASKS_ASSIGN, scope: 'assigned_only' },
     { permissionKey: PERMISSIONS.TASKS_COMMENT, scope: 'assigned_only' },
     { permissionKey: PERMISSIONS.TASKS_APPROVE, scope: 'assigned_only' },
+    { permissionKey: PERMISSIONS.MEETINGS_READ, scope: 'assigned_only' },
   ],
   documentCategories: ['photo', 'drawing', 'certificate', 'other'],
 };

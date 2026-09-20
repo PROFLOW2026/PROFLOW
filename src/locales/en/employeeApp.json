@@ -26,7 +26,8 @@
     "hours": "Hours",
     "projects": "Projects",
     "tasks": "Tasks",
-    "documents": "Documents"
+    "documents": "Documents",
+    "meetings": "Meetings"
   },
   "back": {
     "label": "Back"
@@ -76,7 +77,70 @@
     "myHours": "My hours",
     "notLinked": "Employee account is not linked. Contact your manager",
     "installApp": "Install app",
-    "anonymousName": "there"
+    "anonymousName": "there",
+    "workSummary": {
+      "title": "My work",
+      "dueToday": "Due today",
+      "overdue": "Overdue",
+      "viewTasks": "View all tasks"
+    }
+  },
+  "tasks": {
+    "tabs": {
+      "pmTasks": "PM Tasks",
+      "fieldItems": "Field Items"
+    },
+    "emptyPmTasks": "No PM tasks assigned to you",
+    "backToTasks": "Back to Tasks",
+    "dueDate": "Due {date}",
+    "updateStatus": "Update Status",
+    "checklistTitle": "Checklist ({done}/{total})",
+    "commentsTitle": "Comments",
+    "noComments": "No comments yet",
+    "commentEdited": "(edited)",
+    "commentAuthorEmployee": "Employee",
+    "commentPlaceholder": "Add a comment…",
+    "postComment": "Post Comment",
+    "status": {
+      "todo": "To Do",
+      "in_progress": "In Progress",
+      "in_review": "In Review",
+      "done": "Done",
+      "cancelled": "Cancelled",
+      "blocked": "Blocked"
+    },
+    "priority": {
+      "none": "",
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "urgent": "Urgent"
+    }
+  },
+  "projects": {
+    "overview": {
+      "subtitle": "Project overview"
+    },
+    "stats": {
+      "totalTasks": "Total tasks",
+      "openTasks": "Open tasks",
+      "dueToday": "Due today",
+      "overdue": "Overdue"
+    },
+    "hub": {
+      "tasks": "Tasks",
+      "board": "Board",
+      "files": "Files",
+      "meetings": "Meetings"
+    },
+    "openTaskDetail": "Open task details",
+    "files": {
+      "empty": "No files available",
+      "noCategory": "Uncategorized"
+    }
+  },
+  "meetings": {
+    "empty": "No meetings yet"
   },
   "lists": {
     "tasksEmpty": "No tasks assigned yet",
@@ -167,6 +231,8 @@
       "time": "Work hours",
       "projects": "Projects",
       "tasks": "Tasks",
+      "pmTasks": "PM tasks",
+      "meetings": "Meetings",
       "documents": "Documents",
       "workforce": "Employees",
       "clients": "Clients",
@@ -201,7 +267,15 @@
       "projectFinancialsRead": "View project financials",
       "billingRead": "View billing",
       "formsRead": "View forms / reports",
-      "formsSubmit": "Submit forms / reports"
+      "formsSubmit": "Submit forms / reports",
+      "pmTasksRead": "View PM tasks",
+      "pmTasksCreate": "Create PM tasks",
+      "pmTasksUpdate": "Update PM tasks",
+      "pmTasksComment": "Comment on PM tasks",
+      "pmTasksAssign": "Assign PM tasks",
+      "pmTasksManageAll": "Manage all PM tasks",
+      "pmTasksApprove": "Approve PM tasks",
+      "meetingsRead": "View meetings"
     },
     "scopes": {
       "self_only": "Self only",

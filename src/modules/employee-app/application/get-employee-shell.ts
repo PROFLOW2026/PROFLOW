@@ -41,9 +41,15 @@ export function buildEmployeeNavItems(context: OrgContext): EmployeeNavItem[] {
       href: '/employee/tasks',
       labelKey: 'employeeApp.nav.tasks',
       visible:
+        employeeHasPermission(context, PERMISSIONS.TASKS_READ) ||
         employeeHasPermission(context, PERMISSIONS.FIELD_OPS_READ) ||
         employeeHasPermission(context, PERMISSIONS.SERVICE_READ) ||
         employeeHasPermission(context, PERMISSIONS.PLANNING_READ),
+    },
+    {
+      href: '/employee/meetings',
+      labelKey: 'employeeApp.nav.meetings',
+      visible: employeeHasPermission(context, PERMISSIONS.MEETINGS_READ),
     },
     {
       href: '/employee/documents',

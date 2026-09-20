@@ -10,6 +10,7 @@ import { Link } from '@/shared/i18n/navigation';
 import { listAccessibleTasks } from '@/modules/tasks';
 import { mapTaskToCardData } from '@/modules/tasks/ui/_task-api-stub';
 import { ProjectTasksClient } from './_project-tasks-client';
+import { getTaskDetailAction, updateTaskFieldsAction } from '../../../work/actions';
 
 export default async function ProjectTasksPage({
   params,
@@ -56,7 +57,12 @@ export default async function ProjectTasksPage({
           }
         />
       ) : (
-        <ProjectTasksClient tasks={tasks} projectId={projectId} />
+        <ProjectTasksClient
+          tasks={tasks}
+          projectId={projectId}
+          getTaskDetail={getTaskDetailAction}
+          updateTask={updateTaskFieldsAction}
+        />
       )}
     </div>
   );

@@ -31,6 +31,8 @@ export {
 export {
   listEmployeePmTasks,
   getEmployeePmTaskDetail,
+  getEmployeePmTaskWorkSummary,
+  getEmployeeProjectTaskOverview,
   addEmployeePmTaskComment,
   updateEmployeePmTaskStatus,
   toggleEmployeePmTaskChecklistItem,
@@ -38,4 +40,8 @@ export {
   type EmployeePmTaskDetail,
   type EmployeePmTaskComment,
   type EmployeePmTaskChecklistItem,
+  type EmployeePmTaskWorkSummary,
+  type EmployeeProjectTaskOverview,
 } from './application/employee-pm-tasks';
+export { listEmployeeMeetings, listEmployeeProjectMeetings } from './application/employee-meetings';
+export { listEmployeeProjectDocuments } from './application/employee-project-documents';

@@ -26,7 +26,8 @@
     "hours": "שעות",
     "projects": "פרויקטים",
     "tasks": "משימות",
-    "documents": "מסמכים"
+    "documents": "מסמכים",
+    "meetings": "ישיבות"
   },
   "back": {
     "label": "חזרה"
@@ -76,7 +77,70 @@
     "myHours": "השעות שלי",
     "notLinked": "חשבון העובד לא מקושר. פנה למנהל",
     "installApp": "התקן אפליקציה",
-    "anonymousName": "שם"
+    "anonymousName": "שם",
+    "workSummary": {
+      "title": "העבודה שלי",
+      "dueToday": "יעד היום",
+      "overdue": "באיחור",
+      "viewTasks": "צפייה בכל המשימות"
+    }
+  },
+  "tasks": {
+    "tabs": {
+      "pmTasks": "משימות PM",
+      "fieldItems": "פריטי שטח"
+    },
+    "emptyPmTasks": "אין משימות PM משויכות אליך",
+    "backToTasks": "חזרה למשימות",
+    "dueDate": "יעד {date}",
+    "updateStatus": "עדכון סטטוס",
+    "checklistTitle": "צ'קליסט ({done}/{total})",
+    "commentsTitle": "תגובות",
+    "noComments": "אין תגובות עדיין",
+    "commentEdited": "(נערך)",
+    "commentAuthorEmployee": "עובד",
+    "commentPlaceholder": "הוסף תגובה…",
+    "postComment": "פרסום תגובה",
+    "status": {
+      "todo": "לביצוע",
+      "in_progress": "בתהליך",
+      "in_review": "בבדיקה",
+      "done": "הושלם",
+      "cancelled": "בוטל",
+      "blocked": "חסום"
+    },
+    "priority": {
+      "none": "",
+      "low": "נמוכה",
+      "medium": "בינונית",
+      "high": "גבוהה",
+      "urgent": "דחוף"
+    }
+  },
+  "projects": {
+    "overview": {
+      "subtitle": "סקירת פרויקט"
+    },
+    "stats": {
+      "totalTasks": "סה\"כ משימות",
+      "openTasks": "משימות פתוחות",
+      "dueToday": "יעד היום",
+      "overdue": "באיחור"
+    },
+    "hub": {
+      "tasks": "משימות",
+      "board": "לוח",
+      "files": "קבצים",
+      "meetings": "ישיבות"
+    },
+    "openTaskDetail": "פתיחת פרטי משימה",
+    "files": {
+      "empty": "אין קבצים זמינים",
+      "noCategory": "ללא קטגוריה"
+    }
+  },
+  "meetings": {
+    "empty": "אין ישיבות עדיין"
   },
   "lists": {
     "tasksEmpty": "אין משימות משויכות",
@@ -167,6 +231,8 @@
       "time": "שעות עבודה",
       "projects": "פרויקטים",
       "tasks": "משימות",
+      "pmTasks": "משימות PM",
+      "meetings": "ישיבות",
       "documents": "מסמכים",
       "workforce": "עובדים",
       "clients": "לקוחות",
@@ -201,7 +267,15 @@
       "projectFinancialsRead": "צפייה בכספי פרויקט",
       "billingRead": "צפייה בחיובים",
       "formsRead": "צפייה בטפסים / דוחות",
-      "formsSubmit": "הגשת טפסים / דוחות"
+      "formsSubmit": "הגשת טפסים / דוחות",
+      "pmTasksRead": "צפייה במשימות PM",
+      "pmTasksCreate": "יצירת משימות PM",
+      "pmTasksUpdate": "עדכון משימות PM",
+      "pmTasksComment": "תגובה על משימות PM",
+      "pmTasksAssign": "שיוך משימות PM",
+      "pmTasksManageAll": "ניהול כל משימות PM",
+      "pmTasksApprove": "אישור משימות PM",
+      "meetingsRead": "צפייה בישיבות"
     },
     "scopes": {
       "self_only": "עצמי בלבד",

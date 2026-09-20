@@ -26,7 +26,8 @@
     "hours": "Часы",
     "projects": "Проекты",
     "tasks": "Задачи",
-    "documents": "Документы"
+    "documents": "Документы",
+    "meetings": "Встречи"
   },
   "back": {
     "label": "Назад"
@@ -76,7 +77,70 @@
     "myHours": "Мои часы",
     "notLinked": "Учётная запись сотрудника не связана. Обратитесь к руководителю",
     "installApp": "Установить приложение",
-    "anonymousName": "коллега"
+    "anonymousName": "коллега",
+    "workSummary": {
+      "title": "Моя работа",
+      "dueToday": "На сегодня",
+      "overdue": "Просрочено",
+      "viewTasks": "Все задачи"
+    }
+  },
+  "tasks": {
+    "tabs": {
+      "pmTasks": "Задачи PM",
+      "fieldItems": "Полевые пункты"
+    },
+    "emptyPmTasks": "Вам не назначены задачи PM",
+    "backToTasks": "Назад к задачам",
+    "dueDate": "Срок {date}",
+    "updateStatus": "Обновить статус",
+    "checklistTitle": "Чек-лист ({done}/{total})",
+    "commentsTitle": "Комментарии",
+    "noComments": "Комментариев пока нет",
+    "commentEdited": "(изменено)",
+    "commentAuthorEmployee": "Сотрудник",
+    "commentPlaceholder": "Добавить комментарий…",
+    "postComment": "Опубликовать",
+    "status": {
+      "todo": "К выполнению",
+      "in_progress": "В работе",
+      "in_review": "На проверке",
+      "done": "Готово",
+      "cancelled": "Отменено",
+      "blocked": "Заблокировано"
+    },
+    "priority": {
+      "none": "",
+      "low": "Низкий",
+      "medium": "Средний",
+      "high": "Высокий",
+      "urgent": "Срочный"
+    }
+  },
+  "projects": {
+    "overview": {
+      "subtitle": "Обзор проекта"
+    },
+    "stats": {
+      "totalTasks": "Всего задач",
+      "openTasks": "Открытые задачи",
+      "dueToday": "На сегодня",
+      "overdue": "Просрочено"
+    },
+    "hub": {
+      "tasks": "Задачи",
+      "board": "Доска",
+      "files": "Файлы",
+      "meetings": "Встречи"
+    },
+    "openTaskDetail": "Открыть задачу",
+    "files": {
+      "empty": "Нет доступных файлов",
+      "noCategory": "Без категории"
+    }
+  },
+  "meetings": {
+    "empty": "Встреч пока нет"
   },
   "lists": {
     "tasksEmpty": "Нет назначенных задач",
@@ -167,6 +231,8 @@
       "time": "Рабочие часы",
       "projects": "Проекты",
       "tasks": "Задачи",
+      "pmTasks": "Задачи PM",
+      "meetings": "Встречи",
       "documents": "Документы",
       "workforce": "Сотрудники",
       "clients": "Клиенты",
@@ -201,7 +267,15 @@
       "projectFinancialsRead": "Просмотр финансов проекта",
       "billingRead": "Просмотр выставления счетов",
       "formsRead": "Просмотр форм / отчётов",
-      "formsSubmit": "Отправка форм / отчётов"
+      "formsSubmit": "Отправка форм / отчётов",
+      "pmTasksRead": "Просмотр задач PM",
+      "pmTasksCreate": "Создание задач PM",
+      "pmTasksUpdate": "Обновление задач PM",
+      "pmTasksComment": "Комментирование задач PM",
+      "pmTasksAssign": "Назначение задач PM",
+      "pmTasksManageAll": "Управление всеми задачами PM",
+      "pmTasksApprove": "Утверждение задач PM",
+      "meetingsRead": "Просмотр встреч"
     },
     "scopes": {
       "self_only": "Только свои",

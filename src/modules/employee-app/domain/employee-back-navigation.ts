@@ -6,6 +6,7 @@ const SECTION_TITLE_KEYS: Record<string, string> = {
   projects: 'nav.projects',
   tasks: 'nav.tasks',
   documents: 'nav.documents',
+  meetings: 'nav.meetings',
 };
 
 export interface EmployeeShellHeaderState {

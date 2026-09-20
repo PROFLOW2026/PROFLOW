@@ -1,24 +1,25 @@
 'use client';
 
-/**
- * ProjectTasksClient — Client shell for project task list.
- * Renders TaskListView + TaskDetailSheet.
- */
-
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import { TaskListView } from '@/modules/tasks/ui/task-list-view';
 import { TaskDetailSheet } from '@/modules/tasks/ui/task-detail-sheet';
 import type { TaskCardData, TaskDetail } from '@/modules/tasks/ui/_task-api-stub';
+import type { WorkActionState } from '@/app/[locale]/(app)/work/actions';
 
 export function ProjectTasksClient({
   tasks,
   projectId: _projectId,
+  getTaskDetail,
+  updateTask,
 }: {
   tasks: TaskCardData[];
   projectId: string;
+  getTaskDetail: (taskId: string) => Promise<TaskDetail | null>;
+  updateTask: (taskId: string, data: Record<string, unknown>) => Promise<WorkActionState>;
 }) {
   const t = useTranslations('tasks');
+  const [, startTransition] = useTransition();
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [taskDetail, setTaskDetail] = useState<TaskDetail | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -26,9 +27,16 @@ export function ProjectTasksClient({
   const handleOpenTask = async (taskId: string) => {
     setSelectedTaskId(taskId);
     setSheetOpen(true);
-    // TODO: call getTaskDetail server action from Agent A
-    // const detail = await getTaskDetailAction(taskId);
-    // setTaskDetail(detail);
+    const detail = await getTaskDetail(taskId);
+    setTaskDetail(detail);
+  };
+
+  const handleUpdate = (taskId: string, data: Record<string, unknown>) => {
+    startTransition(async () => {
+      await updateTask(taskId, data);
+      const refreshed = await getTaskDetail(taskId);
+      if (refreshed) setTaskDetail(refreshed);
+    });
   };
 
   return (
@@ -51,9 +59,7 @@ export function ProjectTasksClient({
             setTaskDetail(null);
           }
         }}
-        onUpdate={(_taskId, _data) => {
-          // TODO: wire to updateTask server action from Agent A
-        }}
+        onUpdate={handleUpdate}
       />
     </>
   );

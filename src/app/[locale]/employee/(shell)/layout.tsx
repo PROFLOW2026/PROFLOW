@@ -1,5 +1,6 @@
 import { getLocale } from 'next-intl/server';
 import { EmployeeBottomNav } from '@/modules/employee-app/ui/employee-bottom-nav';
+import { EmployeeSideNav } from '@/modules/employee-app/ui/employee-side-nav';
 import { EmployeeShellHeader } from '@/modules/employee-app/ui/employee-shell-header';
 import { EmployeeTopBar } from '@/modules/employee-app/ui/employee-top-bar';
 import { getEmployeeShellData } from '@/modules/employee-app/application/get-employee-shell';
@@ -20,17 +21,20 @@ export default async function EmployeeShellLayout({ children }: { children: Reac
   });
 
   return (
-    <div className="flex h-svh flex-col overflow-hidden" data-pf-employee-app>
-      <EmployeeTopBar
-        employeeName={shell.employeeName}
-        email={session.user.email}
-        organizationName={shell.organizationName}
-      />
-      <main className="mx-auto min-h-0 w-full max-w-lg flex-1 overflow-y-auto px-4 pt-4 pb-[var(--pf-employee-main-bottom)]">
-        <EmployeeShellHeader />
-        {children}
-      </main>
-      <EmployeeBottomNav items={shell.nav} />
+    <div className="flex h-svh overflow-hidden" data-pf-employee-app>
+      <EmployeeSideNav items={shell.nav} />
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+        <EmployeeTopBar
+          employeeName={shell.employeeName}
+          email={session.user.email}
+          organizationName={shell.organizationName}
+        />
+        <main className="mx-auto min-h-0 w-full max-w-lg flex-1 overflow-y-auto px-4 pt-4 pb-[var(--pf-employee-main-bottom)] lg:max-w-5xl lg:pb-6">
+          <EmployeeShellHeader />
+          {children}
+        </main>
+        <EmployeeBottomNav items={shell.nav} />
+      </div>
     </div>
   );
 }

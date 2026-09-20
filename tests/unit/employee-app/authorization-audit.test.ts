@@ -97,7 +97,9 @@ describe('employee authorization audit — presets', () => {
         PERMISSIONS.TASKS_COMMENT,
       ]),
     );
-    expect(visibleNavHrefs(context)).toEqual(expect.arrayContaining(['/employee', '/employee/attendance']));
+    expect(visibleNavHrefs(context)).toEqual(
+      expect.arrayContaining(['/employee', '/employee/attendance', '/employee/tasks']),
+    );
     for (const permission of OWNER_ONLY_PERMISSIONS) {
       expect(context.permissions.has(permission)).toBe(false);
     }

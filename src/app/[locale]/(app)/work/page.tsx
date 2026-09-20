@@ -9,6 +9,7 @@ import type { MyWorkView } from '@/modules/tasks';
 import { mapTaskToCardData } from '@/modules/tasks/ui/_task-api-stub';
 import type { MyWorkItem } from '@/modules/tasks/ui/_task-api-stub';
 import { MyWorkView as MyWorkViewComponent } from '@/modules/tasks/ui/my-work-view';
+import { getTaskDetailAction, updateTaskFieldsAction } from './actions';
 
 export async function generateMetadata({
   params,
@@ -75,7 +76,12 @@ export default async function MyWorkPage() {
         description={t('myWork.pageDescription')}
       />
 
-      <MyWorkViewComponent tasksByView={tasksByView} defaultView="today" />
+      <MyWorkViewComponent
+        tasksByView={tasksByView}
+        defaultView="today"
+        onLoadTaskDetail={getTaskDetailAction}
+        onUpdateTask={updateTaskFieldsAction}
+      />
     </div>
   );
 }

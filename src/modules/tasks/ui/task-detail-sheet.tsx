@@ -34,6 +34,7 @@ import {
 } from 'lucide-react';
 import { useCallback, useMemo, useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
+import { Link } from '@/shared/i18n/navigation';
 import { Badge } from '@/components/ui/badge';
 import {
   Sheet,
@@ -221,10 +222,11 @@ export interface TaskDetailSheetProps {
   task: TaskDetail | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** When true, renders inline panel content without the Sheet overlay (full page mode). */
+  embedded?: boolean;
   /**
    * Called when user changes a field.
    * Parent must fire the updateTask Server Action.
-   * TODO: accept actual server action from Agent A.
    */
   onUpdate: (taskId: string, data: Record<string, unknown>) => void;
 }
@@ -233,6 +235,7 @@ export function TaskDetailSheet({
   task,
   open,
   onOpenChange,
+  embedded = false,
   onUpdate,
 }: TaskDetailSheetProps) {
   const t = useTranslations('tasks');
@@ -257,81 +260,84 @@ export function TaskDetailSheet({
     [task, onUpdate, startTransition],
   );
 
-  return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent
-        side="end"
-        className="w-full sm:max-w-xl"
-        closeLabel={t('close')}
-      >
-        {isPending && (
-          <div className="absolute inset-x-0 top-0 flex justify-center py-1">
-            <Loader2 aria-label={t('saving')} className="size-4 animate-spin text-[var(--pf-text-muted)]" />
+  const body =
+    task == null ? (
+      <div className="flex flex-1 items-center justify-center p-8">
+        <Loader2 className="size-6 animate-spin text-[var(--pf-text-muted)]" />
+      </div>
+    ) : (
+      <>
+        {!embedded ? (
+          <SheetHeader>
+            {/* Breadcrumb */}
+            <nav aria-label={t('breadcrumb')} className="flex flex-wrap items-center gap-0.5 text-xs text-[var(--pf-text-muted)]">
+              {task.workspaceName && (
+                <>
+                  <span>{task.workspaceName}</span>
+                  <ChevronRight aria-hidden className="size-3 rtl:rotate-180" />
+                </>
+              )}
+              {task.boardName && (
+                <>
+                  <span>{task.boardName}</span>
+                  <ChevronRight aria-hidden className="size-3 rtl:rotate-180" />
+                </>
+              )}
+              {task.bucketName && (
+                <>
+                  <span>{task.bucketName}</span>
+                  <ChevronRight aria-hidden className="size-3 rtl:rotate-180" />
+                </>
+              )}
+              <span className="font-medium text-[var(--pf-text-primary)]">{t('task')}</span>
+            </nav>
+
+            <SheetTitle asChild>
+              <EditableTitle
+                value={task.title}
+                onChange={(title) => handleUpdate({ title })}
+              />
+            </SheetTitle>
+
+            <div className="flex flex-wrap items-center gap-2">
+              {task.projectName && (
+                <Badge tone="brand">
+                  <FileText aria-hidden className="size-3" />
+                  {task.projectName}
+                </Badge>
+              )}
+              {task.approvalRequired && (
+                <Badge tone="pending">
+                  <BadgeCheck aria-hidden className="size-3" />
+                  {t('approvalRequired')}
+                </Badge>
+              )}
+              {task.isBlocked && (
+                <Badge tone="danger">
+                  <AlertCircle aria-hidden className="size-3" />
+                  {t('status.blocked')}
+                </Badge>
+              )}
+            </div>
+          </SheetHeader>
+        ) : (
+          <div className="border-b border-[var(--pf-border-default)] px-4 py-4">
+            <EditableTitle
+              value={task.title}
+              onChange={(title) => handleUpdate({ title })}
+            />
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              {task.projectName && (
+                <Badge tone="brand">
+                  <FileText aria-hidden className="size-3" />
+                  {task.projectName}
+                </Badge>
+              )}
+            </div>
           </div>
         )}
 
-        {task == null ? (
-          <div className="flex flex-1 items-center justify-center">
-            <Loader2 className="size-6 animate-spin text-[var(--pf-text-muted)]" />
-          </div>
-        ) : (
-          <>
-            <SheetHeader>
-              {/* Breadcrumb */}
-              <nav aria-label={t('breadcrumb')} className="flex flex-wrap items-center gap-0.5 text-xs text-[var(--pf-text-muted)]">
-                {task.workspaceName && (
-                  <>
-                    <span>{task.workspaceName}</span>
-                    <ChevronRight aria-hidden className="size-3 rtl:rotate-180" />
-                  </>
-                )}
-                {task.boardName && (
-                  <>
-                    <span>{task.boardName}</span>
-                    <ChevronRight aria-hidden className="size-3 rtl:rotate-180" />
-                  </>
-                )}
-                {task.bucketName && (
-                  <>
-                    <span>{task.bucketName}</span>
-                    <ChevronRight aria-hidden className="size-3 rtl:rotate-180" />
-                  </>
-                )}
-                <span className="font-medium text-[var(--pf-text-primary)]">{t('task')}</span>
-              </nav>
-
-              {/* Title */}
-              <SheetTitle asChild>
-                <EditableTitle
-                  value={task.title}
-                  onChange={(title) => handleUpdate({ title })}
-                />
-              </SheetTitle>
-
-              {/* Badges row */}
-              <div className="flex flex-wrap items-center gap-2">
-                {task.projectName && (
-                  <Badge tone="brand">
-                    <FileText aria-hidden className="size-3" />
-                    {task.projectName}
-                  </Badge>
-                )}
-                {task.approvalRequired && (
-                  <Badge tone="pending">
-                    <BadgeCheck aria-hidden className="size-3" />
-                    {t('approvalRequired')}
-                  </Badge>
-                )}
-                {task.isBlocked && (
-                  <Badge tone="danger">
-                    <AlertCircle aria-hidden className="size-3" />
-                    {t('status.blocked')}
-                  </Badge>
-                )}
-              </div>
-            </SheetHeader>
-
-            <SheetBody className="flex flex-col gap-5">
+        <SheetBody className={cn('flex flex-col gap-5', embedded && 'px-4 py-4')}>
               {/* Status */}
               <Field label={t('statusLabel')} icon={<CheckSquare className="size-4" />}>
                 <select
@@ -494,26 +500,62 @@ export function TaskDetailSheet({
                 </div>
               )}
 
-              {/* Agent E: Comments slot */}
-              <div>
-                <SectionLabel>{t('commentsLabel')}</SectionLabel>
-                {/* TODO: Replace with <CommentsPanel taskId={task.id} /> from Agent E */}
-                <div className="mt-2 rounded-lg border border-dashed border-[var(--pf-border-default)] p-4 text-center text-xs text-[var(--pf-text-muted)]">
-                  {t('commentsSlot')}
-                </div>
-              </div>
-
-              {/* Agent E: Activity feed slot */}
-              <div>
-                <SectionLabel>{t('activityLabel')}</SectionLabel>
-                {/* TODO: Replace with <ActivityFeed taskId={task.id} /> from Agent E */}
-                <div className="mt-2 rounded-lg border border-dashed border-[var(--pf-border-default)] p-4 text-center text-xs text-[var(--pf-text-muted)]">
-                  {t('activitySlot')}
-                </div>
-              </div>
+              {!embedded ? (
+                <>
+                  <div>
+                    <SectionLabel>{t('commentsLabel')}</SectionLabel>
+                    <p className="mt-2 text-xs text-[var(--pf-text-muted)]">
+                      <Link
+                        href={`/tasks/${task.id}`}
+                        className="font-medium text-[var(--pf-text-brand)] underline underline-offset-2"
+                      >
+                        {t('openFullTask')}
+                      </Link>
+                    </p>
+                  </div>
+                  <div>
+                    <SectionLabel>{t('activityLabel')}</SectionLabel>
+                    <p className="mt-2 text-xs text-[var(--pf-text-muted)]">
+                      <Link
+                        href={`/tasks/${task.id}`}
+                        className="font-medium text-[var(--pf-text-brand)] underline underline-offset-2"
+                      >
+                        {t('openFullTask')}
+                      </Link>
+                    </p>
+                  </div>
+                </>
+              ) : null}
             </SheetBody>
-          </>
-        )}
+      </>
+    );
+
+  if (embedded) {
+    return (
+      <div className="relative">
+        {isPending ? (
+          <div className="absolute inset-x-0 top-0 flex justify-center py-1">
+            <Loader2 aria-label={t('saving')} className="size-4 animate-spin text-[var(--pf-text-muted)]" />
+          </div>
+        ) : null}
+        {body}
+      </div>
+    );
+  }
+
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent
+        side="end"
+        className="w-full sm:max-w-xl"
+        closeLabel={t('close')}
+      >
+        {isPending ? (
+          <div className="absolute inset-x-0 top-0 flex justify-center py-1">
+            <Loader2 aria-label={t('saving')} className="size-4 animate-spin text-[var(--pf-text-muted)]" />
+          </div>
+        ) : null}
+        {body}
       </SheetContent>
     </Sheet>
   );

@@ -184,7 +184,10 @@ export interface MyWorkViewProps {
    * Called when user updates a task field in the detail sheet.
    * TODO: wire to updateTask Server Action once Agent A delivers.
    */
-  onUpdateTask?: (taskId: string, data: Record<string, unknown>) => void;
+  onUpdateTask?: (
+    taskId: string,
+    data: Record<string, unknown>,
+  ) => void | Promise<unknown>;
   /** Initial active view (from URL search param) */
   defaultView?: MyWorkViewKey;
 }

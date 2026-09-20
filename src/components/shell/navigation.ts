@@ -90,6 +90,7 @@ export type NavIconKey = (typeof NAV_ICON_KEYS)[number];
 export type MoreNavGroup =
   | 'clients'
   | 'work'
+  | 'workManagement'
   | 'people'
   | 'purchasing'
   | 'money'
@@ -104,6 +105,7 @@ export type MoreNavGroup =
 export const MORE_GROUP_ORDER: readonly MoreNavGroup[] = [
   'clients',
   'work',
+  'workManagement',
   'people',
   'purchasing',
   'money',
@@ -161,7 +163,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     iconKey: 'operations',
     permission: PERMISSIONS.OPERATIONS_READ,
     module: 'work_management',
-    moreGroup: 'work',
+    moreGroup: 'workManagement',
   },
   {
     key: 'myWork',
@@ -170,7 +172,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     iconKey: 'myWork',
     permission: PERMISSIONS.TASKS_READ,
     module: 'work_management',
-    moreGroup: 'work',
+    moreGroup: 'workManagement',
   },
   {
     key: 'portfolio',
@@ -179,7 +181,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     iconKey: 'portfolio',
     permission: PERMISSIONS.PORTFOLIO_READ,
     module: 'work_management',
-    moreGroup: 'work',
+    moreGroup: 'workManagement',
   },
   {
     key: 'workload',
@@ -188,7 +190,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     iconKey: 'workload',
     permission: PERMISSIONS.WORKLOAD_READ,
     module: 'work_management',
-    moreGroup: 'work',
+    moreGroup: 'workManagement',
   },
   {
     key: 'workspaces',
@@ -197,7 +199,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     iconKey: 'workspaces',
     permission: PERMISSIONS.WORKSPACES_MANAGE,
     module: 'work_management',
-    moreGroup: 'work',
+    moreGroup: 'advanced',
   },
   {
     key: 'meetings',
@@ -206,7 +208,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     iconKey: 'meetings',
     permission: PERMISSIONS.MEETINGS_READ,
     module: 'work_management',
-    moreGroup: 'work',
+    moreGroup: 'workManagement',
   },
   // ── / Universal Work Management ──────────────────────────────────────────
   {
@@ -677,7 +679,11 @@ export function applyExperienceNavLayout(
 
     const mappedGroup = NAV_KEY_TO_EXPERIENCE_GROUP[item.key] ?? 'advanced';
     let group: MoreNavGroup =
-      mappedGroup === 'today' ? ('work' as MoreNavGroup) : (mappedGroup as MoreNavGroup);
+      mappedGroup === 'today'
+        ? ('work' as MoreNavGroup)
+        : mappedGroup === 'workManagement'
+          ? ('workManagement' as MoreNavGroup)
+          : (mappedGroup as MoreNavGroup);
 
     const isPrimary = primaryKeys.includes(item.key) || preferSet.has(item.key);
 
