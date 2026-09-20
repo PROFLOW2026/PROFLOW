@@ -1,0 +1,36 @@
+{
+  "title": "Operations",
+  "pageTitle": "Operations Dashboard",
+  "pageDescription": "Live snapshot of your organization's work status",
+  "sections": {
+    "projects": "Projects",
+    "taskHealth": "Task Health",
+    "upcomingMilestones": "Upcoming Milestones (14 days)",
+    "pendingApprovals": "Pending Approvals",
+    "staleProjects": "Stale Projects — no activity in 14 days",
+    "teamWorkload": "Team Workload — top 5 by open tasks",
+    "recentActivity": "Recent Task Activity"
+  },
+  "stats": {
+    "activeProjects": "Active Projects",
+    "dueToday": "Due Today",
+    "overdue": "Overdue",
+    "blocked": "Blocked"
+  },
+  "empty": {
+    "milestones": "No milestones in the next 14 days."
+  },
+  "approvals": {
+    "viewAll": "View all approvals →",
+    "allClear": "All clear"
+  },
+  "workload": {
+    "openTasks": "{count} open"
+  },
+  "relativeTime": {
+    "justNow": "just now",
+    "minutesAgo": "{count}m ago",
+    "hoursAgo": "{count}h ago",
+    "daysAgo": "{count}d ago"
+  }
+}

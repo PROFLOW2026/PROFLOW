@@ -55,6 +55,8 @@
     "saved": "Saved"
   },
   "modules": {
+    "pageTitle": "Module Enablement",
+    "pageDescription": "Toggle which modules appear in navigation. Disabling a module hides navigation only — no data is deleted.",
     "title": "Features",
     "subtitle": "Choose which capabilities appear in the business. Hiding removes them from navigation and never deletes data.",
     "visibilityLabel": "State for {module}",
@@ -86,6 +88,7 @@
     "forms": "Forms",
     "command_center": "Today",
     "safety": "Safety / HSE",
+    "work_management": "Work management",
     "hints": {
       "billing": "Manage invoices, billing, and collections.",
       "workforce": "Manage employees and time entries.",
@@ -110,7 +113,8 @@
       "boq": "Optional bill of quantities for measured construction. Leave off unless you bill from a quantity list - a jobs/service mix does not need it.",
       "forms": "Reusable checklists and field forms.",
       "command_center": "Today view for current work and tasks.",
-      "safety": "Incidents, near misses, toolbox talks, and corrective actions."
+      "safety": "Incidents, near misses, toolbox talks, and corrective actions.",
+      "work_management": "Operations, My Work, Portfolio, Workload, Workspaces, and Meetings."
     },
     "saved": "Feature visibility updated.",
     "hideNeverDeletes": "Hiding a capability never deletes data - you can show it again anytime.",

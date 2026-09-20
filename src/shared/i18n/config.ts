@@ -111,6 +111,7 @@ export const MESSAGE_NAMESPACES = [
   'generatedDocuments',
   'employeeApp',
   'tasks',
+  'operations',
 ] as const;
 
 export type MessageNamespace = (typeof MESSAGE_NAMESPACES)[number];

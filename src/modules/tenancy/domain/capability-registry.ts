@@ -222,6 +222,13 @@ export const CAPABILITY_REGISTRY: Readonly<Record<OptionalModuleKey, CapabilityD
       requires: [],
       customerToggle: false,
     },
+    work_management: {
+      id: 'work_management',
+      labelKey: 'work_management',
+      group: 'work',
+      requires: [],
+      customerToggle: true,
+    },
   };
 
 export function getCapability(id: OptionalModuleKey): CapabilityDefinition {

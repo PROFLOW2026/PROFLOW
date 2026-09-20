@@ -131,6 +131,12 @@ export const SIMPLE_SHELL_NAV_KEYS = new Set([
   'safety',
   'reports',
   'settings',
+  'operations',
+  'myWork',
+  'portfolio',
+  'workload',
+  'workspaces',
+  'meetings',
 ]);
 
 /** Nav keys gated by permission only (no optional module toggle). */

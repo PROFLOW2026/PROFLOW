@@ -1,0 +1,36 @@
+{
+  "title": "العمليات",
+  "pageTitle": "لوحة العمليات",
+  "pageDescription": "لمحة حية عن حالة العمل في مؤسستك",
+  "sections": {
+    "projects": "المشاريع",
+    "taskHealth": "صحة المهام",
+    "upcomingMilestones": "المعالم القادمة (14 يومًا)",
+    "pendingApprovals": "الموافقات المعلقة",
+    "staleProjects": "مشاريع راكدة — لا نشاط خلال 14 يومًا",
+    "teamWorkload": "عبء الفريق — أعلى 5 حسب المهام المفتوحة",
+    "recentActivity": "نشاط المهام الأخير"
+  },
+  "stats": {
+    "activeProjects": "المشاريع النشطة",
+    "dueToday": "مستحقة اليوم",
+    "overdue": "متأخرة",
+    "blocked": "محظورة"
+  },
+  "empty": {
+    "milestones": "لا معالم في الـ 14 يومًا القادمة."
+  },
+  "approvals": {
+    "viewAll": "عرض جميع الموافقات ←",
+    "allClear": "كل شيء على ما يرام"
+  },
+  "workload": {
+    "openTasks": "{count} مفتوحة"
+  },
+  "relativeTime": {
+    "justNow": "الآن",
+    "minutesAgo": "منذ {count} د",
+    "hoursAgo": "منذ {count} س",
+    "daysAgo": "منذ {count} ي"
+  }
+}

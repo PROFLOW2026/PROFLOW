@@ -48,6 +48,8 @@ export const OPTIONAL_MODULE_KEYS = [
   'forms',
   'command_center',
   'safety',
+  /** Universal Work Management — Operations, My Work, Portfolio, Workload, Workspaces, Meetings. */
+  'work_management',
 ] as const;
 
 export type OptionalModuleKey = (typeof OPTIONAL_MODULE_KEYS)[number];

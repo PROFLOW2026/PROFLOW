@@ -365,7 +365,10 @@ describe('migration journal', () => {
     expect(tags.indexOf('0095_external_expense_imports')).toBeLessThan(
       tags.indexOf('0096_uwm_org_profile'),
     );
-    expect(tags.at(-1)).toBe('0112_uwm_approval_task_entity');
+    expect(tags.indexOf('0112_uwm_approval_task_entity')).toBeLessThan(
+      tags.indexOf('0113_uwm_owner_admin_permissions_and_module'),
+    );
+    expect(tags.at(-1)).toBe('0113_uwm_owner_admin_permissions_and_module');
 
     const sql66 = await readFile(
       path.join(MIGRATIONS_DIR, '0066_workforce_time_integrity.sql'),

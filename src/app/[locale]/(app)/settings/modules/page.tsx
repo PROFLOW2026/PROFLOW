@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 import { Card } from '@/components/ui/card';
 import { withOrgContext } from '@/shared/auth/session';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -9,13 +10,19 @@ import { SettingsPageShell } from '../settings-shell';
 import { SettingsNotAllowed } from '../settings-not-allowed';
 import { FeaturesSettingsPanel } from '../features/features-panel';
 
-export const metadata: Metadata = { title: 'Modules' };
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'settings' });
+  return { title: t('modules.pageTitle') };
+}
 
-/**
- * /settings/modules — lightweight wrapper around the existing FeaturesSettingsPanel.
- * Provides a focused "Module enablement" view separate from the full Features page.
- */
 export default async function ModulesSettingsPage() {
+  const t = await getTranslations('settings.modules');
+
   const data = await withOrgContext(async (context) => {
     if (!hasPermission(context, PERMISSIONS.SETTINGS_MANAGE)) {
       return { allowed: false as const };
@@ -38,17 +45,14 @@ export default async function ModulesSettingsPage() {
 
   if (!data.allowed) {
     return (
-      <SettingsPageShell title="Module Enablement">
+      <SettingsPageShell title={t('pageTitle')} description={t('pageDescription')}>
         <SettingsNotAllowed />
       </SettingsPageShell>
     );
   }
 
   return (
-    <SettingsPageShell
-      title="Module Enablement"
-      description="Toggle which modules appear in navigation. Disabling a module hides navigation only — no data is deleted."
-    >
+    <SettingsPageShell title={t('pageTitle')} description={t('pageDescription')}>
       <Card className="p-5">
         <FeaturesSettingsPanel
           visibility={data.visibility}

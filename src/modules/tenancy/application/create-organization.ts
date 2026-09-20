@@ -17,6 +17,7 @@ import {
   insertMembership,
   insertOrganization,
   seedDefaultCostCategories,
+  setModulePreference,
 } from '../data/organizations.repository';
 /**
  * Founds an organization (doc 73 §3).
@@ -116,6 +117,9 @@ export async function createOrganization(
   if (isWorkMix(input.workMix)) {
     await upsertOrganizationSettingValue(db, organization.id, WORK_MIX_SETTING_KEY, input.workMix);
   }
+
+  // UWM surfaces are core work chrome for every new organization.
+  await setModulePreference(db, organization.id, 'work_management', true);
 
   await writeAuditEvent(db, {
     organizationId: organization.id,

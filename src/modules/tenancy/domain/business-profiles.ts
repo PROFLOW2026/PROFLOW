@@ -622,6 +622,7 @@ export const BUSINESS_PROFILES: readonly BusinessProfile[] = [
       'forms',
       'command_center',
       'safety',
+      'work_management',
     ],
     quickCreateEmphasis: [
       'project',

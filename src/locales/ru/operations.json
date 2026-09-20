@@ -1,0 +1,36 @@
+{
+  "title": "Операции",
+  "pageTitle": "Операционная панель",
+  "pageDescription": "Актуальный снимок состояния работы организации",
+  "sections": {
+    "projects": "Проекты",
+    "taskHealth": "Состояние задач",
+    "upcomingMilestones": "Ближайшие вехи (14 дней)",
+    "pendingApprovals": "Ожидающие согласования",
+    "staleProjects": "Неактивные проекты — нет активности 14 дней",
+    "teamWorkload": "Нагрузка команды — топ‑5 по открытым задачам",
+    "recentActivity": "Недавняя активность по задачам"
+  },
+  "stats": {
+    "activeProjects": "Активные проекты",
+    "dueToday": "Срок сегодня",
+    "overdue": "Просрочено",
+    "blocked": "Заблокировано"
+  },
+  "empty": {
+    "milestones": "Нет вех в ближайшие 14 дней."
+  },
+  "approvals": {
+    "viewAll": "Все согласования →",
+    "allClear": "Всё в порядке"
+  },
+  "workload": {
+    "openTasks": "{count} открыто"
+  },
+  "relativeTime": {
+    "justNow": "только что",
+    "minutesAgo": "{count} мин назад",
+    "hoursAgo": "{count} ч назад",
+    "daysAgo": "{count} д назад"
+  }
+}

@@ -160,6 +160,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     labelKey: 'operations',
     iconKey: 'operations',
     permission: PERMISSIONS.OPERATIONS_READ,
+    module: 'work_management',
     moreGroup: 'work',
   },
   {
@@ -168,6 +169,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     labelKey: 'myWork',
     iconKey: 'myWork',
     permission: PERMISSIONS.TASKS_READ,
+    module: 'work_management',
     moreGroup: 'work',
   },
   {
@@ -176,6 +178,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     labelKey: 'portfolio',
     iconKey: 'portfolio',
     permission: PERMISSIONS.PORTFOLIO_READ,
+    module: 'work_management',
     moreGroup: 'work',
   },
   {
@@ -184,6 +187,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     labelKey: 'workload',
     iconKey: 'workload',
     permission: PERMISSIONS.WORKLOAD_READ,
+    module: 'work_management',
     moreGroup: 'work',
   },
   {
@@ -192,6 +196,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     labelKey: 'workspaces',
     iconKey: 'workspaces',
     permission: PERMISSIONS.WORKSPACES_MANAGE,
+    module: 'work_management',
     moreGroup: 'work',
   },
   {
@@ -200,6 +205,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     labelKey: 'meetings',
     iconKey: 'meetings',
     permission: PERMISSIONS.MEETINGS_READ,
+    module: 'work_management',
     moreGroup: 'work',
   },
   // ── / Universal Work Management ──────────────────────────────────────────

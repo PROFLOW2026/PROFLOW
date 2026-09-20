@@ -785,6 +785,13 @@
                         "when":  1789710960000,
                         "tag":  "0112_uwm_approval_task_entity",
                         "breakpoints":  true
+                    },
+                    {
+                        "idx":  112,
+                        "version":  "7",
+                        "when":  1789711020000,
+                        "tag":  "0113_uwm_owner_admin_permissions_and_module",
+                        "breakpoints":  true
                     }
                 ]
 }

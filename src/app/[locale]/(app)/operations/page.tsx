@@ -21,27 +21,27 @@ export async function generateMetadata({
 export default async function OperationsDashboardPage() {
   const shell = await getShellContext();
 
-  if (!shell?.permissions.has(PERMISSIONS.OPERATIONS_READ)) {
+  if (!shell?.permissions.has(PERMISSIONS.OPERATIONS_READ) || !shell.modules.work_management) {
     notFound();
   }
 
+  const t = await getTranslations('operations');
   const data = await withOrgContext((context) => getOperationsDashboard(context));
 
   const today = new Date().toISOString().slice(0, 10);
 
   return (
     <div className="flex min-w-0 max-w-full flex-col gap-6">
-      <PageHeader title="Operations Dashboard" description="Live snapshot of your organization's work status" />
+      <PageHeader title={t('pageTitle')} description={t('pageDescription')} />
 
-      {/* ── Row 1: Project counts ── */}
       <section>
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-[var(--pf-text-secondary)]">
-          Projects
+          {t('sections.projects')}
         </h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           <StatCard
             icon={<Package className="h-4 w-4" />}
-            label="Active Projects"
+            label={t('stats.activeProjects')}
             value={data.projects.activeCount}
             href="/projects?facet=active"
           />
@@ -56,43 +56,40 @@ export default async function OperationsDashboardPage() {
         </div>
       </section>
 
-      {/* ── Row 2: Task health ── */}
       <section>
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-[var(--pf-text-secondary)]">
-          Task Health
+          {t('sections.taskHealth')}
         </h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           <StatCard
             icon={<Calendar className="h-4 w-4" />}
-            label="Due Today"
+            label={t('stats.dueToday')}
             value={data.taskCounts.dueToday}
             variant={data.taskCounts.dueToday > 0 ? 'warning' : 'default'}
           />
           <StatCard
             icon={<AlertTriangle className="h-4 w-4" />}
-            label="Overdue"
+            label={t('stats.overdue')}
             value={data.taskCounts.overdue}
             variant={data.taskCounts.overdue > 0 ? 'danger' : 'default'}
           />
           <StatCard
             icon={<Clock className="h-4 w-4" />}
-            label="Blocked"
+            label={t('stats.blocked')}
             value={data.taskCounts.blocked}
             variant={data.taskCounts.blocked > 0 ? 'warning' : 'default'}
           />
         </div>
       </section>
 
-      {/* ── Row 3: Two-column layout ── */}
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Upcoming Milestones */}
         <section className="rounded-lg border border-[var(--pf-border)] p-4">
           <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold">
             <Calendar className="h-4 w-4 text-[var(--pf-text-secondary)]" />
-            Upcoming Milestones (14 days)
+            {t('sections.upcomingMilestones')}
           </h2>
           {data.upcomingMilestones.length === 0 ? (
-            <p className="text-sm text-[var(--pf-text-muted)]">No milestones in the next 14 days.</p>
+            <p className="text-sm text-[var(--pf-text-muted)]">{t('empty.milestones')}</p>
           ) : (
             <ul className="space-y-2">
               {data.upcomingMilestones.map((m) => (
@@ -117,11 +114,10 @@ export default async function OperationsDashboardPage() {
           )}
         </section>
 
-        {/* Pending Approvals */}
         <section className="rounded-lg border border-[var(--pf-border)] p-4">
           <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold">
             <CheckSquare className="h-4 w-4 text-[var(--pf-text-secondary)]" />
-            Pending Approvals
+            {t('sections.pendingApprovals')}
           </h2>
           <div className="flex items-center gap-4">
             <span
@@ -131,21 +127,20 @@ export default async function OperationsDashboardPage() {
             </span>
             {data.pendingApprovalCount > 0 ? (
               <Link href="/approvals" className="text-sm text-[var(--pf-accent)] hover:underline">
-                View all approvals →
+                {t('approvals.viewAll')}
               </Link>
             ) : (
-              <span className="text-sm text-[var(--pf-text-muted)]">All clear</span>
+              <span className="text-sm text-[var(--pf-text-muted)]">{t('approvals.allClear')}</span>
             )}
           </div>
         </section>
       </div>
 
-      {/* ── Row 4: Stale Projects ── */}
       {data.staleProjects.length > 0 && (
         <section className="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950/20">
           <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-amber-800 dark:text-amber-200">
             <AlertTriangle className="h-4 w-4" />
-            Stale Projects — no activity in 14 days
+            {t('sections.staleProjects')}
           </h2>
           <ul className="space-y-1">
             {data.staleProjects.map((project) => (
@@ -165,19 +160,18 @@ export default async function OperationsDashboardPage() {
         </section>
       )}
 
-      {/* ── Row 5: Team Workload (requires workload.read) ── */}
       {data.teamWorkload && data.teamWorkload.length > 0 && (
         <section className="rounded-lg border border-[var(--pf-border)] p-4">
           <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold">
             <Users className="h-4 w-4 text-[var(--pf-text-secondary)]" />
-            Team Workload — top 5 by open tasks
+            {t('sections.teamWorkload')}
           </h2>
           <ul className="space-y-2">
             {data.teamWorkload.map((entry) => (
               <li key={entry.employeeId} className="flex items-center justify-between gap-2 text-sm">
                 <span className="truncate">{entry.employeeName}</span>
                 <span className="shrink-0 rounded-full bg-[var(--pf-badge-bg)] px-2 py-0.5 text-xs font-semibold">
-                  {entry.openTaskCount} open
+                  {t('workload.openTasks', { count: entry.openTaskCount })}
                 </span>
               </li>
             ))}
@@ -185,10 +179,9 @@ export default async function OperationsDashboardPage() {
         </section>
       )}
 
-      {/* ── Row 6: Recent Activity ── */}
       {data.recentActivity.length > 0 && (
         <section className="rounded-lg border border-[var(--pf-border)] p-4">
-          <h2 className="mb-3 text-sm font-semibold">Recent Task Activity</h2>
+          <h2 className="mb-3 text-sm font-semibold">{t('sections.recentActivity')}</h2>
           <ul className="space-y-2">
             {data.recentActivity.map((event) => (
               <li key={event.id} className="flex items-start justify-between gap-2 text-sm">
@@ -204,7 +197,7 @@ export default async function OperationsDashboardPage() {
                   dateTime={event.occurredAt.toISOString()}
                   className="shrink-0 text-xs text-[var(--pf-text-muted)]"
                 >
-                  {formatRelativeTime(event.occurredAt)}
+                  {formatRelativeTime(event.occurredAt, t)}
                 </time>
               </li>
             ))}
@@ -214,8 +207,6 @@ export default async function OperationsDashboardPage() {
     </div>
   );
 }
-
-// ─── Local components ─────────────────────────────────────────────────────────
 
 interface StatCardProps {
   icon?: React.ReactNode;
@@ -254,16 +245,19 @@ function StatCard({ icon, label, value, href, variant = 'default' }: StatCardPro
   return content;
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+type RelativeTimeTranslator = (
+  key: 'relativeTime.justNow' | 'relativeTime.minutesAgo' | 'relativeTime.hoursAgo' | 'relativeTime.daysAgo',
+  values?: { count: number },
+) => string;
 
-function formatRelativeTime(date: Date): string {
+function formatRelativeTime(date: Date, t: RelativeTimeTranslator): string {
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
   const diffMins = Math.floor(diffMs / 60_000);
-  if (diffMins < 1) return 'just now';
-  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffMins < 1) return t('relativeTime.justNow');
+  if (diffMins < 60) return t('relativeTime.minutesAgo', { count: diffMins });
   const diffHours = Math.floor(diffMins / 60);
-  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffHours < 24) return t('relativeTime.hoursAgo', { count: diffHours });
   const diffDays = Math.floor(diffHours / 24);
-  return `${diffDays}d ago`;
+  return t('relativeTime.daysAgo', { count: diffDays });
 }
