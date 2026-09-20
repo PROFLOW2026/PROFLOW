@@ -13,7 +13,7 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core';
 import { archivedAt, primaryId, timestamps } from './_shared';
-import { invitationStatusEnum, membershipStatusEnum } from './enums';
+import { invitationStatusEnum, membershipStatusEnum, orgProfileTypeEnum, savedListViewScopeEnum } from './enums';
 import { profiles } from './identity';
 
 /**
@@ -40,6 +40,12 @@ export const organizations = pgTable(
      * Default 0 preserves historic Sunday-start timesheets and boards.
      */
     workWeekStartDay: integer('work_week_start_day').notNull().default(0),
+    /** UWM (0096+): org profile type drives terminology and module defaults. */
+    orgProfileType: orgProfileTypeEnum('org_profile_type').notNull().default('contractor'),
+    /** UWM: terminology overrides per org profile (e.g. "task" → "punch item"). */
+    terminologyConfig: jsonb('terminology_config').notNull().default({}),
+    /** UWM: module-level feature flags scoped to this organization. */
+    moduleConfig: jsonb('module_config').notNull().default({}),
     archivedAt: archivedAt(),
     ...timestamps(),
   },
@@ -198,6 +204,7 @@ export const savedListViews = pgTable(
     name: text('name').notNull(),
     queryJson: jsonb('query_json').notNull().default({}),
     isDefault: boolean('is_default').notNull().default(false),
+    scope: savedListViewScopeEnum('scope').notNull().default('private'),
     ...timestamps(),
   },
   (table) => [
@@ -214,7 +221,7 @@ export const savedListViews = pgTable(
     index('saved_list_views_user_list_idx').on(table.organizationId, table.userId, table.listKey),
     check(
       'saved_list_views_key_known',
-      sql`${table.listKey} IN ('projects','jobs','work_orders','clients','vendors','expenses','ap_bills','quotes','punch','inventory')`,
+      sql`${table.listKey} IN ('projects','jobs','work_orders','clients','vendors','expenses','ap_bills','quotes','punch','inventory','tasks','portfolio','workload','operations')`,
     ),
   ],
 );

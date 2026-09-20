@@ -24,25 +24,7 @@ CREATE INDEX IF NOT EXISTS meeting_records_org_idx ON public.meeting_records (or
 CREATE INDEX IF NOT EXISTS meeting_records_project_idx ON public.meeting_records (project_id) WHERE project_id IS NOT NULL;
 CREATE INDEX IF NOT EXISTS meeting_records_workspace_idx ON public.meeting_records (workspace_id) WHERE workspace_id IS NOT NULL;
 
-ALTER TABLE public.meeting_records ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.meeting_records FORCE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS meeting_records_select ON public.meeting_records;
-CREATE POLICY meeting_records_select ON public.meeting_records
-  FOR SELECT TO authenticated USING (app.is_org_member(organization_id));
-
-DROP POLICY IF EXISTS meeting_records_insert ON public.meeting_records;
-CREATE POLICY meeting_records_insert ON public.meeting_records
-  FOR INSERT TO authenticated WITH CHECK (app.is_org_member(organization_id));
-
-DROP POLICY IF EXISTS meeting_records_update ON public.meeting_records;
-CREATE POLICY meeting_records_update ON public.meeting_records
-  FOR UPDATE TO authenticated
-  USING (app.is_org_member(organization_id)) WITH CHECK (app.is_org_member(organization_id));
-
-DROP POLICY IF EXISTS meeting_records_service_all ON public.meeting_records;
-CREATE POLICY meeting_records_service_all ON public.meeting_records AS PERMISSIVE
-  FOR ALL TO service_role USING (true);
+-- meeting_records RLS installed in section 5 (after meeting access helpers)
 
 --------------------------------------------------------------------------------
 -- 2. meeting_attendees (structured; at least one identity field)
@@ -66,29 +48,7 @@ CREATE TABLE IF NOT EXISTS public.meeting_attendees (
 
 CREATE INDEX IF NOT EXISTS meeting_attendees_meeting_idx ON public.meeting_attendees (meeting_id);
 
-ALTER TABLE public.meeting_attendees ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.meeting_attendees FORCE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS meeting_attendees_select ON public.meeting_attendees;
-CREATE POLICY meeting_attendees_select ON public.meeting_attendees
-  FOR SELECT TO authenticated USING (app.is_org_member(organization_id));
-
-DROP POLICY IF EXISTS meeting_attendees_insert ON public.meeting_attendees;
-CREATE POLICY meeting_attendees_insert ON public.meeting_attendees
-  FOR INSERT TO authenticated WITH CHECK (app.is_org_member(organization_id));
-
-DROP POLICY IF EXISTS meeting_attendees_update ON public.meeting_attendees;
-CREATE POLICY meeting_attendees_update ON public.meeting_attendees
-  FOR UPDATE TO authenticated
-  USING (app.is_org_member(organization_id)) WITH CHECK (app.is_org_member(organization_id));
-
-DROP POLICY IF EXISTS meeting_attendees_delete ON public.meeting_attendees;
-CREATE POLICY meeting_attendees_delete ON public.meeting_attendees
-  FOR DELETE TO authenticated USING (app.is_org_member(organization_id));
-
-DROP POLICY IF EXISTS meeting_attendees_service_all ON public.meeting_attendees;
-CREATE POLICY meeting_attendees_service_all ON public.meeting_attendees AS PERMISSIVE
-  FOR ALL TO service_role USING (true);
+-- meeting_attendees RLS installed in section 5
 
 --------------------------------------------------------------------------------
 -- 3. meeting_decisions (canonical — distinct from tasks)
@@ -104,30 +64,15 @@ CREATE TABLE IF NOT EXISTS public.meeting_decisions (
   decided_by_org_member_id uuid REFERENCES public.organization_memberships (id) ON DELETE SET NULL,
   decided_by_employee_id uuid REFERENCES public.employees (id) ON DELETE SET NULL,
   created_at timestamptz NOT NULL DEFAULT now(),
-  updated_at timestamptz NOT NULL DEFAULT now()
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT meeting_decisions_decider_at_most_one CHECK (
+    (decided_by_org_member_id IS NOT NULL)::int + (decided_by_employee_id IS NOT NULL)::int <= 1
+  )
 );
 
 CREATE INDEX IF NOT EXISTS meeting_decisions_meeting_idx ON public.meeting_decisions (meeting_id);
 
-ALTER TABLE public.meeting_decisions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.meeting_decisions FORCE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS meeting_decisions_select ON public.meeting_decisions;
-CREATE POLICY meeting_decisions_select ON public.meeting_decisions
-  FOR SELECT TO authenticated USING (app.is_org_member(organization_id));
-
-DROP POLICY IF EXISTS meeting_decisions_insert ON public.meeting_decisions;
-CREATE POLICY meeting_decisions_insert ON public.meeting_decisions
-  FOR INSERT TO authenticated WITH CHECK (app.is_org_member(organization_id));
-
-DROP POLICY IF EXISTS meeting_decisions_update ON public.meeting_decisions;
-CREATE POLICY meeting_decisions_update ON public.meeting_decisions
-  FOR UPDATE TO authenticated
-  USING (app.is_org_member(organization_id)) WITH CHECK (app.is_org_member(organization_id));
-
-DROP POLICY IF EXISTS meeting_decisions_service_all ON public.meeting_decisions;
-CREATE POLICY meeting_decisions_service_all ON public.meeting_decisions AS PERMISSIVE
-  FOR ALL TO service_role USING (true);
+-- meeting_decisions RLS installed in section 5
 
 --------------------------------------------------------------------------------
 -- 4. meeting_action_items (may link/create tasks; decision ≠ task)
@@ -146,26 +91,207 @@ CREATE TABLE IF NOT EXISTS public.meeting_action_items (
   status text NOT NULL DEFAULT 'open',
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
-  CONSTRAINT meeting_action_items_status_known CHECK (status IN ('open', 'done', 'cancelled'))
+  CONSTRAINT meeting_action_items_status_known CHECK (status IN ('open', 'done', 'cancelled')),
+  CONSTRAINT meeting_action_items_assignee_at_most_one CHECK (
+    (assigned_to_org_member_id IS NOT NULL)::int + (assigned_to_employee_id IS NOT NULL)::int <= 1
+  )
 );
 
 CREATE INDEX IF NOT EXISTS meeting_action_items_meeting_idx ON public.meeting_action_items (meeting_id);
+
+--------------------------------------------------------------------------------
+-- 5. Meeting access helpers + RLS (inherits workspace/project task access model)
+--------------------------------------------------------------------------------
+
+CREATE OR REPLACE FUNCTION app.uwm_can_read_meeting(
+  p_organization_id uuid,
+  p_workspace_id uuid,
+  p_project_id uuid
+)
+RETURNS boolean
+LANGUAGE plpgsql
+STABLE
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $fn$
+BEGIN
+  IF NOT app.is_org_member(p_organization_id) THEN
+    RETURN false;
+  END IF;
+
+  IF NOT (
+    app.uwm_has_permission(p_organization_id, 'meetings.read')
+    OR app.uwm_has_permission(p_organization_id, 'meetings.manage')
+  ) THEN
+    RETURN false;
+  END IF;
+
+  IF p_workspace_id IS NOT NULL THEN
+    RETURN app.uwm_has_workspace_content_access(
+      p_organization_id, p_workspace_id, p_project_id
+    );
+  END IF;
+
+  IF p_project_id IS NOT NULL THEN
+    RETURN app.can_access_project(p_organization_id, p_project_id);
+  END IF;
+
+  RETURN app.uwm_has_permission(p_organization_id, 'meetings.manage');
+END;
+$fn$;
+
+CREATE OR REPLACE FUNCTION app.uwm_can_manage_meeting(
+  p_organization_id uuid,
+  p_workspace_id uuid,
+  p_project_id uuid
+)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $fn$
+  SELECT app.uwm_has_permission(p_organization_id, 'meetings.manage')
+     AND app.uwm_can_read_meeting(p_organization_id, p_workspace_id, p_project_id);
+$fn$;
+
+CREATE OR REPLACE FUNCTION app.uwm_user_can_manage_meeting_id(p_meeting_id uuid)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $fn$
+  SELECT COALESCE(
+    (
+      SELECT app.uwm_can_manage_meeting(
+        m.organization_id, m.workspace_id, m.project_id
+      )
+      FROM public.meeting_records m
+      WHERE m.id = p_meeting_id
+    ),
+    false
+  );
+$fn$;
+
+CREATE OR REPLACE FUNCTION app.uwm_user_can_read_meeting_id(p_meeting_id uuid)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $fn$
+  SELECT COALESCE(
+    (
+      SELECT app.uwm_can_read_meeting(m.organization_id, m.workspace_id, m.project_id)
+      FROM public.meeting_records m
+      WHERE m.id = p_meeting_id
+    ),
+    false
+  );
+$fn$;
+
+REVOKE ALL ON FUNCTION app.uwm_can_read_meeting(uuid, uuid, uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION app.uwm_can_manage_meeting(uuid, uuid, uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION app.uwm_user_can_read_meeting_id(uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION app.uwm_user_can_manage_meeting_id(uuid) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION app.uwm_can_read_meeting(uuid, uuid, uuid) TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION app.uwm_can_manage_meeting(uuid, uuid, uuid) TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION app.uwm_user_can_read_meeting_id(uuid) TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION app.uwm_user_can_manage_meeting_id(uuid) TO authenticated, service_role;
+
+ALTER TABLE public.meeting_records ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.meeting_records FORCE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS meeting_records_select ON public.meeting_records;
+CREATE POLICY meeting_records_select ON public.meeting_records
+  FOR SELECT TO authenticated
+  USING (app.uwm_can_read_meeting(organization_id, workspace_id, project_id));
+
+DROP POLICY IF EXISTS meeting_records_insert ON public.meeting_records;
+CREATE POLICY meeting_records_insert ON public.meeting_records
+  FOR INSERT TO authenticated
+  WITH CHECK (app.uwm_can_manage_meeting(organization_id, workspace_id, project_id));
+
+DROP POLICY IF EXISTS meeting_records_update ON public.meeting_records;
+CREATE POLICY meeting_records_update ON public.meeting_records
+  FOR UPDATE TO authenticated
+  USING (app.uwm_can_manage_meeting(organization_id, workspace_id, project_id))
+  WITH CHECK (app.uwm_can_manage_meeting(organization_id, workspace_id, project_id));
+
+DROP POLICY IF EXISTS meeting_records_service_all ON public.meeting_records;
+CREATE POLICY meeting_records_service_all ON public.meeting_records AS PERMISSIVE
+  FOR ALL TO service_role USING (true);
+
+ALTER TABLE public.meeting_attendees ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.meeting_attendees FORCE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS meeting_attendees_select ON public.meeting_attendees;
+CREATE POLICY meeting_attendees_select ON public.meeting_attendees
+  FOR SELECT TO authenticated
+  USING (app.uwm_user_can_read_meeting_id(meeting_id));
+
+DROP POLICY IF EXISTS meeting_attendees_insert ON public.meeting_attendees;
+CREATE POLICY meeting_attendees_insert ON public.meeting_attendees
+  FOR INSERT TO authenticated
+  WITH CHECK (app.uwm_user_can_manage_meeting_id(meeting_id));
+
+DROP POLICY IF EXISTS meeting_attendees_update ON public.meeting_attendees;
+CREATE POLICY meeting_attendees_update ON public.meeting_attendees
+  FOR UPDATE TO authenticated
+  USING (app.uwm_user_can_manage_meeting_id(meeting_id))
+  WITH CHECK (app.uwm_user_can_manage_meeting_id(meeting_id));
+
+DROP POLICY IF EXISTS meeting_attendees_delete ON public.meeting_attendees;
+CREATE POLICY meeting_attendees_delete ON public.meeting_attendees
+  FOR DELETE TO authenticated
+  USING (app.uwm_user_can_manage_meeting_id(meeting_id));
+
+DROP POLICY IF EXISTS meeting_attendees_service_all ON public.meeting_attendees;
+CREATE POLICY meeting_attendees_service_all ON public.meeting_attendees AS PERMISSIVE
+  FOR ALL TO service_role USING (true);
+
+ALTER TABLE public.meeting_decisions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.meeting_decisions FORCE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS meeting_decisions_select ON public.meeting_decisions;
+CREATE POLICY meeting_decisions_select ON public.meeting_decisions
+  FOR SELECT TO authenticated
+  USING (app.uwm_user_can_read_meeting_id(meeting_id));
+
+DROP POLICY IF EXISTS meeting_decisions_insert ON public.meeting_decisions;
+CREATE POLICY meeting_decisions_insert ON public.meeting_decisions
+  FOR INSERT TO authenticated
+  WITH CHECK (app.uwm_user_can_manage_meeting_id(meeting_id));
+
+DROP POLICY IF EXISTS meeting_decisions_update ON public.meeting_decisions;
+CREATE POLICY meeting_decisions_update ON public.meeting_decisions
+  FOR UPDATE TO authenticated
+  USING (app.uwm_user_can_manage_meeting_id(meeting_id))
+  WITH CHECK (app.uwm_user_can_manage_meeting_id(meeting_id));
+
+DROP POLICY IF EXISTS meeting_decisions_service_all ON public.meeting_decisions;
+CREATE POLICY meeting_decisions_service_all ON public.meeting_decisions AS PERMISSIVE
+  FOR ALL TO service_role USING (true);
 
 ALTER TABLE public.meeting_action_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.meeting_action_items FORCE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS meeting_action_items_select ON public.meeting_action_items;
 CREATE POLICY meeting_action_items_select ON public.meeting_action_items
-  FOR SELECT TO authenticated USING (app.is_org_member(organization_id));
+  FOR SELECT TO authenticated
+  USING (app.uwm_user_can_read_meeting_id(meeting_id));
 
 DROP POLICY IF EXISTS meeting_action_items_insert ON public.meeting_action_items;
 CREATE POLICY meeting_action_items_insert ON public.meeting_action_items
-  FOR INSERT TO authenticated WITH CHECK (app.is_org_member(organization_id));
+  FOR INSERT TO authenticated
+  WITH CHECK (app.uwm_user_can_manage_meeting_id(meeting_id));
 
 DROP POLICY IF EXISTS meeting_action_items_update ON public.meeting_action_items;
 CREATE POLICY meeting_action_items_update ON public.meeting_action_items
   FOR UPDATE TO authenticated
-  USING (app.is_org_member(organization_id)) WITH CHECK (app.is_org_member(organization_id));
+  USING (app.uwm_user_can_manage_meeting_id(meeting_id))
+  WITH CHECK (app.uwm_user_can_manage_meeting_id(meeting_id));
 
 DROP POLICY IF EXISTS meeting_action_items_service_all ON public.meeting_action_items;
 CREATE POLICY meeting_action_items_service_all ON public.meeting_action_items AS PERMISSIVE

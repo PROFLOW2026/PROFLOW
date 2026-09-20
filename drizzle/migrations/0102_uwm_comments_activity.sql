@@ -59,16 +59,19 @@ ALTER TABLE public.task_comments FORCE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS task_comments_select ON public.task_comments;
 CREATE POLICY task_comments_select ON public.task_comments
-  FOR SELECT TO authenticated USING (app.is_org_member(organization_id));
+  FOR SELECT TO authenticated
+  USING (app.uwm_user_can_read_task_id(task_id));
 
 DROP POLICY IF EXISTS task_comments_insert ON public.task_comments;
 CREATE POLICY task_comments_insert ON public.task_comments
-  FOR INSERT TO authenticated WITH CHECK (app.is_org_member(organization_id));
+  FOR INSERT TO authenticated
+  WITH CHECK (app.uwm_user_can_comment_task_id(task_id));
 
 DROP POLICY IF EXISTS task_comments_update ON public.task_comments;
 CREATE POLICY task_comments_update ON public.task_comments
   FOR UPDATE TO authenticated
-  USING (app.is_org_member(organization_id)) WITH CHECK (app.is_org_member(organization_id));
+  USING (app.uwm_user_can_comment_task_id(task_id))
+  WITH CHECK (app.uwm_user_can_comment_task_id(task_id));
 
 -- Soft-delete only — no hard delete for authenticated
 DROP POLICY IF EXISTS task_comments_service_all ON public.task_comments;
@@ -107,11 +110,16 @@ ALTER TABLE public.task_activity FORCE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS task_activity_select ON public.task_activity;
 CREATE POLICY task_activity_select ON public.task_activity
-  FOR SELECT TO authenticated USING (app.is_org_member(organization_id));
+  FOR SELECT TO authenticated
+  USING (app.uwm_user_can_read_task_id(task_id));
 
 DROP POLICY IF EXISTS task_activity_insert ON public.task_activity;
 CREATE POLICY task_activity_insert ON public.task_activity
-  FOR INSERT TO authenticated WITH CHECK (app.is_org_member(organization_id));
+  FOR INSERT TO authenticated
+  WITH CHECK (
+    app.uwm_user_can_update_task_id(task_id)
+    OR app.uwm_user_can_comment_task_id(task_id)
+  );
 
 -- No UPDATE/DELETE for authenticated — enforces append-only.
 

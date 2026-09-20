@@ -23,9 +23,9 @@ CREATE TYPE public.org_profile_type AS ENUM (
 --------------------------------------------------------------------------------
 
 ALTER TABLE public.organizations
-  ADD COLUMN IF NOT EXISTS org_profile_type public.org_profile_type,
-  ADD COLUMN IF NOT EXISTS terminology_config jsonb,
-  ADD COLUMN IF NOT EXISTS module_config jsonb;
+  ADD COLUMN IF NOT EXISTS org_profile_type public.org_profile_type NOT NULL DEFAULT 'contractor',
+  ADD COLUMN IF NOT EXISTS terminology_config jsonb NOT NULL DEFAULT '{}',
+  ADD COLUMN IF NOT EXISTS module_config jsonb NOT NULL DEFAULT '{}';
 
 COMMENT ON COLUMN public.organizations.org_profile_type IS
   'Profession type controlling default stages, templates and navigation presets.';

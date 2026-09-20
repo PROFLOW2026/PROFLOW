@@ -11,32 +11,54 @@ ALTER TYPE public.document_owner_type ADD VALUE IF NOT EXISTS 'task_comment';
 
 --------------------------------------------------------------------------------
 -- 2. custom_field_definitions.entity_type: add 'task'
---    (Uses text column in existing schema — verify actual column type before apply)
+--    entity_type is a text column with a named CHECK constraint (confirmed: 0009).
+--    Constraint name: custom_field_definitions_entity_known
+--    Original values: 'client','project','vendor','employee','opportunity','expense'
 --------------------------------------------------------------------------------
 
--- If entity_type is a CHECK constraint (text column), extend the constraint:
--- Pattern: drop old constraint, add new one with 'task' included.
--- Lead must inspect the actual column definition before applying.
+ALTER TABLE public.custom_field_definitions
+  DROP CONSTRAINT IF EXISTS custom_field_definitions_entity_known;
 
--- Placeholder: extend via application-layer validation if entity_type uses text + CHECK.
--- If it uses a pgEnum, run:
--- ALTER TYPE public.custom_field_entity_type ADD VALUE IF NOT EXISTS 'task';
--- Lead resolves this during Wave 0 before Owner applies migration.
-
-COMMENT ON TABLE public.custom_field_definitions IS
-  'entity_type extended to include task (UWM 0107) — Lead to verify constraint type before apply.';
+ALTER TABLE public.custom_field_definitions
+  ADD CONSTRAINT custom_field_definitions_entity_known CHECK (
+    entity_type IN ('client', 'project', 'vendor', 'employee', 'opportunity', 'expense', 'task')
+  );
 
 --------------------------------------------------------------------------------
--- 3. saved_list_views: add scope column + new list keys
+-- 3. saved_list_views: add scope column + extend list_key CHECK
+--
+--    Existing constraint name (confirmed from schema): saved_list_views_key_known
+--    Existing allowed values (10): projects, jobs, work_orders, clients, vendors,
+--      expenses, ap_bills, quotes, punch, inventory
+--    New UWM values (+4): tasks, portfolio, workload, operations
+--
+--    Scope values: 'private' (per-user default) | 'organization' (shared with org)
 --------------------------------------------------------------------------------
 
+-- 3a. Add scope enum type
 CREATE TYPE public.saved_list_view_scope AS ENUM ('private', 'organization');
 
+-- 3b. Add scope column (default 'private' preserves all existing rows as private)
 ALTER TABLE public.saved_list_views
   ADD COLUMN IF NOT EXISTS scope public.saved_list_view_scope NOT NULL DEFAULT 'private';
 
 COMMENT ON COLUMN public.saved_list_views.scope IS
   'private = visible to creator only; organization = visible to all org members with list permission.';
+
+-- 3c. Extend list_key CHECK to include UWM list keys
+ALTER TABLE public.saved_list_views
+  DROP CONSTRAINT IF EXISTS saved_list_views_key_known;
+
+ALTER TABLE public.saved_list_views
+  ADD CONSTRAINT saved_list_views_key_known CHECK (
+    list_key IN (
+      -- Existing list keys (preserved)
+      'projects', 'jobs', 'work_orders', 'clients', 'vendors',
+      'expenses', 'ap_bills', 'quotes', 'punch', 'inventory',
+      -- UWM additions (0107)
+      'tasks', 'portfolio', 'workload', 'operations'
+    )
+  );
 
 --------------------------------------------------------------------------------
 -- 4. time_entries: add optional task_id FK (operational context only)

@@ -29,12 +29,23 @@ CREATE POLICY task_templates_select ON public.task_templates
 
 DROP POLICY IF EXISTS task_templates_insert ON public.task_templates;
 CREATE POLICY task_templates_insert ON public.task_templates
-  FOR INSERT TO authenticated WITH CHECK (app.is_org_member(organization_id));
+  FOR INSERT TO authenticated
+  WITH CHECK (
+    app.is_org_member(organization_id)
+    AND app.has_org_permission(organization_id, 'task_templates.manage')
+  );
 
 DROP POLICY IF EXISTS task_templates_update ON public.task_templates;
 CREATE POLICY task_templates_update ON public.task_templates
   FOR UPDATE TO authenticated
-  USING (app.is_org_member(organization_id)) WITH CHECK (app.is_org_member(organization_id));
+  USING (
+    app.is_org_member(organization_id)
+    AND app.has_org_permission(organization_id, 'task_templates.manage')
+  )
+  WITH CHECK (
+    app.is_org_member(organization_id)
+    AND app.has_org_permission(organization_id, 'task_templates.manage')
+  );
 
 DROP POLICY IF EXISTS task_templates_service_all ON public.task_templates;
 CREATE POLICY task_templates_service_all ON public.task_templates AS PERMISSIVE
@@ -64,12 +75,23 @@ CREATE POLICY task_template_items_select ON public.task_template_items
 
 DROP POLICY IF EXISTS task_template_items_insert ON public.task_template_items;
 CREATE POLICY task_template_items_insert ON public.task_template_items
-  FOR INSERT TO authenticated WITH CHECK (app.is_org_member(organization_id));
+  FOR INSERT TO authenticated
+  WITH CHECK (
+    app.is_org_member(organization_id)
+    AND app.has_org_permission(organization_id, 'task_templates.manage')
+  );
 
 DROP POLICY IF EXISTS task_template_items_update ON public.task_template_items;
 CREATE POLICY task_template_items_update ON public.task_template_items
   FOR UPDATE TO authenticated
-  USING (app.is_org_member(organization_id)) WITH CHECK (app.is_org_member(organization_id));
+  USING (
+    app.is_org_member(organization_id)
+    AND app.has_org_permission(organization_id, 'task_templates.manage')
+  )
+  WITH CHECK (
+    app.is_org_member(organization_id)
+    AND app.has_org_permission(organization_id, 'task_templates.manage')
+  );
 
 DROP POLICY IF EXISTS task_template_items_service_all ON public.task_template_items;
 CREATE POLICY task_template_items_service_all ON public.task_template_items AS PERMISSIVE
@@ -102,12 +124,23 @@ CREATE POLICY project_templates_select ON public.project_templates
 
 DROP POLICY IF EXISTS project_templates_insert ON public.project_templates;
 CREATE POLICY project_templates_insert ON public.project_templates
-  FOR INSERT TO authenticated WITH CHECK (app.is_org_member(organization_id));
+  FOR INSERT TO authenticated
+  WITH CHECK (
+    app.is_org_member(organization_id)
+    AND app.has_org_permission(organization_id, 'project_templates.manage')
+  );
 
 DROP POLICY IF EXISTS project_templates_update ON public.project_templates;
 CREATE POLICY project_templates_update ON public.project_templates
   FOR UPDATE TO authenticated
-  USING (app.is_org_member(organization_id)) WITH CHECK (app.is_org_member(organization_id));
+  USING (
+    app.is_org_member(organization_id)
+    AND app.has_org_permission(organization_id, 'project_templates.manage')
+  )
+  WITH CHECK (
+    app.is_org_member(organization_id)
+    AND app.has_org_permission(organization_id, 'project_templates.manage')
+  );
 
 DROP POLICY IF EXISTS project_templates_service_all ON public.project_templates;
 CREATE POLICY project_templates_service_all ON public.project_templates AS PERMISSIVE
@@ -137,12 +170,23 @@ CREATE POLICY project_template_stages_select ON public.project_template_stages
 
 DROP POLICY IF EXISTS project_template_stages_insert ON public.project_template_stages;
 CREATE POLICY project_template_stages_insert ON public.project_template_stages
-  FOR INSERT TO authenticated WITH CHECK (app.is_org_member(organization_id));
+  FOR INSERT TO authenticated
+  WITH CHECK (
+    app.is_org_member(organization_id)
+    AND app.has_org_permission(organization_id, 'project_templates.manage')
+  );
 
 DROP POLICY IF EXISTS project_template_stages_update ON public.project_template_stages;
 CREATE POLICY project_template_stages_update ON public.project_template_stages
   FOR UPDATE TO authenticated
-  USING (app.is_org_member(organization_id)) WITH CHECK (app.is_org_member(organization_id));
+  USING (
+    app.is_org_member(organization_id)
+    AND app.has_org_permission(organization_id, 'project_templates.manage')
+  )
+  WITH CHECK (
+    app.is_org_member(organization_id)
+    AND app.has_org_permission(organization_id, 'project_templates.manage')
+  );
 
 DROP POLICY IF EXISTS project_template_stages_service_all ON public.project_template_stages;
 CREATE POLICY project_template_stages_service_all ON public.project_template_stages AS PERMISSIVE
@@ -175,12 +219,23 @@ CREATE POLICY project_template_tasks_select ON public.project_template_tasks
 
 DROP POLICY IF EXISTS project_template_tasks_insert ON public.project_template_tasks;
 CREATE POLICY project_template_tasks_insert ON public.project_template_tasks
-  FOR INSERT TO authenticated WITH CHECK (app.is_org_member(organization_id));
+  FOR INSERT TO authenticated
+  WITH CHECK (
+    app.is_org_member(organization_id)
+    AND app.has_org_permission(organization_id, 'project_templates.manage')
+  );
 
 DROP POLICY IF EXISTS project_template_tasks_update ON public.project_template_tasks;
 CREATE POLICY project_template_tasks_update ON public.project_template_tasks
   FOR UPDATE TO authenticated
-  USING (app.is_org_member(organization_id)) WITH CHECK (app.is_org_member(organization_id));
+  USING (
+    app.is_org_member(organization_id)
+    AND app.has_org_permission(organization_id, 'project_templates.manage')
+  )
+  WITH CHECK (
+    app.is_org_member(organization_id)
+    AND app.has_org_permission(organization_id, 'project_templates.manage')
+  );
 
 DROP POLICY IF EXISTS project_template_tasks_service_all ON public.project_template_tasks;
 CREATE POLICY project_template_tasks_service_all ON public.project_template_tasks AS PERMISSIVE

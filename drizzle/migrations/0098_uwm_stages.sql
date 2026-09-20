@@ -36,16 +36,31 @@ CREATE POLICY project_stage_definitions_select ON public.project_stage_definitio
 
 DROP POLICY IF EXISTS project_stage_definitions_insert ON public.project_stage_definitions;
 CREATE POLICY project_stage_definitions_insert ON public.project_stage_definitions
-  FOR INSERT TO authenticated WITH CHECK (app.is_org_member(organization_id));
+  FOR INSERT TO authenticated
+  WITH CHECK (
+    app.is_org_member(organization_id)
+    AND app.has_org_permission(organization_id, 'stages.manage')
+  );
 
 DROP POLICY IF EXISTS project_stage_definitions_update ON public.project_stage_definitions;
 CREATE POLICY project_stage_definitions_update ON public.project_stage_definitions
   FOR UPDATE TO authenticated
-  USING (app.is_org_member(organization_id)) WITH CHECK (app.is_org_member(organization_id));
+  USING (
+    app.is_org_member(organization_id)
+    AND app.has_org_permission(organization_id, 'stages.manage')
+  )
+  WITH CHECK (
+    app.is_org_member(organization_id)
+    AND app.has_org_permission(organization_id, 'stages.manage')
+  );
 
 DROP POLICY IF EXISTS project_stage_definitions_delete ON public.project_stage_definitions;
 CREATE POLICY project_stage_definitions_delete ON public.project_stage_definitions
-  FOR DELETE TO authenticated USING (app.is_org_member(organization_id));
+  FOR DELETE TO authenticated
+  USING (
+    app.is_org_member(organization_id)
+    AND app.has_org_permission(organization_id, 'stages.manage')
+  );
 
 DROP POLICY IF EXISTS project_stage_definitions_service_all ON public.project_stage_definitions;
 CREATE POLICY project_stage_definitions_service_all ON public.project_stage_definitions AS PERMISSIVE
@@ -81,11 +96,20 @@ ALTER TABLE public.project_stage_transitions FORCE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS project_stage_transitions_select ON public.project_stage_transitions;
 CREATE POLICY project_stage_transitions_select ON public.project_stage_transitions
-  FOR SELECT TO authenticated USING (app.is_org_member(organization_id));
+  FOR SELECT TO authenticated
+  USING (
+    app.is_org_member(organization_id)
+    AND app.can_access_project(organization_id, project_id)
+  );
 
 DROP POLICY IF EXISTS project_stage_transitions_insert ON public.project_stage_transitions;
 CREATE POLICY project_stage_transitions_insert ON public.project_stage_transitions
-  FOR INSERT TO authenticated WITH CHECK (app.is_org_member(organization_id));
+  FOR INSERT TO authenticated
+  WITH CHECK (
+    app.is_org_member(organization_id)
+    AND app.has_org_permission(organization_id, 'stages.manage')
+    AND app.can_access_project(organization_id, project_id)
+  );
 
 -- No UPDATE/DELETE policies for authenticated — append-only enforcement.
 

@@ -3,6 +3,7 @@ import {
   boolean,
   check,
   date,
+  foreignKey,
   index,
   integer,
   jsonb,
@@ -26,7 +27,7 @@ import { employees } from './workforce';
 import { projects } from './projects';
 import { projectMilestones } from './projects';
 import { clientContacts } from './clients';
-import { workspaces } from './workspaces';
+import { projectWorkspaceLinks, workspaces } from './workspaces';
 
 /**
  * Universal Work Management — Task engine (migrations 0099–0106).
@@ -200,6 +201,18 @@ export const tasks = pgTable(
       'tasks_creator_exactly_one',
       sql`(${t.createdByOrgMemberId} IS NOT NULL)::int + (${t.createdByEmployeeId} IS NOT NULL)::int + (${t.createdBySystem})::int = 1`,
     ),
+    check(
+      'tasks_owner_at_most_one',
+      sql`(${t.ownerOrgMemberId} IS NOT NULL)::int + (${t.ownerEmployeeId} IS NOT NULL)::int <= 1`,
+    ),
+    foreignKey({
+      columns: [t.workspaceId, t.projectId],
+      foreignColumns: [projectWorkspaceLinks.workspaceId, projectWorkspaceLinks.projectId],
+      name: 'tasks_project_workspace_context_fk',
+    }).onDelete('restrict'),
+    uniqueIndex('tasks_generated_from_occurrence_uq')
+      .on(t.generatedFromOccurrenceId)
+      .where(sql`${t.generatedFromOccurrenceId} IS NOT NULL`),
   ],
 );
 
@@ -264,6 +277,10 @@ export const taskChecklistItems = pgTable(
   },
   (t) => [
     index('task_checklist_items_task_idx').on(t.taskId, t.sortKey),
+    check(
+      'task_checklist_items_assignee_at_most_one',
+      sql`(${t.assigneeOrgMemberId} IS NOT NULL)::int + (${t.assigneeEmployeeId} IS NOT NULL)::int <= 1`,
+    ),
   ],
 );
 
@@ -491,6 +508,9 @@ export const taskRecurrenceOccurrences = pgTable(
   (t) => [
     uniqueIndex('task_recurrence_occurrences_uq').on(t.ruleId, t.occurrenceAt),
     index('task_recurrence_occurrences_rule_idx').on(t.ruleId, t.status),
+    uniqueIndex('task_recurrence_occurrences_generated_task_uq')
+      .on(t.generatedTaskId)
+      .where(sql`${t.generatedTaskId} IS NOT NULL`),
   ],
 );
 
@@ -667,6 +687,10 @@ export const meetingDecisions = pgTable(
   },
   (t) => [
     index('meeting_decisions_meeting_idx').on(t.meetingId),
+    check(
+      'meeting_decisions_decider_at_most_one',
+      sql`(${t.decidedByOrgMemberId} IS NOT NULL)::int + (${t.decidedByEmployeeId} IS NOT NULL)::int <= 1`,
+    ),
   ],
 );
 
@@ -702,6 +726,10 @@ export const meetingActionItems = pgTable(
     check(
       'meeting_action_items_status_known',
       sql`${t.status} IN ('open', 'done', 'cancelled')`,
+    ),
+    check(
+      'meeting_action_items_assignee_at_most_one',
+      sql`(${t.assignedToOrgMemberId} IS NOT NULL)::int + (${t.assignedToEmployeeId} IS NOT NULL)::int <= 1`,
     ),
   ],
 );

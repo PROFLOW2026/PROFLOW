@@ -21,16 +21,31 @@ ALTER TABLE public.task_labels FORCE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS task_labels_select ON public.task_labels;
 CREATE POLICY task_labels_select ON public.task_labels
-  FOR SELECT TO authenticated USING (app.is_org_member(organization_id));
+  FOR SELECT TO authenticated
+  USING (
+    app.is_org_member(organization_id)
+    AND app.has_org_permission(organization_id, 'tasks.read')
+  );
 
 DROP POLICY IF EXISTS task_labels_insert ON public.task_labels;
 CREATE POLICY task_labels_insert ON public.task_labels
-  FOR INSERT TO authenticated WITH CHECK (app.is_org_member(organization_id));
+  FOR INSERT TO authenticated
+  WITH CHECK (
+    app.is_org_member(organization_id)
+    AND app.has_org_permission(organization_id, 'labels.manage')
+  );
 
 DROP POLICY IF EXISTS task_labels_update ON public.task_labels;
 CREATE POLICY task_labels_update ON public.task_labels
   FOR UPDATE TO authenticated
-  USING (app.is_org_member(organization_id)) WITH CHECK (app.is_org_member(organization_id));
+  USING (
+    app.is_org_member(organization_id)
+    AND app.has_org_permission(organization_id, 'labels.manage')
+  )
+  WITH CHECK (
+    app.is_org_member(organization_id)
+    AND app.has_org_permission(organization_id, 'labels.manage')
+  );
 
 DROP POLICY IF EXISTS task_labels_service_all ON public.task_labels;
 CREATE POLICY task_labels_service_all ON public.task_labels AS PERMISSIVE
@@ -54,20 +69,24 @@ ALTER TABLE public.task_label_assignments FORCE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS task_label_assignments_select ON public.task_label_assignments;
 CREATE POLICY task_label_assignments_select ON public.task_label_assignments
-  FOR SELECT TO authenticated USING (app.is_org_member(organization_id));
+  FOR SELECT TO authenticated
+  USING (app.is_org_member(organization_id) AND app.uwm_user_can_read_task_id(task_id));
 
 DROP POLICY IF EXISTS task_label_assignments_insert ON public.task_label_assignments;
 CREATE POLICY task_label_assignments_insert ON public.task_label_assignments
-  FOR INSERT TO authenticated WITH CHECK (app.is_org_member(organization_id));
+  FOR INSERT TO authenticated
+  WITH CHECK (app.uwm_user_can_update_task_id(task_id));
 
 DROP POLICY IF EXISTS task_label_assignments_update ON public.task_label_assignments;
 CREATE POLICY task_label_assignments_update ON public.task_label_assignments
   FOR UPDATE TO authenticated
-  USING (app.is_org_member(organization_id)) WITH CHECK (app.is_org_member(organization_id));
+  USING (app.uwm_user_can_update_task_id(task_id))
+  WITH CHECK (app.uwm_user_can_update_task_id(task_id));
 
 DROP POLICY IF EXISTS task_label_assignments_delete ON public.task_label_assignments;
 CREATE POLICY task_label_assignments_delete ON public.task_label_assignments
-  FOR DELETE TO authenticated USING (app.is_org_member(organization_id));
+  FOR DELETE TO authenticated
+  USING (app.uwm_user_can_update_task_id(task_id));
 
 DROP POLICY IF EXISTS task_label_assignments_service_all ON public.task_label_assignments;
 CREATE POLICY task_label_assignments_service_all ON public.task_label_assignments AS PERMISSIVE

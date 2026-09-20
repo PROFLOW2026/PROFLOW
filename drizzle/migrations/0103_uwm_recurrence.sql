@@ -40,16 +40,37 @@ ALTER TABLE public.task_recurrence_rules FORCE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS task_recurrence_rules_select ON public.task_recurrence_rules;
 CREATE POLICY task_recurrence_rules_select ON public.task_recurrence_rules
-  FOR SELECT TO authenticated USING (app.is_org_member(organization_id));
+  FOR SELECT TO authenticated
+  USING (
+    app.is_org_member(organization_id)
+    AND (
+      template_task_id IS NULL
+      OR app.uwm_user_can_read_task_id(template_task_id)
+    )
+  );
 
 DROP POLICY IF EXISTS task_recurrence_rules_insert ON public.task_recurrence_rules;
 CREATE POLICY task_recurrence_rules_insert ON public.task_recurrence_rules
-  FOR INSERT TO authenticated WITH CHECK (app.is_org_member(organization_id));
+  FOR INSERT TO authenticated
+  WITH CHECK (
+    app.uwm_can_manage_task_recurrence(organization_id)
+    AND (
+      template_task_id IS NULL
+      OR app.uwm_user_can_read_task_id(template_task_id)
+    )
+  );
 
 DROP POLICY IF EXISTS task_recurrence_rules_update ON public.task_recurrence_rules;
 CREATE POLICY task_recurrence_rules_update ON public.task_recurrence_rules
   FOR UPDATE TO authenticated
-  USING (app.is_org_member(organization_id)) WITH CHECK (app.is_org_member(organization_id));
+  USING (app.uwm_can_manage_task_recurrence(organization_id))
+  WITH CHECK (
+    app.uwm_can_manage_task_recurrence(organization_id)
+    AND (
+      template_task_id IS NULL
+      OR app.uwm_user_can_read_task_id(template_task_id)
+    )
+  );
 
 DROP POLICY IF EXISTS task_recurrence_rules_service_all ON public.task_recurrence_rules;
 CREATE POLICY task_recurrence_rules_service_all ON public.task_recurrence_rules AS PERMISSIVE
@@ -80,16 +101,25 @@ ALTER TABLE public.task_recurrence_occurrences FORCE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS task_recurrence_occurrences_select ON public.task_recurrence_occurrences;
 CREATE POLICY task_recurrence_occurrences_select ON public.task_recurrence_occurrences
-  FOR SELECT TO authenticated USING (app.is_org_member(organization_id));
+  FOR SELECT TO authenticated
+  USING (
+    app.is_org_member(organization_id)
+    AND (
+      generated_task_id IS NULL
+      OR app.uwm_user_can_read_task_id(generated_task_id)
+    )
+  );
 
 DROP POLICY IF EXISTS task_recurrence_occurrences_insert ON public.task_recurrence_occurrences;
 CREATE POLICY task_recurrence_occurrences_insert ON public.task_recurrence_occurrences
-  FOR INSERT TO authenticated WITH CHECK (app.is_org_member(organization_id));
+  FOR INSERT TO authenticated
+  WITH CHECK (app.uwm_can_manage_task_recurrence(organization_id));
 
 DROP POLICY IF EXISTS task_recurrence_occurrences_update ON public.task_recurrence_occurrences;
 CREATE POLICY task_recurrence_occurrences_update ON public.task_recurrence_occurrences
   FOR UPDATE TO authenticated
-  USING (app.is_org_member(organization_id)) WITH CHECK (app.is_org_member(organization_id));
+  USING (app.uwm_can_manage_task_recurrence(organization_id))
+  WITH CHECK (app.uwm_can_manage_task_recurrence(organization_id));
 
 DROP POLICY IF EXISTS task_recurrence_occurrences_service_all ON public.task_recurrence_occurrences;
 CREATE POLICY task_recurrence_occurrences_service_all ON public.task_recurrence_occurrences AS PERMISSIVE
@@ -111,3 +141,11 @@ ALTER TABLE public.tasks
     FOREIGN KEY (generated_from_occurrence_id)
     REFERENCES public.task_recurrence_occurrences (id)
     ON DELETE SET NULL;
+
+CREATE UNIQUE INDEX IF NOT EXISTS tasks_generated_from_occurrence_uq
+  ON public.tasks (generated_from_occurrence_id)
+  WHERE generated_from_occurrence_id IS NOT NULL;
+
+CREATE UNIQUE INDEX IF NOT EXISTS task_recurrence_occurrences_generated_task_uq
+  ON public.task_recurrence_occurrences (generated_task_id)
+  WHERE generated_task_id IS NOT NULL;

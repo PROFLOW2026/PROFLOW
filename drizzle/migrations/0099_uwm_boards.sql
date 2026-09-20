@@ -39,20 +39,27 @@ ALTER TABLE public.task_boards FORCE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS task_boards_select ON public.task_boards;
 CREATE POLICY task_boards_select ON public.task_boards
-  FOR SELECT TO authenticated USING (app.is_org_member(organization_id));
+  FOR SELECT TO authenticated
+  USING (
+    app.uwm_has_tasks_read(organization_id)
+    AND app.uwm_can_discover_workspace(organization_id, workspace_id)
+  );
 
 DROP POLICY IF EXISTS task_boards_insert ON public.task_boards;
 CREATE POLICY task_boards_insert ON public.task_boards
-  FOR INSERT TO authenticated WITH CHECK (app.is_org_member(organization_id));
+  FOR INSERT TO authenticated
+  WITH CHECK (app.uwm_can_manage_workspace_id(workspace_id));
 
 DROP POLICY IF EXISTS task_boards_update ON public.task_boards;
 CREATE POLICY task_boards_update ON public.task_boards
   FOR UPDATE TO authenticated
-  USING (app.is_org_member(organization_id)) WITH CHECK (app.is_org_member(organization_id));
+  USING (app.uwm_can_manage_workspace_id(workspace_id))
+  WITH CHECK (app.uwm_can_manage_workspace_id(workspace_id));
 
 DROP POLICY IF EXISTS task_boards_delete ON public.task_boards;
 CREATE POLICY task_boards_delete ON public.task_boards
-  FOR DELETE TO authenticated USING (app.is_org_member(organization_id));
+  FOR DELETE TO authenticated
+  USING (app.uwm_can_manage_workspace_id(workspace_id));
 
 DROP POLICY IF EXISTS task_boards_service_all ON public.task_boards;
 CREATE POLICY task_boards_service_all ON public.task_boards AS PERMISSIVE
@@ -85,22 +92,70 @@ CREATE INDEX IF NOT EXISTS task_buckets_board_idx
 ALTER TABLE public.task_buckets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.task_buckets FORCE ROW LEVEL SECURITY;
 
+CREATE OR REPLACE FUNCTION app.uwm_user_can_read_board_id(p_board_id uuid)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $fn$
+  SELECT COALESCE(
+    (
+      SELECT app.uwm_has_tasks_read(b.organization_id)
+        AND app.uwm_can_discover_workspace(b.organization_id, b.workspace_id)
+      FROM public.task_boards b
+      WHERE b.id = p_board_id
+    ),
+    false
+  );
+$fn$;
+
+CREATE OR REPLACE FUNCTION app.uwm_user_can_manage_board_id(p_board_id uuid)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $fn$
+  SELECT COALESCE(
+    (
+      SELECT app.uwm_can_manage_workspace(b.organization_id)
+        AND app.uwm_can_discover_workspace(b.organization_id, b.workspace_id)
+        AND app.uwm_workspace_allows_structure_manage(b.organization_id, b.workspace_id)
+        AND app.uwm_workspace_is_mutable(b.workspace_id)
+        AND NOT b.is_archived
+      FROM public.task_boards b
+      WHERE b.id = p_board_id
+    ),
+    false
+  );
+$fn$;
+
+REVOKE ALL ON FUNCTION app.uwm_user_can_read_board_id(uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION app.uwm_user_can_manage_board_id(uuid) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION app.uwm_user_can_read_board_id(uuid) TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION app.uwm_user_can_manage_board_id(uuid) TO authenticated, service_role;
+
 DROP POLICY IF EXISTS task_buckets_select ON public.task_buckets;
 CREATE POLICY task_buckets_select ON public.task_buckets
-  FOR SELECT TO authenticated USING (app.is_org_member(organization_id));
+  FOR SELECT TO authenticated
+  USING (app.uwm_user_can_read_board_id(board_id));
 
 DROP POLICY IF EXISTS task_buckets_insert ON public.task_buckets;
 CREATE POLICY task_buckets_insert ON public.task_buckets
-  FOR INSERT TO authenticated WITH CHECK (app.is_org_member(organization_id));
+  FOR INSERT TO authenticated
+  WITH CHECK (app.uwm_user_can_manage_board_id(board_id));
 
 DROP POLICY IF EXISTS task_buckets_update ON public.task_buckets;
 CREATE POLICY task_buckets_update ON public.task_buckets
   FOR UPDATE TO authenticated
-  USING (app.is_org_member(organization_id)) WITH CHECK (app.is_org_member(organization_id));
+  USING (app.uwm_user_can_manage_board_id(board_id))
+  WITH CHECK (app.uwm_user_can_manage_board_id(board_id));
 
 DROP POLICY IF EXISTS task_buckets_delete ON public.task_buckets;
 CREATE POLICY task_buckets_delete ON public.task_buckets
-  FOR DELETE TO authenticated USING (app.is_org_member(organization_id));
+  FOR DELETE TO authenticated
+  USING (app.uwm_user_can_manage_board_id(board_id));
 
 DROP POLICY IF EXISTS task_buckets_service_all ON public.task_buckets;
 CREATE POLICY task_buckets_service_all ON public.task_buckets AS PERMISSIVE

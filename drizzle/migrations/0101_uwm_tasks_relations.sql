@@ -33,20 +33,40 @@ ALTER TABLE public.task_dependencies FORCE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS task_dependencies_select ON public.task_dependencies;
 CREATE POLICY task_dependencies_select ON public.task_dependencies
-  FOR SELECT TO authenticated USING (app.is_org_member(organization_id));
+  FOR SELECT TO authenticated
+  USING (
+    app.is_org_member(organization_id)
+    AND app.uwm_user_can_read_task_id(source_task_id)
+    AND app.uwm_user_can_read_task_id(target_task_id)
+  );
 
 DROP POLICY IF EXISTS task_dependencies_insert ON public.task_dependencies;
 CREATE POLICY task_dependencies_insert ON public.task_dependencies
-  FOR INSERT TO authenticated WITH CHECK (app.is_org_member(organization_id));
+  FOR INSERT TO authenticated
+  WITH CHECK (
+    app.uwm_user_can_update_task_id(source_task_id)
+    AND app.uwm_user_can_read_task_id(target_task_id)
+  );
 
 DROP POLICY IF EXISTS task_dependencies_update ON public.task_dependencies;
 CREATE POLICY task_dependencies_update ON public.task_dependencies
   FOR UPDATE TO authenticated
-  USING (app.is_org_member(organization_id)) WITH CHECK (app.is_org_member(organization_id));
+  USING (
+    app.uwm_user_can_update_task_id(source_task_id)
+    AND app.uwm_user_can_read_task_id(target_task_id)
+  )
+  WITH CHECK (
+    app.uwm_user_can_update_task_id(source_task_id)
+    AND app.uwm_user_can_read_task_id(target_task_id)
+  );
 
 DROP POLICY IF EXISTS task_dependencies_delete ON public.task_dependencies;
 CREATE POLICY task_dependencies_delete ON public.task_dependencies
-  FOR DELETE TO authenticated USING (app.is_org_member(organization_id));
+  FOR DELETE TO authenticated
+  USING (
+    app.uwm_user_can_update_task_id(source_task_id)
+    AND app.uwm_user_can_read_task_id(target_task_id)
+  );
 
 DROP POLICY IF EXISTS task_dependencies_service_all ON public.task_dependencies;
 CREATE POLICY task_dependencies_service_all ON public.task_dependencies AS PERMISSIVE
@@ -72,20 +92,24 @@ ALTER TABLE public.task_followers FORCE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS task_followers_select ON public.task_followers;
 CREATE POLICY task_followers_select ON public.task_followers
-  FOR SELECT TO authenticated USING (app.is_org_member(organization_id));
+  FOR SELECT TO authenticated
+  USING (app.uwm_user_can_read_task_id(task_id));
 
 DROP POLICY IF EXISTS task_followers_insert ON public.task_followers;
 CREATE POLICY task_followers_insert ON public.task_followers
-  FOR INSERT TO authenticated WITH CHECK (app.is_org_member(organization_id));
+  FOR INSERT TO authenticated
+  WITH CHECK (app.uwm_user_can_read_task_id(task_id));
 
 DROP POLICY IF EXISTS task_followers_update ON public.task_followers;
 CREATE POLICY task_followers_update ON public.task_followers
   FOR UPDATE TO authenticated
-  USING (app.is_org_member(organization_id)) WITH CHECK (app.is_org_member(organization_id));
+  USING (app.uwm_user_can_read_task_id(task_id))
+  WITH CHECK (app.uwm_user_can_read_task_id(task_id));
 
 DROP POLICY IF EXISTS task_followers_delete ON public.task_followers;
 CREATE POLICY task_followers_delete ON public.task_followers
-  FOR DELETE TO authenticated USING (app.is_org_member(organization_id));
+  FOR DELETE TO authenticated
+  USING (app.uwm_user_can_read_task_id(task_id));
 
 DROP POLICY IF EXISTS task_followers_service_all ON public.task_followers;
 CREATE POLICY task_followers_service_all ON public.task_followers AS PERMISSIVE

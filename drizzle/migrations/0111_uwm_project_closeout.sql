@@ -14,3 +14,21 @@ COMMENT ON COLUMN public.projects.is_read_only IS
   'When true, project is closed: tasks with project_id = this project become read-only. Workspace and workspace-wide tasks (project_id NULL) not affected.';
 COMMENT ON COLUMN public.projects.closed_at IS
   'Timestamp of explicit project close action (UWM). NULL = project open.';
+
+CREATE OR REPLACE FUNCTION app.uwm_project_is_mutable(p_project_id uuid)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $fn$
+  SELECT p_project_id IS NULL
+      OR COALESCE(
+        (
+          SELECT NOT p.is_read_only
+          FROM public.projects p
+          WHERE p.id = p_project_id
+        ),
+        false
+      );
+$fn$;
