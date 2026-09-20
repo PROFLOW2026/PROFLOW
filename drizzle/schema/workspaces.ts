@@ -10,7 +10,7 @@ import {
   uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
-import { archivedAt, createdAt, primaryId, timestamps } from './_shared';
+import { archivedAt, primaryId, timestampAt, timestamps } from './_shared';
 import {
   workspaceMemberAccessLevelEnum,
   workspaceTypeEnum,
@@ -69,7 +69,7 @@ export const orgTeamMembers = pgTable(
       onDelete: 'cascade',
     }),
     employeeId: uuid('employee_id').references(() => employees.id, { onDelete: 'cascade' }),
-    addedAt: createdAt(),
+    addedAt: timestampAt('added_at'),
   },
   (t) => [
     index('org_team_members_team_idx').on(t.orgTeamId),
@@ -136,7 +136,7 @@ export const workspaceMembers = pgTable(
     }),
     employeeId: uuid('employee_id').references(() => employees.id, { onDelete: 'cascade' }),
     accessLevel: workspaceMemberAccessLevelEnum('access_level').notNull().default('contributor'),
-    addedAt: createdAt(),
+    addedAt: timestampAt('added_at'),
     addedByOrgMemberId: uuid('added_by_org_member_id').references(
       () => organizationMemberships.id,
       { onDelete: 'set null' },
@@ -171,7 +171,7 @@ export const projectWorkspaceLinks = pgTable(
       .notNull()
       .references(() => projects.id, { onDelete: 'cascade' }),
     relationshipRole: text('relationship_role'),
-    linkedAt: createdAt(),
+    linkedAt: timestampAt('linked_at'),
     linkClosedAt: timestamp('link_closed_at', { withTimezone: true, mode: 'date' }),
   },
   (t) => [

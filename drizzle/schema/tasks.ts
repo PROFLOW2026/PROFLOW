@@ -13,7 +13,7 @@ import {
   uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
-import { archivedAt, createdAt, primaryId, timestamps } from './_shared';
+import { archivedAt, createdAt, primaryId, timestampAt, timestamps } from './_shared';
 import {
   taskActivityEventTypeEnum,
   taskDependencyTypeEnum,
@@ -232,7 +232,7 @@ export const taskAssignees = pgTable(
       onDelete: 'cascade',
     }),
     employeeId: uuid('employee_id').references(() => employees.id, { onDelete: 'cascade' }),
-    assignedAt: createdAt(),
+    assignedAt: timestampAt('assigned_at'),
     assignedByOrgMemberId: uuid('assigned_by_org_member_id').references(
       () => organizationMemberships.id,
       { onDelete: 'set null' },
@@ -327,7 +327,7 @@ export const taskFollowers = pgTable(
     orgMemberId: uuid('org_member_id')
       .notNull()
       .references(() => organizationMemberships.id, { onDelete: 'cascade' }),
-    addedAt: createdAt(),
+    addedAt: timestampAt('added_at'),
   },
   (t) => [
     uniqueIndex('task_followers_uq').on(t.taskId, t.orgMemberId),
@@ -444,7 +444,7 @@ export const taskLabelAssignments = pgTable(
     organizationId: uuid('organization_id')
       .notNull()
       .references(() => organizations.id, { onDelete: 'cascade' }),
-    assignedAt: createdAt(),
+    assignedAt: timestampAt('assigned_at'),
   },
   (t) => [
     uniqueIndex('task_label_assignments_uq').on(t.taskId, t.labelId),

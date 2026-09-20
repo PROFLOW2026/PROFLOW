@@ -72,6 +72,14 @@ export async function AppShell({ children }: { children: ReactNode }) {
           <TopBar
             organizationName={shell.organization.name}
             organizationLogoUrl={organizationLogoUrl}
+            organizationSwitcher={{
+              organizationName: shell.organization.name,
+              organizations: shell.memberships.map((membership) => ({
+                id: membership.id,
+                name: membership.name,
+              })),
+              activeOrganizationId: shell.organizationId,
+            }}
             notifications={
               shell.permissions.has(PERMISSIONS.NOTIFICATIONS_READ) ? (
                 <NotificationBellLoader />
@@ -79,16 +87,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
             }
             quickCreate={<QuickCreateDeferred shellCore={shell} />}
             userMenu={
-              <UserMenu
-                displayName={shell.user.displayName}
-                email={shell.user.email}
-                organizationName={shell.organization.name}
-                organizations={shell.memberships.map((membership) => ({
-                  id: membership.id,
-                  name: membership.name,
-                }))}
-                activeOrganizationId={shell.organizationId}
-              />
+              <UserMenu displayName={shell.user.displayName} email={shell.user.email} />
             }
           />
 

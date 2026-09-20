@@ -91,6 +91,7 @@
   },
   "organizationSwitcher": {
     "label": "עסק",
+    "current": "ארגון נוכחי: {name}",
     "createNew": "יצירת עסק חדש"
   },
   "user": {

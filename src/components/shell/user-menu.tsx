@@ -1,6 +1,6 @@
 'use client';
 
-import { Building2, Check, LogOut, User } from 'lucide-react';
+import { Check, LogOut, User } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import * as React from 'react';
 import {
@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { pressableClassName } from '@/components/ui/pressable';
-import { signOutAction, switchOrganizationAction } from '@/shared/auth/actions';
+import { signOutAction } from '@/shared/auth/actions';
 import { LOCALES, LOCALE_METADATA, type Locale } from '@/shared/i18n/config';
 import { persistLocalePreferenceAction } from '@/shared/i18n/persist-locale-preference';
 import { Link, usePathname, useRouter } from '@/shared/i18n/navigation';
@@ -21,42 +21,20 @@ import { cn } from '@/shared/ui/cn';
 export interface UserMenuProps {
   displayName: string | null;
   email: string;
-  organizationName: string;
-  organizations: { id: string; name: string }[];
-  activeOrganizationId: string;
 }
 
-export function UserMenu({
-  displayName,
-  email,
-  organizationName,
-  organizations,
-  activeOrganizationId,
-}: UserMenuProps) {
+export function UserMenu({ displayName, email }: UserMenuProps) {
   const t = useTranslations('nav');
   const tCommon = useTranslations('common');
   const locale = useLocale() as Locale;
   const pathname = usePathname();
   const router = useRouter();
   const [pending, startTransition] = React.useTransition();
-  const [announcement, setAnnouncement] = React.useState<string | null>(null);
-  const previousOrganizationId = React.useRef(activeOrganizationId);
-
-  React.useEffect(() => {
-    if (previousOrganizationId.current === activeOrganizationId) return;
-    previousOrganizationId.current = activeOrganizationId;
-    setAnnouncement(organizationName);
-  }, [activeOrganizationId, organizationName]);
 
   const initials = (displayName ?? email).trim().charAt(0).toUpperCase();
 
   return (
-    <>
-      <span role="status" aria-live="polite" className="sr-only">
-        {announcement}
-      </span>
-
-      <DropdownMenu>
+    <DropdownMenu>
         <DropdownMenuTrigger
           aria-label={tCommon('a11y.userMenu')}
           className={cn(
@@ -90,34 +68,6 @@ export function UserMenu({
             {t('user.profile')}
           </Link>
         </DropdownMenuItem>
-
-        {organizations.length > 1 ? (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuLabel>{t('organizationSwitcher.label')}</DropdownMenuLabel>
-            {organizations.map((organization) => (
-              <DropdownMenuItem
-                key={organization.id}
-                disabled={pending}
-                onSelect={() => {
-                  if (organization.id === activeOrganizationId) return;
-                  startTransition(async () => {
-                    await switchOrganizationAction(organization.id);
-                    setAnnouncement(organization.name);
-                  });
-                }}
-              >
-                <Building2 aria-hidden />
-                <span className="min-w-0 flex-1 truncate">{organization.name}</span>
-                {organization.id === activeOrganizationId ? (
-                  <Check className="size-4 text-[var(--pf-text-brand)]" aria-hidden />
-                ) : null}
-              </DropdownMenuItem>
-            ))}
-          </>
-        ) : (
-          <DropdownMenuLabel className="truncate">{organizationName}</DropdownMenuLabel>
-        )}
 
         <DropdownMenuSeparator />
         <DropdownMenuLabel>{tCommon('labels.language')}</DropdownMenuLabel>
@@ -155,6 +105,5 @@ export function UserMenu({
         </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-    </>
   );
 }

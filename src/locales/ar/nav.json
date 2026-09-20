@@ -90,6 +90,7 @@
   },
   "organizationSwitcher": {
     "label": "منظمة",
+    "current": "المنظمة الحالية: {name}",
     "createNew": "إنشاء منظمة"
   },
   "user": {

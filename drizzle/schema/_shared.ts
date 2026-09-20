@@ -13,6 +13,10 @@ export const primaryId = () => uuid('id').primaryKey().default(sql`gen_random_uu
 
 export const createdAt = () => timestamp('created_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow();
 
+/** Non-created_at event timestamps (linked_at, assigned_at, added_at, …). */
+export const timestampAt = (column: string) =>
+  timestamp(column, { withTimezone: true, mode: 'date' }).notNull().defaultNow();
+
 export const updatedAt = () =>
   timestamp('updated_at', { withTimezone: true, mode: 'date' })
     .notNull()

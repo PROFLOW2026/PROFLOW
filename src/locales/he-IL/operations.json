@@ -7,8 +7,8 @@
     "taskHealth": "בריאות משימות",
     "upcomingMilestones": "אבני דרך קרובות (14 יום)",
     "pendingApprovals": "אישורים ממתינים",
-    "staleProjects": "פרויקטים רדומים — ללא פעילות ב-14 יום",
-    "teamWorkload": "עומס צוות — 5 המובילים במשימות פתוחות",
+    "staleProjects": "פרויקטים רדומים: ללא פעילות ב-14 יום",
+    "teamWorkload": "עומס צוות: 5 המובילים במשימות פתוחות",
     "recentActivity": "פעילות משימות אחרונה"
   },
   "stats": {

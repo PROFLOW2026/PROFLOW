@@ -91,6 +91,7 @@
   },
   "organizationSwitcher": {
     "label": "Organization",
+    "current": "Current organization: {name}",
     "createNew": "Create organization"
   },
   "user": {

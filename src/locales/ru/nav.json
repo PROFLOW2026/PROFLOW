@@ -90,6 +90,7 @@
   },
   "organizationSwitcher": {
     "label": "Организация",
+    "current": "Текущая организация: {name}",
     "createNew": "Создать организацию"
   },
   "user": {
