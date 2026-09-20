@@ -22,6 +22,7 @@
   },
   "nav": {
     "home": "בית",
+    "timeAndAttendance": "נוכחות ושעות",
     "attendance": "נוכחות",
     "hours": "שעות",
     "projects": "פרויקטים",
@@ -79,11 +80,22 @@
     "installApp": "התקן אפליקציה",
     "anonymousName": "שם",
     "workSummary": {
-      "title": "העבודה שלי",
+      "title": "מה לעשות היום",
+      "subtitle": "העבודה הנוכחית שלך במבט אחד",
       "dueToday": "יעד היום",
       "overdue": "באיחור",
+      "dueTodayBadge": "היום",
+      "overdueBadge": "באיחור",
       "viewTasks": "צפייה בכל המשימות"
+    },
+    "timeShortcut": {
+      "title": "נוכחות ושעות",
+      "description": "כניסה/יציאה, היסטוריית נוכחות ודיווח שעות"
     }
+  },
+  "time": {
+    "attendanceSection": "נוכחות",
+    "hoursSection": "שעות עבודה"
   },
   "tasks": {
     "tabs": {
@@ -110,7 +122,7 @@
       "blocked": "חסום"
     },
     "priority": {
-      "none": "",
+      "none": "ללא",
       "low": "נמוכה",
       "medium": "בינונית",
       "high": "גבוהה",
@@ -145,6 +157,8 @@
   "lists": {
     "tasksEmpty": "אין משימות משויכות",
     "projectsEmpty": "אין פרויקטים משויכים",
+    "projectSearchLabel": "חיפוש פרויקט",
+    "projectSearchPlaceholder": "מספר פרויקט או שם…",
     "hoursEmpty": "אין שעות רשומות",
     "documentsEmpty": "אין מסמכים",
     "noCategory": "ללא קטגוריה",

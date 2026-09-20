@@ -1,19 +1,25 @@
 import 'server-only';
 
-import { and, eq, isNull, lte, or, sql } from 'drizzle-orm';
+import { and, asc, eq, isNull, lte, or, sql } from 'drizzle-orm';
 import { employeeProjectAssignments, projects, punchListItems } from '@drizzle/schema';
 import type { OrgContext } from '@/shared/auth/context';
 import { todayInTimeZone } from '@/shared/dates';
 import { resolveAccessibleProjectIdsForUser } from './project-scope';
 
+import { formatProjectDisplayName } from '@/modules/projects/domain/display';
+
 export async function listEmployeeAssignedProjects(
   context: OrgContext,
-): Promise<Array<{ id: string; name: string }>> {
+): Promise<Array<{ id: string; name: string; documentNumber: string | null; displayName: string }>> {
   const employeeId = context.employeeApp?.employeeId;
   if (!employeeId) return [];
   const today = todayInTimeZone(context.organization.timezone);
-  return context.db
-    .select({ id: projects.id, name: projects.name })
+  const rows = await context.db
+    .select({
+      id: projects.id,
+      name: projects.name,
+      documentNumber: projects.documentNumber,
+    })
     .from(employeeProjectAssignments)
     .innerJoin(projects, eq(projects.id, employeeProjectAssignments.projectId))
     .where(
@@ -28,7 +34,15 @@ export async function listEmployeeAssignedProjects(
         ),
         isNull(projects.archivedAt),
       ),
-    );
+    )
+    .orderBy(asc(projects.documentNumber), asc(projects.name));
+
+  return rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    documentNumber: row.documentNumber,
+    displayName: formatProjectDisplayName(row.name, row.documentNumber),
+  }));
 }
 
 export async function listEmployeeAssignedTasks(

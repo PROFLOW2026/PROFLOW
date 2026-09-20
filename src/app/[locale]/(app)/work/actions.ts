@@ -60,7 +60,13 @@ export async function getTaskDetailAction(taskId: string) {
     try {
       const detail = await getTaskDetail(context, taskId);
       const { mapTaskDetailToUi } = await import('@/modules/tasks/ui/_task-api-stub');
-      return mapTaskDetailToUi(detail);
+      const { enrichTasksWithProjectDisplayNames, projectDisplayNameForTask } = await import(
+        '@/modules/tasks/application/enrich-task-project-labels'
+      );
+      const labels = await enrichTasksWithProjectDisplayNames(context, [detail]);
+      return mapTaskDetailToUi(detail, {
+        projectName: projectDisplayNameForTask(detail, labels),
+      });
     } catch {
       return null;
     }

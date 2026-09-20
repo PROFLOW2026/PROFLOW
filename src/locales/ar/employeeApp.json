@@ -22,6 +22,7 @@
   },
   "nav": {
     "home": "الرئيسية",
+    "timeAndAttendance": "الحضور والساعات",
     "attendance": "الحضور",
     "hours": "الساعات",
     "projects": "المشاريع",
@@ -79,11 +80,22 @@
     "installApp": "تثبيت التطبيق",
     "anonymousName": "هناك",
     "workSummary": {
-      "title": "عملي",
+      "title": "ما يجب القيام به اليوم",
+      "subtitle": "عملك الحالي في لمحة",
       "dueToday": "مستحق اليوم",
       "overdue": "متأخر",
+      "dueTodayBadge": "اليوم",
+      "overdueBadge": "متأخر",
       "viewTasks": "عرض كل المهام"
+    },
+    "timeShortcut": {
+      "title": "الحضور والساعات",
+      "description": "تسجيل الدخول/الخروج وسجل الحضور والساعات"
     }
+  },
+  "time": {
+    "attendanceSection": "الحضور",
+    "hoursSection": "ساعات العمل"
   },
   "tasks": {
     "tabs": {
@@ -110,7 +122,7 @@
       "blocked": "محظور"
     },
     "priority": {
-      "none": "",
+      "none": "بدون",
       "low": "منخفض",
       "medium": "متوسط",
       "high": "مرتفع",
@@ -145,6 +157,8 @@
   "lists": {
     "tasksEmpty": "لا مهام مسندة بعد",
     "projectsEmpty": "لا مشاريع مسندة بعد",
+    "projectSearchLabel": "بحث مشروع",
+    "projectSearchPlaceholder": "رقم المشروع أو الاسم…",
     "hoursEmpty": "لا ساعات مسجلة بعد",
     "documentsEmpty": "لا مستندات بعد",
     "noCategory": "بدون تصنيف",

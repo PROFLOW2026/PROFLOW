@@ -16,6 +16,7 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { todayInTimeZone } from '@/shared/dates';
 import { employeePermissionScope } from './load-employee-app-context';
 import { assertEmployeeProjectScope } from './project-scope';
+import { formatProjectDisplayName } from '@/modules/projects/domain/display';
 
 // ─── Internal helpers ─────────────────────────────────────────────────────────
 
@@ -85,6 +86,8 @@ export interface EmployeePmTaskWorkSummary {
 export interface EmployeeProjectTaskOverview {
   readonly id: string;
   readonly name: string;
+  readonly documentNumber: string | null;
+  readonly displayName: string;
   readonly totalTasks: number;
   readonly openTasks: number;
   readonly dueToday: number;
@@ -273,7 +276,7 @@ export async function getEmployeeProjectTaskOverview(
   await assertEmployeeProjectScope(context, PERMISSIONS.PROJECTS_READ, projectId);
 
   const [project] = await context.db
-    .select({ id: projects.id, name: projects.name })
+    .select({ id: projects.id, name: projects.name, documentNumber: projects.documentNumber })
     .from(projects)
     .where(
       and(
@@ -303,6 +306,8 @@ export async function getEmployeeProjectTaskOverview(
   return {
     id: project.id,
     name: project.name,
+    documentNumber: project.documentNumber,
+    displayName: formatProjectDisplayName(project.name, project.documentNumber),
     totalTasks: taskRows.length,
     openTasks,
     dueToday,

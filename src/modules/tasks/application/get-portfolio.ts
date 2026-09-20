@@ -5,6 +5,7 @@ import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { AuthorizationError } from '@/shared/errors';
 import { resolveAccessibleProjectIds } from '@/modules/projects/application/project-access';
+import { formatProjectDisplayName } from '@/modules/projects/domain/display';
 import {
   ORG_LIST_HARD_CAP,
   resolveListLimit,
@@ -27,6 +28,8 @@ export function portfolioHealthLevel(score: number): PortfolioHealthLevel {
 export interface PortfolioProjectRow {
   readonly projectId: string;
   readonly name: string;
+  readonly documentNumber: string | null;
+  readonly displayName: string;
   readonly status: string;
   readonly workKind: string;
   readonly clientName: string | null;
@@ -119,6 +122,7 @@ export async function getPortfolio(
   const rows = sqlRows<{
     project_id: string;
     name: string;
+    document_number: string | null;
     status: string;
     work_kind: string;
     client_name: string | null;
@@ -167,6 +171,7 @@ export async function getPortfolio(
         SELECT
           p.id AS project_id,
           p.name,
+          p.document_number,
           p.status,
           p.work_kind,
           c.name AS client_name,
@@ -271,6 +276,8 @@ export async function getPortfolio(
     return {
       projectId: row.project_id,
       name: row.name,
+      documentNumber: row.document_number,
+      displayName: formatProjectDisplayName(row.name, row.document_number),
       status: row.status,
       workKind: row.work_kind,
       clientName: row.client_name,

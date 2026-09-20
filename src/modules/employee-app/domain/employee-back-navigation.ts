@@ -1,8 +1,9 @@
 const EMPLOYEE_HOME_PATH = '/employee';
 
 const SECTION_TITLE_KEYS: Record<string, string> = {
-  attendance: 'nav.attendance',
-  hours: 'nav.hours',
+  time: 'nav.timeAndAttendance',
+  attendance: 'nav.timeAndAttendance',
+  hours: 'nav.timeAndAttendance',
   projects: 'nav.projects',
   tasks: 'nav.tasks',
   documents: 'nav.documents',

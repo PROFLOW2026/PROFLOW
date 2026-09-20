@@ -22,6 +22,7 @@
   },
   "nav": {
     "home": "Главная",
+    "timeAndAttendance": "Посещаемость и часы",
     "attendance": "Посещаемость",
     "hours": "Часы",
     "projects": "Проекты",
@@ -79,11 +80,22 @@
     "installApp": "Установить приложение",
     "anonymousName": "коллега",
     "workSummary": {
-      "title": "Моя работа",
+      "title": "Что сделать сегодня",
+      "subtitle": "Ваша текущая работа одним взглядом",
       "dueToday": "На сегодня",
       "overdue": "Просрочено",
+      "dueTodayBadge": "Сегодня",
+      "overdueBadge": "Просрочено",
       "viewTasks": "Все задачи"
+    },
+    "timeShortcut": {
+      "title": "Посещаемость и часы",
+      "description": "Отметки входа/выхода, история посещаемости и учёт часов"
     }
+  },
+  "time": {
+    "attendanceSection": "Посещаемость",
+    "hoursSection": "Рабочие часы"
   },
   "tasks": {
     "tabs": {
@@ -110,7 +122,7 @@
       "blocked": "Заблокировано"
     },
     "priority": {
-      "none": "",
+      "none": "Нет",
       "low": "Низкий",
       "medium": "Средний",
       "high": "Высокий",
@@ -145,6 +157,8 @@
   "lists": {
     "tasksEmpty": "Нет назначенных задач",
     "projectsEmpty": "Нет назначенных проектов",
+    "projectSearchLabel": "Поиск проектов",
+    "projectSearchPlaceholder": "Номер или название проекта…",
     "hoursEmpty": "Нет записанных часов",
     "documentsEmpty": "Нет документов",
     "noCategory": "Без категории",

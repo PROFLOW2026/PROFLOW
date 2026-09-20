@@ -26,7 +26,7 @@ export default async function EmployeeProjectFilesPage({ params }: PageProps) {
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-[var(--pf-text-secondary)]">{data.overview.name}</p>
+      <p className="text-sm text-[var(--pf-text-secondary)]">{data.overview.displayName}</p>
       <ul className="divide-y divide-[var(--pf-border)] rounded-lg border border-[var(--pf-border)]">
         {data.files.map((doc) => (
           <li key={doc.id} className="px-4 py-3 text-sm">

@@ -115,6 +115,7 @@ describe('authenticated product simplification', () => {
     expect(groups.map((g: NavItemGroup) => g.group)).toEqual([
       'clients',
       'work',
+      'workManagement',
       'people',
       'purchasing',
       'money',

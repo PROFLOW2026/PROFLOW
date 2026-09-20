@@ -22,7 +22,7 @@ export default async function EmployeeShellLayout({ children }: { children: Reac
 
   return (
     <div className="flex h-svh overflow-hidden" data-pf-employee-app>
-      <EmployeeSideNav items={shell.nav} />
+      <EmployeeSideNav items={shell.nav} organizationName={shell.organizationName} />
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <EmployeeTopBar
           employeeName={shell.employeeName}

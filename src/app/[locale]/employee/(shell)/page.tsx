@@ -1,17 +1,15 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { AttendanceClockPanel } from '@/modules/workforce/ui/attendance-clock-panel';
-import {
-  clockBreakEndAction,
-  clockBreakStartAction,
-  clockInAction,
-  clockOutAction,
-} from '@/app/[locale]/(app)/workforce/attendance/actions';
 import { getEmployeeShellData } from '@/modules/employee-app/application/get-employee-shell';
-import { getEmployeePmTaskWorkSummary } from '@/modules/employee-app/application/employee-pm-tasks';
+import {
+  getEmployeePmTaskWorkSummary,
+  listEmployeePmTasks,
+} from '@/modules/employee-app/application/employee-pm-tasks';
 import { employeeHasPermission } from '@/modules/employee-app/application/load-employee-app-context';
+import { loadProjectDisplayNameMap } from '@/modules/projects/application/project-display-names';
 import { withOrgContext } from '@/shared/auth/session';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { todayInTimeZone } from '@/shared/dates';
 import { Link } from '@/shared/i18n/navigation';
 import { pressableCardLinkClassName } from '@/components/ui/pressable';
 import { EmployeeInstallButton } from '@/modules/employee-app/ui/employee-install-button';
@@ -27,16 +25,71 @@ export async function generateMetadata({
   return { title: t('title') };
 }
 
+const CLOSED_STATUSES = new Set(['done', 'cancelled']);
+
 export default async function EmployeeHomePage() {
   const t = await getTranslations('employeeApp');
-  const { data, canAttendance, canLogTime, taskSummary } = await withOrgContext(async (context) => ({
-    data: await getEmployeeShellData(context),
-    canAttendance: employeeHasPermission(context, PERMISSIONS.ATTENDANCE_SELF),
-    canLogTime: employeeHasPermission(context, PERMISSIONS.TIME_MANAGE),
-    taskSummary: employeeHasPermission(context, PERMISSIONS.TASKS_READ)
-      ? await getEmployeePmTaskWorkSummary(context)
-      : null,
-  }));
+  const { data, canAttendance, canHours, taskSummary, priorityTasks } = await withOrgContext(
+    async (context) => {
+      const shell = await getEmployeeShellData(context);
+      const canAtt = employeeHasPermission(context, PERMISSIONS.ATTENDANCE_SELF);
+      const canHr = employeeHasPermission(context, PERMISSIONS.TIME_MANAGE);
+      const hasTasks = employeeHasPermission(context, PERMISSIONS.TASKS_READ);
+
+      let summary = null;
+      let tasks: Array<{
+        id: string;
+        title: string;
+        dueDate: string | null;
+        status: string;
+        projectLabel: string | null;
+        kind: 'overdue' | 'dueToday';
+      }> = [];
+
+      if (hasTasks) {
+        summary = await getEmployeePmTaskWorkSummary(context);
+        const today = todayInTimeZone(context.organization.timezone);
+        const rows = await listEmployeePmTasks(context);
+        const openRows = rows.filter((row) => !CLOSED_STATUSES.has(row.status) && row.dueDate);
+        const projectLabels = await loadProjectDisplayNameMap(
+          context.db,
+          context.organizationId,
+          openRows.map((row) => row.projectId).filter(Boolean) as string[],
+        );
+
+        tasks = openRows
+          .map((row) => {
+            const kind: 'overdue' | 'dueToday' | null =
+              row.dueDate! < today ? 'overdue' : row.dueDate === today ? 'dueToday' : null;
+            if (!kind) return null;
+            return {
+              id: row.id,
+              title: row.title,
+              dueDate: row.dueDate,
+              status: row.status,
+              projectLabel: row.projectId ? (projectLabels.get(row.projectId) ?? null) : null,
+              kind,
+            };
+          })
+          .filter((row): row is NonNullable<typeof row> => row !== null)
+          .sort((a, b) => {
+            if (a.kind !== b.kind) return a.kind === 'overdue' ? -1 : 1;
+            return (a.dueDate ?? '').localeCompare(b.dueDate ?? '');
+          })
+          .slice(0, 6);
+      }
+
+      return {
+        data: shell,
+        canAttendance: canAtt,
+        canHours: canHr,
+        taskSummary: summary,
+        priorityTasks: tasks,
+      };
+    },
+  );
+
+  const showTimeNav = canAttendance || canHours;
 
   return (
     <div className="flex flex-col gap-6">
@@ -46,32 +99,12 @@ export default async function EmployeeHomePage() {
         </h1>
       </header>
 
-      <EmployeeInstallButton />
-
-      {data.clock && data.linked ? (
-        <AttendanceClockPanel
-          employeeName={data.employeeName}
-          workDate={data.clock.workDate}
-          presence={data.clock.presence}
-          canClockIn={data.clock.canClockIn}
-          canClockOut={data.clock.canClockOut}
-          canBreakStart={data.clock.canBreakStart}
-          canBreakEnd={data.clock.canBreakEnd}
-          clockInAction={clockInAction}
-          clockOutAction={clockOutAction}
-          clockBreakStartAction={clockBreakStartAction}
-          clockBreakEndAction={clockBreakEndAction}
-          linked={data.linked}
-          showTimeHints={false}
-          logHoursHref={canLogTime ? '/employee/hours/new' : null}
-        />
-      ) : (
-        <p className="text-sm text-[var(--pf-text-secondary)]">{t('home.notLinked')}</p>
-      )}
-
       {taskSummary ? (
-        <section className="rounded-xl border border-[var(--pf-border)] bg-[var(--pf-surface)] p-4 space-y-3">
-          <h2 className="text-sm font-semibold">{t('home.workSummary.title')}</h2>
+        <section className="rounded-xl border border-[var(--pf-border)] bg-[var(--pf-surface)] p-4 space-y-4">
+          <div className="space-y-1">
+            <h2 className="text-sm font-semibold">{t('home.workSummary.title')}</h2>
+            <p className="text-xs text-[var(--pf-text-secondary)]">{t('home.workSummary.subtitle')}</p>
+          </div>
           <dl className="grid grid-cols-2 gap-3">
             <div>
               <dt className="text-xs text-[var(--pf-text-secondary)]">{t('home.workSummary.dueToday')}</dt>
@@ -84,17 +117,55 @@ export default async function EmployeeHomePage() {
               </dd>
             </div>
           </dl>
+
+          {priorityTasks.length > 0 ? (
+            <ul className="divide-y divide-[var(--pf-border)] rounded-lg border border-[var(--pf-border)]">
+              {priorityTasks.map((task) => (
+                <li key={task.id}>
+                  <Link
+                    href={`/employee/tasks/${task.id}`}
+                    className="block px-4 py-3 hover:bg-[var(--pf-surface-2)] transition-colors"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium">{task.title}</p>
+                        {task.projectLabel ? (
+                          <p className="truncate text-xs text-[var(--pf-text-secondary)]">{task.projectLabel}</p>
+                        ) : null}
+                      </div>
+                      <span
+                        className={cn(
+                          'shrink-0 rounded-full px-2 py-0.5 text-xs font-medium',
+                          task.kind === 'overdue'
+                            ? 'bg-red-50 text-red-700'
+                            : 'bg-[var(--pf-accent-soft)] text-[var(--pf-accent)]',
+                        )}
+                      >
+                        {task.kind === 'overdue'
+                          ? t('home.workSummary.overdueBadge')
+                          : t('home.workSummary.dueTodayBadge')}
+                      </span>
+                    </div>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+
           <Link href="/employee/tasks" className="text-sm font-medium text-[var(--pf-primary)] hover:underline">
             {t('home.workSummary.viewTasks')}
           </Link>
         </section>
       ) : null}
 
-      {canAttendance ? (
-        <Link href="/employee/attendance" className={cn(pressableCardLinkClassName, 'block p-4')}>
-          {t('home.myHours')}
+      {showTimeNav ? (
+        <Link href="/employee/time" className={cn(pressableCardLinkClassName, 'block p-4')}>
+          <p className="text-sm font-medium">{t('home.timeShortcut.title')}</p>
+          <p className="mt-1 text-xs text-[var(--pf-text-secondary)]">{t('home.timeShortcut.description')}</p>
         </Link>
       ) : null}
+
+      <EmployeeInstallButton />
     </div>
   );
 }

@@ -59,10 +59,24 @@ export default async function MyWorkPage() {
   const t = await getTranslations('tasks');
 
   const tasksByView = await withOrgContext(async (context) => {
+    const { enrichTasksWithProjectDisplayNames, projectDisplayNameForTask } = await import(
+      '@/modules/tasks/application/enrich-task-project-labels'
+    );
+    const allTasks = (
+      await Promise.all(MY_WORK_VIEWS.map((view) => getMyWork(context, { view, limit: 100 })))
+    ).flat();
+    const labels = await enrichTasksWithProjectDisplayNames(context, allTasks);
+
     const results = await Promise.all(
       MY_WORK_VIEWS.map(async (view) => {
         const tasks = await getMyWork(context, { view, limit: 100 });
-        const items = serializeMyWorkItems(tasks.map((task) => mapTaskToCardData(task)));
+        const items = serializeMyWorkItems(
+          tasks.map((task) =>
+            mapTaskToCardData(task, {
+              projectName: projectDisplayNameForTask(task, labels),
+            }),
+          ),
+        );
         return [view, items] as const;
       }),
     );

@@ -98,7 +98,7 @@ describe('employee authorization audit — presets', () => {
       ]),
     );
     expect(visibleNavHrefs(context)).toEqual(
-      expect.arrayContaining(['/employee', '/employee/attendance', '/employee/tasks']),
+      expect.arrayContaining(['/employee', '/employee/time', '/employee/tasks']),
     );
     for (const permission of OWNER_ONLY_PERMISSIONS) {
       expect(context.permissions.has(permission)).toBe(false);
@@ -109,11 +109,7 @@ describe('employee authorization audit — presets', () => {
     const context = employeeContextFromPreset('field_worker_time');
     expect(context.permissions.has(PERMISSIONS.TIME_MANAGE)).toBe(true);
     expect(context.employeeApp?.grants.get(PERMISSIONS.TIME_MANAGE)?.scope).toBe('self_only');
-    expect(visibleNavHrefs(context)).toEqual([
-      '/employee',
-      '/employee/attendance',
-      '/employee/hours',
-    ]);
+    expect(visibleNavHrefs(context)).toEqual(['/employee', '/employee/time']);
   });
 
   it('foreman preset matches editor grants and nav', () => {
@@ -125,8 +121,7 @@ describe('employee authorization audit — presets', () => {
     }
     expect(visibleNavHrefs(context)).toEqual([
       '/employee',
-      '/employee/attendance',
-      '/employee/hours',
+      '/employee/time',
       '/employee/projects',
       '/employee/tasks',
       '/employee/documents',
@@ -149,7 +144,7 @@ describe('employee authorization audit — presets', () => {
     expect(context.permissions.has(PERMISSIONS.TIME_MANAGE)).toBe(false);
     expect(visibleNavHrefs(context)).toEqual([
       '/employee',
-      '/employee/attendance',
+      '/employee/time',
       '/employee/documents',
     ]);
   });
@@ -161,13 +156,13 @@ describe('employee authorization audit — presets', () => {
       expect(context.employeeApp?.grants.get(grant.permissionKey)?.scope).toBe('all_organization');
     }
     expect(visibleNavHrefs(context)).toContain('/employee/projects');
-    expect(visibleNavHrefs(context)).toContain('/employee/hours');
+    expect(visibleNavHrefs(context)).toContain('/employee/time');
   });
 
   it('custom preset is baseline-only until owner grants', () => {
     const context = employeeContextFromPreset('custom');
     expect(effectiveGrantKeys(context)).toEqual([PERMISSIONS.ATTENDANCE_SELF]);
-    expect(visibleNavHrefs(context)).toEqual(['/employee', '/employee/attendance']);
+    expect(visibleNavHrefs(context)).toEqual(['/employee', '/employee/time']);
   });
 });
 
@@ -185,7 +180,7 @@ describe('employee authorization audit — documents and revoke', () => {
 
   it('revoking a grant removes permission and nav item', () => {
     const context = employeeContextFromPreset('field_worker_time');
-    expect(visibleNavHrefs(context)).toContain('/employee/hours');
+    expect(visibleNavHrefs(context)).toContain('/employee/time');
 
     const grants = new Map(context.employeeApp!.grants);
     grants.delete(PERMISSIONS.TIME_MANAGE);
@@ -193,7 +188,7 @@ describe('employee authorization audit — documents and revoke', () => {
     const revoked: OrgContext = { ...context, permissions, employeeApp: { ...context.employeeApp!, grants } };
 
     expect(revoked.permissions.has(PERMISSIONS.TIME_MANAGE)).toBe(false);
-    expect(visibleNavHrefs(revoked)).not.toContain('/employee/hours');
+    expect(visibleNavHrefs(revoked)).toContain('/employee/time');
   });
 
   it('does not inherit org.read from employee role template', () => {
@@ -231,7 +226,12 @@ describe('employee authorization audit — external storage policy', () => {
 describe('employee authorization audit — project surface shape', () => {
   it('assigned project list type excludes financial fields', () => {
     type ProjectRow = Awaited<ReturnType<typeof listEmployeeAssignedProjects>>[number];
-    const sample: ProjectRow = { id: 'p1', name: 'Project A' };
-    expect(Object.keys(sample).sort()).toEqual(['id', 'name']);
+    const sample: ProjectRow = {
+      id: 'p1',
+      name: 'Project A',
+      documentNumber: 'PRJ-00001',
+      displayName: 'PRJ-00001 - Project A',
+    };
+    expect(Object.keys(sample).sort()).toEqual(['displayName', 'documentNumber', 'id', 'name']);
   });
 });

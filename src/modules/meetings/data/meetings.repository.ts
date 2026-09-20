@@ -10,6 +10,7 @@ import {
 } from '@drizzle/schema';
 import { ORG_LIST_HARD_CAP, resolveListLimit, resolveListOffset } from '@/shared/db/list-limits';
 import type { DbExecutor } from '@/shared/db/types';
+import { formatProjectDisplayName } from '@/modules/projects/domain/display';
 import type {
   AddAttendeeInput,
   CreateActionItemInput,
@@ -200,6 +201,7 @@ export async function listMeetings(
     .select({
       meeting: meetingRecords,
       projectName: projects.name,
+      projectDocumentNumber: projects.documentNumber,
       workspaceName: workspaces.name,
       attendeeCount: sql<number>`(select count(*) from meeting_attendees ma where ma.meeting_id = ${meetingRecords.id})::int`,
       decisionCount: sql<number>`(select count(*) from meeting_decisions md where md.meeting_id = ${meetingRecords.id})::int`,
@@ -215,7 +217,9 @@ export async function listMeetings(
 
   return rows.map((row) => ({
     ...mapRecord(row.meeting),
-    projectName: row.projectName ?? null,
+    projectName: row.projectName
+      ? formatProjectDisplayName(row.projectName, row.projectDocumentNumber)
+      : null,
     workspaceName: row.workspaceName ?? null,
     attendeeCount: row.attendeeCount,
     decisionCount: row.decisionCount,
@@ -264,7 +268,7 @@ export async function getMeetingDetail(
       .orderBy(asc(meetingActionItems.createdAt)),
     meeting.projectId
       ? db
-          .select({ name: projects.name })
+          .select({ name: projects.name, documentNumber: projects.documentNumber })
           .from(projects)
           .where(eq(projects.id, meeting.projectId))
           .limit(1)
@@ -307,7 +311,10 @@ export async function getMeetingDetail(
 
   return {
     ...meeting,
-    projectName: (projectRow as { name: string }[])[0]?.name ?? null,
+    projectName: (() => {
+      const project = (projectRow as { name: string; documentNumber: string | null }[])[0];
+      return project ? formatProjectDisplayName(project.name, project.documentNumber) : null;
+    })(),
     workspaceName: (workspaceRow as { name: string }[])[0]?.name ?? null,
     attendees,
     decisions: decisionRows.map(mapDecision),

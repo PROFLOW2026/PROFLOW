@@ -40,7 +40,7 @@ export default async function EmployeeProjectOverviewPage({ params }: PageProps)
   return (
     <div className="space-y-6">
       <header className="space-y-1">
-        <h2 className="text-xl font-bold">{overview.name}</h2>
+        <h2 className="text-xl font-bold">{overview.displayName}</h2>
         <p className="text-sm text-[var(--pf-text-secondary)]">{t('overview.subtitle')}</p>
       </header>
 

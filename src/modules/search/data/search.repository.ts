@@ -9,6 +9,7 @@
 import { and, desc, eq, ilike, inArray, isNull, or, sql } from 'drizzle-orm';
 import { projects, tasks, workspaces } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
+import { formatProjectDisplayName } from '@/modules/projects/domain/display';
 
 // ─── Result types ─────────────────────────────────────────────────────────────
 
@@ -27,6 +28,8 @@ export interface TaskSearchHit {
 export interface ProjectSearchHit {
   readonly id: string;
   readonly name: string;
+  readonly documentNumber: string | null;
+  readonly displayName: string;
   readonly status: string;
   readonly clientName: string | null;
 }
@@ -57,7 +60,7 @@ export async function searchTasks(
     eq(tasks.organizationId, organizationId),
     inArray(tasks.workspaceId, accessibleWorkspaceIds),
     isNull(tasks.archivedAt),
-    or(ilike(tasks.title, term), ilike(tasks.description, term))!,
+    or(ilike(tasks.title, term), ilike(tasks.description, term), ilike(projects.documentNumber, term))!,
   ];
 
   // Project-context filter: tasks with no project are always visible in accessible workspaces;
@@ -84,6 +87,7 @@ export async function searchTasks(
       workspaceName: workspaces.name,
       projectId: tasks.projectId,
       projectName: projects.name,
+      projectDocumentNumber: projects.documentNumber,
     })
     .from(tasks)
     .innerJoin(workspaces, eq(workspaces.id, tasks.workspaceId))
@@ -101,7 +105,9 @@ export async function searchTasks(
     workspaceId: r.workspaceId,
     workspaceName: r.workspaceName,
     projectId: r.projectId ?? null,
-    projectName: r.projectName ?? null,
+    projectName: r.projectName
+      ? formatProjectDisplayName(r.projectName, r.projectDocumentNumber)
+      : null,
   }));
 }
 
@@ -123,7 +129,13 @@ export async function searchProjects(
   const conditions = [
     eq(projects.organizationId, organizationId),
     isNull(projects.archivedAt),
-    ilike(projects.name, term),
+    or(
+      ilike(projects.name, term),
+      ilike(projects.documentNumber, term),
+      sql`(
+        select c.name from clients c where c.id = ${projects.clientId} limit 1
+      ) ILIKE ${term}`,
+    )!,
   ];
 
   if (accessibleProjectIds !== null) {
@@ -135,6 +147,7 @@ export async function searchProjects(
     .select({
       id: projects.id,
       name: projects.name,
+      documentNumber: projects.documentNumber,
       status: projects.status,
       clientName: sql<string | null>`(
         select c.name from clients c where c.id = ${projects.clientId} limit 1
@@ -148,6 +161,8 @@ export async function searchProjects(
   return rows.map((r) => ({
     id: r.id,
     name: r.name,
+    documentNumber: r.documentNumber,
+    displayName: formatProjectDisplayName(r.name, r.documentNumber),
     status: r.status,
     clientName: r.clientName,
   }));

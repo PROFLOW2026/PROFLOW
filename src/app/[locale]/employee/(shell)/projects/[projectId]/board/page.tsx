@@ -34,7 +34,7 @@ export default async function EmployeeProjectBoardPage({ params }: PageProps) {
 
     const pmTasks = await listEmployeePmTasks(context, { projectId });
     const taskCards = pmTasks.map((task) =>
-      mapEmployeePmTaskToCardData(task, { projectName: overview.name }),
+      mapEmployeePmTaskToCardData(task, { projectName: overview.displayName }),
     );
 
     const tasksByStatus = new Map<string, typeof taskCards>();
@@ -77,7 +77,7 @@ export default async function EmployeeProjectBoardPage({ params }: PageProps) {
   return (
     <EmployeeProjectBoardShell
       projectId={projectId}
-      projectName={data.overview.name}
+      projectName={data.overview.displayName}
       buckets={data.buckets}
       initialTasks={data.taskCards}
       canUpdate={data.canUpdate}

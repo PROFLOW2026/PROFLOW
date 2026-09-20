@@ -227,7 +227,7 @@ export default async function PortfolioPage({ searchParams }: PortfolioPageProps
                         href={`/projects/${row.projectId}`}
                         className={cn(textNavLinkClassName, 'rounded-sm font-medium')}
                       >
-                        {row.name}
+                        {row.displayName}
                       </Link>
                       {row.workKind !== 'project' && (
                         <span className="ml-2 rounded bg-[var(--pf-bg-tertiary)] px-1 py-0.5 text-[10px] text-[var(--pf-text-muted)] uppercase tracking-wide">

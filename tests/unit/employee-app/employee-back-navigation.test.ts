@@ -18,11 +18,11 @@ describe('employee-back-navigation', () => {
   });
 
   it('shows back to home from top-level section pages', () => {
-    expect(resolveEmployeeShellHeader('/employee/hours')).toEqual({
+    expect(resolveEmployeeShellHeader('/employee/time')).toEqual({
       showHeader: true,
       showBack: true,
       fallbackHref: '/employee',
-      titleKey: 'nav.hours',
+      titleKey: 'nav.timeAndAttendance',
     });
   });
 
@@ -40,7 +40,7 @@ describe('employee-back-navigation', () => {
       showHeader: true,
       showBack: true,
       fallbackHref: '/employee/hours',
-      titleKey: 'nav.hours',
+      titleKey: 'nav.timeAndAttendance',
     });
   });
 

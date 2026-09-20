@@ -28,7 +28,7 @@ export default async function EmployeeProjectTasksPage({ params }: PageProps) {
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-[var(--pf-text-secondary)]">{data.overview.name}</p>
+      <p className="text-sm text-[var(--pf-text-secondary)]">{data.overview.displayName}</p>
       <ul className="divide-y divide-[var(--pf-border)] rounded-lg border border-[var(--pf-border)]">
         {data.tasks.map((task) => (
           <li key={task.id}>

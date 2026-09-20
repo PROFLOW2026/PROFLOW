@@ -20,17 +20,15 @@ export interface EmployeeShellData {
 
 /** Employee bottom nav — visibility driven only by effective grants (+ always home). */
 export function buildEmployeeNavItems(context: OrgContext): EmployeeNavItem[] {
+  const canAttendance = employeeHasPermission(context, PERMISSIONS.ATTENDANCE_SELF);
+  const canHours = employeeHasPermission(context, PERMISSIONS.TIME_MANAGE);
+
   return [
     { href: '/employee', labelKey: 'employeeApp.nav.home', visible: true },
     {
-      href: '/employee/attendance',
-      labelKey: 'employeeApp.nav.attendance',
-      visible: employeeHasPermission(context, PERMISSIONS.ATTENDANCE_SELF),
-    },
-    {
-      href: '/employee/hours',
-      labelKey: 'employeeApp.nav.hours',
-      visible: employeeHasPermission(context, PERMISSIONS.TIME_MANAGE),
+      href: '/employee/time',
+      labelKey: 'employeeApp.nav.timeAndAttendance',
+      visible: canAttendance || canHours,
     },
     {
       href: '/employee/projects',

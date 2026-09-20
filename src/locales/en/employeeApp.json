@@ -22,6 +22,7 @@
   },
   "nav": {
     "home": "Home",
+    "timeAndAttendance": "Attendance & hours",
     "attendance": "Attendance",
     "hours": "Hours",
     "projects": "Projects",
@@ -79,11 +80,22 @@
     "installApp": "Install app",
     "anonymousName": "there",
     "workSummary": {
-      "title": "My work",
+      "title": "What to do today",
+      "subtitle": "Your current work at a glance",
       "dueToday": "Due today",
       "overdue": "Overdue",
+      "dueTodayBadge": "Today",
+      "overdueBadge": "Overdue",
       "viewTasks": "View all tasks"
+    },
+    "timeShortcut": {
+      "title": "Attendance & hours",
+      "description": "Clock in/out, attendance history, and logged hours"
     }
+  },
+  "time": {
+    "attendanceSection": "Attendance",
+    "hoursSection": "Work hours"
   },
   "tasks": {
     "tabs": {
@@ -110,7 +122,7 @@
       "blocked": "Blocked"
     },
     "priority": {
-      "none": "",
+      "none": "None",
       "low": "Low",
       "medium": "Medium",
       "high": "High",
@@ -145,6 +157,8 @@
   "lists": {
     "tasksEmpty": "No tasks assigned yet",
     "projectsEmpty": "No projects assigned yet",
+    "projectSearchLabel": "Search projects",
+    "projectSearchPlaceholder": "Project number or name…",
     "hoursEmpty": "No hours logged yet",
     "documentsEmpty": "No documents yet",
     "noCategory": "Uncategorized",

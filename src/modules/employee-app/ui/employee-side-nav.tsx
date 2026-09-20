@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { Link, usePathname } from '@/shared/i18n/navigation';
+import { OrgShellMark } from '@/components/shell/org-shell-mark';
 import { cn } from '@/shared/ui/cn';
 
 interface NavItem {
@@ -10,17 +11,30 @@ interface NavItem {
   readonly visible: boolean;
 }
 
-export function EmployeeSideNav({ items }: { items: readonly NavItem[] }) {
+export function EmployeeSideNav({
+  items,
+  organizationName,
+}: {
+  items: readonly NavItem[];
+  organizationName: string;
+}) {
   const t = useTranslations();
   const pathname = usePathname();
   const visible = items.filter((item) => item.visible);
 
   return (
     <nav
-      className="hidden w-56 shrink-0 flex-col border-e border-[var(--pf-border)] bg-[var(--pf-surface)] lg:flex"
+      className="hidden w-[var(--pf-sidebar-width)] shrink-0 flex-col border-e border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] lg:flex print:hidden"
       aria-label={t('employeeApp.title')}
     >
-      <ul className="flex flex-col gap-1 p-3">
+      <div className="flex h-[var(--pf-topbar-height)] items-center gap-2 border-b border-[var(--pf-border-default)] px-4">
+        <OrgShellMark organizationName={organizationName} />
+        <span className="min-w-0 truncate text-sm font-semibold" title={organizationName}>
+          {organizationName}
+        </span>
+      </div>
+
+      <ul className="flex flex-1 flex-col gap-0.5 overflow-y-auto p-2">
         {visible.map((item) => {
           const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
           return (

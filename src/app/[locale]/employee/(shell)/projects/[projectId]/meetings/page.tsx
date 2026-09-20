@@ -27,7 +27,7 @@ export default async function EmployeeProjectMeetingsPage({ params }: PageProps)
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-[var(--pf-text-secondary)]">{data.overview.name}</p>
+      <p className="text-sm text-[var(--pf-text-secondary)]">{data.overview.displayName}</p>
       <ul className="divide-y divide-[var(--pf-border)] rounded-lg border border-[var(--pf-border)]">
         {data.meetings.map((meeting) => (
           <li key={meeting.id} className="px-4 py-3 text-sm space-y-1">

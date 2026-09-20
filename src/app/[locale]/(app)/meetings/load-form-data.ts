@@ -2,6 +2,7 @@ import { listClientsForOrg, listContactsForClients } from '@/modules/clients';
 import { listOrganizationMembers } from '@/modules/tenancy';
 import { listEmployeesForOrg } from '@/modules/workforce';
 import { listProjectsForOrg } from '@/modules/projects';
+import { formatProjectDisplayName } from '@/modules/projects/domain/display';
 import { listWorkspaces } from '@/modules/workspaces';
 import type { OrgContext } from '@/shared/auth/context';
 import { hasPermission } from '@/shared/permissions/assert';
@@ -14,7 +15,10 @@ export async function loadMeetingPickerData(context: OrgContext) {
   ]);
 
   return {
-    projects: projects.map((project) => ({ id: project.id, name: project.name })),
+    projects: projects.map((project) => ({
+      id: project.id,
+      name: formatProjectDisplayName(project.name, project.documentNumber),
+    })),
     workspaces: workspaces.map((workspace) => ({ id: workspace.id, name: workspace.name })),
   };
 }

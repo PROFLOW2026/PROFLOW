@@ -17,7 +17,8 @@ import { getAccessibleWorkspaceIds } from '@/modules/operations';
 import { taskSearchHref } from '../domain/hrefs';
 import { groupSearchHits } from '../domain/group';
 import type { GlobalSearchHit, GlobalSearchResult, SearchCommandHit } from '../domain/types';
-import { searchTasks } from '../data/search.repository';
+import { searchTasks, searchProjects } from '../data/search.repository';
+import { workEntityHref } from '../domain/hrefs';
 
 // ─── Task search integration ──────────────────────────────────────────────────
 
@@ -54,6 +55,34 @@ async function fetchTaskHits(
   }));
 }
 
+async function fetchProjectHits(
+  context: OrgContext,
+  query: string,
+  limit: number,
+): Promise<GlobalSearchHit[]> {
+  if (!hasPermission(context, PERMISSIONS.PROJECTS_READ)) return [];
+
+  const accessibleProjectIds = await resolveAccessibleProjectIds(context);
+  const hits = await searchProjects(
+    context.db,
+    context.organizationId,
+    query,
+    accessibleProjectIds,
+    limit,
+  );
+
+  return hits.map((hit): GlobalSearchHit => ({
+    kind: 'project',
+    id: hit.id,
+    title: hit.displayName,
+    subtitle: hit.clientName,
+    href: workEntityHref('project', hit.id),
+    status: hit.status,
+    contextLabel: hit.documentNumber,
+    date: null,
+  }));
+}
+
 // ─── Main dispatcher ──────────────────────────────────────────────────────────
 
 /**
@@ -73,10 +102,9 @@ export async function globalSearch(
 
   // Task hits — access-scoped
   const taskHits = await fetchTaskHits(context, query, perEntityLimit);
+  const projectHits = await fetchProjectHits(context, query, perEntityLimit);
 
-  // Merge task hits with any future entity hits here (other agents add their entities).
-  // For now, only task hits are new; existing entity hits come from pre-existing search paths.
-  const allNewHits: GlobalSearchHit[] = [...taskHits];
+  const allNewHits: GlobalSearchHit[] = [...projectHits, ...taskHits];
 
   // Build commands (empty for task search — commands come from domain/commands.ts)
   const commands: SearchCommandHit[] = [];
