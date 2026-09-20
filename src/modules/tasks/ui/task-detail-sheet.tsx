@@ -32,7 +32,7 @@ import {
   User,
   X,
 } from 'lucide-react';
-import { useCallback, useState, useTransition } from 'react';
+import { useCallback, useMemo, useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -49,21 +49,16 @@ import type { TaskDetail, TaskPriority, TaskStatus } from './_task-api-stub';
 // Helpers / sub-components
 // ---------------------------------------------------------------------------
 
-const STATUS_OPTIONS: { value: TaskStatus; label: string }[] = [
-  { value: 'todo', label: 'To Do' },
-  { value: 'in_progress', label: 'In Progress' },
-  { value: 'in_review', label: 'In Review' },
-  { value: 'blocked', label: 'Blocked' },
-  { value: 'done', label: 'Done' },
-  { value: 'cancelled', label: 'Cancelled' },
+const STATUS_VALUES: TaskStatus[] = [
+  'todo',
+  'in_progress',
+  'in_review',
+  'blocked',
+  'done',
+  'cancelled',
 ];
 
-const PRIORITY_OPTIONS: { value: TaskPriority; label: string }[] = [
-  { value: 'urgent', label: 'Urgent' },
-  { value: 'high', label: 'High' },
-  { value: 'medium', label: 'Medium' },
-  { value: 'low', label: 'Low' },
-];
+const PRIORITY_VALUES: TaskPriority[] = ['urgent', 'high', 'medium', 'low'];
 
 const STATUS_TONE: Record<
   TaskStatus,
@@ -243,6 +238,15 @@ export function TaskDetailSheet({
   const t = useTranslations('tasks');
   const [isPending, startTransition] = useTransition();
 
+  const statusOptions = useMemo(
+    () => STATUS_VALUES.map((value) => ({ value, label: t(`status.${value}`) })),
+    [t],
+  );
+  const priorityOptions = useMemo(
+    () => PRIORITY_VALUES.map((value) => ({ value, label: t(`priority.${value}`) })),
+    [t],
+  );
+
   const handleUpdate = useCallback(
     (data: Record<string, unknown>) => {
       if (!task) return;
@@ -335,7 +339,7 @@ export function TaskDetailSheet({
                   onChange={(e) => handleUpdate({ status: e.target.value })}
                   className="block w-full rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--pf-focus-ring)]"
                 >
-                  {STATUS_OPTIONS.map((o) => (
+                  {statusOptions.map((o) => (
                     <option key={o.value} value={o.value}>
                       {o.label}
                     </option>
@@ -343,7 +347,7 @@ export function TaskDetailSheet({
                 </select>
                 <div className="mt-1">
                   <Badge tone={STATUS_TONE[task.status]} className="text-xs">
-                    {STATUS_OPTIONS.find((o) => o.value === task.status)?.label}
+                    {statusOptions.find((o) => o.value === task.status)?.label}
                   </Badge>
                 </div>
               </Field>
@@ -351,7 +355,7 @@ export function TaskDetailSheet({
               {/* Priority */}
               <Field label={t('priorityLabel')} icon={<Flag className="size-4" />}>
                 <div className="flex flex-wrap gap-1.5">
-                  {PRIORITY_OPTIONS.map((o) => (
+                  {priorityOptions.map((o) => (
                     <button
                       key={o.value}
                       type="button"

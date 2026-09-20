@@ -17,7 +17,7 @@ export type { SetJobFixedPriceResult } from './application/set-job-fixed-price';
 export { convertJobToProject } from './application/convert-job-to-project';
 export { archiveProject } from './application/archive-project';
 export { restoreProject } from './application/restore-project';
-export { listProjectsForOrg } from './application/list-projects';
+export { countProjectsForOrg, listProjectsForOrg } from './application/list-projects';
 export { listJobsForOrg } from './application/list-jobs';
 export {
   getProjectAccessModeForOrg,

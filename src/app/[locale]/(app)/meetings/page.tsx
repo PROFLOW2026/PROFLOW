@@ -5,7 +5,16 @@ import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { listMeetingsForOrg } from '@/modules/meetings';
+import { countMeetingsForOrg, listMeetingsForOrg } from '@/modules/meetings';
+import { QueryPagination } from '@/components/ui/query-pagination';
+import {
+  ORG_LIST_PAGE_SIZE,
+  orgListOffset,
+  orgListPageCount,
+  parseOrgListPage,
+  resolveOrgListPage,
+} from '@/shared/db/org-list-pagination';
+import { getTranslations } from 'next-intl/server';
 import type { MeetingListFilters } from '@/modules/meetings';
 import { withOrgContext, getShellContext } from '@/shared/auth/session';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -27,6 +36,7 @@ interface MeetingsPageProps {
     workspace?: string;
     from?: string;
     to?: string;
+    page?: string;
   }>;
 }
 
@@ -38,17 +48,31 @@ export default async function MeetingsPage({ searchParams }: MeetingsPageProps) 
   }
 
   const canManage = shell.permissions.has(PERMISSIONS.MEETINGS_MANAGE);
-  const params = await searchParams;
+  const [params, tCommon] = await Promise.all([searchParams, getTranslations('common')]);
+  const requestedPage = parseOrgListPage(params.page);
 
-  const filters: MeetingListFilters = {
+  const baseFilters: MeetingListFilters = {
     projectId: params.project || undefined,
     workspaceId: params.workspace || undefined,
     fromDate: params.from ? new Date(params.from) : undefined,
     toDate: params.to ? new Date(params.to) : undefined,
-    limit: 50,
   };
 
-  const meetings = await withOrgContext((context) => listMeetingsForOrg(context, filters));
+  const { meetings, totalCount, currentPage, totalPages } = await withOrgContext(async (context) => {
+    const total = await countMeetingsForOrg(context, baseFilters);
+    const page = resolveOrgListPage(total, requestedPage);
+    const rows = await listMeetingsForOrg(context, {
+      ...baseFilters,
+      limit: ORG_LIST_PAGE_SIZE,
+      offset: orgListOffset(page),
+    });
+    return {
+      meetings: rows,
+      totalCount: total,
+      currentPage: page,
+      totalPages: orgListPageCount(total),
+    };
+  });
 
   return (
     <div className="flex min-w-0 max-w-full flex-col gap-6">
@@ -166,6 +190,24 @@ export default async function MeetingsPage({ searchParams }: MeetingsPageProps) 
           </Table>
         </div>
       )}
+
+      <QueryPagination
+        basePath="/meetings"
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalCount={totalCount}
+        pageSize={ORG_LIST_PAGE_SIZE}
+        currentParams={{
+          project: params.project,
+          workspace: params.workspace,
+          from: params.from,
+          to: params.to,
+        }}
+        previousLabel={tCommon('actions.previous')}
+        nextLabel={tCommon('actions.next')}
+        pageOfLabel={tCommon('pagination.pageOf', { page: currentPage, pageCount: totalPages })}
+        navLabel={tCommon('pagination.navLabel')}
+      />
     </div>
   );
 }

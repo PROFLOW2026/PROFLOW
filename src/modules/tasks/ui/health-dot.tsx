@@ -25,13 +25,13 @@ export function HealthDot({ level, score, label }: HealthDotProps) {
         ? 'bg-amber-400'
         : 'bg-red-500';
 
-  const title = `Health score: ${score} (Overdue×2 + Blocked)`;
+  const title = label ?? String(score);
 
   return (
     <span
       className={cn('inline-block h-2.5 w-2.5 rounded-full flex-shrink-0', colorClass)}
       title={title}
-      aria-label={label ?? title}
+      aria-label={title}
       role="img"
     />
   );

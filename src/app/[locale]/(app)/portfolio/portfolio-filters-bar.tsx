@@ -1,7 +1,8 @@
 'use client';
 
 import { useRouter, usePathname } from 'next/navigation';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
+import { useTranslations } from 'next-intl';
 import { cn } from '@/shared/ui/cn';
 
 interface FilterParam {
@@ -14,38 +15,43 @@ interface PortfolioFiltersBarProps {
   currentParams: Record<string, string | undefined>;
 }
 
-const WORK_KIND_OPTIONS = [
-  { value: '', label: 'All types' },
-  { value: 'project', label: 'Projects' },
-  { value: 'job', label: 'Jobs' },
-  { value: 'work_order', label: 'Work Orders' },
-];
-
-const STATUS_OPTIONS = [
-  { value: '', label: 'All statuses' },
-  { value: 'active', label: 'Active' },
-  { value: 'on_hold', label: 'On Hold' },
-  { value: 'completed', label: 'Completed' },
-];
-
 /**
  * Client-side filter bar for the portfolio page.
  * All filter changes update URL search params (server-driven, no client state).
  */
 export function PortfolioFiltersBar({ currentParams }: PortfolioFiltersBarProps) {
+  const t = useTranslations('tasks.portfolio.filters');
   const router = useRouter();
   const pathname = usePathname();
+
+  const workKindOptions = useMemo(
+    () => [
+      { value: '', label: t('allTypes') },
+      { value: 'project', label: t('workKindOptions.project') },
+      { value: 'job', label: t('workKindOptions.job') },
+      { value: 'work_order', label: t('workKindOptions.work_order') },
+    ],
+    [t],
+  );
+
+  const statusOptions = useMemo(
+    () => [
+      { value: '', label: t('allStatuses') },
+      { value: 'active', label: t('statusOptions.active') },
+      { value: 'on_hold', label: t('statusOptions.on_hold') },
+      { value: 'completed', label: t('statusOptions.completed') },
+    ],
+    [t],
+  );
 
   const updateParam = useCallback(
     (key: string, value: string | undefined) => {
       const params = new URLSearchParams();
-      // Copy existing params
       for (const [k, v] of Object.entries(currentParams)) {
         if (v && k !== key && k !== 'page') {
           params.set(k, v);
         }
       }
-      // Set or clear the new param
       if (value) params.set(key, value);
       router.push(`${pathname}?${params.toString()}`);
     },
@@ -54,16 +60,16 @@ export function PortfolioFiltersBar({ currentParams }: PortfolioFiltersBarProps)
 
   const activeFilterTags: FilterParam[] = [];
   if (currentParams.workKind) {
-    activeFilterTags.push({ key: 'workKind', label: 'Type', value: currentParams.workKind });
+    activeFilterTags.push({ key: 'workKind', label: t('workKind'), value: currentParams.workKind });
   }
   if (currentParams.status) {
-    activeFilterTags.push({ key: 'status', label: 'Status', value: currentParams.status });
+    activeFilterTags.push({ key: 'status', label: t('status'), value: currentParams.status });
   }
   if (currentParams.has_overdue === 'true') {
-    activeFilterTags.push({ key: 'has_overdue', label: 'Has overdue tasks', value: 'true' });
+    activeFilterTags.push({ key: 'has_overdue', label: t('hasOverdue'), value: 'true' });
   }
   if (currentParams.stale === 'true') {
-    activeFilterTags.push({ key: 'stale', label: 'Stale (14d+)', value: 'true' });
+    activeFilterTags.push({ key: 'stale', label: t('staleShort'), value: 'true' });
   }
 
   const clearAll = () => {
@@ -72,35 +78,32 @@ export function PortfolioFiltersBar({ currentParams }: PortfolioFiltersBarProps)
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      {/* Work kind filter */}
       <select
         value={currentParams.workKind ?? ''}
         onChange={(e) => updateParam('workKind', e.target.value || undefined)}
         className="rounded-md border border-[var(--pf-border)] bg-[var(--pf-bg-surface)] px-3 py-1.5 text-sm text-[var(--pf-text-primary)] shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--pf-ring)]"
-        aria-label="Filter by work kind"
+        aria-label={t('aria.workKind')}
       >
-        {WORK_KIND_OPTIONS.map((opt) => (
+        {workKindOptions.map((opt) => (
           <option key={opt.value} value={opt.value}>
             {opt.label}
           </option>
         ))}
       </select>
 
-      {/* Status filter */}
       <select
         value={currentParams.status ?? ''}
         onChange={(e) => updateParam('status', e.target.value || undefined)}
         className="rounded-md border border-[var(--pf-border)] bg-[var(--pf-bg-surface)] px-3 py-1.5 text-sm text-[var(--pf-text-primary)] shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--pf-ring)]"
-        aria-label="Filter by status"
+        aria-label={t('aria.status')}
       >
-        {STATUS_OPTIONS.map((opt) => (
+        {statusOptions.map((opt) => (
           <option key={opt.value} value={opt.value}>
             {opt.label}
           </option>
         ))}
       </select>
 
-      {/* Toggle: has overdue */}
       <button
         type="button"
         onClick={() =>
@@ -113,10 +116,9 @@ export function PortfolioFiltersBar({ currentParams }: PortfolioFiltersBarProps)
             : 'border-[var(--pf-border)] bg-[var(--pf-bg-surface)] text-[var(--pf-text-secondary)] hover:bg-[var(--pf-bg-secondary)]',
         )}
       >
-        Has overdue
+        {t('hasOverdue')}
       </button>
 
-      {/* Toggle: stale */}
       <button
         type="button"
         onClick={() =>
@@ -129,17 +131,16 @@ export function PortfolioFiltersBar({ currentParams }: PortfolioFiltersBarProps)
             : 'border-[var(--pf-border)] bg-[var(--pf-bg-surface)] text-[var(--pf-text-secondary)] hover:bg-[var(--pf-bg-secondary)]',
         )}
       >
-        Stale (14d+)
+        {t('staleShort')}
       </button>
 
-      {/* Clear all — only shown when filters are active */}
       {activeFilterTags.length > 0 && (
         <button
           type="button"
           onClick={clearAll}
           className="ml-1 rounded-md border border-[var(--pf-border)] px-3 py-1.5 text-sm text-[var(--pf-text-muted)] hover:bg-[var(--pf-bg-secondary)]"
         >
-          Clear all
+          {t('clearAll')}
         </button>
       )}
     </div>

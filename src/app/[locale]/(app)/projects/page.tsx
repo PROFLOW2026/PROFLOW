@@ -8,7 +8,15 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/ui/pressable';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { listProjectsForOrg } from '@/modules/projects';
+import { countProjectsForOrg, listProjectsForOrg } from '@/modules/projects';
+import { QueryPagination } from '@/components/ui/query-pagination';
+import {
+  ORG_LIST_PAGE_SIZE,
+  orgListOffset,
+  orgListPageCount,
+  parseOrgListPage,
+  resolveOrgListPage,
+} from '@/shared/db/org-list-pagination';
 import { listCloseoutStatusesForProjects } from '@/modules/closeout';
 import { titleWithDocumentNumber } from '@/modules/tenancy';
 import { SavedListViewsBar } from '@/modules/tenancy/ui/saved-list-views-bar';
@@ -41,6 +49,7 @@ interface ProjectsPageProps {
   searchParams: Promise<{
     q?: string;
     facet?: string;
+    page?: string;
     /** @deprecated Prefer `facet`; kept for old bookmarks. */
     status?: string;
   }>;
@@ -70,29 +79,41 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
   ]);
   const facet = resolveFacet(params);
   const resolved = resolveWorkListFacet(facet);
+  const requestedPage = parseOrgListPage(params.page);
+  const listFilters = {
+    search: params.q,
+    workKind: 'project' as const,
+    status: resolved.status,
+    awaitingPayment: resolved.awaitingPayment,
+    includeArchived: resolved.includeArchived,
+  };
 
   const canCreate = shell?.permissions.has(PERMISSIONS.PROJECTS_CREATE) ?? false;
   const filtersActive = hasActiveFilters({ q: params.q, facet });
 
-  const { projects, readyCloseoutIds } = await withOrgContext(async (context) => {
-    const listed = await listProjectsForOrg(context, {
-      search: params.q,
-      workKind: 'project',
-      status: resolved.status,
-      awaitingPayment: resolved.awaitingPayment,
-      includeArchived: resolved.includeArchived,
+  const { projects, readyCloseoutIds, totalCount, currentPage, totalPages } =
+    await withOrgContext(async (context) => {
+      const total = await countProjectsForOrg(context, listFilters);
+      const page = resolveOrgListPage(total, requestedPage);
+      const listed = await listProjectsForOrg(context, {
+        ...listFilters,
+        limit: ORG_LIST_PAGE_SIZE,
+        offset: orgListOffset(page),
+      });
+      const statuses = await listCloseoutStatusesForProjects(
+        context,
+        listed.map((project) => project.id),
+      ).catch(() => []);
+      return {
+        projects: listed,
+        readyCloseoutIds: new Set(
+          statuses.filter((row) => row.status === 'ready').map((row) => row.projectId),
+        ),
+        totalCount: total,
+        currentPage: page,
+        totalPages: orgListPageCount(total),
+      };
     });
-    const statuses = await listCloseoutStatusesForProjects(
-      context,
-      listed.map((project) => project.id),
-    ).catch(() => []);
-    return {
-      projects: listed,
-      readyCloseoutIds: new Set(
-        statuses.filter((row) => row.status === 'ready').map((row) => row.projectId),
-      ),
-    };
-  });
 
   const noResultsQuery = params.q?.trim() || t(`list.facets.${facet}`);
 
@@ -120,8 +141,8 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
       <ProjectListFilters initialQuery={params.q ?? ''} initialFacet={facet} namespace="projects" />
       <SavedListViewsBar
         listKey="projects"
-        searchParams={{ q: params.q, facet, status: params.status }}
-        keys={['q', 'facet']}
+        searchParams={{ q: params.q, facet, status: params.status, page: params.page }}
+        keys={['q', 'facet', 'page']}
       />
 
       {projects.length === 0 ? (
@@ -243,6 +264,19 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
           }}
         />
       )}
+
+      <QueryPagination
+        basePath="/projects"
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalCount={totalCount}
+        pageSize={ORG_LIST_PAGE_SIZE}
+        currentParams={{ q: params.q, facet, status: params.status }}
+        previousLabel={tCommon('actions.previous')}
+        nextLabel={tCommon('actions.next')}
+        pageOfLabel={tCommon('pagination.pageOf', { page: currentPage, pageCount: totalPages })}
+        navLabel={tCommon('pagination.navLabel')}
+      />
     </div>
   );
 }

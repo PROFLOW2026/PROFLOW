@@ -3,6 +3,7 @@ export { createClient } from './application/create-client';
 export { updateClient } from './application/update-client';
 export { archiveClient, restoreClient } from './application/archive-client';
 export {
+  countClientsForOrg,
   listClientsForOrg,
   getClientById,
   listContactsForClient,

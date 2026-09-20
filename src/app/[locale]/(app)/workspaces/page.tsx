@@ -70,7 +70,7 @@ export default async function WorkspacesPage() {
                       tone={VISIBILITY_TONE[ws.workspaceVisibility] ?? 'neutral'}
                       className="text-xs"
                     >
-                      {ws.workspaceType.replace('_', ' ')}
+                      {t(`workspaces.type.${ws.workspaceType}` as 'workspaces.type.project_linked')}
                     </Badge>
                   </div>
                 </div>

@@ -91,6 +91,7 @@
     "navLabel": "Pagination",
     "showing": "Showing {from}-{to} of {total}",
     "page": "Page {page}",
+    "pageOf": "Page {page} of {pageCount}",
     "rowsPerPage": "Rows per page"
   },
   "time": {

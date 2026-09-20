@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { Link } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
 
@@ -31,6 +32,7 @@ export function PortfolioPagination({
   totalCount,
   currentParams,
 }: PortfolioPaginationProps) {
+  const t = useTranslations('tasks.portfolio.pagination');
   const start = (currentPage - 1) * perPage + 1;
   const end = Math.min(currentPage * perPage, totalCount);
 
@@ -54,10 +56,9 @@ export function PortfolioPagination({
   return (
     <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-between">
       <p className="text-sm text-[var(--pf-text-secondary)]">
-        Showing {start}–{end} of {totalCount}
+        {t('showing', { start, end, total: totalCount })}
       </p>
-      <nav aria-label="Pagination" className="flex items-center gap-1">
-        {/* Prev */}
+      <nav aria-label={t('label')} className="flex items-center gap-1">
         {currentPage > 1 ? (
           <Link
             href={makePageHref(currentParams, currentPage - 1)}
@@ -71,7 +72,6 @@ export function PortfolioPagination({
           </span>
         )}
 
-        {/* Page numbers */}
         {pages.map((p, i) =>
           p === '...' ? (
             <span key={`ellipsis-${i}`} className="px-2 py-1.5 text-sm text-[var(--pf-text-muted)]">
@@ -94,7 +94,6 @@ export function PortfolioPagination({
           ),
         )}
 
-        {/* Next */}
         {currentPage < totalPages ? (
           <Link
             href={makePageHref(currentParams, currentPage + 1)}

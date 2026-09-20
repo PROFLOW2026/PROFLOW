@@ -91,6 +91,7 @@
     "navLabel": "التصفح",
     "showing": "عرض {from}-{to} من {total}",
     "page": "صفحة {page}",
+    "pageOf": "صفحة {page} من {pageCount}",
     "rowsPerPage": "صفوف في الصفحة"
   },
   "time": {

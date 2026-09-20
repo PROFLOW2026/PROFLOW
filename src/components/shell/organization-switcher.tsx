@@ -19,12 +19,15 @@ export interface OrganizationSwitcherProps {
   organizationName: string;
   organizations: { id: string; name: string }[];
   activeOrganizationId: string;
+  /** Sidebar header: plain company name; multi-org adds a subtle chevron only. */
+  variant?: 'default' | 'sidebar';
 }
 
 export function OrganizationSwitcher({
   organizationName,
   organizations,
   activeOrganizationId,
+  variant = 'default',
 }: OrganizationSwitcherProps) {
   const t = useTranslations('nav');
   const [pending, startTransition] = React.useTransition();
@@ -38,14 +41,19 @@ export function OrganizationSwitcher({
   }, [activeOrganizationId, organizationName]);
 
   const canSwitch = organizations.length > 1;
+  const isSidebar = variant === 'sidebar';
 
   if (!canSwitch) {
     return (
-      <span className="flex min-w-0 max-w-[min(100%,18rem)] items-center gap-2">
-        <Building2 className="size-4 shrink-0 text-[var(--pf-text-muted)]" aria-hidden />
-        <span className="truncate text-sm font-semibold" title={organizationName}>
-          {organizationName}
-        </span>
+      <span
+        className={cn(
+          'min-w-0 truncate text-sm font-semibold',
+          !isSidebar && 'flex max-w-[min(100%,18rem)] items-center gap-2',
+        )}
+        title={organizationName}
+      >
+        {!isSidebar ? <Building2 className="size-4 shrink-0 text-[var(--pf-text-muted)]" aria-hidden /> : null}
+        {organizationName}
       </span>
     );
   }
@@ -62,15 +70,32 @@ export function OrganizationSwitcher({
           aria-label={t('organizationSwitcher.current', { name: organizationName })}
           className={cn(
             pressableClassName,
-            'flex min-h-9 max-w-[min(100%,20rem)] items-center gap-1.5 rounded-lg border border-[var(--pf-border-default)]',
-            'bg-[var(--pf-bg-surface)] px-2.5 py-1.5 text-start',
-            'hover:bg-[var(--pf-bg-muted)] active:bg-[var(--pf-action-subtle-active)]',
+            isSidebar
+              ? 'flex min-w-0 items-center gap-1 rounded-md px-0 py-0.5 text-start hover:bg-[var(--pf-bg-muted)] active:bg-[var(--pf-action-subtle-active)]'
+              : cn(
+                  'flex min-h-9 max-w-[min(100%,20rem)] items-center gap-1.5 rounded-lg border border-[var(--pf-border-default)]',
+                  'bg-[var(--pf-bg-surface)] px-2.5 py-1.5 text-start',
+                  'hover:bg-[var(--pf-bg-muted)] active:bg-[var(--pf-action-subtle-active)]',
+                ),
             'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',
           )}
         >
-          <Building2 className="size-4 shrink-0 text-[var(--pf-text-muted)]" aria-hidden />
-          <span className="min-w-0 flex-1 truncate text-sm font-semibold">{organizationName}</span>
-          <ChevronDown className="size-4 shrink-0 text-[var(--pf-text-muted)]" aria-hidden />
+          {!isSidebar ? (
+            <Building2 className="size-4 shrink-0 text-[var(--pf-text-muted)]" aria-hidden />
+          ) : null}
+          <span
+            className="min-w-0 flex-1 truncate text-sm font-semibold"
+            title={organizationName}
+          >
+            {organizationName}
+          </span>
+          <ChevronDown
+            className={cn(
+              'shrink-0 text-[var(--pf-text-muted)]',
+              isSidebar ? 'size-3.5' : 'size-4',
+            )}
+            aria-hidden
+          />
         </DropdownMenuTrigger>
 
         <DropdownMenuContent align="start" className="min-w-64 max-w-[min(100vw-2rem,24rem)]">

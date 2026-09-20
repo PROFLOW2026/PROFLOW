@@ -8,7 +8,15 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/ui/pressable';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { jobListMissingProfitKind, listJobsForOrg } from '@/modules/projects';
+import { countProjectsForOrg, jobListMissingProfitKind, listJobsForOrg } from '@/modules/projects';
+import { QueryPagination } from '@/components/ui/query-pagination';
+import {
+  ORG_LIST_PAGE_SIZE,
+  orgListOffset,
+  orgListPageCount,
+  parseOrgListPage,
+  resolveOrgListPage,
+} from '@/shared/db/org-list-pagination';
 import { titleWithDocumentNumber } from '@/modules/tenancy';
 import { SavedListViewsBar } from '@/modules/tenancy/ui/saved-list-views-bar';
 import {
@@ -38,6 +46,7 @@ interface JobsPageProps {
   searchParams: Promise<{
     q?: string;
     facet?: string;
+    page?: string;
     /** @deprecated Prefer `facet`. */
     status?: string;
   }>;
@@ -69,15 +78,29 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
 
   const canCreate = shell?.permissions.has(PERMISSIONS.PROJECTS_CREATE) ?? false;
   const filtersActive = hasActiveFilters({ q: params.q, facet });
+  const requestedPage = parseOrgListPage(params.page);
+  const listFilters = {
+    search: params.q,
+    status: resolved.status,
+    awaitingPayment: resolved.awaitingPayment,
+    includeArchived: resolved.includeArchived,
+  };
 
-  const jobs = await withOrgContext((context) =>
-    listJobsForOrg(context, {
-      search: params.q,
-      status: resolved.status,
-      awaitingPayment: resolved.awaitingPayment,
-      includeArchived: resolved.includeArchived,
-    }),
-  );
+  const { jobs, totalCount, currentPage, totalPages } = await withOrgContext(async (context) => {
+    const total = await countProjectsForOrg(context, { ...listFilters, workKind: 'job' });
+    const page = resolveOrgListPage(total, requestedPage);
+    const rows = await listJobsForOrg(context, {
+      ...listFilters,
+      limit: ORG_LIST_PAGE_SIZE,
+      offset: orgListOffset(page),
+    });
+    return {
+      jobs: rows,
+      totalCount: total,
+      currentPage: page,
+      totalPages: orgListPageCount(total),
+    };
+  });
 
   const noResultsQuery = params.q?.trim() || t(`list.facets.${facet}`);
 
@@ -100,8 +123,8 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
       <JobListFilters initialQuery={params.q ?? ''} initialFacet={facet} />
       <SavedListViewsBar
         listKey="jobs"
-        searchParams={{ q: params.q, facet, status: params.status }}
-        keys={['q', 'facet']}
+        searchParams={{ q: params.q, facet, status: params.status, page: params.page }}
+        keys={['q', 'facet', 'page']}
       />
 
       {jobs.length === 0 ? (
@@ -270,6 +293,19 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
           }}
         />
       )}
+
+      <QueryPagination
+        basePath="/jobs"
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalCount={totalCount}
+        pageSize={ORG_LIST_PAGE_SIZE}
+        currentParams={{ q: params.q, facet, status: params.status }}
+        previousLabel={tCommon('actions.previous')}
+        nextLabel={tCommon('actions.next')}
+        pageOfLabel={tCommon('pagination.pageOf', { page: currentPage, pageCount: totalPages })}
+        navLabel={tCommon('pagination.navLabel')}
+      />
     </div>
   );
 }

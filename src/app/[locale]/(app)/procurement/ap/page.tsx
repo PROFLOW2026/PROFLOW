@@ -9,7 +9,20 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { listApBillsForOrg, sumApPaymentsMadeInDateRange, type ApBillStatus } from '@/modules/ap';
+import {
+  countApBillsForOrg,
+  listApBillsForOrg,
+  sumApPaymentsMadeInDateRange,
+  type ApBillStatus,
+} from '@/modules/ap';
+import { QueryPagination } from '@/components/ui/query-pagination';
+import {
+  ORG_LIST_PAGE_SIZE,
+  orgListOffset,
+  orgListPageCount,
+  parseOrgListPage,
+  resolveOrgListPage,
+} from '@/shared/db/org-list-pagination';
 import { money } from '@/shared/money/money';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
@@ -57,18 +70,26 @@ export default async function ApBillsPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const t = await getTranslations('ap');
-  const tRecurring = await getTranslations('recurringDrafts');
-  const locale = await getLocale();
-  const params = await searchParams;
+  const [t, tCommon, tRecurring, locale, params] = await Promise.all([
+    getTranslations('ap'),
+    getTranslations('common'),
+    getTranslations('recurringDrafts'),
+    getLocale(),
+    searchParams,
+  ]);
 
   const fromDate = typeof params.fromDate === 'string' && params.fromDate ? params.fromDate : undefined;
   const toDate = typeof params.toDate === 'string' && params.toDate ? params.toDate : undefined;
   const paymentFrom =
     typeof params.paymentFrom === 'string' && params.paymentFrom ? params.paymentFrom : undefined;
   const paymentTo = typeof params.paymentTo === 'string' && params.paymentTo ? params.paymentTo : undefined;
+  const requestedPage = parseOrgListPage(
+    typeof params.page === 'string' ? params.page : undefined,
+  );
+  const billListFilters = { fromDate, toDate };
 
-  const { bills, canManage, canRead, canReadReports, today, paidInPeriod, currency } = await withOrgContext(async (context) => {
+  const { bills, canManage, canRead, canReadReports, today, paidInPeriod, currency, totalCount, currentPage, totalPages } =
+    await withOrgContext(async (context) => {
     const orgCurrency = context.organization.baseCurrency ?? 'ILS';
     const paidAmount =
       hasPermission(context, PERMISSIONS.AP_READ) && paymentFrom && paymentTo
@@ -80,16 +101,26 @@ export default async function ApBillsPage({
             paymentTo as BusinessDate,
           )
         : null;
+    const canReadAp = hasPermission(context, PERMISSIONS.AP_READ);
+    const total = canReadAp ? await countApBillsForOrg(context, billListFilters) : 0;
+    const page = resolveOrgListPage(total, requestedPage);
     return {
-      bills: hasPermission(context, PERMISSIONS.AP_READ)
-        ? await listApBillsForOrg(context, { fromDate, toDate })
+      bills: canReadAp
+        ? await listApBillsForOrg(context, {
+            ...billListFilters,
+            limit: ORG_LIST_PAGE_SIZE,
+            offset: orgListOffset(page),
+          })
         : [],
       canManage: hasPermission(context, PERMISSIONS.AP_MANAGE),
-      canRead: hasPermission(context, PERMISSIONS.AP_READ),
+      canRead: canReadAp,
       canReadReports: hasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ),
       today: todayInTimeZone(context.organization.timezone),
       paidInPeriod: paidAmount,
       currency: orgCurrency,
+      totalCount: total,
+      currentPage: page,
+      totalPages: orgListPageCount(total),
     };
   });
 
@@ -136,7 +167,11 @@ export default async function ApBillsPage({
       />
 
       <ProcurementSectionNav active="ap" />
-      <SavedListViewsBar listKey="ap_bills" searchParams={params} keys={['fromDate', 'toDate', 'paymentFrom', 'paymentTo']} />
+      <SavedListViewsBar
+        listKey="ap_bills"
+        searchParams={params}
+        keys={['fromDate', 'toDate', 'paymentFrom', 'paymentTo', 'page']}
+      />
 
       {/* Bill-date filter for the list; payment-date filter for cash paid. */}
       <form method="get" className="flex flex-col gap-3">
@@ -332,6 +367,24 @@ export default async function ApBillsPage({
           )}
         />
       )}
+
+      <QueryPagination
+        basePath="/procurement/ap"
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalCount={totalCount}
+        pageSize={ORG_LIST_PAGE_SIZE}
+        currentParams={{
+          fromDate,
+          toDate,
+          paymentFrom,
+          paymentTo,
+        }}
+        previousLabel={tCommon('actions.previous')}
+        nextLabel={tCommon('actions.next')}
+        pageOfLabel={tCommon('pagination.pageOf', { page: currentPage, pageCount: totalPages })}
+        navLabel={tCommon('pagination.navLabel')}
+      />
     </div>
   );
 }

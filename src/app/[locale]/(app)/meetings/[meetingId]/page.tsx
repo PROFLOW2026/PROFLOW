@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import {
   Calendar,
@@ -18,11 +19,13 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { Link } from '@/shared/i18n/navigation';
 
 export async function generateMetadata({
-  params: _params,
+  params,
 }: {
   params: Promise<{ locale: string; meetingId: string }>;
 }): Promise<Metadata> {
-  return { title: 'Meeting Detail' };
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'tasks' });
+  return { title: t('meetings.detailPageTitle') };
 }
 
 interface MeetingDetailPageProps {
@@ -37,6 +40,10 @@ export default async function MeetingDetailPage({ params }: MeetingDetailPagePro
   }
 
   const { meetingId } = await params;
+  const [t, tCommon] = await Promise.all([
+    getTranslations('tasks'),
+    getTranslations('common'),
+  ]);
   const canManage = shell.permissions.has(PERMISSIONS.MEETINGS_MANAGE);
   const canCreateTasks = shell.permissions.has(PERMISSIONS.TASKS_CREATE);
 
@@ -53,7 +60,7 @@ export default async function MeetingDetailPage({ params }: MeetingDetailPagePro
       <nav className="flex items-center gap-1 text-sm text-[var(--pf-text-secondary)]">
         <Link href="/meetings" className="flex items-center gap-1 hover:text-[var(--pf-text-primary)]">
           <ChevronLeft className="h-3 w-3" aria-hidden />
-          Meetings
+          {t('meetings.pageTitle')}
         </Link>
         <span>/</span>
         <span className="text-[var(--pf-text-primary)]">{detail.title}</span>
@@ -90,7 +97,7 @@ export default async function MeetingDetailPage({ params }: MeetingDetailPagePro
           canManage ? (
             <Button asChild variant="secondary">
               <Link href={`/meetings/${meetingId}/edit`} prefetch={false}>
-                Edit Meeting
+                {t('meetings.detail.editMeeting')}
               </Link>
             </Button>
           ) : undefined
@@ -100,7 +107,7 @@ export default async function MeetingDetailPage({ params }: MeetingDetailPagePro
       {/* ── Notes ── */}
       {detail.notes && (
         <section className="rounded-lg border border-[var(--pf-border)] p-4">
-          <h2 className="mb-2 text-sm font-semibold">Notes</h2>
+          <h2 className="mb-2 text-sm font-semibold">{t('meetings.fields.notes')}</h2>
           <p className="whitespace-pre-wrap text-sm text-[var(--pf-text-secondary)]">{detail.notes}</p>
         </section>
       )}
@@ -110,18 +117,18 @@ export default async function MeetingDetailPage({ params }: MeetingDetailPagePro
         <div className="mb-3 flex items-center justify-between gap-2">
           <h2 className="flex items-center gap-2 text-sm font-semibold">
             <Users className="h-4 w-4 text-[var(--pf-text-secondary)]" aria-hidden />
-            Attendees ({detail.attendees.length})
+            {t('meetings.fields.attendees')} ({detail.attendees.length})
           </h2>
           {canManage && (
             <Button asChild size="sm" variant="ghost">
               <Link href={`/meetings/${meetingId}/attendees/add`} prefetch={false}>
-                + Add Attendee
+                {t('meetings.detail.addAttendee')}
               </Link>
             </Button>
           )}
         </div>
         {detail.attendees.length === 0 ? (
-          <p className="text-sm text-[var(--pf-text-muted)]">No attendees recorded.</p>
+          <p className="text-sm text-[var(--pf-text-muted)]">{t('meetings.detail.noAttendees')}</p>
         ) : (
           <div className="flex flex-wrap gap-2">
             {detail.attendees.map((attendee) => (
@@ -129,15 +136,15 @@ export default async function MeetingDetailPage({ params }: MeetingDetailPagePro
                 key={attendee.id}
                 className="inline-flex items-center rounded-full bg-[var(--pf-badge-bg)] px-3 py-1 text-sm"
               >
-                {attendee.resolvedName ?? attendee.displayName ?? 'Unknown'}
+                {attendee.resolvedName ?? attendee.displayName ?? t('meetings.attendee.unknown')}
                 {attendee.orgMemberId && (
-                  <span className="ml-1 text-xs text-[var(--pf-text-muted)]">(member)</span>
+                  <span className="ml-1 text-xs text-[var(--pf-text-muted)]">{t('meetings.attendee.member')}</span>
                 )}
                 {attendee.employeeId && (
-                  <span className="ml-1 text-xs text-[var(--pf-text-muted)]">(employee)</span>
+                  <span className="ml-1 text-xs text-[var(--pf-text-muted)]">{t('meetings.attendee.employee')}</span>
                 )}
                 {attendee.contactId && (
-                  <span className="ml-1 text-xs text-[var(--pf-text-muted)]">(contact)</span>
+                  <span className="ml-1 text-xs text-[var(--pf-text-muted)]">{t('meetings.attendee.contact')}</span>
                 )}
               </span>
             ))}
@@ -154,26 +161,33 @@ export default async function MeetingDetailPage({ params }: MeetingDetailPagePro
           <div className="flex items-center gap-2">
             <h2 className="flex items-center gap-2 text-sm font-semibold">
               <CheckSquare className="h-4 w-4 text-[var(--pf-text-secondary)]" aria-hidden />
-              Decisions ({detail.decisions.length})
+              {t('meetings.detail.decisionsHeading', { count: detail.decisions.length })}
             </h2>
             <span className="rounded bg-blue-50 px-1.5 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-950 dark:text-blue-300">
-              Canonical Records — not tasks
+              {t('meetings.detail.canonicalBadge')}
             </span>
           </div>
           {canManage && (
             <Button asChild size="sm" variant="ghost">
               <Link href={`/meetings/${meetingId}/decisions/new`} prefetch={false}>
-                + Add Decision
+                {t('meetings.detail.addDecision')}
               </Link>
             </Button>
           )}
         </div>
         {detail.decisions.length === 0 ? (
-          <p className="text-sm text-[var(--pf-text-muted)]">No decisions recorded yet.</p>
+          <p className="text-sm text-[var(--pf-text-muted)]">{t('meetings.detail.noDecisionsYet')}</p>
         ) : (
           <ul className="space-y-3">
             {detail.decisions.map((decision) => (
-              <DecisionItem key={decision.id} decision={decision} meetingId={meetingId} canManage={canManage} />
+              <DecisionItem
+                key={decision.id}
+                decision={decision}
+                meetingId={meetingId}
+                canManage={canManage}
+                editLabel={tCommon('actions.edit')}
+                decidedAtLabel={(date) => t('meetings.detail.decidedAt', { date })}
+              />
             ))}
           </ul>
         )}
@@ -184,18 +198,18 @@ export default async function MeetingDetailPage({ params }: MeetingDetailPagePro
         <div className="mb-3 flex items-center justify-between gap-2">
           <h2 className="flex items-center gap-2 text-sm font-semibold">
             <ClipboardList className="h-4 w-4 text-[var(--pf-text-secondary)]" aria-hidden />
-            Action Items ({detail.actionItems.length})
+            {t('meetings.detail.actionItemsHeading', { count: detail.actionItems.length })}
           </h2>
           {canManage && (
             <Button asChild size="sm" variant="ghost">
               <Link href={`/meetings/${meetingId}/action-items/new`} prefetch={false}>
-                + Add Action Item
+                {t('meetings.detail.addActionItem')}
               </Link>
             </Button>
           )}
         </div>
         {detail.actionItems.length === 0 ? (
-          <p className="text-sm text-[var(--pf-text-muted)]">No action items recorded yet.</p>
+          <p className="text-sm text-[var(--pf-text-muted)]">{t('meetings.detail.noActionItemsYet')}</p>
         ) : (
           <ul className="space-y-2">
             {detail.actionItems.map((item) => (
@@ -205,6 +219,8 @@ export default async function MeetingDetailPage({ params }: MeetingDetailPagePro
                 meetingId={meetingId}
                 canManage={canManage}
                 canCreateTasks={canCreateTasks}
+                t={t}
+                editLabel={tCommon('actions.edit')}
               />
             ))}
           </ul>
@@ -220,10 +236,14 @@ function DecisionItem({
   decision,
   meetingId,
   canManage,
+  editLabel,
+  decidedAtLabel,
 }: {
   decision: MeetingDecision;
   meetingId: string;
   canManage: boolean;
+  editLabel: string;
+  decidedAtLabel: (date: string) => string;
 }) {
   return (
     <li className="rounded-md border border-[var(--pf-border)] p-3">
@@ -237,14 +257,14 @@ function DecisionItem({
           )}
           {decision.decidedAt && (
             <p className="mt-1 text-xs text-[var(--pf-text-muted)]">
-              Decided {formatShortDate(decision.decidedAt)}
+              {decidedAtLabel(formatShortDate(decision.decidedAt))}
             </p>
           )}
         </div>
         {canManage && (
           <Button asChild size="sm" variant="ghost">
             <Link href={`/meetings/${meetingId}/decisions/${decision.id}/edit`} prefetch={false}>
-              Edit
+              {editLabel}
             </Link>
           </Button>
         )}
@@ -258,11 +278,15 @@ function ActionItemRow({
   meetingId,
   canManage,
   canCreateTasks,
+  t,
+  editLabel,
 }: {
   item: MeetingActionItem;
   meetingId: string;
   canManage: boolean;
   canCreateTasks: boolean;
+  t: Awaited<ReturnType<typeof getTranslations<'tasks'>>>;
+  editLabel: string;
 }) {
   const statusColors: Record<string, string> = {
     open: 'bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300',
@@ -276,7 +300,7 @@ function ActionItemRow({
       <span
         className={`mt-0.5 shrink-0 rounded px-1.5 py-0.5 text-xs font-medium capitalize ${statusColors[item.status] ?? statusColors.open}`}
       >
-        {item.status}
+        {t(`meetings.actionItem.status.${item.status}`)}
       </span>
 
       <div className="min-w-0 flex-1">
@@ -284,7 +308,9 @@ function ActionItemRow({
           {item.title}
         </p>
         {item.dueDate && (
-          <p className="mt-0.5 text-xs text-[var(--pf-text-secondary)]">Due: {item.dueDate}</p>
+          <p className="mt-0.5 text-xs text-[var(--pf-text-secondary)]">
+            {t('meetings.detail.due', { date: item.dueDate })}
+          </p>
         )}
 
         {/* Linked task */}
@@ -294,7 +320,7 @@ function ActionItemRow({
             className="mt-1 inline-flex items-center gap-1 text-xs text-[var(--pf-accent)] hover:underline"
           >
             <ExternalLink className="h-3 w-3" aria-hidden />
-            View linked task
+            {t('meetings.detail.viewLinkedTask')}
           </Link>
         )}
       </div>
@@ -306,9 +332,9 @@ function ActionItemRow({
             <Link
               href={`/meetings/${meetingId}/action-items/${item.id}/create-task`}
               prefetch={false}
-              title="Create task from this action item"
+              title={t('meetings.detail.createTaskTooltip')}
             >
-              + Task
+              {t('meetings.detail.taskButton')}
             </Link>
           </Button>
         )}
@@ -318,7 +344,7 @@ function ActionItemRow({
               href={`/meetings/${meetingId}/action-items/${item.id}/edit`}
               prefetch={false}
             >
-              Edit
+              {editLabel}
             </Link>
           </Button>
         )}

@@ -91,6 +91,7 @@
     "navLabel": "דפדוף",
     "showing": "מוצג {from}-{to} מתוך {total}",
     "page": "עמוד {page}",
+    "pageOf": "עמוד {page} מתוך {pageCount}",
     "rowsPerPage": "שורות בעמוד"
   },
   "time": {

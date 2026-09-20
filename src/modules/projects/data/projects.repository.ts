@@ -166,16 +166,11 @@ export async function findProjectById(
   return row ? mapProject(row) : null;
 }
 
-export async function listProjects(
-  db: DbExecutor,
+function buildProjectListConditions(
   organizationId: string,
-  filters: ProjectListFilters = {},
+  filters: ProjectListFilters,
   options: { restrictToProjectIds?: string[] | null } = {},
-): Promise<ProjectListItem[]> {
-  if (options.restrictToProjectIds && options.restrictToProjectIds.length === 0) {
-    return [];
-  }
-
+) {
   const conditions = [eq(projects.organizationId, organizationId)];
   if (options.restrictToProjectIds) {
     conditions.push(inArray(projects.id, options.restrictToProjectIds));
@@ -242,6 +237,40 @@ export async function listProjects(
       )!,
     );
   }
+
+  return conditions;
+}
+
+export async function countProjects(
+  db: DbExecutor,
+  organizationId: string,
+  filters: ProjectListFilters = {},
+  options: { restrictToProjectIds?: string[] | null } = {},
+): Promise<number> {
+  if (options.restrictToProjectIds && options.restrictToProjectIds.length === 0) {
+    return 0;
+  }
+
+  const conditions = buildProjectListConditions(organizationId, filters, options);
+  const [row] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(projects)
+    .where(and(...conditions));
+
+  return row?.count ?? 0;
+}
+
+export async function listProjects(
+  db: DbExecutor,
+  organizationId: string,
+  filters: ProjectListFilters = {},
+  options: { restrictToProjectIds?: string[] | null } = {},
+): Promise<ProjectListItem[]> {
+  if (options.restrictToProjectIds && options.restrictToProjectIds.length === 0) {
+    return [];
+  }
+
+  const conditions = buildProjectListConditions(organizationId, filters, options);
 
   const sortBy = filters.sortBy ?? 'updated_at';
   const sortDir = filters.sortDirection ?? 'desc';

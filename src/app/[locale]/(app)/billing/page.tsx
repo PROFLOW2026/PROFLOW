@@ -32,6 +32,14 @@ import { ReportsEntryLink } from '@/modules/financials/ui/reports-entry-link';
 import { isZeroMoney, money, type MoneyValue } from '@/shared/money';
 import { sumCollectionsInDateRange } from '@/modules/financials';
 import type { UnallocatedPaymentRow } from '@/modules/billing/domain/types';
+import { QueryPagination } from '@/components/ui/query-pagination';
+import {
+  ORG_LIST_PAGE_SIZE,
+  orgListOffset,
+  orgListPageCount,
+  parseOrgListPage,
+  resolveOrgListPage,
+} from '@/shared/db/org-list-pagination';
 
 export async function generateMetadata({
   params,
@@ -57,12 +65,14 @@ export default async function BillingListPage({
     toDate?: string;
     paymentFrom?: string;
     paymentTo?: string;
+    page?: string;
   }>;
 }) {
-  const [{ locale }, search, t, tRecurring] = await Promise.all([
+  const [{ locale }, search, t, tCommon, tRecurring] = await Promise.all([
     params,
     searchParams,
     getTranslations('billing'),
+    getTranslations('common'),
     getTranslations('recurringDrafts').then((tr) => tr('navFromSource')),
   ]);
   const rawFilter = search.filter;
@@ -75,11 +85,21 @@ export default async function BillingListPage({
     typeof search.paymentFrom === 'string' && search.paymentFrom ? search.paymentFrom : undefined;
   const paymentTo =
     typeof search.paymentTo === 'string' && search.paymentTo ? search.paymentTo : undefined;
+  const requestedPage = parseOrgListPage(search.page);
 
-  function billingListHref(nextFilter: BillingListFilter, nextContractId?: string) {
+  function billingListHref(
+    nextFilter: BillingListFilter,
+    nextContractId?: string,
+    nextPage?: number,
+  ) {
     const params = new URLSearchParams();
     if (nextFilter !== 'all') params.set('filter', nextFilter);
     if (nextContractId) params.set('contractId', nextContractId);
+    if (fromDate) params.set('fromDate', fromDate);
+    if (toDate) params.set('toDate', toDate);
+    if (paymentFrom) params.set('paymentFrom', paymentFrom);
+    if (paymentTo) params.set('paymentTo', paymentTo);
+    if (nextPage && nextPage > 1) params.set('page', String(nextPage));
     const qs = params.toString();
     return qs ? `/billing?${qs}` : '/billing';
   }
@@ -98,6 +118,9 @@ export default async function BillingListPage({
     collectionsInPeriod,
     unallocatedReceipts,
     today,
+    totalCount,
+    currentPage,
+    totalPages,
   } =
     await withOrgContext(
     async (context) => {
@@ -117,6 +140,9 @@ export default async function BillingListPage({
           unallocatedReceipts: null as null | MoneyValue,
           orgCurrency: context.organization.baseCurrency ?? 'ILS',
           today: todayInTimeZone(context.organization.timezone),
+          totalCount: 0,
+          currentPage: 1,
+          totalPages: 0,
         };
       }
 
@@ -145,15 +171,17 @@ export default async function BillingListPage({
         currency,
         asOf,
       );
-      const listed = allRecords
+      const filtered = allRecords
         .filter((record) => matchesListFilter(filter, record.collectionStatus))
         .filter((record) => (contractId ? record.contractId === contractId : true))
         .filter((record) => {
           if (fromDate && record.issueDate < fromDate) return false;
           if (toDate && record.issueDate > toDate) return false;
           return true;
-        })
-        .slice(0, 100);
+        });
+      const total = filtered.length;
+      const page = resolveOrgListPage(total, requestedPage);
+      const listed = filtered.slice(orgListOffset(page), orgListOffset(page) + ORG_LIST_PAGE_SIZE);
 
       const contractOptions = [
         ...new Map(
@@ -183,6 +211,9 @@ export default async function BillingListPage({
         unallocatedReceipts: money(unallocatedRaw, currency),
         orgCurrency: currency,
         today: asOf,
+        totalCount: total,
+        currentPage: page,
+        totalPages: orgListPageCount(total),
       };
     },
   );
@@ -359,7 +390,31 @@ export default async function BillingListPage({
               }
             />
           ) : (
-            <BillingListTable records={records} locale={locale} />
+            <>
+              <BillingListTable records={records} locale={locale} />
+              <QueryPagination
+                basePath="/billing"
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalCount={totalCount}
+                pageSize={ORG_LIST_PAGE_SIZE}
+                currentParams={{
+                  filter: filter !== 'all' ? filter : undefined,
+                  contractId,
+                  fromDate,
+                  toDate,
+                  paymentFrom,
+                  paymentTo,
+                }}
+                previousLabel={tCommon('actions.previous')}
+                nextLabel={tCommon('actions.next')}
+                pageOfLabel={tCommon('pagination.pageOf', {
+                  page: currentPage,
+                  pageCount: totalPages,
+                })}
+                navLabel={tCommon('pagination.navLabel')}
+              />
+            </>
           )}
         </TabsContent>
       </Tabs>

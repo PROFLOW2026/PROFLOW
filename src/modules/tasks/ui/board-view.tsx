@@ -49,6 +49,14 @@ interface Column {
   tasks: TaskCardData[];
 }
 
+interface GroupLabels {
+  uncategorized: string;
+  unassigned: string;
+  unknown: string;
+  noLabel: string;
+  priority: (value: TaskPriority) => string;
+}
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -67,7 +75,7 @@ function applyFilters(tasks: TaskCardData[], filters: FilterState): TaskCardData
   });
 }
 
-function groupByBucket(tasks: TaskCardData[], buckets: Bucket[]): Column[] {
+function groupByBucket(tasks: TaskCardData[], buckets: Bucket[], labels: GroupLabels): Column[] {
   const byBucket = new Map<string | null, TaskCardData[]>();
   for (const t of tasks) {
     const key = t.bucketId ?? '__none__';
@@ -88,18 +96,18 @@ function groupByBucket(tasks: TaskCardData[], buckets: Bucket[]): Column[] {
   // Uncategorized tasks
   const uncat = byBucket.get('__none__') ?? [];
   if (uncat.length > 0) {
-    cols.push({ key: '__none__', label: 'Uncategorized', tasks: uncat });
+    cols.push({ key: '__none__', label: labels.uncategorized, tasks: uncat });
   }
 
   return cols;
 }
 
-function groupByAssignee(tasks: TaskCardData[]): Column[] {
+function groupByAssignee(tasks: TaskCardData[], labels: GroupLabels): Column[] {
   const byAssignee = new Map<string, { name: string; tasks: TaskCardData[] }>();
   for (const t of tasks) {
     if (t.assignees.length === 0) {
       const entry = byAssignee.get('__unassigned__') ?? {
-        name: 'Unassigned',
+        name: labels.unassigned,
         tasks: [],
       };
       entry.tasks.push(t);
@@ -107,7 +115,7 @@ function groupByAssignee(tasks: TaskCardData[]): Column[] {
     } else {
       for (const a of t.assignees) {
         const entry = byAssignee.get(a.id) ?? {
-          name: a.displayName ?? 'Unknown',
+          name: a.displayName ?? labels.unknown,
           tasks: [],
         };
         entry.tasks.push(t);
@@ -122,7 +130,7 @@ function groupByAssignee(tasks: TaskCardData[]): Column[] {
   }));
 }
 
-function groupByPriority(tasks: TaskCardData[]): Column[] {
+function groupByPriority(tasks: TaskCardData[], labels: GroupLabels): Column[] {
   const ORDER: TaskPriority[] = ['urgent', 'high', 'medium', 'low'];
   const byPriority = new Map<TaskPriority, TaskCardData[]>();
   for (const t of tasks) {
@@ -132,12 +140,12 @@ function groupByPriority(tasks: TaskCardData[]): Column[] {
   }
   return ORDER.filter((p) => byPriority.has(p)).map((p) => ({
     key: p,
-    label: p.charAt(0).toUpperCase() + p.slice(1),
+    label: labels.priority(p),
     tasks: byPriority.get(p) ?? [],
   }));
 }
 
-function groupByLabel(tasks: TaskCardData[]): Column[] {
+function groupByLabel(tasks: TaskCardData[], labels: GroupLabels): Column[] {
   const byLabel = new Map<string, TaskCardData[]>();
   for (const t of tasks) {
     if (t.labels.length === 0) {
@@ -154,7 +162,7 @@ function groupByLabel(tasks: TaskCardData[]): Column[] {
   }
   return Array.from(byLabel.entries()).map(([key, tasks]) => ({
     key,
-    label: key === '__none__' ? 'No Label' : key,
+    label: key === '__none__' ? labels.noLabel : key,
     tasks,
   }));
 }
@@ -479,14 +487,22 @@ export function BoardView({
 
   const filtered = applyFilters(tasks, filters);
 
+  const groupLabels: GroupLabels = {
+    uncategorized: t('uncategorized'),
+    unassigned: t('unassigned'),
+    unknown: t('unknown'),
+    noLabel: t('noLabel'),
+    priority: (value) => t(`priority.${value}`),
+  };
+
   const columns: Column[] =
     groupBy === 'bucket'
-      ? groupByBucket(filtered, buckets)
+      ? groupByBucket(filtered, buckets, groupLabels)
       : groupBy === 'assignee'
-        ? groupByAssignee(filtered)
+        ? groupByAssignee(filtered, groupLabels)
         : groupBy === 'priority'
-          ? groupByPriority(filtered)
-          : groupByLabel(filtered);
+          ? groupByPriority(filtered, groupLabels)
+          : groupByLabel(filtered, groupLabels);
 
   const hasActiveFilters = Object.values(filters).some(Boolean);
 

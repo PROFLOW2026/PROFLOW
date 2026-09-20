@@ -15,9 +15,11 @@
 
 import { AlertCircle, ArrowDown, ArrowUp, Calendar, ChevronsUpDown } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/ui/empty-state';
+import { coerceBusinessDate, type BusinessDate } from '@/shared/dates/dates';
+import { formatBusinessDateMonthDay } from '@/shared/dates/format';
 import { cn } from '@/shared/ui/cn';
 import type { TaskCardData, TaskPriority, TaskStatus } from './_task-api-stub';
 
@@ -59,6 +61,20 @@ const PRIORITY_TONE: Record<TaskPriority, 'neutral' | 'info' | 'warning' | 'dang
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+function parseDueBusinessDate(dueDate: string): BusinessDate {
+  return coerceBusinessDate(dueDate);
+}
+
+function formatDueDateLabel(dueDate: string, locale: string): string {
+  return formatBusinessDateMonthDay(parseDueBusinessDate(dueDate), locale);
+}
+
+function isTaskOverdue(dueDate: string, status: TaskStatus): boolean {
+  if (status === 'done' || status === 'cancelled') return false;
+  const today = new Date().toISOString().slice(0, 10);
+  return dueDate < today;
+}
 
 function sortTasks(tasks: TaskCardData[], field: SortField, dir: SortDir): TaskCardData[] {
   return [...tasks].sort((a, b) => {
@@ -135,14 +151,15 @@ function SortableHeader({
 function TaskMobileCard({
   task,
   onOpen,
+  locale,
 }: {
   task: TaskCardData;
   onOpen: (id: string) => void;
+  locale: string;
 }) {
   const t = useTranslations('tasks');
-  const due = task.dueDate ? new Date(task.dueDate) : null;
-  const isOverdue =
-    due != null && due < new Date() && task.status !== 'done' && task.status !== 'cancelled';
+  const dueDate = task.dueDate;
+  const isOverdue = dueDate != null && isTaskOverdue(dueDate, task.status);
 
   return (
     <button
@@ -166,7 +183,7 @@ function TaskMobileCard({
         {task.projectName && (
           <span className="text-xs text-[var(--pf-text-muted)]">{task.projectName}</span>
         )}
-        {due && (
+        {dueDate && (
           <span
             className={cn(
               'inline-flex items-center gap-0.5 text-xs',
@@ -176,7 +193,7 @@ function TaskMobileCard({
             )}
           >
             <Calendar aria-hidden className="size-3" />
-            {due.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+            {formatDueDateLabel(dueDate, locale)}
           </span>
         )}
       </div>
@@ -209,6 +226,7 @@ export function TaskListView({
   className,
 }: TaskListViewProps) {
   const t = useTranslations('tasks');
+  const locale = useLocale();
   const [sortField, setSortField] = useState<SortField>('dueDate');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
 
@@ -294,12 +312,8 @@ export function TaskListView({
           </thead>
           <tbody className="divide-y divide-[var(--pf-border-default)]">
             {sorted.map((task) => {
-              const due = task.dueDate ? new Date(task.dueDate) : null;
-              const isOverdue =
-                due != null &&
-                due < new Date() &&
-                task.status !== 'done' &&
-                task.status !== 'cancelled';
+              const dueDate = task.dueDate;
+              const isOverdue = dueDate != null && isTaskOverdue(dueDate, task.status);
 
               return (
                 <tr
@@ -370,7 +384,7 @@ export function TaskListView({
                     )}
                   </td>
                   <td className="px-4 py-2.5">
-                    {due ? (
+                    {dueDate ? (
                       <span
                         className={cn(
                           'inline-flex items-center gap-1 text-xs',
@@ -380,10 +394,7 @@ export function TaskListView({
                         )}
                       >
                         <Calendar aria-hidden className="size-3" />
-                        {due.toLocaleDateString(undefined, {
-                          month: 'short',
-                          day: 'numeric',
-                        })}
+                        {formatDueDateLabel(dueDate, locale)}
                       </span>
                     ) : (
                       <span className="text-xs text-[var(--pf-text-muted)]">—</span>
@@ -399,7 +410,7 @@ export function TaskListView({
       {/* Mobile card stack */}
       <div className="flex flex-col gap-2 md:hidden">
         {sorted.map((task) => (
-          <TaskMobileCard key={task.id} task={task} onOpen={onOpenTask} />
+          <TaskMobileCard key={task.id} task={task} onOpen={onOpenTask} locale={locale} />
         ))}
       </div>
     </div>

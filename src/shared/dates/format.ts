@@ -31,6 +31,13 @@ export function formatBusinessDate(date: BusinessDate, locale: string, style: Da
   return getFormatter(locale, options).format(value);
 }
 
+/** Compact month + day chip for task due dates (SSR-safe with explicit locale). */
+export function formatBusinessDateMonthDay(date: BusinessDate, locale: string): string {
+  const [year, month, day] = date.split('-').map(Number) as [number, number, number];
+  const value = new Date(Date.UTC(year, month - 1, day));
+  return getFormatter(locale, { month: 'short', day: 'numeric', timeZone: 'UTC' }).format(value);
+}
+
 /** Instants are rendered in the organisation's time zone. */
 export function formatInstant(
   value: Date | string,

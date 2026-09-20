@@ -38,6 +38,7 @@ import {
   insertApBillLines,
   listAcceptedMatchAmountsForBill,
   listApBillLines,
+  countApBills,
   listApBills,
   listApPoMatchesForBill,
   listReservedMatchAmountsForBill,
@@ -220,6 +221,14 @@ export async function listApBillsForOrg(
 ): Promise<ApBillListItem[]> {
   assertPermission(context, PERMISSIONS.AP_READ);
   return listApBills(context.db, context.organizationId, options);
+}
+
+export async function countApBillsForOrg(
+  context: OrgContext,
+  options: { readonly fromDate?: string; readonly toDate?: string } = {},
+): Promise<number> {
+  assertPermission(context, PERMISSIONS.AP_READ);
+  return countApBills(context.db, context.organizationId, options);
 }
 
 export async function getApBillDetail(

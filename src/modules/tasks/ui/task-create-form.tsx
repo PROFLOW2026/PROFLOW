@@ -16,7 +16,7 @@
  */
 
 import { CalendarIcon, Flag, Tag, User, X } from 'lucide-react';
-import { useState, useTransition } from 'react';
+import { useMemo, useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/shared/ui/cn';
@@ -70,21 +70,16 @@ export interface TaskCreateFormProps {
   className?: string;
 }
 
-const STATUS_OPTIONS: { value: TaskStatus; label: string }[] = [
-  { value: 'todo', label: 'To Do' },
-  { value: 'in_progress', label: 'In Progress' },
-  { value: 'in_review', label: 'In Review' },
-  { value: 'blocked', label: 'Blocked' },
-  { value: 'done', label: 'Done' },
-  { value: 'cancelled', label: 'Cancelled' },
+const STATUS_VALUES: TaskStatus[] = [
+  'todo',
+  'in_progress',
+  'in_review',
+  'blocked',
+  'done',
+  'cancelled',
 ];
 
-const PRIORITY_OPTIONS: { value: TaskPriority; label: string }[] = [
-  { value: 'urgent', label: 'Urgent' },
-  { value: 'high', label: 'High' },
-  { value: 'medium', label: 'Medium' },
-  { value: 'low', label: 'Low' },
-];
+const PRIORITY_VALUES: TaskPriority[] = ['urgent', 'high', 'medium', 'low'];
 
 const _PRIORITY_TONE: Record<TaskPriority, 'neutral' | 'info' | 'warning' | 'danger'> = {
   none: 'neutral',
@@ -143,6 +138,15 @@ export function TaskCreateForm({
   const t = useTranslations('tasks');
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+
+  const statusOptions = useMemo(
+    () => STATUS_VALUES.map((value) => ({ value, label: t(`status.${value}`) })),
+    [t],
+  );
+  const priorityOptions = useMemo(
+    () => PRIORITY_VALUES.map((value) => ({ value, label: t(`priority.${value}`) })),
+    [t],
+  );
 
   // Form state
   const [title, setTitle] = useState('');
@@ -273,7 +277,7 @@ export function TaskCreateForm({
             onChange={(e) => setStatus(e.target.value as TaskStatus)}
             className={inputCls}
           >
-            {STATUS_OPTIONS.map((o) => (
+            {statusOptions.map((o) => (
               <option key={o.value} value={o.value}>
                 {o.label}
               </option>
@@ -293,7 +297,7 @@ export function TaskCreateForm({
             onChange={(e) => setPriority(e.target.value as TaskPriority)}
             className={inputCls}
           >
-            {PRIORITY_OPTIONS.map((o) => (
+            {priorityOptions.map((o) => (
               <option key={o.value} value={o.value}>
                 {o.label}
               </option>

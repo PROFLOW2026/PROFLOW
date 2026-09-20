@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { Badge } from '@/components/ui/badge';
@@ -21,7 +22,15 @@ import { textNavLinkClassName } from '@/components/ui/pressable';
 import { PortfolioPagination } from './portfolio-pagination';
 import { PortfolioFiltersBar } from './portfolio-filters-bar';
 
-export const metadata: Metadata = { title: 'Portfolio' };
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'tasks' });
+  return { title: t('portfolio.pageTitle') };
+}
 
 // ---------------------------------------------------------------------------
 // URL search params schema
@@ -58,15 +67,33 @@ function resolveStatusBadgeTone(status: string) {
   return 'neutral' as const;
 }
 
-function formatLastActivity(date: Date | null): string {
+type LastActivityTranslator = (
+  key:
+    | 'portfolio.lastActivity.today'
+    | 'portfolio.lastActivity.yesterday'
+    | 'portfolio.lastActivity.daysAgo'
+    | 'portfolio.lastActivity.weeksAgo'
+    | 'portfolio.lastActivity.monthsAgo',
+  values?: { count: number },
+) => string;
+
+function formatLastActivity(date: Date | null, t: LastActivityTranslator): string {
   if (!date) return '—';
   const diffMs = Date.now() - date.getTime();
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-  if (diffDays === 0) return 'Today';
-  if (diffDays === 1) return 'Yesterday';
-  if (diffDays < 7) return `${diffDays}d ago`;
-  if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
-  return `${Math.floor(diffDays / 30)}mo ago`;
+  if (diffDays === 0) return t('portfolio.lastActivity.today');
+  if (diffDays === 1) return t('portfolio.lastActivity.yesterday');
+  if (diffDays < 7) return t('portfolio.lastActivity.daysAgo', { count: diffDays });
+  if (diffDays < 30) return t('portfolio.lastActivity.weeksAgo', { count: Math.floor(diffDays / 7) });
+  return t('portfolio.lastActivity.monthsAgo', { count: Math.floor(diffDays / 30) });
+}
+
+function portfolioStatusKey(status: string): `portfolio.status.${string}` {
+  return `portfolio.status.${status}` as `portfolio.status.${string}`;
+}
+
+function portfolioWorkKindKey(workKind: string): `portfolio.filters.workKindOptions.${string}` {
+  return `portfolio.filters.workKindOptions.${workKind}` as `portfolio.filters.workKindOptions.${string}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -74,7 +101,11 @@ function formatLastActivity(date: Date | null): string {
 // ---------------------------------------------------------------------------
 
 export default async function PortfolioPage({ searchParams }: PortfolioPageProps) {
-  const [params, shell] = await Promise.all([searchParams, getShellContext()]);
+  const [params, shell, t] = await Promise.all([
+    searchParams,
+    getShellContext(),
+    getTranslations('tasks'),
+  ]);
 
   const canRead = shell?.permissions.has(PERMISSIONS.PORTFOLIO_READ) ?? false;
 
@@ -113,10 +144,10 @@ export default async function PortfolioPage({ searchParams }: PortfolioPageProps
   if (!canRead) {
     return (
       <div className="flex min-w-0 max-w-full flex-col gap-6">
-        <PageHeader title="Portfolio" />
+        <PageHeader title={t('portfolio.pageTitle')} />
         <EmptyState
-          title="Access restricted"
-          description="You need the portfolio.read permission to view the portfolio dashboard."
+          title={t('portfolio.accessDenied.title')}
+          description={t('portfolio.accessDenied.description')}
         />
       </div>
     );
@@ -125,8 +156,8 @@ export default async function PortfolioPage({ searchParams }: PortfolioPageProps
   return (
     <div className="flex min-w-0 max-w-full flex-col gap-6">
       <PageHeader
-        title="Portfolio"
-        description={`${totalCount} project${totalCount === 1 ? '' : 's'}`}
+        title={t('portfolio.pageTitle')}
+        description={t('portfolio.description.projectCount', { count: totalCount })}
       />
 
       {/* Filter bar */}
@@ -151,21 +182,21 @@ export default async function PortfolioPage({ searchParams }: PortfolioPageProps
       {rows.length === 0 ? (
         hasFilters ? (
           <EmptyState
-            title="No projects match the current filters"
-            description="Try adjusting your filters to see more results."
+            title={t('portfolio.emptyFiltered.title')}
+            description={t('portfolio.emptyFiltered.description')}
             action={
               <Link
                 href="/portfolio"
                 className="rounded-md bg-[var(--pf-bg-secondary)] px-4 py-2 text-sm font-medium hover:bg-[var(--pf-bg-secondary-hover)]"
               >
-                Clear filters
+                {t('filter.clear')}
               </Link>
             }
           />
         ) : (
           <EmptyState
-            title="No projects in portfolio"
-            description="Create a project to see it tracked here."
+            title={t('portfolio.emptyDefault.title')}
+            description={t('portfolio.emptyDefault.description')}
           />
         )
       ) : (
@@ -175,16 +206,16 @@ export default async function PortfolioPage({ searchParams }: PortfolioPageProps
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Project</TableHead>
-                  <TableHead>Client</TableHead>
-                  <TableHead>Stage</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead numeric>Open</TableHead>
-                  <TableHead numeric>Overdue</TableHead>
-                  <TableHead numeric>Blocked</TableHead>
-                  <TableHead>Next Milestone</TableHead>
-                  <TableHead>Last Activity</TableHead>
-                  <TableHead>Health</TableHead>
+                  <TableHead>{t('portfolio.columns.project')}</TableHead>
+                  <TableHead>{t('portfolio.columns.client')}</TableHead>
+                  <TableHead>{t('portfolio.columns.stage')}</TableHead>
+                  <TableHead>{t('portfolio.columns.status')}</TableHead>
+                  <TableHead numeric>{t('portfolio.columns.openTasks')}</TableHead>
+                  <TableHead numeric>{t('portfolio.columns.overdueTasks')}</TableHead>
+                  <TableHead numeric>{t('portfolio.columns.blockedTasks')}</TableHead>
+                  <TableHead>{t('portfolio.columns.nextMilestone')}</TableHead>
+                  <TableHead>{t('portfolio.columns.lastActivity')}</TableHead>
+                  <TableHead>{t('portfolio.columns.health')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -200,7 +231,7 @@ export default async function PortfolioPage({ searchParams }: PortfolioPageProps
                       </Link>
                       {row.workKind !== 'project' && (
                         <span className="ml-2 rounded bg-[var(--pf-bg-tertiary)] px-1 py-0.5 text-[10px] text-[var(--pf-text-muted)] uppercase tracking-wide">
-                          {row.workKind}
+                          {t(portfolioWorkKindKey(row.workKind))}
                         </span>
                       )}
                     </TableCell>
@@ -218,7 +249,7 @@ export default async function PortfolioPage({ searchParams }: PortfolioPageProps
                     {/* Status */}
                     <TableCell>
                       <Badge tone={resolveStatusBadgeTone(row.status)}>
-                        {row.status.replace('_', ' ')}
+                        {t(portfolioStatusKey(row.status))}
                       </Badge>
                     </TableCell>
 
@@ -258,7 +289,7 @@ export default async function PortfolioPage({ searchParams }: PortfolioPageProps
 
                     {/* Last activity */}
                     <TableCell className="text-sm text-[var(--pf-text-secondary)]">
-                      {formatLastActivity(row.lastActivityAt)}
+                      {formatLastActivity(row.lastActivityAt, t)}
                     </TableCell>
 
                     {/* Health dot */}
@@ -267,6 +298,10 @@ export default async function PortfolioPage({ searchParams }: PortfolioPageProps
                         <HealthDot
                           level={row.healthLevel}
                           score={row.healthScore}
+                          label={t('portfolio.healthScoreTitle', {
+                            score: row.healthScore,
+                            formula: t('portfolio.health.formula'),
+                          })}
                         />
                         <span className="text-xs text-[var(--pf-text-muted)]">
                           {row.healthScore}
@@ -292,7 +327,7 @@ export default async function PortfolioPage({ searchParams }: PortfolioPageProps
 
           {/* Per-page selector */}
           <div className="flex items-center justify-end gap-2 text-sm text-[var(--pf-text-secondary)]">
-            <span>Rows per page:</span>
+            <span>{t('portfolio.pagination.rowsPerPage')}</span>
             {PER_PAGE_OPTIONS.map((opt) => {
               const qs = new URLSearchParams();
               for (const [k, v] of Object.entries(params)) {

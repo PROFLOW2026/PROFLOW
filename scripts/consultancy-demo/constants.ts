@@ -22,7 +22,9 @@ export const SEED_MARKER = 'PF-CONSULTANCY-DEMO';
 export const SEED_SETTING_KEY = 'consultancy_demo_seed_version';
 export const SEED_VERSION = '2026-09-20-v2';
 export const CORRECTION_SETTING_KEY = 'consultancy_demo_correction_version';
-export const CORRECTION_VERSION = '2026-09-20-data-pass-v1';
+export const CORRECTION_VERSION = '2026-09-20-final-pass-v1';
+export const FINANCIAL_REALISM_SETTING_KEY = 'consultancy_demo_financial_realism_version';
+export const FINANCIAL_REALISM_VERSION = '2026-09-20-v2';
 
 export const BUSINESS_START = '2026-01-01';
 export const HISTORY_END = '2026-09-20';

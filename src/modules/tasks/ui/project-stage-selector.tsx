@@ -1,6 +1,7 @@
 'use client';
 
 import { useActionState, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Alert } from '@/components/ui/alert';
 import { transitionProjectStageAction, type StageTransitionActionState } from './project-stage-actions';
 
@@ -31,6 +32,7 @@ export function ProjectStageSelector({
   stages,
   canTransition,
 }: ProjectStageSelectorProps) {
+  const t = useTranslations('tasks');
   const [open, setOpen] = useState(false);
   const [selectedStageId, setSelectedStageId] = useState<string | null>(null);
   const [state, action, pending] = useActionState(transitionProjectStageAction, {} as StageTransitionActionState);
@@ -68,7 +70,7 @@ export function ProjectStageSelector({
             className="h-2 w-2 rounded-full"
             style={{ backgroundColor: currentStage?.color ?? '#64748b' }}
           />
-          {currentStage?.name ?? 'No stage'}
+          {currentStage?.name ?? t('stages.noStage')}
           {canTransition && (
             <svg
               className="h-3 w-3 opacity-60"

@@ -13,15 +13,22 @@ import {
 } from './constants.ts';
 import type { RunPhase, SeedMaps, SeedStats, SeedTarget } from './context.ts';
 import type { ProjectSpec } from './generate-specs.ts';
+import { applyFinancialRealism, type FinancialRealismReport } from './phase-financial-realism.ts';
+import { applyConsultancyFinalPass, type FinalPassReport } from './phase-final-pass.ts';
+import { applyTaskDistributionCorrections } from './phase-task-corrections.ts';
 import { STAGE_NAMES } from './constants.ts';
-
-const TASK_DESC_RE = new RegExp(`${SEED_MARKER.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}:task:(\\d+):(\\d+)`);
-const ADMIN_DESC_RE = new RegExp(`${SEED_MARKER.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}:admin:(\\d+)`);
+import { ADMIN_DESC_RE, TASK_DESC_RE } from './task-distribution.ts';
 
 export interface CorrectionReport {
   tasksBefore: number;
   tasksAfter: number;
   tasksDeleted: number;
+  tasksDone: number;
+  tasksOpen: number;
+  tasksOverdue: number;
+  tasksDueThisWeek: number;
+  tasksWithEffort: number;
+  technicalEmployeeProjectLinks: number;
   expensesAfter: number;
   apBillsPosted: number;
   apPayments: number;
@@ -30,6 +37,8 @@ export interface CorrectionReport {
   blocked: number;
   waitingProjects: number;
   storageTenantIsolation: 'PASS' | 'FAIL';
+  financialRealism: FinancialRealismReport | null;
+  finalPass: FinalPassReport;
 }
 
 async function deleteTasksByIds(
@@ -64,6 +73,12 @@ export async function applyConsultancyCorrections(
     tasksBefore: 0,
     tasksAfter: 0,
     tasksDeleted: 0,
+    tasksDone: 0,
+    tasksOpen: 0,
+    tasksOverdue: 0,
+    tasksDueThisWeek: 0,
+    tasksWithEffort: 0,
+    technicalEmployeeProjectLinks: 0,
     expensesAfter: 0,
     apBillsPosted: 0,
     apPayments: 0,
@@ -72,6 +87,20 @@ export async function applyConsultancyCorrections(
     blocked: 0,
     waitingProjects: 0,
     storageTenantIsolation: 'PASS',
+    financialRealism: null,
+    finalPass: {
+      apPaymentsAdded: 0,
+      expensePaymentsAdded: 0,
+      payrollPaymentsAdded: 0,
+      apSkippedFuture: 0,
+      expenseSkippedFuture: 0,
+      payrollSkippedFuture: 0,
+      timeSubmitted: 0,
+      timeApproved: 0,
+      timeSkipped: 0,
+      pendingHoursAfter: 0,
+      activityDatesAdjusted: 0,
+    },
   };
 
   const taskCountByDoc = new Map(projectSpecs.map((spec) => [spec.docNum, spec.taskCount]));
@@ -160,6 +189,15 @@ export async function applyConsultancyCorrections(
     report.tasksAfter = report.tasksBefore - report.tasksDeleted;
     stats.notes.push(`Task cleanup: ${report.tasksBefore} → ${report.tasksAfter} (deleted ${report.tasksDeleted})`);
   });
+
+  const taskDistribution = await applyTaskDistributionCorrections(
+    runPhase,
+    target,
+    stats,
+    maps,
+    projectSpecs,
+  );
+  Object.assign(report, taskDistribution);
 
   await runPhase('expand office expenses', target.organizationId, target.userId, async (context) => {
     const { createExpense, finalizeExpense } = await import('../../src/modules/expenses/index.ts');
@@ -495,42 +533,12 @@ export async function applyConsultancyCorrections(
   });
 
   await runPhase('operational live states', target.organizationId, target.userId, async (context) => {
-    const { tasks, changeRequests, projectMilestones } = await import('@drizzle/schema');
-    const { and, eq, like, inArray, sql } = await import('drizzle-orm');
+    const { changeRequests, projectMilestones } = await import('@drizzle/schema');
+    const { and, eq, like } = await import('drizzle-orm');
     const { submitChangeRequestForApproval } = await import('../../src/modules/commercial/index.ts');
-
-    const openTasks = await context.db
-      .select({ id: tasks.id, status: tasks.status })
-      .from(tasks)
-      .where(
-        and(
-          eq(tasks.organizationId, target.organizationId),
-          like(tasks.description, `%${SEED_MARKER}:task:%`),
-          inArray(tasks.status, ['todo', 'in_progress', 'in_review']),
-        ),
-      )
-      .limit(80);
 
     const today = HISTORY_END;
     const weekOut = '2026-09-26';
-
-    for (const [idx, task] of openTasks.slice(0, 5).entries()) {
-      await context.db
-        .update(tasks)
-        .set({ dueDate: today, status: idx % 2 === 0 ? 'todo' : 'in_progress' })
-        .where(eq(tasks.id, task.id));
-    }
-
-    for (const task of openTasks.slice(10, 16)) {
-      await context.db.update(tasks).set({ status: 'blocked' }).where(eq(tasks.id, task.id));
-    }
-
-    for (const task of openTasks.slice(20, 28)) {
-      await context.db
-        .update(tasks)
-        .set({ dueDate: weekOut, status: 'in_review' })
-        .where(eq(tasks.id, task.id));
-    }
 
     const pendingChanges = await context.db
       .select({ id: changeRequests.id, status: changeRequests.status })
@@ -565,31 +573,6 @@ export async function applyConsultancyCorrections(
         .set({ targetDate: idx < 4 ? today : weekOut })
         .where(eq(projectMilestones.id, ms.id));
     }
-
-    report.dueToday = await context.db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(tasks)
-      .where(
-        and(
-          eq(tasks.organizationId, target.organizationId),
-          like(tasks.description, `%${SEED_MARKER}%`),
-          eq(tasks.dueDate, today),
-          inArray(tasks.status, ['todo', 'in_progress', 'in_review', 'blocked']),
-        ),
-      )
-      .then((rows) => rows[0]?.count ?? 0);
-
-    report.blocked = await context.db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(tasks)
-      .where(
-        and(
-          eq(tasks.organizationId, target.organizationId),
-          like(tasks.description, `%${SEED_MARKER}%`),
-          eq(tasks.status, 'blocked'),
-        ),
-      )
-      .then((rows) => rows[0]?.count ?? 0);
   });
 
   await runPhase('waiting project stages', target.organizationId, target.userId, async (context) => {
@@ -698,6 +681,16 @@ export async function applyConsultancyCorrections(
 
     stats.notes.push(`Storage isolation: ${report.storageTenantIsolation}`);
   });
+
+  report.financialRealism = await applyFinancialRealism(
+    runPhase,
+    target,
+    stats,
+    maps,
+    projectSpecs,
+  );
+
+  report.finalPass = await applyConsultancyFinalPass(runPhase, target, stats);
 
   await runPhase('store correction version', target.organizationId, target.userId, async (context) => {
     const { upsertOrganizationSettingValue } = await import(

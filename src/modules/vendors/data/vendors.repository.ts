@@ -200,11 +200,7 @@ export async function findVendorByNormalizedName(
   return match ? mapVendor(match) : null;
 }
 
-export async function listVendors(
-  db: DbExecutor,
-  organizationId: string,
-  filters: VendorListFilters = {},
-): Promise<VendorListItem[]> {
+function buildVendorListConditions(organizationId: string, filters: VendorListFilters) {
   const conditions = [eq(vendors.organizationId, organizationId)];
 
   if (!filters.includeArchived) {
@@ -235,6 +231,30 @@ export async function listVendors(
     const term = `%${filters.search.trim()}%`;
     conditions.push(or(ilike(vendors.name, term), ilike(vendors.notes, term))!);
   }
+
+  return conditions;
+}
+
+export async function countVendors(
+  db: DbExecutor,
+  organizationId: string,
+  filters: VendorListFilters = {},
+): Promise<number> {
+  const conditions = buildVendorListConditions(organizationId, filters);
+  const [row] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(vendors)
+    .where(and(...conditions));
+
+  return row?.count ?? 0;
+}
+
+export async function listVendors(
+  db: DbExecutor,
+  organizationId: string,
+  filters: VendorListFilters = {},
+): Promise<VendorListItem[]> {
+  const conditions = buildVendorListConditions(organizationId, filters);
 
   const rows = await db
     .select({

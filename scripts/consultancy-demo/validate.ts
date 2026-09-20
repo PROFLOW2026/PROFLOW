@@ -91,7 +91,10 @@ export async function validateConsultancyDemo(
       approvedChangeCount,
     ] = await Promise.all([
       countFor(clients, like(clients.notes, markerLike)),
-      countFor(projects, like(projects.description, markerLike)),
+      countFor(
+        projects,
+        sql`(${projects.description} like ${markerLike} or ${projects.documentNumber} like 'CNS-27%')`,
+      ),
       countFor(employees, like(employees.notes, markerLike)),
       countFor(workspaces),
       countFor(tasks, like(tasks.description, markerLike)),

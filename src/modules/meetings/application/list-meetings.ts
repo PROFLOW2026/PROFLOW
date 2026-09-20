@@ -1,7 +1,7 @@
 import type { OrgContext } from '@/shared/auth/context';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import { listMeetings } from '../data/meetings.repository';
+import { countMeetings, listMeetings } from '../data/meetings.repository';
 import type { MeetingListFilters, MeetingListItem } from '../domain/types';
 
 /**
@@ -15,6 +15,14 @@ export async function listMeetingsForOrg(
   assertPermission(context, PERMISSIONS.MEETINGS_READ);
 
   return listMeetings(context.db, context.organizationId, filters);
+}
+
+export async function countMeetingsForOrg(
+  context: OrgContext,
+  filters: MeetingListFilters = {},
+): Promise<number> {
+  assertPermission(context, PERMISSIONS.MEETINGS_READ);
+  return countMeetings(context.db, context.organizationId, filters);
 }
 
 /**

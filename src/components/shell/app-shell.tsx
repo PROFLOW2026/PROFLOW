@@ -56,6 +56,14 @@ export async function AppShell({ children }: { children: ReactNode }) {
           items={items}
           organizationName={shell.organization.name}
           organizationLogoUrl={organizationLogoUrl}
+          organizationSwitcher={{
+            organizationName: shell.organization.name,
+            organizations: shell.memberships.map((membership) => ({
+              id: membership.id,
+              name: membership.name,
+            })),
+            activeOrganizationId: shell.organizationId,
+          }}
           footer={experiencePreviewSwitcher}
         />
 
@@ -72,14 +80,6 @@ export async function AppShell({ children }: { children: ReactNode }) {
           <TopBar
             organizationName={shell.organization.name}
             organizationLogoUrl={organizationLogoUrl}
-            organizationSwitcher={{
-              organizationName: shell.organization.name,
-              organizations: shell.memberships.map((membership) => ({
-                id: membership.id,
-                name: membership.name,
-              })),
-              activeOrganizationId: shell.organizationId,
-            }}
             notifications={
               shell.permissions.has(PERMISSIONS.NOTIFICATIONS_READ) ? (
                 <NotificationBellLoader />

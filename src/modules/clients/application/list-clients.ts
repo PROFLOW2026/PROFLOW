@@ -14,6 +14,7 @@ import {
   getClientDetail,
   listClientContacts,
   listClientContactsForClients,
+  countClients,
   listClients,
 } from '../data/clients.repository';
 import { listClientsSchema } from '../validation/schemas';
@@ -32,6 +33,22 @@ export async function listClientsForOrg(
   }
 
   return listClients(context.db, context.organizationId, parsed.data);
+}
+
+export async function countClientsForOrg(
+  context: OrgContext,
+  rawFilters: ClientListFilters = {},
+): Promise<number> {
+  assertPermission(context, PERMISSIONS.CLIENTS_READ);
+
+  const parsed = listClientsSchema.safeParse(rawFilters);
+  if (!parsed.success) {
+    throw new ValidationError(
+      parsed.error.issues.map((issue) => ({ path: issue.path.join('.'), message: issue.message })),
+    );
+  }
+
+  return countClients(context.db, context.organizationId, parsed.data);
 }
 
 export async function getClientById(

@@ -7,7 +7,15 @@ import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { listVendorsForOrg } from '@/modules/vendors';
+import { countVendorsForOrg, listVendorsForOrg } from '@/modules/vendors';
+import { QueryPagination } from '@/components/ui/query-pagination';
+import {
+  ORG_LIST_PAGE_SIZE,
+  orgListOffset,
+  orgListPageCount,
+  parseOrgListPage,
+  resolveOrgListPage,
+} from '@/shared/db/org-list-pagination';
 import { listBusinessCatalog, localizeVendorCategoryOptions } from '@/modules/business-catalog';
 import { SavedListViewsBar } from '@/modules/tenancy/ui/saved-list-views-bar';
 import { withOrgContext } from '@/shared/auth/session';
@@ -36,6 +44,7 @@ export default async function VendorsPage({
     type?: string;
     status?: string;
     categoryId?: string;
+    page?: string;
   }>;
 }) {
   const t = await getTranslations('vendors');
@@ -48,28 +57,40 @@ export default async function VendorsPage({
   const categoryId =
     params.categoryId && params.categoryId !== 'all' ? params.categoryId : undefined;
   const filtersActive = Boolean(q?.trim() || type || status || categoryId);
+  const requestedPage = parseOrgListPage(params.page);
+  const listFilters = {
+    search: q,
+    type: type as 'supplier' | undefined,
+    status: status as 'active' | undefined,
+    categoryId,
+  };
 
-  const { vendors, canManage, categories } = await withOrgContext(async (context) => {
-    const categoryRows = await listBusinessCatalog(context, 'vendor_category').catch(() => []);
-    return {
-      vendors: await listVendorsForOrg(context, {
-        search: q,
-        type: type as 'supplier' | undefined,
-        status: status as 'active' | undefined,
-        categoryId,
-      }),
-      canManage: hasPermission(context, PERMISSIONS.VENDORS_MANAGE),
-      categories: localizeVendorCategoryOptions(
-        categoryRows.map((row) => ({
-          id: row.id,
-          key: row.key,
-          name: row.name,
-          isSystem: row.isSystem,
-        })),
-        locale,
-      ),
-    };
-  });
+  const { vendors, canManage, categories, totalCount, currentPage, totalPages } =
+    await withOrgContext(async (context) => {
+      const categoryRows = await listBusinessCatalog(context, 'vendor_category').catch(() => []);
+      const total = await countVendorsForOrg(context, listFilters);
+      const page = resolveOrgListPage(total, requestedPage);
+      return {
+        vendors: await listVendorsForOrg(context, {
+          ...listFilters,
+          limit: ORG_LIST_PAGE_SIZE,
+          offset: orgListOffset(page),
+        }),
+        canManage: hasPermission(context, PERMISSIONS.VENDORS_MANAGE),
+        categories: localizeVendorCategoryOptions(
+          categoryRows.map((row) => ({
+            id: row.id,
+            key: row.key,
+            name: row.name,
+            isSystem: row.isSystem,
+          })),
+          locale,
+        ),
+        totalCount: total,
+        currentPage: page,
+        totalPages: orgListPageCount(total),
+      };
+    });
 
   return (
     <div className="flex flex-col gap-6">
@@ -104,8 +125,9 @@ export default async function VendorsPage({
           type: params.type,
           status: params.status,
           categoryId: params.categoryId,
+          page: params.page,
         }}
-        keys={['q', 'type', 'status', 'categoryId']}
+        keys={['q', 'type', 'status', 'categoryId', 'page']}
       />
 
       {vendors.length === 0 ? (
@@ -202,6 +224,24 @@ export default async function VendorsPage({
           )}
         />
       )}
+
+      <QueryPagination
+        basePath="/vendors"
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalCount={totalCount}
+        pageSize={ORG_LIST_PAGE_SIZE}
+        currentParams={{
+          q,
+          type: params.type,
+          status: params.status,
+          categoryId: params.categoryId,
+        }}
+        previousLabel={tCommon('actions.previous')}
+        nextLabel={tCommon('actions.next')}
+        pageOfLabel={tCommon('pagination.pageOf', { page: currentPage, pageCount: totalPages })}
+        navLabel={tCommon('pagination.navLabel')}
+      />
     </div>
   );
 }

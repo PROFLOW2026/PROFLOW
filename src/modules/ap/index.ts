@@ -9,6 +9,7 @@ export type { BillProjectAllocationReview } from './application/bill-project-all
 
 /** Public API of the AP / PO matching module (Wave 3). AP bill != Expense. */
 export {
+  countApBillsForOrg,
   listApBillsForOrg,
   getApBillDetail,
   createApBill,

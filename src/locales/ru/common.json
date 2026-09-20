@@ -91,6 +91,7 @@
     "navLabel": "Постраничная навигация",
     "showing": "Показано {from}–{to} из {total}",
     "page": "Страница {page}",
+    "pageOf": "Страница {page} из {pageCount}",
     "rowsPerPage": "Строк на странице"
   },
   "time": {

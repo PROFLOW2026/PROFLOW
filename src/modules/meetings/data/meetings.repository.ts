@@ -152,11 +152,7 @@ export async function findMeetingById(
   return row ? mapRecord(row) : null;
 }
 
-export async function listMeetings(
-  db: DbExecutor,
-  organizationId: string,
-  filters: MeetingListFilters = {},
-): Promise<MeetingListItem[]> {
+function buildMeetingListConditions(organizationId: string, filters: MeetingListFilters) {
   const conditions = [eq(meetingRecords.organizationId, organizationId)];
 
   if (filters.projectId) conditions.push(eq(meetingRecords.projectId, filters.projectId));
@@ -172,6 +168,30 @@ export async function listMeetings(
     const term = `%${filters.search.trim()}%`;
     conditions.push(ilike(meetingRecords.title, term));
   }
+
+  return conditions;
+}
+
+export async function countMeetings(
+  db: DbExecutor,
+  organizationId: string,
+  filters: MeetingListFilters = {},
+): Promise<number> {
+  const conditions = buildMeetingListConditions(organizationId, filters);
+  const [row] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(meetingRecords)
+    .where(and(...conditions));
+
+  return row?.count ?? 0;
+}
+
+export async function listMeetings(
+  db: DbExecutor,
+  organizationId: string,
+  filters: MeetingListFilters = {},
+): Promise<MeetingListItem[]> {
+  const conditions = buildMeetingListConditions(organizationId, filters);
 
   const limit = resolveListLimit(filters.limit, { hardCap: ORG_LIST_HARD_CAP });
   const offset = resolveListOffset(filters.offset);

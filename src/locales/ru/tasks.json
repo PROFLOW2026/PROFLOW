@@ -157,9 +157,60 @@
       "status": "Статус",
       "hasOverdue": "Есть просроченные",
       "stale": "Неактивные (14 дней)",
-      "workKind": "Тип"
+      "staleShort": "Неактивные (14+ дн.)",
+      "workKind": "Тип",
+      "allTypes": "Все типы",
+      "allStatuses": "Все статусы",
+      "clearAll": "Сбросить всё",
+      "aria": {
+        "workKind": "Фильтр по типу работы",
+        "status": "Фильтр по статусу"
+      },
+      "workKindOptions": {
+        "project": "Проекты",
+        "job": "Работы",
+        "work_order": "Заказы на работу"
+      },
+      "statusOptions": {
+        "active": "Активный",
+        "on_hold": "На паузе",
+        "completed": "Завершён"
+      }
     },
-    "empty": "Проекты не найдены"
+    "status": {
+      "active": "Активный",
+      "on_hold": "На паузе",
+      "completed": "Завершён"
+    },
+    "lastActivity": {
+      "today": "Сегодня",
+      "yesterday": "Вчера",
+      "daysAgo": "{count} дн. назад",
+      "weeksAgo": "{count} нед. назад",
+      "monthsAgo": "{count} мес. назад"
+    },
+    "pagination": {
+      "showing": "Показано {start}–{end} из {total}",
+      "label": "Пагинация",
+      "rowsPerPage": "Строк на странице:"
+    },
+    "accessDenied": {
+      "title": "Доступ ограничен",
+      "description": "Для просмотра портфеля нужно право portfolio.read."
+    },
+    "description": {
+      "projectCount": "{count, plural, one {# проект} few {# проекта} many {# проектов} other {# проекта}}"
+    },
+    "emptyFiltered": {
+      "title": "Нет проектов по текущим фильтрам",
+      "description": "Измените фильтры, чтобы увидеть больше результатов."
+    },
+    "emptyDefault": {
+      "title": "В портфеле нет проектов",
+      "description": "Создайте проект, чтобы отслеживать его здесь."
+    },
+    "empty": "Проекты не найдены",
+    "healthScoreTitle": "Оценка состояния: {score} ({formula})"
   },
   "workload": {
     "pageTitle": "Нагрузка команды",
@@ -174,7 +225,45 @@
     "noEffortData": "Нет оценок времени",
     "reassign": "Переназначить",
     "expand": "Показать задачи",
-    "empty": "Сотрудники не найдены"
+    "empty": "Сотрудники не найдены",
+    "accessDenied": {
+      "title": "Доступ ограничен",
+      "description": "Для просмотра нагрузки команды нужно право workload.read."
+    },
+    "description": {
+      "noEmployees": "Активные сотрудники не найдены",
+      "summary": "{employeeCount, plural, one {# активный сотрудник} few {# активных сотрудника} many {# активных сотрудников} other {# активного сотрудника}} · {openCount, plural, one {# открытая задача} few {# открытые задачи} many {# открытых задач} other {# открытой задачи}} · {overdueCount} просрочено"
+    },
+    "emptyState": {
+      "title": "Нет активных сотрудников",
+      "description": "Добавьте активных сотрудников для просмотра нагрузки команды."
+    },
+    "stats": {
+      "activeEmployees": "Активные сотрудники",
+      "openTasks": "Открытые задачи",
+      "overdue": "Просроченные",
+      "dueThisWeek": "Срок на этой неделе"
+    },
+    "effortHidden": "Оценка времени скрыта — ни у одной задачи нет заполненной оценки.",
+    "preview": {
+      "loading": "Загрузка…",
+      "noTasks": "Нет открытых или предстоящих задач.",
+      "noDueDate": "Без срока",
+      "overdueDays": "Просрочено на {count} дн.",
+      "dueToday": "Срок сегодня",
+      "dueTomorrow": "Срок завтра",
+      "dueInDays": "Срок через {count} дн.",
+      "noProject": "Без проекта",
+      "open": "Открыть",
+      "expand": "Развернуть",
+      "collapse": "Свернуть",
+      "columns": {
+        "task": "Задача",
+        "project": "Проект",
+        "due": "Срок",
+        "status": "Статус"
+      }
+    }
   },
   "operations": {
     "pageTitle": "Операции",
@@ -217,6 +306,44 @@
       }
     },
     "empty": "Нет совещаний",
+    "emptyDescriptionManage": "Создайте первое совещание, чтобы начать фиксировать решения.",
+    "emptyDescriptionRead": "Совещания ещё не записывались.",
+    "pageDescription": "Записи совещаний, решения и действия",
+    "detailPageTitle": "Детали совещания",
+    "filters": {
+      "from": "С:",
+      "clear": "Сбросить"
+    },
+    "table": {
+      "context": "Контекст",
+      "actions": "Действия"
+    },
+    "context": {
+      "orgWide": "На уровне организации"
+    },
+    "detail": {
+      "editMeeting": "Редактировать совещание",
+      "noAttendees": "Участники не записаны.",
+      "addAttendee": "+ Добавить участника",
+      "decisionsHeading": "Решения ({count})",
+      "canonicalBadge": "Канонические записи — не задачи",
+      "addDecision": "+ Добавить решение",
+      "noDecisionsYet": "Решения ещё не зафиксированы.",
+      "actionItemsHeading": "Действия ({count})",
+      "addActionItem": "+ Добавить действие",
+      "noActionItemsYet": "Действия ещё не зафиксированы.",
+      "decidedAt": "Решено {date}",
+      "due": "Срок: {date}",
+      "viewLinkedTask": "Открыть связанную задачу",
+      "createTaskTooltip": "Создать задачу из этого действия",
+      "taskButton": "+ Задача"
+    },
+    "attendee": {
+      "unknown": "Неизвестно",
+      "member": "(участник)",
+      "employee": "(сотрудник)",
+      "contact": "(контакт)"
+    },
     "noDecisions": "Решения не зафиксированы"
   },
   "stages": {
@@ -228,6 +355,7 @@
     "transitionTo": "Перейти к этапу",
     "history": "История этапов",
     "noStages": "Этапы не определены",
+    "noStage": "Без этапа",
     "workKindFilter": {
       "all": "Все типы проектов",
       "project": "Только проекты",
@@ -291,13 +419,25 @@
     "clear": "Очистить фильтры"
   },
   "boards": {
+    "pageTitle": "Доски",
+    "pageDescription": "Канбан-доски в этой рабочей области",
     "boardPageTitle": "Доска",
     "boardsPageTitle": "Доски",
     "noBoardsYet": "Нет досок",
     "switcherLabel": "Переключить доску",
     "default": "По умолчанию",
-    "createBoard": "Создать доску"
+    "createBoard": "Создать доску",
+    "createFirst": "Создайте первую доску",
+    "tasks": "задач",
+    "openBoard": "Открыть доску",
+    "empty": {
+      "title": "Нет досок",
+      "description": "Создайте доску для организации задач в этой рабочей области"
+    }
   },
+  "uncategorized": "Без категории",
+  "noLabel": "Без метки",
+  "unknown": "Неизвестно",
   "checklist": "Чек-лист",
   "close": "Закрыть",
   "saving": "Сохранение...",

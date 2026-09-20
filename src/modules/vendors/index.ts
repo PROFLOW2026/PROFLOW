@@ -3,7 +3,11 @@ export { createVendor } from './application/create-vendor';
 export type { CreateVendorResult } from './application/create-vendor';
 export { updateVendor } from './application/update-vendor';
 export { archiveVendor, restoreVendor } from './application/archive-vendor';
-export { listVendorsForOrg, getVendorById } from './application/list-vendors';
+export {
+  countVendorsForOrg,
+  listVendorsForOrg,
+  getVendorById,
+} from './application/list-vendors';
 export { getVendorPerformance } from './application/get-vendor-performance';
 export {
   SUPPLIER_SCORE_FORMULA,

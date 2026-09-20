@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { useTranslations } from 'next-intl';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import type { WorkloadEmployeeRow, WorkloadTaskPreview } from '@/modules/tasks/application/get-team-workload';
 import { cn } from '@/shared/ui/cn';
@@ -44,17 +45,27 @@ function formatMinutes(minutes: number | null): string {
   return `${h}h ${m}m`;
 }
 
-function dueDateLabel(dueDate: string | null): string {
-  if (!dueDate) return 'No due date';
+type DueDateTranslator = (
+  key:
+    | 'workload.preview.noDueDate'
+    | 'workload.preview.overdueDays'
+    | 'workload.preview.dueToday'
+    | 'workload.preview.dueTomorrow'
+    | 'workload.preview.dueInDays',
+  values?: { count: number },
+) => string;
+
+function dueDateLabel(dueDate: string | null, t: DueDateTranslator): string {
+  if (!dueDate) return t('workload.preview.noDueDate');
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const due = new Date(dueDate);
   due.setHours(0, 0, 0, 0);
   const diffDays = Math.round((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-  if (diffDays < 0) return `${Math.abs(diffDays)}d overdue`;
-  if (diffDays === 0) return 'Due today';
-  if (diffDays === 1) return 'Due tomorrow';
-  return `Due in ${diffDays}d`;
+  if (diffDays < 0) return t('workload.preview.overdueDays', { count: Math.abs(diffDays) });
+  if (diffDays === 0) return t('workload.preview.dueToday');
+  if (diffDays === 1) return t('workload.preview.dueTomorrow');
+  return t('workload.preview.dueInDays', { count: diffDays });
 }
 
 function dueDateClass(dueDate: string | null): string {
@@ -80,6 +91,7 @@ export function WorkloadExpandableRows({
   initialExpandedId,
   initialPreviewTasks,
 }: WorkloadExpandableRowsProps) {
+  const t = useTranslations('tasks');
   const [expandedId, setExpandedId] = useState<string | null>(initialExpandedId);
   const [taskCache, setTaskCache] = useState<Record<string, WorkloadTaskPreview[]>>(
     initialExpandedId && initialPreviewTasks.length > 0
@@ -124,12 +136,12 @@ export function WorkloadExpandableRows({
         <TableHeader>
           <TableRow>
             <TableHead className="w-8" />
-            <TableHead>Employee</TableHead>
-            <TableHead numeric>Open Tasks</TableHead>
-            <TableHead numeric>Overdue</TableHead>
-            <TableHead numeric>Due This Week</TableHead>
-            <TableHead numeric>Projects</TableHead>
-            {showEstimatedEffort && <TableHead numeric>Est. Effort</TableHead>}
+            <TableHead>{t('workload.columns.employee')}</TableHead>
+            <TableHead numeric>{t('workload.columns.openTasks')}</TableHead>
+            <TableHead numeric>{t('workload.columns.overdue')}</TableHead>
+            <TableHead numeric>{t('workload.columns.dueThisWeek')}</TableHead>
+            <TableHead numeric>{t('workload.columns.projects')}</TableHead>
+            {showEstimatedEffort && <TableHead numeric>{t('workload.columns.estimatedEffort')}</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -153,7 +165,7 @@ export function WorkloadExpandableRows({
                     <button
                       type="button"
                       aria-expanded={isExpanded}
-                      aria-label={isExpanded ? 'Collapse' : 'Expand'}
+                      aria-label={isExpanded ? t('workload.preview.collapse') : t('workload.preview.expand')}
                       className="flex h-5 w-5 items-center justify-center rounded text-[var(--pf-text-muted)] hover:text-[var(--pf-text-primary)]"
                       onClick={(e) => {
                         e.stopPropagation();
@@ -223,30 +235,30 @@ export function WorkloadExpandableRows({
                     <TableCell colSpan={colSpan + 1} className="p-0">
                       <div className="px-6 py-3">
                         {loading && previewTasks.length === 0 ? (
-                          <p className="py-2 text-sm text-[var(--pf-text-muted)]">Loading…</p>
+                          <p className="py-2 text-sm text-[var(--pf-text-muted)]">{t('workload.preview.loading')}</p>
                         ) : previewTasks.length === 0 ? (
                           <p className="py-2 text-sm text-[var(--pf-text-muted)]">
-                            No open or upcoming tasks.
+                            {t('workload.preview.noTasks')}
                           </p>
                         ) : (
                           <table className="w-full text-sm">
                             <thead>
                               <tr className="border-b border-[var(--pf-border)]">
                                 <th className="pb-1.5 pr-4 text-left font-medium text-[var(--pf-text-muted)]">
-                                  Task
+                                  {t('workload.preview.columns.task')}
                                 </th>
                                 <th className="pb-1.5 pr-4 text-left font-medium text-[var(--pf-text-muted)]">
-                                  Project
+                                  {t('workload.preview.columns.project')}
                                 </th>
                                 <th className="pb-1.5 pr-4 text-left font-medium text-[var(--pf-text-muted)]">
-                                  Due
+                                  {t('workload.preview.columns.due')}
                                 </th>
                                 <th className="pb-1.5 text-left font-medium text-[var(--pf-text-muted)]">
-                                  Status
+                                  {t('workload.preview.columns.status')}
                                 </th>
                                 {canAssign && (
                                   <th className="pb-1.5 text-left font-medium text-[var(--pf-text-muted)]">
-                                    Reassign
+                                    {t('workload.reassign')}
                                   </th>
                                 )}
                               </tr>
@@ -274,16 +286,16 @@ export function WorkloadExpandableRows({
                                       </Link>
                                     ) : (
                                       <span className="text-[var(--pf-text-muted)]">
-                                        {task.projectName ?? 'No project'}
+                                        {task.projectName ?? t('workload.preview.noProject')}
                                       </span>
                                     )}
                                   </td>
                                   <td className={cn('py-1.5 pr-4', dueDateClass(task.dueDate))}>
-                                    {dueDateLabel(task.dueDate)}
+                                    {dueDateLabel(task.dueDate, t)}
                                   </td>
                                   <td className="py-1.5 pr-4 text-[var(--pf-text-secondary)]">
-                                    <span className="rounded bg-[var(--pf-bg-secondary)] px-1.5 py-0.5 text-xs capitalize">
-                                      {task.status.replace('_', ' ')}
+                                    <span className="rounded bg-[var(--pf-bg-secondary)] px-1.5 py-0.5 text-xs">
+                                      {t(`status.${task.status}`)}
                                     </span>
                                   </td>
                                   {canAssign && (
@@ -291,6 +303,7 @@ export function WorkloadExpandableRows({
                                       <ReassignButton
                                         taskId={task.taskId}
                                         currentEmployeeId={row.employeeId}
+                                        label={t('workload.preview.open')}
                                       />
                                     </td>
                                   )}
@@ -319,9 +332,11 @@ export function WorkloadExpandableRows({
 function ReassignButton({
   taskId,
   currentEmployeeId: _currentEmployeeId,
+  label,
 }: {
   taskId: string;
   currentEmployeeId: string;
+  label: string;
 }) {
   // Placeholder: routes to the task detail page where reassignment can be done.
   // Full inline reassign dropdown is out of scope for this wave
@@ -332,7 +347,7 @@ function ReassignButton({
       className="rounded border border-[var(--pf-border)] px-2 py-0.5 text-xs text-[var(--pf-text-secondary)] hover:bg-[var(--pf-bg-secondary)]"
       onClick={(e) => e.stopPropagation()}
     >
-      Open
+      {label}
     </Link>
   );
 }

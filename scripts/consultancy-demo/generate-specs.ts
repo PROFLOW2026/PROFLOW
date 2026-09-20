@@ -31,6 +31,8 @@ export interface ProjectSpec {
   readonly taskCount: number;
   readonly activity: 'high' | 'medium' | 'low' | 'waiting' | 'done';
   readonly startDate: string;
+  readonly targetEndDate: string;
+  readonly durationMonths: number;
 }
 
 const FEATURED_PROJECTS: readonly { name: string; location: string; tier: 'small' | 'medium' | 'large' | 'major' }[] = [
@@ -182,6 +184,87 @@ function billingPct(bucket: ProjectBucket, rng: () => number): number {
   return intBetween(rng, 25, 85);
 }
 
+function addMonths(isoDate: string, months: number): string {
+  const [year, month, day] = isoDate.split('-').map(Number);
+  const date = new Date(Date.UTC(year!, month! - 1, day!));
+  date.setUTCMonth(date.getUTCMonth() + months);
+  return date.toISOString().slice(0, 10);
+}
+
+function clampEndYear(isoDate: string, minYear = 2026, maxYear = 2032): string {
+  const year = Number(isoDate.slice(0, 4));
+  if (year < minYear) return `${minYear}${isoDate.slice(4)}`;
+  if (year > maxYear) return `${maxYear}${isoDate.slice(4)}`;
+  return isoDate;
+}
+
+/** Multi-year timelines: 3–72 months, end dates 2026–2032, some pre-2026 starts. */
+export function computeProjectTimeline(
+  spec: Pick<ProjectSpec, 'docNum' | 'bucket' | 'stageIndex' | 'activity'>,
+  rng: () => number,
+): { startDate: string; targetEndDate: string; durationMonths: number } {
+  let durationMonths: number;
+  let startDate: string;
+
+  switch (spec.bucket) {
+    case 'completed': {
+      durationMonths = intBetween(rng, 18, 48);
+      const startYear = intBetween(rng, 2020, 2023);
+      const startMonth = intBetween(rng, 1, 12);
+      startDate = `${startYear}-${String(startMonth).padStart(2, '0')}-${String(intBetween(rng, 1, 26)).padStart(2, '0')}`;
+      break;
+    }
+    case 'handover': {
+      durationMonths = intBetween(rng, 24, 54);
+      startDate = addMonths('2026-09-20', -durationMonths + intBetween(rng, 0, 3));
+      break;
+    }
+    case 'early': {
+      durationMonths = intBetween(rng, 12, 48);
+      const startMonth = intBetween(rng, 1, 9);
+      startDate = `2026-${String(startMonth).padStart(2, '0')}-${String(intBetween(rng, 1, 26)).padStart(2, '0')}`;
+      break;
+    }
+    case 'waiting': {
+      durationMonths = intBetween(rng, 18, 60);
+      startDate = addMonths('2026-09-20', -intBetween(rng, 8, Math.min(durationMonths, 36)));
+      break;
+    }
+    case 'tender': {
+      durationMonths = intBetween(rng, 9, 36);
+      startDate = addMonths('2026-09-20', -intBetween(rng, 4, 18));
+      break;
+    }
+    default: {
+      durationMonths = intBetween(rng, 3, 72);
+      const pre2026 = spec.stageIndex >= 4 || spec.activity === 'high';
+      if (pre2026) {
+        startDate = addMonths('2026-09-20', -intBetween(rng, 6, Math.min(durationMonths - 3, 48)));
+      } else {
+        startDate = `2026-${String(intBetween(rng, 1, 7)).padStart(2, '0')}-${String(intBetween(rng, 1, 26)).padStart(2, '0')}`;
+      }
+    }
+  }
+
+  durationMonths = Math.max(3, Math.min(72, durationMonths));
+  let targetEndDate = addMonths(startDate, durationMonths);
+  targetEndDate = clampEndYear(targetEndDate);
+
+  if (targetEndDate <= startDate) {
+    targetEndDate = clampEndYear(addMonths(startDate, 6));
+  }
+
+  const actualDuration =
+    (Number(targetEndDate.slice(0, 4)) - Number(startDate.slice(0, 4))) * 12 +
+    (Number(targetEndDate.slice(5, 7)) - Number(startDate.slice(5, 7)));
+
+  return {
+    startDate,
+    targetEndDate,
+    durationMonths: Math.max(3, actualDuration),
+  };
+}
+
 export function generateClients(): ClientSpec[] {
   const rng = mulberry32(42);
   return CLIENT_NAMES.map((name, index) => ({
@@ -221,12 +304,14 @@ export function generateProjects(clients: ClientSpec[]): ProjectSpec[] {
       const contractNet = tierAmount(rng, tier);
       const billedPct = billingPct(row.bucket, rng);
       const collectedPct = Math.max(0, billedPct - intBetween(rng, 0, row.bucket === 'waiting' ? 35 : 20));
-      const month = intBetween(rng, 1, 9);
-      const day = intBetween(rng, 1, 26);
-      const startDate = `2026-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const docNum = String(docCounter++);
+      const timeline = computeProjectTimeline(
+        { docNum, bucket: row.bucket, stageIndex: row.stageIndex, activity: row.activity },
+        rng,
+      );
 
       projects.push({
-        docNum: String(docCounter++),
+        docNum,
         name,
         clientKey: client.key,
         location,
@@ -237,7 +322,9 @@ export function generateProjects(clients: ClientSpec[]): ProjectSpec[] {
         collectedPct,
         taskCount: taskCountForActivity(row.activity, rng),
         activity: row.activity,
-        startDate,
+        startDate: timeline.startDate,
+        targetEndDate: timeline.targetEndDate,
+        durationMonths: timeline.durationMonths,
       });
     }
   }

@@ -1,5 +1,5 @@
 import type { TaskStatus } from '../../src/modules/tasks/domain/types.ts';
-import { HISTORY_END, SEED_MARKER, TASK_TARGET_MAX, TASK_TARGET_MIN } from './constants.ts';
+import { SEED_MARKER, TASK_TARGET_MAX, TASK_TARGET_MIN } from './constants.ts';
 import type { RunPhase, SeedMaps, SeedStats, SeedTarget } from './context.ts';
 import {
   DECISION_TITLES,
@@ -8,6 +8,12 @@ import {
   type ProjectSpec,
 } from './generate-specs.ts';
 import { intBetween, mulberry32, pick } from './rng.ts';
+import {
+  pickEstimatedEffortMinutes,
+  shouldAssignEffort,
+  targetDatesForTask,
+  targetStatusForTask,
+} from './task-distribution.ts';
 
 interface BucketTemplate {
   readonly name: string;
@@ -58,16 +64,6 @@ function boardCountForActivity(activity: ProjectSpec['activity']): number {
     default:
       return 1;
   }
-}
-
-function taskStatusForIndex(index: number, total: number, activity: ProjectSpec['activity']): TaskStatus {
-  if (activity === 'done') return index < total - 2 ? 'done' : 'in_progress';
-  if (activity === 'waiting') return index === 0 ? 'in_progress' : 'todo';
-  const ratio = index / Math.max(total - 1, 1);
-  if (ratio < 0.45) return 'done';
-  if (ratio < 0.7) return 'in_progress';
-  if (ratio < 0.85) return 'in_review';
-  return 'todo';
 }
 
 export async function seedUwm(
@@ -174,9 +170,13 @@ export async function seedUwm(
         const bucketTemplate = plan.template.buckets[i % plan.template.buckets.length]!;
         const bucket =
           plan.buckets.find((row) => row.name === bucketTemplate.name) ?? plan.buckets[i % plan.buckets.length];
-        const status = taskStatusForIndex(i, spec.taskCount, spec.activity);
+        const status = targetStatusForTask(i, spec.taskCount, spec.activity, spec.bucket);
+        const dates = targetDatesForTask(status, spec, i);
         const assigneeKey = pick(rng, engineerKeys);
         const assigneeId = maps.employeeIds.get(assigneeKey);
+        const estimatedEffortMinutes = shouldAssignEffort(spec.docNum, i, status)
+          ? pickEstimatedEffortMinutes(spec.docNum, i)
+          : null;
 
         const task = await insertTask(context.db, {
           organizationId: target.organizationId,
@@ -188,13 +188,17 @@ export async function seedUwm(
           description: `${SEED_MARKER}:task:${spec.docNum}:${i}`,
           priority: i % 7 === 0 ? 'high' : i % 3 === 0 ? 'medium' : 'none',
           startDate: spec.startDate,
-          dueDate: spec.activity === 'done' ? HISTORY_END : `2026-${String(intBetween(rng, 3, 9)).padStart(2, '0')}-15`,
+          dueDate: dates.dueDate,
+          estimatedEffortMinutes,
           source: 'manual',
           sortKey: generateSortKey(),
           ...creatorFields,
         });
 
-        await updateTaskById(context.db, target.organizationId, task.id, { status });
+        await updateTaskById(context.db, target.organizationId, task.id, {
+          status,
+          completionDate: dates.completionDate,
+        });
 
         if (assigneeId) {
           await insertTaskAssignee(context.db, {

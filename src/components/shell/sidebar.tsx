@@ -11,11 +11,13 @@ import {
 } from './navigation';
 import { ShellNavLink } from './shell-nav-link';
 import { OrgShellMark } from './org-shell-mark';
+import { OrganizationSwitcher, type OrganizationSwitcherProps } from './organization-switcher';
 
 export interface SidebarProps {
   items: NavItem[];
   organizationName: string;
   organizationLogoUrl?: string | null;
+  organizationSwitcher?: OrganizationSwitcherProps;
   footer?: React.ReactNode;
 }
 
@@ -24,7 +26,13 @@ export interface SidebarProps {
  * the right in Hebrew and the left in English without a second layout.
  * Experience groups use an exclusive accordion (one open group at a time).
  */
-export function Sidebar({ items, organizationName, organizationLogoUrl, footer }: SidebarProps) {
+export function Sidebar({
+  items,
+  organizationName,
+  organizationLogoUrl,
+  organizationSwitcher,
+  footer,
+}: SidebarProps) {
   const t = useTranslations('nav');
   const tCommon = useTranslations('common');
   const pathname = usePathname();
@@ -37,9 +45,13 @@ export function Sidebar({ items, organizationName, organizationLogoUrl, footer }
     >
       <div className="flex h-[var(--pf-topbar-height)] items-center gap-2 border-b border-[var(--pf-border-default)] px-4">
         <OrgShellMark organizationName={organizationName} logoUrl={organizationLogoUrl} />
-        <span className="min-w-0 truncate text-sm font-semibold" title={organizationName}>
-          {organizationName}
-        </span>
+        {organizationSwitcher ? (
+          <OrganizationSwitcher {...organizationSwitcher} variant="sidebar" />
+        ) : (
+          <span className="min-w-0 truncate text-sm font-semibold" title={organizationName}>
+            {organizationName}
+          </span>
+        )}
       </div>
 
       <div className="flex flex-1 flex-col gap-2 overflow-y-auto p-2">

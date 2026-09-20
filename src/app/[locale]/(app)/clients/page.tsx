@@ -8,7 +8,15 @@ import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/u
 import { StatusBadge } from '@/components/ui/status-badge';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { listClientsForOrg } from '@/modules/clients';
+import { countClientsForOrg, listClientsForOrg } from '@/modules/clients';
+import { QueryPagination } from '@/components/ui/query-pagination';
+import {
+  ORG_LIST_PAGE_SIZE,
+  orgListOffset,
+  orgListPageCount,
+  parseOrgListPage,
+  resolveOrgListPage,
+} from '@/shared/db/org-list-pagination';
 import { SavedListViewsBar } from '@/modules/tenancy/ui/saved-list-views-bar';
 import { getShellContext, withOrgContext } from '@/shared/auth/session';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -27,13 +35,19 @@ export async function generateMetadata({
 }
 
 interface ClientsPageProps {
-  searchParams: Promise<{ q?: string; includeArchived?: string; clientTypeId?: string }>;
+  searchParams: Promise<{
+    q?: string;
+    includeArchived?: string;
+    clientTypeId?: string;
+    page?: string;
+  }>;
 }
 
 export default async function ClientsPage({ searchParams }: ClientsPageProps) {
-  const [t, tStatus, params, shell] = await Promise.all([
+  const [t, tStatus, tCommon, params, shell] = await Promise.all([
     getTranslations('clients'),
     getTranslations('status.generic'),
+    getTranslations('common'),
     searchParams,
     getShellContext(),
   ]);
@@ -41,18 +55,31 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
   const includeArchived = params.includeArchived === '1';
   const clientTypeId =
     params.clientTypeId && params.clientTypeId !== 'all' ? params.clientTypeId : undefined;
+  const requestedPage = parseOrgListPage(params.page);
+  const listFilters = {
+    search: params.q,
+    includeArchived,
+    clientTypeId,
+  };
 
-  const { clients, clientTypes } = await withOrgContext(async (context) => {
-    const { listBusinessCatalog } = await import('@/modules/business-catalog');
-    return {
-      clients: await listClientsForOrg(context, {
-        search: params.q,
-        includeArchived,
-        clientTypeId,
-      }),
-      clientTypes: await listBusinessCatalog(context, 'client_type').catch(() => []),
-    };
-  });
+  const { clients, clientTypes, totalCount, currentPage, totalPages } = await withOrgContext(
+    async (context) => {
+      const { listBusinessCatalog } = await import('@/modules/business-catalog');
+      const total = await countClientsForOrg(context, listFilters);
+      const page = resolveOrgListPage(total, requestedPage);
+      return {
+        clients: await listClientsForOrg(context, {
+          ...listFilters,
+          limit: ORG_LIST_PAGE_SIZE,
+          offset: orgListOffset(page),
+        }),
+        clientTypes: await listBusinessCatalog(context, 'client_type').catch(() => []),
+        totalCount: total,
+        currentPage: page,
+        totalPages: orgListPageCount(total),
+      };
+    },
+  );
 
   return (
     <div className="flex flex-col gap-6">
@@ -82,8 +109,9 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
           q: params.q,
           includeArchived: params.includeArchived,
           clientTypeId: params.clientTypeId,
+          page: params.page,
         }}
-        keys={['q', 'includeArchived', 'clientTypeId']}
+        keys={['q', 'includeArchived', 'clientTypeId', 'page']}
       />
 
       {clients.length === 0 ? (
@@ -170,6 +198,23 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
           )}
         />
       )}
+
+      <QueryPagination
+        basePath="/clients"
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalCount={totalCount}
+        pageSize={ORG_LIST_PAGE_SIZE}
+        currentParams={{
+          q: params.q,
+          includeArchived: params.includeArchived,
+          clientTypeId: params.clientTypeId,
+        }}
+        previousLabel={tCommon('actions.previous')}
+        nextLabel={tCommon('actions.next')}
+        pageOfLabel={tCommon('pagination.pageOf', { page: currentPage, pageCount: totalPages })}
+        navLabel={tCommon('pagination.navLabel')}
+      />
     </div>
   );
 }

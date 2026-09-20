@@ -168,11 +168,7 @@ export async function findClientById(
   return row ? mapClient(row) : null;
 }
 
-export async function listClients(
-  db: DbExecutor,
-  organizationId: string,
-  filters: ClientListFilters = {},
-): Promise<ClientListItem[]> {
+function buildClientListConditions(organizationId: string, filters: ClientListFilters) {
   const conditions = [eq(clients.organizationId, organizationId)];
 
   if (!filters.includeArchived) {
@@ -197,6 +193,30 @@ export async function listClients(
       )!,
     );
   }
+
+  return conditions;
+}
+
+export async function countClients(
+  db: DbExecutor,
+  organizationId: string,
+  filters: ClientListFilters = {},
+): Promise<number> {
+  const conditions = buildClientListConditions(organizationId, filters);
+  const [row] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(clients)
+    .where(and(...conditions));
+
+  return row?.count ?? 0;
+}
+
+export async function listClients(
+  db: DbExecutor,
+  organizationId: string,
+  filters: ClientListFilters = {},
+): Promise<ClientListItem[]> {
+  const conditions = buildClientListConditions(organizationId, filters);
 
   const hardCap =
     filters.limit != null && filters.limit > ORG_LIST_HARD_CAP

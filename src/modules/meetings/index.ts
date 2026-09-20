@@ -21,6 +21,7 @@ export type {
 export { createMeeting } from './application/create-meeting';
 export { updateMeeting } from './application/update-meeting';
 export {
+  countMeetingsForOrg,
   listMeetingsForOrg,
   listMeetingsForProject,
   listMeetingsForWorkspace,

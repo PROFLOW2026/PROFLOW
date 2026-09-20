@@ -68,7 +68,7 @@ export async function seedProjects(
         contractValueCurrency: 'ILS',
         amountIncludesTax: false,
         startDate: spec.startDate,
-        targetEndDate: '2026-12-31',
+        targetEndDate: spec.targetEndDate,
       });
 
       await context.db.update(projects).set({ documentNumber: docNumber }).where(eq(projects.id, created.projectId));

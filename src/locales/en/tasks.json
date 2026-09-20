@@ -157,9 +157,60 @@
       "status": "Status",
       "hasOverdue": "Has overdue tasks",
       "stale": "Stale (14 days)",
-      "workKind": "Type"
+      "staleShort": "Stale (14d+)",
+      "workKind": "Type",
+      "allTypes": "All types",
+      "allStatuses": "All statuses",
+      "clearAll": "Clear all",
+      "aria": {
+        "workKind": "Filter by work kind",
+        "status": "Filter by status"
+      },
+      "workKindOptions": {
+        "project": "Projects",
+        "job": "Jobs",
+        "work_order": "Work Orders"
+      },
+      "statusOptions": {
+        "active": "Active",
+        "on_hold": "On Hold",
+        "completed": "Completed"
+      }
     },
-    "empty": "No projects found"
+    "status": {
+      "active": "Active",
+      "on_hold": "On hold",
+      "completed": "Completed"
+    },
+    "lastActivity": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "daysAgo": "{count}d ago",
+      "weeksAgo": "{count}w ago",
+      "monthsAgo": "{count}mo ago"
+    },
+    "pagination": {
+      "showing": "Showing {start}–{end} of {total}",
+      "label": "Pagination",
+      "rowsPerPage": "Rows per page:"
+    },
+    "accessDenied": {
+      "title": "Access restricted",
+      "description": "You need the portfolio.read permission to view the portfolio dashboard."
+    },
+    "description": {
+      "projectCount": "{count, plural, one {# project} other {# projects}}"
+    },
+    "emptyFiltered": {
+      "title": "No projects match the current filters",
+      "description": "Try adjusting your filters to see more results."
+    },
+    "emptyDefault": {
+      "title": "No projects in portfolio",
+      "description": "Create a project to see it tracked here."
+    },
+    "empty": "No projects found",
+    "healthScoreTitle": "Health score: {score} ({formula})"
   },
   "workload": {
     "pageTitle": "Team Workload",
@@ -174,7 +225,45 @@
     "noEffortData": "No effort estimates",
     "reassign": "Reassign",
     "expand": "View tasks",
-    "empty": "No team members found"
+    "empty": "No team members found",
+    "accessDenied": {
+      "title": "Access restricted",
+      "description": "You need the workload.read permission to view team workload."
+    },
+    "description": {
+      "noEmployees": "No active employees found",
+      "summary": "{employeeCount, plural, one {# active employee} other {# active employees}} · {openCount, plural, one {# open task} other {# open tasks}} · {overdueCount} overdue"
+    },
+    "emptyState": {
+      "title": "No active employees",
+      "description": "Add active employees to view team workload."
+    },
+    "stats": {
+      "activeEmployees": "Active employees",
+      "openTasks": "Open tasks",
+      "overdue": "Overdue",
+      "dueThisWeek": "Due this week"
+    },
+    "effortHidden": "Estimated effort is hidden — no tasks have estimated effort populated.",
+    "preview": {
+      "loading": "Loading…",
+      "noTasks": "No open or upcoming tasks.",
+      "noDueDate": "No due date",
+      "overdueDays": "{count}d overdue",
+      "dueToday": "Due today",
+      "dueTomorrow": "Due tomorrow",
+      "dueInDays": "Due in {count}d",
+      "noProject": "No project",
+      "open": "Open",
+      "expand": "Expand",
+      "collapse": "Collapse",
+      "columns": {
+        "task": "Task",
+        "project": "Project",
+        "due": "Due",
+        "status": "Status"
+      }
+    }
   },
   "operations": {
     "pageTitle": "Operations",
@@ -217,6 +306,44 @@
       }
     },
     "empty": "No meetings yet",
+    "emptyDescriptionManage": "Create your first meeting to start tracking decisions.",
+    "emptyDescriptionRead": "No meetings have been recorded yet.",
+    "pageDescription": "Meeting records, decisions, and action items",
+    "detailPageTitle": "Meeting Detail",
+    "filters": {
+      "from": "From:",
+      "clear": "Clear"
+    },
+    "table": {
+      "context": "Context",
+      "actions": "Actions"
+    },
+    "context": {
+      "orgWide": "Org-wide"
+    },
+    "detail": {
+      "editMeeting": "Edit Meeting",
+      "noAttendees": "No attendees recorded.",
+      "addAttendee": "+ Add Attendee",
+      "decisionsHeading": "Decisions ({count})",
+      "canonicalBadge": "Canonical Records — not tasks",
+      "addDecision": "+ Add Decision",
+      "noDecisionsYet": "No decisions recorded yet.",
+      "actionItemsHeading": "Action Items ({count})",
+      "addActionItem": "+ Add Action Item",
+      "noActionItemsYet": "No action items recorded yet.",
+      "decidedAt": "Decided {date}",
+      "due": "Due: {date}",
+      "viewLinkedTask": "View linked task",
+      "createTaskTooltip": "Create task from this action item",
+      "taskButton": "+ Task"
+    },
+    "attendee": {
+      "unknown": "Unknown",
+      "member": "(member)",
+      "employee": "(employee)",
+      "contact": "(contact)"
+    },
     "noDecisions": "No decisions recorded"
   },
   "stages": {
@@ -228,6 +355,7 @@
     "transitionTo": "Move to stage",
     "history": "Stage history",
     "noStages": "No stages defined",
+    "noStage": "No stage",
     "workKindFilter": {
       "all": "All project types",
       "project": "Projects only",
@@ -291,13 +419,25 @@
     "clear": "Clear filters"
   },
   "boards": {
+    "pageTitle": "Boards",
+    "pageDescription": "Kanban boards in this workspace",
     "boardPageTitle": "Board",
     "boardsPageTitle": "Boards",
     "noBoardsYet": "No boards yet",
     "switcherLabel": "Switch board",
     "default": "Default",
-    "createBoard": "Create board"
+    "createBoard": "Create board",
+    "createFirst": "Create your first board",
+    "tasks": "tasks",
+    "openBoard": "Open board",
+    "empty": {
+      "title": "No boards yet",
+      "description": "Create a board to organize tasks in this workspace"
+    }
   },
+  "uncategorized": "Uncategorized",
+  "noLabel": "No label",
+  "unknown": "Unknown",
   "close": "Close",
   "checklist": "Checklist",
   "saving": "Saving...",

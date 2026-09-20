@@ -157,9 +157,60 @@
       "status": "الحالة",
       "hasOverdue": "يحتوي مهام متأخرة",
       "stale": "غير نشط (14 يوم)",
-      "workKind": "النوع"
+      "staleShort": "غير نشط (14+ يوم)",
+      "workKind": "النوع",
+      "allTypes": "جميع الأنواع",
+      "allStatuses": "جميع الحالات",
+      "clearAll": "مسح الكل",
+      "aria": {
+        "workKind": "تصفية حسب نوع العمل",
+        "status": "تصفية حسب الحالة"
+      },
+      "workKindOptions": {
+        "project": "المشاريع",
+        "job": "الأعمال",
+        "work_order": "أوامر العمل"
+      },
+      "statusOptions": {
+        "active": "نشط",
+        "on_hold": "معلق",
+        "completed": "مكتمل"
+      }
     },
-    "empty": "لم يتم العثور على مشاريع"
+    "status": {
+      "active": "نشط",
+      "on_hold": "معلق",
+      "completed": "مكتمل"
+    },
+    "lastActivity": {
+      "today": "اليوم",
+      "yesterday": "أمس",
+      "daysAgo": "منذ {count} ي",
+      "weeksAgo": "منذ {count} أ",
+      "monthsAgo": "منذ {count} ش"
+    },
+    "pagination": {
+      "showing": "عرض {start}–{end} من {total}",
+      "label": "ترقيم الصفحات",
+      "rowsPerPage": "صفوف في الصفحة:"
+    },
+    "accessDenied": {
+      "title": "الوصول مقيد",
+      "description": "تحتاج إلى صلاحية portfolio.read لعرض لوحة المحفظة."
+    },
+    "description": {
+      "projectCount": "{count, plural, one {مشروع #} other {# مشاريع}}"
+    },
+    "emptyFiltered": {
+      "title": "لا توجد مشاريع تطابق المرشحات",
+      "description": "جرّب تعديل المرشحات لرؤية المزيد من النتائج."
+    },
+    "emptyDefault": {
+      "title": "لا توجد مشاريع في المحفظة",
+      "description": "أنشئ مشروعاً لرؤيته هنا."
+    },
+    "empty": "لم يتم العثور على مشاريع",
+    "healthScoreTitle": "درجة الصحة: {score} ({formula})"
   },
   "workload": {
     "pageTitle": "عبء عمل الفريق",
@@ -174,7 +225,45 @@
     "noEffortData": "لا توجد تقديرات وقت",
     "reassign": "إعادة تعيين",
     "expand": "عرض المهام",
-    "empty": "لم يتم العثور على أعضاء الفريق"
+    "empty": "لم يتم العثور على أعضاء الفريق",
+    "accessDenied": {
+      "title": "الوصول مقيد",
+      "description": "تحتاج إلى صلاحية workload.read لعرض عبء عمل الفريق."
+    },
+    "description": {
+      "noEmployees": "لم يتم العثور على موظفين نشطين",
+      "summary": "{employeeCount, plural, one {موظف نشط #} other {# موظفين نشطين}} · {openCount, plural, one {مهمة مفتوحة #} other {# مهام مفتوحة}} · {overdueCount} متأخرة"
+    },
+    "emptyState": {
+      "title": "لا يوجد موظفون نشطون",
+      "description": "أضف موظفين نشطين لعرض عبء عمل الفريق."
+    },
+    "stats": {
+      "activeEmployees": "الموظفون النشطون",
+      "openTasks": "المهام المفتوحة",
+      "overdue": "متأخرة",
+      "dueThisWeek": "مستحقة هذا الأسبوع"
+    },
+    "effortHidden": "الوقت المقدر مخفي — لا توجد مهام بوقت مقدر.",
+    "preview": {
+      "loading": "جارٍ التحميل…",
+      "noTasks": "لا توجد مهام مفتوحة أو قادمة.",
+      "noDueDate": "بدون تاريخ استحقاق",
+      "overdueDays": "متأخرة {count} ي",
+      "dueToday": "مستحقة اليوم",
+      "dueTomorrow": "مستحقة غداً",
+      "dueInDays": "مستحقة خلال {count} ي",
+      "noProject": "بدون مشروع",
+      "open": "فتح",
+      "expand": "توسيع",
+      "collapse": "طي",
+      "columns": {
+        "task": "المهمة",
+        "project": "المشروع",
+        "due": "الاستحقاق",
+        "status": "الحالة"
+      }
+    }
   },
   "operations": {
     "pageTitle": "العمليات",
@@ -217,6 +306,44 @@
       }
     },
     "empty": "لا توجد اجتماعات بعد",
+    "emptyDescriptionManage": "أنشئ اجتماعك الأول لبدء تتبع القرارات.",
+    "emptyDescriptionRead": "لم يتم تسجيل اجتماعات بعد.",
+    "pageDescription": "سجلات الاجتماعات والقرارات وبنود العمل",
+    "detailPageTitle": "تفاصيل الاجتماع",
+    "filters": {
+      "from": "من:",
+      "clear": "مسح"
+    },
+    "table": {
+      "context": "السياق",
+      "actions": "الإجراءات"
+    },
+    "context": {
+      "orgWide": "على مستوى المؤسسة"
+    },
+    "detail": {
+      "editMeeting": "تعديل الاجتماع",
+      "noAttendees": "لم يتم تسجيل حضور.",
+      "addAttendee": "+ إضافة حاضر",
+      "decisionsHeading": "القرارات ({count})",
+      "canonicalBadge": "سجلات رسمية — ليست مهاماً",
+      "addDecision": "+ إضافة قرار",
+      "noDecisionsYet": "لم يتم تسجيل قرارات بعد.",
+      "actionItemsHeading": "بنود العمل ({count})",
+      "addActionItem": "+ إضافة بند عمل",
+      "noActionItemsYet": "لم يتم تسجيل بنود عمل بعد.",
+      "decidedAt": "تم القرار {date}",
+      "due": "الاستحقاق: {date}",
+      "viewLinkedTask": "عرض المهمة المرتبطة",
+      "createTaskTooltip": "إنشاء مهمة من بند العمل",
+      "taskButton": "+ مهمة"
+    },
+    "attendee": {
+      "unknown": "غير معروف",
+      "member": "(عضو)",
+      "employee": "(موظف)",
+      "contact": "(جهة اتصال)"
+    },
     "noDecisions": "لم يتم تسجيل قرارات"
   },
   "stages": {
@@ -228,6 +355,7 @@
     "transitionTo": "الانتقال إلى",
     "history": "تاريخ المراحل",
     "noStages": "لم يتم تعريف مراحل",
+    "noStage": "بدون مرحلة",
     "workKindFilter": {
       "all": "جميع أنواع المشاريع",
       "project": "المشاريع فقط",
@@ -291,13 +419,25 @@
     "clear": "مسح التصفية"
   },
   "boards": {
+    "pageTitle": "اللوحات",
+    "pageDescription": "لوحات كانبان في مساحة العمل هذه",
     "boardPageTitle": "اللوحة",
     "boardsPageTitle": "اللوحات",
     "noBoardsYet": "لا توجد لوحات بعد",
     "switcherLabel": "تبديل اللوحة",
     "default": "افتراضي",
-    "createBoard": "إنشاء لوحة"
+    "createBoard": "إنشاء لوحة",
+    "createFirst": "أنشئ لوحتك الأولى",
+    "tasks": "مهام",
+    "openBoard": "فتح اللوحة",
+    "empty": {
+      "title": "لا توجد لوحات بعد",
+      "description": "أنشئ لوحة لتنظيم المهام في مساحة العمل هذه"
+    }
   },
+  "uncategorized": "غير مصنف",
+  "noLabel": "بدون تسمية",
+  "unknown": "غير معروف",
   "checklist": "قائمة المراجعة",
   "close": "إغلاق",
   "saving": "جارٍ الحفظ...",

@@ -60,12 +60,17 @@ async function main() {
 
   await runPhase('refresh maps for corrections', organizationId, primary.userId, async (context) => {
     const { projects, employees } = await import('@drizzle/schema');
-    const { and, eq, like } = await import('drizzle-orm');
+    const { and, eq, like, sql } = await import('drizzle-orm');
     const markerLike = `%${SEED_MARKER}%`;
     const projectRows = await context.db
       .select({ id: projects.id, documentNumber: projects.documentNumber })
       .from(projects)
-      .where(and(eq(projects.organizationId, organizationId), like(projects.description, markerLike)));
+      .where(
+        and(
+          eq(projects.organizationId, organizationId),
+          sql`(${projects.description} like ${markerLike} or ${projects.documentNumber} like 'CNS-27%')`,
+        ),
+      );
     for (const row of projectRows) {
       const docNum = row.documentNumber?.replace(/^CNS-/, '');
       if (docNum) maps.projectIds.set(docNum, row.id);

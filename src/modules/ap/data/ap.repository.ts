@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, inArray, isNull, lte, notInArray } from 'drizzle-orm';
+import { and, desc, eq, gte, inArray, isNull, lte, notInArray, sql } from 'drizzle-orm';
 import {
   apBillLines,
   apBills,
@@ -37,6 +37,30 @@ export interface ApBillListItem extends ApBillRow {
   readonly vendorName: string | null;
 }
 
+function buildApBillListConditions(
+  organizationId: string,
+  options: { readonly fromDate?: string; readonly toDate?: string },
+) {
+  const conditions = [eq(apBills.organizationId, organizationId), isNull(apBills.archivedAt)];
+  if (options.fromDate) conditions.push(gte(apBills.billDate, options.fromDate));
+  if (options.toDate) conditions.push(lte(apBills.billDate, options.toDate));
+  return conditions;
+}
+
+export async function countApBills(
+  db: DbExecutor,
+  organizationId: string,
+  options: { readonly fromDate?: string; readonly toDate?: string } = {},
+): Promise<number> {
+  const conditions = buildApBillListConditions(organizationId, options);
+  const [row] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(apBills)
+    .where(and(...conditions));
+
+  return row?.count ?? 0;
+}
+
 export async function listApBills(
   db: DbExecutor,
   organizationId: string,
@@ -52,9 +76,7 @@ export async function listApBills(
       ? ORG_LIST_EXPORT_CAP
       : ORG_LIST_HARD_CAP;
 
-  const conditions = [eq(apBills.organizationId, organizationId), isNull(apBills.archivedAt)];
-  if (options.fromDate) conditions.push(gte(apBills.billDate, options.fromDate));
-  if (options.toDate) conditions.push(lte(apBills.billDate, options.toDate));
+  const conditions = buildApBillListConditions(organizationId, options);
 
   const billCols = await apBillSelectColumns(db);
   const rows = await db

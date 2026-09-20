@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import {
@@ -9,20 +10,28 @@ import { getShellContext, withOrgContext } from '@/shared/auth/session';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { WorkloadExpandableRows } from './workload-expandable-rows';
 
-export const metadata: Metadata = { title: 'Team Workload' };
-
-// ---------------------------------------------------------------------------
-// Page
-// ---------------------------------------------------------------------------
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'tasks' });
+  return { title: t('workload.pageTitle') };
+}
 
 interface WorkloadPageProps {
   searchParams: Promise<{
-    expand?: string; // employee ID to pre-expand
+    expand?: string;
   }>;
 }
 
 export default async function WorkloadPage({ searchParams }: WorkloadPageProps) {
-  const [params, shell] = await Promise.all([searchParams, getShellContext()]);
+  const [params, shell, t] = await Promise.all([
+    searchParams,
+    getShellContext(),
+    getTranslations('tasks'),
+  ]);
 
   const canRead = shell?.permissions.has(PERMISSIONS.WORKLOAD_READ) ?? false;
   const canAssign = shell?.permissions.has(PERMISSIONS.TASKS_ASSIGN) ?? false;
@@ -30,16 +39,15 @@ export default async function WorkloadPage({ searchParams }: WorkloadPageProps) 
   if (!canRead) {
     return (
       <div className="flex min-w-0 max-w-full flex-col gap-6">
-        <PageHeader title="Team Workload" />
+        <PageHeader title={t('workload.pageTitle')} />
         <EmptyState
-          title="Access restricted"
-          description="You need the workload.read permission to view team workload."
+          title={t('workload.accessDenied.title')}
+          description={t('workload.accessDenied.description')}
         />
       </div>
     );
   }
 
-  // Pre-expand employee task preview if requested via URL param
   const expandEmployeeId = params.expand ?? null;
 
   const { workload, previewTasks } = await withOrgContext(async (context) => {
@@ -57,41 +65,46 @@ export default async function WorkloadPage({ searchParams }: WorkloadPageProps) 
     return (
       <div className="flex min-w-0 max-w-full flex-col gap-6">
         <PageHeader
-          title="Team Workload"
-          description="No active employees found"
+          title={t('workload.pageTitle')}
+          description={t('workload.description.noEmployees')}
         />
         <EmptyState
-          title="No active employees"
-          description="Add active employees to view team workload."
+          title={t('workload.emptyState.title')}
+          description={t('workload.emptyState.description')}
         />
       </div>
     );
   }
 
-  // Compute summary stats for the header
   const totalOpen = rows.reduce((s, r) => s + r.openTasks, 0);
   const totalOverdue = rows.reduce((s, r) => s + r.overdueTasks, 0);
 
   return (
     <div className="flex min-w-0 max-w-full flex-col gap-6">
       <PageHeader
-        title="Team Workload"
-        description={`${rows.length} active employee${rows.length === 1 ? '' : 's'} · ${totalOpen} open task${totalOpen === 1 ? '' : 's'} · ${totalOverdue} overdue`}
+        title={t('workload.pageTitle')}
+        description={t('workload.description.summary', {
+          employeeCount: rows.length,
+          openCount: totalOpen,
+          overdueCount: totalOverdue,
+        })}
       />
 
-      {/* Summary KPI chips */}
       <div className="flex flex-wrap gap-3">
-        <StatChip label="Active employees" value={rows.length} />
-        <StatChip label="Open tasks" value={totalOpen} />
-        <StatChip label="Overdue" value={totalOverdue} tone={totalOverdue > 0 ? 'red' : 'neutral'} />
+        <StatChip label={t('workload.stats.activeEmployees')} value={rows.length} />
+        <StatChip label={t('workload.stats.openTasks')} value={totalOpen} />
         <StatChip
-          label="Due this week"
+          label={t('workload.stats.overdue')}
+          value={totalOverdue}
+          tone={totalOverdue > 0 ? 'red' : 'neutral'}
+        />
+        <StatChip
+          label={t('workload.stats.dueThisWeek')}
           value={rows.reduce((s, r) => s + r.dueThisWeek, 0)}
           tone="amber"
         />
       </div>
 
-      {/* Main table + expandable rows (client component handles expand/collapse) */}
       <WorkloadExpandableRows
         rows={rows}
         showEstimatedEffort={showEstimatedEffort}
@@ -99,23 +112,17 @@ export default async function WorkloadPage({ searchParams }: WorkloadPageProps) 
         initialExpandedId={expandEmployeeId}
         initialPreviewTasks={
           expandEmployeeId
-            ? previewTasks.map((t) => ({ ...t, employeeId: expandEmployeeId }))
+            ? previewTasks.map((task) => ({ ...task, employeeId: expandEmployeeId }))
             : []
         }
       />
 
       {!showEstimatedEffort && (
-        <p className="text-xs text-[var(--pf-text-muted)]">
-          Estimated effort is hidden — no tasks have estimated_effort_minutes populated.
-        </p>
+        <p className="text-xs text-[var(--pf-text-muted)]">{t('workload.effortHidden')}</p>
       )}
     </div>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Stat chip (server component)
-// ---------------------------------------------------------------------------
 
 function StatChip({
   label,

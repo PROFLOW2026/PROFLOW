@@ -157,9 +157,60 @@
       "status": "סטטוס",
       "hasOverdue": "יש משימות באיחור",
       "stale": "לא פעיל (14 יום)",
-      "workKind": "סוג"
+      "staleShort": "לא פעיל (14+ יום)",
+      "workKind": "סוג",
+      "allTypes": "כל הסוגים",
+      "allStatuses": "כל הסטטוסים",
+      "clearAll": "נקה הכל",
+      "aria": {
+        "workKind": "סינון לפי סוג עבודה",
+        "status": "סינון לפי סטטוס"
+      },
+      "workKindOptions": {
+        "project": "פרויקטים",
+        "job": "עבודות",
+        "work_order": "הזמנות עבודה"
+      },
+      "statusOptions": {
+        "active": "פעיל",
+        "on_hold": "בהמתנה",
+        "completed": "הושלם"
+      }
     },
-    "empty": "לא נמצאו פרויקטים"
+    "status": {
+      "active": "פעיל",
+      "on_hold": "בהמתנה",
+      "completed": "הושלם"
+    },
+    "lastActivity": {
+      "today": "היום",
+      "yesterday": "אתמול",
+      "daysAgo": "לפני {count} ימים",
+      "weeksAgo": "לפני {count} שב׳",
+      "monthsAgo": "לפני {count} חוד׳"
+    },
+    "pagination": {
+      "showing": "מציג {start}–{end} מתוך {total}",
+      "label": "עימוד",
+      "rowsPerPage": "שורות בעמוד:"
+    },
+    "accessDenied": {
+      "title": "גישה מוגבלת",
+      "description": "נדרשת הרשאת portfolio.read לצפייה בתיק הפרויקטים."
+    },
+    "description": {
+      "projectCount": "{count, plural, one {פרויקט #} other {# פרויקטים}}"
+    },
+    "emptyFiltered": {
+      "title": "אין פרויקטים התואמים למסננים",
+      "description": "נסה לשנות את המסננים כדי לראות תוצאות נוספות."
+    },
+    "emptyDefault": {
+      "title": "אין פרויקטים בתיק",
+      "description": "צור פרויקט כדי לראות אותו כאן."
+    },
+    "empty": "לא נמצאו פרויקטים",
+    "healthScoreTitle": "ציון מצב: {score} ({formula})"
   },
   "workload": {
     "pageTitle": "עומס צוות",
@@ -174,7 +225,45 @@
     "noEffortData": "אין הערכות זמן",
     "reassign": "הקצה מחדש",
     "expand": "צפה במשימות",
-    "empty": "לא נמצאו עובדים"
+    "empty": "לא נמצאו עובדים",
+    "accessDenied": {
+      "title": "גישה מוגבלת",
+      "description": "נדרשת הרשאת workload.read לצפייה בעומס הצוות."
+    },
+    "description": {
+      "noEmployees": "לא נמצאו עובדים פעילים",
+      "summary": "{employeeCount, plural, one {עובד פעיל #} other {# עובדים פעילים}} · {openCount, plural, one {משימה פתוחה #} other {# משימות פתוחות}} · {overdueCount} באיחור"
+    },
+    "emptyState": {
+      "title": "אין עובדים פעילים",
+      "description": "הוסף עובדים פעילים כדי לצפות בעומס הצוות."
+    },
+    "stats": {
+      "activeEmployees": "עובדים פעילים",
+      "openTasks": "משימות פתוחות",
+      "overdue": "באיחור",
+      "dueThisWeek": "יעד השבוע"
+    },
+    "effortHidden": "זמן משוער מוסתר — אין משימות עם הערכת זמן.",
+    "preview": {
+      "loading": "טוען…",
+      "noTasks": "אין משימות פתוחות או קרובות.",
+      "noDueDate": "ללא תאריך יעד",
+      "overdueDays": "באיחור {count} ימים",
+      "dueToday": "יעד היום",
+      "dueTomorrow": "יעד מחר",
+      "dueInDays": "יעד בעוד {count} ימים",
+      "noProject": "ללא פרויקט",
+      "open": "פתח",
+      "expand": "הרחב",
+      "collapse": "כווץ",
+      "columns": {
+        "task": "משימה",
+        "project": "פרויקט",
+        "due": "יעד",
+        "status": "סטטוס"
+      }
+    }
   },
   "operations": {
     "pageTitle": "תפעול",
@@ -217,6 +306,44 @@
       }
     },
     "empty": "אין ישיבות עדיין",
+    "emptyDescriptionManage": "צור את הישיבה הראשונה שלך כדי להתחיל לעקוב אחרי החלטות.",
+    "emptyDescriptionRead": "עדיין לא נרשמו ישיבות.",
+    "pageDescription": "רישומי ישיבות, החלטות ובני פעולה",
+    "detailPageTitle": "פרטי ישיבה",
+    "filters": {
+      "from": "מ:",
+      "clear": "נקה"
+    },
+    "table": {
+      "context": "הקשר",
+      "actions": "פעולות"
+    },
+    "context": {
+      "orgWide": "ברמת הארגון"
+    },
+    "detail": {
+      "editMeeting": "עריכת ישיבה",
+      "noAttendees": "לא נרשמו משתתפים.",
+      "addAttendee": "+ הוסף משתתף",
+      "decisionsHeading": "החלטות ({count})",
+      "canonicalBadge": "רשומות קנוניות — לא משימות",
+      "addDecision": "+ הוסף החלטה",
+      "noDecisionsYet": "עדיין לא נרשמו החלטות.",
+      "actionItemsHeading": "בני פעולה ({count})",
+      "addActionItem": "+ הוסף בן פעולה",
+      "noActionItemsYet": "עדיין לא נרשמו בני פעולה.",
+      "decidedAt": "הוחלט {date}",
+      "due": "יעד: {date}",
+      "viewLinkedTask": "צפה במשימה מקושרת",
+      "createTaskTooltip": "צור משימה מבן פעולה זה",
+      "taskButton": "+ משימה"
+    },
+    "attendee": {
+      "unknown": "לא ידוע",
+      "member": "(חבר)",
+      "employee": "(עובד)",
+      "contact": "(איש קשר)"
+    },
     "noDecisions": "לא נרשמו החלטות"
   },
   "stages": {
@@ -228,6 +355,7 @@
     "transitionTo": "העבר לשלב",
     "history": "היסטוריית שלבים",
     "noStages": "לא הוגדרו שלבים",
+    "noStage": "ללא שלב",
     "workKindFilter": {
       "all": "כל סוגי הפרויקטים",
       "project": "פרויקטים בלבד",
@@ -291,13 +419,25 @@
     "clear": "נקה מסננים"
   },
   "boards": {
+    "pageTitle": "לוחות",
+    "pageDescription": "לוחות קנבן בסביבת עבודה זו",
     "boardPageTitle": "לוח",
     "boardsPageTitle": "לוחות",
     "noBoardsYet": "אין לוחות עדיין",
     "switcherLabel": "בחר לוח",
     "default": "ברירת מחדל",
-    "createBoard": "צור לוח"
+    "createBoard": "צור לוח",
+    "createFirst": "צור את הלוח הראשון שלך",
+    "tasks": "משימות",
+    "openBoard": "פתח לוח",
+    "empty": {
+      "title": "אין לוחות עדיין",
+      "description": "צור לוח לארגון משימות בסביבת עבודה זו"
+    }
   },
+  "uncategorized": "ללא קטגוריה",
+  "noLabel": "ללא תגית",
+  "unknown": "לא ידוע",
   "checklist": "רשימת תיוג",
   "close": "סגור",
   "saving": "שומר...",

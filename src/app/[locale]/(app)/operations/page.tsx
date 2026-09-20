@@ -25,7 +25,10 @@ export default async function OperationsDashboardPage() {
     notFound();
   }
 
-  const t = await getTranslations('operations');
+  const [t, tTasks] = await Promise.all([
+    getTranslations('operations'),
+    getTranslations('tasks'),
+  ]);
   const data = await withOrgContext((context) => getOperationsDashboard(context));
 
   const today = new Date().toISOString().slice(0, 10);
@@ -151,8 +154,8 @@ export default async function OperationsDashboardPage() {
                 >
                   {project.name}
                 </Link>
-                <span className="shrink-0 rounded px-1.5 py-0.5 text-xs font-medium capitalize text-[var(--pf-text-secondary)]">
-                  {project.status}
+                <span className="shrink-0 rounded px-1.5 py-0.5 text-xs font-medium text-[var(--pf-text-secondary)]">
+                  {tTasks(`portfolio.status.${project.status}` as 'portfolio.status.active')}
                 </span>
               </li>
             ))}
