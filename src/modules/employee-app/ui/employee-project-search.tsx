@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { employeeFilterInputClass } from './employee-surface-styles';
 
 interface ProjectRow {
   readonly id: string;
@@ -30,7 +31,7 @@ export function EmployeeProjectSearch({ projects }: { projects: readonly Project
         value={query}
         onChange={(event) => setQuery(event.target.value)}
         placeholder={t('projectSearchPlaceholder')}
-        className="w-full rounded-lg border border-[var(--pf-border)] bg-[var(--pf-surface)] px-3 py-2 text-sm"
+        className={employeeFilterInputClass}
       />
     </label>
   );

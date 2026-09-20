@@ -5,6 +5,10 @@ import { withOrgContext } from '@/shared/auth/session';
 import { listEmployeeAssignedProjects } from '@/modules/employee-app';
 import { Link } from '@/shared/i18n/navigation';
 import { EmployeeProjectSearch } from '@/modules/employee-app/ui/employee-project-search';
+import {
+  employeeListPanelClass,
+  employeeListRowLinkClass,
+} from '@/modules/employee-app/ui/employee-surface-styles';
 
 export default async function EmployeeProjectsPage() {
   const t = await getTranslations('employeeApp.lists');
@@ -16,14 +20,11 @@ export default async function EmployeeProjectsPage() {
   return (
     <div className="space-y-4">
       {projectRows.length > 0 ? <EmployeeProjectSearch projects={projectRows} /> : null}
-      <ul className="divide-y divide-[var(--pf-border)] rounded-lg border border-[var(--pf-border)]">
+      <ul className={employeeListPanelClass}>
         {projectRows.map((project) => (
           <li key={project.id} data-project-row data-search={project.displayName.toLowerCase()}>
-            <Link
-              href={`/employee/projects/${project.id}`}
-              className="block px-4 py-3 text-sm font-medium hover:bg-[var(--pf-surface-2)] transition-colors"
-            >
-              {project.displayName}
+            <Link href={`/employee/projects/${project.id}`} className={employeeListRowLinkClass}>
+              <span className="text-sm font-medium">{project.displayName}</span>
             </Link>
           </li>
         ))}

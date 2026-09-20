@@ -2,6 +2,16 @@ import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { withOrgContext } from '@/shared/auth/session';
 import { getEmployeePmTaskDetail, getEmployeePmTaskCapabilities, listEmployeePmTaskAssigneeOptions, listEmployeePmTaskPendingApprovals } from '@/modules/employee-app/application/employee-pm-tasks';
+import { loadProjectDisplayNameMap } from '@/modules/projects/application/project-display-names';
+import { todayInTimeZone } from '@/shared/dates';
+import { EmployeePostponeMenu } from '@/modules/employee-app/ui/employee-postpone-menu';
+import {
+  employeeFilterInputClass,
+  employeeListPanelClass,
+  employeePanelClass,
+  employeePrimaryButtonClass,
+  employeeSectionTitleClass,
+} from '@/modules/employee-app/ui/employee-surface-styles';
 import {
   assigneeDisplaysForTask,
   loadTaskAssigneeDisplayMap,
@@ -62,13 +72,15 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
   let assigneeOptions: Awaited<ReturnType<typeof listEmployeePmTaskAssigneeOptions>> = [];
   let pendingApprovals: Awaited<ReturnType<typeof listEmployeePmTaskPendingApprovals>> = [];
   let assigneeNames = '';
+  let projectDisplayName: string | null = null;
+  let today = '';
 
   try {
     const result = await withOrgContext(async (context) => {
       await assertEmployeeAppContext(context);
       const detail = await getEmployeePmTaskDetail(context, taskId);
       const capabilities = await getEmployeePmTaskCapabilities(context, detail);
-      const [assignees, approvals, assigneeMap] = await Promise.all([
+      const [assignees, approvals, assigneeMap, projectLabels] = await Promise.all([
         capabilities.canAssign
           ? listEmployeePmTaskAssigneeOptions(context, detail.projectId)
           : Promise.resolve([]),
@@ -76,6 +88,9 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
           ? listEmployeePmTaskPendingApprovals(context, taskId)
           : Promise.resolve([]),
         loadTaskAssigneeDisplayMap(context.db, context.organizationId, [taskId]),
+        detail.projectId
+          ? loadProjectDisplayNameMap(context.db, context.organizationId, [detail.projectId])
+          : Promise.resolve(new Map<string, string>()),
       ]);
       const assigneeLabels = assigneeDisplaysForTask(taskId, assigneeMap)
         .map((assignee) => assignee.displayName)
@@ -90,6 +105,8 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
         assigneeOptions: assignees,
         pendingApprovals: approvals,
         assigneeNames: assigneeLabels,
+        projectDisplayName: detail.projectId ? (projectLabels.get(detail.projectId) ?? null) : null,
+        today: todayInTimeZone(context.organization.timezone),
         canCreate: employeeHasPermission(context, PERMISSIONS.TASKS_CREATE),
       };
     });
@@ -101,6 +118,8 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
     assigneeOptions = result.assigneeOptions;
     pendingApprovals = result.pendingApprovals;
     assigneeNames = result.assigneeNames;
+    projectDisplayName = result.projectDisplayName;
+    today = result.today;
   } catch (error) {
     if (error instanceof NotFoundError) notFound();
     throw error;
@@ -118,9 +137,12 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
         {t('backToTasks')}
       </Link>
 
-      <div className="space-y-3 rounded-xl border border-[var(--pf-border)] bg-[var(--pf-surface)] p-4">
+      <div className={cn(employeePanelClass, 'space-y-3')}>
         <h1 className="text-base font-semibold leading-snug">{task.title}</h1>
-        <div className="flex flex-wrap gap-2">
+        {projectDisplayName ? (
+          <p className="text-sm text-[var(--pf-text-secondary)]">{projectDisplayName}</p>
+        ) : null}
+        <div className="flex flex-wrap items-center gap-2">
           <span className={cn('inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium', statusColor)}>
             {t(`status.${task.status}`, { defaultValue: task.status })}
           </span>
@@ -139,6 +161,9 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
               {t('dueDate', { date: task.dueDate })}
             </span>
           ) : null}
+          {canUpdate ? (
+            <EmployeePostponeMenu taskId={taskId} dueDate={task.dueDate} today={today} />
+          ) : null}
         </div>
         {task.description ? (
           <p className="whitespace-pre-line text-sm leading-relaxed text-[var(--pf-text-secondary)]">
@@ -154,14 +179,14 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
 
       {canAssign && assigneeOptions.length > 0 ? (
         <section className="space-y-2">
-          <h2 className="px-1 text-sm font-semibold uppercase tracking-wide text-[var(--pf-text-secondary)]">
+          <h2 className={cn('px-1', employeeSectionTitleClass)}>
             {t('assignSection')}
           </h2>
           <form action={employeeAssignTaskAction.bind(null, taskId)} className="flex flex-col gap-2 sm:flex-row">
             <select
               name="assigneeEmployeeId"
               required
-              className="min-h-[44px] flex-1 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-surface)] px-3 py-2 text-sm"
+              className={cn(employeeFilterInputClass, 'min-h-[44px] flex-1')}
             >
               <option value="">{t('assignSelect')}</option>
               {assigneeOptions.map((option) => (
@@ -170,10 +195,7 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
                 </option>
               ))}
             </select>
-            <button
-              type="submit"
-              className="min-h-[44px] rounded-lg bg-[var(--pf-primary)] px-4 py-2 text-sm font-medium text-white"
-            >
+            <button type="submit" className={employeePrimaryButtonClass}>
               {t('assignSubmit')}
             </button>
           </form>
@@ -272,7 +294,7 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
               total: task.checklistItems.length,
             })}
           </h2>
-          <ul className="divide-y divide-[var(--pf-border)] rounded-xl border border-[var(--pf-border)] bg-[var(--pf-surface)]">
+          <ul className={employeeListPanelClass}>
             {task.checklistItems.map((item) => {
               if (!canUpdate) {
                 return (

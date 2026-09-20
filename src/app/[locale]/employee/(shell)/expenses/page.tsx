@@ -5,7 +5,12 @@ import { listEmployeeAccessibleExpenses } from '@/modules/employee-app/applicati
 import { employeeHasPermission } from '@/modules/employee-app/application/load-employee-app-context';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { formatMoneyDisplay } from '@/shared/money';
+import { cn } from '@/shared/ui/cn';
 import { Button } from '@/components/ui/button';
+import {
+  employeeListPanelClass,
+  employeeListRowClass,
+} from '@/modules/employee-app/ui/employee-surface-styles';
 
 export default async function EmployeeExpensesPage() {
   const t = await getTranslations('employeeApp.expenses');
@@ -21,9 +26,9 @@ export default async function EmployeeExpensesPage() {
           <Link href="/employee/expenses/new">{t('create')}</Link>
         </Button>
       ) : null}
-      <ul className="divide-y divide-[var(--pf-border)] rounded-lg border border-[var(--pf-border)]">
+      <ul className={employeeListPanelClass}>
         {payload.items.map((item) => (
-          <li key={item.id} className="flex items-center justify-between px-4 py-3 text-sm">
+          <li key={item.id} className={cn(employeeListRowClass, 'flex items-center justify-between')}>
             <span>{item.description ?? item.vendorName ?? item.id}</span>
             <span>{formatMoneyDisplay(item.netAmount ?? item.grossAmount)}</span>
           </li>

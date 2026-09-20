@@ -9,10 +9,15 @@ import { employeeHasPermission } from '@/modules/employee-app/application/load-e
 import { loadProjectDisplayNameMap } from '@/modules/projects/application/project-display-names';
 import { withOrgContext } from '@/shared/auth/session';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import { todayInTimeZone } from '@/shared/dates';
+import { addDays, todayInTimeZone } from '@/shared/dates';
 import { Link } from '@/shared/i18n/navigation';
-import { pressableCardLinkClassName } from '@/components/ui/pressable';
 import { EmployeeInstallButton } from '@/modules/employee-app/ui/employee-install-button';
+import {
+  employeeListPanelClass,
+  employeeListRowLinkClass,
+  employeePageStackClass,
+  employeePanelClass,
+} from '@/modules/employee-app/ui/employee-surface-styles';
 import { cn } from '@/shared/ui/cn';
 
 export async function generateMetadata({
@@ -27,72 +32,79 @@ export async function generateMetadata({
 
 const CLOSED_STATUSES = new Set(['done', 'cancelled']);
 
+type HomeTaskKind = 'overdue' | 'dueToday' | 'upcoming' | 'blocked';
+
 export default async function EmployeeHomePage() {
   const t = await getTranslations('employeeApp');
-  const { data, canAttendance, canHours, taskSummary, priorityTasks } = await withOrgContext(
-    async (context) => {
-      const shell = await getEmployeeShellData(context);
-      const canAtt = employeeHasPermission(context, PERMISSIONS.ATTENDANCE_SELF);
-      const canHr = employeeHasPermission(context, PERMISSIONS.TIME_MANAGE);
-      const hasTasks = employeeHasPermission(context, PERMISSIONS.TASKS_READ);
+  const { data, taskSummary, priorityTasks } = await withOrgContext(async (context) => {
+    const shell = await getEmployeeShellData(context);
+    const hasTasks = employeeHasPermission(context, PERMISSIONS.TASKS_READ);
 
-      let summary = null;
-      let tasks: Array<{
-        id: string;
-        title: string;
-        dueDate: string | null;
-        status: string;
-        projectLabel: string | null;
-        kind: 'overdue' | 'dueToday';
-      }> = [];
+    let summary = null;
+    let tasks: Array<{
+      id: string;
+      title: string;
+      dueDate: string | null;
+      status: string;
+      projectLabel: string | null;
+      kind: HomeTaskKind;
+    }> = [];
 
-      if (hasTasks) {
-        summary = await getEmployeePmTaskWorkSummary(context);
-        const today = todayInTimeZone(context.organization.timezone);
-        const rows = await listEmployeePmTasks(context);
-        const openRows = rows.filter((row) => !CLOSED_STATUSES.has(row.status) && row.dueDate);
-        const projectLabels = await loadProjectDisplayNameMap(
-          context.db,
-          context.organizationId,
-          openRows.map((row) => row.projectId).filter(Boolean) as string[],
-        );
+    if (hasTasks) {
+      summary = await getEmployeePmTaskWorkSummary(context);
+      const today = todayInTimeZone(context.organization.timezone);
+      const upcomingUntil = addDays(today, 7);
+      const rows = await listEmployeePmTasks(context);
+      const openRows = rows.filter((row) => !CLOSED_STATUSES.has(row.status));
+      const projectLabels = await loadProjectDisplayNameMap(
+        context.db,
+        context.organizationId,
+        openRows.map((row) => row.projectId).filter(Boolean) as string[],
+      );
 
-        tasks = openRows
-          .map((row) => {
-            const kind: 'overdue' | 'dueToday' | null =
-              row.dueDate! < today ? 'overdue' : row.dueDate === today ? 'dueToday' : null;
-            if (!kind) return null;
-            return {
-              id: row.id,
-              title: row.title,
-              dueDate: row.dueDate,
-              status: row.status,
-              projectLabel: row.projectId ? (projectLabels.get(row.projectId) ?? null) : null,
-              kind,
-            };
-          })
-          .filter((row): row is NonNullable<typeof row> => row !== null)
-          .sort((a, b) => {
-            if (a.kind !== b.kind) return a.kind === 'overdue' ? -1 : 1;
-            return (a.dueDate ?? '').localeCompare(b.dueDate ?? '');
-          })
-          .slice(0, 6);
-      }
+      tasks = openRows
+        .map((row) => {
+          let kind: HomeTaskKind | null = null;
+          if (row.status === 'blocked') kind = 'blocked';
+          else if (row.dueDate && row.dueDate < today) kind = 'overdue';
+          else if (row.dueDate === today) kind = 'dueToday';
+          else if (row.dueDate && row.dueDate > today && row.dueDate <= upcomingUntil) {
+            kind = 'upcoming';
+          }
+          if (!kind) return null;
+          return {
+            id: row.id,
+            title: row.title,
+            dueDate: row.dueDate,
+            status: row.status,
+            projectLabel: row.projectId ? (projectLabels.get(row.projectId) ?? null) : null,
+            kind,
+          };
+        })
+        .filter((row): row is NonNullable<typeof row> => row !== null)
+        .sort((a, b) => {
+          const order: Record<HomeTaskKind, number> = {
+            overdue: 0,
+            dueToday: 1,
+            blocked: 2,
+            upcoming: 3,
+          };
+          const rankDiff = order[a.kind] - order[b.kind];
+          if (rankDiff !== 0) return rankDiff;
+          return (a.dueDate ?? '').localeCompare(b.dueDate ?? '');
+        })
+        .slice(0, 8);
+    }
 
-      return {
-        data: shell,
-        canAttendance: canAtt,
-        canHours: canHr,
-        taskSummary: summary,
-        priorityTasks: tasks,
-      };
-    },
-  );
-
-  const showTimeNav = canAttendance || canHours;
+    return {
+      data: shell,
+      taskSummary: summary,
+      priorityTasks: tasks,
+    };
+  });
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className={employeePageStackClass}>
       <header>
         <h1 className="text-2xl font-bold">
           {t('greeting', { name: data.employeeName || t('home.anonymousName') })}
@@ -100,7 +112,7 @@ export default async function EmployeeHomePage() {
       </header>
 
       {taskSummary ? (
-        <section className="rounded-xl border border-[var(--pf-border)] bg-[var(--pf-surface)] p-4 space-y-4">
+        <section className={cn(employeePanelClass, 'space-y-4')}>
           <div className="space-y-1">
             <h2 className="text-sm font-semibold">{t('home.workSummary.title')}</h2>
             <p className="text-xs text-[var(--pf-text-secondary)]">{t('home.workSummary.subtitle')}</p>
@@ -119,13 +131,10 @@ export default async function EmployeeHomePage() {
           </dl>
 
           {priorityTasks.length > 0 ? (
-            <ul className="divide-y divide-[var(--pf-border)] rounded-lg border border-[var(--pf-border)]">
+            <ul className={employeeListPanelClass}>
               {priorityTasks.map((task) => (
                 <li key={task.id}>
-                  <Link
-                    href={`/employee/tasks/${task.id}`}
-                    className="block px-4 py-3 hover:bg-[var(--pf-surface-2)] transition-colors"
-                  >
+                  <Link href={`/employee/tasks/${task.id}`} className={employeeListRowLinkClass}>
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <p className="text-sm font-medium">{task.title}</p>
@@ -138,12 +147,14 @@ export default async function EmployeeHomePage() {
                           'shrink-0 rounded-full px-2 py-0.5 text-xs font-medium',
                           task.kind === 'overdue'
                             ? 'bg-red-50 text-red-700'
-                            : 'bg-[var(--pf-accent-soft)] text-[var(--pf-accent)]',
+                            : task.kind === 'dueToday'
+                              ? 'bg-[var(--pf-accent-soft)] text-[var(--pf-accent)]'
+                              : task.kind === 'blocked'
+                                ? 'bg-red-100 text-red-700'
+                                : 'bg-[var(--pf-bg-muted)] text-[var(--pf-text-secondary)]',
                         )}
                       >
-                        {task.kind === 'overdue'
-                          ? t('home.workSummary.overdueBadge')
-                          : t('home.workSummary.dueTodayBadge')}
+                        {t(`home.workSummary.badges.${task.kind}`)}
                       </span>
                     </div>
                   </Link>
@@ -156,13 +167,6 @@ export default async function EmployeeHomePage() {
             {t('home.workSummary.viewTasks')}
           </Link>
         </section>
-      ) : null}
-
-      {showTimeNav ? (
-        <Link href="/employee/time" className={cn(pressableCardLinkClassName, 'block p-4')}>
-          <p className="text-sm font-medium">{t('home.timeShortcut.title')}</p>
-          <p className="mt-1 text-xs text-[var(--pf-text-secondary)]">{t('home.timeShortcut.description')}</p>
-        </Link>
       ) : null}
 
       <EmployeeInstallButton />

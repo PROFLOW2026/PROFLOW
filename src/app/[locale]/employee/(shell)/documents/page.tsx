@@ -5,6 +5,10 @@ import { withOrgContext } from '@/shared/auth/session';
 import { listDocumentsForEntity } from '@/modules/documents';
 import { resolveLinkedEmployee } from '@/modules/workforce/application/time-scope';
 import { canReadDocumentCategoryForContext } from '@/modules/documents/application/document-visibility';
+import {
+  employeeListPanelClass,
+  employeeListRowClass,
+} from '@/modules/employee-app/ui/employee-surface-styles';
 
 export default async function EmployeeDocumentsPage() {
   const t = await getTranslations('employeeApp.lists');
@@ -21,9 +25,9 @@ export default async function EmployeeDocumentsPage() {
 
   return (
     <div className="space-y-4">
-      <ul className="divide-y divide-[var(--pf-border)] rounded-lg border border-[var(--pf-border)]">
+      <ul className={employeeListPanelClass}>
         {docs.map((doc) => (
-          <li key={doc.id} className="px-4 py-3 text-sm">
+          <li key={doc.id} className={employeeListRowClass}>
             <div className="font-medium">{doc.originalFilename}</div>
             <div className="text-[var(--pf-text-secondary)]">{doc.category ?? t('noCategory')}</div>
           </li>

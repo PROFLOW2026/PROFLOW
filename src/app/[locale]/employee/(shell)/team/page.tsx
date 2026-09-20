@@ -1,6 +1,10 @@
 import { getTranslations } from 'next-intl/server';
 import { withOrgContext } from '@/shared/auth/session';
 import { listEmployeeTeamRoster } from '@/modules/employee-app/application/employee-operational';
+import {
+  employeeListPanelClass,
+  employeeListRowClass,
+} from '@/modules/employee-app/ui/employee-surface-styles';
 
 export default async function EmployeeTeamPage() {
   const t = await getTranslations('employeeApp.team');
@@ -9,9 +13,9 @@ export default async function EmployeeTeamPage() {
   return (
     <div className="space-y-4">
       <p className="text-sm text-[var(--pf-text-secondary)]">{t('intro')}</p>
-      <ul className="divide-y divide-[var(--pf-border)] rounded-lg border border-[var(--pf-border)]">
+      <ul className={employeeListPanelClass}>
         {members.map((member) => (
-          <li key={member.id} className="px-4 py-3">
+          <li key={member.id} className={employeeListRowClass}>
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-sm font-medium">{member.name}</p>

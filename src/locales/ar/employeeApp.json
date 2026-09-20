@@ -89,7 +89,13 @@
       "overdue": "متأخر",
       "dueTodayBadge": "اليوم",
       "overdueBadge": "متأخر",
-      "viewTasks": "عرض كل المهام"
+      "viewTasks": "عرض كل المهام",
+      "badges": {
+        "overdue": "متأخر",
+        "dueToday": "اليوم",
+        "upcoming": "قريب",
+        "blocked": "محظور"
+      }
     },
     "timeShortcut": {
       "title": "الحضور والساعات",
@@ -185,6 +191,45 @@
   },
   "meetings": {
     "empty": "لا اجتماعات بعد"
+  },
+  "filters": {
+    "title": "تصفية",
+    "search": "بحث",
+    "status": "الحالة",
+    "statusOpen": "مهام مفتوحة",
+    "all": "الكل",
+    "time": "تاريخ الاستحقاق",
+    "timeToday": "اليوم",
+    "timeOverdue": "متأخر",
+    "timeThisWeek": "هذا الأسبوع",
+    "timeNextWeek": "الأسبوع القادم",
+    "timeThisMonth": "هذا الشهر",
+    "timeCustom": "نطاق مخصص",
+    "dateFrom": "من",
+    "dateTo": "إلى",
+    "project": "المشروع",
+    "allProjects": "كل المشاريع",
+    "assignee": "المسند إليه",
+    "assigneeAll": "كل المسند إليهم",
+    "assigneeMe": "مسند إلي",
+    "priority": "الأولوية",
+    "date": "التاريخ",
+    "meetingUpcoming": "قادمة",
+    "meetingPast": "سابقة",
+    "participation": "المشاركة",
+    "participationAll": "كل المسموح",
+    "participationMine": "اجتماعاتي",
+    "participationProject": "اجتماعات المشروع",
+    "emptyTasks": "لا مهام تطابق التصفية",
+    "emptyMeetings": "لا اجتماعات تطابق التصفية",
+    "postpone": {
+      "action": "تأجيل",
+      "plusOneDay": "تأجيل يوم",
+      "plusOneWeek": "تأجيل أسبوع",
+      "pickDate": "اختر تاريخاً…",
+      "apply": "تطبيق",
+      "cancel": "إلغاء"
+    }
   },
   "lists": {
     "tasksEmpty": "لا مهام مسندة بعد",

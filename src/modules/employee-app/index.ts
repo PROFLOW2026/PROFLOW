@@ -35,6 +35,7 @@ export {
   getEmployeeProjectTaskOverview,
   addEmployeePmTaskComment,
   updateEmployeePmTaskStatus,
+  updateEmployeePmTaskDueDate,
   toggleEmployeePmTaskChecklistItem,
   type EmployeePmTaskSummary,
   type EmployeePmTaskDetail,

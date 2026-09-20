@@ -89,7 +89,13 @@
       "overdue": "Просрочено",
       "dueTodayBadge": "Сегодня",
       "overdueBadge": "Просрочено",
-      "viewTasks": "Все задачи"
+      "viewTasks": "Все задачи",
+      "badges": {
+        "overdue": "Просрочено",
+        "dueToday": "Сегодня",
+        "upcoming": "Скоро",
+        "blocked": "Заблокировано"
+      }
     },
     "timeShortcut": {
       "title": "Посещаемость и часы",
@@ -185,6 +191,45 @@
   },
   "meetings": {
     "empty": "Встреч пока нет"
+  },
+  "filters": {
+    "title": "Фильтры",
+    "search": "Поиск",
+    "status": "Статус",
+    "statusOpen": "Открытые задачи",
+    "all": "Все",
+    "time": "Срок",
+    "timeToday": "Сегодня",
+    "timeOverdue": "Просрочено",
+    "timeThisWeek": "На этой неделе",
+    "timeNextWeek": "На следующей неделе",
+    "timeThisMonth": "В этом месяце",
+    "timeCustom": "Свой диапазон",
+    "dateFrom": "С",
+    "dateTo": "По",
+    "project": "Проект",
+    "allProjects": "Все проекты",
+    "assignee": "Исполнитель",
+    "assigneeAll": "Все исполнители",
+    "assigneeMe": "Назначено мне",
+    "priority": "Приоритет",
+    "date": "Дата",
+    "meetingUpcoming": "Предстоящие",
+    "meetingPast": "Прошедшие",
+    "participation": "Участие",
+    "participationAll": "Все разрешённые",
+    "participationMine": "Мои встречи",
+    "participationProject": "Встречи проекта",
+    "emptyTasks": "Нет задач по текущим фильтрам",
+    "emptyMeetings": "Нет встреч по текущим фильтрам",
+    "postpone": {
+      "action": "Отложить",
+      "plusOneDay": "На 1 день",
+      "plusOneWeek": "На 1 неделю",
+      "pickDate": "Выбрать дату…",
+      "apply": "Применить",
+      "cancel": "Отмена"
+    }
   },
   "lists": {
     "tasksEmpty": "Нет назначенных задач",

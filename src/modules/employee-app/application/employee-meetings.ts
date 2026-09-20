@@ -51,7 +51,7 @@ async function queryEmployeeMeetings(
 
   const employeeId = requireEmployeeId(context);
   const scope = employeePermissionScope(context, PERMISSIONS.MEETINGS_READ);
-  const limit = filters.limit ?? 50;
+  const limit = filters.limit ?? 500;
 
   const attendeeMeetingIds = context.db
     .select({ meetingId: meetingAttendees.meetingId })

@@ -227,12 +227,15 @@ async function queryEmployeePmTaskRows(
  */
 export async function listEmployeePmTasks(
   context: OrgContext,
-  options?: { projectId?: string },
+  options?: { projectId?: string; limit?: number },
 ): Promise<EmployeePmTaskSummary[]> {
   const employeeId = requireEmployeeId(context);
   const scopeResult = await resolveEmployeeTaskScope(context, employeeId);
   if (scopeResult.mode === 'none') return [];
-  return queryEmployeePmTaskRows(context, employeeId, scopeResult, options);
+  return queryEmployeePmTaskRows(context, employeeId, scopeResult, {
+    ...options,
+    limit: options?.limit ?? 500,
+  });
 }
 
 /** Due-today and overdue counts for open PM tasks visible to the employee. */
@@ -523,6 +526,76 @@ export async function updateEmployeePmTaskStatus(
     actorEmployeeId: employeeId,
     actorSystem: false,
     eventType: 'status_changed',
+  });
+}
+
+/**
+ * Updates the due date of a PM task (postpone / reschedule).
+ * Records task_activity with actor_employee_id — NEVER actor_org_member_id.
+ */
+export async function updateEmployeePmTaskDueDate(
+  context: OrgContext,
+  taskId: string,
+  newDueDate: string | null,
+): Promise<void> {
+  const employeeId = requireEmployeeId(context);
+  if (!employeeCanUpdateTaskGrant(context)) {
+    throw new DomainRuleError('No permission to update tasks', 'employeeApp.errors.notAuthorized');
+  }
+
+  const [task] = await context.db
+    .select({
+      id: tasks.id,
+      projectId: tasks.projectId,
+      dueDate: tasks.dueDate,
+    })
+    .from(tasks)
+    .where(
+      and(
+        eq(tasks.id, taskId),
+        eq(tasks.organizationId, context.organizationId),
+        isNull(tasks.archivedAt),
+      ),
+    );
+  if (!task) throw new NotFoundError('Task');
+
+  const updateScope = employeePermissionScope(context, PERMISSIONS.TASKS_UPDATE);
+  const permissionKey = updateScope ? PERMISSIONS.TASKS_UPDATE : PERMISSIONS.TASKS_MANAGE_ALL;
+  await assertEmployeeCanExerciseTaskPermission(
+    context,
+    permissionKey,
+    { taskId, projectId: task.projectId },
+    employeeId,
+  );
+
+  const previousDueDate = task.dueDate;
+  if (previousDueDate === newDueDate) return;
+
+  const updated = await context.db
+    .update(tasks)
+    .set({
+      dueDate: newDueDate,
+      updatedAt: new Date(),
+    })
+    .where(
+      and(
+        eq(tasks.id, taskId),
+        eq(tasks.organizationId, context.organizationId),
+      ),
+    )
+    .returning({ id: tasks.id });
+
+  if (updated.length === 0) {
+    throw new DomainRuleError('Task update was not permitted', 'employeeApp.errors.notAuthorized');
+  }
+
+  await context.db.insert(taskActivity).values({
+    taskId,
+    organizationId: context.organizationId,
+    actorEmployeeId: employeeId,
+    actorSystem: false,
+    eventType: 'due_date_changed',
+    payload: { from: previousDueDate, to: newDueDate },
   });
 }
 

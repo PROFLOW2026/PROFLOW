@@ -10,6 +10,7 @@ import {
   createEmployeePmTask,
   decideEmployeePmTaskApproval,
   updateEmployeePmTaskStatus,
+  updateEmployeePmTaskDueDate,
   toggleEmployeePmTaskChecklistItem,
 } from '@/modules/employee-app/application/employee-pm-tasks';
 import { assertEmployeeAppContext } from '@/modules/employee-app/application/session-guard';
@@ -53,6 +54,31 @@ export async function employeeUpdateTaskStatusAction(
   } catch (error) {
     if (error instanceof DomainRuleError) return { error: error.message };
     return { error: 'Failed to update status' };
+  }
+}
+
+/** Postpones/reschedules a PM task due date (Employee App surface). */
+export async function employeePostponeTaskAction(
+  taskId: string,
+  dueDate: string,
+): Promise<TaskActionState> {
+  const trimmed = dueDate.trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+    return { error: 'Invalid due date' };
+  }
+
+  try {
+    await withOrgContext(async (context) => {
+      await assertEmployeeAppContext(context);
+      await updateEmployeePmTaskDueDate(context, taskId, trimmed);
+    });
+    revalidatePath(`/employee/tasks/${taskId}`);
+    revalidatePath('/employee/tasks');
+    revalidatePath('/employee');
+    return {};
+  } catch (error) {
+    if (error instanceof DomainRuleError) return { error: error.message };
+    return { error: 'Failed to update due date' };
   }
 }
 

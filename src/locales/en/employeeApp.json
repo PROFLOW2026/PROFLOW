@@ -89,7 +89,13 @@
       "overdue": "Overdue",
       "dueTodayBadge": "Today",
       "overdueBadge": "Overdue",
-      "viewTasks": "View all tasks"
+      "viewTasks": "View all tasks",
+      "badges": {
+        "overdue": "Overdue",
+        "dueToday": "Today",
+        "upcoming": "Upcoming",
+        "blocked": "Blocked"
+      }
     },
     "timeShortcut": {
       "title": "Attendance & hours",
@@ -207,6 +213,45 @@
   },
   "meetings": {
     "empty": "No meetings yet"
+  },
+  "filters": {
+    "title": "Filters",
+    "search": "Search",
+    "status": "Status",
+    "statusOpen": "Open tasks",
+    "all": "All",
+    "time": "Due date",
+    "timeToday": "Today",
+    "timeOverdue": "Overdue",
+    "timeThisWeek": "This week",
+    "timeNextWeek": "Next week",
+    "timeThisMonth": "This month",
+    "timeCustom": "Custom range",
+    "dateFrom": "From",
+    "dateTo": "To",
+    "project": "Project",
+    "allProjects": "All projects",
+    "assignee": "Assignee",
+    "assigneeAll": "All assignees",
+    "assigneeMe": "Assigned to me",
+    "priority": "Priority",
+    "date": "Date",
+    "meetingUpcoming": "Upcoming",
+    "meetingPast": "Past",
+    "participation": "Participation",
+    "participationAll": "All permitted",
+    "participationMine": "My meetings",
+    "participationProject": "Project meetings",
+    "emptyTasks": "No tasks match the current filters",
+    "emptyMeetings": "No meetings match the current filters",
+    "postpone": {
+      "action": "Postpone",
+      "plusOneDay": "Postpone 1 day",
+      "plusOneWeek": "Postpone 1 week",
+      "pickDate": "Pick a date…",
+      "apply": "Apply",
+      "cancel": "Cancel"
+    }
   },
   "lists": {
     "tasksEmpty": "No tasks assigned yet",

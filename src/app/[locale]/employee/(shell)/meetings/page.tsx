@@ -1,41 +1,36 @@
-import { getLocale, getTranslations } from 'next-intl/server';
+import { Suspense } from 'react';
+import { getTranslations } from 'next-intl/server';
 import { withOrgContext } from '@/shared/auth/session';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { employeeHasPermission } from '@/modules/employee-app/application/load-employee-app-context';
-import { listEmployeeMeetings } from '@/modules/employee-app/application/employee-meetings';
+import { buildEmployeeMeetingListPayload } from '@/modules/employee-app/application/build-employee-meeting-list-payload';
+import { EmployeeMeetingListView } from '@/modules/employee-app/ui/employee-meeting-list-view';
+import { employeeListPanelClass } from '@/modules/employee-app/ui/employee-surface-styles';
 
 export default async function EmployeeMeetingsPage() {
   const t = await getTranslations('employeeApp.meetings');
-  const locale = await getLocale();
 
-  const meetings = await withOrgContext(async (context) => {
-    if (!employeeHasPermission(context, PERMISSIONS.MEETINGS_READ)) return [];
-    return listEmployeeMeetings(context);
+  const payload = await withOrgContext(async (context) => {
+    if (!employeeHasPermission(context, PERMISSIONS.MEETINGS_READ)) return null;
+    return buildEmployeeMeetingListPayload(context);
   });
 
-  return (
-    <div className="space-y-4">
-      <ul className="divide-y divide-[var(--pf-border)] rounded-lg border border-[var(--pf-border)]">
-        {meetings.map((meeting) => (
-          <li key={meeting.id} className="px-4 py-3 text-sm space-y-1">
-            <div className="font-medium">{meeting.title}</div>
-            <div className="text-[var(--pf-text-secondary)]">
-              {new Date(meeting.scheduledAt).toLocaleString(locale, {
-                dateStyle: 'medium',
-                timeStyle: 'short',
-              })}
-            </div>
-            {meeting.projectName ? (
-              <div className="text-xs text-[var(--pf-text-muted)]">{meeting.projectName}</div>
-            ) : null}
-          </li>
-        ))}
-        {meetings.length === 0 ? (
-          <li className="px-4 py-6 text-center text-sm text-[var(--pf-text-secondary)]">
-            {t('empty')}
-          </li>
-        ) : null}
+  if (!payload) {
+    return (
+      <ul className={employeeListPanelClass}>
+        <li className="px-4 py-6 text-center text-sm text-[var(--pf-text-secondary)]">{t('empty')}</li>
       </ul>
-    </div>
+    );
+  }
+
+  return (
+    <Suspense fallback={null}>
+      <EmployeeMeetingListView
+        meetings={payload.meetings}
+        today={payload.today}
+        now={payload.now}
+        projectOptions={payload.projectOptions}
+      />
+    </Suspense>
   );
 }

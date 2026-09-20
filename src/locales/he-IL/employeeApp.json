@@ -89,7 +89,13 @@
       "overdue": "באיחור",
       "dueTodayBadge": "היום",
       "overdueBadge": "באיחור",
-      "viewTasks": "צפייה בכל המשימות"
+      "viewTasks": "צפייה בכל המשימות",
+      "badges": {
+        "overdue": "באיחור",
+        "dueToday": "היום",
+        "upcoming": "קרוב",
+        "blocked": "חסום"
+      }
     },
     "timeShortcut": {
       "title": "נוכחות ושעות",
@@ -207,6 +213,45 @@
   },
   "meetings": {
     "empty": "אין ישיבות עדיין"
+  },
+  "filters": {
+    "title": "סינון",
+    "search": "חיפוש",
+    "status": "סטטוס",
+    "statusOpen": "משימות פתוחות",
+    "all": "הכל",
+    "time": "תאריך יעד",
+    "timeToday": "היום",
+    "timeOverdue": "באיחור",
+    "timeThisWeek": "השבוע",
+    "timeNextWeek": "שבוע הבא",
+    "timeThisMonth": "החודש",
+    "timeCustom": "טווח מותאם",
+    "dateFrom": "מ-",
+    "dateTo": "עד",
+    "project": "פרויקט",
+    "allProjects": "כל הפרויקטים",
+    "assignee": "מוקצה",
+    "assigneeAll": "כל המוקצים",
+    "assigneeMe": "משויך אלי",
+    "priority": "עדיפות",
+    "date": "תאריך",
+    "meetingUpcoming": "קרובות",
+    "meetingPast": "עבר",
+    "participation": "השתתפות",
+    "participationAll": "הכל המותר",
+    "participationMine": "הישיבות שלי",
+    "participationProject": "ישיבות פרויקט",
+    "emptyTasks": "אין משימות התואמות לסינון",
+    "emptyMeetings": "אין ישיבות התואמות לסינון",
+    "postpone": {
+      "action": "דחייה",
+      "plusOneDay": "דחה ביום",
+      "plusOneWeek": "דחה בשבוע",
+      "pickDate": "בחר תאריך…",
+      "apply": "החל",
+      "cancel": "ביטול"
+    }
   },
   "lists": {
     "tasksEmpty": "אין משימות משויכות",
