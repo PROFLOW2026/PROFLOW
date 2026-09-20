@@ -31,6 +31,7 @@
     "db:seed": "tsx drizzle/scripts/seed-system.ts",
     "seed:demo": "tsx drizzle/scripts/seed-demo.ts",
     "seed:consultancy-demo": "tsx scripts/seed-consultancy-demo.ts",
+    "seed:consultancy-corrections": "tsx scripts/seed-consultancy-corrections.ts",
     "verify": "npm run typecheck && npm run lint && npm run test"
   },
   "dependencies": {

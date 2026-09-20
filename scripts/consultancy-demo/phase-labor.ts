@@ -75,14 +75,26 @@ function projectRotation(specs: readonly ProjectSpec[], monthIndex: number, coun
   return picked;
 }
 
+export interface LaborSeedOptions {
+  /** Skip attendance seeding (corrections pass). */
+  skipAttendance?: boolean;
+  /** Skip monthly employer-cost allocation (corrections pass). */
+  skipMonthCost?: boolean;
+  /** Only seed missing w2 time blocks when w1 already exists. */
+  timeEntryWeeks?: 'all' | 'w2-only';
+}
+
 export async function seedLabor(
   runPhase: RunPhase,
   target: SeedTarget,
   stats: SeedStats,
   maps: SeedMaps,
   projectSpecs: readonly ProjectSpec[],
+  options: LaborSeedOptions = {},
 ): Promise<void> {
-  for (const [index, spec] of EMPLOYEES.entries()) {
+  const { skipAttendance = false, skipMonthCost = false, timeEntryWeeks = 'all' } = options;
+
+  if (!skipAttendance) for (const [index, spec] of EMPLOYEES.entries()) {
     await runPhase(`attendance ${spec.key}`, target.organizationId, target.userId, async (context) => {
       const { applyManualAttendanceWorkdayRange, setAttendanceDayOvertime, listAttendanceDays } =
         await import('../../src/modules/workforce/index.ts');
@@ -183,9 +195,62 @@ export async function seedLabor(
         if (!employeeId) return;
 
         const review = await loadMonthlyEmployerCostReview(context, { employeeId, yearMonth: month });
-        if (review.run?.status === 'applied' || review.run?.status === 'closed') return;
+        const monthCostLocked =
+          review.run?.status === 'applied' || review.run?.status === 'closed';
 
-        async function applyMonthCost() {
+        const monthIndex = MONTHS.indexOf(month);
+        const mixCount = spec.chief ? 3 : 2;
+        const mix = projectRotation(projectSpecs, monthIndex, mixCount);
+
+        if (!spec.companyOnly && mix.length > 0) {
+          const weekStart = MONTH_WEEK_START[month] ?? BUSINESS_START;
+          const weekEnd = addDays(weekStart, 4);
+          const weekTwoStart = addDays(weekStart, 7);
+          const weekTwoEnd = addDays(weekTwoStart, 4);
+          const weekBlocks =
+            timeEntryWeeks === 'w2-only'
+              ? ([{ from: weekTwoStart, to: weekTwoEnd, suffix: 'w2' }] as const)
+              : ([
+                  { from: weekStart, to: weekEnd, suffix: 'w1' },
+                  { from: weekTwoStart, to: weekTwoEnd, suffix: 'w2' },
+                ] as const);
+          for (const block of weekBlocks) {
+            for (const docNum of mix) {
+              const projectId = maps.projectIds.get(docNum);
+              if (!projectId) continue;
+              const description = `${SEED_MARKER}:time:${docNum}:${month}:${block.suffix}`;
+              const { timeEntries } = await import('@drizzle/schema');
+              const { and, eq } = await import('drizzle-orm');
+              const [exists] = await context.db
+                .select({ id: timeEntries.id })
+                .from(timeEntries)
+                .where(
+                  and(
+                    eq(timeEntries.organizationId, target.organizationId),
+                    eq(timeEntries.employeeId, employeeId),
+                    eq(timeEntries.description, description),
+                  ),
+                )
+                .limit(1);
+              if (exists) continue;
+              await createBulkTimeEntries(context, {
+                employeeId,
+                fromDate: block.from,
+                toDate: block.to,
+                weekdays: [...SUN_THU],
+                hours: spec.chief ? '3' : '3',
+                kind: 'project',
+                projectId,
+                description,
+                approveOnCreate: true,
+              });
+            }
+          }
+        }
+
+        if (skipMonthCost || monthCostLocked) return;
+
+        try {
           if (spec.companyOnly) {
             await saveMonthlyEmployerCostDraft(context, {
               employeeId,
@@ -200,32 +265,11 @@ export async function seedLabor(
             return;
           }
 
-        const monthIndex = MONTHS.indexOf(month);
-        const mixCount = spec.chief ? 3 : 2;
-        const mix = projectRotation(projectSpecs, monthIndex, mixCount);
-        const amounts = splitAmount(spec.baseRate, mix.length);
-        const lines = mix
-          .map((docNum, idx) => ({ projectId: maps.projectIds.get(docNum), amount: amounts[idx]! }))
-          .filter((line): line is { projectId: string; amount: string } => Boolean(line.projectId));
-        if (lines.length === 0) return;
-
-        const weekStart = MONTH_WEEK_START[month] ?? BUSINESS_START;
-        const weekEnd = addDays(weekStart, 4);
-        for (const docNum of mix) {
-          const projectId = maps.projectIds.get(docNum);
-          if (!projectId) continue;
-          await createBulkTimeEntries(context, {
-            employeeId,
-            fromDate: weekStart,
-            toDate: weekEnd,
-            weekdays: [...SUN_THU],
-            hours: spec.chief ? '4' : '3.5',
-            kind: 'project',
-            projectId,
-            description: `${SEED_MARKER}:time:${docNum}:${month}`,
-            approveOnCreate: true,
-          });
-        }
+          const amounts = splitAmount(spec.baseRate, mix.length);
+          const lines = mix
+            .map((docNum, idx) => ({ projectId: maps.projectIds.get(docNum), amount: amounts[idx]! }))
+            .filter((line): line is { projectId: string; amount: string } => Boolean(line.projectId));
+          if (lines.length === 0) return;
 
           await saveMonthlyEmployerCostDraft(context, {
             employeeId,
@@ -235,10 +279,6 @@ export async function seedLabor(
             allocationLines: lines,
           });
           await applyMonthlyEmployerCostAllocation(context, { employeeId, yearMonth: month });
-        }
-
-        try {
-          await applyMonthCost();
         } catch (error) {
           const message = error instanceof Error ? error.message : String(error);
           if (

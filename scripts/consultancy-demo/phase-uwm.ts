@@ -1,5 +1,5 @@
 import type { TaskStatus } from '../../src/modules/tasks/domain/types.ts';
-import { HISTORY_END, SEED_MARKER } from './constants.ts';
+import { HISTORY_END, SEED_MARKER, TASK_TARGET_MAX, TASK_TARGET_MIN } from './constants.ts';
 import type { RunPhase, SeedMaps, SeedStats, SeedTarget } from './context.ts';
 import {
   DECISION_TITLES,
@@ -85,10 +85,14 @@ export async function seedUwm(
       .select({ count: sql<number>`count(*)::int` })
       .from(tasks)
       .where(and(eq(tasks.organizationId, target.organizationId), like(tasks.description, `%${SEED_MARKER}%`)));
-    if (count >= 1000) {
+    if (count >= TASK_TARGET_MIN && count <= TASK_TARGET_MAX) {
       stats.tasks = count;
       skipTaskSeed = true;
-      stats.notes.push(`Tasks already seeded (${count}); skipping UWM create loop.`);
+      stats.notes.push(`Tasks in target band (${count}); skipping UWM create loop.`);
+    } else if (count > TASK_TARGET_MAX) {
+      stats.tasks = count;
+      skipTaskSeed = true;
+      stats.notes.push(`Tasks above target (${count}); cleanup pass will trim — skipping create loop.`);
     }
   });
 

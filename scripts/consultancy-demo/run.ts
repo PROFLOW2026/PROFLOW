@@ -2,8 +2,9 @@ import { config } from 'dotenv';
 
 import {
   CONSULTANCY_ORG_NAME,
-  DEMO_USER_EMAIL,
   EXCLUDED_ORG_NAME,
+  PRIMARY_USER_EMAIL,
+  SECONDARY_USER_EMAIL,
   SEED_MARKER,
 } from './constants.ts';
 import {
@@ -11,8 +12,9 @@ import {
   buildRunPhase,
   createMaps,
   createStats,
-  resolveDemoUser,
 } from './context.ts';
+import { setupConsultancyAccounts } from './phase-accounts.ts';
+import { applyConsultancyCorrections } from './phase-corrections.ts';
 import { generateClients, generateProjects } from './generate-specs.ts';
 import { disableContractorWorkManagement } from './phase-contractor.ts';
 import { seedFinancial } from './phase-financial.ts';
@@ -69,13 +71,19 @@ export async function main(): Promise<void> {
 
   const stats = createStats();
   const maps = createMaps();
-  const { userId, userEmail } = await resolveDemoUser();
+  const { resolveUserByEmail } = await import('./context.ts');
+  const primary = await resolveUserByEmail(PRIMARY_USER_EMAIL);
+  const secondary = await resolveUserByEmail(SECONDARY_USER_EMAIL);
 
   const { CONTRACTOR_DEMO_ORG_ID } = await import('./constants.ts');
-  const contractorRunPhase = buildContractorRunPhase(userId, CONTRACTOR_DEMO_ORG_ID);
-  await disableContractorWorkManagement(contractorRunPhase, userId, stats);
+  const contractorRunPhase = buildContractorRunPhase(secondary.userId, CONTRACTOR_DEMO_ORG_ID);
+  await disableContractorWorkManagement(contractorRunPhase, secondary.userId, stats);
 
-  const organizationId = await ensureConsultancyOrganization(userId, stats);
+  const organizationId = await ensureConsultancyOrganization(secondary.userId, stats);
+  const accounts = await setupConsultancyAccounts(stats, secondary.userId);
+
+  const userId = primary.userId;
+  const userEmail = primary.userEmail;
   const runPhase = buildRunPhase(userId, organizationId);
   const target = { userId, organizationId, userEmail };
 
@@ -88,15 +96,50 @@ export async function main(): Promise<void> {
   await seedFinancial(runPhase, target, stats, maps, projectSpecs);
   await seedLabor(runPhase, target, stats, maps, projectSpecs);
 
+  await runPhase('refresh maps for corrections', organizationId, userId, async (context) => {
+    const { projects, employees, clients } = await import('@drizzle/schema');
+    const { and, eq, like } = await import('drizzle-orm');
+    const markerLike = `%${SEED_MARKER}%`;
+    const projectRows = await context.db
+      .select({ id: projects.id, documentNumber: projects.documentNumber })
+      .from(projects)
+      .where(and(eq(projects.organizationId, organizationId), like(projects.description, markerLike)));
+    for (const row of projectRows) {
+      const docNum = row.documentNumber?.replace(/^CNS-/, '');
+      if (docNum) maps.projectIds.set(docNum, row.id);
+    }
+    const employeeRows = await context.db
+      .select({ id: employees.id, employeeNumber: employees.employeeNumber })
+      .from(employees)
+      .where(and(eq(employees.organizationId, organizationId), like(employees.notes, markerLike)));
+    for (const row of employeeRows) {
+      for (const emp of (await import('./constants.ts')).EMPLOYEES) {
+        if (emp.employeeNumber === row.employeeNumber) maps.employeeIds.set(emp.key, row.id);
+      }
+    }
+    void clients;
+  });
+
+  const correctionReport = await applyConsultancyCorrections(
+    runPhase,
+    target,
+    stats,
+    maps,
+    projectSpecs,
+  );
+
   const report = await validateConsultancyDemo(organizationId, userId);
   const summary = {
     seedMarker: SEED_MARKER,
-    targetUserEmail: DEMO_USER_EMAIL,
+    primaryUserEmail: PRIMARY_USER_EMAIL,
+    secondaryUserEmail: SECONDARY_USER_EMAIL,
+    accounts,
     targetOrganizationId: organizationId,
     targetOrganizationName: CONSULTANCY_ORG_NAME,
     realBusinessOrgTouched: 'NO' as const,
     excludedOrgName: EXCLUDED_ORG_NAME,
     phaseStats: stats,
+    correctionReport,
     validation: report,
   };
 

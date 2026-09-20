@@ -2,7 +2,7 @@ import type { OrgContext } from '../../src/shared/auth/context.ts';
 import {
   CONSULTANCY_ORG_NAME,
   CONTRACTOR_DEMO_ORG_NAME,
-  DEMO_USER_EMAIL,
+  PRIMARY_USER_EMAIL,
   EXCLUDED_ORG_NAME,
   SEED_MARKER,
 } from './constants.ts';
@@ -81,20 +81,24 @@ export function assertSafeOrg(context: OrgContext, organizationId: string): void
   }
 }
 
-export async function resolveDemoUser() {
+export async function resolveUserByEmail(email: string): Promise<{ userId: string; userEmail: string }> {
   const postgres = (await import('postgres')).default;
   const cs = process.env.DIRECT_DATABASE_URL ?? process.env.DATABASE_URL;
   if (!cs) throw new Error('DATABASE_URL missing');
   const sql = postgres(cs, { prepare: false, max: 1 });
   try {
     const [profile] = await sql<{ id: string; email: string }[]>`
-      select id, email from public.profiles where lower(email) = lower(${DEMO_USER_EMAIL}) limit 1
+      select id, email from public.profiles where lower(email) = lower(${email}) limit 1
     `;
-    if (!profile) throw new Error(`No profile for ${DEMO_USER_EMAIL}`);
+    if (!profile) throw new Error(`No profile for ${email}`);
     return { userId: profile.id, userEmail: profile.email };
   } finally {
     await sql.end();
   }
+}
+
+export async function resolveDemoUser() {
+  return resolveUserByEmail(PRIMARY_USER_EMAIL);
 }
 
 export async function findConsultancyOrgId(userId: string): Promise<string | null> {

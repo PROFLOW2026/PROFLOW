@@ -124,7 +124,7 @@ const BUCKET_DIST: readonly { bucket: ProjectBucket; count: number; stageIndex: 
   { bucket: 'coordination', count: 20, stageIndex: 4, activity: 'medium' },
   { bucket: 'construction', count: 30, stageIndex: 8, activity: 'high' },
   { bucket: 'tender', count: 12, stageIndex: 6, activity: 'medium' },
-  { bucket: 'waiting', count: 10, stageIndex: 4, activity: 'waiting' },
+  { bucket: 'waiting', count: 10, stageIndex: 5, activity: 'waiting' },
   { bucket: 'handover', count: 8, stageIndex: 10, activity: 'medium' },
   { bucket: 'completed', count: 10, stageIndex: 11, activity: 'done' },
 ];

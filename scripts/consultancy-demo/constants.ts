@@ -1,6 +1,11 @@
 /** Canonical consultancy demo seed — tenant-safe constants. */
 
-export const DEMO_USER_EMAIL = 'mthsystems@gmail.com';
+/** Primary Owner — consultancy demo login. */
+export const PRIMARY_USER_EMAIL = 'leokid2026@gmail.com';
+/** Secondary Owner — switches between contractor + consultancy demos. */
+export const SECONDARY_USER_EMAIL = 'mthsystems@gmail.com';
+/** @deprecated Use PRIMARY_USER_EMAIL for seed actor context. */
+export const DEMO_USER_EMAIL = PRIMARY_USER_EMAIL;
 
 /** Real production business — NEVER modify. */
 export const EXCLUDED_ORG_NAME = 'מתח ח.י הנדסת חשמל בע"מ';
@@ -15,10 +20,17 @@ export const CONSULTANCY_ORG_NAME = 'אופק הנדסת חשמל וייעוץ �
 
 export const SEED_MARKER = 'PF-CONSULTANCY-DEMO';
 export const SEED_SETTING_KEY = 'consultancy_demo_seed_version';
-export const SEED_VERSION = '2026-09-20-v1';
+export const SEED_VERSION = '2026-09-20-v2';
+export const CORRECTION_SETTING_KEY = 'consultancy_demo_correction_version';
+export const CORRECTION_VERSION = '2026-09-20-data-pass-v1';
 
 export const BUSINESS_START = '2026-01-01';
-export const HISTORY_END = '2026-09-19';
+export const HISTORY_END = '2026-09-20';
+
+/** Approved task band after duplicate cleanup. */
+export const TASK_TARGET_MIN = 1200;
+export const TASK_TARGET_MAX = 1500;
+export const TASK_TARGET_IDEAL = 1350;
 
 export const STAGE_NAMES = [
   'פתיחת פרויקט ואיסוף חומר',
