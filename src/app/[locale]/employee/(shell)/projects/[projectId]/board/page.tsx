@@ -69,7 +69,7 @@ export default async function EmployeeProjectBoardPage({ params }: PageProps) {
     });
   }
 
-  async function getTaskDetailAction(taskId: string) {
+  async function getTaskDetailAction(_taskId: string) {
     'use server';
     return null;
   }

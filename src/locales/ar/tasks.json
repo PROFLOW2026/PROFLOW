@@ -500,6 +500,8 @@
   "commentsLabel": "التعليقات",
   "commentsSlot": "التعليقات",
   "openFullTask": "افتح المهمة الكاملة للتعليقات والنشاط",
+  "drawerExtendedDetails": "التعليقات والنشاط والموافقات",
+  "drawerExtendedDetailsHint": "افتح صفحة المهمة الكاملة للتعليقات وسجل النشاط وإجراءات الموافقة.",
   "projectWork": {
     "sectionLabel": "إدارة عمل المشروع",
     "sectionTitle": "المهام واللوحات",

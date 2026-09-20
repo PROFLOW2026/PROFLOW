@@ -11,7 +11,6 @@ import { cn } from '@/shared/ui/cn';
 import { withOrgContext, getShellContext } from '@/shared/auth/session';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { getTaskDetail } from '@/modules/tasks';
-import { mapTaskDetailToUi } from '@/modules/tasks/ui/_task-api-stub';
 import { TaskComments } from '@/modules/tasks/ui/task-comments';
 import { TaskActivity, TaskActivitySkeleton } from '@/modules/tasks/ui/task-activity';
 import { TaskApprovalGate, TaskApprovalGateSkeleton } from '@/modules/tasks/ui/task-approval-gate';

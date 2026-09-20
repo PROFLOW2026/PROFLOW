@@ -500,6 +500,8 @@
   "commentsLabel": "Comments",
   "commentsSlot": "Comments",
   "openFullTask": "Open full task for comments and activity",
+  "drawerExtendedDetails": "Comments, activity, and approvals",
+  "drawerExtendedDetailsHint": "Open the full task page for comments, activity history, and approval actions.",
   "projectWork": {
     "sectionLabel": "Project work management",
     "sectionTitle": "Tasks and boards",

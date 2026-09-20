@@ -19,7 +19,7 @@ export interface EmployeeProjectBoardShellProps {
 }
 
 export function EmployeeProjectBoardShell({
-  projectId,
+  projectId: _projectId,
   projectName,
   buckets,
   initialTasks,

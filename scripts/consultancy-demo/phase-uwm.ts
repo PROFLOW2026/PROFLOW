@@ -1,5 +1,5 @@
 import type { TaskStatus } from '../../src/modules/tasks/domain/types.ts';
-import { SEED_MARKER, TASK_TARGET_MAX, TASK_TARGET_MIN } from './constants.ts';
+import { TASK_TARGET_MAX, TASK_TARGET_MIN } from './constants.ts';
 import type { RunPhase, SeedMaps, SeedStats, SeedTarget } from './context.ts';
 import {
   DECISION_TITLES,
@@ -8,6 +8,13 @@ import {
   type ProjectSpec,
 } from './generate-specs.ts';
 import { intBetween, mulberry32, pick } from './rng.ts';
+import {
+  loadSeedRegistry,
+  saveSeedRegistry,
+  seedAdminTaskRegistryKey,
+  seedMeetingRegistryKey,
+  seedTaskRegistryKey,
+} from './seed-registry.ts';
 import {
   pickEstimatedEffortMinutes,
   shouldAssignEffort,
@@ -76,11 +83,11 @@ export async function seedUwm(
   let skipTaskSeed = false;
   await runPhase('uwm inventory check', target.organizationId, target.userId, async (context) => {
     const { tasks } = await import('@drizzle/schema');
-    const { and, eq, like, sql } = await import('drizzle-orm');
+    const { eq, sql } = await import('drizzle-orm');
     const [{ count }] = await context.db
       .select({ count: sql<number>`count(*)::int` })
       .from(tasks)
-      .where(and(eq(tasks.organizationId, target.organizationId), like(tasks.description, `%${SEED_MARKER}%`)));
+      .where(eq(tasks.organizationId, target.organizationId));
     if (count >= TASK_TARGET_MIN && count <= TASK_TARGET_MAX) {
       stats.tasks = count;
       skipTaskSeed = true;
@@ -102,8 +109,7 @@ export async function seedUwm(
     );
     const { generateSortKey } = await import('../../src/modules/tasks/domain/lexorank.ts');
     const { buildCreatorFieldsFromContext } = await import('../../src/modules/tasks/domain/actor.ts');
-    const { tasks } = await import('@drizzle/schema');
-    const { and, eq, like, sql } = await import('drizzle-orm');
+    const registry = await loadSeedRegistry(context.db, target.organizationId);
 
     const engineerKeys = ['e1', 'e2', 'e3', 'e4', 'e5'] as const;
     const creatorFields = buildCreatorFieldsFromContext(context);
@@ -113,17 +119,10 @@ export async function seedUwm(
       if (!projectId) continue;
 
       const { workspace } = await lazyCreateProjectWorkspace(context, projectId, spec.name);
-      const [{ count: existingTaskCount }] = await context.db
-        .select({ count: sql<number>`count(*)::int` })
-        .from(tasks)
-        .where(
-          and(
-            eq(tasks.organizationId, target.organizationId),
-            eq(tasks.workspaceId, workspace.id),
-            like(tasks.description, `%${SEED_MARKER}%`),
-          ),
-        );
-      if (existingTaskCount >= spec.taskCount) continue;
+      const registryTaskCount = Object.keys(registry).filter((key) =>
+        key.startsWith(`task:${spec.docNum}:`),
+      ).length;
+      if (registryTaskCount >= spec.taskCount) continue;
 
       const boardsNeeded = boardCountForActivity(spec.activity);
       const templates = BOARD_TEMPLATES.slice(0, boardsNeeded);
@@ -165,6 +164,9 @@ export async function seedUwm(
       const rng = mulberry32(Number(spec.docNum));
       let createdForProject = 0;
       for (let i = 0; i < spec.taskCount; i += 1) {
+        const registryKey = seedTaskRegistryKey(spec.docNum, i);
+        if (registry[registryKey]) continue;
+
         const boardIndex = i % boardPlans.length;
         const plan = boardPlans[boardIndex]!;
         const bucketTemplate = plan.template.buckets[i % plan.template.buckets.length]!;
@@ -178,14 +180,15 @@ export async function seedUwm(
           ? pickEstimatedEffortMinutes(spec.docNum, i)
           : null;
 
+        const taskTitle = `${pick(rng, TASK_TITLES)} — ${spec.name.slice(0, 24)}`;
         const task = await insertTask(context.db, {
           organizationId: target.organizationId,
           workspaceId: workspace.id,
           projectId,
           boardId: plan.boardId,
           bucketId: bucket?.id ?? null,
-          title: `${pick(rng, TASK_TITLES)} — ${spec.name.slice(0, 24)}`,
-          description: `${SEED_MARKER}:task:${spec.docNum}:${i}`,
+          title: taskTitle,
+          description: `משימת פרויקט: ${taskTitle}`,
           priority: i % 7 === 0 ? 'high' : i % 3 === 0 ? 'medium' : 'none',
           startDate: spec.startDate,
           dueDate: dates.dueDate,
@@ -209,6 +212,7 @@ export async function seedUwm(
           });
         }
 
+        registry[registryKey] = task.id;
         createdForProject += 1;
         stats.tasks += 1;
       }
@@ -218,20 +222,14 @@ export async function seedUwm(
       }
     }
 
+    await saveSeedRegistry(context.db, target.organizationId, registry);
+
     const adminWorkspaceId = maps.workspaceIds.get('משימות מנהלה');
     const adminEmployeeId = maps.employeeIds.get('e6');
     if (adminWorkspaceId && adminEmployeeId) {
-      const [{ count: adminCount }] = await context.db
-        .select({ count: sql<number>`count(*)::int` })
-        .from(tasks)
-        .where(
-          and(
-            eq(tasks.organizationId, target.organizationId),
-            eq(tasks.workspaceId, adminWorkspaceId),
-            like(tasks.description, `%${SEED_MARKER}:admin%`),
-          ),
-        );
-      if (adminCount < 8) {
+      const adminRegistry = await loadSeedRegistry(context.db, target.organizationId);
+      const existingAdmin = Object.keys(adminRegistry).filter((key) => key.startsWith('admin-task:')).length;
+      if (existingAdmin < 8) {
         const adminBoard = await insertBoard(context.db, {
           organizationId: target.organizationId,
           workspaceId: adminWorkspaceId,
@@ -257,68 +255,89 @@ export async function seedUwm(
           'תיאום הדרכות בטיחות',
         ] as const;
         for (const [index, title] of adminTitles.entries()) {
-          await insertTask(context.db, {
+          const registryKey = seedAdminTaskRegistryKey(index);
+          if (adminRegistry[registryKey]) continue;
+          const task = await insertTask(context.db, {
             organizationId: target.organizationId,
             workspaceId: adminWorkspaceId,
             boardId: adminBoard.id,
             bucketId: todoBucket.id,
             title,
-            description: `${SEED_MARKER}:admin:${index}`,
+            description: `משימת משרד: ${title}`,
             source: 'manual',
             sortKey: generateSortKey(),
             createdByEmployeeId: adminEmployeeId,
           });
+          adminRegistry[registryKey] = task.id;
           stats.tasks += 1;
         }
+        await saveSeedRegistry(context.db, target.organizationId, adminRegistry);
       }
     }
   });
 
   await runPhase('meetings decisions milestones', target.organizationId, target.userId, async (context) => {
     const { createMeeting } = await import('../../src/modules/meetings/index.ts');
-    const { createMeetingDecision, createMeetingActionItem } = await import(
+    const { createMeetingDecision, createMeetingActionItem, addAttendeeToMeeting } = await import(
       '../../src/modules/meetings/index.ts'
     );
     const { createMilestone } = await import('../../src/modules/projects/application/milestones.ts');
     const { meetingRecords, projectMilestones } = await import('@drizzle/schema');
-    const { and, eq, like, sql } = await import('drizzle-orm');
+    const { and, eq, sql } = await import('drizzle-orm');
+    const registry = await loadSeedRegistry(context.db, target.organizationId);
 
+    const existingMeetings = Object.keys(registry).filter((key) => key.startsWith('meeting:')).length;
     const [{ count: meetingCount }] = await context.db
       .select({ count: sql<number>`count(*)::int` })
       .from(meetingRecords)
-      .where(
-        and(
-          eq(meetingRecords.organizationId, target.organizationId),
-          like(meetingRecords.notes, `%${SEED_MARKER}%`),
-        ),
-      );
+      .where(eq(meetingRecords.organizationId, target.organizationId));
 
-    const meetingsToCreate = Math.max(0, 200 - meetingCount);
+    const meetingsToCreate = Math.max(0, 200 - Math.max(meetingCount, existingMeetings));
     const activeProjects = projectSpecs.filter(
       (spec) => spec.activity !== 'done' && spec.bucket !== 'completed',
     );
     const rng = mulberry32(909090);
 
     for (let i = 0; i < meetingsToCreate; i += 1) {
+      const registryKey = seedMeetingRegistryKey(existingMeetings + i);
+      if (registry[registryKey]) continue;
+
       const spec = pick(rng, activeProjects.length > 0 ? activeProjects : projectSpecs);
       const projectId = maps.projectIds.get(spec.docNum);
       if (!projectId) continue;
 
       const month = intBetween(rng, 1, 9);
       const day = intBetween(rng, 1, 26);
+      const decisionTitle = pick(rng, DECISION_TITLES);
       const meeting = await createMeeting(context, {
         title: `ישיבת תיאום — ${spec.name.slice(0, 40)}`,
         scheduledAt: new Date(`2026-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T09:30:00.000Z`),
         projectId,
-        notes: `${SEED_MARKER}:meeting:${i}`,
+        notes: `סיכום ישיבה: ${decisionTitle}. נושאים: לוחות זמנים, תיאום מערכות ומשימות המשך.`,
       });
+      registry[registryKey] = meeting.id;
       stats.meetings += 1;
+
+      const attendeeKeys = ['e1', 'e2', 'e3', 'e4', 'e5', 'e6'] as const;
+      const attendeeCount = intBetween(rng, 2, 6);
+      const pickedAttendees = new Set<(typeof attendeeKeys)[number]>();
+      while (pickedAttendees.size < attendeeCount) {
+        pickedAttendees.add(pick(rng, attendeeKeys));
+      }
+      for (const employeeKey of pickedAttendees) {
+        const employeeId = maps.employeeIds.get(employeeKey);
+        if (!employeeId) continue;
+        await addAttendeeToMeeting(context, {
+          meetingId: meeting.id,
+          employeeId,
+        });
+      }
 
       if (i % 3 === 0) {
         await createMeetingDecision(context, {
           meetingId: meeting.id,
-          title: pick(rng, DECISION_TITLES),
-          body: `${SEED_MARKER}:decision`,
+          title: decisionTitle,
+          body: `הוחלט: ${decisionTitle}. יש לעדכן את לוח הזמנים ולתאם עם הלקוח.`,
         });
         stats.decisions += 1;
       }
@@ -331,6 +350,8 @@ export async function seedUwm(
         });
       }
     }
+
+    await saveSeedRegistry(context.db, target.organizationId, registry);
 
     for (const spec of activeProjects.slice(0, 60)) {
       const projectId = maps.projectIds.get(spec.docNum);
@@ -353,7 +374,7 @@ export async function seedUwm(
           projectId,
           name,
           targetDate: `2026-${String(intBetween(localRng, 3, 9)).padStart(2, '0')}-${String(10 + idx * 5).padStart(2, '0')}`,
-          notes: `${SEED_MARKER}:milestone`,
+          notes: `אבן דרך: ${name}`,
         });
         stats.milestones += 1;
       }

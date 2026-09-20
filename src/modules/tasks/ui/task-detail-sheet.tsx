@@ -501,30 +501,20 @@ export function TaskDetailSheet({
               )}
 
               {!embedded ? (
-                <>
-                  <div>
-                    <SectionLabel>{t('commentsLabel')}</SectionLabel>
-                    <p className="mt-2 text-xs text-[var(--pf-text-muted)]">
-                      <Link
-                        href={`/tasks/${task.id}`}
-                        className="font-medium text-[var(--pf-text-brand)] underline underline-offset-2"
-                      >
-                        {t('openFullTask')}
-                      </Link>
-                    </p>
-                  </div>
-                  <div>
-                    <SectionLabel>{t('activityLabel')}</SectionLabel>
-                    <p className="mt-2 text-xs text-[var(--pf-text-muted)]">
-                      <Link
-                        href={`/tasks/${task.id}`}
-                        className="font-medium text-[var(--pf-text-brand)] underline underline-offset-2"
-                      >
-                        {t('openFullTask')}
-                      </Link>
-                    </p>
-                  </div>
-                </>
+                <div className="rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-subtle)] p-4">
+                  <SectionLabel>{t('drawerExtendedDetails')}</SectionLabel>
+                  <p className="mt-2 text-sm text-[var(--pf-text-secondary)]">
+                    {t('drawerExtendedDetailsHint')}
+                  </p>
+                  <p className="mt-3">
+                    <Link
+                      href={`/tasks/${task.id}`}
+                      className="inline-flex items-center gap-1 text-sm font-medium text-[var(--pf-text-brand)] underline underline-offset-2"
+                    >
+                      {t('openFullTask')}
+                    </Link>
+                  </p>
+                </div>
               ) : null}
             </SheetBody>
       </>

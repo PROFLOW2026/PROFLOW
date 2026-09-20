@@ -19,6 +19,8 @@ export const CONSULTANCY_DEMO_ORG_ID = 'c8f4a2e1-9b3d-4f7a-ae6c-1d2e3f4a5b6c';
 export const CONSULTANCY_ORG_NAME = 'אופק הנדסת חשמל וייעוץ בע"מ';
 
 export const SEED_MARKER = 'PF-CONSULTANCY-DEMO';
+/** JSON map of deterministic seed keys → entity ids (internal only). */
+export const SEED_REGISTRY_SETTING_KEY = 'consultancy_demo_seed_registry';
 export const SEED_SETTING_KEY = 'consultancy_demo_seed_version';
 export const SEED_VERSION = '2026-09-20-v2';
 export const CORRECTION_SETTING_KEY = 'consultancy_demo_correction_version';

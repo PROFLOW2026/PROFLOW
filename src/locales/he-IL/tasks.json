@@ -500,6 +500,8 @@
   "commentsLabel": "הערות",
   "commentsSlot": "הערות",
   "openFullTask": "פתח משימה מלאה להערות ופעילות",
+  "drawerExtendedDetails": "הערות, פעילות ואישורים",
+  "drawerExtendedDetailsHint": "פתח את דף המשימה המלא להערות, היסטוריית פעילות ופעולות אישור.",
   "projectWork": {
     "sectionLabel": "ניהול עבודה בפרויקט",
     "sectionTitle": "משימות ולוחות",

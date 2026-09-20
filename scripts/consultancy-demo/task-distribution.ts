@@ -16,15 +16,25 @@ export const ADMIN_DESC_RE = new RegExp(
 /** Technical engineers shown on /workload — must have project_count > 0. */
 export const TECHNICAL_EMPLOYEE_KEYS = ['e2', 'e3', 'e4', 'e5'] as const;
 
-/** Target open-queue shape after correction (approximate, ~1350 total tasks). */
+/** Target open-queue shape after correction (~1,103 total tasks, ~88 open). */
 export const TARGET_DISTRIBUTION = {
-  donePct: 0.78,
-  openTotal: { min: 180, max: 260 },
-  overdueOpen: { min: 28, max: 45 },
-  dueToday: { min: 4, max: 8 },
-  blocked: { min: 8, max: 14 },
-  dueThisWeek: { min: 18, max: 28 },
+  donePct: 0.92,
+  openTotal: { min: 80, max: 95, hardMax: 100 },
+  overdueOpen: { min: 8, max: 14 },
+  dueToday: { min: 4, max: 6 },
+  blocked: { min: 4, max: 6 },
+  dueThisWeek: { min: 12, max: 20 },
   withEffortEstimatePct: 0.75,
+} as const;
+
+/** Per-employee open-task targets for consultancy demo realism. */
+export const OPEN_TASK_TARGET_BY_EMPLOYEE = {
+  e1: 10,
+  e2: 18,
+  e3: 17,
+  e4: 18,
+  e5: 17,
+  e6: 8,
 } as const;
 
 const EFFORT_TIERS = [
@@ -74,12 +84,11 @@ export function targetStatusForTask(
     return 'todo';
   }
 
-  const ratio = index / Math.max(taskCount - 1, 1);
-  if (ratio < 0.58) return 'done';
-  if (ratio < 0.72) return index % 4 === 0 ? 'in_progress' : 'done';
-  if (ratio < 0.84) return index % 3 === 0 ? 'in_review' : 'in_progress';
-  if (ratio < 0.94) return 'todo';
-  return index % 6 === 0 ? 'blocked' : 'todo';
+  if (ratio < 0.82) return 'done';
+  if (ratio < 0.9) return index % 5 === 0 ? 'in_progress' : 'done';
+  if (ratio < 0.95) return index % 4 === 0 ? 'in_review' : 'done';
+  if (ratio < 0.98) return 'todo';
+  return index % 8 === 0 ? 'blocked' : 'todo';
 }
 
 function addDaysIso(isoDate: string, days: number): string {

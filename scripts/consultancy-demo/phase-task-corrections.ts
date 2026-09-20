@@ -15,7 +15,13 @@ import {
   shouldAssignEffort,
   targetDatesForTask,
   targetStatusForTask,
+  TARGET_DISTRIBUTION,
 } from './task-distribution.ts';
+import {
+  loadSeedRegistry,
+  parseSeedAdminTaskRegistryKey,
+  parseSeedTaskRegistryKey,
+} from './seed-registry.ts';
 
 export interface TaskDistributionReport {
   tasksDone: number;
@@ -70,12 +76,14 @@ export async function applyTaskDistributionCorrections(
 
     const openCandidates: Array<{ id: string; docNum: string; index: number }> = [];
 
-    for (const row of rows) {
-      const desc = row.description ?? '';
-      const parsed = parseSeedTaskKey(desc);
+    const applyRow = async (
+      id: string,
+      parsed: { docNum: string; index: number } | null,
+      adminIndex: number | null,
+    ) => {
       if (parsed) {
         const spec = specByDoc.get(parsed.docNum);
-        if (!spec || parsed.index >= (taskCountByDoc.get(parsed.docNum) ?? 0)) continue;
+        if (!spec || parsed.index >= (taskCountByDoc.get(parsed.docNum) ?? 0)) return;
 
         const status = targetStatusForTask(parsed.index, spec.taskCount, spec.activity, spec.bucket);
         const dates = targetDatesForTask(status, spec, parsed.index);
@@ -91,15 +99,14 @@ export async function applyTaskDistributionCorrections(
             completionDate: dates.completionDate,
             estimatedEffortMinutes,
           })
-          .where(eq(tasks.id, row.id));
+          .where(eq(tasks.id, id));
 
         if (isOpenStatus(status)) {
-          openCandidates.push({ id: row.id, docNum: parsed.docNum, index: parsed.index });
+          openCandidates.push({ id, docNum: parsed.docNum, index: parsed.index });
         }
-        continue;
+        return;
       }
 
-      const adminIndex = parseAdminTaskIndex(desc);
       if (adminIndex !== null && adminIndex < 8) {
         await context.db
           .update(tasks)
@@ -109,11 +116,40 @@ export async function applyTaskDistributionCorrections(
             completionDate: null,
             estimatedEffortMinutes: null,
           })
-          .where(eq(tasks.id, row.id));
+          .where(eq(tasks.id, id));
+      }
+    };
+
+    const registry = await loadSeedRegistry(context.db, target.organizationId);
+    for (const [key, id] of Object.entries(registry)) {
+      const parsed = parseSeedTaskRegistryKey(key);
+      if (parsed) {
+        await applyRow(id, parsed, null);
+        continue;
+      }
+      const adminIndex = parseSeedAdminTaskRegistryKey(key);
+      if (adminIndex !== null) {
+        await applyRow(id, null, adminIndex);
       }
     }
 
-    const buckets = planOperationalBuckets(openCandidates.map((row) => row.id));
+    for (const row of rows) {
+      const desc = row.description ?? '';
+      const parsed = parseSeedTaskKey(desc);
+      if (parsed) {
+        await applyRow(row.id, parsed, null);
+        continue;
+      }
+
+      const adminIndex = parseAdminTaskIndex(desc);
+      if (adminIndex !== null) {
+        await applyRow(row.id, null, adminIndex);
+      }
+    }
+
+    const buckets = planOperationalBuckets(
+      openCandidates.slice(0, TARGET_DISTRIBUTION.openTotal.max).map((row) => row.id),
+    );
     const idToMeta = new Map(openCandidates.map((row) => [row.id, row]));
 
     const applyBucket = async (
