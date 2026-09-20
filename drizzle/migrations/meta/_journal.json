@@ -792,6 +792,13 @@
                         "when":  1789711020000,
                         "tag":  "0113_uwm_owner_admin_permissions_and_module",
                         "breakpoints":  true
+                    },
+                    {
+                        "idx":  113,
+                        "version":  "7",
+                        "when":  1789711080000,
+                        "tag":  "0114_uwm_table_grants",
+                        "breakpoints":  true
                     }
                 ]
 }

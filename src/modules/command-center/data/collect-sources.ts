@@ -37,16 +37,7 @@ import {
 } from './collect-next-gen';
 import { collectExpensesDueToday, collectExpensesNeedingAllocation, collectPayrollDueToday } from './collect-owner-payments';
 import { collectMonthlyWorkforceReportReady } from './collect-monthly-workforce-report';
-import {
-  collectMilestoneApproaching,
-  collectProjectStale,
-  collectRecurringTaskGenerated,
-  collectTaskApprovalRequested,
-  collectTaskBlockedWaiting,
-  collectTaskDueToday,
-  collectTaskOverdue,
-  collectTaskUnassigned,
-} from './collect-tasks';
+import { collectUwmTaskSources } from './collect-tasks';
 import {
   attendanceEmployeeDateAlertHref,
   missingAttendanceTodayAlertHref,
@@ -1225,15 +1216,8 @@ export async function collectAllSources(ctx: CollectContext): Promise<CommandCen
     collectExpensesNeedingAllocation,
     collectPayrollDueToday,
     collectMonthlyWorkforceReportReady,
-    // ── Universal Work Management ───────────────────────────────────────────
-    collectTaskOverdue,
-    collectTaskDueToday,
-    collectTaskBlockedWaiting,
-    collectTaskApprovalRequested,
-    collectTaskUnassigned,
-    collectMilestoneApproaching,
-    collectProjectStale,
-    collectRecurringTaskGenerated,
+    // ── Universal Work Management (sequential savepoint isolation) ──────────
+    collectUwmTaskSources,
   ];
 
   const settled = await Promise.allSettled(collectors.map((fn) => fn(ctx)));

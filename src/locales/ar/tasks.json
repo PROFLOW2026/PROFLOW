@@ -23,6 +23,7 @@
     "bucket": "عمود",
     "defaultBoard": "اللوحة الافتراضية",
     "archivedBoards": "اللوحات المؤرشفة",
+    "globalPageTitle": "لوحة المهام",
     "empty": {
       "title": "لا توجد مهام هنا",
       "description": "أضف مهمة إلى هذا العمود للبدء",
@@ -79,19 +80,56 @@
   },
   "myWork": {
     "pageTitle": "مهامي",
+    "pageDescription": "مهامك في جميع المشاريع ومساحات العمل",
     "tabsLabel": "عروض مهامي",
     "views": {
       "today": "اليوم",
       "overdue": "متأخر",
       "this_week": "هذا الأسبوع",
+      "thisWeek": "هذا الأسبوع",
       "upcoming": "القادم",
       "waiting": "في الانتظار",
       "assigned_to_me": "مسندة إليّ",
+      "assignedToMe": "مسندة إليّ",
       "created_by_me": "أنشأتها",
+      "createdByMe": "أنشأتها",
       "following": "متابع",
       "completed": "مكتمل"
     },
-    "empty": "لا توجد مهام في هذا العرض",
+    "empty": {
+      "today": {
+        "title": "لا شيء مستحق اليوم",
+        "desc": "يومك خالٍ."
+      },
+      "overdue": {
+        "title": "لا مهام متأخرة",
+        "desc": "كل شيء وفق الجدول."
+      },
+      "thisWeek": {
+        "title": "لا شيء هذا الأسبوع",
+        "desc": "لا مهام مستحقة في الأيام السبعة القادمة."
+      },
+      "upcoming": {
+        "title": "لا مهام قادمة",
+        "desc": "لا مهام مجدولة لاحقاً."
+      },
+      "waiting": {
+        "title": "لا شيء في الانتظار",
+        "desc": "لا مهام محجوبة أو منتظرة."
+      },
+      "assignedToMe": {
+        "title": "لا مهام مسندة",
+        "desc": "لا مهام مسندة إليك."
+      },
+      "following": {
+        "title": "لا متابعات",
+        "desc": "تابع المهام لعرضها هنا."
+      },
+      "completed": {
+        "title": "لا مهام مكتملة مؤخراً",
+        "desc": "ستظهر المهام المكتملة هنا."
+      }
+    },
     "noTasksToday": "لا توجد مهام مستحقة اليوم"
   },
   "portfolio": {

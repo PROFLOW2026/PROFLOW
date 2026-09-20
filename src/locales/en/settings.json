@@ -31,7 +31,13 @@
     "ocr": "Invoice capture",
     "profile": "Your profile",
     "integrations": "Invoices & receipts",
-    "storage": "File storage"
+    "storage": "File storage",
+    "orgProfile": "Organization profile",
+    "stages": "Project stages",
+    "labels": "Task labels",
+    "taskTemplates": "Task templates",
+    "projectTemplates": "Project templates",
+    "modules": "Modules"
   },
   "people": {
     "linkCopied": "Link copied",

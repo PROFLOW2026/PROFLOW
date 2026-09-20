@@ -31,7 +31,13 @@
     "profile": "הפרופיל שלך",
     "integrations": "חשבוניות וקבלות",
     "storage": "אחסון קבצים",
-    "businessCatalogs": "קטלוגים עסקיים"
+    "businessCatalogs": "קטלוגים עסקיים",
+    "orgProfile": "פרופיל ארגון",
+    "stages": "שלבי פרויקט",
+    "labels": "תגיות משימה",
+    "taskTemplates": "תבניות משימה",
+    "projectTemplates": "תבניות פרויקט",
+    "modules": "מודולים"
   },
   "people": {
     "linkCopied": "הקישור הועתק",

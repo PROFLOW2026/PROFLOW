@@ -31,7 +31,13 @@
     "ocr": "التقاط الفواتير",
     "profile": "ملفك الشخصي",
     "integrations": "الفواتير والإيصالات",
-    "storage": "تخزين الملفات"
+    "storage": "تخزين الملفات",
+    "orgProfile": "ملف المنظمة",
+    "stages": "مراحل المشروع",
+    "labels": "تسميات المهام",
+    "taskTemplates": "قوالب المهام",
+    "projectTemplates": "قوالب المشاريع",
+    "modules": "الوحدات"
   },
   "people": {
     "linkCopied": "تم نسخ الرابط",

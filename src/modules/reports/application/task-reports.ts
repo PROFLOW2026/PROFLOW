@@ -322,6 +322,7 @@ export async function getStaleProjectsReport(
 
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - staleDays);
+  const cutoffIso = cutoff.toISOString();
 
   const conditions = [
     eq(projects.organizationId, context.organizationId),
@@ -331,7 +332,7 @@ export async function getStaleProjectsReport(
       SELECT 1 FROM task_activity ta
       INNER JOIN tasks t ON t.id = ta.task_id
       WHERE t.project_id = ${projects.id}
-        AND ta.created_at >= ${cutoff}
+        AND ta.created_at >= ${cutoffIso}::timestamptz
     )`,
   ];
 

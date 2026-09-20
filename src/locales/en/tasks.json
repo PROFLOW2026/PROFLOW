@@ -23,6 +23,7 @@
     "bucket": "Column",
     "defaultBoard": "Default board",
     "archivedBoards": "Archived boards",
+    "globalPageTitle": "Task board",
     "empty": {
       "title": "No tasks here",
       "description": "Add a task to this column to get started",
@@ -79,19 +80,56 @@
   },
   "myWork": {
     "pageTitle": "My Work",
+    "pageDescription": "Your tasks across all projects and workspaces",
     "tabsLabel": "My Work views",
     "views": {
       "today": "Today",
       "overdue": "Overdue",
       "this_week": "This week",
+      "thisWeek": "This week",
       "upcoming": "Upcoming",
       "waiting": "Waiting",
       "assigned_to_me": "Assigned to me",
+      "assignedToMe": "Assigned to me",
       "created_by_me": "Created by me",
+      "createdByMe": "Created by me",
       "following": "Following",
       "completed": "Completed"
     },
-    "empty": "No tasks in this view",
+    "empty": {
+      "today": {
+        "title": "Nothing due today",
+        "desc": "You're clear for today."
+      },
+      "overdue": {
+        "title": "No overdue tasks",
+        "desc": "Everything is on schedule."
+      },
+      "thisWeek": {
+        "title": "Nothing due this week",
+        "desc": "No tasks due in the next seven days."
+      },
+      "upcoming": {
+        "title": "Nothing upcoming",
+        "desc": "No tasks scheduled ahead."
+      },
+      "waiting": {
+        "title": "Nothing waiting",
+        "desc": "No blocked or waiting tasks."
+      },
+      "assignedToMe": {
+        "title": "Nothing assigned",
+        "desc": "No tasks are assigned to you."
+      },
+      "following": {
+        "title": "Not following anything",
+        "desc": "Follow tasks to track them here."
+      },
+      "completed": {
+        "title": "Nothing completed recently",
+        "desc": "Completed tasks will appear here."
+      }
+    },
     "noTasksToday": "No tasks due today"
   },
   "portfolio": {

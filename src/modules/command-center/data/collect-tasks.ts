@@ -9,6 +9,7 @@
  * migrations have not yet been applied in a given environment.
  */
 
+import { randomUUID } from 'node:crypto';
 import {
   and,
   desc,
@@ -55,9 +56,20 @@ const STALE_THRESHOLD_DAYS = 14;
 const BLOCKED_THRESHOLD_DAYS = 3;
 const RECURRING_LOOKBACK_HOURS = 24;
 
+function postgresErrorCode(error: unknown): string {
+  if (!error || typeof error !== 'object') return '';
+  if ('code' in error && (error as { code?: unknown }).code) {
+    return String((error as { code?: unknown }).code);
+  }
+  const cause = 'cause' in error ? (error as { cause?: unknown }).cause : null;
+  if (cause && typeof cause === 'object' && 'code' in cause) {
+    return String((cause as { code?: unknown }).code);
+  }
+  return '';
+}
+
 function isMissingRelation(error: unknown): boolean {
-  if (!error || typeof error !== 'object') return false;
-  const code = 'code' in error ? String((error as { code?: unknown }).code) : '';
+  const code = postgresErrorCode(error);
   const message = error instanceof Error ? error.message : String(error);
   return (
     code === '42P01' ||
@@ -67,11 +79,28 @@ function isMissingRelation(error: unknown): boolean {
   );
 }
 
-async function safeQuery<T>(run: () => Promise<T[]>): Promise<T[]> {
+function isDegradedCollectorError(error: unknown): boolean {
+  const code = postgresErrorCode(error);
+  return isMissingRelation(error) || code === '42501';
+}
+
+async function safeQuery<T>(
+  db: CollectContext['context']['db'],
+  run: () => Promise<T[]>,
+): Promise<T[]> {
+  const savepoint = `cc_uwm_${randomUUID().replace(/-/g, '')}`;
   try {
-    return await run();
+    await db.execute(sql.raw(`savepoint "${savepoint}"`));
+    const result = await run();
+    await db.execute(sql.raw(`release savepoint "${savepoint}"`));
+    return result;
   } catch (error) {
-    if (isMissingRelation(error)) return [];
+    try {
+      await db.execute(sql.raw(`rollback to savepoint "${savepoint}"`));
+    } catch {
+      // savepoint may not exist if the failure happened before it was created
+    }
+    if (isDegradedCollectorError(error)) return [];
     throw error;
   }
 }
@@ -85,7 +114,7 @@ async function safeQuery<T>(run: () => Promise<T[]>): Promise<T[]> {
 export async function collectTaskOverdue(ctx: CollectContext): Promise<CommandCenterItem[]> {
   if (!hasPermission(ctx.context, PERMISSIONS.TASKS_READ)) return [];
 
-  const rows = await safeQuery(() =>
+  const rows = await safeQuery(ctx.context.db, () =>
     ctx.context.db
       .select({
         id: tasks.id,
@@ -150,7 +179,7 @@ export async function collectTaskOverdue(ctx: CollectContext): Promise<CommandCe
 export async function collectTaskDueToday(ctx: CollectContext): Promise<CommandCenterItem[]> {
   if (!hasPermission(ctx.context, PERMISSIONS.TASKS_READ)) return [];
 
-  const rows = await safeQuery(() =>
+  const rows = await safeQuery(ctx.context.db, () =>
     ctx.context.db
       .select({
         id: tasks.id,
@@ -207,7 +236,7 @@ export async function collectTaskBlockedWaiting(ctx: CollectContext): Promise<Co
 
   const staleCutoff = addDays(ctx.today, -BLOCKED_THRESHOLD_DAYS);
 
-  const rows = await safeQuery(() =>
+  const rows = await safeQuery(ctx.context.db, () =>
     ctx.context.db
       .select({
         id: tasks.id,
@@ -272,7 +301,7 @@ export async function collectTaskApprovalRequested(
   if (!hasPermission(ctx.context, PERMISSIONS.TASKS_APPROVE)) return [];
   if (!hasPermission(ctx.context, PERMISSIONS.TASKS_READ)) return [];
 
-  const rows = await safeQuery(() =>
+  const rows = await safeQuery(ctx.context.db, () =>
     ctx.context.db
       .select({
         approvalId: approvalRequests.id,
@@ -332,7 +361,7 @@ export async function collectTaskUnassigned(ctx: CollectContext): Promise<Comman
   if (!hasPermission(ctx.context, PERMISSIONS.TASKS_READ)) return [];
 
   // Tasks that have no assignee row at all
-  const rows = await safeQuery(() =>
+  const rows = await safeQuery(ctx.context.db, () =>
     ctx.context.db
       .select({
         id: tasks.id,
@@ -409,7 +438,7 @@ export async function collectMilestoneApproaching(
 
   const horizon = addDays(ctx.today, MILESTONE_LOOKAHEAD_DAYS);
 
-  const rows = await safeQuery(() =>
+  const rows = await safeQuery(ctx.context.db, () =>
     ctx.context.db
       .select({
         id: projectMilestones.id,
@@ -476,7 +505,7 @@ export async function collectProjectStale(ctx: CollectContext): Promise<CommandC
   const staleCutoff = addDays(ctx.today, -STALE_THRESHOLD_DAYS);
 
   // Find projects where max(task_activity.created_at) is older than the cutoff.
-  const rows = await safeQuery(async () => {
+  const rows = await safeQuery(ctx.context.db, async () => {
     const staleProjects = await ctx.context.db
       .select({
         projectId: projects.id,
@@ -555,7 +584,7 @@ export async function collectRecurringTaskGenerated(
 
   const since = new Date(Date.now() - RECURRING_LOOKBACK_HOURS * 60 * 60 * 1000);
 
-  const rows = await safeQuery(() =>
+  const rows = await safeQuery(ctx.context.db, () =>
     ctx.context.db
       .select({
         id: tasks.id,
@@ -604,4 +633,24 @@ export async function collectRecurringTaskGenerated(
       },
     });
   });
+}
+
+/** Run UWM scanners sequentially so savepoint isolation stays predictable. */
+export async function collectUwmTaskSources(ctx: CollectContext): Promise<CommandCenterItem[]> {
+  const collectors = [
+    collectTaskOverdue,
+    collectTaskDueToday,
+    collectTaskBlockedWaiting,
+    collectTaskApprovalRequested,
+    collectTaskUnassigned,
+    collectMilestoneApproaching,
+    collectProjectStale,
+    collectRecurringTaskGenerated,
+  ] as const;
+
+  const items: CommandCenterItem[] = [];
+  for (const collector of collectors) {
+    items.push(...(await collector(ctx)));
+  }
+  return items;
 }
