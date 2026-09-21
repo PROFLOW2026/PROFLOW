@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { TaskCalendarView } from './task-calendar-view';
 import { TaskDetailSheet } from './task-detail-sheet';
 import {
   TaskFiltersBar,
@@ -8,19 +9,16 @@ import {
   DEFAULT_TASK_FILTER_STATE,
   type TaskFilterBarState,
 } from './task-filters-bar';
+import { TaskTimelineView } from './task-timeline-view';
 import type { TaskCardData, TaskDetail } from './_task-api-stub';
 import type { WorkActionState } from '@/app/[locale]/(app)/work/actions';
 
 export interface TaskWorkSurfaceClientProps {
   tasks: TaskCardData[];
   today: string;
+  viewMode: 'calendar' | 'timeline';
   showProject?: boolean;
   timelineDateEdit?: boolean;
-  children: (props: {
-    filteredTasks: TaskCardData[];
-    onOpenTask: (taskId: string) => void;
-    onUpdateDueDate?: (taskId: string, dueDate: string | null) => Promise<void>;
-  }) => React.ReactNode;
   getTaskDetail: (taskId: string) => Promise<TaskDetail | null>;
   updateTask: (taskId: string, data: Record<string, unknown>) => Promise<WorkActionState>;
 }
@@ -28,9 +26,9 @@ export interface TaskWorkSurfaceClientProps {
 export function TaskWorkSurfaceClient({
   tasks,
   today,
-  showProject: _showProject = true,
+  viewMode,
+  showProject = true,
   timelineDateEdit = false,
-  children,
   getTaskDetail,
   updateTask,
 }: TaskWorkSurfaceClientProps) {
@@ -68,11 +66,21 @@ export function TaskWorkSurfaceClient({
     <div className="flex flex-col gap-4">
       <TaskFiltersBar value={filters} onChange={setFilters} />
 
-      {children({
-        filteredTasks,
-        onOpenTask: handleOpenTask,
-        onUpdateDueDate: handleUpdateDueDate,
-      })}
+      {viewMode === 'calendar' ? (
+        <TaskCalendarView
+          tasks={filteredTasks}
+          today={today}
+          onOpenTask={handleOpenTask}
+          showProject={showProject}
+        />
+      ) : (
+        <TaskTimelineView
+          tasks={filteredTasks}
+          onOpenTask={handleOpenTask}
+          onUpdateDueDate={handleUpdateDueDate}
+          showProject={showProject}
+        />
+      )}
 
       <TaskDetailSheet
         task={selectedTaskId != null && taskDetail?.id === selectedTaskId ? taskDetail : null}

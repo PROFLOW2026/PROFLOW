@@ -12,6 +12,7 @@ import {
 } from '../domain/templates';
 import { findProjectById } from '../data/projects.repository';
 import { createProject, type CreateProjectResult } from './create-project';
+import type { ProjectCreateTeamInput } from '../domain/project-create-team';
 import type { CreateProjectInput } from '../validation/schemas';
 import {
   applyStructureProjectTemplate,
@@ -31,6 +32,7 @@ export type ProjectLaunchSource =
 export interface LaunchProjectInput {
   readonly create: CreateProjectInput;
   readonly launch?: ProjectLaunchSource;
+  readonly team?: ProjectCreateTeamInput;
 }
 
 export interface LaunchProjectResult extends CreateProjectResult {
@@ -57,6 +59,10 @@ export async function launchProject(
   const created = await createProject(context, input.create);
   const { ensureProjectCreatorAccess } = await import('./ensure-creator-project-access');
   await ensureProjectCreatorAccess(context, created.projectId);
+  if (input.team) {
+    const { applyProjectCreateTeam } = await import('./apply-project-create-team');
+    await applyProjectCreateTeam(context, created.projectId, input.team);
+  }
   const project = await findProjectById(context.db, context.organizationId, created.projectId);
   const projectName = project?.name ?? input.create.name;
 

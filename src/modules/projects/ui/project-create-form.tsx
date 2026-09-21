@@ -22,6 +22,8 @@ import {
 } from '@/modules/projects/domain/templates';
 import { listProfessionStarterTemplates } from '@/modules/billing-plan/domain/templates';
 import { ContractAmountFields } from '@/modules/projects/ui/contract-amount-fields';
+import { ProjectCreateTeamPicker } from '@/modules/projects/ui/project-create-team-picker';
+import type { ProjectCreateTeamPickerOption } from '@/modules/projects/domain/project-create-team';
 import { rtlFlipClassName } from '@/shared/i18n/ltr-island';
 import type { ProjectFormState } from '@/app/[locale]/(app)/projects/actions';
 
@@ -75,6 +77,7 @@ export interface ProjectCreateFormProps {
   taxRatePercent?: string | null;
   uwmTemplates?: ProjectCreateUwmTemplateOption[];
   cloneSourceProjects?: ProjectCreateCloneSourceOption[];
+  teamCandidates?: ProjectCreateTeamPickerOption[];
   capabilities?: ProjectCreateFormCapabilities;
   submitLabel?: string;
 }
@@ -133,6 +136,7 @@ export function ProjectCreateForm({
   taxRatePercent = null,
   uwmTemplates = [],
   cloneSourceProjects = [],
+  teamCandidates = [],
   capabilities: capabilitiesInput,
   submitLabel,
 }: ProjectCreateFormProps) {
@@ -169,6 +173,8 @@ export function ProjectCreateForm({
   const [previewLoading, setPreviewLoading] = useState(false);
   const [billingPlanMode, setBillingPlanMode] = useState<BillingPlanCreateMode>('none');
   const [billingPlanTemplateKey, setBillingPlanTemplateKey] = useState('small_works');
+  const [projectManagerKey, setProjectManagerKey] = useState<string | null>(null);
+  const [participantKeys, setParticipantKeys] = useState<string[]>([]);
   const billingPlanTemplates = listProfessionStarterTemplates();
 
   const selectedClient = useMemo(
@@ -562,7 +568,13 @@ export function ProjectCreateForm({
 
       {capabilities.showTeamSection ? (
         <FormSection title={t('create.sections.team')} hint={t('create.sections.teamHint')}>
-          <p className="text-sm text-[var(--pf-text-secondary)]">{t('create.sections.teamStub')}</p>
+          <ProjectCreateTeamPicker
+            options={teamCandidates}
+            projectManagerKey={projectManagerKey}
+            participantKeys={participantKeys}
+            onProjectManagerChange={setProjectManagerKey}
+            onParticipantsChange={setParticipantKeys}
+          />
         </FormSection>
       ) : null}
 

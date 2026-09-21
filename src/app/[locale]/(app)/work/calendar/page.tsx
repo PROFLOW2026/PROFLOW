@@ -7,7 +7,6 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { todayInTimeZone } from '@/shared/dates';
 import { listAccessibleTasks } from '@/modules/tasks';
 import { mapTasksToCardDataForOrg } from '@/modules/tasks/application/map-tasks-for-ui';
-import { TaskCalendarView } from '@/modules/tasks/ui/task-calendar-view';
 import { TaskWorkSurfaceClient } from '@/modules/tasks/ui/task-work-surface-client';
 import { getTaskDetailAction, updateTaskFieldsAction } from '../actions';
 
@@ -44,13 +43,10 @@ export default async function WorkCalendarPage() {
       <TaskWorkSurfaceClient
         tasks={tasks}
         today={today}
+        viewMode="calendar"
         getTaskDetail={getTaskDetailAction}
         updateTask={updateTaskFieldsAction}
-      >
-        {({ filteredTasks, onOpenTask }) => (
-          <TaskCalendarView tasks={filteredTasks} today={today} onOpenTask={onOpenTask} showProject />
-        )}
-      </TaskWorkSurfaceClient>
+      />
     </div>
   );
 }

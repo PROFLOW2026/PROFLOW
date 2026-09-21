@@ -14,6 +14,10 @@ import {
   PROJECT_TEMPLATE_KEYS,
 } from '@/modules/projects/domain/templates';
 import { listProjectsForOrg } from '@/modules/projects';
+import {
+  canManageProjectTeamAtCreate,
+  loadProjectCreateTeamPickerOptions,
+} from '@/modules/projects/application/load-project-create-team-options';
 import { listLaunchableUwmProjectTemplates } from '@/modules/tasks';
 import { resolveApplicableDefaultTax } from '@/modules/tax';
 import { getShellContext, withOrgContext } from '@/shared/auth/session';
@@ -62,6 +66,8 @@ export default async function NewProjectPage({
   let recommendedTemplateNames: string[] = [];
   let uwmTemplates: { id: string; name: string; description: string | null; stageCount: number; taskCount: number }[] = [];
   let cloneSourceProjects: { id: string; name: string }[] = [];
+  let teamCandidates: Awaited<ReturnType<typeof loadProjectCreateTeamPickerOptions>> = [];
+  let showTeamSection = false;
   try {
     const loaded = await withOrgContext(async (context) => {
       const rows = await listClientsForOrg(context, {});
@@ -96,12 +102,16 @@ export default async function NewProjectPage({
               })
               .filter((name): name is string => Boolean(name));
 
-      const [uwmRows, projectRows] = await Promise.all([
+      const showTeam = canManageProjectTeamAtCreate(context);
+      const [uwmRows, projectRows, teamOptions] = await Promise.all([
         listLaunchableUwmProjectTemplates(context),
         listProjectsForOrg(context, { status: 'active' }),
+        showTeam ? loadProjectCreateTeamPickerOptions(context) : Promise.resolve([]),
       ]);
 
       return {
+        showTeamSection: showTeam,
+        teamCandidates: teamOptions,
         clients: rows.map((client) => ({
           id: client.id,
           name: client.name,
@@ -133,6 +143,8 @@ export default async function NewProjectPage({
     recommendedTemplateNames = loaded.recommendedTemplateNames;
     uwmTemplates = loaded.uwmTemplates;
     cloneSourceProjects = loaded.cloneSourceProjects;
+    teamCandidates = loaded.teamCandidates;
+    showTeamSection = loaded.showTeamSection;
   } catch {
     clients = [];
   }
@@ -174,6 +186,8 @@ export default async function NewProjectPage({
         taxRatePercent={taxRatePercent}
         uwmTemplates={uwmTemplates}
         cloneSourceProjects={cloneSourceProjects}
+        teamCandidates={teamCandidates}
+        capabilities={{ showTeamSection }}
       />
     </div>
   );

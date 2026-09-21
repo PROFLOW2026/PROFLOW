@@ -5,7 +5,6 @@ import { withOrgContext } from '@/shared/auth/session';
 import { todayInTimeZone } from '@/shared/dates';
 import { listAccessibleTasks } from '@/modules/tasks';
 import { mapTasksToCardDataForOrg } from '@/modules/tasks/application/map-tasks-for-ui';
-import { TaskCalendarView } from '@/modules/tasks/ui/task-calendar-view';
 import { TaskWorkSurfaceClient } from '@/modules/tasks/ui/task-work-surface-client';
 import { getTaskDetailAction, updateTaskFieldsAction } from '../../../work/actions';
 
@@ -37,19 +36,11 @@ export default async function ProjectCalendarPage({
       <TaskWorkSurfaceClient
         tasks={data.tasks}
         today={data.today}
+        viewMode="calendar"
         showProject={false}
         getTaskDetail={getTaskDetailAction}
         updateTask={updateTaskFieldsAction}
-      >
-        {({ filteredTasks, onOpenTask }) => (
-          <TaskCalendarView
-            tasks={filteredTasks}
-            today={data.today}
-            onOpenTask={onOpenTask}
-            showProject={false}
-          />
-        )}
-      </TaskWorkSurfaceClient>
+      />
     </div>
   );
 }

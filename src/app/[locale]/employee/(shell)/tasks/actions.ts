@@ -15,6 +15,12 @@ import {
 } from '@/modules/employee-app/application/employee-pm-tasks';
 import { assertEmployeeAppContext } from '@/modules/employee-app/application/session-guard';
 import { DomainRuleError } from '@/shared/errors';
+import {
+  getEmployeeTaskDocumentPanelData,
+  linkDocumentToEmployeeTask,
+  recordEmployeeTaskAttachmentAdded,
+  unlinkDocumentFromEmployeeTask,
+} from '@/modules/employee-app/application/employee-task-documents';
 
 export interface TaskActionState {
   error?: string;
@@ -168,4 +174,80 @@ export async function employeeDecideTaskApprovalAction(
   });
 
   revalidatePath(`/employee/tasks/${taskId}`);
+}
+
+export async function getEmployeeTaskDocumentPanelAction(taskId: string) {
+  return withOrgContext(async (context) => {
+    try {
+      await assertEmployeeAppContext(context);
+      return await getEmployeeTaskDocumentPanelData(context, taskId);
+    } catch {
+      return {
+        documents: [],
+        linkCandidates: [],
+        canRead: false,
+        canManage: false,
+        storageConfigured: false,
+        canClassifyCompensation: false,
+      };
+    }
+  });
+}
+
+export async function employeeLinkTaskDocumentAction(
+  taskId: string,
+  input: {
+    documentId: string;
+    label?: string | null;
+    privacyClass?: 'standard' | 'compensation' | null;
+  },
+): Promise<TaskActionState> {
+  try {
+    await withOrgContext(async (context) => {
+      await assertEmployeeAppContext(context);
+      await linkDocumentToEmployeeTask(context, taskId, input.documentId, {
+        label: input.label,
+        privacyClass: input.privacyClass,
+      });
+    });
+    revalidatePath(`/employee/tasks/${taskId}`);
+    return {};
+  } catch (error) {
+    if (error instanceof DomainRuleError) return { error: error.message };
+    return { error: 'Failed to link document' };
+  }
+}
+
+export async function employeeUnlinkTaskDocumentAction(
+  taskId: string,
+  linkId: string,
+): Promise<TaskActionState> {
+  try {
+    await withOrgContext(async (context) => {
+      await assertEmployeeAppContext(context);
+      await unlinkDocumentFromEmployeeTask(context, taskId, linkId);
+    });
+    revalidatePath(`/employee/tasks/${taskId}`);
+    return {};
+  } catch (error) {
+    if (error instanceof DomainRuleError) return { error: error.message };
+    return { error: 'Failed to unlink document' };
+  }
+}
+
+export async function employeeRecordTaskAttachmentAddedAction(
+  taskId: string,
+  documentId: string,
+): Promise<TaskActionState> {
+  try {
+    await withOrgContext(async (context) => {
+      await assertEmployeeAppContext(context);
+      await recordEmployeeTaskAttachmentAdded(context, taskId, documentId);
+    });
+    revalidatePath(`/employee/tasks/${taskId}`);
+    return {};
+  } catch (error) {
+    if (error instanceof DomainRuleError) return { error: error.message };
+    return { error: 'Failed to record attachment' };
+  }
 }

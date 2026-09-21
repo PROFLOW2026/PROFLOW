@@ -92,6 +92,8 @@ export interface ExpensesListProps {
   };
   /** Server-supplied today for timezone-accurate presets in DateRangeSelector. */
   today?: string;
+  scopeLimited?: boolean;
+  scopeEmpty?: boolean;
 }
 
 export function ExpensesList({
@@ -106,6 +108,8 @@ export function ExpensesList({
   locale,
   initialFilters,
   today,
+  scopeLimited = false,
+  scopeEmpty = false,
 }: ExpensesListProps) {
   const t = useTranslations('expenses');
   const tStatus = useTranslations('status');
@@ -187,6 +191,16 @@ export function ExpensesList({
     router.push(`/expenses?${buildFilterParams(EXPENSE_LIST_STATUS_ALL, 1).toString()}`);
   }
 
+  if (scopeEmpty && items.length === 0 && !hasActiveFilters(initialFilters)) {
+    return (
+      <EmptyState
+        icon={Receipt}
+        title={t('list.scopeLimited.title')}
+        description={t('list.scopeLimited.description')}
+      />
+    );
+  }
+
   if (items.length === 0 && !hasActiveFilters(initialFilters)) {
     return (
       <EmptyState
@@ -204,6 +218,15 @@ export function ExpensesList({
 
   return (
     <div className="flex min-w-0 flex-col gap-4">
+      {scopeLimited && !scopeEmpty ? (
+        <div
+          role="status"
+          className="rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-subtle)] px-4 py-3 text-sm text-[var(--pf-text-secondary)]"
+        >
+          {t('list.scopeLimited.banner')}
+        </div>
+      ) : null}
+
       {/* Date range with presets — controlled by the parent's dateFrom/dateTo state */}
       <div className="rounded-lg border border-[var(--pf-border-default)] p-3">
         <p className="mb-2 text-xs text-[var(--pf-text-muted)]">{t('filters.expenseDateHint')}</p>

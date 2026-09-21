@@ -35,6 +35,16 @@ async function recordAttachmentActivity(
   });
 }
 
+/** Records attachment activity after caller has verified task + document access. */
+export async function recordTaskAttachmentEvent(
+  context: OrgContext,
+  taskId: string,
+  eventType: 'attachment_added' | 'attachment_removed',
+  payload: { documentId: string; linkId?: string; filename?: string | null },
+): Promise<void> {
+  await recordAttachmentActivity(context, taskId, eventType, payload);
+}
+
 /**
  * Lists documents linked to a task via document_links(owner_type = task).
  */

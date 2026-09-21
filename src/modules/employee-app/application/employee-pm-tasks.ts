@@ -120,6 +120,48 @@ async function resolveEmployeeTaskScope(
   return { mode: 'projects', projectIds };
 }
 
+/** Validates tasks.read scope for a single task (lighter than full detail load). */
+export async function assertEmployeePmTaskReadAccess(
+  context: OrgContext,
+  taskId: string,
+): Promise<{ id: string; projectId: string | null }> {
+  const employeeId = requireEmployeeId(context);
+  const scopeResult = await resolveEmployeeTaskScope(context, employeeId);
+  if (scopeResult.mode === 'none') throw new NotFoundError('Task');
+
+  const [task] = await context.db
+    .select({ id: tasks.id, projectId: tasks.projectId })
+    .from(tasks)
+    .where(
+      and(
+        eq(tasks.id, taskId),
+        eq(tasks.organizationId, context.organizationId),
+        isNull(tasks.archivedAt),
+      ),
+    );
+
+  if (!task) throw new NotFoundError('Task');
+
+  if (scopeResult.mode === 'self') {
+    const [assignee] = await context.db
+      .select({ id: taskAssignees.id })
+      .from(taskAssignees)
+      .where(
+        and(
+          eq(taskAssignees.taskId, taskId),
+          eq(taskAssignees.employeeId, employeeId),
+        ),
+      );
+    if (!assignee) throw new NotFoundError('Task');
+  } else if (scopeResult.mode === 'projects') {
+    if (!task.projectId || !scopeResult.projectIds.includes(task.projectId)) {
+      throw new NotFoundError('Task');
+    }
+  }
+
+  return task;
+}
+
 // ─── Queries ──────────────────────────────────────────────────────────────────
 
 function summarizeOpenTasks(

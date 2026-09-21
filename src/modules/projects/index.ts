@@ -2,11 +2,21 @@
 export { createProject } from './application/create-project';
 export type { CreateProjectResult } from './application/create-project';
 export { launchProject } from './application/launch-project';
+export { applyProjectCreateTeam } from './application/apply-project-create-team';
+export {
+  canManageProjectTeamAtCreate,
+  loadProjectCreateTeamPickerOptions,
+} from './application/load-project-create-team-options';
 export type {
   LaunchProjectInput,
   LaunchProjectResult,
   ProjectLaunchSource,
 } from './application/launch-project';
+export type { ApplyProjectCreateTeamInput } from './application/apply-project-create-team';
+export type {
+  ProjectCreateTeamInput,
+  ProjectCreateTeamPickerOption,
+} from './domain/project-create-team';
 export { createJob } from './application/create-job';
 export type { CreateJobResult } from './application/create-job';
 export { updateProject } from './application/update-project';

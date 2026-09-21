@@ -45,7 +45,7 @@ import {
 import type { EmployeeAppAccountRecord, EmployeePermissionGrantRecord } from '@/modules/employee-app/domain/types';
 import { PERMISSIONS, type PermissionKey } from '@/shared/permissions/catalog';
 import type { PermissionScope } from '@/shared/permissions/scopes';
-import type { DocumentCategory } from '@/modules/documents/domain/categories';
+import { DOCUMENT_CATEGORIES, type DocumentCategory } from '@/modules/documents/domain/categories';
 import { cn } from '@/shared/ui/cn';
 import {
   ACCESS_CREDENTIALS_INSET_CLASS,
@@ -136,6 +136,10 @@ export function EmployeeAppAccessPanel({
   const [pending, startTransition] = useTransition();
 
   const documentsReadGranted = grantState.get(PERMISSIONS.DOCUMENTS_READ)?.granted === true;
+  const allFoldersGranted = useMemo(
+    () => DOCUMENT_CATEGORIES.every((category) => categoryState.has(category)),
+    [categoryState],
+  );
   const statusView = account ? deriveEmployeeAccessStatusView(account) : null;
   const tempPinActive = account ? hasActiveTempPinWindow(account) : false;
 
@@ -407,24 +411,62 @@ export function EmployeeAppAccessPanel({
     </div>
   );
 
+  function setAllCategories(checked: boolean) {
+    setCategoryState(() => {
+      const next = checked ? new Set<DocumentCategory>(DOCUMENT_CATEGORIES) : new Set<DocumentCategory>();
+      syncPresetDetection(grantState, next);
+      return next;
+    });
+  }
+
   const documentsSection =
     documentsReadGranted ? (
-      <section className="space-y-2">
-        <h4 className="text-sm font-medium">{t('documentCategoriesHint')}</h4>
-        <ul className="grid gap-2 sm:grid-cols-2">
-          {EMPLOYEE_DOCUMENT_CATEGORY_KEYS.map((category) => (
-            <li key={category}>
-              <label className="flex items-center gap-2 text-sm">
-                <Checkbox
-                  checked={categoryState.has(category)}
-                  disabled={pending}
-                  onCheckedChange={(value) => toggleCategory(category, value === true)}
-                />
-                <span>{tDocCategories(category)}</span>
-              </label>
-            </li>
-          ))}
-        </ul>
+      <section className="space-y-3">
+        <div className="space-y-1">
+          <h4 className="text-sm font-medium">{t('folderAccessTitle')}</h4>
+          <p className="text-xs text-[var(--pf-text-secondary)]">{t('folderAccessHint')}</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            size="sm"
+            variant={allFoldersGranted ? 'primary' : 'secondary'}
+            disabled={pending}
+            onClick={() => setAllCategories(true)}
+          >
+            {t('folderAccessAll')}
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant={!allFoldersGranted && categoryState.size > 0 ? 'primary' : 'secondary'}
+            disabled={pending}
+            onClick={() => setAllCategories(false)}
+          >
+            {t('folderAccessSelected')}
+          </Button>
+        </div>
+        {allFoldersGranted ? (
+          <p className="text-sm text-[var(--pf-text-secondary)]">{t('folderAccessAllSummary')}</p>
+        ) : (
+          <>
+            <h5 className="text-sm font-medium">{t('documentCategoriesHint')}</h5>
+            <ul className="grid gap-2 sm:grid-cols-2">
+              {EMPLOYEE_DOCUMENT_CATEGORY_KEYS.map((category) => (
+                <li key={category}>
+                  <label className="flex items-center gap-2 text-sm">
+                    <Checkbox
+                      checked={categoryState.has(category)}
+                      disabled={pending}
+                      onCheckedChange={(value) => toggleCategory(category, value === true)}
+                    />
+                    <span>{tDocCategories(category)}</span>
+                  </label>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
       </section>
     ) : null;
 

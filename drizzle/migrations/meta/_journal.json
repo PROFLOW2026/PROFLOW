@@ -827,6 +827,13 @@
                         "when":  1789711320000,
                         "tag":  "0118_task_document_owner_access_correction",
                         "breakpoints":  true
+                    },
+                    {
+                        "idx":  118,
+                        "version":  "7",
+                        "when":  1789711380000,
+                        "tag":  "0119_meetings_read_org_scope",
+                        "breakpoints":  true
                     }
                 ]
 }

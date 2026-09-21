@@ -5,7 +5,6 @@ import { withOrgContext } from '@/shared/auth/session';
 import { todayInTimeZone } from '@/shared/dates';
 import { listAccessibleTasks } from '@/modules/tasks';
 import { mapTasksToCardDataForOrg } from '@/modules/tasks/application/map-tasks-for-ui';
-import { TaskTimelineView } from '@/modules/tasks/ui/task-timeline-view';
 import { TaskWorkSurfaceClient } from '@/modules/tasks/ui/task-work-surface-client';
 import { getTaskDetailAction, updateTaskFieldsAction } from '../../../work/actions';
 
@@ -37,20 +36,12 @@ export default async function ProjectTimelinePage({
       <TaskWorkSurfaceClient
         tasks={data.tasks}
         today={data.today}
+        viewMode="timeline"
         showProject={false}
         timelineDateEdit
         getTaskDetail={getTaskDetailAction}
         updateTask={updateTaskFieldsAction}
-      >
-        {({ filteredTasks, onOpenTask, onUpdateDueDate }) => (
-          <TaskTimelineView
-            tasks={filteredTasks}
-            onOpenTask={onOpenTask}
-            onUpdateDueDate={onUpdateDueDate}
-            showProject={false}
-          />
-        )}
-      </TaskWorkSurfaceClient>
+      />
     </div>
   );
 }

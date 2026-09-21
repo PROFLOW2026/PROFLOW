@@ -3,9 +3,15 @@
 import { revalidatePath } from 'next/cache';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { listClientsForOrg, listContactsForClients } from '@/modules/clients';
-import { launchProject } from '@/modules/projects';
+import { launchProject, listProjectsForOrg } from '@/modules/projects';
 import { ensureProjectCreatorAccess } from '@/modules/projects/application/ensure-creator-project-access';
+import {
+  canManageProjectTeamAtCreate,
+  loadProjectCreateTeamPickerOptions,
+} from '@/modules/projects/application/load-project-create-team-options';
 import { parseProjectCreateForm } from '@/modules/projects/application/parse-project-create-form';
+import { listLaunchableUwmProjectTemplates } from '@/modules/tasks';
+import type { ProjectCreateTeamPickerOption } from '@/modules/projects/domain/project-create-team';
 import { assertEmployeeAppContext } from '@/modules/employee-app/application/session-guard';
 import { employeeHasPermission } from '@/modules/employee-app/application/load-employee-app-context';
 import type { ProjectFormState } from '@/app/[locale]/(app)/projects/actions';
@@ -51,6 +57,7 @@ export async function employeeCreateProjectAction(
       const created = await launchProject(context, {
         create: form.input,
         launch: form.launch,
+        team: form.team,
       });
       await ensureProjectCreatorAccess(context, created.projectId);
       return created.projectId;
@@ -84,11 +91,22 @@ export interface EmployeeProjectCreatePagePayload {
     }[];
   }[];
   readonly taxRatePercent: string | null;
+  readonly uwmTemplates: {
+    id: string;
+    name: string;
+    description: string | null;
+    stageCount: number;
+    taskCount: number;
+  }[];
+  readonly cloneSourceProjects: { id: string; name: string }[];
+  readonly teamCandidates: ProjectCreateTeamPickerOption[];
   readonly capabilities: {
     readonly canSelectClient: boolean;
     readonly canCreateClient: boolean;
     readonly showFinance: boolean;
     readonly showBillingPlan: boolean;
+    readonly showTemplatePicker: boolean;
+    readonly showTeamSection: boolean;
   };
 }
 
@@ -141,16 +159,38 @@ export async function loadEmployeeProjectCreatePagePayload(): Promise<EmployeePr
       taxRatePercent = tax.resolved?.ratePercent ?? null;
     }
 
+    const showTeamSection = canManageProjectTeamAtCreate(context);
+    const [uwmTemplates, cloneSourceProjects, teamCandidates] = await Promise.all([
+      listLaunchableUwmProjectTemplates(context).catch(() => []),
+      employeeHasPermission(context, PERMISSIONS.PROJECTS_READ)
+        ? listProjectsForOrg(context, { status: 'active' })
+            .then((rows) => rows.map((project) => ({ id: project.id, name: project.name })))
+            .catch(() => [])
+        : Promise.resolve([]),
+      showTeamSection ? loadProjectCreateTeamPickerOptions(context) : Promise.resolve([]),
+    ]);
+
     return {
       baseCurrency,
       currencySymbol: baseCurrency === 'ILS' ? '₪' : baseCurrency,
       clients,
       taxRatePercent,
+      uwmTemplates: uwmTemplates.map((template) => ({
+        id: template.id,
+        name: template.name,
+        description: template.description,
+        stageCount: template.stageCount,
+        taskCount: template.taskCount,
+      })),
+      cloneSourceProjects,
+      teamCandidates,
       capabilities: {
         canSelectClient,
         canCreateClient,
         showFinance,
         showBillingPlan,
+        showTemplatePicker: true,
+        showTeamSection,
       },
     };
   });

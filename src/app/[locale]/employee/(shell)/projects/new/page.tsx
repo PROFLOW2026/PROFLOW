@@ -45,13 +45,17 @@ export default async function EmployeeCreateProjectPage({
         currencySymbol={currencySymbol}
         clients={payload.clients}
         taxRatePercent={payload.taxRatePercent}
+        uwmTemplates={payload.uwmTemplates}
+        cloneSourceProjects={payload.cloneSourceProjects}
+        teamCandidates={payload.teamCandidates}
         submitLabel={t('createSubmit')}
         capabilities={{
           canSelectClient: payload.capabilities.canSelectClient,
           canCreateClient: payload.capabilities.canCreateClient,
           showFinance: payload.capabilities.showFinance,
           showBillingPlan: payload.capabilities.showBillingPlan,
-          showTemplatePicker: false,
+          showTemplatePicker: payload.capabilities.showTemplatePicker,
+          showTeamSection: payload.capabilities.showTeamSection,
         }}
       />
     </div>

@@ -114,6 +114,7 @@ export {
   linkDocumentToTask,
   unlinkDocumentFromTask,
   recordTaskAttachmentAdded,
+  recordTaskAttachmentEvent,
 } from './application/task-attachments';
 export type { TaskDocumentPanelData } from './application/task-attachments';
 export {

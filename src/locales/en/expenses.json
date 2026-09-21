@@ -344,6 +344,11 @@
       "description": "Record materials, subcontractors, rent, and other costs. Start with an amount - details can wait.",
       "action": "Add first expense"
     },
+    "scopeLimited": {
+      "title": "No expenses in your project access",
+      "description": "You can view expenses only for projects assigned to you. Ask an administrator if you need access to more projects.",
+      "banner": "Showing expenses for projects you can access only."
+    },
     "noDescription": "No description",
     "reversalPrefix": "Reversal",
     "adjustmentPrefix": "Correction",

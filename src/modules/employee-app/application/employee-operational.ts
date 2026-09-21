@@ -6,10 +6,7 @@ import type { OrgContext } from '@/shared/auth/context';
 import { DomainRuleError } from '@/shared/errors';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { employeeHasPermission, employeePermissionScope } from './load-employee-app-context';
-import {
-  resolveAccessibleProjectIdsForEmployeePermission,
-  resolveAccessibleProjectIdsForUser,
-} from './project-scope';
+import { resolveAccessibleProjectIdsForEmployeePermission } from './project-scope';
 import { formatProjectDisplayName } from '@/modules/projects/domain/display';
 import { todayInTimeZone } from '@/shared/dates';
 import { listEmployeesForOrg, listAttendanceDays, listTimeEntries } from '@/modules/workforce';
@@ -181,17 +178,8 @@ export async function listEmployeeAccessibleForms(context: OrgContext) {
 
 export async function listEmployeeAccessibleExpenses(context: OrgContext) {
   if (!employeeHasPermission(context, PERMISSIONS.EXPENSES_READ)) return [];
-
-  const scope = employeePermissionScope(context, PERMISSIONS.EXPENSES_READ) ?? 'assigned_only';
   const { items } = await listExpensesForOrg(context, { limit: 50 });
-
-  if (scope === 'all_organization') return items;
-
-  const allowedProjects = await resolveAccessibleProjectIdsForUser(context);
-  if (allowedProjects === null) return items;
-  return items.filter(
-    (item) => !item.projectId || allowedProjects.includes(item.projectId),
-  );
+  return items;
 }
 
 export async function resolveEmployeeOwnTimeEntries(context: OrgContext) {

@@ -30,6 +30,8 @@ import {
   employeeDecideTaskApprovalAction,
 } from '../actions';
 import { TaskActivity } from '@/modules/tasks/ui/task-activity';
+import { EmployeeTaskDocumentAttachments } from '@/modules/employee-app/ui/employee-task-document-attachments';
+import { getEmployeeTaskDocumentPanelData } from '@/modules/employee-app/application/employee-task-documents';
 import { cn } from '@/shared/ui/cn';
 
 const TASK_STATUSES = [
@@ -78,13 +80,22 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
   let today = '';
   let reportedHours = '0';
   let canLogTime = false;
+  let documentsPanel: Awaited<ReturnType<typeof getEmployeeTaskDocumentPanelData>> = {
+    documents: [],
+    linkCandidates: [],
+    canRead: false,
+    canManage: false,
+    storageConfigured: false,
+    canClassifyCompensation: false,
+  };
 
   try {
     const result = await withOrgContext(async (context) => {
       await assertEmployeeAppContext(context);
       const detail = await getEmployeePmTaskDetail(context, taskId);
       const capabilities = await getEmployeePmTaskCapabilities(context, detail);
-      const [assignees, approvals, assigneeMap, projectLabels, hoursTotal] = await Promise.all([
+      const [assignees, approvals, assigneeMap, projectLabels, hoursTotal, documents] =
+        await Promise.all([
         capabilities.canAssign
           ? listEmployeePmTaskAssigneeOptions(context, detail.projectId)
           : Promise.resolve([]),
@@ -96,6 +107,7 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
           ? loadProjectDisplayNameMap(context.db, context.organizationId, [detail.projectId])
           : Promise.resolve(new Map<string, string>()),
         sumReportedHoursForTask(context.db, context.organizationId, taskId),
+        getEmployeeTaskDocumentPanelData(context, taskId),
       ]);
       const assigneeLabels = assigneeDisplaysForTask(taskId, assigneeMap)
         .map((assignee) => assignee.displayName)
@@ -115,6 +127,7 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
         canCreate: employeeHasPermission(context, PERMISSIONS.TASKS_CREATE),
         reportedHours: hoursTotal,
         canLogTime: employeeHasPermission(context, PERMISSIONS.TIME_MANAGE),
+        documentsPanel: documents,
       };
     });
     task = result.task;
@@ -129,6 +142,7 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
     today = result.today;
     reportedHours = result.reportedHours;
     canLogTime = result.canLogTime;
+    documentsPanel = result.documentsPanel;
   } catch (error) {
     if (error instanceof NotFoundError) notFound();
     throw error;
@@ -388,6 +402,20 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
           />
         ) : null}
       </section>
+
+      {documentsPanel.canRead ? (
+        <section className={employeePanelClass}>
+          <EmployeeTaskDocumentAttachments
+            taskId={taskId}
+            documents={documentsPanel.documents}
+            linkCandidates={documentsPanel.linkCandidates}
+            canRead={documentsPanel.canRead}
+            canManage={documentsPanel.canManage}
+            storageConfigured={documentsPanel.storageConfigured}
+            canClassifyCompensation={documentsPanel.canClassifyCompensation}
+          />
+        </section>
+      ) : null}
 
       <section className={employeePanelClass}>
         <TaskActivity taskId={taskId} />

@@ -10,7 +10,9 @@ import {
   type ProjectTemplateKey,
   type TemplateLocale,
 } from '../domain/templates';
+import type { ProjectCreateTeamInput } from '../domain/project-create-team';
 import type { ProjectLaunchSource } from './launch-project';
+import { canManageProjectTeamAtCreate } from './load-project-create-team-options';
 
 function formValue(formData: FormData, key: string): string | undefined {
   const value = formData.get(key);
@@ -46,10 +48,34 @@ function canSetContractOnCreate(context: OrgContext): boolean {
 export interface ParsedProjectCreateForm {
   readonly input: CreateProjectInput;
   readonly launch: ProjectLaunchSource;
+  readonly team?: ProjectCreateTeamInput;
   /** @deprecated Use launch */
   readonly templateKey: string | null;
   readonly billingPlanMode: 'none' | 'simple' | 'template';
   readonly billingPlanTemplateKey: string | null;
+}
+
+function parseProjectCreateTeam(formData: FormData): ProjectCreateTeamInput {
+  const projectManagerKey = formValue(formData, 'projectManagerKey')?.trim() || null;
+  const raw = formValue(formData, 'participantKeys');
+  let participantKeys: string[] = [];
+  if (raw) {
+    try {
+      const parsed: unknown = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        participantKeys = parsed.filter((key): key is string => typeof key === 'string' && key.length > 0);
+      }
+    } catch {
+      participantKeys = formData
+        .getAll('participantKeys')
+        .map((value) => String(value).trim())
+        .filter(Boolean);
+    }
+  }
+  return {
+    projectManagerKey,
+    participantKeys: [...new Set(participantKeys)],
+  };
 }
 
 function parseLaunchSource(formData: FormData, templateLocale: TemplateLocale): ProjectLaunchSource {
@@ -160,6 +186,10 @@ export async function parseProjectCreateForm(
   const launch = parseLaunchSource(formData, templateLocale);
   const templateKey =
     launch.kind === 'structure_template' ? launch.templateKey : null;
+  const teamParsed = parseProjectCreateTeam(formData);
+  const hasTeamSelection =
+    Boolean(teamParsed.projectManagerKey) || (teamParsed.participantKeys?.length ?? 0) > 0;
+  const team = hasTeamSelection && canManageProjectTeamAtCreate(context) ? teamParsed : undefined;
 
   return {
     input: {
@@ -180,6 +210,7 @@ export async function parseProjectCreateForm(
       notes: formValue(formData, 'notes'),
     },
     launch,
+    team,
     templateKey,
     billingPlanMode: includeFinance ? billingPlanMode : 'none',
     billingPlanTemplateKey:

@@ -120,13 +120,28 @@
     "sections": {
       "details": "Project details",
       "team": "Team",
-      "teamHint": "Optional — assign people after the project exists.",
-      "teamStub": "Add team members from the project workspace after creation.",
+      "teamHint": "Optional — pick a project manager and other participants now, or add them later on the Team tab.",
       "workStructure": "Work structure",
       "workStructureStub": "Structure templates and task packs will be configurable in a future update.",
       "finance": "Finance",
       "summary": "Summary",
       "summaryHint": "Review the basics, then create the project."
+    },
+    "team": {
+      "pmLabel": "Project manager",
+      "pmHint": "One person responsible for the project. Employees are assigned to the team; organization members receive project access.",
+      "clearPm": "Clear",
+      "participantsLabel": "Participants",
+      "participantsHint": "Additional employees or organization members who should be involved from day one.",
+      "participantsEmpty": "No participants selected",
+      "searchPlaceholder": "Search people…",
+      "noMatches": "No matches",
+      "noCandidates": "No people available to assign",
+      "remove": "Remove {name}",
+      "selected": "Selected",
+      "optionsLabel": "Available people",
+      "employeeBadge": "Employee",
+      "orgMemberBadge": "Member"
     }
   },
   "workspace": {

@@ -132,6 +132,10 @@
   "expenses": {
     "create": "New expense",
     "empty": "No expenses in your scope",
+    "scopeLimited": {
+      "title": "No expenses in your project access",
+      "description": "Expenses appear here for projects you are assigned to. Contact your manager if you expected to see more."
+    },
     "createForm": {
       "back": "Back to expenses",
       "project": "Project (optional)",
@@ -225,8 +229,13 @@
     },
     "openTaskDetail": "Open task details",
     "files": {
-      "empty": "No files available",
-      "noCategory": "Uncategorized"
+      "empty": "No files in this folder",
+      "noCategory": "Uncategorized",
+      "noPermission": "No folder access",
+      "noPermissionHint": "Your account does not have permission to browse project folders. Contact your manager.",
+      "storageNotConnected": "Organization storage is not connected. Files will appear here once storage is set up.",
+      "noFoldersAllowed": "No folders allowed",
+      "noFoldersAllowedHint": "None of the project folders match your granted document categories."
     }
   },
   "meetings": {
@@ -352,6 +361,11 @@
     "permissions": "Employee permissions",
     "documentCategories": "Document categories",
     "documentCategoriesHint": "Document types this employee can view",
+    "folderAccessTitle": "Folder & document access",
+    "folderAccessHint": "Category grants control which project storage folders this employee can browse.",
+    "folderAccessAll": "All folders",
+    "folderAccessSelected": "Selected categories",
+    "folderAccessAllSummary": "All project folders are accessible (every document category is granted).",
     "scopeLabel": "Access scope",
     "noAccessHint": "This employee has no app access yet. Enable access and set permissions.",
     "audit": "Activity log",

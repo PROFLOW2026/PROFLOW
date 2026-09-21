@@ -1,12 +1,14 @@
 import { getTranslations } from 'next-intl/server';
+import { Receipt } from 'lucide-react';
 import { Link } from '@/shared/i18n/navigation';
 import { withOrgContext } from '@/shared/auth/session';
-import { listEmployeeAccessibleExpenses } from '@/modules/employee-app/application/employee-operational';
+import { listExpensesForOrg } from '@/modules/expenses/application/queries';
 import { employeeHasPermission } from '@/modules/employee-app/application/load-employee-app-context';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { formatMoneyDisplay } from '@/shared/money';
 import { cn } from '@/shared/ui/cn';
 import { Button } from '@/components/ui/button';
+import { EmptyState } from '@/components/ui/empty-state';
 import {
   employeeListPanelClass,
   employeeListRowClass,
@@ -14,10 +16,26 @@ import {
 
 export default async function EmployeeExpensesPage() {
   const t = await getTranslations('employeeApp.expenses');
-  const payload = await withOrgContext(async (context) => ({
-    items: await listEmployeeAccessibleExpenses(context),
-    canCreate: employeeHasPermission(context, PERMISSIONS.EXPENSES_CREATE),
-  }));
+  const payload = await withOrgContext(async (context) => {
+    const list = await listExpensesForOrg(context, { limit: 50 });
+    return {
+      items: list.items,
+      scope: list.scope,
+      canCreate: employeeHasPermission(context, PERMISSIONS.EXPENSES_CREATE),
+    };
+  });
+
+  if (payload.scope.scopeEmpty && payload.items.length === 0) {
+    return (
+      <div className="space-y-4">
+        <EmptyState
+          icon={Receipt}
+          title={t('scopeLimited.title')}
+          description={t('scopeLimited.description')}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">

@@ -8,6 +8,13 @@ import type { OrgContext } from '@/shared/auth/context';
 import { updateDocumentById } from '@/modules/documents';
 import { parseByteRangeHeader } from '../server/byte-range';
 import { PROJECT_SEMANTIC_FOLDERS } from '../domain/semantic-folders';
+import {
+  canAccessSemanticFolder,
+  filterAccessibleSemanticShortcuts,
+  isProjectSemanticFolderType,
+  resolveSemanticFolderForPath,
+} from '../domain/semantic-folder-access';
+import { isEmployeeAppUser } from '@/modules/employee-app/application/load-employee-app-context';
 import type { SemanticFolderType } from '@drizzle/schema/external-storage';
 import {
   findStorageFileByExternalId,
@@ -99,12 +106,97 @@ function buildSemanticShortcuts(
   });
 }
 
-function buildBrowserContext(runtime: ProjectBrowserRuntime): ProjectStorageBrowserContext {
+function buildBrowserContext(
+  context: OrgContext,
+  runtime: ProjectBrowserRuntime,
+): ProjectStorageBrowserContext {
   return {
     provider: runtime.connection.provider,
     projectRootFolderId: runtime.projectRootFolderId,
     projectRootFolderName: runtime.projectRootMapping.displayName,
-    semanticShortcuts: buildSemanticShortcuts(runtime.mappings),
+    semanticShortcuts: filterAccessibleSemanticShortcuts(
+      context,
+      buildSemanticShortcuts(runtime.mappings),
+    ),
+  };
+}
+
+async function resolveSemanticFolderInTree(
+  runtime: ProjectBrowserRuntime,
+  folderExternalId: string,
+): Promise<SemanticFolderType | 'project_root' | null> {
+  if (folderExternalId === runtime.projectRootFolderId) return 'project_root';
+
+  const mapped = resolveSemanticFolderForPath(folderExternalId, runtime.mappings);
+  if (mapped) return mapped;
+
+  let current = folderExternalId;
+  for (let depth = 0; depth < 32; depth++) {
+    const folder = await runtime.adapter.getFolder(runtime.accessToken, current);
+    if (!folder?.parentId) return null;
+    if (folder.parentId === runtime.projectRootFolderId) return null;
+
+    const parentMapped = resolveSemanticFolderForPath(folder.parentId, runtime.mappings);
+    if (parentMapped) return parentMapped;
+
+    const parentMapping = runtime.mappings.find(
+      (mapping) => mapping.externalFolderId === folder.parentId && mapping.status === 'ready',
+    );
+    if (parentMapping?.semanticFolderType === 'project_root') return null;
+    if (
+      parentMapping &&
+      isProjectSemanticFolderType(parentMapping.semanticFolderType)
+    ) {
+      return parentMapping.semanticFolderType;
+    }
+
+    current = folder.parentId;
+  }
+
+  return null;
+}
+
+async function assertSemanticFolderBrowseAccess(
+  context: OrgContext,
+  runtime: ProjectBrowserRuntime,
+  folderExternalId: string,
+): Promise<void> {
+  if (!isEmployeeAppUser(context)) return;
+
+  const semantic = await resolveSemanticFolderInTree(runtime, folderExternalId);
+  if (semantic === 'project_root') return;
+  if (!semantic || !canAccessSemanticFolder(context, semantic)) {
+    throw new NotFoundError('Folder');
+  }
+}
+
+function filterListingForSemanticAccess(
+  context: OrgContext,
+  runtime: ProjectBrowserRuntime,
+  folderExternalId: string,
+  listing: ProviderFolderListing,
+): ProviderFolderListing {
+  if (!isEmployeeAppUser(context)) return listing;
+  if (folderExternalId !== runtime.projectRootFolderId) return listing;
+
+  const allowedFolderIds = new Set(
+    runtime.mappings
+      .filter(
+        (mapping) =>
+          mapping.status === 'ready' &&
+          isProjectSemanticFolderType(mapping.semanticFolderType) &&
+          canAccessSemanticFolder(context, mapping.semanticFolderType),
+      )
+      .map((mapping) => mapping.externalFolderId),
+  );
+
+  return {
+    folders: listing.folders.filter(
+      (folder) =>
+        allowedFolderIds.has(folder.id) ||
+        !runtime.protectedFolderIds.has(folder.id),
+    ),
+    files: listing.files,
   };
 }
 
@@ -333,7 +425,7 @@ export async function getProjectStorageBrowserContext(
 ): Promise<ProjectStorageBrowserContext> {
   assertPermission(context, PERMISSIONS.DOCUMENTS_READ);
   const runtime = await resolveProjectBrowserRuntime(context, projectId);
-  return buildBrowserContext(runtime);
+  return buildBrowserContext(context, runtime);
 }
 
 /** Single round-trip initial load: context + project_root children only. */
@@ -347,13 +439,19 @@ export async function loadProjectFileBrowserInitial(
     runtime.accessToken,
     runtime.projectRootFolderId,
   );
-  const browserContext = buildBrowserContext(runtime);
+  const filtered = filterListingForSemanticAccess(
+    context,
+    runtime,
+    runtime.projectRootFolderId,
+    listing,
+  );
+  const browserContext = buildBrowserContext(context, runtime);
   return {
     context: browserContext,
     folderExternalId: runtime.projectRootFolderId,
     folderName: browserContext.projectRootFolderName,
-    folders: listing.folders,
-    files: listing.files,
+    folders: filtered.folders,
+    files: filtered.files,
   };
 }
 
@@ -371,6 +469,7 @@ export async function browseProjectStorageFolder(
   const folderExternalId = input.folderExternalId?.trim() || runtime.projectRootFolderId;
   const isProjectRoot = folderExternalId === runtime.projectRootFolderId;
   await assertFolderScope(runtime, folderExternalId);
+  await assertSemanticFolderBrowseAccess(context, runtime, folderExternalId);
 
   const hintedName = input.folderName?.trim();
   const folderName = isProjectRoot
@@ -379,11 +478,12 @@ export async function browseProjectStorageFolder(
       ((await runtime.adapter.getFolder(runtime.accessToken, folderExternalId))?.name ?? 'Folder');
 
   const listing = await runtime.adapter.listFolder(runtime.accessToken, folderExternalId);
+  const filtered = filterListingForSemanticAccess(context, runtime, folderExternalId, listing);
   return {
     folderExternalId,
     folderName,
     projectRootFolderId: runtime.projectRootFolderId,
-    listing,
+    listing: filtered,
   };
 }
 
@@ -620,6 +720,9 @@ export async function streamProjectStorageFileDownload(
   assertPermission(context, PERMISSIONS.DOCUMENTS_READ);
   const runtime = await resolveProjectBrowserRuntime(context, input.projectId);
   const meta = await assertFileScope(runtime, input.fileId);
+  if (meta.parentId) {
+    await assertSemanticFolderBrowseAccess(context, runtime, meta.parentId);
+  }
 
   let byteRange: { start: number; end: number } | null = null;
   if (input.rangeHeader) {
@@ -653,6 +756,9 @@ export async function getProjectStorageFileDownloadMeta(
   assertPermission(context, PERMISSIONS.DOCUMENTS_READ);
   const runtime = await resolveProjectBrowserRuntime(context, input.projectId);
   const meta = await assertFileScope(runtime, input.fileId);
+  if (meta.parentId) {
+    await assertSemanticFolderBrowseAccess(context, runtime, meta.parentId);
+  }
   return {
     filename: meta.name,
     mimeType: meta.mimeType ?? 'application/octet-stream',
@@ -678,6 +784,9 @@ export async function getProjectStorageFileDownload(
   assertPermission(context, PERMISSIONS.DOCUMENTS_READ);
   const runtime = await resolveProjectBrowserRuntime(context, input.projectId);
   const meta = await assertFileScope(runtime, input.fileId);
+  if (meta.parentId) {
+    await assertSemanticFolderBrowseAccess(context, runtime, meta.parentId);
+  }
   const downloaded = await runtime.adapter.downloadFileStream(
     runtime.accessToken,
     input.fileId,

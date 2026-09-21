@@ -1,4 +1,4 @@
-import { and, desc, eq, exists, gte, isNull, lte, not, or, sql } from 'drizzle-orm';
+import { and, desc, eq, exists, gte, inArray, isNull, lte, not, or, sql } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import {
   costCategories,
@@ -47,6 +47,8 @@ export interface ExpenseListFilters {
   /** Finalized overhead with no project allocation lines. */
   readonly unallocatedOnly?: boolean;
   readonly attentionFilter?: ExpenseAttentionFilter;
+  /** When set (non-null array), limit rows to these projects (direct or allocated). */
+  readonly accessibleProjectIds?: readonly string[];
 }
 
 export interface ExpenseInsertRow {
@@ -520,6 +522,31 @@ export async function listExpenses(
   if (filters.costCategoryId) conditions.push(eq(expenses.costCategoryId, filters.costCategoryId));
   if (filters.status) conditions.push(eq(expenses.status, filters.status));
 
+  if (filters.accessibleProjectIds !== undefined) {
+    if (filters.accessibleProjectIds.length === 0) {
+      conditions.push(sql`false`);
+    } else {
+      const allowedIds = [...filters.accessibleProjectIds];
+      conditions.push(
+        or(
+          inArray(expenses.projectId, allowedIds),
+          exists(
+            db
+              .select({ id: expenseAllocations.id })
+              .from(expenseAllocations)
+              .where(
+                and(
+                  eq(expenseAllocations.expenseId, expenses.id),
+                  eq(expenseAllocations.organizationId, organizationId),
+                  inArray(expenseAllocations.projectId, allowedIds),
+                ),
+              ),
+          ),
+        )!,
+      );
+    }
+  }
+
   const projectAllocationAttention =
     filters.unallocatedOnly || filters.attentionFilter === 'project_allocation';
 
@@ -604,7 +631,12 @@ export async function listExpenses(
 export async function countExpensesNeedingAttentionForOrg(
   db: DbExecutor,
   organizationId: string,
+  accessibleProjectIds?: readonly string[],
 ): Promise<number> {
+  if (accessibleProjectIds !== undefined && accessibleProjectIds.length === 0) {
+    return 0;
+  }
+
   const sharedUnallocated = and(
     eq(expenses.status, 'finalized'),
     eq(expenses.costFamily, 'shared'),
@@ -626,23 +658,43 @@ export async function countExpensesNeedingAttentionForOrg(
     ),
   );
 
+  const conditions = [
+    eq(expenses.organizationId, organizationId),
+    isNull(expenses.archivedAt),
+    isNull(expenses.voidsExpenseId),
+    isNull(expenses.adjustsExpenseId),
+    not(hasActiveReversalExists(db, organizationId)),
+    or(
+      eq(expenses.status, 'draft'),
+      eq(expenses.classificationStatus, 'needs_classification'),
+      sharedUnallocated,
+    ),
+  ];
+
+  if (accessibleProjectIds !== undefined) {
+    conditions.push(
+      or(
+        inArray(expenses.projectId, [...accessibleProjectIds]),
+        exists(
+          db
+            .select({ id: expenseAllocations.id })
+            .from(expenseAllocations)
+            .where(
+              and(
+                eq(expenseAllocations.expenseId, expenses.id),
+                eq(expenseAllocations.organizationId, organizationId),
+                inArray(expenseAllocations.projectId, [...accessibleProjectIds]),
+              ),
+            ),
+        ),
+      )!,
+    );
+  }
+
   const [countRow] = await db
     .select({ count: sql<number>`count(*)::int` })
     .from(expenses)
-    .where(
-      and(
-        eq(expenses.organizationId, organizationId),
-        isNull(expenses.archivedAt),
-        isNull(expenses.voidsExpenseId),
-        isNull(expenses.adjustsExpenseId),
-        not(hasActiveReversalExists(db, organizationId)),
-        or(
-          eq(expenses.status, 'draft'),
-          eq(expenses.classificationStatus, 'needs_classification'),
-          sharedUnallocated,
-        ),
-      ),
-    );
+    .where(and(...conditions));
 
   return countRow?.count ?? 0;
 }

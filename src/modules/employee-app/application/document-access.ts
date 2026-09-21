@@ -18,13 +18,29 @@ export interface DocumentAccessInput {
   readonly projectIds?: readonly string[];
 }
 
+export interface EmployeeDocumentCategoryAccessOptions {
+  /** When true, null/invalid categories may be allowed for standard project files. */
+  readonly inProjectScope?: boolean;
+  readonly privacyClass?: 'standard' | 'compensation';
+}
+
 export function canEmployeeReadDocumentCategory(
   context: OrgContext,
   category: string | null | undefined,
+  options?: EmployeeDocumentCategoryAccessOptions,
 ): boolean {
   if (!isEmployeeAppUser(context)) return true;
   if (!employeeHasPermission(context, PERMISSIONS.DOCUMENTS_READ)) return false;
-  if (!category || !isDocumentCategory(category)) return false;
+
+  const privacyClass = options?.privacyClass ?? 'standard';
+  if (privacyClass === 'compensation') {
+    return canReadCompensationDocuments(context);
+  }
+
+  if (!category || !isDocumentCategory(category)) {
+    return options?.inProjectScope === true;
+  }
+
   const allowed = context.employeeApp?.allowedDocumentCategories;
   if (!allowed || allowed.size === 0) return false;
   return allowed.has(category as DocumentCategory);
@@ -47,10 +63,6 @@ export async function assertCanReadDocumentForEmployee(
     throw new NotFoundError('Document');
   }
 
-  if (!canEmployeeReadDocumentCategory(context, input.category)) {
-    throw new NotFoundError('Document');
-  }
-
   const projectIds =
     input.projectIds ??
     (await listProjectScopedOwnerIdsForDocument(
@@ -58,6 +70,17 @@ export async function assertCanReadDocumentForEmployee(
       context.organizationId,
       input.documentId,
     ));
+
+  const inProjectScope = projectIds.length > 0;
+
+  if (
+    !canEmployeeReadDocumentCategory(context, input.category, {
+      inProjectScope,
+      privacyClass: input.privacyClass ?? 'standard',
+    })
+  ) {
+    throw new NotFoundError('Document');
+  }
 
   if (projectIds.length > 0) {
     for (const projectId of projectIds) {

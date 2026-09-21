@@ -86,7 +86,7 @@ export default async function ExpensesPage({
     attentionFilter: activeAttention,
   };
 
-  const [listResult, projects, categories, attentionCount, today] = await withOrgContext(async (context) => {
+  const [listResult, projects, categories, attentionCount, today, scopeMeta] = await withOrgContext(async (context) => {
     const { ensureRecurringDraftOccurrencesForOrg } = await import(
       '@/modules/recurring-drafts/application/ensure-occurrences'
     );
@@ -118,7 +118,14 @@ export default async function ExpensesPage({
         ? countExpensesNeedingAttentionForOrg(context)
         : Promise.resolve(0),
     ]);
-    return [expenses, projectRows, categoryRows, attentionTotal, todayInTimeZone(context.organization.timezone)] as const;
+    return [
+      expenses,
+      projectRows,
+      categoryRows,
+      attentionTotal,
+      todayInTimeZone(context.organization.timezone),
+      expenses.scope,
+    ] as const;
   });
 
   const currentPage = resolveExpenseListPage(
@@ -189,6 +196,8 @@ export default async function ExpensesPage({
         categories={categories}
         locale={locale}
         today={today}
+        scopeLimited={scopeMeta.scopeLimited}
+        scopeEmpty={scopeMeta.scopeEmpty}
         initialFilters={{
           ...restFilters,
           statusFilter,

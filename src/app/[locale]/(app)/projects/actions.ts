@@ -76,6 +76,7 @@ export async function createProjectAction(
       return launchProject(context, {
         create: form.input,
         launch: form.launch,
+        team: form.team,
       });
     });
 
