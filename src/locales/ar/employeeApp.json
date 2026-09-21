@@ -90,6 +90,7 @@
       "dueTodayBadge": "اليوم",
       "overdueBadge": "متأخر",
       "viewTasks": "عرض كل المهام",
+      "dueDateLabel": "الاستحقاق: {date}",
       "badges": {
         "overdue": "متأخر",
         "dueToday": "اليوم",
@@ -105,6 +106,9 @@
   "time": {
     "attendanceSection": "الحضور",
     "hoursSection": "ساعات العمل",
+    "reportHoursTitle": "تسجيل الساعات",
+    "reportHoursDescription": "إنشاء تقرير ساعات جديد. القائمة أدناه تعرض تقارير فردية؛ قد يتكرر التاريخ عند ارتباطه بمشاريع أو أكواد مختلفة.",
+    "recentReportsSection": "آخر تقارير الساعات",
     "teamAttendanceSection": "حضور الفريق",
     "teamAttendanceEmpty": "لا يوجد حضور فريق لليوم",
     "approveSection": "ساعات بانتظار الموافقة",

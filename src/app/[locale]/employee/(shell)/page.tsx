@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { getEmployeeShellData } from '@/modules/employee-app/application/get-employee-shell';
 import {
   getEmployeePmTaskWorkSummary,
@@ -36,6 +36,7 @@ type HomeTaskKind = 'overdue' | 'dueToday' | 'upcoming' | 'blocked';
 
 export default async function EmployeeHomePage() {
   const t = await getTranslations('employeeApp');
+  const locale = await getLocale();
   const { data, taskSummary, priorityTasks } = await withOrgContext(async (context) => {
     const shell = await getEmployeeShellData(context);
     const hasTasks = employeeHasPermission(context, PERMISSIONS.TASKS_READ);
@@ -140,6 +141,16 @@ export default async function EmployeeHomePage() {
                         <p className="text-sm font-medium">{task.title}</p>
                         {task.projectLabel ? (
                           <p className="truncate text-xs text-[var(--pf-text-secondary)]">{task.projectLabel}</p>
+                        ) : null}
+                        {task.dueDate ? (
+                          <p className="mt-0.5 text-xs text-[var(--pf-text-secondary)]">
+                            {t('home.workSummary.dueDateLabel', {
+                              date: new Intl.DateTimeFormat(locale, {
+                                dateStyle: 'medium',
+                                timeZone: 'UTC',
+                              }).format(new Date(`${task.dueDate}T00:00:00.000Z`)),
+                            })}
+                          </p>
                         ) : null}
                       </div>
                       <span

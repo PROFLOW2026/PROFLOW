@@ -23,15 +23,26 @@ const baseTask = (overrides: Partial<EmployeeTaskListItem>): EmployeeTaskListIte
 });
 
 describe('employee-filter-logic', () => {
-  it('defaults management scope to all company tasks', () => {
+  it('defaults authorized project/org scope to all server-visible open tasks', () => {
     const defaults = defaultTaskFilterState(true);
     expect(defaults.scope).toBe('company');
     expect(defaults.status).toBe('open');
   });
 
-  it('defaults regular employee scope to mine', () => {
+  it('defaults self-only scope to mine', () => {
     const defaults = defaultTaskFilterState(false);
     expect(defaults.scope).toBe('mine');
+  });
+
+  it('keeps home-visible project tasks visible on the default tasks page filter', () => {
+    const defaults = defaultTaskFilterState(true);
+    const tasks = [
+      baseTask({ id: 'assigned', assigneeEmployeeIds: ['e1'] }),
+      baseTask({ id: 'project-open', assigneeEmployeeIds: ['e2'] }),
+      baseTask({ id: 'done', status: 'done' }),
+    ];
+    const filtered = filterEmployeeTasks(tasks, defaults, '2026-09-21' as never, 'e1');
+    expect(filtered.map((task) => task.id)).toEqual(['assigned', 'project-open']);
   });
 
   it('matches project number and name in one search box', () => {

@@ -90,6 +90,7 @@
       "dueTodayBadge": "Today",
       "overdueBadge": "Overdue",
       "viewTasks": "View all tasks",
+      "dueDateLabel": "Due: {date}",
       "badges": {
         "overdue": "Overdue",
         "dueToday": "Today",
@@ -105,6 +106,9 @@
   "time": {
     "attendanceSection": "Attendance",
     "hoursSection": "Work hours",
+    "reportHoursTitle": "Report hours",
+    "reportHoursDescription": "Create a new time report. Recent reports below are individual logged entries and may repeat the same date when linked to different projects or codes.",
+    "recentReportsSection": "Recent hour reports",
     "teamAttendanceSection": "Team attendance",
     "teamAttendanceEmpty": "No team attendance records for today",
     "approveSection": "Hours awaiting approval",

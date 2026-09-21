@@ -66,13 +66,13 @@ export function EmployeeTaskListView({
   const [, startTransition] = useTransition();
 
   const defaults = useMemo(
-    () => defaultTaskFilterState(canSeeCompanyScope),
-    [canSeeCompanyScope],
+    () => defaultTaskFilterState(canFilterByAssignee),
+    [canFilterByAssignee],
   );
 
   const appliedFilters = useMemo(
-    () => parseTaskFilterState(new URLSearchParams(searchParams.toString()), canSeeCompanyScope),
-    [searchParams, canSeeCompanyScope],
+    () => parseTaskFilterState(new URLSearchParams(searchParams.toString()), canFilterByAssignee),
+    [searchParams, canFilterByAssignee],
   );
 
   const filtered = useMemo(() => {

@@ -90,6 +90,7 @@
       "dueTodayBadge": "Сегодня",
       "overdueBadge": "Просрочено",
       "viewTasks": "Все задачи",
+      "dueDateLabel": "Срок: {date}",
       "badges": {
         "overdue": "Просрочено",
         "dueToday": "Сегодня",
@@ -105,6 +106,9 @@
   "time": {
     "attendanceSection": "Посещаемость",
     "hoursSection": "Рабочие часы",
+    "reportHoursTitle": "Учёт часов",
+    "reportHoursDescription": "Создать новую запись часов. Список ниже — отдельные записи; одна дата может повторяться для разных проектов или кодов.",
+    "recentReportsSection": "Последние записи часов",
     "teamAttendanceSection": "Посещаемость команды",
     "teamAttendanceEmpty": "Нет записей посещаемости команды на сегодня",
     "approveSection": "Часы, ожидающие утверждения",

@@ -84,9 +84,9 @@ export interface MeetingFilterState {
   readonly dateTo: string;
 }
 
-export function defaultTaskFilterState(canSeeCompanyScope: boolean): TaskFilterState {
+export function defaultTaskFilterState(showAllAuthorizedTasks = false): TaskFilterState {
   return {
-    scope: canSeeCompanyScope ? 'company' : 'mine',
+    scope: showAllAuthorizedTasks ? 'company' : 'mine',
     status: 'open',
     time: 'all',
     projectId: '',
@@ -111,9 +111,9 @@ export function defaultMeetingFilterState(): MeetingFilterState {
 
 export function parseTaskFilterState(
   params: URLSearchParams,
-  canSeeCompanyScope = false,
+  showAllAuthorizedTasks = false,
 ): TaskFilterState {
-  const defaults = defaultTaskFilterState(canSeeCompanyScope);
+  const defaults = defaultTaskFilterState(showAllAuthorizedTasks);
   const scopeParam = params.get('scope');
   const scope: TaskScopeFilter =
     scopeParam === 'mine' || scopeParam === 'company' ? scopeParam : defaults.scope;

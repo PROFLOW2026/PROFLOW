@@ -90,6 +90,7 @@
       "dueTodayBadge": "היום",
       "overdueBadge": "באיחור",
       "viewTasks": "צפייה בכל המשימות",
+      "dueDateLabel": "יעד: {date}",
       "badges": {
         "overdue": "באיחור",
         "dueToday": "היום",
@@ -105,6 +106,9 @@
   "time": {
     "attendanceSection": "נוכחות",
     "hoursSection": "שעות עבודה",
+    "reportHoursTitle": "דיווח שעות",
+    "reportHoursDescription": "יצירת דיווח שעות חדש. הרשימה למטה מציגה דיווחי שעות בודדים; אותו תאריך יכול להופיע יותר מפעם אם מדובר בפרויקטים או קודים שונים.",
+    "recentReportsSection": "דיווחי שעות אחרונים",
     "teamAttendanceSection": "נוכחות צוות",
     "teamAttendanceEmpty": "אין נוכחות צוות להיום",
     "approveSection": "שעות ממתינות לאישור",
