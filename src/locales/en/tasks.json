@@ -502,11 +502,17 @@
     "dueThisWeek": "Due this week",
     "clear": "Clear filters"
   },
+  "tasks": {
+    "projectTasksTitle": "Project tasks",
+    "projectTasksDescription": "All PM tasks linked to this project",
+    "viewBoards": "View boards"
+  },
   "boards": {
     "pageTitle": "Boards",
     "pageDescription": "Kanban boards in this workspace",
     "boardPageTitle": "Board",
     "boardsPageTitle": "Boards",
+    "projectPageTitle": "Project boards",
     "noBoardsYet": "No boards yet",
     "switcherLabel": "Switch board",
     "default": "Default",

@@ -502,11 +502,17 @@
     "dueThisWeek": "Срок на этой неделе",
     "clear": "Очистить фильтры"
   },
+  "tasks": {
+    "projectTasksTitle": "Задачи проекта",
+    "projectTasksDescription": "Все PM-задачи, связанные с этим проектом",
+    "viewBoards": "Открыть доски"
+  },
   "boards": {
     "pageTitle": "Доски",
     "pageDescription": "Канбан-доски в этой рабочей области",
     "boardPageTitle": "Доска",
     "boardsPageTitle": "Доски",
+    "projectPageTitle": "Доски проекта",
     "noBoardsYet": "Нет досок",
     "switcherLabel": "Переключить доску",
     "default": "По умолчанию",

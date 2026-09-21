@@ -19,6 +19,7 @@ import type { DocumentRecord } from '../domain/types';
 import { listProjectScopedOwnerIdsForDocument } from '../data/documents.repository';
 import { findTaskById, findTaskCommentById, assertCanAccessTask } from '@/modules/tasks';
 import { findPrimaryDocumentLink } from '../data/documents.repository';
+import { findPrimaryDocumentLinkForUpload } from '../data/document-link-read';
 
 export function canReadCompensationDocuments(context: OrgContext): boolean {
   return hasPermission(context, PERMISSIONS.WORKFORCE_COST_READ);
@@ -164,9 +165,19 @@ export async function assertDocumentManagePermission(
   }
 
   if (input.documentId) {
-    const link = await findPrimaryDocumentLink(context.db, context.organizationId, input.documentId);
+    const link = await findPrimaryDocumentLinkForUpload(
+      context.db,
+      context.organizationId,
+      input.documentId,
+    );
     if (link?.ownerType === 'task_comment') {
       await assertCanUploadTaskCommentAttachment(context, link.ownerId);
+      return;
+    }
+    if (link?.ownerType === 'task') {
+      const { assertCanAccessTask } = await import('@/modules/tasks');
+      assertPermission(context, PERMISSIONS.TASKS_COMMENT);
+      await assertCanAccessTask(context, link.ownerId);
       return;
     }
   }

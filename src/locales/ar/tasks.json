@@ -502,11 +502,17 @@
     "dueThisWeek": "مستحقة هذا الأسبوع",
     "clear": "مسح التصفية"
   },
+  "tasks": {
+    "projectTasksTitle": "مهام المشروع",
+    "projectTasksDescription": "جميع مهام PM المرتبطة بهذا المشروع",
+    "viewBoards": "عرض اللوحات"
+  },
   "boards": {
     "pageTitle": "اللوحات",
     "pageDescription": "لوحات كانبان في مساحة العمل هذه",
     "boardPageTitle": "اللوحة",
     "boardsPageTitle": "اللوحات",
+    "projectPageTitle": "لوحات المشروع",
     "noBoardsYet": "لا توجد لوحات بعد",
     "switcherLabel": "تبديل اللوحة",
     "default": "افتراضي",

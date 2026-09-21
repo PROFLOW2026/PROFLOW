@@ -3,6 +3,8 @@ import type { OrgContext } from '@/shared/auth/context';
 import { DomainRuleError, ValidationError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { runCommittedStorageWrite } from '@/modules/external-storage/data/storage-admin-write';
+import type { DbExecutor } from '@/shared/db/types';
 import {
   isDocumentNumberKind,
   suppliedDocumentReference,
@@ -63,20 +65,19 @@ export async function saveDocumentNumberSettings(
   return listSequenceRows(context.db, context.organizationId);
 }
 
-/**
- * Allocates the next internal tracking number for `kind`.
- * Not statutory Israeli invoice numbering.
- */
-export async function allocateDocumentNumber(
-  context: OrgContext,
-  kind: DocumentNumberKind | AllocatedDocumentNumberKind,
-): Promise<string> {
-  if (!isDocumentNumberKind(kind)) {
-    throw new DomainRuleError('Unknown document number kind', 'organization.errors.unknownDocumentKind');
-  }
+function isDbPermissionDenied(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false;
+  const code = (error as { code?: string }).code;
+  return code === '42501';
+}
 
-  const result = await context.db.execute(sql`
-    SELECT app.next_document_number(${context.organizationId}::uuid, ${kind}) AS document_number
+async function executeAllocateDocumentNumber(
+  db: DbExecutor,
+  organizationId: string,
+  kind: DocumentNumberKind,
+): Promise<string> {
+  const result = await db.execute(sql`
+    SELECT app.next_document_number(${organizationId}::uuid, ${kind}) AS document_number
   `);
   const allocated = scalarText(result, 'document_number');
   if (!allocated) {
@@ -86,6 +87,31 @@ export async function allocateDocumentNumber(
     );
   }
   return allocated;
+}
+
+/**
+ * Allocates the next internal tracking number for `kind`.
+ * Not statutory Israeli invoice numbering.
+ *
+ * Call only after application-level authorization (e.g. projects.create).
+ * Employee App grants are not visible to the DB function; elevate on 42501 only.
+ */
+export async function allocateDocumentNumber(
+  context: OrgContext,
+  kind: DocumentNumberKind | AllocatedDocumentNumberKind,
+): Promise<string> {
+  if (!isDocumentNumberKind(kind)) {
+    throw new DomainRuleError('Unknown document number kind', 'organization.errors.unknownDocumentKind');
+  }
+
+  try {
+    return await executeAllocateDocumentNumber(context.db, context.organizationId, kind);
+  } catch (error) {
+    if (!isDbPermissionDenied(error)) throw error;
+    return runCommittedStorageWrite((adminDb) =>
+      executeAllocateDocumentNumber(adminDb, context.organizationId, kind),
+    );
+  }
 }
 
 export async function resolveAllocatedReference(

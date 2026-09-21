@@ -502,11 +502,17 @@
     "dueThisWeek": "יעד השבוע",
     "clear": "נקה מסננים"
   },
+  "tasks": {
+    "projectTasksTitle": "משימות פרויקט",
+    "projectTasksDescription": "כל משימות ה-PM המקושרות לפרויקט זה",
+    "viewBoards": "צפה בלוחות"
+  },
   "boards": {
     "pageTitle": "לוחות",
     "pageDescription": "לוחות קנבן בסביבת עבודה זו",
     "boardPageTitle": "לוח",
     "boardsPageTitle": "לוחות",
+    "projectPageTitle": "לוחות פרויקט",
     "noBoardsYet": "אין לוחות עדיין",
     "switcherLabel": "בחר לוח",
     "default": "ברירת מחדל",

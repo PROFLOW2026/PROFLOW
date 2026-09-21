@@ -22,7 +22,7 @@ import { resolveUploadFolderId } from './folder-provisioning';
 import { resolveProjectScopedUploadFolderId } from './project-upload-folder';
 import { assertProjectBrowserUploadFolder } from './browser-service';
 import { resolveUploadFolderEntityContext } from './resolve-upload-folder-context';
-import { findPrimaryDocumentLink } from '@/modules/documents';
+import { findPrimaryDocumentLinkForUpload } from '@/modules/documents/data/document-link-read';
 import { assertDocumentManagePermission } from '@/modules/documents/application/document-visibility';
 import { runElevatedTaskCommentDocumentWrite } from '@/modules/documents/application/task-comment-document-write';
 import type { DbExecutor } from '@/shared/db/types';
@@ -53,7 +53,7 @@ export async function uploadDocumentToExternalStorage(
 
   const accessToken = await resolveValidAccessToken(context.db, context.organizationId, connection);
 
-  const documentLink = await findPrimaryDocumentLink(
+  const documentLink = await findPrimaryDocumentLinkForUpload(
     context.db,
     context.organizationId,
     input.documentId,
