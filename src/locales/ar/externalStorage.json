@@ -45,7 +45,8 @@
     "invalidName": "اسم غير صالح.",
     "managedFolder": "لا يمكن تغيير المجلدات المُدارة من النظام.",
     "invalidMoveTarget": "وجهة نقل غير صالحة.",
-    "operationFailed": "فشلت العملية. حاول مرة أخرى."
+    "operationFailed": "فشلت العملية. حاول مرة أخرى.",
+    "projectFoldersUnavailable": "مجلدات تخزين المشروع غير جاهزة. اربط عميلاً وافتح ملفات المشروع مرة واحدة في التطبيق الرئيسي."
   },
   "projectFiles": {
     "title": "الملفات",

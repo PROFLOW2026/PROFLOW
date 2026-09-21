@@ -45,7 +45,8 @@
     "invalidName": "שם לא תקין.",
     "managedFolder": "לא ניתן לשנות תיקייה מנוהלת של המערכת.",
     "invalidMoveTarget": "יעד ההעברה אינו תקין.",
-    "operationFailed": "הפעולה נכשלה. נסו שוב."
+    "operationFailed": "הפעולה נכשלה. נסו שוב.",
+    "projectFoldersUnavailable": "תיקיות האחסון של הפרויקט אינן מוכנות. קשרו לקוח ופתחו את קבצי הפרויקט פעם אחת באפליקציה הראשית."
   },
   "projectFiles": {
     "title": "קבצים",

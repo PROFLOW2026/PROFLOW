@@ -19,6 +19,7 @@ import {
 } from './connection-service';
 import { resolveSemanticFolderDisplayName } from '../domain/semantic-folders';
 import { resolveUploadFolderId } from './folder-provisioning';
+import { resolveProjectScopedUploadFolderId } from './project-upload-folder';
 import { assertProjectBrowserUploadFolder } from './browser-service';
 import { resolveUploadFolderEntityContext } from './resolve-upload-folder-context';
 import { findPrimaryDocumentLink } from '@/modules/documents';
@@ -70,63 +71,82 @@ export async function uploadDocumentToExternalStorage(
       };
   const folderEntityType = folderEntity.entityType ?? input.entityType;
   const folderEntityId = folderEntity.entityId ?? input.entityId;
+  const isTaskScopedAttachment =
+    documentLink?.ownerType === 'task_comment' || documentLink?.ownerType === 'task';
 
   let parentFolderId: string | undefined;
-  const hasPreResolvedParent = Boolean(input.resolvedParentFolderId?.trim());
-  if (hasPreResolvedParent) {
-    parentFolderId = input.resolvedParentFolderId!.trim();
-  } else if (input.parentFolderExternalId?.trim()) {
+  if (isTaskScopedAttachment) {
     if (folderEntityType !== 'project' || !folderEntityId) {
       throw new DomainRuleError(
-        'Browser upload folder requires project scope',
-        'externalStorage.errors.outOfScope',
+        'Task attachments require a project-scoped storage folder',
+        'externalStorage.errors.projectFoldersUnavailable',
       );
     }
-    await assertProjectBrowserUploadFolder(context, {
+    parentFolderId = await resolveProjectScopedUploadFolderId(context, {
+      connection,
+      accessToken,
       projectId: folderEntityId,
-      parentFolderExternalId: input.parentFolderExternalId.trim(),
+      semanticFolderType: input.parentSemanticFolder,
     });
-    parentFolderId = input.parentFolderExternalId.trim();
   }
 
-  const parentMapping = parentFolderId
-    ? null
-    : await findFolderMapping(context.db, {
+  if (!isTaskScopedAttachment) {
+    const hasPreResolvedParent = Boolean(input.resolvedParentFolderId?.trim());
+    if (hasPreResolvedParent) {
+      parentFolderId = input.resolvedParentFolderId!.trim();
+    } else if (input.parentFolderExternalId?.trim()) {
+      if (folderEntityType !== 'project' || !folderEntityId) {
+        throw new DomainRuleError(
+          'Browser upload folder requires project scope',
+          'externalStorage.errors.outOfScope',
+        );
+      }
+      await assertProjectBrowserUploadFolder(context, {
+        projectId: folderEntityId,
+        parentFolderExternalId: input.parentFolderExternalId.trim(),
+      });
+      parentFolderId = input.parentFolderExternalId.trim();
+    }
+
+    const parentMapping = parentFolderId
+      ? null
+      : await findFolderMapping(context.db, {
+          organizationId: context.organizationId,
+          connectionId: connection.id,
+          semanticFolderType: input.parentSemanticFolder,
+          entityType: folderEntityType,
+          entityId: folderEntityId,
+        });
+
+    if (!parentFolderId) {
+      parentFolderId = parentMapping?.externalFolderId;
+    }
+    if (
+      !parentFolderId ||
+      (!hasPreResolvedParent &&
+        !input.parentFolderExternalId?.trim() &&
+        parentMapping?.status !== 'ready')
+    ) {
+      const projectRoot = folderEntityType === 'project' && folderEntityId
+        ? await findFolderMapping(context.db, {
+            organizationId: context.organizationId,
+            connectionId: connection.id,
+            semanticFolderType: 'project_root',
+            entityType: 'project',
+            entityId: folderEntityId,
+          })
+        : null;
+      parentFolderId = await resolveUploadFolderId(context.db, {
         organizationId: context.organizationId,
-        connectionId: connection.id,
+        connection,
+        accessToken,
         semanticFolderType: input.parentSemanticFolder,
         entityType: folderEntityType,
         entityId: folderEntityId,
+        parentFolderId: projectRoot?.externalFolderId ?? connection.rootFolderExternalId ?? undefined,
+        displayName: resolveSemanticFolderDisplayName(input.parentSemanticFolder),
       });
-
-  if (!parentFolderId) {
-    parentFolderId = parentMapping?.externalFolderId;
-  }
-  if (
-    !parentFolderId ||
-    (!hasPreResolvedParent &&
-      !input.parentFolderExternalId?.trim() &&
-      parentMapping?.status !== 'ready')
-  ) {
-    const projectRoot = folderEntityType === 'project' && folderEntityId
-      ? await findFolderMapping(context.db, {
-          organizationId: context.organizationId,
-          connectionId: connection.id,
-          semanticFolderType: 'project_root',
-          entityType: 'project',
-          entityId: folderEntityId,
-        })
-      : null;
-    parentFolderId = await resolveUploadFolderId(context.db, {
-      organizationId: context.organizationId,
-      connection,
-      accessToken,
-      semanticFolderType: input.parentSemanticFolder,
-      entityType: folderEntityType,
-      entityId: folderEntityId,
-      parentFolderId: projectRoot?.externalFolderId ?? connection.rootFolderExternalId ?? undefined,
-      displayName: resolveSemanticFolderDisplayName(input.parentSemanticFolder),
-    });
+    }
   }
 
   const existingStorageFile = await findStorageFileByDocumentId(

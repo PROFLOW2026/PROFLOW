@@ -27,6 +27,7 @@ import {
   submitApprovalRequest,
   decideApprovalRequest,
 } from '@/modules/approvals';
+import type { TaskCommentAttachmentDisplay } from '@/modules/tasks/application/load-task-comments-for-display';
 
 export interface TaskActionState {
   ok?: boolean;
@@ -60,8 +61,81 @@ function parseIdList(raw: string | undefined): string[] {
     .filter(Boolean);
 }
 
+const MAX_COMMENT_ATTACHMENTS = 5;
+
 function revalidateTask(taskId: string) {
   revalidatePath(`/tasks/${taskId}`);
+  revalidatePath(`/employee/tasks/${taskId}`);
+}
+
+export type TaskCommentsPanelPayload = {
+  comments: Array<{
+    id: string;
+    body: string;
+    isEdited: boolean;
+    isDeleted: boolean;
+    createdAt: string;
+    authorName: string | null;
+    authorActorId: string | null;
+    isEmployee: boolean;
+    attachments: readonly TaskCommentAttachmentDisplay[];
+  }>;
+  canComment: boolean;
+  projectId: string | null;
+  canBrowseCloudFiles: boolean;
+  currentMembershipId: string | null;
+  error?: string;
+};
+
+export async function loadTaskCommentsPanelAction(
+  taskId: string,
+): Promise<TaskCommentsPanelPayload> {
+  const tErrors = await getTranslations('errors');
+  try {
+    const { loadTaskCommentsForDisplayWithContext } = await import(
+      '@/modules/tasks/application/load-task-comments-for-display'
+    );
+    const { findTaskById } = await import('@/modules/tasks');
+    const { isStorageConfigured } = await import('@/modules/documents/application/upload-document');
+
+    return await withOrgContext(async (context) => {
+      const [{ comments, currentMembershipId }, task, storageConfigured] = await Promise.all([
+        loadTaskCommentsForDisplayWithContext(context, taskId),
+        findTaskById(context.db, context.organizationId, taskId),
+        isStorageConfigured(context),
+      ]);
+
+      return {
+        comments: comments.map((comment) => ({
+          id: comment.id,
+          body: comment.body,
+          isEdited: comment.isEdited,
+          isDeleted: comment.isDeleted,
+          createdAt: comment.createdAt.toISOString(),
+          authorName: comment.authorName,
+          authorActorId: comment.authorActorId,
+          isEmployee: comment.isEmployee,
+          attachments: [...comment.attachments],
+        })),
+        canComment: hasPermission(context, PERMISSIONS.TASKS_COMMENT),
+        projectId: task?.projectId ?? null,
+        canBrowseCloudFiles:
+          hasPermission(context, PERMISSIONS.DOCUMENTS_MANAGE) &&
+          Boolean(task?.projectId) &&
+          storageConfigured,
+        currentMembershipId,
+      };
+    });
+  } catch {
+    return {
+      comments: [],
+      canComment: false,
+      projectId: null,
+      canBrowseCloudFiles: false,
+      currentMembershipId: null,
+      error: tErrors('unexpected'),
+    };
+  }
 }
 
 // ─── Comments ────────────────────────────────────────────────────────────────
@@ -121,6 +195,11 @@ export async function addTaskCommentAction(
   }
   if (body.length > 20_000) {
     return { error: tErrors('validationFailed') };
+  }
+  const totalAttachments =
+    pendingAttachmentCount + linkDocumentIds.length + cloudFileRefs.length + providerFileRefs.length;
+  if (totalAttachments > MAX_COMMENT_ATTACHMENTS) {
+    return { error: tComments('maxReached', { max: MAX_COMMENT_ATTACHMENTS }) };
   }
 
   try {

@@ -718,7 +718,8 @@
       "attachmentOnlyHint": "Добавьте текст или прикрепите хотя бы один файл",
       "imageAlt": "{name}",
       "download": "Скачать",
-      "preview": "Предпросмотр"
+      "preview": "Предпросмотр",
+      "maxReached": "Не более {max} вложений на комментарий"
     }
   },
   "activity": {

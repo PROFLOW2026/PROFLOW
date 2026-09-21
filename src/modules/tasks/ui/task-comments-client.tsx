@@ -46,6 +46,7 @@ const DocumentPreviewDialog = dynamic(
 const COMMENT_IMAGE_ACCEPT = 'image/*';
 const COMMENT_DOCUMENT_ACCEPT =
   'application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/plain';
+export const MAX_COMMENT_ATTACHMENTS = 5;
 
 type PendingFile = {
   id: string;
@@ -55,7 +56,7 @@ type PendingFile = {
 
 function makePendingFile(file: File): PendingFile {
   const previewUrl = file.type.startsWith('image/') ? URL.createObjectURL(file) : null;
-  return { id: `${file.name}-${file.size}-${file.lastModified}`, file, previewUrl };
+  return { id: crypto.randomUUID(), file, previewUrl };
 }
 
 async function uploadCommentAttachment(
@@ -75,6 +76,7 @@ async function uploadCommentAttachment(
     sizeBytes: file.size,
     ownerType: 'task_comment',
     ownerId: commentId,
+    label: mime.mimeType.startsWith('image/') ? 'photo' : 'document',
   });
 
   if (prepared.error || !prepared.documentId || !prepared.uploadUrl) {
@@ -272,15 +274,22 @@ export function CommentFormClient({
     setUploadLabel(null);
   };
 
+  const totalPendingCount = pendingFiles.length + pendingCloudFiles.length;
+  const atAttachmentLimit = totalPendingCount >= MAX_COMMENT_ATTACHMENTS;
+
   const addFiles = (files: FileList | null) => {
     if (!files?.length) return;
     setLocalError(null);
     setPendingFiles((current) => {
       const next = [...current];
+      let combined = current.length + pendingCloudFiles.length;
       for (const file of files) {
-        const id = `${file.name}-${file.size}-${file.lastModified}`;
-        if (next.some((item) => item.id === id)) continue;
+        if (combined >= MAX_COMMENT_ATTACHMENTS) {
+          setLocalError(tAttach('maxReached', { max: MAX_COMMENT_ATTACHMENTS }));
+          break;
+        }
         next.push(makePendingFile(file));
+        combined += 1;
       }
       return next;
     });
@@ -508,13 +517,19 @@ export function CommentFormClient({
         disabled={busy}
       />
 
+      {atAttachmentLimit ? (
+        <p className="text-xs text-[var(--pf-text-muted)]">
+          {tAttach('maxReached', { max: MAX_COMMENT_ATTACHMENTS })}
+        </p>
+      ) : null}
+
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-1">
           <Button
             type="button"
             variant="ghost"
             size="sm"
-            disabled={busy}
+            disabled={busy || atAttachmentLimit}
             onClick={() => openFilePicker(captureInputRef.current)}
           >
             <Camera aria-hidden />
@@ -524,7 +539,7 @@ export function CommentFormClient({
             type="button"
             variant="ghost"
             size="sm"
-            disabled={busy}
+            disabled={busy || atAttachmentLimit}
             onClick={() => openFilePicker(imageInputRef.current)}
           >
             <ImagePlus aria-hidden />
@@ -534,7 +549,7 @@ export function CommentFormClient({
             type="button"
             variant="ghost"
             size="sm"
-            disabled={busy}
+            disabled={busy || atAttachmentLimit}
             onClick={() => openFilePicker(documentInputRef.current)}
           >
             <Paperclip aria-hidden />
@@ -545,7 +560,7 @@ export function CommentFormClient({
               type="button"
               variant="ghost"
               size="sm"
-              disabled={busy}
+              disabled={busy || atAttachmentLimit}
               onClick={() => setCloudPickerOpen(true)}
             >
               <Cloud aria-hidden />
@@ -579,6 +594,10 @@ export function CommentFormClient({
             setPendingCloudFiles((current) => {
               const id = file.providerFileId;
               if (current.some((entry) => entry.id === id)) return current;
+              if (current.length + pendingFiles.length >= MAX_COMMENT_ATTACHMENTS) {
+                setLocalError(tAttach('maxReached', { max: MAX_COMMENT_ATTACHMENTS }));
+                return current;
+              }
               return [...current, { ...file, id }];
             });
           }}

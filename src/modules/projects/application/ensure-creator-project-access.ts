@@ -22,6 +22,18 @@ export async function ensureProjectCreatorAccess(
 ): Promise<void> {
   if (isEmployeeAppUser(context) && context.employeeApp) {
     const startDate = businessDate(todayInTimeZone(context.organization.timezone));
+    const { findActiveAssignmentConflict } = await import(
+      '@/modules/workforce/data/project-team.repository'
+    );
+    const existing = await findActiveAssignmentConflict(
+      context.db,
+      context.organizationId,
+      projectId,
+      context.employeeApp.employeeId,
+      startDate,
+    );
+    if (existing) return;
+
     const assignment = await insertEmployeeProjectAssignment(context.db, {
       organizationId: context.organizationId,
       projectId,

@@ -45,7 +45,8 @@
     "invalidName": "Invalid name.",
     "managedFolder": "System-managed folders cannot be changed.",
     "invalidMoveTarget": "Invalid move destination.",
-    "operationFailed": "Operation failed. Try again."
+    "operationFailed": "Operation failed. Try again.",
+    "projectFoldersUnavailable": "Project storage folders are not ready. Link a client and open project files once in the main app."
   },
   "projectFiles": {
     "title": "Files",

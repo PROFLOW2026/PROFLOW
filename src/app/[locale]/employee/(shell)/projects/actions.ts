@@ -4,7 +4,6 @@ import { revalidatePath } from 'next/cache';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { listClientsForOrg, listContactsForClients } from '@/modules/clients';
 import { launchProject, listProjectsForOrg } from '@/modules/projects';
-import { ensureProjectCreatorAccess } from '@/modules/projects/application/ensure-creator-project-access';
 import {
   canManageProjectTeamAtCreate,
   loadProjectCreateTeamPickerOptions,
@@ -59,7 +58,6 @@ export async function employeeCreateProjectAction(
         launch: form.launch,
         team: form.team,
       });
-      await ensureProjectCreatorAccess(context, created.projectId);
       return created.projectId;
     });
 

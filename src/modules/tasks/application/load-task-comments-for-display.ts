@@ -6,6 +6,7 @@ import 'server-only';
 
 import { asc, and, eq, lt, type SQL } from 'drizzle-orm';
 import { taskComments, organizationMemberships, profiles, employees } from '@drizzle/schema';
+import type { OrgContext } from '@/shared/auth/context';
 import { withOrgContext } from '@/shared/auth/session';
 import {
   loadAttachmentsByCommentIds,
@@ -28,7 +29,8 @@ export interface TaskCommentDisplayRow {
 
 const PAGE_SIZE = 20;
 
-export async function loadTaskCommentsForDisplay(
+export async function loadTaskCommentsForDisplayWithContext(
+  context: OrgContext,
   taskId: string,
   beforeDate?: Date,
 ): Promise<{
@@ -36,7 +38,6 @@ export async function loadTaskCommentsForDisplay(
   hasMore: boolean;
   currentMembershipId: string | null;
 }> {
-  return withOrgContext(async (context) => {
     const conditions: SQL[] = [
       eq(taskComments.taskId, taskId),
       eq(taskComments.organizationId, context.organizationId),
@@ -89,6 +90,16 @@ export async function loadTaskCommentsForDisplay(
       attachments: attachmentMap.get(row.id) ?? [],
     }));
 
-    return { comments, hasMore, currentMembershipId: context.membershipId };
-  });
+  return { comments, hasMore, currentMembershipId: context.membershipId };
+}
+
+export async function loadTaskCommentsForDisplay(
+  taskId: string,
+  beforeDate?: Date,
+): Promise<{
+  comments: TaskCommentDisplayRow[];
+  hasMore: boolean;
+  currentMembershipId: string | null;
+}> {
+  return withOrgContext((context) => loadTaskCommentsForDisplayWithContext(context, taskId, beforeDate));
 }

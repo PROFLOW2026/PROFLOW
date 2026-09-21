@@ -718,7 +718,8 @@
       "attachmentOnlyHint": "Add text or attach at least one file",
       "imageAlt": "{name}",
       "download": "Download",
-      "preview": "Preview attachment"
+      "preview": "Preview attachment",
+      "maxReached": "Maximum {max} attachments per comment"
     }
   },
   "activity": {

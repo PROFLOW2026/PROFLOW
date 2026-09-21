@@ -70,6 +70,7 @@ import {
 import type { RecurrencePreset } from '../domain/recurrence-presets';
 import { PostponeMenu } from './postpone-menu';
 import { TaskAssigneePicker, type TaskAssigneePickerOption } from './task-assignee-picker';
+import { TaskCommentsDrawerPanel } from './task-comments-drawer-panel';
 
 // ---------------------------------------------------------------------------
 // Helpers / sub-components
@@ -831,21 +832,17 @@ export function TaskDetailSheet({
                 </div>
               )}
 
+              {!embedded ? <TaskCommentsDrawerPanel taskId={task.id} /> : null}
+
               {!embedded ? (
-                <div className="rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-subtle)] p-4">
-                  <SectionLabel>{t('drawerExtendedDetails')}</SectionLabel>
-                  <p className="mt-2 text-sm text-[var(--pf-text-secondary)]">
-                    {t('drawerExtendedDetailsHint')}
-                  </p>
-                  <p className="mt-3">
-                    <Link
-                      href={`/tasks/${task.id}`}
-                      className="inline-flex items-center gap-1 text-sm font-medium text-[var(--pf-text-brand)] underline underline-offset-2"
-                    >
-                      {t('openFullTask')}
-                    </Link>
-                  </p>
-                </div>
+                <p className="text-sm">
+                  <Link
+                    href={`/tasks/${task.id}`}
+                    className="inline-flex items-center gap-1 font-medium text-[var(--pf-text-brand)] underline underline-offset-2"
+                  >
+                    {t('openFullTask')}
+                  </Link>
+                </p>
               ) : null}
 
               <div className="sticky bottom-0 -mx-4 border-t border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-4 py-3">

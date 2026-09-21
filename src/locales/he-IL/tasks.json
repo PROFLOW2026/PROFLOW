@@ -718,7 +718,8 @@
       "attachmentOnlyHint": "הוסף טקסט או צרף לפחות קובץ אחד",
       "imageAlt": "{name}",
       "download": "הורדה",
-      "preview": "תצוגה מקדימה"
+      "preview": "תצוגה מקדימה",
+      "maxReached": "ניתן לצרף עד {max} קבצים לתגובה"
     }
   },
   "activity": {

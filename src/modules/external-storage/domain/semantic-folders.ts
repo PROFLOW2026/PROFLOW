@@ -54,6 +54,7 @@ export function semanticFolderForDocumentOwner(
 ): SemanticFolderType {
   const cat = (category ?? '').trim().toLowerCase();
   if (cat === 'photo' || cat === 'drawing') return 'photos';
+  if (cat === 'document' || cat === 'file') return 'general_files';
   if (cat === 'contract') return 'contracts';
   if (cat === 'quote') return 'quotes';
   if (cat === 'invoice' || cat === 'receipt') return 'vendor_invoices';

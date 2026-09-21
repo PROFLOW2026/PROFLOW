@@ -718,7 +718,8 @@
       "attachmentOnlyHint": "أضف نصاً أو أرفق ملفاً واحداً على الأقل",
       "imageAlt": "{name}",
       "download": "تنزيل",
-      "preview": "معاينة المرفق"
+      "preview": "معاينة المرفق",
+      "maxReached": "الحد الأقصى {max} مرفقات لكل تعليق"
     }
   },
   "activity": {
