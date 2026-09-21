@@ -20,6 +20,7 @@ export interface EmployeeTaskListPayload {
   readonly today: string;
   readonly currentEmployeeId: string;
   readonly canFilterByAssignee: boolean;
+  readonly canSeeCompanyScope: boolean;
   readonly assigneeOptions: ReadonlyArray<{ id: string; name: string }>;
   readonly projectOptions: ReadonlyArray<{ id: string; displayName: string }>;
 }
@@ -129,6 +130,7 @@ export async function buildEmployeeTaskListPayload(context: OrgContext): Promise
     today,
     currentEmployeeId: employeeId,
     canFilterByAssignee: readScope !== 'self_only',
+    canSeeCompanyScope: readScope === 'all_organization',
     assigneeOptions,
     projectOptions,
   };

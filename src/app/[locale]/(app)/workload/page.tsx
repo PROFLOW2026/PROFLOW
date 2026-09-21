@@ -9,6 +9,8 @@ import {
 import { getShellContext, withOrgContext } from '@/shared/auth/session';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { WorkloadExpandableRows } from './workload-expandable-rows';
+import { uwmStatCardClass } from '@/shared/ui/uwm-surface-styles';
+import { cn } from '@/shared/ui/cn';
 
 export async function generateMetadata({
   params,
@@ -141,7 +143,7 @@ function StatChip({
         : 'text-[var(--pf-text-primary)]';
 
   return (
-    <div className="flex flex-col rounded-lg border border-[var(--pf-border)] bg-[var(--pf-bg-surface)] px-4 py-2.5 shadow-sm">
+    <div className={cn(uwmStatCardClass, tone === 'red' && 'border-red-200', tone === 'amber' && 'border-amber-200')}>
       <span className={`text-xl font-semibold tabular-nums ${colorClass}`}>{value}</span>
       <span className="text-xs text-[var(--pf-text-muted)]">{label}</span>
     </div>

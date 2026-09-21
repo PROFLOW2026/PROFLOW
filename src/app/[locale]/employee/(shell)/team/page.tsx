@@ -18,12 +18,12 @@ export default async function EmployeeTeamPage() {
           <li key={member.id} className={employeeListRowClass}>
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-sm font-medium">{member.name}</p>
+                <p className="text-sm font-semibold text-[var(--pf-text-primary)]">{member.name}</p>
                 {member.title ? (
                   <p className="text-xs text-[var(--pf-text-secondary)]">{member.title}</p>
                 ) : null}
               </div>
-              <span className="rounded-full bg-[var(--pf-surface-2)] px-2 py-1 text-xs">
+              <span className="rounded-full border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-2.5 py-1 text-xs font-semibold text-[var(--pf-text-primary)]">
                 {t('openTasks', { count: member.openTaskCount })}
               </span>
             </div>

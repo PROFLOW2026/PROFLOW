@@ -29,6 +29,7 @@ export type TaskTimeFilter =
   | 'custom';
 export type TaskAssigneeFilter = 'all' | 'me' | string;
 export type TaskPriorityFilter = 'all' | 'none' | 'low' | 'medium' | 'high' | 'urgent';
+export type TaskScopeFilter = 'mine' | 'company';
 
 export type MeetingDateFilter =
   | 'all'
@@ -63,6 +64,7 @@ export interface EmployeeMeetingListItem {
 }
 
 export interface TaskFilterState {
+  readonly scope: TaskScopeFilter;
   readonly status: TaskStatusFilter;
   readonly time: TaskTimeFilter;
   readonly projectId: string;
@@ -82,20 +84,50 @@ export interface MeetingFilterState {
   readonly dateTo: string;
 }
 
+export function defaultTaskFilterState(canSeeCompanyScope: boolean): TaskFilterState {
+  return {
+    scope: canSeeCompanyScope ? 'company' : 'mine',
+    status: 'open',
+    time: 'all',
+    projectId: '',
+    query: '',
+    assignee: 'all',
+    priority: 'all',
+    dateFrom: '',
+    dateTo: '',
+  };
+}
+
+export function defaultMeetingFilterState(): MeetingFilterState {
+  return {
+    date: 'upcoming',
+    projectId: '',
+    query: '',
+    participation: 'all',
+    dateFrom: '',
+    dateTo: '',
+  };
+}
+
 export function parseTaskFilterState(
   params: URLSearchParams,
-  defaults?: Partial<TaskFilterState>,
+  canSeeCompanyScope = false,
 ): TaskFilterState {
-  const statusParam = params.get('status') ?? defaults?.status ?? 'open';
+  const defaults = defaultTaskFilterState(canSeeCompanyScope);
+  const scopeParam = params.get('scope');
+  const scope: TaskScopeFilter =
+    scopeParam === 'mine' || scopeParam === 'company' ? scopeParam : defaults.scope;
+
+  const statusParam = params.get('status') ?? defaults.status;
   const status = (
     statusParam === 'all' ||
     statusParam === 'open' ||
     (ALL_TASK_STATUSES as readonly string[]).includes(statusParam)
       ? statusParam
-      : 'open'
+      : defaults.status
   ) as TaskStatusFilter;
 
-  const timeParam = params.get('time') ?? defaults?.time ?? 'all';
+  const timeParam = params.get('time') ?? defaults.time;
   const time = (
     [
       'all',
@@ -108,25 +140,26 @@ export function parseTaskFilterState(
     ] as const
   ).includes(timeParam as TaskTimeFilter)
     ? (timeParam as TaskTimeFilter)
-    : 'all';
+    : defaults.time;
 
   return {
+    scope,
     status,
     time,
-    projectId: params.get('projectId') ?? defaults?.projectId ?? '',
-    query: params.get('q') ?? defaults?.query ?? '',
-    assignee: params.get('assignee') ?? defaults?.assignee ?? 'all',
-    priority: parsePriorityFilter(params.get('priority') ?? defaults?.priority ?? 'all'),
-    dateFrom: params.get('from') ?? defaults?.dateFrom ?? '',
-    dateTo: params.get('to') ?? defaults?.dateTo ?? '',
+    projectId: params.get('projectId') ?? defaults.projectId,
+    query: params.get('q') ?? defaults.query,
+    assignee: params.get('assignee') ?? defaults.assignee,
+    priority: parsePriorityFilter(params.get('priority') ?? defaults.priority),
+    dateFrom: params.get('from') ?? defaults.dateFrom,
+    dateTo: params.get('to') ?? defaults.dateTo,
   };
 }
 
 export function parseMeetingFilterState(
   params: URLSearchParams,
-  defaults?: Partial<MeetingFilterState>,
+  defaults: MeetingFilterState = defaultMeetingFilterState(),
 ): MeetingFilterState {
-  const dateParam = params.get('date') ?? defaults?.date ?? 'upcoming';
+  const dateParam = params.get('date') ?? defaults.date;
   const date = (
     [
       'all',
@@ -139,22 +172,22 @@ export function parseMeetingFilterState(
     ] as const
   ).includes(dateParam as MeetingDateFilter)
     ? (dateParam as MeetingDateFilter)
-    : 'upcoming';
+    : defaults.date;
 
-  const participationParam = params.get('participation') ?? defaults?.participation ?? 'all';
+  const participationParam = params.get('participation') ?? defaults.participation;
   const participation = (['all', 'mine', 'project'] as const).includes(
     participationParam as MeetingParticipationFilter,
   )
     ? (participationParam as MeetingParticipationFilter)
-    : 'all';
+    : defaults.participation;
 
   return {
     date,
-    projectId: params.get('projectId') ?? defaults?.projectId ?? '',
-    query: params.get('q') ?? defaults?.query ?? '',
+    projectId: params.get('projectId') ?? defaults.projectId,
+    query: params.get('q') ?? defaults.query,
     participation,
-    dateFrom: params.get('from') ?? defaults?.dateFrom ?? '',
-    dateTo: params.get('to') ?? defaults?.dateTo ?? '',
+    dateFrom: params.get('from') ?? defaults.dateFrom,
+    dateTo: params.get('to') ?? defaults.dateTo,
   };
 }
 
@@ -262,6 +295,10 @@ export function filterEmployeeTasks(
   const range = taskTimeRange(filters.time, today, filters.dateFrom, filters.dateTo);
 
   return tasks.filter((task) => {
+    if (filters.scope === 'mine' && !task.assigneeEmployeeIds.includes(currentEmployeeId)) {
+      return false;
+    }
+
     if (filters.status === 'open') {
       if (task.status === 'done' || task.status === 'cancelled') return false;
     } else if (filters.status !== 'all' && task.status !== filters.status) {
@@ -281,11 +318,13 @@ export function filterEmployeeTasks(
     }
 
     if (filters.time !== 'all') {
-      if (!task.dueDate) return false;
-      const due = businessDate(task.dueDate);
-      if (range.overdueOnly) {
+      if (filters.time === 'overdue') {
+        if (!task.dueDate) return false;
+        const due = businessDate(task.dueDate);
         if (!(due < today && task.status !== 'done' && task.status !== 'cancelled')) return false;
       } else {
+        if (!task.dueDate) return false;
+        const due = businessDate(task.dueDate);
         if (range.from && due < range.from) return false;
         if (range.to && due > range.to) return false;
       }
@@ -357,28 +396,93 @@ export function sortEmployeeMeetings(
   });
 }
 
-export function taskFilterSearchParams(filters: TaskFilterState): URLSearchParams {
+export function taskFilterSearchParams(
+  filters: TaskFilterState,
+  defaults: TaskFilterState,
+): URLSearchParams {
   const params = new URLSearchParams();
-  if (filters.status !== 'open') params.set('status', filters.status);
-  if (filters.time !== 'all') params.set('time', filters.time);
+  if (filters.scope !== defaults.scope) params.set('scope', filters.scope);
+  if (filters.status !== defaults.status) params.set('status', filters.status);
+  if (filters.time !== defaults.time) params.set('time', filters.time);
   if (filters.projectId) params.set('projectId', filters.projectId);
   if (filters.query.trim()) params.set('q', filters.query.trim());
-  if (filters.assignee !== 'all') params.set('assignee', filters.assignee);
-  if (filters.priority !== 'all') params.set('priority', filters.priority);
+  if (filters.assignee !== defaults.assignee) params.set('assignee', filters.assignee);
+  if (filters.priority !== defaults.priority) params.set('priority', filters.priority);
   if (filters.dateFrom) params.set('from', filters.dateFrom);
   if (filters.dateTo) params.set('to', filters.dateTo);
   return params;
 }
 
-export function meetingFilterSearchParams(filters: MeetingFilterState): URLSearchParams {
+export function meetingFilterSearchParams(
+  filters: MeetingFilterState,
+  defaults: MeetingFilterState = defaultMeetingFilterState(),
+): URLSearchParams {
   const params = new URLSearchParams();
-  if (filters.date !== 'upcoming') params.set('date', filters.date);
+  if (filters.date !== defaults.date) params.set('date', filters.date);
   if (filters.projectId) params.set('projectId', filters.projectId);
   if (filters.query.trim()) params.set('q', filters.query.trim());
-  if (filters.participation !== 'all') params.set('participation', filters.participation);
+  if (filters.participation !== defaults.participation) params.set('participation', filters.participation);
   if (filters.dateFrom) params.set('from', filters.dateFrom);
   if (filters.dateTo) params.set('to', filters.dateTo);
   return params;
+}
+
+function filterFieldDiffers<T>(left: T, right: T): boolean {
+  return left !== right;
+}
+
+export function isTaskFilterActive(filters: TaskFilterState, defaults: TaskFilterState): boolean {
+  return (
+    filterFieldDiffers(filters.scope, defaults.scope) ||
+    filterFieldDiffers(filters.status, defaults.status) ||
+    filterFieldDiffers(filters.time, defaults.time) ||
+    filterFieldDiffers(filters.projectId, defaults.projectId) ||
+    filterFieldDiffers(filters.query.trim(), defaults.query.trim()) ||
+    filterFieldDiffers(filters.assignee, defaults.assignee) ||
+    filterFieldDiffers(filters.priority, defaults.priority) ||
+    filterFieldDiffers(filters.dateFrom, defaults.dateFrom) ||
+    filterFieldDiffers(filters.dateTo, defaults.dateTo)
+  );
+}
+
+export function isMeetingFilterActive(
+  filters: MeetingFilterState,
+  defaults: MeetingFilterState = defaultMeetingFilterState(),
+): boolean {
+  return (
+    filterFieldDiffers(filters.date, defaults.date) ||
+    filterFieldDiffers(filters.projectId, defaults.projectId) ||
+    filterFieldDiffers(filters.query.trim(), defaults.query.trim()) ||
+    filterFieldDiffers(filters.participation, defaults.participation) ||
+    filterFieldDiffers(filters.dateFrom, defaults.dateFrom) ||
+    filterFieldDiffers(filters.dateTo, defaults.dateTo)
+  );
+}
+
+export function countActiveTaskFilters(filters: TaskFilterState, defaults: TaskFilterState): number {
+  let count = 0;
+  if (filterFieldDiffers(filters.scope, defaults.scope)) count += 1;
+  if (filterFieldDiffers(filters.status, defaults.status)) count += 1;
+  if (filterFieldDiffers(filters.time, defaults.time)) count += 1;
+  if (filters.projectId) count += 1;
+  if (filters.query.trim()) count += 1;
+  if (filterFieldDiffers(filters.assignee, defaults.assignee)) count += 1;
+  if (filterFieldDiffers(filters.priority, defaults.priority)) count += 1;
+  if (filters.dateFrom || filters.dateTo) count += 1;
+  return count;
+}
+
+export function countActiveMeetingFilters(
+  filters: MeetingFilterState,
+  defaults: MeetingFilterState = defaultMeetingFilterState(),
+): number {
+  let count = 0;
+  if (filterFieldDiffers(filters.date, defaults.date)) count += 1;
+  if (filters.projectId) count += 1;
+  if (filters.query.trim()) count += 1;
+  if (filterFieldDiffers(filters.participation, defaults.participation)) count += 1;
+  if (filters.dateFrom || filters.dateTo) count += 1;
+  return count;
 }
 
 export function dueDateTone(

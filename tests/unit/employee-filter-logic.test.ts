@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
+  defaultTaskFilterState,
   filterEmployeeTasks,
+  isTaskFilterActive,
   parseTaskFilterState,
   projectMatchesQuery,
   type EmployeeTaskListItem,
@@ -21,10 +23,15 @@ const baseTask = (overrides: Partial<EmployeeTaskListItem>): EmployeeTaskListIte
 });
 
 describe('employee-filter-logic', () => {
-  it('defaults task filters to open tasks', () => {
-    const filters = parseTaskFilterState(new URLSearchParams());
-    expect(filters.status).toBe('open');
-    expect(filters.time).toBe('all');
+  it('defaults management scope to all company tasks', () => {
+    const defaults = defaultTaskFilterState(true);
+    expect(defaults.scope).toBe('company');
+    expect(defaults.status).toBe('open');
+  });
+
+  it('defaults regular employee scope to mine', () => {
+    const defaults = defaultTaskFilterState(false);
+    expect(defaults.scope).toBe('mine');
   });
 
   it('matches project number and name in one search box', () => {
@@ -34,16 +41,47 @@ describe('employee-filter-logic', () => {
   });
 
   it('excludes completed tasks in default open filter', () => {
+    const defaults = defaultTaskFilterState(true);
+    const tasks = [baseTask({ id: 'open', status: 'todo' }), baseTask({ id: 'done', status: 'done' })];
+    const filtered = filterEmployeeTasks(tasks, defaults, '2026-09-21' as never, 'e1');
+    expect(filtered.map((task) => task.id)).toEqual(['open']);
+  });
+
+  it('filters by canonical status values', () => {
+    const defaults = defaultTaskFilterState(true);
     const tasks = [
-      baseTask({ id: 'open', status: 'todo' }),
-      baseTask({ id: 'done', status: 'done' }),
+      baseTask({ id: 'todo', status: 'todo' }),
+      baseTask({ id: 'progress', status: 'in_progress' }),
+      baseTask({ id: 'review', status: 'in_review' }),
+      baseTask({ id: 'blocked', status: 'blocked' }),
     ];
     const filtered = filterEmployeeTasks(
       tasks,
-      parseTaskFilterState(new URLSearchParams()),
+      { ...defaults, status: 'in_progress' },
       '2026-09-21' as never,
       'e1',
     );
-    expect(filtered.map((task) => task.id)).toEqual(['open']);
+    expect(filtered.map((task) => task.id)).toEqual(['progress']);
+  });
+
+  it('scope mine shows only assigned tasks', () => {
+    const defaults = defaultTaskFilterState(true);
+    const tasks = [
+      baseTask({ id: 'mine', assigneeEmployeeIds: ['e1'] }),
+      baseTask({ id: 'other', assigneeEmployeeIds: ['e2'] }),
+    ];
+    const filtered = filterEmployeeTasks(
+      tasks,
+      { ...defaults, scope: 'mine' },
+      '2026-09-21' as never,
+      'e1',
+    );
+    expect(filtered.map((task) => task.id)).toEqual(['mine']);
+  });
+
+  it('detects active filters against defaults', () => {
+    const defaults = defaultTaskFilterState(true);
+    const applied = parseTaskFilterState(new URLSearchParams('status=done'), true);
+    expect(isTaskFilterActive(applied, defaults)).toBe(true);
   });
 });

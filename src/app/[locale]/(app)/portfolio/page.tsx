@@ -21,6 +21,7 @@ import { cn } from '@/shared/ui/cn';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { PortfolioPagination } from './portfolio-pagination';
 import { PortfolioFiltersBar } from './portfolio-filters-bar';
+import { uwmListPanelClass } from '@/shared/ui/uwm-surface-styles';
 
 export async function generateMetadata({
   params,
@@ -202,7 +203,7 @@ export default async function PortfolioPage({ searchParams }: PortfolioPageProps
       ) : (
         <>
           {/* Portfolio table */}
-          <div className="overflow-x-auto rounded-lg border border-[var(--pf-border)]">
+          <div className={cn(uwmListPanelClass, 'overflow-x-auto')}>
             <Table>
               <TableHeader>
                 <TableRow>

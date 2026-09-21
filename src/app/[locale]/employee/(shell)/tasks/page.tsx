@@ -87,6 +87,7 @@ export default async function EmployeeTasksPage({ searchParams }: PageProps) {
             today={taskPayload.today}
             currentEmployeeId={taskPayload.currentEmployeeId}
             canFilterByAssignee={taskPayload.canFilterByAssignee}
+            canSeeCompanyScope={taskPayload.canSeeCompanyScope}
             assigneeOptions={taskPayload.assigneeOptions}
             projectOptions={taskPayload.projectOptions}
           />

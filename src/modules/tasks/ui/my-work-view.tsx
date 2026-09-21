@@ -25,6 +25,7 @@ import {
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { cn } from '@/shared/ui/cn';
+import { uwmPrimaryPanelClass, uwmPageHeadingClass, uwmTabBarClass } from '@/shared/ui/uwm-surface-styles';
 import type { MyWorkItem, MyWorkViewKey } from './_task-api-stub';
 import { TaskListView } from './task-list-view';
 import { TaskDetailSheet } from './task-detail-sheet';
@@ -121,7 +122,7 @@ function ViewTabBar({
   return (
     <nav
       aria-label={t('myWork.tabsLabel')}
-      className="flex overflow-x-auto border-b border-[var(--pf-border-default)]"
+      className={cn(uwmTabBarClass, 'overflow-x-auto')}
     >
       {views.map((v) => {
         const count = counts[v.key];
@@ -134,10 +135,10 @@ function ViewTabBar({
             aria-selected={active}
             onClick={() => onChange(v.key)}
             className={cn(
-              'group inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2.5 text-sm font-medium transition-colors',
+              'inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-3 py-2 text-sm font-semibold transition-colors',
               active
-                ? 'border-[var(--pf-border-brand)] text-[var(--pf-text-brand)]'
-                : 'border-transparent text-[var(--pf-text-secondary)] hover:border-[var(--pf-border-default)] hover:text-[var(--pf-text-primary)]',
+                ? 'bg-[var(--pf-primary)] text-white shadow-sm'
+                : 'text-[var(--pf-text-primary)] hover:bg-[var(--pf-bg-surface)]',
             )}
           >
             <span className={cn('shrink-0', active ? 'text-[var(--pf-text-brand)]' : 'text-[var(--pf-text-muted)] group-hover:text-[var(--pf-text-secondary)]')}>
@@ -240,12 +241,12 @@ export function MyWorkView({
       />
 
       {/* Task list for active view */}
-      <div className="mt-4">
-        <div className="mb-2 flex items-center gap-2">
+      <div className={cn(uwmPrimaryPanelClass, 'mt-4')}>
+        <div className="mb-3 flex items-center gap-2">
           <span className="text-[var(--pf-text-muted)]">{currentViewDef.icon}</span>
-          <h2 className="text-base font-semibold">{t(currentViewDef.labelKey)}</h2>
+          <h2 className={uwmPageHeadingClass}>{t(currentViewDef.labelKey)}</h2>
           {currentTasks.length > 0 && (
-            <span className="text-sm text-[var(--pf-text-muted)]">
+            <span className="text-sm font-medium text-[var(--pf-text-muted)]">
               ({currentTasks.length})
             </span>
           )}
@@ -259,8 +260,6 @@ export function MyWorkView({
           emptyDescription={t(currentViewDef.emptyDescKey)}
         />
       </div>
-
-      {/* Task detail sheet */}
       <TaskDetailSheet
         task={selectedTaskId != null && taskDetail?.id === selectedTaskId ? taskDetail : null}
         open={sheetOpen}

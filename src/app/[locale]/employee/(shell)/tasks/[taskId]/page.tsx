@@ -257,11 +257,9 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
       ) : null}
 
       {canUpdate ? (
-        <section className="space-y-2">
-          <h2 className="px-1 text-sm font-semibold uppercase tracking-wide text-[var(--pf-text-secondary)]">
-            {t('updateStatus')}
-          </h2>
-          <div className="grid grid-cols-2 gap-2">
+        <section className={cn(employeePanelClass, 'space-y-3')}>
+          <h2 className={employeeSectionTitleClass}>{t('updateStatus')}</h2>
+          <div className="flex flex-wrap gap-2">
             {TASK_STATUSES.map((status) => {
               const isActive = status === task.status;
               const updateWithStatus = updateEmployeeTaskStatus.bind(null, taskId, status);
@@ -271,10 +269,10 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
                     type="submit"
                     disabled={isActive}
                     className={cn(
-                      'min-h-[44px] w-full rounded-lg border px-3 py-2.5 text-sm font-medium transition-colors',
+                      'rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors',
                       isActive
                         ? 'cursor-default border-[var(--pf-primary)] bg-[var(--pf-primary)] text-white'
-                        : 'border-[var(--pf-border)] bg-[var(--pf-surface)] text-[var(--pf-text)] hover:bg-[var(--pf-surface-2)] active:bg-[var(--pf-surface-3)]',
+                        : 'border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] text-[var(--pf-text-primary)] hover:bg-[var(--pf-bg-subtle)]',
                     )}
                   >
                     {t(`status.${status}`, { defaultValue: status })}

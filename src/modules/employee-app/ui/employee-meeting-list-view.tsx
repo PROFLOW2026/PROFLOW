@@ -1,11 +1,14 @@
 'use client';
 
-import { useMemo, useTransition } from 'react';
+import { useMemo, useState, useTransition } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { cn } from '@/shared/ui/cn';
 import {
+  countActiveMeetingFilters,
+  defaultMeetingFilterState,
   filterEmployeeMeetings,
+  isMeetingFilterActive,
   parseMeetingFilterState,
   sortEmployeeMeetings,
   meetingFilterSearchParams,
@@ -13,18 +16,41 @@ import {
   type MeetingFilterState,
 } from './employee-filter-logic';
 import {
-  employeeFilterBarClass,
   employeeFilterInputClass,
   employeeFilterSelectClass,
   employeeListPanelClass,
   employeeListRowClass,
+  employeePrimaryButtonClass,
 } from './employee-surface-styles';
+import { EmployeeListFilterBar, FilterField } from './employee-list-filter-bar';
 
 interface EmployeeMeetingListViewProps {
   readonly meetings: readonly EmployeeMeetingListItem[];
   readonly today: string;
   readonly now: string;
   readonly projectOptions: ReadonlyArray<{ id: string; displayName: string }>;
+}
+
+function meetingTimeLabel(
+  time: MeetingFilterState['date'],
+  t: ReturnType<typeof useTranslations<'employeeApp.filters'>>,
+): string {
+  switch (time) {
+    case 'today':
+      return t('timeToday');
+    case 'upcoming':
+      return t('meetingUpcoming');
+    case 'past':
+      return t('meetingPast');
+    case 'this_week':
+      return t('timeThisWeek');
+    case 'this_month':
+      return t('timeThisMonth');
+    case 'custom':
+      return t('timeCustom');
+    default:
+      return t('all');
+  }
 }
 
 export function EmployeeMeetingListView({
@@ -40,126 +66,70 @@ export function EmployeeMeetingListView({
   const searchParams = useSearchParams();
   const [, startTransition] = useTransition();
 
-  const filters = useMemo(
-    () => parseMeetingFilterState(new URLSearchParams(searchParams.toString())),
-    [searchParams],
+  const defaults = useMemo(() => defaultMeetingFilterState(), []);
+
+  const appliedFilters = useMemo(
+    () => parseMeetingFilterState(new URLSearchParams(searchParams.toString()), defaults),
+    [searchParams, defaults],
   );
 
   const filtered = useMemo(() => {
-    const matched = filterEmployeeMeetings(meetings, filters, today as never);
-    return sortEmployeeMeetings(matched, filters);
-  }, [meetings, filters, today]);
+    const matched = filterEmployeeMeetings(meetings, appliedFilters, today as never);
+    return sortEmployeeMeetings(matched, appliedFilters);
+  }, [meetings, appliedFilters, today]);
 
   const nowMs = useMemo(() => new Date(now).getTime(), [now]);
+  const activeCount = countActiveMeetingFilters(appliedFilters, defaults);
+  const isActive = isMeetingFilterActive(appliedFilters, defaults);
 
-  function applyFilters(next: MeetingFilterState) {
-    const params = meetingFilterSearchParams(next);
+  function pushFilters(next: MeetingFilterState) {
+    const params = meetingFilterSearchParams(next, defaults);
     const query = params.toString();
     startTransition(() => {
       router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
     });
   }
 
-  function updateFilter(patch: Partial<MeetingFilterState>) {
-    applyFilters({ ...filters, ...patch });
+  function clearFilters() {
+    pushFilters(defaults);
+  }
+
+  function activeSummary(): string[] {
+    const chips: string[] = [];
+    if (appliedFilters.date !== defaults.date) {
+      chips.push(meetingTimeLabel(appliedFilters.date, t));
+    }
+    if (appliedFilters.projectId) {
+      const project = projectOptions.find((row) => row.id === appliedFilters.projectId);
+      chips.push(project?.displayName ?? t('project'));
+    }
+    if (appliedFilters.query.trim()) chips.push(appliedFilters.query.trim());
+    if (appliedFilters.participation !== defaults.participation) {
+      if (appliedFilters.participation === 'mine') chips.push(t('participationMine'));
+      else if (appliedFilters.participation === 'project') chips.push(t('participationProject'));
+    }
+    if (appliedFilters.dateFrom || appliedFilters.dateTo) chips.push(t('timeCustom'));
+    return chips;
   }
 
   return (
     <div className="space-y-4">
-      <section className={employeeFilterBarClass} aria-label={t('filters.title')}>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <FilterField label={t('filters.search')}>
-            <input
-              type="search"
-              defaultValue={filters.query}
-              placeholder={t('lists.projectSearchPlaceholder')}
-              className={employeeFilterInputClass}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter') {
-                  updateFilter({ query: event.currentTarget.value });
-                }
-              }}
-              onBlur={(event) => {
-                if (event.target.value !== filters.query) {
-                  updateFilter({ query: event.target.value });
-                }
-              }}
-            />
-          </FilterField>
+      <MeetingFilterControls
+        key={searchParams.toString()}
+        appliedFilters={appliedFilters}
+        projectOptions={projectOptions}
+        onApply={pushFilters}
+        onClear={clearFilters}
+        activeSummary={activeSummary()}
+        isActive={isActive}
+        activeCount={activeCount}
+      />
 
-          <FilterField label={t('filters.date')}>
-            <select
-              value={filters.date}
-              className={employeeFilterSelectClass}
-              onChange={(event) =>
-                updateFilter({ date: event.target.value as MeetingFilterState['date'] })
-              }
-            >
-              <option value="upcoming">{t('filters.meetingUpcoming')}</option>
-              <option value="today">{t('filters.timeToday')}</option>
-              <option value="past">{t('filters.meetingPast')}</option>
-              <option value="this_week">{t('filters.timeThisWeek')}</option>
-              <option value="this_month">{t('filters.timeThisMonth')}</option>
-              <option value="custom">{t('filters.timeCustom')}</option>
-              <option value="all">{t('filters.all')}</option>
-            </select>
-          </FilterField>
-
-          <FilterField label={t('filters.project')}>
-            <select
-              value={filters.projectId}
-              className={employeeFilterSelectClass}
-              onChange={(event) => updateFilter({ projectId: event.target.value })}
-            >
-              <option value="">{t('filters.allProjects')}</option>
-              {projectOptions.map((project) => (
-                <option key={project.id} value={project.id}>
-                  {project.displayName}
-                </option>
-              ))}
-            </select>
-          </FilterField>
-
-          <FilterField label={t('filters.participation')}>
-            <select
-              value={filters.participation}
-              className={employeeFilterSelectClass}
-              onChange={(event) =>
-                updateFilter({
-                  participation: event.target.value as MeetingFilterState['participation'],
-                })
-              }
-            >
-              <option value="all">{t('filters.participationAll')}</option>
-              <option value="mine">{t('filters.participationMine')}</option>
-              <option value="project">{t('filters.participationProject')}</option>
-            </select>
-          </FilterField>
-        </div>
-
-        {filters.date === 'custom' ? (
-          <div className="grid gap-3 sm:grid-cols-2">
-            <FilterField label={t('filters.dateFrom')}>
-              <input
-                type="date"
-                value={filters.dateFrom}
-                lang={locale}
-                className={employeeFilterInputClass}
-                onChange={(event) => updateFilter({ dateFrom: event.target.value })}
-              />
-            </FilterField>
-            <FilterField label={t('filters.dateTo')}>
-              <input
-                type="date"
-                value={filters.dateTo}
-                lang={locale}
-                className={employeeFilterInputClass}
-                onChange={(event) => updateFilter({ dateTo: event.target.value })}
-              />
-            </FilterField>
-          </div>
-        ) : null}
-      </section>
+      <div className="px-1">
+        <p className="text-sm font-medium text-[var(--pf-text-primary)]">
+          {t('filters.resultCountMeetings', { count: filtered.length })}
+        </p>
+      </div>
 
       <ul className={employeeListPanelClass}>
         {filtered.map((meeting) => {
@@ -169,7 +139,9 @@ export function EmployeeMeetingListView({
             <li key={meeting.id} className={employeeListRowClass}>
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1 space-y-1">
-                  <div className="text-sm font-medium leading-snug">{meeting.title}</div>
+                  <div className="text-sm font-semibold leading-snug text-[var(--pf-text-primary)]">
+                    {meeting.title}
+                  </div>
                   {meeting.projectDisplayName ? (
                     <p className="truncate text-xs text-[var(--pf-text-secondary)]">
                       {meeting.projectDisplayName}
@@ -194,8 +166,15 @@ export function EmployeeMeetingListView({
           );
         })}
         {filtered.length === 0 ? (
-          <li className="px-4 py-8 text-center text-sm text-[var(--pf-text-secondary)]">
-            {meetings.length === 0 ? t('meetings.empty') : t('filters.emptyMeetings')}
+          <li className="space-y-3 px-4 py-8 text-center">
+            <p className="text-sm text-[var(--pf-text-secondary)]">
+              {meetings.length === 0 ? t('meetings.empty') : t('filters.emptyMeetingsDetailed')}
+            </p>
+            {meetings.length > 0 && isActive ? (
+              <button type="button" className={employeePrimaryButtonClass} onClick={clearFilters}>
+                {t('filters.clear')}
+              </button>
+            ) : null}
           </li>
         ) : null}
       </ul>
@@ -203,11 +182,130 @@ export function EmployeeMeetingListView({
   );
 }
 
-function FilterField({ label, children }: { label: string; children: React.ReactNode }) {
+interface MeetingFilterControlsProps {
+  readonly appliedFilters: MeetingFilterState;
+  readonly projectOptions: ReadonlyArray<{ id: string; displayName: string }>;
+  readonly onApply: (next: MeetingFilterState) => void;
+  readonly onClear: () => void;
+  readonly activeSummary: readonly string[];
+  readonly isActive: boolean;
+  readonly activeCount: number;
+}
+
+function MeetingFilterControls({
+  appliedFilters,
+  projectOptions,
+  onApply,
+  onClear,
+  activeSummary,
+  isActive,
+  activeCount,
+}: MeetingFilterControlsProps) {
+  const t = useTranslations('employeeApp');
+  const locale = useLocale();
+  const [draft, setDraft] = useState<MeetingFilterState>(appliedFilters);
+
   return (
-    <label className="block space-y-1">
-      <span className="text-xs font-medium text-[var(--pf-text-secondary)]">{label}</span>
-      {children}
-    </label>
+    <EmployeeListFilterBar
+      activeCount={activeCount}
+      isActive={isActive}
+      activeSummary={activeSummary}
+      onApply={() => onApply(draft)}
+      onClear={onClear}
+    >
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <FilterField label={t('filters.search')}>
+          <input
+            type="search"
+            value={draft.query}
+            placeholder={t('lists.projectSearchPlaceholder')}
+            className={employeeFilterInputClass}
+            onChange={(event) => setDraft((current) => ({ ...current, query: event.target.value }))}
+          />
+        </FilterField>
+
+        <FilterField label={t('filters.date')}>
+          <select
+            value={draft.date}
+            className={employeeFilterSelectClass}
+            onChange={(event) =>
+              setDraft((current) => ({
+                ...current,
+                date: event.target.value as MeetingFilterState['date'],
+              }))
+            }
+          >
+            <option value="upcoming">{t('filters.meetingUpcoming')}</option>
+            <option value="today">{t('filters.timeToday')}</option>
+            <option value="past">{t('filters.meetingPast')}</option>
+            <option value="this_week">{t('filters.timeThisWeek')}</option>
+            <option value="this_month">{t('filters.timeThisMonth')}</option>
+            <option value="custom">{t('filters.timeCustom')}</option>
+            <option value="all">{t('filters.all')}</option>
+          </select>
+        </FilterField>
+
+        <FilterField label={t('filters.project')}>
+          <select
+            value={draft.projectId}
+            className={employeeFilterSelectClass}
+            onChange={(event) =>
+              setDraft((current) => ({ ...current, projectId: event.target.value }))
+            }
+          >
+            <option value="">{t('filters.allProjects')}</option>
+            {projectOptions.map((project) => (
+              <option key={project.id} value={project.id}>
+                {project.displayName}
+              </option>
+            ))}
+          </select>
+        </FilterField>
+
+        <FilterField label={t('filters.participation')}>
+          <select
+            value={draft.participation}
+            className={employeeFilterSelectClass}
+            onChange={(event) =>
+              setDraft((current) => ({
+                ...current,
+                participation: event.target.value as MeetingFilterState['participation'],
+              }))
+            }
+          >
+            <option value="all">{t('filters.participationAll')}</option>
+            <option value="mine">{t('filters.participationMine')}</option>
+            <option value="project">{t('filters.participationProject')}</option>
+          </select>
+        </FilterField>
+      </div>
+
+      {draft.date === 'custom' ? (
+        <div className="grid gap-3 sm:grid-cols-2">
+          <FilterField label={t('filters.dateFrom')}>
+            <input
+              type="date"
+              value={draft.dateFrom}
+              lang={locale}
+              className={employeeFilterInputClass}
+              onChange={(event) =>
+                setDraft((current) => ({ ...current, dateFrom: event.target.value }))
+              }
+            />
+          </FilterField>
+          <FilterField label={t('filters.dateTo')}>
+            <input
+              type="date"
+              value={draft.dateTo}
+              lang={locale}
+              className={employeeFilterInputClass}
+              onChange={(event) =>
+                setDraft((current) => ({ ...current, dateTo: event.target.value }))
+              }
+            />
+          </FilterField>
+        </div>
+      ) : null}
+    </EmployeeListFilterBar>
   );
 }

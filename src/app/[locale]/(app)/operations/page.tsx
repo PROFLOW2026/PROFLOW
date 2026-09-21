@@ -7,6 +7,8 @@ import { getOperationsDashboard } from '@/modules/operations';
 import { withOrgContext, getShellContext } from '@/shared/auth/session';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { Link } from '@/shared/i18n/navigation';
+import { cn } from '@/shared/ui/cn';
+import { uwmSecondaryPanelClass, uwmStatCardClass } from '@/shared/ui/uwm-surface-styles';
 
 export async function generateMetadata({
   params,
@@ -86,7 +88,7 @@ export default async function OperationsDashboardPage() {
       </section>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <section className="rounded-lg border border-[var(--pf-border)] p-4">
+        <section className={uwmSecondaryPanelClass}>
           <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold">
             <Calendar className="h-4 w-4 text-[var(--pf-text-secondary)]" />
             {t('sections.upcomingMilestones')}
@@ -117,7 +119,7 @@ export default async function OperationsDashboardPage() {
           )}
         </section>
 
-        <section className="rounded-lg border border-[var(--pf-border)] p-4">
+        <section className={uwmSecondaryPanelClass}>
           <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold">
             <CheckSquare className="h-4 w-4 text-[var(--pf-text-secondary)]" />
             {t('sections.pendingApprovals')}
@@ -164,7 +166,7 @@ export default async function OperationsDashboardPage() {
       )}
 
       {data.teamWorkload && data.teamWorkload.length > 0 && (
-        <section className="rounded-lg border border-[var(--pf-border)] p-4">
+        <section className={uwmSecondaryPanelClass}>
           <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold">
             <Users className="h-4 w-4 text-[var(--pf-text-secondary)]" />
             {t('sections.teamWorkload')}
@@ -183,7 +185,7 @@ export default async function OperationsDashboardPage() {
       )}
 
       {data.recentActivity.length > 0 && (
-        <section className="rounded-lg border border-[var(--pf-border)] p-4">
+        <section className={uwmSecondaryPanelClass}>
           <h2 className="mb-3 text-sm font-semibold">{t('sections.recentActivity')}</h2>
           <ul className="space-y-2">
             {data.recentActivity.map((event) => (
@@ -228,7 +230,7 @@ function StatCard({ icon, label, value, href, variant = 'default' }: StatCardPro
         : 'text-[var(--pf-text-primary)]';
 
   const content = (
-    <div className="flex flex-col gap-1 rounded-lg border border-[var(--pf-border)] bg-[var(--pf-surface)] p-4 transition-colors hover:bg-[var(--pf-surface-hover)]">
+    <div className={cn(uwmStatCardClass, variant === 'danger' && 'border-red-200', variant === 'warning' && 'border-amber-200')}>
       <div className="flex items-center gap-1.5 text-xs text-[var(--pf-text-secondary)]">
         {icon}
         <span>{label}</span>
