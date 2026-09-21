@@ -279,42 +279,74 @@ async function scheduleStorageProvisionNext(next: {
     process.env.NEXT_PUBLIC_APP_URL?.trim() ||
     process.env.APP_URL?.trim() ||
     (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '');
-  if (!secret || !origin) {
-    console.error('[org-storage/provision] chain skipped: worker URL/secret missing', {
+
+  if (secret && origin) {
+    const url = `${origin.replace(/\/$/, '')}/api/internal/storage-provision-worker`;
+    console.info('[org-storage/provision] chain next', {
+      url,
+      chain: next.chain,
+      rateLimitStreak: next.rateLimitStreak,
+      delayMs: next.delayMs,
+    });
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${secret}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ chain: next.chain, rateLimitStreak: next.rateLimitStreak }),
+      });
+      if (!response.ok) {
+        const body = await response.text().catch(() => '');
+        console.error('[org-storage/provision] chain HTTP failed', {
+          status: response.status,
+          body: body.slice(0, 300),
+          chain: next.chain,
+        });
+      }
+      return;
+    } catch (error) {
+      console.error('[org-storage/provision] chain fetch failed', {
+        detail: error instanceof Error ? error.message : String(error),
+        chain: next.chain,
+      });
+      // Fall through to in-process continuation.
+    }
+  } else {
+    console.warn('[org-storage/provision] chain falling back to in-process', {
       hasSecret: Boolean(secret),
       hasOrigin: Boolean(origin),
       chain: next.chain,
     });
-    return;
   }
-  const url = `${origin.replace(/\/$/, '')}/api/internal/storage-provision-worker`;
-  console.info('[org-storage/provision] chain next', {
-    url,
-    chain: next.chain,
-    rateLimitStreak: next.rateLimitStreak,
-    delayMs: next.delayMs,
-  });
+
+  // No worker secret/origin (or HTTP failed): keep chaining in-process so
+  // template approval cannot stall forever at 0/N.
   try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${secret}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ chain: next.chain, rateLimitStreak: next.rateLimitStreak }),
-    });
-    if (!response.ok) {
-      const body = await response.text().catch(() => '');
-      console.error('[org-storage/provision] chain HTTP failed', {
-        status: response.status,
-        body: body.slice(0, 300),
+    const { after } = await import('next/server');
+    after(() => {
+      void runStorageProvisionCycle({
         chain: next.chain,
+        rateLimitStreak: next.rateLimitStreak,
+      }).catch((error) => {
+        console.error('[org-storage/provision] in-process chain failed', {
+          detail: error instanceof Error ? error.message : String(error),
+          chain: next.chain,
+        });
       });
-    }
+    });
+    console.info('[org-storage/provision] chain scheduled in-process via after()', {
+      chain: next.chain,
+    });
   } catch (error) {
-    console.error('[org-storage/provision] chain fetch failed', {
+    console.warn('[org-storage/provision] after() unavailable; awaiting next cycle inline', {
       detail: error instanceof Error ? error.message : String(error),
       chain: next.chain,
+    });
+    await runStorageProvisionCycle({
+      chain: next.chain,
+      rateLimitStreak: next.rateLimitStreak,
     });
   }
 }
