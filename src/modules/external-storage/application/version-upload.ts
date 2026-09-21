@@ -32,14 +32,12 @@ export async function uploadDocumentVersionToExternalStorage(
     throw new NotFoundError('Document');
   }
 
-  const parentFolderId =
-    document.externalParentFolderId ??
-    (await findFolderMapping(context.db, {
-      organizationId: context.organizationId,
-      connectionId: connection.id,
-      semanticFolderType: 'documents',
-    }))?.externalFolderId ??
-    connection.rootFolderExternalId;
+  const mappedDocumentsFolder = await findFolderMapping(context.db, {
+    organizationId: context.organizationId,
+    connectionId: connection.id,
+    semanticFolderType: 'documents',
+  });
+  const parentFolderId = document.externalParentFolderId ?? mappedDocumentsFolder?.externalFolderId;
 
   if (!parentFolderId) throw new NotFoundError('Folder');
 

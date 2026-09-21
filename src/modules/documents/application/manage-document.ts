@@ -9,12 +9,12 @@ import { validateUploadConstraints } from '../domain/file-rules';
 import type { DocumentRecord, DownloadUrlResult } from '../domain/types';
 import {
   findDocumentById,
-  findPrimaryDocumentLink,
   listDeletedDocumentsNeedingStorageCleanup,
   updateDocumentById,
   flushDocumentCurrentVersionGuards,
 } from '../data/documents.repository';
 import { runElevatedTaskCommentDocumentWrite } from './task-comment-document-write';
+import { findPrimaryDocumentLinkForUpload } from '../data/document-link-read';
 import type { DbExecutor } from '@/shared/db/types';
 import {
   assertCanReadStoredDocument,
@@ -112,12 +112,13 @@ export async function finalizeDocumentUpload(
     }
   }
 
-  const primaryLink = await findPrimaryDocumentLink(
+  const primaryLink = await findPrimaryDocumentLinkForUpload(
     context.db,
     context.organizationId,
     parsed.data.documentId,
   );
-  const isTaskComment = primaryLink?.ownerType === 'task_comment';
+  const isTaskScopedDocument =
+    primaryLink?.ownerType === 'task_comment' || primaryLink?.ownerType === 'task';
 
   const finalizeMutations = async (db: DbExecutor): Promise<DocumentRecord> => {
     const updated = await updateDocumentById(db, context.organizationId, parsed.data.documentId, {
@@ -152,7 +153,7 @@ export async function finalizeDocumentUpload(
     return result;
   };
 
-  if (isTaskComment) {
+  if (isTaskScopedDocument) {
     return runElevatedTaskCommentDocumentWrite(finalizeMutations);
   }
 

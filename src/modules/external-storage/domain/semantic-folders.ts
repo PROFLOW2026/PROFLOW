@@ -86,3 +86,18 @@ export function semanticFolderForDocumentOwner(
       return 'general_files';
   }
 }
+
+/**
+ * Task and task-comment attachments use only the project photos or general-files folder.
+ * Photo labels stay in photos. Document labels stay in general files.
+ */
+export function semanticFolderForTaskAttachment(
+  label: string | null | undefined,
+  requested?: SemanticFolderType | null,
+): SemanticFolderType {
+  const cat = (label ?? '').trim().toLowerCase();
+  if (cat === 'document' || cat === 'file') return 'general_files';
+  if (cat === 'photo' || cat === 'drawing' || cat === 'image') return 'photos';
+  if (requested === 'general_files' || requested === 'documents') return 'general_files';
+  return 'photos';
+}

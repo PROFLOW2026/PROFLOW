@@ -8,6 +8,7 @@ import {
   ensureNestedFolderPath,
   resolveUploadFolderId,
 } from '@/modules/external-storage/application/folder-provisioning';
+import { resolveProjectScopedUploadFolderId } from '@/modules/external-storage/application/project-upload-folder';
 import { findFolderMapping } from '@/modules/external-storage/server';
 import { resolveSemanticFolderDisplayName } from '@/modules/external-storage/domain/semantic-folders';
 import type { OrgContext } from '@/shared/auth/context';
@@ -26,22 +27,11 @@ export async function resolveGeneratedUploadFolderId(
 
   let semanticParentId: string;
   if (binding.folderEntityType === 'project' && binding.folderEntityId) {
-    const projectRoot = await findFolderMapping(context.db, {
-      organizationId: context.organizationId,
-      connectionId: connection.id,
-      semanticFolderType: 'project_root',
-      entityType: 'project',
-      entityId: binding.folderEntityId,
-    });
-    semanticParentId = await resolveUploadFolderId(context.db, {
-      organizationId: context.organizationId,
+    semanticParentId = await resolveProjectScopedUploadFolderId(context, {
       connection,
       accessToken,
+      projectId: binding.folderEntityId,
       semanticFolderType: binding.semanticFolder,
-      entityType: binding.folderEntityType,
-      entityId: binding.folderEntityId,
-      parentFolderId: projectRoot?.externalFolderId ?? connection.rootFolderExternalId ?? undefined,
-      displayName: resolveSemanticFolderDisplayName(binding.semanticFolder),
     });
   } else if (binding.semanticFolder === 'employees_root') {
     const orgRoot = await findFolderMapping(context.db, {

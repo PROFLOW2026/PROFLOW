@@ -234,7 +234,10 @@ export async function ensureSemanticFolder(
     entityId: input.entityId,
   });
 
-  if (existing?.status === 'ready') {
+  const parentAligned =
+    Boolean(existing?.externalParentId) && existing.externalParentId === input.parentFolderId;
+
+  if (existing?.status === 'ready' && parentAligned) {
     const adapter = getStorageProviderAdapter(input.connection.provider);
     const folder = await adapter.getFolder(input.accessToken, existing.externalFolderId);
     if (folder) return existing.externalFolderId;
@@ -412,7 +415,13 @@ export async function resolveUploadFolderId(
     entityType: input.entityType,
     entityId: input.entityId,
   });
-  if (existing?.status === 'ready') return existing.externalFolderId;
+  const parentAligned =
+    Boolean(existing?.externalParentId) &&
+    Boolean(input.parentFolderId) &&
+    existing?.externalParentId === input.parentFolderId;
+  if (existing?.status === 'ready' && existing.externalFolderId && (parentAligned || !input.parentFolderId)) {
+    return existing.externalFolderId;
+  }
 
   if (!input.parentFolderId || !input.displayName) {
     throw new Error('Folder mapping missing and cannot be created without parent');

@@ -7,7 +7,8 @@ import type { OrgContext } from '@/shared/auth/context';
 import { DomainRuleError, NotFoundError, ServiceUnavailableError } from '@/shared/errors';
 import { findFolderMapping } from '../data/folder-mappings.repository';
 import type { StorageConnectionRecord } from '../domain/types';
-import { ensureProjectFolderTree } from './folder-provisioning';
+import { resolveSemanticFolderDisplayName } from '../domain/semantic-folders';
+import { ensureProjectFolderTree, ensureSemanticFolder } from './folder-provisioning';
 
 /**
  * Ensures a project-scoped semantic folder exists and returns its provider folder id.
@@ -22,6 +23,13 @@ export async function resolveProjectScopedUploadFolderId(
     semanticFolderType: SemanticFolderType;
   },
 ): Promise<string> {
+  const projectRoot = await findFolderMapping(context.db, {
+    organizationId: context.organizationId,
+    connectionId: input.connection.id,
+    semanticFolderType: 'project_root',
+    entityType: 'project',
+    entityId: input.projectId,
+  });
   const existing = await findFolderMapping(context.db, {
     organizationId: context.organizationId,
     connectionId: input.connection.id,
@@ -29,7 +37,13 @@ export async function resolveProjectScopedUploadFolderId(
     entityType: 'project',
     entityId: input.projectId,
   });
-  if (existing?.status === 'ready' && existing.externalFolderId) {
+  if (
+    existing?.status === 'ready' &&
+    existing.externalFolderId &&
+    projectRoot?.status === 'ready' &&
+    projectRoot.externalFolderId &&
+    existing.externalParentId === projectRoot.externalFolderId
+  ) {
     return existing.externalFolderId;
   }
 
@@ -43,7 +57,7 @@ export async function resolveProjectScopedUploadFolderId(
   }
 
   const client = await findClientById(context.db, context.organizationId, project.clientId);
-  await ensureProjectFolderTree(context.db, {
+  const projectRootId = await ensureProjectFolderTree(context.db, {
     organizationId: context.organizationId,
     connection: input.connection,
     accessToken: input.accessToken,
@@ -53,19 +67,22 @@ export async function resolveProjectScopedUploadFolderId(
     projectName: project.name,
   });
 
-  const ready = await findFolderMapping(context.db, {
+  const folderId = await ensureSemanticFolder(context.db, {
     organizationId: context.organizationId,
-    connectionId: input.connection.id,
+    connection: input.connection,
+    accessToken: input.accessToken,
     semanticFolderType: input.semanticFolderType,
+    parentFolderId: projectRootId,
+    displayName: resolveSemanticFolderDisplayName(input.semanticFolderType),
     entityType: 'project',
     entityId: input.projectId,
   });
-  if (!ready?.externalFolderId || ready.status !== 'ready') {
+  if (!folderId) {
     throw new ServiceUnavailableError(
       'Project storage folder is not ready',
       'externalStorage.errors.projectFoldersUnavailable',
     );
   }
 
-  return ready.externalFolderId;
+  return folderId;
 }

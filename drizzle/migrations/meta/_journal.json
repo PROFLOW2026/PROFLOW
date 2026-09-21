@@ -848,6 +848,13 @@
                         "when":  1789711500000,
                         "tag":  "0121_employee_storage_permission_rls_correction",
                         "breakpoints":  true
+                    },
+                    {
+                        "idx":  121,
+                        "version":  "7",
+                        "when":  1789711560000,
+                        "tag":  "0122_employee_document_number_permission",
+                        "breakpoints":  true
                     }
                 ]
 }

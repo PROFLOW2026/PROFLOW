@@ -257,11 +257,12 @@ export async function findPrimaryDocumentLink(
   db: DbExecutor,
   organizationId: string,
   documentId: string,
-): Promise<Pick<DocumentLinkRecord, 'ownerType' | 'ownerId'> | null> {
+): Promise<Pick<DocumentLinkRecord, 'ownerType' | 'ownerId' | 'label'> | null> {
   const [row] = await db
     .select({
       ownerType: documentLinks.ownerType,
       ownerId: documentLinks.ownerId,
+      label: documentLinks.label,
     })
     .from(documentLinks)
     .where(
@@ -273,6 +274,7 @@ export async function findPrimaryDocumentLink(
   return {
     ownerType: row.ownerType as DocumentOwnerType,
     ownerId: row.ownerId,
+    label: row.label,
   };
 }
 

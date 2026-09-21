@@ -1,5 +1,6 @@
 import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
 import type { OrgContext } from '@/shared/auth/context';
+import { asServiceRoleWrite } from '@/shared/db/service-role-write';
 import { businessDate, todayInTimeZone } from '@/shared/dates';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -34,25 +35,29 @@ export async function ensureProjectCreatorAccess(
     );
     if (existing) return;
 
-    const assignment = await insertEmployeeProjectAssignment(context.db, {
-      organizationId: context.organizationId,
-      projectId,
-      employeeId: context.employeeApp.employeeId,
-      startDate,
-      status: 'active',
-    });
+    // Assignment insert RLS requires org workforce.manage. The creator was already
+    // authorized with projects.create; write only this self-assignment as service_role.
+    await asServiceRoleWrite(context.db, async () => {
+      const assignment = await insertEmployeeProjectAssignment(context.db, {
+        organizationId: context.organizationId,
+        projectId,
+        employeeId: context.employeeApp!.employeeId,
+        startDate,
+        status: 'active',
+      });
 
-    await recordAuditEvent(context, {
-      action: AUDIT_ACTIONS.PROJECT_TEAM_MEMBER_ADDED,
-      entityType: 'employee_project_assignment',
-      entityId: assignment.id,
-      after: {
-        projectId: assignment.projectId,
-        employeeId: assignment.employeeId,
-        startDate: assignment.startDate,
-        status: assignment.status,
-        source: 'project.create.creator',
-      },
+      await recordAuditEvent(context, {
+        action: AUDIT_ACTIONS.PROJECT_TEAM_MEMBER_ADDED,
+        entityType: 'employee_project_assignment',
+        entityId: assignment.id,
+        after: {
+          projectId: assignment.projectId,
+          employeeId: assignment.employeeId,
+          startDate: assignment.startDate,
+          status: assignment.status,
+          source: 'project.create.creator',
+        },
+      });
     });
     return;
   }

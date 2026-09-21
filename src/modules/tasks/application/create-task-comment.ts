@@ -52,8 +52,8 @@ export async function createComment(
   await insertTaskActivity(context.db, {
     taskId,
     organizationId: context.organizationId,
-    actorOrgMemberId: context.membershipId,
-    actorEmployeeId: null,
+    actorOrgMemberId: authorEmployeeId ? null : authorOrgMemberId,
+    actorEmployeeId: authorEmployeeId,
     actorSystem: false,
     eventType: 'comment_added',
     payload: { commentId: comment.id },

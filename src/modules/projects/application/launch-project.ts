@@ -1,4 +1,6 @@
 import type { OrgContext } from '@/shared/auth/context';
+import { asSessionOwnerWrite } from '@/shared/db/service-role-write';
+import { isEmployeeAppUser } from '@/modules/employee-app/application/load-employee-app-context';
 import { lazyCreateProjectWorkspace } from '@/modules/workspaces';
 import {
   applyUwmProjectTemplate,
@@ -66,51 +68,61 @@ export async function launchProject(
   const project = await findProjectById(context.db, context.organizationId, created.projectId);
   const projectName = project?.name ?? input.create.name;
 
-  const { workspace } = await lazyCreateProjectWorkspace(context, created.projectId, projectName);
+  const provisionSurface = async () => {
+    const { workspace } = await lazyCreateProjectWorkspace(context, created.projectId, projectName);
 
-  let boardId: string | null = null;
-  let structureApplied: ApplyStructureProjectTemplateResult | undefined;
-  let uwmApplied: ApplyUwmProjectTemplateResult | undefined;
-  let clonedStructure: ProjectStructureSnapshot | undefined;
+    let boardId: string | null = null;
+    let structureApplied: ApplyStructureProjectTemplateResult | undefined;
+    let uwmApplied: ApplyUwmProjectTemplateResult | undefined;
+    let clonedStructure: ProjectStructureSnapshot | undefined;
 
-  if (launch.kind === 'uwm_template') {
-    uwmApplied = await applyUwmProjectTemplate(
-      context,
-      created.projectId,
-      projectName,
-      launch.templateId,
-      { duringLaunch: true },
-    );
-    boardId = uwmApplied.boardId;
-  } else {
-    const board = await ensureDefaultProjectBoard(context, workspace.id, projectName);
-    boardId = board?.id ?? null;
+    if (launch.kind === 'uwm_template') {
+      uwmApplied = await applyUwmProjectTemplate(
+        context,
+        created.projectId,
+        projectName,
+        launch.templateId,
+        { duringLaunch: true },
+      );
+      boardId = uwmApplied.boardId;
+    } else {
+      const board = await ensureDefaultProjectBoard(context, workspace.id, projectName);
+      boardId = board?.id ?? null;
 
-    if (launch.kind === 'structure_template') {
-      if (!isProjectTemplateKey(launch.templateKey)) {
-        throw new Error(`Unknown structure template key: ${launch.templateKey}`);
+      if (launch.kind === 'structure_template') {
+        if (!isProjectTemplateKey(launch.templateKey)) {
+          throw new Error(`Unknown structure template key: ${launch.templateKey}`);
+        }
+        structureApplied = await applyStructureProjectTemplate(context, {
+          projectId: created.projectId,
+          templateKey: launch.templateKey,
+          locale: launch.locale,
+          duringLaunch: true,
+        });
+      } else if (launch.kind === 'clone_structure') {
+        clonedStructure = await cloneProjectStructure(context, {
+          targetProjectId: created.projectId,
+          sourceProjectId: launch.sourceProjectId,
+          duringLaunch: true,
+        });
       }
-      structureApplied = await applyStructureProjectTemplate(context, {
-        projectId: created.projectId,
-        templateKey: launch.templateKey,
-        locale: launch.locale,
-        duringLaunch: true,
-      });
-    } else if (launch.kind === 'clone_structure') {
-      clonedStructure = await cloneProjectStructure(context, {
-        targetProjectId: created.projectId,
-        sourceProjectId: launch.sourceProjectId,
-        duringLaunch: true,
-      });
     }
-  }
+
+    return { workspace, boardId, structureApplied, uwmApplied, clonedStructure };
+  };
+
+  // Workspace/board RLS requires org workspaces.manage, and service_role has no
+  // GRANT on the link tables. Employee project create already passed projects.create.
+  const surface = isEmployeeAppUser(context)
+    ? await asSessionOwnerWrite(context.db, provisionSurface)
+    : await provisionSurface();
 
   return {
     ...created,
-    workspaceId: workspace.id,
-    boardId,
-    structureApplied,
-    uwmApplied,
-    clonedStructure,
+    workspaceId: surface.workspace.id,
+    boardId: surface.boardId,
+    structureApplied: surface.structureApplied,
+    uwmApplied: surface.uwmApplied,
+    clonedStructure: surface.clonedStructure,
   };
 }
