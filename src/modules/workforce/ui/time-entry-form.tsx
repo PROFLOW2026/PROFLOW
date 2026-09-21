@@ -1,7 +1,8 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useActionState, useMemo, useState } from 'react';
+import { useActionState, useEffect, useMemo, useState } from 'react';
+import { listTasksForTimeLogAction } from '@/app/[locale]/(app)/workforce/time/actions';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -55,6 +56,8 @@ export interface TimeEntryFormProps {
   readonly canApproveOnCreate?: boolean;
   /** Post-save redirect target for server action (Employee App). */
   readonly returnPath?: '/employee/hours';
+  /** Pre-selected PM task (e.g. from task detail "report time" link). */
+  readonly defaultTaskId?: string | null;
 }
 
 const WEEKDAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const;
@@ -77,12 +80,16 @@ export function TimeEntryForm({
   defaultWeekdays,
   canApproveOnCreate = false,
   returnPath,
+  defaultTaskId = null,
 }: TimeEntryFormProps) {
   const t = useTranslations('workforce');
   const tCommon = useTranslations('common');
   const tOffline = useTranslations('offline');
   const [employeeId, setEmployeeId] = useState(defaultEmployeeId ?? employees[0]?.id ?? '');
   const [projectId, setProjectId] = useState(recentProjectId ?? projects[0]?.id ?? '');
+  const [taskId, setTaskId] = useState(defaultTaskId ?? '');
+  const [taskOptions, setTaskOptions] = useState<readonly TimeEntryFormOption[]>([]);
+  const [tasksLoading, setTasksLoading] = useState(false);
   const [timeCodeId, setTimeCodeId] = useState(initialTimeCodeId ?? timeCodes[0]?.id ?? '');
   const [kind, setKind] = useState<'project' | 'non_project'>(initialKind);
   const [hours, setHours] = useState(initialHours);
@@ -124,6 +131,37 @@ export function TimeEntryForm({
 
   const [state, formAction, pending] = useActionState(wrappedAction, {});
   const dailyExcess = state.dailyExcessWarning;
+
+  useEffect(() => {
+    if (kind !== 'project' || !projectId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reset dependent field when project cleared
+      setTaskOptions([]);
+      setTaskId('');
+      return;
+    }
+
+    let cancelled = false;
+    setTasksLoading(true);
+    void listTasksForTimeLogAction(projectId)
+      .then((options) => {
+        if (cancelled) return;
+        setTaskOptions(options);
+        setTaskId((current) => {
+          if (current && options.some((option) => option.id === current)) return current;
+          if (defaultTaskId && options.some((option) => option.id === defaultTaskId)) {
+            return defaultTaskId;
+          }
+          return '';
+        });
+      })
+      .finally(() => {
+        if (!cancelled) setTasksLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId, kind, defaultTaskId]);
 
   const sortedProjects = useMemo(() => {
     if (!recentProjectId) return projects;
@@ -350,25 +388,62 @@ export function TimeEntryForm({
       </Field>
 
       {kind === 'project' ? (
-        <Field label={t('time.form.project')} required>
-          {(control) => (
-            <>
-              <input type="hidden" name="projectId" value={projectId} />
-              <Select value={projectId} onValueChange={setProjectId}>
-                <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
-                  <SelectValue placeholder={t('time.form.projectPlaceholder')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {sortedProjects.map((project) => (
-                    <SelectItem key={project.id} value={project.id}>
-                      {project.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </>
+        <>
+          <Field label={t('time.form.project')} required>
+            {(control) => (
+              <>
+                <input type="hidden" name="projectId" value={projectId} />
+                <Select
+                  value={projectId}
+                  onValueChange={(value) => {
+                    setProjectId(value);
+                    setTaskId('');
+                  }}
+                >
+                  <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
+                    <SelectValue placeholder={t('time.form.projectPlaceholder')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sortedProjects.map((project) => (
+                      <SelectItem key={project.id} value={project.id}>
+                        {project.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </>
+            )}
+          </Field>
+
+          {projectId && taskOptions.length > 0 ? (
+            <Field label={t('time.form.task')} optionalLabel={tCommon('labels.optional')}>
+              {(control) => (
+                <>
+                  <input type="hidden" name="taskId" value={taskId} />
+                  <Select
+                    value={taskId || '__none__'}
+                    onValueChange={(value) => setTaskId(value === '__none__' ? '' : value)}
+                    disabled={tasksLoading}
+                  >
+                    <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
+                      <SelectValue placeholder={t('time.form.taskPlaceholder')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">{t('time.form.taskNone')}</SelectItem>
+                      {taskOptions.map((task) => (
+                        <SelectItem key={task.id} value={task.id}>
+                          {task.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </>
+              )}
+            </Field>
+          ) : (
+            <input type="hidden" name="taskId" value={taskId} />
           )}
-        </Field>
+        </>
       ) : (
         <Field label={t('time.form.timeCode')} required>
           {(control) => (

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { withOrgContext } from '@/shared/auth/session';
+import { todayInTimeZone } from '@/shared/dates';
 import {
   findWorkspaceIdsByProject,
   getWorkspaceDetail,
@@ -82,12 +83,13 @@ export default async function ProjectBoardPage({
       activeBoard: mapBoardToUiBoard(activeBoard),
       buckets,
       tasks: taskCards,
+      today: todayInTimeZone(context.organization.timezone),
     };
   });
 
   if (!data) notFound();
 
-  const { workspaceId = '', boards, activeBoard, buckets, tasks } = data;
+  const { workspaceId = '', boards, activeBoard, buckets, tasks, today } = data;
 
   // Server Actions
   async function moveTaskAction(taskId: string, newBucketId: string, sortKey?: string) {
@@ -137,6 +139,7 @@ export default async function ProjectBoardPage({
         getTaskDetail: getTaskDetailAction,
         updateTask: updateTaskAction,
       }}
+      today={today}
     />
   );
 }

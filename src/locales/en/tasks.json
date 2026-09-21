@@ -541,16 +541,101 @@
     "sectionTitle": "Tasks and boards",
     "sectionDescription": "Manage project tasks, Kanban boards, and related work.",
     "tasksLink": "Project tasks",
-    "boardsLink": "Project boards"
+    "boardsLink": "Project boards",
+    "calendarLink": "Task calendar",
+    "timelineLink": "Task timeline",
+    "filesLink": "Project files",
+    "meetingsLink": "Project meetings"
+  },
+  "filters": {
+    "search": "Search tasks",
+    "searchPlaceholder": "Search by title or project…",
+    "status": "Status",
+    "priority": "Priority",
+    "allStatuses": "All statuses",
+    "allPriorities": "All priorities",
+    "overdueOnly": "Overdue only",
+    "blockedOnly": "Blocked only"
+  },
+  "calendar": {
+    "pageTitle": "Task calendar",
+    "pageDescription": "Tasks by due date and start date across your accessible work",
+    "projectPageTitle": "Project task calendar",
+    "projectPageDescription": "Project tasks plotted by due date and start date",
+    "monthView": "Month",
+    "weekView": "Week",
+    "today": "Today",
+    "previous": "Previous period",
+    "next": "Next period",
+    "moreTasks": "+{count} more",
+    "empty": {
+      "title": "No dated tasks",
+      "description": "Tasks with a due date or start date appear on the calendar"
+    }
+  },
+  "timeline": {
+    "pageTitle": "Task timeline",
+    "pageDescription": "Chronological view of tasks grouped by date, project, or status",
+    "projectPageTitle": "Project task timeline",
+    "projectPageDescription": "Chronological view of project tasks",
+    "groupByLabel": "Group timeline by",
+    "groupBy": {
+      "date": "By date",
+      "project": "By project",
+      "status": "By status"
+    },
+    "undated": "No date",
+    "noProject": "No project",
+    "empty": {
+      "title": "No tasks to show",
+      "description": "Adjust filters or add tasks with dates"
+    }
+  },
+  "insights": {
+    "pageTitle": "Task insights",
+    "pageDescription": "Operational task statistics — no financial data",
+    "sections": {
+      "summary": "Overview",
+      "byStatus": "Open by status",
+      "byAssignee": "Open by assignee",
+      "byProject": "Open by project"
+    },
+    "stats": {
+      "open": "Open tasks",
+      "overdue": "Overdue",
+      "dueThisWeek": "Due this week",
+      "blocked": "Blocked",
+      "completed": "Completed"
+    },
+    "empty": {
+      "assignees": "No assignee breakdown available",
+      "projects": "No project breakdown available"
+    }
   },
   "descriptionLabel": "Description",
   "descriptionPlaceholder": "Add a description...",
   "dueDateLabel": "Due date",
+  "reportedTimeLabel": "Reported time",
+  "reportedTimeHours": "{hours} h",
+  "reportTimeForTask": "Report time for task",
+  "postpone": {
+    "action": "Postpone",
+    "plusOneDay": "Postpone 1 day",
+    "plusOneWeek": "Postpone 1 week",
+    "pickDate": "Pick date…",
+    "apply": "Apply",
+    "cancel": "Cancel"
+  },
   "assigneesLabel": "Assignees",
   "labelsLabel": "Labels",
   "priorityLabel": "Priority",
   "statusLabel": "Status",
   "attachmentsLabel": "Attachments",
+  "attachments": {
+    "sectionDescription": "Upload files or link existing project documents. Files are stored in your connected storage.",
+    "linkProjectDocsHint": "Only documents from this task's project are shown for linking.",
+    "documentsPermissionRequired": "You need document permissions to view or manage attachments."
+  },
   "list": {
     "columns": {
       "title": "Title",
@@ -566,6 +651,38 @@
     }
   },
   "create.title": "New task",
+  "errors": {
+    "dependencyCycle": "Adding this dependency would create a cycle.",
+    "maxSubtaskDepth": "Subtasks can only be nested one level deep.",
+    "subtaskWorkspaceMismatch": "Subtask must use the same workspace as its parent.",
+    "subtaskProjectMismatch": "Subtask must use the same project as its parent."
+  },
+  "actions": {
+    "duplicate": "Duplicate task",
+    "saveAsTemplate": "Save as template",
+    "createFromTemplate": "Create from template",
+    "duplicateSuccess": "Task duplicated",
+    "saveTemplateSuccess": "Template saved",
+    "createFromTemplateSuccess": "Task created from template",
+    "pickTemplate": "Choose a template",
+    "noTemplates": "No templates available"
+  },
+  "dependencies": {
+    "dependsOn": "Depends on",
+    "empty": "No linked tasks",
+    "add": "Add",
+    "remove": "Remove {title}",
+    "pickDependsOn": "Select a task this one depends on",
+    "pickBlockedBy": "Select a task that blocks this one",
+    "noOptions": "No other tasks available in this context"
+  },
+  "subtasks": {
+    "empty": "No subtasks yet",
+    "add": "Add subtask",
+    "create": "Create subtask",
+    "titlePlaceholder": "Subtask title…",
+    "parentLabel": "Parent task"
+  },
   "activity": {
     "sectionLabel": "Activity",
     "empty": "No activity yet",
@@ -580,7 +697,8 @@
     "checklistRemoved": "Removed \"{title}\"",
     "fields": {
       "title": "Title",
-      "description": "Description"
+      "description": "Description",
+      "recurrence": "Recurrence"
     },
     "created": "Created this task",
     "status_changed": "Changed status",
@@ -590,6 +708,7 @@
     "priority_changed": "Changed priority",
     "comment_added": "Added a comment",
     "attachment_added": "Added an attachment",
+    "attachment_removed": "Removed an attachment",
     "checklist_completed": "Completed checklist item",
     "approval_result": "Approval decision recorded",
     "dependency_added": "Added dependency",
@@ -600,6 +719,36 @@
     "label_added": "Added label",
     "recurrence_generated": "Recurring task generated",
     "automation_changed": "Updated by automation",
-    "system_generated": "System action"
+    "system_generated": "System action",
+    "subtask_added": "Added subtask",
+    "task_duplicated": "Duplicated task",
+    "template_saved": "Saved as template",
+    "task_from_template": "Created from template",
+    "dependencyTarget": "Linked task: {title}",
+    "duplicateTarget": "New copy: {title}",
+    "templateName": "Template: {title}",
+    "subtaskName": "Subtask: {title}"
+  },
+  "recurrence": {
+    "label": "Repeat",
+    "hint": "Future copies keep project, column, assignees, and checklist.",
+    "customInterval": "Every N days",
+    "preset": {
+      "none": "Does not repeat",
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "weekdays": "Weekdays (Mon–Fri)",
+      "monthly": "Monthly",
+      "custom": "Custom interval"
+    }
+  },
+  "reminders": {
+    "label": "Reminders",
+    "needsDueDate": "Set a due date to enable reminders.",
+    "type": {
+      "on_due": "On due date",
+      "day_before": "One day before",
+      "custom": "Custom date & time"
+    }
   }
 }

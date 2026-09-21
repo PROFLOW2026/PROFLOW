@@ -79,8 +79,8 @@
     "urgent": "דחוף"
   },
   "myWork": {
-    "pageTitle": "המשימות שלי",
-    "pageDescription": "המשימות שלך בכל הפרויקטים ומרחבי העבודה",
+    "pageTitle": "היום",
+    "pageDescription": "משימות להיום — ותצוגות נוספות בלשוניות למטה",
     "tabsLabel": "תצוגות המשימות שלי",
     "views": {
       "today": "היום",
@@ -541,16 +541,101 @@
     "sectionTitle": "משימות ולוחות",
     "sectionDescription": "נהל משימות פרויקט, לוחות Kanban ועבודה קשורה.",
     "tasksLink": "משימות פרויקט",
-    "boardsLink": "לוחות פרויקט"
+    "boardsLink": "לוחות פרויקט",
+    "calendarLink": "לוח שנה משימות",
+    "timelineLink": "ציר זמן משימות",
+    "filesLink": "קבצי פרויקט",
+    "meetingsLink": "ישיבות פרויקט"
+  },
+  "filters": {
+    "search": "חיפוש משימות",
+    "searchPlaceholder": "חיפוש לפי כותרת או פרויקט…",
+    "status": "סטטוס",
+    "priority": "עדיפות",
+    "allStatuses": "כל הסטטוסים",
+    "allPriorities": "כל העדיפויות",
+    "overdueOnly": "באיחור בלבד",
+    "blockedOnly": "חסומות בלבד"
+  },
+  "calendar": {
+    "pageTitle": "לוח שנה משימות",
+    "pageDescription": "משימות לפי תאריך יעד ותאריך התחלה בכל העבודה הנגישה",
+    "projectPageTitle": "לוח שנה משימות פרויקט",
+    "projectPageDescription": "משימות הפרויקט לפי תאריך יעד ותאריך התחלה",
+    "monthView": "חודש",
+    "weekView": "שבוע",
+    "today": "היום",
+    "previous": "תקופה קודמת",
+    "next": "תקופה הבאה",
+    "moreTasks": "+{count} נוספות",
+    "empty": {
+      "title": "אין משימות עם תאריך",
+      "description": "משימות עם תאריך יעד או התחלה יופיעו בלוח השנה"
+    }
+  },
+  "timeline": {
+    "pageTitle": "ציר זמן משימות",
+    "pageDescription": "תצוגה כרונולוגית של משימות לפי תאריך, פרויקט או סטטוס",
+    "projectPageTitle": "ציר זמן משימות פרויקט",
+    "projectPageDescription": "תצוגה כרונולוגית של משימות הפרויקט",
+    "groupByLabel": "קיבוץ ציר זמן לפי",
+    "groupBy": {
+      "date": "לפי תאריך",
+      "project": "לפי פרויקט",
+      "status": "לפי סטטוס"
+    },
+    "undated": "ללא תאריך",
+    "noProject": "ללא פרויקט",
+    "empty": {
+      "title": "אין משימות להצגה",
+      "description": "שנה מסננים או הוסף משימות עם תאריכים"
+    }
+  },
+  "insights": {
+    "pageTitle": "תובנות משימות",
+    "pageDescription": "סטטיסטיקות תפעוליות של משימות — ללא נתונים פיננסיים",
+    "sections": {
+      "summary": "סקירה",
+      "byStatus": "פתוחות לפי סטטוס",
+      "byAssignee": "פתוחות לפי מוקצה",
+      "byProject": "פתוחות לפי פרויקט"
+    },
+    "stats": {
+      "open": "משימות פתוחות",
+      "overdue": "באיחור",
+      "dueThisWeek": "לסיום השבוע",
+      "blocked": "חסומות",
+      "completed": "הושלמו"
+    },
+    "empty": {
+      "assignees": "אין פירוט לפי מוקצים",
+      "projects": "אין פירוט לפי פרויקטים"
+    }
   },
   "descriptionLabel": "תיאור",
   "descriptionPlaceholder": "הוסף תיאור...",
   "dueDateLabel": "תאריך יעד",
+  "reportedTimeLabel": "זמן שדווח",
+  "reportedTimeHours": "{hours} שעות",
+  "reportTimeForTask": "דווח זמן למשימה",
+  "postpone": {
+    "action": "דחייה",
+    "plusOneDay": "דחה ביום",
+    "plusOneWeek": "דחה בשבוע",
+    "pickDate": "בחר תאריך…",
+    "apply": "החל",
+    "cancel": "ביטול"
+  },
   "assigneesLabel": "מוקצה ל",
   "labelsLabel": "תגיות",
   "priorityLabel": "עדיפות",
   "statusLabel": "סטטוס",
   "attachmentsLabel": "קבצים מצורפים",
+  "attachments": {
+    "sectionDescription": "העלה קבצים או קשר מסמכי פרויקט קיימים. הקבצים נשמרים באחסון המחובר.",
+    "linkProjectDocsHint": "לקישור מוצגים רק מסמכים מהפרויקט של המשימה.",
+    "documentsPermissionRequired": "נדרשות הרשאות מסמכים לצפייה או ניהול קבצים מצורפים."
+  },
   "list": {
     "columns": {
       "title": "כותרת",
@@ -566,6 +651,38 @@
     }
   },
   "create.title": "משימה חדשה",
+  "errors": {
+    "dependencyCycle": "הוספת תלות זו תיצור מעגל.",
+    "maxSubtaskDepth": "ניתן לקנן תת-משימות רק ברמה אחת.",
+    "subtaskWorkspaceMismatch": "תת-משימה חייבת להיות באותה סביבת עבודה כמו ההורה.",
+    "subtaskProjectMismatch": "תת-משימה חייבת להיות באותו פרויקט כמו ההורה."
+  },
+  "actions": {
+    "duplicate": "שכפל משימה",
+    "saveAsTemplate": "שמור כתבנית",
+    "createFromTemplate": "צור מתבנית",
+    "duplicateSuccess": "המשימה שוכפלה",
+    "saveTemplateSuccess": "התבנית נשמרה",
+    "createFromTemplateSuccess": "המשימה נוצרה מהתבנית",
+    "pickTemplate": "בחר תבנית",
+    "noTemplates": "אין תבניות זמינות"
+  },
+  "dependencies": {
+    "dependsOn": "תלוי ב",
+    "empty": "אין משימות מקושרות",
+    "add": "הוסף",
+    "remove": "הסר {title}",
+    "pickDependsOn": "בחר משימה שמשימה זו תלויה בה",
+    "pickBlockedBy": "בחר משימה שחוסמת משימה זו",
+    "noOptions": "אין משימות נוספות בהקשר זה"
+  },
+  "subtasks": {
+    "empty": "אין תת-משימות עדיין",
+    "add": "הוסף תת-משימה",
+    "create": "צור תת-משימה",
+    "titlePlaceholder": "כותרת תת-משימה…",
+    "parentLabel": "משימת אב"
+  },
   "activity": {
     "sectionLabel": "פעילות",
     "empty": "אין פעילות עדיין",
@@ -580,7 +697,8 @@
     "checklistRemoved": "הוסר \"{title}\"",
     "fields": {
       "title": "כותרת",
-      "description": "תיאור"
+      "description": "תיאור",
+      "recurrence": "חזרה"
     },
     "created": "יצר משימה זו",
     "status_changed": "שינה סטטוס",
@@ -590,6 +708,7 @@
     "priority_changed": "שינה עדיפות",
     "comment_added": "הוסיף הערה",
     "attachment_added": "הוסיף קובץ",
+    "attachment_removed": "הסיר קובץ",
     "checklist_completed": "סימן פריט ברשימה",
     "approval_result": "תוצאת אישור נרשמה",
     "dependency_added": "הוסיף תלות",
@@ -600,6 +719,36 @@
     "label_added": "הוסיף תגית",
     "recurrence_generated": "משימה חוזרת נוצרה",
     "automation_changed": "עודכן על ידי אוטומציה",
-    "system_generated": "פעולת מערכת"
+    "system_generated": "פעולת מערכת",
+    "subtask_added": "הוסיף תת-משימה",
+    "task_duplicated": "שכפל משימה",
+    "template_saved": "נשמר כתבנית",
+    "task_from_template": "נוצר מתבנית",
+    "dependencyTarget": "משימה מקושרת: {title}",
+    "duplicateTarget": "עותק חדש: {title}",
+    "templateName": "תבנית: {title}",
+    "subtaskName": "תת-משימה: {title}"
+  },
+  "recurrence": {
+    "label": "חזרה",
+    "hint": "עותקים עתידיים שומרים פרויקט, עמודה, מוקצים ורשימת משימות.",
+    "customInterval": "כל N ימים",
+    "preset": {
+      "none": "ללא חזרה",
+      "daily": "יומי",
+      "weekly": "שבועי",
+      "weekdays": "ימי חול (ב'-ו')",
+      "monthly": "חודשי",
+      "custom": "מרווח מותאם"
+    }
+  },
+  "reminders": {
+    "label": "תזכורות",
+    "needsDueDate": "יש להגדיר תאריך יעד כדי לאפשר תזכורות.",
+    "type": {
+      "on_due": "ביום היעד",
+      "day_before": "יום לפני",
+      "custom": "תאריך ושעה מותאמים"
+    }
   }
 }

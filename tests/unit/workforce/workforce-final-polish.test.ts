@@ -14,6 +14,7 @@ const baseEntry = {
   employeeId: 'emp-1',
   employeeName: 'Test',
   projectId: 'proj-1',
+  taskId: null,
   projectName: 'פינס 16 פתח תקוה',
   workPackageId: 'wp-1',
   workPackageName: DEFAULT_WORK_PACKAGE_NAME,

@@ -48,4 +48,5 @@ export {
   listProjectWorkspaceLinksByWorkspace,
   listProjectWorkspaceLinksByProject,
   listWorkspacesForOrg,
+  findWorkspaceMember,
 } from './data/workspaces.repository';

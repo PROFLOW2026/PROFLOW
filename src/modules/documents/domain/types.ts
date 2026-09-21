@@ -40,6 +40,8 @@ export const DOCUMENT_OWNER_TYPES = [
   'closeout',
   'outbound_communication',
   'calendar_event',
+  'task',
+  'task_comment',
 ] as const;
 export type DocumentOwnerType = (typeof DOCUMENT_OWNER_TYPES)[number];
 

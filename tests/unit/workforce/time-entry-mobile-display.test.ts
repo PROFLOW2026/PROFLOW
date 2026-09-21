@@ -27,6 +27,7 @@ describe('groupTimeEntriesByDate', () => {
     timeCodeName: null,
     kind: 'project' as const,
     projectId: 'p1',
+    taskId: null,
     workPackageId: null,
     phaseId: null,
     timeCodeId: null,

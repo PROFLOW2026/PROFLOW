@@ -20,6 +20,7 @@ export function mapEmployeePmTaskToCardData(
     bucketName: null,
     sortKey: task.dueDate ?? task.id,
     assignees: enrichment?.assignees ? [...enrichment.assignees] : [],
+    startDate: null,
     dueDate: task.dueDate,
     labels: [],
     checklistTotal: 0,

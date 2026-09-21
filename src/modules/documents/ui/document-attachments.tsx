@@ -71,6 +71,15 @@ export interface DocumentAttachmentsProps {
   className?: string;
   /** Hide duplicate title when wrapped in a collapsible section. */
   suppressCardHeader?: boolean;
+  /** Optional overrides for entity-specific link/unlink side effects. */
+  linkDocumentAction?: (input: {
+    documentId: string;
+    ownerType: DocumentOwnerType;
+    ownerId: string;
+    label?: string | null;
+    privacyClass?: 'standard' | 'compensation' | null;
+  }) => Promise<{ error?: string }>;
+  unlinkDocumentAction?: (input: { linkId: string }) => Promise<{ error?: string }>;
 }
 
 function statusShape(status: string): 'pending' | 'active' | 'void' {
@@ -93,6 +102,8 @@ export function DocumentAttachments({
   canClassifyCompensation = false,
   className,
   suppressCardHeader = false,
+  linkDocumentAction: linkDocumentActionOverride,
+  unlinkDocumentAction: unlinkDocumentActionOverride,
 }: DocumentAttachmentsProps) {
   const t = useTranslations('documents.attachments');
   const tErrors = useTranslations('documents.errors');
@@ -104,6 +115,8 @@ export function DocumentAttachments({
   const tOffline = useTranslations('offline');
   const { translate: translateDocumentApiError } = useTranslateDocumentApiError();
   const router = useRouter();
+  const runLinkDocumentAction = linkDocumentActionOverride ?? linkDocumentAction;
+  const runUnlinkDocumentAction = unlinkDocumentActionOverride ?? unlinkDocumentAction;
   const offlineScope = useOfflineScope();
   const organizationId = offlineScope?.organizationId ?? null;
   const userId = offlineScope?.userId ?? null;
@@ -286,7 +299,7 @@ export function DocumentAttachments({
     setError(null);
     setUploadSuccess(null);
     startLinkTransition(async () => {
-      const result = await linkDocumentAction({
+      const result = await runLinkDocumentAction({
         documentId: selectedLinkId,
         ownerType,
         ownerId,
@@ -656,7 +669,7 @@ export function DocumentAttachments({
                         confirmLabel={t('unlink')}
                         successMessage={t('unlinkSuccess')}
                         onConfirm={async () => {
-                          const result = await unlinkDocumentAction({ linkId: document.linkId! });
+                          const result = await runUnlinkDocumentAction({ linkId: document.linkId! });
                           if (result.error) return { error: result.error };
                           router.refresh();
                           return { ok: true };

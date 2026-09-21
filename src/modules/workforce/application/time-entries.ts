@@ -62,6 +62,7 @@ import {
   voidTimeEntryRow,
 } from '../data/time-entries.repository';
 import { findTimesheetById, patchMutableTimeEntry } from '../data/timesheets.repository';
+import { findTaskById } from '@/modules/tasks';
 import { ensureValidClientRequestId } from '../domain/client-request-id';
 import {
   assertTimeEntryIntegrity,
@@ -245,6 +246,7 @@ interface ResolvedTimeTargets {
   readonly workPackageId: string | null;
   readonly phaseId: string | null;
   readonly timeCodeId: string | null;
+  readonly taskId: string | null;
 }
 
 async function resolveTimeTargets(
@@ -255,12 +257,14 @@ async function resolveTimeTargets(
     workPackageId?: string | null;
     phaseId?: string | null;
     timeCodeId?: string | null;
+    taskId?: string | null;
   },
 ): Promise<ResolvedTimeTargets> {
   let projectId: string | null = null;
   let workPackageId: string | null = null;
   let phaseId: string | null = null;
   let timeCodeId: string | null = null;
+  let taskId: string | null = null;
 
   if (input.kind === 'project') {
     const project = await findProjectById(context.db, context.organizationId, input.projectId!);
@@ -307,6 +311,18 @@ async function resolveTimeTargets(
       }
       phaseId = phase.id;
     }
+
+    if (input.taskId) {
+      const task = await findTaskById(context.db, context.organizationId, input.taskId);
+      if (!task || task.isArchived) throw new NotFoundError('Task');
+      if (task.projectId !== projectId) {
+        throw new DomainRuleError(
+          'Task does not belong to the selected project',
+          'workforce.errors.invalidTask',
+        );
+      }
+      taskId = task.id;
+    }
   } else {
     await ensureDefaultTimeCodes(context.db, context.organizationId);
     const code = await findNonProjectTimeCodeById(
@@ -318,7 +334,7 @@ async function resolveTimeTargets(
     timeCodeId = code.id;
   }
 
-  return { projectId, workPackageId, phaseId, timeCodeId };
+  return { projectId, workPackageId, phaseId, timeCodeId, taskId };
 }
 
 async function insertRecordedTimeEntry(
@@ -361,6 +377,7 @@ async function insertRecordedTimeEntry(
     workPackageId: input.targets.workPackageId,
     phaseId: input.targets.phaseId,
     timeCodeId: input.targets.timeCodeId,
+    taskId: input.targets.taskId,
     rateVersionId: snapshot.rateVersionId,
     costAmount: snapshot.costAmount,
     costCurrency: snapshot.costCurrency,

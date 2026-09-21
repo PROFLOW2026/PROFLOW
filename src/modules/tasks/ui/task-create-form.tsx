@@ -21,6 +21,8 @@ import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/shared/ui/cn';
 import type { TaskPriority, TaskStatus } from './_task-api-stub';
+import { TaskRecurrenceSection } from './task-recurrence-section';
+import type { RecurrencePreset } from '../domain/recurrence-presets';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -37,6 +39,8 @@ export interface TaskCreateInput {
   labelIds: string[];
   projectId: string | null;
   workspaceId: string | null;
+  recurrencePreset: RecurrencePreset;
+  recurrenceInterval: number;
 }
 
 interface BucketOption {
@@ -157,6 +161,8 @@ export function TaskCreateForm({
   const [assigneeIds, setAssigneeIds] = useState<string[]>([]);
   const [dueDate, setDueDate] = useState<string>('');
   const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
+  const [recurrencePreset, setRecurrencePreset] = useState<RecurrencePreset>('none');
+  const [recurrenceInterval, setRecurrenceInterval] = useState(1);
 
   const toggleAssignee = (id: string) => {
     setAssigneeIds((prev) =>
@@ -192,6 +198,8 @@ export function TaskCreateForm({
           labelIds: selectedLabels,
           projectId: defaultProjectId,
           workspaceId: defaultWorkspaceId,
+          recurrencePreset,
+          recurrenceInterval,
         });
       } catch (err) {
         setError(err instanceof Error ? err.message : t('create.error'));
@@ -320,6 +328,16 @@ export function TaskCreateForm({
           className={inputCls}
         />
       </FormField>
+
+      <TaskRecurrenceSection
+        preset={recurrencePreset}
+        interval={recurrenceInterval}
+        onChange={({ preset, interval }) => {
+          setRecurrencePreset(preset);
+          setRecurrenceInterval(interval);
+        }}
+        disabled={isPending}
+      />
 
       {/* Assignees */}
       {assignees.length > 0 && (

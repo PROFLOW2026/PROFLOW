@@ -8,3 +8,4 @@
 export { TaskComments, TaskCommentsSkeleton } from './task-comments';
 export { TaskActivity, TaskActivitySkeleton } from './task-activity';
 export { TaskApprovalGate, TaskApprovalGateSkeleton } from './task-approval-gate';
+export { TaskDocumentAttachments } from './task-document-attachments';

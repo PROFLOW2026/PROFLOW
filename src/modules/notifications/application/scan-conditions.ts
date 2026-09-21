@@ -59,6 +59,8 @@ import {
   listFailedCommunications,
   listLowStockItems,
   listOverduePlanningTasks,
+  listOverdueUwmTasksForScan,
+  listDueTaskRemindersForScan,
   listOverdueSafetyActions,
   listPendingBoqProgressBatches,
   listSubmittedTimesheets,
@@ -327,6 +329,63 @@ async function scanPlanning(ctx: ScannerContext): Promise<{ emitted: number; res
     (entity) => permissionRecipients(ctx, PERMISSIONS.PLANNING_WRITE, entity),
   );
   const resolved = await resolveStaleForType(ctx, 'task_overdue', new Set(entities.map((row) => row.id)));
+  return { emitted, resolved };
+}
+
+async function scanUwmTasksOverdue(ctx: ScannerContext): Promise<{ emitted: number; resolved: number }> {
+  if (!hasPermission(ctx.context, PERMISSIONS.TASKS_READ)) {
+    return { emitted: 0, resolved: 0 };
+  }
+  const entities = await listOverdueUwmTasksForScan(
+    ctx.context.db,
+    ctx.context.organizationId,
+    ctx.today,
+    ctx.cap,
+  );
+  const emitted = await emitLive(
+    ctx,
+    'task_overdue',
+    'task',
+    'warning',
+    entities,
+    (entity) => permissionRecipients(ctx, PERMISSIONS.TASKS_UPDATE, entity),
+  );
+  const resolved = await resolveStaleForType(
+    ctx,
+    'task_overdue',
+    new Set(entities.map((row) => row.id)),
+  );
+  return { emitted, resolved };
+}
+
+async function scanTaskReminders(ctx: ScannerContext): Promise<{ emitted: number; resolved: number }> {
+  if (!hasPermission(ctx.context, PERMISSIONS.TASKS_READ)) {
+    return { emitted: 0, resolved: 0 };
+  }
+  const entities = await listDueTaskRemindersForScan(
+    ctx.context.db,
+    ctx.context.organizationId,
+    new Date(),
+    ctx.cap,
+  );
+  const emitted = await emitLive(
+    ctx,
+    'task_due_soon',
+    'task_reminder',
+    'info',
+    entities,
+    async (entity) => {
+      if (entity.recipientUserId) {
+        return [entity.recipientUserId];
+      }
+      return permissionRecipients(ctx, PERMISSIONS.TASKS_UPDATE, entity);
+    },
+  );
+  const resolved = await resolveStaleForType(
+    ctx,
+    'task_due_soon',
+    new Set(entities.map((row) => row.id)),
+  );
   return { emitted, resolved };
 }
 
@@ -679,7 +738,9 @@ const SCANNERS: readonly {
   { key: 'approval_waiting', run: scanApprovals },
   { key: 'timesheet_waiting', run: scanTimesheets },
   { key: 'document_expiring', run: scanDocuments },
-  { key: 'task_overdue', run: scanPlanning },
+  { key: 'task_overdue_planning', run: scanPlanning },
+  { key: 'task_overdue_uwm', run: scanUwmTasksOverdue },
+  { key: 'task_reminders', run: scanTaskReminders },
   { key: 'boq_awaiting_approval', run: scanBoq },
   { key: 'work_order_assigned', run: scanWorkOrders },
   { key: 'punch_assigned', run: scanPunchAssigned },

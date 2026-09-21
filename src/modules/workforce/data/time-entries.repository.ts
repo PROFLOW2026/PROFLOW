@@ -60,6 +60,7 @@ function mapTimeEntry(row: typeof timeEntries.$inferSelect): TimeEntryRecord {
     workPackageId: row.workPackageId,
     phaseId: row.phaseId,
     timeCodeId: row.timeCodeId,
+    taskId: row.taskId ?? null,
     rateVersionId: row.rateVersionId,
     costAmount: row.costAmount,
     costCurrency: row.costCurrency,
@@ -119,6 +120,7 @@ export async function insertTimeEntry(
     workPackageId?: string | null;
     phaseId?: string | null;
     timeCodeId?: string | null;
+    taskId?: string | null;
     rateVersionId?: string | null;
     costAmount?: string | null;
     costCurrency?: string | null;
@@ -153,6 +155,7 @@ export async function insertTimeEntry(
       workPackageId: input.workPackageId ?? null,
       phaseId: input.phaseId ?? null,
       timeCodeId: input.timeCodeId ?? null,
+      taskId: input.taskId ?? null,
       rateVersionId: input.rateVersionId ?? null,
       costAmount: input.costAmount ?? null,
       costCurrency: input.costCurrency ?? null,
@@ -933,4 +936,27 @@ export async function sumTimeLaborPeriodReconciliation(
     pendingHours: Number(row?.pendingHours ?? 0),
     allocatedHours: Number(row?.allocatedHours ?? 0),
   };
+}
+
+/** Read-only aggregate of recorded hours attributed to a PM task (operational, not costing). */
+export async function sumReportedHoursForTask(
+  db: DbExecutor,
+  organizationId: string,
+  taskId: string,
+): Promise<string> {
+  const [row] = await db
+    .select({
+      totalHours: sql<string>`coalesce(sum(${timeEntries.hours}), 0)::text`,
+    })
+    .from(timeEntries)
+    .where(
+      and(
+        eq(timeEntries.organizationId, organizationId),
+        eq(timeEntries.taskId, taskId),
+        eq(timeEntries.status, 'recorded'),
+        isNull(timeEntries.archivedAt),
+      ),
+    );
+
+  return row?.totalHours ?? '0';
 }

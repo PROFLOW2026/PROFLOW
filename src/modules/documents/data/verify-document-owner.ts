@@ -29,6 +29,8 @@ import {
   projectCloseouts,
   warrantyCoverages,
   warrantyIssues,
+  tasks,
+  taskComments,
 } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 import type { DocumentOwnerType } from '../domain/types';
@@ -88,6 +90,8 @@ export async function documentOwnerExistsInOrganization(
     closeout: projectCloseouts,
     outbound_communication: outboundCommunications,
     calendar_event: calendarEvents,
+    task: tasks,
+    task_comment: taskComments,
   } as const;
 
   const table = tableByOwnerType[ownerType];

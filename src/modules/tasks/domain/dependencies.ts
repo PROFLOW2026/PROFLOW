@@ -30,16 +30,16 @@ export function detectCycle(
   // (source must wait for target). Adding (taskId → newDepId) creates a cycle
   // if newDepId can reach taskId through existing edges.
 
-  // Build adjacency list: from targetTaskId → sourceTaskIds that depend on it
+  // Adjacency: sourceTaskId → targetTaskIds it depends on (must complete first).
   const graph = new Map<string, Set<string>>();
 
   for (const dep of allDeps) {
-    const set = graph.get(dep.targetTaskId) ?? new Set<string>();
-    set.add(dep.sourceTaskId);
-    graph.set(dep.targetTaskId, set);
+    const set = graph.get(dep.sourceTaskId) ?? new Set<string>();
+    set.add(dep.targetTaskId);
+    graph.set(dep.sourceTaskId, set);
   }
 
-  // DFS from newDepId: if we can reach taskId, adding the edge would create a cycle
+  // Adding (taskId → newDepId) cycles if newDepId already depends on taskId.
   const visited = new Set<string>();
   const stack = [newDepId];
 
@@ -49,11 +49,11 @@ export function detectCycle(
     if (visited.has(current)) continue;
     visited.add(current);
 
-    const dependents = graph.get(current);
-    if (dependents) {
-      for (const dep of dependents) {
-        if (!visited.has(dep)) {
-          stack.push(dep);
+    const prerequisites = graph.get(current);
+    if (prerequisites) {
+      for (const prerequisite of prerequisites) {
+        if (!visited.has(prerequisite)) {
+          stack.push(prerequisite);
         }
       }
     }

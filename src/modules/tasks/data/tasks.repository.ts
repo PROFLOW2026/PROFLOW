@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray, or, sql, ilike, lte, gte } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, or, sql, ilike, lte, gte, lt } from 'drizzle-orm';
 import {
   tasks,
   taskAssignees,
@@ -11,6 +11,9 @@ import {
   taskFollowers,
   taskRecurrenceRules,
   taskRecurrenceOccurrences,
+  taskReminders,
+  taskTemplates,
+  taskTemplateItems,
 } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 import type {
@@ -31,6 +34,12 @@ import type {
   TaskRecurrenceRule,
   TaskRecurrenceOccurrence,
   TaskRecurrenceOccurrenceStatus,
+  TaskReminder,
+  TaskReminderType,
+  TaskLinkSummary,
+  TaskDependencyView,
+  TaskSubtaskView,
+  TaskTemplateSummary,
 } from '../domain/types';
 
 // ─── Mappers ──────────────────────────────────────────────────────────────────
@@ -379,7 +388,16 @@ export async function getTaskDetail(
 
   const activityLimit = options.activityLimit ?? 20;
 
-  const [assignees, checklistItems, labelRows, recentActivity, commentCountRow] = await Promise.all([
+  const [
+    assignees,
+    checklistItems,
+    labelRows,
+    recentActivity,
+    commentCountRow,
+    dependencyRows,
+    subtaskRows,
+    parentRow,
+  ] = await Promise.all([
     db
       .select()
       .from(taskAssignees)
@@ -412,7 +430,114 @@ export async function getTaskDetail(
       .select({ count: sql<number>`count(*)::int` })
       .from(taskComments)
       .where(and(eq(taskComments.taskId, taskId), eq(taskComments.isDeleted, false))),
+
+    listTaskDependencies(db, organizationId, [taskId]),
+
+    db
+      .select()
+      .from(tasks)
+      .where(
+        and(
+          eq(tasks.organizationId, organizationId),
+          eq(tasks.parentTaskId, taskId),
+          eq(tasks.isArchived, false),
+        ),
+      )
+      .orderBy(asc(tasks.sortKey), asc(tasks.createdAt)),
+
+    task.parentTaskId
+      ? db
+          .select({ id: tasks.id, title: tasks.title, status: tasks.status, dueDate: tasks.dueDate })
+          .from(tasks)
+          .where(
+            and(eq(tasks.id, task.parentTaskId), eq(tasks.organizationId, organizationId)),
+          )
+          .limit(1)
+      : Promise.resolve([]),
   ]);
+
+  const linkedTaskIds = new Set<string>();
+  for (const dep of dependencyRows) {
+    if (dep.sourceTaskId === taskId) linkedTaskIds.add(dep.targetTaskId);
+    if (dep.targetTaskId === taskId) linkedTaskIds.add(dep.sourceTaskId);
+  }
+
+  const titleById = new Map<string, string>();
+  if (linkedTaskIds.size > 0) {
+    const titleRows = await db
+      .select({ id: tasks.id, title: tasks.title })
+      .from(tasks)
+      .where(
+        and(
+          eq(tasks.organizationId, organizationId),
+          inArray(tasks.id, Array.from(linkedTaskIds)),
+        ),
+      );
+    for (const row of titleRows) {
+      titleById.set(row.id, row.title);
+    }
+  }
+
+  const dependsOn: TaskDependencyView[] = [];
+  const blockedBy: TaskDependencyView[] = [];
+  const blocks: TaskDependencyView[] = [];
+
+  for (const dep of dependencyRows) {
+    if (dep.sourceTaskId === taskId) {
+      const view: TaskDependencyView = {
+        id: dep.id,
+        taskId: dep.targetTaskId,
+        taskTitle: titleById.get(dep.targetTaskId) ?? dep.targetTaskId,
+        dependencyType: dep.dependencyType,
+      };
+      if (dep.dependencyType === 'blocked_by') {
+        blockedBy.push(view);
+      } else {
+        dependsOn.push(view);
+      }
+    }
+    if (dep.targetTaskId === taskId) {
+      blocks.push({
+        id: dep.id,
+        taskId: dep.sourceTaskId,
+        taskTitle: titleById.get(dep.sourceTaskId) ?? dep.sourceTaskId,
+        dependencyType: dep.dependencyType,
+      });
+    }
+  }
+
+  const subtaskIds = subtaskRows.map((row) => row.id);
+  const assigneeCounts = new Map<string, number>();
+  if (subtaskIds.length > 0) {
+    const countRows = await db
+      .select({
+        taskId: taskAssignees.taskId,
+        count: sql<number>`count(*)::int`,
+      })
+      .from(taskAssignees)
+      .where(inArray(taskAssignees.taskId, subtaskIds))
+      .groupBy(taskAssignees.taskId);
+    for (const row of countRows) {
+      assigneeCounts.set(row.taskId, row.count);
+    }
+  }
+
+  const subtasks: TaskSubtaskView[] = subtaskRows.map((row) => ({
+    id: row.id,
+    title: row.title,
+    status: row.status as TaskSubtaskView['status'],
+    dueDate: row.dueDate ?? null,
+    assigneeCount: assigneeCounts.get(row.id) ?? 0,
+  }));
+
+  const parentTask: TaskLinkSummary | null = parentRow[0]
+    ? {
+        id: parentRow[0].id,
+        title: parentRow[0].title,
+        status: parentRow[0].status as TaskLinkSummary['status'],
+        dueDate: parentRow[0].dueDate ?? null,
+      }
+    : null;
 
   return {
     ...task,
@@ -421,6 +546,11 @@ export async function getTaskDetail(
     labels: labelRows,
     recentActivity,
     commentCount: commentCountRow[0]?.count ?? 0,
+    parentTask,
+    subtasks,
+    dependsOn,
+    blockedBy,
+    blocks,
   };
 }
 
@@ -709,6 +839,20 @@ export async function listTaskComments(
   return rows.map(mapCommentRow);
 }
 
+export async function findTaskCommentById(
+  db: DbExecutor,
+  organizationId: string,
+  commentId: string,
+): Promise<TaskComment | null> {
+  const [row] = await db
+    .select()
+    .from(taskComments)
+    .where(and(eq(taskComments.id, commentId), eq(taskComments.organizationId, organizationId)))
+    .limit(1);
+
+  return row ? mapCommentRow(row) : null;
+}
+
 // ─── Labels ───────────────────────────────────────────────────────────────────
 
 export async function findLabelById(
@@ -891,4 +1035,410 @@ export async function updateOccurrenceStatus(
       ...(generatedTaskId !== undefined ? { generatedTaskId } : {}),
     })
     .where(eq(taskRecurrenceOccurrences.id, occurrenceId));
+}
+
+export async function findRecurrenceRuleByTemplateTaskId(
+  db: DbExecutor,
+  organizationId: string,
+  templateTaskId: string,
+): Promise<TaskRecurrenceRule | null> {
+  const [row] = await db
+    .select()
+    .from(taskRecurrenceRules)
+    .where(
+      and(
+        eq(taskRecurrenceRules.organizationId, organizationId),
+        eq(taskRecurrenceRules.templateTaskId, templateTaskId),
+      ),
+    )
+    .limit(1);
+  return row ? mapRecurrenceRuleRow(row) : null;
+}
+
+export async function upsertRecurrenceRule(
+  db: DbExecutor,
+  input: {
+    organizationId: string;
+    templateTaskId: string;
+    rrule: string;
+    timezone: string;
+    startsAt: Date;
+    endsAt?: Date | null;
+    maxOccurrences?: number | null;
+    isActive: boolean;
+    createdByOrgMemberId?: string | null;
+  },
+): Promise<TaskRecurrenceRule> {
+  const existing = await findRecurrenceRuleByTemplateTaskId(
+    db,
+    input.organizationId,
+    input.templateTaskId,
+  );
+
+  if (existing) {
+    const [row] = await db
+      .update(taskRecurrenceRules)
+      .set({
+        rrule: input.rrule,
+        timezone: input.timezone,
+        startsAt: input.startsAt,
+        endsAt: input.endsAt ?? null,
+        maxOccurrences: input.maxOccurrences ?? null,
+        isActive: input.isActive,
+        updatedAt: new Date(),
+      })
+      .where(eq(taskRecurrenceRules.id, existing.id))
+      .returning();
+    return mapRecurrenceRuleRow(row!);
+  }
+
+  const [row] = await db
+    .insert(taskRecurrenceRules)
+    .values({
+      organizationId: input.organizationId,
+      templateTaskId: input.templateTaskId,
+      rrule: input.rrule,
+      timezone: input.timezone,
+      startsAt: input.startsAt,
+      endsAt: input.endsAt ?? null,
+      maxOccurrences: input.maxOccurrences ?? null,
+      isActive: input.isActive,
+      createdByOrgMemberId: input.createdByOrgMemberId ?? null,
+    })
+    .returning();
+  return mapRecurrenceRuleRow(row!);
+}
+
+export async function deactivateRecurrenceRule(
+  db: DbExecutor,
+  organizationId: string,
+  ruleId: string,
+): Promise<void> {
+  await db
+    .update(taskRecurrenceRules)
+    .set({ isActive: false, updatedAt: new Date() })
+    .where(
+      and(eq(taskRecurrenceRules.id, ruleId), eq(taskRecurrenceRules.organizationId, organizationId)),
+    );
+}
+
+export async function listPendingOccurrencesDue(
+  db: DbExecutor,
+  organizationId: string,
+  before: Date,
+  cap: number,
+): Promise<TaskRecurrenceOccurrence[]> {
+  const rows = await db
+    .select()
+    .from(taskRecurrenceOccurrences)
+    .where(
+      and(
+        eq(taskRecurrenceOccurrences.organizationId, organizationId),
+        eq(taskRecurrenceOccurrences.status, 'pending'),
+        lte(taskRecurrenceOccurrences.occurrenceAt, before),
+      ),
+    )
+    .limit(cap);
+  return rows.map(mapOccurrenceRow);
+}
+
+export async function findRecurrenceRuleById(
+  db: DbExecutor,
+  organizationId: string,
+  ruleId: string,
+): Promise<TaskRecurrenceRule | null> {
+  const [row] = await db
+    .select()
+    .from(taskRecurrenceRules)
+    .where(
+      and(eq(taskRecurrenceRules.id, ruleId), eq(taskRecurrenceRules.organizationId, organizationId)),
+    )
+    .limit(1);
+  return row ? mapRecurrenceRuleRow(row) : null;
+}
+
+function mapReminderRow(row: typeof taskReminders.$inferSelect): TaskReminder {
+  return {
+    id: row.id,
+    organizationId: row.organizationId,
+    taskId: row.taskId,
+    reminderType: row.reminderType as TaskReminderType,
+    remindAt: row.remindAt,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+  };
+}
+
+export async function listTaskReminders(
+  db: DbExecutor,
+  organizationId: string,
+  taskId: string,
+): Promise<TaskReminder[]> {
+  const rows = await db
+    .select()
+    .from(taskReminders)
+    .where(
+      and(eq(taskReminders.organizationId, organizationId), eq(taskReminders.taskId, taskId)),
+    );
+  return rows.map(mapReminderRow);
+}
+
+export async function upsertTaskReminder(
+  db: DbExecutor,
+  input: {
+    organizationId: string;
+    taskId: string;
+    reminderType: TaskReminderType;
+    remindAt: Date;
+  },
+): Promise<TaskReminder> {
+  const [row] = await db
+    .insert(taskReminders)
+    .values({
+      organizationId: input.organizationId,
+      taskId: input.taskId,
+      reminderType: input.reminderType,
+      remindAt: input.remindAt,
+    })
+    .onConflictDoUpdate({
+      target: [taskReminders.taskId, taskReminders.reminderType],
+      set: {
+        remindAt: input.remindAt,
+        updatedAt: new Date(),
+      },
+    })
+    .returning();
+  return mapReminderRow(row!);
+}
+
+export async function deleteTaskReminder(
+  db: DbExecutor,
+  organizationId: string,
+  taskId: string,
+  reminderType: TaskReminderType,
+): Promise<void> {
+  await db
+    .delete(taskReminders)
+    .where(
+      and(
+        eq(taskReminders.organizationId, organizationId),
+        eq(taskReminders.taskId, taskId),
+        eq(taskReminders.reminderType, reminderType),
+      ),
+    );
+}
+
+export async function listDueTaskReminders(
+  db: DbExecutor,
+  organizationId: string,
+  before: Date,
+  cap: number,
+): Promise<(TaskReminder & { taskTitle: string; assigneeUserIds: string[] })[]> {
+  const rows = await db
+    .select({
+      reminder: taskReminders,
+      taskTitle: tasks.title,
+    })
+    .from(taskReminders)
+    .innerJoin(tasks, eq(taskReminders.taskId, tasks.id))
+    .where(
+      and(
+        eq(taskReminders.organizationId, organizationId),
+        lte(taskReminders.remindAt, before),
+        eq(tasks.isArchived, false),
+        sql`${tasks.status} NOT IN ('done', 'cancelled')`,
+      ),
+    )
+    .limit(cap);
+
+  return rows.map((row) => ({
+    ...mapReminderRow(row.reminder),
+    taskTitle: row.taskTitle,
+    assigneeUserIds: [],
+  }));
+}
+
+export async function listOverdueUwmTasks(
+  db: DbExecutor,
+  organizationId: string,
+  today: string,
+  cap: number,
+): Promise<
+  {
+    id: string;
+    title: string;
+    dueDate: string;
+    projectId: string | null;
+    workspaceId: string;
+  }[]
+> {
+  const rows = await db
+    .select({
+      id: tasks.id,
+      title: tasks.title,
+      dueDate: tasks.dueDate,
+      projectId: tasks.projectId,
+      workspaceId: tasks.workspaceId,
+    })
+    .from(tasks)
+    .where(
+      and(
+        eq(tasks.organizationId, organizationId),
+        eq(tasks.isArchived, false),
+        sql`${tasks.status} NOT IN ('done', 'cancelled')`,
+        sql`${tasks.dueDate} IS NOT NULL`,
+        lt(tasks.dueDate, today),
+      ),
+    )
+    .limit(cap);
+
+  return rows.map((row) => ({
+    id: row.id,
+    title: row.title,
+    dueDate: row.dueDate!,
+    projectId: row.projectId,
+    workspaceId: row.workspaceId,
+  }));
+}
+
+// ─── Templates ────────────────────────────────────────────────────────────────
+
+export async function insertTaskTemplate(
+  db: DbExecutor,
+  input: {
+    organizationId: string;
+    title: string;
+    description?: string | null;
+    priority?: TaskPriority;
+  },
+): Promise<{ id: string; title: string }> {
+  const [row] = await db
+    .insert(taskTemplates)
+    .values({
+      organizationId: input.organizationId,
+      title: input.title,
+      description: input.description ?? null,
+      priority: input.priority ?? 'none',
+    })
+    .returning({ id: taskTemplates.id, title: taskTemplates.title });
+  return row!;
+}
+
+export async function insertTaskTemplateItems(
+  db: DbExecutor,
+  items: Array<{
+    templateId: string;
+    organizationId: string;
+    title: string;
+    description?: string | null;
+    sortKey: string;
+  }>,
+): Promise<void> {
+  if (items.length === 0) return;
+  await db.insert(taskTemplateItems).values(
+    items.map((item) => ({
+      templateId: item.templateId,
+      organizationId: item.organizationId,
+      title: item.title,
+      description: item.description ?? null,
+      sortKey: item.sortKey,
+    })),
+  );
+}
+
+export async function findTaskTemplateById(
+  db: DbExecutor,
+  organizationId: string,
+  templateId: string,
+): Promise<{ id: string; title: string; description: string | null; priority: TaskPriority } | null> {
+  const [row] = await db
+    .select({
+      id: taskTemplates.id,
+      title: taskTemplates.title,
+      description: taskTemplates.description,
+      priority: taskTemplates.priority,
+    })
+    .from(taskTemplates)
+    .where(
+      and(
+        eq(taskTemplates.id, templateId),
+        eq(taskTemplates.organizationId, organizationId),
+        eq(taskTemplates.isArchived, false),
+      ),
+    )
+    .limit(1);
+  if (!row) return null;
+  return {
+    id: row.id,
+    title: row.title,
+    description: row.description ?? null,
+    priority: row.priority as TaskPriority,
+  };
+}
+
+export async function listTaskTemplateItems(
+  db: DbExecutor,
+  templateId: string,
+): Promise<Array<{ id: string; title: string; description: string | null; sortKey: string }>> {
+  const rows = await db
+    .select({
+      id: taskTemplateItems.id,
+      title: taskTemplateItems.title,
+      description: taskTemplateItems.description,
+      sortKey: taskTemplateItems.sortKey,
+    })
+    .from(taskTemplateItems)
+    .where(eq(taskTemplateItems.templateId, templateId))
+    .orderBy(asc(taskTemplateItems.sortKey));
+  return rows.map((row) => ({
+    id: row.id,
+    title: row.title,
+    description: row.description ?? null,
+    sortKey: row.sortKey,
+  }));
+}
+
+export async function listActiveTaskTemplates(
+  db: DbExecutor,
+  organizationId: string,
+): Promise<TaskTemplateSummary[]> {
+  const rows = await db
+    .select({
+      id: taskTemplates.id,
+      title: taskTemplates.title,
+      description: taskTemplates.description,
+      priority: taskTemplates.priority,
+      itemCount: sql<number>`count(${taskTemplateItems.id})::int`,
+    })
+    .from(taskTemplates)
+    .leftJoin(taskTemplateItems, eq(taskTemplateItems.templateId, taskTemplates.id))
+    .where(
+      and(eq(taskTemplates.organizationId, organizationId), eq(taskTemplates.isArchived, false)),
+    )
+    .groupBy(
+      taskTemplates.id,
+      taskTemplates.title,
+      taskTemplates.description,
+      taskTemplates.priority,
+    )
+    .orderBy(asc(taskTemplates.title));
+
+  return rows.map((row) => ({
+    id: row.id,
+    title: row.title,
+    description: row.description ?? null,
+    priority: row.priority as TaskPriority,
+    itemCount: row.itemCount ?? 0,
+  }));
+}
+
+export async function listLabelIdsForTask(
+  db: DbExecutor,
+  taskId: string,
+): Promise<string[]> {
+  const rows = await db
+    .select({ labelId: taskLabelAssignments.labelId })
+    .from(taskLabelAssignments)
+    .where(eq(taskLabelAssignments.taskId, taskId));
+  return rows.map((row) => row.labelId);
 }

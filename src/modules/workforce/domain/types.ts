@@ -114,6 +114,8 @@ export interface TimeEntryRecord {
   readonly workPackageId: string | null;
   readonly phaseId: string | null;
   readonly timeCodeId: string | null;
+  /** Optional PM task attribution — does not affect labor costing. */
+  readonly taskId: string | null;
   readonly rateVersionId: string | null;
   readonly costAmount: string | null;
   readonly costCurrency: string | null;

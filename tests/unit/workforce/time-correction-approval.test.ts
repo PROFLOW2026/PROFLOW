@@ -208,6 +208,7 @@ function originalEntry(partial: Partial<TimeEntryRecord> = {}): TimeEntryRecord 
     hours: '8',
     kind: 'project',
     projectId: PROJECT_ID,
+    taskId: null,
     workPackageId: null,
     phaseId: null,
     timeCodeId: null,

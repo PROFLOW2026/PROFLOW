@@ -56,6 +56,7 @@ export interface TimeEntryDraftPayload extends Record<string, unknown> {
   readonly workPackageId: string | null;
   readonly phaseId: string | null;
   readonly timeCodeId: string | null;
+  readonly taskId: string | null;
   readonly description: string | null;
 }
 
@@ -163,6 +164,7 @@ export function timeEntryPayloadFromFormData(formData: FormData): TimeEntryDraft
     workPackageId: formText(formData, 'workPackageId'),
     phaseId: formText(formData, 'phaseId'),
     timeCodeId: formText(formData, 'timeCodeId'),
+    taskId: formText(formData, 'taskId'),
     description: formText(formData, 'description'),
   };
 }

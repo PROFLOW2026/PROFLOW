@@ -56,7 +56,8 @@ export function ProjectBoardShell({
   buckets,
   initialTasks,
   actions,
-}: ProjectBoardShellProps) {
+  today,
+}: ProjectBoardShellProps & { today: string }) {
   const t = useTranslations('tasks');
   const [, startTransition] = useTransition();
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
@@ -181,6 +182,13 @@ export function ProjectBoardShell({
           }
         }}
         onUpdate={handleUpdateTask}
+        onRefresh={async (taskId) => {
+          const refreshed = await actions.getTaskDetail(taskId);
+          if (refreshed) setTaskDetail(refreshed);
+        }}
+        today={today}
+        canPostpone
+        timeLogBasePath="/workforce/time/new"
       />
 
       {/* Create task sheet */}

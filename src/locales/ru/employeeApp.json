@@ -147,6 +147,9 @@
       "high": "Высокий",
       "urgent": "Срочный"
     },
+    "reportedTimeLabel": "Учтённое время",
+    "reportedTimeHours": "{hours} ч",
+    "reportTimeForTask": "Списать время на задачу",
     "assignSection": "Назначение задачи",
     "assignSelect": "Выберите участника команды",
     "assignSubmit": "Назначить",
@@ -187,6 +190,7 @@
     "hub": {
       "tasks": "Задачи",
       "board": "Доска",
+      "logTime": "Списать время",
       "files": "Файлы",
       "meetings": "Встречи"
     },

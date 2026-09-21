@@ -13,11 +13,13 @@ export function ProjectTasksClient({
   projectId: _projectId,
   getTaskDetail,
   updateTask,
+  today,
 }: {
   tasks: TaskCardData[];
   projectId: string;
   getTaskDetail: (taskId: string) => Promise<TaskDetail | null>;
   updateTask: (taskId: string, data: Record<string, unknown>) => Promise<WorkActionState>;
+  today: string;
 }) {
   const t = useTranslations('tasks');
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
@@ -44,6 +46,8 @@ export function ProjectTasksClient({
         tasks={tasks}
         onOpenTask={handleOpenTask}
         showProject={false}
+        editable
+        onUpdateTask={handleUpdate}
         emptyTitle={t('list.empty.title')}
         emptyDescription={t('list.empty.description')}
       />
@@ -59,6 +63,13 @@ export function ProjectTasksClient({
           }
         }}
         onUpdate={handleUpdate}
+        onRefresh={async (taskId) => {
+          const refreshed = await getTaskDetail(taskId);
+          if (refreshed) setTaskDetail(refreshed);
+        }}
+        today={today}
+        canPostpone
+        timeLogBasePath="/workforce/time/new"
       />
     </div>
   );

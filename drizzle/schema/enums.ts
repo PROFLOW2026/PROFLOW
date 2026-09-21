@@ -154,6 +154,8 @@ export const documentOwnerTypeEnum = pgEnum('document_owner_type', [
   'closeout',
   'outbound_communication',
   'calendar_event',
+  'task',
+  'task_comment',
 ]);
 
 export const taxMethodEnum = pgEnum('tax_method', ['percentage', 'exempt', 'zero_rated']);
@@ -229,6 +231,7 @@ export const taskActivityEventTypeEnum = pgEnum('task_activity_event_type', [
   'priority_changed',
   'comment_added',
   'attachment_added',
+  'attachment_removed',
   'checklist_completed',
   'approval_result',
   'dependency_added',
@@ -240,6 +243,10 @@ export const taskActivityEventTypeEnum = pgEnum('task_activity_event_type', [
   'recurrence_generated',
   'automation_changed',
   'system_generated',
+  'subtask_added',
+  'task_duplicated',
+  'template_saved',
+  'task_from_template',
 ]);
 
 export const taskRecurrenceOccurrenceStatusEnum = pgEnum('task_recurrence_occurrence_status', [
@@ -247,6 +254,12 @@ export const taskRecurrenceOccurrenceStatusEnum = pgEnum('task_recurrence_occurr
   'generated',
   'skipped',
   'cancelled',
+]);
+
+export const taskReminderTypeEnum = pgEnum('task_reminder_type', [
+  'on_due',
+  'day_before',
+  'custom',
 ]);
 
 export const savedListViewScopeEnum = pgEnum('saved_list_view_scope', [

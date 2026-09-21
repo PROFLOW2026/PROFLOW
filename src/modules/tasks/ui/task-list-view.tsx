@@ -14,7 +14,7 @@
  */
 
 import { AlertCircle, ArrowDown, ArrowUp, Calendar, ChevronsUpDown } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useTransition } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -58,6 +58,20 @@ const PRIORITY_TONE: Record<TaskPriority, 'neutral' | 'info' | 'warning' | 'dang
   high: 'warning',
   urgent: 'danger',
 };
+
+const STATUS_VALUES: TaskStatus[] = [
+  'todo',
+  'in_progress',
+  'in_review',
+  'blocked',
+  'done',
+  'cancelled',
+];
+
+const PRIORITY_VALUES: TaskPriority[] = ['urgent', 'high', 'medium', 'low', 'none'];
+
+const INLINE_SELECT_CLASS =
+  'max-w-full rounded border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-1.5 py-1 text-xs text-[var(--pf-text-primary)]';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -206,10 +220,27 @@ function TaskMobileCard({
 // TaskListView
 // ---------------------------------------------------------------------------
 
+export interface TaskListAssigneeOption {
+  id: string;
+  displayName: string;
+  kind: 'org_member' | 'employee';
+}
+
 export interface TaskListViewProps {
   tasks: TaskCardData[];
   /** Called when user clicks a row — parent opens TaskDetailSheet */
   onOpenTask: (taskId: string) => void;
+  /** Desktop inline edit for status, priority, due date, assignee */
+  editable?: boolean;
+  onUpdateTask?: (
+    taskId: string,
+    data: Record<string, unknown>,
+  ) => void | Promise<{ success?: boolean; error?: string } | void>;
+  onAssigneeChange?: (
+    taskId: string,
+    assignee: { orgMemberId?: string | null; employeeId?: string | null },
+  ) => void | Promise<{ success?: boolean; error?: string } | void>;
+  assigneeOptions?: readonly TaskListAssigneeOption[];
   /** Show project column (true for My Work; false for board-scoped lists) */
   showProject?: boolean;
   /** Optional empty state override */
@@ -218,9 +249,17 @@ export interface TaskListViewProps {
   className?: string;
 }
 
+function stopRowClick(e: React.MouseEvent | React.KeyboardEvent) {
+  e.stopPropagation();
+}
+
 export function TaskListView({
   tasks,
   onOpenTask,
+  editable = false,
+  onUpdateTask,
+  onAssigneeChange,
+  assigneeOptions = [],
   showProject = true,
   emptyTitle,
   emptyDescription,
@@ -230,6 +269,9 @@ export function TaskListView({
   const locale = useLocale();
   const [sortField, setSortField] = useState<SortField>('dueDate');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
+  const [, startTransition] = useTransition();
+
+  const canEdit = editable && (onUpdateTask != null || onAssigneeChange != null);
 
   const sorted = useMemo(
     () => sortTasks(tasks, sortField, sortDir),
@@ -349,18 +391,83 @@ export function TaskListView({
                       {task.projectName ?? '—'}
                     </td>
                   )}
-                  <td className="px-4 py-2.5">
-                    <Badge tone={STATUS_TONE[task.status]} className="text-xs">
-                      {t(`status.${task.status}`)}
-                    </Badge>
+                  <td className="px-4 py-2.5" onClick={stopRowClick} onKeyDown={stopRowClick}>
+                    {canEdit && onUpdateTask ? (
+                      <select
+                        aria-label={t('list.columns.status')}
+                        value={task.status}
+                        className={INLINE_SELECT_CLASS}
+                        onChange={(e) => {
+                          const status = e.target.value as TaskStatus;
+                          startTransition(() => {
+                            void onUpdateTask(task.id, { status });
+                          });
+                        }}
+                      >
+                        {STATUS_VALUES.map((status) => (
+                          <option key={status} value={status}>
+                            {t(`status.${status}`)}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <Badge tone={STATUS_TONE[task.status]} className="text-xs">
+                        {t(`status.${task.status}`)}
+                      </Badge>
+                    )}
                   </td>
-                  <td className="px-4 py-2.5">
-                    <Badge tone={PRIORITY_TONE[task.priority]} className="text-xs">
-                      {t(`priority.${task.priority}`)}
-                    </Badge>
+                  <td className="px-4 py-2.5" onClick={stopRowClick} onKeyDown={stopRowClick}>
+                    {canEdit && onUpdateTask ? (
+                      <select
+                        aria-label={t('list.columns.priority')}
+                        value={task.priority}
+                        className={INLINE_SELECT_CLASS}
+                        onChange={(e) => {
+                          const priority = e.target.value as TaskPriority;
+                          startTransition(() => {
+                            void onUpdateTask(task.id, { priority });
+                          });
+                        }}
+                      >
+                        {PRIORITY_VALUES.map((priority) => (
+                          <option key={priority} value={priority}>
+                            {t(`priority.${priority}`)}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <Badge tone={PRIORITY_TONE[task.priority]} className="text-xs">
+                        {t(`priority.${task.priority}`)}
+                      </Badge>
+                    )}
                   </td>
-                  <td className="px-4 py-2.5">
-                    {task.assignees.length === 0 ? (
+                  <td className="px-4 py-2.5" onClick={stopRowClick} onKeyDown={stopRowClick}>
+                    {canEdit && onAssigneeChange && assigneeOptions.length > 0 ? (
+                      <select
+                        aria-label={t('list.columns.assignees')}
+                        value={task.assignees[0]?.id ?? ''}
+                        className={INLINE_SELECT_CLASS}
+                        onChange={(e) => {
+                          const option = assigneeOptions.find((row) => row.id === e.target.value);
+                          if (!option) return;
+                          startTransition(() => {
+                            void onAssigneeChange(
+                              task.id,
+                              option.kind === 'employee'
+                                ? { employeeId: option.id }
+                                : { orgMemberId: option.id },
+                            );
+                          });
+                        }}
+                      >
+                        <option value="">{t('unassigned')}</option>
+                        {assigneeOptions.map((option) => (
+                          <option key={option.id} value={option.id}>
+                            {option.displayName}
+                          </option>
+                        ))}
+                      </select>
+                    ) : task.assignees.length === 0 ? (
                       <span className="text-xs text-[var(--pf-text-muted)]">
                         {t('unassigned')}
                       </span>
@@ -387,8 +494,21 @@ export function TaskListView({
                       </div>
                     )}
                   </td>
-                  <td className="px-4 py-2.5">
-                    {dueDate ? (
+                  <td className="px-4 py-2.5" onClick={stopRowClick} onKeyDown={stopRowClick}>
+                    {canEdit && onUpdateTask ? (
+                      <input
+                        type="date"
+                        aria-label={t('list.columns.dueDate')}
+                        defaultValue={dueDate ?? ''}
+                        className={INLINE_SELECT_CLASS}
+                        onChange={(e) => {
+                          const value = e.target.value || null;
+                          startTransition(() => {
+                            void onUpdateTask(task.id, { dueDate: value });
+                          });
+                        }}
+                      />
+                    ) : dueDate ? (
                       <span
                         className={cn(
                           'inline-flex items-center gap-1 text-xs',

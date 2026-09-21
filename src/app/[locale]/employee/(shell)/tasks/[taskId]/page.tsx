@@ -18,6 +18,8 @@ import {
 } from '@/modules/tasks/application/enrich-task-assignees';
 import { employeeHasPermission } from '@/modules/employee-app/application/load-employee-app-context';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { sumReportedHoursForTask } from '@/modules/workforce';
+import { Link } from '@/shared/i18n/navigation';
 import { assertEmployeeAppContext } from '@/modules/employee-app/application/session-guard';
 import { NotFoundError } from '@/shared/errors';
 import {
@@ -74,13 +76,15 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
   let assigneeNames = '';
   let projectDisplayName: string | null = null;
   let today = '';
+  let reportedHours = '0';
+  let canLogTime = false;
 
   try {
     const result = await withOrgContext(async (context) => {
       await assertEmployeeAppContext(context);
       const detail = await getEmployeePmTaskDetail(context, taskId);
       const capabilities = await getEmployeePmTaskCapabilities(context, detail);
-      const [assignees, approvals, assigneeMap, projectLabels] = await Promise.all([
+      const [assignees, approvals, assigneeMap, projectLabels, hoursTotal] = await Promise.all([
         capabilities.canAssign
           ? listEmployeePmTaskAssigneeOptions(context, detail.projectId)
           : Promise.resolve([]),
@@ -91,6 +95,7 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
         detail.projectId
           ? loadProjectDisplayNameMap(context.db, context.organizationId, [detail.projectId])
           : Promise.resolve(new Map<string, string>()),
+        sumReportedHoursForTask(context.db, context.organizationId, taskId),
       ]);
       const assigneeLabels = assigneeDisplaysForTask(taskId, assigneeMap)
         .map((assignee) => assignee.displayName)
@@ -108,6 +113,8 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
         projectDisplayName: detail.projectId ? (projectLabels.get(detail.projectId) ?? null) : null,
         today: todayInTimeZone(context.organization.timezone),
         canCreate: employeeHasPermission(context, PERMISSIONS.TASKS_CREATE),
+        reportedHours: hoursTotal,
+        canLogTime: employeeHasPermission(context, PERMISSIONS.TIME_MANAGE),
       };
     });
     task = result.task;
@@ -120,6 +127,8 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
     assigneeNames = result.assigneeNames;
     projectDisplayName = result.projectDisplayName;
     today = result.today;
+    reportedHours = result.reportedHours;
+    canLogTime = result.canLogTime;
   } catch (error) {
     if (error instanceof NotFoundError) notFound();
     throw error;
@@ -169,6 +178,23 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
           </p>
         ) : null}
       </div>
+
+      <section className={cn(employeePanelClass, 'space-y-2')}>
+        <h2 className={employeeSectionTitleClass}>{t('reportedTimeLabel')}</h2>
+        <p className="text-sm text-[var(--pf-text-primary)]">
+          {t('reportedTimeHours', {
+            hours: Number(reportedHours).toLocaleString(locale, { maximumFractionDigits: 2 }),
+          })}
+        </p>
+        {canLogTime && task.projectId ? (
+          <Link
+            href={`/employee/hours/new?projectId=${task.projectId}&taskId=${taskId}`}
+            className={cn(employeePrimaryButtonClass, 'inline-flex w-full justify-center sm:w-auto')}
+          >
+            {t('reportTimeForTask')}
+          </Link>
+        ) : null}
+      </section>
 
       {canAssign && assigneeOptions.length > 0 ? (
         <section className="space-y-2">

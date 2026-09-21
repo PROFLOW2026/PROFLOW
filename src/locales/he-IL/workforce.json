@@ -340,6 +340,9 @@
       "hours": "שעות",
       "project": "פרויקט",
       "projectPlaceholder": "בחירת פרויקט",
+      "task": "משימה",
+      "taskPlaceholder": "בחירת משימה (אופציונלי)",
+      "taskNone": "ללא משימה",
       "timeCode": "קוד לא-פרויקט",
       "timeCodePlaceholder": "בחירת קוד",
       "notes": "הערות",
@@ -792,6 +795,7 @@
   "errors": {
     "invalidWorkPackage": "תחום העבודה אינו שייך לפרויקט זה.",
     "invalidPhase": "השלב אינו שייך לפרויקט זה.",
+    "invalidTask": "המשימה אינה שייכת לפרויקט שנבחר.",
     "duplicateTeamMember": "העובד כבר משויך לצוות הפרויקט.",
     "invalidBulkRange": "טווח התאריכים או סינון ימי השבוע אינו תקין.",
     "emptyBulk": "אין ימים שתואמים לטווח ולימי השבוע שנבחרו.",

@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import { generateDueRecurringDrafts } from '@/modules/recurring-drafts';
+import { runTaskRecurrenceOpsWorker } from '@/modules/tasks/application/task-recurrence-ops-worker';
 import { isInternalWorkerAuthorized } from '@/shared/http/internal-worker-auth';
 
 /**
- * Daily expense ops worker: recurring occurrence ensure + automatic payment sync.
+ * Daily ops worker: expense recurrence, UWM task recurrence, automatic payment sync.
  * Vercel cron or an operator calls this with
  * `Authorization: Bearer $CRON_SECRET` (or OCR_WORKER_SECRET).
  *
@@ -13,8 +14,11 @@ export async function POST(request: Request): Promise<Response> {
   if (!isInternalWorkerAuthorized(request)) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
-  const result = await generateDueRecurringDrafts();
-  return NextResponse.json(result);
+  const [expenseRecurrence, taskRecurrence] = await Promise.all([
+    generateDueRecurringDrafts(),
+    runTaskRecurrenceOpsWorker(),
+  ]);
+  return NextResponse.json({ expenseRecurrence, taskRecurrence });
 }
 
 export async function GET(request: Request): Promise<Response> {

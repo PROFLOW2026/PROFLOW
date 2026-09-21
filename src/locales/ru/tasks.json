@@ -541,16 +541,101 @@
     "sectionTitle": "Задачи и доски",
     "sectionDescription": "Управляйте задачами проекта, Kanban-досками и связанной работой.",
     "tasksLink": "Задачи проекта",
-    "boardsLink": "Доски проекта"
+    "boardsLink": "Доски проекта",
+    "calendarLink": "Календарь задач",
+    "timelineLink": "Хронология задач",
+    "filesLink": "Файлы проекта",
+    "meetingsLink": "Встречи проекта"
+  },
+  "filters": {
+    "search": "Поиск задач",
+    "searchPlaceholder": "Поиск по названию или проекту…",
+    "status": "Статус",
+    "priority": "Приоритет",
+    "allStatuses": "Все статусы",
+    "allPriorities": "Все приоритеты",
+    "overdueOnly": "Только просроченные",
+    "blockedOnly": "Только заблокированные"
+  },
+  "calendar": {
+    "pageTitle": "Календарь задач",
+    "pageDescription": "Задачи по сроку и дате начала во всей доступной работе",
+    "projectPageTitle": "Календарь задач проекта",
+    "projectPageDescription": "Задачи проекта по сроку и дате начала",
+    "monthView": "Месяц",
+    "weekView": "Неделя",
+    "today": "Сегодня",
+    "previous": "Предыдущий период",
+    "next": "Следующий период",
+    "moreTasks": "+ещё {count}",
+    "empty": {
+      "title": "Нет задач с датами",
+      "description": "Задачи со сроком или датой начала отображаются в календаре"
+    }
+  },
+  "timeline": {
+    "pageTitle": "Хронология задач",
+    "pageDescription": "Хронологический вид задач по дате, проекту или статусу",
+    "projectPageTitle": "Хронология задач проекта",
+    "projectPageDescription": "Хронологический вид задач проекта",
+    "groupByLabel": "Группировать по",
+    "groupBy": {
+      "date": "По дате",
+      "project": "По проекту",
+      "status": "По статусу"
+    },
+    "undated": "Без даты",
+    "noProject": "Без проекта",
+    "empty": {
+      "title": "Нет задач для отображения",
+      "description": "Измените фильтры или добавьте задачи с датами"
+    }
+  },
+  "insights": {
+    "pageTitle": "Аналитика задач",
+    "pageDescription": "Операционная статистика задач — без финансовых данных",
+    "sections": {
+      "summary": "Обзор",
+      "byStatus": "Открытые по статусу",
+      "byAssignee": "Открытые по исполнителю",
+      "byProject": "Открытые по проекту"
+    },
+    "stats": {
+      "open": "Открытые задачи",
+      "overdue": "Просроченные",
+      "dueThisWeek": "На этой неделе",
+      "blocked": "Заблокированные",
+      "completed": "Завершённые"
+    },
+    "empty": {
+      "assignees": "Нет разбивки по исполнителям",
+      "projects": "Нет разбивки по проектам"
+    }
   },
   "descriptionLabel": "Описание",
   "descriptionPlaceholder": "Добавить описание...",
   "dueDateLabel": "Срок выполнения",
+  "reportedTimeLabel": "Учтённое время",
+  "reportedTimeHours": "{hours} ч",
+  "reportTimeForTask": "Списать время на задачу",
+  "postpone": {
+    "action": "Отложить",
+    "plusOneDay": "Отложить на 1 день",
+    "plusOneWeek": "Отложить на неделю",
+    "pickDate": "Выбрать дату…",
+    "apply": "Применить",
+    "cancel": "Отмена"
+  },
   "assigneesLabel": "Исполнители",
   "labelsLabel": "Метки",
   "priorityLabel": "Приоритет",
   "statusLabel": "Статус",
   "attachmentsLabel": "Вложения",
+  "attachments": {
+    "sectionDescription": "Загрузите файлы или привяжите существующие документы проекта. Файлы хранятся в подключённом хранилище.",
+    "linkProjectDocsHint": "Для привязки показываются только документы проекта этой задачи.",
+    "documentsPermissionRequired": "Для просмотра или управления вложениями нужны права на документы."
+  },
   "list": {
     "columns": {
       "title": "Название",
@@ -566,6 +651,38 @@
     }
   },
   "create.title": "Новая задача",
+  "errors": {
+    "dependencyCycle": "Эта зависимость создаст цикл.",
+    "maxSubtaskDepth": "Подзадачи можно вкладывать только на один уровень.",
+    "subtaskWorkspaceMismatch": "Подзадача должна быть в той же рабочей области.",
+    "subtaskProjectMismatch": "Подзадача должна быть в том же проекте."
+  },
+  "actions": {
+    "duplicate": "Дублировать задачу",
+    "saveAsTemplate": "Сохранить как шаблон",
+    "createFromTemplate": "Создать из шаблона",
+    "duplicateSuccess": "Задача дублирована",
+    "saveTemplateSuccess": "Шаблон сохранён",
+    "createFromTemplateSuccess": "Задача создана из шаблона",
+    "pickTemplate": "Выберите шаблон",
+    "noTemplates": "Нет доступных шаблонов"
+  },
+  "dependencies": {
+    "dependsOn": "Зависит от",
+    "empty": "Нет связанных задач",
+    "add": "Добавить",
+    "remove": "Удалить {title}",
+    "pickDependsOn": "Выберите задачу, от которой зависит эта",
+    "pickBlockedBy": "Выберите задачу, которая блокирует эту",
+    "noOptions": "Нет других задач в этом контексте"
+  },
+  "subtasks": {
+    "empty": "Подзадач пока нет",
+    "add": "Добавить подзадачу",
+    "create": "Создать подзадачу",
+    "titlePlaceholder": "Название подзадачи…",
+    "parentLabel": "Родительская задача"
+  },
   "activity": {
     "sectionLabel": "Активность",
     "empty": "Активности пока нет",
@@ -580,7 +697,8 @@
     "checklistRemoved": "Удалён \"{title}\"",
     "fields": {
       "title": "Название",
-      "description": "Описание"
+      "description": "Описание",
+      "recurrence": "Повтор"
     },
     "created": "Создал задачу",
     "status_changed": "Изменил статус",
@@ -590,6 +708,7 @@
     "priority_changed": "Изменил приоритет",
     "comment_added": "Добавил комментарий",
     "attachment_added": "Добавил вложение",
+    "attachment_removed": "Удалил вложение",
     "checklist_completed": "Отметил пункт чек-листа",
     "approval_result": "Зафиксировано решение о согласовании",
     "dependency_added": "Добавил зависимость",
@@ -600,6 +719,36 @@
     "label_added": "Добавил метку",
     "recurrence_generated": "Сгенерирована повторяющаяся задача",
     "automation_changed": "Обновлено автоматизацией",
-    "system_generated": "Системное действие"
+    "system_generated": "Системное действие",
+    "subtask_added": "Добавил подзадачу",
+    "task_duplicated": "Дублировал задачу",
+    "template_saved": "Сохранил как шаблон",
+    "task_from_template": "Создал из шаблона",
+    "dependencyTarget": "Связанная задача: {title}",
+    "duplicateTarget": "Новая копия: {title}",
+    "templateName": "Шаблон: {title}",
+    "subtaskName": "Подзадача: {title}"
+  },
+  "recurrence": {
+    "label": "Повтор",
+    "hint": "Будущие копии сохраняют проект, колонку, исполнителей и чек-лист.",
+    "customInterval": "Каждые N дней",
+    "preset": {
+      "none": "Без повтора",
+      "daily": "Ежедневно",
+      "weekly": "Еженедельно",
+      "weekdays": "Будни (Пн–Пт)",
+      "monthly": "Ежемесячно",
+      "custom": "Свой интервал"
+    }
+  },
+  "reminders": {
+    "label": "Напоминания",
+    "needsDueDate": "Укажите срок, чтобы включить напоминания.",
+    "type": {
+      "on_due": "В день срока",
+      "day_before": "За день до срока",
+      "custom": "Свои дата и время"
+    }
   }
 }

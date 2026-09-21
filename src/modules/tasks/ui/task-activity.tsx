@@ -12,6 +12,7 @@ import {
   CircleDot,
   Flag,
   MessageSquare,
+  Paperclip,
   RefreshCw,
   Tag,
   UserPlus,
@@ -57,6 +58,9 @@ function eventIcon(eventType: string) {
       return <Flag className="size-3.5 shrink-0" aria-hidden />;
     case 'comment_added':
       return <MessageSquare className="size-3.5 shrink-0" aria-hidden />;
+    case 'attachment_added':
+    case 'attachment_removed':
+      return <Paperclip className="size-3.5 shrink-0" aria-hidden />;
     case 'checklist_completed':
       return <CheckCircle className="size-3.5 shrink-0" aria-hidden />;
     case 'approval_result':

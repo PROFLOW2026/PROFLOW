@@ -42,6 +42,8 @@ import {
   Layers,
   Activity,
   Video,
+  GitBranch,
+  ChartPie,
   type LucideIcon,
 } from 'lucide-react';
 import type { NavIconKey } from './navigation';
@@ -94,6 +96,8 @@ const NAV_ICONS: Record<NavIconKey, LucideIcon> = {
   workspaces: Layers,
   operations: Activity,
   meetings: Video,
+  timeline: GitBranch,
+  insights: ChartPie,
 };
 
 export function NavIcon({

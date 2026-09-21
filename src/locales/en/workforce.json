@@ -368,6 +368,9 @@
       "hours": "Hours",
       "project": "Project",
       "projectPlaceholder": "Choose project",
+      "task": "Task",
+      "taskPlaceholder": "Choose task (optional)",
+      "taskNone": "No task",
       "timeCode": "Non-project code",
       "timeCodePlaceholder": "Choose code",
       "notes": "Notes",
@@ -820,6 +823,7 @@
   "errors": {
     "invalidWorkPackage": "The work area does not belong to this project.",
     "invalidPhase": "The phase does not belong to this project.",
+    "invalidTask": "The task does not belong to the selected project.",
     "duplicateTeamMember": "This employee is already on the project team.",
     "invalidBulkRange": "The bulk date range or weekday filter is invalid.",
     "emptyBulk": "No days matched the selected range and weekdays.",

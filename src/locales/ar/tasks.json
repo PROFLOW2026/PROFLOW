@@ -541,16 +541,101 @@
     "sectionTitle": "المهام واللوحات",
     "sectionDescription": "إدارة مهام المشروع ولوحات Kanban والعمل ذي الصلة.",
     "tasksLink": "مهام المشروع",
-    "boardsLink": "لوحات المشروع"
+    "boardsLink": "لوحات المشروع",
+    "calendarLink": "تقويم المهام",
+    "timelineLink": "الجدول الزمني للمهام",
+    "filesLink": "ملفات المشروع",
+    "meetingsLink": "اجتماعات المشروع"
+  },
+  "filters": {
+    "search": "بحث في المهام",
+    "searchPlaceholder": "بحث بالعنوان أو المشروع…",
+    "status": "الحالة",
+    "priority": "الأولوية",
+    "allStatuses": "كل الحالات",
+    "allPriorities": "كل الأولويات",
+    "overdueOnly": "المتأخرة فقط",
+    "blockedOnly": "المحجوبة فقط"
+  },
+  "calendar": {
+    "pageTitle": "تقويم المهام",
+    "pageDescription": "المهام حسب تاريخ الاستحقاق وتاريخ البدء في كل العمل المتاح",
+    "projectPageTitle": "تقويم مهام المشروع",
+    "projectPageDescription": "مهام المشروع حسب تاريخ الاستحقاق وتاريخ البدء",
+    "monthView": "شهر",
+    "weekView": "أسبوع",
+    "today": "اليوم",
+    "previous": "الفترة السابقة",
+    "next": "الفترة التالية",
+    "moreTasks": "+{count} أخرى",
+    "empty": {
+      "title": "لا مهام بتاريخ",
+      "description": "المهام التي لها تاريخ استحقاق أو بدء تظهر في التقويم"
+    }
+  },
+  "timeline": {
+    "pageTitle": "الجدول الزمني للمهام",
+    "pageDescription": "عرض زمني للمهام مجمّعة حسب التاريخ أو المشروع أو الحالة",
+    "projectPageTitle": "الجدول الزمني لمهام المشروع",
+    "projectPageDescription": "عرض زمني لمهام المشروع",
+    "groupByLabel": "تجميع الجدول الزمني حسب",
+    "groupBy": {
+      "date": "حسب التاريخ",
+      "project": "حسب المشروع",
+      "status": "حسب الحالة"
+    },
+    "undated": "بدون تاريخ",
+    "noProject": "بدون مشروع",
+    "empty": {
+      "title": "لا مهام للعرض",
+      "description": "عدّل المرشحات أو أضف مهاماً بتواريخ"
+    }
+  },
+  "insights": {
+    "pageTitle": "رؤى المهام",
+    "pageDescription": "إحصائيات تشغيلية للمهام — بدون بيانات مالية",
+    "sections": {
+      "summary": "نظرة عامة",
+      "byStatus": "المفتوحة حسب الحالة",
+      "byAssignee": "المفتوحة حسب المُكلف",
+      "byProject": "المفتوحة حسب المشروع"
+    },
+    "stats": {
+      "open": "مهام مفتوحة",
+      "overdue": "متأخرة",
+      "dueThisWeek": "مستحقة هذا الأسبوع",
+      "blocked": "محجوبة",
+      "completed": "مكتملة"
+    },
+    "empty": {
+      "assignees": "لا يوجد تفصيل حسب المُكلفين",
+      "projects": "لا يوجد تفصيل حسب المشاريع"
+    }
   },
   "descriptionLabel": "الوصف",
   "descriptionPlaceholder": "أضف وصفاً...",
   "dueDateLabel": "تاريخ الاستحقاق",
+  "reportedTimeLabel": "الوقت المُبلَّغ",
+  "reportedTimeHours": "{hours} س",
+  "reportTimeForTask": "تسجيل وقت للمهمة",
+  "postpone": {
+    "action": "تأجيل",
+    "plusOneDay": "تأجيل يوم واحد",
+    "plusOneWeek": "تأجيل أسبوع",
+    "pickDate": "اختر تاريخاً…",
+    "apply": "تطبيق",
+    "cancel": "إلغاء"
+  },
   "assigneesLabel": "المسؤولون",
   "labelsLabel": "التسميات",
   "priorityLabel": "الأولوية",
   "statusLabel": "الحالة",
   "attachmentsLabel": "المرفقات",
+  "attachments": {
+    "sectionDescription": "ارفع ملفات أو اربط مستندات المشروع الحالية. تُخزَّن الملفات في التخزين المتصل.",
+    "linkProjectDocsHint": "يُعرض للربط مستندات مشروع هذه المهمة فقط.",
+    "documentsPermissionRequired": "تحتاج إلى صلاحيات المستندات لعرض المرفقات أو إدارتها."
+  },
   "list": {
     "columns": {
       "title": "العنوان",
@@ -566,6 +651,38 @@
     }
   },
   "create.title": "مهمة جديدة",
+  "errors": {
+    "dependencyCycle": "إضافة هذا الاعتماد ستُنشئ حلقة.",
+    "maxSubtaskDepth": "يمكن تداخل المهام الفرعية بمستوى واحد فقط.",
+    "subtaskWorkspaceMismatch": "يجب أن تكون المهمة الفرعية في نفس مساحة العمل.",
+    "subtaskProjectMismatch": "يجب أن تكون المهمة الفرعية في نفس المشروع."
+  },
+  "actions": {
+    "duplicate": "نسخ المهمة",
+    "saveAsTemplate": "حفظ كقالب",
+    "createFromTemplate": "إنشاء من قالب",
+    "duplicateSuccess": "تم نسخ المهمة",
+    "saveTemplateSuccess": "تم حفظ القالب",
+    "createFromTemplateSuccess": "تم إنشاء المهمة من القالب",
+    "pickTemplate": "اختر قالباً",
+    "noTemplates": "لا توجد قوالب"
+  },
+  "dependencies": {
+    "dependsOn": "يعتمد على",
+    "empty": "لا مهام مرتبطة",
+    "add": "إضافة",
+    "remove": "إزالة {title}",
+    "pickDependsOn": "اختر مهمة يعتمد عليها هذا",
+    "pickBlockedBy": "اختر مهمة تحجب هذا",
+    "noOptions": "لا مهام أخرى في هذا السياق"
+  },
+  "subtasks": {
+    "empty": "لا مهام فرعية بعد",
+    "add": "إضافة مهمة فرعية",
+    "create": "إنشاء مهمة فرعية",
+    "titlePlaceholder": "عنوان المهمة الفرعية…",
+    "parentLabel": "المهمة الأم"
+  },
   "activity": {
     "sectionLabel": "النشاط",
     "empty": "لا يوجد نشاط بعد",
@@ -580,7 +697,8 @@
     "checklistRemoved": "تمت إزالة \"{title}\"",
     "fields": {
       "title": "العنوان",
-      "description": "الوصف"
+      "description": "الوصف",
+      "recurrence": "التكرار"
     },
     "created": "أنشأ هذه المهمة",
     "status_changed": "غيّر الحالة",
@@ -590,6 +708,7 @@
     "priority_changed": "غيّر الأولوية",
     "comment_added": "أضاف تعليقاً",
     "attachment_added": "أضاف مرفقاً",
+    "attachment_removed": "أزال مرفقاً",
     "checklist_completed": "أكمل عنصر قائمة",
     "approval_result": "تم تسجيل قرار الموافقة",
     "dependency_added": "أضاف اعتمادية",
@@ -600,6 +719,36 @@
     "label_added": "أضاف تسمية",
     "recurrence_generated": "تم إنشاء مهمة متكررة",
     "automation_changed": "تم التحديث بواسطة الأتمتة",
-    "system_generated": "إجراء النظام"
+    "system_generated": "إجراء النظام",
+    "subtask_added": "أضاف مهمة فرعية",
+    "task_duplicated": "نسخ المهمة",
+    "template_saved": "حُفظ كقالب",
+    "task_from_template": "أُنشئ من قالب",
+    "dependencyTarget": "مهمة مرتبطة: {title}",
+    "duplicateTarget": "نسخة جديدة: {title}",
+    "templateName": "قالب: {title}",
+    "subtaskName": "مهمة فرعية: {title}"
+  },
+  "recurrence": {
+    "label": "التكرار",
+    "hint": "النسخ المستقبلية تحافظ على المشروع والعمود والمسؤولين وقائمة المهام.",
+    "customInterval": "كل N أيام",
+    "preset": {
+      "none": "بدون تكرار",
+      "daily": "يومي",
+      "weekly": "أسبوعي",
+      "weekdays": "أيام الأسبوع (الإثنين–الجمعة)",
+      "monthly": "شهري",
+      "custom": "فاصل مخصص"
+    }
+  },
+  "reminders": {
+    "label": "التذكيرات",
+    "needsDueDate": "حدّد تاريخ استحقاق لتفعيل التذكيرات.",
+    "type": {
+      "on_due": "في يوم الاستحقاق",
+      "day_before": "قبل يوم واحد",
+      "custom": "تاريخ ووقت مخصصان"
+    }
   }
 }

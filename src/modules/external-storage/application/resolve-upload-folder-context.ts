@@ -12,6 +12,8 @@ import {
   projects,
   punchListItems,
   purchaseOrders,
+  tasks,
+  taskComments,
 } from '@drizzle/schema';
 import type { DocumentOwnerType } from '@/modules/documents/domain/types';
 import type { DbExecutor } from '@/shared/db/types';
@@ -99,6 +101,23 @@ async function lookupProjectId(
         .select({ projectId: changeOrders.projectId })
         .from(changeOrders)
         .where(and(eq(changeOrders.id, ownerId), eq(changeOrders.organizationId, organizationId)))
+        .limit(1);
+      return row?.projectId ?? null;
+    }
+    case 'task': {
+      const [row] = await db
+        .select({ projectId: tasks.projectId })
+        .from(tasks)
+        .where(and(eq(tasks.id, ownerId), eq(tasks.organizationId, organizationId)))
+        .limit(1);
+      return row?.projectId ?? null;
+    }
+    case 'task_comment': {
+      const [row] = await db
+        .select({ projectId: tasks.projectId })
+        .from(taskComments)
+        .innerJoin(tasks, eq(tasks.id, taskComments.taskId))
+        .where(and(eq(taskComments.id, ownerId), eq(taskComments.organizationId, organizationId)))
         .limit(1);
       return row?.projectId ?? null;
     }

@@ -66,7 +66,7 @@ export const EVENT_DOMAIN: Readonly<Record<NotificationEventType, NotificationDo
   timesheet_waiting: 'workforce',
   employee_missing_report: 'workforce',
   document_expiring: 'documents',
-  task_overdue: 'planning',
+  task_overdue: 'tasks',
   boq_awaiting_approval: 'boq',
   work_order_assigned: 'service',
   punch_assigned: 'field_ops',

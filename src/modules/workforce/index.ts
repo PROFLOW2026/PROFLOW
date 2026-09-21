@@ -122,7 +122,7 @@ export {
   updateEmployeeById,
 } from './data/employees.repository';
 export { listAttendanceDays } from './data/attendance.repository';
-export { listTimeEntries } from './data/time-entries.repository';
+export { listTimeEntries, sumReportedHoursForTask } from './data/time-entries.repository';
 export { insertEmployeeProjectAssignment } from './data/project-team.repository';
 
 export {

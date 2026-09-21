@@ -8,6 +8,10 @@ import {
   inventoryItems,
   outboundCommunications,
   planningWorkItems,
+  tasks,
+  taskAssignees,
+  organizationMemberships,
+  taskReminders,
   projectCloseouts,
   projectServiceDetails,
   projects,
@@ -107,6 +111,86 @@ export async function listExpiringDocuments(
     reference: row.originalFilename,
     extra: row.expiresAt,
     deepLink: '/documents',
+  }));
+}
+
+export async function listOverdueUwmTasksForScan(
+  db: DbExecutor,
+  organizationId: string,
+  today: BusinessDate,
+  cap: number,
+): Promise<ScanEntity[]> {
+  const rows = await db
+    .select({
+      id: tasks.id,
+      title: tasks.title,
+      dueDate: tasks.dueDate,
+      projectId: tasks.projectId,
+    })
+    .from(tasks)
+    .where(
+      and(
+        eq(tasks.organizationId, organizationId),
+        eq(tasks.isArchived, false),
+        isNull(tasks.archivedAt),
+        sql`${tasks.status} NOT IN ('done', 'cancelled')`,
+        sql`${tasks.dueDate} IS NOT NULL`,
+        lt(tasks.dueDate, today),
+      ),
+    )
+    .limit(cap);
+
+  return rows.map((row) => ({
+    id: row.id,
+    reference: row.title,
+    extra: row.dueDate,
+    deepLink: `/tasks/${row.id}`,
+    projectId: row.projectId,
+  }));
+}
+
+export async function listDueTaskRemindersForScan(
+  db: DbExecutor,
+  organizationId: string,
+  before: Date,
+  cap: number,
+): Promise<ScanEntity[]> {
+  const rows = await db
+    .select({
+      id: taskReminders.id,
+      taskId: taskReminders.taskId,
+      taskTitle: tasks.title,
+      reminderType: taskReminders.reminderType,
+      remindAt: taskReminders.remindAt,
+      projectId: tasks.projectId,
+      assigneeUserId: organizationMemberships.userId,
+      employeeUserId: employees.userId,
+    })
+    .from(taskReminders)
+    .innerJoin(tasks, eq(taskReminders.taskId, tasks.id))
+    .leftJoin(taskAssignees, eq(taskAssignees.taskId, tasks.id))
+    .leftJoin(
+      organizationMemberships,
+      eq(taskAssignees.orgMemberId, organizationMemberships.id),
+    )
+    .leftJoin(employees, eq(taskAssignees.employeeId, employees.id))
+    .where(
+      and(
+        eq(taskReminders.organizationId, organizationId),
+        lte(taskReminders.remindAt, before),
+        eq(tasks.isArchived, false),
+        sql`${tasks.status} NOT IN ('done', 'cancelled')`,
+      ),
+    )
+    .limit(cap);
+
+  return rows.map((row) => ({
+    id: row.id,
+    reference: row.taskTitle,
+    extra: row.reminderType,
+    deepLink: `/tasks/${row.taskId}`,
+    projectId: row.projectId,
+    recipientUserId: row.assigneeUserId ?? row.employeeUserId ?? null,
   }));
 }
 

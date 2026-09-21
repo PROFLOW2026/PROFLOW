@@ -29,6 +29,13 @@ import {
 } from '../data/automations.repository';
 import { collectPresetMatches } from './collect-matches';
 import { runAutomationsSchema, type RunAutomationsInput } from '../validation/schemas';
+import {
+  createTaskAsSystem,
+  changeTaskStatusAsSystem,
+  assignTaskAsSystem,
+  addTaskLabelAsSystem,
+  createTaskApprovalAsSystem,
+} from '@/modules/tasks/application/system-task-actions';
 
 function projectIdsFromMatches(
   matches: Awaited<ReturnType<typeof collectPresetMatches>>,
@@ -165,45 +172,54 @@ async function executePlanningFollowup(
   return { kind: 'planning_followup', count };
 }
 
-/**
- * Stub executor for task-mutating system actions.
- *
- * CRITICAL: All task-mutation actions (create_task, change_task_status,
- * assign_task, add_task_label, create_approval) must record
- * created_by_system=true and actor_system=true in their respective tables.
- * They NEVER impersonate the rule author. When the underlying task module
- * implementations are complete, replace these stubs with real calls — keeping
- * the system-actor contract intact.
- */
 async function executeSystemTaskAction(
-  _context: OrgContext,
+  context: OrgContext,
   action: AutomationActionRequest,
   matches: Awaited<ReturnType<typeof collectPresetMatches>>,
 ): Promise<{ kind: string; count: number }> {
-  // Stubs — real implementations wire into the task domain module.
-  // Each must pass created_by_system=true / actor_system=true.
-  const systemActorContract = {
-    createdBySystem: true,
-    actorSystem: true,
-  } as const;
-  void systemActorContract; // acknowledged — enforced when stubs are replaced
+  const payload = (action.payload ?? {}) as Record<string, unknown>;
+  let count = 0;
 
-  switch (action.kind) {
-    case 'create_task':
-    case 'change_task_status':
-    case 'assign_task':
-    case 'add_task_label':
-    case 'create_approval':
-      // Stubbed: log intent without side-effects until task write APIs land.
-      return { kind: action.kind, count: 0 };
-    case 'notify_user': {
-      // notify_user is safe and does not mutate tasks; emit directly.
-      // Falls through to the notify path with a task-specific notification type.
-      return { kind: 'notify_user', count: matches.length };
+  for (const match of matches.slice(0, DRAFT_CAP)) {
+    switch (action.kind) {
+      case 'create_task':
+        await createTaskAsSystem(context, match, payload);
+        count += 1;
+        break;
+      case 'change_task_status':
+        if (await changeTaskStatusAsSystem(context, match, payload)) count += 1;
+        break;
+      case 'assign_task':
+        if (await assignTaskAsSystem(context, match, payload)) count += 1;
+        break;
+      case 'add_task_label':
+        if (await addTaskLabelAsSystem(context, match, payload)) count += 1;
+        break;
+      case 'create_approval':
+        await createTaskApprovalAsSystem(context, match, payload);
+        count += 1;
+        break;
+      case 'notify_user': {
+        await emitNotification(context, {
+          recipientUserId: context.userId,
+          type: 'task_assigned_to_you',
+          title: match.title,
+          body: match.body,
+          dedupeKey: `automation:notify_user:${match.entityType}:${match.entityId}`,
+          severity: 'info',
+          entityType: match.entityType,
+          entityId: match.entityId,
+          deepLink: match.href,
+        });
+        count += 1;
+        break;
+      }
+      default:
+        break;
     }
-    default:
-      return { kind: action.kind, count: 0 };
   }
+
+  return { kind: action.kind, count };
 }
 
 async function executeSafeAction(

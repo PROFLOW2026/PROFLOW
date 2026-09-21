@@ -368,6 +368,9 @@
       "hours": "الساعات",
       "project": "المشروع",
       "projectPlaceholder": "اختر مشروعاً",
+      "task": "مهمة",
+      "taskPlaceholder": "اختر مهمة (اختياري)",
+      "taskNone": "بدون مهمة",
       "timeCode": "رمز غير مشروع",
       "timeCodePlaceholder": "اختر رمزاً",
       "notes": "ملاحظات",
@@ -820,6 +823,7 @@
   "errors": {
     "invalidWorkPackage": "منطقة العمل لا تنتمي لهذا المشروع.",
     "invalidPhase": "المرحلة لا تنتمي لهذا المشروع.",
+    "invalidTask": "المهمة لا تنتمي للمشروع المحدد.",
     "duplicateTeamMember": "هذا الموظف على فريق المشروع بالفعل.",
     "invalidBulkRange": "نطاق التاريخ الجماعي أو تصفية أيام الأسبوع غير صالح.",
     "emptyBulk": "لا أيام تطابق النطاق وأيام الأسبوع المختارة.",

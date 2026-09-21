@@ -69,6 +69,7 @@ export interface TaskCardData {
   bucketName: string | null;
   sortKey: string;
   assignees: TaskAssigneeDisplay[];
+  startDate: string | null;
   dueDate: string | null; // ISO date string
   labels: string[];
   checklistTotal: number;
@@ -89,15 +90,48 @@ export interface TaskCardData {
  * Rich task detail for the detail sheet.
  * Extends TaskCardData with checklist items, attachments, comments/activity slots.
  */
+export interface TaskDependencyUi {
+  id: string;
+  taskId: string;
+  taskTitle: string;
+  dependencyType: 'finish_to_start' | 'blocked_by';
+}
+
+export interface TaskLinkUi {
+  id: string;
+  title: string;
+  status: TaskStatus;
+  dueDate: string | null;
+}
+
+export interface TaskSubtaskUi extends TaskLinkUi {
+  assigneeCount: number;
+}
+
+export interface TaskTemplateUi {
+  id: string;
+  title: string;
+  description: string | null;
+  priority: TaskPriority;
+  itemCount: number;
+}
+
 export interface TaskDetail extends TaskCardData {
+  /** Sum of recorded time_entries.hours where task_id matches (read-only attribution). */
+  reportedHours?: string | null;
   /** Checklist items from Agent A's TaskChecklistItem[] */
   checklist: { id: string; title: string; done: boolean }[];
-  /** Attachments — TODO: agent responsible for file storage */
-  attachments: { id: string; name: string; url: string; size: number }[];
+  /** Documents linked via document_links(owner_type = task). */
+  attachments: { id: string; name: string; url: string; size: number; linkId?: string | null }[];
   /** Placeholder for Agent E's comments component */
   comments: unknown[];
   /** Placeholder for Agent E's activity feed component */
   activityFeed: unknown[];
+  parentTask: TaskLinkUi | null;
+  subtasks: TaskSubtaskUi[];
+  dependsOn: TaskDependencyUi[];
+  blockedBy: TaskDependencyUi[];
+  blocks: TaskDependencyUi[];
 }
 
 /** Board view type for the board switcher */
@@ -180,6 +214,7 @@ export function mapTaskToCardData(
     bucketName: enrichment?.bucketName ?? null,
     sortKey: task.sortKey,
     assignees: enrichment?.assignees ?? [],
+    startDate: task.startDate,
     dueDate: task.dueDate,
     labels: enrichment?.labels ?? [],
     checklistTotal: enrichment?.checklistTotal ?? 0,
@@ -236,18 +271,27 @@ export function mapBucketToUiBucket(
  */
 export function mapTaskDetailToUi(
   detail: AgentTaskDetail,
-  enrichment?: Parameters<typeof mapTaskToCardData>[1],
+  enrichment?: Parameters<typeof mapTaskToCardData>[1] & {
+    reportedHours?: string | null;
+    attachments?: TaskDetail['attachments'];
+  },
 ): TaskDetail {
   return {
     ...mapTaskToCardData(detail, enrichment),
+    reportedHours: enrichment?.reportedHours ?? null,
     checklist: detail.checklistItems.map((ci) => ({
       id: ci.id,
       title: ci.title,
       done: ci.isDone,
     })),
-    attachments: [],
+    attachments: enrichment?.attachments ?? [],
     comments: [],
     activityFeed: detail.recentActivity ?? [],
+    parentTask: detail.parentTask,
+    subtasks: detail.subtasks,
+    dependsOn: detail.dependsOn,
+    blockedBy: detail.blockedBy,
+    blocks: detail.blocks,
   };
 }
 

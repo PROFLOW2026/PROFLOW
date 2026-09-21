@@ -3,6 +3,7 @@ import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { PageHeader } from '@/components/ui/page-header';
 import { withOrgContext, getShellContext } from '@/shared/auth/session';
+import { todayInTimeZone } from '@/shared/dates';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { getMyWork } from '@/modules/tasks';
 import type { MyWorkView } from '@/modules/tasks';
@@ -58,7 +59,7 @@ export default async function MyWorkPage() {
 
   const t = await getTranslations('tasks');
 
-  const tasksByView = await withOrgContext(async (context) => {
+  const { tasksByView, today } = await withOrgContext(async (context) => {
     const results = await Promise.all(
       MY_WORK_VIEWS.map(async (view) => {
         const tasks = await getMyWork(context, { view, limit: 100 });
@@ -66,7 +67,10 @@ export default async function MyWorkPage() {
         return [view, items] as const;
       }),
     );
-    return Object.fromEntries(results) as Record<MyWorkView, MyWorkItem[]>;
+    return {
+      tasksByView: Object.fromEntries(results) as Record<MyWorkView, MyWorkItem[]>,
+      today: todayInTimeZone(context.organization.timezone),
+    };
   });
 
   return (
@@ -81,6 +85,7 @@ export default async function MyWorkPage() {
         defaultView="today"
         onLoadTaskDetail={getTaskDetailAction}
         onUpdateTask={updateTaskFieldsAction}
+        today={today}
       />
     </div>
   );

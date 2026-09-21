@@ -76,7 +76,11 @@ export async function addDependency(
     organizationId: context.organizationId,
     ...actorFields,
     eventType: 'dependency_added',
-    payload: { targetTaskId, dependencyType },
+    payload: {
+      targetTaskId,
+      targetTaskTitle: targetTask.title,
+      dependencyType,
+    },
   });
 
   return dep;

@@ -2,11 +2,12 @@ import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { ValidationError } from '@/shared/errors';
 import type { OrgContext } from '@/shared/auth/context';
-import { insertTask, insertTaskActivity } from '../data/tasks.repository';
+import { findTaskById, insertTask, insertTaskActivity } from '../data/tasks.repository';
 import { listProjectWorkspaceLinksByWorkspace } from '@/modules/workspaces';
 import { validateProjectContext } from '../domain/project-context';
 import { buildCreatorFieldsFromContext, buildActivityActorFieldsFromContext } from '../domain/actor';
 import { generateSortKey } from '../domain/lexorank';
+import { assertMaxSubtaskDepth, assertSameWorkspaceContext } from '../domain/subtasks';
 import { createTaskSchema } from '../validation/task-schema';
 import type { Task, CreateTaskInput } from '../domain/types';
 
@@ -41,6 +42,15 @@ export async function createTask(
   if (input.projectId) {
     const links = await listProjectWorkspaceLinksByWorkspace(context.db, input.workspaceId);
     validateProjectContext(input.workspaceId, input.projectId, links);
+  }
+
+  if (input.parentTaskId) {
+    const parentTask = await findTaskById(context.db, context.organizationId, input.parentTaskId);
+    if (!parentTask) {
+      throw new ValidationError([{ path: 'parentTaskId', message: 'Parent task not found' }]);
+    }
+    assertMaxSubtaskDepth(parentTask);
+    assertSameWorkspaceContext(parentTask, input.workspaceId, input.projectId);
   }
 
   const creatorFields = buildCreatorFieldsFromContext(context);

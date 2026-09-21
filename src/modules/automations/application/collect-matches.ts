@@ -4,6 +4,7 @@ import { getOrganizationEarlyWarnings } from '@/modules/forecast';
 import { getOcrQueueSnapshot } from '@/modules/ocr';
 import { listQuotesForOrg } from '@/modules/quotes';
 import { listTimesheetsForOrg } from '@/modules/workforce';
+import { listOverdueUwmTasks } from '@/modules/tasks';
 import type { OrgContext } from '@/shared/auth/context';
 import { todayInTimeZone } from '@/shared/dates';
 import { hasPermission } from '@/shared/permissions/assert';
@@ -166,8 +167,24 @@ export async function collectPresetMatches(
     // These delegates to the command-center task scanners' queries (read-only).
     // Real match collection happens in the UWM task module when it lands.
     // For now return empty so no automation fires incorrectly.
+    case 'task_overdue': {
+      if (!hasPermission(context, PERMISSIONS.TASKS_READ)) return [];
+      const rows = await safe(
+        () => listOverdueUwmTasks(context.db, context.organizationId, today, MATCH_CAP),
+        [],
+      );
+      return rows.map((row) => ({
+        entityType: 'task',
+        entityId: row.id,
+        taskId: row.id,
+        workspaceId: row.workspaceId,
+        title: row.title,
+        body: 'Task is past its due date.',
+        href: `/tasks/${row.id}`,
+        projectId: row.projectId,
+      }));
+    }
     case 'task_status_changed_to':
-    case 'task_overdue':
     case 'task_assigned_to':
     case 'task_created_from_template':
     case 'task_approval_rejected':

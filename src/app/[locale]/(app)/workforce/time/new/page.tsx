@@ -29,6 +29,7 @@ export default async function QuickTimePage({
   searchParams: Promise<{
     projectId?: string;
     employeeId?: string;
+    taskId?: string;
     correctsEntryId?: string;
   }>;
 }) {
@@ -124,6 +125,7 @@ export default async function QuickTimePage({
         initialTimeCodeId={formData.initialTimeCodeId}
         defaultWeekdays={formData.defaultWeekdays}
         canApproveOnCreate={formData.canApproveOnCreate}
+        defaultTaskId={query.taskId ?? null}
       />
     </div>
   );

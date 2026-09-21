@@ -191,6 +191,7 @@ export interface MyWorkViewProps {
   ) => void | Promise<unknown>;
   /** Initial active view (from URL search param) */
   defaultView?: MyWorkViewKey;
+  today?: string;
 }
 
 export function MyWorkView({
@@ -198,6 +199,7 @@ export function MyWorkView({
   onLoadTaskDetail,
   onUpdateTask,
   defaultView = 'today',
+  today,
 }: MyWorkViewProps) {
   const t = useTranslations('tasks');
   const [activeView, setActiveView] = useState<MyWorkViewKey>(defaultView);
@@ -271,6 +273,14 @@ export function MyWorkView({
           }
         }}
         onUpdate={handleUpdateTask}
+        onRefresh={async (taskId) => {
+          if (!onLoadTaskDetail) return;
+          const refreshed = await onLoadTaskDetail(taskId);
+          if (refreshed) setTaskDetail(refreshed);
+        }}
+        today={today}
+        canPostpone={Boolean(today && onUpdateTask)}
+        timeLogBasePath="/workforce/time/new"
       />
 
       {/* Loading indicator when task detail not yet fetched */}

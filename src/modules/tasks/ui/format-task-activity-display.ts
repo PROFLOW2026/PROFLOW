@@ -70,6 +70,13 @@ export function formatActivityPayloadSummary(
     return t('activity.assigneeRemoved');
   }
 
+  if (
+    (eventType === 'attachment_added' || eventType === 'attachment_removed') &&
+    payload.filename
+  ) {
+    return String(payload.filename);
+  }
+
   if (eventType === 'automation_changed') {
     const field = payload.field as string | undefined;
     if (field) {
@@ -79,6 +86,31 @@ export function formatActivityPayloadSummary(
 
   const assignedTo = payload.assignedToName as string | undefined;
   if (assignedTo) return assignedTo;
+
+  if (eventType === 'dependency_added' || eventType === 'dependency_removed') {
+    const title = payload.targetTaskTitle as string | undefined;
+    if (title) return t('activity.dependencyTarget', { title });
+  }
+
+  if (eventType === 'task_duplicated') {
+    const title = payload.newTaskTitle as string | undefined;
+    if (title) return t('activity.duplicateTarget', { title });
+  }
+
+  if (eventType === 'template_saved') {
+    const title = payload.templateTitle as string | undefined;
+    if (title) return t('activity.templateName', { title });
+  }
+
+  if (eventType === 'task_from_template') {
+    const title = payload.templateTitle as string | undefined;
+    if (title) return t('activity.templateName', { title });
+  }
+
+  if (eventType === 'subtask_added') {
+    const title = payload.subtaskTitle as string | undefined;
+    if (title) return t('activity.subtaskName', { title });
+  }
 
   return null;
 }

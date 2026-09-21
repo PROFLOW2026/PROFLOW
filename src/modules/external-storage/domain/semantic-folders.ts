@@ -69,6 +69,8 @@ export function semanticFolderForDocumentOwner(
     case 'daily_log':
     case 'punch_list_item':
     case 'inspection':
+    case 'task':
+    case 'task_comment':
       return 'photos';
     case 'project':
     case 'contract':

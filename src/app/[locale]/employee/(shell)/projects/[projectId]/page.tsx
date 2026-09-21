@@ -4,9 +4,11 @@ import { withOrgContext } from '@/shared/auth/session';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { employeeHasPermission } from '@/modules/employee-app/application/load-employee-app-context';
 import { getEmployeeProjectTaskOverview } from '@/modules/employee-app/application/employee-pm-tasks';
-import { Link } from '@/shared/i18n/navigation';
 import {
-  employeeHubCardClass,
+  buildEmployeeProjectHubLinks,
+  EmployeeProjectHubNav,
+} from '@/modules/employee-app/ui/employee-project-hub-nav';
+import {
   employeePageStackClass,
   employeeStatCardClass,
 } from '@/modules/employee-app/ui/employee-surface-styles';
@@ -20,40 +22,24 @@ export default async function EmployeeProjectOverviewPage({ params }: PageProps)
   const { projectId } = await params;
   const t = await getTranslations('employeeApp.projects');
 
-  const { overview, canMeetings, canDocuments } = await withOrgContext(async (context) => ({
-    overview: employeeHasPermission(context, PERMISSIONS.PROJECTS_READ)
+  const { overview, hubLinks } = await withOrgContext(async (context) => {
+    const overviewData = employeeHasPermission(context, PERMISSIONS.PROJECTS_READ)
       ? await getEmployeeProjectTaskOverview(context, projectId)
-      : null,
-    canMeetings: employeeHasPermission(context, PERMISSIONS.MEETINGS_READ),
-    canDocuments: employeeHasPermission(context, PERMISSIONS.DOCUMENTS_READ),
-  }));
+      : null;
+    if (!overviewData) return { overview: null, hubLinks: [] as Awaited<ReturnType<typeof buildEmployeeProjectHubLinks>> };
+
+    const links = await buildEmployeeProjectHubLinks({
+      projectId,
+      openTasks: overviewData.openTasks,
+      canMeetings: employeeHasPermission(context, PERMISSIONS.MEETINGS_READ),
+      canDocuments: employeeHasPermission(context, PERMISSIONS.DOCUMENTS_READ),
+      canLogTime: employeeHasPermission(context, PERMISSIONS.TIME_MANAGE),
+    });
+
+    return { overview: overviewData, hubLinks: links };
+  });
 
   if (!overview) notFound();
-
-  const links = [
-    {
-      href: `/employee/projects/${projectId}/tasks`,
-      label: t('hub.tasks'),
-      count: overview.openTasks,
-      visible: true,
-    },
-    {
-      href: `/employee/projects/${projectId}/board`,
-      label: t('hub.board'),
-      count: overview.openTasks,
-      visible: true,
-    },
-    {
-      href: `/employee/projects/${projectId}/files`,
-      label: t('hub.files'),
-      visible: canDocuments,
-    },
-    {
-      href: `/employee/projects/${projectId}/meetings`,
-      label: t('hub.meetings'),
-      visible: canMeetings,
-    },
-  ];
 
   return (
     <div className={employeePageStackClass}>
@@ -73,24 +59,7 @@ export default async function EmployeeProjectOverviewPage({ params }: PageProps)
         />
       </dl>
 
-      <nav className="grid gap-2" aria-label={t('overview.subtitle')}>
-        {links
-          .filter((link) => link.visible)
-          .map((link) => (
-            <Link key={link.href} href={link.href} className={employeeHubCardClass}>
-              <span className="text-base font-semibold text-[var(--pf-text-primary)]">{link.label}</span>
-              {'count' in link && link.count !== undefined ? (
-                <span className="rounded-full border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-2.5 py-1 text-xs font-semibold text-[var(--pf-text-primary)]">
-                  {link.count}
-                </span>
-              ) : (
-                <span className="text-sm text-[var(--pf-text-muted)]" aria-hidden>
-                  →
-                </span>
-              )}
-            </Link>
-          ))}
-      </nav>
+      <EmployeeProjectHubNav links={hubLinks} />
     </div>
   );
 }

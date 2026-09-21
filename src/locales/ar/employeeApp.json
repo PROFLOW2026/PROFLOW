@@ -147,6 +147,9 @@
       "high": "مرتفع",
       "urgent": "عاجل"
     },
+    "reportedTimeLabel": "الوقت المُبلَّغ",
+    "reportedTimeHours": "{hours} س",
+    "reportTimeForTask": "تسجيل وقت للمهمة",
     "assignSection": "إسناد المهمة",
     "assignSelect": "اختر عضو الفريق",
     "assignSubmit": "إسناد",
@@ -187,6 +190,7 @@
     "hub": {
       "tasks": "المهام",
       "board": "اللوحة",
+      "logTime": "تسجيل وقت",
       "files": "الملفات",
       "meetings": "الاجتماعات"
     },

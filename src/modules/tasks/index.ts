@@ -23,7 +23,13 @@ export type {
   TaskRecurrenceRule,
   TaskRecurrenceOccurrence,
   TaskRecurrenceOccurrenceStatus,
+  TaskReminder,
+  TaskReminderType,
   TaskDetail,
+  TaskLinkSummary,
+  TaskDependencyView,
+  TaskSubtaskView,
+  TaskTemplateSummary,
   CreateTaskInput,
   UpdateTaskInput,
   TaskListFilters,
@@ -79,12 +85,30 @@ export {
   removeChecklistItem,
 } from './application/manage-checklist';
 export { addDependency, removeDependency } from './application/set-dependency';
+export { duplicateTask } from './application/duplicate-task';
+export type { DuplicateTaskOptions } from './application/duplicate-task';
+export {
+  listTaskTemplates,
+  saveTaskAsTemplate,
+  createTaskFromTemplate,
+  createSubtask,
+} from './application/manage-task-templates';
+export type { CreateTaskFromTemplateInput } from './application/manage-task-templates';
+export { listTaskPickerOptions } from './application/list-task-picker-options';
 export { followTask, unfollowTask } from './application/follow-task';
 export { addLabelToTask, removeLabelFromTask } from './application/manage-labels';
 export { createComment } from './application/create-task-comment';
 export { recordTaskApprovalActivity } from './application/record-task-approval-activity';
 export { listComments } from './application/list-task-comments';
 export { listActivity } from './application/list-task-activity';
+export {
+  listTaskAttachments,
+  getTaskDocumentPanelData,
+  linkDocumentToTask,
+  unlinkDocumentFromTask,
+  recordTaskAttachmentAdded,
+} from './application/task-attachments';
+export type { TaskDocumentPanelData } from './application/task-attachments';
 export {
   createBoard,
   updateBoard,
@@ -101,10 +125,36 @@ export {
 } from './application/manage-buckets';
 export { moveTaskToBucket } from './application/move-task-to-bucket';
 export { getMyWork } from './application/my-work';
+export { getTaskInsights } from './application/get-task-insights';
+export type {
+  TaskInsights,
+  TaskInsightsAssigneeRow,
+  TaskInsightsProjectRow,
+} from './application/get-task-insights';
 export type { MyWorkView, MyWorkOptions } from './application/my-work';
 export { generateOccurrences, createGeneratedTask } from './application/schedule-recurrence';
+export {
+  getTaskRecurrence,
+  upsertTaskRecurrence,
+} from './application/manage-recurrence';
+export type { TaskRecurrenceView } from './application/manage-recurrence';
+export {
+  listRemindersForTask,
+  upsertReminderForTask,
+  resolveReminderAt,
+} from './application/manage-reminders';
+export { processTaskRecurrenceForOrg } from './application/process-recurrence-occurrences';
+export { runTaskRecurrenceOpsWorker } from './application/task-recurrence-ops-worker';
+export type { TaskRecurrenceOpsWorkerResult } from './application/task-recurrence-ops-worker';
 export { applyProjectTemplate } from './application/apply-project-template';
 export type { ApplyProjectTemplateResult } from './application/apply-project-template';
+
+export { assertCanAccessTask } from './application/assert-task-access';
+export {
+  findTaskById,
+  findTaskCommentById,
+  listOverdueUwmTasks,
+} from './data/tasks.repository';
 
 // Validation schemas
 export { createTaskSchema, updateTaskSchema } from './validation/task-schema';

@@ -25,7 +25,26 @@ import {
   removeDependency,
   getTaskDetail,
   moveTaskToBucket,
+  duplicateTask,
+  listTaskPickerOptions,
+  listTaskTemplates,
+  saveTaskAsTemplate,
+  createTaskFromTemplate,
+  createSubtask,
+  listTaskAttachments,
+  getTaskDocumentPanelData,
+  linkDocumentToTask,
+  unlinkDocumentFromTask,
+  recordTaskAttachmentAdded,
 } from '@/modules/tasks';
+import {
+  getTaskRecurrence,
+  upsertTaskRecurrence,
+} from '@/modules/tasks/application/manage-recurrence';
+import {
+  listRemindersForTask,
+  upsertReminderForTask,
+} from '@/modules/tasks/application/manage-reminders';
 import type { MyWorkView } from '@/modules/tasks';
 import type { TaskListFilters, TaskStatus, TaskPriority, TaskDependencyType } from '@/modules/tasks';
 
@@ -35,6 +54,18 @@ export interface WorkActionState {
   readonly error?: string;
   readonly fieldErrors?: Record<string, string>;
   readonly success?: boolean;
+  readonly newTaskId?: string;
+  readonly subtaskId?: string;
+  readonly templateId?: string;
+}
+
+async function mapWorkActionError(error: unknown): Promise<WorkActionState> {
+  const tErrors = await getTranslations('errors');
+  const tTasks = await getTranslations('tasks');
+  return mapServerActionError(error, {
+    tErrors: (key) => tErrors(key as 'unexpected'),
+    namespaces: { tasks: (key) => tTasks(key) },
+  });
 }
 
 // ─── My Work ─────────────────────────────────────────────────────────────────
@@ -404,17 +435,13 @@ export async function addDependencyAction(
   targetTaskId: string,
   dependencyType: TaskDependencyType,
 ): Promise<WorkActionState> {
-  const tErrors = await getTranslations('errors');
-
   try {
     await withOrgContext(async (context) => {
       await addDependency(context, sourceTaskId, targetTaskId, dependencyType);
     });
     return { success: true };
   } catch (error) {
-    return mapServerActionError(error, {
-      tErrors: (key) => tErrors(key as 'unexpected'),
-    });
+    return mapWorkActionError(error);
   }
 }
 
@@ -422,16 +449,191 @@ export async function removeDependencyAction(
   sourceTaskId: string,
   targetTaskId: string,
 ): Promise<WorkActionState> {
-  const tErrors = await getTranslations('errors');
-
   try {
     await withOrgContext(async (context) => {
       await removeDependency(context, sourceTaskId, targetTaskId);
     });
     return { success: true };
   } catch (error) {
-    return mapServerActionError(error, {
-      tErrors: (key) => tErrors(key as 'unexpected'),
+    return mapWorkActionError(error);
+  }
+}
+
+// ─── Duplicate / Templates / Subtasks ────────────────────────────────────────
+
+export async function duplicateTaskAction(
+  taskId: string,
+  options: { includeAssignees?: boolean } = {},
+): Promise<WorkActionState> {
+  try {
+    const newTask = await withOrgContext(async (context) =>
+      duplicateTask(context, taskId, options),
+    );
+    return { success: true, newTaskId: newTask.id };
+  } catch (error) {
+    return mapWorkActionError(error);
+  }
+}
+
+export async function saveTaskAsTemplateAction(taskId: string): Promise<WorkActionState> {
+  try {
+    const result = await withOrgContext(async (context) =>
+      saveTaskAsTemplate(context, taskId),
+    );
+    return { success: true, templateId: result.templateId };
+  } catch (error) {
+    return mapWorkActionError(error);
+  }
+}
+
+export async function createTaskFromTemplateAction(input: {
+  templateId: string;
+  workspaceId: string;
+  projectId?: string | null;
+  boardId?: string | null;
+  bucketId?: string | null;
+  title?: string;
+}): Promise<WorkActionState> {
+  try {
+    const task = await withOrgContext(async (context) =>
+      createTaskFromTemplate(context, input),
+    );
+    return { success: true, newTaskId: task.id };
+  } catch (error) {
+    return mapWorkActionError(error);
+  }
+}
+
+export async function createSubtaskAction(
+  parentTaskId: string,
+  input: { title: string; dueDate?: string | null },
+): Promise<WorkActionState> {
+  try {
+    const subtask = await withOrgContext(async (context) =>
+      createSubtask(context, parentTaskId, input),
+    );
+    return { success: true, subtaskId: subtask.id };
+  } catch (error) {
+    return mapWorkActionError(error);
+  }
+}
+
+export async function listTaskPickerOptionsAction(taskId: string) {
+  return withOrgContext(async (context) => listTaskPickerOptions(context, taskId));
+}
+
+export async function listTaskTemplatesAction() {
+  return withOrgContext(async (context) => listTaskTemplates(context));
+}
+
+// ─── Recurrence & Reminders ─────────────────────────────────────────────────
+
+export async function getTaskRecurrenceAction(taskId: string) {
+  return withOrgContext(async (context) => getTaskRecurrence(context, taskId));
+}
+
+export async function upsertTaskRecurrenceAction(
+  taskId: string,
+  input: Record<string, unknown>,
+): Promise<WorkActionState> {
+  try {
+    await withOrgContext(async (context) => upsertTaskRecurrence(context, taskId, input));
+    return { success: true };
+  } catch (error) {
+    return mapWorkActionError(error);
+  }
+}
+
+export async function getTaskRemindersAction(taskId: string) {
+  return withOrgContext(async (context) => listRemindersForTask(context, taskId));
+}
+
+export async function upsertTaskReminderAction(
+  taskId: string,
+  input: Record<string, unknown>,
+): Promise<WorkActionState> {
+  try {
+    await withOrgContext(async (context) => upsertReminderForTask(context, taskId, input));
+    return { success: true };
+  } catch (error) {
+    return mapWorkActionError(error);
+  }
+}
+
+// ─── Task Attachments ─────────────────────────────────────────────────────────
+
+export async function listTaskAttachmentsAction(taskId: string) {
+  return withOrgContext(async (context) => {
+    try {
+      return await listTaskAttachments(context, taskId);
+    } catch {
+      return [];
+    }
+  });
+}
+
+export async function getTaskDocumentPanelAction(taskId: string) {
+  return withOrgContext(async (context) => {
+    try {
+      return await getTaskDocumentPanelData(context, taskId);
+    } catch {
+      return {
+        documents: [],
+        linkCandidates: [],
+        canRead: false,
+        canManage: false,
+        storageConfigured: false,
+        canClassifyCompensation: false,
+      };
+    }
+  });
+}
+
+export async function linkTaskDocumentAction(
+  taskId: string,
+  input: {
+    documentId: string;
+    label?: string | null;
+    privacyClass?: 'standard' | 'compensation' | null;
+  },
+): Promise<WorkActionState> {
+  try {
+    await withOrgContext(async (context) => {
+      await linkDocumentToTask(context, taskId, input.documentId, {
+        label: input.label,
+        privacyClass: input.privacyClass,
+      });
     });
+    return { success: true };
+  } catch (error) {
+    return mapWorkActionError(error);
+  }
+}
+
+export async function unlinkTaskDocumentAction(
+  taskId: string,
+  linkId: string,
+): Promise<WorkActionState> {
+  try {
+    await withOrgContext(async (context) => {
+      await unlinkDocumentFromTask(context, taskId, linkId);
+    });
+    return { success: true };
+  } catch (error) {
+    return mapWorkActionError(error);
+  }
+}
+
+export async function recordTaskAttachmentAddedAction(
+  taskId: string,
+  documentId: string,
+): Promise<WorkActionState> {
+  try {
+    await withOrgContext(async (context) => {
+      await recordTaskAttachmentAdded(context, taskId, documentId);
+    });
+    return { success: true };
+  } catch (error) {
+    return mapWorkActionError(error);
   }
 }

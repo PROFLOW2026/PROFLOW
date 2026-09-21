@@ -18,6 +18,7 @@ export type TaskActivityEventType =
   | 'priority_changed'
   | 'comment_added'
   | 'attachment_added'
+  | 'attachment_removed'
   | 'checklist_completed'
   | 'approval_result'
   | 'dependency_added'
@@ -28,9 +29,25 @@ export type TaskActivityEventType =
   | 'label_added'
   | 'recurrence_generated'
   | 'automation_changed'
-  | 'system_generated';
+  | 'system_generated'
+  | 'subtask_added'
+  | 'task_duplicated'
+  | 'template_saved'
+  | 'task_from_template';
 
 export type TaskRecurrenceOccurrenceStatus = 'pending' | 'generated' | 'skipped' | 'cancelled';
+
+export type TaskReminderType = 'on_due' | 'day_before' | 'custom';
+
+export interface TaskReminder {
+  readonly id: string;
+  readonly organizationId: string;
+  readonly taskId: string;
+  readonly reminderType: TaskReminderType;
+  readonly remindAt: Date;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
+}
 
 export interface Task {
   readonly id: string;
@@ -191,12 +208,43 @@ export interface TaskRecurrenceOccurrence {
   readonly generatedTaskId: string | null;
 }
 
+export interface TaskLinkSummary {
+  readonly id: string;
+  readonly title: string;
+  readonly status: TaskStatus;
+  readonly dueDate: string | null;
+}
+
+export interface TaskDependencyView {
+  readonly id: string;
+  readonly taskId: string;
+  readonly taskTitle: string;
+  readonly dependencyType: TaskDependencyType;
+}
+
+export interface TaskSubtaskView extends TaskLinkSummary {
+  readonly assigneeCount: number;
+}
+
+export interface TaskTemplateSummary {
+  readonly id: string;
+  readonly title: string;
+  readonly description: string | null;
+  readonly priority: TaskPriority;
+  readonly itemCount: number;
+}
+
 export interface TaskDetail extends Task {
   readonly assignees: TaskAssignee[];
   readonly checklistItems: TaskChecklistItem[];
   readonly labels: TaskLabel[];
   readonly recentActivity: TaskActivity[];
   readonly commentCount: number;
+  readonly parentTask: TaskLinkSummary | null;
+  readonly subtasks: TaskSubtaskView[];
+  readonly dependsOn: TaskDependencyView[];
+  readonly blockedBy: TaskDependencyView[];
+  readonly blocks: TaskDependencyView[];
 }
 
 export interface CreateTaskInput {

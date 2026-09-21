@@ -20,12 +20,19 @@ export async function generateMetadata({
   return { title: t('time.quickLog') };
 }
 
-export default async function EmployeeHoursNewPage() {
+export default async function EmployeeHoursNewPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ projectId?: string; taskId?: string }>;
+}) {
+  const query = await searchParams;
   const t = await getTranslations('workforce');
 
   const formData = await withOrgContext(async (context) => {
     await authorize(context, { permission: PERMISSIONS.TIME_MANAGE, scope: 'self_only' });
-    const loaded = await loadQuickLogFormData(context);
+    const loaded = await loadQuickLogFormData(context, {
+      projectId: query.projectId,
+    });
     return {
       ...loaded,
       defaultDate: todayInTimeZone(context.organization.timezone),
@@ -51,6 +58,7 @@ export default async function EmployeeHoursNewPage() {
         defaultWeekdays={formData.defaultWeekdays}
         canApproveOnCreate={false}
         returnPath="/employee/hours"
+        defaultTaskId={query.taskId ?? null}
       />
     </div>
   );

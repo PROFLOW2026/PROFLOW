@@ -194,7 +194,10 @@
       "medium": "Medium",
       "high": "High",
       "urgent": "Urgent"
-    }
+    },
+    "reportedTimeLabel": "Reported time",
+    "reportedTimeHours": "{hours} h",
+    "reportTimeForTask": "Report time for task"
   },
   "projects": {
     "overview": {
@@ -209,6 +212,7 @@
     "hub": {
       "tasks": "Tasks",
       "board": "Board",
+      "logTime": "Log time",
       "files": "Files",
       "meetings": "Meetings"
     },

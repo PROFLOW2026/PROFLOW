@@ -23,6 +23,7 @@ import {
   updateTimeEntrySchema,
   purgeExactDuplicateDrafts,
 } from '@/modules/workforce';
+import { listTasksForTimeLog } from '@/modules/workforce/application/time-log-tasks';
 import { withOrgContext } from '@/shared/auth/session';
 import { businessDate } from '@/shared/dates';
 import { redirect } from '@/shared/i18n/navigation';
@@ -136,6 +137,7 @@ export async function createTimeEntryAction(
       workPackageId: formData.get('workPackageId') || null,
       phaseId: formData.get('phaseId') || null,
       timeCodeId: formData.get('timeCodeId') || null,
+      taskId: formData.get('taskId') || null,
       description: formData.get('description') || null,
     });
     if (!parsed.success) return { error: tErrors('validationFailed') };
@@ -161,6 +163,7 @@ export async function createTimeEntryAction(
       workPackageId: formData.get('workPackageId') || null,
       phaseId: formData.get('phaseId') || null,
       timeCodeId: formData.get('timeCodeId') || null,
+      taskId: formData.get('taskId') || null,
       description: formData.get('description') || null,
     });
     if (!parsed.success) return { error: tErrors('validationFailed') };
@@ -201,6 +204,7 @@ export async function createTimeEntryAction(
     workPackageId: formData.get('workPackageId') || null,
     phaseId: formData.get('phaseId') || null,
     timeCodeId: formData.get('timeCodeId') || null,
+    taskId: formData.get('taskId') || null,
     description: formData.get('description') || null,
     confirmDailyExcess: formData.get('confirmDailyExcess') === 'on',
     approveOnCreate: formData.get('approveOnCreate') === 'on',
@@ -388,4 +392,8 @@ export async function updateTimeEntryAction(
   } catch (error) {
     return mapActionError(error, fallback);
   }
+}
+
+export async function listTasksForTimeLogAction(projectId: string) {
+  return withOrgContext((context) => listTasksForTimeLog(context, projectId));
 }

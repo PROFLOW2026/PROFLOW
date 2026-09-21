@@ -82,6 +82,8 @@ export const NAV_ICON_KEYS = [
   'workspaces',
   'operations',
   'meetings',
+  'timeline',
+  'insights',
 ] as const;
 
 export type NavIconKey = (typeof NAV_ICON_KEYS)[number];
@@ -170,6 +172,33 @@ export const NAV_ITEMS: readonly NavItem[] = [
     href: '/work',
     labelKey: 'myWork',
     iconKey: 'myWork',
+    permission: PERMISSIONS.TASKS_READ,
+    module: 'work_management',
+    moreGroup: 'workManagement',
+  },
+  {
+    key: 'taskCalendar',
+    href: '/work/calendar',
+    labelKey: 'taskCalendar',
+    iconKey: 'calendar',
+    permission: PERMISSIONS.TASKS_READ,
+    module: 'work_management',
+    moreGroup: 'workManagement',
+  },
+  {
+    key: 'taskTimeline',
+    href: '/work/timeline',
+    labelKey: 'taskTimeline',
+    iconKey: 'timeline',
+    permission: PERMISSIONS.TASKS_READ,
+    module: 'work_management',
+    moreGroup: 'workManagement',
+  },
+  {
+    key: 'taskInsights',
+    href: '/work/insights',
+    labelKey: 'taskInsights',
+    iconKey: 'insights',
     permission: PERMISSIONS.TASKS_READ,
     module: 'work_management',
     moreGroup: 'workManagement',

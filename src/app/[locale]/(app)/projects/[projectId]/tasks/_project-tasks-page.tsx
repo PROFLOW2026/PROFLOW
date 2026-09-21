@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { withOrgContext } from '@/shared/auth/session';
+import { todayInTimeZone } from '@/shared/dates';
 import { Link } from '@/shared/i18n/navigation';
 // Agent A's real API
 import { listAccessibleTasks } from '@/modules/tasks';
@@ -22,12 +23,15 @@ export default async function ProjectTasksPage({
 
   const data = await withOrgContext(async (context) => {
     const rawTasks = await listAccessibleTasks(context, { projectId });
-    return { tasks: await mapTasksToCardDataForOrg(context, rawTasks) };
+    return {
+      tasks: await mapTasksToCardDataForOrg(context, rawTasks),
+      today: todayInTimeZone(context.organization.timezone),
+    };
   });
 
   if (!data) notFound();
 
-  const { tasks } = data;
+  const { tasks, today } = data;
 
   return (
     <div className="flex flex-col gap-6">
@@ -62,6 +66,7 @@ export default async function ProjectTasksPage({
           projectId={projectId}
           getTaskDetail={getTaskDetailAction}
           updateTask={updateTaskFieldsAction}
+          today={today}
         />
       )}
     </div>

@@ -24,6 +24,7 @@ import {
   Calendar,
   ChevronRight,
   CheckSquare,
+  Clock,
   FileText,
   Flag,
   Loader2,
@@ -47,7 +48,27 @@ import { cn } from '@/shared/ui/cn';
 import {
   uwmPrimaryButtonClass,
 } from '@/shared/ui/uwm-surface-styles';
+import {
+  addDependencyAction,
+  createSubtaskAction,
+  createTaskFromTemplateAction,
+  duplicateTaskAction,
+  listTaskPickerOptionsAction,
+  listTaskTemplatesAction,
+  removeDependencyAction,
+  saveTaskAsTemplateAction,
+} from '@/app/[locale]/(app)/work/actions';
+import { TaskDependenciesSection } from './task-dependencies-section';
+import { TaskSubtasksSection } from './task-subtasks-section';
+import { TaskDetailActions } from './task-detail-actions';
 import type { TaskDetail, TaskPriority, TaskStatus } from './_task-api-stub';
+import { TaskRecurrenceSection } from './task-recurrence-section';
+import {
+  TaskRemindersSection,
+  type TaskReminderToggle,
+} from './task-reminders-section';
+import type { RecurrencePreset } from '../domain/recurrence-presets';
+import { PostponeMenu } from './postpone-menu';
 
 // ---------------------------------------------------------------------------
 // Helpers / sub-components
@@ -190,6 +211,19 @@ export interface TaskDetailSheetProps {
     taskId: string,
     data: Record<string, unknown>,
   ) => void | Promise<{ success?: boolean; error?: string } | void>;
+  /** Reload task detail after dependency/subtask/duplicate/template mutations. */
+  onRefresh?: (taskId: string) => void | Promise<void>;
+  /** Business today (YYYY-MM-DD) for postpone menu baseline. */
+  today?: string;
+  /** When true, show postpone actions (+1 day / +1 week / pick date). */
+  canPostpone?: boolean;
+  /** Base path for canonical time entry flow (projectId + taskId query params appended). */
+  timeLogBasePath?: string;
+  recurrencePreset?: RecurrencePreset;
+  recurrenceInterval?: number;
+  onRecurrenceChange?: (value: { preset: RecurrencePreset; interval: number }) => void | Promise<void>;
+  reminders?: TaskReminderToggle[];
+  onReminderChange?: (value: TaskReminderToggle) => void | Promise<void>;
 }
 
 type TaskEditDraft = {
@@ -206,6 +240,15 @@ export function TaskDetailSheet({
   onOpenChange,
   embedded = false,
   onUpdate,
+  onRefresh,
+  today,
+  canPostpone = false,
+  timeLogBasePath,
+  recurrencePreset = 'none',
+  recurrenceInterval = 1,
+  onRecurrenceChange,
+  reminders = [],
+  onReminderChange,
 }: TaskDetailSheetProps) {
   const t = useTranslations('tasks');
   const [isPending, startTransition] = useTransition();
@@ -258,6 +301,11 @@ export function TaskDetailSheet({
     },
     [task, onUpdate],
   );
+
+  const handleRefresh = useCallback(async () => {
+    if (!task) return;
+    await onRefresh?.(task.id);
+  }, [onRefresh, task]);
 
   const handleSaveChanges = useCallback(() => {
     if (!task || !draft || !isDirty) return;
@@ -464,18 +512,72 @@ export function TaskDetailSheet({
 
               {/* Due date */}
               <Field label={t('dueDateLabel')} icon={<Calendar className="size-4" />}>
-                <input
-                  type="date"
-                  value={draft?.dueDate ?? task.dueDate ?? ''}
-                  onChange={(event) =>
-                    setDraft((current) =>
-                      current
-                        ? { ...current, dueDate: event.target.value || null }
-                        : current,
-                    )
-                  }
-                  className="rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--pf-focus-ring)]"
+                <div className="flex flex-wrap items-center gap-2">
+                  <input
+                    type="date"
+                    value={draft?.dueDate ?? task.dueDate ?? ''}
+                    onChange={(event) =>
+                      setDraft((current) =>
+                        current
+                          ? { ...current, dueDate: event.target.value || null }
+                          : current,
+                      )
+                    }
+                    className="rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--pf-focus-ring)]"
+                  />
+                  {canPostpone && today ? (
+                    <PostponeMenu
+                      dueDate={draft?.dueDate ?? task.dueDate}
+                      today={today}
+                      compact
+                      onApply={async (nextDueDate) => {
+                        await handleUpdate({ dueDate: nextDueDate });
+                        setDraft((current) =>
+                          current ? { ...current, dueDate: nextDueDate } : current,
+                        );
+                      }}
+                    />
+                  ) : null}
+                </div>
+              </Field>
+
+              {onRecurrenceChange ? (
+                <TaskRecurrenceSection
+                  preset={recurrencePreset}
+                  interval={recurrenceInterval}
+                  onChange={onRecurrenceChange}
+                  disabled={isPending}
                 />
+              ) : null}
+
+              {onReminderChange ? (
+                <TaskRemindersSection
+                  reminders={reminders}
+                  hasDueDate={Boolean(draft?.dueDate ?? task.dueDate)}
+                  onChange={onReminderChange}
+                  disabled={isPending}
+                />
+              ) : null}
+
+              {/* Reported time (read-only attribution) */}
+              <Field label={t('reportedTimeLabel')} icon={<Clock className="size-4" />}>
+                <p className="text-sm text-[var(--pf-text-primary)]">
+                  {t('reportedTimeHours', {
+                    hours: Number(task.reportedHours ?? 0).toLocaleString(undefined, {
+                      maximumFractionDigits: 2,
+                    }),
+                  })}
+                </p>
+                {timeLogBasePath && task.projectId ? (
+                  <p className="mt-1.5">
+                    <Link
+                      href={`${timeLogBasePath}?projectId=${task.projectId}&taskId=${task.id}`}
+                      className="text-sm font-medium text-[var(--pf-text-brand)] underline underline-offset-2"
+                    >
+                      {t('reportTimeForTask')}
+                    </Link>
+                  </p>
+                ) : null}
               </Field>
 
               {/* Labels */}
@@ -500,6 +602,38 @@ export function TaskDetailSheet({
                   </div>
                 </Field>
               )}
+
+              <TaskDetailActions
+                taskId={task.id}
+                workspaceId={task.workspaceId}
+                projectId={task.projectId}
+                boardId={task.boardId}
+                bucketId={task.bucketId}
+                onDuplicate={duplicateTaskAction}
+                onSaveAsTemplate={saveTaskAsTemplateAction}
+                onCreateFromTemplate={createTaskFromTemplateAction}
+                listTemplates={listTaskTemplatesAction}
+              />
+
+              <TaskDependenciesSection
+                taskId={task.id}
+                dependsOn={task.dependsOn ?? []}
+                blockedBy={task.blockedBy ?? []}
+                blocks={task.blocks ?? []}
+                onRefresh={handleRefresh}
+                listPickerOptions={listTaskPickerOptionsAction}
+                onAddDependency={addDependencyAction}
+                onRemoveDependency={removeDependencyAction}
+              />
+
+              <TaskSubtasksSection
+                taskId={task.id}
+                parentTask={task.parentTask ?? null}
+                subtasks={task.subtasks ?? []}
+                canAddSubtask={!task.parentTask}
+                onRefresh={handleRefresh}
+                onCreateSubtask={createSubtaskAction}
+              />
 
               {/* Description */}
               <div>

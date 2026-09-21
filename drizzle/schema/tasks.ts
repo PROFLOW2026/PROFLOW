@@ -19,6 +19,7 @@ import {
   taskDependencyTypeEnum,
   taskPriorityEnum,
   taskRecurrenceOccurrenceStatusEnum,
+  taskReminderTypeEnum,
   taskSourceEnum,
   taskStatusEnum,
 } from './enums';
@@ -511,6 +512,29 @@ export const taskRecurrenceOccurrences = pgTable(
     uniqueIndex('task_recurrence_occurrences_generated_task_uq')
       .on(t.generatedTaskId)
       .where(sql`${t.generatedTaskId} IS NOT NULL`),
+  ],
+);
+
+// ─── Reminders ────────────────────────────────────────────────────────────────
+
+export const taskReminders = pgTable(
+  'task_reminders',
+  {
+    id: primaryId(),
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    taskId: uuid('task_id')
+      .notNull()
+      .references(() => tasks.id, { onDelete: 'cascade' }),
+    reminderType: taskReminderTypeEnum('reminder_type').notNull(),
+    remindAt: timestamp('remind_at', { withTimezone: true, mode: 'date' }).notNull(),
+    ...timestamps(),
+  },
+  (t) => [
+    uniqueIndex('task_reminders_task_type_uq').on(t.taskId, t.reminderType),
+    index('task_reminders_org_remind_idx').on(t.organizationId, t.remindAt),
+    index('task_reminders_task_idx').on(t.taskId),
   ],
 );
 

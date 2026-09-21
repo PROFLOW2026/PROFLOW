@@ -43,6 +43,7 @@ function mapTimeEntry(row: typeof timeEntries.$inferSelect): TimeEntryRecord {
     hours: row.hours,
     kind: row.kind,
     projectId: row.projectId,
+    taskId: row.taskId ?? null,
     workPackageId: row.workPackageId,
     phaseId: row.phaseId,
     timeCodeId: row.timeCodeId,

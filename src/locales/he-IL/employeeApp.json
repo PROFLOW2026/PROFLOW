@@ -180,6 +180,9 @@
       "high": "גבוהה",
       "urgent": "דחוף"
     },
+    "reportedTimeLabel": "זמן שדווח",
+    "reportedTimeHours": "{hours} שעות",
+    "reportTimeForTask": "דווח זמן למשימה",
     "create": {
       "formTitle": "משימה חדשה",
       "noProjects": "אין פרויקטים זמינים ליצירת משימות בהיקף שלך",
@@ -209,6 +212,7 @@
     "hub": {
       "tasks": "משימות",
       "board": "לוח",
+      "logTime": "דיווח שעות",
       "files": "קבצים",
       "meetings": "ישיבות"
     },

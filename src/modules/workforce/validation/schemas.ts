@@ -180,6 +180,7 @@ export const createTimeEntrySchema = z
     workPackageId: z.string().uuid().optional().nullable(),
     phaseId: z.string().uuid().optional().nullable(),
     timeCodeId: z.string().uuid().optional().nullable(),
+    taskId: z.string().uuid().optional().nullable(),
     description: z.string().trim().max(2000).optional().nullable(),
     confirmDailyExcess: z.boolean().optional(),
     /** Owner/admin: create as approved in one step (requires time.approve). */
@@ -193,6 +194,12 @@ export const createTimeEntrySchema = z
     }
     if (value.kind === 'non_project' && !value.timeCodeId) {
       ctx.addIssue({ code: 'custom', path: ['timeCodeId'], message: 'validation.timeCodeRequired' });
+    }
+    if (value.taskId && value.kind !== 'project') {
+      ctx.addIssue({ code: 'custom', path: ['taskId'], message: 'validation.taskProjectOnly' });
+    }
+    if (value.taskId && !value.projectId) {
+      ctx.addIssue({ code: 'custom', path: ['taskId'], message: 'validation.taskRequiresProject' });
     }
   });
 
@@ -221,6 +228,7 @@ export const createBulkTimeEntriesSchema = z
     workPackageId: z.string().uuid().optional().nullable(),
     phaseId: z.string().uuid().optional().nullable(),
     timeCodeId: z.string().uuid().optional().nullable(),
+    taskId: z.string().uuid().optional().nullable(),
     description: z.string().trim().max(2000).optional().nullable(),
     confirmDailyExcess: z.boolean().optional(),
   })
@@ -236,6 +244,12 @@ export const createBulkTimeEntriesSchema = z
     }
     if (value.kind === 'non_project' && !value.timeCodeId) {
       ctx.addIssue({ code: 'custom', path: ['timeCodeId'], message: 'validation.timeCodeRequired' });
+    }
+    if (value.taskId && value.kind !== 'project') {
+      ctx.addIssue({ code: 'custom', path: ['taskId'], message: 'validation.taskProjectOnly' });
+    }
+    if (value.taskId && !value.projectId) {
+      ctx.addIssue({ code: 'custom', path: ['taskId'], message: 'validation.taskRequiresProject' });
     }
   });
 

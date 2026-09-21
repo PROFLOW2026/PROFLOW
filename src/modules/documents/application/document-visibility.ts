@@ -15,6 +15,7 @@ import { assertCanReadDocumentForEmployee, canEmployeeReadDocumentCategory } fro
 import { isEmployeeAppUser } from '@/modules/employee-app/application/load-employee-app-context';
 import type { DocumentRecord } from '../domain/types';
 import { listProjectScopedOwnerIdsForDocument } from '../data/documents.repository';
+import { findTaskCommentById, assertCanAccessTask } from '@/modules/tasks';
 
 export function canReadCompensationDocuments(context: OrgContext): boolean {
   return hasPermission(context, PERMISSIONS.WORKFORCE_COST_READ);
@@ -65,6 +66,18 @@ export async function assertCanListEntityDocuments(
   ownerType: string,
   ownerId: string,
 ): Promise<void> {
+  if (ownerType === 'task') {
+    await assertCanAccessTask(context, ownerId);
+    return;
+  }
+
+  if (ownerType === 'task_comment') {
+    const comment = await findTaskCommentById(context.db, context.organizationId, ownerId);
+    if (!comment) throw new NotFoundError('Task comment');
+    await assertCanAccessTask(context, comment.taskId);
+    return;
+  }
+
   if (isProjectScopedDocumentOwnerType(ownerType)) {
     await assertCanAccessProject(context, ownerId);
   }

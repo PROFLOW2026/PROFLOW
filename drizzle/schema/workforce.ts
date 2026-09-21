@@ -471,6 +471,8 @@ export const timeEntries = pgTable(
     workPackageId: uuid('work_package_id').references(() => workPackages.id, { onDelete: 'set null' }),
     phaseId: uuid('phase_id').references(() => phases.id, { onDelete: 'set null' }),
     timeCodeId: uuid('time_code_id').references(() => nonProjectTimeCodes.id, { onDelete: 'set null' }),
+    /** Optional PM task context — operational attribution only; labor costing unaffected (0107). */
+    taskId: uuid('task_id'),
 
     /** Cost snapshot. Null when no rate was configured for that date. */
     rateVersionId: uuid('rate_version_id').references(() => rateVersions.id, { onDelete: 'set null' }),
@@ -512,6 +514,9 @@ export const timeEntries = pgTable(
     index('time_entries_org_date_idx').on(table.organizationId, table.workDate),
     index('time_entries_employee_date_idx').on(table.employeeId, table.workDate),
     index('time_entries_project_idx').on(table.projectId),
+    index('time_entries_task_idx')
+      .on(table.taskId)
+      .where(sql`${table.taskId} is not null`),
     index('time_entries_org_status_idx').on(table.organizationId, table.status),
     index('time_entries_org_approval_idx').on(table.organizationId, table.approvalStatus),
     index('time_entries_timesheet_idx').on(table.timesheetId),
