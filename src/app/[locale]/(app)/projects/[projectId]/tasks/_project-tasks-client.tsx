@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { TaskListView } from '@/modules/tasks/ui/task-list-view';
 import { TaskDetailSheet } from '@/modules/tasks/ui/task-detail-sheet';
 import type { TaskCardData, TaskDetail } from '@/modules/tasks/ui/_task-api-stub';
 import type { WorkActionState } from '@/app/[locale]/(app)/work/actions';
+import { uwmPrimaryPanelClass } from '@/shared/ui/uwm-surface-styles';
 
 export function ProjectTasksClient({
   tasks,
@@ -19,7 +20,6 @@ export function ProjectTasksClient({
   updateTask: (taskId: string, data: Record<string, unknown>) => Promise<WorkActionState>;
 }) {
   const t = useTranslations('tasks');
-  const [, startTransition] = useTransition();
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [taskDetail, setTaskDetail] = useState<TaskDetail | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -31,16 +31,15 @@ export function ProjectTasksClient({
     setTaskDetail(detail);
   };
 
-  const handleUpdate = (taskId: string, data: Record<string, unknown>) => {
-    startTransition(async () => {
-      await updateTask(taskId, data);
-      const refreshed = await getTaskDetail(taskId);
-      if (refreshed) setTaskDetail(refreshed);
-    });
+  const handleUpdate = async (taskId: string, data: Record<string, unknown>) => {
+    const result = await updateTask(taskId, data);
+    const refreshed = await getTaskDetail(taskId);
+    if (refreshed) setTaskDetail(refreshed);
+    return result;
   };
 
   return (
-    <>
+    <div className={uwmPrimaryPanelClass}>
       <TaskListView
         tasks={tasks}
         onOpenTask={handleOpenTask}
@@ -61,6 +60,6 @@ export function ProjectTasksClient({
         }}
         onUpdate={handleUpdate}
       />
-    </>
+    </div>
   );
 }

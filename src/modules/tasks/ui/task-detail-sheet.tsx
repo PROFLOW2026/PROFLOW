@@ -44,6 +44,9 @@ import {
   SheetBody,
 } from '@/components/ui/sheet';
 import { cn } from '@/shared/ui/cn';
+import {
+  uwmPrimaryButtonClass,
+} from '@/shared/ui/uwm-surface-styles';
 import type { TaskDetail, TaskPriority, TaskStatus } from './_task-api-stub';
 
 // ---------------------------------------------------------------------------
@@ -108,51 +111,6 @@ function Field({
         <div className="mt-1">{children}</div>
       </div>
     </div>
-  );
-}
-
-/** Inline editable title */
-function EditableTitle({
-  value,
-  onChange,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-}) {
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(value);
-
-  if (editing) {
-    return (
-      <textarea
-         
-        autoFocus
-        value={draft}
-        onChange={(e) => setDraft(e.target.value)}
-        onBlur={() => {
-          setEditing(false);
-          if (draft.trim() && draft.trim() !== value) onChange(draft.trim());
-        }}
-        onKeyDown={(e) => {
-          if (e.key === 'Escape') {
-            setDraft(value);
-            setEditing(false);
-          }
-        }}
-        rows={2}
-        className="w-full resize-none rounded-md border border-[var(--pf-border-strong)] bg-[var(--pf-bg-surface)] px-2 py-1 text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--pf-focus-ring)]"
-      />
-    );
-  }
-
-  return (
-    <button
-      type="button"
-      onClick={() => setEditing(true)}
-      className="w-full cursor-text text-start text-lg font-semibold hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
-    >
-      {value}
-    </button>
   );
 }
 
@@ -225,11 +183,22 @@ export interface TaskDetailSheetProps {
   /** When true, renders inline panel content without the Sheet overlay (full page mode). */
   embedded?: boolean;
   /**
-   * Called when user changes a field.
+   * Called when user saves pending field changes.
    * Parent must fire the updateTask Server Action.
    */
-  onUpdate: (taskId: string, data: Record<string, unknown>) => void;
+  onUpdate: (
+    taskId: string,
+    data: Record<string, unknown>,
+  ) => void | Promise<{ success?: boolean; error?: string } | void>;
 }
+
+type TaskEditDraft = {
+  title: string;
+  description: string;
+  status: TaskStatus;
+  priority: TaskPriority;
+  dueDate: string | null;
+};
 
 export function TaskDetailSheet({
   task,
@@ -240,6 +209,38 @@ export function TaskDetailSheet({
 }: TaskDetailSheetProps) {
   const t = useTranslations('tasks');
   const [isPending, startTransition] = useTransition();
+  const [draft, setDraft] = useState<TaskEditDraft | null>(null);
+  const [draftTaskId, setDraftTaskId] = useState<string | null>(null);
+  const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(
+    null,
+  );
+
+  if (task?.id !== draftTaskId) {
+    setDraftTaskId(task?.id ?? null);
+    setDraft(
+      task
+        ? {
+            title: task.title,
+            description: task.description ?? '',
+            status: task.status,
+            priority: task.priority,
+            dueDate: task.dueDate,
+          }
+        : null,
+    );
+    setSaveMessage(null);
+  }
+
+  const isDirty = useMemo(() => {
+    if (!task || !draft) return false;
+    return (
+      draft.title.trim() !== task.title ||
+      (draft.description.trim() || null) !== task.description ||
+      draft.status !== task.status ||
+      draft.priority !== task.priority ||
+      draft.dueDate !== task.dueDate
+    );
+  }, [task, draft]);
 
   const statusOptions = useMemo(
     () => STATUS_VALUES.map((value) => ({ value, label: t(`status.${value}`) })),
@@ -252,13 +253,39 @@ export function TaskDetailSheet({
 
   const handleUpdate = useCallback(
     (data: Record<string, unknown>) => {
-      if (!task) return;
-      startTransition(() => {
-        onUpdate(task.id, data);
-      });
+      if (!task) return Promise.resolve(undefined);
+      return Promise.resolve(onUpdate(task.id, data));
     },
-    [task, onUpdate, startTransition],
+    [task, onUpdate],
   );
+
+  const handleSaveChanges = useCallback(() => {
+    if (!task || !draft || !isDirty) return;
+    const patch: Record<string, unknown> = {};
+    if (draft.title.trim() !== task.title) patch.title = draft.title.trim();
+    if ((draft.description.trim() || null) !== task.description) {
+      patch.description = draft.description.trim() || null;
+    }
+    if (draft.status !== task.status) patch.status = draft.status;
+    if (draft.priority !== task.priority) patch.priority = draft.priority;
+    if (draft.dueDate !== task.dueDate) patch.dueDate = draft.dueDate;
+
+    startTransition(() => {
+      void (async () => {
+        setSaveMessage(null);
+        try {
+          const result = await handleUpdate(patch);
+          if (result && 'error' in result && result.error) {
+            setSaveMessage({ type: 'error', text: result.error });
+            return;
+          }
+          setSaveMessage({ type: 'success', text: t('saveSuccess') });
+        } catch {
+          setSaveMessage({ type: 'error', text: t('saveFailed') });
+        }
+      })();
+    });
+  }, [task, draft, isDirty, handleUpdate, t]);
 
   const body =
     task == null ? (
@@ -293,9 +320,14 @@ export function TaskDetailSheet({
             </nav>
 
             <SheetTitle asChild>
-              <EditableTitle
-                value={task.title}
-                onChange={(title) => handleUpdate({ title })}
+              <input
+                value={draft?.title ?? task.title}
+                onChange={(event) =>
+                  setDraft((current) =>
+                    current ? { ...current, title: event.target.value } : current,
+                  )
+                }
+                className="w-full rounded-md border border-transparent bg-transparent px-0 text-lg font-semibold focus:border-[var(--pf-border-strong)] focus:bg-[var(--pf-bg-surface)] focus:px-2 focus:outline-none focus:ring-2 focus:ring-[var(--pf-focus-ring)]"
               />
             </SheetTitle>
 
@@ -322,9 +354,14 @@ export function TaskDetailSheet({
           </SheetHeader>
         ) : (
           <div className="border-b border-[var(--pf-border-default)] px-4 py-4">
-            <EditableTitle
-              value={task.title}
-              onChange={(title) => handleUpdate({ title })}
+            <input
+              value={draft?.title ?? task.title}
+              onChange={(event) =>
+                setDraft((current) =>
+                  current ? { ...current, title: event.target.value } : current,
+                )
+              }
+              className="w-full rounded-md border border-transparent bg-transparent px-0 text-lg font-semibold focus:border-[var(--pf-border-strong)] focus:bg-[var(--pf-bg-surface)] focus:px-2 focus:outline-none focus:ring-2 focus:ring-[var(--pf-focus-ring)]"
             />
             <div className="mt-2 flex flex-wrap items-center gap-2">
               {task.projectName && (
@@ -341,8 +378,14 @@ export function TaskDetailSheet({
               {/* Status */}
               <Field label={t('statusLabel')} icon={<CheckSquare className="size-4" />}>
                 <select
-                  value={task.status}
-                  onChange={(e) => handleUpdate({ status: e.target.value })}
+                  value={draft?.status ?? task.status}
+                  onChange={(event) =>
+                    setDraft((current) =>
+                      current
+                        ? { ...current, status: event.target.value as TaskStatus }
+                        : current,
+                    )
+                  }
                   className="block w-full rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--pf-focus-ring)]"
                 >
                   {statusOptions.map((o) => (
@@ -352,8 +395,8 @@ export function TaskDetailSheet({
                   ))}
                 </select>
                 <div className="mt-1">
-                  <Badge tone={STATUS_TONE[task.status]} className="text-xs">
-                    {statusOptions.find((o) => o.value === task.status)?.label}
+                    <Badge tone={STATUS_TONE[draft?.status ?? task.status]} className="text-xs">
+                      {statusOptions.find((o) => o.value === (draft?.status ?? task.status))?.label}
                   </Badge>
                 </div>
               </Field>
@@ -365,17 +408,24 @@ export function TaskDetailSheet({
                     <button
                       key={o.value}
                       type="button"
-                      onClick={() => handleUpdate({ priority: o.value })}
-                      aria-pressed={task.priority === o.value}
+                      onClick={() =>
+                        setDraft((current) =>
+                          current ? { ...current, priority: o.value } : current,
+                        )
+                      }
+                      aria-pressed={(draft?.priority ?? task.priority) === o.value}
                       className="focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]"
                     >
                       <Badge
                         tone={
-                          task.priority === o.value ? PRIORITY_TONE[o.value] : 'neutral'
+                          (draft?.priority ?? task.priority) === o.value
+                            ? PRIORITY_TONE[o.value]
+                            : 'neutral'
                         }
                         className={cn(
                           'cursor-pointer text-xs transition-opacity',
-                          task.priority !== o.value && 'opacity-50 hover:opacity-80',
+                          (draft?.priority ?? task.priority) !== o.value &&
+                            'opacity-50 hover:opacity-80',
                         )}
                       >
                         {o.label}
@@ -416,11 +466,14 @@ export function TaskDetailSheet({
               <Field label={t('dueDateLabel')} icon={<Calendar className="size-4" />}>
                 <input
                   type="date"
-                  defaultValue={task.dueDate ?? ''}
-                  onBlur={(e) => {
-                    const val = e.target.value || null;
-                    if (val !== task.dueDate) handleUpdate({ dueDate: val });
-                  }}
+                  value={draft?.dueDate ?? task.dueDate ?? ''}
+                  onChange={(event) =>
+                    setDraft((current) =>
+                      current
+                        ? { ...current, dueDate: event.target.value || null }
+                        : current,
+                    )
+                  }
                   className="rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--pf-focus-ring)]"
                 />
               </Field>
@@ -452,13 +505,14 @@ export function TaskDetailSheet({
               <div>
                 <SectionLabel>{t('descriptionLabel')}</SectionLabel>
                 <textarea
-                  defaultValue={task.description ?? ''}
+                  value={draft?.description ?? task.description ?? ''}
                   placeholder={t('descriptionPlaceholder')}
                   rows={4}
-                  onBlur={(e) => {
-                    const val = e.target.value.trim() || null;
-                    if (val !== task.description) handleUpdate({ description: val });
-                  }}
+                  onChange={(event) =>
+                    setDraft((current) =>
+                      current ? { ...current, description: event.target.value } : current,
+                    )
+                  }
                   className="mt-1 w-full resize-y rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-2.5 py-2 text-sm placeholder:text-[var(--pf-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--pf-focus-ring)]"
                 />
               </div>
@@ -516,6 +570,36 @@ export function TaskDetailSheet({
                   </p>
                 </div>
               ) : null}
+
+              <div className="sticky bottom-0 -mx-4 border-t border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-4 py-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    className={uwmPrimaryButtonClass}
+                    disabled={!isDirty || isPending}
+                    onClick={handleSaveChanges}
+                  >
+                    {isPending ? t('saving') : t('saveChanges')}
+                  </button>
+                  {isDirty ? (
+                    <span className="text-xs font-medium text-[var(--pf-text-secondary)]">
+                      {t('pendingChanges')}
+                    </span>
+                  ) : null}
+                </div>
+                {saveMessage ? (
+                  <p
+                    className={cn(
+                      'mt-2 text-sm',
+                      saveMessage.type === 'success'
+                        ? 'text-[var(--pf-status-success-fg)]'
+                        : 'text-[var(--pf-status-danger-fg)]',
+                    )}
+                  >
+                    {saveMessage.text}
+                  </p>
+                ) : null}
+              </div>
             </SheetBody>
       </>
     );

@@ -82,6 +82,7 @@ export { addDependency, removeDependency } from './application/set-dependency';
 export { followTask, unfollowTask } from './application/follow-task';
 export { addLabelToTask, removeLabelFromTask } from './application/manage-labels';
 export { createComment } from './application/create-task-comment';
+export { recordTaskApprovalActivity } from './application/record-task-approval-activity';
 export { listComments } from './application/list-task-comments';
 export { listActivity } from './application/list-task-activity';
 export {

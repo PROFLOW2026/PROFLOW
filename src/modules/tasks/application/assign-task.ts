@@ -65,4 +65,17 @@ export async function removeAssignee(
   if (!task) throw new NotFoundError('Task');
 
   await deleteTaskAssignee(context.db, taskId, actor);
+
+  const actorFields = buildActivityActorFieldsFromContext(context);
+  await insertTaskActivity(context.db, {
+    taskId,
+    organizationId: context.organizationId,
+    ...actorFields,
+    eventType: 'assigned',
+    payload: {
+      action: 'removed',
+      orgMemberId: actor.orgMemberId ?? null,
+      employeeId: actor.employeeId ?? null,
+    },
+  });
 }

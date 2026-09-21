@@ -19,6 +19,7 @@ import { serializeError } from '@/shared/errors';
 import { withOrgContext } from '@/shared/auth/session';
 import { assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { createComment, recordTaskApprovalActivity } from '@/modules/tasks';
 import {
   submitApprovalRequest,
   decideApprovalRequest,
@@ -61,15 +62,7 @@ export async function addTaskCommentAction(
 
   try {
     await withOrgContext(async (context) => {
-      assertPermission(context, PERMISSIONS.TASKS_COMMENT);
-
-      await context.db.insert(taskComments).values({
-        taskId,
-        organizationId: context.organizationId,
-        authorOrgMemberId: context.membershipId,
-        authorEmployeeId: null,
-        body,
-      });
+      await createComment(context, taskId, { body });
     });
 
     revalidateTask(taskId);
@@ -237,6 +230,8 @@ export async function decideTaskApprovalAction(
         decision,
         decisionNote: fv(formData, 'decisionNote') ?? null,
       });
+
+      await recordTaskApprovalActivity(context, taskId, { decision, requestId });
     });
 
     revalidateTask(taskId);

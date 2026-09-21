@@ -11,6 +11,7 @@ import { useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
+import { uwmTabBarClass, uwmTabClass } from '@/shared/ui/uwm-surface-styles';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
@@ -98,14 +99,18 @@ export function ProjectBoardShell({
     });
   };
 
-  const handleUpdateTask = (taskId: string, data: Record<string, unknown>) => {
-    startTransition(async () => {
-      try {
-        await actions.updateTask(taskId, data);
-      } catch {
-        // TODO: surface error toast
-      }
-    });
+  const handleUpdateTask = async (taskId: string, data: Record<string, unknown>) => {
+    try {
+      await actions.updateTask(taskId, data);
+      const refreshed = await actions.getTaskDetail(taskId);
+      if (refreshed) setTaskDetail(refreshed);
+      return { success: true as const };
+    } catch (error) {
+      return {
+        success: false as const,
+        error: error instanceof Error ? error.message : 'Update failed',
+      };
+    }
   };
 
   const activeBoards = boards.filter((b) => !b.isArchived);
@@ -116,7 +121,7 @@ export function ProjectBoardShell({
       {activeBoards.length > 1 && (
         <nav
           aria-label={t('boards.switcherLabel')}
-          className="flex overflow-x-auto border-b border-[var(--pf-border-default)]"
+          className={cn(uwmTabBarClass, 'overflow-x-auto')}
         >
           {activeBoards.map((board) => {
             const active = board.id === activeBoard.id;
@@ -125,10 +130,8 @@ export function ProjectBoardShell({
                 key={board.id}
                 href={`/projects/${projectId}/boards/${board.id}`}
                 className={cn(
-                  'inline-flex shrink-0 items-center gap-1.5 border-b-2 px-3 py-2 text-sm font-medium whitespace-nowrap transition-colors',
-                  active
-                    ? 'border-[var(--pf-border-brand)] text-[var(--pf-text-brand)]'
-                    : 'border-transparent text-[var(--pf-text-secondary)] hover:border-[var(--pf-border-default)] hover:text-[var(--pf-text-primary)]',
+                  uwmTabClass(active),
+                  'inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap no-underline',
                 )}
                 aria-current={active ? 'page' : undefined}
               >

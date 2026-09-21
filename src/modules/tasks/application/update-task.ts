@@ -57,8 +57,22 @@ export async function updateTask(
     payload?: Record<string, unknown>;
   }> = [];
 
-  if (input.title !== undefined) patch.title = input.title;
-  if (input.description !== undefined) patch.description = input.description;
+  if (input.title !== undefined && input.title !== existing.title) {
+    patch.title = input.title;
+    activityEvents.push({
+      eventType: 'automation_changed',
+      payload: { field: 'title', from: existing.title, to: input.title },
+    });
+  }
+
+  if (input.description !== undefined && input.description !== existing.description) {
+    patch.description = input.description;
+    activityEvents.push({
+      eventType: 'automation_changed',
+      payload: { field: 'description', from: existing.description, to: input.description },
+    });
+  }
+
   if (input.estimatedEffortMinutes !== undefined) patch.estimatedEffortMinutes = input.estimatedEffortMinutes;
   if (input.milestoneId !== undefined) patch.milestoneId = input.milestoneId;
   if (input.approvalRequired !== undefined) patch.approvalRequired = input.approvalRequired;

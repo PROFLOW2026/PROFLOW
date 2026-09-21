@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { Calendar, MapPin, Plus, Users } from 'lucide-react';
 import { PageHeader } from '@/components/ui/page-header';
@@ -6,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { countMeetingsForOrg, listMeetingsForOrg } from '@/modules/meetings';
+import { OwnerMeetingsFilterBar } from '@/modules/meetings/ui/owner-meetings-filter-bar';
 import { QueryPagination } from '@/components/ui/query-pagination';
 import {
   ORG_LIST_PAGE_SIZE,
@@ -21,6 +23,8 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { Link } from '@/shared/i18n/navigation';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
+import { loadProjectDisplayNameMap } from '@/modules/projects/application/project-display-names';
+import { uwmListPanelClass } from '@/shared/ui/uwm-surface-styles';
 
 export async function generateMetadata({
   params,
@@ -38,6 +42,7 @@ interface MeetingsPageProps {
     workspace?: string;
     from?: string;
     to?: string;
+    q?: string;
     page?: string;
   }>;
 }
@@ -60,25 +65,34 @@ export default async function MeetingsPage({ searchParams }: MeetingsPageProps) 
   const baseFilters: MeetingListFilters = {
     projectId: params.project || undefined,
     workspaceId: params.workspace || undefined,
-    fromDate: params.from ? new Date(params.from) : undefined,
-    toDate: params.to ? new Date(params.to) : undefined,
+    fromDate: params.from ? new Date(`${params.from}T00:00:00.000Z`) : undefined,
+    toDate: params.to ? new Date(`${params.to}T23:59:59.999Z`) : undefined,
+    search: params.q || undefined,
   };
 
-  const { meetings, totalCount, currentPage, totalPages } = await withOrgContext(async (context) => {
-    const total = await countMeetingsForOrg(context, baseFilters);
-    const page = resolveOrgListPage(total, requestedPage);
-    const rows = await listMeetingsForOrg(context, {
-      ...baseFilters,
-      limit: ORG_LIST_PAGE_SIZE,
-      offset: orgListOffset(page),
-    });
-    return {
-      meetings: rows,
-      totalCount: total,
-      currentPage: page,
-      totalPages: orgListPageCount(total),
-    };
-  });
+  const { meetings, totalCount, currentPage, totalPages, projectOptions } = await withOrgContext(
+    async (context) => {
+      const total = await countMeetingsForOrg(context, baseFilters);
+      const page = resolveOrgListPage(total, requestedPage);
+      const rows = await listMeetingsForOrg(context, {
+        ...baseFilters,
+        limit: ORG_LIST_PAGE_SIZE,
+        offset: orgListOffset(page),
+      });
+      const projectIds = [...new Set(rows.map((row) => row.projectId).filter(Boolean) as string[])];
+      const labels = await loadProjectDisplayNameMap(context.db, context.organizationId, projectIds);
+      const projectOptions = [...labels.entries()]
+        .map(([id, displayName]) => ({ id, displayName }))
+        .sort((a, b) => a.displayName.localeCompare(b.displayName));
+      return {
+        meetings: rows,
+        totalCount: total,
+        currentPage: page,
+        totalPages: orgListPageCount(total),
+        projectOptions,
+      };
+    },
+  );
 
   return (
     <div className="flex min-w-0 max-w-full flex-col gap-6">
@@ -97,24 +111,13 @@ export default async function MeetingsPage({ searchParams }: MeetingsPageProps) 
         }
       />
 
-      {/* Filters row */}
-      <form method="get" className="flex flex-wrap gap-2">
-        {params.project && <input type="hidden" name="project" value={params.project} />}
-        {params.workspace && <input type="hidden" name="workspace" value={params.workspace} />}
-        {params.from && (
-          <div className="flex items-center gap-1 text-sm">
-            <span className="text-[var(--pf-text-secondary)]">{t('meetings.filters.from')}</span>
-            <span>{params.from}</span>
-            <Link href="/meetings" className="text-xs text-[var(--pf-accent)] hover:underline ml-1">
-              {t('meetings.filters.clear')}
-            </Link>
-          </div>
-        )}
-      </form>
+      <Suspense fallback={null}>
+        <OwnerMeetingsFilterBar projectOptions={projectOptions} totalCount={totalCount} />
+      </Suspense>
 
       {meetings.length === 0 ? (
         <EmptyState
-          title={t('meetings.empty')}
+          title={t('meetings.emptyFiltered', { defaultValue: t('meetings.empty') })}
           description={
             canManage ? t('meetings.emptyDescriptionManage') : t('meetings.emptyDescriptionRead')
           }
@@ -130,7 +133,7 @@ export default async function MeetingsPage({ searchParams }: MeetingsPageProps) 
           }
         />
       ) : (
-        <div className="overflow-x-auto">
+        <div className={cn('overflow-x-auto', uwmListPanelClass)}>
           <Table>
             <TableHeader>
               <TableRow>
@@ -172,10 +175,7 @@ export default async function MeetingsPage({ searchParams }: MeetingsPageProps) 
                   </TableCell>
                   <TableCell className="text-sm text-[var(--pf-text-secondary)]">
                     {meeting.projectName ? (
-                      <Link
-                        href={`/projects/${meeting.projectId}`}
-                        className="hover:underline"
-                      >
+                      <Link href={`/projects/${meeting.projectId}`} className="hover:underline">
                         {meeting.projectName}
                       </Link>
                     ) : meeting.workspaceName ? (
@@ -210,6 +210,7 @@ export default async function MeetingsPage({ searchParams }: MeetingsPageProps) 
           workspace: params.workspace,
           from: params.from,
           to: params.to,
+          q: params.q,
         }}
         previousLabel={tCommon('actions.previous')}
         nextLabel={tCommon('actions.next')}

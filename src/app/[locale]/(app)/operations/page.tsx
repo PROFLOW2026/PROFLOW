@@ -8,7 +8,11 @@ import { withOrgContext, getShellContext } from '@/shared/auth/session';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { Link } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
-import { uwmSecondaryPanelClass, uwmStatCardClass } from '@/shared/ui/uwm-surface-styles';
+import {
+  uwmSecondaryPanelClass,
+  uwmSectionHeadingClass,
+  uwmStatCardClass,
+} from '@/shared/ui/uwm-surface-styles';
 
 export async function generateMetadata({
   params,
@@ -40,9 +44,7 @@ export default async function OperationsDashboardPage() {
       <PageHeader title={t('pageTitle')} description={t('pageDescription')} />
 
       <section>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-[var(--pf-text-secondary)]">
-          {t('sections.projects')}
-        </h2>
+        <h2 className={cn('mb-3', uwmSectionHeadingClass)}>{t('sections.projects')}</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           <StatCard
             icon={<Package className="h-4 w-4" />}
@@ -62,9 +64,7 @@ export default async function OperationsDashboardPage() {
       </section>
 
       <section>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-[var(--pf-text-secondary)]">
-          {t('sections.taskHealth')}
-        </h2>
+        <h2 className={cn('mb-3', uwmSectionHeadingClass)}>{t('sections.taskHealth')}</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           <StatCard
             icon={<Calendar className="h-4 w-4" />}

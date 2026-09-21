@@ -3,18 +3,6 @@
  *
  * Shows a chronological list of task_activity events for a given task.
  * Distinguishes between human actors and system-generated events.
- *
- * Data contract (until Agent A ships list-task-activity.ts):
- *   Fetches directly via Drizzle. Once Agent A exports
- *   `listTaskActivity(context, taskId, opts)` from
- *   `@/modules/tasks/application/list-task-activity`, replace the inline
- *   query block.
- *
- * i18n keys produced here use the `tasks.activity.*` namespace.
- * A placeholder set is written below — Lead / translator will fill real strings.
- *
- * Compact / expanded toggle when > 10 events.
- * Load-more (paginated with cursor based on createdAt).
  */
 
 import {
@@ -39,20 +27,19 @@ import {
   loadTaskActivityForDisplay,
   type TaskActivityDisplayRow,
 } from '@/modules/tasks/application/load-task-activity-for-display';
+import {
+  formatActivityDiff,
+  formatActivityPayloadSummary,
+  resolveActivityEventLabelKey,
+} from './format-task-activity-display';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ActivityExpandClient } from './task-activity-client';
 
-// ─── Data Types ───────────────────────────────────────────────────────────────
-
 export type TaskActivityEventRow = TaskActivityDisplayRow;
-
-// ─── Data Loading ─────────────────────────────────────────────────────────────
 
 async function loadActivity(taskId: string): Promise<TaskActivityEventRow[]> {
   return loadTaskActivityForDisplay(taskId);
 }
-
-// ─── Event Icons ──────────────────────────────────────────────────────────────
 
 function eventIcon(eventType: string) {
   switch (eventType) {
@@ -94,44 +81,47 @@ function eventIcon(eventType: string) {
   }
 }
 
-// ─── Payload Diff ─────────────────────────────────────────────────────────────
+function PayloadDiff({
+  eventType,
+  payload,
+  t,
+}: {
+  eventType: string;
+  payload: Record<string, unknown> | null;
+  t: Awaited<ReturnType<typeof getTranslations<'tasks'>>>;
+}) {
+  const summary = formatActivityPayloadSummary(eventType, payload, (key, values) =>
+    t(key as Parameters<typeof t>[0], values as never),
+  );
+  const diff = formatActivityDiff(eventType, payload, (key, values) =>
+    t(key as Parameters<typeof t>[0], values as never),
+  );
 
-/**
- * Renders a human-readable diff from event payload.
- * e.g. { from: 'todo', to: 'in_progress' } → "todo → in_progress"
- */
-function PayloadDiff({ payload }: { payload: Record<string, unknown> | null }) {
-  if (!payload) return null;
-
-  const from = payload.from as string | undefined;
-  const to = payload.to as string | undefined;
-
-  if (from !== undefined && to !== undefined) {
+  if (summary && !diff) {
     return (
       <span className="text-[var(--pf-text-muted)]">
         {' '}
-        <span className="font-medium">{String(from)}</span>
-        {' → '}
-        <span className="font-medium">{String(to)}</span>
+        <span className="font-medium">{summary}</span>
       </span>
     );
   }
 
-  // For assigned events: show assignee name
-  const assignedTo = payload.assignedToName as string | undefined;
-  if (assignedTo) {
-    return (
-      <span className="text-[var(--pf-text-muted)]">
-        {' '}
-        <span className="font-medium">{assignedTo}</span>
-      </span>
-    );
-  }
+  if (!diff) return null;
 
-  return null;
+  return (
+    <span className="text-[var(--pf-text-muted)]">
+      {summary ? (
+        <>
+          {' '}
+          <span className="font-medium">{summary}:</span>
+        </>
+      ) : null}{' '}
+      <span className="font-medium">{diff.from}</span>
+      {' → '}
+      <span className="font-medium">{diff.to}</span>
+    </span>
+  );
 }
-
-// ─── Event Row ────────────────────────────────────────────────────────────────
 
 function ActivityEventRow({
   event,
@@ -145,19 +135,11 @@ function ActivityEventRow({
     ? t('activity.systemActor')
     : (event.actorName ?? t('activity.unknownActor'));
 
-  // Build event description. Falls back gracefully for unknown event types.
-  const eventLabel = (() => {
-    const key = `activity.events.${event.eventType}` as Parameters<typeof t>[0];
-    try {
-      return t(key);
-    } catch {
-      return event.eventType.replace(/_/g, ' ');
-    }
-  })();
+  const eventLabelKey = resolveActivityEventLabelKey(event.eventType);
+  const eventLabel = t(eventLabelKey);
 
   return (
     <li className="flex items-start gap-2.5 py-1.5">
-      {/* Timeline dot / icon */}
       <span
         className={[
           'mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full',
@@ -178,7 +160,7 @@ function ActivityEventRow({
           )}
           {' '}
           <span className="text-[var(--pf-text-secondary)]">{eventLabel}</span>
-          <PayloadDiff payload={event.payload} />
+          <PayloadDiff eventType={event.eventType} payload={event.payload} t={t} />
         </p>
         <time
           dateTime={event.createdAt.toISOString()}
@@ -193,8 +175,6 @@ function ActivityEventRow({
     </li>
   );
 }
-
-// ─── Main Server Component ─────────────────────────────────────────────────────
 
 const COMPACT_THRESHOLD = 10;
 

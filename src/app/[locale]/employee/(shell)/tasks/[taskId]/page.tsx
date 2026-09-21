@@ -19,7 +19,6 @@ import {
 import { employeeHasPermission } from '@/modules/employee-app/application/load-employee-app-context';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { assertEmployeeAppContext } from '@/modules/employee-app/application/session-guard';
-import { Link } from '@/shared/i18n/navigation';
 import { NotFoundError } from '@/shared/errors';
 import {
   employeeUpdateTaskStatusAction,
@@ -28,6 +27,7 @@ import {
   employeeAssignTaskAction,
   employeeDecideTaskApprovalAction,
 } from '../actions';
+import { TaskActivity } from '@/modules/tasks/ui/task-activity';
 import { cn } from '@/shared/ui/cn';
 
 const TASK_STATUSES = [
@@ -130,13 +130,6 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
 
   return (
     <div className="space-y-5 pb-8">
-      <Link
-        href="/employee/tasks"
-        className="inline-flex items-center gap-1.5 text-sm text-[var(--pf-text-secondary)] hover:text-[var(--pf-text)]"
-      >
-        {t('backToTasks')}
-      </Link>
-
       <div className={cn(employeePanelClass, 'space-y-3')}>
         <h1 className="text-base font-semibold leading-snug">{task.title}</h1>
         {projectDisplayName ? (
@@ -366,6 +359,10 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
             submitLabel={t('postComment')}
           />
         ) : null}
+      </section>
+
+      <section className={employeePanelClass}>
+        <TaskActivity taskId={taskId} />
       </section>
     </div>
   );

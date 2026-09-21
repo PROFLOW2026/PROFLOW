@@ -21,6 +21,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { coerceBusinessDate, type BusinessDate } from '@/shared/dates/dates';
 import { formatBusinessDateMonthDay } from '@/shared/dates/format';
 import { cn } from '@/shared/ui/cn';
+import { uwmListPanelClass, uwmListRowClass } from '@/shared/ui/uwm-surface-styles';
 import type { TaskCardData, TaskPriority, TaskStatus } from './_task-api-stub';
 
 // ---------------------------------------------------------------------------
@@ -257,7 +258,7 @@ export function TaskListView({
   return (
     <div className={cn('flex flex-col gap-2', className)}>
       {/* Desktop table */}
-      <div className="hidden overflow-x-auto rounded-xl border border-[var(--pf-border-default)] md:block">
+      <div className={cn('hidden md:block', uwmListPanelClass)}>
         <table className="w-full text-sm">
           <thead className="border-b border-[var(--pf-border-default)] bg-[var(--pf-bg-subtle)]">
             <tr>
@@ -327,7 +328,10 @@ export function TaskListView({
                       onOpenTask(task.id);
                     }
                   }}
-                  className="cursor-pointer transition-colors hover:bg-[var(--pf-bg-muted)] focus-visible:outline-2 focus-visible:outline-[var(--pf-focus-ring)]"
+                  className={cn(
+                    uwmListRowClass,
+                    'cursor-pointer focus-visible:outline-2 focus-visible:outline-[var(--pf-focus-ring)]',
+                  )}
                 >
                   <td className="px-4 py-2.5">
                     <div className="flex items-center gap-2">

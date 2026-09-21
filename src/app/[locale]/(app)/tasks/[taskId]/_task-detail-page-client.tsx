@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState } from 'react';
 import { TaskDetailSheet } from '@/modules/tasks/ui/task-detail-sheet';
 import type { TaskDetail } from '@/modules/tasks/ui/_task-api-stub';
 import type { WorkActionState } from '../../work/actions';
+import { uwmPrimaryPanelClass } from '@/shared/ui/uwm-surface-styles';
 
 interface TaskDetailPageClientProps {
   initialTask: TaskDetail;
@@ -15,19 +16,17 @@ interface TaskDetailPageClientProps {
  */
 export function TaskDetailPageClient({ initialTask, onUpdate }: TaskDetailPageClientProps) {
   const [task, setTask] = useState(initialTask);
-  const [, startTransition] = useTransition();
 
-  const handleUpdate = (taskId: string, data: Record<string, unknown>) => {
-    startTransition(async () => {
-      const result = await onUpdate(taskId, data);
-      if (result.success) {
-        setTask((prev) => ({ ...prev, ...data }) as TaskDetail);
-      }
-    });
-  };
+  async function handleUpdate(taskId: string, data: Record<string, unknown>) {
+    const result = await onUpdate(taskId, data);
+    if (result.success) {
+      setTask((prev) => ({ ...prev, ...data }) as TaskDetail);
+    }
+    return result;
+  }
 
   return (
-    <div className="rounded-xl border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)]">
+    <div className={uwmPrimaryPanelClass}>
       <TaskDetailSheet
         task={task}
         open

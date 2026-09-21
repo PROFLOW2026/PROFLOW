@@ -1,28 +1,135 @@
 'use client';
 
-import { useRouter, usePathname } from 'next/navigation';
-import { useCallback, useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import {
+  OwnerFilterField,
+  OwnerListFilterBar,
+} from '@/shared/ui/owner-list-filter-bar';
+import { uwmFilterInputClass } from '@/shared/ui/uwm-surface-styles';
 import { cn } from '@/shared/ui/cn';
-
-interface FilterParam {
-  key: string;
-  label: string;
-  value: string;
-}
 
 interface PortfolioFiltersBarProps {
   currentParams: Record<string, string | undefined>;
+  totalCount: number;
 }
 
-/**
- * Client-side filter bar for the portfolio page.
- * All filter changes update URL search params (server-driven, no client state).
- */
-export function PortfolioFiltersBar({ currentParams }: PortfolioFiltersBarProps) {
+interface PortfolioFilterDraft {
+  workKind: string;
+  status: string;
+  hasOverdue: boolean;
+  stale: boolean;
+}
+
+function parseDraft(params: Record<string, string | undefined>): PortfolioFilterDraft {
+  return {
+    workKind: params.workKind ?? '',
+    status: params.status ?? '',
+    hasOverdue: params.has_overdue === 'true',
+    stale: params.stale === 'true',
+  };
+}
+
+function isActive(draft: PortfolioFilterDraft, defaults: PortfolioFilterDraft): boolean {
+  return (
+    draft.workKind !== defaults.workKind ||
+    draft.status !== defaults.status ||
+    draft.hasOverdue !== defaults.hasOverdue ||
+    draft.stale !== defaults.stale
+  );
+}
+
+function buildQuery(
+  draft: PortfolioFilterDraft,
+  currentParams: Record<string, string | undefined>,
+): URLSearchParams {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(currentParams)) {
+    if (
+      value &&
+      key !== 'workKind' &&
+      key !== 'status' &&
+      key !== 'has_overdue' &&
+      key !== 'stale' &&
+      key !== 'page'
+    ) {
+      params.set(key, value);
+    }
+  }
+  if (draft.workKind) params.set('workKind', draft.workKind);
+  if (draft.status) params.set('status', draft.status);
+  if (draft.hasOverdue) params.set('has_overdue', 'true');
+  if (draft.stale) params.set('stale', 'true');
+  return params;
+}
+
+export function PortfolioFiltersBar({ currentParams, totalCount }: PortfolioFiltersBarProps) {
   const t = useTranslations('tasks.portfolio.filters');
   const router = useRouter();
   const pathname = usePathname();
+  const defaults = useMemo(
+    () => ({ workKind: '', status: '', hasOverdue: false, stale: false }),
+    [],
+  );
+  const applied = useMemo(() => parseDraft(currentParams), [currentParams]);
+  const appliedKey = JSON.stringify(applied);
+
+  return (
+    <PortfolioFilterControls
+      key={appliedKey}
+      applied={applied}
+      defaults={defaults}
+      totalCount={totalCount}
+      onApply={(draft) => {
+        const query = buildQuery(draft, currentParams).toString();
+        router.push(query ? `${pathname}?${query}` : pathname);
+      }}
+      onClear={() => {
+        const params = new URLSearchParams();
+        for (const [key, value] of Object.entries(currentParams)) {
+          if (
+            value &&
+            key !== 'workKind' &&
+            key !== 'status' &&
+            key !== 'has_overdue' &&
+            key !== 'stale' &&
+            key !== 'page'
+          ) {
+            params.set(key, value);
+          }
+        }
+        const query = params.toString();
+        router.push(query ? `${pathname}?${query}` : pathname);
+      }}
+      t={t}
+    />
+  );
+}
+
+function PortfolioFilterControls({
+  applied,
+  defaults,
+  totalCount,
+  onApply,
+  onClear,
+  t,
+}: {
+  applied: PortfolioFilterDraft;
+  defaults: PortfolioFilterDraft;
+  totalCount: number;
+  onApply: (draft: PortfolioFilterDraft) => void;
+  onClear: () => void;
+  t: ReturnType<typeof useTranslations<'tasks.portfolio.filters'>>;
+}) {
+  const [draft, setDraft] = useState(applied);
+  const active = isActive(applied, defaults);
+  const activeCount = [
+    applied.workKind,
+    applied.status,
+    applied.hasOverdue ? 'has_overdue' : '',
+    applied.stale ? 'stale' : '',
+  ].filter(Boolean).length;
 
   const workKindOptions = useMemo(
     () => [
@@ -44,105 +151,113 @@ export function PortfolioFiltersBar({ currentParams }: PortfolioFiltersBarProps)
     [t],
   );
 
-  const updateParam = useCallback(
-    (key: string, value: string | undefined) => {
-      const params = new URLSearchParams();
-      for (const [k, v] of Object.entries(currentParams)) {
-        if (v && k !== key && k !== 'page') {
-          params.set(k, v);
-        }
-      }
-      if (value) params.set(key, value);
-      router.push(`${pathname}?${params.toString()}`);
-    },
-    [router, pathname, currentParams],
-  );
-
-  const activeFilterTags: FilterParam[] = [];
-  if (currentParams.workKind) {
-    activeFilterTags.push({ key: 'workKind', label: t('workKind'), value: currentParams.workKind });
+  const summary: string[] = [];
+  if (applied.workKind) {
+    summary.push(
+      t('chipWorkKind', {
+        value: t(`workKindOptions.${applied.workKind}` as 'workKindOptions.project'),
+      }),
+    );
   }
-  if (currentParams.status) {
-    activeFilterTags.push({ key: 'status', label: t('status'), value: currentParams.status });
+  if (applied.status) {
+    summary.push(
+      t('chipStatus', {
+        value: t(`statusOptions.${applied.status}` as 'statusOptions.active'),
+      }),
+    );
   }
-  if (currentParams.has_overdue === 'true') {
-    activeFilterTags.push({ key: 'has_overdue', label: t('hasOverdue'), value: 'true' });
-  }
-  if (currentParams.stale === 'true') {
-    activeFilterTags.push({ key: 'stale', label: t('staleShort'), value: 'true' });
-  }
-
-  const clearAll = () => {
-    router.push(pathname);
-  };
+  if (applied.hasOverdue) summary.push(t('chipHasOverdue'));
+  if (applied.stale) summary.push(t('chipStale'));
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <select
-        value={currentParams.workKind ?? ''}
-        onChange={(e) => updateParam('workKind', e.target.value || undefined)}
-        className="rounded-md border border-[var(--pf-border)] bg-[var(--pf-bg-surface)] px-3 py-1.5 text-sm text-[var(--pf-text-primary)] shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--pf-ring)]"
-        aria-label={t('aria.workKind')}
+    <div className="space-y-3">
+      <OwnerListFilterBar
+        title={t('title')}
+        applyLabel={t('apply')}
+        clearLabel={t('clear')}
+        activeLabel={t('active')}
+        mobileLabel={t('mobile')}
+        mobileWithCountLabel={t('mobileWithCount', { count: activeCount })}
+        activeCount={activeCount}
+        isActive={active}
+        activeSummary={summary}
+        onApply={() => onApply(draft)}
+        onClear={onClear}
       >
-        {workKindOptions.map((opt) => (
-          <option key={opt.value} value={opt.value}>
-            {opt.label}
-          </option>
-        ))}
-      </select>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <OwnerFilterField label={t('workKind')}>
+            <select
+              value={draft.workKind}
+              className={uwmFilterInputClass}
+              aria-label={t('aria.workKind')}
+              onChange={(event) =>
+                setDraft((current) => ({ ...current, workKind: event.target.value }))
+              }
+            >
+              {workKindOptions.map((opt) => (
+                <option key={opt.value || 'all'} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </OwnerFilterField>
 
-      <select
-        value={currentParams.status ?? ''}
-        onChange={(e) => updateParam('status', e.target.value || undefined)}
-        className="rounded-md border border-[var(--pf-border)] bg-[var(--pf-bg-surface)] px-3 py-1.5 text-sm text-[var(--pf-text-primary)] shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--pf-ring)]"
-        aria-label={t('aria.status')}
-      >
-        {statusOptions.map((opt) => (
-          <option key={opt.value} value={opt.value}>
-            {opt.label}
-          </option>
-        ))}
-      </select>
+          <OwnerFilterField label={t('status')}>
+            <select
+              value={draft.status}
+              className={uwmFilterInputClass}
+              aria-label={t('aria.status')}
+              onChange={(event) =>
+                setDraft((current) => ({ ...current, status: event.target.value }))
+              }
+            >
+              {statusOptions.map((opt) => (
+                <option key={opt.value || 'all'} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </OwnerFilterField>
 
-      <button
-        type="button"
-        onClick={() =>
-          updateParam('has_overdue', currentParams.has_overdue === 'true' ? undefined : 'true')
-        }
-        className={cn(
-          'rounded-md border px-3 py-1.5 text-sm transition-colors',
-          currentParams.has_overdue === 'true'
-            ? 'border-red-400 bg-red-50 text-red-700 dark:border-red-700 dark:bg-red-950 dark:text-red-300'
-            : 'border-[var(--pf-border)] bg-[var(--pf-bg-surface)] text-[var(--pf-text-secondary)] hover:bg-[var(--pf-bg-secondary)]',
-        )}
-      >
-        {t('hasOverdue')}
-      </button>
+          <OwnerFilterField label={t('hasOverdue')}>
+            <button
+              type="button"
+              aria-pressed={draft.hasOverdue}
+              className={cn(
+                uwmFilterInputClass,
+                'justify-center text-left',
+                draft.hasOverdue &&
+                  'border-red-300 bg-red-50 text-red-800 dark:border-red-700 dark:bg-red-950 dark:text-red-200',
+              )}
+              onClick={() =>
+                setDraft((current) => ({ ...current, hasOverdue: !current.hasOverdue }))
+              }
+            >
+              {draft.hasOverdue ? t('toggleOn') : t('toggleOff')}
+            </button>
+          </OwnerFilterField>
 
-      <button
-        type="button"
-        onClick={() =>
-          updateParam('stale', currentParams.stale === 'true' ? undefined : 'true')
-        }
-        className={cn(
-          'rounded-md border px-3 py-1.5 text-sm transition-colors',
-          currentParams.stale === 'true'
-            ? 'border-amber-400 bg-amber-50 text-amber-700 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-300'
-            : 'border-[var(--pf-border)] bg-[var(--pf-bg-surface)] text-[var(--pf-text-secondary)] hover:bg-[var(--pf-bg-secondary)]',
-        )}
-      >
-        {t('staleShort')}
-      </button>
+          <OwnerFilterField label={t('staleShort')}>
+            <button
+              type="button"
+              aria-pressed={draft.stale}
+              className={cn(
+                uwmFilterInputClass,
+                'justify-center text-left',
+                draft.stale &&
+                  'border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200',
+              )}
+              onClick={() => setDraft((current) => ({ ...current, stale: !current.stale }))}
+            >
+              {draft.stale ? t('toggleOn') : t('toggleOff')}
+            </button>
+          </OwnerFilterField>
+        </div>
+      </OwnerListFilterBar>
 
-      {activeFilterTags.length > 0 && (
-        <button
-          type="button"
-          onClick={clearAll}
-          className="ml-1 rounded-md border border-[var(--pf-border)] px-3 py-1.5 text-sm text-[var(--pf-text-muted)] hover:bg-[var(--pf-bg-secondary)]"
-        >
-          {t('clearAll')}
-        </button>
-      )}
+      <p className="px-1 text-sm font-medium text-[var(--pf-text-primary)]">
+        {t('resultCount', { count: totalCount })}
+      </p>
     </div>
   );
 }

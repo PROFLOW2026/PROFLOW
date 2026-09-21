@@ -162,7 +162,7 @@ export default async function PortfolioPage({ searchParams }: PortfolioPageProps
       />
 
       {/* Filter bar */}
-      <PortfolioFiltersBar currentParams={params} />
+      <PortfolioFiltersBar currentParams={params} totalCount={totalCount} />
 
       {/* Saved views */}
       <SavedListViewsBar

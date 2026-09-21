@@ -1,3 +1,5 @@
+import { and, eq } from 'drizzle-orm';
+import { taskChecklistItems } from '@drizzle/schema';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { NotFoundError, ValidationError } from '@/shared/errors';
@@ -39,7 +41,7 @@ export async function addChecklistItem(
   const lastKey = existing[existing.length - 1]?.sortKey;
   const sortKey = lastKey ? appendAfter(lastKey) : generateSortKey();
 
-  return insertChecklistItem(context.db, {
+  const item = await insertChecklistItem(context.db, {
     taskId,
     organizationId: context.organizationId,
     title,
@@ -48,6 +50,17 @@ export async function addChecklistItem(
     assigneeOrgMemberId: input.assigneeOrgMemberId ?? null,
     assigneeEmployeeId: input.assigneeEmployeeId ?? null,
   });
+
+  const actorFields = buildActivityActorFieldsFromContext(context);
+  await insertTaskActivity(context.db, {
+    taskId,
+    organizationId: context.organizationId,
+    ...actorFields,
+    eventType: 'checklist_completed',
+    payload: { action: 'added', itemId: item.id, title },
+  });
+
+  return item;
 }
 
 export async function toggleChecklistItem(
@@ -68,7 +81,7 @@ export async function toggleChecklistItem(
     organizationId: context.organizationId,
     ...actorFields,
     eventType: 'checklist_completed',
-    payload: { itemId: checklistItemId, isDone },
+    payload: { action: isDone ? 'completed' : 'reopened', itemId: checklistItemId, isDone },
   });
 
   return updated;
@@ -104,5 +117,31 @@ export async function removeChecklistItem(
 ): Promise<void> {
   assertPermission(context, PERMISSIONS.TASKS_UPDATE);
 
+  const [existing] = await context.db
+    .select({
+      id: taskChecklistItems.id,
+      taskId: taskChecklistItems.taskId,
+      title: taskChecklistItems.title,
+    })
+    .from(taskChecklistItems)
+    .where(
+      and(
+        eq(taskChecklistItems.id, checklistItemId),
+        eq(taskChecklistItems.organizationId, context.organizationId),
+      ),
+    )
+    .limit(1);
+
   await deleteChecklistItem(context.db, checklistItemId, context.organizationId);
+
+  if (existing) {
+    const actorFields = buildActivityActorFieldsFromContext(context);
+    await insertTaskActivity(context.db, {
+      taskId: existing.taskId,
+      organizationId: context.organizationId,
+      ...actorFields,
+      eventType: 'checklist_completed',
+      payload: { action: 'removed', itemId: checklistItemId, title: existing.title },
+    });
+  }
 }

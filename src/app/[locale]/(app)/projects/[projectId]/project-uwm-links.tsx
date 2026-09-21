@@ -3,6 +3,7 @@ import { Kanban, ListChecks } from 'lucide-react';
 import { Link } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
 import { pressableCardLinkClassName } from '@/components/ui/pressable';
+import { uwmSecondaryPanelClass, uwmSectionHeadingClass } from '@/shared/ui/uwm-surface-styles';
 
 interface ProjectUwmLinksProps {
   projectId: string;
@@ -16,11 +17,8 @@ export async function ProjectUwmLinks({ projectId }: ProjectUwmLinksProps) {
   const t = await getTranslations('tasks');
 
   return (
-    <section
-      aria-label={t('projectWork.sectionLabel')}
-      className="rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4"
-    >
-      <h2 className="text-sm font-semibold">{t('projectWork.sectionTitle')}</h2>
+    <section aria-label={t('projectWork.sectionLabel')} className={uwmSecondaryPanelClass}>
+      <h2 className={uwmSectionHeadingClass}>{t('projectWork.sectionTitle')}</h2>
       <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
         {t('projectWork.sectionDescription')}
       </p>

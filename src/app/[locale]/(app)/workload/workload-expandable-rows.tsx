@@ -7,6 +7,7 @@ import type { WorkloadEmployeeRow, WorkloadTaskPreview } from '@/modules/tasks/a
 import { cn } from '@/shared/ui/cn';
 import { Link } from '@/shared/i18n/navigation';
 import { textNavLinkClassName } from '@/components/ui/pressable';
+import { uwmListPanelClass } from '@/shared/ui/uwm-surface-styles';
 import {
   Table,
   TableBody,
@@ -131,7 +132,7 @@ export function WorkloadExpandableRows({
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-[var(--pf-border)]">
+    <div className={cn('overflow-x-auto', uwmListPanelClass)}>
       <Table>
         <TableHeader>
           <TableRow>
