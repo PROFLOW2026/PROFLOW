@@ -1,13 +1,62 @@
 ---
-description: Mandatory release preflight — targeted dev checks; full CI-equivalent preflight before Owner-approved push/deploy
+description: Mandatory release preflight — targeted dev checks; full CI-equivalent preflight before Owner-approved push/deploy; separate Owner approval required for any SQL/migration execution
 alwaysApply: true
 ---
 
 # ProjectFlow Release Preflight (mandatory)
 
-Read and obey this before any release, push, or deploy work in ProjectFlow.
+Read and obey this before any release, push, deploy, or database work in ProjectFlow.
 
 **Full policy:** [docs/RELEASE-PREFLIGHT.md](../../docs/RELEASE-PREFLIGHT.md)
+
+## SQL / migration execution (non-negotiable)
+
+**No SQL or database migration may be executed against Production or any shared ProjectFlow database without explicit Owner approval given after the SQL file has been prepared and reviewed.**
+
+This includes, without limitation:
+
+- `npm run db:migrate`
+- Drizzle migration execution
+- Supabase SQL execution
+- Direct `psql` SQL
+- Ad-hoc `INSERT` / `UPDATE` / `DELETE` / `ALTER` / `CREATE` / `DROP`
+- Migration scripts, data repair scripts, backfills
+- RLS policy SQL, enum changes, schema changes
+- Production credential/reset SQL
+- Any other DB-mutating command
+
+### Approval semantics
+
+Approval to implement, build, commit, push, release, deploy, or continue automatically **is not** approval to execute SQL. SQL approval is always **separate**.
+
+Even if the Owner says “קדימה”, “מאשר הכל”, “תבצע”, “תעלה”, “שחרר”, or “finish everything”, the agent may:
+
+1. Create the migration SQL file
+2. Update Drizzle schema / meta / journal if needed
+3. Run static / journal checks
+4. Show the Owner exactly what the migration does
+
+**But must STOP before execution** and report:
+
+```
+SQL / MIGRATION PREPARED = YES
+FILE =
+PURPOSE =
+DATA MUTATION =
+SCHEMA MUTATION =
+RISK =
+READY FOR OWNER REVIEW = YES
+```
+
+Only after the Owner **explicitly** says to run/apply that SQL/migration may the agent execute it. Do not infer approval from earlier messages.
+
+### Local / test databases
+
+Local disposable test databases may be used only when clearly isolated and cannot affect Production or shared business data. If there is any uncertainty about which database a command targets: **do not run it**.
+
+### Historical migrations
+
+Never modify an already-applied migration. Prepare only the next additive migration when required. **Preparing a migration does not authorize applying it.**
 
 ## Development (default)
 
@@ -21,12 +70,13 @@ When the Owner explicitly approves release/push/deploy (e.g. “תדחוף”, �
 2. **Scope check** — intended files only; no secrets (`.env`, keys, credentials); no temp diagnostics; no accidental artifacts.
 3. **Run ONE complete local CI-equivalent preflight** (all current CI gates) **before the first push**.
 4. **Fix ALL failures locally** — no push-until-green push loops.
-5. **One final green preflight**, then commit → push → monitor GitHub CI → monitor Vercel Production until READY.
-6. Confirm deployment commit == GitHub HEAD.
+5. **One final green preflight**, then commit → push → monitor GitHub CI.
+6. **Verify Vercel Production deployment** — confirm a real deployment exists for the exact pushed commit SHA; state **BUILDING** or **READY** is sufficient. **Do not wait for READY** unless the Owner explicitly requested production smoke.
+7. Confirm deployment commit == GitHub HEAD.
 
 ## Non-negotiables
 
-- **Migrations:** **0000–0066** applied + immutable (`0066_workforce_time_integrity.sql`). Agent prepares/reviews SQL; **never applies SQL**. Owner applies; then migration is immutable. **Next migration: 0067+.** Do not modify applied 0066.
+- **Migrations:** Agent prepares/reviews SQL and may update Drizzle schema/journal; **never applies SQL to Production or shared DB without separate explicit Owner approval** (see above). Applied migrations are immutable — do not modify them; add the next additive migration only when required.
 - **Infrastructure:** Vercel functions stay **`dub1`**; Supabase stays **`eu-west-1`**. Do not change region/pooler/DATABASE_URL without explicit Owner approval.
 
 ## If GitHub CI fails after push
@@ -35,4 +85,4 @@ Inspect failed job/logs → reproduce locally → fix **all visible failures tog
 
 ## Conflict resolution
 
-Owner’s **current explicit instruction** wins over this rule. This rule is **not** permission to run broad validation during ordinary development.
+Owner’s **current explicit instruction** wins over this rule. This rule is **not** permission to run broad validation during ordinary development, and **not** permission to execute SQL without separate explicit Owner approval.
