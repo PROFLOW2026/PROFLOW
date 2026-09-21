@@ -57,6 +57,7 @@
     "providerNotConfigured": "ספק זה אינו מוגדר בסביבה.",
     "connectionNotFound": "חיבור האחסון לא נמצא.",
     "rootNotReady": "האחסון מחובר אך תיקיית ProjectFlow עדיין לא מוכנה. חברו מחדש או בדקו את החיבור.",
+    "rootFolderMissing": "תיקיית ProjectFlow נמחקה באחסון הענן. חברו מחדש כדי לבנות מחדש את תיקיות הארגון ואת תבנית הפרויקט.",
     "outOfScope": "הפריט אינו שייך לתיקיית הפרויקט.",
     "folderNotEmpty": "לא ניתן למחוק תיקייה שאינה ריקה.",
     "invalidName": "שם לא תקין.",

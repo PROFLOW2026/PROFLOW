@@ -57,6 +57,7 @@
     "providerNotConfigured": "المزود غير مهيأ في هذه البيئة.",
     "connectionNotFound": "لم يُعثر على اتصال التخزين.",
     "rootNotReady": "التخزين متصل لكن مجلد ProjectFlow غير جاهز بعد. أعد الاتصال أو اختبر الاتصال.",
+    "rootFolderMissing": "تم حذف مجلد ProjectFlow من التخزين السحابي. أعد الاتصال لإعادة بناء مجلدات المنظمة وقالب المشروع.",
     "outOfScope": "العنصر خارج شجرة مجلد المشروع.",
     "folderNotEmpty": "لا يمكن حذف مجلد غير فارغ.",
     "invalidName": "اسم غير صالح.",

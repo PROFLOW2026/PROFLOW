@@ -119,18 +119,25 @@ async function isDriveRootAnchor(
   return folder?.name === 'root';
 }
 
-/** Resolve a dedicated ProjectFlow folder — never keep the OneDrive drive root as org root. */
+/**
+ * Resolve a dedicated ProjectFlow folder — never keep the OneDrive drive root as org root.
+ * Returns `missing_stored_root` when a previously stored root id no longer exists in the
+ * provider so callers can invalidate stale mappings instead of silently recreating trees.
+ */
 async function resolveDedicatedProjectFlowRoot(
   accessToken: string,
   connection: StorageConnectionRecord,
   currentRootId: string | null,
-): Promise<string> {
+): Promise<{ kind: 'ready'; rootId: string } | { kind: 'missing_stored_root' }> {
   const rootName = connection.rootFolderName || 'ProjectFlow';
   if (currentRootId && !(await isDriveRootAnchor(accessToken, connection, currentRootId))) {
     const adapter = getStorageProviderAdapter(connection.provider);
     const existing = await adapter.getFolder(accessToken, currentRootId);
     if (existing && existing.name === rootName) {
-      return currentRootId;
+      return { kind: 'ready', rootId: currentRootId };
+    }
+    if (!existing) {
+      return { kind: 'missing_stored_root' };
     }
   }
 
@@ -141,7 +148,7 @@ async function resolveDedicatedProjectFlowRoot(
   if (await isDriveRootAnchor(accessToken, connection, dedicated.id)) {
     throw new Error('Could not create dedicated ProjectFlow folder');
   }
-  return dedicated.id;
+  return { kind: 'ready', rootId: dedicated.id };
 }
 
 async function ensureOrganizationBaseFolders(
@@ -179,21 +186,43 @@ export async function ensureOrganizationRootFolder(
     semanticFolderType: 'organization_root',
   });
 
-  const rootId = await resolveDedicatedProjectFlowRoot(
-    accessToken,
-    connection,
+  const storedRootId =
     existing?.status === 'ready'
       ? existing.externalFolderId
-      : connection.rootFolderExternalId,
+      : connection.rootFolderExternalId;
+
+  const resolved = await resolveDedicatedProjectFlowRoot(
+    accessToken,
+    connection,
+    storedRootId,
   );
+
+  if (resolved.kind === 'missing_stored_root') {
+    const { invalidateMissingProviderRoot } = await import('./storage-tree-reset');
+    await invalidateMissingProviderRoot(db, organizationId, connection);
+    const { ServiceUnavailableError } = await import('@/shared/errors');
+    throw new ServiceUnavailableError(
+      'Organization storage root folder is missing in the provider',
+      'externalStorage.errors.rootFolderMissing',
+    );
+  }
+
+  const rootId = resolved.rootId;
 
   await updateStorageConnection(db, organizationId, connection.id, {
     rootFolderExternalId: rootId,
     rootFolderName: connection.rootFolderName || 'ProjectFlow',
   });
 
-  if (existing) {
-    await updateFolderMapping(db, organizationId, existing.id, {
+  // After invalidate, prior mapping rows are gone — re-read before upsert.
+  const mappingAfterResolve = await findFolderMapping(db, {
+    organizationId,
+    connectionId: connection.id,
+    semanticFolderType: 'organization_root',
+  });
+
+  if (mappingAfterResolve) {
+    await updateFolderMapping(db, organizationId, mappingAfterResolve.id, {
       externalFolderId: rootId,
       displayName: connection.rootFolderName || 'ProjectFlow',
       status: 'ready',

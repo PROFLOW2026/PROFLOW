@@ -57,6 +57,7 @@
     "providerNotConfigured": "Provider not configured in this environment.",
     "connectionNotFound": "Storage connection not found.",
     "rootNotReady": "Storage is connected but the ProjectFlow folder is not ready yet. Reconnect or test the connection.",
+    "rootFolderMissing": "The ProjectFlow folder was deleted in cloud storage. Reconnect to rebuild organization folders and the project template.",
     "outOfScope": "Item is outside the project folder tree.",
     "folderNotEmpty": "Cannot delete a folder that is not empty.",
     "invalidName": "Invalid name.",

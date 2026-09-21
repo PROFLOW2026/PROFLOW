@@ -43,6 +43,18 @@ function connectActionLabel(
   return labels.connect;
 }
 
+function storageLastErrorMessage(
+  lastError: string | null | undefined,
+  t: ReturnType<typeof useTranslations<'externalStorage'>>,
+): string | null {
+  if (!lastError) return null;
+  if (lastError === 'root_folder_missing') return t('errors.rootFolderMissing');
+  if (lastError === 'unauthorized' || lastError === 'token_expired' || lastError === 'missing_credentials') {
+    return t('errors.reconnectRequired');
+  }
+  return lastError;
+}
+
 export function StorageSettingsPanel({
   connections,
   configuredProviders,
@@ -109,7 +121,9 @@ export function StorageSettingsPanel({
                   ) : null}
                   {connection?.lastError &&
                   (status === 'reconnect_required' || status === 'error') ? (
-                    <Alert tone="warning">{connection.lastError}</Alert>
+                    <Alert tone="warning">
+                      {storageLastErrorMessage(connection.lastError, t) ?? connection.lastError}
+                    </Alert>
                   ) : null}
                   {connection &&
                   status === 'connected' &&

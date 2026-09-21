@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { and, asc, eq, sql } from 'drizzle-orm';
+import { and, asc, eq, isNull, sql } from 'drizzle-orm';
 import {
   clients,
   organizationStorageConnections,
@@ -142,6 +142,7 @@ export async function runStorageProvisionBatch(
     .where(
       and(
         eq(clients.organizationId, input.organizationId),
+        isNull(clients.archivedAt),
         sql`not exists (
           select 1 from public.storage_folder_mappings m
           where m.organization_id = ${clients.organizationId}
@@ -192,6 +193,7 @@ export async function runStorageProvisionBatch(
     .where(
       and(
         eq(projects.organizationId, input.organizationId),
+        isNull(projects.archivedAt),
         sql`not ${canonicalProjectSql(gatedConnection.id, projectsRootId)}`,
       ),
     )
@@ -225,6 +227,7 @@ export async function runStorageProvisionBatch(
     .where(
       and(
         eq(clients.organizationId, input.organizationId),
+        isNull(clients.archivedAt),
         sql`not exists (
           select 1 from public.storage_folder_mappings m
           where m.organization_id = ${clients.organizationId}
@@ -250,6 +253,7 @@ export async function runStorageProvisionBatch(
     .where(
       and(
         eq(projects.organizationId, input.organizationId),
+        isNull(projects.archivedAt),
         sql`not ${canonicalProjectSql(gatedConnection.id, projectsRootId)}`,
       ),
     );

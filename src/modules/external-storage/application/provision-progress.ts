@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { and, eq, sql } from 'drizzle-orm';
+import { and, eq, isNull, sql } from 'drizzle-orm';
 import { clients, projects, storageFolderMappings } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 import type { StorageProvisionProgress } from '../domain/project-folder-placement';
@@ -33,11 +33,11 @@ export async function loadStorageProvisionProgress(
   const [clientTotal] = await db
     .select({ n: sql<number>`count(*)::int` })
     .from(clients)
-    .where(eq(clients.organizationId, organizationId));
+    .where(and(eq(clients.organizationId, organizationId), isNull(clients.archivedAt)));
   const [projectTotal] = await db
     .select({ n: sql<number>`count(*)::int` })
     .from(projects)
-    .where(eq(projects.organizationId, organizationId));
+    .where(and(eq(projects.organizationId, organizationId), isNull(projects.archivedAt)));
 
   const clientsTotal = clientTotal?.n ?? 0;
   const projectsTotal = projectTotal?.n ?? 0;
@@ -49,6 +49,7 @@ export async function loadStorageProvisionProgress(
         .where(
           and(
             eq(clients.organizationId, organizationId),
+            isNull(clients.archivedAt),
             sql`exists (
               select 1 from public.storage_folder_mappings m
               where m.organization_id = ${clients.organizationId}
@@ -76,6 +77,7 @@ export async function loadStorageProvisionProgress(
         .where(
           and(
             eq(projects.organizationId, organizationId),
+            isNull(projects.archivedAt),
             sql`exists (
               select 1 from public.storage_folder_mappings root
               where root.organization_id = ${projects.organizationId}
@@ -127,6 +129,12 @@ export async function loadStorageProvisionProgress(
                 and root.status = 'ready'
                 and root.external_parent_id = ${projectsRootId}
                 and root.external_folder_id = ${storageFolderMappings.externalParentId}
+            )`,
+            sql`exists (
+              select 1 from public.projects p
+              where p.id = ${storageFolderMappings.entityId}
+                and p.organization_id = ${organizationId}::uuid
+                and p.archived_at is null
             )`,
           ),
         )

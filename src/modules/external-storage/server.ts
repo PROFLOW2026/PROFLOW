@@ -29,6 +29,10 @@ export {
   approveProjectTemplateAndProvision,
   openProjectTemplateInProvider,
 } from './application/connection-service';
+export {
+  resetOrganizationStorageProviderTree,
+  invalidateMissingProviderRoot,
+} from './application/storage-tree-reset';
 export { readProjectTemplateCapability } from './domain/project-template';
 export type { ProjectTemplateSetupStatus } from './domain/project-template';
 export { reconcileProjectTemplateGateState } from './application/project-template-service';

@@ -29,8 +29,8 @@ import { ensureUsablePrimaryStorageConnection } from './reconcile-primary-storag
 import { ProviderHttpError } from '../providers/http-utils';
 import { getStorageProviderAdapter, isStorageProviderConfigured } from '../providers/registry';
 import { kickStorageProvision } from './kick-storage-provision';
-import { deleteFolderMappingsForConnection } from '../data/folder-mappings.repository';
 import { ensureOrganizationRootFolder } from './folder-provisioning';
+import { clearStorageProviderTreeState } from './storage-tree-reset';
 import {
   formatGoogleDriveOAuthScope,
   googleDriveGrantedFullScope,
@@ -190,14 +190,16 @@ export async function provisionConnectedStorage(input: {
 }): Promise<void> {
   const { withUserContext } = await import('@/shared/db/client');
   await withUserContext(input.userId, async (db) => {
-    const connection = await findStorageConnectionById(db, input.organizationId, input.connectionId);
+    let connection = await findStorageConnectionById(db, input.organizationId, input.connectionId);
     if (!connection || connection.status !== 'connected') return;
 
     if (input.accountChanged) {
-      await deleteFolderMappingsForConnection(db, input.organizationId, connection.id);
-      await updateStorageConnection(db, input.organizationId, connection.id, {
-        rootFolderExternalId: null,
+      await clearStorageProviderTreeState(db, input.organizationId, connection, {
+        mode: 'soft_reset',
+        status: 'connected',
       });
+      connection =
+        (await findStorageConnectionById(db, input.organizationId, connection.id)) ?? connection;
     }
 
     const accessToken = await resolveValidAccessToken(db, input.organizationId, connection);
@@ -618,6 +620,19 @@ export async function validateStorageConnection(
     const accessToken = await resolveValidAccessToken(context.db, context.organizationId, connection);
     const adapter = getStorageProviderAdapter(connection.provider);
     await adapter.getAccountInfo(accessToken);
+
+    if (connection.rootFolderExternalId) {
+      const root = await adapter.getFolder(accessToken, connection.rootFolderExternalId);
+      if (!root) {
+        const { invalidateMissingProviderRoot } = await import('./storage-tree-reset');
+        await invalidateMissingProviderRoot(context.db, context.organizationId, connection);
+        throw new ServiceUnavailableError(
+          'Organization storage root folder is missing in the provider',
+          'externalStorage.errors.rootFolderMissing',
+        );
+      }
+    }
+
     let quota = { usedBytes: null as number | null, totalBytes: null as number | null };
     if (adapter.getQuotaInfo) {
       quota = await adapter.getQuotaInfo(accessToken);
@@ -631,6 +646,7 @@ export async function validateStorageConnection(
     });
     return updated ?? connection;
   } catch (error) {
+    if (error instanceof ServiceUnavailableError) throw error;
     const message = error instanceof ProviderHttpError && error.isUnauthorized()
       ? 'unauthorized'
       : 'validation_failed';
