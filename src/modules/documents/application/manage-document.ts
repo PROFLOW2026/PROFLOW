@@ -8,7 +8,11 @@ import { getStoragePort, StorageNotConfiguredError } from '@/shared/ports/storag
 import { validateUploadConstraints } from '../domain/file-rules';
 import type { DocumentRecord, DownloadUrlResult } from '../domain/types';
 import { findDocumentById, listDeletedDocumentsNeedingStorageCleanup, updateDocumentById, flushDocumentCurrentVersionGuards } from '../data/documents.repository';
-import { assertCanReadStoredDocument, assertDocumentManagePermission } from './document-visibility';
+import {
+  assertCanReadStoredDocument,
+  assertDocumentManagePermission,
+  assertDocumentReadPermission,
+} from './document-visibility';
 import { ensureFirstDocumentVersion } from '../data/versions.repository';
 import {
   isStorageOrphanChecksum,
@@ -134,10 +138,10 @@ export async function getDocumentById(
   context: OrgContext,
   documentId: string,
 ): Promise<DocumentRecord | null> {
-  assertPermission(context, PERMISSIONS.DOCUMENTS_READ);
   const document = await findDocumentById(context.db, context.organizationId, documentId);
   if (!document) return null;
   try {
+    await assertDocumentReadPermission(context, document.id);
     await assertCanReadStoredDocument(context, document);
   } catch {
     return null;
@@ -149,8 +153,6 @@ export async function createDocumentDownloadUrl(
   context: OrgContext,
   rawInput: { documentId: string },
 ): Promise<DownloadUrlResult> {
-  assertPermission(context, PERMISSIONS.DOCUMENTS_READ);
-
   const parsed = documentIdSchema.safeParse(rawInput);
   if (!parsed.success) {
     throw new ValidationError(
@@ -160,6 +162,7 @@ export async function createDocumentDownloadUrl(
 
   const document = await findDocumentById(context.db, context.organizationId, parsed.data.documentId);
   if (!document) throw new NotFoundError('Document');
+  await assertDocumentReadPermission(context, document.id);
   await assertCanReadStoredDocument(context, document);
 
   if (document.status !== 'available' || document.deletedAt) {

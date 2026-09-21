@@ -2,12 +2,13 @@ import 'server-only';
 
 import { parseByteRangeHeader } from '@/modules/external-storage/server/byte-range';
 import { NotFoundError, ServiceUnavailableError, ValidationError } from '@/shared/errors';
-import { assertPermission } from '@/shared/permissions/assert';
-import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
 import { getStoragePort, StorageNotConfiguredError } from '@/shared/ports/storage';
 import { findDocumentById } from '../data/documents.repository';
-import { assertCanReadStoredDocument } from './document-visibility';
+import {
+  assertCanReadStoredDocument,
+  assertDocumentReadPermission,
+} from './document-visibility';
 import { documentIdSchema } from '../validation/schemas';
 
 export type StreamDocumentContentResult =
@@ -26,8 +27,6 @@ export async function streamDocumentContent(
   context: OrgContext,
   rawInput: { documentId: string; rangeHeader?: string | null },
 ): Promise<StreamDocumentContentResult> {
-  assertPermission(context, PERMISSIONS.DOCUMENTS_READ);
-
   const parsed = documentIdSchema.safeParse(rawInput);
   if (!parsed.success) {
     throw new ValidationError(
@@ -37,6 +36,7 @@ export async function streamDocumentContent(
 
   const document = await findDocumentById(context.db, context.organizationId, parsed.data.documentId);
   if (!document) throw new NotFoundError('Document');
+  await assertDocumentReadPermission(context, document.id);
   await assertCanReadStoredDocument(context, document);
 
   if (document.status !== 'available' || document.deletedAt) {

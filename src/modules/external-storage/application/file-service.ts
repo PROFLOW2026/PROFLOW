@@ -22,6 +22,7 @@ import { resolveUploadFolderId } from './folder-provisioning';
 import { assertProjectBrowserUploadFolder } from './browser-service';
 import { resolveUploadFolderEntityContext } from './resolve-upload-folder-context';
 import { findPrimaryDocumentLink } from '@/modules/documents';
+import { assertDocumentManagePermission } from '@/modules/documents/application/document-visibility';
 import { parseByteRangeHeader } from '../server/byte-range';
 
 export async function uploadDocumentToExternalStorage(
@@ -40,7 +41,7 @@ export async function uploadDocumentToExternalStorage(
     sizeBytes: number;
   },
 ): Promise<ProviderFileItem> {
-  assertPermission(context, PERMISSIONS.DOCUMENTS_MANAGE);
+  await assertDocumentManagePermission(context, { documentId: input.documentId });
   const connection = await assertOrganizationStorageAvailable(context);
   const document = await findDocumentById(context.db, context.organizationId, input.documentId);
   if (!document || document.status !== 'pending') {
@@ -270,7 +271,6 @@ export async function streamExternalDocumentDownload(
       byteRange: { start: number; end: number } | null;
     }
 > {
-  assertPermission(context, PERMISSIONS.DOCUMENTS_READ);
   const document = await findDocumentById(context.db, context.organizationId, documentId);
   if (!document || document.status !== 'available' || document.deletedAt) {
     throw new NotFoundError('Document');

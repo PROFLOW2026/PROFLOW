@@ -24,12 +24,56 @@ export function canReadCompensationDocuments(context: OrgContext): boolean {
   return hasPermission(context, PERMISSIONS.WORKFORCE_COST_READ);
 }
 
+/** Task comment attachments are readable when the user can read the parent task. */
+export async function assertCanReadTaskCommentAttachment(
+  context: OrgContext,
+  commentId: string,
+): Promise<void> {
+  const comment = await findTaskCommentById(context.db, context.organizationId, commentId);
+  if (!comment) throw new NotFoundError('Task comment');
+
+  if (isEmployeeAppUser(context)) {
+    const employeeId = context.employeeApp?.employeeId;
+    if (!employeeId) {
+      throw new NotFoundError('Document');
+    }
+    if (!hasPermission(context, PERMISSIONS.TASKS_READ)) {
+      throw new NotFoundError('Document');
+    }
+    const task = await findTaskById(context.db, context.organizationId, comment.taskId);
+    if (!task) throw new NotFoundError('Document');
+    const { assertEmployeeCanExerciseTaskPermission } = await import(
+      '@/modules/employee-app/application/task-permission-scope'
+    );
+    await assertEmployeeCanExerciseTaskPermission(
+      context,
+      PERMISSIONS.TASKS_READ,
+      { taskId: comment.taskId, projectId: task.projectId },
+      employeeId,
+    );
+    return;
+  }
+
+  assertPermission(context, PERMISSIONS.TASKS_READ);
+  await assertCanAccessTask(context, comment.taskId);
+}
+
 export async function assertCanReadStoredDocument(
   context: OrgContext,
   document: Pick<DocumentRecord, 'id' | 'privacyClass' | 'category'>,
 ): Promise<void> {
   if (!canSeeDocumentPrivacyClass(document.privacyClass, canReadCompensationDocuments(context))) {
     throw new NotFoundError('Document');
+  }
+
+  const primaryLink = await findPrimaryDocumentLink(
+    context.db,
+    context.organizationId,
+    document.id,
+  );
+  if (primaryLink?.ownerType === 'task_comment') {
+    await assertCanReadTaskCommentAttachment(context, primaryLink.ownerId);
+    return;
   }
 
   if (isEmployeeAppUser(context)) {
@@ -128,6 +172,20 @@ export async function assertDocumentManagePermission(
   }
 
   assertPermission(context, PERMISSIONS.DOCUMENTS_MANAGE);
+}
+
+/** Read gate for document bytes — task_comment attachments use tasks.read, not documents.read. */
+export async function assertDocumentReadPermission(
+  context: OrgContext,
+  documentId: string,
+): Promise<void> {
+  const link = await findPrimaryDocumentLink(context.db, context.organizationId, documentId);
+  if (link?.ownerType === 'task_comment') {
+    await assertCanReadTaskCommentAttachment(context, link.ownerId);
+    return;
+  }
+
+  assertPermission(context, PERMISSIONS.DOCUMENTS_READ);
 }
 
 export async function assertCanListEntityDocuments(
