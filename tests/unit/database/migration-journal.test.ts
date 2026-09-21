@@ -386,7 +386,13 @@ describe('migration journal', () => {
     expect(tags.indexOf('0118_task_document_owner_access_correction')).toBeLessThan(
       tags.indexOf('0119_meetings_read_org_scope'),
     );
-    expect(tags.at(-1)).toBe('0119_meetings_read_org_scope');
+    expect(tags.indexOf('0119_meetings_read_org_scope')).toBeLessThan(
+      tags.indexOf('0120_storage_documents_read_rls_and_member_folder_grants'),
+    );
+    expect(tags.indexOf('0120_storage_documents_read_rls_and_member_folder_grants')).toBeLessThan(
+      tags.indexOf('0121_employee_storage_permission_rls_correction'),
+    );
+    expect(tags.at(-1)).toBe('0121_employee_storage_permission_rls_correction');
 
     const sql66 = await readFile(
       path.join(MIGRATIONS_DIR, '0066_workforce_time_integrity.sql'),

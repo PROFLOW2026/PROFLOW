@@ -841,6 +841,13 @@
                         "when":  1789711440000,
                         "tag":  "0120_storage_documents_read_rls_and_member_folder_grants",
                         "breakpoints":  true
+                    },
+                    {
+                        "idx":  120,
+                        "version":  "7",
+                        "when":  1789711500000,
+                        "tag":  "0121_employee_storage_permission_rls_correction",
+                        "breakpoints":  true
                     }
                 ]
 }
