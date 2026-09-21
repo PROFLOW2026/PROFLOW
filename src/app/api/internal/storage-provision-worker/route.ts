@@ -1,16 +1,17 @@
 import { NextResponse } from 'next/server';
 import { runStorageProvisionCycle } from '@/modules/external-storage/application/provision-batch';
-import { isInternalWorkerAuthorized } from '@/shared/http/internal-worker-auth';
+import { isStorageProvisionWorkerAuthorized } from '@/modules/external-storage/application/storage-provision-worker-auth';
 
 /** Allow a full first provision batch (clients + projects) before timeout. */
 export const maxDuration = 300;
 
 /**
  * Resumable external-storage folder provisioning.
- * Each call handles one batch, then chains the next request when work remains.
+ * Each call handles one batch, then HTTP-chains the next worker when work remains.
+ * Auth: STORAGE_PROVISION_WORKER_SECRET (dedicated; not OCR/CRON).
  */
 export async function POST(request: Request): Promise<Response> {
-  if (!isInternalWorkerAuthorized(request)) {
+  if (!isStorageProvisionWorkerAuthorized(request)) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
   const body = (await request.json().catch(() => ({}))) as {
