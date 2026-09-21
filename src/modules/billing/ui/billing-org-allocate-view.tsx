@@ -14,8 +14,8 @@ import { NotFoundError } from '@/shared/errors';
 import { isPositiveMoney } from '@/shared/money';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import {
+  allocateEmployeePaymentAction,
   allocatePaymentAction,
-  createAllocatePaymentAction,
 } from '@/modules/billing/ui/actions';
 
 interface BillingOrgAllocateViewProps {
@@ -59,9 +59,7 @@ export async function BillingOrgAllocateView({
   if (!canManage) notFound();
 
   const allocateAction =
-    surface === 'employee'
-      ? createAllocatePaymentAction(routeBase)
-      : allocatePaymentAction;
+    surface === 'employee' ? allocateEmployeePaymentAction : allocatePaymentAction;
 
   return (
     <div className="flex min-w-0 flex-col gap-6">

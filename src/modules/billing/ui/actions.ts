@@ -261,14 +261,12 @@ export async function allocatePaymentAction(
   return runAllocatePaymentAction(paymentId, '/billing', _prev, formData);
 }
 
-export function createAllocatePaymentAction(routeBase: string) {
-  return async function boundAllocatePaymentAction(
-    paymentId: string,
-    prev: BillingFormState,
-    formData: FormData,
-  ): Promise<BillingFormState> {
-    return runAllocatePaymentAction(paymentId, routeBase, prev, formData);
-  };
+export async function allocateEmployeePaymentAction(
+  paymentId: string,
+  _prev: BillingFormState,
+  formData: FormData,
+): Promise<BillingFormState> {
+  return runAllocatePaymentAction(paymentId, '/employee/billing', _prev, formData);
 }
 
 async function runAllocatePaymentAction(
