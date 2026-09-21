@@ -23,6 +23,7 @@ function mockAdapter(
     downloadFileStream: vi.fn(),
     renameFile: vi.fn(),
     moveFile: vi.fn(),
+    replaceFileContent: vi.fn(),
     deleteFile: vi.fn(),
   } as StorageProviderAdapter;
 }
