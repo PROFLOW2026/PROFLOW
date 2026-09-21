@@ -722,6 +722,8 @@ export interface CreateEmployeePmTaskInput {
   readonly dueDate?: string | null;
   readonly estimatedEffortMinutes?: number | null;
   readonly assigneeEmployeeId?: string | null;
+  readonly assigneeKeys?: readonly string[];
+  readonly assignAllProjectTeam?: boolean;
 }
 
 export async function createEmployeePmTask(
@@ -746,9 +748,7 @@ export async function createEmployeePmTask(
   const workspaceId = links[0]?.workspaceId;
   if (!workspaceId) throw new DomainRuleError('Project has no workspace link', 'tasks.errors.noWorkspace');
 
-  const { insertTask, insertTaskAssignee, insertTaskActivity } = await import(
-    '@/modules/tasks/data/tasks.repository'
-  );
+  const { insertTask, insertTaskActivity } = await import('@/modules/tasks/data/tasks.repository');
   const { generateSortKey } = await import('@/modules/tasks/domain/lexorank');
 
   const task = await insertTask(context.db, {
@@ -767,13 +767,19 @@ export async function createEmployeePmTask(
     createdBySystem: false,
   });
 
-  if (input.assigneeEmployeeId && employeeHasTaskMutationGrant(context, PERMISSIONS.TASKS_ASSIGN)) {
-    await insertTaskAssignee(context.db, {
-      taskId: task.id,
-      organizationId: context.organizationId,
-      employeeId: input.assigneeEmployeeId,
-      orgMemberId: null,
-      assignedByOrgMemberId: null,
+  if (
+    employeeHasTaskMutationGrant(context, PERMISSIONS.TASKS_ASSIGN) &&
+    ((input.assigneeKeys && input.assigneeKeys.length > 0) ||
+      input.assignAllProjectTeam ||
+      input.assigneeEmployeeId)
+  ) {
+    const { syncTaskAssignees } = await import('@/modules/tasks/application/sync-task-assignees');
+    const assigneeKeys =
+      input.assigneeKeys ??
+      (input.assigneeEmployeeId ? [`e:${input.assigneeEmployeeId}`] : undefined);
+    await syncTaskAssignees(context, task.id, {
+      assigneeKeys,
+      assignAllProjectTeam: input.assignAllProjectTeam,
     });
   }
 
@@ -794,47 +800,49 @@ export async function assignEmployeePmTaskAssignee(
   taskId: string,
   assigneeEmployeeId: string,
 ): Promise<void> {
-  const employeeId = requireEmployeeId(context);
+  requireEmployeeId(context);
   if (!employeeHasTaskMutationGrant(context, PERMISSIONS.TASKS_ASSIGN)) {
     throw new DomainRuleError('No permission to assign tasks', 'employeeApp.errors.notAuthorized');
   }
 
-  const [task] = await context.db
-    .select({ id: tasks.id, projectId: tasks.projectId })
-    .from(tasks)
+  const { syncTaskAssignees } = await import('@/modules/tasks/application/sync-task-assignees');
+  const existingRows = await context.db
+    .select({
+      employeeId: taskAssignees.employeeId,
+      orgMemberId: taskAssignees.orgMemberId,
+    })
+    .from(taskAssignees)
     .where(
       and(
-        eq(tasks.id, taskId),
-        eq(tasks.organizationId, context.organizationId),
-        isNull(tasks.archivedAt),
+        eq(taskAssignees.taskId, taskId),
+        eq(taskAssignees.organizationId, context.organizationId),
       ),
     );
-  if (!task) throw new NotFoundError('Task');
 
-  await assertEmployeeCanExerciseTaskPermission(
-    context,
-    PERMISSIONS.TASKS_ASSIGN,
-    { taskId, projectId: task.projectId },
-    employeeId,
-  );
+  const existingKeys = existingRows
+    .map((row) =>
+      row.employeeId ? `e:${row.employeeId}` : row.orgMemberId ? `m:${row.orgMemberId}` : null,
+    )
+    .filter((value): value is string => Boolean(value));
 
-  const { insertTaskAssignee, insertTaskActivity } = await import('@/modules/tasks/data/tasks.repository');
-  await insertTaskAssignee(context.db, {
-    taskId,
-    organizationId: context.organizationId,
-    employeeId: assigneeEmployeeId,
-    orgMemberId: null,
-    assignedByOrgMemberId: null,
+  const nextKey = `e:${assigneeEmployeeId}`;
+  await syncTaskAssignees(context, taskId, {
+    assigneeKeys: existingKeys.includes(nextKey) ? [...existingKeys] : [...existingKeys, nextKey],
   });
+}
 
-  await insertTaskActivity(context.db, {
-    taskId,
-    organizationId: context.organizationId,
-    actorEmployeeId: employeeId,
-    actorSystem: false,
-    eventType: 'assigned',
-    payload: { employeeId: assigneeEmployeeId },
-  });
+export async function syncEmployeePmTaskAssignees(
+  context: OrgContext,
+  taskId: string,
+  input: { assigneeKeys?: readonly string[]; assignAllProjectTeam?: boolean },
+): Promise<void> {
+  requireEmployeeId(context);
+  if (!employeeHasTaskMutationGrant(context, PERMISSIONS.TASKS_ASSIGN)) {
+    throw new DomainRuleError('No permission to assign tasks', 'employeeApp.errors.notAuthorized');
+  }
+
+  const { syncTaskAssignees } = await import('@/modules/tasks/application/sync-task-assignees');
+  await syncTaskAssignees(context, taskId, input);
 }
 
 export async function decideEmployeePmTaskApproval(
@@ -911,6 +919,8 @@ export async function listEmployeePmCreatableProjects(
 export interface EmployeePmTaskAssigneeOption {
   readonly id: string;
   readonly name: string;
+  readonly key: string;
+  readonly jobTitle: string | null;
 }
 
 export async function listEmployeePmTaskAssigneeOptions(
@@ -919,29 +929,18 @@ export async function listEmployeePmTaskAssigneeOptions(
 ): Promise<EmployeePmTaskAssigneeOption[]> {
   if (!projectId) return [];
 
-  const { listActiveAssignedEmployeeIds } = await import(
-    '@/modules/workforce/data/project-team.repository'
+  const { listProjectParticipantAssigneeOptions } = await import(
+    '@/modules/projects/application/project-participants'
   );
-  const employeeIds = await listActiveAssignedEmployeeIds(
-    context.db,
-    context.organizationId,
-    projectId,
-  );
-  if (employeeIds.length === 0) return [];
-
-  const rows = await context.db
-    .select({ id: employees.id, name: employees.name })
-    .from(employees)
-    .where(
-      and(
-        eq(employees.organizationId, context.organizationId),
-        inArray(employees.id, employeeIds),
-        isNull(employees.archivedAt),
-      ),
-    )
-    .orderBy(asc(employees.name));
-
-  return rows.map((row) => ({ id: row.id, name: row.name }));
+  const options = await listProjectParticipantAssigneeOptions(context, projectId);
+  return options
+    .filter((option) => option.employeeId)
+    .map((option) => ({
+      id: option.employeeId!,
+      name: option.displayName,
+      key: option.key,
+      jobTitle: option.jobTitle,
+    }));
 }
 
 export interface EmployeePmTaskPendingApproval {

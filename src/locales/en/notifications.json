@@ -36,7 +36,8 @@
     "billing_plan_cycle_draft": "Progress account awaiting issue",
     "billing_plan_milestone_due": "Billing milestone due soon",
     "billing_plan_retention_held": "Retention held for release",
-    "action_required": "Action required"
+    "action_required": "Action required",
+    "task_assigned_to_you": "Task assigned to you"
   },
   "copy": {
     "billing_overdue": {
@@ -97,6 +98,11 @@
       "titleWithReference": "Punch item assigned - {reference}",
       "titleDefault": "Punch item assigned",
       "body": "A punch list item was assigned to you."
+    },
+    "task_assigned_to_you": {
+      "titleWithReference": "Task assigned - {reference}",
+      "titleDefault": "Task assigned to you",
+      "body": "You were added as an assignee on this task."
     },
     "low_stock": {
       "titleWithReference": "Low stock - {reference}",

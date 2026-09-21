@@ -455,6 +455,15 @@
       "noTemplates": "لا توجد قوالب مشاريع"
     }
   },
+  "assigneePicker": {
+    "wholeTeam": "فريق المشروع بالكامل",
+    "wholeTeamHint": "سيُعيَّن كل مشارك في المشروع عند الحفظ.",
+    "searchPlaceholder": "بحث في الفريق…",
+    "optionsLabel": "مشاركو المشروع",
+    "noMatches": "لا يوجد مشاركون مطابقون",
+    "selected": "محدد",
+    "remove": "إزالة {name}"
+  },
   "create": {
     "titleLabel": "العنوان",
     "titlePlaceholder": "عنوان المهمة...",

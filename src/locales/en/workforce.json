@@ -459,6 +459,8 @@
     "ongoing": "Ongoing",
     "roleLabel": "Role on project",
     "rolePlaceholder": "e.g. site lead",
+    "projectManagerBadge": "Project manager",
+    "setProjectManagerRole": "Mark as project manager",
     "plannedShareLabel": "Planned time share (optional)",
     "plannedShareHint": "Rough % of the employee's time on this project — not a cost weight, budget allocation, or Actual driver.",
     "plannedSharePlaceholder": "e.g. 50",

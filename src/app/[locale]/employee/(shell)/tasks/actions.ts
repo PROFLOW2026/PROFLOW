@@ -107,6 +107,12 @@ export async function employeeCreateTaskAction(formData: FormData): Promise<void
   const description = String(formData.get('description') ?? '') || null;
   const priority = String(formData.get('priority') ?? 'none');
   const dueDate = String(formData.get('dueDate') ?? '') || null;
+  const assigneeKeysRaw = String(formData.get('assigneeKeys') ?? '');
+  const assigneeKeys = assigneeKeysRaw
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean);
+  const assignAllProjectTeam = String(formData.get('assignAllProjectTeam') ?? '') === '1';
 
   const created = await withOrgContext(async (context) => {
     await assertEmployeeAppContext(context);
@@ -116,6 +122,8 @@ export async function employeeCreateTaskAction(formData: FormData): Promise<void
       description,
       priority,
       dueDate,
+      assigneeKeys: assigneeKeys.length > 0 ? assigneeKeys : undefined,
+      assignAllProjectTeam,
     });
   });
 

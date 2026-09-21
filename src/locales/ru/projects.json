@@ -87,7 +87,27 @@
       "switcherLabel": "Тип работ"
     },
     "submit": "Создать проект",
-    "success": "Проект создан"
+    "success": "Проект создан",
+    "launchModeLabel": "Структура работ при запуске",
+    "launchNone": "Начать с пустого",
+    "launchStructure": "Применить шаблон структуры",
+    "launchUwm": "Применить шаблон задач (UWM)",
+    "launchClone": "Скопировать структуру из проекта",
+    "uwmTemplateLabel": "Шаблон задач",
+    "uwmTemplatePlaceholder": "Выберите шаблон",
+    "uwmPreviewStages": "Этапы",
+    "uwmPreviewTasks": "Задачи",
+    "sections": {
+      "details": "Детали проекта",
+      "team": "Команда",
+      "teamHint": "Необязательно — назначайте людей после создания проекта.",
+      "teamStub": "Добавляйте участников команды в рабочей области проекта после создания.",
+      "workStructure": "Структура работ",
+      "workStructureStub": "Шаблоны структуры и пакеты задач будут доступны в будущем обновлении.",
+      "finance": "Финансы",
+      "summary": "Итог",
+      "summaryHint": "Проверьте основные данные и создайте проект."
+    }
   },
   "workspace": {
     "fallbackTitle": "Проект",

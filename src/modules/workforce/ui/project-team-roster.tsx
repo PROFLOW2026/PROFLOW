@@ -11,6 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Link } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
 import { textNavLinkClassName } from '@/components/ui/pressable';
+import { Badge } from '@/components/ui/badge';
+import { isProjectManagerRole, PROJECT_MANAGER_ROLE_VALUE } from '@/modules/projects/domain/project-participants';
 import type { ProjectTeamMemberSummary } from '@/modules/workforce';
 import {
   addProjectTeamMemberAction,
@@ -63,6 +65,7 @@ export function ProjectTeamRoster({
   const [showHistory, setShowHistory] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [plannedShare, setPlannedShare] = useState('');
+  const [addRole, setAddRole] = useState('');
   const [state, formAction, pending] = useActionState<ProjectTeamFormState, FormData>(
     addProjectTeamMemberAction,
     {},
@@ -154,12 +157,24 @@ export function ProjectTeamRoster({
                 <div className="mt-3 flex flex-col gap-3">
                   <Field label={t('projectPanel.roleLabel')} optionalLabel={tCommon('labels.optional')}>
                     {(control) => (
-                      <Input
-                        {...control}
-                        name="role"
-                        maxLength={200}
-                        placeholder={t('projectPanel.rolePlaceholder')}
-                      />
+                      <div className="flex flex-col gap-2">
+                        <Input
+                          {...control}
+                          name="role"
+                          value={addRole}
+                          onChange={(event) => setAddRole(event.target.value)}
+                          maxLength={200}
+                          placeholder={t('projectPanel.rolePlaceholder')}
+                        />
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => setAddRole(PROJECT_MANAGER_ROLE_VALUE)}
+                        >
+                          {t('projectPanel.setProjectManagerRole')}
+                        </Button>
+                      </div>
                     )}
                   </Field>
                   <Field
@@ -200,12 +215,19 @@ export function ProjectTeamRoster({
             <li key={member.membershipId} className="flex flex-col gap-3 px-3 py-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="min-w-0 text-start">
-                  <Link
-                    href={`/workforce/employees/${member.employeeId}`}
-                    className={cn(textNavLinkClassName, 'font-medium')}
-                  >
-                    {member.employeeName}
-                  </Link>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Link
+                      href={`/workforce/employees/${member.employeeId}`}
+                      className={cn(textNavLinkClassName, 'font-medium')}
+                    >
+                      {member.employeeName}
+                    </Link>
+                    {isProjectManagerRole(member.role) ? (
+                      <Badge tone="brand" className="text-[0.65rem]">
+                        {t('projectPanel.projectManagerBadge')}
+                      </Badge>
+                    ) : null}
+                  </div>
                   <p className="text-xs text-[var(--pf-text-secondary)]" dir="ltr">
                     {formatSpan(member.startDate, member.endDate, t('projectPanel.ongoing'))}
                   </p>

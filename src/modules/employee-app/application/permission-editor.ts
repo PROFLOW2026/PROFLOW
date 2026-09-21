@@ -73,8 +73,45 @@ export const EMPLOYEE_PERMISSION_EDITOR_GROUPS: readonly EmployeePermissionEdito
         scopes: ['assigned_only', 'granted_projects', 'all_organization'],
       },
       {
+        permissionKey: PERMISSIONS.PROJECTS_CREATE,
+        labelKey: 'projectsCreate',
+        scopes: ['all_organization'],
+      },
+      {
         permissionKey: PERMISSIONS.PLANNING_READ,
         labelKey: 'planningRead',
+        scopes: ['assigned_only', 'all_organization'],
+      },
+    ],
+  },
+  {
+    id: 'clients',
+    labelKey: 'clients',
+    items: [
+      {
+        permissionKey: PERMISSIONS.CLIENTS_READ,
+        labelKey: 'clientsRead',
+        scopes: ['all_organization'],
+      },
+      {
+        permissionKey: PERMISSIONS.CLIENTS_MANAGE,
+        labelKey: 'clientsManage',
+        scopes: ['all_organization'],
+      },
+    ],
+  },
+  {
+    id: 'financials',
+    labelKey: 'financials',
+    items: [
+      {
+        permissionKey: PERMISSIONS.PROJECT_FINANCIALS_READ,
+        labelKey: 'projectFinancialsRead',
+        scopes: ['assigned_only', 'all_organization'],
+      },
+      {
+        permissionKey: PERMISSIONS.CONTRACTS_MANAGE,
+        labelKey: 'contractsManage',
         scopes: ['assigned_only', 'all_organization'],
       },
     ],

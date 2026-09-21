@@ -378,7 +378,9 @@
       "timeManage": "تسجيل / عرض الساعات",
       "timeApprove": "اعتماد الساعات",
       "projectsRead": "عرض المشاريع",
+      "projectsCreate": "إنشاء مشاريع",
       "projectsManage": "إدارة المشاريع",
+      "contractsManage": "إدارة قيم العقود",
       "planningRead": "التخطيط / الجدول",
       "tasksRead": "عرض المهام",
       "tasksManage": "إدارة المهام",
@@ -445,6 +447,12 @@
   "forms": {
     "intro": "النماذج التشغيلية المسموح بها.",
     "empty": "لا توجد نماذج متاحة"
+  },
+  "projects": {
+    "createButton": "مشروع جديد",
+    "createTitle": "مشروع جديد",
+    "createDescription": "أدخل اسمًا للبدء. كل شيء آخر اختياري.",
+    "createSubmit": "إنشاء مشروع"
   },
   "expenses": {
     "create": "مصروف جديد",

@@ -459,6 +459,8 @@
     "ongoing": "مستمر",
     "roleLabel": "الدور في المشروع",
     "rolePlaceholder": "مثلاً قائد موقع",
+    "projectManagerBadge": "مدير المشروع",
+    "setProjectManagerRole": "تعيين كمدير مشروع",
     "plannedShareLabel": "حصة وقت مخطّطة (اختياري)",
     "plannedShareHint": "نسبة تقريبية من وقت الموظف على هذا المشروع — ليست وزن تكلفة ولا توزيع ميزانية ولا محرّك فعلي.",
     "plannedSharePlaceholder": "مثلاً 50",

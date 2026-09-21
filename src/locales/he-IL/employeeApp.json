@@ -123,6 +123,12 @@
     "intro": "טפסים תפעוליים מותרים.",
     "empty": "אין טפסים זמינים"
   },
+  "projects": {
+    "createButton": "פרויקט חדש",
+    "createTitle": "פרויקט חדש",
+    "createDescription": "הזינו שם כדי להתחיל. כל השאר אופציונלי.",
+    "createSubmit": "יצירת פרויקט"
+  },
   "expenses": {
     "create": "הוצאה חדשה",
     "empty": "אין הוצאות בהיקף שלך",
@@ -400,7 +406,9 @@
       "timeManage": "דיווח / צפייה בשעות",
       "timeApprove": "אישור שעות",
       "projectsRead": "צפייה בפרויקטים",
+      "projectsCreate": "יצירת פרויקטים",
       "projectsManage": "ניהול פרויקטים",
+      "contractsManage": "ניהול סכומי חוזה",
       "planningRead": "תכנון / לו\"ז",
       "tasksRead": "צפייה במשימות",
       "tasksManage": "ניהול משימות",

@@ -123,6 +123,12 @@
     "intro": "Permitted operational forms.",
     "empty": "No forms available"
   },
+  "projects": {
+    "createButton": "New project",
+    "createTitle": "New project",
+    "createDescription": "Enter a name to get started. Everything else is optional.",
+    "createSubmit": "Create project"
+  },
   "expenses": {
     "create": "New expense",
     "empty": "No expenses in your scope",
@@ -178,6 +184,7 @@
       "priorityHigh": "High",
       "priorityUrgent": "Urgent",
       "dueDate": "Due date",
+      "assignees": "Assignees",
       "submit": "Create task"
     },
     "status": {
@@ -400,7 +407,9 @@
       "timeManage": "Log / view hours",
       "timeApprove": "Approve hours",
       "projectsRead": "View projects",
+      "projectsCreate": "Create projects",
       "projectsManage": "Manage projects",
+      "contractsManage": "Manage contract values",
       "planningRead": "Planning / schedule",
       "tasksRead": "View tasks",
       "tasksManage": "Manage tasks",

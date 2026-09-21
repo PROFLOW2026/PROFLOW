@@ -78,6 +78,13 @@ export { archiveTask } from './application/archive-task';
 export { listAccessibleTasks } from './application/list-tasks';
 export { getTaskDetail } from './application/get-task-detail';
 export { addAssignee, removeAssignee } from './application/assign-task';
+export { syncTaskAssignees } from './application/sync-task-assignees';
+export type { SyncTaskAssigneesInput } from './application/sync-task-assignees';
+export {
+  assertCanAssignOnTask,
+  assertCanAssignActorToTask,
+  callerHasTaskAssignGrant,
+} from './application/task-assignment-auth';
 export {
   addChecklistItem,
   toggleChecklistItem,
@@ -146,8 +153,23 @@ export {
 export { processTaskRecurrenceForOrg } from './application/process-recurrence-occurrences';
 export { runTaskRecurrenceOpsWorker } from './application/task-recurrence-ops-worker';
 export type { TaskRecurrenceOpsWorkerResult } from './application/task-recurrence-ops-worker';
-export { applyProjectTemplate } from './application/apply-project-template';
-export type { ApplyProjectTemplateResult } from './application/apply-project-template';
+export { applyUwmProjectTemplate } from './application/apply-project-template';
+export type { ApplyUwmProjectTemplateResult } from './application/apply-project-template';
+export { ensureDefaultProjectBoard } from './application/ensure-default-project-board';
+export {
+  listUwmProjectTemplates,
+  listLaunchableUwmProjectTemplates,
+  previewUwmProjectTemplate,
+  duplicateUwmProjectTemplate,
+} from './application/manage-project-templates';
+export type {
+  UwmProjectTemplateSummary,
+  UwmProjectTemplatePreview,
+} from './application/manage-project-templates';
+/** @deprecated Use applyUwmProjectTemplate */
+export { applyUwmProjectTemplate as applyProjectTemplate } from './application/apply-project-template';
+/** @deprecated Use ApplyUwmProjectTemplateResult */
+export type { ApplyUwmProjectTemplateResult as ApplyProjectTemplateResult } from './application/apply-project-template';
 
 export { assertCanAccessTask } from './application/assert-task-access';
 export {

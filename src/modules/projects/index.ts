@@ -1,6 +1,12 @@
 /** Public API of the projects module. */
 export { createProject } from './application/create-project';
 export type { CreateProjectResult } from './application/create-project';
+export { launchProject } from './application/launch-project';
+export type {
+  LaunchProjectInput,
+  LaunchProjectResult,
+  ProjectLaunchSource,
+} from './application/launch-project';
 export { createJob } from './application/create-job';
 export type { CreateJobResult } from './application/create-job';
 export { updateProject } from './application/update-project';
@@ -30,6 +36,19 @@ export {
   isAccessibleProjectId,
   canManageProjectAccess,
 } from './application/project-access';
+export {
+  listEffectiveProjectParticipants,
+  listProjectParticipantAssigneeOptions,
+  isProjectManagerRole,
+  PROJECT_MANAGER_ROLE_VALUE,
+  formatProjectParticipantAssigneeKey,
+  parseProjectParticipantAssigneeKey,
+} from './application/project-participants';
+export type {
+  ProjectParticipant,
+  ProjectParticipantAssigneeOption,
+  TaskAssigneeActor,
+} from './application/project-participants';
 export {
   PROJECT_ACCESS_MODES,
   PROJECT_ACCESS_LEVELS,
@@ -66,7 +85,11 @@ export {
   updateMilestone,
   archiveMilestone,
 } from './application/milestones';
-export { applyProjectTemplate } from './application/apply-project-template';
+export { applyStructureProjectTemplate } from './application/apply-project-template';
+export type { ApplyProjectTemplateResult as ApplyStructureProjectTemplateResult } from './application/apply-project-template';
+/** @deprecated Use applyStructureProjectTemplate */
+export { applyStructureProjectTemplate as applyProjectTemplate } from './application/apply-project-template';
+/** @deprecated Use ApplyStructureProjectTemplateResult */
 export type { ApplyProjectTemplateResult } from './application/apply-project-template';
 
 export { projectStatusShape, isArchivedStatus } from './domain/status';

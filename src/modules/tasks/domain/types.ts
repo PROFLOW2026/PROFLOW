@@ -268,6 +268,8 @@ export interface CreateTaskInput {
   readonly createdByEmployeeId?: string | null;
   /** Set true only for system-generated tasks (recurrence, automation). */
   readonly createdBySystem?: boolean;
+  readonly assigneeKeys?: readonly string[];
+  readonly assignAllProjectTeam?: boolean;
 }
 
 export interface UpdateTaskInput {

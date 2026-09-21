@@ -13,13 +13,16 @@ import {
   type ProjectTemplateKey,
   PROJECT_TEMPLATE_KEYS,
 } from '@/modules/projects/domain/templates';
+import { listProjectsForOrg } from '@/modules/projects';
+import { listLaunchableUwmProjectTemplates } from '@/modules/tasks';
 import { resolveApplicableDefaultTax } from '@/modules/tax';
 import { getShellContext, withOrgContext } from '@/shared/auth/session';
 import { todayInTimeZone } from '@/shared/dates';
 import { resolveLabelLocale } from '@/shared/i18n/intl-locale';
 import { formatMoney } from '@/shared/money/format';
 import { zeroMoney } from '@/shared/money';
-import { ProjectCreateForm } from './project-create-form';
+import { createProjectAction } from '../actions';
+import { ProjectCreateForm } from '@/modules/projects/ui/project-create-form';
 import { WorkKindCreateHint } from './work-kind-create-hint';
 
 export async function generateMetadata({
@@ -57,6 +60,8 @@ export default async function NewProjectPage({
   }[] = [];
   let taxRatePercent: string | null = null;
   let recommendedTemplateNames: string[] = [];
+  let uwmTemplates: { id: string; name: string; description: string | null; stageCount: number; taskCount: number }[] = [];
+  let cloneSourceProjects: { id: string; name: string }[] = [];
   try {
     const loaded = await withOrgContext(async (context) => {
       const rows = await listClientsForOrg(context, {});
@@ -91,6 +96,11 @@ export default async function NewProjectPage({
               })
               .filter((name): name is string => Boolean(name));
 
+      const [uwmRows, projectRows] = await Promise.all([
+        listLaunchableUwmProjectTemplates(context),
+        listProjectsForOrg(context, { status: 'active' }),
+      ]);
+
       return {
         clients: rows.map((client) => ({
           id: client.id,
@@ -105,11 +115,24 @@ export default async function NewProjectPage({
         })),
         taxRatePercent: tax.resolved?.ratePercent ?? null,
         recommendedTemplateNames: templateNames,
+        uwmTemplates: uwmRows.map((tpl) => ({
+          id: tpl.id,
+          name: tpl.name,
+          description: tpl.description,
+          stageCount: tpl.stageCount,
+          taskCount: tpl.taskCount,
+        })),
+        cloneSourceProjects: projectRows.map((project) => ({
+          id: project.id,
+          name: project.name,
+        })),
       };
     });
     clients = loaded.clients;
     taxRatePercent = loaded.taxRatePercent;
     recommendedTemplateNames = loaded.recommendedTemplateNames;
+    uwmTemplates = loaded.uwmTemplates;
+    cloneSourceProjects = loaded.cloneSourceProjects;
   } catch {
     clients = [];
   }
@@ -144,10 +167,13 @@ export default async function NewProjectPage({
         messagesNamespace="projects"
       />
       <ProjectCreateForm
+        formAction={createProjectAction}
         baseCurrency={baseCurrency}
         currencySymbol={currencySymbol}
         clients={clients}
         taxRatePercent={taxRatePercent}
+        uwmTemplates={uwmTemplates}
+        cloneSourceProjects={cloneSourceProjects}
       />
     </div>
   );

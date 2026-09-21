@@ -19,6 +19,8 @@ export const createTaskSchema = z.object({
   milestoneId: z.string().uuid().nullable().optional(),
   source: z.enum(taskSourceValues).optional().default('manual'),
   approvalRequired: z.boolean().optional().default(false),
+  assigneeKeys: z.array(z.string().min(3)).optional(),
+  assignAllProjectTeam: z.boolean().optional(),
 });
 
 export type CreateTaskSchema = z.infer<typeof createTaskSchema>;

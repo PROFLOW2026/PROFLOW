@@ -378,7 +378,9 @@
       "timeManage": "Учёт / просмотр часов",
       "timeApprove": "Утверждение часов",
       "projectsRead": "Просмотр проектов",
+      "projectsCreate": "Создание проектов",
       "projectsManage": "Управление проектами",
+      "contractsManage": "Управление суммами договоров",
       "planningRead": "Планирование / график",
       "tasksRead": "Просмотр задач",
       "tasksManage": "Управление задачами",
@@ -445,6 +447,12 @@
   "forms": {
     "intro": "Разрешенные операционные формы.",
     "empty": "Нет доступных форм"
+  },
+  "projects": {
+    "createButton": "Новый проект",
+    "createTitle": "Новый проект",
+    "createDescription": "Введите название для начала. Всё остальное необязательно.",
+    "createSubmit": "Создать проект"
   },
   "expenses": {
     "create": "Новый расход",

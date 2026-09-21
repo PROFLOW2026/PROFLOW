@@ -9,6 +9,7 @@ import { projectTemplates, projectTemplateStages } from '@drizzle/schema';
 // eslint-disable-next-line no-restricted-imports
 import { eq, and } from 'drizzle-orm';
 import { recordAuditEvent, AUDIT_ACTIONS } from '@/shared/audit';
+import { duplicateUwmProjectTemplate } from '@/modules/tasks';
 
 export type ProjectTemplateActionState = { ok?: boolean; error?: string; message?: string };
 
@@ -108,6 +109,31 @@ export async function updateProjectTemplateAction(
     return { ok: true, message: 'Template updated' };
   } catch (err: unknown) {
     return { error: err instanceof Error ? err.message : 'Failed to update template' };
+  }
+}
+
+export async function duplicateProjectTemplateAction(
+  _prev: ProjectTemplateActionState,
+  formData: FormData,
+): Promise<ProjectTemplateActionState> {
+  try {
+    const id = formData.get('id') as string | null;
+    if (!id) return { error: 'Template ID is required' };
+
+    await withOrgContext(async (context) => {
+      const duplicated = await duplicateUwmProjectTemplate(context, id);
+      await recordAuditEvent(context, {
+        action: AUDIT_ACTIONS.SETTINGS_UPDATED,
+        entityType: 'project_template',
+        entityId: duplicated.id,
+        after: { duplicatedFrom: id, name: duplicated.name },
+      });
+    });
+
+    revalidatePath('/settings/project-templates');
+    return { ok: true, message: 'Template duplicated' };
+  } catch (err: unknown) {
+    return { error: err instanceof Error ? err.message : 'Failed to duplicate template' };
   }
 }
 

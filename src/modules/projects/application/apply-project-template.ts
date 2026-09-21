@@ -36,15 +36,20 @@ export interface ApplyProjectTemplateResult {
  * Instantiates a structure template onto a project as editable copies.
  * Catalog definitions are never mutated or live-linked.
  */
-export async function applyProjectTemplate(
+export async function applyStructureProjectTemplate(
   context: OrgContext,
   rawInput: {
     projectId: string;
     templateKey: string;
     locale?: TemplateLocale;
+    duringLaunch?: boolean;
   },
 ): Promise<ApplyProjectTemplateResult> {
-  assertPermission(context, PERMISSIONS.PROJECTS_UPDATE);
+  if (rawInput.duringLaunch) {
+    assertPermission(context, PERMISSIONS.PROJECTS_CREATE);
+  } else {
+    assertPermission(context, PERMISSIONS.PROJECTS_UPDATE);
+  }
 
   const parsed = applyProjectTemplateSchema.safeParse(rawInput);
   if (!parsed.success) {

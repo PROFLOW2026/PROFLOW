@@ -11,6 +11,8 @@ import {
   archiveTask,
   addAssignee,
   removeAssignee,
+  syncTaskAssignees,
+  callerHasTaskAssignGrant,
   followTask,
   unfollowTask,
   addLabelToTask,
@@ -269,6 +271,37 @@ export async function removeAssigneeAction(
       tErrors: (key) => tErrors(key as 'unexpected'),
     });
   }
+}
+
+export async function syncTaskAssigneesAction(
+  taskId: string,
+  input: { assigneeKeys?: string[]; assignAllProjectTeam?: boolean },
+): Promise<WorkActionState> {
+  const tErrors = await getTranslations('errors');
+
+  try {
+    await withOrgContext(async (context) => {
+      await syncTaskAssignees(context, taskId, input);
+    });
+    return { success: true };
+  } catch (error) {
+    return mapServerActionError(error, {
+      tErrors: (key) => tErrors(key as 'unexpected'),
+    });
+  }
+}
+
+export async function listProjectTaskAssigneeOptionsAction(projectId: string) {
+  return withOrgContext(async (context) => {
+    const { listProjectParticipantAssigneeOptions } = await import('@/modules/projects');
+    if (!callerHasTaskAssignGrant(context)) return [];
+    const options = await listProjectParticipantAssigneeOptions(context, projectId);
+    return options.map((option) => ({
+      key: option.key,
+      displayName: option.displayName,
+      jobTitle: option.jobTitle,
+    }));
+  });
 }
 
 // ─── Follow / Unfollow ────────────────────────────────────────────────────────

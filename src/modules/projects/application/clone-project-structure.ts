@@ -79,9 +79,17 @@ export async function previewProjectStructureSnapshot(
  */
 export async function cloneProjectStructure(
   context: OrgContext,
-  rawInput: { targetProjectId: string; sourceProjectId: string },
+  rawInput: {
+    targetProjectId: string;
+    sourceProjectId: string;
+    duringLaunch?: boolean;
+  },
 ): Promise<ProjectStructureSnapshot> {
-  assertPermission(context, PERMISSIONS.PROJECTS_UPDATE);
+  if (rawInput.duringLaunch) {
+    assertPermission(context, PERMISSIONS.PROJECTS_CREATE);
+  } else {
+    assertPermission(context, PERMISSIONS.PROJECTS_UPDATE);
+  }
 
   const parsed = cloneSchema.safeParse(rawInput);
   if (!parsed.success) {

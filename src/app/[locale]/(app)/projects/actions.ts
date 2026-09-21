@@ -2,19 +2,19 @@
 
 import { revalidatePath } from 'next/cache';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { createClient, createClientContact } from '@/modules/clients';
+import { createClientContact } from '@/modules/clients';
 import {
   applyOrgPhasePack,
   applyOrgProjectTemplate,
   applyOrgWorkPackagePack,
-  applyProjectTemplate,
+  applyStructureProjectTemplate,
   archiveProject,
   cloneProjectStructure,
   createMilestone,
   createPhase,
-  createProject,
   createWorkPackage,
   DATE_ORDER_MESSAGE,
+  launchProject,
   previewProjectStructureSnapshot,
   restoreProject,
   splitProjectIntoWorkPackages,
@@ -25,6 +25,8 @@ import {
   archiveMilestone,
   type ProjectStructureSnapshot,
 } from '@/modules/projects';
+import { parseProjectCreateForm } from '@/modules/projects/application/parse-project-create-form';
+import { previewUwmProjectTemplate } from '@/modules/tasks';
 import { withOrgContext } from '@/shared/auth/session';
 import {
   AppError,
@@ -49,10 +51,6 @@ function formValue(formData: FormData, key: string): string | undefined {
   return String(value);
 }
 
-function requiredFormValue(formData: FormData, key: string): string {
-  return formValue(formData, key) ?? '';
-}
-
 async function mapValidationError(error: ValidationError): Promise<ProjectFormState> {
   const tErrors = await getTranslations('errors');
   const tValidation = await getTranslations('validation');
@@ -71,84 +69,13 @@ export async function createProjectAction(
   const tErrors = await getTranslations('errors');
   const locale = await getLocale();
 
-  const clientMode = String(formData.get('clientMode') ?? 'none');
-  const contactMode = String(formData.get('contactMode') ?? 'none');
-  let clientId: string | null = null;
-  let primaryContactId: string | null = null;
-
   try {
     const result = await withOrgContext(async (context) => {
-      const contactName = formValue(formData, 'contactName')?.trim();
-      const contactPhone = formValue(formData, 'contactPhone')?.trim();
-      const contactEmail = formValue(formData, 'contactEmail');
-
-      if (clientMode === 'existing') {
-        const raw = formData.get('clientId');
-        clientId = raw ? String(raw) : null;
-      } else if (clientMode === 'new') {
-        const clientName = String(formData.get('clientName') ?? '').trim();
-        if (clientName) {
-          // New client: first contact may be client-wide primary; also link as project contact.
-          const client = await createClient(context, { name: clientName });
-          clientId = client.id;
-          if (contactName && contactPhone) {
-            const contact = await createClientContact(context, {
-              clientId,
-              name: contactName,
-              phone: contactPhone,
-              email: contactEmail,
-              role: 'primary',
-            });
-            primaryContactId = contact.id;
-          }
-        }
-      }
-
-      if (clientId && clientMode === 'existing') {
-        if (contactMode === 'new' && contactName && contactPhone) {
-          // Project quick-add must NOT flip client-wide primary role.
-          const contact = await createClientContact(context, {
-            clientId,
-            name: contactName,
-            phone: contactPhone,
-            email: contactEmail,
-            role: 'other',
-          });
-          primaryContactId = contact.id;
-        } else if (contactMode === 'existing') {
-          const contactId = formValue(formData, 'contactId');
-          if (contactId) primaryContactId = contactId;
-        }
-      }
-
-      return createProject(context, {
-        name: requiredFormValue(formData, 'name'),
-        clientId,
-        primaryContactId,
-        contractValueAmount: formValue(formData, 'contractValueAmount'),
-        contractValueCurrency: formValue(formData, 'contractValueCurrency'),
-        amountIncludesTax: formValue(formData, 'amountIncludesTax'),
-        openingReductionAmount: formValue(formData, 'openingReductionAmount'),
-        domainName: formValue(formData, 'domainName'),
-        location: formValue(formData, 'location'),
-        description: formValue(formData, 'description'),
-        startDate: formValue(formData, 'startDate'),
-        targetEndDate: formValue(formData, 'targetEndDate'),
-        notes: formValue(formData, 'notes'),
-      }).then(async (created) => {
-        const templateKey = formValue(formData, 'templateKey');
-        if (templateKey && templateKey !== 'none') {
-          try {
-            await applyProjectTemplate(context, {
-              projectId: created.projectId,
-              templateKey,
-              locale: locale === 'he-IL' ? 'he-IL' : 'en',
-            });
-          } catch {
-            // Project was created; template apply is best-effort on create.
-          }
-        }
-        return created;
+      const templateLocale = locale === 'he-IL' ? 'he-IL' : 'en';
+      const form = await parseProjectCreateForm(context, formData, { templateLocale });
+      return launchProject(context, {
+        create: form.input,
+        launch: form.launch,
       });
     });
 
@@ -503,7 +430,7 @@ export async function applyProjectTemplateAction(
 
   try {
     await withOrgContext(async (context) => {
-      await applyProjectTemplate(context, {
+      await applyStructureProjectTemplate(context, {
         projectId,
         templateKey: String(formData.get('templateKey') ?? ''),
         locale: locale === 'he-IL' ? 'he-IL' : 'en',
@@ -572,6 +499,21 @@ export async function cloneProjectStructureAction(
       const tProjects = await getTranslations('projects');
       return { error: tProjects('errors.templateRequiresSimpleProject') };
     }
+    if (error instanceof AppError) return { error: tErrors('unexpected') };
+    throw error;
+  }
+}
+
+export async function previewUwmProjectTemplateAction(
+  templateId: string,
+): Promise<{ preview?: Awaited<ReturnType<typeof previewUwmProjectTemplate>>; error?: string }> {
+  const tErrors = await getTranslations('errors');
+  try {
+    const preview = await withOrgContext((context) =>
+      previewUwmProjectTemplate(context, templateId),
+    );
+    return { preview };
+  } catch (error) {
     if (error instanceof AppError) return { error: tErrors('unexpected') };
     throw error;
   }

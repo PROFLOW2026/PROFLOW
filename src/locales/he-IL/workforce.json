@@ -431,6 +431,8 @@
     "ongoing": "ללא תאריך סיום",
     "roleLabel": "תפקיד בפרויקט",
     "rolePlaceholder": "למשל מנהל אתר",
+    "projectManagerBadge": "מנהל פרויקט",
+    "setProjectManagerRole": "סמן כמנהל פרויקט",
     "plannedShareLabel": "חלק זמן מתוכנן (אופציונלי)",
     "plannedShareHint": "אחוז זמן מתוכנן לצוות - לא משקל עלות, לא הקצאת תקציב, ולא משפיע על עלות בפועל.",
     "plannedSharePlaceholder": "למשל 50",

@@ -69,6 +69,7 @@ import {
 } from './task-reminders-section';
 import type { RecurrencePreset } from '../domain/recurrence-presets';
 import { PostponeMenu } from './postpone-menu';
+import { TaskAssigneePicker, type TaskAssigneePickerOption } from './task-assignee-picker';
 
 // ---------------------------------------------------------------------------
 // Helpers / sub-components
@@ -224,6 +225,26 @@ export interface TaskDetailSheetProps {
   onRecurrenceChange?: (value: { preset: RecurrencePreset; interval: number }) => void | Promise<void>;
   reminders?: TaskReminderToggle[];
   onReminderChange?: (value: TaskReminderToggle) => void | Promise<void>;
+  assigneeOptions?: readonly TaskAssigneePickerOption[];
+  canAssign?: boolean;
+  onAssigneesChange?: (input: {
+    assigneeKeys: string[];
+    assignAllProjectTeam: boolean;
+  }) => void | Promise<void>;
+}
+
+function resolveAssigneeKeysFromTask(
+  assignees: TaskDetail['assignees'],
+  options: readonly TaskAssigneePickerOption[],
+): string[] {
+  const keys: string[] = [];
+  for (const assignee of assignees) {
+    const match = options.find(
+      (option) => option.key === `e:${assignee.id}` || option.key === `m:${assignee.id}`,
+    );
+    if (match) keys.push(match.key);
+  }
+  return keys;
 }
 
 type TaskEditDraft = {
@@ -249,30 +270,112 @@ export function TaskDetailSheet({
   onRecurrenceChange,
   reminders = [],
   onReminderChange,
+  assigneeOptions = [],
+  canAssign = false,
+  onAssigneesChange,
 }: TaskDetailSheetProps) {
   const t = useTranslations('tasks');
   const [isPending, startTransition] = useTransition();
-  const [draft, setDraft] = useState<TaskEditDraft | null>(null);
-  const [draftTaskId, setDraftTaskId] = useState<string | null>(null);
-  const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(
-    null,
+  const taskId = task?.id ?? null;
+
+  const baselineDraft = useMemo((): TaskEditDraft | null => {
+    if (!task) return null;
+    return {
+      title: task.title,
+      description: task.description ?? '',
+      status: task.status,
+      priority: task.priority,
+      dueDate: task.dueDate,
+    };
+  }, [task]);
+
+  const [draftOverride, setDraftOverride] = useState<{
+    taskId: string;
+    draft: TaskEditDraft;
+  } | null>(null);
+
+  const draft =
+    draftOverride != null && draftOverride.taskId === taskId
+      ? draftOverride.draft
+      : baselineDraft;
+
+  const setDraft = useCallback(
+    (update: React.SetStateAction<TaskEditDraft | null>) => {
+      setDraftOverride((prev) => {
+        const current =
+          prev != null && prev.taskId === taskId ? prev.draft : baselineDraft;
+        const nextDraft =
+          typeof update === 'function'
+            ? (update as (value: TaskEditDraft | null) => TaskEditDraft | null)(current)
+            : update;
+        if (nextDraft == null || taskId == null) return null;
+        return { taskId, draft: nextDraft };
+      });
+    },
+    [baselineDraft, taskId],
   );
 
-  if (task?.id !== draftTaskId) {
-    setDraftTaskId(task?.id ?? null);
-    setDraft(
-      task
-        ? {
-            title: task.title,
-            description: task.description ?? '',
-            status: task.status,
-            priority: task.priority,
-            dueDate: task.dueDate,
-          }
-        : null,
-    );
-    setSaveMessage(null);
-  }
+  const [saveMessage, setSaveMessage] = useState<{
+    taskId: string | null;
+    type: 'success' | 'error';
+    text: string;
+  } | null>(null);
+
+  const baselineAssigneeKeys = useMemo(() => {
+    if (!task) return [] as string[];
+    return assigneeOptions.length > 0
+      ? resolveAssigneeKeysFromTask(task.assignees, assigneeOptions)
+      : [];
+  }, [task, assigneeOptions]);
+
+  const [assigneeOverride, setAssigneeOverride] = useState<{
+    taskId: string;
+    keys: string[];
+    assignAllProjectTeam: boolean;
+  } | null>(null);
+
+  const assigneeKeys =
+    assigneeOverride != null && assigneeOverride.taskId === taskId
+      ? assigneeOverride.keys
+      : baselineAssigneeKeys;
+  const assignAllProjectTeam =
+    assigneeOverride != null && assigneeOverride.taskId === taskId
+      ? assigneeOverride.assignAllProjectTeam
+      : false;
+
+  const setAssigneeKeys = useCallback(
+    (keys: string[]) => {
+      if (taskId == null) return;
+      setAssigneeOverride((prev) => ({
+        taskId,
+        keys,
+        assignAllProjectTeam:
+          prev != null && prev.taskId === taskId ? prev.assignAllProjectTeam : false,
+      }));
+    },
+    [taskId],
+  );
+
+  const setAssignAllProjectTeam = useCallback(
+    (selected: boolean) => {
+      if (taskId == null) return;
+      setAssigneeOverride((prev) => ({
+        taskId,
+        keys: selected
+          ? []
+          : prev != null && prev.taskId === taskId
+            ? prev.keys
+            : baselineAssigneeKeys,
+        assignAllProjectTeam: selected,
+      }));
+    },
+    [baselineAssigneeKeys, taskId],
+  );
+
+  const activeSaveMessage =
+    saveMessage?.taskId === taskId
+      ? { type: saveMessage.type, text: saveMessage.text }
+      : null;
 
   const isDirty = useMemo(() => {
     if (!task || !draft) return false;
@@ -307,33 +410,63 @@ export function TaskDetailSheet({
     await onRefresh?.(task.id);
   }, [onRefresh, task]);
 
+  const assigneesDirty = useMemo(() => {
+    if (!task || !canAssign || !onAssigneesChange) return false;
+    if (assignAllProjectTeam) return true;
+    const baseline = resolveAssigneeKeysFromTask(task.assignees, assigneeOptions);
+    if (baseline.length !== assigneeKeys.length) return true;
+    return baseline.some((key) => !assigneeKeys.includes(key));
+  }, [task, canAssign, onAssigneesChange, assignAllProjectTeam, assigneeKeys, assigneeOptions]);
+
   const handleSaveChanges = useCallback(() => {
-    if (!task || !draft || !isDirty) return;
-    const patch: Record<string, unknown> = {};
-    if (draft.title.trim() !== task.title) patch.title = draft.title.trim();
-    if ((draft.description.trim() || null) !== task.description) {
-      patch.description = draft.description.trim() || null;
-    }
-    if (draft.status !== task.status) patch.status = draft.status;
-    if (draft.priority !== task.priority) patch.priority = draft.priority;
-    if (draft.dueDate !== task.dueDate) patch.dueDate = draft.dueDate;
+    if (!task || !draft) return;
+    if (!isDirty && !assigneesDirty) return;
 
     startTransition(() => {
       void (async () => {
         setSaveMessage(null);
         try {
-          const result = await handleUpdate(patch);
-          if (result && 'error' in result && result.error) {
-            setSaveMessage({ type: 'error', text: result.error });
-            return;
+          if (isDirty) {
+            const patch: Record<string, unknown> = {};
+            if (draft.title.trim() !== task.title) patch.title = draft.title.trim();
+            if ((draft.description.trim() || null) !== task.description) {
+              patch.description = draft.description.trim() || null;
+            }
+            if (draft.status !== task.status) patch.status = draft.status;
+            if (draft.priority !== task.priority) patch.priority = draft.priority;
+            if (draft.dueDate !== task.dueDate) patch.dueDate = draft.dueDate;
+
+            const result = await handleUpdate(patch);
+            if (result && 'error' in result && result.error) {
+              setSaveMessage({ taskId, type: 'error', text: result.error });
+              return;
+            }
           }
-          setSaveMessage({ type: 'success', text: t('saveSuccess') });
+
+          if (assigneesDirty && onAssigneesChange) {
+            await onAssigneesChange({ assigneeKeys, assignAllProjectTeam });
+            await handleRefresh();
+          }
+
+          setSaveMessage({ taskId, type: 'success', text: t('saveSuccess') });
         } catch {
-          setSaveMessage({ type: 'error', text: t('saveFailed') });
+          setSaveMessage({ taskId, type: 'error', text: t('saveFailed') });
         }
       })();
     });
-  }, [task, draft, isDirty, handleUpdate, t]);
+  }, [
+    task,
+    draft,
+    isDirty,
+    assigneesDirty,
+    handleUpdate,
+    onAssigneesChange,
+    assigneeKeys,
+    assignAllProjectTeam,
+    handleRefresh,
+    t,
+    taskId,
+  ]);
 
   const body =
     task == null ? (
@@ -485,7 +618,17 @@ export function TaskDetailSheet({
 
               {/* Assignees */}
               <Field label={t('assigneesLabel')} icon={<User className="size-4" />}>
-                {task.assignees.length === 0 ? (
+                {canAssign && onAssigneesChange && assigneeOptions.length > 0 ? (
+                  <TaskAssigneePicker
+                    options={assigneeOptions}
+                    selectedKeys={assigneeKeys}
+                    onChange={setAssigneeKeys}
+                    disabled={isPending}
+                    allowWholeTeam={Boolean(task.projectId)}
+                    wholeTeamSelected={assignAllProjectTeam}
+                    onWholeTeamChange={setAssignAllProjectTeam}
+                  />
+                ) : task.assignees.length === 0 ? (
                   <p className="text-sm text-[var(--pf-text-muted)]">{t('unassigned')}</p>
                 ) : (
                   <div className="flex flex-wrap gap-2">
@@ -710,27 +853,27 @@ export function TaskDetailSheet({
                   <button
                     type="button"
                     className={uwmPrimaryButtonClass}
-                    disabled={!isDirty || isPending}
+                    disabled={(!isDirty && !assigneesDirty) || isPending}
                     onClick={handleSaveChanges}
                   >
                     {isPending ? t('saving') : t('saveChanges')}
                   </button>
-                  {isDirty ? (
+                  {isDirty || assigneesDirty ? (
                     <span className="text-xs font-medium text-[var(--pf-text-secondary)]">
                       {t('pendingChanges')}
                     </span>
                   ) : null}
                 </div>
-                {saveMessage ? (
+                {activeSaveMessage ? (
                   <p
                     className={cn(
                       'mt-2 text-sm',
-                      saveMessage.type === 'success'
+                      activeSaveMessage.type === 'success'
                         ? 'text-[var(--pf-status-success-fg)]'
                         : 'text-[var(--pf-status-danger-fg)]',
                     )}
                   >
-                    {saveMessage.text}
+                    {activeSaveMessage.text}
                   </p>
                 ) : null}
               </div>

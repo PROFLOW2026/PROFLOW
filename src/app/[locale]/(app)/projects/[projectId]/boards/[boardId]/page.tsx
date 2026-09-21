@@ -16,7 +16,9 @@ import {
   updateTask,
   moveTaskToBucket,
   getTaskDetail,
+  callerHasTaskAssignGrant,
 } from '@/modules/tasks';
+import { listProjectParticipantAssigneeOptions } from '@/modules/projects';
 import type { CreateTaskInput } from '@/modules/tasks';
 import {
   mapBoardToUiBoard,
@@ -77,6 +79,14 @@ export default async function ProjectBoardPage({
       mapBucketToUiBucket(b, tasksByBucket.get(b.id) ?? []),
     );
 
+    const assigneeOptions = callerHasTaskAssignGrant(context)
+      ? (await listProjectParticipantAssigneeOptions(context, projectId)).map((option) => ({
+          key: option.key,
+          displayName: option.displayName,
+          jobTitle: option.jobTitle,
+        }))
+      : [];
+
     return {
       workspaceId: primaryWsId,
       boards,
@@ -84,12 +94,23 @@ export default async function ProjectBoardPage({
       buckets,
       tasks: taskCards,
       today: todayInTimeZone(context.organization.timezone),
+      assigneeOptions,
+      canAssign: callerHasTaskAssignGrant(context),
     };
   });
 
   if (!data) notFound();
 
-  const { workspaceId = '', boards, activeBoard, buckets, tasks, today } = data;
+  const {
+    workspaceId = '',
+    boards,
+    activeBoard,
+    buckets,
+    tasks,
+    today,
+    assigneeOptions,
+    canAssign,
+  } = data;
 
   // Server Actions
   async function moveTaskAction(taskId: string, newBucketId: string, sortKey?: string) {
@@ -125,6 +146,15 @@ export default async function ProjectBoardPage({
     });
   }
 
+  async function syncAssigneesAction(
+    taskId: string,
+    input: { assigneeKeys?: string[]; assignAllProjectTeam?: boolean },
+  ) {
+    'use server';
+    const { syncTaskAssigneesAction } = await import('@/app/[locale]/(app)/work/actions');
+    await syncTaskAssigneesAction(taskId, input);
+  }
+
   return (
     <ProjectBoardShell
       projectId={projectId}
@@ -138,7 +168,10 @@ export default async function ProjectBoardPage({
         createTask: createTaskAction,
         getTaskDetail: getTaskDetailAction,
         updateTask: updateTaskAction,
+        syncAssignees: syncAssigneesAction,
       }}
+      assigneeOptions={assigneeOptions}
+      canAssign={canAssign}
       today={today}
     />
   );

@@ -87,7 +87,27 @@
       "switcherLabel": "نوع العمل"
     },
     "submit": "إنشاء مشروع",
-    "success": "تم إنشاء المشروع"
+    "success": "تم إنشاء المشروع",
+    "launchModeLabel": "هيكل العمل عند الإطلاق",
+    "launchNone": "بدء فارغ",
+    "launchStructure": "تطبيق قالب هيكل",
+    "launchUwm": "تطبيق قالب مهام (UWM)",
+    "launchClone": "نسخ الهيكل من مشروع",
+    "uwmTemplateLabel": "قالب مهام",
+    "uwmTemplatePlaceholder": "اختر قالبًا",
+    "uwmPreviewStages": "المراحل",
+    "uwmPreviewTasks": "المهام",
+    "sections": {
+      "details": "تفاصيل المشروع",
+      "team": "الفريق",
+      "teamHint": "اختياري — يمكن تعيين الأشخاص بعد إنشاء المشروع.",
+      "teamStub": "أضف أعضاء الفريق من مساحة عمل المشروع بعد الإنشاء.",
+      "workStructure": "هيكل العمل",
+      "workStructureStub": "ستكون قوالب الهيكل وحزم المهام متاحة في تحديث لاحق.",
+      "finance": "المالية",
+      "summary": "ملخص",
+      "summaryHint": "راجع الأساسيات ثم أنشئ المشروع."
+    }
   },
   "workspace": {
     "fallbackTitle": "مشروع",

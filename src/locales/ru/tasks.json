@@ -455,6 +455,15 @@
       "noTemplates": "Нет шаблонов проектов"
     }
   },
+  "assigneePicker": {
+    "wholeTeam": "Вся команда проекта",
+    "wholeTeamHint": "При сохранении будут назначены все участники проекта.",
+    "searchPlaceholder": "Поиск в команде…",
+    "optionsLabel": "Участники проекта",
+    "noMatches": "Совпадений не найдено",
+    "selected": "Выбрано",
+    "remove": "Удалить {name}"
+  },
   "create": {
     "titleLabel": "Название",
     "titlePlaceholder": "Название задачи...",

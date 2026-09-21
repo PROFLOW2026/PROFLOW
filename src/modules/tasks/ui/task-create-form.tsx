@@ -15,7 +15,7 @@
  * This keeps the form usable in both Server-Action and client-side patterns.
  */
 
-import { CalendarIcon, Flag, Tag, User, X } from 'lucide-react';
+import { CalendarIcon, Flag, Tag, User } from 'lucide-react';
 import { useMemo, useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
@@ -23,6 +23,7 @@ import { cn } from '@/shared/ui/cn';
 import type { TaskPriority, TaskStatus } from './_task-api-stub';
 import { TaskRecurrenceSection } from './task-recurrence-section';
 import type { RecurrencePreset } from '../domain/recurrence-presets';
+import { TaskAssigneePicker, type TaskAssigneePickerOption } from './task-assignee-picker';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -34,7 +35,8 @@ export interface TaskCreateInput {
   bucketId: string | null;
   status: TaskStatus;
   priority: TaskPriority;
-  assigneeIds: string[];
+  assigneeKeys: string[];
+  assignAllProjectTeam: boolean;
   dueDate: string | null;
   labelIds: string[];
   projectId: string | null;
@@ -48,17 +50,11 @@ interface BucketOption {
   name: string;
 }
 
-interface AssigneeOption {
-  id: string;
-  displayName: string;
-  avatarUrl: string | null;
-}
-
 export interface TaskCreateFormProps {
   /** Available buckets to select from (board-context specific) */
   buckets?: BucketOption[];
-  /** Available assignees for the organization */
-  assignees?: AssigneeOption[];
+  /** Project participant assignee options */
+  assignees?: TaskAssigneePickerOption[];
   /** Available labels */
   labels?: string[];
   /** Pre-selected bucket (e.g. from quick-add click) */
@@ -158,17 +154,12 @@ export function TaskCreateForm({
   const [bucketId, setBucketId] = useState<string | null>(defaultBucketId);
   const [status, setStatus] = useState<TaskStatus>('todo');
   const [priority, setPriority] = useState<TaskPriority>('medium');
-  const [assigneeIds, setAssigneeIds] = useState<string[]>([]);
+  const [assigneeKeys, setAssigneeKeys] = useState<string[]>([]);
+  const [assignAllProjectTeam, setAssignAllProjectTeam] = useState(false);
   const [dueDate, setDueDate] = useState<string>('');
   const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
   const [recurrencePreset, setRecurrencePreset] = useState<RecurrencePreset>('none');
   const [recurrenceInterval, setRecurrenceInterval] = useState(1);
-
-  const toggleAssignee = (id: string) => {
-    setAssigneeIds((prev) =>
-      prev.includes(id) ? prev.filter((a) => a !== id) : [...prev, id],
-    );
-  };
 
   const toggleLabel = (label: string) => {
     setSelectedLabels((prev) =>
@@ -193,7 +184,8 @@ export function TaskCreateForm({
           bucketId,
           status,
           priority,
-          assigneeIds,
+          assigneeKeys,
+          assignAllProjectTeam,
           dueDate: dueDate || null,
           labelIds: selectedLabels,
           projectId: defaultProjectId,
@@ -346,40 +338,16 @@ export function TaskCreateForm({
             <User aria-hidden className="me-1 inline size-3.5" />
             {t('create.assigneesLabel')}
           </FormLabel>
-          <div className="flex flex-wrap gap-1.5" id="task-assignees" role="group">
-            {assignees.map((a) => {
-              const selected = assigneeIds.includes(a.id);
-              return (
-                <button
-                  key={a.id}
-                  type="button"
-                  aria-pressed={selected}
-                  onClick={() => toggleAssignee(a.id)}
-                  className={cn(
-                    'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors',
-                    selected
-                      ? 'border-[var(--pf-border-brand)] bg-[var(--pf-teal-50)] text-[var(--pf-teal-800)]'
-                      : 'border-[var(--pf-border-default)] text-[var(--pf-text-secondary)] hover:border-[var(--pf-border-strong)]',
-                  )}
-                >
-                  {a.avatarUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={a.avatarUrl}
-                      alt=""
-                      className="size-4 rounded-full object-cover"
-                    />
-                  ) : (
-                    <span className="flex size-4 items-center justify-center rounded-full bg-[var(--pf-teal-100)] text-[0.55rem] font-bold uppercase text-[var(--pf-teal-800)]">
-                      {(a.displayName)[0]}
-                    </span>
-                  )}
-                  {a.displayName}
-                  {selected && <X aria-hidden className="size-3 opacity-60" />}
-                </button>
-              );
-            })}
-          </div>
+          <TaskAssigneePicker
+            id="task-assignees"
+            options={assignees}
+            selectedKeys={assigneeKeys}
+            onChange={setAssigneeKeys}
+            disabled={isPending}
+            allowWholeTeam={Boolean(defaultProjectId)}
+            wholeTeamSelected={assignAllProjectTeam}
+            onWholeTeamChange={setAssignAllProjectTeam}
+          />
         </FormField>
       )}
 

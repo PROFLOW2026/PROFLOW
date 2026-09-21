@@ -455,6 +455,15 @@
       "noTemplates": "אין תבניות פרויקט"
     }
   },
+  "assigneePicker": {
+    "wholeTeam": "כל צוות הפרויקט",
+    "wholeTeamHint": "כל משתתפי הפרויקט יוקצו בעת השמירה.",
+    "searchPlaceholder": "חיפוש בצוות…",
+    "optionsLabel": "משתתפי פרויקט",
+    "noMatches": "לא נמצאו משתתפים",
+    "selected": "נבחר",
+    "remove": "הסר {name}"
+  },
   "create": {
     "titleLabel": "כותרת",
     "titlePlaceholder": "כותרת משימה...",

@@ -32,6 +32,7 @@ import type {
   TaskDetail,
 } from '@/modules/tasks/ui/_task-api-stub';
 import type { CreateTaskInput } from '@/modules/tasks';
+import type { TaskAssigneePickerOption } from '@/modules/tasks/ui/task-assignee-picker';
 
 export interface ProjectBoardShellProps {
   projectId: string;
@@ -45,7 +46,13 @@ export interface ProjectBoardShellProps {
     createTask: (data: CreateTaskInput) => Promise<TaskCardData>;
     getTaskDetail: (taskId: string) => Promise<TaskDetail | null>;
     updateTask: (taskId: string, data: Record<string, unknown>) => Promise<void>;
+    syncAssignees: (
+      taskId: string,
+      input: { assigneeKeys?: string[]; assignAllProjectTeam?: boolean },
+    ) => Promise<void>;
   };
+  assigneeOptions?: TaskAssigneePickerOption[];
+  canAssign?: boolean;
 }
 
 export function ProjectBoardShell({
@@ -56,6 +63,8 @@ export function ProjectBoardShell({
   buckets,
   initialTasks,
   actions,
+  assigneeOptions = [],
+  canAssign = false,
   today,
 }: ProjectBoardShellProps & { today: string }) {
   const t = useTranslations('tasks');
@@ -186,6 +195,16 @@ export function ProjectBoardShell({
           const refreshed = await actions.getTaskDetail(taskId);
           if (refreshed) setTaskDetail(refreshed);
         }}
+        assigneeOptions={assigneeOptions}
+        canAssign={canAssign}
+        onAssigneesChange={
+          canAssign
+            ? async (input) => {
+                if (!selectedTaskId) return;
+                await actions.syncAssignees(selectedTaskId, input);
+              }
+            : undefined
+        }
         today={today}
         canPostpone
         timeLogBasePath="/workforce/time/new"
@@ -200,10 +219,21 @@ export function ProjectBoardShell({
           <SheetBody>
             <TaskCreateForm
               buckets={buckets.map((b) => ({ id: b.id, name: b.name }))}
+              assignees={assigneeOptions}
               defaultProjectId={projectId}
               defaultWorkspaceId={workspaceId}
               onSubmit={async (data) => {
-                await actions.createTask(data as CreateTaskInput);
+                await actions.createTask({
+                  workspaceId,
+                  title: data.title,
+                  description: data.description,
+                  projectId,
+                  bucketId: data.bucketId,
+                  priority: data.priority,
+                  dueDate: data.dueDate,
+                  assigneeKeys: data.assigneeKeys,
+                  assignAllProjectTeam: data.assignAllProjectTeam,
+                });
                 setCreateSheetOpen(false);
               }}
               onCancel={() => setCreateSheetOpen(false)}

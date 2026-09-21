@@ -455,6 +455,15 @@
       "noTemplates": "No project templates"
     }
   },
+  "assigneePicker": {
+    "wholeTeam": "Whole project team",
+    "wholeTeamHint": "Every effective project participant will be assigned when you save.",
+    "searchPlaceholder": "Search team members…",
+    "optionsLabel": "Project participants",
+    "noMatches": "No matching participants",
+    "selected": "Selected",
+    "remove": "Remove {name}"
+  },
   "create": {
     "titleLabel": "Title",
     "titlePlaceholder": "Task title...",

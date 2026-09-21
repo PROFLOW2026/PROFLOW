@@ -10,6 +10,7 @@ import {
   createProjectTemplateAction,
   updateProjectTemplateAction,
   archiveProjectTemplateAction,
+  duplicateProjectTemplateAction,
   type ProjectTemplateActionState,
 } from './actions';
 
@@ -50,6 +51,10 @@ function ProjectTemplateRow({ template, canEdit }: { template: ProjectTemplateDe
   );
   const [archiveState, archiveAction, archivePending] = useActionState(
     archiveProjectTemplateAction,
+    {} as ProjectTemplateActionState,
+  );
+  const [duplicateState, duplicateAction, duplicatePending] = useActionState(
+    duplicateProjectTemplateAction,
     {} as ProjectTemplateActionState,
   );
 
@@ -93,6 +98,14 @@ function ProjectTemplateRow({ template, canEdit }: { template: ProjectTemplateDe
             <Button size="sm" variant="ghost" onClick={() => setEditing(!editing)}>
               {editing ? 'Cancel' : 'Edit'}
             </Button>
+            {!template.isArchived ? (
+              <form action={duplicateAction}>
+                <input type="hidden" name="id" value={template.id} />
+                <Button type="submit" size="sm" variant="ghost" loading={duplicatePending}>
+                  Duplicate
+                </Button>
+              </form>
+            ) : null}
             <form action={archiveAction}>
               <input type="hidden" name="id" value={template.id} />
               <input type="hidden" name="restore" value={template.isArchived ? 'true' : 'false'} />
@@ -130,6 +143,8 @@ function ProjectTemplateRow({ template, canEdit }: { template: ProjectTemplateDe
         </form>
       )}
       {archiveState.error && <Alert tone="danger">{archiveState.error}</Alert>}
+      {duplicateState.error && <Alert tone="danger">{duplicateState.error}</Alert>}
+      {duplicateState.ok && <Alert tone="success" role="status">{duplicateState.message}</Alert>}
     </div>
   );
 }

@@ -86,5 +86,16 @@ export async function createTask(
     payload: { title: task.title },
   });
 
+  if (
+    (input.assigneeKeys && input.assigneeKeys.length > 0) ||
+    input.assignAllProjectTeam
+  ) {
+    const { syncTaskAssignees } = await import('./sync-task-assignees');
+    await syncTaskAssignees(context, task.id, {
+      assigneeKeys: input.assigneeKeys,
+      assignAllProjectTeam: input.assignAllProjectTeam,
+    });
+  }
+
   return task;
 }

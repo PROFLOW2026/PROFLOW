@@ -4,7 +4,9 @@ import { NotFoundError } from '@/shared/errors';
 import type { OrgContext } from '@/shared/auth/context';
 import { withTransaction } from '@/shared/db';
 import { projectTemplates, projectTemplateStages, projectTemplateTasks } from '@drizzle/schema';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
+import { offsetBusinessDate } from '@/modules/projects/domain/templates';
+import { findProjectById } from '@/modules/projects';
 import { insertTask, insertTaskActivity } from '../data/tasks.repository';
 import { insertBoard, insertBucket } from '../data/boards.repository';
 import { lazyCreateProjectWorkspace } from '@/modules/workspaces';
@@ -12,7 +14,7 @@ import { buildCreatorFieldsFromContext, buildActivityActorFieldsFromContext } fr
 import { generateSortKey } from '../domain/lexorank';
 import type { Task, TaskBucket, TaskPriority } from '../domain/types';
 
-export interface ApplyProjectTemplateResult {
+export interface ApplyUwmProjectTemplateResult {
   readonly workspaceId: string;
   readonly boardId: string;
   readonly stages: Array<{ stageId: string; bucketId: string; name: string }>;
@@ -20,35 +22,46 @@ export interface ApplyProjectTemplateResult {
 }
 
 /**
- * Applies a project template to a project:
+ * Applies a UWM project template (DB-backed stages + tasks) to a project:
  * 1. Lazily creates a default workspace + board for the project
  * 2. Creates board buckets for each template stage
- * 3. Creates tasks for each template task
+ * 3. Creates tasks for each template task (with relative due dates when configured)
  */
-export async function applyProjectTemplate(
+export async function applyUwmProjectTemplate(
   context: OrgContext,
   projectId: string,
   projectName: string,
   templateId: string,
-): Promise<ApplyProjectTemplateResult> {
-  assertPermission(context, PERMISSIONS.PROJECT_TEMPLATES_MANAGE);
+  options?: { duringLaunch?: boolean },
+): Promise<ApplyUwmProjectTemplateResult> {
+  if (options?.duringLaunch) {
+    assertPermission(context, PERMISSIONS.PROJECTS_CREATE);
+  } else {
+    assertPermission(context, PERMISSIONS.PROJECTS_UPDATE);
+  }
+
+  const project = await findProjectById(context.db, context.organizationId, projectId);
+  if (!project) throw new NotFoundError('Project');
 
   return withTransaction(context.db, async (tx) => {
-    // Fetch template
     const [templateRow] = await tx
       .select()
       .from(projectTemplates)
-      .where(eq(projectTemplates.id, templateId))
+      .where(
+        and(
+          eq(projectTemplates.id, templateId),
+          eq(projectTemplates.organizationId, context.organizationId),
+          eq(projectTemplates.isArchived, false),
+        ),
+      )
       .limit(1);
 
-    if (!templateRow || templateRow.organizationId !== context.organizationId) {
+    if (!templateRow) {
       throw new NotFoundError('ProjectTemplate');
     }
 
-    // Lazily create workspace + board
     const { workspace } = await lazyCreateProjectWorkspace(context, projectId, projectName);
 
-    // Create a board named after the template
     const board = await insertBoard(tx, {
       organizationId: context.organizationId,
       workspaceId: workspace.id,
@@ -57,16 +70,14 @@ export async function applyProjectTemplate(
       isDefault: true,
     });
 
-    // Fetch template stages
     const stages = await tx
       .select()
       .from(projectTemplateStages)
       .where(eq(projectTemplateStages.templateId, templateId))
       .orderBy(projectTemplateStages.position);
 
-    // Create buckets for each stage
     const buckets: TaskBucket[] = [];
-    const stageResults: ApplyProjectTemplateResult['stages'] = [];
+    const stageResults: ApplyUwmProjectTemplateResult['stages'] = [];
 
     for (const stage of stages) {
       const sortKey = generateSortKey();
@@ -81,21 +92,18 @@ export async function applyProjectTemplate(
       stageResults.push({ stageId: stage.id, bucketId: bucket.id, name: stage.name });
     }
 
-    // Build stage → bucket lookup
     const stageToBucket = new Map<string, string>();
     stages.forEach((stage, idx) => {
       const bucket = buckets[idx];
       if (bucket) stageToBucket.set(stage.id, bucket.id);
     });
 
-    // Fetch template tasks
     const templateTaskRows = await tx
       .select()
       .from(projectTemplateTasks)
       .where(eq(projectTemplateTasks.templateId, templateId))
       .orderBy(projectTemplateTasks.sortKey);
 
-    // Create tasks from template
     const creatorFields = buildCreatorFieldsFromContext(context);
     const actorFields = buildActivityActorFieldsFromContext(context);
     const createdTasks: Task[] = [];
@@ -103,6 +111,7 @@ export async function applyProjectTemplate(
     for (const tmplTask of templateTaskRows) {
       const bucketId = tmplTask.stageId ? (stageToBucket.get(tmplTask.stageId) ?? null) : null;
       const sortKey = tmplTask.sortKey ?? generateSortKey();
+      const dueDate = offsetBusinessDate(project.startDate, tmplTask.dueDateOffsetDays);
 
       const task = await insertTask(tx, {
         organizationId: context.organizationId,
@@ -113,6 +122,7 @@ export async function applyProjectTemplate(
         title: tmplTask.title,
         description: tmplTask.description ?? null,
         priority: (tmplTask.priority as TaskPriority) ?? 'none',
+        dueDate,
         source: 'template',
         sortKey,
         ...creatorFields,
