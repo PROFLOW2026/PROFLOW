@@ -137,8 +137,8 @@ function ViewTabBar({
             className={cn(
               'inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-3 py-2 text-sm font-semibold transition-colors',
               active
-                ? 'bg-[var(--pf-primary)] text-white shadow-sm'
-                : 'text-[var(--pf-text-primary)] hover:bg-[var(--pf-bg-surface)]',
+                ? 'bg-[var(--pf-action-primary)] text-[var(--pf-action-primary-fg)] shadow-sm'
+                : 'border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] text-[var(--pf-text-primary)] hover:bg-[var(--pf-bg-subtle)]',
             )}
           >
             <span className={cn('shrink-0', active ? 'text-[var(--pf-text-brand)]' : 'text-[var(--pf-text-muted)] group-hover:text-[var(--pf-text-secondary)]')}>

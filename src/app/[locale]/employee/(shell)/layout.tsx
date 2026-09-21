@@ -29,7 +29,7 @@ export default async function EmployeeShellLayout({ children }: { children: Reac
           email={session.user.email}
           organizationName={shell.organizationName}
         />
-        <main className="mx-auto min-h-0 w-full max-w-lg flex-1 overflow-y-auto bg-[var(--pf-bg)] px-4 pt-4 pb-[var(--pf-employee-main-bottom)] lg:max-w-5xl lg:pb-6">
+        <main className="mx-auto min-h-0 w-full max-w-lg flex-1 overflow-y-auto bg-[var(--pf-bg-page)] px-4 pt-4 pb-[var(--pf-employee-main-bottom)] lg:max-w-5xl lg:pb-6">
           <EmployeeShellHeader />
           {children}
         </main>

@@ -5,12 +5,15 @@ import { useTranslations } from 'next-intl';
 import { cn } from '@/shared/ui/cn';
 import {
   employeeActiveChipClass,
+  employeeActiveFilterBannerClass,
   employeeFilterBarClass,
+  employeeFilterTitleClass,
   employeePrimaryButtonClass,
   employeeSecondaryButtonClass,
 } from './employee-surface-styles';
 
 interface EmployeeListFilterBarProps {
+  readonly title?: string;
   readonly activeCount: number;
   readonly isActive: boolean;
   readonly activeSummary: readonly string[];
@@ -20,6 +23,7 @@ interface EmployeeListFilterBarProps {
 }
 
 export function EmployeeListFilterBar({
+  title,
   activeCount,
   isActive,
   activeSummary,
@@ -31,7 +35,16 @@ export function EmployeeListFilterBar({
   const [open, setOpen] = useState(false);
 
   return (
-    <section className={employeeFilterBarClass} aria-label={t('title')}>
+    <section className={employeeFilterBarClass} aria-label={title ?? t('title')}>
+      <div className="flex items-start justify-between gap-3">
+        <h2 className={employeeFilterTitleClass}>{title ?? t('title')}</h2>
+        {isActive ? (
+          <span className="shrink-0 rounded-full bg-[var(--pf-teal-100)] px-2.5 py-1 text-xs font-semibold text-[var(--pf-teal-900)]">
+            {t('active')}
+          </span>
+        ) : null}
+      </div>
+
       <div className="flex items-center justify-between gap-3 lg:hidden">
         <button
           type="button"
@@ -40,14 +53,16 @@ export function EmployeeListFilterBar({
         >
           {activeCount > 0 ? t('mobileWithCount', { count: activeCount }) : t('mobile')}
         </button>
-        {isActive ? (
-          <span className="text-xs font-medium text-[var(--pf-text-brand)]">{t('active')}</span>
-        ) : null}
       </div>
 
       <div className={cn('space-y-3', !open && 'hidden lg:block')}>{children}</div>
 
-      <div className={cn('flex flex-wrap items-center gap-2', !open && 'hidden lg:flex')}>
+      <div
+        className={cn(
+          'flex flex-wrap items-center gap-2 border-t border-[var(--pf-border-default)] pt-3',
+          !open && 'hidden lg:flex',
+        )}
+      >
         <button type="button" className={employeePrimaryButtonClass} onClick={onApply}>
           {t('apply')}
         </button>
@@ -61,14 +76,18 @@ export function EmployeeListFilterBar({
         </button>
       </div>
 
-      {isActive && activeSummary.length > 0 ? (
-        <div className="flex flex-wrap items-center gap-2 border-t border-[var(--pf-border-default)] pt-3">
-          <span className="text-xs font-semibold text-[var(--pf-text-brand)]">{t('active')}</span>
-          {activeSummary.map((chip) => (
-            <span key={chip} className={employeeActiveChipClass}>
-              {chip}
-            </span>
-          ))}
+      {isActive ? (
+        <div className={employeeActiveFilterBannerClass}>
+          <span className="text-xs font-semibold text-[var(--pf-teal-900)]">{t('active')}</span>
+          {activeSummary.length > 0 ? (
+            activeSummary.map((chip) => (
+              <span key={chip} className={employeeActiveChipClass}>
+                {chip}
+              </span>
+            ))
+          ) : (
+            <span className={employeeActiveChipClass}>{t('customApplied')}</span>
+          )}
         </div>
       ) : null}
     </section>

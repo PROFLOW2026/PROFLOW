@@ -47,21 +47,51 @@ describe('employee-filter-logic', () => {
     expect(filtered.map((task) => task.id)).toEqual(['open']);
   });
 
-  it('filters by canonical status values', () => {
+  it('filters each canonical status independently', () => {
     const defaults = defaultTaskFilterState(true);
     const tasks = [
       baseTask({ id: 'todo', status: 'todo' }),
       baseTask({ id: 'progress', status: 'in_progress' }),
       baseTask({ id: 'review', status: 'in_review' }),
       baseTask({ id: 'blocked', status: 'blocked' }),
+      baseTask({ id: 'done', status: 'done' }),
+      baseTask({ id: 'cancelled', status: 'cancelled' }),
+    ];
+
+    const idByStatus = {
+      todo: 'todo',
+      in_progress: 'progress',
+      in_review: 'review',
+      blocked: 'blocked',
+      done: 'done',
+      cancelled: 'cancelled',
+    } as const;
+
+    for (const status of ['todo', 'in_progress', 'in_review', 'blocked', 'done', 'cancelled'] as const) {
+      const filtered = filterEmployeeTasks(
+        tasks,
+        { ...defaults, status },
+        '2026-09-21' as never,
+        'e1',
+      );
+      expect(filtered.map((task) => task.id)).toEqual([idByStatus[status]]);
+    }
+  });
+
+  it('all status includes completed and cancelled tasks', () => {
+    const defaults = defaultTaskFilterState(true);
+    const tasks = [
+      baseTask({ id: 'open', status: 'todo' }),
+      baseTask({ id: 'done', status: 'done' }),
+      baseTask({ id: 'cancelled', status: 'cancelled' }),
     ];
     const filtered = filterEmployeeTasks(
       tasks,
-      { ...defaults, status: 'in_progress' },
+      { ...defaults, status: 'all' },
       '2026-09-21' as never,
       'e1',
     );
-    expect(filtered.map((task) => task.id)).toEqual(['progress']);
+    expect(filtered.map((task) => task.id)).toEqual(['open', 'done', 'cancelled']);
   });
 
   it('scope mine shows only assigned tasks', () => {

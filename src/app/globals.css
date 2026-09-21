@@ -154,6 +154,28 @@
     --pf-mobile-content-bottom: calc(
       var(--pf-bottomnav-total-height) + var(--pf-fab-gap) + var(--pf-fab-size) + 1rem
     );
+
+    /*
+     * Legacy aliases — Employee App and early UWM surfaces still reference these
+     * names. Map to canonical semantic tokens so controls stay visible.
+     */
+    --pf-primary: var(--pf-action-primary);
+    --pf-primary-hover: var(--pf-action-primary-hover);
+    --pf-primary-active: var(--pf-action-primary-active);
+    --pf-bg: var(--pf-bg-page);
+    --pf-accent: var(--pf-teal-700);
+    --pf-accent-soft: var(--pf-teal-50);
+    --pf-border: var(--pf-border-default);
+    --pf-surface: var(--pf-bg-surface);
+    --pf-surface-2: var(--pf-bg-muted);
+    --pf-surface-3: var(--pf-bg-subtle);
+    --pf-surface-primary: var(--pf-bg-surface);
+    --pf-surface-secondary: var(--pf-bg-muted);
+    --pf-surface-muted: var(--pf-bg-subtle);
+    --pf-surface-hover: var(--pf-bg-subtle);
+    --pf-ring: var(--pf-focus-ring);
+    --pf-bg-secondary: var(--pf-bg-muted);
+    --pf-bg-accent: var(--pf-teal-50);
   }
 }
 

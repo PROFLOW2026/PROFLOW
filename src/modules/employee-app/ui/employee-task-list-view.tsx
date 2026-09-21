@@ -103,49 +103,57 @@ export function EmployeeTaskListView({
       );
     }
     if (appliedFilters.status !== defaults.status) {
-      if (appliedFilters.status === 'open') chips.push(t('filters.statusOpen'));
-      else if (appliedFilters.status === 'all') chips.push(t('filters.all'));
-      else chips.push(tTasks(`status.${appliedFilters.status}`));
+      let statusLabel = t('filters.statusOpen');
+      if (appliedFilters.status === 'all') statusLabel = t('filters.all');
+      else if (appliedFilters.status !== 'open') {
+        statusLabel = tTasks(`status.${appliedFilters.status}`);
+      }
+      chips.push(t('filters.chipStatus', { value: statusLabel }));
     }
     if (appliedFilters.time !== defaults.time) {
+      let timeLabel = t('filters.all');
       switch (appliedFilters.time) {
         case 'today':
-          chips.push(t('filters.timeToday'));
+          timeLabel = t('filters.timeToday');
           break;
         case 'overdue':
-          chips.push(t('filters.timeOverdue'));
+          timeLabel = t('filters.timeOverdue');
           break;
         case 'this_week':
-          chips.push(t('filters.timeThisWeek'));
+          timeLabel = t('filters.timeThisWeek');
           break;
         case 'next_week':
-          chips.push(t('filters.timeNextWeek'));
+          timeLabel = t('filters.timeNextWeek');
           break;
         case 'this_month':
-          chips.push(t('filters.timeThisMonth'));
+          timeLabel = t('filters.timeThisMonth');
           break;
         case 'custom':
-          chips.push(t('filters.timeCustom'));
+          timeLabel = t('filters.timeCustom');
           break;
-        default:
-          chips.push(t('filters.all'));
       }
+      chips.push(t('filters.chipTime', { value: timeLabel }));
     }
     if (appliedFilters.projectId) {
       const project = projectOptions.find((row) => row.id === appliedFilters.projectId);
-      chips.push(project?.displayName ?? t('filters.project'));
+      chips.push(t('filters.chipProject', { value: project?.displayName ?? t('filters.project') }));
     }
-    if (appliedFilters.query.trim()) chips.push(appliedFilters.query.trim());
-    if (appliedFilters.assignee === 'me') chips.push(t('filters.assigneeMe'));
-    else if (appliedFilters.assignee !== defaults.assignee) {
+    if (appliedFilters.query.trim()) {
+      chips.push(t('filters.chipSearch', { value: appliedFilters.query.trim() }));
+    }
+    if (appliedFilters.assignee === 'me') {
+      chips.push(t('filters.chipAssignee', { value: t('filters.assigneeMe') }));
+    } else if (appliedFilters.assignee !== defaults.assignee) {
       const assignee = assigneeOptions.find((row) => row.id === appliedFilters.assignee);
-      chips.push(assignee?.name ?? t('filters.assignee'));
+      chips.push(t('filters.chipAssignee', { value: assignee?.name ?? t('filters.assignee') }));
     }
     if (appliedFilters.priority !== defaults.priority) {
-      chips.push(tTasks(`priority.${appliedFilters.priority}`));
+      chips.push(
+        t('filters.chipPriority', { value: tTasks(`priority.${appliedFilters.priority}`) }),
+      );
     }
     if (appliedFilters.dateFrom || appliedFilters.dateTo) {
-      chips.push(t('filters.timeCustom'));
+      chips.push(t('filters.chipTime', { value: t('filters.timeCustom') }));
     }
     return chips;
   }
@@ -203,11 +211,11 @@ export function EmployeeTaskListView({
               <Link href={`/employee/tasks/${task.id}`} className={employeeListRowLinkClass}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1 space-y-1">
-                    <div className="text-sm font-semibold leading-snug text-[var(--pf-text-primary)]">
+                    <div className="text-base font-semibold leading-snug text-[var(--pf-text-primary)]">
                       {task.title}
                     </div>
                     {task.projectDisplayName ? (
-                      <p className="truncate text-xs text-[var(--pf-text-secondary)]">
+                      <p className="truncate text-sm font-medium text-[var(--pf-text-secondary)]">
                         {task.projectDisplayName}
                       </p>
                     ) : null}
@@ -305,6 +313,7 @@ function TaskFilterControls({
 
   return (
     <EmployeeListFilterBar
+      title={t('filters.tasksTitle')}
       activeCount={activeCount}
       isActive={isActive}
       activeSummary={activeSummary}

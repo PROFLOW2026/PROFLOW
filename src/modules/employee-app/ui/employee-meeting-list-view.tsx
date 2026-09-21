@@ -207,6 +207,7 @@ function MeetingFilterControls({
 
   return (
     <EmployeeListFilterBar
+      title={t('filters.meetingsTitle')}
       activeCount={activeCount}
       isActive={isActive}
       activeSummary={activeSummary}

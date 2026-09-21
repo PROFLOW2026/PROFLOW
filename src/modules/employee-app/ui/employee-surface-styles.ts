@@ -2,6 +2,8 @@
 
 import {
   uwmActiveChipClass,
+  uwmActiveFilterBannerClass,
+  uwmFilterTitleClass,
   uwmFilterInputClass,
   uwmFilterPanelClass,
   uwmListPanelClass,
@@ -43,11 +45,15 @@ export const employeeSecondaryButtonClass = uwmSecondaryButtonClass;
 
 export const employeeActiveChipClass = uwmActiveChipClass;
 
+export const employeeActiveFilterBannerClass = uwmActiveFilterBannerClass;
+
+export const employeeFilterTitleClass = uwmFilterTitleClass;
+
 export const employeeScopeBarClass =
   'flex gap-1 rounded-lg border border-[var(--pf-border-strong)] bg-[var(--pf-bg-muted)] p-1 shadow-sm';
 
 export function employeeScopeTabClass(active: boolean): string {
   return active
-    ? 'flex-1 rounded-md bg-[var(--pf-primary)] px-3 py-2 text-center text-sm font-semibold text-white shadow-sm'
-    : 'flex-1 rounded-md px-3 py-2 text-center text-sm font-medium text-[var(--pf-text-primary)] transition-colors hover:bg-[var(--pf-bg-surface)]';
+    ? 'flex-1 rounded-md border border-transparent bg-[var(--pf-action-primary)] px-3 py-2 text-center text-sm font-semibold text-[var(--pf-action-primary-fg)] shadow-sm'
+    : 'flex-1 rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-3 py-2 text-center text-sm font-medium text-[var(--pf-text-primary)] shadow-sm transition-colors hover:bg-[var(--pf-bg-subtle)]';
 }
