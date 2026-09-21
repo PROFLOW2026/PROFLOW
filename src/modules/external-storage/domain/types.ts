@@ -36,6 +36,8 @@ export interface StorageConnectionRecord {
   readonly lastError: string | null;
   readonly quotaUsedBytes: number | null;
   readonly quotaTotalBytes: number | null;
+  /** Provider capability / setup flags (includes project template gate state). */
+  readonly capabilitiesJson: Record<string, unknown>;
   readonly createdAt: Date;
   readonly updatedAt: Date;
 }

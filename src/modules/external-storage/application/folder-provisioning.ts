@@ -236,7 +236,7 @@ export async function ensureSemanticFolder(
   });
 
   const parentAligned =
-    Boolean(existing?.externalParentId) && existing.externalParentId === input.parentFolderId;
+    Boolean(existing?.externalParentId) && existing?.externalParentId === input.parentFolderId;
 
   if (existing?.status === 'ready' && parentAligned) {
     const adapter = getStorageProviderAdapter(input.connection.provider);
@@ -427,17 +427,38 @@ export async function ensureProjectFolderTree(
     entityId: input.projectId,
   });
 
-  for (const semantic of PROJECT_SEMANTIC_FOLDERS) {
-    await ensureSemanticFolder(db, {
-      organizationId: input.organizationId,
-      connection: input.connection,
-      accessToken: input.accessToken,
-      semanticFolderType: semantic,
-      parentFolderId: projectRootId,
-      displayName: resolveSemanticFolderDisplayName(semantic),
-      entityType: 'project',
-      entityId: input.projectId,
-    });
+  const readyChildCount = await countReadyProjectSemanticChildren(db, {
+    organizationId: input.organizationId,
+    connectionId: input.connection.id,
+    projectId: input.projectId,
+    projectRootId,
+  });
+
+  if (readyChildCount < PROJECT_SEMANTIC_FOLDERS.length) {
+    const { readProjectTemplateCapability } = await import('../domain/project-template');
+    const template = readProjectTemplateCapability(input.connection.capabilitiesJson);
+    if (template.externalFolderId) {
+      const { copyProviderFolderContents } = await import('./template-copy');
+      await copyProviderFolderContents({
+        connection: input.connection,
+        accessToken: input.accessToken,
+        sourceFolderId: template.externalFolderId,
+        destinationFolderId: projectRootId,
+      });
+    }
+
+    for (const semantic of PROJECT_SEMANTIC_FOLDERS) {
+      await ensureSemanticFolder(db, {
+        organizationId: input.organizationId,
+        connection: input.connection,
+        accessToken: input.accessToken,
+        semanticFolderType: semantic,
+        parentFolderId: projectRootId,
+        displayName: resolveSemanticFolderDisplayName(semantic),
+        entityType: 'project',
+        entityId: input.projectId,
+      });
+    }
   }
 
   const { upsertProjectInfoFile } = await import('./project-info-file');
@@ -450,6 +471,36 @@ export async function ensureProjectFolderTree(
   });
 
   return projectRootId;
+}
+
+async function countReadyProjectSemanticChildren(
+  db: DbExecutor,
+  input: {
+    organizationId: string;
+    connectionId: string;
+    projectId: string;
+    projectRootId: string;
+  },
+): Promise<number> {
+  let ready = 0;
+  for (const semantic of PROJECT_SEMANTIC_FOLDERS) {
+    const mapping = await findFolderMapping(db, {
+      organizationId: input.organizationId,
+      connectionId: input.connectionId,
+      semanticFolderType: semantic,
+      entityType: 'project',
+      entityId: input.projectId,
+    });
+    if (
+      mapping?.status === 'ready' &&
+      mapping.externalParentId === input.projectRootId &&
+      mapping.externalFolderId &&
+      mapping.externalFolderId !== 'pending'
+    ) {
+      ready += 1;
+    }
+  }
+  return ready;
 }
 
 /** Idempotent nested folder chain under an existing provider folder (generated docs). */

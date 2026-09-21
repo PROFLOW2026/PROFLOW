@@ -22,7 +22,10 @@
     "openRoot": "Open ProjectFlow folder",
     "reconnect": "Reconnect",
     "disconnect": "Disconnect",
-    "setPrimary": "Set as primary"
+    "setPrimary": "Set as primary",
+    "useReadyTemplate": "Use the ready-made template",
+    "openProjectTemplate": "Open the project template in storage",
+    "templateReadyConfirm": "Done — template is ready"
   },
   "quota": {
     "used": "Used: {used}",
@@ -32,8 +35,14 @@
   "primaryRequiredNotice": "This provider is connected but not set as primary. Set it as primary to enable file uploads.",
   "oauthSuccess": "Storage connected successfully.",
   "oauthFailed": "Connection failed. Try again.",
+  "templateGate": {
+    "connectedNeedChoice": "Storage connected — choose a project template",
+    "waitingApproval": "Project template awaiting confirmation",
+    "explanation": "We prepared a ready-made project template for you. Every project will receive a copy of it. You can use it as-is, or edit it in storage and add fixed folders and files."
+  },
   "provisioning": {
     "preparing": "Preparing storage...",
+    "preparingProjects": "Preparing projects...",
     "ready": "Storage is ready",
     "pending": "Storage is still being prepared",
     "clients": "Clients: {done}/{total}",

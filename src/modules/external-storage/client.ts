@@ -15,6 +15,14 @@ export type {
 } from './domain/types';
 export { STORAGE_PROVIDER_LABELS } from './domain/types';
 export { semanticFolderForDocumentOwner, PROJECT_SEMANTIC_FOLDERS } from './domain/semantic-folders';
+export {
+  readProjectTemplateCapability,
+  isProjectTemplateApproved,
+} from './domain/project-template';
+export type {
+  ProjectTemplateSetupStatus,
+  ProjectTemplateCapability,
+} from './domain/project-template';
 export type {
   ProjectCloudFileRef,
   ProjectCloudFileBrowserActions,

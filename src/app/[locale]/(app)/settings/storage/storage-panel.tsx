@@ -8,12 +8,15 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { StatusBadge } from '@/components/ui/status-badge';
 import type { StorageConnectionRecord, StorageProviderKey } from '@/modules/external-storage/client';
+import { readProjectTemplateCapability } from '@/modules/external-storage/client';
 import type { StorageProvisionProgress } from '@/modules/external-storage/domain/project-folder-placement';
 import { formatFileSize } from '@/modules/documents/domain/format-file-size';
 import {
   disconnectStorageConnectionAction,
   setPrimaryStorageConnectionAction,
   validateStorageConnectionAction,
+  approveProjectTemplateAction,
+  openProjectTemplateAction,
 } from './actions';
 
 const PROVIDERS: StorageProviderKey[] = ['onedrive', 'google_drive', 'dropbox', 'box'];
@@ -69,6 +72,11 @@ export function StorageSettingsPanel({
           const connection = byProvider.get(provider);
           const configured = configuredProviders.includes(provider);
           const status = connection?.status ?? 'disconnected';
+          const template =
+            connection && status === 'connected'
+              ? readProjectTemplateCapability(connection.capabilitiesJson)
+              : null;
+          const progress = connection ? provisionProgress[connection.id] : undefined;
           return (
             <li key={provider}>
               <Card>
@@ -109,8 +117,18 @@ export function StorageSettingsPanel({
                   !storageActive ? (
                     <Alert tone="warning">{t('primaryRequiredNotice')}</Alert>
                   ) : null}
-                  {connection && provisionProgress[connection.id] ? (
-                    <StorageProvisionStatus progress={provisionProgress[connection.id]!} t={t} />
+                  {connection && template && template.status !== 'approved' ? (
+                    <ProjectTemplateGate
+                      connectionId={connection.id}
+                      status={template.status}
+                      canManage={canManage}
+                      pending={pending}
+                      startTransition={startTransition}
+                      router={router}
+                      t={t}
+                    />
+                  ) : connection && progress ? (
+                    <StorageProvisionStatus progress={progress} t={t} />
                   ) : null}
                   <div className="flex flex-wrap gap-2">
                     {canManage && configured ? (
@@ -189,6 +207,87 @@ export function StorageSettingsPanel({
   );
 }
 
+function ProjectTemplateGate({
+  connectionId,
+  status,
+  canManage,
+  pending,
+  startTransition,
+  router,
+  t,
+}: {
+  connectionId: string;
+  status: 'pending_approval' | 'editing';
+  canManage: boolean;
+  pending: boolean;
+  startTransition: (fn: () => Promise<void>) => void;
+  router: ReturnType<typeof useRouter>;
+  t: ReturnType<typeof useTranslations<'externalStorage'>>;
+}) {
+  return (
+    <div className="flex flex-col gap-3 rounded-md border border-[var(--pf-border)] bg-[var(--pf-surface-muted)] p-3">
+      <p className="font-medium text-[var(--pf-text)]">
+        {status === 'editing'
+          ? t('templateGate.waitingApproval')
+          : t('templateGate.connectedNeedChoice')}
+      </p>
+      <p className="text-[var(--pf-text-secondary)]">{t('templateGate.explanation')}</p>
+      {canManage ? (
+        <div className="flex flex-wrap gap-2">
+          {status === 'editing' ? (
+            <Button
+              type="button"
+              size="sm"
+              loading={pending}
+              onClick={() =>
+                startTransition(async () => {
+                  await approveProjectTemplateAction(connectionId);
+                  router.refresh();
+                })
+              }
+            >
+              {t('actions.templateReadyConfirm')}
+            </Button>
+          ) : (
+            <>
+              <Button
+                type="button"
+                size="sm"
+                loading={pending}
+                onClick={() =>
+                  startTransition(async () => {
+                    await approveProjectTemplateAction(connectionId);
+                    router.refresh();
+                  })
+                }
+              >
+                {t('actions.useReadyTemplate')}
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                loading={pending}
+                onClick={() =>
+                  startTransition(async () => {
+                    const result = await openProjectTemplateAction(connectionId);
+                    if (result.webUrl) {
+                      window.open(result.webUrl, '_blank', 'noopener,noreferrer');
+                    }
+                    router.refresh();
+                  })
+                }
+              >
+                {t('actions.openProjectTemplate')}
+              </Button>
+            </>
+          )}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function StorageProvisionStatus({
   progress,
   t,
@@ -201,7 +300,7 @@ function StorageProvisionStatus({
   }
   return (
     <div className="flex flex-col gap-1 text-[var(--pf-text-secondary)]">
-      <p>{t('provisioning.preparing')}</p>
+      <p>{t('provisioning.preparingProjects')}</p>
       <p>{t('provisioning.clients', { done: progress.clientsProvisioned, total: progress.clientsTotal })}</p>
       <p>{t('provisioning.projects', { done: progress.projectsProvisioned, total: progress.projectsTotal })}</p>
       <p>{t('provisioning.folders', { done: progress.projectFoldersProvisioned, total: progress.projectFoldersTotal })}</p>

@@ -29,10 +29,23 @@ export default async function StorageSettingsPage({
 
   const data = await withOrgContext(async (context) => {
     if (section && !canAccessSection(context, section)) return { allowed: false as const };
-    const [connections, storageActive] = await Promise.all([
+    const [rawConnections, storageActive] = await Promise.all([
       listOrganizationStorageConnections(context),
       isOrganizationStorageConfigured(context),
     ]);
+    const { reconcileProjectTemplateGateState } = await import(
+      '@/modules/external-storage/server'
+    );
+    const connections = await Promise.all(
+      rawConnections.map(async (connection) => {
+        if (connection.status !== 'connected') return connection;
+        return reconcileProjectTemplateGateState(
+          context.db,
+          context.organizationId,
+          connection,
+        );
+      }),
+    );
     const connected = connections.filter((connection) => connection.status === 'connected');
     const progressEntries = await Promise.all(
       connected.map(async (connection) => [

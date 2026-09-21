@@ -22,7 +22,10 @@
     "openRoot": "فتح مجلد ProjectFlow",
     "reconnect": "إعادة الاتصال",
     "disconnect": "قطع الاتصال",
-    "setPrimary": "تعيين كأساسي"
+    "setPrimary": "تعيين كأساسي",
+    "useReadyTemplate": "استخدم القالب الجاهز",
+    "openProjectTemplate": "افتح قالب المشروع في التخزين",
+    "templateReadyConfirm": "انتهيت — القالب جاهز"
   },
   "quota": {
     "used": "مستخدم: {used}",
@@ -32,8 +35,14 @@
   "primaryRequiredNotice": "هذا المزود متصل لكنه غير معيّن كأساسي. عيّنه أساسياً لتمكين رفع الملفات.",
   "oauthSuccess": "تم ربط التخزين بنجاح.",
   "oauthFailed": "فشل الاتصال. حاول مرة أخرى.",
+  "templateGate": {
+    "connectedNeedChoice": "التخزين متصل — يجب اختيار قالب المشروع",
+    "waitingApproval": "قالب المشروع بانتظار التأكيد",
+    "explanation": "جهّزنا لك قالب مشروع جاهز. كل مشروع سيحصل على نسخة منه. يمكنك استخدامه كما هو، أو تعديله في التخزين وإضافة مجلدات وملفات ثابتة."
+  },
   "provisioning": {
     "preparing": "جارٍ تجهيز التخزين...",
+    "preparingProjects": "جارٍ تجهيز المشاريع...",
     "ready": "التخزين جاهز",
     "pending": "التخزين ما زال قيد التجهيز",
     "clients": "العملاء: {done}/{total}",

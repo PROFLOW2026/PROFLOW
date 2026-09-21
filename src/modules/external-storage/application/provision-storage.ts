@@ -24,6 +24,8 @@ export async function commitOrganizationStorageProvision(input: {
   connectionId: string;
   projectId?: string;
 }): Promise<{ clients: number; projects: number }> {
+  let shouldKick = false;
+  let provisionedProject = false;
   await withUserContext(input.userId, async (db) => {
     const row = await findStorageConnectionById(db, input.organizationId, input.connectionId);
     if (!row || row.status !== 'connected') {
@@ -33,18 +35,42 @@ export async function commitOrganizationStorageProvision(input: {
       );
     }
     const accessToken = await resolveValidAccessToken(db, input.organizationId, row);
-    await ensureOrganizationRootFolder(db, input.organizationId, row, accessToken);
+    const rootFolderId = await ensureOrganizationRootFolder(
+      db,
+      input.organizationId,
+      row,
+      accessToken,
+    );
+    const refreshed =
+      (await findStorageConnectionById(db, input.organizationId, row.id)) ?? row;
+    const { ensureDefaultProjectTemplate, connectionTemplateApproved } = await import(
+      './project-template-service'
+    );
+    await ensureDefaultProjectTemplate(
+      db,
+      input.organizationId,
+      refreshed,
+      accessToken,
+      rootFolderId,
+    );
+    const afterTemplate =
+      (await findStorageConnectionById(db, input.organizationId, row.id)) ?? refreshed;
+    if (!connectionTemplateApproved(afterTemplate)) {
+      return;
+    }
+    shouldKick = true;
     if (input.projectId) {
       await provisionStoredProjectFolder(db, {
         organizationId: input.organizationId,
-        connection: row,
+        connection: afterTemplate,
         accessToken,
         projectId: input.projectId,
       });
+      provisionedProject = true;
     }
   });
-  kickStorageProvision();
-  return { clients: 0, projects: input.projectId ? 1 : 0 };
+  if (shouldKick) kickStorageProvision();
+  return { clients: 0, projects: provisionedProject ? 1 : 0 };
 }
 
 export async function ensureOrganizationStorageProvisioned(
@@ -52,13 +78,23 @@ export async function ensureOrganizationStorageProvisioned(
   projectId: string,
 ): Promise<void> {
   const connection = await assertOrganizationStorageAvailable(context);
+  const { connectionTemplateApproved, reconcileProjectTemplateGateState } = await import(
+    './project-template-service'
+  );
+  const gated = await reconcileProjectTemplateGateState(
+    context.db,
+    context.organizationId,
+    connection,
+  );
+  if (!connectionTemplateApproved(gated)) return;
+
   const [projectsRoot, mappings] = await Promise.all([
     findFolderMapping(context.db, {
       organizationId: context.organizationId,
-      connectionId: connection.id,
+      connectionId: gated.id,
       semanticFolderType: 'projects_root',
     }),
-    listFolderMappingsForProject(context.db, context.organizationId, connection.id, projectId),
+    listFolderMappingsForProject(context.db, context.organizationId, gated.id, projectId),
   ]);
   const projectRoot = mappings.find((mapping) => mapping.semanticFolderType === 'project_root');
   if (
@@ -71,7 +107,7 @@ export async function ensureOrganizationStorageProvisioned(
   await commitOrganizationStorageProvision({
     userId: context.userId,
     organizationId: context.organizationId,
-    connectionId: connection.id,
+    connectionId: gated.id,
     projectId,
   });
 }

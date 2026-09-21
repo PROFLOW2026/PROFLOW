@@ -28,6 +28,7 @@ function connection(
     lastError: null,
     quotaUsedBytes: null,
     quotaTotalBytes: null,
+    capabilitiesJson: {},
     createdAt: new Date(),
     updatedAt: new Date(),
     ...patch,

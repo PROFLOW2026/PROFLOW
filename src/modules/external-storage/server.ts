@@ -26,7 +26,12 @@ export {
   organizationHasActiveStorage,
   setPrimaryStorageConnection,
   validateStorageConnection,
+  approveProjectTemplateAndProvision,
+  openProjectTemplateInProvider,
 } from './application/connection-service';
+export { readProjectTemplateCapability } from './domain/project-template';
+export type { ProjectTemplateSetupStatus } from './domain/project-template';
+export { reconcileProjectTemplateGateState } from './application/project-template-service';
 export { isOrganizationStorageConfigured } from './application/org-storage-gate';
 export {
   resolveEmployeeProjectFilesGate,

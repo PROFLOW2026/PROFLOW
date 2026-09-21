@@ -205,18 +205,52 @@ export async function provisionConnectedStorage(input: {
       connectionId: input.connectionId,
       reconnectSameAccount: Boolean(input.reconnectSameAccount),
     });
-    await ensureOrganizationRootFolder(db, input.organizationId, connection, accessToken);
+    const rootFolderId = await ensureOrganizationRootFolder(
+      db,
+      input.organizationId,
+      connection,
+      accessToken,
+    );
     console.info('[org-storage/oauth/provision] step=root_folder pass', {
       connectionId: input.connectionId,
     });
-    console.info('[org-storage/oauth/provision] step=provision_enqueued', {
-      connectionId: input.connectionId,
-      reconnectSameAccount: Boolean(input.reconnectSameAccount),
-      accountChanged: Boolean(input.accountChanged),
-    });
-    kickStorageProvision();
 
-    await updateStorageConnection(db, input.organizationId, connection.id, {
+    const refreshed =
+      (await findStorageConnectionById(db, input.organizationId, connection.id)) ?? connection;
+    const { ensureDefaultProjectTemplate } = await import('./project-template-service');
+    const template = await ensureDefaultProjectTemplate(
+      db,
+      input.organizationId,
+      refreshed,
+      accessToken,
+      rootFolderId,
+      { resetApproval: Boolean(input.accountChanged) },
+    );
+    console.info('[org-storage/oauth/provision] step=project_template', {
+      connectionId: input.connectionId,
+      templateStatus: template.status,
+      templateFolderId: template.folderId,
+    });
+
+    const afterTemplate =
+      (await findStorageConnectionById(db, input.organizationId, connection.id)) ?? refreshed;
+    const templateApproved = template.status === 'approved';
+
+    if (templateApproved) {
+      console.info('[org-storage/oauth/provision] step=provision_enqueued', {
+        connectionId: input.connectionId,
+        reconnectSameAccount: Boolean(input.reconnectSameAccount),
+        accountChanged: Boolean(input.accountChanged),
+      });
+      kickStorageProvision();
+    } else {
+      console.info('[org-storage/oauth/provision] step=template_gate_wait', {
+        connectionId: input.connectionId,
+        templateStatus: template.status,
+      });
+    }
+
+    await updateStorageConnection(db, input.organizationId, afterTemplate.id, {
       lastError: null,
     });
     await ensureUsablePrimaryStorageConnection(db, input.organizationId, input.connectionId);
@@ -675,4 +709,78 @@ export async function setPrimaryStorageConnection(
     after: { provider: connection.provider },
   });
   return updated ?? connection;
+}
+
+export async function approveProjectTemplateAndProvision(
+  context: OrgContext,
+  connectionId: string,
+): Promise<StorageConnectionRecord> {
+  assertPermission(context, PERMISSIONS.SETTINGS_MANAGE);
+  const connection = await findStorageConnectionById(
+    context.db,
+    context.organizationId,
+    connectionId,
+  );
+  if (!connection || connection.status !== 'connected') {
+    throw new DomainRuleError('Connection not active', 'externalStorage.errors.connectionNotFound');
+  }
+  const { markProjectTemplateApproved } = await import('./project-template-service');
+  const updated = await markProjectTemplateApproved(
+    context.db,
+    context.organizationId,
+    connection,
+  );
+  kickStorageProvision();
+  return updated;
+}
+
+export async function openProjectTemplateInProvider(
+  context: OrgContext,
+  connectionId: string,
+): Promise<{ webUrl: string | null }> {
+  assertPermission(context, PERMISSIONS.SETTINGS_MANAGE);
+  const connection = await findStorageConnectionById(
+    context.db,
+    context.organizationId,
+    connectionId,
+  );
+  if (!connection || connection.status !== 'connected') {
+    throw new DomainRuleError('Connection not active', 'externalStorage.errors.connectionNotFound');
+  }
+  const accessToken = await resolveValidAccessToken(
+    context.db,
+    context.organizationId,
+    connection,
+  );
+  const rootId =
+    connection.rootFolderExternalId ??
+    (
+      await ensureOrganizationRootFolder(
+        context.db,
+        context.organizationId,
+        connection,
+        accessToken,
+      )
+    );
+  const refreshed =
+    (await findStorageConnectionById(context.db, context.organizationId, connection.id)) ??
+    connection;
+  const { ensureDefaultProjectTemplate, markProjectTemplateEditing, resolveProjectTemplateWebUrl } =
+    await import('./project-template-service');
+  await ensureDefaultProjectTemplate(
+    context.db,
+    context.organizationId,
+    refreshed,
+    accessToken,
+    rootId,
+  );
+  const afterEnsure =
+    (await findStorageConnectionById(context.db, context.organizationId, connection.id)) ??
+    refreshed;
+  await markProjectTemplateEditing(context.db, context.organizationId, afterEnsure);
+  const forUrl =
+    (await findStorageConnectionById(context.db, context.organizationId, connection.id)) ??
+    afterEnsure;
+  const webUrl = await resolveProjectTemplateWebUrl(forUrl, accessToken);
+  return { webUrl };
 }

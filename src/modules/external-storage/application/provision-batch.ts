@@ -99,6 +99,23 @@ export async function runStorageProvisionBatch(
   }
 
   await ensureOrganizationRootFolder(db, input.organizationId, connection, input.accessToken);
+
+  const {
+    connectionTemplateApproved,
+    reconcileProjectTemplateGateState,
+  } = await import('./project-template-service');
+  let gatedConnection = await reconcileProjectTemplateGateState(
+    db,
+    input.organizationId,
+    connection,
+  );
+  gatedConnection =
+    (await findStorageConnectionById(db, input.organizationId, connection.id)) ?? gatedConnection;
+
+  if (!connectionTemplateApproved(gatedConnection)) {
+    return { clientsProcessed: 0, projectsProcessed: 0, remaining: 0, rateLimited: false };
+  }
+
   const roots = await db
     .select({
       semantic: storageFolderMappings.semanticFolderType,
@@ -108,7 +125,7 @@ export async function runStorageProvisionBatch(
     .where(
       and(
         eq(storageFolderMappings.organizationId, input.organizationId),
-        eq(storageFolderMappings.connectionId, connection.id),
+        eq(storageFolderMappings.connectionId, gatedConnection.id),
         sql`${storageFolderMappings.semanticFolderType} in ('clients_root', 'projects_root')`,
         eq(storageFolderMappings.status, 'ready'),
       ),
@@ -128,7 +145,7 @@ export async function runStorageProvisionBatch(
         sql`not exists (
           select 1 from public.storage_folder_mappings m
           where m.organization_id = ${clients.organizationId}
-            and m.connection_id = ${connection.id}::uuid
+            and m.connection_id = ${gatedConnection.id}::uuid
             and m.semantic_folder_type = 'client_root'
             and m.entity_id = ${clients.id}
             and m.status = 'ready'
@@ -152,7 +169,7 @@ export async function runStorageProvisionBatch(
     try {
       await ensureClientFolderTree(db, {
         organizationId: input.organizationId,
-        connection,
+        connection: gatedConnection,
         accessToken: input.accessToken,
         clientId: client.id,
         clientName: client.name,
@@ -175,7 +192,7 @@ export async function runStorageProvisionBatch(
     .where(
       and(
         eq(projects.organizationId, input.organizationId),
-        sql`not ${canonicalProjectSql(connection.id, projectsRootId)}`,
+        sql`not ${canonicalProjectSql(gatedConnection.id, projectsRootId)}`,
       ),
     )
     .orderBy(asc(projects.id))
@@ -186,7 +203,7 @@ export async function runStorageProvisionBatch(
     try {
       await provisionStoredProjectFolder(db, {
         organizationId: input.organizationId,
-        connection,
+        connection: gatedConnection,
         accessToken: input.accessToken,
         projectId: project.id,
       });
@@ -211,7 +228,7 @@ export async function runStorageProvisionBatch(
         sql`not exists (
           select 1 from public.storage_folder_mappings m
           where m.organization_id = ${clients.organizationId}
-            and m.connection_id = ${connection.id}::uuid
+            and m.connection_id = ${gatedConnection.id}::uuid
             and m.semantic_folder_type = 'client_root'
             and m.entity_id = ${clients.id}
             and m.status = 'ready'
@@ -233,7 +250,7 @@ export async function runStorageProvisionBatch(
     .where(
       and(
         eq(projects.organizationId, input.organizationId),
-        sql`not ${canonicalProjectSql(connection.id, projectsRootId)}`,
+        sql`not ${canonicalProjectSql(gatedConnection.id, projectsRootId)}`,
       ),
     );
 

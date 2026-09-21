@@ -24,6 +24,7 @@ function mapConnection(row: typeof organizationStorageConnections.$inferSelect):
     lastError: row.lastError,
     quotaUsedBytes: row.quotaUsedBytes,
     quotaTotalBytes: row.quotaTotalBytes,
+    capabilitiesJson: (row.capabilitiesJson as Record<string, unknown>) ?? {},
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -150,6 +151,7 @@ export async function updateStorageConnection(
     lastError: string | null;
     quotaUsedBytes: number | null;
     quotaTotalBytes: number | null;
+    capabilitiesJson: Record<string, unknown>;
   }>,
 ): Promise<StorageConnectionRecord | null> {
   const [updated] = await db

@@ -1,7 +1,9 @@
 'use server';
 
 import {
+  approveProjectTemplateAndProvision,
   disconnectStorageConnection,
+  openProjectTemplateInProvider,
   setPrimaryStorageConnection,
   validateStorageConnection,
 } from '@/modules/external-storage/server';
@@ -12,6 +14,7 @@ import { getTranslations } from 'next-intl/server';
 export interface StorageActionResult {
   error?: string;
   ok?: boolean;
+  webUrl?: string | null;
 }
 
 async function mapError(error: unknown): Promise<string> {
@@ -51,6 +54,30 @@ export async function setPrimaryStorageConnectionAction(
   try {
     await withOrgContext((context) => setPrimaryStorageConnection(context, connectionId));
     return { ok: true };
+  } catch (error) {
+    return { error: await mapError(error) };
+  }
+}
+
+export async function approveProjectTemplateAction(
+  connectionId: string,
+): Promise<StorageActionResult> {
+  try {
+    await withOrgContext((context) => approveProjectTemplateAndProvision(context, connectionId));
+    return { ok: true };
+  } catch (error) {
+    return { error: await mapError(error) };
+  }
+}
+
+export async function openProjectTemplateAction(
+  connectionId: string,
+): Promise<StorageActionResult> {
+  try {
+    const result = await withOrgContext((context) =>
+      openProjectTemplateInProvider(context, connectionId),
+    );
+    return { ok: true, webUrl: result.webUrl };
   } catch (error) {
     return { error: await mapError(error) };
   }

@@ -22,7 +22,10 @@
     "openRoot": "פתח תיקיית ProjectFlow",
     "reconnect": "חבר מחדש",
     "disconnect": "נתק",
-    "setPrimary": "קבע כאחסון ראשי"
+    "setPrimary": "קבע כאחסון ראשי",
+    "useReadyTemplate": "השתמש בתבנית המוכנה",
+    "openProjectTemplate": "פתח את תבנית הפרויקט באחסון",
+    "templateReadyConfirm": "סיימתי — התבנית מוכנה"
   },
   "quota": {
     "used": " בשימוש: {used}",
@@ -32,8 +35,14 @@
   "primaryRequiredNotice": "הספק מחובר אך לא מוגדר כאחסון ראשי. קבעו אותו כראשי כדי לאפשר העלאת קבצים.",
   "oauthSuccess": "החיבור הושלם בהצלחה.",
   "oauthFailed": "החיבור נכשל. נסו שוב.",
+  "templateGate": {
+    "connectedNeedChoice": "אחסון מחובר — יש לבחור תבנית פרויקט",
+    "waitingApproval": "תבנית הפרויקט ממתינה לאישור",
+    "explanation": "הכנו עבורך תבנית פרויקט מוכנה. כל פרויקט יקבל עותק שלה. אפשר להשתמש בה כמו שהיא, או לערוך אותה באחסון ולהוסיף תיקיות וקבצים קבועים."
+  },
   "provisioning": {
     "preparing": "מכין את האחסון...",
+    "preparingProjects": "מכין את הפרויקטים...",
     "ready": "האחסון מוכן",
     "pending": "האחסון עדיין בהכנה",
     "clients": "לקוחות: {done}/{total}",

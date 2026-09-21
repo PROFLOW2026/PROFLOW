@@ -23,10 +23,19 @@ export async function provisionClientStorageFolder(
   try {
     const connection = await getOrganizationPrimaryStorage(context);
     if (!organizationHasActiveStorage(connection)) return;
-    const accessToken = await resolveValidAccessToken(context.db, context.organizationId, connection!);
+    const { connectionTemplateApproved, reconcileProjectTemplateGateState } = await import(
+      './project-template-service'
+    );
+    const gated = await reconcileProjectTemplateGateState(
+      context.db,
+      context.organizationId,
+      connection!,
+    );
+    if (!connectionTemplateApproved(gated)) return;
+    const accessToken = await resolveValidAccessToken(context.db, context.organizationId, gated);
     await ensureClientFolderTree(context.db, {
       organizationId: context.organizationId,
-      connection: connection!,
+      connection: gated,
       accessToken,
       clientId,
       clientName,
@@ -43,10 +52,19 @@ export async function provisionProjectStorageFolder(
   try {
     const connection = await getOrganizationPrimaryStorage(context);
     if (!organizationHasActiveStorage(connection)) return;
-    const accessToken = await resolveValidAccessToken(context.db, context.organizationId, connection!);
+    const { connectionTemplateApproved, reconcileProjectTemplateGateState } = await import(
+      './project-template-service'
+    );
+    const gated = await reconcileProjectTemplateGateState(
+      context.db,
+      context.organizationId,
+      connection!,
+    );
+    if (!connectionTemplateApproved(gated)) return;
+    const accessToken = await resolveValidAccessToken(context.db, context.organizationId, gated);
     await provisionStoredProjectFolder(context.db, {
       organizationId: context.organizationId,
-      connection: connection!,
+      connection: gated,
       accessToken,
       projectId,
     });
