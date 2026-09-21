@@ -34,7 +34,7 @@ import {
   resolveActivityEventLabelKey,
 } from './format-task-activity-display';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ActivityExpandClient } from './task-activity-client';
+import { ActivityExpandClient, type TaskActivityViewRow } from './task-activity-client';
 
 export type TaskActivityEventRow = TaskActivityDisplayRow;
 
@@ -127,6 +127,39 @@ function PayloadDiff({
   );
 }
 
+function toActivityViewRow(
+  event: TaskActivityEventRow,
+  t: Awaited<ReturnType<typeof getTranslations<'tasks'>>>,
+): TaskActivityViewRow {
+  const isSystem = event.actorSystem;
+  const actorLabel = isSystem
+    ? t('activity.systemActor')
+    : (event.actorName ?? t('activity.unknownActor'));
+  const eventLabel = t(resolveActivityEventLabelKey(event.eventType));
+  const summary = formatActivityPayloadSummary(event.eventType, event.payload, (key, values) =>
+    t(key as Parameters<typeof t>[0], values as never),
+  );
+  const diff = formatActivityDiff(event.eventType, event.payload, (key, values) =>
+    t(key as Parameters<typeof t>[0], values as never),
+  );
+
+  return {
+    id: event.id,
+    eventType: event.eventType,
+    createdAtIso: event.createdAt.toISOString(),
+    formattedTime: new Intl.DateTimeFormat(undefined, {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    }).format(event.createdAt),
+    isSystem,
+    actorLabel,
+    eventLabel,
+    summaryText: summary && !diff ? summary : summary || null,
+    diffFrom: diff?.from ?? null,
+    diffTo: diff?.to ?? null,
+  };
+}
+
 function ActivityEventRow({
   event,
   t,
@@ -204,11 +237,10 @@ export async function TaskActivity({ taskId }: TaskActivityProps) {
         <p className="text-sm text-[var(--pf-text-muted)]">{t('activity.empty')}</p>
       ) : needsExpander ? (
         <ActivityExpandClient
-          allEvents={events}
+          allEvents={events.map((event) => toActivityViewRow(event, t))}
           compactCount={COMPACT_THRESHOLD}
           showLessLabel={t('activity.showLess')}
           showAllLabel={t('activity.showAll', { count: events.length })}
-          renderRow={(event) => <ActivityEventRow key={event.id} event={event} t={t} />}
         />
       ) : (
         <ol className="relative flex flex-col border-s border-[var(--pf-border-subtle)] ps-4">

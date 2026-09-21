@@ -66,9 +66,14 @@ export async function saveDocumentNumberSettings(
 }
 
 function isDbPermissionDenied(error: unknown): boolean {
-  if (!error || typeof error !== 'object') return false;
-  const code = (error as { code?: string }).code;
-  return code === '42501';
+  let current: unknown = error;
+  for (let depth = 0; depth < 4 && current != null; depth += 1) {
+    if (typeof current !== 'object') break;
+    const code = (current as { code?: string }).code;
+    if (code === '42501') return true;
+    current = (current as { cause?: unknown }).cause;
+  }
+  return false;
 }
 
 async function executeAllocateDocumentNumber(
