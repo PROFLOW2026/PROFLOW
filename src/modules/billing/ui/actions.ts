@@ -258,6 +258,25 @@ export async function allocatePaymentAction(
   _prev: BillingFormState,
   formData: FormData,
 ): Promise<BillingFormState> {
+  return runAllocatePaymentAction(paymentId, '/billing', _prev, formData);
+}
+
+export function createAllocatePaymentAction(routeBase: string) {
+  return async function boundAllocatePaymentAction(
+    paymentId: string,
+    prev: BillingFormState,
+    formData: FormData,
+  ): Promise<BillingFormState> {
+    return runAllocatePaymentAction(paymentId, routeBase, prev, formData);
+  };
+}
+
+async function runAllocatePaymentAction(
+  paymentId: string,
+  routeBase: string,
+  _prev: BillingFormState,
+  formData: FormData,
+): Promise<BillingFormState> {
   const tErrors = await getTranslations('errors');
   const locale = await getLocale();
 
@@ -275,18 +294,21 @@ export async function allocatePaymentAction(
       allocateCustomerPayment(context, { paymentId, applications }),
     );
 
-    revalidatePath('/billing');
-    revalidatePath(`/billing/payments/${paymentId}/allocate`);
+    revalidatePath(routeBase);
+    revalidatePath(`${routeBase}/payments/${paymentId}/allocate`);
     for (const record of result.billingRecords) {
-      revalidatePath(`/billing/${record.id}`);
+      revalidatePath(`${routeBase}/${record.id}`);
       if (record.projectId) revalidatePath(`/projects/${record.projectId}`);
+      if (routeBase.startsWith('/employee')) {
+        revalidatePath(`/employee/projects/${record.projectId}`);
+      }
     }
 
     const redirectId = result.billingRecords[0]?.id;
     if (redirectId) {
-      redirect({ href: `/billing/${redirectId}`, locale });
+      redirect({ href: `${routeBase}/${redirectId}`, locale });
     }
-    redirect({ href: '/billing', locale });
+    redirect({ href: routeBase, locale });
   } catch (error) {
     if (error instanceof AppError) return mapError(error, tErrors('validationFailed'));
     throw error;

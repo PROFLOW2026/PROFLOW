@@ -8,6 +8,16 @@ const SECTION_TITLE_KEYS: Record<string, string> = {
   tasks: 'nav.tasks',
   documents: 'nav.documents',
   meetings: 'nav.meetings',
+  clients: 'nav.clients',
+  billing: 'nav.billing',
+  contracts: 'nav.contracts',
+  expenses: 'nav.expenses',
+  vendors: 'nav.vendors',
+  ap: 'nav.ap',
+  procurement: 'nav.procurement',
+  changes: 'nav.changes',
+  quotes: 'nav.quotes',
+  financials: 'financials.title',
 };
 
 export interface EmployeeShellHeaderState {

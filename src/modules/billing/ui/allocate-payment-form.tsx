@@ -21,6 +21,10 @@ import { allocatePaymentAction, type BillingFormState } from './actions';
 interface AllocatePaymentFormProps {
   payment: UnallocatedPaymentRow;
   billingRecords: readonly BillingRecordSummary[];
+  allocateAction?: (
+    prev: BillingFormState,
+    formData: FormData,
+  ) => Promise<BillingFormState>;
 }
 
 function currencyGlyph(currency: string): string {
@@ -36,12 +40,17 @@ function currencyGlyph(currency: string): string {
   }
 }
 
-export function AllocatePaymentForm({ payment, billingRecords }: AllocatePaymentFormProps) {
+export function AllocatePaymentForm({
+  payment,
+  billingRecords,
+  allocateAction,
+}: AllocatePaymentFormProps) {
   const locale = useLocale();
   const t = useTranslations('billing');
   const [allocations, setAllocations] = useState<Record<string, string>>({});
+  const boundAllocate = allocateAction ?? allocatePaymentAction.bind(null, payment.id);
   const [state, formAction, pending] = useActionState<BillingFormState, FormData>(
-    allocatePaymentAction.bind(null, payment.id),
+    boundAllocate,
     {},
   );
 

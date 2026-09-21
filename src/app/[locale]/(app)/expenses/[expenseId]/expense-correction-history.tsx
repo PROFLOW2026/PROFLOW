@@ -15,10 +15,12 @@ export async function ExpenseCorrectionHistory({
   chain,
   currentExpenseId,
   returnTo,
+  routeBase = '/expenses',
 }: {
   readonly chain: ExpenseCorrectionChain;
   readonly currentExpenseId: string;
   readonly returnTo?: string | null;
+  readonly routeBase?: string;
 }) {
   if (!chain.hasLinks) return null;
 
@@ -52,7 +54,7 @@ export async function ExpenseCorrectionHistory({
                       <span className="text-xs text-[var(--pf-text-muted)]">({t('detail.title')})</span>
                     ) : (
                       <Link
-                        href={buildExpenseDetailHref(entry.id, { returnTo })}
+                        href={buildExpenseDetailHref(entry.id, { returnTo, routeBase })}
                         className={cn(textNavLinkClassName, 'text-xs')}
                       >
                         {entry.id.slice(0, 8)}…

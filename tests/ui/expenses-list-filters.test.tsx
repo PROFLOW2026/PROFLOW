@@ -67,6 +67,7 @@ const reversalExpense: ExpenseSummary = {
 };
 
 const defaultListProps = {
+  routeBase: '/expenses',
   currentPage: 1,
   pageCount: 1,
   pageSize: 50,

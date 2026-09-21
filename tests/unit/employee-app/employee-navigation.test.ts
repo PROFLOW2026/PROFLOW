@@ -4,10 +4,13 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { resolveEmployeeAppEffectivePermissions } from '@/modules/employee-app/application/enrich-context';
 import {
   buildEmployeeNavItems,
+  EMPLOYEE_MANAGEMENT_NAV_HREFS,
+  hasEmployeeManagementNav,
   type EmployeeNavItem,
 } from '@/modules/employee-app/application/get-employee-shell';
 import {
   employeeMobileNavLabelKey,
+  partitionEmployeeNavItems,
   selectEmployeeMobileOverflowItems,
   selectEmployeeMobilePrimaryItems,
 } from '@/modules/employee-app/application/employee-navigation';
@@ -72,6 +75,10 @@ function hrefs(items: readonly EmployeeNavItem[]): string[] {
   return items.map((item) => item.href);
 }
 
+function visibleManagementHrefs(items: readonly EmployeeNavItem[]): string[] {
+  return items.filter((item) => item.visible && item.group === 'management').map((item) => item.href);
+}
+
 describe('employee mobile navigation', () => {
   it('foreman gets four primaries and More for secondary modules', () => {
     const nav = buildEmployeeNavItems(employeeContextFromPreset('foreman'));
@@ -126,5 +133,64 @@ describe('employee mobile navigation', () => {
 
     expect(timeItem.labelKey).toBe('employeeApp.nav.timeAndAttendance');
     expect(employeeMobileNavLabelKey(timeItem)).toBe('employeeApp.nav.attendance');
+  });
+});
+
+describe('employee management navigation grouping', () => {
+  it('office_admin preset shows management nav items grouped', () => {
+    const context = employeeContextFromPreset('office_admin');
+    const nav = buildEmployeeNavItems(context);
+
+    expect(hasEmployeeManagementNav(context)).toBe(true);
+    expect(visibleManagementHrefs(nav).sort()).toEqual(
+      [
+        '/employee/clients',
+        '/employee/billing',
+        '/employee/contracts',
+        '/employee/expenses',
+        '/employee/vendors',
+        '/employee/ap',
+      ].sort(),
+    );
+
+    const { planner, management } = partitionEmployeeNavItems(nav);
+    expect(hrefs(planner)).toEqual([
+      '/employee',
+      '/employee/time',
+      '/employee/projects',
+      '/employee/tasks',
+      '/employee/team',
+      '/employee/meetings',
+      '/employee/documents',
+      '/employee/forms',
+    ]);
+    expect(hrefs(management).sort()).toEqual(visibleManagementHrefs(nav).sort());
+    expect(
+      nav.filter((item) => item.visible && item.group === 'planner').length,
+    ).toBeGreaterThan(0);
+  });
+
+  it('field_worker has no management items', () => {
+    const context = employeeContextFromPreset('field_worker');
+    const nav = buildEmployeeNavItems(context);
+
+    expect(hasEmployeeManagementNav(context)).toBe(false);
+    expect(visibleManagementHrefs(nav)).toEqual([]);
+    expect(partitionEmployeeNavItems(nav).management).toEqual([]);
+  });
+
+  it('management items appear in overflow on mobile for office preset', () => {
+    const context = employeeContextFromPreset('office_admin');
+    const nav = buildEmployeeNavItems(context);
+    const overflow = selectEmployeeMobileOverflowItems(nav);
+    const { management } = partitionEmployeeNavItems(overflow);
+
+    expect(management.length).toBeGreaterThan(0);
+    expect(hrefs(management).sort()).toEqual(visibleManagementHrefs(nav).sort());
+    expect(
+      management.every((item) =>
+        (EMPLOYEE_MANAGEMENT_NAV_HREFS as readonly string[]).includes(item.href),
+      ),
+    ).toBe(true);
   });
 });

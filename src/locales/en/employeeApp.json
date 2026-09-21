@@ -38,6 +38,9 @@
     "vendors": "Vendors",
     "ap": "Vendor bills",
     "procurement": "Procurement",
+    "managementOffice": "Management / Office",
+    "changes": "Change orders",
+    "quotes": "Quotes",
     "more": "More"
   },
   "back": {
@@ -506,6 +509,8 @@
     "noAccessHint": "This employee has no app access yet. Enable access and set permissions.",
     "audit": "Activity log",
     "savePermissions": "Save permissions",
+    "unsavedGrantsWarning": "Unsaved permission changes — click Save to apply to this account",
+    "presetRequiresSave": "Preset changes update the editor only. Click Save permissions to apply them to this employee's live account.",
     "permissionsSaved": "Permissions saved successfully",
     "permissionsSaveFailed": "Could not save permissions. Try again.",
     "credentialsShare": {

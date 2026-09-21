@@ -81,6 +81,20 @@ function scopeLabelKey(scope: PermissionScope): string {
   return `scopes.${scope}`;
 }
 
+function savedGrantsSignature(
+  grants: Map<PermissionKey, EditorGrantState>,
+): string {
+  const entries = [...grants.values()]
+    .filter((state) => state.granted && !state.roleBaseline)
+    .map((state) => `${state.permissionKey}:${state.scope}`)
+    .sort();
+  return entries.join('|');
+}
+
+function categoriesSignature(categories: Set<DocumentCategory>): string {
+  return [...categories].sort().join('|');
+}
+
 export function EmployeeAppAccessPanel({
   employeeId,
   employeeName,
@@ -129,11 +143,23 @@ export function EmployeeAppAccessPanel({
   const [grantState, setGrantState] = useState(() => initialGrantMap);
   const [categoryState, setCategoryState] = useState(() => initialCategorySet);
   const [selectedPreset, setSelectedPreset] = useState<EmployeePresetKey>(() => initialPreset);
+  const [presetAppliedInSession, setPresetAppliedInSession] = useState(false);
   const [actionShareableCredentials, setActionShareableCredentials] =
     useState<ShareableCredentials | null>(null);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [saveMessage, setSaveMessage] = useState<'success' | 'error' | null>(null);
   const [pending, startTransition] = useTransition();
+
+  const isDirty = useMemo(() => {
+    return (
+      savedGrantsSignature(grantState) !== savedGrantsSignature(initialGrantMap) ||
+      categoriesSignature(categoryState) !== categoriesSignature(initialCategorySet)
+    );
+  }, [grantState, categoryState, initialGrantMap, initialCategorySet]);
+
+  const showPresetRequiresSave =
+    Boolean(account && account.status !== 'inactive') &&
+    (presetAppliedInSession || selectedPreset !== initialPreset);
 
   const documentsReadGranted = grantState.get(PERMISSIONS.DOCUMENTS_READ)?.granted === true;
   const allFoldersGranted = useMemo(
@@ -199,6 +225,7 @@ export function EmployeeAppAccessPanel({
   function applyPreset(key: EmployeePresetKey) {
     if (key === 'custom') {
       setSelectedPreset('custom');
+      setPresetAppliedInSession(true);
       return;
     }
     const grants = grantsMapFromPreset(key);
@@ -214,6 +241,7 @@ export function EmployeeAppAccessPanel({
     setGrantState(grants);
     setCategoryState(categories);
     setSelectedPreset(key);
+    setPresetAppliedInSession(true);
   }
 
   function setPermissionGranted(permissionKey: PermissionKey, granted: boolean) {
@@ -272,6 +300,7 @@ export function EmployeeAppAccessPanel({
         grants: buildSaveGrantsPayload(grantState),
         documentCategories: [...categoryState],
       });
+      setPresetAppliedInSession(false);
       setSaveMessage('success');
     } catch {
       setSaveMessage('error');
@@ -313,6 +342,10 @@ export function EmployeeAppAccessPanel({
 
   const permissionEditor = (
     <div className="space-y-4">
+      {isDirty ? (
+        <Alert tone="warning">{t('unsavedGrantsWarning')}</Alert>
+      ) : null}
+
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-[220px] flex-col gap-1">
           <span className="text-xs text-[var(--pf-text-secondary)]">{t('preset')}</span>
@@ -333,6 +366,9 @@ export function EmployeeAppAccessPanel({
               <SelectItem value="custom">{tPresets('custom')}</SelectItem>
             </SelectContent>
           </Select>
+          {showPresetRequiresSave ? (
+            <p className="text-xs text-[var(--pf-text-secondary)]">{t('presetRequiresSave')}</p>
+          ) : null}
         </div>
       </div>
 

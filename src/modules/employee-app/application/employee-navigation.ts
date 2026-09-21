@@ -1,5 +1,16 @@
 import type { EmployeeNavItem } from './get-employee-shell';
 
+export function partitionEmployeeNavItems(items: readonly EmployeeNavItem[]): {
+  readonly planner: EmployeeNavItem[];
+  readonly management: EmployeeNavItem[];
+} {
+  const visible = items.filter((item) => item.visible);
+  return {
+    planner: visible.filter((item) => item.group !== 'management'),
+    management: visible.filter((item) => item.group === 'management'),
+  };
+}
+
 /** Fixed mobile primary destinations — order matters; permission filtering is applied separately. */
 export const EMPLOYEE_MOBILE_PRIMARY_HREFS = [
   '/employee',

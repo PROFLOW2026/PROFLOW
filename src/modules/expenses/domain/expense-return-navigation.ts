@@ -92,8 +92,10 @@ export function buildExpenseDetailHref(
   options: {
     readonly focus?: ExpenseDetailFocusParam;
     readonly returnTo?: string | null;
+    readonly routeBase?: string;
   } = {},
 ): string {
+  const routeBase = options.routeBase ?? '/expenses';
   const params = new URLSearchParams();
   if (options.focus) params.set('focus', options.focus);
 
@@ -101,7 +103,7 @@ export function buildExpenseDetailHref(
   if (safeReturnTo) params.set(EXPENSE_RETURN_TO_PARAM, safeReturnTo);
 
   const query = params.toString();
-  return query ? `/expenses/${expenseId}?${query}` : `/expenses/${expenseId}`;
+  return query ? `${routeBase}/${expenseId}?${query}` : `${routeBase}/${expenseId}`;
 }
 
 export function resolveExpenseBackLabelKey(returnTo: string): ExpenseBackLabelKey {
@@ -109,7 +111,7 @@ export function resolveExpenseBackLabelKey(returnTo: string): ExpenseBackLabelKe
   const { pathname, search } = splitPathAndQuery(normalized);
   const params = new URLSearchParams(search);
 
-  if (pathname === '/expenses') {
+  if (pathname === '/expenses' || pathname === '/employee/expenses') {
     if (params.get('unallocated') === 'true') return 'expensesAttention';
     const attention = params.get('attention');
     if (
@@ -134,14 +136,17 @@ export function resolveExpenseBackLabelKey(returnTo: string): ExpenseBackLabelKe
   return 'expenses';
 }
 
-export function resolveExpenseBackNavigation(rawReturnTo: string | null | undefined): {
+export function resolveExpenseBackNavigation(
+  rawReturnTo: string | null | undefined,
+  listRouteBase = '/expenses',
+): {
   readonly href: string;
   readonly labelKey: ExpenseBackLabelKey;
   readonly safeReturnTo: string | null;
 } {
   const safeReturnTo = parseSafeInternalReturnTo(rawReturnTo);
   if (!safeReturnTo) {
-    return { href: '/expenses', labelKey: 'expenses', safeReturnTo: null };
+    return { href: listRouteBase, labelKey: 'expenses', safeReturnTo: null };
   }
   return {
     href: safeReturnTo,

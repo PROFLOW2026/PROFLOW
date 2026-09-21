@@ -9,10 +9,12 @@ export async function UnallocatedReceiptsPanel({
   rows,
   locale,
   canManage,
+  routeBase = '/billing',
 }: {
   rows: readonly UnallocatedPaymentRow[];
   locale: string;
   canManage: boolean;
+  routeBase?: string;
 }) {
   const t = await getTranslations('billing');
 
@@ -47,7 +49,7 @@ export async function UnallocatedReceiptsPanel({
             </div>
             {canManage ? (
               <Button asChild variant="secondary" size="sm">
-                <Link href={`/billing/payments/${row.id}/allocate`}>
+                <Link href={`${routeBase}/payments/${row.id}/allocate`}>
                   {t('paymentForm.allocateSubmit')}
                 </Link>
               </Button>

@@ -22,6 +22,7 @@ import { type CustomFieldValueView } from '@/modules/custom-fields/domain/types'
 import { EntityCustomFieldsPanel } from '@/modules/custom-fields/ui';
 import { Link } from '@/shared/i18n/navigation';
 import { workEntityHref } from '@/modules/search/domain/hrefs';
+import type { OrgListSurface } from '@/modules/employee-app/application/org-list-permissions';
 import { upsertEntityFieldValueAction } from '../../settings/custom-fields/actions';
 import { ClientTimeline } from './client-timeline';
 import {
@@ -54,6 +55,10 @@ interface ClientDetailViewProps {
   clientTypes?: readonly { id: string; name: string }[];
   paymentTerms?: readonly { id: string; name: string }[];
   quotes?: readonly { id: string; title: string; status: string }[];
+  routeBase?: string;
+  quotesRouteBase?: string;
+  projectsRouteBase?: string;
+  surface?: OrgListSurface;
 }
 
 export function ClientDetailView({
@@ -66,6 +71,10 @@ export function ClientDetailView({
   clientTypes = [],
   paymentTerms = [],
   quotes = [],
+  routeBase = '/clients',
+  quotesRouteBase = '/quotes',
+  projectsRouteBase,
+  surface = 'owner',
 }: ClientDetailViewProps) {
   const t = useTranslations('clients.detail');
   const tClients = useTranslations('clients');
@@ -256,7 +265,7 @@ export function ClientDetailView({
       <EntityCustomFieldsPanel
         entityId={client.id}
         fields={customFields}
-        revalidatePath={`/clients/${client.id}`}
+        revalidatePath={`${routeBase}/${client.id}`}
         saveAction={upsertEntityFieldValueAction}
       />
 
@@ -350,7 +359,11 @@ export function ClientDetailView({
               {linkedProjects.map((project) => (
                 <li key={project.id} className="flex flex-wrap items-center justify-between gap-2 text-sm">
                   <Link
-                    href={workEntityHref(project.workKind, project.id)}
+                    href={
+                      projectsRouteBase
+                        ? `${projectsRouteBase}/${project.id}`
+                        : workEntityHref(project.workKind, project.id)
+                    }
                     className="min-w-0 flex-1 font-medium text-[var(--pf-text-primary)] underline-offset-2 hover:underline"
                   >
                     {project.name}
@@ -386,7 +399,7 @@ export function ClientDetailView({
                   className="flex flex-wrap items-center justify-between gap-2 text-sm"
                 >
                   <Link
-                    href={`/quotes/${quote.id}`}
+                    href={`${quotesRouteBase}/${quote.id}`}
                     className="min-w-0 flex-1 font-medium text-[var(--pf-text-primary)] underline-offset-2 hover:underline"
                   >
                     {quote.title}
@@ -403,25 +416,27 @@ export function ClientDetailView({
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('relatedSection')}</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-2 text-sm">
-          <Link
-            href={`/communications?clientId=${client.id}`}
-            className="font-medium text-[var(--pf-text-primary)] underline-offset-2 hover:underline"
-          >
-            {t('communications')}
-          </Link>
-          <Link
-            href={`/warranty?clientId=${client.id}`}
-            className="font-medium text-[var(--pf-text-primary)] underline-offset-2 hover:underline"
-          >
-            {t('warrantyHistory')}
-          </Link>
-        </CardContent>
-      </Card>
+      {surface === 'owner' ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('relatedSection')}</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-2 text-sm">
+            <Link
+              href={`/communications?clientId=${client.id}`}
+              className="font-medium text-[var(--pf-text-primary)] underline-offset-2 hover:underline"
+            >
+              {t('communications')}
+            </Link>
+            <Link
+              href={`/warranty?clientId=${client.id}`}
+              className="font-medium text-[var(--pf-text-primary)] underline-offset-2 hover:underline"
+            >
+              {t('warrantyHistory')}
+            </Link>
+          </CardContent>
+        </Card>
+      ) : null}
     </div>
   );
 }

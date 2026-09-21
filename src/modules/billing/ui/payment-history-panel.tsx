@@ -14,12 +14,14 @@ interface PaymentHistoryTableProps {
   locale: string;
   /** When true, hide the project column (project-scoped view). */
   hideProject?: boolean;
+  routeBase?: string;
 }
 
 export function PaymentHistoryTable({
   rows,
   locale,
   hideProject = false,
+  routeBase = '/billing',
 }: PaymentHistoryTableProps) {
   const t = useTranslations('billing.paymentHistory');
   const tKind = useTranslations('billing.kinds');
@@ -59,7 +61,7 @@ export function PaymentHistoryTable({
                   ) : null}
                   <TableCell className="max-w-[12rem]">
                     <Link
-                      href={`/billing/${row.billingRecordId}`}
+                      href={`${routeBase}/${row.billingRecordId}`}
                       className="font-medium text-[var(--pf-text-brand)]"
                     >
                       {row.billingReference ?? row.billingRecordId.slice(0, 8)}
@@ -86,7 +88,7 @@ export function PaymentHistoryTable({
       }
       renderMobileCard={(row) => (
         <Link
-          href={`/billing/${row.billingRecordId}`}
+          href={`${routeBase}/${row.billingRecordId}`}
           className="block min-h-11 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 text-start"
         >
           <div className="flex items-start justify-between gap-2">

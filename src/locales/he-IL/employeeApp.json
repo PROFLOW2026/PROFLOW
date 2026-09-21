@@ -38,6 +38,9 @@
     "vendors": "ספקים",
     "ap": "חשבוניות ספקים",
     "procurement": "רכש",
+    "managementOffice": "ניהול משרד",
+    "changes": "שינויים",
+    "quotes": "הצעות מחיר",
     "more": "עוד"
   },
   "back": {
@@ -506,6 +509,8 @@
     "noAccessHint": "לעובד זה אין גישה לאפליקציית העובדים. ניתן להפעיל גישה ולהגדיר הרשאות.",
     "audit": "יומן פעילות",
     "savePermissions": "שמירת הרשאות",
+    "unsavedGrantsWarning": "יש שינויי הרשאות שלא נשמרו — לחצו שמירה כדי להחיל על החשבון",
+    "presetRequiresSave": "שינוי תבנית מעדכן את העורך בלבד. לחצו שמירת הרשאות כדי להחיל על חשבון העובד הפעיל.",
     "permissionsSaved": "ההרשאות נשמרו בהצלחה",
     "permissionsSaveFailed": "שמירת ההרשאות נכשלה. נסו שוב.",
     "credentialsShare": {

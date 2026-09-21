@@ -15,9 +15,10 @@ import { BillingStatusBadge } from './billing-status-badge';
 interface BillingListTableProps {
   records: readonly BillingRecordSummary[];
   locale: string;
+  routeBase?: string;
 }
 
-export function BillingListTable({ records, locale }: BillingListTableProps) {
+export function BillingListTable({ records, locale, routeBase = '/billing' }: BillingListTableProps) {
   const t = useTranslations('billing');
   const tKind = useTranslations('billing.kinds');
 
@@ -50,7 +51,7 @@ export function BillingListTable({ records, locale }: BillingListTableProps) {
                 <TableRow key={record.id}>
                   <TableCell className="max-w-[12rem] truncate">
                     <Link
-                      href={`/billing/${record.id}`}
+                      href={`${routeBase}/${record.id}`}
                       className={cn(textNavLinkClassName, 'font-medium')}
                     >
                       {record.projectName ?? t('list.unknownProject')}
@@ -102,7 +103,7 @@ export function BillingListTable({ records, locale }: BillingListTableProps) {
       }
       renderMobileCard={(record) => (
         <Link
-          href={`/billing/${record.id}`}
+          href={`${routeBase}/${record.id}`}
           className={cn(pressableCardLinkClassName, 'text-start')}
         >
           <div className="flex items-start justify-between gap-2">

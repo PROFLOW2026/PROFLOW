@@ -26,15 +26,22 @@ export interface ChangeRequestListProps {
   items: readonly ChangeRequestListItem[];
   projectId?: string;
   canManage: boolean;
+  routeBase?: string;
 }
 
 function listDate(item: ChangeRequestListItem): string {
   return item.requestedDate ?? item.createdAt.toISOString().slice(0, 10);
 }
 
-export async function ChangeRequestList({ items, projectId, canManage }: ChangeRequestListProps) {
+export async function ChangeRequestList({
+  items,
+  projectId,
+  canManage,
+  routeBase = '/changes',
+}: ChangeRequestListProps) {
   const t = await getTranslations('changes');
   const locale = await getLocale();
+  const newHref = projectId ? `${routeBase}/new?projectId=${projectId}` : `${routeBase}/new`;
 
   if (items.length === 0) {
     return (
@@ -45,9 +52,7 @@ export async function ChangeRequestList({ items, projectId, canManage }: ChangeR
         action={
           canManage ? (
             <Button asChild>
-              <Link href={projectId ? `/changes/new?projectId=${projectId}` : '/changes/new'}>
-                {t('empty.action')}
-              </Link>
+              <Link href={newHref}>{t('empty.action')}</Link>
             </Button>
           ) : undefined
         }
@@ -86,7 +91,7 @@ export async function ChangeRequestList({ items, projectId, canManage }: ChangeR
                     </TableCell>
                     <TableCell className="max-w-[14rem] truncate text-start">
                       <Link
-                        href={`/changes/${item.id}`}
+                        href={`${routeBase}/${item.id}`}
                         className={cn(textNavLinkClassName, 'font-medium')}
                       >
                         {item.title}
@@ -119,7 +124,7 @@ export async function ChangeRequestList({ items, projectId, canManage }: ChangeR
 
         return (
           <Link
-            href={`/changes/${item.id}`}
+            href={`${routeBase}/${item.id}`}
             className={cn(pressableCardLinkClassName, 'text-start')}
           >
             <div className="flex items-start justify-between gap-2">
