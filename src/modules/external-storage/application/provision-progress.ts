@@ -4,7 +4,7 @@ import { and, eq, sql } from 'drizzle-orm';
 import { clients, projects, storageFolderMappings } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 import type { StorageProvisionProgress } from '../domain/project-folder-placement';
-import { PROJECT_INFO_FILE_NAME } from '../domain/project-info-text';
+import { PROJECT_INFO_FILE_NAME, CLIENT_INFO_FILE_NAME } from '../domain/project-info-text';
 
 const PROJECT_CHILD_COUNT = 8;
 
@@ -57,6 +57,13 @@ export async function loadStorageProvisionProgress(
                 and m.entity_id = ${clients.id}
                 and m.status = 'ready'
                 and m.external_parent_id = ${clientsRootId}
+                and exists (
+                  select 1 from public.storage_files file
+                  where file.connection_id = m.connection_id
+                    and file.external_parent_folder_id = m.external_folder_id
+                    and file.original_filename = ${CLIENT_INFO_FILE_NAME}
+                    and file.status = 'synced'
+                )
             )`,
           ),
         )

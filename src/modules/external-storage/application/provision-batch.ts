@@ -15,7 +15,7 @@ import {
   STORAGE_PROVISION_PROJECT_BATCH,
   nextStorageProvisionStep,
 } from '../domain/project-folder-placement';
-import { PROJECT_INFO_FILE_NAME } from '../domain/project-info-text';
+import { PROJECT_INFO_FILE_NAME, CLIENT_INFO_FILE_NAME } from '../domain/project-info-text';
 import { ProviderHttpError } from '../providers/http-utils';
 import { ensureClientFolderTree, ensureOrganizationRootFolder } from './folder-provisioning';
 import { provisionStoredProjectFolder } from './project-provision';
@@ -133,6 +133,14 @@ export async function runStorageProvisionBatch(
             and m.entity_id = ${clients.id}
             and m.status = 'ready'
             and m.external_parent_id = ${clientsRootId}
+            and exists (
+              select 1 from public.storage_files file
+              where file.organization_id = m.organization_id
+                and file.connection_id = m.connection_id
+                and file.external_parent_folder_id = m.external_folder_id
+                and file.original_filename = ${CLIENT_INFO_FILE_NAME}
+                and file.status = 'synced'
+            )
         )`,
       ),
     )
@@ -208,6 +216,14 @@ export async function runStorageProvisionBatch(
             and m.entity_id = ${clients.id}
             and m.status = 'ready'
             and m.external_parent_id = ${clientsRootId}
+            and exists (
+              select 1 from public.storage_files file
+              where file.organization_id = m.organization_id
+                and file.connection_id = m.connection_id
+                and file.external_parent_folder_id = m.external_folder_id
+                and file.original_filename = ${CLIENT_INFO_FILE_NAME}
+                and file.status = 'synced'
+            )
         )`,
       ),
     );

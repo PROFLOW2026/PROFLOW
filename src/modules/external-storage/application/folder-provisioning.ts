@@ -338,7 +338,7 @@ export async function ensureClientFolderTree(
     throw new Error('clients_root mapping missing');
   }
 
-  return ensureSemanticFolder(db, {
+  const clientFolderId = await ensureSemanticFolder(db, {
     organizationId: input.organizationId,
     connection: input.connection,
     accessToken: input.accessToken,
@@ -348,6 +348,17 @@ export async function ensureClientFolderTree(
     entityType: 'client',
     entityId: input.clientId,
   });
+
+  const { upsertClientInfoFile } = await import('./client-info-file');
+  await upsertClientInfoFile(db, {
+    organizationId: input.organizationId,
+    connection: input.connection,
+    accessToken: input.accessToken,
+    clientId: input.clientId,
+    clientFolderId,
+  });
+
+  return clientFolderId;
 }
 
 export async function ensureProjectsRootFolder(

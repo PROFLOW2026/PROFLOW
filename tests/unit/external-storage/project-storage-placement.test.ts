@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildClientInfoText,
   buildProjectInfoText,
   preferredClientRegistration,
 } from '@/modules/external-storage/domain/project-info-text';
@@ -81,6 +82,27 @@ describe('project info text', () => {
     expect(text).toContain('איש קשר: דנה');
     expect(text).not.toContain('אימייל:');
     expect(text).not.toContain('מיקום / כתובת:');
+    expect(text).toContain('נוצר אוטומטית על ידי ProjectFlow');
+  });
+});
+
+describe('client info text', () => {
+  it('includes stored client fields and omits blanks', () => {
+    const text = buildClientInfoText({
+      clientName: 'מרכזים מסחריים השרון',
+      clientRegistration: '514000000',
+      contactName: 'דנה',
+      phone: '050-0000000',
+      email: null,
+      clientAddress: 'רחובות',
+      notes: null,
+    });
+    expect(text).toContain('שם הלקוח: מרכזים מסחריים השרון');
+    expect(text).toContain('ח.פ / עוסק: 514000000');
+    expect(text).toContain('איש קשר: דנה');
+    expect(text).toContain('כתובת: רחובות');
+    expect(text).not.toContain('אימייל:');
+    expect(text).not.toContain('הערות:');
     expect(text).toContain('נוצר אוטומטית על ידי ProjectFlow');
   });
 });

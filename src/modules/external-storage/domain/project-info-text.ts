@@ -1,5 +1,6 @@
 /** Provider convenience file. ProjectFlow database stays the source of truth. */
 export const PROJECT_INFO_FILE_NAME = 'פרטי הפרויקט.txt';
+export const CLIENT_INFO_FILE_NAME = 'פרטי הלקוח.txt';
 
 const PROJECT_STATUS_LABELS: Record<string, string> = {
   draft: 'טיוטה',
@@ -24,6 +25,16 @@ export interface ProjectInfoTextInput {
   readonly phone: string | null;
   readonly email: string | null;
   readonly clientAddress: string | null;
+}
+
+export interface ClientInfoTextInput {
+  readonly clientName: string;
+  readonly clientRegistration: string | null;
+  readonly contactName: string | null;
+  readonly phone: string | null;
+  readonly email: string | null;
+  readonly clientAddress: string | null;
+  readonly notes: string | null;
 }
 
 function line(label: string, value: string | null | undefined): string | null {
@@ -87,4 +98,18 @@ export function buildProjectInfoText(input: ProjectInfoTextInput): string {
     ]),
   ];
   return `${blocks.map((rows) => rows.join('\n')).join('\n\n')}\n\nנוצר אוטומטית על ידי ProjectFlow\n`;
+}
+
+/** UTF-8 client convenience file. Blank fields are omitted. */
+export function buildClientInfoText(input: ClientInfoTextInput): string {
+  const rows = [
+    line('שם הלקוח', input.clientName),
+    line('ח.פ / עוסק', input.clientRegistration),
+    line('איש קשר', input.contactName),
+    line('טלפון', input.phone),
+    line('אימייל', input.email),
+    line('כתובת', input.clientAddress),
+    line('הערות', input.notes),
+  ];
+  return `${section('פרטי הלקוח', rows).join('\n')}\n\nנוצר אוטומטית על ידי ProjectFlow\n`;
 }
