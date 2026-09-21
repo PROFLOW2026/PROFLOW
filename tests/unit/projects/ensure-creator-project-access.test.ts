@@ -4,6 +4,13 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 
 vi.mock('@/modules/workforce/data/project-team.repository', () => ({
   insertEmployeeProjectAssignment: vi.fn(),
+  findActiveAssignmentConflict: vi.fn().mockResolvedValue(null),
+}));
+vi.mock('@/modules/workforce', () => ({
+  insertEmployeeProjectAssignment: vi.fn(),
+}));
+vi.mock('@/shared/db/service-role-write', () => ({
+  asServiceRoleWrite: vi.fn(async (_db: unknown, fn: () => Promise<unknown>) => fn()),
 }));
 vi.mock('@/modules/projects/data/project-access.repository', () => ({
   getStoredProjectAccessMode: vi.fn(),
@@ -17,7 +24,7 @@ vi.mock('@/shared/audit', () => ({
   },
 }));
 
-import { insertEmployeeProjectAssignment } from '@/modules/workforce/data/project-team.repository';
+import { insertEmployeeProjectAssignment } from '@/modules/workforce';
 import {
   getStoredProjectAccessMode,
   insertProjectAccessGrant,

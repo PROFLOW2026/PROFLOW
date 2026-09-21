@@ -22,7 +22,7 @@ import { resolveUploadFolderId } from './folder-provisioning';
 import { resolveProjectScopedUploadFolderId } from './project-upload-folder';
 import { assertProjectBrowserUploadFolder } from './browser-service';
 import { resolveUploadFolderEntityContext } from './resolve-upload-folder-context';
-import { findPrimaryDocumentLinkForUpload } from '@/modules/documents/data/document-link-read';
+import { findPrimaryDocumentLinkForUpload } from '@/modules/documents';
 import { assertDocumentManagePermission } from '@/modules/documents/application/document-visibility';
 import { runElevatedTaskCommentDocumentWrite } from '@/modules/documents/application/task-comment-document-write';
 import type { DbExecutor } from '@/shared/db/types';

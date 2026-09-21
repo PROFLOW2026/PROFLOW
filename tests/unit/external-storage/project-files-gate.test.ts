@@ -70,7 +70,7 @@ function employeeContextFromPreset(key: EmployeePresetKey): OrgContext {
 
 describe('resolveEmployeeProjectFilesGate', () => {
   it('returns no_permission when documents.read is missing', async () => {
-    const worker = employeeContextFromPreset('field_worker');
+    const worker = employeeContextFromPreset('field_worker_time');
     await expect(resolveEmployeeProjectFilesGate(worker, 'proj-1')).resolves.toBe('no_permission');
   });
 

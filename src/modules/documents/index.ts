@@ -129,3 +129,8 @@ export {
   setDocumentMetadataSchema,
 } from './validation/schemas';
 export type { PrepareUploadInput, FinalizeUploadInput } from './validation/schemas';
+export { findPrimaryDocumentLinkForUpload } from './data/document-link-read';
+export {
+  isTaskCommentDocument,
+  runElevatedTaskCommentDocumentWrite,
+} from './application/task-comment-document-write';

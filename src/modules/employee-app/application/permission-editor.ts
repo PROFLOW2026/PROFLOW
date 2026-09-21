@@ -78,6 +78,16 @@ export const EMPLOYEE_PERMISSION_EDITOR_GROUPS: readonly EmployeePermissionEdito
         scopes: ['all_organization'],
       },
       {
+        permissionKey: PERMISSIONS.PROJECTS_UPDATE,
+        labelKey: 'projectsUpdate',
+        scopes: ['assigned_only', 'all_organization'],
+      },
+      {
+        permissionKey: PERMISSIONS.PROJECTS_ARCHIVE,
+        labelKey: 'projectsArchive',
+        scopes: ['assigned_only', 'all_organization'],
+      },
+      {
         permissionKey: PERMISSIONS.PLANNING_READ,
         labelKey: 'planningRead',
         scopes: ['assigned_only', 'all_organization'],
@@ -101,17 +111,54 @@ export const EMPLOYEE_PERMISSION_EDITOR_GROUPS: readonly EmployeePermissionEdito
     ],
   },
   {
-    id: 'financials',
-    labelKey: 'financials',
+    id: 'contracts',
+    labelKey: 'contracts',
     items: [
       {
-        permissionKey: PERMISSIONS.PROJECT_FINANCIALS_READ,
-        labelKey: 'projectFinancialsRead',
+        permissionKey: PERMISSIONS.CONTRACTS_READ,
+        labelKey: 'contractsRead',
         scopes: ['assigned_only', 'all_organization'],
       },
       {
         permissionKey: PERMISSIONS.CONTRACTS_MANAGE,
         labelKey: 'contractsManage',
+        scopes: ['assigned_only', 'all_organization'],
+      },
+    ],
+  },
+  {
+    id: 'changes',
+    labelKey: 'changes',
+    items: [
+      {
+        permissionKey: PERMISSIONS.CHANGES_READ,
+        labelKey: 'changesRead',
+        scopes: ['assigned_only', 'all_organization'],
+      },
+      {
+        permissionKey: PERMISSIONS.CHANGES_MANAGE,
+        labelKey: 'changesManage',
+        scopes: ['assigned_only', 'all_organization'],
+      },
+      {
+        permissionKey: PERMISSIONS.CHANGES_APPROVE,
+        labelKey: 'changesApprove',
+        scopes: ['assigned_only', 'all_organization'],
+      },
+    ],
+  },
+  {
+    id: 'quotes',
+    labelKey: 'quotes',
+    items: [
+      {
+        permissionKey: PERMISSIONS.QUOTES_READ,
+        labelKey: 'quotesRead',
+        scopes: ['assigned_only', 'all_organization'],
+      },
+      {
+        permissionKey: PERMISSIONS.QUOTES_MANAGE,
+        labelKey: 'quotesManage',
         scopes: ['assigned_only', 'all_organization'],
       },
     ],
@@ -157,6 +204,11 @@ export const EMPLOYEE_PERMISSION_EDITOR_GROUPS: readonly EmployeePermissionEdito
         scopes: ['self_only', 'assigned_only', 'all_organization'],
       },
       {
+        permissionKey: PERMISSIONS.TASKS_DELETE,
+        labelKey: 'pmTasksDelete',
+        scopes: ['assigned_only', 'all_organization'],
+      },
+      {
         permissionKey: PERMISSIONS.TASKS_COMMENT,
         labelKey: 'pmTasksComment',
         scopes: ['self_only', 'assigned_only', 'all_organization'],
@@ -174,6 +226,112 @@ export const EMPLOYEE_PERMISSION_EDITOR_GROUPS: readonly EmployeePermissionEdito
       {
         permissionKey: PERMISSIONS.TASKS_APPROVE,
         labelKey: 'pmTasksApprove',
+        scopes: ['assigned_only', 'all_organization'],
+      },
+    ],
+  },
+  {
+    id: 'project_finance',
+    labelKey: 'projectFinance',
+    items: [
+      {
+        permissionKey: PERMISSIONS.PROJECT_FINANCIALS_READ,
+        labelKey: 'projectFinancialsRead',
+        scopes: ['assigned_only', 'all_organization'],
+      },
+      {
+        permissionKey: PERMISSIONS.PROJECT_PROFIT_READ,
+        labelKey: 'projectProfitRead',
+        scopes: ['assigned_only', 'all_organization'],
+      },
+    ],
+  },
+  {
+    id: 'billing',
+    labelKey: 'billing',
+    items: [
+      {
+        permissionKey: PERMISSIONS.BILLING_READ,
+        labelKey: 'billingRead',
+        scopes: ['assigned_only', 'all_organization'],
+      },
+      {
+        permissionKey: PERMISSIONS.BILLING_MANAGE,
+        labelKey: 'billingManage',
+        scopes: ['assigned_only', 'all_organization'],
+      },
+    ],
+  },
+  {
+    id: 'expenses',
+    labelKey: 'expenses',
+    items: [
+      {
+        permissionKey: PERMISSIONS.EXPENSES_READ,
+        labelKey: 'expensesRead',
+        scopes: ['assigned_only', 'all_organization'],
+      },
+      {
+        permissionKey: PERMISSIONS.EXPENSES_CREATE,
+        labelKey: 'expensesCreate',
+        scopes: ['assigned_only', 'all_organization'],
+      },
+      {
+        permissionKey: PERMISSIONS.EXPENSES_UPDATE,
+        labelKey: 'expensesUpdate',
+        scopes: ['assigned_only', 'all_organization'],
+      },
+      {
+        permissionKey: PERMISSIONS.EXPENSES_FINALIZE,
+        labelKey: 'expensesFinalize',
+        scopes: ['assigned_only', 'all_organization'],
+      },
+    ],
+  },
+  {
+    id: 'ap',
+    labelKey: 'ap',
+    items: [
+      {
+        permissionKey: PERMISSIONS.AP_READ,
+        labelKey: 'apRead',
+        scopes: ['assigned_only', 'all_organization'],
+      },
+      {
+        permissionKey: PERMISSIONS.AP_MANAGE,
+        labelKey: 'apManage',
+        scopes: ['assigned_only', 'all_organization'],
+      },
+    ],
+  },
+  {
+    id: 'vendors',
+    labelKey: 'vendors',
+    items: [
+      {
+        permissionKey: PERMISSIONS.VENDORS_READ,
+        labelKey: 'vendorsRead',
+        scopes: ['all_organization'],
+      },
+      {
+        permissionKey: PERMISSIONS.VENDORS_MANAGE,
+        labelKey: 'vendorsManage',
+        scopes: ['all_organization'],
+      },
+    ],
+  },
+  {
+    id: 'procurement',
+    labelKey: 'procurement',
+    items: [
+      {
+        permissionKey: PERMISSIONS.PROCUREMENT_READ,
+        labelKey: 'procurementRead',
+        scopes: ['assigned_only', 'all_organization'],
+      },
+      {
+        permissionKey: PERMISSIONS.PROCUREMENT_MANAGE,
+        labelKey: 'procurementManage',
         scopes: ['assigned_only', 'all_organization'],
       },
     ],
@@ -203,21 +361,21 @@ export const EMPLOYEE_PERMISSION_EDITOR_GROUPS: readonly EmployeePermissionEdito
         labelKey: 'workforceRead',
         scopes: ['assigned_only', 'all_organization'],
       },
+      {
+        permissionKey: PERMISSIONS.WORKFORCE_MANAGE,
+        labelKey: 'workforceManage',
+        scopes: ['assigned_only', 'all_organization'],
+      },
     ],
   },
   {
-    id: 'expenses',
-    labelKey: 'expenses',
+    id: 'banking',
+    labelKey: 'banking',
     items: [
       {
-        permissionKey: PERMISSIONS.EXPENSES_READ,
-        labelKey: 'expensesRead',
-        scopes: ['assigned_only', 'all_organization'],
-      },
-      {
-        permissionKey: PERMISSIONS.EXPENSES_CREATE,
-        labelKey: 'expensesCreate',
-        scopes: ['assigned_only', 'all_organization'],
+        permissionKey: PERMISSIONS.BANKING_READ,
+        labelKey: 'bankingRead',
+        scopes: ['all_organization'],
       },
     ],
   },
@@ -263,6 +421,7 @@ export function presetTranslationKey(key: EmployeePresetKey): string {
     project_manager: 'projectManager',
     office_admin: 'officeAdmin',
     office: 'office',
+    secretary: 'secretary',
     management: 'management',
     read_only_project: 'readOnlyProject',
     external_consultant: 'externalConsultant',

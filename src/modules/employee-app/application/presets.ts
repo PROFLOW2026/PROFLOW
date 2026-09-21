@@ -13,6 +13,7 @@ export type EmployeePresetKey =
   | 'project_manager'
   | 'office_admin'
   | 'office'
+  | 'secretary'
   | 'management'
   | 'read_only_project'
   | 'external_consultant'
@@ -40,11 +41,18 @@ function preset(
   return { key, labelKey, grants, documentCategories };
 }
 
-const FIELD_WORKER = preset('field_worker', 'employeeApp.presets.fieldWorker', [
-  { permissionKey: PERMISSIONS.TASKS_READ, scope: 'self_only' },
-  { permissionKey: PERMISSIONS.TASKS_UPDATE, scope: 'self_only' },
-  { permissionKey: PERMISSIONS.TASKS_COMMENT, scope: 'self_only' },
-]);
+const FIELD_WORKER = preset(
+  'field_worker',
+  'employeeApp.presets.fieldWorker',
+  [
+    { permissionKey: PERMISSIONS.PROJECTS_READ, scope: 'assigned_only' },
+    { permissionKey: PERMISSIONS.TASKS_READ, scope: 'self_only' },
+    { permissionKey: PERMISSIONS.TASKS_UPDATE, scope: 'self_only' },
+    { permissionKey: PERMISSIONS.TASKS_COMMENT, scope: 'self_only' },
+    { permissionKey: PERMISSIONS.DOCUMENTS_READ, scope: 'assigned_only' },
+  ],
+  ['photo'],
+);
 
 const FIELD_WORKER_TIME = preset('field_worker_time', 'employeeApp.presets.fieldWorkerTime', [
   { permissionKey: PERMISSIONS.TIME_MANAGE, scope: 'self_only' },
@@ -123,6 +131,7 @@ const PROJECT_MANAGER = preset(
     { permissionKey: PERMISSIONS.TIME_MANAGE, scope: 'assigned_only' },
     { permissionKey: PERMISSIONS.PROJECTS_READ, scope: 'assigned_only' },
     { permissionKey: PERMISSIONS.PLANNING_READ, scope: 'assigned_only' },
+    { permissionKey: PERMISSIONS.PROJECT_FINANCIALS_READ, scope: 'assigned_only' },
     { permissionKey: PERMISSIONS.DOCUMENTS_READ, scope: 'assigned_only' },
     { permissionKey: PERMISSIONS.DOCUMENTS_MANAGE, scope: 'assigned_only' },
     { permissionKey: PERMISSIONS.FORMS_READ, scope: 'assigned_only' },
@@ -143,13 +152,50 @@ const OFFICE_ADMIN = preset(
   'office_admin',
   'employeeApp.presets.officeAdmin',
   [
-    { permissionKey: PERMISSIONS.EXPENSES_CREATE, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.PROJECTS_READ, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.CLIENTS_READ, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.CLIENTS_MANAGE, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.CONTRACTS_READ, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.CONTRACTS_MANAGE, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.BILLING_READ, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.BILLING_MANAGE, scope: 'all_organization' },
     { permissionKey: PERMISSIONS.EXPENSES_READ, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.EXPENSES_CREATE, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.EXPENSES_UPDATE, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.AP_READ, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.AP_MANAGE, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.VENDORS_READ, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.VENDORS_MANAGE, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.DOCUMENTS_READ, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.DOCUMENTS_MANAGE, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.TASKS_READ, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.TASKS_UPDATE, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.TASKS_COMMENT, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.WORKFORCE_READ, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.MEETINGS_READ, scope: 'all_organization' },
     { permissionKey: PERMISSIONS.FORMS_READ, scope: 'all_organization' },
     { permissionKey: PERMISSIONS.FORMS_SUBMIT, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.PROJECT_FINANCIALS_READ, scope: 'all_organization' },
+  ],
+  ['receipt', 'invoice', 'photo', 'contract', 'other', 'certificate'],
+);
+
+const SECRETARY = preset(
+  'secretary',
+  'employeeApp.presets.secretary',
+  [
+    { permissionKey: PERMISSIONS.PROJECTS_READ, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.CLIENTS_READ, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.CLIENTS_MANAGE, scope: 'all_organization' },
     { permissionKey: PERMISSIONS.DOCUMENTS_READ, scope: 'all_organization' },
-    { permissionKey: PERMISSIONS.TASKS_READ, scope: 'self_only' },
-    { permissionKey: PERMISSIONS.TASKS_UPDATE, scope: 'self_only' },
+    { permissionKey: PERMISSIONS.TASKS_READ, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.TASKS_COMMENT, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.FORMS_READ, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.FORMS_SUBMIT, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.BILLING_READ, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.EXPENSES_READ, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.EXPENSES_CREATE, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.MEETINGS_READ, scope: 'all_organization' },
   ],
   ['receipt', 'invoice', 'photo', 'other'],
 );
@@ -159,20 +205,41 @@ const MANAGEMENT = preset(
   'employeeApp.presets.management',
   [
     { permissionKey: PERMISSIONS.PROJECTS_READ, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.PROJECTS_CREATE, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.PROJECTS_UPDATE, scope: 'all_organization' },
     { permissionKey: PERMISSIONS.TASKS_READ, scope: 'all_organization' },
     { permissionKey: PERMISSIONS.TASKS_CREATE, scope: 'all_organization' },
-    { permissionKey: PERMISSIONS.TASKS_MANAGE_ALL, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.TASKS_UPDATE, scope: 'all_organization' },
     { permissionKey: PERMISSIONS.TASKS_ASSIGN, scope: 'all_organization' },
-    { permissionKey: PERMISSIONS.TASKS_APPROVE, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.TASKS_MANAGE_ALL, scope: 'all_organization' },
     { permissionKey: PERMISSIONS.TASKS_COMMENT, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.TASKS_APPROVE, scope: 'all_organization' },
     { permissionKey: PERMISSIONS.WORKFORCE_READ, scope: 'all_organization' },
     { permissionKey: PERMISSIONS.ATTENDANCE_READ, scope: 'all_organization' },
-    { permissionKey: PERMISSIONS.TIME_MANAGE, scope: 'self_only' },
     { permissionKey: PERMISSIONS.TIME_APPROVE, scope: 'all_organization' },
     { permissionKey: PERMISSIONS.DOCUMENTS_READ, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.DOCUMENTS_MANAGE, scope: 'all_organization' },
     { permissionKey: PERMISSIONS.MEETINGS_READ, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.CLIENTS_READ, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.CLIENTS_MANAGE, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.CONTRACTS_READ, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.CONTRACTS_MANAGE, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.BILLING_READ, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.BILLING_MANAGE, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.PROJECT_FINANCIALS_READ, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.PROJECT_PROFIT_READ, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.EXPENSES_READ, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.EXPENSES_CREATE, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.EXPENSES_UPDATE, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.AP_READ, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.AP_MANAGE, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.VENDORS_READ, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.VENDORS_MANAGE, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.PROCUREMENT_READ, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.FORMS_READ, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.FORMS_SUBMIT, scope: 'all_organization' },
   ],
-  ['photo', 'drawing', 'certificate', 'contract', 'other'],
+  ['contract', 'invoice', 'receipt', 'photo', 'drawing', 'certificate', 'other'],
 );
 
 const READ_ONLY_PROJECT = preset(
@@ -231,6 +298,7 @@ export const EMPLOYEE_PRESETS: readonly EmployeePreset[] = [
   PROJECT_MANAGER,
   OFFICE_ADMIN,
   { ...OFFICE_ADMIN, key: 'office', labelKey: 'employeeApp.presets.office' },
+  SECRETARY,
   MANAGEMENT,
   READ_ONLY_PROJECT,
   EXTERNAL_CONSULTANT,

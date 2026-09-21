@@ -57,8 +57,12 @@ export function categoriesForSemanticFolder(
 
 /**
  * Effective document category grants for folder and document visibility.
- * - `null` = unrestricted (all categories) for main org members with no grant rows.
- * - empty Set = no categories (employee with no grants, or explicit empty config).
+ * - `null` = unrestricted (all categories) when `documents.read` is granted and no
+ *   category restriction rows are configured (Main App members OR Employee App).
+ * - empty Set = no categories (missing documents.read, or explicit empty allowlist).
+ *
+ * Category grants are an OPTIONAL narrowing mechanism. An empty DB grant table must
+ * not silently mean "see nothing" when documents.read is granted.
  */
 export function resolveEffectiveDocumentCategoryGrants(
   context: OrgContext,
@@ -69,7 +73,10 @@ export function resolveEffectiveDocumentCategoryGrants(
 
   if (isEmployeeAppUser(context)) {
     const allowed = context.employeeApp?.allowedDocumentCategories;
-    if (!allowed || allowed.size === 0) return new Set<DocumentCategory>();
+    // null = no restriction rows configured → unrestricted under documents.read.
+    // empty Set = explicit empty allowlist → deny all categories.
+    if (allowed === null || allowed === undefined) return null;
+    if (allowed.size === 0) return new Set<DocumentCategory>();
     return allowed;
   }
 

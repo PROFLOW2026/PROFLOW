@@ -1,7 +1,7 @@
 import 'server-only';
 
-import { findClientById } from '@/modules/clients/data/clients.repository';
-import { findProjectById } from '@/modules/projects/data/projects.repository';
+import { findClientById } from '@/modules/clients';
+import { findProjectById } from '@/modules/projects';
 import type { DbExecutor } from '@/shared/db/types';
 import type { StorageConnectionRecord } from '../domain/types';
 import { ensureProjectFolderTree } from './folder-provisioning';

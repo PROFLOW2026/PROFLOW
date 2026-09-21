@@ -101,3 +101,4 @@ export {
   ensureDocumentForProviderFile,
 } from './application/link-provider-file-to-document';
 export type { EnsureDocumentForProviderFileInput } from './application/link-provider-file-to-document';
+export { runCommittedStorageWrite } from './data/storage-admin-write';

@@ -87,8 +87,8 @@ describe('employee mobile navigation', () => {
     expect(hrefs(overflow).sort()).toEqual(['/employee/documents', '/employee/team'].sort());
   });
 
-  it('field worker without projects gets home, time, tasks only — no back-fill from secondary', () => {
-    const context = employeeContextFromPreset('field_worker');
+  it('field_worker_time gets home and time only — no back-fill from secondary', () => {
+    const context = employeeContextFromPreset('field_worker_time');
     const withTime = {
       ...context,
       permissions: new Set([...context.permissions, PERMISSIONS.ATTENDANCE_SELF]),
@@ -97,8 +97,27 @@ describe('employee mobile navigation', () => {
     const primary = selectEmployeeMobilePrimaryItems(nav);
     const overflow = selectEmployeeMobileOverflowItems(nav);
 
-    expect(hrefs(primary)).toEqual(['/employee', '/employee/time', '/employee/tasks']);
+    expect(hrefs(primary)).toEqual(['/employee', '/employee/time']);
     expect(overflow).toHaveLength(0);
+  });
+
+  it('field worker primary includes projects; documents go to More', () => {
+    const context = employeeContextFromPreset('field_worker');
+    const withAttendance = {
+      ...context,
+      permissions: new Set([...context.permissions, PERMISSIONS.ATTENDANCE_SELF]),
+    };
+    const nav = buildEmployeeNavItems(withAttendance);
+    const primary = selectEmployeeMobilePrimaryItems(nav);
+    const overflow = selectEmployeeMobileOverflowItems(nav);
+
+    expect(hrefs(primary)).toEqual([
+      '/employee',
+      '/employee/time',
+      '/employee/projects',
+      '/employee/tasks',
+    ]);
+    expect(hrefs(overflow)).toEqual(['/employee/documents']);
   });
 
   it('uses short attendance label on mobile only', () => {

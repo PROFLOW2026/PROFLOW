@@ -115,8 +115,12 @@ export function parseTaskFilterState(
 ): TaskFilterState {
   const defaults = defaultTaskFilterState(showAllAuthorizedTasks);
   const scopeParam = params.get('scope');
-  const scope: TaskScopeFilter =
+  let scope: TaskScopeFilter =
     scopeParam === 'mine' || scopeParam === 'company' ? scopeParam : defaults.scope;
+  // self_only viewers cannot use company scope — coerce URL deep-links to mine.
+  if (scope === 'company' && !showAllAuthorizedTasks) {
+    scope = 'mine';
+  }
 
   const statusParam = params.get('status') ?? defaults.status;
   const status = (

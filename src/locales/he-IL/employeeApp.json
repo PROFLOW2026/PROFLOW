@@ -31,7 +31,13 @@
     "meetings": "ישיבות",
     "team": "צוות",
     "forms": "טפסים",
+    "clients": "לקוחות",
+    "billing": "חיובים וגבייה",
+    "contracts": "חוזים",
     "expenses": "הוצאות",
+    "vendors": "ספקים",
+    "ap": "חשבוניות ספקים",
+    "procurement": "רכש",
     "more": "עוד"
   },
   "back": {
@@ -118,6 +124,7 @@
   "team": {
     "intro": "תצוגת צוות תפעולית בהיקף ההרשאות שלך.",
     "openTasks": "{count, plural, one {משימה פתוחה אחת} other {# משימות פתוחות}}",
+    "viewTasks": "צפה במשימות",
     "empty": "אין חברי צוות בהיקף שלך"
   },
   "forms": {
@@ -141,6 +148,127 @@
       "date": "תאריך",
       "vendor": "ספק / vendor",
       "submit": "שליחת הוצאה"
+    }
+  },
+  "clients": {
+    "create": "לקוח חדש",
+    "empty": "אין לקוחות עדיין",
+    "noAccess": {
+      "title": "לקוחות אינם זמינים",
+      "description": "אין לך הרשאה לצפות בלקוחות. פנו למנהל."
+    },
+    "createForm": {
+      "back": "חזרה ללקוחות",
+      "name": "שם לקוח",
+      "phone": "טלפון",
+      "email": "אימייל",
+      "submit": "יצירת לקוח"
+    },
+    "detail": {
+      "back": "חזרה ללקוחות",
+      "status": "סטטוס",
+      "phone": "טלפון",
+      "email": "אימייל",
+      "city": "עיר",
+      "contracts": "חוזים"
+    }
+  },
+  "billing": {
+    "create": "חיוב חדש",
+    "recordPayment": "רישום תשלום",
+    "empty": "אין רשומות חיוב עדיין",
+    "noAccess": {
+      "title": "חיובים אינם זמינים",
+      "description": "אין לך הרשאה לצפות בחיובים. פנו למנהל."
+    },
+    "summary": {
+      "outstanding": "יתרה פתוחה",
+      "overdue": "באיחור"
+    },
+    "createForm": {
+      "back": "חזרה לחיובים",
+      "project": "פרויקט",
+      "selectProject": "בחירת פרויקט",
+      "amount": "סכום ({currency})",
+      "issueDate": "תאריך הפקה",
+      "dueDate": "תאריך לתשלום",
+      "reference": "אסמכתא",
+      "submit": "יצירת חיוב"
+    },
+    "paymentForm": {
+      "back": "חזרה לחיובים",
+      "invoice": "חשבונית (אופציונלי)",
+      "unallocated": "לא מוקצה / יתרת לקוח",
+      "client": "לקוח",
+      "selectClient": "בחירת לקוח",
+      "clientHint": "נדרש לתשלומים לא מוקצים. מתעלמים ממנו כשנבחרת חשבונית.",
+      "amount": "סכום ({currency})",
+      "paymentDate": "תאריך תשלום",
+      "method": "אמצעי תשלום",
+      "reference": "אסמכתא",
+      "submit": "רישום תשלום"
+    }
+  },
+  "ap": {
+    "empty": "אין חשבונות ספקים עדיין",
+    "noAccess": {
+      "title": "ספקים לתשלום אינם זמינים",
+      "description": "אין לך הרשאה לצפות בחשבונות ספקים. פנו למנהל."
+    }
+  },
+  "vendors": {
+    "create": "ספק חדש",
+    "empty": "אין ספקים עדיין",
+    "noAccess": {
+      "title": "ספקים אינם זמינים",
+      "description": "אין לך הרשאה לצפות בספקים. פנו למנהל."
+    },
+    "createForm": {
+      "back": "חזרה לספקים",
+      "name": "שם ספק",
+      "phone": "טלפון",
+      "email": "אימייל",
+      "submit": "יצירת ספק"
+    }
+  },
+  "procurement": {
+    "empty": "אין הזמנות רכש עדיין",
+    "noReference": "ללא אסמכתא",
+    "noAccess": {
+      "title": "רכש אינו זמין",
+      "description": "אין לך הרשאה לצפות בהזמנות רכש. פנו למנהל."
+    }
+  },
+  "contracts": {
+    "empty": "אין חוזים עדיין",
+    "noAccess": {
+      "title": "חוזים אינם זמינים",
+      "description": "אין לך הרשאה לצפות בחוזים. פנו למנהל."
+    }
+  },
+  "financials": {
+    "title": "פיננסי פרויקט",
+    "subtitle": "סיכום לקריאה בלבד ממנוע הפיננסים הראשי",
+    "back": "חזרה לפרויקט",
+    "priceNotSet": "המחיר טרם נקבע. רווח לא מוצג.",
+    "profitHidden": "פרטי רווח דורשים הרשאה נוספת.",
+    "sections": {
+      "commercial": "מסחרי",
+      "billing": "חיובים",
+      "cost": "עלות",
+      "profit": "רווח"
+    },
+    "fields": {
+      "currentContract": "חוזה נוכחי",
+      "pendingChanges": "שינויים ממתינים",
+      "invoiced": "חויב",
+      "paid": "שולם",
+      "outstanding": "יתרה",
+      "actualCost": "עלות בפועל",
+      "forecastCost": "עלות חזויה",
+      "actualProfit": "רווח בפועל",
+      "estimatedProfit": "רווח חזוי",
+      "actualMargin": "מרווח בפועל"
     }
   },
   "tasks": {
@@ -230,7 +358,8 @@
       "board": "לוח",
       "logTime": "דיווח שעות",
       "files": "קבצים",
-      "meetings": "ישיבות"
+      "meetings": "ישיבות",
+      "financials": "פיננסים"
     },
     "openTaskDetail": "פתיחת פרטי משימה",
     "files": {
@@ -395,6 +524,7 @@
     "foreman": "מנהל עבודה",
     "projectManager": "מנהל פרויקט",
     "office": "משרד",
+    "secretary": "מזכירות / מנהלה",
     "management": "הנהלה",
     "custom": "מותאם אישית",
     "technicalProfessional": "איש מקצוע טכני",
@@ -416,9 +546,16 @@
       "documents": "מסמכים",
       "workforce": "עובדים",
       "clients": "לקוחות",
+      "contracts": "חוזים",
+      "changes": "שינויים",
+      "quotes": "הצעות מחיר",
+      "projectFinance": "כספי פרויקט",
+      "billing": "חיובים וגבייה",
       "vendors": "ספקים / קבלני משנה",
       "expenses": "הוצאות",
-      "financials": "כספים",
+      "ap": "חשבוניות ספקים",
+      "procurement": "רכש",
+      "banking": "בנקאות",
       "forms": "דוחות"
     },
     "items": {
@@ -429,8 +566,16 @@
       "timeApprove": "אישור שעות",
       "projectsRead": "צפייה בפרויקטים",
       "projectsCreate": "יצירת פרויקטים",
+      "projectsUpdate": "עדכון פרויקטים",
+      "projectsArchive": "ארכוב פרויקטים",
       "projectsManage": "ניהול פרויקטים",
-      "contractsManage": "ניהול סכומי חוזה",
+      "contractsRead": "צפייה בחוזים",
+      "contractsManage": "ניהול חוזים",
+      "changesRead": "צפייה בשינויים",
+      "changesManage": "ניהול שינויים",
+      "changesApprove": "אישור שינויים",
+      "quotesRead": "צפייה בהצעות מחיר",
+      "quotesManage": "ניהול הצעות מחיר",
       "planningRead": "תכנון / לו\"ז",
       "tasksRead": "צפייה במשימות",
       "tasksManage": "ניהול משימות",
@@ -446,13 +591,23 @@
       "vendorsManage": "ניהול ספקים",
       "expensesRead": "צפייה בהוצאות",
       "expensesCreate": "רישום הוצאות",
+      "expensesUpdate": "עדכון הוצאות",
+      "expensesFinalize": "סגירת הוצאות",
       "projectFinancialsRead": "צפייה בכספי פרויקט",
+      "projectProfitRead": "צפייה ברווחיות פרויקט",
       "billingRead": "צפייה בחיובים",
+      "billingManage": "ניהול חיובים וגבייה",
+      "apRead": "צפייה בחשבוניות ספקים",
+      "apManage": "ניהול חשבוניות ספקים",
+      "procurementRead": "צפייה ברכש",
+      "procurementManage": "ניהול רכש",
+      "bankingRead": "צפייה בבנקאות",
       "formsRead": "צפייה בטפסים / דוחות",
       "formsSubmit": "הגשת טפסים / דוחות",
       "pmTasksRead": "צפייה במשימות PM",
       "pmTasksCreate": "יצירת משימות PM",
       "pmTasksUpdate": "עדכון משימות PM",
+      "pmTasksDelete": "מחיקת משימות PM",
       "pmTasksComment": "תגובה על משימות PM",
       "pmTasksAssign": "שיוך משימות PM",
       "pmTasksManageAll": "ניהול כל משימות PM",

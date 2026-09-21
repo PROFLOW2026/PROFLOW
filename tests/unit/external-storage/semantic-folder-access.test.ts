@@ -143,9 +143,39 @@ describe('semantic folder access mapping', () => {
   });
 
   it('denies all folders when documents.read is missing', () => {
-    const worker = employeeContextFromPreset('field_worker');
+    const worker = employeeContextFromPreset('field_worker_time');
     expect(employeeHasAnyAllowedSemanticFolder(worker)).toBe(false);
     expect(canAccessSemanticFolder(worker, 'photos')).toBe(false);
+  });
+
+  it('treats missing employee category rows as unrestricted under documents.read', () => {
+    const office = employeeContextFromPreset('office_admin');
+    const unrestricted = {
+      ...office,
+      permissions: new Set([...office.permissions, PERMISSIONS.DOCUMENTS_READ]),
+      employeeApp: office.employeeApp
+        ? { ...office.employeeApp, allowedDocumentCategories: null }
+        : null,
+    } as OrgContext;
+
+    expect(resolveEffectiveDocumentCategoryGrants(unrestricted)).toBeNull();
+    expect(employeeHasAnyAllowedSemanticFolder(unrestricted)).toBe(true);
+    expect(canAccessSemanticFolder(unrestricted, 'photos')).toBe(true);
+    expect(canAccessSemanticFolder(unrestricted, 'billing')).toBe(true);
+  });
+
+  it('denies all categories when employee allowlist is explicitly empty', () => {
+    const office = employeeContextFromPreset('office_admin');
+    const emptyAllowlist = {
+      ...office,
+      permissions: new Set([...office.permissions, PERMISSIONS.DOCUMENTS_READ]),
+      employeeApp: office.employeeApp
+        ? { ...office.employeeApp, allowedDocumentCategories: new Set() }
+        : null,
+    } as OrgContext;
+
+    expect(resolveEffectiveDocumentCategoryGrants(emptyAllowlist)?.size).toBe(0);
+    expect(employeeHasAnyAllowedSemanticFolder(emptyAllowlist)).toBe(false);
   });
 });
 

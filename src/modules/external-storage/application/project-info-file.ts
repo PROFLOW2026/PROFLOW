@@ -1,7 +1,7 @@
 import 'server-only';
 
-import { getClientDetail } from '@/modules/clients/data/clients.repository';
-import { findProjectById } from '@/modules/projects/data/projects.repository';
+import { getClientDetail } from '@/modules/clients';
+import { findProjectById } from '@/modules/projects';
 import type { DbExecutor } from '@/shared/db/types';
 import { asServiceRoleWrite } from '@/shared/db/service-role-write';
 import {

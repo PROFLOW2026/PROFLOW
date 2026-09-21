@@ -47,7 +47,12 @@ export async function resolveAccessibleProjectIdsForEmployeePermission(
   context: OrgContext,
   permission: PermissionKey,
 ): Promise<string[] | null> {
-  if (hasPermission(context, PERMISSIONS.PROJECTS_ACCESS_ALL)) {
+  // Explicit all-projects grant OR projects.read scoped to all_organization.
+  if (
+    hasPermission(context, PERMISSIONS.PROJECTS_ACCESS_ALL) ||
+    (isEmployeeAppUser(context) &&
+      employeePermissionScope(context, PERMISSIONS.PROJECTS_READ) === 'all_organization')
+  ) {
     return null;
   }
 
@@ -85,7 +90,11 @@ export async function resolveAccessibleProjectIdsForEmployeePermission(
 export async function resolveAccessibleProjectIdsForUser(
   context: OrgContext,
 ): Promise<string[] | null> {
-  if (hasPermission(context, PERMISSIONS.PROJECTS_ACCESS_ALL)) {
+  if (
+    hasPermission(context, PERMISSIONS.PROJECTS_ACCESS_ALL) ||
+    (isEmployeeAppUser(context) &&
+      employeePermissionScope(context, PERMISSIONS.PROJECTS_READ) === 'all_organization')
+  ) {
     return null;
   }
 

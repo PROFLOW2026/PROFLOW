@@ -25,7 +25,7 @@
     "setPrimary": "קבע כאחסון ראשי",
     "useReadyTemplate": "השתמש בתבנית המוכנה",
     "openProjectTemplate": "פתח את תבנית הפרויקט באחסון",
-    "templateReadyConfirm": "סיימתי — התבנית מוכנה"
+    "templateReadyConfirm": "סיימתי. התבנית מוכנה"
   },
   "quota": {
     "used": " בשימוש: {used}",
@@ -36,7 +36,7 @@
   "oauthSuccess": "החיבור הושלם בהצלחה.",
   "oauthFailed": "החיבור נכשל. נסו שוב.",
   "templateGate": {
-    "connectedNeedChoice": "אחסון מחובר — יש לבחור תבנית פרויקט",
+    "connectedNeedChoice": "אחסון מחובר. יש לבחור תבנית פרויקט",
     "waitingApproval": "תבנית הפרויקט ממתינה לאישור",
     "explanation": "הכנו עבורך תבנית פרויקט מוכנה. כל פרויקט יקבל עותק שלה. אפשר להשתמש בה כמו שהיא, או לערוך אותה באחסון ולהוסיף תיקיות וקבצים קבועים."
   },

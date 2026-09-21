@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { getClientDetail } from '@/modules/clients/data/clients.repository';
+import { getClientDetail } from '@/modules/clients';
 import type { DbExecutor } from '@/shared/db/types';
 import { asServiceRoleWrite } from '@/shared/db/service-role-write';
 import {

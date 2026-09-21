@@ -15,9 +15,10 @@ export async function buildEmployeeProjectHubLinks(input: {
   canMeetings: boolean;
   canDocuments: boolean;
   canLogTime: boolean;
+  canFinancials?: boolean;
 }): Promise<EmployeeProjectHubLink[]> {
   const t = await getTranslations('employeeApp.projects');
-  const { projectId, openTasks, canMeetings, canDocuments, canLogTime } = input;
+  const { projectId, openTasks, canMeetings, canDocuments, canLogTime, canFinancials } = input;
 
   return [
     {
@@ -46,6 +47,11 @@ export async function buildEmployeeProjectHubLinks(input: {
       href: `/employee/projects/${projectId}/meetings`,
       label: t('hub.meetings'),
       visible: canMeetings,
+    },
+    {
+      href: `/employee/projects/${projectId}/financials`,
+      label: t('hub.financials'),
+      visible: Boolean(canFinancials),
     },
   ];
 }

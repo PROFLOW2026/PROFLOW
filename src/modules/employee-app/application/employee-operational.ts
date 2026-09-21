@@ -1,12 +1,13 @@
 import 'server-only';
 
 import { and, asc, eq, inArray, isNull } from 'drizzle-orm';
-import { projects, taskAssignees, tasks } from '@drizzle/schema';
+import { projects, taskAssignees } from '@drizzle/schema';
 import type { OrgContext } from '@/shared/auth/context';
 import { DomainRuleError } from '@/shared/errors';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { employeeHasPermission, employeePermissionScope } from './load-employee-app-context';
 import { resolveAccessibleProjectIdsForEmployeePermission } from './project-scope';
+import { listEmployeePmTasks } from './employee-pm-tasks';
 import { formatProjectDisplayName } from '@/modules/projects/domain/display';
 import { todayInTimeZone } from '@/shared/dates';
 import { listEmployeesForOrg, listAttendanceDays, listTimeEntries } from '@/modules/workforce';
@@ -61,22 +62,33 @@ export async function listEmployeeTeamRoster(context: OrgContext): Promise<Emplo
     }
   }
 
+  // Open counts must match the viewer-visible Tasks universe (tasks.read / listEmployeePmTasks).
+  // Without tasks.read, roster still shows (workforce.read) but every openTaskCount is 0.
   const openTaskCounts = new Map<string, number>();
-  if (roster.length > 0) {
-    const taskRows = await context.db
-      .select({ employeeId: taskAssignees.employeeId, status: tasks.status })
-      .from(taskAssignees)
-      .innerJoin(tasks, eq(tasks.id, taskAssignees.taskId))
-      .where(
-        and(
-          eq(tasks.organizationId, context.organizationId),
-          isNull(tasks.archivedAt),
-          inArray(taskAssignees.employeeId, roster.map((employee) => employee.id)),
-        ),
-      );
-    for (const row of taskRows) {
-      if (!row.employeeId || row.status === 'done' || row.status === 'cancelled') continue;
-      openTaskCounts.set(row.employeeId, (openTaskCounts.get(row.employeeId) ?? 0) + 1);
+  if (roster.length > 0 && employeeHasPermission(context, PERMISSIONS.TASKS_READ)) {
+    const visibleTasks = await listEmployeePmTasks(context);
+    const openVisibleTaskIds = visibleTasks
+      .filter((task) => task.status !== 'done' && task.status !== 'cancelled')
+      .map((task) => task.id);
+
+    if (openVisibleTaskIds.length > 0) {
+      const assigneeRows = await context.db
+        .select({ employeeId: taskAssignees.employeeId })
+        .from(taskAssignees)
+        .where(
+          and(
+            eq(taskAssignees.organizationId, context.organizationId),
+            inArray(taskAssignees.taskId, openVisibleTaskIds),
+            inArray(
+              taskAssignees.employeeId,
+              roster.map((employee) => employee.id),
+            ),
+          ),
+        );
+      for (const row of assigneeRows) {
+        if (!row.employeeId) continue;
+        openTaskCounts.set(row.employeeId, (openTaskCounts.get(row.employeeId) ?? 0) + 1);
+      }
     }
   }
 

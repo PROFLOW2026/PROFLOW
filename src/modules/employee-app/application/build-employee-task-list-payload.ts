@@ -135,8 +135,10 @@ export async function buildEmployeeTaskListPayload(
     tasks,
     today,
     currentEmployeeId: employeeId,
+    // Mine/Company and assignee filter for any authorized universe (not self-only).
+    // "company" = all tasks in the viewer's tasks.read scope (org / assigned / granted).
     canFilterByAssignee: readScope !== 'self_only',
-    canSeeCompanyScope: readScope === 'all_organization',
+    canSeeCompanyScope: readScope !== 'self_only',
     assigneeOptions,
     projectOptions,
   };

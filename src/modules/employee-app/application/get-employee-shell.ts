@@ -77,9 +77,39 @@ export function buildEmployeeNavItems(context: OrgContext): EmployeeNavItem[] {
       visible: canForms,
     },
     {
+      href: '/employee/clients',
+      labelKey: 'employeeApp.nav.clients',
+      visible: employeeHasPermission(context, PERMISSIONS.CLIENTS_READ),
+    },
+    {
+      href: '/employee/billing',
+      labelKey: 'employeeApp.nav.billing',
+      visible: employeeHasPermission(context, PERMISSIONS.BILLING_READ),
+    },
+    {
+      href: '/employee/contracts',
+      labelKey: 'employeeApp.nav.contracts',
+      visible: employeeHasPermission(context, PERMISSIONS.CONTRACTS_READ),
+    },
+    {
       href: '/employee/expenses',
       labelKey: 'employeeApp.nav.expenses',
       visible: canExpenses,
+    },
+    {
+      href: '/employee/vendors',
+      labelKey: 'employeeApp.nav.vendors',
+      visible: employeeHasPermission(context, PERMISSIONS.VENDORS_READ),
+    },
+    {
+      href: '/employee/ap',
+      labelKey: 'employeeApp.nav.ap',
+      visible: employeeHasPermission(context, PERMISSIONS.AP_READ),
+    },
+    {
+      href: '/employee/procurement',
+      labelKey: 'employeeApp.nav.procurement',
+      visible: employeeHasPermission(context, PERMISSIONS.PROCUREMENT_READ),
     },
   ];
 }

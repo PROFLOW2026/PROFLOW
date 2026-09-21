@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { runCommittedStorageWrite } from '@/modules/external-storage/data/storage-admin-write';
+import { runCommittedStorageWrite } from '@/modules/external-storage/server';
 import type { DbExecutor } from '@/shared/db/types';
 import { findPrimaryDocumentLink } from './documents.repository';
 

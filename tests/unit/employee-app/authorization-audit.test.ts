@@ -92,13 +92,21 @@ describe('employee authorization audit — presets', () => {
     expect(effectiveGrantKeys(context)).toEqual(
       expect.arrayContaining([
         PERMISSIONS.ATTENDANCE_SELF,
+        PERMISSIONS.PROJECTS_READ,
         PERMISSIONS.TASKS_READ,
         PERMISSIONS.TASKS_UPDATE,
         PERMISSIONS.TASKS_COMMENT,
+        PERMISSIONS.DOCUMENTS_READ,
       ]),
     );
     expect(visibleNavHrefs(context)).toEqual(
-      expect.arrayContaining(['/employee', '/employee/time', '/employee/tasks']),
+      expect.arrayContaining([
+        '/employee',
+        '/employee/time',
+        '/employee/projects',
+        '/employee/tasks',
+        '/employee/documents',
+      ]),
     );
     for (const permission of OWNER_ONLY_PERMISSIONS) {
       expect(context.permissions.has(permission)).toBe(false);
@@ -131,22 +139,53 @@ describe('employee authorization audit — presets', () => {
     );
   });
 
-  it('project_manager preset includes planning and forms grants', () => {
+  it('project_manager preset includes planning, forms, and optional project financials', () => {
     const context = employeeContextFromPreset('project_manager');
     expect(context.permissions.has(PERMISSIONS.PLANNING_READ)).toBe(true);
     expect(context.permissions.has(PERMISSIONS.FORMS_SUBMIT)).toBe(true);
     expect(context.permissions.has(PERMISSIONS.DOCUMENTS_MANAGE)).toBe(true);
+    expect(context.permissions.has(PERMISSIONS.PROJECT_FINANCIALS_READ)).toBe(true);
+    expect(context.employeeApp?.grants.get(PERMISSIONS.PROJECT_FINANCIALS_READ)?.scope).toBe(
+      'assigned_only',
+    );
     expect(visibleNavHrefs(context)).toContain('/employee/tasks');
     expect(visibleNavHrefs(context)).toContain('/employee/documents');
   });
 
-  it('office preset exposes forms and expenses nav without projects', () => {
+  it('office preset exposes office ops with projects and commercial nav', () => {
     const context = employeeContextFromPreset('office');
     expect(context.permissions.has(PERMISSIONS.EXPENSES_READ)).toBe(true);
     expect(context.permissions.has(PERMISSIONS.FORMS_READ)).toBe(true);
-    expect(context.permissions.has(PERMISSIONS.PROJECTS_READ)).toBe(false);
+    expect(context.permissions.has(PERMISSIONS.PROJECTS_READ)).toBe(true);
+    expect(context.permissions.has(PERMISSIONS.CLIENTS_READ)).toBe(true);
+    expect(context.permissions.has(PERMISSIONS.BILLING_READ)).toBe(true);
     expect(visibleNavHrefs(context)).toEqual(
-      expect.arrayContaining(['/employee/forms', '/employee/expenses', '/employee/documents']),
+      expect.arrayContaining([
+        '/employee/projects',
+        '/employee/forms',
+        '/employee/expenses',
+        '/employee/documents',
+        '/employee/clients',
+        '/employee/billing',
+        '/employee/vendors',
+        '/employee/ap',
+      ]),
+    );
+  });
+
+  it('secretary preset is lighter office access', () => {
+    const context = employeeContextFromPreset('secretary');
+    expect(context.permissions.has(PERMISSIONS.CLIENTS_MANAGE)).toBe(true);
+    expect(context.permissions.has(PERMISSIONS.BILLING_READ)).toBe(true);
+    expect(context.permissions.has(PERMISSIONS.BILLING_MANAGE)).toBe(false);
+    expect(context.permissions.has(PERMISSIONS.AP_READ)).toBe(false);
+    expect(visibleNavHrefs(context)).toEqual(
+      expect.arrayContaining([
+        '/employee/clients',
+        '/employee/billing',
+        '/employee/expenses',
+        '/employee/documents',
+      ]),
     );
   });
 
@@ -154,14 +193,15 @@ describe('employee authorization audit — presets', () => {
     const context = employeeContextFromPreset('management');
     const preset = EMPLOYEE_PRESETS.find((p) => p.key === 'management')!;
     for (const grant of preset.grants) {
-      const expectedScope =
-        grant.permissionKey === PERMISSIONS.TIME_MANAGE ? 'self_only' : 'all_organization';
-      expect(context.employeeApp?.grants.get(grant.permissionKey)?.scope).toBe(expectedScope);
+      expect(context.employeeApp?.grants.get(grant.permissionKey)?.scope).toBe('all_organization');
     }
     expect(visibleNavHrefs(context)).toContain('/employee/projects');
     expect(visibleNavHrefs(context)).toContain('/employee/time');
     expect(visibleNavHrefs(context)).toContain('/employee/team');
     expect(visibleNavHrefs(context)).toContain('/employee/tasks');
+    expect(visibleNavHrefs(context)).toContain('/employee/clients');
+    expect(visibleNavHrefs(context)).toContain('/employee/billing');
+    expect(visibleNavHrefs(context)).toContain('/employee/procurement');
   });
 
   it('custom preset is baseline-only until owner grants', () => {
@@ -178,9 +218,10 @@ describe('employee authorization audit — documents and revoke', () => {
     expect(canEmployeeReadDocumentCategory(context, 'invoice')).toBe(false);
   });
 
-  it('denies all categories when documents.read is missing', () => {
+  it('allows photo category for field_worker document grant', () => {
     const context = employeeContextFromPreset('field_worker');
-    expect(canEmployeeReadDocumentCategory(context, 'photo')).toBe(false);
+    expect(canEmployeeReadDocumentCategory(context, 'photo')).toBe(true);
+    expect(canEmployeeReadDocumentCategory(context, 'invoice')).toBe(false);
   });
 
   it('revoking a grant removes permission and nav item', () => {

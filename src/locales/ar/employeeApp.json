@@ -31,7 +31,13 @@
     "meetings": "الاجتماعات",
     "team": "الفريق",
     "forms": "النماذج",
+    "clients": "العملاء",
+    "billing": "الفوترة والتحصيل",
+    "contracts": "العقود",
     "expenses": "المصروفات",
+    "vendors": "الموردون",
+    "ap": "فواتير الموردين",
+    "procurement": "المشتريات",
     "more": "المزيد"
   },
   "back": {
@@ -202,7 +208,8 @@
       "board": "اللوحة",
       "logTime": "تسجيل وقت",
       "files": "الملفات",
-      "meetings": "الاجتماعات"
+      "meetings": "الاجتماعات",
+      "financials": "الماليات"
     },
     "openTaskDetail": "فتح تفاصيل المهمة",
     "files": {
@@ -367,6 +374,7 @@
     "foreman": "مراقب موقع",
     "projectManager": "مدير مشروع",
     "office": "مكتب",
+    "secretary": "سكرتارية / إدارة",
     "management": "إدارة",
     "custom": "مخصص",
     "technicalProfessional": "محترف تقني",
@@ -388,9 +396,16 @@
       "documents": "المستندات",
       "workforce": "الموظفون",
       "clients": "العملاء",
+      "contracts": "العقود",
+      "changes": "أوامر التغيير",
+      "quotes": "عروض الأسعار",
+      "projectFinance": "مالية المشروع",
+      "billing": "الفوترة والتحصيل",
       "vendors": "الموردون / مقاولو الباطن",
       "expenses": "المصروفات",
-      "financials": "المالية",
+      "ap": "فواتير الموردين",
+      "procurement": "المشتريات",
+      "banking": "الخدمات المصرفية",
       "forms": "التقارير"
     },
     "items": {
@@ -401,8 +416,16 @@
       "timeApprove": "اعتماد الساعات",
       "projectsRead": "عرض المشاريع",
       "projectsCreate": "إنشاء مشاريع",
+      "projectsUpdate": "تحديث المشاريع",
+      "projectsArchive": "أرشفة المشاريع",
       "projectsManage": "إدارة المشاريع",
-      "contractsManage": "إدارة قيم العقود",
+      "contractsRead": "عرض العقود",
+      "contractsManage": "إدارة العقود",
+      "changesRead": "عرض أوامر التغيير",
+      "changesManage": "إدارة أوامر التغيير",
+      "changesApprove": "اعتماد أوامر التغيير",
+      "quotesRead": "عرض عروض الأسعار",
+      "quotesManage": "إدارة عروض الأسعار",
       "planningRead": "التخطيط / الجدول",
       "tasksRead": "عرض المهام",
       "tasksManage": "إدارة المهام",
@@ -418,13 +441,23 @@
       "vendorsManage": "إدارة الموردين",
       "expensesRead": "عرض المصروفات",
       "expensesCreate": "إنشاء مصروفات",
+      "expensesUpdate": "تحديث المصروفات",
+      "expensesFinalize": "إتمام المصروفات",
       "projectFinancialsRead": "عرض مالية المشروع",
+      "projectProfitRead": "عرض ربحية المشروع",
       "billingRead": "عرض الفوترة",
+      "billingManage": "إدارة الفوترة والتحصيل",
+      "apRead": "عرض فواتير الموردين",
+      "apManage": "إدارة فواتير الموردين",
+      "procurementRead": "عرض المشتريات",
+      "procurementManage": "إدارة المشتريات",
+      "bankingRead": "عرض الخدمات المصرفية",
       "formsRead": "عرض النماذج / التقارير",
       "formsSubmit": "إرسال نماذج / تقارير",
       "pmTasksRead": "عرض مهام PM",
       "pmTasksCreate": "إنشاء مهام PM",
       "pmTasksUpdate": "تحديث مهام PM",
+      "pmTasksDelete": "حذف مهام PM",
       "pmTasksComment": "التعليق على مهام PM",
       "pmTasksAssign": "إسناد مهام PM",
       "pmTasksManageAll": "إدارة كل مهام PM",
@@ -464,6 +497,7 @@
   "team": {
     "intro": "رؤية تشغيلية للفريق ضمن نطاق صلاحياتك.",
     "openTasks": "{count, plural, one {مهمة مفتوحة واحدة} other {# مهام مفتوحة}}",
+    "viewTasks": "عرض المهام",
     "empty": "لا يوجد أعضاء فريق في نطاقك"
   },
   "forms": {
@@ -487,6 +521,127 @@
       "date": "التاريخ",
       "vendor": "المورد",
       "submit": "إرسال المصروف"
+    }
+  },
+  "clients": {
+    "create": "عميل جديد",
+    "empty": "لا يوجد عملاء بعد",
+    "noAccess": {
+      "title": "العملاء غير متاحين",
+      "description": "ليس لديك صلاحية لعرض العملاء. تواصل مع المدير."
+    },
+    "createForm": {
+      "back": "العودة إلى العملاء",
+      "name": "اسم العميل",
+      "phone": "الهاتف",
+      "email": "البريد الإلكتروني",
+      "submit": "إنشاء عميل"
+    },
+    "detail": {
+      "back": "العودة إلى العملاء",
+      "status": "الحالة",
+      "phone": "الهاتف",
+      "email": "البريد الإلكتروني",
+      "city": "المدينة",
+      "contracts": "العقود"
+    }
+  },
+  "billing": {
+    "create": "فاتورة جديدة",
+    "recordPayment": "تسجيل دفعة",
+    "empty": "لا توجد سجلات فوترة بعد",
+    "noAccess": {
+      "title": "الفوترة غير متاحة",
+      "description": "ليس لديك صلاحية لعرض الفوترة. تواصل مع المدير."
+    },
+    "summary": {
+      "outstanding": "المستحق",
+      "overdue": "متأخر"
+    },
+    "createForm": {
+      "back": "العودة إلى الفوترة",
+      "project": "المشروع",
+      "selectProject": "اختر مشروعاً",
+      "amount": "المبلغ ({currency})",
+      "issueDate": "تاريخ الإصدار",
+      "dueDate": "تاريخ الاستحقاق",
+      "reference": "المرجع",
+      "submit": "إنشاء فاتورة"
+    },
+    "paymentForm": {
+      "back": "العودة إلى الفوترة",
+      "invoice": "فاتورة (اختياري)",
+      "unallocated": "غير مخصص / رصيد عميل",
+      "client": "العميل",
+      "selectClient": "اختر عميلاً",
+      "clientHint": "مطلوب للمدفوعات غير المخصصة. يُتجاهل عند اختيار فاتورة.",
+      "amount": "المبلغ ({currency})",
+      "paymentDate": "تاريخ الدفع",
+      "method": "طريقة الدفع",
+      "reference": "المرجع",
+      "submit": "تسجيل الدفعة"
+    }
+  },
+  "ap": {
+    "empty": "لا توجد فواتير موردين بعد",
+    "noAccess": {
+      "title": "حسابات الموردين غير متاحة",
+      "description": "ليس لديك صلاحية لعرض فواتير الموردين. تواصل مع المدير."
+    }
+  },
+  "vendors": {
+    "create": "مورد جديد",
+    "empty": "لا يوجد موردون بعد",
+    "noAccess": {
+      "title": "الموردون غير متاحين",
+      "description": "ليس لديك صلاحية لعرض الموردين. تواصل مع المدير."
+    },
+    "createForm": {
+      "back": "العودة إلى الموردين",
+      "name": "اسم المورد",
+      "phone": "الهاتف",
+      "email": "البريد الإلكتروني",
+      "submit": "إنشاء مورد"
+    }
+  },
+  "procurement": {
+    "empty": "لا توجد أوامر شراء بعد",
+    "noReference": "بدون مرجع",
+    "noAccess": {
+      "title": "المشتريات غير متاحة",
+      "description": "ليس لديك صلاحية لعرض أوامر الشراء. تواصل مع المدير."
+    }
+  },
+  "contracts": {
+    "empty": "لا توجد عقود بعد",
+    "noAccess": {
+      "title": "العقود غير متاحة",
+      "description": "ليس لديك صلاحية لعرض العقود. تواصل مع المدير."
+    }
+  },
+  "financials": {
+    "title": "مالية المشروع",
+    "subtitle": "ملخص للقراءة فقط من محرك المالية الرئيسي",
+    "back": "العودة إلى المشروع",
+    "priceNotSet": "السعر غير محدد بعد — لا يُعرض الربح.",
+    "profitHidden": "تفاصيل الربح تتطلب صلاحية إضافية.",
+    "sections": {
+      "commercial": "تجاري",
+      "billing": "فوترة",
+      "cost": "تكلفة",
+      "profit": "ربح"
+    },
+    "fields": {
+      "currentContract": "العقد الحالي",
+      "pendingChanges": "تغييرات معلقة",
+      "invoiced": "مفوتر",
+      "paid": "مدفوع",
+      "outstanding": "مستحق",
+      "actualCost": "التكلفة الفعلية",
+      "forecastCost": "التكلفة المتوقعة",
+      "actualProfit": "الربح الفعلي",
+      "estimatedProfit": "الربح المتوقع",
+      "actualMargin": "الهامش الفعلي"
     }
   }
 }

@@ -125,4 +125,28 @@ describe('employee-filter-logic', () => {
     const applied = parseTaskFilterState(new URLSearchParams('status=done'), true);
     expect(isTaskFilterActive(applied, defaults)).toBe(true);
   });
+
+  it('coerces company scope to mine when viewer cannot see company scope', () => {
+    const applied = parseTaskFilterState(
+      new URLSearchParams('scope=company&assignee=e2&status=open'),
+      false,
+    );
+    expect(applied.scope).toBe('mine');
+    expect(applied.assignee).toBe('e2');
+    expect(applied.status).toBe('open');
+  });
+
+  it('allows company scope for authorized (non-self-only) viewers', () => {
+    const applied = parseTaskFilterState(
+      new URLSearchParams('scope=company&assignee=e2&status=open'),
+      true,
+    );
+    expect(applied.scope).toBe('company');
+    expect(applied.assignee).toBe('e2');
+  });
+
+  it('allows mine scope on all-organization default (intentional)', () => {
+    const applied = parseTaskFilterState(new URLSearchParams('scope=mine'), true);
+    expect(applied.scope).toBe('mine');
+  });
 });

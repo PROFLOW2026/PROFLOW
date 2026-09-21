@@ -2,11 +2,12 @@ import type { OrgContext } from '@/shared/auth/context';
 import { NotFoundError } from '@/shared/errors';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { canSeeDocumentPrivacyClass } from '@/modules/documents/domain/privacy';
-import { listProjectScopedOwnerIdsForDocument } from '@/modules/documents';
+import { listProjectScopedOwnerIdsForDocument, listDocumentsForEntity } from '@/modules/documents';
 import { isDocumentCategory, type DocumentCategory } from '@/modules/documents/domain/categories';
 import { resolveEffectiveDocumentCategoryGrants } from '@/modules/external-storage/domain/semantic-folder-access';
 import {
   employeeHasPermission,
+  employeePermissionScope,
   isEmployeeAppUser,
 } from './load-employee-app-context';
 import { assertEmployeeProjectScope } from './project-scope';
@@ -38,11 +39,14 @@ export function canEmployeeReadDocumentCategory(
     return canReadCompensationDocuments(context);
   }
 
+  const grants = resolveEffectiveDocumentCategoryGrants(context);
+
   if (!category || !isDocumentCategory(category)) {
-    return options?.inProjectScope === true;
+    // Uncategorized: allow in project scope, or when no category restriction is configured.
+    if (options?.inProjectScope === true) return true;
+    return grants === null;
   }
 
-  const grants = resolveEffectiveDocumentCategoryGrants(context);
   if (grants === null) return true;
   if (grants.size === 0) return false;
   return grants.has(category as DocumentCategory);
@@ -91,9 +95,22 @@ export async function assertCanReadDocumentForEmployee(
     return;
   }
 
-  if (isEmployeeAppUser(context)) {
-    throw new NotFoundError('Document');
+  // Non-project documents: allow personal employee-owned docs and org-wide reads
+  // when documents.read scope is all_organization. Do not require documents.manage.
+  const scope = employeePermissionScope(context, PERMISSIONS.DOCUMENTS_READ);
+  if (scope === 'all_organization') return;
+
+  const employeeId = context.employeeApp?.employeeId;
+  if (employeeId) {
+    const personal = await listDocumentsForEntity(context.db, context.organizationId, {
+      ownerType: 'employee',
+      ownerId: employeeId,
+      limit: 500,
+    });
+    if (personal.some((doc) => doc.id === input.documentId)) return;
   }
+
+  throw new NotFoundError('Document');
 }
 
 export async function assertEmployeeDocumentCategoryForUpload(

@@ -3,7 +3,7 @@ import type { OrgContext } from '@/shared/auth/context';
 import { DomainRuleError, ValidationError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import { runCommittedStorageWrite } from '@/modules/external-storage/data/storage-admin-write';
+import { runCommittedStorageWrite } from '@/modules/external-storage/server';
 import type { DbExecutor } from '@/shared/db/types';
 import {
   isDocumentNumberKind,

@@ -34,6 +34,7 @@ export default async function EmployeeProjectOverviewPage({ params }: PageProps)
       canMeetings: employeeHasPermission(context, PERMISSIONS.MEETINGS_READ),
       canDocuments: employeeHasPermission(context, PERMISSIONS.DOCUMENTS_READ),
       canLogTime: employeeHasPermission(context, PERMISSIONS.TIME_MANAGE),
+      canFinancials: employeeHasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ),
     });
 
     return { overview: overviewData, hubLinks: links };

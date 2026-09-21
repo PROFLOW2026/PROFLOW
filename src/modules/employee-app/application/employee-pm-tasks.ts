@@ -97,11 +97,13 @@ function requireEmployeeId(context: OrgContext): string {
  * Resolves task IDs accessible by this employee given their tasks.read scope.
  *
  * Scope mapping (from PermissionScope):
- *   self_only      → tasks where this employee is a direct assignee
- *   assigned_only  → tasks where tasks.project_id is in the employee's assigned projects
- *   all_organization → no additional filter
+ *   self_only         → tasks where this employee is a direct assignee
+ *   assigned_only     → tasks.project_id in employee_project_assignments
+ *   granted_projects  → tasks.project_id in Main-style accessible project IDs
+ *   all_organization  → no additional filter (never collapses to project/self)
  *
- * Returns null when the scope allows all tasks (all_organization).
+ * assigned_only and granted_projects both resolve via
+ * resolveAccessibleProjectIdsForEmployeePermission (distinct project-ID sources).
  */
 async function resolveEmployeeTaskScope(
   context: OrgContext,
@@ -114,6 +116,7 @@ async function resolveEmployeeTaskScope(
 
   if (scope === 'self_only') return { mode: 'self' };
 
+  // assigned_only | granted_projects — project-ID list from permission-specific resolver
   const projectIds = await resolveAccessibleProjectIdsForEmployeePermission(
     context,
     PERMISSIONS.TASKS_READ,

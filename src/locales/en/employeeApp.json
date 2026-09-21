@@ -31,7 +31,13 @@
     "meetings": "Meetings",
     "team": "Team",
     "forms": "Forms",
+    "clients": "Clients",
+    "billing": "Billing & collections",
+    "contracts": "Contracts",
     "expenses": "Expenses",
+    "vendors": "Vendors",
+    "ap": "Vendor bills",
+    "procurement": "Procurement",
     "more": "More"
   },
   "back": {
@@ -118,6 +124,7 @@
   "team": {
     "intro": "Operational team visibility for your permitted scope.",
     "openTasks": "{count, plural, one {# open task} other {# open tasks}}",
+    "viewTasks": "View tasks",
     "empty": "No team members in your scope"
   },
   "forms": {
@@ -141,6 +148,127 @@
       "date": "Date",
       "vendor": "Vendor / supplier",
       "submit": "Submit expense"
+    }
+  },
+  "clients": {
+    "create": "New client",
+    "empty": "No clients yet",
+    "noAccess": {
+      "title": "Clients not available",
+      "description": "You do not have permission to view clients. Contact your manager."
+    },
+    "createForm": {
+      "back": "Back to clients",
+      "name": "Client name",
+      "phone": "Phone",
+      "email": "Email",
+      "submit": "Create client"
+    },
+    "detail": {
+      "back": "Back to clients",
+      "status": "Status",
+      "phone": "Phone",
+      "email": "Email",
+      "city": "City",
+      "contracts": "Contracts"
+    }
+  },
+  "billing": {
+    "create": "New billing",
+    "recordPayment": "Record payment",
+    "empty": "No billing records yet",
+    "noAccess": {
+      "title": "Billing not available",
+      "description": "You do not have permission to view billing. Contact your manager."
+    },
+    "summary": {
+      "outstanding": "Outstanding",
+      "overdue": "Overdue"
+    },
+    "createForm": {
+      "back": "Back to billing",
+      "project": "Project",
+      "selectProject": "Select a project",
+      "amount": "Amount ({currency})",
+      "issueDate": "Issue date",
+      "dueDate": "Due date",
+      "reference": "Reference",
+      "submit": "Create billing"
+    },
+    "paymentForm": {
+      "back": "Back to billing",
+      "invoice": "Invoice (optional)",
+      "unallocated": "Unallocated / cash on account",
+      "client": "Client",
+      "selectClient": "Select a client",
+      "clientHint": "Required for unallocated payments. Ignored when an invoice is selected.",
+      "amount": "Amount ({currency})",
+      "paymentDate": "Payment date",
+      "method": "Method",
+      "reference": "Reference",
+      "submit": "Record payment"
+    }
+  },
+  "ap": {
+    "empty": "No vendor bills yet",
+    "noAccess": {
+      "title": "Accounts payable not available",
+      "description": "You do not have permission to view AP. Contact your manager."
+    }
+  },
+  "vendors": {
+    "create": "New vendor",
+    "empty": "No vendors yet",
+    "noAccess": {
+      "title": "Vendors not available",
+      "description": "You do not have permission to view vendors. Contact your manager."
+    },
+    "createForm": {
+      "back": "Back to vendors",
+      "name": "Vendor name",
+      "phone": "Phone",
+      "email": "Email",
+      "submit": "Create vendor"
+    }
+  },
+  "procurement": {
+    "empty": "No purchase orders yet",
+    "noReference": "No reference",
+    "noAccess": {
+      "title": "Procurement not available",
+      "description": "You do not have permission to view purchase orders. Contact your manager."
+    }
+  },
+  "contracts": {
+    "empty": "No contracts yet",
+    "noAccess": {
+      "title": "Contracts not available",
+      "description": "You do not have permission to view contracts. Contact your manager."
+    }
+  },
+  "financials": {
+    "title": "Project financials",
+    "subtitle": "Read-only summary from the main financial engine",
+    "back": "Back to project",
+    "priceNotSet": "Price is not set yet — profit is not shown.",
+    "profitHidden": "Profit details require additional permission.",
+    "sections": {
+      "commercial": "Commercial",
+      "billing": "Billing",
+      "cost": "Cost",
+      "profit": "Profit"
+    },
+    "fields": {
+      "currentContract": "Current contract",
+      "pendingChanges": "Pending changes",
+      "invoiced": "Invoiced",
+      "paid": "Paid",
+      "outstanding": "Outstanding",
+      "actualCost": "Actual cost",
+      "forecastCost": "Forecast cost",
+      "actualProfit": "Actual profit",
+      "estimatedProfit": "Estimated profit",
+      "actualMargin": "Actual margin"
     }
   },
   "tasks": {
@@ -230,7 +358,8 @@
       "board": "Board",
       "logTime": "Log time",
       "files": "Files",
-      "meetings": "Meetings"
+      "meetings": "Meetings",
+      "financials": "Financials"
     },
     "openTaskDetail": "Open task details",
     "files": {
@@ -399,6 +528,7 @@
     "projectManager": "Project manager",
     "officeAdmin": "Office admin",
     "office": "Office",
+    "secretary": "Secretary / administration",
     "management": "Management",
     "readOnlyProject": "Read-only project access",
     "externalConsultant": "External consultant",
@@ -416,9 +546,16 @@
       "documents": "Documents",
       "workforce": "Employees",
       "clients": "Clients",
+      "contracts": "Contracts",
+      "changes": "Change orders",
+      "quotes": "Quotes",
+      "projectFinance": "Project finance",
+      "billing": "Billing & collections",
       "vendors": "Vendors / subcontractors",
       "expenses": "Expenses",
-      "financials": "Financials",
+      "ap": "Vendor bills",
+      "procurement": "Procurement",
+      "banking": "Banking",
       "forms": "Reports"
     },
     "items": {
@@ -429,8 +566,16 @@
       "timeApprove": "Approve hours",
       "projectsRead": "View projects",
       "projectsCreate": "Create projects",
+      "projectsUpdate": "Update projects",
+      "projectsArchive": "Archive projects",
       "projectsManage": "Manage projects",
-      "contractsManage": "Manage contract values",
+      "contractsRead": "View contracts",
+      "contractsManage": "Manage contracts",
+      "changesRead": "View change orders",
+      "changesManage": "Manage change orders",
+      "changesApprove": "Approve change orders",
+      "quotesRead": "View quotes",
+      "quotesManage": "Manage quotes",
       "planningRead": "Planning / schedule",
       "tasksRead": "View tasks",
       "tasksManage": "Manage tasks",
@@ -446,13 +591,23 @@
       "vendorsManage": "Manage vendors",
       "expensesRead": "View expenses",
       "expensesCreate": "Create expenses",
+      "expensesUpdate": "Update expenses",
+      "expensesFinalize": "Finalize expenses",
       "projectFinancialsRead": "View project financials",
+      "projectProfitRead": "View project profit",
       "billingRead": "View billing",
+      "billingManage": "Manage billing",
+      "apRead": "View vendor bills",
+      "apManage": "Manage vendor bills",
+      "procurementRead": "View procurement",
+      "procurementManage": "Manage procurement",
+      "bankingRead": "View banking",
       "formsRead": "View forms / reports",
       "formsSubmit": "Submit forms / reports",
       "pmTasksRead": "View PM tasks",
       "pmTasksCreate": "Create PM tasks",
       "pmTasksUpdate": "Update PM tasks",
+      "pmTasksDelete": "Delete PM tasks",
       "pmTasksComment": "Comment on PM tasks",
       "pmTasksAssign": "Assign PM tasks",
       "pmTasksManageAll": "Manage all PM tasks",
