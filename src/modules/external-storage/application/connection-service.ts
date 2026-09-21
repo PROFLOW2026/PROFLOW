@@ -741,13 +741,42 @@ export async function approveProjectTemplateAndProvision(
     throw new DomainRuleError('Connection not active', 'externalStorage.errors.connectionNotFound');
   }
   const { markProjectTemplateApproved } = await import('./project-template-service');
+  const { ensureStorageProvisionStarted } = await import('./kick-storage-provision');
   const updated = await markProjectTemplateApproved(
     context.db,
     context.organizationId,
     connection,
   );
-  kickStorageProvision();
-  return updated;
+
+  try {
+    const kick = await ensureStorageProvisionStarted();
+    console.info('[org-storage/provision] template_approved kick ok', {
+      connectionId,
+      mode: kick.mode,
+    });
+    if (updated.lastError) {
+      await updateStorageConnection(context.db, context.organizationId, connectionId, {
+        lastError: null,
+      });
+    }
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    console.error('[org-storage/provision] template_approved kick failed', {
+      connectionId,
+      detail,
+    });
+    await updateStorageConnection(context.db, context.organizationId, connectionId, {
+      lastError: `provision_kick_failed: ${detail}`.slice(0, 500),
+    });
+    throw new ServiceUnavailableError(
+      'Storage provisioning failed to start',
+      'externalStorage.errors.provisionKickFailed',
+    );
+  }
+
+  return (
+    (await findStorageConnectionById(context.db, context.organizationId, connectionId)) ?? updated
+  );
 }
 
 export async function openProjectTemplateInProvider(

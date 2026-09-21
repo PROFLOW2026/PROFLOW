@@ -279,15 +279,44 @@ async function scheduleStorageProvisionNext(next: {
     process.env.NEXT_PUBLIC_APP_URL?.trim() ||
     process.env.APP_URL?.trim() ||
     (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '');
-  if (!secret || !origin) return;
-  await fetch(`${origin.replace(/\/$/, '')}/api/internal/storage-provision-worker`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${secret}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ chain: next.chain, rateLimitStreak: next.rateLimitStreak }),
-  }).catch(() => undefined);
+  if (!secret || !origin) {
+    console.error('[org-storage/provision] chain skipped: worker URL/secret missing', {
+      hasSecret: Boolean(secret),
+      hasOrigin: Boolean(origin),
+      chain: next.chain,
+    });
+    return;
+  }
+  const url = `${origin.replace(/\/$/, '')}/api/internal/storage-provision-worker`;
+  console.info('[org-storage/provision] chain next', {
+    url,
+    chain: next.chain,
+    rateLimitStreak: next.rateLimitStreak,
+    delayMs: next.delayMs,
+  });
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${secret}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ chain: next.chain, rateLimitStreak: next.rateLimitStreak }),
+    });
+    if (!response.ok) {
+      const body = await response.text().catch(() => '');
+      console.error('[org-storage/provision] chain HTTP failed', {
+        status: response.status,
+        body: body.slice(0, 300),
+        chain: next.chain,
+      });
+    }
+  } catch (error) {
+    console.error('[org-storage/provision] chain fetch failed', {
+      detail: error instanceof Error ? error.message : String(error),
+      chain: next.chain,
+    });
+  }
 }
 
 export async function runStorageProvisionCycle(input: {
@@ -299,6 +328,7 @@ export async function runStorageProvisionCycle(input: {
   const rateLimitStreak = input.rateLimitStreak ?? 0;
   const scheduleNext = input.scheduleNext ?? scheduleStorageProvisionNext;
   const db = getAdminDb();
+  console.info('[org-storage/provision] cycle begin', { chain, rateLimitStreak });
   const connections = await db
     .select({
       id: organizationStorageConnections.id,
@@ -308,6 +338,8 @@ export async function runStorageProvisionCycle(input: {
     .from(organizationStorageConnections)
     .where(eq(organizationStorageConnections.status, 'connected'))
     .orderBy(sql`${organizationStorageConnections.isPrimary} desc`, organizationStorageConnections.id);
+
+  console.info('[org-storage/provision] cycle connected_count', { count: connections.length });
 
   let last: StorageProvisionBatchResult = {
     clientsProcessed: 0,
@@ -326,13 +358,23 @@ export async function runStorageProvisionCycle(input: {
         connectionId: row.id,
         accessToken,
       });
+      console.info('[org-storage/provision] cycle batch', {
+        connectionId: row.id,
+        clientsProcessed: last.clientsProcessed,
+        projectsProcessed: last.projectsProcessed,
+        remaining: last.remaining,
+        rateLimited: last.rateLimited,
+      });
       if (last.remaining > 0 || last.rateLimited) break;
     } catch (error) {
       if (isTransient(error)) {
         last = { ...last, remaining: 1, rateLimited: true };
         break;
       }
-      console.error('[org-storage/provision] connection skipped', { connectionId: row.id });
+      console.error('[org-storage/provision] connection skipped', {
+        connectionId: row.id,
+        detail: error instanceof Error ? error.message : String(error),
+      });
     }
   }
 

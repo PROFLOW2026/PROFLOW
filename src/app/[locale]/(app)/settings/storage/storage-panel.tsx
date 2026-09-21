@@ -49,6 +49,7 @@ function storageLastErrorMessage(
 ): string | null {
   if (!lastError) return null;
   if (lastError === 'root_folder_missing') return t('errors.rootFolderMissing');
+  if (lastError.startsWith('provision_kick_failed')) return t('errors.provisionKickFailed');
   if (lastError === 'unauthorized' || lastError === 'token_expired' || lastError === 'missing_credentials') {
     return t('errors.reconnectRequired');
   }
@@ -120,7 +121,9 @@ export function StorageSettingsPanel({
                     <Alert tone="info">{t('errors.providerNotConfigured')}</Alert>
                   ) : null}
                   {connection?.lastError &&
-                  (status === 'reconnect_required' || status === 'error') ? (
+                  (status === 'reconnect_required' ||
+                    status === 'error' ||
+                    connection.lastError.startsWith('provision_kick_failed')) ? (
                     <Alert tone="warning">
                       {storageLastErrorMessage(connection.lastError, t) ?? connection.lastError}
                     </Alert>
