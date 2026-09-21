@@ -128,6 +128,8 @@
     "noComments": "لا تعليقات بعد",
     "commentEdited": "(معدّل)",
     "commentAuthorEmployee": "موظف",
+    "commentAuthorSystem": "النظام",
+    "createNewTask": "+ مهمة جديدة",
     "commentPlaceholder": "أضف تعليقاً…",
     "postComment": "نشر التعليق",
     "status": {
@@ -157,6 +159,7 @@
     "assignHint": "يمكنك إسناد هذه المهمة ضمن سياق فريق المشروع.",
     "approveHint": "إجراءات الموافقة متاحة عند وجود طلب موافقة معلق.",
     "create": {
+      "formTitle": "مهمة جديدة",
       "noProjects": "لا توجد مشاريع متاحة لإنشاء مهام ضمن نطاقك",
       "project": "المشروع",
       "title": "العنوان",

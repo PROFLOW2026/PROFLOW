@@ -7,6 +7,7 @@ import { employeeCanUpdateTaskGrant } from '@/modules/employee-app/application/t
 import {
   getEmployeeProjectTaskOverview,
   listEmployeePmTasks,
+  listEmployeePmCreatableProjects,
   updateEmployeePmTaskStatus,
 } from '@/modules/employee-app/application/employee-pm-tasks';
 import {
@@ -67,8 +68,10 @@ export default async function EmployeeProjectBoardPage({ params }: PageProps) {
     }));
 
     const canUpdate = employeeCanUpdateTaskGrant(context);
+    const creatableProjects = await listEmployeePmCreatableProjects(context);
+    const canCreate = creatableProjects.some((project) => project.id === projectId);
 
-    return { overview, taskCards, buckets, canUpdate };
+    return { overview, taskCards, buckets, canUpdate, canCreate };
   });
 
   if (!data) notFound();
@@ -92,6 +95,9 @@ export default async function EmployeeProjectBoardPage({ params }: PageProps) {
       buckets={data.buckets}
       initialTasks={data.taskCards}
       canUpdate={data.canUpdate}
+      createTaskHref={
+        data.canCreate ? `/employee/tasks/new?projectId=${projectId}` : null
+      }
       actions={{
         moveTask: moveTaskAction,
         getTaskDetail: getTaskDetailAction,

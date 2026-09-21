@@ -6,10 +6,12 @@ import { withOrgContext } from '@/shared/auth/session';
 import { listEmployeeAssignedTasks } from '@/modules/employee-app';
 import { buildEmployeeTaskListPayload } from '@/modules/employee-app/application/build-employee-task-list-payload';
 import { employeePermissionScope } from '@/modules/employee-app/application/load-employee-app-context';
+import { listEmployeePmCreatableProjects } from '@/modules/employee-app/application/employee-pm-tasks';
 import { EmployeeTaskListView } from '@/modules/employee-app/ui/employee-task-list-view';
 import {
   employeeListPanelClass,
   employeeListRowClass,
+  employeePageStackClass,
   employeeTabBarClass,
   employeeTabClass,
 } from '@/modules/employee-app/ui/employee-surface-styles';
@@ -25,7 +27,7 @@ export default async function EmployeeTasksPage({ searchParams }: PageProps) {
   const tLists = await getTranslations('employeeApp.lists');
   const { tab } = await searchParams;
 
-  const { punchTasks, taskPayload, hasPmTasksAccess } = await withOrgContext(async (context) => {
+  const { punchTasks, taskPayload, hasPmTasksAccess, canCreateTask } = await withOrgContext(async (context) => {
     let punchTasks: Array<{ id: string; title: string; status: string; projectId: string | null }> = [];
     if (
       !context.permissions.has(PERMISSIONS.FIELD_OPS_READ) &&
@@ -52,7 +54,11 @@ export default async function EmployeeTasksPage({ searchParams }: PageProps) {
       ? await buildEmployeeTaskListPayload(context)
       : null;
 
-    return { punchTasks, taskPayload, hasPmTasksAccess };
+    const creatableProjects = hasPmTasksAccess
+      ? await listEmployeePmCreatableProjects(context)
+      : [];
+
+    return { punchTasks, taskPayload, hasPmTasksAccess, canCreateTask: creatableProjects.length > 0 };
   });
 
   const activeTab = hasPmTasksAccess
@@ -62,7 +68,7 @@ export default async function EmployeeTasksPage({ searchParams }: PageProps) {
     : 'field-items';
 
   return (
-    <div className="space-y-4">
+    <div className={employeePageStackClass}>
       {hasPmTasksAccess && (
         <div className={employeeTabBarClass}>
           <Link href="/employee/tasks" className={cn(employeeTabClass(activeTab === 'pm-tasks'))}>
@@ -90,6 +96,7 @@ export default async function EmployeeTasksPage({ searchParams }: PageProps) {
             canSeeCompanyScope={taskPayload.canSeeCompanyScope}
             assigneeOptions={taskPayload.assigneeOptions}
             projectOptions={taskPayload.projectOptions}
+            createTaskHref={canCreateTask ? '/employee/tasks/new' : null}
           />
         </Suspense>
       ) : null}

@@ -4,6 +4,7 @@ import { listEmployeeTeamRoster } from '@/modules/employee-app/application/emplo
 import {
   employeeListPanelClass,
   employeeListRowClass,
+  employeePageStackClass,
 } from '@/modules/employee-app/ui/employee-surface-styles';
 
 export default async function EmployeeTeamPage() {
@@ -11,7 +12,7 @@ export default async function EmployeeTeamPage() {
   const members = await withOrgContext(async (context) => listEmployeeTeamRoster(context));
 
   return (
-    <div className="space-y-4">
+    <div className={employeePageStackClass}>
       <p className="text-sm text-[var(--pf-text-secondary)]">{t('intro')}</p>
       <ul className={employeeListPanelClass}>
         {members.map((member) => (

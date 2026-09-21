@@ -5,6 +5,11 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { employeeHasPermission } from '@/modules/employee-app/application/load-employee-app-context';
 import { getEmployeeProjectTaskOverview } from '@/modules/employee-app/application/employee-pm-tasks';
 import { listEmployeeProjectDocuments } from '@/modules/employee-app/application/employee-project-documents';
+import {
+  employeeListPanelClass,
+  employeeListRowClass,
+  employeePageStackClass,
+} from '@/modules/employee-app/ui/employee-surface-styles';
 
 interface PageProps {
   params: Promise<{ projectId: string }>;
@@ -25,17 +30,19 @@ export default async function EmployeeProjectFilesPage({ params }: PageProps) {
   if (!data) notFound();
 
   return (
-    <div className="space-y-4">
-      <p className="text-sm text-[var(--pf-text-secondary)]">{data.overview.displayName}</p>
-      <ul className="divide-y divide-[var(--pf-border)] rounded-lg border border-[var(--pf-border)]">
+    <div className={employeePageStackClass}>
+      <p className="text-sm font-medium text-[var(--pf-text-secondary)]">{data.overview.displayName}</p>
+      <ul className={employeeListPanelClass}>
         {data.files.map((doc) => (
-          <li key={doc.id} className="px-4 py-3 text-sm">
-            <div className="font-medium">{doc.originalFilename}</div>
-            <div className="text-[var(--pf-text-secondary)]">{doc.category ?? t('files.noCategory')}</div>
+          <li key={doc.id} className={employeeListRowClass}>
+            <div className="font-semibold text-[var(--pf-text-primary)]">{doc.originalFilename}</div>
+            <div className="text-sm text-[var(--pf-text-secondary)]">
+              {doc.category ?? t('files.noCategory')}
+            </div>
           </li>
         ))}
         {data.files.length === 0 ? (
-          <li className="px-4 py-6 text-center text-sm text-[var(--pf-text-secondary)]">
+          <li className="px-4 py-8 text-center text-sm text-[var(--pf-text-secondary)]">
             {t('files.empty')}
           </li>
         ) : null}

@@ -10,6 +10,8 @@ import {
   projects,
   approvalRequests,
   employees,
+  organizationMemberships,
+  profiles,
 } from '@drizzle/schema';
 import type { OrgContext } from '@/shared/auth/context';
 import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
@@ -43,6 +45,7 @@ export interface EmployeePmTaskComment {
   readonly isEdited: boolean;
   readonly authorEmployeeId: string | null;
   readonly authorOrgMemberId: string | null;
+  readonly authorDisplayName: string | null;
 }
 
 export interface EmployeePmTaskChecklistItem {
@@ -372,7 +375,7 @@ export async function getEmployeePmTaskDetail(
     )
     .orderBy(asc(taskChecklistItems.sortKey));
 
-  // Load comments (non-deleted, most recent last)
+  // Load comments (non-deleted, most recent last) with resolved author names
   const commentRows = await context.db
     .select({
       id: taskComments.id,
@@ -381,8 +384,16 @@ export async function getEmployeePmTaskDetail(
       isEdited: taskComments.isEdited,
       authorEmployeeId: taskComments.authorEmployeeId,
       authorOrgMemberId: taskComments.authorOrgMemberId,
+      memberDisplayName: profiles.displayName,
+      employeeFullName: employees.name,
     })
     .from(taskComments)
+    .leftJoin(
+      organizationMemberships,
+      eq(taskComments.authorOrgMemberId, organizationMemberships.id),
+    )
+    .leftJoin(profiles, eq(organizationMemberships.userId, profiles.id))
+    .leftJoin(employees, eq(taskComments.authorEmployeeId, employees.id))
     .where(
       and(
         eq(taskComments.taskId, taskId),
@@ -395,7 +406,15 @@ export async function getEmployeePmTaskDetail(
   return {
     ...task,
     checklistItems: checklistRows,
-    comments: commentRows,
+    comments: commentRows.map((row) => ({
+      id: row.id,
+      body: row.body,
+      createdAt: row.createdAt,
+      isEdited: row.isEdited,
+      authorEmployeeId: row.authorEmployeeId,
+      authorOrgMemberId: row.authorOrgMemberId,
+      authorDisplayName: row.memberDisplayName ?? row.employeeFullName ?? null,
+    })),
   };
 }
 

@@ -8,6 +8,7 @@ import { canReadDocumentCategoryForContext } from '@/modules/documents/applicati
 import {
   employeeListPanelClass,
   employeeListRowClass,
+  employeePageStackClass,
 } from '@/modules/employee-app/ui/employee-surface-styles';
 
 export default async function EmployeeDocumentsPage() {
@@ -24,7 +25,7 @@ export default async function EmployeeDocumentsPage() {
   });
 
   return (
-    <div className="space-y-4">
+    <div className={employeePageStackClass}>
       <ul className={employeeListPanelClass}>
         {docs.map((doc) => (
           <li key={doc.id} className={employeeListRowClass}>

@@ -47,6 +47,10 @@ interface EmployeeTaskListViewProps {
   readonly canSeeCompanyScope: boolean;
   readonly assigneeOptions: ReadonlyArray<{ id: string; name: string }>;
   readonly projectOptions: ReadonlyArray<{ id: string; displayName: string }>;
+  readonly hideProjectFilter?: boolean;
+  readonly hideScopeBar?: boolean;
+  readonly hideProjectColumn?: boolean;
+  readonly createTaskHref?: string | null;
 }
 
 export function EmployeeTaskListView({
@@ -57,6 +61,10 @@ export function EmployeeTaskListView({
   canSeeCompanyScope,
   assigneeOptions,
   projectOptions,
+  hideProjectFilter = false,
+  hideScopeBar = false,
+  hideProjectColumn = false,
+  createTaskHref = null,
 }: EmployeeTaskListViewProps) {
   const t = useTranslations('employeeApp');
   const tTasks = useTranslations('employeeApp.tasks');
@@ -160,7 +168,15 @@ export function EmployeeTaskListView({
 
   return (
     <div className="space-y-4">
-      {canSeeCompanyScope ? (
+      {createTaskHref ? (
+        <div className="flex justify-end">
+          <Link href={createTaskHref} className={employeePrimaryButtonClass}>
+            {tTasks('createNewTask')}
+          </Link>
+        </div>
+      ) : null}
+
+      {canSeeCompanyScope && !hideScopeBar ? (
         <div className={employeeScopeBarClass} role="tablist" aria-label={t('filters.scopeTitle')}>
           <button
             type="button"
@@ -190,6 +206,7 @@ export function EmployeeTaskListView({
         canFilterByAssignee={canFilterByAssignee}
         assigneeOptions={assigneeOptions}
         projectOptions={projectOptions}
+        hideProjectFilter={hideProjectFilter}
         onApply={pushFilters}
         onClear={clearFilters}
         activeSummary={activeSummary()}
@@ -214,7 +231,7 @@ export function EmployeeTaskListView({
                     <div className="text-base font-semibold leading-snug text-[var(--pf-text-primary)]">
                       {task.title}
                     </div>
-                    {task.projectDisplayName ? (
+                    {task.projectDisplayName && !hideProjectColumn ? (
                       <p className="truncate text-sm font-medium text-[var(--pf-text-secondary)]">
                         {task.projectDisplayName}
                       </p>
@@ -288,6 +305,7 @@ interface TaskFilterControlsProps {
   readonly canFilterByAssignee: boolean;
   readonly assigneeOptions: ReadonlyArray<{ id: string; name: string }>;
   readonly projectOptions: ReadonlyArray<{ id: string; displayName: string }>;
+  readonly hideProjectFilter?: boolean;
   readonly onApply: (next: TaskFilterState) => void;
   readonly onClear: () => void;
   readonly activeSummary: readonly string[];
@@ -300,6 +318,7 @@ function TaskFilterControls({
   canFilterByAssignee,
   assigneeOptions,
   projectOptions,
+  hideProjectFilter = false,
   onApply,
   onClear,
   activeSummary,
@@ -373,22 +392,24 @@ function TaskFilterControls({
           </select>
         </FilterField>
 
-        <FilterField label={t('filters.project')}>
-          <select
-            value={draft.projectId}
-            className={employeeFilterSelectClass}
-            onChange={(event) =>
-              setDraft((current) => ({ ...current, projectId: event.target.value }))
-            }
-          >
-            <option value="">{t('filters.allProjects')}</option>
-            {projectOptions.map((project) => (
-              <option key={project.id} value={project.id}>
-                {project.displayName}
-              </option>
-            ))}
-          </select>
-        </FilterField>
+        {!hideProjectFilter ? (
+          <FilterField label={t('filters.project')}>
+            <select
+              value={draft.projectId}
+              className={employeeFilterSelectClass}
+              onChange={(event) =>
+                setDraft((current) => ({ ...current, projectId: event.target.value }))
+              }
+            >
+              <option value="">{t('filters.allProjects')}</option>
+              {projectOptions.map((project) => (
+                <option key={project.id} value={project.id}>
+                  {project.displayName}
+                </option>
+              ))}
+            </select>
+          </FilterField>
+        ) : null}
 
         <FilterField label={t('filters.priority')}>
           <select

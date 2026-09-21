@@ -5,6 +5,11 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { employeeHasPermission } from '@/modules/employee-app/application/load-employee-app-context';
 import { getEmployeeProjectTaskOverview } from '@/modules/employee-app/application/employee-pm-tasks';
 import { listEmployeeProjectMeetings } from '@/modules/employee-app/application/employee-meetings';
+import {
+  employeeListPanelClass,
+  employeeListRowClass,
+  employeePageStackClass,
+} from '@/modules/employee-app/ui/employee-surface-styles';
 
 interface PageProps {
   params: Promise<{ projectId: string }>;
@@ -26,25 +31,31 @@ export default async function EmployeeProjectMeetingsPage({ params }: PageProps)
   if (!data) notFound();
 
   return (
-    <div className="space-y-4">
-      <p className="text-sm text-[var(--pf-text-secondary)]">{data.overview.displayName}</p>
-      <ul className="divide-y divide-[var(--pf-border)] rounded-lg border border-[var(--pf-border)]">
+    <div className={employeePageStackClass}>
+      <p className="text-sm font-medium text-[var(--pf-text-secondary)]">{data.overview.displayName}</p>
+      <ul className={employeeListPanelClass}>
         {data.meetings.map((meeting) => (
-          <li key={meeting.id} className="px-4 py-3 text-sm space-y-1">
-            <div className="font-medium">{meeting.title}</div>
-            <div className="text-[var(--pf-text-secondary)]">
-              {new Date(meeting.scheduledAt).toLocaleString(locale, {
-                dateStyle: 'medium',
-                timeStyle: 'short',
-              })}
+          <li key={meeting.id} className={employeeListRowClass}>
+            <div className="space-y-1">
+              <div className="font-semibold text-[var(--pf-text-primary)]">{meeting.title}</div>
+              <div className="text-sm text-[var(--pf-text-secondary)]">
+                {new Date(meeting.scheduledAt).toLocaleString(locale, {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: false,
+                })}
+              </div>
+              {meeting.location ? (
+                <div className="text-xs text-[var(--pf-text-muted)]">{meeting.location}</div>
+              ) : null}
             </div>
-            {meeting.location ? (
-              <div className="text-xs text-[var(--pf-text-muted)]">{meeting.location}</div>
-            ) : null}
           </li>
         ))}
         {data.meetings.length === 0 ? (
-          <li className="px-4 py-6 text-center text-sm text-[var(--pf-text-secondary)]">
+          <li className="px-4 py-8 text-center text-sm text-[var(--pf-text-secondary)]">
             {t('empty')}
           </li>
         ) : null}

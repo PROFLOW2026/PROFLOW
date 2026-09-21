@@ -152,6 +152,8 @@
     "noComments": "אין תגובות עדיין",
     "commentEdited": "(נערך)",
     "commentAuthorEmployee": "עובד",
+    "commentAuthorSystem": "מערכת",
+    "createNewTask": "+ משימה חדשה",
     "commentPlaceholder": "הוסף תגובה…",
     "postComment": "פרסום תגובה",
     "assignSection": "שיוך משימה",
@@ -179,6 +181,7 @@
       "urgent": "דחוף"
     },
     "create": {
+      "formTitle": "משימה חדשה",
       "noProjects": "אין פרויקטים זמינים ליצירת משימות בהיקף שלך",
       "project": "פרויקט",
       "title": "כותרת",

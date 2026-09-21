@@ -60,13 +60,19 @@ async function loadAssigneeEmployeeIdsByTask(
   return map;
 }
 
-export async function buildEmployeeTaskListPayload(context: OrgContext): Promise<EmployeeTaskListPayload | null> {
+export async function buildEmployeeTaskListPayload(
+  context: OrgContext,
+  options?: { projectId?: string },
+): Promise<EmployeeTaskListPayload | null> {
   const readScope = employeePermissionScope(context, PERMISSIONS.TASKS_READ);
   if (!readScope) return null;
 
   const employeeId = requireEmployeeId(context);
   const today = todayInTimeZone(context.organization.timezone);
-  const rows = await listEmployeePmTasks(context);
+  const rows = await listEmployeePmTasks(
+    context,
+    options?.projectId ? { projectId: options.projectId } : undefined,
+  );
   const taskIds = rows.map((row) => row.id);
   const projectIds = rows.map((row) => row.projectId).filter(Boolean) as string[];
 

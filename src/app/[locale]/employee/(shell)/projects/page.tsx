@@ -8,6 +8,7 @@ import { EmployeeProjectSearch } from '@/modules/employee-app/ui/employee-projec
 import {
   employeeListPanelClass,
   employeeListRowLinkClass,
+  employeePageStackClass,
 } from '@/modules/employee-app/ui/employee-surface-styles';
 
 export default async function EmployeeProjectsPage() {
@@ -18,7 +19,7 @@ export default async function EmployeeProjectsPage() {
   });
 
   return (
-    <div className="space-y-4">
+    <div className={employeePageStackClass}>
       {projectRows.length > 0 ? <EmployeeProjectSearch projects={projectRows} /> : null}
       <ul className={employeeListPanelClass}>
         {projectRows.map((project) => (

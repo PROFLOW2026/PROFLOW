@@ -264,7 +264,7 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
                     className={cn(
                       'rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors',
                       isActive
-                        ? 'cursor-default border-[var(--pf-primary)] bg-[var(--pf-primary)] text-white'
+                        ? 'cursor-default border-[var(--pf-action-primary)] bg-[var(--pf-action-primary)] text-[var(--pf-action-primary-fg)]'
                         : 'border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] text-[var(--pf-text-primary)] hover:bg-[var(--pf-bg-subtle)]',
                     )}
                   >
@@ -327,25 +327,27 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
             {task.comments.map((comment) => (
               <li
                 key={comment.id}
-                className="space-y-1 rounded-xl border border-[var(--pf-border)] bg-[var(--pf-surface)] px-4 py-3"
+                className={cn(employeePanelClass, 'space-y-2 !p-4')}
               >
-                <p className="whitespace-pre-line text-sm leading-relaxed">{comment.body}</p>
-                <div className="flex items-center gap-2 text-xs text-[var(--pf-text-muted)]">
-                  <span>
-                    {new Date(comment.createdAt).toLocaleDateString(locale, {
-                      day: 'numeric',
-                      month: 'short',
+                <div className="space-y-0.5">
+                  <p className="text-sm font-semibold text-[var(--pf-text-primary)]">
+                    {comment.authorDisplayName ?? t('commentAuthorSystem')}
+                  </p>
+                  <p className="text-xs text-[var(--pf-text-muted)]">
+                    {new Date(comment.createdAt).toLocaleString(locale, {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
                       hour: '2-digit',
                       minute: '2-digit',
+                      hour12: false,
                     })}
-                  </span>
-                  {comment.isEdited ? <span>{t('commentEdited')}</span> : null}
-                  {comment.authorEmployeeId ? (
-                    <span className="rounded bg-blue-50 px-1.5 py-0.5 text-xs text-blue-600">
-                      {t('commentAuthorEmployee')}
-                    </span>
-                  ) : null}
+                    {comment.isEdited ? ` · ${t('commentEdited')}` : null}
+                  </p>
                 </div>
+                <p className="whitespace-pre-line text-sm leading-relaxed text-[var(--pf-text-primary)]">
+                  {comment.body}
+                </p>
               </li>
             ))}
           </ul>
@@ -401,18 +403,15 @@ function AddCommentForm({
   submitLabel: string;
 }) {
   return (
-    <form action={addComment} className="space-y-2">
+    <form action={addComment} className={cn(employeePanelClass, 'space-y-3 !p-4')}>
       <textarea
         name="body"
         rows={3}
         placeholder={placeholder}
         required
-        className="w-full resize-none rounded-xl border border-[var(--pf-border)] bg-[var(--pf-surface)] px-4 py-3 text-sm placeholder:text-[var(--pf-text-muted)] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[var(--pf-primary)]"
+        className={cn(employeeFilterInputClass, 'min-h-[88px] resize-none')}
       />
-      <button
-        type="submit"
-        className="min-h-[48px] w-full rounded-xl bg-[var(--pf-primary)] px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-[var(--pf-primary-hover)] active:bg-[var(--pf-primary-active)]"
-      >
+      <button type="submit" className={cn(employeePrimaryButtonClass, 'w-full')}>
         {submitLabel}
       </button>
     </form>

@@ -152,6 +152,8 @@
     "noComments": "No comments yet",
     "commentEdited": "(edited)",
     "commentAuthorEmployee": "Employee",
+    "commentAuthorSystem": "System",
+    "createNewTask": "+ New task",
     "commentPlaceholder": "Add a comment…",
     "postComment": "Post Comment",
     "assignSection": "Assign task",
@@ -164,6 +166,7 @@
     "rejectAction": "Reject",
     "approveEmpty": "No pending approvals for this task.",
     "create": {
+      "formTitle": "New task",
       "noProjects": "No projects available for task creation in your scope",
       "project": "Project",
       "title": "Title",

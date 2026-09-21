@@ -120,6 +120,10 @@ export async function employeeCreateTaskAction(formData: FormData): Promise<void
   });
 
   revalidatePath('/employee/tasks');
+  if (projectId) {
+    revalidatePath(`/employee/projects/${projectId}/tasks`);
+    revalidatePath(`/employee/projects/${projectId}/board`);
+  }
   const locale = await getLocale();
   redirect({ href: `/employee/tasks/${created.id}`, locale });
 }
