@@ -16,6 +16,9 @@ export interface EntityDocumentPanelData {
   readonly canManage: boolean;
   readonly storageConfigured: boolean;
   readonly canClassifyCompensation: boolean;
+  /** When set with canBrowseCloudFiles, UI may attach live cloud files without re-upload. */
+  readonly projectId?: string | null;
+  readonly canBrowseCloudFiles?: boolean;
 }
 
 /**

@@ -17,6 +17,13 @@ import {
 export default async function EmployeeExpensesPage() {
   const t = await getTranslations('employeeApp.expenses');
   const payload = await withOrgContext(async (context) => {
+    if (!employeeHasPermission(context, PERMISSIONS.EXPENSES_READ)) {
+      return {
+        items: [],
+        scope: { scopeLimited: true, scopeEmpty: true },
+        canCreate: employeeHasPermission(context, PERMISSIONS.EXPENSES_CREATE),
+      };
+    }
     const list = await listExpensesForOrg(context, { limit: 50 });
     return {
       items: list.items,

@@ -29,6 +29,10 @@ import {
   employeeAssignTaskAction,
   employeeDecideTaskApprovalAction,
 } from '../actions';
+import {
+  CommentFormClient,
+  CommentAttachmentsGallery,
+} from '@/modules/tasks/ui/task-comments-client';
 import { TaskActivity } from '@/modules/tasks/ui/task-activity';
 import { EmployeeTaskDocumentAttachments } from '@/modules/employee-app/ui/employee-task-document-attachments';
 import { getEmployeeTaskDocumentPanelData } from '@/modules/employee-app/application/employee-task-documents';
@@ -149,8 +153,6 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
   }
 
   const statusColor = STATUS_COLORS[task.status] ?? STATUS_COLORS.todo;
-  const addCommentForTask = employeeAddTaskCommentAction.bind(null, taskId);
-
   return (
     <div className="space-y-5 pb-8">
       <div className={cn(employeePanelClass, 'space-y-3')}>
@@ -385,9 +387,12 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
                     {comment.isEdited ? ` · ${t('commentEdited')}` : null}
                   </p>
                 </div>
-                <p className="whitespace-pre-line text-sm leading-relaxed text-[var(--pf-text-primary)]">
-                  {comment.body}
-                </p>
+                {comment.body ? (
+                  <p className="whitespace-pre-line text-sm leading-relaxed text-[var(--pf-text-primary)]">
+                    {comment.body}
+                  </p>
+                ) : null}
+                <CommentAttachmentsGallery attachments={comment.attachments} />
               </li>
             ))}
           </ul>
@@ -395,10 +400,14 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
           <p className="py-3 text-center text-sm text-[var(--pf-text-muted)]">{t('noComments')}</p>
         )}
         {canComment ? (
-          <AddCommentForm
-            addComment={addCommentForTask}
-            placeholder={t('commentPlaceholder')}
+          <CommentFormClient
+            taskId={taskId}
+            action={employeeAddTaskCommentAction}
+            placeholderText={t('commentPlaceholder')}
             submitLabel={t('postComment')}
+            className={cn(employeePanelClass, 'space-y-3 !p-4')}
+            textareaClassName={cn(employeeFilterInputClass, 'min-h-[88px] resize-none')}
+            submitClassName={cn(employeePrimaryButtonClass, 'w-full sm:w-auto')}
           />
         ) : null}
       </section>
@@ -413,6 +422,8 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
             canManage={documentsPanel.canManage}
             storageConfigured={documentsPanel.storageConfigured}
             canClassifyCompensation={documentsPanel.canClassifyCompensation}
+            projectId={documentsPanel.projectId}
+            canBrowseCloudFiles={documentsPanel.canBrowseCloudFiles}
           />
         </section>
       ) : null}
@@ -447,27 +458,3 @@ async function toggleChecklistItem(taskId: string, itemId: string, isDone: boole
   await employeeToggleChecklistItemAction(taskId, itemId, isDone);
 }
 
-function AddCommentForm({
-  addComment,
-  placeholder,
-  submitLabel,
-}: {
-  addComment: (formData: FormData) => Promise<void>;
-  placeholder: string;
-  submitLabel: string;
-}) {
-  return (
-    <form action={addComment} className={cn(employeePanelClass, 'space-y-3 !p-4')}>
-      <textarea
-        name="body"
-        rows={3}
-        placeholder={placeholder}
-        required
-        className={cn(employeeFilterInputClass, 'min-h-[88px] resize-none')}
-      />
-      <button type="submit" className={cn(employeePrimaryButtonClass, 'w-full')}>
-        {submitLabel}
-      </button>
-    </form>
-  );
-}

@@ -14,6 +14,10 @@ import { canReadCompensationDocuments } from '@/modules/documents/application/do
 import type { DocumentLinkCandidate, DocumentListItem } from '@/modules/documents/domain/types';
 import type { EntityDocumentPanelData } from '@/modules/documents/application/entity-document-panel';
 import { hasPermission } from '@/shared/permissions/assert';
+import {
+  linkProviderFileToTask,
+  type ProviderFileLinkInput,
+} from '@/modules/tasks/application/task-provider-file-link';
 import { recordTaskAttachmentEvent } from '@/modules/tasks';
 import {
   employeeHasPermission,
@@ -62,13 +66,16 @@ export async function getEmployeeTaskDocumentPanelData(
   const canManage = employeeHasPermission(context, PERMISSIONS.DOCUMENTS_MANAGE);
 
   if (!canRead) {
+    const storageConfigured = await isStorageConfigured(context);
     return {
       documents: [],
       linkCandidates: [],
       canRead: false,
       canManage: false,
-      storageConfigured: await isStorageConfigured(context),
+      storageConfigured,
       canClassifyCompensation: canReadCompensationDocuments(context),
+      projectId: task.projectId,
+      canBrowseCloudFiles: false,
     };
   }
 
@@ -80,15 +87,16 @@ export async function getEmployeeTaskDocumentPanelData(
   const attachedIds = new Set(documents.map((document) => document.id));
 
   let linkCandidates: DocumentLinkCandidate[] = [];
+  let canManageProjectDocs = false;
   if (canManage && task.projectId) {
     const manageScope = employeePermissionScope(context, PERMISSIONS.DOCUMENTS_MANAGE);
-    const canManageProject =
+    canManageProjectDocs =
       manageScope === 'all_organization' ||
       (await assertEmployeeProjectScope(context, PERMISSIONS.DOCUMENTS_MANAGE, task.projectId)
         .then(() => true)
         .catch(() => false));
 
-    if (canManageProject) {
+    if (canManageProjectDocs) {
       const projectDocs = await listEmployeeProjectDocuments(context, task.projectId);
       linkCandidates = projectDocs
         .filter((document) => document.status === 'available' && !attachedIds.has(document.id))
@@ -99,13 +107,18 @@ export async function getEmployeeTaskDocumentPanelData(
     }
   }
 
+  const storageConfigured = await isStorageConfigured(context);
+
   return {
     documents,
     linkCandidates,
     canRead,
     canManage,
-    storageConfigured: await isStorageConfigured(context),
+    storageConfigured,
     canClassifyCompensation: canReadCompensationDocuments(context),
+    projectId: task.projectId,
+    canBrowseCloudFiles:
+      canManage && Boolean(task.projectId) && storageConfigured && canManageProjectDocs,
   };
 }
 
@@ -154,6 +167,24 @@ export async function unlinkDocumentFromEmployeeTask(
     linkId,
     filename: document?.originalFilename ?? null,
   });
+}
+
+export async function linkProviderFileToEmployeeTask(
+  context: OrgContext,
+  taskId: string,
+  input: ProviderFileLinkInput,
+) {
+  const task = await assertEmployeePmTaskReadAccess(context, taskId);
+  if (!employeeHasPermission(context, PERMISSIONS.DOCUMENTS_MANAGE)) {
+    throw new NotFoundError('Document');
+  }
+  if (task.projectId) {
+    await assertEmployeeProjectScope(context, PERMISSIONS.DOCUMENTS_MANAGE, task.projectId);
+  }
+  if (!task.projectId || task.projectId !== input.projectId) {
+    throw new NotFoundError('Project');
+  }
+  return linkProviderFileToTask(context, taskId, input);
 }
 
 export async function recordEmployeeTaskAttachmentAdded(

@@ -84,6 +84,8 @@ export default async function TaskDetailPage({
         canManage={documentsPanel.canManage}
         storageConfigured={documentsPanel.storageConfigured}
         canClassifyCompensation={documentsPanel.canClassifyCompensation}
+        projectId={documentsPanel.projectId}
+        canBrowseCloudFiles={documentsPanel.canBrowseCloudFiles}
       />
 
       {detail.approvalRequired ? (

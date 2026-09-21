@@ -1,7 +1,7 @@
 import 'server-only';
 
 import { listOrganizationMembers } from '@/modules/tenancy';
-import { listEmployeesForOrg } from '@/modules/workforce';
+import { listActiveEmployeesForProjectCreateTeam } from '@/modules/workforce';
 import {
   employeeHasPermission,
   isEmployeeAppUser,
@@ -14,12 +14,37 @@ import { canManageProjectAccess } from './project-access';
 
 export type { ProjectCreateTeamPickerOption } from '../domain/project-create-team';
 
-/** Same gate as post-create project team panel roster management. */
+/** Create-time team picker — gated by projects.create, not workforce.manage. */
 export function canManageProjectTeamAtCreate(context: OrgContext): boolean {
   if (isEmployeeAppUser(context)) {
-    return employeeHasPermission(context, PERMISSIONS.WORKFORCE_MANAGE);
+    return employeeHasPermission(context, PERMISSIONS.PROJECTS_CREATE);
   }
-  return hasPermission(context, PERMISSIONS.WORKFORCE_MANAGE);
+  return hasPermission(context, PERMISSIONS.PROJECTS_CREATE);
+}
+
+export interface ProjectCreateTeamEmployeeCandidate {
+  readonly key: string;
+  readonly displayName: string;
+  readonly jobTitle: string | null;
+}
+
+/**
+ * Active employees for project-create team pickers — name and job title only.
+ * Does not require workforce.read and never loads compensation fields.
+ */
+export async function loadProjectCreateTeamCandidatesSafe(
+  context: OrgContext,
+): Promise<ProjectCreateTeamEmployeeCandidate[]> {
+  const rows = await listActiveEmployeesForProjectCreateTeam(
+    context.db,
+    context.organizationId,
+  ).catch(() => []);
+
+  return rows.map((row) => ({
+    key: `e:${row.id}`,
+    displayName: row.name,
+    jobTitle: row.jobTitle,
+  }));
 }
 
 export async function loadProjectCreateTeamPickerOptions(
@@ -29,11 +54,11 @@ export async function loadProjectCreateTeamPickerOptions(
 
   const options: ProjectCreateTeamPickerOption[] = [];
 
-  const employees = await listEmployeesForOrg(context, { status: 'active' }).catch(() => []);
+  const employees = await loadProjectCreateTeamCandidatesSafe(context);
   for (const employee of employees) {
     options.push({
-      key: `e:${employee.id}`,
-      displayName: employee.name,
+      key: employee.key,
+      displayName: employee.displayName,
       jobTitle: employee.jobTitle,
       kind: 'employee',
     });

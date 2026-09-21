@@ -79,6 +79,37 @@ export const organizationMemberships = pgTable(
   ],
 );
 
+/** Document category folder visibility for main org members (not Employee App). */
+export const orgMemberDocumentCategoryGrants = pgTable(
+  'org_member_document_category_grants',
+  {
+    id: primaryId(),
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    membershipId: uuid('membership_id')
+      .notNull()
+      .references(() => organizationMemberships.id, { onDelete: 'cascade' }),
+    category: text('category').notNull(),
+    allowed: boolean('allowed').notNull().default(true),
+    grantedByUserId: uuid('granted_by_user_id').references(() => profiles.id, {
+      onDelete: 'set null',
+    }),
+    ...timestamps(),
+  },
+  (table) => [
+    uniqueIndex('org_member_document_category_grants_uq').on(
+      table.organizationId,
+      table.membershipId,
+      table.category,
+    ),
+    index('org_member_document_category_grants_membership_idx').on(
+      table.organizationId,
+      table.membershipId,
+    ),
+  ],
+);
+
 /**
  * Invitations (doc 73 §8). Only the SHA-256 hash of the token is stored, so a
  * database leak cannot be replayed to join an organization.

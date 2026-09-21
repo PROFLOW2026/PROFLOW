@@ -14,6 +14,7 @@ import type {
   SemanticFolderType,
   StorageProviderKey,
 } from '@/modules/external-storage/client';
+import type { EmployeeProjectFilesGateState } from '@/modules/external-storage/application/project-files-gate';
 import { buildStorageFileDownloadUrl } from '@/modules/external-storage/client/storage-file-urls';
 import { StorageFilePreviewDialog } from '@/modules/external-storage/ui/storage-file-preview-dialog';
 import { StorageLoadingOverlay } from '@/modules/external-storage/ui/storage-loading-overlay';
@@ -41,12 +42,10 @@ type BrowserContext = {
 
 export function EmployeeProjectFilesBrowser({
   projectId,
-  storageConfigured,
-  hasFolderAccess,
+  gateState,
 }: {
   projectId: string;
-  storageConfigured: boolean;
-  hasFolderAccess: boolean;
+  gateState: EmployeeProjectFilesGateState;
 }) {
   const t = useTranslations('employeeApp.projects.files');
   const tStorage = useTranslations('externalStorage.errors');
@@ -102,6 +101,7 @@ export function EmployeeProjectFilesBrowser({
   );
 
   useEffect(() => {
+    if (gateState !== 'available') return;
     if (initialLoadStartedRef.current) return;
     initialLoadStartedRef.current = true;
 
@@ -120,7 +120,7 @@ export function EmployeeProjectFilesBrowser({
       setFiles(result.files ?? []);
       setInitialLoaded(true);
     });
-  }, [projectId, tStorage]);
+  }, [gateState, projectId, tStorage]);
 
   useEffect(() => {
     if (!browserContext || !initialLoaded) return;
@@ -131,15 +131,27 @@ export function EmployeeProjectFilesBrowser({
     loadFolder(browsePath);
   }, [browserContext, browsePath, initialLoaded, loadFolder]);
 
-  if (!hasFolderAccess) {
+  if (gateState === 'no_permission') {
     return (
       <EmptyState size="sm" title={t('noPermission')} description={t('noPermissionHint')} />
     );
   }
 
-  if (!storageConfigured) {
+  if (gateState === 'storage_disconnected') {
     return (
       <Alert tone="info">{t('storageNotConnected')}</Alert>
+    );
+  }
+
+  if (gateState === 'project_not_provisioned') {
+    return (
+      <Alert tone="info">{t('projectNotProvisioned')}</Alert>
+    );
+  }
+
+  if (gateState === 'provider_error') {
+    return (
+      <Alert tone="danger">{t('providerError')}</Alert>
     );
   }
 

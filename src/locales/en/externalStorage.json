@@ -146,6 +146,13 @@
       "employees": "Employees"
     }
   },
+  "cloudPicker": {
+    "title": "Pick a cloud file",
+    "description": "Browse project folders in connected storage. The file stays in cloud storage — no copy is uploaded.",
+    "attachSelected": "Attach selected file",
+    "cancel": "Cancel",
+    "unavailable": "Cloud files are not available right now."
+  },
   "preview": {
     "title": "Preview",
     "loading": "Loading…",

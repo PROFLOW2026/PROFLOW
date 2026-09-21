@@ -22,6 +22,7 @@ import {
   loadTaskCommentsForDisplay,
   type TaskCommentDisplayRow,
 } from '@/modules/tasks/application/load-task-comments-for-display';
+import { findTaskById } from '@/modules/tasks';
 import { withOrgContext } from '@/shared/auth/session';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -31,7 +32,11 @@ import {
   editTaskCommentAction,
   deleteTaskCommentAction,
 } from './actions';
-import { CommentFormClient, CommentActionsClient } from './task-comments-client';
+import {
+  CommentFormClient,
+  CommentActionsClient,
+  CommentAttachmentsGallery,
+} from './task-comments-client';
 
 // ─── Data Types ───────────────────────────────────────────────────────────────
 
@@ -105,9 +110,13 @@ function CommentRow({
         ) : null}
       </div>
 
-      <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">
-        {comment.body}
-      </p>
+      {comment.body ? (
+        <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">
+          {comment.body}
+        </p>
+      ) : null}
+
+      <CommentAttachmentsGallery attachments={comment.attachments} />
     </li>
   );
 }
@@ -116,14 +125,20 @@ function CommentRow({
 
 function AddCommentForm({
   taskId,
+  projectId,
+  canBrowseCloudFiles,
   t,
 }: {
   taskId: string;
+  projectId: string | null;
+  canBrowseCloudFiles: boolean;
   t: Awaited<ReturnType<typeof getTranslations<'tasks'>>>;
 }) {
   return (
     <CommentFormClient
       taskId={taskId}
+      projectId={projectId}
+      canBrowseCloudFiles={canBrowseCloudFiles}
       action={addTaskCommentAction}
       placeholderText={t('comments.placeholder')}
       submitLabel={t('comments.submit')}
@@ -142,9 +157,20 @@ export async function TaskComments({ taskId }: TaskCommentsProps) {
 
   const { comments, hasMore, currentMembershipId } = await loadComments(taskId);
 
-  const canComment = await withOrgContext(async (context) =>
-    hasPermission(context, PERMISSIONS.TASKS_COMMENT),
-  );
+  const { canComment, projectId, canBrowseCloudFiles } = await withOrgContext(async (context) => {
+    const task = await findTaskById(context.db, context.organizationId, taskId);
+    const storageConfigured = await import('@/modules/documents/application/upload-document').then(
+      (mod) => mod.isStorageConfigured(context),
+    );
+    return {
+      canComment: hasPermission(context, PERMISSIONS.TASKS_COMMENT),
+      projectId: task?.projectId ?? null,
+      canBrowseCloudFiles:
+        hasPermission(context, PERMISSIONS.DOCUMENTS_MANAGE) &&
+        Boolean(task?.projectId) &&
+        storageConfigured,
+    };
+  });
 
   return (
     <section aria-label={t('comments.sectionLabel')} className="flex flex-col gap-4">
@@ -180,7 +206,14 @@ export async function TaskComments({ taskId }: TaskCommentsProps) {
         </p>
       ) : null}
 
-      {canComment ? <AddCommentForm taskId={taskId} t={t} /> : null}
+      {canComment ? (
+        <AddCommentForm
+          taskId={taskId}
+          projectId={projectId}
+          canBrowseCloudFiles={canBrowseCloudFiles}
+          t={t}
+        />
+      ) : null}
     </section>
   );
 }

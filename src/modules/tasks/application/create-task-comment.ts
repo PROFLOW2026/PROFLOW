@@ -15,21 +15,26 @@ export async function createComment(
   context: OrgContext,
   taskId: string,
   input: {
-    body: string;
+    body?: string;
     authorOrgMemberId?: string | null;
     authorEmployeeId?: string | null;
+    /** When true, an empty body is allowed (attachment-only comment). */
+    hasAttachments?: boolean;
   },
 ): Promise<TaskComment> {
   assertPermission(context, PERMISSIONS.TASKS_COMMENT);
 
-  const body = input.body?.trim();
-  if (!body) {
-    throw new ValidationError([{ path: 'body', message: 'Comment body is required' }]);
+  const body = input.body?.trim() ?? '';
+  if (!body && !input.hasAttachments) {
+    throw new ValidationError([
+      { path: 'body', message: 'Comment text or at least one attachment is required' },
+    ]);
   }
 
-  // Default to context membershipId if no explicit author set
-  const authorOrgMemberId = input.authorOrgMemberId ?? context.membershipId;
   const authorEmployeeId = input.authorEmployeeId ?? null;
+  const authorOrgMemberId = authorEmployeeId
+    ? null
+    : (input.authorOrgMemberId ?? context.membershipId);
 
   validateCommentAuthor(authorOrgMemberId, authorEmployeeId);
 

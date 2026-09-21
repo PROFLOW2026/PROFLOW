@@ -29,6 +29,10 @@ export {
 } from './application/connection-service';
 export { isOrganizationStorageConfigured } from './application/org-storage-gate';
 export {
+  resolveEmployeeProjectFilesGate,
+  type EmployeeProjectFilesGateState,
+} from './application/project-files-gate';
+export {
   getExternalDocumentDownload,
   getExternalFileDownload,
   listProjectStorageFolder,
@@ -83,3 +87,10 @@ export {
 export { listConfiguredStorageProviders, isStorageProviderConfigured } from './providers/registry';
 export { findFolderMapping } from './data/folder-mappings.repository';
 export { findStorageFileByDocumentId } from './data/files.repository';
+export {
+  assertProjectProviderFileAccess,
+} from './application/browser-service';
+export {
+  ensureDocumentForProviderFile,
+} from './application/link-provider-file-to-document';
+export type { EnsureDocumentForProviderFileInput } from './application/link-provider-file-to-document';

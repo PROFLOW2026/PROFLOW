@@ -28,7 +28,10 @@ export {
   listAllDocuments,
   listProjectScopedOwnerIdsForDocument,
   findDocumentLinkById,
+  flushDocumentCurrentVersionGuards,
+  insertDocument,
 } from './data/documents.repository';
+export { ensureFirstDocumentVersion } from './data/versions.repository';
 export type { StorageCleanupRetryResult } from './application/manage-document';
 export { linkDocumentToEntity, unlinkDocumentFromEntity } from './application/link-document';
 export {

@@ -5,8 +5,10 @@ export { launchProject } from './application/launch-project';
 export { applyProjectCreateTeam } from './application/apply-project-create-team';
 export {
   canManageProjectTeamAtCreate,
+  loadProjectCreateTeamCandidatesSafe,
   loadProjectCreateTeamPickerOptions,
 } from './application/load-project-create-team-options';
+export type { ProjectCreateTeamEmployeeCandidate } from './application/load-project-create-team-options';
 export type {
   LaunchProjectInput,
   LaunchProjectResult,

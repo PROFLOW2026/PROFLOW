@@ -58,7 +58,16 @@
     "levelManage": "Manage",
     "revoke": "Remove",
     "saveMode": "Save visibility",
-    "saved": "Saved"
+    "saved": "Saved",
+    "folderGrants": {
+      "title": "Document folder access",
+      "hint": "Limit which project cloud folders each main-app user can browse. Leave all categories checked for full access. Employee App users are configured on the workforce employee page.",
+      "member": "Team member",
+      "memberPlaceholder": "Select a member",
+      "emptyMeansAll": "When every category is checked, or no custom grants are saved, the member can browse all semantic folders allowed by their role.",
+      "save": "Save folder access",
+      "saved": "Folder access saved"
+    }
   },
   "modules": {
     "pageTitle": "Module Enablement",

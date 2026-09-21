@@ -11,8 +11,10 @@
  */
 
 import { AlertCircle, BadgeCheck, Calendar, CheckSquare } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { Badge } from '@/components/ui/badge';
+import { coerceBusinessDate } from '@/shared/dates/dates';
+import { formatBusinessDateMonthDay } from '@/shared/dates/format';
 import { cn } from '@/shared/ui/cn';
 import type { TaskCardData, TaskPriority, TaskStatus } from './_task-api-stub';
 
@@ -59,6 +61,12 @@ const PRIORITY_TONE: Record<
   high: 'warning',
   urgent: 'danger',
 };
+
+function isTaskOverdue(dueDate: string, status: TaskStatus): boolean {
+  if (status === 'done' || status === 'cancelled') return false;
+  const today = new Date().toISOString().slice(0, 10);
+  return dueDate < today;
+}
 
 /** Abbreviated avatar circle */
 function Avatars({ assignees }: { assignees: TaskCardData['assignees'] }) {
@@ -111,10 +119,14 @@ export interface TaskCardProps {
 
 export function TaskCard({ task, onOpen, isDragging, className }: TaskCardProps) {
   const t = useTranslations('tasks');
+  const locale = useLocale();
 
-  const dueDateObj = task.dueDate ? new Date(task.dueDate) : null;
+  const dueDateBusiness = task.dueDate ? coerceBusinessDate(task.dueDate) : null;
+  const dueDateLabel = dueDateBusiness
+    ? formatBusinessDateMonthDay(dueDateBusiness, locale)
+    : null;
   const isOverdue =
-    dueDateObj != null && dueDateObj < new Date() && task.status !== 'done' && task.status !== 'cancelled';
+    dueDateBusiness != null && isTaskOverdue(dueDateBusiness, task.status);
 
   return (
     <article
@@ -199,7 +211,7 @@ export function TaskCard({ task, onOpen, isDragging, className }: TaskCardProps)
           )}
 
           {/* Due date */}
-          {dueDateObj && (
+          {dueDateLabel && (
             <span
               className={cn(
                 'inline-flex items-center gap-0.5 text-[0.65rem]',
@@ -209,7 +221,7 @@ export function TaskCard({ task, onOpen, isDragging, className }: TaskCardProps)
               )}
             >
               <Calendar aria-hidden className="size-3" />
-              {dueDateObj.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+              {dueDateLabel}
             </span>
           )}
         </div>

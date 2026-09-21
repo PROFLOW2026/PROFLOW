@@ -16,6 +16,9 @@ import {
 } from '@/modules/projects';
 import { SettingsNotAllowed } from '../settings-not-allowed';
 import { SettingsPageShell, settingsMetadata } from '../settings-shell';
+import { listOrgMemberDocumentCategoryGrants } from '@/modules/employee-app';
+import { MemberDocumentFolderGrantsPanel } from '@/modules/employee-app/ui/member-document-folder-grants-panel';
+import type { DocumentCategory } from '@/modules/documents/domain/categories';
 import { PeopleSettingsPanel } from './people-panel';
 import { ProjectAccessPanel } from './project-access-panel';
 
@@ -61,6 +64,23 @@ export default async function PeopleSettingsPage() {
       member.roleKeys.some((key) => accessAllRoleKeys.has(key)),
     );
 
+    const grantsByMembershipId: Record<string, DocumentCategory[]> = {};
+    if (canManageSection(context, 'people')) {
+      await Promise.all(
+        members.map(async (member) => {
+          const grantMap = await listOrgMemberDocumentCategoryGrants(
+            context.db,
+            context.organizationId,
+            member.membershipId,
+          );
+          if (grantMap.size === 0) return;
+          grantsByMembershipId[member.membershipId] = [...grantMap.entries()]
+            .filter(([, allowed]) => allowed)
+            .map(([category]) => category);
+        }),
+      );
+    }
+
     return {
       allowed: true as const,
       members,
@@ -80,6 +100,7 @@ export default async function PeopleSettingsPage() {
         email: member.email,
         displayName: member.displayName,
       })),
+      grantsByMembershipId,
     };
   });
 
@@ -111,6 +132,16 @@ export default async function PeopleSettingsPage() {
           projects={data.projects}
           grants={data.grants}
           accessAllMembers={data.accessAllMembers}
+        />
+        <MemberDocumentFolderGrantsPanel
+          canManage={data.canManage}
+          members={data.members.map((member) => ({
+            membershipId: member.membershipId,
+            userId: member.userId,
+            email: member.email,
+            displayName: member.displayName,
+          }))}
+          grantsByMembershipId={data.grantsByMembershipId}
         />
       </Card>
     </SettingsPageShell>

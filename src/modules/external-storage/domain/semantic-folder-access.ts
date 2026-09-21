@@ -1,4 +1,5 @@
 import type { OrgContext } from '@/shared/auth/context';
+import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { DocumentCategory } from '@/modules/documents/domain/categories';
 import {
@@ -18,7 +19,7 @@ type ProjectSemanticFolderType =
   | 'documents'
   | 'general_files';
 
-/** Maps project semantic folders to document categories used for employee folder grants. */
+/** Maps project semantic folders to document categories used for folder grants. */
 export const SEMANTIC_FOLDER_DOCUMENT_CATEGORIES: Readonly<
   Record<ProjectSemanticFolderType, readonly DocumentCategory[]>
 > = {
@@ -54,14 +55,44 @@ export function categoriesForSemanticFolder(
   return SEMANTIC_FOLDER_DOCUMENT_CATEGORIES[semanticFolderType];
 }
 
+/**
+ * Effective document category grants for folder and document visibility.
+ * - `null` = unrestricted (all categories) for main org members with no grant rows.
+ * - empty Set = no categories (employee with no grants, or explicit empty config).
+ */
+export function resolveEffectiveDocumentCategoryGrants(
+  context: OrgContext,
+): ReadonlySet<DocumentCategory> | null {
+  if (!hasPermission(context, PERMISSIONS.DOCUMENTS_READ)) {
+    return new Set<DocumentCategory>();
+  }
+
+  if (isEmployeeAppUser(context)) {
+    const allowed = context.employeeApp?.allowedDocumentCategories;
+    if (!allowed || allowed.size === 0) return new Set<DocumentCategory>();
+    return allowed;
+  }
+
+  const memberGrants = context.documentCategoryGrants;
+  if (memberGrants === undefined || memberGrants === null) {
+    return null;
+  }
+  if (memberGrants.size === 0) return new Set<DocumentCategory>();
+  return memberGrants;
+}
+
+export function resolveAllowedSemanticFolders(
+  context: OrgContext,
+): readonly ProjectSemanticFolderType[] {
+  return (PROJECT_SEMANTIC_FOLDERS as readonly ProjectSemanticFolderType[]).filter((folderType) =>
+    canAccessSemanticFolder(context, folderType),
+  );
+}
+
 export function employeeHasAnyAllowedSemanticFolder(context: OrgContext): boolean {
   if (!isEmployeeAppUser(context)) return true;
   if (!employeeHasPermission(context, PERMISSIONS.DOCUMENTS_READ)) return false;
-  const allowed = context.employeeApp?.allowedDocumentCategories;
-  if (!allowed || allowed.size === 0) return false;
-  return PROJECT_SEMANTIC_FOLDERS.some((folderType) =>
-    canAccessSemanticFolder(context, folderType),
-  );
+  return resolveAllowedSemanticFolders(context).length > 0;
 }
 
 export function canAccessSemanticFolder(
@@ -69,15 +100,13 @@ export function canAccessSemanticFolder(
   semanticFolderType: SemanticFolderType,
 ): boolean {
   if (!isProjectSemanticFolderType(semanticFolderType)) return false;
-  if (!isEmployeeAppUser(context)) return true;
 
-  if (!employeeHasPermission(context, PERMISSIONS.DOCUMENTS_READ)) return false;
-
-  const allowed = context.employeeApp?.allowedDocumentCategories;
-  if (!allowed || allowed.size === 0) return false;
+  const grants = resolveEffectiveDocumentCategoryGrants(context);
+  if (grants === null) return true;
+  if (grants.size === 0) return false;
 
   const mapped = categoriesForSemanticFolder(semanticFolderType);
-  return mapped.some((category) => allowed.has(category));
+  return mapped.some((category) => grants.has(category));
 }
 
 /**
@@ -104,6 +133,5 @@ export function filterAccessibleSemanticShortcuts<T extends { semanticFolderType
   context: OrgContext,
   shortcuts: readonly T[],
 ): readonly T[] {
-  if (!isEmployeeAppUser(context)) return shortcuts;
   return shortcuts.filter((shortcut) => canAccessSemanticFolder(context, shortcut.semanticFolderType));
 }

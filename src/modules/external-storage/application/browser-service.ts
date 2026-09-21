@@ -842,3 +842,18 @@ export async function assertProjectBrowserUploadFolder(
   const runtime = await resolveProjectBrowserRuntime(context, input.projectId);
   await assertFolderScope(runtime, input.parentFolderExternalId);
 }
+
+/** Validates a provider file is within the project tree and returns live metadata. */
+export async function assertProjectProviderFileAccess(
+  context: OrgContext,
+  projectId: string,
+  providerFileId: string,
+): Promise<{ connection: StorageConnectionRecord; file: ProviderFileItem }> {
+  assertPermission(context, PERMISSIONS.DOCUMENTS_READ);
+  const runtime = await resolveProjectBrowserRuntime(context, projectId);
+  const file = await assertFileScope(runtime, providerFileId);
+  if (file.parentId) {
+    await assertSemanticFolderBrowseAccess(context, runtime, file.parentId);
+  }
+  return { connection: runtime.connection, file };
+}

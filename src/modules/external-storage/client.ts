@@ -15,3 +15,12 @@ export type {
 } from './domain/types';
 export { STORAGE_PROVIDER_LABELS } from './domain/types';
 export { semanticFolderForDocumentOwner, PROJECT_SEMANTIC_FOLDERS } from './domain/semantic-folders';
+export type {
+  ProjectCloudFileRef,
+  ProjectCloudFileBrowserActions,
+  ProjectCloudFileBrowseFolderInput,
+  ProjectCloudFileBrowseFolderResult,
+  ProjectCloudFileBrowserInitialResult,
+} from './client/project-cloud-file-picker-types';
+export { toProjectCloudFileRef } from './client/project-cloud-file-picker-types';
+export { ProjectCloudFilePicker } from './ui/project-cloud-file-picker';

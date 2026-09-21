@@ -96,14 +96,14 @@ describe('applyProjectCreateTeam', () => {
   });
 
   it('does nothing when no team is selected', async () => {
-    const context = contextWith([PERMISSIONS.WORKFORCE_MANAGE]);
+    const context = contextWith([PERMISSIONS.PROJECTS_CREATE]);
     await applyProjectCreateTeam(context, PROJECT_ID, {});
     expect(addProjectTeamMember).not.toHaveBeenCalled();
     expect(grantProjectAccess).not.toHaveBeenCalled();
   });
 
-  it('assigns PM and participants with workforce.manage', async () => {
-    const context = contextWith([PERMISSIONS.WORKFORCE_MANAGE, PERMISSIONS.MEMBERS_MANAGE]);
+  it('assigns PM and participants with projects.create', async () => {
+    const context = contextWith([PERMISSIONS.PROJECTS_CREATE, PERMISSIONS.MEMBERS_MANAGE]);
     await applyProjectCreateTeam(context, PROJECT_ID, {
       projectManagerKey: `e:${EMPLOYEE_A}`,
       participantKeys: [`e:${EMPLOYEE_B}`, `m:${MEMBER_A}`],
@@ -129,8 +129,8 @@ describe('applyProjectCreateTeam', () => {
     });
   });
 
-  it('requires workforce.manage when team selections are present', async () => {
-    const context = contextWith([PERMISSIONS.PROJECTS_CREATE]);
+  it('requires projects.create when team selections are present', async () => {
+    const context = contextWith([PERMISSIONS.WORKFORCE_MANAGE]);
     await expect(
       applyProjectCreateTeam(context, PROJECT_ID, {
         participantKeys: [`e:${EMPLOYEE_A}`],
@@ -140,12 +140,21 @@ describe('applyProjectCreateTeam', () => {
   });
 
   it('skips creator employee already seeded by ensureProjectCreatorAccess', async () => {
-    const context = contextWith([PERMISSIONS.WORKFORCE_MANAGE], {
+    const context = contextWith([PERMISSIONS.PROJECTS_CREATE], {
       roleKeys: ['employee'],
       employeeApp: {
         employeeId: EMPLOYEE_A,
         account: {} as never,
-        grants: new Map(),
+        grants: new Map([
+          [
+            PERMISSIONS.PROJECTS_CREATE,
+            {
+              permissionKey: PERMISSIONS.PROJECTS_CREATE,
+              scope: 'all_organization',
+              granted: true,
+            },
+          ],
+        ]),
         allowedDocumentCategories: null,
       },
     });
@@ -165,7 +174,7 @@ describe('applyProjectCreateTeam', () => {
   });
 
   it('rejects unknown employees before assignment', async () => {
-    const context = contextWith([PERMISSIONS.WORKFORCE_MANAGE]);
+    const context = contextWith([PERMISSIONS.PROJECTS_CREATE]);
     await expect(
       applyProjectCreateTeam(context, PROJECT_ID, {
         participantKeys: ['e:99999999-9999-4999-8999-999999999999'],

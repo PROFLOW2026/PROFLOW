@@ -84,11 +84,11 @@ export async function applyProjectCreateTeam(
   if (keys.size === 0) return;
 
   if (isEmployeeAppUser(context)) {
-    if (!employeeHasPermission(context, PERMISSIONS.WORKFORCE_MANAGE)) {
-      throw new AuthorizationError(PERMISSIONS.WORKFORCE_MANAGE);
+    if (!employeeHasPermission(context, PERMISSIONS.PROJECTS_CREATE)) {
+      throw new AuthorizationError(PERMISSIONS.PROJECTS_CREATE);
     }
   } else {
-    assertPermission(context, PERMISSIONS.WORKFORCE_MANAGE);
+    assertPermission(context, PERMISSIONS.PROJECTS_CREATE);
   }
 
   const hasOrgMember = [...keys].some((key) => key.startsWith('m:'));

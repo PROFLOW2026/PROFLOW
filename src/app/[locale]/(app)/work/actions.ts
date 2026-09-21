@@ -38,7 +38,11 @@ import {
   linkDocumentToTask,
   unlinkDocumentFromTask,
   recordTaskAttachmentAdded,
+  linkProviderFileToTask,
+  linkProviderFileToTaskComment,
 } from '@/modules/tasks';
+import type { ProviderFileLinkInput } from '@/modules/tasks/application/task-provider-file-link';
+import type { ProjectCloudFileRef } from '@/modules/external-storage/client';
 import {
   getTaskRecurrence,
   upsertTaskRecurrence,
@@ -617,6 +621,8 @@ export async function getTaskDocumentPanelAction(taskId: string) {
         canManage: false,
         storageConfigured: false,
         canClassifyCompensation: false,
+        projectId: null,
+        canBrowseCloudFiles: false,
       };
     }
   });
@@ -664,6 +670,37 @@ export async function recordTaskAttachmentAddedAction(
   try {
     await withOrgContext(async (context) => {
       await recordTaskAttachmentAdded(context, taskId, documentId);
+    });
+    return { success: true };
+  } catch (error) {
+    return mapWorkActionError(error);
+  }
+}
+
+export async function linkProviderFileToTaskAction(
+  taskId: string,
+  input: ProjectCloudFileRef &
+    Pick<ProviderFileLinkInput, 'projectId' | 'label' | 'privacyClass' | 'semanticFolderType'>,
+): Promise<WorkActionState> {
+  try {
+    await withOrgContext(async (context) => {
+      await linkProviderFileToTask(context, taskId, input);
+    });
+    return { success: true };
+  } catch (error) {
+    return mapWorkActionError(error);
+  }
+}
+
+export async function linkProviderFileToTaskCommentAction(
+  taskId: string,
+  commentId: string,
+  input: ProjectCloudFileRef &
+    Pick<ProviderFileLinkInput, 'projectId' | 'semanticFolderType'>,
+): Promise<WorkActionState> {
+  try {
+    await withOrgContext(async (context) => {
+      await linkProviderFileToTaskComment(context, taskId, commentId, input);
     });
     return { success: true };
   } catch (error) {

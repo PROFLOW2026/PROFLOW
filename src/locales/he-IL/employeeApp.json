@@ -123,12 +123,6 @@
     "intro": "טפסים תפעוליים מותרים.",
     "empty": "אין טפסים זמינים"
   },
-  "projects": {
-    "createButton": "פרויקט חדש",
-    "createTitle": "פרויקט חדש",
-    "createDescription": "הזינו שם כדי להתחיל. כל השאר אופציונלי.",
-    "createSubmit": "יצירת פרויקט"
-  },
   "expenses": {
     "create": "הוצאה חדשה",
     "empty": "אין הוצאות בהיקף שלך",
@@ -166,6 +160,9 @@
     "createNewTask": "+ משימה חדשה",
     "commentPlaceholder": "הוסף תגובה…",
     "postComment": "פרסום תגובה",
+    "commentAttachments": {
+      "partialSuccess": "התגובה פורסמה. {count, plural, one {קובץ מצורף אחד נכשל} two {שני קבצים מצורפים נכשלו} other {# קבצים מצורפים נכשלו}}."
+    },
     "assignSection": "שיוך משימה",
     "assignSelect": "בחר חבר צוות",
     "assignSubmit": "שייך",
@@ -210,6 +207,10 @@
     }
   },
   "projects": {
+    "createButton": "פרויקט חדש",
+    "createTitle": "פרויקט חדש",
+    "createDescription": "הזינו שם כדי להתחיל. כל השאר אופציונלי.",
+    "createSubmit": "יצירת פרויקט",
     "overview": {
       "subtitle": "סקירת פרויקט"
     },
@@ -233,6 +234,8 @@
       "noPermission": "אין גישה לתיקיות",
       "noPermissionHint": "לחשבון שלך אין הרשאה לגלוש בתיקיות הפרויקט. פנה למנהל.",
       "storageNotConnected": "אחסון הארגון לא מחובר. הקבצים יופיעו כאן לאחר חיבור האחסון.",
+      "projectNotProvisioned": "תיקיות הפרויקט עדיין לא מוכנות. בקש ממנהל לפתוח את קבצי הפרויקט באפליקציה הראשית פעם אחת.",
+      "providerError": "אחסון הענן אינו זמין כרגע. נסה שוב מאוחר יותר או פנה למנהל.",
       "noFoldersAllowed": "אין תיקיות מותרות",
       "noFoldersAllowedHint": "אף תיקיית פרויקט אינה תואמת לקטגוריות המסמכים שהוקצו לך."
     }

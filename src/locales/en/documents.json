@@ -91,6 +91,7 @@
     "privacyHint": "Compensation files are hidden from people without employer-cost access.",
     "labelOptional": "Note",
     "labelPlaceholder": "Optional note for this attachment…",
+    "pickFromCloud": "Pick from cloud",
     "linkExisting": "Link existing",
     "linkSelectPlaceholder": "Choose a document already in this organization…",
     "linkSuccess": "Document linked.",

@@ -692,6 +692,33 @@
     "titlePlaceholder": "כותרת תת-משימה…",
     "parentLabel": "משימת אב"
   },
+  "comments": {
+    "sectionLabel": "תגובות",
+    "empty": "אין תגובות עדיין",
+    "deleted": "התגובה הוסרה",
+    "unknownAuthor": "משתמש לא ידוע",
+    "edited": "נערך",
+    "edit": "עריכה",
+    "delete": "מחיקה",
+    "save": "שמירה",
+    "cancel": "ביטול",
+    "placeholder": "כתוב תגובה…",
+    "submit": "פרסום תגובה",
+    "loadMore": "טען תגובות קודמות",
+    "attachments": {
+      "addFiles": "צרף קבצים",
+      "takePhoto": "צלם תמונה",
+      "pickFromCloud": "בחר מהענן",
+      "remove": "הסר {name}",
+      "uploading": "מעלה {current} מתוך {total}…",
+      "uploadFailed": "לא ניתן להעלות קבצים מצורפים",
+      "partialSuccess": "התגובה פורסמה. {count, plural, one {קובץ מצורף אחד נכשל} two {שני קבצים מצורפים נכשלו} other {# קבצים מצורפים נכשלו}}.",
+      "attachmentOnlyHint": "הוסף טקסט או צרף לפחות קובץ אחד",
+      "imageAlt": "{name}",
+      "download": "הורדה",
+      "preview": "תצוגה מקדימה"
+    }
+  },
   "activity": {
     "sectionLabel": "פעילות",
     "empty": "אין פעילות עדיין",

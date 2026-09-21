@@ -692,6 +692,33 @@
     "titlePlaceholder": "Subtask title…",
     "parentLabel": "Parent task"
   },
+  "comments": {
+    "sectionLabel": "Comments",
+    "empty": "No comments yet",
+    "deleted": "Comment removed",
+    "unknownAuthor": "Unknown user",
+    "edited": "edited",
+    "edit": "Edit",
+    "delete": "Delete",
+    "save": "Save",
+    "cancel": "Cancel",
+    "placeholder": "Write a comment…",
+    "submit": "Post comment",
+    "loadMore": "Load earlier comments",
+    "attachments": {
+      "addFiles": "Attach files",
+      "pickFromCloud": "Pick from cloud",
+      "takePhoto": "Take photo",
+      "remove": "Remove {name}",
+      "uploading": "Uploading {current} of {total}…",
+      "uploadFailed": "Attachments could not be uploaded",
+      "partialSuccess": "Comment posted. {count, plural, one {# attachment failed} other {# attachments failed}}.",
+      "attachmentOnlyHint": "Add text or attach at least one file",
+      "imageAlt": "{name}",
+      "download": "Download",
+      "preview": "Preview attachment"
+    }
+  },
   "activity": {
     "sectionLabel": "Activity",
     "empty": "No activity yet",

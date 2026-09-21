@@ -119,6 +119,7 @@ export type {
 export {
   findEmployeeById,
   findEmployeeByUserId,
+  listActiveEmployeesForProjectCreateTeam,
   updateEmployeeById,
 } from './data/employees.repository';
 export { listAttendanceDays } from './data/attendance.repository';

@@ -105,6 +105,18 @@ export { listTaskPickerOptions } from './application/list-task-picker-options';
 export { followTask, unfollowTask } from './application/follow-task';
 export { addLabelToTask, removeLabelFromTask } from './application/manage-labels';
 export { createComment } from './application/create-task-comment';
+export {
+  publishTaskCommentWithAttachments,
+  linkDocumentsToTaskComment,
+  assertTaskCommentExists,
+} from './application/task-comment-attachments';
+export type {
+  PublishTaskCommentInput,
+  PublishTaskCommentResult,
+  TaskCommentPendingUpload,
+  TaskCommentCloudFileRef,
+  TaskCommentProviderFileRef,
+} from './application/task-comment-attachments';
 export { recordTaskApprovalActivity } from './application/record-task-approval-activity';
 export { listComments } from './application/list-task-comments';
 export { listActivity } from './application/list-task-activity';
@@ -116,6 +128,11 @@ export {
   recordTaskAttachmentAdded,
   recordTaskAttachmentEvent,
 } from './application/task-attachments';
+export {
+  linkProviderFileToTask,
+  linkProviderFileToTaskComment,
+} from './application/task-provider-file-link';
+export type { ProviderFileLinkInput, ProviderFileLinkResult } from './application/task-provider-file-link';
 export type { TaskDocumentPanelData } from './application/task-attachments';
 export {
   createBoard,

@@ -1,5 +1,6 @@
 import type { DbExecutor } from '@/shared/db/types';
 import type { EmployeeAppContext } from '@/modules/employee-app/domain/types';
+import type { DocumentCategory } from '@/modules/documents/domain/categories';
 import type { PermissionKey } from '@/shared/permissions/catalog';
 
 /**
@@ -42,6 +43,11 @@ export interface OrgContext {
   readonly locale: string;
   /** Loaded for users with the employee role — drives grants, scopes, document categories. */
   readonly employeeApp?: EmployeeAppContext;
+  /**
+   * Main org member folder grants. `null` = unrestricted (no rows configured).
+   * Undefined until loaded; Employee App users rely on `employeeApp` instead.
+   */
+  readonly documentCategoryGrants?: ReadonlySet<DocumentCategory> | null;
 }
 
 /** Returns a copy bound to a different executor, used to run inside a transaction. */

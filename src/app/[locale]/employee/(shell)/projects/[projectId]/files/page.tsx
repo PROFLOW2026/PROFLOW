@@ -5,8 +5,10 @@ import {
   employeeHasPermission,
 } from '@/modules/employee-app/application/load-employee-app-context';
 import { getEmployeeProjectTaskOverview } from '@/modules/employee-app/application/employee-pm-tasks';
-import { employeeHasAnyAllowedSemanticFolder } from '@/modules/external-storage/domain/semantic-folder-access';
-import { isOrganizationStorageConfigured } from '@/modules/external-storage/server';
+import {
+  resolveEmployeeProjectFilesGate,
+  type EmployeeProjectFilesGateState,
+} from '@/modules/external-storage/application/project-files-gate';
 import { EmployeeProjectFilesBrowser } from '@/modules/employee-app/ui/employee-project-files-browser';
 import { employeePageStackClass } from '@/modules/employee-app/ui/employee-surface-styles';
 
@@ -21,9 +23,8 @@ export default async function EmployeeProjectFilesPage({ params }: PageProps) {
     if (!employeeHasPermission(context, PERMISSIONS.DOCUMENTS_READ)) return null;
     const overview = await getEmployeeProjectTaskOverview(context, projectId);
     if (!overview) return null;
-    const storageConfigured = await isOrganizationStorageConfigured(context);
-    const hasFolderAccess = employeeHasAnyAllowedSemanticFolder(context);
-    return { overview, storageConfigured, hasFolderAccess };
+    const gateState = await resolveEmployeeProjectFilesGate(context, projectId);
+    return { overview, gateState };
   });
 
   if (!data) notFound();
@@ -33,8 +34,7 @@ export default async function EmployeeProjectFilesPage({ params }: PageProps) {
       <p className="text-sm font-medium text-[var(--pf-text-secondary)]">{data.overview.displayName}</p>
       <EmployeeProjectFilesBrowser
         projectId={projectId}
-        storageConfigured={data.storageConfigured}
-        hasFolderAccess={data.hasFolderAccess}
+        gateState={data.gateState satisfies EmployeeProjectFilesGateState}
       />
     </div>
   );

@@ -27,6 +27,7 @@ import {
   employeeHasTaskMutationGrant,
 } from './task-permission-scope';
 import { formatProjectDisplayName } from '@/modules/projects/domain/display';
+import type { TaskCommentAttachmentRow } from '@/modules/tasks/application/load-task-comment-attachments';
 
 export interface EmployeePmTaskSummary {
   readonly id: string;
@@ -46,6 +47,7 @@ export interface EmployeePmTaskComment {
   readonly authorEmployeeId: string | null;
   readonly authorOrgMemberId: string | null;
   readonly authorDisplayName: string | null;
+  readonly attachments: readonly TaskCommentAttachmentRow[];
 }
 
 export interface EmployeePmTaskChecklistItem {
@@ -445,6 +447,15 @@ export async function getEmployeePmTaskDetail(
     )
     .orderBy(asc(taskComments.createdAt));
 
+  const { loadAttachmentsByCommentIds } = await import(
+    '@/modules/tasks/application/load-task-comment-attachments'
+  );
+  const attachmentMap = await loadAttachmentsByCommentIds(
+    context.db,
+    context.organizationId,
+    commentRows.map((row) => row.id),
+  );
+
   return {
     ...task,
     checklistItems: checklistRows,
@@ -456,6 +467,7 @@ export async function getEmployeePmTaskDetail(
       authorEmployeeId: row.authorEmployeeId,
       authorOrgMemberId: row.authorOrgMemberId,
       authorDisplayName: row.memberDisplayName ?? row.employeeFullName ?? null,
+      attachments: attachmentMap.get(row.id) ?? [],
     })),
   };
 }
@@ -469,8 +481,14 @@ export async function getEmployeePmTaskDetail(
 export async function addEmployeePmTaskComment(
   context: OrgContext,
   taskId: string,
-  body: string,
-): Promise<void> {
+  input: {
+    body?: string;
+    pendingUploadCount?: number;
+    linkDocumentIds?: readonly string[];
+    cloudFileRefs?: readonly { documentId: string }[];
+    pendingUploads?: readonly { documentId: string; sizeBytes: number }[];
+  },
+): Promise<{ commentId: string }> {
   const employeeId = requireEmployeeId(context);
   if (!employeeHasTaskMutationGrant(context, PERMISSIONS.TASKS_COMMENT)) {
     throw new DomainRuleError('No permission to comment on tasks', 'employeeApp.errors.notAuthorized');
@@ -495,27 +513,21 @@ export async function addEmployeePmTaskComment(
     employeeId,
   );
 
-  const trimmedBody = body.trim();
-  if (!trimmedBody) {
-    throw new DomainRuleError('Comment body cannot be empty', 'employeeApp.errors.commentEmpty');
-  }
+  const { publishTaskCommentWithAttachments } = await import(
+    '@/modules/tasks/application/task-comment-attachments'
+  );
 
-  await context.db.insert(taskComments).values({
-    taskId,
-    organizationId: context.organizationId,
+  const result = await publishTaskCommentWithAttachments(context, taskId, {
+    body: input.body,
     authorEmployeeId: employeeId,
-    body: trimmedBody,
-    isEdited: false,
-    isDeleted: false,
+    authorOrgMemberId: null,
+    pendingUploadCount: input.pendingUploadCount,
+    linkDocumentIds: input.linkDocumentIds,
+    cloudFileRefs: input.cloudFileRefs,
+    pendingUploads: input.pendingUploads,
   });
 
-  await context.db.insert(taskActivity).values({
-    taskId,
-    organizationId: context.organizationId,
-    actorEmployeeId: employeeId,
-    actorSystem: false,
-    eventType: 'comment_added',
-  });
+  return { commentId: result.comment.id };
 }
 
 /**

@@ -692,6 +692,33 @@
     "titlePlaceholder": "عنوان المهمة الفرعية…",
     "parentLabel": "المهمة الأم"
   },
+  "comments": {
+    "sectionLabel": "التعليقات",
+    "empty": "لا تعليقات بعد",
+    "deleted": "تمت إزالة التعليق",
+    "unknownAuthor": "مستخدم غير معروف",
+    "edited": "معدّل",
+    "edit": "تعديل",
+    "delete": "حذف",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "placeholder": "اكتب تعليقاً…",
+    "submit": "نشر التعليق",
+    "loadMore": "تحميل تعليقات سابقة",
+    "attachments": {
+      "addFiles": "إرفاق ملفات",
+      "takePhoto": "التقاط صورة",
+      "pickFromCloud": "اختيار من السحابة",
+      "remove": "إزالة {name}",
+      "uploading": "جاري الرفع {current} من {total}…",
+      "uploadFailed": "تعذر رفع المرفقات",
+      "partialSuccess": "تم نشر التعليق. {count, plural, one {فشل مرفق واحد} other {فشل # مرفقات}}.",
+      "attachmentOnlyHint": "أضف نصاً أو أرفق ملفاً واحداً على الأقل",
+      "imageAlt": "{name}",
+      "download": "تنزيل",
+      "preview": "معاينة المرفق"
+    }
+  },
   "activity": {
     "sectionLabel": "النشاط",
     "empty": "لا يوجد نشاط بعد",

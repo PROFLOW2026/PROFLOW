@@ -13,6 +13,8 @@ import {
 } from '../domain/privacy';
 import { assertCanReadDocumentForEmployee, canEmployeeReadDocumentCategory } from '@/modules/employee-app/application/document-access';
 import { isEmployeeAppUser } from '@/modules/employee-app/application/load-employee-app-context';
+import { resolveEffectiveDocumentCategoryGrants } from '@/modules/external-storage/domain/semantic-folder-access';
+import { isDocumentCategory } from '../domain/categories';
 import type { DocumentRecord } from '../domain/types';
 import { listProjectScopedOwnerIdsForDocument } from '../data/documents.repository';
 import { findTaskCommentById, assertCanAccessTask } from '@/modules/tasks';
@@ -54,11 +56,19 @@ export async function assertCanReadStoredDocument(
 export function canReadDocumentCategoryForContext(
   context: OrgContext,
   category: string | null | undefined,
+  options?: { readonly inProjectScope?: boolean },
 ): boolean {
   if (isEmployeeAppUser(context)) {
-    return canEmployeeReadDocumentCategory(context, category);
+    return canEmployeeReadDocumentCategory(context, category, options);
   }
-  return true;
+
+  const grants = resolveEffectiveDocumentCategoryGrants(context);
+  if (grants === null) return true;
+  if (grants.size === 0) return false;
+  if (!category || !isDocumentCategory(category)) {
+    return options?.inProjectScope === true;
+  }
+  return grants.has(category);
 }
 
 export async function assertCanListEntityDocuments(

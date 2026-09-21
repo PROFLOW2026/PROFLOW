@@ -46,3 +46,7 @@ export {
 } from './application/employee-pm-tasks';
 export { listEmployeeMeetings, listEmployeeProjectMeetings } from './application/employee-meetings';
 export { listEmployeeProjectDocuments } from './application/employee-project-documents';
+export {
+  listOrgMemberDocumentCategoryGrants,
+  replaceOrgMemberDocumentCategoryGrants,
+} from './data/org-member-grants.repository';

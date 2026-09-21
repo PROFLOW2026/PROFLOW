@@ -4,6 +4,7 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { canSeeDocumentPrivacyClass } from '@/modules/documents/domain/privacy';
 import { listProjectScopedOwnerIdsForDocument } from '@/modules/documents';
 import { isDocumentCategory, type DocumentCategory } from '@/modules/documents/domain/categories';
+import { resolveEffectiveDocumentCategoryGrants } from '@/modules/external-storage/domain/semantic-folder-access';
 import {
   employeeHasPermission,
   isEmployeeAppUser,
@@ -41,9 +42,10 @@ export function canEmployeeReadDocumentCategory(
     return options?.inProjectScope === true;
   }
 
-  const allowed = context.employeeApp?.allowedDocumentCategories;
-  if (!allowed || allowed.size === 0) return false;
-  return allowed.has(category as DocumentCategory);
+  const grants = resolveEffectiveDocumentCategoryGrants(context);
+  if (grants === null) return true;
+  if (grants.size === 0) return false;
+  return grants.has(category as DocumentCategory);
 }
 
 export async function assertCanReadDocumentForEmployee(

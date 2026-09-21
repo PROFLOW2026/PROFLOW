@@ -7,6 +7,12 @@ import 'server-only';
 import { asc, and, eq, lt, type SQL } from 'drizzle-orm';
 import { taskComments, organizationMemberships, profiles, employees } from '@drizzle/schema';
 import { withOrgContext } from '@/shared/auth/session';
+import {
+  loadAttachmentsByCommentIds,
+  type TaskCommentAttachmentRow,
+} from './load-task-comment-attachments';
+
+export type TaskCommentAttachmentDisplay = TaskCommentAttachmentRow;
 
 export interface TaskCommentDisplayRow {
   id: string;
@@ -17,6 +23,7 @@ export interface TaskCommentDisplayRow {
   authorName: string | null;
   authorActorId: string | null;
   isEmployee: boolean;
+  attachments: readonly TaskCommentAttachmentDisplay[];
 }
 
 const PAGE_SIZE = 20;
@@ -64,6 +71,12 @@ export async function loadTaskCommentsForDisplay(
     const hasMore = rows.length > PAGE_SIZE;
     const slice = rows.slice(0, PAGE_SIZE);
 
+    const attachmentMap = await loadAttachmentsByCommentIds(
+      context.db,
+      context.organizationId,
+      slice.map((row) => row.id),
+    );
+
     const comments: TaskCommentDisplayRow[] = slice.map((row) => ({
       id: row.id,
       body: row.body,
@@ -73,6 +86,7 @@ export async function loadTaskCommentsForDisplay(
       authorName: row.memberDisplayName ?? row.employeeFullName ?? null,
       authorActorId: row.authorOrgMemberId ?? row.authorEmployeeId ?? null,
       isEmployee: row.authorEmployeeId !== null,
+      attachments: attachmentMap.get(row.id) ?? [],
     }));
 
     return { comments, hasMore, currentMembershipId: context.membershipId };

@@ -81,7 +81,12 @@ export async function getTaskDocumentPanelData(
       originalFilename: document.originalFilename,
     }));
 
-  return { ...panel, linkCandidates };
+  return {
+    ...panel,
+    linkCandidates,
+    projectId: task.projectId,
+    canBrowseCloudFiles: panel.canManage && Boolean(task.projectId) && panel.storageConfigured,
+  };
 }
 
 /**

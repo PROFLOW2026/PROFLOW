@@ -134,6 +134,7 @@ export async function updateStorageFile(
   organizationId: string,
   fileId: string,
   patch: Partial<{
+    documentId: string | null;
     externalFileId: string;
     externalParentFolderId: string | null;
     originalFilename: string;

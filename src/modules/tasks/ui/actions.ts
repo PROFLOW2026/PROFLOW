@@ -19,7 +19,10 @@ import { serializeError } from '@/shared/errors';
 import { withOrgContext } from '@/shared/auth/session';
 import { assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import { createComment, recordTaskApprovalActivity } from '@/modules/tasks';
+import {
+  publishTaskCommentWithAttachments,
+  recordTaskApprovalActivity,
+} from '@/modules/tasks';
 import {
   submitApprovalRequest,
   decideApprovalRequest,
@@ -28,6 +31,8 @@ import {
 export interface TaskActionState {
   ok?: boolean;
   error?: string;
+  commentId?: string;
+  partialError?: string;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -37,6 +42,22 @@ function fv(formData: FormData, key: string): string | undefined {
   if (v === null) return undefined;
   const s = String(v).trim();
   return s === '' ? undefined : s;
+}
+
+function parseIdList(raw: string | undefined): string[] {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    if (Array.isArray(parsed)) {
+      return parsed.filter((value): value is string => typeof value === 'string' && value.trim() !== '');
+    }
+  } catch {
+    // fall through to comma-separated
+  }
+  return raw
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean);
 }
 
 function revalidateTask(taskId: string) {
@@ -50,10 +71,52 @@ export async function addTaskCommentAction(
   formData: FormData,
 ): Promise<TaskActionState> {
   const tErrors = await getTranslations('errors');
+  const tComments = await getTranslations('tasks.comments.attachments');
   const taskId = fv(formData, 'taskId');
-  const body = fv(formData, 'body');
+  const body = fv(formData, 'body') ?? '';
+  const pendingAttachmentCount = Number(fv(formData, 'pendingAttachmentCount') ?? '0');
+  const linkDocumentIds = parseIdList(fv(formData, 'linkDocumentIds'));
+  const cloudFileRefs = parseIdList(fv(formData, 'cloudFileRefs')).map((documentId) => ({
+    documentId,
+  }));
+  let providerFileRefs: Array<{
+    projectId: string;
+    providerFileId: string;
+    fileName: string;
+    mimeType: string;
+    parentFolderId: string;
+  }> = [];
+  const providerFileRefsRaw = fv(formData, 'providerFileRefs');
+  if (providerFileRefsRaw) {
+    try {
+      const parsed = JSON.parse(providerFileRefsRaw) as unknown;
+      if (Array.isArray(parsed)) {
+        providerFileRefs = parsed.filter(
+          (item): item is (typeof providerFileRefs)[number] =>
+            typeof item === 'object' &&
+            item !== null &&
+            typeof (item as { projectId?: string }).projectId === 'string' &&
+            typeof (item as { providerFileId?: string }).providerFileId === 'string' &&
+            typeof (item as { fileName?: string }).fileName === 'string' &&
+            typeof (item as { mimeType?: string }).mimeType === 'string' &&
+            typeof (item as { parentFolderId?: string }).parentFolderId === 'string',
+        );
+      }
+    } catch {
+      providerFileRefs = [];
+    }
+  }
 
-  if (!taskId || !body) {
+  if (!taskId) {
+    return { error: tErrors('validationFailed') };
+  }
+  if (
+    !body &&
+    pendingAttachmentCount <= 0 &&
+    linkDocumentIds.length === 0 &&
+    cloudFileRefs.length === 0 &&
+    providerFileRefs.length === 0
+  ) {
     return { error: tErrors('validationFailed') };
   }
   if (body.length > 20_000) {
@@ -61,12 +124,28 @@ export async function addTaskCommentAction(
   }
 
   try {
-    await withOrgContext(async (context) => {
-      await createComment(context, taskId, { body });
-    });
+    const result = await withOrgContext(async (context) =>
+      publishTaskCommentWithAttachments(context, taskId, {
+        body,
+        linkDocumentIds,
+        cloudFileRefs,
+        providerFileRefs,
+        pendingUploadCount: pendingAttachmentCount,
+      }),
+    );
 
     revalidateTask(taskId);
-    return { ok: true };
+
+    const partialError =
+      result.failures.length > 0
+        ? tComments('partialSuccess', { count: result.failures.length })
+        : undefined;
+
+    return {
+      ok: true,
+      commentId: result.comment.id,
+      partialError,
+    };
   } catch (error) {
     const serialized = serializeError(error);
     return { error: tErrors(serialized.messageKey.replace(/^errors\./, '') as 'notAllowed') };

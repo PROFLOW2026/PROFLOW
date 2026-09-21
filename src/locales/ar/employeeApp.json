@@ -132,6 +132,9 @@
     "createNewTask": "+ مهمة جديدة",
     "commentPlaceholder": "أضف تعليقاً…",
     "postComment": "نشر التعليق",
+    "commentAttachments": {
+      "partialSuccess": "تم نشر التعليق. {count, plural, one {فشل مرفق واحد} other {فشل # مرفقات}}."
+    },
     "status": {
       "todo": "للتنفيذ",
       "in_progress": "قيد التنفيذ",
@@ -178,6 +181,10 @@
     }
   },
   "projects": {
+    "createButton": "مشروع جديد",
+    "createTitle": "مشروع جديد",
+    "createDescription": "أدخل اسمًا للبدء. كل شيء آخر اختياري.",
+    "createSubmit": "إنشاء مشروع",
     "overview": {
       "subtitle": "نظرة عامة على المشروع"
     },
@@ -201,6 +208,8 @@
       "noPermission": "لا وصول للمجلدات",
       "noPermissionHint": "حسابك لا يملك صلاحية تصفح مجلدات المشروع. تواصل مع المدير.",
       "storageNotConnected": "تخزين المؤسسة غير متصل. ستظهر الملفات هنا بعد إعداد التخزين.",
+      "projectNotProvisioned": "مجلدات المشروع غير جاهزة بعد. اطلب من المسؤول فتح ملفات المشروع في التطبيق الرئيسي مرة واحدة.",
+      "providerError": "التخزين السحابي غير متاح مؤقتًا. حاول لاحقًا أو تواصل مع المسؤول.",
       "noFoldersAllowed": "لا مجلدات مسموحة",
       "noFoldersAllowedHint": "لا يوجد مجلد مشروع يطابق فئات المستندات الممنوحة لك."
     }
@@ -457,12 +466,6 @@
   "forms": {
     "intro": "النماذج التشغيلية المسموح بها.",
     "empty": "لا توجد نماذج متاحة"
-  },
-  "projects": {
-    "createButton": "مشروع جديد",
-    "createTitle": "مشروع جديد",
-    "createDescription": "أدخل اسمًا للبدء. كل شيء آخر اختياري.",
-    "createSubmit": "إنشاء مشروع"
   },
   "expenses": {
     "create": "مصروف جديد",

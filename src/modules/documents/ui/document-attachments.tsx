@@ -1,6 +1,6 @@
 'use client';
 
-import { Camera, FileText, Upload } from 'lucide-react';
+import { Camera, Cloud, FileText, Upload } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useTranslations } from 'next-intl';
 import { Link, useRouter } from '@/shared/i18n/navigation';
@@ -18,6 +18,11 @@ import { StatusBadge } from '@/components/ui/status-badge';
 import { pressableClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
 import type { DocumentFolder, DocumentListItem, DocumentLinkCandidate, DocumentOwnerType } from '@/modules/documents/domain/types';
+import type {
+  ProjectCloudFileBrowserActions,
+  ProjectCloudFileRef,
+} from '@/modules/external-storage/client';
+import { ProjectCloudFilePicker } from '@/modules/external-storage/client';
 import { DOCUMENT_CATEGORIES } from '@/modules/documents/domain/categories';
 import { formatFileSize } from '@/modules/documents/domain/format-file-size';
 import { isBrowserPreviewableMime, normalizeUploadMime } from '@/modules/documents/domain/file-rules';
@@ -80,6 +85,14 @@ export interface DocumentAttachmentsProps {
     privacyClass?: 'standard' | 'compensation' | null;
   }) => Promise<{ error?: string }>;
   unlinkDocumentAction?: (input: { linkId: string }) => Promise<{ error?: string }>;
+  /** Live cloud attach — browse project folders and link without re-upload. */
+  projectId?: string | null;
+  canBrowseCloudFiles?: boolean;
+  cloudFileBrowserActions?: ProjectCloudFileBrowserActions;
+  linkProviderFileAction?: (input: ProjectCloudFileRef & {
+    label?: string | null;
+    privacyClass?: 'standard' | 'compensation' | null;
+  }) => Promise<{ error?: string }>;
 }
 
 function statusShape(status: string): 'pending' | 'active' | 'void' {
@@ -104,6 +117,10 @@ export function DocumentAttachments({
   suppressCardHeader = false,
   linkDocumentAction: linkDocumentActionOverride,
   unlinkDocumentAction: unlinkDocumentActionOverride,
+  projectId = null,
+  canBrowseCloudFiles = false,
+  cloudFileBrowserActions,
+  linkProviderFileAction,
 }: DocumentAttachmentsProps) {
   const t = useTranslations('documents.attachments');
   const tErrors = useTranslations('documents.errors');
@@ -129,6 +146,8 @@ export function DocumentAttachments({
   const [privacyClass, setPrivacyClass] = useState<'standard' | 'compensation'>('standard');
   const [uploadPending, startUploadTransition] = useTransition();
   const [linkPending, startLinkTransition] = useTransition();
+  const [cloudPickerOpen, setCloudPickerOpen] = useState(false);
+  const [cloudLinkPending, startCloudLinkTransition] = useTransition();
   const [selectedLinkId, setSelectedLinkId] = useState<string>('');
   const [downloadingIds, setDownloadingIds] = useState<ReadonlySet<string>>(() => new Set());
   const [dragActive, setDragActive] = useState(false);
@@ -357,7 +376,33 @@ export function DocumentAttachments({
 
   const isDownloading = (documentId: string) => downloadingIds.has(documentId);
   const showLinkExisting = canManage && linkCandidates.length > 0;
+  const showCloudPicker =
+    canManage &&
+    canBrowseCloudFiles &&
+    Boolean(projectId) &&
+    Boolean(cloudFileBrowserActions) &&
+    Boolean(linkProviderFileAction);
   const showManageUpload = canManage && storageConfigured;
+
+  const handleCloudFileSelect = (file: ProjectCloudFileRef) => {
+    if (!linkProviderFileAction) return;
+    setError(null);
+    setUploadSuccess(null);
+    startCloudLinkTransition(async () => {
+      const result = await linkProviderFileAction({
+        ...file,
+        label: resolveLinkLabel(),
+        privacyClass: resolvePrivacyClass(),
+      });
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+      setLabel('');
+      setUploadSuccess(t('linkSuccess'));
+      router.refresh();
+    });
+  };
 
   return (
     <Card className={suppressCardHeader ? `border-0 shadow-none ${className ?? ''}` : className}>
@@ -527,6 +572,29 @@ export function DocumentAttachments({
                 t('dropzone')
               )}
             </div>
+          </>
+        ) : null}
+
+        {showCloudPicker ? (
+          <>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              loading={cloudLinkPending}
+              disabled={linkPending || uploadPending}
+              onClick={() => setCloudPickerOpen(true)}
+            >
+              <Cloud aria-hidden />
+              {t('pickFromCloud')}
+            </Button>
+            <ProjectCloudFilePicker
+              projectId={projectId!}
+              open={cloudPickerOpen}
+              onOpenChange={setCloudPickerOpen}
+              onSelect={handleCloudFileSelect}
+              browserActions={cloudFileBrowserActions!}
+            />
           </>
         ) : null}
 

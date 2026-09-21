@@ -1,10 +1,6 @@
 import { getTranslations } from 'next-intl/server';
-import { authorize } from '@/shared/permissions/authorize';
-import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { withOrgContext } from '@/shared/auth/session';
-import { listDocumentsForEntity } from '@/modules/documents';
-import { resolveLinkedEmployee } from '@/modules/workforce/application/time-scope';
-import { canReadDocumentCategoryForContext } from '@/modules/documents/application/document-visibility';
+import { listEmployeeAccessibleDocuments } from '@/modules/employee-app/application/employee-accessible-documents';
 import {
   employeeListPanelClass,
   employeeListRowClass,
@@ -13,16 +9,7 @@ import {
 
 export default async function EmployeeDocumentsPage() {
   const t = await getTranslations('employeeApp.lists');
-  const docs = await withOrgContext(async (context) => {
-    await authorize(context, { permission: PERMISSIONS.DOCUMENTS_READ, scope: 'assigned_only' });
-    const employee = await resolveLinkedEmployee(context);
-    if (!employee) return [];
-    const items = await listDocumentsForEntity(context.db, context.organizationId, {
-      ownerType: 'employee',
-      ownerId: employee.id,
-    });
-    return items.filter((doc) => canReadDocumentCategoryForContext(context, doc.category));
-  });
+  const docs = await withOrgContext((context) => listEmployeeAccessibleDocuments(context));
 
   return (
     <div className={employeePageStackClass}>

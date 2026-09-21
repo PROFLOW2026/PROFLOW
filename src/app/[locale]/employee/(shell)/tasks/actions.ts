@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { getLocale } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { redirect } from '@/shared/i18n/navigation';
 import { withOrgContext } from '@/shared/auth/session';
 import {
@@ -14,34 +14,95 @@ import {
   toggleEmployeePmTaskChecklistItem,
 } from '@/modules/employee-app/application/employee-pm-tasks';
 import { assertEmployeeAppContext } from '@/modules/employee-app/application/session-guard';
-import { DomainRuleError } from '@/shared/errors';
+import { DomainRuleError, serializeError } from '@/shared/errors';
 import {
   getEmployeeTaskDocumentPanelData,
   linkDocumentToEmployeeTask,
+  linkProviderFileToEmployeeTask,
   recordEmployeeTaskAttachmentAdded,
   unlinkDocumentFromEmployeeTask,
 } from '@/modules/employee-app/application/employee-task-documents';
+import type { ProviderFileLinkInput } from '@/modules/tasks/application/task-provider-file-link';
+import type { ProjectCloudFileRef } from '@/modules/external-storage/client';
+import type { TaskActionState } from '@/modules/tasks/ui/actions';
 
-export interface TaskActionState {
-  error?: string;
+export type { TaskActionState };
+
+function fv(formData: FormData, key: string): string | undefined {
+  const v = formData.get(key);
+  if (v === null) return undefined;
+  const s = String(v).trim();
+  return s === '' ? undefined : s;
+}
+
+function parseIdList(raw: string | undefined): string[] {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    if (Array.isArray(parsed)) {
+      return parsed.filter((value): value is string => typeof value === 'string' && value.trim() !== '');
+    }
+  } catch {
+    // fall through
+  }
+  return raw
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean);
 }
 
 /**
  * Adds a comment to a PM task (Employee App surface).
- * Signature is (taskId, formData) so it can be bound and used as a form action.
+ * Compatible with CommentFormClient (useActionState).
  */
 export async function employeeAddTaskCommentAction(
-  taskId: string,
+  _prev: TaskActionState,
   formData: FormData,
-): Promise<void> {
-  const body = String(formData.get('body') ?? '').trim();
-  if (!body) return;
+): Promise<TaskActionState> {
+  const tErrors = await getTranslations('errors');
+  const taskId = fv(formData, 'taskId');
+  const body = fv(formData, 'body') ?? '';
+  const pendingAttachmentCount = Number(fv(formData, 'pendingAttachmentCount') ?? '0');
+  const linkDocumentIds = parseIdList(fv(formData, 'linkDocumentIds'));
+  const cloudFileRefs = parseIdList(fv(formData, 'cloudFileRefs')).map((documentId) => ({
+    documentId,
+  }));
 
-  await withOrgContext(async (context) => {
-    await assertEmployeeAppContext(context);
-    await addEmployeePmTaskComment(context, taskId, body);
-  });
-  revalidatePath(`/employee/tasks/${taskId}`);
+  if (!taskId) {
+    return { error: tErrors('validationFailed') };
+  }
+  if (
+    !body &&
+    pendingAttachmentCount <= 0 &&
+    linkDocumentIds.length === 0 &&
+    cloudFileRefs.length === 0
+  ) {
+    return { error: tErrors('validationFailed') };
+  }
+  if (body.length > 20_000) {
+    return { error: tErrors('validationFailed') };
+  }
+
+  try {
+    const result = await withOrgContext(async (context) => {
+      await assertEmployeeAppContext(context);
+      return addEmployeePmTaskComment(context, taskId, {
+        body,
+        pendingUploadCount: pendingAttachmentCount,
+        linkDocumentIds,
+        cloudFileRefs,
+      });
+    });
+
+    revalidatePath(`/employee/tasks/${taskId}`);
+    return { ok: true, commentId: result.commentId };
+  } catch (error) {
+    if (error instanceof DomainRuleError) {
+      return { error: error.message };
+    }
+    const serialized = serializeError(error);
+    return { error: tErrors(serialized.messageKey.replace(/^errors\./, '') as 'notAllowed') };
+  }
 }
 
 /** Updates the status of a PM task (Employee App surface). */
@@ -189,6 +250,8 @@ export async function getEmployeeTaskDocumentPanelAction(taskId: string) {
         canManage: false,
         storageConfigured: false,
         canClassifyCompensation: false,
+        projectId: null,
+        canBrowseCloudFiles: false,
       };
     }
   });
@@ -232,6 +295,24 @@ export async function employeeUnlinkTaskDocumentAction(
   } catch (error) {
     if (error instanceof DomainRuleError) return { error: error.message };
     return { error: 'Failed to unlink document' };
+  }
+}
+
+export async function employeeLinkProviderFileToTaskAction(
+  taskId: string,
+  input: ProjectCloudFileRef &
+    Pick<ProviderFileLinkInput, 'projectId' | 'label' | 'privacyClass' | 'semanticFolderType'>,
+): Promise<TaskActionState> {
+  try {
+    await withOrgContext(async (context) => {
+      await assertEmployeeAppContext(context);
+      await linkProviderFileToEmployeeTask(context, taskId, input);
+    });
+    revalidatePath(`/employee/tasks/${taskId}`);
+    return {};
+  } catch (error) {
+    if (error instanceof DomainRuleError) return { error: error.message };
+    return { error: 'Failed to attach cloud file' };
   }
 }
 

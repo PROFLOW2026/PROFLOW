@@ -383,6 +383,34 @@ export async function listActiveOrgMembersForLinking(
   return rows;
 }
 
+/** Minimal active-employee rows for project-create team pickers — no compensation fields. */
+export interface EmployeeProjectCreateTeamRow {
+  readonly id: string;
+  readonly name: string;
+  readonly jobTitle: string | null;
+}
+
+export async function listActiveEmployeesForProjectCreateTeam(
+  db: DbExecutor,
+  organizationId: string,
+): Promise<EmployeeProjectCreateTeamRow[]> {
+  return db
+    .select({
+      id: employees.id,
+      name: employees.name,
+      jobTitle: employees.jobTitle,
+    })
+    .from(employees)
+    .where(
+      and(
+        eq(employees.organizationId, organizationId),
+        eq(employees.status, 'active'),
+        isNull(employees.archivedAt),
+      ),
+    )
+    .orderBy(asc(employees.name));
+}
+
 export async function listLinkedEmployeeUserIds(
   db: DbExecutor,
   organizationId: string,

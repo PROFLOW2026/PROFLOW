@@ -5,6 +5,8 @@ import {
   canAccessSemanticFolder,
   categoriesForSemanticFolder,
   employeeHasAnyAllowedSemanticFolder,
+  resolveAllowedSemanticFolders,
+  resolveEffectiveDocumentCategoryGrants,
   resolveSemanticFolderForPath,
   SEMANTIC_FOLDER_DOCUMENT_CATEGORIES,
 } from '@/modules/external-storage/domain/semantic-folder-access';
@@ -95,7 +97,7 @@ describe('semantic folder access mapping', () => {
     expect(resolveSemanticFolderForPath('unknown', mappings)).toBeNull();
   });
 
-  it('allows owner users all semantic folders', () => {
+  it('allows owner users all semantic folders when no member grants configured', () => {
     const ownerContext = {
       userId: 'owner-1',
       organizationId: 'org-1',
@@ -105,10 +107,30 @@ describe('semantic folder access mapping', () => {
       organization: { id: 'org-1', name: 'Org', timezone: 'Asia/Jerusalem' } as OrgContext['organization'],
       roleKeys: ['owner'],
       permissions: new Set([PERMISSIONS.DOCUMENTS_READ]),
+      documentCategoryGrants: null,
     } as OrgContext;
 
+    expect(resolveEffectiveDocumentCategoryGrants(ownerContext)).toBeNull();
     expect(canAccessSemanticFolder(ownerContext, 'billing')).toBe(true);
     expect(canAccessSemanticFolder(ownerContext, 'photos')).toBe(true);
+    expect(resolveAllowedSemanticFolders(ownerContext).length).toBeGreaterThan(0);
+  });
+
+  it('restricts main org members when folder grants are configured', () => {
+    const managerContext = {
+      userId: 'mgr-1',
+      organizationId: 'org-1',
+      membershipId: 'mem-mgr',
+      locale: 'he-IL',
+      db: {} as OrgContext['db'],
+      organization: { id: 'org-1', name: 'Org', timezone: 'Asia/Jerusalem' } as OrgContext['organization'],
+      roleKeys: ['manager'],
+      permissions: new Set([PERMISSIONS.DOCUMENTS_READ]),
+      documentCategoryGrants: new Set(['photo', 'drawing'] as const),
+    } as OrgContext;
+
+    expect(canAccessSemanticFolder(managerContext, 'photos')).toBe(true);
+    expect(canAccessSemanticFolder(managerContext, 'quotes')).toBe(false);
   });
 
   it('filters semantic folders by employee category grants', () => {

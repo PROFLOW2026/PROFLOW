@@ -692,6 +692,33 @@
     "titlePlaceholder": "Название подзадачи…",
     "parentLabel": "Родительская задача"
   },
+  "comments": {
+    "sectionLabel": "Комментарии",
+    "empty": "Комментариев пока нет",
+    "deleted": "Комментарий удалён",
+    "unknownAuthor": "Неизвестный пользователь",
+    "edited": "изменён",
+    "edit": "Редактировать",
+    "delete": "Удалить",
+    "save": "Сохранить",
+    "cancel": "Отмена",
+    "placeholder": "Напишите комментарий…",
+    "submit": "Опубликовать",
+    "loadMore": "Загрузить более ранние комментарии",
+    "attachments": {
+      "addFiles": "Прикрепить файлы",
+      "takePhoto": "Сделать фото",
+      "pickFromCloud": "Выбрать из облака",
+      "remove": "Удалить {name}",
+      "uploading": "Загрузка {current} из {total}…",
+      "uploadFailed": "Не удалось загрузить вложения",
+      "partialSuccess": "Комментарий опубликован. {count, plural, one {Не загружено # вложение} few {Не загружено # вложения} other {Не загружено # вложений}}.",
+      "attachmentOnlyHint": "Добавьте текст или прикрепите хотя бы один файл",
+      "imageAlt": "{name}",
+      "download": "Скачать",
+      "preview": "Предпросмотр"
+    }
+  },
   "activity": {
     "sectionLabel": "Активность",
     "empty": "Активности пока нет",

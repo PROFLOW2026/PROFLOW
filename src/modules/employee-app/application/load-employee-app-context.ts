@@ -1,5 +1,5 @@
 import type { OrgContext } from '@/shared/auth/context';
-import type { PermissionKey } from '@/shared/permissions/catalog';
+import { PERMISSIONS, type PermissionKey } from '@/shared/permissions/catalog';
 import type { PermissionScope } from '@/shared/permissions/scopes';
 import type { DocumentCategory } from '@/modules/documents/domain/categories';
 import {
@@ -120,7 +120,7 @@ export function employeePermissionScope(
 ): PermissionScope | null {
   const grant = context.employeeApp?.grants.get(permission);
   if (grant?.granted) return grant.scope;
-  if (context.permissions.has(permission)) {
+  if (context.permissions.has(permission) && permission === PERMISSIONS.ATTENDANCE_SELF) {
     return 'self_only';
   }
   return null;

@@ -1,6 +1,9 @@
 import type { OrgContext } from '@/shared/auth/context';
+import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS, type PermissionKey } from '@/shared/permissions/catalog';
-import { loadEmployeeAppContextForUser } from './load-employee-app-context';
+import type { DocumentCategory } from '@/modules/documents/domain/categories';
+import { listOrgMemberDocumentCategoryGrants } from '@/modules/employee-app';
+import { isEmployeeAppUser, loadEmployeeAppContextForUser } from './load-employee-app-context';
 
 /** Baseline always available to active Employee App users (attendance self). */
 const EMPLOYEE_APP_BASELINE: readonly PermissionKey[] = [PERMISSIONS.ATTENDANCE_SELF];
@@ -19,16 +22,39 @@ export function resolveEmployeeAppEffectivePermissions(
   return permissions;
 }
 
+async function loadMainOrgMemberDocumentCategoryGrants(
+  context: OrgContext,
+): Promise<ReadonlySet<DocumentCategory> | null> {
+  if (isEmployeeAppUser(context)) return null;
+  if (!hasPermission(context, PERMISSIONS.DOCUMENTS_READ)) return new Set<DocumentCategory>();
+
+  const categoryMap = await listOrgMemberDocumentCategoryGrants(
+    context.db,
+    context.organizationId,
+    context.membershipId,
+  );
+  if (categoryMap.size === 0) return null;
+  return new Set<DocumentCategory>(
+    [...categoryMap.entries()].filter(([, allowed]) => allowed).map(([category]) => category),
+  );
+}
+
 /** Attach employee app state and replace the effective permission set for app users. */
 export async function enrichOrgContextWithEmployeeApp(
   context: OrgContext,
 ): Promise<OrgContext> {
-  if (!context.roleKeys.includes('employee')) return context;
+  const documentCategoryGrants = await loadMainOrgMemberDocumentCategoryGrants(context);
+
+  if (!context.roleKeys.includes('employee')) {
+    return { ...context, documentCategoryGrants };
+  }
 
   const employeeApp = await loadEmployeeAppContextForUser(context);
-  if (!employeeApp) return context;
+  if (!employeeApp) {
+    return { ...context, documentCategoryGrants };
+  }
 
   const permissions = resolveEmployeeAppEffectivePermissions(employeeApp.grants);
 
-  return { ...context, employeeApp, permissions };
+  return { ...context, employeeApp, permissions, documentCategoryGrants: null };
 }

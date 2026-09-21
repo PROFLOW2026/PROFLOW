@@ -123,12 +123,6 @@
     "intro": "Permitted operational forms.",
     "empty": "No forms available"
   },
-  "projects": {
-    "createButton": "New project",
-    "createTitle": "New project",
-    "createDescription": "Enter a name to get started. Everything else is optional.",
-    "createSubmit": "Create project"
-  },
   "expenses": {
     "create": "New expense",
     "empty": "No expenses in your scope",
@@ -166,6 +160,9 @@
     "createNewTask": "+ New task",
     "commentPlaceholder": "Add a comment…",
     "postComment": "Post Comment",
+    "commentAttachments": {
+      "partialSuccess": "Comment posted. {count, plural, one {# attachment failed} other {# attachments failed}}."
+    },
     "assignSection": "Assign task",
     "assignSelect": "Select team member",
     "assignSubmit": "Assign",
@@ -211,6 +208,10 @@
     "reportTimeForTask": "Report time for task"
   },
   "projects": {
+    "createButton": "New project",
+    "createTitle": "New project",
+    "createDescription": "Enter a name to get started. Everything else is optional.",
+    "createSubmit": "Create project",
     "overview": {
       "subtitle": "Project overview"
     },
@@ -234,6 +235,8 @@
       "noPermission": "No folder access",
       "noPermissionHint": "Your account does not have permission to browse project folders. Contact your manager.",
       "storageNotConnected": "Organization storage is not connected. Files will appear here once storage is set up.",
+      "projectNotProvisioned": "Project folders are not ready yet. Ask an administrator to open project files once in the main app.",
+      "providerError": "Cloud storage is temporarily unavailable. Try again later or contact your administrator.",
       "noFoldersAllowed": "No folders allowed",
       "noFoldersAllowedHint": "None of the project folders match your granted document categories."
     }
