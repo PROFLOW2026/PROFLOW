@@ -13,6 +13,7 @@ import {
   PROJECT_SEMANTIC_FOLDERS,
   resolveSemanticFolderDisplayName,
 } from '../domain/semantic-folders';
+import { projectStorageFolderName } from '../domain/project-folder-placement';
 import { sanitizeProviderFolderName } from '../domain/folder-names';
 import {
   normalizeProviderFolderId,
@@ -240,7 +241,27 @@ export async function ensureSemanticFolder(
   if (existing?.status === 'ready' && parentAligned) {
     const adapter = getStorageProviderAdapter(input.connection.provider);
     const folder = await adapter.getFolder(input.accessToken, existing.externalFolderId);
-    if (folder) return existing.externalFolderId;
+    if (folder) {
+      const desiredName = sanitizeProviderFolderName(input.displayName);
+      if (folder.name !== desiredName) {
+        const renamed = await adapter.renameFolder(input.accessToken, folder.id, desiredName);
+        await updateFolderMapping(db, input.organizationId, existing.id, {
+          externalFolderId: renamed.id,
+          displayName: input.displayName,
+          status: 'ready',
+          lastError: null,
+        });
+        return renamed.id;
+      }
+      if (existing.displayName !== input.displayName) {
+        await updateFolderMapping(db, input.organizationId, existing.id, {
+          displayName: input.displayName,
+          status: 'ready',
+          lastError: null,
+        });
+      }
+      return existing.externalFolderId;
+    }
   }
 
   const providerFolderName = sanitizeProviderFolderName(input.displayName);
@@ -329,24 +350,59 @@ export async function ensureClientFolderTree(
   });
 }
 
+export async function ensureProjectsRootFolder(
+  db: DbExecutor,
+  input: {
+    organizationId: string;
+    connection: StorageConnectionRecord;
+    accessToken: string;
+  },
+): Promise<string> {
+  const orgRoot = await findFolderMapping(db, {
+    organizationId: input.organizationId,
+    connectionId: input.connection.id,
+    semanticFolderType: 'organization_root',
+  });
+  if (!orgRoot?.externalFolderId) {
+    throw new Error('organization_root mapping missing');
+  }
+  return ensureSemanticFolder(db, {
+    organizationId: input.organizationId,
+    connection: input.connection,
+    accessToken: input.accessToken,
+    semanticFolderType: 'projects_root',
+    parentFolderId: orgRoot.externalFolderId,
+    displayName: resolveSemanticFolderDisplayName('projects_root'),
+  });
+}
+
 export async function ensureProjectFolderTree(
   db: DbExecutor,
   input: {
     organizationId: string;
     connection: StorageConnectionRecord;
     accessToken: string;
-    clientId: string;
-    clientName: string;
     projectId: string;
     projectName: string;
+    documentNumber?: string | null;
+    clientId?: string | null;
+    clientName?: string | null;
   },
 ): Promise<string> {
-  const clientFolderId = await ensureClientFolderTree(db, {
+  if (input.clientId) {
+    await ensureClientFolderTree(db, {
+      organizationId: input.organizationId,
+      connection: input.connection,
+      accessToken: input.accessToken,
+      clientId: input.clientId,
+      clientName: input.clientName?.trim() || 'Client',
+    });
+  }
+
+  const projectsRootId = await ensureProjectsRootFolder(db, {
     organizationId: input.organizationId,
     connection: input.connection,
     accessToken: input.accessToken,
-    clientId: input.clientId,
-    clientName: input.clientName,
   });
 
   const projectRootId = await ensureSemanticFolder(db, {
@@ -354,8 +410,8 @@ export async function ensureProjectFolderTree(
     connection: input.connection,
     accessToken: input.accessToken,
     semanticFolderType: 'project_root',
-    parentFolderId: clientFolderId,
-    displayName: input.projectName,
+    parentFolderId: projectsRootId,
+    displayName: projectStorageFolderName(input.projectName, input.documentNumber),
     entityType: 'project',
     entityId: input.projectId,
   });
@@ -372,6 +428,15 @@ export async function ensureProjectFolderTree(
       entityId: input.projectId,
     });
   }
+
+  const { upsertProjectInfoFile } = await import('./project-info-file');
+  await upsertProjectInfoFile(db, {
+    organizationId: input.organizationId,
+    connection: input.connection,
+    accessToken: input.accessToken,
+    projectId: input.projectId,
+    projectFolderId: projectRootId,
+  });
 
   return projectRootId;
 }

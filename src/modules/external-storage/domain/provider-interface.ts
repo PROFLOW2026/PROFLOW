@@ -65,6 +65,17 @@ export interface StorageProviderAdapter {
       sizeBytes: number;
     },
   ): Promise<ProviderFileItem>;
+  /** Replace bytes of an existing file. Does not create a second copy. */
+  replaceFileContent(
+    accessToken: string,
+    input: {
+      fileId: string;
+      parentFolderId: string;
+      fileName: string;
+      mimeType: string;
+      body: Uint8Array;
+    },
+  ): Promise<ProviderFileItem>;
   getFileMetadata(accessToken: string, fileId: string): Promise<ProviderFileItem | null>;
   downloadFileStream(
     accessToken: string,

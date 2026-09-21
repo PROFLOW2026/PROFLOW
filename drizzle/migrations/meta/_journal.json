@@ -855,6 +855,13 @@
                         "when":  1789711560000,
                         "tag":  "0122_employee_document_number_permission",
                         "breakpoints":  true
+                    },
+                    {
+                        "idx":  122,
+                        "version":  "7",
+                        "when":  1789711620000,
+                        "tag":  "0123_projects_root_semantic",
+                        "breakpoints":  true
                     }
                 ]
 }

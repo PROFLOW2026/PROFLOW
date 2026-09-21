@@ -28,7 +28,7 @@ import {
 import { ensureUsablePrimaryStorageConnection } from './reconcile-primary-storage';
 import { ProviderHttpError } from '../providers/http-utils';
 import { getStorageProviderAdapter, isStorageProviderConfigured } from '../providers/registry';
-import { bootstrapOrganizationStorageTree } from './bootstrap';
+import { kickStorageProvision } from './kick-storage-provision';
 import { deleteFolderMappingsForConnection } from '../data/folder-mappings.repository';
 import { ensureOrganizationRootFolder } from './folder-provisioning';
 import {
@@ -209,28 +209,12 @@ export async function provisionConnectedStorage(input: {
     console.info('[org-storage/oauth/provision] step=root_folder pass', {
       connectionId: input.connectionId,
     });
-
-    if (!input.reconnectSameAccount || input.accountChanged) {
-      console.info('[org-storage/oauth/provision] step=bootstrap begin', {
-        connectionId: input.connectionId,
-      });
-      const bootstrapped = await bootstrapOrganizationStorageTree(
-        db,
-        input.organizationId,
-        connection.id,
-        accessToken,
-      );
-      console.info('[org-storage/oauth/provision] step=bootstrap pass', {
-        connectionId: input.connectionId,
-        clients: bootstrapped.clients,
-        projects: bootstrapped.projects,
-      });
-    } else {
-      console.info('[org-storage/oauth/provision] step=bootstrap skipped', {
-        connectionId: input.connectionId,
-        reason: 'same_account_reconnect',
-      });
-    }
+    console.info('[org-storage/oauth/provision] step=provision_enqueued', {
+      connectionId: input.connectionId,
+      reconnectSameAccount: Boolean(input.reconnectSameAccount),
+      accountChanged: Boolean(input.accountChanged),
+    });
+    kickStorageProvision();
 
     await updateStorageConnection(db, input.organizationId, connection.id, {
       lastError: null,

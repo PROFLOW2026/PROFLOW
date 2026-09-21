@@ -1,14 +1,14 @@
 import 'server-only';
 
 import type { SemanticFolderType } from '@drizzle/schema/external-storage';
-import { findClientById } from '@/modules/clients/data/clients.repository';
-import { findProjectById } from '@/modules/projects/data/projects.repository';
 import type { OrgContext } from '@/shared/auth/context';
-import { DomainRuleError, NotFoundError, ServiceUnavailableError } from '@/shared/errors';
+import { NotFoundError, ServiceUnavailableError } from '@/shared/errors';
 import { findFolderMapping } from '../data/folder-mappings.repository';
 import type { StorageConnectionRecord } from '../domain/types';
+import { isCanonicalProjectRootParent } from '../domain/project-folder-placement';
 import { resolveSemanticFolderDisplayName } from '../domain/semantic-folders';
-import { ensureProjectFolderTree, ensureSemanticFolder } from './folder-provisioning';
+import { ensureSemanticFolder } from './folder-provisioning';
+import { provisionStoredProjectFolder } from './project-provision';
 
 /**
  * Ensures a project-scoped semantic folder exists and returns its provider folder id.
@@ -37,9 +37,19 @@ export async function resolveProjectScopedUploadFolderId(
     entityType: 'project',
     entityId: input.projectId,
   });
+  const projectsRoot = await findFolderMapping(context.db, {
+    organizationId: context.organizationId,
+    connectionId: input.connection.id,
+    semanticFolderType: 'projects_root',
+  });
+  const canonicalRoot = isCanonicalProjectRootParent(
+    projectRoot?.externalParentId,
+    projectsRoot?.externalFolderId,
+  );
   if (
     existing?.status === 'ready' &&
     existing.externalFolderId &&
+    canonicalRoot &&
     projectRoot?.status === 'ready' &&
     projectRoot.externalFolderId &&
     existing.externalParentId === projectRoot.externalFolderId
@@ -47,25 +57,13 @@ export async function resolveProjectScopedUploadFolderId(
     return existing.externalFolderId;
   }
 
-  const project = await findProjectById(context.db, context.organizationId, input.projectId);
-  if (!project) throw new NotFoundError('Project');
-  if (!project.clientId) {
-    throw new DomainRuleError(
-      'Project storage folders require a linked client',
-      'externalStorage.errors.projectFoldersUnavailable',
-    );
-  }
-
-  const client = await findClientById(context.db, context.organizationId, project.clientId);
-  const projectRootId = await ensureProjectFolderTree(context.db, {
+  const projectRootId = await provisionStoredProjectFolder(context.db, {
     organizationId: context.organizationId,
     connection: input.connection,
     accessToken: input.accessToken,
-    clientId: project.clientId,
-    clientName: client?.name ?? 'Client',
     projectId: input.projectId,
-    projectName: project.name,
   });
+  if (!projectRootId) throw new NotFoundError('Project');
 
   const folderId = await ensureSemanticFolder(context.db, {
     organizationId: context.organizationId,

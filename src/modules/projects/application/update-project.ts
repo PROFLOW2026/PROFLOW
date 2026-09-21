@@ -178,5 +178,21 @@ export async function updateProject(
     after: updated,
   });
 
+  if (
+    existing.name !== updated.name ||
+    existing.status !== updated.status ||
+    existing.location !== updated.location ||
+    existing.description !== updated.description ||
+    existing.notes !== updated.notes ||
+    existing.startDate !== updated.startDate ||
+    existing.clientId !== updated.clientId ||
+    existing.documentNumber !== updated.documentNumber
+  ) {
+    const { provisionProjectStorageFolder } = await import(
+      '@/modules/external-storage/application/provision-hooks'
+    );
+    await provisionProjectStorageFolder(context, updated.id);
+  }
+
   return updated;
 }

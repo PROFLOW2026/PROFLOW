@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { StatusBadge } from '@/components/ui/status-badge';
 import type { StorageConnectionRecord, StorageProviderKey } from '@/modules/external-storage/client';
+import type { StorageProvisionProgress } from '@/modules/external-storage/domain/project-folder-placement';
 import { formatFileSize } from '@/modules/documents/domain/format-file-size';
 import {
   disconnectStorageConnectionAction,
@@ -44,11 +45,13 @@ export function StorageSettingsPanel({
   configuredProviders,
   storageActive,
   canManage,
+  provisionProgress,
 }: {
   connections: readonly StorageConnectionRecord[];
   configuredProviders: readonly StorageProviderKey[];
   storageActive: boolean;
   canManage: boolean;
+  provisionProgress: Readonly<Record<string, StorageProvisionProgress>>;
 }) {
   const t = useTranslations('externalStorage');
   const tStatus = useTranslations('externalStorage.status');
@@ -105,6 +108,9 @@ export function StorageSettingsPanel({
                   !connection.isPrimary &&
                   !storageActive ? (
                     <Alert tone="warning">{t('primaryRequiredNotice')}</Alert>
+                  ) : null}
+                  {connection && provisionProgress[connection.id] ? (
+                    <StorageProvisionStatus progress={provisionProgress[connection.id]!} t={t} />
                   ) : null}
                   <div className="flex flex-wrap gap-2">
                     {canManage && configured ? (
@@ -179,6 +185,27 @@ export function StorageSettingsPanel({
           );
         })}
       </ul>
+    </div>
+  );
+}
+
+function StorageProvisionStatus({
+  progress,
+  t,
+}: {
+  progress: StorageProvisionProgress;
+  t: ReturnType<typeof useTranslations<'externalStorage'>>;
+}) {
+  if (progress.state === 'ready') {
+    return <p className="text-[var(--pf-text-secondary)]">{t('provisioning.ready')}</p>;
+  }
+  return (
+    <div className="flex flex-col gap-1 text-[var(--pf-text-secondary)]">
+      <p>{t('provisioning.preparing')}</p>
+      <p>{t('provisioning.clients', { done: progress.clientsProvisioned, total: progress.clientsTotal })}</p>
+      <p>{t('provisioning.projects', { done: progress.projectsProvisioned, total: progress.projectsTotal })}</p>
+      <p>{t('provisioning.folders', { done: progress.projectFoldersProvisioned, total: progress.projectFoldersTotal })}</p>
+      <p>{t('provisioning.pending')}</p>
     </div>
   );
 }

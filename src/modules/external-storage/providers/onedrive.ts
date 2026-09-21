@@ -348,6 +348,28 @@ export class OneDriveStorageProvider implements StorageProviderAdapter {
     return uploaded;
   }
 
+  async replaceFileContent(
+    accessToken: string,
+    input: {
+      fileId: string;
+      parentFolderId: string;
+      fileName: string;
+      mimeType: string;
+      body: Uint8Array;
+    },
+  ): Promise<ProviderFileItem> {
+    const updated = await providerJson<Record<string, unknown>>(
+      `${GRAPH}/me/drive/items/${input.fileId}/content`,
+      {
+        method: 'PUT',
+        accessToken,
+        headers: { 'Content-Type': input.mimeType },
+        body: Buffer.from(input.body),
+      },
+    );
+    return mapDriveItem(updated) as ProviderFileItem;
+  }
+
   async getFileMetadata(accessToken: string, fileId: string): Promise<ProviderFileItem | null> {
     try {
       const item = await providerJson<Record<string, unknown>>(

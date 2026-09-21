@@ -143,16 +143,7 @@ export async function createProject(
   const { provisionProjectStorageFolder } = await import(
     '@/modules/external-storage/application/provision-hooks'
   );
-  const { findClientById } = await import('@/modules/clients/data/clients.repository');
-  if (clientId) {
-    const client = await findClientById(context.db, context.organizationId, clientId);
-    await provisionProjectStorageFolder(context, {
-      projectId: project.id,
-      projectName: project.name,
-      clientId,
-      clientName: client?.name ?? 'Client',
-    });
-  }
+  await provisionProjectStorageFolder(context, project.id);
 
   return { projectId: project.id, clientId };
 }

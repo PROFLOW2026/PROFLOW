@@ -52,5 +52,10 @@ export async function updateClient(
     after: updated,
   });
 
+  const { refreshClientStorageAfterChange } = await import(
+    '@/modules/external-storage/application/provision-hooks'
+  );
+  await refreshClientStorageAfterChange(context, updated.id, updated.name);
+
   return updated;
 }

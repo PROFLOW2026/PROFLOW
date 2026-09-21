@@ -32,6 +32,14 @@
   "primaryRequiredNotice": "This provider is connected but not set as primary. Set it as primary to enable file uploads.",
   "oauthSuccess": "Storage connected successfully.",
   "oauthFailed": "Connection failed. Try again.",
+  "provisioning": {
+    "preparing": "Preparing storage...",
+    "ready": "Storage is ready",
+    "pending": "Storage is still being prepared",
+    "clients": "Clients: {done}/{total}",
+    "projects": "Projects: {done}/{total}",
+    "folders": "Project folders: {done}/{total}"
+  },
   "errors": {
     "notConnected": "Connect organization storage to save files.",
     "quotaFull": "Cloud storage is full.",

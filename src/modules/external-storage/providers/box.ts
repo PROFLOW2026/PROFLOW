@@ -297,6 +297,32 @@ export class BoxStorageProvider implements StorageProviderAdapter {
     return mapItem(entry) as ProviderFileItem;
   }
 
+  async replaceFileContent(
+    accessToken: string,
+    input: {
+      fileId: string;
+      parentFolderId: string;
+      fileName: string;
+      mimeType: string;
+      body: Uint8Array;
+    },
+  ): Promise<ProviderFileItem> {
+    const form = new FormData();
+    form.append('attributes', JSON.stringify({ name: input.fileName }));
+    form.append('file', new Blob([Buffer.from(input.body)], { type: input.mimeType }), input.fileName);
+    const response = await fetch(`${UPLOAD}/files/${input.fileId}/content`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${accessToken}` },
+      body: form,
+    });
+    if (!response.ok) {
+      const text = await response.text();
+      throw new ProviderHttpError(response.status, text);
+    }
+    const updated = (await response.json()) as Record<string, unknown>;
+    return mapItem(updated) as ProviderFileItem;
+  }
+
   async getFileMetadata(accessToken: string, fileId: string): Promise<ProviderFileItem | null> {
     try {
       const item = await providerJson<Record<string, unknown>>(

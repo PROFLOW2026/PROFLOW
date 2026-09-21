@@ -49,6 +49,10 @@ export class ProviderHttpError extends Error {
     return this.status === 401 || this.status === 403;
   }
 
+  isTransient(): boolean {
+    return this.status === 408 || this.status === 429 || this.status >= 500;
+  }
+
   isNameAlreadyExists(): boolean {
     return this.status === 409 && /nameAlreadyExists|name.*already.*exists/i.test(this.bodySnippet);
   }

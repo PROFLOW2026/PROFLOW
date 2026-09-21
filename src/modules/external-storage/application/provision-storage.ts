@@ -4,17 +4,19 @@ import type { OrgContext } from '@/shared/auth/context';
 import { withUserContext } from '@/shared/db/client';
 import { ServiceUnavailableError } from '@/shared/errors';
 import { findStorageConnectionById } from '../data/connections.repository';
-import { listFolderMappingsForProject } from '../data/folder-mappings.repository';
-import { bootstrapOrganizationStorageTree } from './bootstrap';
+import { findFolderMapping, listFolderMappingsForProject } from '../data/folder-mappings.repository';
+import { isCanonicalProjectRootParent } from '../domain/project-folder-placement';
+import { kickStorageProvision } from './kick-storage-provision';
 import {
   assertOrganizationStorageAvailable,
   resolveValidAccessToken,
 } from './connection-service';
 import { ensureOrganizationRootFolder } from './folder-provisioning';
+import { provisionStoredProjectFolder } from './project-provision';
 
 /**
- * Provision org/project folders in a committed transaction separate from browse.
- * Idempotent — safe to call when mappings already exist.
+ * Ensures the organization root, and one project when requested.
+ * The rest of the organization continues in the provision worker.
  */
 export async function commitOrganizationStorageProvision(input: {
   userId: string;
@@ -32,43 +34,17 @@ export async function commitOrganizationStorageProvision(input: {
     }
     const accessToken = await resolveValidAccessToken(db, input.organizationId, row);
     await ensureOrganizationRootFolder(db, input.organizationId, row, accessToken);
-  });
-
-  const bootstrapped = await withUserContext(input.userId, async (db) => {
-    const row = await findStorageConnectionById(db, input.organizationId, input.connectionId);
-    if (!row) {
-      throw new ServiceUnavailableError(
-        'Storage connection not found',
-        'externalStorage.errors.connectionNotFound',
-      );
+    if (input.projectId) {
+      await provisionStoredProjectFolder(db, {
+        organizationId: input.organizationId,
+        connection: row,
+        accessToken,
+        projectId: input.projectId,
+      });
     }
-    const accessToken = await resolveValidAccessToken(db, input.organizationId, row);
-    return bootstrapOrganizationStorageTree(
-      db,
-      input.organizationId,
-      input.connectionId,
-      accessToken,
-    );
   });
-
-  if (input.projectId) {
-    const sql = await import('@/shared/db/client').then((m) => m.getDb());
-    const mappings = await listFolderMappingsForProject(
-      sql,
-      input.organizationId,
-      input.connectionId,
-      input.projectId,
-    );
-    const ready = mappings.filter((m) => m.status === 'ready');
-    if (ready.length === 0) {
-      throw new ServiceUnavailableError(
-        'Project folders not provisioned',
-        'externalStorage.errors.fileUnavailable',
-      );
-    }
-  }
-
-  return bootstrapped;
+  kickStorageProvision();
+  return { clients: 0, projects: input.projectId ? 1 : 0 };
 }
 
 export async function ensureOrganizationStorageProvisioned(
@@ -76,13 +52,21 @@ export async function ensureOrganizationStorageProvisioned(
   projectId: string,
 ): Promise<void> {
   const connection = await assertOrganizationStorageAvailable(context);
-  const mappings = await listFolderMappingsForProject(
-    context.db,
-    context.organizationId,
-    connection.id,
-    projectId,
-  );
-  if (mappings.some((m) => m.status === 'ready')) return;
+  const [projectsRoot, mappings] = await Promise.all([
+    findFolderMapping(context.db, {
+      organizationId: context.organizationId,
+      connectionId: connection.id,
+      semanticFolderType: 'projects_root',
+    }),
+    listFolderMappingsForProject(context.db, context.organizationId, connection.id, projectId),
+  ]);
+  const projectRoot = mappings.find((mapping) => mapping.semanticFolderType === 'project_root');
+  if (
+    projectRoot?.status === 'ready' &&
+    isCanonicalProjectRootParent(projectRoot.externalParentId, projectsRoot?.externalFolderId)
+  ) {
+    return;
+  }
 
   await commitOrganizationStorageProvision({
     userId: context.userId,

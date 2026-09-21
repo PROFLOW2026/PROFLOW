@@ -98,6 +98,30 @@ export async function findStorageFileByExternalId(
   return row ? mapRow(row) : null;
 }
 
+export async function findStorageFileByParentAndName(
+  db: DbExecutor,
+  input: {
+    organizationId: string;
+    connectionId: string;
+    externalParentFolderId: string;
+    originalFilename: string;
+  },
+): Promise<ExternalFileRecord | null> {
+  const [row] = await db
+    .select()
+    .from(storageFiles)
+    .where(
+      and(
+        eq(storageFiles.organizationId, input.organizationId),
+        eq(storageFiles.connectionId, input.connectionId),
+        eq(storageFiles.externalParentFolderId, input.externalParentFolderId),
+        eq(storageFiles.originalFilename, input.originalFilename),
+      ),
+    )
+    .limit(1);
+  return row ? mapRow(row) : null;
+}
+
 export async function updateStorageFileByExternalId(
   db: DbExecutor,
   organizationId: string,

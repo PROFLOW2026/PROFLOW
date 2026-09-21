@@ -32,6 +32,14 @@
   "primaryRequiredNotice": "هذا المزود متصل لكنه غير معيّن كأساسي. عيّنه أساسياً لتمكين رفع الملفات.",
   "oauthSuccess": "تم ربط التخزين بنجاح.",
   "oauthFailed": "فشل الاتصال. حاول مرة أخرى.",
+  "provisioning": {
+    "preparing": "جارٍ تجهيز التخزين...",
+    "ready": "التخزين جاهز",
+    "pending": "التخزين ما زال قيد التجهيز",
+    "clients": "العملاء: {done}/{total}",
+    "projects": "المشاريع: {done}/{total}",
+    "folders": "مجلدات المشروع: {done}/{total}"
+  },
   "errors": {
     "notConnected": "اربط تخزين المنظمة لحفظ الملفات.",
     "quotaFull": "التخزين السحابي ممتلئ.",

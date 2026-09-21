@@ -4,6 +4,7 @@ import {
   isOrganizationStorageConfigured,
   listConfiguredStorageProviders,
   listOrganizationStorageConnections,
+  loadStorageProvisionProgress,
 } from '@/modules/external-storage/server';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { hasPermission } from '@/shared/permissions/assert';
@@ -32,11 +33,19 @@ export default async function StorageSettingsPage({
       listOrganizationStorageConnections(context),
       isOrganizationStorageConfigured(context),
     ]);
+    const connected = connections.filter((connection) => connection.status === 'connected');
+    const progressEntries = await Promise.all(
+      connected.map(async (connection) => [
+        connection.id,
+        await loadStorageProvisionProgress(context.db, context.organizationId, connection.id),
+      ] as const),
+    );
     return {
       allowed: true as const,
       connections,
       storageActive,
       canManage: hasPermission(context, PERMISSIONS.SETTINGS_MANAGE),
+      provisionProgress: Object.fromEntries(progressEntries),
     };
   });
 
@@ -59,6 +68,7 @@ export default async function StorageSettingsPage({
         configuredProviders={configuredProviders}
         storageActive={data.storageActive}
         canManage={data.canManage}
+        provisionProgress={data.provisionProgress}
       />
     </SettingsPageShell>
   );

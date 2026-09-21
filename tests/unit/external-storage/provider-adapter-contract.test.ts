@@ -20,6 +20,7 @@ const REQUIRED_METHODS: Exclude<keyof StorageProviderAdapter, 'provider'>[] = [
   'moveFolder',
   'deleteFolder',
   'uploadFile',
+  'replaceFileContent',
   'getFileMetadata',
   'downloadFileStream',
   'renameFile',

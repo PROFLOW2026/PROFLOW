@@ -439,6 +439,43 @@ export class DropboxStorageProvider implements StorageProviderAdapter {
     )) as ProviderFileItem;
   }
 
+  async replaceFileContent(
+    accessToken: string,
+    input: {
+      fileId: string;
+      parentFolderId: string;
+      fileName: string;
+      mimeType: string;
+      body: Uint8Array;
+    },
+  ): Promise<ProviderFileItem> {
+    const path = await this.resolvePath(accessToken, input.fileId);
+    const response = await fetch(`${CONTENT}/files/upload`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/octet-stream',
+        'Dropbox-API-Arg': stringifyDropboxApiArgHeader({
+          path,
+          mode: 'overwrite',
+          autorename: false,
+          mute: true,
+        }),
+      },
+      body: Buffer.from(input.body),
+    });
+    if (!response.ok) {
+      const text = await response.text();
+      throw new ProviderHttpError(response.status, text);
+    }
+    const updated = (await response.json()) as Record<string, unknown>;
+    return (await this.mapEntryWithParent(
+      accessToken,
+      updated,
+      input.parentFolderId,
+    )) as ProviderFileItem;
+  }
+
   async getFileMetadata(accessToken: string, fileId: string): Promise<ProviderFileItem | null> {
     try {
       const meta = await providerJson<Record<string, unknown>>(`${API}/files/get_metadata`, {

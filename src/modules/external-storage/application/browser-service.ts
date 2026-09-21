@@ -21,11 +21,8 @@ import {
   updateStorageFile,
   updateStorageFileByExternalId,
 } from '../data/files.repository';
-import {
-  findFolderMappingByExternalFolderId,
-  listFolderMappingsForProject,
-  updateFolderMapping,
-} from '../data/folder-mappings.repository';
+import { findFolderMapping, findFolderMappingByExternalFolderId, listFolderMappingsForProject, updateFolderMapping } from '../data/folder-mappings.repository';
+import { isCanonicalProjectRootParent } from '../domain/project-folder-placement';
 import type {
   FolderMappingRecord,
   ProviderFileItem,
@@ -218,7 +215,17 @@ async function resolveProjectBrowserRuntime(
     connection.id,
     projectId,
   );
-  if (!mappings.some((m) => m.status === 'ready')) {
+  const projectsRoot = await findFolderMapping(context.db, {
+    organizationId: context.organizationId,
+    connectionId: connection.id,
+    semanticFolderType: 'projects_root',
+  });
+  const currentRoot = mappings.find(
+    (mapping) => mapping.semanticFolderType === 'project_root' && mapping.status === 'ready',
+  );
+  if (
+    !isCanonicalProjectRootParent(currentRoot?.externalParentId, projectsRoot?.externalFolderId)
+  ) {
     await commitOrganizationStorageProvision({
       userId: context.userId,
       organizationId: context.organizationId,

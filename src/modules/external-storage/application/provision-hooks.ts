@@ -1,12 +1,18 @@
 import 'server-only';
 
+import { and, eq, inArray } from 'drizzle-orm';
+import { projects, storageFiles, storageFolderMappings } from '@drizzle/schema';
 import type { OrgContext } from '@/shared/auth/context';
+import { asServiceRoleWrite } from '@/shared/db/service-role-write';
 import {
   getOrganizationPrimaryStorage,
   organizationHasActiveStorage,
+  resolveValidAccessToken,
 } from './connection-service';
-import { resolveValidAccessToken } from './connection-service';
-import { ensureClientFolderTree, ensureProjectFolderTree } from './folder-provisioning';
+import { ensureClientFolderTree } from './folder-provisioning';
+import { kickStorageProvision } from './kick-storage-provision';
+import { PROJECT_INFO_FILE_NAME } from '../domain/project-info-text';
+import { provisionStoredProjectFolder } from './project-provision';
 
 /** Non-blocking: business entity creation must not roll back on folder failure. */
 export async function provisionClientStorageFolder(
@@ -26,28 +32,69 @@ export async function provisionClientStorageFolder(
       clientName,
     });
   } catch {
-    // Mapping rows record error state for retry via bootstrap.
+    kickStorageProvision();
   }
 }
 
 export async function provisionProjectStorageFolder(
   context: OrgContext,
-  input: { projectId: string; projectName: string; clientId: string; clientName: string },
+  projectId: string,
 ): Promise<void> {
   try {
     const connection = await getOrganizationPrimaryStorage(context);
     if (!organizationHasActiveStorage(connection)) return;
     const accessToken = await resolveValidAccessToken(context.db, context.organizationId, connection!);
-    await ensureProjectFolderTree(context.db, {
+    await provisionStoredProjectFolder(context.db, {
       organizationId: context.organizationId,
       connection: connection!,
       accessToken,
-      clientId: input.clientId,
-      clientName: input.clientName,
-      projectId: input.projectId,
-      projectName: input.projectName,
+      projectId,
     });
   } catch {
-    // Non-blocking provisioning.
+    kickStorageProvision();
+  }
+}
+
+/** Client detail changes should refresh each related project info file on the next batch. */
+export async function refreshClientStorageAfterChange(
+  context: OrgContext,
+  clientId: string,
+  clientName: string,
+): Promise<void> {
+  try {
+    await provisionClientStorageFolder(context, clientId, clientName);
+    const connection = await getOrganizationPrimaryStorage(context);
+    if (!organizationHasActiveStorage(connection)) return;
+    const roots = await context.db
+      .select({ folderId: storageFolderMappings.externalFolderId })
+      .from(storageFolderMappings)
+      .innerJoin(projects, eq(projects.id, storageFolderMappings.entityId))
+      .where(
+        and(
+          eq(projects.organizationId, context.organizationId),
+          eq(projects.clientId, clientId),
+          eq(storageFolderMappings.connectionId, connection!.id),
+          eq(storageFolderMappings.semanticFolderType, 'project_root'),
+        ),
+      );
+    const folderIds = roots.map((row) => row.folderId).filter((id) => id && id !== 'pending');
+    if (folderIds.length > 0) {
+      await asServiceRoleWrite(context.db, async () => {
+        await context.db
+          .update(storageFiles)
+          .set({ status: 'pending', updatedAt: new Date() })
+          .where(
+            and(
+              eq(storageFiles.organizationId, context.organizationId),
+              eq(storageFiles.connectionId, connection!.id),
+              eq(storageFiles.originalFilename, PROJECT_INFO_FILE_NAME),
+              inArray(storageFiles.externalParentFolderId, folderIds),
+            ),
+          );
+      });
+    }
+    kickStorageProvision();
+  } catch {
+    kickStorageProvision();
   }
 }

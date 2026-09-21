@@ -79,6 +79,8 @@ export type {
   OrgFileBrowserInitialLoad,
   OrgStorageBrowserContext,
 } from './application/org-browser-service';
+export { loadStorageProvisionProgress } from './application/provision-progress';
+export type { StorageProvisionProgress } from './domain/project-folder-placement';
 export { bootstrapOrganizationStorageTree } from './application/bootstrap';
 export {
   ensureClientFolderTree,

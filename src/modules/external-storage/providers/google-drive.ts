@@ -320,12 +320,14 @@ export class GoogleDriveStorageProvider implements StorageProviderAdapter {
     const parentId = input.parentFolderId === 'root' ? 'root' : input.parentFolderId;
     const metadata = { name: input.fileName, parents: [parentId] };
     const boundary = `pf-${crypto.randomUUID()}`;
-    const preamble = `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n--${boundary}\r\nContent-Type: ${input.mimeType}\r\n\r\n`;
-    const closing = `\r\n--${boundary}--`;
-    const body = new Uint8Array(preamble.length + bytes.length + closing.length);
-    body.set(new TextEncoder().encode(preamble), 0);
-    body.set(bytes, preamble.length);
-    body.set(new TextEncoder().encode(closing), preamble.length + bytes.length);
+    const preambleBytes = new TextEncoder().encode(
+      `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n--${boundary}\r\nContent-Type: ${input.mimeType}\r\n\r\n`,
+    );
+    const closingBytes = new TextEncoder().encode(`\r\n--${boundary}--`);
+    const body = new Uint8Array(preambleBytes.length + bytes.length + closingBytes.length);
+    body.set(preambleBytes, 0);
+    body.set(bytes, preambleBytes.length);
+    body.set(closingBytes, preambleBytes.length + bytes.length);
 
     const created = await providerJson<Record<string, unknown>>(
       `${UPLOAD}/files?uploadType=multipart&fields=${FILE_FIELDS}`,
@@ -337,6 +339,28 @@ export class GoogleDriveStorageProvider implements StorageProviderAdapter {
       },
     );
     return mapFile(created) as ProviderFileItem;
+  }
+
+  async replaceFileContent(
+    accessToken: string,
+    input: {
+      fileId: string;
+      parentFolderId: string;
+      fileName: string;
+      mimeType: string;
+      body: Uint8Array;
+    },
+  ): Promise<ProviderFileItem> {
+    const updated = await providerJson<Record<string, unknown>>(
+      `${UPLOAD}/files/${input.fileId}?uploadType=media&fields=${FILE_FIELDS}`,
+      {
+        method: 'PATCH',
+        accessToken,
+        headers: { 'Content-Type': input.mimeType },
+        body: Buffer.from(input.body),
+      },
+    );
+    return mapFile(updated) as ProviderFileItem;
   }
 
   async getFileMetadata(accessToken: string, fileId: string): Promise<ProviderFileItem | null> {
