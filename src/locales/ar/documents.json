@@ -91,6 +91,7 @@
     "privacyHint": "ملفات التعويض مخفية عن من لا يملكون وصول تكلفة صاحب العمل.",
     "labelOptional": "ملاحظة",
     "labelPlaceholder": "ملاحظة اختيارية لهذا المرفق…",
+    "pickFromCloud": "اختيار من السحابة",
     "linkExisting": "ربط موجود",
     "linkSelectPlaceholder": "اختر مستنداً موجوداً في هذه المنظمة…",
     "linkSuccess": "تم ربط المستند.",

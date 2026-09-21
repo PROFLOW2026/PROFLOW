@@ -36,7 +36,8 @@
     "billing_plan_cycle_draft": "Промежуточный счёт ожидает выставления",
     "billing_plan_milestone_due": "Скоро срок этапа выставления счетов",
     "billing_plan_retention_held": "Удержание готово к высвобождению",
-    "action_required": "Требуется действие"
+    "action_required": "Требуется действие",
+    "task_assigned_to_you": "Вам назначена задача"
   },
   "copy": {
     "billing_overdue": {
@@ -97,6 +98,11 @@
       "titleWithReference": "Назначен пункт punch — {reference}",
       "titleDefault": "Назначен пункт punch",
       "body": "Вам назначен пункт punch-листа."
+    },
+    "task_assigned_to_you": {
+      "titleWithReference": "Назначена задача — {reference}",
+      "titleDefault": "Вам назначена задача",
+      "body": "Вы добавлены как исполнитель этой задачи."
     },
     "low_stock": {
       "titleWithReference": "Низкий запас — {reference}",

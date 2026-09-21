@@ -155,7 +155,7 @@ function hasActivityAction(catalog: Catalog, action: string): boolean {
 }
 
 describe('message catalogs', () => {
-  it('ships every MESSAGE_NAMESPACE file for en and he-IL', () => {
+  it('ships every MESSAGE_NAMESPACE file for all supported locales', () => {
     for (const namespace of MESSAGE_NAMESPACES) {
       for (const locale of LOCALES) {
         const path = join(LOCALES_DIR, locale, `${namespace}.json`);
@@ -261,6 +261,40 @@ describe('message catalogs', () => {
           key,
           containsWorkPackage: false,
         });
+      }
+    }
+  });
+
+  /** Nested task.* keys must survive JSON parsing (no duplicate root "task" string). */
+  it('tasks namespace keeps nested task object keys in every locale', () => {
+    const required = ['task.dependencies', 'task.subtasks', 'taskEntityLabel'];
+    for (const locale of LOCALES) {
+      const flat = flattenLocaleCatalog(readLocaleCatalog(locale, 'tasks'));
+      const missing = required.filter((key) => !flat.has(key));
+      expect({ locale, missing }).toEqual({ locale, missing: [] });
+    }
+  });
+
+  /** Recently expanded user-facing surfaces must exist in all four locales. */
+  it('critical collaboration namespaces ship required keys in every locale', () => {
+    const requiredByNamespace: Record<string, readonly string[]> = {
+      documents: ['attachments.pickFromCloud'],
+      notifications: [
+        'types.task_assigned_to_you',
+        'copy.task_assigned_to_you.titleDefault',
+        'copy.task_assigned_to_you.body',
+      ],
+      employeeApp: ['tasks.create.assignees', 'tasks.assignHint', 'tasks.approveHint'],
+      settings: ['people.folderGrants.title'],
+      externalStorage: ['cloudPicker.title', 'cloudPicker.description'],
+      tasks: ['comments.attachments.pickFromCloud', 'comments.attachments.takePhoto'],
+    };
+
+    for (const [namespace, keys] of Object.entries(requiredByNamespace)) {
+      for (const locale of LOCALES) {
+        const flat = flattenLocaleCatalog(readLocaleCatalog(locale as Locale, namespace));
+        const missing = keys.filter((key) => !flat.has(key));
+        expect({ namespace, locale, missing }).toEqual({ namespace, locale, missing: [] });
       }
     }
   });

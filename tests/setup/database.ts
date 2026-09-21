@@ -200,6 +200,16 @@ export async function applySqlMigrations(
   client: PGlite,
   untilInclusive?: string,
 ): Promise<void> {
+  // Migration 0120 references auth.uid(); PGlite has no Supabase auth schema in tests.
+  await client.exec(`
+    CREATE SCHEMA IF NOT EXISTS auth;
+    CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid
+    LANGUAGE sql STABLE
+    AS $$
+      SELECT NULLIF(current_setting('app.user_id', true), '')::uuid
+    $$;
+  `);
+
   const migrations = await readMigrations();
   for (const migration of migrations) {
     const tag = migrationTag(migration.name);

@@ -34,6 +34,7 @@ const FILE_NAMESPACE_ALLOW: Readonly<Record<string, readonly MessageNamespace[]>
   'src/components/ui/password-input.tsx': ['auth'],
   'src/components/shell/unused-capability-dashboard-tip.tsx': ['settings'],
   'src/modules/projects/ui/project-scoped-access-panel.tsx': ['settings'],
+  'src/modules/employee-app/ui/member-document-folder-grants-panel.tsx': ['settings'],
 };
 
 export interface ReferencedTranslation {

@@ -497,7 +497,7 @@ export function TaskDetailSheet({
                   <ChevronRight aria-hidden className="size-3 rtl:rotate-180" />
                 </>
               )}
-              <span className="font-medium text-[var(--pf-text-primary)]">{t('task')}</span>
+              <span className="font-medium text-[var(--pf-text-primary)]">{t('taskEntityLabel')}</span>
             </nav>
 
             <SheetTitle asChild>

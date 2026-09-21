@@ -36,7 +36,8 @@
     "billing_plan_cycle_draft": "חשבון התקדמות ממתין להנפקה",
     "billing_plan_milestone_due": "אבן דרך לחיוב מתקרבת",
     "billing_plan_retention_held": "עיכבון מוחזק לשחרור",
-    "action_required": "דורש טיפול"
+    "action_required": "דורש טיפול",
+    "task_assigned_to_you": "משימה שויכה אליך"
   },
   "copy": {
     "billing_overdue": {
@@ -97,6 +98,11 @@
       "titleWithReference": "שובצת לפריט תיקון - {reference}",
       "titleDefault": "שובצת לפריט תיקון",
       "body": "פריט תיקון שויך אליך."
+    },
+    "task_assigned_to_you": {
+      "titleWithReference": "משימה שויכה - {reference}",
+      "titleDefault": "משימה שויכה אליך",
+      "body": "נוספת כמוקצה למשימה זו."
     },
     "low_stock": {
       "titleWithReference": "מלאי נמוך - {reference}",

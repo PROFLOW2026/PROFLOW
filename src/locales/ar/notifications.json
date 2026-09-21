@@ -36,7 +36,8 @@
     "billing_plan_cycle_draft": "حساب تقدم بانتظار الإصدار",
     "billing_plan_milestone_due": "معلم فوترة يستحق قريباً",
     "billing_plan_retention_held": "حجز محتجز للإفراج",
-    "action_required": "إجراء مطلوب"
+    "action_required": "إجراء مطلوب",
+    "task_assigned_to_you": "تم إسناد مهمة إليك"
   },
   "copy": {
     "billing_overdue": {
@@ -97,6 +98,11 @@
       "titleWithReference": "تعيين بند إصلاح - {reference}",
       "titleDefault": "تعيين بند إصلاح",
       "body": "عُيّن لك بند قائمة إصلاح."
+    },
+    "task_assigned_to_you": {
+      "titleWithReference": "تم إسناد مهمة - {reference}",
+      "titleDefault": "تم إسناد مهمة إليك",
+      "body": "أُضيفت كمُكلف على هذه المهمة."
     },
     "low_stock": {
       "titleWithReference": "مخزون منخفض - {reference}",

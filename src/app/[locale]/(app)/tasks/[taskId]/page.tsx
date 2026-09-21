@@ -31,7 +31,7 @@ export async function generateMetadata({
     const detail = await withOrgContext(async (context) => getTaskDetail(context, taskId));
     return { title: detail.title };
   } catch {
-    return { title: t('task') };
+    return { title: t('taskEntityLabel') };
   }
 }
 

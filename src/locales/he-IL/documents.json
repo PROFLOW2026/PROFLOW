@@ -91,6 +91,7 @@
     "privacyHint": "קבצי שכר מוסתרים ממי שאין לו הרשאת עלות מעסיק.",
     "labelOptional": "הערה",
     "labelPlaceholder": "הערה אופציונלית לצירוף זה…",
+    "pickFromCloud": "בחר מהענן",
     "linkExisting": "קישור למסמך קיים",
     "linkSelectPlaceholder": "בחרו מסמך שכבר קיים בארגון…",
     "linkSuccess": "המסמך קושר.",

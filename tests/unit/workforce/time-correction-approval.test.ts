@@ -66,6 +66,24 @@ vi.mock('@/modules/tenancy', async (importOriginal) => {
   };
 });
 
+vi.mock('@/modules/workforce/application/work-calendar-context', () => ({
+  resolveEmployeeWorkCalendarForCosting: vi.fn(async () => ({
+    configured: true,
+    rates: {
+      standardHoursPerDay: '8',
+      standardHoursPerMonth: '160',
+    },
+  })),
+  resolveEmployeeDailyFramework: vi.fn(async () => ({
+    configured: true,
+    standardHoursPerDay: '8',
+  })),
+  loadOrgExplicitWorkCalendar: vi.fn(async () => ({
+    standardHoursPerDay: '8',
+    workingDaysPerMonth: '20',
+  })),
+}));
+
 vi.mock('@/modules/projects/application/project-access', () => ({
   assertCanAccessProject: vi.fn(async () => undefined),
   resolveAccessibleProjectIds: vi.fn(async () => null),

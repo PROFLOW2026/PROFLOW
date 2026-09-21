@@ -60,6 +60,7 @@ export function EmployeeMeetingListView({
   projectOptions,
 }: EmployeeMeetingListViewProps) {
   const t = useTranslations('employeeApp');
+  const tFilters = useTranslations('employeeApp.filters');
   const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
@@ -97,18 +98,18 @@ export function EmployeeMeetingListView({
   function activeSummary(): string[] {
     const chips: string[] = [];
     if (appliedFilters.date !== defaults.date) {
-      chips.push(meetingTimeLabel(appliedFilters.date, t));
+      chips.push(meetingTimeLabel(appliedFilters.date, tFilters));
     }
     if (appliedFilters.projectId) {
       const project = projectOptions.find((row) => row.id === appliedFilters.projectId);
-      chips.push(project?.displayName ?? t('project'));
+      chips.push(project?.displayName ?? tFilters('project'));
     }
     if (appliedFilters.query.trim()) chips.push(appliedFilters.query.trim());
     if (appliedFilters.participation !== defaults.participation) {
-      if (appliedFilters.participation === 'mine') chips.push(t('participationMine'));
-      else if (appliedFilters.participation === 'project') chips.push(t('participationProject'));
+      if (appliedFilters.participation === 'mine') chips.push(tFilters('participationMine'));
+      else if (appliedFilters.participation === 'project') chips.push(tFilters('participationProject'));
     }
-    if (appliedFilters.dateFrom || appliedFilters.dateTo) chips.push(t('timeCustom'));
+    if (appliedFilters.dateFrom || appliedFilters.dateTo) chips.push(tFilters('timeCustom'));
     return chips;
   }
 
