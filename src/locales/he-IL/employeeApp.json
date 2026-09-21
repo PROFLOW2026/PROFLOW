@@ -153,6 +153,7 @@
     "dueDate": "יעד {date}",
     "updateStatus": "עדכון סטטוס",
     "checklistTitle": "צ'קליסט ({done}/{total})",
+    "assigneesLabel": "מוקצה ל",
     "commentsTitle": "תגובות",
     "noComments": "אין תגובות עדיין",
     "commentEdited": "(נערך)",

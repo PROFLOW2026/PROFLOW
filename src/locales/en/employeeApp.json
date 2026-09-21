@@ -153,6 +153,7 @@
     "dueDate": "Due {date}",
     "updateStatus": "Update Status",
     "checklistTitle": "Checklist ({done}/{total})",
+    "assigneesLabel": "Assignees",
     "commentsTitle": "Comments",
     "noComments": "No comments yet",
     "commentEdited": "(edited)",

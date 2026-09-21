@@ -125,6 +125,7 @@
     "dueDate": "مستحق {date}",
     "updateStatus": "تحديث الحالة",
     "checklistTitle": "قائمة التحقق ({done}/{total})",
+    "assigneesLabel": "المسؤولون",
     "commentsTitle": "التعليقات",
     "noComments": "لا تعليقات بعد",
     "commentEdited": "(معدّل)",

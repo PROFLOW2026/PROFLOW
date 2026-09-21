@@ -1,7 +1,7 @@
 import 'server-only';
 
 import { createHash } from 'node:crypto';
-import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
+import { AUDIT_ACTIONS, recordAuditEvent, writeAuditEvent } from '@/shared/audit';
 import { DomainRuleError, NotFoundError, ServiceUnavailableError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -23,6 +23,8 @@ import { assertProjectBrowserUploadFolder } from './browser-service';
 import { resolveUploadFolderEntityContext } from './resolve-upload-folder-context';
 import { findPrimaryDocumentLink } from '@/modules/documents';
 import { assertDocumentManagePermission } from '@/modules/documents/application/document-visibility';
+import { runElevatedTaskCommentDocumentWrite } from '@/modules/documents/application/task-comment-document-write';
+import type { DbExecutor } from '@/shared/db/types';
 import { parseByteRangeHeader } from '../server/byte-range';
 
 export async function uploadDocumentToExternalStorage(
@@ -127,13 +129,31 @@ export async function uploadDocumentToExternalStorage(
     });
   }
 
+  const existingStorageFile = await findStorageFileByDocumentId(
+    context.db,
+    context.organizationId,
+    document.id,
+  );
+  if (existingStorageFile?.externalFileId) {
+    return {
+      id: existingStorageFile.externalFileId,
+      name: input.fileName,
+      parentId: existingStorageFile.externalParentFolderId ?? parentFolderId ?? null,
+      mimeType: input.mimeType,
+      sizeBytes: existingStorageFile.sizeBytes ?? input.sizeBytes,
+      modifiedAt: null,
+      etag: existingStorageFile.externalEtag ?? null,
+    };
+  }
+
   const bytes =
     input.body instanceof Uint8Array
       ? input.body
       : await new Response(input.body).arrayBuffer().then((b) => new Uint8Array(b));
 
   const adapter = getStorageProviderAdapter(connection.provider);
-  let uploaded: ProviderFileItem;
+  const isTaskComment = documentLink?.ownerType === 'task_comment';
+  let uploaded: ProviderFileItem | undefined;
   try {
     uploaded = await adapter.uploadFile(accessToken, {
       parentFolderId: parentFolderId!,
@@ -154,36 +174,64 @@ export async function uploadDocumentToExternalStorage(
 
   const checksum = createHash('sha256').update(bytes).digest('hex');
 
-  await insertStorageFile(context.db, {
-    organizationId: context.organizationId,
-    connectionId: connection.id,
-    documentId: document.id,
-    externalFileId: uploaded.id,
-    externalParentFolderId: parentFolderId,
-    originalFilename: input.fileName,
-    mimeType: input.mimeType,
-    sizeBytes: uploaded.sizeBytes ?? input.sizeBytes,
-    externalEtag: uploaded.etag,
-    checksum,
-    createdByUserId: context.userId,
-  });
+  const persistUploadRecords = async (db: DbExecutor) => {
+    await insertStorageFile(db, {
+      organizationId: context.organizationId,
+      connectionId: connection.id,
+      documentId: document.id,
+      externalFileId: uploaded!.id,
+      externalParentFolderId: parentFolderId,
+      originalFilename: input.fileName,
+      mimeType: input.mimeType,
+      sizeBytes: uploaded!.sizeBytes ?? input.sizeBytes,
+      externalEtag: uploaded!.etag,
+      checksum,
+      createdByUserId: context.userId,
+    });
 
-  await updateDocumentById(context.db, context.organizationId, document.id, {
-    storageBackend: 'external',
-    externalConnectionId: connection.id,
-    externalFileId: uploaded.id,
-    externalParentFolderId: parentFolderId,
-    externalEtag: uploaded.etag,
-    storageBucket: `external:${connection.provider}`,
-    storagePath: uploaded.id,
-  });
+    await updateDocumentById(db, context.organizationId, document.id, {
+      storageBackend: 'external',
+      externalConnectionId: connection.id,
+      externalFileId: uploaded!.id,
+      externalParentFolderId: parentFolderId,
+      externalEtag: uploaded!.etag,
+      storageBucket: `external:${connection.provider}`,
+      storagePath: uploaded!.id,
+    });
+  };
 
-  await recordAuditEvent(context, {
-    action: AUDIT_ACTIONS.STORAGE_FILE_UPLOADED,
-    entityType: 'storage_file',
-    entityId: document.id,
-    after: { externalFileId: uploaded.id, provider: connection.provider },
-  });
+  try {
+    if (isTaskComment) {
+      await runElevatedTaskCommentDocumentWrite(async (adminDb) => {
+        await persistUploadRecords(adminDb);
+        await writeAuditEvent(adminDb, {
+          organizationId: context.organizationId,
+          actorUserId: context.userId,
+          action: AUDIT_ACTIONS.STORAGE_FILE_UPLOADED,
+          entityType: 'storage_file',
+          entityId: document.id,
+          after: { externalFileId: uploaded!.id, provider: connection.provider },
+        });
+      });
+    } else {
+      await persistUploadRecords(context.db);
+      await recordAuditEvent(context, {
+        action: AUDIT_ACTIONS.STORAGE_FILE_UPLOADED,
+        entityType: 'storage_file',
+        entityId: document.id,
+        after: { externalFileId: uploaded.id, provider: connection.provider },
+      });
+    }
+  } catch (error) {
+    if (uploaded?.id) {
+      try {
+        await adapter.deleteFile(accessToken, uploaded.id);
+      } catch {
+        // Best-effort rollback so retries do not orphan provider files.
+      }
+    }
+    throw error;
+  }
 
   return uploaded;
 }

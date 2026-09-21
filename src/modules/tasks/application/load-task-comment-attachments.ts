@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { and, eq, inArray, isNull, sql } from 'drizzle-orm';
+import { and, eq, inArray, isNull } from 'drizzle-orm';
 import { documentLinks, documents } from '@drizzle/schema';
 import type { DocumentListItem } from '@/modules/documents/domain/types';
 import type { DbExecutor } from '@/shared/db/types';
@@ -40,7 +40,7 @@ export async function loadAttachmentsByCommentIds(
         eq(documentLinks.ownerType, 'task_comment'),
         inArray(documentLinks.ownerId, [...commentIds]),
         isNull(documents.deletedAt),
-        sql`${documents.status} <> 'deleted'`,
+        eq(documents.status, 'available'),
       ),
     )
     .orderBy(documents.createdAt);

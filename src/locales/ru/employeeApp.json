@@ -125,6 +125,7 @@
     "dueDate": "Срок {date}",
     "updateStatus": "Обновить статус",
     "checklistTitle": "Чек-лист ({done}/{total})",
+    "assigneesLabel": "Исполнители",
     "commentsTitle": "Комментарии",
     "noComments": "Комментариев пока нет",
     "commentEdited": "(изменено)",

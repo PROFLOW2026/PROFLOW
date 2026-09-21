@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
+import { AUDIT_ACTIONS, recordAuditEvent, writeAuditEvent } from '@/shared/audit';
 import { DomainRuleError, NotFoundError, ServiceUnavailableError, ValidationError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -7,7 +7,15 @@ import type { OrgContext } from '@/shared/auth/context';
 import { getStoragePort, StorageNotConfiguredError } from '@/shared/ports/storage';
 import { validateUploadConstraints } from '../domain/file-rules';
 import type { DocumentRecord, DownloadUrlResult } from '../domain/types';
-import { findDocumentById, listDeletedDocumentsNeedingStorageCleanup, updateDocumentById, flushDocumentCurrentVersionGuards } from '../data/documents.repository';
+import {
+  findDocumentById,
+  findPrimaryDocumentLink,
+  listDeletedDocumentsNeedingStorageCleanup,
+  updateDocumentById,
+  flushDocumentCurrentVersionGuards,
+} from '../data/documents.repository';
+import { runElevatedTaskCommentDocumentWrite } from './task-comment-document-write';
+import type { DbExecutor } from '@/shared/db/types';
 import {
   assertCanReadStoredDocument,
   assertDocumentManagePermission,
@@ -104,33 +112,51 @@ export async function finalizeDocumentUpload(
     }
   }
 
-  const updated = await updateDocumentById(context.db, context.organizationId, parsed.data.documentId, {
-    status: 'available',
-    sizeBytes: verifiedSize,
-    checksum,
-  });
+  const primaryLink = await findPrimaryDocumentLink(
+    context.db,
+    context.organizationId,
+    parsed.data.documentId,
+  );
+  const isTaskComment = primaryLink?.ownerType === 'task_comment';
 
-  if (!updated) throw new NotFoundError('Document');
+  const finalizeMutations = async (db: DbExecutor): Promise<DocumentRecord> => {
+    const updated = await updateDocumentById(db, context.organizationId, parsed.data.documentId, {
+      status: 'available',
+      sizeBytes: verifiedSize,
+      checksum,
+    });
 
-  const version = await ensureFirstDocumentVersion(context.db, updated);
-  const withCurrent =
-    updated.currentVersionId === version.id
-      ? updated
-      : await updateDocumentById(context.db, context.organizationId, updated.id, {
-          currentVersionId: version.id,
-        });
-  const result = withCurrent ?? updated;
+    if (!updated) throw new NotFoundError('Document');
 
-  await flushDocumentCurrentVersionGuards(context.db);
+    const version = await ensureFirstDocumentVersion(db, updated);
+    const withCurrent =
+      updated.currentVersionId === version.id
+        ? updated
+        : await updateDocumentById(db, context.organizationId, updated.id, {
+            currentVersionId: version.id,
+          });
+    const result = withCurrent ?? updated;
 
-  await recordAuditEvent(context, {
-    action: 'document.finalized',
-    entityType: 'document',
-    entityId: result.id,
-    before: { status: existing.status },
-    after: { status: result.status, sizeBytes: result.sizeBytes, currentVersionId: result.currentVersionId },
-  });
+    await flushDocumentCurrentVersionGuards(db);
 
+    await writeAuditEvent(db, {
+      organizationId: context.organizationId,
+      actorUserId: context.userId,
+      action: 'document.finalized',
+      entityType: 'document',
+      entityId: result.id,
+      before: { status: existing.status },
+      after: { status: result.status, sizeBytes: result.sizeBytes, currentVersionId: result.currentVersionId },
+    });
+
+    return result;
+  };
+
+  if (isTaskComment) {
+    return runElevatedTaskCommentDocumentWrite(finalizeMutations);
+  }
+
+  const result = await finalizeMutations(context.db);
   return result;
 }
 
