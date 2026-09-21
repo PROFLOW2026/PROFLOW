@@ -31,7 +31,8 @@
     "meetings": "Meetings",
     "team": "Team",
     "forms": "Forms",
-    "expenses": "Expenses"
+    "expenses": "Expenses",
+    "more": "More"
   },
   "back": {
     "label": "Back"
@@ -172,6 +173,8 @@
     "approveAction": "Approve",
     "rejectAction": "Reject",
     "approveEmpty": "No pending approvals for this task.",
+    "assignHint": "You can assign this task within the project team context.",
+    "approveHint": "Approval actions are available when a pending approval request exists.",
     "create": {
       "formTitle": "New task",
       "noProjects": "No projects available for task creation in your scope",

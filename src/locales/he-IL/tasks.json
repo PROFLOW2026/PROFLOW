@@ -80,7 +80,7 @@
   },
   "myWork": {
     "pageTitle": "היום",
-    "pageDescription": "משימות להיום — ותצוגות נוספות בלשוניות למטה",
+    "pageDescription": "משימות להיום, ותצוגות נוספות בלשוניות למטה",
     "tabsLabel": "תצוגות המשימות שלי",
     "views": {
       "today": "היום",
@@ -340,7 +340,7 @@
       "dateTo": "עד תאריך",
       "chipSearch": "חיפוש: {value}",
       "chipProject": "פרויקט: {value}",
-      "chipDate": "תאריך: {from} – {to}",
+      "chipDate": "תאריך: {from} - {to}",
       "from": "מ:",
       "clearLegacy": "נקה"
     },
@@ -465,6 +465,7 @@
     "remove": "הסר {name}"
   },
   "create": {
+    "title": "משימה חדשה",
     "titleLabel": "כותרת",
     "titlePlaceholder": "כותרת משימה...",
     "titleRequired": "כותרת חובה",
@@ -530,7 +531,7 @@
   "pendingChanges": "יש שינויים שלא נשמרו",
   "close": "סגור",
   "saving": "שומר...",
-  "task": "משימה",
+  "taskEntityLabel": "משימה",
   "unassigned": "לא מוקצה",
   "wipLimitLabel": "מגבלת WIP",
   "groupByLabel": "קבץ לפי",
@@ -602,7 +603,7 @@
   },
   "insights": {
     "pageTitle": "תובנות משימות",
-    "pageDescription": "סטטיסטיקות תפעוליות של משימות — ללא נתונים פיננסיים",
+    "pageDescription": "סטטיסטיקות תפעוליות של משימות, ללא נתונים פיננסיים",
     "sections": {
       "summary": "סקירה",
       "byStatus": "פתוחות לפי סטטוס",
@@ -659,7 +660,6 @@
       "description": "צור משימה כדי להתחיל"
     }
   },
-  "create.title": "משימה חדשה",
   "errors": {
     "dependencyCycle": "הוספת תלות זו תיצור מעגל.",
     "maxSubtaskDepth": "ניתן לקנן תת-משימות רק ברמה אחת.",
@@ -707,6 +707,8 @@
     "loadMore": "טען תגובות קודמות",
     "attachments": {
       "addFiles": "צרף קבצים",
+      "pickImages": "בחר תמונות",
+      "attachDocument": "צרף מסמך",
       "takePhoto": "צלם תמונה",
       "pickFromCloud": "בחר מהענן",
       "remove": "הסר {name}",

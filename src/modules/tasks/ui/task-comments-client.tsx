@@ -9,7 +9,7 @@
 
 import dynamic from 'next/dynamic';
 import { useRouter } from '@/shared/i18n/navigation';
-import { Camera, Cloud, FileText, Paperclip, Pencil, Trash2, X } from 'lucide-react';
+import { Camera, Cloud, FileText, ImagePlus, Paperclip, Pencil, Trash2, X } from 'lucide-react';
 import { useActionState, useMemo, useRef, useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import { Alert } from '@/components/ui/alert';
@@ -43,8 +43,9 @@ const DocumentPreviewDialog = dynamic(
   { ssr: false },
 );
 
-const COMMENT_FILE_ACCEPT =
-  'image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+const COMMENT_IMAGE_ACCEPT = 'image/*';
+const COMMENT_DOCUMENT_ACCEPT =
+  'application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/plain';
 
 type PendingFile = {
   id: string;
@@ -237,8 +238,9 @@ export function CommentFormClient({
   const { translate: translateDocumentApiError } = useTranslateDocumentApiError();
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const captureInputRef = useRef<HTMLInputElement>(null);
+  const documentInputRef = useRef<HTMLInputElement>(null);
   const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
   const [localError, setLocalError] = useState<string | null>(null);
   const [partialError, setPartialError] = useState<string | null>(null);
@@ -415,43 +417,66 @@ export function CommentFormClient({
         </ul>
       ) : null}
 
-      {pendingFiles.length > 0 ? (
+      {pendingFiles.some((item) => item.previewUrl) ? (
         <ul className="flex flex-wrap gap-2">
-          {pendingFiles.map((item) => (
-            <li
-              key={item.id}
-              className="relative flex size-20 items-center justify-center overflow-hidden rounded-md border border-[var(--pf-border-subtle)] bg-[var(--pf-surface-2)]"
-            >
-              {item.previewUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
+          {pendingFiles
+            .filter((item) => item.previewUrl)
+            .map((item) => (
+              <li
+                key={item.id}
+                className="relative flex size-20 items-center justify-center overflow-hidden rounded-md border border-[var(--pf-border-subtle)] bg-[var(--pf-surface-2)]"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={item.previewUrl}
+                  src={item.previewUrl!}
                   alt={tAttach('imageAlt', { name: item.file.name })}
                   className="size-full object-cover"
                 />
-              ) : (
-                <FileText className="size-6 text-[var(--pf-text-muted)]" aria-hidden />
-              )}
-              <button
-                type="button"
-                className="absolute inset-e-0.5 top-0.5 rounded-full bg-[var(--pf-bg-surface)] p-0.5 shadow-sm"
-                onClick={() => removeFile(item.id)}
-                aria-label={tAttach('remove', { name: item.file.name })}
-                disabled={busy}
+                <button
+                  type="button"
+                  className="absolute inset-e-0.5 top-0.5 rounded-full bg-[var(--pf-bg-surface)] p-0.5 shadow-sm"
+                  onClick={() => removeFile(item.id)}
+                  aria-label={tAttach('remove', { name: item.file.name })}
+                  disabled={busy}
+                >
+                  <X className="size-3.5" aria-hidden />
+                </button>
+              </li>
+            ))}
+        </ul>
+      ) : null}
+
+      {pendingFiles.some((item) => !item.previewUrl) ? (
+        <ul className="flex flex-col gap-1">
+          {pendingFiles
+            .filter((item) => !item.previewUrl)
+            .map((item) => (
+              <li
+                key={item.id}
+                className="flex items-center gap-2 rounded-md border border-[var(--pf-border-subtle)] bg-[var(--pf-surface-2)] px-2 py-1.5"
               >
-                <X className="size-3.5" aria-hidden />
-              </button>
-            </li>
-          ))}
+                <FileText className="size-4 shrink-0 text-[var(--pf-text-muted)]" aria-hidden />
+                <span className="min-w-0 flex-1 truncate text-sm">{item.file.name}</span>
+                <button
+                  type="button"
+                  className="shrink-0 rounded-full bg-[var(--pf-bg-surface)] p-0.5 shadow-sm"
+                  onClick={() => removeFile(item.id)}
+                  aria-label={tAttach('remove', { name: item.file.name })}
+                  disabled={busy}
+                >
+                  <X className="size-3.5" aria-hidden />
+                </button>
+              </li>
+            ))}
         </ul>
       ) : null}
 
       <input
-        ref={fileInputRef}
+        ref={imageInputRef}
         type="file"
         className="sr-only"
         multiple
-        accept={COMMENT_FILE_ACCEPT}
+        accept={COMMENT_IMAGE_ACCEPT}
         onChange={(event) => {
           addFiles(event.target.files);
           event.target.value = '';
@@ -462,8 +487,20 @@ export function CommentFormClient({
         ref={captureInputRef}
         type="file"
         className="sr-only"
-        accept="image/*"
+        accept={COMMENT_IMAGE_ACCEPT}
         capture="environment"
+        onChange={(event) => {
+          addFiles(event.target.files);
+          event.target.value = '';
+        }}
+        disabled={busy}
+      />
+      <input
+        ref={documentInputRef}
+        type="file"
+        className="sr-only"
+        multiple
+        accept={COMMENT_DOCUMENT_ACCEPT}
         onChange={(event) => {
           addFiles(event.target.files);
           event.target.value = '';
@@ -478,20 +515,30 @@ export function CommentFormClient({
             variant="ghost"
             size="sm"
             disabled={busy}
-            onClick={() => openFilePicker(fileInputRef.current)}
+            onClick={() => openFilePicker(captureInputRef.current)}
           >
-            <Paperclip aria-hidden />
-            {tAttach('addFiles')}
+            <Camera aria-hidden />
+            {tAttach('takePhoto')}
           </Button>
           <Button
             type="button"
             variant="ghost"
             size="sm"
             disabled={busy}
-            onClick={() => openFilePicker(captureInputRef.current)}
+            onClick={() => openFilePicker(imageInputRef.current)}
           >
-            <Camera aria-hidden />
-            {tAttach('takePhoto')}
+            <ImagePlus aria-hidden />
+            {tAttach('pickImages')}
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            disabled={busy}
+            onClick={() => openFilePicker(documentInputRef.current)}
+          >
+            <Paperclip aria-hidden />
+            {tAttach('attachDocument')}
           </Button>
           {canBrowseCloudFiles && projectId ? (
             <Button

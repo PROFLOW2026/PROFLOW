@@ -1,5 +1,5 @@
-import { NotFoundError } from '@/shared/errors';
-import { hasPermission } from '@/shared/permissions/assert';
+import { AuthorizationError, NotFoundError } from '@/shared/errors';
+import { assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
 import {
@@ -17,7 +17,8 @@ import { resolveEffectiveDocumentCategoryGrants } from '@/modules/external-stora
 import { isDocumentCategory } from '../domain/categories';
 import type { DocumentRecord } from '../domain/types';
 import { listProjectScopedOwnerIdsForDocument } from '../data/documents.repository';
-import { findTaskCommentById, assertCanAccessTask } from '@/modules/tasks';
+import { findTaskById, findTaskCommentById, assertCanAccessTask } from '@/modules/tasks';
+import { findPrimaryDocumentLink } from '../data/documents.repository';
 
 export function canReadCompensationDocuments(context: OrgContext): boolean {
   return hasPermission(context, PERMISSIONS.WORKFORCE_COST_READ);
@@ -71,6 +72,64 @@ export function canReadDocumentCategoryForContext(
   return grants.has(category);
 }
 
+/**
+ * Task comment attachments: users with tasks.comment on the parent task may upload,
+ * including Employee App users scoped by assignee/project grants.
+ */
+export async function assertCanUploadTaskCommentAttachment(
+  context: OrgContext,
+  commentId: string,
+): Promise<void> {
+  const comment = await findTaskCommentById(context.db, context.organizationId, commentId);
+  if (!comment) throw new NotFoundError('Task comment');
+
+  if (isEmployeeAppUser(context)) {
+    const employeeId = context.employeeApp?.employeeId;
+    if (!employeeId) {
+      throw new AuthorizationError(PERMISSIONS.TASKS_COMMENT);
+    }
+    if (!hasPermission(context, PERMISSIONS.TASKS_COMMENT)) {
+      throw new AuthorizationError(PERMISSIONS.TASKS_COMMENT);
+    }
+    const task = await findTaskById(context.db, context.organizationId, comment.taskId);
+    if (!task) throw new NotFoundError('Task');
+    const { assertEmployeeCanExerciseTaskPermission } = await import(
+      '@/modules/employee-app/application/task-permission-scope'
+    );
+    await assertEmployeeCanExerciseTaskPermission(
+      context,
+      PERMISSIONS.TASKS_COMMENT,
+      { taskId: comment.taskId, projectId: task.projectId },
+      employeeId,
+    );
+    return;
+  }
+
+  assertPermission(context, PERMISSIONS.TASKS_COMMENT);
+  await assertCanAccessTask(context, comment.taskId);
+}
+
+/** When true, caller used task-comment upload authorization instead of documents.manage. */
+export async function assertDocumentManagePermission(
+  context: OrgContext,
+  input: { ownerType?: string; ownerId?: string; documentId?: string },
+): Promise<void> {
+  if (input.ownerType === 'task_comment' && input.ownerId) {
+    await assertCanUploadTaskCommentAttachment(context, input.ownerId);
+    return;
+  }
+
+  if (input.documentId) {
+    const link = await findPrimaryDocumentLink(context.db, context.organizationId, input.documentId);
+    if (link?.ownerType === 'task_comment') {
+      await assertCanUploadTaskCommentAttachment(context, link.ownerId);
+      return;
+    }
+  }
+
+  assertPermission(context, PERMISSIONS.DOCUMENTS_MANAGE);
+}
+
 export async function assertCanListEntityDocuments(
   context: OrgContext,
   ownerType: string,
@@ -82,9 +141,7 @@ export async function assertCanListEntityDocuments(
   }
 
   if (ownerType === 'task_comment') {
-    const comment = await findTaskCommentById(context.db, context.organizationId, ownerId);
-    if (!comment) throw new NotFoundError('Task comment');
-    await assertCanAccessTask(context, comment.taskId);
+    await assertCanUploadTaskCommentAttachment(context, ownerId);
     return;
   }
 

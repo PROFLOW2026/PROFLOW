@@ -3,10 +3,10 @@ setlocal EnableExtensions EnableDelayedExpansion
 
 cd /d "%~dp0"
 
-rem ProjectFlow local dev — port 3500 only for this repo.
+rem ProjectFlow local dev — port 3100 only for this repo.
 rem Does not touch other projects or other folders.
 
-set "PORT=3500"
+set "PORT=3100"
 set "URL=http://localhost:%PORT%"
 set "LOCKFILE=.next\dev\lock"
 
@@ -45,9 +45,9 @@ echo [INFO] Starting dev server on port %PORT%...
 echo.
 
 rem Open browser once the server responds (does not block dev server).
-start "" cmd /c "powershell -NoProfile -Command \"$u='%URL%/he-IL'; for($i=0;$i -lt 90;$i++){ try { $r=Invoke-WebRequest -UseBasicParsing -Uri $u -TimeoutSec 2; if($r.StatusCode -ge 200 -and $r.StatusCode -lt 500){ Start-Process $u; break } } catch {}; Start-Sleep 1 }\""
+start "" powershell -NoProfile -WindowStyle Hidden -Command "$u='%URL%/he-IL'; for($i=0;$i -lt 90;$i++){ try { $r=Invoke-WebRequest -UseBasicParsing -Uri $u -TimeoutSec 2; if($r.StatusCode -ge 200 -and $r.StatusCode -lt 500){ Start-Process $u; break } } catch {}; Start-Sleep 1 }"
 
-call npm run dev:local
+call npm run dev -- -p %PORT%
 set "EXITCODE=%ERRORLEVEL%"
 
 echo.

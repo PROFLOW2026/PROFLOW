@@ -28,6 +28,7 @@ import { documentOwnerExistsInOrganization } from '../data/verify-document-owner
 import { listDocumentsSchema, listEntityDocumentsSchema, prepareUploadSchema, type PrepareUploadInput } from '../validation/schemas';
 import {
   assertCanListEntityDocuments,
+  assertDocumentManagePermission,
   canReadCompensationDocuments,
 } from './document-visibility';
 
@@ -46,8 +47,6 @@ export async function prepareDocumentUpload(
   context: OrgContext,
   rawInput: PrepareUploadInput,
 ): Promise<PrepareUploadResult> {
-  assertPermission(context, PERMISSIONS.DOCUMENTS_MANAGE);
-
   const parsed = prepareUploadSchema.safeParse(rawInput);
   if (!parsed.success) {
     throw new ValidationError(
@@ -56,6 +55,12 @@ export async function prepareDocumentUpload(
   }
 
   const input = parsed.data;
+
+  await assertDocumentManagePermission(context, {
+    ownerType: input.ownerType,
+    ownerId: input.ownerId,
+  });
+
   const validation = validateUploadConstraints({
     mimeType: input.mimeType,
     sizeBytes: input.sizeBytes,

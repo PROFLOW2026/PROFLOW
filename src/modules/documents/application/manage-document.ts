@@ -8,7 +8,7 @@ import { getStoragePort, StorageNotConfiguredError } from '@/shared/ports/storag
 import { validateUploadConstraints } from '../domain/file-rules';
 import type { DocumentRecord, DownloadUrlResult } from '../domain/types';
 import { findDocumentById, listDeletedDocumentsNeedingStorageCleanup, updateDocumentById, flushDocumentCurrentVersionGuards } from '../data/documents.repository';
-import { assertCanReadStoredDocument } from './document-visibility';
+import { assertCanReadStoredDocument, assertDocumentManagePermission } from './document-visibility';
 import { ensureFirstDocumentVersion } from '../data/versions.repository';
 import {
   isStorageOrphanChecksum,
@@ -35,8 +35,6 @@ export async function finalizeDocumentUpload(
   context: OrgContext,
   rawInput: FinalizeUploadInput,
 ): Promise<DocumentRecord> {
-  assertPermission(context, PERMISSIONS.DOCUMENTS_MANAGE);
-
   const parsed = finalizeUploadSchema.safeParse(rawInput);
   if (!parsed.success) {
     throw new ValidationError(
@@ -46,6 +44,8 @@ export async function finalizeDocumentUpload(
 
   const existing = await findDocumentById(context.db, context.organizationId, parsed.data.documentId);
   if (!existing) throw new NotFoundError('Document');
+
+  await assertDocumentManagePermission(context, { documentId: parsed.data.documentId });
 
   if (existing.status !== 'pending') {
     throw new DomainRuleError('Document is not awaiting upload', 'documents.errors.notPending');
@@ -206,8 +206,6 @@ export async function softDeleteDocument(
   context: OrgContext,
   rawInput: { documentId: string },
 ): Promise<DocumentRecord> {
-  assertPermission(context, PERMISSIONS.DOCUMENTS_MANAGE);
-
   const parsed = documentIdSchema.safeParse(rawInput);
   if (!parsed.success) {
     throw new ValidationError(
@@ -217,6 +215,8 @@ export async function softDeleteDocument(
 
   const existing = await findDocumentById(context.db, context.organizationId, parsed.data.documentId);
   if (!existing) throw new NotFoundError('Document');
+
+  await assertDocumentManagePermission(context, { documentId: parsed.data.documentId });
   await assertCanReadStoredDocument(context, existing);
 
   const storage = getStoragePort();

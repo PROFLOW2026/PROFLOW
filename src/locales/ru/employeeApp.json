@@ -31,7 +31,8 @@
     "meetings": "Встречи",
     "team": "Команда",
     "forms": "Формы",
-    "expenses": "Расходы"
+    "expenses": "Расходы",
+    "more": "Ещё"
   },
   "back": {
     "label": "Назад"
@@ -177,6 +178,7 @@
       "priorityHigh": "Высокий",
       "priorityUrgent": "Срочный",
       "dueDate": "Срок",
+      "assignees": "Исполнители",
       "submit": "Создать задачу"
     }
   },

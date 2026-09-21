@@ -31,7 +31,8 @@
     "meetings": "الاجتماعات",
     "team": "الفريق",
     "forms": "النماذج",
-    "expenses": "المصروفات"
+    "expenses": "المصروفات",
+    "more": "المزيد"
   },
   "back": {
     "label": "رجوع"
@@ -177,6 +178,7 @@
       "priorityHigh": "مرتفعة",
       "priorityUrgent": "عاجلة",
       "dueDate": "تاريخ الاستحقاق",
+      "assignees": "المُكلفون",
       "submit": "إنشاء مهمة"
     }
   },

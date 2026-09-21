@@ -465,6 +465,7 @@
     "remove": "إزالة {name}"
   },
   "create": {
+    "title": "مهمة جديدة",
     "titleLabel": "العنوان",
     "titlePlaceholder": "عنوان المهمة...",
     "titleRequired": "العنوان مطلوب",
@@ -530,7 +531,7 @@
   "pendingChanges": "تغييرات غير محفوظة",
   "close": "إغلاق",
   "saving": "جارٍ الحفظ...",
-  "task": "مهمة",
+  "taskEntityLabel": "مهمة",
   "unassigned": "غير مسند",
   "wipLimitLabel": "حد WIP",
   "groupByLabel": "تجميع حسب",
@@ -659,7 +660,6 @@
       "description": "أنشئ مهمة للبدء"
     }
   },
-  "create.title": "مهمة جديدة",
   "errors": {
     "dependencyCycle": "إضافة هذا الاعتماد ستُنشئ حلقة.",
     "maxSubtaskDepth": "يمكن تداخل المهام الفرعية بمستوى واحد فقط.",
@@ -707,6 +707,8 @@
     "loadMore": "تحميل تعليقات سابقة",
     "attachments": {
       "addFiles": "إرفاق ملفات",
+      "pickImages": "اختيار صور",
+      "attachDocument": "إرفاق مستند",
       "takePhoto": "التقاط صورة",
       "pickFromCloud": "اختيار من السحابة",
       "remove": "إزالة {name}",

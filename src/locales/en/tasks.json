@@ -465,6 +465,7 @@
     "remove": "Remove {name}"
   },
   "create": {
+    "title": "New task",
     "titleLabel": "Title",
     "titlePlaceholder": "Task title...",
     "titleRequired": "Title is required",
@@ -530,7 +531,7 @@
   "saveFailed": "Could not save changes",
   "pendingChanges": "Unsaved changes",
   "saving": "Saving...",
-  "task": "Task",
+  "taskEntityLabel": "Task",
   "unassigned": "Unassigned",
   "wipLimitLabel": "WIP limit",
   "groupByLabel": "Group by",
@@ -659,7 +660,6 @@
       "description": "Create a task to get started"
     }
   },
-  "create.title": "New task",
   "errors": {
     "dependencyCycle": "Adding this dependency would create a cycle.",
     "maxSubtaskDepth": "Subtasks can only be nested one level deep.",
@@ -707,6 +707,8 @@
     "loadMore": "Load earlier comments",
     "attachments": {
       "addFiles": "Attach files",
+      "pickImages": "Choose photos",
+      "attachDocument": "Attach document",
       "pickFromCloud": "Pick from cloud",
       "takePhoto": "Take photo",
       "remove": "Remove {name}",

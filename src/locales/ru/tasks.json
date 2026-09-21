@@ -465,6 +465,7 @@
     "remove": "Удалить {name}"
   },
   "create": {
+    "title": "Новая задача",
     "titleLabel": "Название",
     "titlePlaceholder": "Название задачи...",
     "titleRequired": "Название обязательно",
@@ -530,7 +531,7 @@
   "pendingChanges": "Есть несохранённые изменения",
   "close": "Закрыть",
   "saving": "Сохранение...",
-  "task": "Задача",
+  "taskEntityLabel": "Задача",
   "unassigned": "Не назначено",
   "wipLimitLabel": "Лимит WIP",
   "groupByLabel": "Группировать по",
@@ -659,7 +660,6 @@
       "description": "Создайте задачу для начала работы"
     }
   },
-  "create.title": "Новая задача",
   "errors": {
     "dependencyCycle": "Эта зависимость создаст цикл.",
     "maxSubtaskDepth": "Подзадачи можно вкладывать только на один уровень.",
@@ -707,6 +707,8 @@
     "loadMore": "Загрузить более ранние комментарии",
     "attachments": {
       "addFiles": "Прикрепить файлы",
+      "pickImages": "Выбрать фото",
+      "attachDocument": "Прикрепить документ",
       "takePhoto": "Сделать фото",
       "pickFromCloud": "Выбрать из облака",
       "remove": "Удалить {name}",
