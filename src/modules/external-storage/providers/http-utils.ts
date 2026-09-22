@@ -29,6 +29,13 @@ export async function providerJson<T>(
   return (await response.json()) as T;
 }
 
+/**
+ * Provider HTTP 403 bodies that mean throttle / usage-rate limits, not auth failure.
+ * Shared across adapters — matched on reason text (Google Drive and similar APIs).
+ */
+const PROVIDER_THROTTLE_REASON_RE =
+  /rateLimitExceeded|userRateLimitExceeded|sharingRateLimitExceeded|dailyLimitExceeded|numRequestsExceed|activityLimitReached|requestsPerSecond|tooManyRequests|throttl(?:ed|ing)?|rate.?limit|retryDelay/i;
+
 export class ProviderHttpError extends Error {
   constructor(
     readonly status: number,
@@ -38,6 +45,11 @@ export class ProviderHttpError extends Error {
     this.name = 'ProviderHttpError';
   }
 
+  /** True when the body indicates API/user rate limiting (often returned as HTTP 403). */
+  isThrottleLike(): boolean {
+    return PROVIDER_THROTTLE_REASON_RE.test(this.bodySnippet);
+  }
+
   isQuotaExceeded(): boolean {
     return (
       this.status === 507 ||
@@ -45,12 +57,24 @@ export class ProviderHttpError extends Error {
     );
   }
 
+  /**
+   * Real auth / permission failures that require Owner reconnect or ACL fix.
+   * HTTP 403 alone is not enough — throttle-like 403 must not be treated as auth.
+   */
   isUnauthorized(): boolean {
-    return this.status === 401 || this.status === 403;
+    if (this.status === 401) return true;
+    if (this.status === 403) {
+      if (this.isThrottleLike()) return false;
+      return true;
+    }
+    return false;
   }
 
   isTransient(): boolean {
-    return this.status === 408 || this.status === 429 || this.status >= 500;
+    if (this.status === 408 || this.status === 429 || this.status >= 500) return true;
+    // Google Drive (and some others) return 403 with rate-limit reasons.
+    if (this.status === 403 && this.isThrottleLike()) return true;
+    return false;
   }
 
   isNameAlreadyExists(): boolean {
