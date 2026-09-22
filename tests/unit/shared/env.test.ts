@@ -26,6 +26,7 @@ describe('serverEnv', () => {
   });
 
   it('accepts empty optional strings as unset', () => {
+    delete process.env.LOG_LEVEL;
     process.env.DATABASE_URL = '';
     process.env.RESEND_API_KEY = '';
     resetServerEnvCache();

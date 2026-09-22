@@ -48,14 +48,20 @@ describe('hide OCR extraction from customers', () => {
         hasLachilutz: false,
       });
     }
-    const expenses = readFileSync(join(ROOT, 'src/app/[locale]/(app)/expenses/page.tsx'), 'utf8');
+    const expenses = readFileSync(
+      join(ROOT, 'src/modules/expenses/ui/expenses-org-list-page.tsx'),
+      'utf8',
+    );
     expect(expenses).toMatch(/OcrEntryLink/);
     expect(expenses).not.toMatch(/OCR_PROVIDER/);
     expect(expenses).not.toMatch(/לחילוץ/);
   });
 
   it('expenses page keeps add as the primary action and does not expose secrets', () => {
-    const source = readFileSync(join(ROOT, 'src/app/[locale]/(app)/expenses/page.tsx'), 'utf8');
+    const source = readFileSync(
+      join(ROOT, 'src/modules/expenses/ui/expenses-org-list-page.tsx'),
+      'utf8',
+    );
     expect(source).toMatch(/actions\.add/);
     expect(source).not.toMatch(/receiptPhoto/);
     expect(source).not.toMatch(/OCR_PROVIDER/);
