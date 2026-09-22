@@ -113,6 +113,15 @@ export async function runStorageProvisionBatch(
 
   await ensureOrganizationRootFolder(db, input.organizationId, connection, input.accessToken);
 
+  // Bounded provider reconciliation — invalidate READY mappings whose folders
+  // were deleted outside ProjectFlow so normal provisioning recreates them.
+  const { reconcileStaleReadyMappingsBatch } = await import('./provider-tree-health');
+  await reconcileStaleReadyMappingsBatch(db, {
+    organizationId: input.organizationId,
+    connection,
+    accessToken: input.accessToken,
+  });
+
   const {
     connectionTemplateApproved,
     reconcileProjectTemplateGateState,

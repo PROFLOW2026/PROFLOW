@@ -34,17 +34,26 @@ export default async function StorageSettingsPage({
       listOrganizationStorageConnections(context),
       isOrganizationStorageConfigured(context),
     ]);
-    const { reconcileProjectTemplateGateState } = await import(
-      '@/modules/external-storage/server'
-    );
+    const { reconcileProjectTemplateGateState, healStorageConnectionTreeForSettings } =
+      await import('@/modules/external-storage/server');
     const connections = await Promise.all(
       rawConnections.map(async (connection) => {
         if (connection.status !== 'connected') return connection;
-        return reconcileProjectTemplateGateState(
+        let next = await reconcileProjectTemplateGateState(
           context.db,
           context.organizationId,
           connection,
         );
+        try {
+          next = await healStorageConnectionTreeForSettings(
+            context.db,
+            context.organizationId,
+            next,
+          );
+        } catch {
+          // Auth/provider failures surface via connection status / lastError; page still renders.
+        }
+        return next;
       }),
     );
     const connected = connections.filter((connection) => connection.status === 'connected');

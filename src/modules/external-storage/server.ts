@@ -33,6 +33,17 @@ export {
   resetOrganizationStorageProviderTree,
   invalidateMissingProviderRoot,
 } from './application/storage-tree-reset';
+export {
+  checkAndHealProviderTreeHealth,
+  healStorageConnectionTreeForSettings,
+  verifyProjectTemplateAgainstProvider,
+  reconcileStaleReadyMappingsBatch,
+} from './application/provider-tree-health';
+export { readStorageTreeHealth } from './domain/storage-tree-health';
+export type {
+  StorageTreeHealthCapability,
+  StorageTreeHealthStatus,
+} from './domain/storage-tree-health';
 export { ensureStorageProvisionStarted, kickStorageProvision, kickStorageProvisionIfPreparing, recoverStorageProvisionViaWorker } from './application/kick-storage-provision';
 export { readProjectTemplateCapability } from './domain/project-template';
 export type { ProjectTemplateSetupStatus } from './domain/project-template';

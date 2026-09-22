@@ -28,8 +28,8 @@ export interface StorageTreeResetResult {
  *
  * soft_reset — Owner/ops wipe before a fresh first-connect (status unchanged
  *   or forced disconnected by caller).
- * root_missing — Provider root was deleted outside ProjectFlow; mark
- *   reconnect_required and demote primary so UI stops "preparing forever".
+ * root_missing — Provider root was deleted outside ProjectFlow. Keeps OAuth
+ *   connected by default so callers can auto-rebuild; does not demote primary.
  */
 export async function clearStorageProviderTreeState(
   db: DbExecutor,
@@ -79,12 +79,13 @@ export async function clearStorageProviderTreeState(
       .returning({ id: storageFiles.id });
     filesDeleted = deletedFiles.length;
 
+    // Provider-side root loss keeps credentials connected for auto-rebuild.
+    // Explicit disconnect still demotes primary.
     const status =
       options.status ??
-      (mode === 'root_missing' ? 'reconnect_required' : connection.status);
+      (mode === 'root_missing' ? 'connected' : connection.status);
 
-    const demotePrimary =
-      (mode === 'root_missing' || options.status === 'disconnected') && wasPrimary;
+    const demotePrimary = options.status === 'disconnected' && wasPrimary;
 
     await updateStorageConnection(adminDb, organizationId, connection.id, {
       rootFolderExternalId: null,
@@ -95,10 +96,7 @@ export async function clearStorageProviderTreeState(
     });
   });
 
-  if (
-    (mode === 'root_missing' || options.status === 'disconnected') &&
-    wasPrimary
-  ) {
+  if (options.status === 'disconnected' && wasPrimary) {
     await ensureUsablePrimaryStorageConnection(db, organizationId);
   }
 
@@ -110,7 +108,10 @@ export async function clearStorageProviderTreeState(
   };
 }
 
-/** Invalidate stale ready mappings when the provider ProjectFlow root is gone. */
+/**
+ * Invalidate stale folder/file bookkeeping when the provider ProjectFlow root
+ * is gone. Keeps OAuth credentials and connected status for automatic rebuild.
+ */
 export async function invalidateMissingProviderRoot(
   db: DbExecutor,
   organizationId: string,
@@ -118,6 +119,7 @@ export async function invalidateMissingProviderRoot(
 ): Promise<StorageTreeResetResult> {
   return clearStorageProviderTreeState(db, organizationId, connection, {
     mode: 'root_missing',
+    status: 'connected',
   });
 }
 

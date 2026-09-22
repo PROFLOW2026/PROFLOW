@@ -23,6 +23,14 @@ export type {
   ProjectTemplateSetupStatus,
   ProjectTemplateCapability,
 } from './domain/project-template';
+export {
+  readStorageTreeHealth,
+  isStorageTreeHealthy,
+} from './domain/storage-tree-health';
+export type {
+  StorageTreeHealthCapability,
+  StorageTreeHealthStatus,
+} from './domain/storage-tree-health';
 export type {
   ProjectCloudFileRef,
   ProjectCloudFileBrowserActions,

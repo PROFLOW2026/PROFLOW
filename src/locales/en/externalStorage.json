@@ -33,8 +33,12 @@
     "unknown": "Quota information unavailable from this provider"
   },
   "primaryRequiredNotice": "This provider is connected but not set as primary. Set it as primary to enable file uploads.",
-  "oauthSuccess": "Storage connected successfully.",
+  "oauthSuccess": "Account connected. Confirm the project template if prompted.",
   "oauthFailed": "Connection failed. Try again.",
+  "treeHealth": {
+    "needsRepair": "Cloud account is connected, but the ProjectFlow folder structure needs repair. Use Test connection to rebuild it.",
+    "repaired": "ProjectFlow folder structure was rebuilt. Confirm the project template to continue."
+  },
   "templateGate": {
     "connectedNeedChoice": "Storage connected — choose a project template",
     "waitingApproval": "Project template awaiting confirmation",
@@ -57,7 +61,8 @@
     "providerNotConfigured": "Provider not configured in this environment.",
     "connectionNotFound": "Storage connection not found.",
     "rootNotReady": "Storage is connected but the ProjectFlow folder is not ready yet. Reconnect or test the connection.",
-    "rootFolderMissing": "The ProjectFlow folder was deleted in cloud storage. Reconnect to rebuild organization folders and the project template.",
+    "rootFolderMissing": "The ProjectFlow folder was deleted in cloud storage. ProjectFlow rebuilt the organization folders and project template — confirm the template to continue. No reconnect is required.",
+    "templateIncomplete": "The project template in cloud storage is incomplete. ProjectFlow tried to repair it; if the problem continues, open the template in storage and try again.",
     "provisionKickFailed": "Storage connected, but project folder provisioning failed to start. Try approving the template again, or reconnect if the problem continues.",
     "outOfScope": "Item is outside the project folder tree.",
     "folderNotEmpty": "Cannot delete a folder that is not empty.",

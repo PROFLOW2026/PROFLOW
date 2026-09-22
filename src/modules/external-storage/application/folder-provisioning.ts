@@ -179,6 +179,7 @@ export async function ensureOrganizationRootFolder(
   organizationId: string,
   connection: StorageConnectionRecord,
   accessToken: string,
+  options?: { readonly skipMissingRootRebuild?: boolean },
 ): Promise<string> {
   const existing = await findFolderMapping(db, {
     organizationId,
@@ -198,13 +199,23 @@ export async function ensureOrganizationRootFolder(
   );
 
   if (resolved.kind === 'missing_stored_root') {
-    const { invalidateMissingProviderRoot } = await import('./storage-tree-reset');
-    await invalidateMissingProviderRoot(db, organizationId, connection);
-    const { ServiceUnavailableError } = await import('@/shared/errors');
-    throw new ServiceUnavailableError(
-      'Organization storage root folder is missing in the provider',
-      'externalStorage.errors.rootFolderMissing',
+    if (options?.skipMissingRootRebuild) {
+      const { ServiceUnavailableError } = await import('@/shared/errors');
+      throw new ServiceUnavailableError(
+        'Organization storage root folder is missing in the provider',
+        'externalStorage.errors.rootFolderMissing',
+      );
+    }
+    // Provider deleted the ProjectFlow root — wipe stale mappings, keep OAuth,
+    // recreate dedicated root + base folders + template (pending approval).
+    const { rebuildStorageTreeKeepingCredentials } = await import('./provider-tree-health');
+    const healed = await rebuildStorageTreeKeepingCredentials(
+      db,
+      organizationId,
+      connection,
+      accessToken,
     );
+    return healed.rootFolderId;
   }
 
   const rootId = resolved.rootId;

@@ -8,7 +8,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { StatusBadge } from '@/components/ui/status-badge';
 import type { StorageConnectionRecord, StorageProviderKey } from '@/modules/external-storage/client';
-import { readProjectTemplateCapability } from '@/modules/external-storage/client';
+import {
+  readProjectTemplateCapability,
+  readStorageTreeHealth,
+} from '@/modules/external-storage/client';
 import type { StorageProvisionProgress } from '@/modules/external-storage/domain/project-folder-placement';
 import { formatFileSize } from '@/modules/documents/domain/format-file-size';
 import {
@@ -49,6 +52,7 @@ function storageLastErrorMessage(
 ): string | null {
   if (!lastError) return null;
   if (lastError === 'root_folder_missing') return t('errors.rootFolderMissing');
+  if (lastError === 'template_incomplete') return t('errors.templateIncomplete');
   if (lastError.startsWith('provision_kick_failed')) return t('errors.provisionKickFailed');
   if (lastError === 'unauthorized' || lastError === 'token_expired' || lastError === 'missing_credentials') {
     return t('errors.reconnectRequired');
@@ -89,6 +93,10 @@ export function StorageSettingsPanel({
             connection && status === 'connected'
               ? readProjectTemplateCapability(connection.capabilitiesJson)
               : null;
+          const treeHealth =
+            connection && status === 'connected'
+              ? readStorageTreeHealth(connection.capabilitiesJson)
+              : null;
           const progress = connection ? provisionProgress[connection.id] : undefined;
           return (
             <li key={provider}>
@@ -119,6 +127,17 @@ export function StorageSettingsPanel({
                   ) : null}
                   {!configured ? (
                     <Alert tone="info">{t('errors.providerNotConfigured')}</Alert>
+                  ) : null}
+                  {connection &&
+                  status === 'connected' &&
+                  (treeHealth?.status === 'needs_repair' ||
+                    treeHealth?.status === 'repairing' ||
+                    connection.lastError === 'root_folder_missing' ||
+                    connection.lastError === 'template_incomplete') ? (
+                    <Alert tone="warning">
+                      {storageLastErrorMessage(connection.lastError, t) ??
+                        t('treeHealth.needsRepair')}
+                    </Alert>
                   ) : null}
                   {connection?.lastError &&
                   (status === 'reconnect_required' ||

@@ -5,39 +5,18 @@ import { storageFolderMappings } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 import { updateStorageConnection } from '../data/connections.repository';
 import {
-  PROJECT_TEMPLATE_FOLDER_NAME,
   isProjectTemplateApproved,
   readProjectTemplateCapability,
   withProjectTemplateCapability,
   type ProjectTemplateSetupStatus,
   type StorageConnectionCapabilities,
 } from '../domain/project-template';
-import {
-  PROJECT_SEMANTIC_FOLDERS,
-  resolveSemanticFolderDisplayName,
-} from '../domain/semantic-folders';
-import { sanitizeProviderFolderName } from '../domain/folder-names';
 import type { StorageConnectionRecord } from '../domain/types';
 import { getStorageProviderAdapter } from '../providers/registry';
-
-async function findOrCreateNamedFolder(
-  accessToken: string,
-  connection: StorageConnectionRecord,
-  parentId: string,
-  rawName: string,
-): Promise<{ id: string; name: string }> {
-  const adapter = getStorageProviderAdapter(connection.provider);
-  const name = sanitizeProviderFolderName(rawName);
-  if (adapter.getChildFolderByName) {
-    const existing = await adapter.getChildFolderByName(accessToken, parentId, name);
-    if (existing) return existing;
-  } else {
-    const listing = await adapter.listFolder(accessToken, parentId);
-    const existing = listing.folders.find((folder) => folder.name === name);
-    if (existing) return existing;
-  }
-  return adapter.createFolder(accessToken, { name, parentId });
-}
+import {
+  ensureProjectTemplateStructure,
+  verifyProjectTemplateAgainstProvider,
+} from './provider-tree-health';
 
 async function connectionHasReadyProjectRoots(
   db: DbExecutor,
@@ -61,8 +40,8 @@ async function connectionHasReadyProjectRoots(
 }
 
 /**
- * Ensures ProjectFlow/תבנית פרויקט exists with the default 01–08 folders.
- * Does not map the template as a project. Persists folder id in capabilitiesJson.
+ * Ensures ProjectFlow/תבנית פרויקט exists with ALL required semantic folders
+ * verified against the provider. Failures are not swallowed.
  */
 export async function ensureDefaultProjectTemplate(
   db: DbExecutor,
@@ -71,38 +50,15 @@ export async function ensureDefaultProjectTemplate(
   accessToken: string,
   rootFolderId: string,
   options?: { readonly resetApproval?: boolean },
-): Promise<{ folderId: string; status: ProjectTemplateSetupStatus }> {
+): Promise<{ folderId: string; status: ProjectTemplateSetupStatus; complete: boolean }> {
   const current = readProjectTemplateCapability(connection.capabilitiesJson);
-  let folderId = current.externalFolderId;
 
-  if (folderId) {
-    const adapter = getStorageProviderAdapter(connection.provider);
-    const existing = await adapter.getFolder(accessToken, folderId);
-    if (!existing) folderId = null;
-  }
-
-  if (!folderId) {
-    const created = await findOrCreateNamedFolder(
-      accessToken,
-      connection,
-      rootFolderId,
-      PROJECT_TEMPLATE_FOLDER_NAME,
-    );
-    folderId = created.id;
-  }
-
-  for (const semantic of PROJECT_SEMANTIC_FOLDERS) {
-    try {
-      await findOrCreateNamedFolder(
-        accessToken,
-        connection,
-        folderId,
-        resolveSemanticFolderDisplayName(semantic),
-      );
-    } catch {
-      // Default template folders are best-effort; quota must not fail OAuth.
-    }
-  }
+  const ensured = await ensureProjectTemplateStructure(
+    connection,
+    accessToken,
+    rootFolderId,
+    current.externalFolderId,
+  );
 
   let status: ProjectTemplateSetupStatus = current.status;
   if (options?.resetApproval) {
@@ -118,7 +74,7 @@ export async function ensureDefaultProjectTemplate(
 
   const capabilities = withProjectTemplateCapability(connection.capabilitiesJson, {
     status,
-    externalFolderId: folderId,
+    externalFolderId: ensured.folderId,
     approvedAt:
       status === 'approved'
         ? current.approvedAt ?? new Date().toISOString()
@@ -131,7 +87,7 @@ export async function ensureDefaultProjectTemplate(
     capabilitiesJson: capabilities as Record<string, unknown>,
   });
 
-  return { folderId, status };
+  return { folderId: ensured.folderId, status, complete: true };
 }
 
 /** Lazy-upgrade pre-gate connections that already have project folders. */
@@ -171,17 +127,63 @@ export function connectionTemplateApproved(connection: StorageConnectionRecord):
   return isProjectTemplateApproved(connection.capabilitiesJson);
 }
 
+/**
+ * Approve only after provider verification (and best-effort self-heal) of the
+ * template root and every required semantic child folder.
+ */
 export async function markProjectTemplateApproved(
   db: DbExecutor,
   organizationId: string,
   connection: StorageConnectionRecord,
+  accessToken?: string,
 ): Promise<StorageConnectionRecord> {
+  if (accessToken) {
+    const rootId = connection.rootFolderExternalId;
+    if (!rootId) {
+      const { DomainRuleError } = await import('@/shared/errors');
+      throw new DomainRuleError(
+        'Storage root folder is not provisioned',
+        'externalStorage.errors.rootNotReady',
+      );
+    }
+
+    try {
+      await ensureProjectTemplateStructure(
+        connection,
+        accessToken,
+        rootId,
+        readProjectTemplateCapability(connection.capabilitiesJson).externalFolderId,
+      );
+    } catch {
+      const { DomainRuleError } = await import('@/shared/errors');
+      throw new DomainRuleError(
+        'Project template is incomplete in provider storage',
+        'externalStorage.errors.templateIncomplete',
+      );
+    }
+
+    const verified = await verifyProjectTemplateAgainstProvider(connection, accessToken);
+    if (!verified.complete) {
+      const { DomainRuleError } = await import('@/shared/errors');
+      throw new DomainRuleError(
+        'Project template is incomplete in provider storage',
+        'externalStorage.errors.templateIncomplete',
+      );
+    }
+
+    const refreshedCaps = withProjectTemplateCapability(connection.capabilitiesJson, {
+      externalFolderId: verified.templateRootId,
+    });
+    connection = { ...connection, capabilitiesJson: refreshedCaps };
+  }
+
   const capabilities = withProjectTemplateCapability(connection.capabilitiesJson, {
     status: 'approved',
     approvedAt: new Date().toISOString(),
   });
   const updated = await updateStorageConnection(db, organizationId, connection.id, {
     capabilitiesJson: capabilities as Record<string, unknown>,
+    lastError: null,
   });
   return updated ?? { ...connection, capabilitiesJson: capabilities };
 }

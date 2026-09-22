@@ -183,9 +183,9 @@ export async function provisionConnectedStorage(input: {
   userId: string;
   organizationId: string;
   connectionId: string;
-  /** Same Microsoft account as before disconnect — reuse folder mappings, skip full bootstrap. */
+  /** Same cloud account as before disconnect — reuse folder mappings when root still exists. */
   reconnectSameAccount?: boolean;
-  /** Different Microsoft account — drop stale external folder IDs before provisioning. */
+  /** Different cloud account — drop stale external folder IDs before provisioning. */
   accountChanged?: boolean;
 }): Promise<void> {
   const { withUserContext } = await import('@/shared/db/client');
@@ -193,19 +193,35 @@ export async function provisionConnectedStorage(input: {
     let connection = await findStorageConnectionById(db, input.organizationId, input.connectionId);
     if (!connection || connection.status !== 'connected') return;
 
-    if (input.accountChanged) {
+    const accessToken = await resolveValidAccessToken(db, input.organizationId, connection);
+
+    // Same-account reconnect must not trust stale folder IDs when the provider
+    // root was deleted externally.
+    let mustResetTree = Boolean(input.accountChanged);
+    if (input.reconnectSameAccount && !mustResetTree && connection.rootFolderExternalId) {
+      const adapter = getStorageProviderAdapter(connection.provider);
+      const root = await adapter.getFolder(accessToken, connection.rootFolderExternalId);
+      if (!root) {
+        mustResetTree = true;
+        console.info('[org-storage/oauth/provision] step=same_account_root_missing', {
+          connectionId: input.connectionId,
+        });
+      }
+    }
+
+    if (mustResetTree) {
       await clearStorageProviderTreeState(db, input.organizationId, connection, {
-        mode: 'soft_reset',
+        mode: input.accountChanged ? 'soft_reset' : 'root_missing',
         status: 'connected',
       });
       connection =
         (await findStorageConnectionById(db, input.organizationId, connection.id)) ?? connection;
     }
 
-    const accessToken = await resolveValidAccessToken(db, input.organizationId, connection);
     console.info('[org-storage/oauth/provision] step=root_folder begin', {
       connectionId: input.connectionId,
       reconnectSameAccount: Boolean(input.reconnectSameAccount),
+      treeReset: mustResetTree,
     });
     const rootFolderId = await ensureOrganizationRootFolder(
       db,
@@ -226,12 +242,13 @@ export async function provisionConnectedStorage(input: {
       refreshed,
       accessToken,
       rootFolderId,
-      { resetApproval: Boolean(input.accountChanged) },
+      { resetApproval: mustResetTree },
     );
     console.info('[org-storage/oauth/provision] step=project_template', {
       connectionId: input.connectionId,
       templateStatus: template.status,
       templateFolderId: template.folderId,
+      templateComplete: template.complete,
     });
 
     const afterTemplate =
@@ -618,35 +635,45 @@ export async function validateStorageConnection(
 
   try {
     const accessToken = await resolveValidAccessToken(context.db, context.organizationId, connection);
-    const adapter = getStorageProviderAdapter(connection.provider);
-    await adapter.getAccountInfo(accessToken);
-
-    if (connection.rootFolderExternalId) {
-      const root = await adapter.getFolder(accessToken, connection.rootFolderExternalId);
-      if (!root) {
-        const { invalidateMissingProviderRoot } = await import('./storage-tree-reset');
-        await invalidateMissingProviderRoot(context.db, context.organizationId, connection);
-        throw new ServiceUnavailableError(
-          'Organization storage root folder is missing in the provider',
-          'externalStorage.errors.rootFolderMissing',
-        );
-      }
-    }
+    const { checkAndHealProviderTreeHealth } = await import('./provider-tree-health');
+    const health = await checkAndHealProviderTreeHealth(
+      context.db,
+      context.organizationId,
+      connection,
+      accessToken,
+      { autoHealRoot: true },
+    );
 
     let quota = { usedBytes: null as number | null, totalBytes: null as number | null };
+    const adapter = getStorageProviderAdapter(health.connection.provider);
     if (adapter.getQuotaInfo) {
       quota = await adapter.getQuotaInfo(accessToken);
     }
-    const updated = await updateStorageConnection(context.db, context.organizationId, connectionId, {
-      status: 'connected',
-      lastValidatedAt: new Date(),
-      lastError: null,
-      quotaUsedBytes: quota.usedBytes,
-      quotaTotalBytes: quota.totalBytes,
-    });
-    return updated ?? connection;
+    const updated = await updateStorageConnection(
+      context.db,
+      context.organizationId,
+      connectionId,
+      {
+        status: 'connected',
+        lastValidatedAt: new Date(),
+        lastError: health.templateComplete
+          ? health.connection.lastError === 'template_incomplete' ||
+            health.connection.lastError === 'root_folder_missing'
+            ? null
+            : health.connection.lastError
+          : health.connection.lastError ?? 'template_incomplete',
+        quotaUsedBytes: quota.usedBytes,
+        quotaTotalBytes: quota.totalBytes,
+      },
+    );
+    return (
+      (await findStorageConnectionById(context.db, context.organizationId, connectionId)) ??
+      updated ??
+      health.connection
+    );
   } catch (error) {
     if (error instanceof ServiceUnavailableError) throw error;
+    if (error instanceof DomainRuleError) throw error;
     const message = error instanceof ProviderHttpError && error.isUnauthorized()
       ? 'unauthorized'
       : 'validation_failed';
@@ -740,12 +767,18 @@ export async function approveProjectTemplateAndProvision(
   if (!connection || connection.status !== 'connected') {
     throw new DomainRuleError('Connection not active', 'externalStorage.errors.connectionNotFound');
   }
+  const accessToken = await resolveValidAccessToken(
+    context.db,
+    context.organizationId,
+    connection,
+  );
   const { markProjectTemplateApproved } = await import('./project-template-service');
   const { ensureStorageProvisionStarted } = await import('./kick-storage-provision');
   const updated = await markProjectTemplateApproved(
     context.db,
     context.organizationId,
     connection,
+    accessToken,
   );
 
   try {
