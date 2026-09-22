@@ -320,10 +320,6 @@ async function scheduleStorageProvisionNext(next: {
   rateLimitStreak: number;
   delayMs: number;
 }): Promise<void> {
-  if (next.delayMs > 0) {
-    await new Promise((resolve) => setTimeout(resolve, next.delayMs));
-  }
-
   const { resolveStorageProvisionWorkerTarget, postStorageProvisionWorker } = await import(
     './kick-storage-provision'
   );
@@ -335,36 +331,48 @@ async function scheduleStorageProvisionNext(next: {
     return;
   }
 
-  console.info('[org-storage/provision] chain next HTTP', {
+  console.info('[org-storage/provision] chain next HTTP scheduled', {
     url: target.url,
     chain: next.chain,
     rateLimitStreak: next.rateLimitStreak,
     delayMs: next.delayMs,
   });
-  try {
-    const response = await postStorageProvisionWorker({
-      chain: next.chain,
-      rateLimitStreak: next.rateLimitStreak,
-    });
-    if (!response.ok) {
-      const body = await response.text().catch(() => '');
-      console.error('[org-storage/provision] chain HTTP failed', {
-        status: response.status,
-        body: body.slice(0, 300),
-        chain: next.chain,
-      });
-      return;
-    }
-    console.info('[org-storage/provision] chain HTTP accepted', {
-      status: response.status,
-      chain: next.chain,
-    });
-  } catch (error) {
-    console.error('[org-storage/provision] chain fetch failed', {
-      detail: error instanceof Error ? error.message : String(error),
-      chain: next.chain,
-    });
-  }
+
+  // Return the current worker response immediately; continue via after().
+  // Awaiting the next worker nested the full remaining chain under one
+  // invocation and caused gateway/maxDuration aborts that left remaining > 0.
+  const { after } = await import('next/server');
+  after(() => {
+    void (async () => {
+      if (next.delayMs > 0) {
+        await new Promise((resolve) => setTimeout(resolve, next.delayMs));
+      }
+      try {
+        const response = await postStorageProvisionWorker({
+          chain: next.chain,
+          rateLimitStreak: next.rateLimitStreak,
+        });
+        if (!response.ok) {
+          const body = await response.text().catch(() => '');
+          console.error('[org-storage/provision] chain HTTP failed', {
+            status: response.status,
+            body: body.slice(0, 300),
+            chain: next.chain,
+          });
+          return;
+        }
+        console.info('[org-storage/provision] chain HTTP accepted', {
+          status: response.status,
+          chain: next.chain,
+        });
+      } catch (error) {
+        console.error('[org-storage/provision] chain fetch failed', {
+          detail: error instanceof Error ? error.message : String(error),
+          chain: next.chain,
+        });
+      }
+    })();
+  });
 }
 
 export async function runStorageProvisionCycle(input: {
