@@ -331,49 +331,47 @@ async function scheduleStorageProvisionNext(next: {
     return;
   }
 
-  console.info('[org-storage/provision] chain next HTTP scheduled', {
+  console.info('[org-storage/provision] chain next HTTP', {
     url: target.url,
     chain: next.chain,
     rateLimitStreak: next.rateLimitStreak,
     delayMs: next.delayMs,
   });
 
-  // Return the current worker response immediately; continue via after().
-  // Awaiting the next worker nested the full remaining chain under one
-  // invocation and caused gateway/maxDuration aborts that left remaining > 0.
-  const { after } = await import('next/server');
-  after(() => {
-    void (async () => {
-      if (next.delayMs > 0) {
-        await new Promise((resolve) => setTimeout(resolve, next.delayMs));
-      }
-      try {
-        const response = await postStorageProvisionWorker({
-          chain: next.chain,
-          rateLimitStreak: next.rateLimitStreak,
-        });
-        if (!response.ok) {
-          const body = await response.text().catch(() => '');
-          console.error('[org-storage/provision] chain HTTP failed', {
-            status: response.status,
-            body: body.slice(0, 300),
-            chain: next.chain,
-          });
-          return;
-        }
-        console.info('[org-storage/provision] chain HTTP accepted', {
-          status: response.status,
-          chain: next.chain,
-        });
-      } catch (error) {
-        console.error('[org-storage/provision] chain fetch failed', {
-          detail: error instanceof Error ? error.message : String(error),
-          chain: next.chain,
-        });
-      }
-    })();
-  });
+  if (next.delayMs > 0) {
+    await new Promise((resolve) => setTimeout(resolve, next.delayMs));
+  }
+
+  // Next worker accepts immediately (work runs in its after()), so this fetch
+  // returns quickly and does not nest the remaining chain.
+  try {
+    const response = await postStorageProvisionWorker({
+      chain: next.chain,
+      rateLimitStreak: next.rateLimitStreak,
+    });
+    if (!response.ok) {
+      const body = await response.text().catch(() => '');
+      console.error('[org-storage/provision] chain HTTP failed', {
+        status: response.status,
+        body: body.slice(0, 300),
+        chain: next.chain,
+      });
+      return;
+    }
+    console.info('[org-storage/provision] chain HTTP accepted', {
+      status: response.status,
+      chain: next.chain,
+    });
+  } catch (error) {
+    console.error('[org-storage/provision] chain fetch failed', {
+      detail: error instanceof Error ? error.message : String(error),
+      chain: next.chain,
+    });
+  }
 }
+
+/** Wall-clock budget for multi-batch work inside one worker after() invocation. */
+const STORAGE_PROVISION_CYCLE_BUDGET_MS = 240_000;
 
 export async function runStorageProvisionCycle(input: {
   chain?: number;
@@ -381,9 +379,10 @@ export async function runStorageProvisionCycle(input: {
   scheduleNext?: (next: { chain: number; rateLimitStreak: number; delayMs: number }) => Promise<void>;
 } = {}): Promise<StorageProvisionBatchResult & { readonly continued: boolean }> {
   const chain = input.chain ?? 0;
-  const rateLimitStreak = input.rateLimitStreak ?? 0;
+  let rateLimitStreak = input.rateLimitStreak ?? 0;
   const scheduleNext = input.scheduleNext ?? scheduleStorageProvisionNext;
   const db = getAdminDb();
+  const cycleStarted = Date.now();
   console.info('[org-storage/provision] cycle begin', { chain, rateLimitStreak });
   const connections = await db
     .select({
@@ -404,7 +403,9 @@ export async function runStorageProvisionCycle(input: {
     rateLimited: false,
   };
 
-  for (const row of connections) {
+  let totals = { clientsProcessed: 0, projectsProcessed: 0 };
+
+  connectionLoop: for (const row of connections) {
     try {
       const connection = await findStorageConnectionById(db, row.organizationId, row.id);
       if (!connection) continue;
@@ -424,24 +425,63 @@ export async function runStorageProvisionCycle(input: {
         };
         continue;
       }
+
       const accessToken = await resolveValidAccessToken(db, row.organizationId, connection);
-      last = await runStorageProvisionBatch(db, {
-        organizationId: row.organizationId,
-        connectionId: row.id,
-        accessToken,
-      });
-      console.info('[org-storage/provision] cycle batch', {
-        connectionId: row.id,
-        clientsProcessed: last.clientsProcessed,
-        projectsProcessed: last.projectsProcessed,
-        remaining: last.remaining,
-        rateLimited: last.rateLimited,
-        fatalError: last.fatalError ?? null,
-      });
-      if (last.fatalError) break;
-      if ((last.clientsProcessed > 0 || last.projectsProcessed > 0) && connection.lastError) {
-        await updateStorageConnection(db, row.organizationId, row.id, { lastError: null });
+
+      // Multi-batch within this invocation — fewer HTTP hops on serverless.
+      while (Date.now() - cycleStarted < STORAGE_PROVISION_CYCLE_BUDGET_MS) {
+        last = await runStorageProvisionBatch(db, {
+          organizationId: row.organizationId,
+          connectionId: row.id,
+          accessToken,
+        });
+        totals.clientsProcessed += last.clientsProcessed;
+        totals.projectsProcessed += last.projectsProcessed;
+        console.info('[org-storage/provision] cycle batch', {
+          connectionId: row.id,
+          clientsProcessed: last.clientsProcessed,
+          projectsProcessed: last.projectsProcessed,
+          remaining: last.remaining,
+          rateLimited: last.rateLimited,
+          fatalError: last.fatalError ?? null,
+          elapsedMs: Date.now() - cycleStarted,
+        });
+
+        if (last.fatalError) break connectionLoop;
+        if ((last.clientsProcessed > 0 || last.projectsProcessed > 0) && connection.lastError) {
+          await updateStorageConnection(db, row.organizationId, row.id, { lastError: null });
+        }
+        if (last.remaining <= 0) break connectionLoop;
+
+        if (last.rateLimited) {
+          rateLimitStreak += 1;
+          const step = nextStorageProvisionStep({
+            remaining: last.remaining,
+            rateLimited: true,
+            chain,
+            rateLimitStreak: rateLimitStreak - 1,
+          });
+          const delayMs = step.delayMs;
+          const remainingBudget = STORAGE_PROVISION_CYCLE_BUDGET_MS - (Date.now() - cycleStarted);
+          if (delayMs > 0 && delayMs + 5_000 < remainingBudget) {
+            console.info('[org-storage/provision] in-cycle rate-limit backoff', {
+              delayMs,
+              rateLimitStreak,
+            });
+            await new Promise((resolve) => setTimeout(resolve, delayMs));
+            continue;
+          }
+          // Not enough budget for backoff — hand off to next HTTP hop.
+          break connectionLoop;
+        }
+
+        rateLimitStreak = 0;
+        if (last.clientsProcessed === 0 && last.projectsProcessed === 0) {
+          // No progress this batch but remaining > 0 — avoid tight spin.
+          break connectionLoop;
+        }
       }
+
       if (last.remaining > 0 || last.rateLimited) break;
     } catch (error) {
       if (isTransient(error)) {
@@ -460,6 +500,12 @@ export async function runStorageProvisionCycle(input: {
       });
     }
   }
+
+  last = {
+    ...last,
+    clientsProcessed: totals.clientsProcessed,
+    projectsProcessed: totals.projectsProcessed,
+  };
 
   if (last.fatalError) {
     console.error('[org-storage/provision] cycle stopped — non-retryable', {
