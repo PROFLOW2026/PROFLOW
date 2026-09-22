@@ -342,8 +342,8 @@ async function scheduleStorageProvisionNext(next: {
     await new Promise((resolve) => setTimeout(resolve, next.delayMs));
   }
 
-  // Next worker accepts immediately (work runs in its after()), so this fetch
-  // returns quickly and does not nest the remaining chain.
+  // Next worker accepts immediately and continues via waitUntil — this fetch
+  // returns quickly and must not wait for the rest of the org to finish.
   try {
     const response = await postStorageProvisionWorker({
       chain: next.chain,
@@ -358,6 +358,7 @@ async function scheduleStorageProvisionNext(next: {
       });
       return;
     }
+    await response.text().catch(() => '');
     console.info('[org-storage/provision] chain HTTP accepted', {
       status: response.status,
       chain: next.chain,

@@ -1,15 +1,15 @@
 import { NextResponse } from 'next/server';
-import { after } from 'next/server';
+import { waitUntil } from '@vercel/functions';
 import { runStorageProvisionCycle } from '@/modules/external-storage/application/provision-batch';
 import { isStorageProvisionWorkerAuthorized } from '@/modules/external-storage/application/storage-provision-worker-auth';
 
-/** Allow multi-batch provision + next-hop kick within one invocation. */
+/** Multi-batch provision inside waitUntil + next-hop kick. */
 export const maxDuration = 300;
 
 /**
  * Resumable external-storage folder provisioning.
- * Accepts immediately, then runs the batch cycle in `after()` so HTTP chaining
- * does not nest under a single open request.
+ * Accepts immediately, runs multi-batch work via waitUntil (durable on Vercel),
+ * then HTTP-kicks the next worker (also quick-accept) so hops do not nest.
  * Auth: STORAGE_PROVISION_WORKER_SECRET (dedicated; not OCR/CRON).
  */
 export async function POST(request: Request): Promise<Response> {
@@ -24,10 +24,10 @@ export async function POST(request: Request): Promise<Response> {
   const rateLimitStreak = typeof body.rateLimitStreak === 'number' ? body.rateLimitStreak : 0;
   console.info('[org-storage/provision] worker POST accept', { chain, rateLimitStreak });
 
-  after(() => {
-    void runStorageProvisionCycle({ chain, rateLimitStreak })
+  waitUntil(
+    runStorageProvisionCycle({ chain, rateLimitStreak })
       .then((result) => {
-        console.info('[org-storage/provision] worker after done', {
+        console.info('[org-storage/provision] worker waitUntil done', {
           clientsProcessed: result.clientsProcessed,
           projectsProcessed: result.projectsProcessed,
           remaining: result.remaining,
@@ -37,11 +37,11 @@ export async function POST(request: Request): Promise<Response> {
         });
       })
       .catch((error) => {
-        console.error('[org-storage/provision] worker after failed', {
+        console.error('[org-storage/provision] worker waitUntil failed', {
           detail: error instanceof Error ? error.message : String(error),
         });
-      });
-  });
+      }),
+  );
 
   return NextResponse.json({
     accepted: true,
