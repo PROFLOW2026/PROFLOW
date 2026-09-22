@@ -29,6 +29,7 @@ export async function POST(request: Request): Promise<Response> {
       remaining: result.remaining,
       rateLimited: result.rateLimited,
       continued: result.continued,
+      fatalError: result.fatalError ?? null,
     });
     return NextResponse.json(result);
   } catch (error) {

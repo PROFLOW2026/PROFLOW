@@ -33,7 +33,7 @@ export {
   resetOrganizationStorageProviderTree,
   invalidateMissingProviderRoot,
 } from './application/storage-tree-reset';
-export { ensureStorageProvisionStarted, kickStorageProvision } from './application/kick-storage-provision';
+export { ensureStorageProvisionStarted, kickStorageProvision, kickStorageProvisionIfPreparing, recoverStorageProvisionViaWorker } from './application/kick-storage-provision';
 export { readProjectTemplateCapability } from './domain/project-template';
 export type { ProjectTemplateSetupStatus } from './domain/project-template';
 export { reconcileProjectTemplateGateState } from './application/project-template-service';

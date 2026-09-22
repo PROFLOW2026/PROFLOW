@@ -22,7 +22,7 @@ describe('direct project storage placement', () => {
     expect(isCanonicalProjectRootParent('projects-root', null)).toBe(false);
   });
 
-  it('resumes after a stop and backs off on rate limits without looping forever', () => {
+  it('backs off on rate limits but never permanently stops while work remains', () => {
     expect(nextStorageProvisionStep({
       remaining: 4,
       rateLimited: false,
@@ -46,12 +46,23 @@ describe('direct project storage placement', () => {
     expect(retry.continue).toBe(true);
     expect(retry.delayMs).toBeGreaterThan(0);
 
-    expect(nextStorageProvisionStep({
+    const longThrottle = nextStorageProvisionStep({
       remaining: 1,
       rateLimited: true,
       chain: 2,
       rateLimitStreak: 7,
-    }).continue).toBe(false);
+    });
+    expect(longThrottle.continue).toBe(true);
+    expect(longThrottle.delayMs).toBeGreaterThan(retry.delayMs);
+
+    const chainWrap = nextStorageProvisionStep({
+      remaining: 10,
+      rateLimited: false,
+      chain: 399,
+      rateLimitStreak: 0,
+    });
+    expect(chainWrap.continue).toBe(true);
+    expect(chainWrap.chain).toBe(0);
   });
 });
 

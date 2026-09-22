@@ -118,3 +118,59 @@ export function kickStorageProvision(): void {
     });
   });
 }
+
+const PREPARING_KICK_THROTTLE_MS = 60_000;
+let lastPreparingKickAt = 0;
+
+/**
+ * Recovery path when UI/ops observes preparing work with remaining folders.
+ * Throttled so page refreshes do not stampede the worker.
+ */
+export function kickStorageProvisionIfPreparing(input: {
+  readonly state: 'ready' | 'preparing';
+  readonly clientsTotal: number;
+  readonly clientsProvisioned: number;
+  readonly projectsTotal: number;
+  readonly projectsProvisioned: number;
+}): void {
+  if (isTestEnv()) return;
+  if (input.state !== 'preparing') return;
+  const remaining =
+    Math.max(0, input.clientsTotal - input.clientsProvisioned) +
+    Math.max(0, input.projectsTotal - input.projectsProvisioned);
+  if (remaining <= 0) return;
+  const now = Date.now();
+  if (now - lastPreparingKickAt < PREPARING_KICK_THROTTLE_MS) return;
+  lastPreparingKickAt = now;
+  console.info('[org-storage/provision] preparing self-heal kick', { remaining });
+  kickStorageProvision();
+}
+
+/**
+ * Ops/cron recovery: start (or restart) the durable HTTP provision chain.
+ * Uses STORAGE_PROVISION_WORKER_SECRET — does not require nesting work in the ops request.
+ */
+export async function recoverStorageProvisionViaWorker(): Promise<{
+  readonly kicked: boolean;
+  readonly status?: number;
+  readonly detail?: string;
+}> {
+  if (isTestEnv()) return { kicked: false, detail: 'test' };
+  const target = resolveStorageProvisionWorkerTarget();
+  if (!target) {
+    return { kicked: false, detail: 'STORAGE_PROVISION_WORKER_SECRET or app URL missing' };
+  }
+  try {
+    const response = await postStorageProvisionWorker({ chain: 0, rateLimitStreak: 0 });
+    if (!response.ok) {
+      const body = await response.text().catch(() => '');
+      return { kicked: false, status: response.status, detail: body.slice(0, 300) };
+    }
+    return { kicked: true, status: response.status };
+  } catch (error) {
+    return {
+      kicked: false,
+      detail: error instanceof Error ? error.message : String(error),
+    };
+  }
+}

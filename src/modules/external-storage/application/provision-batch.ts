@@ -9,7 +9,7 @@ import {
 } from '@drizzle/schema';
 import { getAdminDb } from '@/shared/db/client';
 import type { DbExecutor } from '@/shared/db/types';
-import { findStorageConnectionById } from '../data/connections.repository';
+import { findStorageConnectionById, updateStorageConnection } from '../data/connections.repository';
 import {
   STORAGE_PROVISION_CLIENT_BATCH,
   STORAGE_PROVISION_PROJECT_BATCH,
@@ -37,6 +37,8 @@ export interface StorageProvisionBatchResult {
   readonly projectsProcessed: number;
   readonly remaining: number;
   readonly rateLimited: boolean;
+  /** Non-retryable provider/account failure — stop chain and surface lastError. */
+  readonly fatalError?: string;
 }
 
 function isTransient(error: unknown): boolean {
@@ -45,6 +47,17 @@ function isTransient(error: unknown): boolean {
     return true;
   }
   return false;
+}
+
+function nonRetryableMessage(error: unknown): string | null {
+  if (!(error instanceof ProviderHttpError)) return null;
+  if (error.isQuotaExceeded()) {
+    return `provider_quota_exceeded: ${error.bodySnippet}`.slice(0, 500);
+  }
+  if (error.isUnauthorized()) {
+    return `provider_auth_failed: ${error.bodySnippet}`.slice(0, 500);
+  }
+  return null;
 }
 
 function canonicalProjectSql(connectionId: string, projectsRootId: string) {
@@ -180,6 +193,24 @@ export async function runStorageProvisionBatch(
       if (isTransient(error)) {
         return { clientsProcessed, projectsProcessed: 0, remaining: 1, rateLimited: true };
       }
+      const fatal = nonRetryableMessage(error);
+      if (fatal) {
+        await updateStorageConnection(db, input.organizationId, gatedConnection.id, {
+          lastError: fatal,
+        });
+        console.error('[org-storage/provision] client folder non-retryable', {
+          organizationId: input.organizationId,
+          clientId: client.id,
+          fatal,
+        });
+        return {
+          clientsProcessed,
+          projectsProcessed: 0,
+          remaining: 1,
+          rateLimited: false,
+          fatalError: fatal,
+        };
+      }
       console.error('[org-storage/provision] client folder failed', {
         organizationId: input.organizationId,
         clientId: client.id,
@@ -213,6 +244,24 @@ export async function runStorageProvisionBatch(
     } catch (error) {
       if (isTransient(error)) {
         return { clientsProcessed, projectsProcessed, remaining: 1, rateLimited: true };
+      }
+      const fatal = nonRetryableMessage(error);
+      if (fatal) {
+        await updateStorageConnection(db, input.organizationId, gatedConnection.id, {
+          lastError: fatal,
+        });
+        console.error('[org-storage/provision] project folder non-retryable', {
+          organizationId: input.organizationId,
+          projectId: project.id,
+          fatal,
+        });
+        return {
+          clientsProcessed,
+          projectsProcessed,
+          remaining: 1,
+          rateLimited: false,
+          fatalError: fatal,
+        };
       }
       console.error('[org-storage/provision] project folder failed', {
         organizationId: input.organizationId,
@@ -351,6 +400,22 @@ export async function runStorageProvisionCycle(input: {
     try {
       const connection = await findStorageConnectionById(db, row.organizationId, row.id);
       if (!connection) continue;
+      if (
+        connection.lastError &&
+        /provider_quota_exceeded|provider_auth_failed/i.test(connection.lastError)
+      ) {
+        console.error('[org-storage/provision] connection has non-retryable lastError — skip until Owner intervenes', {
+          connectionId: row.id,
+        });
+        last = {
+          clientsProcessed: 0,
+          projectsProcessed: 0,
+          remaining: 1,
+          rateLimited: false,
+          fatalError: connection.lastError,
+        };
+        continue;
+      }
       const accessToken = await resolveValidAccessToken(db, row.organizationId, connection);
       last = await runStorageProvisionBatch(db, {
         organizationId: row.organizationId,
@@ -363,11 +428,22 @@ export async function runStorageProvisionCycle(input: {
         projectsProcessed: last.projectsProcessed,
         remaining: last.remaining,
         rateLimited: last.rateLimited,
+        fatalError: last.fatalError ?? null,
       });
+      if (last.fatalError) break;
+      if ((last.clientsProcessed > 0 || last.projectsProcessed > 0) && connection.lastError) {
+        await updateStorageConnection(db, row.organizationId, row.id, { lastError: null });
+      }
       if (last.remaining > 0 || last.rateLimited) break;
     } catch (error) {
       if (isTransient(error)) {
         last = { ...last, remaining: 1, rateLimited: true };
+        break;
+      }
+      const fatal = nonRetryableMessage(error);
+      if (fatal) {
+        await updateStorageConnection(db, row.organizationId, row.id, { lastError: fatal });
+        last = { ...last, remaining: 1, rateLimited: false, fatalError: fatal };
         break;
       }
       console.error('[org-storage/provision] connection skipped', {
@@ -375,6 +451,14 @@ export async function runStorageProvisionCycle(input: {
         detail: error instanceof Error ? error.message : String(error),
       });
     }
+  }
+
+  if (last.fatalError) {
+    console.error('[org-storage/provision] cycle stopped — non-retryable', {
+      chain,
+      fatalError: last.fatalError,
+    });
+    return { ...last, continued: false };
   }
 
   const step = nextStorageProvisionStep({

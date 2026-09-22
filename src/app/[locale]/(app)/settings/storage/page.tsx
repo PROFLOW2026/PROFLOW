@@ -5,6 +5,7 @@ import {
   listConfiguredStorageProviders,
   listOrganizationStorageConnections,
   loadStorageProvisionProgress,
+  kickStorageProvisionIfPreparing,
 } from '@/modules/external-storage/server';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { hasPermission } from '@/shared/permissions/assert';
@@ -53,6 +54,9 @@ export default async function StorageSettingsPage({
         await loadStorageProvisionProgress(context.db, context.organizationId, connection.id),
       ] as const),
     );
+    for (const [, progress] of progressEntries) {
+      kickStorageProvisionIfPreparing(progress);
+    }
     return {
       allowed: true as const,
       connections,
