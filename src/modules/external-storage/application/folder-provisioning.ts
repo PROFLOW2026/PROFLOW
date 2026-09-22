@@ -88,19 +88,7 @@ async function resolveOrCreateFolder(
         input.name,
       );
       if (retry) return retry;
-
-      if (error.isQuotaExceeded() && input.parentId === null && adapter.getDriveRoot) {
-        const driveRoot = await adapter.getDriveRoot(accessToken);
-        const nested = await findChildFolderByName(
-          accessToken,
-          connection.provider,
-          driveRoot.id,
-          input.name,
-        );
-        if (nested) return nested;
-        // Quota-full drives cannot create a new top-level folder — anchor at drive root.
-        return driveRoot;
-      }
+      // Never fall back to the drive root as the ProjectFlow org folder.
     }
     throw error;
   }
@@ -120,9 +108,15 @@ async function isDriveRootAnchor(
 }
 
 /**
- * Resolve a dedicated ProjectFlow folder — never keep the OneDrive drive root as org root.
- * Returns `missing_stored_root` when a previously stored root id no longer exists in the
- * provider so callers can invalidate stale mappings instead of silently recreating trees.
+ * Resolve a dedicated ProjectFlow folder — never keep the provider drive root as org root.
+ *
+ * Canonical root requirements (all providers):
+ * - folder name equals configured rootFolderName (default ProjectFlow)
+ * - folder is a direct child of the provider root (not nested elsewhere)
+ * - folder id is NOT the drive/provider root itself
+ *
+ * Returns `missing_stored_root` when a previously stored root id is gone OR is
+ * not the canonical ProjectFlow child (stale / wrong folder).
  */
 async function resolveDedicatedProjectFlowRoot(
   accessToken: string,
@@ -130,15 +124,39 @@ async function resolveDedicatedProjectFlowRoot(
   currentRootId: string | null,
 ): Promise<{ kind: 'ready'; rootId: string } | { kind: 'missing_stored_root' }> {
   const rootName = connection.rootFolderName || 'ProjectFlow';
-  if (currentRootId && !(await isDriveRootAnchor(accessToken, connection, currentRootId))) {
-    const adapter = getStorageProviderAdapter(connection.provider);
-    const existing = await adapter.getFolder(accessToken, currentRootId);
-    if (existing && existing.name === rootName) {
-      return { kind: 'ready', rootId: currentRootId };
+  const adapter = getStorageProviderAdapter(connection.provider);
+
+  // Always discover the canonical child under the provider root first.
+  const underProviderRoot = await findChildFolderByName(
+    accessToken,
+    connection.provider,
+    null,
+    rootName,
+  );
+
+  if (currentRootId) {
+    if (await isDriveRootAnchor(accessToken, connection, currentRootId)) {
+      return { kind: 'missing_stored_root' };
     }
+    const existing = await adapter.getFolder(accessToken, currentRootId);
     if (!existing) {
       return { kind: 'missing_stored_root' };
     }
+    if (existing.name !== rootName) {
+      return { kind: 'missing_stored_root' };
+    }
+    // Stored id must equal the dedicated ProjectFlow child under provider root.
+    if (!underProviderRoot || underProviderRoot.id !== currentRootId) {
+      return { kind: 'missing_stored_root' };
+    }
+    return { kind: 'ready', rootId: currentRootId };
+  }
+
+  if (underProviderRoot) {
+    if (await isDriveRootAnchor(accessToken, connection, underProviderRoot.id)) {
+      throw new Error('Could not create dedicated ProjectFlow folder');
+    }
+    return { kind: 'ready', rootId: underProviderRoot.id };
   }
 
   const dedicated = await resolveOrCreateFolder(accessToken, connection, {
@@ -151,6 +169,9 @@ async function resolveDedicatedProjectFlowRoot(
   return { kind: 'ready', rootId: dedicated.id };
 }
 
+/** Required for provisioning to proceed — failures must surface. */
+const MANDATORY_ORG_BASE_FOLDERS = ['clients_root', 'projects_root'] as const;
+
 async function ensureOrganizationBaseFolders(
   db: DbExecutor,
   organizationId: string,
@@ -158,6 +179,7 @@ async function ensureOrganizationBaseFolders(
   accessToken: string,
   rootId: string,
 ): Promise<void> {
+  const failures: string[] = [];
   for (const semantic of ORGANIZATION_BASE_FOLDERS) {
     try {
       await ensureSemanticFolder(db, {
@@ -168,9 +190,21 @@ async function ensureOrganizationBaseFolders(
         parentFolderId: rootId,
         displayName: resolveSemanticFolderDisplayName(semantic),
       });
-    } catch {
-      // Base folders are best-effort during connect; quota or provider limits must not fail OAuth.
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : String(error);
+      if ((MANDATORY_ORG_BASE_FOLDERS as readonly string[]).includes(semantic)) {
+        failures.push(`${semantic}: ${detail}`);
+      } else {
+        console.warn('[org-storage] optional base folder failed', {
+          connectionId: connection.id,
+          semantic,
+          detail,
+        });
+      }
     }
+  }
+  if (failures.length > 0) {
+    throw new Error(`Mandatory organization folders missing: ${failures.join('; ')}`);
   }
 }
 

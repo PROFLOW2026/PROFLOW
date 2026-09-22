@@ -53,6 +53,8 @@ function storageLastErrorMessage(
   if (!lastError) return null;
   if (lastError === 'root_folder_missing') return t('errors.rootFolderMissing');
   if (lastError === 'template_incomplete') return t('errors.templateIncomplete');
+  if (lastError.startsWith('storage_tree_invalid')) return t('errors.rootFolderMissing');
+  if (lastError.startsWith('provision_failed')) return t('errors.provisionKickFailed');
   if (lastError.startsWith('provision_kick_failed')) return t('errors.provisionKickFailed');
   if (lastError === 'unauthorized' || lastError === 'token_expired' || lastError === 'missing_credentials') {
     return t('errors.reconnectRequired');
@@ -142,7 +144,9 @@ export function StorageSettingsPanel({
                   {connection?.lastError &&
                   (status === 'reconnect_required' ||
                     status === 'error' ||
-                    connection.lastError.startsWith('provision_kick_failed')) ? (
+                    connection.lastError.startsWith('provision_kick_failed') ||
+                    connection.lastError.startsWith('provision_failed') ||
+                    connection.lastError.startsWith('storage_tree_invalid')) ? (
                     <Alert tone="warning">
                       {storageLastErrorMessage(connection.lastError, t) ?? connection.lastError}
                     </Alert>

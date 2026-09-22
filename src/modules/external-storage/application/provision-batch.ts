@@ -461,7 +461,12 @@ export async function runStorageProvisionCycle(input: {
         if ((last.clientsProcessed > 0 || last.projectsProcessed > 0) && connection.lastError) {
           await updateStorageConnection(db, row.organizationId, row.id, { lastError: null });
         }
-        if (last.remaining <= 0) break connectionLoop;
+        if (last.remaining <= 0) {
+          // This organization is complete — continue to the next connected provider.
+          // Previously `break connectionLoop` left secondary orgs stuck at 0/N forever
+          // whenever a primary (e.g. Google Drive) finished first.
+          break;
+        }
 
         if (last.rateLimited) {
           rateLimitStreak += 1;
@@ -487,27 +492,40 @@ export async function runStorageProvisionCycle(input: {
 
         rateLimitStreak = 0;
         if (last.clientsProcessed === 0 && last.projectsProcessed === 0) {
-          // No progress this batch but remaining > 0 — avoid tight spin.
+          // No progress this batch but remaining > 0 — hand off; do not abandon other orgs
+          // by exiting the whole cycle unless we still have remaining work overall.
           break connectionLoop;
         }
       }
 
-      if (last.remaining > 0 || last.rateLimited) break;
+      if (last.remaining > 0 || last.rateLimited) break connectionLoop;
     } catch (error) {
       if (isTransient(error)) {
         last = { ...last, remaining: 1, rateLimited: true };
-        break;
+        break connectionLoop;
       }
       const fatal = nonRetryableMessage(error);
       if (fatal) {
         await updateStorageConnection(db, row.organizationId, row.id, { lastError: fatal });
         last = { ...last, remaining: 1, rateLimited: false, fatalError: fatal };
-        break;
+        break connectionLoop;
       }
-      console.error('[org-storage/provision] connection skipped', {
+      const detail = error instanceof Error ? error.message : String(error);
+      const persisted = `provision_failed: ${detail}`.slice(0, 500);
+      console.error('[org-storage/provision] connection provision_failed', {
         connectionId: row.id,
-        detail: error instanceof Error ? error.message : String(error),
+        detail,
       });
+      await updateStorageConnection(db, row.organizationId, row.id, {
+        lastError: persisted,
+      });
+      last = {
+        ...last,
+        remaining: Math.max(last.remaining, 1),
+        rateLimited: false,
+        fatalError: persisted,
+      };
+      break connectionLoop;
     }
   }
 

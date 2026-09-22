@@ -50,8 +50,28 @@ export default async function StorageSettingsPage({
             context.organizationId,
             next,
           );
-        } catch {
-          // Auth/provider failures surface via connection status / lastError; page still renders.
+        } catch (error) {
+          const detail = error instanceof Error ? error.message : String(error);
+          const { updateStorageConnection } = await import(
+            '@/modules/external-storage/data/connections.repository'
+          );
+          const { withStorageTreeHealth } = await import(
+            '@/modules/external-storage/domain/storage-tree-health'
+          );
+          const capabilities = withStorageTreeHealth(next.capabilitiesJson, {
+            status: 'needs_repair',
+            reason: 'root_folder_missing',
+            checkedAt: new Date().toISOString(),
+          });
+          next =
+            (await updateStorageConnection(context.db, context.organizationId, next.id, {
+              capabilitiesJson: capabilities as Record<string, unknown>,
+              lastError: `storage_tree_invalid: ${detail}`.slice(0, 500),
+            })) ?? {
+              ...next,
+              capabilitiesJson: capabilities,
+              lastError: `storage_tree_invalid: ${detail}`.slice(0, 500),
+            };
         }
         return next;
       }),

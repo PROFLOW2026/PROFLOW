@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { and, asc, eq, inArray, sql } from 'drizzle-orm';
+import { and, asc, eq, gt, inArray, sql } from 'drizzle-orm';
 import { storageFiles, storageFolderMappings } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 import {
@@ -298,8 +298,11 @@ export interface ProviderTreeHealthCheckResult {
 }
 
 /**
- * Lightweight live health check: OAuth account + org root + project template.
- * Auto-heals missing org root (credentials preserved). Does not scan clients/projects.
+ * Lightweight live health check: OAuth account + canonical org root + project template.
+ * Auto-heals missing/stale org root (credentials preserved). Does not scan clients/projects.
+ *
+ * Existence alone is not enough — stored root must be the dedicated ProjectFlow
+ * child directly under the provider root.
  */
 export async function checkAndHealProviderTreeHealth(
   db: DbExecutor,
@@ -312,44 +315,52 @@ export async function checkAndHealProviderTreeHealth(
   const adapter = getStorageProviderAdapter(connection.provider);
   await adapter.getAccountInfo(accessToken);
 
-  const rootId = connection.rootFolderExternalId;
-  if (rootId) {
-    const root = await adapter.getFolder(accessToken, rootId);
-    if (!root) {
-      if (!autoHealRoot) {
-        const updated = await persistTreeHealth(
-          db,
-          organizationId,
-          connection,
-          'needs_repair',
-          'root_folder_missing',
-          { lastError: 'root_folder_missing' },
-        );
-        return {
-          connection: updated,
-          accountValid: true,
-          rootExists: false,
-          templateComplete: false,
-          rebuilt: false,
-          reason: 'root_folder_missing',
-        };
-      }
-      const healed = await rebuildStorageTreeKeepingCredentials(
+  const rootName = connection.rootFolderName || 'ProjectFlow';
+  const storedRootId = connection.rootFolderExternalId;
+
+  let rootIsCanonical = false;
+  if (storedRootId) {
+    const underProviderRoot = adapter.getChildFolderByName
+      ? await adapter.getChildFolderByName(accessToken, null, rootName)
+      : (
+          await adapter.listFolder(
+            accessToken,
+            adapter.getDriveRoot
+              ? (await adapter.getDriveRoot(accessToken)).id
+              : storedRootId,
+          )
+        ).folders.find((f) => f.name === rootName) ?? null;
+
+    const stored = await adapter.getFolder(accessToken, storedRootId);
+    const driveRoot = adapter.getDriveRoot ? await adapter.getDriveRoot(accessToken) : null;
+    rootIsCanonical = Boolean(
+      stored &&
+        stored.name === rootName &&
+        underProviderRoot &&
+        underProviderRoot.id === storedRootId &&
+        (!driveRoot || storedRootId !== driveRoot.id),
+    );
+  }
+
+  if (!rootIsCanonical) {
+    if (!autoHealRoot) {
+      const updated = await persistTreeHealth(
         db,
         organizationId,
         connection,
-        accessToken,
+        'needs_repair',
+        'root_folder_missing',
+        { lastError: 'root_folder_missing' },
       );
       return {
-        connection: healed.connection,
+        connection: updated,
         accountValid: true,
-        rootExists: true,
-        templateComplete: true,
-        rebuilt: true,
-        reason: null,
+        rootExists: false,
+        templateComplete: false,
+        rebuilt: false,
+        reason: 'root_folder_missing',
       };
     }
-  } else if (autoHealRoot && connection.status === 'connected') {
     const healed = await rebuildStorageTreeKeepingCredentials(
       db,
       organizationId,
@@ -369,58 +380,57 @@ export async function checkAndHealProviderTreeHealth(
   const template = readProjectTemplateCapability(connection.capabilitiesJson);
   let working = connection;
   let templateComplete = false;
+  const effectiveRoot = working.rootFolderExternalId!;
 
-  if (rootId || working.rootFolderExternalId) {
-    const effectiveRoot = working.rootFolderExternalId ?? rootId!;
-    try {
-      const ensured = await ensureProjectTemplateStructure(
-        working,
-        accessToken,
-        effectiveRoot,
-        template.externalFolderId,
-      );
-      templateComplete = true;
-      const capabilities = withProjectTemplateCapability(
-        withStorageTreeHealth(working.capabilitiesJson, {
-          status: 'healthy',
-          reason: null,
-          checkedAt: new Date().toISOString(),
-        }) as StorageConnectionCapabilities,
-        {
-          externalFolderId: ensured.folderId,
-          status: template.status === 'approved' ? 'approved' : template.status,
-          approvedAt: template.approvedAt,
-        },
-      );
-      const updated = await updateStorageConnection(db, organizationId, working.id, {
-        capabilitiesJson: capabilities as Record<string, unknown>,
-        lastError:
-          working.lastError === 'root_folder_missing' || working.lastError === 'template_incomplete'
-            ? null
-            : working.lastError,
-      });
-      working = updated ?? { ...working, capabilitiesJson: capabilities };
-    } catch {
-      working = await persistTreeHealth(
-        db,
-        organizationId,
-        working,
-        'needs_repair',
-        template.externalFolderId ? 'template_incomplete' : 'template_missing',
-        { lastError: 'template_incomplete' },
-      );
-      templateComplete = false;
-    }
-  }
+  try {
+    // Ensure mandatory clients/projects roots exist before claiming healthy.
+    const { ensureOrganizationRootFolder } = await import('./folder-provisioning');
+    await ensureOrganizationRootFolder(db, organizationId, working, accessToken, {
+      skipMissingRootRebuild: true,
+    });
+    working =
+      (await findStorageConnectionById(db, organizationId, working.id)) ?? working;
 
-  const reason: StorageTreeHealthReason = templateComplete ? null : 'template_incomplete';
-  if (templateComplete && readProjectTemplateCapability(working.capabilitiesJson).status) {
-    working = await persistTreeHealth(db, organizationId, working, 'healthy', null, {
+    const ensured = await ensureProjectTemplateStructure(
+      working,
+      accessToken,
+      effectiveRoot,
+      template.externalFolderId,
+    );
+    templateComplete = true;
+    const capabilities = withProjectTemplateCapability(
+      withStorageTreeHealth(working.capabilitiesJson, {
+        status: 'healthy',
+        reason: null,
+        checkedAt: new Date().toISOString(),
+      }) as StorageConnectionCapabilities,
+      {
+        externalFolderId: ensured.folderId,
+        status: template.status === 'approved' ? 'approved' : template.status,
+        approvedAt: template.approvedAt,
+      },
+    );
+    const updated = await updateStorageConnection(db, organizationId, working.id, {
+      capabilitiesJson: capabilities as Record<string, unknown>,
       lastError:
-        working.lastError === 'template_incomplete' || working.lastError === 'root_folder_missing'
+        working.lastError === 'root_folder_missing' ||
+        working.lastError === 'template_incomplete' ||
+        working.lastError?.startsWith('provision_failed')
           ? null
           : working.lastError,
     });
+    working = updated ?? { ...working, capabilitiesJson: capabilities };
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    const reason: StorageTreeHealthReason = /Mandatory organization folders/i.test(detail)
+      ? 'root_folder_missing'
+      : template.externalFolderId
+        ? 'template_incomplete'
+        : 'template_missing';
+    working = await persistTreeHealth(db, organizationId, working, 'needs_repair', reason, {
+      lastError: reason === 'root_folder_missing' ? `storage_tree_invalid: ${detail}`.slice(0, 500) : 'template_incomplete',
+    });
+    templateComplete = false;
   }
 
   return {
@@ -429,13 +439,16 @@ export async function checkAndHealProviderTreeHealth(
     rootExists: Boolean(working.rootFolderExternalId),
     templateComplete,
     rebuilt: false,
-    reason,
+    reason: templateComplete ? null : 'template_incomplete',
   };
 }
 
 /**
  * Invalidate READY mappings whose provider folders were deleted externally.
  * Marks synced files under missing folders as `missing` (no fake healthy bytes).
+ *
+ * Uses a rotating cursor stored on capabilities_json.reconcileCursor.afterId so
+ * later mappings are eventually checked (not only the first LIMIT rows forever).
  */
 export async function reconcileStaleReadyMappingsBatch(
   db: DbExecutor,
@@ -448,8 +461,35 @@ export async function reconcileStaleReadyMappingsBatch(
 ): Promise<{ checked: number; invalidated: number }> {
   const limit = input.limit ?? STORAGE_READY_RECONCILE_BATCH;
   const adapter = getStorageProviderAdapter(input.connection.provider);
+  const caps = (input.connection.capabilitiesJson ?? {}) as Record<string, unknown>;
+  const rawCursor =
+    caps.reconcileCursor && typeof caps.reconcileCursor === 'object'
+      ? (caps.reconcileCursor as { afterId?: unknown }).afterId
+      : null;
+  const afterId = typeof rawCursor === 'string' && rawCursor.length > 0 ? rawCursor : null;
 
-  const candidates = await db
+  const semanticFilter = inArray(storageFolderMappings.semanticFolderType, [
+    'organization_root',
+    'clients_root',
+    'projects_root',
+    'client_root',
+    'project_root',
+    'vendors_root',
+    'employees_root',
+    'organization_documents',
+    ...PROJECT_SEMANTIC_FOLDERS,
+  ]);
+
+  const baseWhere = and(
+    eq(storageFolderMappings.organizationId, input.organizationId),
+    eq(storageFolderMappings.connectionId, input.connection.id),
+    eq(storageFolderMappings.status, 'ready'),
+    sql`${storageFolderMappings.externalFolderId} is not null`,
+    sql`${storageFolderMappings.externalFolderId} <> 'pending'`,
+    semanticFilter,
+  );
+
+  let candidates = await db
     .select({
       id: storageFolderMappings.id,
       externalFolderId: storageFolderMappings.externalFolderId,
@@ -457,31 +497,29 @@ export async function reconcileStaleReadyMappingsBatch(
       entityId: storageFolderMappings.entityId,
     })
     .from(storageFolderMappings)
-    .where(
-      and(
-        eq(storageFolderMappings.organizationId, input.organizationId),
-        eq(storageFolderMappings.connectionId, input.connection.id),
-        eq(storageFolderMappings.status, 'ready'),
-        sql`${storageFolderMappings.externalFolderId} is not null`,
-        sql`${storageFolderMappings.externalFolderId} <> 'pending'`,
-        inArray(storageFolderMappings.semanticFolderType, [
-          'organization_root',
-          'clients_root',
-          'projects_root',
-          'client_root',
-          'project_root',
-          'vendors_root',
-          'employees_root',
-          'organization_documents',
-          ...PROJECT_SEMANTIC_FOLDERS,
-        ]),
-      ),
-    )
+    .where(afterId ? and(baseWhere, gt(storageFolderMappings.id, afterId)) : baseWhere)
     .orderBy(asc(storageFolderMappings.id))
     .limit(limit);
 
+  // Wrap around when the cursor reaches the end.
+  if (candidates.length === 0 && afterId) {
+    candidates = await db
+      .select({
+        id: storageFolderMappings.id,
+        externalFolderId: storageFolderMappings.externalFolderId,
+        semanticFolderType: storageFolderMappings.semanticFolderType,
+        entityId: storageFolderMappings.entityId,
+      })
+      .from(storageFolderMappings)
+      .where(baseWhere)
+      .orderBy(asc(storageFolderMappings.id))
+      .limit(limit);
+  }
+
   let invalidated = 0;
+  let lastCheckedId: string | null = afterId;
   for (const row of candidates) {
+    lastCheckedId = row.id;
     const folder = await adapter.getFolder(input.accessToken, row.externalFolderId);
     if (folder) continue;
 
@@ -524,6 +562,15 @@ export async function reconcileStaleReadyMappingsBatch(
     }
 
     invalidated += 1;
+  }
+
+  if (lastCheckedId !== afterId) {
+    await updateStorageConnection(db, input.organizationId, input.connection.id, {
+      capabilitiesJson: {
+        ...(input.connection.capabilitiesJson ?? {}),
+        reconcileCursor: { afterId: lastCheckedId },
+      },
+    });
   }
 
   return { checked: candidates.length, invalidated };

@@ -128,8 +128,8 @@ export function connectionTemplateApproved(connection: StorageConnectionRecord):
 }
 
 /**
- * Approve only after provider verification (and best-effort self-heal) of the
- * template root and every required semantic child folder.
+ * Approve only after provider verification of the full physical chain:
+ * provider root → dedicated ProjectFlow → template root → all required children.
  */
 export async function markProjectTemplateApproved(
   db: DbExecutor,
@@ -147,11 +147,54 @@ export async function markProjectTemplateApproved(
       );
     }
 
+    const adapter = getStorageProviderAdapter(connection.provider);
+    const rootName = connection.rootFolderName || 'ProjectFlow';
+    const underProviderRoot = adapter.getChildFolderByName
+      ? await adapter.getChildFolderByName(accessToken, null, rootName)
+      : null;
+    const storedRoot = await adapter.getFolder(accessToken, rootId);
+    const driveRoot = adapter.getDriveRoot ? await adapter.getDriveRoot(accessToken) : null;
+
+    if (
+      !storedRoot ||
+      storedRoot.name !== rootName ||
+      (driveRoot && rootId === driveRoot.id) ||
+      (underProviderRoot && underProviderRoot.id !== rootId) ||
+      (!underProviderRoot && adapter.getChildFolderByName)
+    ) {
+      // Attempt repair before rejecting approval.
+      try {
+        const { rebuildStorageTreeKeepingCredentials } = await import('./provider-tree-health');
+        const healed = await rebuildStorageTreeKeepingCredentials(
+          db,
+          organizationId,
+          connection,
+          accessToken,
+        );
+        connection = healed.connection;
+      } catch {
+        const { DomainRuleError } = await import('@/shared/errors');
+        throw new DomainRuleError(
+          'ProjectFlow root is missing or invalid in provider storage',
+          'externalStorage.errors.rootFolderMissing',
+        );
+      }
+    }
+
+    const effectiveRoot = connection.rootFolderExternalId;
+    if (!effectiveRoot) {
+      const { DomainRuleError } = await import('@/shared/errors');
+      throw new DomainRuleError(
+        'Storage root folder is not provisioned',
+        'externalStorage.errors.rootNotReady',
+      );
+    }
+
     try {
       await ensureProjectTemplateStructure(
         connection,
         accessToken,
-        rootId,
+        effectiveRoot,
         readProjectTemplateCapability(connection.capabilitiesJson).externalFolderId,
       );
     } catch {
@@ -163,7 +206,19 @@ export async function markProjectTemplateApproved(
     }
 
     const verified = await verifyProjectTemplateAgainstProvider(connection, accessToken);
-    if (!verified.complete) {
+    if (!verified.complete || !verified.templateRootExists) {
+      const { DomainRuleError } = await import('@/shared/errors');
+      throw new DomainRuleError(
+        'Project template is incomplete in provider storage',
+        'externalStorage.errors.templateIncomplete',
+      );
+    }
+
+    // Template must live under ProjectFlow.
+    const templateFolder = verified.templateRootId
+      ? await adapter.getFolder(accessToken, verified.templateRootId)
+      : null;
+    if (!templateFolder) {
       const { DomainRuleError } = await import('@/shared/errors');
       throw new DomainRuleError(
         'Project template is incomplete in provider storage',
