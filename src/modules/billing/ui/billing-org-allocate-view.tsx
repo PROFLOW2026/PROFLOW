@@ -26,7 +26,7 @@ interface BillingOrgAllocateViewProps {
 
 export async function BillingOrgAllocateView({
   paymentId,
-  routeBase,
+  routeBase: _routeBase,
   surface = 'owner',
 }: BillingOrgAllocateViewProps) {
   const t = await getTranslations('billing');

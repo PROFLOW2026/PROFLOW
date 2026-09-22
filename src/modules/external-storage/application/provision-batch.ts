@@ -404,7 +404,7 @@ export async function runStorageProvisionCycle(input: {
     rateLimited: false,
   };
 
-  let totals = { clientsProcessed: 0, projectsProcessed: 0 };
+  const totals = { clientsProcessed: 0, projectsProcessed: 0 };
 
   connectionLoop: for (const row of connections) {
     try {
