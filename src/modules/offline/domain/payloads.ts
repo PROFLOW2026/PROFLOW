@@ -38,6 +38,12 @@ export interface ExpenseDraftPayload extends Record<string, unknown> {
   readonly recurrenceCadence: string | null;
   readonly recurrenceCustomLabel: string | null;
   readonly allocations: unknown;
+  readonly allocationIntent?: 'project_allocate' | 'auto_pool' | 'company_only' | null;
+  readonly allocationDriverMethod?: string | null;
+  readonly allocationPeriodStart?: string | null;
+  readonly allocationPeriodEnd?: string | null;
+  readonly allocationScheduleMode?: string | null;
+  readonly finalizeOnCreate?: string | boolean | null;
   readonly installmentCount?: string | number | null;
   readonly installmentStartDate?: string | null;
   readonly inventoryStockPurchase?: string | boolean | null;
@@ -145,6 +151,14 @@ export function expensePayloadFromFormData(formData: FormData): ExpenseDraftPayl
     recurrenceCadence: formText(formData, 'recurrenceCadence'),
     recurrenceCustomLabel: formText(formData, 'recurrenceCustomLabel'),
     allocations: parseAllocationsFromForm(formData),
+    allocationIntent: formText(formData, 'allocationIntent') as
+      | ExpenseDraftPayload['allocationIntent']
+      | undefined,
+    allocationDriverMethod: formText(formData, 'allocationDriverMethod'),
+    allocationPeriodStart: formText(formData, 'allocationPeriodStart'),
+    allocationPeriodEnd: formText(formData, 'allocationPeriodEnd'),
+    allocationScheduleMode: formText(formData, 'allocationScheduleMode'),
+    finalizeOnCreate: formText(formData, 'finalizeOnCreate'),
     installmentCount: formText(formData, 'installmentCount'),
     installmentStartDate: formText(formData, 'installmentStartDate'),
     inventoryStockPurchase: formText(formData, 'inventoryStockPurchase'),

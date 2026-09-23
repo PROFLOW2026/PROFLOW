@@ -42,6 +42,7 @@ import { PromoteVendorPanel } from '@/app/[locale]/(app)/expenses/[expenseId]/pr
 import { ExpenseDetailResolveFocus } from '@/modules/expenses/ui/expense-detail-resolve-focus';
 import { ExpenseDetailAttentionPanel } from '@/modules/expenses/ui/expense-detail-attention-panel';
 import { ExpensePaymentPanel } from '@/modules/expenses/ui/expense-payment-panel';
+import { ExpenseActivityTimelineSection } from '@/modules/expenses/ui/expense-activity-timeline-section';
 import { resolveExpenseDetailAttention } from '@/modules/expenses/domain/expense-attention';
 import { resolveExpenseBackNavigation } from '@/modules/expenses/domain/expense-return-navigation';
 import { textNavLinkClassName } from '@/components/ui/pressable';
@@ -250,6 +251,8 @@ export async function ExpensesOrgDetailPage({
           defaultPaymentDate={data.defaultPaymentDate}
         />
       ) : null}
+
+      <ExpenseActivityTimelineSection expenseId={expense.id} locale={locale} />
 
       {readOnly ? (
         <Card>

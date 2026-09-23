@@ -172,11 +172,47 @@ export async function supersedeEmployeeMonthCost(
       and(
         eq(employeeMonthCosts.id, id),
         eq(employeeMonthCosts.organizationId, organizationId),
-        eq(employeeMonthCosts.status, 'applied'),
+        inArray(employeeMonthCosts.status, ['applied', 'closed']),
       ),
     )
     .returning();
   return row ?? null;
+}
+
+export async function insertEmployeeMonthCostAdjustment(
+  db: DbExecutor,
+  input: {
+    organizationId: string;
+    employeeId: string;
+    yearMonth: string;
+    currency: string;
+    estimatedAmount: string | null;
+    actualAmount: string | null;
+    knownAmount: string;
+    knownQuality: KnownQuality;
+    adjustsMonthId: string;
+    notes?: string | null;
+  },
+): Promise<EmployeeMonthCostRow> {
+  const [row] = await db
+    .insert(employeeMonthCosts)
+    .values({
+      organizationId: input.organizationId,
+      employeeId: input.employeeId,
+      yearMonth: input.yearMonth,
+      currency: input.currency,
+      estimatedAmount: input.estimatedAmount,
+      actualAmount: input.actualAmount,
+      knownAmount: input.knownAmount,
+      knownQuality: input.knownQuality,
+      source: 'adjustment',
+      recognitionSource: 'monthly_allocated',
+      status: 'draft',
+      adjustsMonthId: input.adjustsMonthId,
+      notes: input.notes ?? null,
+    })
+    .returning();
+  return row!;
 }
 
 export async function listActiveMonthCostsByYearMonthAsc(

@@ -10,6 +10,9 @@ export interface TargetingInput {
    * (e.g. materials) while economic destination is inventory — no project at purchase.
    */
   readonly inventoryStockPurchase?: boolean;
+  /** Multi-project routing: explicit project lines without a top-level projectId. */
+  readonly allocationIntent?: 'project_allocate' | 'auto_pool' | 'company_only' | null;
+  readonly hasProjectAllocationLines?: boolean;
 }
 
 /**
@@ -29,7 +32,7 @@ export function resolveExpenseTargeting(input: TargetingInput): ExpenseTargeting
   }
 
   const mode: ExpenseTargetingMode = projectId ? 'project' : 'overhead';
-  const costFamily = resolveCostFamily(mode, input.costFamily, inventoryStockPurchase);
+  const costFamily = resolveCostFamily(mode, input.costFamily, inventoryStockPurchase, input);
 
   return { mode, projectId, workPackageId, costFamily };
 }
@@ -38,10 +41,15 @@ function resolveCostFamily(
   mode: ExpenseTargetingMode,
   requested: CostFamily | null | undefined,
   inventoryStockPurchase: boolean,
+  input: TargetingInput,
 ): CostFamily {
   if (requested) {
     if (mode === 'overhead' && requested === 'direct_project') {
-      if (inventoryStockPurchase) {
+      if (
+        inventoryStockPurchase ||
+        input.allocationIntent === 'project_allocate' ||
+        input.hasProjectAllocationLines === true
+      ) {
         return requested;
       }
       throw new DomainRuleError(

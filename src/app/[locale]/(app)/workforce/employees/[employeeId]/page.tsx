@@ -482,23 +482,44 @@ export default async function EmployeeDetailPage({
       ) : null}
 
       {payrollPayment ? (
-        <EmployeePayrollMonthPanel
-          employeeId={employee.id}
-          employeeName={employee.name}
-          yearMonth={payrollPayment.yearMonth}
-          paymentId={payrollPayment.id}
-          expectedAmount={payrollPayment.expectedAmount}
-          currency={payrollPayment.currency}
-          dueDate={payrollPayment.dueDate}
-          paymentStatus={payrollPayment.paymentStatus}
-          paidAt={payrollPayment.paidAt}
-          locale={locale}
-          canManage={canManageCosts}
-          defaultPaymentDate={today}
-        />
+        <>
+          {showMonthReview ? (
+            <div id="employee-labor-allocation" className="scroll-mt-24">
+              <MonthlyEmployerCostReview
+                key={`${employee.id}:${payrollPayment.yearMonth}`}
+                employeeId={employee.id}
+                employeeName={employee.name}
+                currency={currency}
+                defaultYearMonth={payrollPayment.yearMonth}
+                projects={candidateProjects.map((project) => ({
+                  id: project.id,
+                  name: project.name,
+                }))}
+                canReview={canReadRates}
+                canManage={canManageCosts}
+                initialReview={monthReview}
+                payrollApprovalMode
+              />
+            </div>
+          ) : null}
+          <EmployeePayrollMonthPanel
+            employeeId={employee.id}
+            employeeName={employee.name}
+            yearMonth={payrollPayment.yearMonth}
+            paymentId={payrollPayment.id}
+            expectedAmount={payrollPayment.expectedAmount}
+            currency={payrollPayment.currency}
+            dueDate={payrollPayment.dueDate}
+            paymentStatus={payrollPayment.paymentStatus}
+            paidAt={payrollPayment.paidAt}
+            locale={locale}
+            canManage={canManageCosts}
+            defaultPaymentDate={today}
+          />
+        </>
       ) : null}
 
-      {showMonthReview ? (
+      {showMonthReview && !payrollPayment ? (
         <details
           id="employee-labor-allocation"
           className="scroll-mt-24 rounded-lg border border-[var(--pf-border-default)] p-4 sm:p-6"
@@ -523,7 +544,7 @@ export default async function EmployeeDetailPage({
             />
           </div>
         </details>
-      ) : canReadRates ? (
+      ) : !payrollPayment && canReadRates ? (
         <p className="text-sm text-[var(--pf-text-muted)]">{t('monthReview.unusedHint')}</p>
       ) : null}
 

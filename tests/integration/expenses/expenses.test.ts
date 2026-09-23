@@ -131,7 +131,7 @@ describe('expenses integration', () => {
         });
         return listExpensesForOrg(context);
       }),
-    ).resolves.toEqual({ items: [], total: 0 });
+    ).resolves.toEqual(expect.objectContaining({ items: [], total: 0 }));
   });
 
   it('does not let organization B fetch organization A expense by id', async () => {
@@ -523,6 +523,194 @@ describe('expenses integration', () => {
       const contributions = await loadProjectExpenseContributions(tx, orgAId, projectId);
       const { cost } = aggregateProjectCosts(contributions, null, 'ILS');
       expect(cost.actualCostToDate.amount).toBe('50000.000000');
+    });
+  });
+
+  it('finalizes on approve path while payment stays open', async () => {
+    const { projectId } = await createProjectWithDefaultPackage(
+      database,
+      userA.id,
+      orgAId,
+      'Approve unpaid site',
+    );
+
+    await database.asUser(userA.id, async (tx) => {
+      const context = await resolveOrgContext(tx, {
+        userId: userA.id,
+        organizationId: orgAId,
+        locale: 'en',
+      });
+
+      const draft = await createExpense(context, {
+        amount: '1000',
+        currency: 'ILS',
+        projectId,
+        vatMode: 'zero',
+        costCategoryId: orgAMaterialsCategoryId,
+        costFamily: 'direct_project',
+      });
+      expect(draft.status).toBe('draft');
+
+      const approved = await finalizeExpense(context, draft.id);
+      expect(approved.status).toBe('finalized');
+      expect(approved.paymentStatus).not.toBe('paid');
+      expect(approved.paidAt).toBeNull();
+    });
+  });
+
+  it('allocates multi-project vendor expense NET across three projects exactly', async () => {
+    const projectA = await createProjectWithDefaultPackage(database, userA.id, orgAId, 'Vendor A');
+    const projectB = await createProjectWithDefaultPackage(database, userA.id, orgAId, 'Vendor B');
+    const projectC = await createProjectWithDefaultPackage(database, userA.id, orgAId, 'Vendor C');
+
+    await database.asUser(userA.id, async (tx) => {
+      const context = await resolveOrgContext(tx, {
+        userId: userA.id,
+        organizationId: orgAId,
+        locale: 'en',
+      });
+
+      const vendor = await createVendor(context, { name: 'Materials vendor' });
+      const expense = await createExpense(context, {
+        amount: '39600',
+        currency: 'ILS',
+        netAmount: '39600',
+        vatMode: 'zero',
+        vendorId: vendor.id,
+        costCategoryId: orgAMaterialsCategoryId,
+        costFamily: 'direct_project',
+        allocationIntent: 'project_allocate',
+        allocations: [
+          {
+            targetType: 'project',
+            projectId: projectA.projectId,
+            method: 'manual_amount',
+            amount: '15000',
+            sortOrder: 0,
+          },
+          {
+            targetType: 'project',
+            projectId: projectB.projectId,
+            method: 'manual_amount',
+            amount: '14600',
+            sortOrder: 1,
+          },
+          {
+            targetType: 'project',
+            projectId: projectC.projectId,
+            method: 'manual_amount',
+            amount: '10000',
+            sortOrder: 2,
+          },
+        ],
+      });
+      expect(expense.projectId).toBeNull();
+      expect(expense.allocationIntent).toBe('project_allocate');
+      await finalizeExpense(context, expense.id);
+
+      for (const [projectId, expected] of [
+        [projectA.projectId, '15000.000000'],
+        [projectB.projectId, '14600.000000'],
+        [projectC.projectId, '10000.000000'],
+      ] as const) {
+        const contributions = await loadProjectExpenseContributions(tx, orgAId, projectId);
+        const { cost } = aggregateProjectCosts(contributions, null, 'ILS');
+        expect(cost.actualCostToDate.amount).toBe(expected);
+      }
+    });
+  });
+
+  it('allocates subcontractor multi-project expense as one vendor obligation', async () => {
+    const projectA = await createProjectWithDefaultPackage(database, userA.id, orgAId, 'Sub A');
+    const projectB = await createProjectWithDefaultPackage(database, userA.id, orgAId, 'Sub B');
+    const projectC = await createProjectWithDefaultPackage(database, userA.id, orgAId, 'Sub C');
+
+    const subcontractorCategoryId = await database.asService(async (db) => {
+      const [row] = await db
+        .select({ id: costCategories.id })
+        .from(costCategories)
+        .where(
+          and(eq(costCategories.organizationId, orgAId), eq(costCategories.key, 'subcontractor')),
+        );
+      return row!.id;
+    });
+
+    await database.asUser(userA.id, async (tx) => {
+      const context = await resolveOrgContext(tx, {
+        userId: userA.id,
+        organizationId: orgAId,
+        locale: 'en',
+      });
+
+      const vendor = await createVendor(context, { name: 'Subcontractor Ltd', type: 'subcontractor' });
+      const expense = await createExpense(context, {
+        amount: '100000',
+        currency: 'ILS',
+        netAmount: '100000',
+        vatMode: 'zero',
+        vendorId: vendor.id,
+        costCategoryId: subcontractorCategoryId,
+        costFamily: 'direct_project',
+        allocationIntent: 'project_allocate',
+        allocations: [
+          {
+            targetType: 'project',
+            projectId: projectA.projectId,
+            method: 'manual_amount',
+            amount: '30000',
+            sortOrder: 0,
+          },
+          {
+            targetType: 'project',
+            projectId: projectB.projectId,
+            method: 'manual_amount',
+            amount: '50000',
+            sortOrder: 1,
+          },
+          {
+            targetType: 'project',
+            projectId: projectC.projectId,
+            method: 'manual_amount',
+            amount: '20000',
+            sortOrder: 2,
+          },
+        ],
+      });
+      await finalizeExpense(context, expense.id);
+
+      const refreshed = await getExpense(context, expense.id);
+      expect(refreshed.vendorId).toBe(vendor.id);
+
+      for (const [projectId, expected] of [
+        [projectA.projectId, '30000.000000'],
+        [projectB.projectId, '50000.000000'],
+        [projectC.projectId, '20000.000000'],
+      ] as const) {
+        const contributions = await loadProjectExpenseContributions(tx, orgAId, projectId);
+        const { cost } = aggregateProjectCosts(contributions, null, 'ILS');
+        expect(cost.actualCostToDate.amount).toBe(expected);
+      }
+    });
+  });
+
+  it('expense integrity audit auto-repairs draft anomalies to zero actionable issues', async () => {
+    await database.asUser(userA.id, async (tx) => {
+      const context = await resolveOrgContext(tx, {
+        userId: userA.id,
+        organizationId: orgAId,
+        locale: 'en',
+      });
+      const { auditExpenseIntegrity, repairExpenseIntegrityIssues } = await import(
+        '@/modules/expenses/application/expense-integrity-audit'
+      );
+      const before = await auditExpenseIntegrity(context);
+      const repairable = before.issues.filter((issue) => issue.autoRepairable);
+      if (repairable.length > 0) {
+        await repairExpenseIntegrityIssues(context, repairable);
+      }
+      const after = await auditExpenseIntegrity(context);
+      const actionable = after.issues.filter((issue) => issue.autoRepairable || issue.ambiguous);
+      expect(actionable).toHaveLength(0);
     });
   });
 

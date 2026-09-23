@@ -5,11 +5,13 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import {
   applyMonthlyEmployerCostAllocation,
   archiveEmployee,
+  correctMonthlyEmployerCostActual,
   createEmployee,
   createEmployeeSchema,
   createRateVersion,
   createRateVersionSchema,
   restoreEmployee,
+  returnMonthlyEmployerCostToEstimate,
   saveMonthlyEmployerCostDraft,
   updateEmployee,
   updateEmployeeSchema,
@@ -357,6 +359,56 @@ export async function applyMonthlyEmployerCostAllocationAction(input: {
         employeeId: input.employeeId,
         yearMonth: input.yearMonth,
         runId: input.runId,
+      }),
+    );
+    revalidatePath(`/workforce/employees/${input.employeeId}`);
+    revalidatePath('/workforce', 'layout');
+    return { ok: true };
+  } catch (error) {
+    return mapEmployeeActionError(error, tErrors('unexpected'));
+  }
+}
+
+export async function correctMonthlyEmployerCostActualAction(input: {
+  employeeId: string;
+  yearMonth: string;
+  estimatedAmount?: string;
+  actualAmount?: string | null;
+  correctionNote?: string | null;
+}): Promise<MonthlyEmployerCostActionState> {
+  const tErrors = await getTranslations('errors');
+
+  try {
+    await withOrgContext((context) =>
+      correctMonthlyEmployerCostActual(context, {
+        employeeId: input.employeeId,
+        yearMonth: input.yearMonth,
+        estimatedAmount: input.estimatedAmount ?? null,
+        actualAmount: input.actualAmount ?? null,
+        correctionNote: input.correctionNote ?? null,
+      }),
+    );
+    revalidatePath(`/workforce/employees/${input.employeeId}`);
+    revalidatePath('/workforce', 'layout');
+    return { ok: true };
+  } catch (error) {
+    return mapEmployeeActionError(error, tErrors('unexpected'));
+  }
+}
+
+export async function returnMonthlyEmployerCostToEstimateAction(input: {
+  employeeId: string;
+  yearMonth: string;
+  note?: string | null;
+}): Promise<MonthlyEmployerCostActionState> {
+  const tErrors = await getTranslations('errors');
+
+  try {
+    await withOrgContext((context) =>
+      returnMonthlyEmployerCostToEstimate(context, {
+        employeeId: input.employeeId,
+        yearMonth: input.yearMonth,
+        note: input.note ?? null,
       }),
     );
     revalidatePath(`/workforce/employees/${input.employeeId}`);

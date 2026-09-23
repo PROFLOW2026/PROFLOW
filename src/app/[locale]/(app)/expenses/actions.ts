@@ -18,7 +18,12 @@ import { confirmExpensePaid } from '@/modules/expenses/application/expense-payme
 import { businessDate } from '@/shared/dates';
 import { promoteVendorFromTransaction } from '@/modules/vendors';
 import { withOrgContext } from '@/shared/auth/session';
-import { AppError, DomainRuleError, ValidationError, mapServerActionError } from '@/shared/errors';
+import {
+  AppError,
+  DomainRuleError,
+  ValidationError,
+  mapServerActionError,
+} from '@/shared/errors';
 import { redirect } from '@/shared/i18n/navigation';
 
 async function mapMonthCloseError(error: unknown): Promise<ExpenseActionState | null> {
@@ -76,6 +81,8 @@ export interface ExpenseActionState {
   fieldErrors?: Record<string, string>;
   /** Local draft queued - not server truth. */
   offlineQueued?: boolean;
+  /** Offline queue includes save+approve intent (not yet approved on server). */
+  pendingApproveSync?: boolean;
 }
 
 function formValue(formData: FormData, key: string): string | undefined {
@@ -119,6 +126,12 @@ function buildExpensePayload(formData: FormData) {
     allocationPeriodEnd: formValue(formData, 'allocationPeriodEnd') ?? null,
     allocationDriverMethod: formValue(formData, 'allocationDriverMethod') ?? null,
     allocationScheduleMode: formValue(formData, 'allocationScheduleMode') ?? null,
+    allocationIntent: formValue(formData, 'allocationIntent') as
+      | 'project_allocate'
+      | 'auto_pool'
+      | 'company_only'
+      | undefined,
+    finalizeOnCreate: formValue(formData, 'finalizeOnCreate'),
     installmentCount: formValue(formData, 'installmentCount'),
     installmentStartDate: formValue(formData, 'installmentStartDate') ?? null,
     paymentTermId: formValue(formData, 'paymentTermId') ?? null,
@@ -155,17 +168,40 @@ export async function createExpenseAction(
     };
   }
 
+  if (parsed.data.finalizeOnCreate === true && !parsed.data.costCategoryId) {
+    const tExpenses = await getTranslations('expenses');
+    return {
+      error: tExpenses('errors.classificationRequired'),
+      fieldErrors: { costCategoryId: tExpenses('errors.classificationRequired') },
+    };
+  }
+
   try {
     const expense = await withOrgContext(async (context) => {
       const created = await createExpense(context, parsed.data);
-      if (parsed.data.markPaidOnCreate && parsed.data.costCategoryId) {
+      const wantsApprove = parsed.data.finalizeOnCreate === true;
+      const shouldFinalize =
+        wantsApprove ||
+        (parsed.data.markPaidOnCreate === true && Boolean(parsed.data.costCategoryId));
+      if (shouldFinalize && parsed.data.costCategoryId) {
         await finalizeExpense(context, created.id);
+      }
+      const refreshed = await import('@/modules/expenses/application/queries').then((m) =>
+        m.getExpense(context, created.id),
+      );
+      if (wantsApprove && refreshed.status !== 'finalized') {
+        throw new DomainRuleError(
+          'Expense could not be approved',
+          'expenses.errors.approveFailed',
+        );
+      }
+      if (parsed.data.markPaidOnCreate && parsed.data.costCategoryId) {
         const paidAt = parsed.data.paidAt
           ? businessDate(parsed.data.paidAt)
           : undefined;
-        await confirmExpensePaid(context, created.id, { paidAt });
+        await confirmExpensePaid(context, refreshed.id, { paidAt });
       }
-      return created;
+      return refreshed;
     });
     revalidatePath('/expenses');
     redirect({ href: `/expenses/${expense.id}`, locale });
@@ -216,8 +252,38 @@ export async function updateExpenseAction(
     };
   }
 
+  if (parsed.data.finalizeOnCreate === true && !parsed.data.costCategoryId) {
+    const tExpenses = await getTranslations('expenses');
+    return {
+      error: tExpenses('errors.classificationRequired'),
+      fieldErrors: { costCategoryId: tExpenses('errors.classificationRequired') },
+    };
+  }
+
   try {
-    const expense = await withOrgContext((context) => updateExpense(context, parsed.data));
+    const expense = await withOrgContext(async (context) => {
+      const updated = await updateExpense(context, parsed.data);
+      const wantsApprove = parsed.data.finalizeOnCreate === true;
+      if (wantsApprove && updated.status === 'draft' && parsed.data.costCategoryId) {
+        await finalizeExpense(context, updated.id);
+      }
+      const refreshed = await import('@/modules/expenses/application/queries').then((m) =>
+        m.getExpense(context, updated.id),
+      );
+      if (wantsApprove && refreshed.status !== 'finalized') {
+        throw new DomainRuleError(
+          'Expense could not be approved',
+          'expenses.errors.approveFailed',
+        );
+      }
+      if (parsed.data.markPaidOnCreate && parsed.data.costCategoryId) {
+        const paidAt = parsed.data.paidAt
+          ? businessDate(parsed.data.paidAt)
+          : undefined;
+        await confirmExpensePaid(context, refreshed.id, { paidAt });
+      }
+      return refreshed;
+    });
     revalidatePath('/expenses');
     revalidatePath(`/expenses/${expense.id}`);
     redirect({ href: `/expenses/${expense.id}`, locale });

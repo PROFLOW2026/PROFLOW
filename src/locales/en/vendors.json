@@ -347,7 +347,21 @@
     "generalBusiness": "General business expense",
     "paid": "Paid",
     "unpaid": "Unpaid",
-    "overdue": "Overdue"
+    "overdue": "Overdue",
+    "cancelled": "Cancelled",
+    "paymentNotApplicable": "—",
+    "autoPool": "Automatic pool",
+    "multiProjectLabel": "{count} projects",
+    "kind": {
+      "expense": "Expense",
+      "reversal": "Reversal",
+      "adjustment": "Adjustment"
+    },
+    "expenseStatus": {
+      "draft": "Draft",
+      "finalized": "Approved",
+      "void": "Voided"
+    }
   },
   "performance": {
     "title": "Supplier performance",

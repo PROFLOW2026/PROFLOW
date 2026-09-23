@@ -57,6 +57,10 @@ export function ExpenseCaptureForm({
     onlineAction: createExpenseAction,
     buildPayload: expensePayloadFromFormData,
     offlineSuccessState,
+    buildOfflineSuccessState: (formData) => ({
+      offlineQueued: true,
+      pendingApproveSync: formData.get('finalizeOnCreate') === 'true',
+    }),
     missingOrgError: tOffline('errors.missingOrganization'),
   });
 
@@ -69,7 +73,9 @@ export function ExpenseCaptureForm({
     <form action={formAction} className="flex flex-col gap-6">
       {state.offlineQueued ? (
         <Alert tone="info" role="status">
-          {tOffline('forms.draftSaved')}{' '}
+          {state.pendingApproveSync
+            ? tOffline('forms.approvePendingSync')
+            : tOffline('forms.draftSaved')}{' '}
           <Link href="/settings/offline-drafts" className="font-medium underline">
             {tOffline('banner.viewDrafts')}
           </Link>
@@ -99,13 +105,31 @@ export function ExpenseCaptureForm({
         fieldErrors={state.fieldErrors}
       />
 
-      <Button type="submit" size="lg" loading={pending} className="w-full">
-        {pending
-          ? tCommon('states.saving')
-          : state.offlineQueued
-            ? tOffline('forms.saveAnotherDraft')
-            : t('actions.saveDraft')}
-      </Button>
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <Button
+          type="submit"
+          name="finalizeOnCreate"
+          value="true"
+          size="lg"
+          loading={pending}
+          className="w-full sm:flex-1"
+        >
+          {pending ? tCommon('states.saving') : t('actions.saveAndApprove')}
+        </Button>
+        <Button
+          type="submit"
+          variant="outline"
+          size="lg"
+          loading={pending}
+          className="w-full sm:flex-1"
+        >
+          {pending
+            ? tCommon('states.saving')
+            : state.offlineQueued
+              ? tOffline('forms.saveAnotherDraft')
+              : t('actions.saveAsDraft')}
+        </Button>
+      </div>
     </form>
   );
 }

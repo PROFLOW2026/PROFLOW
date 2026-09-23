@@ -83,24 +83,11 @@ export async function VendorFinancialActivityPanel({
                 <span dir="ltr" className="text-xs text-[var(--pf-text-muted)]">
                   {formatBusinessDate(row.expenseDate, locale)}
                 </span>
-                {row.projectName ? (
-                  <span className="text-xs text-[var(--pf-text-secondary)]">
-                    {t('projectLabel', { name: row.projectName })}
-                  </span>
-                ) : (
-                  <span className="text-xs text-[var(--pf-text-secondary)]">{t('generalBusiness')}</span>
-                )}
+                <ExpenseKindBadge kind={row.kind} label={t(`kind.${row.kind}`)} />
+                <ProjectSummary row={row} t={t} />
                 <MoneyText value={money(row.netAmount, row.currency)} />
-                <StatusBadge
-                  shape={row.paymentStatus === 'paid' ? 'approved' : row.paymentStatus === 'overdue' ? 'overdue' : 'pending'}
-                  label={
-                    row.paymentStatus === 'paid'
-                      ? t('paid')
-                      : row.paymentStatus === 'overdue'
-                        ? t('overdue')
-                        : t('unpaid')
-                  }
-                />
+                <ExpenseStatusBadge status={row.status} label={t(`expenseStatus.${row.status}`)} />
+                <PaymentStatusBadge row={row} t={t} />
               </li>
             ))}
           </ul>
@@ -127,4 +114,88 @@ function Metric({
       </dd>
     </div>
   );
+}
+
+function ExpenseKindBadge({ kind, label }: { readonly kind: string; readonly label: string }) {
+  const shape =
+    kind === 'reversal' ? 'cancelled' : kind === 'adjustment' ? 'pending' : 'completed';
+  return <StatusBadge shape={shape} label={label} />;
+}
+
+function ExpenseStatusBadge({ status, label }: { readonly status: string; readonly label: string }) {
+  const shape =
+    status === 'finalized' ? 'approved' : status === 'void' ? 'cancelled' : 'draft';
+  return <StatusBadge shape={shape} label={label} />;
+}
+
+function PaymentStatusBadge({
+  row,
+  t,
+}: {
+  readonly row: VendorFinancialActivity['expenses'][number];
+  readonly t: Awaited<ReturnType<typeof getTranslations<'vendors.financialActivity'>>>;
+}) {
+  const display = row.paymentDisplay;
+  const shape =
+    display === 'paid'
+      ? 'approved'
+      : display === 'overdue'
+        ? 'overdue'
+        : display === 'cancelled'
+          ? 'cancelled'
+          : display === 'not_applicable'
+            ? 'draft'
+            : 'pending';
+  const label =
+    display === 'paid'
+      ? t('paid')
+      : display === 'overdue'
+        ? t('overdue')
+        : display === 'cancelled'
+          ? t('cancelled')
+          : display === 'not_applicable'
+            ? t('paymentNotApplicable')
+            : t('unpaid');
+  return <StatusBadge shape={shape} label={label} />;
+}
+
+function ProjectSummary({
+  row,
+  t,
+}: {
+  readonly row: VendorFinancialActivity['expenses'][number];
+  readonly t: Awaited<ReturnType<typeof getTranslations<'vendors.financialActivity'>>>;
+}) {
+  if (row.projectAllocationCount > 1) {
+    return (
+      <details className="text-xs text-[var(--pf-text-secondary)]">
+        <summary>{t('multiProjectLabel', { count: row.projectAllocationCount })}</summary>
+        <ul className="mt-1 flex flex-col gap-0.5 ps-3">
+          {row.projectAllocations.map((line) => (
+            <li key={`${row.id}-${line.projectId}`}>
+              {line.projectName} — {line.netAmount}
+            </li>
+          ))}
+        </ul>
+      </details>
+    );
+  }
+  if (row.projectAllocationCount === 1) {
+    return (
+      <span className="text-xs text-[var(--pf-text-secondary)]">
+        {t('projectLabel', { name: row.projectAllocations[0]!.projectName })}
+      </span>
+    );
+  }
+  if (row.projectName) {
+    return (
+      <span className="text-xs text-[var(--pf-text-secondary)]">
+        {t('projectLabel', { name: row.projectName })}
+      </span>
+    );
+  }
+  if (row.allocationIntent === 'auto_pool') {
+    return <span className="text-xs text-[var(--pf-text-secondary)]">{t('autoPool')}</span>;
+  }
+  return <span className="text-xs text-[var(--pf-text-secondary)]">{t('generalBusiness')}</span>;
 }

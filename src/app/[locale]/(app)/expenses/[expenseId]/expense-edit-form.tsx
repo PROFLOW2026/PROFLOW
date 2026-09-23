@@ -61,6 +61,10 @@ export function ExpenseEditForm({
       serverUpdatedAt,
     }),
     offlineSuccessState,
+    buildOfflineSuccessState: (formData) => ({
+      offlineQueued: true,
+      pendingApproveSync: formData.get('finalizeOnCreate') === 'true',
+    }),
     missingOrgError: tOffline('errors.missingOrganization'),
   });
 
@@ -95,7 +99,9 @@ export function ExpenseEditForm({
 
       {state.offlineQueued ? (
         <Alert tone="info" role="status">
-          {tOffline('forms.draftSaved')}{' '}
+          {state.pendingApproveSync
+            ? tOffline('forms.approvePendingSync')
+            : tOffline('forms.draftSaved')}{' '}
           <Link href="/settings/offline-drafts" className="font-medium underline">
             {tOffline('banner.viewDrafts')}
           </Link>
@@ -155,9 +161,33 @@ export function ExpenseEditForm({
         fieldErrors={state.fieldErrors}
       />
 
-      <Button type="submit" loading={pending}>
-        {pending ? tCommon('states.saving') : t('actions.saveDraft')}
-      </Button>
+      {expense.status === 'draft' ? (
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Button
+            type="submit"
+            name="finalizeOnCreate"
+            value="true"
+            size="lg"
+            loading={pending}
+            className="w-full sm:flex-1"
+          >
+            {pending ? tCommon('states.saving') : t('actions.saveAndApprove')}
+          </Button>
+          <Button
+            type="submit"
+            variant="outline"
+            size="lg"
+            loading={pending}
+            className="w-full sm:flex-1"
+          >
+            {pending ? tCommon('states.saving') : t('actions.saveAsDraft')}
+          </Button>
+        </div>
+      ) : (
+        <Button type="submit" loading={pending}>
+          {pending ? tCommon('states.saving') : t('actions.saveChanges')}
+        </Button>
+      )}
     </form>
   );
 }

@@ -315,7 +315,21 @@
     "generalBusiness": "הוצאה כללית של העסק",
     "paid": "שולם",
     "unpaid": "לא שולם",
-    "overdue": "באיחור"
+    "overdue": "באיחור",
+    "cancelled": "בוטל",
+    "paymentNotApplicable": "—",
+    "autoPool": "חלוקה אוטומטית",
+    "multiProjectLabel": "{count} פרויקטים",
+    "kind": {
+      "expense": "הוצאה",
+      "reversal": "ביטול",
+      "adjustment": "תיקון"
+    },
+    "expenseStatus": {
+      "draft": "טיוטה",
+      "finalized": "מאושרת",
+      "void": "בוטלה"
+    }
   },
   "performance": {
     "title": "ביצועי ספק",

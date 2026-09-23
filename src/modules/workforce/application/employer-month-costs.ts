@@ -1,12 +1,15 @@
 import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
 import { money } from '@/shared/money';
 import { withTransaction } from '@/shared/db';
+import { recordAuditEvent } from '@/shared/audit';
 import type { OrgContext } from '@/shared/auth/context';
 import { findEmployeeById } from '../data/employees.repository';
 import {
   findEmployeeMonthCostByEmployeeMonth,
+  insertEmployeeMonthCostAdjustment,
   insertEmployeeMonthCostDraft,
   listEmployeeMonthCostsForEmployee,
+  supersedeEmployeeMonthCost,
   updateEmployeeMonthCostDraft,
   type EmployeeMonthCostRow,
 } from '../data/employee-month-costs.repository';
@@ -423,4 +426,186 @@ function emptyToNull(value: string | null | undefined): string | null {
   if (value == null) return null;
   const trimmed = value.trim();
   return trimmed === '' ? null : trimmed;
+}
+
+/** Retro correction: supersede applied/closed month row and open adjustment draft. */
+export async function correctMonthlyEmployerCostActual(
+  context: OrgContext,
+  rawInput: SaveMonthlyEmployerCostDraftInput & { readonly correctionNote?: string | null },
+): Promise<{ readonly month: EmployeeMonthCostRow; readonly run: LaborAllocationRunRow | null }> {
+  assertMonthCostsGate();
+  const parsed = saveMonthlyEmployerCostDraftSchema.safeParse(rawInput);
+  if (!parsed.success) {
+    throw new ValidationError(
+      parsed.error.issues.map((issue) => ({ path: issue.path.join('.'), message: issue.message })),
+    );
+  }
+  await assertEmployeeMonthCostWritable(context, parsed.data.employeeId);
+
+  const existing = await findEmployeeMonthCostByEmployeeMonth(
+    context.db,
+    context.organizationId,
+    parsed.data.employeeId,
+    parsed.data.yearMonth,
+  );
+  if (!existing) {
+    return saveMonthlyEmployerCostDraft(context, parsed.data);
+  }
+  if (existing.status === 'draft') {
+    return saveMonthlyEmployerCostDraft(context, parsed.data);
+  }
+
+  const currency = context.organization.baseCurrency.toUpperCase();
+  const derived = deriveKnownEmployerCost({
+    estimatedAmount: emptyToNull(parsed.data.estimatedAmount) ?? existing.estimatedAmount,
+    actualAmount: emptyToNull(parsed.data.actualAmount),
+    currency,
+  });
+
+  const priorRun = await findActiveLaborAllocationRun(
+    context.db,
+    context.organizationId,
+    existing.id,
+  );
+  const priorLines = priorRun
+    ? await listLaborAllocationRunLines(context.db, context.organizationId, priorRun.id)
+    : [];
+
+  const result = await withTransaction(context.db, async (tx) => {
+    const superseded = await supersedeEmployeeMonthCost(tx, context.organizationId, existing.id);
+    if (!superseded) throw new NotFoundError('Employee month cost');
+
+    const month = await insertEmployeeMonthCostAdjustment(tx, {
+      organizationId: context.organizationId,
+      employeeId: parsed.data.employeeId,
+      yearMonth: parsed.data.yearMonth,
+      currency,
+      estimatedAmount: derived.estimatedAmount ?? existing.estimatedAmount,
+      actualAmount: derived.actualAmount,
+      knownAmount: derived.knownAmount.amount,
+      knownQuality: derived.knownQuality,
+      adjustsMonthId: existing.id,
+      notes: rawInput.correctionNote ?? parsed.data.notes ?? null,
+    });
+
+    let run: LaborAllocationRunRow | null = null;
+    if (priorLines.length > 0) {
+      const method = (priorRun?.method as MonthlyAllocationMethod) ?? 'percent';
+      const lineInputs = priorLines.map((line) => {
+        if (method === 'fixed_amount') {
+          const ratio = Number(month.knownAmount) / Number(existing.knownAmount);
+          const nextAmount = (Number(line.amount) * ratio).toFixed(6);
+          return {
+            projectId: line.projectId ?? '',
+            amount: nextAmount,
+            notes: line.notes,
+          };
+        }
+        if (method === 'percent') {
+          return {
+            projectId: line.projectId ?? '',
+            percent: line.percent,
+            notes: line.notes,
+          };
+        }
+        if (method === 'hours') {
+          return {
+            projectId: line.projectId ?? '',
+            hours: line.basisHours,
+            notes: line.notes,
+          };
+        }
+        return {
+          projectId: line.projectId ?? '',
+          days: line.basisDays,
+          notes: line.notes,
+        };
+      });
+      const resolution = resolveMonthlyAllocationAmounts({
+        knownAmount: money(month.knownAmount, month.currency),
+        method,
+        lines: lineInputs,
+      });
+      run = await insertDraftLaborAllocationRun(tx, {
+        organizationId: context.organizationId,
+        employeeMonthCostId: month.id,
+        method: (priorRun?.method as MonthlyAllocationMethod) ?? 'fixed_amount',
+        currency: month.currency,
+        allocatedAmount: resolution.allocatedAmount.amount,
+        unallocatedAmount: resolution.unallocatedAmount.amount,
+        companyOnlyAmount: resolution.companyOnlyAmount.amount,
+        supersedesRunId: priorRun?.id ?? null,
+        lines: resolution.lines.map((line) => ({
+          projectId: line.projectId,
+          amount: line.amount.amount,
+          currency: month.currency,
+          percent: line.percent,
+          basisHours: line.basisHours,
+          basisDays: line.basisDays,
+          sortOrder: line.sortOrder,
+          notes: line.notes,
+        })),
+      });
+      run = await applyLaborAllocationRun(tx, context.organizationId, run.id);
+    }
+
+    return { month, run };
+  });
+
+  await recordAuditEvent(context, {
+    action: 'employee_month_cost.actual_corrected',
+    entityType: 'employee_month_cost',
+    entityId: result.month.id,
+    before: {
+      priorMonthId: existing.id,
+      knownAmount: existing.knownAmount,
+      knownQuality: existing.knownQuality,
+    },
+    after: {
+      knownAmount: result.month.knownAmount,
+      knownQuality: result.month.knownQuality,
+      actualAmount: result.month.actualAmount,
+    },
+  });
+
+  const { tryRecomputeOpenGeneralCostMonth } = await import(
+    '@/modules/financials/application/recompute-general-cost-month'
+  );
+  await tryRecomputeOpenGeneralCostMonth(context, { yearMonth: parsed.data.yearMonth });
+
+  return result;
+}
+
+/** Explicit audited return to estimate-only effective cost. */
+export async function returnMonthlyEmployerCostToEstimate(
+  context: OrgContext,
+  input: { readonly employeeId: string; readonly yearMonth: string; readonly note?: string | null },
+): Promise<EmployeeMonthCostRow> {
+  assertMonthCostsGate();
+  await assertEmployeeMonthCostWritable(context, input.employeeId);
+
+  const existing = await findEmployeeMonthCostByEmployeeMonth(
+    context.db,
+    context.organizationId,
+    input.employeeId,
+    input.yearMonth,
+  );
+  if (!existing) throw new NotFoundError('Employee month cost');
+
+  const { month } = await correctMonthlyEmployerCostActual(context, {
+    employeeId: input.employeeId,
+    yearMonth: input.yearMonth,
+    estimatedAmount: existing.estimatedAmount,
+    actualAmount: null,
+    correctionNote: input.note ?? 'Return to estimate',
+  });
+
+  await recordAuditEvent(context, {
+    action: 'employee_month_cost.return_to_estimate',
+    entityType: 'employee_month_cost',
+    entityId: month.id,
+    after: { knownQuality: month.knownQuality },
+  });
+
+  return month;
 }

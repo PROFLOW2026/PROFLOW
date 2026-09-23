@@ -65,6 +65,7 @@
   },
   "forms": {
     "draftSaved": "Saved as an offline draft on this device. It is not on the server yet.",
+    "approvePendingSync": "Save and approve is queued on this device. Approval happens after sync when online.",
     "saveAnotherDraft": "Save another draft",
     "finalizeRequiresOnline": "Finalizing an expense requires a connection. Keep editing as a draft until you are online.",
     "captureDraftSaved": "Photo/document saved as an offline draft on this device. It will upload when you reconnect.",

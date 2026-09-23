@@ -26,7 +26,9 @@ export {
   assertLaborAllocationReadable,
   assertLaborAllocationWritable,
   applyMonthlyEmployerCostAllocation,
+  correctMonthlyEmployerCostActual,
   loadMonthlyEmployerCostReview,
+  returnMonthlyEmployerCostToEstimate,
   saveMonthlyEmployerCostDraft,
 } from './application/employer-month-costs';
 export type { MonthlyEmployerCostReview } from './application/employer-month-costs';

@@ -347,7 +347,21 @@
     "generalBusiness": "Общехозяйственный расход",
     "paid": "Оплачено",
     "unpaid": "Не оплачено",
-    "overdue": "Просрочено"
+    "overdue": "Просрочено",
+    "cancelled": "Отменено",
+    "paymentNotApplicable": "—",
+    "autoPool": "Автораспределение",
+    "multiProjectLabel": "{count} проектов",
+    "kind": {
+      "expense": "Расход",
+      "reversal": "Сторно",
+      "adjustment": "Корректировка"
+    },
+    "expenseStatus": {
+      "draft": "Черновик",
+      "finalized": "Утверждено",
+      "void": "Аннулировано"
+    }
   },
   "performance": {
     "title": "Показатели поставщика",

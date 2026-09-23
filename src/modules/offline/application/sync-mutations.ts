@@ -11,6 +11,7 @@ import { getDocumentById } from '@/modules/documents';
 import {
   createExpense,
   createExpenseSchema,
+  finalizeExpense,
   getExpense,
   updateExpense,
   updateExpenseSchema,
@@ -237,7 +238,15 @@ async function submitExpense(
     if (!parsed.success) {
       throw new OfflineSyncSubmitError('Expense draft failed validation.');
     }
-    const updated = await withOrgContext((context) => updateExpense(context, parsed.data));
+    const updated = await withOrgContext(async (context) => {
+      const row = await updateExpense(context, parsed.data);
+      if (parsed.data.finalizeOnCreate === true && row.status === 'draft' && parsed.data.costCategoryId) {
+        await finalizeExpense(context, row.id);
+        const refreshed = await getExpense(context, row.id);
+        return refreshed;
+      }
+      return row;
+    });
     return { serverId: updated.id, serverUpdatedAt: toIso(updated.updatedAt) };
   }
 
@@ -268,7 +277,12 @@ async function submitExpense(
     if (existing) {
       return { id: existing.id, updatedAt: existing.updatedAt };
     }
-    return createExpense(context, parsed.data);
+    const row = await createExpense(context, parsed.data);
+    if (parsed.data.finalizeOnCreate === true && parsed.data.costCategoryId) {
+      await finalizeExpense(context, row.id);
+      return getExpense(context, row.id);
+    }
+    return row;
   });
   return { serverId: created.id, serverUpdatedAt: toIso(created.updatedAt) };
 }

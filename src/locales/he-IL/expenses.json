@@ -16,7 +16,7 @@
   "remainingScheduledCost": "עלות מתוכננת שנותרה",
   "capture": {
     "title": "הוצאה חדשה",
-    "subtitle": "שמירה יוצרת טיוטה בלבד. ההוצאה נכנסת לעלויות הפרויקט אחרי אישור. להוצאות כלליות של העסק - הוסיפו שורות הקצאה כדי שלא יישארו בלי הקצאה לפרויקט.",
+    "subtitle": "ברירת המחדל: \"שמור ואשר הוצאה\" מכניסה את העלות ל-Actual לאחר אישור. \"שמור כטיוטה\" שומרת ללא אישור. תשלום נפרד מאישור.",
     "overlapWarningTitle": "קיימת חשבונית ספק פתוחה דומה",
     "overlapWarningBody": "חשבונית ספק פתוחה עם אותו ספק וסכום נטו דומה כבר מוכרת בעלות בפועל. אישור הוצאה נפרדת עלול להכפיל עלות אלא אם תקשרו ביניהן.",
     "overlapWarningHint": "פתחו את החשבונית וקבלו התאמה להוצאה אחרי האישור, או בטלו את הרישום הכפול."
@@ -94,6 +94,9 @@
   "actions": {
     "add": "הוצאה חדשה",
     "saveDraft": "שמירת טיוטה",
+    "saveAsDraft": "שמור כטיוטה",
+    "saveChanges": "שמור שינויים",
+    "saveAndApprove": "שמור ואשר הוצאה",
     "finalize": "רישום הוצאה",
     "void": "ביטול",
     "reverse": "קיזוז (היפוך)",
@@ -252,6 +255,11 @@
   "destination": {
     "label": "לאן לשייך את העלות?",
     "project": "פרויקט",
+    "projectSingle": "פרויקט אחד",
+    "projectMulti": "חלוקה בין מספר פרויקטים",
+    "projectMultiHint": "חלקו את סכום הנטו בין פרויקטים לפי סכום או אחוז. מע״מ לא נכנס לרווחיות הפרויקט.",
+    "autoPool": "הוצאה כללית — חלוקה אוטומטית בין פרויקטים",
+    "companyOnly": "הוצאה כללית של העסק בלבד",
     "general": "הוצאות כלליות של העסק",
     "inventory": "רכישה למלאי",
     "asset": "נכס / הון"
@@ -474,7 +482,19 @@
     "inventoryItemRequired": "יש לבחור פריט מלאי לרכישת מלאי.",
     "inventoryQtyRequired": "יש להזין את הכמות שנכנסה למלאי.",
     "inventoryStockPurchaseIncomplete": "רכישת מלאי דורשת פריט וכמות לפני רישום.",
-    "classificationRequired": "יש לבחור סוג הוצאה לפני אישור העלות"
+    "classificationRequired": "יש לבחור סוג הוצאה לפני אישור העלות",
+    "approveFailed": "לא ניתן לאשר את ההוצאה. בדקו שדות חובה ונסו שוב."
+  },
+  "activityTimeline": {
+    "title": "היסטוריית פעילות",
+    "actions": {
+      "expense.payment_confirmation_voided": "אישור תשלום בוטל",
+      "expense.payment_confirmed": "תשלום אושר",
+      "expense.finalized": "הוצאה אושרה",
+      "expense.created": "הוצאה נוצרה",
+      "expense.updated": "הוצאה עודכנה",
+      "expense.voided": "הוצאה בוטלה"
+    }
   },
   "overheadHome": {
     "title": "הוצאות כלליות",

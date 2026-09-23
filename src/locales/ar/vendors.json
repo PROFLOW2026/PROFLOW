@@ -347,7 +347,21 @@
     "generalBusiness": "مصروف عام للأعمال",
     "paid": "مدفوع",
     "unpaid": "غير مدفوع",
-    "overdue": "متأخر"
+    "overdue": "متأخر",
+    "cancelled": "ملغى",
+    "paymentNotApplicable": "—",
+    "autoPool": "توزيع تلقائي",
+    "multiProjectLabel": "{count} مشاريع",
+    "kind": {
+      "expense": "مصروف",
+      "reversal": "إلغاء",
+      "adjustment": "تصحيح"
+    },
+    "expenseStatus": {
+      "draft": "مسودة",
+      "finalized": "معتمد",
+      "void": "ملغى"
+    }
   },
   "performance": {
     "title": "أداء المورد",

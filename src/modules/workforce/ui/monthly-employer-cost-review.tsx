@@ -4,6 +4,8 @@ import { useMemo, useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import {
   applyMonthlyEmployerCostAllocationAction,
+  correctMonthlyEmployerCostActualAction,
+  returnMonthlyEmployerCostToEstimateAction,
   saveMonthlyEmployerCostDraftAction,
 } from '@/app/[locale]/(app)/workforce/employees/actions';
 import { Alert } from '@/components/ui/alert';
@@ -48,6 +50,8 @@ export interface MonthlyEmployerCostReviewProps {
   readonly canManage?: boolean;
   /** Server-loaded month row for the default month (existing Owner data). */
   readonly initialReview?: MonthlyEmployerCostReviewData | null;
+  /** When true, show payroll month-end approval copy (salary alert path). */
+  readonly payrollApprovalMode?: boolean;
 }
 
 function newLineKey(): string {
@@ -72,6 +76,7 @@ export function MonthlyEmployerCostReview({
   canReview,
   canManage = false,
   initialReview = null,
+  payrollApprovalMode = false,
 }: MonthlyEmployerCostReviewProps) {
   const t = useTranslations('workforce');
   const tCommon = useTranslations('common');
@@ -129,7 +134,38 @@ export function MonthlyEmployerCostReview({
     [estimated, actual, allocated],
   );
 
+  const monthStatus = initialMonth?.status ?? null;
+  const hasAppliedMonth = monthStatus === 'applied' || monthStatus === 'closed';
+  const estimatedNumeric = Number(estimated || initialMonth?.estimatedAmount || 0);
+  const actualNumeric = actual.trim() === '' ? null : Number(actual);
+  const costDifference =
+    actualNumeric != null && Number.isFinite(actualNumeric) && Number.isFinite(estimatedNumeric)
+      ? actualNumeric - estimatedNumeric
+      : null;
+
   if (!canReview) return null;
+
+  async function persistMonthCost(): Promise<{ error?: string }> {
+    const payload = {
+      employeeId,
+      yearMonth,
+      estimatedAmount: estimated,
+      actualAmount: actual.trim() === '' ? null : actual,
+    };
+    if (hasAppliedMonth) {
+      return correctMonthlyEmployerCostActualAction({
+        ...payload,
+        correctionNote: null,
+      });
+    }
+    return saveMonthlyEmployerCostDraftAction({
+      ...payload,
+      method: showAdvanced ? method : undefined,
+      allocationLinesJson: showAdvanced ? buildAllocationLinesJson() : undefined,
+      remainderAllocationIntent:
+        Number(preview.unallocatedAmount) > 0 ? remainderAllocationIntent : undefined,
+    });
+  }
 
   function handleSaveDraft() {
     setActionError(null);
@@ -138,22 +174,13 @@ export function MonthlyEmployerCostReview({
       return;
     }
     startTransition(async () => {
-      const result = await saveMonthlyEmployerCostDraftAction({
-        employeeId,
-        yearMonth,
-        estimatedAmount: estimated,
-        actualAmount: actual,
-        method: showAdvanced ? method : undefined,
-        allocationLinesJson: showAdvanced ? buildAllocationLinesJson() : undefined,
-        remainderAllocationIntent:
-          Number(preview.unallocatedAmount) > 0 ? remainderAllocationIntent : undefined,
-      });
+      const result = await persistMonthCost();
       if (result.error) {
         setActionError(result.error);
         return;
       }
       setSavedDraft(true);
-      setApplied(false);
+      setApplied(hasAppliedMonth);
     });
   }
 
@@ -161,18 +188,14 @@ export function MonthlyEmployerCostReview({
     setActionError(null);
     if (!ready || !canManage) return;
     startTransition(async () => {
-      const saveResult = await saveMonthlyEmployerCostDraftAction({
-        employeeId,
-        yearMonth,
-        estimatedAmount: estimated,
-        actualAmount: actual,
-        method: showAdvanced ? method : 'fixed_amount',
-        allocationLinesJson: showAdvanced ? buildAllocationLinesJson() : undefined,
-        remainderAllocationIntent:
-          Number(preview.unallocatedAmount) > 0 ? remainderAllocationIntent : undefined,
-      });
+      const saveResult = await persistMonthCost();
       if (saveResult.error) {
         setActionError(saveResult.error);
+        return;
+      }
+      if (hasAppliedMonth) {
+        setSavedDraft(true);
+        setApplied(true);
         return;
       }
       const applyResult = await applyMonthlyEmployerCostAllocationAction({
@@ -188,11 +211,33 @@ export function MonthlyEmployerCostReview({
     });
   }
 
+  function handleReturnToEstimate() {
+    setActionError(null);
+    if (!ready || !canManage) return;
+    startTransition(async () => {
+      const result = await returnMonthlyEmployerCostToEstimateAction({
+        employeeId,
+        yearMonth,
+      });
+      if (result.error) {
+        setActionError(result.error);
+        return;
+      }
+      setActual('');
+      setSavedDraft(true);
+      setApplied(true);
+    });
+  }
+
   return (
     <Card className="flex flex-col gap-4 p-4 sm:p-6">
       <div className="text-start">
-        <h2 className="text-base font-semibold">{t('monthReview.title')}</h2>
-        <p className="text-sm text-[var(--pf-text-secondary)]">{t('monthReview.description')}</p>
+        <h2 className="text-base font-semibold">
+          {payrollApprovalMode ? t('monthReview.payrollTitle') : t('monthReview.title')}
+        </h2>
+        <p className="text-sm text-[var(--pf-text-secondary)]">
+          {payrollApprovalMode ? t('monthReview.payrollDescription') : t('monthReview.description')}
+        </p>
       </div>
 
       {!ready ? (
@@ -240,9 +285,33 @@ export function MonthlyEmployerCostReview({
         })}
       </p>
 
+      {actualNumeric == null ? (
+        <p className="text-sm text-[var(--pf-text-muted)]">{t('monthReview.noActualHint')}</p>
+      ) : null}
+
+      {costDifference != null ? (
+        <div className="rounded-md border border-[var(--pf-border-default)] p-3 text-sm">
+          <p>
+            {t('monthReview.estimatedEmployerCost')}:{' '}
+            <MoneyText value={money(String(estimatedNumeric), currency)} />
+          </p>
+          <p>
+            {t('monthReview.actualEmployerCost')}:{' '}
+            <MoneyText value={money(String(actualNumeric), currency)} />
+          </p>
+          <p>
+            {t('monthReview.costDifference')}:{' '}
+            <MoneyText
+              value={money(String(costDifference), currency)}
+              className={costDifference >= 0 ? 'text-[var(--pf-text-primary)]' : undefined}
+            />
+          </p>
+        </div>
+      ) : null}
+
       <div className="grid gap-3 sm:grid-cols-2">
         <Field
-          label={t('monthReview.estimated')}
+          label={t('monthReview.estimatedEmployerCost')}
           optionalLabel={tCommon('labels.optional')}
           description={t('monthReview.estimatedHint')}
         >
@@ -256,7 +325,7 @@ export function MonthlyEmployerCostReview({
           )}
         </Field>
         <Field
-          label={t('monthReview.actual')}
+          label={t('monthReview.actualEmployerCost')}
           optionalLabel={tCommon('labels.optional')}
           description={t('monthReview.actualHint')}
         >
@@ -475,7 +544,22 @@ export function MonthlyEmployerCostReview({
           disabled={pending || preview.status === 'over' || preview.status === 'not_started'}
           onClick={handleApply}
         >
-          {t('monthReview.applyAllocation')}
+          {payrollApprovalMode
+            ? t('monthReview.confirmPayrollMonth')
+            : t('monthReview.applyAllocation')}
+        </Button>
+      ) : null}
+
+      {ready && canManage && initialMonth?.actualAmount ? (
+        <Button
+          type="button"
+          variant="outline"
+          size="lg"
+          block
+          disabled={pending}
+          onClick={handleReturnToEstimate}
+        >
+          {t('monthReview.returnToEstimate')}
         </Button>
       ) : null}
 

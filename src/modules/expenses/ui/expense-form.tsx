@@ -59,6 +59,9 @@ const MANUAL_DRIVER = '__manual__';
 
 type ExpenseDestination = 'project' | 'general' | 'inventory' | 'asset';
 
+/** Primary cost routing — multi-project split is not "advanced". */
+type CostDestinationMode = 'project_single' | 'project_multi' | 'auto_pool' | 'company_only';
+
 const COST_FAMILY_ORDER: readonly CostFamily[] = [
   'direct_project',
   'shared',
@@ -81,6 +84,21 @@ function resolveInitialDestination(initialValues?: Partial<ExpenseFormValues>): 
     return 'project';
   }
   return 'general';
+}
+
+function resolveInitialCostDestination(
+  initialValues?: Partial<ExpenseFormValues>,
+): CostDestinationMode {
+  if (initialValues?.projectId) return 'project_single';
+  const intent = initialValues?.allocationIntent ?? 'auto_pool';
+  const hasProjectLines = (initialValues?.allocations ?? []).some(
+    (line) => line.targetType === 'project' && Boolean(line.projectId),
+  );
+  if (intent === 'project_allocate' && hasProjectLines) return 'project_multi';
+  if (intent === 'company_only') return 'company_only';
+  if (intent === 'auto_pool') return 'auto_pool';
+  if (intent === 'project_allocate') return 'project_multi';
+  return 'auto_pool';
 }
 
 function hasAdvancedInitialValues(initialValues?: Partial<ExpenseFormValues>): boolean {
@@ -281,27 +299,39 @@ export function ExpenseForm({
   const [allocationIntent, setAllocationIntent] = React.useState<
     ExpenseFormValues['allocationIntent']
   >(initialValues?.allocationIntent ?? 'auto_pool');
+  const [costDestinationMode, setCostDestinationMode] = React.useState<CostDestinationMode>(() =>
+    resolveInitialCostDestination(initialValues),
+  );
 
-  const isOverhead = targeting === OVERHEAD_VALUE;
-  const projectId = isOverhead || targeting === NONE_VALUE ? '' : targeting;
+  const isOverhead = costDestinationMode !== 'project_single';
+  const projectId =
+    costDestinationMode === 'project_single' && targeting !== OVERHEAD_VALUE && targeting !== NONE_VALUE
+      ? targeting
+      : '';
   const usesAutomaticDriver =
     Boolean(allocationDriverMethod) && isWeightAllocationMethod(allocationDriverMethod as AllocationMethod);
   const hasProjectAllocation = allocations.some(
     (line) => line.targetType === 'project' && Boolean(line.projectId),
   );
-  const primaryDestination = destination === 'project' ? 'project' : 'general';
+  const showMultiProjectAllocation = costDestinationMode === 'project_multi';
+  const includeManualAllocations =
+    showMultiProjectAllocation ||
+    (isOverhead && allocationIntent === 'project_allocate' && !usesAutomaticDriver);
   const selectedCategory = costCategoryId
     ? categories.find((category) => category.id === costCategoryId) ?? null
     : null;
-  const showAllocationControls = isOverhead && allocationIntent === 'project_allocate';
+  const showAllocationControls =
+    showAdvancedOptions &&
+    isOverhead &&
+    allocationIntent === 'project_allocate' &&
+    !showMultiProjectAllocation;
   const showSharedAllocationWarning =
-    showAllocationControls &&
+    (showMultiProjectAllocation || showAllocationControls) &&
     selectedCategory?.family === 'shared' &&
     !hasProjectAllocation &&
     !usesAutomaticDriver;
   const showGeneralIntentHint =
-    primaryDestination === 'general' &&
-    (allocationIntent === 'company_only' || allocationIntent === 'auto_pool');
+    costDestinationMode === 'company_only' || costDestinationMode === 'auto_pool';
 
   const isInternalPayrollCategory =
     selectedCategory?.key.trim().toLowerCase() === INTERNAL_EMPLOYEE_PAYROLL_CATEGORY_KEY;
@@ -395,12 +425,41 @@ export function ExpenseForm({
     }
   }
 
-  function handlePrimaryDestinationChange(value: 'project' | 'general') {
-    if (value === 'project') {
-      handleDestinationChange('project');
-      return;
+  function handleCostDestinationChange(mode: CostDestinationMode) {
+    setCostDestinationMode(mode);
+    switch (mode) {
+      case 'project_single': {
+        handleDestinationChange('project');
+        setAllocationIntent('project_allocate');
+        setAllocations([]);
+        setAllocationDriverMethod('');
+        break;
+      }
+      case 'project_multi': {
+        handleDestinationChange('general');
+        setAllocationIntent('project_allocate');
+        setAllocationDriverMethod('');
+        break;
+      }
+      case 'auto_pool': {
+        handleDestinationChange('general');
+        setAllocationIntent('auto_pool');
+        setAllocations([]);
+        setAllocationDriverMethod('');
+        break;
+      }
+      case 'company_only': {
+        handleDestinationChange('general');
+        setAllocationIntent('company_only');
+        setAllocations([]);
+        setAllocationDriverMethod('');
+        break;
+      }
+      default: {
+        const _exhaustive: never = mode;
+        return _exhaustive;
+      }
     }
-    handleDestinationChange('general');
   }
 
   function handleDestinationChange(value: ExpenseDestination) {
@@ -495,7 +554,7 @@ export function ExpenseForm({
         <input
           type="hidden"
           name="allocations"
-          value={isOverhead && !usesAutomaticDriver ? JSON.stringify(allocations) : '[]'}
+          value={includeManualAllocations ? JSON.stringify(allocations) : '[]'}
         />
         <input type="hidden" name="allocationDriverMethod" value={allocationDriverMethod} />
         <input type="hidden" name="allocationPeriodStart" value={allocationPeriodStart} />
@@ -670,16 +729,18 @@ export function ExpenseForm({
         <Field label={t('destination.label')} description={t('fields.expenseType')}>
           {(controlProps) => (
             <Select
-              value={primaryDestination}
-              onValueChange={(value) => handlePrimaryDestinationChange(value as 'project' | 'general')}
+              value={costDestinationMode}
+              onValueChange={(value) => handleCostDestinationChange(value as CostDestinationMode)}
               disabled={readOnly || destination === 'inventory' || destination === 'asset'}
             >
               <SelectTrigger {...controlProps}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="project">{t('destination.project')}</SelectItem>
-                <SelectItem value="general">{t('generalBusiness')}</SelectItem>
+                <SelectItem value="project_single">{t('destination.projectSingle')}</SelectItem>
+                <SelectItem value="project_multi">{t('destination.projectMulti')}</SelectItem>
+                <SelectItem value="auto_pool">{t('destination.autoPool')}</SelectItem>
+                <SelectItem value="company_only">{t('destination.companyOnly')}</SelectItem>
               </SelectContent>
             </Select>
           )}
@@ -692,7 +753,7 @@ export function ExpenseForm({
           <p className="text-sm text-[var(--pf-text-secondary)]">{t('destination.asset')}</p>
         ) : null}
 
-        {primaryDestination === 'project' ? (
+        {costDestinationMode === 'project_single' ? (
           <Field label={t('fields.project')}>
             {(controlProps) => (
               <Select
@@ -719,41 +780,25 @@ export function ExpenseForm({
           <input type="hidden" name="destinationTarget" value={OVERHEAD_VALUE} />
         )}
 
-        {primaryDestination === 'general' ? (
-          <Field label={t('allocationIntent.label')}>
-            {(controlProps) => (
-              <Select
-                value={allocationIntent}
-                onValueChange={(value) => {
-                  const next = value as ExpenseFormValues['allocationIntent'];
-                  setAllocationIntent(next);
-                  if (next !== 'project_allocate') {
-                    setAllocationDriverMethod('');
-                    setAllocations([]);
-                  }
-                }}
-                disabled={readOnly}
-              >
-                <SelectTrigger {...controlProps}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="project_allocate">
-                    {t('allocationIntent.project_allocate')}
-                  </SelectItem>
-                  <SelectItem value="auto_pool">{t('allocationIntent.auto_pool')}</SelectItem>
-                  <SelectItem value="company_only">
-                    {t('allocationIntent.company_only')}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            )}
-          </Field>
+        {showMultiProjectAllocation ? (
+          <div id="expense-allocation" className="flex scroll-mt-24 flex-col gap-3">
+            <p className="text-sm text-[var(--pf-text-secondary)]">{t('destination.projectMultiHint')}</p>
+            <AllocationEditor
+              currency={currency}
+              totalAmount={allocationTotalAmount}
+              projects={projects}
+              categories={categories}
+              value={allocations}
+              onChange={setAllocations}
+              disabled={readOnly}
+              periodLabel={t(`recurrence.${recurrenceCadence}`)}
+            />
+          </div>
         ) : null}
 
         {showGeneralIntentHint ? (
           <p className="rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-3 py-2 text-start text-sm text-[var(--pf-text-secondary)]">
-            {allocationIntent === 'company_only'
+            {costDestinationMode === 'company_only'
               ? t('allocationIntent.companyOnlyHint')
               : t('allocationIntent.autoPoolHint')}
           </p>

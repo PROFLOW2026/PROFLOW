@@ -16,7 +16,7 @@
   "remainingScheduledCost": "Remaining scheduled cost",
   "capture": {
     "title": "New expense",
-    "subtitle": "Saving creates a draft only. The expense enters project costs after you approve it. For general business costs, add allocation lines so they are not left unallocated.",
+    "subtitle": "Default: \"Save and approve expense\" recognizes Actual after approval. \"Save as draft\" keeps the expense unapproved. Payment is separate from approval.",
     "overlapWarningTitle": "Similar open vendor bill exists",
     "overlapWarningBody": "An open vendor bill with the same vendor and a similar NET amount already recognizes Actual. Finalizing a separate expense can double-count unless you link them.",
     "overlapWarningHint": "Open the bill and accept a match to this expense after you finalize it, or void the duplicate capture."
@@ -94,6 +94,9 @@
   "actions": {
     "add": "Add expense",
     "saveDraft": "Save draft",
+    "saveAsDraft": "Save as draft",
+    "saveChanges": "Save changes",
+    "saveAndApprove": "Save and approve expense",
     "finalize": "Record expense",
     "void": "Void",
     "reverse": "Reverse (offset)",
@@ -252,6 +255,11 @@
   "destination": {
     "label": "Where should this cost land?",
     "project": "Project",
+    "projectSingle": "Single project",
+    "projectMulti": "Split across multiple projects",
+    "projectMultiHint": "Allocate the NET amount across projects by amount or percent. VAT stays out of project profitability.",
+    "autoPool": "General — automatic split across projects",
+    "companyOnly": "General business only (no project cost)",
     "general": "General business costs",
     "inventory": "Inventory stock purchase",
     "asset": "Asset / capital"
@@ -474,7 +482,19 @@
     "inventoryItemRequired": "Choose an inventory item for a stock purchase.",
     "inventoryQtyRequired": "Enter the quantity received into stock.",
     "inventoryStockPurchaseIncomplete": "Stock purchase expenses need an item and quantity before finalize.",
-    "classificationRequired": "Choose an expense type before recognizing this cost."
+    "classificationRequired": "Choose an expense type before recognizing this cost.",
+    "approveFailed": "The expense could not be approved. Check required fields and try again."
+  },
+  "activityTimeline": {
+    "title": "Activity history",
+    "actions": {
+      "expense.payment_confirmation_voided": "Payment confirmation voided",
+      "expense.payment_confirmed": "Payment confirmed",
+      "expense.finalized": "Expense approved",
+      "expense.created": "Expense created",
+      "expense.updated": "Expense updated",
+      "expense.voided": "Expense reversed / cancelled"
+    }
   },
   "overheadHome": {
     "title": "General business costs",

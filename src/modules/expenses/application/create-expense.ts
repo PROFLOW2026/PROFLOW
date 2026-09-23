@@ -311,6 +311,10 @@ export async function buildExpensePayload(
     workPackageId: input.workPackageId,
     costFamily: input.costFamily,
     inventoryStockPurchase: input.inventoryStockPurchase === true,
+    allocationIntent: input.allocationIntent ?? null,
+    hasProjectAllocationLines: (input.allocations ?? []).some(
+      (line) => line.targetType === 'project' && line.projectId,
+    ),
   });
 
   assertNoAllocationsOnProjectExpense(targeting.mode, input.allocations ?? []);

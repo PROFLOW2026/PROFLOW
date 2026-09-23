@@ -72,6 +72,8 @@ export function useOfflineAwareFormAction<S extends OfflineDraftFormState>(optio
     localId?: string;
   };
   readonly offlineSuccessState: S;
+  /** When set, offline enqueue returns this instead of a fixed offlineSuccessState. */
+  readonly buildOfflineSuccessState?: (formData: FormData) => S;
   readonly organizationId?: string | null;
   readonly userId?: string | null;
   readonly missingOrgError?: string;
@@ -85,6 +87,7 @@ export function useOfflineAwareFormAction<S extends OfflineDraftFormState>(optio
     buildPayload,
     resolveServerMeta,
     offlineSuccessState,
+    buildOfflineSuccessState,
     missingOrgError = 'offline_org_missing',
   } = options;
 
@@ -122,7 +125,7 @@ export function useOfflineAwareFormAction<S extends OfflineDraftFormState>(optio
             });
           }
         }
-        return offlineSuccessState;
+        return buildOfflineSuccessState?.(formData) ?? offlineSuccessState;
       }
       return onlineAction(prev, formData);
     },
@@ -134,6 +137,7 @@ export function useOfflineAwareFormAction<S extends OfflineDraftFormState>(optio
       buildPayload,
       resolveServerMeta,
       offlineSuccessState,
+      buildOfflineSuccessState,
       missingOrgError,
     ],
   );

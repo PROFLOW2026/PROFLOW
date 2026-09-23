@@ -85,6 +85,8 @@ const expenseFieldsSchema = z.object({
   paymentMethod: z.string().trim().max(100).nullable().optional(),
   paymentInstrumentId: z.preprocess(emptyToNull, z.string().uuid().nullable().optional()),
   markPaidOnCreate: booleanOptionalSchema,
+  /** When true, finalize after create (independent of payment confirmation). */
+  finalizeOnCreate: booleanOptionalSchema,
   paidAt: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/)
