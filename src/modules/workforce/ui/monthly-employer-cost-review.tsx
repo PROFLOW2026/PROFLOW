@@ -159,7 +159,10 @@ export function MonthlyEmployerCostReview({
       });
     }
     return saveMonthlyEmployerCostDraftAction({
-      ...payload,
+      employeeId: payload.employeeId,
+      yearMonth: payload.yearMonth,
+      estimatedAmount: payload.estimatedAmount,
+      actualAmount: payload.actualAmount ?? undefined,
       method: showAdvanced ? method : undefined,
       allocationLinesJson: showAdvanced ? buildAllocationLinesJson() : undefined,
       remainderAllocationIntent:
@@ -553,7 +556,7 @@ export function MonthlyEmployerCostReview({
       {ready && canManage && initialMonth?.actualAmount ? (
         <Button
           type="button"
-          variant="outline"
+          variant="secondary"
           size="lg"
           block
           disabled={pending}

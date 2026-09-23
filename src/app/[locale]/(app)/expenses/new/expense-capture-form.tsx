@@ -118,7 +118,7 @@ export function ExpenseCaptureForm({
         </Button>
         <Button
           type="submit"
-          variant="outline"
+          variant="secondary"
           size="lg"
           loading={pending}
           className="w-full sm:flex-1"

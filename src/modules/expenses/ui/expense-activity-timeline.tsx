@@ -1,5 +1,6 @@
 import { getTranslations } from 'next-intl/server';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import type { BusinessDate } from '@/shared/dates';
 import { formatBusinessDate } from '@/shared/dates/format';
 import { listAuditEventSummariesForEntity } from '@/shared/audit';
 import { AUDIT_ACTIONS } from '@/shared/audit/actions';
@@ -56,7 +57,7 @@ export async function ExpenseActivityTimeline({
                   : event.action}
               </span>
               <span dir="ltr" className="text-xs text-[var(--pf-text-muted)]">
-                {formatBusinessDate(event.createdAt.toISOString().slice(0, 10), locale)}
+                {formatBusinessDate(event.createdAt.toISOString().slice(0, 10) as BusinessDate, locale)}
               </span>
             </li>
           ))}

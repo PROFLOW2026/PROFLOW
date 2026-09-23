@@ -1,7 +1,7 @@
-import { and, eq, inArray, isNull, sql } from 'drizzle-orm';
-import { alias } from 'drizzle-orm/pg-core';
+import { and, eq, inArray, isNull } from 'drizzle-orm';
 import { expenseAllocations, expenses } from '@drizzle/schema';
 import type { OrgContext } from '@/shared/auth/context';
+import { AUDIT_ACTIONS } from '@/shared/audit/actions';
 import {
   isAllocationIntent,
   resolveExpenseAllocationIntent,
@@ -36,8 +36,6 @@ export interface ExpenseIntegrityAuditResult {
   readonly autoRepairableCount: number;
   readonly ownerResolutionCount: number;
 }
-
-const expenseReversals = alias(expenses, 'expense_integrity_reversals');
 
 export async function auditExpenseIntegrity(context: OrgContext): Promise<ExpenseIntegrityAuditResult> {
   const rows = await context.db
@@ -230,7 +228,7 @@ export async function auditExpenseIntegrity(context: OrgContext): Promise<Expens
         code: 'reversal_treated_as_payable',
         reason: 'Reversal row has explicit open payment status',
         proposedAction: 'Clear payment status on reversal row',
-        autoRepairable: row.status === 'draft',
+        autoRepairable: false,
         ambiguous: false,
       });
     }
@@ -338,7 +336,7 @@ export async function repairExpenseIntegrityIssues(
     try {
       const { recordAuditEvent } = await import('@/shared/audit');
       await recordAuditEvent(context, {
-        action: 'expense.integrity_repair',
+        action: AUDIT_ACTIONS.EXPENSE_INTEGRITY_REPAIR,
         entityType: 'expense',
         entityId: context.organizationId,
         metadata: { repaired, skipped },
@@ -378,7 +376,7 @@ export async function resolveExpenseRoutingAction(
   try {
     const { recordAuditEvent } = await import('@/shared/audit');
     await recordAuditEvent(context, {
-      action: 'expense.routing_resolved',
+      action: AUDIT_ACTIONS.EXPENSE_ROUTING_RESOLVED,
       entityType: 'expense',
       entityId: input.expenseId,
       after: { allocationIntent: input.allocationIntent },

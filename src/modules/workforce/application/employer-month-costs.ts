@@ -2,6 +2,7 @@ import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors
 import { money } from '@/shared/money';
 import { withTransaction } from '@/shared/db';
 import { recordAuditEvent } from '@/shared/audit';
+import { AUDIT_ACTIONS } from '@/shared/audit/actions';
 import type { OrgContext } from '@/shared/auth/context';
 import { findEmployeeById } from '../data/employees.repository';
 import {
@@ -553,7 +554,7 @@ export async function correctMonthlyEmployerCostActual(
   });
 
   await recordAuditEvent(context, {
-    action: 'employee_month_cost.actual_corrected',
+    action: AUDIT_ACTIONS.EMPLOYEE_MONTH_COST_ACTUAL_CORRECTED,
     entityType: 'employee_month_cost',
     entityId: result.month.id,
     before: {
@@ -601,7 +602,7 @@ export async function returnMonthlyEmployerCostToEstimate(
   });
 
   await recordAuditEvent(context, {
-    action: 'employee_month_cost.return_to_estimate',
+    action: AUDIT_ACTIONS.EMPLOYEE_MONTH_COST_RETURN_TO_ESTIMATE,
     entityType: 'employee_month_cost',
     entityId: month.id,
     after: { knownQuality: month.knownQuality },

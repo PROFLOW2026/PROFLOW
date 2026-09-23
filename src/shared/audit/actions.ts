@@ -83,6 +83,8 @@ export const AUDIT_ACTIONS = {
   EXPENSE_VOIDED: 'expense.voided',
   EXPENSE_PAYMENT_CONFIRMED: 'expense.payment_confirmed',
   EXPENSE_PAYMENT_CONFIRMATION_VOIDED: 'expense.payment_confirmation_voided',
+  EXPENSE_INTEGRITY_REPAIR: 'expense.integrity_repair',
+  EXPENSE_ROUTING_RESOLVED: 'expense.routing_resolved',
 
   CHANGE_REQUEST_CREATED: 'change_request.created',
   CHANGE_REQUEST_UPDATED: 'change_request.updated',
@@ -122,6 +124,8 @@ export const AUDIT_ACTIONS = {
   EMPLOYEE_UPDATED: 'employee.updated',
   EMPLOYEE_ARCHIVED: 'employee.archived',
   EMPLOYEE_RESTORED: 'employee.restored',
+  EMPLOYEE_MONTH_COST_ACTUAL_CORRECTED: 'employee_month_cost.actual_corrected',
+  EMPLOYEE_MONTH_COST_RETURN_TO_ESTIMATE: 'employee_month_cost.return_to_estimate',
   RATE_VERSION_CREATED: 'rate_version.created',
   PAYROLL_PAYMENT_CONFIRMED: 'payroll.payment_confirmed',
   PAYROLL_PAYMENT_CONFIRMATION_VOIDED: 'payroll.payment_confirmation_voided',
