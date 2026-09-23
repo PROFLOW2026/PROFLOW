@@ -350,4 +350,110 @@ describe('employee actual monthly employer cost', () => {
       expect(lineA?.amount).toBe('12000.000000');
     });
   });
+
+  it('corrects owner_manager company_only applied month with zero project lines', async () => {
+    const ownerId = randomUUID();
+    const ownerMonth = '2026-01';
+
+    await database.asService(async (db) => {
+      await db.insert(employees).values({
+        id: ownerId,
+        organizationId: orgId,
+        name: 'Owner Manager',
+        status: 'active',
+        compensationClass: 'owner_manager',
+        defaultLaborAllocationIntent: 'company_only',
+      });
+    });
+
+    await database.asUser(userId, async (tx) => {
+      const context = await resolveOrgContext(tx, {
+        userId,
+        organizationId: orgId,
+        locale: 'he-IL',
+      });
+
+      await saveMonthlyEmployerCostDraft(context, {
+        employeeId: ownerId,
+        yearMonth: ownerMonth,
+        estimatedAmount: '27000',
+        actualAmount: null,
+        method: 'fixed_amount',
+        remainderAllocationIntent: 'company_only',
+        allocationLines: [],
+      });
+      await applyMonthlyEmployerCostAllocation(context, { employeeId: ownerId, yearMonth: ownerMonth });
+
+      await correctMonthlyEmployerCostActual(context, {
+        employeeId: ownerId,
+        yearMonth: ownerMonth,
+        estimatedAmount: '27000',
+        actualAmount: '26500',
+      });
+
+      const [month] = await tx
+        .select({
+          estimatedAmount: employeeMonthCosts.estimatedAmount,
+          actualAmount: employeeMonthCosts.actualAmount,
+          knownAmount: employeeMonthCosts.knownAmount,
+          status: employeeMonthCosts.status,
+        })
+        .from(employeeMonthCosts)
+        .where(
+          and(
+            eq(employeeMonthCosts.employeeId, ownerId),
+            eq(employeeMonthCosts.yearMonth, ownerMonth),
+            eq(employeeMonthCosts.status, 'applied'),
+          ),
+        );
+      expect(month?.estimatedAmount).toBe('27000.000000');
+      expect(month?.actualAmount).toBe('26500.000000');
+      expect(month?.knownAmount).toBe('26500.000000');
+
+      const [run] = await tx
+        .select({
+          allocatedAmount: laborAllocationRuns.allocatedAmount,
+          unallocatedAmount: laborAllocationRuns.unallocatedAmount,
+          companyOnlyAmount: laborAllocationRuns.companyOnlyAmount,
+          status: laborAllocationRuns.status,
+        })
+        .from(laborAllocationRuns)
+        .innerJoin(
+          employeeMonthCosts,
+          eq(laborAllocationRuns.employeeMonthCostId, employeeMonthCosts.id),
+        )
+        .where(
+          and(
+            eq(employeeMonthCosts.employeeId, ownerId),
+            eq(employeeMonthCosts.yearMonth, ownerMonth),
+            eq(employeeMonthCosts.status, 'applied'),
+            eq(laborAllocationRuns.status, 'applied'),
+          ),
+        )
+        .orderBy(desc(laborAllocationRuns.appliedAt))
+        .limit(1);
+      expect(run?.allocatedAmount).toBe('0.000000');
+      expect(run?.unallocatedAmount).toBe('0.000000');
+      expect(run?.companyOnlyAmount).toBe('26500.000000');
+
+      const lineCount = await tx
+        .select({ id: laborAllocationRunLines.id })
+        .from(laborAllocationRunLines)
+        .innerJoin(
+          laborAllocationRuns,
+          eq(laborAllocationRunLines.laborAllocationRunId, laborAllocationRuns.id),
+        )
+        .innerJoin(
+          employeeMonthCosts,
+          eq(laborAllocationRuns.employeeMonthCostId, employeeMonthCosts.id),
+        )
+        .where(
+          and(
+            eq(employeeMonthCosts.employeeId, ownerId),
+            eq(employeeMonthCosts.yearMonth, ownerMonth),
+          ),
+        );
+      expect(lineCount).toHaveLength(0);
+    });
+  });
 });

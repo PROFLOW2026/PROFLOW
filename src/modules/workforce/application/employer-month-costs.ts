@@ -473,6 +473,8 @@ export async function correctMonthlyEmployerCostActual(
   const priorLines = priorRun
     ? await listLaborAllocationRunLines(context.db, context.organizationId, priorRun.id)
     : [];
+  const employee = await findEmployeeById(context.db, context.organizationId, parsed.data.employeeId);
+  if (!employee) throw new NotFoundError('Employee');
 
   const result = await withTransaction(context.db, async (tx) => {
     const superseded = await supersedeEmployeeMonthCost(tx, context.organizationId, existing.id);
@@ -535,6 +537,29 @@ export async function correctMonthlyEmployerCostActual(
           sortOrder: line.sortOrder,
           notes: line.notes,
         })),
+      });
+      run = await applyLaborAllocationRun(tx, context.organizationId, run.id);
+    } else if (priorRun) {
+      const useCompanyOnly =
+        Number(priorRun.companyOnlyAmount) > 0 ||
+        (employee.compensationClass === 'owner_manager' &&
+          employee.defaultLaborAllocationIntent === 'company_only');
+      const resolution = resolveMonthlyAllocationAmounts({
+        knownAmount: money(month.knownAmount, month.currency),
+        method: 'fixed_amount',
+        lines: [],
+        remainderAllocationIntent: useCompanyOnly ? 'company_only' : 'auto_pool',
+      });
+      run = await insertDraftLaborAllocationRun(tx, {
+        organizationId: context.organizationId,
+        employeeMonthCostId: month.id,
+        method: 'fixed_amount',
+        currency: month.currency,
+        allocatedAmount: resolution.allocatedAmount.amount,
+        unallocatedAmount: resolution.unallocatedAmount.amount,
+        companyOnlyAmount: resolution.companyOnlyAmount.amount,
+        supersedesRunId: priorRun.id,
+        lines: [],
       });
       run = await applyLaborAllocationRun(tx, context.organizationId, run.id);
     }
