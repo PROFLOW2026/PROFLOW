@@ -317,7 +317,7 @@
     "unpaid": "לא שולם",
     "overdue": "באיחור",
     "cancelled": "בוטל",
-    "paymentNotApplicable": "—",
+    "paymentNotApplicable": "לא רלוונטי",
     "autoPool": "חלוקה אוטומטית",
     "multiProjectLabel": "{count} פרויקטים",
     "kind": {

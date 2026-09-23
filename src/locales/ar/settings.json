@@ -619,7 +619,9 @@
         "finalized": "تم اعتماد المصروف",
         "voided": "أُلغي المصروف",
         "payment_confirmed": "تم تأكيد دفع المصروف",
-        "payment_confirmation_voided": "أُلغي تأكيد دفع المصروف"
+        "payment_confirmation_voided": "أُلغي تأكيد دفع المصروف",
+        "integrity_repair": "تم إصلاح سلامة بيانات المصروف",
+        "routing_resolved": "تم تحديد توجيه المصروف"
       },
       "change_request": {
         "created": "تم إنشاء طلب التغيير",
@@ -669,6 +671,10 @@
         "updated": "تم تحديث الموظف",
         "archived": "تم أرشفة الموظف",
         "restored": "تمت استعادة الموظف"
+      },
+      "employee_month_cost": {
+        "actual_corrected": "تم تصحيح تكلفة المُشغّل الشهرية الفعلية",
+        "return_to_estimate": "تمت العودة إلى تقدير تكلفة المُشغّل الشهرية"
       },
       "payroll": {
         "payment_confirmed": "تم تأكيد دفع الرواتب",

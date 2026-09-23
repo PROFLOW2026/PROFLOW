@@ -488,7 +488,7 @@
     "estimatedEmployerCost": "עלות מעסיק מוערכת",
     "actualEmployerCost": "עלות מעסיק בפועל",
     "costDifference": "הפרש",
-    "noActualHint": "לא הוזנה עלות בפועל — החישוב יישאר לפי ההערכה",
+    "noActualHint": "לא הוזנה עלות בפועל, החישוב יישאר לפי ההערכה",
     "confirmPayrollMonth": "אישור חודש שכר",
     "returnToEstimate": "חזור להערכה",
     "estimated": "משוער",

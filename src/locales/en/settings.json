@@ -619,7 +619,9 @@
         "finalized": "Expense finalized",
         "voided": "Expense voided",
         "payment_confirmed": "Expense payment confirmed",
-        "payment_confirmation_voided": "Expense payment confirmation voided"
+        "payment_confirmation_voided": "Expense payment confirmation voided",
+        "integrity_repair": "Expense integrity repair applied",
+        "routing_resolved": "Expense routing resolved"
       },
       "change_request": {
         "created": "Change request created",
@@ -669,6 +671,10 @@
         "updated": "Employee updated",
         "archived": "Employee archived",
         "restored": "Employee restored"
+      },
+      "employee_month_cost": {
+        "actual_corrected": "Monthly employer cost actual corrected",
+        "return_to_estimate": "Monthly employer cost returned to estimate"
       },
       "payroll": {
         "payment_confirmed": "Payroll payment confirmed",

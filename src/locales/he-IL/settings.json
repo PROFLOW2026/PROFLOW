@@ -531,7 +531,9 @@
         "finalized": "סגירת הוצאה",
         "voided": "ביטול הוצאה",
         "payment_confirmed": "אישור תשלום הוצאה",
-        "payment_confirmation_voided": "ביטול אישור תשלום הוצאה"
+        "payment_confirmation_voided": "ביטול אישור תשלום הוצאה",
+        "integrity_repair": "תיקון שלמות נתוני הוצאה",
+        "routing_resolved": "ניתוב הוצאה נקבע"
       },
       "change_request": {
         "created": "יצירת בקשת שינוי",
@@ -581,6 +583,10 @@
         "updated": "עדכון עובד",
         "archived": "העברת עובד לארכיון",
         "restored": "שחזור עובד מארכיון"
+      },
+      "employee_month_cost": {
+        "actual_corrected": "תיקון עלות מעסיק חודשית בפועל",
+        "return_to_estimate": "חזרה להערכת עלות מעסיק חודשית"
       },
       "payroll": {
         "payment_confirmed": "אישור תשלום שכר",
