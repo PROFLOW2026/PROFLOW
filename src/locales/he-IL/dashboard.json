@@ -71,7 +71,17 @@
     "labelRecognizedCost": "עלות מוכרת",
     "reportsLink": "דוחות",
     "billingLink": "חיובים",
-    "apLink": "חשבוניות ספק"
+    "apLink": "חשבוניות ספק",
+    "expensesLink": "הוצאות",
+    "businessCashPaidWhat": "כסף שנרשם כתשלום בפועל מהעסק - לא עלות מוכרת.",
+    "businessCashPaidFormula": "הוצאות ששולמו + חשבוניות ספק ששולמו + שכר ששולם + מקורות תשלום קנוניים אחרים.",
+    "businessCashOutstandingWhat": "חובות קיימים שעדיין לא שולמו.",
+    "businessCashOutstandingFormula": "יתרות הוצאות + חשבוניות ספק פתוחות + התחייבויות שכר - ללא הזמנות רכש.",
+    "labelExpenseSuppliers": "ספקים / הוצאות",
+    "labelExpenseSubcontractors": "קבלני משנה (הוצאות)",
+    "labelApPayments": "חשבוניות ספק",
+    "labelPayrollPayments": "שכר עובדים",
+    "labelSubcontractAdvances": "מקדמות קבלני משנה"
   },
   "attention": {
     "title": "כדאי לשים לב",

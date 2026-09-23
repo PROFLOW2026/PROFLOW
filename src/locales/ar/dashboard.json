@@ -71,7 +71,17 @@
     "labelRecognizedCost": "تكلفة معترف بها",
     "reportsLink": "تقارير",
     "billingLink": "فوترة",
-    "apLink": "فواتير موردين"
+    "apLink": "فواتير موردين",
+    "expensesLink": "مصروفات",
+    "businessCashPaidWhat": "نقد مسجل كمدفوع من قبل المنظمة — ليس تكلفة معترف بها.",
+    "businessCashPaidFormula": "مصروفات مدفوعة + فواتير موردين مدفوعة + رواتب مدفوعة + مصادر دفع معيارية أخرى.",
+    "businessCashOutstandingWhat": "ديون قائمة لم تُدفع بعد.",
+    "businessCashOutstandingFormula": "أرصدة مصروفات + فواتير موردين مفتوحة + التزامات رواتب — بدون أوامر شراء.",
+    "labelExpenseSuppliers": "موردون / مصروفات",
+    "labelExpenseSubcontractors": "مقاولون من الباطن (مصروفات)",
+    "labelApPayments": "فواتير موردين (AP)",
+    "labelPayrollPayments": "رواتب موظفين",
+    "labelSubcontractAdvances": "سلف مقاولين من الباطن"
   },
   "attention": {
     "title": "يستحق النظر",

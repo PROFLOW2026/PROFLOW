@@ -71,7 +71,17 @@
     "labelRecognizedCost": "Признанные затраты",
     "reportsLink": "Отчёты",
     "billingLink": "Выставление",
-    "apLink": "Счета поставщиков"
+    "apLink": "Счета поставщиков",
+    "expensesLink": "Расходы",
+    "businessCashPaidWhat": "Деньги, зарегистрированные как оплаченные бизнесом — не признанная стоимость.",
+    "businessCashPaidFormula": "Оплаченные расходы + оплаченные AP + оплаченная зарплата + другие канонические источники.",
+    "businessCashOutstandingWhat": "Существующие долги, ещё не оплаченные.",
+    "businessCashOutstandingFormula": "Остатки расходов + открытые AP + зарплатные обязательства — без PO.",
+    "labelExpenseSuppliers": "Поставщики / расходы",
+    "labelExpenseSubcontractors": "Субподрядчики (расходы)",
+    "labelApPayments": "Счета поставщиков (AP)",
+    "labelPayrollPayments": "Зарплата сотрудников",
+    "labelSubcontractAdvances": "Авансы субподрядчикам"
   },
   "attention": {
     "title": "Требует внимания",

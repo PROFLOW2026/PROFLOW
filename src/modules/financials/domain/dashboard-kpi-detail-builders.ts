@@ -1,5 +1,6 @@
 import type { OrgContractSummary } from './dashboard-contract-summary';
 import type { DashboardKpiDetailContent, DashboardKpiDetailLine } from './dashboard-kpi-detail';
+import type { BusinessCashPosition, BusinessCashSourceKey } from './business-cash-position';
 import { subtractMoney, type MoneyValue } from '@/shared/money';
 
 export interface DashboardKpiDetailCopy {
@@ -39,6 +40,16 @@ export interface DashboardKpiDetailCopy {
   readonly reportsLink: string;
   readonly billingLink: string;
   readonly apLink: string;
+  readonly businessCashPaidWhat: string;
+  readonly businessCashPaidFormula: string;
+  readonly businessCashOutstandingWhat: string;
+  readonly businessCashOutstandingFormula: string;
+  readonly labelExpenseSuppliers: string;
+  readonly labelExpenseSubcontractors: string;
+  readonly labelApPayments: string;
+  readonly labelPayrollPayments: string;
+  readonly labelSubcontractAdvances: string;
+  readonly expensesLink: string;
 }
 
 function lines(...items: DashboardKpiDetailLine[]): DashboardKpiDetailLine[] {
@@ -274,5 +285,93 @@ export function buildCommitmentsDetail(
     breakdown: lines({ label: title, money: committed }),
     fullScreenHref: '/procurement/purchase-orders',
     fullScreenLabel: copy.reportsLink,
+  };
+}
+
+const BUSINESS_CASH_SOURCE_LABEL: Record<
+  BusinessCashSourceKey,
+  keyof Pick<
+    DashboardKpiDetailCopy,
+    | 'labelExpenseSuppliers'
+    | 'labelExpenseSubcontractors'
+    | 'labelApPayments'
+    | 'labelPayrollPayments'
+    | 'labelSubcontractAdvances'
+  >
+> = {
+  expense_suppliers: 'labelExpenseSuppliers',
+  expense_subcontractors: 'labelExpenseSubcontractors',
+  ap: 'labelApPayments',
+  payroll: 'labelPayrollPayments',
+  subcontract_advances: 'labelSubcontractAdvances',
+};
+
+function businessCashBreakdownLines(
+  position: BusinessCashPosition,
+  copy: DashboardKpiDetailCopy,
+  field: 'paid' | 'outstanding',
+): DashboardKpiDetailLine[] {
+  const items: DashboardKpiDetailLine[] = [];
+  for (const [key, totals] of Object.entries(position.sources) as [
+    BusinessCashSourceKey,
+    NonNullable<BusinessCashPosition['sources'][BusinessCashSourceKey]>,
+  ][]) {
+    const money = totals[field];
+    if (!money || Number(money.amount) <= 0) continue;
+    const labelKey = BUSINESS_CASH_SOURCE_LABEL[key];
+    items.push({ label: copy[labelKey], money });
+  }
+  return items;
+}
+
+export function buildBusinessCashPaidDetail(
+  position: BusinessCashPosition,
+  title: string,
+  copy: DashboardKpiDetailCopy,
+): DashboardKpiDetailContent {
+  const value = position.actualPaid;
+  if (!value) {
+    return {
+      title,
+      value: { amount: '0', currency: position.currency },
+      whatIs: copy.businessCashPaidWhat,
+      formula: copy.businessCashPaidFormula,
+      breakdown: [],
+    };
+  }
+  return {
+    title,
+    value,
+    whatIs: copy.businessCashPaidWhat,
+    formula: copy.businessCashPaidFormula,
+    breakdown: businessCashBreakdownLines(position, copy, 'paid'),
+    fullScreenHref: '/expenses',
+    fullScreenLabel: copy.expensesLink,
+  };
+}
+
+export function buildBusinessCashOutstandingDetail(
+  position: BusinessCashPosition,
+  title: string,
+  copy: DashboardKpiDetailCopy,
+): DashboardKpiDetailContent {
+  const value = position.outstandingPayable;
+  if (!value) {
+    return {
+      title,
+      value: { amount: '0', currency: position.currency },
+      whatIs: copy.businessCashOutstandingWhat,
+      formula: copy.businessCashOutstandingFormula,
+      breakdown: [],
+    };
+  }
+  return {
+    title,
+    value,
+    whatIs: copy.businessCashOutstandingWhat,
+    formula: copy.businessCashOutstandingFormula,
+    breakdown: businessCashBreakdownLines(position, copy, 'outstanding'),
+    fullScreenHref: '/procurement/ap?status=open',
+    fullScreenLabel: copy.apLink,
   };
 }

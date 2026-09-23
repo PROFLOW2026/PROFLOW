@@ -17,6 +17,8 @@ import { partitionDashboardCompletenessItems } from '../domain/dashboard-missing
 import {
   buildActualCostDetail,
   buildApOutstandingDetail,
+  buildBusinessCashOutstandingDetail,
+  buildBusinessCashPaidDetail,
   buildCurrentProfitDetail,
 } from '../domain/dashboard-kpi-detail-builders';
 import type { DashboardKpiDetailContent } from '../domain/dashboard-kpi-detail';
@@ -217,7 +219,45 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
         />
       </section>
 
-      {data.apOutstanding ? (
+      {data.forecast?.companyActual != null || data.businessCashPosition ? (
+        <section className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {data.forecast?.companyActual != null ? (
+            <KpiTile
+              title={tFinancial('companyActual')}
+              money={data.forecast.companyActual}
+              hint={tFinancial('companyActualDashboardHint')}
+            />
+          ) : null}
+          {data.businessCashPosition?.actualPaid ? (
+            <KpiTile
+              title={tFinancial('businessCashPaid')}
+              money={data.businessCashPosition.actualPaid}
+              hint={tFinancial('businessCashPaidHint')}
+              detail={buildBusinessCashPaidDetail(
+                data.businessCashPosition,
+                tFinancial('businessCashPaid'),
+                detailCopy,
+              )}
+              detailCopy={triggerCopy}
+            />
+          ) : null}
+          {data.businessCashPosition?.outstandingPayable ? (
+            <KpiTile
+              title={tFinancial('businessCashOutstanding')}
+              money={data.businessCashPosition.outstandingPayable}
+              hint={tFinancial('businessCashOutstandingHint')}
+              detail={buildBusinessCashOutstandingDetail(
+                data.businessCashPosition,
+                tFinancial('businessCashOutstanding'),
+                detailCopy,
+              )}
+              detailCopy={triggerCopy}
+            />
+          ) : null}
+        </section>
+      ) : null}
+
+      {data.apOutstanding && !data.businessCashPosition?.outstandingPayable ? (
         <section className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
           <KpiTile
             title={tFinancial('apOutstanding')}

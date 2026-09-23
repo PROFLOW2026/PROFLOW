@@ -96,6 +96,10 @@ import { parseWorkKindFilter } from '../domain/work-pricing';
 import { buildOrgContractSummary, type OrgContractSummary } from '../domain/dashboard-contract-summary';
 import { getDashboardQuickAccessShortcuts } from '@/modules/tenancy/application/dashboard-quick-access';
 import type { DashboardQuickAccessDefinition } from '@/modules/tenancy/domain/dashboard-quick-access';
+import {
+  getBusinessCashPosition,
+  type BusinessCashPosition,
+} from './get-business-cash-position';
 
 export interface DashboardAttention {
   readonly pendingChangesCount: number;
@@ -225,6 +229,8 @@ export interface HomeDashboardData {
    * Null when the user lacks AP_READ permission or no AP bills exist.
    */
   readonly apOutstanding: MoneyValue | null;
+  /** Organization cash paid / outstanding payables (canonical payment sources). */
+  readonly businessCashPosition: BusinessCashPosition | null;
   /**
    * The effective month being shown as "YYYY-MM".
    * Defaults to the current month; can be overridden via the `selectedMonth` option.
@@ -471,6 +477,7 @@ export async function getHomeDashboard(
       dashboardCards,
       showQuotes,
       apOutstanding: null,
+      businessCashPosition: null,
       selectedMonth: effectiveSelectedMonth,
       workKindFilter: options.workKindFilter ?? null,
     };
@@ -565,6 +572,11 @@ export async function getHomeDashboard(
   const apOutstanding: MoneyValue | null =
     apPayablesSummary && apPayablesSummary.bills.length > 0
       ? money(apPayablesSummary.outstanding, apPayablesSummary.currency)
+      : null;
+
+  const businessCashPosition =
+    canReadFinancials || canReadAp
+      ? await getBusinessCashPosition(context, { apPayables: apPayablesSummary })
       : null;
 
   // Derive overdue from the billing rows already loaded - avoid a second full org load.
@@ -892,6 +904,7 @@ export async function getHomeDashboard(
     dashboardCards,
     showQuotes,
     apOutstanding,
+    businessCashPosition,
     selectedMonth: effectiveSelectedMonth,
     workKindFilter: options.workKindFilter ?? null,
     contractSummary,

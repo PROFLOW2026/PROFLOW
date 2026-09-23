@@ -27,6 +27,8 @@ import {
   buildBillingInvoicedDetail,
   buildBillingOutstandingDetail,
   buildBillingPaidDetail,
+  buildBusinessCashOutstandingDetail,
+  buildBusinessCashPaidDetail,
   buildCommitmentsDetail,
   buildCurrentProfitDetail,
   buildForecastCostDetail,
@@ -372,7 +374,33 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                 <DashboardKpiCard
                   title={tFinancial('companyActual')}
                   money={data.forecast.companyActual}
-                  hint={tFinancial('basis.actualNotCash')}
+                  hint={tFinancial('companyActualDashboardHint')}
+                />
+              ) : null}
+              {data.businessCashPosition?.actualPaid ? (
+                <DashboardKpiCard
+                  title={tFinancial('businessCashPaid')}
+                  money={data.businessCashPosition.actualPaid}
+                  hint={tFinancial('businessCashPaidHint')}
+                  detail={buildBusinessCashPaidDetail(
+                    data.businessCashPosition,
+                    tFinancial('businessCashPaid'),
+                    detailCopy,
+                  )}
+                  detailCopy={triggerCopy}
+                />
+              ) : null}
+              {data.businessCashPosition?.outstandingPayable ? (
+                <DashboardKpiCard
+                  title={tFinancial('businessCashOutstanding')}
+                  money={data.businessCashPosition.outstandingPayable}
+                  hint={tFinancial('businessCashOutstandingHint')}
+                  detail={buildBusinessCashOutstandingDetail(
+                    data.businessCashPosition,
+                    tFinancial('businessCashOutstanding'),
+                    detailCopy,
+                  )}
+                  detailCopy={triggerCopy}
                 />
               ) : null}
               {data.forecast.companyProfit != null ? (
@@ -509,7 +537,19 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                   detailCopy={triggerCopy}
                 />
               ) : null}
-              {hasAp ? (
+              {data.businessCashPosition?.outstandingPayable ? (
+                <DashboardKpiCard
+                  title={tFinancial('businessCashOutstanding')}
+                  money={data.businessCashPosition.outstandingPayable}
+                  hint={tFinancial('businessCashOutstandingHint')}
+                  detail={buildBusinessCashOutstandingDetail(
+                    data.businessCashPosition,
+                    tFinancial('businessCashOutstanding'),
+                    detailCopy,
+                  )}
+                  detailCopy={triggerCopy}
+                />
+              ) : hasAp ? (
                 <DashboardKpiCard
                   title={tFinancial('apOutstanding')}
                   money={data.apOutstanding!}

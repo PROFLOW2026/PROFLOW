@@ -42,6 +42,16 @@ export function mapDashboardKpiDetailCopy(t: DashboardTranslator): DashboardKpiD
     reportsLink: t('kpiDetail.reportsLink'),
     billingLink: t('kpiDetail.billingLink'),
     apLink: t('kpiDetail.apLink'),
+    businessCashPaidWhat: t('kpiDetail.businessCashPaidWhat'),
+    businessCashPaidFormula: t('kpiDetail.businessCashPaidFormula'),
+    businessCashOutstandingWhat: t('kpiDetail.businessCashOutstandingWhat'),
+    businessCashOutstandingFormula: t('kpiDetail.businessCashOutstandingFormula'),
+    labelExpenseSuppliers: t('kpiDetail.labelExpenseSuppliers'),
+    labelExpenseSubcontractors: t('kpiDetail.labelExpenseSubcontractors'),
+    labelApPayments: t('kpiDetail.labelApPayments'),
+    labelPayrollPayments: t('kpiDetail.labelPayrollPayments'),
+    labelSubcontractAdvances: t('kpiDetail.labelSubcontractAdvances'),
+    expensesLink: t('kpiDetail.expensesLink'),
   };
 }
 

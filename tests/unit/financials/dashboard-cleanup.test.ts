@@ -52,6 +52,16 @@ const detailCopy = {
   reportsLink: 'Reports',
   billingLink: 'Billing',
   apLink: 'AP',
+  businessCashPaidWhat: 'Paid',
+  businessCashPaidFormula: 'Paid formula',
+  businessCashOutstandingWhat: 'Outstanding',
+  businessCashOutstandingFormula: 'Outstanding formula',
+  labelExpenseSuppliers: 'Suppliers',
+  labelExpenseSubcontractors: 'Subcontractors',
+  labelApPayments: 'AP',
+  labelPayrollPayments: 'Payroll',
+  labelSubcontractAdvances: 'Advances',
+  expensesLink: 'Expenses',
 };
 
 function row(partial: Partial<ProjectRollupRow> & Pick<ProjectRollupRow, 'projectId' | 'name'>): ProjectRollupRow {

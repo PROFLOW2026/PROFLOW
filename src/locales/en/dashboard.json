@@ -71,7 +71,17 @@
     "labelRecognizedCost": "Recognized cost",
     "reportsLink": "Reports",
     "billingLink": "Billing",
-    "apLink": "Vendor bills"
+    "apLink": "Vendor bills",
+    "expensesLink": "Expenses",
+    "businessCashPaidWhat": "Cash recorded as paid by the business — not recognized cost.",
+    "businessCashPaidFormula": "Paid expenses + paid AP bills + paid payroll + other canonical payment sources.",
+    "businessCashOutstandingWhat": "Existing debts not yet paid.",
+    "businessCashOutstandingFormula": "Expense remainders + open AP bills + payroll obligations — no PO commitments.",
+    "labelExpenseSuppliers": "Suppliers / expenses",
+    "labelExpenseSubcontractors": "Subcontractors (expenses)",
+    "labelApPayments": "Vendor bills (AP)",
+    "labelPayrollPayments": "Employee payroll",
+    "labelSubcontractAdvances": "Subcontract advances"
   },
   "attention": {
     "title": "Worth a look",
