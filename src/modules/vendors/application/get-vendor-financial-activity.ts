@@ -18,6 +18,7 @@ export interface VendorExpenseProjectAllocation {
   readonly projectId: string;
   readonly projectName: string;
   readonly netAmount: string;
+  readonly percent: string | null;
 }
 
 export interface VendorExpenseActivityRow {
@@ -118,6 +119,7 @@ export async function getVendorFinancialActivity(
             projectId: expenseAllocations.projectId,
             projectName: projects.name,
             amount: expenseAllocations.amount,
+            percent: expenseAllocations.percent,
             targetType: expenseAllocations.targetType,
           })
           .from(expenseAllocations)
@@ -140,6 +142,7 @@ export async function getVendorFinancialActivity(
         ? localizeProjectDisplayName(locale, line.projectName)
         : line.projectId,
       netAmount: String(line.amount),
+      percent: line.percent ? String(line.percent) : null,
     });
     allocationsByExpense.set(line.expenseId, existing);
   }
@@ -227,6 +230,7 @@ export async function getVendorFinancialActivity(
                 projectId: row.projectId,
                 projectName: row.projectName,
                 netAmount: row.netAmount,
+                percent: null,
               },
             ]
           : [];

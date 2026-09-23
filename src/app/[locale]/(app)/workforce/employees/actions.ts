@@ -10,11 +10,13 @@ import {
   createEmployeeSchema,
   createRateVersion,
   createRateVersionSchema,
+  loadMonthlyEmployerCostReview,
   restoreEmployee,
   returnMonthlyEmployerCostToEstimate,
   saveMonthlyEmployerCostDraft,
   updateEmployee,
   updateEmployeeSchema,
+  type MonthlyEmployerCostReview,
 } from '@/modules/workforce';
 import { withOrgContext } from '@/shared/auth/session';
 import { inferMessageKey, translateMessageKey } from '@/shared/errors';
@@ -285,6 +287,25 @@ export async function bootstrapWorkforceCostingAction(
 export interface MonthlyEmployerCostActionState {
   error?: string;
   ok?: boolean;
+}
+
+export async function loadMonthlyEmployerCostReviewAction(input: {
+  employeeId: string;
+  yearMonth: string;
+}): Promise<{ error?: string; review?: MonthlyEmployerCostReview }> {
+  const tErrors = await getTranslations('errors');
+
+  try {
+    const review = await withOrgContext((context) =>
+      loadMonthlyEmployerCostReview(context, {
+        employeeId: input.employeeId,
+        yearMonth: input.yearMonth,
+      }),
+    );
+    return { review };
+  } catch (error) {
+    return mapEmployeeActionError(error, tErrors('unexpected'));
+  }
 }
 
 function parseAllocationLinesJson(raw: FormDataEntryValue | null) {

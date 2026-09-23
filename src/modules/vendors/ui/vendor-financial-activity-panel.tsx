@@ -168,12 +168,17 @@ function ProjectSummary({
 }) {
   if (row.projectAllocationCount > 1) {
     return (
-      <details className="text-xs text-[var(--pf-text-secondary)]">
+      <details className="min-w-0 text-xs text-[var(--pf-text-secondary)]">
         <summary>{t('multiProjectLabel', { count: row.projectAllocationCount })}</summary>
-        <ul className="mt-1 flex flex-col gap-0.5 ps-3">
+        <ul className="mt-2 flex flex-col gap-2 ps-1">
           {row.projectAllocations.map((line) => (
-            <li key={`${row.id}-${line.projectId}`}>
-              {line.projectName} — {line.netAmount}
+            <li
+              key={`${row.id}-${line.projectId}`}
+              className="flex flex-col gap-0.5 rounded-md border border-[var(--pf-border-default)] px-2 py-1.5"
+            >
+              <span className="font-medium text-[var(--pf-text-primary)]">{line.projectName}</span>
+              {line.percent ? <span dir="ltr">{line.percent}%</span> : null}
+              <MoneyText value={money(line.netAmount, row.currency)} />
             </li>
           ))}
         </ul>

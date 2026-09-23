@@ -511,6 +511,7 @@
       "over": "زائد"
     },
     "simpleActualLine": "تكلفة المُشغّل هذا الشهر = {amount} {currency}",
+    "effectiveCostThisMonth": "تكلفة المُشغّل الفعلية هذا الشهر:",
     "payrollTitle": "تأكيد تكلفة المُشغّل الشهرية",
     "payrollDescription": "أكّد شهر الرواتب. أدخل تكلفة المُشغّل الفعلية إذا كانت لديك أرقام رواتب نهائية. الدفع منفصل.",
     "estimatedEmployerCost": "تكلفة مُشغّل مقدّرة",

@@ -483,6 +483,7 @@
       "over": "חריגה"
     },
     "simpleActualLine": "עלות מעסיק בפועל החודש = {amount} {currency}",
+    "effectiveCostThisMonth": "עלות מעסיק אפקטיבית החודש:",
     "payrollTitle": "אישור עלות מעסיק חודשית",
     "payrollDescription": "אשרו את חודש השכר. הזינו עלות מעסיק בפועל אם יש נתוני שכר סופיים. תשלום נפרד.",
     "estimatedEmployerCost": "עלות מעסיק מוערכת",

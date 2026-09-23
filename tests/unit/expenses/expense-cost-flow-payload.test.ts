@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createExpenseSchema } from '@/modules/expenses/validation/schemas';
+import { createExpenseSchema, parseAllocationsFromForm } from '@/modules/expenses/validation/schemas';
 import { expensePayloadFromFormData } from '@/modules/offline/domain/payloads';
 import { resolveExpenseAllocationIntent } from '@/modules/financials/domain/allocation-intent';
 import { resolveAllocationLines } from '@/modules/expenses/domain/allocation';
@@ -75,6 +75,54 @@ describe('expense cost flow payload and allocation', () => {
     ]);
     const total = lines.reduce((sum, line) => sum + Number(line.amount.amount), 0);
     expect(total).toBe(10000);
+  });
+
+  it('parses allocation JSON with UI lineId and percent lines', () => {
+    const formData = new FormData();
+    formData.set(
+      'allocations',
+      JSON.stringify([
+        {
+          lineId: 'ui-line-1',
+          targetType: 'project',
+          projectId: 'ee7cb842-bbd1-4188-b95e-9f98446c92aa',
+          workPackageId: null,
+          costCategoryId: null,
+          method: 'manual_percent',
+          amount: '',
+          percent: '40',
+          notes: '',
+          sortOrder: 0,
+        },
+        {
+          lineId: 'ui-line-2',
+          targetType: 'project',
+          projectId: '685e5343-606e-43fb-b5b2-d2b3bc2f9662',
+          workPackageId: null,
+          costCategoryId: null,
+          method: 'manual_percent',
+          amount: '',
+          percent: '60',
+          notes: '',
+          sortOrder: 1,
+        },
+        {
+          lineId: 'ui-line-empty',
+          targetType: 'project',
+          projectId: null,
+          method: 'manual_percent',
+          amount: '',
+          percent: '',
+          notes: '',
+          sortOrder: 2,
+        },
+      ]),
+    );
+
+    const parsed = parseAllocationsFromForm(formData);
+    expect(parsed).toHaveLength(2);
+    expect(parsed[0]?.percent).toBe('40');
+    expect(parsed[1]?.percent).toBe('60');
   });
 
   it('CASE 3: three-way subcontract split conserves NET', () => {

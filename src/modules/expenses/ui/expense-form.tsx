@@ -101,6 +101,24 @@ function resolveInitialCostDestination(
   return 'auto_pool';
 }
 
+function serializeAllocationsForSubmit(allocations: AllocationDraft[]): string {
+  const lines = allocations
+    .filter((line) => line.targetType !== 'project' || Boolean(line.projectId))
+    .map((line) => ({
+      targetType: line.targetType,
+      projectId: line.projectId || null,
+      workPackageId: line.workPackageId || null,
+      costCategoryId: line.costCategoryId || null,
+      method: line.method,
+      amount: line.amount.trim() === '' ? null : line.amount,
+      percent: line.percent.trim() === '' ? null : line.percent,
+      notes: line.notes.trim() === '' ? null : line.notes,
+      sortOrder: line.sortOrder,
+      ...(line.amountBasis ? { amountBasis: line.amountBasis } : {}),
+    }));
+  return JSON.stringify(lines);
+}
+
 function hasAdvancedInitialValues(initialValues?: Partial<ExpenseFormValues>): boolean {
   if (!initialValues) return false;
   return Boolean(
@@ -551,11 +569,6 @@ export function ExpenseForm({
   function renderAdvancedHiddenInputs() {
     return (
       <>
-        <input
-          type="hidden"
-          name="allocations"
-          value={includeManualAllocations ? JSON.stringify(allocations) : '[]'}
-        />
         <input type="hidden" name="allocationDriverMethod" value={allocationDriverMethod} />
         <input type="hidden" name="allocationPeriodStart" value={allocationPeriodStart} />
         <input type="hidden" name="allocationPeriodEnd" value={allocationPeriodEnd} />
@@ -805,6 +818,11 @@ export function ExpenseForm({
         ) : null}
 
         <input type="hidden" name="allocationIntent" value={allocationIntent} />
+        <input
+          type="hidden"
+          name="allocations"
+          value={includeManualAllocations ? serializeAllocationsForSubmit(allocations) : '[]'}
+        />
 
         {showSharedAllocationWarning ? (
           <p
@@ -1289,22 +1307,17 @@ export function ExpenseForm({
               </p>
 
               {!usesAutomaticDriver ? (
-                <>
-                  <AllocationEditor
-                    currency={currency}
-                    totalAmount={allocationTotalAmount}
-                    projects={projects}
-                    categories={categories}
-                    value={allocations}
-                    onChange={setAllocations}
-                    disabled={readOnly}
-                    periodLabel={t(`recurrence.${recurrenceCadence}`)}
-                  />
-                  <input type="hidden" name="allocations" value={JSON.stringify(allocations)} />
-                </>
-              ) : (
-                <input type="hidden" name="allocations" value="[]" />
-              )}
+                <AllocationEditor
+                  currency={currency}
+                  totalAmount={allocationTotalAmount}
+                  projects={projects}
+                  categories={categories}
+                  value={allocations}
+                  onChange={setAllocations}
+                  disabled={readOnly}
+                  periodLabel={t(`recurrence.${recurrenceCadence}`)}
+                />
+              ) : null}
             </div>
           ) : (
             <>
@@ -1312,7 +1325,6 @@ export function ExpenseForm({
               <input type="hidden" name="allocationScheduleMode" value={allocationScheduleMode} />
               <input type="hidden" name="allocationPeriodStart" value={allocationPeriodStart} />
               <input type="hidden" name="allocationPeriodEnd" value={allocationPeriodEnd} />
-              <input type="hidden" name="allocations" value="[]" />
             </>
           )}
 

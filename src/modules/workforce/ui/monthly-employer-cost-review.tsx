@@ -1,10 +1,11 @@
 'use client';
 
 import { useMemo, useState, useTransition } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import {
   applyMonthlyEmployerCostAllocationAction,
   correctMonthlyEmployerCostActualAction,
+  loadMonthlyEmployerCostReviewAction,
   returnMonthlyEmployerCostToEstimateAction,
   saveMonthlyEmployerCostDraftAction,
 } from '@/app/[locale]/(app)/workforce/employees/actions';
@@ -17,6 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { MoneyInput } from '@/components/patterns/money-input';
 import { MoneyText } from '@/components/patterns/money-text';
 import { money } from '@/shared/money/money';
+import { resolveIntlLocale } from '@/shared/i18n/intl-locale';
 import {
   MONTHLY_ALLOCATION_METHODS,
   areEmployeeMonthCostsAvailable,
@@ -24,6 +26,9 @@ import {
   type MonthlyAllocationMethod,
 } from '@/modules/workforce/domain/monthly-cost-gates';
 import type { MonthlyEmployerCostReview as MonthlyEmployerCostReviewData } from '@/modules/workforce/application/employer-month-costs';
+
+type MonthCostRow = NonNullable<MonthlyEmployerCostReviewData['month']>;
+type ReviewAllocationLine = MonthlyEmployerCostReviewData['lines'][number];
 
 export interface MonthlyEmployerCostProjectOption {
   readonly id: string;
@@ -62,6 +67,39 @@ function emptyAllocationLine(projectId = ''): AllocationLineDraft {
   return { key: newLineKey(), projectId, percent: '', days: '', amount: '' };
 }
 
+function formatMonthTitle(yearMonth: string, locale: string): string {
+  const [year, month] = yearMonth.split('-').map(Number);
+  const date = new Date(year!, month! - 1, 1);
+  return new Intl.DateTimeFormat(resolveIntlLocale(locale), {
+    month: 'long',
+    year: 'numeric',
+  }).format(date);
+}
+
+function mapReviewLines(
+  lines: readonly ReviewAllocationLine[],
+  projects: readonly MonthlyEmployerCostProjectOption[],
+): AllocationLineDraft[] {
+  if (lines.length === 0) {
+    return [emptyAllocationLine(projects[0]?.id ?? '')];
+  }
+  return lines.map((line) => ({
+    key: newLineKey(),
+    projectId: line.projectId ?? '',
+    percent: line.percent ?? '',
+    days: line.basisDays ?? '',
+    amount: line.amount ?? '',
+  }));
+}
+
+function monthRowFromReview(
+  review: MonthlyEmployerCostReviewData | null | undefined,
+  yearMonth: string,
+): MonthCostRow | null {
+  if (!review || review.yearMonth !== yearMonth) return null;
+  return review.month;
+}
+
 /**
  * Optional month review strip (Agent 5 Flow C).
  * Gate off → draft-only preview; Save is a safe no-op that never claims Actual.
@@ -69,7 +107,7 @@ function emptyAllocationLine(projectId = ''): AllocationLineDraft {
  */
 export function MonthlyEmployerCostReview({
   employeeId,
-  employeeName,
+  employeeName: _employeeName,
   currency,
   defaultYearMonth,
   projects = [],
@@ -80,36 +118,74 @@ export function MonthlyEmployerCostReview({
 }: MonthlyEmployerCostReviewProps) {
   const t = useTranslations('workforce');
   const tCommon = useTranslations('common');
+  const locale = useLocale();
   const ready = areEmployeeMonthCostsAvailable();
   const [pending, startTransition] = useTransition();
 
-  const initialMonth =
-    initialReview?.yearMonth === defaultYearMonth ? initialReview?.month : undefined;
   const [yearMonth, setYearMonth] = useState(defaultYearMonth);
-  const [estimated, setEstimated] = useState(initialMonth?.estimatedAmount ?? '');
-  const [actual, setActual] = useState(initialMonth?.actualAmount ?? initialMonth?.knownAmount ?? '');
-  const [allocated, setAllocated] = useState('');
+  const [monthRow, setMonthRow] = useState<MonthCostRow | null>(() =>
+    monthRowFromReview(initialReview, defaultYearMonth),
+  );
+  const [estimated, setEstimated] = useState(() => monthRow?.estimatedAmount ?? '');
+  const [actual, setActual] = useState(() => monthRow?.actualAmount ?? '');
+  const [allocated, setAllocated] = useState(() => initialReview?.run?.allocatedAmount ?? '');
   const [method, setMethod] = useState<MonthlyAllocationMethod>('hours');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [savedDraft, setSavedDraft] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [applied, setApplied] = useState(false);
+  const [loadingMonth, setLoadingMonth] = useState(false);
   const [remainderAllocationIntent, setRemainderAllocationIntent] = useState<
     'auto_pool' | 'company_only'
   >('auto_pool');
-  const [allocationLines, setAllocationLines] = useState<AllocationLineDraft[]>(() => {
-    const fromReview = initialReview?.lines ?? [];
-    if (fromReview.length === 0) {
-      return [emptyAllocationLine(projects[0]?.id ?? '')];
+  const [allocationLines, setAllocationLines] = useState<AllocationLineDraft[]>(() =>
+    mapReviewLines(initialReview?.lines ?? [], projects),
+  );
+
+  function applyLoadedReview(review: MonthlyEmployerCostReviewData, targetYearMonth: string) {
+    const month = monthRowFromReview(review, targetYearMonth);
+    setMonthRow(month);
+    setEstimated(month?.estimatedAmount ?? '');
+    setActual(month?.actualAmount ?? '');
+    setAllocated(review.run?.allocatedAmount ?? review.preview?.allocatedAmount ?? '');
+    setAllocationLines(mapReviewLines(review.lines, projects));
+    setSavedDraft(false);
+    setApplied(false);
+    setActionError(null);
+  }
+
+  async function handleYearMonthChange(nextYearMonth: string) {
+    setYearMonth(nextYearMonth);
+    setActionError(null);
+    setSavedDraft(false);
+    setApplied(false);
+
+    if (nextYearMonth === defaultYearMonth && initialReview?.yearMonth === defaultYearMonth) {
+      if (initialReview) applyLoadedReview(initialReview, nextYearMonth);
+      return;
     }
-    return fromReview.map((line) => ({
-      key: newLineKey(),
-      projectId: line.projectId ?? '',
-      percent: line.percent ?? '',
-      days: line.basisDays ?? '',
-      amount: line.amount ?? '',
-    }));
-  });
+
+    setLoadingMonth(true);
+    const result = await loadMonthlyEmployerCostReviewAction({
+      employeeId,
+      yearMonth: nextYearMonth,
+    });
+    if (result.error) {
+      setActionError(result.error);
+      setLoadingMonth(false);
+      return;
+    }
+    if (result.review) {
+      applyLoadedReview(result.review, nextYearMonth);
+    } else {
+      setMonthRow(null);
+      setEstimated('');
+      setActual('');
+      setAllocated('');
+      setAllocationLines([emptyAllocationLine(projects[0]?.id ?? '')]);
+    }
+    setLoadingMonth(false);
+  }
 
   function buildAllocationLinesJson(): string | undefined {
     const rows = allocationLines
@@ -134,9 +210,9 @@ export function MonthlyEmployerCostReview({
     [estimated, actual, allocated],
   );
 
-  const monthStatus = initialMonth?.status ?? null;
+  const monthStatus = monthRow?.status ?? null;
   const hasAppliedMonth = monthStatus === 'applied' || monthStatus === 'closed';
-  const estimatedNumeric = Number(estimated || initialMonth?.estimatedAmount || 0);
+  const estimatedNumeric = Number(estimated || monthRow?.estimatedAmount || 0);
   const actualNumeric = actual.trim() === '' ? null : Number(actual);
   const costDifference =
     actualNumeric != null && Number.isFinite(actualNumeric) && Number.isFinite(estimatedNumeric)
@@ -251,15 +327,23 @@ export function MonthlyEmployerCostReview({
 
       <Field label={t('monthReview.yearMonth')}>
         {(control) => (
-          <Input
-            {...control}
-            type="month"
-            value={yearMonth}
-            onChange={(event) => setYearMonth(event.target.value)}
-            dir="ltr"
-          />
+          <div className="flex flex-col gap-1">
+            <p className="text-sm font-medium">{formatMonthTitle(yearMonth, locale)}</p>
+            <Input
+              {...control}
+              type="month"
+              value={yearMonth}
+              onChange={(event) => void handleYearMonthChange(event.target.value)}
+              disabled={loadingMonth || pending}
+              dir="ltr"
+            />
+          </div>
         )}
       </Field>
+
+      {loadingMonth ? (
+        <p className="text-sm text-[var(--pf-text-muted)]">{tCommon('states.loading')}</p>
+      ) : null}
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <div className="rounded-md border border-[var(--pf-border-default)] p-3">
@@ -281,11 +365,8 @@ export function MonthlyEmployerCostReview({
       </div>
 
       <p className="text-sm">
-        {t('monthReview.simpleActualLine', {
-          name: employeeName,
-          amount: preview.knownAmount,
-          currency,
-        })}
+        {t('monthReview.effectiveCostThisMonth')}{' '}
+        <MoneyText value={money(preview.knownAmount, currency)} />
       </p>
 
       {actualNumeric == null ? (
@@ -533,7 +614,7 @@ export function MonthlyEmployerCostReview({
         size="lg"
         block
         variant="secondary"
-        disabled={pending}
+        disabled={pending || loadingMonth}
         onClick={handleSaveDraft}
       >
         {ready ? t('monthReview.saveDraft') : t('monthReview.saveLater')}
@@ -544,7 +625,7 @@ export function MonthlyEmployerCostReview({
           type="button"
           size="lg"
           block
-          disabled={pending || preview.status === 'over' || preview.status === 'not_started'}
+          disabled={pending || loadingMonth || preview.status === 'over' || preview.status === 'not_started'}
           onClick={handleApply}
         >
           {payrollApprovalMode
@@ -553,13 +634,13 @@ export function MonthlyEmployerCostReview({
         </Button>
       ) : null}
 
-      {ready && canManage && initialMonth?.actualAmount ? (
+      {ready && canManage && monthRow?.actualAmount ? (
         <Button
           type="button"
           variant="secondary"
           size="lg"
           block
-          disabled={pending}
+          disabled={pending || loadingMonth}
           onClick={handleReturnToEstimate}
         >
           {t('monthReview.returnToEstimate')}

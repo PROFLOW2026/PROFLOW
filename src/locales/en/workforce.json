@@ -511,6 +511,7 @@
       "over": "Over"
     },
     "simpleActualLine": "Employer cost this month = {amount} {currency}",
+    "effectiveCostThisMonth": "Effective employer cost this month:",
     "payrollTitle": "Monthly employer cost confirmation",
     "payrollDescription": "Confirm the payroll month. Enter actual employer cost if you have final payroll figures. Payment is separate.",
     "estimatedEmployerCost": "Estimated employer cost",

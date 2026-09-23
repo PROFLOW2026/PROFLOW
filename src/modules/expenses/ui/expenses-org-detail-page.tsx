@@ -65,6 +65,7 @@ export async function ExpensesOrgDetailPage({
   const backNavigation = resolveExpenseBackNavigation(rawReturnTo, routeBase);
   const vendorsRouteBase = routeBase.startsWith('/employee') ? '/employee/vendors' : '/vendors';
   const t = await getTranslations('expenses');
+  const tCommon = await getTranslations('common');
   const tStatus = await getTranslations('status');
   const locale = await getLocale();
 
@@ -380,69 +381,49 @@ export async function ExpensesOrgDetailPage({
       {expense.allocations.length > 0 ? (
         <Card className="min-w-0 scroll-mt-24" id="expense-allocation">
           <CardHeader>
-            <CardTitle className="text-start">{t('allocation.title')}</CardTitle>
+            <CardTitle className="text-start">
+              {expense.allocations.filter((line) => line.targetType === 'project').length > 1
+                ? t('destination.projectMulti')
+                : t('allocation.title')}
+            </CardTitle>
           </CardHeader>
           <CardContent className="flex min-w-0 flex-col gap-3 text-sm">
-            <dl className="grid gap-2 text-xs text-[var(--pf-text-secondary)] sm:grid-cols-3">
-              {expense.recurrenceRule ? (
-                <div>
-                  <dt className="text-[var(--pf-text-muted)]">{t('lifecycle.allocationPeriod')}</dt>
-                  <dd>
-                    {recurrence.cadence === 'custom'
-                      ? recurrence.customLabel
-                      : t(`recurrence.${recurrence.cadence}`)}
-                  </dd>
-                </div>
+            <div className="flex flex-col gap-2">
+              {expense.allocations
+                .filter((line) => line.targetType === 'project')
+                .map((line, index) => (
+                  <div
+                    key={index}
+                    className="flex flex-col gap-1 rounded-md border border-[var(--pf-border-default)] p-3 text-start"
+                  >
+                    <p className="font-medium">
+                      {projects.find((project) => project.id === line.projectId)?.name ??
+                        line.projectId}
+                    </p>
+                    {line.method === 'manual_percent' && line.percent ? (
+                      <p className="text-xs text-[var(--pf-text-muted)]">{line.percent}%</p>
+                    ) : null}
+                    <MoneyText value={line.amount} className="text-sm font-medium" />
+                  </div>
+                ))}
+              {expense.allocations.some((line) => line.targetType === 'overhead') ? (
+                expense.allocations
+                  .filter((line) => line.targetType === 'overhead')
+                  .map((line, index) => (
+                    <div
+                      key={`overhead-${index}`}
+                      className="flex flex-col gap-1 rounded-md border border-[var(--pf-border-default)] p-3 text-start"
+                    >
+                      <p className="font-medium">{t('targeting.overhead')}</p>
+                      <MoneyText value={line.amount} className="text-sm font-medium" />
+                    </div>
+                  ))
               ) : null}
-              <div>
-                <dt className="text-[var(--pf-text-muted)]">{t('lifecycle.allocationMethodSummary')}</dt>
-                <dd>
-                  {[
-                    ...new Set(
-                      expense.allocations.map((line) => {
-                        if (line.method === 'manual_percent') return t('allocation.methods.percent');
-                        if (line.method === 'manual_amount') return t('allocation.methods.amount');
-                        return t(`allocation.methods.${line.method}`);
-                      }),
-                    ),
-                  ].join(', ')}
-                </dd>
-              </div>
-              <div className="min-w-0">
-                <dt className="text-[var(--pf-text-muted)]">{t('lifecycle.allocationProjects')}</dt>
-                <dd className="break-words">
-                  {expense.allocations
-                    .filter((line) => line.targetType === 'project')
-                    .map(
-                      (line) =>
-                        projects.find((project) => project.id === line.projectId)?.name ??
-                        line.projectId,
-                    )
-                    .filter(Boolean)
-                    .join(', ') || t('targeting.overhead')}
-                </dd>
-              </div>
-            </dl>
-            {expense.allocations.map((line, index) => (
-              <div
-                key={index}
-                className="flex min-w-0 items-center justify-between gap-2 border-b border-[var(--pf-border-default)] py-2 text-start last:border-0"
-              >
-                <span className="min-w-0 truncate">
-                  {line.targetType === 'overhead'
-                    ? t('targeting.overhead')
-                    : projects.find((project) => project.id === line.projectId)?.name}
-                  {' · '}
-                  {line.method === 'manual_percent'
-                    ? t('allocation.methods.percent')
-                    : line.method === 'manual_amount'
-                      ? t('allocation.methods.amount')
-                      : t(`allocation.methods.${line.method}`)}
-                  {line.method === 'manual_percent' && line.percent ? ` (${line.percent}%)` : null}
-                </span>
-                <MoneyText value={line.amount} className="shrink-0" />
-              </div>
-            ))}
+            </div>
+            <div className="flex items-center justify-between gap-2 border-t border-[var(--pf-border-default)] pt-3 text-start">
+              <span className="text-sm font-medium">{tCommon('labels.total')}</span>
+              <MoneyText value={expense.netAmount} className="text-sm font-semibold" />
+            </div>
           </CardContent>
         </Card>
       ) : null}

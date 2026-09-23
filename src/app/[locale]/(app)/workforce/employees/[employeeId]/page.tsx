@@ -9,8 +9,6 @@ import { StatusBadge } from '@/components/ui/status-badge';
 import { listComplianceArtifactsForOrg } from '@/modules/compliance';
 import { listCustomFieldValuesForEntity } from '@/modules/custom-fields';
 import { EntityCustomFieldsPanel } from '@/modules/custom-fields/ui';
-import { getEntityDocumentPanelData } from '@/modules/documents';
-import { DocumentAttachments } from '@/modules/documents/ui';
 import { resolveEmployeeDailyFramework, resolveEmployeeWorkCalendarForCosting } from '@/modules/workforce/application/work-calendar-context';
 import { buildEmployeeCompensationSummary } from '@/modules/workforce/application/compensation-summary';
 import { loadMonthlyEmployerCostReview } from '@/modules/workforce';
@@ -105,7 +103,6 @@ export default async function EmployeeDetailPage({
         hasPermission(context, PERMISSIONS.TIME_APPROVE);
       const [
         rateHistory,
-        documentsPanel,
         customFields,
         projectLinks,
         history,
@@ -114,7 +111,6 @@ export default async function EmployeeDetailPage({
         complianceArtifacts,
       ] = await Promise.all([
         canReadRates ? listRateHistory(context, employeeId) : Promise.resolve([]),
-        getEntityDocumentPanelData(context, 'employee', employeeId),
         listCustomFieldValuesForEntity(context, 'employee', employeeId).catch(() => []),
         listEmployeeProjectLinks(context, employeeId),
         listEmployeeAssignmentHistoryLinks(context, employeeId).catch(() => []),
@@ -185,7 +181,6 @@ export default async function EmployeeDetailPage({
         rateHistory,
         currentRate,
         today,
-        documentsPanel,
         customFields,
         projectLinks,
         history,
@@ -222,14 +217,12 @@ export default async function EmployeeDetailPage({
 
   const {
     employee,
-    dailyFramework,
     compensationSummary,
     laborDefaults,
     monthReview,
     payrollPayment,
     rateHistory,
     currentRate,
-    documentsPanel,
     customFields,
     projectLinks,
     history,
@@ -255,17 +248,6 @@ export default async function EmployeeDetailPage({
   const appOrigin = resolveEmployeeAppPublicOrigin();
 
   const orgFrameworkConfigured = Boolean(laborDefaults?.standardHoursPerDay);
-  const workWeekSummary = (() => {
-    const days =
-      laborDefaults?.workWeekdays && laborDefaults.workWeekdays.length > 0
-        ? laborDefaults.workWeekdays
-        : [0, 1, 2, 3, 4];
-    const keys = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const;
-    return days
-      .filter((day) => day >= 0 && day <= 6)
-      .map((day) => t(`time.weekdays.${keys[day]!}`))
-      .join(' · ');
-  })();
   const showMonthReview =
     canReadRates &&
     Boolean(monthReview?.month || (monthReview?.months && monthReview.months.length > 0));
@@ -358,36 +340,6 @@ export default async function EmployeeDetailPage({
         />
       ) : null}
 
-      <div
-        id="employee-work-framework"
-        className="rounded-lg border border-[var(--pf-border-default)] px-4 py-3 text-sm"
-      >
-        <p className="font-medium">
-          {employee.standardHoursPerDay
-            ? t('employees.detail.personalFrameworkTitle')
-            : t('employees.detail.companyFrameworkTitle')}
-        </p>
-        <p className="mt-1 text-[var(--pf-text-secondary)]">
-          {employee.standardHoursPerDay
-            ? t('employees.detail.personalFrameworkSummary', {
-                hours: employee.standardHoursPerDay,
-              })
-            : dailyFramework.configured
-              ? t('employees.detail.companyFrameworkSummary', {
-                  hours: dailyFramework.standardHoursPerDay,
-                  weekdays: workWeekSummary,
-                })
-              : t('employees.detail.dailyCapacityMissing')}
-        </p>
-        {allowManage ? (
-          <p className="mt-2">
-            <a href="#employee-edit" className={cn(textNavLinkClassName, 'text-sm font-medium')}>
-              {t('employees.detail.editFrameworkLink')}
-            </a>
-          </p>
-        ) : null}
-      </div>
-
       {canReadRates && compensationSummary ? (
         <EmployeeCompensationSummaryPanel
           summary={compensationSummary}
@@ -439,23 +391,6 @@ export default async function EmployeeDetailPage({
         >
           <h2 className="text-base font-semibold">{t('employees.detail.salarySection')}</h2>
           <div className="mt-4 flex flex-col gap-4">
-            <div id="work-framework" className="flex flex-col gap-1 text-sm">
-              <h3 className="font-medium">{t('employees.detail.dailyCapacity')}</h3>
-              <p>
-                {employee.standardHoursPerDay
-                  ? t('employees.detail.dailyCapacityEmployeeOverride', {
-                      hours: employee.standardHoursPerDay,
-                    })
-                  : dailyFramework.configured
-                    ? t('employees.detail.dailyCapacityInherited', {
-                        hours: dailyFramework.standardHoursPerDay,
-                      })
-                    : t('employees.detail.dailyCapacityMissing')}
-              </p>
-              <p className="text-[var(--pf-text-secondary)]">
-                {t('employees.detail.dailyCapacityHint')}
-              </p>
-            </div>
             {canManageCosts ? (
               <AddRateVersionForm
                 employeeId={employee.id}
@@ -623,17 +558,6 @@ export default async function EmployeeDetailPage({
         fields={customFields}
         revalidatePath={`/workforce/employees/${employee.id}`}
         saveAction={upsertEntityFieldValueAction}
-      />
-
-      <DocumentAttachments
-        ownerType="employee"
-        ownerId={employee.id}
-        documents={documentsPanel.documents}
-        linkCandidates={documentsPanel.linkCandidates}
-        canRead={documentsPanel.canRead}
-        canManage={documentsPanel.canManage}
-        storageConfigured={documentsPanel.storageConfigured}
-        canClassifyCompensation={documentsPanel.canClassifyCompensation}
       />
 
       {canReadCompliance ? (

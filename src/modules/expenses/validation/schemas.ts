@@ -240,12 +240,38 @@ export type UpdateExpenseInput = z.infer<typeof updateExpenseSchema>;
 export type ListExpensesInput = z.infer<typeof listExpensesSchema>;
 export type RunAllocationInput = z.infer<typeof runAllocationSchema>;
 
+function normalizeAllocationFormLine(line: unknown): unknown {
+  if (!line || typeof line !== 'object') return line;
+  const row = line as Record<string, unknown>;
+  return {
+    targetType: row.targetType,
+    projectId: row.projectId === '' ? null : row.projectId,
+    workPackageId: row.workPackageId === '' ? null : row.workPackageId,
+    costCategoryId: row.costCategoryId === '' ? null : row.costCategoryId,
+    method: row.method,
+    amount: row.amount === '' ? null : row.amount,
+    percent: row.percent === '' ? null : row.percent,
+    notes: row.notes === '' ? null : row.notes,
+    sortOrder: row.sortOrder,
+    amountBasis: row.amountBasis,
+  };
+}
+
 export function parseAllocationsFromForm(formData: FormData): z.infer<typeof allocationLineSchema>[] {
   const raw = formData.get('allocations');
   if (!raw || typeof raw !== 'string' || raw.trim() === '') return [];
   try {
     const parsed = JSON.parse(raw) as unknown;
-    return z.array(allocationLineSchema).parse(parsed);
+    if (!Array.isArray(parsed)) return [];
+    const normalized = parsed
+      .map(normalizeAllocationFormLine)
+      .filter((line) => {
+        if (!line || typeof line !== 'object') return false;
+        const row = line as Record<string, unknown>;
+        return row.targetType !== 'project' || Boolean(row.projectId);
+      });
+    const result = z.array(allocationLineSchema).safeParse(normalized);
+    return result.success ? result.data : [];
   } catch {
     return [];
   }
