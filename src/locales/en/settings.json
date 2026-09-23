@@ -618,6 +618,7 @@
         "updated": "Expense updated",
         "finalized": "Expense finalized",
         "voided": "Expense voided",
+        "restored": "Expense restored",
         "payment_confirmed": "Expense payment confirmed",
         "payment_confirmation_voided": "Expense payment confirmation voided",
         "integrity_repair": "Expense integrity repair applied",

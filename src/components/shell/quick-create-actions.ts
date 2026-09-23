@@ -124,7 +124,8 @@ export function buildQuickCreateActions(
   }
 
   if (permissions.has(PERMISSIONS.EXPENSES_CREATE)) {
-    actions.push({ key: 'expense', href: '/expenses/new', labelKey: 'expense' });
+    // Expense hub exposes manual entry, OCR capture, recurring, and received flows.
+    actions.push({ key: 'expense', href: '/expenses', labelKey: 'expense' });
   }
   if (modules.changes && permissions.has(PERMISSIONS.CHANGES_MANAGE)) {
     actions.push({ key: 'change', href: '/changes/new', labelKey: 'change' });

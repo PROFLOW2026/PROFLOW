@@ -1,7 +1,9 @@
 /**
  * Canonical economic classification registry for Owner Actual breakdown.
  *
- * Structured fields only — NEVER read description / notes / supplierName.
+ * Structured fields only — NEVER read description / notes / supplierName for
+ * classification, deduplication, void/cancel, or any automated financial mutation.
+ * Free text is display/search context for humans only.
  * No substring `.includes('materials')` heuristics that can match unrelated keys.
  */
 

@@ -173,7 +173,7 @@
     "managerialCostKind": "ייחוס עלות",
     "costCategory": "קטגוריית עלות",
     "autoFinalizeExpense": "סגירת הוצאה אוטומטית",
-    "autoFinalizeExpenseHint": "כשהחודש פתוח, הוצאות שנוצרו נרשמות כעלות בפועל. בחודש סגור נשארת טיוטה.",
+    "autoFinalizeExpenseHint": "כשהחודש פתוח, הוצאות שנוצרו נרשמות כעלות מוכרת. בחודש סגור נשארת טיוטה.",
     "destination": "לאן ההוצאה שייכת"
   },
   "vatMode": {

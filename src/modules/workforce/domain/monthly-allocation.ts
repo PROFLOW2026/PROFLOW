@@ -384,3 +384,64 @@ export function deriveKnownEmployerCost(input: {
     actualAmount: null,
   };
 }
+
+export interface PriorAllocationLineSnapshot {
+  readonly projectId: string | null;
+  readonly amount: string;
+  readonly percent: string | null;
+  readonly basisHours: string | null;
+  readonly basisDays: string | null;
+  readonly notes: string | null;
+}
+
+/**
+ * Compensation-derived runs historically stored hour weights under method `days`.
+ * Infer the effective weight method from persisted line snapshots before retro correction.
+ */
+export function resolvePriorCorrectionAllocationMethod(
+  storedMethod: MonthlyAllocationMethod | null | undefined,
+  lines: readonly PriorAllocationLineSnapshot[],
+): MonthlyAllocationMethod {
+  if (storedMethod === 'percent' || storedMethod === 'fixed_amount') return storedMethod;
+
+  const hasDays = lines.some((line) => Boolean(line.basisDays?.trim()));
+  const hasHours = lines.some((line) => Boolean(line.basisHours?.trim()));
+
+  if (storedMethod === 'days' && hasDays) return 'days';
+  if (storedMethod === 'hours' && hasHours) return 'hours';
+  if (hasHours) return 'hours';
+  if (hasDays) return 'days';
+  if (lines.length > 0 && lines.every((line) => Boolean(line.percent?.trim()))) return 'percent';
+
+  return storedMethod ?? 'percent';
+}
+
+export function mapPriorLinesForCorrection(
+  method: MonthlyAllocationMethod,
+  priorKnownAmount: string,
+  nextKnownAmount: string,
+  lines: readonly PriorAllocationLineSnapshot[],
+): MonthlyAllocationLineInput[] {
+  const priorNumeric = Number(priorKnownAmount);
+  const ratio =
+    Number.isFinite(priorNumeric) && priorNumeric > 0
+      ? Number(nextKnownAmount) / priorNumeric
+      : 1;
+
+  return lines
+    .filter((line) => Boolean(line.projectId))
+    .map((line) => {
+      const projectId = line.projectId!;
+      if (method === 'fixed_amount') {
+        const nextAmount = (Number(line.amount) * ratio).toFixed(6);
+        return { projectId, amount: nextAmount, notes: line.notes };
+      }
+      if (method === 'percent') {
+        return { projectId, percent: line.percent, notes: line.notes };
+      }
+      if (method === 'hours') {
+        return { projectId, hours: line.basisHours, notes: line.notes };
+      }
+      return { projectId, days: line.basisDays, notes: line.notes };
+    });
+}

@@ -117,6 +117,39 @@ async function loadOwnerStoryCopy(): Promise<OwnerStoryCopy> {
     fullCostFormulaTitle: t('fullCostFormulaTitle'),
     sourceMonthClose: t('sourceMonthClose'),
     unnamedSource: t('unnamedSource'),
+    openCommitmentsHint: t('openCommitmentsHint'),
+    sourcePayment: {
+      recognizedOnProject: t('sourcePayment.recognizedOnProject'),
+      sourceNetTotal: t('sourcePayment.sourceNetTotal'),
+      sourceGrossTotal: t('sourcePayment.sourceGrossTotal'),
+      paidGross: t('sourcePayment.paidGross'),
+      remainingGross: t('sourcePayment.remainingGross'),
+      expenseDate: t('sourcePayment.expenseDate'),
+      dueDate: t('sourcePayment.dueDate'),
+      paymentStatus: t('sourcePayment.paymentStatus'),
+      projectShare: t('sourcePayment.projectShare'),
+      multiProjectNote: t('sourcePayment.multiProjectNote'),
+      netBasis: t('sourcePayment.netBasis'),
+      grossBasis: t('sourcePayment.grossBasis'),
+      paymentStatusLabels: {
+        paid: t('sourcePayment.status.paid'),
+        partial: t('sourcePayment.status.partial'),
+        unpaid: t('sourcePayment.status.unpaid'),
+        upcoming: t('sourcePayment.status.upcoming'),
+        due: t('sourcePayment.status.due'),
+        overdue: t('sourcePayment.status.overdue'),
+      },
+    },
+    costPaymentSummary: {
+      title: t('costPaymentSummary.title'),
+      recognizedNet: t('costPaymentSummary.recognizedNet'),
+      paidGross: t('costPaymentSummary.paidGross'),
+      remainingGross: t('costPaymentSummary.remainingGross'),
+      apOutstanding: t('costPaymentSummary.apOutstanding'),
+      multiProjectHint: t('costPaymentSummary.multiProjectHint'),
+      laborPayrollHint: t('costPaymentSummary.laborPayrollHint'),
+      unavailable: t('unavailable'),
+    },
   };
 }
 
@@ -232,6 +265,8 @@ export async function ProjectOwnerActualExperience({
                     includeGeneralInPrimary ? profitability.fullActualCost : null
                   }
                   costComposition={costComposition}
+                  sourcePaymentDetails={breakdownResult.sourcePaymentDetails}
+                  costPaymentSummary={breakdownResult.costPaymentSummary}
                 />
               </div>
             ) : null}
@@ -304,6 +339,8 @@ export async function ProjectOwnerActualExperience({
                 includeGeneralInPrimary ? profitability.fullActualCost : null
               }
               costComposition={costComposition}
+              sourcePaymentDetails={breakdownResult.sourcePaymentDetails}
+              costPaymentSummary={breakdownResult.costPaymentSummary}
             />
           </CardContent>
         </Card>

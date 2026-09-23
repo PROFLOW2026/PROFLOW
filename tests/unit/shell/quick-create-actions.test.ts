@@ -41,6 +41,7 @@ describe('buildQuickCreateActions', () => {
     const keys = actions.map((action) => action.key);
     expect(keys).toContain('project');
     expect(keys).toContain('expense');
+    expect(actions.find((action) => action.key === 'expense')?.href).toBe('/expenses');
     expect(keys).toContain('timeEntry');
     expect(keys).toContain('fieldLog');
     expect(keys).toContain('asset');

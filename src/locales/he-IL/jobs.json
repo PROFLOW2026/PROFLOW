@@ -28,7 +28,7 @@
       "date": "תאריך",
       "status": "סטטוס",
       "price": "מחיר",
-      "actualCost": "עלות בפועל נטו",
+      "actualCost": "עלות מוכרת נטו",
       "profit": "יתרת חוזה נטו",
       "billing": "חיוב / תשלום",
       "noClient": "-"

@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { money } from '@/shared/money';
 import {
   deriveKnownEmployerCost,
+  mapPriorLinesForCorrection,
   resolveMonthlyAllocationAmounts,
+  resolvePriorCorrectionAllocationMethod,
 } from '@/modules/workforce/domain/monthly-allocation';
 import {
   previewBillAllocationStrip,
@@ -60,6 +62,36 @@ describe('resolveMonthlyAllocationAmounts', () => {
     });
     expect(result.allocatedAmount.amount).toBe('650.000000');
     expect(result.unallocatedAmount.amount).toBe('350.000000');
+  });
+
+  it('resolvePriorCorrectionAllocationMethod infers hours when method days but only basisHours stored', () => {
+    const lines = [
+      {
+        projectId: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+        amount: '5000',
+        percent: null,
+        basisHours: '168',
+        basisDays: null,
+        notes: null,
+      },
+      {
+        projectId: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
+        amount: '3250',
+        percent: null,
+        basisHours: '84',
+        basisDays: null,
+        notes: null,
+      },
+    ];
+    expect(resolvePriorCorrectionAllocationMethod('days', lines)).toBe('hours');
+    const mapped = mapPriorLinesForCorrection('hours', '8250', '8205', lines);
+    const result = resolveMonthlyAllocationAmounts({
+      knownAmount: money('8205', 'ILS'),
+      method: 'hours',
+      lines: mapped,
+    });
+    expect(result.allocatedAmount.amount).toBe('8205.000000');
+    expect(result.unallocatedAmount.amount).toBe('0.000000');
   });
 
   it('deriveKnownEmployerCost prefers actual when present', () => {

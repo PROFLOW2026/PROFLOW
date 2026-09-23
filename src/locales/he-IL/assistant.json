@@ -39,7 +39,7 @@
       "prepare_payment_reminder_draft": "טיוטת תזכורת תשלום"
     },
     "warningKinds": {
-      "actual_over_budget": "עלות בפועל מעל התקציב",
+      "actual_over_budget": "עלות מוכרת מעל התקציב",
       "projected_cost_over_budget": "תחזית עלות מעל התקציב",
       "insufficient_remaining_budget": "תקציב שנותר אינו מספיק",
       "forecast_margin_negative": "שיעור יתרת חוזה תחזית שלילי",

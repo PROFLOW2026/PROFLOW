@@ -873,36 +873,24 @@ export interface UnallocatedBusinessExpenseRow {
   readonly currency: string;
 }
 
-/** Finalized shared expenses with no project allocation (company pool attribution pending). */
+/** Finalized shared expenses requiring Owner project allocation (actionable only). */
 export async function listUnallocatedBusinessExpenses(
   db: DbExecutor,
   organizationId: string,
   currency: string,
   limit = 5,
 ): Promise<{ readonly items: readonly UnallocatedBusinessExpenseRow[]; readonly totalCount: number }> {
+  const { sqlExpenseRequiresProjectAllocationFilter } = await import(
+    '@/modules/expenses/data/expense-allocation-actionable-sql'
+  );
+  const actionableFilter = await sqlExpenseRequiresProjectAllocationFilter(
+    db,
+    organizationId,
+    'e',
+  );
   const baseConditions = sql`
-    e.organization_id = ${organizationId}
+    ${actionableFilter}
     and e.currency = ${currency}
-    and e.status = 'finalized'
-    and e.archived_at is null
-    and coalesce(e.inventory_stock_purchase, false) = false
-    and e.project_id is null
-    and e.cost_family = 'shared'
-    and e.voids_expense_id is null
-    and e.adjusts_expense_id is null
-    and not exists (
-      select 1 from expenses rev
-      where rev.voids_expense_id = e.id
-        and rev.organization_id = e.organization_id
-        and rev.status = 'finalized'
-        and rev.archived_at is null
-    )
-    and not exists (
-      select 1 from expense_allocations a
-      where a.expense_id = e.id
-        and a.organization_id = e.organization_id
-        and a.project_id is not null
-    )
   `;
 
   const countRow = sqlFirstRow<{ count: number }>(
@@ -935,6 +923,31 @@ export async function listUnallocatedBusinessExpenses(
     items,
     totalCount: countRow?.count ?? 0,
   };
+}
+
+/** Sum NET of expenses that require Owner project allocation (dashboard attention predicate). */
+export async function sumExpensesRequiringProjectAllocation(
+  db: DbExecutor,
+  organizationId: string,
+  currency: string,
+): Promise<MoneyValue> {
+  const { sqlExpenseRequiresProjectAllocationFilter } = await import(
+    '@/modules/expenses/data/expense-allocation-actionable-sql'
+  );
+  const actionableFilter = await sqlExpenseRequiresProjectAllocationFilter(
+    db,
+    organizationId,
+    'e',
+  );
+  const row = sqlFirstRow<{ total: string }>(
+    await db.execute(sql`
+      select coalesce(sum(e.net_amount), 0)::text as total
+      from expenses e
+      where ${actionableFilter}
+        and e.currency = ${currency}
+    `),
+  );
+  return fromNumericString(row?.total ?? '0', currency) ?? zeroMoney(currency);
 }
 
 interface InstallmentRecognition {

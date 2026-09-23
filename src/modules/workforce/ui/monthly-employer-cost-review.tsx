@@ -150,8 +150,20 @@ export function MonthlyEmployerCostReview({
     setAllocated(review.run?.allocatedAmount ?? review.preview?.allocatedAmount ?? '');
     setAllocationLines(mapReviewLines(review.lines, projects));
     setSavedDraft(false);
-    setApplied(false);
+    setApplied(month?.status === 'applied' || month?.status === 'closed');
     setActionError(null);
+  }
+
+  async function refreshCurrentMonthReview() {
+    const result = await loadMonthlyEmployerCostReviewAction({ employeeId, yearMonth });
+    if (result.error) {
+      setActionError(result.error);
+      return false;
+    }
+    if (result.review) {
+      applyLoadedReview(result.review, yearMonth);
+    }
+    return true;
   }
 
   async function handleYearMonthChange(nextYearMonth: string) {
@@ -258,8 +270,9 @@ export function MonthlyEmployerCostReview({
         setActionError(result.error);
         return;
       }
+      const refreshed = await refreshCurrentMonthReview();
+      if (!refreshed) return;
       setSavedDraft(true);
-      setApplied(hasAppliedMonth);
     });
   }
 
@@ -273,6 +286,8 @@ export function MonthlyEmployerCostReview({
         return;
       }
       if (hasAppliedMonth) {
+        const refreshed = await refreshCurrentMonthReview();
+        if (!refreshed) return;
         setSavedDraft(true);
         setApplied(true);
         return;
@@ -285,6 +300,8 @@ export function MonthlyEmployerCostReview({
         setActionError(applyResult.error);
         return;
       }
+      const refreshed = await refreshCurrentMonthReview();
+      if (!refreshed) return;
       setSavedDraft(true);
       setApplied(true);
     });
@@ -302,7 +319,8 @@ export function MonthlyEmployerCostReview({
         setActionError(result.error);
         return;
       }
-      setActual('');
+      const refreshed = await refreshCurrentMonthReview();
+      if (!refreshed) return;
       setSavedDraft(true);
       setApplied(true);
     });

@@ -26,6 +26,12 @@ import {
   AllocatedGeneralDetailPanel,
   type AllocatedGeneralDetailCopy,
 } from './allocated-general-detail-panel';
+import type { ProjectCostPaymentSummary, ProjectSourcePaymentDetail } from '../domain/project-source-payment-detail';
+import {
+  ProjectCostPaymentSummaryView,
+  ProjectSourcePaymentDetailView,
+  type SourcePaymentDetailCopy,
+} from './project-source-payment-detail-view';
 
 export type OwnerStoryCopy = {
   readonly title: string;
@@ -84,6 +90,18 @@ export type OwnerStoryCopy = {
   readonly fullCostFormulaTitle?: string;
   readonly sourceMonthClose?: string;
   readonly unnamedSource?: string;
+  readonly openCommitmentsHint?: string;
+  readonly sourcePayment?: SourcePaymentDetailCopy;
+  readonly costPaymentSummary?: {
+    readonly title: string;
+    readonly recognizedNet: string;
+    readonly paidGross: string;
+    readonly remainingGross: string;
+    readonly apOutstanding: string;
+    readonly multiProjectHint: string;
+    readonly laborPayrollHint: string;
+    readonly unavailable: string;
+  };
 };
 
 export type OwnerStoryMetrics = {
@@ -212,6 +230,11 @@ export function ProjectOwnerStoryPanel({
         label={copy.openCommitments}
         value={metrics.openCommitments}
         unavailable={copy.unavailable}
+        subtitle={
+          copy.openCommitmentsHint ? (
+            <p className="text-xs text-[var(--pf-text-muted)]">{copy.openCommitmentsHint}</p>
+          ) : null
+        }
       />
       <StoryRow
         label={copy.forecastFinal}
@@ -456,20 +479,36 @@ function sourceHref(
   return `/projects/${projectId}?tab=team`;
 }
 
+function resolveSourcePaymentDetail(
+  atom: ProjectActualBreakdown['categories'][number]['atoms'][number],
+  sourcePaymentDetails: ReadonlyMap<string, ProjectSourcePaymentDetail> | undefined,
+): ProjectSourcePaymentDetail | null {
+  if (!sourcePaymentDetails || atom.sourceKind !== 'expense') return null;
+  return sourcePaymentDetails.get(atom.sourceId) ?? null;
+}
+
 function AtomList({
   atoms,
   copy,
   projectId,
   categoryKey,
   subcontractCommercial,
+  sourcePaymentDetails,
 }: {
   atoms: ProjectActualBreakdown['categories'][number]['atoms'];
   copy: OwnerStoryCopy;
   projectId: string;
   categoryKey: ProjectActualBreakdownCategoryKey;
   subcontractCommercial?: readonly SubcontractCommercialDrillRow[] | null;
+  sourcePaymentDetails?: ReadonlyMap<string, ProjectSourcePaymentDetail>;
 }) {
   const locale = useLocale();
+  const showPaymentDetail =
+    copy.sourcePayment &&
+    (categoryKey === 'subcontractors' ||
+      categoryKey === 'vendors' ||
+      categoryKey === 'materials' ||
+      categoryKey === 'otherExpenses');
   if (atoms.length === 0 && !(subcontractCommercial && subcontractCommercial.length > 0)) {
     return <p className="text-xs text-[var(--pf-text-muted)]">{copy.unavailable}</p>;
   }
@@ -522,23 +561,33 @@ function AtomList({
                 <ul className="mt-1 flex flex-col gap-1 border-t border-[var(--pf-border-default)] pt-1">
                   {group.atoms.map((atom) => {
                     const href = sourceHref(atom, projectId);
+                    const paymentDetail = resolveSourcePaymentDetail(atom, sourcePaymentDetails);
                     return (
                       <li
                         key={`${atom.sourceKind}-${atom.sourceId}`}
-                        className="flex justify-between gap-2"
+                        className="flex flex-col gap-1"
                       >
-                        <span className="min-w-0 truncate text-[var(--pf-text-secondary)]">
-                          {href ? (
-                            <Link href={href} className={textNavLinkClassName}>
-                              {displayActualAtomLabel(atom, atomDisplay)}
-                            </Link>
-                          ) : (
-                            displayActualAtomLabel(atom, atomDisplay)
-                          )}
-                        </span>
-                        <span className="shrink-0">
-                          <MoneyText value={atom.amount} />
-                        </span>
+                        <div className="flex justify-between gap-2">
+                          <span className="min-w-0 truncate text-[var(--pf-text-secondary)]">
+                            {href ? (
+                              <Link href={href} className={textNavLinkClassName}>
+                                {displayActualAtomLabel(atom, atomDisplay)}
+                              </Link>
+                            ) : (
+                              displayActualAtomLabel(atom, atomDisplay)
+                            )}
+                          </span>
+                          <span className="shrink-0">
+                            <MoneyText value={atom.amount} />
+                          </span>
+                        </div>
+                        {showPaymentDetail && paymentDetail && copy.sourcePayment ? (
+                          <ProjectSourcePaymentDetailView
+                            detail={paymentDetail}
+                            copy={copy.sourcePayment}
+                            locale={locale}
+                          />
+                        ) : null}
                       </li>
                     );
                   })}
@@ -574,20 +623,30 @@ function AtomList({
     >
       {atoms.slice(0, 40).map((atom) => {
         const href = sourceHref(atom, projectId);
+        const paymentDetail = resolveSourcePaymentDetail(atom, sourcePaymentDetails);
         return (
-          <li key={`${atom.sourceKind}-${atom.sourceId}`} className="flex justify-between gap-2">
-            <span className="min-w-0 truncate text-[var(--pf-text-secondary)]">
-              {href ? (
-                <Link href={href} className={textNavLinkClassName}>
-                  {displayActualAtomLabel(atom, atomDisplay)}
-                </Link>
-              ) : (
-                displayActualAtomLabel(atom, atomDisplay)
-              )}
-            </span>
-            <span className="shrink-0">
-              <MoneyText value={atom.amount} />
-            </span>
+          <li key={`${atom.sourceKind}-${atom.sourceId}`} className="flex flex-col gap-1">
+            <div className="flex justify-between gap-2">
+              <span className="min-w-0 truncate text-[var(--pf-text-secondary)]">
+                {href ? (
+                  <Link href={href} className={textNavLinkClassName}>
+                    {displayActualAtomLabel(atom, atomDisplay)}
+                  </Link>
+                ) : (
+                  displayActualAtomLabel(atom, atomDisplay)
+                )}
+              </span>
+              <span className="shrink-0">
+                <MoneyText value={atom.amount} />
+              </span>
+            </div>
+            {showPaymentDetail && paymentDetail && copy.sourcePayment ? (
+              <ProjectSourcePaymentDetailView
+                detail={paymentDetail}
+                copy={copy.sourcePayment}
+                locale={locale}
+              />
+            ) : null}
           </li>
         );
       })}
@@ -612,6 +671,7 @@ function BreakdownCategoryCard({
   laborByEmployee,
   laborTotal,
   subcontractCommercial,
+  sourcePaymentDetails,
   isOpen,
   onToggle,
   percentDenominator,
@@ -622,6 +682,7 @@ function BreakdownCategoryCard({
   laborByEmployee: ProjectLaborByEmployeeAggregate | null;
   laborTotal: MoneyValue;
   subcontractCommercial?: readonly SubcontractCommercialDrillRow[] | null;
+  sourcePaymentDetails?: ReadonlyMap<string, ProjectSourcePaymentDetail>;
   isOpen: boolean;
   onToggle: () => void;
   percentDenominator: MoneyValue;
@@ -677,6 +738,7 @@ function BreakdownCategoryCard({
               projectId={projectId}
               categoryKey={category.key}
               subcontractCommercial={subcontractCommercial}
+              sourcePaymentDetails={sourcePaymentDetails}
             />
           )}
         </div>
@@ -762,6 +824,8 @@ export function ProjectActualBreakdownView({
   allocatedGeneral = null,
   breakdownTotalOverride = null,
   costComposition = null,
+  sourcePaymentDetails,
+  costPaymentSummary = null,
 }: {
   breakdown: ProjectActualBreakdown;
   laborByEmployee: ProjectLaborByEmployeeAggregate | null;
@@ -778,7 +842,10 @@ export function ProjectActualBreakdownView({
     readonly directActual: MoneyValue;
     readonly fullActual: MoneyValue;
   } | null;
+  sourcePaymentDetails?: ReadonlyMap<string, ProjectSourcePaymentDetail>;
+  costPaymentSummary?: ProjectCostPaymentSummary | null;
 }) {
+  const locale = useLocale();
   const [openKey, setOpenKey] = useState<ProjectActualBreakdownCategoryKey | 'allocatedGeneral' | null>(
     null,
   );
@@ -801,6 +868,14 @@ export function ProjectActualBreakdownView({
     <div className="flex flex-col gap-3" data-pf-actual-breakdown>
       <h3 className="text-base font-semibold">{copy.breakdownTitle}</h3>
 
+      {costPaymentSummary && copy.costPaymentSummary ? (
+        <ProjectCostPaymentSummaryView
+          copy={copy.costPaymentSummary}
+          summary={costPaymentSummary}
+          locale={locale}
+        />
+      ) : null}
+
       {showDirectFullLayers && copy.directBreakdownSectionTitle ? (
         <p
           className="text-xs font-medium uppercase tracking-wide text-[var(--pf-text-secondary)]"
@@ -820,6 +895,7 @@ export function ProjectActualBreakdownView({
             laborByEmployee={laborByEmployee}
             laborTotal={laborTotal}
             subcontractCommercial={subcontractCommercial}
+            sourcePaymentDetails={sourcePaymentDetails}
             isOpen={openKey === category.key}
             onToggle={() => setOpenKey(openKey === category.key ? null : category.key)}
             percentDenominator={directTotal}

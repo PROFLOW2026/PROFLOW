@@ -637,11 +637,13 @@ export async function countExpensesNeedingAttentionForOrg(
     return 0;
   }
 
+  const intentReady = await isAllocationIntentSchemaReady(db);
   const sharedUnallocated = and(
     eq(expenses.status, 'finalized'),
     eq(expenses.costFamily, 'shared'),
     isNull(expenses.projectId),
     eq(expenses.inventoryStockPurchase, false),
+    ...(intentReady ? [eq(expenses.allocationIntent, 'project_allocate')] : []),
     not(
       exists(
         db

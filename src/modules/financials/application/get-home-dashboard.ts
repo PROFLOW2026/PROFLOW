@@ -72,6 +72,7 @@ import {
   hasAnyExpenseUsage,
   listUnallocatedBusinessExpenses,
   loadOrganizationExpenseContributions,
+  sumExpensesRequiringProjectAllocation,
   sumOrganizationActualCosts,
   sumOrganizationCompanyOnlyExpenses,
   sumOrganizationRecognizedCostsInDateRange,
@@ -751,16 +752,23 @@ export async function getHomeDashboard(
       reasons: rollup.dataConfidence.reasons as DataConfidence['reasons'],
     });
   }
+  const actionableUnallocatedCosts = canReadExpenses
+    ? await sumExpensesRequiringProjectAllocation(context.db, context.organizationId, currency)
+    : null;
+
   if (costCoverage) {
     dataConfidencePieces.push(
       dataConfidenceFromCoverage(costCoverage, {
-        unallocatedRemainder: unallocatedBusinessCosts,
+        unallocatedRemainder: actionableUnallocatedCosts,
       }),
     );
-  } else if (unallocatedBusinessCosts && !isZeroMoney(unallocatedBusinessCosts)) {
+  } else if (
+    actionableUnallocatedCosts &&
+    !isZeroMoney(actionableUnallocatedCosts)
+  ) {
     dataConfidencePieces.push(
       dataConfidenceFromCoverage(buildFinancialCoverage([], new Date()), {
-        unallocatedRemainder: unallocatedBusinessCosts,
+        unallocatedRemainder: actionableUnallocatedCosts,
       }),
     );
   }
@@ -784,8 +792,8 @@ export async function getHomeDashboard(
           unallocatedBusinessCosts,
           unallocatedExpensePreview:
             canReadExpenses &&
-            unallocatedBusinessCosts &&
-            !isZeroMoney(unallocatedBusinessCosts)
+            actionableUnallocatedCosts &&
+            !isZeroMoney(actionableUnallocatedCosts)
               ? await listUnallocatedBusinessExpenses(
                   context.db,
                   context.organizationId,
@@ -793,7 +801,7 @@ export async function getHomeDashboard(
                   5,
                 ).then((preview) => ({
                   count: preview.totalCount,
-                  amount: unallocatedBusinessCosts,
+                  amount: actionableUnallocatedCosts,
                   samples: preview.items,
                 }))
               : null,

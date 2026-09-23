@@ -28,7 +28,9 @@ import {
 import { findProjectById } from '../data/project-refs.repository';
 import {
   deriveKnownEmployerCost,
+  mapPriorLinesForCorrection,
   resolveMonthlyAllocationAmounts,
+  resolvePriorCorrectionAllocationMethod,
 } from '../domain/monthly-allocation';
 import {
   areEmployeeMonthCostsAvailable,
@@ -491,37 +493,24 @@ export async function correctMonthlyEmployerCostActual(
 
     let run: LaborAllocationRunRow | null = null;
     if (priorLines.length > 0) {
-      const method = (priorRun?.method as MonthlyAllocationMethod) ?? 'percent';
-      const lineInputs = priorLines.map((line) => {
-        if (method === 'fixed_amount') {
-          const ratio = Number(month.knownAmount) / Number(existing.knownAmount);
-          const nextAmount = (Number(line.amount) * ratio).toFixed(6);
-          return {
-            projectId: line.projectId ?? '',
-            amount: nextAmount,
-            notes: line.notes,
-          };
-        }
-        if (method === 'percent') {
-          return {
-            projectId: line.projectId ?? '',
-            percent: line.percent,
-            notes: line.notes,
-          };
-        }
-        if (method === 'hours') {
-          return {
-            projectId: line.projectId ?? '',
-            hours: line.basisHours,
-            notes: line.notes,
-          };
-        }
-        return {
-          projectId: line.projectId ?? '',
-          days: line.basisDays,
-          notes: line.notes,
-        };
-      });
+      const priorSnapshots = priorLines.map((line) => ({
+        projectId: line.projectId,
+        amount: line.amount,
+        percent: line.percent,
+        basisHours: line.basisHours,
+        basisDays: line.basisDays,
+        notes: line.notes,
+      }));
+      const method = resolvePriorCorrectionAllocationMethod(
+        (priorRun?.method as MonthlyAllocationMethod | undefined) ?? null,
+        priorSnapshots,
+      );
+      const lineInputs = mapPriorLinesForCorrection(
+        method,
+        existing.knownAmount,
+        month.knownAmount,
+        priorSnapshots,
+      );
       const resolution = resolveMonthlyAllocationAmounts({
         knownAmount: money(month.knownAmount, month.currency),
         method,
@@ -530,7 +519,7 @@ export async function correctMonthlyEmployerCostActual(
       run = await insertDraftLaborAllocationRun(tx, {
         organizationId: context.organizationId,
         employeeMonthCostId: month.id,
-        method: (priorRun?.method as MonthlyAllocationMethod) ?? 'fixed_amount',
+        method,
         currency: month.currency,
         allocatedAmount: resolution.allocatedAmount.amount,
         unallocatedAmount: resolution.unallocatedAmount.amount,

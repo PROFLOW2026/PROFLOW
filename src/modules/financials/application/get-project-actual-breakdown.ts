@@ -20,6 +20,14 @@ import type { ProjectFinancials } from '../domain/types';
 import { loadProjectExpenseContributions } from '../data/expenses.repository';
 import { loadRecognizedVendorBillAtomsForProject } from '../data/recognized-vendor-bill-atoms.repository';
 import { loadRecognizedVendorBillsForProject } from '../data/committed-costs.repository';
+import {
+  buildProjectCostPaymentSummary,
+  loadProjectSourcePaymentDetails,
+} from '../data/project-source-payment-detail.repository';
+import type {
+  ProjectCostPaymentSummary,
+  ProjectSourcePaymentDetail,
+} from '../domain/project-source-payment-detail';
 
 export type { ProjectLaborByEmployeeAggregate };
 
@@ -53,6 +61,8 @@ export interface ProjectActualBreakdownResult {
   readonly breakdown: ProjectActualBreakdown;
   readonly laborByEmployee: ProjectLaborByEmployeeAggregate | null;
   readonly financialsActual: MoneyValue;
+  readonly sourcePaymentDetails: ReadonlyMap<string, ProjectSourcePaymentDetail>;
+  readonly costPaymentSummary: ProjectCostPaymentSummary | null;
 }
 
 /**
@@ -202,10 +212,36 @@ export async function getProjectActualBreakdown(
 
   assertBreakdownReconciles(breakdown);
 
+  const canReadExpensePayments = canReadExpenses;
+  const paymentPack = canReadExpensePayments
+    ? await loadProjectSourcePaymentDetails(
+        context.db,
+        context.organizationId,
+        projectId,
+        currency,
+      )
+    : null;
+
+  const openAp = resolvedFinancials.cost.openApPayable;
+  const costPaymentSummary = paymentPack
+    ? buildProjectCostPaymentSummary({
+        currency,
+        recognizedNet: totalActual,
+        apOutstandingGross:
+          openAp && !isZeroMoney(openAp) ? openAp : null,
+        sourcePaidGross: paymentPack.summary.sourcePaidGross,
+        sourceRemainingGross: paymentPack.summary.sourceRemainingGross,
+        multiProjectSourceCount: paymentPack.summary.multiProjectSourceCount,
+        expenseSourceCount: paymentPack.summary.expenseSourceCount,
+      })
+    : null;
+
   return {
     breakdown,
     laborByEmployee,
     financialsActual: totalActual,
+    sourcePaymentDetails: paymentPack?.bySourceId ?? new Map(),
+    costPaymentSummary,
   };
 }
 

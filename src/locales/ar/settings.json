@@ -618,6 +618,7 @@
         "updated": "تم تحديث المصروف",
         "finalized": "تم اعتماد المصروف",
         "voided": "أُلغي المصروف",
+        "restored": "استُعيد المصروف",
         "payment_confirmed": "تم تأكيد دفع المصروف",
         "payment_confirmation_voided": "أُلغي تأكيد دفع المصروف",
         "integrity_repair": "تم إصلاح سلامة بيانات المصروف",

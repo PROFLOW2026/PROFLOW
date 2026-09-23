@@ -41,6 +41,7 @@ import { ExpenseEditForm } from '@/app/[locale]/(app)/expenses/[expenseId]/expen
 import { PromoteVendorPanel } from '@/app/[locale]/(app)/expenses/[expenseId]/promote-vendor-panel';
 import { ExpenseDetailResolveFocus } from '@/modules/expenses/ui/expense-detail-resolve-focus';
 import { ExpenseDetailAttentionPanel } from '@/modules/expenses/ui/expense-detail-attention-panel';
+import { ExpenseRoutingStatusPanel } from '@/modules/expenses/ui/expense-routing-status-panel';
 import { ExpensePaymentPanel } from '@/modules/expenses/ui/expense-payment-panel';
 import { ExpenseActivityTimelineSection } from '@/modules/expenses/ui/expense-activity-timeline-section';
 import { resolveExpenseDetailAttention } from '@/modules/expenses/domain/expense-attention';
@@ -202,6 +203,16 @@ export async function ExpensesOrgDetailPage({
       />
 
       {detailAttention ? <ExpenseDetailAttentionPanel attention={detailAttention} /> : null}
+
+      {expense.status === 'finalized' && !expense.projectId ? (
+        <ExpenseRoutingStatusPanel
+          allocationIntent={expense.allocationIntent}
+          costFamily={expense.costFamily}
+          hasProjectAllocationLine={expense.allocations.some(
+            (line) => line.targetType === 'project' && line.projectId != null,
+          )}
+        />
+      ) : null}
 
       {detailAttention === 'project_allocation' && readOnly ? (
         <div id="expense-allocation" className="scroll-mt-24" aria-hidden />

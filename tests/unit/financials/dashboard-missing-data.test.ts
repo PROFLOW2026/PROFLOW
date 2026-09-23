@@ -85,6 +85,11 @@ describe('buildDashboardMissingDataItems', () => {
       contractValueCoverage: null,
       billingCoverage: null,
       unallocatedBusinessCosts: money('120.00', ILS),
+      unallocatedExpensePreview: {
+        count: 2,
+        amount: money('120.00', ILS),
+        samples: [],
+      },
       openPriceProjectCount: 0,
       pricedProjectCount: 1,
       excludedForeignCurrencyCount: 0,

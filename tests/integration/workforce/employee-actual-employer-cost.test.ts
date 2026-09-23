@@ -229,6 +229,84 @@ describe('employee actual monthly employer cost', () => {
     });
   });
 
+  it('corrects applied month actual while preserving estimate (8250 → 8205)', async () => {
+    await database.asUser(userId, async (tx) => {
+      const context = await resolveOrgContext(tx, {
+        userId,
+        organizationId: orgId,
+        locale: 'he-IL',
+      });
+
+      await saveMonthlyEmployerCostDraft(context, {
+        employeeId,
+        yearMonth,
+        estimatedAmount: '8250',
+        actualAmount: null,
+        method: 'hours',
+        allocationLines: [
+          { projectId: projectAId, hours: '168' },
+          { projectId: projectBId, hours: '112' },
+        ],
+      });
+      await applyMonthlyEmployerCostAllocation(context, { employeeId, yearMonth });
+
+      await correctMonthlyEmployerCostActual(context, {
+        employeeId,
+        yearMonth,
+        estimatedAmount: '8250',
+        actualAmount: '8205',
+      });
+
+      const [month] = await tx
+        .select({
+          estimatedAmount: employeeMonthCosts.estimatedAmount,
+          actualAmount: employeeMonthCosts.actualAmount,
+          knownAmount: employeeMonthCosts.knownAmount,
+          status: employeeMonthCosts.status,
+        })
+        .from(employeeMonthCosts)
+        .where(
+          and(
+            eq(employeeMonthCosts.employeeId, employeeId),
+            eq(employeeMonthCosts.yearMonth, yearMonth),
+            eq(employeeMonthCosts.status, 'applied'),
+          ),
+        );
+      expect(month?.estimatedAmount).toBe('8250.000000');
+      expect(month?.actualAmount).toBe('8205.000000');
+      expect(month?.knownAmount).toBe('8205.000000');
+
+      const appliedLines = await tx
+        .select({ amount: laborAllocationRunLines.amount })
+        .from(laborAllocationRunLines)
+        .innerJoin(
+          laborAllocationRuns,
+          eq(laborAllocationRunLines.laborAllocationRunId, laborAllocationRuns.id),
+        )
+        .innerJoin(
+          employeeMonthCosts,
+          eq(laborAllocationRuns.employeeMonthCostId, employeeMonthCosts.id),
+        )
+        .where(
+          and(
+            eq(employeeMonthCosts.employeeId, employeeId),
+            eq(employeeMonthCosts.yearMonth, yearMonth),
+            eq(employeeMonthCosts.status, 'applied'),
+            eq(laborAllocationRuns.status, 'applied'),
+          ),
+        );
+      const total = appliedLines.reduce((sum, line) => sum + Number(line.amount), 0);
+      expect(total).toBeCloseTo(8205, 2);
+      expect(appliedLines).toHaveLength(2);
+
+      const monthRows = await tx
+        .select({ status: employeeMonthCosts.status })
+        .from(employeeMonthCosts)
+        .where(eq(employeeMonthCosts.employeeId, employeeId));
+      expect(monthRows.filter((row) => row.status === 'applied')).toHaveLength(1);
+    });
+  });
+
   it('return to estimate restores estimated effective cost', async () => {
     await database.asUser(userId, async (tx) => {
       const context = await resolveOrgContext(tx, {

@@ -215,19 +215,18 @@ export function buildDashboardMissingDataItems(
   }
 
   if (reasons.has('unallocated_remainder')) {
-    const hasRemainder =
-      input.unallocatedBusinessCosts != null &&
-      !isZeroMoney(input.unallocatedBusinessCosts) &&
-      Number(input.unallocatedBusinessCosts.amount) > 0;
-    if (hasRemainder) {
-      const preview = input.unallocatedExpensePreview;
+    const preview = input.unallocatedExpensePreview;
+    const hasActionableRemainder =
+      preview != null &&
+      preview.count > 0 &&
+      preview.amount != null &&
+      !isZeroMoney(preview.amount) &&
+      Number(preview.amount.amount) > 0;
+    if (hasActionableRemainder) {
       items.push({
-        ...itemForReason(
-          'unallocated_remainder',
-          preview?.count != null && preview.count > 0 ? preview.count : null,
-        ),
-        amount: preview?.amount ?? input.unallocatedBusinessCosts,
-        expenseSamples: preview?.samples ?? [],
+        ...itemForReason('unallocated_remainder', preview.count),
+        amount: preview.amount,
+        expenseSamples: preview.samples ?? [],
       });
     }
   }

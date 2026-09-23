@@ -877,6 +877,14 @@
     "excessStatusRequired": "الساعات الزائدة تتطلب حالة اعتماد.",
     "invalidHours": "كمية ساعات غير صالحة.",
     "breakStartInvalid": "ابدأ استراحة فقط أثناء تسجيل الدخول.",
-    "breakEndInvalid": "أنت لست في استراحة."
+    "breakEndInvalid": "أنت لست في استراحة.",
+    "monthCostRequired": "أدخل تكلفة مُشغّل تقديرية أو فعلية لهذا الشهر.",
+    "monthCostImmutable": "تم تطبيق هذا الشهر بالفعل. أعد الحفظ لتسجيل تصحيح.",
+    "monthCostClosed": "هذا الشهر مغلق ولا يمكن تغييره.",
+    "allocationBasisRequired": "كل سطر توزيع يحتاج ساعات أو أيام أو نسبة أو مبلغ.",
+    "allocationWeightsRequired": "يجب أن تكون أوزان التوزيع أكبر من صفر.",
+    "allocationOverKnown": "مبلغ التوزيع يتجاوز تكلفة المُشغّل للشهر.",
+    "allocationAmountPositive": "يجب أن يكون مبلغ التوزيع موجباً.",
+    "allocationRunNotDraft": "يمكن تطبيق مسودة توزيع فقط."
   }
 }

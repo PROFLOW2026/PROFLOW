@@ -75,6 +75,21 @@
     "autoPoolHint": "The cost enters the company general-cost pool and is split automatically across active projects by direct cost.",
     "companyOnlyHint": "The cost stays at company level only - it will not enter project cost or auto-allocation."
   },
+  "routingStatus": {
+    "autoPool": {
+      "title": "Automatic split across projects",
+      "body": "General expense with auto-pool intent — waiting for the general cost month (GCM) engine.",
+      "notManual": "No manual allocation action is required — this is not a routing error."
+    },
+    "companyOnly": {
+      "title": "Company-only general expense",
+      "body": "Counted at business level only — no project allocation required."
+    },
+    "projectAllocateIncomplete": {
+      "title": "Project allocation required",
+      "body": "You chose project allocation but no project lines exist yet — complete allocation for project recognition."
+    }
+  },
   "lifecycle": {
     "draftHint": "Saving creates a draft only. Approve it into costs when the amount is ready.",
     "overheadUnallocatedWarning": "This is a general business cost with no project allocation. It will not appear in any project’s Actual Cost or general business costs allocated to the project until you add allocation lines.",

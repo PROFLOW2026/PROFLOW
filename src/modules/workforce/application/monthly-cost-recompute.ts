@@ -516,7 +516,7 @@ export async function recomputeMonthlyEmployeeCostForOpenMonth(
     const run = await insertDraftLaborAllocationRun(tx, {
       organizationId: context.organizationId,
       employeeMonthCostId: month.id,
-      method: 'days',
+      method: 'hours',
       currency,
       allocatedAmount: toNumericString(allocatedAmount),
       unallocatedAmount: toNumericString(unallocatedAmount),

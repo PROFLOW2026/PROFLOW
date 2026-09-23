@@ -81,6 +81,26 @@ export function assertReversible(
   }
 }
 
+/** Simple void row (status void, not a reversal entry) can be restored to finalized. */
+export function assertRestorable(
+  status: ExpenseStatus,
+  voidsExpenseId: string | null,
+): void {
+  if (status !== 'void') {
+    throw new DomainRuleError(
+      'Only void expenses can be restored',
+      'expenses.errors.notRestorable',
+      { status },
+    );
+  }
+  if (voidsExpenseId) {
+    throw new DomainRuleError(
+      'Reversal entries cannot be restored with the simple void restore path',
+      'expenses.errors.reversalNotRestorable',
+    );
+  }
+}
+
 export function assertAdjustableOriginal(
   status: ExpenseStatus,
   voidsExpenseId: string | null,

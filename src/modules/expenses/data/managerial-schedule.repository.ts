@@ -71,6 +71,45 @@ export async function voidScheduleLines(
   });
 }
 
+export async function listVoidedScheduleYearMonths(
+  db: DbExecutor,
+  orgId: string,
+  expenseId: string,
+): Promise<string[]> {
+  const rows = await db
+    .select({ yearMonth: expenseManagerialScheduleLines.yearMonth })
+    .from(expenseManagerialScheduleLines)
+    .where(
+      and(
+        eq(expenseManagerialScheduleLines.organizationId, orgId),
+        eq(expenseManagerialScheduleLines.expenseId, expenseId),
+        eq(expenseManagerialScheduleLines.status, 'void'),
+      ),
+    )
+    .orderBy(asc(expenseManagerialScheduleLines.sortOrder), asc(expenseManagerialScheduleLines.yearMonth));
+  return rows.map((row) => row.yearMonth);
+}
+
+/** Undo voidScheduleLines for a finalized expense (recognized managerial lines). */
+export async function restoreScheduleLines(
+  db: DbExecutor,
+  orgId: string,
+  expenseId: string,
+): Promise<void> {
+  await asServiceRoleWrite(db, async () => {
+    await db
+      .update(expenseManagerialScheduleLines)
+      .set({ status: 'recognized' })
+      .where(
+        and(
+          eq(expenseManagerialScheduleLines.organizationId, orgId),
+          eq(expenseManagerialScheduleLines.expenseId, expenseId),
+          eq(expenseManagerialScheduleLines.status, 'void'),
+        ),
+      );
+  });
+}
+
 export async function replaceScheduleLines(
   db: DbExecutor,
   orgId: string,

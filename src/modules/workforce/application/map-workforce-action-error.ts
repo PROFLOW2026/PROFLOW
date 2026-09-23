@@ -82,21 +82,28 @@ export async function mapWorkforceActionError(
   const prefix = 'workforce.errors.';
   if (error.messageKey.startsWith(prefix)) {
     const shortKey = error.messageKey.slice(prefix.length);
-    if (shortKey === 'dailyHoursExceeded' && error.details?.breakdown) {
-      const breakdown = error.details.breakdown as {
-        standardHoursPerDay: string;
-        reportedSoFar: string;
-        newHours: string;
-        excessHours: string;
-      };
-      const tWorkforce = await getTranslations('workforce');
-      return {
-        error: tWorkforce('errors.dailyHoursExceeded'),
-        dailyExcessWarning: breakdown,
-      };
+    const tWorkforce = await getTranslations('workforce');
+    try {
+      const translated = tWorkforce(`errors.${shortKey}` as 'errors.invalidBulkRange');
+      if (translated && !translated.startsWith('errors.')) {
+        if (shortKey === 'dailyHoursExceeded' && error.details?.breakdown) {
+          const breakdown = error.details.breakdown as {
+            standardHoursPerDay: string;
+            reportedSoFar: string;
+            newHours: string;
+            excessHours: string;
+          };
+          return {
+            error: translated,
+            dailyExcessWarning: breakdown,
+          };
+        }
+        return { error: translated };
+      }
+    } catch {
+      // Missing locale key — fall through to whitelist / fallback.
     }
     if ((WORKFORCE_ERROR_KEYS as readonly string[]).includes(shortKey)) {
-      const tWorkforce = await getTranslations('workforce');
       return { error: tWorkforce(`errors.${shortKey}` as 'errors.invalidBulkRange') };
     }
   }

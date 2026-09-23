@@ -877,6 +877,14 @@
     "excessStatusRequired": "Excess hours require an approval status.",
     "invalidHours": "Invalid hours quantity.",
     "breakStartInvalid": "Start a break only while clocked in.",
-    "breakEndInvalid": "You are not on a break."
+    "breakEndInvalid": "You are not on a break.",
+    "monthCostRequired": "Enter an estimated or actual employer cost for this month.",
+    "monthCostImmutable": "This month was already applied. Save again to record a correction.",
+    "monthCostClosed": "This month is closed and cannot be changed.",
+    "allocationBasisRequired": "Each allocation line needs hours, days, percent, or amount.",
+    "allocationWeightsRequired": "Allocation weights must be greater than zero.",
+    "allocationOverKnown": "Allocated amount exceeds the employer cost for this month.",
+    "allocationAmountPositive": "Allocation amount must be positive.",
+    "allocationRunNotDraft": "Only a draft allocation can be applied."
   }
 }
