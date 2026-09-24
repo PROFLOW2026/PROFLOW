@@ -23,15 +23,25 @@ import { DashboardRecentProjectsSection } from './dashboard-recent-projects-sect
 import type { DashboardKpiKey } from '../domain/dashboard-missing-data';
 import { resolveIntlLocale } from '@/shared/i18n/intl-locale';
 import {
+  buildAllocatedOverheadDetail,
   buildApOutstandingDetail,
   buildBillingInvoicedDetail,
   buildBillingOutstandingDetail,
   buildBillingPaidDetail,
   buildBusinessCashOutstandingDetail,
   buildBusinessCashPaidDetail,
+  buildCollectionsThisMonthDetail,
   buildCommitmentsDetail,
+  buildCompanyActualDetail,
+  buildCompanyProfitDetail,
+  buildContractValueDetail,
+  buildCostsThisMonthDetail,
   buildCurrentProfitDetail,
+  buildExpectedRemainingDetail,
   buildForecastCostDetail,
+  buildForecastProfitDetail,
+  buildInvoicedThisMonthDetail,
+  buildUnallocatedBusinessCostsDetail,
 } from '../domain/dashboard-kpi-detail-builders';
 import {
   mapDashboardKpiDetailCopy,
@@ -160,6 +170,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
 
   const detailCopy = mapDashboardKpiDetailCopy(t);
   const triggerCopy = mapDashboardKpiDetailTriggerCopy(t);
+  const kpiBreakdown = data.kpiBreakdown;
 
   function isKpiUnavailable(key: DashboardKpiKey): boolean {
     return data.kpiAvailability?.[key] === 'unavailable';
@@ -203,6 +214,16 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                 unavailableLabel={t('missingData.kpiUnavailable')}
                 unavailableHint={t('missingData.kpiUnavailableContractHint')}
                 hint={isKpiUnavailable('contractValue') ? undefined : tFinancial('basis.netExVat')}
+                detail={
+                  data.totalContractValue && !isKpiUnavailable('contractValue')
+                    ? buildContractValueDetail(
+                        data.totalContractValue,
+                        tFinancial('kpis.currentContract'),
+                        detailCopy,
+                      )
+                    : undefined
+                }
+                detailCopy={triggerCopy}
                 footer={
                   contractValueNote ? (
                     <p className="break-words text-xs text-[var(--pf-text-secondary)]">
@@ -272,7 +293,12 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                   data.forecast.totalForecastFinalCost && !isKpiUnavailable('forecastCost')
                     ? buildForecastCostDetail(
                         data.forecast.totalForecastFinalCost,
-                        data.forecast.totalActualProjectCost,
+                        {
+                          actualCost: data.forecast.totalActualProjectCost,
+                          committed: kpiBreakdown?.committed ?? data.forecast.totalRemainingCommitments,
+                          expectedRemaining:
+                            kpiBreakdown?.expectedRemaining ?? data.forecast.totalExpectedRemaining,
+                        },
                         tFinancial('kpis.forecast'),
                         detailCopy,
                       )
@@ -290,6 +316,20 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                 unavailable={isKpiUnavailable('forecastCost')}
                 unavailableLabel={t('missingData.kpiUnavailable')}
                 unavailableHint={t('missingData.kpiUnavailableCostHint')}
+                detail={
+                  data.forecast.totalExpectedRemaining && !isKpiUnavailable('forecastCost')
+                    ? buildExpectedRemainingDetail(
+                        data.forecast.totalExpectedRemaining,
+                        {
+                          actualCost: data.forecast.totalActualProjectCost,
+                          committed: kpiBreakdown?.committed ?? data.forecast.totalRemainingCommitments,
+                        },
+                        tFinancial('kpis.expectedRemaining'),
+                        detailCopy,
+                      )
+                    : undefined
+                }
+                detailCopy={triggerCopy}
               />
               <DashboardKpiCard
                 title={tFinancial('kpis.allocatedOverhead')}
@@ -301,6 +341,16 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                 unavailable={isKpiUnavailable('actualCost')}
                 unavailableLabel={t('missingData.kpiUnavailable')}
                 unavailableHint={t('missingData.kpiUnavailableCostHint')}
+                detail={
+                  data.forecast.totalAllocatedOverhead && !isKpiUnavailable('actualCost')
+                    ? buildAllocatedOverheadDetail(
+                        data.forecast.totalAllocatedOverhead,
+                        tFinancial('kpis.allocatedOverhead'),
+                        detailCopy,
+                      )
+                    : undefined
+                }
+                detailCopy={triggerCopy}
               />
               {data.showProfit && data.forecast.totalActualMargin ? (
                 <DashboardKpiCard
@@ -351,7 +401,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                   }
                   detail={
                     !isKpiUnavailable('forecastMargin')
-                      ? buildCurrentProfitDetail(
+                      ? buildForecastProfitDetail(
                           data.forecast.totalForecastMargin,
                           data.totalContractValue,
                           data.forecast.totalForecastFinalCost,
@@ -375,6 +425,17 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                   title={tFinancial('companyActual')}
                   money={data.forecast.companyActual}
                   hint={tFinancial('companyActualDashboardHint')}
+                  detail={
+                    kpiBreakdown
+                      ? buildCompanyActualDetail(
+                          data.forecast.companyActual,
+                          kpiBreakdown,
+                          tFinancial('companyActual'),
+                          detailCopy,
+                        )
+                      : undefined
+                  }
+                  detailCopy={triggerCopy}
                 />
               ) : null}
               {data.businessCashPosition?.actualPaid ? (
@@ -408,12 +469,35 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                   title={tFinancial('companyProfit')}
                   money={data.forecast.companyProfit}
                   hint={tFinancial('basis.profitNet')}
+                  detail={
+                    kpiBreakdown && data.forecast.companyActual
+                      ? buildCompanyProfitDetail(
+                          data.forecast.companyProfit,
+                          kpiBreakdown,
+                          data.forecast.companyActual,
+                          tFinancial('companyProfit'),
+                          detailCopy,
+                        )
+                      : undefined
+                  }
+                  detailCopy={triggerCopy}
                 />
               ) : null}
               {data.forecast.unallocatedBusinessCosts != null ? (
                 <DashboardKpiCard
                   title={tFinancial('unallocatedBusinessCosts')}
                   money={data.forecast.unallocatedBusinessCosts}
+                  detail={
+                    kpiBreakdown
+                      ? buildUnallocatedBusinessCostsDetail(
+                          data.forecast.unallocatedBusinessCosts,
+                          kpiBreakdown,
+                          tFinancial('unallocatedBusinessCosts'),
+                          detailCopy,
+                        )
+                      : undefined
+                  }
+                  detailCopy={triggerCopy}
                   footer={
                     <p className="break-words text-xs text-[var(--pf-text-secondary)]">
                       {tFinancial('unallocatedBusinessCostsHint')}
@@ -743,6 +827,14 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                   grossMoney={data.organizationSummary.grossInvoicedThisMonth}
                   grossLabel={tFinancial('kpis.includingVat')}
                   hint={tFinancial('kpis.billedHint')}
+                  detail={buildInvoicedThisMonthDetail(
+                    data.organizationSummary.invoicedThisMonth,
+                    data.organizationSummary.grossInvoicedThisMonth,
+                    data.selectedMonth,
+                    t('businessSummary.invoicedThisMonth'),
+                    detailCopy,
+                  )}
+                  detailCopy={triggerCopy}
                 />
               ) : null}
               {data.showBilling && cardSet.has('collections') ? (
@@ -752,12 +844,27 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                   grossMoney={data.organizationSummary.collectionsThisMonth}
                   grossLabel={tFinancial('kpis.includingVat')}
                   hint={tFinancial('kpis.paidHint')}
+                  detail={buildCollectionsThisMonthDetail(
+                    data.organizationSummary.netCollectionsThisMonth,
+                    data.organizationSummary.collectionsThisMonth,
+                    data.selectedMonth,
+                    t('businessSummary.collectionsThisMonth'),
+                    detailCopy,
+                  )}
+                  detailCopy={triggerCopy}
                 />
               ) : null}
               <DashboardKpiCard
                 title={t('businessSummary.costsThisMonth')}
                 money={data.organizationSummary.costsThisMonth}
                 hint={tFinancial('basis.actualNotCash')}
+                detail={buildCostsThisMonthDetail(
+                  data.organizationSummary.costsThisMonth,
+                  data.selectedMonth,
+                  t('businessSummary.costsThisMonth'),
+                  detailCopy,
+                )}
+                detailCopy={triggerCopy}
               />
             </div>
           </section>

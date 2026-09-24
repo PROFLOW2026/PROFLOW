@@ -1,7 +1,8 @@
 import type { OrgContractSummary } from './dashboard-contract-summary';
 import type { DashboardKpiDetailContent, DashboardKpiDetailLine } from './dashboard-kpi-detail';
 import type { BusinessCashPosition, BusinessCashSourceKey } from './business-cash-position';
-import { subtractMoney, type MoneyValue } from '@/shared/money';
+import type { HomeDashboardKpiBreakdown } from './home-dashboard-kpi-breakdown';
+import type { MoneyValue } from '@/shared/money';
 
 export interface DashboardKpiDetailCopy {
   readonly contractOriginalWhat: string;
@@ -50,10 +51,58 @@ export interface DashboardKpiDetailCopy {
   readonly labelPayrollPayments: string;
   readonly labelSubcontractAdvances: string;
   readonly expensesLink: string;
+  readonly expectedRemainingWhat: string;
+  readonly expectedRemainingFormula: string;
+  readonly allocatedOverheadWhat: string;
+  readonly allocatedOverheadFormula: string;
+  readonly companyActualWhat: string;
+  readonly companyActualFormula: string;
+  readonly companyProfitWhat: string;
+  readonly companyProfitFormula: string;
+  readonly unallocatedBusinessCostsWhat: string;
+  readonly unallocatedBusinessCostsFormula: string;
+  readonly contractValueWhat: string;
+  readonly contractValueFormula: string;
+  readonly profitabilityRateWhat: string;
+  readonly profitabilityRateFormula: string;
+  readonly forecastProfitWhat: string;
+  readonly forecastProfitFormula: string;
+  readonly invoicedThisMonthWhat: string;
+  readonly invoicedThisMonthFormula: string;
+  readonly collectionsThisMonthWhat: string;
+  readonly collectionsThisMonthFormula: string;
+  readonly costsThisMonthWhat: string;
+  readonly costsThisMonthFormula: string;
+  readonly labelLabor: string;
+  readonly labelVendors: string;
+  readonly labelOverhead: string;
+  readonly labelDirectProject: string;
+  readonly labelGeneralPool: string;
+  readonly labelCommitted: string;
+  readonly labelExpectedRemaining: string;
+  readonly labelRecognizedRevenue: string;
+  readonly labelCompanyOnlyByDesign: string;
+  readonly labelActionableUnallocated: string;
+  readonly labelGcmAutoPool: string;
+  readonly labelProfit: string;
+  readonly labelProfitabilityRate: string;
+  readonly labelForecastCost: string;
+  readonly monthReportsLink: string;
 }
 
 function lines(...items: DashboardKpiDetailLine[]): DashboardKpiDetailLine[] {
   return items;
+}
+
+function moneyLine(label: string, money: MoneyValue | null | undefined): DashboardKpiDetailLine | null {
+  if (!money || Number(money.amount) <= 0) return null;
+  return { label, money };
+}
+
+function moneyLines(
+  items: Array<DashboardKpiDetailLine | null>,
+): DashboardKpiDetailLine[] {
+  return items.filter((item): item is DashboardKpiDetailLine => item != null);
 }
 
 export function buildContractOriginalDetail(
@@ -235,13 +284,27 @@ export function buildActualCostDetail(
   actualCost: MoneyValue,
   title: string,
   copy: DashboardKpiDetailCopy,
+  operands?: Pick<
+    HomeDashboardKpiBreakdown,
+    'laborActual' | 'vendorActual' | 'overheadAllocated'
+  > | null,
 ): DashboardKpiDetailContent {
+  const componentLines = operands
+    ? moneyLines([
+        moneyLine(copy.labelLabor, operands.laborActual),
+        moneyLine(copy.labelVendors, operands.vendorActual),
+        moneyLine(copy.labelOverhead, operands.overheadAllocated),
+      ])
+    : [];
   return {
     title,
     value: actualCost,
     whatIs: copy.actualCostWhat,
     formula: copy.actualCostFormula,
-    breakdown: lines({ label: title, money: actualCost }),
+    breakdown:
+      componentLines.length > 0
+        ? [...componentLines, { label: title, money: actualCost }]
+        : lines({ label: title, money: actualCost }),
     fullScreenHref: '/reports?section=cost',
     fullScreenLabel: copy.reportsLink,
   };
@@ -249,22 +312,23 @@ export function buildActualCostDetail(
 
 export function buildForecastCostDetail(
   forecastCost: MoneyValue,
-  actualCost: MoneyValue | null,
+  operands: {
+    actualCost: MoneyValue | null;
+    committed: MoneyValue | null;
+    expectedRemaining: MoneyValue | null;
+  },
   title: string,
   copy: DashboardKpiDetailCopy,
 ): DashboardKpiDetailContent {
-  const remaining =
-    actualCost != null
-      ? subtractMoney(forecastCost, actualCost)
-      : null;
   return {
     title,
     value: forecastCost,
     whatIs: copy.forecastCostWhat,
     formula: copy.forecastCostFormula,
     breakdown: lines(
-      { label: copy.labelRecognizedCost, money: actualCost },
-      { label: copy.commitmentsWhat, money: remaining },
+      { label: copy.labelRecognizedCost, money: operands.actualCost },
+      { label: copy.labelCommitted, money: operands.committed },
+      { label: copy.labelExpectedRemaining, money: operands.expectedRemaining },
       { label: title, money: forecastCost },
     ),
     fullScreenHref: '/reports?section=cost',
@@ -373,5 +437,246 @@ export function buildBusinessCashOutstandingDetail(
     breakdown: businessCashBreakdownLines(position, copy, 'outstanding'),
     fullScreenHref: '/procurement/ap?status=open',
     fullScreenLabel: copy.apLink,
+  };
+}
+
+export function buildContractValueDetail(
+  contractValue: MoneyValue,
+  title: string,
+  copy: DashboardKpiDetailCopy,
+): DashboardKpiDetailContent {
+  return {
+    title,
+    value: contractValue,
+    whatIs: copy.contractValueWhat,
+    formula: copy.contractValueFormula,
+    breakdown: lines({ label: copy.labelTotal, money: contractValue }),
+    fullScreenHref: '/reports?section=commercial',
+    fullScreenLabel: copy.reportsLink,
+  };
+}
+
+export function buildExpectedRemainingDetail(
+  expectedRemaining: MoneyValue,
+  operands: {
+    actualCost: MoneyValue | null;
+    committed: MoneyValue | null;
+  },
+  title: string,
+  copy: DashboardKpiDetailCopy,
+): DashboardKpiDetailContent {
+  return {
+    title,
+    value: expectedRemaining,
+    whatIs: copy.expectedRemainingWhat,
+    formula: copy.expectedRemainingFormula,
+    breakdown: lines(
+      { label: copy.labelRecognizedCost, money: operands.actualCost },
+      { label: copy.labelCommitted, money: operands.committed },
+      { label: title, money: expectedRemaining },
+    ),
+    fullScreenHref: '/reports?section=cost',
+    fullScreenLabel: copy.reportsLink,
+  };
+}
+
+export function buildAllocatedOverheadDetail(
+  allocatedOverhead: MoneyValue,
+  title: string,
+  copy: DashboardKpiDetailCopy,
+): DashboardKpiDetailContent {
+  return {
+    title,
+    value: allocatedOverhead,
+    whatIs: copy.allocatedOverheadWhat,
+    formula: copy.allocatedOverheadFormula,
+    breakdown: lines({ label: copy.labelOverhead, money: allocatedOverhead }),
+    fullScreenHref: '/reports?section=cost',
+    fullScreenLabel: copy.reportsLink,
+  };
+}
+
+export function buildCompanyActualDetail(
+  companyActual: MoneyValue,
+  operands: Pick<
+    HomeDashboardKpiBreakdown,
+    'directProjectActual' | 'generalPool' | 'laborActual' | 'vendorActual' | 'overheadAllocated'
+  >,
+  title: string,
+  copy: DashboardKpiDetailCopy,
+): DashboardKpiDetailContent {
+  const componentLines = moneyLines([
+    moneyLine(copy.labelLabor, operands.laborActual),
+    moneyLine(copy.labelVendors, operands.vendorActual),
+    moneyLine(copy.labelOverhead, operands.overheadAllocated),
+  ]);
+  const structuralLines = lines(
+    { label: copy.labelDirectProject, money: operands.directProjectActual },
+    { label: copy.labelGeneralPool, money: operands.generalPool },
+  ).filter((line) => line.money != null && Number(line.money.amount) > 0);
+  return {
+    title,
+    value: companyActual,
+    whatIs: copy.companyActualWhat,
+    formula: copy.companyActualFormula,
+    breakdown: [
+      ...structuralLines,
+      ...componentLines,
+      { label: title, money: companyActual },
+    ],
+    fullScreenHref: '/reports?section=cost',
+    fullScreenLabel: copy.reportsLink,
+  };
+}
+
+export function buildCompanyProfitDetail(
+  companyProfit: MoneyValue,
+  operands: Pick<HomeDashboardKpiBreakdown, 'recognizedCompanyRevenue'>,
+  companyActual: MoneyValue,
+  title: string,
+  copy: DashboardKpiDetailCopy,
+): DashboardKpiDetailContent {
+  return {
+    title,
+    value: companyProfit,
+    whatIs: copy.companyProfitWhat,
+    formula: copy.companyProfitFormula,
+    breakdown: lines(
+      { label: copy.labelRecognizedRevenue, money: operands.recognizedCompanyRevenue },
+      { label: copy.labelRecognizedCost, money: companyActual },
+      { label: title, money: companyProfit },
+    ),
+    fullScreenHref: '/reports?section=profitability',
+    fullScreenLabel: copy.reportsLink,
+  };
+}
+
+export function buildUnallocatedBusinessCostsDetail(
+  total: MoneyValue,
+  operands: Pick<
+    HomeDashboardKpiBreakdown,
+    'companyOnlyExpenses' | 'actionableUnallocatedCosts' | 'unallocatableGeneral'
+  >,
+  title: string,
+  copy: DashboardKpiDetailCopy,
+): DashboardKpiDetailContent {
+  return {
+    title,
+    value: total,
+    whatIs: copy.unallocatedBusinessCostsWhat,
+    formula: copy.unallocatedBusinessCostsFormula,
+    breakdown: [
+      ...moneyLines([
+        moneyLine(copy.labelActionableUnallocated, operands.actionableUnallocatedCosts),
+        moneyLine(copy.labelCompanyOnlyByDesign, operands.companyOnlyExpenses),
+        moneyLine(copy.labelGcmAutoPool, operands.unallocatableGeneral),
+      ]),
+      { label: title, money: total },
+    ],
+    fullScreenHref: '/expenses?projectId=unallocated',
+    fullScreenLabel: copy.expensesLink,
+  };
+}
+
+export function buildForecastProfitDetail(
+  profit: MoneyValue,
+  contractTotal: MoneyValue | null,
+  forecastCost: MoneyValue | null,
+  title: string,
+  copy: DashboardKpiDetailCopy,
+): DashboardKpiDetailContent {
+  return {
+    title,
+    value: profit,
+    whatIs: copy.forecastProfitWhat,
+    formula: copy.forecastProfitFormula,
+    breakdown: lines(
+      { label: copy.labelContracts, money: contractTotal },
+      { label: copy.labelForecastCost, money: forecastCost },
+      { label: title, money: profit },
+    ),
+    fullScreenHref: '/reports?section=profitability',
+    fullScreenLabel: copy.reportsLink,
+  };
+}
+
+export function buildProfitabilityRateDetail(
+  percent: string,
+  profit: MoneyValue | null,
+  contractTotal: MoneyValue | null,
+  title: string,
+  copy: DashboardKpiDetailCopy,
+): DashboardKpiDetailContent {
+  return {
+    title,
+    valuePercent: percent,
+    whatIs: copy.profitabilityRateWhat,
+    formula: copy.profitabilityRateFormula,
+    breakdown: lines(
+      { label: copy.labelProfit, money: profit },
+      { label: copy.labelContracts, money: contractTotal },
+      { label: copy.labelProfitabilityRate, text: `${percent}%` },
+    ),
+    fullScreenHref: '/reports?section=profitability',
+    fullScreenLabel: copy.reportsLink,
+  };
+}
+
+export function buildInvoicedThisMonthDetail(
+  netInvoiced: MoneyValue,
+  grossInvoiced: MoneyValue,
+  selectedMonth: string,
+  title: string,
+  copy: DashboardKpiDetailCopy,
+): DashboardKpiDetailContent {
+  return {
+    title,
+    value: netInvoiced,
+    whatIs: copy.invoicedThisMonthWhat,
+    formula: copy.invoicedThisMonthFormula,
+    breakdown: lines(
+      { label: copy.labelBilled, money: netInvoiced },
+      { label: `${copy.labelBilled} (${copy.labelOutstanding})`, money: grossInvoiced },
+    ),
+    fullScreenHref: `/billing?month=${selectedMonth}`,
+    fullScreenLabel: copy.billingLink,
+  };
+}
+
+export function buildCollectionsThisMonthDetail(
+  netCollections: MoneyValue,
+  grossCollections: MoneyValue,
+  selectedMonth: string,
+  title: string,
+  copy: DashboardKpiDetailCopy,
+): DashboardKpiDetailContent {
+  return {
+    title,
+    value: netCollections,
+    whatIs: copy.collectionsThisMonthWhat,
+    formula: copy.collectionsThisMonthFormula,
+    breakdown: lines(
+      { label: copy.labelPaid, money: netCollections },
+      { label: `${copy.labelPaid} (${copy.labelOutstanding})`, money: grossCollections },
+    ),
+    fullScreenHref: `/billing?month=${selectedMonth}`,
+    fullScreenLabel: copy.billingLink,
+  };
+}
+
+export function buildCostsThisMonthDetail(
+  costsThisMonth: MoneyValue,
+  selectedMonth: string,
+  title: string,
+  copy: DashboardKpiDetailCopy,
+): DashboardKpiDetailContent {
+  return {
+    title,
+    value: costsThisMonth,
+    whatIs: copy.costsThisMonthWhat,
+    formula: copy.costsThisMonthFormula,
+    breakdown: lines({ label: title, money: costsThisMonth }),
+    fullScreenHref: `/reports?section=cost&month=${selectedMonth}`,
+    fullScreenLabel: copy.monthReportsLink,
   };
 }

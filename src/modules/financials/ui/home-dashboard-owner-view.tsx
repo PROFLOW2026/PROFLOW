@@ -19,7 +19,10 @@ import {
   buildApOutstandingDetail,
   buildBusinessCashOutstandingDetail,
   buildBusinessCashPaidDetail,
+  buildCompanyActualDetail,
+  buildContractValueDetail,
   buildCurrentProfitDetail,
+  buildProfitabilityRateDetail,
 } from '../domain/dashboard-kpi-detail-builders';
 import type { DashboardKpiDetailContent } from '../domain/dashboard-kpi-detail';
 import { DashboardMissingDataTrigger } from './dashboard-missing-data-trigger';
@@ -108,9 +111,10 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
 
   const actualCostMoney =
     data.totalActualCost ?? data.forecast?.totalActualProjectCost ?? undefined;
+  const kpiBreakdown = data.kpiBreakdown;
   const actualCostDetail =
     actualCostMoney && !costUnavailable
-      ? buildActualCostDetail(actualCostMoney, tFinancial('actualCostToDate'), detailCopy)
+      ? buildActualCostDetail(actualCostMoney, tFinancial('actualCostToDate'), detailCopy, kpiBreakdown)
       : undefined;
   const currentProfitDetail =
     data.actualProfitTotal && !profitUnavailable
@@ -191,6 +195,16 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
             money={data.totalContractValue ?? undefined}
             unavailable={contractUnavailable}
             unavailableLabel={t('missingData.kpiUnavailable')}
+            detail={
+              data.totalContractValue && !contractUnavailable
+                ? buildContractValueDetail(
+                    data.totalContractValue,
+                    t('ownerHeadline.workValue'),
+                    detailCopy,
+                  )
+                : undefined
+            }
+            detailCopy={triggerCopy}
           />
         ) : null}
         <KpiTile
@@ -216,6 +230,18 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
           percent={data.profitabilityPercent}
           unavailable={profitUnavailable && !data.profitabilityPercent}
           unavailableLabel={t('missingData.kpiUnavailable')}
+          detail={
+            data.profitabilityPercent && !profitUnavailable
+              ? buildProfitabilityRateDetail(
+                  data.profitabilityPercent,
+                  data.actualProfitTotal,
+                  data.totalContractValue,
+                  t('ownerHeadline.profitability'),
+                  detailCopy,
+                )
+              : undefined
+          }
+          detailCopy={triggerCopy}
         />
       </section>
 
@@ -226,6 +252,17 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
               title={tFinancial('companyActual')}
               money={data.forecast.companyActual}
               hint={tFinancial('companyActualDashboardHint')}
+              detail={
+                kpiBreakdown
+                  ? buildCompanyActualDetail(
+                      data.forecast.companyActual,
+                      kpiBreakdown,
+                      tFinancial('companyActual'),
+                      detailCopy,
+                    )
+                  : undefined
+              }
+              detailCopy={triggerCopy}
             />
           ) : null}
           {data.businessCashPosition?.actualPaid ? (

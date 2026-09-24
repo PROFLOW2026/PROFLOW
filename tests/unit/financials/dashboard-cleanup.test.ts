@@ -5,7 +5,10 @@ import { filterRowsByWorkKind } from '@/modules/financials/domain/work-kind-filt
 import { matchesWorkKindFilter } from '@/modules/financials/domain/work-pricing';
 import {
   buildBillingOutstandingDetail,
+  buildCompanyActualDetail,
   buildContractRemainingDetail,
+  buildForecastCostDetail,
+  buildUnallocatedBusinessCostsDetail,
 } from '@/modules/financials/domain/dashboard-kpi-detail-builders';
 import { buildOrgContractSummary } from '@/modules/financials/domain/dashboard-contract-summary';
 import { aggregateOrgCommercial } from '@/modules/financials/domain/aggregate-org-report';
@@ -62,6 +65,43 @@ const detailCopy = {
   labelPayrollPayments: 'Payroll',
   labelSubcontractAdvances: 'Advances',
   expensesLink: 'Expenses',
+  expectedRemainingWhat: 'ETC',
+  expectedRemainingFormula: 'forecast − actual − committed',
+  allocatedOverheadWhat: 'GCM allocated',
+  allocatedOverheadFormula: 'GCM sum',
+  companyActualWhat: 'Business recognized cost',
+  companyActualFormula: 'projects + general',
+  companyProfitWhat: 'Business profit',
+  companyProfitFormula: 'revenue − cost',
+  unallocatedBusinessCostsWhat: 'Unallocated',
+  unallocatedBusinessCostsFormula: 'components sum',
+  contractValueWhat: 'Contract value',
+  contractValueFormula: 'original + approved',
+  profitabilityRateWhat: 'Rate',
+  profitabilityRateFormula: 'profit / contracts',
+  forecastProfitWhat: 'Forecast profit',
+  forecastProfitFormula: 'contracts − forecast cost',
+  invoicedThisMonthWhat: 'Invoiced month',
+  invoicedThisMonthFormula: 'month billed',
+  collectionsThisMonthWhat: 'Collections month',
+  collectionsThisMonthFormula: 'month paid',
+  costsThisMonthWhat: 'Costs month',
+  costsThisMonthFormula: 'month recognized',
+  labelLabor: 'Labor',
+  labelVendors: 'Vendors',
+  labelOverhead: 'Overhead',
+  labelDirectProject: 'Projects',
+  labelGeneralPool: 'General pool',
+  labelCommitted: 'Committed',
+  labelExpectedRemaining: 'ETC',
+  labelRecognizedRevenue: 'Revenue',
+  labelCompanyOnlyByDesign: 'Company only',
+  labelActionableUnallocated: 'Actionable',
+  labelGcmAutoPool: 'GCM pool',
+  labelProfit: 'Profit',
+  labelProfitabilityRate: 'Rate',
+  labelForecastCost: 'Forecast cost',
+  monthReportsLink: 'Month reports',
 };
 
 function row(partial: Partial<ProjectRollupRow> & Pick<ProjectRollupRow, 'projectId' | 'name'>): ProjectRollupRow {
@@ -186,5 +226,80 @@ describe('dashboard cleanup — detail modals', () => {
     );
     expect(detail.formula).toContain('billed');
     expect(detail.breakdown).toHaveLength(4);
+  });
+
+  it('forecast cost detail uses recognized, committed, and ETC operands', () => {
+    const detail = buildForecastCostDetail(
+      money('1000', ILS),
+      {
+        actualCost: money('600', ILS),
+        committed: money('200', ILS),
+        expectedRemaining: money('200', ILS),
+      },
+      'Forecast',
+      detailCopy,
+    );
+    expect(detail.breakdown.map((line) => line.label)).toEqual([
+      detailCopy.labelRecognizedCost,
+      detailCopy.labelCommitted,
+      detailCopy.labelExpectedRemaining,
+      'Forecast',
+    ]);
+  });
+
+  it('company actual detail separates direct projects and general pool', () => {
+    const detail = buildCompanyActualDetail(
+      money('900', ILS),
+      {
+        directProjectActual: money('700', ILS),
+        generalPool: money('200', ILS),
+        laborActual: money('300', ILS),
+        vendorActual: money('250', ILS),
+        overheadAllocated: money('150', ILS),
+      },
+      'Company actual',
+      detailCopy,
+    );
+    expect(detail.breakdown.some((line) => line.label === detailCopy.labelDirectProject)).toBe(true);
+    expect(detail.breakdown.some((line) => line.label === detailCopy.labelGeneralPool)).toBe(true);
+  });
+
+  it('unallocated business costs detail exposes actionable and company_only lines', () => {
+    const detail = buildUnallocatedBusinessCostsDetail(
+      money('500', ILS),
+      {
+        actionableUnallocatedCosts: money('200', ILS),
+        companyOnlyExpenses: money('100', ILS),
+        unallocatableGeneral: money('200', ILS),
+      },
+      'Unallocated',
+      detailCopy,
+    );
+    expect(detail.breakdown.some((line) => line.label === detailCopy.labelActionableUnallocated)).toBe(
+      true,
+    );
+    expect(detail.fullScreenHref).toBe('/expenses?projectId=unallocated');
+  });
+
+  it('persona dashboard forecast cards wire detail triggers', () => {
+    const source = readFileSync(
+      resolve(process.cwd(), 'src/modules/financials/ui/home-dashboard-content.tsx'),
+      'utf8',
+    );
+    expect(source).toContain('buildExpectedRemainingDetail');
+    expect(source).toContain('buildAllocatedOverheadDetail');
+    expect(source).toContain('buildCompanyActualDetail');
+    expect(source).toContain('buildUnallocatedBusinessCostsDetail');
+    expect(source).toContain('buildInvoicedThisMonthDetail');
+  });
+
+  it('owner dashboard wires detail on work value and profitability', () => {
+    const source = readFileSync(
+      resolve(process.cwd(), 'src/modules/financials/ui/home-dashboard-owner-view.tsx'),
+      'utf8',
+    );
+    expect(source).toContain('buildContractValueDetail');
+    expect(source).toContain('buildProfitabilityRateDetail');
+    expect(source).toContain('buildCompanyActualDetail');
   });
 });

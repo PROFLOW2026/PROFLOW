@@ -100,6 +100,7 @@ import {
   getBusinessCashPosition,
   type BusinessCashPosition,
 } from './get-business-cash-position';
+import type { HomeDashboardKpiBreakdown } from '../domain/home-dashboard-kpi-breakdown';
 
 export interface DashboardAttention {
   readonly pendingChangesCount: number;
@@ -247,6 +248,8 @@ export interface HomeDashboardData {
   readonly contractNetInvoiced: MoneyValue | null;
   /** Resolved quick-access shortcuts for the signed-in user. */
   readonly quickAccessShortcuts: readonly DashboardQuickAccessDefinition[];
+  /** Preloaded operands for KPI detail modals (same values as dashboard KPIs). */
+  readonly kpiBreakdown: HomeDashboardKpiBreakdown | null;
 }
 
 export interface HomeDashboardOptions {
@@ -480,6 +483,7 @@ export async function getHomeDashboard(
       businessCashPosition: null,
       selectedMonth: effectiveSelectedMonth,
       workKindFilter: options.workKindFilter ?? null,
+      kpiBreakdown: null,
     };
   }
 
@@ -596,6 +600,7 @@ export async function getHomeDashboard(
   let estimatedProfit: MoneyValue | null = null;
   let forecast: OrganizationForecastSummary | null = null;
   let orgCommercial: ReturnType<typeof aggregateOrgCommercial> | null = null;
+  let kpiBreakdown: HomeDashboardKpiBreakdown | null = null;
 
   if (rollup) {
     const commercial = rollup.canReadCommercial
@@ -701,6 +706,23 @@ export async function getHomeDashboard(
       eligibleProjectCount: rollup.totalEligibleProjectCount,
       excludedForeignCurrencyCount: rollup.excludedForeignCurrencyCount,
     };
+
+    kpiBreakdown = {
+      laborActual: cost.labor?.value ?? null,
+      vendorActual: cost.vendors?.value ?? null,
+      overheadAllocated: cost.overhead?.value ?? null,
+      directProjectActual: cost.actual?.value ?? null,
+      generalPool: companyComposition?.generalRecognizedActual ?? null,
+      allocatedGeneralToProjects: companyComposition?.allocatedGeneralToProjects ?? null,
+      unallocatableGeneral: companyComposition?.unallocatableGeneral ?? null,
+      committed: cost.committed?.value ?? null,
+      expectedRemaining: cost.expectedRemaining?.value ?? null,
+      estimatedFinal: cost.estimatedFinal?.value ?? null,
+      unallocatedBusinessCosts: unallocatedBusinessCosts ?? null,
+      actionableUnallocatedCosts: null,
+      companyOnlyExpenses: expenseLayer?.companyOnlyExpenses ?? null,
+      recognizedCompanyRevenue: recognizedCompanyRevenue ?? null,
+    };
   }
 
   let billing: HomeDashboardData['billing'] = null;
@@ -767,6 +789,10 @@ export async function getHomeDashboard(
   const actionableUnallocatedCosts = canReadExpenses
     ? await sumExpensesRequiringProjectAllocation(context.db, context.organizationId, currency)
     : null;
+
+  if (kpiBreakdown) {
+    kpiBreakdown = { ...kpiBreakdown, actionableUnallocatedCosts };
+  }
 
   if (costCoverage) {
     dataConfidencePieces.push(
@@ -910,6 +936,7 @@ export async function getHomeDashboard(
     contractSummary,
     contractNetInvoiced,
     quickAccessShortcuts,
+    kpiBreakdown,
   };
 }
 
@@ -933,6 +960,7 @@ async function collectOrgExpenseLayer(
     hasCostData: boolean;
   };
   unallocatedBusinessCosts: MoneyValue | null;
+  companyOnlyExpenses: MoneyValue | null;
 }> {
   const canReadWorkforce = hasPermission(context, PERMISSIONS.WORKFORCE_READ);
   const canReadExpenses = hasPermission(context, PERMISSIONS.EXPENSES_READ);
@@ -1003,6 +1031,7 @@ async function collectOrgExpenseLayer(
     return {
       coverage: { sources: [], partials: [], hasCostData: false },
       unallocatedBusinessCosts,
+      companyOnlyExpenses: canReadExpenses ? companyOnlyExpenses : null,
     };
   }
 
@@ -1014,6 +1043,7 @@ async function collectOrgExpenseLayer(
       hasCostData: true,
     },
     unallocatedBusinessCosts,
+    companyOnlyExpenses: canReadExpenses ? companyOnlyExpenses : null,
   };
 }
 
