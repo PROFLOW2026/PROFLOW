@@ -7,6 +7,8 @@ import {
   sumTimeLaborPeriodReconciliation,
 } from '@/modules/workforce';
 import { getOrganizationApPayables } from '@/modules/ap';
+import { getMonthCashFlow } from './get-month-cash-flow';
+import type { MonthCashFlow } from '../domain/month-cash-flow';
 import {
   getBusinessProfileKeyForOrg,
   getModuleVisibility,
@@ -195,6 +197,7 @@ export interface HomeDashboardData {
     readonly collectionsThisMonth: MoneyValue;
     readonly netCollectionsThisMonth: MoneyValue;
     readonly costsThisMonth: MoneyValue;
+    readonly monthCash: MonthCashFlow;
   } | null;
   readonly attention: DashboardAttention;
   /** Null when the user cannot read workforce or there is nothing pending. */
@@ -584,6 +587,15 @@ export async function getHomeDashboard(
       ? await getBusinessCashPosition(context, { apPayables: apPayablesSummary })
       : null;
 
+  const monthCash =
+    !slimOwnerDashboard && parsedWorkKindFilter === 'all' && (canReadFinancials || canReadAp)
+      ? await getMonthCashFlow(context, {
+          from: monthStart,
+          to: monthEnd,
+          collectionsActual: collectionsThisMonth ?? zeroMoney(currency),
+        })
+      : null;
+
   // Derive overdue from the billing rows already loaded - avoid a second full org load.
   const overdueBillingCount = billingRows
     ? countOverdueFromBillingRows(billingRows, today)
@@ -758,6 +770,15 @@ export async function getHomeDashboard(
         collectionsThisMonth: collectionsThisMonth ?? zeroMoney(currency),
         netCollectionsThisMonth: netCollectionsThisMonth ?? zeroMoney(currency),
         costsThisMonth,
+        monthCash: monthCash ?? {
+          collectionsActual: collectionsThisMonth ?? zeroMoney(currency),
+          paidActual: zeroMoney(currency),
+          expectedOutgoing: zeroMoney(currency),
+          netCash: collectionsThisMonth ?? zeroMoney(currency),
+          forecastAfterRemaining: collectionsThisMonth ?? zeroMoney(currency),
+          paidLines: [],
+          expectedLines: [],
+        },
       };
     }
   } else if (!slimOwnerDashboard && canReadFinancials && hasExpenses && costsThisMonth) {
@@ -769,6 +790,15 @@ export async function getHomeDashboard(
       collectionsThisMonth: zeroMoney(currency),
       netCollectionsThisMonth: zeroMoney(currency),
       costsThisMonth,
+      monthCash: monthCash ?? {
+        collectionsActual: zeroMoney(currency),
+        paidActual: zeroMoney(currency),
+        expectedOutgoing: zeroMoney(currency),
+        netCash: zeroMoney(currency),
+        forecastAfterRemaining: zeroMoney(currency),
+        paidLines: [],
+        expectedLines: [],
+      },
     };
   }
 

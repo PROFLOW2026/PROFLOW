@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { Link } from '@/shared/i18n/navigation';
 import { CoverageDisclosure } from '@/components/patterns/coverage-disclosure';
+import { MoneyText } from '@/components/patterns/money-text';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { textNavLinkClassName } from '@/components/ui/pressable';
@@ -21,6 +22,8 @@ import { DashboardAttentionCards } from './dashboard-attention-cards';
 import { DashboardContractSummaryRow } from './dashboard-contract-summary-row';
 import { DashboardRecentProjectsSection } from './dashboard-recent-projects-section';
 import type { DashboardKpiKey } from '../domain/dashboard-missing-data';
+import type { DashboardKpiDetailContent } from '../domain/dashboard-kpi-detail';
+import type { MonthCashExpectedLine, MonthCashPaidLine } from '../domain/month-cash-flow';
 import { resolveIntlLocale } from '@/shared/i18n/intl-locale';
 import {
   buildAllocatedOverheadDetail,
@@ -30,7 +33,6 @@ import {
   buildBillingPaidDetail,
   buildBusinessCashOutstandingDetail,
   buildBusinessCashPaidDetail,
-  buildCollectionsThisMonthDetail,
   buildCommitmentsDetail,
   buildCompanyActualDetail,
   buildCompanyProfitDetail,
@@ -819,7 +821,88 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
             nextLabel={t('businessSummary.nextMonth')}
           />
           <section className="min-w-0 max-w-full">
-            <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-3">
+            <h3 className="mb-2 text-sm font-semibold text-[var(--pf-text-secondary)]">
+              {t('businessSummary.cashFlowTitle')}
+            </h3>
+            <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {data.showBilling && cardSet.has('collections') ? (
+                <DashboardKpiCard
+                  title={t('businessSummary.collectionsActual')}
+                  money={data.organizationSummary.monthCash.collectionsActual}
+                  hint={t('businessSummary.collectionsActualHint')}
+                  detail={monthCashTotalDetail(
+                    t('businessSummary.collectionsActual'),
+                    data.organizationSummary.monthCash.collectionsActual,
+                    t('businessSummary.collectionsActualWhat'),
+                    t('businessSummary.collectionsActualFormula'),
+                  )}
+                  detailCopy={triggerCopy}
+                />
+              ) : null}
+              <DashboardKpiCard
+                title={t('businessSummary.paidActual')}
+                money={data.organizationSummary.monthCash.paidActual}
+                hint={t('businessSummary.paidActualHint')}
+                detail={monthCashPaidDetail(
+                  data.organizationSummary.monthCash.paidLines,
+                  data.organizationSummary.monthCash.paidActual,
+                  t('businessSummary.paidActual'),
+                  t('businessSummary.paidActualWhat'),
+                  t('businessSummary.paidActualFormula'),
+                  t('businessSummary.cashMore', {
+                    count: Math.max(0, data.organizationSummary.monthCash.paidLines.length - 40),
+                  }),
+                )}
+                detailCopy={triggerCopy}
+              />
+              <DashboardKpiCard
+                title={t('businessSummary.expectedOutgoing')}
+                money={data.organizationSummary.monthCash.expectedOutgoing}
+                hint={t('businessSummary.expectedOutgoingHint')}
+                detail={monthCashExpectedDetail(
+                  data.organizationSummary.monthCash.expectedLines,
+                  data.organizationSummary.monthCash.expectedOutgoing,
+                  t('businessSummary.expectedOutgoing'),
+                  t('businessSummary.expectedOutgoingWhat'),
+                  t('businessSummary.expectedOutgoingFormula'),
+                  {
+                    unpaid: t('businessSummary.cashStatusUnpaid'),
+                    partial: t('businessSummary.cashStatusPartial'),
+                    open: t('businessSummary.cashStatusOpen'),
+                  },
+                  t('businessSummary.cashMore', {
+                    count: Math.max(0, data.organizationSummary.monthCash.expectedLines.length - 40),
+                  }),
+                )}
+                detailCopy={triggerCopy}
+              />
+              <DashboardKpiCard
+                title={t('businessSummary.netCash')}
+                money={data.organizationSummary.monthCash.netCash}
+                hint={t('businessSummary.netCashHint')}
+                detail={monthCashTotalDetail(
+                  t('businessSummary.netCash'),
+                  data.organizationSummary.monthCash.netCash,
+                  t('businessSummary.netCashWhat'),
+                  t('businessSummary.netCashFormula'),
+                )}
+                detailCopy={triggerCopy}
+              />
+            </div>
+            <p className="mt-2 text-sm text-[var(--pf-text-secondary)]">
+              {t('businessSummary.forecastAfterRemaining')}{' '}
+              <MoneyText
+                value={data.organizationSummary.monthCash.forecastAfterRemaining}
+                className="font-semibold"
+                colorizeNegative
+              />
+            </p>
+          </section>
+          <section className="min-w-0 max-w-full">
+            <h3 className="mb-2 text-sm font-semibold text-[var(--pf-text-secondary)]">
+              {t('businessSummary.profitabilityTitle')}
+            </h3>
+            <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
               {data.showBilling && cardSet.has('billing') ? (
                 <DashboardKpiCard
                   title={t('businessSummary.invoicedThisMonth')}
@@ -832,23 +915,6 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                     data.organizationSummary.grossInvoicedThisMonth,
                     data.selectedMonth,
                     t('businessSummary.invoicedThisMonth'),
-                    detailCopy,
-                  )}
-                  detailCopy={triggerCopy}
-                />
-              ) : null}
-              {data.showBilling && cardSet.has('collections') ? (
-                <DashboardKpiCard
-                  title={t('businessSummary.collectionsThisMonth')}
-                  money={data.organizationSummary.netCollectionsThisMonth}
-                  grossMoney={data.organizationSummary.collectionsThisMonth}
-                  grossLabel={tFinancial('kpis.includingVat')}
-                  hint={tFinancial('kpis.paidHint')}
-                  detail={buildCollectionsThisMonthDetail(
-                    data.organizationSummary.netCollectionsThisMonth,
-                    data.organizationSummary.collectionsThisMonth,
-                    data.selectedMonth,
-                    t('businessSummary.collectionsThisMonth'),
                     detailCopy,
                   )}
                   detailCopy={triggerCopy}
@@ -881,6 +947,70 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
       </section>
     </div>
   );
+}
+
+const MONTH_CASH_DETAIL_CAP = 40;
+
+function monthCashTotalDetail(
+  title: string,
+  value: DashboardKpiDetailContent['value'],
+  whatIs: string,
+  formula: string,
+): DashboardKpiDetailContent {
+  return { title, value, whatIs, formula, breakdown: [] };
+}
+
+function monthCashPaidDetail(
+  lines: readonly MonthCashPaidLine[],
+  total: NonNullable<DashboardKpiDetailContent['value']>,
+  title: string,
+  whatIs: string,
+  formula: string,
+  moreLabel: string,
+): DashboardKpiDetailContent {
+  const visible = lines.slice(0, MONTH_CASH_DETAIL_CAP);
+  const hidden = lines.length - visible.length;
+  return {
+    title,
+    value: total,
+    whatIs: hidden > 0 ? `${whatIs} ${moreLabel}` : whatIs,
+    formula,
+    breakdown: visible.map((line) => ({
+      label: [line.party, line.document, line.paymentDate, line.reference].filter(Boolean).join(' · '),
+      money: line.amount,
+    })),
+  };
+}
+
+function monthCashExpectedDetail(
+  lines: readonly MonthCashExpectedLine[],
+  total: NonNullable<DashboardKpiDetailContent['value']>,
+  title: string,
+  whatIs: string,
+  formula: string,
+  statusLabels: Readonly<Record<string, string>>,
+  moreLabel: string,
+): DashboardKpiDetailContent {
+  const visible = lines.slice(0, MONTH_CASH_DETAIL_CAP);
+  const hidden = lines.length - visible.length;
+  return {
+    title,
+    value: total,
+    whatIs: hidden > 0 ? `${whatIs} ${moreLabel}` : whatIs,
+    formula,
+    breakdown: visible.map((line) => ({
+      label: [
+        line.party,
+        line.document,
+        line.dueDate,
+        line.paymentTerms,
+        statusLabels[line.status] ?? line.status,
+      ]
+        .filter(Boolean)
+        .join(' · '),
+      money: line.remaining,
+    })),
+  };
 }
 
 /** Month navigator: ← Sep 2026 → links that change the `?month=YYYY-MM` query param. */
