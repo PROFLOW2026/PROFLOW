@@ -21,7 +21,7 @@
     "notNow": "Not now",
     "dismiss": "Skip this month"
   },
-  "financialGuard": "Financial items can only be opened or snoozed - they stay visible until resolved at the source.",
+  "financialGuard": "Marking this handled hides the alert only. The invoice, bill, or expense is not changed.",
   "severity": {
     "critical": "Critical",
     "high": "High",
@@ -45,7 +45,7 @@
     "project_over_budget": "Over budget",
     "forecast_warning": "Forecast warning",
     "open_approval": "Pending approval",
-    "overdue_planning": "Planning",
+    "overdue_planning": "Schedule / milestone overdue",
     "expiring_compliance": "Expiring compliance",
     "overdue_maintenance": "Maintenance",
     "credit_void_issue": "Credit / void",
@@ -78,7 +78,9 @@
     "payroll_overdue": "Payroll overdue",
     "payroll_pending_review": "Payroll pending review",
     "expense_needs_allocation": "Expense needs project allocation",
-    "monthly_workforce_report_ready": "Monthly workforce report"
+    "monthly_workforce_report_ready": "Monthly workforce report",
+    "task_overdue": "Overdue task",
+    "task_due_today": "Task due today"
   },
   "itemCopy": {
     "where": {
@@ -138,8 +140,8 @@
       "why": "{entity} awaits decision{money}"
     },
     "overduePlanning": {
-      "whatMilestone": "Update overdue milestone",
-      "whatPlanItem": "Update overdue plan item",
+      "whatMilestone": "Schedule milestone overdue",
+      "whatPlanItem": "Schedule item overdue",
       "why": "Target end {targetEndDate} · progress {progressPercent}%"
     },
     "expiringCompliance": {
@@ -420,5 +422,31 @@
   "errors": {
     "unsafeState": "This item cannot be dismissed - open or snooze it instead.",
     "moduleOff": "You do not have permission to open Today."
+  },
+  "ownerPayments": {
+    "expenseFallback": "Expense",
+    "categoryFallback": "Category",
+    "generalBusinessAttribution": "Attribution: general business expense",
+    "projectWhere": "Project: {name}",
+    "payable": "To pay: {amount}",
+    "installment": "Payment {current}/{total}",
+    "transactionRemaining": "Transaction balance: {amount}",
+    "expenseDate": "Expense date: {date}",
+    "vendor": "Vendor: {name}",
+    "category": "Category: {name}",
+    "paymentDue": "Payment due: {date}",
+    "pendingReview": "Expense awaiting payment confirmation",
+    "overdue": "Expense overdue for payment",
+    "overdueInstallment": "Overdue payment · {installment}",
+    "dueToday": "Expense due today",
+    "dueTodayInstallment": "Due today · {installment}",
+    "payrollWhy": "{name} · {amount}",
+    "payrollWhyWithDue": "{name} · {amount} · Due: {due}",
+    "payrollPending": "Payroll {month} awaiting payment confirmation",
+    "payrollOverdue": "Payroll {month} overdue",
+    "payrollReady": "Payroll {month} ready to pay",
+    "allocationShared": "Shared expense — needs a project",
+    "allocationWhat": "Expense without a project",
+    "allocationDate": "Date: {date}"
   }
 }

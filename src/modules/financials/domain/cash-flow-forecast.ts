@@ -31,7 +31,9 @@ export type CashFlowSourceType =
   | 'commitment'
   | 'subcontractor_liability'
   | 'recurring_draft'
-  | 'retention_release_out';
+  | 'retention_release_out'
+  | 'operating_expense'
+  | 'payroll_obligation';
 
 export interface CashFlowForecastItem {
   readonly id: string;
@@ -80,7 +82,7 @@ export interface CashFlowForecast {
 }
 
 export const FORECAST_V2_NOTE =
-  'Forecast cash only. Dated items use recorded due dates. Missing dates stay undated. Recurring drafts are labelled Forecast and are not posted. Not Paid. Not Actual Cost.';
+  'Cash forecast, not profit. Dated items use recorded due dates. Missing dates stay undated. Recurring drafts are labelled Forecast and are not posted. Not Paid. Not Actual Cost.';
 
 export function certaintyForDatedSource(input: {
   readonly dueDate: BusinessDate | null;

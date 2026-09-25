@@ -3,6 +3,7 @@ import { DomainRuleError } from '@/shared/errors';
 import {
   addMoney,
   absMoney,
+  compareMoney,
   displayScaleFor,
   fromNumericString,
   money,
@@ -32,10 +33,20 @@ import { isWeightAllocationMethod } from './types';
  * Percentage lines apply to the full allocatable amount; fixed-amount lines use
  * the entered value. Rounding residue lands on the last line (deterministic).
  */
+export type AllocationRemainderIntent = 'auto_pool' | 'company_only';
+
 export function resolveAllocationLines(
   allocatableAmount: MoneyValue,
   lines: readonly AllocationLineInput[],
-  options?: { readonly defaultAmountBasis?: AllocationAmountBasis },
+  options?: {
+    readonly defaultAmountBasis?: AllocationAmountBasis;
+    /**
+     * When project lines do not cover NET, an explicit auto-pool or company-only
+     * remainder is kept off the project lines. Overhead lines that sum with
+     * project lines to NET are the other explicit remainder.
+     */
+    readonly remainderIntent?: AllocationRemainderIntent | null;
+  },
 ): ResolvedAllocationLine[] {
   if (lines.length === 0) return [];
 
@@ -72,7 +83,13 @@ export function resolveAllocationLines(
     resolvedAmounts.push(percentOfMoney(allocatableAmount, line.percent));
   }
 
-  distributeRoundingResidue(allocatableAmount, resolvedAmounts);
+  const hasProjectLine = lines.some((line) => line.targetType === 'project');
+  const explicitRemainder =
+    options?.remainderIntent === 'auto_pool' || options?.remainderIntent === 'company_only';
+  distributeRoundingResidue(allocatableAmount, resolvedAmounts, {
+    allowShortfall: hasProjectLine && explicitRemainder,
+    projectLinesShort: hasProjectLine,
+  });
 
   return lines.map((line, index) => ({
     targetType: line.targetType,
@@ -224,7 +241,11 @@ export function equalSplitBases(projectIds: readonly string[]): ProjectWeightBas
     }));
 }
 
-function distributeRoundingResidue(totalAmount: MoneyValue, resolvedAmounts: MoneyValue[]): void {
+function distributeRoundingResidue(
+  totalAmount: MoneyValue,
+  resolvedAmounts: MoneyValue[],
+  policy?: { readonly allowShortfall?: boolean; readonly projectLinesShort?: boolean },
+): void {
   const total = sumMoney(resolvedAmounts, totalAmount.currency);
   if (moneyEquals(total, totalAmount)) return;
 
@@ -234,6 +255,16 @@ function distributeRoundingResidue(totalAmount: MoneyValue, resolvedAmounts: Mon
   const tolerance = minorUnit.times(Math.max(resolvedAmounts.length, 1));
 
   if (toDecimalValue(absMoney(residue)).greaterThan(tolerance)) {
+    if (policy?.allowShortfall && compareMoney(total, totalAmount) < 0) {
+      return;
+    }
+    if (policy?.projectLinesShort && compareMoney(total, totalAmount) < 0) {
+      throw new DomainRuleError(
+        'Project allocation lines do not cover NET and the remainder is not overhead, company-only, or auto-pool',
+        'expenses.errors.allocationRemainderUnassigned',
+        { expected: totalAmount.amount, actual: total.amount },
+      );
+    }
     throw new DomainRuleError(
       `Allocation lines must sum to ${totalAmount.amount} ${totalAmount.currency}, received ${total.amount}`,
       'expenses.errors.allocationSumMismatch',

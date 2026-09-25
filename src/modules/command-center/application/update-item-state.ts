@@ -18,8 +18,8 @@ function snoozeUntil(days: number): Date {
 }
 
 /**
- * Snooze / handle command-center items.
- * Financial sources: snooze only (never handled/dismissed).
+ * Snooze / handle / dismiss command-center items.
+ * Financial handled/dismissed changes only this item state, not the source record.
  */
 export async function updateCommandCenterItemState(
   context: OrgContext,

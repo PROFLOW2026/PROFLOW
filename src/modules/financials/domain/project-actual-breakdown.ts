@@ -38,7 +38,7 @@ export const PROJECT_ACTUAL_BREAKDOWN_CATEGORY_ORDER = [
   'overhead',
 ] as const satisfies readonly ProjectActualBreakdownCategoryKey[];
 
-export type ActualAtomSourceKind = 'labor' | 'expense' | 'ap_bill' | 'month_close';
+export type ActualAtomSourceKind = 'labor' | 'expense' | 'ap_bill' | 'month_close' | 'inventory';
 
 /**
  * One recognized Actual slice before exclusive classification.
@@ -114,6 +114,7 @@ export function isReliableSubcontractorAtom(atom: ProjectActualAtom): boolean {
 export function classifyActualAtom(
   atom: ProjectActualAtom,
 ): ProjectActualBreakdownCategoryKey {
+  if (atom.sourceKind === 'inventory') return 'materials';
   return resolveOwnerBreakdownBucket({
     sourceKind: atom.sourceKind,
     costFamily: atom.costFamily,

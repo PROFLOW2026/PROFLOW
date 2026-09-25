@@ -24,6 +24,7 @@
     "defaultBoard": "Default board",
     "archivedBoards": "Archived boards",
     "globalPageTitle": "Task board",
+    "moveToStatus": "Move to status",
     "empty": {
       "title": "No tasks here",
       "description": "Add a task to this column to get started",
@@ -94,7 +95,8 @@
       "created_by_me": "Created by me",
       "createdByMe": "Created by me",
       "following": "Following",
-      "completed": "Completed"
+      "completed": "Completed",
+      "noProject": "No project"
     },
     "empty": {
       "today": {
@@ -128,6 +130,10 @@
       "completed": {
         "title": "Nothing completed recently",
         "desc": "Completed tasks will appear here."
+      },
+      "noProject": {
+        "title": "No office tasks",
+        "desc": "Tasks without a project appear here."
       }
     },
     "noTasksToday": "No tasks due today"
@@ -552,6 +558,7 @@
   "openFullTask": "Open full task for comments and activity",
   "drawerExtendedDetails": "Comments, activity, and approvals",
   "drawerExtendedDetailsHint": "Open the full task page for comments, activity history, and approval actions.",
+  "noProject": "Office (no project)",
   "projectWork": {
     "sectionLabel": "Project work management",
     "sectionTitle": "Tasks and boards",
@@ -571,7 +578,8 @@
     "allStatuses": "All statuses",
     "allPriorities": "All priorities",
     "overdueOnly": "Overdue only",
-    "blockedOnly": "Blocked only"
+    "blockedOnly": "Blocked only",
+    "noProjectOnly": "No project"
   },
   "calendar": {
     "pageTitle": "Task calendar",
@@ -664,9 +672,12 @@
     "empty": {
       "title": "No tasks found",
       "description": "Create a task to get started"
-    }
+    },
+    "hasMore": "More tasks are not shown",
+    "loadMore": "Load more"
   },
   "errors": {
+    "invalidTransition": "That status change is not allowed.",
     "dependencyCycle": "Adding this dependency would create a cycle.",
     "maxSubtaskDepth": "Subtasks can only be nested one level deep.",
     "subtaskWorkspaceMismatch": "Subtask must use the same workspace as its parent.",

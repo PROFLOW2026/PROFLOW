@@ -886,5 +886,20 @@
     "filters": {
       "workDateHint": "הסינון הוא לפי תקופת העבודה בגיליון; לא לפי תאריך תשלום או אישור."
     }
+  },
+  "employerCostOverview": {
+    "title": "עלות מעסיק",
+    "description": "עלות חודשית מוערכת ובפועל, סכום שהוקצה לפרויקטים, ועלות של החברה בלבד. לא שכר.",
+    "empty": "אין עדיין חודשי עלות מעסיק.",
+    "estimated": "מוערכת",
+    "estimatedHint": "סכום הסכומים המוערכים בחודשי עלות המעסיק.",
+    "actual": "בפועל",
+    "actualHint": "סכום הסכומים בפועל בחודשי עלות המעסיק.",
+    "projectAllocated": "הוקצה לפרויקטים",
+    "projectAllocatedHint": "סכום שורות הקצאת עבודה שהוחלו.",
+    "companyOnly": "חברה בלבד",
+    "companyOnlyHint": "סכום company-only בריצות הקצאה שהוחלו.",
+    "unavailable": "לא זמין",
+    "companyOnlyUnavailable": "פיצול עלות החברה בלבד אינו זמין."
   }
 }

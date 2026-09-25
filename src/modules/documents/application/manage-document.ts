@@ -24,11 +24,12 @@ import {
 import { ensureFirstDocumentVersion } from '../data/versions.repository';
 import {
   isStorageOrphanChecksum,
-  removeStorageObjectWithRetry,
   restoreChecksumIfOrphanEncoded,
   truncateStorageCleanupError,
   type StorageCleanupStatus,
 } from '../domain/storage-cleanup';
+import { planDocumentByteRemoval } from '../domain/document-byte-removal';
+import { removeDocumentStoredBytes } from './remove-document-bytes';
 import {
   documentIdSchema,
   finalizeUploadSchema,
@@ -232,6 +233,11 @@ export async function createDocumentDownloadUrl(
   }
 }
 
+/**
+ * Delete (not unlink). Marks the document deleted and removes stored bytes:
+ * external rows via adapter.deleteFile, supabase_legacy via the Supabase port.
+ * Unlink lives in unlinkDocumentFromEntity and only drops document_links.
+ */
 export async function softDeleteDocument(
   context: OrgContext,
   rawInput: { documentId: string },
@@ -249,26 +255,25 @@ export async function softDeleteDocument(
   await assertDocumentManagePermission(context, { documentId: parsed.data.documentId });
   await assertCanReadStoredDocument(context, existing);
 
-  const storage = getStoragePort();
+  const byteRemoval = await removeDocumentStoredBytes(context, existing);
   const updated = await updateDocumentById(context.db, context.organizationId, parsed.data.documentId, {
     status: 'deleted',
     deletedAt: new Date(),
-    ...(storage.configured ? { storageCleanupStatus: 'pending' as const } : {}),
+    ...(byteRemoval.attempted ? { storageCleanupStatus: 'pending' as const } : {}),
   });
   if (!updated) throw new NotFoundError('Document');
 
   let result: DocumentRecord = updated;
-  if (storage.configured) {
-    const removal = await removeStorageObjectWithRetry((key) => storage.remove(key), existing.storagePath);
+  if (byteRemoval.attempted) {
     const flagged = await updateDocumentById(
       context.db,
       context.organizationId,
       parsed.data.documentId,
-      buildCleanupPatch(updated, removal, existing.checksum),
+      buildCleanupPatch(updated, byteRemoval.removal, existing.checksum),
     );
     if (flagged) result = flagged;
 
-    if (!removal.ok) {
+    if (!byteRemoval.removal.ok) {
       await recordAuditEvent(context, {
         action: AUDIT_ACTIONS.DOCUMENT_STORAGE_CLEANUP_FAILED,
         entityType: 'document',
@@ -281,9 +286,10 @@ export async function softDeleteDocument(
           storageCleanupFailed: true,
         },
         metadata: {
-          storagePath: existing.storagePath,
-          attempts: removal.attempts,
-          error: removal.error,
+          storageBackend: existing.storageBackend,
+          storagePath: byteRemoval.storageKey,
+          attempts: byteRemoval.removal.attempts,
+          error: byteRemoval.removal.error,
         },
       });
     }
@@ -307,10 +313,6 @@ export async function retryFailedDocumentCleanups(
   assertPermission(context, PERMISSIONS.DOCUMENTS_MANAGE);
 
   const storage = getStoragePort();
-  if (!storage.configured) {
-    return { attempted: 0, succeeded: 0, failed: 0, succeededIds: [], failedIds: [] };
-  }
-
   const candidates = await listDeletedDocumentsNeedingStorageCleanup(
     context.db,
     context.organizationId,
@@ -319,9 +321,22 @@ export async function retryFailedDocumentCleanups(
 
   const succeededIds: string[] = [];
   const failedIds: string[] = [];
+  let attempted = 0;
 
   for (const document of candidates) {
-    const removal = await removeStorageObjectWithRetry((key) => storage.remove(key), document.storagePath);
+    const plan = planDocumentByteRemoval(document);
+    if (plan.kind === 'supabase_legacy' && !storage.configured) {
+      continue;
+    }
+
+    attempted += 1;
+    const outcome = await removeDocumentStoredBytes(context, document);
+    if (!outcome.attempted) {
+      failedIds.push(document.id);
+      continue;
+    }
+
+    const removal = outcome.removal;
     const patch = buildCleanupPatch(document, removal, document.checksum);
     await updateDocumentById(context.db, context.organizationId, document.id, patch);
 
@@ -342,7 +357,11 @@ export async function retryFailedDocumentCleanups(
           storageCleanupStatus: 'succeeded',
           storageCleanupFailed: false,
         },
-        metadata: { storagePath: document.storagePath, attempts: removal.attempts },
+        metadata: {
+          storageBackend: document.storageBackend,
+          storagePath: outcome.storageKey,
+          attempts: removal.attempts,
+        },
       });
       succeededIds.push(document.id);
       continue;
@@ -364,7 +383,8 @@ export async function retryFailedDocumentCleanups(
         storageCleanupFailed: true,
       },
       metadata: {
-        storagePath: document.storagePath,
+        storageBackend: document.storageBackend,
+        storagePath: outcome.storageKey,
         attempts: removal.attempts,
         error: removal.error,
       },
@@ -373,7 +393,7 @@ export async function retryFailedDocumentCleanups(
   }
 
   return {
-    attempted: candidates.length,
+    attempted,
     succeeded: succeededIds.length,
     failed: failedIds.length,
     succeededIds,

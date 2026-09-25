@@ -34,6 +34,8 @@ import {
   CommentAttachmentsGallery,
 } from '@/modules/tasks/ui/task-comments-client';
 import { TaskActivity } from '@/modules/tasks/ui/task-activity';
+import { getEmployeeTaskDocumentPanelData } from '@/modules/employee-app/application/employee-task-documents';
+import { EmployeeTaskDocumentAttachments } from '@/modules/employee-app/ui/employee-task-document-attachments';
 import { cn } from '@/shared/ui/cn';
 
 const TASK_STATUSES = [
@@ -82,6 +84,7 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
   let today = '';
   let reportedHours = '0';
   let canLogTime = false;
+  let documentsPanel: Awaited<ReturnType<typeof getEmployeeTaskDocumentPanelData>> | null = null;
   try {
     const result = await withOrgContext(async (context) => {
       await assertEmployeeAppContext(context);
@@ -118,6 +121,7 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
         canCreate: employeeHasPermission(context, PERMISSIONS.TASKS_CREATE),
         reportedHours: hoursTotal,
         canLogTime: employeeHasPermission(context, PERMISSIONS.TIME_MANAGE),
+        documentsPanel: await getEmployeeTaskDocumentPanelData(context, taskId).catch(() => null),
       };
     });
     task = result.task;
@@ -132,6 +136,7 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
     today = result.today;
     reportedHours = result.reportedHours;
     canLogTime = result.canLogTime;
+    documentsPanel = result.documentsPanel;
   } catch (error) {
     if (error instanceof NotFoundError) notFound();
     throw error;
@@ -343,6 +348,20 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
             })}
           </ul>
         </section>
+      ) : null}
+
+      {documentsPanel?.canRead ? (
+        <EmployeeTaskDocumentAttachments
+          taskId={taskId}
+          documents={documentsPanel.documents}
+          linkCandidates={documentsPanel.linkCandidates}
+          canRead={documentsPanel.canRead}
+          canManage={documentsPanel.canManage}
+          storageConfigured={documentsPanel.storageConfigured}
+          canClassifyCompensation={documentsPanel.canClassifyCompensation}
+          projectId={documentsPanel.projectId}
+          canBrowseCloudFiles={documentsPanel.canBrowseCloudFiles}
+        />
       ) : null}
 
       <section className="space-y-3">

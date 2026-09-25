@@ -87,6 +87,7 @@ function assertAdapterSurface(provider: StatutoryInvoicingProvider): void {
   expect(typeof provider.creditDocument).toBe('function');
   expect(typeof provider.cancelDocument).toBe('function');
   expect(typeof provider.allocateReference).toBe('function');
+  expect(typeof provider.capabilities).toBe('function');
 }
 
 describe('StatutoryInvoicingProvider adapter contract', () => {

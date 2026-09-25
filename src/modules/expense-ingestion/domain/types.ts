@@ -41,3 +41,19 @@ export function parseSumitIdempotencyKey(key: string | null | undefined): string
   const id = key.slice('sumit:'.length).trim();
   return id.length > 0 ? id : null;
 }
+
+/**
+ * SUMIT document id for a later OCR worker. Prefer an explicit id, then job metadata,
+ * then the durable idempotency key `sumit:{documentId}`.
+ */
+export function resolveSumitDocumentIdForOcrJob(input: {
+  readonly sumitDocumentId?: string | null;
+  readonly externalDocumentId?: string | null;
+  readonly idempotencyKey?: string | null;
+}): string | null {
+  const explicit = input.sumitDocumentId?.trim();
+  if (explicit) return explicit;
+  const stored = input.externalDocumentId?.trim();
+  if (stored) return stored;
+  return parseSumitIdempotencyKey(input.idempotencyKey);
+}

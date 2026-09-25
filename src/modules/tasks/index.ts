@@ -75,7 +75,8 @@ export {
 export { createTask } from './application/create-task';
 export { updateTask } from './application/update-task';
 export { archiveTask } from './application/archive-task';
-export { listAccessibleTasks } from './application/list-tasks';
+export { listAccessibleTasks, listAccessibleTasksPage } from './application/list-tasks';
+export type { AccessibleTaskListPage } from './application/list-tasks';
 export { getTaskDetail } from './application/get-task-detail';
 export { addAssignee, removeAssignee } from './application/assign-task';
 export { syncTaskAssignees } from './application/sync-task-assignees';
@@ -149,14 +150,14 @@ export {
   listBuckets,
 } from './application/manage-buckets';
 export { moveTaskToBucket } from './application/move-task-to-bucket';
-export { getMyWork } from './application/my-work';
+export { getMyWork, getMyWorkPage } from './application/my-work';
 export { getTaskInsights } from './application/get-task-insights';
 export type {
   TaskInsights,
   TaskInsightsAssigneeRow,
   TaskInsightsProjectRow,
 } from './application/get-task-insights';
-export type { MyWorkView, MyWorkOptions } from './application/my-work';
+export type { MyWorkView, MyWorkOptions, MyWorkPage } from './application/my-work';
 export { generateOccurrences, createGeneratedTask } from './application/schedule-recurrence';
 export {
   getTaskRecurrence,

@@ -52,7 +52,8 @@ function triggerDownload(blob: Blob, filename: string) {
 }
 
 /**
- * Share actual file bytes via Web Share API, with download fallback on desktop.
+ * Downloads the provider file and hands it to Web Share, or downloads it when
+ * Web Share cannot attach files. This is not a provider ACL share link.
  */
 export async function shareStorageFile(input: ShareStorageFileInput): Promise<ShareStorageFileResult> {
   const filename = sanitizeFilename(input.filename);

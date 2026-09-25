@@ -60,6 +60,8 @@ export {
   reconcileInventoryPurchaseFromExpenseEditOnExecutor,
   unbookInventoryPurchaseFromExpense,
   unbookInventoryPurchaseFromExpenseOnExecutor,
+  bookInventoryPurchaseFromApBillOnExecutor,
+  unbookInventoryPurchaseFromApBillOnExecutor,
 } from './application/inventory-cost';
 export type {
   BookInventoryOpeningBalanceInput,
@@ -70,6 +72,8 @@ export type {
   ConsumeInventoryCostResult,
   UnbookInventoryPurchaseInput,
   UnbookInventoryPurchaseResult,
+  BookInventoryPurchaseFromApBillInput,
+  UnbookInventoryPurchaseFromApBillInput,
 } from './application/inventory-cost';
 
 export {

@@ -93,12 +93,14 @@ export function previewBillAllocationStrip(input: {
 
 /**
  * Resolve and validate lines for persistence. Rejects over-NET.
- * Under-NET is allowed (visible unallocated remainder).
+ * Under-NET project lines are saved only when remainderIntent is auto_pool or
+ * company_only. A missing intent is not a silent split into the general pool.
  */
 export function resolveBillProjectAllocationLines(input: {
   readonly recognizedNet: string;
   readonly currency: string;
   readonly lines: readonly BillAllocationLineDraft[];
+  readonly remainderIntent?: 'auto_pool' | 'company_only' | null;
 }): {
   readonly lines: readonly ResolvedBillAllocationLine[];
   readonly allocatedAmount: string;
@@ -162,6 +164,17 @@ export function resolveBillProjectAllocationLines(input: {
   }
 
   const unallocated = net.minus(allocated);
+  if (
+    input.lines.length > 0 &&
+    unallocated.greaterThan('0.000001') &&
+    input.remainderIntent !== 'auto_pool' &&
+    input.remainderIntent !== 'company_only'
+  ) {
+    throw new DomainRuleError(
+      'Project allocation lines do not cover bill NET and the remainder is not company-only or auto-pool',
+      'ap.errors.allocationRemainderUnassigned',
+    );
+  }
   const lines: ResolvedBillAllocationLine[] = input.lines.map((line, index) => {
     const amount = resolvedAmounts[index]!;
     const percent =

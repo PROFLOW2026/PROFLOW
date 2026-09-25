@@ -60,6 +60,20 @@ export async function insertStorageFile(
   return mapRow(row!);
 }
 
+export async function listStorageFilesByDocumentId(
+  db: DbExecutor,
+  organizationId: string,
+  documentId: string,
+): Promise<ExternalFileRecord[]> {
+  const rows = await db
+    .select()
+    .from(storageFiles)
+    .where(
+      and(eq(storageFiles.organizationId, organizationId), eq(storageFiles.documentId, documentId)),
+    );
+  return rows.map(mapRow);
+}
+
 export async function findStorageFileByDocumentId(
   db: DbExecutor,
   organizationId: string,

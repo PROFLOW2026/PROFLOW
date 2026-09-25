@@ -49,10 +49,12 @@ export async function BusinessProfitabilityView({
   readonly data: BusinessProfitabilityData;
 }) {
   const t = await getTranslations('financial.businessProfitability');
+  const tFinancial = await getTranslations('financial');
 
   return (
     <div className="flex min-w-0 flex-col gap-8">
       <Alert tone="info">{t('disclaimer')}</Alert>
+      <p className="text-sm text-[var(--pf-text-secondary)]">{tFinancial('profitVsCash')}</p>
 
       <section className="flex min-w-0 flex-col gap-3">
         <h2 className="text-base font-semibold">{t('sections.commercial')}</h2>

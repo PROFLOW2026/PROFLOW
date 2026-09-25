@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray, ne } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, ne, or } from 'drizzle-orm';
 import { employeeMonthCosts } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 
@@ -129,7 +129,12 @@ export async function updateEmployeeMonthCostDraft(
   return row ?? null;
 }
 
-/** Close an applied month (locks further money edits via immutability). */
+/**
+ * Freeze a month-cost row at close.
+ * Applied rows close as-is. Draft rows close only when the owner already
+ * recorded knownQuality=actual, so a reviewed actual is not left mutable
+ * after the operational month is closed.
+ */
 export async function closeEmployeeMonthCost(
   db: DbExecutor,
   organizationId: string,
@@ -146,7 +151,13 @@ export async function closeEmployeeMonthCost(
       and(
         eq(employeeMonthCosts.id, id),
         eq(employeeMonthCosts.organizationId, organizationId),
-        eq(employeeMonthCosts.status, 'applied'),
+        or(
+          eq(employeeMonthCosts.status, 'applied'),
+          and(
+            eq(employeeMonthCosts.status, 'draft'),
+            eq(employeeMonthCosts.knownQuality, 'actual'),
+          ),
+        ),
       ),
     )
     .returning();

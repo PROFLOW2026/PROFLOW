@@ -168,6 +168,11 @@ export const apBillLines = pgTable(
     costFamily: costFamilyEnum('cost_family'),
     /** Optional line-level cost category for mixed invoices (materials + rental + service). */
     costCategoryId: uuid('cost_category_id'),
+    /**
+     * When set, this line is a stock purchase. Cost stays in an inventory
+     * layer until project_consume. It is not operating actual at recognition.
+     */
+    inventoryItemId: uuid('inventory_item_id'),
     /** Line-level classification certainty — identical semantics to expenses. */
     classificationStatus: text('classification_status')
       .notNull()
@@ -176,6 +181,12 @@ export const apBillLines = pgTable(
     ...timestamps(),
   },
   (table) => [
+    uniqueIndex('ap_bill_lines_id_org_uq').on(table.id, table.organizationId),
+    uniqueIndex('ap_bill_lines_id_bill_org_uq').on(
+      table.id,
+      table.apBillId,
+      table.organizationId,
+    ),
     index('ap_bill_lines_bill_idx').on(table.apBillId),
     // SQL: ON DELETE SET NULL (cost_category_id) — never organization_id
     foreignKey({

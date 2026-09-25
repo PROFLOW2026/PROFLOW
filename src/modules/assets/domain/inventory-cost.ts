@@ -16,7 +16,7 @@ import {
 } from '@/shared/money';
 import { DomainRuleError, ValidationError } from '@/shared/errors';
 
-export type InventoryCostLayerSourceKind = 'expense' | 'opening_balance';
+export type InventoryCostLayerSourceKind = 'expense' | 'ap_bill' | 'opening_balance';
 
 export type InventoryCostConsumptionKind = 'project_consume' | 'writeoff' | 'adjust';
 
@@ -58,14 +58,16 @@ export interface InventoryCostLayerSourceShape {
   readonly sourceKind: InventoryCostLayerSourceKind;
   readonly sourceExpenseId: string | null;
   readonly sourceApBillId: string | null;
+  readonly sourceApBillLineId?: string | null;
   readonly openingReference: string | null;
 }
 
-/** Validates expense / AP / opening_balance source shape (mirrors SQL CHECK). */
+/** Validates expense / AP line / opening_balance source shape (mirrors SQL CHECK). */
 export function assertInventoryCostLayerSourceShape(shape: InventoryCostLayerSourceShape): void {
   const { sourceKind, sourceExpenseId, sourceApBillId, openingReference } = shape;
+  const sourceApBillLineId = shape.sourceApBillLineId ?? null;
   if (sourceKind === 'expense') {
-    if (!sourceExpenseId || sourceApBillId) {
+    if (!sourceExpenseId || sourceApBillId || sourceApBillLineId) {
       throw new ValidationError(
         [{ path: 'sourceKind', message: 'expense requires sourceExpenseId only' }],
         'Invalid inventory cost layer source shape',
@@ -73,9 +75,23 @@ export function assertInventoryCostLayerSourceShape(shape: InventoryCostLayerSou
     }
     return;
   }
+  if (sourceKind === 'ap_bill') {
+    if (
+      !sourceApBillId ||
+      !sourceApBillLineId ||
+      sourceExpenseId ||
+      (openingReference?.trim() ?? '').length > 0
+    ) {
+      throw new ValidationError(
+        [{ path: 'sourceKind', message: 'ap_bill requires the vendor bill and the bill line' }],
+        'Invalid inventory cost layer source shape',
+      );
+    }
+    return;
+  }
   if (sourceKind === 'opening_balance') {
     const ref = openingReference?.trim() ?? '';
-    if (sourceExpenseId || sourceApBillId || ref.length === 0) {
+    if (sourceExpenseId || sourceApBillId || sourceApBillLineId || ref.length === 0) {
       throw new ValidationError(
         [{ path: 'openingReference', message: 'opening_balance requires openingReference only' }],
         'Invalid inventory cost layer source shape',

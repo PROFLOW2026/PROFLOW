@@ -7,9 +7,34 @@ import {
   insertTaskAssignee,
   insertChecklistItem,
   insertLabelAssignment,
+  listTaskReminders,
+  upsertTaskReminder,
 } from '../data/tasks.repository';
 import { generateOccurrences, createGeneratedTask } from './schedule-recurrence';
 import { generateSortKey, appendAfter } from '../domain/lexorank';
+import { resolveReminderAt } from './manage-reminders';
+import type { TaskReminderType } from '../domain/types';
+
+/**
+ * Copies reminder types onto a generated occurrence and recomputes remindAt
+ * from the new due date. Custom reminders are omitted because resolveReminderAt
+ * cannot derive them from a due date (copying the template instant would be stale).
+ * Do NOT copy attachments. Do NOT copy dependencies.
+ */
+export function buildOccurrenceReminderCopies(
+  reminders: readonly { reminderType: TaskReminderType }[],
+  dueDate: string,
+  timezone: string,
+): Array<{ reminderType: TaskReminderType; remindAt: Date }> {
+  const copies: Array<{ reminderType: TaskReminderType; remindAt: Date }> = [];
+  for (const reminder of reminders) {
+    if (reminder.reminderType === 'custom') continue;
+    const remindAt = resolveReminderAt(reminder.reminderType, dueDate, timezone);
+    if (!remindAt) continue;
+    copies.push({ reminderType: reminder.reminderType, remindAt });
+  }
+  return copies;
+}
 
 const MATERIALIZE_CAP = 50;
 const GENERATION_HORIZON_DAYS = 14;
@@ -59,6 +84,18 @@ export async function processTaskRecurrenceForOrg(
     );
     if (!template) continue;
 
+    const templateReminders = await listTaskReminders(
+      context.db,
+      context.organizationId,
+      template.id,
+    );
+    const dueDate = formatDueDate(occurrence.occurrenceAt);
+    const reminderCopies = buildOccurrenceReminderCopies(
+      templateReminders,
+      dueDate,
+      context.organization.timezone,
+    );
+
     const task = await createGeneratedTask(context, occurrence.id, rule, {
       workspaceId: template.workspaceId,
       title: template.title,
@@ -66,7 +103,7 @@ export async function processTaskRecurrenceForOrg(
       projectId: template.projectId,
       boardId: template.boardId,
       bucketId: template.bucketId,
-      dueDate: formatDueDate(occurrence.occurrenceAt),
+      dueDate,
     });
 
     await withTransaction(context.db, async (tx) => {
@@ -99,6 +136,16 @@ export async function processTaskRecurrenceForOrg(
           taskId: task.id,
           labelId: label.id,
           organizationId: context.organizationId,
+        });
+      }
+
+      // Reminder types only. Do NOT copy attachments. Do NOT copy dependencies.
+      for (const reminder of reminderCopies) {
+        await upsertTaskReminder(tx, {
+          organizationId: context.organizationId,
+          taskId: task.id,
+          reminderType: reminder.reminderType,
+          remindAt: reminder.remindAt,
         });
       }
     });

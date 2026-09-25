@@ -136,7 +136,13 @@
     "actualVsPayableHint": "Actual / profit = NET excluding VAT. Payable / aging = GROSS including VAT. VAT is not profit.",
     "overlapWarningTitle": "Similar finalized expense exists",
     "overlapWarningBody": "A finalized expense with the same vendor and a similar amount is already in Actual. Posting this bill without linking can double-count cost.",
-    "overlapWarningHint": "After creating the bill, propose and accept a match to the expense (partial matches are allowed)."
+    "overlapWarningHint": "After creating the bill, propose and accept a match to the expense (partial matches are allowed).",
+    "overlapConfirmDistinct": "These are distinct costs. Recognize this bill even though a similar unlinked expense exists.",
+    "inventoryStockPurchase": "Stock purchase",
+    "inventoryStockHint": "A line with an inventory item buys stock. That line is not project operating cost until the stock is issued to a project.",
+    "inventoryItemLabel": "Inventory item",
+    "inventoryItemNone": "Select an item",
+    "inventoryQtyLabel": "Quantity received"
   },
   "retention": {
     "title": "Retention / holdback",
@@ -306,7 +312,13 @@
     "title": "Post draft bill",
     "note": "Draft bills do not recognize Actual Vendor Cost. Post after approval (when required) to open the bill.",
     "action": "Post bill",
-    "success": "Bill posted. It now recognizes Actual Vendor Cost."
+    "success": "Bill posted. It now recognizes Actual Vendor Cost.",
+    "confirmDistinct": "These are distinct costs. Post even if a similar unlinked expense exists.",
+    "inventoryStockPurchase": "Stock purchase",
+    "inventoryStockHint": "Lines that already name an inventory item become stock when this bill is recognized. They are not operating cost until issued.",
+    "inventoryItemLabel": "Inventory item",
+    "inventoryItemNone": "Select an item",
+    "inventoryQtyLabel": "Quantity received"
   },
   "void": {
     "title": "Void bill",
@@ -405,6 +417,11 @@
     "billVoid": "Cannot match a void bill.",
     "matchNotProposed": "Only proposed matches can be decided.",
     "vendorRequired": "Select a vendor.",
+    "unlinkedExpenseOverlap": "A similar unlinked expense would double-count this bill. Confirm they are distinct costs, or accept a match.",
+    "allocationRemainderUnassigned": "Project allocation lines do not cover bill NET. Mark the remainder company-only or auto-pool.",
+    "inventoryStockRequiresPost": "A stock purchase bill must be posted now. Draft bills do not keep the inventory item and quantity.",
+    "inventoryLayerSourceImmutable": "A stock line that already has an inventory layer cannot change quantity, net, currency, or be removed.",
+    "inventoryStockPurchaseIncomplete": "Choose an inventory item and quantity before recognizing a stock purchase bill.",
     "linesRequired": "Add at least one line with a description and amounts.",
     "paymentsSchemaPending": "Vendor payments are not available in this environment yet.",
     "paymentAmountInvalid": "Payment amount must be positive.",

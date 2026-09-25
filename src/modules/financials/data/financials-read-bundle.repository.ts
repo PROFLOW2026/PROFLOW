@@ -240,6 +240,8 @@ export type ApBillFactRow = {
   readonly retentionHeldRemaining: string;
   readonly billDate: string | null;
   readonly remainderAllocationIntent?: 'auto_pool' | 'company_only' | null;
+  readonly inventoryStockPurchase?: boolean;
+  readonly stockLineNet?: string | null;
 };
 
 export type ApAllocationFactRow = {
@@ -309,7 +311,28 @@ export async function loadFinancialsApOrgFactsBundle(
             'currency', b.currency,
             'retentionHeldRemaining', b.retention_held_remaining::text,
             'billDate', b.bill_date,
-            'remainderAllocationIntent', ${remainderIntentExpr}
+            'remainderAllocationIntent', ${remainderIntentExpr},
+            'stockLineNet', coalesce((
+              select sum(stock_line.net_amount)
+              from ap_bill_lines stock_line
+              where stock_line.ap_bill_id = b.id
+                and stock_line.organization_id = b.organization_id
+                and stock_line.inventory_item_id is not null
+            ), 0)::text,
+            'inventoryStockPurchase', (
+              exists (
+                select 1 from ap_bill_lines stock_line
+                where stock_line.ap_bill_id = b.id
+                  and stock_line.organization_id = b.organization_id
+                  and stock_line.inventory_item_id is not null
+              )
+              and not exists (
+                select 1 from ap_bill_lines operating_line
+                where operating_line.ap_bill_id = b.id
+                  and operating_line.organization_id = b.organization_id
+                  and operating_line.inventory_item_id is null
+              )
+            )
           ))
           from ap_bills b
           where b.id in (select id from candidate_bills)

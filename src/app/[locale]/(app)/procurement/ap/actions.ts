@@ -111,6 +111,10 @@ function parseLines(formData: FormData) {
             ? row.costCategoryId.trim()
             : null,
         costFamily,
+        inventoryItemId:
+          typeof row.inventoryItemId === 'string' && row.inventoryItemId.trim()
+            ? row.inventoryItemId.trim()
+            : null,
       };
     });
   } catch {
@@ -144,6 +148,10 @@ export async function createApBillAction(
         totalAmount: requiredFormValue(formData, 'totalAmount'),
         amountIncludesTax: formData.get('amountIncludesTax') === 'on',
         asDraft: formData.get('asDraft') === 'on',
+        confirmDistinctCosts: formData.get('confirmDistinctCosts') === 'true',
+        inventoryStockPurchase: formData.get('inventoryStockPurchase') === 'on',
+        inventoryItemId: formValue(formData, 'inventoryItemId'),
+        inventoryPurchaseQty: formValue(formData, 'inventoryPurchaseQty'),
         retentionAmount: formValue(formData, 'retentionAmount'),
         retentionPercent: formValue(formData, 'retentionPercent'),
         notes: formValue(formData, 'notes'),
@@ -335,7 +343,14 @@ export async function postApBillAction(
 ): Promise<ApFormState> {
   const billId = requiredFormValue(formData, 'apBillId');
   try {
-    await withOrgContext((context) => postApBill(context, billId));
+    await withOrgContext((context) =>
+      postApBill(context, billId, {
+        confirmDistinctCosts: formData.get('confirmDistinctCosts') === 'true',
+        inventoryStockPurchase: formData.get('inventoryStockPurchase') === 'on',
+        inventoryItemId: formValue(formData, 'inventoryItemId'),
+        inventoryPurchaseQty: formValue(formData, 'inventoryPurchaseQty'),
+      }),
+    );
     revalidatePath(`/procurement/ap/${billId}`);
     revalidatePath('/procurement/ap');
     revalidatePath('/procurement/ap/aging');

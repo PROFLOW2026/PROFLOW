@@ -10,14 +10,13 @@ import {
   reduceStockBasis,
   sumInventoryStockValue,
   unitCostFromPurchase,
-  type InventoryCostLayerSourceShape,
 } from '@/modules/assets/domain/inventory-cost';
 import { money, addMoney, toNumericString, multiplyMoney, roundMoney } from '@/shared/money';
 
 const ILS = 'ILS';
 
 describe('inventory cost layer source shape', () => {
-  it('accepts expense and opening_balance shapes; rejects ap_bill until line-level AP mapping exists', () => {
+  it('accepts expense, ap_bill, and opening_balance shapes', () => {
     expect(() =>
       assertInventoryCostLayerSourceShape({
         sourceKind: 'expense',
@@ -39,9 +38,10 @@ describe('inventory cost layer source shape', () => {
         sourceKind: 'ap_bill',
         sourceExpenseId: null,
         sourceApBillId: '01900000-0000-7000-8000-000000000002',
+        sourceApBillLineId: '01900000-0000-7000-8000-000000000003',
         openingReference: null,
-      } as unknown as InventoryCostLayerSourceShape),
-    ).toThrow(ValidationError);
+      }),
+    ).not.toThrow();
   });
 
   it('rejects invalid source combinations', () => {
@@ -67,6 +67,14 @@ describe('inventory cost layer source shape', () => {
         sourceExpenseId: null,
         sourceApBillId: null,
         openingReference: '  ',
+      }),
+    ).toThrow(ValidationError);
+    expect(() =>
+      assertInventoryCostLayerSourceShape({
+        sourceKind: 'ap_bill',
+        sourceExpenseId: null,
+        sourceApBillId: '01900000-0000-7000-8000-000000000002',
+        openingReference: null,
       }),
     ).toThrow(ValidationError);
   });

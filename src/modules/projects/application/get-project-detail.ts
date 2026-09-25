@@ -6,7 +6,7 @@ import type { OrgContext } from '@/shared/auth/context';
 import { NotFoundError } from '@/shared/errors';
 import { loadDisplayContactForProject } from '@/modules/clients';
 import {
-  computeCurrentContractValue,
+  computeHeaderCurrentContractValue,
   isOriginalContractAmountLocked,
 } from '../domain/contract-value';
 import { countActiveWorkPackages, shouldShowWorkPackages } from '../domain/work-package-visibility';
@@ -32,7 +32,7 @@ import {
   countActiveWorkPackagesByProject,
   listWorkPackagesByProject,
 } from '../data/work-packages.repository';
-import { fromNumericString, type MoneyValue } from '@/shared/money';
+import { type MoneyValue } from '@/shared/money';
 
 export interface ProjectClientContactSummary {
   readonly id: string;
@@ -150,13 +150,11 @@ export async function getProjectDetailChrome(
     const currency =
       contract?.currency ?? projectContracts[0]?.currency ?? project.currency ?? null;
     if (currency) {
-      const sameCurrencyEvents = allContractEvents.filter(
-        (event) => event.currency.toUpperCase() === currency.toUpperCase(),
-      );
-      currentContractValue =
-        sameCurrencyEvents.length > 0
-          ? computeCurrentContractValue(sameCurrencyEvents, currency)
-          : fromNumericString(contract?.originalValueAmount ?? '0', currency);
+      currentContractValue = computeHeaderCurrentContractValue({
+        contracts: projectContracts,
+        events: allContractEvents,
+        currency,
+      });
       originalContractAmountLocked = isOriginalContractAmountLocked(contractValueEvents);
     }
   }
@@ -196,13 +194,11 @@ export function assembleProjectDetailChrome(input: {
     const currency =
       contract?.currency ?? projectContracts[0]?.currency ?? project.currency ?? null;
     if (currency) {
-      const sameCurrencyEvents = allContractEvents.filter(
-        (event) => event.currency.toUpperCase() === currency.toUpperCase(),
-      );
-      currentContractValue =
-        sameCurrencyEvents.length > 0
-          ? computeCurrentContractValue(sameCurrencyEvents, currency)
-          : fromNumericString(contract?.originalValueAmount ?? '0', currency);
+      currentContractValue = computeHeaderCurrentContractValue({
+        contracts: projectContracts,
+        events: allContractEvents,
+        currency,
+      });
       originalContractAmountLocked = isOriginalContractAmountLocked(contractValueEvents);
     }
   }

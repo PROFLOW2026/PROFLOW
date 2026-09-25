@@ -33,6 +33,17 @@ describe('org default payment term key', () => {
 });
 
 describe('default payment terms catalog', () => {
+  it('includes net_90 and net_120 as net_days, separate from eom offsets', () => {
+    expect(DEFAULT_PAYMENT_TERMS.find((term) => term.key === 'net_90')?.metadata).toEqual({
+      strategy: 'net_days',
+      netDays: 90,
+    });
+    expect(DEFAULT_PAYMENT_TERMS.find((term) => term.key === 'net_120')?.metadata).toEqual({
+      strategy: 'net_days',
+      netDays: 120,
+    });
+  });
+
   it('includes eom_90 and eom_120 as eom_plus_days', () => {
     const eom90 = DEFAULT_PAYMENT_TERMS.find((term) => term.key === 'eom_90');
     const eom120 = DEFAULT_PAYMENT_TERMS.find((term) => term.key === 'eom_120');
@@ -101,8 +112,10 @@ describe('payment term localization', () => {
 });
 
 describe('payment term due date derivation', () => {
-  it('derives net days', () => {
+  it('derives net days, including 90 and 120 calendar days from the bill date', () => {
     expect(deriveDueDate('2026-01-01', { strategy: 'net_days', netDays: 30 })).toBe('2026-01-31');
+    expect(deriveDueDate('2026-01-01', { strategy: 'net_days', netDays: 90 })).toBe('2026-04-01');
+    expect(deriveDueDate('2026-01-01', { strategy: 'net_days', netDays: 120 })).toBe('2026-05-01');
   });
 
   it('derives immediate', () => {

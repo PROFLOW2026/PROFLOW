@@ -55,6 +55,7 @@ export function ExpenseDetailActions({
   const tOffline = useTranslations('offline');
   const locale = useLocale();
   const [offlineFinalizeError, setOfflineFinalizeError] = useState<string | null>(null);
+  const [confirmDistinctCosts, setConfirmDistinctCosts] = useState(false);
 
   const showPrimary = section === 'primary' && (canFinalize || canVoid);
   const showAdvanced = section === 'advanced' && (canReverse || canCorrect);
@@ -81,6 +82,15 @@ export function ExpenseDetailActions({
               <>
                 <p>{t.rich('confirm.finalizeQuestion', moneyAndDate)}</p>
                 <p>{t('confirm.finalizeConsequence')}</p>
+                <label className="mt-3 flex items-start gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    className="mt-1"
+                    checked={confirmDistinctCosts}
+                    onChange={(event) => setConfirmDistinctCosts(event.target.checked)}
+                  />
+                  <span>{t('capture.overlapConfirmDistinct')}</span>
+                </label>
               </>
             }
             confirmLabel={t('actions.finalize')}
@@ -91,7 +101,7 @@ export function ExpenseDetailActions({
                 return { error: tOffline('forms.finalizeRequiresOnline') };
               }
               setOfflineFinalizeError(null);
-              return finalizeExpenseAction(expenseId);
+              return finalizeExpenseAction(expenseId, confirmDistinctCosts);
             }}
             trigger={<Button type="button">{t('actions.finalize')}</Button>}
           />

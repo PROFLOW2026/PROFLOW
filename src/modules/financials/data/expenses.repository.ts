@@ -511,7 +511,15 @@ export async function sumCompanyOnlyExpensesForMonth(
                 and l2.status in ('scheduled', 'recognized')
             ), 0)
             else case
-              when to_char(e.expense_date::date, 'YYYY-MM') = ${yearMonth} then e.net_amount
+              when to_char(e.expense_date::date, 'YYYY-MM') = ${yearMonth} then (
+                e.net_amount - coalesce((
+                  select sum(a.amount)
+                  from expense_allocations a
+                  where a.expense_id = e.id
+                    and a.organization_id = e.organization_id
+                    and a.project_id is not null
+                ), 0)
+              )
               else 0
             end
           end as contrib
@@ -564,7 +572,15 @@ export async function sumOrganizationCompanyOnlyExpenses(
     await db.execute(sql`
       select coalesce(sum(s.contrib), 0)::text as total
       from (
-        select e.net_amount as contrib
+        select (
+          e.net_amount - coalesce((
+            select sum(a.amount)
+            from expense_allocations a
+            where a.expense_id = e.id
+              and a.organization_id = e.organization_id
+              and a.project_id is not null
+          ), 0)
+        ) as contrib
         from expenses e
         where e.organization_id = ${organizationId}
           and e.currency = ${currency}
@@ -747,6 +763,36 @@ export async function listUnallocatedExpenseContributionsForMonth(
           and e.project_id is null
           ${autoPoolFilter}
           and not exists (
+            select 1 from expense_allocations a
+            where a.expense_id = e.id
+              and a.organization_id = e.organization_id
+              and a.project_id is not null
+          )
+        union all
+        select
+          e.id,
+          case
+            when to_char(e.expense_date::date, 'YYYY-MM') = ${yearMonth} then (
+              e.net_amount - coalesce((
+                select sum(a.amount)
+                from expense_allocations a
+                where a.expense_id = e.id
+                  and a.organization_id = e.organization_id
+                  and a.project_id is not null
+              ), 0)
+            )
+            else 0
+          end as contrib
+        from expenses e
+        where e.organization_id = ${organizationId}
+          and e.currency = ${currency}
+          and e.status = 'finalized'
+          and e.archived_at is null
+          and coalesce(e.inventory_stock_purchase, false) = false
+          and e.project_id is null
+          and e.allocation_intent = 'auto_pool'
+          and coalesce(e.installment_count, 1) <= 1
+          and exists (
             select 1 from expense_allocations a
             where a.expense_id = e.id
               and a.organization_id = e.organization_id

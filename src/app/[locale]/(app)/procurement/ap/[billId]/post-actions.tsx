@@ -25,8 +25,13 @@ export function PostApBillPanel({
     <section className="flex min-w-0 flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-4">
       <h2 className="text-sm font-semibold">{t('title')}</h2>
       <p className="text-xs text-[var(--pf-text-muted)]">{t('note')}</p>
-      <form action={action}>
+      <form action={action} className="flex flex-col gap-3">
         <input type="hidden" name="apBillId" value={billId} />
+        <label className="flex items-start gap-2 text-sm">
+          <input type="checkbox" name="confirmDistinctCosts" value="true" className="mt-1" />
+          <span>{t('confirmDistinct')}</span>
+        </label>
+        <p className="text-xs text-[var(--pf-text-secondary)]">{t('inventoryStockHint')}</p>
         <Button type="submit" loading={pending} size="lg" block className="sm:w-auto">
           {t('action')}
         </Button>

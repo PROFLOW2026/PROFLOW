@@ -25,6 +25,7 @@ import type {
 import { getOcrRepository } from '../data/resolve-repository';
 import type { OcrRepository } from '../data/ocr.repository';
 import type { ExtractReceiptAppInput } from '../validation/schemas';
+import { resolveSumitDocumentIdForOcrJob } from '@/modules/expense-ingestion/domain/types';
 import { loadDuplicateIndex } from './duplicate-index';
 import { loadDocumentBytesForOcr, sha256Hex } from './load-document-bytes';
 import { loadVendorMatchIndex } from './vendor-index';
@@ -152,6 +153,9 @@ export async function processQueuedJob(
       filename: claimed.sourceDocument.filename ?? undefined,
       mimeType: claimed.sourceDocument.mimeType ?? undefined,
       workflow: (claimed.rawMetadata?.workflow ?? 'general') as OcrWorkflowContext,
+      sumitDocumentId: claimed.rawMetadata?.externalDocumentId,
+      externalExpenseImportId: claimed.rawMetadata?.externalExpenseImportId,
+      idempotencyKey: claimed.idempotencyKey ?? undefined,
     };
     const workflow: OcrWorkflowContext = input.workflow ?? 'general';
 
@@ -243,6 +247,60 @@ async function runProviderAttempt(args: {
   let filename = input.filename ?? job.sourceDocument.filename;
   let checksumSha256: string | null = null;
 
+  const sumitDocumentId = resolveSumitDocumentIdForOcrJob({
+    sumitDocumentId: input.sumitDocumentId,
+    externalDocumentId: job.rawMetadata?.externalDocumentId,
+    idempotencyKey: job.idempotencyKey ?? input.idempotencyKey,
+  });
+  const sumitRefetch =
+    !bytes &&
+    !input.documentId &&
+    Boolean(sumitDocumentId) &&
+    (input.sumitDocumentId != null ||
+      job.rawMetadata?.importSource === 'sumit' ||
+      (job.idempotencyKey ?? input.idempotencyKey ?? '').startsWith('sumit:'));
+
+  if (sumitRefetch && sumitDocumentId) {
+    try {
+      const loaded = await loadSumitExpensePdf(context, sumitDocumentId);
+      bytes = loaded;
+      mimeType = mimeType ?? 'application/pdf';
+      filename = filename ?? `sumit-expense-${sumitDocumentId}.pdf`;
+      checksumSha256 = sha256Hex(bytes);
+      const importId = input.externalExpenseImportId ?? job.rawMetadata?.externalExpenseImportId;
+      if (importId) {
+        await rememberSumitImportChecksum(context, importId, checksumSha256);
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'PDF fetch failed';
+      const notConnected = /not connected/i.test(message);
+      const failed = await repo.updateJob(context.organizationId, queuedId, {
+        status: 'failed',
+        reviewStatus: 'awaiting_review',
+        errorCode: notConnected ? 'sumit_not_connected' : 'pdf_fetch',
+        errorMessage: message.slice(0, 500),
+        lastError: message.slice(0, 500),
+        completedAt: new Date().toISOString(),
+        candidates: null,
+        rawMetadata: {
+          providerId: provider.id,
+          providerStatus: notConnected ? 'sumit_not_connected' : 'pdf_fetch',
+          workflow,
+          importSource: 'sumit',
+          externalDocumentId: sumitDocumentId,
+          errorCategory: notConnected ? 'sumit_not_connected' : 'pdf_fetch',
+        },
+        overallConfidence: null,
+        sourceDocument: {
+          documentId: null,
+          filename,
+          mimeType,
+        },
+      });
+      return failed!;
+    }
+  }
+
   if (input.documentId && !bytes) {
     try {
       const loaded = await loadDocumentBytesForOcr(context, input.documentId);
@@ -325,7 +383,7 @@ async function runProviderAttempt(args: {
     organizationId: context.organizationId,
     documentId: input.documentId ?? job.sourceDocument.documentId ?? undefined,
     bytes: bytes ?? undefined,
-    contentBase64: input.contentBase64,
+    contentBase64: sumitDocumentId ? undefined : input.contentBase64,
     mimeType: mimeType ?? undefined,
     filename: filename ?? undefined,
     workflow,
@@ -466,6 +524,34 @@ export async function cancelQueuedOcrJob(
   }
   await refreshBatchProgress(context.organizationId, updated.batchId, repo);
   return updated;
+}
+
+async function loadSumitExpensePdf(context: OrgContext, documentId: string): Promise<Uint8Array> {
+  const { resolveSumitHttpClientForOrg } = await import(
+    '@/modules/expense-ingestion/application/resolve-sumit-client'
+  );
+  const client = await resolveSumitHttpClientForOrg(context);
+  if (!client) {
+    throw new Error('SUMIT is not connected');
+  }
+  const pdf = await client.getDocumentPdf(documentId, true);
+  return pdf.bytes;
+}
+
+async function rememberSumitImportChecksum(
+  context: OrgContext,
+  importId: string,
+  checksumSha256: string,
+): Promise<void> {
+  try {
+    const { updateImport } = await import('@/modules/expense-ingestion/data/imports.repository');
+    await updateImport(context.db, context.organizationId, importId, {
+      pdfChecksumSha256: checksumSha256,
+      lastCheckedAt: new Date(),
+    });
+  } catch {
+    // The OCR job still holds the checksum. Import checksum is a convenience copy.
+  }
 }
 
 export { refreshBatchProgress };

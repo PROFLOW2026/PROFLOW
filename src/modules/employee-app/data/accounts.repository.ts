@@ -62,6 +62,17 @@ export async function findEmployeeAppAccountSealedPinByEmployeeId(
   return { account: mapRow(row), temporaryPinSealed: row.temporaryPinSealed ?? null };
 }
 
+export async function listEmployeeAppAccountsForOrganization(
+  db: DbExecutor,
+  organizationId: string,
+): Promise<EmployeeAppAccountRecord[]> {
+  const rows = await db
+    .select()
+    .from(employeeAppAccounts)
+    .where(eq(employeeAppAccounts.organizationId, organizationId));
+  return rows.map(mapRow);
+}
+
 export async function findEmployeeAppAccountByUserId(
   db: DbExecutor,
   organizationId: string,

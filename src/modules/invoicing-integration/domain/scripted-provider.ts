@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { FULL_ADAPTER_CAPABILITIES, type StatutoryProviderCapabilities } from './types';
 import type {
   AllocateExternalReferenceInput,
   AllocateExternalReferenceOutput,
@@ -39,6 +40,10 @@ export class ScriptedStatutoryProvider implements StatutoryInvoicingProvider {
 
   isFeatureEnabled(): boolean {
     return true;
+  }
+
+  capabilities(): StatutoryProviderCapabilities {
+    return FULL_ADAPTER_CAPABILITIES;
   }
 
   async createDocument(

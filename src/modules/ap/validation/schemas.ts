@@ -22,6 +22,10 @@ export const createApBillSchema = z.object({
   taxAmount: moneyString.optional().nullable(),
   /** When true, persist as draft - no Actual, no commitment consumption. */
   asDraft: z.boolean().optional(),
+  confirmDistinctCosts: z.boolean().optional(),
+  inventoryStockPurchase: z.boolean().optional(),
+  inventoryItemId: z.string().uuid().optional().nullable(),
+  inventoryPurchaseQty: moneyString.optional().nullable(),
   retentionAmount: moneyString.optional().nullable(),
   retentionPercent: moneyString.optional().nullable(),
   subcontractAgreementId: z.string().uuid().optional().nullable(),
@@ -37,6 +41,7 @@ export const createApBillSchema = z.object({
         purchaseOrderLineId: z.string().uuid().optional().nullable(),
         /** Shared transaction taxonomy (same cost_categories as Expense). */
         costCategoryId: z.string().uuid().optional().nullable(),
+        inventoryItemId: z.string().uuid().optional().nullable(),
         costFamily: z
           .enum(['direct_project', 'shared', 'business_overhead', 'asset_capital'])
           .optional()

@@ -6,7 +6,9 @@ import type { OrgContext } from '@/shared/auth/context';
 import { getAdminDb } from '@/shared/db/client';
 import { findOrganizationById } from '@/modules/tenancy';
 import { getOcrProvider } from '../domain/provider-registry';
+import { ocrLeaseReclaimExhausted, recountOcrBatchFromJobs } from '../domain/job-lifecycle';
 import { createDrizzleOcrRepository } from '../data/drizzle-ocr.repository';
+import type { OcrRepository } from '../data/ocr.repository';
 import { processQueuedJob } from './process-job';
 
 const DEFAULT_LEASE_SECONDS = 600;
@@ -22,6 +24,32 @@ function workerToken(): string {
   return `ocr-worker:${process.env.VERCEL_REGION ?? 'local'}:${process.pid}`;
 }
 
+async function stopReclaimedOcrJob(
+  repo: OcrRepository,
+  organizationId: string,
+  jobId: string,
+  errorCode: string,
+  message: string,
+): Promise<void> {
+  const updated = await repo.updateJob(organizationId, jobId, {
+    status: 'failed',
+    errorCode,
+    errorMessage: message,
+    lastError: message,
+    completedAt: new Date().toISOString(),
+  });
+  const batchId = updated?.batchId ?? null;
+  if (!batchId) return;
+  const batch = await repo.findBatch(organizationId, batchId);
+  if (!batch) return;
+  const jobs = await repo.listJobsForOrg(organizationId, { batchId });
+  await repo.updateBatch(
+    organizationId,
+    batchId,
+    recountOcrBatchFromJobs(jobs, batch.totalCount || jobs.length),
+  );
+}
+
 /**
  * Trusted OCR worker. Claims one queued/stale job at a time via SQL so two
  * isolates cannot run Azure for the same row. Uses the admin connection because
@@ -34,6 +62,7 @@ export async function drainDurableOcrQueue(
   const token = options.workerToken ?? workerToken();
   const limit = Math.max(1, Math.min(options.limit ?? DEFAULT_BATCH, 25));
   const provider = getOcrProvider();
+  const repo = createDrizzleOcrRepository(db);
   let claimed = 0;
   let processed = 0;
 
@@ -50,14 +79,35 @@ export async function drainDurableOcrQueue(
       .select({
         id: ocrExtractionJobs.id,
         organizationId: ocrExtractionJobs.organizationId,
+        attemptCount: ocrExtractionJobs.attemptCount,
       })
       .from(ocrExtractionJobs)
       .where(eq(ocrExtractionJobs.id, jobId))
       .limit(1);
     if (!job) continue;
 
+    if (ocrLeaseReclaimExhausted(job.attemptCount ?? 0)) {
+      await stopReclaimedOcrJob(
+        repo,
+        job.organizationId,
+        job.id,
+        'provider_error',
+        'OCR attempt limit reached',
+      );
+      continue;
+    }
+
     const organization = await findOrganizationById(db, job.organizationId);
-    if (!organization) continue;
+    if (!organization) {
+      await stopReclaimedOcrJob(
+        repo,
+        job.organizationId,
+        job.id,
+        'not_found',
+        'Organization for this OCR job is no longer available',
+      );
+      continue;
+    }
 
     const context: OrgContext = {
       userId: WORKER_USER_ID,
@@ -69,7 +119,6 @@ export async function drainDurableOcrQueue(
       db,
       locale: organization.defaultLocale || 'en',
     };
-    const repo = createDrizzleOcrRepository(db);
     await processQueuedJob(context, job.id, provider, repo, { alreadyClaimed: true });
     processed += 1;
   }

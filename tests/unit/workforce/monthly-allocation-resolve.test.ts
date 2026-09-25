@@ -151,10 +151,21 @@ describe('resolveBillProjectAllocationLines / preview', () => {
     ).toThrow(/exceeds bill NET/i);
   });
 
-  it('allows under-NET with visible unallocated', () => {
+  it('rejects under-NET project lines unless the remainder is explicit', () => {
+    expect(() =>
+      resolveBillProjectAllocationLines({
+        recognizedNet: '100',
+        currency: 'ILS',
+        lines: [
+          { projectId: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', method: 'manual_amount', amount: '40' },
+        ],
+      }),
+    ).toThrow(/remainder/i);
+
     const resolved = resolveBillProjectAllocationLines({
       recognizedNet: '100',
       currency: 'ILS',
+      remainderIntent: 'auto_pool',
       lines: [
         { projectId: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', method: 'manual_amount', amount: '40' },
       ],

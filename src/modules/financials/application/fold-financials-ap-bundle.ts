@@ -10,6 +10,10 @@ import {
   resolveVendorBillProjectAmounts,
   scaleBillOutstandingToProjectSlice,
 } from '@/modules/ap';
+import {
+  apBillContributesOperatingActual,
+  operatingSliceAfterStockLines,
+} from '@/modules/ap/domain/inventory-stock-purchase';
 import { RECOGNIZED_VENDOR_BILL_STATUSES } from '@/modules/ap/domain/vendor-cost-recognition';
 import {
   addMoney,
@@ -60,7 +64,11 @@ export function foldRecognizedVendorBillsFromApBundle(
   const useAllocations = areApBillProjectAllocationsAvailable();
   const recognizedStatuses = new Set<string>([...RECOGNIZED_VENDOR_BILL_STATUSES]);
 
-  const billRows = bundle.bills.filter((row) => recognizedStatuses.has(row.status));
+  const billRows = bundle.bills.filter(
+    (row) =>
+      recognizedStatuses.has(row.status) &&
+      apBillContributesOperatingActual(row.inventoryStockPurchase === true),
+  );
   const allocationLines = bundle.allocations
     .filter((row) => row.targetType === 'project' && row.projectId === projectId)
     .map((row) => ({
@@ -105,10 +113,16 @@ export function foldRecognizedVendorBillsFromApBundle(
     const amountStr = resolved.amounts[i]!;
     const billId = resolved.billIds[i]!;
     const billNet = billNetById.get(billId) ?? amountStr;
+    const operating = operatingSliceAfterStockLines({
+      sliceAmount: amountStr,
+      billNetAmount: billNet,
+      stockLineNet: billRows.find((row) => row.id === billId)?.stockLineNet ?? '0',
+      currency: normalized,
+    });
     const netted = netProjectSliceAfterCredits({
       currency: normalized,
       billNetAmount: billNet,
-      sliceAmount: amountStr,
+      sliceAmount: operating.amount,
       creditActualReductions: creditReductionsFromFacts(bundle.creditReductions, billId),
       projectId,
     });

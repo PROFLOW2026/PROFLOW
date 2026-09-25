@@ -71,6 +71,7 @@ export async function ProjectFinancialsPanel({ projectId }: ProjectFinancialsPan
   return (
     <div className="flex min-w-0 max-w-full flex-col gap-4">
       <h3 className="text-base font-semibold">{t('panelTitle')}</h3>
+      <p className="text-sm text-[var(--pf-text-secondary)]">{t('profitVsCash')}</p>
 
       {canReadBilling ? (
         <BillingPlanStatusStrip projectId={projectId} />

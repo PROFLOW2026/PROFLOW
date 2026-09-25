@@ -17,6 +17,10 @@ import {
   netProjectSliceAfterCredits,
 } from '@/modules/ap';
 import { resolveVendorBillProjectAmounts } from '../domain/vendor-bill-project-attribution';
+import {
+  apBillContributesOperatingActual,
+  operatingSliceAfterStockLines,
+} from '../domain/inventory-stock-purchase';
 import { RECOGNIZED_VENDOR_BILL_STATUSES } from '../domain/vendor-cost-recognition';
 import {
   billNetForGeneralRemainder,
@@ -70,6 +74,7 @@ export function foldApGeneralRemaindersByYearMonthFromFacts(
   const billRows = bundle.bills.filter(
     (row) =>
       recognizedStatuses.has(row.status) &&
+      apBillContributesOperatingActual(row.inventoryStockPurchase === true) &&
       row.currency.toUpperCase() === normalized &&
       row.billDate != null &&
       allowed.has(String(row.billDate).slice(0, 7)),
@@ -98,7 +103,12 @@ export function foldApGeneralRemaindersByYearMonthFromFacts(
     const input: VendorBillGeneralRemainderInput = {
       currency: row.currency,
       projectId: row.projectId,
-      billNetAmount: billNetForGeneralRemainder(row),
+      billNetAmount: operatingSliceAfterStockLines({
+        sliceAmount: billNetForGeneralRemainder(row),
+        billNetAmount: billNetForGeneralRemainder(row),
+        stockLineNet: row.stockLineNet ?? '0',
+        currency: row.currency,
+      }).amount,
       creditActualReductions: creditActualReductionStrings(bundle.creditReductions, row.id),
       appliedProjectAllocationAmounts: useAllocations
         ? (projectAmountsByBill.get(row.id) ?? [])
@@ -152,7 +162,11 @@ export function foldRecognizedVendorBillsForProjectFromFacts(
   const recognizedStatuses = new Set<string>([...RECOGNIZED_VENDOR_BILL_STATUSES]);
   const useAllocations = areApBillProjectAllocationsAvailable();
 
-  const billRows = bundle.bills.filter((row) => recognizedStatuses.has(row.status));
+  const billRows = bundle.bills.filter(
+    (row) =>
+      recognizedStatuses.has(row.status) &&
+      apBillContributesOperatingActual(row.inventoryStockPurchase === true),
+  );
   const allocationLines = bundle.allocations
     .filter(
       (row) =>
@@ -201,10 +215,16 @@ export function foldRecognizedVendorBillsForProjectFromFacts(
     const amountStr = resolved.amounts[i]!;
     const billId = resolved.billIds[i]!;
     const billNet = billNetById.get(billId) ?? amountStr;
+    const operating = operatingSliceAfterStockLines({
+      sliceAmount: amountStr,
+      billNetAmount: billNet,
+      stockLineNet: billRows.find((row) => row.id === billId)?.stockLineNet ?? '0',
+      currency: normalized,
+    });
     const netted = netProjectSliceAfterCredits({
       currency: normalized,
       billNetAmount: billNet,
-      sliceAmount: amountStr,
+      sliceAmount: operating.amount,
       creditActualReductions: creditReductionAmounts(bundle.creditReductions, billId),
       projectId,
     });

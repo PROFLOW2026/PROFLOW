@@ -14,7 +14,7 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core';
 import { currencyCode, moneyAmount, primaryId, quantityAmount, timestamps } from './_shared';
-import { apBills } from './ap';
+import { apBillLines, apBills } from './ap';
 import { expenses } from './expenses';
 import { inventoryItems, assets } from './field-ops';
 import { recurringFinancialDrafts } from './next-gen-ops';
@@ -268,6 +268,8 @@ export const inventoryCostLayers = pgTable(
     sourceKind: text('source_kind').notNull(),
     sourceExpenseId: uuid('source_expense_id'),
     sourceApBillId: uuid('source_ap_bill_id'),
+    /** Set when source_kind = ap_bill. One FIFO layer per vendor-bill line. */
+    sourceApBillLineId: uuid('source_ap_bill_line_id'),
     openingReference: text('opening_reference'),
     receivedOn: date('received_on', { mode: 'string' }).notNull(),
     receivedQty: quantityAmount('received_qty').notNull(),
@@ -286,9 +288,9 @@ export const inventoryCostLayers = pgTable(
     uniqueIndex('inventory_cost_layers_source_expense_uq')
       .on(table.organizationId, table.sourceExpenseId)
       .where(sql`${table.sourceExpenseId} IS NOT NULL`),
-    uniqueIndex('inventory_cost_layers_source_ap_bill_uq')
-      .on(table.organizationId, table.sourceApBillId)
-      .where(sql`${table.sourceApBillId} IS NOT NULL`),
+    uniqueIndex('inventory_cost_layers_source_ap_bill_line_uq')
+      .on(table.organizationId, table.sourceApBillLineId)
+      .where(sql`${table.sourceApBillLineId} IS NOT NULL`),
     uniqueIndex('inventory_cost_layers_opening_reference_uq')
       .on(table.organizationId, table.inventoryItemId, table.openingReference)
       .where(sql`${table.sourceKind} = 'opening_balance'`),
@@ -308,6 +310,16 @@ export const inventoryCostLayers = pgTable(
       columns: [table.sourceApBillId, table.organizationId],
       foreignColumns: [apBills.id, apBills.organizationId],
     }).onDelete('restrict'),
+    foreignKey({
+      name: 'inventory_cost_layers_source_ap_bill_line_org_fk',
+      columns: [table.sourceApBillLineId, table.organizationId],
+      foreignColumns: [apBillLines.id, apBillLines.organizationId],
+    }).onDelete('restrict'),
+    foreignKey({
+      name: 'inventory_cost_layers_source_ap_bill_line_bill_fk',
+      columns: [table.sourceApBillLineId, table.sourceApBillId, table.organizationId],
+      foreignColumns: [apBillLines.id, apBillLines.apBillId, apBillLines.organizationId],
+    }).onDelete('restrict'),
     check(
       'inventory_cost_layers_qty_non_negative',
       sql`${table.receivedQty} >= 0 AND ${table.remainingQty} >= 0 AND ${table.remainingQty} <= ${table.receivedQty}`,
@@ -316,12 +328,18 @@ export const inventoryCostLayers = pgTable(
     check(
       'inventory_cost_layers_source_shape',
       sql`(
-        (${table.sourceKind} = 'expense' AND ${table.sourceExpenseId} IS NOT NULL AND ${table.sourceApBillId} IS NULL)
-        OR (${table.sourceKind} = 'ap_bill' AND ${table.sourceApBillId} IS NOT NULL AND ${table.sourceExpenseId} IS NULL)
+        (${table.sourceKind} = 'expense' AND ${table.sourceExpenseId} IS NOT NULL AND ${table.sourceApBillId} IS NULL AND ${table.sourceApBillLineId} IS NULL)
+        OR (
+          ${table.sourceKind} = 'ap_bill'
+          AND ${table.sourceApBillId} IS NOT NULL
+          AND ${table.sourceApBillLineId} IS NOT NULL
+          AND ${table.sourceExpenseId} IS NULL
+        )
         OR (
           ${table.sourceKind} = 'opening_balance'
           AND ${table.sourceExpenseId} IS NULL
           AND ${table.sourceApBillId} IS NULL
+          AND ${table.sourceApBillLineId} IS NULL
           AND ${table.openingReference} IS NOT NULL
           AND char_length(btrim(${table.openingReference})) > 0
         )

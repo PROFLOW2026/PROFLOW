@@ -108,8 +108,9 @@ async function safeQuery<T>(
 // ─── task_overdue ─────────────────────────────────────────────────────────────
 
 /**
- * Tasks past due_date that are assigned to the current user and not yet
- * done or cancelled. Scoped strictly via taskAssignees.orgMemberId.
+ * UWM tasks past due_date assigned to the current user, not done or cancelled.
+ * Schedule and milestone overdue stays on source `overdue_planning` — not this type.
+ * Scoped strictly via taskAssignees.orgMemberId.
  */
 export async function collectTaskOverdue(ctx: CollectContext): Promise<CommandCenterItem[]> {
   if (!hasPermission(ctx.context, PERMISSIONS.TASKS_READ)) return [];

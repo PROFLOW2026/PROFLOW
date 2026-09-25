@@ -170,6 +170,7 @@ async function persistAllocations(
   /** Allocatable total - always NET so Actual Cost stays pre-VAT. */
   netAmount: ReturnType<typeof resolveTaxAmounts>['netAmount'],
   allocationInputs: readonly AllocationLineInput[] | undefined,
+  remainderIntent?: 'auto_pool' | 'company_only' | null,
 ): Promise<void> {
   if (!allocationInputs || allocationInputs.length === 0) {
     await replaceExpenseAllocations(context.db, context.organizationId, expenseId, []);
@@ -179,6 +180,7 @@ async function persistAllocations(
   await validateAllocationReferences(context, allocationInputs);
   const resolved = resolveAllocationLines(netAmount, allocationInputs, {
     defaultAmountBasis: 'net',
+    remainderIntent: remainderIntent ?? null,
   });
   await replaceExpenseAllocations(
     context.db,
@@ -230,7 +232,35 @@ async function persistExpenseAllocations(
     return;
   }
 
-  await persistAllocations(context, expenseId, amounts.netAmount, input.allocations);
+  const hasProjectAllocationLine = (input.allocations ?? []).some(
+    (line) => line.targetType === 'project' && Boolean(line.projectId),
+  );
+  const hasOverheadAllocationLine = (input.allocations ?? []).some(
+    (line) => line.targetType === 'overhead',
+  );
+  const allocationIntent = resolveExpenseAllocationIntent({
+    explicitIntent: input.allocationIntent ?? null,
+    projectId: targeting.projectId,
+    usesAutomaticDriver: Boolean(
+      input.allocationDriverMethod &&
+        isWeightAllocationMethod(input.allocationDriverMethod as AllocationLineInput['method']),
+    ),
+    hasProjectAllocationLine,
+    hasOverheadAllocationLine,
+    costFamily: targeting.costFamily,
+  });
+  const remainderIntent =
+    (input.installmentCount ?? 1) <= 1 &&
+    (allocationIntent === 'auto_pool' || allocationIntent === 'company_only')
+      ? allocationIntent
+      : null;
+  await persistAllocations(
+    context,
+    expenseId,
+    amounts.netAmount,
+    input.allocations,
+    remainderIntent,
+  );
 }
 
 async function shouldNoteFirstOverheadUsage(

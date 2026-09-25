@@ -25,7 +25,6 @@ export function useShareStorageFile() {
         if (result.reason === 'aborted') return result;
 
         if (result.reason === 'unsupported') {
-          setShareError(t('shareUnsupported'));
           try {
             await downloadStorageFile(input);
             return { ok: true as const, method: 'download_fallback' as const };

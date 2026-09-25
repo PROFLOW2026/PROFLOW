@@ -8,6 +8,7 @@ export {
   SUMIT_EXPENSE_IMPORT_PROVIDER,
   sumitOcrIdempotencyKey,
   parseSumitIdempotencyKey,
+  resolveSumitDocumentIdForOcrJob,
 } from './domain/types';
 export {
   EXPENSE_INGESTION_PROVIDER_KEY,

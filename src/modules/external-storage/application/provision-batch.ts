@@ -11,6 +11,7 @@ import { getAdminDb } from '@/shared/db/client';
 import type { DbExecutor } from '@/shared/db/types';
 import { findStorageConnectionById, updateStorageConnection } from '../data/connections.repository';
 import {
+  STORAGE_PROVISION_CHAIN_DEFERRED_ERROR,
   STORAGE_PROVISION_CLIENT_BATCH,
   STORAGE_PROVISION_PROJECT_BATCH,
   nextStorageProvisionStep,
@@ -414,6 +415,7 @@ export async function runStorageProvisionCycle(input: {
   };
 
   const totals = { clientsProcessed: 0, projectsProcessed: 0 };
+  let activeConnection: { organizationId: string; id: string } | null = null;
 
   connectionLoop: for (const row of connections) {
     try {
@@ -436,6 +438,7 @@ export async function runStorageProvisionCycle(input: {
         continue;
       }
 
+      activeConnection = { organizationId: row.organizationId, id: row.id };
       const accessToken = await resolveValidAccessToken(db, row.organizationId, connection);
 
       // Multi-batch within this invocation — fewer HTTP hops on serverless.
@@ -476,6 +479,7 @@ export async function runStorageProvisionCycle(input: {
             chain,
             rateLimitStreak: rateLimitStreak - 1,
           });
+          if (step.deferred) break connectionLoop;
           const delayMs = step.delayMs;
           const remainingBudget = STORAGE_PROVISION_CYCLE_BUDGET_MS - (Date.now() - cycleStarted);
           if (delayMs > 0 && delayMs + 5_000 < remainingBudget) {
@@ -499,6 +503,7 @@ export async function runStorageProvisionCycle(input: {
       }
 
       if (last.remaining > 0 || last.rateLimited) break connectionLoop;
+      activeConnection = null;
     } catch (error) {
       if (isTransient(error)) {
         last = { ...last, remaining: 1, rateLimited: true };
@@ -549,6 +554,19 @@ export async function runStorageProvisionCycle(input: {
     chain,
     rateLimitStreak,
   });
+  if (step.deferred && last.remaining > 0) {
+    if (activeConnection) {
+      await updateStorageConnection(db, activeConnection.organizationId, activeConnection.id, {
+        lastError: STORAGE_PROVISION_CHAIN_DEFERRED_ERROR,
+      });
+    }
+    console.error('[org-storage/provision] chain cap — remaining work deferred for a later worker resume', {
+      chain: step.chain,
+      remaining: last.remaining,
+      connectionId: activeConnection?.id ?? null,
+    });
+    return { ...last, continued: false };
+  }
   if (step.continue) {
     await scheduleNext({
       chain: step.chain,

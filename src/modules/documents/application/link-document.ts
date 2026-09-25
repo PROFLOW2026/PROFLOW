@@ -66,6 +66,7 @@ export async function linkDocumentToEntity(
   });
 }
 
+/** Removes one document_links row. Does not delete the provider file or the document. */
 export async function unlinkDocumentFromEntity(
   context: OrgContext,
   rawInput: { linkId: string },

@@ -175,9 +175,27 @@ describe('failed upload orphan cleanup', () => {
     );
 
     expect(row?.status).toBe('deleted');
-    expect(storage.removed.has(prepared.document.storagePath)).toBe(true);
+    expect(row?.storageBackend).toBe('external');
+    expect(storage.removeCalls).toBe(0);
+    expect(storage.removed.has(prepared.document.storagePath)).toBe(false);
+    expect(row?.storageCleanupStatus).toBe('succeeded');
     expect(isStorageOrphanChecksum(row?.checksum)).toBe(false);
   });
+
+  async function forceSupabaseLegacy(documentId: string, storagePath: string) {
+    await database.asService(async (db) => {
+      await db
+        .update(documents)
+        .set({
+          storageBackend: 'supabase_legacy',
+          storageBucket: 'documents',
+          storagePath,
+          externalConnectionId: null,
+          externalFileId: null,
+        })
+        .where(eq(documents.id, documentId));
+    });
+  }
 
   it('retries storage remove on soft-delete until it succeeds', async () => {
     await provisionStorage();
@@ -197,6 +215,8 @@ describe('failed upload orphan cleanup', () => {
         sizeBytes: 256,
       });
     });
+    const legacyPath = `${organizationId}/organization/${organizationId}/retry-ok.jpg`;
+    await forceSupabaseLegacy(prepared.document.id, legacyPath);
 
     const deleted = await database.asUser(ownerId, async (tx) => {
       const context = await resolveOrgContext(tx, {
@@ -210,7 +230,7 @@ describe('failed upload orphan cleanup', () => {
     expect(deleted.status).toBe('deleted');
     expect(deleted.deletedAt).toBeTruthy();
     expect(storage.removeCalls).toBe(2);
-    expect(storage.removed.has(prepared.document.storagePath)).toBe(true);
+    expect(storage.removed.has(legacyPath)).toBe(true);
     expect(isStorageOrphanChecksum(deleted.checksum)).toBe(false);
     expect(deleted.storageCleanupStatus).toBe('succeeded');
     expect(deleted.storageCleanupError).toBeNull();
@@ -248,6 +268,8 @@ describe('failed upload orphan cleanup', () => {
         sizeBytes: 256,
       });
     });
+    const legacyPath = `${organizationId}/organization/${organizationId}/orphan.jpg`;
+    await forceSupabaseLegacy(prepared.document.id, legacyPath);
 
     const deleted = await database.asUser(ownerId, async (tx) => {
       const context = await resolveOrgContext(tx, {
@@ -264,7 +286,7 @@ describe('failed upload orphan cleanup', () => {
     expect(deleted.storageCleanupStatus).toBe('failed');
     expect(deleted.storageCleanupError).toBe('storage remove failed');
     expect(deleted.storageCleanupAttempts).toBe(STORAGE_CLEANUP_RETRY_ATTEMPTS);
-    expect(storage.removed.has(prepared.document.storagePath)).toBe(false);
+    expect(storage.removed.has(legacyPath)).toBe(false);
     expect(storage.removeCalls).toBe(STORAGE_CLEANUP_RETRY_ATTEMPTS);
 
     const events = await database.asService(async (db) =>
@@ -287,7 +309,8 @@ describe('failed upload orphan cleanup', () => {
       (event) => event.action === AUDIT_ACTIONS.DOCUMENT_STORAGE_CLEANUP_FAILED,
     );
     expect(failure?.metadata).toMatchObject({
-      storagePath: prepared.document.storagePath,
+      storageBackend: 'supabase_legacy',
+      storagePath: legacyPath,
       attempts: STORAGE_CLEANUP_RETRY_ATTEMPTS,
       error: 'storage remove failed',
     });
@@ -311,7 +334,7 @@ describe('failed upload orphan cleanup', () => {
       succeededIds: [prepared.document.id],
       failedIds: [],
     });
-    expect(storage.removed.has(prepared.document.storagePath)).toBe(true);
+    expect(storage.removed.has(legacyPath)).toBe(true);
 
     const afterSweep = await database.asService(async (db) =>
       findDocumentById(db, organizationId, prepared.document.id),

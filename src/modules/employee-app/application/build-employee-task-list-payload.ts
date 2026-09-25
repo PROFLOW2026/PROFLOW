@@ -15,8 +15,11 @@ import { employeeCanUpdateTaskGrant } from '@/modules/employee-app/application/t
 import { listEmployeePmTasks } from './employee-pm-tasks';
 import type { EmployeeTaskListItem } from '../ui/employee-filter-logic';
 
+const EMPLOYEE_TASK_LIST_LIMIT = 500;
+
 export interface EmployeeTaskListPayload {
   readonly tasks: readonly EmployeeTaskListItem[];
+  readonly hasMore: boolean;
   readonly today: string;
   readonly currentEmployeeId: string;
   readonly canFilterByAssignee: boolean;
@@ -69,10 +72,12 @@ export async function buildEmployeeTaskListPayload(
 
   const employeeId = requireEmployeeId(context);
   const today = todayInTimeZone(context.organization.timezone);
-  const rows = await listEmployeePmTasks(
-    context,
-    options?.projectId ? { projectId: options.projectId } : undefined,
-  );
+  const fetched = await listEmployeePmTasks(context, {
+    ...(options?.projectId ? { projectId: options.projectId } : {}),
+    limit: EMPLOYEE_TASK_LIST_LIMIT + 1,
+  });
+  const hasMore = fetched.length > EMPLOYEE_TASK_LIST_LIMIT;
+  const rows = hasMore ? fetched.slice(0, EMPLOYEE_TASK_LIST_LIMIT) : fetched;
   const taskIds = rows.map((row) => row.id);
   const projectIds = rows.map((row) => row.projectId).filter(Boolean) as string[];
 
@@ -133,6 +138,7 @@ export async function buildEmployeeTaskListPayload(
 
   return {
     tasks,
+    hasMore,
     today,
     currentEmployeeId: employeeId,
     // Mine/Company and assignee filter for any authorized universe (not self-only).

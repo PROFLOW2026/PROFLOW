@@ -7,7 +7,7 @@ import type { OrgContext } from '@/shared/auth/context';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { fromNumericString, zeroMoney, type MoneyValue } from '@/shared/money';
-import { sumOrganizationCompanyOnlyExpenses } from '../data/expenses.repository';
+import { composeCompanyActual } from '../domain/company-actual';
 import { sumOrganizationGeneralPoolTotals } from '../data/general-cost-months.repository';
 import { getHomeDashboard } from './get-home-dashboard';
 
@@ -63,11 +63,8 @@ export async function getBusinessProfitability(context: OrgContext): Promise<Bus
   }
 
   const currency = context.organization.baseCurrency.toUpperCase();
-  const [dashboard, companyOnlyExpenses, generalPoolTotals] = await Promise.all([
+  const [dashboard, generalPoolTotals] = await Promise.all([
     getHomeDashboard(context, { workKindFilter: 'all' }),
-    canReadProfit
-      ? sumOrganizationCompanyOnlyExpenses(context.db, context.organizationId, currency)
-      : Promise.resolve(null),
     canReadProfit
       ? sumOrganizationGeneralPoolTotals(context.db, context.organizationId, currency)
       : Promise.resolve(null),
@@ -77,6 +74,18 @@ export async function getBusinessProfitability(context: OrgContext): Promise<Bus
     generalPoolTotals != null
       ? (fromNumericString(generalPoolTotals.unallocatable, currency) ?? zeroMoney(currency))
       : null;
+  const companyComposition =
+    canReadProfit && generalPoolTotals != null
+      ? composeCompanyActual({
+          currency,
+          directProjectActual: dashboard.totalActualCost ?? zeroMoney(currency),
+          generalPool: fromNumericString(generalPoolTotals.pool, currency) ?? zeroMoney(currency),
+          allocatedGeneralToProjects:
+            fromNumericString(generalPoolTotals.allocated, currency) ?? zeroMoney(currency),
+          unallocatableGeneral: unallocatableGeneral ?? zeroMoney(currency),
+        })
+      : null;
+  const staysWithCompany = companyComposition?.unallocatableGeneral ?? unallocatableGeneral;
 
   return {
     currency,
@@ -90,7 +99,7 @@ export async function getBusinessProfitability(context: OrgContext): Promise<Bus
     netOutstandingAr: kpi(dashboard.billing?.netOutstanding ?? null, '/billing?filter=open'),
     directProjectCost: kpi(dashboard.totalActualCost, '/reports?section=cost'),
     allocatedOverhead: kpi(forecast?.totalAllocatedOverhead ?? null, '/overhead'),
-    companyOnlyCost: kpi(companyOnlyExpenses, '/expenses?allocationIntent=company_only'),
+    companyOnlyCost: kpi(staysWithCompany, '/overhead'),
     companyActual: kpi(forecast?.companyActual ?? null, '/reports?section=cost'),
     unallocatableGeneral: kpi(unallocatableGeneral, '/overhead'),
     openCommitments: kpi(forecast?.totalRemainingCommitments ?? null, '/procurement'),
@@ -100,6 +109,6 @@ export async function getBusinessProfitability(context: OrgContext): Promise<Bus
     forecastProfit: kpi(forecast?.totalForecastMargin ?? null, '/reports?section=profitability'),
     companyProfit: kpi(forecast?.companyProfit ?? null, '/reports?section=profitability'),
     apOutstanding: kpi(dashboard.apOutstanding, '/procurement/ap?status=open'),
-    reconcilesCompanyActual: forecast?.companyActual != null ? true : null,
+    reconcilesCompanyActual: companyComposition?.reconciles ?? null,
   };
 }

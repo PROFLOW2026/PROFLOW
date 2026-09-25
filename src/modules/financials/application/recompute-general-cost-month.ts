@@ -8,7 +8,9 @@ import { projects } from '@drizzle/schema';
 import type { OrgContext } from '@/shared/auth/context';
 import { assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import { addMoney, fromNumericString, money, roundMoney, toNumericString, zeroMoney } from '@/shared/money';
+import { DomainRuleError, isAppError } from '@/shared/errors';
+import { logger } from '@/shared/observability';
+import { addMoney, fromNumericString, roundMoney, toNumericString, zeroMoney } from '@/shared/money';
 import { isMonthClosed, yearMonthFromBusinessDate } from '@/modules/month-close';
 import { todayInTimeZone } from '@/shared/dates';
 import {
@@ -36,8 +38,25 @@ import {
   sumGeneralCostSources,
   type GeneralCostSourceAtom,
 } from '../domain/company-actual';
-import { loadProjectFinancialsBatch } from './load-project-financials-batch';
+import { loadDirectActualBasisByProject } from './load-direct-actual-basis-by-project';
 import { isFutureEconomicYearMonth } from '../domain/general-cost-actual-recognition';
+
+function observeGeneralCostRecomputeFailure(
+  error: unknown,
+  scope: Record<string, unknown>,
+): never {
+  logger.error('financials.general_cost_recompute_failed', {
+    ...scope,
+    message: error instanceof Error ? error.message : String(error),
+    messageKey: isAppError(error) ? error.messageKey : undefined,
+  });
+  if (isAppError(error)) throw error;
+  throw new DomainRuleError(
+    'General cost month could not be refreshed',
+    'financial.errors.generalCostRecomputeFailed',
+    scope,
+  );
+}
 
 export interface RecomputeGeneralCostMonthResult {
   readonly yearMonth: string;
@@ -51,8 +70,7 @@ export interface RecomputeGeneralCostMonthResult {
 
 /**
  * Rebuild open general-cost month from current recognized sources.
- * Direct Actual basis uses composed project Actual BEFORE auto-general
- * (loaders must not include general allocations in the basis — see compose).
+ * Weights use loadDirectActualBasisByProject (Direct Actual, no GCM allocation).
  */
 export async function recomputeGeneralCostMonth(
   context: OrgContext,
@@ -235,11 +253,7 @@ export async function recomputeGeneralCostMonth(
   const projectRows = await context.db
     .select({
       id: projects.id,
-      status: projects.status,
       currency: projects.currency,
-      expectedRemainingCostAmount: projects.expectedRemainingCostAmount,
-      workKind: projects.workKind,
-      pricingMode: projects.pricingMode,
     })
     .from(projects)
     .where(
@@ -254,44 +268,12 @@ export async function recomputeGeneralCostMonth(
     .filter((row) => (row.currency ?? currency).toUpperCase() === currency.toUpperCase())
     .map((row) => row.id);
 
-  const forecastByProject = new Map(
-    projectRows
-      .filter((row) => eligibleIds.includes(row.id))
-      .map((row) => [
-        row.id,
-        {
-          currency: (row.currency ?? currency).toUpperCase(),
-          expectedRemainingCostAmount: row.expectedRemainingCostAmount,
-          workKind: row.workKind,
-          pricingMode: row.pricingMode,
-        },
-      ]),
-  );
-
-  // Direct Actual for weights: composed Actual WITHOUT auto-general
-  // (compose adds general after this path stores allocations).
-  const financialsByProject =
+  // Canonical Direct Actual (inventory, labor, expenses, AP, month-close).
+  // Does not include general-cost allocation, so weights are not understated.
+  const bases =
     eligibleIds.length > 0
-      ? await loadProjectFinancialsBatch(context, eligibleIds, forecastByProject)
-      : new Map();
-
-  // Direct Actual for weights (not Full): actualCostToDate is Direct-only in compose.
-  const bases = eligibleIds.map((projectId) => {
-    const financials = financialsByProject.get(projectId);
-    const standing = financials?.cost.actualCostToDate ?? zeroMoney(currency);
-    const allocatedGeneral = financials?.cost.allocatedGeneralBusinessCost;
-    const direct =
-      allocatedGeneral && Number(allocatedGeneral.amount) !== 0
-        ? money(
-            String(Number(standing.amount) - Number(allocatedGeneral.amount)),
-            currency,
-          )
-        : standing;
-    return {
-      projectId,
-      directActual: direct,
-    };
-  });
+      ? await loadDirectActualBasisByProject(context, eligibleIds, currency)
+      : [];
 
   const allocation = allocateGeneralPoolByDirectActual({ pool: autoPool, projects: bases });
   assertGeneralPoolConserves(allocation);
@@ -366,17 +348,17 @@ export async function recomputeOpenGeneralCostMonthForDate(
   return recomputeGeneralCostMonth(context, resolveOpenGeneralCostYearMonth(context, target));
 }
 
-/** Best-effort refresh after a mutation — never throws to callers. */
+/** Refresh after a mutation. Failures are logged and rethrown so the action is visible. */
 export async function tryRecomputeOpenGeneralCostMonth(
   context: OrgContext,
   target: OpenGeneralCostMonthTarget,
 ): Promise<void> {
+  const yearMonth = resolveOpenGeneralCostYearMonth(context, target);
   try {
-    const yearMonth = resolveOpenGeneralCostYearMonth(context, target);
     if (isFutureEconomicYearMonth(yearMonth, context.organization.timezone)) return;
     await recomputeOpenGeneralCostMonthForDate(context, target);
-  } catch {
-    // Recognition path already succeeded; stale general pool is acceptable until next hook/load.
+  } catch (error) {
+    observeGeneralCostRecomputeFailure(error, { yearMonth });
   }
 }
 
@@ -413,17 +395,22 @@ export async function tryRecomputeOpenGeneralCostMonthsForExpense(
       if (isFutureEconomicYearMonth(yearMonth, context.organization.timezone)) continue;
       await recomputeGeneralCostMonth(context, yearMonth);
     }
-  } catch {
-    // Recognition path already succeeded; stale general pool is acceptable until next hook/load.
+  } catch (error) {
+    observeGeneralCostRecomputeFailure(error, { expenseId: expense.id });
   }
 }
 
-/** Fire-and-forget open-month refresh (mutation hooks). */
+/** Fire-and-forget open-month refresh. Rejection is logged; awaited callers still throw. */
 export function scheduleOpenGeneralCostRecompute(
   context: OrgContext,
   target: OpenGeneralCostMonthTarget,
 ): void {
-  void tryRecomputeOpenGeneralCostMonth(context, target);
+  void tryRecomputeOpenGeneralCostMonth(context, target).catch((error: unknown) => {
+    logger.error('financials.general_cost_recompute_unhandled', {
+      message: error instanceof Error ? error.message : String(error),
+      messageKey: isAppError(error) ? error.messageKey : undefined,
+    });
+  });
 }
 
 /** @deprecated Read surfaces must not mutate GCM. Use mutation hooks only. */

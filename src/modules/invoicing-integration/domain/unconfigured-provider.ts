@@ -1,3 +1,4 @@
+import { DISABLED_CAPABILITIES, type StatutoryProviderCapabilities } from './types';
 import type {
   AllocateExternalReferenceInput,
   AllocateExternalReferenceOutput,
@@ -34,6 +35,10 @@ export class UnconfiguredStatutoryProvider implements StatutoryInvoicingProvider
 
   isFeatureEnabled(): boolean {
     return false;
+  }
+
+  capabilities(): StatutoryProviderCapabilities {
+    return DISABLED_CAPABILITIES;
   }
 
   async createDocument(

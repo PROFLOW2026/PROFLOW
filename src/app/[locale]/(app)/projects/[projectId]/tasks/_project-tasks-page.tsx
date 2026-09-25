@@ -8,7 +8,8 @@ import { withOrgContext } from '@/shared/auth/session';
 import { todayInTimeZone } from '@/shared/dates';
 import { Link } from '@/shared/i18n/navigation';
 // Agent A's real API
-import { listAccessibleTasks } from '@/modules/tasks';
+import { listAccessibleTasksPage } from '@/modules/tasks';
+import { TASK_LIST_MAX_LIMIT } from '@/modules/tasks/domain/list-window';
 import { mapTasksToCardDataForOrg } from '@/modules/tasks/application/map-tasks-for-ui';
 import { ProjectTasksClient } from './_project-tasks-client';
 import { getTaskDetailAction, updateTaskFieldsAction } from '../../../work/actions';
@@ -22,16 +23,20 @@ export default async function ProjectTasksPage({
   const t = await getTranslations('tasks');
 
   const data = await withOrgContext(async (context) => {
-    const rawTasks = await listAccessibleTasks(context, { projectId });
+    const page = await listAccessibleTasksPage(context, {
+      projectId,
+      limit: TASK_LIST_MAX_LIMIT,
+    });
     return {
-      tasks: await mapTasksToCardDataForOrg(context, rawTasks),
+      tasks: await mapTasksToCardDataForOrg(context, page.tasks),
+      hasMore: page.hasMore,
       today: todayInTimeZone(context.organization.timezone),
     };
   });
 
   if (!data) notFound();
 
-  const { tasks, today } = data;
+  const { tasks, hasMore, today } = data;
 
   return (
     <div className="flex flex-col gap-6">
@@ -61,6 +66,12 @@ export default async function ProjectTasksPage({
           }
         />
       ) : (
+        <>
+        {hasMore ? (
+          <p role="status" className="text-sm text-[var(--pf-text-muted)]">
+            {t('list.hasMore')}
+          </p>
+        ) : null}
         <ProjectTasksClient
           tasks={tasks}
           projectId={projectId}
@@ -68,6 +79,7 @@ export default async function ProjectTasksPage({
           updateTask={updateTaskFieldsAction}
           today={today}
         />
+        </>
       )}
     </div>
   );

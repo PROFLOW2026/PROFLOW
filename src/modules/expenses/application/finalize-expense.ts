@@ -12,6 +12,7 @@ import {
   yearMonthFromBusinessDate,
 } from '@/modules/month-close';
 import { bookInventoryPurchaseFromExpenseOnExecutor } from '@/modules/assets/application/inventory-cost';
+import { assertExpenseFinalizeHasNoUnlinkedApOverlap } from '@/modules/financials/application/assert-expense-ap-overlap';
 import { resolveExpenseClassificationStatus } from '@/modules/financials/domain/economic-classification';
 import { isPositiveMoney, toNumericString } from '@/shared/money';
 import { assertFinalizable } from '../domain/lifecycle';
@@ -29,7 +30,11 @@ import { runAutomaticAllocation } from './run-automatic-allocation';
 
 const EXPENSE_AUDIT_FINALIZED = 'expense.finalized';
 
-export async function finalizeExpense(context: OrgContext, expenseId: string) {
+export async function finalizeExpense(
+  context: OrgContext,
+  expenseId: string,
+  options: { readonly confirmDistinctCosts?: boolean } = {},
+) {
   assertPermission(context, PERMISSIONS.EXPENSES_FINALIZE);
 
   const existing = await findExpenseById(context.db, context.organizationId, expenseId);
@@ -87,6 +92,19 @@ export async function finalizeExpense(context: OrgContext, expenseId: string) {
     currency: existing.netAmount.currency,
     submitIfMissing: true,
   });
+
+  await assertExpenseFinalizeHasNoUnlinkedApOverlap(
+    context.db,
+    context.organizationId,
+    {
+      id: existing.id,
+      vendorId: existing.vendorId,
+      projectId: existing.projectId,
+      netAmount: existing.netAmount.amount,
+      currency: existing.netAmount.currency,
+    },
+    options.confirmDistinctCosts === true,
+  );
 
   const finalizedAt = todayInTimeZone(context.organization.timezone);
   const taxSnapshot = captureTaxSnapshot(

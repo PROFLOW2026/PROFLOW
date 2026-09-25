@@ -240,7 +240,12 @@ export async function insertExpense(
 ): Promise<string> {
   const [inserted] = await db
     .insert(expenses)
-    .values({ organizationId, ...row })
+    .values({
+      organizationId,
+      ...row,
+      // Historical is_recurring_template rows stay readable. New rows are never templates.
+      isRecurringTemplate: false,
+    })
     .returning({ id: expenses.id });
 
   return inserted!.id;

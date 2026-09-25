@@ -5,9 +5,17 @@ import type { StatutoryInvoicingProvider } from '../domain/provider';
 import { getStatutoryInvoicingProvider } from '../domain/unconfigured-provider';
 import {
   DISABLED_CAPABILITIES,
-  FULL_ADAPTER_CAPABILITIES,
+  type StatutoryProviderCapabilities,
   type StatutoryProviderStatus,
 } from '../domain/types';
+
+/** Connected providers report their own capabilities. Disconnected stays fully off. */
+export function statutoryStatusCapabilities(
+  featureEnabled: boolean,
+  providerCapabilities: StatutoryProviderCapabilities,
+): StatutoryProviderCapabilities {
+  return featureEnabled ? providerCapabilities : DISABLED_CAPABILITIES;
+}
 
 export function getStatutoryProviderStatus(
   context: OrgContext,
@@ -23,7 +31,7 @@ export function getStatutoryProviderStatus(
     messageKey: featureEnabled
       ? 'invoicingIntegration.status.providerConnected'
       : 'invoicingIntegration.status.connectionRequired',
-    capabilities: featureEnabled ? FULL_ADAPTER_CAPABILITIES : DISABLED_CAPABILITIES,
+    capabilities: statutoryStatusCapabilities(featureEnabled, provider.capabilities()),
   };
 }
 

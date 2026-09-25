@@ -8,6 +8,11 @@ import { foldApGeneralRemaindersByYearMonthFromFacts } from '../application/fold
 import { getApOrgReadFactsCache } from './ap-read-facts-cache';
 import { listActiveCreditActualReductionsForBills, creditActualReductionAmounts } from './credits.repository';
 import { areApBillProjectAllocationsAvailable } from '../domain/vendor-bill-project-attribution';
+import {
+  apBillNotStockPurchaseSql,
+  apBillStockLineNetSql,
+  operatingSliceAfterStockLines,
+} from '../domain/inventory-stock-purchase';
 import { RECOGNIZED_VENDOR_BILL_STATUSES } from '../domain/vendor-cost-recognition';
 import {
   billNetForGeneralRemainder,
@@ -67,6 +72,7 @@ export async function sumRecognizedApGeneralRemainders(
       netAmount: apBills.netAmount,
       totalAmount: apBills.totalAmount,
       currency: apBills.currency,
+      stockLineNet: apBillStockLineNetSql(),
       ...(schemaReady ? { remainderAllocationIntent: apBills.remainderAllocationIntent } : {}),
     })
     .from(apBills)
@@ -75,6 +81,7 @@ export async function sumRecognizedApGeneralRemainders(
         eq(apBills.organizationId, organizationId),
         inArray(apBills.status, [...RECOGNIZED_VENDOR_BILL_STATUSES]),
         isNull(apBills.archivedAt),
+        apBillNotStockPurchaseSql(),
         eq(apBills.currency, normalized),
         ...(dateBounds
           ? [
@@ -138,7 +145,12 @@ export async function sumRecognizedApGeneralRemainders(
     return {
       currency: row.currency,
       projectId: row.projectId,
-      billNetAmount: billNetForGeneralRemainder(row),
+      billNetAmount: operatingSliceAfterStockLines({
+        sliceAmount: billNetForGeneralRemainder(row),
+        billNetAmount: billNetForGeneralRemainder(row),
+        stockLineNet: String(row.stockLineNet ?? '0'),
+        currency: row.currency,
+      }).amount,
       creditActualReductions: creditActualReductionAmounts(creditsByBill.get(row.id) ?? []),
       appliedProjectAllocationAmounts: projectAmountsByBill.get(row.id) ?? [],
       hasAppliedAllocationLines,
@@ -181,6 +193,7 @@ export async function sumRecognizedApGeneralRemaindersByYearMonth(
       totalAmount: apBills.totalAmount,
       currency: apBills.currency,
       billDate: apBills.billDate,
+      stockLineNet: apBillStockLineNetSql(),
       ...(schemaReady ? { remainderAllocationIntent: apBills.remainderAllocationIntent } : {}),
     })
     .from(apBills)
@@ -189,6 +202,7 @@ export async function sumRecognizedApGeneralRemaindersByYearMonth(
         eq(apBills.organizationId, organizationId),
         inArray(apBills.status, [...RECOGNIZED_VENDOR_BILL_STATUSES]),
         isNull(apBills.archivedAt),
+        apBillNotStockPurchaseSql(),
         eq(apBills.currency, normalized),
         isNotNull(apBills.billDate),
         gte(apBills.billDate, startDate),
@@ -252,7 +266,12 @@ export async function sumRecognizedApGeneralRemaindersByYearMonth(
     const input: VendorBillGeneralRemainderInput = {
       currency: row.currency,
       projectId: row.projectId,
-      billNetAmount: billNetForGeneralRemainder(row),
+      billNetAmount: operatingSliceAfterStockLines({
+        sliceAmount: billNetForGeneralRemainder(row),
+        billNetAmount: billNetForGeneralRemainder(row),
+        stockLineNet: String(row.stockLineNet ?? '0'),
+        currency: row.currency,
+      }).amount,
       creditActualReductions: creditActualReductionAmounts(creditsByBill.get(row.id) ?? []),
       appliedProjectAllocationAmounts: projectAmountsByBill.get(row.id) ?? [],
       hasAppliedAllocationLines: billsWithAnyApplied.has(row.id),

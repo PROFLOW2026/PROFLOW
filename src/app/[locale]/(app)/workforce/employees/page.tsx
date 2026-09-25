@@ -9,6 +9,8 @@ import {
   canViewWorkforceCosts,
 } from '@/modules/workforce/ui/employees-table';
 import { OrgWorkFrameworkForm } from '@/modules/workforce/ui/org-work-framework-form';
+import { EmployerCostOverview } from '@/modules/workforce/ui/employer-cost-overview';
+import { getEmployerCostOverview } from '@/modules/workforce/application/get-employer-cost-overview';
 import { WorkforceSubNav } from '@/modules/workforce/ui/workforce-sub-nav';
 import { withOrgContext } from '@/shared/auth/session';
 import { AuthorizationError } from '@/shared/errors';
@@ -29,7 +31,7 @@ export async function generateMetadata({
 export default async function EmployeesPage() {
   const t = await getTranslations('workforce');
 
-  const { employees, canManage, showCosts, laborDefaults, canManageFramework, canBootstrapCosting } =
+  const { employees, canManage, showCosts, laborDefaults, canManageFramework, canBootstrapCosting, employerCost } =
     await withOrgContext(async (context) => {
       try {
         const canManageFramework =
@@ -42,13 +44,15 @@ export default async function EmployeesPage() {
             )
           : null;
         const rows = await listEmployeesForOrg(context);
+        const showCosts = canViewWorkforceCosts(context);
         return {
           employees: rows,
           canManage: canManageWorkforce(context),
-          showCosts: canViewWorkforceCosts(context),
+          showCosts,
           laborDefaults,
           canManageFramework,
           canBootstrapCosting: hasPermission(context, PERMISSIONS.WORKFORCE_COST_MANAGE),
+          employerCost: showCosts ? await getEmployerCostOverview(context) : null,
         };
       } catch (error) {
         if (error instanceof AuthorizationError) throw error;
@@ -85,6 +89,8 @@ export default async function EmployeesPage() {
           canBootstrapCosting={canBootstrapCosting}
         />
       ) : null}
+
+      {employerCost ? <EmployerCostOverview data={employerCost} /> : null}
 
       <EmployeesTable employees={employees} canManage={canManage} showCosts={showCosts} />
     </div>

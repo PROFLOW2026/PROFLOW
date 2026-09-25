@@ -1,4 +1,5 @@
 import { addMoney, fromNumericString, sumMoney, zeroMoney, type MoneyValue } from '@/shared/money';
+import { contractContributesToCurrentValue } from './contract-lifecycle';
 import type { ContractValueEventRecord } from './types';
 
 /**
@@ -29,6 +30,42 @@ export function computeApprovedChangesTotal(
     if (!amount) return acc;
     return addMoney(acc, amount);
   }, zeroMoney(currency));
+}
+
+/**
+ * Project header current value. Same live-contract rule as financials:
+ * skip closed and cancelled contracts, then sum append-only events.
+ * Pending change requests are not events and do not increase this total.
+ */
+export function computeHeaderCurrentContractValue(input: {
+  readonly contracts: readonly {
+    readonly id: string;
+    readonly status: string;
+    readonly isPrimary: boolean;
+    readonly originalValueAmount: string | null;
+  }[];
+  readonly events: readonly ContractValueEventRecord[];
+  readonly currency: string;
+}): MoneyValue {
+  const liveIds = new Set(
+    input.contracts
+      .filter((contract) => contractContributesToCurrentValue(contract.status))
+      .map((contract) => contract.id),
+  );
+  const events = input.events.filter(
+    (event) =>
+      liveIds.has(event.contractId) &&
+      event.currency.toUpperCase() === input.currency.toUpperCase(),
+  );
+  if (events.length > 0) {
+    return computeCurrentContractValue(events, input.currency);
+  }
+  const live = input.contracts.filter((contract) => liveIds.has(contract.id));
+  const primary = live.find((contract) => contract.isPrimary) ?? live[0];
+  if (primary?.originalValueAmount) {
+    return fromNumericString(primary.originalValueAmount, input.currency) ?? zeroMoney(input.currency);
+  }
+  return zeroMoney(input.currency);
 }
 
 export function findOriginalValueEvent(

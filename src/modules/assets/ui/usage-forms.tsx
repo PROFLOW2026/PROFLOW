@@ -65,7 +65,7 @@ export function MaterialUsageForm({
 
   return (
     <form action={formAction} className="flex flex-col gap-3">
-      <p className="text-sm text-[var(--pf-text-secondary)]">{t('notActualHint')}</p>
+      <p className="text-sm text-[var(--pf-text-secondary)]">{t('materialHint')}</p>
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
       {state.success ? <Alert tone="success">{t('materialSaved')}</Alert> : null}
 
@@ -257,7 +257,7 @@ export function EquipmentUsageForm({
 
   return (
     <form action={formAction} className="flex flex-col gap-3">
-      <p className="text-sm text-[var(--pf-text-secondary)]">{t('notActualHint')}</p>
+      <p className="text-sm text-[var(--pf-text-secondary)]">{t('equipmentHint')}</p>
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
       {state.success ? <Alert tone="success">{t('equipmentSaved')}</Alert> : null}
 

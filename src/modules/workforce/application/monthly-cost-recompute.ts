@@ -91,7 +91,8 @@ export interface MonthlyCostRecomputeResult {
     | 'working_days_unavailable'
     | 'month_closed'
     | 'future_month'
-    | 'employee_missing';
+    | 'employee_missing'
+    | 'actual_preserved';
   readonly yearMonth: string;
   readonly employeeId: string;
   readonly knownAmount: string | null;
@@ -351,8 +352,20 @@ export async function computeMonthlyEmployeeLaborAllocationDraft(
 }
 
 /**
+ * Recorded actual employer cost is owner-entered. Automatic recompute must not
+ * replace it; `correctMonthlyEmployerCostActual` is the correction path.
+ */
+export function shouldPreserveRecordedActualEmployerCost(
+  month: { readonly knownQuality: string; readonly actualAmount: string | null } | null | undefined,
+): boolean {
+  if (!month || month.knownQuality !== 'actual') return false;
+  const actual = month.actualAmount;
+  return actual != null && actual.trim() !== '';
+}
+
+/**
  * Idempotent open-month recompute for one monthly employee.
- * Closed org months and closed employee-month rows are skipped.
+ * Closed org months are skipped. A row with knownQuality actual is left unchanged.
  */
 export async function recomputeMonthlyEmployeeCostForOpenMonth(
   context: OrgContext,
@@ -392,6 +405,8 @@ export async function recomputeMonthlyEmployeeCostForOpenMonth(
   const fullExpectedStr = toNumericString(allocation.knownAmount);
   const accrualNotes = `Auto monthly accrual (full month expected ${fullExpectedStr}; ${workingDaysPerMonth} work days/mo; recognized ${recognizedWorkDayCount} day(s))`;
 
+  let preservedKnownAmount: string | null = null;
+
   await withTransaction(context.db, async (tx) => {
     let month = await findEmployeeMonthCostByEmployeeMonth(
       tx,
@@ -399,6 +414,11 @@ export async function recomputeMonthlyEmployeeCostForOpenMonth(
       employeeId,
       yearMonth,
     );
+
+    if (shouldPreserveRecordedActualEmployerCost(month)) {
+      preservedKnownAmount = month!.knownAmount;
+      return;
+    }
 
     if (month?.status === 'closed') {
       throw new DomainRuleError(
@@ -542,6 +562,14 @@ export async function recomputeMonthlyEmployeeCostForOpenMonth(
     const applied = await applyLaborAllocationRun(tx, context.organizationId, run.id);
     if (!applied) throw new NotFoundError('Labor allocation run');
   });
+
+  if (preservedKnownAmount != null) {
+    return {
+      ...base,
+      reason: 'actual_preserved',
+      knownAmount: preservedKnownAmount,
+    };
+  }
 
   await syncPayrollExpectedFromLaborRecompute(context, {
     employeeId,

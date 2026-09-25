@@ -606,6 +606,10 @@ export function ExpenseForm({
       {mode === 'create' ? (
         <ExpenseApOverlapWarning hits={overlapHits} namespace="expenses.capture" />
       ) : null}
+      <label className="flex items-start gap-2 text-sm">
+        <input type="checkbox" name="confirmDistinctCosts" value="true" className="mt-1" />
+        <span>{t('capture.overlapConfirmDistinct')}</span>
+      </label>
 
       <section className="flex min-w-0 flex-col gap-4">
         <Field label={t('fields.amount')} required error={fieldErrors.amount}>
@@ -1014,6 +1018,10 @@ export function ExpenseForm({
               />
             )}
           </Field>
+
+          {Number(installmentCount) > 1 ? (
+            <p className="text-xs text-[var(--pf-text-muted)]">{t('fields.managerialNetScheduleHint')}</p>
+          ) : null}
 
           {Number(installmentCount) > 1 ? (
             <Field

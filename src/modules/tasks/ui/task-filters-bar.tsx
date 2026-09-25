@@ -12,6 +12,7 @@ export interface TaskFilterBarState {
   search: string;
   overdue: boolean;
   blocked: boolean;
+  noProjectOnly: boolean;
 }
 
 export const DEFAULT_TASK_FILTER_STATE: TaskFilterBarState = {
@@ -20,6 +21,7 @@ export const DEFAULT_TASK_FILTER_STATE: TaskFilterBarState = {
   search: '',
   overdue: false,
   blocked: false,
+  noProjectOnly: false,
 };
 
 const STATUS_OPTIONS: Array<TaskStatus | 'all'> = [
@@ -64,8 +66,9 @@ export function applyClientTaskFilters(
       if (task.status === 'done' || task.status === 'cancelled') return false;
     }
     if (state.blocked && !task.isBlocked && task.status !== 'blocked') return false;
+    if (state.noProjectOnly && task.projectId) return false;
     if (query) {
-      const haystack = [task.title, task.projectName ?? ''].join(' ').toLowerCase();
+      const haystack = [task.title, task.projectName ?? '', task.clientName ?? ''].join(' ').toLowerCase();
       if (!haystack.includes(query)) return false;
     }
     return true;
@@ -148,6 +151,16 @@ export function TaskFiltersBar({
           className="size-4 rounded border-[var(--pf-border-default)] accent-[var(--pf-action-primary)]"
         />
         {t('filters.blockedOnly')}
+      </label>
+
+      <label className="inline-flex items-center gap-1.5 text-sm text-[var(--pf-text-secondary)]">
+        <input
+          type="checkbox"
+          checked={value.noProjectOnly}
+          onChange={(e) => onChange({ ...value, noProjectOnly: e.target.checked })}
+          className="size-4 rounded border-[var(--pf-border-default)] accent-[var(--pf-action-primary)]"
+        />
+        {t('filters.noProjectOnly')}
       </label>
     </div>
   );

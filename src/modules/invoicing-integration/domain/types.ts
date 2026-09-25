@@ -182,6 +182,7 @@ export const DISABLED_CAPABILITIES: StatutoryProviderCapabilities = {
   allocateReference: false,
 };
 
+/** Scripted test adapter only. SUMIT must not report this while credit/cancel/allocate return unsupported. */
 export const FULL_ADAPTER_CAPABILITIES: StatutoryProviderCapabilities = {
   createDocument: true,
   retrieveStatus: true,
@@ -190,7 +191,7 @@ export const FULL_ADAPTER_CAPABILITIES: StatutoryProviderCapabilities = {
   allocateReference: true,
 };
 
-/** SUMIT test-only statutory provider id for Milestone A/B. */
+/** Live SUMIT statutory provider. The only host is https://api.sumit.co.il. */
 export const SUMIT_PROVIDER_ID = 'sumit' as const;
 
 export interface InvoicingProviderCredentials {

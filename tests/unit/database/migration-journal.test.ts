@@ -401,7 +401,13 @@ describe('migration journal', () => {
     expect(tags.indexOf('0123_projects_root_semantic')).toBeLessThan(
       tags.indexOf('0124_employee_operational_rls_alignment'),
     );
-    expect(tags.at(-1)).toBe('0124_employee_operational_rls_alignment');
+    expect(tags.indexOf('0125_ap_bill_inventory_layers_and_net_90_120')).toBeLessThan(
+      tags.indexOf('0126_ap_bill_line_inventory_layers'),
+    );
+    expect(tags.indexOf('0126_ap_bill_line_inventory_layers')).toBeLessThan(
+      tags.indexOf('0127_ap_bill_line_inventory_provenance'),
+    );
+    expect(tags.at(-1)).toBe('0127_ap_bill_line_inventory_provenance');
 
     const sql66 = await readFile(
       path.join(MIGRATIONS_DIR, '0066_workforce_time_integrity.sql'),

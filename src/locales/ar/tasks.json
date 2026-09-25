@@ -24,6 +24,7 @@
     "defaultBoard": "اللوحة الافتراضية",
     "archivedBoards": "اللوحات المؤرشفة",
     "globalPageTitle": "لوحة المهام",
+    "moveToStatus": "نقل إلى حالة",
     "empty": {
       "title": "لا توجد مهام هنا",
       "description": "أضف مهمة إلى هذا العمود للبدء",
@@ -94,7 +95,8 @@
       "created_by_me": "أنشأتها",
       "createdByMe": "أنشأتها",
       "following": "متابع",
-      "completed": "مكتمل"
+      "completed": "مكتمل",
+      "noProject": "بدون مشروع"
     },
     "empty": {
       "today": {
@@ -128,6 +130,10 @@
       "completed": {
         "title": "لا مهام مكتملة مؤخراً",
         "desc": "ستظهر المهام المكتملة هنا."
+      },
+      "noProject": {
+        "title": "لا مهام مكتبية",
+        "desc": "تظهر هنا المهام غير المرتبطة بمشروع."
       }
     },
     "noTasksToday": "لا توجد مهام مستحقة اليوم"
@@ -552,6 +558,7 @@
   "openFullTask": "افتح المهمة الكاملة للتعليقات والنشاط",
   "drawerExtendedDetails": "التعليقات والنشاط والموافقات",
   "drawerExtendedDetailsHint": "افتح صفحة المهمة الكاملة للتعليقات وسجل النشاط وإجراءات الموافقة.",
+  "noProject": "بدون مشروع",
   "projectWork": {
     "sectionLabel": "إدارة عمل المشروع",
     "sectionTitle": "المهام واللوحات",
@@ -571,7 +578,8 @@
     "allStatuses": "كل الحالات",
     "allPriorities": "كل الأولويات",
     "overdueOnly": "المتأخرة فقط",
-    "blockedOnly": "المحجوبة فقط"
+    "blockedOnly": "المحجوبة فقط",
+    "noProjectOnly": "بدون مشروع"
   },
   "calendar": {
     "pageTitle": "تقويم المهام",
@@ -664,9 +672,12 @@
     "empty": {
       "title": "لا توجد مهام",
       "description": "أنشئ مهمة للبدء"
-    }
+    },
+    "hasMore": "هناك المزيد",
+    "loadMore": "تحميل المزيد"
   },
   "errors": {
+    "invalidTransition": "تغيير الحالة هذا غير مسموح.",
     "dependencyCycle": "إضافة هذا الاعتماد ستُنشئ حلقة.",
     "maxSubtaskDepth": "يمكن تداخل المهام الفرعية بمستوى واحد فقط.",
     "subtaskWorkspaceMismatch": "يجب أن تكون المهمة الفرعية في نفس مساحة العمل.",

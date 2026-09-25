@@ -12,6 +12,10 @@ import {
   netProjectSliceAfterCredits,
   resolveVendorBillProjectAmounts,
 } from '@/modules/ap';
+import {
+  apBillNotStockPurchaseSql,
+  operatingSliceAfterStockLines,
+} from '@/modules/ap/domain/inventory-stock-purchase';
 import { RECOGNIZED_VENDOR_BILL_STATUSES } from '@/modules/ap/domain/vendor-cost-recognition';
 import type { DbCostFamily } from '@/modules/financials/domain/cost-aggregation';
 import type { DbExecutor } from '@/shared/db/types';
@@ -83,6 +87,7 @@ export async function loadRecognizedVendorBillAtomsForProject(
         eq(apBills.organizationId, organizationId),
         inArray(apBills.status, [...RECOGNIZED_VENDOR_BILL_STATUSES]),
         isNull(apBills.archivedAt),
+        apBillNotStockPurchaseSql(),
         useAllocations
           ? sql`(
               ${apBills.projectId} = ${projectId}
@@ -168,6 +173,7 @@ export async function loadRecognizedVendorBillAtomsForProject(
       classificationStatus: apBillLines.classificationStatus,
       economicTargetType: apBillLines.economicTargetType,
       lineProjectId: apBillLines.projectId,
+      inventoryItemId: apBillLines.inventoryItemId,
       categoryKey: costCategories.key,
       categoryFamily: costCategories.family,
       sortOrder: apBillLines.sortOrder,
@@ -205,6 +211,7 @@ export async function loadRecognizedVendorBillAtomsForProject(
     const lines = linesByBill.get(row.id) ?? [];
     let lineSum = 0;
     for (const line of lines) {
+      if (line.inventoryItemId) continue;
       if ((line.economicTargetType ?? 'inherit') !== 'project') continue;
       if (line.lineProjectId !== projectId) continue;
       lineSum += Number(lineNetMoney(line, normalized).amount);
@@ -274,7 +281,19 @@ export async function loadRecognizedVendorBillAtomsForProject(
     });
     if (isZeroMoney(netted) || !isPositiveMoney(netted)) continue;
 
-    const lines = linesByBill.get(billId) ?? [];
+    const allLines = linesByBill.get(billId) ?? [];
+    const stockLineNet = allLines
+      .filter((line) => line.inventoryItemId)
+      .reduce((sum, line) => sum + Number(lineNetMoney(line, normalized).amount), 0);
+    const operating = operatingSliceAfterStockLines({
+      sliceAmount: netted.amount,
+      billNetAmount: String(billNet),
+      stockLineNet: String(stockLineNet),
+      currency: normalized,
+    });
+    if (isZeroMoney(operating) || !isPositiveMoney(operating)) continue;
+
+    const lines = allLines.filter((line) => !line.inventoryItemId);
     const explicitDestinationLines = lines.filter(
       (line) => (line.economicTargetType ?? 'inherit') !== 'inherit',
     );
@@ -299,12 +318,12 @@ export async function loadRecognizedVendorBillAtomsForProject(
       );
       if (!Number.isFinite(projectLineNetSum) || projectLineNetSum <= 0) continue;
 
-      let remaining = netted;
+      let remaining = operating;
       for (let li = 0; li < projectLines.length; li += 1) {
         const line = projectLines[li]!;
         const isLast = li === projectLines.length - 1;
         const weight = Number(lineNetMoney(line, normalized).amount) / projectLineNetSum;
-        const slice = isLast ? remaining : multiplyMoney(netted, weight);
+        const slice = isLast ? remaining : multiplyMoney(operating, weight);
         if (!isLast) {
           remaining = subtractMoney(remaining, slice);
         }
@@ -319,12 +338,12 @@ export async function loadRecognizedVendorBillAtomsForProject(
     );
 
     if (lines.length > 0 && Number.isFinite(lineWeightSum) && lineWeightSum > 0) {
-      let remaining = netted;
+      let remaining = operating;
       for (let li = 0; li < lines.length; li += 1) {
         const line = lines[li]!;
         const isLast = li === lines.length - 1;
         const weight = Number(lineNetMoney(line, normalized).amount) / lineWeightSum;
-        const slice = isLast ? remaining : multiplyMoney(netted, weight);
+        const slice = isLast ? remaining : multiplyMoney(operating, weight);
         if (!isLast) {
           remaining = subtractMoney(remaining, slice);
         }
@@ -338,7 +357,7 @@ export async function loadRecognizedVendorBillAtomsForProject(
     atoms.push({
       billId,
       lineId: null,
-      amount: netted,
+      amount: operating,
       vendorId: row.vendorId,
       vendorName: row.vendorName,
       vendorType: row.vendorType,

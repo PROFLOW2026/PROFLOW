@@ -7,7 +7,7 @@ import { getWorkspaceDetail } from '@/modules/workspaces';
 import {
   listBoards,
   listBuckets,
-  listAccessibleTasks,
+  listAccessibleTasksPage,
   createTask,
   updateTask,
   moveTaskToBucket,
@@ -20,6 +20,7 @@ import {
 } from '@/modules/tasks/ui/_task-api-stub';
 import type { TaskCardData, TaskDetail } from '@/modules/tasks/ui/_task-api-stub';
 import { mapTaskDetailToUiForOrg, mapTasksToCardDataForOrg } from '@/modules/tasks/application/map-tasks-for-ui';
+import { TASK_LIST_MAX_LIMIT } from '@/modules/tasks/domain/list-window';
 import { BoardShell } from './_board-shell';
 
 export async function generateMetadata({
@@ -41,23 +42,28 @@ export default async function WorkspaceBoardPage({
 }: {
   params: Promise<{ locale: string; workspaceId: string; boardId: string }>;
 }) {
-  const { workspaceId, boardId } = await params;
+  const { locale, workspaceId, boardId } = await params;
+  const t = await getTranslations({ locale, namespace: 'tasks' });
 
   const data = await withOrgContext(async (context) => {
     const workspace = await getWorkspaceDetail(context, workspaceId);
     if (!workspace) return null;
 
-    const [rawBoards, rawBuckets, rawTasks] = await Promise.all([
+    const [rawBoards, rawBuckets, taskPage] = await Promise.all([
       listBoards(context, workspaceId),
       listBuckets(context, boardId),
-      listAccessibleTasks(context, { workspaceId, boardId }),
+      listAccessibleTasksPage(context, {
+        workspaceId,
+        boardId,
+        limit: TASK_LIST_MAX_LIMIT,
+      }),
     ]);
 
     const activeBoard = rawBoards.find((b) => b.id === boardId);
     if (!activeBoard) return null;
 
     const boards = rawBoards.map((b) => mapBoardToUiBoard(b));
-    const taskCards = await mapTasksToCardDataForOrg(context, rawTasks);
+    const taskCards = await mapTasksToCardDataForOrg(context, taskPage.tasks);
 
     // Map buckets with their tasks
     const tasksByBucket = new Map<string, TaskCardData[]>();
@@ -78,12 +84,13 @@ export default async function WorkspaceBoardPage({
       activeBoard: mapBoardToUiBoard(activeBoard),
       buckets,
       tasks: taskCards,
+      hasMore: taskPage.hasMore,
     };
   });
 
   if (!data) notFound();
 
-  const { workspace: _workspace, boards, activeBoard, buckets, tasks } = data;
+  const { workspace: _workspace, boards, activeBoard, buckets, tasks, hasMore } = data;
 
   // Server Actions bound to Agent A's real functions
   async function moveTaskAction(taskId: string, newBucketId: string, sortKey?: string) {
@@ -120,6 +127,12 @@ export default async function WorkspaceBoardPage({
   }
 
   return (
+    <div className="flex flex-col gap-4">
+      {hasMore ? (
+        <p role="status" className="text-sm text-[var(--pf-text-muted)]">
+          {t('list.hasMore')}
+        </p>
+      ) : null}
     <BoardShell
       workspaceId={workspaceId}
       boards={boards}
@@ -133,5 +146,6 @@ export default async function WorkspaceBoardPage({
         updateTask: updateTaskAction,
       }}
     />
+    </div>
   );
 }

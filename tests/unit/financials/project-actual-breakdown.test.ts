@@ -182,6 +182,39 @@ describe('project actual breakdown — Owner exclusive partition', () => {
     ).toBe('employees');
   });
 
+  it('inventory consumption classifies as materials and reconciles inside Direct actual', () => {
+    const inventory = money('250', ILS);
+    const labor = money('100', ILS);
+    expect(
+      classifyActualAtom(
+        atom({
+          amount: inventory,
+          sourceKind: 'inventory',
+          sourceId: 'inventory:p1:ILS',
+          categoryKey: 'materials',
+          costFamily: 'direct_project',
+        }),
+      ),
+    ).toBe('materials');
+
+    const breakdown = buildProjectActualBreakdown({
+      totalActual: money('350', ILS),
+      atoms: [
+        atom({ amount: labor, sourceKind: 'labor', sourceId: 'labor:p1' }),
+        atom({
+          amount: inventory,
+          sourceKind: 'inventory',
+          sourceId: 'inventory:p1:ILS',
+          categoryKey: 'materials',
+        }),
+      ],
+    });
+    expect(breakdown.reconciles).toBe(true);
+    expect(assertBreakdownReconciles(breakdown)).toBeUndefined();
+    const materials = breakdown.categories.find((row) => row.key === 'materials')!;
+    expect(materials.amount).toEqual(inventory);
+  });
+
   it('folds ≤₪0.01 residual into Other and still reconciles', () => {
     const breakdown = buildProjectActualBreakdown({
       totalActual: money('100.01', ILS),

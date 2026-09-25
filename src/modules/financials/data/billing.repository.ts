@@ -15,9 +15,11 @@ import {
   type RevenueTriplet,
 } from '@/modules/billing/domain/revenue-position';
 import { listPaidAmountRowsByBillingRecordIds } from '@/modules/billing';
-import { businessDate, type BusinessDate } from '@/shared/dates';
-import { fromNumericString, type MoneyValue } from '@/shared/money';
+import { addDays, businessDate, type BusinessDate } from '@/shared/dates';
+import { fromNumericString, isZeroMoney, money, type MoneyValue } from '@/shared/money';
 import type { DbExecutor } from '@/shared/db/types';
+import { CASH_FLOW_HORIZON_DAYS } from '../domain/cash-flow';
+import { sqlFirstRow, sqlRows } from './sql-rows';
 
 export interface ProjectBillingRows {
   readonly records: readonly (BillingAmountInput & {
@@ -570,4 +572,425 @@ function mapCashFlowPaymentRows(
     });
   }
   return mapped;
+}
+
+export interface ReportBucketTotal {
+  readonly total: string;
+  readonly count: number;
+}
+
+/**
+ * Outstanding sums for org reports. Same open-net rules as
+ * `computeRecordRevenuePosition` (draft/void out, credit notes negate
+ * subtotal, gross payments convert with net/gross rounded half-up to 6dp,
+ * retention held is net except on credit notes, overpay stays negative).
+ * Aging and cash buckets match `computeReceivablesAging` and
+ * `computeIncomingCashOutlook`. Foreign currency is excluded.
+ */
+export interface OrganizationBillingReportAggregates {
+  readonly aging: {
+    readonly current: ReportBucketTotal;
+    readonly days_1_30: ReportBucketTotal;
+    readonly days_31_60: ReportBucketTotal;
+    readonly days_61_90: ReportBucketTotal;
+    readonly days_90_plus: ReportBucketTotal;
+  };
+  readonly incoming: {
+    readonly overdue: ReportBucketTotal;
+    readonly next_7: ReportBucketTotal;
+    readonly next_30: ReportBucketTotal;
+    readonly next_60: ReportBucketTotal;
+    readonly next_90: ReportBucketTotal;
+    readonly later: ReportBucketTotal;
+    readonly undated: ReportBucketTotal;
+  };
+}
+
+type BillingReportAggregateRow = {
+  aging_current_total: string | number | null;
+  aging_current_count: string | number | null;
+  aging_days_1_30_total: string | number | null;
+  aging_days_1_30_count: string | number | null;
+  aging_days_31_60_total: string | number | null;
+  aging_days_31_60_count: string | number | null;
+  aging_days_61_90_total: string | number | null;
+  aging_days_61_90_count: string | number | null;
+  aging_days_90_plus_total: string | number | null;
+  aging_days_90_plus_count: string | number | null;
+  cash_overdue_total: string | number | null;
+  cash_overdue_count: string | number | null;
+  cash_next_7_total: string | number | null;
+  cash_next_7_count: string | number | null;
+  cash_next_30_total: string | number | null;
+  cash_next_30_count: string | number | null;
+  cash_next_60_total: string | number | null;
+  cash_next_60_count: string | number | null;
+  cash_next_90_total: string | number | null;
+  cash_next_90_count: string | number | null;
+  cash_later_total: string | number | null;
+  cash_later_count: string | number | null;
+  cash_undated_total: string | number | null;
+  cash_undated_count: string | number | null;
+};
+
+function reportBucket(
+  total: string | number | null | undefined,
+  count: string | number | null | undefined,
+): ReportBucketTotal {
+  const parsedCount = typeof count === 'number' ? count : Number(count ?? 0);
+  return {
+    total: total == null || total === '' ? '0' : String(total),
+    count: Number.isFinite(parsedCount) ? parsedCount : 0,
+  };
+}
+
+function zeroReportBucket(): ReportBucketTotal {
+  return { total: '0', count: 0 };
+}
+
+export function emptyOrganizationBillingReportAggregates(): OrganizationBillingReportAggregates {
+  return {
+    aging: {
+      current: zeroReportBucket(),
+      days_1_30: zeroReportBucket(),
+      days_31_60: zeroReportBucket(),
+      days_61_90: zeroReportBucket(),
+      days_90_plus: zeroReportBucket(),
+    },
+    incoming: {
+      overdue: zeroReportBucket(),
+      next_7: zeroReportBucket(),
+      next_30: zeroReportBucket(),
+      next_60: zeroReportBucket(),
+      next_90: zeroReportBucket(),
+      later: zeroReportBucket(),
+      undated: zeroReportBucket(),
+    },
+  };
+}
+
+export function mapOrganizationBillingReportAggregateRow(
+  row: BillingReportAggregateRow | undefined,
+): OrganizationBillingReportAggregates {
+  if (!row) return emptyOrganizationBillingReportAggregates();
+  return {
+    aging: {
+      current: reportBucket(row.aging_current_total, row.aging_current_count),
+      days_1_30: reportBucket(row.aging_days_1_30_total, row.aging_days_1_30_count),
+      days_31_60: reportBucket(row.aging_days_31_60_total, row.aging_days_31_60_count),
+      days_61_90: reportBucket(row.aging_days_61_90_total, row.aging_days_61_90_count),
+      days_90_plus: reportBucket(row.aging_days_90_plus_total, row.aging_days_90_plus_count),
+    },
+    incoming: {
+      overdue: reportBucket(row.cash_overdue_total, row.cash_overdue_count),
+      next_7: reportBucket(row.cash_next_7_total, row.cash_next_7_count),
+      next_30: reportBucket(row.cash_next_30_total, row.cash_next_30_count),
+      next_60: reportBucket(row.cash_next_60_total, row.cash_next_60_count),
+      next_90: reportBucket(row.cash_next_90_total, row.cash_next_90_count),
+      later: reportBucket(row.cash_later_total, row.cash_later_count),
+      undated: reportBucket(row.cash_undated_total, row.cash_undated_count),
+    },
+  };
+}
+
+/**
+ * Org-report AR aging and incoming cash buckets as SQL sums.
+ * Does not load billing rows into the application.
+ * Open-net arithmetic matches `reportBillingOpenNet`.
+ */
+export async function aggregateOrganizationBillingReportBuckets(
+  db: DbExecutor,
+  organizationId: string,
+  currency: string,
+  asOf: BusinessDate,
+  options: { readonly fromDate?: string | null; readonly toDate?: string | null } = {},
+): Promise<OrganizationBillingReportAggregates> {
+  const normalized = currency.toUpperCase();
+  const next7 = addDays(asOf, 7);
+  const next30 = addDays(asOf, 30);
+  const next60 = addDays(asOf, 60);
+  const next90 = addDays(asOf, CASH_FLOW_HORIZON_DAYS);
+  const fromFilter = options.fromDate
+    ? sql`AND br.issue_date >= ${options.fromDate}`
+    : sql``;
+  const toFilter = options.toDate ? sql`AND br.issue_date <= ${options.toDate}` : sql``;
+
+  const row = sqlFirstRow<BillingReportAggregateRow>(
+    await db.execute(sql`
+      WITH billed AS (
+        SELECT
+          br.id,
+          br.due_date,
+          CASE
+            WHEN br.kind::text = 'credit_note' THEN -br.subtotal_amount
+            ELSE br.subtotal_amount
+          END AS billed_net,
+          CASE
+            WHEN br.kind::text = 'credit_note' THEN 0
+            ELSE br.retention_held_remaining
+          END AS retention_net,
+          CASE
+            WHEN (
+              CASE
+                WHEN br.tax_amount IS NOT NULL AND br.tax_amount <> 0
+                  THEN br.subtotal_amount + br.tax_amount
+                ELSE br.total_amount
+              END
+            ) = 0 THEN 1
+            ELSE br.subtotal_amount / (
+              CASE
+                WHEN br.tax_amount IS NOT NULL AND br.tax_amount <> 0
+                  THEN br.subtotal_amount + br.tax_amount
+                ELSE br.total_amount
+              END
+            )
+          END AS net_to_gross
+        FROM billing_records br
+        WHERE br.organization_id = ${organizationId}
+          AND br.archived_at IS NULL
+          AND br.status::text NOT IN ('draft', 'void')
+          AND upper(br.currency) = ${normalized}
+          ${fromFilter}
+          ${toFilter}
+      ),
+      paid AS (
+        SELECT billing_record_id, SUM(contrib) AS paid_net
+        FROM (
+          SELECT
+            pa.billing_record_id,
+            CASE
+              WHEN COALESCE(p.amount_basis::text, 'net') = 'gross'
+                THEN ROUND(pa.applied_amount * b.net_to_gross, 6)
+              ELSE pa.applied_amount
+            END AS contrib
+          FROM payment_applications pa
+          INNER JOIN payments p
+            ON p.id = pa.payment_id
+           AND p.organization_id = pa.organization_id
+          INNER JOIN billed b ON b.id = pa.billing_record_id
+          WHERE pa.organization_id = ${organizationId}
+            AND p.status::text = 'recorded'
+            AND upper(pa.currency) = ${normalized}
+          UNION ALL
+          SELECT
+            p.billing_record_id,
+            CASE
+              WHEN COALESCE(p.amount_basis::text, 'net') = 'gross'
+                THEN ROUND(p.amount * b.net_to_gross, 6)
+              ELSE p.amount
+            END AS contrib
+          FROM payments p
+          INNER JOIN billed b ON b.id = p.billing_record_id
+          WHERE p.organization_id = ${organizationId}
+            AND p.status::text = 'recorded'
+            AND p.billing_record_id IS NOT NULL
+            AND upper(p.currency) = ${normalized}
+            AND NOT EXISTS (
+              SELECT 1 FROM payment_applications pa WHERE pa.payment_id = p.id
+            )
+        ) lines
+        GROUP BY billing_record_id
+      ),
+      open_rows AS (
+        SELECT
+          b.due_date,
+          CASE
+            WHEN COALESCE(p.paid_net, 0) >= b.billed_net
+             AND (b.billed_net - COALESCE(p.paid_net, 0) - b.retention_net) >= 0
+              THEN 0
+            ELSE ROUND(b.billed_net - COALESCE(p.paid_net, 0) - b.retention_net, 6)
+          END AS open_net
+        FROM billed b
+        LEFT JOIN paid p ON p.billing_record_id = b.id
+      ),
+      bucketed AS (
+        SELECT
+          open_net,
+          CASE
+            WHEN open_net < 0 THEN 'current'
+            WHEN due_date IS NULL OR due_date >= ${asOf}::date THEN 'current'
+            WHEN (${asOf}::date - due_date) <= 30 THEN 'days_1_30'
+            WHEN (${asOf}::date - due_date) <= 60 THEN 'days_31_60'
+            WHEN (${asOf}::date - due_date) <= 90 THEN 'days_61_90'
+            ELSE 'days_90_plus'
+          END AS aging_bucket,
+          CASE
+            WHEN open_net < 0 OR due_date IS NULL THEN 'undated'
+            WHEN due_date < ${asOf}::date THEN 'overdue'
+            WHEN due_date <= ${next7}::date THEN 'next_7'
+            WHEN due_date <= ${next30}::date THEN 'next_30'
+            WHEN due_date <= ${next60}::date THEN 'next_60'
+            WHEN due_date <= ${next90}::date THEN 'next_90'
+            ELSE 'later'
+          END AS cash_bucket
+        FROM open_rows
+        WHERE open_net <> 0
+      )
+      SELECT
+        COALESCE(SUM(open_net) FILTER (WHERE aging_bucket = 'current'), 0)::text AS aging_current_total,
+        COALESCE(COUNT(*) FILTER (WHERE aging_bucket = 'current'), 0)::int AS aging_current_count,
+        COALESCE(SUM(open_net) FILTER (WHERE aging_bucket = 'days_1_30'), 0)::text AS aging_days_1_30_total,
+        COALESCE(COUNT(*) FILTER (WHERE aging_bucket = 'days_1_30'), 0)::int AS aging_days_1_30_count,
+        COALESCE(SUM(open_net) FILTER (WHERE aging_bucket = 'days_31_60'), 0)::text AS aging_days_31_60_total,
+        COALESCE(COUNT(*) FILTER (WHERE aging_bucket = 'days_31_60'), 0)::int AS aging_days_31_60_count,
+        COALESCE(SUM(open_net) FILTER (WHERE aging_bucket = 'days_61_90'), 0)::text AS aging_days_61_90_total,
+        COALESCE(COUNT(*) FILTER (WHERE aging_bucket = 'days_61_90'), 0)::int AS aging_days_61_90_count,
+        COALESCE(SUM(open_net) FILTER (WHERE aging_bucket = 'days_90_plus'), 0)::text AS aging_days_90_plus_total,
+        COALESCE(COUNT(*) FILTER (WHERE aging_bucket = 'days_90_plus'), 0)::int AS aging_days_90_plus_count,
+        COALESCE(SUM(open_net) FILTER (WHERE cash_bucket = 'overdue'), 0)::text AS cash_overdue_total,
+        COALESCE(COUNT(*) FILTER (WHERE cash_bucket = 'overdue'), 0)::int AS cash_overdue_count,
+        COALESCE(SUM(open_net) FILTER (WHERE cash_bucket = 'next_7'), 0)::text AS cash_next_7_total,
+        COALESCE(COUNT(*) FILTER (WHERE cash_bucket = 'next_7'), 0)::int AS cash_next_7_count,
+        COALESCE(SUM(open_net) FILTER (WHERE cash_bucket = 'next_30'), 0)::text AS cash_next_30_total,
+        COALESCE(COUNT(*) FILTER (WHERE cash_bucket = 'next_30'), 0)::int AS cash_next_30_count,
+        COALESCE(SUM(open_net) FILTER (WHERE cash_bucket = 'next_60'), 0)::text AS cash_next_60_total,
+        COALESCE(COUNT(*) FILTER (WHERE cash_bucket = 'next_60'), 0)::int AS cash_next_60_count,
+        COALESCE(SUM(open_net) FILTER (WHERE cash_bucket = 'next_90'), 0)::text AS cash_next_90_total,
+        COALESCE(COUNT(*) FILTER (WHERE cash_bucket = 'next_90'), 0)::int AS cash_next_90_count,
+        COALESCE(SUM(open_net) FILTER (WHERE cash_bucket = 'later'), 0)::text AS cash_later_total,
+        COALESCE(COUNT(*) FILTER (WHERE cash_bucket = 'later'), 0)::int AS cash_later_count,
+        COALESCE(SUM(open_net) FILTER (WHERE cash_bucket = 'undated'), 0)::text AS cash_undated_total,
+        COALESCE(COUNT(*) FILTER (WHERE cash_bucket = 'undated'), 0)::int AS cash_undated_count
+      FROM bucketed
+    `),
+  );
+
+  return mapOrganizationBillingReportAggregateRow(row);
+}
+
+export interface CashFlowOpenBillingRow {
+  readonly id: string;
+  readonly reference: string | null;
+  readonly projectId: string | null;
+  readonly dueDate: BusinessDate | null;
+  readonly kind: string;
+  readonly outstandingNet: MoneyValue;
+}
+
+/**
+ * Open billing for the cash forecast. Same open-net formula as
+ * `aggregateOrganizationBillingReportBuckets`. Returns only non-zero open rows,
+ * with no 5,000-row list cap.
+ */
+export async function loadCashFlowOpenBillingRows(
+  db: DbExecutor,
+  organizationId: string,
+  currency: string,
+): Promise<CashFlowOpenBillingRow[]> {
+  const normalized = currency.toUpperCase();
+  const rows = sqlRows<{
+    id: string;
+    reference: string | null;
+    project_id: string | null;
+    due_date: string | null;
+    kind: string;
+    open_net: string;
+  }>(
+    await db.execute(sql`
+      WITH billed AS (
+        SELECT
+          br.id,
+          br.reference,
+          br.project_id,
+          br.due_date,
+          br.kind::text AS kind,
+          CASE
+            WHEN br.kind::text = 'credit_note' THEN -br.subtotal_amount
+            ELSE br.subtotal_amount
+          END AS billed_net,
+          CASE
+            WHEN br.kind::text = 'credit_note' THEN 0
+            ELSE br.retention_held_remaining
+          END AS retention_net,
+          CASE
+            WHEN (
+              CASE
+                WHEN br.tax_amount IS NOT NULL AND br.tax_amount <> 0
+                  THEN br.subtotal_amount + br.tax_amount
+                ELSE br.total_amount
+              END
+            ) = 0 THEN 1
+            ELSE br.subtotal_amount / (
+              CASE
+                WHEN br.tax_amount IS NOT NULL AND br.tax_amount <> 0
+                  THEN br.subtotal_amount + br.tax_amount
+                ELSE br.total_amount
+              END
+            )
+          END AS net_to_gross
+        FROM billing_records br
+        WHERE br.organization_id = ${organizationId}
+          AND br.archived_at IS NULL
+          AND br.status::text NOT IN ('draft', 'void')
+          AND upper(br.currency) = ${normalized}
+      ),
+      paid AS (
+        SELECT billing_record_id, SUM(contrib) AS paid_net
+        FROM (
+          SELECT
+            pa.billing_record_id,
+            CASE
+              WHEN COALESCE(p.amount_basis::text, 'net') = 'gross'
+                THEN ROUND(pa.applied_amount * b.net_to_gross, 6)
+              ELSE pa.applied_amount
+            END AS contrib
+          FROM payment_applications pa
+          INNER JOIN payments p
+            ON p.id = pa.payment_id
+           AND p.organization_id = pa.organization_id
+          INNER JOIN billed b ON b.id = pa.billing_record_id
+          WHERE pa.organization_id = ${organizationId}
+            AND p.status::text = 'recorded'
+            AND upper(pa.currency) = ${normalized}
+          UNION ALL
+          SELECT
+            p.billing_record_id,
+            CASE
+              WHEN COALESCE(p.amount_basis::text, 'net') = 'gross'
+                THEN ROUND(p.amount * b.net_to_gross, 6)
+              ELSE p.amount
+            END AS contrib
+          FROM payments p
+          INNER JOIN billed b ON b.id = p.billing_record_id
+          WHERE p.organization_id = ${organizationId}
+            AND p.status::text = 'recorded'
+            AND p.billing_record_id IS NOT NULL
+            AND upper(p.currency) = ${normalized}
+            AND NOT EXISTS (
+              SELECT 1 FROM payment_applications pa WHERE pa.payment_id = p.id
+            )
+        ) lines
+        GROUP BY billing_record_id
+      )
+      SELECT
+        b.id,
+        b.reference,
+        b.project_id,
+        b.due_date,
+        b.kind,
+        CASE
+          WHEN COALESCE(p.paid_net, 0) >= b.billed_net
+           AND (b.billed_net - COALESCE(p.paid_net, 0) - b.retention_net) >= 0
+            THEN 0
+          ELSE ROUND(b.billed_net - COALESCE(p.paid_net, 0) - b.retention_net, 6)
+        END AS open_net
+      FROM billed b
+      LEFT JOIN paid p ON p.billing_record_id = b.id
+    `),
+  );
+
+  const open: CashFlowOpenBillingRow[] = [];
+  for (const row of rows) {
+    const outstandingNet = fromNumericString(row.open_net, normalized) ?? money('0', normalized);
+    if (isZeroMoney(outstandingNet)) continue;
+    open.push({
+      id: row.id,
+      reference: row.reference,
+      projectId: row.project_id,
+      dueDate: row.due_date ? businessDate(row.due_date) : null,
+      kind: row.kind,
+      outstandingNet,
+    });
+  }
+  return open;
 }

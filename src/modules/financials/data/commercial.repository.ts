@@ -9,7 +9,7 @@ import type {
 import type { CommercialPosition } from '@/modules/financials/domain/types';
 import { sumCommercialPositions } from '@/modules/financials/domain/aggregate-commercial';
 import type { DbExecutor } from '@/shared/db/types';
-import { isTerminalContractStatus } from '@/modules/projects/domain/contract-lifecycle';
+import { contractContributesToCurrentValue } from '@/modules/projects/domain/contract-lifecycle';
 import { attachEntryBaselineContext } from '../domain/entry-baseline-context';
 import { sqlFirstRow, sqlRows } from './sql-rows';
 
@@ -112,8 +112,8 @@ function aggregateProjectContracts(
       excludedForeignCurrencyContractCount += 1;
       continue;
     }
-    // Closed/cancelled stay visible per contract (history) but are not "current".
-    if (isTerminalContractStatus(contract.status)) continue;
+    // Closed/cancelled stay visible per contract (history) but are not current value.
+    if (!contractContributesToCurrentValue(contract.status)) continue;
     included.push(position);
   }
 
@@ -528,6 +528,7 @@ export async function sumActiveProjectContractValues(
           as excluded_foreign_currency_project_count
       from projects p
       inner join contracts c on c.project_id = p.id and c.archived_at is null
+        and c.status not in ('closed', 'cancelled')
       inner join lateral (
         select
           coalesce(

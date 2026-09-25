@@ -26,7 +26,7 @@ import {
 import { VendorBillAllocationPanel } from '@/modules/ap/ui/vendor-bill-allocation-panel';
 import { getEntityDocumentPanelData } from '@/modules/documents';
 import { DocumentAttachments } from '@/modules/documents/ui';
-import { listExpensesForOrg, listCostCategoriesForOrg } from '@/modules/expenses';
+import { listCostCategoriesForOrg, listExpensesForOrg } from '@/modules/expenses';
 import { displayCostCategoryName } from '@/modules/expenses/domain/cost-category-display';
 import { formatMoneyString } from '@/shared/money/format';
 import { listPurchaseOrdersForOrg } from '@/modules/procurement';
@@ -456,7 +456,11 @@ export default async function ApBillDetailPage({
         />
       ) : null}
 
-      <PostApBillPanel billId={bill.id} canManage={canManage} billStatus={bill.status} />
+      <PostApBillPanel
+        billId={bill.id}
+        canManage={canManage}
+        billStatus={bill.status}
+      />
 
       <ApBillRecognizedEditPanel
         billId={bill.id}

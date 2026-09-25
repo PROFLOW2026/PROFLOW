@@ -1,4 +1,6 @@
-import { sql } from 'drizzle-orm';
+import { and, eq, or, sql } from 'drizzle-orm';
+import { employeeMonthCosts } from '@drizzle/schema';
+import { closeEmployeeMonthCost } from '@/modules/workforce/data/index';
 import { AUDIT_ACTIONS } from '@/shared/audit/actions';
 import { recordAuditEvent } from '@/shared/audit';
 import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
@@ -311,6 +313,11 @@ export async function closeMonthClosePeriod(
     currency,
   );
 
+  const employeeMonthCostsClosed = await closeAppliedEmployeeMonthCosts(
+    context,
+    period.yearMonth,
+  );
+
   await noteModuleUsage(context.db, context.organizationId, 'month_close');
 
   await recordAuditEvent(context, {
@@ -322,6 +329,7 @@ export async function closeMonthClosePeriod(
       status: 'closed',
       completenessPercent: snapshot.percent,
       generalCostFrozenCurrency: currency,
+      employeeMonthCostsClosed,
     },
   });
 
@@ -511,6 +519,36 @@ async function persistMonthCloseAdjustment(
   });
 
   return adjustment;
+}
+
+/** Freeze applied rows and draft rows that already hold an owner actual. */
+async function closeAppliedEmployeeMonthCosts(
+  context: OrgContext,
+  yearMonth: string,
+): Promise<number> {
+  const rows = await context.db
+    .select({ id: employeeMonthCosts.id })
+    .from(employeeMonthCosts)
+    .where(
+      and(
+        eq(employeeMonthCosts.organizationId, context.organizationId),
+        eq(employeeMonthCosts.yearMonth, yearMonth),
+        or(
+          eq(employeeMonthCosts.status, 'applied'),
+          and(
+            eq(employeeMonthCosts.status, 'draft'),
+            eq(employeeMonthCosts.knownQuality, 'actual'),
+          ),
+        ),
+      ),
+    );
+
+  let closed = 0;
+  for (const row of rows) {
+    const updated = await closeEmployeeMonthCost(context.db, context.organizationId, row.id);
+    if (updated) closed += 1;
+  }
+  return closed;
 }
 
 function closedFlag(result: unknown): boolean {

@@ -24,6 +24,7 @@
     "defaultBoard": "לוח ברירת מחדל",
     "archivedBoards": "לוחות בארכיון",
     "globalPageTitle": "לוח משימות",
+    "moveToStatus": "העבר לסטטוס",
     "empty": {
       "title": "אין משימות כאן",
       "description": "הוסף משימה לעמודה זו כדי להתחיל",
@@ -94,7 +95,8 @@
       "created_by_me": "יצרתי",
       "createdByMe": "יצרתי",
       "following": "עוקב",
-      "completed": "הושלם"
+      "completed": "הושלם",
+      "noProject": "ללא פרויקט"
     },
     "empty": {
       "today": {
@@ -128,6 +130,10 @@
       "completed": {
         "title": "אין משימות שהושלמו לאחרונה",
         "desc": "משימות שהושלמו יופיעו כאן."
+      },
+      "noProject": {
+        "title": "אין משימות משרד",
+        "desc": "משימות ללא פרויקט מופיעות כאן."
       }
     },
     "noTasksToday": "אין משימות להיום"
@@ -552,6 +558,7 @@
   "openFullTask": "פתח משימה מלאה להערות ופעילות",
   "drawerExtendedDetails": "הערות, פעילות ואישורים",
   "drawerExtendedDetailsHint": "פתח את דף המשימה המלא להערות, היסטוריית פעילות ופעולות אישור.",
+  "noProject": "ללא פרויקט",
   "projectWork": {
     "sectionLabel": "ניהול עבודה בפרויקט",
     "sectionTitle": "משימות ולוחות",
@@ -571,7 +578,8 @@
     "allStatuses": "כל הסטטוסים",
     "allPriorities": "כל העדיפויות",
     "overdueOnly": "באיחור בלבד",
-    "blockedOnly": "חסומות בלבד"
+    "blockedOnly": "חסומות בלבד",
+    "noProjectOnly": "ללא פרויקט"
   },
   "calendar": {
     "pageTitle": "לוח שנה משימות",
@@ -664,9 +672,12 @@
     "empty": {
       "title": "לא נמצאו משימות",
       "description": "צור משימה כדי להתחיל"
-    }
+    },
+    "hasMore": "יש עוד",
+    "loadMore": "טען עוד"
   },
   "errors": {
+    "invalidTransition": "מעבר הסטטוס הזה אינו מותר.",
     "dependencyCycle": "הוספת תלות זו תיצור מעגל.",
     "maxSubtaskDepth": "ניתן לקנן תת-משימות רק ברמה אחת.",
     "subtaskWorkspaceMismatch": "תת-משימה חייבת להיות באותה סביבת עבודה כמו ההורה.",

@@ -11,6 +11,7 @@ import { withOrgContext } from '@/shared/auth/session';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { addDays, todayInTimeZone } from '@/shared/dates';
 import { Link } from '@/shared/i18n/navigation';
+import { listDueReminderTaskIds } from '@/modules/employee-app/application/employee-task-attention';
 import { EmployeeInstallButton } from '@/modules/employee-app/ui/employee-install-button';
 import {
   employeeListPanelClass,
@@ -32,7 +33,7 @@ export async function generateMetadata({
 
 const CLOSED_STATUSES = new Set(['done', 'cancelled']);
 
-type HomeTaskKind = 'overdue' | 'dueToday' | 'upcoming' | 'blocked';
+type HomeTaskKind = 'overdue' | 'dueToday' | 'reminder' | 'upcoming' | 'blocked';
 
 export default async function EmployeeHomePage() {
   const t = await getTranslations('employeeApp');
@@ -57,6 +58,10 @@ export default async function EmployeeHomePage() {
       const upcomingUntil = addDays(today, 7);
       const rows = await listEmployeePmTasks(context);
       const openRows = rows.filter((row) => !CLOSED_STATUSES.has(row.status));
+      const reminderTaskIds = await listDueReminderTaskIds(
+        context,
+        openRows.map((row) => row.id),
+      );
       const projectLabels = await loadProjectDisplayNameMap(
         context.db,
         context.organizationId,
@@ -66,9 +71,10 @@ export default async function EmployeeHomePage() {
       tasks = openRows
         .map((row) => {
           let kind: HomeTaskKind | null = null;
-          if (row.status === 'blocked') kind = 'blocked';
-          else if (row.dueDate && row.dueDate < today) kind = 'overdue';
+          if (row.dueDate && row.dueDate < today) kind = 'overdue';
           else if (row.dueDate === today) kind = 'dueToday';
+          else if (reminderTaskIds.has(row.id)) kind = 'reminder';
+          else if (row.status === 'blocked') kind = 'blocked';
           else if (row.dueDate && row.dueDate > today && row.dueDate <= upcomingUntil) {
             kind = 'upcoming';
           }
@@ -87,8 +93,9 @@ export default async function EmployeeHomePage() {
           const order: Record<HomeTaskKind, number> = {
             overdue: 0,
             dueToday: 1,
-            blocked: 2,
-            upcoming: 3,
+            reminder: 2,
+            blocked: 3,
+            upcoming: 4,
           };
           const rankDiff = order[a.kind] - order[b.kind];
           if (rankDiff !== 0) return rankDiff;
@@ -162,7 +169,9 @@ export default async function EmployeeHomePage() {
                               ? 'bg-[var(--pf-accent-soft)] text-[var(--pf-accent)]'
                               : task.kind === 'blocked'
                                 ? 'bg-red-100 text-red-700'
-                                : 'bg-[var(--pf-bg-muted)] text-[var(--pf-text-secondary)]',
+                                : task.kind === 'reminder'
+                                  ? 'bg-amber-50 text-amber-800'
+                                  : 'bg-[var(--pf-bg-muted)] text-[var(--pf-text-secondary)]',
                         )}
                       >
                         {t(`home.workSummary.badges.${task.kind}`)}

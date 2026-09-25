@@ -195,8 +195,17 @@ function TaskMobileCard({
         <Badge tone={PRIORITY_TONE[task.priority]} className="text-[0.6rem]">
           {t(`priority.${task.priority}`)}
         </Badge>
-        {task.projectName && (
-          <span className="text-xs text-[var(--pf-text-muted)]">{task.projectName}</span>
+        {task.projectId ? (
+          <>
+            {task.projectName ? (
+              <span className="text-xs text-[var(--pf-text-muted)]">{task.projectName}</span>
+            ) : null}
+            {task.clientName ? (
+              <span className="text-xs text-[var(--pf-text-muted)]">{task.clientName}</span>
+            ) : null}
+          </>
+        ) : (
+          <span className="text-xs text-[var(--pf-text-muted)]">{t('noProject')}</span>
         )}
         {dueDate && (
           <span
@@ -388,7 +397,16 @@ export function TaskListView({
                   </td>
                   {showProject && (
                     <td className="px-4 py-2.5 text-[var(--pf-text-muted)]">
-                      {task.projectName ?? '—'}
+                      {task.projectId ? (
+                        <span className="flex flex-col">
+                          <span>{task.projectName ?? '—'}</span>
+                          {task.clientName ? (
+                            <span className="text-xs">{task.clientName}</span>
+                          ) : null}
+                        </span>
+                      ) : (
+                        t('noProject')
+                      )}
                     </td>
                   )}
                   <td className="px-4 py-2.5" onClick={stopRowClick} onKeyDown={stopRowClick}>

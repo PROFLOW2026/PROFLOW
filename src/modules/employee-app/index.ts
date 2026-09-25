@@ -17,6 +17,7 @@ export {
   employeeHasPermission,
   isActiveEmployeeAppAccount,
   isEmployeeAppUser,
+  listActiveEmployeeAppUserIds,
   loadEmployeeAppContextByEmployeeId,
 } from './application/load-employee-app-context';
 export { EMPLOYEE_PRESETS, employeePreset, type EmployeePresetKey } from './application/presets';

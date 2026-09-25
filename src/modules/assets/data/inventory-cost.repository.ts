@@ -24,6 +24,7 @@ export interface InventoryCostLayerRecord {
   readonly sourceKind: string;
   readonly sourceExpenseId: string | null;
   readonly sourceApBillId: string | null;
+  readonly sourceApBillLineId: string | null;
   readonly openingReference: string | null;
   readonly receivedOn: string;
   readonly receivedQty: string;
@@ -64,6 +65,7 @@ function mapLayer(row: typeof inventoryCostLayers.$inferSelect): InventoryCostLa
     sourceKind: row.sourceKind,
     sourceExpenseId: row.sourceExpenseId ?? null,
     sourceApBillId: row.sourceApBillId ?? null,
+    sourceApBillLineId: row.sourceApBillLineId ?? null,
     openingReference: row.openingReference ?? null,
     receivedOn: asDateString(row.receivedOn),
     receivedQty: row.receivedQty,
@@ -118,6 +120,42 @@ export async function lockInventoryItemForCost(
     )
     .for('update')
     .limit(1);
+}
+
+export async function findLayerBySourceApBillLineId(
+  db: DbExecutor,
+  organizationId: string,
+  sourceApBillLineId: string,
+): Promise<InventoryCostLayerRecord | null> {
+  const [row] = await db
+    .select()
+    .from(inventoryCostLayers)
+    .where(
+      and(
+        eq(inventoryCostLayers.organizationId, organizationId),
+        eq(inventoryCostLayers.sourceApBillLineId, sourceApBillLineId),
+      ),
+    )
+    .limit(1);
+  return row ? mapLayer(row) : null;
+}
+
+export async function listLayersBySourceApBillId(
+  db: DbExecutor,
+  organizationId: string,
+  sourceApBillId: string,
+): Promise<InventoryCostLayerRecord[]> {
+  const rows = await db
+    .select()
+    .from(inventoryCostLayers)
+    .where(
+      and(
+        eq(inventoryCostLayers.organizationId, organizationId),
+        eq(inventoryCostLayers.sourceApBillId, sourceApBillId),
+        eq(inventoryCostLayers.sourceKind, 'ap_bill'),
+      ),
+    );
+  return rows.map(mapLayer);
 }
 
 export async function findLayerBySourceExpenseId(
@@ -190,6 +228,7 @@ export async function insertInventoryCostLayer(
     readonly sourceKind: string;
     readonly sourceExpenseId?: string | null;
     readonly sourceApBillId?: string | null;
+    readonly sourceApBillLineId?: string | null;
     readonly openingReference?: string | null;
     readonly receivedOn: string;
     readonly receivedQty: string;
@@ -207,6 +246,7 @@ export async function insertInventoryCostLayer(
         sourceKind: values.sourceKind,
         sourceExpenseId: values.sourceExpenseId ?? null,
         sourceApBillId: values.sourceApBillId ?? null,
+        sourceApBillLineId: values.sourceApBillLineId ?? null,
         openingReference: values.openingReference ?? null,
         receivedOn: values.receivedOn,
         receivedQty: normalizeQuantity(values.receivedQty),

@@ -10,6 +10,10 @@ export type ApBillFactRow = {
   readonly retentionHeldRemaining: string;
   readonly billDate: string | null;
   readonly remainderAllocationIntent?: 'auto_pool' | 'company_only' | null;
+  /** True only when every line is a stock purchase. Mixed bills stay in operating actual. */
+  readonly inventoryStockPurchase?: boolean;
+  /** Sum of stock-line nets. Removed from operating actual; recognized at project_consume. */
+  readonly stockLineNet?: string | null;
 };
 
 export type ApAllocationFactRow = {

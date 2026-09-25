@@ -1,13 +1,13 @@
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
-import { queryMyWork, type MyWorkView } from '../data/my-work.repository';
+import { queryMyWorkPage, type MyWorkPage, type MyWorkView } from '../data/my-work.repository';
 import { findWorkspaceIdsByActor, listWorkspacesForOrg } from '@/modules/workspaces';
 import { getWorkspaceScope } from '@/modules/workspaces/domain/access';
 import { findEmployeeByUserId } from '@/modules/workforce';
 import type { Task } from '../domain/types';
 
-export type { MyWorkView };
+export type { MyWorkPage, MyWorkView };
 
 export interface MyWorkOptions {
   readonly view: MyWorkView;
@@ -25,6 +25,14 @@ export async function getMyWork(
   context: OrgContext,
   options: MyWorkOptions,
 ): Promise<Task[]> {
+  const page = await getMyWorkPage(context, options);
+  return page.tasks;
+}
+
+export async function getMyWorkPage(
+  context: OrgContext,
+  options: MyWorkOptions,
+): Promise<MyWorkPage> {
   assertPermission(context, PERMISSIONS.TASKS_READ);
 
   const scope = getWorkspaceScope(context);
@@ -59,7 +67,7 @@ export async function getMyWork(
       ? { id: context.employeeApp.employeeId }
       : await findEmployeeByUserId(context.db, context.organizationId, context.userId);
 
-  return queryMyWork(context.db, {
+  return queryMyWorkPage(context.db, {
     orgMemberId: context.membershipId,
     assigneeEmployeeId: linkedEmployee?.id ?? null,
     organizationId: context.organizationId,

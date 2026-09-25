@@ -50,6 +50,7 @@ export async function listRecentActiveProjects(
     from projects p
     left join clients c on c.id = p.client_id
     left join contracts c2 on c2.project_id = p.id and c2.is_primary = true and c2.archived_at is null
+      and c2.status not in ('closed', 'cancelled')
     left join lateral (
       select coalesce(sum(cve.amount), 0)::text as current_value
       from contract_value_events cve

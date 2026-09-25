@@ -86,6 +86,36 @@ describe('expense allocation (manual)', () => {
     ).toThrow(DomainRuleError);
   });
 
+  it('rejects a project shortfall unless the remainder is auto-pool or company-only', () => {
+    expect(() =>
+      resolveAllocationLines(total, [
+        {
+          targetType: 'project',
+          projectId: 'p1',
+          method: 'manual_amount',
+          amount: '400',
+          sortOrder: 0,
+        },
+      ]),
+    ).toThrow(/remainder/i);
+
+    const lines = resolveAllocationLines(
+      total,
+      [
+        {
+          targetType: 'project',
+          projectId: 'p1',
+          method: 'manual_amount',
+          amount: '400',
+          sortOrder: 0,
+        },
+      ],
+      { remainderIntent: 'auto_pool' },
+    );
+    expect(lines).toHaveLength(1);
+    expect(lines[0]?.amount.amount).toBe('400.000000');
+  });
+
   it('supports mixed amount and percent methods', () => {
     const lines = resolveAllocationLines(total, [
       {

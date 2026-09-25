@@ -38,7 +38,10 @@ export async function sumMonthlyAllocatedLaborByProject(
   organizationId: string,
   projectIds: readonly string[] | null,
   currency: string,
-  options?: { readonly excludeYearMonths?: readonly string[] },
+  options?: {
+    readonly excludeYearMonths?: readonly string[];
+    readonly onlyYearMonths?: readonly string[];
+  },
 ): Promise<Map<string, MonthlyAllocatedLaborAggregate>> {
   const result = new Map<string, MonthlyAllocatedLaborAggregate>();
   if (projectIds !== null && projectIds.length === 0) return result;
@@ -49,6 +52,9 @@ export async function sumMonthlyAllocatedLaborByProject(
   }
   if (options?.excludeYearMonths && options.excludeYearMonths.length > 0) {
     conditions.push(not(inArray(employeeMonthCosts.yearMonth, [...options.excludeYearMonths])));
+  }
+  if (options?.onlyYearMonths && options.onlyYearMonths.length > 0) {
+    conditions.push(inArray(employeeMonthCosts.yearMonth, [...options.onlyYearMonths]));
   }
 
   const rows = await db
@@ -90,7 +96,10 @@ export async function sumMonthlyAllocatedLaborForProject(
   organizationId: string,
   projectId: string,
   currency: string,
-  options?: { readonly excludeYearMonths?: readonly string[] },
+  options?: {
+    readonly excludeYearMonths?: readonly string[];
+    readonly onlyYearMonths?: readonly string[];
+  },
 ): Promise<MonthlyAllocatedLaborAggregate> {
   const byProject = await sumMonthlyAllocatedLaborByProject(
     db,

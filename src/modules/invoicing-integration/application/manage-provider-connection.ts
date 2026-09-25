@@ -12,10 +12,10 @@ import {
 import { getProviderConnectionsRepository } from '../data/external-documents';
 import { SUMIT_PROVIDER_ID, type InvoicingProviderCredentials } from '../domain/types';
 import { sumitConnectionFailureMessageKey } from '../providers/sumit/sumit-connection-diagnostics';
-import { assertSumitTestProviderEndpoint } from '../providers/sumit/sumit-provider-environment';
+import { assertAllowedSumitApiBase } from '../providers/sumit/sumit-provider-environment';
 import {
   createSumitHttpClient,
-  SUMIT_TEST_API_BASE,
+  SUMIT_API_BASE,
 } from '../providers/sumit/sumit-http-client';
 import { sumitProviderCapabilities } from '../providers/sumit/sumit-statutory-provider';
 import {
@@ -32,7 +32,7 @@ function logSumitTestConnectionFailure(
     safeProviderMessage?: string | null;
   },
 ): void {
-  console.error('[invoicing][sumit] test connection failed', {
+  console.error('[invoicing][sumit] connection check failed', {
     organizationId,
     failureClass: result.failureClass ?? 'unknown',
     httpStatus: result.httpStatus ?? null,
@@ -70,7 +70,7 @@ export async function connectSumitTestConfiguration(
   rawInput: ConnectSumitTestInput,
 ): Promise<{ connectionId: string; companyId: number }> {
   assertPermission(context, PERMISSIONS.SETTINGS_MANAGE);
-  assertSumitTestProviderEndpoint(SUMIT_TEST_API_BASE);
+  assertAllowedSumitApiBase(SUMIT_API_BASE);
 
   const input = parseConnectSumitTestInput(rawInput);
   const credentials: InvoicingProviderCredentials = {
@@ -78,12 +78,12 @@ export async function connectSumitTestConfiguration(
     apiKey: input.apiKey,
   };
 
-  const client = createSumitHttpClient(credentials, { baseUrl: SUMIT_TEST_API_BASE });
+  const client = createSumitHttpClient(credentials, { baseUrl: SUMIT_API_BASE });
   const verification = await client.testConnection();
   if (!verification.ok) {
     logSumitTestConnectionFailure(context.organizationId, verification);
     throw new DomainRuleError(
-      'Could not verify SUMIT test credentials',
+      'Could not verify SUMIT credentials',
       sumitConnectionFailureMessageKey(verification.failureClass),
       {
         failureClass: verification.failureClass,

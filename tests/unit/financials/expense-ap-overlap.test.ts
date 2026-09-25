@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
+  assertNoUnlinkedExpenseApOverlap,
   findSimilarFinalizedExpensesForBill,
   findSimilarOpenApBillsForExpense,
 } from '@/modules/financials/domain/expense-ap-overlap';
+import { DomainRuleError } from '@/shared/errors';
 
 const ILS = 'ILS';
 
@@ -83,5 +85,27 @@ describe('expense-ap overlap warnings', () => {
       ],
     );
     expect(hits.map((row) => row.id)).toEqual(['b1']);
+  });
+
+  it('blocks unlinked lookalikes unless distinct costs are confirmed', () => {
+    expect(() =>
+      assertNoUnlinkedExpenseApOverlap({
+        hitCount: 1,
+        messageKey: 'expenses.errors.unlinkedApOverlap',
+      }),
+    ).toThrow(DomainRuleError);
+    expect(() =>
+      assertNoUnlinkedExpenseApOverlap({
+        hitCount: 1,
+        confirmDistinctCosts: true,
+        messageKey: 'ap.errors.unlinkedExpenseOverlap',
+      }),
+    ).not.toThrow();
+    expect(() =>
+      assertNoUnlinkedExpenseApOverlap({
+        hitCount: 0,
+        messageKey: 'expenses.errors.unlinkedApOverlap',
+      }),
+    ).not.toThrow();
   });
 });

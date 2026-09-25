@@ -293,6 +293,7 @@ export async function listProjects(
         where c.project_id = ${projects.id}
           and c.organization_id = ${organizationId}
           and c.archived_at is null
+          and c.status not in ('closed', 'cancelled')
           and upper(cve.currency) = upper(coalesce(
             (
               select primary_c.currency

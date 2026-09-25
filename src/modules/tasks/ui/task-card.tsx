@@ -22,15 +22,6 @@ import type { TaskCardData, TaskPriority, TaskStatus } from './_task-api-stub';
 // Helpers
 // ---------------------------------------------------------------------------
 
-const STATUS_LABEL_KEY: Record<TaskStatus, string> = {
-  todo: 'todo',
-  in_progress: 'inProgress',
-  in_review: 'inReview',
-  blocked: 'blocked',
-  done: 'done',
-  cancelled: 'cancelled',
-};
-
 const STATUS_TONE: Record<
   TaskStatus,
   'neutral' | 'info' | 'pending' | 'warning' | 'danger' | 'success'
@@ -170,6 +161,14 @@ export function TaskCard({ task, onOpen, isDragging, className }: TaskCardProps)
       {/* Title */}
       <p className="min-w-0 break-words text-sm font-medium leading-snug">{task.title}</p>
 
+      {task.projectId ? (
+        task.clientName ? (
+          <p className="truncate text-[0.65rem] text-[var(--pf-text-muted)]">{task.clientName}</p>
+        ) : null
+      ) : (
+        <p className="text-[0.65rem] text-[var(--pf-text-muted)]">{t('noProject')}</p>
+      )}
+
       {/* Labels */}
       {task.labels.length > 0 && (
         <div className="flex flex-wrap gap-1">
@@ -187,7 +186,7 @@ export function TaskCard({ task, onOpen, isDragging, className }: TaskCardProps)
         <div className="flex flex-wrap items-center gap-1.5">
           {/* Status badge */}
           <Badge tone={STATUS_TONE[task.status]} className="text-[0.65rem]">
-            {t(`status.${STATUS_LABEL_KEY[task.status]}`)}
+            {t(`status.${task.status}`)}
           </Badge>
 
           {/* Priority badge */}

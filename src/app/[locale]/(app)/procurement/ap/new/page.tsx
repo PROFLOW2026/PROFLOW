@@ -4,6 +4,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { listBusinessCatalog, localizePaymentTermOptions } from '@/modules/business-catalog';
+import { listInventoryItemsForOrg } from '@/modules/assets';
 import { listExpenseOverlapCandidates } from '@/modules/financials';
 import { isDeprecatedForNewTransactionEntry } from '@/modules/financials/domain/economic-classification';
 import { listCostCategoriesForOrg } from '@/modules/expenses';
@@ -41,13 +42,14 @@ export default async function NewApBillPage({
   const search = await searchParams;
   const requestedPoId = typeof search.purchaseOrderId === 'string' ? search.purchaseOrderId : '';
 
-  const { vendors, projects, purchaseOrders, poLinesByPoId, paymentTerms, costCategories, defaultCurrency, canManage, expenseOverlapCandidates } =
+  const { vendors, projects, purchaseOrders, poLinesByPoId, paymentTerms, costCategories, defaultCurrency, canManage, expenseOverlapCandidates, inventoryItems } =
     await withOrgContext(async (context) => {
       const canReadVendors = hasPermission(context, PERMISSIONS.VENDORS_READ);
       const canReadProjects = hasPermission(context, PERMISSIONS.PROJECTS_READ);
       const canReadPo = hasPermission(context, PERMISSIONS.PROCUREMENT_READ);
       const canReadCatalog = hasPermission(context, PERMISSIONS.ORG_READ);
       const canReadExpenses = hasPermission(context, PERMISSIONS.EXPENSES_READ);
+      const canReadAssets = hasPermission(context, PERMISSIONS.ASSETS_READ);
 
       const [vendorRows, projectRows, poRows, termRows, expenseCandidates, categoryRows] =
         await Promise.all([
@@ -110,6 +112,12 @@ export default async function NewApBillPage({
         defaultCurrency: context.organization.baseCurrency,
         canManage: hasPermission(context, PERMISSIONS.AP_MANAGE),
         expenseOverlapCandidates: expenseCandidates,
+        inventoryItems: canReadAssets
+          ? (await listInventoryItemsForOrg(context).catch(() => [])).map((item) => ({
+              id: item.id,
+              name: item.name,
+            }))
+          : [],
       };
     });
 
@@ -151,6 +159,7 @@ export default async function NewApBillPage({
           costCategories={costCategories}
           defaultPurchaseOrderId={requestedPoId}
           expenseOverlapCandidates={expenseOverlapCandidates}
+          inventoryItems={inventoryItems}
         />
       )}
     </div>

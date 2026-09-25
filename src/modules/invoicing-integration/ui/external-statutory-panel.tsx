@@ -144,6 +144,11 @@ export function ExternalStatutoryPanel({
             {!providerStatus.featureEnabled ? (
               <Alert tone="warning">{t(providerStatus.messageKey)}</Alert>
             ) : null}
+            {providerStatus.featureEnabled &&
+            (!providerStatus.capabilities.creditDocument ||
+              !providerStatus.capabilities.cancelDocument) ? (
+              <p className="text-xs text-[var(--pf-text-muted)]">{t('providerLimitation.creditCancel')}</p>
+            ) : null}
             {billingStatus !== 'finalized' ? (
               <p className="text-sm text-[var(--pf-text-secondary)]">{t('errors.billingNotFinalized')}</p>
             ) : null}

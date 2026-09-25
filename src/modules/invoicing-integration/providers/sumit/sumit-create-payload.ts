@@ -14,9 +14,11 @@ export const SUMIT_DOCUMENT_TYPE_PROFORMA = 3;
 
 /**
  * SUMIT Accounting_Typed_IncomeItemSearchMode — None (1).
- * Ad-hoc document line: use inline Item details, do not search income-item catalog.
+ * CLOSED BY DESIGN: documents are created with an inline customer and SearchMode None.
+ * No customer/item catalog sync, and no Hashavshevet adapter.
  */
 export const SUMIT_INCOME_ITEM_SEARCH_MODE_NONE = 1;
+export const SUMIT_CATALOG_SYNC = 'closed_by_design' as const;
 
 export function resolveSumitDocumentType(kind: ExternalDocumentKind): number {
   switch (kind) {

@@ -9,6 +9,7 @@ import { loadCachedLaborCostDefaults } from '@/modules/financials/application/fi
 import { isMonthClosedForFinancialsRead } from '@/modules/month-close';
 import { areEmployeeMonthCostsAvailable } from '../domain/monthly-cost-gates';
 import { monthDateBounds } from '../domain/monthly-accrual';
+import { sumMonthlyAllocatedLaborForProject } from '../data/labor-displacement.repository';
 import {
   foldMonthlyLaborPreviewBundle,
   loadMonthlyLaborPreviewBundleForProject,
@@ -53,7 +54,19 @@ async function previewCurrentMonthAllocatedLaborForProjectUncached(
   const { fromDate, toDate: monthEnd } = monthDateBounds(currentYearMonth);
   const t0 = performance.now();
 
-  const [bundleRows, monthClosed, laborDefaults] = await Promise.all([
+  const monthClosed = await isMonthClosedForFinancialsRead(context, currentYearMonth);
+  if (monthClosed) {
+    const stored = await sumMonthlyAllocatedLaborForProject(
+      context.db,
+      context.organizationId,
+      projectId,
+      currency,
+      { onlyYearMonths: [currentYearMonth] },
+    );
+    return fromNumericString(stored.totalAmount, currency) ?? zeroMoney(currency);
+  }
+
+  const [bundleRows, laborDefaults] = await Promise.all([
     loadMonthlyLaborPreviewBundleForProject(
       context.db,
       context.organizationId,
@@ -61,7 +74,6 @@ async function previewCurrentMonthAllocatedLaborForProjectUncached(
       fromDate,
       monthEnd,
     ),
-    isMonthClosedForFinancialsRead(context, currentYearMonth),
     loadCachedLaborCostDefaults(context.db, context.organizationId),
   ]);
 

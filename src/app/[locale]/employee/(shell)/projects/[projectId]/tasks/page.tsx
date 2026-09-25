@@ -38,6 +38,7 @@ export default async function EmployeeProjectTasksPage({ params }: PageProps) {
       <Suspense fallback={null}>
         <EmployeeTaskListView
           tasks={data.payload.tasks}
+          hasMore={data.payload.hasMore}
           today={data.payload.today}
           currentEmployeeId={data.payload.currentEmployeeId}
           canFilterByAssignee={data.payload.canFilterByAssignee}

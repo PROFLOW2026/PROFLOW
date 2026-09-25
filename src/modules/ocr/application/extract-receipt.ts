@@ -141,7 +141,7 @@ export async function extractReceiptJob(
       if (!queuedRetry) {
         throw new ConflictError('OCR job was updated concurrently');
       }
-      rememberOcrJobPayload(queuedRetry.id, input);
+      rememberOcrJobPayload(queuedRetry.id, payloadWithoutSumitBytes(input));
       registerOcrJobForWorker({ context, jobId: queuedRetry.id, provider, repo });
       return queuedRetry;
     }
@@ -197,17 +197,50 @@ export async function extractReceiptJob(
     throw error;
   }
 
-  if (workflow !== 'general') {
-    await repo.updateJob(context.organizationId, queued.id, {
-      rawMetadata: { providerId: provider.id, workflow },
-    });
-    const withWorkflow = await repo.findJob(context.organizationId, queued.id);
-    if (withWorkflow) queued = withWorkflow;
-  }
+  queued = await persistEnqueueMetadata(context, repo, provider.id, queued, input, workflow);
 
-  rememberOcrJobPayload(queued.id, input);
+  rememberOcrJobPayload(queued.id, payloadWithoutSumitBytes(input));
   registerOcrJobForWorker({ context, jobId: queued.id, provider, repo });
   return queued;
+}
+
+function payloadWithoutSumitBytes(input: ExtractReceiptAppInput): ExtractReceiptAppInput {
+  const sumitBacked =
+    Boolean(input.sumitDocumentId?.trim()) ||
+    (input.idempotencyKey ?? '').startsWith('sumit:');
+  if (!sumitBacked) return input;
+  const { contentBase64: _omit, ...rest } = input;
+  return rest;
+}
+
+async function persistEnqueueMetadata(
+  context: OrgContext,
+  repo: OcrRepository,
+  providerId: string,
+  queued: ExtractionJob,
+  input: ExtractReceiptAppInput,
+  workflow: OcrWorkflowContext,
+): Promise<ExtractionJob> {
+  const sumitDocumentId = input.sumitDocumentId?.trim() || null;
+  if (workflow === 'general' && !sumitDocumentId && !input.externalExpenseImportId) {
+    return queued;
+  }
+  await repo.updateJob(context.organizationId, queued.id, {
+    rawMetadata: {
+      providerId,
+      workflow,
+      ...(sumitDocumentId
+        ? {
+            importSource: 'sumit' as const,
+            externalDocumentId: sumitDocumentId,
+          }
+        : {}),
+      ...(input.externalExpenseImportId
+        ? { externalExpenseImportId: input.externalExpenseImportId }
+        : {}),
+    },
+  });
+  return (await repo.findJob(context.organizationId, queued.id)) ?? queued;
 }
 
 function spawnIfNeeded(
@@ -218,6 +251,6 @@ function spawnIfNeeded(
   repo: OcrRepository,
 ): void {
   if (job.status !== 'queued') return;
-  rememberOcrJobPayload(job.id, input);
+  rememberOcrJobPayload(job.id, payloadWithoutSumitBytes(input));
   registerOcrJobForWorker({ context, jobId: job.id, provider, repo });
 }

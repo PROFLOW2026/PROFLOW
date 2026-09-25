@@ -16,6 +16,7 @@ import {
   listRunsForDraft,
   updateRecurringDraftById,
 } from '../data/recurring-drafts.repository';
+import { AUTO_GENERATED_DRAFT_KINDS } from '../domain/customer-billing';
 import { assertCanManageDraftKind } from '../domain/permissions';
 import { assertDraftGeneratable } from '../domain/lifecycle';
 import { businessDate, compareBusinessDates } from '@/shared/dates';
@@ -154,7 +155,7 @@ export async function ensureRecurringDraftOccurrencesOnly(
 ): Promise<Omit<EnsureRecurringOccurrencesResult, never>> {
   const today = todayInTimeZone(context.organization.timezone);
   const drafts = await listRecurringDrafts(context.db, context.organizationId, {
-    kind: 'expense',
+    kind: AUTO_GENERATED_DRAFT_KINDS[0],
     status: 'active',
   });
 

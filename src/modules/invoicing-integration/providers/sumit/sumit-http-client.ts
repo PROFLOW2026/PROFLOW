@@ -13,15 +13,20 @@ import {
   toSuccessfulSumitTestConnectionResult,
   type SumitTestConnectionResult,
 } from './sumit-connection-diagnostics';
-import { assertSumitTestProviderEndpoint } from './sumit-provider-environment';
+import { assertAllowedSumitApiBase } from './sumit-provider-environment';
 import { assembleSumitCreateRequestBody } from './sumit-create-payload';
 import { parseSumitDocumentAmounts } from './sumit-document-amounts';
 
 export { SumitAmbiguousError } from './sumit-api-envelope';
 export type { SumitTestConnectionResult } from './sumit-connection-diagnostics';
 
-/** SUMIT test environment base URL (Milestone A/B — production hard-denied). */
-export const SUMIT_TEST_API_BASE = 'https://api.sumit.co.il';
+/**
+ * The only SUMIT API host. This is the live API, not a test sandbox.
+ * Arbitrary base URLs are rejected.
+ */
+export const SUMIT_API_BASE = 'https://api.sumit.co.il';
+/** @deprecated Same value as SUMIT_API_BASE. Kept so older imports still resolve to the live host. */
+export const SUMIT_TEST_API_BASE = SUMIT_API_BASE;
 
 export interface SumitHttpClientOptions {
   readonly baseUrl?: string;
@@ -103,8 +108,8 @@ export function createSumitHttpClient(
   credentials: InvoicingProviderCredentials,
   options: SumitHttpClientOptions = {},
 ): SumitHttpClient {
-  const baseUrl = (options.baseUrl ?? SUMIT_TEST_API_BASE).replace(/\/$/, '');
-  assertSumitTestProviderEndpoint(baseUrl);
+  const baseUrl = (options.baseUrl ?? SUMIT_API_BASE).replace(/\/$/, '');
+  assertAllowedSumitApiBase(baseUrl);
   const fetchImpl = options.fetchImpl ?? fetch;
   const timeoutMs = options.timeoutMs ?? 30_000;
 

@@ -136,6 +136,7 @@ export async function saveBillProjectAllocations(
   const resolved = resolveBillProjectAllocationLines({
     recognizedNet: vendorBillActualAmount(bill),
     currency: bill.currency,
+    remainderIntent: parsed.data.remainderAllocationIntent ?? null,
     lines: parsed.data.lines.map((line) => ({
       projectId: line.projectId,
       method: line.method ?? 'manual_amount',

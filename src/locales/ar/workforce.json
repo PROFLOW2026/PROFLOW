@@ -886,5 +886,20 @@
     "allocationOverKnown": "مبلغ التوزيع يتجاوز تكلفة المُشغّل للشهر.",
     "allocationAmountPositive": "يجب أن يكون مبلغ التوزيع موجباً.",
     "allocationRunNotDraft": "يمكن تطبيق مسودة توزيع فقط."
+  },
+  "employerCostOverview": {
+    "title": "تكلفة المُشغّل",
+    "description": "التكلفة الشهرية التقديرية والفعلية، والمبالغ المخصصة للمشاريع، وتكلفة الشركة فقط. ليست رواتب.",
+    "empty": "لا توجد أشهر تكلفة مُشغّل بعد.",
+    "estimated": "تقديرية",
+    "estimatedHint": "مجموع المبالغ التقديرية في أشهر تكلفة المُشغّل.",
+    "actual": "فعلية",
+    "actualHint": "مجموع المبالغ الفعلية في أشهر تكلفة المُشغّل.",
+    "projectAllocated": "مخصص للمشاريع",
+    "projectAllocatedHint": "مجموع سطور توزيع العمل المطبّقة.",
+    "companyOnly": "الشركة فقط",
+    "companyOnlyHint": "مبلغ الشركة فقط في عمليات التوزيع المطبّقة.",
+    "unavailable": "غير متاح",
+    "companyOnlyUnavailable": "تقسيم تكلفة الشركة فقط غير متاح."
   }
 }

@@ -206,9 +206,9 @@
     "rotate90": "Rotate 90°",
     "fullscreen": "Fullscreen",
     "exitFullscreen": "Exit fullscreen",
-    "share": "Share",
-    "sharePreparing": "Preparing to share…",
-    "shareUnsupported": "This browser does not support direct file sharing.",
-    "shareFailed": "Could not share this file. Try again."
+    "share": "Download or open",
+    "sharePreparing": "Preparing the file…",
+    "shareUnsupported": "This browser cannot share the file. It will download instead.",
+    "shareFailed": "Could not download or open this file. Try again."
   }
 }

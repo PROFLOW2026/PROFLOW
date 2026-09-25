@@ -151,6 +151,9 @@ export function ExpensePaymentPanel({
                 })}
               </p>
             ) : null}
+            {expense.installmentCount > 1 ? (
+              <p className="text-xs text-[var(--pf-text-muted)]">{t('managerialNetSeparate')}</p>
+            ) : null}
           </div>
         ) : null}
 

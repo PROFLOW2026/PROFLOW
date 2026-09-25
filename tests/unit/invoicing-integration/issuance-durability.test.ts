@@ -136,6 +136,16 @@ class RejectingStatutoryProvider implements StatutoryInvoicingProvider {
     return true;
   }
 
+  capabilities() {
+    return {
+      createDocument: true,
+      retrieveStatus: false,
+      creditDocument: false,
+      cancelDocument: false,
+      allocateReference: false,
+    };
+  }
+
   async createDocument(
     _input: CreateExternalDocumentInput,
   ): Promise<StatutoryProviderResult<CreateExternalDocumentOutput>> {
@@ -201,7 +211,7 @@ function mockSumitClient(options: {
       return true;
     },
     async testConnection() {
-      return { ok: true, environment: 'test' as const };
+      return { ok: true };
     },
     async listExpenseDocuments() {
       return [];

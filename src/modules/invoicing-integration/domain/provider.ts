@@ -4,6 +4,7 @@ import type {
   ExternalDocumentKind,
   ExternalPdfMetadata,
   StatutoryPaymentSnapshot,
+  StatutoryProviderCapabilities,
 } from './types';
 
 /**
@@ -106,6 +107,8 @@ export interface StatutoryInvoicingProvider {
   isConfigured(): boolean;
   /** False until a real provider connection is wired - keeps the product surface off. */
   isFeatureEnabled(): boolean;
+  /** Real method support. Must not claim credit/cancel/allocate when those methods return unsupported. */
+  capabilities(): StatutoryProviderCapabilities;
   createDocument(
     input: CreateExternalDocumentInput,
   ): Promise<StatutoryProviderResult<CreateExternalDocumentOutput>>;

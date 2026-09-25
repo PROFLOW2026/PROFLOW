@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   computeApprovedChangesTotal,
   computeCurrentContractValue,
+  computeHeaderCurrentContractValue,
   findOriginalValueEvent,
   isOriginalContractAmountLocked,
 } from '@/modules/projects';
@@ -80,5 +81,44 @@ describe('contract value domain', () => {
         { ...baseEvent, id: 'adj', kind: 'adjustment', amount: '100.000000', effectiveDate: '2026-04-01' },
       ]),
     ).toBe(true);
+  });
+
+  it('skips closed and cancelled contracts in the header current value', () => {
+    const current = computeHeaderCurrentContractValue({
+      currency: 'ILS',
+      contracts: [
+        {
+          id: 'live',
+          status: 'active',
+          isPrimary: true,
+          originalValueAmount: '100.000000',
+        },
+        {
+          id: 'closed',
+          status: 'closed',
+          isPrimary: false,
+          originalValueAmount: '900.000000',
+        },
+      ],
+      events: [
+        {
+          ...baseEvent,
+          id: 'live-original',
+          contractId: 'live',
+          kind: 'original',
+          amount: '100.000000',
+          effectiveDate: '2026-01-01',
+        },
+        {
+          ...baseEvent,
+          id: 'closed-original',
+          contractId: 'closed',
+          kind: 'original',
+          amount: '900.000000',
+          effectiveDate: '2026-01-01',
+        },
+      ],
+    });
+    expect(current.amount).toBe('100.000000');
   });
 });

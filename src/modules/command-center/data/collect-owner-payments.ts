@@ -79,8 +79,6 @@ function expenseItem(input: {
   return { ...base, itemKey: input.itemKey };
 }
 
-const GENERAL_BUSINESS_ATTRIBUTION = 'שיוך: הוצאה כללית של העסק';
-
 export async function collectExpensesDueToday(ctx: CollectContext): Promise<CommandCenterItem[]> {
   if (!hasPermission(ctx.context, PERMISSIONS.EXPENSES_READ)) return [];
 
@@ -91,6 +89,7 @@ export async function collectExpensesDueToday(ctx: CollectContext): Promise<Comm
   const manualConfirm = policies.expensePaymentConfirmationMode === 'manual';
   const locale = ctx.context.locale ?? 'he-IL';
   const tExpenses = await getTranslations({ locale, namespace: 'expenses' });
+  const t = await getTranslations({ locale, namespace: 'commandCenter' });
 
   const rows = sortByDueDate(await listExpensePaymentsForOrg(ctx.context, { unpaidOnly: true }));
   const items: CommandCenterItem[] = [];
@@ -144,7 +143,7 @@ export async function collectExpensesDueToday(ctx: CollectContext): Promise<Comm
     if (!categoryId) return null;
     const category = categoryById.get(categoryId);
     if (!category) return null;
-    return displayCostCategoryName(category, (key) => tExpenses(key as 'costCategories.insurance'), 'קטגוריה');
+    return displayCostCategoryName(category, (key) => tExpenses(key as 'costCategories.insurance'), t('ownerPayments.categoryFallback'));
   };
 
   for (const row of rows) {
@@ -212,7 +211,7 @@ export async function collectExpensesDueToday(ctx: CollectContext): Promise<Comm
       continue;
     }
 
-    const expenseTitle = row.description?.trim() || row.supplierName?.trim() || vendor?.name || 'הוצאה';
+    const expenseTitle = row.description?.trim() || row.supplierName?.trim() || vendor?.name || t('ownerPayments.expenseFallback');
     const payableLabel = moneyLabel(obligation.payableAmount, locale);
     const remainingLabel = moneyLabel(obligation.totalRemaining, locale);
     const expenseDateLabel = formatBusinessDate(row.expenseDate, locale);
@@ -220,25 +219,30 @@ export async function collectExpensesDueToday(ctx: CollectContext): Promise<Comm
     const projectName = row.projectId ? projectNameById.get(row.projectId) ?? null : null;
     const categoryName = categoryLabel(row.costCategoryId);
     const where = row.projectId && projectName
-      ? `פרויקט: ${projectName}`
-      : GENERAL_BUSINESS_ATTRIBUTION;
+      ? t('ownerPayments.projectWhere', { name: projectName })
+      : t('ownerPayments.generalBusinessAttribution');
 
     const installmentNote =
       (row.installmentCount ?? 1) > 1 && obligation.currentInstallmentIndex != null
-        ? `תשלום ${obligation.currentInstallmentIndex + 1}/${row.installmentCount}`
+        ? t('ownerPayments.installment', {
+            current: obligation.currentInstallmentIndex + 1,
+            total: row.installmentCount ?? 1,
+          })
         : null;
 
     const detailParts = [
       expenseTitle,
-      `לתשלום: ${payableLabel}`,
+      t('ownerPayments.payable', { amount: payableLabel }),
       installmentNote,
-      (row.installmentCount ?? 1) > 1 ? `יתרת עסקה: ${remainingLabel}` : null,
-      `תאריך הוצאה: ${expenseDateLabel}`,
+      (row.installmentCount ?? 1) > 1
+        ? t('ownerPayments.transactionRemaining', { amount: remainingLabel })
+        : null,
+      t('ownerPayments.expenseDate', { date: expenseDateLabel }),
     ].filter(Boolean) as string[];
-    if (vendorLabel) detailParts.push(`ספק: ${vendorLabel}`);
-    if (categoryName) detailParts.push(`קטגוריה: ${categoryName}`);
+    if (vendorLabel) detailParts.push(t('ownerPayments.vendor', { name: vendorLabel }));
+    if (categoryName) detailParts.push(t('ownerPayments.category', { name: categoryName }));
     if (effectiveDueDate) {
-      detailParts.push(`מועד תשלום: ${formatBusinessDate(effectiveDueDate, locale)}`);
+      detailParts.push(t('ownerPayments.paymentDue', { date: formatBusinessDate(effectiveDueDate, locale) }));
     }
 
     const why = detailParts.join(' · ');
@@ -271,7 +275,7 @@ export async function collectExpensesDueToday(ctx: CollectContext): Promise<Comm
           ...alertBase,
           sourceType: 'expense_pending_review',
           itemKey: buildItemKey('expense_pending_review', alertSourceId),
-          what: 'הוצאה ממתינה לאישור תשלום',
+          what: t('ownerPayments.pendingReview'),
           urgencyBump: 15,
         }),
       );
@@ -286,7 +290,9 @@ export async function collectExpensesDueToday(ctx: CollectContext): Promise<Comm
           ...alertBase,
           sourceType: 'expense_overdue',
           itemKey: buildItemKey('expense_overdue', alertSourceId),
-          what: installmentNote ? `תשלום באיחור · ${installmentNote}` : 'הוצאה באיחור לתשלום',
+          what: installmentNote
+            ? t('ownerPayments.overdueInstallment', { installment: installmentNote })
+            : t('ownerPayments.overdue'),
           urgencyBump: 40,
         }),
       );
@@ -299,7 +305,9 @@ export async function collectExpensesDueToday(ctx: CollectContext): Promise<Comm
           ...alertBase,
           sourceType: 'expense_due_today',
           itemKey: buildItemKey('expense_due_today', alertSourceId),
-          what: installmentNote ? `תשלום היום · ${installmentNote}` : 'הוצאה לתשלום היום',
+          what: installmentNote
+            ? t('ownerPayments.dueTodayInstallment', { installment: installmentNote })
+            : t('ownerPayments.dueToday'),
           urgencyBump: 25,
         }),
       );
@@ -328,6 +336,7 @@ export async function collectPayrollDueToday(ctx: CollectContext): Promise<Comma
   const policies = await getOrgFinancialPolicies(ctx.context);
   const manualConfirm = policies.salaryPaymentConfirmationMode === 'manual';
   const locale = ctx.context.locale ?? 'he-IL';
+  const t = await getTranslations({ locale, namespace: 'commandCenter' });
 
   const rows = await listUnpaidPayrollPayments(ctx.context);
   const items: CommandCenterItem[] = [];
@@ -347,7 +356,13 @@ export async function collectPayrollDueToday(ctx: CollectContext): Promise<Comma
     const dueLabel = row.dueDate ? formatBusinessDate(row.dueDate as BusinessDate, locale) : null;
     const base = {
       sourceId: row.id,
-      why: `${row.employeeName} · ${amountLabel}${dueLabel ? ` · מועד: ${dueLabel}` : ''}`,
+      why: dueLabel
+        ? t('ownerPayments.payrollWhyWithDue', {
+            name: row.employeeName,
+            amount: amountLabel,
+            due: dueLabel,
+          })
+        : t('ownerPayments.payrollWhy', { name: row.employeeName, amount: amountLabel }),
       where: `${row.employeeName} · ${row.yearMonth}`,
       href: payrollAlertHref({
         employeeId: row.employeeId,
@@ -368,7 +383,7 @@ export async function collectPayrollDueToday(ctx: CollectContext): Promise<Comma
         withItemDefaults({
           ...base,
           sourceType: 'payroll_pending_review',
-          what: `שכר ${row.yearMonth} ממתין לאישור תשלום`,
+          what: t('ownerPayments.payrollPending', { month: row.yearMonth }),
           urgencyBump: 15,
           confirmPaid: 'payroll',
         }),
@@ -381,7 +396,7 @@ export async function collectPayrollDueToday(ctx: CollectContext): Promise<Comma
         withItemDefaults({
           ...base,
           sourceType: 'payroll_overdue',
-          what: `שכר ${row.yearMonth} באיחור לתשלום`,
+          what: t('ownerPayments.payrollOverdue', { month: row.yearMonth }),
           urgencyBump: 35,
           confirmPaid: manualConfirm ? 'payroll' : undefined,
         }),
@@ -394,7 +409,7 @@ export async function collectPayrollDueToday(ctx: CollectContext): Promise<Comma
         withItemDefaults({
           ...base,
           sourceType: 'payroll_due_today',
-          what: `שכר ${row.yearMonth} מוכן לתשלום`,
+          what: t('ownerPayments.payrollReady', { month: row.yearMonth }),
           urgencyBump: 25,
           confirmPaid: manualConfirm ? 'payroll' : undefined,
         }),
@@ -412,6 +427,7 @@ export async function collectExpensesNeedingAllocation(
 
   const { listExpensesForOrg } = await import('@/modules/expenses/application/queries');
   const locale = ctx.context.locale ?? 'he-IL';
+  const t = await getTranslations({ locale, namespace: 'commandCenter' });
   const rows = (
     await listExpensesForOrg(ctx.context, {
       attentionFilter: 'project_allocation',
@@ -420,14 +436,16 @@ export async function collectExpensesNeedingAllocation(
   ).items;
 
   return rows.map((row) => {
-    const title = row.description?.trim() || row.supplierName?.trim() || 'הוצאה';
+    const title = row.description?.trim() || row.supplierName?.trim() || t('ownerPayments.expenseFallback');
     const amount = row.grossAmount ? formatMoneyDisplay(row.grossAmount, locale) : '';
-    const where = row.projectName ? `פרויקט: ${row.projectName}` : 'הוצאה משותפת — דורש שיוך לפרויקט';
+    const where = row.projectName
+      ? t('ownerPayments.projectWhere', { name: row.projectName })
+      : t('ownerPayments.allocationShared');
     return withItemDefaults({
       sourceType: 'expense_needs_allocation',
       sourceId: row.id,
-      what: 'הוצאה ללא שיוך פרויקט',
-      why: [title, amount, `תאריך: ${formatBusinessDate(row.expenseDate, locale)}`]
+      what: t('ownerPayments.allocationWhat'),
+      why: [title, amount, t('ownerPayments.allocationDate', { date: formatBusinessDate(row.expenseDate, locale) })]
         .filter(Boolean)
         .join(' · '),
       where,

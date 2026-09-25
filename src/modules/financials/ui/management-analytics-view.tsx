@@ -2,7 +2,8 @@ import type { ReactNode } from 'react';
 import { MoneyText } from '@/components/patterns/money-text';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { Link } from '@/shared/i18n/navigation';
-import type { ManagementAnalytics } from '../domain/management-analytics';
+import { sortByProfitDesc, type ManagementAnalytics } from '../domain/management-analytics';
+import type { MoneyValue } from '@/shared/money';
 
 export interface ManagementAnalyticsViewCopy {
   readonly title: string;
@@ -241,13 +242,13 @@ export function ManagementAnalyticsView({
       {management.profitByProject && management.profitByProject.length > 0 ? (
         <ProfitList
           title={copy.labels.profitByProject}
-          rows={management.profitByProject.slice(0, 8)}
+          rows={profitRankingRows(management.profitByProject)}
         />
       ) : null}
       {management.profitByClient && management.profitByClient.length > 0 ? (
         <ProfitList
           title={copy.labels.profitByClient}
-          rows={management.profitByClient.slice(0, 8)}
+          rows={profitRankingRows(management.profitByClient)}
         />
       ) : null}
       {management.profitByWorkType && management.profitByWorkType.length > 0 ? (
@@ -261,6 +262,18 @@ export function ManagementAnalyticsView({
       ) : null}
     </div>
   );
+}
+
+/** Highest profits first, and the largest losses when the list is long. */
+function profitRankingRows<T extends { id: string; amount: MoneyValue }>(
+  rows: readonly T[],
+): T[] {
+  const sorted = sortByProfitDesc(rows);
+  if (sorted.length <= 16) return sorted;
+  const top = sorted.slice(0, 8);
+  const seen = new Set(top.map((row) => row.id));
+  const bottom = sorted.slice(-8).filter((row) => !seen.has(row.id));
+  return [...top, ...bottom];
 }
 
 function ProfitList({

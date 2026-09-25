@@ -19,6 +19,9 @@ export const extractReceiptSchema = z.object({
   forceRetry: z.boolean().optional(),
   batchId: z.string().uuid().optional(),
   idempotencyKey: z.string().trim().min(1).max(200).optional(),
+  /** SUMIT DocumentID. Bytes are re-fetched by the worker; they are not kept in process memory. */
+  sumitDocumentId: z.string().trim().min(1).max(64).optional(),
+  externalExpenseImportId: z.string().uuid().optional(),
 });
 
 export const createOcrBatchSchema = z.object({

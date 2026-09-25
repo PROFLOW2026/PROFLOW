@@ -5,7 +5,9 @@ import { withOrgContext } from '@/shared/auth/session';
 import { mapServerActionError } from '@/shared/errors';
 import {
   getMyWork,
+  getMyWorkPage,
   listAccessibleTasks,
+  listAccessibleTasksPage,
   createTask,
   updateTask,
   archiveTask,
@@ -53,6 +55,9 @@ import {
 } from '@/modules/tasks/application/manage-reminders';
 import type { MyWorkView } from '@/modules/tasks';
 import type { TaskListFilters, TaskStatus, TaskPriority, TaskDependencyType } from '@/modules/tasks';
+import { MY_WORK_VIEW_LIMIT, TASK_LIST_MAX_LIMIT } from '@/modules/tasks/domain/list-window';
+import { mapTasksToCardDataForOrg } from '@/modules/tasks/application/map-tasks-for-ui';
+import type { TaskCardData } from '@/modules/tasks/ui/_task-api-stub';
 
 // ─── Shared state type ────────────────────────────────────────────────────────
 
@@ -109,8 +114,6 @@ export async function updateTaskFieldsAction(
   taskId: string,
   data: Record<string, unknown>,
 ): Promise<WorkActionState> {
-  const tErrors = await getTranslations('errors');
-
   try {
     await withOrgContext(async (context) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -118,10 +121,45 @@ export async function updateTaskFieldsAction(
     });
     return { success: true };
   } catch (error) {
-    return mapServerActionError(error, {
-      tErrors: (key) => tErrors(key as 'unexpected'),
-    });
+    return mapWorkActionError(error);
   }
+}
+
+export async function loadMoreAccessibleTasksAction(input: {
+  offset: number;
+  projectId?: string;
+  limit?: number;
+  excludeCancelled?: boolean;
+}): Promise<{ tasks: TaskCardData[]; hasMore: boolean; nextOffset: number }> {
+  return withOrgContext(async (context) => {
+    const limit = input.limit ?? TASK_LIST_MAX_LIMIT;
+    const page = await listAccessibleTasksPage(context, {
+      limit,
+      offset: input.offset,
+      ...(input.projectId ? { projectId: input.projectId } : {}),
+    });
+    const visible = input.excludeCancelled
+      ? page.tasks.filter((task) => task.status !== 'cancelled')
+      : page.tasks;
+    return {
+      tasks: await mapTasksToCardDataForOrg(context, visible),
+      hasMore: page.hasMore,
+      nextOffset: input.offset + page.tasks.length,
+    };
+  });
+}
+
+export async function loadMoreMyWorkAction(
+  view: MyWorkView,
+  offset: number,
+): Promise<{ tasks: TaskCardData[]; hasMore: boolean }> {
+  return withOrgContext(async (context) => {
+    const page = await getMyWorkPage(context, { view, limit: MY_WORK_VIEW_LIMIT, offset });
+    return {
+      tasks: await mapTasksToCardDataForOrg(context, page.tasks),
+      hasMore: page.hasMore,
+    };
+  });
 }
 
 // ─── Create Task ─────────────────────────────────────────────────────────────

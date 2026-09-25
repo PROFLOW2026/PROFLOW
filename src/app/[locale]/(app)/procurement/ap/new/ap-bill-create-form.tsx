@@ -33,6 +33,7 @@ interface LineDraft {
   lineTotal: string;
   purchaseOrderLineId: string;
   costCategoryId: string;
+  inventoryItemId: string;
 }
 
 function newKey(): string {
@@ -48,6 +49,7 @@ function emptyLine(): LineDraft {
     lineTotal: '',
     purchaseOrderLineId: '',
     costCategoryId: '',
+    inventoryItemId: '',
   };
 }
 
@@ -70,6 +72,7 @@ export function ApBillCreateForm({
   costCategories,
   defaultPurchaseOrderId = '',
   expenseOverlapCandidates = [],
+  inventoryItems = [],
 }: {
   defaultCurrency: string;
   vendors: readonly { id: string; name: string; defaultPaymentTermId: string | null }[];
@@ -83,6 +86,7 @@ export function ApBillCreateForm({
   costCategories: readonly { id: string; key: string; name: string; family: string }[];
   defaultPurchaseOrderId?: string;
   expenseOverlapCandidates?: readonly ExpenseOverlapCandidate[];
+  inventoryItems?: readonly { id: string; name: string }[];
 }) {
   const t = useTranslations('ap.create');
   const tCommon = useTranslations('common');
@@ -135,6 +139,8 @@ export function ApBillCreateForm({
             currency,
             purchaseOrderLineId: line.purchaseOrderLineId.trim() || null,
             costCategoryId: line.costCategoryId.trim() || null,
+            inventoryItemId:
+              line.inventoryItemId && line.inventoryItemId !== NONE ? line.inventoryItemId : null,
             costFamily:
               costCategories.find((c) => c.id === line.costCategoryId)?.family ?? null,
           })),
@@ -165,6 +171,10 @@ export function ApBillCreateForm({
     <form action={formAction} className="flex w-full min-w-0 max-w-2xl flex-col gap-4">
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
       <ExpenseApOverlapWarning hits={overlapHits} namespace="ap.create" />
+      <label className="flex items-start gap-2 text-sm">
+        <input type="checkbox" name="confirmDistinctCosts" value="true" className="mt-1" />
+        <span>{t('overlapConfirmDistinct')}</span>
+      </label>
 
       <input type="hidden" name="currency" value={currency} />
       <input type="hidden" name="totalAmount" value={totalAmount} />
@@ -299,6 +309,9 @@ export function ApBillCreateForm({
             {t('addLine')}
           </Button>
         </div>
+        {inventoryItems.length > 0 ? (
+          <p className="mt-2 text-xs text-[var(--pf-text-secondary)]">{t('inventoryStockHint')}</p>
+        ) : null}
 
         <div className="mt-3 flex flex-col gap-4">
           {lines.map((line, index) => (
@@ -428,6 +441,35 @@ export function ApBillCreateForm({
                   </Select>
                 )}
               </Field>
+              {inventoryItems.length > 0 ? (
+                <Field label={t('inventoryItemLabel')} className="sm:col-span-2">
+                  {(props) => (
+                    <Select
+                      value={line.inventoryItemId || NONE}
+                      onValueChange={(value) => {
+                        const nextId = value === NONE ? '' : value;
+                        setLines((prev) =>
+                          prev.map((row, i) =>
+                            i === index ? { ...row, inventoryItemId: nextId } : row,
+                          ),
+                        );
+                      }}
+                    >
+                      <SelectTrigger {...props}>
+                        <SelectValue placeholder={t('inventoryItemNone')} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={NONE}>{t('inventoryItemNone')}</SelectItem>
+                        {inventoryItems.map((item) => (
+                          <SelectItem key={item.id} value={item.id}>
+                            {item.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </Field>
+              ) : null}
               <div className="flex flex-wrap items-end justify-between gap-2 sm:col-span-2">
                 <p className="text-sm text-[var(--pf-text-secondary)]">
                   {t('lineTotal')}:{' '}

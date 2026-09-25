@@ -152,6 +152,8 @@ export const DEFAULT_PAYMENT_TERMS: readonly {
   { key: 'net_30', name: 'Net 30', metadata: { strategy: 'net_days', netDays: 30 }, sortOrder: 40 },
   { key: 'net_45', name: 'Net 45', metadata: { strategy: 'net_days', netDays: 45 }, sortOrder: 50 },
   { key: 'net_60', name: 'Net 60', metadata: { strategy: 'net_days', netDays: 60 }, sortOrder: 60 },
+  { key: 'net_90', name: 'Net 90', metadata: { strategy: 'net_days', netDays: 90 }, sortOrder: 62 },
+  { key: 'net_120', name: 'Net 120', metadata: { strategy: 'net_days', netDays: 120 }, sortOrder: 64 },
   { key: 'eom', name: 'End of month', metadata: { strategy: 'end_of_month' }, sortOrder: 70 },
   {
     key: 'eom_30',

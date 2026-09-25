@@ -1,5 +1,6 @@
 {
   "panelTitle": "Project financials",
+  "profitVsCash": "Profit equals current contract net minus cost. It is not the billed amount and not cash collected.",
   "originalContractValue": "Original contract value",
   "displayOriginalContractValue": "Per original contract",
   "managedOpeningContractValue": "Managed from here",
@@ -235,7 +236,7 @@
   },
   "cashFlowForecast": {
     "pageTitle": "Cash flow forecast",
-    "pageHint": "Expected money in and out from recorded due dates. Missing dates stay undated. Recurring drafts are labelled as forecast and are not posted.",
+    "pageHint": "Cash in and out, not profit. Dated items use recorded due dates. Missing dates stay undated. Recurring drafts are forecast and are not posted.",
     "managementLink": "Owner management view",
     "noAccessTitle": "Cash flow is not available",
     "noAccessBody": "Project financials permission is required to open this page.",
@@ -268,7 +269,9 @@
       "commitment": "Open commitment",
       "subcontractor_liability": "Subcontractor liability",
       "recurring_draft": "Recurring draft (forecast)",
-      "retention_release_out": "Retention release (out)"
+      "retention_release_out": "Retention release (out)",
+      "operating_expense": "Operating expense (cash)",
+      "payroll_obligation": "Payroll obligation (cash)"
     }
   },
   "perContract": {
@@ -482,7 +485,7 @@
       "allocatedOverhead": "Allocated general overhead",
       "allocatedOverheadHint": "General business costs allocated to projects — not double-counted at company level.",
       "companyOnlyCost": "Company-only costs",
-      "companyOnlyCostHint": "Expenses and labor marked company-only — not tied to a project.",
+      "companyOnlyCostHint": "General costs that stay with the company: company-only items plus anything not allocated to a project.",
       "companyActual": "Full business actual cost",
       "companyActualHint": "Project direct + allocated overhead + company-only — without double counting general pool.",
       "companyProfit": "Business profit (contractual basis)",
@@ -496,5 +499,8 @@
       "forecastFinalCost": "Forecast final cost",
       "forecastFinalCostHint": "Estimated total business cost at completion."
     }
+  },
+  "errors": {
+    "generalCostRecomputeFailed": "General costs could not be recalculated. The previous allocation was left unchanged."
   }
 }

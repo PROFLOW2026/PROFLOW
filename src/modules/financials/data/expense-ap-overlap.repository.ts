@@ -117,3 +117,135 @@ export async function listApBillOverlapCandidates(
     status: row.status,
   }));
 }
+
+/** Vendor-scoped finalized expenses for the recognition guard (not the 80-row warning list). */
+export async function listExpenseOverlapCandidatesForVendor(
+  db: DbExecutor,
+  organizationId: string,
+  vendorId: string,
+): Promise<ExpenseOverlapCandidate[]> {
+  const expenseRows = await db
+    .select({
+      id: expenses.id,
+      vendorId: expenses.vendorId,
+      projectId: expenses.projectId,
+      netAmount: expenses.netAmount,
+      currency: expenses.currency,
+      description: expenses.description,
+    })
+    .from(expenses)
+    .where(
+      and(
+        eq(expenses.organizationId, organizationId),
+        eq(expenses.status, 'finalized'),
+        isNull(expenses.archivedAt),
+        eq(expenses.vendorId, vendorId),
+      ),
+    );
+
+  if (expenseRows.length === 0) return [];
+
+  const expenseIds = expenseRows.map((row) => row.id);
+  const matchRows = await db
+    .select({
+      expenseId: apPoMatches.expenseId,
+      apBillId: apPoMatches.apBillId,
+      matchedAmount: apPoMatches.matchedAmount,
+      currency: apPoMatches.currency,
+    })
+    .from(apPoMatches)
+    .innerJoin(apBills, eq(apBills.id, apPoMatches.apBillId))
+    .where(
+      and(
+        eq(apPoMatches.organizationId, organizationId),
+        inArray(apPoMatches.expenseId, expenseIds),
+        eq(apPoMatches.status, 'accepted'),
+        inArray(apBills.status, [...RECOGNIZED_VENDOR_BILL_STATUSES]),
+        isNull(apBills.archivedAt),
+      ),
+    );
+
+  const matchedByExpense = new Map<string, string>();
+  const billsByExpense = new Map<string, Set<string>>();
+  for (const row of matchRows) {
+    if (!row.expenseId) continue;
+    const slice = money(row.matchedAmount, row.currency);
+    const prev = matchedByExpense.get(row.expenseId);
+    matchedByExpense.set(
+      row.expenseId,
+      prev ? addMoney(money(prev, row.currency), slice).amount : slice.amount,
+    );
+    const bills = billsByExpense.get(row.expenseId) ?? new Set<string>();
+    bills.add(row.apBillId);
+    billsByExpense.set(row.expenseId, bills);
+  }
+
+  return expenseRows.map((row) => ({
+    id: row.id,
+    vendorId: row.vendorId,
+    projectId: row.projectId,
+    netAmount: row.netAmount,
+    currency: row.currency,
+    description: row.description,
+    matchedAmount: matchedByExpense.get(row.id) ?? '0',
+    acceptedBillIds: [...(billsByExpense.get(row.id) ?? [])],
+  }));
+}
+
+/** Vendor-scoped recognized bills for the expense finalize guard. */
+export async function listApBillOverlapCandidatesForVendor(
+  db: DbExecutor,
+  organizationId: string,
+  vendorId: string,
+): Promise<ApBillOverlapCandidate[]> {
+  const rows = await db
+    .select({
+      id: apBills.id,
+      vendorId: apBills.vendorId,
+      projectId: apBills.projectId,
+      netAmount: sql<string>`coalesce(${apBills.netAmount}, ${apBills.totalAmount})`,
+      currency: apBills.currency,
+      reference: apBills.reference,
+      status: apBills.status,
+    })
+    .from(apBills)
+    .where(
+      and(
+        eq(apBills.organizationId, organizationId),
+        eq(apBills.vendorId, vendorId),
+        inArray(apBills.status, [...RECOGNIZED_VENDOR_BILL_STATUSES]),
+        isNull(apBills.archivedAt),
+      ),
+    );
+
+  return rows.map((row) => ({
+    id: row.id,
+    vendorId: row.vendorId,
+    projectId: row.projectId,
+    netAmount: row.netAmount,
+    currency: row.currency,
+    reference: row.reference,
+    status: row.status,
+  }));
+}
+
+export async function listAcceptedMatchedBillIdsForExpense(
+  db: DbExecutor,
+  organizationId: string,
+  expenseId: string,
+): Promise<readonly string[]> {
+  const rows = await db
+    .select({ apBillId: apPoMatches.apBillId })
+    .from(apPoMatches)
+    .innerJoin(apBills, eq(apBills.id, apPoMatches.apBillId))
+    .where(
+      and(
+        eq(apPoMatches.organizationId, organizationId),
+        eq(apPoMatches.expenseId, expenseId),
+        eq(apPoMatches.status, 'accepted'),
+        inArray(apBills.status, [...RECOGNIZED_VENDOR_BILL_STATUSES]),
+        isNull(apBills.archivedAt),
+      ),
+    );
+  return rows.map((row) => row.apBillId);
+}

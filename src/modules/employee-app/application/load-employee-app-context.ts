@@ -1,10 +1,12 @@
 import type { OrgContext } from '@/shared/auth/context';
+import type { DbExecutor } from '@/shared/db/types';
 import { PERMISSIONS, type PermissionKey } from '@/shared/permissions/catalog';
 import type { PermissionScope } from '@/shared/permissions/scopes';
 import type { DocumentCategory } from '@/modules/documents/domain/categories';
 import {
   findEmployeeAppAccountByUserId,
   findEmployeeAppAccountByEmployeeId,
+  listEmployeeAppAccountsForOrganization,
 } from '../data/accounts.repository';
 import {
   listEmployeeDocumentCategoryGrants,
@@ -26,6 +28,19 @@ export function isActiveEmployeeAppAccount(
   if (account.accessStartsAt && account.accessStartsAt > now) return false;
   if (account.accessEndsAt && account.accessEndsAt < now) return false;
   return true;
+}
+
+export async function listActiveEmployeeAppUserIds(
+  db: DbExecutor,
+  organizationId: string,
+  now = new Date(),
+): Promise<Set<string>> {
+  const accounts = await listEmployeeAppAccountsForOrganization(db, organizationId);
+  return new Set(
+    accounts
+      .filter((account) => isActiveEmployeeAppAccount(account, now))
+      .map((account) => account.userId),
+  );
 }
 
 export function isEmployeeAppUser(context: OrgContext): boolean {

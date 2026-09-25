@@ -7,7 +7,6 @@ import { money } from '@/shared/money';
 
 const provider = new SumitStatutoryProvider({
   credentials: { companyId: 1, apiKey: 'test-key' },
-  environment: 'test',
 });
 
 function sumitGetDetailsPayload(input: {

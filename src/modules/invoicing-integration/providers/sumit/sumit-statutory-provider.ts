@@ -16,11 +16,7 @@ import type {
   StatutoryProviderResult,
 } from '../../domain/provider';
 import type { ProviderAmountSnapshot } from '../../domain/reconcile-external-amounts';
-import {
-  FULL_ADAPTER_CAPABILITIES,
-  SUMIT_PROVIDER_ID,
-  type InvoicingProviderCredentials,
-} from '../../domain/types';
+import { SUMIT_PROVIDER_ID, type InvoicingProviderCredentials } from '../../domain/types';
 import {
   buildSumitCreatePayload,
   isSumitTransactionInvoiceSupported,
@@ -47,14 +43,13 @@ export class SumitAmbiguousCreateError extends Error {
 export interface SumitStatutoryProviderOptions {
   readonly credentials: InvoicingProviderCredentials;
   readonly httpClient?: SumitHttpClient;
-  readonly environment?: 'test';
 }
 
 function unsupported<T>(feature: string): StatutoryProviderResult<T> {
   return {
     ok: false,
     errorCode: 'unsupported',
-    message: `${feature} is deferred until after Milestone B verification`,
+    message: `${feature} is not available from SUMIT`,
   };
 }
 
@@ -64,13 +59,12 @@ export class SumitStatutoryProvider implements StatutoryInvoicingProvider {
   private readonly client: SumitHttpClient;
 
   constructor(options: SumitStatutoryProviderOptions) {
-    if (options.environment === 'test' || options.environment == null) {
-      // test-only in this cycle
-    } else {
-      throw new Error('SUMIT production is not enabled in this release cycle');
-    }
     this.credentials = options.credentials;
     this.client = options.httpClient ?? createSumitHttpClient(options.credentials);
+  }
+
+  capabilities() {
+    return sumitProviderCapabilities();
   }
 
   isConfigured(): boolean {
@@ -247,9 +241,15 @@ export class SumitStatutoryProvider implements StatutoryInvoicingProvider {
   }
 }
 
+/**
+ * Live SUMIT client implements create + retrieve only.
+ * credit/cancel/allocate stay unsupported — there is no implemented API call for them.
+ * Internal billing credit notes remain management records.
+ */
 export function sumitProviderCapabilities() {
   return {
-    ...FULL_ADAPTER_CAPABILITIES,
+    createDocument: true,
+    retrieveStatus: true,
     creditDocument: false,
     cancelDocument: false,
     allocateReference: false,

@@ -177,6 +177,13 @@ export function computeVendorConcentration(
   };
 }
 
+/** Highest profit first. Callers that show a short list must slice after this sort. */
+export function sortByProfitDesc<T extends { readonly amount: MoneyValue }>(
+  rows: readonly T[],
+): T[] {
+  return [...rows].sort((left, right) => compareMoney(right.amount, left.amount));
+}
+
 export function groupProfitByProject(
   rows: readonly ProjectRollupRow[],
 ): NamedMoneyRow[] | null {
@@ -188,7 +195,7 @@ export function groupProfitByProject(
       href: `/projects/${row.projectId}?tab=financials`,
       amount: row.actualProfit!,
     }));
-  return grouped.length > 0 ? grouped : null;
+  return grouped.length > 0 ? sortByProfitDesc(grouped) : null;
 }
 
 export function groupProfitByWorkType(
@@ -237,12 +244,14 @@ export function groupProfitByClient(
     }
   }
   if (byClient.size === 0) return null;
-  return [...byClient.entries()].map(([id, value]) => ({
-    id,
-    label: value.name,
-    href: `/clients/${id}`,
-    amount: value.amount,
-  }));
+  return sortByProfitDesc(
+    [...byClient.entries()].map(([id, value]) => ({
+      id,
+      label: value.name,
+      href: `/clients/${id}`,
+      amount: value.amount,
+    })),
+  );
 }
 
 export function timedCashFromOutlook(

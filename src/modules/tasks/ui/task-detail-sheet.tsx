@@ -520,6 +520,8 @@ export function TaskDetailSheet({
                   {task.projectName}
                 </Badge>
               )}
+              {task.clientName ? <Badge tone="neutral">{task.clientName}</Badge> : null}
+              {!task.projectId ? <Badge tone="neutral">{t('noProject')}</Badge> : null}
               {task.approvalRequired && (
                 <Badge tone="pending">
                   <BadgeCheck aria-hidden className="size-3" />
@@ -552,6 +554,8 @@ export function TaskDetailSheet({
                   {task.projectName}
                 </Badge>
               )}
+              {task.clientName ? <Badge tone="neutral">{task.clientName}</Badge> : null}
+              {!task.projectId ? <Badge tone="neutral">{t('noProject')}</Badge> : null}
             </div>
           </div>
         )}

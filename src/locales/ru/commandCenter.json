@@ -21,7 +21,7 @@
     "notNow": "Не сейчас",
     "dismiss": "Пропустить этот месяц"
   },
-  "financialGuard": "Финансовые пункты можно только открыть или отложить — они остаются видимыми, пока не будут урегулированы в источнике.",
+  "financialGuard": "Отметка «обработано» скрывает только оповещение. Счёт, счёт поставщика или расход не изменяются.",
   "severity": {
     "critical": "Критический",
     "high": "Высокий",
@@ -45,7 +45,7 @@
     "project_over_budget": "Превышение бюджета",
     "forecast_warning": "Предупреждение прогноза",
     "open_approval": "Ожидает согласования",
-    "overdue_planning": "Планирование",
+    "overdue_planning": "Просрочка графика / вехи",
     "expiring_compliance": "Истекающее соответствие",
     "overdue_maintenance": "Обслуживание",
     "credit_void_issue": "Кредит / аннулирование",
@@ -78,7 +78,9 @@
     "payroll_overdue": "Просроченная зарплата",
     "payroll_pending_review": "Зарплата ожидает проверки",
     "expense_needs_allocation": "Расход требует распределения по проекту",
-    "monthly_workforce_report_ready": "Ежемесячный отчёт по персоналу"
+    "monthly_workforce_report_ready": "Ежемесячный отчёт по персоналу",
+    "task_overdue": "Просроченная задача",
+    "task_due_today": "Задача на сегодня"
   },
   "itemCopy": {
     "where": {
@@ -138,8 +140,8 @@
       "why": "{entity} ожидает решения{money}"
     },
     "overduePlanning": {
-      "whatMilestone": "Обновить просроченную веху",
-      "whatPlanItem": "Обновить просроченный пункт плана",
+      "whatMilestone": "Просрочена веха графика",
+      "whatPlanItem": "Просрочен пункт графика",
       "why": "Целевое окончание {targetEndDate} · прогресс {progressPercent}%"
     },
     "expiringCompliance": {
@@ -420,5 +422,31 @@
   "errors": {
     "unsafeState": "Этот пункт нельзя закрыть — откройте или отложите его.",
     "moduleOff": "У вас нет разрешения на просмотр «Сегодня»."
+  },
+  "ownerPayments": {
+    "expenseFallback": "Расход",
+    "categoryFallback": "Категория",
+    "generalBusinessAttribution": "Отнесение: общий расход бизнеса",
+    "projectWhere": "Проект: {name}",
+    "payable": "К оплате: {amount}",
+    "installment": "Платёж {current}/{total}",
+    "transactionRemaining": "Остаток операции: {amount}",
+    "expenseDate": "Дата расхода: {date}",
+    "vendor": "Поставщик: {name}",
+    "category": "Категория: {name}",
+    "paymentDue": "Срок оплаты: {date}",
+    "pendingReview": "Расход ждёт подтверждения оплаты",
+    "overdue": "Расход просрочен к оплате",
+    "overdueInstallment": "Просроченный платёж · {installment}",
+    "dueToday": "Расход к оплате сегодня",
+    "dueTodayInstallment": "К оплате сегодня · {installment}",
+    "payrollWhy": "{name}: зарплата {amount}",
+    "payrollWhyWithDue": "{name} · {amount} · Срок: {due}",
+    "payrollPending": "Зарплата {month} ждёт подтверждения оплаты",
+    "payrollOverdue": "Зарплата {month} просрочена к оплате",
+    "payrollReady": "Зарплата {month} готова к оплате",
+    "allocationShared": "Общий расход — нужно отнести на проект",
+    "allocationWhat": "Расход без проекта",
+    "allocationDate": "Дата: {date}"
   }
 }

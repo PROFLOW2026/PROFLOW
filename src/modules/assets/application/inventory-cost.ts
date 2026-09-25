@@ -6,8 +6,8 @@
  */
 
 import Decimal from 'decimal.js';
-import { and, eq, isNull } from 'drizzle-orm';
-import { expenses } from '@drizzle/schema';
+import { and, eq, isNotNull, isNull } from 'drizzle-orm';
+import { apBillLines, apBills, expenses } from '@drizzle/schema';
 import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
 import type { OrgContext } from '@/shared/auth/context';
 import { withExecutor } from '@/shared/auth/context';
@@ -32,7 +32,9 @@ import {
   countConsumptionsByLayerId,
   deleteInventoryCostLayer,
   findLayerByOpeningReference,
+  findLayerBySourceApBillLineId,
   findLayerBySourceExpenseId,
+  listLayersBySourceApBillId,
   getInventoryItemCostBasis,
   insertInventoryCostConsumptions,
   insertInventoryCostLayer,
@@ -60,6 +62,7 @@ import {
   reduceStockBasis,
   unitCostFromPurchase,
 } from '../domain/inventory-cost';
+import { isRecognizedVendorBillStatus } from '@/modules/ap/domain/vendor-cost-recognition';
 import { isMonthClosed, yearMonthFromBusinessDate } from '@/modules/month-close';
 
 export interface BookInventoryPurchaseInput {
@@ -75,8 +78,24 @@ export interface BookInventoryPurchaseResult {
   readonly costBasisAfter: MoneyValue;
 }
 
+export interface BookInventoryPurchaseFromApBillInput {
+  readonly apBillId: string;
+  readonly receivedOn: string;
+  readonly lines: readonly {
+    readonly id: string;
+    readonly inventoryItemId: string | null;
+    readonly quantity: string;
+    readonly netAmount: string;
+    readonly currency: string;
+  }[];
+}
+
 export interface UnbookInventoryPurchaseInput {
   readonly expenseId: string;
+}
+
+export interface UnbookInventoryPurchaseFromApBillInput {
+  readonly apBillId: string;
 }
 
 export interface UnbookInventoryPurchaseResult {
@@ -722,6 +741,257 @@ export async function unbookInventoryPurchaseFromExpenseOnExecutor(
   });
 
   return { unbooked: true, layerId: layer.id, costBasisAfter: nextBasis };
+}
+
+/**
+ * Book one FIFO layer per stock line on a recognized vendor bill.
+ * Operating actual stays out until project_consume. Idempotent per line.
+ */
+export async function bookInventoryPurchaseFromApBillOnExecutor(
+  context: OrgContext,
+  raw: BookInventoryPurchaseFromApBillInput,
+): Promise<BookInventoryPurchaseResult | null> {
+  assertPermission(context, PERMISSIONS.ASSETS_MANAGE);
+
+  const apBillId = raw.apBillId?.trim();
+  const receivedOn = raw.receivedOn?.trim();
+  if (!apBillId) {
+    throw new ValidationError([{ path: 'apBillId', message: 'Required' }]);
+  }
+  if (!receivedOn || !/^\d{4}-\d{2}-\d{2}$/.test(receivedOn)) {
+    throw new ValidationError([{ path: 'receivedOn', message: 'Expected YYYY-MM-DD' }]);
+  }
+
+  const stockLines = await context.db
+    .select({
+      id: apBillLines.id,
+      inventoryItemId: apBillLines.inventoryItemId,
+      quantity: apBillLines.quantity,
+      netAmount: apBillLines.netAmount,
+      currency: apBillLines.currency,
+    })
+    .from(apBillLines)
+    .where(
+      and(
+        eq(apBillLines.organizationId, context.organizationId),
+        eq(apBillLines.apBillId, apBillId),
+        isNotNull(apBillLines.inventoryItemId),
+      ),
+    );
+  if (stockLines.length === 0) return null;
+
+  const [billRow] = await context.db
+    .select({
+      id: apBills.id,
+      status: apBills.status,
+      archivedAt: apBills.archivedAt,
+    })
+    .from(apBills)
+    .where(
+      and(
+        eq(apBills.id, apBillId),
+        eq(apBills.organizationId, context.organizationId),
+        isNull(apBills.archivedAt),
+      ),
+    )
+    .limit(1);
+
+  if (!billRow) throw new NotFoundError('AP bill');
+  if (!isRecognizedVendorBillStatus(billRow.status)) {
+    throw new DomainRuleError(
+      'Vendor bill must be recognized before booking inventory cost',
+      'assets.errors.expenseNotFinalized',
+    );
+  }
+
+  let last: BookInventoryPurchaseResult | null = null;
+  for (const line of stockLines) {
+    const inventoryItemId = line.inventoryItemId!.trim();
+    const lineId = line.id.trim();
+    const quantity = requirePositiveQuantity(line.quantity, 'assets.errors.receiveQty');
+    assertInventoryCostLayerSourceShape({
+      sourceKind: 'ap_bill',
+      sourceApBillId: apBillId,
+      sourceApBillLineId: lineId,
+      sourceExpenseId: null,
+      openingReference: null,
+    });
+
+    const existing = await findLayerBySourceApBillLineId(
+      context.db,
+      context.organizationId,
+      lineId,
+    );
+    if (existing) {
+      const basis = await getInventoryItemCostBasis(
+        context.db,
+        context.organizationId,
+        inventoryItemId,
+      );
+      last = {
+        layer: existing,
+        created: false,
+        costBasisAfter: basis?.amount ?? zeroMoney(existing.currency),
+      };
+      continue;
+    }
+
+    const item = await findInventoryItemById(context.db, context.organizationId, inventoryItemId);
+    if (!item || item.archivedAt) throw new NotFoundError('Inventory item');
+
+    const netAmount =
+      fromNumericString(line.netAmount, line.currency) ?? money(line.netAmount, line.currency);
+    if (toDecimalValue(netAmount).lte(0)) {
+      throw new DomainRuleError(
+        'Stock purchase net must be positive',
+        'assets.errors.purchaseNetPositive',
+      );
+    }
+
+    const unitCost = unitCostFromPurchase({ netAmount, quantity });
+    await lockInventoryItemForCost(context.db, context.organizationId, inventoryItemId);
+
+    const raced = await findLayerBySourceApBillLineId(context.db, context.organizationId, lineId);
+    if (raced) {
+      const basis = await getInventoryItemCostBasis(
+        context.db,
+        context.organizationId,
+        inventoryItemId,
+      );
+      last = {
+        layer: raced,
+        created: false,
+        costBasisAfter: basis?.amount ?? zeroMoney(raced.currency),
+      };
+      continue;
+    }
+
+    const layer = await insertInventoryCostLayer(context.db, {
+      organizationId: context.organizationId,
+      inventoryItemId,
+      sourceKind: 'ap_bill',
+      sourceApBillId: apBillId,
+      sourceApBillLineId: lineId,
+      receivedOn,
+      receivedQty: quantity,
+      remainingQty: quantity,
+      unitCost: toNumericString(unitCost),
+      currency: unitCost.currency,
+    });
+
+    const prior = await getInventoryItemCostBasis(context.db, context.organizationId, inventoryItemId);
+    const priorAmount =
+      prior?.currency && prior.currency.toUpperCase() === unitCost.currency.toUpperCase()
+        ? prior.amount
+        : zeroMoney(unitCost.currency);
+    const nextBasis = addMoney(priorAmount, netAmount);
+    await setInventoryItemCostBasis(context.db, context.organizationId, inventoryItemId, nextBasis);
+
+    await recordAuditEvent(context, {
+      action: AUDIT_ACTIONS.INVENTORY_COST_LAYER_BOOKED,
+      entityType: 'inventory_cost_layer',
+      entityId: layer.id,
+      after: {
+        inventoryItemId,
+        sourceApBillId: apBillId,
+        sourceApBillLineId: lineId,
+        quantity,
+        unitCost: toNumericString(unitCost),
+        currency: unitCost.currency,
+        costBasisAfter: toNumericString(nextBasis),
+        operatingActual: false,
+      },
+    });
+
+    last = { layer, created: true, costBasisAfter: nextBasis };
+  }
+
+  return last;
+}
+
+export async function unbookInventoryPurchaseFromApBillOnExecutor(
+  context: OrgContext,
+  raw: UnbookInventoryPurchaseFromApBillInput,
+): Promise<UnbookInventoryPurchaseResult> {
+  assertPermission(context, PERMISSIONS.ASSETS_MANAGE);
+
+  const apBillId = raw.apBillId?.trim();
+  if (!apBillId) {
+    throw new ValidationError([{ path: 'apBillId', message: 'Required' }]);
+  }
+
+  const layers = await listLayersBySourceApBillId(context.db, context.organizationId, apBillId);
+  if (layers.length === 0) {
+    return { unbooked: false, layerId: null, costBasisAfter: null };
+  }
+
+  let last: UnbookInventoryPurchaseResult = {
+    unbooked: false,
+    layerId: null,
+    costBasisAfter: null,
+  };
+
+  for (const layer of layers) {
+    const consumptionCount = await countConsumptionsByLayerId(
+      context.db,
+      context.organizationId,
+      layer.id,
+    );
+    if (inventoryCostLayerHasConsumptions(layer, consumptionCount)) {
+      throw new DomainRuleError(
+        'Cannot void or reverse stock purchase while inventory from this layer was consumed',
+        'assets.errors.inventoryCostLayerConsumed',
+        { apBillId, layerId: layer.id },
+      );
+    }
+
+    const remainingValue = inventoryLayerValue(layerToSlice(layer));
+    await lockInventoryItemForCost(context.db, context.organizationId, layer.inventoryItemId);
+
+    const prior = await getInventoryItemCostBasis(
+      context.db,
+      context.organizationId,
+      layer.inventoryItemId,
+    );
+    const priorAmount =
+      prior?.currency &&
+      prior.currency.toUpperCase() === remainingValue.currency.toUpperCase()
+        ? prior.amount
+        : zeroMoney(remainingValue.currency);
+    const nextBasis = reduceStockBasis(priorAmount, remainingValue);
+
+    const deleted = await deleteInventoryCostLayer(context.db, context.organizationId, layer.id);
+    if (!deleted) continue;
+
+    await setInventoryItemCostBasis(
+      context.db,
+      context.organizationId,
+      layer.inventoryItemId,
+      nextBasis,
+    );
+
+    await recordAuditEvent(context, {
+      action: AUDIT_ACTIONS.INVENTORY_COST_LAYER_UNBOOKED,
+      entityType: 'inventory_cost_layer',
+      entityId: layer.id,
+      before: {
+        inventoryItemId: layer.inventoryItemId,
+        sourceApBillId: apBillId,
+        sourceApBillLineId: layer.sourceApBillLineId,
+        remainingQty: layer.remainingQty,
+        unitCost: layer.unitCost,
+        currency: layer.currency,
+      },
+      after: {
+        costBasisAfter: toNumericString(nextBasis),
+        operatingActual: false,
+      },
+    });
+
+    last = { unbooked: true, layerId: layer.id, costBasisAfter: nextBasis };
+  }
+
+  return last;
 }
 
 /**

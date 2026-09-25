@@ -7,7 +7,6 @@ import {
   zeroMoney,
   type MoneyValue,
 } from '@/shared/money';
-import type { BillingRecordSummary } from '@/modules/billing/domain/types';
 
 export type CashFlowBucketKey =
   | 'overdue'
@@ -190,7 +189,10 @@ export const ACTUAL_NOTE =
  * Credit notes (negative outstanding) net into `undated` so forecast matches net AR.
  */
 export function computeIncomingCashOutlook(
-  records: readonly BillingRecordSummary[],
+  records: readonly {
+    readonly outstandingAmount: MoneyValue;
+    readonly dueDate: BusinessDate | null;
+  }[],
   currency: string,
   asOf: BusinessDate,
 ): Pick<CashFlowOutlook, 'currency' | 'asOf' | 'horizonEnd' | 'forecastBuckets' | 'buckets' | 'note'> {
@@ -204,7 +206,7 @@ export function computeIncomingCashOutlook(
   }
 
   for (const record of records) {
-    if (record.totalAmount.currency !== currency) continue;
+    if (record.outstandingAmount.currency !== currency) continue;
     if (isZeroMoney(record.outstandingAmount)) continue;
 
     if (!isPositiveMoney(record.outstandingAmount)) {
@@ -278,7 +280,10 @@ export function defaultActualCollectionRange(asOf: BusinessDate): {
 export function buildCashFlowOutlook(input: {
   readonly currency: string;
   readonly asOf: BusinessDate;
-  readonly outstandingRecords: readonly BillingRecordSummary[];
+  readonly outstandingRecords: readonly {
+    readonly outstandingAmount: MoneyValue;
+    readonly dueDate: BusinessDate | null;
+  }[];
   readonly payments: readonly CollectedPaymentInput[];
   readonly actualRangeStart?: BusinessDate;
   readonly actualRangeEnd?: BusinessDate;

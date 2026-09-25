@@ -481,8 +481,12 @@ export async function collectOverduePlanning(ctx: CollectContext): Promise<Comma
       what: copy.what,
       why: copy.why,
       where: `${projectName} · ${row.name}`,
-      href: `/projects/${row.projectId}`,
-      meta: { projectId: row.projectId, targetEndDate: row.targetEndDate },
+      href: `/projects/${row.projectId}?tab=schedule`,
+      meta: {
+        projectId: row.projectId,
+        targetEndDate: row.targetEndDate,
+        scheduleKind: row.kind,
+      },
     });
   });
 }
@@ -1182,6 +1186,7 @@ export async function collectAllSources(ctx: CollectContext): Promise<CommandCen
   const collectors = [
     collectOverdueAr,
     collectVendorBillsDue,
+    collectVendorBillsApproaching,
     collectOpenAttendance,
     collectUnallocatedEmployeeCost,
     collectUnallocatedVendorBills,

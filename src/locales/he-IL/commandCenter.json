@@ -21,7 +21,7 @@
     "notNow": "לא עכשיו",
     "dismiss": "דלג על החודש"
   },
-  "financialGuard": "פריט כספי אפשר רק לפתוח או לדחות - הוא נשאר ברשימה עד שמטפלים בו במקור.",
+  "financialGuard": "סימון כטופל מסתיר את ההתראה בלבד. החשבונית, החשבון או ההוצאה לא משתנים.",
   "severity": {
     "critical": "קריטי",
     "high": "גבוה",
@@ -45,7 +45,7 @@
     "project_over_budget": "חריגה מתקציב",
     "forecast_warning": "אזהרת תחזית",
     "open_approval": "ממתין לאישור",
-    "overdue_planning": "תכנון",
+    "overdue_planning": "לוח זמנים / אבן דרך באיחור",
     "expiring_compliance": "ציות שפג תוקף",
     "overdue_maintenance": "תחזוקה",
     "credit_void_issue": "זיכוי / ביטול",
@@ -78,7 +78,9 @@
     "payroll_due_soon": "שכר לתשלום בקרוב",
     "payroll_overdue": "שכר באיחור",
     "payroll_pending_review": "שכר ממתין לאישור",
-    "monthly_workforce_report_ready": "דוח עובדים חודשי"
+    "monthly_workforce_report_ready": "דוח עובדים חודשי",
+    "task_overdue": "משימה באיחור",
+    "task_due_today": "משימה ליעד היום"
   },
   "itemCopy": {
     "where": {
@@ -138,8 +140,8 @@
       "why": "{entity} ממתין להחלטה{money}"
     },
     "overduePlanning": {
-      "whatMilestone": "עדכון אבן דרך באיחור",
-      "whatPlanItem": "עדכון פריט תכנון באיחור",
+      "whatMilestone": "אבן דרך בלוח הזמנים באיחור",
+      "whatPlanItem": "פריט לוח זמנים באיחור",
       "why": "יעד סיום {targetEndDate} · התקדמות {progressPercent}%"
     },
     "expiringCompliance": {
@@ -420,5 +422,31 @@
   "errors": {
     "unsafeState": "אי אפשר להסתיר את הפריט - אפשר לפתוח או לדחות.",
     "moduleOff": "אין לכם הרשאה לראות את מסך היום."
+  },
+  "ownerPayments": {
+    "expenseFallback": "הוצאה",
+    "categoryFallback": "קטגוריה",
+    "generalBusinessAttribution": "שיוך: הוצאה כללית של העסק",
+    "projectWhere": "פרויקט: {name}",
+    "payable": "לתשלום: {amount}",
+    "installment": "תשלום {current}/{total}",
+    "transactionRemaining": "יתרת עסקה: {amount}",
+    "expenseDate": "תאריך הוצאה: {date}",
+    "vendor": "ספק: {name}",
+    "category": "קטגוריה: {name}",
+    "paymentDue": "מועד תשלום: {date}",
+    "pendingReview": "הוצאה ממתינה לאישור תשלום",
+    "overdue": "הוצאה באיחור לתשלום",
+    "overdueInstallment": "תשלום באיחור · {installment}",
+    "dueToday": "הוצאה לתשלום היום",
+    "dueTodayInstallment": "תשלום היום · {installment}",
+    "payrollWhy": "{name}: שכר {amount}",
+    "payrollWhyWithDue": "{name} · {amount} · מועד: {due}",
+    "payrollPending": "שכר {month} ממתין לאישור תשלום",
+    "payrollOverdue": "שכר {month} באיחור לתשלום",
+    "payrollReady": "שכר {month} מוכן לתשלום",
+    "allocationShared": "הוצאה משותפת, דורש שיוך לפרויקט",
+    "allocationWhat": "הוצאה ללא שיוך פרויקט",
+    "allocationDate": "תאריך: {date}"
   }
 }

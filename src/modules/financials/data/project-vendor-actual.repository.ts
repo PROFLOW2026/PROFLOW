@@ -13,6 +13,11 @@ import {
   netProjectSliceAfterCredits,
   resolveVendorBillProjectAmounts,
 } from '@/modules/ap';
+import {
+  apBillNotStockPurchaseSql,
+  apBillStockLineNetSql,
+  operatingSliceAfterStockLines,
+} from '@/modules/ap/domain/inventory-stock-purchase';
 import { RECOGNIZED_VENDOR_BILL_STATUSES } from '@/modules/ap/domain/vendor-cost-recognition';
 import type { DbExecutor } from '@/shared/db/types';
 import {
@@ -111,6 +116,7 @@ export async function loadProjectVendorActualBreakdown(
       totalAmount: apBills.totalAmount,
       netAmount: apBills.netAmount,
       currency: apBills.currency,
+      stockLineNet: apBillStockLineNetSql(),
     })
     .from(apBills)
     .innerJoin(vendors, eq(vendors.id, apBills.vendorId))
@@ -119,6 +125,7 @@ export async function loadProjectVendorActualBreakdown(
         eq(apBills.organizationId, organizationId),
         inArray(apBills.status, [...RECOGNIZED_VENDOR_BILL_STATUSES]),
         isNull(apBills.archivedAt),
+        apBillNotStockPurchaseSql(),
         useAllocations
           ? sql`(
               ${apBills.projectId} = ${projectId}
@@ -200,10 +207,16 @@ export async function loadProjectVendorActualBreakdown(
     const bill = billMeta.get(billId);
     if (!bill?.vendorId) continue;
     const billNet = bill.netAmount ?? bill.totalAmount;
+    const operating = operatingSliceAfterStockLines({
+      sliceAmount: amountStr,
+      billNetAmount: billNet,
+      stockLineNet: String(bill.stockLineNet ?? '0'),
+      currency: normalized,
+    });
     const netted = netProjectSliceAfterCredits({
       currency: normalized,
       billNetAmount: billNet,
-      sliceAmount: amountStr,
+      sliceAmount: operating.amount,
       creditActualReductions: creditsByBill.get(billId) ?? [],
       projectId,
     });

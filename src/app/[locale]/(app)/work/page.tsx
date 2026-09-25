@@ -5,12 +5,13 @@ import { PageHeader } from '@/components/ui/page-header';
 import { withOrgContext, getShellContext } from '@/shared/auth/session';
 import { todayInTimeZone } from '@/shared/dates';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import { getMyWork } from '@/modules/tasks';
+import { getMyWorkPage } from '@/modules/tasks';
 import type { MyWorkView } from '@/modules/tasks';
+import { MY_WORK_VIEW_LIMIT } from '@/modules/tasks/domain/list-window';
 import { mapTasksToCardDataForOrg } from '@/modules/tasks/application/map-tasks-for-ui';
 import type { MyWorkItem, TaskCardData } from '@/modules/tasks/ui/_task-api-stub';
 import { MyWorkView as MyWorkViewComponent } from '@/modules/tasks/ui/my-work-view';
-import { getTaskDetailAction, updateTaskFieldsAction } from './actions';
+import { getTaskDetailAction, loadMoreMyWorkAction, updateTaskFieldsAction } from './actions';
 
 export async function generateMetadata({
   params,
@@ -31,6 +32,7 @@ const MY_WORK_VIEWS: MyWorkView[] = [
   'assigned_to_me',
   'following',
   'completed',
+  'no_project',
 ];
 
 /** Ensures RSC → client boundary receives only JSON-serializable task cards. */
@@ -59,16 +61,23 @@ export default async function MyWorkPage() {
 
   const t = await getTranslations('tasks');
 
-  const { tasksByView, today } = await withOrgContext(async (context) => {
+  const { tasksByView, hasMoreByView, today } = await withOrgContext(async (context) => {
     const results = await Promise.all(
       MY_WORK_VIEWS.map(async (view) => {
-        const tasks = await getMyWork(context, { view, limit: 100 });
-        const items = serializeMyWorkItems(await mapTasksToCardDataForOrg(context, tasks));
-        return [view, items] as const;
+        const page = await getMyWorkPage(context, { view, limit: MY_WORK_VIEW_LIMIT });
+        const items = serializeMyWorkItems(await mapTasksToCardDataForOrg(context, page.tasks));
+        return [view, { items, hasMore: page.hasMore }] as const;
       }),
     );
     return {
-      tasksByView: Object.fromEntries(results) as Record<MyWorkView, MyWorkItem[]>,
+      tasksByView: Object.fromEntries(results.map(([view, page]) => [view, page.items])) as Record<
+        MyWorkView,
+        MyWorkItem[]
+      >,
+      hasMoreByView: Object.fromEntries(results.map(([view, page]) => [view, page.hasMore])) as Record<
+        MyWorkView,
+        boolean
+      >,
       today: todayInTimeZone(context.organization.timezone),
     };
   });
@@ -82,9 +91,11 @@ export default async function MyWorkPage() {
 
       <MyWorkViewComponent
         tasksByView={tasksByView}
+        hasMoreByView={hasMoreByView}
         defaultView="today"
         onLoadTaskDetail={getTaskDetailAction}
         onUpdateTask={updateTaskFieldsAction}
+        onLoadMore={loadMoreMyWorkAction}
         today={today}
       />
     </div>

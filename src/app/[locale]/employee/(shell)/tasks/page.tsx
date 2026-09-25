@@ -7,6 +7,8 @@ import { listEmployeeAssignedTasks } from '@/modules/employee-app';
 import { buildEmployeeTaskListPayload } from '@/modules/employee-app/application/build-employee-task-list-payload';
 import { employeePermissionScope } from '@/modules/employee-app/application/load-employee-app-context';
 import { listEmployeePmCreatableProjects } from '@/modules/employee-app/application/employee-pm-tasks';
+import { loadEmployeeTaskAttention } from '@/modules/employee-app/application/employee-task-attention';
+import { EmployeeTaskAttentionBlock } from '@/modules/employee-app/ui/employee-task-attention-block';
 import { EmployeeTaskListView } from '@/modules/employee-app/ui/employee-task-list-view';
 import {
   employeeListPanelClass,
@@ -27,7 +29,7 @@ export default async function EmployeeTasksPage({ searchParams }: PageProps) {
   const tLists = await getTranslations('employeeApp.lists');
   const { tab } = await searchParams;
 
-  const { punchTasks, taskPayload, hasPmTasksAccess, canCreateTask } = await withOrgContext(async (context) => {
+  const { punchTasks, taskPayload, hasPmTasksAccess, canCreateTask, attention } = await withOrgContext(async (context) => {
     let punchTasks: Array<{ id: string; title: string; status: string; projectId: string | null }> = [];
     if (
       !context.permissions.has(PERMISSIONS.FIELD_OPS_READ) &&
@@ -50,15 +52,34 @@ export default async function EmployeeTasksPage({ searchParams }: PageProps) {
 
     const pmScope = employeePermissionScope(context, PERMISSIONS.TASKS_READ);
     const hasPmTasksAccess = pmScope !== null;
-    const taskPayload = hasPmTasksAccess && tab !== 'field-items'
-      ? await buildEmployeeTaskListPayload(context)
-      : null;
+    const listPayload = hasPmTasksAccess ? await buildEmployeeTaskListPayload(context) : null;
+    const taskPayload = tab === 'field-items' ? null : listPayload;
 
     const creatableProjects = hasPmTasksAccess
       ? await listEmployeePmCreatableProjects(context)
       : [];
 
-    return { punchTasks, taskPayload, hasPmTasksAccess, canCreateTask: creatableProjects.length > 0 };
+    const attention = listPayload
+      ? await loadEmployeeTaskAttention(
+          context,
+          listPayload.tasks.map((task) => ({
+            id: task.id,
+            title: task.title,
+            dueDate: task.dueDate,
+            status: task.status,
+            projectLabel: task.projectDisplayName,
+          })),
+          listPayload.today,
+        )
+      : [];
+
+    return {
+      punchTasks,
+      taskPayload,
+      hasPmTasksAccess,
+      canCreateTask: creatableProjects.length > 0,
+      attention,
+    };
   });
 
   const activeTab = hasPmTasksAccess
@@ -69,6 +90,11 @@ export default async function EmployeeTasksPage({ searchParams }: PageProps) {
 
   return (
     <div className={employeePageStackClass}>
+      <EmployeeTaskAttentionBlock
+        title={t('attention.title')}
+        items={attention}
+        labelFor={(kind) => t(`attention.${kind}`)}
+      />
       {hasPmTasksAccess && (
         <div className={employeeTabBarClass}>
           <Link href="/employee/tasks" className={cn(employeeTabClass(activeTab === 'pm-tasks'))}>
@@ -90,6 +116,7 @@ export default async function EmployeeTasksPage({ searchParams }: PageProps) {
         <Suspense fallback={null}>
           <EmployeeTaskListView
             tasks={taskPayload.tasks}
+            hasMore={taskPayload.hasMore}
             today={taskPayload.today}
             currentEmployeeId={taskPayload.currentEmployeeId}
             canFilterByAssignee={taskPayload.canFilterByAssignee}

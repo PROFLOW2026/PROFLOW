@@ -5,6 +5,7 @@ import {
   buildSumitCreatePayload,
   mapSumitDocumentItem,
   SUMIT_DOCUMENT_TYPE_INVOICE,
+  SUMIT_CATALOG_SYNC,
   SUMIT_INCOME_ITEM_SEARCH_MODE_NONE,
 } from '@/modules/invoicing-integration/providers/sumit/sumit-create-payload';
 import type { BillingRecordBridgeRef } from '@/modules/invoicing-integration';
@@ -128,5 +129,10 @@ describe('SUMIT create payload shape', () => {
       UnitPrice: 3000,
       TotalPrice: 6000,
     });
+  });
+
+  it('keeps customer and item catalog sync closed: inline customer, SearchMode None', () => {
+    expect(SUMIT_CATALOG_SYNC).toBe('closed_by_design');
+    expect(SUMIT_INCOME_ITEM_SEARCH_MODE_NONE).toBe(1);
   });
 });

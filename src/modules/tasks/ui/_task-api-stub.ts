@@ -78,6 +78,8 @@ export interface TaskCardData {
   approvalRequired: boolean;
   projectId: string | null;
   projectName: string | null;
+  /** Client display name via project.client. Absent when the task has no project. */
+  clientName?: string | null;
   workspaceId: string;
   workspaceName: string | null;
   boardId: string | null;
@@ -198,6 +200,7 @@ export function mapTaskToCardData(
     boardName?: string | null;
     bucketName?: string | null;
     projectName?: string | null;
+    clientName?: string | null;
     assignees?: TaskAssigneeDisplay[];
     labels?: string[];
     checklistTotal?: number;
@@ -223,6 +226,7 @@ export function mapTaskToCardData(
     approvalRequired: task.approvalRequired,
     projectId: task.projectId,
     projectName: enrichment?.projectName ?? null,
+    clientName: enrichment?.clientName ?? null,
     workspaceId: task.workspaceId,
     workspaceName: enrichment?.workspaceName ?? null,
     boardId: task.boardId,

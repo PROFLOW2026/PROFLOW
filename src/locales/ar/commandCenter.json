@@ -21,7 +21,7 @@
     "notNow": "ليس الآن",
     "dismiss": "تخطي هذا الشهر"
   },
-  "financialGuard": "البنود المالية يمكن فقط فتحها أو تأجيلها — تبقى ظاهرة حتى تُحلّ في المصدر.",
+  "financialGuard": "وضع علامة تمت المعالجة يخفي التنبيه فقط. الفاتورة أو الحساب أو المصروف لا يتغير.",
   "severity": {
     "critical": "حرج",
     "high": "مرتفع",
@@ -45,7 +45,7 @@
     "project_over_budget": "تجاوز الميزانية",
     "forecast_warning": "تحذير توقع",
     "open_approval": "اعتماد معلّق",
-    "overdue_planning": "التخطيط",
+    "overdue_planning": "تأخر الجدول / المعلم",
     "expiring_compliance": "امتثال ينتهي",
     "overdue_maintenance": "صيانة",
     "credit_void_issue": "إشعار دائن / إلغاء",
@@ -78,7 +78,9 @@
     "payroll_overdue": "رواتب متأخرة",
     "payroll_pending_review": "رواتب بانتظار المراجعة",
     "expense_needs_allocation": "مصروف يحتاج تخصيص مشروع",
-    "monthly_workforce_report_ready": "تقرير موظفين شهري جاهز"
+    "monthly_workforce_report_ready": "تقرير موظفين شهري جاهز",
+    "task_overdue": "مهمة متأخرة",
+    "task_due_today": "مهمة مستحقة اليوم"
   },
   "itemCopy": {
     "where": {
@@ -138,8 +140,8 @@
       "why": "{entity} بانتظار قرار{money}"
     },
     "overduePlanning": {
-      "whatMilestone": "تحديث معلم متأخر",
-      "whatPlanItem": "تحديث بند خطة متأخر",
+      "whatMilestone": "معلم في الجدول متأخر",
+      "whatPlanItem": "بند جدول متأخر",
       "why": "نهاية مستهدفة {targetEndDate} · تقدم {progressPercent}%"
     },
     "expiringCompliance": {
@@ -420,5 +422,31 @@
   "errors": {
     "unsafeState": "لا يمكن تجاهل هذا البند — افتحه أو أجّله.",
     "moduleOff": "ليس لديك صلاحية فتح اليوم."
+  },
+  "ownerPayments": {
+    "expenseFallback": "مصروف",
+    "categoryFallback": "فئة",
+    "generalBusinessAttribution": "إسناد: مصروف عام للنشاط",
+    "projectWhere": "مشروع: {name}",
+    "payable": "للدفع: {amount}",
+    "installment": "دفعة {current}/{total}",
+    "transactionRemaining": "رصيد العملية: {amount}",
+    "expenseDate": "تاريخ المصروف: {date}",
+    "vendor": "مورد: {name}",
+    "category": "فئة: {name}",
+    "paymentDue": "استحقاق الدفع: {date}",
+    "pendingReview": "مصروف بانتظار تأكيد الدفع",
+    "overdue": "مصروف متأخر للدفع",
+    "overdueInstallment": "دفعة متأخرة · {installment}",
+    "dueToday": "مصروف مستحق اليوم",
+    "dueTodayInstallment": "مستحق اليوم · {installment}",
+    "payrollWhy": "{name}: أجر {amount}",
+    "payrollWhyWithDue": "{name} · {amount} · الاستحقاق: {due}",
+    "payrollPending": "راتب {month} بانتظار تأكيد الدفع",
+    "payrollOverdue": "راتب {month} متأخر للدفع",
+    "payrollReady": "راتب {month} جاهز للدفع",
+    "allocationShared": "مصروف مشترك — يحتاج إسنادًا لمشروع",
+    "allocationWhat": "مصروف بلا مشروع",
+    "allocationDate": "التاريخ: {date}"
   }
 }

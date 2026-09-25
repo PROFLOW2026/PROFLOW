@@ -28,6 +28,7 @@ import type { CostSourceKey, FinancialCoverage } from '@/modules/financials/doma
 import type { OrgContext } from '@/shared/auth/context';
 import { endOfMonth, todayInTimeZone, type BusinessDate } from '@/shared/dates';
 import { addMoney, fromNumericString, isZeroMoney, money, zeroMoney, type MoneyValue } from '@/shared/money';
+import { computeMarginPercent } from '../domain/profit';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import {
@@ -882,12 +883,8 @@ export async function getHomeDashboard(
     }));
     const profitTotals = aggregateOrgProfit(rollup.rows, currency);
     actualProfitTotal = profitTotals.actualProfit?.value ?? forecast?.totalActualMargin ?? null;
-    if (actualProfitTotal && totalContractValue) {
-      const contractAmt = Number.parseFloat(totalContractValue.amount);
-      const profitAmt = Number.parseFloat(actualProfitTotal.amount);
-      if (contractAmt > 0 && Number.isFinite(profitAmt)) {
-        profitabilityPercent = ((profitAmt / contractAmt) * 100).toFixed(1);
-      }
+    if (actualProfitTotal && totalContractValue && !isZeroMoney(totalContractValue)) {
+      profitabilityPercent = computeMarginPercent(actualProfitTotal, totalContractValue);
     }
   }
 

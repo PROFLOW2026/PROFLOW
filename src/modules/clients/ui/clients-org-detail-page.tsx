@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge } from '@/components/ui/status-badge';
-import { getClientById, getClientFinancials, getClientTimeline } from '@/modules/clients';
+import { getClientById, getClientFinancials, getClientProfitability, getClientTimeline } from '@/modules/clients';
 import { listBusinessCatalog, localizePaymentTermOptions } from '@/modules/business-catalog';
 import { listCustomFieldValuesForEntity } from '@/modules/custom-fields';
 import { getEntityDocumentPanelData } from '@/modules/documents';
@@ -17,6 +17,7 @@ import { withOrgContext } from '@/shared/auth/session';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { ClientDetailView } from '@/app/[locale]/(app)/clients/[clientId]/client-detail-view';
 import { ClientFinancialPanel } from '@/app/[locale]/(app)/clients/[clientId]/client-financial-panel';
+import { ClientProfitabilityPanel } from '@/modules/clients/ui/client-profitability-panel';
 import { RelatedCommunicationsPanel } from '@/modules/communications/ui/related-panel';
 import { PrepareMessageLink } from '@/modules/communications/ui/prepare-message-link';
 import { CustomerStatementActions } from '@/modules/reports/ui';
@@ -50,6 +51,7 @@ export async function ClientsOrgDetailPage({
   let customFields: Awaited<ReturnType<typeof listCustomFieldValuesForEntity>> = [];
   let documentsPanel: Awaited<ReturnType<typeof getEntityDocumentPanelData>> | null = null;
   let financials: Awaited<ReturnType<typeof getClientFinancials>> | null = null;
+  let profitability: Awaited<ReturnType<typeof getClientProfitability>> | null = null;
   let timelineEvents: Awaited<ReturnType<typeof getClientTimeline>>['events'] = [];
   let timelineState: 'ready' | 'error' = 'ready';
   let clientTypes: Array<{ id: string; name: string }> = [];
@@ -71,13 +73,17 @@ export async function ClientsOrgDetailPage({
       const detail = await getClientById(context, clientId);
       const readBilling = orgListHasPermission(context, PERMISSIONS.BILLING_READ, surface);
       const readQuotes = orgListHasPermission(context, PERMISSIONS.QUOTES_READ, surface);
+      const readProfitability =
+        orgListHasPermission(context, PERMISSIONS.PROJECTS_READ, surface) &&
+        orgListHasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ, surface);
       const { listQuotesForOrg } = await import('@/modules/quotes');
-      const [fields, panel, projects, clientFinancials, timeline, clientTypeRows, paymentTermRows, quoteRows] =
+      const [fields, panel, projects, clientFinancials, clientProfitability, timeline, clientTypeRows, paymentTermRows, quoteRows] =
         await Promise.all([
           listCustomFieldValuesForEntity(context, 'client', clientId).catch(() => []),
           getEntityDocumentPanelData(context, 'client', clientId),
           listProjectsForOrg(context, { clientId, includeArchived: false }).catch(() => []),
           readBilling ? getClientFinancials(context, clientId) : Promise.resolve(null),
+          readProfitability ? getClientProfitability(context, clientId) : Promise.resolve(null),
           getClientTimeline(context, clientId).catch(() => null),
           listBusinessCatalog(context, 'client_type').catch(() => []),
           listBusinessCatalog(context, 'payment_term').catch(() => []),
@@ -89,6 +95,7 @@ export async function ClientsOrgDetailPage({
         fields,
         panel,
         financials: clientFinancials,
+        profitability: clientProfitability,
         timeline,
         clientTypes: clientTypeRows,
         paymentTerms: paymentTermRows,
@@ -110,6 +117,7 @@ export async function ClientsOrgDetailPage({
     documentsPanel = loaded.panel;
     linkedProjects = loaded.projects;
     financials = loaded.financials;
+    profitability = loaded.profitability;
     clientTypes = loaded.clientTypes.map((row) => ({ id: row.id, name: row.name }));
     paymentTerms = localizePaymentTermOptions(loaded.paymentTerms, locale);
     quotes = loaded.quotes.map((quote) => ({
@@ -161,6 +169,12 @@ export async function ClientsOrgDetailPage({
         projectsRouteBase={projectsRouteBase}
         surface={surface}
       />
+      {profitability ? (
+        <ClientProfitabilityPanel
+          snapshot={profitability}
+          projectsRouteBase={projectsRouteBase ?? '/projects'}
+        />
+      ) : null}
       {financials ? <ClientFinancialPanel financials={financials} locale={locale} /> : null}
       {surface === 'owner' && canReadBilling && financials ? (
         <Card className="min-w-0">

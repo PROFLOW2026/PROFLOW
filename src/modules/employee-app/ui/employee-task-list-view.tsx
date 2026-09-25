@@ -41,6 +41,7 @@ const STATUS_COLOR: Record<string, string> = {
 
 interface EmployeeTaskListViewProps {
   readonly tasks: readonly EmployeeTaskListItem[];
+  readonly hasMore?: boolean;
   readonly today: string;
   readonly currentEmployeeId: string;
   readonly canFilterByAssignee: boolean;
@@ -55,6 +56,7 @@ interface EmployeeTaskListViewProps {
 
 export function EmployeeTaskListView({
   tasks,
+  hasMore = false,
   today,
   currentEmployeeId,
   canFilterByAssignee,
@@ -68,6 +70,7 @@ export function EmployeeTaskListView({
 }: EmployeeTaskListViewProps) {
   const t = useTranslations('employeeApp');
   const tTasks = useTranslations('employeeApp.tasks');
+  const tTaskLists = useTranslations('tasks');
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -168,6 +171,11 @@ export function EmployeeTaskListView({
 
   return (
     <div className="space-y-4">
+      {hasMore ? (
+        <p role="status" className="text-sm text-[var(--pf-text-muted)]">
+          {tTaskLists('list.hasMore')}
+        </p>
+      ) : null}
       {createTaskHref ? (
         <div className="flex justify-end">
           <Link href={createTaskHref} className={employeePrimaryButtonClass}>

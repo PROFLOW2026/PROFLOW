@@ -1,11 +1,10 @@
-import { listBillingRecords, computeReceivablesAging } from '@/modules/billing';
+import { computeReceivablesAging } from '@/modules/billing';
 import type { ReceivablesAging } from '@/modules/billing';
 import { sumRecognizedApGeneralRemainders } from '@/modules/ap';
 import { sumOrganizationMonthlyLaborCompanyOnly } from '@/modules/workforce';
 import type { OrgContext } from '@/shared/auth/context';
-import { todayInTimeZone } from '@/shared/dates';
-import { ORG_LIST_EXPORT_CAP } from '@/shared/db/list-limits';
-import { fromNumericString, isZeroMoney, zeroMoney } from '@/shared/money';
+import { todayInTimeZone, type BusinessDate } from '@/shared/dates';
+import { addMoney, fromNumericString, isZeroMoney, zeroMoney } from '@/shared/money';
 import { assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import {
@@ -39,14 +38,21 @@ import {
   shouldSurfaceCompanyProfit,
 } from '../domain/company-actual';
 import { parseWorkKindFilter } from '../domain/work-pricing';
-import type { CashFlowOutlook } from '../domain/cash-flow';
+import {
+  CASH_FLOW_BUCKET_KEYS,
+  type CashFlowOutlook,
+} from '../domain/cash-flow';
+import {
+  aggregateOrganizationBillingReportBuckets,
+  type OrganizationBillingReportAggregates,
+} from '../data/billing.repository';
 import { getOrganizationCashFlowOutlook } from './get-organization-cash-flow';
 import {
   getOrganizationProjectRollup,
   type OrganizationProjectRollup,
 } from './get-organization-project-rollup';
 import { composeManagementAnalytics } from './compose-management-analytics';
-import type { ManagementAnalytics } from '../domain/management-analytics';
+import { sortByProfitDesc, type ManagementAnalytics } from '../domain/management-analytics';
 import {
   composeOrganizationCostBreakdown,
   type OrganizationCostBreakdown,
@@ -136,38 +142,48 @@ export async function getOrganizationReportsAnalytics(
   const asOf = todayInTimeZone(context.organization.timezone);
 
   const canReadBilling = hasPermission(context, PERMISSIONS.BILLING_READ);
-  const billingRecordsPromise = canReadBilling
-    ? listBillingRecords(context, {
-        filter: 'all',
-        limit: ORG_LIST_EXPORT_CAP,
-        fromDate: options.fromDate ?? undefined,
-        toDate: options.toDate ?? undefined,
-      })
+  const billingAggregatesPromise = canReadBilling
+    ? aggregateOrganizationBillingReportBuckets(
+        context.db,
+        context.organizationId,
+        currency,
+        asOf,
+        {
+          fromDate: options.fromDate,
+          toDate: options.toDate,
+        },
+      )
     : Promise.resolve(null);
 
-  // Shared org billing promise - cash flow + AR aging previously each re-listed all records.
-  const [rollup, billingRecords, unallocatedBusinessCosts, cashFlow, generalPoolTotals] =
+  // Cash outlook still loads payments and AP. Billing totals come from the
+  // aggregate above, so this call does not list billing rows.
+  const [rollup, billingAggregates, unallocatedBusinessCosts, cashFlowBase, generalPoolTotals] =
     await Promise.all([
     getOrganizationProjectRollup(context, {
       workKindFilter: options.workKindFilter,
     }),
-    billingRecordsPromise,
+    billingAggregatesPromise,
     loadUnallocatedBusinessCosts(context, currency),
     canReadBilling
-      ? billingRecordsPromise.then((records) =>
-          getOrganizationCashFlowOutlook(context, { billingRecords: records }),
-        )
+      ? getOrganizationCashFlowOutlook(context, { billingRecords: [] })
       : Promise.resolve(null),
     sumOrganizationGeneralPoolTotals(context.db, context.organizationId, currency),
   ]);
 
-  const arAging = billingRecords
-    ? computeReceivablesAging(
-        billingRecords.filter((record) => !isZeroMoney(record.outstandingAmount)),
-        currency,
-        asOf,
-      )
+  const arAging = billingAggregates
+    ? receivablesAgingFromAggregates(billingAggregates, currency, asOf)
     : null;
+  const incomingBuckets = billingAggregates
+    ? incomingBucketsFromAggregates(billingAggregates, currency)
+    : null;
+  const cashFlow =
+    cashFlowBase && incomingBuckets
+      ? {
+          ...cashFlowBase,
+          forecastBuckets: incomingBuckets,
+          buckets: incomingBuckets,
+        }
+      : cashFlowBase;
 
   // Rollup includes every base-currency active project (no correctness cap).
   // Optional limit/offset on rollup pages rows only - aggregates always use the full set.
@@ -475,6 +491,12 @@ export async function getOrganizationReportsAnalytics(
     unallocatedCost:
       costBreakdown && !isZeroMoney(costBreakdown.unallocated) ? costBreakdown.unallocated : null,
     costBreakdownReconciles: costBreakdown?.reconciles ?? null,
+    profitByProject: managementBase.profitByProject
+      ? sortByProfitDesc(managementBase.profitByProject)
+      : null,
+    profitByClient: managementBase.profitByClient
+      ? sortByProfitDesc(managementBase.profitByClient)
+      : null,
   };
 
   return {
@@ -494,6 +516,41 @@ export async function getOrganizationReportsAnalytics(
     management,
     disclosures: [...disclosures],
   };
+}
+
+function receivablesAgingFromAggregates(
+  aggregates: OrganizationBillingReportAggregates,
+  currency: string,
+  asOf: BusinessDate,
+): ReceivablesAging {
+  const template = computeReceivablesAging([], currency, asOf);
+  const buckets = template.buckets.map((bucket) => {
+    const summed = aggregates.aging[bucket.key];
+    return {
+      ...bucket,
+      total: fromNumericString(summed.total, currency) ?? zeroMoney(currency),
+      count: summed.count,
+    };
+  });
+  return {
+    ...template,
+    buckets,
+    totalOutstanding: buckets.reduce(
+      (sum, bucket) => addMoney(sum, bucket.total),
+      zeroMoney(currency),
+    ),
+  };
+}
+
+function incomingBucketsFromAggregates(
+  aggregates: OrganizationBillingReportAggregates,
+  currency: string,
+) {
+  return CASH_FLOW_BUCKET_KEYS.map((key) => ({
+    key,
+    expectedIn: fromNumericString(aggregates.incoming[key].total, currency) ?? zeroMoney(currency),
+    count: aggregates.incoming[key].count,
+  }));
 }
 
 async function loadUnallocatedBusinessCosts(

@@ -5,6 +5,7 @@
 
 import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
 import type { OrgContext } from '@/shared/auth/context';
+import { withExecutor } from '@/shared/auth/context';
 import { withTransaction } from '@/shared/db';
 import { withTrustedFinancialLatch } from '@/shared/db/trusted-financial-latch';
 import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
@@ -21,6 +22,7 @@ import {
   findPurchaseOrderById,
   updateCommittedCostConsumption,
 } from '@/modules/procurement';
+import { unbookInventoryPurchaseFromApBillOnExecutor } from '@/modules/assets/application/inventory-cost';
 import { findApBillById, updateApBillStatus, type ApBillRow } from '../data/ap.repository';
 import { supersedeActiveBillAllocations } from '../data/bill-project-allocations.repository';
 import { listActiveCreditAmountsForBill } from '../data/credits.repository';
@@ -92,6 +94,10 @@ export async function voidApBill(context: OrgContext, raw: { billId: string }): 
       if (bill.purchaseOrderId) {
         await restoreCommitmentForVoidedBill(tx, context.organizationId, bill);
       }
+
+      await unbookInventoryPurchaseFromApBillOnExecutor(withExecutor(context, tx), {
+        apBillId: bill.id,
+      });
 
       const updated = await withTrustedFinancialLatch(
         tx,

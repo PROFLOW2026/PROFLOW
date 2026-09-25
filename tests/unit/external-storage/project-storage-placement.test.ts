@@ -8,6 +8,7 @@ import {
   isCanonicalProjectRootParent,
   nextStorageProvisionStep,
   projectStorageFolderName,
+  STORAGE_PROVISION_CHAIN_DEFERRED_ERROR,
 } from '@/modules/external-storage/domain/project-folder-placement';
 
 describe('direct project storage placement', () => {
@@ -55,14 +56,38 @@ describe('direct project storage placement', () => {
     expect(longThrottle.continue).toBe(true);
     expect(longThrottle.delayMs).toBeGreaterThan(retry.delayMs);
 
-    const chainWrap = nextStorageProvisionStep({
+    const underCap = nextStorageProvisionStep({
+      remaining: 10,
+      rateLimited: false,
+      chain: 10,
+      rateLimitStreak: 0,
+    });
+    expect(underCap.continue).toBe(true);
+    expect(underCap.deferred).toBe(false);
+    expect(underCap.chain).toBe(11);
+
+    const chainCap = nextStorageProvisionStep({
       remaining: 10,
       rateLimited: false,
       chain: 399,
       rateLimitStreak: 0,
     });
-    expect(chainWrap.continue).toBe(true);
-    expect(chainWrap.chain).toBe(0);
+    expect(chainCap.continue).toBe(false);
+    expect(chainCap.deferred).toBe(true);
+    expect(chainCap.chain).toBe(399);
+
+    const throttledCap = nextStorageProvisionStep({
+      remaining: 2,
+      rateLimited: true,
+      chain: 399,
+      rateLimitStreak: 1,
+    });
+    expect(throttledCap.continue).toBe(false);
+    expect(throttledCap.deferred).toBe(true);
+    expect(throttledCap.chain).toBe(399);
+    expect(STORAGE_PROVISION_CHAIN_DEFERRED_ERROR).not.toMatch(
+      /provider_quota_exceeded|provider_auth_failed/,
+    );
   });
 });
 

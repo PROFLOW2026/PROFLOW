@@ -1,5 +1,6 @@
 {
   "panelTitle": "כספים של הפרויקט",
+  "profitVsCash": "רווח = שווי חוזה נוכחי נטו פחות עלות. זה לא הסכום שחויב ולא הסכום שנגבה.",
   "originalContractValue": "סכום החוזה המקורי",
   "displayOriginalContractValue": "לפי החוזה המקורי",
   "managedOpeningContractValue": "מה שמנהלים מכאן",
@@ -235,7 +236,7 @@
   },
   "cashFlowForecast": {
     "pageTitle": "תחזית תזרים",
-    "pageHint": "צפי כסף נכנס ויוצא לפי תאריכי פירעון רשומים. בלי תאריך נשאר בלי תאריך. טיוטות חוזרות מסומנות כתחזית ואינן מפורסמות.",
+    "pageHint": "מזומן נכנס ויוצא, לא רווח. פריטים עם תאריך לפי תאריך פירעון רשום. בלי תאריך נשאר בלי תאריך. טיוטות חוזרות הן תחזית ואינן מפורסמות.",
     "managementLink": "תצוגת ניהול לבעלים",
     "noAccessTitle": "אין גישה לתזרים",
     "noAccessBody": "נדרשת הרשאת פיננסים לפרויקט כדי לפתוח את העמוד.",
@@ -268,7 +269,9 @@
       "commitment": "התחייבות פתוחה",
       "subcontractor_liability": "התחייבות לקבלן משנה",
       "recurring_draft": "טיוטה חוזרת (תחזית)",
-      "retention_release_out": "שחרור עיכבון (יוצא)"
+      "retention_release_out": "שחרור עיכבון (יוצא)",
+      "operating_expense": "הוצאה תפעולית (מזומן)",
+      "payroll_obligation": "התחייבות שכר (מזומן)"
     }
   },
   "perContract": {
@@ -482,7 +485,7 @@
       "allocatedOverhead": "תקורה שהוקצתה",
       "allocatedOverheadHint": "הוצאות כלליות שהוקצו לפרויקטים. ללא ספירה כפולה ברמת החברה.",
       "companyOnlyCost": "עלויות company_only",
-      "companyOnlyCostHint": "הוצאות ושכר שסומנו כעלויות חברה בלבד.",
+      "companyOnlyCostHint": "עלויות כלליות שנשארות על החברה: מה שסומן כחברה בלבד ומה שלא הוקצה לפרויקט.",
       "companyActual": "עלות עסקית מלאה",
       "companyActualHint": "ישיר + תקורה מוקצית + company_only. ללא ספירה כפולה של מאגר כללי.",
       "companyProfit": "רווח עסקי (בסיס חוזי)",
@@ -496,5 +499,8 @@
       "forecastFinalCost": "עלות סופית צפויה",
       "forecastFinalCostHint": "הערכת עלות עסקית מלאה בסיום."
     }
+  },
+  "errors": {
+    "generalCostRecomputeFailed": "לא ניתן לחשב מחדש את העלויות הכלליות. ההקצאה הקודמת נשארה כמו שהיא."
   }
 }

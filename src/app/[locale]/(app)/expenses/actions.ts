@@ -184,7 +184,9 @@ export async function createExpenseAction(
         wantsApprove ||
         (parsed.data.markPaidOnCreate === true && Boolean(parsed.data.costCategoryId));
       if (shouldFinalize && parsed.data.costCategoryId) {
-        await finalizeExpense(context, created.id);
+        await finalizeExpense(context, created.id, {
+          confirmDistinctCosts: formData.get('confirmDistinctCosts') === 'true',
+        });
       }
       const refreshed = await import('@/modules/expenses/application/queries').then((m) =>
         m.getExpense(context, created.id),
@@ -265,7 +267,9 @@ export async function updateExpenseAction(
       const updated = await updateExpense(context, parsed.data);
       const wantsApprove = parsed.data.finalizeOnCreate === true;
       if (wantsApprove && updated.status === 'draft' && parsed.data.costCategoryId) {
-        await finalizeExpense(context, updated.id);
+        await finalizeExpense(context, updated.id, {
+          confirmDistinctCosts: formData.get('confirmDistinctCosts') === 'true',
+        });
       }
       const refreshed = await import('@/modules/expenses/application/queries').then((m) =>
         m.getExpense(context, updated.id),
@@ -305,9 +309,14 @@ export async function updateExpenseAction(
   }
 }
 
-export async function finalizeExpenseAction(expenseId: string): Promise<ExpenseActionState> {
+export async function finalizeExpenseAction(
+  expenseId: string,
+  confirmDistinctCosts = false,
+): Promise<ExpenseActionState> {
   try {
-    await withOrgContext((context) => finalizeExpense(context, expenseId));
+    await withOrgContext((context) =>
+      finalizeExpense(context, expenseId, { confirmDistinctCosts }),
+    );
     revalidatePath('/expenses');
     revalidatePath(`/expenses/${expenseId}`);
     return { ok: true, expenseId };

@@ -3,7 +3,9 @@
  */
 
 import { randomUUID } from 'node:crypto';
-import { sql } from 'drizzle-orm';
+import Decimal from 'decimal.js';
+import { and, eq, sql } from 'drizzle-orm';
+import { inventoryCostLayers } from '@drizzle/schema';
 import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
 import type { OrgContext } from '@/shared/auth/context';
 import { withTransaction } from '@/shared/db';
@@ -44,6 +46,14 @@ import { isRecognizedVendorBillStatus } from '../domain/vendor-cost-recognition'
 import { getVendorPaymentsRepository } from '../data/payments.repository';
 import { listActiveCreditAmountsForBill } from '../data/credits.repository';
 import { editRecognizedApBillSchema, type EditRecognizedApBillInput } from '../validation/schemas';
+
+function sameStockDecimal(left: string, right: string): boolean {
+  try {
+    return new Decimal(left).eq(new Decimal(right));
+  } catch {
+    return false;
+  }
+}
 
 function assertBillTotalMatchesLines(input: {
   readonly currency: string;
@@ -227,6 +237,19 @@ export async function editRecognizedApBill(
 
       const existingLines = await listApBillLines(tx, context.organizationId, bill.id);
       const existingById = new Map(existingLines.map((line) => [line.id, line]));
+      const layeredRows = await tx
+        .select({ lineId: inventoryCostLayers.sourceApBillLineId })
+        .from(inventoryCostLayers)
+        .where(
+          and(
+            eq(inventoryCostLayers.organizationId, context.organizationId),
+            eq(inventoryCostLayers.sourceApBillId, bill.id),
+            eq(inventoryCostLayers.sourceKind, 'ap_bill'),
+          ),
+        );
+      const layeredLineIds = new Set(
+        layeredRows.map((row) => row.lineId).filter((lineId): lineId is string => Boolean(lineId)),
+      );
       const keepIds: string[] = [];
 
       updated = await withTrustedFinancialLatch(
@@ -285,6 +308,19 @@ export async function editRecognizedApBill(
             };
 
             if (line.lineId && existingById.has(line.lineId)) {
+              const existingLine = existingById.get(line.lineId)!;
+              if (layeredLineIds.has(line.lineId)) {
+                const sameEconomics =
+                  sameStockDecimal(existingLine.quantity, line.quantity) &&
+                  sameStockDecimal(existingLine.netAmount, monetary.netAmount) &&
+                  existingLine.currency.toUpperCase() === line.currency.toUpperCase();
+                if (!sameEconomics) {
+                  throw new DomainRuleError(
+                    'A stock line that already has an inventory layer cannot change quantity, net, or currency',
+                    'ap.errors.inventoryLayerSourceImmutable',
+                  );
+                }
+              }
               keepIds.push(line.lineId);
               await updateApBillLine(tx, context.organizationId, line.lineId, linePayload);
             } else {
@@ -301,6 +337,14 @@ export async function editRecognizedApBill(
             }
           }
 
+          for (const lineId of layeredLineIds) {
+            if (!keepIds.includes(lineId)) {
+              throw new DomainRuleError(
+                'A stock line that already has an inventory layer cannot be removed',
+                'ap.errors.inventoryLayerSourceImmutable',
+              );
+            }
+          }
           await deleteApBillLinesNotIn(tx, context.organizationId, bill.id, keepIds);
           await assertFinalApBillReconciliation(tx, bill.id, context.organizationId);
           return header;

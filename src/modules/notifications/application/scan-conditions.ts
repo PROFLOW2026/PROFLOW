@@ -32,15 +32,19 @@ import {
   createNotificationsCopyTranslator,
 } from '@/shared/i18n/namespace-translator';
 import type { NamespaceTranslator } from '@/shared/i18n/namespace-translator';
+import { listActiveEmployeeAppUserIds } from '@/modules/employee-app/application/load-employee-app-context';
 import { notificationCopy } from '../domain/copy';
 import { buildDedupeKey } from '../domain/dedupe';
 import { selectActorRecipients } from '../domain/recipients';
+import { dedupeReminderScanRows, taskDeepLinkForRecipient } from '../domain/task-links';
+import { shouldEmitTaskReminder } from '../domain/task-reminder-gate';
 import type {
   NotificationEventType,
   NotificationScanResult,
   NotificationSeverity,
 } from '../domain/types';
 import {
+  listTaskDueSoonNotificationGates,
   listUnresolvedEntityIdsForType,
   resolveNotificationsAsSystem,
   resolveNotificationsRpc,
@@ -79,6 +83,7 @@ interface ScannerContext {
   readonly holders: Map<PermissionKey, Promise<string[]>>;
   readonly notificationT: NamespaceTranslator;
   readonly commandCenterT: NamespaceTranslator;
+  employeeUserIds: Promise<Set<string>> | null;
 }
 
 async function holdersFor(
@@ -104,12 +109,22 @@ async function emitLive(
   severity: NotificationSeverity,
   entities: readonly ScanEntity[],
   recipientsFor: (entity: ScanEntity) => readonly string[] | Promise<readonly string[]>,
+  options?: {
+    readonly deepLinkFor?: (entity: ScanEntity, recipientUserId: string) => string;
+    readonly skipRecipient?: (
+      entity: ScanEntity,
+      recipientUserId: string,
+    ) => boolean | Promise<boolean>;
+  },
 ): Promise<number> {
   let emitted = 0;
   for (const entity of entities) {
     const recipients = await recipientsFor(entity);
     for (const recipientUserId of recipients) {
       if (!recipientUserId) continue;
+      if (options?.skipRecipient && (await options.skipRecipient(entity, recipientUserId))) {
+        continue;
+      }
       const copy = notificationCopy(ctx.notificationT, type, {
         reference: entity.reference,
         extra: entity.extra,
@@ -123,13 +138,28 @@ async function emitLive(
         severity,
         entityType,
         entityId: entity.id,
-        deepLink: entity.deepLink,
+        deepLink: options?.deepLinkFor?.(entity, recipientUserId) ?? entity.deepLink,
         metadata: entity.projectId ? { projectId: entity.projectId } : null,
       });
       emitted += 1;
     }
   }
   return emitted;
+}
+
+function activeEmployeeUserIds(ctx: ScannerContext): Promise<Set<string>> {
+  if (!ctx.employeeUserIds) {
+    ctx.employeeUserIds = listActiveEmployeeAppUserIds(ctx.context.db, ctx.context.organizationId);
+  }
+  return ctx.employeeUserIds;
+}
+
+function taskDeepLink(
+  employeeIds: ReadonlySet<string>,
+  entity: ScanEntity,
+  recipientUserId: string,
+): string {
+  return taskDeepLinkForRecipient(entity.deepLink, employeeIds.has(recipientUserId));
 }
 
 async function resolveStaleForType(
@@ -342,6 +372,7 @@ async function scanUwmTasksOverdue(ctx: ScannerContext): Promise<{ emitted: numb
     ctx.today,
     ctx.cap,
   );
+  const employeeIds = await activeEmployeeUserIds(ctx);
   const emitted = await emitLive(
     ctx,
     'task_overdue',
@@ -349,6 +380,9 @@ async function scanUwmTasksOverdue(ctx: ScannerContext): Promise<{ emitted: numb
     'warning',
     entities,
     (entity) => permissionRecipients(ctx, PERMISSIONS.TASKS_UPDATE, entity),
+    {
+      deepLinkFor: (entity, recipientUserId) => taskDeepLink(employeeIds, entity, recipientUserId),
+    },
   );
   const resolved = await resolveStaleForType(
     ctx,
@@ -362,12 +396,29 @@ async function scanTaskReminders(ctx: ScannerContext): Promise<{ emitted: number
   if (!hasPermission(ctx.context, PERMISSIONS.TASKS_READ)) {
     return { emitted: 0, resolved: 0 };
   }
-  const entities = await listDueTaskRemindersForScan(
+  const now = new Date();
+  const entities = dedupeReminderScanRows(
+    await listDueTaskRemindersForScan(
+      ctx.context.db,
+      ctx.context.organizationId,
+      now,
+      ctx.cap,
+    ),
+  );
+  const gates = await listTaskDueSoonNotificationGates(
     ctx.context.db,
     ctx.context.organizationId,
-    new Date(),
-    ctx.cap,
+    entities.map((entity) => entity.id),
   );
+  type ReminderGate = (typeof gates)[number];
+  const gatesByKey = new Map<string, ReminderGate[]>();
+  for (const gate of gates) {
+    const key = `${gate.entityId}:${gate.recipientUserId}`;
+    const current = gatesByKey.get(key) ?? [];
+    current.push(gate);
+    gatesByKey.set(key, current);
+  }
+  const employeeIds = await activeEmployeeUserIds(ctx);
   const emitted = await emitLive(
     ctx,
     'task_due_soon',
@@ -379,6 +430,11 @@ async function scanTaskReminders(ctx: ScannerContext): Promise<{ emitted: number
         return [entity.recipientUserId];
       }
       return permissionRecipients(ctx, PERMISSIONS.TASKS_UPDATE, entity);
+    },
+    {
+      deepLinkFor: (entity, recipientUserId) => taskDeepLink(employeeIds, entity, recipientUserId),
+      skipRecipient: (entity, recipientUserId) =>
+        !shouldEmitTaskReminder(gatesByKey.get(`${entity.id}:${recipientUserId}`) ?? [], now),
     },
   );
   const resolved = await resolveStaleForType(
@@ -755,29 +811,17 @@ const SCANNERS: readonly {
   { key: 'billing_plan_retention_held', run: scanBillingPlanRetentionHeld },
 ];
 
-export async function runNotificationScan(
+async function buildScannerContext(
   context: OrgContext,
-  raw: RunNotificationScanInput = {},
-): Promise<NotificationScanResult> {
-  assertPermission(context, PERMISSIONS.NOTIFICATIONS_READ);
-
-  const parsed = runNotificationScanSchema.safeParse(raw);
-  if (!parsed.success) {
-    throw new ValidationError(
-      parsed.error.issues.map((issue) => ({ path: issue.path.join('.'), message: issue.message })),
-    );
-  }
-
-  const maxMs = parsed.data.maxMs ?? 4000;
-  const cap = parsed.data.perScannerCap ?? SCAN_SOURCE_CAP;
-  const deadline = Date.now() + maxMs;
+  cap: number,
+): Promise<ScannerContext> {
   const today = todayInTimeZone(context.organization.timezone);
   const locale = context.locale || 'he-IL';
   const [notificationT, commandCenterT] = await Promise.all([
     createNotificationsCopyTranslator(locale),
     createCommandCenterCopyTranslator(locale),
   ]);
-  const ctx: ScannerContext = {
+  return {
     context,
     today,
     cap,
@@ -785,8 +829,14 @@ export async function runNotificationScan(
     holders: new Map(),
     notificationT,
     commandCenterT,
+    employeeUserIds: null,
   };
+}
 
+async function runScanners(
+  ctx: ScannerContext,
+  deadline: number,
+): Promise<NotificationScanResult> {
   let scannersRun = 0;
   let emitted = 0;
   let resolved = 0;
@@ -808,4 +858,32 @@ export async function runNotificationScan(
   }
 
   return { scannersRun, emitted, resolved, skipped };
+}
+
+export async function runNotificationScan(
+  context: OrgContext,
+  raw: RunNotificationScanInput = {},
+): Promise<NotificationScanResult> {
+  assertPermission(context, PERMISSIONS.NOTIFICATIONS_READ);
+
+  const parsed = runNotificationScanSchema.safeParse(raw);
+  if (!parsed.success) {
+    throw new ValidationError(
+      parsed.error.issues.map((issue) => ({ path: issue.path.join('.'), message: issue.message })),
+    );
+  }
+
+  const maxMs = parsed.data.maxMs ?? 4000;
+  const cap = parsed.data.perScannerCap ?? SCAN_SOURCE_CAP;
+  const ctx = await buildScannerContext(context, cap);
+  return runScanners(ctx, Date.now() + maxMs);
+}
+
+/** Due task reminders only. Used by the daily ops worker. */
+export async function runTaskReminderScan(
+  context: OrgContext,
+): Promise<{ emitted: number; resolved: number }> {
+  assertPermission(context, PERMISSIONS.NOTIFICATIONS_READ);
+  const ctx = await buildScannerContext(context, SCAN_SOURCE_CAP);
+  return scanTaskReminders(ctx);
 }

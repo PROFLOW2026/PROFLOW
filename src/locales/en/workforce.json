@@ -886,5 +886,20 @@
     "allocationOverKnown": "Allocated amount exceeds the employer cost for this month.",
     "allocationAmountPositive": "Allocation amount must be positive.",
     "allocationRunNotDraft": "Only a draft allocation can be applied."
+  },
+  "employerCostOverview": {
+    "title": "Employer cost",
+    "description": "Estimated and actual month costs, amounts allocated to projects, and company-only cost. Not payroll.",
+    "empty": "No employer-cost months yet.",
+    "estimated": "Estimated",
+    "estimatedHint": "Sum of estimated amounts on employer-cost months.",
+    "actual": "Actual",
+    "actualHint": "Sum of actual amounts on employer-cost months.",
+    "projectAllocated": "Allocated to projects",
+    "projectAllocatedHint": "Sum of applied labor-allocation lines.",
+    "companyOnly": "Company-only",
+    "companyOnlyHint": "Company-only amount on applied allocation runs.",
+    "unavailable": "Unavailable",
+    "companyOnlyUnavailable": "Company-only split is not available."
   }
 }

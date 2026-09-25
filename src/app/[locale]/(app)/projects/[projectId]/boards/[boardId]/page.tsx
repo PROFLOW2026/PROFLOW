@@ -11,13 +11,14 @@ import {
 import {
   listBoards,
   listBuckets,
-  listAccessibleTasks,
+  listAccessibleTasksPage,
   createTask,
   updateTask,
   moveTaskToBucket,
   getTaskDetail,
   callerHasTaskAssignGrant,
 } from '@/modules/tasks';
+import { TASK_LIST_MAX_LIMIT } from '@/modules/tasks/domain/list-window';
 import { listProjectParticipantAssigneeOptions } from '@/modules/projects';
 import type { CreateTaskInput } from '@/modules/tasks';
 import {
@@ -44,6 +45,7 @@ export default async function ProjectBoardPage({
   params: Promise<{ locale: string; projectId: string; boardId: string }>;
 }) {
   const { projectId, boardId } = await params;
+  const t = await getTranslations('tasks');
 
   const data = await withOrgContext(async (context) => {
     const workspaceIds = await findWorkspaceIdsByProject(context.db, projectId);
@@ -54,17 +56,17 @@ export default async function ProjectBoardPage({
     const workspace = await getWorkspaceDetail(context, primaryWsId);
     if (!workspace) return null;
 
-    const [rawBoards, rawBuckets, rawTasks] = await Promise.all([
+    const [rawBoards, rawBuckets, taskPage] = await Promise.all([
       listBoards(context, primaryWsId),
       listBuckets(context, boardId ?? ''),
-      listAccessibleTasks(context, { boardId, projectId }),
+      listAccessibleTasksPage(context, { boardId, projectId, limit: TASK_LIST_MAX_LIMIT }),
     ]);
 
     const activeBoard = rawBoards.find((b) => b.id === boardId);
     if (!activeBoard) return null;
 
     const boards = rawBoards.map((b) => mapBoardToUiBoard(b));
-    const taskCards = await mapTasksToCardDataForOrg(context, rawTasks);
+    const taskCards = await mapTasksToCardDataForOrg(context, taskPage.tasks);
 
     const tasksByBucket = new Map<string, TaskCardData[]>();
     for (const task of taskCards) {
@@ -93,6 +95,7 @@ export default async function ProjectBoardPage({
       activeBoard: mapBoardToUiBoard(activeBoard),
       buckets,
       tasks: taskCards,
+      hasMore: taskPage.hasMore,
       today: todayInTimeZone(context.organization.timezone),
       assigneeOptions,
       canAssign: callerHasTaskAssignGrant(context),
@@ -107,6 +110,7 @@ export default async function ProjectBoardPage({
     activeBoard,
     buckets,
     tasks,
+    hasMore,
     today,
     assigneeOptions,
     canAssign,
@@ -156,6 +160,12 @@ export default async function ProjectBoardPage({
   }
 
   return (
+    <div className="flex flex-col gap-4">
+      {hasMore ? (
+        <p role="status" className="text-sm text-[var(--pf-text-muted)]">
+          {t('list.hasMore')}
+        </p>
+      ) : null}
     <ProjectBoardShell
       projectId={projectId}
       workspaceId={workspaceId}
@@ -174,5 +184,6 @@ export default async function ProjectBoardPage({
       canAssign={canAssign}
       today={today}
     />
+    </div>
   );
 }

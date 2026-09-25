@@ -114,6 +114,7 @@ export {
 export type { ProjectStatusShape } from './domain/status';
 export {
   computeCurrentContractValue,
+  computeHeaderCurrentContractValue,
   computeApprovedChangesTotal,
   findOriginalValueEvent,
   isOriginalContractAmountLocked,
@@ -122,6 +123,7 @@ export {
   canTransitionContractStatus,
   contractStatusActions,
   isTerminalContractStatus,
+  contractContributesToCurrentValue,
 } from './domain/contract-lifecycle';
 export {
   computeEntryBaselineAmounts,

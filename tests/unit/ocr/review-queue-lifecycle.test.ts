@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { ocrLeaseReclaimExhausted } from '@/modules/ocr/domain/job-lifecycle';
 import {
   isOcrActiveQueueStatus,
   isOcrHistoryStatus,
@@ -64,5 +65,13 @@ describe('OCR review queue lifecycle statuses', () => {
         'waiting',
       ),
     ).toEqual([{ status: 'queued' }]);
+  });
+});
+
+describe('OCR lease reclaim', () => {
+  it('keeps the worker attempt budget, then stops reclaiming an expired lease', () => {
+    expect(ocrLeaseReclaimExhausted(1)).toBe(false);
+    expect(ocrLeaseReclaimExhausted(3)).toBe(false);
+    expect(ocrLeaseReclaimExhausted(4)).toBe(true);
   });
 });

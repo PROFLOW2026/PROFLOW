@@ -105,7 +105,8 @@
         "overdue": "באיחור",
         "dueToday": "היום",
         "upcoming": "קרוב",
-        "blocked": "חסום"
+        "blocked": "חסום",
+        "reminder": "תזכורת"
       }
     },
     "timeShortcut": {
@@ -307,6 +308,12 @@
     "approveEmpty": "אין בקשות אישור ממתינות למשימה זו.",
     "assignHint": "ניתן לשייך משימה זו בהקשר צוות הפרויקט.",
     "approveHint": "פעולות אישור זמינות כשיש בקשת אישור ממתינה.",
+    "attention": {
+      "title": "תזכורות, יעד להיום ובאיחור",
+      "reminder": "תזכורת",
+      "dueToday": "יעד היום",
+      "overdue": "באיחור"
+    },
     "status": {
       "todo": "לביצוע",
       "in_progress": "בתהליך",

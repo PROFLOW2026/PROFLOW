@@ -5,8 +5,12 @@ import {
   computeUnbilledBacklog,
   computeVendorConcentration,
   emptyManagementAnalytics,
+  groupProfitByClient,
+  groupProfitByProject,
+  sortByProfitDesc,
   timedCashFromOutlook,
 } from '@/modules/financials/domain/management-analytics';
+import type { ProjectRollupRow } from '@/modules/financials/application/get-organization-project-rollup';
 import { buildCashFlowOutlook } from '@/modules/financials/domain/cash-flow';
 import { businessDate } from '@/shared/dates';
 import { money } from '@/shared/money';
@@ -84,5 +88,43 @@ describe('management analytics uncovered metrics stay null', () => {
       payments: [],
     });
     expect(timedCashFromOutlook(outlook, 'out')).toBeNull();
+  });
+});
+
+describe('profit rankings sort before the short list', () => {
+  function project(id: string, name: string, profit: string): ProjectRollupRow {
+    return {
+      projectId: id,
+      name,
+      actualProfit: money(profit, 'ILS'),
+    } as ProjectRollupRow;
+  }
+
+  it('orders projects and clients by profit descending before take(8)', () => {
+    const projects = groupProfitByProject([
+      project('low', 'Low', '10'),
+      project('high', 'High', '80'),
+      project('mid', 'Mid', '40'),
+      project('loss', 'Loss', '-15'),
+    ]);
+    expect(projects?.map((row) => row.id)).toEqual(['high', 'mid', 'low', 'loss']);
+
+    const many = sortByProfitDesc(
+      Array.from({ length: 10 }, (_, index) => ({
+        id: String(index),
+        amount: money(String(index), 'ILS'),
+      })),
+    ).slice(0, 8);
+    expect(many.map((row) => row.id)).toEqual(['9', '8', '7', '6', '5', '4', '3', '2']);
+
+    const clients = groupProfitByClient(
+      [
+        { clientId: 'c-low', clientName: 'Low', actualProfit: money('5', 'ILS') },
+        { clientId: 'c-high', clientName: 'High', actualProfit: money('50', 'ILS') },
+        { clientId: 'c-loss', clientName: 'Loss', actualProfit: money('-20', 'ILS') },
+      ],
+      'ILS',
+    );
+    expect(clients?.map((row) => row.id)).toEqual(['c-high', 'c-low', 'c-loss']);
   });
 });

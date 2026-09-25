@@ -5,7 +5,6 @@ import { isOcrIngestionEnabled } from '@/modules/ocr/domain/feature-gate';
 import { extractReceiptJob } from '@/modules/ocr/application/extract-receipt';
 import { kickDurableOcrQueue } from '@/modules/ocr/application/kick-queue';
 import { getOcrRepository } from '@/modules/ocr';
-import { sha256Hex } from '@/modules/ocr/application/load-document-bytes';
 import { DomainRuleError } from '@/shared/errors';
 import type { ExternalExpenseImport } from '../domain/types';
 import { sumitOcrIdempotencyKey } from '../domain/types';
@@ -15,8 +14,9 @@ import { resolveSumitHttpClientForOrg } from './resolve-sumit-client';
 const TERMINAL_IMPORT_STATUSES = new Set(['linked', 'ignored']);
 
 /**
- * Fetch SUMIT PDF and queue existing ProjectFlow OCR (contentBase64 path).
- * Idempotent via sumit:DocumentID key on the OCR job.
+ * Queue existing ProjectFlow OCR for a SUMIT expense document.
+ * PDF bytes are not kept in process memory. The worker re-fetches by SUMIT document id
+ * stored on the job (`externalDocumentId` and idempotency key `sumit:{id}`).
  */
 export async function queueSumitImportOcr(
   context: OrgContext,
@@ -64,48 +64,21 @@ export async function queueSumitImportOcr(
     return failed ?? imp;
   }
 
-  let pdfBytes: Uint8Array;
-  try {
-    const pdf = await client.getDocumentPdf(imp.externalDocumentId, true);
-    pdfBytes = pdf.bytes;
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'PDF fetch failed';
-    const failed = await updateImport(context.db, context.organizationId, imp.id, {
-      status: 'failed',
-      errorCode: 'pdf_fetch',
-      errorMessage: message.slice(0, 500),
-      lastCheckedAt: new Date(),
-    });
-    return failed ?? imp;
-  }
-
-  const checksum = sha256Hex(pdfBytes);
-  const contentBase64 = Buffer.from(pdfBytes).toString('base64');
   const filename = `sumit-expense-${imp.externalDocumentId}.pdf`;
 
   const job = await extractReceiptJob(context, {
-    contentBase64,
     mimeType: 'application/pdf',
     filename,
     workflow: 'vendor_bill',
     idempotencyKey,
-  });
-
-  await ocrRepo.updateJob(context.organizationId, job.id, {
-    rawMetadata: {
-      ...(job.rawMetadata ?? { providerId: job.providerId }),
-      checksumSha256: checksum,
-      workflow: 'vendor_bill',
-      importSource: 'sumit',
-      externalDocumentId: imp.externalDocumentId,
-      externalExpenseImportId: imp.id,
-    },
+    sumitDocumentId: imp.externalDocumentId,
+    externalExpenseImportId: imp.id,
   });
 
   const queued = await updateImport(context.db, context.organizationId, imp.id, {
     status: 'ocr_queued',
     ocrJobId: job.id,
-    pdfChecksumSha256: checksum,
+    pdfChecksumSha256: job.rawMetadata?.checksumSha256 ?? imp.pdfChecksumSha256,
     lastCheckedAt: new Date(),
     errorCode: null,
     errorMessage: null,

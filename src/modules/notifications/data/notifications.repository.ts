@@ -1,4 +1,4 @@
-import { and, desc, eq, isNull, or, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNull, or, sql } from 'drizzle-orm';
 import { notifications } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 import {
@@ -271,6 +271,51 @@ export async function resolveNotificationsRpc(
  * RPC or authenticated GRANT - scanners call this from server code only.
  * Do not add current_user = 'service_role' to app.resolve_notifications.
  */
+export async function listTaskDueSoonNotificationGates(
+  db: DbExecutor,
+  organizationId: string,
+  entityIds: readonly string[],
+): Promise<
+  Array<{
+    readonly entityId: string;
+    readonly recipientUserId: string;
+    readonly dismissedAt: Date | null;
+    readonly resolvedAt: Date | null;
+    readonly expiresAt: Date | null;
+  }>
+> {
+  if (entityIds.length === 0) return [];
+  const rows = await db
+    .select({
+      entityId: notifications.entityId,
+      recipientUserId: notifications.recipientUserId,
+      dismissedAt: notifications.dismissedAt,
+      resolvedAt: notifications.resolvedAt,
+      expiresAt: notifications.expiresAt,
+    })
+    .from(notifications)
+    .where(
+      and(
+        eq(notifications.organizationId, organizationId),
+        eq(notifications.type, 'task_due_soon'),
+        inArray(notifications.entityId, [...entityIds]),
+      ),
+    );
+
+  return rows.flatMap((row) => {
+    if (!row.entityId) return [];
+    return [
+      {
+        entityId: row.entityId,
+        recipientUserId: row.recipientUserId,
+        dismissedAt: row.dismissedAt,
+        resolvedAt: row.resolvedAt,
+        expiresAt: row.expiresAt,
+      },
+    ];
+  });
+}
+
 export async function resolveNotificationsAsSystem(
   organizationId: string,
   type: string,

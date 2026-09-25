@@ -18,6 +18,14 @@ export function isTerminalContractStatus(status: string): boolean {
   return TERMINAL_STATUSES.has(status as ContractStatus);
 }
 
+/**
+ * Current contract value (project header and financial profitability) includes
+ * draft and active contracts only. Closed and cancelled stay as history.
+ */
+export function contractContributesToCurrentValue(status: string): boolean {
+  return !isTerminalContractStatus(status);
+}
+
 export function canTransitionContractStatus(from: string, to: string): boolean {
   if (from === to) return true;
   const allowed = TRANSITIONS[from as ContractStatus];

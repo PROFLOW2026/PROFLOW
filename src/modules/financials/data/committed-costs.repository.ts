@@ -1,7 +1,12 @@
 import { and, eq, inArray, isNotNull, isNull, or, sql } from 'drizzle-orm';
 import { apBillProjectAllocations, apBills, apPoMatches, committedCosts, expenses } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
-import { buildLinkedExpenseDeductions } from '../domain/expense-ap-dedup';
+import {
+  apBillNotStockPurchaseSql,
+  apBillStockLineNetSql,
+  operatingSliceAfterStockLines,
+} from '@/modules/ap/domain/inventory-stock-purchase';
+import { buildLinkedExpenseDeductions } from '@/modules/financials/domain/expense-ap-dedup';
 import {
   addMoney,
   fromNumericString,
@@ -316,6 +321,7 @@ export async function loadRecognizedVendorBillsForProject(
       totalAmount: apBills.totalAmount,
       netAmount: apBills.netAmount,
       currency: apBills.currency,
+      stockLineNet: apBillStockLineNetSql(),
     })
     .from(apBills)
     .where(
@@ -323,6 +329,7 @@ export async function loadRecognizedVendorBillsForProject(
         eq(apBills.organizationId, organizationId),
         inArray(apBills.status, [...RECOGNIZED_VENDOR_BILL_STATUSES]),
         isNull(apBills.archivedAt),
+        apBillNotStockPurchaseSql(),
         useAllocations
           ? sql`(
               ${apBills.projectId} = ${projectId}
@@ -418,10 +425,16 @@ export async function loadRecognizedVendorBillsForProject(
     const amountStr = resolved.amounts[i]!;
     const billId = resolved.billIds[i]!;
     const billNet = billNetById.get(billId) ?? amountStr;
+    const operating = operatingSliceAfterStockLines({
+      sliceAmount: amountStr,
+      billNetAmount: billNet,
+      stockLineNet: billRows.find((row) => row.id === billId)?.stockLineNet ?? '0',
+      currency: normalized,
+    });
     const netted = netProjectSliceAfterCredits({
       currency: normalized,
       billNetAmount: billNet,
-      sliceAmount: amountStr,
+      sliceAmount: operating.amount,
       creditActualReductions: creditsByBill.get(billId) ?? [],
       projectId,
     });
@@ -828,6 +841,7 @@ export async function loadRecognizedVendorBillsForProjects(
         totalAmount: apBills.totalAmount,
         netAmount: apBills.netAmount,
         currency: apBills.currency,
+        stockLineNet: apBillStockLineNetSql(),
       })
       .from(apBills)
       .where(
@@ -836,6 +850,7 @@ export async function loadRecognizedVendorBillsForProjects(
           inArray(apBills.projectId, [...projectIds]),
           inArray(apBills.status, [...RECOGNIZED_VENDOR_BILL_STATUSES]),
           isNull(apBills.archivedAt),
+          apBillNotStockPurchaseSql(),
         ),
       );
 
@@ -864,13 +879,19 @@ export async function loadRecognizedVendorBillsForProjects(
         billAmountsByProject.set(row.projectId, bucket);
         continue;
       }
-      const amount = fromNumericString(row.netAmount ?? row.totalAmount, row.currency);
-      if (!amount) {
+      const rawNet = row.netAmount ?? row.totalAmount;
+      const operating = operatingSliceAfterStockLines({
+        sliceAmount: rawNet,
+        billNetAmount: rawNet,
+        stockLineNet: String(row.stockLineNet ?? '0'),
+        currency: row.currency,
+      });
+      if (!isPositiveMoney(operating)) {
         billAmountsByProject.set(row.projectId, bucket);
         continue;
       }
-      bucket.billAmounts.push(row.netAmount ?? row.totalAmount);
-      bucket.total = addMoney(bucket.total, amount);
+      bucket.billAmounts.push(operating.amount);
+      bucket.total = addMoney(bucket.total, operating);
       bucket.recognizedBillIds.push(row.id);
       bucket.billNets.set(row.id, row.netAmount ?? row.totalAmount);
       billAmountsByProject.set(row.projectId, bucket);
@@ -998,6 +1019,7 @@ export async function loadRecognizedVendorBillsForProjects(
       totalAmount: apBills.totalAmount,
       netAmount: apBills.netAmount,
       currency: apBills.currency,
+      stockLineNet: apBillStockLineNetSql(),
     })
     .from(apBills)
     .where(
@@ -1005,6 +1027,7 @@ export async function loadRecognizedVendorBillsForProjects(
         eq(apBills.organizationId, organizationId),
         inArray(apBills.status, [...RECOGNIZED_VENDOR_BILL_STATUSES]),
         isNull(apBills.archivedAt),
+        apBillNotStockPurchaseSql(),
         or(
           inArray(apBills.projectId, projectIdList),
           sql`EXISTS (
@@ -1073,6 +1096,9 @@ export async function loadRecognizedVendorBillsForProjects(
   const billNetById = new Map(
     billRows.map((row) => [row.id, row.netAmount ?? row.totalAmount] as const),
   );
+  const stockLineNetById = new Map(
+    billRows.map((row) => [row.id, String(row.stockLineNet ?? '0')] as const),
+  );
   const billCurrencyById = new Map(billRows.map((row) => [row.id, row.currency] as const));
 
   const resolvedBillIds = new Set<string>();
@@ -1117,10 +1143,16 @@ export async function loadRecognizedVendorBillsForProjects(
       const billId = resolved.billIds[i]!;
       if ((billCurrencyById.get(billId) ?? '').toUpperCase() !== normalized) continue;
       const billNet = billNetById.get(billId) ?? amountStr;
+      const operating = operatingSliceAfterStockLines({
+        sliceAmount: amountStr,
+        billNetAmount: billNet,
+        stockLineNet: stockLineNetById.get(billId) ?? '0',
+        currency: normalized,
+      });
       const netted = netProjectSliceAfterCredits({
         currency: normalized,
         billNetAmount: billNet,
-        sliceAmount: amountStr,
+        sliceAmount: operating.amount,
         creditActualReductions: creditsByBill.get(billId) ?? [],
         projectId,
       });

@@ -16,6 +16,7 @@ import {
   taskTemplateItems,
 } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
+import { clampTaskListLimit, splitTaskListPage } from '../domain/list-window';
 import type {
   Task,
   TaskAssignee,
@@ -270,13 +271,28 @@ export async function updateTaskById(
   return row ? mapTaskRow(row) : null;
 }
 
+export interface TaskListPage {
+  readonly tasks: Task[];
+  readonly hasMore: boolean;
+}
+
 export async function listTasks(
   db: DbExecutor,
   organizationId: string,
   workspaceIds: string[],
   filters: TaskListFilters = {},
 ): Promise<Task[]> {
-  if (workspaceIds.length === 0) return [];
+  const page = await listTasksPage(db, organizationId, workspaceIds, filters);
+  return page.tasks;
+}
+
+export async function listTasksPage(
+  db: DbExecutor,
+  organizationId: string,
+  workspaceIds: string[],
+  filters: TaskListFilters = {},
+): Promise<TaskListPage> {
+  if (workspaceIds.length === 0) return { tasks: [], hasMore: false };
 
   const conditions = [
     eq(tasks.organizationId, organizationId),
@@ -320,7 +336,7 @@ export async function listTasks(
     conditions.push(ilike(tasks.title, term));
   }
 
-  const limit = Math.min(filters.limit ?? 50, 200);
+  const limit = clampTaskListLimit(filters.limit);
   const offset = filters.offset ?? 0;
 
   const rows = await db
@@ -328,15 +344,16 @@ export async function listTasks(
     .from(tasks)
     .where(and(...conditions))
     .orderBy(asc(tasks.sortKey), desc(tasks.createdAt))
-    .limit(limit)
+    .limit(limit + 1)
     .offset(offset);
 
+  const window = splitTaskListPage(rows, limit);
   // Filter by assignee if requested (join-based would be cleaner but this keeps the repo simple)
-  let result = rows.map(mapTaskRow);
+  let result = window.items.map(mapTaskRow);
 
   if (filters.assigneeOrgMemberId || filters.assigneeEmployeeId) {
     const taskIds = result.map((t) => t.id);
-    if (taskIds.length === 0) return [];
+    if (taskIds.length === 0) return { tasks: [], hasMore: window.hasMore };
 
     const assigneeConditions = [inArray(taskAssignees.taskId, taskIds)];
     if (filters.assigneeOrgMemberId) {
@@ -356,7 +373,7 @@ export async function listTasks(
 
   if (filters.labelId) {
     const taskIds = result.map((t) => t.id);
-    if (taskIds.length === 0) return [];
+    if (taskIds.length === 0) return { tasks: [], hasMore: window.hasMore };
 
     const matchingLabels = await db
       .select({ taskId: taskLabelAssignments.taskId })
@@ -372,7 +389,7 @@ export async function listTasks(
     result = result.filter((t) => matchingTaskIds.has(t.id));
   }
 
-  return result;
+  return { tasks: result, hasMore: window.hasMore };
 }
 
 // ─── Task Detail ──────────────────────────────────────────────────────────────

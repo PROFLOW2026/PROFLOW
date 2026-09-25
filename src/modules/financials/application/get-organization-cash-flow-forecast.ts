@@ -4,8 +4,6 @@ import { ORG_LIST_EXPORT_CAP } from '@/shared/db/list-limits';
 import { isPositiveMoney, isZeroMoney, money, type MoneyValue } from '@/shared/money';
 import { assertPermission, hasAnyPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import { listBillingRecords } from '@/modules/billing';
-import type { BillingRecordSummary } from '@/modules/billing/domain/types';
 import {
   computeRemaining,
   listExpectedProgressBillingLines,
@@ -23,7 +21,18 @@ import {
   listRecurringDraftsForOrg,
   type RecurringFinancialDraftRecord,
 } from '@/modules/recurring-drafts';
-import { loadCashFlowPayments } from '../data/billing.repository';
+import { loadCashFlowOpenBillingRows, loadCashFlowPayments } from '../data/billing.repository';
+import type { CashFlowOpenBillingRow } from '../data/billing.repository';
+import {
+  loadOpenCommitmentCashRows,
+  loadOperatingExpenseCashRows,
+  loadPayrollObligationCashRows,
+} from '../data/cash-flow-sources.repository';
+import {
+  openCommitmentCashItems,
+  operatingExpenseCashItems,
+  payrollObligationCashItems,
+} from '../domain/cash-flow-sources';
 import {
   buildCashFlowOutlook,
   CASH_FLOW_HORIZON_DAYS,
@@ -75,31 +84,28 @@ function mapApBillsForCash(
   return mapped;
 }
 
-function billingLabel(record: BillingRecordSummary): string {
-  return record.reference?.trim() || record.projectName?.trim() || record.id;
+function billingLabel(record: CashFlowOpenBillingRow): string {
+  return record.reference?.trim() || record.id;
 }
 
-function billingSourceType(record: BillingRecordSummary): CashFlowSourceType {
+function billingSourceType(record: CashFlowOpenBillingRow): CashFlowSourceType {
   if (record.kind === 'retention_release') return 'retention_release_in';
-  return record.status === 'finalized' ? 'issued_billing' : 'client_outstanding';
+  return 'issued_billing';
 }
 
 function incomingFromBilling(
-  records: readonly BillingRecordSummary[],
+  records: readonly CashFlowOpenBillingRow[],
   currency: string,
 ): CashFlowForecastItem[] {
   const items: CashFlowForecastItem[] = [];
   for (const record of records) {
-    if (record.totalAmount.currency !== currency) continue;
-    if (isZeroMoney(record.outstandingAmount)) continue;
-    const netOutstanding = record.outstandingAmount;
-    const grossOutstanding = record.outstandingGrossAmount ?? record.outstandingAmount;
+    if (record.outstandingNet.currency !== currency) continue;
+    if (isZeroMoney(record.outstandingNet)) continue;
     items.push({
       id: `billing:${record.id}`,
       href: `/billing/${record.id}`,
       label: billingLabel(record),
-      amount: netOutstanding,
-      grossAmount: grossOutstanding,
+      amount: record.outstandingNet,
       dueDate: record.dueDate,
       certainty: certaintyForDatedSource({
         dueDate: record.dueDate,
@@ -169,9 +175,7 @@ function draftCashFields(
   const amountRaw =
     draft.draftKind === 'vendor_bill'
       ? optionalString(data.totalAmount)
-      : draft.draftKind === 'billing_record'
-        ? optionalString(data.amount)
-        : null;
+      : optionalString(data.amount);
   if (!amountRaw) return null;
 
   let amount: MoneyValue;
@@ -197,15 +201,31 @@ function itemsFromRecurringDrafts(
   currency: string,
   canIn: boolean,
   canOut: boolean,
+  includeExpenseDrafts: boolean,
 ): CashFlowForecastItem[] {
   const items: CashFlowForecastItem[] = [];
   for (const draft of drafts) {
     if (draft.status !== 'active') continue;
-    if (draft.draftKind === 'expense') continue;
     const fields = draftCashFields(draft, currency);
     if (!fields) continue;
     if (fields.amount.currency.toUpperCase() !== currency.toUpperCase()) continue;
     if (isZeroMoney(fields.amount)) continue;
+
+    if (draft.draftKind === 'expense') {
+      if (!includeExpenseDrafts) continue;
+      items.push({
+        id: `draft:${draft.id}`,
+        href: `/recurring-drafts/${draft.id}`,
+        label: draft.title,
+        amount: fields.amount,
+        dueDate: fields.dueDate,
+        certainty: 'expected',
+        direction: 'out',
+        sourceType: 'recurring_draft',
+        projectId: fields.projectId,
+      });
+      continue;
+    }
 
     if (draft.draftKind === 'billing_record') {
       if (!canIn) continue;
@@ -281,8 +301,12 @@ async function itemsFromExpectedProgressBilling(
 }
 
 /**
- * Org cash-flow forecast with drilldown. Reuses the existing outlook engine.
- * Open PO commitments and undated retention are omitted - no reliable cash date.
+ * Org cash forecast with drilldown. Cash, not profit.
+ * Billing uses open-net SQL (no 5,000-row list). Payroll and operating expense
+ * dues are cash outflows. Open PO commitments stay undated — they have no due date.
+ * Dated retention releases come through billing kind `retention_release`. Held
+ * retention is already netted inside open billing and AP cash outstanding.
+ * Subcontractor cash is recognized AP linked to an agreement.
  */
 export async function getOrganizationCashFlowForecast(
   context: OrgContext,
@@ -292,17 +316,19 @@ export async function getOrganizationCashFlowForecast(
   const asOf = todayInTimeZone(context.organization.timezone);
   const currency = context.organization.baseCurrency;
   const showInflows = hasPermission(context, PERMISSIONS.BILLING_READ);
-  const showOutflows = hasPermission(context, PERMISSIONS.AP_READ);
+  const showAp = hasPermission(context, PERMISSIONS.AP_READ);
+  const showOutflows = true;
   const canReadDrafts = hasAnyPermission(context, ANY_DRAFT_ACCESS_PERMISSIONS);
 
-  const [records, paymentRows, apBundle, drafts, progressLines] = await Promise.all([
+  const [records, paymentRows, apBundle, drafts, progressLines, expenseRows, payrollRows, commitmentRows] =
+    await Promise.all([
     showInflows
-      ? listBillingRecords(context, { filter: 'all', limit: ORG_LIST_EXPORT_CAP })
-      : Promise.resolve([] as Awaited<ReturnType<typeof listBillingRecords>>),
+      ? loadCashFlowOpenBillingRows(context.db, context.organizationId, currency)
+      : Promise.resolve([] as CashFlowOpenBillingRow[]),
     showInflows
       ? loadCashFlowPayments(context.db, context.organizationId)
       : Promise.resolve([] as Awaited<ReturnType<typeof loadCashFlowPayments>>),
-    showOutflows
+    showAp
       ? listApBills(context.db, context.organizationId, {
           limit: ORG_LIST_EXPORT_CAP,
         }).then(async (apRows) => {
@@ -331,12 +357,17 @@ export async function getOrganizationCashFlowForecast(
           addDays(asOf, CASH_FLOW_HORIZON_DAYS),
         ).catch(() => [] as Awaited<ReturnType<typeof listExpectedProgressBillingLines>>)
       : Promise.resolve([] as Awaited<ReturnType<typeof listExpectedProgressBillingLines>>),
+    loadOperatingExpenseCashRows(context.db, context.organizationId, currency),
+    loadPayrollObligationCashRows(context.db, context.organizationId, currency),
+    showAp
+      ? loadOpenCommitmentCashRows(context.db, context.organizationId, currency)
+      : Promise.resolve([] as Awaited<ReturnType<typeof loadOpenCommitmentCashRows>>),
   ]);
 
-  const outstandingRecords = records.filter(
-    (record) =>
-      record.totalAmount.currency === currency && !isZeroMoney(record.outstandingAmount),
-  );
+  const outstandingRecords = records.map((record) => ({
+    outstandingAmount: record.outstandingNet,
+    dueDate: record.dueDate,
+  }));
   const payments = paymentRows.filter((row) => row.amount.currency === currency);
   const openApBills = apBundle
     ? mapApBillsForCash(
@@ -352,7 +383,7 @@ export async function getOrganizationCashFlowForecast(
     asOf,
     outstandingRecords: showInflows ? outstandingRecords : [],
     payments: showInflows ? payments : [],
-    openApBills: showOutflows ? openApBills : undefined,
+    openApBills: showAp ? openApBills : undefined,
   });
 
   const progressItems = showInflows
@@ -360,10 +391,13 @@ export async function getOrganizationCashFlowForecast(
     : [];
 
   const items: CashFlowForecastItem[] = [
-    ...(showInflows ? incomingFromBilling(outstandingRecords, currency) : []),
-    ...(showOutflows && openApBills ? outgoingFromApBills(openApBills, currency) : []),
-    ...itemsFromRecurringDrafts(drafts, currency, showInflows, showOutflows),
+    ...(showInflows ? incomingFromBilling(records, currency) : []),
+    ...(showAp && openApBills ? outgoingFromApBills(openApBills, currency) : []),
+    ...itemsFromRecurringDrafts(drafts, currency, showInflows, showAp, true),
     ...progressItems,
+    ...operatingExpenseCashItems(expenseRows, currency, asOf),
+    ...payrollObligationCashItems(payrollRows, currency),
+    ...openCommitmentCashItems(commitmentRows, currency),
   ];
 
   return buildCashFlowForecast({

@@ -17,14 +17,25 @@ describe('storage provision multi-org cycle contract', () => {
     expect(step.continue).toBe(true);
   });
 
-  it('stops hopping only when remaining is zero', () => {
-    const step = nextStorageProvisionStep({
+  it('stops hopping when remaining is zero or the chain cap is hit', () => {
+    const done = nextStorageProvisionStep({
       remaining: 0,
       rateLimited: false,
       chain: 3,
       rateLimitStreak: 0,
     });
-    expect(step.continue).toBe(false);
+    expect(done.continue).toBe(false);
+    expect(done.deferred).toBe(false);
+
+    const capped = nextStorageProvisionStep({
+      remaining: 4,
+      rateLimited: false,
+      chain: 399,
+      rateLimitStreak: 0,
+    });
+    expect(capped.continue).toBe(false);
+    expect(capped.deferred).toBe(true);
+    expect(capped.chain).not.toBe(0);
   });
 });
 

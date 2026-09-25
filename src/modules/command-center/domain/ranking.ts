@@ -173,7 +173,7 @@ export function withItemDefaults(input: {
     severity,
     rankScore: computeRankScore(severity, input.urgencyBump ?? 0),
     isFinancial,
-    allowHandle: !isFinancial,
+    allowHandle: true,
     allowSnooze: true,
     confirmPaid: input.confirmPaid,
     meta: input.meta,
@@ -181,23 +181,13 @@ export function withItemDefaults(input: {
 }
 
 /**
- * Whether a requested state transition is allowed for this source.
- * Financial truth: snooze only (or navigate). Never handled / dismissed.
+ * Explicit user state changes only. Handled/dismissed updates the command-center
+ * item row. It does not edit the invoice, bill, or expense, and collectors do
+ * not auto-dismiss overdue debt.
  */
 export function assertSafeItemStateTransition(
-  sourceType: string,
-  nextState: string,
+  _sourceType: string,
+  _nextState: string,
 ): { ok: true } | { ok: false; reason: string } {
-  if (isFinancialSourceType(sourceType)) {
-    if (nextState === 'handled' || nextState === 'dismissed') {
-      return {
-        ok: false,
-        reason: 'Financial command-center items cannot be handled or dismissed; snooze or open the record.',
-      };
-    }
-  }
-  if (nextState === 'dismissed' && isFinancialSourceType(sourceType)) {
-    return { ok: false, reason: 'Cannot dismiss financial items' };
-  }
   return { ok: true };
 }

@@ -5,10 +5,11 @@ import { PageHeader } from '@/components/ui/page-header';
 import { withOrgContext, getShellContext } from '@/shared/auth/session';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { todayInTimeZone } from '@/shared/dates';
-import { listAccessibleTasks } from '@/modules/tasks';
+import { listAccessibleTasksPage } from '@/modules/tasks';
+import { TASK_LIST_MAX_LIMIT } from '@/modules/tasks/domain/list-window';
 import { mapTasksToCardDataForOrg } from '@/modules/tasks/application/map-tasks-for-ui';
 import { TaskWorkSurfaceClient } from '@/modules/tasks/ui/task-work-surface-client';
-import { getTaskDetailAction, updateTaskFieldsAction } from '../actions';
+import { getTaskDetailAction, loadMoreAccessibleTasksAction, updateTaskFieldsAction } from '../actions';
 
 export async function generateMetadata({
   params,
@@ -28,10 +29,11 @@ export default async function WorkTimelinePage() {
 
   const t = await getTranslations('tasks');
 
-  const { tasks, today } = await withOrgContext(async (context) => {
-    const rawTasks = await listAccessibleTasks(context, { limit: 500 });
+  const { tasks, today, hasMore } = await withOrgContext(async (context) => {
+    const page = await listAccessibleTasksPage(context, { limit: TASK_LIST_MAX_LIMIT });
     return {
-      tasks: await mapTasksToCardDataForOrg(context, rawTasks),
+      tasks: await mapTasksToCardDataForOrg(context, page.tasks),
+      hasMore: page.hasMore,
       today: todayInTimeZone(context.organization.timezone),
     };
   });
@@ -43,10 +45,12 @@ export default async function WorkTimelinePage() {
       <TaskWorkSurfaceClient
         tasks={tasks}
         today={today}
+        hasMore={hasMore}
         viewMode="timeline"
         timelineDateEdit
         getTaskDetail={getTaskDetailAction}
         updateTask={updateTaskFieldsAction}
+        onLoadMore={(offset) => loadMoreAccessibleTasksAction({ offset, limit: TASK_LIST_MAX_LIMIT })}
       />
     </div>
   );

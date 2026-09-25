@@ -5,6 +5,8 @@
  * - Purchase Actual is recognized once via Expense finalize and/or posted AP vendor bills.
  * - Inventory movements update quantity_on_hand only (never Expense / GL / Actual).
  * - Material usage and equipment usage NEVER create Actual, Expense, Committed, or Forecast.
+ * - A usage note does not create cost. Cost is the inventory issue (project_consume) or the expense / vendor bill.
+ * - Equipment hours and days are operational. Cost exists only when an expense or vendor bill is recorded.
  * - Do not invent inventory costing (FIFO/AVG/standard) or capitalize usage into project cost.
  * - Doc 21 “issue → project material cost” is future planning and is overridden here.
  *

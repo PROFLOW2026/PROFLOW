@@ -1,6 +1,7 @@
-import { and, asc, desc, eq, inArray, isNotNull, lte, gte, or, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, isNotNull, isNull, lte, gte, or, sql } from 'drizzle-orm';
 import { tasks, taskAssignees, taskFollowers } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
+import { clampTaskListLimit, splitTaskListPage } from '../domain/list-window';
 import type { Task, TaskStatus, TaskPriority, TaskSource } from '../domain/types';
 
 export type MyWorkView =
@@ -12,7 +13,20 @@ export type MyWorkView =
   | 'assigned_to_me'
   | 'created_by_me'
   | 'following'
-  | 'completed';
+  | 'completed'
+  | 'no_project';
+
+export interface MyWorkPage {
+  readonly tasks: Task[];
+  readonly hasMore: boolean;
+}
+
+const EMPTY_MY_WORK_PAGE: MyWorkPage = { tasks: [], hasMore: false };
+
+function toMyWorkPage(rows: Array<typeof tasks.$inferSelect>, limit: number): MyWorkPage {
+  const split = splitTaskListPage(rows, limit);
+  return { tasks: split.items.map(mapTaskRow), hasMore: split.hasMore };
+}
 
 function mapTaskRow(row: typeof tasks.$inferSelect): Task {
   return {
@@ -88,12 +102,20 @@ export async function queryMyWork(
   db: DbExecutor,
   options: MyWorkQueryOptions,
 ): Promise<Task[]> {
+  const page = await queryMyWorkPage(db, options);
+  return page.tasks;
+}
+
+export async function queryMyWorkPage(
+  db: DbExecutor,
+  options: MyWorkQueryOptions,
+): Promise<MyWorkPage> {
   const { orgMemberId, assigneeEmployeeId, organizationId, workspaceIds, view } = options;
-  const limit = Math.min(options.limit ?? 50, 200);
+  const limit = clampTaskListLimit(options.limit);
   const offset = options.offset ?? 0;
   const today = todayISOString();
 
-  if (workspaceIds.length === 0) return [];
+  if (workspaceIds.length === 0) return EMPTY_MY_WORK_PAGE;
 
   const baseConditions = [
     eq(tasks.organizationId, organizationId),
@@ -114,9 +136,9 @@ export async function queryMyWork(
           ),
         )
         .orderBy(asc(tasks.priority), asc(tasks.sortKey))
-        .limit(limit)
+        .limit(limit + 1)
         .offset(offset);
-      return rows.map(mapTaskRow);
+      return toMyWorkPage(rows, limit);
     }
 
     case 'overdue': {
@@ -133,9 +155,9 @@ export async function queryMyWork(
           ),
         )
         .orderBy(asc(tasks.dueDate), asc(tasks.priority))
-        .limit(limit)
+        .limit(limit + 1)
         .offset(offset);
-      return rows.map(mapTaskRow);
+      return toMyWorkPage(rows, limit);
     }
 
     case 'this_week': {
@@ -153,9 +175,9 @@ export async function queryMyWork(
           ),
         )
         .orderBy(asc(tasks.dueDate), asc(tasks.priority))
-        .limit(limit)
+        .limit(limit + 1)
         .offset(offset);
-      return rows.map(mapTaskRow);
+      return toMyWorkPage(rows, limit);
     }
 
     case 'upcoming': {
@@ -173,9 +195,9 @@ export async function queryMyWork(
           ),
         )
         .orderBy(asc(tasks.dueDate))
-        .limit(limit)
+        .limit(limit + 1)
         .offset(offset);
-      return rows.map(mapTaskRow);
+      return toMyWorkPage(rows, limit);
     }
 
     case 'waiting': {
@@ -189,9 +211,9 @@ export async function queryMyWork(
           ),
         )
         .orderBy(asc(tasks.dueDate))
-        .limit(limit)
+        .limit(limit + 1)
         .offset(offset);
-      return rows.map(mapTaskRow);
+      return toMyWorkPage(rows, limit);
     }
 
     case 'assigned_to_me': {
@@ -202,7 +224,7 @@ export async function queryMyWork(
       if (assigneeEmployeeId) {
         identityConditions.push(eq(taskAssignees.employeeId, assigneeEmployeeId));
       }
-      if (identityConditions.length === 0) return [];
+      if (identityConditions.length === 0) return EMPTY_MY_WORK_PAGE;
 
       const assignedTaskIds = await db
         .select({ taskId: taskAssignees.taskId })
@@ -214,7 +236,7 @@ export async function queryMyWork(
           ),
         );
       const ids = [...new Set(assignedTaskIds.map((row) => row.taskId))];
-      if (ids.length === 0) return [];
+      if (ids.length === 0) return EMPTY_MY_WORK_PAGE;
 
       const rows = await db
         .select()
@@ -227,9 +249,9 @@ export async function queryMyWork(
           ),
         )
         .orderBy(asc(tasks.dueDate), asc(tasks.priority))
-        .limit(limit)
+        .limit(limit + 1)
         .offset(offset);
-      return rows.map(mapTaskRow);
+      return toMyWorkPage(rows, limit);
     }
 
     case 'created_by_me': {
@@ -244,9 +266,9 @@ export async function queryMyWork(
           ),
         )
         .orderBy(desc(tasks.createdAt))
-        .limit(limit)
+        .limit(limit + 1)
         .offset(offset);
-      return rows.map(mapTaskRow);
+      return toMyWorkPage(rows, limit);
     }
 
     case 'following': {
@@ -260,7 +282,7 @@ export async function queryMyWork(
           ),
         );
       const ids = followedTaskIds.map((r) => r.taskId);
-      if (ids.length === 0) return [];
+      if (ids.length === 0) return EMPTY_MY_WORK_PAGE;
 
       const rows = await db
         .select()
@@ -272,9 +294,9 @@ export async function queryMyWork(
           ),
         )
         .orderBy(desc(tasks.updatedAt))
-        .limit(limit)
+        .limit(limit + 1)
         .offset(offset);
-      return rows.map(mapTaskRow);
+      return toMyWorkPage(rows, limit);
     }
 
     case 'completed': {
@@ -288,13 +310,30 @@ export async function queryMyWork(
           ),
         )
         .orderBy(desc(tasks.completionDate))
-        .limit(limit)
+        .limit(limit + 1)
         .offset(offset);
-      return rows.map(mapTaskRow);
+      return toMyWorkPage(rows, limit);
+    }
+
+    case 'no_project': {
+      const rows = await db
+        .select()
+        .from(tasks)
+        .where(
+          and(
+            ...baseConditions,
+            isNull(tasks.projectId),
+            sql`${tasks.status} NOT IN ('done', 'cancelled')`,
+          ),
+        )
+        .orderBy(asc(tasks.dueDate), asc(tasks.priority))
+        .limit(limit + 1)
+        .offset(offset);
+      return toMyWorkPage(rows, limit);
     }
 
     default: {
-      return [];
+      return EMPTY_MY_WORK_PAGE;
     }
   }
 }

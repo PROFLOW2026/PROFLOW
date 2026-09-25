@@ -13,6 +13,7 @@
 
 import {
   AlertTriangle,
+  Building2,
   CalendarCheck2,
   CalendarClock,
   CalendarDays,
@@ -26,10 +27,9 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { cn } from '@/shared/ui/cn';
 import { uwmPrimaryPanelClass, uwmPageHeadingClass, uwmTabBarClass } from '@/shared/ui/uwm-surface-styles';
-import type { MyWorkItem, MyWorkViewKey } from './_task-api-stub';
+import type { MyWorkItem, MyWorkViewKey, TaskCardData, TaskDetail } from './_task-api-stub';
 import { TaskListView } from './task-list-view';
 import { TaskDetailSheet } from './task-detail-sheet';
-import type { TaskDetail } from './_task-api-stub';
 
 // ---------------------------------------------------------------------------
 // View definitions
@@ -99,6 +99,13 @@ const VIEWS: ViewDef[] = [
     icon: <CheckCheck aria-hidden className="size-4" />,
     emptyTitleKey: 'myWork.empty.completed.title',
     emptyDescKey: 'myWork.empty.completed.desc',
+  },
+  {
+    key: 'no_project',
+    labelKey: 'myWork.views.noProject',
+    icon: <Building2 aria-hidden className="size-4" />,
+    emptyTitleKey: 'myWork.empty.noProject.title',
+    emptyDescKey: 'myWork.empty.noProject.desc',
   },
 ];
 
@@ -176,6 +183,11 @@ export interface MyWorkViewProps {
    * TODO: When Agent A delivers, server page calls getMyWork for each view and passes results.
    */
   tasksByView: Partial<Record<MyWorkViewKey, MyWorkItem[]>>;
+  hasMoreByView?: Partial<Record<MyWorkViewKey, boolean>>;
+  onLoadMore?: (
+    view: MyWorkViewKey,
+    offset: number,
+  ) => Promise<{ tasks: TaskCardData[]; hasMore: boolean }>;
   /**
    * Loads task detail on demand (called when user clicks a task).
    * TODO: wire to getTaskDetail Server Action once Agent A delivers.
@@ -195,13 +207,18 @@ export interface MyWorkViewProps {
 }
 
 export function MyWorkView({
-  tasksByView,
+  tasksByView: initialTasksByView,
+  hasMoreByView: initialHasMoreByView = {},
+  onLoadMore,
   onLoadTaskDetail,
   onUpdateTask,
   defaultView = 'today',
   today,
 }: MyWorkViewProps) {
   const t = useTranslations('tasks');
+  const [tasksByView, setTasksByView] = useState(initialTasksByView);
+  const [hasMoreByView, setHasMoreByView] = useState(initialHasMoreByView);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [activeView, setActiveView] = useState<MyWorkViewKey>(defaultView);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [taskDetail, setTaskDetail] = useState<TaskDetail | null>(null);
@@ -227,6 +244,21 @@ export function MyWorkView({
   const handleUpdateTask = (taskId: string, data: Record<string, unknown>) => {
     onUpdateTask?.(taskId, data);
   };
+
+  async function handleLoadMore() {
+    if (!onLoadMore || loadingMore) return;
+    setLoadingMore(true);
+    try {
+      const page = await onLoadMore(activeView, currentTasks.length);
+      setTasksByView((prev) => ({
+        ...prev,
+        [activeView]: [...(prev[activeView] ?? []), ...(page.tasks as MyWorkItem[])],
+      }));
+      setHasMoreByView((prev) => ({ ...prev, [activeView]: page.hasMore }));
+    } finally {
+      setLoadingMore(false);
+    }
+  }
 
   return (
     <div className="flex flex-col gap-0">
@@ -261,6 +293,23 @@ export function MyWorkView({
           emptyTitle={t(currentViewDef.emptyTitleKey)}
           emptyDescription={t(currentViewDef.emptyDescKey)}
         />
+        {hasMoreByView[activeView] ? (
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <p role="status" className="text-sm text-[var(--pf-text-muted)]">
+              {t('list.hasMore')}
+            </p>
+            {onLoadMore ? (
+              <button
+                type="button"
+                onClick={() => void handleLoadMore()}
+                disabled={loadingMore}
+                className="rounded-md border border-[var(--pf-border-default)] px-3 py-1.5 text-sm font-medium hover:bg-[var(--pf-bg-subtle)] disabled:opacity-60"
+              >
+                {t('list.loadMore')}
+              </button>
+            ) : null}
+          </div>
+        ) : null}
       </div>
       <TaskDetailSheet
         task={selectedTaskId != null && taskDetail?.id === selectedTaskId ? taskDetail : null}

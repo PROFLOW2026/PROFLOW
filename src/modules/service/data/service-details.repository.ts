@@ -260,6 +260,7 @@ export async function listWorkOrdersWithDetails(
         where c.project_id = ${projects.id}
           and c.organization_id = ${organizationId}
           and c.archived_at is null
+          and c.status not in ('closed', 'cancelled')
       )`,
     })
     .from(projects)

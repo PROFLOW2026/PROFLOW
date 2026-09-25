@@ -5,6 +5,11 @@ import { employees, organizationMemberships } from '@drizzle/schema';
 import type { OrgContext } from '@/shared/auth/context';
 import { emitNotification } from '@/modules/notifications';
 import { notificationCopy } from '@/modules/notifications/domain/copy';
+import { taskDeepLinkForRecipient } from '@/modules/notifications/domain/task-links';
+import {
+  findEmployeeAppAccountByUserId,
+  isActiveEmployeeAppAccount,
+} from '@/modules/employee-app';
 import { notificationsCopyTranslator } from '@/shared/i18n/sync-namespace-translator';
 import type { TaskAssigneeActor } from '@/modules/projects/application/project-participants';
 
@@ -53,6 +58,12 @@ export async function notifyTaskAssigned(
   const copy = notificationCopy(notificationsCopyTranslator(context.locale), 'task_assigned_to_you', {
     reference: input.taskTitle,
   });
+  const account = await findEmployeeAppAccountByUserId(
+    context.db,
+    context.organizationId,
+    recipientUserId,
+  );
+  const recipientIsEmployee = account != null && isActiveEmployeeAppAccount(account);
 
   await emitNotification(context, {
     recipientUserId,
@@ -62,7 +73,7 @@ export async function notifyTaskAssigned(
     dedupeKey: `task_assigned:${input.taskId}:${recipientUserId}`,
     entityType: 'task',
     entityId: input.taskId,
-    deepLink: `/tasks/${input.taskId}`,
+    deepLink: taskDeepLinkForRecipient(`/tasks/${input.taskId}`, recipientIsEmployee),
     severity: 'info',
   });
 }

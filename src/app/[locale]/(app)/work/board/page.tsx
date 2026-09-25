@@ -3,10 +3,11 @@ import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { withOrgContext } from '@/shared/auth/session';
 // Agent A's real API
-import { listAccessibleTasks } from '@/modules/tasks';
+import { listAccessibleTasksPage } from '@/modules/tasks';
+import { TASK_LIST_MAX_LIMIT } from '@/modules/tasks/domain/list-window';
 import { mapTasksToCardDataForOrg } from '@/modules/tasks/application/map-tasks-for-ui';
 import { GlobalBoardView } from './_global-board-view';
-import { getTaskDetailAction, updateTaskFieldsAction } from '../actions';
+import { getTaskDetailAction, loadMoreAccessibleTasksAction, updateTaskFieldsAction } from '../actions';
 
 export async function generateMetadata({
   params,
@@ -28,13 +29,17 @@ export async function generateMetadata({
 export default async function GlobalBoardPage() {
   const t = await getTranslations('tasks');
 
-  const tasks = await withOrgContext(async (context) => {
-    const rawTasks = await listAccessibleTasks(context, { status: 'all' });
-    const cards = await mapTasksToCardDataForOrg(
-      context,
-      rawTasks.filter((task) => task.status !== 'cancelled'),
-    );
-    return cards;
+  const board = await withOrgContext(async (context) => {
+    const page = await listAccessibleTasksPage(context, {
+      status: 'all',
+      limit: TASK_LIST_MAX_LIMIT,
+    });
+    const visible = page.tasks.filter((task) => task.status !== 'cancelled');
+    return {
+      tasks: await mapTasksToCardDataForOrg(context, visible),
+      hasMore: page.hasMore,
+      nextOffset: page.tasks.length,
+    };
   });
 
   return (
@@ -45,9 +50,18 @@ export default async function GlobalBoardPage() {
       />
 
       <GlobalBoardView
-        tasks={tasks}
+        tasks={board.tasks}
+        hasMore={board.hasMore}
+        nextOffset={board.nextOffset}
         onLoadTaskDetail={getTaskDetailAction}
         onUpdateTask={updateTaskFieldsAction}
+        onLoadMore={(offset) =>
+          loadMoreAccessibleTasksAction({
+            offset,
+            limit: TASK_LIST_MAX_LIMIT,
+            excludeCancelled: true,
+          })
+        }
       />
     </div>
   );

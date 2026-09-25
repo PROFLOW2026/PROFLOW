@@ -105,7 +105,8 @@
         "overdue": "Overdue",
         "dueToday": "Today",
         "upcoming": "Upcoming",
-        "blocked": "Blocked"
+        "blocked": "Blocked",
+        "reminder": "Reminder"
       }
     },
     "timeShortcut": {
@@ -307,6 +308,12 @@
     "approveEmpty": "No pending approvals for this task.",
     "assignHint": "You can assign this task within the project team context.",
     "approveHint": "Approval actions are available when a pending approval request exists.",
+    "attention": {
+      "title": "Reminders, due today, and overdue",
+      "reminder": "Reminder",
+      "dueToday": "Due today",
+      "overdue": "Overdue"
+    },
     "create": {
       "formTitle": "New task",
       "noProjects": "No projects available for task creation in your scope",

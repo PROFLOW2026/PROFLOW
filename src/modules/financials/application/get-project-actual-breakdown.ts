@@ -18,6 +18,7 @@ import {
 import { getProjectFinancials } from './get-project-financials';
 import type { ProjectFinancials } from '../domain/types';
 import { loadProjectExpenseContributions } from '../data/expenses.repository';
+import { loadCachedProjectInventoryContributions } from './financials-request-load-cache';
 import { loadRecognizedVendorBillAtomsForProject } from '../data/recognized-vendor-bill-atoms.repository';
 import { loadRecognizedVendorBillsForProject } from '../data/committed-costs.repository';
 import {
@@ -83,9 +84,13 @@ export async function getProjectActualBreakdown(
   const canReadAp = hasPermission(context, PERMISSIONS.AP_READ);
   const canReadWorkforce = hasPermission(context, PERMISSIONS.WORKFORCE_READ);
 
-  const [expenseContributions, recognizedRollup, billAtoms, laborByEmployee] = await Promise.all([
+  const [expenseContributions, inventoryContributions, recognizedRollup, billAtoms, laborByEmployee] =
+    await Promise.all([
     canReadExpenses
       ? loadProjectExpenseContributions(context.db, context.organizationId, projectId)
+      : Promise.resolve([]),
+    canReadExpenses
+      ? loadCachedProjectInventoryContributions(context.db, context.organizationId, projectId)
       : Promise.resolve([]),
     canReadAp
       ? loadRecognizedVendorBillsForProject(
@@ -167,6 +172,20 @@ export async function getProjectActualBreakdown(
       isLaborCategory: line.isLaborCategory,
       hasWorkforceLaborOnProject: hasWorkforceLabor,
       classificationStatus: line.classificationStatus,
+    });
+  }
+
+  for (const line of inventoryContributions) {
+    const amount = fromNumericString(line.amount, line.currency);
+    if (!amount || isZeroMoney(amount)) continue;
+    if (amount.currency.toUpperCase() !== currency) continue;
+    atoms.push({
+      amount,
+      sourceKind: 'inventory',
+      sourceId: `inventory:${line.projectId ?? projectId}:${line.currency.toUpperCase()}`,
+      label: 'inventory',
+      costFamily: line.costFamily,
+      categoryKey: line.categoryKey ?? 'materials',
     });
   }
 

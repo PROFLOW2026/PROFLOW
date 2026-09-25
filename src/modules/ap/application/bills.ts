@@ -1,5 +1,7 @@
 import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
 import type { OrgContext } from '@/shared/auth/context';
+import { withExecutor } from '@/shared/auth/context';
+import { withTransaction } from '@/shared/db';
 import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -62,7 +64,9 @@ import {
   resolveOrgDefaultPaymentTermIdForContext,
 } from '@/modules/business-catalog';
 import { findVendorById, findSubcontractAgreementById } from '@/modules/vendors';
+import { bookInventoryPurchaseFromApBillOnExecutor } from '@/modules/assets/application/inventory-cost';
 import { findCostCategoryById } from '@/modules/expenses';
+import { assertApBillHasNoUnlinkedExpenseOverlap } from '@/modules/financials/application/assert-expense-ap-overlap';
 import {
   isDeprecatedForNewTransactionEntry,
   resolveApClassificationStatus,
@@ -173,16 +177,46 @@ function assertAllLinesClassifiedForRecognition(
 async function promoteDraftApBillToOpen(
   context: OrgContext,
   bill: ApBillRow,
-  options: { readonly postedFromDraft?: boolean } = {},
+  options: {
+    readonly postedFromDraft?: boolean;
+    readonly confirmDistinctCosts?: boolean;
+    readonly inventoryStockPurchase?: boolean;
+    readonly inventoryItemId?: string | null;
+    readonly inventoryPurchaseQty?: string | null;
+  } = {},
 ): Promise<ApBillRow> {
   const lines = await listApBillLines(context.db, context.organizationId, bill.id);
   assertAllLinesClassifiedForRecognition(lines);
 
-  const updated = await updateApBillFields(context.db, context.organizationId, bill.id, {
-    status: 'open',
-    retentionHeldRemaining: bill.retentionAmount,
+  await assertApBillHasNoUnlinkedExpenseOverlap(
+    context.db,
+    context.organizationId,
+    bill,
+    options.confirmDistinctCosts === true,
+  );
+
+  const updated = await withTransaction(context.db, async (tx) => {
+    const txContext = withExecutor(context, tx);
+    const opened = await updateApBillFields(tx, context.organizationId, bill.id, {
+      status: 'open',
+      retentionHeldRemaining: bill.retentionAmount,
+    });
+    if (!opened) throw new NotFoundError('AP bill');
+
+    const receivedOn = opened.billDate ?? opened.createdAt.toISOString().slice(0, 10);
+    await bookInventoryPurchaseFromApBillOnExecutor(txContext, {
+      apBillId: opened.id,
+      receivedOn,
+      lines: lines.map((line) => ({
+        id: line.id,
+        inventoryItemId: line.inventoryItemId,
+        quantity: line.quantity,
+        netAmount: line.netAmount,
+        currency: line.currency,
+      })),
+    });
+    return opened;
   });
-  if (!updated) throw new NotFoundError('AP bill');
 
   if (updated.purchaseOrderId) {
     await consumePoCommitmentForPostedBill(context, updated.purchaseOrderId, updated.netAmount);
@@ -196,7 +230,8 @@ async function promoteDraftApBillToOpen(
       id: updated.id,
       status: updated.status,
       totalAmount: updated.totalAmount,
-      recognizedVendorActual: true,
+      recognizedVendorActual: lines.some((line) => line.inventoryItemId == null),
+      inventoryStockLineCount: lines.filter((line) => line.inventoryItemId != null).length,
       postedFromDraft: options.postedFromDraft ?? false,
     },
   });
@@ -489,6 +524,12 @@ export async function createApBill(context: OrgContext, raw: CreateApBillInput) 
     currency: input.currency.toUpperCase(),
   });
   const initialStatus = input.asDraft || matchingApproval ? 'draft' : 'open';
+  if (input.inventoryStockPurchase && initialStatus !== 'open') {
+    throw new DomainRuleError(
+      'A stock purchase bill must be posted now. Draft bills do not keep inventory item and quantity.',
+      'ap.errors.inventoryStockRequiresPost',
+    );
+  }
 
   const retention = resolveRetentionCapture({
     totalAmount: taxSplit.grossAmount,
@@ -530,6 +571,7 @@ export async function createApBill(context: OrgContext, raw: CreateApBillInput) 
       purchaseOrderLineId: line.purchaseOrderLineId ?? null,
       costCategoryId: line.costCategoryId ?? null,
       costFamily: line.costFamily ?? null,
+      inventoryItemId: line.inventoryItemId ?? null,
       classificationStatus: classification.classificationStatus,
       sortOrder: index,
     };
@@ -569,7 +611,12 @@ export async function createApBill(context: OrgContext, raw: CreateApBillInput) 
 
   let resultBill = bill;
   if (initialStatus === 'open') {
-    resultBill = await promoteDraftApBillToOpen(context, bill);
+    resultBill = await promoteDraftApBillToOpen(context, bill, {
+      confirmDistinctCosts: input.confirmDistinctCosts === true,
+      inventoryStockPurchase: input.inventoryStockPurchase === true,
+      inventoryItemId: input.inventoryItemId,
+      inventoryPurchaseQty: input.inventoryPurchaseQty,
+    });
   }
 
   if (matchingApproval) {
@@ -596,7 +643,9 @@ export async function createApBill(context: OrgContext, raw: CreateApBillInput) 
       status: resultBill.status,
       totalAmount: resultBill.totalAmount,
       expenseCreated: false,
-      recognizedVendorActual: resultBill.status === 'open',
+      recognizedVendorActual:
+        resultBill.status === 'open' &&
+        resolvedLines.some(({ line }) => line.inventoryItemId == null),
       awaitingApproval: Boolean(matchingApproval),
     },
   });
@@ -608,7 +657,16 @@ export async function createApBill(context: OrgContext, raw: CreateApBillInput) 
  * Promote a draft vendor bill to open (Actual recognition).
  * Requires approval when an enabled vendor_bill rule matches.
  */
-export async function postApBill(context: OrgContext, billId: string): Promise<ApBillRow> {
+export async function postApBill(
+  context: OrgContext,
+  billId: string,
+  options: {
+    readonly confirmDistinctCosts?: boolean;
+    readonly inventoryStockPurchase?: boolean;
+    readonly inventoryItemId?: string | null;
+    readonly inventoryPurchaseQty?: string | null;
+  } = {},
+): Promise<ApBillRow> {
   assertPermission(context, PERMISSIONS.AP_MANAGE);
 
   const bill = await findApBillById(context.db, context.organizationId, billId);
@@ -635,7 +693,13 @@ export async function postApBill(context: OrgContext, billId: string): Promise<A
   const lines = await listApBillLines(context.db, context.organizationId, bill.id);
   assertAllLinesClassifiedForRecognition(lines);
 
-  return promoteDraftApBillToOpen(context, bill, { postedFromDraft: true });
+  return promoteDraftApBillToOpen(context, bill, {
+    postedFromDraft: true,
+    confirmDistinctCosts: options.confirmDistinctCosts === true,
+    inventoryStockPurchase: options.inventoryStockPurchase === true,
+    inventoryItemId: options.inventoryItemId,
+    inventoryPurchaseQty: options.inventoryPurchaseQty,
+  });
 }
 
 /**

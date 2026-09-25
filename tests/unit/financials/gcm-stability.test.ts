@@ -1,10 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { OrgContext } from '@/shared/auth/context';
+import { AuthorizationError } from '@/shared/errors';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import {
   refreshAllOpenGeneralCostMonthsForSurfaces,
   refreshCurrentOpenGeneralCostMonthForSurfaces,
   recomputeGeneralCostMonth,
+  tryRecomputeOpenGeneralCostMonth,
 } from '@/modules/financials/application/recompute-general-cost-month';
 import * as recomputeModule from '@/modules/financials/application/recompute-general-cost-month';
 import * as generalCostMonthsRepo from '@/modules/financials/data/general-cost-months.repository';
@@ -49,5 +51,16 @@ describe('GCM read-surface stability', () => {
 
     persistSpy.mockRestore();
     vi.restoreAllMocks();
+  });
+
+  it('tryRecomputeOpenGeneralCostMonth rethrows instead of swallowing', async () => {
+    const denied = {
+      ...context,
+      permissions: new Set<string>(),
+    } as unknown as OrgContext;
+
+    await expect(
+      tryRecomputeOpenGeneralCostMonth(denied, { yearMonth: '2026-09' }),
+    ).rejects.toBeInstanceOf(AuthorizationError);
   });
 });

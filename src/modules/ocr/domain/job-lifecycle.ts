@@ -78,6 +78,18 @@ export function shouldRetryOcrAttempt(
   return isOcrTransientProviderError(errorCode) || errorCode === 'provider_error';
 }
 
+/**
+ * `claim_ocr_job` increments attempt_count before work runs. A lease that
+ * expires still gets reclaimed; stop once that count passes the worker max
+ * so a job that never reaches a terminal failure is not claimed forever.
+ */
+export function ocrLeaseReclaimExhausted(
+  attemptCount: number,
+  maxAttempts: number = OCR_WORKER_MAX_ATTEMPTS,
+): boolean {
+  return attemptCount > maxAttempts;
+}
+
 export function recountOcrBatchFromJobs(
   jobs: readonly Pick<ExtractionJob, 'status'>[],
   totalCount: number,

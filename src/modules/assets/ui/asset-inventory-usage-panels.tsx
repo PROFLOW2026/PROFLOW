@@ -162,7 +162,7 @@ export async function AssetEquipmentUsagePanel({ assetId }: { readonly assetId: 
           </Table>
         </div>
       )}
-      <p className="text-sm text-[var(--pf-text-muted)]">{t('notActualHint')}</p>
+      <p className="text-sm text-[var(--pf-text-muted)]">{t('equipmentHint')}</p>
     </Card>
   );
 }
@@ -313,7 +313,7 @@ export async function InventoryMaterialUsagePanel({
           </Table>
         </div>
       )}
-      <p className="text-sm text-[var(--pf-text-muted)]">{t('stockSeparateHint')}</p>
+      <p className="text-sm text-[var(--pf-text-muted)]">{t('materialHint')}</p>
     </Card>
   );
 }

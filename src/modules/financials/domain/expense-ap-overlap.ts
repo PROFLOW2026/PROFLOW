@@ -1,3 +1,4 @@
+import { DomainRuleError } from '@/shared/errors';
 import { compareMoney, money, subtractMoney, zeroMoney } from '@/shared/money';
 
 export interface ExpenseOverlapCandidate {
@@ -9,6 +10,8 @@ export interface ExpenseOverlapCandidate {
   readonly description: string | null;
   /** Sum of accepted match amounts against recognized bills (same currency). */
   readonly matchedAmount: string;
+  /** Accepted ap_po_matches bill ids. Guard drops the bill being recognized. */
+  readonly acceptedBillIds?: readonly string[];
 }
 
 export interface ApBillOverlapCandidate {
@@ -95,6 +98,24 @@ export function findSimilarFinalizedExpensesForBill(
 
     return amountsMayOverlap(probe.totalAmount!, remaining, probe.currency);
   });
+}
+
+/**
+ * Block recognition when an unlinked lookalike remains.
+ * Callers must drop rows already covered by accepted ap_po_matches first.
+ * confirmDistinctCosts defaults to false.
+ */
+export function assertNoUnlinkedExpenseApOverlap(input: {
+  readonly hitCount: number;
+  readonly confirmDistinctCosts?: boolean;
+  readonly messageKey: string;
+}): void {
+  if (input.confirmDistinctCosts === true) return;
+  if (input.hitCount <= 0) return;
+  throw new DomainRuleError(
+    'A similar unlinked expense and vendor bill would double-count. Confirm they are distinct costs, or accept a match.',
+    input.messageKey,
+  );
 }
 
 /** Recognized/open AP bills that may double-count if a similar expense is finalized. */

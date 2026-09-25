@@ -257,6 +257,8 @@ async function createDraftEntity(
       return { id: bill.id, status: bill.status };
     }
     case 'billing_record': {
+      // CLOSED BY DESIGN for subscriptions: explicit generate only, always a management draft.
+      // Progress billing plans remain the contractor billing model. Do not auto-run this kind.
       if (payload.kind !== 'billing_record') {
         throw new DomainRuleError('Payload kind mismatch', 'recurringDrafts.errors.kindMismatch');
       }

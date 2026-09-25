@@ -38,8 +38,5 @@ export async function resolveStatutoryProviderForOrg(
     return createDefaultStatutoryProvider();
   }
 
-  return new SumitStatutoryProvider({
-    credentials,
-    environment: 'test',
-  });
+  return new SumitStatutoryProvider({ credentials });
 }

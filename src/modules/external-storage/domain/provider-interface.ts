@@ -98,5 +98,9 @@ export interface StorageProviderAdapter {
     newParentFolderId: string,
   ): Promise<ProviderFileItem>;
   deleteFile(accessToken: string, fileId: string): Promise<void>;
+  /**
+   * Browser URL for the provider item (open/download). Not an ACL share API.
+   * Adapters do not expose createShareLink; Dropbox may return a shared link as this URL.
+   */
   getProviderWebUrl?(accessToken: string, itemId: string): Promise<string | null>;
 }
