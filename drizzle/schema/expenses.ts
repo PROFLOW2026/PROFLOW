@@ -182,6 +182,11 @@ export const expenses = pgTable(
     automaticInstallmentPayment: boolean('automatic_installment_payment').notNull().default(false),
     /** Count of cash installments already paid (automatic or manual partial). */
     installmentsPaidCount: integer('installments_paid_count').notNull().default(0),
+    /**
+     * Cash-out lines for this expense. Present only for explicit installment purchases.
+     * Null keeps the legacy equal-monthly derivation and managerial NET spread.
+     */
+    cashInstallmentSchedule: jsonb('cash_installment_schedule'),
     /** When true, finalized NET books to inventory cost basis — not operating Actual. */
     inventoryStockPurchase: boolean('inventory_stock_purchase').notNull().default(false),
     /** Target item for stock purchase booking (required when inventoryStockPurchase). */

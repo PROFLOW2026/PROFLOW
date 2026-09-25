@@ -137,6 +137,8 @@ function buildExpensePayload(formData: FormData) {
     paymentTermId: formValue(formData, 'paymentTermId') ?? null,
     dueDate: formValue(formData, 'dueDate') ?? null,
     automaticInstallmentPayment: formValue(formData, 'automaticInstallmentPayment'),
+    paymentStructure: formValue(formData, 'paymentStructure') as 'single' | 'installments' | undefined,
+    cashInstallmentSchedule: formValue(formData, 'cashInstallmentSchedule') ?? null,
     inventoryStockPurchase: formValue(formData, 'inventoryStockPurchase'),
     inventoryItemId: formValue(formData, 'inventoryItemId') ?? null,
     inventoryPurchaseQty: formValue(formData, 'inventoryPurchaseQty') ?? null,

@@ -13,7 +13,7 @@ import {
   zeroMoney,
   type MoneyValue,
 } from '@/shared/money';
-import { buildCashInstallmentSchedule } from '@/modules/expenses/domain/cash-installment-schedule';
+import { resolveCashInstallmentLines } from '@/modules/expenses/domain/cash-installment-schedule';
 
 export type MonthCashSource = 'ap' | 'expense' | 'payroll' | 'subcontract_advance';
 
@@ -63,6 +63,7 @@ export interface MonthExpenseCashSnapshot {
   readonly paidGrossAmount: string | null;
   readonly paidAt: BusinessDate | null;
   readonly paymentMethod: string | null;
+  readonly cashInstallmentSchedule?: unknown;
   /** Accepted match to a recognized vendor bill — AP payment is the cash. */
   readonly recognizedApMatch: boolean;
   readonly voided: boolean;
@@ -151,10 +152,11 @@ export function expandExpenseMonthCash(
     return { paid: paidLines, expected: expectedLines };
   }
 
-  const schedule = buildCashInstallmentSchedule({
+  const schedule = resolveCashInstallmentLines({
     totalGross: total,
     installmentCount: row.installmentCount,
     startDate: row.installmentStartDate ?? row.expenseDate,
+    stored: row.cashInstallmentSchedule,
   });
   const completed = Math.min(Math.max(row.installmentsPaidCount, 0), schedule.length);
   let covered = zeroMoney(currency);

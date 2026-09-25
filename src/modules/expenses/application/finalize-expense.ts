@@ -23,6 +23,7 @@ import {
   buildEqualInstallmentSchedule,
   yearMonthFromBusinessDate as installmentYearMonth,
 } from '../domain/installment-schedule';
+import { managerialRecognitionCount } from '../domain/cash-installment-schedule';
 import { findExpenseById, findCostCategoryById, updateExpenseRow } from '../data/expenses.repository';
 import { markExpenseAllocationRunsApplied } from '../data/allocation-runs.repository';
 import { replaceScheduleLines } from '../data/managerial-schedule.repository';
@@ -162,9 +163,14 @@ export async function finalizeExpense(
         receivedOn: row.expenseDate,
       });
     } else {
-      const installmentCount = row.installmentCount >= 1 ? row.installmentCount : 1;
+      const installmentCount = managerialRecognitionCount({
+        installmentCount: row.installmentCount,
+        cashInstallmentSchedule: row.cashInstallmentSchedule,
+      });
       if (isPositiveMoney(row.netAmount)) {
-        const startDate = row.installmentStartDate ?? row.expenseDate;
+        const startDate = row.cashInstallmentSchedule
+          ? row.expenseDate
+          : (row.installmentStartDate ?? row.expenseDate);
         const schedule = buildEqualInstallmentSchedule({
           totalNet: row.netAmount,
           installmentCount,

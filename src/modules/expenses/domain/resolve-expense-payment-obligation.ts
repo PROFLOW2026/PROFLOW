@@ -17,7 +17,7 @@ import {
 import type { ExpensePaymentStatus } from '@/modules/tenancy/domain/org-financial-policies';
 import { resolveExpensePaymentStatus } from '@/modules/tenancy/domain/org-financial-policies';
 import {
-  buildCashInstallmentSchedule,
+  resolveCashInstallmentLines,
   type CashInstallmentLine,
 } from './cash-installment-schedule';
 
@@ -32,6 +32,7 @@ export interface ExpensePaymentObligationInput {
   readonly dueDate: BusinessDate | null;
   readonly paymentStatus: ExpensePaymentStatus | string | null;
   readonly paidAt: BusinessDate | null;
+  readonly cashInstallmentSchedule?: unknown;
 }
 
 export interface ResolvedExpensePaymentObligation {
@@ -59,10 +60,11 @@ function transactionTotal(input: ExpensePaymentObligationInput): MoneyValue {
 function scheduleFor(input: ExpensePaymentObligationInput): readonly CashInstallmentLine[] {
   const total = transactionTotal(input);
   if (!isPositiveMoney(total) || input.installmentCount <= 1) return [];
-  return buildCashInstallmentSchedule({
+  return resolveCashInstallmentLines({
     totalGross: total,
     installmentCount: input.installmentCount,
     startDate: input.installmentStartDate ?? input.expenseDate,
+    stored: input.cashInstallmentSchedule,
   });
 }
 

@@ -33,7 +33,7 @@ import {
   type ExpensePaymentRow,
 } from '../domain/payment-lifecycle';
 import {
-  buildCashInstallmentSchedule,
+  resolveCashInstallmentLines,
   installmentCashInDateRange,
   installmentsPaidCountFromPaidGross,
 } from '../domain/cash-installment-schedule';
@@ -66,8 +66,20 @@ type ExpenseSyncRow = {
   readonly paidAt: string | null;
   readonly paymentMethod: string | null;
   readonly paymentInstrumentId: string | null;
+  readonly cashInstallmentSchedule?: unknown;
   readonly sourceRecurringDraftId?: string | null;
 };
+
+function cashScheduleForSyncRow(row: ExpenseSyncRow) {
+  const totalGross = fromNumericString(row.grossAmount, row.currency);
+  if (!totalGross || row.installmentCount <= 1) return [];
+  return resolveCashInstallmentLines({
+    totalGross,
+    installmentCount: row.installmentCount,
+    startDate: businessDate(row.installmentStartDate ?? row.expenseDate),
+    stored: row.cashInstallmentSchedule,
+  });
+}
 
 function obligationInputFromRow(row: ExpenseSyncRow): ExpensePaymentObligationInput {
   return {
@@ -81,6 +93,7 @@ function obligationInputFromRow(row: ExpenseSyncRow): ExpensePaymentObligationIn
     dueDate: row.dueDate ? businessDate(row.dueDate) : null,
     paymentStatus: row.paymentStatus,
     paidAt: row.paidAt ? businessDate(row.paidAt) : null,
+    cashInstallmentSchedule: row.cashInstallmentSchedule,
   };
 }
 
@@ -150,13 +163,7 @@ async function applyInstallmentPayment(
 
   const totalGross = fromNumericString(row.grossAmount, row.currency);
   const schedule =
-    totalGross && row.installmentCount > 1
-      ? buildCashInstallmentSchedule({
-          totalGross,
-          installmentCount: row.installmentCount,
-          startDate: businessDate(row.installmentStartDate ?? row.expenseDate),
-        })
-      : [];
+    totalGross && row.installmentCount > 1 ? cashScheduleForSyncRow(row) : [];
   const nextCount =
     schedule.length > 0
       ? installmentsPaidCountFromPaidGross({ schedule, paidGross: nextPaid })
@@ -203,11 +210,7 @@ async function backfillInstallmentPaidCountFromExistingCash(
   const totalGross = fromNumericString(row.grossAmount, row.currency);
   if (!totalGross) return 0;
 
-  const schedule = buildCashInstallmentSchedule({
-    totalGross,
-    installmentCount: row.installmentCount,
-    startDate,
-  });
+  const schedule = cashScheduleForSyncRow(row);
 
   let cumulative = zeroMoney(row.currency);
   let targetCount = row.installmentsPaidCount;
@@ -246,11 +249,7 @@ async function syncInstallmentAutomaticPayments(
   const totalGross = fromNumericString(row.grossAmount, row.currency);
   if (!totalGross) return 0;
 
-  const schedule = buildCashInstallmentSchedule({
-    totalGross,
-    installmentCount: row.installmentCount,
-    startDate: businessDate(row.installmentStartDate ?? row.expenseDate),
-  });
+  const schedule = cashScheduleForSyncRow(row);
 
   let count = 0;
   let workingRow = row;
@@ -368,6 +367,7 @@ export async function initializeExpensePaymentOnFinalize(
     paidAt: null,
     paymentMethod: row.paymentMethod,
     paymentInstrumentId: row.paymentInstrumentId ?? null,
+    cashInstallmentSchedule: row.cashInstallmentSchedule,
     sourceRecurringDraftId: row.sourceRecurringDraftId,
   };
 
@@ -416,6 +416,7 @@ export async function confirmExpensePaid(
     paidAt: row.paidAt,
     paymentMethod: row.paymentMethod,
     paymentInstrumentId: row.paymentInstrumentId ?? null,
+    cashInstallmentSchedule: row.cashInstallmentSchedule,
     sourceRecurringDraftId: row.sourceRecurringDraftId,
   };
 
@@ -467,11 +468,7 @@ export async function confirmExpensePaid(
 
   let nextInstallmentsPaidCount = syncRow.installmentsPaidCount;
   if (row.installmentCount > 1) {
-    const schedule = buildCashInstallmentSchedule({
-      totalGross: row.grossAmount,
-      installmentCount: row.installmentCount,
-      startDate: businessDate(row.installmentStartDate ?? row.expenseDate),
-    });
+    const schedule = obligation.installmentSchedule;
     let cumulative = zeroMoney(row.grossAmount.currency);
     for (let index = 0; index < schedule.length; index += 1) {
       cumulative = addMoney(cumulative, schedule[index]!.amount);
@@ -548,6 +545,7 @@ export async function voidExpensePaymentConfirmation(
     paidAt: null,
     paymentMethod: row.paymentMethod,
     paymentInstrumentId: row.paymentInstrumentId ?? null,
+    cashInstallmentSchedule: row.cashInstallmentSchedule,
     sourceRecurringDraftId: row.sourceRecurringDraftId,
   };
 
@@ -595,6 +593,7 @@ export async function syncAutomaticExpensePayments(
       paymentTermId: expenses.paymentTermId,
       installmentCount: expenses.installmentCount,
       installmentStartDate: expenses.installmentStartDate,
+      cashInstallmentSchedule: expenses.cashInstallmentSchedule,
       automaticInstallmentPayment: expenses.automaticInstallmentPayment,
       installmentsPaidCount: expenses.installmentsPaidCount,
       paidGrossAmount: expenses.paidGrossAmount,
@@ -714,6 +713,7 @@ export async function listExpensePaymentsForOrg(
       automaticInstallmentPayment: expenses.automaticInstallmentPayment,
       installmentCount: expenses.installmentCount,
       installmentStartDate: expenses.installmentStartDate,
+      cashInstallmentSchedule: expenses.cashInstallmentSchedule,
       installmentsPaidCount: expenses.installmentsPaidCount,
       voidsExpenseId: expenses.voidsExpenseId,
       adjustsExpenseId: expenses.adjustsExpenseId,
@@ -779,6 +779,7 @@ export async function sumPaidExpensesInDateRange(
       installmentStartDate: expenses.installmentStartDate,
       expenseDate: expenses.expenseDate,
       installmentsPaidCount: expenses.installmentsPaidCount,
+      cashInstallmentSchedule: expenses.cashInstallmentSchedule,
     })
     .from(expenses)
     .where(
@@ -795,10 +796,11 @@ export async function sumPaidExpensesInDateRange(
   for (const row of installmentRows) {
     const totalGross = fromNumericString(row.grossAmount, currency);
     if (!totalGross) continue;
-    const schedule = buildCashInstallmentSchedule({
+    const schedule = resolveCashInstallmentLines({
       totalGross,
       installmentCount: row.installmentCount,
       startDate: businessDate(row.installmentStartDate ?? row.expenseDate),
+      stored: row.cashInstallmentSchedule,
     });
     installmentTotal = addMoney(
       installmentTotal,
@@ -830,6 +832,7 @@ export async function sumUpcomingExpenseCash(
       dueDate: expenses.dueDate,
       installmentCount: expenses.installmentCount,
       installmentStartDate: expenses.installmentStartDate,
+      cashInstallmentSchedule: expenses.cashInstallmentSchedule,
       installmentsPaidCount: expenses.installmentsPaidCount,
       paidGrossAmount: expenses.paidGrossAmount,
       paymentStatus: expenses.paymentStatus,
@@ -862,6 +865,7 @@ export async function sumUpcomingExpenseCash(
         dueDate: row.dueDate ? businessDate(row.dueDate) : null,
         paymentStatus: row.paymentStatus,
         paidAt: row.paidAt ? businessDate(row.paidAt) : null,
+        cashInstallmentSchedule: row.cashInstallmentSchedule,
       },
       today,
     );

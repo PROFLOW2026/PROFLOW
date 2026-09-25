@@ -15,6 +15,10 @@ import type { BusinessDate } from '@/shared/dates';
 import type { DbExecutor } from '@/shared/db/types';
 import { fromNumericString, type MoneyValue } from '@/shared/money';
 import { isAllocationIntentSchemaReady } from '@/modules/financials';
+import {
+  parseStoredCashInstallmentSchedule,
+  type StoredCashInstallmentSchedule,
+} from '../domain/cash-installment-schedule';
 import type { ExpenseAttentionFilter } from '../domain/expense-attention';
 import type {
   AllocationMethod,
@@ -86,6 +90,7 @@ export interface ExpenseInsertRow {
   readonly installmentCount?: number;
   readonly installmentStartDate?: BusinessDate | null;
   readonly automaticInstallmentPayment?: boolean;
+  readonly cashInstallmentSchedule?: StoredCashInstallmentSchedule | null;
   readonly paymentTermId?: string | null;
   readonly dueDate?: BusinessDate | null;
   readonly inventoryStockPurchase?: boolean;
@@ -396,6 +401,7 @@ export async function findExpenseById(
       installmentStartDate: expenses.installmentStartDate,
       installmentsPaidCount: expenses.installmentsPaidCount,
       automaticInstallmentPayment: expenses.automaticInstallmentPayment,
+      cashInstallmentSchedule: expenses.cashInstallmentSchedule,
       inventoryStockPurchase: expenses.inventoryStockPurchase,
       inventoryItemId: expenses.inventoryItemId,
       inventoryPurchaseQty: expenses.inventoryPurchaseQty,
@@ -485,6 +491,7 @@ export async function findExpenseById(
     installmentStartDate: (row.installmentStartDate as BusinessDate | null) ?? null,
     installmentsPaidCount: row.installmentsPaidCount ?? 0,
     automaticInstallmentPayment: row.automaticInstallmentPayment ?? false,
+    cashInstallmentSchedule: parseStoredCashInstallmentSchedule(row.cashInstallmentSchedule),
     inventoryStockPurchase: row.inventoryStockPurchase ?? false,
     inventoryItemId: row.inventoryItemId ?? null,
     inventoryPurchaseQty: row.inventoryPurchaseQty ?? null,

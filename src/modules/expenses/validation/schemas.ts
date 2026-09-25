@@ -140,6 +140,18 @@ const expenseFieldsSchema = z.object({
     .nullable()
     .optional(),
   automaticInstallmentPayment: booleanOptionalSchema,
+  paymentStructure: z.enum(['single', 'installments']).optional(),
+  cashInstallmentSchedule: z.preprocess((value) => {
+    if (value == null || value === '') return null;
+    if (typeof value === 'string') {
+      try {
+        return JSON.parse(value) as unknown;
+      } catch {
+        return value;
+      }
+    }
+    return value;
+  }, z.unknown().nullable().optional()),
   /** When true, NET books to inventory stock — not operating Actual (0069). */
   inventoryStockPurchase: booleanOptionalSchema,
   /** Required when inventoryStockPurchase is true. */

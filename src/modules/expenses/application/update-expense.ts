@@ -10,6 +10,9 @@ import { noteModuleUsage } from '@/modules/tenancy';
 import { isOverheadTargeting } from '../domain/targeting';
 import { buildExpensePayload, persistExpenseAllocations, shouldNoteFirstOverheadUsage } from './create-expense';
 import { updateFinalizedExpense } from './update-finalized-expense';
+import { assertCashScheduleEditPreservesPaid } from '../domain/cash-installment-schedule';
+import { businessDate } from '@/shared/dates';
+import { money } from '@/shared/money';
 
 const EXPENSE_AUDIT_UPDATED = 'expense.updated';
 
@@ -24,6 +27,20 @@ export async function updateExpense(context: OrgContext, input: UpdateExpenseInp
   assertEditable(existing.status);
 
   const payload = await buildExpensePayload(context, input);
+  assertCashScheduleEditPreservesPaid({
+    installmentsPaidCount: existing.installmentsPaidCount,
+    currency: existing.grossAmount.currency,
+    previousGross: existing.grossAmount.amount,
+    previousCount: existing.installmentCount,
+    previousStart: existing.installmentStartDate ?? existing.expenseDate,
+    previousStored: existing.cashInstallmentSchedule,
+    nextGross: money(payload.row.grossAmount, payload.row.currency),
+    nextCount: payload.row.installmentCount ?? 1,
+    nextStart: payload.row.installmentStartDate
+      ? businessDate(payload.row.installmentStartDate)
+      : null,
+    nextStored: payload.row.cashInstallmentSchedule,
+  });
   const noteOverhead = await shouldNoteFirstOverheadUsage(context, payload.targeting);
 
   const {

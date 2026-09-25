@@ -17,8 +17,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { ExpensePaymentStructureFields } from './expense-payment-structure-fields';
 import { MoneyInput } from '@/components/patterns/money-input';
 import { computeTaxAmountBreakdown } from '@/modules/tax/domain/amounts';
+import { addMoney } from '@/shared/money';
 import type {
   AllocationMethod,
   AllocationScheduleMode,
@@ -171,6 +173,10 @@ export interface ExpenseFormValues {
   paymentTermId: string;
   dueDate: string;
   automaticInstallmentPayment: boolean;
+  cashInstallmentSchedule?: {
+    readonly lines?: readonly { readonly dueDate: string; readonly amount: string }[];
+  } | null;
+  installmentsPaidCount?: number;
   inventoryStockPurchase: boolean;
   inventoryItemId: string;
   inventoryPurchaseQty: string;
@@ -295,11 +301,18 @@ export function ExpenseForm({
   const [allocationScheduleMode, setAllocationScheduleMode] = React.useState<AllocationScheduleMode | ''>(
     initialValues?.allocationScheduleMode ?? '',
   );
-  const [installmentCount, setInstallmentCount] = React.useState(
+  const [installmentCount] = React.useState(
     initialValues?.installmentCount?.trim() ? initialValues.installmentCount : '1',
   );
-  const [installmentStartDate, setInstallmentStartDate] = React.useState(
+  const [installmentStartDate] = React.useState(
     initialValues?.installmentStartDate ?? initialValues?.expenseDate ?? '',
+  );
+  const [paymentStructure, setPaymentStructure] = React.useState<'single' | 'installments'>(
+    () =>
+      (initialValues?.cashInstallmentSchedule?.lines?.length ?? 0) > 1 ||
+      Number(initialValues?.installmentCount) > 1
+        ? 'installments'
+        : 'single',
   );
   const [paymentTermId, setPaymentTermId] = React.useState(initialValues?.paymentTermId ?? '');
   const [dueDate, setDueDate] = React.useState(initialValues?.dueDate ?? '');
@@ -372,6 +385,7 @@ export function ExpenseForm({
           tax: formatMoney(money('0', currency), locale, { currencyDisplay: 'narrowSymbol' }),
           gross: formatMoney(enteredAmount, locale, { currencyDisplay: 'narrowSymbol' }),
           netAmountRaw: enteredAmount.amount,
+          grossAmountRaw: enteredAmount.amount,
         };
       }
       const amountIncludesTax = vatMode === 'inclusive';
@@ -391,11 +405,25 @@ export function ExpenseForm({
         tax: formatMoney(breakdown.tax, locale, { currencyDisplay: 'narrowSymbol' }),
         gross: formatMoney(breakdown.gross, locale, { currencyDisplay: 'narrowSymbol' }),
         netAmountRaw: breakdown.net.amount,
+        grossAmountRaw: breakdown.gross.amount,
       };
     } catch {
       return null;
     }
   }, [amount, currency, hasManualTaxOverride, vatMode, locale, taxRatePercent]);
+
+  const payableGrossAmount = React.useMemo(() => {
+    if (taxPreview?.grossAmountRaw) return taxPreview.grossAmountRaw;
+    try {
+      if (netAmount.trim() && taxAmount.trim()) {
+        return addMoney(money(netAmount.trim(), currency), money(taxAmount.trim(), currency)).amount;
+      }
+      if (amount.trim()) return money(amount.trim(), currency).amount;
+    } catch {
+      return null;
+    }
+    return null;
+  }, [taxPreview, netAmount, taxAmount, amount, currency]);
 
   const allocationTotalAmount = taxPreview?.netAmountRaw ?? amount;
 
@@ -576,8 +604,6 @@ export function ExpenseForm({
         <input type="hidden" name="recurrenceCadence" value={recurrenceCadence} />
         <input type="hidden" name="recurrenceCustomLabel" value={recurrenceCustomLabel} />
         <input type="hidden" name="costFamily" value={costFamily} />
-        <input type="hidden" name="installmentCount" value={installmentCount || '1'} />
-        <input type="hidden" name="installmentStartDate" value={installmentStartDate} />
         <input type="hidden" name="inventoryStockPurchase" value={inventoryStockPurchase ? 'true' : 'false'} />
         <input type="hidden" name="inventoryItemId" value={inventoryItemId} />
         <input type="hidden" name="inventoryPurchaseQty" value={inventoryPurchaseQty} />
@@ -877,6 +903,24 @@ export function ExpenseForm({
           disabled={readOnly}
         />
 
+        <ExpensePaymentStructureFields
+          initialStructure={paymentStructure}
+          initialCount={Number(installmentCount) > 1 ? installmentCount : '6'}
+          initialFirstDate={installmentStartDate || expenseDate}
+          initialLines={(initialValues?.cashInstallmentSchedule?.lines ?? []).map((line) => ({
+            dueDate: line.dueDate,
+            amount: line.amount,
+          }))}
+          grossAmount={payableGrossAmount}
+          currency={currency}
+          paidCount={initialValues?.installmentsPaidCount ?? 0}
+          expenseDate={expenseDate}
+          readOnly={readOnly}
+          automaticInstallmentPayment={automaticInstallmentPayment}
+          onAutomaticInstallmentPaymentChange={setAutomaticInstallmentPayment}
+          onStructureChange={setPaymentStructure}
+        />
+
         <div className="flex flex-col gap-2">
           <label className="flex cursor-pointer items-start gap-3">
             <Checkbox
@@ -955,7 +999,7 @@ export function ExpenseForm({
             </p>
           ) : null}
 
-          {paymentTerms.length > 0 ? (
+          {paymentTerms.length > 0 && paymentStructure === 'single' ? (
             <Field label={t('fields.paymentTerm')} optionalLabel={tCommon('labels.optional')}>
               {(controlProps) => (
                 <>
@@ -981,88 +1025,24 @@ export function ExpenseForm({
               )}
             </Field>
           ) : (
-            <input type="hidden" name="paymentTermId" value={paymentTermId} />
+            <input type="hidden" name="paymentTermId" value="" />
           )}
 
-          <Field label={t('payment.dueDate')} optionalLabel={tCommon('labels.optional')}>
-            {(controlProps) => (
-              <Input
-                {...controlProps}
-                type="date"
-                name="dueDate"
-                value={dueDate}
-                onChange={(event) => setDueDate(event.target.value)}
-                disabled={readOnly}
-              />
-            )}
-          </Field>
-
-          <Field
-            label={t('fields.installmentCount')}
-            optionalLabel={tCommon('labels.optional')}
-            error={fieldErrors.installmentCount}
-            description={t('fields.installmentHint')}
-          >
-            {(controlProps) => (
-              <Input
-                {...controlProps}
-                type="number"
-                name="installmentCount"
-                min={1}
-                max={120}
-                step={1}
-                value={installmentCount}
-                onChange={(event) => setInstallmentCount(event.target.value)}
-                disabled={readOnly}
-                dir="ltr"
-              />
-            )}
-          </Field>
-
-          {Number(installmentCount) > 1 ? (
-            <p className="text-xs text-[var(--pf-text-muted)]">{t('fields.managerialNetScheduleHint')}</p>
-          ) : null}
-
-          {Number(installmentCount) > 1 ? (
-            <Field
-              label={t('fields.installmentStart')}
-              optionalLabel={tCommon('labels.optional')}
-              error={fieldErrors.installmentStartDate}
-            >
+          {paymentStructure === 'single' ? (
+            <Field label={t('payment.dueDate')} optionalLabel={tCommon('labels.optional')}>
               {(controlProps) => (
                 <Input
                   {...controlProps}
                   type="date"
-                  name="installmentStartDate"
-                  value={installmentStartDate || expenseDate}
-                  onChange={(event) => setInstallmentStartDate(event.target.value)}
+                  name="dueDate"
+                  value={dueDate}
+                  onChange={(event) => setDueDate(event.target.value)}
                   disabled={readOnly}
-                  dir="ltr"
                 />
               )}
             </Field>
           ) : (
-            <input type="hidden" name="installmentStartDate" value={installmentStartDate} />
-          )}
-
-          {Number(installmentCount) > 1 ? (
-            <div className="flex flex-col gap-1">
-              <input
-                type="hidden"
-                name="automaticInstallmentPayment"
-                value={automaticInstallmentPayment ? 'true' : 'false'}
-              />
-              <label className="flex cursor-pointer items-start gap-3">
-                <Checkbox
-                  checked={automaticInstallmentPayment}
-                  onCheckedChange={(checked) => setAutomaticInstallmentPayment(checked === true)}
-                  disabled={readOnly}
-                />
-                <span className="text-sm">{t('fields.automaticInstallmentPaymentHint')}</span>
-              </label>
-            </div>
-          ) : (
-            <input type="hidden" name="automaticInstallmentPayment" value="false" />
+            <input type="hidden" name="dueDate" value="" />
           )}
 
           <Field label={t('destination.label')} optionalLabel={tCommon('labels.optional')}>

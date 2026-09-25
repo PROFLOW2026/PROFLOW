@@ -1,5 +1,6 @@
 import type { BusinessDate } from '@/shared/dates';
 import type { MoneyValue } from '@/shared/money';
+import type { StoredCashInstallmentSchedule } from './cash-installment-schedule';
 import type { ExpenseVatMode } from './vat-mode';
 
 /** Doc 04 §6 - the four V1 cost families. */
@@ -194,6 +195,8 @@ export interface ExpenseDetail extends ExpenseSummary {
   readonly installmentStartDate: BusinessDate | null;
   readonly installmentsPaidCount: number;
   readonly automaticInstallmentPayment: boolean;
+  /** Explicit cash installment lines. Absent on legacy rows. */
+  readonly cashInstallmentSchedule?: StoredCashInstallmentSchedule | null;
   /**
    * When true, finalized NET books to inventory cost basis — not operating Actual.
    */

@@ -16,6 +16,7 @@ import { resolveAllocationLines } from '../domain/allocation';
 import { resolveExpenseCurrency } from '../domain/currency';
 import { isOverheadTargeting, resolveExpenseTargeting, assertNoAllocationsOnProjectExpense } from '../domain/targeting';
 import { encodeRecurrenceRule } from '../domain/recurrence';
+import { cashInstallmentFieldsForSave } from '../domain/cash-installment-schedule';
 import { resolveTaxAmounts } from '../domain/tax';
 import { resolveExpenseVatMode } from '../domain/vat-mode';
 import { isWeightAllocationMethod } from '../domain/types';
@@ -427,12 +428,22 @@ export async function buildExpensePayload(
     costFamily: targeting.costFamily,
   });
 
-  const paymentSchedule = await resolveExpensePaymentSchedule(context, {
-    expenseDate,
-    vendorId,
-    paymentTermId: input.paymentTermId,
-    dueDate: input.dueDate,
+  const cashFields = cashInstallmentFieldsForSave({
+    paymentStructure: input.paymentStructure,
+    cashInstallmentSchedule: input.cashInstallmentSchedule,
+    installmentCount: input.installmentCount,
+    installmentStartDate: input.installmentStartDate,
+    gross: amounts.grossAmount,
   });
+
+  const paymentSchedule = cashFields.replacesPaymentTerms
+    ? { paymentTermId: null, dueDate: cashFields.dueDate }
+    : await resolveExpensePaymentSchedule(context, {
+        expenseDate,
+        vendorId,
+        paymentTermId: input.paymentTermId,
+        dueDate: input.dueDate,
+      });
 
   const intentReady = await isAllocationIntentSchemaReady(context.db);
 
@@ -470,10 +481,9 @@ export async function buildExpensePayload(
       allocationDriverMethod: input.allocationDriverMethod ?? null,
       allocationScheduleMode: input.allocationScheduleMode ?? null,
       ...(intentReady ? { allocationIntent } : {}),
-      installmentCount: input.installmentCount ?? 1,
-      installmentStartDate: input.installmentStartDate
-        ? businessDate(input.installmentStartDate)
-        : null,
+      installmentCount: cashFields.installmentCount,
+      installmentStartDate: cashFields.installmentStartDate,
+      cashInstallmentSchedule: cashFields.cashInstallmentSchedule,
       automaticInstallmentPayment: input.automaticInstallmentPayment === true,
       inventoryStockPurchase: inventoryStock.inventoryStockPurchase,
       inventoryItemId: inventoryStock.inventoryItemId,

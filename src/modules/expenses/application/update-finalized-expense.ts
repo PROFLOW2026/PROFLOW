@@ -18,6 +18,9 @@ import type { ExpenseVatMode } from '../domain/vat-mode';
 import type { UpdateExpenseInput } from '../validation/schemas';
 import { buildExpensePayload, persistExpenseAllocations } from './create-expense';
 import { rebuildExpenseManagerialSchedules } from './rebuild-expense-managerial-schedules';
+import { assertCashScheduleEditPreservesPaid } from '../domain/cash-installment-schedule';
+import { businessDate } from '@/shared/dates';
+import { money } from '@/shared/money';
 import { reconcileInventoryPurchaseFromExpenseEditOnExecutor } from '@/modules/assets/application/inventory-cost';
 
 const EXPENSE_AUDIT_UPDATED = 'expense.updated';
@@ -42,6 +45,20 @@ export async function updateFinalizedExpense(context: OrgContext, input: UpdateE
     );
 
     const payload = await buildExpensePayload(context, input);
+    assertCashScheduleEditPreservesPaid({
+      installmentsPaidCount: existing.installmentsPaidCount,
+      currency: existing.grossAmount.currency,
+      previousGross: existing.grossAmount.amount,
+      previousCount: existing.installmentCount,
+      previousStart: existing.installmentStartDate ?? existing.expenseDate,
+      previousStored: existing.cashInstallmentSchedule,
+      nextGross: money(payload.row.grossAmount, payload.row.currency),
+      nextCount: payload.row.installmentCount ?? 1,
+      nextStart: payload.row.installmentStartDate
+        ? businessDate(payload.row.installmentStartDate)
+        : null,
+      nextStored: payload.row.cashInstallmentSchedule,
+    });
     const newYearMonth = yearMonthFromBusinessDate(payload.expenseDate);
     const oldYearMonth = yearMonthFromBusinessDate(existing.expenseDate);
     if (newYearMonth !== oldYearMonth) {

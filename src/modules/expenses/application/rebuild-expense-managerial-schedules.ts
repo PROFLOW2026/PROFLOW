@@ -10,6 +10,7 @@ import {
 import { findExpenseById } from '../data/expenses.repository';
 import { markExpenseAllocationRunsApplied } from '../data/allocation-runs.repository';
 import { replaceScheduleLines } from '../data/managerial-schedule.repository';
+import { managerialRecognitionCount } from '../domain/cash-installment-schedule';
 import { runAutomaticAllocation } from './run-automatic-allocation';
 import type { DbExecutor } from '@/shared/db/types';
 
@@ -54,13 +55,18 @@ export async function rebuildExpenseManagerialSchedules(
 
   await markExpenseAllocationRunsApplied(db, context.organizationId, expenseId);
 
-  const installmentCount = row.installmentCount >= 1 ? row.installmentCount : 1;
+  const installmentCount = managerialRecognitionCount({
+    installmentCount: row.installmentCount,
+    cashInstallmentSchedule: row.cashInstallmentSchedule,
+  });
   if (!isPositiveMoney(row.netAmount)) {
     await replaceScheduleLines(db, context.organizationId, expenseId, []);
     return;
   }
 
-  const startDate = row.installmentStartDate ?? row.expenseDate;
+  const startDate = row.cashInstallmentSchedule
+    ? row.expenseDate
+    : (row.installmentStartDate ?? row.expenseDate);
   const schedule = buildEqualInstallmentSchedule({
     totalNet: row.netAmount,
     installmentCount,
