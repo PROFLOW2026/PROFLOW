@@ -213,6 +213,7 @@
     "cashMore": "и ещё {count}",
     "prevMonth": "Предыдущий месяц",
     "nextMonth": "Следующий месяц",
+    "chooseMonth": "Выбор месяца",
     "viewApOutstanding": "Открытые счета поставщиков",
     "viewUnallocatedExpenses": "Нераспределённые расходы"
   },

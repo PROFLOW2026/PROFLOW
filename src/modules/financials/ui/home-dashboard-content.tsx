@@ -29,9 +29,8 @@ import {
   type MonthCashPaidLine,
   type MonthCashSource,
 } from '../domain/month-cash-flow';
-import type { RevenueTriplet } from '@/modules/billing/domain/revenue-position';
+import { MonthCashMonthPicker } from './month-cash-month-picker';
 import { subtractMoney } from '@/shared/money';
-import { resolveIntlLocale } from '@/shared/i18n/intl-locale';
 import {
   buildAllocatedOverheadDetail,
   buildApOutstandingDetail,
@@ -828,10 +827,10 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
           {/* Month navigation for costsThisMonth / invoicedThisMonth KPIs */}
           <MonthNavigation
             selectedMonth={data.selectedMonth}
-            locale={locale}
             workKindFilter={data.workKindFilter}
             prevLabel={t('businessSummary.prevMonth')}
             nextLabel={t('businessSummary.nextMonth')}
+            chooseMonthLabel={t('businessSummary.chooseMonth')}
           />
           <section className="min-w-0 max-w-full">
             <h3 className="mb-2 text-sm font-semibold text-[var(--pf-text-secondary)]">
@@ -868,9 +867,6 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                   t('businessSummary.paidActualWhat'),
                   t('businessSummary.paidActualFormula'),
                   vatLabels,
-                  t('businessSummary.cashMore', {
-                    count: Math.max(0, data.organizationSummary.monthCash.paidLines.length - 40),
-                  }),
                   {
                     payroll: t('businessSummary.cashSource.payroll'),
                     expense: t('businessSummary.cashSource.expense'),
@@ -898,9 +894,6 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                     open: t('businessSummary.cashStatusOpen'),
                   },
                   vatLabels,
-                  t('businessSummary.cashMore', {
-                    count: Math.max(0, data.organizationSummary.monthCash.expectedLines.length - 40),
-                  }),
                   {
                     payroll: t('businessSummary.cashSource.payroll'),
                     expense: t('businessSummary.cashSource.expense'),
@@ -991,8 +984,6 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
   );
 }
 
-const MONTH_CASH_DETAIL_CAP = 40;
-
 function monthCashTripletDetail(
   title: string,
   value: RevenueTriplet,
@@ -1056,7 +1047,6 @@ function monthCashPaidDetail(
   whatIs: string,
   formula: string,
   labels: { exVat: string; vat: string; incVat: string; noVat: string },
-  moreLabel: string,
   sourceLabels: Readonly<Record<MonthCashSource, string>>,
 ): DashboardKpiDetailContent {
   const ordered = [...lines].sort((left, right) => {
@@ -1065,16 +1055,14 @@ function monthCashPaidDetail(
     if (right.source === 'payroll') return 1;
     return 0;
   });
-  const visible = ordered.slice(0, MONTH_CASH_DETAIL_CAP);
-  const hidden = lines.length - visible.length;
   return {
     title,
     value: total.net,
     grossValue: total.gross,
     grossLabel: labels.incVat,
-    whatIs: hidden > 0 ? `${whatIs} ${moreLabel}` : whatIs,
+    whatIs,
     formula,
-    breakdown: visible.map((line) => ({
+    breakdown: ordered.map((line) => ({
       label: cashDrilldownLabel(
         line.source,
         [line.party, line.document, line.paymentDate, line.reference],
@@ -1093,7 +1081,6 @@ function monthCashExpectedDetail(
   formula: string,
   statusLabels: Readonly<Record<string, string>>,
   labels: { exVat: string; vat: string; incVat: string; noVat: string },
-  moreLabel: string,
   sourceLabels: Readonly<Record<MonthCashSource, string>>,
 ): DashboardKpiDetailContent {
   const ordered = [...lines].sort((left, right) => {
@@ -1102,16 +1089,14 @@ function monthCashExpectedDetail(
     if (right.source === 'payroll') return 1;
     return 0;
   });
-  const visible = ordered.slice(0, MONTH_CASH_DETAIL_CAP);
-  const hidden = lines.length - visible.length;
   return {
     title,
     value: total.net,
     grossValue: total.gross,
     grossLabel: labels.incVat,
-    whatIs: hidden > 0 ? `${whatIs} ${moreLabel}` : whatIs,
+    whatIs,
     formula,
-    breakdown: visible.map((line) => ({
+    breakdown: ordered.map((line) => ({
       label: cashDrilldownLabel(
         line.source,
         [line.party, line.document, line.dueDate, line.paymentTerms, statusLabels[line.status] ?? line.status],
@@ -1125,37 +1110,28 @@ function monthCashExpectedDetail(
 /** Month navigator: ← Sep 2026 → links that change the `?month=YYYY-MM` query param. */
 function MonthNavigation({
   selectedMonth,
-  locale,
   workKindFilter,
   prevLabel,
   nextLabel,
+  chooseMonthLabel,
 }: {
   selectedMonth: string;
-  locale: string;
   workKindFilter: string | null;
   prevLabel: string;
   nextLabel: string;
+  chooseMonthLabel: string;
 }) {
   const parts = selectedMonth.split('-');
   const year = parseInt(parts[0] ?? '2024', 10);
   const month = parseInt(parts[1] ?? '1', 10); // 1-indexed
 
-  // Compute prev / next month strings.
   const prevDate = new Date(year, month - 2, 1);
   const nextDate = new Date(year, month, 1);
   const prevMonthStr = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}`;
   const nextMonthStr = `${nextDate.getFullYear()}-${String(nextDate.getMonth() + 1).padStart(2, '0')}`;
 
-  // Block navigation past the current month.
   const todayMonthStr = new Date().toISOString().slice(0, 7);
   const isCurrentOrFuture = selectedMonth >= todayMonthStr;
-
-  // Format month display label in the UI locale.
-  const displayDate = new Date(year, month - 1, 1);
-  const monthLabel = new Intl.DateTimeFormat(resolveIntlLocale(locale), {
-    month: 'long',
-    year: 'numeric',
-  }).format(displayDate);
 
   const buildUrl = (m: string) => {
     const params = new URLSearchParams();
@@ -1177,7 +1153,11 @@ function MonthNavigation({
       >
         <ChevronLeft className="size-4" aria-hidden />
       </Link>
-      <span className="min-w-[8rem] text-center text-sm font-medium">{monthLabel}</span>
+      <MonthCashMonthPicker
+        selectedMonth={selectedMonth}
+        workKindFilter={workKindFilter}
+        label={chooseMonthLabel}
+      />
       {!isCurrentOrFuture ? (
         <Link
           href={buildUrl(nextMonthStr)}

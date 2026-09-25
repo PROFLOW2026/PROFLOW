@@ -32,6 +32,7 @@ export {
   findOrganizationById,
   insertMembership,
   listActiveOrganizationIds,
+  seedDefaultCostCategories,
 } from './data/organizations.repository';
 export {
   OPTIONAL_MODULE_KEYS,

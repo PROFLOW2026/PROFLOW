@@ -15,7 +15,7 @@ import type { BusinessDate } from '@/shared/dates';
 import type { DbExecutor } from '@/shared/db/types';
 import { fromNumericString, type MoneyValue } from '@/shared/money';
 import { isAllocationIntentSchemaReady } from '@/modules/financials';
-import { seedDefaultCostCategories } from '@/modules/tenancy/data/organizations.repository';
+import { seedDefaultCostCategories } from '@/modules/tenancy';
 import {
   parseStoredCashInstallmentSchedule,
   type StoredCashInstallmentSchedule,

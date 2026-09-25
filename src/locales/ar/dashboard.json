@@ -213,6 +213,7 @@
     "cashMore": "و{count} إضافية",
     "prevMonth": "الشهر السابق",
     "nextMonth": "الشهر التالي",
+    "chooseMonth": "اختيار الشهر",
     "viewApOutstanding": "عرض حسابات الموردين المفتوحة",
     "viewUnallocatedExpenses": "عرض مصروفات غير مُخصَّصة"
   },

@@ -213,6 +213,7 @@
     "cashMore": "ועוד {count}",
     "prevMonth": "חודש קודם",
     "nextMonth": "חודש הבא",
+    "chooseMonth": "בחירת חודש",
     "viewApOutstanding": "פתיחת חשבוניות ספק פתוחות",
     "viewUnallocatedExpenses": "הצג הוצאות לא-משויכות"
   },

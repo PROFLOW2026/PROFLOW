@@ -213,6 +213,7 @@
     "cashMore": "and {count} more",
     "prevMonth": "Previous month",
     "nextMonth": "Next month",
+    "chooseMonth": "Choose month",
     "viewApOutstanding": "View open vendor bills",
     "viewUnallocatedExpenses": "View unallocated expenses"
   },

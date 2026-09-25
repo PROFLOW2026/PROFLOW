@@ -381,4 +381,70 @@ describe('monthly NET / GROSS display', () => {
     expect(result.paidLines).toHaveLength(1);
     expect(result.paidActual.amount).toBe(money('5000', ILS).amount);
   });
+
+  it('puts each paid employee in the payment month and keeps the card equal to the lines', () => {
+    const owner: MonthPayrollCashSnapshot = {
+      id: 'owner-july',
+      party: 'ערן יוסף',
+      document: '2026-07',
+      expectedAmount: '27000',
+      paidAmount: '27000',
+      currency: ILS,
+      dueDate: businessDate('2026-08-10'),
+      paidAt: businessDate('2026-08-10'),
+      voided: false,
+    };
+    const worker: MonthPayrollCashSnapshot = {
+      id: 'worker-august',
+      party: 'פאדי מנצור',
+      document: '2026-08',
+      expectedAmount: '8250',
+      paidAmount: '8250',
+      currency: ILS,
+      dueDate: businessDate('2026-09-10'),
+      paidAt: businessDate('2026-09-09'),
+      voided: false,
+    };
+    const unpaid: MonthPayrollCashSnapshot = {
+      id: 'worker-open',
+      party: 'סאלח נציר',
+      document: '2026-08',
+      expectedAmount: '5449.09',
+      paidAmount: null,
+      currency: ILS,
+      dueDate: businessDate('2026-09-10'),
+      paidAt: null,
+      voided: false,
+    };
+    const august = composeMonthCashFlow({
+      currency: ILS,
+      from: businessDate('2026-08-01'),
+      to: businessDate('2026-08-31'),
+      collectionsActual: money('0', ILS),
+      apPayments: [],
+      apExpected: [],
+      expenses: [expense({ party: 'עובדים', document: 'עובדים', paidGrossAmount: '1000', paidAt: businessDate('2026-08-02'), grossAmount: '1000', expenseDate: businessDate('2026-08-02'), dueDate: businessDate('2026-08-02') })],
+      payroll: [owner, worker, unpaid],
+      advances: [],
+    });
+    const september = composeMonthCashFlow({
+      currency: ILS,
+      from: businessDate('2026-09-01'),
+      to: businessDate('2026-09-30'),
+      collectionsActual: money('0', ILS),
+      apPayments: [],
+      apExpected: [],
+      expenses: [],
+      payroll: [owner, worker, unpaid],
+      advances: [],
+    });
+    expect(august.paidLines.filter((line) => line.source === 'payroll').map((line) => line.party)).toEqual(['ערן יוסף']);
+    expect(september.paidLines.map((line) => line.party)).toEqual(['פאדי מנצור']);
+    expect(august.paidActual.amount).toBe(
+      august.paidLines.reduce((sum, line) => sum + Number(line.amount.amount), 0).toFixed(6),
+    );
+    expect(september.paidActual.amount).toBe(money('8250', ILS).amount);
+    expect(september.display.paid.net.amount).toBe(september.paidActual.amount);
+    expect(september.display.paid.gross.amount).toBe(september.paidActual.amount);
+  });
 });
