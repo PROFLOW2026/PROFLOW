@@ -407,7 +407,10 @@ describe('migration journal', () => {
     expect(tags.indexOf('0126_ap_bill_line_inventory_layers')).toBeLessThan(
       tags.indexOf('0127_ap_bill_line_inventory_provenance'),
     );
-    expect(tags.at(-1)).toBe('0127_ap_bill_line_inventory_provenance');
+    expect(tags.indexOf('0127_ap_bill_line_inventory_provenance')).toBeLessThan(
+      tags.indexOf('0128_project_context_null_safe'),
+    );
+    expect(tags.at(-1)).toBe('0128_project_context_null_safe');
 
     const sql66 = await readFile(
       path.join(MIGRATIONS_DIR, '0066_workforce_time_integrity.sql'),
