@@ -12,8 +12,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { SavedListKey, SavedListViewRecord } from '@/modules/tenancy';
-import { queriesMatch } from '@/modules/tenancy/domain/saved-list-views';
+import {
+  queriesMatch,
+  type SavedListKey,
+  type SavedListViewRecord,
+} from '@/modules/tenancy/domain/saved-list-views';
 import { usePathname, useRouter } from '@/shared/i18n/navigation';
 import { deleteSavedListViewAction, saveSavedListViewAction } from './saved-list-views-actions';
 

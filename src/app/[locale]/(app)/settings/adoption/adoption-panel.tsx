@@ -6,7 +6,7 @@ import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Link } from '@/shared/i18n/navigation';
 import { Badge } from '@/components/ui/badge';
-import { isOptionalModuleKey, type OptionalModuleKey } from '@/modules/tenancy';
+import { isOptionalModuleKey, type OptionalModuleKey } from '@/modules/tenancy/domain/types';
 import { previewOrgAdoptionAction, applyOrgAdoptionAction, type AdoptionActionState } from './actions';
 import {
   ORG_PROFILE_TYPES,
