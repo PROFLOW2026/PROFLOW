@@ -206,7 +206,6 @@ async function backfillInstallmentPaidCountFromExistingCash(
   const paidGross = fromNumericString(row.paidGrossAmount ?? '0', row.currency);
   if (!paidGross || Number(paidGross.amount) <= 0) return 0;
 
-  const startDate = businessDate(row.installmentStartDate ?? row.expenseDate);
   const totalGross = fromNumericString(row.grossAmount, row.currency);
   if (!totalGross) return 0;
 

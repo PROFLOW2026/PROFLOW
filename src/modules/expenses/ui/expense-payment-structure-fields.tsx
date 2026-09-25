@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
@@ -54,19 +54,22 @@ export function ExpensePaymentStructureFields({
   const [structure, setStructure] = useState(initialStructure);
   const [count, setCount] = useState(initialCount);
   const [firstDate, setFirstDate] = useState(initialFirstDate);
-  const [lines, setLines] = useState<InstallmentDraftLine[]>([...initialLines]);
+  const [manualLines, setManualLines] = useState<InstallmentDraftLine[]>([...initialLines]);
   const [manual, setManual] = useState(initialLines.length > 1);
+  const [paidPrefix] = useState(() => initialLines.slice(0, Math.max(0, paidCount)));
 
-  useEffect(() => {
-    onStructureChange(structure);
-  }, [onStructureChange, structure]);
+  function chooseStructure(next: 'single' | 'installments') {
+    setStructure(next);
+    if (next === 'single') setManual(false);
+    onStructureChange(next);
+  }
 
-  useEffect(() => {
-    if (structure !== 'installments' || manual) return;
+  const generatedLines = useMemo(() => {
+    if (structure !== 'installments' || manual) return null;
     const installmentCount = Number(count);
     const start = firstDate || expenseDate;
     if (!grossAmount || !start || !Number.isInteger(installmentCount) || installmentCount < 2) {
-      return;
+      return null;
     }
     try {
       const built = buildCashInstallmentSchedule({
@@ -74,16 +77,27 @@ export function ExpensePaymentStructureFields({
         installmentCount,
         startDate: businessDate(start),
       });
-      setLines((current) =>
-        built.map((line, index) => {
-          if (index < paidCount && current[index]) return current[index]!;
-          return { dueDate: line.dueDate, amount: line.amount.amount };
-        }),
-      );
+      return built.map((line, index) => {
+        const paidLine = paidPrefix[index];
+        if (index < paidCount && paidLine) return paidLine;
+        return { dueDate: line.dueDate, amount: line.amount.amount };
+      });
     } catch {
-      // Amount is still being typed.
+      return null;
     }
-  }, [structure, count, firstDate, expenseDate, grossAmount, currency, manual, paidCount]);
+  }, [
+    structure,
+    manual,
+    count,
+    firstDate,
+    expenseDate,
+    grossAmount,
+    currency,
+    paidCount,
+    paidPrefix,
+  ]);
+
+  const lines = generatedLines ?? manualLines;
 
   const sumMatches = useMemo(() => {
     if (structure !== 'installments' || !grossAmount || lines.length === 0) return true;
@@ -117,10 +131,7 @@ export function ExpensePaymentStructureFields({
             name="paymentStructureChoice"
             checked={structure === 'single'}
             disabled={readOnly || paidCount > 0}
-            onChange={() => {
-              setStructure('single');
-              setManual(false);
-            }}
+            onChange={() => chooseStructure('single')}
           />
           {t('fields.paymentStructureSingle')}
         </label>
@@ -130,7 +141,7 @@ export function ExpensePaymentStructureFields({
             name="paymentStructureChoice"
             checked={structure === 'installments'}
             disabled={readOnly}
-            onChange={() => setStructure('installments')}
+            onChange={() => chooseStructure('installments')}
           />
           {t('fields.paymentStructureInstallments')}
         </label>
@@ -226,8 +237,8 @@ export function ExpensePaymentStructureFields({
                     onChange={(event) => {
                       const dueDate = event.target.value;
                       setManual(true);
-                      setLines((current) =>
-                        current.map((item, itemIndex) =>
+                      setManualLines(
+                        lines.map((item, itemIndex) =>
                           itemIndex === index ? { ...item, dueDate } : item,
                         ),
                       );
@@ -240,8 +251,8 @@ export function ExpensePaymentStructureFields({
                     aria-label={t('fields.installmentAmount')}
                     onValueChange={(amount) => {
                       setManual(true);
-                      setLines((current) =>
-                        current.map((item, itemIndex) =>
+                      setManualLines(
+                        lines.map((item, itemIndex) =>
                           itemIndex === index ? { ...item, amount } : item,
                         ),
                       );
