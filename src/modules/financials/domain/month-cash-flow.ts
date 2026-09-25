@@ -97,6 +97,8 @@ export interface MonthExpenseCashSnapshot {
 
 export interface MonthPayrollCashSnapshot {
   readonly id: string;
+  readonly employeeId?: string;
+  readonly payrollPeriod?: string;
   readonly party: string;
   readonly document: string;
   readonly expectedAmount: string;
@@ -105,6 +107,14 @@ export interface MonthPayrollCashSnapshot {
   readonly dueDate: BusinessDate | null;
   readonly paidAt: BusinessDate | null;
   readonly voided: boolean;
+}
+
+export function payrollEmployeeMonthKey(
+  employeeId: string | undefined,
+  payrollPeriod: string | undefined,
+): string | null {
+  if (!employeeId || !payrollPeriod) return null;
+  return `${employeeId}:${payrollPeriod}`;
 }
 
 export interface MonthAdvanceCashSnapshot {

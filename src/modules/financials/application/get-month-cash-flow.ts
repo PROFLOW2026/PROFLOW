@@ -18,8 +18,10 @@ import {
   loadMonthApBillsDue,
   loadMonthApPayments,
   loadMonthExpenseCashSnapshots,
+  loadMonthOwnerActualEmployeePayrollCash,
   loadMonthPayrollCashSnapshots,
 } from '../data/month-cash-flow.repository';
+import { mergePayrollCashSources } from './merge-payroll-cash-sources';
 
 export async function getMonthCashFlow(
   context: OrgContext,
@@ -34,35 +36,54 @@ export async function getMonthCashFlow(
   const canReadCosts = hasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ);
   const canReadAp = hasPermission(context, PERMISSIONS.AP_READ);
 
-  const [apPayments, apBills, expenses, payroll, advances] = await Promise.all([
-    canReadAp
-      ? loadMonthApPayments(context.db, context.organizationId, currency, input.from, input.to)
-      : Promise.resolve([]),
-    canReadAp
-      ? loadMonthApBillsDue(context.db, context.organizationId, currency, input.from, input.to)
-      : Promise.resolve([]),
-    canReadCosts
-      ? loadMonthExpenseCashSnapshots(context.db, context.organizationId, currency)
-      : Promise.resolve([]),
-    canReadCosts
-      ? loadMonthPayrollCashSnapshots(
-          context.db,
-          context.organizationId,
-          currency,
-          input.from,
-          input.to,
-        )
-      : Promise.resolve([]),
-    canReadAp
-      ? loadMonthAdvanceCashSnapshots(
-          context.db,
-          context.organizationId,
-          currency,
-          input.from,
-          input.to,
-        )
-      : Promise.resolve([]),
-  ]);
+  const { getOrgFinancialPolicies } = await import('@/modules/tenancy/application/org-financial-policies');
+  const policies = canReadCosts ? await getOrgFinancialPolicies(context) : null;
+
+  const [apPayments, apBills, expenses, payrollConfirmed, ownerActualPayroll, advances] =
+    await Promise.all([
+      canReadAp
+        ? loadMonthApPayments(context.db, context.organizationId, currency, input.from, input.to)
+        : Promise.resolve([]),
+      canReadAp
+        ? loadMonthApBillsDue(context.db, context.organizationId, currency, input.from, input.to)
+        : Promise.resolve([]),
+      canReadCosts
+        ? loadMonthExpenseCashSnapshots(context.db, context.organizationId, currency)
+        : Promise.resolve([]),
+      canReadCosts
+        ? loadMonthPayrollCashSnapshots(
+            context.db,
+            context.organizationId,
+            currency,
+            input.from,
+            input.to,
+          )
+        : Promise.resolve([]),
+      canReadCosts && policies
+        ? loadMonthOwnerActualEmployeePayrollCash(
+            context.db,
+            context.organizationId,
+            currency,
+            input.from,
+            input.to,
+            policies.salaryPaymentDay,
+          )
+        : Promise.resolve([]),
+      canReadAp
+        ? loadMonthAdvanceCashSnapshots(
+            context.db,
+            context.organizationId,
+            currency,
+            input.from,
+            input.to,
+          )
+        : Promise.resolve([]),
+    ]);
+
+  const payroll = mergePayrollCashSources({
+    ownerActual: ownerActualPayroll,
+    paymentConfirmed: payrollConfirmed,
+  });
 
   const apExpected = apBills.flatMap((bill) => {
     const remaining = computeBillRemainingOutstanding({

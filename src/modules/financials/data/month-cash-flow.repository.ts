@@ -3,7 +3,7 @@
  * so the AP payment is the only cash line.
  */
 
-import { and, eq, gte, inArray, isNull, lte, notExists, or, sql } from 'drizzle-orm';
+import { and, eq, gt, gte, inArray, isNull, lte, notExists, or, sql } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import {
   apBills,
@@ -11,6 +11,7 @@ import {
   apPaymentApplications,
   apPoMatches,
   costCategories,
+  employeeMonthCosts,
   employeePayrollPayments,
   employees,
   expenses,
@@ -343,6 +344,7 @@ export async function loadMonthPayrollCashSnapshots(
   const rows = await db
     .select({
       id: employeePayrollPayments.id,
+      employeeId: employeePayrollPayments.employeeId,
       employeeName: employees.name,
       yearMonth: employeePayrollPayments.yearMonth,
       expectedAmount: employeePayrollPayments.expectedAmount,
@@ -374,6 +376,8 @@ export async function loadMonthPayrollCashSnapshots(
 
   return rows.map((row) => ({
     id: row.id,
+    employeeId: row.employeeId,
+    payrollPeriod: row.yearMonth,
     party: cashLineDisplayText(row.employeeName),
     document: row.yearMonth,
     expectedAmount: row.expectedAmount,
@@ -383,6 +387,68 @@ export async function loadMonthPayrollCashSnapshots(
     paidAt: asDate(row.paidAt),
     voided: row.voidedAt != null,
   }));
+}
+
+/** Owner-entered actual monthly amount from workforce month review (employee_month_costs). */
+export async function loadMonthOwnerActualEmployeePayrollCash(
+  db: DbExecutor,
+  organizationId: string,
+  currency: string,
+  from: BusinessDate,
+  to: BusinessDate,
+  salaryPaymentDay: number,
+): Promise<readonly MonthPayrollCashSnapshot[]> {
+  const { salaryDueDateForPeriod } = await import('@/modules/tenancy/domain/org-financial-policies');
+
+  const rows = await db
+    .select({
+      id: employeeMonthCosts.id,
+      employeeId: employeeMonthCosts.employeeId,
+      employeeName: employees.name,
+      yearMonth: employeeMonthCosts.yearMonth,
+      actualAmount: employeeMonthCosts.actualAmount,
+      currency: employeeMonthCosts.currency,
+    })
+    .from(employeeMonthCosts)
+    .innerJoin(
+      employees,
+      and(
+        eq(employees.id, employeeMonthCosts.employeeId),
+        eq(employees.organizationId, employeeMonthCosts.organizationId),
+      ),
+    )
+    .where(
+      and(
+        eq(employeeMonthCosts.organizationId, organizationId),
+        eq(employeeMonthCosts.currency, currency),
+        eq(employeeMonthCosts.knownQuality, 'actual'),
+        inArray(employeeMonthCosts.status, ['applied', 'closed']),
+        sql`${employeeMonthCosts.actualAmount} IS NOT NULL`,
+        gt(employeeMonthCosts.actualAmount, '0'),
+      ),
+    );
+
+  const snapshots: MonthPayrollCashSnapshot[] = [];
+  for (const row of rows) {
+    const paidAt = businessDate(salaryDueDateForPeriod(row.yearMonth, salaryPaymentDay));
+    if (paidAt < from || paidAt > to) continue;
+    const amount = row.actualAmount;
+    if (!amount) continue;
+    snapshots.push({
+      id: `owner-actual:${row.id}`,
+      employeeId: row.employeeId,
+      payrollPeriod: row.yearMonth,
+      party: cashLineDisplayText(row.employeeName),
+      document: row.yearMonth,
+      expectedAmount: amount,
+      paidAmount: amount,
+      currency: row.currency,
+      dueDate: paidAt,
+      paidAt,
+      voided: false,
+    });
+  }
+  return snapshots;
 }
 
 export async function loadMonthAdvanceCashSnapshots(
