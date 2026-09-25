@@ -1,6 +1,7 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useActionState, useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,13 +15,7 @@ import {
   type TemplateActionState,
 } from './actions';
 
-const PRIORITY_OPTIONS = [
-  { value: 'none', label: 'No priority' },
-  { value: 'low', label: 'Low' },
-  { value: 'medium', label: 'Medium' },
-  { value: 'high', label: 'High' },
-  { value: 'urgent', label: 'Urgent' },
-];
+const PRIORITY_VALUES = ['none', 'low', 'medium', 'high', 'urgent'] as const;
 
 interface TaskTemplateItem {
   id: string;
@@ -37,7 +32,19 @@ interface TaskTemplateDef {
   items: TaskTemplateItem[];
 }
 
+function usePriorityOptions() {
+  const tPriority = useTranslations('tasks.priority');
+  return useMemo(
+    () => PRIORITY_VALUES.map((value) => ({ value, label: tPriority(value) })),
+    [tPriority],
+  );
+}
+
 function TemplateRow({ template, canEdit }: { template: TaskTemplateDef; canEdit: boolean }) {
+  const t = useTranslations('settings.taskTemplatesPanel');
+  const tActions = useTranslations('common.actions');
+  const tPriority = useTranslations('tasks.priority');
+  const priorityOptions = usePriorityOptions();
   const [editing, setEditing] = useState(false);
   const [updateState, updateAction, updatePending] = useActionState(updateTaskTemplateAction, {} as TemplateActionState);
   const [archiveState, archiveAction, archivePending] = useActionState(archiveTaskTemplateAction, {} as TemplateActionState);
@@ -52,13 +59,13 @@ function TemplateRow({ template, canEdit }: { template: TaskTemplateDef; canEdit
           )}
           <div className="mt-1 flex flex-wrap gap-1">
             {template.priority !== 'none' && (
-              <Badge tone="neutral" className="text-xs">{template.priority}</Badge>
+              <Badge tone="neutral" className="text-xs">{tPriority(template.priority as typeof PRIORITY_VALUES[number])}</Badge>
             )}
             {template.items.length > 0 && (
-              <Badge tone="neutral" className="text-xs">{template.items.length} checklist items</Badge>
+              <Badge tone="neutral" className="text-xs">{t('checklistCount', { count: template.items.length })}</Badge>
             )}
             {template.isArchived && (
-              <Badge tone="neutral" className="text-xs text-[var(--pf-text-muted)]">Archived</Badge>
+              <Badge tone="neutral" className="text-xs text-[var(--pf-text-muted)]">{t('archivedBadge')}</Badge>
             )}
           </div>
         </div>
@@ -66,13 +73,13 @@ function TemplateRow({ template, canEdit }: { template: TaskTemplateDef; canEdit
         {canEdit && (
           <div className="flex gap-1">
             <Button size="sm" variant="ghost" onClick={() => setEditing(!editing)}>
-              {editing ? 'Cancel' : 'Edit'}
+              {editing ? tActions('cancel') : tActions('edit')}
             </Button>
             <form action={archiveAction}>
               <input type="hidden" name="id" value={template.id} />
               <input type="hidden" name="restore" value={template.isArchived ? 'true' : 'false'} />
               <Button type="submit" size="sm" variant="ghost" loading={archivePending}>
-                {template.isArchived ? 'Restore' : 'Archive'}
+                {template.isArchived ? tActions('restore') : tActions('archive')}
               </Button>
             </form>
           </div>
@@ -82,24 +89,24 @@ function TemplateRow({ template, canEdit }: { template: TaskTemplateDef; canEdit
       {editing && (
         <form action={updateAction} className="flex flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-3">
           <input type="hidden" name="id" value={template.id} />
-          <Input name="title" defaultValue={template.title} placeholder="Template title" required />
-          <Textarea name="description" defaultValue={template.description ?? ''} placeholder="Description (optional)" rows={2} />
+          <Input name="title" defaultValue={template.title} placeholder={t('templateTitle')} required />
+          <Textarea name="description" defaultValue={template.description ?? ''} placeholder={t('descriptionOptional')} rows={2} />
           <div className="flex items-center gap-2">
-            <label className="text-sm text-[var(--pf-text-secondary)]">Priority</label>
+            <label className="text-sm text-[var(--pf-text-secondary)]">{t('priority')}</label>
             <Select name="priority" defaultValue={template.priority}>
               <SelectTrigger className="w-36">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {PRIORITY_OPTIONS.map((o) => (
+                {priorityOptions.map((o) => (
                   <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
           <div className="flex gap-2">
-            <Button type="submit" size="sm" loading={updatePending}>Save</Button>
-            <Button type="button" size="sm" variant="ghost" onClick={() => setEditing(false)}>Cancel</Button>
+            <Button type="submit" size="sm" loading={updatePending}>{tActions('save')}</Button>
+            <Button type="button" size="sm" variant="ghost" onClick={() => setEditing(false)}>{tActions('cancel')}</Button>
           </div>
           {updateState.error && <Alert tone="danger">{updateState.error}</Alert>}
           {updateState.ok && <Alert tone="success" role="status">{updateState.message}</Alert>}
@@ -111,6 +118,9 @@ function TemplateRow({ template, canEdit }: { template: TaskTemplateDef; canEdit
 }
 
 function CreateTemplateForm({ canEdit }: { canEdit: boolean }) {
+  const t = useTranslations('settings.taskTemplatesPanel');
+  const tActions = useTranslations('common.actions');
+  const priorityOptions = usePriorityOptions();
   const [state, action, pending] = useActionState(createTaskTemplateAction, {} as TemplateActionState);
   const [checklistItems, setChecklistItems] = useState<string[]>(['']);
 
@@ -118,24 +128,24 @@ function CreateTemplateForm({ canEdit }: { canEdit: boolean }) {
 
   return (
     <form action={action} className="flex flex-col gap-3 rounded-lg border border-dashed border-[var(--pf-border-default)] p-4">
-      <p className="text-sm font-medium">Create task template</p>
-      <Input name="title" placeholder="Template title" required />
-      <Textarea name="description" placeholder="Description (optional)" rows={2} />
+      <p className="text-sm font-medium">{t('createTitle')}</p>
+      <Input name="title" placeholder={t('templateTitle')} required />
+      <Textarea name="description" placeholder={t('descriptionOptional')} rows={2} />
       <div className="flex items-center gap-2">
-        <label className="text-sm text-[var(--pf-text-secondary)]">Priority</label>
+        <label className="text-sm text-[var(--pf-text-secondary)]">{t('priority')}</label>
         <Select name="priority" defaultValue="none">
           <SelectTrigger className="w-36">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {PRIORITY_OPTIONS.map((o) => (
+            {priorityOptions.map((o) => (
               <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
       <div className="flex flex-col gap-2">
-        <p className="text-sm text-[var(--pf-text-secondary)]">Checklist items</p>
+        <p className="text-sm text-[var(--pf-text-secondary)]">{t('checklistItems')}</p>
         {checklistItems.map((item, idx) => (
           <Input
             key={idx}
@@ -146,7 +156,7 @@ function CreateTemplateForm({ canEdit }: { canEdit: boolean }) {
               next[idx] = e.target.value;
               setChecklistItems(next);
             }}
-            placeholder={`Item ${idx + 1}`}
+            placeholder={t('itemPlaceholder', { index: idx + 1 })}
           />
         ))}
         <Button
@@ -155,11 +165,11 @@ function CreateTemplateForm({ canEdit }: { canEdit: boolean }) {
           variant="ghost"
           onClick={() => setChecklistItems([...checklistItems, ''])}
         >
-          + Add item
+          {t('addItem')}
         </Button>
       </div>
       <div>
-        <Button type="submit" size="sm" loading={pending}>Create template</Button>
+        <Button type="submit" size="sm" loading={pending}>{t('createTemplate')}</Button>
       </div>
       {state.error && <Alert tone="danger">{state.error}</Alert>}
       {state.ok && <Alert tone="success" role="status">{state.message}</Alert>}
@@ -174,22 +184,21 @@ export function TaskTemplatesPanel({
   templates: TaskTemplateDef[];
   canEdit: boolean;
 }) {
-  const active = templates.filter((t) => !t.isArchived);
-  const archived = templates.filter((t) => t.isArchived);
+  const t = useTranslations('settings.taskTemplatesPanel');
+  const active = templates.filter((tpl) => !tpl.isArchived);
+  const archived = templates.filter((tpl) => tpl.isArchived);
   const [showArchived, setShowArchived] = useState(false);
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-sm text-[var(--pf-text-secondary)]">
-        Task templates pre-fill new tasks with a title, description, priority, and checklist items.
-      </p>
+      <p className="text-sm text-[var(--pf-text-secondary)]">{t('intro')}</p>
 
       <div className="rounded-lg border border-[var(--pf-border-default)] p-4">
         {active.length === 0 && (
-          <p className="text-sm text-[var(--pf-text-muted)]">No task templates yet.</p>
+          <p className="text-sm text-[var(--pf-text-muted)]">{t('emptyState')}</p>
         )}
-        {active.map((t) => (
-          <TemplateRow key={t.id} template={t} canEdit={canEdit} />
+        {active.map((tpl) => (
+          <TemplateRow key={tpl.id} template={tpl} canEdit={canEdit} />
         ))}
       </div>
 
@@ -198,12 +207,12 @@ export function TaskTemplatesPanel({
       {archived.length > 0 && (
         <div>
           <Button type="button" size="sm" variant="ghost" onClick={() => setShowArchived(!showArchived)}>
-            {showArchived ? 'Hide archived' : `Show ${archived.length} archived`}
+            {showArchived ? t('hideArchived') : t('showArchived', { count: archived.length })}
           </Button>
           {showArchived && (
             <div className="mt-2 rounded-lg border border-[var(--pf-border-default)] p-4 opacity-60">
-              {archived.map((t) => (
-                <TemplateRow key={t.id} template={t} canEdit={canEdit} />
+              {archived.map((tpl) => (
+                <TemplateRow key={tpl.id} template={tpl} canEdit={canEdit} />
               ))}
             </div>
           )}

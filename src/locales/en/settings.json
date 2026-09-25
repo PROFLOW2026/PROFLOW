@@ -1365,5 +1365,115 @@
       "supervisor": "Supervisor",
       "other": "Other"
     }
+  },
+  "stagesPanel": {
+    "intro": "Stage definitions appear in your project headers and tracking views. Archiving a stage hides it from new projects — existing data is preserved.",
+    "color": "Color",
+    "stageName": "Stage name",
+    "addNew": "Add new stage",
+    "createStage": "Create stage",
+    "setDefault": "Set default",
+    "defaultBadge": "Default",
+    "emptyState": "No stages defined yet.",
+    "archivedBadge": "Archived",
+    "hideArchived": "Hide archived",
+    "showArchived": "Show {count} archived",
+    "workKind": {
+      "all": "All work kinds",
+      "project": "Projects only",
+      "job": "Jobs only",
+      "work_order": "Work orders only"
+    }
+  },
+  "labelsPanel": {
+    "intro": "Labels can be applied to tasks across all workspaces. Archiving a label hides it from pickers — existing assignments are preserved.",
+    "color": "Color",
+    "labelName": "Label name",
+    "addNew": "Add new label",
+    "createLabel": "Create label",
+    "emptyState": "No labels defined yet.",
+    "archivedBadge": "Archived",
+    "hideArchived": "Hide archived",
+    "showArchived": "Show {count} archived"
+  },
+  "taskTemplatesPanel": {
+    "intro": "Task templates pre-fill new tasks with a title, description, priority, and checklist items.",
+    "templateTitle": "Template title",
+    "descriptionOptional": "Description (optional)",
+    "priority": "Priority",
+    "checklistItems": "Checklist items",
+    "itemPlaceholder": "Item {index}",
+    "addItem": "Add item",
+    "createTitle": "Create task template",
+    "createTemplate": "Create template",
+    "emptyState": "No task templates yet.",
+    "checklistCount": "{count} checklist items",
+    "archivedBadge": "Archived",
+    "hideArchived": "Hide archived",
+    "showArchived": "Show {count} archived"
+  },
+  "orgProfilePanel": {
+    "pageDescription": "Set your organization type and customize terminology used throughout ProjectFlow.",
+    "profileTypeTitle": "Organization profile type",
+    "profileTypeHint": "Your profile type controls default stage definitions, templates, and which modules are recommended. Changing this does not delete any existing data.",
+    "saveProfileType": "Save profile type",
+    "terminologyTitle": "Terminology overrides",
+    "terminologyHint": "Customize labels shown throughout ProjectFlow to match your industry's vocabulary. Leave blank to use the default term.",
+    "saveTerminology": "Save terminology",
+    "terminologyPreview": "Terminology preview",
+    "defaultLabel": "Default: {value}",
+    "fieldProject": "Project label",
+    "fieldTask": "Task label",
+    "fieldBoard": "Board label",
+    "fieldStage": "Stage label",
+    "fieldBucket": "Bucket label",
+    "previewProject": "Project →",
+    "previewTask": "Task →",
+    "previewBoard": "Board →",
+    "previewStage": "Stage →",
+    "previewBucket": "Bucket →",
+    "types": {
+      "architect": { "label": "Architect", "description": "Architectural design, planning, and permit management" },
+      "engineer": { "label": "Engineer", "description": "Structural, civil, MEP, or specialty engineering" },
+      "consultant": { "label": "Consultant", "description": "Professional consultancy and advisory services" },
+      "project_manager": { "label": "Project Manager", "description": "Independent project management and oversight" },
+      "developer": { "label": "Developer / Real Estate", "description": "Real estate development, land, and property projects" },
+      "contractor": { "label": "General Contractor", "description": "Construction, renovation, and build contracting" },
+      "subcontractor": { "label": "Subcontractor", "description": "Specialty trade or subcontract work under a GC" },
+      "supervisor": { "label": "Supervisor / Inspector", "description": "Site supervision, quality inspection, and compliance" },
+      "other": { "label": "Other", "description": "Other construction industry professional" }
+    },
+    "terminologyDefaults": {
+      "project": "Project",
+      "task": "Task",
+      "board": "Board",
+      "stage": "Stage",
+      "bucket": "Bucket"
+    }
+  },
+  "adoptionPanel": {
+    "pageDescription": "Apply default stage definitions, module settings, and terminology for your organization profile type.",
+    "intro": "This wizard applies default stage definitions, module visibility, and org profile type for an existing organization. All writes are idempotent — nothing is overwritten if you've already configured it.",
+    "step1Title": "Step 1: Select your organization profile",
+    "step2Title": "Step 2: Preview changes",
+    "step3Title": "Step 3: Apply",
+    "previewButton": "Preview adoption",
+    "applyButton": "Apply adoption",
+    "completeTitle": "Adoption complete",
+    "completeBody": "Your stage definitions and module settings have been configured based on your profile type.",
+    "viewStages": "View stages",
+    "viewModules": "View modules",
+    "step2PreviewTitle": "Step 2: Preview — {profile}",
+    "stagesToCreate": "Stages to create",
+    "allStagesExist": "All {count} default stages already exist.",
+    "stagesSkipped": "{count} stage(s) already exist and will be skipped.",
+    "modulesToDisable": "Modules to disable by default",
+    "modulesHint": "Only modules not already configured will be affected.",
+    "profileAlreadySet": "Org profile type is already set to this profile — it will not be overwritten.",
+    "errors": {
+      "invalidProfileType": "Please select a valid organization profile type",
+      "previewFailed": "Preview failed",
+      "adoptionFailed": "Adoption failed"
+    }
   }
 }

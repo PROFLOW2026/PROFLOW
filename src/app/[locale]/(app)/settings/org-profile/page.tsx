@@ -1,10 +1,11 @@
 import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 import { Card } from '@/components/ui/card';
 import { withOrgContext } from '@/shared/auth/session';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { hasPermission } from '@/shared/permissions/assert';
 import { getOrganizationSettingValue } from '@/modules/tenancy';
-import { SettingsPageShell } from '../settings-shell';
+import { SettingsPageShell, settingsMetadata } from '../settings-shell';
 import { SettingsNotAllowed } from '../settings-not-allowed';
 import { OrgProfilePanel } from './org-profile-panel';
 import {
@@ -15,9 +16,13 @@ import {
   type TerminologyOverrides,
 } from './org-profile-domain';
 
-export const metadata: Metadata = { title: 'Org Profile' };
+export async function generateMetadata(): Promise<Metadata> {
+  return settingsMetadata('orgProfile');
+}
 
 export default async function OrgProfileSettingsPage() {
+  const tNav = await getTranslations('settings.orgProfile');
+  const tPanel = await getTranslations('settings.orgProfilePanel');
   const data = await withOrgContext(async (context) => {
     if (!hasPermission(context, PERMISSIONS.SETTINGS_MANAGE)) {
       return { allowed: false as const };
@@ -52,17 +57,14 @@ export default async function OrgProfileSettingsPage() {
 
   if (!data.allowed) {
     return (
-      <SettingsPageShell title="Org Profile">
+      <SettingsPageShell title={tNav('nav')}>
         <SettingsNotAllowed />
       </SettingsPageShell>
     );
   }
 
   return (
-    <SettingsPageShell
-      title="Org Profile"
-      description="Set your organization type and customize terminology used throughout ProjectFlow."
-    >
+    <SettingsPageShell title={tNav('nav')} description={tPanel('pageDescription')}>
       <Card className="p-5">
         <OrgProfilePanel
           currentProfileType={data.currentProfileType}

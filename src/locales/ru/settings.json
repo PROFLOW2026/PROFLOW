@@ -1365,5 +1365,115 @@
       "supervisor": "Надзор",
       "other": "Другое"
     }
+  },
+  "stagesPanel": {
+    "intro": "Этапы отображаются в шапках проектов и экранах отслеживания. Архив скрывает этап для новых проектов — существующие данные сохраняются.",
+    "color": "Цвет",
+    "stageName": "Название этапа",
+    "addNew": "Добавить этап",
+    "createStage": "Создать этап",
+    "setDefault": "Сделать по умолчанию",
+    "defaultBadge": "По умолчанию",
+    "emptyState": "Этапы ещё не заданы.",
+    "archivedBadge": "В архиве",
+    "hideArchived": "Скрыть архив",
+    "showArchived": "Показать {count} в архиве",
+    "workKind": {
+      "all": "Все типы работ",
+      "project": "Только проекты",
+      "job": "Только работы",
+      "work_order": "Только заказы"
+    }
+  },
+  "labelsPanel": {
+    "color": "Цвет",
+    "intro": "Метки применяются к задачам во всех рабочих пространствах. Архив скрывает метку в списках — существующие назначения сохраняются.",
+    "labelName": "Название метки",
+    "addNew": "Добавить метку",
+    "createLabel": "Создать метку",
+    "emptyState": "Метки ещё не заданы.",
+    "archivedBadge": "В архиве",
+    "hideArchived": "Скрыть архив",
+    "showArchived": "Показать {count} в архиве"
+  },
+  "taskTemplatesPanel": {
+    "intro": "Шаблоны задач предзаполняют заголовок, описание, приоритет и чек-лист.",
+    "templateTitle": "Заголовок шаблона",
+    "descriptionOptional": "Описание (необязательно)",
+    "priority": "Приоритет",
+    "checklistItems": "Пункты чек-листа",
+    "itemPlaceholder": "Пункт {index}",
+    "addItem": "Добавить пункт",
+    "createTitle": "Создать шаблон задачи",
+    "createTemplate": "Создать шаблон",
+    "emptyState": "Шаблонов задач пока нет.",
+    "checklistCount": "{count} пунктов чек-листа",
+    "archivedBadge": "В архиве",
+    "hideArchived": "Скрыть архив",
+    "showArchived": "Показать {count} в архиве"
+  },
+  "orgProfilePanel": {
+    "pageDescription": "Укажите тип организации и настройте терминологию в ProjectFlow.",
+    "profileTypeTitle": "Тип профиля организации",
+    "profileTypeHint": "Тип профиля задаёт этапы, шаблоны и рекомендуемые модули. Изменение не удаляет данные.",
+    "saveProfileType": "Сохранить тип профиля",
+    "terminologyTitle": "Настройка терминологии",
+    "terminologyHint": "Настройте подписи под вашу отрасль. Оставьте пустым для значения по умолчанию.",
+    "saveTerminology": "Сохранить терминологию",
+    "terminologyPreview": "Предпросмотр терминологии",
+    "defaultLabel": "По умолчанию: {value}",
+    "fieldProject": "Подпись «Проект»",
+    "fieldTask": "Подпись «Задача»",
+    "fieldBoard": "Подпись «Доска»",
+    "fieldStage": "Подпись «Этап»",
+    "fieldBucket": "Подпись «Корзина»",
+    "previewProject": "Проект →",
+    "previewTask": "Задача →",
+    "previewBoard": "Доска →",
+    "previewStage": "Этап →",
+    "previewBucket": "Корзина →",
+    "types": {
+      "architect": { "label": "Архитектор", "description": "Архитектурное проектирование и разрешения" },
+      "engineer": { "label": "Инженер", "description": "Конструктивная, гражданская, MEP или спец. инженерия" },
+      "consultant": { "label": "Консультант", "description": "Профессиональные консультации" },
+      "project_manager": { "label": "Менеджер проекта", "description": "Независимое управление проектами" },
+      "developer": { "label": "Застройщик / недвижимость", "description": "Девелопмент и проекты недвижимости" },
+      "contractor": { "label": "Генподрядчик", "description": "Строительство и ремонт" },
+      "subcontractor": { "label": "Субподрядчик", "description": "Субподряд и специализированные работы" },
+      "supervisor": { "label": "Инспектор / надзор", "description": "Надзор на площадке и качество" },
+      "other": { "label": "Другое", "description": "Другая профессия в строительстве" }
+    },
+    "terminologyDefaults": {
+      "project": "Проект",
+      "task": "Задача",
+      "board": "Доска",
+      "stage": "Этап",
+      "bucket": "Корзина"
+    }
+  },
+  "adoptionPanel": {
+    "pageDescription": "Применить этапы, модули и терминологию по типу профиля.",
+    "intro": "Мастер применяет этапы, видимость модулей и тип профиля к существующей организации. Запись идемпотентна — не перезаписывает настройки.",
+    "step1Title": "Шаг 1: выберите профиль организации",
+    "step2Title": "Шаг 2: предпросмотр",
+    "step3Title": "Шаг 3: применение",
+    "previewButton": "Предпросмотр",
+    "applyButton": "Применить",
+    "completeTitle": "Применение завершено",
+    "completeBody": "Этапы и модули настроены по типу профиля.",
+    "viewStages": "Открыть этапы",
+    "viewModules": "Открыть модули",
+    "step2PreviewTitle": "Шаг 2: предпросмотр — {profile}",
+    "stagesToCreate": "Этапы для создания",
+    "allStagesExist": "Все {count} этапов по умолчанию уже существуют.",
+    "stagesSkipped": "{count} этап(ов) уже существуют и будут пропущены.",
+    "modulesToDisable": "Модули для отключения по умолчанию",
+    "modulesHint": "Затронуты только модули, ещё не настроенные.",
+    "profileAlreadySet": "Тип профиля организации уже установлен — не будет перезаписан.",
+    "errors": {
+      "invalidProfileType": "Выберите допустимый тип профиля организации",
+      "previewFailed": "Не удалось выполнить предпросмотр",
+      "adoptionFailed": "Не удалось применить настройки"
+    }
   }
 }

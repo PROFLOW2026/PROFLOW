@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 import { Card } from '@/components/ui/card';
 import { withOrgContext } from '@/shared/auth/session';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -7,13 +8,17 @@ import { hasPermission } from '@/shared/permissions/assert';
 import { taskTemplates, taskTemplateItems } from '@drizzle/schema';
 // eslint-disable-next-line no-restricted-imports
 import { eq, asc } from 'drizzle-orm';
-import { SettingsPageShell } from '../settings-shell';
+import { SettingsPageShell, settingsMetadata } from '../settings-shell';
 import { SettingsNotAllowed } from '../settings-not-allowed';
 import { TaskTemplatesPanel } from './task-templates-panel';
 
-export const metadata: Metadata = { title: 'Task Templates' };
+export async function generateMetadata(): Promise<Metadata> {
+  return settingsMetadata('taskTemplates');
+}
 
 export default async function TaskTemplatesSettingsPage() {
+  const tSection = await getTranslations('settings.taskTemplatesSection');
+  const tPanel = await getTranslations('settings.taskTemplatesPanel');
   const data = await withOrgContext(async (context) => {
     if (!hasPermission(context, PERMISSIONS.TASK_TEMPLATES_MANAGE)) {
       return { allowed: false as const };
@@ -41,17 +46,14 @@ export default async function TaskTemplatesSettingsPage() {
 
   if (!data.allowed) {
     return (
-      <SettingsPageShell title="Task Templates">
+      <SettingsPageShell title={tSection('nav')}>
         <SettingsNotAllowed />
       </SettingsPageShell>
     );
   }
 
   return (
-    <SettingsPageShell
-      title="Task Templates"
-      description="Reusable task presets with title, description, priority, and checklist."
-    >
+    <SettingsPageShell title={tSection('nav')} description={tPanel('intro')}>
       <Card className="p-5">
         <TaskTemplatesPanel templates={data.templates} canEdit={data.canEdit} />
       </Card>

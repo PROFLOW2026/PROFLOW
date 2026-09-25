@@ -1365,5 +1365,115 @@
       "supervisor": "مشرف",
       "other": "أخرى"
     }
+  },
+  "stagesPanel": {
+    "color": "اللون",
+    "intro": "تظهر تعريفات المراحل في رؤوس المشاريع وشاشات التتبع. أرشفة مرحلة تخفيها من المشاريع الجديدة — البيانات الحالية تبقى.",
+    "stageName": "اسم المرحلة",
+    "addNew": "إضافة مرحلة جديدة",
+    "createStage": "إنشاء مرحلة",
+    "setDefault": "تعيين كافتراضي",
+    "defaultBadge": "افتراضي",
+    "emptyState": "لا توجد مراحل معرّفة بعد.",
+    "archivedBadge": "مؤرشف",
+    "hideArchived": "إخفاء المؤرشف",
+    "showArchived": "عرض {count} مؤرشف",
+    "workKind": {
+      "all": "كل أنواع العمل",
+      "project": "مشاريع فقط",
+      "job": "أعمال فقط",
+      "work_order": "أوامر عمل فقط"
+    }
+  },
+  "labelsPanel": {
+    "intro": "يمكن تطبيق التسميات على المهام في كل مساحات العمل. أرشفة تسمية تخفيها من القوائم — التعيينات الحالية تبقى.",
+    "color": "اللون",
+    "labelName": "اسم التسمية",
+    "addNew": "إضافة تسمية جديدة",
+    "createLabel": "إنشاء تسمية",
+    "emptyState": "لا توجد تسميات معرّفة بعد.",
+    "archivedBadge": "مؤرشف",
+    "hideArchived": "إخفاء المؤرشف",
+    "showArchived": "عرض {count} مؤرشف"
+  },
+  "taskTemplatesPanel": {
+    "intro": "قوالب المهام تملأ العنوان والوصف والأولوية وقائمة التحقق مسبقاً.",
+    "templateTitle": "عنوان القالب",
+    "descriptionOptional": "الوصف (اختياري)",
+    "priority": "الأولوية",
+    "checklistItems": "عناصر قائمة التحقق",
+    "itemPlaceholder": "عنصر {index}",
+    "addItem": "إضافة عنصر",
+    "createTitle": "إنشاء قالب مهمة",
+    "createTemplate": "إنشاء قالب",
+    "emptyState": "لا توجد قوالب مهام بعد.",
+    "checklistCount": "{count} عناصر قائمة",
+    "archivedBadge": "مؤرشف",
+    "hideArchived": "إخفاء المؤرشف",
+    "showArchived": "عرض {count} مؤرشف"
+  },
+  "orgProfilePanel": {
+    "pageDescription": "حدد نوع المؤسسة وخصص المصطلحات في ProjectFlow.",
+    "profileTypeTitle": "نوع ملف المؤسسة",
+    "profileTypeHint": "يتحكم نوع الملف في المراحل والقوالب والوحدات الموصى بها. التغيير لا يحذف البيانات.",
+    "saveProfileType": "حفظ نوع الملف",
+    "terminologyTitle": "تخصيص المصطلحات",
+    "terminologyHint": "خصص التسميات لتناسب مجال عملك. اترك فارغاً للافتراضي.",
+    "saveTerminology": "حفظ المصطلحات",
+    "terminologyPreview": "معاينة المصطلحات",
+    "defaultLabel": "افتراضي: {value}",
+    "fieldProject": "تسمية المشروع",
+    "fieldTask": "تسمية المهمة",
+    "fieldBoard": "تسمية اللوحة",
+    "fieldStage": "تسمية المرحلة",
+    "fieldBucket": "تسمية الدلو",
+    "previewProject": "مشروع →",
+    "previewTask": "مهمة →",
+    "previewBoard": "لوحة →",
+    "previewStage": "مرحلة →",
+    "previewBucket": "دلو →",
+    "types": {
+      "architect": { "label": "مهندس معماري", "description": "تصميم معماري وتخطيط وتراخيص" },
+      "engineer": { "label": "مهندس", "description": "هندسة إنشائية أو مدنية أو MEP" },
+      "consultant": { "label": "استشاري", "description": "استشارات وخدمات مهنية" },
+      "project_manager": { "label": "مدير مشروع", "description": "إدارة ومتابعة مشاريع مستقلة" },
+      "developer": { "label": "مطور / عقارات", "description": "تطوير عقاري وأراضٍ ومشاريع" },
+      "contractor": { "label": "مقاول عام", "description": "بناء وتجديد ومقاولات" },
+      "subcontractor": { "label": "مقاول باطن", "description": "أعمال باطن وتخصصات" },
+      "supervisor": { "label": "مشرف / مفتش", "description": "إشراف موقع وجودة وامتثال" },
+      "other": { "label": "أخرى", "description": "مهنة أخرى في البناء" }
+    },
+    "terminologyDefaults": {
+      "project": "مشروع",
+      "task": "مهمة",
+      "board": "لوحة",
+      "stage": "مرحلة",
+      "bucket": "دلو"
+    }
+  },
+  "adoptionPanel": {
+    "pageDescription": "طبّق مراحل ووحدات ومصطلحات افتراضية حسب نوع الملف.",
+    "intro": "يطبّق هذا المعالج مراحل ووحدات ونوع ملف على مؤسسة موجودة. الكتابة idempotent — لا يستبدل إعدادات موجودة.",
+    "step1Title": "الخطوة 1: اختر ملف المؤسسة",
+    "step2Title": "الخطوة 2: معاينة التغييرات",
+    "step3Title": "الخطوة 3: التطبيق",
+    "previewButton": "معاينة",
+    "applyButton": "تطبيق",
+    "completeTitle": "اكتمل التطبيق",
+    "completeBody": "تم ضبط المراحل والوحدات حسب نوع الملف.",
+    "viewStages": "عرض المراحل",
+    "viewModules": "عرض الوحدات",
+    "step2PreviewTitle": "الخطوة 2: معاينة — {profile}",
+    "stagesToCreate": "مراحل للإنشاء",
+    "allStagesExist": "جميع {count} مراحل الافتراضية موجودة بالفعل.",
+    "stagesSkipped": "{count} مرحلة موجودة وسيتم تخطيها.",
+    "modulesToDisable": "وحدات لتعطيلها افتراضياً",
+    "modulesHint": "تُؤثر فقط على الوحدات غير المُعدّة مسبقاً.",
+    "profileAlreadySet": "نوع ملف المؤسسة مضبوط بالفعل على هذا الملف — لن يُستبدل.",
+    "errors": {
+      "invalidProfileType": "يرجى اختيار نوع ملف مؤسسة صالح",
+      "previewFailed": "فشلت المعاينة",
+      "adoptionFailed": "فشل التطبيق"
+    }
   }
 }

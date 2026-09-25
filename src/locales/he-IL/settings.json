@@ -1365,5 +1365,115 @@
       "supervisor": "מפקח",
       "other": "אחר"
     }
+  },
+  "stagesPanel": {
+    "intro": "הגדרות שלבים מופיעות בכותרות פרויקט ובמסכי מעקב. ארכוב שלב מסתיר אותו מפרויקטים חדשים — נתונים קיימים נשמרים.",
+    "color": "צבע",
+    "stageName": "שם שלב",
+    "addNew": "הוספת שלב חדש",
+    "createStage": "יצירת שלב",
+    "setDefault": "קביעה כברירת מחדל",
+    "defaultBadge": "ברירת מחדל",
+    "emptyState": "אין עדיין שלבים מוגדרים.",
+    "archivedBadge": "בארכיון",
+    "hideArchived": "הסתרת ארכיון",
+    "showArchived": "הצג {count} בארכיון",
+    "workKind": {
+      "all": "כל סוגי העבודה",
+      "project": "פרויקטים בלבד",
+      "job": "עבודות בלבד",
+      "work_order": "הזמנות עבודה בלבד"
+    }
+  },
+  "labelsPanel": {
+    "intro": "תגיות ניתנות למשימות בכל סביבות העבודה. ארכוב תגית מסתיר אותה מבוחרים — שיוכים קיימים נשמרים.",
+    "color": "צבע",
+    "labelName": "שם תגית",
+    "addNew": "הוספת תגית חדשה",
+    "createLabel": "יצירת תגית",
+    "emptyState": "אין עדיין תגיות מוגדרות.",
+    "archivedBadge": "בארכיון",
+    "hideArchived": "הסתרת ארכיון",
+    "showArchived": "הצג {count} בארכיון"
+  },
+  "taskTemplatesPanel": {
+    "intro": "תבניות משימה ממלאות מראש כותרת, תיאור, עדיפות ופריטי צ'ק-ליסט.",
+    "templateTitle": "כותרת תבנית",
+    "descriptionOptional": "תיאור (אופציונלי)",
+    "priority": "עדיפות",
+    "checklistItems": "פריטי צ'ק-ליסט",
+    "itemPlaceholder": "פריט {index}",
+    "addItem": "הוספת פריט",
+    "createTitle": "יצירת תבנית משימה",
+    "createTemplate": "יצירת תבנית",
+    "emptyState": "אין עדיין תבניות משימה.",
+    "checklistCount": "{count} פריטי צ'ק-ליסט",
+    "archivedBadge": "בארכיון",
+    "hideArchived": "הסתרת ארכיון",
+    "showArchived": "הצג {count} בארכיון"
+  },
+  "orgProfilePanel": {
+    "pageDescription": "הגדר את סוג הארגון והתאם את המינוח בכל ProjectFlow.",
+    "profileTypeTitle": "סוג פרופיל ארגון",
+    "profileTypeHint": "סוג הפרופיל קובע שלבים, תבניות והמלצות מודולים. שינוי אינו מוחק נתונים קיימים.",
+    "saveProfileType": "שמירת סוג פרופיל",
+    "terminologyTitle": "התאמת מינוח",
+    "terminologyHint": "התאם תוויות שמוצגות ב-ProjectFlow לשפת התעשייה שלך. השאר ריק לברירת מחדל.",
+    "saveTerminology": "שמירת מינוח",
+    "terminologyPreview": "תצוגה מקדימה של מינוח",
+    "defaultLabel": "ברירת מחדל: {value}",
+    "fieldProject": "תווית פרויקט",
+    "fieldTask": "תווית משימה",
+    "fieldBoard": "תווית לוח",
+    "fieldStage": "תווית שלב",
+    "fieldBucket": "תווית דלי",
+    "previewProject": "פרויקט →",
+    "previewTask": "משימה →",
+    "previewBoard": "לוח →",
+    "previewStage": "שלב →",
+    "previewBucket": "דלי →",
+    "types": {
+      "architect": { "label": "אדריכל", "description": "תכנון אדריכלי, תכנון והיתרים" },
+      "engineer": { "label": "מהנדס", "description": "הנדסה קונструקטיבית, אזרחית, MEP או התמחות" },
+      "consultant": { "label": "יועץ", "description": "ייעוץ מקצועי ושירותי ליווי" },
+      "project_manager": { "label": "מנהל פרויקט", "description": "ניהול פרויקטים ופיקוח עצמאי" },
+      "developer": { "label": "יזם / נדל\"ן", "description": "יזמות, קרקעות ופרויקטי נדל\"ן" },
+      "contractor": { "label": "קבלן ראשי", "description": "בנייה, שיפוץ וקבלנות" },
+      "subcontractor": { "label": "קבלן משנה", "description": "עבודות משנה ומקצועות" },
+      "supervisor": { "label": "מפקח / בודק", "description": "פיקוח אתר, בקרת איכות ותאימות" },
+      "other": { "label": "אחר", "description": "מקצוע אחר בתעשיית הבנייה" }
+    },
+    "terminologyDefaults": {
+      "project": "פרויקט",
+      "task": "משימה",
+      "board": "לוח",
+      "stage": "שלב",
+      "bucket": "דלי"
+    }
+  },
+  "adoptionPanel": {
+    "pageDescription": "החל הגדרות שלבים, מודולים ומינוח לפי סוג פרופיל הארגון.",
+    "intro": "אשף זה מחיל שלבים, נראות מודולים וסוג פרופיל על ארגון קיים. כל הכתיבות idempotent — לא דורס הגדרות קיימות.",
+    "step1Title": "שלב 1: בחר פרופיל ארגון",
+    "step2Title": "שלב 2: תצוגה מקדימה",
+    "step3Title": "שלב 3: החלה",
+    "previewButton": "תצוגה מקדימה",
+    "applyButton": "החלת הגדרות",
+    "completeTitle": "ההטמעה הושלמה",
+    "completeBody": "שלבים והגדרות מודולים הוגדרו לפי סוג הפרופיל.",
+    "viewStages": "צפייה בשלבים",
+    "viewModules": "צפייה במודולים",
+    "step2PreviewTitle": "שלב 2: תצוגה מקדימה — {profile}",
+    "stagesToCreate": "שלבים ליצירה",
+    "allStagesExist": "כל {count} שלבי ברירת המחדל כבר קיימים.",
+    "stagesSkipped": "{count} שלב(ים) כבר קיימים וידולגו.",
+    "modulesToDisable": "מודולים להשבתה כברירת מחדל",
+    "modulesHint": "רק מודולים שטרם הוגדרו יושפעו.",
+    "profileAlreadySet": "סוג פרופיל הארגון כבר מוגדר לפרופיל זה — לא יוחלף.",
+    "errors": {
+      "invalidProfileType": "יש לבחור סוג פרופיל ארגון תקין",
+      "previewFailed": "התצוגה המקדימה נכשלה",
+      "adoptionFailed": "ההטמעה נכשלה"
+    }
   }
 }

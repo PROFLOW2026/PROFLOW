@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 import { Card } from '@/components/ui/card';
 import { withOrgContext } from '@/shared/auth/session';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -7,13 +8,16 @@ import { hasPermission } from '@/shared/permissions/assert';
 import { projectTemplates, projectTemplateStages } from '@drizzle/schema';
 // eslint-disable-next-line no-restricted-imports
 import { eq, asc } from 'drizzle-orm';
-import { SettingsPageShell } from '../settings-shell';
+import { SettingsPageShell, settingsMetadata } from '../settings-shell';
 import { SettingsNotAllowed } from '../settings-not-allowed';
 import { ProjectTemplatesPanel } from './project-templates-panel';
 
-export const metadata: Metadata = { title: 'Project Templates' };
+export async function generateMetadata(): Promise<Metadata> {
+  return settingsMetadata('projectTemplates');
+}
 
 export default async function ProjectTemplatesSettingsPage() {
+  const t = await getTranslations('settings.projectTemplatesSection');
   const data = await withOrgContext(async (context) => {
     if (!hasPermission(context, PERMISSIONS.PROJECT_TEMPLATES_MANAGE)) {
       return { allowed: false as const };
@@ -41,17 +45,14 @@ export default async function ProjectTemplatesSettingsPage() {
 
   if (!data.allowed) {
     return (
-      <SettingsPageShell title="Project Templates">
+      <SettingsPageShell title={t('nav')}>
         <SettingsNotAllowed />
       </SettingsPageShell>
     );
   }
 
   return (
-    <SettingsPageShell
-      title="Project Templates"
-      description="Reusable project blueprints with predefined stages."
-    >
+    <SettingsPageShell title={t('nav')} description={t('description')}>
       <Card className="p-5">
         <ProjectTemplatesPanel templates={data.templates} canEdit={data.canEdit} />
       </Card>

@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { getTranslations } from 'next-intl/server';
 import { withOrgContext } from '@/shared/auth/session';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -22,11 +23,12 @@ export async function previewOrgAdoptionAction(
   _prev: AdoptionActionState,
   formData: FormData,
 ): Promise<AdoptionActionState> {
+  const t = await getTranslations('settings.adoptionPanel.errors');
   try {
     const orgProfileType = formData.get('orgProfileType') as string | null;
 
     if (!orgProfileType || !isOrgProfileType(orgProfileType)) {
-      return { error: 'Please select a valid organization profile type' };
+      return { error: t('invalidProfileType') };
     }
 
     const preview = await withOrgContext(async (context) => {
@@ -36,7 +38,7 @@ export async function previewOrgAdoptionAction(
 
     return { preview };
   } catch (err: unknown) {
-    return { error: err instanceof Error ? err.message : 'Preview failed' };
+    return { error: err instanceof Error ? err.message : t('previewFailed') };
   }
 }
 
@@ -44,11 +46,12 @@ export async function applyOrgAdoptionAction(
   _prev: AdoptionActionState,
   formData: FormData,
 ): Promise<AdoptionActionState> {
+  const t = await getTranslations('settings.adoptionPanel.errors');
   try {
     const orgProfileType = formData.get('orgProfileType') as string | null;
 
     if (!orgProfileType || !isOrgProfileType(orgProfileType)) {
-      return { error: 'Invalid profile type' };
+      return { error: t('invalidProfileType') };
     }
 
     await withOrgContext(async (context) => {
@@ -75,6 +78,6 @@ export async function applyOrgAdoptionAction(
 
     return { ok: true };
   } catch (err: unknown) {
-    return { error: err instanceof Error ? err.message : 'Adoption failed' };
+    return { error: err instanceof Error ? err.message : t('adoptionFailed') };
   }
 }

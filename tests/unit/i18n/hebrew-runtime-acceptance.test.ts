@@ -5,7 +5,7 @@ import { formatMoneyAmountForInput } from '@/components/patterns/money-input';
 import { localizeClientTypeName } from '@/modules/business-catalog/domain/client-type-labels';
 import { localizePaymentTermName } from '@/modules/business-catalog/domain/payment-term-labels';
 import { MESSAGE_NAMESPACES } from '@/shared/i18n/config';
-import { flattenLocaleCatalog, readLocaleCatalog } from '../shared/i18n-messages.test';
+import { flattenLocaleCatalog, readLocaleCatalog } from '../shared/i18n-catalog-helpers';
 
 const HE_DIR = join(process.cwd(), 'src', 'locales', 'he-IL');
 

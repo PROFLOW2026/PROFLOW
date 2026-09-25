@@ -1,6 +1,7 @@
 'use client';
 
 import { useActionState, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,6 +16,8 @@ interface TaskLabel {
 }
 
 function LabelRow({ label, canEdit }: { label: TaskLabel; canEdit: boolean }) {
+  const t = useTranslations('settings.labelsPanel');
+  const tActions = useTranslations('common.actions');
   const [editing, setEditing] = useState(false);
   const [updateState, updateAction, updatePending] = useActionState(updateLabelAction, {} as LabelActionState);
   const [archiveState, archiveAction, archivePending] = useActionState(archiveLabelAction, {} as LabelActionState);
@@ -31,19 +34,19 @@ function LabelRow({ label, canEdit }: { label: TaskLabel; canEdit: boolean }) {
           {label.name}
         </span>
         {label.isArchived && (
-          <Badge tone="neutral" className="text-xs text-[var(--pf-text-muted)]">Archived</Badge>
+          <Badge tone="neutral" className="text-xs text-[var(--pf-text-muted)]">{t('archivedBadge')}</Badge>
         )}
         <div className="ml-auto flex gap-1">
           {canEdit && (
             <>
               <Button size="sm" variant="ghost" onClick={() => setEditing(!editing)}>
-                {editing ? 'Cancel' : 'Edit'}
+                {editing ? tActions('cancel') : tActions('edit')}
               </Button>
               <form action={archiveAction}>
                 <input type="hidden" name="id" value={label.id} />
                 <input type="hidden" name="restore" value={label.isArchived ? 'true' : 'false'} />
                 <Button type="submit" size="sm" variant="ghost" loading={archivePending}>
-                  {label.isArchived ? 'Restore' : 'Archive'}
+                  {label.isArchived ? tActions('restore') : tActions('archive')}
                 </Button>
               </form>
             </>
@@ -59,12 +62,12 @@ function LabelRow({ label, canEdit }: { label: TaskLabel; canEdit: boolean }) {
               name="name"
               value={editName}
               onChange={(e) => setEditName(e.target.value)}
-              placeholder="Label name"
+              placeholder={t('labelName')}
               className="flex-1"
               required
             />
             <div className="flex items-center gap-2">
-              <label className="text-sm text-[var(--pf-text-secondary)]">Color</label>
+              <label className="text-sm text-[var(--pf-text-secondary)]">{t('color')}</label>
               <input
                 type="color"
                 name="color"
@@ -75,8 +78,8 @@ function LabelRow({ label, canEdit }: { label: TaskLabel; canEdit: boolean }) {
             </div>
           </div>
           <div className="flex gap-2">
-            <Button type="submit" size="sm" loading={updatePending}>Save</Button>
-            <Button type="button" size="sm" variant="ghost" onClick={() => setEditing(false)}>Cancel</Button>
+            <Button type="submit" size="sm" loading={updatePending}>{tActions('save')}</Button>
+            <Button type="button" size="sm" variant="ghost" onClick={() => setEditing(false)}>{tActions('cancel')}</Button>
           </div>
           {updateState.error && <Alert tone="danger">{updateState.error}</Alert>}
           {updateState.ok && <Alert tone="success" role="status">{updateState.message}</Alert>}
@@ -88,6 +91,8 @@ function LabelRow({ label, canEdit }: { label: TaskLabel; canEdit: boolean }) {
 }
 
 function CreateLabelForm({ canEdit }: { canEdit: boolean }) {
+  const t = useTranslations('settings.labelsPanel');
+  const tActions = useTranslations('common.actions');
   const [state, action, pending] = useActionState(createLabelAction, {} as LabelActionState);
   const [color, setColor] = useState('#6366f1');
 
@@ -95,11 +100,11 @@ function CreateLabelForm({ canEdit }: { canEdit: boolean }) {
 
   return (
     <form action={action} className="flex flex-col gap-3 rounded-lg border border-dashed border-[var(--pf-border-default)] p-4">
-      <p className="text-sm font-medium">Add new label</p>
+      <p className="text-sm font-medium">{t('addNew')}</p>
       <div className="flex flex-wrap gap-3">
-        <Input name="name" placeholder="Label name" className="flex-1" required />
+        <Input name="name" placeholder={t('labelName')} className="flex-1" required />
         <div className="flex items-center gap-2">
-          <label className="text-sm text-[var(--pf-text-secondary)]">Color</label>
+          <label className="text-sm text-[var(--pf-text-secondary)]">{t('color')}</label>
           <input
             type="color"
             name="color"
@@ -110,7 +115,7 @@ function CreateLabelForm({ canEdit }: { canEdit: boolean }) {
         </div>
       </div>
       <div>
-        <Button type="submit" size="sm" loading={pending}>Create label</Button>
+        <Button type="submit" size="sm" loading={pending}>{t('createLabel')}</Button>
       </div>
       {state.error && <Alert tone="danger">{state.error}</Alert>}
       {state.ok && <Alert tone="success" role="status">{state.message}</Alert>}
@@ -119,19 +124,18 @@ function CreateLabelForm({ canEdit }: { canEdit: boolean }) {
 }
 
 export function LabelsPanel({ labels, canEdit }: { labels: TaskLabel[]; canEdit: boolean }) {
+  const t = useTranslations('settings.labelsPanel');
   const active = labels.filter((l) => !l.isArchived);
   const archived = labels.filter((l) => l.isArchived);
   const [showArchived, setShowArchived] = useState(false);
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-sm text-[var(--pf-text-secondary)]">
-        Labels can be applied to tasks across all workspaces. Archiving a label hides it from pickers — existing assignments are preserved.
-      </p>
+      <p className="text-sm text-[var(--pf-text-secondary)]">{t('intro')}</p>
 
       <div className="rounded-lg border border-[var(--pf-border-default)] p-4">
         {active.length === 0 && (
-          <p className="text-sm text-[var(--pf-text-muted)]">No labels defined yet.</p>
+          <p className="text-sm text-[var(--pf-text-muted)]">{t('emptyState')}</p>
         )}
         {active.map((label) => (
           <LabelRow key={label.id} label={label} canEdit={canEdit} />
@@ -143,7 +147,7 @@ export function LabelsPanel({ labels, canEdit }: { labels: TaskLabel[]; canEdit:
       {archived.length > 0 && (
         <div>
           <Button type="button" size="sm" variant="ghost" onClick={() => setShowArchived(!showArchived)}>
-            {showArchived ? 'Hide archived' : `Show ${archived.length} archived`}
+            {showArchived ? t('hideArchived') : t('showArchived', { count: archived.length })}
           </Button>
           {showArchived && (
             <div className="mt-2 rounded-lg border border-[var(--pf-border-default)] p-4 opacity-60">

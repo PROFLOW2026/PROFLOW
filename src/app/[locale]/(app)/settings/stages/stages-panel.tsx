@@ -1,6 +1,7 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useActionState, useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,18 +15,7 @@ import {
   type StageActionState,
 } from './actions';
 
-const _STAGE_COLORS = [
-  '#6366f1', '#8b5cf6', '#ec4899', '#f43f5e',
-  '#f97316', '#eab308', '#22c55e', '#14b8a6',
-  '#3b82f6', '#64748b',
-];
-
-const WORK_KIND_OPTIONS = [
-  { value: 'all', label: 'All work kinds' },
-  { value: 'project', label: 'Projects only' },
-  { value: 'job', label: 'Jobs only' },
-  { value: 'work_order', label: 'Work orders only' },
-];
+const WORK_KIND_VALUES = ['all', 'project', 'job', 'work_order'] as const;
 
 interface StageDef {
   id: string;
@@ -37,6 +27,14 @@ interface StageDef {
   workKindFilter: string | null;
 }
 
+function useWorkKindOptions() {
+  const t = useTranslations('settings.stagesPanel');
+  return useMemo(
+    () => WORK_KIND_VALUES.map((value) => ({ value, label: t(`workKind.${value}`) })),
+    [t],
+  );
+}
+
 function StageRow({
   stage,
   canEdit,
@@ -44,6 +42,9 @@ function StageRow({
   stage: StageDef;
   canEdit: boolean;
 }) {
+  const t = useTranslations('settings.stagesPanel');
+  const tActions = useTranslations('common.actions');
+  const workKindOptions = useWorkKindOptions();
   const [editing, setEditing] = useState(false);
   const [updateState, updateAction, updatePending] = useActionState(updateStageAction, {} as StageActionState);
   const [archiveState, archiveAction, archivePending] = useActionState(archiveStageAction, {} as StageActionState);
@@ -55,7 +56,6 @@ function StageRow({
   return (
     <div className={`flex flex-col gap-2 border-b border-[var(--pf-border-default)] py-3 last:border-0 ${stage.isArchived ? 'opacity-50' : ''}`}>
       <div className="flex flex-wrap items-center gap-2">
-        {/* Color dot */}
         <span
           className="h-4 w-4 shrink-0 rounded-full border border-[var(--pf-border-default)]"
           style={{ backgroundColor: stage.color ?? '#64748b' }}
@@ -63,28 +63,28 @@ function StageRow({
         <span className="min-w-0 flex-1 font-medium">{stage.name}</span>
 
         {stage.isDefault && (
-          <Badge tone="success" className="text-xs">Default</Badge>
+          <Badge tone="success" className="text-xs">{t('defaultBadge')}</Badge>
         )}
         {stage.isArchived && (
-          <Badge tone="neutral" className="text-xs text-[var(--pf-text-muted)]">Archived</Badge>
+          <Badge tone="neutral" className="text-xs text-[var(--pf-text-muted)]">{t('archivedBadge')}</Badge>
         )}
         {stage.workKindFilter && (
           <Badge tone="info" className="text-xs">
-            {WORK_KIND_OPTIONS.find((o) => o.value === stage.workKindFilter)?.label ?? stage.workKindFilter}
+            {workKindOptions.find((o) => o.value === stage.workKindFilter)?.label ?? stage.workKindFilter}
           </Badge>
         )}
 
         {canEdit && (
           <div className="flex gap-1">
             <Button size="sm" variant="ghost" onClick={() => setEditing(!editing)}>
-              {editing ? 'Cancel' : 'Edit'}
+              {editing ? tActions('cancel') : tActions('edit')}
             </Button>
 
             {!stage.isDefault && !stage.isArchived && (
               <form action={defaultAction}>
                 <input type="hidden" name="id" value={stage.id} />
                 <Button type="submit" size="sm" variant="ghost" loading={defaultPending}>
-                  Set default
+                  {t('setDefault')}
                 </Button>
               </form>
             )}
@@ -93,7 +93,7 @@ function StageRow({
               <input type="hidden" name="id" value={stage.id} />
               <input type="hidden" name="restore" value={stage.isArchived ? 'true' : 'false'} />
               <Button type="submit" size="sm" variant="ghost" loading={archivePending}>
-                {stage.isArchived ? 'Restore' : 'Archive'}
+                {stage.isArchived ? tActions('restore') : tActions('archive')}
               </Button>
             </form>
           </div>
@@ -108,12 +108,12 @@ function StageRow({
               name="name"
               value={editName}
               onChange={(e) => setEditName(e.target.value)}
-              placeholder="Stage name"
+              placeholder={t('stageName')}
               className="flex-1"
               required
             />
             <div className="flex items-center gap-2">
-              <label className="text-sm text-[var(--pf-text-secondary)]">Color</label>
+              <label className="text-sm text-[var(--pf-text-secondary)]">{t('color')}</label>
               <input
                 type="color"
                 name="color"
@@ -128,14 +128,14 @@ function StageRow({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {WORK_KIND_OPTIONS.map((o) => (
+              {workKindOptions.map((o) => (
                 <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
               ))}
             </SelectContent>
           </Select>
           <div className="flex gap-2">
-            <Button type="submit" size="sm" loading={updatePending}>Save</Button>
-            <Button type="button" size="sm" variant="ghost" onClick={() => setEditing(false)}>Cancel</Button>
+            <Button type="submit" size="sm" loading={updatePending}>{tActions('save')}</Button>
+            <Button type="button" size="sm" variant="ghost" onClick={() => setEditing(false)}>{tActions('cancel')}</Button>
           </div>
           {updateState.error && <Alert tone="danger">{updateState.error}</Alert>}
           {updateState.ok && <Alert tone="success" role="status">{updateState.message}</Alert>}
@@ -150,6 +150,9 @@ function StageRow({
 }
 
 function CreateStageForm({ canEdit }: { canEdit: boolean }) {
+  const t = useTranslations('settings.stagesPanel');
+  const tActions = useTranslations('common.actions');
+  const workKindOptions = useWorkKindOptions();
   const [state, action, pending] = useActionState(createStageAction, {} as StageActionState);
   const [color, setColor] = useState('#6366f1');
 
@@ -157,11 +160,11 @@ function CreateStageForm({ canEdit }: { canEdit: boolean }) {
 
   return (
     <form action={action} className="flex flex-col gap-3 rounded-lg border border-dashed border-[var(--pf-border-default)] p-4">
-      <p className="text-sm font-medium">Add new stage</p>
+      <p className="text-sm font-medium">{t('addNew')}</p>
       <div className="flex flex-wrap gap-3">
-        <Input name="name" placeholder="Stage name" className="flex-1" required />
+        <Input name="name" placeholder={t('stageName')} className="flex-1" required />
         <div className="flex items-center gap-2">
-          <label className="text-sm text-[var(--pf-text-secondary)]">Color</label>
+          <label className="text-sm text-[var(--pf-text-secondary)]">{t('color')}</label>
           <input
             type="color"
             name="color"
@@ -176,13 +179,13 @@ function CreateStageForm({ canEdit }: { canEdit: boolean }) {
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          {WORK_KIND_OPTIONS.map((o) => (
+          {workKindOptions.map((o) => (
             <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
           ))}
         </SelectContent>
       </Select>
       <div>
-        <Button type="submit" size="sm" loading={pending}>Create stage</Button>
+        <Button type="submit" size="sm" loading={pending}>{t('createStage')}</Button>
       </div>
       {state.error && <Alert tone="danger">{state.error}</Alert>}
       {state.ok && <Alert tone="success" role="status">{state.message}</Alert>}
@@ -197,20 +200,18 @@ export function StagesPanel({
   stages: StageDef[];
   canEdit: boolean;
 }) {
+  const t = useTranslations('settings.stagesPanel');
   const active = stages.filter((s) => !s.isArchived);
   const archived = stages.filter((s) => s.isArchived);
   const [showArchived, setShowArchived] = useState(false);
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-sm text-[var(--pf-text-secondary)]">
-        Stage definitions appear in your project headers and tracking views. Drag to reorder (coming soon).
-        Archiving a stage hides it from new projects — existing data is preserved.
-      </p>
+      <p className="text-sm text-[var(--pf-text-secondary)]">{t('intro')}</p>
 
       <div className="rounded-lg border border-[var(--pf-border-default)] p-4">
         {active.length === 0 && (
-          <p className="text-sm text-[var(--pf-text-muted)]">No stages defined yet.</p>
+          <p className="text-sm text-[var(--pf-text-muted)]">{t('emptyState')}</p>
         )}
         {active.map((stage) => (
           <StageRow key={stage.id} stage={stage} canEdit={canEdit} />
@@ -227,7 +228,7 @@ export function StagesPanel({
             variant="ghost"
             onClick={() => setShowArchived(!showArchived)}
           >
-            {showArchived ? 'Hide archived' : `Show ${archived.length} archived`}
+            {showArchived ? t('hideArchived') : t('showArchived', { count: archived.length })}
           </Button>
           {showArchived && (
             <div className="mt-2 rounded-lg border border-[var(--pf-border-default)] p-4 opacity-60">

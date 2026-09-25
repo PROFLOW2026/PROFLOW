@@ -1,12 +1,12 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useMemo } from 'react';
+import { useTranslations } from 'next-intl';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { updateOrgProfileTypeAction, updateTerminologyConfigAction, type OrgProfileActionState } from './actions';
 import {
-  ORG_PROFILE_TYPE_LABELS,
   DEFAULT_TERMINOLOGY,
   type OrgProfileType,
   type TerminologyOverrides,
@@ -20,21 +20,18 @@ function ProfileTypeSelector({
   currentType: OrgProfileType | null;
   canEdit: boolean;
 }) {
+  const t = useTranslations('settings.orgProfilePanel');
   const [state, action, pending] = useActionState(updateOrgProfileTypeAction, {} as OrgProfileActionState);
 
   return (
     <form action={action} className="flex flex-col gap-4">
       <div>
-        <p className="mb-1 text-sm font-medium">Organization profile type</p>
-        <p className="text-xs text-[var(--pf-text-secondary)]">
-          Your profile type controls default stage definitions, templates, and which modules are recommended.
-          Changing this does not delete any existing data.
-        </p>
+        <p className="mb-1 text-sm font-medium">{t('profileTypeTitle')}</p>
+        <p className="text-xs text-[var(--pf-text-secondary)]">{t('profileTypeHint')}</p>
       </div>
 
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {ORG_PROFILE_TYPES.map((type) => {
-          const info = ORG_PROFILE_TYPE_LABELS[type];
           const isSelected = currentType === type;
           return (
             <label
@@ -53,8 +50,8 @@ function ProfileTypeSelector({
                 className="sr-only"
                 disabled={!canEdit}
               />
-              <span className="text-sm font-medium">{info.label}</span>
-              <span className="text-xs text-[var(--pf-text-secondary)]">{info.description}</span>
+              <span className="text-sm font-medium">{t(`types.${type}.label`)}</span>
+              <span className="text-xs text-[var(--pf-text-secondary)]">{t(`types.${type}.description`)}</span>
             </label>
           );
         })}
@@ -62,7 +59,7 @@ function ProfileTypeSelector({
 
       {canEdit && (
         <div>
-          <Button type="submit" size="sm" loading={pending}>Save profile type</Button>
+          <Button type="submit" size="sm" loading={pending}>{t('saveProfileType')}</Button>
         </div>
       )}
 
@@ -79,38 +76,44 @@ function TerminologyForm({
   overrides: TerminologyOverrides;
   canEdit: boolean;
 }) {
+  const t = useTranslations('settings.orgProfilePanel');
   const [state, action, pending] = useActionState(updateTerminologyConfigAction, {} as OrgProfileActionState);
 
-  const fields: { key: keyof TerminologyOverrides; label: string }[] = [
-    { key: 'project', label: 'Project label' },
-    { key: 'task', label: 'Task label' },
-    { key: 'board', label: 'Board label' },
-    { key: 'stage', label: 'Stage label' },
-    { key: 'bucket', label: 'Bucket label' },
-  ];
+  const fields = useMemo(
+    () =>
+      ([
+        { key: 'project' as const, label: t('fieldProject') },
+        { key: 'task' as const, label: t('fieldTask') },
+        { key: 'board' as const, label: t('fieldBoard') },
+        { key: 'stage' as const, label: t('fieldStage') },
+        { key: 'bucket' as const, label: t('fieldBucket') },
+      ]).map(({ key, label }) => ({
+        key,
+        label,
+        defaultValue: t(`terminologyDefaults.${key}`),
+      })),
+    [t],
+  );
 
   return (
     <form action={action} className="flex flex-col gap-4">
       <div>
-        <p className="mb-1 text-sm font-medium">Terminology overrides</p>
-        <p className="text-xs text-[var(--pf-text-secondary)]">
-          Customize labels shown throughout ProjectFlow to match your industry&apos;s vocabulary.
-          Leave blank to use the default term.
-        </p>
+        <p className="mb-1 text-sm font-medium">{t('terminologyTitle')}</p>
+        <p className="text-xs text-[var(--pf-text-secondary)]">{t('terminologyHint')}</p>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
-        {fields.map(({ key, label }) => (
+        {fields.map(({ key, label, defaultValue }) => (
           <div key={key} className="flex flex-col gap-1">
             <label className="text-sm text-[var(--pf-text-secondary)]">{label}</label>
             <Input
               name={key}
               defaultValue={overrides[key] ?? ''}
-              placeholder={DEFAULT_TERMINOLOGY[key]}
+              placeholder={defaultValue}
               disabled={!canEdit}
             />
             <span className="text-xs text-[var(--pf-text-muted)]">
-              Default: <em>{DEFAULT_TERMINOLOGY[key]}</em>
+              {t('defaultLabel', { value: defaultValue })}
             </span>
           </div>
         ))}
@@ -118,7 +121,7 @@ function TerminologyForm({
 
       {canEdit && (
         <div>
-          <Button type="submit" size="sm" loading={pending}>Save terminology</Button>
+          <Button type="submit" size="sm" loading={pending}>{t('saveTerminology')}</Button>
         </div>
       )}
 
@@ -129,33 +132,29 @@ function TerminologyForm({
 }
 
 function TerminologyPreview({ overrides }: { overrides: TerminologyOverrides }) {
+  const t = useTranslations('settings.orgProfilePanel');
+
   const resolve = (key: keyof TerminologyOverrides) =>
-    overrides[key] || DEFAULT_TERMINOLOGY[key];
+    overrides[key] || t(`terminologyDefaults.${key}`);
+
+  const previewItems = [
+    { label: t('previewProject'), value: resolve('project') },
+    { label: t('previewTask'), value: resolve('task') },
+    { label: t('previewBoard'), value: resolve('board') },
+    { label: t('previewStage'), value: resolve('stage') },
+    { label: t('previewBucket'), value: resolve('bucket') },
+  ];
 
   return (
     <div className="rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-surface-secondary)] p-4">
-      <p className="mb-2 text-xs font-medium text-[var(--pf-text-muted)]">TERMINOLOGY PREVIEW</p>
+      <p className="mb-2 text-xs font-medium text-[var(--pf-text-muted)]">{t('terminologyPreview')}</p>
       <div className="flex flex-wrap gap-3 text-sm">
-        <span>
-          <span className="text-[var(--pf-text-muted)]">Project →</span>{' '}
-          <strong>{resolve('project')}</strong>
-        </span>
-        <span>
-          <span className="text-[var(--pf-text-muted)]">Task →</span>{' '}
-          <strong>{resolve('task')}</strong>
-        </span>
-        <span>
-          <span className="text-[var(--pf-text-muted)]">Board →</span>{' '}
-          <strong>{resolve('board')}</strong>
-        </span>
-        <span>
-          <span className="text-[var(--pf-text-muted)]">Stage →</span>{' '}
-          <strong>{resolve('stage')}</strong>
-        </span>
-        <span>
-          <span className="text-[var(--pf-text-muted)]">Bucket →</span>{' '}
-          <strong>{resolve('bucket')}</strong>
-        </span>
+        {previewItems.map(({ label, value }) => (
+          <span key={label}>
+            <span className="text-[var(--pf-text-muted)]">{label}</span>{' '}
+            <strong>{value}</strong>
+          </span>
+        ))}
       </div>
     </div>
   );
