@@ -18,7 +18,6 @@ import {
   updateCatalogEntry,
 } from '../data/catalog.repository';
 import {
-  archiveDocumentRequirementRule,
   archiveDocumentRequirementRules,
   findDocumentRequirementRuleByTarget,
   insertDocumentRequirementRule,
