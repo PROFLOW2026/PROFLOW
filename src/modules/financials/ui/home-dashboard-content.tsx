@@ -30,6 +30,7 @@ import {
   type MonthCashSource,
 } from '../domain/month-cash-flow';
 import { MonthCashMonthPicker } from './month-cash-month-picker';
+import type { RevenueTriplet } from '@/modules/billing/domain/revenue-position';
 import { subtractMoney } from '@/shared/money';
 import {
   buildAllocatedOverheadDetail,
