@@ -527,6 +527,7 @@
     "inventoryQtyRequired": "أدخل الكمية المُستلمة في المخزون.",
     "inventoryStockPurchaseIncomplete": "مصروفات شراء مخزون تحتاج بنداً وكمية قبل الاعتماد.",
     "classificationRequired": "اختر نوع مصروف قبل الاعتراف بهذه التكلفة.",
+    "internalPayrollRestricted": "لا يمكن تسجيل رواتب الموظفين الداخلية كمصروف عادي. استخدم قسم القوى العاملة.",
     "approveFailed": "تعذّر اعتماد المصروف. تحقق من الحقول المطلوبة وحاول مرة أخرى."
   },
   "activityTimeline": {
