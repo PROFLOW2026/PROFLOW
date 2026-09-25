@@ -192,6 +192,12 @@
     "paidActualHint": "Cash that left in the selected month, by payment date. Not recognized cost.",
     "paidActualWhat": "Payments confirmed manually or automatically. Drafts and plans are not included.",
     "paidActualFormula": "Sum of outgoing payments whose payment date is in the month.",
+    "cashSource": {
+      "payroll": "Payroll payment",
+      "expense": "Expense",
+      "ap": "Vendor payment",
+      "subcontract_advance": "Subcontractor advance"
+    },
     "expectedOutgoing": "Still due",
     "expectedOutgoingHint": "Balances whose due date is in the selected month and that are not fully paid.",
     "expectedOutgoingWhat": "Known obligations with a due date in the month, after amounts already paid.",

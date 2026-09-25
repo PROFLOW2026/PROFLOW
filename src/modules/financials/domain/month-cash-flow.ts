@@ -118,6 +118,16 @@ export interface MonthAdvanceCashSnapshot {
   readonly reference: string | null;
 }
 
+const TECHNICAL_ID =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+/** Display text only. A database id is never a name. */
+export function cashLineDisplayText(value: string | null | undefined): string {
+  const trimmed = value?.trim() ?? '';
+  if (!trimmed || TECHNICAL_ID.test(trimmed)) return '';
+  return trimmed;
+}
+
 const PAID_ADVANCE_STATUSES = new Set([
   'paid',
   'partially_applied',
@@ -354,6 +364,7 @@ export function composeMonthCashFlow(input: {
   const currency = input.currency.toUpperCase();
   const paid: MonthCashPaidLine[] = [];
   const expected: MonthCashExpectedLine[] = [];
+  // Same canonical line id only. Free text, amounts, and dates never collapse rows.
   const seenPaid = new Set<string>();
 
   function pushPaid(line: MonthCashPaidLine): void {

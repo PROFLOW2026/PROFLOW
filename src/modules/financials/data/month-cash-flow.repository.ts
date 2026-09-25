@@ -24,6 +24,7 @@ import type { DbExecutor } from '@/shared/db/types';
 import { sqlRows } from './sql-rows';
 import {
   apPaymentDisplay,
+  cashLineDisplayText,
   documentCashTriplet,
   type MonthAdvanceCashSnapshot,
   type MonthCashExpectedLine,
@@ -128,8 +129,8 @@ export async function loadMonthApPayments(
     return {
       id: `ap:${row.id}`,
       source: 'ap' as const,
-      party: row.vendorName,
-      document: row.reference?.trim() || row.method?.trim() || row.id,
+      party: cashLineDisplayText(row.vendorName),
+      document: cashLineDisplayText(row.reference) || cashLineDisplayText(row.method),
       paymentDate: businessDate(row.paymentDate),
       amount,
       display: apPaymentDisplay({ amount, applications }),
@@ -149,7 +150,7 @@ export async function loadMonthApBillsDue(
     SELECT
       b.id,
       v.name AS party,
-      coalesce(nullif(b.reference, ''), b.id::text) AS document,
+      coalesce(nullif(b.reference, ''), '') AS document,
       b.due_date,
       c.name AS payment_terms,
       b.status,
@@ -303,8 +304,8 @@ export async function loadMonthExpenseCashSnapshots(
 
   return rows.map((row) => ({
     id: row.id,
-    party: row.supplierName?.trim() || row.description?.trim() || row.id,
-    document: row.description?.trim() || row.id,
+    party: cashLineDisplayText(row.supplierName) || cashLineDisplayText(row.description),
+    document: cashLineDisplayText(row.description),
     grossAmount: row.grossAmount,
     netAmount: row.netAmount,
     taxAmount: row.taxAmount,
@@ -344,7 +345,7 @@ export async function loadMonthPayrollCashSnapshots(
       voidedAt: employeePayrollPayments.voidedAt,
     })
     .from(employeePayrollPayments)
-    .innerJoin(
+    .leftJoin(
       employees,
       and(
         eq(employees.id, employeePayrollPayments.employeeId),
@@ -365,7 +366,7 @@ export async function loadMonthPayrollCashSnapshots(
 
   return rows.map((row) => ({
     id: row.id,
-    party: row.employeeName,
+    party: cashLineDisplayText(row.employeeName),
     document: row.yearMonth,
     expectedAmount: row.expectedAmount,
     paidAmount: row.paidAmount,

@@ -33,7 +33,6 @@ export async function getMonthCashFlow(
   const currency = context.organization.baseCurrency.toUpperCase();
   const canReadCosts = hasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ);
   const canReadAp = hasPermission(context, PERMISSIONS.AP_READ);
-  const canReadWorkforce = hasPermission(context, PERMISSIONS.WORKFORCE_READ);
 
   const [apPayments, apBills, expenses, payroll, advances] = await Promise.all([
     canReadAp
@@ -45,7 +44,7 @@ export async function getMonthCashFlow(
     canReadCosts
       ? loadMonthExpenseCashSnapshots(context.db, context.organizationId, currency)
       : Promise.resolve([]),
-    canReadCosts && canReadWorkforce
+    canReadCosts
       ? loadMonthPayrollCashSnapshots(
           context.db,
           context.organizationId,

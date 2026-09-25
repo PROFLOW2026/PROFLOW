@@ -3,11 +3,13 @@ import { businessDate } from '@/shared/dates';
 import { money, multiplyMoney } from '@/shared/money';
 import {
   apPaymentDisplay,
+  cashLineDisplayText,
   composeMonthCashFlow,
   documentCashTriplet,
   type MonthCashExpectedLine,
   type MonthCashPaidLine,
   type MonthExpenseCashSnapshot,
+  type MonthPayrollCashSnapshot,
 } from '@/modules/financials/domain/month-cash-flow';
 
 const ILS = 'ILS';
@@ -330,5 +332,53 @@ describe('monthly NET / GROSS display', () => {
     expect(display.net.amount).toBe(money('10000', ILS).amount);
     expect(display.gross.amount).toBe(money('11800', ILS).amount);
     expect(display.vat.amount).toBe(money('1800', ILS).amount);
+  });
+
+  it('counts payroll by payment date and ignores an expense labeled employees', () => {
+    const payroll: MonthPayrollCashSnapshot = {
+      id: 'pay-mohammad',
+      party: 'מוחמד נציר',
+      document: '2026-02',
+      expectedAmount: '8000',
+      paidAmount: '8000',
+      currency: ILS,
+      dueDate: businessDate('2026-03-10'),
+      paidAt: businessDate('2026-03-10'),
+      voided: false,
+    };
+    const march = composeMonthCashFlow({
+      currency: ILS,
+      from: businessDate('2026-03-01'),
+      to: businessDate('2026-03-31'),
+      collectionsActual: money('0', ILS),
+      apPayments: [],
+      apExpected: [],
+      expenses: [expense({ party: 'עובדים', document: 'עובדים', paidGrossAmount: '8000', paidAt: businessDate('2026-03-10'), grossAmount: '8000', expenseDate: businessDate('2026-03-01'), dueDate: businessDate('2026-03-10') })],
+      payroll: [payroll],
+      advances: [],
+    });
+    const february = composeMonthCashFlow({
+      currency: ILS,
+      from: businessDate('2026-02-01'),
+      to: businessDate('2026-02-28'),
+      collectionsActual: money('0', ILS),
+      apPayments: [],
+      apExpected: [],
+      expenses: [],
+      payroll: [payroll],
+      advances: [],
+    });
+    expect(march.paidLines.map((line) => line.party)).toEqual(['עובדים', 'מוחמד נציר']);
+    expect(march.paidActual.amount).toBe(money('16000', ILS).amount);
+    expect(february.paidLines).toHaveLength(0);
+    expect(cashLineDisplayText('11111111-1111-4111-8111-111111111111')).toBe('');
+    expect(cashLineDisplayText('סאלח נציר')).toBe('סאלח נציר');
+  });
+
+  it('counts one canonical payment id once', () => {
+    const line = paidAp('5000', '2026-09-02', 'same-payment');
+    const result = compose({ apPayments: [line, { ...line }] });
+    expect(result.paidLines).toHaveLength(1);
+    expect(result.paidActual.amount).toBe(money('5000', ILS).amount);
   });
 });

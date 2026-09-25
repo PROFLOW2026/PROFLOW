@@ -23,7 +23,12 @@ import { DashboardContractSummaryRow } from './dashboard-contract-summary-row';
 import { DashboardRecentProjectsSection } from './dashboard-recent-projects-section';
 import type { DashboardKpiKey } from '../domain/dashboard-missing-data';
 import type { DashboardKpiDetailContent } from '../domain/dashboard-kpi-detail';
-import type { MonthCashExpectedLine, MonthCashPaidLine } from '../domain/month-cash-flow';
+import {
+  cashLineDisplayText,
+  type MonthCashExpectedLine,
+  type MonthCashPaidLine,
+  type MonthCashSource,
+} from '../domain/month-cash-flow';
 import type { RevenueTriplet } from '@/modules/billing/domain/revenue-position';
 import { subtractMoney } from '@/shared/money';
 import { resolveIntlLocale } from '@/shared/i18n/intl-locale';
@@ -866,6 +871,12 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                   t('businessSummary.cashMore', {
                     count: Math.max(0, data.organizationSummary.monthCash.paidLines.length - 40),
                   }),
+                  {
+                    payroll: t('businessSummary.cashSource.payroll'),
+                    expense: t('businessSummary.cashSource.expense'),
+                    ap: t('businessSummary.cashSource.ap'),
+                    subcontract_advance: t('businessSummary.cashSource.subcontract_advance'),
+                  },
                 )}
                 detailCopy={triggerCopy}
               />
@@ -890,6 +901,12 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                   t('businessSummary.cashMore', {
                     count: Math.max(0, data.organizationSummary.monthCash.expectedLines.length - 40),
                   }),
+                  {
+                    payroll: t('businessSummary.cashSource.payroll'),
+                    expense: t('businessSummary.cashSource.expense'),
+                    ap: t('businessSummary.cashSource.ap'),
+                    subcontract_advance: t('businessSummary.cashSource.subcontract_advance'),
+                  },
                 )}
                 detailCopy={triggerCopy}
               />
@@ -1022,6 +1039,16 @@ function cashLineAmounts(
   };
 }
 
+function cashDrilldownLabel(
+  source: MonthCashSource,
+  parts: readonly (string | null | undefined)[],
+  sourceLabels: Readonly<Record<MonthCashSource, string>>,
+): string {
+  const visible = parts.map((part) => cashLineDisplayText(part)).filter(Boolean);
+  if (visible.length === 0) return sourceLabels[source];
+  return visible.join(' · ');
+}
+
 function monthCashPaidDetail(
   lines: readonly MonthCashPaidLine[],
   total: RevenueTriplet,
@@ -1030,8 +1057,15 @@ function monthCashPaidDetail(
   formula: string,
   labels: { exVat: string; vat: string; incVat: string; noVat: string },
   moreLabel: string,
+  sourceLabels: Readonly<Record<MonthCashSource, string>>,
 ): DashboardKpiDetailContent {
-  const visible = lines.slice(0, MONTH_CASH_DETAIL_CAP);
+  const ordered = [...lines].sort((left, right) => {
+    if (left.source === right.source) return 0;
+    if (left.source === 'payroll') return -1;
+    if (right.source === 'payroll') return 1;
+    return 0;
+  });
+  const visible = ordered.slice(0, MONTH_CASH_DETAIL_CAP);
   const hidden = lines.length - visible.length;
   return {
     title,
@@ -1041,7 +1075,11 @@ function monthCashPaidDetail(
     whatIs: hidden > 0 ? `${whatIs} ${moreLabel}` : whatIs,
     formula,
     breakdown: visible.map((line) => ({
-      label: [line.party, line.document, line.paymentDate, line.reference].filter(Boolean).join(' · '),
+      label: cashDrilldownLabel(
+        line.source,
+        [line.party, line.document, line.paymentDate, line.reference],
+        sourceLabels,
+      ),
       ...cashLineAmounts(line.display, line.amount, labels),
     })),
   };
@@ -1056,8 +1094,15 @@ function monthCashExpectedDetail(
   statusLabels: Readonly<Record<string, string>>,
   labels: { exVat: string; vat: string; incVat: string; noVat: string },
   moreLabel: string,
+  sourceLabels: Readonly<Record<MonthCashSource, string>>,
 ): DashboardKpiDetailContent {
-  const visible = lines.slice(0, MONTH_CASH_DETAIL_CAP);
+  const ordered = [...lines].sort((left, right) => {
+    if (left.source === right.source) return 0;
+    if (left.source === 'payroll') return -1;
+    if (right.source === 'payroll') return 1;
+    return 0;
+  });
+  const visible = ordered.slice(0, MONTH_CASH_DETAIL_CAP);
   const hidden = lines.length - visible.length;
   return {
     title,
@@ -1067,15 +1112,11 @@ function monthCashExpectedDetail(
     whatIs: hidden > 0 ? `${whatIs} ${moreLabel}` : whatIs,
     formula,
     breakdown: visible.map((line) => ({
-      label: [
-        line.party,
-        line.document,
-        line.dueDate,
-        line.paymentTerms,
-        statusLabels[line.status] ?? line.status,
-      ]
-        .filter(Boolean)
-        .join(' · '),
+      label: cashDrilldownLabel(
+        line.source,
+        [line.party, line.document, line.dueDate, line.paymentTerms, statusLabels[line.status] ?? line.status],
+        sourceLabels,
+      ),
       ...cashLineAmounts(line.display, line.remaining, labels),
     })),
   };
