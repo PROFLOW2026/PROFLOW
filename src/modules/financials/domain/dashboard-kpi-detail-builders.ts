@@ -2,7 +2,7 @@ import type { OrgContractSummary } from './dashboard-contract-summary';
 import type { DashboardKpiDetailContent, DashboardKpiDetailLine } from './dashboard-kpi-detail';
 import type { BusinessCashPosition, BusinessCashSourceKey } from './business-cash-position';
 import type { HomeDashboardKpiBreakdown } from './home-dashboard-kpi-breakdown';
-import type { MoneyValue } from '@/shared/money';
+import { subtractMoney, type MoneyValue } from '@/shared/money';
 
 export interface DashboardKpiDetailCopy {
   readonly contractOriginalWhat: string;
@@ -99,6 +99,30 @@ function moneyLine(label: string, money: MoneyValue | null | undefined): Dashboa
   return { label, money };
 }
 
+export interface MonthlyVatLabels {
+  readonly exVat: string;
+  readonly vat: string;
+  readonly incVat: string;
+  readonly noVat: string;
+}
+
+function monthlyVatLines(
+  net: MoneyValue,
+  gross: MoneyValue,
+  labels: MonthlyVatLabels,
+): DashboardKpiDetailLine[] {
+  return [
+    {
+      label: labels.exVat,
+      money: net,
+      vat: subtractMoney(gross, net),
+      gross,
+      vatLabel: labels.vat,
+      grossLabel: labels.incVat,
+      noVatLabel: labels.noVat,
+    },
+  ];
+}
 function moneyLines(
   items: Array<DashboardKpiDetailLine | null>,
 ): DashboardKpiDetailLine[] {
@@ -628,16 +652,21 @@ export function buildInvoicedThisMonthDetail(
   selectedMonth: string,
   title: string,
   copy: DashboardKpiDetailCopy,
+  vatLabels?: MonthlyVatLabels,
 ): DashboardKpiDetailContent {
   return {
     title,
     value: netInvoiced,
+    grossValue: vatLabels ? grossInvoiced : undefined,
+    grossLabel: vatLabels?.incVat,
     whatIs: copy.invoicedThisMonthWhat,
     formula: copy.invoicedThisMonthFormula,
-    breakdown: lines(
-      { label: copy.labelBilled, money: netInvoiced },
-      { label: `${copy.labelBilled} (${copy.labelOutstanding})`, money: grossInvoiced },
-    ),
+    breakdown: vatLabels
+      ? monthlyVatLines(netInvoiced, grossInvoiced, vatLabels)
+      : lines(
+          { label: copy.labelBilled, money: netInvoiced },
+          { label: `${copy.labelBilled} (${copy.labelOutstanding})`, money: grossInvoiced },
+        ),
     fullScreenHref: `/billing?month=${selectedMonth}`,
     fullScreenLabel: copy.billingLink,
   };
@@ -669,13 +698,20 @@ export function buildCostsThisMonthDetail(
   selectedMonth: string,
   title: string,
   copy: DashboardKpiDetailCopy,
+  grossCosts?: MoneyValue,
+  vatLabels?: MonthlyVatLabels,
 ): DashboardKpiDetailContent {
+  const gross = grossCosts ?? costsThisMonth;
   return {
     title,
     value: costsThisMonth,
+    grossValue: vatLabels ? gross : undefined,
+    grossLabel: vatLabels?.incVat,
     whatIs: copy.costsThisMonthWhat,
     formula: copy.costsThisMonthFormula,
-    breakdown: lines({ label: title, money: costsThisMonth }),
+    breakdown: vatLabels
+      ? monthlyVatLines(costsThisMonth, gross, vatLabels)
+      : lines({ label: title, money: costsThisMonth }),
     fullScreenHref: `/reports?section=cost&month=${selectedMonth}`,
     fullScreenLabel: copy.monthReportsLink,
   };

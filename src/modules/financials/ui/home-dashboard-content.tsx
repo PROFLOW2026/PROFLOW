@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { Link } from '@/shared/i18n/navigation';
 import { CoverageDisclosure } from '@/components/patterns/coverage-disclosure';
-import { MoneyText } from '@/components/patterns/money-text';
+import { BillingNetPrimaryDisplay } from '@/components/patterns/billing-net-primary-display';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { textNavLinkClassName } from '@/components/ui/pressable';
@@ -24,6 +24,8 @@ import { DashboardRecentProjectsSection } from './dashboard-recent-projects-sect
 import type { DashboardKpiKey } from '../domain/dashboard-missing-data';
 import type { DashboardKpiDetailContent } from '../domain/dashboard-kpi-detail';
 import type { MonthCashExpectedLine, MonthCashPaidLine } from '../domain/month-cash-flow';
+import type { RevenueTriplet } from '@/modules/billing/domain/revenue-position';
+import { subtractMoney } from '@/shared/money';
 import { resolveIntlLocale } from '@/shared/i18n/intl-locale';
 import {
   buildAllocatedOverheadDetail,
@@ -73,6 +75,12 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
   const [t, locale] = await Promise.all([getTranslations('dashboard'), getLocale()]);
   const tFinancial = await getTranslations('financial');
   const tNav = await getTranslations('nav');
+  const vatLabels = {
+    exVat: t('businessSummary.exVat'),
+    vat: t('businessSummary.vatAmount'),
+    incVat: tFinancial('kpis.includingVat'),
+    noVat: t('businessSummary.noVat'),
+  };
 
   if (data.isBrandNew) {
     const startKind = data.emptyStartKind ?? 'project';
@@ -828,27 +836,33 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
               {data.showBilling && cardSet.has('collections') ? (
                 <DashboardKpiCard
                   title={t('businessSummary.collectionsActual')}
-                  money={data.organizationSummary.monthCash.collectionsActual}
+                  money={data.organizationSummary.monthCash.display.collections.net}
+                  grossMoney={data.organizationSummary.monthCash.display.collections.gross}
+                  grossLabel={vatLabels.incVat}
                   hint={t('businessSummary.collectionsActualHint')}
-                  detail={monthCashTotalDetail(
+                  detail={monthCashTripletDetail(
                     t('businessSummary.collectionsActual'),
-                    data.organizationSummary.monthCash.collectionsActual,
+                    data.organizationSummary.monthCash.display.collections,
                     t('businessSummary.collectionsActualWhat'),
                     t('businessSummary.collectionsActualFormula'),
+                    vatLabels,
                   )}
                   detailCopy={triggerCopy}
                 />
               ) : null}
               <DashboardKpiCard
                 title={t('businessSummary.paidActual')}
-                money={data.organizationSummary.monthCash.paidActual}
+                money={data.organizationSummary.monthCash.display.paid.net}
+                grossMoney={data.organizationSummary.monthCash.display.paid.gross}
+                grossLabel={vatLabels.incVat}
                 hint={t('businessSummary.paidActualHint')}
                 detail={monthCashPaidDetail(
                   data.organizationSummary.monthCash.paidLines,
-                  data.organizationSummary.monthCash.paidActual,
+                  data.organizationSummary.monthCash.display.paid,
                   t('businessSummary.paidActual'),
                   t('businessSummary.paidActualWhat'),
                   t('businessSummary.paidActualFormula'),
+                  vatLabels,
                   t('businessSummary.cashMore', {
                     count: Math.max(0, data.organizationSummary.monthCash.paidLines.length - 40),
                   }),
@@ -857,11 +871,13 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
               />
               <DashboardKpiCard
                 title={t('businessSummary.expectedOutgoing')}
-                money={data.organizationSummary.monthCash.expectedOutgoing}
+                money={data.organizationSummary.monthCash.display.expected.net}
+                grossMoney={data.organizationSummary.monthCash.display.expected.gross}
+                grossLabel={vatLabels.incVat}
                 hint={t('businessSummary.expectedOutgoingHint')}
                 detail={monthCashExpectedDetail(
                   data.organizationSummary.monthCash.expectedLines,
-                  data.organizationSummary.monthCash.expectedOutgoing,
+                  data.organizationSummary.monthCash.display.expected,
                   t('businessSummary.expectedOutgoing'),
                   t('businessSummary.expectedOutgoingWhat'),
                   t('businessSummary.expectedOutgoingFormula'),
@@ -870,6 +886,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                     partial: t('businessSummary.cashStatusPartial'),
                     open: t('businessSummary.cashStatusOpen'),
                   },
+                  vatLabels,
                   t('businessSummary.cashMore', {
                     count: Math.max(0, data.organizationSummary.monthCash.expectedLines.length - 40),
                   }),
@@ -878,25 +895,30 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
               />
               <DashboardKpiCard
                 title={t('businessSummary.netCash')}
-                money={data.organizationSummary.monthCash.netCash}
+                money={data.organizationSummary.monthCash.display.netCash.net}
+                grossMoney={data.organizationSummary.monthCash.display.netCash.gross}
+                grossLabel={vatLabels.incVat}
                 hint={t('businessSummary.netCashHint')}
-                detail={monthCashTotalDetail(
+                detail={monthCashTripletDetail(
                   t('businessSummary.netCash'),
-                  data.organizationSummary.monthCash.netCash,
+                  data.organizationSummary.monthCash.display.netCash,
                   t('businessSummary.netCashWhat'),
                   t('businessSummary.netCashFormula'),
+                  vatLabels,
                 )}
                 detailCopy={triggerCopy}
               />
             </div>
-            <p className="mt-2 text-sm text-[var(--pf-text-secondary)]">
-              {t('businessSummary.forecastAfterRemaining')}{' '}
-              <MoneyText
-                value={data.organizationSummary.monthCash.forecastAfterRemaining}
-                className="font-semibold"
+            <div className="mt-2 flex min-w-0 flex-wrap items-baseline gap-2 text-sm text-[var(--pf-text-secondary)]">
+              <span>{t('businessSummary.forecastAfterRemaining')}</span>
+              <BillingNetPrimaryDisplay
+                netAmount={data.organizationSummary.monthCash.display.forecast.net}
+                grossAmount={data.organizationSummary.monthCash.display.forecast.gross}
+                grossLabel={vatLabels.incVat}
+                netClassName="text-sm"
                 colorizeNegative
               />
-            </p>
+            </div>
           </section>
           <section className="min-w-0 max-w-full">
             <h3 className="mb-2 text-sm font-semibold text-[var(--pf-text-secondary)]">
@@ -908,14 +930,14 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                   title={t('businessSummary.invoicedThisMonth')}
                   money={data.organizationSummary.invoicedThisMonth}
                   grossMoney={data.organizationSummary.grossInvoicedThisMonth}
-                  grossLabel={tFinancial('kpis.includingVat')}
-                  hint={tFinancial('kpis.billedHint')}
+                  grossLabel={vatLabels.incVat}
                   detail={buildInvoicedThisMonthDetail(
                     data.organizationSummary.invoicedThisMonth,
                     data.organizationSummary.grossInvoicedThisMonth,
                     data.selectedMonth,
                     t('businessSummary.invoicedThisMonth'),
                     detailCopy,
+                    vatLabels,
                   )}
                   detailCopy={triggerCopy}
                 />
@@ -923,12 +945,15 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
               <DashboardKpiCard
                 title={t('businessSummary.costsThisMonth')}
                 money={data.organizationSummary.costsThisMonth}
-                hint={tFinancial('basis.actualNotCash')}
+                grossMoney={data.organizationSummary.grossCostsThisMonth}
+                grossLabel={vatLabels.incVat}
                 detail={buildCostsThisMonthDetail(
                   data.organizationSummary.costsThisMonth,
                   data.selectedMonth,
                   t('businessSummary.costsThisMonth'),
                   detailCopy,
+                  data.organizationSummary.grossCostsThisMonth,
+                  vatLabels,
                 )}
                 detailCopy={triggerCopy}
               />
@@ -951,51 +976,94 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
 
 const MONTH_CASH_DETAIL_CAP = 40;
 
-function monthCashTotalDetail(
+function monthCashTripletDetail(
   title: string,
-  value: DashboardKpiDetailContent['value'],
+  value: RevenueTriplet,
   whatIs: string,
   formula: string,
+  labels: { exVat: string; vat: string; incVat: string; noVat: string },
 ): DashboardKpiDetailContent {
-  return { title, value, whatIs, formula, breakdown: [] };
+  return {
+    title,
+    value: value.net,
+    grossValue: value.gross,
+    grossLabel: labels.incVat,
+    whatIs,
+    formula,
+    breakdown: [
+      {
+        label: labels.exVat,
+        money: value.net,
+        vat: value.vat,
+        gross: value.gross,
+        vatLabel: labels.vat,
+        grossLabel: labels.incVat,
+        noVatLabel: labels.noVat,
+      },
+    ],
+  };
+}
+
+function cashLineAmounts(
+  display: RevenueTriplet | undefined,
+  cash: DashboardKpiDetailContent['value'],
+  labels: { exVat: string; vat: string; incVat: string; noVat: string },
+) {
+  const net = display?.net ?? cash;
+  const gross = display?.gross ?? cash;
+  const vat = display?.vat ?? (net && gross ? subtractMoney(gross, net) : null);
+  return {
+    money: net,
+    vat,
+    gross,
+    vatLabel: labels.vat,
+    grossLabel: labels.incVat,
+    noVatLabel: labels.noVat,
+  };
 }
 
 function monthCashPaidDetail(
   lines: readonly MonthCashPaidLine[],
-  total: NonNullable<DashboardKpiDetailContent['value']>,
+  total: RevenueTriplet,
   title: string,
   whatIs: string,
   formula: string,
+  labels: { exVat: string; vat: string; incVat: string; noVat: string },
   moreLabel: string,
 ): DashboardKpiDetailContent {
   const visible = lines.slice(0, MONTH_CASH_DETAIL_CAP);
   const hidden = lines.length - visible.length;
   return {
     title,
-    value: total,
+    value: total.net,
+    grossValue: total.gross,
+    grossLabel: labels.incVat,
     whatIs: hidden > 0 ? `${whatIs} ${moreLabel}` : whatIs,
     formula,
     breakdown: visible.map((line) => ({
       label: [line.party, line.document, line.paymentDate, line.reference].filter(Boolean).join(' · '),
-      money: line.amount,
+      ...cashLineAmounts(line.display, line.amount, labels),
     })),
   };
 }
 
 function monthCashExpectedDetail(
   lines: readonly MonthCashExpectedLine[],
-  total: NonNullable<DashboardKpiDetailContent['value']>,
+  total: RevenueTriplet,
   title: string,
   whatIs: string,
   formula: string,
   statusLabels: Readonly<Record<string, string>>,
+  labels: { exVat: string; vat: string; incVat: string; noVat: string },
   moreLabel: string,
 ): DashboardKpiDetailContent {
   const visible = lines.slice(0, MONTH_CASH_DETAIL_CAP);
   const hidden = lines.length - visible.length;
   return {
     title,
-    value: total,
+    value: total.net,
+    grossValue: total.gross,
+    grossLabel: labels.incVat,
     whatIs: hidden > 0 ? `${whatIs} ${moreLabel}` : whatIs,
     formula,
     breakdown: visible.map((line) => ({
@@ -1008,7 +1076,7 @@ function monthCashExpectedDetail(
       ]
         .filter(Boolean)
         .join(' · '),
-      money: line.remaining,
+      ...cashLineAmounts(line.display, line.remaining, labels),
     })),
   };
 }

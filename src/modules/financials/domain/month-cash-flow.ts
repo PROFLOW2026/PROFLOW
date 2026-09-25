@@ -6,14 +6,21 @@
 import type { BusinessDate } from '@/shared/dates';
 import { compareBusinessDates } from '@/shared/dates';
 import {
+  tripletFromGross,
+  zeroTriplet,
+  type RevenueTriplet,
+} from '@/modules/billing/domain/revenue-position';
+import { resolveCashInstallmentLines } from '@/modules/expenses/domain/cash-installment-schedule';
+import {
   addMoney,
+  compareMoney,
   fromNumericString,
   isPositiveMoney,
+  isZeroMoney,
   subtractMoney,
   zeroMoney,
   type MoneyValue,
 } from '@/shared/money';
-import { resolveCashInstallmentLines } from '@/modules/expenses/domain/cash-installment-schedule';
 
 export type MonthCashSource = 'ap' | 'expense' | 'payroll' | 'subcontract_advance';
 
@@ -23,7 +30,10 @@ export interface MonthCashPaidLine {
   readonly party: string;
   readonly document: string;
   readonly paymentDate: BusinessDate;
+  /** Real cash paid. Unchanged by the NET/GROSS display split. */
   readonly amount: MoneyValue;
+  /** Display split from the source document. Omitted means no VAT: NET = GROSS = cash. */
+  readonly display?: RevenueTriplet;
   readonly reference: string | null;
 }
 
@@ -34,7 +44,10 @@ export interface MonthCashExpectedLine {
   readonly document: string;
   readonly dueDate: BusinessDate;
   readonly paymentTerms: string | null;
+  /** Real remaining cash. Unchanged by the NET/GROSS display split. */
   readonly remaining: MoneyValue;
+  /** Display split from the source document. Omitted means no VAT: NET = GROSS = cash. */
+  readonly display?: RevenueTriplet;
   readonly status: string;
 }
 
@@ -46,6 +59,17 @@ export interface MonthCashFlow {
   readonly forecastAfterRemaining: MoneyValue;
   readonly paidLines: readonly MonthCashPaidLine[];
   readonly expectedLines: readonly MonthCashExpectedLine[];
+  /**
+   * Presentation totals. Each side is the sum of stored NET and stored GROSS.
+   * Cash scalars above stay the real cash amounts.
+   */
+  readonly display: {
+    readonly collections: RevenueTriplet;
+    readonly paid: RevenueTriplet;
+    readonly expected: RevenueTriplet;
+    readonly netCash: RevenueTriplet;
+    readonly forecast: RevenueTriplet;
+  };
 }
 
 export interface MonthExpenseCashSnapshot {
@@ -53,6 +77,8 @@ export interface MonthExpenseCashSnapshot {
   readonly party: string;
   readonly document: string;
   readonly grossAmount: string;
+  readonly netAmount?: string | null;
+  readonly taxAmount?: string | null;
   readonly currency: string;
   readonly expenseDate: BusinessDate;
   readonly dueDate: BusinessDate | null;
@@ -109,6 +135,102 @@ function sameCurrency(amount: MoneyValue, currency: string): boolean {
   return amount.currency.toUpperCase() === currency.toUpperCase();
 }
 
+export function noVatTriplet(amount: MoneyValue): RevenueTriplet {
+  return { net: amount, vat: zeroMoney(amount.currency), gross: amount };
+}
+
+export function addTriplets(left: RevenueTriplet, right: RevenueTriplet): RevenueTriplet {
+  return {
+    net: addMoney(left.net, right.net),
+    vat: addMoney(left.vat, right.vat),
+    gross: addMoney(left.gross, right.gross),
+  };
+}
+
+export function subtractTriplets(left: RevenueTriplet, right: RevenueTriplet): RevenueTriplet {
+  return {
+    net: subtractMoney(left.net, right.net),
+    vat: subtractMoney(left.vat, right.vat),
+    gross: subtractMoney(left.gross, right.gross),
+  };
+}
+
+function sumTriplets(items: readonly RevenueTriplet[], currency: string): RevenueTriplet {
+  return items.reduce((sum, item) => addTriplets(sum, item), zeroTriplet(currency));
+}
+
+/**
+ * Split one cash slice using that document's stored NET / VAT / GROSS.
+ * A document with no VAT stays NET = GROSS. Never applies a blanket tax rate.
+ */
+export function documentCashTriplet(
+  cash: MoneyValue,
+  document: {
+    readonly netAmount?: string | null;
+    readonly taxAmount?: string | null;
+    readonly grossAmount?: string | null;
+  },
+): RevenueTriplet {
+  const grossDoc = document.grossAmount
+    ? fromNumericString(document.grossAmount, cash.currency)
+    : null;
+  const netDoc = document.netAmount ? fromNumericString(document.netAmount, cash.currency) : null;
+  const taxDoc = document.taxAmount ? fromNumericString(document.taxAmount, cash.currency) : null;
+  if (!grossDoc || !netDoc || !taxDoc || isZeroMoney(taxDoc) || compareMoney(netDoc, grossDoc) === 0) {
+    return noVatTriplet(cash);
+  }
+  if (compareMoney(cash, grossDoc) === 0) {
+    return { net: netDoc, vat: taxDoc, gross: grossDoc };
+  }
+  return tripletFromGross(cash, {
+    totalAmount: grossDoc,
+    subtotalAmount: netDoc,
+    taxAmount: taxDoc,
+  });
+}
+
+export function apPaymentDisplay(input: {
+  readonly amount: MoneyValue;
+  readonly applications: readonly {
+    readonly appliedAmount: string;
+    readonly currency: string;
+    readonly netAmount: string;
+    readonly taxAmount: string;
+    readonly grossAmount: string;
+  }[];
+}): RevenueTriplet {
+  if (input.applications.length === 0) return noVatTriplet(input.amount);
+  let display = zeroTriplet(input.amount.currency);
+  let applied = zeroMoney(input.amount.currency);
+  for (const app of input.applications) {
+    if (app.currency.toUpperCase() !== input.amount.currency.toUpperCase()) continue;
+    const slice = fromNumericString(app.appliedAmount, app.currency);
+    if (!slice || !isPositiveMoney(slice)) continue;
+    display = addTriplets(
+      display,
+      documentCashTriplet(slice, {
+        netAmount: app.netAmount,
+        taxAmount: app.taxAmount,
+        grossAmount: app.grossAmount,
+      }),
+    );
+    applied = addMoney(applied, slice);
+  }
+  const unallocated = subtractMoney(input.amount, applied);
+  if (isPositiveMoney(unallocated)) {
+    display = addTriplets(display, noVatTriplet(unallocated));
+  }
+  return display;
+}
+
+function paidDisplay(line: MonthCashPaidLine): RevenueTriplet {
+  return line.display ?? noVatTriplet(line.amount);
+}
+
+function expectedDisplay(line: MonthCashExpectedLine): RevenueTriplet {
+  return line.display ?? noVatTriplet(line.remaining);
+}
+
 export function expandExpenseMonthCash(
   row: MonthExpenseCashSnapshot,
   currency: string,
@@ -133,6 +255,7 @@ export function expandExpenseMonthCash(
         document: row.document,
         paymentDate: row.paidAt,
         amount: paid,
+        display: documentCashTriplet(paid, row),
         reference: row.paymentMethod,
       });
     }
@@ -146,6 +269,7 @@ export function expandExpenseMonthCash(
         dueDate: row.dueDate,
         paymentTerms: row.paymentTerms,
         remaining,
+        display: documentCashTriplet(remaining, row),
         status: isPositiveMoney(paid) ? 'partial' : 'unpaid',
       });
     }
@@ -172,6 +296,7 @@ export function expandExpenseMonthCash(
       document: row.document,
       paymentDate: line.dueDate,
       amount: line.amount,
+      display: documentCashTriplet(line.amount, row),
       reference: row.paymentMethod,
     });
   }
@@ -186,6 +311,7 @@ export function expandExpenseMonthCash(
       document: row.document,
       paymentDate: row.paidAt,
       amount: extra,
+      display: documentCashTriplet(extra, row),
       reference: row.paymentMethod,
     });
   }
@@ -204,6 +330,7 @@ export function expandExpenseMonthCash(
       dueDate: line.dueDate,
       paymentTerms: row.paymentTerms,
       remaining,
+      display: documentCashTriplet(remaining, row),
       status: isPositiveMoney(already) ? 'partial' : 'unpaid',
     });
   }
@@ -216,6 +343,8 @@ export function composeMonthCashFlow(input: {
   readonly from: BusinessDate;
   readonly to: BusinessDate;
   readonly collectionsActual: MoneyValue;
+  /** Stored collection NET / VAT / GROSS. Omitted means the cash total has no VAT. */
+  readonly collectionsDisplay?: RevenueTriplet;
   readonly apPayments: readonly MonthCashPaidLine[];
   readonly apExpected: readonly MonthCashExpectedLine[];
   readonly expenses: readonly MonthExpenseCashSnapshot[];
@@ -263,6 +392,7 @@ export function composeMonthCashFlow(input: {
         document: row.document,
         paymentDate: row.paidAt,
         amount: paidAmount,
+        display: noVatTriplet(paidAmount),
         reference: null,
       });
     }
@@ -276,6 +406,7 @@ export function composeMonthCashFlow(input: {
         dueDate: row.dueDate,
         paymentTerms: null,
         remaining,
+        display: noVatTriplet(remaining),
         status: isPositiveMoney(paidAmount) ? 'partial' : 'unpaid',
       });
     }
@@ -293,6 +424,7 @@ export function composeMonthCashFlow(input: {
       document: row.document,
       paymentDate: row.paidDate,
       amount,
+      display: noVatTriplet(amount),
       reference: row.reference,
     });
   }
@@ -307,6 +439,14 @@ export function composeMonthCashFlow(input: {
   );
   const netCash = subtractMoney(collections, paidActual);
   const forecastAfterRemaining = subtractMoney(netCash, expectedOutgoing);
+  const collectionsDisplay =
+    input.collectionsDisplay && sameCurrency(input.collectionsDisplay.gross, currency)
+      ? input.collectionsDisplay
+      : noVatTriplet(collections);
+  const paidDisplayTotal = sumTriplets(paid.map(paidDisplay), currency);
+  const expectedDisplayTotal = sumTriplets(expected.map(expectedDisplay), currency);
+  const netCashDisplay = subtractTriplets(collectionsDisplay, paidDisplayTotal);
+  const forecastDisplay = subtractTriplets(netCashDisplay, expectedDisplayTotal);
 
   return {
     collectionsActual: collections,
@@ -316,5 +456,12 @@ export function composeMonthCashFlow(input: {
     forecastAfterRemaining,
     paidLines: paid,
     expectedLines: expected,
+    display: {
+      collections: collectionsDisplay,
+      paid: paidDisplayTotal,
+      expected: expectedDisplayTotal,
+      netCash: netCashDisplay,
+      forecast: forecastDisplay,
+    },
   };
 }

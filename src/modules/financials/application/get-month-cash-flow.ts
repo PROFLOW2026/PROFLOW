@@ -8,6 +8,7 @@ import { computeBillRemainingOutstanding } from '@/modules/ap';
 import type { OrgContext } from '@/shared/auth/context';
 import type { BusinessDate } from '@/shared/dates';
 import { isPositiveMoney, money, type MoneyValue } from '@/shared/money';
+import type { RevenueTriplet } from '@/modules/billing/domain/revenue-position';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { composeMonthCashFlow, type MonthCashFlow } from '../domain/month-cash-flow';
@@ -26,6 +27,7 @@ export async function getMonthCashFlow(
     readonly from: BusinessDate;
     readonly to: BusinessDate;
     readonly collectionsActual: MoneyValue;
+    readonly collectionsDisplay?: RevenueTriplet;
   },
 ): Promise<MonthCashFlow> {
   const currency = context.organization.baseCurrency.toUpperCase();
@@ -89,6 +91,7 @@ export async function getMonthCashFlow(
     from: input.from,
     to: input.to,
     collectionsActual: input.collectionsActual,
+    collectionsDisplay: input.collectionsDisplay,
     apPayments: normalizedPayments,
     apExpected,
     expenses,

@@ -9,6 +9,7 @@ import {
 import { getOrganizationApPayables } from '@/modules/ap';
 import { getMonthCashFlow } from './get-month-cash-flow';
 import type { MonthCashFlow } from '../domain/month-cash-flow';
+import { zeroTriplet, type RevenueTriplet } from '@/modules/billing/domain/revenue-position';
 import {
   getBusinessProfileKeyForOrg,
   getModuleVisibility,
@@ -64,8 +65,7 @@ import {
   loadOrganizationBillingRows,
   sumGrossInvoicedInDateRange,
   sumInvoicedInDateRange,
-  sumCollectionsInDateRange,
-  sumNetCollectionsInDateRange,
+  sumCollectionTripletsInDateRange,
 } from '../data/billing.repository';
 import {
   countPendingChanges,
@@ -78,7 +78,7 @@ import {
   sumExpensesRequiringProjectAllocation,
   sumOrganizationActualCosts,
   sumOrganizationCompanyOnlyExpenses,
-  sumOrganizationRecognizedCostsInDateRange,
+  sumOrganizationRecognizedCostPairInDateRange,
 } from '../data/expenses.repository';
 import {
   countActiveProjects,
@@ -197,6 +197,7 @@ export interface HomeDashboardData {
     readonly collectionsThisMonth: MoneyValue;
     readonly netCollectionsThisMonth: MoneyValue;
     readonly costsThisMonth: MoneyValue;
+    readonly grossCostsThisMonth: MoneyValue;
     readonly monthCash: MonthCashFlow;
   } | null;
   readonly attention: DashboardAttention;
@@ -264,6 +265,27 @@ export interface HomeDashboardOptions {
    * Format: "YYYY-MM". Defaults to the current month when omitted or invalid.
    */
   readonly selectedMonth?: string | null;
+}
+
+function emptyMonthCash(currency: string, collections?: RevenueTriplet | null): MonthCashFlow {
+  const displayCollections = collections ?? zeroTriplet(currency);
+  const zero = zeroTriplet(currency);
+  return {
+    collectionsActual: displayCollections.gross,
+    paidActual: zeroMoney(currency),
+    expectedOutgoing: zeroMoney(currency),
+    netCash: displayCollections.gross,
+    forecastAfterRemaining: displayCollections.gross,
+    paidLines: [],
+    expectedLines: [],
+    display: {
+      collections: displayCollections,
+      paid: zero,
+      expected: zero,
+      netCash: displayCollections,
+      forecast: displayCollections,
+    },
+  };
 }
 
 export async function getHomeDashboard(
@@ -513,9 +535,8 @@ export async function getHomeDashboard(
     billingRows,
     invoicedThisMonth,
     grossInvoicedThisMonth,
-    costsThisMonth,
-    collectionsThisMonth,
-    netCollectionsThisMonth,
+    recognizedCosts,
+    collectionTriplet,
     generalPoolTotals,
     apPayablesSummary,
   ] = await Promise.all([
@@ -541,7 +562,7 @@ export async function getHomeDashboard(
         )
       : Promise.resolve(null),
     wantMonthCosts
-      ? sumOrganizationRecognizedCostsInDateRange(
+      ? sumOrganizationRecognizedCostPairInDateRange(
           context.db,
           context.organizationId,
           currency,
@@ -550,16 +571,7 @@ export async function getHomeDashboard(
         )
       : Promise.resolve(null),
     wantMonthCollections
-      ? sumCollectionsInDateRange(
-          context.db,
-          context.organizationId,
-          currency,
-          monthStart,
-          monthEnd,
-        )
-      : Promise.resolve(null),
-    wantMonthCollections
-      ? sumNetCollectionsInDateRange(
+      ? sumCollectionTripletsInDateRange(
           context.db,
           context.organizationId,
           currency,
@@ -570,11 +582,15 @@ export async function getHomeDashboard(
     canReadFinancials && !slimOwnerDashboard
       ? sumOrganizationGeneralPoolTotals(context.db, context.organizationId, currency)
       : Promise.resolve(null),
-    // AP outstanding: base-currency bills not yet paid. Only loaded when permissioned.
     canReadAp
       ? getOrganizationApPayables(context, { currency })
       : Promise.resolve(null),
   ]);
+
+  const costsThisMonth = recognizedCosts?.net ?? null;
+  const grossCostsThisMonth = recognizedCosts?.gross ?? null;
+  const collectionsThisMonth = collectionTriplet?.gross ?? null;
+  const netCollectionsThisMonth = collectionTriplet?.net ?? null;
 
   // Derive AP outstanding KPI: non-null only when AP bills exist in base currency.
   const apOutstanding: MoneyValue | null =
@@ -593,6 +609,7 @@ export async function getHomeDashboard(
           from: monthStart,
           to: monthEnd,
           collectionsActual: collectionsThisMonth ?? zeroMoney(currency),
+          collectionsDisplay: collectionTriplet ?? undefined,
         })
       : null;
 
@@ -770,15 +787,8 @@ export async function getHomeDashboard(
         collectionsThisMonth: collectionsThisMonth ?? zeroMoney(currency),
         netCollectionsThisMonth: netCollectionsThisMonth ?? zeroMoney(currency),
         costsThisMonth,
-        monthCash: monthCash ?? {
-          collectionsActual: collectionsThisMonth ?? zeroMoney(currency),
-          paidActual: zeroMoney(currency),
-          expectedOutgoing: zeroMoney(currency),
-          netCash: collectionsThisMonth ?? zeroMoney(currency),
-          forecastAfterRemaining: collectionsThisMonth ?? zeroMoney(currency),
-          paidLines: [],
-          expectedLines: [],
-        },
+        grossCostsThisMonth: grossCostsThisMonth ?? costsThisMonth,
+        monthCash: monthCash ?? emptyMonthCash(currency, collectionTriplet),
       };
     }
   } else if (!slimOwnerDashboard && canReadFinancials && hasExpenses && costsThisMonth) {
@@ -790,15 +800,8 @@ export async function getHomeDashboard(
       collectionsThisMonth: zeroMoney(currency),
       netCollectionsThisMonth: zeroMoney(currency),
       costsThisMonth,
-      monthCash: monthCash ?? {
-        collectionsActual: zeroMoney(currency),
-        paidActual: zeroMoney(currency),
-        expectedOutgoing: zeroMoney(currency),
-        netCash: zeroMoney(currency),
-        forecastAfterRemaining: zeroMoney(currency),
-        paidLines: [],
-        expectedLines: [],
-      },
+      grossCostsThisMonth: grossCostsThisMonth ?? costsThisMonth,
+      monthCash: monthCash ?? emptyMonthCash(currency),
     };
   }
 

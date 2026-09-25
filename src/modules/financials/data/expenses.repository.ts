@@ -374,6 +374,76 @@ export async function sumOrganizationRecognizedCostsInDateRange(
   return fromNumericString(row?.total ?? '0', currency) ?? zeroMoney(currency);
 }
 
+/**
+ * Same recognition set as `sumOrganizationRecognizedCostsInDateRange`.
+ * NET and GROSS are summed from the stored amounts. Labor has no VAT, so its
+ * NET and GROSS are the same stored figure.
+ */
+export async function sumOrganizationRecognizedCostPairInDateRange(
+  db: DbExecutor,
+  organizationId: string,
+  currency: string,
+  fromDate: BusinessDate,
+  toDate: BusinessDate,
+): Promise<{ readonly net: MoneyValue; readonly gross: MoneyValue }> {
+  const row = sqlFirstRow<{ net: string; gross: string }>(
+    await db.execute(sql`
+      SELECT
+        coalesce(sum(s.net_amount), 0)::text AS net,
+        coalesce(sum(s.gross_amount), 0)::text AS gross
+      FROM (
+        SELECT e.net_amount::numeric AS net_amount, e.gross_amount::numeric AS gross_amount
+        FROM expenses e
+        WHERE e.organization_id = ${organizationId}
+          AND e.currency = ${currency}
+          AND e.status = 'finalized'
+          AND e.archived_at IS NULL
+          AND e.expense_date >= ${fromDate}
+          AND e.expense_date <= ${toDate}
+          AND NOT EXISTS (
+            SELECT 1
+            FROM ap_po_matches m
+            INNER JOIN ap_bills b
+              ON b.id = m.ap_bill_id
+              AND b.organization_id = m.organization_id
+            WHERE m.organization_id = ${organizationId}
+              AND m.expense_id = e.id
+              AND m.status = 'accepted'
+              AND b.status IN ('open', 'partially_matched', 'matched')
+              AND b.archived_at IS NULL
+          )
+
+        UNION ALL
+
+        SELECT b.net_amount::numeric AS net_amount, b.gross_amount::numeric AS gross_amount
+        FROM ap_bills b
+        WHERE b.organization_id = ${organizationId}
+          AND b.currency = ${currency}
+          AND b.status IN ('open', 'partially_matched', 'matched')
+          AND b.archived_at IS NULL
+          AND b.bill_date IS NOT NULL
+          AND b.bill_date >= ${fromDate}
+          AND b.bill_date <= ${toDate}
+
+        UNION ALL
+
+        SELECT emc.known_amount::numeric AS net_amount, emc.known_amount::numeric AS gross_amount
+        FROM employee_month_costs emc
+        WHERE emc.organization_id = ${organizationId}
+          AND emc.currency = ${currency}
+          AND emc.status IN ('draft', 'applied', 'closed')
+          AND emc.year_month >= to_char(${fromDate}::date, 'YYYY-MM')
+          AND emc.year_month <= to_char(${toDate}::date, 'YYYY-MM')
+      ) s
+    `),
+  );
+
+  return {
+    net: fromNumericString(row?.net ?? '0', currency) ?? zeroMoney(currency),
+    gross: fromNumericString(row?.gross ?? '0', currency) ?? zeroMoney(currency),
+  };
+}
+
 export async function hasAnyExpenseUsage(
   db: DbExecutor,
   organizationId: string,

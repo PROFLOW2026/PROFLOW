@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { businessDate } from '@/shared/dates';
-import { money } from '@/shared/money';
-import { composeMonthCashFlow, type MonthCashExpectedLine, type MonthCashPaidLine, type MonthExpenseCashSnapshot } from '@/modules/financials/domain/month-cash-flow';
+import { money, multiplyMoney } from '@/shared/money';
+import {
+  apPaymentDisplay,
+  composeMonthCashFlow,
+  documentCashTriplet,
+  type MonthCashExpectedLine,
+  type MonthCashPaidLine,
+  type MonthExpenseCashSnapshot,
+} from '@/modules/financials/domain/month-cash-flow';
 
 const ILS = 'ILS';
 const SEP_FROM = businessDate('2026-09-01');
@@ -198,5 +205,130 @@ describe('month cash flow', () => {
     });
     expect(result.paidActual.amount).toBe(money('100', ILS).amount);
     expect(result.paidLines).toHaveLength(1);
+  });
+});
+
+describe('monthly NET / GROSS display', () => {
+  it('shows stored NET as primary and stored GROSS as the cash amount for a VAT expense', () => {
+    const result = compose({
+      expenses: [
+        expense({
+          netAmount: '10000',
+          taxAmount: '1800',
+          grossAmount: '11800',
+          paidGrossAmount: '11800',
+          paidAt: businessDate('2026-09-15'),
+        }),
+      ],
+    });
+    expect(result.paidActual.amount).toBe(money('11800', ILS).amount);
+    expect(result.display.paid.net.amount).toBe(money('10000', ILS).amount);
+    expect(result.display.paid.gross.amount).toBe(money('11800', ILS).amount);
+    expect(result.display.paid.vat.amount).toBe(money('1800', ILS).amount);
+    expect(result.paidLines[0]?.display?.net.amount).toBe(money('10000', ILS).amount);
+    expect(result.paidLines[0]?.display?.gross.amount).toBe(money('11800', ILS).amount);
+  });
+
+  it('keeps NET equal to GROSS when the document has no VAT', () => {
+    const result = compose({
+      expenses: [
+        expense({
+          netAmount: '10000',
+          taxAmount: '0',
+          grossAmount: '10000',
+          paidGrossAmount: '10000',
+          paidAt: businessDate('2026-09-15'),
+        }),
+      ],
+    });
+    expect(result.display.paid.net.amount).toBe(result.display.paid.gross.amount);
+    expect(result.display.paid.vat.amount).toBe(money('0', ILS).amount);
+    expect(result.paidActual.amount).toBe(money('10000', ILS).amount);
+  });
+
+  it('sums stored row NET and GROSS instead of applying 18 percent to the month', () => {
+    const result = compose({
+      expenses: [
+        expense({
+          id: 'vat',
+          netAmount: '10000',
+          taxAmount: '1800',
+          grossAmount: '11800',
+          paidGrossAmount: '11800',
+          paidAt: businessDate('2026-09-10'),
+        }),
+        expense({
+          id: 'exempt',
+          netAmount: '10000',
+          taxAmount: '0',
+          grossAmount: '10000',
+          paidGrossAmount: '10000',
+          paidAt: businessDate('2026-09-12'),
+        }),
+      ],
+    });
+    const blanket = multiplyMoney(result.display.paid.net, '1.18');
+    expect(result.display.paid.net.amount).toBe(money('20000', ILS).amount);
+    expect(result.display.paid.gross.amount).toBe(money('21800', ILS).amount);
+    expect(result.paidActual.amount).toBe(money('21800', ILS).amount);
+    expect(result.display.paid.gross.amount).not.toBe(blanket.amount);
+  });
+
+  it('uses the document tax ratio for a partial slice, not a blanket 18 percent', () => {
+    const slice = documentCashTriplet(money('5500', ILS), {
+      netAmount: '10000',
+      taxAmount: '1000',
+      grossAmount: '11000',
+    });
+    expect(slice.gross.amount).toBe(money('5500', ILS).amount);
+    expect(slice.net.amount).toBe(money('5000', ILS).amount);
+    expect(slice.vat.amount).toBe(money('500', ILS).amount);
+  });
+
+  it('attributes only the September installment cash, split by that expense stored tax', () => {
+    const result = compose({
+      expenses: [
+        expense({
+          netAmount: '10000',
+          taxAmount: '2000',
+          grossAmount: '12000',
+          installmentCount: 6,
+          installmentStartDate: businessDate('2026-09-15'),
+          dueDate: businessDate('2026-09-15'),
+        }),
+      ],
+    });
+    expect(result.expectedLines).toHaveLength(1);
+    expect(result.expectedOutgoing.amount).toBe(money('2000', ILS).amount);
+    expect(result.display.expected.gross.amount).toBe(money('2000', ILS).amount);
+    expect(result.display.expected.net.amount).toBe(money('1666.666667', ILS).amount);
+    expect(result.expectedLines[0]?.display?.vat.amount).not.toBe(money('0', ILS).amount);
+  });
+
+  it('does not invent VAT for an unapplied vendor payment', () => {
+    const display = apPaymentDisplay({
+      amount: money('11800', ILS),
+      applications: [],
+    });
+    expect(display.net.amount).toBe(display.gross.amount);
+    expect(display.vat.amount).toBe(money('0', ILS).amount);
+  });
+
+  it('uses the vendor bill stored NET and GROSS for an applied payment', () => {
+    const display = apPaymentDisplay({
+      amount: money('11800', ILS),
+      applications: [
+        {
+          appliedAmount: '11800',
+          currency: ILS,
+          netAmount: '10000',
+          taxAmount: '1800',
+          grossAmount: '11800',
+        },
+      ],
+    });
+    expect(display.net.amount).toBe(money('10000', ILS).amount);
+    expect(display.gross.amount).toBe(money('11800', ILS).amount);
+    expect(display.vat.amount).toBe(money('1800', ILS).amount);
   });
 });

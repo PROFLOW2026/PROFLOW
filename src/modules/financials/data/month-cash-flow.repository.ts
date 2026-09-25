@@ -8,6 +8,7 @@ import { alias } from 'drizzle-orm/pg-core';
 import {
   apBills,
   apPayments,
+  apPaymentApplications,
   apPoMatches,
   costCategories,
   employeePayrollPayments,
@@ -21,12 +22,14 @@ import {
 import { businessDate, type BusinessDate } from '@/shared/dates';
 import type { DbExecutor } from '@/shared/db/types';
 import { sqlRows } from './sql-rows';
-import type {
-  MonthAdvanceCashSnapshot,
-  MonthCashExpectedLine,
-  MonthCashPaidLine,
-  MonthExpenseCashSnapshot,
-  MonthPayrollCashSnapshot,
+import {
+  apPaymentDisplay,
+  documentCashTriplet,
+  type MonthAdvanceCashSnapshot,
+  type MonthCashExpectedLine,
+  type MonthCashPaidLine,
+  type MonthExpenseCashSnapshot,
+  type MonthPayrollCashSnapshot,
 } from '../domain/month-cash-flow';
 
 const RECOGNIZED_AP_STATUSES = ['open', 'partially_matched', 'matched'] as const;
@@ -46,6 +49,9 @@ export interface MonthApBillDueRow {
   readonly paymentTerms: string | null;
   readonly status: string;
   readonly totalAmount: string;
+  readonly netAmount: string;
+  readonly taxAmount: string;
+  readonly grossAmount: string;
   readonly currency: string;
   readonly appliedPayments: string;
   readonly appliedCredits: string;
@@ -88,15 +94,48 @@ export async function loadMonthApPayments(
       ),
     );
 
-  return rows.map((row) => ({
-    id: `ap:${row.id}`,
-    source: 'ap' as const,
-    party: row.vendorName,
-    document: row.reference?.trim() || row.method?.trim() || row.id,
-    paymentDate: businessDate(row.paymentDate),
-    amount: { amount: row.amount, currency: row.currency },
-    reference: row.method,
-  }));
+  const paymentIds = rows.map((row) => row.id);
+  const apps =
+    paymentIds.length === 0
+      ? []
+      : await db
+          .select({
+            paymentId: apPaymentApplications.apPaymentId,
+            appliedAmount: apPaymentApplications.appliedAmount,
+            currency: apPaymentApplications.currency,
+            netAmount: apBills.netAmount,
+            taxAmount: apBills.taxAmount,
+            grossAmount: apBills.grossAmount,
+          })
+          .from(apPaymentApplications)
+          .innerJoin(
+            apBills,
+            and(
+              eq(apBills.id, apPaymentApplications.apBillId),
+              eq(apBills.organizationId, apPaymentApplications.organizationId),
+            ),
+          )
+          .where(
+            and(
+              eq(apPaymentApplications.organizationId, organizationId),
+              inArray(apPaymentApplications.apPaymentId, paymentIds),
+            ),
+          );
+
+  return rows.map((row) => {
+    const applications = apps.filter((app) => app.paymentId === row.id);
+    const amount = { amount: row.amount, currency: row.currency };
+    return {
+      id: `ap:${row.id}`,
+      source: 'ap' as const,
+      party: row.vendorName,
+      document: row.reference?.trim() || row.method?.trim() || row.id,
+      paymentDate: businessDate(row.paymentDate),
+      amount,
+      display: apPaymentDisplay({ amount, applications }),
+      reference: row.method,
+    };
+  });
 }
 
 export async function loadMonthApBillsDue(
@@ -115,6 +154,9 @@ export async function loadMonthApBillsDue(
       c.name AS payment_terms,
       b.status,
       b.total_amount::text AS total_amount,
+      b.net_amount::text AS net_amount,
+      b.tax_amount::text AS tax_amount,
+      b.gross_amount::text AS gross_amount,
       b.currency,
       b.retention_held_remaining::text AS retention_held_remaining,
       coalesce((
@@ -157,6 +199,9 @@ export async function loadMonthApBillsDue(
     payment_terms: string | null;
     status: string;
     total_amount: string;
+    net_amount: string;
+    tax_amount: string;
+    gross_amount: string;
     currency: string;
     retention_held_remaining: string;
     applied_payments: string;
@@ -169,6 +214,9 @@ export async function loadMonthApBillsDue(
     paymentTerms: row.payment_terms,
     status: row.status,
     totalAmount: row.total_amount,
+    netAmount: row.net_amount,
+    taxAmount: row.tax_amount,
+    grossAmount: row.gross_amount,
     currency: row.currency,
     appliedPayments: row.applied_payments,
     appliedCredits: row.applied_credits,
@@ -188,6 +236,8 @@ export async function loadMonthExpenseCashSnapshots(
       description: expenses.description,
       supplierName: expenses.supplierName,
       grossAmount: expenses.grossAmount,
+      netAmount: expenses.netAmount,
+      taxAmount: expenses.taxAmount,
       currency: expenses.currency,
       expenseDate: expenses.expenseDate,
       dueDate: expenses.dueDate,
@@ -256,6 +306,8 @@ export async function loadMonthExpenseCashSnapshots(
     party: row.supplierName?.trim() || row.description?.trim() || row.id,
     document: row.description?.trim() || row.id,
     grossAmount: row.grossAmount,
+    netAmount: row.netAmount,
+    taxAmount: row.taxAmount,
     currency: row.currency,
     expenseDate: businessDate(row.expenseDate),
     dueDate: asDate(row.dueDate),
@@ -392,6 +444,11 @@ export function apExpectedLineFromBill(
     dueDate: row.dueDate,
     paymentTerms: row.paymentTerms,
     remaining,
+    display: documentCashTriplet(remaining, {
+      netAmount: row.netAmount,
+      taxAmount: row.taxAmount,
+      grossAmount: row.grossAmount,
+    }),
     status,
   };
 }
