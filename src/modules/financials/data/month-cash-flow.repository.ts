@@ -236,6 +236,7 @@ export async function loadMonthExpenseCashSnapshots(
       id: expenses.id,
       description: expenses.description,
       supplierName: expenses.supplierName,
+      vendorName: vendors.name,
       grossAmount: expenses.grossAmount,
       netAmount: expenses.netAmount,
       taxAmount: expenses.taxAmount,
@@ -252,6 +253,10 @@ export async function loadMonthExpenseCashSnapshots(
       paymentMethod: expenses.paymentMethod,
     })
     .from(expenses)
+    .leftJoin(
+      vendors,
+      and(eq(vendors.id, expenses.vendorId), eq(vendors.organizationId, expenses.organizationId)),
+    )
     .leftJoin(costCategories, eq(costCategories.id, expenses.costCategoryId))
     .leftJoin(
       organizationCatalogEntries,
@@ -304,7 +309,10 @@ export async function loadMonthExpenseCashSnapshots(
 
   return rows.map((row) => ({
     id: row.id,
-    party: cashLineDisplayText(row.supplierName) || cashLineDisplayText(row.description),
+    party:
+      cashLineDisplayText(row.supplierName) ||
+      cashLineDisplayText(row.vendorName) ||
+      cashLineDisplayText(row.description),
     document: cashLineDisplayText(row.description),
     grossAmount: row.grossAmount,
     netAmount: row.netAmount,

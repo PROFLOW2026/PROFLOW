@@ -382,6 +382,51 @@ describe('monthly NET / GROSS display', () => {
     expect(result.paidActual.amount).toBe(money('5000', ILS).amount);
   });
 
+  it('includes bulk workforce cash from a structured vendor expense in the payment month', () => {
+    const march = composeMonthCashFlow({
+      currency: ILS,
+      from: businessDate('2026-03-01'),
+      to: businessDate('2026-03-31'),
+      collectionsActual: money('0', ILS),
+      apPayments: [],
+      apExpected: [],
+      expenses: [
+        expense({
+          id: 'bulk-workforce',
+          party: 'התותחים',
+          document: 'עובדים',
+          grossAmount: '41276.4',
+          paidGrossAmount: '41276.4',
+          paidAt: businessDate('2026-03-15'),
+          expenseDate: businessDate('2026-01-29'),
+          dueDate: businessDate('2026-03-15'),
+        }),
+      ],
+      payroll: [
+        {
+          id: 'owner-mar',
+          party: 'ערן יוסף',
+          document: '2026-02',
+          expectedAmount: '27000',
+          paidAmount: '27000',
+          currency: ILS,
+          dueDate: businessDate('2026-03-10'),
+          paidAt: businessDate('2026-03-10'),
+          voided: false,
+        },
+      ],
+      advances: [],
+    });
+    expect(march.paidLines.map((line) => [line.source, line.party, line.amount.amount])).toEqual([
+      ['expense', 'התותחים', '41276.400000'],
+      ['payroll', 'ערן יוסף', '27000.000000'],
+    ]);
+    expect(march.paidActual.amount).toBe(money('68276.4', ILS).amount);
+    expect(march.paidActual.amount).toBe(
+      march.paidLines.reduce((sum, line) => sum + Number(line.amount.amount), 0).toFixed(6),
+    );
+  });
+
   it('puts each paid employee in the payment month and keeps the card equal to the lines', () => {
     const owner: MonthPayrollCashSnapshot = {
       id: 'owner-july',
