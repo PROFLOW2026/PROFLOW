@@ -11,6 +11,7 @@ import {
   type MonthExpenseCashSnapshot,
   type MonthPayrollCashSnapshot,
 } from '@/modules/financials/domain/month-cash-flow';
+import { formatPayrollPeriodDocument } from '@/modules/financials/domain/payroll-cash-display';
 
 const ILS = 'ILS';
 const SEP_FROM = businessDate('2026-09-01');
@@ -334,13 +335,13 @@ describe('monthly NET / GROSS display', () => {
     expect(display.vat.amount).toBe(money('1800', ILS).amount);
   });
 
-  it('counts payroll by payment date and ignores an expense labeled employees', () => {
-    const payroll: MonthPayrollCashSnapshot = {
+  it('counts payroll by payment date and shows the real employee name', () => {
+    const mohammad: MonthPayrollCashSnapshot = {
       id: 'pay-mohammad',
       party: 'מוחמד נציר',
       document: '2026-02',
-      expectedAmount: '8000',
-      paidAmount: '8000',
+      expectedAmount: '8205',
+      paidAmount: '8205',
       currency: ILS,
       dueDate: businessDate('2026-03-10'),
       paidAt: businessDate('2026-03-10'),
@@ -353,8 +354,8 @@ describe('monthly NET / GROSS display', () => {
       collectionsActual: money('0', ILS),
       apPayments: [],
       apExpected: [],
-      expenses: [expense({ party: 'עובדים', document: 'עובדים', paidGrossAmount: '8000', paidAt: businessDate('2026-03-10'), grossAmount: '8000', expenseDate: businessDate('2026-03-01'), dueDate: businessDate('2026-03-10') })],
-      payroll: [payroll],
+      expenses: [],
+      payroll: [mohammad],
       advances: [],
     });
     const february = composeMonthCashFlow({
@@ -365,14 +366,21 @@ describe('monthly NET / GROSS display', () => {
       apPayments: [],
       apExpected: [],
       expenses: [],
-      payroll: [payroll],
+      payroll: [mohammad],
       advances: [],
     });
-    expect(march.paidLines.map((line) => line.party)).toEqual(['עובדים', 'מוחמד נציר']);
-    expect(march.paidActual.amount).toBe(money('16000', ILS).amount);
+    expect(march.paidLines.map((line) => [line.source, line.party, line.amount.amount])).toEqual([
+      ['payroll', 'מוחמד נציר', '8205.000000'],
+    ]);
+    expect(march.paidActual.amount).toBe(money('8205', ILS).amount);
     expect(february.paidLines).toHaveLength(0);
     expect(cashLineDisplayText('11111111-1111-4111-8111-111111111111')).toBe('');
     expect(cashLineDisplayText('סאלח נציר')).toBe('סאלח נציר');
+  });
+
+  it('formats payroll period labels for drilldown display', () => {
+    expect(formatPayrollPeriodDocument('2026-03', 'he-IL')).toMatch(/שכר.*2026/);
+    expect(formatPayrollPeriodDocument('2026-03', 'en')).toMatch(/Payroll.*2026/);
   });
 
   it('counts one canonical payment id once', () => {
@@ -382,7 +390,7 @@ describe('monthly NET / GROSS display', () => {
     expect(result.paidActual.amount).toBe(money('5000', ILS).amount);
   });
 
-  it('includes bulk workforce cash from a structured vendor expense in the payment month', () => {
+  it('lists each paid employee separately alongside owner payroll in the payment month', () => {
     const march = composeMonthCashFlow({
       currency: ILS,
       from: businessDate('2026-03-01'),
@@ -390,18 +398,7 @@ describe('monthly NET / GROSS display', () => {
       collectionsActual: money('0', ILS),
       apPayments: [],
       apExpected: [],
-      expenses: [
-        expense({
-          id: 'bulk-workforce',
-          party: 'התותחים',
-          document: 'עובדים',
-          grossAmount: '41276.4',
-          paidGrossAmount: '41276.4',
-          paidAt: businessDate('2026-03-15'),
-          expenseDate: businessDate('2026-01-29'),
-          dueDate: businessDate('2026-03-15'),
-        }),
-      ],
+      expenses: [],
       payroll: [
         {
           id: 'owner-mar',
@@ -414,14 +411,37 @@ describe('monthly NET / GROSS display', () => {
           paidAt: businessDate('2026-03-10'),
           voided: false,
         },
+        {
+          id: 'mohammad-feb',
+          party: 'מוחמד נציר',
+          document: '2026-02',
+          expectedAmount: '8205',
+          paidAmount: '8205',
+          currency: ILS,
+          dueDate: businessDate('2026-03-10'),
+          paidAt: businessDate('2026-03-15'),
+          voided: false,
+        },
+        {
+          id: 'fadi-feb',
+          party: 'פאדי מנצור',
+          document: '2026-02',
+          expectedAmount: '8205',
+          paidAmount: '8205',
+          currency: ILS,
+          dueDate: businessDate('2026-03-10'),
+          paidAt: businessDate('2026-03-15'),
+          voided: false,
+        },
       ],
       advances: [],
     });
     expect(march.paidLines.map((line) => [line.source, line.party, line.amount.amount])).toEqual([
-      ['expense', 'התותחים', '41276.400000'],
       ['payroll', 'ערן יוסף', '27000.000000'],
+      ['payroll', 'מוחמד נציר', '8205.000000'],
+      ['payroll', 'פאדי מנצור', '8205.000000'],
     ]);
-    expect(march.paidActual.amount).toBe(money('68276.4', ILS).amount);
+    expect(march.paidActual.amount).toBe(money('43410', ILS).amount);
     expect(march.paidActual.amount).toBe(
       march.paidLines.reduce((sum, line) => sum + Number(line.amount.amount), 0).toFixed(6),
     );

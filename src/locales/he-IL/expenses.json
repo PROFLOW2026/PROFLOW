@@ -527,6 +527,7 @@
     "inventoryQtyRequired": "יש להזין את הכמות שנכנסה למלאי.",
     "inventoryStockPurchaseIncomplete": "רכישת מלאי דורשת פריט וכמות לפני רישום.",
     "classificationRequired": "יש לבחור סוג הוצאה לפני אישור העלות",
+    "internalPayrollRestricted": "שכר עובדים פנימי אינו יכול להירשם כהוצאה רגילה. השתמשו בכוח האדם.",
     "approveFailed": "לא ניתן לאשר את ההוצאה. בדקו שדות חובה ונסו שוב."
   },
   "activityTimeline": {

@@ -527,6 +527,7 @@
     "inventoryQtyRequired": "Enter the quantity received into stock.",
     "inventoryStockPurchaseIncomplete": "Stock purchase expenses need an item and quantity before finalize.",
     "classificationRequired": "Choose an expense type before recognizing this cost.",
+    "internalPayrollRestricted": "Internal employee payroll cannot be recorded as an ordinary expense. Use Workforce.",
     "approveFailed": "The expense could not be approved. Check required fields and try again."
   },
   "activityTimeline": {

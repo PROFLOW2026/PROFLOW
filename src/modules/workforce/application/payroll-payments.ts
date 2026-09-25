@@ -202,7 +202,7 @@ export async function upsertPayrollPaymentExpected(
 export async function confirmPayrollPaid(
   context: OrgContext,
   paymentId: string,
-  input?: { readonly paidAt?: BusinessDate },
+  input?: { readonly paidAt?: BusinessDate; readonly paidAmount?: string },
 ): Promise<void> {
   assertPermission(context, PERMISSIONS.WORKFORCE_MANAGE);
 
@@ -224,13 +224,14 @@ export async function confirmPayrollPaid(
   }
 
   const paidAt = input?.paidAt ?? todayInTimeZone(context.organization.timezone);
+  const paidAmount = input?.paidAmount ?? row.expectedAmount;
 
   await context.db
     .update(employeePayrollPayments)
     .set({
       paymentStatus: 'paid',
       paidAt,
-      paidAmount: row.expectedAmount,
+      paidAmount,
       paymentConfirmationSource: 'manual',
     })
     .where(eq(employeePayrollPayments.id, paymentId));
@@ -239,8 +240,177 @@ export async function confirmPayrollPaid(
     action: PAYROLL_CONFIRMED,
     entityType: 'employee_payroll_payment',
     entityId: paymentId,
-    after: { paidAt, source: 'manual' },
+    after: { paidAt, paidAmount, source: 'manual' },
   });
+}
+
+async function assertNoActivePayrollObligation(
+  context: OrgContext,
+  employeeId: string,
+  yearMonth: string,
+  excludePaymentId?: string,
+): Promise<void> {
+  const [active] = await context.db
+    .select({ id: employeePayrollPayments.id })
+    .from(employeePayrollPayments)
+    .where(
+      and(
+        eq(employeePayrollPayments.organizationId, context.organizationId),
+        eq(employeePayrollPayments.employeeId, employeeId),
+        eq(employeePayrollPayments.yearMonth, yearMonth),
+        isNull(employeePayrollPayments.voidedAt),
+        excludePaymentId
+          ? sql`${employeePayrollPayments.id} <> ${excludePaymentId}`
+          : sql`true`,
+      ),
+    )
+    .limit(1);
+
+  if (active) {
+    throw new DomainRuleError(
+      'Active payroll obligation already exists for this employee-month',
+      'workforce.errors.payrollAlreadyExists',
+    );
+  }
+}
+
+/**
+ * Owner-approved historical repair: restore a voided obligation and mark it paid.
+ * Requires structured evidence (amount + date) supplied by the owner.
+ */
+export async function restoreAndConfirmVoidedPayrollPayment(
+  context: OrgContext,
+  paymentId: string,
+  input: {
+    readonly paidAt: BusinessDate;
+    readonly paidAmount: string;
+    readonly expectedAmount?: string;
+    readonly evidenceNote: string;
+  },
+): Promise<void> {
+  assertPermission(context, PERMISSIONS.WORKFORCE_MANAGE);
+
+  const [row] = await context.db
+    .select()
+    .from(employeePayrollPayments)
+    .where(
+      and(
+        eq(employeePayrollPayments.id, paymentId),
+        eq(employeePayrollPayments.organizationId, context.organizationId),
+        sql`${employeePayrollPayments.voidedAt} IS NOT NULL`,
+      ),
+    )
+    .limit(1);
+
+  if (!row) throw new NotFoundError('Voided payroll payment');
+  if (row.paidAt) {
+    throw new DomainRuleError('Payroll row already marked paid', 'workforce.errors.payrollAlreadyPaid');
+  }
+
+  await assertNoActivePayrollObligation(context, row.employeeId, row.yearMonth);
+
+  const paidMoney = fromNumericString(input.paidAmount, row.currency);
+  if (!paidMoney || !isPositiveMoney(paidMoney)) {
+    throw new DomainRuleError('Paid amount must be positive', 'workforce.errors.payrollInvalidAmount');
+  }
+
+  await context.db
+    .update(employeePayrollPayments)
+    .set({
+      voidedAt: null,
+      voidedByUserId: null,
+      expectedAmount: input.expectedAmount ?? row.expectedAmount,
+      paymentStatus: 'paid',
+      paidAt: input.paidAt,
+      paidAmount: input.paidAmount,
+      paymentConfirmationSource: 'manual',
+      obligationSource: 'manual_correction',
+      notes: input.evidenceNote,
+    })
+    .where(eq(employeePayrollPayments.id, paymentId));
+
+  await recordAuditEvent(context, {
+    action: PAYROLL_CONFIRMED,
+    entityType: 'employee_payroll_payment',
+    entityId: paymentId,
+    before: {
+      voidedAt: row.voidedAt,
+      yearMonth: row.yearMonth,
+      employeeId: row.employeeId,
+    },
+    after: {
+      paidAt: input.paidAt,
+      paidAmount: input.paidAmount,
+      source: 'manual',
+      repair: 'restore_voided_obligation',
+      evidence: input.evidenceNote,
+    },
+  });
+}
+
+/** Owner-approved historical repair: insert a paid payroll row when none exists. */
+export async function insertOwnerConfirmedPayrollPayment(
+  context: OrgContext,
+  input: {
+    readonly employeeId: string;
+    readonly yearMonth: string;
+    readonly expectedAmount: string;
+    readonly paidAmount: string;
+    readonly paidAt: BusinessDate;
+    readonly currency: string;
+    readonly evidenceNote: string;
+  },
+): Promise<string> {
+  assertPermission(context, PERMISSIONS.WORKFORCE_MANAGE);
+
+  await assertNoActivePayrollObligation(context, input.employeeId, input.yearMonth);
+
+  const paidMoney = fromNumericString(input.paidAmount, input.currency);
+  if (!paidMoney || !isPositiveMoney(paidMoney)) {
+    throw new DomainRuleError('Paid amount must be positive', 'workforce.errors.payrollInvalidAmount');
+  }
+
+  const policies = await getOrgFinancialPolicies(context);
+  const dueDate = businessDate(salaryDueDateForPeriod(input.yearMonth, policies.salaryPaymentDay));
+
+  const [inserted] = await context.db
+    .insert(employeePayrollPayments)
+    .values({
+      organizationId: context.organizationId,
+      employeeId: input.employeeId,
+      yearMonth: input.yearMonth,
+      currency: input.currency,
+      expectedAmount: input.expectedAmount,
+      paymentStatus: 'paid',
+      dueDate,
+      paidAt: input.paidAt,
+      paidAmount: input.paidAmount,
+      paymentConfirmationSource: 'manual',
+      obligationSource: 'manual_correction',
+      notes: input.evidenceNote,
+    })
+    .returning({ id: employeePayrollPayments.id });
+
+  if (!inserted) {
+    throw new DomainRuleError('Payroll payment insert failed', 'workforce.errors.payrollInsertFailed');
+  }
+
+  await recordAuditEvent(context, {
+    action: PAYROLL_CONFIRMED,
+    entityType: 'employee_payroll_payment',
+    entityId: inserted.id,
+    after: {
+      paidAt: input.paidAt,
+      paidAmount: input.paidAmount,
+      source: 'manual',
+      repair: 'insert_historical_obligation',
+      evidence: input.evidenceNote,
+      yearMonth: input.yearMonth,
+      employeeId: input.employeeId,
+    },
+  });
+
+  return inserted.id;
 }
 
 export async function voidPayrollPaymentConfirmation(

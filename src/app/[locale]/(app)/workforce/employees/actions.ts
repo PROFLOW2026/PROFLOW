@@ -460,6 +460,7 @@ export async function confirmPayrollPaymentAction(input: {
     revalidatePath(`/workforce/employees/${input.employeeId}`);
     revalidatePath('/today');
     revalidatePath('/notifications');
+    revalidatePath('/', 'layout');
     return { ok: true };
   } catch (error) {
     return mapEmployeeActionError(error, tErrors('unexpected'));

@@ -29,6 +29,7 @@ import {
   type MonthCashPaidLine,
   type MonthCashSource,
 } from '../domain/month-cash-flow';
+import { formatPayrollPeriodDocument } from '../domain/payroll-cash-display';
 import { MonthCashMonthPicker } from './month-cash-month-picker';
 import type { RevenueTriplet } from '@/modules/billing/domain/revenue-position';
 import { isZeroMoney, subtractMoney } from '@/shared/money';
@@ -884,6 +885,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                     ap: t('businessSummary.cashSource.ap'),
                     subcontract_advance: t('businessSummary.cashSource.subcontract_advance'),
                   },
+                  locale,
                 )}
                 detailCopy={triggerCopy}
               />
@@ -911,6 +913,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                     ap: t('businessSummary.cashSource.ap'),
                     subcontract_advance: t('businessSummary.cashSource.subcontract_advance'),
                   },
+                  locale,
                 )}
                 detailCopy={triggerCopy}
               />
@@ -1062,8 +1065,16 @@ function cashDrilldownLabel(
   source: MonthCashSource,
   parts: readonly (string | null | undefined)[],
   sourceLabels: Readonly<Record<MonthCashSource, string>>,
+  locale: string,
 ): string {
-  const visible = parts.map((part) => cashLineDisplayText(part)).filter(Boolean);
+  const visible = parts
+    .map((part, index) => {
+      if (source === 'payroll' && index === 1 && part) {
+        return formatPayrollPeriodDocument(part, locale);
+      }
+      return cashLineDisplayText(part);
+    })
+    .filter(Boolean);
   if (visible.length === 0) return sourceLabels[source];
   return visible.join(' · ');
 }
@@ -1076,6 +1087,7 @@ function monthCashPaidDetail(
   formula: string,
   labels: { exVat: string; vat: string; incVat: string; noVat: string },
   sourceLabels: Readonly<Record<MonthCashSource, string>>,
+  locale: string,
 ): DashboardKpiDetailContent {
   const ordered = [...lines].sort((left, right) => {
     if (left.source === right.source) return 0;
@@ -1095,6 +1107,7 @@ function monthCashPaidDetail(
         line.source,
         [line.party, line.document, line.paymentDate, line.reference],
         sourceLabels,
+        locale,
       ),
       ...cashLineAmounts(line.display, line.amount, labels),
     })),
@@ -1110,6 +1123,7 @@ function monthCashExpectedDetail(
   statusLabels: Readonly<Record<string, string>>,
   labels: { exVat: string; vat: string; incVat: string; noVat: string },
   sourceLabels: Readonly<Record<MonthCashSource, string>>,
+  locale: string,
 ): DashboardKpiDetailContent {
   const ordered = [...lines].sort((left, right) => {
     if (left.source === right.source) return 0;
@@ -1129,6 +1143,7 @@ function monthCashExpectedDetail(
         line.source,
         [line.party, line.document, line.dueDate, line.paymentTerms, statusLabels[line.status] ?? line.status],
         sourceLabels,
+        locale,
       ),
       ...cashLineAmounts(line.display, line.remaining, labels),
     })),
