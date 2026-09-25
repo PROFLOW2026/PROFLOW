@@ -18,10 +18,10 @@ import { listMaintenanceScheduleForOrg } from '@/modules/assets';
 import { listAttendanceDaysForOrg, listEmployeesWithoutAttendanceToday, listTimesheetsForOrg } from '@/modules/workforce';
 import {
   listUnattributedProjectLaborSources,
-  reconcileStaleLaborAllocations,
 } from '@/modules/workforce/application/labor-allocation-alerts';
 import { getLaborCostDefaultsForApply, resolveOrgWorkWeekdays } from '@/modules/tenancy';
 import { getOrganizationProjectRollup } from '@/modules/financials/application/get-organization-project-rollup';
+import type { OrganizationProjectRollup } from '@/modules/financials/application/get-organization-project-rollup';
 import { getOrganizationEarlyWarnings } from '@/modules/forecast';
 import { isOcrReviewUiAllowed, listOcrCandidates } from '@/modules/ocr';
 import { listInspectionsForOrg, listPunchListItemsForOrg } from '@/modules/field-ops';
@@ -95,6 +95,11 @@ export interface CollectContext {
   readonly modules: ModuleVisibility;
   readonly today: BusinessDate;
   readonly copyScope: CommandCenterCopyScope;
+  /**
+   * One org rollup for this collection. Undefined means the collector may load
+   * its own. Null means this collection already decided there is no rollup.
+   */
+  readonly sharedOrganizationRollup?: OrganizationProjectRollup | null;
 }
 
 export async function buildCollectContext(
@@ -251,8 +256,6 @@ export async function collectUnallocatedEmployeeCost(
 ): Promise<CommandCenterItem[]> {
   if (!hasPermission(ctx.context, PERMISSIONS.WORKFORCE_COST_READ)) return [];
 
-  await reconcileStaleLaborAllocations(ctx.context, { maxRepairs: 8 });
-
   const sources = await listUnattributedProjectLaborSources(ctx.context, {
     limit: PER_SOURCE_CAP,
   });
@@ -341,7 +344,11 @@ export async function collectProjectOverBudget(
 
   if (budgets.length === 0) return [];
 
-  const rollup = await getOrganizationProjectRollup(ctx.context);
+  const rollup =
+    ctx.sharedOrganizationRollup !== undefined
+      ? ctx.sharedOrganizationRollup
+      : await getOrganizationProjectRollup(ctx.context);
+  if (!rollup) return [];
   const actualByProject = new Map(
     rollup.rows.map((row) => [row.projectId, row.actualCost] as const),
   );
@@ -902,8 +909,12 @@ export async function collectOcrFailed(ctx: CollectContext): Promise<CommandCent
 
 export async function collectForecastWarnings(ctx: CollectContext): Promise<CommandCenterItem[]> {
   if (!hasPermission(ctx.context, PERMISSIONS.PROJECT_FINANCIALS_READ)) return [];
+  if (ctx.sharedOrganizationRollup === null) return [];
 
-  const warnings = await getOrganizationEarlyWarnings(ctx.context);
+  const warnings = await getOrganizationEarlyWarnings(
+    ctx.context,
+    ctx.sharedOrganizationRollup ? { rollup: ctx.sharedOrganizationRollup } : undefined,
+  );
   const actionable = warnings.filter((warning) => warning.kind !== 'actual_over_budget');
   const names = await loadProjectNames(
     ctx,
@@ -1181,8 +1192,12 @@ export async function collectBillingPlanRetentionReleaseDue(
   }
 }
 
-/** Run all collectors; individual failures are isolated. */
+/** Run all collectors; individual failures are isolated. One org rollup is shared. */
 export async function collectAllSources(ctx: CollectContext): Promise<CommandCenterItem[]> {
+  const sharedOrganizationRollup = hasPermission(ctx.context, PERMISSIONS.PROJECT_FINANCIALS_READ)
+    ? await getOrganizationProjectRollup(ctx.context)
+    : null;
+  const sharedCtx: CollectContext = { ...ctx, sharedOrganizationRollup };
   const collectors = [
     collectOverdueAr,
     collectVendorBillsDue,
@@ -1225,7 +1240,7 @@ export async function collectAllSources(ctx: CollectContext): Promise<CommandCen
     collectUwmTaskSources,
   ];
 
-  const settled = await Promise.allSettled(collectors.map((fn) => fn(ctx)));
+  const settled = await Promise.allSettled(collectors.map((fn) => fn(sharedCtx)));
   const items: CommandCenterItem[] = [];
   for (const result of settled) {
     if (result.status === 'fulfilled') items.push(...result.value);

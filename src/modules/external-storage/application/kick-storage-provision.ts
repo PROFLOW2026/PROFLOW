@@ -1,6 +1,12 @@
 import 'server-only';
 
 import { after } from 'next/server';
+import { getAdminDb } from '@/shared/db/client';
+import { organizationStorageConnections } from '@drizzle/schema';
+import { eq } from 'drizzle-orm';
+import { decideStorageProvisionRecovery } from '../domain/provision-chain-lease';
+import { isStorageProvisionLeaseHeld } from './provision-chain-lease';
+import { loadStorageProvisionProgress } from './provision-progress';
 import { resolveStorageProvisionWorkerSecret } from './storage-provision-worker-auth';
 
 function isTestEnv(): boolean {
@@ -26,6 +32,7 @@ export function resolveStorageProvisionWorkerTarget(): {
 export async function postStorageProvisionWorker(input?: {
   readonly chain?: number;
   readonly rateLimitStreak?: number;
+  readonly chainToken?: string;
 }): Promise<Response> {
   const target = resolveStorageProvisionWorkerTarget();
   if (!target) {
@@ -40,6 +47,7 @@ export async function postStorageProvisionWorker(input?: {
     body: JSON.stringify({
       chain: input?.chain ?? 0,
       rateLimitStreak: input?.rateLimitStreak ?? 0,
+      chainToken: input?.chainToken,
     }),
   });
 }
@@ -161,6 +169,30 @@ export async function recoverStorageProvisionViaWorker(): Promise<{
     return { kicked: false, detail: 'STORAGE_PROVISION_WORKER_SECRET or app URL missing' };
   }
   try {
+    const db = getAdminDb();
+    const rows = await db
+      .select({
+        id: organizationStorageConnections.id,
+        organizationId: organizationStorageConnections.organizationId,
+      })
+      .from(organizationStorageConnections)
+      .where(eq(organizationStorageConnections.status, 'connected'));
+    const leaseByOrg = new Map<string, boolean>();
+    const entries: { state: 'ready' | 'preparing'; leaseHeld: boolean }[] = [];
+    for (const row of rows) {
+      const progress = await loadStorageProvisionProgress(db, row.organizationId, row.id);
+      let leaseHeld = leaseByOrg.get(row.organizationId);
+      if (leaseHeld === undefined) {
+        leaseHeld = await isStorageProvisionLeaseHeld(db, row.organizationId);
+        leaseByOrg.set(row.organizationId, leaseHeld);
+      }
+      entries.push({ state: progress.state, leaseHeld });
+    }
+    const decision = decideStorageProvisionRecovery({ entries });
+    if (!decision.kick) {
+      return { kicked: false, detail: decision.reason };
+    }
+
     const response = await postStorageProvisionWorker({ chain: 0, rateLimitStreak: 0 });
     if (!response.ok) {
       const body = await response.text().catch(() => '');

@@ -1,4 +1,5 @@
 import { getOrganizationProjectRollup } from '@/modules/financials/application/get-organization-project-rollup';
+import type { OrganizationProjectRollup } from '@/modules/financials/application/get-organization-project-rollup';
 import { resolveAccessibleProjectIds } from '@/modules/projects/application/project-access';
 import type { OrgContext } from '@/shared/auth/context';
 import { hasPermission } from '@/shared/permissions/assert';
@@ -12,18 +13,21 @@ const ORG_CAP = 40;
 
 export async function getOrganizationEarlyWarnings(
   context: OrgContext,
+  options?: { readonly rollup?: OrganizationProjectRollup },
 ): Promise<readonly EarlyWarning[]> {
   if (!hasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ)) return [];
+
+  const rollup = options?.rollup ?? (await getOrganizationProjectRollup(context));
+  if (rollup.rows.length === 0) return [];
 
   const allowed = await resolveAccessibleProjectIds(context);
   const canReadBudget = hasPermission(context, PERMISSIONS.BUDGETS_READ);
   const canReadBilling = hasPermission(context, PERMISSIONS.BILLING_READ);
   const canReadProfit = hasPermission(context, PERMISSIONS.PROJECT_PROFIT_READ);
 
-  const [rollup, budgets] = await Promise.all([
-    getOrganizationProjectRollup(context),
-    canReadBudget ? loadActiveBudgetAmountsForOrg(context) : Promise.resolve(new Map()),
-  ]);
+  const budgets = canReadBudget
+    ? await loadActiveBudgetAmountsForOrg(context)
+    : new Map<string, { amount: string; currency: string }>();
 
   const out: EarlyWarning[] = [];
   for (const row of rollup.rows) {

@@ -21,6 +21,11 @@ import { ProviderHttpError } from '../providers/http-utils';
 import { ensureClientFolderTree, ensureOrganizationRootFolder } from './folder-provisioning';
 import { provisionStoredProjectFolder } from './project-provision';
 import { resolveValidAccessToken } from './connection-service';
+import {
+  acquireStorageProvisionLease,
+  releaseStorageProvisionLease,
+} from './provision-chain-lease';
+import { shouldScheduleStorageProvisionHop } from '../domain/provision-chain-lease';
 
 const PROJECT_CHILD_TYPES = [
   'quotes',
@@ -329,6 +334,7 @@ async function scheduleStorageProvisionNext(next: {
   chain: number;
   rateLimitStreak: number;
   delayMs: number;
+  chainToken: string;
 }): Promise<void> {
   const { resolveStorageProvisionWorkerTarget, postStorageProvisionWorker } = await import(
     './kick-storage-provision'
@@ -358,6 +364,7 @@ async function scheduleStorageProvisionNext(next: {
     const response = await postStorageProvisionWorker({
       chain: next.chain,
       rateLimitStreak: next.rateLimitStreak,
+      chainToken: next.chainToken,
     });
     if (!response.ok) {
       const body = await response.text().catch(() => '');
@@ -387,11 +394,22 @@ const STORAGE_PROVISION_CYCLE_BUDGET_MS = 240_000;
 export async function runStorageProvisionCycle(input: {
   chain?: number;
   rateLimitStreak?: number;
-  scheduleNext?: (next: { chain: number; rateLimitStreak: number; delayMs: number }) => Promise<void>;
+  chainToken?: string;
+  scheduleNext?: (next: {
+    chain: number;
+    rateLimitStreak: number;
+    delayMs: number;
+    chainToken: string;
+  }) => Promise<void>;
 } = {}): Promise<StorageProvisionBatchResult & { readonly continued: boolean }> {
   const chain = input.chain ?? 0;
   let rateLimitStreak = input.rateLimitStreak ?? 0;
+  const chainToken =
+    typeof input.chainToken === 'string' && input.chainToken.length > 0
+      ? input.chainToken
+      : crypto.randomUUID();
   const scheduleNext = input.scheduleNext ?? scheduleStorageProvisionNext;
+  const heldOrganizations = new Set<string>();
   const db = getAdminDb();
   const cycleStarted = Date.now();
   console.info('[org-storage/provision] cycle begin', { chain, rateLimitStreak });
@@ -417,10 +435,32 @@ export async function runStorageProvisionCycle(input: {
   const totals = { clientsProcessed: 0, projectsProcessed: 0 };
   let activeConnection: { organizationId: string; id: string } | null = null;
 
+  const releaseHeldLeases = async () => {
+    for (const organizationId of heldOrganizations) {
+      await releaseStorageProvisionLease(db, organizationId, chainToken);
+    }
+    heldOrganizations.clear();
+  };
+
   connectionLoop: for (const row of connections) {
     try {
+      const lease = await acquireStorageProvisionLease(db, row.organizationId, chainToken);
+      if (!lease.acquired) {
+        console.info('[org-storage/provision] skip org — chain lease held', {
+          organizationId: row.organizationId,
+          chain,
+        });
+        continue;
+      }
+      heldOrganizations.add(row.organizationId);
+      let stoppedForNoProgress = false;
+
       const connection = await findStorageConnectionById(db, row.organizationId, row.id);
-      if (!connection) continue;
+      if (!connection) {
+        await releaseStorageProvisionLease(db, row.organizationId, chainToken);
+        heldOrganizations.delete(row.organizationId);
+        continue;
+      }
       if (
         connection.lastError &&
         /provider_quota_exceeded|provider_auth_failed/i.test(connection.lastError)
@@ -468,6 +508,23 @@ export async function runStorageProvisionCycle(input: {
           // This organization is complete — continue to the next connected provider.
           // Previously `break connectionLoop` left secondary orgs stuck at 0/N forever
           // whenever a primary (e.g. Google Drive) finished first.
+          await releaseStorageProvisionLease(db, row.organizationId, chainToken);
+          heldOrganizations.delete(row.organizationId);
+          break;
+        }
+
+        if (last.clientsProcessed === 0 && last.projectsProcessed === 0) {
+          // No progress. Stop this organization for this chain. Do not schedule
+          // another hop, and do not mark the remaining folders complete.
+          console.info('[org-storage/provision] zero progress — stop org chain', {
+            organizationId: row.organizationId,
+            remaining: last.remaining,
+            chain,
+          });
+          await releaseStorageProvisionLease(db, row.organizationId, chainToken);
+          heldOrganizations.delete(row.organizationId);
+          activeConnection = null;
+          stoppedForNoProgress = true;
           break;
         }
 
@@ -495,13 +552,12 @@ export async function runStorageProvisionCycle(input: {
         }
 
         rateLimitStreak = 0;
-        if (last.clientsProcessed === 0 && last.projectsProcessed === 0) {
-          // No progress this batch but remaining > 0 — hand off; do not abandon other orgs
-          // by exiting the whole cycle unless we still have remaining work overall.
-          break connectionLoop;
-        }
       }
 
+      if (stoppedForNoProgress) {
+        activeConnection = null;
+        continue;
+      }
       if (last.remaining > 0 || last.rateLimited) break connectionLoop;
       activeConnection = null;
     } catch (error) {
@@ -540,39 +596,43 @@ export async function runStorageProvisionCycle(input: {
     projectsProcessed: totals.projectsProcessed,
   };
 
+  const decision = shouldScheduleStorageProvisionHop({
+    clientsProcessed: last.clientsProcessed,
+    projectsProcessed: last.projectsProcessed,
+    remaining: last.remaining,
+    rateLimited: last.rateLimited,
+    fatalError: last.fatalError,
+    chain,
+    rateLimitStreak,
+  });
+
   if (last.fatalError) {
     console.error('[org-storage/provision] cycle stopped — non-retryable', {
       chain,
       fatalError: last.fatalError,
     });
-    return { ...last, continued: false };
   }
 
-  const step = nextStorageProvisionStep({
-    remaining: last.remaining,
-    rateLimited: last.rateLimited,
-    chain,
-    rateLimitStreak,
-  });
-  if (step.deferred && last.remaining > 0) {
-    if (activeConnection) {
+  if (!decision.schedule) {
+    if (decision.step.deferred && last.remaining > 0 && activeConnection) {
       await updateStorageConnection(db, activeConnection.organizationId, activeConnection.id, {
         lastError: STORAGE_PROVISION_CHAIN_DEFERRED_ERROR,
       });
+      console.error('[org-storage/provision] chain cap — remaining work deferred for a later worker resume', {
+        chain: decision.step.chain,
+        remaining: last.remaining,
+        connectionId: activeConnection.id,
+      });
     }
-    console.error('[org-storage/provision] chain cap — remaining work deferred for a later worker resume', {
-      chain: step.chain,
-      remaining: last.remaining,
-      connectionId: activeConnection?.id ?? null,
-    });
+    await releaseHeldLeases();
     return { ...last, continued: false };
   }
-  if (step.continue) {
-    await scheduleNext({
-      chain: step.chain,
-      rateLimitStreak: step.rateLimitStreak,
-      delayMs: step.delayMs,
-    });
-  }
-  return { ...last, continued: step.continue };
+
+  await scheduleNext({
+    chain: decision.step.chain,
+    rateLimitStreak: decision.step.rateLimitStreak,
+    delayMs: decision.step.delayMs,
+    chainToken,
+  });
+  return { ...last, continued: true };
 }

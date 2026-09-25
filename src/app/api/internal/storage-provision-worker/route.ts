@@ -19,13 +19,15 @@ export async function POST(request: Request): Promise<Response> {
   const body = (await request.json().catch(() => ({}))) as {
     chain?: unknown;
     rateLimitStreak?: unknown;
+    chainToken?: unknown;
   };
   const chain = typeof body.chain === 'number' ? body.chain : 0;
   const rateLimitStreak = typeof body.rateLimitStreak === 'number' ? body.rateLimitStreak : 0;
+  const chainToken = typeof body.chainToken === 'string' ? body.chainToken : undefined;
   console.info('[org-storage/provision] worker POST accept', { chain, rateLimitStreak });
 
   waitUntil(
-    runStorageProvisionCycle({ chain, rateLimitStreak })
+    runStorageProvisionCycle({ chain, rateLimitStreak, chainToken })
       .then((result) => {
         console.info('[org-storage/provision] worker waitUntil done', {
           clientsProcessed: result.clientsProcessed,

@@ -1,7 +1,8 @@
-import { and, eq } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import { organizationStorageConnections } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 import type { StorageConnectionRecord, StorageConnectionStatus, StorageProviderKey } from '../domain/types';
+import { PROVISION_CHAIN_LEASE_KEY } from '../domain/provision-chain-lease';
 
 function mapConnection(row: typeof organizationStorageConnections.$inferSelect): StorageConnectionRecord {
   return {
@@ -154,9 +155,27 @@ export async function updateStorageConnection(
     capabilitiesJson: Record<string, unknown>;
   }>,
 ): Promise<StorageConnectionRecord | null> {
+  const setValues: Record<string, unknown> = { ...patch, updatedAt: new Date() };
+  if (
+    patch.capabilitiesJson &&
+    !Object.prototype.hasOwnProperty.call(patch.capabilitiesJson, PROVISION_CHAIN_LEASE_KEY)
+  ) {
+    const rest = { ...patch.capabilitiesJson };
+    setValues.capabilitiesJson = sql`(
+      ${JSON.stringify(rest)}::jsonb
+      || CASE
+        WHEN jsonb_exists(${organizationStorageConnections.capabilitiesJson}, ${PROVISION_CHAIN_LEASE_KEY})
+        THEN jsonb_build_object(
+          ${PROVISION_CHAIN_LEASE_KEY},
+          ${organizationStorageConnections.capabilitiesJson}->${PROVISION_CHAIN_LEASE_KEY}
+        )
+        ELSE '{}'::jsonb
+      END
+    )`;
+  }
   const [updated] = await db
     .update(organizationStorageConnections)
-    .set({ ...patch, updatedAt: new Date() })
+    .set(setValues as never)
     .where(
       and(
         eq(organizationStorageConnections.organizationId, organizationId),
