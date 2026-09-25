@@ -184,7 +184,9 @@ export async function createExpenseAction(
       const wantsApprove = parsed.data.finalizeOnCreate === true;
       const shouldFinalize =
         wantsApprove ||
-        (parsed.data.markPaidOnCreate === true && Boolean(parsed.data.costCategoryId));
+        (parsed.data.markPaidOnCreate === true &&
+          parsed.data.paymentStructure !== 'installments' &&
+          Boolean(parsed.data.costCategoryId));
       if (shouldFinalize && parsed.data.costCategoryId) {
         await finalizeExpense(context, created.id, {
           confirmDistinctCosts: formData.get('confirmDistinctCosts') === 'true',
@@ -199,7 +201,11 @@ export async function createExpenseAction(
           'expenses.errors.approveFailed',
         );
       }
-      if (parsed.data.markPaidOnCreate && parsed.data.costCategoryId) {
+      if (
+        parsed.data.markPaidOnCreate &&
+        parsed.data.paymentStructure !== 'installments' &&
+        parsed.data.costCategoryId
+      ) {
         const paidAt = parsed.data.paidAt
           ? businessDate(parsed.data.paidAt)
           : undefined;
@@ -282,7 +288,11 @@ export async function updateExpenseAction(
           'expenses.errors.approveFailed',
         );
       }
-      if (parsed.data.markPaidOnCreate && parsed.data.costCategoryId) {
+      if (
+        parsed.data.markPaidOnCreate &&
+        parsed.data.paymentStructure !== 'installments' &&
+        parsed.data.costCategoryId
+      ) {
         const paidAt = parsed.data.paidAt
           ? businessDate(parsed.data.paidAt)
           : undefined;

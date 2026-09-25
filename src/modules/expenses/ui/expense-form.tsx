@@ -614,8 +614,8 @@ export function ExpenseForm({
           paymentMethod === 'other' ? paymentMethodOther.trim() || 'other' : paymentMethod
         } />
         <input type="hidden" name="paymentInstrumentId" value={paymentInstrumentId} />
-        <input type="hidden" name="markPaidOnCreate" value={markPaid ? 'true' : 'false'} />
-        <input type="hidden" name="paidAt" value={markPaid ? paidAt : ''} />
+        <input type="hidden" name="markPaidOnCreate" value={paymentStructure === 'single' && markPaid ? 'true' : 'false'} />
+        <input type="hidden" name="paidAt" value={paymentStructure === 'single' && markPaid ? paidAt : ''} />
         <input type="hidden" name="vendorId" value={vendorId} />
         <input type="hidden" name="workPackageId" value={workPackageId} />
       </>
@@ -918,34 +918,39 @@ export function ExpenseForm({
           readOnly={readOnly}
           automaticInstallmentPayment={automaticInstallmentPayment}
           onAutomaticInstallmentPaymentChange={setAutomaticInstallmentPayment}
-          onStructureChange={setPaymentStructure}
+          onStructureChange={(structure) => {
+            setPaymentStructure(structure);
+            if (structure === 'installments') setMarkPaid(false);
+          }}
         />
 
-        <div className="flex flex-col gap-2">
-          <label className="flex cursor-pointer items-start gap-3">
-            <Checkbox
-              checked={markPaid}
-              onCheckedChange={(checked) => setMarkPaid(checked === true)}
-              disabled={readOnly}
-              aria-label={t('payment.markPaid')}
-            />
-            <span className="text-sm">{t('payment.markPaid')}</span>
-          </label>
-          {markPaid ? (
-            <Field label={t('payment.paidDate')}>
-              {(controlProps) => (
-                <Input
-                  {...controlProps}
-                  type="date"
-                  value={paidAt}
-                  onChange={(event) => setPaidAt(event.target.value)}
-                  disabled={readOnly}
-                  dir="ltr"
-                />
-              )}
-            </Field>
-          ) : null}
-        </div>
+        {paymentStructure === 'single' ? (
+          <div className="flex flex-col gap-2">
+            <label className="flex cursor-pointer items-start gap-3">
+              <Checkbox
+                checked={markPaid}
+                onCheckedChange={(checked) => setMarkPaid(checked === true)}
+                disabled={readOnly}
+                aria-label={t('payment.markPaid')}
+              />
+              <span className="text-sm">{t('payment.markPaid')}</span>
+            </label>
+            {markPaid ? (
+              <Field label={t('payment.paidDate')}>
+                {(controlProps) => (
+                  <Input
+                    {...controlProps}
+                    type="date"
+                    value={paidAt}
+                    onChange={(event) => setPaidAt(event.target.value)}
+                    disabled={readOnly}
+                    dir="ltr"
+                  />
+                )}
+              </Field>
+            ) : null}
+          </div>
+        ) : null}
 
         {children}
       </section>

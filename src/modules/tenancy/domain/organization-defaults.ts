@@ -44,6 +44,8 @@ export const DEFAULT_COST_CATEGORIES: readonly CostCategoryPreset[] = [
   { key: 'software', name: 'Software and subscriptions', family: 'business_overhead', sortOrder: 260 },
   { key: 'bank_fees', name: 'Bank and finance fees', family: 'business_overhead', sortOrder: 270 },
   { key: 'office_supplies', name: 'Office supplies', family: 'business_overhead', sortOrder: 280 },
+  { key: 'employee_clothing', name: 'Employee clothing', family: 'business_overhead', sortOrder: 282 },
+  { key: 'employee_gifts', name: 'Employee gifts', family: 'business_overhead', sortOrder: 284 },
   { key: 'vehicle_fuel', name: 'Vehicle and fuel', family: 'business_overhead', sortOrder: 290 },
   { key: 'other_overhead', name: 'Other overhead', family: 'business_overhead', sortOrder: 300 },
 
