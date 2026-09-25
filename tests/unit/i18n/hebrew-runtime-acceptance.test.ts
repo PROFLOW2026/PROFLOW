@@ -2,6 +2,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { formatMoneyAmountForInput } from '@/components/patterns/money-input';
+import { localizeClientTypeName } from '@/modules/business-catalog/domain/client-type-labels';
 import { localizePaymentTermName } from '@/modules/business-catalog/domain/payment-term-labels';
 import { MESSAGE_NAMESPACES } from '@/shared/i18n/config';
 import { flattenLocaleCatalog, readLocaleCatalog } from '../shared/i18n-messages.test';
@@ -125,6 +126,23 @@ describe('Hebrew runtime acceptance (catalog + payment terms + money)', () => {
       expect(label, key).not.toMatch(/\bNet\b/);
       expect(label, key).not.toMatch(/\bEOM\b/);
       expect(label, key).not.toMatch(/End of month/i);
+    }
+  });
+
+  it('localizes client types to Hebrew (never English catalog names)', () => {
+    expect(localizeClientTypeName('private', 'Private', 'he-IL')).toBe('פרטי');
+    expect(localizeClientTypeName('main_contractor', 'Main contractor', 'he-IL')).toBe('קבלן ראשי');
+    for (const key of [
+      'private',
+      'company',
+      'developer',
+      'main_contractor',
+      'property_manager',
+      'government',
+    ] as const) {
+      const label = localizeClientTypeName(key, 'fallback', 'he-IL');
+      expect(label, key).not.toMatch(/^[A-Za-z][A-Za-z /]+$/);
+      expect(looksLikeNaturalHebrew(label), key).toBe(true);
     }
   });
 

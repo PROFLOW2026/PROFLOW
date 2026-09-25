@@ -1331,5 +1331,39 @@
   "projectTemplatesSection": {
     "nav": "Project Templates",
     "description": "Project templates with stages and tasks"
+  },
+  "projectTemplatesPanel": {
+    "anyProfile": "Any profile",
+    "profileType": "Profile type",
+    "templateName": "Template name",
+    "description": "Description",
+    "descriptionOptional": "Description (optional)",
+    "edit": "Edit",
+    "cancel": "Cancel",
+    "save": "Save",
+    "duplicate": "Duplicate",
+    "archive": "Archive",
+    "restore": "Restore",
+    "archived": "Archived",
+    "stagesCount": "{count} stages",
+    "createTitle": "Create project template",
+    "stagesLabel": "Stages",
+    "stagePlaceholder": "Stage {index}",
+    "addStage": "Add stage",
+    "createTemplate": "Create template",
+    "emptyState": "No project templates yet.",
+    "hideArchived": "Hide archived",
+    "showArchived": "Show {count} archived",
+    "orgProfile": {
+      "architect": "Architect",
+      "engineer": "Engineer",
+      "consultant": "Consultant",
+      "project_manager": "Project Manager",
+      "developer": "Developer",
+      "contractor": "Contractor",
+      "subcontractor": "Subcontractor",
+      "supervisor": "Supervisor",
+      "other": "Other"
+    }
   }
 }

@@ -69,6 +69,8 @@ export interface PartyIdentifierRecord {
 export interface ClientListItem extends ClientRecord {
   readonly projectCount: number;
   readonly clientTypeName: string | null;
+  readonly clientTypeKey: string | null;
+  readonly clientTypeIsSystem: boolean;
 }
 
 export interface ClientListFilters {
@@ -85,6 +87,8 @@ export interface ClientDetail extends ClientRecord {
   readonly identifiers: readonly PartyIdentifierRecord[];
   readonly projectCount: number;
   readonly clientTypeName: string | null;
+  readonly clientTypeKey: string | null;
+  readonly clientTypeIsSystem: boolean;
   readonly defaultPaymentTermName: string | null;
   readonly defaultPaymentTermKey: string | null;
 }

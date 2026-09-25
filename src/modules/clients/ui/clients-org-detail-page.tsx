@@ -3,7 +3,11 @@ import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { getClientById, getClientFinancials, getClientProfitability, getClientTimeline } from '@/modules/clients';
-import { listBusinessCatalog, localizePaymentTermOptions } from '@/modules/business-catalog';
+import {
+  listBusinessCatalog,
+  localizeClientTypeOptions,
+  localizePaymentTermOptions,
+} from '@/modules/business-catalog';
 import { listCustomFieldValuesForEntity } from '@/modules/custom-fields';
 import { getEntityDocumentPanelData } from '@/modules/documents';
 import { DocumentAttachments } from '@/modules/documents/ui';
@@ -118,7 +122,7 @@ export async function ClientsOrgDetailPage({
     linkedProjects = loaded.projects;
     financials = loaded.financials;
     profitability = loaded.profitability;
-    clientTypes = loaded.clientTypes.map((row) => ({ id: row.id, name: row.name }));
+    clientTypes = localizeClientTypeOptions(loaded.clientTypes, locale);
     paymentTerms = localizePaymentTermOptions(loaded.paymentTerms, locale);
     quotes = loaded.quotes.map((quote) => ({
       id: quote.id,

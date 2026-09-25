@@ -87,6 +87,7 @@ import { NotFoundError } from "@/shared/errors";
 import { addMoney, isPositiveMoney, money, zeroMoney } from "@/shared/money";
 
 import { formatMoney } from "@/shared/money/format";
+import { localizeClientTypeName } from "@/modules/business-catalog/domain/client-type-labels";
 
 import { hasPermission } from "@/shared/permissions/assert";
 
@@ -280,7 +281,17 @@ async function buildClient360(
 
         { label: ctx.copy.identity.status, value: localizeCode(ctx.locale, client.status) },
 
-        { label: ctx.copy.fields.kind, value: client.clientTypeName ?? "-" },
+        {
+          label: ctx.copy.fields.kind,
+          value: client.clientTypeName
+            ? localizeClientTypeName(
+                client.clientTypeKey,
+                client.clientTypeName,
+                ctx.locale,
+                client.clientTypeIsSystem,
+              )
+            : '-',
+        },
       ],
     },
   ];

@@ -229,6 +229,8 @@ export async function listClients(
     .select({
       client: clients,
       clientTypeName: organizationCatalogEntries.name,
+      clientTypeKey: organizationCatalogEntries.key,
+      clientTypeIsSystem: organizationCatalogEntries.isSystem,
       projectCount: sql<number>`(
         select count(*)::int from projects p
         where p.client_id = ${clients.id}
@@ -253,6 +255,8 @@ export async function listClients(
     ...mapClient(row.client),
     projectCount: row.projectCount,
     clientTypeName: row.clientTypeName ?? null,
+    clientTypeKey: row.clientTypeKey ?? null,
+    clientTypeIsSystem: row.clientTypeIsSystem ?? false,
   }));
 }
 
@@ -288,11 +292,17 @@ export async function getClientDetail(
     );
 
   let clientTypeName: string | null = null;
+  let clientTypeKey: string | null = null;
+  let clientTypeIsSystem = false;
   let defaultPaymentTermName: string | null = null;
   let defaultPaymentTermKey: string | null = null;
   if (client.clientTypeId) {
     const [typeRow] = await db
-      .select({ name: organizationCatalogEntries.name })
+      .select({
+        name: organizationCatalogEntries.name,
+        key: organizationCatalogEntries.key,
+        isSystem: organizationCatalogEntries.isSystem,
+      })
       .from(organizationCatalogEntries)
       .where(
         and(
@@ -302,6 +312,8 @@ export async function getClientDetail(
       )
       .limit(1);
     clientTypeName = typeRow?.name ?? null;
+    clientTypeKey = typeRow?.key ?? null;
+    clientTypeIsSystem = typeRow?.isSystem ?? false;
   }
   if (client.defaultPaymentTermId) {
     const [termRow] = await db
@@ -327,6 +339,8 @@ export async function getClientDetail(
     identifiers: identifiers.map(mapIdentifier),
     projectCount: countRow?.count ?? 0,
     clientTypeName,
+    clientTypeKey,
+    clientTypeIsSystem,
     defaultPaymentTermName,
     defaultPaymentTermKey,
   };

@@ -1,5 +1,6 @@
 import { Plus, Users } from 'lucide-react';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
+import { localizeClientTypeName, localizeClientTypeOptions } from '@/modules/business-catalog';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
@@ -46,11 +47,12 @@ export async function ClientsOrgListView({
 }: ClientsOrgListViewProps) {
   const resolvedShowSavedViews = showSavedViews ?? surface === 'owner';
 
-  const [t, tStatus, tCommon, shell] = await Promise.all([
+  const [t, tStatus, tCommon, shell, locale] = await Promise.all([
     getTranslations('clients'),
     getTranslations('status.generic'),
     getTranslations('common'),
     surface === 'owner' ? getShellContext() : Promise.resolve(null),
+    getLocale(),
   ]);
 
   const includeArchived = params.includeArchived === '1';
@@ -136,7 +138,7 @@ export async function ClientsOrgListView({
         initialQuery={params.q ?? ''}
         includeArchived={includeArchived}
         initialClientTypeId={params.clientTypeId ?? ''}
-        clientTypes={clientTypes.map((row) => ({ id: row.id, name: row.name }))}
+        clientTypes={localizeClientTypeOptions(clientTypes, locale)}
       />
 
       {resolvedShowSavedViews ? (
@@ -190,7 +192,16 @@ export async function ClientsOrgListView({
                           {client.name}
                         </Link>
                       </TableCell>
-                      <TableCell>{client.clientTypeName ?? '—'}</TableCell>
+                      <TableCell>
+                        {client.clientTypeName
+                          ? localizeClientTypeName(
+                              client.clientTypeKey,
+                              client.clientTypeName,
+                              locale,
+                              client.clientTypeIsSystem,
+                            )
+                          : '—'}
+                      </TableCell>
                       <TableCell numeric>
                         <span dir="ltr">{client.projectCount}</span>
                       </TableCell>

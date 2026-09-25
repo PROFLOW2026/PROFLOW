@@ -1331,5 +1331,39 @@
   "projectTemplatesSection": {
     "nav": "תבניות פרויקט",
     "description": "תבניות פרויקט עם שלבים ומשימות"
+  },
+  "projectTemplatesPanel": {
+    "anyProfile": "כל פרופיל",
+    "profileType": "סוג פרופיל",
+    "templateName": "שם תבנית",
+    "description": "תיאור",
+    "descriptionOptional": "תיאור (אופציונלי)",
+    "edit": "עריכה",
+    "cancel": "ביטול",
+    "save": "שמירה",
+    "duplicate": "שכפול",
+    "archive": "ארכוב",
+    "restore": "שחזור",
+    "archived": "בארכיון",
+    "stagesCount": "{count} שלבים",
+    "createTitle": "יצירת תבנית פרויקט",
+    "stagesLabel": "שלבים",
+    "stagePlaceholder": "שלב {index}",
+    "addStage": "הוספת שלב",
+    "createTemplate": "יצירת תבנית",
+    "emptyState": "אין עדיין תבניות פרויקט.",
+    "hideArchived": "הסתרת ארכיון",
+    "showArchived": "הצג {count} בארכיון",
+    "orgProfile": {
+      "architect": "אדריכל",
+      "engineer": "מהנדס",
+      "consultant": "יועץ",
+      "project_manager": "מנהל פרויקט",
+      "developer": "יזם",
+      "contractor": "קבלן",
+      "subcontractor": "קבלן משנה",
+      "supervisor": "מפקח",
+      "other": "אחר"
+    }
   }
 }

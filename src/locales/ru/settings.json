@@ -1331,5 +1331,39 @@
   "projectTemplatesSection": {
     "nav": "Шаблоны проектов",
     "description": "Шаблоны проектов с этапами и задачами"
+  },
+  "projectTemplatesPanel": {
+    "anyProfile": "Любой профиль",
+    "profileType": "Тип профиля",
+    "templateName": "Название шаблона",
+    "description": "Описание",
+    "descriptionOptional": "Описание (необязательно)",
+    "edit": "Изменить",
+    "cancel": "Отмена",
+    "save": "Сохранить",
+    "duplicate": "Дублировать",
+    "archive": "В архив",
+    "restore": "Восстановить",
+    "archived": "В архиве",
+    "stagesCount": "{count} этапов",
+    "createTitle": "Создать шаблон проекта",
+    "stagesLabel": "Этапы",
+    "stagePlaceholder": "Этап {index}",
+    "addStage": "Добавить этап",
+    "createTemplate": "Создать шаблон",
+    "emptyState": "Шаблонов проектов пока нет.",
+    "hideArchived": "Скрыть архив",
+    "showArchived": "Показать {count} в архиве",
+    "orgProfile": {
+      "architect": "Архитектор",
+      "engineer": "Инженер",
+      "consultant": "Консультант",
+      "project_manager": "Менеджер проекта",
+      "developer": "Застройщик",
+      "contractor": "Подрядчик",
+      "subcontractor": "Субподрядчик",
+      "supervisor": "Надзор",
+      "other": "Другое"
+    }
   }
 }

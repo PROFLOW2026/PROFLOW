@@ -1331,5 +1331,39 @@
   "projectTemplatesSection": {
     "nav": "قوالب المشاريع",
     "description": "قوالب المشاريع مع المراحل والمهام"
+  },
+  "projectTemplatesPanel": {
+    "anyProfile": "أي ملف",
+    "profileType": "نوع الملف",
+    "templateName": "اسم القالب",
+    "description": "الوصف",
+    "descriptionOptional": "الوصف (اختياري)",
+    "edit": "تعديل",
+    "cancel": "إلغاء",
+    "save": "حفظ",
+    "duplicate": "نسخ",
+    "archive": "أرشفة",
+    "restore": "استعادة",
+    "archived": "مؤرشف",
+    "stagesCount": "{count} مراحل",
+    "createTitle": "إنشاء قالب مشروع",
+    "stagesLabel": "المراحل",
+    "stagePlaceholder": "مرحلة {index}",
+    "addStage": "إضافة مرحلة",
+    "createTemplate": "إنشاء قالب",
+    "emptyState": "لا توجد قوالب مشروع بعد.",
+    "hideArchived": "إخفاء المؤرشف",
+    "showArchived": "عرض {count} مؤرشف",
+    "orgProfile": {
+      "architect": "مهندس معماري",
+      "engineer": "مهندس",
+      "consultant": "استشاري",
+      "project_manager": "مدير مشروع",
+      "developer": "مطور",
+      "contractor": "مقاول",
+      "subcontractor": "مقاول باطن",
+      "supervisor": "مشرف",
+      "other": "أخرى"
+    }
   }
 }
