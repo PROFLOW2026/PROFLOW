@@ -369,7 +369,8 @@
       "logTime": "Log time",
       "files": "Files",
       "meetings": "Meetings",
-      "financials": "Financials"
+      "financials": "Financials",
+      "navAriaLabel": "Project hub"
     },
     "openTaskDetail": "Open task details",
     "files": {

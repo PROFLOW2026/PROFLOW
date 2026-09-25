@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { getTranslations } from 'next-intl/server';
 import { withOrgContext } from '@/shared/auth/session';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -22,8 +23,9 @@ export async function saveMemberDocumentFolderGrantsAction(
   _prev: SettingsActionState,
   formData: FormData,
 ): Promise<SettingsActionState> {
+  const tErrors = await getTranslations('settings.people.folderGrants');
   const membershipId = String(formData.get('membershipId') ?? '').trim();
-  if (!membershipId) return { error: 'Member is required' };
+  if (!membershipId) return { error: tErrors('memberRequired') };
 
   try {
     await withOrgContext(async (context) => {
@@ -47,9 +49,7 @@ export async function saveMemberDocumentFolderGrantsAction(
     });
     revalidatePath('/settings/people');
     return { ok: true };
-  } catch (error) {
-    return {
-      error: error instanceof Error ? error.message : 'Failed to save folder access',
-    };
+  } catch {
+    return { error: tErrors('saveFailed') };
   }
 }

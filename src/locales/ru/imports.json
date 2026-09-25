@@ -59,6 +59,7 @@
     "expenseDate": "Дата расхода",
     "amount": "Сумма",
     "projectId": "ID проекта",
+    "projectIdPlaceholder": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
     "projectName": "Название проекта / работы",
     "vendorId": "ID поставщика",
     "supplierName": "Название поставщика",
@@ -108,7 +109,8 @@
     "truncated": "Показаны первые 100 из {count} строк.",
     "skipHint": "Снимите отметку со строк, чтобы пропустить их. Строки с ошибками никогда не импортируются.",
     "selectValid": "Выбрать только корректные строки",
-    "selectAll": "Выбрать все строки"
+    "selectAll": "Выбрать все строки",
+    "noIssues": "—"
   },
   "result": {
     "title": "Результат импорта",

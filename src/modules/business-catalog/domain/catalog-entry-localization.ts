@@ -6,7 +6,7 @@
 import type { BusinessCatalogKind } from './types';
 import { localizeClientTypeName, localizeClientTypeOptions } from './client-type-labels';
 import { localizePaymentTermName, localizePaymentTermOptions } from './payment-term-labels';
-import { localizeVendorCategoryName, localizeVendorCategoryOptions } from './vendor-capability-labels';
+import { localizeVendorCategoryName } from './vendor-capability-labels';
 import {
   localizeEngagementRoleName,
   localizeEngagementRoleOptions,
@@ -15,6 +15,7 @@ import {
   localizeLostReasonName,
   localizeLostReasonOptions,
 } from './crm-catalog-labels';
+import { localizeProfileCatalogName, localizeProfileCatalogOptions } from './profile-catalog-labels';
 
 export interface CatalogEntryLike {
   readonly id: string;
@@ -22,6 +23,17 @@ export interface CatalogEntryLike {
   readonly name: string;
   readonly kind?: BusinessCatalogKind;
   readonly isSystem?: boolean;
+}
+
+function localizeVendorCategoryDisplay(
+  key: string | null | undefined,
+  fallbackName: string,
+  locale: string,
+  isSystem: boolean,
+): string {
+  const profileLabel = localizeProfileCatalogName(key, fallbackName, locale, isSystem);
+  if (profileLabel !== fallbackName) return profileLabel;
+  return localizeVendorCategoryName(key, fallbackName, locale, isSystem);
 }
 
 export function localizeCatalogEntryName(
@@ -37,7 +49,10 @@ export function localizeCatalogEntryName(
     case 'payment_term':
       return localizePaymentTermName(key, fallbackName, locale);
     case 'vendor_category':
-      return localizeVendorCategoryName(key, fallbackName, locale, isSystem);
+      return localizeVendorCategoryDisplay(key, fallbackName, locale, isSystem);
+    case 'vendor_specialty':
+    case 'cost_code':
+      return localizeProfileCatalogName(key, fallbackName, locale, isSystem);
     case 'lead_source':
       return localizeLeadSourceName(key, fallbackName, locale, isSystem);
     case 'lost_reason':
@@ -60,7 +75,19 @@ export function localizeCatalogEntryOptions(
     case 'payment_term':
       return localizePaymentTermOptions(entries, locale);
     case 'vendor_category':
-      return localizeVendorCategoryOptions(entries, locale);
+      return entries.map((entry) => ({
+        id: entry.id,
+        key: entry.key,
+        name: localizeVendorCategoryDisplay(
+          entry.key,
+          entry.name,
+          locale,
+          entry.isSystem ?? false,
+        ),
+      }));
+    case 'vendor_specialty':
+    case 'cost_code':
+      return localizeProfileCatalogOptions(entries, locale);
     case 'lead_source':
       return localizeLeadSourceOptions(entries, locale);
     case 'lost_reason':

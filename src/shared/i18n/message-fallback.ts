@@ -23,7 +23,7 @@ function isDevMissingKeyVisible(): boolean {
  * - Development: `[missing: namespace.key]` plus a console warning
  * - Production/preview: em dash — never blank, never a raw translation key
  *
- * Server catalogs merge English under Hebrew, so MISSING_MESSAGE should be rare;
+ * Non-English catalogs load without English merge, so MISSING_MESSAGE should be rare;
  * this is the last-resort guard for client bundles and catalog gaps.
  */
 export function pfGetMessageFallback({

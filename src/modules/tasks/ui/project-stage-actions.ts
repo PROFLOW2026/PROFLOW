@@ -1,5 +1,6 @@
 'use server';
 
+import { getTranslations } from 'next-intl/server';
 import { withOrgContext } from '@/shared/auth/session';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -13,18 +14,18 @@ export async function transitionProjectStageAction(
   _prev: StageTransitionActionState,
   formData: FormData,
 ): Promise<StageTransitionActionState> {
+  const tErrors = await getTranslations('settings.workflowActions.projectStage.errors');
   try {
     const projectId = formData.get('projectId') as string | null;
     const toStageId = formData.get('toStageId') as string | null;
     const notes = (formData.get('notes') as string | null)?.trim() || null;
 
-    if (!projectId) return { error: 'Project ID is required' };
-    if (!toStageId) return { error: 'Stage ID is required' };
+    if (!projectId) return { error: tErrors('projectIdRequired') };
+    if (!toStageId) return { error: tErrors('stageIdRequired') };
 
     await withOrgContext(async (context) => {
       assertPermission(context, PERMISSIONS.PROJECTS_UPDATE);
 
-      // Fetch current stage (latest transition)
       const latest = await context.db
         .select({ toStageId: projectStageTransitions.toStageId })
         .from(projectStageTransitions)
@@ -42,10 +43,8 @@ export async function transitionProjectStageAction(
 
       const fromStageId = latest[0]?.toStageId ?? null;
 
-      // No-op if already on this stage
       if (fromStageId === toStageId) return;
 
-      // Verify target stage belongs to org
       const stageExists = await context.db
         .select({ id: projectStageDefinitions.id })
         .from(projectStageDefinitions)
@@ -59,7 +58,7 @@ export async function transitionProjectStageAction(
         .limit(1);
 
       if (!stageExists.length) {
-        throw new Error('Stage not found or archived');
+        throw new Error('stage_not_found');
       }
 
       await context.db.insert(projectStageTransitions).values({
@@ -76,6 +75,9 @@ export async function transitionProjectStageAction(
     revalidatePath(`/projects/${projectId}`);
     return { ok: true };
   } catch (err: unknown) {
-    return { error: err instanceof Error ? err.message : 'Failed to transition stage' };
+    if (err instanceof Error && err.message === 'stage_not_found') {
+      return { error: tErrors('stageNotFound') };
+    }
+    return { error: tErrors('transitionFailed') };
   }
 }

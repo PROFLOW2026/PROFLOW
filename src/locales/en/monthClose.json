@@ -19,7 +19,8 @@
     "select": "Select a period to review completeness."
   },
   "form": {
-    "yearMonth": "Month (YYYY-MM)"
+    "yearMonth": "Month (YYYY-MM)",
+    "yearMonthPlaceholder": "YYYY-MM"
   },
   "actions": {
     "openPeriod": "Open month",
@@ -70,6 +71,7 @@
     "type": "Type",
     "reason": "Reason",
     "amount": "Amount",
+    "amountPlaceholder": "0.00",
     "currency": "Currency",
     "effectSide": "Effect",
     "sidePlaceholder": "Select cost or revenue",

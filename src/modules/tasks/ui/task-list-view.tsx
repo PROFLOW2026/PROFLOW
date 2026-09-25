@@ -399,7 +399,7 @@ export function TaskListView({
                     <td className="px-4 py-2.5 text-[var(--pf-text-muted)]">
                       {task.projectId ? (
                         <span className="flex flex-col">
-                          <span>{task.projectName ?? '—'}</span>
+                          <span>{task.projectName ?? t('list.notAvailable')}</span>
                           {task.clientName ? (
                             <span className="text-xs">{task.clientName}</span>
                           ) : null}
@@ -539,7 +539,7 @@ export function TaskListView({
                         {formatDueDateLabel(dueDate, locale)}
                       </span>
                     ) : (
-                      <span className="text-xs text-[var(--pf-text-muted)]">—</span>
+                      <span className="text-xs text-[var(--pf-text-muted)]">{t('list.notAvailable')}</span>
                     )}
                   </td>
                 </tr>

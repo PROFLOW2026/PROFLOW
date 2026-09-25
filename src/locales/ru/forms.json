@@ -27,7 +27,11 @@
       "required": "Обязательно",
       "checklistItems": "Пункты чек-листа (через запятую)",
       "addField": "Добавить поле в шаблон",
-      "schemaPreview": "Поля в шаблоне"
+      "schemaPreview": "Поля в шаблоне",
+      "fieldKeyPlaceholder": "site_check",
+      "checklistItemsPlaceholder": "СИЗ, леса, доступ",
+      "schemaEmpty": "—",
+      "removeField": "Удалить поле"
     },
     "archive": "Архивировать",
     "enable": "Включить",

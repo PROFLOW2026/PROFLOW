@@ -54,7 +54,8 @@ export async function createLinkedExpenseAction(
     const opsRecordKind = formValue(formData, 'opsRecordKind') as OpsRecordKind | undefined;
     const opsRecordId = formValue(formData, 'opsRecordId');
     if (!opsRecordKind || !opsRecordId) {
-      return { error: 'Missing operational record' };
+      const tAssets = await getTranslations('assets');
+      return { error: tAssets('financeLink.errors.missingRecord') };
     }
 
     const allocationPeriodStart = formValue(formData, 'allocationPeriodStart');

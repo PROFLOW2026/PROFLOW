@@ -321,7 +321,7 @@ export function BoqPanelClient({
             </p>
           </div>
           <p className="sm:col-span-2 text-xs text-[var(--pf-text-muted)]">
-            {t('status.' + (boq.status as 'draft'))} · v{boq.versionNumber}
+            {t('status.' + (boq.status as 'draft'))} · {t('panel.versionLabel', { number: boq.versionNumber })}
             {boq.title ? ` · ${boq.title}` : null}
             {' · '}
             {t('totals.currency')}: <span dir="ltr">{currency}</span>
@@ -329,7 +329,7 @@ export function BoqPanelClient({
         </section>
       ) : (
         <p className="text-xs text-[var(--pf-text-muted)]">
-          {t('status.' + (boq.status as 'draft'))} · v{boq.versionNumber}
+          {t('status.' + (boq.status as 'draft'))} · {t('panel.versionLabel', { number: boq.versionNumber })}
           {boq.title ? ` · ${boq.title}` : null}
         </p>
       )}
@@ -790,7 +790,7 @@ export function BoqPanelClient({
                                   <input
                                     name="taxAmount"
                                     inputMode="decimal"
-                                    placeholder="0"
+                                    placeholder={t('progress.zeroPlaceholder')}
                                     className="mt-1 block w-28 rounded-md border border-[var(--pf-border-default)] bg-transparent px-2 py-1.5 text-sm"
                                     dir="ltr"
                                   />

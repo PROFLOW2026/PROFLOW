@@ -473,5 +473,15 @@
       "read": "Чтение",
       "manage": "Управление"
     }
+  },
+  "milestoneLinkedTask": {
+    "linkedTaskLabel": "Связанная задача:",
+    "noLinkedTask": "Нет связанной задачи",
+    "unlink": "Отвязать",
+    "changeLinkedTask": "Изменить связанную задачу",
+    "linkTask": "Привязать задачу",
+    "selectTask": "Выберите задачу…",
+    "cancel": "Отмена",
+    "due": "Срок {date}"
   }
 }

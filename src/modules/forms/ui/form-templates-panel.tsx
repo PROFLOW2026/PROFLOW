@@ -40,6 +40,7 @@ export function FormTemplatesPanel({
   canEdit: boolean;
 }) {
   const t = useTranslations('forms');
+  const tCommon = useTranslations('common');
   const [fields, setFields] = useState<FormFieldDefinition[]>([]);
   const [draftType, setDraftType] = useState<FormFieldType>('text');
   const [draftLabel, setDraftLabel] = useState('');
@@ -146,7 +147,7 @@ export function FormTemplatesPanel({
                       {...props}
                       value={draftKey}
                       onChange={(event) => setDraftKey(event.target.value)}
-                      placeholder={slugifyKey(draftLabel) || 'site_check'}
+                      placeholder={slugifyKey(draftLabel) || t('settings.fields.fieldKeyPlaceholder')}
                       dir="ltr"
                       className="font-mono text-sm"
                     />
@@ -178,7 +179,7 @@ export function FormTemplatesPanel({
                         {...props}
                         value={draftItems}
                         onChange={(event) => setDraftItems(event.target.value)}
-                        placeholder="PPE, Scaffolding, Access"
+                        placeholder={t('settings.fields.checklistItemsPlaceholder')}
                       />
                     )}
                   </Field>
@@ -205,7 +206,7 @@ export function FormTemplatesPanel({
             <div>
               <p className="mb-1 text-sm font-medium">{t('settings.fields.schemaPreview')}</p>
               {fields.length === 0 ? (
-                <p className="text-sm text-[var(--pf-text-secondary)]">—</p>
+                <p className="text-sm text-[var(--pf-text-secondary)]">{t('settings.fields.schemaEmpty')}</p>
               ) : (
                 <ul className="flex flex-col gap-1 text-sm">
                   {fields.map((field) => (
@@ -221,11 +222,12 @@ export function FormTemplatesPanel({
                         type="button"
                         variant="ghost"
                         size="sm"
+                        aria-label={t('settings.fields.removeField')}
                         onClick={() =>
                           setFields((prev) => prev.filter((item) => item.key !== field.key))
                         }
                       >
-                        ×
+                        {tCommon('actions.remove')}
                       </Button>
                     </li>
                   ))}

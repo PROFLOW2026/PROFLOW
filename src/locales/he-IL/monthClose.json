@@ -19,7 +19,8 @@
     "select": "בחרו תקופה לבדיקת שלמות הנתונים."
   },
   "form": {
-    "yearMonth": "חודש (YYYY-MM)"
+    "yearMonth": "חודש (YYYY-MM)",
+    "yearMonthPlaceholder": "YYYY-MM"
   },
   "actions": {
     "openPeriod": "פתיחת חודש",
@@ -70,6 +71,7 @@
     "type": "סוג",
     "reason": "סיבה",
     "amount": "סכום",
+    "amountPlaceholder": "0.00",
     "currency": "מטבע",
     "effectSide": "השפעה",
     "sidePlaceholder": "בחרו עלות או הכנסה",

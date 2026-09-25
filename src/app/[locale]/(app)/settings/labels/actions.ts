@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { getTranslations } from 'next-intl/server';
 import { withOrgContext } from '@/shared/auth/session';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -14,11 +15,13 @@ export async function createLabelAction(
   _prev: LabelActionState,
   formData: FormData,
 ): Promise<LabelActionState> {
+  const tErrors = await getTranslations('settings.workflowActions.labels.errors');
+  const tSuccess = await getTranslations('settings.workflowActions.labels.success');
   try {
     const name = formData.get('name') as string | null;
     const color = formData.get('color') as string | null;
 
-    if (!name?.trim()) return { error: 'Label name is required' };
+    if (!name?.trim()) return { error: tErrors('nameRequired') };
 
     await withOrgContext(async (context) => {
       assertPermission(context, PERMISSIONS.TASK_TEMPLATES_MANAGE);
@@ -38,9 +41,9 @@ export async function createLabelAction(
     });
 
     revalidatePath('/settings/labels');
-    return { ok: true, message: 'Label created' };
-  } catch (err: unknown) {
-    return { error: err instanceof Error ? err.message : 'Failed to create label' };
+    return { ok: true, message: tSuccess('created') };
+  } catch {
+    return { error: tErrors('createFailed') };
   }
 }
 
@@ -48,13 +51,15 @@ export async function updateLabelAction(
   _prev: LabelActionState,
   formData: FormData,
 ): Promise<LabelActionState> {
+  const tErrors = await getTranslations('settings.workflowActions.labels.errors');
+  const tSuccess = await getTranslations('settings.workflowActions.labels.success');
   try {
     const id = formData.get('id') as string | null;
     const name = formData.get('name') as string | null;
     const color = formData.get('color') as string | null;
 
-    if (!id) return { error: 'Label ID is required' };
-    if (!name?.trim()) return { error: 'Label name is required' };
+    if (!id) return { error: tErrors('idRequired') };
+    if (!name?.trim()) return { error: tErrors('nameRequired') };
 
     await withOrgContext(async (context) => {
       assertPermission(context, PERMISSIONS.TASK_TEMPLATES_MANAGE);
@@ -78,9 +83,9 @@ export async function updateLabelAction(
     });
 
     revalidatePath('/settings/labels');
-    return { ok: true, message: 'Label updated' };
-  } catch (err: unknown) {
-    return { error: err instanceof Error ? err.message : 'Failed to update label' };
+    return { ok: true, message: tSuccess('updated') };
+  } catch {
+    return { error: tErrors('updateFailed') };
   }
 }
 
@@ -88,11 +93,13 @@ export async function archiveLabelAction(
   _prev: LabelActionState,
   formData: FormData,
 ): Promise<LabelActionState> {
+  const tErrors = await getTranslations('settings.workflowActions.labels.errors');
+  const tSuccess = await getTranslations('settings.workflowActions.labels.success');
   try {
     const id = formData.get('id') as string | null;
     const restore = formData.get('restore') === 'true';
 
-    if (!id) return { error: 'Label ID is required' };
+    if (!id) return { error: tErrors('idRequired') };
 
     await withOrgContext(async (context) => {
       assertPermission(context, PERMISSIONS.TASK_TEMPLATES_MANAGE);
@@ -113,8 +120,8 @@ export async function archiveLabelAction(
     });
 
     revalidatePath('/settings/labels');
-    return { ok: true, message: restore ? 'Label restored' : 'Label archived' };
-  } catch (err: unknown) {
-    return { error: err instanceof Error ? err.message : 'Failed to update label' };
+    return { ok: true, message: restore ? tSuccess('restored') : tSuccess('archived') };
+  } catch {
+    return { error: tErrors('updateFailed') };
   }
 }

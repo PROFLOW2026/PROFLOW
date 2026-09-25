@@ -41,7 +41,7 @@ export function ForgotPasswordForm() {
 
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
 
-      <Field label="Email" required>
+      <Field id="forgot-password-email" label={t('email')} required>
         {(control) => <Input {...control} name="email" type="email" dir="ltr" autoComplete="email" required />}
       </Field>
 

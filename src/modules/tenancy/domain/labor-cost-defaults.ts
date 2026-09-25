@@ -13,7 +13,7 @@ export const laborCostDefaultComponentSchema = z.object({
     .trim()
     .min(1)
     .max(40)
-    .regex(/^[a-z][a-z0-9_]*$/i, 'Invalid component key'),
+    .regex(/^[a-z][a-z0-9_]*$/i, 'invalid_component_key'),
   basis: z.enum(['percent', 'fixed']),
   percent: z
     .string()
@@ -180,7 +180,16 @@ export function parseOrgStandardWorkTimePair(input: {
   readonly end: string;
 }):
   | { ok: true; standardWorkStartTime: string | null; standardWorkEndTime: string | null }
-  | { ok: false; path: 'standardWorkStartTime' | 'standardWorkEndTime'; message: string } {
+  | {
+      ok: false;
+      path: 'standardWorkStartTime' | 'standardWorkEndTime';
+      messageKey:
+        | 'bothTimesRequired'
+        | 'invalidStartTime'
+        | 'invalidEndTime'
+        | 'timesMustDiffer'
+        | 'endMustBeAfterStart';
+    } {
   const start = input.start.trim();
   const end = input.end.trim();
 
@@ -192,28 +201,28 @@ export function parseOrgStandardWorkTimePair(input: {
     return {
       ok: false,
       path: !start ? 'standardWorkStartTime' : 'standardWorkEndTime',
-      message: 'Both start and end times are required',
+      messageKey: 'bothTimesRequired',
     };
   }
 
   if (!isValidWorkTimeHHmm(start)) {
-    return { ok: false, path: 'standardWorkStartTime', message: 'Invalid start time' };
+    return { ok: false, path: 'standardWorkStartTime', messageKey: 'invalidStartTime' };
   }
   if (!isValidWorkTimeHHmm(end)) {
-    return { ok: false, path: 'standardWorkEndTime', message: 'Invalid end time' };
+    return { ok: false, path: 'standardWorkEndTime', messageKey: 'invalidEndTime' };
   }
   if (start === end) {
     return {
       ok: false,
       path: 'standardWorkEndTime',
-      message: 'Start and end times must differ',
+      messageKey: 'timesMustDiffer',
     };
   }
   if (workTimeToMinutes(end) <= workTimeToMinutes(start)) {
     return {
       ok: false,
       path: 'standardWorkEndTime',
-      message: 'End time must be after start time',
+      messageKey: 'endMustBeAfterStart',
     };
   }
 

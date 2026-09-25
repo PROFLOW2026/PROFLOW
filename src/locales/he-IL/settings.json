@@ -66,7 +66,9 @@
       "memberPlaceholder": "בחר חבר צוות",
       "emptyMeansAll": "כשכל הקטגוריות מסומנות, או שלא נשמרו הרשאות מותאמות, ניתן לגלוש בכל התיקיות הסמנטיות המותרות לפי התפקיד.",
       "save": "שמירת גישה לתיקיות",
-      "saved": "גישה לתיקיות נשמרה"
+      "saved": "גישה לתיקיות נשמרה",
+      "memberRequired": "יש לבחור חבר צוות",
+      "saveFailed": "שמירת גישה לתיקיות נכשלה"
     }
   },
   "modules": {
@@ -1367,7 +1369,7 @@
     }
   },
   "stagesPanel": {
-    "intro": "הגדרות שלבים מופיעות בכותרות פרויקט ובמסכי מעקב. ארכוב שלב מסתיר אותו מפרויקטים חדשים — נתונים קיימים נשמרים.",
+    "intro": "הגדרות שלבים מופיעות בכותרות פרויקט ובמסכי מעקב. ארכוב שלב מסתיר אותו מפרויקטים חדשים; נתונים קיימים נשמרים.",
     "color": "צבע",
     "stageName": "שם שלב",
     "addNew": "הוספת שלב חדש",
@@ -1386,7 +1388,7 @@
     }
   },
   "labelsPanel": {
-    "intro": "תגיות ניתנות למשימות בכל סביבות העבודה. ארכוב תגית מסתיר אותה מבוחרים — שיוכים קיימים נשמרים.",
+    "intro": "תגיות ניתנות למשימות בכל סביבות העבודה. ארכוב תגית מסתיר אותה מבוחרים; שיוכים קיימים נשמרים.",
     "color": "צבע",
     "labelName": "שם תגית",
     "addNew": "הוספת תגית חדשה",
@@ -1433,15 +1435,42 @@
     "previewStage": "שלב →",
     "previewBucket": "דלי →",
     "types": {
-      "architect": { "label": "אדריכל", "description": "תכנון אדריכלי, תכנון והיתרים" },
-      "engineer": { "label": "מהנדס", "description": "הנדסה קונструקטיבית, אזרחית, MEP או התמחות" },
-      "consultant": { "label": "יועץ", "description": "ייעוץ מקצועי ושירותי ליווי" },
-      "project_manager": { "label": "מנהל פרויקט", "description": "ניהול פרויקטים ופיקוח עצמאי" },
-      "developer": { "label": "יזם / נדל\"ן", "description": "יזמות, קרקעות ופרויקטי נדל\"ן" },
-      "contractor": { "label": "קבלן ראשי", "description": "בנייה, שיפוץ וקבלנות" },
-      "subcontractor": { "label": "קבלן משנה", "description": "עבודות משנה ומקצועות" },
-      "supervisor": { "label": "מפקח / בודק", "description": "פיקוח אתר, בקרת איכות ותאימות" },
-      "other": { "label": "אחר", "description": "מקצוע אחר בתעשיית הבנייה" }
+      "architect": {
+        "label": "אדריכל",
+        "description": "תכנון אדריכלי, תכנון והיתרים"
+      },
+      "engineer": {
+        "label": "מהנדס",
+        "description": "הנדסה קונструקטיבית, אזרחית, MEP או התמחות"
+      },
+      "consultant": {
+        "label": "יועץ",
+        "description": "ייעוץ מקצועי ושירותי ליווי"
+      },
+      "project_manager": {
+        "label": "מנהל פרויקט",
+        "description": "ניהול פרויקטים ופיקוח עצמאי"
+      },
+      "developer": {
+        "label": "יזם / נדל\"ן",
+        "description": "יזמות, קרקעות ופרויקטי נדל\"ן"
+      },
+      "contractor": {
+        "label": "קבלן ראשי",
+        "description": "בנייה, שיפוץ וקבלנות"
+      },
+      "subcontractor": {
+        "label": "קבלן משנה",
+        "description": "עבודות משנה ומקצועות"
+      },
+      "supervisor": {
+        "label": "מפקח / בודק",
+        "description": "פיקוח אתר, בקרת איכות ותאימות"
+      },
+      "other": {
+        "label": "אחר",
+        "description": "מקצוע אחר בתעשיית הבנייה"
+      }
     },
     "terminologyDefaults": {
       "project": "פרויקט",
@@ -1453,7 +1482,7 @@
   },
   "adoptionPanel": {
     "pageDescription": "החל הגדרות שלבים, מודולים ומינוח לפי סוג פרופיל הארגון.",
-    "intro": "אשף זה מחיל שלבים, נראות מודולים וסוג פרופיל על ארגון קיים. כל הכתיבות idempotent — לא דורס הגדרות קיימות.",
+    "intro": "אשף זה מחיל שלבים, נראות מודולים וסוג פרופיל על ארגון קיים. כל הכתיבות idempotent; לא דורס הגדרות קיימות.",
     "step1Title": "שלב 1: בחר פרופיל ארגון",
     "step2Title": "שלב 2: תצוגה מקדימה",
     "step3Title": "שלב 3: החלה",
@@ -1463,17 +1492,149 @@
     "completeBody": "שלבים והגדרות מודולים הוגדרו לפי סוג הפרופיל.",
     "viewStages": "צפייה בשלבים",
     "viewModules": "צפייה במודולים",
-    "step2PreviewTitle": "שלב 2: תצוגה מקדימה — {profile}",
+    "step2PreviewTitle": "שלב 2: תצוגה מקדימה - {profile}",
     "stagesToCreate": "שלבים ליצירה",
     "allStagesExist": "כל {count} שלבי ברירת המחדל כבר קיימים.",
     "stagesSkipped": "{count} שלב(ים) כבר קיימים וידולגו.",
     "modulesToDisable": "מודולים להשבתה כברירת מחדל",
     "modulesHint": "רק מודולים שטרם הוגדרו יושפעו.",
-    "profileAlreadySet": "סוג פרופיל הארגון כבר מוגדר לפרופיל זה — לא יוחלף.",
+    "profileAlreadySet": "סוג פרופיל הארגון כבר מוגדר לפרופיל זה; לא יוחלף.",
     "errors": {
       "invalidProfileType": "יש לבחור סוג פרופיל ארגון תקין",
       "previewFailed": "התצוגה המקדימה נכשלה",
       "adoptionFailed": "ההטמעה נכשלה"
+    }
+  },
+  "workflowActions": {
+    "stages": {
+      "errors": {
+        "nameRequired": "שם שלב נדרש",
+        "idRequired": "מזהה שלב נדרש",
+        "noStageIds": "לא סופקו מזהי שלבים",
+        "createFailed": "יצירת השלב נכשלה",
+        "updateFailed": "עדכון השלב נכשל",
+        "setDefaultFailed": "הגדרת שלב ברירת מחדל נכשלה",
+        "reorderFailed": "סידור השלבים מחדש נכשל",
+        "unexpected": "משהו השתבש. נסו שוב."
+      },
+      "success": {
+        "created": "השלב נוצר בהצלחה",
+        "updated": "השלב עודכן",
+        "archived": "השלב הועבר לארכיון",
+        "restored": "השלב שוחזר",
+        "defaultUpdated": "שלב ברירת המחדל עודכן"
+      }
+    },
+    "labels": {
+      "errors": {
+        "nameRequired": "שם תווית נדרש",
+        "idRequired": "מזהה תווית נדרש",
+        "createFailed": "יצירת התווית נכשלה",
+        "updateFailed": "עדכון התווית נכשל",
+        "unexpected": "משהו השתבש. נסו שוב."
+      },
+      "success": {
+        "created": "התווית נוצרה",
+        "updated": "התווית עודכנה",
+        "archived": "התווית הועברה לארכיון",
+        "restored": "התווית שוחזרה"
+      }
+    },
+    "taskTemplates": {
+      "errors": {
+        "titleRequired": "כותרת תבנית נדרשת",
+        "idRequired": "מזהה תבנית נדרש",
+        "createFailed": "יצירת התבנית נכשלה",
+        "updateFailed": "עדכון התבנית נכשל",
+        "unexpected": "משהו השתבש. נסו שוב."
+      },
+      "success": {
+        "created": "תבנית המשימה נוצרה",
+        "updated": "התבנית עודכנה",
+        "archived": "התבנית הועברה לארכיון",
+        "restored": "התבנית שוחזרה"
+      }
+    },
+    "projectTemplates": {
+      "errors": {
+        "nameRequired": "שם תבנית נדרש",
+        "idRequired": "מזהה תבנית נדרש",
+        "createFailed": "יצירת התבנית נכשלה",
+        "updateFailed": "עדכון התבנית נכשל",
+        "duplicateFailed": "שכפול התבנית נכשל",
+        "unexpected": "משהו השתבש. נסו שוב."
+      },
+      "success": {
+        "created": "תבנית הפרויקט נוצרה",
+        "updated": "התבנית עודכנה",
+        "duplicated": "התבנית שוכפלה",
+        "archived": "התבנית הועברה לארכיון",
+        "restored": "התבנית שוחזרה"
+      }
+    },
+    "orgProfile": {
+      "errors": {
+        "profileTypeRequired": "סוג פרופיל ארגון נדרש",
+        "updateProfileFailed": "עדכון סוג הפרופיל נכשל",
+        "updateTerminologyFailed": "עדכון המינוח נכשל",
+        "unexpected": "משהו השתבש. נסו שוב."
+      },
+      "success": {
+        "profileTypeUpdated": "סוג פרופיל הארגון עודכן",
+        "terminologyUpdated": "המינוח עודכן"
+      }
+    },
+    "projectStage": {
+      "errors": {
+        "projectIdRequired": "מזהה פרויקט נדרש",
+        "stageIdRequired": "מזהה שלב נדרש",
+        "stageNotFound": "השלב לא נמצא או בארכיון",
+        "transitionFailed": "מעבר השלב נכשל",
+        "unexpected": "משהו השתבש. נסו שוב."
+      }
+    },
+    "planning": {
+      "errors": {
+        "nameRequired": "שם נדרש",
+        "workItemIdRequired": "מזהה פריט עבודה נדרש"
+      }
+    },
+    "employeeTasks": {
+      "errors": {
+        "updateStatusFailed": "עדכון הסטטוס נכשל",
+        "invalidDueDate": "תאריך יעד לא תקין",
+        "updateDueDateFailed": "עדכון תאריך היעד נכשל",
+        "updateChecklistFailed": "עדכון פריט רשימת הבדיקה נכשל",
+        "linkDocumentFailed": "קישור המסמך נכשל",
+        "unlinkDocumentFailed": "ביטול קישור המסמך נכשל",
+        "attachCloudFileFailed": "צירוף קובץ ענן נכשל",
+        "recordAttachmentFailed": "רישום הקובץ המצורף נכשל",
+        "unexpected": "משהו השתבש. נסו שוב."
+      }
+    },
+    "workloadApi": {
+      "invalidEmployeeId": "מזהה עובד לא תקין",
+      "forbidden": "אין הרשאה",
+      "internalError": "שגיאת שרת פנימית"
+    }
+  },
+  "integrations": {
+    "invoicing": {
+      "errors": {
+        "noActiveOrganization": "בחרו עסק לעבודה לפני המשך.",
+        "saveFailed": "שמירת הגדרות חשבוניות נכשלה",
+        "forbidden": "אין לכם הרשאה לפעולה זו."
+      }
+    }
+  },
+  "laborCost": {
+    "validation": {
+      "bothTimesRequired": "נדרשים שעת התחלה ושעת סיום",
+      "invalidStartTime": "שעת התחלה לא תקינה",
+      "invalidEndTime": "שעת סיום לא תקינה",
+      "timesMustDiffer": "שעות ההתחלה והסיום חייבות להיות שונות",
+      "endMustBeAfterStart": "שעת הסיום חייבת להיות אחרי שעת ההתחלה",
+      "invalidComponentKey": "מפתח רכיב לא תקין"
     }
   }
 }

@@ -27,7 +27,11 @@
       "required": "مطلوب",
       "checklistItems": "بنود قائمة التحقق (مفصولة بفواصل)",
       "addField": "إضافة حقل إلى القالب",
-      "schemaPreview": "الحقول في القالب"
+      "schemaPreview": "الحقول في القالب",
+      "fieldKeyPlaceholder": "site_check",
+      "checklistItemsPlaceholder": "معدات الوقاية، سقالات، وصول",
+      "schemaEmpty": "—",
+      "removeField": "إزالة الحقل"
     },
     "archive": "أرشفة",
     "enable": "تفعيل",

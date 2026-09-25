@@ -59,6 +59,7 @@
     "expenseDate": "Expense date",
     "amount": "Amount",
     "projectId": "Project ID",
+    "projectIdPlaceholder": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
     "projectName": "Project / job name",
     "vendorId": "Vendor ID",
     "supplierName": "Supplier name",
@@ -108,7 +109,8 @@
     "truncated": "Showing first 100 of {count} rows.",
     "skipHint": "Uncheck rows to skip them. Rows with errors are never imported.",
     "selectValid": "Select only valid rows",
-    "selectAll": "Select all rows"
+    "selectAll": "Select all rows",
+    "noIssues": "—"
   },
   "result": {
     "title": "Import result",

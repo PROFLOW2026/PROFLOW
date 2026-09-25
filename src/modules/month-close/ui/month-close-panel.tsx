@@ -175,7 +175,7 @@ export function MonthClosePanel({
               name="yearMonth"
               value={yearMonth}
               onChange={(event) => setYearMonth(event.target.value)}
-              placeholder="YYYY-MM"
+              placeholder={t('form.yearMonthPlaceholder')}
               required
             />
           </div>
@@ -508,7 +508,7 @@ function EconomicAdjustmentForm({
           autoComplete="off"
           dir="ltr"
           className="pf-numeric mt-1"
-          placeholder="0.00"
+          placeholder={t('adjustments.amountPlaceholder')}
         />
       </div>
       <div>

@@ -59,6 +59,7 @@
     "expenseDate": "تاريخ المصروف",
     "amount": "المبلغ",
     "projectId": "معرّف المشروع",
+    "projectIdPlaceholder": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
     "projectName": "اسم المشروع / العمل",
     "vendorId": "معرّف المورد",
     "supplierName": "اسم المورد",
@@ -108,7 +109,8 @@
     "truncated": "عرض أول 100 من {count} صف.",
     "skipHint": "ألغِ تحديد الصفوف لتخطيها. الصفوف ذات الأخطاء لا تُستورد أبداً.",
     "selectValid": "تحديد الصفوف الصالحة فقط",
-    "selectAll": "تحديد جميع الصفوف"
+    "selectAll": "تحديد جميع الصفوف",
+    "noIssues": "—"
   },
   "result": {
     "title": "نتيجة الاستيراد",

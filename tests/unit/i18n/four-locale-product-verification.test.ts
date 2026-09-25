@@ -1,9 +1,11 @@
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
-import { join, relative } from 'node:path';
+import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_CLIENT_TYPES } from '@/modules/business-catalog/domain/types';
 import { localizeClientTypeName } from '@/modules/business-catalog/domain/client-type-labels';
 import { localizePaymentTermName } from '@/modules/business-catalog/domain/payment-term-labels';
+import { localizeProfileCatalogName } from '@/modules/business-catalog/domain/profile-catalog-labels';
+import { localizeCatalogEntryName } from '@/modules/business-catalog/domain/catalog-entry-localization';
 import { localizeCode } from '@/shared/i18n/code-display';
 import { LOCALES, MESSAGE_NAMESPACES, type Locale } from '@/shared/i18n/config';
 import {
@@ -11,12 +13,11 @@ import {
   missingLocaleKeys,
   readLocaleCatalog,
 } from '../shared/i18n-catalog-helpers';
+import { execSync } from 'node:child_process';
+import { loadMessages } from '@/shared/i18n/messages';
 
 const LOCALES_DIR = join(process.cwd(), 'src', 'locales');
 const NON_EN_LOCALES: Locale[] = ['he-IL', 'ar', 'ru'];
-
-/** Heuristic scan baseline — decreases as raw literals are wired to i18n. */
-const RAW_LITERAL_BASELINE = 987;
 
 const SETTINGS_I18N_FILES = [
   'src/app/[locale]/(app)/settings/stages/stages-panel.tsx',
@@ -30,61 +31,6 @@ function totalKeysForLocale(locale: Locale): number {
   let total = 0;
   for (const ns of MESSAGE_NAMESPACES) {
     total += flattenLocaleCatalog(readLocaleCatalog(locale, ns)).size;
-  }
-  return total;
-}
-
-function countSuspiciousRawLiterals(): number {
-  const SCAN_ROOTS = ['src/app', 'src/modules'];
-  const UUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
-  const JSX_TEXT_RE = />[^<{]*[A-Z][a-z]+/;
-  const PLACEHOLDER_RE = /placeholder\s*=\s*(?:\{?\s*)?["'][A-Z]/;
-  const TITLE_RE = /(?:title|label|aria-label|alt)\s*=\s*(?:\{?\s*)?["'][A-Z]/;
-
-  function shouldSkipLine(line: string): boolean {
-    const t = line.trim();
-    if (!t || t.startsWith('//') || t.startsWith('*') || t.startsWith('/*')) return true;
-    if (t.startsWith('import ') || t.startsWith('export ')) return true;
-    if (UUID_RE.test(line)) return true;
-    if (/\bt\s*\(\s*['"]/.test(line)) return true;
-    if (/useTranslations|getTranslations|translateClientMessage|formatMessage/.test(line)) return true;
-    if (
-      /className=|data-testid=|testId=|href=|src=|type=|key=|ref=|id=|role=|name=|variant=|size=|asChild|onClick=|onChange=|onSubmit=|console\.|throw new/.test(
-        line,
-      )
-    ) {
-      return true;
-    }
-    return false;
-  }
-
-  function isSuspiciousLine(line: string): boolean {
-    if (shouldSkipLine(line)) return false;
-    return JSX_TEXT_RE.test(line) || PLACEHOLDER_RE.test(line) || TITLE_RE.test(line);
-  }
-
-  function walk(dir: string, out: string[]) {
-    for (const entry of readdirSync(dir)) {
-      if (entry === 'node_modules') continue;
-      const full = join(dir, entry);
-      const st = statSync(full);
-      if (st.isDirectory()) walk(full, out);
-      else if (entry.endsWith('.tsx')) out.push(full);
-    }
-  }
-
-  let total = 0;
-  for (const root of SCAN_ROOTS) {
-    const files: string[] = [];
-    walk(join(process.cwd(), root), files);
-    for (const file of files) {
-      const rel = relative(process.cwd(), file).replace(/\\/g, '/');
-      if ((SETTINGS_I18N_FILES as readonly string[]).includes(rel)) continue;
-      const lines = readFileSync(file, 'utf8').split(/\r?\n/);
-      for (const line of lines) {
-        if (isSuspiciousLine(line)) total += 1;
-      }
-    }
   }
   return total;
 }
@@ -143,12 +89,46 @@ describe('four-locale product verification', () => {
 
       const status = localizeCode('active', locale);
       expect(status, locale).toBeTruthy();
+
+      const specialty = localizeCatalogEntryName(
+        'vendor_specialty',
+        'electrical',
+        'Electrical',
+        locale,
+        true,
+      );
+      expect(specialty, locale).toBeTruthy();
+      if (locale !== 'en') {
+        expect(specialty, locale).not.toBe('Electrical');
+      }
+
+      const costCode = localizeProfileCatalogName('26', 'Electrical', locale, true);
+      expect(costCode, locale).toBeTruthy();
+      if (locale !== 'en') {
+        expect(costCode, locale).not.toBe('Electrical');
+      }
     }
   });
 
-  it('tracks heuristic raw literal regression (target: drive to 0)', () => {
-    const count = countSuspiciousRawLiterals();
-    expect(count).toBeLessThanOrEqual(RAW_LITERAL_BASELINE);
+  it('precise scanner reports zero real user-visible system literals', () => {
+    const out = execSync('node scripts/i18n-literal-scan-core.mjs', { encoding: 'utf8' });
+    const report = JSON.parse(out) as { realUiRemaining: number };
+    expect(report.realUiRemaining).toBe(0);
+  });
+
+  it('does not silently deep-merge English under he/ar/ru message trees', async () => {
+    const [he, ar, ru, en] = await Promise.all([
+      loadMessages('he-IL'),
+      loadMessages('ar'),
+      loadMessages('ru'),
+      loadMessages('en'),
+    ]);
+    const heSettingsTitle = (he.settings as { title?: string } | undefined)?.title;
+    const enSettingsTitle = (en.settings as { title?: string } | undefined)?.title;
+    expect(heSettingsTitle).toBeTruthy();
+    expect(heSettingsTitle).not.toBe(enSettingsTitle);
+    expect((ar.settings as { title?: string } | undefined)?.title).not.toBe(enSettingsTitle);
+    expect((ru.settings as { title?: string } | undefined)?.title).not.toBe(enSettingsTitle);
   });
 
   it('every locale has a full namespace tree on disk', () => {

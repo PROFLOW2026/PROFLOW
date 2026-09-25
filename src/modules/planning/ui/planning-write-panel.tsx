@@ -9,6 +9,7 @@
  */
 
 import React, { useActionState, useState, useTransition } from 'react';
+import { useTranslations } from 'next-intl';
 import { cn } from '@/shared/ui/cn';
 import type {
   PlanningDependency,
@@ -67,10 +68,16 @@ function AddItemForm({
   createAction: typeof createPlanningWorkItemAction;
   onClose: () => void;
 }) {
+  const t = useTranslations('planning.write');
+  const tCommon = useTranslations('common');
   const [state, formAction, pending] = useActionState<PlanningActionState, FormData>(
     createAction,
     {},
   );
+  const nameLabel =
+    kind === 'milestone' ? t('fields.milestoneName') : t('fields.taskName');
+  const endDateLabel =
+    kind === 'milestone' ? t('fields.milestoneDate') : t('fields.targetEndDate');
 
   return (
     <form
@@ -84,13 +91,13 @@ function AddItemForm({
       <div className="flex flex-wrap gap-2 items-start">
         <div className="flex-1 min-w-[140px]">
           <label className="block text-xs text-[var(--pf-text-secondary)] mb-0.5">
-            {kind === 'milestone' ? 'Milestone name' : 'Task name'}
+            {nameLabel}
           </label>
           <input
             name="name"
             required
             autoFocus
-            placeholder={kind === 'milestone' ? 'Milestone name' : 'Task name'}
+            placeholder={nameLabel}
             className={INPUT_CLASS}
           />
           {state.fieldErrors?.name ? (
@@ -101,7 +108,7 @@ function AddItemForm({
         {kind !== 'milestone' && (
           <div className="min-w-[110px]">
             <label className="block text-xs text-[var(--pf-text-secondary)] mb-0.5">
-              Start date
+              {t('fields.startDate')}
             </label>
             <input type="date" name="startDate" className={INPUT_CLASS} />
           </div>
@@ -109,7 +116,7 @@ function AddItemForm({
 
         <div className="min-w-[110px]">
           <label className="block text-xs text-[var(--pf-text-secondary)] mb-0.5">
-            {kind === 'milestone' ? 'Milestone date' : 'Target end date'}
+            {endDateLabel}
           </label>
           <input type="date" name="targetEndDate" className={INPUT_CLASS} />
         </div>
@@ -121,10 +128,10 @@ function AddItemForm({
 
       <div className="flex gap-2">
         <button type="submit" disabled={pending} className={BTN_PRIMARY}>
-          {pending ? 'Saving…' : 'Add'}
+          {pending ? tCommon('states.saving') : tCommon('actions.add')}
         </button>
         <button type="button" onClick={onClose} className={BTN_SECONDARY}>
-          Cancel
+          {tCommon('actions.cancel')}
         </button>
       </div>
     </form>
@@ -144,10 +151,14 @@ function EditItemForm({
   updateAction: typeof updatePlanningWorkItemAction;
   onClose: () => void;
 }) {
+  const t = useTranslations('planning.write');
+  const tCommon = useTranslations('common');
   const [state, formAction, pending] = useActionState<PlanningActionState, FormData>(
     updateAction,
     {},
   );
+  const endDateLabel =
+    item.kind === 'milestone' ? t('fields.milestoneDate') : t('fields.targetEndDate');
 
   return (
     <form
@@ -161,7 +172,9 @@ function EditItemForm({
 
       <div className="flex flex-wrap gap-2 items-start">
         <div className="flex-1 min-w-[140px]">
-          <label className="block text-xs text-[var(--pf-text-secondary)] mb-0.5">Name</label>
+          <label className="block text-xs text-[var(--pf-text-secondary)] mb-0.5">
+            {t('fields.name')}
+          </label>
           <input
             name="name"
             required
@@ -176,7 +189,7 @@ function EditItemForm({
         {item.kind !== 'milestone' && (
           <div className="min-w-[110px]">
             <label className="block text-xs text-[var(--pf-text-secondary)] mb-0.5">
-              Start date
+              {t('fields.startDate')}
             </label>
             <input
               type="date"
@@ -189,7 +202,7 @@ function EditItemForm({
 
         <div className="min-w-[110px]">
           <label className="block text-xs text-[var(--pf-text-secondary)] mb-0.5">
-            {item.kind === 'milestone' ? 'Milestone date' : 'Target end date'}
+            {endDateLabel}
           </label>
           <input
             type="date"
@@ -202,7 +215,7 @@ function EditItemForm({
         {item.kind !== 'milestone' && (
           <div className="min-w-[90px]">
             <label className="block text-xs text-[var(--pf-text-secondary)] mb-0.5">
-              Progress %
+              {t('fields.progressPercent')}
             </label>
             <input
               type="number"
@@ -222,10 +235,10 @@ function EditItemForm({
 
       <div className="flex gap-2">
         <button type="submit" disabled={pending} className={BTN_PRIMARY}>
-          {pending ? 'Saving…' : 'Save'}
+          {pending ? tCommon('states.saving') : tCommon('actions.save')}
         </button>
         <button type="button" onClick={onClose} className={BTN_SECONDARY}>
-          Cancel
+          {tCommon('actions.cancel')}
         </button>
       </div>
     </form>
@@ -247,6 +260,8 @@ function ArchiveConfirm({
   archiveAction: typeof archivePlanningWorkItemAction;
   onClose: () => void;
 }) {
+  const t = useTranslations('planning.write');
+  const tCommon = useTranslations('common');
   const [, startTransition] = useTransition();
 
   function handleArchive() {
@@ -259,17 +274,15 @@ function ArchiveConfirm({
   return (
     <div className="mt-1 rounded-lg border border-[var(--pf-status-danger-fg)] bg-[var(--pf-status-danger-bg)] p-3 text-sm space-y-2">
       <p className="text-[var(--pf-status-danger-fg)] font-medium">
-        Archive &ldquo;{itemName}&rdquo;?
+        {t('archive.title', { name: itemName })}
       </p>
-      <p className="text-xs text-[var(--pf-text-secondary)]">
-        Archived items are hidden from the timeline but preserved in history.
-      </p>
+      <p className="text-xs text-[var(--pf-text-secondary)]">{t('archive.hint')}</p>
       <div className="flex gap-2">
         <button type="button" onClick={handleArchive} className={BTN_DANGER}>
-          Archive
+          {tCommon('actions.archive')}
         </button>
         <button type="button" onClick={onClose} className={BTN_SECONDARY}>
-          Cancel
+          {tCommon('actions.cancel')}
         </button>
       </div>
     </div>
@@ -293,6 +306,8 @@ function AddDependencyForm({
   setDepAction: typeof setPlanningDependencyAction;
   onClose: () => void;
 }) {
+  const t = useTranslations('planning.write');
+  const tCommon = useTranslations('common');
   const [, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -322,10 +337,10 @@ function AddDependencyForm({
       className="mt-1 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] p-3 space-y-2"
     >
       <label className="block text-xs text-[var(--pf-text-secondary)]">
-        Add predecessor (finish-to-start)
+        {t('dependency.addLabel')}
       </label>
       <select name="predecessorId" required className={INPUT_CLASS}>
-        <option value="">Select predecessor…</option>
+        <option value="">{t('dependency.selectPlaceholder')}</option>
         {candidates.map((w) => (
           <option key={w.id} value={w.id}>
             {w.name}
@@ -335,10 +350,10 @@ function AddDependencyForm({
       {error ? <p className="text-xs text-[var(--pf-status-danger-fg)]">{error}</p> : null}
       <div className="flex gap-2">
         <button type="submit" className={BTN_PRIMARY}>
-          Add
+          {tCommon('actions.add')}
         </button>
         <button type="button" onClick={onClose} className={BTN_SECONDARY}>
-          Cancel
+          {tCommon('actions.cancel')}
         </button>
       </div>
     </form>
@@ -368,6 +383,9 @@ function WriteItemRow({
   setDepAction: typeof setPlanningDependencyAction;
   removeDepAction: typeof removePlanningDependencyAction;
 }) {
+  const t = useTranslations('planning');
+  const tWrite = useTranslations('planning.write');
+  const tCommon = useTranslations('common');
   const [mode, setMode] = useState<RowMode>('view');
   const [, startTransition] = useTransition();
   const myDeps = dependencies.filter((d) => d.successorId === item.id);
@@ -391,17 +409,17 @@ function WriteItemRow({
         </span>
         {item.kind === 'milestone' ? (
           <span className="text-xs text-[var(--pf-text-secondary)] px-1 py-0.5 border border-[var(--pf-border-default)] rounded">
-            ◆ Milestone
+            ◆ {t('milestone')}
           </span>
         ) : null}
         <span className="text-xs text-[var(--pf-text-secondary)]">
-          {item.targetEndDate ?? 'no date'}
+          {item.targetEndDate ?? tWrite('noDate')}
         </span>
 
         <div className="flex gap-1 shrink-0">
           <button
             type="button"
-            aria-label={`Edit ${item.name}`}
+            aria-label={tWrite('editAria', { name: item.name })}
             onClick={() => setMode((m) => (m === 'edit' ? 'view' : 'edit'))}
             className={cn(
               BTN_SECONDARY,
@@ -409,23 +427,23 @@ function WriteItemRow({
               mode === 'edit' && 'bg-[var(--pf-bg-muted)]',
             )}
           >
-            ✏ Edit
+            ✏ {tWrite('editShort')}
           </button>
           <button
             type="button"
-            aria-label={`Add dependency to ${item.name}`}
+            aria-label={tWrite('dependency.addAria', { name: item.name })}
             onClick={() => setMode((m) => (m === 'dep' ? 'view' : 'dep'))}
             className={cn(BTN_SECONDARY, 'text-xs px-2')}
           >
-            ↗ Dep
+            ↗ {tWrite('dependencyShort')}
           </button>
           <button
             type="button"
-            aria-label={`Archive ${item.name}`}
+            aria-label={tWrite('archiveAria', { name: item.name })}
             onClick={() => setMode((m) => (m === 'archive' ? 'view' : 'archive'))}
             className={cn(BTN_DANGER, 'text-xs px-2')}
           >
-            Archive
+            {tCommon('actions.archive')}
           </button>
         </div>
       </div>
@@ -440,7 +458,7 @@ function WriteItemRow({
               ← {p.name}
               <button
                 type="button"
-                aria-label={`Remove dependency on ${p.name}`}
+                aria-label={tWrite('dependency.removeAria', { name: p.name })}
                 onClick={() => removeDep(p.id)}
                 className="text-[var(--pf-text-secondary)] hover:text-[var(--pf-status-danger-fg)] leading-none"
               >
@@ -495,16 +513,17 @@ export function PlanningWritePanel({
   setDepAction,
   removeDepAction,
 }: PlanningWritePanelProps) {
+  const tWrite = useTranslations('planning.write');
   const [addKind, setAddKind] = useState<PlanningWorkItemKind | null>(null);
 
   return (
     <section
       className="rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4 space-y-4"
-      aria-label="Edit planning items"
+      aria-label={tWrite('sectionAria')}
     >
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <h3 className="text-sm font-semibold text-[var(--pf-text-primary)]">
-          Edit planning items
+          {tWrite('sectionTitle')}
         </h3>
         <div className="flex gap-2">
           <button
@@ -512,7 +531,7 @@ export function PlanningWritePanel({
             onClick={() => setAddKind((k) => (k === 'task' ? null : 'task'))}
             className={cn(BTN_SECONDARY, 'text-xs', addKind === 'task' && 'bg-[var(--pf-bg-muted)]')}
           >
-            + Add task
+            + {tWrite('addTask')}
           </button>
           <button
             type="button"
@@ -523,7 +542,7 @@ export function PlanningWritePanel({
               addKind === 'milestone' && 'bg-[var(--pf-bg-muted)]',
             )}
           >
-            ◆ Add milestone
+            ◆ {tWrite('addMilestone')}
           </button>
         </div>
       </div>
@@ -554,9 +573,7 @@ export function PlanningWritePanel({
           ))}
         </ul>
       ) : (
-        <p className="text-sm text-[var(--pf-text-secondary)]">
-          No planning items yet. Use the buttons above to add tasks or milestones.
-        </p>
+        <p className="text-sm text-[var(--pf-text-secondary)]">{tWrite('emptyItems')}</p>
       )}
     </section>
   );

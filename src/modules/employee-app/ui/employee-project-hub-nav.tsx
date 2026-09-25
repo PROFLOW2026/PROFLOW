@@ -56,11 +56,16 @@ export async function buildEmployeeProjectHubLinks(input: {
   ];
 }
 
-export function EmployeeProjectHubNav({ links }: { links: readonly EmployeeProjectHubLink[] }) {
+export async function EmployeeProjectHubNav({
+  links,
+}: {
+  links: readonly EmployeeProjectHubLink[];
+}) {
+  const t = await getTranslations('employeeApp.projects');
   const visible = links.filter((link) => link.visible);
 
   return (
-    <nav className="grid gap-2" aria-label="Project hub">
+    <nav className="grid gap-2" aria-label={t('hub.navAriaLabel')}>
       {visible.map((link) => (
         <Link key={link.href} href={link.href} className={employeeHubCardClass}>
           <span className="text-base font-semibold text-[var(--pf-text-primary)]">{link.label}</span>

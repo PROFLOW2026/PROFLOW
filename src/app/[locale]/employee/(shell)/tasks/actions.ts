@@ -120,7 +120,8 @@ export async function employeeUpdateTaskStatusAction(
     return {};
   } catch (error) {
     if (error instanceof DomainRuleError) return { error: error.message };
-    return { error: 'Failed to update status' };
+    const tErrors = await getTranslations('settings.workflowActions.employeeTasks.errors');
+    return { error: tErrors('updateStatusFailed') };
   }
 }
 
@@ -129,9 +130,10 @@ export async function employeePostponeTaskAction(
   taskId: string,
   dueDate: string,
 ): Promise<TaskActionState> {
+  const tErrors = await getTranslations('settings.workflowActions.employeeTasks.errors');
   const trimmed = dueDate.trim();
   if (!/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
-    return { error: 'Invalid due date' };
+    return { error: tErrors('invalidDueDate') };
   }
 
   try {
@@ -145,7 +147,7 @@ export async function employeePostponeTaskAction(
     return {};
   } catch (error) {
     if (error instanceof DomainRuleError) return { error: error.message };
-    return { error: 'Failed to update due date' };
+    return { error: tErrors('updateDueDateFailed') };
   }
 }
 
@@ -164,7 +166,8 @@ export async function employeeToggleChecklistItemAction(
     return {};
   } catch (error) {
     if (error instanceof DomainRuleError) return { error: error.message };
-    return { error: 'Failed to update checklist item' };
+    const tErrors = await getTranslations('settings.workflowActions.employeeTasks.errors');
+    return { error: tErrors('updateChecklistFailed') };
   }
 }
 
@@ -277,7 +280,8 @@ export async function employeeLinkTaskDocumentAction(
     return {};
   } catch (error) {
     if (error instanceof DomainRuleError) return { error: error.message };
-    return { error: 'Failed to link document' };
+    const tErrors = await getTranslations('settings.workflowActions.employeeTasks.errors');
+    return { error: tErrors('linkDocumentFailed') };
   }
 }
 
@@ -294,7 +298,8 @@ export async function employeeUnlinkTaskDocumentAction(
     return {};
   } catch (error) {
     if (error instanceof DomainRuleError) return { error: error.message };
-    return { error: 'Failed to unlink document' };
+    const tErrors = await getTranslations('settings.workflowActions.employeeTasks.errors');
+    return { error: tErrors('unlinkDocumentFailed') };
   }
 }
 
@@ -312,7 +317,8 @@ export async function employeeLinkProviderFileToTaskAction(
     return {};
   } catch (error) {
     if (error instanceof DomainRuleError) return { error: error.message };
-    return { error: 'Failed to attach cloud file' };
+    const tErrors = await getTranslations('settings.workflowActions.employeeTasks.errors');
+    return { error: tErrors('attachCloudFileFailed') };
   }
 }
 
@@ -329,6 +335,7 @@ export async function employeeRecordTaskAttachmentAddedAction(
     return {};
   } catch (error) {
     if (error instanceof DomainRuleError) return { error: error.message };
-    return { error: 'Failed to record attachment' };
+    const tErrors = await getTranslations('settings.workflowActions.employeeTasks.errors');
+    return { error: tErrors('recordAttachmentFailed') };
   }
 }

@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { getTranslations } from 'next-intl/server';
 import { withOrgContext } from '@/shared/auth/session';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -14,11 +15,12 @@ export async function createTaskTemplateAction(
   _prev: TemplateActionState,
   formData: FormData,
 ): Promise<TemplateActionState> {
+  const tErrors = await getTranslations('settings.workflowActions.taskTemplates.errors');
+  const tSuccess = await getTranslations('settings.workflowActions.taskTemplates.success');
   try {
     const title = formData.get('title') as string | null;
     const description = formData.get('description') as string | null;
     const priority = (formData.get('priority') as string | null) ?? 'none';
-    // checklist items: checklistItem_0, checklistItem_1, ...
     const checklistItems: string[] = [];
     for (let i = 0; ; i++) {
       const item = formData.get(`checklistItem_${i}`) as string | null;
@@ -26,7 +28,7 @@ export async function createTaskTemplateAction(
       if (item.trim()) checklistItems.push(item.trim());
     }
 
-    if (!title?.trim()) return { error: 'Template title is required' };
+    if (!title?.trim()) return { error: tErrors('titleRequired') };
 
     await withOrgContext(async (context) => {
       assertPermission(context, PERMISSIONS.TASK_TEMPLATES_MANAGE);
@@ -41,7 +43,7 @@ export async function createTaskTemplateAction(
         })
         .returning({ id: taskTemplates.id });
 
-      if (!template) throw new Error('Failed to create task template');
+      if (!template) throw new Error('create_failed');
 
       if (checklistItems.length > 0) {
         await context.db.insert(taskTemplateItems).values(
@@ -63,9 +65,9 @@ export async function createTaskTemplateAction(
     });
 
     revalidatePath('/settings/task-templates');
-    return { ok: true, message: 'Task template created' };
-  } catch (err: unknown) {
-    return { error: err instanceof Error ? err.message : 'Failed to create template' };
+    return { ok: true, message: tSuccess('created') };
+  } catch {
+    return { error: tErrors('createFailed') };
   }
 }
 
@@ -73,14 +75,16 @@ export async function updateTaskTemplateAction(
   _prev: TemplateActionState,
   formData: FormData,
 ): Promise<TemplateActionState> {
+  const tErrors = await getTranslations('settings.workflowActions.taskTemplates.errors');
+  const tSuccess = await getTranslations('settings.workflowActions.taskTemplates.success');
   try {
     const id = formData.get('id') as string | null;
     const title = formData.get('title') as string | null;
     const description = formData.get('description') as string | null;
     const priority = (formData.get('priority') as string | null) ?? 'none';
 
-    if (!id) return { error: 'Template ID is required' };
-    if (!title?.trim()) return { error: 'Template title is required' };
+    if (!id) return { error: tErrors('idRequired') };
+    if (!title?.trim()) return { error: tErrors('titleRequired') };
 
     await withOrgContext(async (context) => {
       assertPermission(context, PERMISSIONS.TASK_TEMPLATES_MANAGE);
@@ -102,9 +106,9 @@ export async function updateTaskTemplateAction(
     });
 
     revalidatePath('/settings/task-templates');
-    return { ok: true, message: 'Template updated' };
-  } catch (err: unknown) {
-    return { error: err instanceof Error ? err.message : 'Failed to update template' };
+    return { ok: true, message: tSuccess('updated') };
+  } catch {
+    return { error: tErrors('updateFailed') };
   }
 }
 
@@ -112,11 +116,13 @@ export async function archiveTaskTemplateAction(
   _prev: TemplateActionState,
   formData: FormData,
 ): Promise<TemplateActionState> {
+  const tErrors = await getTranslations('settings.workflowActions.taskTemplates.errors');
+  const tSuccess = await getTranslations('settings.workflowActions.taskTemplates.success');
   try {
     const id = formData.get('id') as string | null;
     const restore = formData.get('restore') === 'true';
 
-    if (!id) return { error: 'Template ID is required' };
+    if (!id) return { error: tErrors('idRequired') };
 
     await withOrgContext(async (context) => {
       assertPermission(context, PERMISSIONS.TASK_TEMPLATES_MANAGE);
@@ -137,8 +143,8 @@ export async function archiveTaskTemplateAction(
     });
 
     revalidatePath('/settings/task-templates');
-    return { ok: true, message: restore ? 'Template restored' : 'Template archived' };
-  } catch (err: unknown) {
-    return { error: err instanceof Error ? err.message : 'Failed to update template' };
+    return { ok: true, message: restore ? tSuccess('restored') : tSuccess('archived') };
+  } catch {
+    return { error: tErrors('updateFailed') };
   }
 }

@@ -674,7 +674,8 @@
       "description": "أنشئ مهمة للبدء"
     },
     "hasMore": "هناك المزيد",
-    "loadMore": "تحميل المزيد"
+    "loadMore": "تحميل المزيد",
+    "notAvailable": "—"
   },
   "errors": {
     "invalidTransition": "تغيير الحالة هذا غير مسموح.",
@@ -806,5 +807,10 @@
       "day_before": "قبل يوم واحد",
       "custom": "تاريخ ووقت مخصصان"
     }
+  },
+  "stageHistory": {
+    "empty": "لم تُسجَّل انتقالات مراحل بعد.",
+    "unknown": "غير معروف",
+    "startedAt": "بدأ في"
   }
 }

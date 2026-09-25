@@ -59,6 +59,7 @@
     "amount": "סכום",
     "currency": "מטבע",
     "projectId": "מזהה פרויקט",
+    "projectIdPlaceholder": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
     "projectName": "שם פרויקט / עבודה",
     "vendorId": "מזהה ספק",
     "supplierName": "שם ספק",
@@ -108,7 +109,8 @@
     "truncated": "מוצגות 100 השורות הראשונות מתוך {count}.",
     "skipHint": "בטלו סימון כדי לדלג. שורות עם שגיאות לעולם לא מיובאות.",
     "selectValid": "בחרו רק שורות תקינות",
-    "selectAll": "בחרו את כל השורות"
+    "selectAll": "בחרו את כל השורות",
+    "noIssues": "-"
   },
   "result": {
     "title": "תוצאת ייבוא",

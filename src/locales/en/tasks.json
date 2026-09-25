@@ -674,7 +674,8 @@
       "description": "Create a task to get started"
     },
     "hasMore": "More tasks are not shown",
-    "loadMore": "Load more"
+    "loadMore": "Load more",
+    "notAvailable": "—"
   },
   "errors": {
     "invalidTransition": "That status change is not allowed.",
@@ -806,5 +807,10 @@
       "day_before": "One day before",
       "custom": "Custom date & time"
     }
+  },
+  "stageHistory": {
+    "empty": "No stage transitions recorded yet.",
+    "unknown": "Unknown",
+    "startedAt": "Started at"
   }
 }

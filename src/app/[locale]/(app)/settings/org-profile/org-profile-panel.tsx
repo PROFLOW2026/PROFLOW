@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { updateOrgProfileTypeAction, updateTerminologyConfigAction, type OrgProfileActionState } from './actions';
 import {
-  DEFAULT_TERMINOLOGY,
   type OrgProfileType,
   type TerminologyOverrides,
   ORG_PROFILE_TYPES,

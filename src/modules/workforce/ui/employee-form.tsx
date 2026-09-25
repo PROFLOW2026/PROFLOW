@@ -192,7 +192,7 @@ export function EmployeeForm({
                   inputMode="decimal"
                   value={workingDaysPerMonth}
                   onChange={(event) => setWorkingDaysPerMonth(event.target.value)}
-                  placeholder={defaultWorkingDaysPerMonth ?? '22'}
+                  placeholder={defaultWorkingDaysPerMonth ?? t('employees.form.workingDaysDefault')}
                   dir="ltr"
                 />
               )}
@@ -212,7 +212,7 @@ export function EmployeeForm({
                 name="standardHoursPerDay"
                 type="text"
                 inputMode="decimal"
-                placeholder="8"
+                placeholder={t('employees.form.standardHoursPlaceholder')}
                 dir="ltr"
               />
             )}
@@ -269,7 +269,7 @@ export function EmployeeForm({
                     inputMode="decimal"
                     value={burdenPercent}
                     onChange={(event) => setBurdenPercent(event.target.value)}
-                    placeholder="30"
+                    placeholder={t('employees.form.burdenPercentPlaceholder')}
                   />
                 </>
               )}

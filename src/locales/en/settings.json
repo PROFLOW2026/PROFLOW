@@ -66,7 +66,9 @@
       "memberPlaceholder": "Select a member",
       "emptyMeansAll": "When every category is checked, or no custom grants are saved, the member can browse all semantic folders allowed by their role.",
       "save": "Save folder access",
-      "saved": "Folder access saved"
+      "saved": "Folder access saved",
+      "memberRequired": "Member is required",
+      "saveFailed": "Failed to save folder access"
     }
   },
   "modules": {
@@ -1433,15 +1435,42 @@
     "previewStage": "Stage →",
     "previewBucket": "Bucket →",
     "types": {
-      "architect": { "label": "Architect", "description": "Architectural design, planning, and permit management" },
-      "engineer": { "label": "Engineer", "description": "Structural, civil, MEP, or specialty engineering" },
-      "consultant": { "label": "Consultant", "description": "Professional consultancy and advisory services" },
-      "project_manager": { "label": "Project Manager", "description": "Independent project management and oversight" },
-      "developer": { "label": "Developer / Real Estate", "description": "Real estate development, land, and property projects" },
-      "contractor": { "label": "General Contractor", "description": "Construction, renovation, and build contracting" },
-      "subcontractor": { "label": "Subcontractor", "description": "Specialty trade or subcontract work under a GC" },
-      "supervisor": { "label": "Supervisor / Inspector", "description": "Site supervision, quality inspection, and compliance" },
-      "other": { "label": "Other", "description": "Other construction industry professional" }
+      "architect": {
+        "label": "Architect",
+        "description": "Architectural design, planning, and permit management"
+      },
+      "engineer": {
+        "label": "Engineer",
+        "description": "Structural, civil, MEP, or specialty engineering"
+      },
+      "consultant": {
+        "label": "Consultant",
+        "description": "Professional consultancy and advisory services"
+      },
+      "project_manager": {
+        "label": "Project Manager",
+        "description": "Independent project management and oversight"
+      },
+      "developer": {
+        "label": "Developer / Real Estate",
+        "description": "Real estate development, land, and property projects"
+      },
+      "contractor": {
+        "label": "General Contractor",
+        "description": "Construction, renovation, and build contracting"
+      },
+      "subcontractor": {
+        "label": "Subcontractor",
+        "description": "Specialty trade or subcontract work under a GC"
+      },
+      "supervisor": {
+        "label": "Supervisor / Inspector",
+        "description": "Site supervision, quality inspection, and compliance"
+      },
+      "other": {
+        "label": "Other",
+        "description": "Other construction industry professional"
+      }
     },
     "terminologyDefaults": {
       "project": "Project",
@@ -1474,6 +1503,138 @@
       "invalidProfileType": "Please select a valid organization profile type",
       "previewFailed": "Preview failed",
       "adoptionFailed": "Adoption failed"
+    }
+  },
+  "workflowActions": {
+    "stages": {
+      "errors": {
+        "nameRequired": "Stage name is required",
+        "idRequired": "Stage ID is required",
+        "noStageIds": "No stage IDs provided",
+        "createFailed": "Failed to create stage",
+        "updateFailed": "Failed to update stage",
+        "setDefaultFailed": "Failed to set default stage",
+        "reorderFailed": "Failed to reorder stages",
+        "unexpected": "Something went wrong. Please try again."
+      },
+      "success": {
+        "created": "Stage created successfully",
+        "updated": "Stage updated",
+        "archived": "Stage archived",
+        "restored": "Stage restored",
+        "defaultUpdated": "Default stage updated"
+      }
+    },
+    "labels": {
+      "errors": {
+        "nameRequired": "Label name is required",
+        "idRequired": "Label ID is required",
+        "createFailed": "Failed to create label",
+        "updateFailed": "Failed to update label",
+        "unexpected": "Something went wrong. Please try again."
+      },
+      "success": {
+        "created": "Label created",
+        "updated": "Label updated",
+        "archived": "Label archived",
+        "restored": "Label restored"
+      }
+    },
+    "taskTemplates": {
+      "errors": {
+        "titleRequired": "Template title is required",
+        "idRequired": "Template ID is required",
+        "createFailed": "Failed to create template",
+        "updateFailed": "Failed to update template",
+        "unexpected": "Something went wrong. Please try again."
+      },
+      "success": {
+        "created": "Task template created",
+        "updated": "Template updated",
+        "archived": "Template archived",
+        "restored": "Template restored"
+      }
+    },
+    "projectTemplates": {
+      "errors": {
+        "nameRequired": "Template name is required",
+        "idRequired": "Template ID is required",
+        "createFailed": "Failed to create template",
+        "updateFailed": "Failed to update template",
+        "duplicateFailed": "Failed to duplicate template",
+        "unexpected": "Something went wrong. Please try again."
+      },
+      "success": {
+        "created": "Project template created",
+        "updated": "Template updated",
+        "duplicated": "Template duplicated",
+        "archived": "Template archived",
+        "restored": "Template restored"
+      }
+    },
+    "orgProfile": {
+      "errors": {
+        "profileTypeRequired": "Profile type is required",
+        "updateProfileFailed": "Failed to update profile type",
+        "updateTerminologyFailed": "Failed to update terminology",
+        "unexpected": "Something went wrong. Please try again."
+      },
+      "success": {
+        "profileTypeUpdated": "Org profile type updated",
+        "terminologyUpdated": "Terminology updated"
+      }
+    },
+    "projectStage": {
+      "errors": {
+        "projectIdRequired": "Project ID is required",
+        "stageIdRequired": "Stage ID is required",
+        "stageNotFound": "Stage not found or archived",
+        "transitionFailed": "Failed to transition stage",
+        "unexpected": "Something went wrong. Please try again."
+      }
+    },
+    "planning": {
+      "errors": {
+        "nameRequired": "Name is required",
+        "workItemIdRequired": "Work item ID is required"
+      }
+    },
+    "employeeTasks": {
+      "errors": {
+        "updateStatusFailed": "Failed to update status",
+        "invalidDueDate": "Invalid due date",
+        "updateDueDateFailed": "Failed to update due date",
+        "updateChecklistFailed": "Failed to update checklist item",
+        "linkDocumentFailed": "Failed to link document",
+        "unlinkDocumentFailed": "Failed to unlink document",
+        "attachCloudFileFailed": "Failed to attach cloud file",
+        "recordAttachmentFailed": "Failed to record attachment",
+        "unexpected": "Something went wrong. Please try again."
+      }
+    },
+    "workloadApi": {
+      "invalidEmployeeId": "Invalid employee ID",
+      "forbidden": "Forbidden",
+      "internalError": "Internal server error"
+    }
+  },
+  "integrations": {
+    "invoicing": {
+      "errors": {
+        "noActiveOrganization": "Choose a business to work in first.",
+        "saveFailed": "Failed to save invoicing settings",
+        "forbidden": "You do not have permission for this action."
+      }
+    }
+  },
+  "laborCost": {
+    "validation": {
+      "bothTimesRequired": "Both start and end times are required",
+      "invalidStartTime": "Invalid start time",
+      "invalidEndTime": "Invalid end time",
+      "timesMustDiffer": "Start and end times must differ",
+      "endMustBeAfterStart": "End time must be after start time",
+      "invalidComponentKey": "Invalid component key"
     }
   }
 }

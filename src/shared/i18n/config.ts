@@ -157,6 +157,7 @@ export const APP_CLIENT_MESSAGE_NAMESPACES = [
   'calendar',
   'assistant',
   'commandCenter',
+  'planning',
   'generatedDocuments',
   'employeeApp',
   'tasks',

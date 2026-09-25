@@ -378,7 +378,7 @@ export function TimeEntryForm({
             type="text"
             inputMode="decimal"
             numeric
-            placeholder="8"
+            placeholder={t('time.form.hoursPlaceholder')}
             value={hours}
             onChange={(event) => setHours(event.target.value)}
             required={!usePerDayHours}
@@ -616,7 +616,7 @@ export function TimeEntryForm({
               <ul className="mt-2 max-h-40 space-y-1 overflow-y-auto text-xs" dir="ltr">
                 {preview.days.map((day) => (
                   <li key={day.workDate}>
-                    {day.workDate}: {day.hours}h
+                    {t('time.form.bulkPreviewDay', { date: day.workDate, hours: day.hours })}
                   </li>
                 ))}
               </ul>

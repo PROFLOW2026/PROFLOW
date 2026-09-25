@@ -388,7 +388,8 @@
       "inventoryNotExpense": "Inventory movements cannot create linked expenses.",
       "unsupportedKind": "This operational record type cannot link to expenses.",
       "mustBeDraft": "Linked expenses must be created as drafts.",
-      "notLinked": "Expense is not linked to an operational record."
+      "notLinked": "Expense is not linked to an operational record.",
+      "missingRecord": "Missing operational record"
     }
   }
 }

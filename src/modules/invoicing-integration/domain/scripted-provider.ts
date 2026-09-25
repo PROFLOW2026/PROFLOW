@@ -53,7 +53,7 @@ export class ScriptedStatutoryProvider implements StatutoryInvoicingProvider {
       return {
         ok: false,
         errorCode: 'invalid_billing_state',
-        message: 'Billing record must be finalized before external issuance',
+        message: 'invalid_billing_state',
       };
     }
     this.seq += 1;
@@ -93,7 +93,7 @@ export class ScriptedStatutoryProvider implements StatutoryInvoicingProvider {
   ): Promise<StatutoryProviderResult<RetrieveExternalStatusOutput>> {
     const doc = this.docs.get(input.externalId);
     if (!doc) {
-      return { ok: false, errorCode: 'not_found', message: 'External document not found' };
+      return { ok: false, errorCode: 'not_found', message: 'not_found' };
     }
     return {
       ok: true,
@@ -119,7 +119,7 @@ export class ScriptedStatutoryProvider implements StatutoryInvoicingProvider {
   ): Promise<StatutoryProviderResult<CreditExternalDocumentOutput>> {
     const doc = this.docs.get(input.externalId);
     if (!doc) {
-      return { ok: false, errorCode: 'not_found', message: 'External document not found' };
+      return { ok: false, errorCode: 'not_found', message: 'not_found' };
     }
     doc.status = 'credited';
     const creditExternalId = randomUUID();
@@ -140,7 +140,7 @@ export class ScriptedStatutoryProvider implements StatutoryInvoicingProvider {
   ): Promise<StatutoryProviderResult<CancelExternalDocumentOutput>> {
     const doc = this.docs.get(input.externalId);
     if (!doc) {
-      return { ok: false, errorCode: 'not_found', message: 'External document not found' };
+      return { ok: false, errorCode: 'not_found', message: 'not_found' };
     }
     doc.status = 'cancelled';
     return { ok: true, value: { externalId: doc.externalId, status: 'cancelled' } };
@@ -151,13 +151,13 @@ export class ScriptedStatutoryProvider implements StatutoryInvoicingProvider {
   ): Promise<StatutoryProviderResult<AllocateExternalReferenceOutput>> {
     const doc = this.docs.get(input.externalId);
     if (!doc) {
-      return { ok: false, errorCode: 'not_found', message: 'External document not found' };
+      return { ok: false, errorCode: 'not_found', message: 'not_found' };
     }
     if (doc.billingRecordId !== input.billingRecordId) {
       return {
         ok: false,
         errorCode: 'provider_error',
-        message: 'Allocation billing record mismatch',
+        message: 'provider_error',
       };
     }
     doc.allocationReference = input.allocationReference;

@@ -27,7 +27,11 @@
       "required": "חובה",
       "checklistItems": "פריטי רשימה (מופרדים בפסיק)",
       "addField": "הוספת שדה לתבנית",
-      "schemaPreview": "שדות בתבנית"
+      "schemaPreview": "שדות בתבנית",
+      "fieldKeyPlaceholder": "site_check",
+      "checklistItemsPlaceholder": "ציוד מגן, פיגומים, גישה",
+      "schemaEmpty": "-",
+      "removeField": "הסרת שדה"
     },
     "archive": "ארכיון",
     "enable": "הפעלה",

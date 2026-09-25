@@ -168,7 +168,7 @@ describe('offline reconnect sync', () => {
     });
 
     expect(run.results[0]?.status).toBe('skipped');
-    expect(run.results[0]?.reason).toMatch(/not wired/i);
+    expect(run.results[0]?.reason).toMatch(/offline_sync_not_wired/i);
     const pending = await queue.list({ organizationId: 'org-1', userId: 'user-1', pendingOnly: true });
     expect(pending).toHaveLength(1);
     expect(pending[0]?.syncStatus).toBe('queued');

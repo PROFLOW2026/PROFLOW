@@ -674,7 +674,8 @@
       "description": "צור משימה כדי להתחיל"
     },
     "hasMore": "יש עוד",
-    "loadMore": "טען עוד"
+    "loadMore": "טען עוד",
+    "notAvailable": "-"
   },
   "errors": {
     "invalidTransition": "מעבר הסטטוס הזה אינו מותר.",
@@ -806,5 +807,10 @@
       "day_before": "יום לפני",
       "custom": "תאריך ושעה מותאמים"
     }
+  },
+  "stageHistory": {
+    "empty": "עדיין לא נרשמו מעברי שלבים.",
+    "unknown": "לא ידוע",
+    "startedAt": "התחיל ב"
   }
 }

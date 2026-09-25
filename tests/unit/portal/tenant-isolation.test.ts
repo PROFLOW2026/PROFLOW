@@ -44,7 +44,7 @@ describe('portal tenant isolation', () => {
     expect(grantMatchesOrganization(grant, ORG_A)).toBe(true);
     expect(grantMatchesOrganization(grant, ORG_B)).toBe(false);
     expect(() => assertGrantBelongsToOrganization(grant, ORG_B)).toThrow(DomainRuleError);
-    expect(() => assertSameOrganization(ORG_A, ORG_B)).toThrow(/cross-tenant/i);
+    expect(() => assertSameOrganization(ORG_A, ORG_B)).toThrow(/cross_tenant_portal/i);
   });
 
   it('keeps customer session organizationId tied to the grant tenant', () => {

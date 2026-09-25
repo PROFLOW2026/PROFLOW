@@ -36,26 +36,25 @@
     "fromTemplate": "יצירה מתבנית",
     "templateNone": "ללא תבנית",
     "templateHint": "מחילה עותקים הניתנים לעריכה של תחומי עבודה, אבני דרך ותיקיות מוצעות. התבנית עצמה לא משתנה.",
-    "launchModeLabel": "מבנה התחלתי",
-    "launchNone": "פרויקט ריק",
-    "launchStructure": "תבנית מבנה מערכת",
-    "launchUwm": "תבנית משימות ארגונית",
+    "launchModeLabel": "מבנה עבודה בהשקה",
+    "launchNone": "התחלה ריקה",
+    "launchStructure": "החלת תבנית מבנה",
+    "launchUwm": "החלת תבנית משימות (UWM)",
     "launchClone": "העתקת מבנה מפרויקט",
     "uwmTemplateLabel": "תבנית משימות",
-    "uwmTemplatePlaceholder": "בחרו תבנית",
-    "uwmPreviewStages": "שלבי לוח",
-    "uwmPreviewTasks": "משימות ליצירה",
+    "uwmTemplatePlaceholder": "בחירת תבנית",
+    "uwmPreviewStages": "שלבים",
+    "uwmPreviewTasks": "משימות",
     "recommendedTemplatesTip": "מומלץ לסוג העסק שלכם: {templates}. בחרו מתבנית למטה.",
     "sections": {
       "details": "פרטי פרויקט",
       "team": "צוות",
-      "teamHint": "אופציונלי. ניתן לשייך אנשים אחרי יצירת הפרויקט.",
-      "teamStub": "שיוך צוות זמין בלשונית הצוות של הפרויקט אחרי היצירה.",
+      "teamHint": "אופציונלי. בחרו מנהל פרויקט ומשתתפים עכשיו, או הוסיפו אחר כך בלשונית הצוות.",
       "workStructure": "מבנה עבודה",
-      "workStructureStub": "תבניות מבנה עבודה יהיו זמינות כאן בקרוב.",
+      "workStructureStub": "תבניות מבנה וחבילות משימות יהיו זמינות בעדכון עתידי.",
       "finance": "כספים",
       "summary": "סיכום",
-      "summaryHint": "בדקו לפני יצירת הפרויקט."
+      "summaryHint": "עברו על הפרטים ואז צרו את הפרויקט."
     },
     "nameLabel": "שם הפרויקט",
     "namePlaceholder": "לדוגמה: בית כהן",
@@ -108,25 +107,6 @@
     },
     "submit": "יצירת פרויקט",
     "success": "הפרויקט נוצר",
-    "launchModeLabel": "מבנה עבודה בהשקה",
-    "launchNone": "התחלה ריקה",
-    "launchStructure": "החלת תבנית מבנה",
-    "launchUwm": "החלת תבנית משימות (UWM)",
-    "launchClone": "העתקת מבנה מפרויקט",
-    "uwmTemplateLabel": "תבנית משימות",
-    "uwmTemplatePlaceholder": "בחירת תבנית",
-    "uwmPreviewStages": "שלבים",
-    "uwmPreviewTasks": "משימות",
-    "sections": {
-      "details": "פרטי פרויקט",
-      "team": "צוות",
-      "teamHint": "אופציונלי. בחרו מנהל פרויקט ומשתתפים עכשיו, או הוסיפו אחר כך בלשונית הצוות.",
-      "workStructure": "מבנה עבודה",
-      "workStructureStub": "תבניות מבנה וחבילות משימות יהיו זמינות בעדכון עתידי.",
-      "finance": "כספים",
-      "summary": "סיכום",
-      "summaryHint": "עברו על הפרטים ואז צרו את הפרויקט."
-    },
     "team": {
       "pmLabel": "מנהל/ת פרויקט",
       "pmHint": "אדם אחד אחראי על הפרויקט. עובדים מקבלים שיוך לצוות; חברי ארגון מקבלים גישה לפרויקט.",
@@ -493,5 +473,15 @@
       "read": "קריאה",
       "manage": "ניהול"
     }
+  },
+  "milestoneLinkedTask": {
+    "linkedTaskLabel": "משימה מקושרת:",
+    "noLinkedTask": "אין משימה מקושרת",
+    "unlink": "בטל קישור",
+    "changeLinkedTask": "שנה משימה מקושרת",
+    "linkTask": "קשר משימה",
+    "selectTask": "בחר משימה…",
+    "cancel": "ביטול",
+    "due": "יעד {date}"
   }
 }

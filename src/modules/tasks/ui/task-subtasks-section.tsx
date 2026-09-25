@@ -121,6 +121,7 @@ export function TaskSubtasksSection({
                 type="date"
                 value={dueDate}
                 onChange={(event) => setDueDate(event.target.value)}
+                aria-label={t('dueDateLabel')}
                 className="rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-2.5 py-1.5 text-sm"
               />
               <div className="flex gap-2">

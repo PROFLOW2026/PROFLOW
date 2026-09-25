@@ -27,7 +27,11 @@
       "required": "Required",
       "checklistItems": "Checklist items (comma-separated)",
       "addField": "Add field to template",
-      "schemaPreview": "Fields in template"
+      "schemaPreview": "Fields in template",
+      "fieldKeyPlaceholder": "site_check",
+      "checklistItemsPlaceholder": "PPE, Scaffolding, Access",
+      "schemaEmpty": "—",
+      "removeField": "Remove field"
     },
     "archive": "Archive",
     "enable": "Enable",

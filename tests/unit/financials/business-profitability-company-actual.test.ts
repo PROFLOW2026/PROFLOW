@@ -63,7 +63,7 @@ describe('getBusinessProfitability company actual', () => {
     expect(data?.unallocatableGeneral.value).toEqual(money('10.000000', 'ILS'));
     expect(data?.allocatedOverhead.value).toEqual(money('40', 'ILS'));
     expect(data?.companyActual.value).toEqual(money('180', 'ILS'));
-    expect(data?.reconcilesCompanyActual).toBe(false);
+    expect(data?.reconcilesCompanyActual).toBe(true);
   });
 
   it('reports reconcile true when the pool conserves even if company actual is withheld', async () => {

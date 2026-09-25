@@ -1,4 +1,5 @@
 import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
+import { createNamespaceTranslator } from '@/shared/i18n/namespace-translator';
 import { ValidationError } from '@/shared/errors';
 import { assertAnyPermission, assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -113,8 +114,12 @@ export async function saveOrgWorkFrameworkHours(
       end: input.standardWorkEndTime ?? '',
     });
     if (!parsedTimes.ok) {
+      const tSettings = await createNamespaceTranslator(context.locale, 'settings');
       throw new ValidationError([
-        { path: parsedTimes.path, message: parsedTimes.message },
+        {
+          path: parsedTimes.path,
+          message: tSettings(`laborCost.validation.${parsedTimes.messageKey}`),
+        },
       ]);
     }
     standardWorkStartTime = parsedTimes.standardWorkStartTime;

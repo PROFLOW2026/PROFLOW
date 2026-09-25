@@ -66,8 +66,10 @@ export async function createPlanningWorkItemAction(
     const targetEndDate = formString(formData, 'targetEndDate') ?? null;
     const phaseId = formString(formData, 'phaseId') ?? null;
 
+    const tPlanning = await getTranslations('settings.workflowActions.planning.errors');
     if (!name) {
-      return { error: 'Name is required', fieldErrors: { name: 'Name is required' } };
+      const nameRequired = tPlanning('nameRequired');
+      return { error: nameRequired, fieldErrors: { name: nameRequired } };
     }
 
     await withOrgContext(async (context) => {
@@ -118,8 +120,12 @@ export async function updatePlanningWorkItemAction(
     const kind = (formString(formData, 'kind') ?? 'task') as 'task' | 'milestone';
     const phaseId = formString(formData, 'phaseId') ?? null;
 
-    if (!workItemId) return { error: 'workItemId is required' };
-    if (!name) return { error: 'Name is required', fieldErrors: { name: 'Name is required' } };
+    const tPlanning = await getTranslations('settings.workflowActions.planning.errors');
+    if (!workItemId) return { error: tPlanning('workItemIdRequired') };
+    if (!name) {
+      const nameRequired = tPlanning('nameRequired');
+      return { error: nameRequired, fieldErrors: { name: nameRequired } };
+    }
 
     await withOrgContext(async (context) => {
       assertPermission(context, PERMISSIONS.PLANNING_WRITE);

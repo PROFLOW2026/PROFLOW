@@ -5,6 +5,8 @@
  * Uses Server Component data fetching pattern — accepts pre-fetched data.
  */
 
+import { getTranslations } from 'next-intl/server';
+
 interface StageDef {
   id: string;
   name: string;
@@ -17,7 +19,7 @@ interface StageTransition {
   toStageId: string;
   transitionedAt: Date;
   notes: string | null;
-  transitionedByName: string | null; // resolved display name (join handled at call site)
+  transitionedByName: string | null;
 }
 
 interface ProjectStageHistoryProps {
@@ -35,11 +37,17 @@ function formatDate(date: Date): string {
   });
 }
 
-function StageChip({ stage }: { stage: StageDef | undefined }) {
+function StageChip({
+  stage,
+  unknownLabel,
+}: {
+  stage: StageDef | undefined;
+  unknownLabel: string;
+}) {
   if (!stage) {
     return (
       <span className="inline-flex items-center gap-1 rounded-full border border-[var(--pf-border-default)] px-2 py-0.5 text-xs text-[var(--pf-text-muted)]">
-        Unknown
+        {unknownLabel}
       </span>
     );
   }
@@ -61,12 +69,12 @@ function StageChip({ stage }: { stage: StageDef | undefined }) {
   );
 }
 
-export function ProjectStageHistory({ transitions, stageMap }: ProjectStageHistoryProps) {
+export async function ProjectStageHistory({ transitions, stageMap }: ProjectStageHistoryProps) {
+  const t = await getTranslations('tasks.stageHistory');
+
   if (transitions.length === 0) {
     return (
-      <div className="py-4 text-center text-sm text-[var(--pf-text-muted)]">
-        No stage transitions recorded yet.
-      </div>
+      <div className="py-4 text-center text-sm text-[var(--pf-text-muted)]">{t('empty')}</div>
     );
   }
 
@@ -79,7 +87,6 @@ export function ProjectStageHistory({ transitions, stageMap }: ProjectStageHisto
 
         return (
           <div key={transition.id} className="relative flex gap-4 pb-4">
-            {/* Timeline connector */}
             <div className="flex flex-col items-center">
               <div
                 className={`h-3 w-3 shrink-0 rounded-full border-2 ${
@@ -93,19 +100,18 @@ export function ProjectStageHistory({ transitions, stageMap }: ProjectStageHisto
               )}
             </div>
 
-            {/* Content */}
             <div className="min-w-0 flex-1 pb-0">
               <div className="flex flex-wrap items-center gap-1.5">
                 {fromStage ? (
                   <>
-                    <StageChip stage={fromStage} />
+                    <StageChip stage={fromStage} unknownLabel={t('unknown')} />
                     <span className="text-xs text-[var(--pf-text-muted)]">→</span>
-                    <StageChip stage={toStage} />
+                    <StageChip stage={toStage} unknownLabel={t('unknown')} />
                   </>
                 ) : (
                   <>
-                    <span className="text-xs text-[var(--pf-text-muted)]">Started at</span>
-                    <StageChip stage={toStage} />
+                    <span className="text-xs text-[var(--pf-text-muted)]">{t('startedAt')}</span>
+                    <StageChip stage={toStage} unknownLabel={t('unknown')} />
                   </>
                 )}
               </div>

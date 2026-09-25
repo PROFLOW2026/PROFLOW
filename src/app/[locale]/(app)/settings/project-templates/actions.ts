@@ -1,12 +1,11 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { getTranslations } from 'next-intl/server';
 import { withOrgContext } from '@/shared/auth/session';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-// eslint-disable-next-line no-restricted-imports
 import { projectTemplates, projectTemplateStages } from '@drizzle/schema';
-// eslint-disable-next-line no-restricted-imports
 import { eq, and } from 'drizzle-orm';
 import { recordAuditEvent, AUDIT_ACTIONS } from '@/shared/audit';
 import { duplicateUwmProjectTemplate } from '@/modules/tasks';
@@ -17,14 +16,15 @@ export async function createProjectTemplateAction(
   _prev: ProjectTemplateActionState,
   formData: FormData,
 ): Promise<ProjectTemplateActionState> {
+  const tErrors = await getTranslations('settings.workflowActions.projectTemplates.errors');
+  const tSuccess = await getTranslations('settings.workflowActions.projectTemplates.success');
   try {
     const name = formData.get('name') as string | null;
     const description = formData.get('description') as string | null;
     const orgProfileType = formData.get('orgProfileType') as string | null;
 
-    if (!name?.trim()) return { error: 'Template name is required' };
+    if (!name?.trim()) return { error: tErrors('nameRequired') };
 
-    // Parse stages: stageName_0, stageName_1 ...
     const stageNames: string[] = [];
     for (let i = 0; ; i++) {
       const n = formData.get(`stageName_${i}`) as string | null;
@@ -45,7 +45,7 @@ export async function createProjectTemplateAction(
         })
         .returning({ id: projectTemplates.id });
 
-      if (!template) throw new Error('Failed to create project template');
+      if (!template) throw new Error('create_failed');
 
       if (stageNames.length > 0) {
         await context.db.insert(projectTemplateStages).values(
@@ -67,9 +67,9 @@ export async function createProjectTemplateAction(
     });
 
     revalidatePath('/settings/project-templates');
-    return { ok: true, message: 'Project template created' };
-  } catch (err: unknown) {
-    return { error: err instanceof Error ? err.message : 'Failed to create template' };
+    return { ok: true, message: tSuccess('created') };
+  } catch {
+    return { error: tErrors('createFailed') };
   }
 }
 
@@ -77,14 +77,16 @@ export async function updateProjectTemplateAction(
   _prev: ProjectTemplateActionState,
   formData: FormData,
 ): Promise<ProjectTemplateActionState> {
+  const tErrors = await getTranslations('settings.workflowActions.projectTemplates.errors');
+  const tSuccess = await getTranslations('settings.workflowActions.projectTemplates.success');
   try {
     const id = formData.get('id') as string | null;
     const name = formData.get('name') as string | null;
     const description = formData.get('description') as string | null;
     const orgProfileType = formData.get('orgProfileType') as string | null;
 
-    if (!id) return { error: 'Template ID is required' };
-    if (!name?.trim()) return { error: 'Template name is required' };
+    if (!id) return { error: tErrors('idRequired') };
+    if (!name?.trim()) return { error: tErrors('nameRequired') };
 
     await withOrgContext(async (context) => {
       assertPermission(context, PERMISSIONS.PROJECT_TEMPLATES_MANAGE);
@@ -106,9 +108,9 @@ export async function updateProjectTemplateAction(
     });
 
     revalidatePath('/settings/project-templates');
-    return { ok: true, message: 'Template updated' };
-  } catch (err: unknown) {
-    return { error: err instanceof Error ? err.message : 'Failed to update template' };
+    return { ok: true, message: tSuccess('updated') };
+  } catch {
+    return { error: tErrors('updateFailed') };
   }
 }
 
@@ -116,9 +118,11 @@ export async function duplicateProjectTemplateAction(
   _prev: ProjectTemplateActionState,
   formData: FormData,
 ): Promise<ProjectTemplateActionState> {
+  const tErrors = await getTranslations('settings.workflowActions.projectTemplates.errors');
+  const tSuccess = await getTranslations('settings.workflowActions.projectTemplates.success');
   try {
     const id = formData.get('id') as string | null;
-    if (!id) return { error: 'Template ID is required' };
+    if (!id) return { error: tErrors('idRequired') };
 
     await withOrgContext(async (context) => {
       const duplicated = await duplicateUwmProjectTemplate(context, id);
@@ -131,9 +135,9 @@ export async function duplicateProjectTemplateAction(
     });
 
     revalidatePath('/settings/project-templates');
-    return { ok: true, message: 'Template duplicated' };
-  } catch (err: unknown) {
-    return { error: err instanceof Error ? err.message : 'Failed to duplicate template' };
+    return { ok: true, message: tSuccess('duplicated') };
+  } catch {
+    return { error: tErrors('duplicateFailed') };
   }
 }
 
@@ -141,11 +145,13 @@ export async function archiveProjectTemplateAction(
   _prev: ProjectTemplateActionState,
   formData: FormData,
 ): Promise<ProjectTemplateActionState> {
+  const tErrors = await getTranslations('settings.workflowActions.projectTemplates.errors');
+  const tSuccess = await getTranslations('settings.workflowActions.projectTemplates.success');
   try {
     const id = formData.get('id') as string | null;
     const restore = formData.get('restore') === 'true';
 
-    if (!id) return { error: 'Template ID is required' };
+    if (!id) return { error: tErrors('idRequired') };
 
     await withOrgContext(async (context) => {
       assertPermission(context, PERMISSIONS.PROJECT_TEMPLATES_MANAGE);
@@ -166,8 +172,8 @@ export async function archiveProjectTemplateAction(
     });
 
     revalidatePath('/settings/project-templates');
-    return { ok: true, message: restore ? 'Template restored' : 'Template archived' };
-  } catch (err: unknown) {
-    return { error: err instanceof Error ? err.message : 'Failed to update template' };
+    return { ok: true, message: restore ? tSuccess('restored') : tSuccess('archived') };
+  } catch {
+    return { error: tErrors('updateFailed') };
   }
 }

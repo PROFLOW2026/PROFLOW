@@ -27,7 +27,7 @@ export interface SyncRunResult {
 
 /** Thrown by placeholder transports - draft stays queued, not conflicted. */
 export class OfflineSyncNotWiredError extends Error {
-  constructor(message = 'Offline sync transport is not wired for this draft kind yet.') {
+  constructor(message = 'offline_sync_not_wired') {
     super(message);
     this.name = 'OfflineSyncNotWiredError';
   }

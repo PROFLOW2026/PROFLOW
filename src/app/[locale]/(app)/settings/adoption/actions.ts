@@ -37,8 +37,8 @@ export async function previewOrgAdoptionAction(
     });
 
     return { preview };
-  } catch (err: unknown) {
-    return { error: err instanceof Error ? err.message : t('previewFailed') };
+  } catch {
+    return { error: t('previewFailed') };
   }
 }
 
@@ -77,7 +77,7 @@ export async function applyOrgAdoptionAction(
     revalidatePath('/settings/modules');
 
     return { ok: true };
-  } catch (err: unknown) {
-    return { error: err instanceof Error ? err.message : t('adoptionFailed') };
+  } catch {
+    return { error: t('adoptionFailed') };
   }
 }

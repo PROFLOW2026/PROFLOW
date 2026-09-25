@@ -369,7 +369,8 @@
       "logTime": "דיווח שעות",
       "files": "קבצים",
       "meetings": "ישיבות",
-      "financials": "פיננסים"
+      "financials": "פיננסים",
+      "navAriaLabel": "מרכז הפרויקט"
     },
     "openTaskDetail": "פתיחת פרטי משימה",
     "files": {

@@ -5,7 +5,8 @@
     "emptyTitle": "No bill of quantities yet",
     "emptyBody": "Create a draft BOQ when you are ready to measure and bill by quantity. You can activate it once items are in place.",
     "emptyAction": "Create draft BOQ",
-    "simpleModeHint": "Simple flow: Project → BOQ → Update progress → Create progress bill."
+    "simpleModeHint": "Simple flow: Project → BOQ → Update progress → Create progress bill.",
+    "versionLabel": "v{number}"
   },
   "status": {
     "draft": "Draft",
@@ -107,6 +108,7 @@
     "createBill": "Create and finalize progress invoice",
     "taxAmount": "VAT / tax amount (optional - blank means intentional zero tax)",
     "retentionPercent": "Retention % (optional)",
+    "zeroPlaceholder": "0",
     "billedLinked": "Progress bill created",
     "linesCount": "{count} lines"
   },

@@ -151,7 +151,6 @@ function StageRow({
 
 function CreateStageForm({ canEdit }: { canEdit: boolean }) {
   const t = useTranslations('settings.stagesPanel');
-  const tActions = useTranslations('common.actions');
   const workKindOptions = useWorkKindOptions();
   const [state, action, pending] = useActionState(createStageAction, {} as StageActionState);
   const [color, setColor] = useState('#6366f1');

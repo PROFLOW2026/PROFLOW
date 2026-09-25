@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { AUDIT_ACTION_VALUES } from '@/shared/audit';
@@ -19,12 +19,13 @@ export { flattenLocaleCatalog, localePlaceholders, missingLocaleKeys, readLocale
  * one must exist in the other with the same ICU placeholders. A mismatch here
  * shows up in production as an untranslated key or a broken interpolation.
  *
- * `loadMessages` deep-merges English under he-IL for missing keys - that would
- * silently show English in the Hebrew UI. These tests require he-IL to ship
- * every English key so the merge never becomes the only source of a label.
+ * `loadMessages` must not deep-merge English under he/ar/ru. These tests require
+ * every locale to ship the full key tree so missing translations surface explicitly.
  */
 
 const LOCALES_DIR = join(process.cwd(), 'src', 'locales');
+
+type Catalog = Record<string, unknown>;
 
 /**
  * Allowed identical en / he-IL values: brand, LTR technical islands, format
@@ -89,6 +90,10 @@ const IDENTICAL_MESSAGE_ALLOWLIST = new Set([
   'commandCenter.itemCopy.automationFollowup.why',
   'expenses.received.source.sumit',
   'invoicingIntegration.send.emailPlaceholder',
+  'imports.fields.projectIdPlaceholder',
+  'monthClose.form.yearMonthPlaceholder',
+  'forms.settings.fields.fieldKeyPlaceholder',
+  'boq.panel.versionLabel',
 ]);
 
 function hasActivityAction(catalog: Catalog, action: string): boolean {

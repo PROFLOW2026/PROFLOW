@@ -219,7 +219,8 @@
       "logTime": "Списать время",
       "files": "Файлы",
       "meetings": "Встречи",
-      "financials": "Финансы"
+      "financials": "Финансы",
+      "navAriaLabel": "Центр проекта"
     },
     "openTaskDetail": "Открыть задачу",
     "files": {

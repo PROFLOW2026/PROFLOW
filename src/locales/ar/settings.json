@@ -66,7 +66,9 @@
       "memberPlaceholder": "اختر عضوًا",
       "emptyMeansAll": "عند تحديد كل الفئات، أو عدم حفظ منح مخصصة، يمكن للعضو تصفح كل المجلدات الدلالية المسموح بها حسب دوره.",
       "save": "حفظ الوصول للمجلدات",
-      "saved": "تم حفظ الوصول للمجلدات"
+      "saved": "تم حفظ الوصول للمجلدات",
+      "memberRequired": "يجب اختيار عضو",
+      "saveFailed": "فشل حفظ الوصول إلى المجلدات"
     }
   },
   "modules": {
@@ -1433,15 +1435,42 @@
     "previewStage": "مرحلة →",
     "previewBucket": "دلو →",
     "types": {
-      "architect": { "label": "مهندس معماري", "description": "تصميم معماري وتخطيط وتراخيص" },
-      "engineer": { "label": "مهندس", "description": "هندسة إنشائية أو مدنية أو MEP" },
-      "consultant": { "label": "استشاري", "description": "استشارات وخدمات مهنية" },
-      "project_manager": { "label": "مدير مشروع", "description": "إدارة ومتابعة مشاريع مستقلة" },
-      "developer": { "label": "مطور / عقارات", "description": "تطوير عقاري وأراضٍ ومشاريع" },
-      "contractor": { "label": "مقاول عام", "description": "بناء وتجديد ومقاولات" },
-      "subcontractor": { "label": "مقاول باطن", "description": "أعمال باطن وتخصصات" },
-      "supervisor": { "label": "مشرف / مفتش", "description": "إشراف موقع وجودة وامتثال" },
-      "other": { "label": "أخرى", "description": "مهنة أخرى في البناء" }
+      "architect": {
+        "label": "مهندس معماري",
+        "description": "تصميم معماري وتخطيط وتراخيص"
+      },
+      "engineer": {
+        "label": "مهندس",
+        "description": "هندسة إنشائية أو مدنية أو MEP"
+      },
+      "consultant": {
+        "label": "استشاري",
+        "description": "استشارات وخدمات مهنية"
+      },
+      "project_manager": {
+        "label": "مدير مشروع",
+        "description": "إدارة ومتابعة مشاريع مستقلة"
+      },
+      "developer": {
+        "label": "مطور / عقارات",
+        "description": "تطوير عقاري وأراضٍ ومشاريع"
+      },
+      "contractor": {
+        "label": "مقاول عام",
+        "description": "بناء وتجديد ومقاولات"
+      },
+      "subcontractor": {
+        "label": "مقاول باطن",
+        "description": "أعمال باطن وتخصصات"
+      },
+      "supervisor": {
+        "label": "مشرف / مفتش",
+        "description": "إشراف موقع وجودة وامتثال"
+      },
+      "other": {
+        "label": "أخرى",
+        "description": "مهنة أخرى في البناء"
+      }
     },
     "terminologyDefaults": {
       "project": "مشروع",
@@ -1474,6 +1503,138 @@
       "invalidProfileType": "يرجى اختيار نوع ملف مؤسسة صالح",
       "previewFailed": "فشلت المعاينة",
       "adoptionFailed": "فشل التطبيق"
+    }
+  },
+  "workflowActions": {
+    "stages": {
+      "errors": {
+        "nameRequired": "اسم المرحلة مطلوب",
+        "idRequired": "معرّف المرحلة مطلوب",
+        "noStageIds": "لم يتم تقديم معرّفات المراحل",
+        "createFailed": "فشل إنشاء المرحلة",
+        "updateFailed": "فشل تحديث المرحلة",
+        "setDefaultFailed": "فشل تعيين المرحلة الافتراضية",
+        "reorderFailed": "فشل إعادة ترتيب المراحل",
+        "unexpected": "حدث خطأ. يرجى المحاولة مرة أخرى."
+      },
+      "success": {
+        "created": "تم إنشاء المرحلة بنجاح",
+        "updated": "تم تحديث المرحلة",
+        "archived": "تم أرشفة المرحلة",
+        "restored": "تم استعادة المرحلة",
+        "defaultUpdated": "تم تحديث المرحلة الافتراضية"
+      }
+    },
+    "labels": {
+      "errors": {
+        "nameRequired": "اسم التصنيف مطلوب",
+        "idRequired": "معرّف التصنيف مطلوب",
+        "createFailed": "فشل إنشاء التصنيف",
+        "updateFailed": "فشل تحديث التصنيف",
+        "unexpected": "حدث خطأ. يرجى المحاولة مرة أخرى."
+      },
+      "success": {
+        "created": "تم إنشاء التصنيف",
+        "updated": "تم تحديث التصنيف",
+        "archived": "تم أرشفة التصنيف",
+        "restored": "تم استعادة التصنيف"
+      }
+    },
+    "taskTemplates": {
+      "errors": {
+        "titleRequired": "عنوان القالب مطلوب",
+        "idRequired": "معرّف القالب مطلوب",
+        "createFailed": "فشل إنشاء القالب",
+        "updateFailed": "فشل تحديث القالب",
+        "unexpected": "حدث خطأ. يرجى المحاولة مرة أخرى."
+      },
+      "success": {
+        "created": "تم إنشاء قالب المهمة",
+        "updated": "تم تحديث القالب",
+        "archived": "تم أرشفة القالب",
+        "restored": "تم استعادة القالب"
+      }
+    },
+    "projectTemplates": {
+      "errors": {
+        "nameRequired": "اسم القالب مطلوب",
+        "idRequired": "معرّف القالب مطلوب",
+        "createFailed": "فشل إنشاء القالب",
+        "updateFailed": "فشل تحديث القالب",
+        "duplicateFailed": "فشل نسخ القالب",
+        "unexpected": "حدث خطأ. يرجى المحاولة مرة أخرى."
+      },
+      "success": {
+        "created": "تم إنشاء قالب المشروع",
+        "updated": "تم تحديث القالب",
+        "duplicated": "تم نسخ القالب",
+        "archived": "تم أرشفة القالب",
+        "restored": "تم استعادة القالب"
+      }
+    },
+    "orgProfile": {
+      "errors": {
+        "profileTypeRequired": "نوع ملف المنظمة مطلوب",
+        "updateProfileFailed": "فشل تحديث نوع الملف",
+        "updateTerminologyFailed": "فشل تحديث المصطلحات",
+        "unexpected": "حدث خطأ. يرجى المحاولة مرة أخرى."
+      },
+      "success": {
+        "profileTypeUpdated": "تم تحديث نوع ملف المنظمة",
+        "terminologyUpdated": "تم تحديث المصطلحات"
+      }
+    },
+    "projectStage": {
+      "errors": {
+        "projectIdRequired": "معرّف المشروع مطلوب",
+        "stageIdRequired": "معرّف المرحلة مطلوب",
+        "stageNotFound": "المرحلة غير موجودة أو مؤرشفة",
+        "transitionFailed": "فشل الانتقال بين المراحل",
+        "unexpected": "حدث خطأ. يرجى المحاولة مرة أخرى."
+      }
+    },
+    "planning": {
+      "errors": {
+        "nameRequired": "الاسم مطلوب",
+        "workItemIdRequired": "معرّف عنصر العمل مطلوب"
+      }
+    },
+    "employeeTasks": {
+      "errors": {
+        "updateStatusFailed": "فشل تحديث الحالة",
+        "invalidDueDate": "تاريخ الاستحقاق غير صالح",
+        "updateDueDateFailed": "فشل تحديث تاريخ الاستحقاق",
+        "updateChecklistFailed": "فشل تحديث عنصر قائمة التحقق",
+        "linkDocumentFailed": "فشل ربط المستند",
+        "unlinkDocumentFailed": "فشل إلغاء ربط المستند",
+        "attachCloudFileFailed": "فشل إرفاق ملف السحابة",
+        "recordAttachmentFailed": "فشل تسجيل المرفق",
+        "unexpected": "حدث خطأ. يرجى المحاولة مرة أخرى."
+      }
+    },
+    "workloadApi": {
+      "invalidEmployeeId": "معرّف الموظف غير صالح",
+      "forbidden": "غير مسموح",
+      "internalError": "خطأ داخلي في الخادم"
+    }
+  },
+  "integrations": {
+    "invoicing": {
+      "errors": {
+        "noActiveOrganization": "اختر عملاً للمتابعة أولاً.",
+        "saveFailed": "فشل حفظ إعدادات الفوترة",
+        "forbidden": "ليس لديك إذن لهذا الإجراء."
+      }
+    }
+  },
+  "laborCost": {
+    "validation": {
+      "bothTimesRequired": "وقتا البداية والنهاية مطلوبان",
+      "invalidStartTime": "وقت البداية غير صالح",
+      "invalidEndTime": "وقت النهاية غير صالح",
+      "timesMustDiffer": "يجب أن يختلف وقت البداية عن وقت النهاية",
+      "endMustBeAfterStart": "يجب أن يكون وقت النهاية بعد وقت البداية",
+      "invalidComponentKey": "مفتاح المكوّن غير صالح"
     }
   }
 }

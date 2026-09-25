@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import { useTranslations } from 'next-intl';
 import type { DocumentLinkCandidate, DocumentListItem } from '@/modules/documents/domain/types';
 import { DocumentAttachments } from '@/modules/documents/ui';
 import type { ActionResult } from '@/modules/documents/application/document-actions';
@@ -36,6 +37,7 @@ export function EmployeeTaskDocumentAttachments(props: {
   canBrowseCloudFiles?: boolean;
 }) {
   const { taskId, projectId, canBrowseCloudFiles, ...panel } = props;
+  const tValidation = useTranslations('validation');
   const cloudFileBrowserActions = useMemo(
     () =>
       createEmployeeProjectCloudBrowserActions({
@@ -64,7 +66,7 @@ export function EmployeeTaskDocumentAttachments(props: {
       NonNullable<Parameters<typeof DocumentAttachments>[0]['linkProviderFileAction']>
     >[0],
   ) {
-    if (!projectId) return { error: 'Project required' };
+    if (!projectId) return { error: tValidation('projectRequired') };
     const result = await employeeLinkProviderFileToTaskAction(taskId, { ...input, projectId });
     return result.error ? { error: result.error } : {};
   }

@@ -27,5 +27,36 @@
   "tab": "التخطيط",
   "criticalPath": {
     "unsafe": "لا يُحسب المسار الحرج. هذا الجدول الزمني الخفيف ليس CPM."
+  },
+  "write": {
+    "sectionTitle": "تحرير بنود التخطيط",
+    "sectionAria": "تحرير بنود التخطيط",
+    "addTask": "إضافة مهمة",
+    "addMilestone": "إضافة معلم",
+    "emptyItems": "لا توجد بنود تخطيط بعد. استخدم الأزرار أعلاه لإضافة مهام أو معالم.",
+    "noDate": "بدون تاريخ",
+    "editShort": "تحرير",
+    "dependencyShort": "اعتماد",
+    "fields": {
+      "taskName": "اسم المهمة",
+      "milestoneName": "اسم المعلم",
+      "name": "الاسم",
+      "startDate": "تاريخ البدء",
+      "milestoneDate": "تاريخ المعلم",
+      "targetEndDate": "تاريخ الانتهاء المستهدف",
+      "progressPercent": "التقدم %"
+    },
+    "archive": {
+      "title": "أرشفة \"{name}\"؟",
+      "hint": "العناصر المؤرشفة مخفية من الجدول الزمني لكنها محفوظة في السجل."
+    },
+    "dependency": {
+      "addLabel": "إضافة سابق (بدء عند الانتهاء)",
+      "selectPlaceholder": "اختر السابق…",
+      "addAria": "إضافة اعتمادية إلى {name}",
+      "removeAria": "إزالة الاعتمادية على {name}"
+    },
+    "editAria": "تحرير {name}",
+    "archiveAria": "أرشفة {name}"
   }
 }

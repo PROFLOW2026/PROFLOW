@@ -9,6 +9,7 @@
  */
 
 import { useTransition, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { StatusBadge } from '@/components/ui/status-badge';
 import type { StatusShape } from '@/components/ui/status-badge';
 import type { linkTaskToMilestoneAction } from './milestone-link-actions';
@@ -60,6 +61,7 @@ export function MilestoneLinkedTask({
   canEdit,
   linkAction,
 }: MilestoneLinkedTaskProps) {
+  const t = useTranslations('projects.milestoneLinkedTask');
   const [, startTransition] = useTransition();
   const [showSelector, setShowSelector] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -73,20 +75,21 @@ export function MilestoneLinkedTask({
     });
   }
 
-  // Tasks not yet linked to another milestone (or linked to this milestone)
   const availableTasks = projectTasks.filter(
-    (t) => t.id === linkedTask?.id || t.status !== 'done' && t.status !== 'cancelled',
+    (task) => task.id === linkedTask?.id || (task.status !== 'done' && task.status !== 'cancelled'),
   );
 
   return (
     <div className="mt-1 flex flex-col gap-1 border-t border-[var(--pf-border-default)] pt-1">
       {linkedTask ? (
         <div className="flex flex-wrap items-center gap-2 text-xs">
-          <span className="text-[var(--pf-text-secondary)]">Linked task:</span>
+          <span className="text-[var(--pf-text-secondary)]">{t('linkedTaskLabel')}</span>
           <span className="font-medium text-[var(--pf-text-primary)]">{linkedTask.title}</span>
           <StatusBadge shape={taskStatusShape(linkedTask.status)} label={linkedTask.status} />
           {linkedTask.dueDate ? (
-            <span className="text-[var(--pf-text-secondary)]">Due {linkedTask.dueDate}</span>
+            <span className="text-[var(--pf-text-secondary)]">
+              {t('due', { date: linkedTask.dueDate })}
+            </span>
           ) : null}
           {canEdit ? (
             <button
@@ -94,12 +97,12 @@ export function MilestoneLinkedTask({
               onClick={() => handleLink(null)}
               className="text-xs text-[var(--pf-status-danger-fg)] hover:underline"
             >
-              Unlink
+              {t('unlink')}
             </button>
           ) : null}
         </div>
       ) : (
-        <p className="text-xs text-[var(--pf-text-secondary)]">No linked task</p>
+        <p className="text-xs text-[var(--pf-text-secondary)]">{t('noLinkedTask')}</p>
       )}
 
       {canEdit && !showSelector && (
@@ -108,7 +111,7 @@ export function MilestoneLinkedTask({
           onClick={() => setShowSelector(true)}
           className="w-fit text-xs text-[var(--pf-status-info-fg)] hover:underline"
         >
-          {linkedTask ? 'Change linked task' : 'Link a task'}
+          {linkedTask ? t('changeLinkedTask') : t('linkTask')}
         </button>
       )}
 
@@ -122,11 +125,11 @@ export function MilestoneLinkedTask({
             defaultValue=""
           >
             <option value="" disabled>
-              Select task…
+              {t('selectTask')}
             </option>
-            {availableTasks.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.title}
+            {availableTasks.map((task) => (
+              <option key={task.id} value={task.id}>
+                {task.title}
               </option>
             ))}
           </select>
@@ -135,7 +138,7 @@ export function MilestoneLinkedTask({
             onClick={() => setShowSelector(false)}
             className="text-xs text-[var(--pf-text-secondary)] hover:text-[var(--pf-text-primary)]"
           >
-            Cancel
+            {t('cancel')}
           </button>
         </div>
       )}

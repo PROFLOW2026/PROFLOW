@@ -19,7 +19,8 @@
     "select": "Выберите период для проверки полноты."
   },
   "form": {
-    "yearMonth": "Месяц (ГГГГ-ММ)"
+    "yearMonth": "Месяц (ГГГГ-ММ)",
+    "yearMonthPlaceholder": "ГГГГ-ММ"
   },
   "actions": {
     "openPeriod": "Открыть месяц",
@@ -70,6 +71,7 @@
     "type": "Тип",
     "reason": "Причина",
     "amount": "Сумма",
+    "amountPlaceholder": "0,00",
     "currency": "Валюта",
     "effectSide": "Эффект",
     "sidePlaceholder": "Выберите затраты или выручку",

@@ -22,7 +22,7 @@ export function assertGrantBelongsToOrganization(
 export function assertSameOrganization(
   leftOrganizationId: string,
   rightOrganizationId: string,
-  message = 'Cross-tenant portal access denied',
+  message = 'cross_tenant_portal',
 ): void {
   if (leftOrganizationId !== rightOrganizationId) {
     throw new DomainRuleError(message, 'portal.errors.crossTenant');

@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { getTranslations } from 'next-intl/server';
 import { withOrgContext } from '@/shared/auth/session';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -17,10 +18,12 @@ export async function updateOrgProfileTypeAction(
   _prev: OrgProfileActionState,
   formData: FormData,
 ): Promise<OrgProfileActionState> {
+  const tErrors = await getTranslations('settings.workflowActions.orgProfile.errors');
+  const tSuccess = await getTranslations('settings.workflowActions.orgProfile.success');
   try {
     const orgProfileType = formData.get('orgProfileType') as string | null;
 
-    if (!orgProfileType) return { error: 'Profile type is required' };
+    if (!orgProfileType) return { error: tErrors('profileTypeRequired') };
 
     await withOrgContext(async (context) => {
       assertPermission(context, PERMISSIONS.SETTINGS_MANAGE);
@@ -41,9 +44,9 @@ export async function updateOrgProfileTypeAction(
     });
 
     revalidatePath('/settings/org-profile');
-    return { ok: true, message: 'Org profile type updated' };
-  } catch (err: unknown) {
-    return { error: err instanceof Error ? err.message : 'Failed to update profile type' };
+    return { ok: true, message: tSuccess('profileTypeUpdated') };
+  } catch {
+    return { error: tErrors('updateProfileFailed') };
   }
 }
 
@@ -51,6 +54,8 @@ export async function updateTerminologyConfigAction(
   _prev: OrgProfileActionState,
   formData: FormData,
 ): Promise<OrgProfileActionState> {
+  const tErrors = await getTranslations('settings.workflowActions.orgProfile.errors');
+  const tSuccess = await getTranslations('settings.workflowActions.orgProfile.success');
   try {
     const terminology = {
       project: (formData.get('project') as string | null)?.trim() || null,
@@ -79,8 +84,8 @@ export async function updateTerminologyConfigAction(
     });
 
     revalidatePath('/settings/org-profile');
-    return { ok: true, message: 'Terminology updated' };
-  } catch (err: unknown) {
-    return { error: err instanceof Error ? err.message : 'Failed to update terminology' };
+    return { ok: true, message: tSuccess('terminologyUpdated') };
+  } catch {
+    return { error: tErrors('updateTerminologyFailed') };
   }
 }

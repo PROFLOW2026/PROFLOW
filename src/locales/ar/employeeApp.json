@@ -219,7 +219,8 @@
       "logTime": "تسجيل وقت",
       "files": "الملفات",
       "meetings": "الاجتماعات",
-      "financials": "الماليات"
+      "financials": "الماليات",
+      "navAriaLabel": "مركز المشروع"
     },
     "openTaskDetail": "فتح تفاصيل المهمة",
     "files": {

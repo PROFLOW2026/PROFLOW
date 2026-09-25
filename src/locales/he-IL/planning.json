@@ -27,5 +27,36 @@
   "tab": "תכנון",
   "criticalPath": {
     "unsafe": "נתיב קריטי אינו מחושב. ציר הזמן הקל אינו CPM."
+  },
+  "write": {
+    "sectionTitle": "עריכת פריטי תכנון",
+    "sectionAria": "עריכת פריטי תכנון",
+    "addTask": "הוספת משימה",
+    "addMilestone": "הוספת אבן דרך",
+    "emptyItems": "עדיין אין פריטי תכנון. השתמשו בכפתורים למעלה כדי להוסיף משימות או אבני דרך.",
+    "noDate": "ללא תאריך",
+    "editShort": "עריכה",
+    "dependencyShort": "תלות",
+    "fields": {
+      "taskName": "שם משימה",
+      "milestoneName": "שם אבן דרך",
+      "name": "שם",
+      "startDate": "תאריך התחלה",
+      "milestoneDate": "תאריך אבן דרך",
+      "targetEndDate": "תאריך יעד לסיום",
+      "progressPercent": "התקדמות %"
+    },
+    "archive": {
+      "title": "לארכב את \"{name}\"?",
+      "hint": "פריטים בארכיון מוסתרים מציר הזמן אך נשמרים בהיסטוריה."
+    },
+    "dependency": {
+      "addLabel": "הוספת קודם (סיום-להתחלה)",
+      "selectPlaceholder": "בחרו קודם…",
+      "addAria": "הוספת תלות ל-{name}",
+      "removeAria": "הסרת תלות ב-{name}"
+    },
+    "editAria": "עריכת {name}",
+    "archiveAria": "ארכוב {name}"
   }
 }

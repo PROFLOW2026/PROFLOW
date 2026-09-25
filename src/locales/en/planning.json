@@ -27,5 +27,36 @@
   "tab": "Planning",
   "criticalPath": {
     "unsafe": "Critical path is not calculated. This light timeline is not CPM."
+  },
+  "write": {
+    "sectionTitle": "Edit planning items",
+    "sectionAria": "Edit planning items",
+    "addTask": "Add task",
+    "addMilestone": "Add milestone",
+    "emptyItems": "No planning items yet. Use the buttons above to add tasks or milestones.",
+    "noDate": "No date",
+    "editShort": "Edit",
+    "dependencyShort": "Dep",
+    "fields": {
+      "taskName": "Task name",
+      "milestoneName": "Milestone name",
+      "name": "Name",
+      "startDate": "Start date",
+      "milestoneDate": "Milestone date",
+      "targetEndDate": "Target end date",
+      "progressPercent": "Progress %"
+    },
+    "archive": {
+      "title": "Archive \"{name}\"?",
+      "hint": "Archived items are hidden from the timeline but preserved in history."
+    },
+    "dependency": {
+      "addLabel": "Add predecessor (finish-to-start)",
+      "selectPlaceholder": "Select predecessor…",
+      "addAria": "Add dependency to {name}",
+      "removeAria": "Remove dependency on {name}"
+    },
+    "editAria": "Edit {name}",
+    "archiveAria": "Archive {name}"
   }
 }

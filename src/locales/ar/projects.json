@@ -473,5 +473,15 @@
       "read": "قراءة",
       "manage": "إدارة"
     }
+  },
+  "milestoneLinkedTask": {
+    "linkedTaskLabel": "المهمة المرتبطة:",
+    "noLinkedTask": "لا توجد مهمة مرتبطة",
+    "unlink": "إلغاء الربط",
+    "changeLinkedTask": "تغيير المهمة المرتبطة",
+    "linkTask": "ربط مهمة",
+    "selectTask": "اختر مهمة…",
+    "cancel": "إلغاء",
+    "due": "الاستحقاق {date}"
   }
 }

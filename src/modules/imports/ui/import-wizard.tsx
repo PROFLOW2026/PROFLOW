@@ -351,7 +351,7 @@ export function ImportWizard({
                 className="max-w-sm rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-3 py-2 text-sm"
                 value={projectIdInput}
                 onChange={(event) => setProjectIdInput(event.target.value)}
-                placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                placeholder={t('fields.projectIdPlaceholder')}
                 autoComplete="off"
               />
             </div>
@@ -535,7 +535,7 @@ export function ImportWizard({
                           </TableCell>
                           <TableCell className="align-top text-xs">
                             {row.issues.length === 0 ? (
-                              <span className="text-[var(--pf-text-secondary)]">—</span>
+                              <span className="text-[var(--pf-text-secondary)]">{t('preview.noIssues')}</span>
                             ) : (
                               row.issues.map((issue, idx) => (
                                 <div

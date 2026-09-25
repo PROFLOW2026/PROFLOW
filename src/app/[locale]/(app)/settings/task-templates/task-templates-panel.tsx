@@ -119,7 +119,6 @@ function TemplateRow({ template, canEdit }: { template: TaskTemplateDef; canEdit
 
 function CreateTemplateForm({ canEdit }: { canEdit: boolean }) {
   const t = useTranslations('settings.taskTemplatesPanel');
-  const tActions = useTranslations('common.actions');
   const priorityOptions = usePriorityOptions();
   const [state, action, pending] = useActionState(createTaskTemplateAction, {} as TemplateActionState);
   const [checklistItems, setChecklistItems] = useState<string[]>(['']);

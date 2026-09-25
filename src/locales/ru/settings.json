@@ -66,7 +66,9 @@
       "memberPlaceholder": "Выберите участника",
       "emptyMeansAll": "Если отмечены все категории или не сохранены индивидуальные права, участник может просматривать все семантические папки, разрешённые его ролью.",
       "save": "Сохранить доступ к папкам",
-      "saved": "Доступ к папкам сохранён"
+      "saved": "Доступ к папкам сохранён",
+      "memberRequired": "Нужно выбрать участника",
+      "saveFailed": "Не удалось сохранить доступ к папкам"
     }
   },
   "modules": {
@@ -1433,15 +1435,42 @@
     "previewStage": "Этап →",
     "previewBucket": "Корзина →",
     "types": {
-      "architect": { "label": "Архитектор", "description": "Архитектурное проектирование и разрешения" },
-      "engineer": { "label": "Инженер", "description": "Конструктивная, гражданская, MEP или спец. инженерия" },
-      "consultant": { "label": "Консультант", "description": "Профессиональные консультации" },
-      "project_manager": { "label": "Менеджер проекта", "description": "Независимое управление проектами" },
-      "developer": { "label": "Застройщик / недвижимость", "description": "Девелопмент и проекты недвижимости" },
-      "contractor": { "label": "Генподрядчик", "description": "Строительство и ремонт" },
-      "subcontractor": { "label": "Субподрядчик", "description": "Субподряд и специализированные работы" },
-      "supervisor": { "label": "Инспектор / надзор", "description": "Надзор на площадке и качество" },
-      "other": { "label": "Другое", "description": "Другая профессия в строительстве" }
+      "architect": {
+        "label": "Архитектор",
+        "description": "Архитектурное проектирование и разрешения"
+      },
+      "engineer": {
+        "label": "Инженер",
+        "description": "Конструктивная, гражданская, MEP или спец. инженерия"
+      },
+      "consultant": {
+        "label": "Консультант",
+        "description": "Профессиональные консультации"
+      },
+      "project_manager": {
+        "label": "Менеджер проекта",
+        "description": "Независимое управление проектами"
+      },
+      "developer": {
+        "label": "Застройщик / недвижимость",
+        "description": "Девелопмент и проекты недвижимости"
+      },
+      "contractor": {
+        "label": "Генподрядчик",
+        "description": "Строительство и ремонт"
+      },
+      "subcontractor": {
+        "label": "Субподрядчик",
+        "description": "Субподряд и специализированные работы"
+      },
+      "supervisor": {
+        "label": "Инспектор / надзор",
+        "description": "Надзор на площадке и качество"
+      },
+      "other": {
+        "label": "Другое",
+        "description": "Другая профессия в строительстве"
+      }
     },
     "terminologyDefaults": {
       "project": "Проект",
@@ -1474,6 +1503,138 @@
       "invalidProfileType": "Выберите допустимый тип профиля организации",
       "previewFailed": "Не удалось выполнить предпросмотр",
       "adoptionFailed": "Не удалось применить настройки"
+    }
+  },
+  "workflowActions": {
+    "stages": {
+      "errors": {
+        "nameRequired": "Требуется название этапа",
+        "idRequired": "Требуется ID этапа",
+        "noStageIds": "ID этапов не указаны",
+        "createFailed": "Не удалось создать этап",
+        "updateFailed": "Не удалось обновить этап",
+        "setDefaultFailed": "Не удалось задать этап по умолчанию",
+        "reorderFailed": "Не удалось изменить порядок этапов",
+        "unexpected": "Что-то пошло не так. Попробуйте снова."
+      },
+      "success": {
+        "created": "Этап успешно создан",
+        "updated": "Этап обновлён",
+        "archived": "Этап архивирован",
+        "restored": "Этап восстановлен",
+        "defaultUpdated": "Этап по умолчанию обновлён"
+      }
+    },
+    "labels": {
+      "errors": {
+        "nameRequired": "Требуется название метки",
+        "idRequired": "Требуется ID метки",
+        "createFailed": "Не удалось создать метку",
+        "updateFailed": "Не удалось обновить метку",
+        "unexpected": "Что-то пошло не так. Попробуйте снова."
+      },
+      "success": {
+        "created": "Метка создана",
+        "updated": "Метка обновлена",
+        "archived": "Метка архивирована",
+        "restored": "Метка восстановлена"
+      }
+    },
+    "taskTemplates": {
+      "errors": {
+        "titleRequired": "Требуется название шаблона",
+        "idRequired": "Требуется ID шаблона",
+        "createFailed": "Не удалось создать шаблон",
+        "updateFailed": "Не удалось обновить шаблон",
+        "unexpected": "Что-то пошло не так. Попробуйте снова."
+      },
+      "success": {
+        "created": "Шаблон задачи создан",
+        "updated": "Шаблон обновлён",
+        "archived": "Шаблон архивирован",
+        "restored": "Шаблон восстановлен"
+      }
+    },
+    "projectTemplates": {
+      "errors": {
+        "nameRequired": "Требуется название шаблона",
+        "idRequired": "Требуется ID шаблона",
+        "createFailed": "Не удалось создать шаблон",
+        "updateFailed": "Не удалось обновить шаблон",
+        "duplicateFailed": "Не удалось дублировать шаблон",
+        "unexpected": "Что-то пошло не так. Попробуйте снова."
+      },
+      "success": {
+        "created": "Шаблон проекта создан",
+        "updated": "Шаблон обновлён",
+        "duplicated": "Шаблон дублирован",
+        "archived": "Шаблон архивирован",
+        "restored": "Шаблон восстановлен"
+      }
+    },
+    "orgProfile": {
+      "errors": {
+        "profileTypeRequired": "Требуется тип профиля организации",
+        "updateProfileFailed": "Не удалось обновить тип профиля",
+        "updateTerminologyFailed": "Не удалось обновить терминологию",
+        "unexpected": "Что-то пошло не так. Попробуйте снова."
+      },
+      "success": {
+        "profileTypeUpdated": "Тип профиля организации обновлён",
+        "terminologyUpdated": "Терминология обновлена"
+      }
+    },
+    "projectStage": {
+      "errors": {
+        "projectIdRequired": "Требуется ID проекта",
+        "stageIdRequired": "Требуется ID этапа",
+        "stageNotFound": "Этап не найден или архивирован",
+        "transitionFailed": "Не удалось выполнить переход этапа",
+        "unexpected": "Что-то пошло не так. Попробуйте снова."
+      }
+    },
+    "planning": {
+      "errors": {
+        "nameRequired": "Требуется название",
+        "workItemIdRequired": "Требуется ID рабочего элемента"
+      }
+    },
+    "employeeTasks": {
+      "errors": {
+        "updateStatusFailed": "Не удалось обновить статус",
+        "invalidDueDate": "Недопустимая дата выполнения",
+        "updateDueDateFailed": "Не удалось обновить дату выполнения",
+        "updateChecklistFailed": "Не удалось обновить пункт чек-листа",
+        "linkDocumentFailed": "Не удалось привязать документ",
+        "unlinkDocumentFailed": "Не удалось отвязать документ",
+        "attachCloudFileFailed": "Не удалось прикрепить облачный файл",
+        "recordAttachmentFailed": "Не удалось зарегистрировать вложение",
+        "unexpected": "Что-то пошло не так. Попробуйте снова."
+      }
+    },
+    "workloadApi": {
+      "invalidEmployeeId": "Недопустимый ID сотрудника",
+      "forbidden": "Доступ запрещён",
+      "internalError": "Внутренняя ошибка сервера"
+    }
+  },
+  "integrations": {
+    "invoicing": {
+      "errors": {
+        "noActiveOrganization": "Сначала выберите организацию.",
+        "saveFailed": "Не удалось сохранить настройки выставления счетов",
+        "forbidden": "У вас нет прав на это действие."
+      }
+    }
+  },
+  "laborCost": {
+    "validation": {
+      "bothTimesRequired": "Требуется время начала и окончания",
+      "invalidStartTime": "Недопустимое время начала",
+      "invalidEndTime": "Недопустимое время окончания",
+      "timesMustDiffer": "Время начала и окончания должны отличаться",
+      "endMustBeAfterStart": "Время окончания должно быть позже времени начала",
+      "invalidComponentKey": "Недопустимый ключ компонента"
     }
   }
 }

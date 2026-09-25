@@ -92,7 +92,6 @@ function LabelRow({ label, canEdit }: { label: TaskLabel; canEdit: boolean }) {
 
 function CreateLabelForm({ canEdit }: { canEdit: boolean }) {
   const t = useTranslations('settings.labelsPanel');
-  const tActions = useTranslations('common.actions');
   const [state, action, pending] = useActionState(createLabelAction, {} as LabelActionState);
   const [color, setColor] = useState('#6366f1');
 

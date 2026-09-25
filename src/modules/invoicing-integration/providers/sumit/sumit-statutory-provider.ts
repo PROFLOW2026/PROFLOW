@@ -197,7 +197,7 @@ export class SumitStatutoryProvider implements StatutoryInvoicingProvider {
     try {
       const response = await this.client.getDocumentDetails(input.externalId);
       if (!response.documentId) {
-        return { ok: false, errorCode: 'not_found', message: 'External document not found' };
+        return { ok: false, errorCode: 'not_found', message: 'not_found' };
       }
       return {
         ok: true,

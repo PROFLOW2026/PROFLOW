@@ -1,12 +1,11 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { getTranslations } from 'next-intl/server';
 import { withOrgContext } from '@/shared/auth/session';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-// eslint-disable-next-line no-restricted-imports
 import { projectStageDefinitions } from '@drizzle/schema';
-// eslint-disable-next-line no-restricted-imports
 import { eq, and, sql } from 'drizzle-orm';
 import { recordAuditEvent, AUDIT_ACTIONS } from '@/shared/audit';
 
@@ -16,17 +15,18 @@ export async function createStageAction(
   _prev: StageActionState,
   formData: FormData,
 ): Promise<StageActionState> {
+  const tErrors = await getTranslations('settings.workflowActions.stages.errors');
+  const tSuccess = await getTranslations('settings.workflowActions.stages.success');
   try {
     const name = formData.get('name') as string | null;
     const color = formData.get('color') as string | null;
     const workKindFilter = formData.get('workKindFilter') as string | null;
 
-    if (!name?.trim()) return { error: 'Stage name is required' };
+    if (!name?.trim()) return { error: tErrors('nameRequired') };
 
     await withOrgContext(async (context) => {
       assertPermission(context, PERMISSIONS.STAGES_MANAGE);
 
-      // Compute next position
       const existing = await context.db
         .select({ position: projectStageDefinitions.position })
         .from(projectStageDefinitions)
@@ -54,9 +54,9 @@ export async function createStageAction(
     });
 
     revalidatePath('/settings/stages');
-    return { ok: true, message: 'Stage created successfully' };
-  } catch (err: unknown) {
-    return { error: err instanceof Error ? err.message : 'Failed to create stage' };
+    return { ok: true, message: tSuccess('created') };
+  } catch {
+    return { error: tErrors('createFailed') };
   }
 }
 
@@ -64,14 +64,16 @@ export async function updateStageAction(
   _prev: StageActionState,
   formData: FormData,
 ): Promise<StageActionState> {
+  const tErrors = await getTranslations('settings.workflowActions.stages.errors');
+  const tSuccess = await getTranslations('settings.workflowActions.stages.success');
   try {
     const id = formData.get('id') as string | null;
     const name = formData.get('name') as string | null;
     const color = formData.get('color') as string | null;
     const workKindFilter = formData.get('workKindFilter') as string | null;
 
-    if (!id) return { error: 'Stage ID is required' };
-    if (!name?.trim()) return { error: 'Stage name is required' };
+    if (!id) return { error: tErrors('idRequired') };
+    if (!name?.trim()) return { error: tErrors('nameRequired') };
 
     await withOrgContext(async (context) => {
       assertPermission(context, PERMISSIONS.STAGES_MANAGE);
@@ -101,9 +103,9 @@ export async function updateStageAction(
     });
 
     revalidatePath('/settings/stages');
-    return { ok: true, message: 'Stage updated' };
-  } catch (err: unknown) {
-    return { error: err instanceof Error ? err.message : 'Failed to update stage' };
+    return { ok: true, message: tSuccess('updated') };
+  } catch {
+    return { error: tErrors('updateFailed') };
   }
 }
 
@@ -111,11 +113,13 @@ export async function archiveStageAction(
   _prev: StageActionState,
   formData: FormData,
 ): Promise<StageActionState> {
+  const tErrors = await getTranslations('settings.workflowActions.stages.errors');
+  const tSuccess = await getTranslations('settings.workflowActions.stages.success');
   try {
     const id = formData.get('id') as string | null;
     const restore = formData.get('restore') === 'true';
 
-    if (!id) return { error: 'Stage ID is required' };
+    if (!id) return { error: tErrors('idRequired') };
 
     await withOrgContext(async (context) => {
       assertPermission(context, PERMISSIONS.STAGES_MANAGE);
@@ -143,9 +147,9 @@ export async function archiveStageAction(
     });
 
     revalidatePath('/settings/stages');
-    return { ok: true, message: restore ? 'Stage restored' : 'Stage archived' };
-  } catch (err: unknown) {
-    return { error: err instanceof Error ? err.message : 'Failed to update stage' };
+    return { ok: true, message: restore ? tSuccess('restored') : tSuccess('archived') };
+  } catch {
+    return { error: tErrors('updateFailed') };
   }
 }
 
@@ -153,14 +157,15 @@ export async function setDefaultStageAction(
   _prev: StageActionState,
   formData: FormData,
 ): Promise<StageActionState> {
+  const tErrors = await getTranslations('settings.workflowActions.stages.errors');
+  const tSuccess = await getTranslations('settings.workflowActions.stages.success');
   try {
     const id = formData.get('id') as string | null;
-    if (!id) return { error: 'Stage ID is required' };
+    if (!id) return { error: tErrors('idRequired') };
 
     await withOrgContext(async (context) => {
       assertPermission(context, PERMISSIONS.STAGES_MANAGE);
 
-      // Unset existing default, then set new
       await context.db
         .update(projectStageDefinitions)
         .set({ isDefault: false, updatedAt: new Date() })
@@ -185,9 +190,9 @@ export async function setDefaultStageAction(
     });
 
     revalidatePath('/settings/stages');
-    return { ok: true, message: 'Default stage updated' };
-  } catch (err: unknown) {
-    return { error: err instanceof Error ? err.message : 'Failed to set default stage' };
+    return { ok: true, message: tSuccess('defaultUpdated') };
+  } catch {
+    return { error: tErrors('setDefaultFailed') };
   }
 }
 
@@ -195,11 +200,11 @@ export async function reorderStagesAction(
   _prev: StageActionState,
   formData: FormData,
 ): Promise<StageActionState> {
+  const tErrors = await getTranslations('settings.workflowActions.stages.errors');
   try {
-    // orderedIds is comma-separated list of stage IDs in new order
     const orderedIds = (formData.get('orderedIds') as string | null)?.split(',') ?? [];
 
-    if (orderedIds.length === 0) return { error: 'No stage IDs provided' };
+    if (orderedIds.length === 0) return { error: tErrors('noStageIds') };
 
     await withOrgContext(async (context) => {
       assertPermission(context, PERMISSIONS.STAGES_MANAGE);
@@ -221,7 +226,7 @@ export async function reorderStagesAction(
 
     revalidatePath('/settings/stages');
     return { ok: true };
-  } catch (err: unknown) {
-    return { error: err instanceof Error ? err.message : 'Failed to reorder stages' };
+  } catch {
+    return { error: tErrors('reorderFailed') };
   }
 }

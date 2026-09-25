@@ -19,7 +19,8 @@
     "select": "اختر فترة لمراجعة الاكتمال."
   },
   "form": {
-    "yearMonth": "الشهر (YYYY-MM)"
+    "yearMonth": "الشهر (YYYY-MM)",
+    "yearMonthPlaceholder": "YYYY-MM"
   },
   "actions": {
     "openPeriod": "فتح الشهر",
@@ -70,6 +71,7 @@
     "type": "النوع",
     "reason": "السبب",
     "amount": "المبلغ",
+    "amountPlaceholder": "0.00",
     "currency": "العملة",
     "effectSide": "التأثير",
     "sidePlaceholder": "اختر تكلفة أو إيراد",

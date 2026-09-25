@@ -1,5 +1,6 @@
 'use server';
 
+import { getTranslations } from 'next-intl/server';
 import { upsertOrgInvoicingSettings } from '@/modules/invoicing-integration';
 import type {
   InvoicingPaymentDocumentPolicy,
@@ -20,10 +21,11 @@ export async function saveInvoicingSettingsAction(
   _prev: InvoicingSettingsFormState,
   formData: FormData,
 ): Promise<InvoicingSettingsFormState> {
+  const tErrors = await getTranslations('settings.integrations.invoicing.errors');
   try {
     const session = await requireSession();
     if (!session.activeOrganizationId) {
-      return { error: 'No active organization' };
+      return { error: tErrors('noActiveOrganization') };
     }
 
     const mode = String(formData.get('mode') ?? 'manual') as InvoicingStatutoryMode;
@@ -36,7 +38,7 @@ export async function saveInvoicingSettingsAction(
 
     await withOrgContext(async (context) => {
       if (!hasPermission(context, PERMISSIONS.SETTINGS_MANAGE)) {
-        throw new Error('Forbidden');
+        throw new Error('forbidden');
       }
       await upsertOrgInvoicingSettings(context, {
         mode: mode === 'external_provider' ? 'external_provider' : 'manual',
@@ -49,6 +51,9 @@ export async function saveInvoicingSettingsAction(
     revalidatePath('/billing');
     return { ok: true };
   } catch (error) {
-    return { error: error instanceof Error ? error.message : 'Save failed' };
+    if (error instanceof Error && error.message === 'forbidden') {
+      return { error: tErrors('forbidden') };
+    }
+    return { error: tErrors('saveFailed') };
   }
 }
