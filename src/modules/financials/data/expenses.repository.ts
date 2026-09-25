@@ -263,6 +263,7 @@ function isSubcontractorVendor(type: string | null): boolean {
   return type === 'subcontractor' || type === 'both';
 }
 
+/** @deprecated Use `sumOrganizationRecognizedCostsInDateRange` — expenses-only legacy path. */
 export async function sumOrganizationCostsInDateRange(
   db: DbExecutor,
   organizationId: string,

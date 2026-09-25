@@ -15,10 +15,9 @@ import {
 } from '../domain/business-cash-position';
 import {
   loadOrganizationExpenseCashRows,
-  sumOrganizationPayrollCashOutstanding,
-  sumOrganizationPayrollCashPaid,
   sumOrganizationSubcontractAdvancesPaid,
 } from '../data/business-cash-position.repository';
+import { sumCanonicalPayrollCashOutstanding, sumCanonicalPayrollCashPaid } from './canonical-payroll-cash';
 
 export type { BusinessCashPosition, BusinessCashSourceKey } from '../domain/business-cash-position';
 
@@ -40,22 +39,43 @@ export async function getBusinessCashPosition(
         ? getOrganizationApPayables(context, { currency })
         : Promise.resolve(null);
 
-  const [expenseRows, apPayables, payrollPaidRaw, payrollOutstandingRaw, advancesPaidRaw] =
-    await Promise.all([
-      canReadCosts
-        ? loadOrganizationExpenseCashRows(context.db, context.organizationId, currency)
-        : Promise.resolve([]),
-      apPayablesPromise,
-      canReadCosts && canReadWorkforce
-        ? sumOrganizationPayrollCashPaid(context.db, context.organizationId, currency)
-        : Promise.resolve(null),
-      canReadCosts && canReadWorkforce
-        ? sumOrganizationPayrollCashOutstanding(context.db, context.organizationId, currency)
-        : Promise.resolve(null),
-      canReadAp
-        ? sumOrganizationSubcontractAdvancesPaid(context.db, context.organizationId, currency)
-        : Promise.resolve(null),
-    ]);
+  const policiesPromise =
+    canReadCosts && canReadWorkforce
+      ? import('@/modules/tenancy/application/org-financial-policies').then(({ getOrgFinancialPolicies }) =>
+          getOrgFinancialPolicies(context),
+        )
+      : Promise.resolve(null);
+
+  const [expenseRows, apPayables, policies, advancesPaidRaw] = await Promise.all([
+    canReadCosts
+      ? loadOrganizationExpenseCashRows(context.db, context.organizationId, currency)
+      : Promise.resolve([]),
+    apPayablesPromise,
+    policiesPromise,
+    canReadAp
+      ? sumOrganizationSubcontractAdvancesPaid(context.db, context.organizationId, currency)
+      : Promise.resolve(null),
+  ]);
+
+  const payrollPaidRaw =
+    policies != null
+      ? (
+          await sumCanonicalPayrollCashPaid(context.db, context.organizationId, currency, {
+            salaryPaymentDay: policies.salaryPaymentDay,
+          })
+        ).amount
+      : null;
+  const payrollOutstandingRaw =
+    policies != null
+      ? (
+          await sumCanonicalPayrollCashOutstanding(
+            context.db,
+            context.organizationId,
+            currency,
+            policies.salaryPaymentDay,
+          )
+        ).amount
+      : null;
 
   const expenseSources = canReadCosts
     ? aggregateExpenseCashBySource(expenseRows, currency)

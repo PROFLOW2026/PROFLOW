@@ -4,14 +4,10 @@
  * Open payables, commitments, AR, and overdue are point-in-time snapshots.
  */
 
-import { getOrganizationApPayables, sumApPaymentsMadeInDateRange } from '@/modules/ap';
+import { getOrganizationApPayables } from '@/modules/ap';
 import { listBillingRecords, computeReceivablesSummary } from '@/modules/billing';
-import { sumPaidSubcontractAdvancesInDateRange } from '@/modules/vendors';
-import { sumPaidExpensesInDateRange, sumUpcomingExpenseCash } from '@/modules/expenses/application/expense-payments';
-import {
-  sumPaidPayrollInDateRange,
-  sumUpcomingPayrollCash,
-} from '@/modules/workforce/application/payroll-payments';
+import { sumUpcomingExpenseCash } from '@/modules/expenses/application/expense-payments';
+import { sumUpcomingPayrollCash } from '@/modules/workforce/application/payroll-payments';
 import type { OrgContext } from '@/shared/auth/context';
 import {
   addDays,
@@ -27,6 +23,7 @@ import { sumCollectionsInDateRange, sumInvoicedInDateRange } from '../data/billi
 import { sumOrganizationRecognizedCostsInDateRange } from '../data/expenses.repository';
 import { getOrganizationProjectRollup } from './get-organization-project-rollup';
 import { aggregateOrgCost } from '../domain/aggregate-org-report';
+import { getMonthCashFlow } from './get-month-cash-flow';
 
 export interface FinancialsOverviewPeriod {
   readonly fromDate: BusinessDate;
@@ -93,34 +90,15 @@ export async function getFinancialsOverview(
 
   const [
     recognizedActual,
-    apCashPaid,
-    advanceCashPaid,
     apPayables,
     rollup,
     billed,
     collected,
     billingRecords,
+    periodCash,
   ] = await Promise.all([
     canReadCosts
       ? sumOrganizationRecognizedCostsInDateRange(
-          context.db,
-          context.organizationId,
-          currency,
-          period.fromDate,
-          period.toDate,
-        )
-      : Promise.resolve(null),
-    canReadAp
-      ? sumApPaymentsMadeInDateRange(
-          context.db,
-          context.organizationId,
-          currency,
-          period.fromDate,
-          period.toDate,
-        )
-      : Promise.resolve(null),
-    canReadAp
-      ? sumPaidSubcontractAdvancesInDateRange(
           context.db,
           context.organizationId,
           currency,
@@ -149,30 +127,16 @@ export async function getFinancialsOverview(
         )
       : Promise.resolve(null),
     canReadBilling ? listBillingRecords(context) : Promise.resolve(null),
+    canReadAp || canReadCosts
+      ? getMonthCashFlow(context, {
+          from: period.fromDate,
+          to: period.toDate,
+          collectionsActual: zeroMoney(currency),
+        })
+      : Promise.resolve(null),
   ]);
 
-  let cashPaid: MoneyValue | null = null;
-  if (canReadAp || canReadCosts) {
-    let total = zeroMoney(currency);
-    if (apCashPaid != null) {
-      total = addMoney(total, fromNumericString(apCashPaid, currency) ?? zeroMoney(currency));
-    }
-    if (advanceCashPaid != null) {
-      total = addMoney(
-        total,
-        fromNumericString(advanceCashPaid ?? '0', currency) ?? zeroMoney(currency),
-      );
-    }
-    if (canReadCosts) {
-      const [expensePaid, payrollPaid] = await Promise.all([
-        sumPaidExpensesInDateRange(context, currency, period.fromDate, period.toDate),
-        sumPaidPayrollInDateRange(context, currency, period.fromDate, period.toDate),
-      ]);
-      total = addMoney(total, fromNumericString(expensePaid, currency) ?? zeroMoney(currency));
-      total = addMoney(total, fromNumericString(payrollPaid, currency) ?? zeroMoney(currency));
-    }
-    cashPaid = total;
-  }
+  const cashPaid = periodCash?.paidActual ?? null;
 
   let upcomingDue: MoneyValue | null = null;
   if (apPayables) {

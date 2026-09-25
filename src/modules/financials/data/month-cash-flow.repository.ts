@@ -334,6 +334,70 @@ export async function loadMonthExpenseCashSnapshots(
   }));
 }
 
+function mapPayrollCashSnapshotRow(row: {
+  readonly id: string;
+  readonly employeeId: string;
+  readonly employeeName: string | null;
+  readonly yearMonth: string;
+  readonly expectedAmount: string;
+  readonly paidAmount: string | null;
+  readonly currency: string;
+  readonly dueDate: string | null;
+  readonly paidAt: string | null;
+  readonly voidedAt: Date | string | null;
+}): MonthPayrollCashSnapshot {
+  return {
+    id: row.id,
+    employeeId: row.employeeId,
+    payrollPeriod: row.yearMonth,
+    party: cashLineDisplayText(row.employeeName),
+    document: row.yearMonth,
+    expectedAmount: row.expectedAmount,
+    paidAmount: row.paidAmount,
+    currency: row.currency,
+    dueDate: asDate(row.dueDate),
+    paidAt: asDate(row.paidAt),
+    voided: row.voidedAt != null,
+  };
+}
+
+export async function loadAllPayrollCashSnapshots(
+  db: DbExecutor,
+  organizationId: string,
+  currency: string,
+): Promise<readonly MonthPayrollCashSnapshot[]> {
+  const rows = await db
+    .select({
+      id: employeePayrollPayments.id,
+      employeeId: employeePayrollPayments.employeeId,
+      employeeName: employees.name,
+      yearMonth: employeePayrollPayments.yearMonth,
+      expectedAmount: employeePayrollPayments.expectedAmount,
+      paidAmount: employeePayrollPayments.paidAmount,
+      currency: employeePayrollPayments.currency,
+      dueDate: employeePayrollPayments.dueDate,
+      paidAt: employeePayrollPayments.paidAt,
+      voidedAt: employeePayrollPayments.voidedAt,
+    })
+    .from(employeePayrollPayments)
+    .leftJoin(
+      employees,
+      and(
+        eq(employees.id, employeePayrollPayments.employeeId),
+        eq(employees.organizationId, employeePayrollPayments.organizationId),
+      ),
+    )
+    .where(
+      and(
+        eq(employeePayrollPayments.organizationId, organizationId),
+        eq(employeePayrollPayments.currency, currency),
+        isNull(employeePayrollPayments.voidedAt),
+      ),
+    );
+
+  return rows.map(mapPayrollCashSnapshotRow);
+}
+
 export async function loadMonthPayrollCashSnapshots(
   db: DbExecutor,
   organizationId: string,
@@ -374,33 +438,52 @@ export async function loadMonthPayrollCashSnapshots(
       ),
     );
 
-  return rows.map((row) => ({
-    id: row.id,
-    employeeId: row.employeeId,
-    payrollPeriod: row.yearMonth,
-    party: cashLineDisplayText(row.employeeName),
-    document: row.yearMonth,
-    expectedAmount: row.expectedAmount,
-    paidAmount: row.paidAmount,
-    currency: row.currency,
-    dueDate: asDate(row.dueDate),
-    paidAt: asDate(row.paidAt),
-    voided: row.voidedAt != null,
-  }));
+  return rows.map(mapPayrollCashSnapshotRow);
 }
 
-/** Owner-entered actual monthly amount from workforce month review (employee_month_costs). */
-export async function loadMonthOwnerActualEmployeePayrollCash(
+function mapOwnerActualPayrollSnapshots(
+  rows: readonly {
+    readonly id: string;
+    readonly employeeId: string;
+    readonly employeeName: string | null;
+    readonly yearMonth: string;
+    readonly actualAmount: string | null;
+    readonly currency: string;
+  }[],
+  salaryPaymentDay: number,
+  salaryDueDateForPeriod: (yearMonth: string, day: number) => string,
+  range?: { readonly from: BusinessDate; readonly to: BusinessDate },
+): MonthPayrollCashSnapshot[] {
+
+  const snapshots: MonthPayrollCashSnapshot[] = [];
+  for (const row of rows) {
+    const paidAt = businessDate(salaryDueDateForPeriod(row.yearMonth, salaryPaymentDay));
+    if (range && (paidAt < range.from || paidAt > range.to)) continue;
+    const amount = row.actualAmount;
+    if (!amount) continue;
+    snapshots.push({
+      id: `owner-actual:${row.id}`,
+      employeeId: row.employeeId,
+      payrollPeriod: row.yearMonth,
+      party: cashLineDisplayText(row.employeeName),
+      document: row.yearMonth,
+      expectedAmount: amount,
+      paidAmount: amount,
+      currency: row.currency,
+      dueDate: paidAt,
+      paidAt,
+      voided: false,
+    });
+  }
+  return snapshots;
+}
+
+async function loadOwnerActualEmployeePayrollCostRows(
   db: DbExecutor,
   organizationId: string,
   currency: string,
-  from: BusinessDate,
-  to: BusinessDate,
-  salaryPaymentDay: number,
-): Promise<readonly MonthPayrollCashSnapshot[]> {
-  const { salaryDueDateForPeriod } = await import('@/modules/tenancy/domain/org-financial-policies');
-
-  const rows = await db
+) {
+  return db
     .select({
       id: employeeMonthCosts.id,
       employeeId: employeeMonthCosts.employeeId,
@@ -427,28 +510,35 @@ export async function loadMonthOwnerActualEmployeePayrollCash(
         gt(employeeMonthCosts.actualAmount, '0'),
       ),
     );
+}
 
-  const snapshots: MonthPayrollCashSnapshot[] = [];
-  for (const row of rows) {
-    const paidAt = businessDate(salaryDueDateForPeriod(row.yearMonth, salaryPaymentDay));
-    if (paidAt < from || paidAt > to) continue;
-    const amount = row.actualAmount;
-    if (!amount) continue;
-    snapshots.push({
-      id: `owner-actual:${row.id}`,
-      employeeId: row.employeeId,
-      payrollPeriod: row.yearMonth,
-      party: cashLineDisplayText(row.employeeName),
-      document: row.yearMonth,
-      expectedAmount: amount,
-      paidAmount: amount,
-      currency: row.currency,
-      dueDate: paidAt,
-      paidAt,
-      voided: false,
-    });
-  }
-  return snapshots;
+/** Owner-entered actual monthly amount — all applied/closed months. */
+export async function loadAllOwnerActualEmployeePayrollCash(
+  db: DbExecutor,
+  organizationId: string,
+  currency: string,
+  salaryPaymentDay: number,
+): Promise<readonly MonthPayrollCashSnapshot[]> {
+  const { salaryDueDateForPeriod } = await import('@/modules/tenancy/domain/org-financial-policies');
+  const rows = await loadOwnerActualEmployeePayrollCostRows(db, organizationId, currency);
+  return mapOwnerActualPayrollSnapshots(rows, salaryPaymentDay, salaryDueDateForPeriod);
+}
+
+/** Owner-entered actual monthly amount from workforce month review (employee_month_costs). */
+export async function loadMonthOwnerActualEmployeePayrollCash(
+  db: DbExecutor,
+  organizationId: string,
+  currency: string,
+  from: BusinessDate,
+  to: BusinessDate,
+  salaryPaymentDay: number,
+): Promise<readonly MonthPayrollCashSnapshot[]> {
+  const { salaryDueDateForPeriod } = await import('@/modules/tenancy/domain/org-financial-policies');
+  const rows = await loadOwnerActualEmployeePayrollCostRows(db, organizationId, currency);
+  return mapOwnerActualPayrollSnapshots(rows, salaryPaymentDay, salaryDueDateForPeriod, {
+    from,
+    to,
+  });
 }
 
 export async function loadMonthAdvanceCashSnapshots(

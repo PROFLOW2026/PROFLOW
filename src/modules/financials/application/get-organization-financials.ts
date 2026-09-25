@@ -11,7 +11,7 @@ import {
   sumInvoicedInDateRange,
 } from '../data/billing.repository';
 import { sumUnbilledApprovedChanges } from '../data/commercial.repository';
-import { sumOrganizationCostsInDateRange } from '../data/expenses.repository';
+import { sumOrganizationRecognizedCostsInDateRange } from '../data/expenses.repository';
 import { hasAnyExpenseUsage } from '../data/expenses.repository';
 
 export async function getOrganizationFinancials(
@@ -43,7 +43,7 @@ export async function getOrganizationFinancials(
     );
   }
 
-  const costsThisMonth = await sumOrganizationCostsInDateRange(
+  const costsThisMonth = await sumOrganizationRecognizedCostsInDateRange(
     context.db,
     context.organizationId,
     currency,
