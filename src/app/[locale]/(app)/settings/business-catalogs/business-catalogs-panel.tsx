@@ -31,6 +31,7 @@ import {
   setDefaultPaymentTermKeyAction,
   updateCatalogEntryAction,
 } from './actions';
+import { CatalogEntryNameField } from './_lib/catalog-entry-name-field';
 import {
   BUSINESS_CATALOG_KINDS,
   DOC_REQ_CONTEXT_KINDS,
@@ -440,19 +441,7 @@ function CatalogEntryRow({
           <input type="hidden" name="id" value={entry.id} />
           <input type="hidden" name="kind" value={entry.kind} />
           <div className="flex flex-wrap items-center gap-2">
-            {entry.kind === 'payment_term' && entry.isSystem ? (
-              <>
-                <input type="hidden" name="name" value={entry.name} />
-                <span className="min-w-0 flex-1 text-sm font-medium">{displayName}</span>
-              </>
-            ) : (
-              <Input
-                name="name"
-                defaultValue={entry.name}
-                className="min-w-0 w-full max-w-xs flex-1"
-                aria-label={displayName}
-              />
-            )}
+            <CatalogEntryNameField entry={entry} locale={locale} />
             {!entry.isActive ? (
               <span className="text-xs text-[var(--pf-text-muted)]">{t('inactive')}</span>
             ) : null}
