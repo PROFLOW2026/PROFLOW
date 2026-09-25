@@ -90,7 +90,7 @@ import {
 import { getOrganizationProjectRollup } from './get-organization-project-rollup';
 import { sumOrganizationGeneralPoolTotals } from '../data/general-cost-months.repository';
 import {
-  composeCompanyActual,
+  composeCompanyActualFromOrgTotals,
   composeCompanyProfit,
   shouldSurfaceCompanyActual,
   shouldSurfaceCompanyProfit,
@@ -682,15 +682,21 @@ export async function getHomeDashboard(
       }
     }
 
+    const allocatedGeneralToProjects =
+      fromNumericString(generalPoolTotals?.allocated ?? '0', currency) ?? zeroMoney(currency);
+    const fullProjectActual =
+      cost.actual?.value != null
+        ? addMoney(cost.actual.value, allocatedGeneralToProjects)
+        : null;
     const companyComposition =
-      !slimOwnerDashboard && parsedWorkKindFilter === 'all' && generalPoolTotals
-        ? composeCompanyActual({
+      !slimOwnerDashboard && parsedWorkKindFilter === 'all' && generalPoolTotals && fullProjectActual
+        ? composeCompanyActualFromOrgTotals({
             currency,
-            directProjectActual: cost.actual?.value ?? zeroMoney(currency),
-            generalPool: fromNumericString(generalPoolTotals.pool, currency) ?? zeroMoney(currency),
-            allocatedGeneralToProjects:
-              fromNumericString(generalPoolTotals.allocated, currency) ?? zeroMoney(currency),
-            unallocatableGeneral:
+            fullProjectActual,
+            poolAmount:
+              fromNumericString(generalPoolTotals.pool, currency) ?? zeroMoney(currency),
+            allocatedAmount: allocatedGeneralToProjects,
+            unallocatableAmount:
               fromNumericString(generalPoolTotals.unallocatable, currency) ?? zeroMoney(currency),
           })
         : null;

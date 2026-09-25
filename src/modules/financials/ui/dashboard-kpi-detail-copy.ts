@@ -77,6 +77,8 @@ export function mapDashboardKpiDetailCopy(t: DashboardTranslator): DashboardKpiD
     labelLabor: t('kpiDetail.labelLabor'),
     labelVendors: t('kpiDetail.labelVendors'),
     labelOverhead: t('kpiDetail.labelOverhead'),
+    labelOtherProjectDirect: t('kpiDetail.labelOtherProjectDirect'),
+    labelUnallocatableGeneral: t('kpiDetail.labelUnallocatableGeneral'),
     labelDirectProject: t('kpiDetail.labelDirectProject'),
     labelGeneralPool: t('kpiDetail.labelGeneralPool'),
     labelCommitted: t('kpiDetail.labelCommitted'),

@@ -72,7 +72,9 @@ const detailCopy = {
   allocatedOverheadWhat: 'GCM allocated',
   allocatedOverheadFormula: 'GCM sum',
   companyActualWhat: 'Business recognized cost',
-  companyActualFormula: 'projects + general',
+  companyActualFormula: 'full projects + business remainder',
+  labelOtherProjectDirect: 'Other project',
+  labelUnallocatableGeneral: 'Business remainder',
   companyProfitWhat: 'Business profit',
   companyProfitFormula: 'revenue − cost',
   unallocatedBusinessCostsWhat: 'Unallocated',
@@ -249,21 +251,28 @@ describe('dashboard cleanup — detail modals', () => {
     ]);
   });
 
-  it('company actual detail separates direct projects and general pool', () => {
+  it('company actual detail breakdown sums to the displayed total', () => {
     const detail = buildCompanyActualDetail(
       money('900', ILS),
       {
         directProjectActual: money('700', ILS),
-        generalPool: money('200', ILS),
         laborActual: money('300', ILS),
         vendorActual: money('250', ILS),
-        overheadAllocated: money('150', ILS),
+        allocatedGeneralToProjects: money('150', ILS),
+        unallocatableGeneral: money('50', ILS),
       },
       'Company actual',
-      detailCopy,
+      {
+        ...detailCopy,
+        labelOtherProjectDirect: 'Other project',
+        labelUnallocatableGeneral: 'Business remainder',
+      },
     );
-    expect(detail.breakdown.some((line) => line.label === detailCopy.labelDirectProject)).toBe(true);
-    expect(detail.breakdown.some((line) => line.label === detailCopy.labelGeneralPool)).toBe(true);
+    const parts = detail.breakdown.filter((line) => line.label !== 'Company actual');
+    const sum = parts.reduce((acc, line) => acc + Number(line.money?.amount ?? 0), 0);
+    expect(sum).toBe(900);
+    expect(detail.breakdown.some((line) => line.label === detailCopy.labelLabor)).toBe(true);
+    expect(detail.breakdown.some((line) => line.label === 'Business remainder')).toBe(true);
   });
 
   it('unallocated business costs detail matches the waiting-for-project list', () => {

@@ -1,17 +1,14 @@
 /**
  * Canonical Company Actual / Company Profit identities (managerial true cost).
  *
- * COMPANY ACTUAL
- *   = Σ Direct Project Actual
- *   + General recognized profit-affecting cost (pool)
+ * COMPANY ACTUAL (business recognized cost)
+ *   = Σ Full Project Actual (direct + allocated general on projects)
+ *   + Unallocatable general (company_only + auto_pool remainder)
  *
- * Automatic project allocation does NOT change Company Actual — only attribution.
+ * Each economic amount is counted once. Never:
+ *   Σ Direct + full general pool (double-counts allocated general).
  *
- * When fully allocatable:
- *   Σ Full Project Actual = Company Actual
- *
- * When no eligible projects:
- *   Σ Full Project Actual + Unallocatable General = Company Actual
+ * Automatic project allocation changes Full Project Actual only — not pool totals.
  */
 
 import {
@@ -112,7 +109,7 @@ export function expenseUnallocatedSource(input: {
 }
 
 /**
- * Build Company Actual from Direct project sum + General pool.
+ * Build Company Actual from Full Project Actual + unallocatable general.
  * `sumFullProjectActual` = Direct + allocated-to-projects general.
  */
 export function composeCompanyActual(input: {
@@ -127,9 +124,9 @@ export function composeCompanyActual(input: {
   const general = roundMoney(input.generalPool);
   const allocated = roundMoney(input.allocatedGeneralToProjects);
   const unallocatable = roundMoney(input.unallocatableGeneral);
-  const companyActual = roundMoney(addMoney(direct, general));
   const sumFullProjectActual = roundMoney(addMoney(direct, allocated));
-  const expected = roundMoney(addMoney(sumFullProjectActual, unallocatable));
+  const companyActual = roundMoney(addMoney(sumFullProjectActual, unallocatable));
+  const expected = companyActual;
   const difference = roundMoney(subtractMoney(companyActual, expected));
   return {
     currency,

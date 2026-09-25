@@ -32,7 +32,7 @@ import {
 import { loadOperationsReportCounts } from '../data/operations-report.repository';
 import { sumOrganizationGeneralPoolTotals } from '../data/general-cost-months.repository';
 import {
-  composeCompanyActual,
+  composeCompanyActualFromOrgTotals,
   composeCompanyProfit,
   shouldSurfaceCompanyActual,
   shouldSurfaceCompanyProfit,
@@ -209,15 +209,18 @@ export async function getOrganizationReportsAnalytics(
         }
       : cost;
   const workKindFilter = parseWorkKindFilter(options.workKindFilter);
+  const directProjectActual = costWithAllocatedGeneral.actual?.value ?? zeroMoney(currency);
+  const unallocatableGeneral =
+    fromNumericString(generalPoolTotals.unallocatable, currency) ?? zeroMoney(currency);
+  const fullProjectActual = addMoney(directProjectActual, allocatedGeneralFromPool);
   const companyComposition =
-    workKindFilter === 'all'
-      ? composeCompanyActual({
+    workKindFilter === 'all' && costWithAllocatedGeneral.actual?.value != null
+      ? composeCompanyActualFromOrgTotals({
           currency,
-          directProjectActual: costWithAllocatedGeneral.actual?.value ?? zeroMoney(currency),
-          generalPool: fromNumericString(generalPoolTotals.pool, currency) ?? zeroMoney(currency),
-          allocatedGeneralToProjects: allocatedGeneralFromPool,
-          unallocatableGeneral:
-            fromNumericString(generalPoolTotals.unallocatable, currency) ?? zeroMoney(currency),
+          fullProjectActual,
+          poolAmount: fromNumericString(generalPoolTotals.pool, currency) ?? zeroMoney(currency),
+          allocatedAmount: allocatedGeneralFromPool,
+          unallocatableAmount: unallocatableGeneral,
         })
       : null;
   const companyActual =

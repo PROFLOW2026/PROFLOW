@@ -3,7 +3,7 @@ import type { DashboardKpiDetailContent, DashboardKpiDetailLine } from './dashbo
 import type { BusinessCashPosition, BusinessCashSourceKey } from './business-cash-position';
 import type { HomeDashboardKpiBreakdown } from './home-dashboard-kpi-breakdown';
 import { endOfMonth, type BusinessDate } from '@/shared/dates';
-import { subtractMoney, type MoneyValue } from '@/shared/money';
+import { subtractMoney, zeroMoney, type MoneyValue } from '@/shared/money';
 
 /** First and last calendar day of `YYYY-MM`, matching dashboard month KPIs. */
 export function dashboardMonthBounds(
@@ -98,6 +98,8 @@ export interface DashboardKpiDetailCopy {
   readonly labelLabor: string;
   readonly labelVendors: string;
   readonly labelOverhead: string;
+  readonly labelOtherProjectDirect: string;
+  readonly labelUnallocatableGeneral: string;
   readonly labelDirectProject: string;
   readonly labelGeneralPool: string;
   readonly labelCommitted: string;
@@ -560,30 +562,39 @@ export function buildCompanyActualDetail(
   companyActual: MoneyValue,
   operands: Pick<
     HomeDashboardKpiBreakdown,
-    'directProjectActual' | 'generalPool' | 'laborActual' | 'vendorActual' | 'overheadAllocated'
+    | 'directProjectActual'
+    | 'laborActual'
+    | 'vendorActual'
+    | 'allocatedGeneralToProjects'
+    | 'unallocatableGeneral'
   >,
   title: string,
   copy: DashboardKpiDetailCopy,
 ): DashboardKpiDetailContent {
-  const componentLines = moneyLines([
+  const currency = companyActual.currency;
+  let otherProjectDirect: MoneyValue | null = null;
+  if (operands.directProjectActual && operands.laborActual && operands.vendorActual) {
+    const remainder = subtractMoney(
+      subtractMoney(operands.directProjectActual, operands.laborActual),
+      operands.vendorActual,
+    );
+    otherProjectDirect = Number(remainder.amount) > 0 ? remainder : zeroMoney(currency);
+  }
+
+  const breakdown = moneyLines([
     moneyLine(copy.labelLabor, operands.laborActual),
     moneyLine(copy.labelVendors, operands.vendorActual),
-    moneyLine(copy.labelOverhead, operands.overheadAllocated),
+    moneyLine(copy.labelOtherProjectDirect, otherProjectDirect),
+    moneyLine(copy.labelOverhead, operands.allocatedGeneralToProjects),
+    moneyLine(copy.labelUnallocatableGeneral, operands.unallocatableGeneral),
   ]);
-  const structuralLines = lines(
-    { label: copy.labelDirectProject, money: operands.directProjectActual },
-    { label: copy.labelGeneralPool, money: operands.generalPool },
-  ).filter((line) => line.money != null && Number(line.money.amount) > 0);
+
   return {
     title,
     value: companyActual,
     whatIs: copy.companyActualWhat,
     formula: copy.companyActualFormula,
-    breakdown: [
-      ...structuralLines,
-      ...componentLines,
-      { label: title, money: companyActual },
-    ],
+    breakdown: [...breakdown, { label: title, money: companyActual }],
     fullScreenHref: '/reports?section=cost',
     fullScreenLabel: copy.reportsLink,
   };
