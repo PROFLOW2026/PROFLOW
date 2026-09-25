@@ -232,6 +232,10 @@ export const listExpensesSchema = z.object({
     .string()
     .optional()
     .transform((value) => value === 'true' || value === '1'),
+  /** Cash position slice: open remainder, or amount already paid. */
+  cash: z.enum(['open', 'paid']).optional(),
+  /** Supplier expenses vs subcontractor expenses. Structured category key, not free text. */
+  cashSource: z.enum(['suppliers', 'subcontractors']).optional(),
   limit: z.coerce.number().int().min(1).max(200).optional(),
   offset: z.coerce.number().int().min(0).optional(),
   page: z.coerce.number().int().min(1).optional(),

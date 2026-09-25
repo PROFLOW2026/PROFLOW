@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, notExists, or, sql } from 'drizzle-orm';
+import { and, desc, eq, gte, inArray, lte, notExists, or, sql } from 'drizzle-orm';
 import {
   billingRecords,
   clients,
@@ -605,6 +605,8 @@ export async function listPaymentApplications(
             )
           : undefined,
         includeVoided ? undefined : eq(payments.status, 'recorded'),
+        filters.paymentFrom ? gte(payments.paymentDate, filters.paymentFrom) : undefined,
+        filters.paymentTo ? lte(payments.paymentDate, filters.paymentTo) : undefined,
       ),
     )
     .orderBy(desc(payments.paymentDate), desc(payments.createdAt));
@@ -649,6 +651,8 @@ export async function listPaymentApplications(
             )
           : undefined,
         includeVoided ? undefined : eq(payments.status, 'recorded'),
+        filters.paymentFrom ? gte(payments.paymentDate, filters.paymentFrom) : undefined,
+        filters.paymentTo ? lte(payments.paymentDate, filters.paymentTo) : undefined,
       ),
     )
     .orderBy(desc(payments.paymentDate), desc(payments.createdAt));

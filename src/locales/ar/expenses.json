@@ -354,7 +354,15 @@
     "allProjects": "جميع المشاريع",
     "allFamilies": "جميع الأقسام",
     "allCategories": "جميع الفئات",
-    "allStatuses": "جميع الحالات"
+    "allStatuses": "جميع الحالات",
+    "cash": "الدفع",
+    "cashAll": "الكل",
+    "cashOpen": "رصيد للدفع",
+    "cashPaid": "مدفوع",
+    "cashSource": "النوع",
+    "cashSourceAll": "الكل",
+    "cashSourceSuppliers": "موردون ومصروفات",
+    "cashSourceSubcontractors": "مقاولو الباطن"
   },
   "attention": {
     "options": {

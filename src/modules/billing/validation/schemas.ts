@@ -143,7 +143,15 @@ export const listBillingRecordsSchema = z.object({
 export const listPaymentApplicationsSchema = z.object({
   projectId: z.string().uuid().optional(),
   clientId: z.string().uuid().optional(),
-  limit: z.coerce.number().int().min(1).max(200).optional(),
+  paymentFrom: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
+  paymentTo: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
+  limit: z.coerce.number().int().min(1).max(500).optional(),
   offset: z.coerce.number().int().min(0).optional(),
   includeVoided: z.boolean().optional(),
 });

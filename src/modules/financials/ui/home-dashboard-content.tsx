@@ -31,8 +31,10 @@ import {
 } from '../domain/month-cash-flow';
 import { MonthCashMonthPicker } from './month-cash-month-picker';
 import type { RevenueTriplet } from '@/modules/billing/domain/revenue-position';
-import { subtractMoney } from '@/shared/money';
+import { isZeroMoney, subtractMoney } from '@/shared/money';
 import {
+  billingCollectedMonthHref,
+  billingIssuedMonthHref,
   buildAllocatedOverheadDetail,
   buildApOutstandingDetail,
   buildBillingInvoicedDetail,
@@ -498,27 +500,22 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                   detailCopy={triggerCopy}
                 />
               ) : null}
-              {data.forecast.unallocatedBusinessCosts != null ? (
+              {kpiBreakdown?.actionableUnallocatedCosts &&
+              !isZeroMoney(kpiBreakdown.actionableUnallocatedCosts) ? (
                 <DashboardKpiCard
                   title={tFinancial('unallocatedBusinessCosts')}
-                  money={data.forecast.unallocatedBusinessCosts}
-                  detail={
-                    kpiBreakdown
-                      ? buildUnallocatedBusinessCostsDetail(
-                          data.forecast.unallocatedBusinessCosts,
-                          kpiBreakdown,
-                          tFinancial('unallocatedBusinessCosts'),
-                          detailCopy,
-                        )
-                      : undefined
-                  }
+                  money={kpiBreakdown.actionableUnallocatedCosts}
+                  hint={tFinancial('unallocatedBusinessCostsHint')}
+                  detail={buildUnallocatedBusinessCostsDetail(
+                    kpiBreakdown.actionableUnallocatedCosts,
+                    tFinancial('unallocatedBusinessCosts'),
+                    detailCopy,
+                  )}
                   detailCopy={triggerCopy}
                   footer={
-                    <p className="break-words text-xs text-[var(--pf-text-secondary)]">
-                      {tFinancial('unallocatedBusinessCostsHint')}
-                      {' '}
+                    <p className="break-words text-xs">
                       <Link
-                        href="/expenses?projectId=unallocated"
+                        href="/expenses?unallocated=true"
                         className={textNavLinkClassName}
                         prefetch={false}
                       >
@@ -662,7 +659,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                   footer={
                     <p className="break-words text-xs">
                       <Link
-                        href="/procurement/ap?status=open"
+                        href="/procurement/ap?outstanding=1"
                         className={textNavLinkClassName}
                         prefetch={false}
                       >
@@ -851,8 +848,21 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                     t('businessSummary.collectionsActualWhat'),
                     t('businessSummary.collectionsActualFormula'),
                     vatLabels,
+                    billingCollectedMonthHref(data.selectedMonth),
+                    t('businessSummary.viewMonthCollections'),
                   )}
                   detailCopy={triggerCopy}
+                  footer={
+                    <p className="break-words text-xs">
+                      <Link
+                        href={billingCollectedMonthHref(data.selectedMonth)}
+                        className={textNavLinkClassName}
+                        prefetch={false}
+                      >
+                        {t('businessSummary.viewMonthCollections')}
+                      </Link>
+                    </p>
+                  }
                 />
               ) : null}
               <DashboardKpiCard
@@ -942,6 +952,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                   money={data.organizationSummary.invoicedThisMonth}
                   grossMoney={data.organizationSummary.grossInvoicedThisMonth}
                   grossLabel={vatLabels.incVat}
+                  hint={t('businessSummary.invoicedThisMonthWhat')}
                   detail={buildInvoicedThisMonthDetail(
                     data.organizationSummary.invoicedThisMonth,
                     data.organizationSummary.grossInvoicedThisMonth,
@@ -951,6 +962,17 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                     vatLabels,
                   )}
                   detailCopy={triggerCopy}
+                  footer={
+                    <p className="break-words text-xs">
+                      <Link
+                        href={billingIssuedMonthHref(data.selectedMonth)}
+                        className={textNavLinkClassName}
+                        prefetch={false}
+                      >
+                        {t('businessSummary.viewMonthBillings')}
+                      </Link>
+                    </p>
+                  }
                 />
               ) : null}
               <DashboardKpiCard
@@ -958,6 +980,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                 money={data.organizationSummary.costsThisMonth}
                 grossMoney={data.organizationSummary.grossCostsThisMonth}
                 grossLabel={vatLabels.incVat}
+                hint={t('businessSummary.costsThisMonthWhat')}
                 detail={buildCostsThisMonthDetail(
                   data.organizationSummary.costsThisMonth,
                   data.selectedMonth,
@@ -991,6 +1014,8 @@ function monthCashTripletDetail(
   whatIs: string,
   formula: string,
   labels: { exVat: string; vat: string; incVat: string; noVat: string },
+  fullScreenHref?: string,
+  fullScreenLabel?: string,
 ): DashboardKpiDetailContent {
   return {
     title,
@@ -999,6 +1024,8 @@ function monthCashTripletDetail(
     grossLabel: labels.incVat,
     whatIs,
     formula,
+    fullScreenHref,
+    fullScreenLabel,
     breakdown: [
       {
         label: labels.exVat,

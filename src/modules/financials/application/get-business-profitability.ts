@@ -108,7 +108,7 @@ export async function getBusinessProfitability(context: OrgContext): Promise<Bus
     contractualCurrentProfit: kpi(dashboard.actualProfitTotal, '/reports?section=profitability'),
     forecastProfit: kpi(forecast?.totalForecastMargin ?? null, '/reports?section=profitability'),
     companyProfit: kpi(forecast?.companyProfit ?? null, '/reports?section=profitability'),
-    apOutstanding: kpi(dashboard.apOutstanding, '/procurement/ap?status=open'),
+    apOutstanding: kpi(dashboard.apOutstanding, '/procurement/ap?outstanding=1'),
     reconcilesCompanyActual: companyComposition?.reconciles ?? null,
   };
 }

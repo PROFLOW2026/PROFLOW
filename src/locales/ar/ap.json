@@ -36,7 +36,8 @@
     "paidInPeriodHint": "(حسب تاريخ الدفع — وليس تاريخ الحساب)",
     "billDateHint": "القائمة مُصفّاة بتاريخ الحساب — وليس تاريخ الدفع.",
     "paymentDateFrom": "تاريخ الدفع من",
-    "paymentDateTo": "تاريخ الدفع إلى"
+    "paymentDateTo": "تاريخ الدفع إلى",
+    "outstandingOnly": "تُعرض فقط فواتير الموردين التي عليها رصيد للدفع."
   },
   "statuses": {
     "draft": "مسودة",

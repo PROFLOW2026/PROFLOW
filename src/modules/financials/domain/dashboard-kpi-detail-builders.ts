@@ -2,7 +2,29 @@ import type { OrgContractSummary } from './dashboard-contract-summary';
 import type { DashboardKpiDetailContent, DashboardKpiDetailLine } from './dashboard-kpi-detail';
 import type { BusinessCashPosition, BusinessCashSourceKey } from './business-cash-position';
 import type { HomeDashboardKpiBreakdown } from './home-dashboard-kpi-breakdown';
+import { endOfMonth, type BusinessDate } from '@/shared/dates';
 import { subtractMoney, type MoneyValue } from '@/shared/money';
+
+/** First and last calendar day of `YYYY-MM`, matching dashboard month KPIs. */
+export function dashboardMonthBounds(
+  yearMonth: string,
+): { readonly fromDate: string; readonly toDate: string } | null {
+  if (!/^\d{4}-\d{2}$/.test(yearMonth)) return null;
+  const fromDate = `${yearMonth}-01`;
+  return { fromDate, toDate: endOfMonth(fromDate as BusinessDate) };
+}
+
+export function billingIssuedMonthHref(yearMonth: string): string {
+  const bounds = dashboardMonthBounds(yearMonth);
+  return bounds ? `/billing?fromDate=${bounds.fromDate}&toDate=${bounds.toDate}` : '/billing';
+}
+
+export function billingCollectedMonthHref(yearMonth: string): string {
+  const bounds = dashboardMonthBounds(yearMonth);
+  return bounds
+    ? `/billing?paymentFrom=${bounds.fromDate}&paymentTo=${bounds.toDate}&view=payments`
+    : '/billing';
+}
 
 export interface DashboardKpiDetailCopy {
   readonly contractOriginalWhat: string;
@@ -276,8 +298,8 @@ export function buildApOutstandingDetail(
     value: apOutstanding,
     whatIs: copy.apWhat,
     formula: copy.apFormula,
-    breakdown: lines({ label: title, money: apOutstanding }),
-    fullScreenHref: '/procurement/ap?status=open',
+    breakdown: lines({ label: title, money: apOutstanding, href: '/procurement/ap?outstanding=1' }),
+    fullScreenHref: '/procurement/ap?outstanding=1',
     fullScreenLabel: copy.apLink,
   };
 }
@@ -394,6 +416,24 @@ const BUSINESS_CASH_SOURCE_LABEL: Record<
   subcontract_advances: 'labelSubcontractAdvances',
 };
 
+function cashSourceListHref(
+  key: BusinessCashSourceKey,
+  field: 'paid' | 'outstanding',
+): string | undefined {
+  if (key === 'ap' && field === 'outstanding') return '/procurement/ap?outstanding=1';
+  if (key === 'expense_suppliers') {
+    return field === 'outstanding'
+      ? '/expenses?cash=open&cashSource=suppliers'
+      : '/expenses?cash=paid&cashSource=suppliers';
+  }
+  if (key === 'expense_subcontractors') {
+    return field === 'outstanding'
+      ? '/expenses?cash=open&cashSource=subcontractors'
+      : '/expenses?cash=paid&cashSource=subcontractors';
+  }
+  return undefined;
+}
+
 function businessCashBreakdownLines(
   position: BusinessCashPosition,
   copy: DashboardKpiDetailCopy,
@@ -407,7 +447,7 @@ function businessCashBreakdownLines(
     const money = totals[field];
     if (!money || Number(money.amount) <= 0) continue;
     const labelKey = BUSINESS_CASH_SOURCE_LABEL[key];
-    items.push({ label: copy[labelKey], money });
+    items.push({ label: copy[labelKey], money, href: cashSourceListHref(key, field) });
   }
   return items;
 }
@@ -433,8 +473,6 @@ export function buildBusinessCashPaidDetail(
     whatIs: copy.businessCashPaidWhat,
     formula: copy.businessCashPaidFormula,
     breakdown: businessCashBreakdownLines(position, copy, 'paid'),
-    fullScreenHref: '/expenses',
-    fullScreenLabel: copy.expensesLink,
   };
 }
 
@@ -459,8 +497,6 @@ export function buildBusinessCashOutstandingDetail(
     whatIs: copy.businessCashOutstandingWhat,
     formula: copy.businessCashOutstandingFormula,
     breakdown: businessCashBreakdownLines(position, copy, 'outstanding'),
-    fullScreenHref: '/procurement/ap?status=open',
-    fullScreenLabel: copy.apLink,
   };
 }
 
@@ -577,10 +613,6 @@ export function buildCompanyProfitDetail(
 
 export function buildUnallocatedBusinessCostsDetail(
   total: MoneyValue,
-  operands: Pick<
-    HomeDashboardKpiBreakdown,
-    'companyOnlyExpenses' | 'actionableUnallocatedCosts' | 'unallocatableGeneral'
-  >,
   title: string,
   copy: DashboardKpiDetailCopy,
 ): DashboardKpiDetailContent {
@@ -589,15 +621,8 @@ export function buildUnallocatedBusinessCostsDetail(
     value: total,
     whatIs: copy.unallocatedBusinessCostsWhat,
     formula: copy.unallocatedBusinessCostsFormula,
-    breakdown: [
-      ...moneyLines([
-        moneyLine(copy.labelActionableUnallocated, operands.actionableUnallocatedCosts),
-        moneyLine(copy.labelCompanyOnlyByDesign, operands.companyOnlyExpenses),
-        moneyLine(copy.labelGcmAutoPool, operands.unallocatableGeneral),
-      ]),
-      { label: title, money: total },
-    ],
-    fullScreenHref: '/expenses?projectId=unallocated',
+    breakdown: [{ label: title, money: total, href: '/expenses?unallocated=true' }],
+    fullScreenHref: '/expenses?unallocated=true',
     fullScreenLabel: copy.expensesLink,
   };
 }
@@ -667,7 +692,7 @@ export function buildInvoicedThisMonthDetail(
           { label: copy.labelBilled, money: netInvoiced },
           { label: `${copy.labelBilled} (${copy.labelOutstanding})`, money: grossInvoiced },
         ),
-    fullScreenHref: `/billing?month=${selectedMonth}`,
+    fullScreenHref: billingIssuedMonthHref(selectedMonth),
     fullScreenLabel: copy.billingLink,
   };
 }
@@ -688,14 +713,14 @@ export function buildCollectionsThisMonthDetail(
       { label: copy.labelPaid, money: netCollections },
       { label: `${copy.labelPaid} (${copy.labelOutstanding})`, money: grossCollections },
     ),
-    fullScreenHref: `/billing?month=${selectedMonth}`,
+    fullScreenHref: billingCollectedMonthHref(selectedMonth),
     fullScreenLabel: copy.billingLink,
   };
 }
 
 export function buildCostsThisMonthDetail(
   costsThisMonth: MoneyValue,
-  selectedMonth: string,
+  _selectedMonth: string,
   title: string,
   copy: DashboardKpiDetailCopy,
   grossCosts?: MoneyValue,
@@ -712,7 +737,5 @@ export function buildCostsThisMonthDetail(
     breakdown: vatLabels
       ? monthlyVatLines(costsThisMonth, gross, vatLabels)
       : lines({ label: title, money: costsThisMonth }),
-    fullScreenHref: `/reports?section=cost&month=${selectedMonth}`,
-    fullScreenLabel: copy.monthReportsLink,
   };
 }

@@ -354,7 +354,15 @@
     "allProjects": "Все проекты",
     "allFamilies": "Все разделы",
     "allCategories": "Все категории",
-    "allStatuses": "Все статусы"
+    "allStatuses": "Все статусы",
+    "cash": "Оплата",
+    "cashAll": "Все",
+    "cashOpen": "Остаток к оплате",
+    "cashPaid": "Оплачено",
+    "cashSource": "Тип",
+    "cashSourceAll": "Все",
+    "cashSourceSuppliers": "Поставщики и расходы",
+    "cashSourceSubcontractors": "Субподряд"
   },
   "attention": {
     "options": {

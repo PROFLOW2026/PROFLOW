@@ -24,6 +24,7 @@ export default async function BillingListPage({
     toDate?: string;
     paymentFrom?: string;
     paymentTo?: string;
+    view?: string;
     page?: string;
   }>;
 }) {

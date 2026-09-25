@@ -354,7 +354,15 @@
     "allProjects": "כל הפרויקטים",
     "allFamilies": "כל הסעיפים",
     "allCategories": "כל הקטגוריות",
-    "allStatuses": "כל הסטטוסים"
+    "allStatuses": "כל הסטטוסים",
+    "cash": "תשלום",
+    "cashAll": "הכל",
+    "cashOpen": "יתרה לתשלום",
+    "cashPaid": "שולם",
+    "cashSource": "סוג",
+    "cashSourceAll": "הכל",
+    "cashSourceSuppliers": "ספקים והוצאות",
+    "cashSourceSubcontractors": "קבלני משנה"
   },
   "attention": {
     "options": {

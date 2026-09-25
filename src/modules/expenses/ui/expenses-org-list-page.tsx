@@ -67,15 +67,19 @@ export async function ExpensesOrgListPage({
     }
   }
 
+  const projectParam = typeof rawParams.projectId === 'string' ? rawParams.projectId : undefined;
+  const legacyUnallocated = projectParam === 'unallocated';
   const parsedFilters = listExpensesSchema.safeParse({
     dateFrom: rawParams.dateFrom,
     dateTo: rawParams.dateTo,
-    projectId: rawParams.projectId,
+    projectId: legacyUnallocated ? undefined : rawParams.projectId,
     costFamily: rawParams.costFamily,
     costCategoryId: rawParams.costCategoryId,
     status: rawParams.status,
     attention: rawParams.attention,
-    unallocated: rawParams.unallocated,
+    unallocated: legacyUnallocated ? 'true' : rawParams.unallocated,
+    cash: rawParams.cash,
+    cashSource: rawParams.cashSource,
     page: rawParams.page,
   });
 
@@ -218,6 +222,8 @@ export async function ExpensesOrgListPage({
             'status',
             'attention',
             'unallocated',
+            'cash',
+            'cashSource',
             'page',
           ]}
         />

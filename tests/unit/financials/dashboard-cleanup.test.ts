@@ -4,10 +4,12 @@ import { describe, expect, it } from 'vitest';
 import { filterRowsByWorkKind } from '@/modules/financials/domain/work-kind-filter';
 import { matchesWorkKindFilter } from '@/modules/financials/domain/work-pricing';
 import {
+  billingCollectedMonthHref,
   buildBillingOutstandingDetail,
   buildCompanyActualDetail,
   buildContractRemainingDetail,
   buildForecastCostDetail,
+  buildInvoicedThisMonthDetail,
   buildUnallocatedBusinessCostsDetail,
 } from '@/modules/financials/domain/dashboard-kpi-detail-builders';
 import { buildOrgContractSummary } from '@/modules/financials/domain/dashboard-contract-summary';
@@ -264,21 +266,30 @@ describe('dashboard cleanup — detail modals', () => {
     expect(detail.breakdown.some((line) => line.label === detailCopy.labelGeneralPool)).toBe(true);
   });
 
-  it('unallocated business costs detail exposes actionable and company_only lines', () => {
-    const detail = buildUnallocatedBusinessCostsDetail(
-      money('500', ILS),
-      {
-        actionableUnallocatedCosts: money('200', ILS),
-        companyOnlyExpenses: money('100', ILS),
-        unallocatableGeneral: money('200', ILS),
-      },
-      'Unallocated',
+  it('unallocated business costs detail matches the waiting-for-project list', () => {
+    const detail = buildUnallocatedBusinessCostsDetail(money('200', ILS), 'Unallocated', detailCopy);
+    expect(detail.value).toEqual(money('200', ILS));
+    expect(detail.breakdown).toEqual([
+      expect.objectContaining({
+        money: money('200', ILS),
+        href: '/expenses?unallocated=true',
+      }),
+    ]);
+    expect(detail.fullScreenHref).toBe('/expenses?unallocated=true');
+  });
+
+  it('monthly billing detail keeps the selected month on the billing list', () => {
+    const invoiced = buildInvoicedThisMonthDetail(
+      money('100', ILS),
+      money('118', ILS),
+      '2026-08',
+      'Invoiced',
       detailCopy,
     );
-    expect(detail.breakdown.some((line) => line.label === detailCopy.labelActionableUnallocated)).toBe(
-      true,
+    expect(invoiced.fullScreenHref).toBe('/billing?fromDate=2026-08-01&toDate=2026-08-31');
+    expect(billingCollectedMonthHref('2026-08')).toBe(
+      '/billing?paymentFrom=2026-08-01&paymentTo=2026-08-31&view=payments',
     );
-    expect(detail.fullScreenHref).toBe('/expenses?projectId=unallocated');
   });
 
   it('persona dashboard forecast cards wire detail triggers', () => {

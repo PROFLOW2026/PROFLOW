@@ -1,3 +1,4 @@
+import { businessDate } from '@/shared/dates';
 import { ValidationError } from '@/shared/errors';
 import type { OrgContext } from '@/shared/auth/context';
 import { assertPermission } from '@/shared/permissions/assert';
@@ -19,5 +20,9 @@ export async function listPaymentApplications(
     );
   }
 
-  return listPaymentApplicationsRepo(context.db, context.organizationId, parsed.data);
+  return listPaymentApplicationsRepo(context.db, context.organizationId, {
+    ...parsed.data,
+    paymentFrom: parsed.data.paymentFrom ? businessDate(parsed.data.paymentFrom) : undefined,
+    paymentTo: parsed.data.paymentTo ? businessDate(parsed.data.paymentTo) : undefined,
+  });
 }

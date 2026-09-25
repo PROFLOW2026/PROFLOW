@@ -354,7 +354,15 @@
     "allProjects": "All projects",
     "allFamilies": "All sections",
     "allCategories": "All categories",
-    "allStatuses": "All statuses"
+    "allStatuses": "All statuses",
+    "cash": "Payment",
+    "cashAll": "All",
+    "cashOpen": "Balance to pay",
+    "cashPaid": "Paid",
+    "cashSource": "Type",
+    "cashSourceAll": "All",
+    "cashSourceSuppliers": "Suppliers and expenses",
+    "cashSourceSubcontractors": "Subcontractors"
   },
   "attention": {
     "options": {

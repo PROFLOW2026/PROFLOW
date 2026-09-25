@@ -39,18 +39,31 @@ export interface ApBillListItem extends ApBillRow {
 
 function buildApBillListConditions(
   organizationId: string,
-  options: { readonly fromDate?: string; readonly toDate?: string },
+  options: {
+    readonly fromDate?: string;
+    readonly toDate?: string;
+    readonly billIds?: readonly string[];
+  },
 ) {
   const conditions = [eq(apBills.organizationId, organizationId), isNull(apBills.archivedAt)];
   if (options.fromDate) conditions.push(gte(apBills.billDate, options.fromDate));
   if (options.toDate) conditions.push(lte(apBills.billDate, options.toDate));
+  if (options.billIds) {
+    conditions.push(
+      options.billIds.length === 0 ? sql`false` : inArray(apBills.id, [...options.billIds]),
+    );
+  }
   return conditions;
 }
 
 export async function countApBills(
   db: DbExecutor,
   organizationId: string,
-  options: { readonly fromDate?: string; readonly toDate?: string } = {},
+  options: {
+    readonly fromDate?: string;
+    readonly toDate?: string;
+    readonly billIds?: readonly string[];
+  } = {},
 ): Promise<number> {
   const conditions = buildApBillListConditions(organizationId, options);
   const [row] = await db
@@ -69,6 +82,7 @@ export async function listApBills(
     readonly offset?: number;
     readonly fromDate?: string;
     readonly toDate?: string;
+    readonly billIds?: readonly string[];
   } = {},
 ): Promise<ApBillListItem[]> {
   const hardCap =

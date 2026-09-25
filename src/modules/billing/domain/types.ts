@@ -83,6 +83,8 @@ export interface UnallocatedPaymentRow {
 export interface PaymentApplicationFilters {
   readonly projectId?: string;
   readonly clientId?: string;
+  readonly paymentFrom?: BusinessDate;
+  readonly paymentTo?: BusinessDate;
   readonly limit?: number;
   readonly offset?: number;
   readonly includeVoided?: boolean;

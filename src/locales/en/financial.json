@@ -105,8 +105,8 @@
   "overheadActual": "General business costs (Actual)",
   "committedOpen": "Committed cost (PO open)",
   "committedVsActual": "Committed stays separate from Actual - not an expense",
-  "unallocatedBusinessCosts": "Unallocated general business costs",
-  "unallocatedBusinessCostsHint": "General business costs still awaiting allocation - counted in organization expense totals, not in Direct project actual. Allocated general costs are shown separately on project pages.",
+  "unallocatedBusinessCosts": "Expenses waiting for a project",
+  "unallocatedBusinessCostsHint": "Expenses marked for a project that are not allocated yet.",
   "allocatedGeneralInProjectActualHint": "General business costs allocated to this project are shown separately from Direct actual cost unless your profitability setting includes them.",
   "ofWhich": "Of which",
   "generalBusinessCosts": "General business costs",
@@ -180,8 +180,8 @@
     "recognizedCost": "Recognized cost (expenses + vendor bills + labor) — net, ex-VAT. Includes vendor bills not yet paid in cash.",
     "actualNotCash": "Recognized cost — includes vendor bills not yet paid in cash"
   },
-  "apOutstanding": "AP outstanding to vendors",
-  "apOutstandingHint": "Open vendor bills not yet paid — cash liability only, not Actual Cost.",
+  "apOutstanding": "Vendor bills still to pay",
+  "apOutstandingHint": "Vendor bills that still have a balance to pay.",
   "explain": {
     "whyThisNumber": "Why this number?",
     "infoLineHint": "Shown for context - not added again into the total.",

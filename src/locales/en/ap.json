@@ -36,7 +36,8 @@
     "paidInPeriodHint": "(by payment date — not bill date)",
     "billDateHint": "The list is filtered by bill date — not payment date.",
     "paymentDateFrom": "Payment date from",
-    "paymentDateTo": "Payment date to"
+    "paymentDateTo": "Payment date to",
+    "outstandingOnly": "Only vendor bills with a balance to pay are shown."
   },
   "statuses": {
     "draft": "Draft",

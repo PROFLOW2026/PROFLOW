@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { QueryPagination } from '@/components/ui/query-pagination';
 import {
   countApBillsForOrg,
+  getOrganizationApPayables,
   listApBillsForOrg,
   sumApPaymentsMadeInDateRange,
   type ApBillStatus,
@@ -22,7 +23,7 @@ import {
   parseOrgListPage,
   resolveOrgListPage,
 } from '@/shared/db/org-list-pagination';
-import { money } from '@/shared/money/money';
+import { isPositiveMoney, money } from '@/shared/money';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
 import { todayInTimeZone, type BusinessDate } from '@/shared/dates';
@@ -89,12 +90,25 @@ export async function ApBillsOrgListView({
   const requestedPage = parseOrgListPage(
     typeof params.page === 'string' ? params.page : undefined,
   );
-  const billListFilters = { fromDate, toDate };
+  const outstandingOnly =
+    params.outstanding === '1' ||
+    params.outstanding === 'true' ||
+    params.status === 'open';
 
   const { bills, canManage, canRead, canReadReports, today, paidInPeriod, currency, totalCount, currentPage, totalPages } =
     await withOrgContext(async (context) => {
       const orgCurrency = context.organization.baseCurrency ?? 'ILS';
       const canReadAp = orgListHasPermission(context, PERMISSIONS.AP_READ, surface);
+      const outstandingBillIds = canReadAp && outstandingOnly
+        ? (await getOrganizationApPayables(context, { currency: orgCurrency })).bills
+            .filter((bill) => isPositiveMoney(money(bill.outstanding, bill.currency)))
+            .map((bill) => bill.billId)
+        : undefined;
+      const billListFilters = {
+        fromDate,
+        toDate,
+        billIds: outstandingBillIds,
+      };
       const paidAmount =
         canReadAp && paymentFrom && paymentTo
           ? await sumApPaymentsMadeInDateRange(
@@ -180,11 +194,16 @@ export async function ApBillsOrgListView({
         <SavedListViewsBar
           listKey="ap_bills"
           searchParams={params}
-          keys={['fromDate', 'toDate', 'paymentFrom', 'paymentTo', 'page']}
+          keys={['fromDate', 'toDate', 'paymentFrom', 'paymentTo', 'outstanding', 'page']}
         />
       ) : null}
 
+      {outstandingOnly ? (
+        <p className="text-sm text-[var(--pf-text-secondary)]">{t('list.outstandingOnly')}</p>
+      ) : null}
+
       <form method="get" className="flex flex-col gap-3">
+        {outstandingOnly ? <input type="hidden" name="outstanding" value="1" /> : null}
         <div>
           <p className="mb-1 text-xs text-[var(--pf-text-muted)]">{t('list.billDateHint')}</p>
           <DateRangeSelector
@@ -216,7 +235,7 @@ export async function ApBillsOrgListView({
           >
             {t('aging.apply')}
           </button>
-          {(fromDate ?? toDate ?? paymentFrom ?? paymentTo) ? (
+          {(fromDate ?? toDate ?? paymentFrom ?? paymentTo ?? outstandingOnly) ? (
             <Link
               href={routeBase}
               className="inline-flex h-9 items-center rounded-md px-3 text-sm text-[var(--pf-text-secondary)] hover:underline"

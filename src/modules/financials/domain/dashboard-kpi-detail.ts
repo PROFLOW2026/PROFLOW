@@ -2,6 +2,8 @@ import type { MoneyValue } from '@/shared/money';
 
 export interface DashboardKpiDetailLine {
   readonly label: string;
+  /** Filtered list of the records in this line. */
+  readonly href?: string;
   readonly money?: MoneyValue | null;
   readonly vat?: MoneyValue | null;
   readonly gross?: MoneyValue | null;

@@ -50,6 +50,7 @@ export interface BillingOrgHubSearchParams {
   toDate?: string;
   paymentFrom?: string;
   paymentTo?: string;
+  view?: string;
   page?: string;
 }
 
@@ -85,6 +86,7 @@ export async function BillingOrgHubView({
     typeof search.paymentFrom === 'string' && search.paymentFrom ? search.paymentFrom : undefined;
   const paymentTo =
     typeof search.paymentTo === 'string' && search.paymentTo ? search.paymentTo : undefined;
+  const paymentsView = search.view === 'payments';
   const requestedPage = parseOrgListPage(search.page);
 
   function billingListHref(
@@ -99,7 +101,16 @@ export async function BillingOrgHubView({
     if (toDate) params.set('toDate', toDate);
     if (paymentFrom) params.set('paymentFrom', paymentFrom);
     if (paymentTo) params.set('paymentTo', paymentTo);
+    if (paymentsView) params.set('view', 'payments');
     if (nextPage && nextPage > 1) params.set('page', String(nextPage));
+    const qs = params.toString();
+    return qs ? `${routeBase}?${qs}` : routeBase;
+  }
+
+  function billingClearHref() {
+    const params = new URLSearchParams();
+    if (filter !== 'all') params.set('filter', filter);
+    if (contractId) params.set('contractId', contractId);
     const qs = params.toString();
     return qs ? `${routeBase}?${qs}` : routeBase;
   }
@@ -152,7 +163,12 @@ export async function BillingOrgHubView({
     const [allRecords, paymentRows, collectionsAmt, unallocatedRaw, unallocatedRows] =
       await Promise.all([
         listBillingRecords(context, { filter: 'all', limit: 5_000 }),
-        listPaymentApplications(context, { limit: 25, includeVoided: true }),
+        listPaymentApplications(context, {
+          limit: paymentFrom && paymentTo ? 500 : 25,
+          includeVoided: !(paymentFrom && paymentTo),
+          paymentFrom: paymentFrom ? businessDate(paymentFrom) : undefined,
+          paymentTo: paymentTo ? businessDate(paymentTo) : undefined,
+        }),
         paymentFrom && paymentTo
           ? sumCollectionsInDateRange(
               context.db,
@@ -293,6 +309,7 @@ export async function BillingOrgHubView({
       <form method="get" className="flex flex-col gap-3">
         {filter !== 'all' && <input type="hidden" name="filter" value={filter} />}
         {contractId && <input type="hidden" name="contractId" value={contractId} />}
+        {paymentsView ? <input type="hidden" name="view" value="payments" /> : null}
         <div>
           <p className="mb-1 text-xs text-[var(--pf-text-muted)]">{t('list.issueDateHint')}</p>
           <DateRangeSelector
@@ -328,9 +345,9 @@ export async function BillingOrgHubView({
           >
             {t('list.filterButton')}
           </button>
-          {(fromDate ?? toDate ?? paymentFrom ?? paymentTo) ? (
+          {(fromDate ?? toDate ?? paymentFrom ?? paymentTo ?? paymentsView) ? (
             <a
-              href={billingListHref(filter, contractId)}
+              href={billingClearHref()}
               className="inline-flex h-9 items-center rounded-md px-3 text-sm text-[var(--pf-text-secondary)] hover:underline"
             >
               {t('list.clearFilter')}
@@ -359,7 +376,7 @@ export async function BillingOrgHubView({
         routeBase={routeBase}
       />
 
-      {contractOptions.length > 1 ? (
+      {!paymentsView && contractOptions.length > 1 ? (
         <nav className="flex min-w-0 flex-wrap gap-2" aria-label={t('list.contract')}>
           <Link
             href={billingListHref(filter)}
@@ -387,6 +404,7 @@ export async function BillingOrgHubView({
         </nav>
       ) : null}
 
+      {!paymentsView ? (
       <Tabs value={filter} className="min-w-0">
         <TabsList aria-label={t('list.filtersLabel')} className="min-w-0 max-w-full">
           {FILTERS.map((value) => (
@@ -438,8 +456,9 @@ export async function BillingOrgHubView({
           )}
         </TabsContent>
       </Tabs>
+      ) : null}
 
-      {payments.length > 0 ? (
+      {payments.length > 0 || paymentsView ? (
         <section className="flex flex-col gap-3">
           <div>
             <h2 className="text-sm font-semibold">{t('paymentHistory.title')}</h2>

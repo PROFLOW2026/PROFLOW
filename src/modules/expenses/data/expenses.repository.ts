@@ -1,6 +1,8 @@
 import { and, desc, eq, exists, gte, inArray, isNull, lte, not, or, sql } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import {
+  apBills,
+  apPoMatches,
   costCategories,
   expenseAllocations,
   expenses,
@@ -54,6 +56,10 @@ export interface ExpenseListFilters {
   readonly attentionFilter?: ExpenseAttentionFilter;
   /** When set (non-null array), limit rows to these projects (direct or allocated). */
   readonly accessibleProjectIds?: readonly string[];
+  /** Same expense rows that feed business cash outstanding (`open`) or paid (`paid`). */
+  readonly cash?: 'open' | 'paid';
+  /** Structured cost-category key: suppliers vs subcontractors. */
+  readonly cashSource?: 'suppliers' | 'subcontractors';
 }
 
 export interface ExpenseInsertRow {
@@ -169,6 +175,87 @@ function mapSummary(row: {
 }
 
 const expenseReversals = alias(expenses, 'expense_reversals');
+
+function subcontractorCategoryExists(db: DbExecutor) {
+  return exists(
+    db
+      .select({ id: costCategories.id })
+      .from(costCategories)
+      .where(
+        and(
+          eq(costCategories.id, expenses.costCategoryId),
+          or(
+            eq(costCategories.key, 'subcontractor'),
+            eq(costCategories.key, 'external_manpower'),
+            sql`${costCategories.key} like 'subcontractor\\_%'`,
+          ),
+        ),
+      ),
+  );
+}
+
+/** Rows that compose business-cash expense buckets. Excludes payroll keys and accepted AP matches. */
+function appendExpenseCashBalanceConditions(
+  db: DbExecutor,
+  organizationId: string,
+  filters: ExpenseListFilters,
+  conditions: unknown[],
+) {
+  if (filters.cash !== 'open' && filters.cash !== 'paid') return;
+  conditions.push(eq(expenses.status, 'finalized'));
+  conditions.push(isNull(expenses.voidsExpenseId));
+  conditions.push(sql`coalesce(${expenses.grossAmount}::numeric, 0) > 0`);
+  conditions.push(not(hasActiveReversalExists(db, organizationId)));
+  conditions.push(
+    not(
+      exists(
+        db
+          .select({ id: costCategories.id })
+          .from(costCategories)
+          .where(
+            and(
+              eq(costCategories.id, expenses.costCategoryId),
+              eq(costCategories.key, 'internal_employee_payroll'),
+            ),
+          ),
+      ),
+    ),
+  );
+  conditions.push(
+    not(
+      exists(
+        db
+          .select({ id: apPoMatches.id })
+          .from(apPoMatches)
+          .innerJoin(
+            apBills,
+            and(eq(apBills.id, apPoMatches.apBillId), eq(apBills.organizationId, apPoMatches.organizationId)),
+          )
+          .where(
+            and(
+              eq(apPoMatches.organizationId, organizationId),
+              eq(apPoMatches.expenseId, expenses.id),
+              eq(apPoMatches.status, 'accepted'),
+              inArray(apBills.status, ['open', 'partially_matched', 'matched']),
+              isNull(apBills.archivedAt),
+            ),
+          ),
+      ),
+    ),
+  );
+  if (filters.cash === 'open') {
+    conditions.push(
+      sql`${expenses.grossAmount}::numeric > coalesce(${expenses.paidGrossAmount}::numeric, 0)`,
+    );
+  } else {
+    conditions.push(sql`coalesce(${expenses.paidGrossAmount}::numeric, 0) > 0`);
+  }
+  if (filters.cashSource === 'subcontractors') {
+    conditions.push(subcontractorCategoryExists(db));
+  } else if (filters.cashSource === 'suppliers') {
+    conditions.push(not(subcontractorCategoryExists(db)));
+  }
+}
 
 function hasActiveReversalExists(db: DbExecutor, organizationId: string) {
   return exists(
@@ -581,6 +668,8 @@ export async function listExpenses(
     conditions.push(eq(expenses.status, 'draft'));
     appendActionableExpenseAttentionConditions(db, organizationId, conditions);
   }
+
+  appendExpenseCashBalanceConditions(db, organizationId, filters, conditions);
 
   const where = and(...conditions);
 

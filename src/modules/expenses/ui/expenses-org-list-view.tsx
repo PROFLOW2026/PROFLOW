@@ -92,6 +92,8 @@ export interface ExpensesOrgListViewProps {
     costFamily?: CostFamily;
     costCategoryId?: string;
     statusFilter?: ExpenseListStatusFilter;
+    cash?: 'open' | 'paid';
+    cashSource?: 'suppliers' | 'subcontractors';
   };
   /** Server-supplied today for timezone-accurate presets in DateRangeSelector. */
   today?: string;
@@ -164,6 +166,10 @@ export function ExpensesOrgListView({
   const [statusFilter, setStatusFilter] = React.useState<ExpenseListStatusFilter>(
     initialFilters.statusFilter ?? EXPENSE_LIST_STATUS_ALL,
   );
+  const [cash, setCash] = React.useState<string>(initialFilters.cash ?? EXPENSE_LIST_STATUS_ALL);
+  const [cashSource, setCashSource] = React.useState<string>(
+    initialFilters.cashSource ?? EXPENSE_LIST_STATUS_ALL,
+  );
 
   const activeAttention = isExpenseListAttentionStatusFilter(statusFilter)
     ? statusFilter
@@ -183,6 +189,8 @@ export function ExpensesOrgListView({
       const statusParams = expenseListStatusFilterToSearchParams(filterValue);
       statusParams.forEach((value, key) => params.set(key, value));
     }
+    if (cash !== EXPENSE_LIST_STATUS_ALL) params.set('cash', cash);
+    if (cashSource !== EXPENSE_LIST_STATUS_ALL) params.set('cashSource', cashSource);
     if (page > 1) params.set('page', String(page));
     return params;
   }
@@ -361,6 +369,36 @@ export function ExpensesOrgListView({
                     {statusFilterLabel(value, t, tStatus)}
                   </SelectItem>
                 ))}
+              </SelectContent>
+            </Select>
+          )}
+        </Field>
+
+        <Field label={t('filters.cash')} className="min-w-0">
+          {(control) => (
+            <Select value={cash} onValueChange={setCash}>
+              <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
+                <SelectValue placeholder={t('filters.cashAll')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={EXPENSE_LIST_STATUS_ALL}>{t('filters.cashAll')}</SelectItem>
+                <SelectItem value="open">{t('filters.cashOpen')}</SelectItem>
+                <SelectItem value="paid">{t('filters.cashPaid')}</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+        </Field>
+
+        <Field label={t('filters.cashSource')} className="min-w-0">
+          {(control) => (
+            <Select value={cashSource} onValueChange={setCashSource}>
+              <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
+                <SelectValue placeholder={t('filters.cashSourceAll')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={EXPENSE_LIST_STATUS_ALL}>{t('filters.cashSourceAll')}</SelectItem>
+                <SelectItem value="suppliers">{t('filters.cashSourceSuppliers')}</SelectItem>
+                <SelectItem value="subcontractors">{t('filters.cashSourceSubcontractors')}</SelectItem>
               </SelectContent>
             </Select>
           )}
@@ -600,6 +638,8 @@ function hasActiveFilters(filters: ExpensesOrgListViewProps['initialFilters']): 
       filters.projectId ||
       filters.costFamily ||
       filters.costCategoryId ||
-      expenseListStatusFilterIsActive(filters.statusFilter ?? EXPENSE_LIST_STATUS_ALL),
+      expenseListStatusFilterIsActive(filters.statusFilter ?? EXPENSE_LIST_STATUS_ALL) ||
+      filters.cash ||
+      filters.cashSource,
   );
 }

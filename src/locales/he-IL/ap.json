@@ -36,7 +36,8 @@
     "paidInPeriodHint": "(לפי תאריך תשלום; לא תאריך חשבון)",
     "billDateHint": "סינון הרשימה לפי תאריך החשבון; לא לפי תאריך תשלום.",
     "paymentDateFrom": "מתאריך תשלום",
-    "paymentDateTo": "עד תאריך תשלום"
+    "paymentDateTo": "עד תאריך תשלום",
+    "outstandingOnly": "מוצגות רק חשבוניות ספק עם יתרה לתשלום."
   },
   "statuses": {
     "draft": "טיוטה",

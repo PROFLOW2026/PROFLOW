@@ -305,7 +305,7 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
             footer={
               <p className="break-words text-xs">
                 <Link
-                  href="/procurement/ap?status=open"
+                  href="/procurement/ap?outstanding=1"
                   className={textNavLinkClassName}
                   prefetch={false}
                 >

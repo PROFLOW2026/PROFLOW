@@ -252,6 +252,7 @@ export async function listApBillsForOrg(
     readonly offset?: number;
     readonly fromDate?: string;
     readonly toDate?: string;
+    readonly billIds?: readonly string[];
   } = {},
 ): Promise<ApBillListItem[]> {
   assertPermission(context, PERMISSIONS.AP_READ);
@@ -260,7 +261,11 @@ export async function listApBillsForOrg(
 
 export async function countApBillsForOrg(
   context: OrgContext,
-  options: { readonly fromDate?: string; readonly toDate?: string } = {},
+  options: {
+    readonly fromDate?: string;
+    readonly toDate?: string;
+    readonly billIds?: readonly string[];
+  } = {},
 ): Promise<number> {
   assertPermission(context, PERMISSIONS.AP_READ);
   return countApBills(context.db, context.organizationId, options);
