@@ -370,6 +370,8 @@
     "docReqsTitle": "Document requirements",
     "docReqsHint": "Suggested required documents for vendor types and subcontracts. Not statutory law.",
     "docReqsEmpty": "No document requirements yet",
+    "docReqAppliesTo": "Applies to",
+    "docReqRequired": "Required",
     "addDocReq": "Add requirement",
     "unnamedRequirement": "Document requirement",
     "contextKind": "Context",

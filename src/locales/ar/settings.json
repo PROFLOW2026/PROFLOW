@@ -370,6 +370,8 @@
     "docReqsTitle": "متطلبات المستندات",
     "docReqsHint": "مستندات مطلوبة مقترحة لأنواع الموردين والعقود الباطنة. ليست قانوناً نظامياً.",
     "docReqsEmpty": "لا متطلبات مستندات بعد",
+    "docReqAppliesTo": "ينطبق على",
+    "docReqRequired": "إلزامي",
     "addDocReq": "إضافة متطلب",
     "unnamedRequirement": "متطلب مستند",
     "contextKind": "السياق",

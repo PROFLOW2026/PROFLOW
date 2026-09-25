@@ -1084,6 +1084,8 @@
     "docReqsTitle": "דרישות מסמכים",
     "docReqsHint": "מסמכים מומלצים לסוגי ספק ולהסכמי קבלנות משנה. לא חובה חוקית.",
     "docReqsEmpty": "אין עדיין דרישות מסמכים",
+    "docReqAppliesTo": "חל על",
+    "docReqRequired": "חובה",
     "addDocReq": "הוספת דרישה",
     "unnamedRequirement": "דרישת מסמך",
     "contextKind": "הקשר",

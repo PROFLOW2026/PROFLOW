@@ -1,9 +1,10 @@
 'use client';
 
-import { useActionState, useRef, useState } from 'react';
+import { useActionState, useMemo, useRef, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { ConfirmAction } from '@/components/patterns/confirm-action';
 import { Alert } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Field } from '@/components/ui/field';
@@ -26,12 +27,16 @@ import {
   createCatalogEntryAction,
   createDocumentRequirementAction,
   deactivateCatalogEntryAction,
-  deactivateDocumentRequirementAction,
+  deactivateDocumentRequirementsAction,
   setCostCodesEnabledAction,
   setDefaultPaymentTermKeyAction,
   updateCatalogEntryAction,
 } from './actions';
 import { CatalogEntryNameField } from './_lib/catalog-entry-name-field';
+import {
+  groupDocumentRequirements,
+  type DocumentRequirementGroupView,
+} from './_lib/document-requirement-groups';
 import {
   BUSINESS_CATALOG_KINDS,
   DOC_REQ_CONTEXT_KINDS,
@@ -507,6 +512,7 @@ function DocumentRequirementsSection({
 }) {
   const t = useTranslations('settings.businessCatalogs');
   const tCommon = useTranslations('common');
+  const locale = useLocale();
   const [createState, createAction, createPending] = useActionState(
     createDocumentRequirementAction,
     {} as SettingsActionState,
@@ -517,6 +523,10 @@ function DocumentRequirementsSection({
   const [contextKey, setContextKey] = useState<(typeof VENDOR_TYPE_CONTEXT_KEYS)[number]>(
     'subcontractor',
   );
+  const groups = useMemo(
+    () => groupDocumentRequirements(items, locale),
+    [items, locale],
+  );
 
   return (
     <section className="flex flex-col gap-3 border-t border-[var(--pf-border-default)] pt-6">
@@ -525,12 +535,12 @@ function DocumentRequirementsSection({
         <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">{t('docReqsHint')}</p>
       </div>
 
-      {items.length === 0 ? (
+      {groups.length === 0 ? (
         <EmptyState title={t('docReqsEmpty')} description={t('docReqsHint')} />
       ) : (
-        <ul className="flex flex-col gap-2">
-          {items.map((item) => (
-            <DocumentRequirementRow key={item.id} item={item} canEdit={canEdit} />
+        <ul className="flex flex-col gap-1.5">
+          {groups.map((group) => (
+            <DocumentRequirementGroupRow key={group.groupKey} group={group} canEdit={canEdit} />
           ))}
         </ul>
       )}
@@ -616,38 +626,65 @@ function DocumentRequirementsSection({
   );
 }
 
-function DocumentRequirementRow({
-  item,
+function formatDocumentRequirementContextLabel(
+  t: ReturnType<typeof useTranslations<'settings.businessCatalogs'>>,
+  contextKind: DocumentRequirementView['contextKind'],
+  contextKey: string | null,
+): string {
+  if (contextKind === 'subcontract') return t('contextKinds.subcontract');
+  if (
+    contextKey &&
+    (VENDOR_TYPE_CONTEXT_KEYS as readonly string[]).includes(contextKey)
+  ) {
+    return t(`vendorTypes.${contextKey as (typeof VENDOR_TYPE_CONTEXT_KEYS)[number]}`);
+  }
+  return t('unnamedRequirement');
+}
+
+function DocumentRequirementGroupRow({
+  group,
   canEdit,
 }: {
-  item: DocumentRequirementView;
+  group: DocumentRequirementGroupView;
   canEdit: boolean;
 }) {
   const t = useTranslations('settings.businessCatalogs');
-  const display = item.label?.trim() || t('unnamedRequirement');
+  const contextLabels = [
+    ...new Set(
+      group.contexts.map((context) =>
+        formatDocumentRequirementContextLabel(t, context.contextKind, context.contextKey),
+      ),
+    ),
+  ];
 
   async function handleDeactivate() {
-    const result = await deactivateDocumentRequirementAction(item.id);
+    const result = await deactivateDocumentRequirementsAction(group.rowIds);
     if (result.error) return { error: result.error };
     return { ok: true };
   }
 
   return (
-    <li className="flex flex-wrap items-center gap-2 rounded-md border border-[var(--pf-border-default)] px-3 py-2">
+    <li className="flex flex-wrap items-start gap-2 rounded-md border border-[var(--pf-border-default)] px-3 py-2">
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium">{display}</p>
-        <p className="text-xs text-[var(--pf-text-muted)]">
-          {t(`contextKinds.${item.contextKind}`)}
-          {item.contextKey
-            ? ` · ${(VENDOR_TYPE_CONTEXT_KEYS as readonly string[]).includes(item.contextKey) ? t(`vendorTypes.${item.contextKey as (typeof VENDOR_TYPE_CONTEXT_KEYS)[number]}`) : t('unnamedRequirement')}`
-            : null}
-          {!item.isActive ? ` · ${t('inactive')}` : null}
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="text-sm font-medium">{group.displayLabel}</p>
+          {group.required ? (
+            <Badge tone="neutral" className="text-[10px] uppercase tracking-wide">
+              {t('docReqRequired')}
+            </Badge>
+          ) : null}
+          {!group.isActive ? (
+            <span className="text-xs text-[var(--pf-text-muted)]">{t('inactive')}</span>
+          ) : null}
+        </div>
+        <p className="mt-1 text-xs text-[var(--pf-text-muted)]">
+          {t('docReqAppliesTo')}: {contextLabels.join(' · ')}
         </p>
       </div>
       {canEdit ? (
         <ConfirmAction
           title={t('deactivate')}
-          description={<p>{t('deactivateDocReqQuestion', { name: display })}</p>}
+          description={<p>{t('deactivateDocReqQuestion', { name: group.displayLabel })}</p>}
           confirmLabel={t('deactivate')}
           successMessage={t('deactivateSuccess')}
           onConfirm={handleDeactivate}

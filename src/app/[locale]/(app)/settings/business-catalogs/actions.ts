@@ -6,7 +6,6 @@ import {
   createBusinessCatalogEntry,
   createDocumentRequirement,
   deactivateBusinessCatalogEntry,
-  deactivateDocumentRequirement,
   setCostCodesEnabled,
   setDefaultPaymentTermKey,
   updateBusinessCatalogEntry,
@@ -214,9 +213,18 @@ export async function createDocumentRequirementAction(
 export async function deactivateDocumentRequirementAction(
   id: string,
 ): Promise<SettingsActionState> {
+  return deactivateDocumentRequirementsAction([id]);
+}
+
+export async function deactivateDocumentRequirementsAction(
+  ids: readonly string[],
+): Promise<SettingsActionState> {
   const tErrors = await getTranslations('errors');
   try {
-    await withOrgContext((context) => deactivateDocumentRequirement(context, id));
+    const { deactivateDocumentRequirements } = await import(
+      '@/modules/business-catalog/application/manage-catalog'
+    );
+    await withOrgContext((context) => deactivateDocumentRequirements(context, ids));
     revalidateCatalogs();
     return { ok: true };
   } catch (error) {

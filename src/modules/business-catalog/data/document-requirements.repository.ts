@@ -1,4 +1,4 @@
-import { and, asc, eq, isNull, sql } from 'drizzle-orm';
+import { and, asc, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { documentRequirementRules } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 
@@ -66,6 +66,59 @@ export async function listDocumentRequirementRules(
   return rows.map(mapRow);
 }
 
+export async function findDocumentRequirementRuleByTarget(
+  db: DbExecutor,
+  organizationId: string,
+  input: {
+    readonly contextKind: DocumentRequirementContextKind;
+    readonly contextKey?: string | null;
+    readonly documentTypeKey: string;
+  },
+): Promise<DocumentRequirementRecord | null> {
+  const conditions = [
+    eq(documentRequirementRules.organizationId, organizationId),
+    eq(documentRequirementRules.contextKind, input.contextKind),
+    eq(documentRequirementRules.documentTypeKey, input.documentTypeKey),
+    isNull(documentRequirementRules.archivedAt),
+  ];
+  if (input.contextKind === 'subcontract') {
+    conditions.push(isNull(documentRequirementRules.contextKey));
+  } else {
+    conditions.push(eq(documentRequirementRules.contextKey, input.contextKey ?? ''));
+  }
+
+  const rows = await db
+    .select()
+    .from(documentRequirementRules)
+    .where(and(...conditions))
+    .limit(1);
+  return rows[0] ? mapRow(rows[0]) : null;
+}
+
+export async function ensureDocumentRequirementRule(
+  db: DbExecutor,
+  input: {
+    readonly organizationId: string;
+    readonly contextKind: DocumentRequirementContextKind;
+    readonly catalogEntryId?: string | null;
+    readonly contextKey?: string | null;
+    readonly documentTypeKey: string;
+    readonly required?: boolean;
+    readonly warnDaysBeforeExpiry?: number | null;
+    readonly label?: string | null;
+    readonly sortOrder?: number;
+  },
+): Promise<DocumentRequirementRecord> {
+  const existing = await findDocumentRequirementRuleByTarget(db, input.organizationId, {
+    contextKind: input.contextKind,
+    contextKey: input.contextKey ?? null,
+    documentTypeKey: input.documentTypeKey,
+  });
+  if (existing) return existing;
+
+  return insertDocumentRequirementRule(db, input);
+}
+
 export async function insertDocumentRequirementRule(
   db: DbExecutor,
   input: {
@@ -104,18 +157,28 @@ export async function archiveDocumentRequirementRule(
   organizationId: string,
   id: string,
 ): Promise<boolean> {
+  const archived = await archiveDocumentRequirementRules(db, organizationId, [id]);
+  return archived > 0;
+}
+
+export async function archiveDocumentRequirementRules(
+  db: DbExecutor,
+  organizationId: string,
+  ids: readonly string[],
+): Promise<number> {
+  if (ids.length === 0) return 0;
   const result = await db
     .update(documentRequirementRules)
     .set({ archivedAt: new Date(), isActive: false, updatedAt: new Date() })
     .where(
       and(
-        eq(documentRequirementRules.id, id),
+        inArray(documentRequirementRules.id, [...ids]),
         eq(documentRequirementRules.organizationId, organizationId),
         isNull(documentRequirementRules.archivedAt),
       ),
     )
     .returning({ id: documentRequirementRules.id });
-  return result.length > 0;
+  return result.length;
 }
 
 export async function nextDocumentRequirementSortOrder(

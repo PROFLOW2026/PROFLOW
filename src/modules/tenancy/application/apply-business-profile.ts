@@ -161,7 +161,9 @@ export async function applyBusinessProfileConfig(
   // Vocabulary catalogs (vendor categories, specialties, cost codes, doc requirements)
   const { getProfileCatalogSeeds } = await import('../domain/profile-catalog-seeds');
   const { seedCatalogItems } = await import('@/modules/business-catalog/application/seed-catalog');
-  const { documentRequirementRules } = await import('@drizzle/schema');
+  const { ensureDocumentRequirementRule } = await import(
+    '@/modules/business-catalog/data/document-requirements.repository'
+  );
   const seeds = getProfileCatalogSeeds(profileKey);
   await seedCatalogItems(
     db,
@@ -226,19 +228,15 @@ export async function applyBusinessProfileConfig(
     }
   }
   for (const req of seeds.documentRequirements ?? []) {
-    await db
-      .insert(documentRequirementRules)
-      .values({
-        organizationId,
-        contextKind: req.contextKind,
-        contextKey: req.contextKey ?? null,
-        documentTypeKey: req.documentTypeKey,
-        label: nameOf(req.labelEn, req.labelHe),
-        required: true,
-        isActive: true,
-        sortOrder: 0,
-      })
-      .onConflictDoNothing();
+    await ensureDocumentRequirementRule(db, {
+      organizationId,
+      contextKind: req.contextKind,
+      contextKey: req.contextKey ?? null,
+      documentTypeKey: req.documentTypeKey,
+      label: nameOf(req.labelEn, req.labelHe),
+      required: true,
+      sortOrder: 0,
+    });
   }
 
   return { applied: true, profileKey };

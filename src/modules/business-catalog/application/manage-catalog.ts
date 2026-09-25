@@ -19,6 +19,8 @@ import {
 } from '../data/catalog.repository';
 import {
   archiveDocumentRequirementRule,
+  archiveDocumentRequirementRules,
+  findDocumentRequirementRuleByTarget,
   insertDocumentRequirementRule,
   listDocumentRequirementRules,
   nextDocumentRequirementSortOrder,
@@ -290,6 +292,16 @@ export async function createDocumentRequirement(
   if (parsed.data.contextKind === 'vendor_type' && !parsed.data.contextKey) {
     throw new ValidationError([{ path: 'contextKey', message: 'contextKey required for vendor_type' }]);
   }
+  const existing = await findDocumentRequirementRuleByTarget(context.db, context.organizationId, {
+    contextKind: parsed.data.contextKind,
+    contextKey: parsed.data.contextKind === 'subcontract' ? null : (parsed.data.contextKey ?? null),
+    documentTypeKey: parsed.data.documentTypeKey,
+  });
+  if (existing) {
+    throw new ValidationError([
+      { path: 'documentTypeKey', message: 'document requirement already exists for this context' },
+    ]);
+  }
   const sortOrder = await nextDocumentRequirementSortOrder(context.db, context.organizationId);
   const row = await insertDocumentRequirementRule(context.db, {
     organizationId: context.organizationId,
@@ -313,15 +325,30 @@ export async function deactivateDocumentRequirement(
   context: OrgContext,
   id: string,
 ): Promise<void> {
+  await deactivateDocumentRequirements(context, [id]);
+}
+
+export async function deactivateDocumentRequirements(
+  context: OrgContext,
+  ids: readonly string[],
+): Promise<void> {
   assertPermission(context, PERMISSIONS.SETTINGS_MANAGE);
-  const ok = await archiveDocumentRequirementRule(context.db, context.organizationId, id);
-  if (!ok) throw new NotFoundError('Document requirement');
-  await recordAuditEvent(context, {
-    action: AUDIT_ACTIONS.SETTINGS_UPDATED,
-    entityType: 'document_requirement_rule',
-    entityId: id,
-    metadata: { archived: true },
-  });
+  const uniqueIds = [...new Set(ids.filter(Boolean))];
+  if (uniqueIds.length === 0) throw new NotFoundError('Document requirement');
+  const archived = await archiveDocumentRequirementRules(
+    context.db,
+    context.organizationId,
+    uniqueIds,
+  );
+  if (archived === 0) throw new NotFoundError('Document requirement');
+  for (const id of uniqueIds) {
+    await recordAuditEvent(context, {
+      action: AUDIT_ACTIONS.SETTINGS_UPDATED,
+      entityType: 'document_requirement_rule',
+      entityId: id,
+      metadata: { archived: true },
+    });
+  }
 }
 
 export type { BusinessCatalogKind, CatalogEntryRecord, DocumentRequirementRecord };
