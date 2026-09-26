@@ -8,6 +8,7 @@ export const DASHBOARD_QUICK_ACCESS_SETTING_KEY = 'dashboard_quick_access';
 export const DASHBOARD_QUICK_ACCESS_MAX = 8;
 
 export const DASHBOARD_QUICK_ACCESS_DEFAULT_KEYS = [
+  'quickCapture',
   'attendance',
   'billing',
   'vendorBills',
