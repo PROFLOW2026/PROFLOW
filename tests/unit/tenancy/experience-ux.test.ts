@@ -94,6 +94,7 @@ describe('experience complexity filter', () => {
 describe('quick create persona limits', () => {
   it('keeps allowlisted actions and caps length', () => {
     const actions = [
+      { key: 'quickCapture' },
       { key: 'project' },
       { key: 'quote' },
       { key: 'expense' },
@@ -105,12 +106,12 @@ describe('quick create persona limits', () => {
     ];
     const limited = limitQuickCreateForPersona(actions, 'project_contractor');
     expect(limited.map((a) => a.key)).toEqual([
+      'quickCapture',
       'project',
       'quote',
       'expense',
       'vendorBill',
       'fieldLog',
-      'change',
     ]);
     expect(limited).toHaveLength(6);
     expect(limited.find((a) => a.key === 'employee')).toBeUndefined();
@@ -135,6 +136,30 @@ describe('quick create persona limits', () => {
     const limited = limitQuickCreateForPersona(actions, 'all');
     expect(limited.length).toBeGreaterThan(6);
     expect(limited.length).toBeLessThanOrEqual(12);
+  });
+
+  it('surfaces quickCapture for electrical and all personas when present', () => {
+    const actions = [
+      { key: 'quickCapture' },
+      { key: 'job' },
+      { key: 'project' },
+      { key: 'quote' },
+      { key: 'expense' },
+      { key: 'fieldLog' },
+      { key: 'timeEntry' },
+    ];
+    const electrical = limitQuickCreateForPersona(actions, 'electrical');
+    expect(electrical.map((a) => a.key)).toEqual([
+      'quickCapture',
+      'job',
+      'project',
+      'quote',
+      'expense',
+      'fieldLog',
+    ]);
+
+    const all = limitQuickCreateForPersona(actions, 'all');
+    expect(all[0]?.key).toBe('quickCapture');
   });
 });
 

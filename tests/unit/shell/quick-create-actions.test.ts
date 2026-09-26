@@ -168,6 +168,57 @@ describe('buildQuickCreateActions', () => {
     expect(actions.map((a) => a.key)).toEqual(['job', 'project']);
   });
 
+  it('surfaces quickCapture for electrical and all personas when DOCUMENTS_MANAGE is granted', () => {
+    const permissions = new Set([
+      PERMISSIONS.PROJECTS_CREATE,
+      PERMISSIONS.EXPENSES_CREATE,
+      PERMISSIONS.QUOTES_MANAGE,
+      PERMISSIONS.FIELD_OPS_MANAGE,
+      PERMISSIONS.DOCUMENTS_MANAGE,
+    ]);
+    const moduleFlags = modules({ jobs: true, quotes: true, field_ops: true });
+
+    const electrical = buildQuickCreateActions(
+      permissions,
+      moduleFlags,
+      'jobs',
+      null,
+      null,
+      'electrical',
+    );
+    const electricalKeys = electrical.map((action) => action.key);
+    expect(electricalKeys).toContain('quickCapture');
+    expect(electricalKeys.indexOf('quickCapture')).toBeLessThan(electricalKeys.indexOf('job'));
+    expect(electricalKeys).toEqual(
+      expect.arrayContaining(['project', 'quote', 'expense', 'fieldLog']),
+    );
+
+    const all = buildQuickCreateActions(
+      permissions,
+      moduleFlags,
+      'jobs',
+      null,
+      null,
+      'all',
+    );
+    expect(all.map((action) => action.key)).toContain('quickCapture');
+
+    const withoutDocuments = buildQuickCreateActions(
+      new Set([
+        PERMISSIONS.PROJECTS_CREATE,
+        PERMISSIONS.EXPENSES_CREATE,
+        PERMISSIONS.QUOTES_MANAGE,
+        PERMISSIONS.FIELD_OPS_MANAGE,
+      ]),
+      moduleFlags,
+      'jobs',
+      null,
+      null,
+      'electrical',
+    );
+    expect(withoutDocuments.some((action) => action.key === 'quickCapture')).toBe(false);
+  });
+
   it('lists create-page work-type options without trapping mixed orgs', () => {
     const mixed = listAvailableCreateWorkKinds(
       new Set([PERMISSIONS.PROJECTS_CREATE, PERMISSIONS.SERVICE_MANAGE]),

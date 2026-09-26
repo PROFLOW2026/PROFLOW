@@ -7,16 +7,17 @@ import type { ExperiencePersonaKey } from './experience-persona';
 export const PERSONA_QUICK_CREATE_KEYS: Readonly<
   Record<ExperiencePersonaKey, readonly string[]>
 > = {
-  project_contractor: ['project', 'quote', 'expense', 'vendorBill', 'fieldLog', 'change'],
-  electrical: ['job', 'project', 'quote', 'expense', 'timeEntry', 'fieldLog'],
-  renovation: ['project', 'job', 'quote', 'expense', 'change', 'client'],
-  small_works: ['client', 'job', 'quote', 'expense', 'billingRecord'],
-  service: ['client', 'service', 'expense', 'billingRecord', 'attendance'],
-  architecture: ['client', 'quote', 'project', 'timeEntry', 'billingRecord'],
-  consulting: ['client', 'quote', 'project', 'timeEntry', 'billingRecord'],
-  inspection: ['job', 'fieldLog', 'expense', 'client', 'timeEntry'],
-  mixed: ['project', 'job', 'service', 'quote', 'expense', 'client'],
+  project_contractor: ['quickCapture', 'project', 'quote', 'expense', 'vendorBill', 'fieldLog'],
+  electrical: ['quickCapture', 'job', 'project', 'quote', 'expense', 'fieldLog'],
+  renovation: ['quickCapture', 'project', 'job', 'quote', 'expense', 'change'],
+  small_works: ['quickCapture', 'client', 'job', 'quote', 'expense', 'billingRecord'],
+  service: ['quickCapture', 'client', 'service', 'expense', 'billingRecord', 'attendance'],
+  architecture: ['quickCapture', 'client', 'quote', 'project', 'timeEntry', 'billingRecord'],
+  consulting: ['quickCapture', 'client', 'quote', 'project', 'timeEntry', 'billingRecord'],
+  inspection: ['quickCapture', 'job', 'fieldLog', 'expense', 'client', 'timeEntry'],
+  mixed: ['quickCapture', 'project', 'job', 'service', 'quote', 'expense'],
   all: [
+    'quickCapture',
     'project',
     'job',
     'service',
