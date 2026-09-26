@@ -1,6 +1,8 @@
-import { and, eq } from 'drizzle-orm';
-import { projects } from '@drizzle/schema';
 import { getActiveBudgetAmountsForOrg, getActiveBudgetForProject } from '@/modules/budgets';
+import {
+  displayedPercentString,
+  loadProjectProgressView,
+} from '@/modules/projects/application/project-progress-mode';
 import { getProjectFinancials } from '@/modules/financials/application/get-project-financials';
 import { assertCanAccessProject } from '@/modules/projects/application/project-access';
 import { getModuleVisibility } from '@/modules/tenancy';
@@ -32,17 +34,21 @@ export async function getProjectEarlyWarnings(
     }
   }
 
-  const [project] = await context.db
-    .select({ progressPercent: projects.progressPercent })
-    .from(projects)
-    .where(and(eq(projects.id, projectId), eq(projects.organizationId, context.organizationId)))
-    .limit(1);
+  const progressView = await loadProjectProgressView(
+    context.db,
+    context.organizationId,
+    projectId,
+  );
+  const progressPercent =
+    progressView?.source === 'tasks'
+      ? displayedPercentString(progressView.displayedPercent)
+      : progressView?.storedPercent ?? null;
 
   return evaluateEarlyWarnings(
     mapFinancialsToWarningInput({
       financials,
       budgetAmount,
-      progressPercent: project?.progressPercent ?? null,
+      progressPercent,
       canReadBudget,
       canReadBilling,
       canReadProfit,

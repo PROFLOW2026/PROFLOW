@@ -7,6 +7,7 @@ import {
   index,
   integer,
   jsonb,
+  numeric,
   pgTable,
   text,
   timestamp,
@@ -162,6 +163,11 @@ export const tasks = pgTable(
 
     approvalRequired: boolean('approval_required').notNull().default(false),
 
+    /** When true, a done task counts toward derived project progress. Default off. */
+    contributesToProgress: boolean('contributes_to_progress').notNull().default(false),
+    /** Relative weight. Null means 1 in the domain. Not money. */
+    progressWeight: numeric('progress_weight', { precision: 8, scale: 2, mode: 'string' }),
+
     isArchived: boolean('is_archived').notNull().default(false),
     archivedAt: archivedAt(),
     archivedByOrgMemberId: uuid('archived_by_org_member_id').references(
@@ -205,6 +211,10 @@ export const tasks = pgTable(
     check(
       'tasks_owner_at_most_one',
       sql`(${t.ownerOrgMemberId} IS NOT NULL)::int + (${t.ownerEmployeeId} IS NOT NULL)::int <= 1`,
+    ),
+    check(
+      'tasks_progress_weight_non_negative',
+      sql`${t.progressWeight} IS NULL OR ${t.progressWeight} >= 0`,
     ),
     foreignKey({
       columns: [t.workspaceId, t.projectId],

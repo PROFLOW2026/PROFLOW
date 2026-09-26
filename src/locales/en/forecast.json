@@ -75,6 +75,10 @@
     "projected": "Projected",
     "missing_data": "Missing data"
   },
+  "budgetVersusForecast": {
+    "title": "Budget is not the forecast",
+    "note": "Budget is the internal plan. Forecast is expected final cost: Actual plus remaining commitment plus the project's expected remaining cost, counted once. A line ETC is planning only and is not added on top of that project amount."
+  },
   "severity": {
     "critical": "Critical",
     "warning": "Warning",

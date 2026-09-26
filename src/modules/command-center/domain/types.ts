@@ -56,6 +56,8 @@ export const COMMAND_CENTER_SOURCE_TYPES = [
   'milestone_approaching',
   'project_stale',
   'recurring_task_generated',
+  'storage_attention',
+  'statutory_attention',
 ] as const;
 
 export type CommandCenterSourceType = (typeof COMMAND_CENTER_SOURCE_TYPES)[number];

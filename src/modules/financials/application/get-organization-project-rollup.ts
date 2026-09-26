@@ -1,5 +1,9 @@
 import { and, eq, isNull } from 'drizzle-orm';
 import { projects } from '@drizzle/schema';
+import {
+  displayedPercentString,
+  loadDerivedProgressByProject,
+} from '@/modules/projects/application/project-progress-mode';
 import type { OrgContext } from '@/shared/auth/context';
 import type { MoneyValue } from '@/shared/money';
 import { compareMoney, zeroMoney } from '@/shared/money';
@@ -201,6 +205,7 @@ async function computeOrganizationProjectRollup(
       status: projects.status,
       currency: projects.currency,
       progressPercent: projects.progressPercent,
+      progressSource: projects.progressSource,
       expectedRemainingCostAmount: projects.expectedRemainingCostAmount,
       workKind: projects.workKind,
       pricingMode: projects.pricingMode,
@@ -215,6 +220,14 @@ async function computeOrganizationProjectRollup(
     );
 
   const byId = new Map(projectRows.map((row) => [row.id, row]));
+  const taskProgressIds = projectRows
+    .filter((row) => row.progressSource === 'tasks')
+    .map((row) => row.id);
+  const derivedProgress = await loadDerivedProgressByProject(
+    context.db,
+    context.organizationId,
+    taskProgressIds,
+  );
   let excludedForeignCurrencyCount = 0;
   let progressSum = 0;
   let progressCount = 0;
@@ -364,7 +377,10 @@ async function computeOrganizationProjectRollup(
       marginPercent: kpiMoney.marginPercent,
       actualProfit: kpiMoney.actualProfit,
       actualMarginPercent: kpiMoney.actualMarginPercent,
-      progressPercent: meta.progressPercent,
+      progressPercent:
+        meta.progressSource === 'tasks'
+          ? displayedPercentString(derivedProgress.get(projectId) ?? null)
+          : meta.progressPercent,
       profitable,
     });
   }

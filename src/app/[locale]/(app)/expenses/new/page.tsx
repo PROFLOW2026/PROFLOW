@@ -7,6 +7,7 @@ import { listInventoryItemsForOrg } from '@/modules/assets';
 import { listCostCategoriesForOrg, listProjectsForOrg, listWorkPackagesForOrg } from '@/modules/expenses';
 import { listBusinessCatalog } from '@/modules/business-catalog';
 import { listApBillOverlapCandidates } from '@/modules/financials';
+import { listApBillsForOrg } from '@/modules/ap';
 import { resolveApplicableDefaultTax } from '@/modules/tax';
 import { listVendorsForOrg } from '@/modules/vendors';
 import { listActivePaymentInstruments } from '@/modules/payment-instruments';
@@ -39,7 +40,7 @@ export default async function NewExpensePage({
   const params = await searchParams;
   const preselectedProjectId = typeof params.projectId === 'string' ? params.projectId : undefined;
 
-  const [projects, categories, workPackages, vendors, paymentTerms, taxRatePercent, apBillOverlapCandidates, inventoryItems, paymentInstruments] =
+  const [projects, categories, workPackages, vendors, paymentTerms, taxRatePercent, apBillOverlapCandidates, supplierBillReferences, inventoryItems, paymentInstruments] =
     await withOrgContext(
     async (context) => {
       const canReadAp = hasPermission(context, PERMISSIONS.AP_READ);
@@ -60,6 +61,18 @@ export default async function NewExpensePage({
       const apCandidates = canReadAp
         ? await listApBillOverlapCandidates(context.db, context.organizationId)
         : [];
+      const billReferences = canReadAp
+        ? await listApBillsForOrg(context, { limit: 200 })
+            .then((rows) =>
+              rows.map((bill) => ({
+                id: bill.id,
+                vendorId: bill.vendorId,
+                reference: bill.reference,
+                status: bill.status,
+              })),
+            )
+            .catch(() => [])
+        : [];
       const inventoryRows = canManageAssets
         ? await listInventoryItemsForOrg(context).catch(() => [])
         : [];
@@ -75,6 +88,7 @@ export default async function NewExpensePage({
         termRows.map((term) => ({ id: term.id, name: term.name })),
         tax.resolved?.ratePercent ?? null,
         apCandidates,
+        billReferences,
         inventoryRows.map((item) => ({ id: item.id, name: item.name, unit: item.unit })),
         instruments,
       ] as const;
@@ -117,6 +131,7 @@ export default async function NewExpensePage({
         initialProjectId={preselectedProjectId}
         taxRatePercent={taxRatePercent}
         apBillOverlapCandidates={apBillOverlapCandidates}
+        supplierBillReferences={supplierBillReferences}
         paymentInstruments={paymentInstruments}
         defaultToday={defaultToday}
       />

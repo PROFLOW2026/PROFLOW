@@ -73,6 +73,8 @@ function mapTaskRow(row: typeof tasks.$inferSelect): Task {
     generatedFromOccurrenceId: row.generatedFromOccurrenceId ?? null,
     source: row.source as TaskSource,
     approvalRequired: row.approvalRequired,
+    contributesToProgress: row.contributesToProgress ?? false,
+    progressWeight: row.progressWeight ?? null,
     isArchived: row.isArchived,
     archivedAt: row.archivedAt ?? null,
     archivedByOrgMemberId: row.archivedByOrgMemberId ?? null,
@@ -254,6 +256,8 @@ export async function updateTaskById(
     estimatedEffortMinutes: number | null;
     milestoneId: string | null;
     approvalRequired: boolean;
+    contributesToProgress: boolean;
+    progressWeight: string | null;
     ownerOrgMemberId: string | null;
     ownerEmployeeId: string | null;
     isArchived: boolean;

@@ -148,6 +148,10 @@ export {
   listExternalStatutoryDocumentsForBilling,
 } from './application/get-external-documents';
 export {
+  listAmbiguousStatutoryDocuments,
+  listInvoicingConnectionsInError,
+} from './application/list-statutory-attention';
+export {
   getOrgInvoicingSettings,
   upsertOrgInvoicingSettings,
   setOrgInvoicingSettingsForTests,

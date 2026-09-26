@@ -98,6 +98,11 @@ export const projects = pgTable(
     progressPercent: percentAmount('progress_percent'),
     progressStatus: text('progress_status'),
     /**
+     * manual = show progressPercent. tasks = derive from contributing tasks.
+     * Never erase progressPercent when switching.
+     */
+    progressSource: text('progress_source').notNull().default('manual'),
+    /**
      * Uncovenanted expected remaining cost (ETC) in project currency.
      * Used by forecast final cost; never folds open PO commitments (those are on committed_costs).
      */
@@ -121,6 +126,10 @@ export const projects = pgTable(
     check(
       'projects_progress_status_known',
       sql`${table.progressStatus} IS NULL OR ${table.progressStatus} IN ('not_started', 'on_track', 'at_risk', 'delayed', 'completed')`,
+    ),
+    check(
+      'projects_progress_source_known',
+      sql`${table.progressSource} IN ('manual', 'tasks')`,
     ),
     check(
       'projects_expected_remaining_cost_non_negative',

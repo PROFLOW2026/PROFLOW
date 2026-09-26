@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, inArray, isNull, lte, notInArray, or } from 'drizzle-orm';
+import { and, desc, eq, gte, inArray, isNull, lte, notInArray, or, sql } from 'drizzle-orm';
 import {
   billingLines,
   billingRecords,
@@ -6,9 +6,10 @@ import {
   contracts,
   projects,
 } from '@drizzle/schema';
-import { todayInTimeZone, type BusinessDate } from '@/shared/dates';
+import { businessDate, todayInTimeZone, type BusinessDate } from '@/shared/dates';
 import type { DbExecutor } from '@/shared/db/types';
 import { fromNumericString, type MoneyValue } from '@/shared/money';
+import { isCollectionFollowUpColumnSet } from '../domain/collection-follow-up';
 import { signedBillingAmount } from '../domain/outstanding';
 import {
   computeRecordRevenuePosition,
@@ -350,6 +351,123 @@ export async function updateBillingRecordRow(
     );
 }
 
+export interface BillingCollectionFollowUpRow {
+  readonly collectionContactedAt: BusinessDate | null;
+  readonly collectionNextFollowUpAt: BusinessDate | null;
+  readonly collectionPromiseToPayDate: BusinessDate | null;
+  readonly collectionNote: string | null;
+}
+
+const EMPTY_COLLECTION_FOLLOW_UP: BillingCollectionFollowUpRow = {
+  collectionContactedAt: null,
+  collectionNextFollowUpAt: null,
+  collectionPromiseToPayDate: null,
+  collectionNote: null,
+};
+
+/** True when migration 0130 has not added the collection columns yet. */
+export function isMissingCollectionColumnError(error: unknown): boolean {
+  const texts: string[] = [];
+  let current: unknown = error;
+  for (let depth = 0; depth < 4 && current; depth += 1) {
+    if (current instanceof Error) {
+      texts.push(current.message);
+      const code = (current as Error & { code?: string }).code;
+      if (code) texts.push(code);
+      current = current.cause;
+      continue;
+    }
+    texts.push(String(current));
+    break;
+  }
+  return texts.some((text) => {
+    const lower = text.toLowerCase();
+    return (
+      lower.includes('42703') ||
+      (lower.includes('collection_contacted_at') && lower.includes('does not exist'))
+    );
+  });
+}
+
+/**
+ * Collection columns are additive (migration 0130). A missing column must not
+ * abort the billing-detail transaction or hide the rest of the invoice.
+ */
+async function readBillingCollectionFollowUp(
+  db: DbExecutor,
+  organizationId: string,
+  billingRecordId: string,
+): Promise<BillingCollectionFollowUpRow> {
+  await db.execute(sql`savepoint pf_collection_read`);
+  try {
+    const [row] = await db
+      .select({
+        collectionContactedAt: billingRecords.collectionContactedAt,
+        collectionNextFollowUpAt: billingRecords.collectionNextFollowUpAt,
+        collectionPromiseToPayDate: billingRecords.collectionPromiseToPayDate,
+        collectionNote: billingRecords.collectionNote,
+      })
+      .from(billingRecords)
+      .where(
+        and(eq(billingRecords.organizationId, organizationId), eq(billingRecords.id, billingRecordId)),
+      )
+      .limit(1);
+    await db.execute(sql`release savepoint pf_collection_read`);
+    if (!row) return EMPTY_COLLECTION_FOLLOW_UP;
+    return {
+      collectionContactedAt: row.collectionContactedAt ? businessDate(row.collectionContactedAt) : null,
+      collectionNextFollowUpAt: row.collectionNextFollowUpAt
+        ? businessDate(row.collectionNextFollowUpAt)
+        : null,
+      collectionPromiseToPayDate: row.collectionPromiseToPayDate
+        ? businessDate(row.collectionPromiseToPayDate)
+        : null,
+      collectionNote: row.collectionNote,
+    };
+  } catch (error) {
+    await db.execute(sql`rollback to savepoint pf_collection_read`);
+    await db.execute(sql`release savepoint pf_collection_read`);
+    if (isMissingCollectionColumnError(error)) return EMPTY_COLLECTION_FOLLOW_UP;
+    throw error;
+  }
+}
+
+function collectionColumnAssignment(patch: BillingCollectionFollowUpRow) {
+  const assignment = {
+    collectionContactedAt: patch.collectionContactedAt,
+    collectionNextFollowUpAt: patch.collectionNextFollowUpAt,
+    collectionPromiseToPayDate: patch.collectionPromiseToPayDate,
+    collectionNote: patch.collectionNote,
+  };
+  if (!isCollectionFollowUpColumnSet(Object.keys(assignment))) {
+    throw new Error('Collection follow-up update must write only the four collection columns');
+  }
+  return assignment;
+}
+
+async function writeCollectionColumns(
+  db: DbExecutor,
+  organizationId: string,
+  billingRecordId: string,
+  patch: BillingCollectionFollowUpRow,
+): Promise<void> {
+  await db
+    .update(billingRecords)
+    .set(collectionColumnAssignment(patch))
+    .where(
+      and(eq(billingRecords.organizationId, organizationId), eq(billingRecords.id, billingRecordId)),
+    );
+}
+
+export async function updateBillingCollectionFollowUpRow(
+  db: DbExecutor,
+  organizationId: string,
+  billingRecordId: string,
+  patch: BillingCollectionFollowUpRow,
+): Promise<void> {
+  await writeCollectionColumns(db, organizationId, billingRecordId, patch);
+}
+
 export async function findBillingRecordById(
   db: DbExecutor,
   organizationId: string,
@@ -464,6 +582,7 @@ export async function findBillingRecordById(
   }));
 
   const paymentSummaries = paymentRows.map(mapPayment);
+  const followUp = await readBillingCollectionFollowUp(db, organizationId, billingRecordId);
 
   return {
     ...summary,
@@ -478,6 +597,10 @@ export async function findBillingRecordById(
     voidsBillingRecordId: row.voidsBillingRecordId,
     externalDocumentId: row.externalDocumentId,
     notes: row.notes,
+    collectionContactedAt: followUp.collectionContactedAt,
+    collectionNextFollowUpAt: followUp.collectionNextFollowUpAt,
+    collectionPromiseToPayDate: followUp.collectionPromiseToPayDate,
+    collectionNote: followUp.collectionNote,
     lines,
     payments: paymentSummaries,
   };

@@ -2,6 +2,7 @@
 export { createBillingRecord } from './application/create-billing-record';
 export { createBillingRecordWithPermission } from './application/create-billing-record';
 export { updateBillingRecord } from './application/update-billing-record';
+export { updateBillingCollectionFollowUp } from './application/update-collection-follow-up';
 export {
   finalizeBillingRecord,
   finalizeBillingRecordWithPermission,
@@ -93,6 +94,7 @@ export {
   listBillingRecordsSchema,
   listPaymentApplicationsSchema,
   createAdjustmentSchema,
+  updateCollectionFollowUpSchema,
   billingRecordIdSchema,
   paymentIdSchema,
 } from './validation/schemas';
@@ -105,6 +107,7 @@ export type {
   ListBillingRecordsInput,
   ListPaymentApplicationsInput,
   CreateAdjustmentInput,
+  UpdateCollectionFollowUpInput,
 } from './validation/schemas';
 
 /** Cross-module billing amount rows for safe portal outstanding (not payment write). */

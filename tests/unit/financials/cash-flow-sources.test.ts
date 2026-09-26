@@ -88,7 +88,7 @@ describe('cash forecast extra sources', () => {
     });
   });
 
-  it('keeps open commitments undated', () => {
+  it('keeps open commitments undated when expected cash date is null', () => {
     const items = openCommitmentCashItems(
       [
         {
@@ -98,6 +98,7 @@ describe('cash forecast extra sources', () => {
           projectId: 'proj-1',
           amount: '500.000000',
           currency: 'ILS',
+          expectedCashDate: null,
         },
       ],
       'ILS',
@@ -109,6 +110,30 @@ describe('cash forecast extra sources', () => {
       certainty: 'uncertain',
       direction: 'out',
       href: '/procurement/po-1',
+    });
+  });
+
+  it('uses the PO expected cash date and expected certainty, not an invented order date', () => {
+    const items = openCommitmentCashItems(
+      [
+        {
+          id: 'cc-2',
+          purchaseOrderId: 'po-2',
+          reference: 'PO-10',
+          projectId: 'proj-1',
+          amount: '800.000000',
+          currency: 'ILS',
+          expectedCashDate: businessDate('2026-09-20'),
+        },
+      ],
+      'ILS',
+    );
+
+    expect(items[0]).toMatchObject({
+      sourceType: 'commitment',
+      dueDate: '2026-09-20',
+      certainty: 'expected',
+      direction: 'out',
     });
   });
 });

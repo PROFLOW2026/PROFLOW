@@ -190,6 +190,11 @@ export const purchaseOrders = pgTable(
     currency: currencyCode().notNull(),
     committedAmount: moneyAmount('committed_amount').notNull(),
     orderedOn: date('ordered_on', { mode: 'string' }),
+    /**
+     * Optional expected cash-out date for the open commitment.
+     * Null stays undated in the cash forecast. Not an expense.
+     */
+    expectedCashDate: date('expected_cash_date', { mode: 'string' }),
     /** Optional payment term override (kind=payment_term). Same-org FK in migration. */
     paymentTermId: uuid('payment_term_id'),
     notes: text('notes'),

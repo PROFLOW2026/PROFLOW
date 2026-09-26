@@ -3,9 +3,11 @@ import 'server-only';
 import { and, asc, eq, isNull, sql } from 'drizzle-orm';
 import {
   clients,
+  employees,
   organizationStorageConnections,
   projects,
   storageFolderMappings,
+  vendors,
 } from '@drizzle/schema';
 import { getAdminDb } from '@/shared/db/client';
 import type { DbExecutor } from '@/shared/db/types';
@@ -18,7 +20,13 @@ import {
 } from '../domain/project-folder-placement';
 import { PROJECT_INFO_FILE_NAME, CLIENT_INFO_FILE_NAME } from '../domain/project-info-text';
 import { ProviderHttpError } from '../providers/http-utils';
-import { ensureClientFolderTree, ensureOrganizationRootFolder } from './folder-provisioning';
+import {
+  ensureClientFolderTree,
+  ensureEmployeeFolderTree,
+  ensureOrganizationRootFolder,
+  ensureVendorFolderTree,
+} from './folder-provisioning';
+import { isSemanticFolderCheckViolation } from './semantic-constraint';
 import { provisionStoredProjectFolder } from './project-provision';
 import { resolveValidAccessToken } from './connection-service';
 import {
@@ -41,6 +49,8 @@ const PROJECT_CHILD_TYPES = [
 export interface StorageProvisionBatchResult {
   readonly clientsProcessed: number;
   readonly projectsProcessed: number;
+  /** Vendor and employee folders provisioned in this batch. */
+  readonly partiesProcessed?: number;
   readonly remaining: number;
   readonly rateLimited: boolean;
   /** Non-retryable provider/account failure — stop chain and surface lastError. */
@@ -285,6 +295,175 @@ export async function runStorageProvisionBatch(
     }
   }
 
+  const partyRoots = await db
+    .select({
+      semantic: storageFolderMappings.semanticFolderType,
+      externalFolderId: storageFolderMappings.externalFolderId,
+    })
+    .from(storageFolderMappings)
+    .where(
+      and(
+        eq(storageFolderMappings.organizationId, input.organizationId),
+        eq(storageFolderMappings.connectionId, gatedConnection.id),
+        sql`${storageFolderMappings.semanticFolderType} in ('vendors_root', 'employees_root')`,
+        eq(storageFolderMappings.status, 'ready'),
+      ),
+    );
+  const vendorsRootId = partyRoots.find((row) => row.semantic === 'vendors_root')?.externalFolderId ?? null;
+  const employeesRootId =
+    partyRoots.find((row) => row.semantic === 'employees_root')?.externalFolderId ?? null;
+
+  let partiesProcessed = 0;
+  let partyConstraintBlocked = false;
+
+  if (vendorsRootId) {
+    const pendingVendors = await db
+      .select({ id: vendors.id, name: vendors.name })
+      .from(vendors)
+      .where(
+        and(
+          eq(vendors.organizationId, input.organizationId),
+          isNull(vendors.archivedAt),
+          sql`not exists (
+            select 1 from public.storage_folder_mappings m
+            where m.organization_id = ${vendors.organizationId}
+              and m.connection_id = ${gatedConnection.id}::uuid
+              and m.semantic_folder_type = 'vendor_root'
+              and m.entity_id = ${vendors.id}
+              and m.status = 'ready'
+              and m.external_parent_id = ${vendorsRootId}
+          )`,
+        ),
+      )
+      .orderBy(asc(vendors.id))
+      .limit(STORAGE_PROVISION_CLIENT_BATCH);
+
+    for (const vendor of pendingVendors) {
+      try {
+        await ensureVendorFolderTree(db, {
+          organizationId: input.organizationId,
+          connection: gatedConnection,
+          accessToken: input.accessToken,
+          vendorId: vendor.id,
+          vendorName: vendor.name,
+        });
+        partiesProcessed += 1;
+      } catch (error) {
+        if (isTransient(error)) {
+          return {
+            clientsProcessed,
+            projectsProcessed,
+            partiesProcessed,
+            remaining: 1,
+            rateLimited: true,
+          };
+        }
+        const fatal = nonRetryableMessage(error);
+        if (fatal) {
+          await updateStorageConnection(db, input.organizationId, gatedConnection.id, {
+            lastError: fatal,
+          });
+          console.error('[org-storage/provision] vendor folder non-retryable', {
+            organizationId: input.organizationId,
+            vendorId: vendor.id,
+            fatal,
+          });
+          return {
+            clientsProcessed,
+            projectsProcessed,
+            partiesProcessed,
+            remaining: 1,
+            rateLimited: false,
+            fatalError: fatal,
+          };
+        }
+        console.error('[org-storage/provision] vendor folder failed', {
+          organizationId: input.organizationId,
+          vendorId: vendor.id,
+          detail: error instanceof Error ? error.message : String(error),
+        });
+        if (isSemanticFolderCheckViolation(error)) {
+          partyConstraintBlocked = true;
+          break;
+        }
+      }
+    }
+  }
+
+  if (employeesRootId && !partyConstraintBlocked) {
+    const pendingEmployees = await db
+      .select({ id: employees.id, name: employees.name })
+      .from(employees)
+      .where(
+        and(
+          eq(employees.organizationId, input.organizationId),
+          isNull(employees.archivedAt),
+          sql`not exists (
+            select 1 from public.storage_folder_mappings m
+            where m.organization_id = ${employees.organizationId}
+              and m.connection_id = ${gatedConnection.id}::uuid
+              and m.semantic_folder_type = 'employee_root'
+              and m.entity_id = ${employees.id}
+              and m.status = 'ready'
+              and m.external_parent_id = ${employeesRootId}
+          )`,
+        ),
+      )
+      .orderBy(asc(employees.id))
+      .limit(STORAGE_PROVISION_CLIENT_BATCH);
+
+    for (const employee of pendingEmployees) {
+      try {
+        await ensureEmployeeFolderTree(db, {
+          organizationId: input.organizationId,
+          connection: gatedConnection,
+          accessToken: input.accessToken,
+          employeeId: employee.id,
+          employeeName: employee.name,
+        });
+        partiesProcessed += 1;
+      } catch (error) {
+        if (isTransient(error)) {
+          return {
+            clientsProcessed,
+            projectsProcessed,
+            partiesProcessed,
+            remaining: 1,
+            rateLimited: true,
+          };
+        }
+        const fatal = nonRetryableMessage(error);
+        if (fatal) {
+          await updateStorageConnection(db, input.organizationId, gatedConnection.id, {
+            lastError: fatal,
+          });
+          console.error('[org-storage/provision] employee folder non-retryable', {
+            organizationId: input.organizationId,
+            employeeId: employee.id,
+            fatal,
+          });
+          return {
+            clientsProcessed,
+            projectsProcessed,
+            partiesProcessed,
+            remaining: 1,
+            rateLimited: false,
+            fatalError: fatal,
+          };
+        }
+        console.error('[org-storage/provision] employee folder failed', {
+          organizationId: input.organizationId,
+          employeeId: employee.id,
+          detail: error instanceof Error ? error.message : String(error),
+        });
+        if (isSemanticFolderCheckViolation(error)) {
+          partyConstraintBlocked = true;
+          break;
+        }
+      }
+    }
+  }
+
   const [clientRemain] = await db
     .select({ n: sql<number>`count(*)::int` })
     .from(clients)
@@ -322,10 +501,59 @@ export async function runStorageProvisionBatch(
       ),
     );
 
+  const vendorRemainN =
+    vendorsRootId && !partyConstraintBlocked
+      ? ((
+          await db
+            .select({ n: sql<number>`count(*)::int` })
+            .from(vendors)
+            .where(
+              and(
+                eq(vendors.organizationId, input.organizationId),
+                isNull(vendors.archivedAt),
+                sql`not exists (
+                  select 1 from public.storage_folder_mappings m
+                  where m.organization_id = ${vendors.organizationId}
+                    and m.connection_id = ${gatedConnection.id}::uuid
+                    and m.semantic_folder_type = 'vendor_root'
+                    and m.entity_id = ${vendors.id}
+                    and m.status = 'ready'
+                    and m.external_parent_id = ${vendorsRootId}
+                )`,
+              ),
+            )
+        )[0]?.n ?? 0)
+      : 0;
+  const employeeRemainN =
+    employeesRootId && !partyConstraintBlocked
+      ? ((
+          await db
+            .select({ n: sql<number>`count(*)::int` })
+            .from(employees)
+            .where(
+              and(
+                eq(employees.organizationId, input.organizationId),
+                isNull(employees.archivedAt),
+                sql`not exists (
+                  select 1 from public.storage_folder_mappings m
+                  where m.organization_id = ${employees.organizationId}
+                    and m.connection_id = ${gatedConnection.id}::uuid
+                    and m.semantic_folder_type = 'employee_root'
+                    and m.entity_id = ${employees.id}
+                    and m.status = 'ready'
+                    and m.external_parent_id = ${employeesRootId}
+                )`,
+              ),
+            )
+        )[0]?.n ?? 0)
+      : 0;
+
   return {
     clientsProcessed,
     projectsProcessed,
-    remaining: (clientRemain?.n ?? 0) + (projectRemain?.n ?? 0),
+    partiesProcessed,
+    remaining:
+      (clientRemain?.n ?? 0) + (projectRemain?.n ?? 0) + vendorRemainN + employeeRemainN,
     rateLimited: false,
   };
 }
@@ -432,7 +660,7 @@ export async function runStorageProvisionCycle(input: {
     rateLimited: false,
   };
 
-  const totals = { clientsProcessed: 0, projectsProcessed: 0 };
+  const totals = { clientsProcessed: 0, projectsProcessed: 0, partiesProcessed: 0 };
   let activeConnection: { organizationId: string; id: string } | null = null;
 
   const releaseHeldLeases = async () => {
@@ -490,10 +718,12 @@ export async function runStorageProvisionCycle(input: {
         });
         totals.clientsProcessed += last.clientsProcessed;
         totals.projectsProcessed += last.projectsProcessed;
+        totals.partiesProcessed += last.partiesProcessed ?? 0;
         console.info('[org-storage/provision] cycle batch', {
           connectionId: row.id,
           clientsProcessed: last.clientsProcessed,
           projectsProcessed: last.projectsProcessed,
+          partiesProcessed: last.partiesProcessed ?? 0,
           remaining: last.remaining,
           rateLimited: last.rateLimited,
           fatalError: last.fatalError ?? null,
@@ -501,7 +731,12 @@ export async function runStorageProvisionCycle(input: {
         });
 
         if (last.fatalError) break connectionLoop;
-        if ((last.clientsProcessed > 0 || last.projectsProcessed > 0) && connection.lastError) {
+        if (
+          (last.clientsProcessed > 0 ||
+            last.projectsProcessed > 0 ||
+            (last.partiesProcessed ?? 0) > 0) &&
+          connection.lastError
+        ) {
           await updateStorageConnection(db, row.organizationId, row.id, { lastError: null });
         }
         if (last.remaining <= 0) {
@@ -513,7 +748,11 @@ export async function runStorageProvisionCycle(input: {
           break;
         }
 
-        if (last.clientsProcessed === 0 && last.projectsProcessed === 0) {
+        if (
+          last.clientsProcessed === 0 &&
+          last.projectsProcessed === 0 &&
+          (last.partiesProcessed ?? 0) === 0
+        ) {
           // No progress. Stop this organization for this chain. Do not schedule
           // another hop, and do not mark the remaining folders complete.
           console.info('[org-storage/provision] zero progress — stop org chain', {
@@ -594,11 +833,13 @@ export async function runStorageProvisionCycle(input: {
     ...last,
     clientsProcessed: totals.clientsProcessed,
     projectsProcessed: totals.projectsProcessed,
+    partiesProcessed: totals.partiesProcessed,
   };
 
   const decision = shouldScheduleStorageProvisionHop({
     clientsProcessed: last.clientsProcessed,
     projectsProcessed: last.projectsProcessed,
+    partiesProcessed: last.partiesProcessed,
     remaining: last.remaining,
     rateLimited: last.rateLimited,
     fatalError: last.fatalError,

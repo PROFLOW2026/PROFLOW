@@ -6,11 +6,19 @@ import type {
   StatutoryPaymentSnapshot,
 } from '../../domain/types';
 
-/** SUMIT Accounting_Typed_DocumentType (OpenAPI 2026). */
+/** SUMIT Accounting_Typed_DocumentType (OpenAPI swagger 2026-09-26). */
 export const SUMIT_DOCUMENT_TYPE_INVOICE = 0;
 export const SUMIT_DOCUMENT_TYPE_INVOICE_AND_RECEIPT = 1;
 export const SUMIT_DOCUMENT_TYPE_RECEIPT = 2;
 export const SUMIT_DOCUMENT_TYPE_PROFORMA = 3;
+/** CreditInvoice (5). DonationReceipt is 4 — do not use it for credits. */
+export const SUMIT_DOCUMENT_TYPE_CREDIT_INVOICE = 5;
+
+/**
+ * Confirmed: POST /accounting/documents/cancel/
+ * Accounting_Documents_Cancel_Request requires Credentials, DocumentID, Description.
+ */
+export const SUMIT_CANCEL_DOCUMENT_PATH = '/accounting/documents/cancel/';
 
 /**
  * SUMIT Accounting_Typed_IncomeItemSearchMode — None (1).
@@ -31,6 +39,8 @@ export function resolveSumitDocumentType(kind: ExternalDocumentKind): number {
     case 'transaction_invoice':
     case 'proforma':
       return SUMIT_DOCUMENT_TYPE_PROFORMA;
+    case 'credit_note':
+      return SUMIT_DOCUMENT_TYPE_CREDIT_INVOICE;
     default:
       return SUMIT_DOCUMENT_TYPE_INVOICE;
   }
@@ -157,6 +167,27 @@ export interface BuildSumitCreatePayloadInput {
   readonly kind?: ExternalDocumentKind;
   readonly payment?: StatutoryPaymentSnapshot | null;
   readonly linkedTaxInvoiceExternalId?: string | null;
+  /** Printed on the SUMIT document (Details.Description). */
+  readonly description?: string | null;
+}
+
+/**
+ * Cancel body excluding Credentials (the HTTP client adds those).
+ * Returns null when DocumentID or Description would violate the OpenAPI request.
+ */
+export function buildSumitCancelRequestBody(
+  documentId: string,
+  description: string,
+): Record<string, unknown> | null {
+  const documentNumericId = Number.parseInt(documentId, 10);
+  const trimmed = description.trim();
+  if (!Number.isFinite(documentNumericId) || documentNumericId <= 0 || trimmed.length === 0) {
+    return null;
+  }
+  return {
+    DocumentID: documentNumericId,
+    Description: trimmed,
+  };
 }
 
 /**
@@ -173,14 +204,19 @@ export function buildSumitCreatePayload(input: BuildSumitCreatePayloadInput): Re
 
   const documentType = resolveSumitDocumentType(kind);
   const documentDate = payment?.paymentDate ?? billing.issueDate;
+  const details: Record<string, unknown> = {
+    Type: documentType,
+    Date: documentDate,
+    DueDate: billing.dueDate,
+    Currency: billing.totalAmount.currency,
+    Customer: mapSumitCustomer(billing.customer),
+  };
+  const description = input.description?.trim();
+  if (description) {
+    details.Description = description;
+  }
   const payload: Record<string, unknown> = {
-    Details: {
-      Type: documentType,
-      Date: documentDate,
-      DueDate: billing.dueDate,
-      Currency: billing.totalAmount.currency,
-      Customer: mapSumitCustomer(billing.customer),
-    },
+    Details: details,
     Items: mapSumitItems(billing),
     VATIncluded: billing.vatMode === 'inclusive',
     VATRate: billing.vatRatePercent ?? undefined,
@@ -188,7 +224,7 @@ export function buildSumitCreatePayload(input: BuildSumitCreatePayloadInput): Re
 
   if (linkedTaxInvoiceExternalId) {
     const parsed = Number.parseInt(linkedTaxInvoiceExternalId, 10);
-    if (Number.isFinite(parsed)) {
+    if (Number.isFinite(parsed) && parsed > 0) {
       payload.OriginalDocumentID = parsed;
     }
   }

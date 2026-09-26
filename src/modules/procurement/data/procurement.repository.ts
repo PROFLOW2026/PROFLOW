@@ -1,5 +1,7 @@
-import { and, desc, eq, inArray, isNull } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNull, ne } from 'drizzle-orm';
 import {
+  apBillLines,
+  apBills,
   committedCosts,
   materialItems,
   materialVendorPrices,
@@ -435,6 +437,53 @@ export async function listPurchaseOrderLines(
       ),
     )
     .orderBy(purchaseOrderLines.sortOrder);
+}
+
+/** Non-void AP bill line quantities linked to these PO lines. Read-only. */
+export async function listApBillQuantitiesForPurchaseOrderLines(
+  db: DbExecutor,
+  organizationId: string,
+  purchaseOrderLineIds: readonly string[],
+): Promise<
+  readonly {
+    purchaseOrderLineId: string;
+    quantity: string;
+    billStatus: string;
+  }[]
+> {
+  if (purchaseOrderLineIds.length === 0) return [];
+  const rows = await db
+    .select({
+      purchaseOrderLineId: apBillLines.purchaseOrderLineId,
+      quantity: apBillLines.quantity,
+      billStatus: apBills.status,
+    })
+    .from(apBillLines)
+    .innerJoin(
+      apBills,
+      and(
+        eq(apBillLines.apBillId, apBills.id),
+        eq(apBillLines.organizationId, apBills.organizationId),
+      ),
+    )
+    .where(
+      and(
+        eq(apBillLines.organizationId, organizationId),
+        inArray(apBillLines.purchaseOrderLineId, [...purchaseOrderLineIds]),
+        ne(apBills.status, 'void'),
+      ),
+    );
+  return rows.flatMap((row) =>
+    row.purchaseOrderLineId
+      ? [
+          {
+            purchaseOrderLineId: row.purchaseOrderLineId,
+            quantity: row.quantity,
+            billStatus: row.billStatus,
+          },
+        ]
+      : [],
+  );
 }
 
 export async function insertPoReceipt(

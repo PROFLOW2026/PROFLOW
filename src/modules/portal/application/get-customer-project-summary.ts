@@ -1,3 +1,7 @@
+import {
+  displayedPercentString,
+  loadProjectProgressView,
+} from '@/modules/projects/application/project-progress-mode';
 import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -312,11 +316,21 @@ export async function previewCustomerPortalAccess(
     quotes = buildCustomerSafeQuotes(rows);
   }
 
+  const progressView = await loadProjectProgressView(
+    context.db,
+    context.organizationId,
+    project.id,
+  );
+  const progressPercent =
+    progressView?.source === 'tasks'
+      ? displayedPercentString(progressView.displayedPercent)
+      : project.progressPercent;
+
   const summary = buildCustomerSafeProjectSummary({
     projectId: project.id,
     name: project.name,
     status: project.status,
-    progressPercent: project.progressPercent,
+    progressPercent,
     progressStatus: project.progressStatus,
     startDate: project.startDate,
     targetEndDate: project.targetEndDate,

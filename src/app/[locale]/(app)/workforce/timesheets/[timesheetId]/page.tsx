@@ -5,6 +5,8 @@ import { StatusBadge } from '@/components/ui/status-badge';
 import { Card } from '@/components/ui/card';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { getEntityDocumentPanelData } from '@/modules/documents';
+import { DocumentAttachments } from '@/modules/documents/ui';
 import {
   canApproveTime,
   getTimesheetDetail,
@@ -44,8 +46,14 @@ export default async function TimesheetDetailPage({
 
   const data = await withOrgContext(async (context) => {
     const detail = await getTimesheetDetail(context, timesheetId);
+    const documentsPanel = await getEntityDocumentPanelData(
+      context,
+      'timesheet',
+      timesheetId,
+    ).catch(() => null);
     return {
       ...detail,
+      documentsPanel,
       canApprove: canApproveTime(context),
       canSubmit: hasPermission(context, PERMISSIONS.TIME_MANAGE),
     };
@@ -186,6 +194,18 @@ export default async function TimesheetDetailPage({
           </div>
         )}
       />
+
+      {data.documentsPanel ? (
+        <DocumentAttachments
+          ownerType="timesheet"
+          ownerId={sheet.id}
+          documents={data.documentsPanel.documents}
+          linkCandidates={data.documentsPanel.linkCandidates}
+          canRead={data.documentsPanel.canRead}
+          canManage={data.documentsPanel.canManage}
+          storageConfigured={data.documentsPanel.storageConfigured}
+        />
+      ) : null}
     </div>
   );
 }

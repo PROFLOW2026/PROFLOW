@@ -32,6 +32,12 @@ import { notFound } from 'next/navigation';
 import { PrepareMessageLink } from '@/modules/communications/ui/prepare-message-link';
 import { BillingPaymentRecordedAlert } from '@/modules/billing/ui/billing-payment-recorded-alert';
 import { CollectionModeNote } from '@/modules/billing/ui/collection-mode-note';
+import { CollectionFollowUpCard } from '@/modules/billing/ui/collection-follow-up-card';
+import { IssueCreditNoteForm } from '@/modules/billing/ui/issue-credit-note-form';
+import {
+  canIssueInternalCreditNote,
+  showsCollectionFollowUp,
+} from '@/modules/billing/domain/collection-follow-up';
 import { isExternalStatutoryUiEnabled } from '@/modules/invoicing-integration/application/assert-feature-enabled';
 import {
   getOrgInvoicingSettings,
@@ -318,6 +324,32 @@ export async function BillingOrgDetailView({
           </CardContent>
         </Card>
       </div>
+
+      {showsCollectionFollowUp(record) ? (
+        <CollectionFollowUpCard
+          billingRecordId={record.id}
+          canManage={canManage}
+          showReminder={surface === 'owner'}
+          canPrepareReminder={canCommunicate}
+          reference={record.reference}
+          projectId={record.projectId}
+          clientId={record.clientId}
+          customerPhone={record.customerSnapshot?.phone ?? null}
+          outstandingAmount={record.outstandingAmount}
+          contactedAt={record.collectionContactedAt}
+          nextFollowUpAt={record.collectionNextFollowUpAt}
+          promiseToPayDate={record.collectionPromiseToPayDate}
+          note={record.collectionNote}
+        />
+      ) : null}
+
+      {canManage && canIssueInternalCreditNote(record) ? (
+        <IssueCreditNoteForm
+          billingRecordId={record.id}
+          currency={record.totalAmount.currency}
+          defaultIssueDate={orgToday}
+        />
+      ) : null}
 
       {record.notes ? (
         <Card className="min-w-0">

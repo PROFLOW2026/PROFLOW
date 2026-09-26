@@ -162,10 +162,35 @@ export async function loadPayrollObligationCashRows(
   }));
 }
 
+function isMissingExpectedCashDateColumn(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  const lower = message.toLowerCase();
+  return lower.includes('expected_cash_date') && lower.includes('does not exist');
+}
+
 export async function loadOpenCommitmentCashRows(
   db: DbExecutor,
   organizationId: string,
   currency: string,
+): Promise<readonly OpenCommitmentCashRow[]> {
+  await db.execute(sql`savepoint pf_commitment_cash_date`);
+  try {
+    const rows = await queryOpenCommitmentCashRows(db, organizationId, currency, true);
+    await db.execute(sql`release savepoint pf_commitment_cash_date`);
+    return rows;
+  } catch (error) {
+    await db.execute(sql`rollback to savepoint pf_commitment_cash_date`);
+    await db.execute(sql`release savepoint pf_commitment_cash_date`);
+    if (!isMissingExpectedCashDateColumn(error)) throw error;
+    return queryOpenCommitmentCashRows(db, organizationId, currency, false);
+  }
+}
+
+async function queryOpenCommitmentCashRows(
+  db: DbExecutor,
+  organizationId: string,
+  currency: string,
+  includeExpectedCashDate: boolean,
 ): Promise<readonly OpenCommitmentCashRow[]> {
   const rows = await db
     .select({
@@ -175,6 +200,7 @@ export async function loadOpenCommitmentCashRows(
       projectId: committedCosts.projectId,
       amount: committedCosts.amount,
       currency: committedCosts.currency,
+      expectedCashDate: includeExpectedCashDate ? purchaseOrders.expectedCashDate : sql<string | null>`null`,
     })
     .from(committedCosts)
     .innerJoin(
@@ -199,5 +225,6 @@ export async function loadOpenCommitmentCashRows(
     projectId: row.projectId,
     amount: row.amount,
     currency: row.currency,
+    expectedCashDate: asBusinessDate(row.expectedCashDate),
   }));
 }

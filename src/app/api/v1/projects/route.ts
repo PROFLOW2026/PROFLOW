@@ -1,5 +1,9 @@
 import { listProjectsForOrg } from '@/modules/projects';
 import {
+  displayedPercentString,
+  loadDerivedProgressByProject,
+} from '@/modules/projects/application/project-progress-mode';
+import {
   apiError,
   apiSuccess,
   assertApiKeyHasScope,
@@ -43,6 +47,14 @@ export async function GET(request: Request) {
       }
 
       const slice = filtered.slice(0, pagination.limit);
+      const taskProgressIds = slice
+        .filter((project) => project.progressSource === 'tasks')
+        .map((project) => project.id);
+      const derivedProgress = await loadDerivedProgressByProject(
+        context.db,
+        context.organizationId,
+        taskProgressIds,
+      );
       const items = slice.map((project) => ({
         id: project.id,
         name: project.name,
@@ -52,7 +64,10 @@ export async function GET(request: Request) {
         currency: project.currency,
         startDate: project.startDate,
         targetEndDate: project.targetEndDate,
-        progressPercent: project.progressPercent,
+        progressPercent:
+          project.progressSource === 'tasks'
+            ? displayedPercentString(derivedProgress.get(project.id) ?? null)
+            : project.progressPercent,
         createdAt: project.createdAt.toISOString(),
         updatedAt: project.updatedAt.toISOString(),
       }));

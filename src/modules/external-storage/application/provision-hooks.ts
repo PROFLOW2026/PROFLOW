@@ -9,8 +9,9 @@ import {
   organizationHasActiveStorage,
   resolveValidAccessToken,
 } from './connection-service';
-import { ensureClientFolderTree } from './folder-provisioning';
+import { ensureClientFolderTree, ensureEmployeeFolderTree, ensureVendorFolderTree } from './folder-provisioning';
 import { kickStorageProvision } from './kick-storage-provision';
+import { isSemanticFolderCheckViolation } from './semantic-constraint';
 import { PROJECT_INFO_FILE_NAME } from '../domain/project-info-text';
 import { provisionStoredProjectFolder } from './project-provision';
 
@@ -42,6 +43,85 @@ export async function provisionClientStorageFolder(
     });
   } catch {
     kickStorageProvision();
+  }
+}
+
+async function withApprovedPrimaryStorage(
+  context: OrgContext,
+  run: (input: {
+    connection: NonNullable<Awaited<ReturnType<typeof getOrganizationPrimaryStorage>>>;
+    accessToken: string;
+  }) => Promise<unknown>,
+): Promise<void> {
+  const connection = await getOrganizationPrimaryStorage(context);
+  if (!organizationHasActiveStorage(connection)) return;
+  const { connectionTemplateApproved, reconcileProjectTemplateGateState } = await import(
+    './project-template-service'
+  );
+  const gated = await reconcileProjectTemplateGateState(
+    context.db,
+    context.organizationId,
+    connection!,
+  );
+  if (!connectionTemplateApproved(gated)) return;
+  const accessToken = await resolveValidAccessToken(context.db, context.organizationId, gated);
+  await run({ connection: gated, accessToken });
+}
+
+function logPartyFolderFailure(
+  kind: 'vendor' | 'employee',
+  organizationId: string,
+  entityId: string,
+  error: unknown,
+): void {
+  console.error(`[org-storage/provision] ${kind} folder failed`, {
+    organizationId,
+    ...(kind === 'vendor' ? { vendorId: entityId } : { employeeId: entityId }),
+    detail: error instanceof Error ? error.message : String(error),
+  });
+}
+
+/** Non-blocking. A semantic check failure is logged and does not retry until migration 0130 is applied. */
+export async function provisionVendorStorageFolder(
+  context: OrgContext,
+  vendorId: string,
+  vendorName: string,
+): Promise<void> {
+  try {
+    await withApprovedPrimaryStorage(context, ({ connection, accessToken }) =>
+      ensureVendorFolderTree(context.db, {
+        organizationId: context.organizationId,
+        connection,
+        accessToken,
+        vendorId,
+        vendorName,
+      }),
+    );
+  } catch (error) {
+    logPartyFolderFailure('vendor', context.organizationId, vendorId, error);
+    if (!isSemanticFolderCheckViolation(error)) kickStorageProvision();
+  }
+}
+
+/** Non-blocking. A semantic check failure is logged and does not retry until migration 0130 is applied. */
+export async function provisionEmployeeStorageFolder(
+  context: OrgContext,
+  employeeId: string,
+  employeeName: string,
+): Promise<void> {
+  try {
+    await withApprovedPrimaryStorage(context, ({ connection, accessToken }) =>
+      ensureEmployeeFolderTree(context.db, {
+        organizationId: context.organizationId,
+        connection,
+        accessToken,
+        employeeId,
+        employeeName,
+      }),
+    );
+  } catch (error) {
+    logPartyFolderFailure('employee', context.organizationId, employeeId, error);
+    if (!isSemanticFolderCheckViolation(error)) kickStorageProvision();
   }
 }
 

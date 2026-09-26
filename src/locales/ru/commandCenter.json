@@ -8,6 +8,7 @@
   },
   "actions": {
     "open": "Открыть",
+    "preparePaymentReminder": "Подготовить напоминание об оплате",
     "confirmPaid": "Подтвердить оплату",
     "paymentDateLabel": "Дата платежа",
     "paymentDateHint": "Фактическая дата платежа. По умолчанию — сегодня; можно выбрать более раннюю дату.",
@@ -21,7 +22,7 @@
     "notNow": "Не сейчас",
     "dismiss": "Пропустить этот месяц"
   },
-  "financialGuard": "Отметка «обработано» скрывает только оповещение. Счёт, счёт поставщика или расход не изменяются.",
+  "financialGuard": "Пункт остаётся, пока счёт, счёт поставщика или расход не закрыты. Его можно отложить.",
   "severity": {
     "critical": "Критический",
     "high": "Высокий",
@@ -80,7 +81,9 @@
     "expense_needs_allocation": "Расход требует распределения по проекту",
     "monthly_workforce_report_ready": "Ежемесячный отчёт по персоналу",
     "task_overdue": "Просроченная задача",
-    "task_due_today": "Задача на сегодня"
+    "task_due_today": "Задача на сегодня",
+    "storage_attention": "Файловое хранилище",
+    "statutory_attention": "Налоговый документ"
   },
   "itemCopy": {
     "where": {
@@ -102,7 +105,9 @@
       "cashFlow": "Денежный поток",
       "automations": "Автоматизации",
       "communications": "Сообщения",
-      "tasks": "Задачи"
+      "tasks": "Задачи",
+      "storage": "Файловое хранилище",
+      "integrations": "Интеграции"
     },
     "overdueAr": {
       "whatWithReference": "Инкассировать {reference}",
@@ -279,6 +284,29 @@
     "communicationFailed": {
       "what": "Сообщение не отправлено — {subject}",
       "why": "Доставка не удалась или не подтверждена провайдером."
+    },
+    "storageProvider": {
+      "onedrive": "OneDrive",
+      "google_drive": "Google Drive",
+      "dropbox": "Dropbox",
+      "box": "Box"
+    },
+    "storageAttention": {
+      "whatReconnect": "Переподключить {provider}",
+      "whatError": "Исправить хранилище {provider}",
+      "whatProvision": "Завершить настройку папок {provider}",
+      "whyStatus": "Подключение файлового хранилища требует внимания.",
+      "whyProvision": "Настройка папок остановилась и требует повторной попытки."
+    },
+    "statutoryAttention": {
+      "whatAmbiguous": "Разобрать неясный налоговый документ",
+      "whyAmbiguousWithReference": "Результат выпуска неясен для {reference}",
+      "whyAmbiguous": "Результат выпуска неясен",
+      "whatConnection": "Исправить подключение выпуска",
+      "whyConnection": "Подключение провайдера выпуска в состоянии ошибки.",
+      "whatUnsupported": "Операция не поддерживается",
+      "whyUnsupportedWithReference": "Провайдер выпуска не поддерживает это действие для {reference}",
+      "whyUnsupported": "Провайдер выпуска не поддерживает это действие."
     },
     "billingPlanCycleDraft": {
       "what": "Промежуточный счёт ожидает выставления — {title}",

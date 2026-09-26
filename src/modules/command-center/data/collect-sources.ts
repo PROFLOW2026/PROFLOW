@@ -38,9 +38,11 @@ import {
 import { collectExpensesDueToday, collectExpensesNeedingAllocation, collectPayrollDueToday } from './collect-owner-payments';
 import { collectMonthlyWorkforceReportReady } from './collect-monthly-workforce-report';
 import { collectUwmTaskSources } from './collect-tasks';
+import { collectStatutoryAttention, collectStorageAttention } from './collect-attention';
 import {
   attendanceEmployeeDateAlertHref,
   missingAttendanceTodayAlertHref,
+  paymentReminderDraftHref,
 } from '../domain/alert-deep-links';
 import { fromNumericString, isPositiveMoney, isZeroMoney } from '@/shared/money';
 import type { OrgContext } from '@/shared/auth/context';
@@ -142,11 +144,17 @@ export async function collectOverdueAr(ctx: CollectContext): Promise<CommandCent
       what: copy.what,
       why: copy.why,
       where: record.projectName ?? fallbackWhere(ctx.copyScope, 'billing'),
-      href: `/billing/${record.id}`,
+      href: paymentReminderDraftHref({
+        billingRecordId: record.id,
+        projectId: record.projectId,
+        clientId: record.clientId,
+        subject: record.reference,
+      }),
       urgencyBump: Math.min(99, Math.max(0, days)),
       meta: {
         dueDate: record.dueDate,
         outstanding: record.outstandingAmount.amount,
+        dedupeHref: `/billing/${record.id}`,
       },
     });
   });
@@ -1236,6 +1244,8 @@ export async function collectAllSources(ctx: CollectContext): Promise<CommandCen
     collectExpensesNeedingAllocation,
     collectPayrollDueToday,
     collectMonthlyWorkforceReportReady,
+    collectStorageAttention,
+    collectStatutoryAttention,
     // ── Universal Work Management (sequential savepoint isolation) ──────────
     collectUwmTaskSources,
   ];

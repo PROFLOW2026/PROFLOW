@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { localizeCode } from '@/shared/i18n/code-display';
 import { useActionState, useState, useTransition } from 'react';
@@ -59,6 +60,8 @@ interface ClientDetailViewProps {
   quotesRouteBase?: string;
   projectsRouteBase?: string;
   surface?: OrgListSurface;
+  afterProjects?: ReactNode;
+  afterSales?: ReactNode;
 }
 
 export function ClientDetailView({
@@ -75,6 +78,8 @@ export function ClientDetailView({
   quotesRouteBase = '/quotes',
   projectsRouteBase,
   surface = 'owner',
+  afterProjects,
+  afterSales,
 }: ClientDetailViewProps) {
   const t = useTranslations('clients.detail');
   const tClients = useTranslations('clients');
@@ -383,6 +388,8 @@ export function ClientDetailView({
         </CardContent>
       </Card>
 
+      {afterProjects}
+
       <Card>
         <CardHeader>
           <CardTitle>{t('salesSection')}</CardTitle>
@@ -415,6 +422,8 @@ export function ClientDetailView({
           )}
         </CardContent>
       </Card>
+
+      {afterSales}
 
       {surface === 'owner' ? (
         <Card>

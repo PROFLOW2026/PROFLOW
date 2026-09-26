@@ -26,7 +26,14 @@ function domainForSourceType(sourceType: string): NotificationDomain {
   ) {
     return 'workforce';
   }
-  if (sourceType.includes('billing') || sourceType === 'overdue_ar') return 'billing';
+  if (sourceType === 'storage_attention') return 'documents';
+  if (
+    sourceType === 'statutory_attention' ||
+    sourceType.includes('billing') ||
+    sourceType === 'overdue_ar'
+  ) {
+    return 'billing';
+  }
   if (sourceType.includes('approval')) return 'approvals';
   if (sourceType.includes('boq')) return 'boq';
   if (sourceType.includes('safety')) return 'safety';
@@ -69,7 +76,7 @@ export async function listMergedNotificationInbox(context: OrgContext): Promise<
   }
 
   const actionableItems = actionable.items.map(commandCenterItemToNotificationItem);
-  const actionableLinks = new Set(actionable.items.map((item) => item.href));
+  const actionableLinks = actionableDeepLinks(actionable.items);
   const filteredPersisted = persisted.items.filter(
     (item) => !item.deepLink || !actionableLinks.has(item.deepLink),
   );
@@ -77,6 +84,21 @@ export async function listMergedNotificationInbox(context: OrgContext): Promise<
   const merged = sortMergedItems([...actionableItems, ...filteredPersisted]);
   const unreadCount = merged.filter((item) => !item.readAt).length;
   return { items: merged, unreadCount };
+}
+
+/**
+ * Links the bell already uses to drop a saved row when Today covers the same record.
+ * Overdue AR opens the payment-reminder composer, so the billing deep link is kept
+ * on the item and still suppresses the scanner row.
+ */
+function actionableDeepLinks(items: readonly CommandCenterItem[]): Set<string> {
+  const links = new Set<string>();
+  for (const item of items) {
+    links.add(item.href);
+    const extra = item.meta?.dedupeHref;
+    if (typeof extra === 'string' && extra.length > 0) links.add(extra);
+  }
+  return links;
 }
 
 function sortMergedItems(items: readonly NotificationListItem[]): NotificationListItem[] {

@@ -11,6 +11,7 @@ import { getProjectDetailChrome } from '@/modules/projects';
 import { todayInTimeZone } from '@/shared/dates';
 import {
   AUTOMATION_PRESET_KEYS,
+  isUnavailableAutomationPreset,
   type AutomationActionRequest,
   type AutomationMatch,
   type AutomationPresetKey,
@@ -76,8 +77,17 @@ function notificationTypeForPreset(presetKey: AutomationPresetKey) {
     case 'timesheet_not_submitted':
       return 'employee_missing_report' as const;
     case 'compliance_expiring':
-    case 'warranty_expiring':
       return 'document_expiring' as const;
+    case 'warranty_expiring':
+      return 'warranty_expiring' as const;
+    case 'closeout_has_blockers':
+      return 'closeout_blockers' as const;
+    case 'retention_release_date':
+      return 'billing_plan_retention_held' as const;
+    case 'milestone_approaching_days':
+      return 'milestone_approaching' as const;
+    case 'asset_service_due':
+      return 'action_required' as const;
     default:
       return 'task_overdue' as const;
   }
@@ -298,6 +308,11 @@ export async function runRules(
 ): Promise<RunRulesResult> {
   assertPermission(context, PERMISSIONS.AUTOMATIONS_MANAGE);
   const input = parseOrThrow(runAutomationsSchema.safeParse(raw));
+  if (input.presetKey && isUnavailableAutomationPreset(input.presetKey)) {
+    throw new ValidationError([
+      { path: 'presetKey', message: 'This automation has no event source and cannot be run' },
+    ]);
+  }
 
   let rules = await listAutomationRules(context.db, context.organizationId).catch(() => []);
   if (input.presetKey) {
@@ -320,6 +335,18 @@ export async function runRules(
 
   for (const rule of rules) {
     if (!AUTOMATION_PRESET_KEYS.includes(rule.presetKey)) continue;
+    if (isUnavailableAutomationPreset(rule.presetKey)) {
+      const unavailable = await insertAutomationRun(context.db, {
+        organizationId: context.organizationId,
+        ruleId: rule.id,
+        status: 'failed',
+        actionsJson: { unavailable: true },
+        errorMessage: 'This automation has no event source and is unavailable',
+        accessScopeJson: {},
+      });
+      runs.push(unavailable);
+      continue;
+    }
     const requested = actionsFromConfig(rule.configJson);
     if (requested.some((item) => isUnsafeAutomationAction(item.kind))) {
       const unsafe = requested
@@ -354,7 +381,7 @@ export async function runRules(
     }
 
     try {
-      const matches = await collectPresetMatches(context, rule.presetKey);
+      const matches = await collectPresetMatches(context, rule.presetKey, rule.configJson);
       if (matches.length === 0) {
         const skipped = await insertAutomationRun(context.db, {
           organizationId: context.organizationId,

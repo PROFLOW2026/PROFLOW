@@ -8,6 +8,8 @@ import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { listComplianceArtifactsForOrg } from '@/modules/compliance';
 import { listCustomFieldValuesForEntity } from '@/modules/custom-fields';
+import { getEntityDocumentPanelData } from '@/modules/documents';
+import { DocumentAttachments } from '@/modules/documents/ui';
 import { EntityCustomFieldsPanel } from '@/modules/custom-fields/ui';
 import { resolveEmployeeDailyFramework, resolveEmployeeWorkCalendarForCosting } from '@/modules/workforce/application/work-calendar-context';
 import { buildEmployeeCompensationSummary } from '@/modules/workforce/application/compensation-summary';
@@ -109,6 +111,7 @@ export default async function EmployeeDetailPage({
         candidateProjects,
         linkableUsers,
         complianceArtifacts,
+        documentsPanel,
       ] = await Promise.all([
         canReadRates ? listRateHistory(context, employeeId) : Promise.resolve([]),
         listCustomFieldValuesForEntity(context, 'employee', employeeId).catch(() => []),
@@ -124,6 +127,7 @@ export default async function EmployeeDetailPage({
               subjectId: employeeId,
             }).catch(() => [])
           : Promise.resolve([]),
+        getEntityDocumentPanelData(context, 'employee', employeeId).catch(() => null),
       ]);
       const today = todayInTimeZone(context.organization.timezone);
       const reviewYearMonth = alertYearMonth ?? today.slice(0, 7);
@@ -187,6 +191,7 @@ export default async function EmployeeDetailPage({
         candidateProjects,
         linkableUsers,
         complianceArtifacts,
+        documentsPanel,
         canReadRates,
         canManageCosts,
         canReadCompliance,
@@ -229,6 +234,7 @@ export default async function EmployeeDetailPage({
     candidateProjects,
     linkableUsers,
     complianceArtifacts,
+    documentsPanel,
     canReadRates,
     canManageCosts,
     canReadCompliance,
@@ -595,6 +601,19 @@ export default async function EmployeeDetailPage({
             </ul>
           )}
         </Card>
+      ) : null}
+
+      {documentsPanel ? (
+        <DocumentAttachments
+          ownerType="employee"
+          ownerId={employee.id}
+          documents={documentsPanel.documents}
+          linkCandidates={documentsPanel.linkCandidates}
+          canRead={documentsPanel.canRead}
+          canManage={documentsPanel.canManage}
+          storageConfigured={documentsPanel.storageConfigured}
+          canClassifyCompensation={documentsPanel.canClassifyCompensation}
+        />
       ) : null}
 
       {orgFrameworkConfigured && (allowManage || canManageCosts) ? (

@@ -303,7 +303,8 @@ async function itemsFromExpectedProgressBilling(
 /**
  * Org cash forecast with drilldown. Cash, not profit.
  * Billing uses open-net SQL (no 5,000-row list). Payroll and operating expense
- * dues are cash outflows. Open PO commitments stay undated — they have no due date.
+ * dues are cash outflows. Open PO commitments use expected_cash_date when set;
+ * a null date stays undated (orderedOn is never used as a cash date).
  * Dated retention releases come through billing kind `retention_release`. Held
  * retention is already netted inside open billing and AP cash outstanding.
  * Subcontractor cash is recognized AP linked to an agreement.

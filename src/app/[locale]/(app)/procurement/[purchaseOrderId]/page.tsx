@@ -12,6 +12,7 @@ import {
   isPurchaseOrderCancellable,
   isPurchaseOrderCloseable,
   isPurchaseOrderReceivable,
+  type PurchaseOrderLineQuantityFlags,
   type PurchaseOrderStatus,
 } from '@/modules/procurement';
 import { todayInTimeZone } from '@/shared/dates';
@@ -34,6 +35,49 @@ export async function generateMetadata({
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'procurement' });
   return { title: t('detail.title') };
+}
+
+function quantityFlagRows(
+  flags: PurchaseOrderLineQuantityFlags,
+  t: Awaited<ReturnType<typeof getTranslations>>,
+): readonly { id: string; label: string; warning: boolean }[] {
+  const rows: { id: string; label: string; warning: boolean }[] = [];
+  if (flags.invoicedGreaterThanReceived) {
+    rows.push({
+      id: 'invoicedGreaterThanReceived',
+      label: t('detail.quantities.invoicedGreaterThanReceived'),
+      warning: true,
+    });
+  }
+  if (flags.receivedGreaterThanOrdered) {
+    rows.push({
+      id: 'receivedGreaterThanOrdered',
+      label: t('detail.quantities.receivedGreaterThanOrdered'),
+      warning: true,
+    });
+  }
+  if (flags.invoicedWithoutReceipt) {
+    rows.push({
+      id: 'invoicedWithoutReceipt',
+      label: t('detail.quantities.invoicedWithoutReceipt'),
+      warning: true,
+    });
+  }
+  if (flags.partialReceipt) {
+    rows.push({
+      id: 'partialReceipt',
+      label: t('detail.quantities.partialReceipt'),
+      warning: false,
+    });
+  }
+  if (flags.partialInvoice) {
+    rows.push({
+      id: 'partialInvoice',
+      label: t('detail.quantities.partialInvoice'),
+      warning: false,
+    });
+  }
+  return rows;
 }
 
 function orderStatusShape(status: string): StatusShape {
@@ -173,11 +217,29 @@ export default async function PurchaseOrderDetailPage({
               </span>
             </div>
             <div className="flex items-baseline justify-between gap-2">
+              <span className="text-[var(--pf-text-muted)]">{t('detail.quantities.invoiced')}</span>
+              <span className="pf-numeric pf-ltr-island" dir="ltr">
+                {line.invoicedQuantity}
+              </span>
+            </div>
+            <div className="flex items-baseline justify-between gap-2">
               <span className="text-[var(--pf-text-muted)]">{t('receive.remaining')}</span>
               <span className="pf-numeric pf-ltr-island" dir="ltr">
                 {line.remainingQuantity}
               </span>
             </div>
+            {quantityFlagRows(line.quantityFlags, t).map((flag) => (
+              <p
+                key={flag.id}
+                className={
+                  flag.warning
+                    ? 'text-xs text-[var(--pf-status-warning-fg)]'
+                    : 'text-xs text-[var(--pf-text-muted)]'
+                }
+              >
+                {flag.label}
+              </p>
+            ))}
           </div>
         ))}
       </section>

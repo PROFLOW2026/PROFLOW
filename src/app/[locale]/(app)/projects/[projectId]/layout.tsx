@@ -32,6 +32,10 @@ import { ProjectTabsShell } from './project-tabs-shell';
 import { TabPanelSkeleton } from './tab-panel-skeleton';
 import { ProjectReportActions } from '@/modules/reports/ui';
 import { ProjectUwmLinks } from './project-uwm-links';
+import {
+  Project360Summary,
+  Project360SummaryFallback,
+} from '@/modules/projects/ui/project-360-summary';
 
 interface ProjectLayoutProps {
   children: React.ReactNode;
@@ -84,8 +88,16 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
   const businessProfileKey = shell?.businessProfileKey ?? null;
 
   // Jobs / work orders use dedicated routes - page owns redirect (preserves `?tab=`).
+  // The same summary still sits above whatever this layout renders for those kinds.
   if (detail.project.workKind === 'job' || detail.project.workKind === 'work_order') {
-    return <>{children}</>;
+    return (
+      <div className="flex flex-col gap-6">
+        <Suspense fallback={<Project360SummaryFallback />}>
+          <Project360Summary projectId={projectId} />
+        </Suspense>
+        {children}
+      </div>
+    );
   }
 
   const closeoutReady = closeoutStatus === 'ready';
@@ -225,6 +237,10 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
       />
 
       {showUwmLinks ? <ProjectUwmLinks projectId={projectId} /> : null}
+
+      <Suspense fallback={<Project360SummaryFallback />}>
+        <Project360Summary projectId={projectId} />
+      </Suspense>
 
       {/*
         Tab list must not sit behind the page Suspense - otherwise open-project

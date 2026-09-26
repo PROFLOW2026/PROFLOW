@@ -6,6 +6,7 @@ import type { OrgContext } from '@/shared/auth/context';
 import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
 import { assertAllPermissions } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { copyProspectContactsOntoClient } from './copy-prospect-contacts-to-client';
 import { findOpportunityById } from '../data/crm.repository';
 import {
   assertCanConvertOpportunity,
@@ -115,6 +116,13 @@ export async function convertWonOpportunity(
     opportunity.id,
   );
   if (!updated) throw new NotFoundError('Opportunity');
+
+  if (updated.prospectId && updated.convertedClientId) {
+    await copyProspectContactsOntoClient(context, {
+      prospectId: updated.prospectId,
+      clientId: updated.convertedClientId,
+    });
+  }
 
   await recordAuditEvent(context, {
     action: CRM_AUDIT_ACTIONS.OPPORTUNITY_CONVERTED,

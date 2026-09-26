@@ -3,7 +3,7 @@ import type { OrgContext } from '@/shared/auth/context';
 import { ValidationError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import { AUTOMATION_PRESET_KEYS, type AutomationPresetKey, type AutomationRuleRecord, type AutomationRunRecord } from '../domain/types';
+import { AUTOMATION_PRESET_KEYS, isUnavailableAutomationPreset, type AutomationPresetKey, type AutomationRuleRecord, type AutomationRunRecord } from '../domain/types';
 import {
   listAutomationRules,
   listAutomationRuns,
@@ -27,6 +27,7 @@ function parseOrThrow<T>(
 export interface AutomationPresetView {
   readonly presetKey: AutomationPresetKey;
   readonly enabled: boolean;
+  readonly available: boolean;
   readonly ruleId: string | null;
 }
 
@@ -41,9 +42,11 @@ export async function listAutomationPresets(context: OrgContext): Promise<{
   const byKey = new Map(rules.map((rule) => [rule.presetKey, rule]));
   const presets = AUTOMATION_PRESET_KEYS.map((presetKey) => {
     const rule = byKey.get(presetKey);
+    const available = !isUnavailableAutomationPreset(presetKey);
     return {
       presetKey,
-      enabled: rule?.enabled ?? false,
+      enabled: available && (rule?.enabled ?? false),
+      available,
       ruleId: rule?.id ?? null,
     };
   });
@@ -59,6 +62,11 @@ export async function setAutomationRuleEnabled(
 ): Promise<AutomationRuleRecord> {
   assertPermission(context, PERMISSIONS.AUTOMATIONS_MANAGE);
   const input = parseOrThrow(setAutomationRuleSchema.safeParse(raw));
+  if (input.enabled && isUnavailableAutomationPreset(input.presetKey)) {
+    throw new ValidationError([
+      { path: 'presetKey', message: 'This automation has no event source and cannot be turned on' },
+    ]);
+  }
   const rule = await upsertAutomationRule(context.db, {
     organizationId: context.organizationId,
     presetKey: input.presetKey,

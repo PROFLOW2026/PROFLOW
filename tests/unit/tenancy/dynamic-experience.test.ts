@@ -121,6 +121,12 @@ describe('project experience profiles', () => {
 describe('route capability + today bias', () => {
   it('maps deep links to optional modules', () => {
     expect(capabilityForPath('/he-IL/procurement/materials/x')).toBe('materials');
+    expect(capabilityForPath('/procurement')).toBe('procurement');
+    expect(capabilityForPath('/procurement/rfqs')).toBe('procurement');
+    expect(capabilityForPath('/procurement/ap')).toBeNull();
+    expect(capabilityForPath('/he-IL/procurement/ap/bill-1')).toBeNull();
+    expect(capabilityForPath('/safety')).toBe('safety');
+    expect(capabilityForPath('/month-close')).toBe('month_close');
     expect(capabilityForPath('/quotes/abc')).toBe('quotes');
     expect(capabilityForPath('/projects')).toBeNull();
   });

@@ -53,10 +53,12 @@ export default async function AutomationsPage() {
               <div>
                 <p className="font-medium">{t(`presets.${preset.presetKey}.name`)}</p>
                 <p className="text-sm text-[var(--pf-text-secondary)]">
-                  {t(`presets.${preset.presetKey}.hint`)}
+                  {preset.available
+                    ? t(`presets.${preset.presetKey}.hint`)
+                    : t('unavailable')}
                 </p>
               </div>
-              {canManage ? (
+              {canManage && preset.available ? (
                 <div className="flex flex-wrap gap-2">
                   <form action={toggleAutomationAction}>
                     <input type="hidden" name="presetKey" value={preset.presetKey} />

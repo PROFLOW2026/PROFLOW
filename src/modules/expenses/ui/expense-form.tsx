@@ -54,6 +54,8 @@ import { ExpenseApOverlapWarning } from '@/modules/financials/ui/expense-ap-over
 import { ExpenseVatModeSelector } from './expense-vat-mode-selector';
 import type { ExpenseVatMode } from '../domain/vat-mode';
 import { resolveExpenseVatMode } from '../domain/vat-mode';
+import type { SupplierBillReferenceRow } from '../domain/supplier-cost-guidance';
+import { SupplierCostGuidance } from './supplier-cost-guidance';
 
 const OVERHEAD_VALUE = '__overhead__';
 const NONE_VALUE = '__none__';
@@ -206,6 +208,11 @@ export interface ExpenseFormProps {
   readonly children?: React.ReactNode;
   /** Open AP bills for duplicate-capture warnings on create. */
   readonly apBillOverlapCandidates?: readonly ApBillOverlapCandidate[];
+  /**
+   * Non-void vendor bills used to warn when the description matches an invoice
+   * reference. Falls back to overlap candidates when omitted.
+   */
+  readonly supplierBillReferences?: readonly SupplierBillReferenceRow[];
   /** Saved org credit cards (optional). */
   readonly paymentInstruments?: readonly PaymentInstrumentRow[];
   /** Org-local today for default paid date. */
@@ -229,6 +236,7 @@ export function ExpenseForm({
   fieldErrors = {},
   children,
   apBillOverlapCandidates = [],
+  supplierBillReferences,
   paymentInstruments = [],
   defaultToday = '',
 }: ExpenseFormProps) {
@@ -712,6 +720,21 @@ export function ExpenseForm({
               setPaymentTermId(vendor.defaultPaymentTermId);
             }
           }}
+        />
+
+        <SupplierCostGuidance
+          vendorId={vendorId}
+          projectId={projectId || null}
+          referenceText={description}
+          bills={
+            supplierBillReferences ??
+            apBillOverlapCandidates.map((bill) => ({
+              id: bill.id,
+              vendorId: bill.vendorId,
+              reference: bill.reference,
+              status: bill.status,
+            }))
+          }
         />
 
         <div id="expense-category" className="scroll-mt-24">

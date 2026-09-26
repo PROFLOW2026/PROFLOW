@@ -53,6 +53,10 @@ function billingDetail(overrides: Partial<BillingRecordDetail> = {}): BillingRec
     voidsBillingRecordId: null,
     externalDocumentId: null,
     notes: 'חשבון ביצוע חודשי',
+    collectionContactedAt: null,
+    collectionNextFollowUpAt: null,
+    collectionPromiseToPayDate: null,
+    collectionNote: null,
     lines: [
       {
         id: 'line-1',

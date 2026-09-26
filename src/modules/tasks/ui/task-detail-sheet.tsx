@@ -254,7 +254,27 @@ type TaskEditDraft = {
   status: TaskStatus;
   priority: TaskPriority;
   dueDate: string | null;
+  contributesToProgress: boolean;
+  progressWeight: string;
 };
+
+function parseProgressWeightDraft(
+  raw: string,
+): { ok: true; value: number | null } | { ok: false } {
+  const trimmed = raw.trim();
+  if (trimmed === '') return { ok: true, value: null };
+  const value = Number(trimmed);
+  if (!Number.isFinite(value) || value < 0 || value > 999999.99) return { ok: false };
+  return { ok: true, value };
+}
+
+function sameProgressWeight(stored: string | null | undefined, draft: string): boolean {
+  const parsed = parseProgressWeightDraft(draft);
+  if (!parsed.ok) return false;
+  if (parsed.value == null) return stored == null || stored === '';
+  if (stored == null || stored === '') return false;
+  return Number(stored) === parsed.value;
+}
 
 export function TaskDetailSheet({
   task,
@@ -287,6 +307,8 @@ export function TaskDetailSheet({
       status: task.status,
       priority: task.priority,
       dueDate: task.dueDate,
+      contributesToProgress: task.contributesToProgress === true,
+      progressWeight: task.progressWeight ?? '',
     };
   }, [task]);
 
@@ -385,7 +407,9 @@ export function TaskDetailSheet({
       (draft.description.trim() || null) !== task.description ||
       draft.status !== task.status ||
       draft.priority !== task.priority ||
-      draft.dueDate !== task.dueDate
+      draft.dueDate !== task.dueDate ||
+      draft.contributesToProgress !== (task.contributesToProgress === true) ||
+      !sameProgressWeight(task.progressWeight, draft.progressWeight)
     );
   }, [task, draft]);
 
@@ -436,6 +460,17 @@ export function TaskDetailSheet({
             if (draft.status !== task.status) patch.status = draft.status;
             if (draft.priority !== task.priority) patch.priority = draft.priority;
             if (draft.dueDate !== task.dueDate) patch.dueDate = draft.dueDate;
+            if (draft.contributesToProgress !== (task.contributesToProgress === true)) {
+              patch.contributesToProgress = draft.contributesToProgress;
+            }
+            if (!sameProgressWeight(task.progressWeight, draft.progressWeight)) {
+              const weight = parseProgressWeightDraft(draft.progressWeight);
+              if (!weight.ok) {
+                setSaveMessage({ taskId, type: 'error', text: t('progressWeightInvalid') });
+                return;
+              }
+              patch.progressWeight = weight.value;
+            }
 
             const result = await handleUpdate(patch);
             if (result && 'error' in result && result.error) {
@@ -688,6 +723,46 @@ export function TaskDetailSheet({
                   ) : null}
                 </div>
               </Field>
+
+              {task.projectId ? (
+                <div className="flex flex-col gap-2">
+                  <label className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={draft?.contributesToProgress ?? false}
+                      onChange={(event) =>
+                        setDraft((current) =>
+                          current
+                            ? { ...current, contributesToProgress: event.target.checked }
+                            : current,
+                        )
+                      }
+                      className="size-4 cursor-pointer rounded border-[var(--pf-border-default)] accent-[var(--pf-action-primary)]"
+                    />
+                    <span>{t('countsTowardProjectProgress')}</span>
+                  </label>
+                  {draft?.contributesToProgress ? (
+                    <label className="flex flex-col gap-1 text-sm">
+                      <span className="text-xs font-semibold uppercase tracking-wide text-[var(--pf-text-muted)]">
+                        {t('progressWeightLabel')}
+                      </span>
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        value={draft.progressWeight}
+                        onChange={(event) =>
+                          setDraft((current) =>
+                            current ? { ...current, progressWeight: event.target.value } : current,
+                          )
+                        }
+                        placeholder="1"
+                        className="w-32 rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--pf-focus-ring)]"
+                      />
+                      <span className="text-xs text-[var(--pf-text-muted)]">{t('progressWeightHint')}</span>
+                    </label>
+                  ) : null}
+                </div>
+              ) : null}
 
               {onRecurrenceChange ? (
                 <TaskRecurrenceSection

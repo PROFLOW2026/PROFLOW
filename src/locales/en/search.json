@@ -27,6 +27,7 @@
   },
   "kinds": {
     "project": "Project",
+    "task": "Task",
     "job": "Job",
     "work_order": "Work order",
     "client": "Client",

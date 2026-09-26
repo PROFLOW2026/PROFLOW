@@ -21,6 +21,15 @@ import { RetentionCaptureFields } from '@/modules/retention/ui/retention-capture
 import type { ExpenseOverlapCandidate } from '@/modules/financials/domain/expense-ap-overlap';
 import { findSimilarFinalizedExpensesForBill } from '@/modules/financials/domain/expense-ap-overlap';
 import { ExpenseApOverlapWarning } from '@/modules/financials/ui/expense-ap-overlap-warning';
+import {
+  findExpensesForVendorReference,
+  findNonVoidBillsForVendorReference,
+  type SupplierBillReferenceRow,
+} from '@/modules/expenses/domain/supplier-cost-guidance';
+import {
+  DuplicateVendorBillReferenceWarning,
+  SupplierExpenseMatchAffordance,
+} from '@/modules/ap/ui/supplier-bill-reference-warnings';
 import { createApBillAction, type ApFormState } from '../actions';
 
 const NONE = '__none__';
@@ -71,7 +80,10 @@ export function ApBillCreateForm({
   paymentTerms,
   costCategories,
   defaultPurchaseOrderId = '',
+  defaultVendorId = '',
+  defaultProjectId = '',
   expenseOverlapCandidates = [],
+  existingBills = [],
   inventoryItems = [],
 }: {
   defaultCurrency: string;
@@ -85,7 +97,10 @@ export function ApBillCreateForm({
   paymentTerms: readonly { id: string; name: string }[];
   costCategories: readonly { id: string; key: string; name: string; family: string }[];
   defaultPurchaseOrderId?: string;
+  defaultVendorId?: string;
+  defaultProjectId?: string;
   expenseOverlapCandidates?: readonly ExpenseOverlapCandidate[];
+  existingBills?: readonly SupplierBillReferenceRow[];
   inventoryItems?: readonly { id: string; name: string }[];
 }) {
   const t = useTranslations('ap.create');
@@ -93,11 +108,29 @@ export function ApBillCreateForm({
   const [state, formAction, pending] = useActionState<ApFormState, FormData>(createApBillAction, {});
 
   const initialPo = purchaseOrders.find((po) => po.id === defaultPurchaseOrderId) ?? null;
-  const [vendorId, setVendorId] = useState(initialPo?.vendorId ?? '');
-  const [projectId, setProjectId] = useState('');
+  const [vendorId, setVendorId] = useState(() => {
+    if (initialPo?.vendorId) return initialPo.vendorId;
+    if (defaultVendorId && vendors.some((vendor) => vendor.id === defaultVendorId)) {
+      return defaultVendorId;
+    }
+    return '';
+  });
+  const [projectId, setProjectId] = useState(() =>
+    defaultProjectId && projects.some((project) => project.id === defaultProjectId)
+      ? defaultProjectId
+      : '',
+  );
+  const [reference, setReference] = useState('');
+  const [acknowledgeDuplicateReference, setAcknowledgeDuplicateReference] = useState(false);
+  const [linkExpenseId, setLinkExpenseId] = useState('');
   const [purchaseOrderId, setPurchaseOrderId] = useState(initialPo?.id ?? '');
   const [paymentTermId, setPaymentTermId] = useState(() => {
-    const vendor = vendors.find((row) => row.id === (initialPo?.vendorId ?? ''));
+    const id =
+      initialPo?.vendorId ??
+      (defaultVendorId && vendors.some((vendor) => vendor.id === defaultVendorId)
+        ? defaultVendorId
+        : '');
+    const vendor = vendors.find((row) => row.id === id);
     return vendor?.defaultPaymentTermId ?? '';
   });
   const [lines, setLines] = useState<LineDraft[]>([emptyLine()]);
@@ -148,6 +181,32 @@ export function ApBillCreateForm({
     [currency, lines, costCategories],
   );
 
+  const duplicateReferenceHits = useMemo(
+    () =>
+      findNonVoidBillsForVendorReference({ vendorId, reference }, existingBills).map((bill) => ({
+        id: bill.id,
+        label: bill.reference?.trim() || bill.id.slice(0, 8),
+        href: `/procurement/ap/${bill.id}`,
+      })),
+    [existingBills, reference, vendorId],
+  );
+
+  const expenseReferenceHits = useMemo(
+    () =>
+      findExpensesForVendorReference({ vendorId, reference }, expenseOverlapCandidates).map(
+        (expense) => ({
+          id: expense.id,
+          label: expense.description?.trim() || expense.id.slice(0, 8),
+          href: `/expenses/${expense.id}`,
+        }),
+      ),
+    [expenseOverlapCandidates, reference, vendorId],
+  );
+
+  const selectedLinkExpenseId = expenseReferenceHits.some((hit) => hit.id === linkExpenseId)
+    ? linkExpenseId
+    : '';
+
   const overlapHits = useMemo(() => {
     if (!vendorId || Number(totalAmount) <= 0) return [];
     return findSimilarFinalizedExpensesForBill(
@@ -172,10 +231,20 @@ export function ApBillCreateForm({
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
       <ExpenseApOverlapWarning hits={overlapHits} namespace="ap.create" />
       <label className="flex items-start gap-2 text-sm">
-        <input type="checkbox" name="confirmDistinctCosts" value="true" className="mt-1" />
+        <input
+          type="checkbox"
+          name="confirmDistinctCosts"
+          value="true"
+          className="mt-1"
+          checked={acknowledgeDuplicateReference}
+          onChange={(event) => setAcknowledgeDuplicateReference(event.target.checked)}
+        />
         <span>{t('overlapConfirmDistinct')}</span>
       </label>
 
+      {selectedLinkExpenseId ? (
+        <input type="hidden" name="linkExpenseId" value={selectedLinkExpenseId} />
+      ) : null}
       <input type="hidden" name="currency" value={currency} />
       <input type="hidden" name="totalAmount" value={totalAmount} />
       <input type="hidden" name="lines" value={linesPayload} />
@@ -260,8 +329,29 @@ export function ApBillCreateForm({
       </Field>
 
       <Field label={t('referenceLabel')}>
-        {(props) => <Input {...props} name="reference" />}
+        {(props) => (
+          <Input
+            {...props}
+            name="reference"
+            value={reference}
+            onChange={(event) => {
+              setReference(event.target.value);
+              setAcknowledgeDuplicateReference(false);
+            }}
+          />
+        )}
       </Field>
+
+      <DuplicateVendorBillReferenceWarning
+        hits={duplicateReferenceHits}
+        acknowledged={acknowledgeDuplicateReference}
+        onAcknowledgedChange={setAcknowledgeDuplicateReference}
+      />
+      <SupplierExpenseMatchAffordance
+        hits={expenseReferenceHits}
+        selectedExpenseId={selectedLinkExpenseId}
+        onSelectExpenseId={setLinkExpenseId}
+      />
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label={t('billDateLabel')}>
@@ -525,7 +615,15 @@ export function ApBillCreateForm({
 
       <p className="text-sm text-[var(--pf-text-secondary)]">{t('actualVsPayableHint')}</p>
 
-      <Button type="submit" loading={pending} disabled={!vendorId}>
+      {duplicateReferenceHits.length > 0 && !acknowledgeDuplicateReference ? (
+        <p className="text-sm text-[var(--pf-status-warning-fg)]">{t('duplicateReferenceBlocked')}</p>
+      ) : null}
+
+      <Button
+        type="submit"
+        loading={pending}
+        disabled={!vendorId || (duplicateReferenceHits.length > 0 && !acknowledgeDuplicateReference)}
+      >
         {pending ? tCommon('states.saving') : t('submit')}
       </Button>
     </form>

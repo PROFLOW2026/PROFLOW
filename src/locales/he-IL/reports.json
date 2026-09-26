@@ -98,7 +98,15 @@
     "service_completion": "דוח השלמת שירות קפוא להזמנת עבודה שהושלמה.",
     "timesheet": "סיכום תקופת שעות. לא שכר.",
     "project_billing_account": "חשבון התקדמות ניהולי - לא חשבונית מס רשמית. חיוב בלבד, לא תשלום.",
-    "project_billing_plan_status": "לוח מתוכנן, חויב מול מתוכנן, חוזה שלא חויב, עיכבון, חיוב הבא ואחוז השלמה."
+    "project_billing_plan_status": "לוח מתוכנן, חויב מול מתוכנן, חוזה שלא חויב, עיכבון, חיוב הבא ואחוז השלמה.",
+    "project_task_status": "ספירת משימות לפי סטטוס בפרויקט שנבחר.",
+    "overdue_tasks_org": "משימות פתוחות שעבר מועד היעד שלהן בסביבות עבודה נגישות.",
+    "milestone_status": "סטטוס אבני דרך בפרויקטים נגישים.",
+    "team_workload": "משימות פתוחות, באיחור וליעד השבוע לפי עובד.",
+    "portfolio_status": "פרויקטים נגישים עם ספירת משימות פתוחות, באיחור וחסומות.",
+    "stage_distribution": "פרויקטים נגישים לפי השלב הנוכחי.",
+    "stale_projects": "פרויקטים פעילים בלי פעילות משימות ב-14 הימים האחרונים.",
+    "approval_queue_status": "בקשות אישור שהוגשו, לפי סוג."
   },
   "natures": {
     "actual": "בפועל",
@@ -169,7 +177,15 @@
     "recentPeriods": "תקופות אחרונות",
     "openSafetyActions": "פעולות בטיחות פתוחות",
     "safetyKpis": "מדדי בטיחות",
-    "openCorrectiveActions": "פעולות מתקנות פתוחות"
+    "openCorrectiveActions": "פעולות מתקנות פתוחות",
+    "taskStatus": "סטטוס משימות",
+    "overdueTasks": "משימות באיחור",
+    "milestones": "אבני דרך",
+    "teamWorkload": "עומס צוות",
+    "portfolioProjects": "פרויקטים בתיק",
+    "stageDistribution": "פרויקטים לפי שלב",
+    "staleProjects": "פרויקטים לא פעילים",
+    "approvalQueue": "תור אישורים"
   },
   "fields": {
     "originalContract": "ערך חוזה מקורי נטו",
@@ -299,7 +315,20 @@
     "criticalHighRecords": "רשומות קריטיות / גבוהות",
     "date": "תאריך",
     "hours": "שעות",
-    "notes": "הערות"
+    "notes": "הערות",
+    "tasksTotal": "משימות",
+    "listed": "ברשימה",
+    "overdueTasks": "משימות באיחור",
+    "openTasks": "משימות פתוחות",
+    "blockedTasks": "משימות חסומות",
+    "dueThisWeek": "ליעד השבוע",
+    "projectsAssigned": "פרויקטים משויכים",
+    "estimatedMinutes": "דקות משוערות",
+    "projectsListed": "פרויקטים",
+    "milestonesListed": "אבני דרך",
+    "employeesListed": "עובדים",
+    "noStage": "ללא שלב",
+    "pendingSubmitted": "אישורים שהוגשו"
   },
   "phrases": {
     "outstanding": "יתרה פתוחה",
@@ -332,7 +361,12 @@
     "retentionCashTiming": "עיכבון הוא עיתוי מזומן, לא יתרת חוזה לאחר עלויות מוכרות.",
     "applicationSnapshot": "תמונת מצב יישומית.",
     "operationalMonthClose": "סגירת חודש תפעולית, לא סגירה חשבונאית סטטוטורית.",
-    "applicationReport": "דוח יישומי."
+    "applicationReport": "דוח יישומי.",
+    "listCapped": "הרשימה חסומה בתקרה. הספירה היא מספר השורות שהוחזרו, לא סך גדול יותר.",
+    "showingPartial": "מוצגות {shown} מתוך {total}.",
+    "portfolioPartial": "נטענו {loaded} מתוך {total} פרויקטים. סיכומים שדורשים את כל הפרויקטים הושמטו.",
+    "staleWindow": "פרויקטים פעילים בלי פעילות משימות ב-14 הימים האחרונים.",
+    "approvalListCapped": "רשימת הפריטים הממתינים חסומה בתקרה. ספירות הסוג למעלה הן כל התור שהוגש."
   },
   "empty": {
     "boq": "אין כתב כמויות פעיל בפרויקט זה.",
@@ -360,7 +394,15 @@
     "noOpenOpportunities": "אין הזדמנויות פתוחות.",
     "noLeads": "אין לידים.",
     "noCompletenessChecks": "אין בדיקות שלמות לחודש זה.",
-    "noOpenCorrectiveActions": "אין פעולות מתקנות פתוחות בפרויקטים נגישים."
+    "noOpenCorrectiveActions": "אין פעולות מתקנות פתוחות בפרויקטים נגישים.",
+    "noProjectTasks": "אין משימות נגישות בפרויקט זה.",
+    "noOverdueTasks": "אין משימות פתוחות באיחור בסביבות עבודה נגישות.",
+    "noMilestones": "אין אבני דרך בפרויקטים נגישים.",
+    "noWorkloadRows": "אין עובדים פעילים להצגה.",
+    "noPortfolioProjects": "אין פרויקטים נגישים בתיק.",
+    "noStaleProjects": "אין פרויקטים פעילים ללא פעילות בחלון זה.",
+    "noPendingApprovals": "אין בקשות אישור שהוגשו.",
+    "stageNeedsPortfolio": "השלב הנוכחי נקרא מהתיק, ונדרשת הרשאת portfolio.read."
   },
   "omitted": {
     "profit": "יתרת חוזה לאחר עלויות מוכרות",

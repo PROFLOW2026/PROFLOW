@@ -12,10 +12,15 @@ import { getClientById } from './list-clients';
 
 const AR_LIST_LIMIT = 5_000;
 const RECENT_LIMIT = 8;
+const SECTION_LIMIT = 20;
 
 export interface ClientFinancialView {
   readonly snapshot: ClientReceivablesSnapshot;
   readonly recentBilling: readonly BillingRecordSummary[];
+  /** Unpaid and not yet past due (`open` or `partial`). */
+  readonly openBilling: readonly BillingRecordSummary[];
+  /** Past-due unpaid records. Totals on the snapshot include every record. */
+  readonly overdueBilling: readonly BillingRecordSummary[];
   readonly recentPayments: readonly PaymentApplicationRow[];
 }
 
@@ -38,9 +43,44 @@ export async function getClientFinancials(
     listPaymentApplications(context, { clientId, limit: RECENT_LIMIT }),
   ]);
 
+  const { openBilling, overdueBilling } = partitionClientBilling(records);
+
   return {
     snapshot: computeClientReceivablesSnapshot(records, currency, asOf),
     recentBilling: records.slice(0, RECENT_LIMIT),
+    openBilling,
+    overdueBilling,
     recentPayments: payments,
+  };
+}
+
+function partitionClientBilling(records: readonly BillingRecordSummary[]): {
+  openBilling: BillingRecordSummary[];
+  overdueBilling: BillingRecordSummary[];
+} {
+  const openBilling: BillingRecordSummary[] = [];
+  const overdueBilling: BillingRecordSummary[] = [];
+
+  for (const record of records) {
+    if (record.collectionStatus === 'overdue') overdueBilling.push(record);
+    else if (record.collectionStatus === 'open' || record.collectionStatus === 'partial') {
+      openBilling.push(record);
+    }
+  }
+
+  overdueBilling.sort((left, right) => {
+    if (left.dueDate && right.dueDate) {
+      if (left.dueDate < right.dueDate) return -1;
+      if (left.dueDate > right.dueDate) return 1;
+      return 0;
+    }
+    if (left.dueDate) return -1;
+    if (right.dueDate) return 1;
+    return 0;
+  });
+
+  return {
+    openBilling: openBilling.slice(0, SECTION_LIMIT),
+    overdueBilling: overdueBilling.slice(0, SECTION_LIMIT),
   };
 }

@@ -98,7 +98,15 @@
     "service_completion": "تقرير إنجاز خدمة مجمّد لأمر عمل مكتمل.",
     "timesheet": "ملخص فترة جدول ساعات. وليس رواتب.",
     "project_billing_account": "حساب تقدم إداري — وليس فاتورة ضريبية رسمية. فوترة فقط، وليس دفعة.",
-    "project_billing_plan_status": "جدول مخطّط، مُفوتر مقابل مخطّط، عقد غير مُفوتر، حجز، فوترة تالية، و% إنجاز."
+    "project_billing_plan_status": "جدول مخطّط، مُفوتر مقابل مخطّط، عقد غير مُفوتر، حجز، فوترة تالية، و% إنجاز.",
+    "project_task_status": "عدد المهام حسب الحالة للمشروع المحدد.",
+    "overdue_tasks_org": "مهام مفتوحة تجاوزت تاريخ الاستحقاق في مساحات العمل المتاحة.",
+    "milestone_status": "حالة المعالم في المشاريع المتاحة.",
+    "team_workload": "مهام مفتوحة ومتأخرة ومستحقة هذا الأسبوع لكل موظف.",
+    "portfolio_status": "مشاريع متاحة مع عدد المهام المفتوحة والمتأخرة والمتوقفة.",
+    "stage_distribution": "المشاريع المتاحة مجمّعة حسب المرحلة الحالية.",
+    "stale_projects": "مشاريع نشطة بلا نشاط مهام خلال 14 يومًا.",
+    "approval_queue_status": "طلبات موافقة مُرسلة حسب النوع."
   },
   "natures": {
     "actual": "فعلي",
@@ -169,7 +177,15 @@
     "recentPeriods": "فترات حديثة",
     "openSafetyActions": "إجراءات سلامة مفتوحة",
     "safetyKpis": "مؤشرات سلامة",
-    "openCorrectiveActions": "إجراءات تصحيحية مفتوحة"
+    "openCorrectiveActions": "إجراءات تصحيحية مفتوحة",
+    "taskStatus": "حالة المهام",
+    "overdueTasks": "المهام المتأخرة",
+    "milestones": "المعالم",
+    "teamWorkload": "عبء عمل الفريق",
+    "portfolioProjects": "مشاريع المحفظة",
+    "stageDistribution": "المشاريع حسب المرحلة",
+    "staleProjects": "المشاريع غير النشطة",
+    "approvalQueue": "قائمة الموافقات"
   },
   "fields": {
     "originalContract": "قيمة عقد أصلية صافية",
@@ -299,7 +315,20 @@
     "criticalHighRecords": "سجلات حرجة/عالية",
     "date": "التاريخ",
     "hours": "ساعات",
-    "notes": "ملاحظات"
+    "notes": "ملاحظات",
+    "tasksTotal": "المهام",
+    "listed": "في القائمة",
+    "overdueTasks": "مهام متأخرة",
+    "openTasks": "مهام مفتوحة",
+    "blockedTasks": "مهام متوقفة",
+    "dueThisWeek": "مستحقة هذا الأسبوع",
+    "projectsAssigned": "مشاريع مُسندة",
+    "estimatedMinutes": "دقائق مقدّرة",
+    "projectsListed": "المشاريع",
+    "milestonesListed": "المعالم",
+    "employeesListed": "الموظفون",
+    "noStage": "بلا مرحلة",
+    "pendingSubmitted": "موافقات مُرسلة"
   },
   "phrases": {
     "outstanding": "متبقٍ",
@@ -332,7 +361,12 @@
     "retentionCashTiming": "الحجز توقيت نقدي، وليس ربحاً.",
     "applicationSnapshot": "لقطة تطبيق.",
     "operationalMonthClose": "إغلاق شهر تشغيلي، وليس إغلاق محاسبة نظامي.",
-    "applicationReport": "تقرير تطبيق."
+    "applicationReport": "تقرير تطبيق.",
+    "listCapped": "هذه القائمة محدودة السقف. العدد هو صفوف النتيجة، وليس إجماليًا أكبر.",
+    "showingPartial": "يُعرض {shown} من {total}.",
+    "portfolioPartial": "تم تحميل {loaded} من {total} مشروعًا. أُغفلت الإجماليات التي تحتاج كل المشاريع.",
+    "staleWindow": "مشاريع نشطة بلا نشاط مهام خلال آخر 14 يومًا.",
+    "approvalListCapped": "قائمة العناصر المعلقة محدودة السقف. أعداد الأنواع أعلاه هي كل الطلبات المُرسلة."
   },
   "empty": {
     "boq": "لا كشف كميات نشط على هذا المشروع.",
@@ -360,7 +394,15 @@
     "noOpenOpportunities": "لا فرص مفتوحة في خط الأنابيب.",
     "noLeads": "لا عملاء محتملين مسجّلين.",
     "noCompletenessChecks": "لا فحوصات اكتمال مناسبة لهذا الشهر.",
-    "noOpenCorrectiveActions": "لا إجراءات تصحيحية مفتوحة على مشاريع متاحة."
+    "noOpenCorrectiveActions": "لا إجراءات تصحيحية مفتوحة على مشاريع متاحة.",
+    "noProjectTasks": "لا مهام متاحة في هذا المشروع.",
+    "noOverdueTasks": "لا مهام مفتوحة متأخرة في مساحات العمل المتاحة.",
+    "noMilestones": "لا معالم في المشاريع المتاحة.",
+    "noWorkloadRows": "لا موظفون نشطون للعرض.",
+    "noPortfolioProjects": "لا مشاريع متاحة في المحفظة.",
+    "noStaleProjects": "لا مشاريع نشطة خاملة في هذه النافذة.",
+    "noPendingApprovals": "لا طلبات موافقة مُرسلة.",
+    "stageNeedsPortfolio": "المرحلة الحالية تُقرأ من المحفظة، وتتطلب portfolio.read."
   },
   "omitted": {
     "profit": "ربح",

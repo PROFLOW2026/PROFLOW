@@ -69,6 +69,7 @@ function chrome(projectId = 'proj-1'): ProjectDetailChrome {
       targetEndDate: '2026-12-31',
       actualEndDate: null,
       progressPercent: '40',
+      progressSource: 'manual',
       progressStatus: 'on_track',
       notes: null,
       archivedAt: null,

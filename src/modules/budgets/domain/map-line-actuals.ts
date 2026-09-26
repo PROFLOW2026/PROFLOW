@@ -27,9 +27,11 @@ import {
  * Discipline and cost-code keys are not carried by the expense/AP model, so
  * those lines stay unmapped - never guessed.
  *
- * Remaining commitment and project ETC are not split across detail lines.
- * Forecast on a mapped detail line is Actual + that line's `etcAmount` when
- * set; otherwise Forecast = Actual.
+ * Remaining commitment and project ETC (`expectedRemainingCost`) stay on the
+ * engine total. A line's `etcAmount` is planning only: it is shown on that
+ * line and is never added again on top of the project expected remaining cost.
+ * The line's planning forecast is Actual + that line ETC when set; otherwise
+ * it equals Actual. That planning figure is not the project Forecast.
  */
 export type BudgetLineRowKind = 'budget_line' | 'unmapped_remainder';
 
@@ -194,6 +196,7 @@ function mappedDetailMetrics(
 ): BudgetLineControlMetrics {
   const budget = moneyFromBudgetAmount(line.budgetAmount, currency);
   const etc = line.etcAmount != null ? moneyFromBudgetAmount(line.etcAmount, currency) : null;
+  // Planning forecast for this line only. Not folded into project expectedRemainingCost.
   const forecast = etc ? roundMoney(addMoney(actual, etc)) : actual;
   return {
     budget,

@@ -31,6 +31,9 @@ import type { CostSourceKey, FinancialCoverage } from '@/modules/financials/doma
 import type { OrgContext } from '@/shared/auth/context';
 import { endOfMonth, todayInTimeZone, type BusinessDate } from '@/shared/dates';
 import { addMoney, fromNumericString, isZeroMoney, money, zeroMoney, type MoneyValue } from '@/shared/money';
+import { getOpeningCashBalanceForOrg } from '@/modules/tenancy/application/opening-cash-balance';
+import { buildRunningCashPosition, type CashRunningPosition } from '../domain/running-cash-position';
+import { getOrganizationCashFlowForecast } from './get-organization-cash-flow-forecast';
 import { computeMarginPercent } from '../domain/profit';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -160,6 +163,14 @@ export interface HomeDashboardProjectTableRow {
   readonly status: string;
 }
 
+/** Owner cash forecast from the existing forecast loader plus opening cash. */
+export interface HomeCashForecast {
+  readonly position: CashRunningPosition;
+  readonly openingRecorded: boolean;
+  readonly openingAsOf: BusinessDate | null;
+  readonly showInflows: boolean;
+}
+
 export interface HomeDashboardData {
   readonly isBrandNew: boolean;
   readonly activeProjectCount: number;
@@ -255,6 +266,11 @@ export interface HomeDashboardData {
   readonly quickAccessShortcuts: readonly DashboardQuickAccessDefinition[];
   /** Preloaded operands for KPI detail modals (same values as dashboard KPIs). */
   readonly kpiBreakdown: HomeDashboardKpiBreakdown | null;
+  /**
+   * Running cash over the existing forecast. Null when the user cannot read
+   * project financials, or on the empty-org dashboard.
+   */
+  readonly cashForecast: HomeCashForecast | null;
 }
 
 export interface HomeDashboardOptions {
@@ -510,8 +526,13 @@ export async function getHomeDashboard(
       selectedMonth: effectiveSelectedMonth,
       workKindFilter: options.workKindFilter ?? null,
       kpiBreakdown: null,
+      cashForecast: null,
     };
   }
+
+  const cashForecastPromise = canReadFinancials
+    ? loadOwnerCashForecast(context)
+    : Promise.resolve(null);
 
   const wantBilling = canReadBilling && hasBilling;
   const wantMonthInvoiced =
@@ -927,6 +948,8 @@ export async function getHomeDashboard(
     }
   }
 
+  const cashForecast = await cashForecastPromise;
+
   return {
     isBrandNew,
     activeProjectCount,
@@ -973,6 +996,28 @@ export async function getHomeDashboard(
     contractNetInvoiced,
     quickAccessShortcuts,
     kpiBreakdown,
+    cashForecast,
+  };
+}
+
+async function loadOwnerCashForecast(context: OrgContext): Promise<HomeCashForecast> {
+  const [forecast, opening] = await Promise.all([
+    getOrganizationCashFlowForecast(context),
+    getOpeningCashBalanceForOrg(context),
+  ]);
+  const currency = forecast.currency;
+  const usable =
+    opening != null && opening.currency.toUpperCase() === currency.toUpperCase();
+  const openingMoney = usable ? money(opening.amount, currency) : zeroMoney(currency);
+  return {
+    position: buildRunningCashPosition({
+      opening: openingMoney,
+      asOf: forecast.asOf,
+      items: forecast.items,
+    }),
+    openingRecorded: usable,
+    openingAsOf: usable ? opening.asOf : null,
+    showInflows: forecast.showInflows,
   };
 }
 

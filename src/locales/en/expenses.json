@@ -20,7 +20,12 @@
     "overlapWarningTitle": "This expense may already exist as a vendor bill",
     "overlapWarningBody": "A vendor bill with the same vendor and a similar amount was found. This is a warning only. Both records stay and stay counted until you confirm they are the same expense.",
     "overlapWarningHint": "Same expense: open the bill and accept a match. Separate expenses: keep both. Nothing is deleted or removed automatically.",
-    "overlapConfirmDistinct": "These are separate expenses"
+    "overlapConfirmDistinct": "These are separate expenses",
+    "vendorBillGuidanceTitle": "A supplier invoice is a vendor bill",
+    "vendorBillGuidanceBody": "Record the supplier invoice as a vendor bill. The bill is the payable and the recognized cost. You can still save this expense for petty cash or a separate cost. If you keep both, link them with a match so the expense is deducted and the cost is counted once.",
+    "vendorBillGuidanceLink": "Create a vendor bill",
+    "referenceMatchTitle": "This reference is already on a vendor bill",
+    "referenceMatchBody": "A non-void vendor bill for this supplier already uses this reference. Open that bill instead of recording the same cost again. Saving this expense is still allowed."
   },
   "detail": {
     "title": "Expense",

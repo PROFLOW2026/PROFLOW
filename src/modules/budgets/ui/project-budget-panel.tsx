@@ -4,37 +4,50 @@ import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { withOrgContext } from '@/shared/auth/session';
 import { fromNumericString, zeroMoney } from '@/shared/money/money';
+import { captureCurrentMarginSnapshot } from '@/modules/financials/application/capture-margin-snapshot';
 import { loadCachedProjectFinancials } from '@/modules/financials/application/load-cached-project-financials';
+import type { MarginTrendPoint } from '@/modules/financials/domain/margin-trend';
 import { DEFAULT_PROJECT_PROFITABILITY_MODE } from '@/modules/tenancy/domain/project-profitability-mode';
 import { getProjectBudgetWorkspace } from '../application/queries';
 import { BudgetVarianceSummary } from './budget-variance-summary';
 import { BudgetLineControlList } from './budget-line-control-list';
 import { BudgetManageForms } from './budget-manage-forms';
+import { MarginTrendList } from './margin-trend-list';
 
 export interface ProjectBudgetPanelProps {
   readonly projectId: string;
 }
 
 export async function ProjectBudgetPanel({ projectId }: ProjectBudgetPanelProps) {
-  const [t, locale] = await Promise.all([getTranslations('budgets'), getLocale()]);
+  const [t, tForecast, locale] = await Promise.all([
+    getTranslations('budgets'),
+    getTranslations('forecast'),
+    getLocale(),
+  ]);
 
   const workspace = await withOrgContext(async (context) => {
     const canReadFinancials = hasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ);
     const financialsPromise = canReadFinancials
       ? loadCachedProjectFinancials(projectId)
       : null;
-    const data = await getProjectBudgetWorkspace(context, projectId, {
-      costPromise: financialsPromise
-        ? financialsPromise.then((row) => row.cost)
-        : Promise.resolve(null),
-      profitabilityModePromise: financialsPromise
-        ? financialsPromise.then(
-            (row) => row.projectProfitabilityMode ?? DEFAULT_PROJECT_PROFITABILITY_MODE,
-          )
-        : undefined,
-    });
+    const [data, trend] = await Promise.all([
+      getProjectBudgetWorkspace(context, projectId, {
+        costPromise: financialsPromise
+          ? financialsPromise.then((row) => row.cost)
+          : Promise.resolve(null),
+        profitabilityModePromise: financialsPromise
+          ? financialsPromise.then(
+              (row) => row.projectProfitabilityMode ?? DEFAULT_PROJECT_PROFITABILITY_MODE,
+            )
+          : undefined,
+      }),
+      financialsPromise
+        ? financialsPromise.then((row) => captureCurrentMarginSnapshot(context, row))
+        : Promise.resolve([] as readonly MarginTrendPoint[]),
+    ]);
     return {
       ...data,
+      trend,
       canManage: hasPermission(context, PERMISSIONS.BUDGETS_MANAGE),
       baseCurrency: context.organization.baseCurrency,
     };
@@ -53,22 +66,41 @@ export async function ProjectBudgetPanel({ projectId }: ProjectBudgetPanelProps)
       </div>
 
       {workspace.control ? (
-        <BudgetVarianceSummary
-          control={workspace.control}
-          hasEngineActual={workspace.hasEngineActual}
-          labels={{
-            budget: t('metrics.budget'),
-            actual: t('metrics.actual'),
-            remainingCommitment: t('metrics.remainingCommitment'),
-            etc: t('metrics.etc'),
-            forecast: forecastLabel,
-            variance: varianceLabel,
-            engineMissing: t('metrics.engineMissing'),
-          }}
-        />
+        <div className="flex min-w-0 flex-col gap-2">
+          <BudgetVarianceSummary
+            control={workspace.control}
+            hasEngineActual={workspace.hasEngineActual}
+            labels={{
+              budget: t('metrics.budget'),
+              actual: t('metrics.actual'),
+              remainingCommitment: t('metrics.committed'),
+              etc: t('metrics.etc'),
+              forecast: forecastLabel,
+              variance: varianceLabel,
+              engineMissing: t('metrics.engineMissing'),
+            }}
+          />
+          <p className="text-xs text-[var(--pf-text-muted)]">{t('metrics.positionNote')}</p>
+          <p className="text-xs text-[var(--pf-text-muted)]">{tForecast('budgetVersusForecast.note')}</p>
+        </div>
       ) : (
         <p className="text-sm text-[var(--pf-text-secondary)]">{t('panel.empty')}</p>
       )}
+
+      <MarginTrendList
+        rows={workspace.trend}
+        labels={{
+          title: t('trend.title'),
+          hint: t('trend.hint'),
+          month: t('trend.month'),
+          actualMargin: t('trend.actualMargin'),
+          forecastMargin: t('trend.forecastMargin'),
+          actualCost: t('trend.actualCost'),
+          forecastCost: t('trend.forecastCost'),
+          contractValue: t('trend.contractValue'),
+          unavailable: t('trend.unavailable'),
+        }}
+      />
 
       {workspace.budget && workspace.lineControls.length > 0 ? (
         <div className="flex min-w-0 flex-col gap-2">
@@ -96,9 +128,11 @@ export async function ProjectBudgetPanel({ projectId }: ProjectBudgetPanelProps)
               engineTotalStatus: t('lines.engineTotalStatus'),
               budget: t('metrics.budget'),
               actual: t('metrics.actual'),
-              remainingCommitment: t('metrics.remainingCommitment'),
+              remainingCommitment: t('metrics.committed'),
               etc: t('metrics.etc'),
+              etcPlanning: t('lines.etcPlanning'),
               forecast: forecastLabel,
+              forecastPlanning: t('lines.forecastPlanning'),
               variance: varianceLabel,
               lineTypes: {
                 total: t('lineTypes.total'),

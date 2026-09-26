@@ -44,6 +44,11 @@ export interface OpenCommitmentCashRow {
   readonly projectId: string | null;
   readonly amount: string;
   readonly currency: string;
+  /**
+   * PO expected cash-out date. Null stays undated.
+   * Never derived from orderedOn.
+   */
+  readonly expectedCashDate: BusinessDate | null;
 }
 
 function sameCurrency(amount: MoneyValue, currency: string): boolean {
@@ -152,8 +157,8 @@ export function payrollObligationCashItems(
 }
 
 /**
- * Open PO commitments have no cash due date. They stay undated so the source is
- * visible without inventing a payment day.
+ * Open PO commitments use expected_cash_date when the PO records one
+ * (certainty `expected`). A null date stays undated. orderedOn is never used.
  */
 export function openCommitmentCashItems(
   rows: readonly OpenCommitmentCashRow[],
@@ -169,13 +174,14 @@ export function openCommitmentCashItems(
       continue;
     }
     if (!isPositiveMoney(amount)) continue;
+    const dueDate = row.expectedCashDate;
     items.push({
       id: `commitment:${row.id}`,
       href: `/procurement/${row.purchaseOrderId}`,
       label: row.reference?.trim() || row.purchaseOrderId,
       amount,
-      dueDate: null,
-      certainty: 'uncertain',
+      dueDate,
+      certainty: dueDate ? 'expected' : 'uncertain',
       direction: 'out',
       sourceType: 'commitment',
       projectId: row.projectId,

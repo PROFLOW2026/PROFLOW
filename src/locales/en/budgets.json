@@ -8,13 +8,15 @@
     "budget": "Budget (internal)",
     "actual": "Actual",
     "remainingCommitment": "Remaining commitment",
+    "committed": "Committed",
     "etc": "ETC",
     "forecast": "Forecast",
     "forecastFull": "Forecast (including general costs)",
     "variance": "Variance (Budget - Forecast)",
     "varianceFull": "Variance (Budget - Full Forecast)",
     "contractNote": "Contract value lives under Financials / Changes — budget lines never replace it.",
-    "engineMissing": "Actual and Forecast need project financials permission. Budget figures still show."
+    "engineMissing": "Actual and Forecast need project financials permission. Budget figures still show.",
+    "positionNote": "Budget is the internal cost plan, separate from contract value. Actual is recognized cost. Committed is the open remaining commitment. ETC is the project's expected remaining cost and is included once in Forecast. Forecast is expected final cost. Variance is Budget minus Forecast."
   },
   "lines": {
     "title": "Budget lines",
@@ -22,7 +24,9 @@
     "modeLightweight": "Lightweight (total)",
     "modeAdvanced": "Advanced",
     "revision": "Revision {number}",
-    "mappingHint": "Actual comes from the shared financial engine only. Category and work-package lines show mapped expense Actual when the key matches. Remaining commitment and project ETC stay on the total line - they are not split across detail lines. Forecast on a detail line is Actual plus that line's ETC when you set one; otherwise it equals Actual. Discipline and cost-code lines stay unmapped because expenses and AP do not carry those keys.",
+    "mappingHint": "Actual comes from the shared financial engine only. Category lines are mapped when the category key already matches an expense. Work-package lines map the same way. Discipline lines cannot be mapped and stay unmapped — nothing is invented for them. Cost-code lines stay unmapped unless that same category link already exists. Committed and the project's expected remaining cost stay on the total line and are not split across detail lines. A line ETC is planning only and is not added again on top of the project's expected remaining cost inside Forecast.",
+    "etcPlanning": "ETC (planning only)",
+    "forecastPlanning": "Forecast (planning)",
     "unmappedRow": "Unmapped / unallocated",
     "unmappedRowHint": "Engine Actual not matched to a category or work-package line. Includes labor, vendor bills, and expenses without those keys. Never guessed onto a line.",
     "unmappedValue": "-",
@@ -64,6 +68,17 @@
     "missingBudget": "No budget to revise.",
     "defaultRevisionReason": "Budget update",
     "lightweightHint": "Leave lines empty for a single total. Add category or work-package lines here when you want per-line Actual mapping."
+  },
+  "trend": {
+    "title": "Monthly margin",
+    "hint": "Saved from the composed project margin for the open current month. Closed months are not rewritten. This is not a ledger and not cash.",
+    "month": "Month",
+    "actualMargin": "Actual margin",
+    "forecastMargin": "Forecast margin",
+    "actualCost": "Actual cost",
+    "forecastCost": "Forecast cost",
+    "contractValue": "Contract value",
+    "unavailable": "—"
   },
   "errors": {
     "activeExists": "An active budget already exists. Use revise instead.",

@@ -7,13 +7,14 @@ import {
   allocateCustomerPayment,
   recordCustomerPayment,
   recordPayment,
+  updateBillingCollectionFollowUp,
   updateBillingRecord,
   voidBillingRecord,
   voidPayment,
 } from '@/modules/billing';
 import { releaseBillingRecordRetention } from '@/modules/retention';
 import { withOrgContext } from '@/shared/auth/session';
-import { AppError, serializeError } from '@/shared/errors';
+import { AppError, ValidationError, serializeError } from '@/shared/errors';
 import { redirect } from '@/shared/i18n/navigation';
 import type { CreateBillingRecordInput, CreatePaymentInput } from '@/modules/billing';
 import { revalidatePath } from 'next/cache';
@@ -22,6 +23,7 @@ import { getLocale, getTranslations } from 'next-intl/server';
 export interface BillingFormState {
   error?: string;
   fieldErrors?: Record<string, string>;
+  saved?: boolean;
 }
 
 function mapError(error: unknown, fallback: string): BillingFormState {
@@ -223,19 +225,7 @@ export async function createPaymentAction(
       notes: formData.get('notes') ? String(formData.get('notes')) : null,
     };
 
-    const result = await withOrgContext(async (context) => {
-      const paymentResult = await recordPayment(context, input);
-      const { scheduleStatutoryAfterPayment } = await import(
-        '@/modules/invoicing-integration/application/trigger-statutory-after-payment'
-      );
-      scheduleStatutoryAfterPayment(
-        context.userId,
-        context.organizationId,
-        paymentResult.paymentId,
-        input.billingRecordId,
-      );
-      return paymentResult;
-    });
+    const result = await withOrgContext((context) => recordPayment(context, input));
     revalidatePath(`/billing/${result.billingRecord.id}`);
     revalidatePath('/billing');
     if (result.billingRecord.projectId) {
@@ -414,6 +404,50 @@ export async function releaseBillingRetentionAction(
     revalidatePath('/billing');
     return {};
   } catch (error) {
+    if (error instanceof AppError) return mapError(error, tErrors('validationFailed'));
+    throw error;
+  }
+}
+
+export async function updateCollectionFollowUpAction(
+  billingRecordId: string,
+  _prev: BillingFormState,
+  formData: FormData,
+): Promise<BillingFormState> {
+  const tErrors = await getTranslations('errors');
+  const blank = (key: string) => {
+    const value = formData.get(key);
+    if (value == null) return null;
+    const text = String(value).trim();
+    return text.length === 0 ? null : text;
+  };
+
+  try {
+    await withOrgContext((context) =>
+      updateBillingCollectionFollowUp(context, {
+        billingRecordId,
+        collectionContactedAt: blank('collectionContactedAt'),
+        collectionNextFollowUpAt: blank('collectionNextFollowUpAt'),
+        collectionPromiseToPayDate: blank('collectionPromiseToPayDate'),
+        collectionNote: blank('collectionNote'),
+      }),
+    );
+    revalidatePath(`/billing/${billingRecordId}`);
+    revalidatePath(`/employee/billing/${billingRecordId}`);
+    revalidatePath('/billing');
+    revalidatePath('/employee/billing');
+    return { saved: true };
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      const fieldErrors: Record<string, string> = {};
+      for (const issue of error.issues) {
+        if (issue.path) fieldErrors[issue.path] = issue.message;
+      }
+      return {
+        error: error.messageKey,
+        fieldErrors: Object.keys(fieldErrors).length > 0 ? fieldErrors : undefined,
+      };
+    }
     if (error instanceof AppError) return mapError(error, tErrors('validationFailed'));
     throw error;
   }

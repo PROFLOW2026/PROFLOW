@@ -9,6 +9,7 @@ import { decodeRecurrenceRule } from '@/modules/expenses/domain/recurrence';
 import { inferExpenseTaxModeFromAmounts } from '@/modules/expenses/domain/tax';
 import type { CostCategoryRow, ExpenseDetail, InventoryItemOption, ProjectOption, VendorOption, WorkPackageOption } from '@/modules/expenses/domain/types';
 import type { PaymentInstrumentRow } from '@/modules/payment-instruments/domain/types';
+import type { SupplierBillReferenceRow } from '@/modules/expenses/domain/supplier-cost-guidance';
 import type { AllocationDraft } from '@/modules/expenses/ui/allocation-editor';
 import { expensePayloadFromFormData } from '@/modules/offline/domain/payloads';
 import { useOfflineAwareFormAction } from '@/modules/offline/ui/use-offline-aware-form-action';
@@ -23,6 +24,7 @@ export interface ExpenseEditFormProps {
   readonly vendors?: readonly VendorOption[];
   readonly inventoryItems?: readonly InventoryItemOption[];
   readonly paymentInstruments?: readonly PaymentInstrumentRow[];
+  readonly supplierBillReferences?: readonly SupplierBillReferenceRow[];
   readonly defaultToday?: string;
   readonly taxRatePercent?: string | null;
 }
@@ -39,6 +41,7 @@ export function ExpenseEditForm({
   vendors = [],
   inventoryItems = [],
   paymentInstruments = [],
+  supplierBillReferences = [],
   defaultToday = '',
   taxRatePercent = null,
 }: ExpenseEditFormProps) {
@@ -117,6 +120,7 @@ export function ExpenseEditForm({
         vendors={vendors}
         inventoryItems={inventoryItems}
         paymentInstruments={paymentInstruments}
+        supplierBillReferences={supplierBillReferences}
         defaultToday={defaultToday}
         taxRatePercent={taxRatePercent}
         initialValues={{

@@ -61,7 +61,15 @@
     "description": "התחייבות רכש מול ספק. ניתן לצרף מסמכים תומכים בלי להתייחס לכך כהוצאה.",
     "linesTitle": "שורות",
     "createVendorBill": "יצירת חשבונית ספק",
-    "openVendor": "פתיחת ספק"
+    "openVendor": "פתיחת ספק",
+    "quantities": {
+      "invoiced": "כמות שחויבה",
+      "invoicedGreaterThanReceived": "הכמות בחשבוניות גדולה מהכמות שהתקבלה.",
+      "receivedGreaterThanOrdered": "הכמות שהתקבלה גדולה מהכמות שהוזמנה.",
+      "invoicedWithoutReceipt": "חשבונית ספק שפורסמה מקושרת בזמן שהכמות שהתקבלה עדיין אפס.",
+      "partialReceipt": "התקבל חלקית.",
+      "partialInvoice": "חויב חלקית."
+    }
   },
   "statuses": {
     "draft": "טיוטה",

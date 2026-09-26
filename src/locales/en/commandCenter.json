@@ -8,6 +8,7 @@
   },
   "actions": {
     "open": "Open",
+    "preparePaymentReminder": "Prepare payment reminder",
     "confirmPaid": "Confirm paid",
     "paymentDateLabel": "Payment date",
     "paymentDateHint": "Actual payment date. Defaults to today; you can choose a retroactive date.",
@@ -21,7 +22,7 @@
     "notNow": "Not now",
     "dismiss": "Skip this month"
   },
-  "financialGuard": "Marking this handled hides the alert only. The invoice, bill, or expense is not changed.",
+  "financialGuard": "This stays until the invoice, bill, or expense is resolved. You can snooze it.",
   "severity": {
     "critical": "Critical",
     "high": "High",
@@ -80,7 +81,9 @@
     "expense_needs_allocation": "Expense needs project allocation",
     "monthly_workforce_report_ready": "Monthly workforce report",
     "task_overdue": "Overdue task",
-    "task_due_today": "Task due today"
+    "task_due_today": "Task due today",
+    "storage_attention": "File storage",
+    "statutory_attention": "Tax document"
   },
   "itemCopy": {
     "where": {
@@ -102,7 +105,9 @@
       "cashFlow": "Cash flow",
       "automations": "Automations",
       "communications": "Messages",
-      "tasks": "Tasks"
+      "tasks": "Tasks",
+      "storage": "File storage",
+      "integrations": "Integrations"
     },
     "overdueAr": {
       "whatWithReference": "Collect {reference}",
@@ -279,6 +284,29 @@
     "communicationFailed": {
       "what": "Message not sent - {subject}",
       "why": "Delivery failed or was not confirmed by the provider."
+    },
+    "storageProvider": {
+      "onedrive": "OneDrive",
+      "google_drive": "Google Drive",
+      "dropbox": "Dropbox",
+      "box": "Box"
+    },
+    "storageAttention": {
+      "whatReconnect": "Reconnect {provider}",
+      "whatError": "Fix {provider} storage",
+      "whatProvision": "Finish {provider} folder setup",
+      "whyStatus": "The file storage connection needs attention.",
+      "whyProvision": "Folder setup stopped and needs another try."
+    },
+    "statutoryAttention": {
+      "whatAmbiguous": "Resolve unclear tax document",
+      "whyAmbiguousWithReference": "Issuance result is unclear for {reference}",
+      "whyAmbiguous": "Issuance result is unclear",
+      "whatConnection": "Fix invoicing connection",
+      "whyConnection": "The invoicing provider connection is in error.",
+      "whatUnsupported": "Statutory action is not supported",
+      "whyUnsupportedWithReference": "The invoicing provider does not support this action for {reference}",
+      "whyUnsupported": "The invoicing provider does not support this action."
     },
     "billingPlanCycleDraft": {
       "what": "Progress account awaiting issue - {title}",

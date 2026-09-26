@@ -37,6 +37,18 @@ export const updateTaskSchema = z.object({
   estimatedEffortMinutes: z.number().int().positive().nullable().optional(),
   milestoneId: z.string().uuid().nullable().optional(),
   approvalRequired: z.boolean().optional(),
+  contributesToProgress: z.boolean().optional(),
+  progressWeight: z.preprocess((value) => {
+    if (value === undefined) return undefined;
+    if (value === null || value === '') return null;
+    if (typeof value === 'number') return value;
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      if (trimmed === '') return null;
+      return Number(trimmed);
+    }
+    return value;
+  }, z.number().finite().min(0).max(999999.99).nullable().optional()),
   ownerOrgMemberId: z.string().uuid().nullable().optional(),
   ownerEmployeeId: z.string().uuid().nullable().optional(),
 });

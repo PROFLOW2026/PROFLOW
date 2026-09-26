@@ -12,6 +12,7 @@ import { resolveDisplayOriginalEntered } from '@/modules/projects/domain/entry-b
 import { PROJECT_STATUSES } from '@/modules/projects/domain/types';
 import type { ProjectDetail } from '@/modules/projects/application/get-project-detail';
 import { ContractAmountFields } from '@/modules/projects/ui/contract-amount-fields';
+import { ProjectProgressModeControl } from '@/modules/projects/ui/project-progress-mode-control';
 import { PROJECT_EXPERIENCE_PROFILE_KEYS } from '@/modules/tenancy/domain/project-profiles';
 import { type CustomFieldValueView } from '@/modules/custom-fields/domain/types';
 import { EntityCustomFieldsPanel } from '@/modules/custom-fields/ui';
@@ -111,6 +112,13 @@ export function DetailsTab({
   const [experienceProfileValue, setExperienceProfileValue] = useState(
     project.experienceProfile ?? 'auto',
   );
+  const [progressSource, setProgressSource] = useState(project.progressSource);
+  const [seenProgressSource, setSeenProgressSource] = useState(project.progressSource);
+  if (project.progressSource !== seenProgressSource) {
+    setSeenProgressSource(project.progressSource);
+    setProgressSource(project.progressSource);
+  }
+  const tasksProgress = progressSource === 'tasks';
 
   return (
     <>
@@ -374,14 +382,30 @@ export function DetailsTab({
           )}
         </Field>
 
-        <Field label={t('progressPercent')} optionalLabel={tCommon('labels.optional')}>
+        <ProjectProgressModeControl
+          projectId={project.id}
+          progressSource={progressSource}
+          onSourceChange={setProgressSource}
+        />
+
+        {tasksProgress ? (
+          <input type="hidden" name="progressPercent" value={project.progressPercent ?? ''} />
+        ) : null}
+
+        <Field
+          label={tasksProgress ? t('progressStoredManual') : t('progressPercent')}
+          optionalLabel={tCommon('labels.optional')}
+        >
           {(control) => (
             <Input
               {...control}
-              name="progressPercent"
+              key={`${progressSource}:${project.progressPercent ?? ''}`}
+              name={tasksProgress ? undefined : 'progressPercent'}
               inputMode="decimal"
               defaultValue={project.progressPercent ?? ''}
               placeholder="0–100"
+              readOnly={tasksProgress}
+              disabled={tasksProgress}
             />
           )}
         </Field>

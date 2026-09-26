@@ -133,6 +133,14 @@ export interface BillingRecordDetail extends BillingRecordSummary {
   readonly voidsBillingRecordId: string | null;
   readonly externalDocumentId: string | null;
   readonly notes: string | null;
+  /** Last contact about this receivable. Not a financial date. */
+  readonly collectionContactedAt: BusinessDate | null;
+  /** Next collection follow-up. Not the invoice due date. */
+  readonly collectionNextFollowUpAt: BusinessDate | null;
+  /** Customer promised payment date. Does not move dueDate. */
+  readonly collectionPromiseToPayDate: BusinessDate | null;
+  /** Short collection note. Not a financial adjustment. */
+  readonly collectionNote: string | null;
   readonly lines: readonly BillingLineRecord[];
   readonly payments: readonly PaymentSummary[];
 }

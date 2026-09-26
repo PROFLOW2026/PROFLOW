@@ -146,7 +146,6 @@ export const PERMISSION_ONLY_NAV_KEYS = new Set([
   'imports',
   'monthClose',
   'overhead',
-  'cashFlow',
   'scheduling',
   'calendar',
   'approvals',

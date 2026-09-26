@@ -8,10 +8,12 @@ import {
   findPurchaseOrderById,
   insertPoReceipt,
   insertPoReceiptLines,
+  listApBillQuantitiesForPurchaseOrderLines,
   listPoReceiptLinesForReceipts,
   listPoReceiptsForPurchaseOrder,
   listPurchaseOrderLines,
 } from '../data/procurement.repository';
+import { comparePurchaseOrderLineQuantities } from '../domain/quantity-comparison';
 import {
   assertPurchaseOrderReceivable,
   assertReceiveQuantityWithinRemaining,
@@ -94,9 +96,36 @@ export async function loadPurchaseOrderReceivingDetail(
   if (!order) throw new NotFoundError('Purchase order');
   const lines = await listPurchaseOrderLines(context.db, context.organizationId, purchaseOrderId);
   const receipts = await loadReceiptsForPurchaseOrder(context, purchaseOrderId);
+  const billQuantities = await listApBillQuantitiesForPurchaseOrderLines(
+    context.db,
+    context.organizationId,
+    lines.map((line) => line.id),
+  );
+  const comparisons = comparePurchaseOrderLineQuantities({
+    lines: lines.map((line) => ({
+      lineId: line.id,
+      orderedQuantity: line.quantity,
+      receivedQuantity: line.receivedQuantity,
+    })),
+    billLines: billQuantities,
+  });
+  const comparisonByLineId = new Map(comparisons.map((row) => [row.lineId, row]));
   return {
     order,
-    lines: lines.map(withLineRemaining),
+    lines: lines.map((line) => {
+      const comparison = comparisonByLineId.get(line.id);
+      return {
+        ...withLineRemaining(line),
+        invoicedQuantity: comparison?.invoicedQuantity ?? '0',
+        quantityFlags: comparison?.flags ?? {
+          invoicedGreaterThanReceived: false,
+          receivedGreaterThanOrdered: false,
+          invoicedWithoutReceipt: false,
+          partialReceipt: false,
+          partialInvoice: false,
+        },
+      };
+    }),
     receipts,
     fullyReceived: isPurchaseOrderFullyReceived(lines),
   };

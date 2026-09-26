@@ -69,6 +69,11 @@ export interface CreditExternalDocumentInput {
   readonly externalId: string;
   readonly reason: string | null;
   readonly idempotencyKey: string;
+  /**
+   * Finalized internal credit note snapshot. SUMIT credit is a new CreditInvoice
+   * (type 5) and is refused when this is missing — never a fake success.
+   */
+  readonly billing?: BillingRecordBridgeRef | null;
 }
 
 export interface CreditExternalDocumentOutput {

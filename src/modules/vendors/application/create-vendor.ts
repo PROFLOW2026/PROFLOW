@@ -81,5 +81,10 @@ export async function createVendor(
     after: vendor,
   });
 
+  const { provisionVendorStorageFolder } = await import(
+    '@/modules/external-storage/application/provision-hooks'
+  );
+  await provisionVendorStorageFolder(context, vendor.id, vendor.name);
+
   return vendor;
 }

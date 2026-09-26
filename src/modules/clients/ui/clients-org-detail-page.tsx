@@ -4,6 +4,14 @@ import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { getClientById, getClientFinancials, getClientProfitability, getClientTimeline } from '@/modules/clients';
 import {
+  listClientCrmHistory,
+  listClientProjectContracts,
+  listClientProjectTasks,
+  type ClientCrmHistoryRows,
+  type ClientProjectContractItem,
+  type ClientProjectTaskRow,
+} from '@/modules/clients/application/get-client-card-sections';
+import {
   listBusinessCatalog,
   localizeClientTypeOptions,
   localizePaymentTermOptions,
@@ -22,6 +30,11 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { ClientDetailView } from '@/app/[locale]/(app)/clients/[clientId]/client-detail-view';
 import { ClientFinancialPanel } from '@/app/[locale]/(app)/clients/[clientId]/client-financial-panel';
 import { ClientProfitabilityPanel } from '@/modules/clients/ui/client-profitability-panel';
+import {
+  ClientContractsPanel,
+  ClientCrmHistoryPanel,
+  ClientTasksPanel,
+} from '@/modules/clients/ui/client-card-panels';
 import { RelatedCommunicationsPanel } from '@/modules/communications/ui/related-panel';
 import { PrepareMessageLink } from '@/modules/communications/ui/prepare-message-link';
 import { CustomerStatementActions } from '@/modules/reports/ui';
@@ -61,6 +74,11 @@ export async function ClientsOrgDetailPage({
   let clientTypes: Array<{ id: string; name: string }> = [];
   let paymentTerms: Array<{ id: string; name: string }> = [];
   let quotes: Array<{ id: string; title: string; status: string }> = [];
+  let contracts: ClientProjectContractItem[] = [];
+  let projectTasks: ClientProjectTaskRow[] = [];
+  let crmHistory: ClientCrmHistoryRows | null = null;
+  let showContracts = false;
+  let showTasks = false;
   let canManage = false;
   let canCommunicate = false;
   let canReadBilling = false;
@@ -77,6 +95,9 @@ export async function ClientsOrgDetailPage({
       const detail = await getClientById(context, clientId);
       const readBilling = orgListHasPermission(context, PERMISSIONS.BILLING_READ, surface);
       const readQuotes = orgListHasPermission(context, PERMISSIONS.QUOTES_READ, surface);
+      const readContracts = orgListHasPermission(context, PERMISSIONS.CONTRACTS_READ, surface);
+      const readTasks = orgListHasPermission(context, PERMISSIONS.TASKS_READ, surface);
+      const readCrm = orgListHasPermission(context, PERMISSIONS.CRM_READ, surface);
       const readProfitability =
         orgListHasPermission(context, PERMISSIONS.PROJECTS_READ, surface) &&
         orgListHasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ, surface);
@@ -94,6 +115,17 @@ export async function ClientsOrgDetailPage({
           readQuotes ? listQuotesForOrg(context, { clientId }).catch(() => []) : Promise.resolve([]),
         ]);
 
+      const projectIds = projects.map((project) => project.id);
+      const [clientContracts, clientTasks, clientCrm] = await Promise.all([
+        readContracts
+          ? listClientProjectContracts(context, projectIds).catch(() => [])
+          : Promise.resolve([]),
+        readTasks
+          ? listClientProjectTasks(context, projectIds).catch(() => [])
+          : Promise.resolve([]),
+        readCrm ? listClientCrmHistory(context, clientId).catch(() => null) : Promise.resolve(null),
+      ]);
+
       return {
         detail,
         fields,
@@ -104,6 +136,11 @@ export async function ClientsOrgDetailPage({
         clientTypes: clientTypeRows,
         paymentTerms: paymentTermRows,
         quotes: quoteRows,
+        contracts: clientContracts,
+        tasks: clientTasks,
+        crm: clientCrm,
+        showContracts: readContracts,
+        showTasks: readTasks,
         projects: projects.map((project) => ({
           id: project.id,
           name: project.name,
@@ -129,6 +166,11 @@ export async function ClientsOrgDetailPage({
       title: quote.title,
       status: quote.status,
     }));
+    contracts = loaded.contracts;
+    projectTasks = loaded.tasks;
+    crmHistory = loaded.crm;
+    showContracts = loaded.showContracts;
+    showTasks = loaded.showTasks;
     canManage = loaded.canManage;
     canCommunicate = loaded.canCommunicate;
     canReadBilling = loaded.canReadBilling;
@@ -143,8 +185,11 @@ export async function ClientsOrgDetailPage({
     notFound();
   }
 
-  const quotesRouteBase = routeBase.startsWith('/employee') ? '/employee/quotes' : '/quotes';
-  const projectsRouteBase = routeBase.startsWith('/employee') ? '/employee/projects' : undefined;
+  const employeeSurface = routeBase.startsWith('/employee');
+  const quotesRouteBase = employeeSurface ? '/employee/quotes' : '/quotes';
+  const projectsRouteBase = employeeSurface ? '/employee/projects' : undefined;
+  const tasksRouteBase = employeeSurface ? '/employee/tasks' : '/tasks';
+  const billingRouteBase = employeeSurface ? '/employee/billing' : '/billing';
 
   return (
     <div className="flex flex-col gap-6">
@@ -172,6 +217,27 @@ export async function ClientsOrgDetailPage({
         quotesRouteBase={quotesRouteBase}
         projectsRouteBase={projectsRouteBase}
         surface={surface}
+        afterProjects={
+          <>
+            {showContracts ? (
+              <ClientContractsPanel
+                contracts={contracts}
+                projects={linkedProjects}
+                projectsRouteBase={projectsRouteBase}
+              />
+            ) : null}
+            {showTasks ? (
+              <ClientTasksPanel
+                tasks={projectTasks}
+                projects={linkedProjects}
+                projectsRouteBase={projectsRouteBase}
+                tasksRouteBase={tasksRouteBase}
+                locale={locale}
+              />
+            ) : null}
+          </>
+        }
+        afterSales={crmHistory ? <ClientCrmHistoryPanel history={crmHistory} /> : null}
       />
       {profitability ? (
         <ClientProfitabilityPanel
@@ -179,7 +245,13 @@ export async function ClientsOrgDetailPage({
           projectsRouteBase={projectsRouteBase ?? '/projects'}
         />
       ) : null}
-      {financials ? <ClientFinancialPanel financials={financials} locale={locale} /> : null}
+      {financials ? (
+        <ClientFinancialPanel
+          financials={financials}
+          locale={locale}
+          billingRouteBase={billingRouteBase}
+        />
+      ) : null}
       {surface === 'owner' && canReadBilling && financials ? (
         <Card className="min-w-0">
           <CardHeader>

@@ -68,6 +68,8 @@ export const SOURCE_DEFAULT_SEVERITY: Record<CommandCenterSourceType, CommandCen
   milestone_approaching: 'medium',
   project_stale: 'low',
   recurring_task_generated: 'low',
+  storage_attention: 'high',
+  statutory_attention: 'high',
 };
 
 export const INBOX_SECTION_ORDER = ['critical', 'high', 'medium', 'low'] as const;
@@ -173,7 +175,7 @@ export function withItemDefaults(input: {
     severity,
     rankScore: computeRankScore(severity, input.urgencyBump ?? 0),
     isFinancial,
-    allowHandle: true,
+    allowHandle: !isFinancial,
     allowSnooze: true,
     confirmPaid: input.confirmPaid,
     meta: input.meta,
@@ -181,13 +183,22 @@ export function withItemDefaults(input: {
 }
 
 /**
- * Explicit user state changes only. Handled/dismissed updates the command-center
- * item row. It does not edit the invoice, bill, or expense, and collectors do
- * not auto-dismiss overdue debt.
+ * Handle and dismiss hide an item while collectors would still emit it.
+ * Financial sources stay until the underlying record clears. Snooze remains.
+ * Confirm-paid is a separate action and does not pass through here.
  */
 export function assertSafeItemStateTransition(
-  _sourceType: string,
-  _nextState: string,
+  sourceType: string,
+  nextState: string,
 ): { ok: true } | { ok: false; reason: string } {
+  if (
+    isFinancialSourceType(sourceType) &&
+    (nextState === 'handled' || nextState === 'dismissed')
+  ) {
+    return {
+      ok: false,
+      reason: 'Financial items stay until the source clears. Snooze is allowed.',
+    };
+  }
   return { ok: true };
 }

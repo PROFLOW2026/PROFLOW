@@ -142,3 +142,21 @@ export function listExternalDocumentsForBilling(
     .filter((row) => row.billingRecordId === billingRecordId)
     .sort((a, b) => a.requestedAt.localeCompare(b.requestedAt));
 }
+
+export function listExternalDocumentsForPayment(
+  organizationId: string,
+  paymentId: string,
+): ExternalStatutoryDocument[] {
+  return [...orgBucket(organizationId).values()]
+    .filter((row) => row.paymentId === paymentId)
+    .sort((a, b) => a.requestedAt.localeCompare(b.requestedAt));
+}
+
+export function listExternalDocumentsByIssuanceOutcome(
+  organizationId: string,
+  issuanceOutcome: IssuanceOutcome,
+): ExternalStatutoryDocument[] {
+  return [...orgBucket(organizationId).values()]
+    .filter((row) => row.issuanceOutcome === issuanceOutcome)
+    .sort((a, b) => a.requestedAt.localeCompare(b.requestedAt));
+}

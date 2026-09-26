@@ -41,6 +41,7 @@ function mapProject(row: typeof projects.$inferSelect): ProjectRecord {
     targetEndDate: row.targetEndDate,
     actualEndDate: row.actualEndDate,
     progressPercent: row.progressPercent,
+    progressSource: row.progressSource === 'tasks' ? 'tasks' : 'manual',
     progressStatus: (row.progressStatus as ProjectRecord['progressStatus']) ?? null,
     notes: row.notes,
     archivedAt: row.archivedAt,

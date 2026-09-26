@@ -27,6 +27,7 @@
   },
   "kinds": {
     "project": "مشروع",
+    "task": "مهمة",
     "job": "عمل",
     "work_order": "أمر عمل",
     "client": "عميل",

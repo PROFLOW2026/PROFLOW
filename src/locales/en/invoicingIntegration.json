@@ -162,7 +162,7 @@
     "connect": "Connect SUMIT",
     "disconnect": "Disconnect",
     "connectedAs": "Connected — Company ID {companyId}",
-    "testOnlyNotice": "This connection uses the live SUMIT API at api.sumit.co.il. Credit notes and cancellation are not available from SUMIT.",
+    "testOnlyNotice": "This connection uses the live SUMIT API at api.sumit.co.il. Credits are issued as SUMIT credit invoices linked to the original document. Cancellation uses SUMIT document cancel.",
     "invalidCompanyId": "Company ID must be a positive number.",
     "expenseIngestionTitle": "Inbound expense capture (optional)",
     "expenseIngestionDescription": "When enabled, ProjectFlow polls SUMIT for supplier expense documents, downloads the PDF, and runs your existing Azure OCR. Statutory invoicing settings are separate.",
@@ -173,7 +173,7 @@
     "expenseIngestionOcrRequired": "Live OCR must be enabled before SUMIT can feed expense documents."
   },
   "providerLimitation": {
-    "creditCancel": "Credit and cancel are not available from SUMIT. This is a provider limitation. Billing credit notes stay management records only."
+    "creditCancel": "Credit or cancel is not available from this provider connection. Billing credit notes stay management records until a statutory credit is issued."
   },
   "errors": {
     "connectionRequired": "Connect an external invoicing provider before requesting a statutory document.",
@@ -194,6 +194,8 @@
     "providerFailed": "The external invoicing provider could not complete the request.",
     "missingExternalId": "This record has no external provider id yet.",
     "creditUnsupported": "This provider does not support credit notes.",
+    "creditNoteRequired": "Create a finalized billing credit note for this invoice before SUMIT can issue a credit. The original tax invoice amounts stay unchanged.",
+    "creditNoteAmbiguous": "More than one billing credit note reverses this invoice. Choose the credit note to issue in SUMIT.",
     "cancelUnsupported": "This provider does not support cancellation.",
     "sendEmailRequired": "Recipient email is required.",
     "shareInvalid": "Share link is invalid.",

@@ -13,6 +13,7 @@ import {
 import { assertPaymentTarget } from '../domain/lifecycle';
 import { findBillingRecordById } from '../data/billing.repository';
 import { insertPayment } from '../data/payments.repository';
+import { scheduleStatutoryForAllocations } from './schedule-statutory-for-allocations';
 import { createPaymentSchema, type CreatePaymentInput } from '../validation/schemas';
 
 const PAYMENT_AUDIT_RECORDED = 'payment.recorded';
@@ -88,5 +89,8 @@ export async function recordPayment(context: OrgContext, rawInput: CreatePayment
     context.organization.timezone,
   );
   if (!updated) throw new NotFoundError('Billing record');
+  scheduleStatutoryForAllocations(context, paymentId, [
+    { billingRecordId: input.billingRecordId, amount: input.amount },
+  ]);
   return { paymentId, billingRecord: updated };
 }

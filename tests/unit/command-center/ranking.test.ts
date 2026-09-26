@@ -50,9 +50,11 @@ describe('command center ranking', () => {
     expect(compareCommandCenterItems(overdue, ocr)).toBeLessThan(0);
   });
 
-  it('marks financial sources and allows explicit handle/dismiss', () => {
+  it('rejects handle and dismiss for financial sources and keeps snooze', () => {
     expect(isFinancialSourceType('overdue_ar')).toBe(true);
     expect(isFinancialSourceType('attendance_open')).toBe(false);
+    expect(isFinancialSourceType('expense_overdue')).toBe(true);
+    expect(isFinancialSourceType('payroll_due_today')).toBe(true);
 
     const financial = withItemDefaults({
       sourceType: 'vendor_bill_due',
@@ -62,21 +64,28 @@ describe('command center ranking', () => {
       where: 'Vendor',
       href: '/procurement/ap/v1',
     });
-    expect(financial.allowHandle).toBe(true);
+    expect(financial.allowHandle).toBe(false);
     expect(financial.allowSnooze).toBe(true);
     expect(financial.isFinancial).toBe(true);
 
-    expect(assertSafeItemStateTransition('overdue_ar', 'handled').ok).toBe(true);
-    expect(assertSafeItemStateTransition('overdue_ar', 'dismissed').ok).toBe(true);
+    expect(assertSafeItemStateTransition('overdue_ar', 'handled').ok).toBe(false);
+    expect(assertSafeItemStateTransition('overdue_ar', 'dismissed').ok).toBe(false);
     expect(assertSafeItemStateTransition('overdue_ar', 'snoozed').ok).toBe(true);
+    expect(assertSafeItemStateTransition('overdue_ar', 'active').ok).toBe(true);
+    expect(assertSafeItemStateTransition('expense_overdue', 'handled').ok).toBe(false);
+    expect(assertSafeItemStateTransition('expense_overdue', 'dismissed').ok).toBe(false);
+    expect(assertSafeItemStateTransition('payroll_due_today', 'snoozed').ok).toBe(true);
     expect(assertSafeItemStateTransition('attendance_open', 'handled').ok).toBe(true);
-    expect(assertSafeItemStateTransition('forecast_warning', 'handled').ok).toBe(true);
+    expect(assertSafeItemStateTransition('attendance_open', 'dismissed').ok).toBe(true);
+    expect(assertSafeItemStateTransition('forecast_warning', 'handled').ok).toBe(false);
     expect(assertSafeItemStateTransition('forecast_warning', 'snoozed').ok).toBe(true);
     expect(SOURCE_DEFAULT_SEVERITY.forecast_warning).toBe('high');
     expect(SOURCE_DEFAULT_SEVERITY.vendor_bill_approaching).toBe('high');
+    expect(SOURCE_DEFAULT_SEVERITY.storage_attention).toBe('high');
+    expect(SOURCE_DEFAULT_SEVERITY.statutory_attention).toBe('high');
   });
 
-  it('ranks new ops sources and allows dismiss on financial forecast items', () => {
+  it('ranks new ops sources and rejects dismiss on financial forecast items', () => {
     expect(SOURCE_DEFAULT_SEVERITY.vendor_bill_approaching).toBe('high');
     expect(SOURCE_DEFAULT_SEVERITY.ocr_needs_review).toBe('medium');
     expect(SOURCE_DEFAULT_SEVERITY.ocr_failed).toBe('high');
@@ -100,12 +109,12 @@ describe('command center ranking', () => {
       href: '/projects/p1?tab=financials',
       severity: 'critical',
     });
-    expect(forecast.allowHandle).toBe(true);
+    expect(forecast.allowHandle).toBe(false);
     expect(forecast.isFinancial).toBe(true);
-    expect(assertSafeItemStateTransition('forecast_warning', 'dismissed').ok).toBe(true);
-    expect(assertSafeItemStateTransition('forecast_warning', 'handled').ok).toBe(true);
+    expect(assertSafeItemStateTransition('forecast_warning', 'dismissed').ok).toBe(false);
+    expect(assertSafeItemStateTransition('forecast_warning', 'handled').ok).toBe(false);
     expect(assertSafeItemStateTransition('forecast_warning', 'snoozed').ok).toBe(true);
-    expect(assertSafeItemStateTransition('vendor_bill_approaching', 'dismissed').ok).toBe(true);
+    expect(assertSafeItemStateTransition('vendor_bill_approaching', 'dismissed').ok).toBe(false);
   });
 
   it('ranks next-gen sources and keeps cash-flow risk financial', () => {
@@ -131,10 +140,10 @@ describe('command center ranking', () => {
       where: 'Cash flow',
       href: '/cash-flow',
     });
-    expect(cash.allowHandle).toBe(true);
+    expect(cash.allowHandle).toBe(false);
     expect(cash.isFinancial).toBe(true);
-    expect(assertSafeItemStateTransition('cash_flow_risk', 'dismissed').ok).toBe(true);
-    expect(assertSafeItemStateTransition('cash_flow_risk', 'handled').ok).toBe(true);
+    expect(assertSafeItemStateTransition('cash_flow_risk', 'dismissed').ok).toBe(false);
+    expect(assertSafeItemStateTransition('cash_flow_risk', 'handled').ok).toBe(false);
     expect(assertSafeItemStateTransition('closeout_blockers', 'handled').ok).toBe(true);
 
     const closeout = withItemDefaults({

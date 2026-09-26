@@ -61,7 +61,15 @@
     "description": "Committed spend with a vendor. Attach supporting documents without treating this as an expense.",
     "linesTitle": "Lines",
     "createVendorBill": "Create vendor bill",
-    "openVendor": "Open vendor"
+    "openVendor": "Open vendor",
+    "quantities": {
+      "invoiced": "Invoiced qty",
+      "invoicedGreaterThanReceived": "Invoiced quantity is greater than received quantity.",
+      "receivedGreaterThanOrdered": "Received quantity is greater than ordered quantity.",
+      "invoicedWithoutReceipt": "A posted vendor bill is linked while received quantity is still zero.",
+      "partialReceipt": "Partially received.",
+      "partialInvoice": "Partially invoiced."
+    }
   },
   "statuses": {
     "draft": "Draft",

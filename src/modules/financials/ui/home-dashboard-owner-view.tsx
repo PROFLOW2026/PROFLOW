@@ -33,6 +33,7 @@ import { DashboardAttentionCards } from './dashboard-attention-cards';
 import { DashboardContractSummaryRow } from './dashboard-contract-summary-row';
 import { DashboardRecentProjectsSection } from './dashboard-recent-projects-section';
 import { DashboardKpiDetailTrigger } from './dashboard-kpi-detail-trigger';
+import { HomeDashboardCashForecast } from './home-dashboard-cash-forecast';
 import {
   mapDashboardKpiDetailCopy,
   mapDashboardKpiDetailTriggerCopy,
@@ -292,6 +293,31 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
             />
           ) : null}
         </section>
+      ) : null}
+
+      {data.cashForecast ? (
+        <HomeDashboardCashForecast
+          cashForecast={data.cashForecast}
+          copy={{
+            title: t('cashForecast.title'),
+            hint: t('cashForecast.hint'),
+            opening: t('cashForecast.opening'),
+            openingUnset: t('cashForecast.openingUnset'),
+            openingAsOf: data.cashForecast.openingAsOf
+              ? t('cashForecast.openingAsOf', { date: data.cashForecast.openingAsOf })
+              : t('cashForecast.opening'),
+            expectedIn: t('cashForecast.expectedIn'),
+            expectedOut: t('cashForecast.expectedOut'),
+            endBalance: t('cashForecast.endBalance'),
+            lowest: t('cashForecast.lowest'),
+            excluded: t('cashForecast.excluded', {
+              later: data.cashForecast.position.excludedLaterCount,
+              undated: data.cashForecast.position.excludedUndatedCount,
+            }),
+            openPage: t('cashForecast.openPage'),
+            inHidden: t('cashForecast.inHidden'),
+          }}
+        />
       ) : null}
 
       {data.apOutstanding && !data.businessCashPosition?.outstandingPayable ? (

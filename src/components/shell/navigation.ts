@@ -177,6 +177,15 @@ export const NAV_ITEMS: readonly NavItem[] = [
     moreGroup: 'workManagement',
   },
   {
+    key: 'taskBoard',
+    href: '/work/board',
+    labelKey: 'taskBoard',
+    iconKey: 'operations',
+    permission: PERMISSIONS.TASKS_READ,
+    module: 'work_management',
+    moreGroup: 'workManagement',
+  },
+  {
     key: 'taskCalendar',
     href: '/work/calendar',
     labelKey: 'taskCalendar',
@@ -378,7 +387,6 @@ export const NAV_ITEMS: readonly NavItem[] = [
   },
   {
     key: 'workforce',
-    // People hub — attendance/timesheets stay in workforce sub-nav only.
     href: '/workforce/employees',
     labelKey: 'people',
     iconKey: 'workforce',
@@ -395,6 +403,23 @@ export const NAV_ITEMS: readonly NavItem[] = [
       PERMISSIONS.TIME_APPROVE,
       PERMISSIONS.WORKFORCE_READ,
     ],
+    moreGroup: 'people',
+  },
+  {
+    key: 'attendance',
+    href: '/workforce/attendance',
+    labelKey: 'attendance',
+    iconKey: 'attendance',
+    anyPermissions: [PERMISSIONS.ATTENDANCE_READ, PERMISSIONS.ATTENDANCE_MANAGE],
+    moreGroup: 'people',
+  },
+  {
+    key: 'timesheets',
+    href: '/workforce/timesheets',
+    labelKey: 'timesheets',
+    iconKey: 'timesheets',
+    // No time.read key exists. The timesheets page treats workforce.read as read.
+    anyPermissions: [PERMISSIONS.WORKFORCE_READ, PERMISSIONS.TIME_APPROVE],
     moreGroup: 'people',
   },
   {

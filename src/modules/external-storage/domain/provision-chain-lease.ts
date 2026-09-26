@@ -107,6 +107,7 @@ export function decideStorageProvisionRecovery(input: {
 export function shouldScheduleStorageProvisionHop(input: {
   readonly clientsProcessed: number;
   readonly projectsProcessed: number;
+  readonly partiesProcessed?: number;
   readonly remaining: number;
   readonly rateLimited: boolean;
   readonly fatalError?: string;
@@ -125,7 +126,8 @@ export function shouldScheduleStorageProvisionHop(input: {
       },
     };
   }
-  if (input.clientsProcessed === 0 && input.projectsProcessed === 0) {
+  const partiesProcessed = input.partiesProcessed ?? 0;
+  if (input.clientsProcessed === 0 && input.projectsProcessed === 0 && partiesProcessed === 0) {
     return {
       schedule: false,
       step: {

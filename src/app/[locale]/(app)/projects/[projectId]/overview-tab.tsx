@@ -4,7 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ProjectFinancialsSnapshotView } from '@/modules/financials/ui/project-financials-snapshot-view';
 import type { ProjectFinancials } from '@/modules/financials/domain/types';
 import { buildScheduleSummary, type ProjectDetail } from '@/modules/projects';
+import {
+  loadProjectProgressView,
+  schedulePercentForReader,
+} from '@/modules/projects/application/project-progress-mode';
 import { todayInTimeZone } from '@/shared/dates/dates';
+import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
 import { ProjectEarlyWarningsPanel, ProjectEarlyWarningsFallback } from './overview-early-warnings';
 import { ScheduleSummaryPanel } from './schedule-summary-panel';
@@ -47,7 +52,7 @@ export async function OverviewTab({
     : `/projects/${detail.project.id}?tab=details`;
   const moneyHref = `/projects/${detail.project.id}?tab=financials`;
 
-  const schedule = isJob
+  const scheduleBase = isJob
     ? null
     : buildScheduleSummary({
         project: detail.project,
@@ -62,6 +67,21 @@ export async function OverviewTab({
           }
         })(),
       });
+  const progressView = scheduleBase
+    ? await withOrgContext((context) =>
+        loadProjectProgressView(context.db, context.organizationId, detail.project.id),
+      )
+    : null;
+  const schedule = scheduleBase
+    ? {
+        ...scheduleBase,
+        progressPercent: schedulePercentForReader(
+          progressView?.source ?? detail.project.progressSource,
+          scheduleBase.progressPercent,
+          progressView?.displayedPercent ?? null,
+        ),
+      }
+    : null;
 
   const dateRange =
     [detail.project.startDate, detail.project.targetEndDate].filter(Boolean).join(' → ') || '-';

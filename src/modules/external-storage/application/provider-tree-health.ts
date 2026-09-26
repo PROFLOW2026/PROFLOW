@@ -475,7 +475,9 @@ export async function reconcileStaleReadyMappingsBatch(
     'client_root',
     'project_root',
     'vendors_root',
+    'vendor_root',
     'employees_root',
+    'employee_root',
     'organization_documents',
     ...PROJECT_SEMANTIC_FOLDERS,
   ]);

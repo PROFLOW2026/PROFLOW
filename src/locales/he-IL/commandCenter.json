@@ -8,6 +8,7 @@
   },
   "actions": {
     "open": "פתיחה",
+    "preparePaymentReminder": "הכנת תזכורת תשלום",
     "confirmPaid": "אשר ששולם",
     "paymentDateLabel": "תאריך תשלום",
     "paymentDateHint": "תאריך התשלום בפועל. ברירת מחדל היום; ניתן לבחור תאריך רטרואקטיבי.",
@@ -21,7 +22,7 @@
     "notNow": "לא עכשיו",
     "dismiss": "דלג על החודש"
   },
-  "financialGuard": "סימון כטופל מסתיר את ההתראה בלבד. החשבונית, החשבון או ההוצאה לא משתנים.",
+  "financialGuard": "הפריט נשאר עד שהחשבונית, החשבון או ההוצאה נסגרים. אפשר לנמנם.",
   "severity": {
     "critical": "קריטי",
     "high": "גבוה",
@@ -80,7 +81,9 @@
     "payroll_pending_review": "שכר ממתין לאישור",
     "monthly_workforce_report_ready": "דוח עובדים חודשי",
     "task_overdue": "משימה באיחור",
-    "task_due_today": "משימה ליעד היום"
+    "task_due_today": "משימה ליעד היום",
+    "storage_attention": "אחסון קבצים",
+    "statutory_attention": "מסמך מס"
   },
   "itemCopy": {
     "where": {
@@ -102,7 +105,9 @@
       "cashFlow": "תזרים",
       "automations": "אוטומציות",
       "communications": "הודעות",
-      "tasks": "משימות"
+      "tasks": "משימות",
+      "storage": "אחסון קבצים",
+      "integrations": "חיבורים"
     },
     "overdueAr": {
       "whatWithReference": "גבייה - {reference}",
@@ -279,6 +284,29 @@
     "communicationFailed": {
       "what": "הודעה לא נשלחה - {subject}",
       "why": "השליחה נכשלה או לא אושרה על ידי הספק."
+    },
+    "storageProvider": {
+      "onedrive": "OneDrive",
+      "google_drive": "Google Drive",
+      "dropbox": "Dropbox",
+      "box": "Box"
+    },
+    "storageAttention": {
+      "whatReconnect": "חיבור מחדש ל-{provider}",
+      "whatError": "תיקון אחסון {provider}",
+      "whatProvision": "השלמת הקמת תיקיות ב-{provider}",
+      "whyStatus": "חיבור אחסון הקבצים דורש טיפול.",
+      "whyProvision": "הקמת התיקיות נעצרה וצריך לנסות שוב."
+    },
+    "statutoryAttention": {
+      "whatAmbiguous": "בירור מסמך מס לא חד-משמעי",
+      "whyAmbiguousWithReference": "תוצאת ההנפקה לא ברורה עבור {reference}",
+      "whyAmbiguous": "תוצאת ההנפקה לא ברורה",
+      "whatConnection": "תיקון חיבור ההנפקה",
+      "whyConnection": "חיבור ספק ההנפקה במצב שגיאה.",
+      "whatUnsupported": "פעולה חוקית לא נתמכת",
+      "whyUnsupportedWithReference": "ספק ההנפקה לא תומך בפעולה הזו עבור {reference}",
+      "whyUnsupported": "ספק ההנפקה לא תומך בפעולה הזו."
     },
     "billingPlanCycleDraft": {
       "what": "חשבון התקדמות ממתין להנפקה - {title}",

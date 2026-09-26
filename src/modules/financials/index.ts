@@ -69,6 +69,8 @@ export {
   buildCashFlowForecast,
   certaintyForDatedSource,
 } from './domain/cash-flow-forecast';
+export { buildRunningCashPosition } from './domain/running-cash-position';
+export type { CashRunningPosition } from './domain/running-cash-position';
 export {
   computeUnbilledBacklog,
   computeQuotesConversion,

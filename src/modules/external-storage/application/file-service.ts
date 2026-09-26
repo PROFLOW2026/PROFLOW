@@ -28,6 +28,44 @@ import { runElevatedTaskCommentDocumentWrite } from '@/modules/documents/applica
 import type { DbExecutor } from '@/shared/db/types';
 import { parseByteRangeHeader } from '../server/byte-range';
 
+/**
+ * Ready vendor_root / employee_root mapping, same entity lookup as client_root.
+ * When no mapping exists the caller keeps organization documents.
+ * Project-scoped uploads do not call this.
+ */
+async function findReadyPartyRootFolderId(
+  db: DbExecutor,
+  input: {
+    organizationId: string;
+    connectionId: string;
+    ownerType: string | null | undefined;
+    ownerId: string | null | undefined;
+  },
+): Promise<string | null> {
+  const semanticFolderType =
+    input.ownerType === 'vendor'
+      ? 'vendor_root'
+      : input.ownerType === 'employee'
+        ? 'employee_root'
+        : null;
+  if (!semanticFolderType || !input.ownerId || !input.ownerType) return null;
+  const mapping = await findFolderMapping(db, {
+    organizationId: input.organizationId,
+    connectionId: input.connectionId,
+    semanticFolderType,
+    entityType: input.ownerType,
+    entityId: input.ownerId,
+  });
+  if (
+    mapping?.status === 'ready' &&
+    mapping.externalFolderId &&
+    mapping.externalFolderId !== 'pending'
+  ) {
+    return mapping.externalFolderId;
+  }
+  return null;
+}
+
 export async function uploadDocumentToExternalStorage(
   context: OrgContext,
   input: {
@@ -120,6 +158,18 @@ export async function uploadDocumentToExternalStorage(
     } else if (hasPreResolvedParent) {
       parentFolderId = input.resolvedParentFolderId!.trim();
     } else {
+      const partyRootId = await findReadyPartyRootFolderId(context.db, {
+        organizationId: context.organizationId,
+        connectionId: connection.id,
+        ownerType: documentLink?.ownerType ?? folderEntityType,
+        ownerId: documentLink?.ownerId ?? folderEntityId,
+      });
+      if (partyRootId) {
+        parentFolderId = partyRootId;
+      }
+    }
+
+    if (!isTaskScopedAttachment && !parentFolderId) {
       const parentMapping = await findFolderMapping(context.db, {
         organizationId: context.organizationId,
         connectionId: connection.id,

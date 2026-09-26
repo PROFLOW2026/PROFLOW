@@ -98,7 +98,15 @@
     "service_completion": "Frozen service completion report for a completed work order.",
     "timesheet": "Timesheet period summary. Not payroll.",
     "project_billing_account": "Management progress account — not an official tax invoice. Billing only, not payment.",
-    "project_billing_plan_status": "Planned schedule, billed vs planned, unbilled contract, retention, next billing, and completion %."
+    "project_billing_plan_status": "Planned schedule, billed vs planned, unbilled contract, retention, next billing, and completion %.",
+    "project_task_status": "Task counts by status for the selected project.",
+    "overdue_tasks_org": "Open tasks past their due date on accessible workspaces.",
+    "milestone_status": "Milestone status on accessible projects.",
+    "team_workload": "Open, overdue, and due-this-week tasks per employee.",
+    "portfolio_status": "Accessible projects with open, overdue, and blocked task counts.",
+    "stage_distribution": "Accessible projects grouped by current stage.",
+    "stale_projects": "Active projects with no task activity in 14 days.",
+    "approval_queue_status": "Submitted approval requests by type."
   },
   "natures": {
     "actual": "Actual",
@@ -169,7 +177,15 @@
     "recentPeriods": "Recent periods",
     "openSafetyActions": "Open safety actions",
     "safetyKpis": "Safety KPIs",
-    "openCorrectiveActions": "Open corrective actions"
+    "openCorrectiveActions": "Open corrective actions",
+    "taskStatus": "Task status",
+    "overdueTasks": "Overdue tasks",
+    "milestones": "Milestones",
+    "teamWorkload": "Team workload",
+    "portfolioProjects": "Portfolio projects",
+    "stageDistribution": "Projects by stage",
+    "staleProjects": "Stale projects",
+    "approvalQueue": "Approval queue"
   },
   "fields": {
     "originalContract": "Original contract value net",
@@ -299,7 +315,20 @@
     "criticalHighRecords": "Critical/high records",
     "date": "Date",
     "hours": "Hours",
-    "notes": "Notes"
+    "notes": "Notes",
+    "tasksTotal": "Tasks",
+    "listed": "Listed",
+    "overdueTasks": "Overdue tasks",
+    "openTasks": "Open tasks",
+    "blockedTasks": "Blocked tasks",
+    "dueThisWeek": "Due this week",
+    "projectsAssigned": "Projects assigned",
+    "estimatedMinutes": "Estimated minutes",
+    "projectsListed": "Projects",
+    "milestonesListed": "Milestones",
+    "employeesListed": "Employees",
+    "noStage": "No stage",
+    "pendingSubmitted": "Submitted approvals"
   },
   "phrases": {
     "outstanding": "outstanding",
@@ -332,7 +361,12 @@
     "retentionCashTiming": "Retention is cash timing, not profit.",
     "applicationSnapshot": "Application snapshot.",
     "operationalMonthClose": "Operational month close, not statutory accounting close.",
-    "applicationReport": "Application report."
+    "applicationReport": "Application report.",
+    "listCapped": "This list is capped. The count is the number of rows returned, not a larger total.",
+    "showingPartial": "Showing {shown} of {total}.",
+    "portfolioPartial": "Loaded {loaded} of {total} projects. Totals that need every project are omitted.",
+    "staleWindow": "Active projects with no task activity in the last 14 days.",
+    "approvalListCapped": "The pending item list is capped. Type counts above are the full submitted queue."
   },
   "empty": {
     "boq": "No active bill of quantities on this project.",
@@ -360,7 +394,15 @@
     "noOpenOpportunities": "No open opportunities in the pipeline.",
     "noLeads": "No leads on file.",
     "noCompletenessChecks": "No applicable completeness checks for this month.",
-    "noOpenCorrectiveActions": "No open corrective actions on accessible projects."
+    "noOpenCorrectiveActions": "No open corrective actions on accessible projects.",
+    "noProjectTasks": "No accessible tasks on this project.",
+    "noOverdueTasks": "No overdue open tasks on accessible workspaces.",
+    "noMilestones": "No milestones on accessible projects.",
+    "noWorkloadRows": "No active employees to list.",
+    "noPortfolioProjects": "No accessible projects in the portfolio.",
+    "noStaleProjects": "No active projects are stale in this window.",
+    "noPendingApprovals": "No submitted approval requests.",
+    "stageNeedsPortfolio": "Current stage is read from the portfolio, which requires portfolio.read."
   },
   "omitted": {
     "profit": "Profit",

@@ -65,6 +65,10 @@ vi.mock('@/modules/billing', () => ({
     voidsBillingRecordId: null,
     externalDocumentId: null,
     notes: null,
+    collectionContactedAt: null,
+    collectionNextFollowUpAt: null,
+    collectionPromiseToPayDate: null,
+    collectionNote: null,
     lines: [],
     payments: [],
   })),
@@ -215,6 +219,9 @@ function mockSumitClient(options: {
     },
     async listExpenseDocuments() {
       return [];
+    },
+    async cancelDocument() {
+      throw new Error('not used');
     },
   };
 }

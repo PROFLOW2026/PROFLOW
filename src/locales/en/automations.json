@@ -47,12 +47,44 @@
       "hint": "When vehicle or equipment service is due."
     },
     "retention_release_date": {
-      "name": "Retention release date",
-      "hint": "When retention has a release date."
+      "name": "Held retention",
+      "hint": "When retention is still held and needs attention. There is no stored release date."
     },
     "closeout_has_blockers": {
       "name": "Closeout blockers",
       "hint": "When project closeout has blocking items."
+    },
+    "task_status_changed_to": {
+      "name": "Task status changed",
+      "hint": "When a task moves to the configured status."
+    },
+    "task_overdue": {
+      "name": "Overdue task",
+      "hint": "When a task is past its due date."
+    },
+    "task_assigned_to": {
+      "name": "Task assigned",
+      "hint": "When a task is assigned to a team member."
+    },
+    "task_created_from_template": {
+      "name": "Task created from a template",
+      "hint": "When a task is created from a template."
+    },
+    "task_approval_rejected": {
+      "name": "Task approval rejected",
+      "hint": "When a task approval request is rejected."
+    },
+    "task_dependency_resolved": {
+      "name": "Task dependency resolved",
+      "hint": "When a dependency blocking a task is resolved."
+    },
+    "milestone_approaching_days": {
+      "name": "Milestone approaching",
+      "hint": "When a project milestone falls within the next few days."
+    },
+    "project_created": {
+      "name": "Project created",
+      "hint": "When a new project is created."
     }
   },
   "actions": {
@@ -62,6 +94,7 @@
     "saved": "Saved.",
     "ran": "Rule ran."
   },
+  "unavailable": "Unavailable. This rule needs an event that ProjectFlow does not record, so it cannot run.",
   "safeNote": "Rules may notify, add a Today item, create a follow-up task, or prepare a draft. They cannot post, pay, approve, or change contracts.",
   "notAllowed": {
     "title": "Automations are not available",

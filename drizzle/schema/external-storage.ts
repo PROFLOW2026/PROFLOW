@@ -44,7 +44,9 @@ export const SEMANTIC_FOLDER_TYPES = [
   'documents',
   'general_files',
   'vendors_root',
+  'vendor_root',
   'employees_root',
+  'employee_root',
   'organization_documents',
 ] as const;
 export type SemanticFolderType = (typeof SEMANTIC_FOLDER_TYPES)[number];

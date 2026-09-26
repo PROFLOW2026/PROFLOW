@@ -24,7 +24,9 @@ import {
   createExternalDocumentRow as createInMemory,
   findExternalDocumentByExternalId as findByExternalIdInMemory,
   findExternalDocumentById as findByIdInMemory,
+  listExternalDocumentsByIssuanceOutcome as listByOutcomeInMemory,
   listExternalDocumentsForBilling as listInMemory,
+  listExternalDocumentsForPayment as listForPaymentInMemory,
   updateExternalDocumentRow as updateInMemory,
 } from './in-memory-external-documents.store';
 import {
@@ -180,6 +182,34 @@ export async function listExternalDocuments(
     );
   }
   return listInMemory(context.organizationId, billingRecordId);
+}
+
+export async function listExternalDocumentsForPayment(
+  context: Pick<OrgContext, 'db' | 'organizationId'>,
+  paymentId: string,
+): Promise<ExternalStatutoryDocument[]> {
+  if (areInvoicingIntegrationTablesAvailable()) {
+    return getExternalDocumentsRepository().listForPayment(
+      context.db,
+      context.organizationId,
+      paymentId,
+    );
+  }
+  return listForPaymentInMemory(context.organizationId, paymentId);
+}
+
+export async function listExternalDocumentsByIssuanceOutcome(
+  context: Pick<OrgContext, 'db' | 'organizationId'>,
+  issuanceOutcome: IssuanceOutcome,
+): Promise<ExternalStatutoryDocument[]> {
+  if (areInvoicingIntegrationTablesAvailable()) {
+    return getExternalDocumentsRepository().listByIssuanceOutcome(
+      context.db,
+      context.organizationId,
+      issuanceOutcome,
+    );
+  }
+  return listByOutcomeInMemory(context.organizationId, issuanceOutcome);
 }
 
 /**

@@ -184,6 +184,16 @@ export interface ExternalDocumentsRepository {
     organizationId: string,
     billingRecordId: string,
   ): Promise<ExternalStatutoryDocument[]>;
+  listForPayment(
+    db: DbExecutor,
+    organizationId: string,
+    paymentId: string,
+  ): Promise<ExternalStatutoryDocument[]>;
+  listByIssuanceOutcome(
+    db: DbExecutor,
+    organizationId: string,
+    issuanceOutcome: IssuanceOutcome,
+  ): Promise<ExternalStatutoryDocument[]>;
 }
 
 export interface ProviderConnectionsRepository {
@@ -191,6 +201,11 @@ export interface ProviderConnectionsRepository {
     db: DbExecutor,
     organizationId: string,
   ): Promise<ProviderConnectionRow | null>;
+  listByStatus(
+    db: DbExecutor,
+    organizationId: string,
+    status: ProviderConnectionRow['status'],
+  ): Promise<ProviderConnectionRow[]>;
   upsert(db: DbExecutor, input: ProviderConnectionUpsert): Promise<ProviderConnectionRow>;
 }
 
@@ -303,6 +318,34 @@ export const drizzleExternalDocumentsRepository: ExternalDocumentsRepository = {
       .orderBy(asc(externalStatutoryDocuments.requestedAt));
     return rows.map(mapDocument);
   },
+
+  async listForPayment(db, organizationId, paymentId) {
+    const rows = await db
+      .select()
+      .from(externalStatutoryDocuments)
+      .where(
+        and(
+          eq(externalStatutoryDocuments.organizationId, organizationId),
+          eq(externalStatutoryDocuments.paymentId, paymentId),
+        ),
+      )
+      .orderBy(asc(externalStatutoryDocuments.requestedAt));
+    return rows.map(mapDocument);
+  },
+
+  async listByIssuanceOutcome(db, organizationId, issuanceOutcome) {
+    const rows = await db
+      .select()
+      .from(externalStatutoryDocuments)
+      .where(
+        and(
+          eq(externalStatutoryDocuments.organizationId, organizationId),
+          eq(externalStatutoryDocuments.issuanceOutcome, issuanceOutcome),
+        ),
+      )
+      .orderBy(asc(externalStatutoryDocuments.requestedAt));
+    return rows.map(mapDocument);
+  },
 };
 
 export const drizzleProviderConnectionsRepository: ProviderConnectionsRepository = {
@@ -313,6 +356,19 @@ export const drizzleProviderConnectionsRepository: ProviderConnectionsRepository
       .where(eq(externalInvoicingProviderConnections.organizationId, organizationId))
       .limit(1);
     return row ? mapConnection(row) : null;
+  },
+
+  async listByStatus(db, organizationId, status) {
+    const rows = await db
+      .select()
+      .from(externalInvoicingProviderConnections)
+      .where(
+        and(
+          eq(externalInvoicingProviderConnections.organizationId, organizationId),
+          eq(externalInvoicingProviderConnections.status, status),
+        ),
+      );
+    return rows.map(mapConnection);
   },
 
   async upsert(db, input) {

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { listBusinessCatalog, localizePaymentTermOptions } from '@/modules/business-catalog';
 import { listInventoryItemsForOrg } from '@/modules/assets';
 import { listExpenseOverlapCandidates } from '@/modules/financials';
+import { listApBillsForOrg } from '@/modules/ap';
 import { isDeprecatedForNewTransactionEntry } from '@/modules/financials/domain/economic-classification';
 import { listCostCategoriesForOrg } from '@/modules/expenses';
 import { displayCostCategoryName } from '@/modules/expenses/domain/cost-category-display';
@@ -41,17 +42,20 @@ export default async function NewApBillPage({
   const tExpenses = await getTranslations('expenses');
   const search = await searchParams;
   const requestedPoId = typeof search.purchaseOrderId === 'string' ? search.purchaseOrderId : '';
+  const requestedVendorId = typeof search.vendorId === 'string' ? search.vendorId : '';
+  const requestedProjectId = typeof search.projectId === 'string' ? search.projectId : '';
 
-  const { vendors, projects, purchaseOrders, poLinesByPoId, paymentTerms, costCategories, defaultCurrency, canManage, expenseOverlapCandidates, inventoryItems } =
+  const { vendors, projects, purchaseOrders, poLinesByPoId, paymentTerms, costCategories, defaultCurrency, canManage, expenseOverlapCandidates, existingBills, inventoryItems } =
     await withOrgContext(async (context) => {
       const canReadVendors = hasPermission(context, PERMISSIONS.VENDORS_READ);
       const canReadProjects = hasPermission(context, PERMISSIONS.PROJECTS_READ);
       const canReadPo = hasPermission(context, PERMISSIONS.PROCUREMENT_READ);
       const canReadCatalog = hasPermission(context, PERMISSIONS.ORG_READ);
+      const canReadAp = hasPermission(context, PERMISSIONS.AP_READ);
       const canReadExpenses = hasPermission(context, PERMISSIONS.EXPENSES_READ);
       const canReadAssets = hasPermission(context, PERMISSIONS.ASSETS_READ);
 
-      const [vendorRows, projectRows, poRows, termRows, expenseCandidates, categoryRows] =
+      const [vendorRows, projectRows, poRows, termRows, expenseCandidates, categoryRows, billRows] =
         await Promise.all([
         canReadVendors ? listVendorsForOrg(context, { status: 'active' }) : Promise.resolve([]),
         canReadProjects ? listProjectsForOrg(context, { status: 'active' }) : Promise.resolve([]),
@@ -65,6 +69,7 @@ export default async function NewApBillPage({
         canReadExpenses
           ? listCostCategoriesForOrg(context).catch(() => [])
           : Promise.resolve([]),
+        canReadAp ? listApBillsForOrg(context, { limit: 200 }).catch(() => []) : Promise.resolve([]),
       ]);
 
       const lineEntries = canReadPo
@@ -112,6 +117,12 @@ export default async function NewApBillPage({
         defaultCurrency: context.organization.baseCurrency,
         canManage: hasPermission(context, PERMISSIONS.AP_MANAGE),
         expenseOverlapCandidates: expenseCandidates,
+        existingBills: billRows.map((bill) => ({
+          id: bill.id,
+          vendorId: bill.vendorId,
+          reference: bill.reference,
+          status: bill.status,
+        })),
         inventoryItems: canReadAssets
           ? (await listInventoryItemsForOrg(context).catch(() => [])).map((item) => ({
               id: item.id,
@@ -158,7 +169,10 @@ export default async function NewApBillPage({
           paymentTerms={paymentTerms}
           costCategories={costCategories}
           defaultPurchaseOrderId={requestedPoId}
+          defaultVendorId={requestedVendorId}
+          defaultProjectId={requestedProjectId}
           expenseOverlapCandidates={expenseOverlapCandidates}
+          existingBills={existingBills}
           inventoryItems={inventoryItems}
         />
       )}

@@ -16,6 +16,7 @@ import {
   lockPaymentForUpdate,
 } from '../data/payments.repository';
 import { assertAdditionalCustomerPaymentApplicationsValid } from '../domain/payment-applications';
+import { scheduleStatutoryForAllocations } from './schedule-statutory-for-allocations';
 import {
   allocateCustomerPaymentSchema,
   type AllocateCustomerPaymentInput,
@@ -162,6 +163,8 @@ export async function allocateCustomerPayment(
     );
     if (record) billingRecords.push(record);
   }
+
+  scheduleStatutoryForAllocations(context, result.paymentId, result.applications);
 
   return { paymentId: result.paymentId, billingRecords };
 }

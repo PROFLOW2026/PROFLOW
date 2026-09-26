@@ -52,3 +52,18 @@ export function missingAttendanceTodayAlertHref(input: {
 }): string {
   return attendanceEmployeeDateAlertHref(input);
 }
+
+/** Existing communications composer for a payment reminder on a billing record. */
+export function paymentReminderDraftHref(input: {
+  readonly billingRecordId: string;
+  readonly projectId?: string | null;
+  readonly clientId?: string | null;
+  readonly subject?: string | null;
+}): string {
+  const params = new URLSearchParams({ entityType: 'payment_reminder' });
+  params.set('entityId', input.billingRecordId);
+  if (input.projectId) params.set('projectId', input.projectId);
+  if (input.clientId) params.set('clientId', input.clientId);
+  if (input.subject) params.set('subject', input.subject);
+  return `/communications/new?${params.toString()}`;
+}

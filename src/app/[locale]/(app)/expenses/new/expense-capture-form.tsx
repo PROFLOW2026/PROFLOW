@@ -9,6 +9,7 @@ import type { CostCategoryRow, InventoryItemOption, ProjectOption, VendorOption,
 import { expensePayloadFromFormData } from '@/modules/offline/domain/payloads';
 import { useOfflineAwareFormAction } from '@/modules/offline/ui/use-offline-aware-form-action';
 import type { ApBillOverlapCandidate } from '@/modules/financials';
+import type { SupplierBillReferenceRow } from '@/modules/expenses/domain/supplier-cost-guidance';
 import type { PaymentInstrumentRow } from '@/modules/payment-instruments/domain/types';
 import { Link } from '@/shared/i18n/navigation';
 import { createExpenseAction, type ExpenseActionState } from '../actions';
@@ -25,6 +26,7 @@ export interface ExpenseCaptureFormProps {
   /** Org tax rule rate for live VAT preview - never hardcoded. */
   readonly taxRatePercent?: string | null;
   readonly apBillOverlapCandidates?: readonly ApBillOverlapCandidate[];
+  readonly supplierBillReferences?: readonly SupplierBillReferenceRow[];
   readonly paymentInstruments?: readonly PaymentInstrumentRow[];
   readonly defaultToday?: string;
 }
@@ -40,6 +42,7 @@ export function ExpenseCaptureForm({
   initialProjectId,
   taxRatePercent = null,
   apBillOverlapCandidates = [],
+  supplierBillReferences = [],
   paymentInstruments = [],
   defaultToday = '',
 }: ExpenseCaptureFormProps) {
@@ -93,6 +96,7 @@ export function ExpenseCaptureForm({
         inventoryItems={inventoryItems}
         taxRatePercent={taxRatePercent}
         apBillOverlapCandidates={apBillOverlapCandidates}
+        supplierBillReferences={supplierBillReferences}
         paymentInstruments={paymentInstruments}
         defaultToday={defaultToday}
         initialValues={{

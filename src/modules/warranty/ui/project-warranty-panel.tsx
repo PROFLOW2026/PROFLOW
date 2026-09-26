@@ -58,13 +58,24 @@ export async function ProjectWarrantyPanel({ projectId }: { readonly projectId: 
       : [];
     const canUpdate = hasPermission(context, PERMISSIONS.PROJECTS_UPDATE);
     const documentPanels: Record<string, Awaited<ReturnType<typeof getEntityDocumentPanelData>>> = {};
-    for (const coverage of coverages) {
-      documentPanels[coverage.id] = await getEntityDocumentPanelData(
-        context,
-        'warranty_coverage',
-        coverage.id,
-      );
-    }
+    const issueDocumentPanels: Record<string, Awaited<ReturnType<typeof getEntityDocumentPanelData>>> = {};
+    const issues = Object.values(issuesByCoverageId).flat();
+    await Promise.all([
+      ...coverages.map(async (coverage) => {
+        documentPanels[coverage.id] = await getEntityDocumentPanelData(
+          context,
+          'warranty_coverage',
+          coverage.id,
+        );
+      }),
+      ...issues.map(async (issue) => {
+        issueDocumentPanels[issue.id] = await getEntityDocumentPanelData(
+          context,
+          'warranty_issue',
+          issue.id,
+        );
+      }),
+    ]);
     return {
       coverages,
       issuesByCoverageId,
@@ -72,6 +83,7 @@ export async function ProjectWarrantyPanel({ projectId }: { readonly projectId: 
       vendors: vendors.map((row) => ({ id: row.id, name: row.name })),
       canUpdate,
       documentPanels,
+      issueDocumentPanels,
     };
   });
 
@@ -139,6 +151,7 @@ export async function ProjectWarrantyPanel({ projectId }: { readonly projectId: 
                         issue={issue}
                         projectId={projectId}
                         canUpdate={data.canUpdate}
+                        documentsPanel={data.issueDocumentPanels[issue.id] ?? null}
                       />
                     ))}
                   </ul>
@@ -171,13 +184,20 @@ function IssueRow({
   issue,
   projectId,
   canUpdate,
+  documentsPanel,
 }: {
   readonly issue: WarrantyIssueRecord;
   readonly projectId: string;
   readonly canUpdate: boolean;
+  readonly documentsPanel: Awaited<ReturnType<typeof getEntityDocumentPanelData>> | null;
 }) {
   return (
-    <IssueCard issue={issue} projectId={projectId} canUpdate={canUpdate} />
+    <IssueCard
+      issue={issue}
+      projectId={projectId}
+      canUpdate={canUpdate}
+      documentsPanel={documentsPanel}
+    />
   );
 }
 
@@ -185,10 +205,12 @@ async function IssueCard({
   issue,
   projectId,
   canUpdate,
+  documentsPanel,
 }: {
   readonly issue: WarrantyIssueRecord;
   readonly projectId: string;
   readonly canUpdate: boolean;
+  readonly documentsPanel: Awaited<ReturnType<typeof getEntityDocumentPanelData>> | null;
 }) {
   const t = await getTranslations('warranty');
   return (
@@ -211,6 +233,19 @@ async function IssueCard({
           {!issue.workOrderId && issue.status !== 'cancelled' && issue.status !== 'resolved' ? (
             <CreateWorkOrderForm issueId={issue.id} projectId={projectId} title={issue.title} />
           ) : null}
+        </div>
+      ) : null}
+      {documentsPanel ? (
+        <div className="mt-3">
+          <DocumentAttachments
+            ownerType="warranty_issue"
+            ownerId={issue.id}
+            documents={documentsPanel.documents}
+            linkCandidates={documentsPanel.linkCandidates}
+            canRead={documentsPanel.canRead}
+            canManage={documentsPanel.canManage}
+            storageConfigured={documentsPanel.storageConfigured}
+          />
         </div>
       ) : null}
     </li>

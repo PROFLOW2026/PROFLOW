@@ -78,6 +78,10 @@ export interface Task {
   readonly generatedFromOccurrenceId: string | null;
   readonly source: TaskSource;
   readonly approvalRequired: boolean;
+  /** Opt-in. Default false so existing tasks do not move project progress. */
+  readonly contributesToProgress: boolean;
+  /** Relative weight. Null means 1 in the progress formula. Not money. */
+  readonly progressWeight: string | null;
   readonly isArchived: boolean;
   readonly archivedAt: Date | null;
   readonly archivedByOrgMemberId: string | null;
@@ -284,6 +288,8 @@ export interface UpdateTaskInput {
   readonly estimatedEffortMinutes?: number | null;
   readonly milestoneId?: string | null;
   readonly approvalRequired?: boolean;
+  readonly contributesToProgress?: boolean;
+  readonly progressWeight?: number | string | null;
   readonly ownerOrgMemberId?: string | null;
   readonly ownerEmployeeId?: string | null;
 }

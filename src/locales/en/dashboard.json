@@ -175,6 +175,20 @@
     "noFinancialRows": "{count, plural, one {One active project — financial details appear when data is available} other {# active projects — financial details appear when data is available}}",
     "reportsLink": "Reports & exports →"
   },
+  "cashForecast": {
+    "title": "Cash forecast",
+    "hint": "Opening balance plus dated movements from overdue through 90 days. Items beyond 90 days and undated items are not in the balance.",
+    "opening": "Current cash",
+    "openingUnset": "No opening balance is set. The position starts at zero.",
+    "openingAsOf": "As of {date}",
+    "expectedIn": "Expected in",
+    "expectedOut": "Expected out",
+    "endBalance": "Forecast ending balance",
+    "lowest": "Lowest point",
+    "excluded": "{later} items beyond 90 days and {undated} undated items are listed and are not included in the running balance.",
+    "openPage": "Open cash forecast",
+    "inHidden": "Expected inflows are hidden without billing permission."
+  },
   "businessSummary": {
     "title": "Business summary",
     "outstanding": "Outstanding to collect",

@@ -133,7 +133,15 @@
   },
   "forms": {
     "intro": "Permitted operational forms.",
-    "empty": "No forms available"
+    "empty": "No forms available",
+    "submit": "Submit",
+    "submitted": "Form submitted.",
+    "back": "Back to forms",
+    "project": "Project",
+    "selectProject": "Select a project",
+    "noProjects": "No project in your access — this form cannot be submitted.",
+    "photoSkipped": "Photos are not collected on this page.",
+    "error": "Could not submit the form. Check the required fields and try again."
   },
   "expenses": {
     "create": "New expense",
@@ -218,6 +226,33 @@
     "noAccess": {
       "title": "Accounts payable not available",
       "description": "You do not have permission to view AP. Contact your manager."
+    },
+    "nav": {
+      "aging": "Aging",
+      "credits": "Credits",
+      "newBill": "New bill"
+    },
+    "detail": {
+      "back": "Back to vendor bills",
+      "lines": "Lines",
+      "purchaseOrder": "Purchase order"
+    },
+    "credits": {
+      "back": "Back to credits",
+      "remaining": "Remaining"
+    },
+    "createForm": {
+      "title": "New vendor bill",
+      "draftHint": "This saves a draft bill. Posting and payments stay with accounts payable manage tools.",
+      "vendor": "Vendor",
+      "selectVendor": "Select a vendor",
+      "noVendors": "Vendor read access is required before a bill can be drafted.",
+      "description": "Description",
+      "amount": "Amount ({currency})",
+      "date": "Bill date",
+      "reference": "Reference",
+      "submit": "Save draft bill",
+      "error": "Could not save the draft bill. Check the fields and try again."
     }
   },
   "vendors": {
@@ -233,6 +268,11 @@
       "phone": "Phone",
       "email": "Email",
       "submit": "Create vendor"
+    },
+    "detail": {
+      "back": "Back to vendors",
+      "contacts": "Contacts",
+      "projects": "Projects"
     }
   },
   "procurement": {
@@ -241,6 +281,9 @@
     "noAccess": {
       "title": "Procurement not available",
       "description": "You do not have permission to view purchase orders. Contact your manager."
+    },
+    "detail": {
+      "back": "Back to purchase orders"
     }
   },
   "contracts": {

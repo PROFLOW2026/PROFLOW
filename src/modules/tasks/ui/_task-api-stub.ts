@@ -76,6 +76,9 @@ export interface TaskCardData {
   checklistDone: number;
   isBlocked: boolean;
   approvalRequired: boolean;
+  /** Opt-in project progress. Absent on surfaces that do not edit it. */
+  contributesToProgress?: boolean;
+  progressWeight?: string | null;
   projectId: string | null;
   projectName: string | null;
   /** Client display name via project.client. Absent when the task has no project. */
@@ -224,6 +227,8 @@ export function mapTaskToCardData(
     checklistDone: enrichment?.checklistDone ?? 0,
     isBlocked: task.status === 'blocked',
     approvalRequired: task.approvalRequired,
+    contributesToProgress: task.contributesToProgress,
+    progressWeight: task.progressWeight,
     projectId: task.projectId,
     projectName: enrichment?.projectName ?? null,
     clientName: enrichment?.clientName ?? null,

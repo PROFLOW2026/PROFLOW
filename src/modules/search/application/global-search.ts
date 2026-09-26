@@ -1,38 +1,87 @@
 /**
  * Global Search — application layer dispatcher.
  *
- * Integrates task search (Agent I) into the existing search architecture.
- * Returns GlobalSearchResult with grouped hits following existing conventions.
- *
- * Access rules for tasks:
- *  - Filtered by caller workspace membership (accessibleWorkspaceIds)
- *  - Filtered by project-context access (accessibleProjectIds)
- *  - NEVER returns hits from inaccessible workspaces
+ * Queries the kinds the dialog already lists, each capped and skipped when
+ * the viewer lacks that kind's read permission. Commands come from the
+ * existing create/open shortcuts.
  */
 import type { OrgContext } from '@/shared/auth/context';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { resolveAccessibleProjectIds } from '@/modules/projects/application/project-access';
 import { getAccessibleWorkspaceIds } from '@/modules/operations';
-import { taskSearchHref } from '../domain/hrefs';
+import { getModuleVisibility } from '@/modules/tenancy';
+import {
+  apBillSearchHref,
+  billingRecordSearchHref,
+  clientSearchHref,
+  contractSearchHref,
+  documentSearchHref,
+  employeeSearchHref,
+  quoteSearchHref,
+  taskSearchHref,
+  vendorSearchHref,
+  workEntityHref,
+} from '../domain/hrefs';
 import { groupSearchHits } from '../domain/group';
-import type { GlobalSearchHit, GlobalSearchResult, SearchCommandHit } from '../domain/types';
-import { searchTasks, searchProjects } from '../data/search.repository';
-import { workEntityHref } from '../domain/hrefs';
+import { matchSearchCommands } from '../domain/commands';
+import {
+  capSearchLimit,
+  kindsVisibleToPermissions,
+  type QueriedSearchKind,
+} from '../domain/search-scope';
+import type { GlobalSearchHit, GlobalSearchResult } from '../domain/types';
+import {
+  searchApBills,
+  searchBillingRecords,
+  searchClients,
+  searchContracts,
+  searchDocuments,
+  searchEmployees,
+  searchProjects,
+  searchQuotes,
+  searchTasks,
+  searchVendors,
+} from '../data/search.repository';
 
-// ─── Task search integration ──────────────────────────────────────────────────
+interface SearchScope {
+  readonly accessibleProjectIds: string[] | null;
+  readonly accessibleWorkspaceIds: readonly string[];
+}
+
+async function loadSearchScope(
+  context: OrgContext,
+  allowed: readonly QueriedSearchKind[],
+): Promise<SearchScope> {
+  const kinds = new Set(allowed);
+  const needsProjects =
+    kinds.has('project') || kinds.has('task') || kinds.has('contract') || kinds.has('document');
+  const needsWorkspaces = kinds.has('task');
+
+  const [accessibleProjectIds, accessibleWorkspaceIds] = await Promise.all([
+    needsProjects ? resolveAccessibleProjectIds(context) : Promise.resolve(null),
+    needsWorkspaces
+      ? getAccessibleWorkspaceIds(context.db, context.organizationId, context.membershipId)
+      : Promise.resolve([] as string[]),
+  ]);
+
+  return { accessibleProjectIds, accessibleWorkspaceIds };
+}
 
 async function fetchTaskHits(
   context: OrgContext,
   query: string,
   limit: number,
+  scope?: SearchScope,
 ): Promise<GlobalSearchHit[]> {
   if (!hasPermission(context, PERMISSIONS.TASKS_READ)) return [];
 
-  const [accessibleProjectIds, accessibleWorkspaceIds] = await Promise.all([
-    resolveAccessibleProjectIds(context),
-    getAccessibleWorkspaceIds(context.db, context.organizationId, context.membershipId),
-  ]);
+  const accessibleProjectIds = scope
+    ? scope.accessibleProjectIds
+    : await resolveAccessibleProjectIds(context);
+  const accessibleWorkspaceIds = scope
+    ? [...scope.accessibleWorkspaceIds]
+    : await getAccessibleWorkspaceIds(context.db, context.organizationId, context.membershipId);
 
   const hits = await searchTasks(
     context.db,
@@ -59,10 +108,13 @@ async function fetchProjectHits(
   context: OrgContext,
   query: string,
   limit: number,
+  scope?: SearchScope,
 ): Promise<GlobalSearchHit[]> {
   if (!hasPermission(context, PERMISSIONS.PROJECTS_READ)) return [];
 
-  const accessibleProjectIds = await resolveAccessibleProjectIds(context);
+  const accessibleProjectIds = scope
+    ? scope.accessibleProjectIds
+    : await resolveAccessibleProjectIds(context);
   const hits = await searchProjects(
     context.db,
     context.organizationId,
@@ -83,7 +135,198 @@ async function fetchProjectHits(
   }));
 }
 
-// ─── Main dispatcher ──────────────────────────────────────────────────────────
+async function fetchClientHits(
+  context: OrgContext,
+  query: string,
+  limit: number,
+): Promise<GlobalSearchHit[]> {
+  if (!hasPermission(context, PERMISSIONS.CLIENTS_READ)) return [];
+  const hits = await searchClients(context.db, context.organizationId, query, limit);
+  return hits.map((hit) => ({
+    kind: 'client' as const,
+    id: hit.id,
+    title: hit.name,
+    subtitle: hit.subtitle,
+    href: clientSearchHref(hit.id),
+    status: hit.status,
+  }));
+}
+
+async function fetchVendorHits(
+  context: OrgContext,
+  query: string,
+  limit: number,
+): Promise<GlobalSearchHit[]> {
+  if (!hasPermission(context, PERMISSIONS.VENDORS_READ)) return [];
+  const hits = await searchVendors(context.db, context.organizationId, query, limit);
+  return hits.map((hit) => ({
+    kind: 'vendor' as const,
+    id: hit.id,
+    title: hit.name,
+    subtitle: hit.subtitle,
+    href: vendorSearchHref(hit.id),
+    status: hit.status,
+  }));
+}
+
+async function fetchBillingHits(
+  context: OrgContext,
+  query: string,
+  limit: number,
+): Promise<GlobalSearchHit[]> {
+  if (!hasPermission(context, PERMISSIONS.BILLING_READ)) return [];
+  const hits = await searchBillingRecords(context.db, context.organizationId, query, limit);
+  return hits.map((hit) => {
+    const reference = hit.reference?.trim() || null;
+    return {
+      kind: 'billing' as const,
+      id: hit.id,
+      title: reference || hit.clientName || hit.status,
+      subtitle: reference ? hit.clientName : null,
+      href: billingRecordSearchHref(hit.id),
+      status: hit.status,
+      date: hit.issueDate,
+      amount: hit.totalAmount,
+      currency: hit.currency,
+    };
+  });
+}
+
+async function fetchApBillHits(
+  context: OrgContext,
+  query: string,
+  limit: number,
+): Promise<GlobalSearchHit[]> {
+  if (!hasPermission(context, PERMISSIONS.AP_READ)) return [];
+  const hits = await searchApBills(context.db, context.organizationId, query, limit);
+  return hits.map((hit) => {
+    const reference = hit.reference?.trim() || null;
+    return {
+      kind: 'bill' as const,
+      id: hit.id,
+      title: reference || hit.vendorName,
+      subtitle: reference ? hit.vendorName : null,
+      href: apBillSearchHref(hit.id),
+      status: hit.status,
+      date: hit.billDate,
+      amount: hit.totalAmount,
+      currency: hit.currency,
+    };
+  });
+}
+
+async function fetchQuoteHits(
+  context: OrgContext,
+  query: string,
+  limit: number,
+): Promise<GlobalSearchHit[]> {
+  if (!hasPermission(context, PERMISSIONS.QUOTES_READ)) return [];
+  const hits = await searchQuotes(context.db, context.organizationId, query, limit);
+  return hits.map((hit) => ({
+    kind: 'quote' as const,
+    id: hit.id,
+    title: hit.title,
+    subtitle: hit.clientName,
+    href: quoteSearchHref(hit.id),
+    status: hit.status,
+    date: hit.validityDate,
+    amount: hit.totalAmount,
+    currency: hit.totalAmount ? hit.currency : null,
+  }));
+}
+
+async function fetchDocumentHits(
+  context: OrgContext,
+  query: string,
+  limit: number,
+  scope: SearchScope,
+): Promise<GlobalSearchHit[]> {
+  if (!hasPermission(context, PERMISSIONS.DOCUMENTS_READ)) return [];
+  const hits = await searchDocuments(
+    context.db,
+    context.organizationId,
+    query,
+    scope.accessibleProjectIds,
+    hasPermission(context, PERMISSIONS.WORKFORCE_COST_READ),
+    limit,
+  );
+  return hits.map((hit) => ({
+    kind: 'document' as const,
+    id: hit.id,
+    title: hit.originalFilename,
+    subtitle: hit.category,
+    href: documentSearchHref(hit.originalFilename),
+    status: hit.status,
+  }));
+}
+
+async function fetchEmployeeHits(
+  context: OrgContext,
+  query: string,
+  limit: number,
+): Promise<GlobalSearchHit[]> {
+  if (!hasPermission(context, PERMISSIONS.WORKFORCE_READ)) return [];
+  const hits = await searchEmployees(context.db, context.organizationId, query, limit);
+  return hits.map((hit) => ({
+    kind: 'employee' as const,
+    id: hit.id,
+    title: hit.name,
+    subtitle: hit.jobTitle,
+    href: employeeSearchHref(hit.id),
+    status: hit.status,
+    contextLabel: hit.employeeNumber,
+  }));
+}
+
+async function fetchContractHits(
+  context: OrgContext,
+  query: string,
+  limit: number,
+  scope: SearchScope,
+): Promise<GlobalSearchHit[]> {
+  if (!hasPermission(context, PERMISSIONS.CONTRACTS_READ)) return [];
+  const hits = await searchContracts(
+    context.db,
+    context.organizationId,
+    query,
+    scope.accessibleProjectIds,
+    limit,
+  );
+  return hits.map((hit) => ({
+    kind: 'contract' as const,
+    id: hit.id,
+    title: hit.name?.trim() || hit.contractNumber || hit.reference || hit.status,
+    subtitle: hit.projectName,
+    href: contractSearchHref(hit.projectId),
+    status: hit.status,
+    contextLabel: hit.contractNumber,
+  }));
+}
+
+async function fetchAllowedHits(
+  context: OrgContext,
+  query: string,
+  limit: number,
+  allowed: readonly QueriedSearchKind[],
+  scope: SearchScope,
+): Promise<GlobalSearchHit[]> {
+  const kinds = new Set(allowed);
+  const jobs: Promise<GlobalSearchHit[]>[] = [];
+
+  if (kinds.has('client')) jobs.push(fetchClientHits(context, query, limit));
+  if (kinds.has('vendor')) jobs.push(fetchVendorHits(context, query, limit));
+  if (kinds.has('project')) jobs.push(fetchProjectHits(context, query, limit, scope));
+  if (kinds.has('task')) jobs.push(fetchTaskHits(context, query, limit, scope));
+  if (kinds.has('billing')) jobs.push(fetchBillingHits(context, query, limit));
+  if (kinds.has('bill')) jobs.push(fetchApBillHits(context, query, limit));
+  if (kinds.has('quote')) jobs.push(fetchQuoteHits(context, query, limit));
+  if (kinds.has('document')) jobs.push(fetchDocumentHits(context, query, limit, scope));
+  if (kinds.has('employee')) jobs.push(fetchEmployeeHits(context, query, limit));
+  if (kinds.has('contract')) jobs.push(fetchContractHits(context, query, limit, scope));
+
+  const lists = await Promise.all(jobs);
+  return lists.flat();
+}
 
 /**
  * Global search dispatcher.
@@ -98,24 +341,24 @@ export async function globalSearch(
     return { query: '', commands: [], groups: [], hits: [] };
   }
 
-  const perEntityLimit = input.limit ?? 10;
+  const limit = capSearchLimit(input.limit);
+  const allowed = kindsVisibleToPermissions(context.permissions);
 
-  // Task hits — access-scoped
-  const taskHits = await fetchTaskHits(context, query, perEntityLimit);
-  const projectHits = await fetchProjectHits(context, query, perEntityLimit);
+  const [modules, scope] = await Promise.all([
+    getModuleVisibility(context),
+    loadSearchScope(context, allowed),
+  ]);
 
-  const allNewHits: GlobalSearchHit[] = [...projectHits, ...taskHits];
-
-  // Build commands (empty for task search — commands come from domain/commands.ts)
-  const commands: SearchCommandHit[] = [];
-
-  const groups = groupSearchHits(allNewHits, null);
+  const [commands, hits] = await Promise.all([
+    Promise.resolve(matchSearchCommands(query, context, modules)),
+    fetchAllowedHits(context, query, limit, allowed, scope),
+  ]);
 
   return {
     query,
     commands,
-    groups,
-    hits: allNewHits,
+    groups: groupSearchHits(hits, null),
+    hits,
   };
 }
 
@@ -131,7 +374,5 @@ export async function searchTasksOnly(
   if (!query.trim()) return [];
   return fetchTaskHits(context, query, limit);
 }
-
-// ─── Exported types ───────────────────────────────────────────────────────────
 
 export type { GlobalSearchResult, GlobalSearchHit } from '../domain/types';

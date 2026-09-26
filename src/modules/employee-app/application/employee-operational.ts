@@ -6,7 +6,10 @@ import type { OrgContext } from '@/shared/auth/context';
 import { DomainRuleError } from '@/shared/errors';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { employeeHasPermission, employeePermissionScope } from './load-employee-app-context';
-import { resolveAccessibleProjectIdsForEmployeePermission } from './project-scope';
+import {
+  resolveAccessibleProjectIdsForEmployeePermission,
+  resolveAccessibleProjectIdsForUser,
+} from './project-scope';
 import { listEmployeePmTasks } from './employee-pm-tasks';
 import { formatProjectDisplayName } from '@/modules/projects/domain/display';
 import { todayInTimeZone } from '@/shared/dates';
@@ -186,6 +189,64 @@ export async function listEmployeePendingTimeApprovals(
 export async function listEmployeeAccessibleForms(context: OrgContext) {
   if (!employeeHasPermission(context, PERMISSIONS.FORMS_READ)) return [];
   return listFormTemplatesForOrg(context, { enabledOnly: true });
+}
+
+export interface EmployeeFormOwnerProject {
+  readonly id: string;
+  readonly displayName: string;
+  readonly workKind: 'project' | 'job' | 'work_order';
+}
+
+/** Projects the employee may attach a form to. Respects forms.submit scope and project access. */
+export async function listEmployeeFormOwnerProjects(
+  context: OrgContext,
+): Promise<EmployeeFormOwnerProject[]> {
+  if (!employeeHasPermission(context, PERMISSIONS.FORMS_SUBMIT)) return [];
+
+  const formScope = await resolveAccessibleProjectIdsForEmployeePermission(
+    context,
+    PERMISSIONS.FORMS_SUBMIT,
+  );
+  const userScope = await resolveAccessibleProjectIdsForUser(context);
+  const ids =
+    formScope === null
+      ? userScope
+      : userScope === null
+        ? formScope
+        : formScope.filter((id) => userScope.includes(id));
+  if (ids !== null && ids.length === 0) return [];
+
+  const rows = await context.db
+    .select({
+      id: projects.id,
+      name: projects.name,
+      documentNumber: projects.documentNumber,
+      workKind: projects.workKind,
+    })
+    .from(projects)
+    .where(
+      and(
+        eq(projects.organizationId, context.organizationId),
+        isNull(projects.archivedAt),
+        ...(ids ? [inArray(projects.id, ids)] : []),
+      ),
+    )
+    .orderBy(asc(projects.documentNumber), asc(projects.name));
+
+  const owners: EmployeeFormOwnerProject[] = [];
+  for (const row of rows) {
+    const workKind =
+      row.workKind === 'job' || row.workKind === 'work_order' || row.workKind === 'project'
+        ? row.workKind
+        : null;
+    if (!workKind) continue;
+    owners.push({
+      id: row.id,
+      displayName: formatProjectDisplayName(row.name, row.documentNumber),
+      workKind,
+    });
+  }
+  return owners;
 }
 
 export async function listEmployeeAccessibleExpenses(context: OrgContext) {

@@ -18,7 +18,9 @@ export interface BudgetLineControlLabels {
   readonly actual: string;
   readonly remainingCommitment: string;
   readonly etc: string;
+  readonly etcPlanning: string;
   readonly forecast: string;
+  readonly forecastPlanning: string;
   readonly variance: string;
   readonly lineTypes: Record<BudgetLineType, string>;
 }
@@ -43,6 +45,18 @@ function statusLabel(row: BudgetLineControlRow, labels: BudgetLineControlLabels)
   if (row.mappingStatus === 'engine_total') return labels.engineTotalStatus;
   if (row.mappingStatus === 'mapped') return labels.mappedStatus;
   return labels.unmappedStatus;
+}
+
+function metricLabel(
+  key: MetricKey,
+  row: BudgetLineControlRow,
+  labels: BudgetLineControlLabels,
+): string {
+  if (row.mappingStatus !== 'engine_total') {
+    if (key === 'etc') return labels.etcPlanning;
+    if (key === 'forecast') return labels.forecastPlanning;
+  }
+  return labels[key];
 }
 
 function typeLabel(row: BudgetLineControlRow, labels: BudgetLineControlLabels): string {
@@ -111,7 +125,9 @@ export function BudgetLineControlList({
                     key === 'budget' || key === 'actual' || key === 'forecast' || key === 'variance';
                   return (
                     <div key={key} className="flex min-w-0 flex-col gap-0.5">
-                      <dt className="text-xs text-[var(--pf-text-muted)]">{labels[key]}</dt>
+                      <dt className="text-xs text-[var(--pf-text-muted)]">
+                        {metricLabel(key, row, labels)}
+                      </dt>
                       <dd className={emphasize ? 'text-sm font-medium' : 'text-sm'}>
                         {value ? (
                           <MoneyText

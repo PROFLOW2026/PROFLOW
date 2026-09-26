@@ -8,6 +8,11 @@ import type { StatutoryPaymentSnapshot } from '../domain/types';
 export async function buildPaymentStatutorySnapshot(
   context: OrgContext,
   paymentId: string,
+  options?: {
+    readonly billingRecordId?: string | null;
+    /** Applied slice for a split allocation. Omitted uses the payment header amount. */
+    readonly allocatedAmount?: string | null;
+  },
 ): Promise<StatutoryPaymentSnapshot> {
   const payment = await findPaymentById(context.db, context.organizationId, paymentId);
   if (!payment) throw new NotFoundError('Payment');
@@ -18,12 +23,13 @@ export async function buildPaymentStatutorySnapshot(
     );
   }
 
-  const billing =
-    payment.billingRecordId != null
-      ? await getBillingRecord(context, payment.billingRecordId)
-      : null;
+  const billingId = options?.billingRecordId ?? payment.billingRecordId;
+  const billing = billingId != null ? await getBillingRecord(context, billingId) : null;
 
-  const paymentAmount = money(payment.amount, payment.currency);
+  const allocated = options?.allocatedAmount?.trim();
+  const paymentAmount = allocated
+    ? money(allocated, payment.currency)
+    : money(payment.amount, payment.currency);
   const triplet = resolvePaymentTriplet(
     paymentAmount,
     payment.amountBasis ?? 'net',

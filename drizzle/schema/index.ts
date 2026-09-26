@@ -54,3 +54,4 @@ export * from './owner-financial';
 export * from './payment-instruments';
 export * from './workspaces';
 export * from './tasks';
+export * from './margin-snapshots';

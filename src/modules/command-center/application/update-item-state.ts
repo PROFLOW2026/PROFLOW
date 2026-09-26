@@ -19,7 +19,8 @@ function snoozeUntil(days: number): Date {
 
 /**
  * Snooze / handle / dismiss command-center items.
- * Financial handled/dismissed changes only this item state, not the source record.
+ * Financial handle and dismiss are rejected while the source would still emit
+ * the item. Snooze is allowed. Confirm-paid records a real payment elsewhere.
  */
 export async function updateCommandCenterItemState(
   context: OrgContext,

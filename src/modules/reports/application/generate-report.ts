@@ -19,6 +19,10 @@ import {
   getProjectDetailChrome,
   type ProjectDetailChrome,
 } from '@/modules/projects';
+import {
+  displayedPercentString,
+  loadProjectProgressView,
+} from '@/modules/projects/application/project-progress-mode';
 import { getQuoteById } from '@/modules/quotes';
 import { getModuleVisibility } from '@/modules/tenancy';
 import { listProjectSubcontracts, listProjectVendorEngagements } from '@/modules/vendors';
@@ -278,6 +282,8 @@ function brandOptsForExtendedKind(
       return { preferSnapshot: false };
     case 'project_billing_plan_status':
       return { projectId: id, preferSnapshot: false };
+    case 'project_task_status':
+      return { projectId: id, preferSnapshot: false };
     default:
       return { preferSnapshot: false };
   }
@@ -298,6 +304,11 @@ async function buildProjectStatus(
 ): Promise<ReportPayload> {
   const chrome = await loadProjectChrome(context, projectId, ctx.deps);
   const p = chrome.project;
+  const progressView = await loadProjectProgressView(context.db, context.organizationId, projectId);
+  const shownProgress =
+    progressView?.source === 'tasks'
+      ? displayedPercentString(progressView.displayedPercent)
+      : p.progressPercent;
   const sections: ReportSection[] = [
     {
       id: 'status',
@@ -307,7 +318,7 @@ async function buildProjectStatus(
         { label: ctx.copy.identity.location, value: p.location ?? '-' },
         { label: ctx.copy.identity.startDate, value: formatDay(p.startDate, ctx.locale) },
         { label: ctx.copy.identity.targetEnd, value: formatDay(p.targetEndDate, ctx.locale) },
-        { label: ctx.copy.identity.progress, value: p.progressPercent ? `${p.progressPercent}%` : '-' },
+        { label: ctx.copy.identity.progress, value: shownProgress ? `${shownProgress}%` : '-' },
       ],
     },
   ];

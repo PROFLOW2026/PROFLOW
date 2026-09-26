@@ -71,6 +71,8 @@ export interface ProjectRecord {
   readonly targetEndDate: string | null;
   readonly actualEndDate: string | null;
   readonly progressPercent: string | null;
+  /** manual = stored progressPercent. tasks = derive from opted-in tasks. */
+  readonly progressSource: 'manual' | 'tasks';
   readonly progressStatus: ProgressStatus | null;
   readonly notes: string | null;
   readonly archivedAt: Date | null;

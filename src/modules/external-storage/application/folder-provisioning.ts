@@ -1,6 +1,7 @@
 import 'server-only';
 
 import type { SemanticFolderType } from '@drizzle/schema/external-storage';
+import { withTransaction } from '@/shared/db/client';
 import type { DbExecutor } from '@/shared/db/types';
 import { updateStorageConnection } from '../data/connections.repository';
 import {
@@ -22,6 +23,7 @@ import {
 import type { ProviderFolderItem, StorageConnectionRecord } from '../domain/types';
 import { ProviderHttpError } from '../providers/http-utils';
 import { getStorageProviderAdapter } from '../providers/registry';
+import { isSemanticFolderCheckViolation } from './semantic-constraint';
 
 async function resolveListFolderParentId(
   accessToken: string,
@@ -369,6 +371,9 @@ export async function ensureSemanticFolder(
     }
     return created.id;
   } catch (error) {
+    if (isSemanticFolderCheckViolation(error)) {
+      throw error;
+    }
     const message = error instanceof Error ? error.message : 'folder_create_failed';
     if (existing) {
       await updateFolderMapping(db, input.organizationId, existing.id, {
@@ -433,6 +438,88 @@ export async function ensureClientFolderTree(
   });
 
   return clientFolderId;
+}
+
+async function ensureNamedPartyFolder(
+  db: DbExecutor,
+  input: {
+    organizationId: string;
+    connection: StorageConnectionRecord;
+    accessToken: string;
+    parentSemanticFolderType: 'vendors_root' | 'employees_root';
+    semanticFolderType: 'vendor_root' | 'employee_root';
+    entityType: 'vendor' | 'employee';
+    entityId: string;
+    displayName: string;
+  },
+): Promise<string> {
+  return withTransaction(db, async (tx) => {
+    const parent = await findFolderMapping(tx, {
+      organizationId: input.organizationId,
+      connectionId: input.connection.id,
+      semanticFolderType: input.parentSemanticFolderType,
+    });
+    if (!parent) {
+      throw new Error(`${input.parentSemanticFolderType} mapping missing`);
+    }
+
+    return ensureSemanticFolder(tx, {
+      organizationId: input.organizationId,
+      connection: input.connection,
+      accessToken: input.accessToken,
+      semanticFolderType: input.semanticFolderType,
+      parentFolderId: parent.externalFolderId,
+      displayName: input.displayName.trim() || input.entityType,
+      entityType: input.entityType,
+      entityId: input.entityId,
+    });
+  });
+}
+
+/** Vendor folder under vendors_root, named by the vendor. Isolated so a check failure can roll back without aborting vendor create. */
+export async function ensureVendorFolderTree(
+  db: DbExecutor,
+  input: {
+    organizationId: string;
+    connection: StorageConnectionRecord;
+    accessToken: string;
+    vendorId: string;
+    vendorName: string;
+  },
+): Promise<string> {
+  return ensureNamedPartyFolder(db, {
+    organizationId: input.organizationId,
+    connection: input.connection,
+    accessToken: input.accessToken,
+    parentSemanticFolderType: 'vendors_root',
+    semanticFolderType: 'vendor_root',
+    entityType: 'vendor',
+    entityId: input.vendorId,
+    displayName: input.vendorName,
+  });
+}
+
+/** Employee folder under employees_root, named by the employee. */
+export async function ensureEmployeeFolderTree(
+  db: DbExecutor,
+  input: {
+    organizationId: string;
+    connection: StorageConnectionRecord;
+    accessToken: string;
+    employeeId: string;
+    employeeName: string;
+  },
+): Promise<string> {
+  return ensureNamedPartyFolder(db, {
+    organizationId: input.organizationId,
+    connection: input.connection,
+    accessToken: input.accessToken,
+    parentSemanticFolderType: 'employees_root',
+    semanticFolderType: 'employee_root',
+    entityType: 'employee',
+    entityId: input.employeeId,
+    displayName: input.employeeName,
+  });
 }
 
 export async function ensureProjectsRootFolder(

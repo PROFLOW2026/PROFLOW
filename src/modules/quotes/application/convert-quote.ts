@@ -1,5 +1,6 @@
 import { and, eq } from 'drizzle-orm';
 import { contracts, projects } from '@drizzle/schema';
+import { copyProspectContactsOntoClient } from '@/modules/crm/application/copy-prospect-contacts-to-client';
 import {
   findLeadById,
   findOpportunityById,
@@ -302,6 +303,13 @@ async function markLinkedOpportunityWon(
   if (contract) contractId = contract.id;
 
   const clientId = input.clientId ?? opportunity.convertedClientId;
+
+  if (opportunity.prospectId && clientId) {
+    await copyProspectContactsOntoClient(context, {
+      prospectId: opportunity.prospectId,
+      clientId,
+    });
+  }
 
   if (opportunity.prospectId) {
     const prospect = await findProspectById(

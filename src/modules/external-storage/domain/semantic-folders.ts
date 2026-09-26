@@ -16,7 +16,9 @@ export const SEMANTIC_FOLDER_DISPLAY: Record<SemanticFolderType, string> = {
   documents: '07 - מסמכים',
   general_files: '08 - קבצים כלליים',
   vendors_root: 'ספקים',
+  vendor_root: '',
   employees_root: 'עובדים',
+  employee_root: '',
   organization_documents: 'מסמכי חברה',
 };
 
@@ -43,7 +45,12 @@ export function resolveSemanticFolderDisplayName(
   type: SemanticFolderType,
   entityName?: string | null,
 ): string {
-  if (type === 'client_root' || type === 'project_root') {
+  if (
+    type === 'client_root' ||
+    type === 'project_root' ||
+    type === 'vendor_root' ||
+    type === 'employee_root'
+  ) {
     return (entityName ?? '').trim() || 'ProjectFlow';
   }
   return SEMANTIC_FOLDER_DISPLAY[type] ?? type;

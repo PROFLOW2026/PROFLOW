@@ -85,6 +85,11 @@ const IDENTICAL_MESSAGE_ALLOWLIST = new Set([
   // Brand / product names in employee app surfaces.
   'employeeApp.pwa.shortName',
   'employeeApp.admin.shareWhatsApp',
+  'billing.collection.whatsapp',
+  'commandCenter.itemCopy.storageProvider.onedrive',
+  'commandCenter.itemCopy.storageProvider.google_drive',
+  'commandCenter.itemCopy.storageProvider.dropbox',
+  'commandCenter.itemCopy.storageProvider.box',
   // ICU placeholder templates — month/year and automation metadata are localized via values.
   'commandCenter.itemCopy.reportMonthLabel',
   'commandCenter.itemCopy.automationFollowup.why',

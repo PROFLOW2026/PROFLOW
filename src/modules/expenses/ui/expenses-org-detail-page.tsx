@@ -21,6 +21,7 @@ import {
 import { resolveApplicableDefaultTax } from '@/modules/tax';
 import { listVendorsForOrg } from '@/modules/vendors';
 import { listActivePaymentInstruments } from '@/modules/payment-instruments';
+import { listApBillsForOrg } from '@/modules/ap';
 import { statusShape } from '@/modules/expenses/domain/lifecycle';
 import { decodeRecurrenceRule } from '@/modules/expenses/domain/recurrence';
 import { withOrgContext } from '@/shared/auth/session';
@@ -104,6 +105,18 @@ export async function ExpensesOrgDetailPage({
         context.db,
         context.organizationId,
       ).catch(() => []);
+      const supplierBillReferences = orgListHasPermission(context, PERMISSIONS.AP_READ, surface)
+        ? await listApBillsForOrg(context, { limit: 200 })
+            .then((rows) =>
+              rows.map((bill) => ({
+                id: bill.id,
+                vendorId: bill.vendorId,
+                reference: bill.reference,
+                status: bill.status,
+              })),
+            )
+            .catch(() => [])
+        : [];
       return {
         expense,
         projects,
@@ -113,6 +126,7 @@ export async function ExpensesOrgDetailPage({
         vendors: vendors.map((vendor) => ({ id: vendor.id, name: vendor.name })),
         inventoryItems: inventoryItems.map((item) => ({ id: item.id, name: item.name, unit: item.unit })),
         paymentInstruments,
+        supplierBillReferences,
         documentsPanel,
         customFields,
         correctionChain,
@@ -144,6 +158,7 @@ export async function ExpensesOrgDetailPage({
     vendors,
     inventoryItems,
     paymentInstruments,
+    supplierBillReferences,
     defaultPaymentDate,
     documentsPanel,
     customFields,
@@ -324,6 +339,7 @@ export async function ExpensesOrgDetailPage({
           vendors={vendors}
           inventoryItems={inventoryItems}
           paymentInstruments={paymentInstruments}
+          supplierBillReferences={supplierBillReferences}
           defaultToday={defaultPaymentDate}
           taxRatePercent={taxRatePercent}
         />

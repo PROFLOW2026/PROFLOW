@@ -54,3 +54,36 @@ export function workEntityHref(workKind: string | null | undefined, id: string):
 export function taskSearchHref(id: string): string {
   return `/tasks/${id}`;
 }
+
+export function clientSearchHref(id: string): string {
+  return `/clients/${id}`;
+}
+
+export function vendorSearchHref(id: string): string {
+  return `/vendors/${id}`;
+}
+
+export function billingRecordSearchHref(id: string): string {
+  return `/billing/${id}`;
+}
+
+export function apBillSearchHref(id: string): string {
+  return `/procurement/ap/${id}`;
+}
+
+export function quoteSearchHref(id: string): string {
+  return `/quotes/${id}`;
+}
+
+/** Documents have no detail route; the org list filters by filename. */
+export function documentSearchHref(filename: string): string {
+  return `/documents?q=${encodeURIComponent(filename)}`;
+}
+
+export function employeeSearchHref(id: string): string {
+  return `/workforce/employees/${id}`;
+}
+
+export function contractSearchHref(projectId: string): string {
+  return `/projects/${projectId}?tab=contracts`;
+}

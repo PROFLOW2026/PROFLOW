@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { validateCollectionFollowUp } from '../domain/collection-follow-up';
 
 const moneyAmountSchema = z
   .string()
@@ -168,3 +169,25 @@ export const createAdjustmentSchema = z.object({
 });
 
 export type CreateAdjustmentInput = z.infer<typeof createAdjustmentSchema>;
+
+export const updateCollectionFollowUpSchema = z
+  .object({
+    billingRecordId: z.string().uuid(),
+    collectionContactedAt: z.string().nullable().optional(),
+    collectionNextFollowUpAt: z.string().nullable().optional(),
+    collectionPromiseToPayDate: z.string().nullable().optional(),
+    collectionNote: z.string().nullable().optional(),
+  })
+  .superRefine((value, ctx) => {
+    const result = validateCollectionFollowUp(value);
+    if (result.ok) return;
+    for (const issue of result.issues) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: [issue.path],
+        message: issue.message,
+      });
+    }
+  });
+
+export type UpdateCollectionFollowUpInput = z.infer<typeof updateCollectionFollowUpSchema>;

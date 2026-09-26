@@ -223,15 +223,111 @@ export class SumitStatutoryProvider implements StatutoryInvoicingProvider {
   }
 
   async creditDocument(
-    _input: CreditExternalDocumentInput,
+    input: CreditExternalDocumentInput,
   ): Promise<StatutoryProviderResult<CreditExternalDocumentOutput>> {
-    return unsupported('SUMIT credit');
+    const billing = input.billing;
+    if (!billing || billing.status !== 'finalized' || billing.kind !== 'credit_note') {
+      return {
+        ok: false,
+        errorCode: 'invalid_billing_state',
+        message: 'SUMIT credit requires a finalized billing credit note',
+      };
+    }
+
+    const originalDocumentId = Number.parseInt(input.externalId, 10);
+    if (!Number.isFinite(originalDocumentId) || originalDocumentId <= 0) {
+      return {
+        ok: false,
+        errorCode: 'invalid_billing_state',
+        message: 'SUMIT credit requires the original document id',
+      };
+    }
+
+    try {
+      const response = await this.client.createDocument({
+        documentType: resolveSumitDocumentType('credit_note'),
+        externalReference: input.idempotencyKey,
+        payload: buildSumitCreatePayload({
+          billing,
+          kind: 'credit_note',
+          linkedTaxInvoiceExternalId: input.externalId,
+          description: input.reason,
+        }),
+      });
+
+      if (!response.documentId) {
+        return {
+          ok: false,
+          errorCode: 'provider_error',
+          message: 'SUMIT credit succeeded without DocumentID',
+        };
+      }
+
+      let externalNumber = response.documentNumber;
+      try {
+        const details = await this.client.getDocumentDetails(response.documentId);
+        externalNumber = details.documentNumber ?? externalNumber;
+      } catch {
+        // Create is confirmed once DocumentID exists.
+      }
+
+      return {
+        ok: true,
+        value: {
+          creditExternalId: response.documentId,
+          creditExternalNumber: externalNumber,
+          externalUrl: null,
+          status: 'credited',
+        },
+      };
+    } catch (error) {
+      if (error instanceof SumitAmbiguousError) {
+        throw new SumitAmbiguousCreateError(error.message, error.partialDocumentId);
+      }
+      const message = error instanceof Error ? error.message : 'SUMIT credit failed';
+      return {
+        ok: false,
+        errorCode: 'provider_error',
+        message,
+      };
+    }
   }
 
   async cancelDocument(
-    _input: CancelExternalDocumentInput,
+    input: CancelExternalDocumentInput,
   ): Promise<StatutoryProviderResult<CancelExternalDocumentOutput>> {
-    return unsupported('SUMIT cancel');
+    const description = input.reason?.trim() ?? '';
+    if (!description) {
+      return {
+        ok: false,
+        errorCode: 'invalid_billing_state',
+        message: 'SUMIT cancel requires a description',
+      };
+    }
+
+    try {
+      await this.client.cancelDocument({
+        documentId: input.externalId,
+        description,
+      });
+      return {
+        ok: true,
+        value: {
+          externalId: input.externalId,
+          status: 'cancelled',
+        },
+      };
+    } catch (error) {
+      if (error instanceof SumitAmbiguousError) {
+        throw new SumitAmbiguousCreateError(error.message, error.partialDocumentId);
+      }
+      const message = error instanceof Error ? error.message : 'SUMIT cancel failed';
+      return {
+        ok: false,
+        errorCode: 'provider_error',
+        message,
+      };
+    }
   }
 
   async allocateReference(
@@ -242,16 +338,16 @@ export class SumitStatutoryProvider implements StatutoryInvoicingProvider {
 }
 
 /**
- * Live SUMIT client implements create + retrieve only.
- * credit/cancel/allocate stay unsupported — there is no implemented API call for them.
- * Internal billing credit notes remain management records.
+ * Live SUMIT client: create, retrieve, credit (CreditInvoice type 5 via create),
+ * and cancel (POST /accounting/documents/cancel/).
+ * Allocation stays unsupported — no confirmed allocation endpoint is used.
  */
 export function sumitProviderCapabilities() {
   return {
     createDocument: true,
     retrieveStatus: true,
-    creditDocument: false,
-    cancelDocument: false,
+    creditDocument: true,
+    cancelDocument: true,
     allocateReference: false,
   };
 }

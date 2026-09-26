@@ -76,6 +76,13 @@ export async function updateTask(
   if (input.estimatedEffortMinutes !== undefined) patch.estimatedEffortMinutes = input.estimatedEffortMinutes;
   if (input.milestoneId !== undefined) patch.milestoneId = input.milestoneId;
   if (input.approvalRequired !== undefined) patch.approvalRequired = input.approvalRequired;
+  if (input.contributesToProgress !== undefined) {
+    patch.contributesToProgress = input.contributesToProgress;
+  }
+  if (input.progressWeight !== undefined) {
+    patch.progressWeight =
+      input.progressWeight == null ? null : input.progressWeight.toFixed(2);
+  }
   if (input.ownerOrgMemberId !== undefined) patch.ownerOrgMemberId = input.ownerOrgMemberId;
   if (input.ownerEmployeeId !== undefined) patch.ownerEmployeeId = input.ownerEmployeeId;
 

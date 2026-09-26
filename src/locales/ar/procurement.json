@@ -61,7 +61,15 @@
     "description": "إنفاق ملتزم مع مورد. أرفق مستندات داعمة دون اعتباره مصروفاً.",
     "linesTitle": "البنود",
     "createVendorBill": "إنشاء حساب مورد",
-    "openVendor": "فتح المورد"
+    "openVendor": "فتح المورد",
+    "quantities": {
+      "invoiced": "الكمية المفوترة",
+      "invoicedGreaterThanReceived": "الكمية المفوترة أكبر من الكمية المستلمة.",
+      "receivedGreaterThanOrdered": "الكمية المستلمة أكبر من الكمية المطلوبة.",
+      "invoicedWithoutReceipt": "فاتورة مورد مرحّلة مرتبطة بينما الكمية المستلمة لا تزال صفراً.",
+      "partialReceipt": "استلام جزئي.",
+      "partialInvoice": "فوترة جزئية."
+    }
   },
   "statuses": {
     "draft": "مسودة",

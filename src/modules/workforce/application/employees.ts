@@ -310,6 +310,11 @@ export async function createEmployee(
     await recomputeOpenMonthsAfterCompensationChange(context, employee.id);
   }
 
+  const { provisionEmployeeStorageFolder } = await import(
+    '@/modules/external-storage/application/provision-hooks'
+  );
+  await provisionEmployeeStorageFolder(context, employee.id, employee.name);
+
   return getEmployee(context, employee.id);
 }
 

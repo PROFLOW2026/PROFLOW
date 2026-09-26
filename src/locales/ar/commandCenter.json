@@ -8,6 +8,7 @@
   },
   "actions": {
     "open": "فتح",
+    "preparePaymentReminder": "إعداد تذكير بالدفع",
     "confirmPaid": "تأكيد الدفع",
     "paymentDateLabel": "تاريخ الدفع",
     "paymentDateHint": "تاريخ الدفع الفعلي. الافتراضي اليوم؛ يمكنك اختيار تاريخ سابق.",
@@ -21,7 +22,7 @@
     "notNow": "ليس الآن",
     "dismiss": "تخطي هذا الشهر"
   },
-  "financialGuard": "وضع علامة تمت المعالجة يخفي التنبيه فقط. الفاتورة أو الحساب أو المصروف لا يتغير.",
+  "financialGuard": "يبقى هذا البند حتى تُسوّى الفاتورة أو الحساب أو المصروف. يمكنك تأجيله.",
   "severity": {
     "critical": "حرج",
     "high": "مرتفع",
@@ -80,7 +81,9 @@
     "expense_needs_allocation": "مصروف يحتاج تخصيص مشروع",
     "monthly_workforce_report_ready": "تقرير موظفين شهري جاهز",
     "task_overdue": "مهمة متأخرة",
-    "task_due_today": "مهمة مستحقة اليوم"
+    "task_due_today": "مهمة مستحقة اليوم",
+    "storage_attention": "تخزين الملفات",
+    "statutory_attention": "مستند ضريبي"
   },
   "itemCopy": {
     "where": {
@@ -102,7 +105,9 @@
       "cashFlow": "التدفق النقدي",
       "automations": "الأتمتة",
       "communications": "الرسائل",
-      "tasks": "المهام"
+      "tasks": "المهام",
+      "storage": "تخزين الملفات",
+      "integrations": "التكاملات"
     },
     "overdueAr": {
       "whatWithReference": "تحصيل {reference}",
@@ -279,6 +284,29 @@
     "communicationFailed": {
       "what": "رسالة لم تُرسَل — {subject}",
       "why": "فشل التسليم أو لم يُؤكَّد من المزوّد."
+    },
+    "storageProvider": {
+      "onedrive": "OneDrive",
+      "google_drive": "Google Drive",
+      "dropbox": "Dropbox",
+      "box": "Box"
+    },
+    "storageAttention": {
+      "whatReconnect": "إعادة ربط {provider}",
+      "whatError": "إصلاح تخزين {provider}",
+      "whatProvision": "إكمال إعداد مجلدات {provider}",
+      "whyStatus": "اتصال تخزين الملفات يحتاج إلى معالجة.",
+      "whyProvision": "توقف إعداد المجلدات ويحتاج إلى محاولة أخرى."
+    },
+    "statutoryAttention": {
+      "whatAmbiguous": "حسم مستند ضريبي غير واضح",
+      "whyAmbiguousWithReference": "نتيجة الإصدار غير واضحة لـ {reference}",
+      "whyAmbiguous": "نتيجة الإصدار غير واضحة",
+      "whatConnection": "إصلاح اتصال الإصدار",
+      "whyConnection": "اتصال مزوّد الإصدار في حالة خطأ.",
+      "whatUnsupported": "إجراء قانوني غير مدعوم",
+      "whyUnsupportedWithReference": "مزوّد الإصدار لا يدعم هذا الإجراء للمستند {reference}",
+      "whyUnsupported": "مزوّد الإصدار لا يدعم هذا الإجراء."
     },
     "billingPlanCycleDraft": {
       "what": "حساب تقدم بانتظار الإصدار — {title}",

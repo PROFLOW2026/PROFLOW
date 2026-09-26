@@ -3,6 +3,8 @@ import { MoneyText } from '@/components/patterns/money-text';
 import { Alert } from '@/components/ui/alert';
 import { EmptyState } from '@/components/ui/empty-state';
 import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
+import { getEntityDocumentPanelData } from '@/modules/documents';
+import { DocumentAttachments } from '@/modules/documents/ui';
 import { withOrgContext } from '@/shared/auth/session';
 import { fromNumericString } from '@/shared/money';
 import { getCloseoutWorkspace } from '../application/get-closeout';
@@ -173,7 +175,13 @@ function ReadinessGroup({
 
 export async function ProjectCloseoutPanel({ projectId }: { readonly projectId: string }) {
   const t = await getTranslations('closeout');
-  const workspace = await withOrgContext((context) => getCloseoutWorkspace(context, projectId));
+  const { workspace, documentsPanel } = await withOrgContext(async (context) => {
+    const loaded = await getCloseoutWorkspace(context, projectId);
+    const panel = loaded.closeout
+      ? await getEntityDocumentPanelData(context, 'closeout', loaded.closeout.id).catch(() => null)
+      : null;
+    return { workspace: loaded, documentsPanel: panel };
+  });
 
   if (!workspace.closeoutEligible) {
     return (
@@ -261,6 +269,18 @@ export async function ProjectCloseoutPanel({ projectId }: { readonly projectId: 
           </ul>
         )}
       </section>
+
+      {workspace.closeout && documentsPanel ? (
+        <DocumentAttachments
+          ownerType="closeout"
+          ownerId={workspace.closeout.id}
+          documents={documentsPanel.documents}
+          linkCandidates={documentsPanel.linkCandidates}
+          canRead={documentsPanel.canRead}
+          canManage={documentsPanel.canManage}
+          storageConfigured={documentsPanel.storageConfigured}
+        />
+      ) : null}
     </div>
   );
 }

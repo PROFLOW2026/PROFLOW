@@ -118,20 +118,70 @@ describe('nav grouping', () => {
     expect(vendorBills?.permission).toBe(PERMISSIONS.AP_READ);
   });
 
-  it('keeps attendance in workforce sub-nav only, not shell nav', () => {
+  it('lists attendance and timesheets under people with existing permissions', () => {
     const attendance = NAV_ITEMS.find((item) => item.key === 'attendance');
-    expect(attendance).toBeUndefined();
+    expect(attendance?.href).toBe('/workforce/attendance');
+    expect(attendance?.moreGroup).toBe('people');
+    expect(attendance?.anyPermissions).toEqual([
+      PERMISSIONS.ATTENDANCE_READ,
+      PERMISSIONS.ATTENDANCE_MANAGE,
+    ]);
+
+    const timesheets = NAV_ITEMS.find((item) => item.key === 'timesheets');
+    expect(timesheets?.href).toBe('/workforce/timesheets');
+    expect(timesheets?.moreGroup).toBe('people');
+    expect(timesheets?.anyPermissions).toEqual([
+      PERMISSIONS.WORKFORCE_READ,
+      PERMISSIONS.TIME_APPROVE,
+    ]);
 
     const people = NAV_ITEMS.find((item) => item.key === 'workforce');
     expect(people?.labelKey).toBe('people');
     expect(people?.moreGroup).toBe('people');
 
     const selfOnly = visibleNavItems(
-      new Set([PERMISSIONS.ATTENDANCE_SELF, PERMISSIONS.WORKFORCE_READ]),
+      new Set([PERMISSIONS.ATTENDANCE_SELF]),
       allModulesOn(),
       { workMix: 'projects' },
     );
     expect(selfOnly.some((item) => item.key === 'attendance')).toBe(false);
+
+    const readers = visibleNavItems(
+      new Set([PERMISSIONS.ATTENDANCE_READ, PERMISSIONS.WORKFORCE_READ]),
+      allModulesOn(),
+      { workMix: 'projects' },
+    );
+    expect(readers.some((item) => item.key === 'attendance')).toBe(true);
+    expect(readers.some((item) => item.key === 'timesheets')).toBe(true);
+  });
+
+  it('lists the task status board with the other work management items', () => {
+    const myWorkIndex = NAV_ITEMS.findIndex((item) => item.key === 'myWork');
+    const boardIndex = NAV_ITEMS.findIndex((item) => item.key === 'taskBoard');
+    const calendarIndex = NAV_ITEMS.findIndex((item) => item.key === 'taskCalendar');
+    expect(boardIndex).toBeGreaterThan(myWorkIndex);
+    expect(boardIndex).toBeLessThan(calendarIndex);
+
+    const board = NAV_ITEMS[boardIndex];
+    expect(board?.href).toBe('/work/board');
+    expect(board?.permission).toBe(PERMISSIONS.TASKS_READ);
+    expect(board?.module).toBe('work_management');
+    expect(board?.moreGroup).toBe('workManagement');
+  });
+
+  it('keeps cash flow visible in simple depth when the user can read financials', () => {
+    const items = visibleNavItems(
+      new Set([
+        PERMISSIONS.PROJECT_FINANCIALS_READ,
+        PERMISSIONS.ASSISTANT_USE,
+        PERMISSIONS.AUTOMATIONS_READ,
+      ]),
+      allModulesOn(),
+      { workMix: 'projects', complexity: 'simple' },
+    );
+    expect(items.some((item) => item.key === 'cashFlow')).toBe(true);
+    expect(items.some((item) => item.key === 'assistant')).toBe(false);
+    expect(items.some((item) => item.key === 'automations')).toBe(false);
   });
 
   it('partitions core → experience group order with settings under advanced', () => {

@@ -244,6 +244,28 @@
     "addBilling": "Add billing",
     "integrityHint": "Billed to client = before VAT. Total due = including VAT. Credit notes reduce both accordingly. Voided records are excluded. VAT is not revenue for profit."
   },
+  "collection": {
+    "title": "Collection follow-up",
+    "description": "These dates and the note do not change the amount, VAT, status, or due date.",
+    "contactedAt": "Contacted",
+    "nextFollowUpAt": "Next follow-up",
+    "promiseToPayDate": "Promise to pay",
+    "note": "Short note",
+    "save": "Save follow-up",
+    "saved": "Follow-up saved.",
+    "prepareReminder": "Prepare payment reminder",
+    "whatsapp": "WhatsApp",
+    "whatsappMessage": "Payment reminder for {reference}. Outstanding: {amount}."
+  },
+  "creditNote": {
+    "title": "Credit note",
+    "description": "Issues a new credit note through the existing adjustment. The original invoice is not changed or deleted.",
+    "amount": "Credit amount",
+    "issueDate": "Issue date",
+    "notes": "Notes",
+    "submit": "Issue credit note",
+    "listHint": "The credit note is a separate billing record and appears in the billing list."
+  },
   "errors": {
     "notEditable": "Only draft billing records can be edited.",
     "notFinalizable": "Only draft billing records can be finalized.",
@@ -266,7 +288,11 @@
     "retentionReleaseExceedsHeld": "Release cannot exceed held remaining.",
     "retentionReleaseAmountInvalid": "Release amount must be positive.",
     "retentionReleaseDateFuture": "Release date cannot be in the future.",
-    "closedPeriod": "This month is closed. Record a month-close correction instead of creating, finalizing, or voiding this billing record."
+    "closedPeriod": "This month is closed. Record a month-close correction instead of creating, finalizing, or voiding this billing record.",
+    "collectionFollowUpNotEligible": "Collection follow-up is only available on a finalized invoice that is still outstanding or overdue.",
+    "collectionDateInvalid": "Enter a date as YYYY-MM-DD.",
+    "collectionNoteTooLong": "The collection note must be 500 characters or fewer.",
+    "collectionFollowUpUnavailable": "Collection follow-up cannot be saved until the database update is applied."
   },
   "notAllowed": {
     "title": "Not allowed",

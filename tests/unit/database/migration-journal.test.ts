@@ -413,7 +413,10 @@ describe('migration journal', () => {
     expect(tags.indexOf('0128_project_context_null_safe')).toBeLessThan(
       tags.indexOf('0129_expense_cash_installment_schedule'),
     );
-    expect(tags.at(-1)).toBe('0129_expense_cash_installment_schedule');
+    expect(tags.indexOf('0129_expense_cash_installment_schedule')).toBeLessThan(
+      tags.indexOf('0130_core_completion_foundations'),
+    );
+    expect(tags.at(-1)).toBe('0130_core_completion_foundations');
 
     const sql66 = await readFile(
       path.join(MIGRATIONS_DIR, '0066_workforce_time_integrity.sql'),

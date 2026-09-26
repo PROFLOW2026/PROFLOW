@@ -25,6 +25,23 @@ export const AUTOMATION_PRESET_KEYS = [
 export type AutomationPresetKey = (typeof AUTOMATION_PRESET_KEYS)[number];
 
 /**
+ * Event-style presets with no stored scan. They stay visible and cannot be
+ * turned on, so a rule never looks active while it always matches nothing.
+ */
+export const UNAVAILABLE_AUTOMATION_PRESETS = [
+  'task_status_changed_to',
+  'task_assigned_to',
+  'task_created_from_template',
+  'task_approval_rejected',
+  'task_dependency_resolved',
+  'project_created',
+] as const satisfies readonly AutomationPresetKey[];
+
+export function isUnavailableAutomationPreset(presetKey: string): boolean {
+  return (UNAVAILABLE_AUTOMATION_PRESETS as readonly string[]).includes(presetKey);
+}
+
+/**
  * Structured trigger descriptors. Each entry maps a preset key to its
  * human-readable category and any required config parameters.
  * Currently informational only — `collect-matches.ts` drives the actual query.

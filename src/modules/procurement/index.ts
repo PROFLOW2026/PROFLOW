@@ -67,6 +67,14 @@ export {
   isReceivingActualExpense,
 } from './domain/receiving';
 
+export { comparePurchaseOrderLineQuantities } from './domain/quantity-comparison';
+export type {
+  ApBillLineQuantityContribution,
+  PurchaseOrderLineQuantityComparison,
+  PurchaseOrderLineQuantityFlags,
+  PurchaseOrderLineQuantityInput,
+} from './domain/quantity-comparison';
+
 export {
   buildPurchaseOrderInputFromAcceptedQuote,
   compareSupplierQuotesByTotal,

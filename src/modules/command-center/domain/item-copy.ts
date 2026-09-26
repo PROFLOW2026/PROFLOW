@@ -62,7 +62,9 @@ export function fallbackWhere(
     | 'cashFlow'
     | 'automations'
     | 'communications'
-    | 'tasks',
+    | 'tasks'
+    | 'storage'
+    | 'integrations',
 ): string {
   return scope.t(`itemCopy.where.${key}`);
 }
@@ -472,6 +474,73 @@ export function communicationFailedCopy(
   return {
     what: scope.t('itemCopy.communicationFailed.what', { subject: input.subject }),
     why: scope.t('itemCopy.communicationFailed.why'),
+  };
+}
+
+function storageProviderLabel(t: NamespaceTranslator, provider: string): string {
+  const key = `itemCopy.storageProvider.${provider}`;
+  if (t.has(key)) return t(key);
+  return provider;
+}
+
+export function storageAttentionCopy(
+  scope: CommandCenterCopyScope,
+  input: {
+    readonly provider: string;
+    readonly reason: 'reconnect_required' | 'error' | 'provision';
+  },
+): { what: string; why: string } {
+  const provider = storageProviderLabel(scope.t, input.provider);
+  const whatKey =
+    input.reason === 'reconnect_required'
+      ? 'itemCopy.storageAttention.whatReconnect'
+      : input.reason === 'provision'
+        ? 'itemCopy.storageAttention.whatProvision'
+        : 'itemCopy.storageAttention.whatError';
+  return {
+    what: scope.t(whatKey, { provider }),
+    why:
+      input.reason === 'provision'
+        ? scope.t('itemCopy.storageAttention.whyProvision')
+        : scope.t('itemCopy.storageAttention.whyStatus'),
+  };
+}
+
+export function statutoryAmbiguousCopy(
+  scope: CommandCenterCopyScope,
+  input: { reference: string | null },
+): { what: string; why: string } {
+  return {
+    what: scope.t('itemCopy.statutoryAttention.whatAmbiguous'),
+    why: input.reference
+      ? scope.t('itemCopy.statutoryAttention.whyAmbiguousWithReference', {
+          reference: input.reference,
+        })
+      : scope.t('itemCopy.statutoryAttention.whyAmbiguous'),
+  };
+}
+
+export function statutoryUnsupportedCopy(
+  scope: CommandCenterCopyScope,
+  input: { reference: string | null },
+): { what: string; why: string } {
+  return {
+    what: scope.t('itemCopy.statutoryAttention.whatUnsupported'),
+    why: input.reference
+      ? scope.t('itemCopy.statutoryAttention.whyUnsupportedWithReference', {
+          reference: input.reference,
+        })
+      : scope.t('itemCopy.statutoryAttention.whyUnsupported'),
+  };
+}
+
+export function statutoryConnectionCopy(scope: CommandCenterCopyScope): {
+  what: string;
+  why: string;
+} {
+  return {
+    what: scope.t('itemCopy.statutoryAttention.whatConnection'),
+    why: scope.t('itemCopy.statutoryAttention.whyConnection'),
   };
 }
 

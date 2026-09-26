@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -20,6 +20,8 @@ import {
   rejectApMatchAction,
   type ApFormState,
 } from '../actions';
+import { findExpensesForVendorReference } from '@/modules/expenses/domain/supplier-cost-guidance';
+import { SuggestedExpenseMatchHint } from '@/modules/ap/ui/supplier-bill-reference-warnings';
 
 const NONE = 'none';
 
@@ -30,16 +32,45 @@ export function ProposeMatchForm({
   remainingLabel,
   purchaseOrders,
   expenses,
+  billVendorId = '',
+  billReference = '',
+  suggestedExpenseId = '',
 }: {
   billId: string;
   currency: string;
   defaultAmount: string;
   remainingLabel: string;
   purchaseOrders: readonly { id: string; label: string }[];
-  expenses: readonly { id: string; label: string }[];
+  expenses: readonly {
+    id: string;
+    label: string;
+    description?: string | null;
+    vendorId?: string | null;
+    status?: string | null;
+  }[];
+  billVendorId?: string;
+  billReference?: string | null;
+  suggestedExpenseId?: string;
 }) {
   const t = useTranslations('ap.match');
   const [state, action, pending] = useActionState<ApFormState, FormData>(proposeApMatchAction, {});
+  const referenceHits = useMemo(
+    () =>
+      findExpensesForVendorReference(
+        { vendorId: billVendorId, reference: billReference },
+        expenses.map((expense) => ({
+          id: expense.id,
+          vendorId: expense.vendorId ?? null,
+          description: expense.description ?? null,
+          status: expense.status,
+        })),
+      ),
+    [billReference, billVendorId, expenses],
+  );
+  const suggested =
+    expenses.find((expense) => expense.id === suggestedExpenseId) ??
+    (referenceHits[0] ? expenses.find((expense) => expense.id === referenceHits[0]!.id) : undefined);
+  const initialExpenseId = suggested?.id ?? NONE;
 
   return (
     <form action={action} className="flex w-full min-w-0 max-w-lg flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-4">
@@ -54,6 +85,7 @@ export function ProposeMatchForm({
           {t('proposed')}
         </Alert>
       ) : null}
+      {suggested ? <SuggestedExpenseMatchHint expenseId={suggested.id} label={suggested.label} /> : null}
 
       <input type="hidden" name="apBillId" value={billId} />
       <input type="hidden" name="currency" value={currency} />
@@ -78,7 +110,7 @@ export function ProposeMatchForm({
 
       <Field label={t('expenseLabel')}>
         {(props) => (
-          <Select name="expenseId" defaultValue={NONE}>
+          <Select name="expenseId" defaultValue={initialExpenseId}>
             <SelectTrigger id={props.id}>
               <SelectValue placeholder={t('none')} />
             </SelectTrigger>

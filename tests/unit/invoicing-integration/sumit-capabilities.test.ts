@@ -15,25 +15,28 @@ const unusedClient: SumitHttpClient = {
     throw new Error('not used');
   },
   listExpenseDocuments: async () => [],
+  cancelDocument: async () => {
+    throw new Error('not used');
+  },
   sendDocument: async () => undefined,
   ping: async () => true,
   testConnection: async () => ({ ok: true }),
 };
 
 describe('SUMIT statutory capabilities', () => {
-  it('reports create and retrieve only, never the full adapter', () => {
+  it('reports create, retrieve, credit, and cancel, never allocation or the full adapter', () => {
     const capabilities = sumitProviderCapabilities();
     expect(capabilities).toEqual({
       createDocument: true,
       retrieveStatus: true,
-      creditDocument: false,
-      cancelDocument: false,
+      creditDocument: true,
+      cancelDocument: true,
       allocateReference: false,
     });
     expect(capabilities).not.toEqual(FULL_ADAPTER_CAPABILITIES);
   });
 
-  it('does not upgrade a connected SUMIT provider to full credit/cancel/allocate', () => {
+  it('does not upgrade a connected SUMIT provider to allocation', () => {
     const provider = new SumitStatutoryProvider({
       credentials: { companyId: 1, apiKey: 'key' },
       httpClient: unusedClient,
@@ -46,7 +49,7 @@ describe('SUMIT statutory capabilities', () => {
     expect(statutoryStatusCapabilities(false, provider.capabilities()).createDocument).toBe(false);
   });
 
-  it('returns unsupported for credit, cancel, and allocate', async () => {
+  it('does not report a successful credit or cancel without a confirmed call', async () => {
     const provider = new SumitStatutoryProvider({
       credentials: { companyId: 1, apiKey: 'key' },
       httpClient: unusedClient,
@@ -74,8 +77,8 @@ describe('SUMIT statutory capabilities', () => {
     expect(credit.ok).toBe(false);
     expect(cancel.ok).toBe(false);
     expect(allocate.ok).toBe(false);
-    if (!credit.ok) expect(credit.errorCode).toBe('unsupported');
-    if (!cancel.ok) expect(cancel.errorCode).toBe('unsupported');
+    if (!credit.ok) expect(credit.errorCode).toBe('invalid_billing_state');
+    if (!cancel.ok) expect(cancel.errorCode).toBe('invalid_billing_state');
     if (!allocate.ok) expect(allocate.errorCode).toBe('unsupported');
   });
 });

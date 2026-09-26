@@ -14,7 +14,11 @@ import {
   type SumitTestConnectionResult,
 } from './sumit-connection-diagnostics';
 import { assertAllowedSumitApiBase } from './sumit-provider-environment';
-import { assembleSumitCreateRequestBody } from './sumit-create-payload';
+import {
+  assembleSumitCreateRequestBody,
+  buildSumitCancelRequestBody,
+  SUMIT_CANCEL_DOCUMENT_PATH,
+} from './sumit-create-payload';
 import { parseSumitDocumentAmounts } from './sumit-document-amounts';
 
 export { SumitAmbiguousError } from './sumit-api-envelope';
@@ -70,8 +74,18 @@ export interface SumitExpenseListDocument {
   readonly date: string | null;
 }
 
+export interface SumitCancelDocumentRequest {
+  readonly documentId: string;
+  readonly description: string;
+}
+
 export interface SumitHttpClient {
   createDocument(input: SumitCreateDocumentRequest): Promise<SumitCreateDocumentResponse>;
+  /**
+   * POST /accounting/documents/cancel/ — confirmed OpenAPI AccountingDocumentsCancel.
+   * Does not invent a success when the envelope fails.
+   */
+  cancelDocument(input: SumitCancelDocumentRequest): Promise<SumitCreateDocumentResponse>;
   getDocumentDetails(documentId: string): Promise<SumitCreateDocumentResponse>;
   getDocumentPdf(documentId: string, original?: boolean): Promise<SumitDocumentPdfResponse>;
   listExpenseDocuments(input?: {
@@ -230,6 +244,15 @@ export function createSumitHttpClient(
         throw new Error('SUMIT create succeeded without DocumentID');
       }
       return mapped;
+    },
+
+    async cancelDocument(input) {
+      const body = buildSumitCancelRequestBody(input.documentId, input.description);
+      if (!body) {
+        throw new Error('SUMIT cancel requires a numeric DocumentID and a description');
+      }
+      const raw = await postJson<unknown>(SUMIT_CANCEL_DOCUMENT_PATH, body);
+      return mapDocumentResponse(raw);
     },
 
     async getDocumentDetails(documentId) {

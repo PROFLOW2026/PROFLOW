@@ -27,6 +27,8 @@ import { VendorBillAllocationPanel } from '@/modules/ap/ui/vendor-bill-allocatio
 import { getEntityDocumentPanelData } from '@/modules/documents';
 import { DocumentAttachments } from '@/modules/documents/ui';
 import { listCostCategoriesForOrg, listExpensesForOrg } from '@/modules/expenses';
+import { findExpensesForVendorReference } from '@/modules/expenses/domain/supplier-cost-guidance';
+import { listExpenseOverlapCandidates } from '@/modules/financials';
 import { displayCostCategoryName } from '@/modules/expenses/domain/cost-category-display';
 import { formatMoneyString } from '@/shared/money/format';
 import { listPurchaseOrdersForOrg } from '@/modules/procurement';
@@ -78,10 +80,14 @@ function billStatusShape(status: string): StatusShape {
 
 export default async function ApBillDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ billId: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { billId } = await params;
+  const search = await searchParams;
+  const requestedExpenseId = typeof search.linkExpenseId === 'string' ? search.linkExpenseId : '';
   const t = await getTranslations('ap');
   const tExpenses = await getTranslations('expenses');
   const locale = await getLocale();
@@ -129,6 +135,12 @@ export default async function ApBillDetailPage({
       ]);
 
     const hasActivePayments = paymentRows.some((row) => row.payment.status === 'recorded');
+    const referencedExpenses = canReadExpenses
+      ? findExpensesForVendorReference(
+          { vendorId: detail.bill.vendorId, reference: detail.bill.reference },
+          await listExpenseOverlapCandidates(context.db, context.organizationId),
+        )
+      : [];
     const hasActiveCredits = creditRows.some((row) => row.application.status === 'applied');
     const canEditRecognizedBill =
       canManage &&
@@ -180,10 +192,26 @@ export default async function ApBillDetailPage({
           id: po.id,
           label: po.reference?.trim() || po.id.slice(0, 8),
         })),
-      expenses: expensesResult.items.map((expense) => ({
-        id: expense.id,
-        label: `${expense.description || expense.id.slice(0, 8)} · ${formatMoneyString(expense.grossAmount.amount, expense.grossAmount.currency, locale)}`,
-      })),
+      expenses: (() => {
+        const listed = expensesResult.items.map((expense) => ({
+          id: expense.id,
+          label: `${expense.description || expense.id.slice(0, 8)} · ${formatMoneyString(expense.grossAmount.amount, expense.grossAmount.currency, locale)}`,
+          description: expense.description,
+          vendorId: expense.vendorId,
+          status: expense.status,
+        }));
+        const listedIds = new Set(listed.map((expense) => expense.id));
+        const extra = referencedExpenses
+          .filter((expense) => !listedIds.has(expense.id))
+          .map((expense) => ({
+            id: expense.id,
+            label: expense.description?.trim() || expense.id.slice(0, 8),
+            description: expense.description,
+            vendorId: expense.vendorId,
+            status: 'finalized' as const,
+          }));
+        return [...extra, ...listed];
+      })(),
       vendors: vendors.map((vendor) => ({ id: vendor.id, name: vendor.name })),
       costCategories: costCategories.map((category) => ({
         id: category.id,
@@ -584,6 +612,9 @@ export default async function ApBillDetailPage({
             remainingLabel={matchPosition.remainingIncludingProposed}
             purchaseOrders={purchaseOrders}
             expenses={expenses}
+            billVendorId={bill.vendorId}
+            billReference={bill.reference}
+            suggestedExpenseId={requestedExpenseId}
           />
         ) : null}
       </section>

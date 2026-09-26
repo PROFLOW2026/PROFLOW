@@ -159,7 +159,11 @@ export async function createApBillAction(
       }),
     );
     revalidatePath('/procurement/ap');
-    redirect({ href: `/procurement/ap/${bill.id}`, locale });
+    const linkExpenseId = formValue(formData, 'linkExpenseId');
+    const href = linkExpenseId
+      ? `/procurement/ap/${bill.id}?linkExpenseId=${encodeURIComponent(linkExpenseId)}`
+      : `/procurement/ap/${bill.id}`;
+    redirect({ href, locale });
   } catch (error) {
     return mapAppError(error);
   }

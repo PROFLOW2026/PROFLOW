@@ -85,6 +85,11 @@ export const billingRecords = pgTable(
     /** The external accounting invoice attached as evidence. */
     externalDocumentId: uuid('external_document_id').references(() => documents.id, { onDelete: 'set null' }),
     notes: text('notes'),
+    /** Collection follow-up. Does not change billed, paid, or outstanding. */
+    collectionContactedAt: date('collection_contacted_at'),
+    collectionNextFollowUpAt: date('collection_next_follow_up_at'),
+    collectionPromiseToPayDate: date('collection_promise_to_pay_date'),
+    collectionNote: text('collection_note'),
     createdByUserId: uuid('created_by_user_id').references(() => profiles.id, { onDelete: 'set null' }),
     archivedAt: archivedAt(),
     ...timestamps(),

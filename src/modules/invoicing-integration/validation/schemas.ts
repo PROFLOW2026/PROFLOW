@@ -62,6 +62,8 @@ export const creditExternalDocumentSchema = z.object({
   externalDocumentId: z.string().uuid(),
   reason: z.string().max(500).nullable().optional(),
   idempotencyKey: z.string().min(8).max(128),
+  /** Internal billing credit note (kind credit_note, voids the original invoice). */
+  creditNoteBillingRecordId: z.string().uuid().optional(),
 });
 
 export const cancelExternalDocumentSchema = z.object({

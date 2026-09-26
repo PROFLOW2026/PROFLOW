@@ -41,6 +41,11 @@ const ROUTE_CAPABILITY_PREFIXES: readonly {
 
 export function capabilityForPath(pathname: string): OptionalModuleKey | null {
   const normalized = pathname.replace(/^\/[a-z]{2}(-[A-Z]{2})?(?=\/|$)/, '') || '/';
+  // Vendor bills share the /procurement URL tree but are not the procurement module.
+  // Orders and RFQs still match the /procurement prefix below.
+  if (normalized === '/procurement/ap' || normalized.startsWith('/procurement/ap/')) {
+    return null;
+  }
   let best: { prefix: string; module: OptionalModuleKey } | null = null;
   for (const entry of ROUTE_CAPABILITY_PREFIXES) {
     if (

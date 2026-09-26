@@ -904,6 +904,13 @@
                         "when":  1789711980000,
                         "tag":  "0129_expense_cash_installment_schedule",
                         "breakpoints":  true
+                    },
+                    {
+                        "idx":  129,
+                        "version":  "7",
+                        "when":  1789712040000,
+                        "tag":  "0130_core_completion_foundations",
+                        "breakpoints":  true
                     }
                 ]
 }

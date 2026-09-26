@@ -77,6 +77,16 @@ import {
   buildProjectBillingAccountReport,
   buildProjectBillingPlanStatusReport,
 } from "./generate-billing-plan-report";
+import {
+  buildApprovalQueueStatusReport,
+  buildMilestoneStatusReportPayload,
+  buildOverdueTasksOrgReport,
+  buildPortfolioStatusReport,
+  buildProjectTaskStatusReport,
+  buildStageDistributionReport,
+  buildStaleProjectsReport,
+  buildTeamWorkloadReportPayload,
+} from "./generate-operational-reports";
 
 import type { OrgContext } from "@/shared/auth/context";
 
@@ -249,6 +259,30 @@ export async function buildExtendedReport(
 
     case "project_billing_plan_status":
       return buildProjectBillingPlanStatusReport(context, id, ctx);
+
+    case "project_task_status":
+      return buildProjectTaskStatusReport(context, id, ctx);
+
+    case "overdue_tasks_org":
+      return buildOverdueTasksOrgReport(context, id, ctx);
+
+    case "milestone_status":
+      return buildMilestoneStatusReportPayload(context, id, ctx);
+
+    case "team_workload":
+      return buildTeamWorkloadReportPayload(context, id, ctx);
+
+    case "portfolio_status":
+      return buildPortfolioStatusReport(context, id, ctx);
+
+    case "stage_distribution":
+      return buildStageDistributionReport(context, id, ctx);
+
+    case "stale_projects":
+      return buildStaleProjectsReport(context, id, ctx);
+
+    case "approval_queue_status":
+      return buildApprovalQueueStatusReport(context, id, ctx);
 
     default:
       return null;

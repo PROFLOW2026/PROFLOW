@@ -128,6 +128,7 @@ export async function requestExternalStatutoryDocumentForPaymentCommitted(
   kind: ExternalDocumentKind,
   linkedTaxInvoiceExternalId: string | null = null,
   provider?: StatutoryInvoicingProvider,
+  allocatedAmount?: string | null,
 ): Promise<ExternalStatutoryDocument> {
   if (kind !== 'receipt' && kind !== 'tax_invoice_receipt') {
     throw new DomainRuleError(
@@ -138,7 +139,10 @@ export async function requestExternalStatutoryDocumentForPaymentCommitted(
 
   const prepared = await runCommittedOrgPhase(userId, organizationId, async (context) => {
     const resolvedProvider = await resolveProvider(context, provider);
-    const paymentSnapshot = await buildPaymentStatutorySnapshot(context, paymentId);
+    const paymentSnapshot = await buildPaymentStatutorySnapshot(context, paymentId, {
+      billingRecordId,
+      allocatedAmount,
+    });
     const lock = await preparePaymentIssuanceLock(
       context,
       billingRecordId,

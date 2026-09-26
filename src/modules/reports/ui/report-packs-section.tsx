@@ -25,6 +25,7 @@ const PROJECT_KINDS: readonly ReportKind[] = [
   'vendor_subcontract_summary',
   'project_billing_account',
   'project_billing_plan_status',
+  'project_task_status',
 ];
 
 const CLIENT_KINDS: readonly ReportKind[] = ['client_360'];
@@ -38,6 +39,13 @@ const ORG_KINDS: readonly ReportKind[] = [
   'crm_funnel',
   'month_close_completeness',
   'safety_open_actions',
+  'overdue_tasks_org',
+  'milestone_status',
+  'team_workload',
+  'portfolio_status',
+  'stage_distribution',
+  'stale_projects',
+  'approval_queue_status',
 ];
 
 function KindRows({

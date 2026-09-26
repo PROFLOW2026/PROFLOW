@@ -1,5 +1,10 @@
 import { SkeletonText } from '@/components/ui/skeleton';
 import { buildScheduleSummary, type MilestoneRecord } from '@/modules/projects';
+import {
+  loadProjectProgressView,
+  schedulePercentForReader,
+} from '@/modules/projects/application/project-progress-mode';
+import { withOrgContext } from '@/shared/auth/session';
 import { todayInTimeZone } from '@/shared/dates/dates';
 import { loadProjectDetail } from './load-project-detail';
 import { MilestonesPanel } from './milestones-panel';
@@ -28,13 +33,24 @@ export async function OverviewSchedulePanel({
   organizationTimezone: string;
 }) {
   const detail = await loadProjectDetail(projectId, true);
-  const schedule = buildScheduleSummary({
+  const scheduleBase = buildScheduleSummary({
     project: detail.project,
     workPackages: detail.workPackages,
     milestones: detail.milestones,
     phases: detail.phases,
     today: todayInTimeZone(organizationTimezone),
   });
+  const progressView = await withOrgContext((context) =>
+    loadProjectProgressView(context.db, context.organizationId, projectId),
+  );
+  const schedule = {
+    ...scheduleBase,
+    progressPercent: schedulePercentForReader(
+      progressView?.source ?? detail.project.progressSource,
+      scheduleBase.progressPercent,
+      progressView?.displayedPercent ?? null,
+    ),
+  };
 
   return <ScheduleSummaryPanel summary={schedule} projectId={projectId} />;
 }

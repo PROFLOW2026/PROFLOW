@@ -1,9 +1,33 @@
-import { and, eq, isNull } from 'drizzle-orm';
+import { and, eq, isNull, sql } from 'drizzle-orm';
 import { storageFolderMappings } from '@drizzle/schema';
 import { asServiceRoleWrite } from '@/shared/db/service-role-write';
 import type { SemanticFolderType } from '../domain/types';
 import type { DbExecutor } from '@/shared/db/types';
 import type { FolderMappingRecord } from '../domain/types';
+
+/**
+ * Same elevation as `asServiceRoleWrite`, but a failed statement must not hide
+ * the original Postgres error. `SET LOCAL` after a check violation raises 25P02
+ * and would otherwise replace the constraint error before the caller can log it.
+ */
+async function asServiceRoleWritePreservingError<T>(
+  db: DbExecutor,
+  fn: () => Promise<T>,
+): Promise<T> {
+  await db.execute(sql`set local role service_role`);
+  try {
+    const result = await fn();
+    await db.execute(sql`set local role authenticated`);
+    return result;
+  } catch (error) {
+    try {
+      await db.execute(sql`set local role authenticated`);
+    } catch {
+      // The statement aborted the transaction. Role reset runs after savepoint rollback.
+    }
+    throw error;
+  }
+}
 
 function mapRow(row: typeof storageFolderMappings.$inferSelect): FolderMappingRecord {
   return {
@@ -66,7 +90,7 @@ export async function insertFolderMapping(
     lastError?: string | null;
   },
 ): Promise<FolderMappingRecord> {
-  return asServiceRoleWrite(db, async () => {
+  return asServiceRoleWritePreservingError(db, async () => {
     const [row] = await db
       .insert(storageFolderMappings)
       .values({
@@ -98,7 +122,7 @@ export async function updateFolderMapping(
     lastError: string | null;
   }>,
 ): Promise<FolderMappingRecord | null> {
-  return asServiceRoleWrite(db, async () => {
+  return asServiceRoleWritePreservingError(db, async () => {
     const [row] = await db
       .update(storageFolderMappings)
       .set({ ...patch, updatedAt: new Date() })
