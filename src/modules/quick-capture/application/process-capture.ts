@@ -10,7 +10,7 @@ import { extractReceiptJob } from '@/modules/ocr/application/extract-receipt';
 import { kickDurableOcrQueue } from '@/modules/ocr/application/kick-queue';
 import { isOcrIngestionEnabled } from '@/modules/ocr/domain/feature-gate';
 import { isOcrSupportedMime } from '@/modules/ocr/domain/cost-controls';
-import { getOcrRepository } from '@/modules/ocr/data/resolve-repository';
+import { getOcrRepository } from '@/modules/ocr';
 import { listProjectsForOrg } from '@/modules/projects';
 import { classifyCapture } from '../domain/classify-capture';
 import type { CaptureItemRecord } from '../domain/types';

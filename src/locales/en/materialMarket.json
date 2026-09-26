@@ -1,0 +1,86 @@
+{
+  "title": "Materials market",
+  "description": "Track pressures affecting construction material prices",
+  "disclaimer": "This indicator reflects changes in commodities, FX and local indices. It is not a forecast of future prices.",
+  "empty": "No market pressure data yet. Run the bootstrap script or allow time for the daily update.",
+  "scoreLabel": "Pressure score",
+  "detailLink": "Details",
+  "lastUpdated": "Last updated: {date}",
+  "historyTitle": "Pressure history",
+  "historyRange": {
+    "12": "12 months",
+    "24": "24 months",
+    "all": "All"
+  },
+  "driversTitle": "What is influencing now?",
+  "changeTitle": "What changed?",
+  "methodologyTitle": "How is the score calculated?",
+  "methodologyBody": "The score blends commodity data, FX rates and official Israeli indices. Each driver is weighted by trade relevance. The score ranges from 0 to 100.",
+  "methodologyDisclaimer": "The score does not guarantee future supplier price changes.",
+  "driverImpact": "Impact: {score}/100",
+  "monthChange": "Change from prior month: {change}",
+  "trades": {
+    "electrical": "Electrical",
+    "plumbing": "Plumbing",
+    "steel_rebar": "Steel & rebar"
+  },
+  "direction": {
+    "strong_down": "Strong downward pressure",
+    "down": "Downward pressure",
+    "neutral": "Neutral",
+    "up": "Upward pressure",
+    "strong_up": "Strong upward pressure"
+  },
+  "confidence": {
+    "high": "High confidence",
+    "medium": "Medium confidence",
+    "low": "Low confidence"
+  },
+  "momentum": {
+    "rising_fast": "Strengthening quickly",
+    "rising": "Strengthening",
+    "stable": "Stable",
+    "falling": "Weakening",
+    "falling_fast": "Weakening quickly"
+  },
+  "localConfirmation": {
+    "confirmed_up": "Local data confirms upward pressure",
+    "confirmed_down": "Local data confirms downward pressure",
+    "not_confirmed": "Local price confirmation not yet available",
+    "no_local_data": "No current local supplier data"
+  },
+  "trend": {
+    "up": "Up",
+    "down": "Down",
+    "flat": "Flat"
+  },
+  "drivers": {
+    "copperIls": "Copper in ILS",
+    "copperUsd": "Global copper",
+    "usdIls": "USD / ILS",
+    "aluminium": "Aluminium",
+    "energy": "Energy / oil",
+    "cbsElectrical": "Israel conductors index",
+    "cbsPlumbing": "Israel plumbing index",
+    "cbsSteelRebar": "Israel rebar index",
+    "scrap": "Steel scrap",
+    "ironOre": "Iron ore",
+    "hrc": "Global steel",
+    "polymer": "Polymer proxy",
+    "localSupplier": "Local supplier"
+  },
+  "explanation": {
+    "introChanged": "Price pressure in {trade} {momentum} over the last month.",
+    "introNeutral": "Pressure in {trade} remained neutral.",
+    "introDirection": "Price pressure in {trade} is {direction}.",
+    "strengthened": "strengthened",
+    "weakened": "weakened",
+    "stable": "stayed stable",
+    "upward": "in an upward direction",
+    "downward": "in a downward direction",
+    "remainedNeutral": "remained neutral",
+    "mainUp": "Main upward drivers: {drivers}.",
+    "mainDown": "Main downward drivers: {drivers}.",
+    "offset": "Rise in {up} is currently offset by decline in {down}."
+  }
+}

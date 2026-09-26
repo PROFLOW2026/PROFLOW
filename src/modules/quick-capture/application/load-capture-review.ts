@@ -7,7 +7,7 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { findDocumentById } from '@/modules/documents/lookups';
 import type { ExtractionJob } from '@/modules/ocr';
 import { getOcrProviderStatus } from '@/modules/ocr/application/provider-status';
-import { getOcrRepository } from '@/modules/ocr/data/resolve-repository';
+import { getOcrRepository } from '@/modules/ocr';
 import { listProjectsForOrg } from '@/modules/projects';
 import { listVendorsForOrg } from '@/modules/vendors';
 import { getOrganizationTaxId } from '@/modules/tenancy';

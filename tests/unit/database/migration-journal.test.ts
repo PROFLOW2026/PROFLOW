@@ -419,7 +419,10 @@ describe('migration journal', () => {
     expect(tags.indexOf('0130_core_completion_foundations')).toBeLessThan(
       tags.indexOf('0131_quick_capture_inbox'),
     );
-    expect(tags.at(-1)).toBe('0131_quick_capture_inbox');
+    expect(tags.indexOf('0131_quick_capture_inbox')).toBeLessThan(
+      tags.indexOf('0132_material_market_monitor'),
+    );
+    expect(tags.at(-1)).toBe('0132_material_market_monitor');
 
     const sql66 = await readFile(
       path.join(MIGRATIONS_DIR, '0066_workforce_time_integrity.sql'),

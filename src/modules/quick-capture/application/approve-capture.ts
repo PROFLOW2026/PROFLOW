@@ -6,7 +6,7 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { linkDocumentToEntity } from '@/modules/documents';
 import { relocateDocumentToSemanticFolder } from '@/modules/external-storage/application/relocate-document-file';
 import { confirmOcrCandidate } from '@/modules/ocr/application/confirm-candidate';
-import { getOcrRepository } from '@/modules/ocr/data/resolve-repository';
+import { getOcrRepository } from '@/modules/ocr';
 import type { SemanticFolderType } from '@drizzle/schema/external-storage';
 import { assertFieldMediaCategory, type FieldMediaCategory } from '../domain/field-media-categories';
 import type { CaptureItemRecord, DetectedType } from '../domain/types';

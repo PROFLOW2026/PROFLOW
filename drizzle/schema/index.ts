@@ -57,3 +57,4 @@ export * from './payment-instruments';
 export * from './workspaces';
 export * from './tasks';
 export * from './margin-snapshots';
+export * from './material-market';

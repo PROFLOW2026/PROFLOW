@@ -39,6 +39,7 @@ export { listNotifications } from './application/list';
 export { markNotificationRead } from './application/mark-read';
 export { markAllNotificationsRead } from './application/mark-all-read';
 export { runNotificationScan } from './application/scan-conditions';
+export { listUserIdsWithPermission } from './data/permission-holders.repository';
 
 export {
   notificationIdSchema,

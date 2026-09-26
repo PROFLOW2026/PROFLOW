@@ -1,0 +1,86 @@
+{
+  "title": "שוק חומרים",
+  "description": "מעקב אחר הלחצים המשפיעים על מחירי חומרי הבנייה",
+  "disclaimer": "המדד משקף שינויים בחומרי גלם, מט\"ח ומדדים מקומיים. הוא אינו תחזית למחיר עתידי.",
+  "empty": "אין עדיין נתוני לחץ שוק. הריצו את סקריפט האתחול או המתינו לרענון היומי.",
+  "scoreLabel": "ציון לחץ",
+  "detailLink": "פירוט",
+  "lastUpdated": "עודכן לאחרונה: {date}",
+  "historyTitle": "היסטוריית לחץ",
+  "historyRange": {
+    "12": "12 חודשים",
+    "24": "24 חודשים",
+    "all": "הכל"
+  },
+  "driversTitle": "מה משפיע כרגע?",
+  "changeTitle": "מה השתנה?",
+  "methodologyTitle": "איך המדד מחושב?",
+  "methodologyBody": "המדד משלב נתוני חומרי גלם, שערי מט\"ח ומדדים רשמיים בישראל. כל גורם מקבל משקל לפי חשיבותו לענף. הציון נע בין 0 ל־100.",
+  "methodologyDisclaimer": "המדד אינו מבטיח שינוי עתידי במחיר הספק.",
+  "driverImpact": "השפעה: {score}/100",
+  "monthChange": "שינוי מהחודש הקודם: {change}",
+  "trades": {
+    "electrical": "חשמל",
+    "plumbing": "אינסטלציה",
+    "steel_rebar": "ברזל ושלד"
+  },
+  "direction": {
+    "strong_down": "לחץ ירידה חזק",
+    "down": "לחץ לירידה",
+    "neutral": "ניטרלי",
+    "up": "לחץ לעלייה",
+    "strong_up": "לחץ עלייה חזק"
+  },
+  "confidence": {
+    "high": "ביטחון גבוה",
+    "medium": "ביטחון בינוני",
+    "low": "ביטחון נמוך"
+  },
+  "momentum": {
+    "rising_fast": "מתחזק במהירות",
+    "rising": "מתחזק",
+    "stable": "יציב",
+    "falling": "נחלש",
+    "falling_fast": "נחלש במהירות"
+  },
+  "localConfirmation": {
+    "confirmed_up": "הנתונים המקומיים מאשרים עלייה",
+    "confirmed_down": "הנתונים המקומיים מאשרים ירידה",
+    "not_confirmed": "טרם התקבל אישור מהמחיר המקומי",
+    "no_local_data": "אין כרגע נתון מקומי עדכני"
+  },
+  "trend": {
+    "up": "עלייה",
+    "down": "ירידה",
+    "flat": "יציב"
+  },
+  "drivers": {
+    "copperIls": "נחושת בשקלים",
+    "copperUsd": "נחושת עולמית",
+    "usdIls": "דולר / שקל",
+    "aluminium": "אלומיניום",
+    "energy": "אנרגיה / נפט",
+    "cbsElectrical": "מדד מוליכים בישראל",
+    "cbsPlumbing": "מדד אינסטלציה בישראל",
+    "cbsSteelRebar": "מדד ברזל זיון בישראל",
+    "scrap": "גרוטאות פלדה",
+    "ironOre": "עפרות ברזל",
+    "hrc": "פלדה עולמית",
+    "polymer": "פולימר (פרוקסי)",
+    "localSupplier": "ספק מקומי"
+  },
+  "explanation": {
+    "introChanged": "לחץ המחירים ב{trade} {momentum} בחודש האחרון.",
+    "introNeutral": "הלחץ ב{trade} נותר ניטרלי.",
+    "introDirection": "לחץ המחירים ב{trade} נמצא ב{direction}.",
+    "strengthened": "התחזק",
+    "weakened": "נחלש",
+    "stable": "נשאר יציב",
+    "upward": "מגמת עלייה",
+    "downward": "מגמת ירידה",
+    "remainedNeutral": "נותר ניטרלי",
+    "mainUp": "הגורמים העיקריים לעלייה: {drivers}.",
+    "mainDown": "הגורמים העיקריים לירידה: {drivers}.",
+    "offset": "עלייה ב{up} מתקזזת כרגע מול ירידה ב{down}."
+  }
+}

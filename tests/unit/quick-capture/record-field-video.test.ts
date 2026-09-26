@@ -44,6 +44,7 @@ function createMockMediaRecorder(supportedMime: string | null) {
         audioBitsPerSecond?: number;
       },
     ) {
+      // eslint-disable-next-line @typescript-eslint/no-this-alias -- test spy needs constructor instance
       lastRecorder = this;
     }
 

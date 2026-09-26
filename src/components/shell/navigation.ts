@@ -536,6 +536,14 @@ export const NAV_ITEMS: readonly NavItem[] = [
     moreGroup: 'purchasing',
   },
   {
+    key: 'materialMarket',
+    href: '/material-market',
+    labelKey: 'materialMarket',
+    iconKey: 'materials',
+    permission: PERMISSIONS.MATERIALS_READ,
+    moreGroup: 'purchasing',
+  },
+  {
     key: 'fieldOps',
     href: '/field-ops',
     labelKey: 'fieldOps',

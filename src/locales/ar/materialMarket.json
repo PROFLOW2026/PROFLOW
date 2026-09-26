@@ -1,0 +1,86 @@
+{
+  "title": "سوق المواد",
+  "description": "متابعة الضغوط المؤثرة على أسعار مواد البناء",
+  "disclaimer": "يعكس المؤشر تغيرات المواد الخام وأسعار الصرف والمؤشرات المحلية. وهو ليس توقعاً لأسعار مستقبلية.",
+  "empty": "لا توجد بيانات ضغط سوق بعد. شغّل سكربت التهيئة أو انتظر التحديث اليومي.",
+  "scoreLabel": "درجة الضغط",
+  "detailLink": "تفاصيل",
+  "lastUpdated": "آخر تحديث: {date}",
+  "historyTitle": "سجل الضغط",
+  "historyRange": {
+    "12": "12 شهراً",
+    "24": "24 شهراً",
+    "all": "الكل"
+  },
+  "driversTitle": "ما الذي يؤثر الآن؟",
+  "changeTitle": "ما الذي تغيّر؟",
+  "methodologyTitle": "كيف تُحسب الدرجة؟",
+  "methodologyBody": "يجمع المؤشر بيانات المواد الخام وأسعار الصرف والمؤشرات الرسمية في إسرائيل. لكل عامل وزن حسب أهميته للقطاع. تتراوح الدرجة بين 0 و100.",
+  "methodologyDisclaimer": "لا يضمن المؤشر تغيراً مستقبلياً في سعر المورد.",
+  "driverImpact": "التأثير: {score}/100",
+  "monthChange": "التغير عن الشهر السابق: {change}",
+  "trades": {
+    "electrical": "كهرباء",
+    "plumbing": "سباكة",
+    "steel_rebar": "حديد وتسليح"
+  },
+  "direction": {
+    "strong_down": "ضغط هبوط قوي",
+    "down": "ضغط نزولي",
+    "neutral": "محايد",
+    "up": "ضغط صعودي",
+    "strong_up": "ضغط صعود قوي"
+  },
+  "confidence": {
+    "high": "ثقة عالية",
+    "medium": "ثقة متوسطة",
+    "low": "ثقة منخفضة"
+  },
+  "momentum": {
+    "rising_fast": "يتقوى بسرعة",
+    "rising": "يتقوى",
+    "stable": "مستقر",
+    "falling": "يضعف",
+    "falling_fast": "يضعف بسرعة"
+  },
+  "localConfirmation": {
+    "confirmed_up": "البيانات المحلية تؤكد ضغطاً صعودياً",
+    "confirmed_down": "البيانات المحلية تؤكد ضغطاً نزولياً",
+    "not_confirmed": "لم يُتلقَّ بعد تأكيد من السعر المحلي",
+    "no_local_data": "لا توجد بيانات محلية حديثة"
+  },
+  "trend": {
+    "up": "صعود",
+    "down": "هبوط",
+    "flat": "مستقر"
+  },
+  "drivers": {
+    "copperIls": "نحاس بالشيكل",
+    "copperUsd": "نحاس عالمي",
+    "usdIls": "دولار / شيكل",
+    "aluminium": "ألومنيوم",
+    "energy": "طاقة / نفط",
+    "cbsElectrical": "مؤشر الموصلات في إسرائيل",
+    "cbsPlumbing": "مؤشر السباكة في إسرائيل",
+    "cbsSteelRebar": "مؤشر حديد التسليح في إسرائيل",
+    "scrap": "خردة فولاذ",
+    "ironOre": "خام الحديد",
+    "hrc": "فولاذ عالمي",
+    "polymer": "بوليمر (بديل)",
+    "localSupplier": "مورد محلي"
+  },
+  "explanation": {
+    "introChanged": "ضغط الأسعار في {trade} {momentum} خلال الشهر الماضي.",
+    "introNeutral": "بقي الضغط في {trade} محايداً.",
+    "introDirection": "ضغط الأسعار في {trade} في {direction}.",
+    "strengthened": "تقوى",
+    "weakened": "ضعُف",
+    "stable": "بقي مستقراً",
+    "upward": "اتجاه صعودي",
+    "downward": "اتجاه نزولي",
+    "remainedNeutral": "بقي محايداً",
+    "mainUp": "أهم العوامل الصاعدة: {drivers}.",
+    "mainDown": "أهم العوامل الهابطة: {drivers}.",
+    "offset": "صعود {up} يُعوَّض حالياً بهبوط {down}."
+  }
+}

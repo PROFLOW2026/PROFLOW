@@ -113,6 +113,7 @@ export const MESSAGE_NAMESPACES = [
   'tasks',
   'operations',
   'quickCapture',
+  'materialMarket',
 ] as const;
 
 export type MessageNamespace = (typeof MESSAGE_NAMESPACES)[number];
@@ -163,4 +164,5 @@ export const APP_CLIENT_MESSAGE_NAMESPACES = [
   'employeeApp',
   'tasks',
   'quickCapture',
+  'materialMarket',
 ] as const satisfies readonly MessageNamespace[];

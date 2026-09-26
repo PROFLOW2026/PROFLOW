@@ -3,7 +3,7 @@ import { NotFoundError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { ExtractionJob } from '@/modules/ocr';
-import { getOcrRepository } from '@/modules/ocr/data/resolve-repository';
+import { getOcrRepository } from '@/modules/ocr';
 import { findCaptureById } from '../data/quick-capture.repository';
 
 export type CaptureOcrPollResult = {

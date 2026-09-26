@@ -1,6 +1,5 @@
 import type { OrgContext } from '@/shared/auth/context';
-import { emitNotification } from '@/modules/notifications/application/emit';
-import { listUserIdsWithPermission } from '@/modules/notifications/data/permission-holders.repository';
+import { emitNotification, listUserIdsWithPermission } from '@/modules/notifications';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { CaptureItemRecord } from '../domain/types';
 
