@@ -13,7 +13,8 @@
   "quickAccess": {
     "title": "Quick access",
     "shortcuts": {
-      "invoicingSettings": "Invoices & receipts"
+      "invoicingSettings": "Invoices & receipts",
+      "quickCapture": "Capture / upload"
     }
   },
   "contractSummary": {

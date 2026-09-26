@@ -87,7 +87,8 @@
     "attendance": "حضور",
     "quote": "عرض سعر",
     "service": "طلب خدمة",
-    "recurringDrafts": "مسودة متكررة"
+    "recurringDrafts": "مسودة متكررة",
+    "quickCapture": "التقاط سريع"
   },
   "organizationSwitcher": {
     "label": "منظمة",

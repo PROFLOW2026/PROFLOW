@@ -1,0 +1,91 @@
+{
+  "title": "التقاط سريع",
+  "form": {
+    "description": "التقط صورًا أو فيديو ميدانيًا أو مستندًا وأرسله للمراجعة في خطوة واحدة.",
+    "captureNow": "التقط الآن",
+    "recordVideo": "سجّل فيديو",
+    "chooseFiles": "اختر صورًا / فيديو / ملفًا",
+    "addPhoto": "أضف صورة",
+    "note": "ملاحظة (اختياري)",
+    "project": "مشروع (اختياري)",
+    "projectNone": "بدون مشروع",
+    "save": "احفظ وأرسل للمراجعة",
+    "manageRequired": "يلزم إذن المستندات لالتقاط الملفات.",
+    "storageNotConfigured": "تخزين الملفات غير متصل.",
+    "storageSettingsLink": "إعدادات التخزين"
+  },
+  "gallery": {
+    "aria": "الصور الملتقطة",
+    "remove": "إزالة"
+  },
+  "errors": {
+    "emptySession": "أضف صورة أو فيديو أو ملفًا واحدًا على الأقل.",
+    "mixedSessionModes": "اختر صورًا أو فيديو واحدًا أو ملفًا واحدًا — وليس مزيجًا.",
+    "tooManyImages": "يمكنك إضافة حتى 5 صور في التقاط واحد.",
+    "tooManyVideos": "يُسمح بفيديو واحد فقط في التقاط.",
+    "tooManyFiles": "يُسمح بملف واحد فقط في التقاط.",
+    "unsupportedMime": "نوع الملف غير مدعوم.",
+    "unsupportedApprovalType": "اختر نوع المستند قبل الاعتماد.",
+    "duplicateSession": "تم إرسال هذا الالتقاط مسبقًا."
+  },
+  "inbox": {
+    "title": "صندوق الالتقاط",
+    "empty": "لا توجد عناصر بانتظار المراجعة",
+    "photoCount": "{count, plural, one {صورة واحدة} two {صورتان} few {# صور} many {# صورة} other {# صورة}}",
+    "videoBadge": "فيديو",
+    "statusProcessing": "قيد المعالجة",
+    "statusReady": "جاهز للمراجعة",
+    "statusFailed": "فشل الرفع",
+    "kind": {
+      "images": "التقاط صور",
+      "video": "التقاط فيديو",
+      "pdf": "التقاط PDF",
+      "file": "التقاط ملف"
+    }
+  },
+  "review": {
+    "title": "مراجعة الالتقاط",
+    "parsingDocument": "جارٍ تحليل المستند…",
+    "approve": "اعتماد",
+    "reject": "رفض",
+    "changeType": "تغيير التصنيف",
+    "financialDocument": "مستند مالي",
+    "fieldMedia": "توثيق ميداني",
+    "otherDocument": "مستند آخر",
+    "selectFinancialDocument": "اختر المستند للقراءة",
+    "ocrUnavailable": "قارئ المستندات غير متاح — اختر النوع يدويًا",
+    "retryOcr": "حاول مرة أخرى"
+  },
+  "video": {
+    "tooLarge": "الفيديو كبير جدًا (الحد الأقصى 25 ميجابايت)",
+    "unsupportedFormat": "صيغة فيديو غير مدعومة",
+    "uploadFailed": "فشل رفع الفيديو",
+    "recording": "جارٍ تسجيل الفيديو…",
+    "approachingLimit": "اقتراب من حد الحجم",
+    "fallbackBrowser": "التسجيل المحسّن غير مدعوم في هذا المتصفح — يتم استخدام الالتقاط الأصلي",
+    "stop": "إيقاف التسجيل",
+    "cancel": "إلغاء",
+    "inlineHint": "تستخدم التشغيل بثًا آمنًا من التخزين المتصل.",
+    "playbackFallback": "قد لا يشغّل المتصفح الفيديو هنا.",
+    "openVideo": "فتح الفيديو"
+  },
+  "fieldMedia": {
+    "title": "توثيق ميداني",
+    "videoTitle": "فيديو ميداني",
+    "category": "الفئة",
+    "categories": {
+      "progress": "تقدم",
+      "before": "قبل",
+      "after": "بعد",
+      "defect": "عيب",
+      "installation": "تركيب",
+      "documentation": "توثيق"
+    }
+  },
+  "notifications": {
+    "financial": "فاتورة أو إيصال ملتقط يحتاج مراجعة",
+    "fieldMedia": "صور ميدانية ملتقطة تحتاج مراجعة",
+    "video": "فيديو ميداني ملتقط يحتاج مراجعة",
+    "unknown": "التقاط جديد يحتاج مراجعة"
+  }
+}

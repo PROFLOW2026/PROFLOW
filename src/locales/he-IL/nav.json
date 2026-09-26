@@ -88,7 +88,8 @@
     "attendance": "נוכחות",
     "quote": "הצעת מחיר",
     "service": "קריאת שירות",
-    "recurringDrafts": "טיוטה חוזרת"
+    "recurringDrafts": "טיוטה חוזרת",
+    "quickCapture": "קליטה מהירה"
   },
   "organizationSwitcher": {
     "label": "עסק",

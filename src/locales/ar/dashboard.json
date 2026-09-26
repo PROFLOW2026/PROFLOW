@@ -13,7 +13,8 @@
   "quickAccess": {
     "title": "وصول سريع",
     "shortcuts": {
-      "invoicingSettings": "فواتير وإيصالات"
+      "invoicingSettings": "فواتير وإيصالات",
+      "quickCapture": "التقط / ارفع"
     }
   },
   "contractSummary": {

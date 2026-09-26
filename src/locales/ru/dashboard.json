@@ -13,7 +13,8 @@
   "quickAccess": {
     "title": "Быстрый доступ",
     "shortcuts": {
-      "invoicingSettings": "Счета и квитанции"
+      "invoicingSettings": "Счета и квитанции",
+      "quickCapture": "Снять / загрузить"
     }
   },
   "contractSummary": {

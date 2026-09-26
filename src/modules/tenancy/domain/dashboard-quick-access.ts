@@ -29,6 +29,7 @@ export const DASHBOARD_QUICK_ACCESS_KEYS = [
   'calendar',
   'reports',
   'invoicingSettings',
+  'quickCapture',
 ] as const;
 
 export type DashboardQuickAccessKey = (typeof DASHBOARD_QUICK_ACCESS_KEYS)[number];
@@ -147,6 +148,15 @@ export const DASHBOARD_QUICK_ACCESS_CATALOG: readonly DashboardQuickAccessDefini
     labelNamespace: 'dashboard',
     iconKey: 'billing',
     permission: PERMISSIONS.INTEGRATIONS_READ,
+  },
+  {
+    key: 'quickCapture',
+    href: '/quick-capture',
+    labelKey: 'quickCapture',
+    labelNamespace: 'dashboard',
+    iconKey: 'documents',
+    permission: PERMISSIONS.DOCUMENTS_MANAGE,
+    module: 'documents',
   },
 ];
 

@@ -13,7 +13,8 @@
   "quickAccess": {
     "title": "גישה מהירה",
     "shortcuts": {
-      "invoicingSettings": "חשבוניות וקבלות"
+      "invoicingSettings": "חשבוניות וקבלות",
+      "quickCapture": "צלם / העלה"
     }
   },
   "contractSummary": {

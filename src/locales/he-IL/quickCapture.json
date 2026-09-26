@@ -1,0 +1,91 @@
+{
+  "title": "קליטה מהירה",
+  "form": {
+    "description": "צלמו תמונות, סרטון שטח או מסמך ושלחו לבדיקה בפעולה אחת.",
+    "captureNow": "צלם עכשיו",
+    "recordVideo": "צלם סרטון",
+    "chooseFiles": "בחר תמונות / סרטון / קובץ",
+    "addPhoto": "הוסף תמונה",
+    "note": "הערה (אופציונלי)",
+    "project": "פרויקט (אופציונלי)",
+    "projectNone": "ללא שיוך",
+    "save": "שמור ושלח לבדיקה",
+    "manageRequired": "נדרשת הרשאת מסמכים כדי לצלם ולהעלות קבצים.",
+    "storageNotConfigured": "אחסון קבצים אינו מחובר.",
+    "storageSettingsLink": "הגדרות אחסון"
+  },
+  "gallery": {
+    "aria": "תמונות שצולמו",
+    "remove": "הסר"
+  },
+  "errors": {
+    "emptySession": "הוסיפו לפחות תמונה, סרטון או קובץ אחד.",
+    "mixedSessionModes": "בחרו תמונות, סרטון אחד או קובץ אחד — לא שילוב.",
+    "tooManyImages": "ניתן להוסיף עד 5 תמונות בקליטה אחת.",
+    "tooManyVideos": "מותר סרטון אחד בלבד בקליטה.",
+    "tooManyFiles": "מותר קובץ אחד בלבד בקליטה.",
+    "unsupportedMime": "סוג הקובץ אינו נתמך.",
+    "unsupportedApprovalType": "בחרו סוג מסמך לפני האישור.",
+    "duplicateSession": "קליטה זו כבר נשלחה."
+  },
+  "inbox": {
+    "title": "תיבת קליטה",
+    "empty": "אין פריטים ממתינים לבדיקה",
+    "photoCount": "{count, plural, one {תמונה אחת} two {# תמונות} other {# תמונות}}",
+    "videoBadge": "סרטון",
+    "statusProcessing": "בעיבוד",
+    "statusReady": "מוכן לבדיקה",
+    "statusFailed": "העלאה נכשלה",
+    "kind": {
+      "images": "קליטת תמונות",
+      "video": "קליטת סרטון",
+      "pdf": "קליטת PDF",
+      "file": "קליטת קובץ"
+    }
+  },
+  "review": {
+    "title": "בדיקת קליטה",
+    "parsingDocument": "מפענח את המסמך…",
+    "approve": "אשר",
+    "reject": "דחה",
+    "changeType": "שנה שיוך",
+    "financialDocument": "מסמך כספי",
+    "fieldMedia": "תיעוד מהשטח",
+    "otherDocument": "מסמך אחר",
+    "selectFinancialDocument": "בחר את המסמך לקריאה",
+    "ocrUnavailable": "קורא המסמכים אינו זמין — בחר סוג ידנית",
+    "retryOcr": "נסה שוב"
+  },
+  "video": {
+    "tooLarge": "הסרטון גדול מדי (מקסימום 25 MB)",
+    "unsupportedFormat": "פורמט סרטון לא נתמך",
+    "uploadFailed": "העלאת הסרטון נכשלה",
+    "recording": "מקליט סרטון…",
+    "approachingLimit": "מתקרבים למגבלת הגודל",
+    "fallbackBrowser": "הקלטה מותאמת אינה נתמכת בדפדפן זה — משתמשים בצילום מובנה",
+    "stop": "עצור הקלטה",
+    "cancel": "ביטול",
+    "inlineHint": "הצגה משתמשת בזרימה מאובטחת מהאחסון המחובר.",
+    "playbackFallback": "ייתכן שהדפדפן לא יציג את הסרטון כאן.",
+    "openVideo": "פתח סרטון"
+  },
+  "fieldMedia": {
+    "title": "תיעוד מהשטח",
+    "videoTitle": "סרטון שטח",
+    "category": "קטגוריה",
+    "categories": {
+      "progress": "התקדמות",
+      "before": "לפני",
+      "after": "אחרי",
+      "defect": "ליקוי",
+      "installation": "התקנה",
+      "documentation": "תיעוד"
+    }
+  },
+  "notifications": {
+    "financial": "חשבונית או קבלה שצולמה ממתינה לבדיקה",
+    "fieldMedia": "תמונות שטח שצולמו ממתינות לבדיקה",
+    "video": "סרטון שטח שצולם ממתין לבדיקה",
+    "unknown": "קליטה חדשה ממתינה לבדיקה"
+  }
+}

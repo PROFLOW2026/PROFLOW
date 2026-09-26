@@ -147,6 +147,8 @@ export interface OcrReviewPanelProps {
   readonly offline?: boolean;
   /** Deep-link from received-expense inbox. */
   readonly initialSelectedJobId?: string | null;
+  /** Hide upload controls when embedded in Quick Capture review. */
+  readonly embedded?: boolean;
 }
 
 export function OcrReviewPanel({
@@ -163,6 +165,7 @@ export function OcrReviewPanel({
   canManageAp,
   offline = false,
   initialSelectedJobId = null,
+  embedded = false,
 }: OcrReviewPanelProps) {
   const t = useTranslations('documents.ocr');
   const activeInitialJobs = useMemo(
@@ -732,12 +735,16 @@ export function OcrReviewPanel({
   }, [batches, jobs]);
 
   return (
-    <div className="flex flex-col gap-6" dir="auto" data-pf-ocr-review>
-      <Alert tone={initialStatus.featureMode === 'live' ? 'info' : 'warning'}>
-        <p className="font-medium">{t(`configurationState.${initialStatus.featureMode}`)}</p>
-        <p>{t(initialStatus.messageKey)}</p>
-      </Alert>
-      <p className="text-sm text-[var(--pf-text-secondary)]">{t('honesty')}</p>
+    <div className="flex flex-col gap-6" dir="auto" data-pf-ocr-review={embedded ? 'embedded' : undefined}>
+      {!embedded ? (
+        <>
+          <Alert tone={initialStatus.featureMode === 'live' ? 'info' : 'warning'}>
+            <p className="font-medium">{t(`configurationState.${initialStatus.featureMode}`)}</p>
+            <p>{t(initialStatus.messageKey)}</p>
+          </Alert>
+          <p className="text-sm text-[var(--pf-text-secondary)]">{t('honesty')}</p>
+        </>
+      ) : null}
       {offline || (typeof navigator !== 'undefined' && !navigator.onLine) ? (
         <Alert tone="warning">{t('offlineBlocked')}</Alert>
       ) : null}
@@ -752,136 +759,149 @@ export function OcrReviewPanel({
         </Alert>
       ) : null}
 
-      <div className="flex flex-wrap gap-2">
-        {canManageDocuments && fixtureTools ? (
-          <Button type="button" variant="secondary" loading={pending} onClick={onSeedFixture}>
-            {t('seedFixture')}
-          </Button>
-        ) : null}
-        {canManageDocuments && liveExtract ? (
-          <>
-            <input
-              ref={captureInputRef}
-              type="file"
-              accept="image/*"
-              capture="environment"
-              className="sr-only"
-              aria-hidden="true"
-              tabIndex={-1}
-              data-pf-ocr-capture-input
-              disabled={pending}
-              onChange={(event) => {
-                onExtractImage(event.target.files?.[0] ?? null);
-                event.target.value = '';
-              }}
-            />
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept={OCR_FILE_ACCEPT}
-              multiple
-              className="sr-only"
-              aria-hidden="true"
-              tabIndex={-1}
-              data-pf-ocr-file-input
-              disabled={pending}
-              onChange={(event) => {
-                onExtractImages(event.target.files ? [...event.target.files] : []);
-                event.target.value = '';
-              }}
-            />
-            <Button
-              type="button"
-              variant="secondary"
-              loading={pending}
-              data-pf-ocr-capture
-              aria-label={t('extractCapture')}
-              onClick={() => openFilePicker(captureInputRef.current)}
-            >
-              {t('extractCapture')}
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              loading={pending}
-              data-pf-ocr-attach
-              aria-label={t('extractImage')}
-              onClick={() => openFilePicker(fileInputRef.current)}
-            >
-              {t('extractImage')}
-            </Button>
-          </>
-        ) : null}
-      </div>
+      {!embedded ? (
+        <>
+          <div className="flex flex-wrap gap-2">
+            {canManageDocuments && fixtureTools ? (
+              <Button type="button" variant="secondary" loading={pending} onClick={onSeedFixture}>
+                {t('seedFixture')}
+              </Button>
+            ) : null}
+            {canManageDocuments && liveExtract ? (
+              <>
+                <input
+                  ref={captureInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  className="sr-only"
+                  aria-hidden="true"
+                  tabIndex={-1}
+                  data-pf-ocr-capture-input
+                  disabled={pending}
+                  onChange={(event) => {
+                    onExtractImage(event.target.files?.[0] ?? null);
+                    event.target.value = '';
+                  }}
+                />
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept={OCR_FILE_ACCEPT}
+                  multiple
+                  className="sr-only"
+                  aria-hidden="true"
+                  tabIndex={-1}
+                  data-pf-ocr-file-input
+                  disabled={pending}
+                  onChange={(event) => {
+                    onExtractImages(event.target.files ? [...event.target.files] : []);
+                    event.target.value = '';
+                  }}
+                />
+                <Button
+                  type="button"
+                  variant="secondary"
+                  loading={pending}
+                  data-pf-ocr-capture
+                  aria-label={t('extractCapture')}
+                  onClick={() => openFilePicker(captureInputRef.current)}
+                >
+                  {t('extractCapture')}
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  loading={pending}
+                  data-pf-ocr-attach
+                  aria-label={t('extractImage')}
+                  onClick={() => openFilePicker(fileInputRef.current)}
+                >
+                  {t('extractImage')}
+                </Button>
+              </>
+            ) : null}
+          </div>
 
-      {visibleBatches.length > 0 ? (
-        <ul className="flex flex-col gap-2" data-pf-ocr-batches>
-          {visibleBatches.map(({ batch, completedCount, failedCount, totalCount, status }) => (
-            <li key={batch.id}>
-              <Alert tone={status === 'failed' ? 'warning' : 'info'} data-pf-ocr-batch-id={batch.id}>
-                {t('batchProgress', {
-                  completed: completedCount,
-                  total: totalCount,
-                  failed: failedCount,
-                })}
-              </Alert>
-            </li>
-          ))}
-        </ul>
+          {visibleBatches.length > 0 ? (
+            <ul className="flex flex-col gap-2" data-pf-ocr-batches>
+              {visibleBatches.map(({ batch, completedCount, failedCount, totalCount, status }) => (
+                <li key={batch.id}>
+                  <Alert tone={status === 'failed' ? 'warning' : 'info'} data-pf-ocr-batch-id={batch.id}>
+                    {t('batchProgress', {
+                      completed: completedCount,
+                      total: totalCount,
+                      failed: failedCount,
+                    })}
+                  </Alert>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </>
       ) : null}
 
       {jobs.length === 0 ? (
-        <Alert tone="info">{t('empty')}</Alert>
+        embedded ? null : (
+          <Alert tone="info">{t('empty')}</Alert>
+        )
       ) : (
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,16rem)_minmax(0,1fr)]">
-          <div className="flex min-w-0 flex-col gap-3">
-            <Tabs
-              value={inboxTab}
-              onValueChange={(value) => selectInboxTab(value as OcrInboxTab)}
-            >
-              <TabsList aria-label={t('inboxAria')} data-pf-ocr-inbox-tabs>
-                {OCR_INBOX_TABS.map((tab) => (
-                  <TabsTrigger
-                    key={tab}
-                    value={tab}
-                    data-pf-ocr-inbox-tab={tab}
-                    className="text-xs sm:text-sm"
-                  >
-                    {t(`inbox.${tab}`)}
-                    <span className="ms-1 tabular-nums">({inboxCounts[tab]})</span>
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </Tabs>
-            {inboxJobs.length === 0 ? (
-              <Alert tone="info">{t(`inboxEmpty.${inboxTab}`)}</Alert>
-            ) : (
-              <ul className="flex flex-col gap-2" aria-label={t(`inbox.${inboxTab}`)}>
-                {inboxJobs.map((job) => (
-                  <li key={job.id}>
-                    <button
-                      type="button"
-                      aria-current={job.id === selectedId ? 'true' : undefined}
-                      data-pf-ocr-job-id={job.id}
-                      data-pf-ocr-job-document-id={job.sourceDocument.documentId ?? ''}
-                      data-pf-ocr-job-status={job.status}
-                      className={cn(
-                        pressableClassName,
-                        'flex w-full min-h-11 items-center justify-between gap-2 rounded-md border border-[var(--pf-border-default)] px-3 py-2 text-start text-sm',
-                        job.id === selectedId && 'border-[var(--pf-border-strong)] bg-[var(--pf-bg-muted)]',
-                      )}
-                      onClick={() => selectJob(job)}
+        <div
+          className={cn(
+            'grid gap-6',
+            embedded ? 'grid-cols-1' : 'lg:grid-cols-[minmax(0,16rem)_minmax(0,1fr)]',
+          )}
+        >
+          {!embedded ? (
+            <div className="flex min-w-0 flex-col gap-3">
+              <Tabs
+                value={inboxTab}
+                onValueChange={(value) => selectInboxTab(value as OcrInboxTab)}
+              >
+                <TabsList aria-label={t('inboxAria')} data-pf-ocr-inbox-tabs>
+                  {OCR_INBOX_TABS.map((tab) => (
+                    <TabsTrigger
+                      key={tab}
+                      value={tab}
+                      data-pf-ocr-inbox-tab={tab}
+                      className="text-xs sm:text-sm"
                     >
-                      <span className="truncate text-xs">
-                        {job.sourceDocument.filename ?? job.id.slice(0, 8)}
-                      </span>
-                      <StatusBadge shape={statusShape(job.status)} label={t(`status.${job.status}`)} />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+                      {t(`inbox.${tab}`)}
+                      <span className="ms-1 tabular-nums">({inboxCounts[tab]})</span>
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </Tabs>
+              {inboxJobs.length === 0 ? (
+                <Alert tone="info">{t(`inboxEmpty.${inboxTab}`)}</Alert>
+              ) : (
+                <ul className="flex flex-col gap-2" aria-label={t(`inbox.${inboxTab}`)}>
+                  {inboxJobs.map((job) => (
+                    <li key={job.id}>
+                      <button
+                        type="button"
+                        aria-current={job.id === selectedId ? 'true' : undefined}
+                        data-pf-ocr-job-id={job.id}
+                        data-pf-ocr-job-document-id={job.sourceDocument.documentId ?? ''}
+                        data-pf-ocr-job-status={job.status}
+                        className={cn(
+                          pressableClassName,
+                          'flex w-full min-h-11 items-center justify-between gap-2 rounded-md border border-[var(--pf-border-default)] px-3 py-2 text-start text-sm',
+                          job.id === selectedId && 'border-[var(--pf-border-strong)] bg-[var(--pf-bg-muted)]',
+                        )}
+                        onClick={() => selectJob(job)}
+                      >
+                        <span className="truncate text-xs">
+                          {job.sourceDocument.filename ?? job.id.slice(0, 8)}
+                        </span>
+                        <StatusBadge shape={statusShape(job.status)} label={t(`status.${job.status}`)} />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ) : null}
 
           {selected ? (
             <div className="flex flex-col gap-4 xl:grid xl:grid-cols-[minmax(16rem,22rem)_minmax(0,1fr)] xl:items-start">

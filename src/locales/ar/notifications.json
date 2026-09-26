@@ -37,7 +37,8 @@
     "billing_plan_milestone_due": "معلم فوترة يستحق قريباً",
     "billing_plan_retention_held": "حجز محتجز للإفراج",
     "action_required": "إجراء مطلوب",
-    "task_assigned_to_you": "تم إسناد مهمة إليك"
+    "task_assigned_to_you": "تم إسناد مهمة إليك",
+    "capture_needs_review": "التقاط بانتظار المراجعة"
   },
   "copy": {
     "billing_overdue": {
@@ -163,6 +164,12 @@
       "titleDefault": "إجراء مطلوب",
       "bodyWithExtra": "{extra}",
       "bodyDefault": "بند يحتاج انتباهك الآن."
+    },
+    "capture_needs_review": {
+      "titleWithReference": "التقاط بانتظار المراجعة - {reference}",
+      "titleDefault": "التقاط بانتظار المراجعة",
+      "bodyWithExtra": "{extra}",
+      "bodyDefault": "التقاط سريع بانتظار مراجعتك."
     }
   },
   "viewAll": "عرض الكل",

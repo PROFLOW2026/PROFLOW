@@ -932,6 +932,15 @@
       },
       "assistant": {
         "conversation_created": "שיחת עוזר התחילה"
+      },
+      "quick_capture": {
+        "created": "קליטה מהירה נוצרה",
+        "processing_completed": "עיבוד קליטה מהירה הושלם",
+        "processing_failed": "עיבוד קליטה מהירה נכשל",
+        "type_changed": "סוג קליטה מהירה שונה",
+        "approved": "קליטה מהירה אושרה",
+        "rejected": "קליטה מהירה נדחתה",
+        "routed": "קליטה מהירה נותבה"
       }
     },
     "entities": {

@@ -37,7 +37,8 @@
     "billing_plan_milestone_due": "Скоро срок этапа выставления счетов",
     "billing_plan_retention_held": "Удержание готово к высвобождению",
     "action_required": "Требуется действие",
-    "task_assigned_to_you": "Вам назначена задача"
+    "task_assigned_to_you": "Вам назначена задача",
+    "capture_needs_review": "Захват ожидает проверки"
   },
   "copy": {
     "billing_overdue": {
@@ -163,6 +164,12 @@
       "titleDefault": "Требуется действие",
       "bodyWithExtra": "{extra}",
       "bodyDefault": "Пункт требует вашего внимания."
+    },
+    "capture_needs_review": {
+      "titleWithReference": "Захват ожидает проверки — {reference}",
+      "titleDefault": "Захват ожидает проверки",
+      "bodyWithExtra": "{extra}",
+      "bodyDefault": "Быстрый захват ожидает вашей проверки."
     }
   },
   "viewAll": "Показать все",

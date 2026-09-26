@@ -88,7 +88,8 @@
     "attendance": "Attendance",
     "quote": "Quote",
     "service": "Service call",
-    "recurringDrafts": "Recurring draft"
+    "recurringDrafts": "Recurring draft",
+    "quickCapture": "Quick capture"
   },
   "organizationSwitcher": {
     "label": "Organization",

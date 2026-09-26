@@ -87,7 +87,8 @@
     "attendance": "Посещаемость",
     "quote": "Коммерческое предложение",
     "service": "Сервисный вызов",
-    "recurringDrafts": "Повторяющийся черновик"
+    "recurringDrafts": "Повторяющийся черновик",
+    "quickCapture": "Быстрый захват"
   },
   "organizationSwitcher": {
     "label": "Организация",

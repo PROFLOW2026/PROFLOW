@@ -35,6 +35,7 @@ export const NOTIFICATION_EVENT_TYPES = [
   'task_approval_decided',
   'task_dependency_resolved',
   'milestone_approaching',
+  'capture_needs_review',
 ] as const;
 export type NotificationEventType = (typeof NOTIFICATION_EVENT_TYPES)[number];
 
@@ -88,6 +89,7 @@ export const EVENT_DOMAIN: Readonly<Record<NotificationEventType, NotificationDo
   task_approval_decided: 'tasks',
   task_dependency_resolved: 'tasks',
   milestone_approaching: 'tasks',
+  capture_needs_review: 'documents',
 };
 
 export function isNotificationSeverity(value: string): value is NotificationSeverity {

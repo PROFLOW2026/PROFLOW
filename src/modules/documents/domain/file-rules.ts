@@ -4,7 +4,7 @@
 
 export const MAX_DOCUMENT_SIZE_BYTES = 25 * 1024 * 1024;
 
-const ALLOWED_MIME_PREFIXES = ['image/', 'application/pdf'] as const;
+const ALLOWED_MIME_PREFIXES = ['image/', 'application/pdf', 'video/'] as const;
 
 const ALLOWED_MIME_EXACT = new Set([
   'application/pdf',
@@ -13,6 +13,9 @@ const ALLOWED_MIME_EXACT = new Set([
   'image/webp',
   'image/heic',
   'image/heif',
+  'video/mp4',
+  'video/quicktime',
+  'video/webm',
   'application/msword',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   'application/vnd.ms-excel',
@@ -28,6 +31,13 @@ const BROWSER_PREVIEWABLE_IMAGE_MIMES = new Set([
   'image/gif',
 ]);
 
+/** Inline `<video>` preview — browser support varies by container (MOV is Safari-heavy). */
+const BROWSER_PREVIEWABLE_VIDEO_MIMES = new Set([
+  'video/mp4',
+  'video/webm',
+  'video/quicktime',
+]);
+
 export function isAllowedMimeType(mimeType: string): boolean {
   const normalized = mimeType.trim().toLowerCase();
   if (ALLOWED_MIME_EXACT.has(normalized)) return true;
@@ -37,6 +47,17 @@ export function isAllowedMimeType(mimeType: string): boolean {
 /** True when a short-lived signed URL may be shown in an `<img>` safely. */
 export function isBrowserPreviewableImageMime(mimeType: string): boolean {
   return BROWSER_PREVIEWABLE_IMAGE_MIMES.has(mimeType.trim().toLowerCase());
+}
+
+/** True when MIME is an allowed Quick Capture / upload video type. */
+export function isVideoMimeType(mimeType: string): boolean {
+  const normalized = mimeType.trim().toLowerCase();
+  return normalized.startsWith('video/') && isAllowedMimeType(normalized);
+}
+
+/** True when a signed URL may be rendered in an inline `<video>` element. */
+export function isBrowserPreviewableVideoMime(mimeType: string): boolean {
+  return BROWSER_PREVIEWABLE_VIDEO_MIMES.has(mimeType.trim().toLowerCase());
 }
 
 /** True when a signed URL may be rendered in the in-app PDF viewer. */
@@ -81,6 +102,9 @@ const EXT_TO_MIME: Record<string, string> = {
   tiff: 'image/tiff',
   heic: 'image/heic',
   heif: 'image/heif',
+  mp4: 'video/mp4',
+  mov: 'video/quicktime',
+  webm: 'video/webm',
   pdf: 'application/pdf',
   doc: 'application/msword',
   docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',

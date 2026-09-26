@@ -155,8 +155,9 @@ export function buildQuickCreateActions(
     actions.push({ key: 'fieldLog', href: '/field-ops/logs/new', labelKey: 'fieldLog' });
   }
 
-  // Documents: no standalone /documents/new - upload lives on entity panels.
-  // Skip Quick Create until a dedicated capture route exists.
+  if (permissions.has(PERMISSIONS.DOCUMENTS_MANAGE)) {
+    actions.push({ key: 'quickCapture', href: '/quick-capture', labelKey: 'quickCapture' });
+  }
 
   // Assets hub — maintenance work starts from a registered asset.
   if (modules.assets && permissions.has(PERMISSIONS.ASSETS_MANAGE)) {

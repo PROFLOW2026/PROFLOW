@@ -1022,6 +1022,15 @@
       },
       "assistant": {
         "conversation_created": "Assistant conversation started"
+      },
+      "quick_capture": {
+        "created": "Quick capture created",
+        "processing_completed": "Quick capture processing completed",
+        "processing_failed": "Quick capture processing failed",
+        "type_changed": "Quick capture type changed",
+        "approved": "Quick capture approved",
+        "rejected": "Quick capture rejected",
+        "routed": "Quick capture routed"
       }
     },
     "entities": {

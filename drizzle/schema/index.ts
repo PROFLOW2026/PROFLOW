@@ -44,6 +44,8 @@ export * from './ocr';
 export * from './ops-finance';
 export * from './invoicing-integration';
 export * from './expense-ingestion';
+export * from './quick-capture';
+export * from './quick-capture';
 export * from './next-gen';
 export * from './next-gen-ops';
 export * from './next-gen-experience';

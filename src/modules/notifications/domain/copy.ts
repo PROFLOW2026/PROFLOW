@@ -151,5 +151,10 @@ export function notificationCopy(
         title: titleWithReference(t, type, ref),
         body: bodyWithExtra(t, type, extra),
       };
+    case 'capture_needs_review':
+      return {
+        title: titleWithReference(t, type, ref),
+        body: bodyWithExtra(t, type, extra, 'bodyDefault', 'bodyWithExtra'),
+      };
   }
 }

@@ -37,7 +37,8 @@
     "billing_plan_milestone_due": "Billing milestone due soon",
     "billing_plan_retention_held": "Retention held for release",
     "action_required": "Action required",
-    "task_assigned_to_you": "Task assigned to you"
+    "task_assigned_to_you": "Task assigned to you",
+    "capture_needs_review": "Capture needs review"
   },
   "copy": {
     "billing_overdue": {
@@ -163,6 +164,12 @@
       "titleDefault": "Action required",
       "bodyWithExtra": "{extra}",
       "bodyDefault": "An item needs your attention now."
+    },
+    "capture_needs_review": {
+      "titleWithReference": "Capture needs review - {reference}",
+      "titleDefault": "Capture needs review",
+      "bodyWithExtra": "{extra}",
+      "bodyDefault": "A quick capture is waiting for your review."
     }
   },
   "viewAll": "View all",

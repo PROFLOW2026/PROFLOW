@@ -378,6 +378,14 @@ export const AUDIT_ACTIONS = {
   AUTOMATION_RULE_RAN: 'automation_rule.ran',
 
   ASSISTANT_CONVERSATION_CREATED: 'assistant.conversation_created',
+
+  QUICK_CAPTURE_CREATED: 'quick_capture.created',
+  PROCESSING_COMPLETED: 'quick_capture.processing_completed',
+  PROCESSING_FAILED: 'quick_capture.processing_failed',
+  TYPE_CHANGED: 'quick_capture.type_changed',
+  APPROVED: 'quick_capture.approved',
+  REJECTED: 'quick_capture.rejected',
+  ROUTED: 'quick_capture.routed',
 } as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[keyof typeof AUDIT_ACTIONS];

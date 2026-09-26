@@ -1,0 +1,91 @@
+{
+  "title": "Quick capture",
+  "form": {
+    "description": "Capture photos, a field video, or a document and send it for review in one step.",
+    "captureNow": "Capture now",
+    "recordVideo": "Record video",
+    "chooseFiles": "Choose photos / video / file",
+    "addPhoto": "Add photo",
+    "note": "Note (optional)",
+    "project": "Project (optional)",
+    "projectNone": "No project",
+    "save": "Save and send for review",
+    "manageRequired": "You need document permission to capture files.",
+    "storageNotConfigured": "File storage is not connected.",
+    "storageSettingsLink": "Storage settings"
+  },
+  "gallery": {
+    "aria": "Captured images",
+    "remove": "Remove"
+  },
+  "errors": {
+    "emptySession": "Add at least one photo, video, or file.",
+    "mixedSessionModes": "Choose either photos, one video, or one file — not a mix.",
+    "tooManyImages": "You can add up to 5 photos per capture.",
+    "tooManyVideos": "Only one video is allowed per capture.",
+    "tooManyFiles": "Only one file is allowed per capture.",
+    "unsupportedMime": "This file type is not supported.",
+    "unsupportedApprovalType": "Choose a document type before approving.",
+    "duplicateSession": "This capture was already submitted."
+  },
+  "inbox": {
+    "title": "Smart inbox",
+    "empty": "No captures waiting for review",
+    "photoCount": "{count, plural, one {# photo} other {# photos}}",
+    "videoBadge": "Video",
+    "statusProcessing": "Processing",
+    "statusReady": "Ready for review",
+    "statusFailed": "Upload failed",
+    "kind": {
+      "images": "Photo capture",
+      "video": "Video capture",
+      "pdf": "PDF capture",
+      "file": "File capture"
+    }
+  },
+  "review": {
+    "title": "Review capture",
+    "parsingDocument": "Parsing document…",
+    "approve": "Approve",
+    "reject": "Reject",
+    "changeType": "Change type",
+    "financialDocument": "Financial document",
+    "fieldMedia": "Field media",
+    "otherDocument": "Other document",
+    "selectFinancialDocument": "Select the document to read",
+    "ocrUnavailable": "Document reader is unavailable — choose a type manually",
+    "retryOcr": "Try again"
+  },
+  "video": {
+    "tooLarge": "Video is too large (max 25 MB)",
+    "unsupportedFormat": "Unsupported video format",
+    "uploadFailed": "Video upload failed",
+    "recording": "Recording video…",
+    "approachingLimit": "Approaching size limit",
+    "fallbackBrowser": "Optimized recording is not supported on this browser — using native capture",
+    "stop": "Stop recording",
+    "cancel": "Cancel",
+    "inlineHint": "Playback uses secure streaming from your connected storage.",
+    "playbackFallback": "This browser may not play the video inline.",
+    "openVideo": "Open video"
+  },
+  "fieldMedia": {
+    "title": "Field media",
+    "videoTitle": "Field video",
+    "category": "Category",
+    "categories": {
+      "progress": "Progress",
+      "before": "Before",
+      "after": "After",
+      "defect": "Defect",
+      "installation": "Installation",
+      "documentation": "Documentation"
+    }
+  },
+  "notifications": {
+    "financial": "A captured invoice or receipt needs review",
+    "fieldMedia": "Captured field photos need review",
+    "video": "Captured field video needs review",
+    "unknown": "A new capture needs review"
+  }
+}

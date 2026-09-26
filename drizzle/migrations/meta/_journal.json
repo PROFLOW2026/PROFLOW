@@ -911,6 +911,13 @@
                         "when":  1789712040000,
                         "tag":  "0130_core_completion_foundations",
                         "breakpoints":  true
+                    },
+                    {
+                        "idx":  130,
+                        "version":  "7",
+                        "when":  1789712100000,
+                        "tag":  "0131_quick_capture_inbox",
+                        "breakpoints":  true
                     }
                 ]
 }

@@ -37,7 +37,8 @@
     "billing_plan_milestone_due": "אבן דרך לחיוב מתקרבת",
     "billing_plan_retention_held": "עיכבון מוחזק לשחרור",
     "action_required": "דורש טיפול",
-    "task_assigned_to_you": "משימה שויכה אליך"
+    "task_assigned_to_you": "משימה שויכה אליך",
+    "capture_needs_review": "קליטה ממתינה לבדיקה"
   },
   "copy": {
     "billing_overdue": {
@@ -163,6 +164,12 @@
       "titleDefault": "דורש טיפול",
       "bodyWithExtra": "{extra}",
       "bodyDefault": "פריט שדורש טיפול מיידי."
+    },
+    "capture_needs_review": {
+      "titleWithReference": "קליטה ממתינה לבדיקה - {reference}",
+      "titleDefault": "קליטה ממתינה לבדיקה",
+      "bodyWithExtra": "{extra}",
+      "bodyDefault": "קליטה מהירה ממתינה לבדיקה שלך."
     }
   },
   "viewAll": "כל ההתראות",
