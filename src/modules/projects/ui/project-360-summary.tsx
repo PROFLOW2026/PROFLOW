@@ -102,7 +102,7 @@ export async function Project360Summary({ projectId }: { projectId: string }) {
       ) : null}
 
       {summary.marginTrend.length > 0 ? (
-        <div className="md:col-span-2 xl:col-span-3">
+        <div className="min-w-0 md:col-span-2 xl:col-span-3">
           <MarginTrendList
             rows={summary.marginTrend}
             labels={{
