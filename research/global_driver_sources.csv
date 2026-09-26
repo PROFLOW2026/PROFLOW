@@ -1,0 +1,14 @@
+﻿driver,trades,free_source,series_id,frequency,history,api_download,url,notes
+COPPER_USD,ELECTRICAL,FRED,PCOPPUSDM,monthly,1990s–2026,YES,https://fred.stlouisfed.org/series/PCOPPUSDM,
+ALUMINIUM_USD,"ELECTRICAL, ALUMINIUM",FRED/IMF,PALUMUSDM,monthly,1990s–2026,YES,https://fred.stlouisfed.org/series/PALUMUSDM,
+USD_ILS,ALL,FRED/OECD,CCUSMA02ILM618N,monthly,1990s–2026,YES,https://fred.stlouisfed.org/series/CCUSMA02ILM618N,
+EUR_ILS,ELECTRICAL (monitored),BOI SDMX (derived via FRED),RER_EUR_ILS,monthly,2016–2026,YES,https://edge.boi.gov.il/FusionEdgeServer/sdmx/v2/data/dataflow/BOI.STATISTICS/EXR/1.0/RER_EUR_ILS,Stored as USD_ILS×EXUSEU; BOI-validated (<0.1% error).
+EUR_USD,ALL,FRED G.5,EXUSEU,monthly,1999–2026,YES,https://fred.stlouisfed.org/series/EXUSEU,USD per EUR; used to derive EUR_ILS.
+USD_ILS_DAILY,ALL,Bank of Israel SDMX,RER_USD_ILS,daily,2008–2026,YES,https://edge.boi.gov.il/FusionEdgeServer/sdmx/v2/data/dataflow/BOI.STATISTICS/EXR/1.0/RER_USD_ILS?format=csv,
+BRENT_OIL,ALL,FRED/IMF,POILBREUSDM,monthly,1990s–2026,YES,https://fred.stlouisfed.org/series/POILBREUSDM,
+IRON_ORE,STEEL/REBAR,FRED/IMF,PIORECRUSDM,monthly,1992–2026,YES,https://fred.stlouisfed.org/series/PIORECRUSDM,
+STEEL_SCRAP,STEEL/REBAR,FRED/BLS PPI,WPS101211,monthly,1980s–2026,YES,https://fred.stlouisfed.org/series/WPS101211,
+HRC_STEEL,STEEL/REBAR,FRED/BLS PPI,WPS101704,monthly,1980s–2026,YES,https://fred.stlouisfed.org/series/WPS101704,
+PVC_POLYMER_PROXY,"PLUMBING, ELECTRICAL",FRED (proxy — verify series fit),WPU063801,monthly,long,YES,https://fred.stlouisfed.org/series/WPU063801,US PPI plastics proxy; not Israeli PVC spot.
+NATURAL_GAS_EU_PROXY,"CONCRETE/CEMENT, ALUMINIUM",FRED/World Bank,PNGASEUUSDM,monthly,long,YES,https://fred.stlouisfed.org/series/PNGASEUUSDM,Energy input proxy only.
+ISRAEL_CONSTRUCTION_INPUT,ALL,Israel CBS,200010,monthly,2018–2026 verified,YES,https://api.cbs.gov.il/index/data/price?id=200010,Government index — not supplier price.

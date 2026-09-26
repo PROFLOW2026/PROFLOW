@@ -44,9 +44,17 @@ Read access is gated by org RBAC: `materials.read` via `role_assignments` only. 
 | CBS_PLASTIC_PIPES | CBS | 201400 |
 | CBS_REBAR | CBS | 201230 |
 | COPPER_ILS | Derived | COPPER_USD × USD_ILS |
+| EUR_USD | FRED | EXUSEU (USD per EUR) |
+| EUR_ILS | Derived | USD_ILS × EUR_USD — BOI RER_EUR_ILS validated (<0.1% vs monthly mean) |
 | CBS_PLUMBING_BLEND | Derived | mean(CBS_PLUMBING, CBS_PLASTIC_PIPES) |
 
+**Monitored, not scored (V1):** `EUR_ILS` is loaded and available for research/context but **does not** enter the electrical pressure score. Electrical FX remains `USD_ILS` only.
+
 **Not in production:** Golan/Pexgol local PDFs (research-only; flat series excluded). ERCO supplier invoices (no production import).
+
+### EUR/ILS research (2026-09)
+
+See `research/eur_ils_electrical_validation_report.json`. Summary: EUR/ILS linkage to ERCO wire/cable indices improves vs USD/ILS alone in the **2023+** regime (Greece import hypothesis) but **does not beat COPPER_ILS** on COPPER_WIRE and full-sample N2XY Pearson remains weak/negative. **Methodology stays V1** — no weight change until multi-criterion evidence is stronger. `COPPER_EUR × EUR_ILS` is mathematically equivalent to `COPPER_ILS` (same ILS copper exposure); do not double-count.
 
 ## Trade weights (V1)
 

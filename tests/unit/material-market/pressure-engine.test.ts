@@ -2,7 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { parseCbsJsonForTest } from '@/modules/material-market/sources/cbs-adapter';
 import { parseFredCsvForTest } from '@/modules/material-market/sources/fred-adapter';
 import {
+  buildCopperEur,
   buildCopperIls,
+  buildEurIls,
+  buildImportFxBasket,
   computeAllTradeSnapshots,
   computeTradeMonth,
   driverSignal,
@@ -171,6 +174,36 @@ describe('material-market pressure engine', () => {
     expect(active.some((s) => s.code.includes('GOLAN'))).toBe(false);
     expect(active.some((s) => s.code.includes('ERCO'))).toBe(false);
     expect(active.every((s) => ['fred', 'cbs', 'derived'].includes(s.sourceType))).toBe(true);
+    expect(active.some((s) => s.code === 'EUR_ILS')).toBe(true);
+    expect(active.some((s) => s.code === 'EUR_USD')).toBe(true);
+  });
+
+  it('derives EUR_ILS as USD_ILS × EUR_USD (ILS per EUR)', () => {
+    const usdIls = { '2025-06': 3.6, '2025-07': 3.7 };
+    const eurUsd = { '2025-06': 1.08, '2025-07': 1.09 };
+    const eurIls = buildEurIls(usdIls, eurUsd);
+    expect(eurIls['2025-06']).toBeCloseTo(3.888, 3);
+    expect(eurIls['2025-07']).toBeCloseTo(4.033, 3);
+  });
+
+  it('builds import FX basket as weighted EUR/USD ILS levels', () => {
+    const eurIls = { '2025-07': 4.0 };
+    const usdIls = { '2025-07': 3.6 };
+    expect(buildImportFxBasket(eurIls, usdIls, 0.75, 0.25)).toEqual({ '2025-07': 3.9 });
+    expect(buildImportFxBasket(eurIls, usdIls, 1, 0)).toEqual({ '2025-07': 4.0 });
+  });
+
+  it('COPPER_EUR × EUR_ILS approximates COPPER_ILS (no duplicate pseudo-signal)', () => {
+    const copperUsd = { '2025-06': 9000, '2025-07': 9200 };
+    const usdIls = { '2025-06': 3.6, '2025-07': 3.7 };
+    const eurUsd = { '2025-06': 1.08, '2025-07': 1.09 };
+    const copperIls = buildCopperIls(copperUsd, usdIls);
+    const copperEur = buildCopperEur(copperUsd, eurUsd);
+    const viaEur = buildCopperIls(copperEur, buildEurIls(usdIls, eurUsd));
+    for (const ym of Object.keys(copperIls)) {
+      const diffPct = Math.abs(viaEur[ym]! - copperIls[ym]!) / copperIls[ym]! * 100;
+      expect(diffPct).toBeLessThan(1);
+    }
   });
 });
 

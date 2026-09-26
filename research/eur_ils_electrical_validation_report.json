@@ -1,0 +1,1292 @@
+{
+  "eur_ils_source": {
+    "code": "EUR_ILS",
+    "provider": "Bank of Israel (BOI SDMX)",
+    "series": "RER_EUR_ILS",
+    "units": "ILS per EUR",
+    "frequency": "daily aggregated to monthly mean",
+    "historical_range": "2016-01 to 2026-08",
+    "source_url": "https://edge.boi.gov.il/FusionEdgeServer/sdmx/v2/data/dataflow/BOI.STATISTICS/EXR/1.0/RER_EUR_ILS?format=csv&startperiod=2016-01&endperiod=2026-08",
+    "free_public": true,
+    "fred_cross_check": {
+      "formula": "USD_ILS × EXUSEU (FRED CCUSMA02ILM618N × EXUSEU)",
+      "mean_abs_pct_error_vs_boi_last36m": 0.0898
+    }
+  },
+  "copper_eur_formula": "COPPER_EUR = COPPER_USD / EXUSEU (EUR per metric ton)",
+  "copper_eur_x_eur_ils_collapse": {
+    "max_abs_pct_diff": 0.851899,
+    "collapses": false
+  },
+  "family_results": {
+    "COPPER_WIRE": {
+      "EUR_ILS": {
+        "best_lag": {
+          "lag_months": 1,
+          "sample_count": 66,
+          "pearson": 0.1343,
+          "spearman": 0.174,
+          "agreement_pct": 80.0,
+          "directional_pairs": 5
+        },
+        "all_lags": [
+          {
+            "lag_months": 0,
+            "sample_count": 67,
+            "pearson": 0.1213,
+            "spearman": 0.1892,
+            "agreement_pct": 75.0,
+            "directional_pairs": 8
+          },
+          {
+            "lag_months": 1,
+            "sample_count": 66,
+            "pearson": 0.1343,
+            "spearman": 0.174,
+            "agreement_pct": 80.0,
+            "directional_pairs": 5
+          },
+          {
+            "lag_months": 2,
+            "sample_count": 65,
+            "pearson": -0.0879,
+            "spearman": 0.0115,
+            "agreement_pct": 33.33,
+            "directional_pairs": 6
+          },
+          {
+            "lag_months": 3,
+            "sample_count": 64,
+            "pearson": -0.114,
+            "spearman": 0.0255,
+            "agreement_pct": 50.0,
+            "directional_pairs": 8
+          }
+        ],
+        "2020_2022": {
+          "lag_months": 3,
+          "sample_count": 33,
+          "pearson": -0.1151,
+          "spearman": -0.3065,
+          "agreement_pct": 50.0,
+          "directional_pairs": 8
+        },
+        "2023_latest": {
+          "lag_months": 0,
+          "sample_count": 26,
+          "pearson": 0.4628,
+          "spearman": -0.0277,
+          "agreement_pct": 75.0,
+          "directional_pairs": 8
+        }
+      },
+      "USD_ILS": {
+        "best_lag": {
+          "lag_months": 3,
+          "sample_count": 64,
+          "pearson": -0.12,
+          "spearman": -0.0414,
+          "agreement_pct": 28.57,
+          "directional_pairs": 7
+        },
+        "all_lags": [
+          {
+            "lag_months": 0,
+            "sample_count": 67,
+            "pearson": 0.0442,
+            "spearman": 0.0914,
+            "agreement_pct": 62.5,
+            "directional_pairs": 8
+          },
+          {
+            "lag_months": 1,
+            "sample_count": 66,
+            "pearson": 0.0525,
+            "spearman": 0.1271,
+            "agreement_pct": 83.33,
+            "directional_pairs": 6
+          },
+          {
+            "lag_months": 2,
+            "sample_count": 65,
+            "pearson": -0.0395,
+            "spearman": 0.0175,
+            "agreement_pct": 50.0,
+            "directional_pairs": 6
+          },
+          {
+            "lag_months": 3,
+            "sample_count": 64,
+            "pearson": -0.12,
+            "spearman": -0.0414,
+            "agreement_pct": 28.57,
+            "directional_pairs": 7
+          }
+        ],
+        "2020_2022": {
+          "lag_months": 3,
+          "sample_count": 33,
+          "pearson": -0.1454,
+          "spearman": -0.0478,
+          "agreement_pct": 28.57,
+          "directional_pairs": 7
+        },
+        "2023_latest": {
+          "lag_months": 0,
+          "sample_count": 26,
+          "pearson": 0.4229,
+          "spearman": 0.0038,
+          "agreement_pct": 62.5,
+          "directional_pairs": 8
+        }
+      },
+      "COPPER_USD": {
+        "best_lag": {
+          "lag_months": 0,
+          "sample_count": 67,
+          "pearson": 0.1725,
+          "spearman": 0.0267,
+          "agreement_pct": 60.0,
+          "directional_pairs": 10
+        },
+        "all_lags": [
+          {
+            "lag_months": 0,
+            "sample_count": 67,
+            "pearson": 0.1725,
+            "spearman": 0.0267,
+            "agreement_pct": 60.0,
+            "directional_pairs": 10
+          },
+          {
+            "lag_months": 1,
+            "sample_count": 66,
+            "pearson": 0.0804,
+            "spearman": 0.2116,
+            "agreement_pct": 88.89,
+            "directional_pairs": 9
+          },
+          {
+            "lag_months": 2,
+            "sample_count": 65,
+            "pearson": 0.1001,
+            "spearman": 0.2277,
+            "agreement_pct": 71.43,
+            "directional_pairs": 7
+          },
+          {
+            "lag_months": 3,
+            "sample_count": 64,
+            "pearson": -0.0637,
+            "spearman": -0.1741,
+            "agreement_pct": 28.57,
+            "directional_pairs": 7
+          }
+        ],
+        "2020_2022": {
+          "lag_months": 0,
+          "sample_count": 33,
+          "pearson": 0.221,
+          "spearman": 0.0692,
+          "agreement_pct": 60.0,
+          "directional_pairs": 10
+        },
+        "2023_latest": {
+          "lag_months": 0,
+          "sample_count": 26,
+          "pearson": 0.4561,
+          "spearman": 0.1685,
+          "agreement_pct": 60.0,
+          "directional_pairs": 10
+        }
+      },
+      "COPPER_ILS": {
+        "best_lag": {
+          "lag_months": 0,
+          "sample_count": 67,
+          "pearson": 0.2094,
+          "spearman": 0.0488,
+          "agreement_pct": 66.67,
+          "directional_pairs": 9
+        },
+        "all_lags": [
+          {
+            "lag_months": 0,
+            "sample_count": 67,
+            "pearson": 0.2094,
+            "spearman": 0.0488,
+            "agreement_pct": 66.67,
+            "directional_pairs": 9
+          },
+          {
+            "lag_months": 1,
+            "sample_count": 66,
+            "pearson": 0.1125,
+            "spearman": 0.2417,
+            "agreement_pct": 90.91,
+            "directional_pairs": 11
+          },
+          {
+            "lag_months": 2,
+            "sample_count": 65,
+            "pearson": 0.0928,
+            "spearman": 0.2205,
+            "agreement_pct": 75.0,
+            "directional_pairs": 8
+          },
+          {
+            "lag_months": 3,
+            "sample_count": 64,
+            "pearson": -0.1199,
+            "spearman": -0.1732,
+            "agreement_pct": 40.0,
+            "directional_pairs": 10
+          }
+        ],
+        "2020_2022": {
+          "lag_months": 2,
+          "sample_count": 33,
+          "pearson": 0.2008,
+          "spearman": 0.1738,
+          "agreement_pct": 75.0,
+          "directional_pairs": 8
+        },
+        "2023_latest": {
+          "lag_months": 0,
+          "sample_count": 26,
+          "pearson": 0.6518,
+          "spearman": 0.1398,
+          "agreement_pct": 66.67,
+          "directional_pairs": 9
+        }
+      },
+      "COPPER_EUR": {
+        "best_lag": {
+          "lag_months": 0,
+          "sample_count": 67,
+          "pearson": 0.1521,
+          "spearman": -0.0418,
+          "agreement_pct": 55.56,
+          "directional_pairs": 9
+        },
+        "all_lags": [
+          {
+            "lag_months": 0,
+            "sample_count": 67,
+            "pearson": 0.1521,
+            "spearman": -0.0418,
+            "agreement_pct": 55.56,
+            "directional_pairs": 9
+          },
+          {
+            "lag_months": 1,
+            "sample_count": 66,
+            "pearson": 0.053,
+            "spearman": 0.2059,
+            "agreement_pct": 88.89,
+            "directional_pairs": 9
+          },
+          {
+            "lag_months": 2,
+            "sample_count": 65,
+            "pearson": 0.1375,
+            "spearman": 0.2342,
+            "agreement_pct": 87.5,
+            "directional_pairs": 8
+          },
+          {
+            "lag_months": 3,
+            "sample_count": 64,
+            "pearson": -0.073,
+            "spearman": -0.2085,
+            "agreement_pct": 28.57,
+            "directional_pairs": 7
+          }
+        ],
+        "2020_2022": {
+          "lag_months": 0,
+          "sample_count": 33,
+          "pearson": 0.2594,
+          "spearman": 0.004,
+          "agreement_pct": 55.56,
+          "directional_pairs": 9
+        },
+        "2023_latest": {
+          "lag_months": 1,
+          "sample_count": 26,
+          "pearson": 0.4324,
+          "spearman": 0.3997,
+          "agreement_pct": 88.89,
+          "directional_pairs": 9
+        }
+      },
+      "IMPORT_FX_100_EUR": {
+        "best_lag": {
+          "lag_months": 1,
+          "sample_count": 66,
+          "pearson": 0.1343,
+          "spearman": 0.174,
+          "agreement_pct": 80.0,
+          "directional_pairs": 5
+        },
+        "all_lags": [
+          {
+            "lag_months": 0,
+            "sample_count": 67,
+            "pearson": 0.1213,
+            "spearman": 0.1892,
+            "agreement_pct": 75.0,
+            "directional_pairs": 8
+          },
+          {
+            "lag_months": 1,
+            "sample_count": 66,
+            "pearson": 0.1343,
+            "spearman": 0.174,
+            "agreement_pct": 80.0,
+            "directional_pairs": 5
+          },
+          {
+            "lag_months": 2,
+            "sample_count": 65,
+            "pearson": -0.0879,
+            "spearman": 0.0115,
+            "agreement_pct": 33.33,
+            "directional_pairs": 6
+          },
+          {
+            "lag_months": 3,
+            "sample_count": 64,
+            "pearson": -0.114,
+            "spearman": 0.0255,
+            "agreement_pct": 50.0,
+            "directional_pairs": 8
+          }
+        ],
+        "2020_2022": {
+          "lag_months": 3,
+          "sample_count": 33,
+          "pearson": -0.1151,
+          "spearman": -0.3065,
+          "agreement_pct": 50.0,
+          "directional_pairs": 8
+        },
+        "2023_latest": {
+          "lag_months": 0,
+          "sample_count": 26,
+          "pearson": 0.4628,
+          "spearman": -0.0277,
+          "agreement_pct": 75.0,
+          "directional_pairs": 8
+        }
+      },
+      "IMPORT_FX_75_EUR_25_USD": {
+        "best_lag": {
+          "lag_months": 1,
+          "sample_count": 66,
+          "pearson": 0.1237,
+          "spearman": 0.1589,
+          "agreement_pct": 100.0,
+          "directional_pairs": 4
+        },
+        "all_lags": [
+          {
+            "lag_months": 0,
+            "sample_count": 67,
+            "pearson": 0.1106,
+            "spearman": 0.1902,
+            "agreement_pct": 66.67,
+            "directional_pairs": 6
+          },
+          {
+            "lag_months": 1,
+            "sample_count": 66,
+            "pearson": 0.1237,
+            "spearman": 0.1589,
+            "agreement_pct": 100.0,
+            "directional_pairs": 4
+          },
+          {
+            "lag_months": 2,
+            "sample_count": 65,
+            "pearson": -0.0817,
+            "spearman": -0.0004,
+            "agreement_pct": 42.86,
+            "directional_pairs": 7
+          },
+          {
+            "lag_months": 3,
+            "sample_count": 64,
+            "pearson": -0.1215,
+            "spearman": 0.0196,
+            "agreement_pct": 50.0,
+            "directional_pairs": 8
+          }
+        ],
+        "2020_2022": {
+          "lag_months": 0,
+          "sample_count": 33,
+          "pearson": -0.1288,
+          "spearman": 0.2229,
+          "agreement_pct": 66.67,
+          "directional_pairs": 6
+        },
+        "2023_latest": {
+          "lag_months": 0,
+          "sample_count": 26,
+          "pearson": 0.4735,
+          "spearman": 0.0031,
+          "agreement_pct": 66.67,
+          "directional_pairs": 6
+        }
+      },
+      "IMPORT_FX_50_EUR_50_USD": {
+        "best_lag": {
+          "lag_months": 3,
+          "sample_count": 64,
+          "pearson": -0.1261,
+          "spearman": 0.0024,
+          "agreement_pct": 42.86,
+          "directional_pairs": 7
+        },
+        "all_lags": [
+          {
+            "lag_months": 0,
+            "sample_count": 67,
+            "pearson": 0.094,
+            "spearman": 0.1805,
+            "agreement_pct": 80.0,
+            "directional_pairs": 5
+          },
+          {
+            "lag_months": 1,
+            "sample_count": 66,
+            "pearson": 0.106,
+            "spearman": 0.1754,
+            "agreement_pct": 80.0,
+            "directional_pairs": 5
+          },
+          {
+            "lag_months": 2,
+            "sample_count": 65,
+            "pearson": -0.0713,
+            "spearman": 0.0149,
+            "agreement_pct": 42.86,
+            "directional_pairs": 7
+          },
+          {
+            "lag_months": 3,
+            "sample_count": 64,
+            "pearson": -0.1261,
+            "spearman": 0.0024,
+            "agreement_pct": 42.86,
+            "directional_pairs": 7
+          }
+        ],
+        "2020_2022": {
+          "lag_months": 0,
+          "sample_count": 33,
+          "pearson": -0.1406,
+          "spearman": 0.25,
+          "agreement_pct": 80.0,
+          "directional_pairs": 5
+        },
+        "2023_latest": {
+          "lag_months": 0,
+          "sample_count": 26,
+          "pearson": 0.4736,
+          "spearman": -0.0133,
+          "agreement_pct": 80.0,
+          "directional_pairs": 5
+        }
+      },
+      "IMPORT_FX_25_EUR_75_USD": {
+        "best_lag": {
+          "lag_months": 3,
+          "sample_count": 64,
+          "pearson": -0.1257,
+          "spearman": -0.005,
+          "agreement_pct": 42.86,
+          "directional_pairs": 7
+        },
+        "all_lags": [
+          {
+            "lag_months": 0,
+            "sample_count": 67,
+            "pearson": 0.0711,
+            "spearman": 0.1688,
+            "agreement_pct": 66.67,
+            "directional_pairs": 6
+          },
+          {
+            "lag_months": 1,
+            "sample_count": 66,
+            "pearson": 0.0814,
+            "spearman": 0.1656,
+            "agreement_pct": 85.71,
+            "directional_pairs": 7
+          },
+          {
+            "lag_months": 2,
+            "sample_count": 65,
+            "pearson": -0.0567,
+            "spearman": 0.0219,
+            "agreement_pct": 42.86,
+            "directional_pairs": 7
+          },
+          {
+            "lag_months": 3,
+            "sample_count": 64,
+            "pearson": -0.1257,
+            "spearman": -0.005,
+            "agreement_pct": 42.86,
+            "directional_pairs": 7
+          }
+        ],
+        "2020_2022": {
+          "lag_months": 0,
+          "sample_count": 33,
+          "pearson": -0.1467,
+          "spearman": 0.2169,
+          "agreement_pct": 66.67,
+          "directional_pairs": 6
+        },
+        "2023_latest": {
+          "lag_months": 0,
+          "sample_count": 26,
+          "pearson": 0.4575,
+          "spearman": 0.012,
+          "agreement_pct": 66.67,
+          "directional_pairs": 6
+        }
+      },
+      "IMPORT_FX_100_USD": {
+        "best_lag": {
+          "lag_months": 3,
+          "sample_count": 64,
+          "pearson": -0.12,
+          "spearman": -0.0414,
+          "agreement_pct": 28.57,
+          "directional_pairs": 7
+        },
+        "all_lags": [
+          {
+            "lag_months": 0,
+            "sample_count": 67,
+            "pearson": 0.0442,
+            "spearman": 0.0914,
+            "agreement_pct": 62.5,
+            "directional_pairs": 8
+          },
+          {
+            "lag_months": 1,
+            "sample_count": 66,
+            "pearson": 0.0525,
+            "spearman": 0.1271,
+            "agreement_pct": 83.33,
+            "directional_pairs": 6
+          },
+          {
+            "lag_months": 2,
+            "sample_count": 65,
+            "pearson": -0.0395,
+            "spearman": 0.0175,
+            "agreement_pct": 50.0,
+            "directional_pairs": 6
+          },
+          {
+            "lag_months": 3,
+            "sample_count": 64,
+            "pearson": -0.12,
+            "spearman": -0.0414,
+            "agreement_pct": 28.57,
+            "directional_pairs": 7
+          }
+        ],
+        "2020_2022": {
+          "lag_months": 3,
+          "sample_count": 33,
+          "pearson": -0.1454,
+          "spearman": -0.0478,
+          "agreement_pct": 28.57,
+          "directional_pairs": 7
+        },
+        "2023_latest": {
+          "lag_months": 0,
+          "sample_count": 26,
+          "pearson": 0.4229,
+          "spearman": 0.0038,
+          "agreement_pct": 62.5,
+          "directional_pairs": 8
+        }
+      }
+    },
+    "N2XY_COPPER_CABLE": {
+      "EUR_ILS": {
+        "best_lag": {
+          "lag_months": 1,
+          "sample_count": 67,
+          "pearson": -0.2197,
+          "spearman": 0.2461,
+          "agreement_pct": 72.73,
+          "directional_pairs": 11
+        },
+        "all_lags": [
+          {
+            "lag_months": 0,
+            "sample_count": 68,
+            "pearson": -0.0425,
+            "spearman": 0.1376,
+            "agreement_pct": 53.85,
+            "directional_pairs": 13
+          },
+          {
+            "lag_months": 1,
+            "sample_count": 67,
+            "pearson": -0.2197,
+            "spearman": 0.2461,
+            "agreement_pct": 72.73,
+            "directional_pairs": 11
+          },
+          {
+            "lag_months": 2,
+            "sample_count": 66,
+            "pearson": -0.0329,
+            "spearman": 0.2754,
+            "agreement_pct": 63.64,
+            "directional_pairs": 11
+          },
+          {
+            "lag_months": 3,
+            "sample_count": 65,
+            "pearson": -0.0045,
+            "spearman": 0.2321,
+            "agreement_pct": 75.0,
+            "directional_pairs": 8
+          }
+        ],
+        "2020_2022": {
+          "lag_months": 1,
+          "sample_count": 34,
+          "pearson": -0.3299,
+          "spearman": 0.2156,
+          "agreement_pct": 72.73,
+          "directional_pairs": 11
+        },
+        "2023_latest": {
+          "lag_months": 2,
+          "sample_count": 26,
+          "pearson": 0.5497,
+          "spearman": 0.3238,
+          "agreement_pct": 63.64,
+          "directional_pairs": 11
+        }
+      },
+      "USD_ILS": {
+        "best_lag": {
+          "lag_months": 1,
+          "sample_count": 67,
+          "pearson": -0.14,
+          "spearman": 0.1683,
+          "agreement_pct": 77.78,
+          "directional_pairs": 9
+        },
+        "all_lags": [
+          {
+            "lag_months": 0,
+            "sample_count": 68,
+            "pearson": -0.009,
+            "spearman": 0.0727,
+            "agreement_pct": 50.0,
+            "directional_pairs": 8
+          },
+          {
+            "lag_months": 1,
+            "sample_count": 67,
+            "pearson": -0.14,
+            "spearman": 0.1683,
+            "agreement_pct": 77.78,
+            "directional_pairs": 9
+          },
+          {
+            "lag_months": 2,
+            "sample_count": 66,
+            "pearson": 0.034,
+            "spearman": 0.1615,
+            "agreement_pct": 70.0,
+            "directional_pairs": 10
+          },
+          {
+            "lag_months": 3,
+            "sample_count": 65,
+            "pearson": -0.0527,
+            "spearman": -0.0672,
+            "agreement_pct": 16.67,
+            "directional_pairs": 6
+          }
+        ],
+        "2020_2022": {
+          "lag_months": 1,
+          "sample_count": 34,
+          "pearson": -0.2239,
+          "spearman": 0.2073,
+          "agreement_pct": 77.78,
+          "directional_pairs": 9
+        },
+        "2023_latest": {
+          "lag_months": 0,
+          "sample_count": 26,
+          "pearson": 0.3489,
+          "spearman": 0.2868,
+          "agreement_pct": 50.0,
+          "directional_pairs": 8
+        }
+      },
+      "COPPER_USD": {
+        "best_lag": {
+          "lag_months": 2,
+          "sample_count": 66,
+          "pearson": 0.166,
+          "spearman": 0.2035,
+          "agreement_pct": 58.33,
+          "directional_pairs": 12
+        },
+        "all_lags": [
+          {
+            "lag_months": 0,
+            "sample_count": 68,
+            "pearson": -0.0011,
+            "spearman": 0.1263,
+            "agreement_pct": 61.54,
+            "directional_pairs": 13
+          },
+          {
+            "lag_months": 1,
+            "sample_count": 67,
+            "pearson": -0.0112,
+            "spearman": 0.101,
+            "agreement_pct": 72.73,
+            "directional_pairs": 11
+          },
+          {
+            "lag_months": 2,
+            "sample_count": 66,
+            "pearson": 0.166,
+            "spearman": 0.2035,
+            "agreement_pct": 58.33,
+            "directional_pairs": 12
+          },
+          {
+            "lag_months": 3,
+            "sample_count": 65,
+            "pearson": 0.0137,
+            "spearman": 0.1059,
+            "agreement_pct": 58.33,
+            "directional_pairs": 12
+          }
+        ],
+        "2020_2022": {
+          "lag_months": 2,
+          "sample_count": 34,
+          "pearson": 0.1866,
+          "spearman": 0.237,
+          "agreement_pct": 58.33,
+          "directional_pairs": 12
+        },
+        "2023_latest": {
+          "lag_months": 3,
+          "sample_count": 26,
+          "pearson": 0.1291,
+          "spearman": 0.185,
+          "agreement_pct": 58.33,
+          "directional_pairs": 12
+        }
+      },
+      "COPPER_ILS": {
+        "best_lag": {
+          "lag_months": 2,
+          "sample_count": 66,
+          "pearson": 0.1976,
+          "spearman": 0.2421,
+          "agreement_pct": 66.67,
+          "directional_pairs": 12
+        },
+        "all_lags": [
+          {
+            "lag_months": 0,
+            "sample_count": 68,
+            "pearson": -0.0034,
+            "spearman": 0.1612,
+            "agreement_pct": 66.67,
+            "directional_pairs": 12
+          },
+          {
+            "lag_months": 1,
+            "sample_count": 67,
+            "pearson": -0.0726,
+            "spearman": 0.1955,
+            "agreement_pct": 78.57,
+            "directional_pairs": 14
+          },
+          {
+            "lag_months": 2,
+            "sample_count": 66,
+            "pearson": 0.1976,
+            "spearman": 0.2421,
+            "agreement_pct": 66.67,
+            "directional_pairs": 12
+          },
+          {
+            "lag_months": 3,
+            "sample_count": 65,
+            "pearson": -0.0075,
+            "spearman": 0.0784,
+            "agreement_pct": 53.85,
+            "directional_pairs": 13
+          }
+        ],
+        "2020_2022": {
+          "lag_months": 2,
+          "sample_count": 34,
+          "pearson": 0.2289,
+          "spearman": 0.2791,
+          "agreement_pct": 66.67,
+          "directional_pairs": 12
+        },
+        "2023_latest": {
+          "lag_months": 1,
+          "sample_count": 26,
+          "pearson": 0.2799,
+          "spearman": 0.3586,
+          "agreement_pct": 78.57,
+          "directional_pairs": 14
+        }
+      },
+      "COPPER_EUR": {
+        "best_lag": {
+          "lag_months": 2,
+          "sample_count": 66,
+          "pearson": 0.2252,
+          "spearman": 0.1512,
+          "agreement_pct": 60.0,
+          "directional_pairs": 10
+        },
+        "all_lags": [
+          {
+            "lag_months": 0,
+            "sample_count": 68,
+            "pearson": 0.0176,
+            "spearman": 0.0894,
+            "agreement_pct": 60.0,
+            "directional_pairs": 10
+          },
+          {
+            "lag_months": 1,
+            "sample_count": 67,
+            "pearson": 0.0327,
+            "spearman": 0.0432,
+            "agreement_pct": 72.73,
+            "directional_pairs": 11
+          },
+          {
+            "lag_months": 2,
+            "sample_count": 66,
+            "pearson": 0.2252,
+            "spearman": 0.1512,
+            "agreement_pct": 60.0,
+            "directional_pairs": 10
+          },
+          {
+            "lag_months": 3,
+            "sample_count": 65,
+            "pearson": -0.0071,
+            "spearman": -0.0305,
+            "agreement_pct": 45.45,
+            "directional_pairs": 11
+          }
+        ],
+        "2020_2022": {
+          "lag_months": 2,
+          "sample_count": 34,
+          "pearson": 0.2755,
+          "spearman": 0.3302,
+          "agreement_pct": 60.0,
+          "directional_pairs": 10
+        },
+        "2023_latest": {
+          "lag_months": 2,
+          "sample_count": 26,
+          "pearson": -0.2094,
+          "spearman": -0.025,
+          "agreement_pct": 60.0,
+          "directional_pairs": 10
+        }
+      },
+      "IMPORT_FX_100_EUR": {
+        "best_lag": {
+          "lag_months": 1,
+          "sample_count": 67,
+          "pearson": -0.2197,
+          "spearman": 0.2461,
+          "agreement_pct": 72.73,
+          "directional_pairs": 11
+        },
+        "all_lags": [
+          {
+            "lag_months": 0,
+            "sample_count": 68,
+            "pearson": -0.0425,
+            "spearman": 0.1376,
+            "agreement_pct": 53.85,
+            "directional_pairs": 13
+          },
+          {
+            "lag_months": 1,
+            "sample_count": 67,
+            "pearson": -0.2197,
+            "spearman": 0.2461,
+            "agreement_pct": 72.73,
+            "directional_pairs": 11
+          },
+          {
+            "lag_months": 2,
+            "sample_count": 66,
+            "pearson": -0.0329,
+            "spearman": 0.2754,
+            "agreement_pct": 63.64,
+            "directional_pairs": 11
+          },
+          {
+            "lag_months": 3,
+            "sample_count": 65,
+            "pearson": -0.0045,
+            "spearman": 0.2321,
+            "agreement_pct": 75.0,
+            "directional_pairs": 8
+          }
+        ],
+        "2020_2022": {
+          "lag_months": 1,
+          "sample_count": 34,
+          "pearson": -0.3299,
+          "spearman": 0.2156,
+          "agreement_pct": 72.73,
+          "directional_pairs": 11
+        },
+        "2023_latest": {
+          "lag_months": 2,
+          "sample_count": 26,
+          "pearson": 0.5497,
+          "spearman": 0.3238,
+          "agreement_pct": 63.64,
+          "directional_pairs": 11
+        }
+      },
+      "IMPORT_FX_75_EUR_25_USD": {
+        "best_lag": {
+          "lag_months": 1,
+          "sample_count": 67,
+          "pearson": -0.2145,
+          "spearman": 0.2476,
+          "agreement_pct": 80.0,
+          "directional_pairs": 10
+        },
+        "all_lags": [
+          {
+            "lag_months": 0,
+            "sample_count": 68,
+            "pearson": -0.0376,
+            "spearman": 0.1236,
+            "agreement_pct": 45.45,
+            "directional_pairs": 11
+          },
+          {
+            "lag_months": 1,
+            "sample_count": 67,
+            "pearson": -0.2145,
+            "spearman": 0.2476,
+            "agreement_pct": 80.0,
+            "directional_pairs": 10
+          },
+          {
+            "lag_months": 2,
+            "sample_count": 66,
+            "pearson": -0.0204,
+            "spearman": 0.2693,
+            "agreement_pct": 80.0,
+            "directional_pairs": 10
+          },
+          {
+            "lag_months": 3,
+            "sample_count": 65,
+            "pearson": -0.0166,
+            "spearman": 0.2001,
+            "agreement_pct": 71.43,
+            "directional_pairs": 7
+          }
+        ],
+        "2020_2022": {
+          "lag_months": 1,
+          "sample_count": 34,
+          "pearson": -0.326,
+          "spearman": 0.2532,
+          "agreement_pct": 80.0,
+          "directional_pairs": 10
+        },
+        "2023_latest": {
+          "lag_months": 2,
+          "sample_count": 26,
+          "pearson": 0.499,
+          "spearman": 0.3135,
+          "agreement_pct": 80.0,
+          "directional_pairs": 10
+        }
+      },
+      "IMPORT_FX_50_EUR_50_USD": {
+        "best_lag": {
+          "lag_months": 1,
+          "sample_count": 67,
+          "pearson": -0.1998,
+          "spearman": 0.2467,
+          "agreement_pct": 80.0,
+          "directional_pairs": 10
+        },
+        "all_lags": [
+          {
+            "lag_months": 0,
+            "sample_count": 68,
+            "pearson": -0.0302,
+            "spearman": 0.1224,
+            "agreement_pct": 55.56,
+            "directional_pairs": 9
+          },
+          {
+            "lag_months": 1,
+            "sample_count": 67,
+            "pearson": -0.1998,
+            "spearman": 0.2467,
+            "agreement_pct": 80.0,
+            "directional_pairs": 10
+          },
+          {
+            "lag_months": 2,
+            "sample_count": 66,
+            "pearson": -0.0041,
+            "spearman": 0.2632,
+            "agreement_pct": 77.78,
+            "directional_pairs": 9
+          },
+          {
+            "lag_months": 3,
+            "sample_count": 65,
+            "pearson": -0.0297,
+            "spearman": 0.1413,
+            "agreement_pct": 71.43,
+            "directional_pairs": 7
+          }
+        ],
+        "2020_2022": {
+          "lag_months": 1,
+          "sample_count": 34,
+          "pearson": -0.3079,
+          "spearman": 0.2804,
+          "agreement_pct": 80.0,
+          "directional_pairs": 10
+        },
+        "2023_latest": {
+          "lag_months": 2,
+          "sample_count": 26,
+          "pearson": 0.4184,
+          "spearman": 0.2465,
+          "agreement_pct": 77.78,
+          "directional_pairs": 9
+        }
+      },
+      "IMPORT_FX_25_EUR_75_USD": {
+        "best_lag": {
+          "lag_months": 1,
+          "sample_count": 67,
+          "pearson": -0.1741,
+          "spearman": 0.2389,
+          "agreement_pct": 80.0,
+          "directional_pairs": 10
+        },
+        "all_lags": [
+          {
+            "lag_months": 0,
+            "sample_count": 68,
+            "pearson": -0.0203,
+            "spearman": 0.1199,
+            "agreement_pct": 50.0,
+            "directional_pairs": 8
+          },
+          {
+            "lag_months": 1,
+            "sample_count": 67,
+            "pearson": -0.1741,
+            "spearman": 0.2389,
+            "agreement_pct": 80.0,
+            "directional_pairs": 10
+          },
+          {
+            "lag_months": 2,
+            "sample_count": 66,
+            "pearson": 0.0148,
+            "spearman": 0.239,
+            "agreement_pct": 75.0,
+            "directional_pairs": 8
+          },
+          {
+            "lag_months": 3,
+            "sample_count": 65,
+            "pearson": -0.0424,
+            "spearman": 0.0544,
+            "agreement_pct": 42.86,
+            "directional_pairs": 7
+          }
+        ],
+        "2020_2022": {
+          "lag_months": 1,
+          "sample_count": 34,
+          "pearson": -0.2728,
+          "spearman": 0.2773,
+          "agreement_pct": 80.0,
+          "directional_pairs": 10
+        },
+        "2023_latest": {
+          "lag_months": 0,
+          "sample_count": 26,
+          "pearson": 0.3741,
+          "spearman": 0.3217,
+          "agreement_pct": 50.0,
+          "directional_pairs": 8
+        }
+      },
+      "IMPORT_FX_100_USD": {
+        "best_lag": {
+          "lag_months": 1,
+          "sample_count": 67,
+          "pearson": -0.14,
+          "spearman": 0.1683,
+          "agreement_pct": 77.78,
+          "directional_pairs": 9
+        },
+        "all_lags": [
+          {
+            "lag_months": 0,
+            "sample_count": 68,
+            "pearson": -0.009,
+            "spearman": 0.0727,
+            "agreement_pct": 50.0,
+            "directional_pairs": 8
+          },
+          {
+            "lag_months": 1,
+            "sample_count": 67,
+            "pearson": -0.14,
+            "spearman": 0.1683,
+            "agreement_pct": 77.78,
+            "directional_pairs": 9
+          },
+          {
+            "lag_months": 2,
+            "sample_count": 66,
+            "pearson": 0.034,
+            "spearman": 0.1615,
+            "agreement_pct": 70.0,
+            "directional_pairs": 10
+          },
+          {
+            "lag_months": 3,
+            "sample_count": 65,
+            "pearson": -0.0527,
+            "spearman": -0.0672,
+            "agreement_pct": 16.67,
+            "directional_pairs": 6
+          }
+        ],
+        "2020_2022": {
+          "lag_months": 1,
+          "sample_count": 34,
+          "pearson": -0.2239,
+          "spearman": 0.2073,
+          "agreement_pct": 77.78,
+          "directional_pairs": 9
+        },
+        "2023_latest": {
+          "lag_months": 0,
+          "sample_count": 26,
+          "pearson": 0.3489,
+          "spearman": 0.2868,
+          "agreement_pct": 50.0,
+          "directional_pairs": 8
+        }
+      }
+    }
+  },
+  "comparisons": {
+    "COPPER_WIRE": {
+      "eur_better_than_usd_ils": true,
+      "eur_better_than_copper_ils": false
+    },
+    "N2XY_COPPER_CABLE": {
+      "eur_better_than_usd_ils": true,
+      "eur_better_than_copper_ils": true
+    }
+  },
+  "basket_vs_usd": {
+    "COPPER_WIRE_100_EUR": true,
+    "COPPER_WIRE_75_EUR_25_USD": true,
+    "COPPER_WIRE_50_EUR_50_USD": true,
+    "COPPER_WIRE_25_EUR_75_USD": true,
+    "COPPER_WIRE_100_USD": false,
+    "N2XY_COPPER_CABLE_100_EUR": true,
+    "N2XY_COPPER_CABLE_75_EUR_25_USD": true,
+    "N2XY_COPPER_CABLE_50_EUR_50_USD": true,
+    "N2XY_COPPER_CABLE_25_EUR_75_USD": true,
+    "N2XY_COPPER_CABLE_100_USD": false
+  },
+  "regime": {
+    "COPPER_WIRE": {
+      "eur_2020_2022_pearson": -0.1151,
+      "eur_2023_latest_pearson": 0.4628,
+      "usd_2020_2022_pearson": -0.1454,
+      "usd_2023_latest_pearson": 0.4229,
+      "eur_strengthens_recent": true
+    },
+    "N2XY_COPPER_CABLE": {
+      "eur_2020_2022_pearson": -0.3299,
+      "eur_2023_latest_pearson": 0.5497,
+      "usd_2020_2022_pearson": -0.2239,
+      "usd_2023_latest_pearson": 0.3489,
+      "eur_strengthens_recent": true
+    }
+  },
+  "walk_forward": {
+    "EUR_ILS_COPPER_WIRE": {
+      "folds": 6,
+      "mean_abs_pearson": 0.2096
+    },
+    "USD_ILS_COPPER_WIRE": {
+      "folds": 6,
+      "mean_abs_pearson": 0.1554
+    },
+    "EUR_ILS_N2XY": {
+      "folds": 8,
+      "mean_abs_pearson": 0.3637
+    },
+    "USD_ILS_N2XY": {
+      "folds": 8,
+      "mean_abs_pearson": 0.3185
+    }
+  },
+  "supplier_currency_regime": {
+    "current_origin": "Greece (known)",
+    "older_origin": "Turkey (known)",
+    "payment_currency": "UNKNOWN",
+    "transition_date": "UNKNOWN"
+  },
+  "production_methodology_changed": false,
+  "recommended_methodology_version": "V1",
+  "meaningful_criteria_met": 3
+}

@@ -55,7 +55,7 @@ async function main() {
       FROM material_market_sources
     `;
     console.log('SOURCES:', sourceStats);
-    if (sourceStats.total < 14 || sourceStats.active < 14) {
+    if (sourceStats.total < 16 || sourceStats.active < 16) {
       console.error('FAIL: source registry under-populated');
       process.exit(1);
     }

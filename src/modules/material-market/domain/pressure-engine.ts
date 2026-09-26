@@ -128,6 +128,42 @@ export function buildCopperIls(
   return out;
 }
 
+/** ILS per EUR = (ILS/USD) × (USD/EUR). Cross-validated against BOI RER_EUR_ILS monthly mean. */
+export function buildEurIls(usdIls: MonthlySeries, eurUsd: MonthlySeries): MonthlySeries {
+  const out: MonthlySeries = {};
+  for (const ym of Object.keys(usdIls).sort()) {
+    if (ym in eurUsd) out[ym] = usdIls[ym]! * eurUsd[ym]!;
+  }
+  return out;
+}
+
+/** Copper in EUR/MT = COPPER_USD / EUR_USD. COPPER_EUR × EUR_ILS ≈ COPPER_ILS (same ILS exposure). */
+export function buildCopperEur(copperUsd: MonthlySeries, eurUsd: MonthlySeries): MonthlySeries {
+  const out: MonthlySeries = {};
+  for (const ym of Object.keys(copperUsd).sort()) {
+    if (ym in eurUsd && eurUsd[ym]! !== 0) out[ym] = copperUsd[ym]! / eurUsd[ym]!;
+  }
+  return out;
+}
+
+/** Research-only import FX basket level (not a production electrical driver). */
+export function buildImportFxBasket(
+  eurIls: MonthlySeries,
+  usdIls: MonthlySeries,
+  eurWeight: number,
+  usdWeight: number,
+): MonthlySeries {
+  const total = eurWeight + usdWeight;
+  if (total === 0) return {};
+  const ew = eurWeight / total;
+  const uw = usdWeight / total;
+  const out: MonthlySeries = {};
+  for (const ym of Object.keys(eurIls).sort()) {
+    if (ym in usdIls) out[ym] = ew * eurIls[ym]! + uw * usdIls[ym]!;
+  }
+  return out;
+}
+
 export function blendCbsPlumbing(
   cbs380: MonthlySeries,
   cbs400: MonthlySeries,
