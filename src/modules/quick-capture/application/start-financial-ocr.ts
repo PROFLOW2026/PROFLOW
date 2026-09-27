@@ -3,7 +3,6 @@ import { DomainRuleError, NotFoundError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { extractReceiptJob } from '@/modules/ocr/application/extract-receipt';
-import { drainDurableOcrQueue } from '@/modules/ocr/application/drain-queue';
 import { kickDurableOcrQueue } from '@/modules/ocr/application/kick-queue';
 import { isOcrIngestionEnabled } from '@/modules/ocr/domain/feature-gate';
 import type { ExtractionJob } from '@/modules/ocr';
@@ -41,7 +40,6 @@ export async function startFinancialOcr(
     forceRetry: input.forceRetry,
   });
   kickDurableOcrQueue();
-  await drainDurableOcrQueue({ limit: 1 });
 
   await updateCaptureItem(context.db, context.organizationId, input.captureId, {
     selectedFinancialDocumentId: input.documentId,

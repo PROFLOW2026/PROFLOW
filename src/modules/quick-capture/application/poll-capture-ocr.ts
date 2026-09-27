@@ -2,7 +2,6 @@ import type { OrgContext } from '@/shared/auth/context';
 import { NotFoundError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import { drainDurableOcrQueue } from '@/modules/ocr/application/drain-queue';
 import { kickDurableOcrQueue } from '@/modules/ocr/application/kick-queue';
 import type { ExtractionJob } from '@/modules/ocr';
 import { getOcrRepository } from '@/modules/ocr';
@@ -28,14 +27,12 @@ export async function pollCaptureOcr(
   }
 
   const repo = getOcrRepository(context.db);
-  let job = await repo.findJob(context.organizationId, capture.primaryOcrJobId);
+  const job = await repo.findJob(context.organizationId, capture.primaryOcrJobId);
 
   if (job?.status === 'queued') {
-    kickDurableOcrQueue();
     const queuedAt = job.queuedAt ? new Date(job.queuedAt).getTime() : 0;
     if (queuedAt > 0 && Date.now() - queuedAt >= QUEUED_STALE_MS) {
-      await drainDurableOcrQueue({ limit: 1 });
-      job = await repo.findJob(context.organizationId, capture.primaryOcrJobId);
+      kickDurableOcrQueue();
     }
   }
 

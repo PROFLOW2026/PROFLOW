@@ -5,6 +5,7 @@ const OCR_WORKER_LIMIT = 5;
 function resolveOcrWorkerUrl(): string | null {
   const base =
     process.env.APP_URL?.trim() ||
+    process.env.NEXT_PUBLIC_APP_URL?.trim() ||
     (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null);
   if (!base) return null;
   return `${base.replace(/\/$/, '')}/api/internal/ocr-worker`;
@@ -14,7 +15,14 @@ function requestRemoteOcrWorkerDrain(): void {
   const secret =
     process.env.OCR_WORKER_SECRET?.trim() || process.env.CRON_SECRET?.trim();
   const url = resolveOcrWorkerUrl();
-  if (!secret || !url) return;
+  if (!secret) {
+    console.warn('[ocr-kick] skipped remote worker: missing OCR worker secret');
+    return;
+  }
+  if (!url) {
+    console.warn('[ocr-kick] skipped remote worker: could not resolve app URL');
+    return;
+  }
 
   void fetch(url, {
     method: 'POST',
@@ -23,7 +31,25 @@ function requestRemoteOcrWorkerDrain(): void {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ limit: OCR_WORKER_LIMIT }),
-  }).catch(() => undefined);
+  })
+    .then(async (response) => {
+      if (!response.ok) {
+        console.warn(`[ocr-kick] remote worker HTTP ${response.status}`);
+        return;
+      }
+      const payload = (await response.json().catch(() => null)) as
+        | { claimed?: number; processed?: number }
+        | null;
+      if (payload && typeof payload.claimed === 'number') {
+        console.info(
+          `[ocr-kick] remote worker claimed=${payload.claimed} processed=${payload.processed ?? 0}`,
+        );
+      }
+    })
+    .catch((error: unknown) => {
+      const message = error instanceof Error ? error.message : String(error);
+      console.warn(`[ocr-kick] remote worker fetch failed: ${message.slice(0, 200)}`);
+    });
 }
 
 function kickLocalDrain(): void {

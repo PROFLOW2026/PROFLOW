@@ -14,6 +14,7 @@ import { getOcrRepository } from '../data/resolve-repository';
 import type { OcrRepository } from '../data/ocr.repository';
 import type { ExtractReceiptAppInput } from '../validation/schemas';
 import { extractReceiptSchema } from '../validation/schemas';
+import { kickDurableOcrQueue } from './kick-queue';
 import {
   rememberOcrJobPayload,
   registerOcrJobForWorker,
@@ -253,4 +254,5 @@ function spawnIfNeeded(
   if (job.status !== 'queued') return;
   rememberOcrJobPayload(job.id, payloadWithoutSumitBytes(input));
   registerOcrJobForWorker({ context, jobId: job.id, provider, repo });
+  kickDurableOcrQueue();
 }

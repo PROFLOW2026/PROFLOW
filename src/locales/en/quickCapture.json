@@ -18,6 +18,14 @@
     "aria": "Captured images",
     "remove": "Remove"
   },
+  "preview": {
+    "title": "Image preview",
+    "enlarge": "Enlarge image",
+    "close": "Close preview",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "selectForOcr": "Select for reading"
+  },
   "errors": {
     "emptySession": "Add at least one photo, video, or file.",
     "mixedSessionModes": "Choose either photos, one video, or one file — not a mix.",

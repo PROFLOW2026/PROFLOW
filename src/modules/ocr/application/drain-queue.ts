@@ -2,9 +2,9 @@ import 'server-only';
 
 import { eq, sql } from 'drizzle-orm';
 import { ocrExtractionJobs } from '@drizzle/schema';
-import type { OrgContext } from '@/shared/auth/context';
 import { getAdminDb } from '@/shared/db/client';
 import { findOrganizationById } from '@/modules/tenancy';
+import { buildOcrWorkerOrgContext } from './worker-context';
 import { getOcrProvider } from '../domain/provider-registry';
 import { ocrLeaseReclaimExhausted, recountOcrBatchFromJobs } from '../domain/job-lifecycle';
 import { createDrizzleOcrRepository } from '../data/drizzle-ocr.repository';
@@ -13,8 +13,6 @@ import { processQueuedJob } from './process-job';
 
 const DEFAULT_LEASE_SECONDS = 600;
 const DEFAULT_BATCH = 5;
-const WORKER_USER_ID = '00000000-0000-4000-8000-000000000001';
-
 function sqlResultRows<T>(result: unknown): T[] {
   if (Array.isArray(result)) return result as T[];
   return ((result as { rows?: T[] }).rows ?? []) as T[];
@@ -109,16 +107,7 @@ export async function drainDurableOcrQueue(
       continue;
     }
 
-    const context: OrgContext = {
-      userId: WORKER_USER_ID,
-      organizationId: job.organizationId,
-      membershipId: WORKER_USER_ID,
-      organization,
-      permissions: new Set(),
-      roleKeys: ['ocr_worker'],
-      db,
-      locale: organization.defaultLocale || 'en',
-    };
+    const context = buildOcrWorkerOrgContext(db, organization);
     await processQueuedJob(context, job.id, provider, repo, { alreadyClaimed: true });
     processed += 1;
   }

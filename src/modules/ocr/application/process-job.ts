@@ -1,5 +1,11 @@
 import type { OrgContext } from '@/shared/auth/context';
-import { ConflictError, DomainRuleError, NotFoundError } from '@/shared/errors';
+import {
+  AuthorizationError,
+  ConflictError,
+  DomainRuleError,
+  NotFoundError,
+  ServiceUnavailableError,
+} from '@/shared/errors';
 import { detectDuplicateHits } from '../domain/duplicates';
 import {
   assertOcrFileLimits,
@@ -29,6 +35,22 @@ import { resolveSumitDocumentIdForOcrJob } from '@/modules/expense-ingestion/dom
 import { loadDuplicateIndex } from './duplicate-index';
 import { loadDocumentBytesForOcr, sha256Hex } from './load-document-bytes';
 import { loadVendorMatchIndex } from './vendor-index';
+
+function documentLoadFailureDetail(error: unknown): string {
+  if (error instanceof AuthorizationError) {
+    return `Document read denied for OCR worker (${error.message})`.slice(0, 500);
+  }
+  if (error instanceof DomainRuleError || error instanceof ServiceUnavailableError) {
+    return error.message.slice(0, 500);
+  }
+  if (error instanceof NotFoundError) {
+    return error.message.slice(0, 500);
+  }
+  if (error instanceof Error) {
+    return error.message.slice(0, 500);
+  }
+  return String(error).slice(0, 500);
+}
 
 const payloadsByJobId = new Map<string, ExtractReceiptAppInput>();
 const inFlightJobIds = new Set<string>();
@@ -310,12 +332,13 @@ async function runProviderAttempt(args: {
       checksumSha256 = loaded.checksumSha256;
     } catch (error) {
       if (error instanceof NotFoundError) throw error;
+      const detail = documentLoadFailureDetail(error);
       const failed = await repo.updateJob(context.organizationId, queuedId, {
         status: 'failed',
         reviewStatus: 'awaiting_review',
         errorCode: 'storage_download',
-        errorMessage: 'Could not load the document for reading',
-        lastError: 'Could not load the document for reading',
+        errorMessage: detail,
+        lastError: detail,
         completedAt: new Date().toISOString(),
         candidates: null,
         rawMetadata: {

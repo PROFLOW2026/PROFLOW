@@ -38,6 +38,19 @@ import { QuickCaptureVideoPreview } from './quick-capture-video-preview';
 
 const OCR_SLOW_MS = 45_000;
 
+function isTerminalOcrStatus(status: string | undefined): boolean {
+  return (
+    status === 'needs_review' ||
+    status === 'failed' ||
+    status === 'rejected' ||
+    status === 'cancelled'
+  );
+}
+
+function isActiveOcrStatus(status: string | undefined): boolean {
+  return status === 'queued' || status === 'processing' || status === 'running';
+}
+
 const OcrReviewPanelLazy = dynamic(
   () =>
     import('@/modules/ocr/ui/ocr-review-panel-lazy').then((mod) => mod.OcrReviewPanelLazy),
@@ -129,15 +142,12 @@ export function QuickCaptureReview({
       setError(null);
       setOcrJob(result.data.job);
       const status = result.data.job?.status;
-      if (
-        status === 'needs_review' ||
-        status === 'failed' ||
-        status === 'rejected' ||
-        status === 'cancelled'
-      ) {
+      if (isTerminalOcrStatus(status)) {
         setOcrParsing(false);
         setOcrSlow(false);
         setOcrPollHalted(true);
+      } else if (isActiveOcrStatus(status)) {
+        setOcrPollHalted(false);
       }
     };
 
@@ -172,15 +182,28 @@ export function QuickCaptureReview({
         setOcrParsing(false);
         return;
       }
-      const polled = await pollCaptureOcrAction(capture.id);
-      if (polled.ok) {
-        setOcrJob(polled.data.job);
-        return;
-      }
+      await refreshOcrJobAfterStart();
+    });
+  };
+
+  const refreshOcrJobAfterStart = async () => {
+    const polled = await pollCaptureOcrAction(capture.id);
+    if (!polled.ok) {
       setOcrPollHalted(true);
       setOcrParsing(false);
       setError(polled.error ?? t('review.pollFailed'));
-    });
+      return;
+    }
+    const job = polled.data.job;
+    setOcrJob(job);
+    if (isTerminalOcrStatus(job?.status)) {
+      setOcrParsing(false);
+      setOcrPollHalted(true);
+      return;
+    }
+    if (isActiveOcrStatus(job?.status)) {
+      setOcrPollHalted(false);
+    }
   };
 
   const handleRetryOcr = () => {
@@ -201,16 +224,12 @@ export function QuickCaptureReview({
         setOcrParsing(false);
         return;
       }
-      const polled = await pollCaptureOcrAction(capture.id);
-      if (polled.ok) {
-        setOcrJob(polled.data.job);
-        return;
-      }
-      setOcrPollHalted(true);
-      setOcrParsing(false);
-      setError(polled.error ?? t('review.pollFailed'));
+      await refreshOcrJobAfterStart();
     });
   };
+
+  const ocrFailureDetail =
+    ocrJob?.lastError?.trim() || ocrJob?.errorMessage?.trim() || null;
 
   const showOcrRetry =
     ownerType === 'financial_document' &&
@@ -404,7 +423,9 @@ export function QuickCaptureReview({
         ) : null}
 
         {ownerType === 'financial_document' && financialOcrFailed ? (
-          <Alert tone="warning">{t('review.ocrFailed')}</Alert>
+          <Alert tone="warning">
+            {ocrFailureDetail ?? t('review.ocrFailed')}
+          </Alert>
         ) : null}
 
         {showOcrRetry ? (
