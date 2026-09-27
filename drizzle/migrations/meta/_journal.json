@@ -1030,13 +1030,6 @@
                         "when":  1789713060000,
                         "tag":  "0148_quick_capture_table_grants",
                         "breakpoints":  true
-                    },
-                    {
-                        "idx":  147,
-                        "version":  "7",
-                        "when":  1789713120000,
-                        "tag":  "0149_external_expense_imports_table_grants",
-                        "breakpoints":  true
                     }
                 ]
 }
