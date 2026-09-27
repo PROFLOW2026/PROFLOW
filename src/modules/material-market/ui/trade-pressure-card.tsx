@@ -4,12 +4,15 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Link } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
 import { pressableCardLinkClassName } from '@/components/ui/pressable';
-import type { TradeSnapshotRow } from '../domain/types';
+import type { MaterialTrade, TradeSnapshotRow } from '../domain/types';
 import { componentLabelKeyForTrade } from '../domain/driver-display';
 
 interface TradePressureCardProps {
-  snapshot: TradeSnapshotRow;
+  trade: MaterialTrade;
+  snapshot: TradeSnapshotRow | null;
   tradeLabel: string;
+  pendingTitle: string;
+  pendingDescription: string;
   directionLabel: string;
   confidenceLabel: string;
   momentumLabel: string;
@@ -30,8 +33,11 @@ const directionTone: Record<string, string> = {
 };
 
 export function TradePressureCard({
+  trade,
   snapshot,
   tradeLabel,
+  pendingTitle,
+  pendingDescription,
   directionLabel,
   confidenceLabel,
   momentumLabel,
@@ -42,52 +48,68 @@ export function TradePressureCard({
   scoreLabel,
   monthChangeLabel,
 }: TradePressureCardProps) {
+  const pending = snapshot == null;
+
   const changeFormatted =
-    snapshot.pressureScore1mChange != null
+    snapshot?.pressureScore1mChange != null
       ? `${snapshot.pressureScore1mChange > 0 ? '+' : ''}${snapshot.pressureScore1mChange.toFixed(1)}`
       : null;
 
   return (
-    <Card className={cn('flex flex-col', directionTone[snapshot.pressureDirection] ?? '')}>
+    <Card
+      className={cn(
+        'flex flex-col',
+        pending ? 'border-dashed border-border bg-muted/20' : directionTone[snapshot.pressureDirection] ?? '',
+      )}
+    >
       <CardHeader className="pb-2">
         <CardTitle className="text-lg">{tradeLabel}</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-1 flex-col gap-3 text-sm">
-        <div>
-          <p className="text-xs text-muted-foreground">{scoreLabel}</p>
-          <p className="text-3xl font-semibold tabular-nums">
-            {Math.round(snapshot.pressureScore)}
-            <span className="text-base font-normal text-muted-foreground"> / 100</span>
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Badge tone="neutral">{directionLabel}</Badge>
-          <Badge tone="info">{confidenceLabel}</Badge>
-        </div>
-        <p>
-          <span className="text-muted-foreground">{momentumLabel}</span>
-        </p>
-        {changeFormatted && monthChangeLabel && (
-          <p className="text-muted-foreground">{monthChangeLabel}</p>
+        {pending ? (
+          <div className="flex flex-1 flex-col gap-2">
+            <p className="font-medium text-muted-foreground">{pendingTitle}</p>
+            <p className="text-muted-foreground">{pendingDescription}</p>
+          </div>
+        ) : (
+          <>
+            <div>
+              <p className="text-xs text-muted-foreground">{scoreLabel}</p>
+              <p className="text-3xl font-semibold tabular-nums">
+                {Math.round(snapshot.pressureScore)}
+                <span className="text-base font-normal text-muted-foreground"> / 100</span>
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Badge tone="neutral">{directionLabel}</Badge>
+              <Badge tone="info">{confidenceLabel}</Badge>
+            </div>
+            <p>
+              <span className="text-muted-foreground">{momentumLabel}</span>
+            </p>
+            {changeFormatted && monthChangeLabel && (
+              <p className="text-muted-foreground">{monthChangeLabel}</p>
+            )}
+            <div className="space-y-1">
+              {snapshot.driversUp.slice(0, 2).map((d) => (
+                <p key={`up-${d}`} className="text-emerald-700 dark:text-emerald-400">
+                  ↑ {driverLabel(componentLabelKeyForTrade(snapshot.trade, d as never))}
+                </p>
+              ))}
+              {snapshot.driversDown.slice(0, 2).map((d) => (
+                <p key={`down-${d}`} className="text-orange-700 dark:text-orange-400">
+                  ↓ {driverLabel(componentLabelKeyForTrade(snapshot.trade, d as never))}
+                </p>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">{localConfirmationLabel}</p>
+            <p className="text-xs text-muted-foreground">{lastUpdatedLabel}</p>
+          </>
         )}
-        <div className="space-y-1">
-          {snapshot.driversUp.slice(0, 2).map((d) => (
-            <p key={`up-${d}`} className="text-emerald-700 dark:text-emerald-400">
-              ↑ {driverLabel(componentLabelKeyForTrade(snapshot.trade, d as never))}
-            </p>
-          ))}
-          {snapshot.driversDown.slice(0, 2).map((d) => (
-            <p key={`down-${d}`} className="text-orange-700 dark:text-orange-400">
-              ↓ {driverLabel(componentLabelKeyForTrade(snapshot.trade, d as never))}
-            </p>
-          ))}
-        </div>
-        <p className="text-xs text-muted-foreground">{localConfirmationLabel}</p>
-        <p className="text-xs text-muted-foreground">{lastUpdatedLabel}</p>
       </CardContent>
       <CardFooter>
         <Link
-          href={`/material-market/${snapshot.trade}`}
+          href={`/material-market/${trade}`}
           className={cn(pressableCardLinkClassName, 'inline-flex items-center gap-1 text-sm font-medium')}
         >
           {detailLabel}

@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { loadMaterialMarketDashboard } from '@/modules/material-market';
 import { TradePressureCard } from '@/modules/material-market/ui/trade-pressure-card';
@@ -32,7 +31,7 @@ export default async function MaterialMarketPage({
   );
   if (!allowed) redirect({ href: '/', locale });
 
-  const snapshots = await withOrgContext(async () => {
+  const entries = await withOrgContext(async () => {
     const db = getDb();
     return loadMaterialMarketDashboard(db);
   });
@@ -44,36 +43,47 @@ export default async function MaterialMarketPage({
         {t('disclaimer')}
       </p>
 
-      {snapshots.length === 0 ? (
-        <EmptyState title={t('empty')} />
-      ) : (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {snapshots.map((snapshot) => (
-            <TradePressureCard
-              key={snapshot.trade}
-              snapshot={snapshot}
-              tradeLabel={t(`trades.${snapshot.trade}`)}
-              directionLabel={t(`direction.${snapshot.pressureDirection}`)}
-              confidenceLabel={t(`confidence.${snapshot.confidence}`)}
-              momentumLabel={t(`momentum.${snapshot.pressureMomentum}`)}
-              localConfirmationLabel={t(`localConfirmation.${snapshot.localConfirmation}`)}
-              driverLabel={(key) => t(`drivers.${key}`)}
-              detailLabel={t('detailLink')}
-              scoreLabel={t('scoreLabel')}
-              lastUpdatedLabel={t('lastUpdated', {
-                date: snapshot.snapshotDate.slice(0, 7),
-              })}
-              monthChangeLabel={
-                snapshot.pressureScore1mChange != null
-                  ? t('monthChange', {
-                      change: `${snapshot.pressureScore1mChange > 0 ? '+' : ''}${snapshot.pressureScore1mChange.toFixed(1)}`,
-                    })
-                  : null
-              }
-            />
-          ))}
-        </div>
-      )}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {entries.map(({ trade, snapshot }) => (
+          <TradePressureCard
+            key={trade}
+            trade={trade}
+            snapshot={snapshot}
+            tradeLabel={t(`trades.${trade}`)}
+            pendingTitle={t('pendingScore')}
+            pendingDescription={t('pendingDescription')}
+            directionLabel={
+              snapshot ? t(`direction.${snapshot.pressureDirection}`) : t('direction.neutral')
+            }
+            confidenceLabel={
+              snapshot ? t(`confidence.${snapshot.confidence}`) : t('confidence.low')
+            }
+            momentumLabel={
+              snapshot ? t(`momentum.${snapshot.pressureMomentum}`) : t('momentum.stable')
+            }
+            localConfirmationLabel={
+              snapshot
+                ? t(`localConfirmation.${snapshot.localConfirmation}`)
+                : t('localConfirmation.no_local_data')
+            }
+            driverLabel={(key) => t(`drivers.${key}`)}
+            detailLabel={t('detailLink')}
+            scoreLabel={t('scoreLabel')}
+            lastUpdatedLabel={
+              snapshot
+                ? t('lastUpdated', { date: snapshot.snapshotDate.slice(0, 7) })
+                : t('pendingLastUpdated')
+            }
+            monthChangeLabel={
+              snapshot?.pressureScore1mChange != null
+                ? t('monthChange', {
+                    change: `${snapshot.pressureScore1mChange > 0 ? '+' : ''}${snapshot.pressureScore1mChange.toFixed(1)}`,
+                  })
+                : null
+            }
+          />
+        ))}
+      </div>
     </div>
   );
 }

@@ -20,10 +20,24 @@
   "methodologyDisclaimer": "The score does not guarantee future supplier price changes.",
   "driverImpact": "Impact: {score}/100",
   "monthChange": "Change from prior month: {change}",
+  "pendingScore": "Awaiting data",
+  "pendingDescription": "Not enough market data to compute a score yet. The daily refresh will populate this trade when sources are ready.",
+  "pendingLastUpdated": "Not calculated yet",
+  "supplierCoverage": "Supplier price history: {months} months",
+  "banner": {
+    "title": "Material market pressure",
+    "disclaimer": "Pressure scores are indications based on CBS government indices and commodity data. For guidance only — review with your procurement team before making commitments.",
+    "pressure": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
+    }
+  },
   "trades": {
     "electrical": "Electrical",
     "plumbing": "Plumbing",
-    "steel_rebar": "Steel & rebar"
+    "steel_rebar": "Steel & rebar",
+    "concrete": "Concrete & cement"
   },
   "direction": {
     "strong_down": "Strong downward pressure",
@@ -64,6 +78,8 @@
     "cbsElectrical": "Israel conductors index",
     "cbsPlumbing": "Israel plumbing index",
     "cbsSteelRebar": "Israel rebar index",
+    "cbsCement": "Israel cement index",
+    "cbsConcrete": "Israel concrete index",
     "scrap": "Steel scrap",
     "ironOre": "Iron ore",
     "hrc": "Global steel",

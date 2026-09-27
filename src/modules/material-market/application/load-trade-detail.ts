@@ -1,12 +1,13 @@
 import 'server-only';
 import type { DbExecutor } from '@/shared/db/types';
 import type { DriverContribution, MaterialTrade, TradeDetailView, TradeComponentKey } from '../domain/types';
-import { driverSignal, signalToComponentScore } from '../domain/pressure-engine';
-import { SIGNAL_PROFILE_BY_COMPONENT } from '../domain/methodology';
+import { driverSignal, signalToComponentScore, type SupplierSignals } from '../domain/pressure-engine';
+import { SIGNAL_PROFILE_BY_COMPONENT, TRADE_WEIGHTS } from '../domain/methodology';
 import {
   loadLatestSnapshotsForTrades,
   loadSeriesByCodes,
   loadSnapshotHistory,
+  loadSupplierSignalsByTrade,
 } from '../data/repositories';
 import { SOURCE_CODE_LABEL_KEYS } from '../domain/driver-display';
 
@@ -53,7 +54,12 @@ export async function loadTradeDetail(
 
   const history = await loadSnapshotHistory(db, trade, historyMonths);
   const codes = Object.values(DRIVER_CODES_BY_COMPONENT[trade]).filter(Boolean) as string[];
-  const seriesMap = await loadSeriesByCodes(db, codes);
+  const [seriesMap, supplierSignals] = await Promise.all([
+    loadSeriesByCodes(db, codes),
+    TRADE_WEIGHTS[trade].supplier != null
+      ? loadSupplierSignalsByTrade(db)
+      : Promise.resolve({} as SupplierSignals),
+  ]);
   const ym = snapshot.snapshotDate.slice(0, 7);
 
   const drivers: DriverContribution[] = [];
@@ -62,7 +68,8 @@ export async function loadTradeDetail(
     const series = seriesMap[code] ?? {};
     const profile = SIGNAL_PROFILE_BY_COMPONENT[component as TradeComponentKey];
     const signal = driverSignal(series, ym, profile);
-    const componentScore = signalToComponentScore(signal);
+    const componentScore =
+      snapshot.components[component as TradeComponentKey] ?? signalToComponentScore(signal);
     const months = Object.keys(series).sort();
     const lastObs = months.at(-1) ?? null;
     drivers.push({
@@ -71,6 +78,20 @@ export async function loadTradeDetail(
       componentScore,
       trend: signal === null ? 'flat' : signal >= 0.25 ? 'up' : signal <= -0.25 ? 'down' : 'flat',
       lastObservationDate: lastObs ? `${lastObs}-01` : null,
+    });
+  }
+
+  const supplierSeries = supplierSignals[trade];
+  if (supplierSeries && Object.keys(supplierSeries).length > 0) {
+    const supplierMonths = Object.keys(supplierSeries).sort();
+    const signal = driverSignal(supplierSeries, ym, 'supplier');
+    drivers.push({
+      code: 'localSupplier',
+      signal,
+      componentScore: snapshot.components.supplier ?? signalToComponentScore(signal),
+      trend: signal === null ? 'flat' : signal >= 0.25 ? 'up' : signal <= -0.25 ? 'down' : 'flat',
+      lastObservationDate: supplierMonths.at(-1) ? `${supplierMonths.at(-1)}-01` : null,
+      observationMonthCount: supplierMonths.length,
     });
   }
 

@@ -50,22 +50,25 @@ export async function ProcurementOrdersOrgListView({
   routeBase,
   surface,
 }: ProcurementOrdersOrgListViewProps) {
-  const t = await getTranslations('procurement');
-  const locale = await getLocale();
+  const [t, tMarket, locale] = await Promise.all([
+    getTranslations('procurement'),
+    getTranslations('materialMarket'),
+    getLocale(),
+  ]);
   const isOwner = surface === 'owner';
 
-  const { orders, canManage, canRead, marketSnapshots } = await withOrgContext(async (context) => {
+  const { orders, canManage, canRead, marketEntries } = await withOrgContext(async (context) => {
     const allowed = orgListHasPermission(context, PERMISSIONS.PROCUREMENT_READ, surface);
     if (!allowed) {
       return {
         orders: [] as Awaited<ReturnType<typeof listPurchaseOrdersWithCommittedForOrg>>,
         canManage: false,
         canRead: false,
-        marketSnapshots: [] as Awaited<ReturnType<typeof loadMaterialMarketDashboard>>,
+        marketEntries: [] as Awaited<ReturnType<typeof loadMaterialMarketDashboard>>,
       };
     }
 
-    const [orders, marketSnapshots] = await Promise.all([
+    const [orders, marketEntries] = await Promise.all([
       listPurchaseOrdersWithCommittedForOrg(context),
       loadMaterialMarketDashboard(context.db).catch(() => []),
     ]);
@@ -74,9 +77,13 @@ export async function ProcurementOrdersOrgListView({
       orders,
       canManage: orgListHasPermission(context, PERMISSIONS.PROCUREMENT_MANAGE, surface),
       canRead: true,
-      marketSnapshots,
+      marketEntries,
     };
   });
+
+  const marketSnapshots = marketEntries
+    .map((entry) => entry.snapshot)
+    .filter((snapshot): snapshot is NonNullable<typeof snapshot> => snapshot != null);
 
   if (!canRead) {
     const tEmployee =
@@ -119,7 +126,22 @@ export async function ProcurementOrdersOrgListView({
 
       {/* Market pressure context — indication only, not a forecast */}
       {marketSnapshots.length > 0 && canRead ? (
-        <MarketPressureContextBanner snapshots={marketSnapshots} />
+        <MarketPressureContextBanner
+          snapshots={marketSnapshots}
+          title={tMarket('banner.title')}
+          tradeLabels={{
+            electrical: tMarket('trades.electrical'),
+            plumbing: tMarket('trades.plumbing'),
+            steel_rebar: tMarket('trades.steel_rebar'),
+            concrete: tMarket('trades.concrete'),
+          }}
+          pressureLabels={{
+            low: tMarket('banner.pressure.low'),
+            medium: tMarket('banner.pressure.medium'),
+            high: tMarket('banner.pressure.high'),
+          }}
+          disclaimerText={tMarket('banner.disclaimer')}
+        />
       ) : null}
 
       {orders.length === 0 ? (

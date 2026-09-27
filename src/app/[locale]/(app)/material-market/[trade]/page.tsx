@@ -4,6 +4,7 @@ import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { loadTradeDetail, MATERIAL_TRADES, type MaterialTrade } from '@/modules/material-market';
 import { TradeDetailPanel } from '@/modules/material-market/ui/trade-detail-panel';
+import { TradePendingPanel } from '@/modules/material-market/ui/trade-pending-panel';
 import { withOrgContext } from '@/shared/auth/session';
 import { getDb } from '@/shared/db/client';
 import { Link, redirect } from '@/shared/i18n/navigation';
@@ -47,8 +48,6 @@ export default async function MaterialMarketTradePage({
     return loadTradeDetail(db, trade, 'all');
   });
 
-  if (!detail) notFound();
-
   return (
     <div className="flex min-w-0 max-w-full flex-col gap-6">
       <PageHeader
@@ -63,7 +62,15 @@ export default async function MaterialMarketTradePage({
       <p className="rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
         {t('disclaimer')}
       </p>
-      <TradeDetailPanel detail={detail} />
+      {detail ? (
+        <TradeDetailPanel detail={detail} />
+      ) : (
+        <TradePendingPanel
+          tradeLabel={t(`trades.${trade}`)}
+          pendingTitle={t('pendingScore')}
+          pendingDescription={t('pendingDescription')}
+        />
+      )}
     </div>
   );
 }

@@ -142,6 +142,11 @@ export function TradeDetailPanel({ detail }: TradeDetailPanelProps) {
                     {t('lastUpdated', { date: driver.lastObservationDate.slice(0, 7) })}
                   </p>
                 )}
+                {driver.code === 'localSupplier' && driver.observationMonthCount != null && (
+                  <p className="text-xs text-muted-foreground">
+                    {t('supplierCoverage', { months: driver.observationMonthCount })}
+                  </p>
+                )}
               </div>
               <div className="flex flex-wrap gap-2 text-sm">
                 <Badge tone="neutral">

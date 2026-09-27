@@ -20,10 +20,24 @@
   "methodologyDisclaimer": "המדד אינו מבטיח שינוי עתידי במחיר הספק.",
   "driverImpact": "השפעה: {score}/100",
   "monthChange": "שינוי מהחודש הקודם: {change}",
+  "pendingScore": "ממתין לנתונים",
+  "pendingDescription": "אין עדיין מספיק נתוני שוק לחישוב ציון. הרענון היומי יאכלס את הענף כשמקורות הנתונים יהיו מוכנים.",
+  "pendingLastUpdated": "טרם חושב",
+  "supplierCoverage": "היסטוריית מחירי ספק: {months} חודשים",
+  "banner": {
+    "title": "לחץ שוק חומרים",
+    "disclaimer": "ציוני הלחץ הם אינדיקציה על בסיס מדדי CBS ונתוני סחורות. להכוונה בלבד — יש לבדוק עם צוות הרכש לפני התחייבות.",
+    "pressure": {
+      "low": "נמוך",
+      "medium": "בינוני",
+      "high": "גבוה"
+    }
+  },
   "trades": {
     "electrical": "חשמל",
     "plumbing": "אינסטלציה",
-    "steel_rebar": "ברזל ושלד"
+    "steel_rebar": "ברזל ושלד",
+    "concrete": "בטון וצמנט"
   },
   "direction": {
     "strong_down": "לחץ ירידה חזק",
@@ -64,6 +78,8 @@
     "cbsElectrical": "מדד מוליכים בישראל",
     "cbsPlumbing": "מדד אינסטלציה בישראל",
     "cbsSteelRebar": "מדד ברזל זיון בישראל",
+    "cbsCement": "מדד צמנט בישראל",
+    "cbsConcrete": "מדד בטון בישראל",
     "scrap": "גרוטאות פלדה",
     "ironOre": "עפרות ברזל",
     "hrc": "פלדה עולמית",

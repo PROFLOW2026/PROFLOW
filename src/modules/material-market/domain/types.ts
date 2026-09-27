@@ -73,6 +73,8 @@ export interface DriverContribution {
   componentScore: number | null;
   trend: 'up' | 'down' | 'flat';
   lastObservationDate: string | null;
+  /** Months of supplier price history when driver is local supplier signal. */
+  observationMonthCount?: number;
 }
 
 export interface TradeDetailView extends TradeSnapshotRow {
