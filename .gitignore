@@ -66,3 +66,17 @@ Thumbs.db
 # temporary / diagnostic artefacts
 .tmp/
 vitest-full.txt
+.tmp-repair-*.log
+preflight-*.log
+e2e-stabilization-run*.log
+playwright-ci-run.log
+release-preflight.log
+next-start-err.txt
+next-start-out.txt
+
+# agent scratch (keep .cursor/rules/ and .cursor/plans/)
+.cursor/.env.vercel.production
+.cursor/*secret*.tmp
+.cursor/tmp-vercel-*
+.cursor/.tmp-vercel-*
+scripts/.tmp-*
