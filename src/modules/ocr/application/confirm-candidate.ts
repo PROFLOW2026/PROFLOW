@@ -38,7 +38,6 @@ import type {
 import type { OcrRepository } from '../data/ocr.repository';
 import { getOcrRepository } from '../data/resolve-repository';
 import type { ConfirmOcrCandidateInput } from '../validation/schemas';
-import { markExpenseImportLinkedByOcrJob } from '@/modules/expense-ingestion/server';
 import { confirmOcrCandidateSchema } from '../validation/schemas';
 import {
   createVendorBillDraftFromOcr,
@@ -356,9 +355,6 @@ export async function confirmOcrCandidate(
         subcontractAgreementId: input.rememberSubcontractAgreementId,
       }),
     );
-    await runBestEffortInTransaction(context.db, () =>
-      markExpenseImportLinkedByOcrJob(context, job.id),
-    );
 
     return {
       kind: 'created',
@@ -419,9 +415,6 @@ export async function confirmOcrCandidate(
         subcontractAgreementId: input.rememberSubcontractAgreementId,
       }),
     );
-    await runBestEffortInTransaction(context.db, () =>
-      markExpenseImportLinkedByOcrJob(context, job.id),
-    );
     return {
       kind: 'created',
       draftTarget: 'vendor_credit',
@@ -468,9 +461,6 @@ export async function confirmOcrCandidate(
       purchaseOrderId: input.rememberPurchaseOrderId,
       subcontractAgreementId: input.rememberSubcontractAgreementId,
     }),
-  );
-  await runBestEffortInTransaction(context.db, () =>
-    markExpenseImportLinkedByOcrJob(context, job.id),
   );
 
   return {
