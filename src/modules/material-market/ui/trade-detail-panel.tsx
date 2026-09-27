@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,13 +18,49 @@ export function TradeDetailPanel({ detail }: TradeDetailPanelProps) {
   const t = useTranslations('materialMarket');
   const [range, setRange] = useState<HistoryRange>('12');
 
-  const filteredHistory = useMemo(() => {
-    if (range === 'all') return detail.history;
+  const { filteredHistory, historyDomainStart, historyDomainEnd } = useMemo(() => {
+    const today = new Date();
+    const todayStr = today.toISOString().slice(0, 10);
+
+    const cutoffForMonths = (months: number) => {
+      const cutoff = new Date(today);
+      cutoff.setMonth(cutoff.getMonth() - months);
+      return cutoff.toISOString().slice(0, 10);
+    };
+
+    if (range === 'all') {
+      const sorted = [...detail.history].sort((a, b) => a.date.localeCompare(b.date));
+      return {
+        filteredHistory: sorted,
+        historyDomainStart: sorted[0]?.date,
+        historyDomainEnd: todayStr,
+      };
+    }
+
     const months = Number.parseInt(range, 10);
-    const cutoff = new Date();
-    cutoff.setMonth(cutoff.getMonth() - months);
-    const cutoffStr = cutoff.toISOString().slice(0, 10);
-    return detail.history.filter((h) => h.date >= cutoffStr);
+    const cutoffStr = cutoffForMonths(months);
+    return {
+      filteredHistory: detail.history.filter((h) => h.date >= cutoffStr),
+      historyDomainStart: cutoffStr,
+      historyDomainEnd: todayStr,
+    };
+  }, [detail.history, range]);
+
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'production') return;
+    const today = new Date();
+    const cutoff24 = new Date(today);
+    cutoff24.setMonth(cutoff24.getMonth() - 24);
+    const cutoff24Str = cutoff24.toISOString().slice(0, 10);
+    const count24 = detail.history.filter((h) => h.date >= cutoff24Str).length;
+    const countAll = detail.history.length;
+    console.debug('[PressureHistoryChart] point counts', { count24, countAll, range });
+    if (countAll < count24) {
+      console.warn('[PressureHistoryChart] ALL point count < 24-month point count', {
+        countAll,
+        count24,
+      });
+    }
   }, [detail.history, range]);
 
   const changeSummary = buildChangeSummary({
@@ -79,7 +115,13 @@ export function TradeDetailPanel({ detail }: TradeDetailPanelProps) {
           </div>
         </CardHeader>
         <CardContent>
-          <PressureHistoryChart data={filteredHistory} ariaLabel={t('historyTitle')} />
+          <PressureHistoryChart
+            data={filteredHistory}
+            ariaLabel={t('historyTitle')}
+            range={range}
+            domainStart={historyDomainStart}
+            domainEnd={historyDomainEnd}
+          />
         </CardContent>
       </Card>
 

@@ -12,6 +12,7 @@
     "24": "24 شهراً",
     "all": "الكل"
   },
+  "historyInsufficientTrend": "لا يوجد سجل كافٍ لعرض اتجاه",
   "driversTitle": "ما الذي يؤثر الآن؟",
   "changeTitle": "ما الذي تغيّر؟",
   "methodologyTitle": "كيف تُحسب الدرجة؟",
