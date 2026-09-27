@@ -432,6 +432,7 @@
     "cardGeneric": "ائتمان (بدون بطاقة محفوظة)",
     "methods": {
       "check": "شيك",
+      "cash": "نقدًا",
       "credit_card": "بطاقة ائتمان",
       "transfer": "حوالة",
       "other": "أخرى"

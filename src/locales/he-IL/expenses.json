@@ -432,6 +432,7 @@
     "cardGeneric": "אשראי (ללא כרטיס שמור)",
     "methods": {
       "check": "צ׳ק",
+      "cash": "מזומן",
       "credit_card": "אשראי",
       "transfer": "העברה",
       "other": "אחר"

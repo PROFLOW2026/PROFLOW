@@ -1,5 +1,5 @@
 /** Canonical quick-select payment method keys stored on expenses.payment_method. */
-export const PAYMENT_METHOD_KEYS = ['check', 'credit_card', 'transfer', 'other'] as const;
+export const PAYMENT_METHOD_KEYS = ['check', 'cash', 'credit_card', 'transfer', 'other'] as const;
 
 export type PaymentMethodKey = (typeof PAYMENT_METHOD_KEYS)[number];
 

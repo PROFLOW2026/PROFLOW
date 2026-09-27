@@ -815,18 +815,28 @@ export function ExpenseForm({
           }
         />
 
+        <Field label={t('destination.label')} description={t('fields.expenseType')}>
+          {(controlProps) => (
+            <Select
+              value={costDestinationMode}
+              onValueChange={(value) => handleCostDestinationChange(value as CostDestinationMode)}
+              disabled={readOnly || destination === 'inventory' || destination === 'asset'}
+            >
+              <SelectTrigger {...controlProps}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="project_single">{t('destination.projectSingle')}</SelectItem>
+                <SelectItem value="project_multi">{t('destination.projectMulti')}</SelectItem>
+                <SelectItem value="auto_pool">{t('destination.autoPool')}</SelectItem>
+                <SelectItem value="company_only">{t('destination.companyOnly')}</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+        </Field>
+
         {isProjectDestinationMode ? (
           <>
-            <Field label={t('destination.label')} description={t('fields.expenseType')}>
-              {() => (
-                <p
-                  role="status"
-                  className="rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-3 py-2 text-sm text-[var(--pf-text-primary)]"
-                >
-                  {t('destination.projectSingle')}
-                </p>
-              )}
-            </Field>
             <Field label={t('fields.project')}>
               {(controlProps) => (
                 <Select
@@ -853,34 +863,14 @@ export function ExpenseForm({
           </>
         ) : (
           <>
-            <Field label={t('destination.label')} description={t('fields.expenseType')}>
-              {(controlProps) => (
-                <Select
-                  value={costDestinationMode}
-                  onValueChange={(value) => handleCostDestinationChange(value as CostDestinationMode)}
-                  disabled={readOnly || destination === 'inventory' || destination === 'asset'}
-                >
-                  <SelectTrigger {...controlProps}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="project_single">{t('destination.projectSingle')}</SelectItem>
-                    <SelectItem value="project_multi">{t('destination.projectMulti')}</SelectItem>
-                    <SelectItem value="auto_pool">{t('destination.autoPool')}</SelectItem>
-                    <SelectItem value="company_only">{t('destination.companyOnly')}</SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
-            </Field>
-
             {destination === 'inventory' ? (
               <p className="text-sm text-[var(--pf-text-secondary)]">{t('destination.inventory')}</p>
             ) : null}
             {destination === 'asset' ? (
               <p className="text-sm text-[var(--pf-text-secondary)]">{t('destination.asset')}</p>
             ) : null}
-
             <input type="hidden" name="destinationTarget" value={OVERHEAD_VALUE} />
+            <input type="hidden" name="allocationIntent" value={allocationIntent} />
           </>
         )}
 
@@ -908,9 +898,6 @@ export function ExpenseForm({
           </p>
         ) : null}
 
-        {!isProjectDestinationMode ? (
-          <input type="hidden" name="allocationIntent" value={allocationIntent} />
-        ) : null}
         <input
           type="hidden"
           name="allocations"

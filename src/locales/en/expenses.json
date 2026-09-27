@@ -432,6 +432,7 @@
     "cardGeneric": "Credit (no saved card)",
     "methods": {
       "check": "Check",
+      "cash": "Cash",
       "credit_card": "Credit card",
       "transfer": "Transfer",
       "other": "Other"
