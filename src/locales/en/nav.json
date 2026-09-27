@@ -66,8 +66,7 @@
     "money": "Money",
     "field": "Field",
     "documents": "Documents",
-    "reports": "Reports",
-    "advanced": "Advanced"
+    "reports": "Reports"
   },
   "newMenu": {
     "trigger": "New",

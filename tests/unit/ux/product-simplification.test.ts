@@ -122,20 +122,26 @@ describe('authenticated product simplification', () => {
       'field',
       'documents',
       'reports',
-      'advanced',
     ]);
     expect(
       groups.find((g: NavItemGroup) => g.group === 'clients')?.items.map((i) => i.key),
     ).toEqual(expect.arrayContaining(['quotes']));
     expect(
       groups.find((g: NavItemGroup) => g.group === 'purchasing')?.items.map((i) => i.key),
-    ).toEqual(expect.arrayContaining(['vendorBills']));
+    ).toEqual(expect.arrayContaining(['vendorBills', 'materialMarket']));
     expect(
-      groups.find((g: NavItemGroup) => g.group === 'advanced')?.items.map((i) => i.key),
-    ).toEqual(expect.arrayContaining(['assets', 'compliance', 'approvals', 'settings']));
+      groups.find((g: NavItemGroup) => g.group === 'field')?.items.map((i) => i.key),
+    ).toEqual(expect.arrayContaining(['assets']));
+    expect(
+      groups.find((g: NavItemGroup) => g.group === 'documents')?.items.map((i) => i.key),
+    ).toEqual(expect.arrayContaining(['compliance']));
     expect(
       groups.find((g: NavItemGroup) => g.group === 'money')?.items.map((i) => i.key),
-    ).toEqual(expect.arrayContaining(['overhead', 'billing']));
+    ).toEqual(expect.arrayContaining(['overhead', 'billing', 'approvals', 'businessProfitability']));
+    expect(
+      groups.find((g: NavItemGroup) => g.group === 'workManagement')?.items.map((i) => i.key),
+    ).toEqual(expect.arrayContaining(['workspaces', 'automations']));
+    expect(partitionNavItems(visible).standalone.map((item) => item.key)).toEqual(['settings']);
     expect(NAV_ITEMS.some((item) => item.href === '/documents/ocr-review')).toBe(false);
   });
 
@@ -155,7 +161,7 @@ describe('authenticated product simplification', () => {
       const nav = flattenLocaleCatalog(readLocaleCatalog(locale, 'nav'));
       expect(nav.has('moreGroups.business')).toBe(true);
       expect(nav.has('moreGroups.operations')).toBe(true);
-      expect(nav.has('moreGroups.advanced')).toBe(true);
+      expect(nav.has('moreGroups.advanced')).toBe(false);
       expect(nav.has('vendorBills')).toBe(true);
       expect(nav.has('jobs')).toBe(true);
       expect(nav.has('overhead')).toBe(true);

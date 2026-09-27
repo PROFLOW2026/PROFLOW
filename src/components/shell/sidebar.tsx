@@ -36,7 +36,7 @@ export function Sidebar({
   const t = useTranslations('nav');
   const tCommon = useTranslations('common');
   const pathname = usePathname();
-  const { core, groups } = partitionNavItems(items);
+  const { core, groups, standalone } = partitionNavItems(items);
 
   return (
     <nav
@@ -83,6 +83,25 @@ export function Sidebar({
             expandLabel={t('accordion.expand')}
             collapseLabel={t('accordion.collapse')}
           />
+        ) : null}
+
+        {standalone.length > 0 ? (
+          <ul className="flex flex-col gap-0.5">
+            {standalone.map((item) => {
+              const active = isNavItemActive(pathname, item.href);
+              return (
+                <li key={item.key}>
+                  <ShellNavLink
+                    href={item.href}
+                    label={t(item.labelKey)}
+                    iconKey={item.iconKey}
+                    active={active}
+                    variant="sidebar"
+                  />
+                </li>
+              );
+            })}
+          </ul>
         ) : null}
       </div>
 

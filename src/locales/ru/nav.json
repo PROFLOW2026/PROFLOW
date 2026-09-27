@@ -65,8 +65,7 @@
     "money": "Финансы",
     "field": "Поле",
     "documents": "Документы",
-    "reports": "Отчёты",
-    "advanced": "Дополнительно"
+    "reports": "Отчёты"
   },
   "newMenu": {
     "trigger": "Создать",

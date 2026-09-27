@@ -16,7 +16,6 @@ export const EXPERIENCE_NAV_GROUPS = [
   'field',
   'documents',
   'reports',
-  'advanced',
 ] as const;
 
 export type ExperienceNavGroup = (typeof EXPERIENCE_NAV_GROUPS)[number];
@@ -54,22 +53,22 @@ export const NAV_KEY_TO_EXPERIENCE_GROUP: Readonly<Record<string, ExperienceNavG
   recurringDrafts: 'money',
   cashFlow: 'money',
   financialsOverview: 'money',
+  businessProfitability: 'money',
   monthClose: 'money',
   overhead: 'money',
+  approvals: 'money',
   fieldOps: 'field',
   fieldHome: 'field',
   safety: 'field',
   forms: 'field',
+  assets: 'field',
   documents: 'documents',
   companyFiles: 'documents',
   imports: 'documents',
+  compliance: 'documents',
   reports: 'reports',
-  assets: 'advanced',
-  compliance: 'advanced',
-  approvals: 'advanced',
-  assistant: 'advanced',
-  automations: 'advanced',
-  settings: 'advanced',
+  assistant: 'reports',
+  automations: 'workManagement',
   myWork: 'workManagement',
   taskBoard: 'workManagement',
   taskCalendar: 'workManagement',
@@ -79,7 +78,8 @@ export const NAV_KEY_TO_EXPERIENCE_GROUP: Readonly<Record<string, ExperienceNavG
   portfolio: 'workManagement',
   workload: 'workManagement',
   meetings: 'workManagement',
-  workspaces: 'advanced',
+  workspaces: 'workManagement',
+  materialMarket: 'purchasing',
 };
 
 /**
@@ -118,7 +118,6 @@ export const PERSONA_VISIBLE_GROUPS: Readonly<
     'field',
     'documents',
     'reports',
-    'advanced',
   ],
   electrical: [
     'today',
@@ -131,7 +130,6 @@ export const PERSONA_VISIBLE_GROUPS: Readonly<
     'field',
     'documents',
     'reports',
-    'advanced',
   ],
   renovation: [
     'today',
@@ -144,9 +142,8 @@ export const PERSONA_VISIBLE_GROUPS: Readonly<
     'field',
     'documents',
     'reports',
-    'advanced',
   ],
-  small_works: ['today', 'clients', 'work', 'workManagement', 'people', 'money', 'documents', 'reports', 'advanced'],
+  small_works: ['today', 'clients', 'work', 'workManagement', 'people', 'money', 'documents', 'reports'],
   service: [
     'today',
     'clients',
@@ -157,10 +154,9 @@ export const PERSONA_VISIBLE_GROUPS: Readonly<
     'field',
     'documents',
     'reports',
-    'advanced',
   ],
-  architecture: ['today', 'clients', 'work', 'workManagement', 'people', 'money', 'documents', 'reports', 'advanced'],
-  consulting: ['today', 'clients', 'work', 'workManagement', 'people', 'money', 'documents', 'reports', 'advanced'],
+  architecture: ['today', 'clients', 'work', 'workManagement', 'people', 'money', 'documents', 'reports'],
+  consulting: ['today', 'clients', 'work', 'workManagement', 'people', 'money', 'documents', 'reports'],
   inspection: [
     'today',
     'clients',
@@ -171,7 +167,6 @@ export const PERSONA_VISIBLE_GROUPS: Readonly<
     'money',
     'documents',
     'reports',
-    'advanced',
   ],
   mixed: [
     'today',
@@ -184,7 +179,6 @@ export const PERSONA_VISIBLE_GROUPS: Readonly<
     'field',
     'documents',
     'reports',
-    'advanced',
   ],
   all: [
     'today',
@@ -197,11 +191,10 @@ export const PERSONA_VISIBLE_GROUPS: Readonly<
     'field',
     'documents',
     'reports',
-    'advanced',
   ],
 };
 
-/** Nav keys de-emphasized (moved to advanced / More) for a role surface. */
+/** Nav keys de-emphasized (kept in More, not primary) for a role surface. */
 export function roleNavEmphasis(
   role: ExperienceRoleSurface,
 ): { prefer: readonly string[]; demote: readonly string[] } {

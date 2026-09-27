@@ -32,7 +32,7 @@ describe('nav grouping', () => {
     expect(byKey.dashboard?.moreGroup).toBeUndefined();
     expect(byKey.projects?.moreGroup).toBeUndefined();
     expect(byKey.expenses?.moreGroup).toBeUndefined();
-    expect(byKey.settings?.moreGroup).toBe('advanced');
+    expect(byKey.settings?.moreGroup).toBeUndefined();
 
     expect(byKey.clients?.moreGroup).toBe('business');
     expect(byKey.changes?.moreGroup).toBe('business');
@@ -53,16 +53,19 @@ describe('nav grouping', () => {
     expect(byKey.quotes?.moreGroup).toBe('business');
     expect(byKey.crm?.moreGroup).toBe('business');
 
-    expect(byKey.assets?.moreGroup).toBe('advanced');
-    expect(byKey.compliance?.moreGroup).toBe('advanced');
-    expect(byKey.vendorBills?.moreGroup).toBe('advanced');
-    expect(byKey.overhead?.moreGroup).toBe('advanced');
+    expect(byKey.assets?.moreGroup).toBe('field');
+    expect(byKey.compliance?.moreGroup).toBe('documents');
+    expect(byKey.vendorBills?.moreGroup).toBe('purchasing');
+    expect(byKey.overhead?.moreGroup).toBe('money');
+    expect(byKey.workspaces?.moreGroup).toBe('workManagement');
+    expect(byKey.materialMarket?.moreGroup).toBe('purchasing');
+    expect(byKey.businessProfitability?.moreGroup).toBe('business');
   });
 
-  it('lists overhead under advanced when the overhead module is on', () => {
+  it('lists overhead under money when the overhead module is on', () => {
     const item = NAV_ITEMS.find((entry) => entry.key === 'overhead');
     expect(item?.href).toBe('/overhead');
-    expect(item?.moreGroup).toBe('advanced');
+    expect(item?.moreGroup).toBe('money');
     expect(item?.permission).toBe(PERMISSIONS.EXPENSES_READ);
     expect(item?.module).toBe('overhead');
 
@@ -111,11 +114,26 @@ describe('nav grouping', () => {
     expect(NAV_ITEMS.find((item) => item.key === 'monthClose')?.module).toBeUndefined();
   });
 
-  it('lists vendor bills under advanced (not competing with CORE procurement)', () => {
+  it('lists vendor bills under purchasing (not competing with CORE procurement)', () => {
     const vendorBills = NAV_ITEMS.find((item) => item.key === 'vendorBills');
     expect(vendorBills?.href).toBe('/procurement/ap');
-    expect(vendorBills?.moreGroup).toBe('advanced');
+    expect(vendorBills?.moreGroup).toBe('purchasing');
     expect(vendorBills?.permission).toBe(PERMISSIONS.AP_READ);
+  });
+
+  it('orders people group as workforce, attendance, timesheets, then time', () => {
+    const items = visibleNavItems(new Set(Object.values(PERMISSIONS)), allModulesOn(), {
+      workMix: 'projects',
+      persona: 'mixed',
+      roleSurface: 'owner',
+    });
+    const people = partitionNavItems(items).groups.find((entry) => entry.group === 'people');
+    expect(people?.items.map((item) => item.key)).toEqual([
+      'workforce',
+      'attendance',
+      'timesheets',
+      'time',
+    ]);
   });
 
   it('lists attendance and timesheets under people with existing permissions', () => {
@@ -125,6 +143,7 @@ describe('nav grouping', () => {
     expect(attendance?.anyPermissions).toEqual([
       PERMISSIONS.ATTENDANCE_READ,
       PERMISSIONS.ATTENDANCE_MANAGE,
+      PERMISSIONS.ATTENDANCE_SELF,
     ]);
 
     const timesheets = NAV_ITEMS.find((item) => item.key === 'timesheets');
@@ -132,6 +151,7 @@ describe('nav grouping', () => {
     expect(timesheets?.moreGroup).toBe('people');
     expect(timesheets?.anyPermissions).toEqual([
       PERMISSIONS.WORKFORCE_READ,
+      PERMISSIONS.TIME_MANAGE,
       PERMISSIONS.TIME_APPROVE,
     ]);
 
@@ -144,7 +164,7 @@ describe('nav grouping', () => {
       allModulesOn(),
       { workMix: 'projects' },
     );
-    expect(selfOnly.some((item) => item.key === 'attendance')).toBe(false);
+    expect(selfOnly.some((item) => item.key === 'attendance')).toBe(true);
 
     const readers = visibleNavItems(
       new Set([PERMISSIONS.ATTENDANCE_READ, PERMISSIONS.WORKFORCE_READ]),
@@ -184,7 +204,7 @@ describe('nav grouping', () => {
     expect(items.some((item) => item.key === 'automations')).toBe(false);
   });
 
-  it('partitions core → experience group order with settings under advanced', () => {
+  it('partitions core → experience group order with settings standalone', () => {
     const permissions = new Set([
       PERMISSIONS.PROJECTS_READ,
       PERMISSIONS.EXPENSES_READ,
@@ -198,7 +218,7 @@ describe('nav grouping', () => {
       workMix: 'projects',
       persona: 'project_contractor',
     });
-    const { core, groups } = partitionNavItems(items);
+    const { core, groups, standalone } = partitionNavItems(items);
 
     expect(core.map((item) => item.key)).toEqual(
       expect.arrayContaining(['dashboard', 'projects', 'clients']),
@@ -208,9 +228,14 @@ describe('nav grouping', () => {
       MORE_GROUP_ORDER.filter((group) => groups.some((entry) => entry.group === group)),
     );
     expect(groups.some((entry) => entry.group === 'purchasing')).toBe(true);
+    expect(groups.map((entry) => entry.group).join(',')).not.toContain('advanced');
+    expect(standalone.map((item) => item.key)).toEqual(['settings']);
     expect(
-      groups.find((entry) => entry.group === 'advanced')?.items.map((item) => item.key),
-    ).toEqual(expect.arrayContaining(['settings']));
+      groups.find((entry) => entry.group === 'field')?.items.map((item) => item.key),
+    ).toEqual(expect.arrayContaining(['assets']));
+    expect(
+      groups.find((entry) => entry.group === 'purchasing')?.items.map((item) => item.key),
+    ).toEqual(expect.arrayContaining(['vendorBills']));
   });
 
   it('produces visibly different primary nav for small works vs service', () => {

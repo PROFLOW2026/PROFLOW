@@ -16,7 +16,6 @@ import { filterNavKeysByComplexity } from '@/modules/tenancy/domain/experience-c
 import {
   NAV_KEY_TO_EXPERIENCE_GROUP,
   PERSONA_PRIMARY_NAV_KEYS,
-  PERSONA_VISIBLE_GROUPS,
   roleNavEmphasis,
 } from '@/modules/tenancy/domain/experience-nav-layout';
 
@@ -99,7 +98,6 @@ export type MoreNavGroup =
   | 'field'
   | 'documents'
   | 'reports'
-  | 'advanced'
   /** @deprecated legacy aliases kept for tests during transition */
   | 'business'
   | 'operations';
@@ -114,8 +112,15 @@ export const MORE_GROUP_ORDER: readonly MoreNavGroup[] = [
   'field',
   'documents',
   'reports',
-  'advanced',
 ] as const;
+
+/** Stable order within the people accordion (matches workforce IA). */
+export const PEOPLE_GROUP_ITEM_ORDER: readonly string[] = [
+  'workforce',
+  'attendance',
+  'timesheets',
+  'time',
+];
 
 export interface NavItem {
   key: string;
@@ -237,7 +242,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     iconKey: 'workspaces',
     permission: PERMISSIONS.WORKSPACES_MANAGE,
     module: 'work_management',
-    moreGroup: 'advanced',
+    moreGroup: 'workManagement',
   },
   {
     key: 'meetings',
@@ -394,6 +399,30 @@ export const NAV_ITEMS: readonly NavItem[] = [
     moreGroup: 'people',
   },
   {
+    key: 'attendance',
+    href: '/workforce/attendance',
+    labelKey: 'attendance',
+    iconKey: 'attendance',
+    anyPermissions: [
+      PERMISSIONS.ATTENDANCE_READ,
+      PERMISSIONS.ATTENDANCE_MANAGE,
+      PERMISSIONS.ATTENDANCE_SELF,
+    ],
+    moreGroup: 'people',
+  },
+  {
+    key: 'timesheets',
+    href: '/workforce/timesheets',
+    labelKey: 'timesheets',
+    iconKey: 'timesheets',
+    anyPermissions: [
+      PERMISSIONS.WORKFORCE_READ,
+      PERMISSIONS.TIME_MANAGE,
+      PERMISSIONS.TIME_APPROVE,
+    ],
+    moreGroup: 'people',
+  },
+  {
     key: 'time',
     href: '/workforce/time',
     labelKey: 'time',
@@ -403,23 +432,6 @@ export const NAV_ITEMS: readonly NavItem[] = [
       PERMISSIONS.TIME_APPROVE,
       PERMISSIONS.WORKFORCE_READ,
     ],
-    moreGroup: 'people',
-  },
-  {
-    key: 'attendance',
-    href: '/workforce/attendance',
-    labelKey: 'attendance',
-    iconKey: 'attendance',
-    anyPermissions: [PERMISSIONS.ATTENDANCE_READ, PERMISSIONS.ATTENDANCE_MANAGE],
-    moreGroup: 'people',
-  },
-  {
-    key: 'timesheets',
-    href: '/workforce/timesheets',
-    labelKey: 'timesheets',
-    iconKey: 'timesheets',
-    // No time.read key exists. The timesheets page treats workforce.read as read.
-    anyPermissions: [PERMISSIONS.WORKFORCE_READ, PERMISSIONS.TIME_APPROVE],
     moreGroup: 'people',
   },
   {
@@ -488,7 +500,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     labelKey: 'assistant',
     iconKey: 'assistant',
     permission: PERMISSIONS.ASSISTANT_USE,
-    moreGroup: 'advanced',
+    moreGroup: 'reports',
   },
   {
     key: 'automations',
@@ -496,7 +508,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     labelKey: 'automations',
     iconKey: 'automations',
     permission: PERMISSIONS.AUTOMATIONS_READ,
-    moreGroup: 'advanced',
+    moreGroup: 'workManagement',
   },
   {
     key: 'procurement',
@@ -524,7 +536,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     labelKey: 'vendorBills',
     iconKey: 'procurement',
     permission: PERMISSIONS.AP_READ,
-    moreGroup: 'advanced',
+    moreGroup: 'purchasing',
   },
   {
     key: 'materials',
@@ -632,7 +644,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     iconKey: 'assets',
     permission: PERMISSIONS.ASSETS_READ,
     module: 'assets',
-    moreGroup: 'advanced',
+    moreGroup: 'field',
   },
   {
     key: 'compliance',
@@ -641,7 +653,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     iconKey: 'compliance',
     permission: PERMISSIONS.COMPLIANCE_READ,
     module: 'compliance',
-    moreGroup: 'advanced',
+    moreGroup: 'documents',
   },
   {
     key: 'approvals',
@@ -650,7 +662,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     iconKey: 'approvals',
     permission: PERMISSIONS.APPROVALS_READ,
     module: 'approvals',
-    moreGroup: 'advanced',
+    moreGroup: 'money',
   },
   {
     key: 'monthClose',
@@ -658,7 +670,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     labelKey: 'monthClose',
     iconKey: 'monthClose',
     permission: PERMISSIONS.MONTH_CLOSE_READ,
-    moreGroup: 'advanced',
+    moreGroup: 'money',
   },
   {
     key: 'overhead',
@@ -667,14 +679,13 @@ export const NAV_ITEMS: readonly NavItem[] = [
     iconKey: 'expenses',
     permission: PERMISSIONS.EXPENSES_READ,
     module: 'overhead',
-    moreGroup: 'advanced',
+    moreGroup: 'money',
   },
   {
     key: 'settings',
     href: '/settings',
     labelKey: 'settings',
     iconKey: 'settings',
-    moreGroup: 'advanced',
   },
 ];
 
@@ -729,31 +740,26 @@ export function applyExperienceNavLayout(
   roleSurface: ExperienceRoleSurface = 'general',
 ): NavItem[] {
   const primaryKeys = PERSONA_PRIMARY_NAV_KEYS[persona];
-  const visibleGroups = new Set(PERSONA_VISIBLE_GROUPS[persona]);
   const { prefer, demote } = roleNavEmphasis(roleSurface);
   const preferSet = new Set(prefer);
   const demoteSet = new Set(demote);
 
   return items.map((item) => {
     if (item.key === 'settings') {
-      return { ...item, moreGroup: 'advanced' as const, primaryOnMobile: false };
+      return { ...item, moreGroup: undefined, primaryOnMobile: false };
     }
 
-    const mappedGroup = NAV_KEY_TO_EXPERIENCE_GROUP[item.key] ?? 'advanced';
-    let group: MoreNavGroup =
+    const mappedGroup = NAV_KEY_TO_EXPERIENCE_GROUP[item.key] ?? 'reports';
+    const group: MoreNavGroup =
       mappedGroup === 'today'
         ? ('work' as MoreNavGroup)
         : mappedGroup === 'workManagement'
           ? ('workManagement' as MoreNavGroup)
           : (mappedGroup as MoreNavGroup);
 
-    const isPrimary = primaryKeys.includes(item.key) || preferSet.has(item.key);
-
-    if (demoteSet.has(item.key)) {
-      group = 'advanced';
-    } else if (!visibleGroups.has(mappedGroup) && mappedGroup !== 'today') {
-      group = 'advanced';
-    }
+    const isPrimary =
+      !demoteSet.has(item.key) &&
+      (primaryKeys.includes(item.key) || preferSet.has(item.key));
 
     if (item.key === 'dashboard') {
       return { ...item, moreGroup: undefined, primaryOnMobile: true };
@@ -827,19 +833,27 @@ export interface NavItemGroup {
 
 /**
  * Partitions visible nav for sidebar / More sheet:
- * core (no moreGroup) → experience groups (including settings under advanced).
+ * core (no moreGroup, except settings) → experience groups → settings after reports.
  */
 export function partitionNavItems(items: readonly NavItem[]): {
   core: NavItem[];
   groups: NavItemGroup[];
+  standalone: NavItem[];
 } {
-  const core = items.filter((item) => !item.moreGroup);
-  const groups = MORE_GROUP_ORDER.map((group) => ({
-    group,
-    items: items.filter((item) => item.moreGroup === group),
-  })).filter((entry) => entry.items.length > 0);
+  const standalone = items.filter((item) => item.key === 'settings');
+  const core = items.filter((item) => !item.moreGroup && item.key !== 'settings');
+  const groups = MORE_GROUP_ORDER.map((group) => {
+    const groupItems = items.filter((item) => item.moreGroup === group);
+    if (group === 'people') {
+      const order = new Map(PEOPLE_GROUP_ITEM_ORDER.map((key, index) => [key, index]));
+      groupItems.sort(
+        (a, b) => (order.get(a.key) ?? Number.MAX_SAFE_INTEGER) - (order.get(b.key) ?? Number.MAX_SAFE_INTEGER),
+      );
+    }
+    return { group, items: groupItems };
+  }).filter((entry) => entry.items.length > 0);
 
-  return { core, groups };
+  return { core, groups, standalone };
 }
 
 /**

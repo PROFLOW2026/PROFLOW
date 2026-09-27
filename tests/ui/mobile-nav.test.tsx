@@ -101,7 +101,7 @@ const ITEMS: NavItem[] = [
     href: '/documents',
     labelKey: 'documents',
     iconKey: 'documents',
-    moreGroup: 'advanced',
+    moreGroup: 'documents',
   },
 ];
 
