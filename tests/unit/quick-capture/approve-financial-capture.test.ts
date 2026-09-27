@@ -255,7 +255,54 @@ describe('approveFinancialCapture', () => {
     );
   });
 
-  it('passes owner project routing to confirm and relocates vendor invoice folder', async () => {
+  it('passes owner project routing without category and relocates vendor invoice folder', async () => {
+    confirmOcrCandidate.mockResolvedValue({
+      kind: 'created',
+      draftTarget: 'expense',
+      expenseId,
+      job: baseJob({
+        status: 'succeeded',
+        reviewStatus: 'accepted',
+        confirmedExpenseId: expenseId,
+        confirmedDraftTarget: 'expense',
+      }),
+      expenseInput: {} as never,
+      expenseDraft: {} as never,
+      draft: {} as never,
+    });
+    updateCaptureItem.mockResolvedValue(
+      baseCapture({
+        status: 'approved',
+        routedEntityType: 'expense',
+        routedEntityId: expenseId,
+      }),
+    );
+    relocateDocumentToSemanticFolder.mockResolvedValue({} as never);
+
+    await approveFinancialCapture(context(), {
+      captureId,
+      expenseAssignment: { mode: 'project', projectId },
+      confirmInput: { jobId, confirm: true, draftTarget: 'expense', acceptedFields: [] },
+    });
+
+    expect(confirmOcrCandidate).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        ownerProjectId: projectId,
+        ownerCostCategoryId: null,
+      }),
+    );
+    expect(relocateDocumentToSemanticFolder).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        documentId,
+        projectId,
+        semanticFolderType: 'vendor_invoices',
+      }),
+    );
+  });
+
+  it('passes optional owner cost category when provided', async () => {
     confirmOcrCandidate.mockResolvedValue({
       kind: 'created',
       draftTarget: 'expense',

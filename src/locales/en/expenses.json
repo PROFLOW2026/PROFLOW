@@ -244,6 +244,8 @@
     "costFamily": "Cost section",
     "category": "Cost category",
     "categoryRequiredHint": "Choose a category so Actual can classify this cost. Without one it stays as needs classification under other expenses.",
+    "projectCostType": "Cost type",
+    "projectCostTypeHint": "Classifies the project cost — for example materials, equipment, or subcontractor. Required before final approval.",
     "internalPayrollWarning": "Workforce already computes internal employee payroll. Use this category only for an additional payroll lump sum — not for subcontractors or external labor.",
     "status": "Status",
     "amountTaxMode": "Entered amount",

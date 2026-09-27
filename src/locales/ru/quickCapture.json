@@ -79,6 +79,8 @@
       "projectPlaceholder": "Выберите проект",
       "costCategoryLabel": "Категория затрат",
       "costCategoryPlaceholder": "Выберите категорию",
+      "costCategoryOptionalHint": "Необязательно при захвате — можно указать перед финальным утверждением.",
+      "costCategoryOptionalPlaceholder": "Без категории — укажите перед утверждением",
       "suggestedProject": "Предложение: {name} — выберите явно для применения",
       "companyHint": "Расход будет создан как общий расход бизнеса. Проекты можно назначить позже."
     },

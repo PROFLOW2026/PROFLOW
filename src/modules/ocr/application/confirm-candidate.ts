@@ -67,12 +67,6 @@ function applyOwnerExpenseRouting(
   if (!projectId) {
     return expenseInput;
   }
-  if (!costCategoryId) {
-    throw new DomainRuleError(
-      'Cost category is required for project expenses',
-      'quickCapture.errors.costCategoryRequired',
-    );
-  }
   return {
     ...expenseInput,
     projectId,

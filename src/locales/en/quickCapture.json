@@ -79,6 +79,8 @@
       "projectPlaceholder": "Select a project",
       "costCategoryLabel": "Cost category",
       "costCategoryPlaceholder": "Select a category",
+      "costCategoryOptionalHint": "Optional during capture — can be completed before final approval.",
+      "costCategoryOptionalPlaceholder": "None — complete before approval",
       "suggestedProject": "Suggestion: {name} — select explicitly to apply",
       "companyHint": "The expense will be created as a general business expense. You can assign projects later."
     },

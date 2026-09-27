@@ -79,6 +79,8 @@
       "projectPlaceholder": "בחר פרויקט",
       "costCategoryLabel": "קטגוריית עלות",
       "costCategoryPlaceholder": "בחר קטגוריה",
+      "costCategoryOptionalHint": "אופציונלי בקליטה — ניתן להשלים לפני אישור סופי של ההוצאה.",
+      "costCategoryOptionalPlaceholder": "ללא — יש להשלים לפני אישור",
       "suggestedProject": "הצעה: {name} — יש לבחור במפורש",
       "companyHint": "ההוצאה תיווצר כהוצאה כללית לעסק. ניתן לשייך לפרויקטים מאוחר יותר."
     },

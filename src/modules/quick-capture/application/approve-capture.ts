@@ -28,7 +28,11 @@ export type ApproveFieldMediaInput = {
 };
 
 export type FinancialExpenseAssignment =
-  | { readonly mode: 'project'; readonly projectId: string; readonly costCategoryId: string }
+  | {
+      readonly mode: 'project';
+      readonly projectId: string;
+      readonly costCategoryId?: string | null;
+    }
   | { readonly mode: 'company' };
 
 export type ApproveFinancialInput = {
@@ -191,19 +195,13 @@ export async function approveFinancialCapture(
     if (!input.expenseAssignment.projectId?.trim()) {
       throw new DomainRuleError('Project is required', 'quickCapture.errors.projectRequired');
     }
-    if (!input.expenseAssignment.costCategoryId?.trim()) {
-      throw new DomainRuleError(
-        'Cost category is required for project expenses',
-        'quickCapture.errors.costCategoryRequired',
-      );
-    }
   }
 
   const ownerRouting =
     input.expenseAssignment.mode === 'project'
       ? {
           ownerProjectId: input.expenseAssignment.projectId,
-          ownerCostCategoryId: input.expenseAssignment.costCategoryId,
+          ownerCostCategoryId: input.expenseAssignment.costCategoryId?.trim() || null,
         }
       : {};
 

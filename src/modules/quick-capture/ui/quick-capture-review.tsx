@@ -286,8 +286,7 @@ export function QuickCaptureReview({
       (!financialOcrReady ||
         !ocrJob ||
         (isMultiImage && !selectedFinancialDocumentId) ||
-        (financialExpenseMode === 'project' &&
-          (!financialProjectId || !financialCostCategoryId)))) ||
+        (financialExpenseMode === 'project' && !financialProjectId))) ||
     (ownerType === 'field_media' && !projectId) ||
     (ownerType === 'other_document' && !projectId);
 
@@ -311,7 +310,7 @@ export function QuickCaptureReview({
               ? {
                   mode: 'project',
                   projectId: financialProjectId,
-                  costCategoryId: financialCostCategoryId,
+                  costCategoryId: financialCostCategoryId.trim() || null,
                 }
               : { mode: 'company' },
           confirmInput: {
@@ -569,17 +568,25 @@ export function QuickCaptureReview({
                     {t('review.expenseAssignment.suggestedProject', { name: suggestedProjectName })}
                   </p>
                 ) : null}
-                <Field label={t('review.expenseAssignment.costCategoryLabel')}>
+                <Field
+                  label={t('review.expenseAssignment.costCategoryLabel')}
+                  description={t('review.expenseAssignment.costCategoryOptionalHint')}
+                >
                   {(control) => (
                     <Select
-                      value={financialCostCategoryId}
-                      onValueChange={setFinancialCostCategoryId}
+                      value={financialCostCategoryId || '__none__'}
+                      onValueChange={(value) =>
+                        setFinancialCostCategoryId(value === '__none__' ? '' : value)
+                      }
                       disabled={pending}
                     >
                       <SelectTrigger id={control.id}>
                         <SelectValue placeholder={t('review.expenseAssignment.costCategoryPlaceholder')} />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="__none__">
+                          {t('review.expenseAssignment.costCategoryOptionalPlaceholder')}
+                        </SelectItem>
                         {projectCostCategories.map((row) => (
                           <SelectItem key={row.id} value={row.id}>
                             {displayCostCategoryName(row, (key) => tExpenses(key))}

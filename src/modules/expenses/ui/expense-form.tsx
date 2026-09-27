@@ -267,7 +267,9 @@ export function ExpenseForm({
   });
   const [destination, setDestination] = React.useState<ExpenseDestination>(() => initialDestination);
   const [workPackageId, setWorkPackageId] = React.useState(initialValues?.workPackageId ?? '');
-  const [costFamily, setCostFamily] = React.useState<CostFamily | ''>(initialValues?.costFamily ?? '');
+  const [costFamily, setCostFamily] = React.useState<CostFamily | ''>(
+    initialValues?.costFamily ?? (initialValues?.projectId ? 'direct_project' : ''),
+  );
   const [costCategoryId, setCostCategoryId] = React.useState(initialValues?.costCategoryId ?? '');
   const [vatMode, setVatMode] = React.useState<ExpenseVatMode>(() =>
     resolveExpenseVatMode({
@@ -337,16 +339,32 @@ export function ExpenseForm({
   const [policyOverridden, setPolicyOverridden] = React.useState(false);
   const [allocationIntent, setAllocationIntent] = React.useState<
     ExpenseFormValues['allocationIntent']
-  >(initialValues?.allocationIntent ?? 'auto_pool');
+  >(
+    initialValues?.projectId
+      ? 'project_allocate'
+      : (initialValues?.allocationIntent ?? 'auto_pool'),
+  );
   const [costDestinationMode, setCostDestinationMode] = React.useState<CostDestinationMode>(() =>
     resolveInitialCostDestination(initialValues),
   );
 
-  const isOverhead = costDestinationMode !== 'project_single';
+  const isProjectDestinationMode = costDestinationMode === 'project_single';
+  const isOverhead = !isProjectDestinationMode;
   const projectId =
-    costDestinationMode === 'project_single' && targeting !== OVERHEAD_VALUE && targeting !== NONE_VALUE
+    isProjectDestinationMode && targeting !== OVERHEAD_VALUE && targeting !== NONE_VALUE
       ? targeting
       : '';
+
+  React.useEffect(() => {
+    if (!isProjectDestinationMode) return;
+    setAllocationIntent('project_allocate');
+    setDestination('project');
+    setCostFamily((current) =>
+      current === 'business_overhead' || current === 'shared' || current === ''
+        ? 'direct_project'
+        : current,
+    );
+  }, [isProjectDestinationMode]);
   const usesAutomaticDriver =
     Boolean(allocationDriverMethod) && isWeightAllocationMethod(allocationDriverMethod as AllocationMethod);
   const hasProjectAllocation = allocations.some(
@@ -370,7 +388,8 @@ export function ExpenseForm({
     !hasProjectAllocation &&
     !usesAutomaticDriver;
   const showGeneralIntentHint =
-    costDestinationMode === 'company_only' || costDestinationMode === 'auto_pool';
+    !isProjectDestinationMode &&
+    (costDestinationMode === 'company_only' || costDestinationMode === 'auto_pool');
 
   const isInternalPayrollCategory =
     selectedCategory?.key.trim().toLowerCase() === INTERNAL_EMPLOYEE_PAYROLL_CATEGORY_KEY;
@@ -560,10 +579,20 @@ export function ExpenseForm({
     : categories
   ).filter((category) => !isDeprecatedForNewTransactionEntry(category.key));
 
-  const categoriesByFamily = COST_FAMILY_ORDER.map((family) => ({
-    family,
-    items: filteredCategories.filter((category) => category.family === family),
-  })).filter((group) => group.items.length > 0);
+  const projectCategoryItems = categories.filter(
+    (category) =>
+      category.family === 'direct_project' &&
+      !isDeprecatedForNewTransactionEntry(category.key),
+  );
+
+  const categoriesByFamily = isProjectDestinationMode
+    ? projectCategoryItems.length > 0
+      ? [{ family: 'direct_project' as CostFamily, items: projectCategoryItems }]
+      : []
+    : COST_FAMILY_ORDER.map((family) => ({
+        family,
+        items: filteredCategories.filter((category) => category.family === family),
+      })).filter((group) => group.items.length > 0);
 
   const policyMethodMatches =
     !selectedCategory?.defaultAllocationMethod ||
@@ -739,8 +768,14 @@ export function ExpenseForm({
 
         <div id="expense-category" className="scroll-mt-24">
         <Field
-          label={t('fields.category')}
-          description={t('fields.categoryRequiredHint')}
+          label={
+            isProjectDestinationMode ? t('fields.projectCostType') : t('fields.category')
+          }
+          description={
+            isProjectDestinationMode
+              ? t('fields.projectCostTypeHint')
+              : t('fields.categoryRequiredHint')
+          }
           error={fieldErrors.costCategoryId}
         >
           {(controlProps) => (
@@ -792,58 +827,73 @@ export function ExpenseForm({
           </p>
         ) : null}
 
-        <Field label={t('destination.label')} description={t('fields.expenseType')}>
-          {(controlProps) => (
-            <Select
-              value={costDestinationMode}
-              onValueChange={(value) => handleCostDestinationChange(value as CostDestinationMode)}
-              disabled={readOnly || destination === 'inventory' || destination === 'asset'}
-            >
-              <SelectTrigger {...controlProps}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="project_single">{t('destination.projectSingle')}</SelectItem>
-                <SelectItem value="project_multi">{t('destination.projectMulti')}</SelectItem>
-                <SelectItem value="auto_pool">{t('destination.autoPool')}</SelectItem>
-                <SelectItem value="company_only">{t('destination.companyOnly')}</SelectItem>
-              </SelectContent>
-            </Select>
-          )}
-        </Field>
-
-        {destination === 'inventory' ? (
-          <p className="text-sm text-[var(--pf-text-secondary)]">{t('destination.inventory')}</p>
-        ) : null}
-        {destination === 'asset' ? (
-          <p className="text-sm text-[var(--pf-text-secondary)]">{t('destination.asset')}</p>
-        ) : null}
-
-        {costDestinationMode === 'project_single' ? (
-          <Field label={t('fields.project')}>
-            {(controlProps) => (
-              <Select
-                value={targeting === OVERHEAD_VALUE ? NONE_VALUE : targeting}
-                onValueChange={(value) =>
-                  handleTargetingChange(value === NONE_VALUE ? OVERHEAD_VALUE : value)
-                }
-                disabled={readOnly}
-              >
-                <SelectTrigger {...controlProps}>
-                  <SelectValue placeholder={t('placeholders.target')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {projects.map((project) => (
-                    <SelectItem key={project.id} value={project.id}>
-                      {project.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          </Field>
+        {isProjectDestinationMode ? (
+          <>
+            <Field label={t('destination.label')} description={t('fields.expenseType')}>
+              {() => (
+                <p
+                  role="status"
+                  className="rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-3 py-2 text-sm text-[var(--pf-text-primary)]"
+                >
+                  {t('destination.projectSingle')}
+                </p>
+              )}
+            </Field>
+            <Field label={t('fields.project')}>
+              {(controlProps) => (
+                <Select
+                  value={targeting === OVERHEAD_VALUE ? NONE_VALUE : targeting}
+                  onValueChange={(value) =>
+                    handleTargetingChange(value === NONE_VALUE ? OVERHEAD_VALUE : value)
+                  }
+                  disabled={readOnly}
+                >
+                  <SelectTrigger {...controlProps}>
+                    <SelectValue placeholder={t('placeholders.target')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {projects.map((project) => (
+                      <SelectItem key={project.id} value={project.id}>
+                        {project.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </Field>
+            <input type="hidden" name="allocationIntent" value="project_allocate" />
+          </>
         ) : (
-          <input type="hidden" name="destinationTarget" value={OVERHEAD_VALUE} />
+          <>
+            <Field label={t('destination.label')} description={t('fields.expenseType')}>
+              {(controlProps) => (
+                <Select
+                  value={costDestinationMode}
+                  onValueChange={(value) => handleCostDestinationChange(value as CostDestinationMode)}
+                  disabled={readOnly || destination === 'inventory' || destination === 'asset'}
+                >
+                  <SelectTrigger {...controlProps}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="project_single">{t('destination.projectSingle')}</SelectItem>
+                    <SelectItem value="project_multi">{t('destination.projectMulti')}</SelectItem>
+                    <SelectItem value="auto_pool">{t('destination.autoPool')}</SelectItem>
+                    <SelectItem value="company_only">{t('destination.companyOnly')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            </Field>
+
+            {destination === 'inventory' ? (
+              <p className="text-sm text-[var(--pf-text-secondary)]">{t('destination.inventory')}</p>
+            ) : null}
+            {destination === 'asset' ? (
+              <p className="text-sm text-[var(--pf-text-secondary)]">{t('destination.asset')}</p>
+            ) : null}
+
+            <input type="hidden" name="destinationTarget" value={OVERHEAD_VALUE} />
+          </>
         )}
 
         {showMultiProjectAllocation ? (
@@ -870,7 +920,9 @@ export function ExpenseForm({
           </p>
         ) : null}
 
-        <input type="hidden" name="allocationIntent" value={allocationIntent} />
+        {!isProjectDestinationMode ? (
+          <input type="hidden" name="allocationIntent" value={allocationIntent} />
+        ) : null}
         <input
           type="hidden"
           name="allocations"

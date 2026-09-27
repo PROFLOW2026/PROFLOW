@@ -79,6 +79,8 @@
       "projectPlaceholder": "اختر مشروعًا",
       "costCategoryLabel": "فئة التكلفة",
       "costCategoryPlaceholder": "اختر فئة",
+      "costCategoryOptionalHint": "اختياري أثناء الالتقاط — يمكن إكماله قبل الاعتماد النهائي.",
+      "costCategoryOptionalPlaceholder": "بدون — أكمل قبل الاعتماد",
       "suggestedProject": "اقتراح: {name} — يجب الاختيار صراحةً",
       "companyHint": "سيُنشأ المصروف كمصروف عام للأعمال. يمكنك تخصيص المشاريع لاحقًا."
     },
