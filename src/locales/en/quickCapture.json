@@ -65,7 +65,19 @@
     "otherDocument": "Other document",
     "selectFinancialDocument": "Select the document to read",
     "ocrUnavailable": "Document reader is unavailable — choose a type manually",
-    "retryOcr": "Try again"
+    "retryOcr": "Try again",
+    "ocrErrors": {
+      "storageDownload": "Could not download the file from connected storage. Check the connection and try again.",
+      "storageDisconnected": "File storage is disconnected. Reconnect OneDrive and try again.",
+      "storageMissing": "The file was not found in connected storage. It may have been deleted from OneDrive.",
+      "storagePermission": "No permission to read the file from storage. Check access and try again.",
+      "providerError": "The document reading service failed. Try again later.",
+      "timeout": "Document reading took too long. Try again.",
+      "tooLarge": "The file is too large for automatic reading.",
+      "tooManyPages": "The PDF has too many pages for automatic reading.",
+      "retryLimit": "Retry limit reached. Contact support if this continues.",
+      "generic": "Document reading failed. Check the file and try again."
+    }
   },
   "video": {
     "tooLarge": "Video is too large (max 25 MB)",

@@ -31,6 +31,7 @@ import {
   startCaptureFinancialOcrAction,
 } from '../application/quick-capture-actions';
 import { FIELD_MEDIA_CATEGORIES, type FieldMediaCategory } from '../domain/field-media-categories';
+import { resolveQuickCaptureOcrErrorKey } from '../domain/resolve-ocr-error-key';
 import type { DetectedType } from '../domain/types';
 import { QuickCaptureGallery } from './quick-capture-gallery';
 import { QuickCaptureProjectSelect } from './quick-capture-project-select';
@@ -70,6 +71,7 @@ export function QuickCaptureReview({
   readonly initialData: CaptureReviewData;
 }) {
   const t = useTranslations('quickCapture');
+  const tOcrErrors = useTranslations('quickCapture.review.ocrErrors');
   const tField = useTranslations('quickCapture.fieldMedia');
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -228,8 +230,10 @@ export function QuickCaptureReview({
     });
   };
 
-  const ocrFailureDetail =
-    ocrJob?.lastError?.trim() || ocrJob?.errorMessage?.trim() || null;
+  const ocrFailureMessage =
+    financialOcrFailed && ocrJob
+      ? tOcrErrors(resolveQuickCaptureOcrErrorKey(ocrJob))
+      : null;
 
   const showOcrRetry =
     ownerType === 'financial_document' &&
@@ -423,9 +427,7 @@ export function QuickCaptureReview({
         ) : null}
 
         {ownerType === 'financial_document' && financialOcrFailed ? (
-          <Alert tone="warning">
-            {ocrFailureDetail ?? t('review.ocrFailed')}
-          </Alert>
+          <Alert tone="warning">{ocrFailureMessage ?? t('review.ocrFailed')}</Alert>
         ) : null}
 
         {showOcrRetry ? (
