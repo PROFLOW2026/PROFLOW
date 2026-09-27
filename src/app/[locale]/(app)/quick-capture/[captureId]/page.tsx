@@ -28,7 +28,7 @@ export default async function QuickCaptureReviewPage({
   const review = await getQuickCaptureReviewAction(captureId);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="mx-auto flex w-full max-w-[88rem] flex-col gap-6">
       <PageHeader
         title={t('review.title')}
         actions={

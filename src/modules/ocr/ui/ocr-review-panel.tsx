@@ -735,7 +735,11 @@ export function OcrReviewPanel({
   }, [batches, jobs]);
 
   return (
-    <div className="flex flex-col gap-6" dir="auto" data-pf-ocr-review={embedded ? 'embedded' : undefined}>
+    <div
+      className="flex flex-col gap-6"
+      {...(embedded ? {} : { dir: 'auto' })}
+      data-pf-ocr-review={embedded ? 'embedded' : undefined}
+    >
       {!embedded ? (
         <>
           <Alert tone={initialStatus.featureMode === 'live' ? 'info' : 'warning'}>
@@ -904,53 +908,61 @@ export function OcrReviewPanel({
           ) : null}
 
           {selected ? (
-            <div className="flex flex-col gap-4 xl:grid xl:grid-cols-[minmax(16rem,22rem)_minmax(0,1fr)] xl:items-start">
-              <div className="order-first flex flex-col gap-2">
-                <p className="text-sm font-medium">{t('sourceDocument')}</p>
-                {sourceDocumentId ? (
-                  <DocumentInlinePreview
-                    key={sourceDocumentId}
-                    documentId={sourceDocumentId}
-                    filename={selected.sourceDocument.filename ?? t('sourceDocumentUnknown')}
-                    mimeType={selected.sourceDocument.mimeType ?? ''}
-                  />
-                ) : (
-                  <p className="text-sm text-[var(--pf-text-secondary)]">
-                    {selected.sourceDocument.filename ?? t('sourceDocumentUnknown')}
-                  </p>
-                )}
-                {sourceDocumentId ? (
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    className="min-h-11"
-                    onClick={() => {
-                      setLinkedPreviewDocumentId(null);
-                      setPreviewOpen(true);
-                    }}
-                  >
-                    {t('viewOriginal')}
-                  </Button>
-                ) : null}
-                {selected.status === 'failed' && sourceDocumentId ? (
-                  <Button type="button" className="min-h-11" loading={pending} onClick={onRetry}>
-                    {t('retry')}
-                  </Button>
-                ) : null}
-                {selected.status === 'queued' ? (
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    className="min-h-11"
-                    loading={pending}
-                    onClick={onCancelQueued}
-                  >
-                    {t('cancelJob')}
-                  </Button>
-                ) : null}
-              </div>
+            <div
+              className={cn(
+                'flex flex-col gap-4',
+                !embedded &&
+                  'xl:grid xl:grid-cols-[minmax(16rem,22rem)_minmax(0,1fr)] xl:items-start',
+              )}
+            >
+              {!embedded ? (
+                <div className="order-first flex flex-col gap-2">
+                  <p className="text-sm font-medium">{t('sourceDocument')}</p>
+                  {sourceDocumentId ? (
+                    <DocumentInlinePreview
+                      key={sourceDocumentId}
+                      documentId={sourceDocumentId}
+                      filename={selected.sourceDocument.filename ?? t('sourceDocumentUnknown')}
+                      mimeType={selected.sourceDocument.mimeType ?? ''}
+                    />
+                  ) : (
+                    <p className="text-sm text-[var(--pf-text-secondary)]">
+                      {selected.sourceDocument.filename ?? t('sourceDocumentUnknown')}
+                    </p>
+                  )}
+                  {sourceDocumentId ? (
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      className="min-h-11"
+                      onClick={() => {
+                        setLinkedPreviewDocumentId(null);
+                        setPreviewOpen(true);
+                      }}
+                    >
+                      {t('viewOriginal')}
+                    </Button>
+                  ) : null}
+                  {selected.status === 'failed' && sourceDocumentId ? (
+                    <Button type="button" className="min-h-11" loading={pending} onClick={onRetry}>
+                      {t('retry')}
+                    </Button>
+                  ) : null}
+                  {selected.status === 'queued' ? (
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      className="min-h-11"
+                      loading={pending}
+                      onClick={onCancelQueued}
+                    >
+                      {t('cancelJob')}
+                    </Button>
+                  ) : null}
+                </div>
+              ) : null}
 
-              <div className="flex flex-col gap-4">
+              <div className="flex min-w-0 flex-col gap-4">
               {duplicateHits.length > 0 ? (
                 <Alert
                   tone="danger"
@@ -1212,54 +1224,63 @@ export function OcrReviewPanel({
                     ) : null}
                   </section>
 
-                  {OCR_CANDIDATE_FIELD_KEYS.map((field) => {
-                    const value = candidateValue(selected.candidates!, field);
-                    const state = confidenceState({
-                      value: value || null,
-                      confidence: selected.candidates![field].confidence,
-                      provenance: selected.candidates![field].provenance,
-                    });
-                    const showMoneyPreview =
-                      MONEY_FIELDS.has(field) && MONEY_PATTERN.test(value.trim());
-                    return (
-                      <div key={field} className="flex flex-col gap-1.5">
-                        <div className="flex items-center justify-between gap-3">
-                          <Label htmlFor={`ocr-${field}`}>{t(`fields.${field}`)}</Label>
-                          <span className="text-xs text-[var(--pf-text-secondary)]">
-                            {t(`confidenceState.${state}`)}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Input
-                            id={`ocr-${field}`}
-                            value={value}
-                            disabled={reviewLocked}
-                            numeric={MONEY_FIELDS.has(field) || field === 'currency'}
-                            type={DATE_FIELDS.has(field) ? 'date' : 'text'}
-                            onChange={(event) =>
-                              setOverrides((prev) => ({ ...prev, [field]: event.target.value }))
-                            }
-                          />
-                          <label className="flex min-h-11 items-center gap-2 text-xs">
-                            <Checkbox
-                              checked={Boolean(accepted[field])}
-                              disabled={reviewLocked || pending}
-                              onCheckedChange={(checked) =>
-                                toggleAccepted(field, checked === true)
+                  <div
+                    className={cn(
+                      embedded
+                        ? 'grid grid-cols-1 gap-4 lg:grid-cols-2 2xl:grid-cols-3'
+                        : 'flex flex-col gap-4',
+                    )}
+                    data-pf-ocr-candidate-fields={embedded ? 'embedded' : undefined}
+                  >
+                    {OCR_CANDIDATE_FIELD_KEYS.map((field) => {
+                      const value = candidateValue(selected.candidates!, field);
+                      const state = confidenceState({
+                        value: value || null,
+                        confidence: selected.candidates![field].confidence,
+                        provenance: selected.candidates![field].provenance,
+                      });
+                      const showMoneyPreview =
+                        MONEY_FIELDS.has(field) && MONEY_PATTERN.test(value.trim());
+                      return (
+                        <div key={field} className="flex min-w-0 flex-col gap-1.5">
+                          <div className="flex items-center justify-between gap-3">
+                            <Label htmlFor={`ocr-${field}`}>{t(`fields.${field}`)}</Label>
+                            <span className="text-xs text-[var(--pf-text-secondary)]">
+                              {t(`confidenceState.${state}`)}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Input
+                              id={`ocr-${field}`}
+                              value={value}
+                              disabled={reviewLocked}
+                              numeric={MONEY_FIELDS.has(field) || field === 'currency'}
+                              type={DATE_FIELDS.has(field) ? 'date' : 'text'}
+                              onChange={(event) =>
+                                setOverrides((prev) => ({ ...prev, [field]: event.target.value }))
                               }
-                              aria-label={t('acceptField', { field: t(`fields.${field}`) })}
                             />
-                            {t('accept')}
-                          </label>
+                            <label className="flex shrink-0 min-h-11 items-center gap-2 text-xs">
+                              <Checkbox
+                                checked={Boolean(accepted[field])}
+                                disabled={reviewLocked || pending}
+                                onCheckedChange={(checked) =>
+                                  toggleAccepted(field, checked === true)
+                                }
+                                aria-label={t('acceptField', { field: t(`fields.${field}`) })}
+                              />
+                              {t('accept')}
+                            </label>
+                          </div>
+                          {showMoneyPreview ? (
+                            <p className="text-sm" dir="ltr">
+                              <MoneyText value={money(value.trim(), currencyCode)} />
+                            </p>
+                          ) : null}
                         </div>
-                        {showMoneyPreview ? (
-                          <p className="text-sm" dir="ltr">
-                            <MoneyText value={money(value.trim(), currencyCode)} />
-                          </p>
-                        ) : null}
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
 
                   {selected.candidates.lines.length > 0 ? (
                     <div className="flex flex-col gap-2">
