@@ -19,7 +19,7 @@
   "methodologyBody": "The score blends commodity data, FX rates and official Israeli indices. Each driver is weighted by trade relevance. The score ranges from 0 to 100.",
   "methodologyDisclaimer": "The score does not guarantee future supplier price changes.",
   "driverImpact": "Impact: {score}/100",
-  "monthChange": "Change from prior month: {change}",
+  "monthChange": "Monthly change: {change}",
   "pendingScore": "Awaiting data",
   "pendingDescription": "Not enough market data to compute a score yet. The daily refresh will populate this trade when sources are ready.",
   "pendingLastUpdated": "Not calculated yet",
@@ -52,11 +52,11 @@
     "low": "Low confidence"
   },
   "momentum": {
-    "rising_fast": "Strengthening quickly",
-    "rising": "Strengthening",
-    "stable": "Stable",
-    "falling": "Weakening",
-    "falling_fast": "Weakening quickly"
+    "rising_fast": "Broad trend: strengthening quickly",
+    "rising": "Broad trend: strengthening",
+    "stable": "Broad trend: stable",
+    "falling": "Broad trend: weakening",
+    "falling_fast": "Broad trend: weakening quickly"
   },
   "localConfirmation": {
     "confirmed_up": "Local data confirms upward pressure",
