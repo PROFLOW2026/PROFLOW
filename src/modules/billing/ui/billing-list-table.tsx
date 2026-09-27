@@ -85,11 +85,10 @@ export function BillingListTable({ records, locale, routeBase = '/billing' }: Bi
                     />
                   </TableCell>
                   <TableCell numeric>
-                    <BillingNetPrimaryDisplay
-                      netAmount={record.outstandingAmount}
-                      grossAmount={record.outstandingGrossAmount ?? record.outstandingAmount}
-                      grossLabel={t('list.includingVat')}
-                      netClassName="text-sm"
+                    <MoneyText
+                      value={record.outstandingGrossAmount ?? record.outstandingAmount}
+                      className="text-sm font-semibold tabular-nums"
+                      colorizeNegative
                     />
                   </TableCell>
                   <TableCell>
@@ -133,7 +132,10 @@ export function BillingListTable({ records, locale, routeBase = '/billing' }: Bi
             />
             <span>
               {t('list.outstanding')}:{' '}
-              <MoneyText value={record.outstandingAmount} colorizeNegative />
+              <MoneyText
+                value={record.outstandingGrossAmount ?? record.outstandingAmount}
+                colorizeNegative
+              />
             </span>
           </div>
         </Link>
