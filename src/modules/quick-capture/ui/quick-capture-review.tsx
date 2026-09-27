@@ -33,9 +33,29 @@ import {
 import { FIELD_MEDIA_CATEGORIES, type FieldMediaCategory } from '../domain/field-media-categories';
 import { resolveQuickCaptureOcrErrorKey } from '../domain/resolve-ocr-error-key';
 import type { DetectedType } from '../domain/types';
+import { displayCostCategoryName } from '@/modules/expenses/domain/cost-category-display';
 import { QuickCaptureGallery } from './quick-capture-gallery';
 import { QuickCaptureProjectSelect } from './quick-capture-project-select';
 import { QuickCaptureVideoPreview } from './quick-capture-video-preview';
+
+type FinancialExpenseMode = 'project' | 'company';
+
+function resolveFinancialApprovalHref(
+  routedEntityType: string | null | undefined,
+  routedEntityId: string | null | undefined,
+): string | null {
+  if (!routedEntityType || !routedEntityId) return null;
+  switch (routedEntityType) {
+    case 'expense':
+      return `/expenses/${routedEntityId}?quickCaptureApproved=1`;
+    case 'vendor_bill':
+      return `/procurement/ap/${routedEntityId}?quickCaptureApproved=1`;
+    case 'vendor_credit':
+      return `/procurement/ap/credits/${routedEntityId}?quickCaptureApproved=1`;
+    default:
+      return null;
+  }
+}
 
 const OCR_SLOW_MS = 45_000;
 
@@ -71,6 +91,7 @@ export function QuickCaptureReview({
   readonly initialData: CaptureReviewData;
 }) {
   const t = useTranslations('quickCapture');
+  const tExpenses = useTranslations('expenses');
   const tOcrErrors = useTranslations('quickCapture.review.ocrErrors');
   const tField = useTranslations('quickCapture.fieldMedia');
   const router = useRouter();
@@ -90,6 +111,11 @@ export function QuickCaptureReview({
   const [projectId, setProjectId] = useState(
     capture.explicitProjectId ?? capture.suggestedProjectId ?? '',
   );
+  const [financialExpenseMode, setFinancialExpenseMode] = useState<FinancialExpenseMode>('company');
+  const [financialProjectId, setFinancialProjectId] = useState(
+    capture.explicitProjectId ?? '',
+  );
+  const [financialCostCategoryId, setFinancialCostCategoryId] = useState('');
   const [category, setCategory] = useState<FieldMediaCategory>('progress');
   const [error, setError] = useState<string | null>(null);
   const [ocrParsing, setOcrParsing] = useState(false);
@@ -165,6 +191,19 @@ export function QuickCaptureReview({
     () => (ocrJob && ownerType === 'financial_document' ? [ocrJob] : []),
     [ocrJob, ownerType],
   );
+
+  const projectCostCategories = useMemo(
+    () =>
+      initialData.costCategories
+        .filter((row) => row.family === 'direct_project')
+        .sort((a, b) => a.sortOrder - b.sortOrder),
+    [initialData.costCategories],
+  );
+
+  const suggestedProjectName = useMemo(() => {
+    if (!capture.suggestedProjectId || capture.explicitProjectId) return null;
+    return initialData.projects.find((project) => project.id === capture.suggestedProjectId)?.name ?? null;
+  }, [capture.explicitProjectId, capture.suggestedProjectId, initialData.projects]);
 
   const handleSelectFinancialDocument = (documentId: string) => {
     setSelectedFinancialDocumentId(documentId);
@@ -244,7 +283,11 @@ export function QuickCaptureReview({
     pending ||
     capture.status !== 'ready_for_review' ||
     (ownerType === 'financial_document' &&
-      (!financialOcrReady || !ocrJob || (isMultiImage && !selectedFinancialDocumentId))) ||
+      (!financialOcrReady ||
+        !ocrJob ||
+        (isMultiImage && !selectedFinancialDocumentId) ||
+        (financialExpenseMode === 'project' &&
+          (!financialProjectId || !financialCostCategoryId)))) ||
     (ownerType === 'field_media' && !projectId) ||
     (ownerType === 'other_document' && !projectId);
 
@@ -263,6 +306,14 @@ export function QuickCaptureReview({
         const result = await approveQuickCaptureAction({
           captureId: capture.id,
           ownerSelectedType: 'financial_document',
+          expenseAssignment:
+            financialExpenseMode === 'project'
+              ? {
+                  mode: 'project',
+                  projectId: financialProjectId,
+                  costCategoryId: financialCostCategoryId,
+                }
+              : { mode: 'company' },
           confirmInput: {
             jobId: ocrJob.id,
             confirm: true,
@@ -272,6 +323,14 @@ export function QuickCaptureReview({
         });
         if (!result.ok) {
           setError(result.error);
+          return;
+        }
+        const destination = resolveFinancialApprovalHref(
+          result.data.routedEntityType,
+          result.data.routedEntityId,
+        );
+        if (destination) {
+          router.push(destination);
           return;
         }
       } else if (ownerType === 'field_media') {
@@ -460,6 +519,83 @@ export function QuickCaptureReview({
             canManageAp={initialData.canManageAp}
             initialSelectedJobId={ocrJob?.id ?? null}
           />
+        ) : null}
+
+        {ownerType === 'financial_document' && financialOcrReady ? (
+          <div className="flex flex-col gap-4 rounded-md border border-[var(--pf-border-default)] p-4">
+            <p className="text-sm font-medium">{t('review.expenseAssignment.title')}</p>
+            <Field label={t('review.expenseAssignment.modeLabel')}>
+              {(control) => (
+                <Select
+                  value={financialExpenseMode}
+                  onValueChange={(value) => setFinancialExpenseMode(value as FinancialExpenseMode)}
+                  disabled={pending}
+                >
+                  <SelectTrigger id={control.id}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="project">{t('review.expenseAssignment.project')}</SelectItem>
+                    <SelectItem value="company">{t('review.expenseAssignment.company')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            </Field>
+
+            {financialExpenseMode === 'project' ? (
+              <>
+                <Field label={t('review.expenseAssignment.projectLabel')}>
+                  {(control) => (
+                    <Select
+                      value={financialProjectId}
+                      onValueChange={setFinancialProjectId}
+                      disabled={pending}
+                    >
+                      <SelectTrigger id={control.id}>
+                        <SelectValue placeholder={t('review.expenseAssignment.projectPlaceholder')} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {initialData.projects.map((project) => (
+                          <SelectItem key={project.id} value={project.id}>
+                            {project.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </Field>
+                {suggestedProjectName ? (
+                  <p className="text-sm text-[var(--pf-text-secondary)]">
+                    {t('review.expenseAssignment.suggestedProject', { name: suggestedProjectName })}
+                  </p>
+                ) : null}
+                <Field label={t('review.expenseAssignment.costCategoryLabel')}>
+                  {(control) => (
+                    <Select
+                      value={financialCostCategoryId}
+                      onValueChange={setFinancialCostCategoryId}
+                      disabled={pending}
+                    >
+                      <SelectTrigger id={control.id}>
+                        <SelectValue placeholder={t('review.expenseAssignment.costCategoryPlaceholder')} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {projectCostCategories.map((row) => (
+                          <SelectItem key={row.id} value={row.id}>
+                            {displayCostCategoryName(row, (key) => tExpenses(key))}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </Field>
+              </>
+            ) : (
+              <p className="text-sm text-[var(--pf-text-secondary)]">
+                {t('review.expenseAssignment.companyHint')}
+              </p>
+            )}
+          </div>
         ) : null}
 
         {ownerType === 'field_media' || ownerType === 'other_document' ? (

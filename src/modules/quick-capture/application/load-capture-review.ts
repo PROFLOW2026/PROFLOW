@@ -8,6 +8,8 @@ import { findDocumentById } from '@/modules/documents/lookups';
 import type { ExtractionJob } from '@/modules/ocr';
 import { getOcrProviderStatus } from '@/modules/ocr/application/provider-status';
 import { getOcrRepository } from '@/modules/ocr';
+import { listCostCategoriesForOrg } from '@/modules/expenses';
+import type { CostCategoryRow } from '@/modules/expenses/domain/types';
 import { listProjectsForOrg } from '@/modules/projects';
 import { listVendorsForOrg } from '@/modules/vendors';
 import { getOrganizationTaxId } from '@/modules/tenancy';
@@ -20,6 +22,7 @@ export type CaptureReviewData = {
   readonly documents: readonly CaptureDocumentDetail[];
   readonly ocrJob: ExtractionJob | null;
   readonly projects: readonly { id: string; name: string }[];
+  readonly costCategories: readonly CostCategoryRow[];
   readonly vendors: readonly { id: string; name: string }[];
   readonly organizationId: string;
   readonly organizationTaxId: string | null;
@@ -63,8 +66,9 @@ export async function loadCaptureReview(
     ? await getOcrRepository(context.db).findJob(context.organizationId, capture.primaryOcrJobId)
     : null;
 
-  const [projects, vendors, organizationTaxId, ocrStatus] = await Promise.all([
+  const [projects, costCategories, vendors, organizationTaxId, ocrStatus] = await Promise.all([
     listProjectsForOrg(context, { status: 'active' }).catch(() => []),
+    listCostCategoriesForOrg(context).catch(() => []),
     listVendorsForOrg(context, { status: 'active' })
       .then((rows) => rows.map((vendor) => ({ id: vendor.id, name: vendor.name })))
       .catch(() => []),
@@ -77,6 +81,7 @@ export async function loadCaptureReview(
     documents,
     ocrJob,
     projects: projects.map((project) => ({ id: project.id, name: project.name })),
+    costCategories,
     vendors,
     organizationId: context.organizationId,
     organizationTaxId,

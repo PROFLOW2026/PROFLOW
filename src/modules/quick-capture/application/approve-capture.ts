@@ -27,9 +27,14 @@ export type ApproveFieldMediaInput = {
   readonly workOrderId?: string | null;
 };
 
+export type FinancialExpenseAssignment =
+  | { readonly mode: 'project'; readonly projectId: string; readonly costCategoryId: string }
+  | { readonly mode: 'company' };
+
 export type ApproveFinancialInput = {
   readonly captureId: string;
   readonly confirmInput: ConfirmOcrCandidateInput;
+  readonly expenseAssignment: FinancialExpenseAssignment;
 };
 
 export type ApproveOtherDocumentInput = {
@@ -182,6 +187,26 @@ export async function approveFinancialCapture(
     throw new DomainRuleError('OCR not ready for confirm', 'quickCapture.errors.ocrNotReady');
   }
 
+  if (input.expenseAssignment.mode === 'project') {
+    if (!input.expenseAssignment.projectId?.trim()) {
+      throw new DomainRuleError('Project is required', 'quickCapture.errors.projectRequired');
+    }
+    if (!input.expenseAssignment.costCategoryId?.trim()) {
+      throw new DomainRuleError(
+        'Cost category is required for project expenses',
+        'quickCapture.errors.costCategoryRequired',
+      );
+    }
+  }
+
+  const ownerRouting =
+    input.expenseAssignment.mode === 'project'
+      ? {
+          ownerProjectId: input.expenseAssignment.projectId,
+          ownerCostCategoryId: input.expenseAssignment.costCategoryId,
+        }
+      : {};
+
   const existingRoute = resolveFinancialDraftRouteFromJob(job);
   let resolvedRoute = existingRoute;
   if (!resolvedRoute) {
@@ -191,6 +216,7 @@ export async function approveFinancialCapture(
     resolvedRoute = resolveFinancialDraftRouteFromConfirmResult(
       await confirmOcrCandidate(context, {
         ...input.confirmInput,
+        ...ownerRouting,
         jobId,
         confirm: true,
       }),
@@ -208,6 +234,17 @@ export async function approveFinancialCapture(
   });
   if (!approved) throw new NotFoundError('Quick capture');
 
+  if (
+    input.expenseAssignment.mode === 'project' &&
+    resolvedRoute.routedEntityType === 'expense'
+  ) {
+    await relocateDocumentToSemanticFolder(context, {
+      documentId: financialDocumentId,
+      projectId: input.expenseAssignment.projectId,
+      semanticFolderType: 'vendor_invoices',
+    });
+  }
+
   await recordAuditEvent(context, {
     action: AUDIT_ACTIONS.APPROVED,
     entityType: 'quick_capture',
@@ -218,6 +255,9 @@ export async function approveFinancialCapture(
       draftTarget: resolvedRoute.routedEntityType,
       draftId: resolvedRoute.routedEntityId,
       reconciledExistingDraft: existingRoute != null,
+      expenseAssignment: input.expenseAssignment.mode,
+      projectId:
+        input.expenseAssignment.mode === 'project' ? input.expenseAssignment.projectId : null,
     },
   });
 
@@ -301,9 +341,16 @@ export async function approveCapture(
       if (!input.confirmInput) {
         throw new DomainRuleError('OCR confirm required', 'quickCapture.errors.ocrConfirmRequired');
       }
+      if (!input.expenseAssignment) {
+        throw new DomainRuleError(
+          'Expense assignment is required',
+          'quickCapture.errors.expenseAssignmentRequired',
+        );
+      }
       return approveFinancialCapture(context, {
         captureId: input.captureId,
         confirmInput: input.confirmInput,
+        expenseAssignment: input.expenseAssignment,
       });
     case 'other_document':
       if (!input.ownerType || !input.ownerId) {

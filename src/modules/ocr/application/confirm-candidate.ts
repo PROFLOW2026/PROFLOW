@@ -57,6 +57,31 @@ export type CreateExpenseFn = (
   input: CreateExpenseInput,
 ) => Promise<{ id: string }>;
 
+/** Applies explicit owner routing from Quick Capture review — never OCR-mapped IDs. */
+function applyOwnerExpenseRouting(
+  expenseInput: CreateExpenseInput,
+  confirmInput: ConfirmOcrCandidateInput,
+): CreateExpenseInput {
+  const projectId = confirmInput.ownerProjectId?.trim() || null;
+  const costCategoryId = confirmInput.ownerCostCategoryId?.trim() || null;
+  if (!projectId) {
+    return expenseInput;
+  }
+  if (!costCategoryId) {
+    throw new DomainRuleError(
+      'Cost category is required for project expenses',
+      'quickCapture.errors.costCategoryRequired',
+    );
+  }
+  return {
+    ...expenseInput,
+    projectId,
+    costCategoryId,
+    costFamily: 'direct_project',
+    allocationIntent: 'project_allocate',
+  };
+}
+
 export type ConfirmOcrCandidateResult =
   | {
       readonly kind: 'mapped';
@@ -434,7 +459,7 @@ export async function confirmOcrCandidate(
 
   const create = deps.createExpense ?? createExpense;
   // createExpense always inserts status `draft` - never finalized from OCR.
-  const created = await create(context, expenseInput);
+  const created = await create(context, applyOwnerExpenseRouting(expenseInput, input));
 
   await assertExpenseSameOrg(context, created.id);
   await linkSourceDocument(context, job.sourceDocument.documentId, 'expense', created.id);

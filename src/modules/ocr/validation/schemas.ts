@@ -60,6 +60,10 @@ export const confirmOcrCandidateSchema = z
     rememberProjectId: z.string().uuid().optional().nullable(),
     rememberPurchaseOrderId: z.string().uuid().optional().nullable(),
     rememberSubcontractAgreementId: z.string().uuid().optional().nullable(),
+    /** Explicit owner project selection from Quick Capture review — never from OCR text. */
+    ownerProjectId: z.string().uuid().optional().nullable(),
+    /** Explicit owner cost category when ownerProjectId is set. */
+    ownerCostCategoryId: z.string().uuid().optional().nullable(),
     /**
      * Fields the reviewer explicitly accepts for mapping.
      * Empty → domain refuses (OCR is never auto-canonical).

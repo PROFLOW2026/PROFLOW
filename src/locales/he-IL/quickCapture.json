@@ -34,7 +34,10 @@
     "tooManyFiles": "מותר קובץ אחד בלבד בקליטה.",
     "unsupportedMime": "סוג הקובץ אינו נתמך.",
     "unsupportedApprovalType": "בחרו סוג מסמך לפני האישור.",
-    "duplicateSession": "קליטה זו כבר נשלחה."
+    "duplicateSession": "קליטה זו כבר נשלחה.",
+    "projectRequired": "יש לבחור פרויקט.",
+    "costCategoryRequired": "יש לבחור קטגוריית עלות.",
+    "expenseAssignmentRequired": "יש לבחור שיוך הוצאה."
   },
   "inbox": {
     "title": "תיבת קליטה",
@@ -66,6 +69,19 @@
     "selectFinancialDocument": "בחר את המסמך לקריאה",
     "ocrUnavailable": "קורא המסמכים אינו זמין. בחר סוג ידנית",
     "retryOcr": "נסה שוב",
+    "financialApproveSuccess": "המסמך נקלט בהצלחה ונוצרה טיוטת הוצאה",
+    "expenseAssignment": {
+      "title": "שיוך ההוצאה",
+      "modeLabel": "סוג שיוך",
+      "project": "פרויקט",
+      "company": "הוצאה כללית לעסק",
+      "projectLabel": "פרויקט",
+      "projectPlaceholder": "בחר פרויקט",
+      "costCategoryLabel": "קטגוריית עלות",
+      "costCategoryPlaceholder": "בחר קטגוריה",
+      "suggestedProject": "הצעה: {name} — יש לבחור במפורש",
+      "companyHint": "ההוצאה תיווצר כהוצאה כללית לעסק. ניתן לשייך לפרויקטים מאוחר יותר."
+    },
     "ocrErrors": {
       "storageDownload": "לא ניתן להוריד את הקובץ מאחסון OneDrive. בדוק את החיבור ונסה שוב.",
       "storageDisconnected": "שירות האחסון מנותק. חבר מחדש את OneDrive ונסה שוב.",

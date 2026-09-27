@@ -15,6 +15,9 @@ const assertCaptureSessionDocument = vi.fn<
 const confirmOcrCandidate = vi.fn<
   typeof import('@/modules/ocr/application/confirm-candidate').confirmOcrCandidate
 >();
+const relocateDocumentToSemanticFolder = vi.fn<
+  typeof import('@/modules/external-storage/application/relocate-document-file').relocateDocumentToSemanticFolder
+>();
 const findJob = vi.fn<(organizationId: string, jobId: string) => Promise<ExtractionJob | null>>();
 
 vi.mock('@/modules/quick-capture/data/quick-capture.repository', () => ({
@@ -40,6 +43,11 @@ vi.mock('@/modules/ocr', () => ({
   getOcrRepository: () => ({ findJob }),
 }));
 
+vi.mock('@/modules/external-storage/application/relocate-document-file', () => ({
+  relocateDocumentToSemanticFolder: (...args: Parameters<typeof relocateDocumentToSemanticFolder>) =>
+    relocateDocumentToSemanticFolder(...args),
+}));
+
 vi.mock('@/shared/audit', () => ({
   AUDIT_ACTIONS: { APPROVED: 'approved' },
   recordAuditEvent: vi.fn(async () => undefined),
@@ -51,6 +59,8 @@ const captureId = '01900000-0000-7000-8000-000000000101';
 const jobId = '01900000-0000-7000-8000-000000000201';
 const documentId = '01900000-0000-7000-8000-000000000301';
 const expenseId = '01900000-0000-7000-8000-000000000401';
+const projectId = '01900000-0000-7000-8000-000000000501';
+const costCategoryId = '01900000-0000-7000-8000-000000000601';
 
 function context(): OrgContext {
   return {
@@ -185,10 +195,12 @@ describe('approveFinancialCapture', () => {
 
     await approveFinancialCapture(context(), {
       captureId,
+      expenseAssignment: { mode: 'company' },
       confirmInput: { jobId, confirm: true, draftTarget: 'expense', acceptedFields: [] },
     });
 
     expect(confirmOcrCandidate).not.toHaveBeenCalled();
+    expect(relocateDocumentToSemanticFolder).not.toHaveBeenCalled();
     expect(updateCaptureItem).toHaveBeenCalledWith(
       expect.anything(),
       'org-1',
@@ -226,10 +238,12 @@ describe('approveFinancialCapture', () => {
 
     await approveFinancialCapture(context(), {
       captureId,
+      expenseAssignment: { mode: 'company' },
       confirmInput: { jobId, confirm: true, draftTarget: 'expense', acceptedFields: [] },
     });
 
     expect(confirmOcrCandidate).toHaveBeenCalledOnce();
+    expect(relocateDocumentToSemanticFolder).not.toHaveBeenCalled();
     expect(updateCaptureItem).toHaveBeenCalledWith(
       expect.anything(),
       'org-1',
@@ -237,6 +251,53 @@ describe('approveFinancialCapture', () => {
       expect.objectContaining({
         routedEntityType: 'expense',
         routedEntityId: expenseId,
+      }),
+    );
+  });
+
+  it('passes owner project routing to confirm and relocates vendor invoice folder', async () => {
+    confirmOcrCandidate.mockResolvedValue({
+      kind: 'created',
+      draftTarget: 'expense',
+      expenseId,
+      job: baseJob({
+        status: 'succeeded',
+        reviewStatus: 'accepted',
+        confirmedExpenseId: expenseId,
+        confirmedDraftTarget: 'expense',
+      }),
+      expenseInput: {} as never,
+      expenseDraft: {} as never,
+      draft: {} as never,
+    });
+    updateCaptureItem.mockResolvedValue(
+      baseCapture({
+        status: 'approved',
+        routedEntityType: 'expense',
+        routedEntityId: expenseId,
+      }),
+    );
+    relocateDocumentToSemanticFolder.mockResolvedValue({} as never);
+
+    await approveFinancialCapture(context(), {
+      captureId,
+      expenseAssignment: { mode: 'project', projectId, costCategoryId },
+      confirmInput: { jobId, confirm: true, draftTarget: 'expense', acceptedFields: [] },
+    });
+
+    expect(confirmOcrCandidate).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        ownerProjectId: projectId,
+        ownerCostCategoryId: costCategoryId,
+      }),
+    );
+    expect(relocateDocumentToSemanticFolder).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        documentId,
+        projectId,
+        semanticFolderType: 'vendor_invoices',
       }),
     );
   });

@@ -34,7 +34,10 @@
     "tooManyFiles": "Only one file is allowed per capture.",
     "unsupportedMime": "This file type is not supported.",
     "unsupportedApprovalType": "Choose a document type before approving.",
-    "duplicateSession": "This capture was already submitted."
+    "duplicateSession": "This capture was already submitted.",
+    "projectRequired": "Select a project.",
+    "costCategoryRequired": "Select a cost category.",
+    "expenseAssignmentRequired": "Select an expense assignment."
   },
   "inbox": {
     "title": "Smart inbox",
@@ -66,6 +69,19 @@
     "selectFinancialDocument": "Select the document to read",
     "ocrUnavailable": "Document reader is unavailable — choose a type manually",
     "retryOcr": "Try again",
+    "financialApproveSuccess": "The document was captured successfully and an expense draft was created",
+    "expenseAssignment": {
+      "title": "Expense assignment",
+      "modeLabel": "Assignment type",
+      "project": "Project",
+      "company": "General business expense",
+      "projectLabel": "Project",
+      "projectPlaceholder": "Select a project",
+      "costCategoryLabel": "Cost category",
+      "costCategoryPlaceholder": "Select a category",
+      "suggestedProject": "Suggestion: {name} — select explicitly to apply",
+      "companyHint": "The expense will be created as a general business expense. You can assign projects later."
+    },
     "ocrErrors": {
       "storageDownload": "Could not download the file from connected storage. Check the connection and try again.",
       "storageDisconnected": "File storage is disconnected. Reconnect OneDrive and try again.",

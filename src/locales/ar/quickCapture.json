@@ -34,7 +34,10 @@
     "tooManyFiles": "يُسمح بملف واحد فقط في التقاط.",
     "unsupportedMime": "نوع الملف غير مدعوم.",
     "unsupportedApprovalType": "اختر نوع المستند قبل الاعتماد.",
-    "duplicateSession": "تم إرسال هذا الالتقاط مسبقًا."
+    "duplicateSession": "تم إرسال هذا الالتقاط مسبقًا.",
+    "projectRequired": "اختر مشروعًا.",
+    "costCategoryRequired": "اختر فئة تكلفة.",
+    "expenseAssignmentRequired": "اختر تخصيص المصروف."
   },
   "inbox": {
     "title": "صندوق الالتقاط",
@@ -66,6 +69,19 @@
     "selectFinancialDocument": "اختر المستند للقراءة",
     "ocrUnavailable": "قارئ المستندات غير متاح — اختر النوع يدويًا",
     "retryOcr": "حاول مرة أخرى",
+    "financialApproveSuccess": "تم استلام المستند بنجاح وتم إنشاء مسودة مصروف",
+    "expenseAssignment": {
+      "title": "تخصيص المصروف",
+      "modeLabel": "نوع التخصيص",
+      "project": "مشروع",
+      "company": "مصروف عام للأعمال",
+      "projectLabel": "مشروع",
+      "projectPlaceholder": "اختر مشروعًا",
+      "costCategoryLabel": "فئة التكلفة",
+      "costCategoryPlaceholder": "اختر فئة",
+      "suggestedProject": "اقتراح: {name} — يجب الاختيار صراحةً",
+      "companyHint": "سيُنشأ المصروف كمصروف عام للأعمال. يمكنك تخصيص المشاريع لاحقًا."
+    },
     "ocrErrors": {
       "storageDownload": "تعذّر تنزيل الملف من التخزين المتصل. تحقق من الاتصال وحاول مرة أخرى.",
       "storageDisconnected": "خدمة التخزين غير متصلة. أعد ربط OneDrive وحاول مرة أخرى.",

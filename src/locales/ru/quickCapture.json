@@ -34,7 +34,10 @@
     "tooManyFiles": "В одном захвате допускается только один файл.",
     "unsupportedMime": "Этот тип файла не поддерживается.",
     "unsupportedApprovalType": "Выберите тип документа перед утверждением.",
-    "duplicateSession": "Этот захват уже был отправлен."
+    "duplicateSession": "Этот захват уже был отправлен.",
+    "projectRequired": "Выберите проект.",
+    "costCategoryRequired": "Выберите категорию затрат.",
+    "expenseAssignmentRequired": "Выберите привязку расхода."
   },
   "inbox": {
     "title": "Умный inbox",
@@ -66,6 +69,19 @@
     "selectFinancialDocument": "Выберите документ для чтения",
     "ocrUnavailable": "Считыватель документов недоступен — выберите тип вручную",
     "retryOcr": "Повторить",
+    "financialApproveSuccess": "Документ успешно принят, создан черновик расхода",
+    "expenseAssignment": {
+      "title": "Привязка расхода",
+      "modeLabel": "Тип привязки",
+      "project": "Проект",
+      "company": "Общий расход бизнеса",
+      "projectLabel": "Проект",
+      "projectPlaceholder": "Выберите проект",
+      "costCategoryLabel": "Категория затрат",
+      "costCategoryPlaceholder": "Выберите категорию",
+      "suggestedProject": "Предложение: {name} — выберите явно для применения",
+      "companyHint": "Расход будет создан как общий расход бизнеса. Проекты можно назначить позже."
+    },
     "ocrErrors": {
       "storageDownload": "Не удалось загрузить файл из подключённого хранилища. Проверьте подключение и повторите попытку.",
       "storageDisconnected": "Хранилище отключено. Переподключите OneDrive и повторите попытку.",

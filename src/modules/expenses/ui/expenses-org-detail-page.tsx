@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { MoneyText } from '@/components/patterns/money-text';
+import { Alert } from '@/components/ui/alert';
 import { PageHeader } from '@/components/ui/page-header';
 import { ContextualBackLink } from '@/components/ui/contextual-back-link';
 import { StatusBadge } from '@/components/ui/status-badge';
@@ -64,9 +65,11 @@ export async function ExpensesOrgDetailPage({
 }: ExpensesOrgDetailPageProps) {
   const rawReturnTo =
     typeof rawSearchParams.returnTo === 'string' ? rawSearchParams.returnTo : undefined;
+  const quickCaptureApproved = rawSearchParams.quickCaptureApproved === '1';
   const backNavigation = resolveExpenseBackNavigation(rawReturnTo, routeBase);
   const vendorsRouteBase = routeBase.startsWith('/employee') ? '/employee/vendors' : '/vendors';
   const t = await getTranslations('expenses');
+  const tQuickCapture = await getTranslations('quickCapture');
   const tCommon = await getTranslations('common');
   const tStatus = await getTranslations('status');
   const locale = await getLocale();
@@ -216,6 +219,12 @@ export async function ExpensesOrgDetailPage({
           </ContextualBackLink>
         }
       />
+
+      {quickCaptureApproved ? (
+        <Alert tone="success" role="status">
+          {tQuickCapture('review.financialApproveSuccess')}
+        </Alert>
+      ) : null}
 
       {detailAttention ? <ExpenseDetailAttentionPanel attention={detailAttention} /> : null}
 

@@ -223,12 +223,20 @@ export async function approveQuickCaptureAction(input: {
   readonly captureId: string;
   readonly ownerSelectedType: 'financial_document' | 'field_media' | 'other_document';
 } & Partial<ApproveFieldMediaInput & ApproveFinancialInput & ApproveOtherDocumentInput>): Promise<
-  QuickCaptureActionResult<{ captureId: string }>
+  QuickCaptureActionResult<{
+    readonly captureId: string;
+    readonly routedEntityType?: string | null;
+    readonly routedEntityId?: string | null;
+  }>
 > {
   try {
     const data = await withOrgContext(async (context) => {
       const approved = await approveCapture(context, input);
-      return { captureId: approved.id };
+      return {
+        captureId: approved.id,
+        routedEntityType: approved.routedEntityType,
+        routedEntityId: approved.routedEntityId,
+      };
     });
     return { ok: true, data };
   } catch (error) {
