@@ -337,8 +337,8 @@ export function QuickCaptureReview({
   );
 
   return (
-    <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] lg:items-start">
-      <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(24rem,30rem)_minmax(0,1fr)] lg:items-start">
+      <div className="flex min-w-0 flex-col gap-4 lg:max-w-[30rem]">
         {capture.sessionKind === 'images' ? (
           <QuickCaptureGallery
             documents={initialData.documents}
@@ -370,7 +370,7 @@ export function QuickCaptureReview({
         ) : null}
       </div>
 
-      <div className="flex flex-col gap-4">
+      <div className="flex min-w-0 flex-col gap-4">
         {error ? (
           <Alert tone="danger" role="alert">
             {error}
