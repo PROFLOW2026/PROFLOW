@@ -2,9 +2,15 @@ export interface DashboardAttentionCounts {
   readonly pendingChangesCount: number;
   readonly unbilledApprovedCount: number;
   readonly overdueBillingCount: number;
+  /** Billing records with external statutory documents where amounts don't reconcile. */
+  readonly reconciliationMismatchCount: number;
 }
 
-export type DashboardAttentionKey = 'overdueBilling' | 'unbilledApproved' | 'pendingChanges';
+export type DashboardAttentionKey =
+  | 'overdueBilling'
+  | 'unbilledApproved'
+  | 'pendingChanges'
+  | 'reconciliationMismatch';
 
 export interface DashboardAttentionItem {
   readonly key: DashboardAttentionKey;
@@ -36,6 +42,13 @@ export function listDashboardAttentionItems(
       key: 'pendingChanges',
       count: attention.pendingChangesCount,
       href: '/changes',
+    });
+  }
+  if (attention.reconciliationMismatchCount > 0) {
+    items.push({
+      key: 'reconciliationMismatch',
+      count: attention.reconciliationMismatchCount,
+      href: '/billing?filter=mismatch',
     });
   }
 

@@ -32,6 +32,9 @@ export {
   acceptSalesQuoteVersion,
 } from './application/sales-quotes';
 
+export { convertCrmQuoteToProductQuote } from './application/convert-crm-quote-to-product-quote';
+export type { ConvertCrmQuoteInput, ConvertCrmQuoteResult } from './application/convert-crm-quote-to-product-quote';
+
 export { convertWonOpportunity } from './application/convert-won-opportunity';
 export type { ConvertWonOpportunityResult } from './application/convert-won-opportunity';
 

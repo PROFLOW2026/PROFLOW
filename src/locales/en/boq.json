@@ -234,7 +234,12 @@
     "agreement": "Subcontract agreement",
     "agreementNone": "No agreement",
     "agreementRetention": "Draft bills will use {percent}% retention unless you override it.",
-    "retentionPercent": "Retention %"
+    "retentionPercent": "Retention %",
+    "reconciliation": {
+      "pending": "AP: pending match",
+      "matched": "AP: matched",
+      "unmatched": "AP: unmatched"
+    }
   },
   "comparison": {
     "title": "BOQ vs financials",

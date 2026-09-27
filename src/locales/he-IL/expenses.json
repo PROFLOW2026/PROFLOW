@@ -538,12 +538,14 @@
   "activityTimeline": {
     "title": "היסטוריית פעילות",
     "actions": {
-      "expense.payment_confirmation_voided": "אישור תשלום בוטל",
-      "expense.payment_confirmed": "תשלום אושר",
-      "expense.finalized": "הוצאה אושרה",
-      "expense.created": "הוצאה נוצרה",
-      "expense.updated": "הוצאה עודכנה",
-      "expense.voided": "הוצאה בוטלה"
+      "expense": {
+        "payment_confirmation_voided": "אישור תשלום בוטל",
+        "payment_confirmed": "תשלום אושר",
+        "finalized": "הוצאה אושרה",
+        "created": "הוצאה נוצרה",
+        "updated": "הוצאה עודכנה",
+        "voided": "הוצאה בוטלה"
+      }
     }
   },
   "overheadHome": {

@@ -8,6 +8,8 @@ import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { listPurchaseOrdersWithCommittedForOrg, type PurchaseOrderStatus } from '@/modules/procurement';
+import { loadMaterialMarketDashboard } from '@/modules/material-market';
+import { MarketPressureContextBanner } from '@/modules/material-market/ui/market-pressure-context-banner';
 import { money } from '@/shared/money/money';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
@@ -52,20 +54,27 @@ export async function ProcurementOrdersOrgListView({
   const locale = await getLocale();
   const isOwner = surface === 'owner';
 
-  const { orders, canManage, canRead } = await withOrgContext(async (context) => {
+  const { orders, canManage, canRead, marketSnapshots } = await withOrgContext(async (context) => {
     const allowed = orgListHasPermission(context, PERMISSIONS.PROCUREMENT_READ, surface);
     if (!allowed) {
       return {
         orders: [] as Awaited<ReturnType<typeof listPurchaseOrdersWithCommittedForOrg>>,
         canManage: false,
         canRead: false,
+        marketSnapshots: [] as Awaited<ReturnType<typeof loadMaterialMarketDashboard>>,
       };
     }
 
+    const [orders, marketSnapshots] = await Promise.all([
+      listPurchaseOrdersWithCommittedForOrg(context),
+      loadMaterialMarketDashboard(context.db).catch(() => []),
+    ]);
+
     return {
-      orders: await listPurchaseOrdersWithCommittedForOrg(context),
+      orders,
       canManage: orgListHasPermission(context, PERMISSIONS.PROCUREMENT_MANAGE, surface),
       canRead: true,
+      marketSnapshots,
     };
   });
 
@@ -107,6 +116,11 @@ export async function ProcurementOrdersOrgListView({
       ) : null}
 
       {isOwner ? <ProcurementSectionNav active="orders" /> : null}
+
+      {/* Market pressure context — indication only, not a forecast */}
+      {marketSnapshots.length > 0 && canRead ? (
+        <MarketPressureContextBanner snapshots={marketSnapshots} />
+      ) : null}
 
       {orders.length === 0 ? (
         <EmptyState

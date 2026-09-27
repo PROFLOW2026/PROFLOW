@@ -187,6 +187,10 @@ export async function createRateVersion(
     workingDaysPerMonth:
       input.rateUnit === 'monthly' ? input.workingDaysPerMonth?.trim() || null : null,
     notes: input.notes ?? null,
+    // When this version supersedes (forward_change) or explicitly corrects a prior
+    // version, record the reference so audit traces the correction chain.
+    correctsRateVersionId:
+      plan.kind === 'forward_change' ? plan.openRateVersionId : null,
   });
 
   const components: LaborCostComponentRecord[] = [];

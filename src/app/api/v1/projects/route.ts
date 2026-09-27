@@ -32,21 +32,14 @@ export async function GET(request: Request) {
     const pagination = parseApiPagination(url.searchParams);
 
     const page = await withApiKeyOrgContext(gated.auth, async (context) => {
-      const projects = await listProjectsForOrg(context, {
+      // Cursor condition is pushed into SQL – no full-table load + JS filter.
+      const slice = await listProjectsForOrg(context, {
         sortBy: 'created_at',
         sortDirection: 'desc',
         includeArchived: false,
+        limit: pagination.limit,
+        createdBefore: pagination.cursor ?? null,
       });
-
-      let filtered = projects;
-      if (pagination.cursor) {
-        const cursorMs = Date.parse(pagination.cursor);
-        if (!Number.isNaN(cursorMs)) {
-          filtered = projects.filter((project) => project.createdAt.getTime() < cursorMs);
-        }
-      }
-
-      const slice = filtered.slice(0, pagination.limit);
       const taskProgressIds = slice
         .filter((project) => project.progressSource === 'tasks')
         .map((project) => project.id);

@@ -447,6 +447,8 @@ export async function ProjectBoqPanel({ projectId, contractId }: ProjectBoqPanel
               periodLabel: valuation.periodLabel,
               status: valuation.status,
               proposedVendorBillId: valuation.proposedVendorBillId,
+              apBillId: valuation.apBillId ?? null,
+              reconciliationStatus: valuation.reconciliationStatus ?? 'pending',
             })),
           }))}
         />

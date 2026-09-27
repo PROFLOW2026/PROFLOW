@@ -81,6 +81,10 @@ export function createExternalDocumentRow(input: {
     requestedAt,
     updatedAt: requestedAt,
     issuedAt: input.issuedAt ?? null,
+    storageReference: null,
+    archivedAt: null,
+    archivePending: false,
+    archiveError: null,
   };
   orgBucket(input.organizationId).set(row.id, row);
   return row;
@@ -103,6 +107,10 @@ export function updateExternalDocumentRow(
     lastErrorCode: string | null;
     lastErrorMessage: string | null;
     issuedAt: string | null;
+    storageReference: string | null;
+    archivedAt: string | null;
+    archivePending: boolean;
+    archiveError: string | null;
   }>,
 ): ExternalStatutoryDocument | null {
   const bucket = orgBucket(organizationId);

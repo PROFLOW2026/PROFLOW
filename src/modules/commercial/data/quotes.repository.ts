@@ -387,6 +387,7 @@ function mapChangeOrder(row: typeof changeOrders.$inferSelect): ChangeOrderRecor
     reversalOfChangeOrderId: row.reversalOfChangeOrderId,
     reversalReason: row.reversalReason,
     reversedByUserId: row.reversedByUserId,
+    billingCondition: (row.billingCondition as import('../domain/types').BillingCondition | null) ?? null,
   };
 }
 

@@ -113,7 +113,14 @@ export type {
 /** Cross-module billing amount rows for safe portal outstanding (not payment write). */
 export { listProjectBillingAmountRows } from './data/billing.repository';
 export {
+  getChangeOrderBilledTotal,
+  getMismatchBillingRecordIds,
+  type ChangeOrderBilledTotal,
+} from './data/billing.repository';
+export {
   findPaymentById,
   listPaidAmountRowsByBillingRecordIds,
   sumUnallocatedReceiptAmounts,
 } from './data/payments.repository';
+
+export type { ChangeOrderBillingStatus } from './domain/types';

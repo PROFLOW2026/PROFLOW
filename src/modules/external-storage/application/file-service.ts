@@ -16,7 +16,9 @@ import { getStorageProviderAdapter } from '../providers/registry';
 import {
   assertOrganizationStorageAvailable,
   resolveValidAccessToken,
+  organizationHasActiveStorage,
 } from './connection-service';
+import { ensureUsablePrimaryStorageConnection } from './reconcile-primary-storage';
 import { resolveSemanticFolderDisplayName, semanticFolderForTaskAttachment } from '../domain/semantic-folders';
 import { resolveUploadFolderId } from './folder-provisioning';
 import { resolveProjectScopedUploadFolderId } from './project-upload-folder';
@@ -555,4 +557,71 @@ export async function refreshExternalFileMetadata(
 
 export function externalStorageBucket(connection: StorageConnectionRecord): string {
   return `external:${connection.provider}`;
+}
+
+/**
+ * Low-level helper: upload raw bytes to a named sub-folder directly under the
+ * org's primary storage root. Does NOT go through the documents abstraction.
+ *
+ * Intended for background archival tasks (e.g. statutory PDF archival) that
+ * must not require a pre-existing documents row. Returns `null` if no primary
+ * storage connection is configured for the org.
+ *
+ * @param context   OrgContext for the organisation performing the upload.
+ * @param input.subfolderName  Name of the direct sub-folder under org root,
+ *                             e.g. `'statutory-documents'`. Created if absent.
+ * @param input.fileName       Target filename in the provider.
+ * @param input.mimeType       MIME type of the bytes being uploaded.
+ * @param input.body           Raw bytes to upload.
+ */
+export async function uploadBytesToOrgStorageFolder(
+  context: OrgContext,
+  input: {
+    subfolderName: string;
+    fileName: string;
+    mimeType: string;
+    body: Uint8Array;
+    sizeBytes: number;
+  },
+): Promise<{ providerFileId: string; webUrl: string | null } | null> {
+  // Resolve primary storage — return null (not throw) if unconfigured.
+  const primary = await ensureUsablePrimaryStorageConnection(context.db, context.organizationId);
+  if (!organizationHasActiveStorage(primary)) return null;
+  const connection = primary!;
+
+  const accessToken = await resolveValidAccessToken(context.db, context.organizationId, connection);
+  const adapter = getStorageProviderAdapter(connection.provider);
+
+  // Find the organisation root folder (best-effort; fall back to provider root).
+  const orgRootMapping = await findFolderMapping(context.db, {
+    organizationId: context.organizationId,
+    connectionId: connection.id,
+    semanticFolderType: 'organization_root',
+  });
+  const orgRootId = orgRootMapping?.status === 'ready' && orgRootMapping.externalFolderId
+    ? orgRootMapping.externalFolderId
+    : 'root';
+
+  // Find or create the target sub-folder.
+  let targetFolder = await adapter.getChildFolderByName?.(accessToken, orgRootId, input.subfolderName) ?? null;
+  if (!targetFolder) {
+    targetFolder = await adapter.createFolder(accessToken, {
+      name: input.subfolderName,
+      parentId: orgRootId,
+    });
+  }
+
+  // Upload the bytes.
+  const uploaded = await adapter.uploadFile(accessToken, {
+    parentFolderId: targetFolder.id,
+    fileName: input.fileName,
+    mimeType: input.mimeType,
+    body: input.body,
+    sizeBytes: input.sizeBytes,
+  });
+
+  return {
+    providerFileId: uploaded.id,
+    webUrl: uploaded.webUrl ?? null,
+  };
 }

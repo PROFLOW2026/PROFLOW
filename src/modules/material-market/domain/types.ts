@@ -1,4 +1,4 @@
-export const MATERIAL_TRADES = ['electrical', 'plumbing', 'steel_rebar'] as const;
+export const MATERIAL_TRADES = ['electrical', 'plumbing', 'steel_rebar', 'concrete'] as const;
 export type MaterialTrade = (typeof MATERIAL_TRADES)[number];
 
 export const PRESSURE_DIRECTIONS = [

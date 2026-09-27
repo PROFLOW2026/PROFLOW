@@ -132,7 +132,7 @@ export const paymentIdSchema = z.object({
 });
 
 export const listBillingRecordsSchema = z.object({
-  filter: z.enum(['all', 'paid', 'outstanding', 'overdue']).optional(),
+  filter: z.enum(['all', 'paid', 'outstanding', 'overdue', 'mismatch']).optional(),
   projectId: z.string().uuid().optional(),
   clientId: z.string().uuid().optional(),
   contractId: z.string().uuid().optional(),

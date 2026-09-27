@@ -65,6 +65,11 @@ export interface QuoteRecord {
   readonly convertedProjectId: string | null;
   /** Optional CRM opportunity. Convert-won uses this row, not crm_sales_quotes. */
   readonly opportunityId: string | null;
+  /**
+   * ID of the CRM sales quote this product quote was created from (Task 1 conversion).
+   * Null for manually created quotes.
+   */
+  readonly sourceCrmQuoteId: string | null;
   readonly convertedAt: Date | null;
   readonly sentAt: Date | null;
   readonly decidedAt: Date | null;

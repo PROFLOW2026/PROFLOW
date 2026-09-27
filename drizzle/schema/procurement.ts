@@ -37,12 +37,23 @@ export const materialItems = pgTable(
     defaultUnitPrice: moneyAmount('default_unit_price'),
     currency: currencyCode(),
     notes: text('notes'),
+    /**
+     * Material trade category. Drives the supplier signal in the market pressure score.
+     * Set per-item to tag vendor prices with a trade for trend analysis.
+     * Added in migration 0138.
+     */
+    trade: text('trade'),
     archivedAt: archivedAt(),
     ...timestamps(),
   },
   (table) => [
     uniqueIndex('material_items_id_organization_id_uq').on(table.id, table.organizationId),
     index('material_items_org_idx').on(table.organizationId),
+    index('material_items_trade_idx').on(table.trade),
+    check(
+      'material_items_trade_known',
+      sql`${table.trade} IS NULL OR ${table.trade} IN ('electrical', 'plumbing', 'steel_rebar', 'concrete')`,
+    ),
   ],
 );
 

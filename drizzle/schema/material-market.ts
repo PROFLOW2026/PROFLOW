@@ -41,7 +41,7 @@ export const materialMarketSources = pgTable(
     index('material_market_sources_active_idx').on(table.isActive, table.code),
     check(
       'material_market_sources_trade_known',
-      sql`${table.trade} IS NULL OR ${table.trade} IN ('electrical', 'plumbing', 'steel_rebar')`,
+      sql`${table.trade} IS NULL OR ${table.trade} IN ('electrical', 'plumbing', 'steel_rebar', 'concrete')`,
     ),
     check(
       'material_market_sources_source_type_known',
@@ -118,7 +118,7 @@ export const materialPressureSnapshots = pgTable(
     index('material_pressure_snapshots_trade_date_idx').on(table.trade, table.snapshotDate),
     check(
       'material_pressure_snapshots_trade_known',
-      sql`${table.trade} IN ('electrical', 'plumbing', 'steel_rebar')`,
+      sql`${table.trade} IN ('electrical', 'plumbing', 'steel_rebar', 'concrete')`,
     ),
     check(
       'material_pressure_snapshots_direction_known',

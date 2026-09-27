@@ -10,8 +10,28 @@ import type { GlobalSearchKind } from './types';
 export const GLOBAL_SEARCH_KIND_CAP = 8;
 
 /**
- * Kinds the dispatcher actually queries. Other `GLOBAL_SEARCH_KINDS` stay
- * in the dialog catalog until a bounded query exists for them.
+ * Kinds the dispatcher actually queries (have a bounded SQL search function).
+ *
+ * ── Implemented (12) ──────────────────────────────────────────────────────
+ *   client, vendor, project, task, billing, bill, quote, document,
+ *   employee, contract, expense, purchase_order
+ *
+ * ── Pending / in progress ─────────────────────────────────────────────────
+ *   safety  (Agent 8 — add search function + fetchSafetyHits here when done)
+ *
+ * ── Not yet implemented (21 catalog-only kinds) ───────────────────────────
+ *   job, work_order, contact, vendor_credit, opportunity, subcontract,
+ *   asset, inventory_item, material, boq_item, daily_log, punch,
+ *   inspection, warranty, communication, calendar_event, closeout,
+ *   billing_plan, billing_cycle, recurring_draft, approval
+ *
+ * Catalog-only kinds live in GLOBAL_SEARCH_KINDS for type-safety and
+ * display ordering only. `groupSearchHits` filters out empty groups, so no
+ * un-implemented kind ever surfaces in search results.
+ *
+ * To activate a kind: add a search fn in search.repository.ts, wire a
+ * fetchXxxHits call in global-search.ts/fetchAllowedHits, and append the
+ * kind here with its required permission in SEARCH_KIND_PERMISSION.
  */
 export const QUERIED_SEARCH_KINDS = [
   'client',
@@ -24,6 +44,8 @@ export const QUERIED_SEARCH_KINDS = [
   'document',
   'employee',
   'contract',
+  'expense',
+  'purchase_order',
 ] as const satisfies readonly GlobalSearchKind[];
 
 export type QueriedSearchKind = (typeof QUERIED_SEARCH_KINDS)[number];
@@ -40,6 +62,8 @@ export const SEARCH_KIND_PERMISSION: Record<QueriedSearchKind, PermissionKey> = 
   document: PERMISSIONS.DOCUMENTS_READ,
   employee: PERMISSIONS.WORKFORCE_READ,
   contract: PERMISSIONS.CONTRACTS_READ,
+  expense: PERMISSIONS.EXPENSES_READ,
+  purchase_order: PERMISSIONS.PROCUREMENT_READ,
 };
 
 export function kindsVisibleToPermissions(

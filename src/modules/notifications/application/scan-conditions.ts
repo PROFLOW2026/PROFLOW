@@ -67,6 +67,7 @@ import {
   listDueTaskRemindersForScan,
   listOverdueSafetyActions,
   listPendingBoqProgressBatches,
+  listUnmatchedBoqValuations,
   listSubmittedTimesheets,
   type ScanEntity,
 } from '../data/scan-sources.repository';
@@ -746,6 +747,34 @@ async function scanBillingPlanMilestonesDue(
   return { emitted, resolved };
 }
 
+async function scanUnmatchedBoqValuations(ctx: ScannerContext): Promise<{ emitted: number; resolved: number }> {
+  if (
+    !hasPermission(ctx.context, PERMISSIONS.BOQ_READ) &&
+    !hasPermission(ctx.context, PERMISSIONS.PROJECTS_READ)
+  ) {
+    return { emitted: 0, resolved: 0 };
+  }
+  const entities = await listUnmatchedBoqValuations(
+    ctx.context.db,
+    ctx.context.organizationId,
+    ctx.cap,
+  );
+  const emitted = await emitLive(
+    ctx,
+    'boq_awaiting_approval',
+    'boq_subcontractor_valuation',
+    'warning',
+    entities,
+    (entity) => permissionRecipients(ctx, PERMISSIONS.BOQ_READ, entity),
+  );
+  const resolved = await resolveStaleForType(
+    ctx,
+    'boq_awaiting_approval',
+    new Set(entities.map((row) => row.id)),
+  );
+  return { emitted, resolved };
+}
+
 async function scanBillingPlanRetentionHeld(
   ctx: ScannerContext,
 ): Promise<{ emitted: number; resolved: number }> {
@@ -809,6 +838,7 @@ const SCANNERS: readonly {
   { key: 'billing_plan_cycle_draft', run: scanBillingPlanDraftCycles },
   { key: 'billing_plan_milestone_due', run: scanBillingPlanMilestonesDue },
   { key: 'billing_plan_retention_held', run: scanBillingPlanRetentionHeld },
+  { key: 'boq_valuation_unmatched', run: scanUnmatchedBoqValuations },
 ];
 
 async function buildScannerContext(

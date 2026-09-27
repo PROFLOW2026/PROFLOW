@@ -1,5 +1,6 @@
 import { sql } from 'drizzle-orm';
 import {
+  boolean,
   check,
   foreignKey,
   index,
@@ -55,6 +56,17 @@ export const externalStatutoryDocuments = pgTable(
     updatedAt: updatedAt(),
     issuedAt: timestamp('issued_at', { withTimezone: true, mode: 'date' }),
     createdBy: uuid('created_by').references(() => profiles.id, { onDelete: 'set null' }),
+    /** Provider file ID or web URL once the PDF has been archived to external storage. */
+    storageReference: text('storage_reference'),
+    /** Timestamp when PDF archival to external storage completed. */
+    archivedAt: timestamp('archived_at', { withTimezone: true, mode: 'date' }),
+    /**
+     * TRUE when an archival was attempted (or deferred) but has not yet
+     * completed successfully. The daily ops-worker retries these.
+     */
+    archivePending: boolean('archive_pending').notNull().default(false),
+    /** Last archival failure reason; cleared on success. */
+    archiveError: text('archive_error'),
   },
   (table) => [
     index('idx_ext_stat_docs_org_billing').on(table.organizationId, table.billingRecordId),

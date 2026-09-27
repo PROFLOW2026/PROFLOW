@@ -38,6 +38,7 @@
     "billing_plan_retention_held": "حجز محتجز للإفراج",
     "action_required": "إجراء مطلوب",
     "task_assigned_to_you": "تم إسناد مهمة إليك",
+    "task_comment_mention": "تعليق جديد على مهمتك",
     "capture_needs_review": "التقاط بانتظار المراجعة"
   },
   "copy": {
@@ -104,6 +105,12 @@
       "titleWithReference": "تم إسناد مهمة - {reference}",
       "titleDefault": "تم إسناد مهمة إليك",
       "body": "أُضيفت كمُكلف على هذه المهمة."
+    },
+    "task_comment_mention": {
+      "titleWithReference": "تعليق جديد على المهمة - {reference}",
+      "titleDefault": "تعليق جديد على مهمتك",
+      "bodyDefault": "أُضيف تعليق على مهمة مُسندة إليك.",
+      "bodyWithExtra": "{extra}"
     },
     "low_stock": {
       "titleWithReference": "مخزون منخفض - {reference}",

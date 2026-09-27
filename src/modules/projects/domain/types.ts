@@ -229,6 +229,12 @@ export interface ProjectListFilters {
   readonly sortDirection?: SortDirection;
   readonly limit?: number;
   readonly offset?: number;
+  /**
+   * Cursor-based pagination: only return rows with `created_at` strictly
+   * before this ISO-8601 timestamp. Pushed to the SQL WHERE clause so we
+   * never load the full table and filter in JS.
+   */
+  readonly createdBefore?: string | null;
 }
 
 export interface ProjectListItem extends ProjectRecord {

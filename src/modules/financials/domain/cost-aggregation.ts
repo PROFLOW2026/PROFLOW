@@ -41,6 +41,18 @@ export interface ProjectExpenseContribution {
   readonly vendorType?: string | null;
   /** Expense classification review state for Owner bucket (needs_classification → other). */
   readonly classificationStatus?: string | null;
+  /**
+   * Cost code attribution for budget-line mapping (migration 0141).
+   * Carries the allocation-line costCodeId when present, otherwise the header costCodeId.
+   * Never guessed — only set when both sides carry the same catalog entry.
+   */
+  readonly costCodeId?: string | null;
+  /**
+   * Pre-computed base-currency (ILS) equivalent of netAmount for FX expenses.
+   * Present only when the operator recorded an exchange rate at time of entry.
+   * When set, the aggregation engine uses this value instead of excluding the expense.
+   */
+  readonly ilsEquivalentNetAmount?: string | null;
 }
 
 export interface LaborCostContribution {
@@ -178,9 +190,22 @@ export function aggregateProjectCosts(
   let vendorActual = zeroMoney(currency);
 
   for (const line of contributions) {
+    // Resolve the monetary amount in the project's base currency.
+    // FX expenses: use pre-recorded ILS equivalent when available; otherwise exclude.
+    let amount: MoneyValue | null;
     if (line.currency.toUpperCase() !== normalizedCurrency) {
-      excludedForeignCurrencyExpenses += 1;
-      continue;
+      if (line.ilsEquivalentNetAmount) {
+        amount = fromNumericString(line.ilsEquivalentNetAmount, normalizedCurrency);
+      } else {
+        amount = null;
+      }
+      if (!amount) {
+        excludedForeignCurrencyExpenses += 1;
+        continue;
+      }
+    } else {
+      amount = fromNumericString(line.amount, line.currency);
+      if (!amount) continue;
     }
 
     if (
@@ -195,9 +220,6 @@ export function aggregateProjectCosts(
       excludedLaborCategoryForWorkforce += 1;
       continue;
     }
-
-    const amount = fromNumericString(line.amount, line.currency);
-    if (!amount) continue;
 
     const family = familyKeyFromDb(line.costFamily);
     byFamily[family] = addMoney(byFamily[family]!, amount);

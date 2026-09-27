@@ -18,6 +18,8 @@ import {
   contractSearchHref,
   documentSearchHref,
   employeeSearchHref,
+  expenseSearchHref,
+  purchaseOrderSearchHref,
   quoteSearchHref,
   taskSearchHref,
   vendorSearchHref,
@@ -38,7 +40,9 @@ import {
   searchContracts,
   searchDocuments,
   searchEmployees,
+  searchExpenses,
   searchProjects,
+  searchPurchaseOrders,
   searchQuotes,
   searchTasks,
   searchVendors,
@@ -303,6 +307,48 @@ async function fetchContractHits(
   }));
 }
 
+async function fetchExpenseHits(
+  context: OrgContext,
+  query: string,
+  limit: number,
+): Promise<GlobalSearchHit[]> {
+  if (!hasPermission(context, PERMISSIONS.EXPENSES_READ)) return [];
+  const hits = await searchExpenses(context.db, context.organizationId, query, limit);
+  return hits.map((hit) => ({
+    kind: 'expense' as const,
+    id: hit.id,
+    title: hit.description || hit.supplierName || hit.expenseDate,
+    subtitle: hit.supplierName,
+    href: expenseSearchHref(hit.id),
+    status: hit.status,
+    date: hit.expenseDate,
+    amount: hit.netAmount,
+    currency: hit.currency,
+  }));
+}
+
+async function fetchPurchaseOrderHits(
+  context: OrgContext,
+  query: string,
+  limit: number,
+): Promise<GlobalSearchHit[]> {
+  if (!hasPermission(context, PERMISSIONS.PROCUREMENT_READ)) return [];
+  const hits = await searchPurchaseOrders(context.db, context.organizationId, query, limit);
+  return hits.map((hit) => {
+    const reference = hit.reference?.trim() || null;
+    return {
+      kind: 'purchase_order' as const,
+      id: hit.id,
+      title: reference || hit.vendorName,
+      subtitle: reference ? hit.vendorName : null,
+      href: purchaseOrderSearchHref(hit.id),
+      status: hit.status,
+      amount: hit.committedAmount,
+      currency: hit.currency,
+    };
+  });
+}
+
 async function fetchAllowedHits(
   context: OrgContext,
   query: string,
@@ -323,6 +369,8 @@ async function fetchAllowedHits(
   if (kinds.has('document')) jobs.push(fetchDocumentHits(context, query, limit, scope));
   if (kinds.has('employee')) jobs.push(fetchEmployeeHits(context, query, limit));
   if (kinds.has('contract')) jobs.push(fetchContractHits(context, query, limit, scope));
+  if (kinds.has('expense')) jobs.push(fetchExpenseHits(context, query, limit));
+  if (kinds.has('purchase_order')) jobs.push(fetchPurchaseOrderHits(context, query, limit));
 
   const lists = await Promise.all(jobs);
   return lists.flat();

@@ -100,6 +100,7 @@ describe('dashboard attention routes', () => {
       overdueBillingCount: 1,
       unbilledApprovedCount: 3,
       pendingChangesCount: 2,
+      reconciliationMismatchCount: 0,
     });
 
     expect(items).toHaveLength(3);
@@ -114,6 +115,7 @@ describe('dashboard attention routes', () => {
         overdueBillingCount: 0,
         unbilledApprovedCount: 0,
         pendingChangesCount: 0,
+        reconciliationMismatchCount: 0,
       }),
     ).toEqual([]);
   });

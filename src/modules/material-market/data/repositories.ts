@@ -1,15 +1,18 @@
 import 'server-only';
-import { and, desc, eq, gte, inArray } from 'drizzle-orm';
+import { and, desc, eq, gte, inArray, isNotNull, sql } from 'drizzle-orm';
 import {
   materialMarketObservations,
   materialMarketSources,
   materialPressureSnapshots,
+  materialVendorPrices,
+  materialItems,
 } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 import { MIN_COVERAGE_FOR_DISPLAY } from '../domain/methodology';
 import type { MaterialTrade, MonthlySeries, TradeSnapshotRow } from '../domain/types';
 import { METHODOLOGY_VERSION } from '../domain/types';
 import type { SourceSeedRow } from '../sources/registry';
+import type { SupplierSignals } from '../domain/pressure-engine';
 
 export interface SourceRecord {
   id: string;
@@ -312,4 +315,54 @@ export async function deleteSnapshotsAfterDate(
         gte(materialPressureSnapshots.snapshotDate, afterDate),
       ),
     );
+}
+
+/**
+ * Load per-trade monthly average vendor prices from material_vendor_prices,
+ * joined through material_items.trade.
+ *
+ * This drives the 'supplier' signal component in the trade pressure score.
+ * Aggregates across ALL orgs (admin DB) for a platform-level signal.
+ *
+ * CONSTRAINTS:
+ * - Only ILS-priced entries are included to avoid currency mixing.
+ * - Requires material_items.trade to be set (added in migration 0138).
+ * - Returns empty if no data is tagged — supplier component will be null.
+ *
+ * DISCLAIMER: Indication tool only. Not a forecast or financial commitment signal.
+ */
+export async function loadSupplierSignalsByTrade(db: DbExecutor): Promise<SupplierSignals> {
+  const rows = await db
+    .select({
+      trade: materialItems.trade,
+      month: sql<string>`to_char(date_trunc('month', ${materialVendorPrices.effectiveFrom}::date), 'YYYY-MM')`,
+      avgPrice: sql<string>`avg(${materialVendorPrices.unitPrice}::numeric)`,
+    })
+    .from(materialVendorPrices)
+    .innerJoin(materialItems, eq(materialVendorPrices.materialItemId, materialItems.id))
+    .where(
+      and(
+        isNotNull(materialItems.trade),
+        isNotNull(materialVendorPrices.effectiveFrom),
+        // Filter to ILS to avoid cross-currency price mixing in the average
+        eq(materialVendorPrices.currency, 'ILS'),
+      ),
+    )
+    .groupBy(
+      materialItems.trade,
+      sql`date_trunc('month', ${materialVendorPrices.effectiveFrom}::date)`,
+    )
+    .orderBy(materialItems.trade, sql`date_trunc('month', ${materialVendorPrices.effectiveFrom}::date)`);
+
+  const out: SupplierSignals = {};
+  for (const row of rows) {
+    if (!row.trade || !row.month || row.avgPrice === null) continue;
+    const trade = row.trade as MaterialTrade;
+    if (!out[trade]) out[trade] = {};
+    const parsed = parseFloat(row.avgPrice);
+    if (!isNaN(parsed) && parsed > 0) {
+      out[trade]![row.month] = parsed;
+    }
+  }
+  return out;
 }

@@ -13,6 +13,50 @@ import type { TimeApprovalStatus, TimeEntryStatus, TimesheetStatus } from './typ
  *
  * New entries always start as draft (safer default). Having `time.approve`
  * does not auto-approve on create - Actual waits for an explicit approve.
+ *
+ * -----------------------------------------------------------------------
+ * TIMESHEET vs TIME ENTRY — intended relationship (Task 5)
+ * -----------------------------------------------------------------------
+ *
+ * TIME ENTRY (`time_entries`)
+ *   A single row of project-time allocation for one employee on one work date.
+ *   - Represents: "Employee X worked N hours on Project Y on date D."
+ *   - Source: employee self-service, manager entry, or bulk template.
+ *   - Approval lifecycle: draft → submitted → approved | returned.
+ *   - Only approved + recorded entries create labor Actual (cost).
+ *   - Corrections: void the original entry, insert a replacement (audit trail).
+ *   - A time entry is INDEPENDENT of attendance — it is the "project allocation"
+ *     layer, not the presence layer. An entry does NOT prove the employee was
+ *     physically present (that is the attendance_days / attendance_events layer).
+ *
+ * TIMESHEET (`timesheets`)
+ *   An optional grouping container for one employee's time entries within a
+ *   calendar week (period_start … period_end).
+ *   - Purpose: batch submission and approval — one approval action covers all
+ *     entries in the period rather than approving each entry individually.
+ *   - A timesheet can exist without individual entry-level approval tracking:
+ *     when a timesheet is approved, all its attached entries are bulk-approved.
+ *   - Timesheets are NOT mandatory; entries may be submitted / approved
+ *     individually without ever being attached to a timesheet (`timesheetId IS NULL`).
+ *   - One active (non-approved) timesheet per employee per period_start.
+ *
+ * KEY DIFFERENCES
+ *   | Dimension          | Time Entry                | Timesheet                  |
+ *   |--------------------|-----------------------------|----------------------------|
+ *   | Granularity        | Single day × project        | Week container             |
+ *   | Creates Actual     | Yes (when approved+recorded)| No (delegates to entries)  |
+ *   | Mandatory          | Yes (labor cost requires it)| No (optional workflow)     |
+ *   | Correction method  | void + replacement entry    | reopen → re-submit         |
+ *   | Attendance link    | None (separate layer)       | None                       |
+ *
+ * ATTENDANCE vs TIME ENTRIES
+ *   Attendance (attendance_days + attendance_events) is the presence layer:
+ *   it records clock-in / clock-out times (physical presence) but NEVER creates
+ *   labor cost by itself.  Project time entries are the allocation layer: they
+ *   route hours to specific projects and trigger Actual after approval.
+ *   An employee may have attendance hours with zero time entries (unallocated) —
+ *   this is flagged by the month-close completeness checker.
+ * -----------------------------------------------------------------------
  */
 
 export const TIMESHEET_TRANSITIONS: Readonly<

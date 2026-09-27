@@ -128,7 +128,8 @@
     "compact": {
       "overdueBilling": "{count, plural, one {# חיוב באיחור} two {# חיובים באיחור} other {# חיובים באיחור}}",
       "unbilledApproved": "{count, plural, one {# שינוי טרם חויב} two {# שינויים טרם חויבו} other {# שינויים טרם חויבו}}",
-      "pendingChanges": "{count, plural, one {# ממתין לאישור} two {# ממתינים לאישור} other {# ממתינים לאישור}}"
+      "pendingChanges": "{count, plural, one {# ממתין לאישור} two {# ממתינים לאישור} other {# ממתינים לאישור}}",
+      "reconciliationMismatch": "{count, plural, one {# אי-התאמה בסכום חשבונית} two {# אי-התאמות בסכום חשבוניות} other {# אי-התאמות בסכום חשבוניות}}"
     },
     "approvedNotBilled": "{count, plural, one {שינוי מאושר אחד עדיין לא חויב} two {שני שינויים מאושרים עדיין לא חויבו} other {# שינויים מאושרים עדיין לא חויבו}}",
     "overdueBilling": "{count, plural, one {חיוב אחד באיחור} two {שני חיובים באיחור} other {# חיובים באיחור}}",

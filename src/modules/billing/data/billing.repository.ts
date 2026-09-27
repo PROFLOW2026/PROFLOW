@@ -4,11 +4,12 @@ import {
   billingRecords,
   changeOrders,
   contracts,
+  externalStatutoryDocuments,
   projects,
 } from '@drizzle/schema';
 import { businessDate, todayInTimeZone, type BusinessDate } from '@/shared/dates';
 import type { DbExecutor } from '@/shared/db/types';
-import { fromNumericString, type MoneyValue } from '@/shared/money';
+import { addMoney, fromNumericString, type MoneyValue } from '@/shared/money';
 import { isCollectionFollowUpColumnSet } from '../domain/collection-follow-up';
 import { signedBillingAmount } from '../domain/outstanding';
 import {
@@ -689,6 +690,11 @@ export async function listBillingRecords(
   const filter = filters.filter ?? 'all';
   if (filter === 'all') return summaries;
 
+  if (filter === 'mismatch') {
+    const mismatchIds = await getMismatchBillingRecordIds(db, organizationId);
+    return summaries.filter((summary) => mismatchIds.has(summary.id));
+  }
+
   return summaries.filter((summary) => {
     if (filter === 'paid') return summary.collectionStatus === 'paid';
     if (filter === 'outstanding') {
@@ -838,3 +844,78 @@ export async function findChangeOrdersInProject(
 }
 
 export { signedBillingAmount };
+
+// ─── Change Order Billing Status ─────────────────────────────────────────────
+
+export interface ChangeOrderBilledTotal {
+  /** Sum of billing_lines.line_total for non-void billing records referencing this change. */
+  readonly totalBilledAmount: MoneyValue | null;
+  /** Number of distinct billing records that have at least one line for this change. */
+  readonly billedCount: number;
+}
+
+/**
+ * Returns how much of a change order has already been captured on billing records
+ * (via billing_lines.change_order_id). Only non-void records count.
+ */
+export async function getChangeOrderBilledTotal(
+  db: DbExecutor,
+  organizationId: string,
+  changeOrderId: string,
+): Promise<ChangeOrderBilledTotal> {
+  const rows = await db
+    .select({
+      billingRecordId: billingLines.billingRecordId,
+      lineTotal: billingLines.lineTotal,
+      currency: billingLines.currency,
+    })
+    .from(billingLines)
+    .innerJoin(billingRecords, eq(billingRecords.id, billingLines.billingRecordId))
+    .where(
+      and(
+        eq(billingLines.organizationId, organizationId),
+        eq(billingLines.changeOrderId, changeOrderId),
+        isNull(billingRecords.archivedAt),
+        sql`${billingRecords.status} != 'void'`,
+      ),
+    );
+
+  if (rows.length === 0) return { totalBilledAmount: null, billedCount: 0 };
+
+  const uniqueRecordIds = new Set(rows.map((row) => row.billingRecordId));
+
+  let totalBilledAmount: MoneyValue | null = null;
+  for (const row of rows) {
+    const lineAmount = fromNumericString(row.lineTotal, row.currency);
+    if (!lineAmount) continue;
+    totalBilledAmount = totalBilledAmount ? addMoney(totalBilledAmount, lineAmount) : lineAmount;
+  }
+
+  return { totalBilledAmount, billedCount: uniqueRecordIds.size };
+}
+
+// ─── Reconciliation mismatch helpers (used by billing list filter) ────────────
+
+/**
+ * Returns the set of billing record IDs that have at least one external statutory
+ * document in `reconciliation_status = 'mismatch'` for this organisation.
+ *
+ * Scoped to the organisation; optionally filtered to a specific project via the
+ * provided billing-record id superset.
+ */
+export async function getMismatchBillingRecordIds(
+  db: DbExecutor,
+  organizationId: string,
+): Promise<Set<string>> {
+  const rows = await db
+    .select({ billingRecordId: externalStatutoryDocuments.billingRecordId })
+    .from(externalStatutoryDocuments)
+    .where(
+      and(
+        eq(externalStatutoryDocuments.organizationId, organizationId),
+        sql`${externalStatutoryDocuments.reconciliationStatus} = 'mismatch'`,
+      ),
+    );
+
+  return new Set(rows.map((row) => row.billingRecordId));
+}

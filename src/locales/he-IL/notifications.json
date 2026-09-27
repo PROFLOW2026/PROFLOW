@@ -38,6 +38,7 @@
     "billing_plan_retention_held": "עיכבון מוחזק לשחרור",
     "action_required": "דורש טיפול",
     "task_assigned_to_you": "משימה שויכה אליך",
+    "task_comment_mention": "תגובה חדשה על משימה שלך",
     "capture_needs_review": "קליטה ממתינה לבדיקה"
   },
   "copy": {
@@ -104,6 +105,12 @@
       "titleWithReference": "משימה שויכה - {reference}",
       "titleDefault": "משימה שויכה אליך",
       "body": "נוספת כמוקצה למשימה זו."
+    },
+    "task_comment_mention": {
+      "titleWithReference": "תגובה חדשה על משימה - {reference}",
+      "titleDefault": "תגובה חדשה על משימה שלך",
+      "bodyDefault": "תגובה נוספה על משימה שאתה מוקצה אליה.",
+      "bodyWithExtra": "{extra}"
     },
     "low_stock": {
       "titleWithReference": "מלאי נמוך - {reference}",

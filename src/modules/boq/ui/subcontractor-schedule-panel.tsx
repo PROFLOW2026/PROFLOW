@@ -48,6 +48,10 @@ export interface SubValuationView {
   readonly periodLabel: string;
   readonly status: string;
   readonly proposedVendorBillId: string | null;
+  /** Matched AP bill ID. Null until reconciled. */
+  readonly apBillId: string | null;
+  /** pending | matched | unmatched */
+  readonly reconciliationStatus: string;
 }
 
 export interface SubScheduleView {
@@ -183,6 +187,23 @@ export function SubcontractorSchedulePanel({
                         {valuation.proposedVendorBillId
                           ? ` · ${t('subcontractor.draftApCreated')}`
                           : ''}
+                        {valuation.status !== 'draft' && valuation.status !== 'voided' ? (
+                          <span
+                            className={
+                              valuation.reconciliationStatus === 'matched'
+                                ? ' · text-[var(--pf-status-success-fg)]'
+                                : valuation.reconciliationStatus === 'unmatched'
+                                  ? ' · text-[var(--pf-status-danger-fg)]'
+                                  : ' · text-[var(--pf-text-muted)]'
+                            }
+                          >
+                            {' '}
+                            ·{' '}
+                            {t(
+                              `subcontractor.reconciliation.${valuation.reconciliationStatus}` as 'subcontractor.reconciliation.pending',
+                            )}
+                          </span>
+                        ) : null}
                       </li>
                     ))}
                   </ul>

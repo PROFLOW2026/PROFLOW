@@ -128,7 +128,8 @@
     "compact": {
       "overdueBilling": "{count, plural, =1 {# просроченный счёт} other {# просроченных счетов}}",
       "unbilledApproved": "{count, plural, =1 {# изменение не выставлено} other {# изменений не выставлено}}",
-      "pendingChanges": "{count, plural, =1 {# ожидает утверждения} other {# ожидают утверждения}}"
+      "pendingChanges": "{count, plural, =1 {# ожидает утверждения} other {# ожидают утверждения}}",
+      "reconciliationMismatch": "{count, plural, =1 {# несоответствие суммы счёта} other {# несоответствий сумм счетов}}"
     },
     "approvedNotBilled": "{count, plural, =1 {# утверждённое изменение ещё не выставлено} other {# утверждённых изменений ещё не выставлено}}",
     "overdueBilling": "{count, plural, =1 {# выставленный счёт просрочен} other {# выставленных счётов просрочено}}",

@@ -41,11 +41,11 @@ export default async function AutomationsPage() {
     <div className="flex min-w-0 flex-col gap-6">
       <PageHeader title={t('title')} description={t('description')} />
       <Alert tone="info">{t('safeNote')}</Alert>
-      {data.presets.length === 0 ? (
+      {data.presets.filter((p) => p.available).length === 0 ? (
         <EmptyState icon={Workflow} title={t('empty.title')} description={t('empty.body')} />
       ) : (
         <ul className="flex flex-col gap-3">
-          {data.presets.map((preset) => (
+          {data.presets.filter((p) => p.available).map((preset) => (
             <li
               key={preset.presetKey}
               className="flex flex-col gap-2 rounded-lg border border-[var(--pf-border-default)] p-4 sm:flex-row sm:items-center sm:justify-between"
@@ -53,12 +53,10 @@ export default async function AutomationsPage() {
               <div>
                 <p className="font-medium">{t(`presets.${preset.presetKey}.name`)}</p>
                 <p className="text-sm text-[var(--pf-text-secondary)]">
-                  {preset.available
-                    ? t(`presets.${preset.presetKey}.hint`)
-                    : t('unavailable')}
+                  {t(`presets.${preset.presetKey}.hint`)}
                 </p>
               </div>
-              {canManage && preset.available ? (
+              {canManage ? (
                 <div className="flex flex-wrap gap-2">
                   <form action={toggleAutomationAction}>
                     <input type="hidden" name="presetKey" value={preset.presetKey} />

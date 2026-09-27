@@ -14,6 +14,7 @@ import {
   taskReminders,
   taskTemplates,
   taskTemplateItems,
+  organizationMemberships,
 } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 import { clampTaskListLimit, splitTaskListPage } from '../domain/list-window';
@@ -950,6 +951,26 @@ export async function deleteTaskFollower(
     .where(
       and(eq(taskFollowers.taskId, taskId), eq(taskFollowers.orgMemberId, orgMemberId)),
     );
+}
+
+/**
+ * Returns the user IDs of all org-member followers of a task,
+ * joining through organization_memberships. Used for follower notifications.
+ */
+export async function listTaskFollowerUserIds(
+  db: DbExecutor,
+  taskId: string,
+): Promise<string[]> {
+  const rows = await db
+    .select({ userId: organizationMemberships.userId })
+    .from(taskFollowers)
+    .innerJoin(
+      organizationMemberships,
+      eq(organizationMemberships.id, taskFollowers.orgMemberId),
+    )
+    .where(eq(taskFollowers.taskId, taskId));
+
+  return rows.map((r) => r.userId);
 }
 
 // ─── Recurrence ───────────────────────────────────────────────────────────────

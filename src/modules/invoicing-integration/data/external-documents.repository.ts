@@ -56,6 +56,14 @@ export type ExternalDocumentPatch = Partial<{
   lastErrorCode: string | null;
   lastErrorMessage: string | null;
   issuedAt: string | null;
+  /** Provider file ID or web URL of the archived PDF in external storage. */
+  storageReference: string | null;
+  /** Timestamp (ISO) when PDF archival completed. */
+  archivedAt: string | null;
+  /** Set to TRUE when archival has been deferred due to a failure. */
+  archivePending: boolean;
+  /** Reason for the last archival failure; cleared on success. */
+  archiveError: string | null;
 }>;
 
 export interface ProviderConnectionRow {
@@ -123,6 +131,10 @@ function mapDocument(row: typeof externalStatutoryDocuments.$inferSelect): Exter
     requestedAt: toIso(row.requestedAt)!,
     updatedAt: toIso(row.updatedAt)!,
     issuedAt: toIso(row.issuedAt),
+    storageReference: row.storageReference ?? null,
+    archivedAt: toIso(row.archivedAt) ?? null,
+    archivePending: row.archivePending ?? false,
+    archiveError: row.archiveError ?? null,
   };
 }
 
@@ -263,6 +275,12 @@ export const drizzleExternalDocumentsRepository: ExternalDocumentsRepository = {
       set.issuedAt = patch.issuedAt ? new Date(patch.issuedAt) : null;
     }
     if (patch.pdf !== undefined) Object.assign(set, pdfColumns(patch.pdf));
+    if (patch.storageReference !== undefined) set.storageReference = patch.storageReference;
+    if (patch.archivedAt !== undefined) {
+      set.archivedAt = patch.archivedAt ? new Date(patch.archivedAt) : null;
+    }
+    if (patch.archivePending !== undefined) set.archivePending = patch.archivePending;
+    if (patch.archiveError !== undefined) set.archiveError = patch.archiveError;
 
     const [row] = await db
       .update(externalStatutoryDocuments)

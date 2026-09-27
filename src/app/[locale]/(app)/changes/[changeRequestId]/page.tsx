@@ -23,6 +23,7 @@ import {
 } from '../actions';
 import { ChangeOrderBillingHandoff } from '@/modules/commercial/ui/change-order-billing-handoff';
 import { ChangeActionButtons } from './change-action-buttons';
+import { getChangeOrderBilledTotal } from '@/modules/billing';
 
 const QUOTE_VERSION_SHAPES: Record<QuoteVersionStatus, StatusShape> = {
   draft: 'draft',
@@ -59,18 +60,22 @@ export default async function ChangeDetailPage({
     if (!detail) return null;
 
     const selectedVersion = detail.quoteVersions.find((version) => version.isSelected);
-    const [changeRequestDocs, quoteVersionDocs, changeOrderDocs, approvalDocs] = await Promise.all([
-      getEntityDocumentPanelData(context, 'change_request', changeRequestId),
-      selectedVersion
-        ? getEntityDocumentPanelData(context, 'quote_version', selectedVersion.id)
-        : Promise.resolve(null),
-      detail.changeOrder
-        ? getEntityDocumentPanelData(context, 'change_order', detail.changeOrder.id)
-        : Promise.resolve(null),
-      detail.changeOrder?.approvalId
-        ? getEntityDocumentPanelData(context, 'approval', detail.changeOrder.approvalId)
-        : Promise.resolve(null),
-    ]);
+    const [changeRequestDocs, quoteVersionDocs, changeOrderDocs, approvalDocs, changeOrderBillingStatus] =
+      await Promise.all([
+        getEntityDocumentPanelData(context, 'change_request', changeRequestId),
+        selectedVersion
+          ? getEntityDocumentPanelData(context, 'quote_version', selectedVersion.id)
+          : Promise.resolve(null),
+        detail.changeOrder
+          ? getEntityDocumentPanelData(context, 'change_order', detail.changeOrder.id)
+          : Promise.resolve(null),
+        detail.changeOrder?.approvalId
+          ? getEntityDocumentPanelData(context, 'approval', detail.changeOrder.approvalId)
+          : Promise.resolve(null),
+        detail.changeOrder
+          ? getChangeOrderBilledTotal(context.db, context.organizationId, detail.changeOrder.id)
+          : Promise.resolve(null),
+      ]);
 
     return {
       detail,
@@ -79,6 +84,7 @@ export default async function ChangeDetailPage({
       quoteVersionDocs,
       changeOrderDocs,
       approvalDocs,
+      changeOrderBillingStatus,
     };
   });
 
@@ -91,6 +97,7 @@ export default async function ChangeDetailPage({
     quoteVersionDocs,
     changeOrderDocs,
     approvalDocs,
+    changeOrderBillingStatus,
   } = loaded;
 
   const canManage = shell?.permissions.has(PERMISSIONS.CHANGES_MANAGE) ?? false;
@@ -168,6 +175,10 @@ export default async function ChangeDetailPage({
           projectId={detail.projectId}
           changeOrderId={detail.changeOrder.id}
           canManageBilling={canManageBilling}
+          changeAmount={signed ?? undefined}
+          billedAmount={changeOrderBillingStatus?.totalBilledAmount ?? undefined}
+          billedCount={changeOrderBillingStatus?.billedCount ?? 0}
+          billingCondition={detail.changeOrder.billingCondition}
         />
       ) : null}
 

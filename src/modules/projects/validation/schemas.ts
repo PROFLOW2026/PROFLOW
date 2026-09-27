@@ -299,6 +299,8 @@ export const listProjectsSchema = z.object({
   limit: z.coerce.number().int().min(0).optional(),
   offset: z.coerce.number().int().min(0).optional(),
   page: z.coerce.number().int().min(1).optional(),
+  /** ISO-8601 cursor timestamp: only rows created strictly before this value. */
+  createdBefore: z.string().datetime({ offset: true }).nullable().optional(),
 });
 
 export const listJobsSchema = listProjectsSchema.omit({ workKind: true });

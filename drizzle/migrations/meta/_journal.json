@@ -925,6 +925,69 @@
                         "when":  1789712160000,
                         "tag":  "0132_material_market_monitor",
                         "breakpoints":  true
+                    },
+                    {
+                        "idx":  132,
+                        "breakpoints":  true,
+                        "when":  1789712220000,
+                        "version":  "7",
+                        "tag":  "0134_sumit_pdf_archival"
+                    },
+                    {
+                        "idx":  133,
+                        "breakpoints":  true,
+                        "when":  1789712280000,
+                        "version":  "7",
+                        "tag":  "0135_crm_quote_conversion"
+                    },
+                    {
+                        "idx":  134,
+                        "breakpoints":  true,
+                        "when":  1789712340000,
+                        "version":  "7",
+                        "tag":  "0136_change_order_billing_handoff"
+                    },
+                    {
+                        "idx":  135,
+                        "breakpoints":  true,
+                        "when":  1789712400000,
+                        "version":  "7",
+                        "tag":  "0137_attendance_correction_requests"
+                    },
+                    {
+                        "idx":  136,
+                        "breakpoints":  true,
+                        "when":  1789712460000,
+                        "version":  "7",
+                        "tag":  "0138_material_market_supplier_signal"
+                    },
+                    {
+                        "idx":  137,
+                        "breakpoints":  true,
+                        "when":  1789712520000,
+                        "version":  "7",
+                        "tag":  "0139_closeout_warranty_orm_and_boq_reconciliation"
+                    },
+                    {
+                        "idx":  138,
+                        "breakpoints":  true,
+                        "when":  1789712580000,
+                        "version":  "7",
+                        "tag":  "0140_tasks_forms_search_enums"
+                    },
+                    {
+                        "idx":  139,
+                        "breakpoints":  true,
+                        "when":  1789712640000,
+                        "version":  "7",
+                        "tag":  "0141_expenses_fx_budget_closeout"
+                    },
+                    {
+                        "idx":  140,
+                        "breakpoints":  true,
+                        "when":  1789712700000,
+                        "version":  "7",
+                        "tag":  "0142_api_v1_index_cleanup"
                     }
                 ]
 }

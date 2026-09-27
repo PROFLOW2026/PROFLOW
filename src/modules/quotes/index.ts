@@ -10,6 +10,9 @@ export { transitionQuoteStatus } from './application/transition-quote';
 export { convertQuote } from './application/convert-quote';
 export type { ConvertQuoteResult } from './application/convert-quote';
 
+export { runQuoteExpiryScan } from './application/quote-expiry-scan';
+export type { QuoteExpiryScanResult } from './application/quote-expiry-scan';
+
 export {
   QUOTE_STATUSES,
   QUOTE_TAX_MODES,

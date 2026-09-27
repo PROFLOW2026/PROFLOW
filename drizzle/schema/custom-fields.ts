@@ -45,7 +45,7 @@ export const customFieldDefinitions = pgTable(
     ),
     check(
       'custom_field_definitions_entity_known',
-      sql`${table.entityType} IN ('client', 'project', 'vendor', 'employee', 'opportunity', 'expense')`,
+      sql`${table.entityType} IN ('client', 'project', 'vendor', 'employee', 'opportunity', 'expense', 'task', 'work_order')`,
     ),
     check(
       'custom_field_definitions_type_known',

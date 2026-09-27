@@ -155,6 +155,14 @@ export interface ExternalStatutoryDocument {
   readonly requestedAt: string;
   readonly updatedAt: string;
   readonly issuedAt: string | null;
+  /** Provider file ID or web URL once the PDF has been archived to external storage. */
+  readonly storageReference: string | null;
+  /** Timestamp (ISO) when PDF archival completed. */
+  readonly archivedAt: string | null;
+  /** TRUE while an archival is pending (attempted but not yet succeeded). */
+  readonly archivePending: boolean;
+  /** Last archival failure reason; null when no failure has occurred. */
+  readonly archiveError: string | null;
 }
 
 export interface StatutoryProviderStatus {

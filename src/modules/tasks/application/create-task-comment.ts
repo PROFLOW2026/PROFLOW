@@ -5,6 +5,7 @@ import type { OrgContext } from '@/shared/auth/context';
 import { findTaskById, insertTaskComment, insertTaskActivity } from '../data/tasks.repository';
 import { validateCommentAuthor } from '../domain/actor';
 import type { TaskComment } from '../domain/types';
+import { notifyTaskCommentAdded } from './notify-task-comment';
 
 /**
  * Creates a comment on a task.
@@ -57,6 +58,16 @@ export async function createComment(
     actorSystem: false,
     eventType: 'comment_added',
     payload: { commentId: comment.id },
+  });
+
+  // Notify task assignees (excluding the commenter) — fire-and-forget; never
+  // let notification failure break the comment creation itself.
+  notifyTaskCommentAdded(context, {
+    taskId,
+    taskTitle: task.title,
+    commentId: comment.id,
+  }).catch(() => {
+    // Intentionally swallowed: notification errors must not surface to the user.
   });
 
   return comment;

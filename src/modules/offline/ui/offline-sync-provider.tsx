@@ -98,6 +98,31 @@ export function OfflineSyncProvider({
         },
       });
 
+      // ── Background Sync registration (forward-compatible) ────────────────
+      // Registers a sync tag so the browser can call our SW `sync` handler
+      // even when the tab is inactive. The `window.online` listener above is
+      // the primary fallback when the SW handler is absent.
+      //
+      // PENDING (sw.js): add a `sync` event handler for tag 'draft-sync' that
+      // posts `{ type: 'BACKGROUND_SYNC_DRAFT' }` to all window clients, then
+      // listen for that message here and call `controller.flush()`.
+      // Do NOT bump SHELL_CACHE in the same PR — change the pf-sw-release
+      // comment only, which triggers a new worker install without clearing caches.
+      if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then((reg) => {
+          if ('sync' in reg) {
+            // @ts-ignore — SyncManager typings not in all TS lib versions
+            (reg.sync as { register(tag: string): Promise<void> })
+              .register('draft-sync')
+              .catch(() => {
+                // Background Sync unavailable in this browser; window.online is the fallback.
+              });
+          }
+        }).catch(() => {
+          // SW not yet active — window.online listener remains the fallback.
+        });
+      }
+
       if (cancelled) {
         controller.stop();
         controller = null;

@@ -27,6 +27,17 @@ export const COMPLETENESS_CHECK_KEYS = [
   'unresolved_expense_drafts',
   'incomplete_attendance',
   'open_overhead_allocation',
+  /**
+   * Employees with attendance hours that exceed their approved project-time-entry
+   * hours for the period.  These hours are "present but unallocated to any project"
+   * — they should be coded or explained before the period is closed.
+   */
+  'unallocated_attendance_hours',
+  /**
+   * Attendance correction requests that are still PENDING at period close.
+   * Pending corrections mean the attendance record is uncertain for the period.
+   */
+  'pending_attendance_corrections',
 ] as const;
 
 export type CompletenessCheckKey = (typeof COMPLETENESS_CHECK_KEYS)[number];

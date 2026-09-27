@@ -38,7 +38,9 @@
     "billing_plan_retention_held": "Retention held for release",
     "action_required": "Action required",
     "task_assigned_to_you": "Task assigned to you",
-    "capture_needs_review": "Capture needs review"
+    "task_comment_mention": "New comment on your task",
+    "capture_needs_review": "Capture needs review",
+    "task_status_updated": "Task status updated"
   },
   "copy": {
     "billing_overdue": {
@@ -105,6 +107,12 @@
       "titleDefault": "Task assigned to you",
       "body": "You were added as an assignee on this task."
     },
+    "task_comment_mention": {
+      "titleWithReference": "New comment on task - {reference}",
+      "titleDefault": "New comment on your task",
+      "bodyDefault": "A comment was added to a task you are assigned to.",
+      "bodyWithExtra": "{extra}"
+    },
     "low_stock": {
       "titleWithReference": "Low stock - {reference}",
       "titleDefault": "Low stock",
@@ -170,6 +178,12 @@
       "titleDefault": "Capture needs review",
       "bodyWithExtra": "{extra}",
       "bodyDefault": "A quick capture is waiting for your review."
+    },
+    "task_status_updated": {
+      "titleWithReference": "Task updated - {reference}",
+      "titleDefault": "Task updated",
+      "bodyWithExtra": "Status changed to {extra}",
+      "bodyDefault": "A task you follow has been updated."
     }
   },
   "viewAll": "View all",

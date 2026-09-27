@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, ilike, inArray, isNull, or, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, ilike, inArray, isNull, lt, or, sql } from 'drizzle-orm';
 import { clients, contracts, projects } from '@drizzle/schema';
 import { existsSearchableCustomFieldValueSql } from '@/modules/custom-fields';
 import {
@@ -237,6 +237,15 @@ function buildProjectListConditions(
         existsSearchableCustomFieldValueSql(organizationId, 'project', projects.id, term),
       )!,
     );
+  }
+
+  // Cursor-based pagination: push the timestamp bound into SQL so we never
+  // load the full table and filter in JavaScript.
+  if (filters.createdBefore) {
+    const cursorMs = Date.parse(filters.createdBefore);
+    if (!Number.isNaN(cursorMs)) {
+      conditions.push(lt(projects.createdAt, new Date(cursorMs)));
+    }
   }
 
   return conditions;

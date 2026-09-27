@@ -155,5 +155,15 @@ export async function updateTask(
     });
   }
 
+  // Notify followers when status changes (fire-and-forget)
+  if (input.status !== undefined && input.status !== existing.status) {
+    const { notifyTaskFollowersOfStatusChange } = await import('./notify-task-followers');
+    void notifyTaskFollowersOfStatusChange(context, {
+      taskId,
+      taskTitle: updated.title,
+      newStatus: updated.status,
+    }).catch(() => { /* swallow — notification failure must not surface to caller */ });
+  }
+
   return updated;
 }

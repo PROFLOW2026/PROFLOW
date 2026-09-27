@@ -16,6 +16,9 @@ export const SOURCE_CODE_LABEL_KEYS: Record<string, string> = {
   IRON_ORE: 'ironOre',
   HRC_STEEL: 'hrc',
   PVC_POLYMER_PROXY: 'polymer',
+  CBS_CEMENT: 'cbsCement',
+  CBS_CONCRETE: 'cbsConcrete',
+  CBS_CONCRETE_BLEND: 'cbsConcrete',
 };
 
 export const COMPONENT_LABEL_KEYS: Record<TradeComponentKey, string> = {
@@ -32,10 +35,11 @@ export const COMPONENT_LABEL_KEYS: Record<TradeComponentKey, string> = {
 };
 
 export function componentLabelKeyForTrade(
-  trade: 'electrical' | 'plumbing' | 'steel_rebar',
+  trade: 'electrical' | 'plumbing' | 'steel_rebar' | 'concrete',
   component: TradeComponentKey,
 ): string {
   if (trade === 'plumbing' && component === 'cbs') return 'cbsPlumbing';
   if (trade === 'steel_rebar' && component === 'cbs') return 'cbsSteelRebar';
+  if (trade === 'concrete' && component === 'cbs') return 'cbsConcrete';
   return COMPONENT_LABEL_KEYS[component];
 }

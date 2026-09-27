@@ -31,6 +31,9 @@ export type ApprovalTargetType = (typeof APPROVAL_TARGET_TYPES)[number];
 export const CONTRACT_VALUE_EVENT_KINDS = ['original', 'change_order', 'adjustment'] as const;
 export type ContractValueEventKind = (typeof CONTRACT_VALUE_EVENT_KINDS)[number];
 
+export const BILLING_CONDITIONS = ['immediate', 'milestone', 'custom_terms', 'deferred'] as const;
+export type BillingCondition = (typeof BILLING_CONDITIONS)[number];
+
 export interface ChangeRequestRecord {
   readonly id: string;
   readonly organizationId: string;
@@ -122,6 +125,8 @@ export interface ChangeOrderRecord {
   readonly reversalOfChangeOrderId: string | null;
   readonly reversalReason: string | null;
   readonly reversedByUserId: string | null;
+  /** When the owner plans to invoice for this approved change. NULL = undecided. */
+  readonly billingCondition: BillingCondition | null;
 }
 
 export interface ContractValueEventRecord {

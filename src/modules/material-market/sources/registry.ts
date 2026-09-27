@@ -6,7 +6,7 @@ import type { MaterialMarketSourceAdapter } from './types';
 export interface SourceSeedRow {
   code: string;
   nameHe: string;
-  trade: 'electrical' | 'plumbing' | 'steel_rebar' | null;
+  trade: 'electrical' | 'plumbing' | 'steel_rebar' | 'concrete' | null;
   sourceType: 'fred' | 'cbs' | 'derived';
   sourceName: string;
   sourceSeriesId: string | null;
@@ -219,7 +219,9 @@ export const SOURCE_SEED: SourceSeedRow[] = [
   {
     code: 'EUR_ILS',
     nameHe: 'אירו / שקל',
-    trade: 'electrical',
+    // FIX: EUR/ILS is a cross-trade FX factor, not electrical-specific.
+    // It is derived from USD_ILS × EUR_USD (BOI-validated) and used across trades.
+    trade: null,
     sourceType: 'derived',
     sourceName: 'ProjectFlow',
     sourceSeriesId: null,
@@ -234,6 +236,49 @@ export const SOURCE_SEED: SourceSeedRow[] = [
     code: 'CBS_PLUMBING_BLEND',
     nameHe: 'מדד אינסטלציה בישראל (משולב)',
     trade: 'plumbing',
+    sourceType: 'derived',
+    sourceName: 'ProjectFlow',
+    sourceSeriesId: null,
+    sourceUrl: null,
+    frequency: 'monthly',
+    unit: 'index',
+    currency: 'ILS',
+    isActive: true,
+    isDerived: true,
+  },
+  // ── Concrete/Cement (added: feasibility score 14/25, LEVEL 2, free CBS API) ──
+  {
+    code: 'CBS_CEMENT',
+    nameHe: 'מדד מלט בישראל',
+    trade: 'concrete',
+    sourceType: 'cbs',
+    sourceName: 'CBS',
+    sourceSeriesId: CBS_SERIES.CBS_CEMENT,
+    sourceUrl: 'https://api.cbs.gov.il/index/data/price?id=201140',
+    frequency: 'monthly',
+    unit: 'index',
+    currency: 'ILS',
+    isActive: true,
+    isDerived: false,
+  },
+  {
+    code: 'CBS_CONCRETE',
+    nameHe: 'מדד בטון מוכן בישראל',
+    trade: 'concrete',
+    sourceType: 'cbs',
+    sourceName: 'CBS',
+    sourceSeriesId: CBS_SERIES.CBS_CONCRETE,
+    sourceUrl: 'https://api.cbs.gov.il/index/data/price?id=201160',
+    frequency: 'monthly',
+    unit: 'index',
+    currency: 'ILS',
+    isActive: true,
+    isDerived: false,
+  },
+  {
+    code: 'CBS_CONCRETE_BLEND',
+    nameHe: 'מדד בטון/מלט בישראל (משולב)',
+    trade: 'concrete',
     sourceType: 'derived',
     sourceName: 'ProjectFlow',
     sourceSeriesId: null,

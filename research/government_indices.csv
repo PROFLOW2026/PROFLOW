@@ -1,0 +1,15 @@
+﻿series_id,series_name,trade,frequency,historical_range,api_available,free,automation_feasibility,url
+200010,Price index of input in residential building — general,ALL,monthly,2018–2026 (verified via prior load); longer via API,YES,YES,HIGH,https://api.cbs.gov.il/index/data/price?id=200010
+201140,Cement,CONCRETE/CEMENT,monthly,long (CBS chapter c),YES,YES,HIGH,https://api.cbs.gov.il/index/data/price?id=201140
+201160,Ready-mixed concrete,CONCRETE/CEMENT,monthly,long (CBS chapter c),YES,YES,HIGH,https://api.cbs.gov.il/index/data/price?id=201160
+201130,"Cement, ytong and their products",BLOCKS/MASONRY,monthly,long (CBS chapter c),YES,YES,HIGH,https://api.cbs.gov.il/index/data/price?id=201130
+201230,Rebar (building steel),STEEL/REBAR,monthly,long — verified to Aug-2026,YES,YES,HIGH,https://api.cbs.gov.il/index/data/price?id=201230
+201260,Steel mesh,STEEL/REBAR,monthly,long (CBS chapter c),YES,YES,HIGH,https://api.cbs.gov.il/index/data/price?id=201260
+201210,Iron and metal products,STEEL/REBAR,monthly,long (CBS chapter c),YES,YES,HIGH,https://api.cbs.gov.il/index/data/price?id=201210
+201320,Products and accessories for electrical work,ELECTRICAL,monthly,long (CBS chapter c),YES,YES,HIGH,https://api.cbs.gov.il/index/data/price?id=201320
+201330,Pipes for electrical installation,ELECTRICAL,monthly,long (CBS chapter c),YES,YES,HIGH,https://api.cbs.gov.il/index/data/price?id=201330
+201340,Conductors (copper cable proxy),ELECTRICAL,monthly,verified to Jul-2025 via API,YES,YES,HIGH,https://api.cbs.gov.il/index/data/price?id=201340
+201380,Products and accessories for sanitary plumbing work,PLUMBING,monthly,long (CBS chapter c),YES,YES,HIGH,https://api.cbs.gov.il/index/data/price?id=201380
+201400,Plastic pipes,PLUMBING,monthly,long (CBS chapter c),YES,YES,HIGH,https://api.cbs.gov.il/index/data/price?id=201400
+chapter_ca,Price index of input in commercial and office building,ALL,monthly,long (CBS chapter ca),YES,YES,HIGH,https://api.cbs.gov.il/index/catalog/chapter?id=ca&lang=en
+chapter_d,Price indices of input in road construction and bridging,ALL,monthly,long (CBS chapter d),YES,YES,HIGH,https://api.cbs.gov.il/index/catalog/chapter?id=d&lang=en

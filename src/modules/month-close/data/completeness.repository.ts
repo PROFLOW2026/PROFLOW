@@ -63,6 +63,8 @@ export async function gatherCompletenessSignals(
     attendanceUsage,
     incompleteAttendance,
     openOverheadAllocation,
+    unallocatedAttendanceHours,
+    pendingAttendanceCorrections,
   ] = await Promise.all([
     countMissingEmployerCostActual(db, organizationId, yearMonth, startDate, endDate),
     countUnallocatedEmployeeCost(db, organizationId, yearMonth),
@@ -74,6 +76,8 @@ export async function gatherCompletenessSignals(
     orgUsesAttendanceThisMonth(db, organizationId, startDate, endDate),
     countIncompleteAttendance(db, organizationId, startDate, endDate, configuredDowSql),
     countOpenOverheadAllocation(db, organizationId, startDate, endDate),
+    countUnallocatedAttendanceHours(db, organizationId, startDate, endDate),
+    countPendingAttendanceCorrectionRequests(db, organizationId, startDate, endDate),
   ]);
 
   return [
@@ -130,6 +134,18 @@ export async function gatherCompletenessSignals(
       applicable: true,
       issueCount: openOverheadAllocation.count,
       sampleEntityIds: openOverheadAllocation.ids,
+    },
+    {
+      key: 'unallocated_attendance_hours',
+      applicable: attendanceUsage,
+      issueCount: unallocatedAttendanceHours.count,
+      sampleEntityIds: unallocatedAttendanceHours.ids,
+    },
+    {
+      key: 'pending_attendance_corrections',
+      applicable: attendanceUsage,
+      issueCount: pendingAttendanceCorrections.count,
+      sampleEntityIds: pendingAttendanceCorrections.ids,
     },
   ];
 }
@@ -608,5 +624,112 @@ async function countOpenOverheadAllocation(
   return {
     count: rows.length,
     ids: rows.slice(0, SAMPLE_LIMIT).map((row) => row.id),
+  };
+}
+
+/**
+ * Employees with attendance hours that exceed their APPROVED project-time-entry
+ * hours in the period.  Presence hours with no approved project allocation are
+ * "unallocated attendance hours" that should be resolved before month close.
+ *
+ * Logic:
+ *   attendance_hours = SUM of (clock_out - clock_in) for non-void days
+ *   allocated_hours  = SUM of time_entries.hours WHERE approval_status='approved'
+ *   unallocated      = attendance_hours - allocated_hours (when > 0)
+ *
+ * Returns employee IDs (not day IDs) so the manager can navigate to the
+ * employee's attendance view.
+ */
+async function countUnallocatedAttendanceHours(
+  db: DbExecutor,
+  organizationId: string,
+  startDate: string,
+  endDate: string,
+): Promise<{ count: number; ids: string[] }> {
+  const result = await db.execute(sql`
+    WITH attendance_hours AS (
+      SELECT
+        d.employee_id,
+        SUM(
+          EXTRACT(EPOCH FROM (
+            (SELECT ae_out.occurred_at
+             FROM attendance_events ae_out
+             WHERE ae_out.attendance_day_id = d.id
+               AND ae_out.event_type = 'clock_out'
+               AND ae_out.voided_at IS NULL
+             ORDER BY ae_out.occurred_at DESC
+             LIMIT 1)
+            -
+            (SELECT ae_in.occurred_at
+             FROM attendance_events ae_in
+             WHERE ae_in.attendance_day_id = d.id
+               AND ae_in.event_type = 'clock_in'
+               AND ae_in.voided_at IS NULL
+             ORDER BY ae_in.occurred_at ASC
+             LIMIT 1)
+          )) / 3600.0
+        ) AS attendance_hrs
+      FROM attendance_days d
+      WHERE d.organization_id = ${organizationId}::uuid
+        AND d.archived_at IS NULL
+        AND d.status <> 'void'
+        AND d.work_date >= ${startDate}
+        AND d.work_date <= ${endDate}
+      GROUP BY d.employee_id
+    ),
+    allocated_hours AS (
+      SELECT
+        te.employee_id,
+        COALESCE(SUM(te.hours::numeric), 0) AS allocated_hrs
+      FROM time_entries te
+      WHERE te.organization_id = ${organizationId}::uuid
+        AND te.status = 'recorded'
+        AND te.archived_at IS NULL
+        AND te.kind = 'project'
+        AND te.approval_status = 'approved'
+        AND te.work_date >= ${startDate}
+        AND te.work_date <= ${endDate}
+      GROUP BY te.employee_id
+    )
+    SELECT ah.employee_id AS id
+    FROM attendance_hours ah
+    LEFT JOIN allocated_hours al ON al.employee_id = ah.employee_id
+    WHERE COALESCE(ah.attendance_hrs, 0) > COALESCE(al.allocated_hrs, 0) + 0.001
+    ORDER BY ah.employee_id
+    LIMIT 200
+  `);
+
+  const list = rowsFromExecute<{ id: string }>(result);
+  return {
+    count: list.length,
+    ids: list.slice(0, SAMPLE_LIMIT).map((row) => String(row.id)),
+  };
+}
+
+/**
+ * Pending attendance correction requests in the period.
+ * These indicate uncertain attendance records that should be resolved before close.
+ */
+async function countPendingAttendanceCorrectionRequests(
+  db: DbExecutor,
+  organizationId: string,
+  startDate: string,
+  endDate: string,
+): Promise<{ count: number; ids: string[] }> {
+  const result = await db.execute(sql`
+    SELECT r.id
+    FROM attendance_correction_requests r
+    WHERE r.organization_id = ${organizationId}::uuid
+      AND r.status = 'pending'
+      AND r.work_date >= ${startDate}
+      AND r.work_date <= ${endDate}
+    ORDER BY r.created_at
+    LIMIT 200
+  `);
+
+  const list = rowsFromExecute<{ id: string }>(result);
+  return {
+    count: list.length,
+    ids: list.slice(0, SAMPLE_LIMIT).map((row) => String(row.id)),
   };
 }

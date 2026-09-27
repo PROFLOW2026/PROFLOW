@@ -585,6 +585,63 @@ export const attendanceDays = pgTable(
   ],
 );
 
+/**
+ * Employee self-service attendance correction requests (0137).
+ *
+ * Employees can only clock in/out for today via the self-service app. For past
+ * days they submit a correction request. The manager approves or rejects it.
+ * On approval the application layer applies the corrected times to the
+ * attendance_days record (void existing events + insert new clock_in/clock_out).
+ */
+export const attendanceCorrectionRequests = pgTable(
+  'attendance_correction_requests',
+  {
+    id: primaryId(),
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    employeeId: uuid('employee_id')
+      .notNull()
+      .references(() => employees.id, { onDelete: 'cascade' }),
+    workDate: date('work_date', { mode: 'string' }).notNull(),
+    requestedClockIn: timestamp('requested_clock_in', { withTimezone: true, mode: 'date' }).notNull(),
+    requestedClockOut: timestamp('requested_clock_out', { withTimezone: true, mode: 'date' }).notNull(),
+    reason: text('reason').notNull(),
+    /** pending | approved | rejected */
+    status: text('status').notNull().default('pending'),
+    requestedByUserId: uuid('requested_by_user_id').references(() => profiles.id, {
+      onDelete: 'set null',
+    }),
+    reviewedByUserId: uuid('reviewed_by_user_id').references(() => profiles.id, {
+      onDelete: 'set null',
+    }),
+    reviewedAt: timestamp('reviewed_at', { withTimezone: true, mode: 'date' }),
+    reviewerNote: text('reviewer_note'),
+    /** Set after approval — points to the attendance day that was patched. */
+    appliedAttendanceDayId: uuid('applied_attendance_day_id').references(
+      () => attendanceDays.id,
+      { onDelete: 'set null' },
+    ),
+    ...timestamps(),
+  },
+  (table) => [
+    uniqueIndex('attendance_correction_requests_id_org_uq').on(table.id, table.organizationId),
+    index('attendance_correction_requests_org_status_idx').on(
+      table.organizationId,
+      table.status,
+    ),
+    index('attendance_correction_requests_employee_idx').on(table.employeeId, table.workDate),
+    check(
+      'attendance_correction_requests_status_known',
+      sql`${table.status} IN ('pending', 'approved', 'rejected')`,
+    ),
+    check(
+      'attendance_correction_requests_times_valid',
+      sql`${table.requestedClockOut} > ${table.requestedClockIn}`,
+    ),
+  ],
+);
+
 export const attendanceEvents = pgTable(
   'attendance_events',
   {
@@ -685,3 +742,21 @@ export const timeEntriesRelations = relations(timeEntries, ({ one }) => ({
   project: one(projects, { fields: [timeEntries.projectId], references: [projects.id] }),
   rateVersion: one(rateVersions, { fields: [timeEntries.rateVersionId], references: [rateVersions.id] }),
 }));
+
+export const attendanceCorrectionRequestsRelations = relations(
+  attendanceCorrectionRequests,
+  ({ one }) => ({
+    organization: one(organizations, {
+      fields: [attendanceCorrectionRequests.organizationId],
+      references: [organizations.id],
+    }),
+    employee: one(employees, {
+      fields: [attendanceCorrectionRequests.employeeId],
+      references: [employees.id],
+    }),
+    appliedAttendanceDay: one(attendanceDays, {
+      fields: [attendanceCorrectionRequests.appliedAttendanceDayId],
+      references: [attendanceDays.id],
+    }),
+  }),
+);

@@ -76,6 +76,10 @@
     "title": "Closeout is not started",
     "body": "Review readiness, then close the project when the work is done."
   },
+  "warranty": {
+    "setupHint": "This project is closed but has no warranty coverage set up.",
+    "setupLink": "Set up warranty coverage →"
+  },
   "errors": {
     "notCloseable": "This project cannot be closed yet.",
     "alreadyClosed": "This project is already closed.",

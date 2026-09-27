@@ -246,6 +246,24 @@ export async function ProjectCloseoutPanel({ projectId }: { readonly projectId: 
         hasHardBlockers={blocked}
       />
 
+      {lifecycle === 'closed' && !workspace.hasWarrantyCoverage ? (
+        <section className="flex min-w-0 flex-col gap-2 rounded-lg border border-[var(--pf-border-info)] bg-[var(--pf-bg-info-subtle)] p-4">
+          <p className="text-sm text-[var(--pf-text-default)]">
+            {t('warranty.setupHint')}
+          </p>
+          <a
+            href={
+              workspace.projectActualEndDate
+                ? `/projects/${projectId}?tab=warranty&startDate=${workspace.projectActualEndDate}`
+                : `/projects/${projectId}?tab=warranty`
+            }
+            className="text-sm font-medium text-[var(--pf-link-default)] hover:underline"
+          >
+            {t('warranty.setupLink')}
+          </a>
+        </section>
+      ) : null}
+
       <section className="flex min-w-0 flex-col gap-2">
         <h3 className="text-sm font-semibold">{t('history.title')}</h3>
         {workspace.events.length === 0 ? (

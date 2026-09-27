@@ -24,6 +24,7 @@ import {
 import { organizationBrandProfiles } from './branding';
 import {
   approvalDecisionEnum,
+  billingConditionEnum,
   changeDirectionEnum,
   changeStatusEnum,
   quoteVersionStatusEnum,
@@ -265,6 +266,11 @@ export const changeOrders = pgTable(
     reversalOfChangeOrderId: uuid('reversal_of_change_order_id'),
     reversalReason: text('reversal_reason'),
     reversedByUserId: uuid('reversed_by_user_id').references(() => profiles.id, { onDelete: 'set null' }),
+    /**
+     * When the owner expects to invoice for this approved change.
+     * NULL = not yet decided. Does NOT auto-create a billing record.
+     */
+    billingCondition: billingConditionEnum('billing_condition'),
     ...timestamps(),
   },
   (table) => [

@@ -156,5 +156,17 @@ export function notificationCopy(
         title: titleWithReference(t, type, ref),
         body: bodyWithExtra(t, type, extra, 'bodyDefault', 'bodyWithExtra'),
       };
+    case 'task_status_updated':
+      return {
+        title: titleWithReference(t, type, ref),
+        body: bodyWithExtra(t, type, extra),
+      };
+    case 'material_pressure_alert':
+      // Pressure alerts are emitted directly by the ops-worker with pre-built title/body.
+      // This copy helper is not used for that path, but the case must be present for exhaustiveness.
+      return {
+        title: titleWithReference(t, type, ref),
+        body: bodyWithExtra(t, type, extra),
+      };
   }
 }

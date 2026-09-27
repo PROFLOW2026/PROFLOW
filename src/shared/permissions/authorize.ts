@@ -3,22 +3,32 @@ import { AuthorizationError } from '@/shared/errors';
 import type { PermissionKey } from './catalog';
 import { assertPermission, hasPermission } from './assert';
 import type { PermissionScope } from './scopes';
-import {
-  employeeHasPermission,
-  isEmployeeAppUser,
-} from '@/modules/employee-app/application/load-employee-app-context';
-import { assertEmployeeProjectScope } from '@/modules/employee-app/application/project-scope';
-import {
-  assertCanReadDocumentForEmployee,
-  type DocumentAccessInput,
-} from '@/modules/employee-app/application/document-access';
-import type { AuthorizeResource } from '@/modules/employee-app/domain/types';
+import type { AuthorizeResource, DocumentAccessInput } from './types';
 
 export interface AuthorizeRequest {
   readonly permission: PermissionKey;
   readonly scope?: PermissionScope;
   readonly resource?: AuthorizeResource;
 }
+
+// ─── Inline helpers (were @/modules/employee-app/application/load-employee-app-context) ──
+// The shared layer must never depend on a feature module, so the two
+// trivial employee-app predicates are inlined here rather than imported.
+
+/** Returns true when the OrgContext belongs to an Employee App session. */
+function isEmployeeAppUser(context: OrgContext): boolean {
+  return context.roleKeys.includes('employee') && Boolean(context.employeeApp);
+}
+
+/**
+ * Returns true when the caller (who may be an employee app user) holds
+ * `permission` in their effective permission set.
+ */
+function employeeHasPermission(context: OrgContext, permission: PermissionKey): boolean {
+  return context.permissions.has(permission);
+}
+
+// ─── Central authorization gate ───────────────────────────────────────────────
 
 /**
  * Central employee-aware authorization gate.
@@ -35,6 +45,9 @@ export async function authorize(context: OrgContext, request: AuthorizeRequest):
 
   if (request.resource.type === 'project') {
     if (isEmployeeAppUser(context)) {
+      const { assertEmployeeProjectScope } = await import(
+        '@/modules/employee-app/application/project-scope'
+      );
       await assertEmployeeProjectScope(
         context,
         request.permission as typeof request.permission,
@@ -51,6 +64,9 @@ export async function authorize(context: OrgContext, request: AuthorizeRequest):
   }
 
   if (request.resource.type === 'document') {
+    const { assertCanReadDocumentForEmployee } = await import(
+      '@/modules/employee-app/application/document-access'
+    );
     await assertCanReadDocumentForEmployee(context, {
       documentId: request.resource.id,
       category: request.resource.documentCategory ?? null,

@@ -78,6 +78,8 @@ export const createQuoteSchema = z.object({
   listSubtotalAmount: optionalDiscountMoney,
   discountPercent: optionalDiscountPercent,
   lines: z.array(quoteLineSchema).min(1, 'At least one line item is required'),
+  /** Back-reference to the CRM sales quote this was converted from. */
+  sourceCrmQuoteId: optionalUuid,
 });
 
 export type CreateQuoteInput = z.input<typeof createQuoteSchema>;
@@ -104,6 +106,11 @@ export type UpdateQuoteInput = z.input<typeof updateQuoteSchema>;
 export const transitionQuoteSchema = z.object({
   quoteId: z.string().uuid(),
   toStatus: z.enum(QUOTE_STATUSES),
+  /**
+   * When true, bypasses expiry check so an owner can explicitly accept an expired quote.
+   * Intended for manual overrides only — not exposed in standard client-facing flows.
+   */
+  overrideExpiry: z.boolean().optional(),
 });
 
 export type TransitionQuoteInput = z.input<typeof transitionQuoteSchema>;
@@ -122,6 +129,11 @@ export const convertQuoteSchema = z.object({
   }, z.boolean()).optional(),
   /** Jobs only: open = no fake zero contract; fixed uses quote net. */
   pricingMode: z.preprocess(emptyToNull, z.enum(['fixed', 'open']).nullable().optional()),
+  /**
+   * When true (default), creates draft BOQ items from the quote's line items after project creation.
+   * Set false to skip seeding (e.g. when the project already has a BOQ, or user opts out).
+   */
+  seedBoq: z.boolean().optional(),
 });
 
 export type ConvertQuoteInput = z.input<typeof convertQuoteSchema>;

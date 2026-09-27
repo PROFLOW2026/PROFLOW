@@ -92,7 +92,20 @@
     "createBilling": "יצירת חיוב",
     "billingPlan": "תוכנית חיוב",
     "viewBilling": "חיובי הפרויקט",
-    "noPermission": "ניתן לצפות באישור; פעולות חיוב דורשות הרשאת ניהול חיובים."
+    "noPermission": "ניתן לצפות באישור; פעולות חיוב דורשות הרשאת ניהול חיובים.",
+    "status": {
+      "changeAmount": "סכום השינוי",
+      "billed": "{count, plural, one {חויב (רשומה אחת)} two {חויב ({count} רשומות)} other {חויב ({count} רשומות)}}",
+      "notBilledYet": "טרם חויב",
+      "remaining": "נותר לחיוב",
+      "fullyBilled": "שינוי זה חויב במלואו."
+    },
+    "condition": {
+      "immediate": "תנאי חיוב: חיוב מיידי.",
+      "milestone": "תנאי חיוב: חיוב כחלק מאבן דרך.",
+      "custom_terms": "תנאי חיוב: תנאי תשלום מותאמים.",
+      "deferred": "תנאי חיוב: נדחה — אין חיוב כרגע."
+    }
   },
   "detail": {
     "amount": "סכום מסחרי",

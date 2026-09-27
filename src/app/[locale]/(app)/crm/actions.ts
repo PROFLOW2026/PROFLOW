@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { getLocale, getTranslations } from 'next-intl/server';
 import {
   acceptSalesQuoteVersion,
+  convertCrmQuoteToProductQuote,
   convertWonOpportunity,
   createEstimate,
   createLead,
@@ -354,6 +355,32 @@ export async function convertWonOpportunityAction(
     revalidatePath('/crm');
     revalidatePath('/projects');
     redirect({ href: `/projects/${result.projectId}`, locale });
+  } catch (error) {
+    return mapError(error, tErrors);
+  }
+}
+
+/**
+ * Task 1: Convert a CRM sales quote to a draft product quote.
+ * Redirects to the new product quote for review and editing.
+ */
+export async function convertCrmQuoteToProductQuoteAction(
+  _prev: CrmFormState,
+  formData: FormData,
+): Promise<CrmFormState> {
+  const tErrors = await getTranslations('errors');
+  const locale = await getLocale();
+  try {
+    const salesQuoteId = formValue(formData, 'salesQuoteId') ?? '';
+    const result = await withOrgContext((context) =>
+      convertCrmQuoteToProductQuote(context, {
+        salesQuoteId,
+        titleOverride: formValue(formData, 'titleOverride'),
+      }),
+    );
+    revalidatePath('/crm');
+    revalidatePath('/quotes');
+    redirect({ href: `/quotes/${result.productQuoteId}`, locale });
   } catch (error) {
     return mapError(error, tErrors);
   }

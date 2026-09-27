@@ -3,6 +3,8 @@ import {
   automationRules,
   automationRuns,
   boqProgressBatches,
+  boqSubcontractorSchedules,
+  boqSubcontractorValuations,
   documents,
   employees,
   inventoryItems,
@@ -655,6 +657,62 @@ export async function listAutomationFollowups(
       reference: row.presetKey,
       extra: row.errorMessage ?? row.ranAt.toISOString().slice(0, 10),
       deepLink: '/automations',
+    }));
+  } catch (error) {
+    if (isMissingRelation(error)) return [];
+    throw error;
+  }
+}
+
+/**
+ * BOQ subcontractor valuations that are approved/proposed_ap but have
+ * reconciliationStatus = 'unmatched' (AP team reviewed and found no bill).
+ * Used to surface follow-up notifications for the AP team.
+ */
+export async function listUnmatchedBoqValuations(
+  db: DbExecutor,
+  organizationId: string,
+  cap: number,
+): Promise<ScanEntity[]> {
+  try {
+    const rows = await db
+      .select({
+        id: boqSubcontractorValuations.id,
+        periodLabel: boqSubcontractorValuations.periodLabel,
+        projectId: boqSubcontractorSchedules.projectId,
+        projectName: projects.name,
+      })
+      .from(boqSubcontractorValuations)
+      .innerJoin(
+        boqSubcontractorSchedules,
+        and(
+          eq(boqSubcontractorSchedules.id, boqSubcontractorValuations.scheduleId),
+          eq(boqSubcontractorSchedules.organizationId, boqSubcontractorValuations.organizationId),
+        ),
+      )
+      .innerJoin(
+        projects,
+        and(
+          eq(projects.id, boqSubcontractorSchedules.projectId),
+          eq(projects.organizationId, boqSubcontractorSchedules.organizationId),
+        ),
+      )
+      .where(
+        and(
+          eq(boqSubcontractorValuations.organizationId, organizationId),
+          sql`${boqSubcontractorValuations.reconciliationStatus} = 'unmatched'`,
+          sql`${boqSubcontractorValuations.status} NOT IN ('voided', 'draft')`,
+          isNull(projects.archivedAt),
+        ),
+      )
+      .limit(cap);
+
+    return rows.map((row) => ({
+      id: row.id,
+      reference: row.projectName,
+      extra: row.periodLabel,
+      deepLink: `/projects/${row.projectId}?tab=boq`,
+      projectId: row.projectId,
     }));
   } catch (error) {
     if (isMissingRelation(error)) return [];

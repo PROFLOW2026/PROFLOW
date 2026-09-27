@@ -19,7 +19,7 @@ import {
   employmentOverlapsDateRange,
   isWithinEmploymentRange,
 } from '../domain/employment-active-range';
-import type { TimeApprovalStatus, TimeEntryListItem } from '../domain/types';
+import type { TimeApprovalStatus, TimeEntryListItem, AttendanceDayListItem } from '../domain/types';
 
 export type TodayApprovalStatus = TimeApprovalStatus | 'awaiting' | 'missing';
 
@@ -382,5 +382,118 @@ export async function getMonthlyAttendanceGrid(
     toDate,
     days,
     rows: filtered,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Time Allocation Coverage (Task 3): attendance hours vs approved project hours
+// ---------------------------------------------------------------------------
+
+export interface AttendanceAllocationCoverageRow {
+  readonly employeeId: string;
+  readonly employeeName: string;
+  /** Sum of (clock_out − clock_in) from attendance events in the period, in hours. */
+  readonly attendanceHours: number;
+  /** Sum of APPROVED project time-entry hours in the period. */
+  readonly allocatedHours: number;
+  /**
+   * attendanceHours − allocatedHours, floored at 0.
+   * Positive → there are attendance hours with no approved project allocation.
+   */
+  readonly unallocatedHours: number;
+  /** True when the employee has at least one non-void attendance day in the period. */
+  readonly hasAttendance: boolean;
+}
+
+export interface AttendanceAllocationCoverage {
+  readonly yearMonth: string;
+  readonly rows: readonly AttendanceAllocationCoverageRow[];
+  /** Total unallocated hours across all employees. */
+  readonly totalUnallocatedHours: number;
+  /** Number of employees with unallocated attendance hours. */
+  readonly employeesWithUnallocatedCount: number;
+}
+
+/**
+ * For each employee with attendance in `yearMonth`, compute:
+ *   - attendance hours (from clock_in/clock_out events)
+ *   - allocated (approved) project time-entry hours
+ *   - unallocated = max(0, attendance − allocated)
+ *
+ * Requires ATTENDANCE_MANAGE or ATTENDANCE_READ.
+ */
+export async function getAttendanceAllocationCoverage(
+  context: OrgContext,
+  yearMonth: string,
+): Promise<AttendanceAllocationCoverage> {
+  assertPermission(context, PERMISSIONS.ATTENDANCE_MANAGE);
+
+  const { fromDate, toDate } = monthBounds(yearMonth);
+
+  const employees = await listEmployees(context.db, context.organizationId, {
+    status: 'all',
+    asOfDate: toDate,
+  });
+
+  const { days: attendanceDays, timeEntries } = await loadOwnerMonthFacts(
+    context,
+    fromDate,
+    toDate,
+  );
+
+  // Build per-employee attendance hours from events (clock_in/clock_out pairs).
+  const attendanceHoursByEmployee = new Map<string, number>();
+  // AttendanceDayListItem has clockInAt / clockOutAt from the repository query.
+  for (const day of attendanceDays as AttendanceDayListItem[]) {
+    if (day.status === 'void') continue;
+    const hours = hoursFromClock(day.clockInAt, day.clockOutAt);
+    if (hours != null && hours > 0) {
+      const prev = attendanceHoursByEmployee.get(day.employeeId) ?? 0;
+      attendanceHoursByEmployee.set(day.employeeId, prev + hours);
+    }
+  }
+
+  // Per-employee presence (has at least one non-void day).
+  const employeesWithAttendance = new Set(
+    attendanceDays.filter((d) => d.status !== 'void').map((d) => d.employeeId),
+  );
+
+  // Approved project time-entry hours per employee.
+  const allocatedHoursByEmployee = new Map<string, number>();
+  for (const entry of timeEntries) {
+    if (entry.approvalStatus !== 'approved') continue;
+    if (entry.kind !== 'project') continue;
+    const h = Number(entry.hours) || 0;
+    const prev = allocatedHoursByEmployee.get(entry.employeeId) ?? 0;
+    allocatedHoursByEmployee.set(entry.employeeId, prev + h);
+  }
+
+  const rows: AttendanceAllocationCoverageRow[] = employees
+    .filter(
+      (emp) => !emp.archivedAt && employeesWithAttendance.has(emp.id),
+    )
+    .map((emp) => {
+      const attendanceHours = Math.round((attendanceHoursByEmployee.get(emp.id) ?? 0) * 100) / 100;
+      const allocatedHours = Math.round((allocatedHoursByEmployee.get(emp.id) ?? 0) * 100) / 100;
+      const unallocatedHours = Math.max(0, Math.round((attendanceHours - allocatedHours) * 100) / 100);
+      return {
+        employeeId: emp.id,
+        employeeName: emp.name,
+        attendanceHours,
+        allocatedHours,
+        unallocatedHours,
+        hasAttendance: true,
+      };
+    })
+    .sort((a, b) => b.unallocatedHours - a.unallocatedHours);
+
+  const totalUnallocatedHours = rows.reduce((sum, row) => sum + row.unallocatedHours, 0);
+  const employeesWithUnallocatedCount = rows.filter((row) => row.unallocatedHours > 0).length;
+
+  return {
+    yearMonth,
+    rows,
+    totalUnallocatedHours: Math.round(totalUnallocatedHours * 100) / 100,
+    employeesWithUnallocatedCount,
   };
 }

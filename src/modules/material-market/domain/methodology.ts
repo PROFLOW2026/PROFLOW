@@ -63,6 +63,19 @@ export const TRADE_WEIGHTS: Record<
     fx: 0.1,
     energy: 0.1,
   },
+  /**
+   * Concrete/cement: anchored on CBS government indices (201140 cement + 201160 concrete/ready-mix).
+   * Energy is a dominant cost factor (~35% of cement production is energy).
+   * Free sources: CBS API (high confidence). Readymix HTML catalog (medium; not automated).
+   * Research score: 14/25 PARTIAL — LEVEL 2 (index + pressure tracking, no SKU-level).
+   * Supplier signal included with 0.15 weight if vendor price data is tagged to this trade.
+   */
+  concrete: {
+    cbs: 0.50,
+    energy: 0.25,
+    fx: 0.10,
+    supplier: 0.15,
+  },
 };
 
 export const FRED_SERIES = {
@@ -83,6 +96,10 @@ export const CBS_SERIES = {
   CBS_PLUMBING: '201380',
   CBS_PLASTIC_PIPES: '201400',
   CBS_REBAR: '201230',
+  /** Cement price sub-index (מדד מלט). Free CBS API. Research: feasibility 14/25, LEVEL 2. */
+  CBS_CEMENT: '201140',
+  /** Ready-mix concrete price sub-index (מדד בטון מוכן). Free CBS API. */
+  CBS_CONCRETE: '201160',
 } as const;
 
 export const SIGNAL_PROFILE_BY_COMPONENT: Record<TradeComponentKey, SignalProfile> = {

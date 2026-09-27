@@ -179,6 +179,22 @@ export function blendCbsPlumbing(
   return out;
 }
 
+/** Blend CBS cement (201140) and CBS concrete/ready-mix (201160) into a single index. */
+export function blendCbsConcrete(
+  cbsCement: MonthlySeries,
+  cbsConcrete: MonthlySeries,
+): MonthlySeries {
+  const out: MonthlySeries = {};
+  const months = new Set([...Object.keys(cbsCement), ...Object.keys(cbsConcrete)]);
+  for (const ym of [...months].sort()) {
+    const vals: number[] = [];
+    if (ym in cbsCement) vals.push(cbsCement[ym]!);
+    if (ym in cbsConcrete) vals.push(cbsConcrete[ym]!);
+    if (vals.length > 0) out[ym] = vals.reduce((a, b) => a + b, 0) / vals.length;
+  }
+  return out;
+}
+
 export interface DriverSeriesMap {
   COPPER_ILS: MonthlySeries;
   CBS_CONDUCTORS: MonthlySeries;
@@ -191,23 +207,65 @@ export interface DriverSeriesMap {
   STEEL_SCRAP: MonthlySeries;
   IRON_ORE: MonthlySeries;
   HRC_STEEL: MonthlySeries;
+  /** Concrete/cement blended CBS index (CBS_CEMENT + CBS_CONCRETE averaged). */
+  CBS_CONCRETE_BLEND: MonthlySeries;
 }
 
-export function computeAllTradeSnapshots(drivers: DriverSeriesMap): TradeSnapshotRow[] {
+/**
+ * Supplier signals: per-trade monthly average price series derived from
+ * material_vendor_prices (actual purchase prices from vendor invoices).
+ * Keyed by MaterialTrade. Optional — if not provided, supplier component = null.
+ *
+ * DISCLAIMER: This is an indication tool only. Derived from internal purchase
+ * price history and should not be used as a forecast or financial commitment signal.
+ */
+export type SupplierSignals = Partial<Record<MaterialTrade, MonthlySeries>>;
+
+/**
+ * Compute trade pressure snapshots from market driver series.
+ *
+ * @param drivers  - Market driver series (FRED/CBS raw + derived).
+ * @param supplierSignals - Optional per-trade monthly average price series from
+ *   material_vendor_prices. Feeds the 'supplier' component when present.
+ *   DISCLAIMER: indication only — not a forecast. Coverage depends on how many
+ *   material items have been tagged with a trade category.
+ */
+export function computeAllTradeSnapshots(
+  drivers: DriverSeriesMap,
+  supplierSignals?: SupplierSignals,
+): TradeSnapshotRow[] {
   const allMonths = new Set<string>();
   for (const series of Object.values(drivers)) {
     for (const ym of Object.keys(series)) allMonths.add(ym);
+  }
+  // Also include months from supplier signals
+  if (supplierSignals) {
+    for (const series of Object.values(supplierSignals)) {
+      if (series) for (const ym of Object.keys(series)) allMonths.add(ym);
+    }
   }
   const months = [...allMonths].sort();
   const scoresByTrade: Record<MaterialTrade, Record<string, number>> = {
     electrical: {},
     plumbing: {},
     steel_rebar: {},
+    concrete: {},
   };
   const rows: TradeSnapshotRow[] = [];
 
   for (const ym of months) {
     const snapshotDate = `${ym}-01`;
+    // Supplier signals for this month (null if no data tagged for that trade)
+    const supplierEl = supplierSignals?.electrical
+      ? signalToComponentScore(driverSignal(supplierSignals.electrical, ym, 'supplier'))
+      : null;
+    const supplierPl = supplierSignals?.plumbing
+      ? signalToComponentScore(driverSignal(supplierSignals.plumbing, ym, 'supplier'))
+      : null;
+    const supplierCo = supplierSignals?.concrete
+      ? signalToComponentScore(driverSignal(supplierSignals.concrete, ym, 'supplier'))
+      : null;
+
     const compSignals = {
       copper: driverSignal(drivers.COPPER_ILS, ym, 'commodity'),
       cbs_electrical: driverSignal(drivers.CBS_CONDUCTORS, ym, 'cbs'),
@@ -220,6 +278,7 @@ export function computeAllTradeSnapshots(drivers: DriverSeriesMap): TradeSnapsho
       scrap: driverSignal(drivers.STEEL_SCRAP, ym, 'commodity'),
       iron_ore: driverSignal(drivers.IRON_ORE, ym, 'commodity'),
       steel: driverSignal(drivers.HRC_STEEL, ym, 'commodity'),
+      cbs_concrete: driverSignal(drivers.CBS_CONCRETE_BLEND, ym, 'cbs'),
     };
     const compScores = Object.fromEntries(
       Object.entries(compSignals).map(([k, v]) => [k, signalToComponentScore(v)]),
@@ -231,11 +290,11 @@ export function computeAllTradeSnapshots(drivers: DriverSeriesMap): TradeSnapsho
       fx: compScores.fx,
       aluminium: compScores.aluminium,
       energy: compScores.energy,
-      supplier: null,
+      supplier: supplierEl,
     };
     const plComp = {
       cbs: compScores.cbs_plumbing,
-      supplier: null as number | null,
+      supplier: supplierPl,
       polymer: compScores.polymer,
       energy: compScores.energy,
       fx: compScores.fx,
@@ -250,9 +309,17 @@ export function computeAllTradeSnapshots(drivers: DriverSeriesMap): TradeSnapsho
       energy: compScores.energy,
     };
 
+    const coComp = {
+      cbs: compScores.cbs_concrete,
+      energy: compScores.energy,
+      fx: compScores.fx,
+      supplier: supplierCo,
+    };
+
     const el = computeTradeMonth(elComp, TRADE_WEIGHTS.electrical);
     const pl = computeTradeMonth(plComp, TRADE_WEIGHTS.plumbing);
     const st = computeTradeMonth(stComp, TRADE_WEIGHTS.steel_rebar);
+    const co = computeTradeMonth(coComp, TRADE_WEIGHTS.concrete);
 
     const payloads: Array<{
       trade: MaterialTrade;
@@ -285,6 +352,14 @@ export function computeAllTradeSnapshots(drivers: DriverSeriesMap): TradeSnapsho
         coverage: st.coverage,
         comps: stComp,
         localSig: compSignals.cbs_rebar,
+      },
+      {
+        trade: 'concrete',
+        score: co.score,
+        confidence: co.confidence,
+        coverage: co.coverage,
+        comps: coComp,
+        localSig: compSignals.cbs_concrete,
       },
     ];
 
@@ -350,7 +425,9 @@ export function topDrivers(
       ? ['copper', 'cbs', 'fx', 'aluminium', 'energy', 'supplier']
       : trade === 'plumbing'
         ? ['cbs', 'supplier', 'polymer', 'energy', 'fx']
-        : ['cbs', 'scrap', 'iron_ore', 'steel', 'fx', 'energy'];
+        : trade === 'concrete'
+          ? ['cbs', 'energy', 'fx', 'supplier']
+          : ['cbs', 'scrap', 'iron_ore', 'steel', 'fx', 'energy'];
 
   const vals = driverKeys
     .map((key) => ({ key, value: comps[key] ?? null }))

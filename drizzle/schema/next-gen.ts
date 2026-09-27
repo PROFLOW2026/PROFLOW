@@ -59,6 +59,12 @@ export const estimates = pgTable(
     discountPercent: percentAmount('discount_percent'),
     /** Optional brand profile override for Product Quotes (0062). Not commercial change quotes. */
     brandProfileId: uuid('brand_profile_id'),
+    /**
+     * Back-reference to the originating CRM sales quote (migration 0135).
+     * Populated by convertCrmQuoteToProductQuote; null for manually created quotes.
+     * FK enforced at DB level: references crm_sales_quotes(id) ON DELETE SET NULL.
+     */
+    sourceCrmQuoteId: uuid('source_crm_quote_id'),
     createdByUserId: uuid('created_by_user_id').references(() => profiles.id, { onDelete: 'set null' }),
     archivedAt: archivedAt(),
     ...timestamps(),

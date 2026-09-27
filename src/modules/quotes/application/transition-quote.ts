@@ -1,6 +1,7 @@
 import { assertApprovalAllowsAction } from '@/modules/approvals';
 import { recordAuditEvent } from '@/shared/audit';
 import type { OrgContext } from '@/shared/auth/context';
+import { todayInTimeZone } from '@/shared/dates';
 import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -51,6 +52,21 @@ export async function transitionQuoteStatus(
   if (!existing) throw new NotFoundError('Quote');
 
   assertCanTransitionQuoteStatus(existing.status, toStatus);
+
+  // ── Expiry enforcement (Task 3) ───────────────────────────────────────────
+  // Reject acceptance of expired quotes unless the owner explicitly overrides.
+  if (toStatus === 'accepted' && !parsed.data.overrideExpiry) {
+    if (existing.validityDate) {
+      const today = todayInTimeZone(context.organization.timezone);
+      if (existing.validityDate < today) {
+        throw new DomainRuleError(
+          'This quote has expired and can no longer be accepted',
+          'quotes.errors.quoteExpired',
+          { validityDate: existing.validityDate },
+        );
+      }
+    }
+  }
 
   // Customer-facing lock (`sent`): large discounts matching a quote_discount
   // rule cannot issue until approved. No matching rule / no discount → allow.

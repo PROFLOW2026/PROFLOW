@@ -538,12 +538,14 @@
   "activityTimeline": {
     "title": "Activity history",
     "actions": {
-      "expense.payment_confirmation_voided": "Payment confirmation voided",
-      "expense.payment_confirmed": "Payment confirmed",
-      "expense.finalized": "Expense approved",
-      "expense.created": "Expense created",
-      "expense.updated": "Expense updated",
-      "expense.voided": "Expense reversed / cancelled"
+      "expense": {
+        "payment_confirmation_voided": "Payment confirmation voided",
+        "payment_confirmed": "Payment confirmed",
+        "finalized": "Expense approved",
+        "created": "Expense created",
+        "updated": "Expense updated",
+        "voided": "Expense reversed / cancelled"
+      }
     }
   },
   "overheadHome": {

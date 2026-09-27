@@ -538,12 +538,14 @@
   "activityTimeline": {
     "title": "سجل النشاط",
     "actions": {
-      "expense.payment_confirmation_voided": "تم إلغاء تأكيد الدفع",
-      "expense.payment_confirmed": "تم تأكيد الدفع",
-      "expense.finalized": "تم اعتماد المصروف",
-      "expense.created": "تم إنشاء المصروف",
-      "expense.updated": "تم تحديث المصروف",
-      "expense.voided": "تم إلغاء المصروف"
+      "expense": {
+        "payment_confirmation_voided": "تم إلغاء تأكيد الدفع",
+        "payment_confirmed": "تم تأكيد الدفع",
+        "finalized": "تم اعتماد المصروف",
+        "created": "تم إنشاء المصروف",
+        "updated": "تم تحديث المصروف",
+        "voided": "تم إلغاء المصروف"
+      }
     }
   },
   "overheadHome": {

@@ -1,6 +1,7 @@
 import type { OrgContext } from '@/shared/auth/context';
 import { NotFoundError } from '@/shared/errors';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import type { DocumentAccessInput } from '@/shared/permissions/types';
 import { canSeeDocumentPrivacyClass } from '@/modules/documents/domain/privacy';
 import { listProjectScopedOwnerIdsForDocument, listDocumentsForEntity } from '@/modules/documents';
 import { isDocumentCategory, type DocumentCategory } from '@/modules/documents/domain/categories';
@@ -13,12 +14,9 @@ import {
 import { assertEmployeeProjectScope } from './project-scope';
 import { canReadCompensationDocuments } from '@/modules/documents/application/document-visibility';
 
-export interface DocumentAccessInput {
-  readonly documentId: string;
-  readonly category: string | null;
-  readonly privacyClass?: 'standard' | 'compensation';
-  readonly projectIds?: readonly string[];
-}
+// Re-exported from @/shared/permissions/types (canonical location).
+// Keeping this re-export here so existing within-module callers don't break.
+export type { DocumentAccessInput } from '@/shared/permissions/types';
 
 export interface EmployeeDocumentCategoryAccessOptions {
   /** When true, null/invalid categories may be allowed for standard project files. */

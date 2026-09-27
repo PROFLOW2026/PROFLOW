@@ -92,7 +92,20 @@
     "createBilling": "Create billing record",
     "billingPlan": "Open billing plan",
     "viewBilling": "View project billing",
-    "noPermission": "You can view the approval; billing actions require billing manage permission."
+    "noPermission": "You can view the approval; billing actions require billing manage permission.",
+    "status": {
+      "changeAmount": "Change amount",
+      "billed": "{count, plural, =1 {Billed (# record)} other {Billed (# records)}}",
+      "notBilledYet": "Not yet billed",
+      "remaining": "Remaining to bill",
+      "fullyBilled": "This change has been fully billed."
+    },
+    "condition": {
+      "immediate": "Billing condition: bill immediately.",
+      "milestone": "Billing condition: bill as part of a milestone.",
+      "custom_terms": "Billing condition: custom payment terms apply.",
+      "deferred": "Billing condition: deferred — no billing yet."
+    }
   },
   "detail": {
     "amount": "Commercial amount",

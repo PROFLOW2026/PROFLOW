@@ -2,6 +2,11 @@ import type { PermissionScope } from '@/shared/permissions/scopes';
 import type { PermissionKey } from '@/shared/permissions/catalog';
 import type { DocumentCategory } from '@/modules/documents/domain/categories';
 
+// Re-export so existing within-module imports continue to work.
+// The canonical definition lives in @/shared/permissions/types to avoid the
+// illegal shared → feature-module dependency in authorize.ts.
+export type { AuthorizeResource } from '@/shared/permissions/types';
+
 export type EmployeeAppStatus = 'inactive' | 'invited' | 'active' | 'suspended' | 'blocked';
 
 export interface EmployeeAppAccountRecord {
@@ -37,8 +42,3 @@ export interface EmployeeAppContext {
   readonly allowedDocumentCategories: ReadonlySet<DocumentCategory> | null;
 }
 
-export interface AuthorizeResource {
-  readonly type: 'project' | 'employee' | 'document';
-  readonly id: string;
-  readonly documentCategory?: string | null;
-}

@@ -283,3 +283,19 @@ export const identifierTypeEnum = pgEnum('identifier_type', [
   'license_number',
   'other',
 ]);
+
+/**
+ * Doc 05 §9 — when does the owner expect to invoice for an approved change?
+ * Stored on the change_order row so the billing team can route it correctly.
+ * Does NOT auto-create any billing record (decision: link-only, no auto-create).
+ */
+export const billingConditionEnum = pgEnum('billing_condition', [
+  /** Bill immediately — show a "Create billing record" nudge on the change detail page. */
+  'immediate',
+  /** Bill as part of a billing-plan milestone — show a "Link to billing plan" nudge. */
+  'milestone',
+  /** Custom payment terms attached to the change (e.g. % up-front + % on delivery). */
+  'custom_terms',
+  /** Deferred — no billing action yet; tracked for completeness. */
+  'deferred',
+]);

@@ -105,6 +105,10 @@ async function loadExpenseContributions(
       classificationStatus: expenses.classificationStatus,
       workPackageId: expenses.workPackageId,
       installmentCount: expenses.installmentCount,
+      /** Cost code for budget-line mapping (0141). */
+      costCodeId: expenses.costCodeId,
+      /** Pre-computed base-currency equivalent for FX expenses (0141). */
+      ilsEquivalentNetAmount: expenses.ilsEquivalentNetAmount,
     })
     .from(expenses)
     .leftJoin(vendors, eq(vendors.id, expenses.vendorId))
@@ -145,6 +149,9 @@ async function loadExpenseContributions(
       lineCategoryKey: lineCategories.key,
       classificationStatus: expenses.classificationStatus,
       workPackageId: expenseAllocations.workPackageId,
+      /** Line-level cost code; fallback to header (0141). */
+      allocationLineCostCodeId: expenseAllocations.costCodeId,
+      parentCostCodeId: expenses.costCodeId,
     })
     .from(expenseAllocations)
     .innerJoin(expenses, eq(expenses.id, expenseAllocations.expenseId))
@@ -194,6 +201,9 @@ async function loadExpenseContributions(
       vendorId: row.vendorId,
       vendorName: row.vendorName,
       vendorType: row.vendorType,
+      // FX + cost-code (0141)
+      costCodeId: row.costCodeId ?? null,
+      ilsEquivalentNetAmount: row.ilsEquivalentNetAmount ?? null,
     });
   }
 
@@ -233,6 +243,10 @@ async function loadExpenseContributions(
       vendorId: row.vendorId,
       vendorName: row.vendorName,
       vendorType: row.vendorType,
+      // Line-level cost code overrides header; FX equivalent is not propagated to
+      // allocation slices (no reliable proportional ILS split without rate per slice).
+      costCodeId: row.allocationLineCostCodeId ?? row.parentCostCodeId ?? null,
+      ilsEquivalentNetAmount: null,
     });
   }
 

@@ -153,7 +153,15 @@ export interface UnbilledChangeOrder {
   readonly effectiveDate: BusinessDate;
 }
 
-export type BillingListFilter = 'all' | 'paid' | 'outstanding' | 'overdue';
+/** Billing coverage for a specific approved change order. */
+export interface ChangeOrderBillingStatus {
+  /** Sum of billing_lines that reference this change (non-void records only). */
+  readonly totalBilledAmount: MoneyValue | null;
+  /** Number of distinct billing records that include a line for this change. */
+  readonly billedCount: number;
+}
+
+export type BillingListFilter = 'all' | 'paid' | 'outstanding' | 'overdue' | 'mismatch';
 
 export interface BillingListFilters {
   readonly filter?: BillingListFilter;

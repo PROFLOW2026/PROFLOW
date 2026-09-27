@@ -1,5 +1,5 @@
 import { and, eq, gte, inArray, isNull, lte, sql } from 'drizzle-orm';
-import { billingRecords, paymentApplications, payments } from '@drizzle/schema';
+import { billingRecords, externalStatutoryDocuments, paymentApplications, payments } from '@drizzle/schema';
 import {
   aggregateBillingPositionInCurrency,
   isOverdueOn,
@@ -993,4 +993,33 @@ export async function loadCashFlowOpenBillingRows(
     });
   }
   return open;
+}
+
+// ─── Reconciliation mismatch counter (AR / invoicing-integration health) ─────
+
+/**
+ * Counts billing records that have at least one statutory document with
+ * `reconciliation_status = 'mismatch'` — i.e. the external invoice amount does
+ * not match the billing record amount.
+ *
+ * Used by the dashboard attention system to surface AR integrity issues without
+ * touching the invoicing-integration module's domain code.
+ */
+export async function countReconciliationMismatches(
+  db: DbExecutor,
+  organizationId: string,
+): Promise<number> {
+  const [row] = await db
+    .select({
+      count: sql<number>`count(distinct ${externalStatutoryDocuments.billingRecordId})::int`,
+    })
+    .from(externalStatutoryDocuments)
+    .where(
+      and(
+        eq(externalStatutoryDocuments.organizationId, organizationId),
+        sql`${externalStatutoryDocuments.reconciliationStatus} = 'mismatch'`,
+      ),
+    );
+
+  return row?.count ?? 0;
 }

@@ -35,6 +35,11 @@ const DRIVER_CODES_BY_COMPONENT: Record<
     fx: 'USD_ILS',
     energy: 'OIL_OR_ENERGY',
   },
+  concrete: {
+    cbs: 'CBS_CONCRETE_BLEND',
+    energy: 'OIL_OR_ENERGY',
+    fx: 'USD_ILS',
+  },
 };
 
 export async function loadTradeDetail(

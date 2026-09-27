@@ -60,6 +60,7 @@ export {
   refreshExternalFileMetadata,
   streamExternalDocumentDownload,
   uploadDocumentToExternalStorage,
+  uploadBytesToOrgStorageFolder,
 } from './application/file-service';
 export {
   browseProjectStorageFolder,

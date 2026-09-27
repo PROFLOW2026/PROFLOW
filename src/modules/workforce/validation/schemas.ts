@@ -578,6 +578,46 @@ export const voidAttendanceDaySchema = z.object({
 
 export type VoidAttendanceDayInput = z.infer<typeof voidAttendanceDaySchema>;
 
+// ---------------------------------------------------------------------------
+// Attendance Correction Requests (0137)
+// ---------------------------------------------------------------------------
+
+export const submitAttendanceCorrectionRequestSchema = z.object({
+  /** Employee making the request (self-service: resolved from session; manager: explicit). */
+  employeeId: z.string().uuid().optional(),
+  workDate: businessDateSchema,
+  requestedClockIn: isoDateTimeSchema,
+  requestedClockOut: isoDateTimeSchema,
+  reason: z.string().trim().min(1).max(2000),
+}).refine(
+  (value) => new Date(value.requestedClockOut) > new Date(value.requestedClockIn),
+  { path: ['requestedClockOut'], message: 'validation.clockOutBeforeClockIn' },
+);
+
+export type SubmitAttendanceCorrectionRequestInput = z.infer<
+  typeof submitAttendanceCorrectionRequestSchema
+>;
+
+export const reviewAttendanceCorrectionRequestSchema = z.object({
+  requestId: z.string().uuid(),
+  decision: z.enum(['approved', 'rejected']),
+  reviewerNote: z.string().trim().max(2000).optional().nullable(),
+});
+
+export type ReviewAttendanceCorrectionRequestInput = z.infer<
+  typeof reviewAttendanceCorrectionRequestSchema
+>;
+
+export const listAttendanceCorrectionRequestsSchema = z.object({
+  status: z.enum(['pending', 'approved', 'rejected', 'all']).optional(),
+  employeeId: z.string().uuid().optional(),
+  limit: z.coerce.number().int().min(1).max(200).optional(),
+});
+
+export type ListAttendanceCorrectionRequestsInput = z.infer<
+  typeof listAttendanceCorrectionRequestsSchema
+>;
+
 export const attendanceFiltersSchema = z.object({
   employeeId: z.string().uuid().optional(),
   fromDate: businessDateSchema.optional(),

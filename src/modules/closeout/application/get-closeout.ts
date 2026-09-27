@@ -1,4 +1,5 @@
 import { findProjectById, assertCanAccessProject } from '@/modules/projects';
+import { listProjectWarrantyCoverages } from '@/modules/warranty';
 import type { OrgContext } from '@/shared/auth/context';
 import { NotFoundError } from '@/shared/errors';
 import { hasPermission, assertPermission, assertSameOrganization } from '@/shared/permissions/assert';
@@ -31,6 +32,16 @@ export interface CloseoutWorkspace {
   readonly snapshot: CloseoutFinancialSnapshot | null;
   readonly canUpdate: boolean;
   readonly canReadProfit: boolean;
+  /**
+   * True when the project has at least one warranty coverage. Used to
+   * show a non-blocking "setup warranty" prompt after project is closed.
+   */
+  readonly hasWarrantyCoverage: boolean;
+  /**
+   * Project completion date (actual_end_date). Used to pre-fill the
+   * warranty start date when prompting setup after closeout.
+   */
+  readonly projectActualEndDate: string | null;
 }
 
 export async function getCloseoutWorkspace(
@@ -61,6 +72,18 @@ export async function getCloseoutWorkspace(
     });
   }
 
+  // Non-blocking: check if warranty coverage already exists so we can
+  // prompt the user to set it up if the project just closed.
+  const hasWarrantyCoverage = await (async () => {
+    if (!hasPermission(context, PERMISSIONS.PROJECTS_READ)) return false;
+    try {
+      const coverages = await listProjectWarrantyCoverages(context, projectId);
+      return coverages.coverages.length > 0;
+    } catch {
+      return false;
+    }
+  })();
+
   return {
     projectId: project.id,
     projectName: project.name,
@@ -73,6 +96,8 @@ export async function getCloseoutWorkspace(
     snapshot,
     canUpdate: hasPermission(context, PERMISSIONS.PROJECTS_UPDATE),
     canReadProfit,
+    hasWarrantyCoverage,
+    projectActualEndDate: project.actualEndDate ?? null,
   };
 }
 

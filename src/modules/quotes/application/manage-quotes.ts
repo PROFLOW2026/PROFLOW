@@ -171,6 +171,7 @@ export async function createQuote(
     discountAmount: input.discountAmount ?? null,
     listSubtotalAmount: input.listSubtotalAmount ?? null,
     discountPercent: input.discountPercent ?? null,
+    sourceCrmQuoteId: input.sourceCrmQuoteId ?? null,
     createdByUserId: context.userId,
   });
 

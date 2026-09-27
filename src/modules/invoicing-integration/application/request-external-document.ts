@@ -36,6 +36,7 @@ import {
 import { assertStatutoryFeatureEnabledForOrg } from './assert-feature-enabled';
 import { buildStatutoryBridgeFromBillingRecord } from './build-statutory-bridge';
 import { resolveStatutoryProviderForOrg } from './resolve-statutory-provider';
+import { archiveStatutoryPdfToProvider } from './archive-statutory-pdf-to-provider';
 
 /**
  * Billing Record → user requests external statutory document → provider → store refs.
@@ -252,8 +253,35 @@ async function executeProviderCreateAndPersistOutcome(
     throwProviderRejected(result, rejected.id);
   }
 
-  return runCommittedOrgPhase(userId, organizationId, async (context) =>
+  const confirmed = await runCommittedOrgPhase(userId, organizationId, async (context) =>
     persistConfirmedCreated(context, rowId, input, result.value),
+  );
+
+  // Best-effort: archive the SUMIT PDF to external storage in the background.
+  // This must NOT block or affect the issuance result.
+  scheduleStatutoryPdfArchival(userId, organizationId, confirmed.id);
+
+  return confirmed;
+}
+
+/**
+ * Kick off a best-effort PDF archival to external storage. Non-blocking —
+ * the caller must NOT await this. Failures are logged and the document is
+ * marked `archive_pending=true` so the daily ops-worker can retry.
+ */
+function scheduleStatutoryPdfArchival(
+  userId: string,
+  organizationId: string,
+  externalDocumentId: string,
+): void {
+  void archiveStatutoryPdfToProvider(userId, organizationId, externalDocumentId).catch(
+    (err: unknown) => {
+      console.error(
+        '[sumit-archival] unhandled error during scheduled archival',
+        externalDocumentId,
+        err,
+      );
+    },
   );
 }
 

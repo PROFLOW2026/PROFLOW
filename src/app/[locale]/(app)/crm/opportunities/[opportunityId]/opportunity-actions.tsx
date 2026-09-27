@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import {
   createEstimateAction,
   createOpportunityNoteAction,
+  convertCrmQuoteToProductQuoteAction,
   markOpportunityLostAction,
   updateOpportunityAction,
   type CrmFormState,
@@ -267,5 +268,48 @@ export function ConvertWonForm({
         <Link href={productQuoteCreateHref(opportunityId)}>{t('createQuote')}</Link>
       </Button>
     </div>
+  );
+}
+
+/**
+ * Task 1: "Convert CRM Quote to Product Quote" button.
+ * Renders inside the legacy sales quotes section for each sales quote that is
+ * NOT already cancelled. On submit, creates a draft product quote pre-populated
+ * with the CRM quote's line items and redirects there for editing.
+ */
+export function ConvertCrmQuoteButton({
+  salesQuoteId,
+  salesQuoteTitle,
+  disabled,
+}: {
+  salesQuoteId: string;
+  salesQuoteTitle: string;
+  disabled?: boolean;
+}) {
+  const t = useTranslations('crm.opportunity');
+  const [state, formAction, pending] = useActionState<CrmFormState, FormData>(
+    convertCrmQuoteToProductQuoteAction,
+    {},
+  );
+
+  return (
+    <form action={formAction} className="inline-flex items-center">
+      <input type="hidden" name="salesQuoteId" value={salesQuoteId} />
+      {/* Pre-populate title; user will be able to edit in the product quote. */}
+      <input type="hidden" name="titleOverride" value={`${salesQuoteTitle}`} />
+      {state.error ? (
+        <span className="me-2 text-xs text-[var(--pf-status-danger-fg)]">{state.error}</span>
+      ) : null}
+      <Button
+        type="submit"
+        variant="secondary"
+        size="sm"
+        loading={pending}
+        disabled={disabled}
+        className="text-xs"
+      >
+        {t.has('convertToProductQuote') ? t('convertToProductQuote' as 'createProductQuote') : 'Convert to Product Quote'}
+      </Button>
+    </form>
   );
 }

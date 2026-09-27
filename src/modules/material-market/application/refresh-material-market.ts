@@ -12,7 +12,7 @@ import {
 } from '../data/repositories';
 import { computeSnapshotsFromDb } from './compute-snapshots';
 import { ACTIVE_SOURCE_CODES, createFetchAdapters, SOURCE_SEED } from '../sources/registry';
-import { buildCopperIls, buildEurIls, blendCbsPlumbing } from '../domain/pressure-engine';
+import { buildCopperIls, buildEurIls, blendCbsPlumbing, blendCbsConcrete } from '../domain/pressure-engine';
 
 const BOOTSTRAP_FROM = '2016-01';
 
@@ -81,6 +81,13 @@ export async function runMaterialMarketRefresh(): Promise<MaterialMarketRefreshR
     const raw = await loadSeriesByCodes(db, ['CBS_PLUMBING', 'CBS_PLASTIC_PIPES']);
     const derived = blendCbsPlumbing(raw.CBS_PLUMBING ?? {}, raw.CBS_PLASTIC_PIPES ?? {});
     observationsUpserted += await upsertObservations(db, blendSource.id, derived);
+  }
+
+  const concreteBlendSource = sourceMap.get('CBS_CONCRETE_BLEND');
+  if (concreteBlendSource?.id) {
+    const raw = await loadSeriesByCodes(db, ['CBS_CEMENT', 'CBS_CONCRETE']);
+    const derived = blendCbsConcrete(raw.CBS_CEMENT ?? {}, raw.CBS_CONCRETE ?? {});
+    observationsUpserted += await upsertObservations(db, concreteBlendSource.id, derived);
   }
 
   const snapshots = await computeSnapshotsFromDb(db);

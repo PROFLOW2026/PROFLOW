@@ -15,7 +15,9 @@ import {
   documents,
   employees,
   estimates,
+  expenses,
   projects,
+  purchaseOrders,
   tasks,
   vendors,
   workspaces,
@@ -602,4 +604,127 @@ function documentProjectRestriction(organizationId: string, accessibleProjectIds
       and dl.owner_type in ('project', 'work_order')
       and not (dl.owner_id = any(${accessibleProjectIds}))
   )`;
+}
+
+// ─── Expense search ───────────────────────────────────────────────────────────
+
+export interface ExpenseSearchHit {
+  readonly id: string;
+  readonly description: string | null;
+  readonly status: string;
+  readonly expenseDate: string;
+  readonly netAmount: string;
+  readonly currency: string;
+  readonly supplierName: string | null;
+}
+
+export async function searchExpenses(
+  db: DbExecutor,
+  organizationId: string,
+  query: string,
+  limit = GLOBAL_SEARCH_KIND_CAP,
+): Promise<ExpenseSearchHit[]> {
+  const exact = trimmed(query);
+  if (!exact) return [];
+
+  const term = ilikeContainsPattern(exact);
+
+  const rows = await db
+    .select({
+      id: expenses.id,
+      description: expenses.description,
+      status: expenses.status,
+      expenseDate: expenses.expenseDate,
+      netAmount: expenses.netAmount,
+      currency: expenses.currency,
+      supplierName: expenses.supplierName,
+    })
+    .from(expenses)
+    .where(
+      and(
+        eq(expenses.organizationId, organizationId),
+        isNull(expenses.archivedAt),
+        or(
+          ilike(expenses.description, term),
+          ilike(expenses.supplierName, term),
+          ilike(expenses.notes, term),
+        ),
+      ),
+    )
+    .orderBy(desc(expenses.updatedAt))
+    .limit(limit);
+
+  return rows.map((row) => ({
+    id: row.id,
+    description: row.description,
+    status: row.status,
+    expenseDate: row.expenseDate,
+    netAmount: row.netAmount,
+    currency: row.currency,
+    supplierName: row.supplierName,
+  }));
+}
+
+// ─── Purchase Order search ────────────────────────────────────────────────────
+
+export interface PurchaseOrderSearchHit {
+  readonly id: string;
+  readonly reference: string | null;
+  readonly status: string;
+  readonly committedAmount: string;
+  readonly currency: string;
+  readonly vendorName: string;
+}
+
+export async function searchPurchaseOrders(
+  db: DbExecutor,
+  organizationId: string,
+  query: string,
+  limit = GLOBAL_SEARCH_KIND_CAP,
+): Promise<PurchaseOrderSearchHit[]> {
+  const exact = trimmed(query);
+  if (!exact) return [];
+
+  const term = ilikeContainsPattern(exact);
+
+  const rows = await db
+    .select({
+      id: purchaseOrders.id,
+      reference: purchaseOrders.reference,
+      status: purchaseOrders.status,
+      committedAmount: purchaseOrders.committedAmount,
+      currency: purchaseOrders.currency,
+      vendorName: vendors.name,
+    })
+    .from(purchaseOrders)
+    .innerJoin(
+      vendors,
+      and(
+        eq(vendors.id, purchaseOrders.vendorId),
+        eq(vendors.organizationId, purchaseOrders.organizationId),
+      ),
+    )
+    .where(
+      and(
+        eq(purchaseOrders.organizationId, organizationId),
+        isNull(purchaseOrders.archivedAt),
+        or(
+          eq(purchaseOrders.reference, exact),
+          ilike(purchaseOrders.reference, term),
+          ilike(vendors.name, term),
+          ilike(purchaseOrders.notes, term),
+        ),
+      ),
+    )
+    .orderBy(desc(purchaseOrders.updatedAt))
+    .limit(limit);
+
+  return rows.map((row) => ({
+    id: row.id,
+    reference: row.reference,
+    status: row.status,
+    committedAmount: row.committedAmount,
+    currency: row.currency,
+    vendorName: row.vendorName,
+  }));
 }

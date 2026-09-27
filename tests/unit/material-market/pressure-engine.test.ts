@@ -136,6 +136,7 @@ describe('material-market pressure engine', () => {
       STEEL_SCRAP: { '2025-05': 300, '2025-06': 310, '2025-07': 320 },
       IRON_ORE: { '2025-05': 110, '2025-06': 112, '2025-07': 115 },
       HRC_STEEL: { '2025-05': 700, '2025-06': 710, '2025-07': 720 },
+      CBS_CONCRETE_BLEND: { '2025-05': 100, '2025-06': 101, '2025-07': 102 },
     });
     const complete = finalizeCompleteSnapshots(rows);
     expect(complete.every(isCompleteSnapshot)).toBe(true);
@@ -158,6 +159,7 @@ describe('material-market pressure engine', () => {
       STEEL_SCRAP: {},
       IRON_ORE: {},
       HRC_STEEL: {},
+      CBS_CONCRETE_BLEND: {},
     });
     const plumbing = rows.find((r) => r.trade === 'plumbing' && r.snapshotDate === '2025-07-01');
     expect(plumbing?.localConfirmation).toBe('no_local_data');

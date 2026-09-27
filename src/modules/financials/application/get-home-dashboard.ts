@@ -64,6 +64,7 @@ import {
 import {
   computeBillingPositionFromRows,
   countOverdueFromBillingRows,
+  countReconciliationMismatches,
   hasAnyBillingUsage,
   loadOrganizationBillingRows,
   sumGrossInvoicedInDateRange,
@@ -112,6 +113,8 @@ export interface DashboardAttention {
   readonly pendingChangesCount: number;
   readonly unbilledApprovedCount: number;
   readonly overdueBillingCount: number;
+  /** Billing records with statutory document reconciliation mismatches. */
+  readonly reconciliationMismatchCount: number;
 }
 
 /** Draft / submitted time in the selected period — not in labor Actual. */
@@ -504,6 +507,7 @@ export async function getHomeDashboard(
         pendingChangesCount,
         unbilledApprovedCount,
         overdueBillingCount: 0,
+        reconciliationMismatchCount: 0,
       },
       pendingTime,
       laborReconciliation,
@@ -637,6 +641,11 @@ export async function getHomeDashboard(
   // Derive overdue from the billing rows already loaded - avoid a second full org load.
   const overdueBillingCount = billingRows
     ? countOverdueFromBillingRows(billingRows, today)
+    : 0;
+
+  // Reconciliation mismatch count: billing records with mismatched external statutory docs.
+  const reconciliationMismatchCount = canReadBilling
+    ? await countReconciliationMismatches(context.db, context.organizationId)
     : 0;
 
   const costCoverageBundle = expenseLayer?.coverage ?? null;
@@ -971,6 +980,7 @@ export async function getHomeDashboard(
       pendingChangesCount,
       unbilledApprovedCount,
       overdueBillingCount,
+      reconciliationMismatchCount,
     },
     pendingTime,
     laborReconciliation,

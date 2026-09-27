@@ -36,6 +36,9 @@ export const NOTIFICATION_EVENT_TYPES = [
   'task_dependency_resolved',
   'milestone_approaching',
   'capture_needs_review',
+  'task_status_updated',
+  // ── Market Intelligence ────────────────────────────────────────────────────
+  'material_pressure_alert',
 ] as const;
 export type NotificationEventType = (typeof NOTIFICATION_EVENT_TYPES)[number];
 
@@ -56,6 +59,7 @@ export const NOTIFICATION_DOMAINS = [
   'communications',
   'automations',
   'tasks',
+  'market_intelligence',
 ] as const;
 export type NotificationDomain = (typeof NOTIFICATION_DOMAINS)[number];
 
@@ -90,6 +94,9 @@ export const EVENT_DOMAIN: Readonly<Record<NotificationEventType, NotificationDo
   task_dependency_resolved: 'tasks',
   milestone_approaching: 'tasks',
   capture_needs_review: 'documents',
+  task_status_updated: 'tasks',
+  // ── Market Intelligence ────────────────────────────────────────────────────
+  material_pressure_alert: 'market_intelligence',
 };
 
 export function isNotificationSeverity(value: string): value is NotificationSeverity {

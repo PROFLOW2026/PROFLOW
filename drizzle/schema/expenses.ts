@@ -7,6 +7,7 @@ import {
   index,
   integer,
   jsonb,
+  numeric,
   pgTable,
   text,
   timestamp,
@@ -120,6 +121,20 @@ export const expenses = pgTable(
     taxSnapshot: jsonb('tax_snapshot'),
     /** Owner-selected VAT entry mode (inclusive / exclusive / zero). */
     vatMode: text('vat_mode').default('inclusive'),
+
+    /**
+     * FX handling (migration 0141): when expense currency ≠ org base currency,
+     * the operator may record the market rate at time of entry.
+     * NULL = rate not recorded (expense treated as unresolved FX in aggregation).
+     */
+    exchangeRateToBase: numeric('exchange_rate_to_base', { precision: 18, scale: 8, mode: 'string' }),
+    /**
+     * Pre-computed base-currency NET equivalent = netAmount × exchangeRateToBase.
+     * Populated only when exchangeRateToBase is set. Used by cost aggregation to
+     * include FX expenses in ILS-denominated profitability instead of dropping them.
+     * NULL = expense remains in `foreign_currency_expenses_excluded` partial coverage.
+     */
+    ilsEquivalentNetAmount: moneyAmount('ils_equivalent_net_amount'),
 
     status: expenseStatusEnum('status').notNull().default('draft'),
     finalizedAt: date('finalized_at'),

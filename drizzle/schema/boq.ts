@@ -19,6 +19,7 @@ import {
   quantityAmount,
   timestamps,
 } from './_shared';
+import { apBills } from './ap';
 import { billingRecords } from './billing';
 import { changeOrders } from './changes';
 import { contracts } from './contracts';
@@ -389,6 +390,21 @@ export const boqSubcontractorValuations = pgTable(
     status: text('status').notNull().default('draft'),
     /** Draft vendor bill proposal only — never auto-post AP. */
     proposedVendorBillId: uuid('proposed_vendor_bill_id'),
+    /**
+     * Explicit FK to a real posted AP bill that has been matched to this
+     * valuation. Distinct from proposedVendorBillId (which is a draft).
+     * Set by the AP team when reconciling; null = not yet matched.
+     */
+    apBillId: uuid('ap_bill_id').references(() => apBills.id, { onDelete: 'set null' }),
+    /** Shadow column used for composite same-org FK enforcement (see migration 0139). */
+    apBillOrgId: uuid('ap_bill_org_id'),
+    /**
+     * Reconciliation lifecycle for the AP-side of this valuation:
+     *   pending   = awaiting AP matching
+     *   matched   = apBillId points to an approved AP bill
+     *   unmatched = reviewed and confirmed no matching bill exists
+     */
+    reconciliationStatus: text('reconciliation_status').notNull().default('pending'),
     notes: text('notes'),
     approvedAt: timestamp('approved_at', { withTimezone: true, mode: 'date' }),
     approvedByUserId: uuid('approved_by_user_id').references(() => profiles.id, {
@@ -402,9 +418,14 @@ export const boqSubcontractorValuations = pgTable(
   (table) => [
     uniqueIndex('boq_sub_valuations_id_org_uq').on(table.id, table.organizationId),
     index('boq_sub_valuations_schedule_idx').on(table.scheduleId),
+    index('boq_sub_valuations_ap_bill_idx').on(table.apBillId).where(sql`${table.apBillId} IS NOT NULL`),
     check(
       'boq_sub_valuations_status_known',
       sql`${table.status} IN ('draft', 'approved', 'proposed_ap', 'voided')`,
+    ),
+    check(
+      'boq_sub_valuations_reconciliation_status_known',
+      sql`${table.reconciliationStatus} IN ('pending', 'matched', 'unmatched')`,
     ),
   ],
 );

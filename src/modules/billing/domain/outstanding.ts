@@ -145,10 +145,11 @@ export function deriveCollectionStatus(
 }
 
 export function matchesListFilter(
-  filter: 'all' | 'paid' | 'outstanding' | 'overdue',
+  filter: 'all' | 'paid' | 'outstanding' | 'overdue' | 'mismatch',
   collectionStatus: CollectionStatus | null,
 ): boolean {
   if (filter === 'all') return true;
+  if (filter === 'mismatch') return false; // mismatch is filtered via getMismatchBillingRecordIds in the server layer
   if (collectionStatus === null) return false;
   if (filter === 'paid') return collectionStatus === 'paid';
   if (filter === 'outstanding') return collectionStatus === 'open' || collectionStatus === 'partial';

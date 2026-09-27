@@ -35,6 +35,7 @@ function mapQuote(row: typeof estimates.$inferSelect): QuoteRecord {
     discountPercent: row.discountPercent,
     convertedProjectId: row.convertedProjectId,
     opportunityId: row.opportunityId,
+    sourceCrmQuoteId: row.sourceCrmQuoteId ?? null,
     convertedAt: row.convertedAt,
     sentAt: row.sentAt,
     decidedAt: row.decidedAt,

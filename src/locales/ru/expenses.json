@@ -538,12 +538,14 @@
   "activityTimeline": {
     "title": "История действий",
     "actions": {
-      "expense.payment_confirmation_voided": "Подтверждение оплаты отменено",
-      "expense.payment_confirmed": "Оплата подтверждена",
-      "expense.finalized": "Расход утверждён",
-      "expense.created": "Расход создан",
-      "expense.updated": "Расход обновлён",
-      "expense.voided": "Расход отменён"
+      "expense": {
+        "payment_confirmation_voided": "Подтверждение оплаты отменено",
+        "payment_confirmed": "Оплата подтверждена",
+        "finalized": "Расход утверждён",
+        "created": "Расход создан",
+        "updated": "Расход обновлён",
+        "voided": "Расход отменён"
+      }
     }
   },
   "overheadHome": {

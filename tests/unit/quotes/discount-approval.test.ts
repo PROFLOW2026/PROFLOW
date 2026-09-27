@@ -88,6 +88,7 @@ function quote(partial: Partial<QuoteRecord> = {}): QuoteRecord {
     decidedAt: null,
     createdByUserId: 'user-1',
     archivedAt: null,
+    sourceCrmQuoteId: null,
     createdAt: now,
     updatedAt: now,
     ...partial,

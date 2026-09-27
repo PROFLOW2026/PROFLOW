@@ -128,7 +128,8 @@
     "compact": {
       "overdueBilling": "{count, plural, =1 {# فوترة متأخرة} other {# فوترات متأخرة}}",
       "unbilledApproved": "{count, plural, =1 {# تغيير لم يُفوتر} other {# تغييرات لم تُفوتر}}",
-      "pendingChanges": "{count, plural, =1 {# بانتظار الاعتماد} other {# بانتظار الاعتماد}}"
+      "pendingChanges": "{count, plural, =1 {# بانتظار الاعتماد} other {# بانتظار الاعتماد}}",
+      "reconciliationMismatch": "{count, plural, =1 {# عدم تطابق مبلغ الفاتورة} other {# حالات عدم تطابق}}"
     },
     "approvedNotBilled": "{count, plural, =1 {تغيير معتمد واحد لم يُفوتر بعد} other {# تغييرات معتمدة لم تُفوتر بعد}}",
     "overdueBilling": "{count, plural, =1 {سجل فوترة واحد متأخر} other {# سجلات فوترة متأخرة}}",

@@ -19,7 +19,25 @@ const LIST_FIELDS =
   'nextPageToken,files(id,name,parents,mimeType,size,modifiedTime,webViewLink,md5Checksum)';
 const ITEM_FIELDS = 'id,name,parents,mimeType,webViewLink';
 const FILE_FIELDS =
-  'id,name,parents,mimeType,size,modifiedTime,webViewLink,md5Checksum';
+  'id,name,parents,mimeType,size,modifiedTime,webViewLink,md5Checksum,exportLinks';
+
+/**
+ * Maps a Google Workspace native MIME type to the best export MIME type.
+ * Docs/Slides/Drawings → PDF; Spreadsheets → XLSX (preserves formulas).
+ * Falls back to `application/pdf` for unmapped types.
+ */
+const GOOGLE_NATIVE_EXPORT_MIME: Record<string, string> = {
+  'application/vnd.google-apps.document': 'application/pdf',
+  'application/vnd.google-apps.presentation': 'application/pdf',
+  'application/vnd.google-apps.drawing': 'application/pdf',
+  'application/vnd.google-apps.spreadsheet':
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.google-apps.script': 'application/vnd.google-apps.script+json',
+};
+
+function resolveExportMime(nativeMime: string): string {
+  return GOOGLE_NATIVE_EXPORT_MIME[nativeMime] ?? 'application/pdf';
+}
 
 function readEnv(name: string): string {
   const value = process.env[name]?.trim();
@@ -392,11 +410,29 @@ export class GoogleDriveStorageProvider implements StorageProviderAdapter {
     contentRange?: string | null;
   }> {
     const meta = options?.knownMeta ?? (await this.getFileMetadata(accessToken, fileId));
+
+    // Google Workspace native documents (Docs, Sheets, Slides, …) cannot be
+    // downloaded as binary blobs — they must be exported to a portable format.
     if (meta?.mimeType && isGoogleNativeDoc(meta.mimeType)) {
-      throw new ProviderHttpError(
-        400,
-        `Google native document (${meta.mimeType}) cannot be downloaded directly; export required`,
-      );
+      const exportMime = resolveExportMime(meta.mimeType);
+      const exportUrl = `${DRIVE}/files/${fileId}/export?mimeType=${encodeURIComponent(exportMime)}`;
+      const response = await fetch(exportUrl, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (!response.ok || !response.body) {
+        throw new ProviderHttpError(
+          response.status,
+          `Google Drive export failed for native type ${meta.mimeType} → ${exportMime}`,
+        );
+      }
+      // Export responses don't carry Content-Length; sizeBytes stays null.
+      return {
+        stream: response.body,
+        mimeType: exportMime,
+        sizeBytes: null,
+        httpStatus: response.status,
+        contentRange: null,
+      };
     }
 
     const headers: Record<string, string> = { Authorization: `Bearer ${accessToken}` };

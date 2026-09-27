@@ -87,3 +87,11 @@ export function employeeSearchHref(id: string): string {
 export function contractSearchHref(projectId: string): string {
   return `/projects/${projectId}?tab=contracts`;
 }
+
+export function expenseSearchHref(id: string): string {
+  return `/expenses/${id}`;
+}
+
+export function purchaseOrderSearchHref(id: string): string {
+  return `/procurement/po/${id}`;
+}

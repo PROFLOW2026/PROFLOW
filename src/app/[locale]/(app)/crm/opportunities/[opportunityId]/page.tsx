@@ -26,6 +26,7 @@ import {
   OpportunityFollowUpForm,
   OpportunityNoteForm,
   OpportunityQuoteForm,
+  ConvertCrmQuoteButton,
 } from './opportunity-actions';
 
 function translateAuditAction(
@@ -394,11 +395,18 @@ export default async function OpportunityDetailPage({
               <div key={quote.id} className="rounded-md border border-[var(--pf-border-default)] p-3">
                 <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                   <p className="min-w-0 flex-1 text-start font-medium">{quote.title}</p>
-                  <StatusBadge
-                    className="shrink-0"
-                    shape={quote.status === 'accepted' ? 'active' : 'archived'}
-                    label={t(`statuses.quote.${quote.status}`)}
-                  />
+                  <div className="flex shrink-0 items-center gap-2">
+                    <StatusBadge
+                      shape={quote.status === 'accepted' ? 'active' : 'archived'}
+                      label={t(`statuses.quote.${quote.status}`)}
+                    />
+                    {canManage && quote.status !== 'cancelled' ? (
+                      <ConvertCrmQuoteButton
+                        salesQuoteId={quote.id}
+                        salesQuoteTitle={quote.title}
+                      />
+                    ) : null}
+                  </div>
                 </div>
                 <p className="mb-2 text-xs text-[var(--pf-text-muted)]">
                   {t('opportunity.legacyQuoteReadOnly')}

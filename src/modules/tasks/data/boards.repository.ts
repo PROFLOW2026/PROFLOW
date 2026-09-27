@@ -1,5 +1,5 @@
-import { and, asc, eq } from 'drizzle-orm';
-import { taskBoards, taskBuckets } from '@drizzle/schema';
+import { and, asc, count, eq, notInArray } from 'drizzle-orm';
+import { taskBoards, taskBuckets, tasks } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 import type { TaskBoard, TaskBucket, TaskStatus } from '../domain/types';
 
@@ -209,4 +209,25 @@ export async function listBucketsForBoard(
     .where(and(eq(taskBuckets.boardId, boardId), eq(taskBuckets.organizationId, organizationId)))
     .orderBy(asc(taskBuckets.sortKey));
   return rows.map(mapBucketRow);
+}
+
+/**
+ * Count active (non-done, non-cancelled, non-archived) tasks in a bucket.
+ * Used for WIP limit enforcement before moving a task into the bucket.
+ */
+export async function countActiveTasksInBucket(
+  db: DbExecutor,
+  bucketId: string,
+): Promise<number> {
+  const [row] = await db
+    .select({ n: count() })
+    .from(tasks)
+    .where(
+      and(
+        eq(tasks.bucketId, bucketId),
+        notInArray(tasks.status, ['done', 'cancelled']),
+        eq(tasks.isArchived, false),
+      ),
+    );
+  return row?.n ?? 0;
 }

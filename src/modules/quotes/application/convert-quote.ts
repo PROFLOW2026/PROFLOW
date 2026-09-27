@@ -32,10 +32,13 @@ import {
 } from '../domain/types';
 import {
   findQuoteById,
+  listQuoteLines,
   markQuoteConvertedIfAccepted,
 } from '../data/quotes.repository';
 import { convertQuoteSchema, type ConvertQuoteInput } from '../validation/schemas';
 import { recordQuoteClientActivity } from './timeline-events';
+import { createProjectBoq, upsertBoqNode } from '@/modules/boq/application/manage-boq';
+import { findActiveBoqForProject } from '@/modules/boq/data/boq.repository';
 
 export interface ConvertQuoteResult {
   readonly quote: QuoteRecord;
@@ -43,6 +46,8 @@ export interface ConvertQuoteResult {
   readonly workKind: QuoteConvertWorkKind;
   /** True when an earlier conversion was reused. */
   readonly idempotent?: boolean;
+  /** IDs of BOQ nodes created from quote line items. Empty when skipped or no lines. */
+  readonly seededBoqNodeIds?: readonly string[];
 }
 
 /**
@@ -267,7 +272,55 @@ export async function convertQuote(
     clientId: convertedClientId,
   });
 
-  return { quote: updated, projectId, workKind };
+  // ── BOQ seeding (Task 2) ───────────────────────────────────────────────────
+  // If the quote has line items and seedBoq is not explicitly false, create draft
+  // BOQ items from the quote lines. This gives the team a starting point without
+  // forcing any particular BOQ structure (all items remain editable as draft).
+  // Skipped when: caller passes seedBoq=false, no lines, or project already has a BOQ.
+  const shouldSeed = input.seedBoq !== false;
+  let seededBoqNodeIds: string[] = [];
+
+  if (shouldSeed && hasPermission(context, PERMISSIONS.BOQ_MANAGE)) {
+    try {
+      const lines = await listQuoteLines(context.db, context.organizationId, quote.id);
+      if (lines.length > 0) {
+        // Only seed when no active BOQ exists yet (don't overwrite existing work).
+        const existingBoq = await findActiveBoqForProject(
+          context.db,
+          context.organizationId,
+          projectId,
+          null, // any contractId
+        );
+        if (!existingBoq) {
+          const boq = await createProjectBoq(context, {
+            projectId,
+            currency,
+            title: quote.title,
+          });
+          if (boq) {
+            for (const line of lines) {
+              const node = await upsertBoqNode(context, {
+                boqId: boq.id,
+                nodeKind: 'item',
+                description: line.description,
+                unit: line.unit ?? undefined,
+                quantity: line.quantity,
+                unitPrice: line.unitPriceAmount,
+                pricingType: 'quantity_unit_price',
+                sortOrder: line.sortOrder,
+              });
+              if (node) seededBoqNodeIds.push(node.id);
+            }
+          }
+        }
+      }
+    } catch {
+      // BOQ seeding is best-effort; never fail the project conversion due to a BOQ error.
+      seededBoqNodeIds = [];
+    }
+  }
+
+  return { quote: updated, projectId, workKind, seededBoqNodeIds };
 }
 
 async function markLinkedOpportunityWon(

@@ -115,13 +115,16 @@ function controlToMetrics(control: BudgetControlPosition): BudgetLineControlMetr
 }
 
 /**
- * Expense/AP rows carry `categoryKey` and `workPackageId` only.
- * Discipline and cost-code are budget-structure keys with no actual source.
+ * Expense/AP rows carry `categoryKey`, `workPackageId`, and `costCodeId`.
+ * Discipline lines have no actual source and remain unmapped.
+ * Cost-code lines are mapped via `costCodeId` when both the budget line
+ * and expense contributions carry the same catalog entry (0141).
  */
 export function lineHasReliableActualMapping(line: ProjectBudgetLineRecord): boolean {
   if (line.lineType === 'total') return true;
   if (line.lineType === 'category') return Boolean(line.categoryKey);
   if (line.lineType === 'work_package') return Boolean(line.workPackageId);
+  if (line.lineType === 'cost_code') return Boolean(line.costCodeId);
   return false;
 }
 
@@ -130,7 +133,11 @@ function contributionEligibleForMapping(
   currency: string,
   excludeLaborCategory: boolean,
 ): boolean {
-  if (contribution.currency.toUpperCase() !== currency.toUpperCase()) return false;
+  // Native-currency contributions are always eligible.
+  // FX contributions are eligible only when a pre-computed ILS equivalent is recorded (0141).
+  const nativeCurrency = contribution.currency.toUpperCase() === currency.toUpperCase();
+  const hasFxEquivalent = Boolean(contribution.ilsEquivalentNetAmount);
+  if (!nativeCurrency && !hasFxEquivalent) return false;
   if (excludeLaborCategory && contribution.isLaborCategory) return false;
   return true;
 }
@@ -145,12 +152,23 @@ function contributionMatchesLine(
   if (line.lineType === 'work_package') {
     return Boolean(line.workPackageId) && contribution.workPackageId === line.workPackageId;
   }
+  if (line.lineType === 'cost_code') {
+    // Both must carry the same cost-code catalog UUID (migration 0074 / 0141).
+    return (
+      Boolean(line.costCodeId) &&
+      Boolean(contribution.costCodeId) &&
+      contribution.costCodeId === line.costCodeId
+    );
+  }
   return false;
 }
 
 /**
  * Exclusive assignment: each eligible contribution maps to at most one line.
- * Work-package is more specific than category, so WP lines claim first.
+ * Priority: work_package > cost_code > category (most → least specific).
+ *
+ * FX contributions with `ilsEquivalentNetAmount` are eligible — their ILS
+ * equivalent is used as the mapped amount rather than the foreign-currency amount.
  */
 function assignMappedActuals(
   lines: readonly ProjectBudgetLineRecord[],
@@ -164,23 +182,44 @@ function assignMappedActuals(
   const claimed = new Set<number>();
   const actualByLineId = new Map<string, MoneyValue>();
 
+  /**
+   * For a matched contribution, resolve the amount in the budget currency.
+   * Native-currency: use `amount`. FX with ILS equivalent: use `ilsEquivalentNetAmount`.
+   */
+  const resolveAmount = (contribution: ProjectExpenseContribution): MoneyValue | null => {
+    const isNative = contribution.currency.toUpperCase() === currency.toUpperCase();
+    if (isNative) return fromNumericString(contribution.amount, currency);
+    if (contribution.ilsEquivalentNetAmount) {
+      return fromNumericString(contribution.ilsEquivalentNetAmount, currency);
+    }
+    return null;
+  };
+
   const take = (line: ProjectBudgetLineRecord): MoneyValue => {
     const values: MoneyValue[] = [];
     eligible.forEach((contribution, index) => {
       if (claimed.has(index)) return;
       if (!contributionMatchesLine(contribution, line)) return;
       claimed.add(index);
-      const amount = fromNumericString(contribution.amount, contribution.currency);
+      const amount = resolveAmount(contribution);
       if (amount) values.push(amount);
     });
     return values.length === 0 ? zeroMoney(currency) : roundMoney(sumMoney(values, currency));
   };
 
+  // Pass 1 – work_package (most specific)
   for (const line of lines) {
     if (line.lineType === 'work_package' && line.workPackageId) {
       actualByLineId.set(line.id, take(line));
     }
   }
+  // Pass 2 – cost_code (more specific than category, less than WP)
+  for (const line of lines) {
+    if (line.lineType === 'cost_code' && line.costCodeId) {
+      actualByLineId.set(line.id, take(line));
+    }
+  }
+  // Pass 3 – category (least specific)
   for (const line of lines) {
     if (line.lineType === 'category' && line.categoryKey) {
       actualByLineId.set(line.id, take(line));

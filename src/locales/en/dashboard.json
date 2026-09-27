@@ -128,7 +128,8 @@
     "compact": {
       "overdueBilling": "{count, plural, =1 {# overdue billing} other {# overdue billings}}",
       "unbilledApproved": "{count, plural, =1 {# change not billed} other {# changes not billed}}",
-      "pendingChanges": "{count, plural, =1 {# pending approval} other {# pending approval}}"
+      "pendingChanges": "{count, plural, =1 {# pending approval} other {# pending approval}}",
+      "reconciliationMismatch": "{count, plural, =1 {# invoice amount mismatch} other {# invoice amount mismatches}}"
     },
     "approvedNotBilled": "{count, plural, =1 {# approved change is not billed yet} other {# approved changes are not billed yet}}",
     "overdueBilling": "{count, plural, =1 {# billing record is overdue} other {# billing records are overdue}}",

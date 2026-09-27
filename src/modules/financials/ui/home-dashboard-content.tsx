@@ -469,7 +469,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                   detailCopy={triggerCopy}
                 />
               ) : null}
-              {data.businessCashPosition?.outstandingPayable ? (
+              {data.businessCashPosition?.outstandingPayable && !cardSet.has('collections') ? (
                 <DashboardKpiCard
                   title={tFinancial('businessCashOutstanding')}
                   money={data.businessCashPosition.outstandingPayable}
@@ -955,7 +955,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                   money={data.organizationSummary.invoicedThisMonth}
                   grossMoney={data.organizationSummary.grossInvoicedThisMonth}
                   grossLabel={vatLabels.incVat}
-                  hint={t('businessSummary.invoicedThisMonthWhat')}
+                  hint={detailCopy.invoicedThisMonthWhat}
                   detail={buildInvoicedThisMonthDetail(
                     data.organizationSummary.invoicedThisMonth,
                     data.organizationSummary.grossInvoicedThisMonth,
@@ -983,7 +983,7 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                 money={data.organizationSummary.costsThisMonth}
                 grossMoney={data.organizationSummary.grossCostsThisMonth}
                 grossLabel={vatLabels.incVat}
-                hint={t('businessSummary.costsThisMonthWhat')}
+                hint={detailCopy.costsThisMonthWhat}
                 detail={buildCostsThisMonthDetail(
                   data.organizationSummary.costsThisMonth,
                   data.selectedMonth,
