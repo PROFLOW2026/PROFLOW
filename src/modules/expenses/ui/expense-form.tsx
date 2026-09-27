@@ -350,6 +350,7 @@ export function ExpenseForm({
 
   const isProjectDestinationMode = costDestinationMode === 'project_single';
   const isOverhead = !isProjectDestinationMode;
+  const submitCostFamily: CostFamily | '' = isProjectDestinationMode ? 'direct_project' : costFamily;
   const projectId =
     isProjectDestinationMode && targeting !== OVERHEAD_VALUE && targeting !== NONE_VALUE
       ? targeting
@@ -359,12 +360,32 @@ export function ExpenseForm({
     if (!isProjectDestinationMode) return;
     setAllocationIntent('project_allocate');
     setDestination('project');
-    setCostFamily((current) =>
-      current === 'business_overhead' || current === 'shared' || current === ''
-        ? 'direct_project'
-        : current,
-    );
+    setCostFamily('direct_project');
   }, [isProjectDestinationMode]);
+
+  React.useEffect(() => {
+    if (!costCategoryId) return;
+    const category = categories.find((item) => item.id === costCategoryId);
+    if (!category) return;
+    if (isProjectDestinationMode && category.family !== 'direct_project') {
+      setCostCategoryId('');
+      return;
+    }
+    if (
+      !isProjectDestinationMode &&
+      costDestinationMode !== 'project_multi' &&
+      category.family === 'direct_project' &&
+      !inventoryStockPurchase
+    ) {
+      setCostCategoryId('');
+    }
+  }, [
+    isProjectDestinationMode,
+    costDestinationMode,
+    costCategoryId,
+    categories,
+    inventoryStockPurchase,
+  ]);
   const usesAutomaticDriver =
     Boolean(allocationDriverMethod) && isWeightAllocationMethod(allocationDriverMethod as AllocationMethod);
   const hasProjectAllocation = allocations.some(
@@ -456,6 +477,12 @@ export function ExpenseForm({
 
   function applyCategoryPolicy(category: CostCategoryRow | null | undefined) {
     if (!category) return;
+    if (isProjectDestinationMode) {
+      if (category.family !== 'direct_project') return;
+      applyPeriodBehavior(category.defaultPeriodBehavior);
+      setPolicyOverridden(false);
+      return;
+    }
     if (category.family) {
       setCostFamily(category.family);
     }
@@ -468,6 +495,22 @@ export function ExpenseForm({
     }
     applyPeriodBehavior(category.defaultPeriodBehavior);
     setPolicyOverridden(false);
+  }
+
+  function clearCategoryIncompatibleWithDestination(mode: CostDestinationMode) {
+    if (!costCategoryId) return;
+    const category = categories.find((item) => item.id === costCategoryId);
+    if (!category) return;
+    if (mode === 'project_single' && category.family !== 'direct_project') {
+      setCostCategoryId('');
+      return;
+    }
+    if (
+      (mode === 'auto_pool' || mode === 'company_only') &&
+      category.family === 'direct_project'
+    ) {
+      setCostCategoryId('');
+    }
   }
 
   function applyPeriodBehavior(behavior: CategoryPeriodBehavior | null | undefined) {
@@ -500,10 +543,12 @@ export function ExpenseForm({
 
   function handleCostDestinationChange(mode: CostDestinationMode) {
     setCostDestinationMode(mode);
+    clearCategoryIncompatibleWithDestination(mode);
     switch (mode) {
       case 'project_single': {
         handleDestinationChange('project');
         setAllocationIntent('project_allocate');
+        setCostFamily('direct_project');
         setAllocations([]);
         setAllocationDriverMethod('');
         break;
@@ -592,7 +637,11 @@ export function ExpenseForm({
     : COST_FAMILY_ORDER.map((family) => ({
         family,
         items: filteredCategories.filter((category) => category.family === family),
-      })).filter((group) => group.items.length > 0);
+      })).filter((group) => {
+        if (group.items.length === 0) return false;
+        if (group.family !== 'direct_project') return true;
+        return costFamily === 'direct_project' || inventoryStockPurchase;
+      });
 
   const policyMethodMatches =
     !selectedCategory?.defaultAllocationMethod ||
@@ -640,7 +689,7 @@ export function ExpenseForm({
         <input type="hidden" name="allocationScheduleMode" value={allocationScheduleMode} />
         <input type="hidden" name="recurrenceCadence" value={recurrenceCadence} />
         <input type="hidden" name="recurrenceCustomLabel" value={recurrenceCustomLabel} />
-        <input type="hidden" name="costFamily" value={costFamily} />
+        <input type="hidden" name="costFamily" value={submitCostFamily} />
         <input type="hidden" name="inventoryStockPurchase" value={inventoryStockPurchase ? 'true' : 'false'} />
         <input type="hidden" name="inventoryItemId" value={inventoryItemId} />
         <input type="hidden" name="inventoryPurchaseQty" value={inventoryPurchaseQty} />
@@ -766,67 +815,6 @@ export function ExpenseForm({
           }
         />
 
-        <div id="expense-category" className="scroll-mt-24">
-        <Field
-          label={
-            isProjectDestinationMode ? t('fields.projectCostType') : t('fields.category')
-          }
-          description={
-            isProjectDestinationMode
-              ? t('fields.projectCostTypeHint')
-              : t('fields.categoryRequiredHint')
-          }
-          error={fieldErrors.costCategoryId}
-        >
-          {(controlProps) => (
-            <Select
-              value={costCategoryId || NONE_VALUE}
-              onValueChange={(value) => {
-                const nextId = value === NONE_VALUE ? '' : value;
-                setCostCategoryId(nextId);
-                const category = categories.find((item) => item.id === nextId);
-                if (nextId && category) {
-                  applyCategoryPolicy(category);
-                  if (isOverhead || category.family === 'shared' || category.family === 'business_overhead') {
-                    setShowAdvancedOptions(true);
-                  }
-                } else {
-                  setPolicyOverridden(false);
-                }
-              }}
-              disabled={readOnly}
-            >
-              <SelectTrigger {...controlProps}>
-                <SelectValue placeholder={t('placeholders.category')} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={NONE_VALUE}>{t('placeholders.category')}</SelectItem>
-                {categoriesByFamily.map((group) => (
-                  <SelectGroup key={group.family}>
-                    <SelectLabel>{t(`costFamilies.${group.family}`)}</SelectLabel>
-                    {group.items.map((category) => (
-                      <SelectItem key={category.id} value={category.id}>
-                        {displayCostCategoryName(category, (key) => t(key))}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-        </Field>
-        </div>
-        <input type="hidden" name="costCategoryId" value={costCategoryId} />
-
-        {isInternalPayrollCategory ? (
-          <p
-            role="status"
-            className="rounded-md border border-[var(--pf-status-warning-border)] bg-[var(--pf-status-warning-bg)] px-3 py-2 text-start text-sm text-[var(--pf-status-warning-fg)]"
-          >
-            {t('fields.internalPayrollWarning')}
-          </p>
-        ) : null}
-
         {isProjectDestinationMode ? (
           <>
             <Field label={t('destination.label')} description={t('fields.expenseType')}>
@@ -939,6 +927,70 @@ export function ExpenseForm({
         ) : null}
 
         <input type="hidden" name="projectId" value={projectId} />
+
+        <div id="expense-category" className="scroll-mt-24">
+          <Field
+            label={
+              isProjectDestinationMode ? t('fields.projectCostType') : t('fields.category')
+            }
+            description={
+              isProjectDestinationMode
+                ? t('fields.projectCostTypeHint')
+                : t('fields.categoryRequiredHint')
+            }
+            error={fieldErrors.costCategoryId}
+          >
+            {(controlProps) => (
+              <Select
+                value={costCategoryId || NONE_VALUE}
+                onValueChange={(value) => {
+                  const nextId = value === NONE_VALUE ? '' : value;
+                  setCostCategoryId(nextId);
+                  const category = categories.find((item) => item.id === nextId);
+                  if (nextId && category) {
+                    applyCategoryPolicy(category);
+                    if (
+                      !isProjectDestinationMode &&
+                      (category.family === 'shared' || category.family === 'business_overhead')
+                    ) {
+                      setShowAdvancedOptions(true);
+                    }
+                  } else {
+                    setPolicyOverridden(false);
+                  }
+                }}
+                disabled={readOnly}
+              >
+                <SelectTrigger {...controlProps}>
+                  <SelectValue placeholder={t('placeholders.category')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={NONE_VALUE}>{t('placeholders.category')}</SelectItem>
+                  {categoriesByFamily.map((group) => (
+                    <SelectGroup key={group.family}>
+                      <SelectLabel>{t(`costFamilies.${group.family}`)}</SelectLabel>
+                      {group.items.map((category) => (
+                        <SelectItem key={category.id} value={category.id}>
+                          {displayCostCategoryName(category, (key) => t(key))}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </Field>
+        </div>
+        <input type="hidden" name="costCategoryId" value={costCategoryId} />
+
+        {isInternalPayrollCategory ? (
+          <p
+            role="status"
+            className="rounded-md border border-[var(--pf-status-warning-border)] bg-[var(--pf-status-warning-bg)] px-3 py-2 text-start text-sm text-[var(--pf-status-warning-fg)]"
+          >
+            {t('fields.internalPayrollWarning')}
+          </p>
+        ) : null}
 
         <Field label={t('fields.date')} optionalLabel={tCommon('labels.optional')}>
           {(controlProps) => (
@@ -1236,7 +1288,7 @@ export function ExpenseForm({
             </>
           )}
 
-          <input type="hidden" name="costFamily" value={costFamily} />
+          <input type="hidden" name="costFamily" value={submitCostFamily} />
 
           {selectedCategory ? (
             <div
