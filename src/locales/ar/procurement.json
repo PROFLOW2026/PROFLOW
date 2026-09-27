@@ -296,5 +296,15 @@
       "effectiveFrom": "ساري من",
       "notes": "ملاحظات"
     }
+  },
+  "materialTrade": {
+    "sectionTitle": "تصنيف السوق",
+    "label": "فئة السوق",
+    "hint": "يربط أسعار الشراء بدرجة ضغط السوق. اتركه غير مصنف إذا كنت غير متأكد.",
+    "unclassified": "غير مصنف",
+    "electrical": "كهرباء",
+    "plumbing": "سباكة",
+    "steel_rebar": "حديد / تسليح",
+    "concrete": "خرسانة / إسمنت"
   }
 }

@@ -72,6 +72,20 @@ export async function findMaterialItemById(
   return row ?? null;
 }
 
+export async function updateMaterialItemTrade(
+  db: DbExecutor,
+  organizationId: string,
+  id: string,
+  trade: 'electrical' | 'plumbing' | 'steel_rebar' | 'concrete' | null,
+): Promise<(typeof materialItems.$inferSelect) | null> {
+  const [row] = await db
+    .update(materialItems)
+    .set({ trade, updatedAt: new Date() })
+    .where(and(eq(materialItems.id, id), eq(materialItems.organizationId, organizationId)))
+    .returning();
+  return row ?? null;
+}
+
 export type MaterialVendorPriceRow = typeof materialVendorPrices.$inferSelect & {
   readonly vendorName: string;
 };

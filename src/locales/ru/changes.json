@@ -60,7 +60,15 @@
     "contractUntitled": "Договор",
     "contractPrimary": "Основной",
     "create": "Сохранить черновик",
-    "save": "Сохранить изменения"
+    "save": "Сохранить изменения",
+    "billingCondition": "Срок выставления счёта",
+    "billingConditionHint": "Необязательно — когда планируете выставить счёт по этому изменению?",
+    "billingConditionPlaceholder": "Не задано",
+    "billingConditionUnset": "Не задано",
+    "billingConditionImmediate": "Немедленно",
+    "billingConditionMilestone": "С этапом",
+    "billingConditionCustomTerms": "Индивидуальные условия",
+    "billingConditionDeferred": "Отложено"
   },
   "quote": {
     "pageTitle": "Предложение по изменению в проекте",

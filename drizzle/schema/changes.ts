@@ -72,6 +72,8 @@ export const changeRequests = pgTable(
     createdByUserId: uuid('created_by_user_id').references(() => profiles.id, { onDelete: 'set null' }),
     notes: text('notes'),
     archivedAt: archivedAt(),
+    /** When the owner plans to invoice for this change, set at draft stage. Carried to change_order on approval. */
+    billingCondition: billingConditionEnum('billing_condition'),
     ...timestamps(),
   },
   (table) => [

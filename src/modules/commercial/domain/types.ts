@@ -53,6 +53,8 @@ export interface ChangeRequestRecord {
   readonly createdByUserId: string | null;
   readonly notes: string | null;
   readonly archivedAt: Date | null;
+  /** When the owner plans to invoice for this change once approved. NULL = undecided. */
+  readonly billingCondition: BillingCondition | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;
 }

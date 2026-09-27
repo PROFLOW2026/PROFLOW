@@ -26,6 +26,10 @@ export const createChangeRequestSchema = z.object({
     (value) => (value === '' || value === undefined ? undefined : value),
     z.string().uuid().optional().nullable(),
   ),
+  billingCondition: z.preprocess(
+    (v) => (v === '' || v === undefined ? null : v),
+    z.enum(['immediate', 'milestone', 'custom_terms', 'deferred']).nullable().optional(),
+  ),
 });
 
 export type CreateChangeRequestInput = z.infer<typeof createChangeRequestSchema>;
@@ -38,6 +42,10 @@ export const updateChangeRequestSchema = z.object({
   requestedAmount: moneyAmountSchema,
   requestedDate: businessDateSchema,
   notes: z.string().trim().max(5000).optional().nullable(),
+  billingCondition: z.preprocess(
+    (v) => (v === '' || v === undefined ? undefined : v === 'null' ? null : v),
+    z.enum(['immediate', 'milestone', 'custom_terms', 'deferred']).nullable().optional(),
+  ),
 });
 
 export type UpdateChangeRequestInput = z.infer<typeof updateChangeRequestSchema>;

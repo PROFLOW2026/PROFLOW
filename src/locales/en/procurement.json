@@ -296,5 +296,15 @@
       "effectiveFrom": "Effective from",
       "notes": "Notes"
     }
+  },
+  "materialTrade": {
+    "sectionTitle": "Market Classification",
+    "label": "Market trade category",
+    "hint": "Used to connect purchase prices to the material market pressure score. Leave unclassified if uncertain.",
+    "unclassified": "Unclassified",
+    "electrical": "Electrical",
+    "plumbing": "Plumbing",
+    "steel_rebar": "Steel / Rebar",
+    "concrete": "Concrete / Cement"
   }
 }

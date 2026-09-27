@@ -18,7 +18,7 @@ import 'server-only';
  *  - Idempotent: calling multiple times produces the same outcome.
  */
 
-import { and, eq, lt } from 'drizzle-orm';
+import { and, eq, gt, isNull, lt } from 'drizzle-orm';
 import { externalStatutoryDocuments } from '@drizzle/schema';
 import type { OrgContext } from '@/shared/auth/context';
 import { getAdminDb, withUserContext } from '@/shared/db/client';
@@ -26,8 +26,13 @@ import { resolveOrgContext } from '@/modules/tenancy';
 import { findActiveOrgOwnerUserId } from '@/modules/recurring-drafts/application/ops-worker';
 import { listExternalDocumentsByIssuanceOutcome } from '../data/external-documents';
 import { refreshExternalStatutoryStatus } from './refresh-external-status';
+import { retryPendingStatutoryPdfArchival } from './archive-statutory-pdf-to-provider';
 
 const AMBIGUOUS_GRACE_PERIOD_MS = 5 * 60 * 1000; // 5 minutes
+/** Minimum age before retrying a pending archive (avoids hammering on transient failures). */
+const ARCHIVE_RETRY_MIN_AGE_MS = 30 * 60 * 1000; // 30 minutes
+/** Maximum age for archive retry (beyond this, the issue is likely permanent — skip). */
+const ARCHIVE_RETRY_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 export interface SumitRecoveryOpsWorkerResult {
   /** Number of organisations scanned (those with at least one connected SUMIT setup). */
@@ -36,6 +41,10 @@ export interface SumitRecoveryOpsWorkerResult {
   readonly resolved: number;
   /** Number of documents that still could not be resolved. */
   readonly still_ambiguous: number;
+  /** Number of archive-pending documents retried. */
+  readonly archival_retried: number;
+  /** Number of archive-pending documents successfully archived on retry. */
+  readonly archival_succeeded: number;
   /** Number of per-org failures. */
   readonly failed: number;
   readonly failures: readonly { organizationId: string; error: string }[];
@@ -69,6 +78,73 @@ async function findOrgsWithStaleAmbiguousDocs(): Promise<string[]> {
       ),
     );
   return rows.map((r) => r.organizationId);
+}
+
+/**
+ * Find distinct org IDs that have archive_pending docs eligible for retry.
+ * Only selects docs that: confirmed_created + archive_pending=true + archived_at=null
+ * + updated_at between (now − 7d) and (now − 30min) to avoid hammering recent failures.
+ */
+async function findOrgsWithPendingArchiveDocs(): Promise<string[]> {
+  const db = getAdminDb();
+  const minCutoff = new Date(Date.now() - ARCHIVE_RETRY_MAX_AGE_MS);
+  const maxCutoff = new Date(Date.now() - ARCHIVE_RETRY_MIN_AGE_MS);
+
+  const rows = await db
+    .selectDistinct({ organizationId: externalStatutoryDocuments.organizationId })
+    .from(externalStatutoryDocuments)
+    .where(
+      and(
+        eq(externalStatutoryDocuments.issuanceOutcome, 'confirmed_created'),
+        eq(externalStatutoryDocuments.archivePending, true),
+        isNull(externalStatutoryDocuments.archivedAt),
+        lt(externalStatutoryDocuments.updatedAt, maxCutoff),
+        gt(externalStatutoryDocuments.updatedAt, minCutoff),
+      ),
+    );
+  return rows.map((r) => r.organizationId);
+}
+
+/**
+ * Retry archive_pending docs for one org.
+ * Idempotent: archiveStatutoryPdfToProvider is a no-op if already archived.
+ */
+async function retryPendingArchivalsForOrg(
+  owner: { userId: string },
+  organizationId: string,
+): Promise<{ retried: number; succeeded: number }> {
+  const db = getAdminDb();
+  const minCutoff = new Date(Date.now() - ARCHIVE_RETRY_MAX_AGE_MS);
+  const maxCutoff = new Date(Date.now() - ARCHIVE_RETRY_MIN_AGE_MS);
+
+
+  const pendingDocs = await db
+    .select({ id: externalStatutoryDocuments.id })
+    .from(externalStatutoryDocuments)
+    .where(
+      and(
+        eq(externalStatutoryDocuments.organizationId, organizationId),
+        eq(externalStatutoryDocuments.issuanceOutcome, 'confirmed_created'),
+        eq(externalStatutoryDocuments.archivePending, true),
+        isNull(externalStatutoryDocuments.archivedAt),
+        lt(externalStatutoryDocuments.updatedAt, maxCutoff),
+        gt(externalStatutoryDocuments.updatedAt, minCutoff),
+      ),
+    )
+    .limit(20); // cap per org per run to avoid timeout
+
+  let retried = 0;
+  let succeeded = 0;
+  for (const doc of pendingDocs) {
+    retried += 1;
+    const result = await retryPendingStatutoryPdfArchival(
+      owner.userId,
+      organizationId,
+      doc.id,
+    );
+    if (result === 'archived') succeeded += 1;
+  }
+  return { retried, succeeded };
 }
 
 async function processOrg(
@@ -113,14 +189,22 @@ async function processOrg(
  */
 export async function runSumitRecoveryOpsWorker(): Promise<SumitRecoveryOpsWorkerResult> {
   const db = getAdminDb();
-  const orgIds = await findOrgsWithStaleAmbiguousDocs();
+
+  // ── Phase 1: ambiguous-outcome recovery ───────────────────────────────────
+  const ambiguousOrgIds = await findOrgsWithStaleAmbiguousDocs();
+  // ── Phase 2: archive-pending retry ────────────────────────────────────────
+  const archivePendingOrgIds = await findOrgsWithPendingArchiveDocs();
+  // Union of all orgs needing attention
+  const allOrgIds = [...new Set([...ambiguousOrgIds, ...archivePendingOrgIds])];
 
   let resolved = 0;
   let still_ambiguous = 0;
+  let archival_retried = 0;
+  let archival_succeeded = 0;
   let failed = 0;
   const failures: { organizationId: string; error: string }[] = [];
 
-  for (const organizationId of orgIds) {
+  for (const organizationId of allOrgIds) {
     try {
       const owner = await findActiveOrgOwnerUserId(db, organizationId);
       if (!owner) {
@@ -130,14 +214,25 @@ export async function runSumitRecoveryOpsWorker(): Promise<SumitRecoveryOpsWorke
       }
 
       const locale = 'he-IL';
-      const result = await withOrgOwnerContext(
-        owner.userId,
-        organizationId,
-        locale,
-        (context) => processOrg(context),
-      );
-      resolved += result.resolved;
-      still_ambiguous += result.still_ambiguous;
+
+      // Phase 1: resolve ambiguous docs
+      if (ambiguousOrgIds.includes(organizationId)) {
+        const result = await withOrgOwnerContext(
+          owner.userId,
+          organizationId,
+          locale,
+          (context) => processOrg(context),
+        );
+        resolved += result.resolved;
+        still_ambiguous += result.still_ambiguous;
+      }
+
+      // Phase 2: retry pending archival
+      if (archivePendingOrgIds.includes(organizationId)) {
+        const archiveResult = await retryPendingArchivalsForOrg(owner, organizationId);
+        archival_retried += archiveResult.retried;
+        archival_succeeded += archiveResult.succeeded;
+      }
     } catch (error) {
       failed += 1;
       failures.push({
@@ -148,9 +243,11 @@ export async function runSumitRecoveryOpsWorker(): Promise<SumitRecoveryOpsWorke
   }
 
   return {
-    scanned: orgIds.length,
+    scanned: allOrgIds.length,
     resolved,
     still_ambiguous,
+    archival_retried,
+    archival_succeeded,
     failed,
     failures,
   };

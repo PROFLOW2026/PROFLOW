@@ -15,6 +15,7 @@ import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { VendorPriceCreateForm } from './vendor-price-create-form';
 import { VendorPriceDeleteButton } from './vendor-price-delete-button';
+import { MaterialTradeSelector } from './material-trade-selector';
 import { textNavLinkMutedClassName } from '@/components/ui/pressable';
 
 export async function generateMetadata({
@@ -189,6 +190,16 @@ export default async function MaterialDetailPage({
             )}
           />
         )}
+
+        {canManage ? (
+          <div className="min-w-0 rounded-lg border border-[var(--pf-border-default)] p-4">
+            <h3 className="mb-3 text-sm font-semibold">{t('materialTrade.sectionTitle')}</h3>
+            <MaterialTradeSelector
+              materialId={material.id}
+              currentTrade={(material.trade as 'electrical' | 'plumbing' | 'steel_rebar' | 'concrete' | null) ?? null}
+            />
+          </div>
+        ) : null}
 
         {canManage ? (
           <div className="min-w-0 rounded-lg border border-[var(--pf-border-default)] p-4">

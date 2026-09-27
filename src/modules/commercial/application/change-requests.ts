@@ -72,6 +72,7 @@ export async function createChangeRequest(
     requestedDate: input.requestedDate ?? null,
     createdByUserId: context.userId,
     notes: input.notes ?? null,
+    billingCondition: input.billingCondition ?? null,
   });
 
   await noteModuleUsage(context.db, context.organizationId, 'changes');
@@ -96,6 +97,7 @@ export async function updateChangeRequest(
     requestedAmount?: string | null;
     requestedDate?: string | null;
     notes?: string | null;
+    billingCondition?: 'immediate' | 'milestone' | 'custom_terms' | 'deferred' | null;
   },
 ): Promise<void> {
   assertPermission(context, PERMISSIONS.CHANGES_MANAGE);
@@ -126,6 +128,9 @@ export async function updateChangeRequest(
       requestedAmount: rawInput.requestedAmount,
       requestedDate: rawInput.requestedDate,
       notes: rawInput.notes,
+      ...(rawInput.billingCondition !== undefined
+        ? { billingCondition: rawInput.billingCondition }
+        : {}),
     },
   );
 

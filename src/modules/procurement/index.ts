@@ -104,7 +104,7 @@ export {
 } from './validation/schemas';
 
 /** Cross-module materials catalog FK guard. */
-export { findMaterialItemById } from './data/procurement.repository';
+export { findMaterialItemById, updateMaterialItemTrade } from './data/procurement.repository';
 
 export {
   findCommittedCostForPo,

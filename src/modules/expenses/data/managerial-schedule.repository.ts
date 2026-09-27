@@ -1,5 +1,5 @@
-import { and, asc, eq, inArray, ne } from 'drizzle-orm';
-import { expenseManagerialScheduleLines } from '@drizzle/schema';
+import { and, asc, eq, inArray, ne, notInArray } from 'drizzle-orm';
+import { expenseManagerialScheduleLines, monthClosePeriods } from '@drizzle/schema';
 import { asServiceRoleWrite } from '@/shared/db/service-role-write';
 import type { DbExecutor } from '@/shared/db/types';
 
@@ -117,19 +117,43 @@ export async function replaceScheduleLines(
   lines: readonly ManagerialScheduleLineInsert[],
 ): Promise<void> {
   await asServiceRoleWrite(db, async () => {
-    await db
-      .delete(expenseManagerialScheduleLines)
+    // ── Identify closed months so we never overwrite frozen historical lines ──
+    const closedRows = await db
+      .select({ yearMonth: monthClosePeriods.yearMonth })
+      .from(monthClosePeriods)
       .where(
         and(
-          eq(expenseManagerialScheduleLines.organizationId, orgId),
-          eq(expenseManagerialScheduleLines.expenseId, expenseId),
+          eq(monthClosePeriods.organizationId, orgId),
+          eq(monthClosePeriods.status, 'closed'),
         ),
       );
+    const closedMonths = new Set(closedRows.map((r) => r.yearMonth));
 
-    if (lines.length === 0) return;
+    // Delete ONLY open-month lines; closed-month lines are immutable.
+    const deleteCondition =
+      closedMonths.size > 0
+        ? and(
+            eq(expenseManagerialScheduleLines.organizationId, orgId),
+            eq(expenseManagerialScheduleLines.expenseId, expenseId),
+            notInArray(expenseManagerialScheduleLines.yearMonth, [...closedMonths]),
+          )
+        : and(
+            eq(expenseManagerialScheduleLines.organizationId, orgId),
+            eq(expenseManagerialScheduleLines.expenseId, expenseId),
+          );
+
+    await db.delete(expenseManagerialScheduleLines).where(deleteCondition);
+
+    // Insert ONLY open-month lines.
+    const openLines =
+      closedMonths.size > 0
+        ? lines.filter((line) => !closedMonths.has(line.yearMonth))
+        : lines;
+
+    if (openLines.length === 0) return;
 
     await db.insert(expenseManagerialScheduleLines).values(
-      lines.map((line) => ({
+      openLines.map((line) => ({
         organizationId: orgId,
         expenseId,
         yearMonth: line.yearMonth,

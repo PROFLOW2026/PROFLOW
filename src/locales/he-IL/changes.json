@@ -60,7 +60,15 @@
     "contractUntitled": "חוזה",
     "contractPrimary": "ראשי",
     "create": "שמירת טיוטה",
-    "save": "שמירת שינויים"
+    "save": "שמירת שינויים",
+    "billingCondition": "עיתוי החיוב",
+    "billingConditionHint": "אופציונלי, מתי מתוכנן לחייב על שינוי זה?",
+    "billingConditionPlaceholder": "לא נקבע",
+    "billingConditionUnset": "לא נקבע",
+    "billingConditionImmediate": "מיידי",
+    "billingConditionMilestone": "עם אבן דרך",
+    "billingConditionCustomTerms": "תנאים מיוחדים",
+    "billingConditionDeferred": "נדחה / מאוחר יותר"
   },
   "quote": {
     "pageTitle": "הצעת מחיר לשינוי בתוך פרויקט",

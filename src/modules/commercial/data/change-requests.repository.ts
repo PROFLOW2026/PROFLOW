@@ -39,6 +39,7 @@ function mapChangeRequest(row: typeof changeRequests.$inferSelect): ChangeReques
     createdByUserId: row.createdByUserId,
     notes: row.notes,
     archivedAt: row.archivedAt,
+    billingCondition: (row.billingCondition as ChangeRequestRecord['billingCondition']) ?? null,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -166,6 +167,7 @@ export async function insertChangeRequest(
     requestedDate?: string | null;
     createdByUserId: string;
     notes?: string | null;
+    billingCondition?: ChangeRequestRecord['billingCondition'];
   },
 ): Promise<ChangeRequestRecord> {
   const [row] = await db
@@ -183,6 +185,7 @@ export async function insertChangeRequest(
       requestedDate: input.requestedDate ?? null,
       createdByUserId: input.createdByUserId,
       notes: input.notes ?? null,
+      billingCondition: input.billingCondition ?? null,
       status: 'draft',
     })
     .returning();
@@ -206,6 +209,7 @@ export async function updateChangeRequestFields(
     decidedAt: Date | null;
     cancelledAt: Date | null;
     contractId: string | null;
+    billingCondition: ChangeRequestRecord['billingCondition'];
   }>,
 ): Promise<ChangeRequestRecord | null> {
   const [row] = await db

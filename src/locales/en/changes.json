@@ -60,7 +60,15 @@
     "contractUntitled": "Contract",
     "contractPrimary": "Primary",
     "create": "Save draft",
-    "save": "Save changes"
+    "save": "Save changes",
+    "billingCondition": "Billing timing",
+    "billingConditionHint": "Optional — when do you expect to invoice for this change?",
+    "billingConditionPlaceholder": "Not set",
+    "billingConditionUnset": "Not set",
+    "billingConditionImmediate": "Immediate",
+    "billingConditionMilestone": "With a milestone",
+    "billingConditionCustomTerms": "Custom terms",
+    "billingConditionDeferred": "Deferred / later"
   },
   "quote": {
     "pageTitle": "In-project change quote",

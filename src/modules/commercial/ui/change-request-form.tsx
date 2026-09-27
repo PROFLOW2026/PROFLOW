@@ -39,6 +39,7 @@ export interface ChangeRequestFormProps {
     direction?: 'addition' | 'reduction';
     requestedAmount?: string | null;
     contractId?: string | null;
+    billingCondition?: 'immediate' | 'milestone' | 'custom_terms' | 'deferred' | null;
   };
   changeRequestId?: string;
   /** ISO server baseline for conflict detection on edit drafts. */
@@ -207,6 +208,26 @@ export function ChangeRequestForm({
             defaultValue={initial?.requestedAmount ?? ''}
             dir="ltr"
           />
+        )}
+      </Field>
+
+      <Field label={t('billingCondition')} description={t('billingConditionHint')}>
+        {(control) => (
+          <Select
+            name="billingCondition"
+            defaultValue={initial?.billingCondition ?? ''}
+          >
+            <SelectTrigger id={control.id} aria-describedby={control['aria-describedby']}>
+              <SelectValue placeholder={t('billingConditionPlaceholder')} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">{t('billingConditionUnset')}</SelectItem>
+              <SelectItem value="immediate">{t('billingConditionImmediate')}</SelectItem>
+              <SelectItem value="milestone">{t('billingConditionMilestone')}</SelectItem>
+              <SelectItem value="custom_terms">{t('billingConditionCustomTerms')}</SelectItem>
+              <SelectItem value="deferred">{t('billingConditionDeferred')}</SelectItem>
+            </SelectContent>
+          </Select>
         )}
       </Field>
 

@@ -296,5 +296,15 @@
       "effectiveFrom": "בתוקף מ-",
       "notes": "הערות"
     }
+  },
+  "materialTrade": {
+    "sectionTitle": "סיווג שוק חומרים",
+    "label": "קטגוריית סחר בשוק",
+    "hint": "מחבר מחירי רכש לציון לחץ השוק. השאר ללא סיווג במקרה של ספק.",
+    "unclassified": "ללא סיווג",
+    "electrical": "חשמל",
+    "plumbing": "אינסטלציה",
+    "steel_rebar": "ברזל / זיון",
+    "concrete": "בטון / מלט"
   }
 }

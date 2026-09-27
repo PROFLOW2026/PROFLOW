@@ -60,7 +60,15 @@
     "contractUntitled": "عقد",
     "contractPrimary": "رئيسي",
     "create": "حفظ مسودة",
-    "save": "حفظ التغييرات"
+    "save": "حفظ التغييرات",
+    "billingCondition": "توقيت الفوترة",
+    "billingConditionHint": "اختياري — متى تتوقع إرسال فاتورة بهذا التغيير؟",
+    "billingConditionPlaceholder": "غير محدد",
+    "billingConditionUnset": "غير محدد",
+    "billingConditionImmediate": "فوري",
+    "billingConditionMilestone": "مع معلم",
+    "billingConditionCustomTerms": "شروط مخصصة",
+    "billingConditionDeferred": "مؤجل / لاحقاً"
   },
   "quote": {
     "pageTitle": "عرض سعر تغيير داخل المشروع",
