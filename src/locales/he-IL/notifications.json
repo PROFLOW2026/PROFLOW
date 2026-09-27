@@ -177,7 +177,29 @@
       "titleWithReference": "קליטה ממתינה לבדיקה - {reference}",
       "titleDefault": "קליטה ממתינה לבדיקה",
       "bodyWithExtra": "{extra}",
-      "bodyDefault": "קליטה מהירה ממתינה לבדיקה שלך."
+      "bodyDefault": "קליטה מהירה ממתינה לבדיקה שלך.",
+      "variants": {
+        "field_media": {
+          "titleDefault": "קליטת שטח ממתינה לבדיקה",
+          "bodyDefault": "קליטת שטח ממתינה לבדיקה שלך.",
+          "bodyWithExtra": "{extra}"
+        },
+        "financial_document": {
+          "titleDefault": "קליטה כספית ממתינה לבדיקה",
+          "bodyDefault": "מסמך כספי שצולם ממתין לבדיקה שלך.",
+          "bodyWithExtra": "{extra}"
+        },
+        "video": {
+          "titleDefault": "סרטון שטח ממתין לבדיקה",
+          "bodyDefault": "סרטון שטח שצולם ממתין לבדיקה שלך.",
+          "bodyWithExtra": "{extra}"
+        },
+        "default": {
+          "titleDefault": "קליטה ממתינה לבדיקה",
+          "bodyDefault": "קליטה מהירה ממתינה לבדיקה שלך.",
+          "bodyWithExtra": "{extra}"
+        }
+      }
     },
     "task_status_updated": {
       "titleWithReference": "משימה עודכנה - {reference}",

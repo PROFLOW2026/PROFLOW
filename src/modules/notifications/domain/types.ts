@@ -141,6 +141,7 @@ export interface NotificationListItem {
   readonly deepLink: string | null;
   readonly readAt: Date | null;
   readonly createdAt: Date;
+  readonly metadata: Record<string, unknown> | null;
 }
 
 export interface NotificationInbox {

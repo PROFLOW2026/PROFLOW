@@ -177,7 +177,29 @@
       "titleWithReference": "Capture needs review - {reference}",
       "titleDefault": "Capture needs review",
       "bodyWithExtra": "{extra}",
-      "bodyDefault": "A quick capture is waiting for your review."
+      "bodyDefault": "A quick capture is waiting for your review.",
+      "variants": {
+        "field_media": {
+          "titleDefault": "Field capture ready for review",
+          "bodyDefault": "A field capture session is ready for review.",
+          "bodyWithExtra": "{extra}"
+        },
+        "financial_document": {
+          "titleDefault": "Financial capture ready for review",
+          "bodyDefault": "A captured document may be financial — review required.",
+          "bodyWithExtra": "{extra}"
+        },
+        "video": {
+          "titleDefault": "Field video ready for review",
+          "bodyDefault": "A field video capture is ready for review.",
+          "bodyWithExtra": "{extra}"
+        },
+        "default": {
+          "titleDefault": "Quick capture ready for review",
+          "bodyDefault": "A new capture is ready for review.",
+          "bodyWithExtra": "{extra}"
+        }
+      }
     },
     "task_status_updated": {
       "titleWithReference": "Task updated - {reference}",

@@ -46,6 +46,9 @@
   "review": {
     "title": "Review capture",
     "parsingDocument": "Parsing document…",
+    "parsingSlow": "Reading is taking longer than expected. You can try again.",
+    "pollFailed": "Could not refresh the reading status. Try again.",
+    "ocrFailed": "Document reading failed. Check the file and try again.",
     "approve": "Approve",
     "reject": "Reject",
     "changeType": "Change type",

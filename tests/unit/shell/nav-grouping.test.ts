@@ -50,6 +50,12 @@ describe('nav grouping', () => {
     expect(byKey.materials?.moreGroup).toBe('purchasing');
     expect(byKey.fieldOps?.moreGroup).toBe('operations');
     expect(byKey.documents?.moreGroup).toBe('documents');
+
+    const captureInbox = byKey.quickCaptureInbox;
+    expect(captureInbox?.href).toBe('/quick-capture/inbox');
+    expect(captureInbox?.labelKey).toBe('captureInbox');
+    expect(captureInbox?.permission).toBe(PERMISSIONS.DOCUMENTS_MANAGE);
+    expect(captureInbox?.moreGroup).toBe('documents');
     expect(byKey.quotes?.moreGroup).toBe('business');
     expect(byKey.crm?.moreGroup).toBe('business');
 

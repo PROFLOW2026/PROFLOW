@@ -613,6 +613,15 @@ export const NAV_ITEMS: readonly NavItem[] = [
     moreGroup: 'documents',
   },
   {
+    key: 'quickCaptureInbox',
+    href: '/quick-capture/inbox',
+    labelKey: 'captureInbox',
+    iconKey: 'documents',
+    permission: PERMISSIONS.DOCUMENTS_MANAGE,
+    module: 'documents',
+    moreGroup: 'documents',
+  },
+  {
     key: 'companyFiles',
     href: '/company-files',
     labelKey: 'companyFiles',

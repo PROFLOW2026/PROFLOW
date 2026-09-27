@@ -58,6 +58,7 @@ export function commandCenterItemToNotificationItem(item: CommandCenterItem): No
     deepLink: item.href,
     readAt: null,
     createdAt: new Date(),
+    metadata: null,
   };
 }
 

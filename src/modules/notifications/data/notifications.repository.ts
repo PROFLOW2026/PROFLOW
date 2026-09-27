@@ -61,6 +61,7 @@ function toListItem(row: NotificationRecord): NotificationListItem {
     deepLink: row.deepLink,
     readAt: row.readAt,
     createdAt: row.createdAt,
+    metadata: row.metadata ?? null,
   };
 }
 

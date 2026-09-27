@@ -27,6 +27,26 @@ function bodyWithExtra(
   return t(`copy.${type}.${defaultKey}`);
 }
 
+export type CaptureNotificationVariant =
+  | 'field_media'
+  | 'financial_document'
+  | 'video'
+  | 'default';
+
+export function captureNeedsReviewNotificationCopy(
+  t: NotificationCopyTranslator,
+  variant: CaptureNotificationVariant,
+  ownerNote?: string | null,
+): { title: string; body: string } {
+  const extra = ownerNote?.trim() || null;
+  const prefix = `copy.capture_needs_review.variants.${variant}`;
+  const title = t(`${prefix}.titleDefault`);
+  const body = extra
+    ? t(`${prefix}.bodyWithExtra`, { extra })
+    : t(`${prefix}.bodyDefault`);
+  return { title, body };
+}
+
 export function notificationCopy(
   t: NotificationCopyTranslator,
   type: NotificationEventType,
@@ -152,10 +172,7 @@ export function notificationCopy(
         body: bodyWithExtra(t, type, extra),
       };
     case 'capture_needs_review':
-      return {
-        title: titleWithReference(t, type, ref),
-        body: bodyWithExtra(t, type, extra, 'bodyDefault', 'bodyWithExtra'),
-      };
+      return captureNeedsReviewNotificationCopy(t, 'default', extra);
     case 'task_status_updated':
       return {
         title: titleWithReference(t, type, ref),

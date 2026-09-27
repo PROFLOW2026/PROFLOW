@@ -177,7 +177,29 @@
       "titleWithReference": "التقاط بانتظار المراجعة - {reference}",
       "titleDefault": "التقاط بانتظار المراجعة",
       "bodyWithExtra": "{extra}",
-      "bodyDefault": "التقاط سريع بانتظار مراجعتك."
+      "bodyDefault": "التقاط سريع بانتظار مراجعتك.",
+      "variants": {
+        "field_media": {
+          "titleDefault": "التقاط ميداني بانتظار المراجعة",
+          "bodyDefault": "جلسة التقاط ميداني بانتظار مراجعتك.",
+          "bodyWithExtra": "{extra}"
+        },
+        "financial_document": {
+          "titleDefault": "التقاط مالي بانتظار المراجعة",
+          "bodyDefault": "مستند مالي ملتقط قد يتطلب مراجعتك.",
+          "bodyWithExtra": "{extra}"
+        },
+        "video": {
+          "titleDefault": "فيديو ميداني بانتظار المراجعة",
+          "bodyDefault": "فيديو ميداني ملتقط بانتظار مراجعتك.",
+          "bodyWithExtra": "{extra}"
+        },
+        "default": {
+          "titleDefault": "التقاط بانتظار المراجعة",
+          "bodyDefault": "التقاط جديد بانتظار مراجعتك.",
+          "bodyWithExtra": "{extra}"
+        }
+      }
     },
     "task_status_updated": {
       "titleWithReference": "تم تحديث المهمة - {reference}",

@@ -177,7 +177,29 @@
       "titleWithReference": "Захват ожидает проверки — {reference}",
       "titleDefault": "Захват ожидает проверки",
       "bodyWithExtra": "{extra}",
-      "bodyDefault": "Быстрый захват ожидает вашей проверки."
+      "bodyDefault": "Быстрый захват ожидает вашей проверки.",
+      "variants": {
+        "field_media": {
+          "titleDefault": "Полевой захват готов к проверке",
+          "bodyDefault": "Сессия полевого захвата готова к проверке.",
+          "bodyWithExtra": "{extra}"
+        },
+        "financial_document": {
+          "titleDefault": "Финансовый захват готов к проверке",
+          "bodyDefault": "Захваченный документ может быть финансовым — требуется проверка.",
+          "bodyWithExtra": "{extra}"
+        },
+        "video": {
+          "titleDefault": "Полевое видео готово к проверке",
+          "bodyDefault": "Захваченное полевое видео готово к проверке.",
+          "bodyWithExtra": "{extra}"
+        },
+        "default": {
+          "titleDefault": "Быстрый захват готов к проверке",
+          "bodyDefault": "Новый захват готов к проверке.",
+          "bodyWithExtra": "{extra}"
+        }
+      }
     },
     "task_status_updated": {
       "titleWithReference": "Задача обновлена — {reference}",

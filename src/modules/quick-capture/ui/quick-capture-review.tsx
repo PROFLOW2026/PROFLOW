@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useEffect, useMemo, useState, useTransition } from 'react';
+import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -35,6 +35,8 @@ import type { DetectedType } from '../domain/types';
 import { QuickCaptureGallery } from './quick-capture-gallery';
 import { QuickCaptureProjectSelect } from './quick-capture-project-select';
 import { QuickCaptureVideoPreview } from './quick-capture-video-preview';
+
+const OCR_SLOW_MS = 45_000;
 
 const OcrReviewPanelLazy = dynamic(
   () =>
@@ -76,6 +78,9 @@ export function QuickCaptureReview({
   const [category, setCategory] = useState<FieldMediaCategory>('progress');
   const [error, setError] = useState<string | null>(null);
   const [ocrParsing, setOcrParsing] = useState(false);
+  const [ocrSlow, setOcrSlow] = useState(false);
+  const [ocrPollHalted, setOcrPollHalted] = useState(false);
+  const ocrRunningStartedAtRef = useRef<number | null>(null);
 
   const isVideo = capture.sessionKind === 'video';
   const isMultiImage = capture.sessionKind === 'images' && capture.documentCount > 1;
@@ -90,28 +95,59 @@ export function QuickCaptureReview({
     ocrJob?.status === 'running';
 
   useEffect(() => {
-    if (ownerType !== 'financial_document') return;
-    if (!financialOcrRunning) return;
+    if (ownerType !== 'financial_document' || !financialOcrRunning || ocrPollHalted) {
+      if (!financialOcrRunning) {
+        ocrRunningStartedAtRef.current = null;
+        setOcrSlow(false);
+      }
+      return;
+    }
+
+    if (ocrRunningStartedAtRef.current == null) {
+      ocrRunningStartedAtRef.current = Date.now();
+    }
+
     let cancelled = false;
     const tick = async () => {
-      const result = await pollCaptureOcrAction(capture.id);
-      if (cancelled || !result.ok) return;
-      setOcrJob(result.data.job);
-      if (
-        result.data.job?.status === 'needs_review' ||
-        result.data.job?.status === 'failed' ||
-        result.data.job?.status === 'rejected'
-      ) {
+      const startedAt = ocrRunningStartedAtRef.current ?? Date.now();
+      if (Date.now() - startedAt >= OCR_SLOW_MS) {
+        setOcrSlow(true);
         setOcrParsing(false);
       }
+
+      const result = await pollCaptureOcrAction(capture.id);
+      if (cancelled) return;
+
+      if (!result.ok) {
+        setOcrPollHalted(true);
+        setOcrParsing(false);
+        setOcrSlow(false);
+        setError(result.error ?? t('review.pollFailed'));
+        return;
+      }
+
+      setError(null);
+      setOcrJob(result.data.job);
+      const status = result.data.job?.status;
+      if (
+        status === 'needs_review' ||
+        status === 'failed' ||
+        status === 'rejected' ||
+        status === 'cancelled'
+      ) {
+        setOcrParsing(false);
+        setOcrSlow(false);
+        setOcrPollHalted(true);
+      }
     };
+
     const timer = window.setInterval(() => void tick(), 2000);
     void tick();
     return () => {
       cancelled = true;
       window.clearInterval(timer);
     };
-  }, [capture.id, ownerType, financialOcrRunning]);
+  }, [capture.id, ownerType, financialOcrRunning, ocrPollHalted, t]);
 
   const ocrPanelJobs = useMemo(
     () => (ocrJob && ownerType === 'financial_document' ? [ocrJob] : []),
@@ -137,12 +173,22 @@ export function QuickCaptureReview({
         return;
       }
       const polled = await pollCaptureOcrAction(capture.id);
-      if (polled.ok) setOcrJob(polled.data.job);
+      if (polled.ok) {
+        setOcrJob(polled.data.job);
+        return;
+      }
+      setOcrPollHalted(true);
+      setOcrParsing(false);
+      setError(polled.error ?? t('review.pollFailed'));
     });
   };
 
   const handleRetryOcr = () => {
     if (!selectedFinancialDocumentId) return;
+    setError(null);
+    setOcrSlow(false);
+    setOcrPollHalted(false);
+    ocrRunningStartedAtRef.current = Date.now();
     setOcrParsing(true);
     startTransition(async () => {
       const result = await startCaptureFinancialOcrAction({
@@ -156,9 +202,20 @@ export function QuickCaptureReview({
         return;
       }
       const polled = await pollCaptureOcrAction(capture.id);
-      if (polled.ok) setOcrJob(polled.data.job);
+      if (polled.ok) {
+        setOcrJob(polled.data.job);
+        return;
+      }
+      setOcrPollHalted(true);
+      setOcrParsing(false);
+      setError(polled.error ?? t('review.pollFailed'));
     });
   };
+
+  const showOcrRetry =
+    ownerType === 'financial_document' &&
+    selectedFinancialDocumentId &&
+    (financialOcrFailed || ocrSlow || (ocrPollHalted && Boolean(error)));
 
   const approveDisabled =
     pending ||
@@ -330,20 +387,30 @@ export function QuickCaptureReview({
           <Alert tone="info">{t('review.selectFinancialDocument')}</Alert>
         ) : null}
 
-        {ownerType === 'financial_document' && (ocrParsing || financialOcrRunning) ? (
+        {ownerType === 'financial_document' &&
+        (ocrParsing || financialOcrRunning) &&
+        !ocrSlow &&
+        !ocrPollHalted ? (
           <Alert tone="info" role="status">
             <Spinner className="me-2 inline" />
             {t('review.parsingDocument')}
           </Alert>
         ) : null}
 
+        {ownerType === 'financial_document' && ocrSlow && financialOcrRunning ? (
+          <Alert tone="warning" role="status">
+            {t('review.parsingSlow')}
+          </Alert>
+        ) : null}
+
         {ownerType === 'financial_document' && financialOcrFailed ? (
-          <div className="flex flex-col gap-2">
-            <Alert tone="warning">{t('review.ocrUnavailable')}</Alert>
-            <Button type="button" variant="secondary" disabled={pending} onClick={handleRetryOcr}>
-              {t('review.retryOcr')}
-            </Button>
-          </div>
+          <Alert tone="warning">{t('review.ocrFailed')}</Alert>
+        ) : null}
+
+        {showOcrRetry ? (
+          <Button type="button" variant="secondary" disabled={pending} onClick={handleRetryOcr}>
+            {t('review.retryOcr')}
+          </Button>
         ) : null}
 
         {ownerType === 'financial_document' && financialOcrReady && ocrPanelJobs.length > 0 ? (
