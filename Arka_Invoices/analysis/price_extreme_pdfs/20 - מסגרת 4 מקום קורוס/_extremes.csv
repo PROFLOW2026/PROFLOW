@@ -1,0 +1,4 @@
+﻿year,invoice_number,invoice_date,sku,description,quantity,unit,net_unit_price,local_median,local_min,local_max,deviation_percent,peer_observation_count,comparison_window,reason_for_flag,pdf_filename
+2020,,24/09/20,3916104,מודול4 לבן חלבי ONE מסגרת-קורוס,12.00,unit,7.1,3.95,3.95,7.57,79.7,12,same_year,Local high: 79.7% above nearby median; outside robust local range,2020-09-24__2020-09-29__קרן-ממויה__p6494003437.pdf
+2020,,22/10/20,3916104,מודול4 לבן חלבי ONE מסגרת-קורוס,12.00,unit,7.5744,3.95,3.95,7.10,91.8,12,same_year,Local high: 91.8% above nearby median; outside robust local range,2020-10-22__2020-10-25__קרן-ממויה__p5671601661.pdf
+2022,,26/01/22,3916104,מודול4 לבן חלבי ONE מסגרת-קורוס,50.00,unit,6.3975,4.20,4.20,4.40,52.3,13,same_year,Local high: 52.3% above nearby median; outside robust local range,2022-01-26__2022-01-30__קרן-ממויה__(מסמך ממוחשב) הדפסת חשבונית מרכזת - 25342200131.pdf

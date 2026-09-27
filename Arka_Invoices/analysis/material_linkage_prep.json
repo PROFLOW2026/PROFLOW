@@ -1,0 +1,174 @@
+{
+  "generated_at": "2026-09-26T18:34:11.992858",
+  "TOTAL_NORMALIZED_PRODUCTS": 1541,
+  "COPPER_PRODUCTS": 73,
+  "COPPER_PVC_PRODUCTS": 30,
+  "ALUMINIUM_PRODUCTS": 5,
+  "CORE_FORECASTING_PRODUCTS": 64,
+  "COPPER_WIRE_PRODUCTS": 46,
+  "N2XY_PRODUCTS": 42,
+  "ALUMINIUM_CABLE_PRODUCTS": 1,
+  "CORE_COPPER_WIRE": 31,
+  "CORE_N2XY": 33,
+  "CORE_ALUMINIUM_CABLE": 0,
+  "FAMILY_INDEX_STATUS": {
+    "COPPER_WIRE": "READY",
+    "N2XY_COPPER_CABLE": "READY",
+    "ALUMINIUM_CABLE": "NOT READY"
+  },
+  "SUPPLIER_PRICE_CHANGE_EVENTS": 2058,
+  "EARLIEST_USABLE_DATE": "2017-10-03",
+  "LATEST_USABLE_DATE": "2025-03-27",
+  "EXTERNAL_DRIVER_SCHEMA": "READY",
+  "LAG_ANALYSIS_FRAMEWORK": "READY",
+  "READY_TO_LOAD_FREE_EXTERNAL_MARKET_DATA": "YES",
+  "gap_methodology": {
+    "FRESH": "<= 45 days since prior purchase",
+    "MODERATE": "46-120 days",
+    "STALE": "> 120 days",
+    "index_construction": "Only FRESH+MODERATE events contribute to family median percent-change index",
+    "no_sku_forward_fill": "SKU prices are never forward-filled; index holds flat when no events in month"
+  },
+  "index_methodology": {
+    "step1": "Per SKU: consecutive usable observation percent changes",
+    "step2": "Attribute change to current_date month",
+    "step3": "Per family-month: median percent change across eligible events",
+    "step4": "Chain cumulative index starting at 100 in first active month",
+    "rationale": "Different cross-sections (3x2.5 vs 5x16) contribute movement not absolute price levels"
+  },
+  "lag_analysis_framework": {
+    "lag_days": [
+      0,
+      7,
+      14,
+      21,
+      30,
+      45,
+      60,
+      90
+    ],
+    "research_question": "When copper changes today, after how long does ERCO pricing tend to change?",
+    "alignment_rules": {
+      "daily_drivers": "Align to observation date or lag-shifted date; use close price",
+      "monthly_drivers": "Map to year_month of observation; forward-fill only within same month for daily→monthly aggregation",
+      "supplier_events": "Use current_date as event anchor; test driver change at t-lag"
+    },
+    "future_correlation_spec": {
+      "function": "evaluate_lagged_association(driver_series, family_index_or_events, lag_days)",
+      "inputs": [
+        "driver_pct_change",
+        "family_median_pct_change",
+        "lag_days"
+      ],
+      "outputs": [
+        "correlation",
+        "n_observations",
+        "lag_days"
+      ],
+      "not_executed": true
+    },
+    "resampling": {
+      "daily_to_monthly": "last business day close per calendar month",
+      "monthly_index": "already monthly — join on year_month"
+    }
+  },
+  "forecast_target_schema": {
+    "direction_targets": {
+      "30D_DIRECTION": {
+        "horizon_days": 30,
+        "labels": [
+          "DOWN",
+          "STABLE",
+          "UP"
+        ],
+        "label_rules_future": "compute from family index forward return; thresholds TBD at training stage"
+      },
+      "60D_DIRECTION": {
+        "horizon_days": 60,
+        "labels": [
+          "DOWN",
+          "STABLE",
+          "UP"
+        ],
+        "label_rules_future": "compute from family index forward return; thresholds TBD at training stage"
+      },
+      "90D_DIRECTION": {
+        "horizon_days": 90,
+        "labels": [
+          "DOWN",
+          "STABLE",
+          "UP"
+        ],
+        "label_rules_future": "compute from family index forward return; thresholds TBD at training stage"
+      }
+    },
+    "magnitude_targets": {
+      "family_price_change_30d": {
+        "horizon_days": 30,
+        "unit": "percent",
+        "compute_at_training": true,
+        "no_future_leakage_before_backtest": true
+      },
+      "family_price_change_60d": {
+        "horizon_days": 60,
+        "unit": "percent",
+        "compute_at_training": true,
+        "no_future_leakage_before_backtest": true
+      },
+      "family_price_change_90d": {
+        "horizon_days": 90,
+        "unit": "percent",
+        "compute_at_training": true,
+        "no_future_leakage_before_backtest": true
+      }
+    },
+    "stable_threshold_placeholder_percent": "TBD — e.g. |change| < 2%"
+  },
+  "external_driver_specs": [
+    {
+      "driver": "COPPER_USD",
+      "currency": "USD",
+      "unit": "USD/MT",
+      "source_frequency": "daily"
+    },
+    {
+      "driver": "ALUMINIUM_USD",
+      "currency": "USD",
+      "unit": "USD/MT",
+      "source_frequency": "daily"
+    },
+    {
+      "driver": "USD_ILS",
+      "currency": "ILS",
+      "unit": "ILS/USD",
+      "source_frequency": "daily"
+    },
+    {
+      "driver": "OIL_OR_ENERGY",
+      "currency": "USD",
+      "unit": "USD/bbl",
+      "source_frequency": "daily"
+    },
+    {
+      "driver": "ISRAEL_CONSTRUCTION_INPUT_INDEX",
+      "currency": "ILS",
+      "unit": "index",
+      "source_frequency": "monthly"
+    }
+  ],
+  "material_driver_counts": {
+    "OTHER": 296,
+    "UNKNOWN": 1116,
+    "COPPER": 73,
+    "COPPER_PVC": 30,
+    "ALUMINIUM": 5,
+    "PVC": 21
+  },
+  "product_market_family_counts": {
+    "OTHER": 1437,
+    "N2XY_COPPER_CABLE": 42,
+    "OTHER_CABLE": 15,
+    "COPPER_WIRE": 46,
+    "ALUMINIUM_CABLE": 1
+  }
+}

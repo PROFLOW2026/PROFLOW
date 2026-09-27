@@ -1,0 +1,17 @@
+{
+  "generated_at": "2026-09-26T18:09:09.466488",
+  "messages_scanned": 527,
+  "messages_with_main_invoice": 476,
+  "high_confidence": 327,
+  "medium_confidence": 82,
+  "low_confidence": 67,
+  "ambiguous": 4,
+  "no_main_invoice": 47,
+  "main_invoices_copied": 476,
+  "delivery_support_ignored": 3171,
+  "copy_failures": 0,
+  "output_root": "C:\\Users\\ERAN YOSEF\\Desktop\\Arka_Invoices",
+  "index_file": "C:\\Users\\ERAN YOSEF\\Desktop\\Arka_Invoices\\metadata\\main_invoices_index.csv",
+  "source_files_modified": false,
+  "outlook_modified": false
+}

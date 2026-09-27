@@ -1,0 +1,2 @@
+﻿year,invoice_number,invoice_date,sku,description,quantity,unit,net_unit_price,local_median,local_min,local_max,deviation_percent,peer_observation_count,comparison_window,reason_for_flag,pdf_filename
+2024,,29/05/24,55028,מטר200.00 קשיחPVC  חום/כתום1.5 חוט,200.00,meter,1.7696,0.66,0.58,1.99,167.2,118,same_year,Local high: 167.2% above nearby median; outside robust local range,2024-05-29__2024-06-03__קרן-ממויה__הדפסת חשבונית מרכזת - 25342404396_ חש.pdf

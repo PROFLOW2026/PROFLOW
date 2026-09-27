@@ -1,0 +1,30 @@
+﻿{
+    "mailbox":  "Office@mth-eng.com",
+    "folder":  "ארכה",
+    "folder_path":  "Office@mth-eng.com\\חשבוניות ספקים\\ארכה",
+    "started_at":  "2026-09-26T18:03:50.2469365+03:00",
+    "finished_at":  "2026-09-26T18:05:43.5833948+03:00",
+    "messages_seen":  528,
+    "messages_with_attachments":  527,
+    "attachments_seen":  5406,
+    "attachments_saved":  3647,
+    "attachments_skipped":  1759,
+    "attachments_failed":  0,
+    "duplicates_renamed":  206,
+    "years":  {
+                  "2025":  223,
+                  "2022":  414,
+                  "2020":  501,
+                  "2024":  395,
+                  "2017":  87,
+                  "unknown_date":  0,
+                  "2018":  357,
+                  "2019":  245,
+                  "2021":  835,
+                  "2026":  195,
+                  "2023":  395
+              },
+    "errors":  [
+
+               ]
+}

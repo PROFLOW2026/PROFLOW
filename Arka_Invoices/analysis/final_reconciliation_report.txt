@@ -1,0 +1,554 @@
+REGRESSIONS FOUND = 4 (wire 2.5/2026; pipe 20 BO 2017-2018; pipe 20 color 2017-2018; pipe 25 color 2017-2018)
+REGRESSIONS RESTORED = 7
+
+wire25 2026 = {'year': 2026, 'min': 1.17, 'max': 1.19, 'median': 1.19, 'average': 1.185, 'first': 1.19, 'last': 1.17, 'observations': 4, 'invoices': 3}
+wire25 2025 max = 1.0744
+box4 2020 max = 2.492
+box4 2022 max = 2.4984
+gypsum4 SKUs = ['840001811', '840001812']
+pipe25 2017 = {'year': 2017, 'min': 1.8, 'max': 1.8, 'median': 1.8, 'average': 1.8, 'first': 1.8, 'last': 1.8, 'observations': 1, 'invoices': 1}
+pipe25 2018 = {'year': 2018, 'min': 1.8, 'max': 4.452, 'median': 4.452, 'average': 3.789, 'first': 4.452, 'last': 4.452, 'observations': 4, 'invoices': 2}
+PREVIOUSLY VERIFIED YEARS LOST = 0 []
+
+=== SKU OWNERSHIP ===
+55023: OK | inv= | desc=מטר500.00 קשיחPVC  צהוב/ירוק1.5 חוט | price=0.6715
+55024: OK | inv= | desc=מטר500.00 קשיחPVC  כחול1.5 חוט | price=0.6715
+55027: OK | inv= | desc=מטר500.00 קשיחPVC  חום/שחור1.5 חוט | price=0.6715
+55028: OK | inv= | desc=מטר500.00 קשיחPVC  חום/כתום1.5 חוט | price=0.6715
+55033: OK | inv= | desc=מטר300.00קשיח PVC  צהוב/ירוק2.5 חוט | price=1.0744
+55034: OK | inv= | desc=מטר100.00קשיח PVC  כחול2.5 חוט | price=1.0744
+55037: OK | inv= | desc=מטר300.00קשיח PVC  ח/ש2.5 חוט | price=0.65
+55038: OK | inv= | desc=מטר300.00קשיח PVC  ח/כ2.5 חוט | price=0.65
+56033: OK | inv= | desc=מטר5.00 קשיחPVC  צהוב/ירוק25 חוט | price=12.1429
+8600108: OK | inv= | desc=מטר100.00 אדום20 צינור מריכף | price=0.9576
+8600114: OK | inv=25342411681 | desc=כחול20 צינור מריכף | price=0.9
+8600119: OK | inv= | desc=מטר250.00 לבן25 צינור מריכף | price=1.8216
+8600116: OK | inv=25342411682 | desc=כחול25 צינור מריכף | price=1.7963
+1900225: OK | inv= | desc=ללא מחיצות תקן-מחוזקת-  מודול תה"ט3 קופסא | price=1.25
+190023: OK | inv= | desc=מודול תה"ט3 קופסא עמוקה | price=2.16
+840001800: OK | inv= | desc=' יח50.00 מודול תה"ט ללא3 קופסא תקן 0 840001800 מחיצות | price=1.56
+1900255: OK | inv= | desc=ללא מחיצות תקן-מחוזקת-  מודול תה"ט4 קופסא | price=2.4
+840001810: OK | inv= | desc=מודול תה"ט ללא מחיצות4 קופסא תקן | price=2.4984
+84000385: OK | inv= | desc=מחיצות פטנט+ מודול לקיר גבס3 קופסא | price=5.685
+840001811: OK | inv= | desc=מודול לגבס ללא מחיצות4 קופסא תקן פטנט | price=7.6725
+5951020: OK | inv= | desc=מטר50.00 3X1.5 FR N2XY כבל | price=2.6158
+5951060: OK | inv= | desc=מטר50.00 3X2.5 FR N2XY כבל | price=3.8456
+5951040: OK | inv= | desc=מטר100.00 5X1.5 FR N2XY כבל | price=4.104
+5951080: OK | inv= | desc=מטר35.00 5X2.5 N2XY כבל | price=6.0724
+59520401: OK | inv= | desc=מטר100.00 ממ"ר5X10 N2XY (מטר כבל )בחבילה | price=17.5875
+5974040: OK | inv=R34212500327 | desc=שח17.90 מטר506.00 ממ"ר5X10 N2XY כבל5952040 36.00% שח17.89 מטר-300.00 ק | price=160.00
+5974050: OK | inv=R34212500329 | desc=שח17.90 מטר200.00 ממ"ר5X10 N2XY כבל5952040 | price=260.00
+
+=== CONSISTENCY ===
+חוט 1.5/2017: UNCHANGED
+חוט 1.5/2018: UNCHANGED
+חוט 1.5/2019: UNCHANGED
+חוט 1.5/2020: UNCHANGED
+חוט 1.5/2021: UNCHANGED
+חוט 1.5/2022: UNCHANGED
+חוט 1.5/2023: UNCHANGED
+חוט 1.5/2024: UNCHANGED
+חוט 1.5/2025: UNCHANGED
+חוט 1.5/2026: UNCHANGED
+חוט 2.5/2017: UNCHANGED
+חוט 2.5/2018: UNCHANGED
+חוט 2.5/2019: UNCHANGED
+חוט 2.5/2020: UNCHANGED
+חוט 2.5/2021: UNCHANGED
+חוט 2.5/2022: UNCHANGED
+חוט 2.5/2023: UNCHANGED
+חוט 2.5/2024: UNCHANGED
+חוט 2.5/2025: UNCHANGED
+חוט 2.5/2026: RESTORED
+צינור מריכב 20 שחור/כתום/2017: RESTORED
+צינור מריכב 20 שחור/כתום/2018: RESTORED
+צינור מריכב 20 שחור/כתום/2019: UNCHANGED
+צינור מריכב 20 שחור/כתום/2020: UNCHANGED
+צינור מריכב 20 שחור/כתום/2021: UNCHANGED
+צינור מריכב 20 שחור/כתום/2022: UNCHANGED
+צינור מריכב 20 שחור/כתום/2023: UNCHANGED
+צינור מריכב 20 שחור/כתום/2024: UNCHANGED
+צינור מריכב 20 שחור/כתום/2026: UNCHANGED
+צינור מריכב 25 שחור/כתום/2019: UNCHANGED
+צינור מריכב 25 שחור/כתום/2021: UNCHANGED
+צינור מריכב 25 שחור/כתום/2022: UNCHANGED
+צינור מריכב 25 שחור/כתום/2023: UNCHANGED
+צינור מריכב 25 שחור/כתום/2024: UNCHANGED
+צינור מריכב 25 שחור/כתום/2026: UNCHANGED
+צינור מריכב 20 ירוק/צבעוני/2017: RESTORED
+צינור מריכב 20 ירוק/צבעוני/2018: RESTORED
+צינור מריכב 20 ירוק/צבעוני/2019: UNCHANGED
+צינור מריכב 20 ירוק/צבעוני/2020: UNCHANGED
+צינור מריכב 20 ירוק/צבעוני/2021: UNCHANGED
+צינור מריכב 20 ירוק/צבעוני/2022: UNCHANGED
+צינור מריכב 20 ירוק/צבעוני/2023: UNCHANGED
+צינור מריכב 20 ירוק/צבעוני/2024: UNCHANGED
+צינור מריכב 20 ירוק/צבעוני/2025: UNCHANGED
+צינור מריכב 20 ירוק/צבעוני/2026: UNCHANGED
+צינור מריכב 25 ירוק/צבעוני/2017: RESTORED
+צינור מריכב 25 ירוק/צבעוני/2018: RESTORED
+צינור מריכב 25 ירוק/צבעוני/2019: UNCHANGED
+צינור מריכב 25 ירוק/צבעוני/2020: UNCHANGED
+צינור מריכב 25 ירוק/צבעוני/2021: UNCHANGED
+צינור מריכב 25 ירוק/צבעוני/2022: UNCHANGED
+צינור מריכב 25 ירוק/צבעוני/2024: UNCHANGED
+צינור מריכב 25 ירוק/צבעוני/2026: UNCHANGED
+קופסה 3 מקום לבטון/2017: UNCHANGED
+קופסה 3 מקום לבטון/2019: UNCHANGED
+קופסה 3 מקום לבטון/2020: UNCHANGED
+קופסה 3 מקום לבטון/2021: UNCHANGED
+קופסה 3 מקום לבטון/2022: UNCHANGED
+קופסה 3 מקום לבטון/2023: UNCHANGED
+קופסה 3 מקום לבטון/2024: UNCHANGED
+קופסה 3 מקום לבטון/2025: UNCHANGED
+קופסה 3 מקום לבטון/2026: UNCHANGED
+קופסה 4 מקום לבטון/2017: UNCHANGED
+קופסה 4 מקום לבטון/2019: UNCHANGED
+קופסה 4 מקום לבטון/2020: UNCHANGED
+קופסה 4 מקום לבטון/2021: UNCHANGED
+קופסה 4 מקום לבטון/2022: UNCHANGED
+קופסה 4 מקום לבטון/2023: UNCHANGED
+קופסה 4 מקום לבטון/2024: UNCHANGED
+קופסה 4 מקום לבטון/2025: UNCHANGED
+קופסה 4 מקום לבטון/2026: UNCHANGED
+קופסה 3 מקום פטנט לגבס/2018: UNCHANGED
+קופסה 3 מקום פטנט לגבס/2020: UNCHANGED
+קופסה 3 מקום פטנט לגבס/2021: UNCHANGED
+קופסה 3 מקום פטנט לגבס/2022: UNCHANGED
+קופסה 3 מקום פטנט לגבס/2023: UNCHANGED
+קופסה 3 מקום פטנט לגבס/2024: UNCHANGED
+קופסה 3 מקום פטנט לגבס/2025: UNCHANGED
+קופסה 4 מקום פטנט לגבס/2017: NEW VALID DATA
+קופסה 4 מקום פטנט לגבס/2019: NEW VALID DATA
+קופסה 4 מקום פטנט לגבס/2020: UNCHANGED
+קופסה 4 מקום פטנט לגבס/2022: UNCHANGED
+קופסה 4 מקום פטנט לגבס/2023: UNCHANGED
+קופסה 4 מקום פטנט לגבס/2024: NEW VALID DATA
+קופסה 4 מקום פטנט לגבס/2025: UNCHANGED
+כבל 3×1.5/2017: UNCHANGED
+כבל 3×1.5/2018: UNCHANGED
+כבל 3×1.5/2019: UNCHANGED
+כבל 3×1.5/2020: UNCHANGED
+כבל 3×1.5/2021: UNCHANGED
+כבל 3×1.5/2022: UNCHANGED
+כבל 3×1.5/2023: UNCHANGED
+כבל 3×1.5/2024: UNCHANGED
+כבל 3×1.5/2025: UNCHANGED
+כבל 3×1.5/2026: UNCHANGED
+כבל 3×2.5/2017: UNCHANGED
+כבל 3×2.5/2018: UNCHANGED
+כבל 3×2.5/2019: UNCHANGED
+כבל 3×2.5/2020: UNCHANGED
+כבל 3×2.5/2021: UNCHANGED
+כבל 3×2.5/2022: UNCHANGED
+כבל 3×2.5/2023: UNCHANGED
+כבל 3×2.5/2024: UNCHANGED
+כבל 3×2.5/2025: UNCHANGED
+כבל 3×2.5/2026: UNCHANGED
+כבל 5×1.5/2019: UNCHANGED
+כבל 5×1.5/2020: UNCHANGED
+כבל 5×1.5/2021: UNCHANGED
+כבל 5×1.5/2022: UNCHANGED
+כבל 5×1.5/2023: UNCHANGED
+כבל 5×1.5/2024: UNCHANGED
+כבל 5×1.5/2025: UNCHANGED
+כבל 5×1.5/2026: UNCHANGED
+כבל 5×2.5/2017: UNCHANGED
+כבל 5×2.5/2019: UNCHANGED
+כבל 5×2.5/2020: UNCHANGED
+כבל 5×2.5/2021: UNCHANGED
+כבל 5×2.5/2022: UNCHANGED
+כבל 5×2.5/2023: UNCHANGED
+כבל 5×2.5/2024: UNCHANGED
+כבל 5×2.5/2025: UNCHANGED
+כבל 5×2.5/2026: UNCHANGED
+כבל 5×10/2017: UNCHANGED
+כבל 5×10/2019: UNCHANGED
+כבל 5×10/2020: UNCHANGED
+כבל 5×10/2021: UNCHANGED
+כבל 5×10/2022: UNCHANGED
+כבל 5×10/2023: UNCHANGED
+כבל 5×10/2024: UNCHANGED
+כבל 5×10/2026: UNCHANGED
+שקע קורוס/2019: UNCHANGED
+שקע קורוס/2020: UNCHANGED
+שקע קורוס/2021: UNCHANGED
+שקע קורוס/2022: UNCHANGED
+שקע קורוס/2023: UNCHANGED
+שקע קורוס/2024: UNCHANGED
+שקע קורוס/2026: UNCHANGED
+יחיד קורוס/2019: UNCHANGED
+יחיד קורוס/2020: UNCHANGED
+יחיד קורוס/2021: UNCHANGED
+יחיד קורוס/2022: UNCHANGED
+יחיד קורוס/2023: UNCHANGED
+יחיד קורוס/2024: UNCHANGED
+יחיד קורוס/2025: UNCHANGED
+יחיד קורוס/2026: UNCHANGED
+חילוף קורוס/2019: UNCHANGED
+חילוף קורוס/2020: UNCHANGED
+חילוף קורוס/2021: UNCHANGED
+חילוף קורוס/2022: UNCHANGED
+חילוף קורוס/2023: UNCHANGED
+חילוף קורוס/2024: UNCHANGED
+חילוף קורוס/2026: UNCHANGED
+מסגרת 1 מקום קורוס/2019: UNCHANGED
+מסגרת 1 מקום קורוס/2020: UNCHANGED
+מסגרת 1 מקום קורוס/2021: UNCHANGED
+מסגרת 1 מקום קורוס/2022: UNCHANGED
+מסגרת 1 מקום קורוס/2023: UNCHANGED
+מסגרת 1 מקום קורוס/2024: UNCHANGED
+מסגרת 1 מקום קורוס/2025: UNCHANGED
+מסגרת 1 מקום קורוס/2026: UNCHANGED
+מסגרת 2 מקום קורוס/2020: UNCHANGED
+מסגרת 2 מקום קורוס/2021: UNCHANGED
+מסגרת 2 מקום קורוס/2022: UNCHANGED
+מסגרת 2 מקום קורוס/2023: UNCHANGED
+מסגרת 2 מקום קורוס/2024: UNCHANGED
+מסגרת 2 מקום קורוס/2025: UNCHANGED
+מסגרת 2 מקום קורוס/2026: UNCHANGED
+מסגרת 4 מקום קורוס/2020: UNCHANGED
+מסגרת 4 מקום קורוס/2021: UNCHANGED
+מסגרת 4 מקום קורוס/2022: UNCHANGED
+מסגרת 4 מקום קורוס/2023: UNCHANGED
+מסגרת 4 מקום קורוס/2024: UNCHANGED
+מסגרת 4 מקום קורוס/2025: UNCHANGED
+מסגרת 4 מקום קורוס/2026: UNCHANGED
+מתאם 3 מקום קורוס/2019: UNCHANGED
+מתאם 3 מקום קורוס/2020: UNCHANGED
+מתאם 3 מקום קורוס/2021: UNCHANGED
+מתאם 3 מקום קורוס/2022: UNCHANGED
+מתאם 3 מקום קורוס/2023: UNCHANGED
+מתאם 3 מקום קורוס/2024: UNCHANGED
+מתאם 3 מקום קורוס/2025: UNCHANGED
+מתאם 3 מקום קורוס/2026: UNCHANGED
+מתאם 4 מקום קורוס/2019: UNCHANGED
+מתאם 4 מקום קורוס/2020: UNCHANGED
+מתאם 4 מקום קורוס/2021: UNCHANGED
+מתאם 4 מקום קורוס/2022: UNCHANGED
+מתאם 4 מקום קורוס/2023: UNCHANGED
+מתאם 4 מקום קורוס/2024: UNCHANGED
+מתאם 4 מקום קורוס/2026: UNCHANGED
+
+=== FULL MATRIX ===
+חוט 1.5
+  2017 = FOUND | invoices=1 observations=25 SKUs=55022,55023,55024,55027,55028
+  2018 = FOUND | invoices=2 observations=9 SKUs=55022,55023,55024,55027,55028
+  2019 = FOUND | invoices=10 observations=78 SKUs=55022,55023,55024,55027,55028
+  2020 = FOUND | invoices=25 observations=179 SKUs=55022,55023,55024,55027,55028
+  2021 = FOUND | invoices=21 observations=105 SKUs=55022,55023,55024,55027,55028
+  2022 = FOUND | invoices=24 observations=176 SKUs=55022,55023,55024,55027,55028
+  2023 = FOUND | invoices=28 observations=220 SKUs=55022,55023,55024,55027,55028
+  2024 = FOUND | invoices=16 observations=93 SKUs=55022,55023,55024,55027,55028
+  2025 = FOUND | invoices=5 observations=18 SKUs=55022,55023,55024,55027,55028
+  2026 = FOUND | invoices=9 observations=39 SKUs=55022,55023,55024,55027,55028
+
+חוט 2.5
+  2017 = FOUND | invoices=1 observations=13 SKUs=55032,55033,55034
+  2018 = FOUND | invoices=2 observations=5 SKUs=55032,55033,55034
+  2019 = FOUND | invoices=12 observations=50 SKUs=55032,55033,55034,55037,55038
+  2020 = FOUND | invoices=24 observations=90 SKUs=55032,55033,55034
+  2021 = FOUND | invoices=11 observations=38 SKUs=55032,55033,55034
+  2022 = FOUND | invoices=18 observations=89 SKUs=55032,55033,55034
+  2023 = FOUND | invoices=20 observations=116 SKUs=55032,55033,55034
+  2024 = FOUND | invoices=19 observations=68 SKUs=55032,55033,55034
+  2025 = FOUND | invoices=1 observations=2 SKUs=55033,55034
+  2026 = FOUND | invoices=3 observations=4 SKUs=55032,55033,55034
+
+צינור מריכב 20 שחור/כתום
+  2017 = FOUND | invoices=1 observations=4 SKUs=8600003
+  2018 = FOUND | invoices=1 observations=1 SKUs=8600003
+  2019 = FOUND | invoices=6 observations=7 SKUs=8600003
+  2020 = FOUND | invoices=7 observations=8 SKUs=8600003
+  2021 = FOUND | invoices=3 observations=3 SKUs=8600003
+  2022 = FOUND | invoices=7 observations=7 SKUs=8600003
+  2023 = FOUND | invoices=3 observations=3 SKUs=8600003
+  2024 = FOUND | invoices=5 observations=5 SKUs=8600003
+  2025 = NOT FOUND — RECHECK REQUIRED (raw keyword hits=51)
+  2026 = FOUND | invoices=9 observations=10 SKUs=8600003
+
+צינור מריכב 25 שחור/כתום
+  2017 = NOT FOUND — RECHECK REQUIRED (raw keyword hits=25)
+  2018 = NOT FOUND — RECHECK REQUIRED (raw keyword hits=17)
+  2019 = FOUND | invoices=1 observations=1 SKUs=8600004
+  2020 = NOT FOUND — RECHECK REQUIRED (raw keyword hits=247)
+  2021 = FOUND | invoices=1 observations=1 SKUs=8600004
+  2022 = FOUND | invoices=6 observations=8 SKUs=8600004
+  2023 = FOUND | invoices=5 observations=7 SKUs=8600004
+  2024 = FOUND | invoices=5 observations=5 SKUs=8600004
+  2025 = NOT FOUND — RECHECK REQUIRED (raw keyword hits=33)
+  2026 = FOUND | invoices=2 observations=2 SKUs=8600004
+
+צינור מריכב 20 ירוק/צבעוני
+  2017 = FOUND | invoices=1 observations=5 SKUs=8600103,8600113,8600114
+  2018 = FOUND | invoices=3 observations=5 SKUs=8600103,8600108,8600113
+  2019 = FOUND | invoices=5 observations=10 SKUs=8600103,8600108,8600113
+  2020 = FOUND | invoices=13 observations=22 SKUs=8600103,8600108,8600113,8600114
+  2021 = FOUND | invoices=14 observations=22 SKUs=8600103,8600108,8600113
+  2022 = FOUND | invoices=9 observations=12 SKUs=8600103,8600108,8600113
+  2023 = FOUND | invoices=13 observations=19 SKUs=8600103,8600108,8600113
+  2024 = FOUND | invoices=14 observations=34 SKUs=8600103,8600108,8600113,8600114
+  2025 = FOUND | invoices=4 observations=7 SKUs=8600103,8600113
+  2026 = FOUND | invoices=4 observations=10 SKUs=8600103,8600108,8600113
+
+צינור מריכב 25 ירוק/צבעוני
+  2017 = FOUND | invoices=1 observations=1 SKUs=8600104
+  2018 = FOUND | invoices=2 observations=4 SKUs=8600104,8600119
+  2019 = FOUND | invoices=7 observations=10 SKUs=8600104,8600119
+  2020 = FOUND | invoices=13 observations=19 SKUs=8600104,8600119
+  2021 = FOUND | invoices=7 observations=9 SKUs=8600104,8600119
+  2022 = FOUND | invoices=12 observations=20 SKUs=8600104,8600119
+  2023 = NOT FOUND — RECHECK REQUIRED (raw keyword hits=213)
+  2024 = FOUND | invoices=10 observations=11 SKUs=8600104,8600116,8600119
+  2025 = NOT FOUND — RECHECK REQUIRED (raw keyword hits=33)
+  2026 = FOUND | invoices=3 observations=8 SKUs=8600104,8600119
+
+קופסה 3 מקום לבטון
+  2017 = FOUND | invoices=1 observations=6 SKUs=840001800
+  2018 = NOT FOUND — RECHECK REQUIRED (raw keyword hits=9)
+  2019 = FOUND | invoices=3 observations=3 SKUs=840001800
+  2020 = FOUND | invoices=12 observations=14 SKUs=840001800
+  2021 = FOUND | invoices=4 observations=4 SKUs=1900225,840001800
+  2022 = FOUND | invoices=8 observations=8 SKUs=1900225,3924403,840001800
+  2023 = FOUND | invoices=9 observations=15 SKUs=1900225,840001800
+  2024 = FOUND | invoices=7 observations=10 SKUs=1900225,190023
+  2025 = FOUND | invoices=2 observations=2 SKUs=1900225
+  2026 = FOUND | invoices=7 observations=12 SKUs=1900225
+
+קופסה 4 מקום לבטון
+  2017 = FOUND | invoices=1 observations=2 SKUs=840001810
+  2018 = NOT FOUND — RECHECK REQUIRED (raw keyword hits=9)
+  2019 = FOUND | invoices=3 observations=3 SKUs=840001810
+  2020 = FOUND | invoices=6 observations=6 SKUs=840001810
+  2021 = FOUND | invoices=4 observations=5 SKUs=1900255,840001810
+  2022 = FOUND | invoices=4 observations=4 SKUs=1900255,840001810
+  2023 = FOUND | invoices=5 observations=7 SKUs=1900255,840001810
+  2024 = FOUND | invoices=5 observations=5 SKUs=1900255
+  2025 = FOUND | invoices=1 observations=1 SKUs=1900255
+  2026 = FOUND | invoices=4 observations=4 SKUs=1900255
+
+קופסה 3 מקום פטנט לגבס
+  2017 = NOT FOUND — RECHECK REQUIRED (raw keyword hits=15)
+  2018 = FOUND | invoices=2 observations=3 SKUs=840001802
+  2019 = NOT FOUND — RECHECK REQUIRED (raw keyword hits=60)
+  2020 = FOUND | invoices=4 observations=4 SKUs=190041,840001802
+  2021 = FOUND | invoices=3 observations=3 SKUs=190041,840001802
+  2022 = FOUND | invoices=3 observations=3 SKUs=840001802
+  2023 = FOUND | invoices=2 observations=2 SKUs=840001802
+  2024 = FOUND | invoices=1 observations=1 SKUs=840001802
+  2025 = FOUND | invoices=4 observations=6 SKUs=840001802,84000385
+  2026 = NOT FOUND — RECHECK REQUIRED (raw keyword hits=7)
+
+קופסה 4 מקום פטנט לגבס
+  2017 = FOUND | invoices=1 observations=1 SKUs=840001811
+  2018 = NOT FOUND — RECHECK REQUIRED (raw keyword hits=13)
+  2019 = FOUND | invoices=3 observations=3 SKUs=840001811
+  2020 = FOUND | invoices=9 observations=10 SKUs=840001811,840001812
+  2021 = NOT FOUND — RECHECK REQUIRED (raw keyword hits=32)
+  2022 = FOUND | invoices=5 observations=6 SKUs=840001811,840001812
+  2023 = FOUND | invoices=8 observations=10 SKUs=840001811,840001812
+  2024 = FOUND | invoices=2 observations=2 SKUs=840001811
+  2025 = FOUND | invoices=2 observations=3 SKUs=840001811,840001812
+  2026 = NOT FOUND — RECHECK REQUIRED (raw keyword hits=7)
+
+כבל 3×1.5
+  2017 = FOUND | invoices=1 observations=3 SKUs=5951021
+  2018 = FOUND | invoices=3 observations=3 SKUs=5951021
+  2019 = FOUND | invoices=8 observations=11 SKUs=5951020,5951021
+  2020 = FOUND | invoices=20 observations=26 SKUs=5951021
+  2021 = FOUND | invoices=15 observations=17 SKUs=5951020,5951021
+  2022 = FOUND | invoices=19 observations=28 SKUs=5951021
+  2023 = FOUND | invoices=18 observations=23 SKUs=5951021
+  2024 = FOUND | invoices=13 observations=18 SKUs=5951021
+  2025 = FOUND | invoices=3 observations=3 SKUs=5951021
+  2026 = FOUND | invoices=3 observations=3 SKUs=5951021
+
+כבל 3×2.5
+  2017 = FOUND | invoices=1 observations=1 SKUs=5951061
+  2018 = FOUND | invoices=1 observations=1 SKUs=5951061
+  2019 = FOUND | invoices=6 observations=6 SKUs=5951061
+  2020 = FOUND | invoices=18 observations=22 SKUs=5951060,5951061
+  2021 = FOUND | invoices=10 observations=11 SKUs=5951061
+  2022 = FOUND | invoices=14 observations=17 SKUs=5951060,5951061
+  2023 = FOUND | invoices=10 observations=12 SKUs=5951060,5951061
+  2024 = FOUND | invoices=13 observations=14 SKUs=5951060,5951061
+  2025 = FOUND | invoices=2 observations=2 SKUs=5951060,5951061
+  2026 = FOUND | invoices=1 observations=1 SKUs=5951061
+
+כבל 5×1.5
+  2017 = NOT FOUND — RECHECK REQUIRED (raw keyword hits=22)
+  2018 = NOT FOUND — RECHECK REQUIRED (raw keyword hits=9)
+  2019 = FOUND | invoices=3 observations=3 SKUs=5951041
+  2020 = FOUND | invoices=10 observations=13 SKUs=5951041
+  2021 = FOUND | invoices=9 observations=10 SKUs=5951040,5951041
+  2022 = FOUND | invoices=12 observations=16 SKUs=5951040,5951041
+  2023 = FOUND | invoices=10 observations=14 SKUs=5951040,5951041
+  2024 = FOUND | invoices=10 observations=13 SKUs=5951040,5951041
+  2025 = FOUND | invoices=1 observations=3 SKUs=5951040,5951041
+  2026 = FOUND | invoices=5 observations=5 SKUs=5951040,5951041
+
+כבל 5×2.5
+  2017 = FOUND | invoices=1 observations=2 SKUs=5951081
+  2018 = NOT FOUND — RECHECK REQUIRED (raw keyword hits=9)
+  2019 = FOUND | invoices=2 observations=2 SKUs=5951081
+  2020 = FOUND | invoices=10 observations=11 SKUs=5951080,5951081
+  2021 = FOUND | invoices=8 observations=9 SKUs=5951080,5951081
+  2022 = FOUND | invoices=8 observations=9 SKUs=5951080,5951081
+  2023 = FOUND | invoices=7 observations=8 SKUs=5951080,5951081
+  2024 = FOUND | invoices=10 observations=13 SKUs=5951080,5951081
+  2025 = FOUND | invoices=1 observations=1 SKUs=5951081
+  2026 = FOUND | invoices=3 observations=3 SKUs=5951081
+
+כבל 5×10
+  2017 = FOUND | invoices=1 observations=1 SKUs=59520401
+  2018 = NOT FOUND — RECHECK REQUIRED (raw keyword hits=9)
+  2019 = FOUND | invoices=2 observations=2 SKUs=5952040
+  2020 = FOUND | invoices=2 observations=3 SKUs=5952040,59520401
+  2021 = FOUND | invoices=3 observations=4 SKUs=5952040,5974040,5974050
+  2022 = FOUND | invoices=1 observations=4 SKUs=5952040
+  2023 = FOUND | invoices=2 observations=4 SKUs=5952040
+  2024 = FOUND | invoices=2 observations=3 SKUs=5952040
+  2025 = NOT FOUND — RECHECK REQUIRED (raw keyword hits=23)
+  2026 = FOUND | invoices=1 observations=1 SKUs=5952040
+
+שקע קורוס
+  2017 = NOT FOUND — RECHECK REQUIRED (raw keyword hits=34)
+  2018 = NOT FOUND — RECHECK REQUIRED (raw keyword hits=9)
+  2019 = FOUND | invoices=3 observations=4 SKUs=3910281
+  2020 = FOUND | invoices=18 observations=40 SKUs=3910281,3912281
+  2021 = FOUND | invoices=19 observations=29 SKUs=3910281,3912281
+  2022 = FOUND | invoices=8 observations=12 SKUs=3910281,3912281
+  2023 = FOUND | invoices=2 observations=2 SKUs=3910281,3912281
+  2024 = FOUND | invoices=4 observations=5 SKUs=3910281,3912281
+  2025 = NOT FOUND — RECHECK REQUIRED (raw keyword hits=13)
+  2026 = FOUND | invoices=6 observations=8 SKUs=3910281
+
+יחיד קורוס
+  2017 = NOT FOUND — RECHECK REQUIRED (raw keyword hits=3)
+  2018 = NOT FOUND — RECHECK REQUIRED (raw keyword hits=1)
+  2019 = FOUND | invoices=2 observations=3 SKUs=3910001
+  2020 = FOUND | invoices=20 observations=29 SKUs=3910001
+  2021 = FOUND | invoices=18 observations=27 SKUs=3910001
+  2022 = FOUND | invoices=4 observations=4 SKUs=3910001
+  2023 = FOUND | invoices=5 observations=9 SKUs=3910001
+  2024 = FOUND | invoices=11 observations=15 SKUs=3910001
+  2025 = FOUND | invoices=1 observations=1 SKUs=3910001
+  2026 = FOUND | invoices=2 observations=2 SKUs=3910001
+
+חילוף קורוס
+  2017 = NOT FOUND — RECHECK REQUIRED (raw keyword hits=2)
+  2018 = NOT FOUND — RECHECK REQUIRED (raw keyword hits=2)
+  2019 = FOUND | invoices=1 observations=1 SKUs=3910051
+  2020 = FOUND | invoices=17 observations=22 SKUs=3910051
+  2021 = FOUND | invoices=15 observations=21 SKUs=3910051
+  2022 = FOUND | invoices=5 observations=5 SKUs=3910051
+  2023 = FOUND | invoices=8 observations=13 SKUs=3910051
+  2024 = FOUND | invoices=11 observations=18 SKUs=3910051
+  2025 = NOT FOUND — RECHECK REQUIRED (raw keyword hits=8)
+  2026 = FOUND | invoices=3 observations=3 SKUs=3910051
+
+מסגרת 1 מקום קורוס
+  2017 = NOT FOUND — RECHECK REQUIRED (raw keyword hits=29)
+  2018 = NOT FOUND — RECHECK REQUIRED (raw keyword hits=10)
+  2019 = FOUND | invoices=1 observations=1 SKUs=3916101
+  2020 = FOUND | invoices=11 observations=12 SKUs=3916101
+  2021 = FOUND | invoices=8 observations=9 SKUs=3916101
+  2022 = FOUND | invoices=7 observations=10 SKUs=3916101
+  2023 = FOUND | invoices=5 observations=6 SKUs=3916101
+  2024 = FOUND | invoices=8 observations=11 SKUs=3916101
+  2025 = FOUND | invoices=1 observations=1 SKUs=3916101
+  2026 = FOUND | invoices=1 observations=2 SKUs=3916101
+
+מסגרת 2 מקום קורוס
+  2017 = NOT FOUND — RECHECK REQUIRED (raw keyword hits=29)
+  2018 = NOT FOUND — RECHECK REQUIRED (raw keyword hits=10)
+  2019 = NOT FOUND — RECHECK REQUIRED (raw keyword hits=139)
+  2020 = FOUND | invoices=10 observations=11 SKUs=3916102,3916122
+  2021 = FOUND | invoices=7 observations=8 SKUs=3916102
+  2022 = FOUND | invoices=8 observations=12 SKUs=3916102,3916122
+  2023 = FOUND | invoices=7 observations=7 SKUs=3916102,3916122
+  2024 = FOUND | invoices=7 observations=11 SKUs=3916102
+  2025 = FOUND | invoices=1 observations=1 SKUs=3916102
+  2026 = FOUND | invoices=1 observations=2 SKUs=3916102
+
+מסגרת 4 מקום קורוס
+  2017 = NOT FOUND — RECHECK REQUIRED (raw keyword hits=29)
+  2018 = NOT FOUND — RECHECK REQUIRED (raw keyword hits=10)
+  2019 = NOT FOUND — RECHECK REQUIRED (raw keyword hits=139)
+  2020 = FOUND | invoices=9 observations=13 SKUs=3916104
+  2021 = FOUND | invoices=7 observations=7 SKUs=3916104
+  2022 = FOUND | invoices=10 observations=14 SKUs=3916104
+  2023 = FOUND | invoices=4 observations=4 SKUs=3916104
+  2024 = FOUND | invoices=8 observations=9 SKUs=3916104
+  2025 = FOUND | invoices=1 observations=1 SKUs=3916104
+  2026 = FOUND | invoices=1 observations=2 SKUs=3916104
+
+מתאם 3 מקום קורוס
+  2017 = NOT FOUND — RECHECK REQUIRED (raw keyword hits=16)
+  2018 = NOT FOUND — RECHECK REQUIRED (raw keyword hits=11)
+  2019 = FOUND | invoices=2 observations=2 SKUs=3916803
+  2020 = FOUND | invoices=20 observations=28 SKUs=3916803
+  2021 = FOUND | invoices=18 observations=21 SKUs=3916803
+  2022 = FOUND | invoices=6 observations=9 SKUs=3916803
+  2023 = FOUND | invoices=5 observations=8 SKUs=3916803
+  2024 = FOUND | invoices=14 observations=18 SKUs=3916803
+  2025 = FOUND | invoices=1 observations=1 SKUs=3916803
+  2026 = FOUND | invoices=1 observations=1 SKUs=3916803
+
+מתאם 4 מקום קורוס
+  2017 = NOT FOUND — RECHECK REQUIRED (raw keyword hits=16)
+  2018 = NOT FOUND — RECHECK REQUIRED (raw keyword hits=11)
+  2019 = FOUND | invoices=1 observations=1 SKUs=3916804
+  2020 = FOUND | invoices=16 observations=18 SKUs=3916804
+  2021 = FOUND | invoices=13 observations=13 SKUs=3916804
+  2022 = FOUND | invoices=4 observations=7 SKUs=3916804
+  2023 = FOUND | invoices=9 observations=9 SKUs=3916804
+  2024 = FOUND | invoices=7 observations=7 SKUs=3916804
+  2025 = NOT FOUND — RECHECK REQUIRED (raw keyword hits=11)
+  2026 = FOUND | invoices=2 observations=2 SKUs=3916804
+
+
+=== NO PURCHASE EVIDENCE ===
+
+=== RECHECK REQUIRED ===
+חילוף קורוס/2017
+חילוף קורוס/2018
+חילוף קורוס/2025
+יחיד קורוס/2017
+יחיד קורוס/2018
+כבל 5×1.5/2017
+כבל 5×1.5/2018
+כבל 5×10/2018
+כבל 5×10/2025
+כבל 5×2.5/2018
+מסגרת 1 מקום קורוס/2017
+מסגרת 1 מקום קורוס/2018
+מסגרת 2 מקום קורוס/2017
+מסגרת 2 מקום קורוס/2018
+מסגרת 2 מקום קורוס/2019
+מסגרת 4 מקום קורוס/2017
+מסגרת 4 מקום קורוס/2018
+מסגרת 4 מקום קורוס/2019
+מתאם 3 מקום קורוס/2017
+מתאם 3 מקום קורוס/2018
+מתאם 4 מקום קורוס/2017
+מתאם 4 מקום קורוס/2018
+מתאם 4 מקום קורוס/2025
+צינור מריכב 20 שחור/כתום/2025
+צינור מריכב 25 ירוק/צבעוני/2023
+צינור מריכב 25 ירוק/צבעוני/2025
+צינור מריכב 25 שחור/כתום/2017
+צינור מריכב 25 שחור/כתום/2018
+צינור מריכב 25 שחור/כתום/2020
+צינור מריכב 25 שחור/כתום/2025
+קופסה 3 מקום לבטון/2018
+קופסה 3 מקום פטנט לגבס/2017
+קופסה 3 מקום פטנט לגבס/2019
+קופסה 3 מקום פטנט לגבס/2026
+קופסה 4 מקום לבטון/2018
+קופסה 4 מקום פטנט לגבס/2018
+קופסה 4 מקום פטנט לגבס/2021
+קופסה 4 מקום פטנט לגבס/2026
+שקע קורוס/2017
+שקע קורוס/2018
+שקע קורוס/2025

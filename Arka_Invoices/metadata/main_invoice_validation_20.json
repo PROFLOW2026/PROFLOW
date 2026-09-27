@@ -1,0 +1,903 @@
+{
+  "generated_at": "2026-09-26T18:08:00.135194",
+  "preview_stats": {
+    "total_messages": 527,
+    "selected": 476,
+    "ambiguous": 4,
+    "no_main": 47
+  },
+  "sample": [
+    {
+      "category": "newest",
+      "message_date": "2026-09-03 14:01:37",
+      "subject": "(מסמך ממוחשב) הדפסת חשבונית מרכזת - 25342607483, חש. מרכזת אוג-26",
+      "attachment_count": 18,
+      "selected_main_invoice": "הדפסת חשבונית מרכזת - 25342607483_ חש.pdf",
+      "status": "SELECTED",
+      "selection_reason": "+100 filename contains 'חשבונית מרכזת'; +80 filename contains 'חשבונית'; +40 filename contains 'חש.'; +35 filename contains 'מרכזת' (+2 more signals)",
+      "other_attachments_ignored": [
+        "44512612700.pdf",
+        "44512612420.pdf",
+        "44512613801.pdf",
+        "44512612281.pdf",
+        "44512613681.pdf",
+        "M5126050372.pdf",
+        "44512613323.pdf",
+        "44512613623.pdf",
+        "44512613373.pdf",
+        "44512613804.pdf",
+        "44512612614.pdf",
+        "44512613125.pdf",
+        "44512612845.pdf",
+        "44512611985.pdf",
+        "44512613007.pdf",
+        "44512613537.pdf",
+        "44512612258.pdf"
+      ],
+      "confidence": "HIGH",
+      "candidates": [
+        {
+          "name": "הדפסת חשבונית מרכזת - 25342607483_ חש.pdf",
+          "score": 280,
+          "reasons": [
+            "+100 filename contains 'חשבונית מרכזת'",
+            "+80 filename contains 'חשבונית'",
+            "+40 filename contains 'חש.'"
+          ]
+        },
+        {
+          "name": "44512613623.pdf",
+          "score": -145,
+          "reasons": [
+            "-150 445-series delivery note",
+            "+5 larger PDF (possible central invoice)"
+          ]
+        },
+        {
+          "name": "44512612845.pdf",
+          "score": -150,
+          "reasons": [
+            "-150 445-series delivery note"
+          ]
+        }
+      ]
+    },
+    {
+      "category": "oldest",
+      "message_date": "2017-10-03 10:10:45",
+      "subject": "R3417309113 - הדפסת חשבונית מרכזת",
+      "attachment_count": 87,
+      "selected_main_invoice": "R3417309113 - הדפסת חשבונית מרכזת.pdf",
+      "status": "SELECTED",
+      "selection_reason": "+100 filename contains 'חשבונית מרכזת'; +80 filename contains 'חשבונית'; +35 filename contains 'מרכזת'; +20 subject/filename both mention מרכזת (+1 more signals)",
+      "other_attachments_ignored": [
+        "r5117332398-1.pdf",
+        "r5117333214-1.pdf",
+        "r5117333428-1.pdf",
+        "r5117334220-1.pdf",
+        "r5117334784-1.pdf",
+        "r5117335498-1.pdf",
+        "r5117335757-1.pdf",
+        "r5117332400-1.pdf",
+        "r5117332506-1.pdf",
+        "r5117332852-1.pdf",
+        "r5117332949-1.pdf",
+        "r5117333126-1.pdf",
+        "r5117333389-1.pdf",
+        "r5117333431-1.pdf",
+        "r5117333476-1.pdf",
+        "r5117333527-1.pdf",
+        "r5117333904-1.pdf",
+        "r5117334219-1.pdf",
+        "r5117334221-1.pdf",
+        "r5117334476-1.pdf",
+        "r5117334713-1.pdf",
+        "r5117334785-1.pdf",
+        "r5117334962-1.pdf",
+        "r5117335076-1.pdf",
+        "r5117335165-1.pdf",
+        "r5117335389-1.pdf",
+        "r5117335553-1.pdf",
+        "r5117336114-1.pdf",
+        "r5117332507-1.pdf",
+        "r5117332654-1.pdf",
+        "r5117332948-1.pdf",
+        "r5117333587-1.pdf",
+        "r5117333591-1.pdf",
+        "r5117333813-1.pdf",
+        "r5117333927-1.pdf",
+        "r5117334117-1.pdf",
+        "r5117334222-1.pdf",
+        "r5117334463-1.pdf",
+        "r5117334912-1.pdf",
+        "r5117335285-1.pdf",
+        "r5117335287-1.pdf",
+        "r5117335390-1.pdf",
+        "r5117336115-1.pdf",
+        "r5117331969-1.pdf",
+        "r5117332403-1.pdf",
+        "r5117332509-1.pdf",
+        "r5117332579-1.pdf",
+        "r5117332653-1.pdf",
+        "p5117440716-1.pdf",
+        "r5117332851-1.pdf",
+        "r5117333213-1.pdf",
+        "r5117333432-1.pdf",
+        "r5117333505-1.pdf",
+        "r5117333530-1.pdf",
+        "r5117333651-1.pdf",
+        "r5117333708-1.pdf",
+        "r5117333810-1.pdf",
+        "r5117333814-1.pdf",
+        "r5117333850-1.pdf",
+        "r5117333907-1.pdf",
+        "r5117334224-1.pdf",
+        "r5117334501-1.pdf",
+        "r5117334663-1.pdf",
+        "z5117516057-1.pdf",
+        "r5117334669-1.pdf",
+        "r5117334789-1.pdf",
+        "p5117443149-1.pdf",
+        "r5117334914-1.pdf",
+        "r5117335077-1.pdf",
+        "r5117335284-1.pdf",
+        "r5117335480-1.pdf",
+        "r5117335500-1.pdf",
+        "r5117335502-1.pdf",
+        "r5117335557-1.pdf",
+        "r5117335628-1.pdf",
+        "r5117335637-1.pdf",
+        "r5117335652-1.pdf",
+        "r5117333211-1.pdf",
+        "r5117333429-1.pdf",
+        "r5117334913-1.pdf",
+        "r5117335756-1.pdf",
+        "r5117333125-1.pdf",
+        "r5117333209-1.pdf",
+        "r5117334016-1.pdf",
+        "r5117335158-1.pdf",
+        "r5117336036-1.pdf"
+      ],
+      "confidence": "HIGH",
+      "candidates": [
+        {
+          "name": "R3417309113 - הדפסת חשבונית מרכזת.pdf",
+          "score": 240,
+          "reasons": [
+            "+100 filename contains 'חשבונית מרכזת'",
+            "+80 filename contains 'חשבונית'",
+            "+35 filename contains 'מרכזת'"
+          ]
+        },
+        {
+          "name": "r5117332653-1.pdf",
+          "score": 0,
+          "reasons": [
+            "0 no invoice signals"
+          ]
+        },
+        {
+          "name": "z5117516057-1.pdf",
+          "score": 0,
+          "reasons": [
+            "0 no invoice signals"
+          ]
+        }
+      ]
+    },
+    {
+      "category": "middle-by-date",
+      "message_date": "2021-11-28 12:14:08",
+      "subject": "(מסמך ממוחשב) הדפסת חשבונית מרכזת - R34212508991, חש. מרכזת נוב-21",
+      "attachment_count": 36,
+      "selected_main_invoice": "(מסמך ממוחשב) הדפסת חשבונית מרכזת - R34212508991, חש. מרכזת נוב.pdf",
+      "status": "SELECTED",
+      "selection_reason": "+100 filename contains 'חשבונית מרכזת'; +80 filename contains 'חשבונית'; +40 filename contains 'חש.'; +35 filename contains 'מרכזת' (+2 more signals)",
+      "other_attachments_ignored": [
+        "H51214415410.pdf",
+        "P51214015430.pdf",
+        "M5121080530.pdf",
+        "H51214415411.pdf",
+        "H51214414631.pdf",
+        "H51214415151.pdf",
+        "H51214414892.pdf",
+        "H51214414992.pdf",
+        "H51214414803.pdf",
+        "H51214415233.pdf",
+        "H51214414993.pdf",
+        "H1521442314.pdf",
+        "H51214415414.pdf",
+        "P51214014874.pdf",
+        "H51214415084.pdf",
+        "H51214414425.pdf",
+        "H51214414345.pdf",
+        "H51214414655.pdf",
+        "M5121081375.pdf",
+        "H51214414706.pdf",
+        "H51214414346.pdf",
+        "H51214414446.pdf",
+        "H51214414296.pdf",
+        "H51214415317.pdf",
+        "H51214414427.pdf",
+        "H1521442167.pdf",
+        "H51214414928.pdf",
+        "H1521442188.pdf",
+        "H51214414498.pdf",
+        "H51214414219.pdf",
+        "H51214414139.pdf",
+        "H51214414349.pdf",
+        "P1521402459.pdf",
+        "P51214014879.pdf",
+        "H1521442199.pdf"
+      ],
+      "confidence": "HIGH",
+      "candidates": [
+        {
+          "name": "(מסמך ממוחשב) הדפסת חשבונית מרכזת - R34212508991, חש. מרכזת נוב.pdf",
+          "score": 280,
+          "reasons": [
+            "+100 filename contains 'חשבונית מרכזת'",
+            "+80 filename contains 'חשבונית'",
+            "+40 filename contains 'חש.'"
+          ]
+        },
+        {
+          "name": "H51214415411.pdf",
+          "score": 0,
+          "reasons": [
+            "0 no invoice signals"
+          ]
+        },
+        {
+          "name": "H51214414425.pdf",
+          "score": 0,
+          "reasons": [
+            "0 no invoice signals"
+          ]
+        }
+      ]
+    },
+    {
+      "category": "year-2018",
+      "message_date": "2018-12-09 15:57:44",
+      "subject": "הדפסת חשבונית מרכזת - R3418312083",
+      "attachment_count": 1,
+      "selected_main_invoice": "p3285200593.pdf",
+      "status": "SELECTED",
+      "selection_reason": "+5 larger PDF (possible central invoice)",
+      "other_attachments_ignored": [],
+      "confidence": "MEDIUM",
+      "candidates": [
+        {
+          "name": "p3285200593.pdf",
+          "score": 5,
+          "reasons": [
+            "+5 larger PDF (possible central invoice)"
+          ]
+        }
+      ]
+    },
+    {
+      "category": "year-2019",
+      "message_date": "2019-11-28 09:59:59",
+      "subject": "הדפסת חשבונית מרכזת - R3419311922",
+      "attachment_count": 8,
+      "selected_main_invoice": "p3034801372.pdf",
+      "status": "SELECTED",
+      "selection_reason": "+5 larger PDF (possible central invoice)",
+      "other_attachments_ignored": [
+        "R5119336146.pdf",
+        "R5119336147.pdf",
+        "R5119337423.pdf",
+        "R5119338682.pdf",
+        "R5119339212.pdf",
+        "R5119339818.pdf",
+        "R5119340162.pdf"
+      ],
+      "confidence": "MEDIUM",
+      "candidates": [
+        {
+          "name": "p3034801372.pdf",
+          "score": 5,
+          "reasons": [
+            "+5 larger PDF (possible central invoice)"
+          ]
+        },
+        {
+          "name": "R5119336147.pdf",
+          "score": -80,
+          "reasons": [
+            "-80 R-series reference doc"
+          ]
+        },
+        {
+          "name": "R5119336146.pdf",
+          "score": -80,
+          "reasons": [
+            "-80 R-series reference doc"
+          ]
+        }
+      ]
+    },
+    {
+      "category": "year-2020",
+      "message_date": "2020-12-31 14:24:19",
+      "subject": "(מסמך ממוחשב) הדפסת חשבונית מרכזת - R3420309267",
+      "attachment_count": 12,
+      "selected_main_invoice": "p5002802046.pdf",
+      "status": "SELECTED",
+      "selection_reason": "+5 larger PDF (possible central invoice)",
+      "other_attachments_ignored": [
+        "M5120070743.pdf",
+        "P5120438673.pdf",
+        "H51204400008.pdf",
+        "H51204400183.pdf",
+        "H51204400184.pdf",
+        "H51204400259.pdf",
+        "H51204400609.pdf",
+        "M5120076342.pdf",
+        "M5120076433.pdf",
+        "M5120077921.pdf",
+        "M5120078591.pdf"
+      ],
+      "confidence": "LOW",
+      "candidates": [
+        {
+          "name": "p5002802046.pdf",
+          "score": 5,
+          "reasons": [
+            "+5 larger PDF (possible central invoice)"
+          ]
+        },
+        {
+          "name": "H51204400183.pdf",
+          "score": 0,
+          "reasons": [
+            "0 no invoice signals"
+          ]
+        },
+        {
+          "name": "P5120438673.pdf",
+          "score": 0,
+          "reasons": [
+            "0 no invoice signals"
+          ]
+        }
+      ]
+    },
+    {
+      "category": "year-2021",
+      "message_date": "2021-12-30 16:04:59",
+      "subject": "(מסמך ממוחשב) הדפסת חשבונית מרכזת - R34212510300",
+      "attachment_count": 14,
+      "selected_main_invoice": "(מסמך ממוחשב) הדפסת חשבונית מרכזת - R34212510300.pdf",
+      "status": "SELECTED",
+      "selection_reason": "+100 filename contains 'חשבונית מרכזת'; +80 filename contains 'חשבונית'; +35 filename contains 'מרכזת'; +20 subject/filename both mention מרכזת (+1 more signals)",
+      "other_attachments_ignored": [
+        "H51214416621.pdf",
+        "M5121091732.pdf",
+        "M5121094843.pdf",
+        "M5121089373.pdf",
+        "R51212523444N02.pdf",
+        "R51212523444_001.pdf",
+        "M5121089915.pdf",
+        "M5121094685.pdf",
+        "H51214417146.pdf",
+        "H51214416066.pdf",
+        "H51214416987.pdf",
+        "H51214416268.pdf",
+        "H51214416578.pdf"
+      ],
+      "confidence": "HIGH",
+      "candidates": [
+        {
+          "name": "(מסמך ממוחשב) הדפסת חשבונית מרכזת - R34212510300.pdf",
+          "score": 240,
+          "reasons": [
+            "+100 filename contains 'חשבונית מרכזת'",
+            "+80 filename contains 'חשבונית'",
+            "+35 filename contains 'מרכזת'"
+          ]
+        },
+        {
+          "name": "R51212523444N02.pdf",
+          "score": 5,
+          "reasons": [
+            "+5 larger PDF (possible central invoice)"
+          ]
+        },
+        {
+          "name": "H51214416578.pdf",
+          "score": 5,
+          "reasons": [
+            "+5 larger PDF (possible central invoice)"
+          ]
+        }
+      ]
+    },
+    {
+      "category": "year-2022",
+      "message_date": "2022-11-30 10:39:49",
+      "subject": "(מסמך ממוחשב) הדפסת חשבונית מרכזת - 25342209304",
+      "attachment_count": 1,
+      "selected_main_invoice": "(מסמך ממוחשב) הדפסת חשבונית מרכזת - 25342209304.pdf",
+      "status": "SELECTED",
+      "selection_reason": "+100 filename contains 'חשבונית מרכזת'; +80 filename contains 'חשבונית'; +35 filename contains 'מרכזת'; +150 invoice number match: 25342209304 (+2 more signals)",
+      "other_attachments_ignored": [],
+      "confidence": "HIGH",
+      "candidates": [
+        {
+          "name": "(מסמך ממוחשב) הדפסת חשבונית מרכזת - 25342209304.pdf",
+          "score": 390,
+          "reasons": [
+            "+100 filename contains 'חשבונית מרכזת'",
+            "+80 filename contains 'חשבונית'",
+            "+35 filename contains 'מרכזת'"
+          ]
+        }
+      ]
+    },
+    {
+      "category": "year-2023",
+      "message_date": "2023-12-10 10:59:22",
+      "subject": "(מסמך ממוחשב) הדפסת חשבונית מרכזת - 25352300738, בגין ח\"ן:25342311158",
+      "attachment_count": 1,
+      "selected_main_invoice": "(מסמך ממוחשב) הדפסת חשבונית מרכזת - 25352300738, בגין ח ן 25342.pdf",
+      "status": "SELECTED",
+      "selection_reason": "+100 filename contains 'חשבונית מרכזת'; +80 filename contains 'חשבונית'; +35 filename contains 'מרכזת'; +150 invoice number match: 25352300738 (+2 more signals)",
+      "other_attachments_ignored": [],
+      "confidence": "HIGH",
+      "candidates": [
+        {
+          "name": "(מסמך ממוחשב) הדפסת חשבונית מרכזת - 25352300738, בגין ח ן 25342.pdf",
+          "score": 390,
+          "reasons": [
+            "+100 filename contains 'חשבונית מרכזת'",
+            "+80 filename contains 'חשבונית'",
+            "+35 filename contains 'מרכזת'"
+          ]
+        }
+      ]
+    },
+    {
+      "category": "year-2024",
+      "message_date": "2024-12-31 13:23:34",
+      "subject": "(מסמך ממוחשב) הדפסת חשבונית מרכזת - 25342411682",
+      "attachment_count": 16,
+      "selected_main_invoice": "הדפסת חשבונית מרכזת - 25342411682.pdf",
+      "status": "SELECTED",
+      "selection_reason": "+100 filename contains 'חשבונית מרכזת'; +80 filename contains 'חשבונית'; +35 filename contains 'מרכזת'; +150 invoice number match: 25342411682 (+2 more signals)",
+      "other_attachments_ignored": [
+        "SIG_25512418750_6576.pdf",
+        "44512419160.pdf",
+        "44512419160_001.pdf",
+        "44512419590.pdf",
+        "44512418131.pdf",
+        "44512418322.pdf",
+        "44512418832.pdf",
+        "44512419152.pdf",
+        "44512419352.pdf",
+        "SIG_M5124071626_8800.pdf",
+        "44512418936.pdf",
+        "SIG_25512418507_2570.pdf",
+        "SIG_M5124071697_7267.pdf",
+        "44512418318.pdf",
+        "44512418588.pdf"
+      ],
+      "confidence": "HIGH",
+      "candidates": [
+        {
+          "name": "הדפסת חשבונית מרכזת - 25342411682.pdf",
+          "score": 390,
+          "reasons": [
+            "+100 filename contains 'חשבונית מרכזת'",
+            "+80 filename contains 'חשבונית'",
+            "+35 filename contains 'מרכזת'"
+          ]
+        },
+        {
+          "name": "44512419590.pdf",
+          "score": -145,
+          "reasons": [
+            "-150 445-series delivery note",
+            "+5 larger PDF (possible central invoice)"
+          ]
+        },
+        {
+          "name": "44512419352.pdf",
+          "score": -145,
+          "reasons": [
+            "-150 445-series delivery note",
+            "+5 larger PDF (possible central invoice)"
+          ]
+        }
+      ]
+    },
+    {
+      "category": "year-2025",
+      "message_date": "2025-12-03 16:43:29",
+      "subject": "(מסמך ממוחשב) הדפסת חשבונית מרכזת - 25342508770",
+      "attachment_count": 8,
+      "selected_main_invoice": "הדפסת חשבונית מרכזת - 25342508770.pdf",
+      "status": "SELECTED",
+      "selection_reason": "+100 filename contains 'חשבונית מרכזת'; +80 filename contains 'חשבונית'; +35 filename contains 'מרכזת'; +150 invoice number match: 25342508770 (+2 more signals)",
+      "other_attachments_ignored": [
+        "44512518413.pdf",
+        "44512518963.pdf",
+        "44512517814.pdf",
+        "SIG_M5125073615_8871.pdf",
+        "SIG_M5125073615_8871.pdf",
+        "44512518016.pdf",
+        "44512518717.pdf"
+      ],
+      "confidence": "HIGH",
+      "candidates": [
+        {
+          "name": "הדפסת חשבונית מרכזת - 25342508770.pdf",
+          "score": 390,
+          "reasons": [
+            "+100 filename contains 'חשבונית מרכזת'",
+            "+80 filename contains 'חשבונית'",
+            "+35 filename contains 'מרכזת'"
+          ]
+        },
+        {
+          "name": "44512518717.pdf",
+          "score": -145,
+          "reasons": [
+            "-150 445-series delivery note",
+            "+5 larger PDF (possible central invoice)"
+          ]
+        },
+        {
+          "name": "44512518016.pdf",
+          "score": -150,
+          "reasons": [
+            "-150 445-series delivery note"
+          ]
+        }
+      ]
+    },
+    {
+      "category": "attachments-2+",
+      "message_date": "2026-07-06 12:26:14",
+      "subject": "(מסמך ממוחשב) הדפסת חשבונית מרכזת - 25342605225",
+      "attachment_count": 2,
+      "selected_main_invoice": "הדפסת חשבונית מרכזת - 25342605225.pdf",
+      "status": "SELECTED",
+      "selection_reason": "+100 filename contains 'חשבונית מרכזת'; +80 filename contains 'חשבונית'; +35 filename contains 'מרכזת'; +150 invoice number match: 25342605225 (+2 more signals)",
+      "other_attachments_ignored": [
+        "44512609899.pdf"
+      ],
+      "confidence": "HIGH",
+      "candidates": [
+        {
+          "name": "הדפסת חשבונית מרכזת - 25342605225.pdf",
+          "score": 390,
+          "reasons": [
+            "+100 filename contains 'חשבונית מרכזת'",
+            "+80 filename contains 'חשבונית'",
+            "+35 filename contains 'מרכזת'"
+          ]
+        },
+        {
+          "name": "44512609899.pdf",
+          "score": -150,
+          "reasons": [
+            "-150 445-series delivery note"
+          ]
+        }
+      ]
+    },
+    {
+      "category": "ambiguous-example",
+      "message_date": "2023-11-27 12:31:49",
+      "subject": "חשבונית 25352300218  25342306862 25352300219",
+      "attachment_count": 3,
+      "selected_main_invoice": null,
+      "status": "AMBIGUOUS",
+      "selection_reason": "Tied top candidates (score 5): p7058002007.pdf; p4297201925.pdf; p4297201998.pdf",
+      "other_attachments_ignored": [],
+      "confidence": "LOW",
+      "candidates": [
+        {
+          "name": "p7058002007.pdf",
+          "score": 5,
+          "reasons": [
+            "+5 larger PDF (possible central invoice)"
+          ]
+        },
+        {
+          "name": "p4297201925.pdf",
+          "score": 5,
+          "reasons": [
+            "+5 larger PDF (possible central invoice)"
+          ]
+        },
+        {
+          "name": "p4297201998.pdf",
+          "score": 5,
+          "reasons": [
+            "+5 larger PDF (possible central invoice)"
+          ]
+        }
+      ]
+    },
+    {
+      "category": "no-main-invoice-example",
+      "message_date": "2020-08-09 11:41:43",
+      "subject": "RE: טופס הסכמה לקבלת חשבונית דיגיטלית- מתח ח.י הנדסת חשמל בע\"מ",
+      "attachment_count": 0,
+      "selected_main_invoice": null,
+      "status": "NO_MAIN_INVOICE",
+      "selection_reason": "No saved PDF attachments",
+      "other_attachments_ignored": [
+        "LOGO_fe6ee77d-dc46-4295-a84d-7cda99d4d25c.png",
+        "PASS_83d8f18d-1340-428c-a9cb-48e68e50c6fc.png",
+        "yt-icon_2330b865-8d61-49a4-8f3c-df37bef85f09.gif",
+        "fb-icon_0b4ec9f5-ab2e-4d54-b2e7-b2918fc24f5d.gif"
+      ],
+      "confidence": "LOW",
+      "candidates": []
+    },
+    {
+      "category": "fill-spread",
+      "message_date": "2026-09-03 14:00:28",
+      "subject": "(מסמך ממוחשב) הדפסת חשבונית מרכזת - 25342607482",
+      "attachment_count": 3,
+      "selected_main_invoice": "הדפסת חשבונית מרכזת - 25342607482.pdf",
+      "status": "SELECTED",
+      "selection_reason": "+100 filename contains 'חשבונית מרכזת'; +80 filename contains 'חשבונית'; +35 filename contains 'מרכזת'; +150 invoice number match: 25342607482 (+2 more signals)",
+      "other_attachments_ignored": [
+        "44512613320.pdf",
+        "44512613347.pdf"
+      ],
+      "confidence": "HIGH",
+      "candidates": [
+        {
+          "name": "הדפסת חשבונית מרכזת - 25342607482.pdf",
+          "score": 390,
+          "reasons": [
+            "+100 filename contains 'חשבונית מרכזת'",
+            "+80 filename contains 'חשבונית'",
+            "+35 filename contains 'מרכזת'"
+          ]
+        },
+        {
+          "name": "44512613347.pdf",
+          "score": -150,
+          "reasons": [
+            "-150 445-series delivery note"
+          ]
+        },
+        {
+          "name": "44512613320.pdf",
+          "score": -150,
+          "reasons": [
+            "-150 445-series delivery note"
+          ]
+        }
+      ]
+    },
+    {
+      "category": "fill-spread",
+      "message_date": "2026-09-03 14:00:22",
+      "subject": "(מסמך ממוחשב) הדפסת חשבונית מרכזת - 25342607484",
+      "attachment_count": 5,
+      "selected_main_invoice": "הדפסת חשבונית מרכזת - 25342607484.pdf",
+      "status": "SELECTED",
+      "selection_reason": "+100 filename contains 'חשבונית מרכזת'; +80 filename contains 'חשבונית'; +35 filename contains 'מרכזת'; +150 invoice number match: 25342607484 (+2 more signals)",
+      "other_attachments_ignored": [
+        "44512613800.pdf",
+        "44512612522.pdf",
+        "44512612542.pdf",
+        "44512613127.pdf"
+      ],
+      "confidence": "HIGH",
+      "candidates": [
+        {
+          "name": "הדפסת חשבונית מרכזת - 25342607484.pdf",
+          "score": 390,
+          "reasons": [
+            "+100 filename contains 'חשבונית מרכזת'",
+            "+80 filename contains 'חשבונית'",
+            "+35 filename contains 'מרכזת'"
+          ]
+        },
+        {
+          "name": "44512612522.pdf",
+          "score": -150,
+          "reasons": [
+            "-150 445-series delivery note"
+          ]
+        },
+        {
+          "name": "44512613127.pdf",
+          "score": -150,
+          "reasons": [
+            "-150 445-series delivery note"
+          ]
+        }
+      ]
+    },
+    {
+      "category": "fill-spread",
+      "message_date": "2026-09-03 14:00:17",
+      "subject": "(מסמך ממוחשב) הדפסת חשבונית מרכזת - 25342607485",
+      "attachment_count": 5,
+      "selected_main_invoice": "הדפסת חשבונית מרכזת - 25342607485.pdf",
+      "status": "SELECTED",
+      "selection_reason": "+100 filename contains 'חשבונית מרכזת'; +80 filename contains 'חשבונית'; +35 filename contains 'מרכזת'; +150 invoice number match: 25342607485 (+2 more signals)",
+      "other_attachments_ignored": [
+        "44512613051.pdf",
+        "SIG_25512614683_3397.pdf",
+        "SIG_25512614683_3397.pdf",
+        "44512612139.pdf"
+      ],
+      "confidence": "HIGH",
+      "candidates": [
+        {
+          "name": "הדפסת חשבונית מרכזת - 25342607485.pdf",
+          "score": 390,
+          "reasons": [
+            "+100 filename contains 'חשבונית מרכזת'",
+            "+80 filename contains 'חשבונית'",
+            "+35 filename contains 'מרכזת'"
+          ]
+        },
+        {
+          "name": "44512613051.pdf",
+          "score": -150,
+          "reasons": [
+            "-150 445-series delivery note"
+          ]
+        },
+        {
+          "name": "44512612139.pdf",
+          "score": -150,
+          "reasons": [
+            "-150 445-series delivery note"
+          ]
+        }
+      ]
+    },
+    {
+      "category": "fill-spread",
+      "message_date": "2026-08-03 16:23:59",
+      "subject": "(מסמך ממוחשב) הדפסת חשבונית מרכזת - 25342606185",
+      "attachment_count": 10,
+      "selected_main_invoice": "הדפסת חשבונית מרכזת - 25342606185.pdf",
+      "status": "SELECTED",
+      "selection_reason": "+100 filename contains 'חשבונית מרכזת'; +80 filename contains 'חשבונית'; +35 filename contains 'מרכזת'; +150 invoice number match: 25342606185 (+2 more signals)",
+      "other_attachments_ignored": [
+        "44512611220.pdf",
+        "44512610502.pdf",
+        "44512611626.pdf",
+        "44512610837.pdf",
+        "44512611719.pdf",
+        "SIG_M5126042239_1305.pdf",
+        "M5126042239.pdf",
+        "SIG_M5126042239_1305.pdf",
+        "44512610799.pdf"
+      ],
+      "confidence": "HIGH",
+      "candidates": [
+        {
+          "name": "הדפסת חשבונית מרכזת - 25342606185.pdf",
+          "score": 390,
+          "reasons": [
+            "+100 filename contains 'חשבונית מרכזת'",
+            "+80 filename contains 'חשבונית'",
+            "+35 filename contains 'מרכזת'"
+          ]
+        },
+        {
+          "name": "44512611626.pdf",
+          "score": -145,
+          "reasons": [
+            "-150 445-series delivery note",
+            "+5 larger PDF (possible central invoice)"
+          ]
+        },
+        {
+          "name": "44512610502.pdf",
+          "score": -145,
+          "reasons": [
+            "-150 445-series delivery note",
+            "+5 larger PDF (possible central invoice)"
+          ]
+        }
+      ]
+    },
+    {
+      "category": "fill-spread",
+      "message_date": "2026-08-03 16:23:34",
+      "subject": "(מסמך ממוחשב) הדפסת חשבונית מרכזת - 25342606188, חש. מרכזת יול-26",
+      "attachment_count": 10,
+      "selected_main_invoice": "הדפסת חשבונית מרכזת - 25342606188_ חש.pdf",
+      "status": "SELECTED",
+      "selection_reason": "+100 filename contains 'חשבונית מרכזת'; +80 filename contains 'חשבונית'; +40 filename contains 'חש.'; +35 filename contains 'מרכזת' (+2 more signals)",
+      "other_attachments_ignored": [
+        "M5126044020.pdf",
+        "44512610570.pdf",
+        "44512610551.pdf",
+        "44512610551_001.pdf",
+        "44512611463.pdf",
+        "44512611663.pdf",
+        "44512610626.pdf",
+        "44512611488.pdf",
+        "44512611189.pdf"
+      ],
+      "confidence": "HIGH",
+      "candidates": [
+        {
+          "name": "הדפסת חשבונית מרכזת - 25342606188_ חש.pdf",
+          "score": 280,
+          "reasons": [
+            "+100 filename contains 'חשבונית מרכזת'",
+            "+80 filename contains 'חשבונית'",
+            "+40 filename contains 'חש.'"
+          ]
+        },
+        {
+          "name": "44512610551.pdf",
+          "score": -145,
+          "reasons": [
+            "-150 445-series delivery note",
+            "+5 larger PDF (possible central invoice)"
+          ]
+        },
+        {
+          "name": "44512610626.pdf",
+          "score": -150,
+          "reasons": [
+            "-150 445-series delivery note"
+          ]
+        }
+      ]
+    },
+    {
+      "category": "fill-spread",
+      "message_date": "2026-08-03 16:23:03",
+      "subject": "(מסמך ממוחשב) הדפסת חשבונית מרכזת - 25342606187",
+      "attachment_count": 7,
+      "selected_main_invoice": "הדפסת חשבונית מרכזת - 25342606187.pdf",
+      "status": "SELECTED",
+      "selection_reason": "+100 filename contains 'חשבונית מרכזת'; +80 filename contains 'חשבונית'; +35 filename contains 'מרכזת'; +150 invoice number match: 25342606187 (+2 more signals)",
+      "other_attachments_ignored": [
+        "44512611080.pdf",
+        "44512610881.pdf",
+        "44512610743.pdf",
+        "44512610175.pdf",
+        "44512610716.pdf",
+        "44512610718.pdf"
+      ],
+      "confidence": "HIGH",
+      "candidates": [
+        {
+          "name": "הדפסת חשבונית מרכזת - 25342606187.pdf",
+          "score": 390,
+          "reasons": [
+            "+100 filename contains 'חשבונית מרכזת'",
+            "+80 filename contains 'חשבונית'",
+            "+35 filename contains 'מרכזת'"
+          ]
+        },
+        {
+          "name": "44512611080.pdf",
+          "score": -150,
+          "reasons": [
+            "-150 445-series delivery note"
+          ]
+        },
+        {
+          "name": "44512610743.pdf",
+          "score": -150,
+          "reasons": [
+            "-150 445-series delivery note"
+          ]
+        }
+      ]
+    }
+  ]
+}

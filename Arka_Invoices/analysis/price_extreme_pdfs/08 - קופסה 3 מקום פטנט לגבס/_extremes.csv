@@ -1,0 +1,3 @@
+﻿year,invoice_number,invoice_date,sku,description,quantity,unit,net_unit_price,local_median,local_min,local_max,deviation_percent,peer_observation_count,comparison_window,reason_for_flag,pdf_filename
+2021,,30/06/21,190041,לקיר גבס ללא ברגים פטנט תקן3 קופסא,60.00,unit,5,4.00,3.96,4.25,25.0,3,±6_months,Local high: 25.0% above nearby median; outside robust local range,2021-06-30__2021-07-04__קרן-ממויה__(מסמך ממוחשב) הדפסת חשבונית מרכזת - R34212504461.pdf
+2025,,27/03/25,84000385,מחיצות פטנט+ מודול לקיר גבס3 קופסא,20.00,unit,5.685,4.38,4.38,4.57,29.7,5,same_year,Local high: 29.7% above nearby median; outside robust local range,2025-03-27__2025-04-08__קרן-ממויה__הדפסת חשבונית מרכזת - 25342502226_ חש.pdf

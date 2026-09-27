@@ -1,0 +1,4 @@
+﻿year,invoice_number,invoice_date,sku,description,quantity,unit,net_unit_price,local_median,local_min,local_max,deviation_percent,peer_observation_count,comparison_window,reason_for_flag,pdf_filename
+2017,,2017-10-03,8600104,מטר50.00ירוק  חדש25 מריכף,50.00,meter,1.8,4.45,4.45,4.45,59.6,2,±12_months,Local low: 59.6% below nearby median; outside robust local range,2017-10-03__2017-10-03__Nir-Sayag__R3417309113 - הדפסת חשבונית מרכזת.pdf
+2018,,27/11/18,8600104,מטר50.00ירוק  חדש25 מריכף,50.00,meter,1.8,4.45,1.80,4.45,59.6,4,same_year,Local low: 59.6% below nearby median; outside robust local range,2018-11-27__2018-12-09__Nir-Sayag__p2764000593.pdf
+2019,,31/12/18,8600104,מטר50.00ירוק  חדש25 מריכף,50.00,meter,1.8,4.45,1.80,4.45,59.6,4,same_year,Local low: 59.6% below nearby median; outside robust local range,2018-12-31__2019-01-03__Nir-Sayag__p3634800597.pdf

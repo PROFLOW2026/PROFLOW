@@ -76,7 +76,16 @@ export const materialVendorPrices = pgTable(
     notes: text('notes'),
     ...timestamps(),
   },
-  (table) => [index('material_vendor_prices_material_idx').on(table.materialItemId)],
+  (table) => [
+    index('material_vendor_prices_material_idx').on(table.materialItemId),
+    uniqueIndex('material_vendor_prices_item_vendor_date_price_uq').on(
+      table.organizationId,
+      table.materialItemId,
+      table.vendorId,
+      table.effectiveFrom,
+      table.unitPrice,
+    ),
+  ],
 );
 
 export const procurementRfqs = pgTable(

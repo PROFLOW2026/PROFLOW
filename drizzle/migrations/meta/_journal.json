@@ -1016,6 +1016,13 @@
                         "when":  1789712940000,
                         "tag":  "0146_material_classification_correction",
                         "breakpoints":  true
+                    },
+                    {
+                        "idx":  145,
+                        "version":  "7",
+                        "when":  1789713000000,
+                        "tag":  "0147_material_vendor_prices_unique",
+                        "breakpoints":  true
                     }
                 ]
 }

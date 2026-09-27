@@ -1,0 +1,1516 @@
+{
+  "generated_at": "2026-09-26T18:11:46.651364",
+  "TOTAL_MAIN_INVOICES": 476,
+  "TEXT_NATIVE": 472,
+  "IMAGE_SCAN": 1,
+  "MIXED": 3,
+  "UNREADABLE": 0,
+  "TEXT_NATIVE_PCT": 99.2,
+  "EXACT_DUPLICATES": 8,
+  "FORMAT_FAMILIES": 3,
+  "40_INVOICE_SAMPLE": "PASS",
+  "ITEM_CODE_EXTRACTION": "HIGH",
+  "DESCRIPTION_EXTRACTION": "HIGH",
+  "QUANTITY_EXTRACTION": "HIGH",
+  "UNIT_PRICE_EXTRACTION": "MEDIUM",
+  "LINE_TOTAL_EXTRACTION": "HIGH",
+  "field_identifiable_in_40_sample": {
+    "customer_name": 0.975,
+    "supplier_name": 0.975,
+    "item_code": 0.9,
+    "quantity": 0.9,
+    "unit": 0.775,
+    "discount_percent": 0.85,
+    "subtotal_net": 0.975,
+    "vat": 0.975,
+    "total_gross": 0.95,
+    "item_description": 0.875,
+    "unit_price_net": 0.825,
+    "line_total_net": 0.875,
+    "document_date": 0.7,
+    "invoice_number": 0.825
+  },
+  "prototype_parser_success_in_40_sample": {
+    "customer_name": 0.975,
+    "supplier_name": 0.975,
+    "line_item_code": 0.775,
+    "line_raw_description": 0.775,
+    "line_quantity": 0.775,
+    "line_unit": 0.775,
+    "line_unit_price_net": 0.175,
+    "line_line_total_net": 0.175,
+    "document_date": 0.7,
+    "invoice_number": 0.3
+  },
+  "DIRECT_EXTRACTION_WITHOUT_OCR_PCT": 99.2,
+  "OCR_REQUIRED_PCT": 0.2,
+  "HISTORICAL_PRICE_DATASET_FEASIBILITY": "HIGH",
+  "inventory": {
+    "total_pdfs": 476,
+    "by_year": {
+      "2017": 1,
+      "2018": 7,
+      "2019": 67,
+      "2020": 60,
+      "2021": 84,
+      "2022": 57,
+      "2023": 70,
+      "2024": 64,
+      "2025": 36,
+      "2026": 30
+    },
+    "by_confidence": {
+      "HIGH": 327,
+      "MEDIUM": 82,
+      "LOW": 67
+    },
+    "size_distribution": {
+      ">=500KB": 5,
+      "100-200KB": 333,
+      "50-100KB": 101,
+      "200-500KB": 37
+    },
+    "size_stats": {
+      "min_bytes": 73446,
+      "max_bytes": 737636,
+      "median_bytes": 135681,
+      "mean_bytes": 141885
+    },
+    "duplicate_groups": {
+      "8967e9ca5b1c1fe37b40d72c7f7c51ea7bfaa905cc453776e0a378abb9606c9b": [
+        "main_invoices\\2019\\2019-11-11__ניר-סאייג__p1484800593.pdf",
+        "main_invoices\\2019\\2019-11-11__ניר-סאייג__p1484800593__2.pdf"
+      ],
+      "1eaac208219df6873f0cf81ab83272a7ab25d67fff86afeb24fb156fae5fcc22": [
+        "main_invoices\\2019\\2019-11-11__ניר-סאייג__p1884800593.pdf",
+        "main_invoices\\2019\\2019-11-11__ניר-סאייג__p1884800593__2.pdf"
+      ],
+      "88f87cd755f8b0ef08edac928562f95e3fc4c187e5133630f748e389931d3a1d": [
+        "main_invoices\\2019\\2019-11-11__ניר-סאייג__p2148400593.pdf",
+        "main_invoices\\2019\\2019-11-11__ניר-סאייג__p2148400593__2.pdf"
+      ],
+      "03f6f183c20148893fea99717cc3387440f4f3dfd7a86edfb570f2dd2c9cd1c8": [
+        "main_invoices\\2019\\2019-11-11__ניר-סאייג__p2748400593.pdf",
+        "main_invoices\\2019\\2019-11-11__ניר-סאייג__p2748400593__2.pdf"
+      ],
+      "2983f25f14d4efa9468affc9b45196f7b1bbfb75939ae3fe54754d1bce5fb55b": [
+        "main_invoices\\2019\\2019-11-11__ניר-סאייג__p3847600593.pdf",
+        "main_invoices\\2019\\2019-11-11__ניר-סאייג__p3847600593__2.pdf"
+      ],
+      "278ef47ed4c417acfe6aa3221cb4946c1b560d2b365901e437d9fc17783b593b": [
+        "main_invoices\\2019\\2019-11-11__ניר-סאייג__p4189200593.pdf",
+        "main_invoices\\2019\\2019-11-11__ניר-סאייג__p4189200593__2.pdf"
+      ],
+      "c6f2fdbaa2d4a5a825eabdbcb4da2b71170acc8e03ee9a11939f23bd771cf84b": [
+        "main_invoices\\2019\\2019-11-11__ניר-סאייג__p4491200593.pdf",
+        "main_invoices\\2019\\2019-11-11__ניר-סאייג__p4491200593__2.pdf"
+      ],
+      "ef8f8d31b1b096e94cd82b4efe3a3dd208833f83d9a1b43a706c0ca6949c4aef": [
+        "main_invoices\\2019\\2019-11-11__ניר-סאייג__p5066000593.pdf",
+        "main_invoices\\2019\\2019-11-11__ניר-סאייג__p5066000593__2.pdf"
+      ]
+    },
+    "exact_duplicate_extra_copies": 8,
+    "text_classes": {
+      "TEXT_NATIVE": 472,
+      "MIXED": 3,
+      "IMAGE_SCAN": 1
+    }
+  },
+  "format_families": [
+    {
+      "family_id": "FORMAT_UNKNOWN",
+      "label": "Unknown / mixed ERCO layout",
+      "year_range": "various",
+      "header_markers": [
+        "שורה",
+        "הנחה",
+        "כמות",
+        "מק\"ט",
+        "תעודה.ש"
+      ],
+      "column_order": [
+        "שורה",
+        "הנחה",
+        "כמות",
+        "מק\"ט",
+        "תעודה.ש"
+      ],
+      "sample_files": [
+        "main_invoices\\2017\\2017-10-03__Nir-Sayag__R3417309113 - הדפסת חשבונית מרכזת.pdf",
+        "main_invoices\\2021\\2021-01-27__קרן-ממויה__image2021-01-27-130613.pdf",
+        "main_invoices\\2022\\2022-09-12__קרן-ממויה__(מסמך ממוחשב) הדפסת קבלה - 25602204205.pdf",
+        "main_invoices\\2023\\2023-04-04__קרן-ממויה__(מסמך ממוחשב) הדפסת קבלה - 25602301348.pdf",
+        "main_invoices\\2024\\2024-03-27__רחלי-מזרחי__הדפסת קבלה - 25602401363.pdf"
+      ],
+      "page_continuation": "Multi-page invoices repeat header blocks; line items continue across pages",
+      "repeated_headers": true,
+      "footer_totals": [
+        "מע\"מ"
+      ],
+      "rtl_issues": "Hebrew RTL causes column labels to appear reversed in plain text extraction; numeric fields often remain readable but row grouping requires layout-aware parsing.",
+      "row_order_preserved": "PARTIAL — line items extract as text blocks; multi-field rows need table/coordinate parsing",
+      "alignment_quality": "MODERATE — SKU/description/qty/price appear on same logical row but not always single-line",
+      "feasibility": {
+        "ITEM_CODE": "YES",
+        "DESCRIPTION": "NO",
+        "QUANTITY": "YES",
+        "UNIT": "PARTIAL",
+        "UNIT_PRICE": "NO",
+        "LINE_TOTAL": "NO"
+      },
+      "notes": [
+        "Negative quantities/amounts observed — credit lines possible"
+      ]
+    },
+    {
+      "family_id": "FORMAT_A_2017_2018",
+      "label": "ERCO computerized central invoice — classic layout (2017–2018)",
+      "year_range": "2017-2018",
+      "header_markers": [
+        "סה\"כ מחיר",
+        "הנחה",
+        "מחיר ליחידה",
+        "כמות",
+        "תאור מוצר",
+        "מק\"ט"
+      ],
+      "column_order": [
+        "סה\"כ מחיר",
+        "הנחה",
+        "מחיר ליחידה",
+        "כמות",
+        "תאור מוצר",
+        "מק\"ט"
+      ],
+      "sample_files": [
+        "main_invoices\\2018\\2018-08-30__Mira-Yarimi__P5118435784.pdf",
+        "main_invoices\\2019\\2019-01-13__Keren-Inao__p3845601787.pdf",
+        "main_invoices\\2019\\2019-04-11__Keren-Inao__p2368000013.pdf",
+        "main_invoices\\2021\\2021-01-06__קרן-ממויה__p6522001470.pdf",
+        "main_invoices\\2021\\2021-01-28__קרן-ממויה__p4827201847.pdf",
+        "main_invoices\\2021\\2021-08-26__ניר-סאייג__(מסמך ממוחשב) הדפסת חשבונית מרכזת - R3521250444.pdf",
+        "main_invoices\\2021\\2021-03-31__קרן-ממויה__p2530001818.pdf",
+        "main_invoices\\2022\\2022-01-02__קרן-ממויה__(מסמך ממוחשב) הדפסת חשבונית מרכזת - R34212510640.pdf"
+      ],
+      "page_continuation": "Multi-page invoices repeat header blocks; line items continue across pages",
+      "repeated_headers": false,
+      "footer_totals": [
+        "מע\"מ",
+        "סה\"כ מחיר"
+      ],
+      "rtl_issues": "Hebrew RTL causes column labels to appear reversed in plain text extraction; numeric fields often remain readable but row grouping requires layout-aware parsing.",
+      "row_order_preserved": "PARTIAL — line items extract as text blocks; multi-field rows need table/coordinate parsing",
+      "alignment_quality": "MODERATE — SKU/description/qty/price appear on same logical row but not always single-line",
+      "feasibility": {
+        "ITEM_CODE": "YES",
+        "DESCRIPTION": "YES",
+        "QUANTITY": "YES",
+        "UNIT": "PARTIAL",
+        "UNIT_PRICE": "YES",
+        "LINE_TOTAL": "YES"
+      },
+      "notes": []
+    },
+    {
+      "family_id": "FORMAT_B_2019_2021",
+      "label": "ERCO computerized central invoice — standard layout with line number (2019–2021)",
+      "year_range": "2019-2021",
+      "header_markers": [
+        "שורה",
+        "סה\"כ מחיר",
+        "מחיר ליחידה",
+        "כמות",
+        "תאור מוצר",
+        "מק\"ט",
+        "תעודה.ש"
+      ],
+      "column_order": [
+        "שורה",
+        "סה\"כ מחיר",
+        "מחיר ליחידה",
+        "כמות",
+        "תאור מוצר",
+        "מק\"ט",
+        "תעודה.ש"
+      ],
+      "sample_files": [
+        "main_invoices\\2018\\2018-12-09__Nir-Sayag__p0414400593.pdf",
+        "main_invoices\\2018\\2018-12-09__Nir-Sayag__p3285200593.pdf",
+        "main_invoices\\2018\\2018-12-09__Nir-Sayag__p2764000593.pdf",
+        "main_invoices\\2019\\2019-07-09__ניר-סאייג__R3419306700 - הדפסת חשבונית מרכזת.pdf",
+        "main_invoices\\2019\\2019-01-03__Nir-Sayag__p1773200597.pdf",
+        "main_invoices\\2019\\2019-01-03__Nir-Sayag__p2424400597.pdf",
+        "main_invoices\\2019\\2019-02-06__Nir-Sayag__p1511600593.pdf",
+        "main_invoices\\2020\\2020-05-26__Eran-Yosef__R3420301565 - הדפסת חשבונית מרכזת.pdf"
+      ],
+      "page_continuation": "Multi-page invoices repeat header blocks; line items continue across pages",
+      "repeated_headers": false,
+      "footer_totals": [
+        "מע\"מ",
+        "סה\"כ מחיר"
+      ],
+      "rtl_issues": "Hebrew RTL causes column labels to appear reversed in plain text extraction; numeric fields often remain readable but row grouping requires layout-aware parsing.",
+      "row_order_preserved": "PARTIAL — line items extract as text blocks; multi-field rows need table/coordinate parsing",
+      "alignment_quality": "MODERATE — SKU/description/qty/price appear on same logical row but not always single-line",
+      "feasibility": {
+        "ITEM_CODE": "YES",
+        "DESCRIPTION": "YES",
+        "QUANTITY": "YES",
+        "UNIT": "NO",
+        "UNIT_PRICE": "YES",
+        "LINE_TOTAL": "YES"
+      },
+      "notes": [
+        "Document type: central tax invoice (חשבונית מס מרכזת)"
+      ]
+    }
+  ],
+  "sample_analysis": [
+    {
+      "file": "main_invoices\\2017\\2017-10-03__Nir-Sayag__R3417309113 - הדפסת חשבונית מרכזת.pdf",
+      "year": "2017",
+      "confidence": "HIGH",
+      "pages": 15,
+      "format_family": "FORMAT_UNKNOWN",
+      "header_fields_found": {
+        "customer_name": "מתח ח.י הנדסת חשמל בע\"מ",
+        "supplier_name": "erco.co.il",
+        "has_vat_line": "yes"
+      },
+      "line_items_extracted": 260,
+      "fields_identifiable_in_text": {
+        "document_date": false,
+        "invoice_number": false,
+        "customer_name": true,
+        "supplier_name": true,
+        "item_code": true,
+        "item_description": false,
+        "quantity": true,
+        "unit": true,
+        "unit_price_net": false,
+        "discount_percent": true,
+        "line_total_net": false,
+        "subtotal_net": true,
+        "vat": true,
+        "total_gross": true
+      },
+      "text_class": "TEXT_NATIVE"
+    },
+    {
+      "file": "main_invoices\\2018\\2018-08-30__Mira-Yarimi__P5118435784.pdf",
+      "year": "2018",
+      "confidence": "MEDIUM",
+      "pages": 1,
+      "format_family": "FORMAT_A_2017_2018",
+      "header_fields_found": {
+        "customer_name": "מתח ח.י הנדסת חשמל בע\"מ",
+        "supplier_name": "erco.co.il",
+        "has_vat_line": "yes"
+      },
+      "line_items_extracted": 2,
+      "fields_identifiable_in_text": {
+        "document_date": false,
+        "invoice_number": false,
+        "customer_name": true,
+        "supplier_name": true,
+        "item_code": true,
+        "item_description": true,
+        "quantity": true,
+        "unit": true,
+        "unit_price_net": true,
+        "discount_percent": true,
+        "line_total_net": true,
+        "subtotal_net": true,
+        "vat": true,
+        "total_gross": false
+      },
+      "text_class": "TEXT_NATIVE"
+    },
+    {
+      "file": "main_invoices\\2018\\2018-12-09__Nir-Sayag__p0414400593.pdf",
+      "year": "2018",
+      "confidence": "MEDIUM",
+      "pages": 1,
+      "format_family": "FORMAT_B_2019_2021",
+      "header_fields_found": {
+        "document_date": "27/11/18",
+        "customer_name": "מתח ח.י הנדסת חשמל בע\"מ",
+        "supplier_name": "erco.co.il",
+        "has_vat_line": "yes"
+      },
+      "line_items_extracted": 1,
+      "fields_identifiable_in_text": {
+        "document_date": true,
+        "invoice_number": true,
+        "customer_name": true,
+        "supplier_name": true,
+        "item_code": true,
+        "item_description": true,
+        "quantity": true,
+        "unit": false,
+        "unit_price_net": true,
+        "discount_percent": false,
+        "line_total_net": true,
+        "subtotal_net": true,
+        "vat": true,
+        "total_gross": true
+      },
+      "text_class": "TEXT_NATIVE"
+    },
+    {
+      "file": "main_invoices\\2018\\2018-12-09__Nir-Sayag__p3285200593.pdf",
+      "year": "2018",
+      "confidence": "MEDIUM",
+      "pages": 1,
+      "format_family": "FORMAT_B_2019_2021",
+      "header_fields_found": {
+        "document_date": "27/11/18",
+        "customer_name": "מתח ח.י הנדסת חשמל בע\"מ",
+        "supplier_name": "erco.co.il",
+        "has_vat_line": "yes"
+      },
+      "line_items_extracted": 9,
+      "fields_identifiable_in_text": {
+        "document_date": true,
+        "invoice_number": true,
+        "customer_name": true,
+        "supplier_name": true,
+        "item_code": true,
+        "item_description": true,
+        "quantity": true,
+        "unit": true,
+        "unit_price_net": true,
+        "discount_percent": true,
+        "line_total_net": true,
+        "subtotal_net": true,
+        "vat": true,
+        "total_gross": true
+      },
+      "text_class": "TEXT_NATIVE"
+    },
+    {
+      "file": "main_invoices\\2018\\2018-12-09__Nir-Sayag__p2764000593.pdf",
+      "year": "2018",
+      "confidence": "MEDIUM",
+      "pages": 2,
+      "format_family": "FORMAT_B_2019_2021",
+      "header_fields_found": {
+        "document_date": "27/11/18",
+        "customer_name": "מתח ח.י הנדסת חשמל בע\"מ",
+        "supplier_name": "erco.co.il",
+        "has_vat_line": "yes"
+      },
+      "line_items_extracted": 53,
+      "fields_identifiable_in_text": {
+        "document_date": true,
+        "invoice_number": true,
+        "customer_name": true,
+        "supplier_name": true,
+        "item_code": true,
+        "item_description": true,
+        "quantity": true,
+        "unit": true,
+        "unit_price_net": true,
+        "discount_percent": true,
+        "line_total_net": true,
+        "subtotal_net": true,
+        "vat": true,
+        "total_gross": true
+      },
+      "text_class": "TEXT_NATIVE"
+    },
+    {
+      "file": "main_invoices\\2019\\2019-07-09__ניר-סאייג__R3419306700 - הדפסת חשבונית מרכזת.pdf",
+      "year": "2019",
+      "confidence": "HIGH",
+      "pages": 2,
+      "format_family": "FORMAT_B_2019_2021",
+      "header_fields_found": {
+        "document_date": "27/06/19",
+        "customer_name": "מתח ח.י הנדסת חשמל בע\"מ",
+        "supplier_name": "erco.co.il",
+        "has_vat_line": "yes"
+      },
+      "line_items_extracted": 26,
+      "fields_identifiable_in_text": {
+        "document_date": true,
+        "invoice_number": true,
+        "customer_name": true,
+        "supplier_name": true,
+        "item_code": true,
+        "item_description": true,
+        "quantity": true,
+        "unit": true,
+        "unit_price_net": true,
+        "discount_percent": true,
+        "line_total_net": true,
+        "subtotal_net": true,
+        "vat": true,
+        "total_gross": true
+      },
+      "text_class": "MIXED"
+    },
+    {
+      "file": "main_invoices\\2019\\2019-01-13__Keren-Inao__p3845601787.pdf",
+      "year": "2019",
+      "confidence": "MEDIUM",
+      "pages": 2,
+      "format_family": "FORMAT_A_2017_2018",
+      "header_fields_found": {
+        "invoice_number": "R3518300613",
+        "customer_name": "מתח ח.י הנדסת חשמל בע\"מ",
+        "supplier_name": "erco.co.il",
+        "has_vat_line": "yes"
+      },
+      "line_items_extracted": 0,
+      "fields_identifiable_in_text": {
+        "document_date": false,
+        "invoice_number": true,
+        "customer_name": true,
+        "supplier_name": true,
+        "item_code": true,
+        "item_description": true,
+        "quantity": true,
+        "unit": true,
+        "unit_price_net": true,
+        "discount_percent": true,
+        "line_total_net": true,
+        "subtotal_net": true,
+        "vat": true,
+        "total_gross": true
+      },
+      "text_class": "TEXT_NATIVE"
+    },
+    {
+      "file": "main_invoices\\2019\\2019-01-03__Nir-Sayag__p1773200597.pdf",
+      "year": "2019",
+      "confidence": "LOW",
+      "pages": 3,
+      "format_family": "FORMAT_B_2019_2021",
+      "header_fields_found": {
+        "document_date": "31/12/18",
+        "customer_name": "מתח ח.י הנדסת חשמל בע\"מ",
+        "supplier_name": "erco.co.il",
+        "has_vat_line": "yes"
+      },
+      "line_items_extracted": 75,
+      "fields_identifiable_in_text": {
+        "document_date": true,
+        "invoice_number": true,
+        "customer_name": true,
+        "supplier_name": true,
+        "item_code": true,
+        "item_description": true,
+        "quantity": true,
+        "unit": true,
+        "unit_price_net": true,
+        "discount_percent": true,
+        "line_total_net": true,
+        "subtotal_net": true,
+        "vat": true,
+        "total_gross": true
+      },
+      "text_class": "TEXT_NATIVE"
+    },
+    {
+      "file": "main_invoices\\2019\\2019-04-11__Keren-Inao__p2368000013.pdf",
+      "year": "2019",
+      "confidence": "MEDIUM",
+      "pages": 1,
+      "format_family": "FORMAT_A_2017_2018",
+      "header_fields_found": {
+        "document_date": "29/03/19",
+        "invoice_number": "R3419302836",
+        "customer_name": "מתח ח.י הנדסת חשמל בע\"מ",
+        "supplier_name": "erco.co.il",
+        "has_vat_line": "yes"
+      },
+      "line_items_extracted": 1,
+      "fields_identifiable_in_text": {
+        "document_date": true,
+        "invoice_number": true,
+        "customer_name": true,
+        "supplier_name": true,
+        "item_code": true,
+        "item_description": true,
+        "quantity": true,
+        "unit": true,
+        "unit_price_net": true,
+        "discount_percent": true,
+        "line_total_net": true,
+        "subtotal_net": true,
+        "vat": true,
+        "total_gross": true
+      },
+      "text_class": "TEXT_NATIVE"
+    },
+    {
+      "file": "main_invoices\\2019\\2019-01-03__Nir-Sayag__p2424400597.pdf",
+      "year": "2019",
+      "confidence": "LOW",
+      "pages": 2,
+      "format_family": "FORMAT_B_2019_2021",
+      "header_fields_found": {
+        "document_date": "31/12/18",
+        "customer_name": "מתח ח.י הנדסת חשמל בע\"מ",
+        "supplier_name": "erco.co.il",
+        "has_vat_line": "yes"
+      },
+      "line_items_extracted": 13,
+      "fields_identifiable_in_text": {
+        "document_date": true,
+        "invoice_number": true,
+        "customer_name": true,
+        "supplier_name": true,
+        "item_code": true,
+        "item_description": true,
+        "quantity": true,
+        "unit": true,
+        "unit_price_net": true,
+        "discount_percent": true,
+        "line_total_net": true,
+        "subtotal_net": true,
+        "vat": true,
+        "total_gross": true
+      },
+      "text_class": "TEXT_NATIVE"
+    },
+    {
+      "file": "main_invoices\\2019\\2019-02-06__Nir-Sayag__p1511600593.pdf",
+      "year": "2019",
+      "confidence": "MEDIUM",
+      "pages": 4,
+      "format_family": "FORMAT_B_2019_2021",
+      "header_fields_found": {
+        "document_date": "27/01/19",
+        "customer_name": "מתח ח.י הנדסת חשמל בע\"מ",
+        "supplier_name": "erco.co.il",
+        "has_vat_line": "yes"
+      },
+      "line_items_extracted": 79,
+      "fields_identifiable_in_text": {
+        "document_date": true,
+        "invoice_number": true,
+        "customer_name": true,
+        "supplier_name": true,
+        "item_code": true,
+        "item_description": true,
+        "quantity": true,
+        "unit": true,
+        "unit_price_net": true,
+        "discount_percent": true,
+        "line_total_net": true,
+        "subtotal_net": true,
+        "vat": true,
+        "total_gross": true
+      },
+      "text_class": "TEXT_NATIVE"
+    },
+    {
+      "file": "main_invoices\\2020\\2020-05-26__Eran-Yosef__R3420301565 - הדפסת חשבונית מרכזת.pdf",
+      "year": "2020",
+      "confidence": "HIGH",
+      "pages": 10,
+      "format_family": "FORMAT_B_2019_2021",
+      "header_fields_found": {
+        "document_date": "29/03/20",
+        "customer_name": "מתח ח.י הנדסת חשמל בע\"מ",
+        "supplier_name": "erco.co.il",
+        "has_vat_line": "yes"
+      },
+      "line_items_extracted": 116,
+      "fields_identifiable_in_text": {
+        "document_date": true,
+        "invoice_number": true,
+        "customer_name": true,
+        "supplier_name": true,
+        "item_code": true,
+        "item_description": true,
+        "quantity": true,
+        "unit": true,
+        "unit_price_net": true,
+        "discount_percent": true,
+        "line_total_net": true,
+        "subtotal_net": true,
+        "vat": true,
+        "total_gross": true
+      },
+      "text_class": "TEXT_NATIVE"
+    },
+    {
+      "file": "main_invoices\\2020\\2020-03-08__Eran-Yosef__Attachment.pdf",
+      "year": "2020",
+      "confidence": "MEDIUM",
+      "pages": 16,
+      "format_family": "FORMAT_B_2019_2021",
+      "header_fields_found": {
+        "document_date": "27/02/20",
+        "customer_name": "מתח ח.י הנדסת חשמל בע\"מ",
+        "supplier_name": "erco.co.il",
+        "has_vat_line": "yes"
+      },
+      "line_items_extracted": 122,
+      "fields_identifiable_in_text": {
+        "document_date": true,
+        "invoice_number": true,
+        "customer_name": true,
+        "supplier_name": true,
+        "item_code": true,
+        "item_description": true,
+        "quantity": true,
+        "unit": true,
+        "unit_price_net": true,
+        "discount_percent": true,
+        "line_total_net": true,
+        "subtotal_net": true,
+        "vat": true,
+        "total_gross": true
+      },
+      "text_class": "MIXED"
+    },
+    {
+      "file": "main_invoices\\2020\\2020-02-10__ניר-סאייג__p1070800593.pdf",
+      "year": "2020",
+      "confidence": "LOW",
+      "pages": 1,
+      "format_family": "FORMAT_B_2019_2021",
+      "header_fields_found": {
+        "document_date": "28/01/20",
+        "customer_name": "מתח ח.י הנדסת חשמל בע\"מ",
+        "supplier_name": "erco.co.il",
+        "has_vat_line": "yes"
+      },
+      "line_items_extracted": 11,
+      "fields_identifiable_in_text": {
+        "document_date": true,
+        "invoice_number": true,
+        "customer_name": true,
+        "supplier_name": true,
+        "item_code": true,
+        "item_description": true,
+        "quantity": true,
+        "unit": true,
+        "unit_price_net": true,
+        "discount_percent": true,
+        "line_total_net": true,
+        "subtotal_net": true,
+        "vat": true,
+        "total_gross": true
+      },
+      "text_class": "TEXT_NATIVE"
+    },
+    {
+      "file": "main_invoices\\2020\\2020-08-11__ניר-סאייג__p4008401536.pdf",
+      "year": "2020",
+      "confidence": "MEDIUM",
+      "pages": 1,
+      "format_family": "FORMAT_B_2019_2021",
+      "header_fields_found": {
+        "customer_name": "מתח ח.י הנדסת חשמל בע\"מ",
+        "supplier_name": "erco.co.il",
+        "has_vat_line": "yes"
+      },
+      "line_items_extracted": 1,
+      "fields_identifiable_in_text": {
+        "document_date": false,
+        "invoice_number": false,
+        "customer_name": true,
+        "supplier_name": true,
+        "item_code": true,
+        "item_description": true,
+        "quantity": true,
+        "unit": false,
+        "unit_price_net": true,
+        "discount_percent": true,
+        "line_total_net": true,
+        "subtotal_net": true,
+        "vat": true,
+        "total_gross": true
+      },
+      "text_class": "TEXT_NATIVE"
+    },
+    {
+      "file": "main_invoices\\2020\\2020-11-30__קרן-ממויה__p6121203901.pdf",
+      "year": "2020",
+      "confidence": "MEDIUM",
+      "pages": 2,
+      "format_family": "FORMAT_B_2019_2021",
+      "header_fields_found": {
+        "document_date": "26/11/20",
+        "customer_name": "מתח ח.י הנדסת חשמל בע\"מ",
+        "supplier_name": "erco.co.il",
+        "has_vat_line": "yes"
+      },
+      "line_items_extracted": 14,
+      "fields_identifiable_in_text": {
+        "document_date": true,
+        "invoice_number": true,
+        "customer_name": true,
+        "supplier_name": true,
+        "item_code": true,
+        "item_description": true,
+        "quantity": true,
+        "unit": true,
+        "unit_price_net": true,
+        "discount_percent": true,
+        "line_total_net": true,
+        "subtotal_net": true,
+        "vat": true,
+        "total_gross": true
+      },
+      "text_class": "TEXT_NATIVE"
+    },
+    {
+      "file": "main_invoices\\2021\\2021-05-03__קרן-ממויה__(מסמך ממוחשב) הדפסת חשבונית מרכזת - R34212502845.pdf",
+      "year": "2021",
+      "confidence": "HIGH",
+      "pages": 1,
+      "format_family": "FORMAT_B_2019_2021",
+      "header_fields_found": {
+        "document_date": "27/04/21",
+        "customer_name": "מתח ח.י הנדסת חשמל בע\"מ",
+        "supplier_name": "erco.co.il",
+        "has_vat_line": "yes"
+      },
+      "line_items_extracted": 1,
+      "fields_identifiable_in_text": {
+        "document_date": true,
+        "invoice_number": true,
+        "customer_name": true,
+        "supplier_name": true,
+        "item_code": true,
+        "item_description": true,
+        "quantity": true,
+        "unit": true,
+        "unit_price_net": true,
+        "discount_percent": true,
+        "line_total_net": true,
+        "subtotal_net": true,
+        "vat": true,
+        "total_gross": true
+      },
+      "text_class": "TEXT_NATIVE"
+    },
+    {
+      "file": "main_invoices\\2021\\2021-01-06__קרן-ממויה__p6522001470.pdf",
+      "year": "2021",
+      "confidence": "MEDIUM",
+      "pages": 1,
+      "format_family": "FORMAT_A_2017_2018",
+      "header_fields_found": {
+        "document_date": "31/12/20",
+        "invoice_number": "R3420309568",
+        "customer_name": "מתח ח.י הנדסת חשמל בע\"מ",
+        "supplier_name": "erco.co.il",
+        "has_vat_line": "yes"
+      },
+      "line_items_extracted": 0,
+      "fields_identifiable_in_text": {
+        "document_date": true,
+        "invoice_number": true,
+        "customer_name": true,
+        "supplier_name": true,
+        "item_code": true,
+        "item_description": true,
+        "quantity": true,
+        "unit": true,
+        "unit_price_net": true,
+        "discount_percent": true,
+        "line_total_net": true,
+        "subtotal_net": true,
+        "vat": true,
+        "total_gross": true
+      },
+      "text_class": "TEXT_NATIVE"
+    },
+    {
+      "file": "main_invoices\\2021\\2021-01-28__קרן-ממויה__p4827201847.pdf",
+      "year": "2021",
+      "confidence": "LOW",
+      "pages": 1,
+      "format_family": "FORMAT_A_2017_2018",
+      "header_fields_found": {
+        "document_date": "26/01/21",
+        "invoice_number": "R34212500324",
+        "customer_name": "מתח ח.י הנדסת חשמל בע\"מ",
+        "supplier_name": "erco.co.il",
+        "has_vat_line": "yes"
+      },
+      "line_items_extracted": 5,
+      "fields_identifiable_in_text": {
+        "document_date": true,
+        "invoice_number": true,
+        "customer_name": true,
+        "supplier_name": true,
+        "item_code": true,
+        "item_description": true,
+        "quantity": true,
+        "unit": true,
+        "unit_price_net": true,
+        "discount_percent": true,
+        "line_total_net": true,
+        "subtotal_net": true,
+        "vat": true,
+        "total_gross": true
+      },
+      "text_class": "TEXT_NATIVE"
+    },
+    {
+      "file": "main_invoices\\2021\\2021-08-26__ניר-סאייג__(מסמך ממוחשב) הדפסת חשבונית מרכזת - R3521250444.pdf",
+      "year": "2021",
+      "confidence": "HIGH",
+      "pages": 1,
+      "format_family": "FORMAT_A_2017_2018",
+      "header_fields_found": {
+        "customer_name": "מתח ח.י הנדסת חשמל בע\"מ",
+        "supplier_name": "erco.co.il",
+        "has_vat_line": "yes"
+      },
+      "line_items_extracted": 0,
+      "fields_identifiable_in_text": {
+        "document_date": false,
+        "invoice_number": false,
+        "customer_name": true,
+        "supplier_name": true,
+        "item_code": true,
+        "item_description": true,
+        "quantity": true,
+        "unit": false,
+        "unit_price_net": true,
+        "discount_percent": true,
+        "line_total_net": true,
+        "subtotal_net": true,
+        "vat": true,
+        "total_gross": true
+      },
+      "text_class": "TEXT_NATIVE"
+    },
+    {
+      "file": "main_invoices\\2021\\2021-03-31__קרן-ממויה__p2530001818.pdf",
+      "year": "2021",
+      "confidence": "LOW",
+      "pages": 1,
+      "format_family": "FORMAT_A_2017_2018",
+      "header_fields_found": {
+        "document_date": "25/03/21",
+        "invoice_number": "R34212501757",
+        "customer_name": "מתח ח.י הנדסת חשמל בע\"מ",
+        "supplier_name": "erco.co.il",
+        "has_vat_line": "yes"
+      },
+      "line_items_extracted": 11,
+      "fields_identifiable_in_text": {
+        "document_date": true,
+        "invoice_number": true,
+        "customer_name": true,
+        "supplier_name": true,
+        "item_code": true,
+        "item_description": true,
+        "quantity": true,
+        "unit": true,
+        "unit_price_net": true,
+        "discount_percent": true,
+        "line_total_net": true,
+        "subtotal_net": true,
+        "vat": true,
+        "total_gross": true
+      },
+      "text_class": "TEXT_NATIVE"
+    },
+    {
+      "file": "main_invoices\\2021\\2021-01-27__קרן-ממויה__image2021-01-27-130613.pdf",
+      "year": "2021",
+      "confidence": "MEDIUM",
+      "pages": 3,
+      "format_family": "FORMAT_UNKNOWN",
+      "header_fields_found": {},
+      "line_items_extracted": 0,
+      "fields_identifiable_in_text": {
+        "document_date": false,
+        "invoice_number": false,
+        "customer_name": false,
+        "supplier_name": false,
+        "item_code": false,
+        "item_description": false,
+        "quantity": false,
+        "unit": false,
+        "unit_price_net": false,
+        "discount_percent": false,
+        "line_total_net": false,
+        "subtotal_net": false,
+        "vat": false,
+        "total_gross": false
+      },
+      "text_class": "IMAGE_SCAN"
+    },
+    {
+      "file": "main_invoices\\2022\\2022-01-02__קרן-ממויה__(מסמך ממוחשב) הדפסת חשבונית מרכזת - R34212510640.pdf",
+      "year": "2022",
+      "confidence": "HIGH",
+      "pages": 1,
+      "format_family": "FORMAT_A_2017_2018",
+      "header_fields_found": {
+        "document_date": "31/12/21",
+        "invoice_number": "R34212510640",
+        "customer_name": "מתח ח.י הנדסת חשמל בע\"מ",
+        "supplier_name": "erco.co.il",
+        "has_vat_line": "yes"
+      },
+      "line_items_extracted": 1,
+      "fields_identifiable_in_text": {
+        "document_date": true,
+        "invoice_number": true,
+        "customer_name": true,
+        "supplier_name": true,
+        "item_code": true,
+        "item_description": true,
+        "quantity": true,
+        "unit": true,
+        "unit_price_net": true,
+        "discount_percent": true,
+        "line_total_net": true,
+        "subtotal_net": true,
+        "vat": true,
+        "total_gross": true
+      },
+      "text_class": "TEXT_NATIVE"
+    },
+    {
+      "file": "main_invoices\\2022\\2022-09-12__קרן-ממויה__(מסמך ממוחשב) הדפסת קבלה - 25602204205.pdf",
+      "year": "2022",
+      "confidence": "MEDIUM",
+      "pages": 1,
+      "format_family": "FORMAT_UNKNOWN",
+      "header_fields_found": {
+        "invoice_number": "25602204205",
+        "customer_name": "מתח ח.י הנדסת חשמל בע\"מ",
+        "supplier_name": "erco.co.il",
+        "has_vat_line": "yes"
+      },
+      "line_items_extracted": 0,
+      "fields_identifiable_in_text": {
+        "document_date": false,
+        "invoice_number": true,
+        "customer_name": true,
+        "supplier_name": true,
+        "item_code": false,
+        "item_description": false,
+        "quantity": false,
+        "unit": false,
+        "unit_price_net": false,
+        "discount_percent": false,
+        "line_total_net": false,
+        "subtotal_net": true,
+        "vat": true,
+        "total_gross": true
+      },
+      "text_class": "TEXT_NATIVE"
+    },
+    {
+      "file": "main_invoices\\2022\\2022-07-31__קרן-ממויה__(מסמך ממוחשב) הדפסת חשבונית מרכזת - 25352200381.pdf",
+      "year": "2022",
+      "confidence": "HIGH",
+      "pages": 1,
+      "format_family": "FORMAT_A_2017_2018",
+      "header_fields_found": {
+        "invoice_number": "25352200381",
+        "customer_name": "מתח ח.י הנדסת חשמל בע\"מ",
+        "supplier_name": "erco.co.il",
+        "has_vat_line": "yes"
+      },
+      "line_items_extracted": 2,
+      "fields_identifiable_in_text": {
+        "document_date": false,
+        "invoice_number": true,
+        "customer_name": true,
+        "supplier_name": true,
+        "item_code": true,
+        "item_description": true,
+        "quantity": true,
+        "unit": false,
+        "unit_price_net": true,
+        "discount_percent": false,
+        "line_total_net": true,
+        "subtotal_net": true,
+        "vat": true,
+        "total_gross": true
+      },
+      "text_class": "TEXT_NATIVE"
+    },
+    {
+      "file": "main_invoices\\2022\\2022-11-03__מרי-גבאי__(מסמך ממוחשב) הדפסת חשבונית מרכזת - 25342208221.pdf",
+      "year": "2022",
+      "confidence": "HIGH",
+      "pages": 2,
+      "format_family": "FORMAT_B_2019_2021",
+      "header_fields_found": {
+        "document_date": "27/10/22",
+        "customer_name": "מתח ח.י הנדסת חשמל בע\"מ",
+        "supplier_name": "erco.co.il",
+        "has_vat_line": "yes"
+      },
+      "line_items_extracted": 17,
+      "fields_identifiable_in_text": {
+        "document_date": true,
+        "invoice_number": true,
+        "customer_name": true,
+        "supplier_name": true,
+        "item_code": true,
+        "item_description": true,
+        "quantity": true,
+        "unit": true,
+        "unit_price_net": true,
+        "discount_percent": true,
+        "line_total_net": true,
+        "subtotal_net": true,
+        "vat": true,
+        "total_gross": true
+      },
+      "text_class": "TEXT_NATIVE"
+    },
+    {
+      "file": "main_invoices\\2022\\2022-05-02__קרן-ממויה__(מסמך ממוחשב) הדפסת חשבונית מרכזת - 25342202956.pdf",
+      "year": "2022",
+      "confidence": "HIGH",
+      "pages": 6,
+      "format_family": "FORMAT_B_2019_2021",
+      "header_fields_found": {
+        "document_date": "27/04/22",
+        "customer_name": "מתח ח.י הנדסת חשמל בע\"מ",
+        "supplier_name": "erco.co.il",
+        "has_vat_line": "yes"
+      },
+      "line_items_extracted": 73,
+      "fields_identifiable_in_text": {
+        "document_date": true,
+        "invoice_number": true,
+        "customer_name": true,
+        "supplier_name": true,
+        "item_code": true,
+        "item_description": true,
+        "quantity": true,
+        "unit": true,
+        "unit_price_net": true,
+        "discount_percent": true,
+        "line_total_net": true,
+        "subtotal_net": true,
+        "vat": true,
+        "total_gross": true
+      },
+      "text_class": "TEXT_NATIVE"
+    },
+    {
+      "file": "main_invoices\\2023\\2023-01-01__מרי-גבאי__(מסמך ממוחשב) הדפסת חשבונית מרכזת - 25342210304.pdf",
+      "year": "2023",
+      "confidence": "HIGH",
+      "pages": 1,
+      "format_family": "FORMAT_B_2019_2021",
+      "header_fields_found": {
+        "document_date": "29/12/22",
+        "customer_name": "מתח ח.י הנדסת חשמל בע\"מ",
+        "supplier_name": "erco.co.il",
+        "has_vat_line": "yes"
+      },
+      "line_items_extracted": 7,
+      "fields_identifiable_in_text": {
+        "document_date": true,
+        "invoice_number": true,
+        "customer_name": true,
+        "supplier_name": true,
+        "item_code": true,
+        "item_description": true,
+        "quantity": true,
+        "unit": true,
+        "unit_price_net": true,
+        "discount_percent": true,
+        "line_total_net": true,
+        "subtotal_net": true,
+        "vat": true,
+        "total_gross": true
+      },
+      "text_class": "TEXT_NATIVE"
+    },
+    {
+      "file": "main_invoices\\2023\\2023-04-04__קרן-ממויה__(מסמך ממוחשב) הדפסת קבלה - 25602301348.pdf",
+      "year": "2023",
+      "confidence": "MEDIUM",
+      "pages": 1,
+      "format_family": "FORMAT_UNKNOWN",
+      "header_fields_found": {
+        "invoice_number": "25602301348",
+        "customer_name": "מתח ח.י הנדסת חשמל בע\"מ",
+        "supplier_name": "erco.co.il",
+        "has_vat_line": "yes"
+      },
+      "line_items_extracted": 0,
+      "fields_identifiable_in_text": {
+        "document_date": false,
+        "invoice_number": true,
+        "customer_name": true,
+        "supplier_name": true,
+        "item_code": false,
+        "item_description": false,
+        "quantity": false,
+        "unit": false,
+        "unit_price_net": false,
+        "discount_percent": false,
+        "line_total_net": false,
+        "subtotal_net": true,
+        "vat": true,
+        "total_gross": true
+      },
+      "text_class": "TEXT_NATIVE"
+    },
+    {
+      "file": "main_invoices\\2023\\2023-04-13__ניר-סאייג__25352300219 - הדפסת חשבונית מרכזת.pdf",
+      "year": "2023",
+      "confidence": "HIGH",
+      "pages": 1,
+      "format_family": "FORMAT_A_2017_2018",
+      "header_fields_found": {
+        "customer_name": "מתח ח.י הנדסת חשמל בע\"מ",
+        "supplier_name": "erco.co.il",
+        "has_vat_line": "yes"
+      },
+      "line_items_extracted": 0,
+      "fields_identifiable_in_text": {
+        "document_date": false,
+        "invoice_number": false,
+        "customer_name": true,
+        "supplier_name": true,
+        "item_code": true,
+        "item_description": true,
+        "quantity": true,
+        "unit": true,
+        "unit_price_net": true,
+        "discount_percent": true,
+        "line_total_net": true,
+        "subtotal_net": true,
+        "vat": true,
+        "total_gross": true
+      },
+      "text_class": "TEXT_NATIVE"
+    },
+    {
+      "file": "main_invoices\\2023\\2023-05-31__קרן-ממויה__(מסמך ממוחשב) הדפסת חשבונית מרכזת - 25342304088.pdf",
+      "year": "2023",
+      "confidence": "HIGH",
+      "pages": 2,
+      "format_family": "FORMAT_B_2019_2021",
+      "header_fields_found": {
+        "document_date": "28/05/23",
+        "customer_name": "מתח ח.י הנדסת חשמל בע\"מ",
+        "supplier_name": "erco.co.il",
+        "has_vat_line": "yes"
+      },
+      "line_items_extracted": 16,
+      "fields_identifiable_in_text": {
+        "document_date": true,
+        "invoice_number": true,
+        "customer_name": true,
+        "supplier_name": true,
+        "item_code": true,
+        "item_description": true,
+        "quantity": true,
+        "unit": true,
+        "unit_price_net": true,
+        "discount_percent": true,
+        "line_total_net": true,
+        "subtotal_net": true,
+        "vat": true,
+        "total_gross": true
+      },
+      "text_class": "TEXT_NATIVE"
+    },
+    {
+      "file": "main_invoices\\2023\\2023-07-04__קרן-ממויה__(מסמך ממוחשב) הדפסת חשבונית מרכזת - 25342306022, חש. מרכזת יונ-.pdf",
+      "year": "2023",
+      "confidence": "HIGH",
+      "pages": 4,
+      "format_family": "FORMAT_B_2019_2021",
+      "header_fields_found": {
+        "document_date": "29/06/23",
+        "customer_name": "מתח ח.י הנדסת חשמל בע\"מ",
+        "supplier_name": "erco.co.il",
+        "has_vat_line": "yes"
+      },
+      "line_items_extracted": 28,
+      "fields_identifiable_in_text": {
+        "document_date": true,
+        "invoice_number": true,
+        "customer_name": true,
+        "supplier_name": true,
+        "item_code": true,
+        "item_description": true,
+        "quantity": true,
+        "unit": true,
+        "unit_price_net": false,
+        "discount_percent": true,
+        "line_total_net": true,
+        "subtotal_net": true,
+        "vat": true,
+        "total_gross": true
+      },
+      "text_class": "TEXT_NATIVE"
+    },
+    {
+      "file": "main_invoices\\2024\\2024-01-02__קרן-ממויה__(מסמך ממוחשב) הדפסת חשבונית מרכזת - 25342312052.pdf",
+      "year": "2024",
+      "confidence": "HIGH",
+      "pages": 2,
+      "format_family": "FORMAT_B_2019_2021",
+      "header_fields_found": {
+        "document_date": "31/12/23",
+        "customer_name": "מתח ח.י הנדסת חשמל בע\"מ",
+        "supplier_name": "erco.co.il",
+        "has_vat_line": "yes"
+      },
+      "line_items_extracted": 9,
+      "fields_identifiable_in_text": {
+        "document_date": true,
+        "invoice_number": true,
+        "customer_name": true,
+        "supplier_name": true,
+        "item_code": true,
+        "item_description": true,
+        "quantity": true,
+        "unit": true,
+        "unit_price_net": true,
+        "discount_percent": true,
+        "line_total_net": true,
+        "subtotal_net": true,
+        "vat": true,
+        "total_gross": true
+      },
+      "text_class": "TEXT_NATIVE"
+    },
+    {
+      "file": "main_invoices\\2024\\2024-03-27__רחלי-מזרחי__הדפסת קבלה - 25602401363.pdf",
+      "year": "2024",
+      "confidence": "MEDIUM",
+      "pages": 1,
+      "format_family": "FORMAT_UNKNOWN",
+      "header_fields_found": {
+        "invoice_number": "25602401363",
+        "customer_name": "מתח ח.י הנדסת חשמל בע\"מ",
+        "supplier_name": "erco.co.il",
+        "has_vat_line": "yes"
+      },
+      "line_items_extracted": 0,
+      "fields_identifiable_in_text": {
+        "document_date": false,
+        "invoice_number": true,
+        "customer_name": true,
+        "supplier_name": true,
+        "item_code": false,
+        "item_description": false,
+        "quantity": false,
+        "unit": false,
+        "unit_price_net": false,
+        "discount_percent": false,
+        "line_total_net": false,
+        "subtotal_net": true,
+        "vat": true,
+        "total_gross": true
+      },
+      "text_class": "TEXT_NATIVE"
+    },
+    {
+      "file": "main_invoices\\2024\\2024-07-07__ניר-סאייג__25352400386 - הדפסת חשבונית מרכזת.pdf",
+      "year": "2024",
+      "confidence": "HIGH",
+      "pages": 1,
+      "format_family": "FORMAT_B_2019_2021",
+      "header_fields_found": {
+        "customer_name": "מתח ח.י הנדסת חשמל בע\"מ",
+        "supplier_name": "erco.co.il",
+        "has_vat_line": "yes"
+      },
+      "line_items_extracted": 0,
+      "fields_identifiable_in_text": {
+        "document_date": false,
+        "invoice_number": false,
+        "customer_name": true,
+        "supplier_name": true,
+        "item_code": true,
+        "item_description": true,
+        "quantity": true,
+        "unit": true,
+        "unit_price_net": true,
+        "discount_percent": true,
+        "line_total_net": true,
+        "subtotal_net": true,
+        "vat": true,
+        "total_gross": true
+      },
+      "text_class": "TEXT_NATIVE"
+    },
+    {
+      "file": "main_invoices\\2024\\2024-09-03__קרן-ממויה__הדפסת חשבונית מרכזת - 25342407628.pdf",
+      "year": "2024",
+      "confidence": "HIGH",
+      "pages": 2,
+      "format_family": "FORMAT_B_2019_2021",
+      "header_fields_found": {
+        "document_date": "29/08/24",
+        "customer_name": "מתח ח.י הנדסת חשמל בע\"מ",
+        "supplier_name": "erco.co.il",
+        "has_vat_line": "yes"
+      },
+      "line_items_extracted": 10,
+      "fields_identifiable_in_text": {
+        "document_date": true,
+        "invoice_number": true,
+        "customer_name": true,
+        "supplier_name": true,
+        "item_code": true,
+        "item_description": true,
+        "quantity": true,
+        "unit": true,
+        "unit_price_net": true,
+        "discount_percent": true,
+        "line_total_net": true,
+        "subtotal_net": true,
+        "vat": true,
+        "total_gross": true
+      },
+      "text_class": "TEXT_NATIVE"
+    },
+    {
+      "file": "main_invoices\\2024\\2024-06-03__קרן-ממויה__הדפסת חשבונית מרכזת - 25342404396_ חש.pdf",
+      "year": "2024",
+      "confidence": "HIGH",
+      "pages": 4,
+      "format_family": "FORMAT_B_2019_2021",
+      "header_fields_found": {
+        "document_date": "29/05/24",
+        "customer_name": "מתח ח.י הנדסת חשמל בע\"מ",
+        "supplier_name": "erco.co.il",
+        "has_vat_line": "yes"
+      },
+      "line_items_extracted": 86,
+      "fields_identifiable_in_text": {
+        "document_date": true,
+        "invoice_number": true,
+        "customer_name": true,
+        "supplier_name": true,
+        "item_code": true,
+        "item_description": true,
+        "quantity": true,
+        "unit": true,
+        "unit_price_net": true,
+        "discount_percent": true,
+        "line_total_net": true,
+        "subtotal_net": true,
+        "vat": true,
+        "total_gross": true
+      },
+      "text_class": "TEXT_NATIVE"
+    },
+    {
+      "file": "main_invoices\\2025\\2025-01-02__קרן-ממויה__הדפסת חשבונית מרכזת - 25342412102_ חש.pdf",
+      "year": "2025",
+      "confidence": "HIGH",
+      "pages": 1,
+      "format_family": "FORMAT_B_2019_2021",
+      "header_fields_found": {
+        "document_date": "31/12/24",
+        "customer_name": "מתח ח.י הנדסת חשמל בע\"מ",
+        "supplier_name": "erco.co.il",
+        "has_vat_line": "yes"
+      },
+      "line_items_extracted": 2,
+      "fields_identifiable_in_text": {
+        "document_date": true,
+        "invoice_number": true,
+        "customer_name": true,
+        "supplier_name": true,
+        "item_code": true,
+        "item_description": true,
+        "quantity": true,
+        "unit": true,
+        "unit_price_net": true,
+        "discount_percent": true,
+        "line_total_net": true,
+        "subtotal_net": true,
+        "vat": true,
+        "total_gross": true
+      },
+      "text_class": "TEXT_NATIVE"
+    },
+    {
+      "file": "main_invoices\\2025\\2025-12-03__קרן-ממויה__הדפסת חשבונית מרכזת - 25342508769.pdf",
+      "year": "2025",
+      "confidence": "HIGH",
+      "pages": 1,
+      "format_family": "FORMAT_A_2017_2018",
+      "header_fields_found": {
+        "document_date": "27/11/25",
+        "invoice_number": "25342508769",
+        "customer_name": "מתח ח.י הנדסת חשמל בע\"מ",
+        "supplier_name": "erco.co.il",
+        "has_vat_line": "yes"
+      },
+      "line_items_extracted": 1,
+      "fields_identifiable_in_text": {
+        "document_date": true,
+        "invoice_number": true,
+        "customer_name": true,
+        "supplier_name": true,
+        "item_code": true,
+        "item_description": true,
+        "quantity": true,
+        "unit": false,
+        "unit_price_net": true,
+        "discount_percent": true,
+        "line_total_net": true,
+        "subtotal_net": true,
+        "vat": true,
+        "total_gross": true
+      },
+      "text_class": "TEXT_NATIVE"
+    },
+    {
+      "file": "main_invoices\\2025\\2025-10-08__קרן-ממויה__הדפסת חשבונית מרכזת - 25342507079.pdf",
+      "year": "2025",
+      "confidence": "HIGH",
+      "pages": 2,
+      "format_family": "FORMAT_B_2019_2021",
+      "header_fields_found": {
+        "document_date": "30/09/25",
+        "invoice_number": "25342507079",
+        "customer_name": "מתח ח.י הנדסת חשמל בע\"מ",
+        "supplier_name": "erco.co.il",
+        "has_vat_line": "yes"
+      },
+      "line_items_extracted": 4,
+      "fields_identifiable_in_text": {
+        "document_date": true,
+        "invoice_number": true,
+        "customer_name": true,
+        "supplier_name": true,
+        "item_code": true,
+        "item_description": true,
+        "quantity": true,
+        "unit": true,
+        "unit_price_net": false,
+        "discount_percent": true,
+        "line_total_net": true,
+        "subtotal_net": true,
+        "vat": true,
+        "total_gross": true
+      },
+      "text_class": "TEXT_NATIVE"
+    }
+  ],
+  "business_observations": {
+    "prices_before_vat": "YES — line totals and footer show pre-VAT amounts with separate VAT line",
+    "line_level_discounts": "YES — discount % column present on most formats",
+    "negative_quantities_credits": "YES — observed in sample text (credit/return lines)",
+    "credit_invoices_in_archive": "LIKELY — negative qty/amount lines present; not all messages are credit notes",
+    "double_billed_line_items": "POSSIBLE — central invoice aggregates delivery-note rows (doc ref per line)",
+    "central_invoice_contains_dn_items": "YES — each line includes delivery document reference (תעודה.ש / 445… / R… / M…)"
+  },
+  "recommendation": "Proceed with layout-aware text/table extraction (pdfplumber or PyMuPDF blocks) for TEXT_NATIVE ERCO central invoices (~99.2% of archive). Build per-format-family parsers for 3 discovered layouts. Reserve OCR for IMAGE_SCAN/UNREADABLE only (~0.2%). Do not OCR delivery notes. Validate parsers on 40-sample CSV, then batch-extract line items into staging tables before building the historical price dataset."
+}

@@ -1,0 +1,2 @@
+﻿year,invoice_number,invoice_date,sku,description,quantity,unit,net_unit_price,local_median,local_min,local_max,deviation_percent,peer_observation_count,comparison_window,reason_for_flag,pdf_filename
+2020,,28/01/20,8600108,מטר100.00 אדום20 צינור מריכף,100.00,meter,1.96,0.78,0.78,0.87,151.3,21,same_year,Local high: 151.3% above nearby median; outside robust local range,2020-01-28__2020-02-10__ניר-סאייג__p5236000593.pdf

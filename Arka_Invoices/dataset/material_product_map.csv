@@ -1,0 +1,1542 @@
+﻿normalized_product_key,item_code,canonical_description,product_family,material_driver,product_market_family,cable_type,conductor_count,cross_section_mm2,color,unit,manufacturer_or_brand,observation_count,usable_price_observation_count,sku_conflict,first_seen,last_seen,in_core_forecasting_universe,core_exclusion_reason
+SKU:01100041,01100041,כתר1.0 עד לבית הלקוח משלוח/הובלה,panel,OTHER,OTHER,,,,משלוח/הובלה,,,5,0,no,2024-07-28,2025-01-28,no,not_core_family
+SKU:03005,03005,CAT SDS-PLUS 7x110/16 מקדח לפטישון2492DA,accessory,OTHER,OTHER,,,,,,,1,1,no,2024-02-28,2024-02-28,no,not_core_family
+SKU:03015,03015,CAT SDS-PLUS 22x410/45 מקדח לפטישון2492DA,accessory,OTHER,OTHER,,,,,,,1,1,no,2023-07-27,2023-07-27,no,not_core_family
+SKU:03017,03017,CAT SDS-PLUS 7x50/10 מקדח לפטישון2492DA,accessory,OTHER,OTHER,,,,,,,5,5,no,2024-02-28,2024-11-28,no,not_core_family
+SKU:03024,03024,CAT SDS-PLUS 8x100/16 מקדח לפטישון2492DA,accessory,OTHER,OTHER,,,,,,,2,1,no,2023-07-27,2024-12-29,no,not_core_family
+SKU:03903,03903,"CAT יח'(שפיץ, שטוח, שטוח רחב3) סט איזמלים לפטישון2492DA",,UNKNOWN,OTHER,,,,,,,1,1,no,2022-08-25,2022-08-25,no,not_core_family
+SKU:07041,07041,GOLDBLATT מגני ברכיים ג'ל246G,,UNKNOWN,OTHER,,,,,,,1,1,no,2022-10-27,2022-10-27,no,not_core_family
+SKU:08713,08713,"לפטישוןSDS מ""מ25 איזמל שפיץ245D",,UNKNOWN,OTHER,,,,,,,1,0,no,2020-06-28,2020-06-28,no,not_core_family
+SKU:08729,08729,"לפטישוןSDS מ""מ25 איזמל שטוח245D",,UNKNOWN,OTHER,,,,,,,1,0,no,2020-06-28,2020-06-28,no,not_core_family
+SKU:09011,09011,"CAT לחיתוך כלליTURBO 4.5""/מ""מ115 דיסק יהלום2492DA",,UNKNOWN,OTHER,,,,,,,1,0,no,2022-10-27,2022-10-27,no,not_core_family
+SKU:09021,09021,"CAT לחיתוך קרמיקה ושישRIM 4""/מ""מ11 דיסק יהלום2492DA",,UNKNOWN,OTHER,,,,,,,1,0,no,2024-10-31,2024-10-31,no,not_core_family
+SKU:10021021,10021021,3x1.5 N2XY (מטר כבל)בחבילה,cable,COPPER,N2XY_COPPER_CABLE,N2XY,3,1.5,,,,1,1,no,2025-03-27,2025-03-27,yes,
+SKU:10116,10116,"CAT יח14.5""/ מ""מ115x1/8 מארז דיסק דקים לחיתוך והשחזת ברזל2492DA",,UNKNOWN,OTHER,,,,,,,1,0,no,2024-10-31,2024-10-31,no,not_core_family
+SKU:10118,10118,"4.5""/מ""מ3115x1/6"" ברזל 2492DA",,UNKNOWN,OTHER,,,,,,,1,0,no,2026-03-29,2026-03-29,no,not_core_family
+SKU:10150201,10150201,' מ5 ' חב- 3x1.5 כבל נאופרן,cable,UNKNOWN,OTHER,,3,1.5,,,,1,1,no,2022-02-24,2022-02-24,no,not_core_family
+SKU:1015150,1015150,תוף- 5x6 כבל נאופרן,cable,UNKNOWN,OTHER,,5,6,,,,1,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:1020102,1020102,EL-011 PG 9 צינור גמיש שחור,,UNKNOWN,OTHER,,,,שחור,,,5,5,no,2018-11-27,2024-11-28,no,not_core_family
+SKU:10201031,10201031,EL-011 PG 9 צינור גמיש לבן,,UNKNOWN,OTHER,,,,לבן,,,2,2,no,2018-12-31,2025-01-28,no,not_core_family
+SKU:10201032,10201032,EL-011 PG 9 צינור גמיש אדום,,UNKNOWN,OTHER,,,,אדום,,,2,2,no,2019-01-27,2019-01-27,no,not_core_family
+SKU:1020105,1020105,EL-014 PG 11 צינור גמיש שחור,,UNKNOWN,OTHER,,,,שחור,,,5,5,no,2019-08-25,2024-11-28,no,not_core_family
+SKU:10201050,10201050,"(100) מ""מ7 דיבל84000553/4"" מ.מרחק4931103",,UNKNOWN,OTHER,,,,,,,1,0,no,2019-03-29,2019-03-29,no,not_core_family
+SKU:10201051,10201051,EL-014 PG 11 צינור גמיש לבן,,UNKNOWN,OTHER,,,,לבן,,,4,3,no,2021-10-27,2024-12-29,no,not_core_family
+SKU:10201052,10201052,EL-014 PG 11 צינור גמיש אדום,,UNKNOWN,OTHER,,,,אדום,,,1,1,no,2022-01-26,2022-01-26,no,not_core_family
+SKU:1020106,1020106,EL-016 PG 13 צינור גמיש אפור,,UNKNOWN,OTHER,,,,אפור,,,4,4,no,2022-09-28,2022-12-29,no,not_core_family
+SKU:1020107,1020107,EL-016 PG 13 צינור גמיש שחור,,UNKNOWN,OTHER,,,,שחור,,,20,20,no,2017-10-03,2025-02-26,no,not_core_family
+SKU:10201071,10201071,EL-016 PG 13 צינור גמיש לבן,,UNKNOWN,OTHER,,,,לבן,,,10,10,no,2020-01-28,2024-10-31,no,not_core_family
+SKU:10201081,10201081,EL-018 PG 16 צינור גמיש לבן,,UNKNOWN,OTHER,,,,לבן,,,6,5,no,2020-11-26,2024-04-30,no,not_core_family
+SKU:1020109,1020109,EL-018 PG 16 צינור גמיש שחור,,UNKNOWN,OTHER,,,,שחור,,,19,18,no,2018-12-31,2024-09-30,no,not_core_family
+SKU:1020111,1020111,EL-022 PG 21 צינור גמיש שחור,,UNKNOWN,OTHER,,,,שחור,,,11,10,no,2020-01-28,2024-11-28,no,not_core_family
+SKU:10201111,10201111,EL-022 PG 21 צינור גמיש לבן,,UNKNOWN,OTHER,,,,לבן,,,3,3,no,2021-07-28,2023-11-28,no,not_core_family
+SKU:1021109,1021109,"3/4"" צינור מתכתי משוריין שחור",,UNKNOWN,OTHER,,,,שחור,,,3,3,no,2020-01-28,2023-12-31,no,not_core_family
+SKU:1027100,1027100,"""מ1.5-6 E9100x100x60קופסא חיבורים כתום",,UNKNOWN,OTHER,,,,כתום,,,6,1,no,2021-01-26,2023-12-31,no,not_core_family
+SKU:1040101,1040101,גודל103 וו דגם,,UNKNOWN,OTHER,,,,,,,2,2,no,2020-01-28,2020-01-28,no,not_core_family
+SKU:1050020,1050020,!!! בלדח דקור' קומפלט תקני,,UNKNOWN,OTHER,,,,,,,62,61,no,2017-10-03,2024-10-31,no,not_core_family
+SKU:10505640,10505640,IP-68 מקודד מתכתי מוגן מים,,UNKNOWN,OTHER,,,,,,,1,1,no,2020-12-30,2020-12-30,no,not_core_family
+SKU:10505641,10505641,DC 12-24V מקודד מואר מתכת,,UNKNOWN,OTHER,,,,,,,6,6,no,2020-12-30,2022-11-27,no,not_core_family
+SKU:10603,10603,FE18 E9 NHxH 3x1.5 כבל,cable,UNKNOWN,OTHER,,3,1.5,,,,9,8,no,2018-12-31,2021-08-26,no,not_core_family
+SKU:10610,10610,FE18 E9 NHxH 5x1.5 כבל,cable,UNKNOWN,OTHER,,5,1.5,,,,6,4,no,2019-08-25,2021-06-30,no,not_core_family
+SKU:10614,10614,FE18 E9 NHxH 12x1.5 כבל,cable,UNKNOWN,OTHER,,12,1.5,,,,4,3,no,2018-12-31,2021-06-30,no,not_core_family
+SKU:10640,10640,FE18 E9 NHxH 5x2.5 כבל,cable,UNKNOWN,OTHER,,5,2.5,,,,1,1,no,2021-08-26,2021-08-26,no,not_core_family
+SKU:10650,10650,FE18 E9 NHxH 5x4 כבל,cable,UNKNOWN,OTHER,,5,4,,,,2,2,no,2020-12-30,2022-01-26,no,not_core_family
+SKU:10660,10660,FE18 E9 NHxH 5x6 כבל,cable,UNKNOWN,OTHER,,5,6,,,,2,2,no,2019-08-25,2021-07-28,no,not_core_family
+SKU:10670,10670,FE18 E9 NHxH 5x1 כבל,cable,UNKNOWN,OTHER,,5,1,,,,3,3,no,2020-11-26,2020-12-30,no,not_core_family
+SKU:10680,10680,FE18 E9 NHxH 5x16 כבל,cable,UNKNOWN,OTHER,,5,16,,,,1,1,no,2022-08-25,2022-08-25,no,not_core_family
+SKU:10690,10690,FE18 E9 NHxH 3x25+16 כבל,cable,UNKNOWN,OTHER,,3,25,,,,2,2,no,2018-12-31,2022-08-25,no,not_core_family
+SKU:106912,106912,FE18 E9 NHxH 4x25 כבל,cable,UNKNOWN,OTHER,,4,25,,,,1,1,no,2021-06-30,2021-06-30,no,not_core_family
+SKU:106913,106913,FE18 E9 NHxH 4x35 כבל,cable,UNKNOWN,OTHER,,4,35,,,,2,2,no,2020-12-30,2023-04-27,no,not_core_family
+SKU:10733,10733,E92x2x0.8 כבל,cable,UNKNOWN,OTHER,,92,2,,,,2,2,no,2019-06-27,2019-08-25,no,not_core_family
+SKU:10734,10734,E94x2x0.8 כבל,cable,UNKNOWN,OTHER,,94,2,,,,1,1,no,2019-08-25,2019-08-25,no,not_core_family
+SKU:1107408,1107408,(אדום בלתי מחיק שטדלרS/M)טוש סימון,,UNKNOWN,OTHER,,,,אדום,,,1,1,no,2021-12-29,2021-12-29,no,not_core_family
+SKU:1107409,1107409,(שחור בלתי מחיק שטדלרS/M)טוש סימון,,UNKNOWN,OTHER,,,,שחור,,,1,1,no,2020-03-29,2020-03-29,no,not_core_family
+SKU:11074095,11074095,(100) SAPISELCO 284.5 חבק לבן900216x2x0.5 כבל רכזת99911034,cable,UNKNOWN,OTHER,,16,2,לבן,,,16,16,no,2020-08-27,2024-07-28,no,not_core_family
+SKU:1107410,1107410,"4000K 4W מ""מ105 לד עגולVEGA שקוע3850044",,UNKNOWN,OTHER,,,,,,,3,3,no,2019-03-04,2025-01-28,no,not_core_family
+SKU:1109806,1109806,5x1.5/2.5 מהדק חיבור מהיר99150592,,UNKNOWN,OTHER,,,,,,,30,30,no,2018-11-27,2024-07-28,no,not_core_family
+SKU:1119535,1119535,A ' קונטD נתיך דגם,,UNKNOWN,OTHER,,,,,,,5,5,no,2019-07-28,2022-09-28,no,not_core_family
+SKU:1119550,1119550,A ' קונטD נתיך דגם,,UNKNOWN,OTHER,,,,,,,1,1,no,2019-07-28,2019-07-28,no,not_core_family
+SKU:1119595,1119595,A גודל35A 'נתיך קונט,,UNKNOWN,OTHER,,,,,,,3,3,no,2019-07-28,2021-04-27,no,not_core_family
+SKU:1119735,1119735,A נתיך נאוזד,,UNKNOWN,OTHER,,,,,,,2,2,no,2020-07-26,2022-09-28,no,not_core_family
+SKU:1119750,1119750,A נתיך נאוזד,,UNKNOWN,OTHER,,,,,,,1,1,no,2019-07-28,2019-07-28,no,not_core_family
+SKU:1195003,1195003,חוםmm 12-6 ' מ1.25 צינור/מוט מתכווץ,,UNKNOWN,OTHER,,,,חום,,,1,1,no,2024-03-31,2024-03-31,no,not_core_family
+SKU:1195004,1195004,חום שחורmm 12-6 ' מ1.25 צינור/מוט מתכווץ,,UNKNOWN,OTHER,,,,שחור,,,1,1,no,2024-03-31,2024-03-31,no,not_core_family
+SKU:1195005,1195005,חום כתום12/6 ' מ1.25 צינור/מוט מתכווץ,,UNKNOWN,OTHER,,,,חום,,,1,1,no,2024-03-31,2024-03-31,no,not_core_family
+SKU:1200201,1200201,1155 נחושת לפי תקן2x2x0.5 (כבל טל')תוף,cable,COPPER,OTHER_CABLE,,2,2,,,,2,2,no,2020-03-29,2024-09-30,no,not_core_family
+SKU:12002015,12002015,"(H-100)' ממ""ר בחב1 נחושת גלויה590201 שח0.78 מטר300.00קשיח PVC חום2.5 חוט55032",wire,COPPER_PVC,COPPER_WIRE,,,2.5,חום,,PVC,61,0,yes,2017-10-03,2025-02-26,no,sku_conflict
+SKU:12002025,12002025,1155)חב'(נחושת לפי תקן3x2x0.5 'כבל טל,cable,COPPER,OTHER_CABLE,,3,2,,,,5,3,no,2019-03-04,2020-04-30,no,not_core_family
+SKU:1200203,1200203,1155 נחושת לפי תקן4x2x0.5 (כבל טלפון)תוף,cable,COPPER,OTHER_CABLE,,4,2,,,,2,2,no,2021-10-27,2022-04-27,no,not_core_family
+SKU:12002035,12002035,)בחב'(נחושת ת4x2x0.5 כבל טלפון,cable,COPPER,OTHER_CABLE,,4,2,,,,21,20,no,2018-12-31,2024-08-29,no,not_core_family
+SKU:12002055,12002055,1155)חב'(נחושת לפי תקן6x2x0.5 כבל טלפון,cable,COPPER,OTHER_CABLE,,6,2,,,,2,2,no,2024-08-29,2024-08-29,no,not_core_family
+SKU:12002075,12002075,1155)חב'(לפי תקן10x2x0.5 'כבל טל,cable,UNKNOWN,OTHER,,10,2,,,,9,9,no,2019-01-27,2024-03-31,no,not_core_family
+SKU:1200502,1200502,נחושת2x0.75 חוט לרמקול,wire,COPPER,COPPER_WIRE,,2,0.75,,,,1,1,no,2025-03-27,2025-03-27,yes,
+SKU:1200504,1200504,נחושת2x1.5 חוט לרמקול,wire,COPPER,COPPER_WIRE,,2,1.5,,,,1,1,no,2025-02-26,2025-02-26,yes,
+SKU:1200506,1200506,נחושת2x2.5 חוט לרמקול,wire,COPPER,COPPER_WIRE,,2,2.5,,,,1,1,no,2024-07-28,2024-07-28,yes,
+SKU:1201005,1201005,נחושת8x0.5 כבל פיקוד,cable,COPPER,OTHER_CABLE,,8,0.5,,,,5,5,no,2018-11-27,2025-02-26,no,not_core_family
+SKU:13116016,13116016,LED 28W דק' עד6 הרכבה+ממיר,lighting,OTHER,OTHER,,,,,,,1,1,no,2020-11-26,2020-11-26,no,not_core_family
+SKU:1312014,1312014,לוקס מרובע לקיר-ארמטורה דה,,UNKNOWN,OTHER,,,,,,,1,1,no,2024-05-29,2024-05-29,no,not_core_family
+SKU:1313420,1313420,"x16 מגע ""שוקו""עה""ט5 שקע",switchgear,OTHER,OTHER,,,,,,,2,2,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:1512106,1512106,"מפסק כפול תה""ט-אלגנט",switchgear,OTHER,OTHER,,,,,,,1,1,no,2020-02-27,2020-02-27,no,not_core_family
+SKU:15150372,15150372,שקע כח-פאר מוגן מים 15150372 שקוף,switchgear,OTHER,OTHER,,,,,,,1,1,no,2023-06-29,2023-06-29,no,not_core_family
+SKU:1515038,1515038,SUPER N N-2 קופסא695220102,,UNKNOWN,OTHER,,,,,,SUPER,12,12,no,2017-10-03,2023-11-28,no,not_core_family
+SKU:1516201,1516201,NEW פוקוס מפסק יחיד,switchgear,OTHER,OTHER,,,,,,,6,6,no,2017-10-03,2020-01-28,no,not_core_family
+SKU:1516202,1516202,NEW פוקוס מפסק כפול,switchgear,OTHER,OTHER,,,,,,,4,4,no,2017-10-03,2020-01-28,no,not_core_family
+SKU:1516203,1516203,פוקוס מפסק חילוף,switchgear,OTHER,OTHER,,,,,,,1,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:1516205,1516205,NEW פול מואר חדיש2 פוקוס מפסק לדוד,switchgear,OTHER,OTHER,,,,,,,1,1,no,2020-04-30,2020-04-30,no,not_core_family
+SKU:1516207,1516207,NEW פוקוס לחצן חדיש מואר,,UNKNOWN,OTHER,,,,,,,2,2,no,2017-10-03,2018-12-31,no,not_core_family
+SKU:1516209,1516209,"NEW פוקוס שקע כח תה""ט",switchgear,OTHER,OTHER,,,,,,,6,6,no,2017-10-03,2020-01-28,no,not_core_family
+SKU:15162091,15162091,"NEW פוקוס שקע כח מוגן מים תה""ט",switchgear,OTHER,OTHER,,,,,,,1,1,no,2019-09-24,2019-09-24,no,not_core_family
+SKU:1516213,1516213,"NEW פוקוס טלפון בזק תה""ט",,UNKNOWN,OTHER,,,,,,,1,1,no,2019-07-28,2019-07-28,no,not_core_family
+SKU:151700203,151700203,' מהדקים)שורה(מס1151700203 א.נתך,,UNKNOWN,OTHER,,,,,,,11,11,no,2019-08-25,2024-01-28,no,not_core_family
+SKU:151700204,151700204,א.נתך5 ' מהדקים)שורה(מס6,,UNKNOWN,OTHER,,,,,,,1,1,no,2023-09-28,2023-09-28,no,not_core_family
+SKU:15170043,15170043,"(100) מ""מ0.75 סופיות מבודדת9922010003 (חדש20) 16 צינור מופה אדום84000791",,UNKNOWN,OTHER,,,,אדום,,,122,0,yes,2017-10-03,2025-02-26,no,not_core_family
+SKU:15170053,15170053,(יח12)שורה של3 ' מסTRIDONIC מהדק גמיש,,UNKNOWN,OTHER,,,,,,,6,6,no,2018-11-27,2023-02-28,no,not_core_family
+SKU:15170060,15170060,(יח12)שורה של4 ' מסTRIDONIC מהדק גמיש,,UNKNOWN,OTHER,,,,,,,3,3,no,2019-06-27,2023-09-28,no,not_core_family
+SKU:15170061,15170061,(פלסטי תקני)וויסבורד/נתך4 מהדק מס,,UNKNOWN,OTHER,,,,וויסבורד/נתך,,,3,3,no,2017-10-03,2019-01-27,no,not_core_family
+SKU:1520050,1520050,"10A מפסק יחיד נועה תה""ט836003 !!! בלדח דקור' קומפלט תקני1050020",switchgear,OTHER,OTHER,,,,,,,26,0,yes,2017-10-03,2024-06-27,no,not_core_family
+SKU:1520051,1520051,!!! בלדח דקור' קומפלט תקני105002 שח0.48 מטר300.0 קשיחPVC חום1.5 חוט55022,wire,COPPER_PVC,COPPER_WIRE,,,1.5,חום,,PVC,24,0,yes,2017-10-03,2023-11-28,no,sku_conflict
+SKU:1524002,1524002,פיני-תקע צד דו,,UNKNOWN,OTHER,,,,,,,1,1,no,2024-08-29,2024-08-29,no,not_core_family
+SKU:1524004,1524004,"1P 16A 6kA C GEWISS מאמ""ת3992007",breaker,OTHER,OTHER,,,,,,GEWISS,39,0,yes,2017-10-03,2024-12-29,no,not_core_family
+SKU:15240055,15240055,מפסק מואר+ שקע תקע,switchgear,OTHER,OTHER,,,,,,,1,1,no,2025-03-27,2025-03-27,no,not_core_family
+SKU:15240067,15240067,שקע קופלונג כח לבן,switchgear,OTHER,OTHER,,,,לבן,,,4,4,no,2020-02-27,2024-07-28,no,not_core_family
+SKU:15240068,15240068,שקע קופלונג כח שחור,switchgear,OTHER,OTHER,,,,שחור,,,1,1,no,2022-02-24,2022-02-24,no,not_core_family
+SKU:1524009,1524009,תקע צד תלת פיני שחור,,UNKNOWN,OTHER,,,,שחור,,,2,2,no,2021-03-25,2022-02-24,no,not_core_family
+SKU:1524011,1524011,T-2 תקע כפול,,UNKNOWN,OTHER,,,,,,,1,1,no,2020-12-30,2020-12-30,no,not_core_family
+SKU:1524012,1524012,T-3 תקע משולש,,UNKNOWN,OTHER,,,,,,,2,2,no,2017-10-03,2021-06-30,no,not_core_family
+SKU:15240121,15240121,(אנכי)תקניT-3 תקע משולש,,UNKNOWN,OTHER,,,,,,,1,1,no,2020-07-26,2020-07-26,no,not_core_family
+SKU:1525010,1525010,!!! בלדח דקור' קומפלט תקני1050020,,UNKNOWN,OTHER,,,,,,,3,3,no,2021-01-26,2022-10-27,no,not_core_family
+SKU:1525011,1525011,' מ5 באורך3x1.5 כבל+תוף,cable,UNKNOWN,OTHER,,3,1.5,,,,7,6,no,2019-09-24,2024-03-31,no,not_core_family
+SKU:1525026,1525026,43.00% שח1.59 מטר100.0 גמישNYAF צ/י2.5 חוט595520 (100) SAPISELCO 284.5 חבק לבן90020,wire,COPPER,COPPER_WIRE,,,2.5,לבן,,,5,0,yes,2019-03-04,2022-08-25,no,sku_conflict
+SKU:1525027,1525027,x1.5 מטר חתך לכבל15-2 כבל מאריך+תוף,cable,UNKNOWN,OTHER,,,,,,,3,0,no,2020-02-27,2022-10-27,no,not_core_family
+SKU:1527015,1527015,"נורה עה""ט+לחצן פעמון מלבני",,UNKNOWN,OTHER,,,,,,,6,6,no,2021-07-28,2024-01-28,no,not_core_family
+SKU:1530007,1530007,GRASSLIN טיימאון שקע ישראלי,switchgear,OTHER,OTHER,,,,,,,2,2,no,2020-06-28,2020-06-28,no,not_core_family
+SKU:1531005,1531005,תקע יצוק+ ' מ1 כבל+ 3 רב שקע,cable,UNKNOWN,OTHER,,,,,,,1,1,no,2022-10-27,2022-10-27,no,not_core_family
+SKU:1531008,1531008,תקע יצוק+ ' מ1 כבל+ 6 רב שקע,cable,UNKNOWN,OTHER,,,,,,,3,3,no,2017-10-03,2022-10-27,no,not_core_family
+SKU:1531011,1531011,מפסק+כבל+RK5-K-S רב שקע,cable,UNKNOWN,OTHER,,,,,,,2,2,no,2020-07-26,2024-06-27,no,not_core_family
+SKU:1531012,1531012,תקע יצוק+ ' מ1 כבל+ מפסק+ 6 רב שקע,cable,UNKNOWN,OTHER,,,,,,,1,1,no,2023-10-29,2023-10-29,no,not_core_family
+SKU:1531014,1531014,מפסק+ ' מ3 כבל+ 4 רב שקע,cable,UNKNOWN,OTHER,,,,,,,1,1,no,2023-10-29,2023-10-29,no,not_core_family
+SKU:15310141,15310141,' מ3 כבל+ 4 רב שקע,cable,UNKNOWN,OTHER,,,,,,,1,1,no,2020-12-30,2020-12-30,no,not_core_family
+SKU:1531015,1531015,44.00% שח5.54 מטר100.0 קשיחPVC צ/י1 חוט56013,wire,COPPER_PVC,COPPER_WIRE,,,1,צ/י,,PVC,4,0,yes,2019-01-27,2022-10-27,no,sku_conflict
+SKU:1531016,1531016,מפסק+ ' מ3 כבל+ 6 רב שקע,cable,UNKNOWN,OTHER,,,,,,,2,2,no,2019-08-25,2023-11-28,no,not_core_family
+SKU:15310161,15310161,' מ3 כבל+ 6 רב שקע,cable,UNKNOWN,OTHER,,,,,,,3,3,no,2020-12-30,2024-08-29,no,not_core_family
+SKU:1531020,1531020,מפסק+ ' מ1 כבל+ 1 רב שקע,cable,UNKNOWN,OTHER,,,,,,,2,2,no,2017-10-03,2020-12-30,no,not_core_family
+SKU:1531025,1531025,A USB שקעים2 + ' מ1 כבל+ 3 רב שקע,cable,UNKNOWN,OTHER,,,,,,,1,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:1531028,1531028,A USB שקעים2 + ' מ1 כבל+ 5 רב שקע,cable,UNKNOWN,OTHER,,,,,,,1,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:1532014,1532014,חדיש יורו מפסק דוד,switchgear,OTHER,OTHER,,,,,,,1,1,no,2023-05-28,2023-05-28,no,not_core_family
+SKU:1542002,1542002,"שקע טלפון חדש עה""ט",switchgear,OTHER,OTHER,,,,,,,4,4,no,2019-07-28,2022-06-27,no,not_core_family
+SKU:156001,156001,"וגן ילדיםNK-1 שקע עה""ט",switchgear,OTHER,OTHER,,,,,,,11,9,no,2019-06-27,2024-12-29,no,not_core_family
+SKU:156002,156002,"וגן ילדיםNK-2 שקע עה""ט",switchgear,OTHER,OTHER,,,,,,,7,7,no,2019-07-28,2024-05-29,no,not_core_family
+SKU:156003,156003,"מוגן ילדיםNK-3 שקע עה""ט",switchgear,OTHER,OTHER,,,,,,,1,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:156004,156004,"מוגן ילדיםNK-4 שקע עה""ט",switchgear,OTHER,OTHER,,,,,,,2,2,no,2017-10-03,2020-11-26,no,not_core_family
+SKU:156006,156006,"מוגן ילדיםNK-6 שקע עה""ט",switchgear,OTHER,OTHER,,,,,,,1,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:156010,156010,"עה""טNK מפסק יחיד",switchgear,OTHER,OTHER,,,,,,,1,1,no,2022-08-25,2022-08-25,no,not_core_family
+SKU:156014,156014,"עה""טNK קוטבי-מפסק דו",switchgear,OTHER,OTHER,,,,,,,1,1,no,2023-11-28,2023-11-28,no,not_core_family
+SKU:156016,156016,"עה""טNK לחצן חדיש מואר",,UNKNOWN,OTHER,,,,,,,2,2,no,2023-06-29,2023-12-31,no,not_core_family
+SKU:156017,156017,"עה""טNK שקע למזגן",switchgear,OTHER,OTHER,,,,,,,2,2,no,2018-12-31,2022-07-26,no,not_core_family
+SKU:156023,156023,VEGA 4-32 מקדח מדורג לאימפקט995650275,accessory,OTHER,OTHER,,,,,,,6,0,yes,2021-01-26,2024-08-29,no,not_core_family
+SKU:156024,156024,מוגן מים שקוףNK-1 שקע,switchgear,OTHER,OTHER,,,,,,,10,10,no,2018-12-31,2024-01-28,no,not_core_family
+SKU:156025,156025,מוגן מים שקוףNK-2 שקע,switchgear,OTHER,OTHER,,,,,,,1,1,no,2022-01-26,2022-01-26,no,not_core_family
+SKU:156030,156030,"עה""טIP54 NK מפסק יחיד/חילוף מוגן מים",switchgear,OTHER,OTHER,,,,יחיד/חילוף,,,1,1,no,2023-09-28,2023-09-28,no,not_core_family
+SKU:159009,159009,פול מואר לדוד מיראז' לבן2 מפסק,switchgear,OTHER,OTHER,,,,לבן,,,1,1,no,2023-11-28,2023-11-28,no,not_core_family
+SKU:1597168,1597168,"מודול תה""ט3 ' דק' לקופ12 טיימר מכני",,UNKNOWN,OTHER,,,,,,,3,3,no,2020-12-30,2022-11-27,no,not_core_family
+SKU:15971705,15971705,גוויס- / מטען כפול לUSB שקע,switchgear,OTHER,OTHER,,,,,,,1,1,no,2020-12-30,2020-12-30,no,not_core_family
+SKU:16005101,16005101,"מ""מ שחור ניילון4 סטלבנד עובי 16005101 Anguila",,UNKNOWN,OTHER,,,,שחור,,,1,0,no,2025-03-27,2025-03-27,no,not_core_family
+SKU:16005102,16005102,"Anguila מטר15 מ""מ שחור ניילון4 סטלבנד עובי",,UNKNOWN,OTHER,,,,שחור,,,8,2,no,2021-09-26,2024-08-29,no,not_core_family
+SKU:16005103,16005103,"Anguila מטר2 מ""מ שחור ניילון4 סטלבנד עובי",,UNKNOWN,OTHER,,,,שחור,,,5,2,no,2022-01-26,2025-03-27,no,not_core_family
+SKU:16005104,16005104,Anguila מטר25 סטלבנד שחור ניילון,,UNKNOWN,OTHER,,,,שחור,,,7,3,no,2021-05-27,2022-10-27,no,not_core_family
+SKU:16005105,16005105,Anguila מטר3 סטלבנד שחור ניילון,,UNKNOWN,OTHER,,,,שחור,,,1,0,no,2020-06-28,2020-06-28,no,not_core_family
+SKU:1601010,1601010,שלבים ארכה4 סולם עץ מקצועי,,UNKNOWN,OTHER,,,,,,,2,2,no,2023-02-28,2024-03-31,no,not_core_family
+SKU:1601011,1601011,שלבים ארכה5 סולם עץ מקצועי,,UNKNOWN,OTHER,,,,,,,1,1,no,2023-02-28,2023-02-28,no,not_core_family
+SKU:1601012,1601012,שלבים ארכה6 סולם עץ מקצועי,,UNKNOWN,OTHER,,,,,,,2,2,no,2022-12-29,2023-02-28,no,not_core_family
+SKU:1601013,1601013,שלבים ארכה7 סולם עץ מקצועי,,UNKNOWN,OTHER,,,,,,,1,1,no,2022-11-27,2022-11-27,no,not_core_family
+SKU:161004,161004,"VEGA 1x10C 6KA ח""א",,UNKNOWN,OTHER,,,,,,,37,36,no,2018-12-31,2025-02-26,no,not_core_family
+SKU:161005,161005,"VEGA 1x16C 6KA ח""א",,UNKNOWN,OTHER,,,,,,,40,40,no,2020-03-29,2024-10-31,no,not_core_family
+SKU:161006,161006,"VEGA 1x20C 6KA ח""א",,UNKNOWN,OTHER,,,,,,,8,8,no,2018-12-31,2025-03-27,no,not_core_family
+SKU:161007,161007,VEGA 1x25C 6KA חצי אוטומט,,UNKNOWN,OTHER,,,,,,,1,1,no,2023-07-27,2023-07-27,no,not_core_family
+SKU:161009,161009,"VEGA 1x40C 6KA ח""א",,UNKNOWN,OTHER,,,,,,,10,10,no,2020-06-28,2022-08-25,no,not_core_family
+SKU:161026,161026,"VEGA 2Px32C 6KA ח""א",,UNKNOWN,OTHER,,,,,,,1,1,no,2019-01-27,2019-01-27,no,not_core_family
+SKU:161042,161042,VEGA 3Px10C 6KA חצי אוטומט,,UNKNOWN,OTHER,,,,,,,1,1,no,2024-01-28,2024-01-28,no,not_core_family
+SKU:161043,161043,VEGA 3Px16C 6KA חצי אוטומט,,UNKNOWN,OTHER,,,,,,,21,21,no,2022-05-29,2024-10-31,no,not_core_family
+SKU:161044,161044,"VEGA 3Px20C 6KA ח""א",,UNKNOWN,OTHER,,,,,,,5,5,no,2019-07-28,2024-10-31,no,not_core_family
+SKU:161045,161045,"VEGA 3Px25C 6KA ח""א",,UNKNOWN,OTHER,,,,,,,16,16,no,2020-11-26,2024-10-31,no,not_core_family
+SKU:161046,161046,"VEGA 3Px32C 6KA ח""א",,UNKNOWN,OTHER,,,,,,,5,5,no,2020-02-27,2023-08-29,no,not_core_family
+SKU:161047,161047,"VEGA 3Px40C 6KA ח""א",,UNKNOWN,OTHER,,,,,,,3,3,no,2020-12-30,2024-02-28,no,not_core_family
+SKU:161061,161061,"VEGA 1x10C 6KA ח""א161004",,UNKNOWN,OTHER,,,,,,,12,12,no,2019-01-27,2023-07-27,no,not_core_family
+SKU:161062,161062,"VEGA 1x10C 6KA ח""א1610041P 10A 6kA C GEWISS מאמ""ת3992006",breaker,OTHER,OTHER,,,,,,GEWISS,21,21,no,2020-03-29,2024-10-31,no,not_core_family
+SKU:161063,161063,VEGA A דגם4x63A 30MA ממסר פחת,,UNKNOWN,OTHER,,,,,,,1,1,no,2024-05-29,2024-05-29,no,not_core_family
+SKU:161096,161096,"מ""מ תקן כבוי אש11 נועל מאמ""ת רוחב",breaker,OTHER,OTHER,,,,,,,1,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:162006,162006,VEGA 230V 2x25A 2NO מגען מודולרי,,UNKNOWN,OTHER,,,,,,,10,10,no,2020-03-29,2024-03-31,no,not_core_family
+SKU:162070,162070,VEGA 2033 דגם220V 2000W אקדח חום,accessory,OTHER,OTHER,,,,חום,,,2,2,no,2021-10-27,2024-03-31,no,not_core_family
+SKU:1630006,1630006,(' יח100) 20/25 בודדELEMATIC שלה פלסטיק,,UNKNOWN,OTHER,,,,,,,7,7,no,2018-12-31,2019-07-28,no,not_core_family
+SKU:1630012,1630012,(' יח100) 20/25 כפולELEMATIC שלה פלסטיק,,UNKNOWN,OTHER,,,,,,,5,5,no,2019-01-27,2019-03-04,no,not_core_family
+SKU:1640003,1640003,"לבן16"" FLY מאוורר עמוד",,UNKNOWN,OTHER,,,,לבן,,,1,1,no,2024-08-29,2024-08-29,no,not_core_family
+SKU:1660014,1660014,W תנור חימום אינפרא לקיר חדר אמבטיה,,UNKNOWN,OTHER,,,,,,,1,1,no,2020-01-28,2020-01-28,no,not_core_family
+SKU:1660020,1660020,שלט+ 2500W תנור חימום אינפרא לקיר,,UNKNOWN,OTHER,,,,,,,1,1,no,2020-01-28,2020-01-28,no,not_core_family
+SKU:1660030,1660030,מעמד/רגל לתנור אינפרא,,UNKNOWN,OTHER,,,,מעמד/רגל,,,1,1,no,2020-01-28,2020-01-28,no,not_core_family
+SKU:167003,167003,VEGA CR2025 סוללה לתיום,,UNKNOWN,OTHER,,,,,,,1,1,no,2024-10-31,2024-10-31,no,not_core_family
+SKU:167004,167004,VEGA CR2032 סוללה ליתיום,,UNKNOWN,OTHER,,,,,,,4,4,no,2020-02-27,2024-10-31,no,not_core_family
+SKU:167005,167005,VEGA LR6 AA גודלVEGA סוללות4 מארז,,UNKNOWN,OTHER,,,,,,,5,4,no,2021-09-26,2024-09-30,no,not_core_family
+SKU:167007,167007,CR2016 סוללה לתיום,,UNKNOWN,OTHER,,,,,,,1,1,no,2024-11-28,2024-11-28,no,not_core_family
+SKU:167008,167008,LR03 AAA גודלVEGA סוללות4 מארז,,UNKNOWN,OTHER,,,,,,,6,5,no,2020-08-27,2024-12-29,no,not_core_family
+SKU:167012,167012,LR6 AA גודלVEGA סוללות1 מארז,,UNKNOWN,OTHER,,,,,,,22,22,no,2018-12-31,2024-12-29,no,not_core_family
+SKU:167015,167015,LR03 AAA גודלVEGA סוללות1 מארז,,UNKNOWN,OTHER,,,,,,,17,17,no,2018-12-31,2024-11-28,no,not_core_family
+SKU:167019,167019,VEGA 9V סוללה,,UNKNOWN,OTHER,,,,,,,4,4,no,2018-11-27,2022-05-29,no,not_core_family
+SKU:168005,168005,EC קומפלט25A ארון חשמל זמני,,UNKNOWN,OTHER,,,,,,,4,4,no,2020-10-22,2024-08-29,no,not_core_family
+SKU:1690023,1690023,לחצן+ פעמונים אלחוטיים2 דורינה,wire,UNKNOWN,OTHER,,,,,,,1,1,no,2024-04-30,2024-04-30,no,not_core_family
+SKU:1780001,1780001,48-לוח ללא בסיס ל997615531,panel,OTHER,OTHER,,,,,,,26,23,no,2020-09-24,2025-02-26,no,not_core_family
+SKU:1780002,1780002,x65x3 קופסת חבורים,,UNKNOWN,OTHER,,,,,,,6,2,no,2019-06-27,2023-11-28,no,not_core_family
+SKU:1800101,1800101,(1012) ONKA אפור2.5 מהדק לפס,,UNKNOWN,OTHER,,,,אפור,,,9,9,no,2021-08-26,2024-02-28,no,not_core_family
+SKU:1800102,1800102,(1013) ONKA קרם2.5 מהדק לפס,,UNKNOWN,OTHER,,,,,,,2,2,no,2020-12-30,2021-02-28,no,not_core_family
+SKU:1800104,1800104,(1015) ONKA כחול2.5 מהדק לפס,,UNKNOWN,OTHER,,,,כחול,,,7,7,no,2020-12-30,2023-12-31,no,not_core_family
+SKU:1800110,1800110,(1022) ONKA אפור4 מהדק לפס,,UNKNOWN,OTHER,,,,אפור,,,1,1,no,2021-11-25,2021-11-25,no,not_core_family
+SKU:1800113,1800113,(1025) ONKA כחול4 מהדק לפס,,UNKNOWN,OTHER,,,,כחול,,,1,1,no,2021-11-25,2021-11-25,no,not_core_family
+SKU:1800118,1800118,"(1030) ONKA צ""י4 מהדק לפס",,UNKNOWN,OTHER,,,,,,,1,1,no,2021-11-25,2021-11-25,no,not_core_family
+SKU:1800122,1800122,(1035) ONKA כחול6 מהדק לפס,,UNKNOWN,OTHER,,,,כחול,,,1,1,no,2024-10-31,2024-10-31,no,not_core_family
+SKU:1800131,1800131,(1045) ONKA כחול1 מהדק לפס,,UNKNOWN,OTHER,,,,כחול,,,1,1,no,2022-02-24,2022-02-24,no,not_core_family
+SKU:1800140,1800140,(1135) ONKA לפס כחול16 מהדק,,UNKNOWN,OTHER,,,,כחול,,,1,1,no,2024-02-28,2024-02-28,no,not_core_family
+SKU:1800146,1800146,(1142) ONKA אפור25/35 מהדק לפס,,UNKNOWN,OTHER,,,,אפור,,,1,1,no,2021-12-29,2021-12-29,no,not_core_family
+SKU:1800309,1800309,ONKA כחול4 מהדק כפול לפס1800312,,UNKNOWN,OTHER,,,,כחול,,,1,1,no,2021-02-28,2021-02-28,no,not_core_family
+SKU:1800351,1800351,ONKA כחול4 מהדק כפול לפס1800312,,UNKNOWN,OTHER,,,,כחול,,,1,1,no,2021-02-28,2021-02-28,no,not_core_family
+SKU:1800509,1800509,"1P 16A 6kA C GEWISS RB61 מאמ""ת דגם3991507",breaker,OTHER,OTHER,,,,,,GEWISS,3,3,no,2021-03-25,2021-12-29,no,not_core_family
+SKU:1800513,1800513,ONKA כתום6 פול1 גשר ננעץ,,UNKNOWN,OTHER,,,,כתום,,,1,1,no,2024-10-31,2024-10-31,no,not_core_family
+SKU:1800517,1800517,(1943) ONKA כתום1 פול1 גשר ננעץ,,UNKNOWN,OTHER,,,,כתום,,,1,1,no,2022-02-24,2022-02-24,no,not_core_family
+SKU:1876410,1876410,חיתוך דקים מקיטה 245D,,UNKNOWN,OTHER,,,,,,,1,0,no,2026-08-27,2026-08-27,no,not_core_family
+SKU:190001,190001,' מ1. מסוכךRG45 מגשר99911151,,UNKNOWN,OTHER,,,,,,,22,2,no,2018-11-27,2024-12-29,no,not_core_family
+SKU:190004,190004,תקן7 קופסא,,UNKNOWN,OTHER,,,,,,,5,0,no,2018-11-27,2022-02-24,no,not_core_family
+SKU:190010,190010,תקן55 קופסא עומק,,UNKNOWN,OTHER,,,,,,,3,3,no,2021-05-27,2023-08-29,no,not_core_family
+SKU:190016,190016,"מ""מ ירוק/כתום2 קופסא שוודי",,UNKNOWN,OTHER,,,,ירוק,,,4,4,no,2022-08-25,2024-08-29,no,not_core_family
+SKU:1900225,1900225,"ללא מחיצות תקן-מחוזקת- מודול תה""ט3 קופסא",,UNKNOWN,OTHER,,,,,,,31,30,no,2021-04-27,2025-02-26,no,not_core_family
+SKU:190023,190023,"מודול תה""ט3 קופסא עמוקה",,UNKNOWN,OTHER,,,,,,,1,1,no,2024-10-31,2024-10-31,no,not_core_family
+SKU:190025,190025,"4000K 4W מ""מ105 לד עגולVEGA שקוע38500441P 16A 6kA C GEWISS מאמ""ת3992007",breaker,OTHER,OTHER,,,,,,GEWISS,2,2,no,2019-03-04,2019-03-04,no,not_core_family
+SKU:1900255,1900255,"ללא מחיצות תקן-מחוזקת- מודול תה""ט4 קופסא",,UNKNOWN,OTHER,,,,,,,12,12,no,2021-04-27,2025-02-26,no,not_core_family
+SKU:190028,190028,()מבנה מיני50VA שנאי הלוגן77150003,,UNKNOWN,OTHER,,,,,,,5,5,no,2020-11-26,2022-12-29,no,not_core_family
+SKU:190034,190034,לקיר גבס עם ברגים תקן4 קופסא,,UNKNOWN,OTHER,,,,,,,1,1,no,2021-08-26,2021-08-26,no,not_core_family
+SKU:190041,190041,לקיר גבס ללא ברגים פטנט תקן3 קופסא,,UNKNOWN,OTHER,,,,,,,2,2,no,2020-09-24,2021-06-30,no,not_core_family
+SKU:190049,190049,"(200) מ""מ0.75 סופיות מבודדת99220101 ExL צהובOLFA סכין יפנית רחבה995650531",,UNKNOWN,OTHER,,,,צהוב,,,36,36,no,2019-09-24,2024-10-31,no,not_core_family
+SKU:190058,190058,תקן55 קופסא גבס פטנט,,UNKNOWN,OTHER,,,,,,,6,6,no,2019-01-27,2025-03-27,no,not_core_family
+SKU:190109,190109,תקשורת7 מכסה,,UNKNOWN,OTHER,,,,,,,2,0,no,2020-07-26,2020-07-26,no,not_core_family
+SKU:190115,190115,תקן7 מכסה,,UNKNOWN,OTHER,,,,,,,1,0,no,2020-01-28,2020-01-28,no,not_core_family
+SKU:190139,190139,"/4"" 2 קשת רון",,UNKNOWN,OTHER,,,,,,,1,1,no,2019-10-25,2019-10-25,no,not_core_family
+SKU:190184,190184,(100) SAPISELCO 327.5 חבק לבן90025,,UNKNOWN,OTHER,,,,לבן,,,6,6,no,2021-02-28,2024-09-30,no,not_core_family
+SKU:190199,190199,"מ""מ תקשורת ירוק / אדום2 צינור מופה",,UNKNOWN,OTHER,,,,אדום,,,2,2,no,2020-02-27,2020-02-27,no,not_core_family
+SKU:190250,190250,' חב1.0 (' יח10)מארז16/2 שלה פלסטי בודד,,UNKNOWN,OTHER,,,,,,,27,0,yes,2020-11-26,2025-02-26,no,not_core_family
+SKU:190251,190251,' חב5.0 (' יח10)מארז23/25 שלה פלסטי בודד,,UNKNOWN,OTHER,,,,,,,1,1,no,2021-06-30,2021-06-30,no,not_core_family
+SKU:190252,190252,' חב1.0 (' יח10)מארז16/2 שלה פלסטי כפול,,UNKNOWN,OTHER,,,,,,,19,0,yes,2020-11-26,2024-12-29,no,not_core_family
+SKU:190253,190253,' חב5.0 (' יח10)מארז23/25 שלה פלסטי כפול,,UNKNOWN,OTHER,,,,,,,1,1,no,2022-08-25,2022-08-25,no,not_core_family
+SKU:21001,21001,"ממ""ר5x1.5-6 מופה מתכוצת",,UNKNOWN,OTHER,,,,,,,1,1,no,2020-09-24,2020-09-24,no,not_core_family
+SKU:2101011110,2101011110,"FH202 דגם2x40A 30mA ממסר פחת6210201203 SH201 C אופיין16A חד פאזי6KA מא""ז62101011116",,UNKNOWN,OTHER,,,,,,,3,2,no,2020-08-27,2025-01-28,no,not_core_family
+SKU:2101011116,2101011116,"SH201 C אופיין10A חד פאזי6KA מא""ז6210101111 SH201 C אופיין32A חד פאזי6KA מא""ז62101011132",,UNKNOWN,OTHER,,,,,,,1,1,no,2020-08-27,2020-08-27,no,not_core_family
+SKU:2101011125,2101011125,"SH201 C אופיין32A חד פאזי6KA מא""ז62101011132",,UNKNOWN,OTHER,,,,,,,1,1,no,2020-08-27,2020-08-27,no,not_core_family
+SKU:2101011132,2101011132,"SH201 C אופיין16A חד פאזי6KA מא""ז62101011116 SH201 C אופיין25A חד פאזי6KA מא""ז62101011125",,UNKNOWN,OTHER,,,,,,,1,1,no,2020-08-27,2020-08-27,no,not_core_family
+SKU:2101032420,2101032420,SH203 C אופיין20A תלת פאזי6KA חצי אוטומט6,,UNKNOWN,OTHER,,,,,,,1,1,no,2022-05-29,2022-05-29,no,not_core_family
+SKU:2101032432,2101032432,"SH203 C אופיין32A תלת פאזי6KA מא""ז6",,UNKNOWN,OTHER,,,,,,,3,2,no,2019-10-25,2020-02-27,no,not_core_family
+SKU:2101032440,2101032440,3x2.5 N2XY (מטר כבל)בחבילה5951061,cable,COPPER,N2XY_COPPER_CABLE,N2XY,3,2.5,,,,2,2,no,2019-11-27,2021-05-27,yes,
+SKU:2101042710,2101042710,M K אופיין10A חד פאזי10KA חצי אוטומט6,,UNKNOWN,OTHER,,,,,,,1,1,no,2022-02-24,2022-02-24,no,not_core_family
+SKU:2101080003,2101080003,"SA 1 S200/SH20 אביזר נעילה למא""ז6",,UNKNOWN,OTHER,,,,,,,1,1,no,2022-02-24,2022-02-24,no,not_core_family
+SKU:2101112510,2101112510,"GEWISS מודול תה""ט לקיר גבס3 'קופ3924403PM",,UNKNOWN,OTHER,,,,,,GEWISS,1,0,no,2021-03-25,2021-03-25,no,not_core_family
+SKU:21017,21017,/8 שרוול מתכווץ עם דבק,,UNKNOWN,OTHER,,,,,,,1,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:21018,21018,/6 שרוול מתכווץ עם דבק,,UNKNOWN,OTHER,,,,,,,1,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:2102012030,2102012030,"SH201 C אופיין10A חד פאזי6KA מא""ז62101011110",,UNKNOWN,OTHER,,,,,,,1,1,no,2020-08-27,2020-08-27,no,not_core_family
+SKU:2102021030,2102021030,F 2022x40A/0.0310KA ממסר פחת6,,UNKNOWN,OTHER,,,,,,,1,1,no,2021-11-25,2021-11-25,no,not_core_family
+SKU:21048,21048,EVIK ג'ל השחלה,,UNKNOWN,OTHER,,,,,,,19,16,no,2017-10-03,2024-09-30,no,not_core_family
+SKU:210480,210480,' לקופONE ' מוד2 מסגרת לבן-קורוס391612244.00% שח4.96 מטר100.0 קשיחPVC (צ/י)בחבילה1 מטר חוט560131,wire,COPPER_PVC,COPPER_WIRE,,,560131,לבן,,PVC,65,64,no,2018-12-31,2025-01-28,yes,
+SKU:210485,210485,80-90x33-43x38 MINI 650° קופ' חיבור1780001,,UNKNOWN,OTHER,,,,,,,4,3,no,2019-06-27,2024-11-28,no,not_core_family
+SKU:2133021280,2133021280,TMD הגנה25kA תלת פאזיIn 40AxT1C מפסק6,switchgear,OTHER,OTHER,,,,,,,1,1,no,2019-10-25,2019-10-25,no,not_core_family
+SKU:2133200261,2133200261,xT13P לDIN מתאם לפס6,,UNKNOWN,OTHER,,,,,,,1,1,no,2019-10-25,2019-10-25,no,not_core_family
+SKU:2133200340,2133200340,xT1 יח' עבור6 מחבר מהיר לכבל נחושת6,cable,COPPER,OTHER_CABLE,,,,,,,1,1,no,2019-10-25,2019-10-25,no,not_core_family
+SKU:22293007,22293007,/1STU 240V שעון פיקוד ללא רזרבה,,UNKNOWN,OTHER,,,,,,,13,13,no,2017-10-03,2024-03-31,no,not_core_family
+SKU:222930073,222930073,GRASSLIN V86/1QRTU Talento 211 רזרבה+ שעון פיקוד 222930073240V,,UNKNOWN,OTHER,,,,,,,3,3,no,2018-12-31,2022-04-27,no,not_core_family
+SKU:2229300730,2229300730,לפס דין תוצרת אינטרמטיקTHE211 רזרבה+ שעון מכני,,UNKNOWN,OTHER,,,,,,,2,2,no,2023-11-28,2023-11-28,no,not_core_family
+SKU:238224,238224,'מ1.2 מ. אוסרם2x28/54W TE פס אירופאי,,UNKNOWN,OTHER,,,,,,,2,2,no,2021-06-30,2021-07-28,no,not_core_family
+SKU:2382861,2382861,נורה+PC T52x28W פרימה מ.מ,,UNKNOWN,OTHER,,,,,,,1,1,no,2019-08-25,2019-08-25,no,not_core_family
+SKU:2383621,2383621,' יח1.04k 43W ZONE2 'מ1.2 פרימה לד מוגן פיצוץ,,UNKNOWN,OTHER,,,,,,,4,3,no,2019-09-24,2023-11-05,no,not_core_family
+SKU:2383622,2383622,"k 43W 6400Lm ס""מ127 פרימה לד מ. פיצוץ",lighting,OTHER,OTHER,,,,,,,1,1,no,2021-11-25,2021-11-25,no,not_core_family
+SKU:2400074,2400074,IRWIN SDS-PLUS 7x50/11 מקדח לפטישון,accessory,OTHER,OTHER,,,,,,,14,14,no,2018-11-27,2022-01-26,no,not_core_family
+SKU:2400075,2400075,IRWIN SDS-PLUS 7x100/16 מקדח לפטישון,accessory,OTHER,OTHER,,,,,,,1,1,no,2020-12-30,2020-12-30,no,not_core_family
+SKU:2400076,2400076,48-לוח ללא בסיס ל997615531 IRWIN SDS-PLUS 7x50/11 מקדח לפטישון2400074,panel,OTHER,OTHER,,,,,,,26,0,yes,2017-10-03,2023-05-28,no,not_core_family
+SKU:2400077,2400077,IP44 כניסות+ 80x8 °96 קופ' סעף3944053,,UNKNOWN,OTHER,,,,,,,5,0,yes,2020-02-27,2021-02-28,no,not_core_family
+SKU:2400079,2400079,IRWIN SDS-PLUS 9x150/21 מקדח לפטישון,accessory,OTHER,OTHER,,,,,,,2,2,no,2020-11-26,2022-02-24,no,not_core_family
+SKU:2400080,2400080,IRWIN SDS-PLUS 10x50/11 מקדח לפטישון,accessory,OTHER,OTHER,,,,,,,2,2,no,2019-01-27,2020-12-30,no,not_core_family
+SKU:2400081,2400081,IRWIN SDS-PLUS 10x100/16 מקדח לפטישון,accessory,OTHER,OTHER,,,,,,,4,4,no,2020-11-26,2023-04-27,no,not_core_family
+SKU:2400083,2400083,IRWIN SDS-PLUS 11x100/16 מקדח לפטישון,accessory,OTHER,OTHER,,,,,,,4,4,no,2017-10-03,2021-06-30,no,not_core_family
+SKU:2400084,2400084,IRWIN SDS-PLUS 12x100/16 מקדח לפטישון,accessory,OTHER,OTHER,,,,,,,4,4,no,2020-12-30,2022-11-27,no,not_core_family
+SKU:2400085,2400085,IRWIN SDS-PLUS 13x100/16 מקדח לפטישון,accessory,OTHER,OTHER,,,,,,,1,1,no,2022-11-27,2022-11-27,no,not_core_family
+SKU:2400089,2400089,"58.00% שח1.11 מטר100.0 מ""מ16 צינור שרשורי3700320",,UNKNOWN,OTHER,,,,,,,11,0,yes,2017-10-03,2022-12-29,no,not_core_family
+SKU:2400090,2400090,IRWIN SDS-PLUS 16x400/46 מקדח לפטישון,accessory,OTHER,OTHER,,,,,,,2,2,no,2017-10-03,2021-10-27,no,not_core_family
+SKU:24000900,24000900,IRWIN SDS-PLUS 10x400/46 מקדח לפטישון,accessory,OTHER,OTHER,,,,,,,1,1,no,2020-12-30,2020-12-30,no,not_core_family
+SKU:24000901,24000901,IRWIN SDS-PLUS 12x400/46 מקדח לפטישון,accessory,OTHER,OTHER,,,,,,,3,3,no,2021-01-26,2022-04-27,no,not_core_family
+SKU:2400091,2400091,IRWIN SDS-PLUS 12x400/46 מקדח לפטישון24000901,accessory,OTHER,OTHER,,,,,,,2,2,no,2021-01-26,2021-10-27,no,not_core_family
+SKU:24000926,24000926,IRWIN SDS-PLUS 22x540/60 מקדח לפטישון,accessory,OTHER,OTHER,,,,,,,2,2,no,2022-07-26,2022-12-29,no,not_core_family
+SKU:2400113,2400113,ALPEN ATM6 יח6 סט מקדח רב שימושי לאימפקט,accessory,OTHER,OTHER,,,,,,,2,2,no,2020-06-28,2022-11-27,no,not_core_family
+SKU:2400166,2400166,ALPEN 6x11 מקדח לפטישון ראש צלב,accessory,OTHER,OTHER,,,,,,,1,1,no,2022-11-27,2022-11-27,no,not_core_family
+SKU:2400167,2400167,ALPEN 7x11 מקדח לפטישון ראש צלב,accessory,OTHER,OTHER,,,,,,,3,3,no,2020-09-24,2024-08-29,no,not_core_family
+SKU:2400168,2400168,ALPEN 8x11 מקדח לפטישון ראש צלב,accessory,OTHER,OTHER,,,,,,,21,20,no,2020-01-28,2025-03-27,no,not_core_family
+SKU:2400171,2400171,ALPEN 7x16 מקדח לפטישון ראש צלב,accessory,OTHER,OTHER,,,,,,,2,2,no,2024-09-30,2025-03-27,no,not_core_family
+SKU:2400172,2400172,ALPEN 8x16 מקדח לפטישון ראש צלב,accessory,OTHER,OTHER,,,,,,,4,4,no,2023-04-27,2024-10-31,no,not_core_family
+SKU:2400173,2400173,ALPEN 9x16 מקדח לפטישון ראש צלב,accessory,OTHER,OTHER,,,,,,,2,2,no,2021-03-25,2023-04-27,no,not_core_family
+SKU:2400174,2400174,ALPEN 10x16 מקדח לפטישון ראש צלב,accessory,OTHER,OTHER,,,,,,,1,1,no,2024-08-29,2024-08-29,no,not_core_family
+SKU:2400175,2400175,ALPEN 12x16 מקדח לפטישון ראש צלב,accessory,OTHER,OTHER,,,,,,,1,1,no,2024-08-29,2024-08-29,no,not_core_family
+SKU:2400180,2400180,ALPEN 16x45 מקדח לפטישון ראש צלב,accessory,OTHER,OTHER,,,,,,,1,1,no,2020-03-29,2020-03-29,no,not_core_family
+SKU:2400183,2400183,ALPEN 22x45 מקדח לפטישון ראש צלב,accessory,OTHER,OTHER,,,,,,,4,4,no,2020-03-29,2024-06-27,no,not_core_family
+SKU:24001836,24001836,ALPEN 22x60 מקדח לפטישון ראש צלב,accessory,OTHER,OTHER,,,,,,,1,1,no,2022-10-27,2022-10-27,no,not_core_family
+SKU:24001840,24001840,"ALPEN מ""מ4 מקדח רב שימושי לאימפקט",accessory,OTHER,OTHER,,,,,,,3,0,no,2022-11-27,2024-03-31,no,not_core_family
+SKU:24001841,24001841,"ALPEN מ""מ5 מקדח רב שימושי לאימפקט",accessory,OTHER,OTHER,,,,,,,2,0,no,2024-03-31,2024-03-31,no,not_core_family
+SKU:2400185,2400185,"ALPEN מ""מ7 מקדח רב שימושי לאימפקט",accessory,OTHER,OTHER,,,,,,,2,0,no,2020-01-28,2022-12-29,no,not_core_family
+SKU:2400186,2400186,"45.00% שח0.74 מטר1, 500.0 קשיחPVC כחול1.5 חוט55024",wire,COPPER_PVC,COPPER_WIRE,,,1.5,כחול,,PVC,4,0,yes,2020-01-28,2023-09-28,no,sku_conflict
+SKU:2400187,2400187,"ALPEN מ""מ1 מקדח רב שימושי לאימפקט",accessory,OTHER,OTHER,,,,,,,1,0,no,2024-06-27,2024-06-27,no,not_core_family
+SKU:2410088,2410088,"מ""מ20x25 SDS איזמל שטוח לפטישון",,UNKNOWN,OTHER,,,,,,,1,0,no,2024-09-30,2024-09-30,no,not_core_family
+SKU:2410167,2410167,"טורבו4.5"" דיסק יהלום",,UNKNOWN,OTHER,,,,,,,1,1,no,2022-10-27,2022-10-27,no,not_core_family
+SKU:2430090,2430090,"מ""מ מילווקי22.2 מתאם הלמניה לפטיש חציבה לאלקטרודה",,UNKNOWN,OTHER,,,,,,,1,1,no,2023-04-27,2023-04-27,no,not_core_family
+SKU:243010,243010,"WORKPRO מ""מ עם כיפת הקשה25/1"" מפסלת246WP",,UNKNOWN,OTHER,,,,,,,2,0,no,2023-03-29,2024-04-30,no,not_core_family
+SKU:246100,246100,IRWIN מסור ג'וניור לחיתוך מתכת,,UNKNOWN,OTHER,,,,,,,1,1,no,2020-06-28,2020-06-28,no,not_core_family
+SKU:246209,246209,"LENOxמ""מ4 מסור כוס",,UNKNOWN,OTHER,,,,,,,1,0,no,2020-10-22,2020-10-22,no,not_core_family
+SKU:246213,246213,"LENOxמ""מ51 מסור כוס",,UNKNOWN,OTHER,,,,,,,1,0,no,2020-09-24,2020-09-24,no,not_core_family
+SKU:246214,246214,"LENOxמ""מ54 מסור כוס",,UNKNOWN,OTHER,,,,,,,1,0,no,2020-09-24,2020-09-24,no,not_core_family
+SKU:246216,246216,"LENOxמ""מ6 מסור כוס",,UNKNOWN,OTHER,,,,,,,1,0,no,2020-09-24,2020-09-24,no,not_core_family
+SKU:246217,246217,"LENOxמ""מ64 מסור כוס",,UNKNOWN,OTHER,,,,,,,1,1,no,2021-10-27,2021-10-27,no,not_core_family
+SKU:246218,246218,"LENOxמ""מ68 מסור כוס",,UNKNOWN,OTHER,,,,,,,1,0,no,2023-09-28,2023-09-28,no,not_core_family
+SKU:246241,246241,"LENOxממ115/4.5"" להב יהלום לחיתוך מתכת",,UNKNOWN,OTHER,,,,,,,1,1,no,2020-04-30,2020-04-30,no,not_core_family
+SKU:246544,246544,"IRWIN 6"" מפתח שוודי עם ידית מצופה",,UNKNOWN,OTHER,,,,,,,1,1,no,2023-11-28,2023-11-28,no,not_core_family
+SKU:24742295,24742295,STANLEY חצובה+ אדוםCROSS36 קיט פלס ליזר,,UNKNOWN,OTHER,,,,אדום,,,1,0,no,2020-07-26,2020-07-26,no,not_core_family
+SKU:2490039,2490039,"Dx37 CAT 750W 5"" משחזת זווית חשמלית",,UNKNOWN,OTHER,,,,,,,1,1,no,2022-08-25,2022-08-25,no,not_core_family
+SKU:2490041,2490041,"Dx26 CAT 800W מ""מ26 פטישון חשמלי",,UNKNOWN,OTHER,,,,,,,3,2,no,2022-08-25,2022-10-27,no,not_core_family
+SKU:2500282,2500282,מכסה כדור לארמטורה שקוף,,UNKNOWN,OTHER,,,,,,,7,7,no,2019-09-24,2021-11-25,no,not_core_family
+SKU:268110,268110,2 מופה+ צינור מרירון אפור,,UNKNOWN,OTHER,,,,אפור,,,30,29,no,2018-08-30,2025-01-28,no,not_core_family
+SKU:268120,268120,25 מופה+ צינור מרירון אפור,,UNKNOWN,OTHER,,,,אפור,,,7,7,no,2018-12-31,2023-11-28,no,not_core_family
+SKU:268130,268130,32 מופה+צנור מרירון,,UNKNOWN,OTHER,,,,,,,2,2,no,2019-06-27,2020-10-22,no,not_core_family
+SKU:2804613,2804613,"שקע ותקע+ ע""ג כבל2x1630MA ממסר פחת נייד",cable,UNKNOWN,OTHER,,,,,,,2,1,no,2021-09-26,2021-09-26,no,not_core_family
+SKU:2818024,2818024,ממר150-24 יציאות4 מפצלת סוף כבל,cable,UNKNOWN,OTHER,,,,,,,1,1,no,2021-11-25,2021-11-25,no,not_core_family
+SKU:28180501,28180501,"חצי אוטומט8-לוח עה""ט ל",panel,OTHER,OTHER,,,,,,,1,1,no,2022-04-27,2022-04-27,no,not_core_family
+SKU:2818051,2818051,"ח""א10-12 לוח עה""ט עבור",panel,OTHER,OTHER,,,,,,,2,2,no,2020-12-30,2022-04-27,no,not_core_family
+SKU:28180511,28180511,3x1.5 N2XY (מטר כבל)בחבילה5951021,cable,COPPER,N2XY_COPPER_CABLE,N2XY,3,1.5,,,,11,0,yes,2019-01-27,2022-07-26,no,sku_conflict
+SKU:28180521,28180521,"קלפה+ ח""א16-לוח עה""ט ל",panel,OTHER,OTHER,,,,,,,2,1,no,2020-01-28,2020-01-28,no,not_core_family
+SKU:2818151,2818151,פס השוואה פוטנ' קומתי,,UNKNOWN,OTHER,,,,,,,4,4,no,2017-10-03,2023-06-29,no,not_core_family
+SKU:2818153,2818153,פס השוואה למבנה קטן,,UNKNOWN,OTHER,,,,,,,1,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:2818154,2818154,הדק איפוס+פס השוואה,,UNKNOWN,OTHER,,,,,,,1,1,no,2018-12-31,2018-12-31,no,not_core_family
+SKU:2818155,2818155,פס השוואה קומתי לרב קומות,,UNKNOWN,OTHER,,,,,,,1,1,no,2018-11-27,2018-11-27,no,not_core_family
+SKU:2910005,2910005,VA 230-24/12V שנאי מבדל,,UNKNOWN,OTHER,,,,,,,1,1,no,2020-12-30,2020-12-30,no,not_core_family
+SKU:2910333,2910333,LED 220/12VDC 12W-14W דרייבר אלקטרוני,lighting,OTHER,OTHER,,,,,,,1,1,no,2024-11-28,2024-11-28,no,not_core_family
+SKU:29103815,29103815,EL-011 PG 9 צינור גמיש שחור1020102 WW 12V [3528) לד12 (' מ5) פס461130110,,UNKNOWN,OTHER,,,,שחור,,,3,3,no,2017-10-03,2024-06-27,no,not_core_family
+SKU:2910382,2910382,VDC 8A/100W ספק כח לד,,UNKNOWN,OTHER,,,,,,,1,1,no,2024-11-28,2024-11-28,no,not_core_family
+SKU:29103912,29103912,VDC 4.5A 100W ספק כח לסטריפ/פרופיל לד,,UNKNOWN,OTHER,,,,לסטריפ/פרופיל,,,3,3,no,2021-03-25,2022-02-24,no,not_core_family
+SKU:29103913,29103913,VDC 6.25A 150W ספק כח לסטריפ/פרופיל לד,,UNKNOWN,OTHER,,,,לסטריפ/פרופיל,,,2,1,no,2024-07-28,2024-07-28,no,not_core_family
+SKU:29103915,29103915,VDC 8.8A 200W ספק כח לסטריפ/פרופיל לד,,UNKNOWN,OTHER,,,,לסטריפ/פרופיל,,,4,3,no,2020-06-28,2024-07-28,no,not_core_family
+SKU:2924045,2924045,השהיה לתנורים/מכ' כביסה/מדיח+ מגן,,UNKNOWN,OTHER,,,,לתנורים/מכ,,,1,1,no,2019-10-25,2019-10-25,no,not_core_family
+SKU:3101033083,3101033083,(כללי3w)1W AWEx160Lm חרום שקוע כפתור2,lighting,OTHER,OTHER,,,,,,,6,3,no,2019-03-29,2019-09-24,no,not_core_family
+SKU:3104033083,3104033083,6500K 18W 225x225 לד מרובעVEGA חיצוני3850220,,UNKNOWN,OTHER,,,,,,,9,4,no,2019-01-27,2019-09-24,no,not_core_family
+SKU:3121547497,3121547497,2026080,,UNKNOWN,OTHER,,,,,,,1,0,no,2026-07-26,2026-07-26,no,not_core_family
+SKU:3300003,3300003,R14 C סוללות דורסל2 מארז,,UNKNOWN,OTHER,,,,,,,2,2,no,2021-10-27,2024-05-29,no,not_core_family
+SKU:3440006,3440006,"תואם ""הדר"" לבן- תקע צד",,UNKNOWN,OTHER,,,,לבן,,,1,1,no,2024-08-29,2024-08-29,no,not_core_family
+SKU:3497534,3497534,"טיימר+ 16"" מאוורר עמוד",,UNKNOWN,OTHER,,,,,,,1,1,no,2023-07-27,2023-07-27,no,not_core_family
+SKU:3497549,3497549,' מ0.93 מאוורר נטען טלסקופי עד,,UNKNOWN,OTHER,,,,,,,2,2,no,2022-05-29,2022-09-28,no,not_core_family
+SKU:3700201,3700201,/מגנום שחורSKY/ קוברה5 צינור,,UNKNOWN,OTHER,,,,שחור,,,71,70,no,2018-08-30,2025-02-26,no,not_core_family
+SKU:37002010,37002010,שחור5 /מגנוםSKY/חיתוך בלבד צינור קוברה,,UNKNOWN,OTHER,,,,שחור,,,4,3,no,2019-10-25,2023-08-29,no,not_core_family
+SKU:3700202,3700202,/מגנום שחורSKY/ קוברה75 צינור,,UNKNOWN,OTHER,,,,שחור,,,7,7,no,2018-12-31,2025-01-28,no,not_core_family
+SKU:3700205,3700205,קוברה שחור או שווה ערך תקני16 צינור,,UNKNOWN,OTHER,,,,שחור,,,9,6,no,2018-12-31,2024-12-29,no,not_core_family
+SKU:3700304,3700304,לצינור קוברה 5 מופה,,UNKNOWN,OTHER,,,,,,,16,8,no,2017-10-03,2025-03-27,no,not_core_family
+SKU:3700305,3700305,שחור לצינור קוברה75 מופה,,UNKNOWN,OTHER,,,,שחור,,,1,1,no,2023-04-27,2023-04-27,no,not_core_family
+SKU:3700307,3700307,שחור לצינור קוברה16 מופה,,UNKNOWN,OTHER,,,,שחור,,,7,4,no,2018-12-31,2023-07-27,no,not_core_family
+SKU:3700320,3700320,"מ""מ16 צינור שרשורי",,UNKNOWN,OTHER,,,,,,,60,59,no,2017-10-03,2025-02-26,no,not_core_family
+SKU:3700324,3700324,"מ""מ2 צינור שרשורי",,UNKNOWN,OTHER,,,,,,,119,114,no,2017-10-03,2025-03-27,no,not_core_family
+SKU:37003265,37003265,"מ""מ25 צינור שרשורי ירוק",,UNKNOWN,OTHER,,,,ירוק,,,4,3,no,2020-01-28,2024-02-28,no,not_core_family
+SKU:37003283,37003283,"מ""מ32 צינור שרשורי ירוק",,UNKNOWN,OTHER,,,,ירוק,,,9,9,no,2019-08-25,2024-04-30,no,not_core_family
+SKU:3830021,3830021,"ס""מ114 DL 36W גיטה הרמטי",,UNKNOWN,OTHER,,,,,,,4,4,no,2023-11-28,2024-10-31,no,not_core_family
+SKU:383007,383007,פוטוצל לבן4K 22W VEGA NAOR ג.ת.כתובת,,UNKNOWN,OTHER,,,,לבן,,,2,2,no,2020-01-28,2021-08-26,no,not_core_family
+SKU:38301013,38301013,IP65 שחור3CCT 50W נוט הצפה,,UNKNOWN,OTHER,,,,שחור,,,1,1,no,2024-07-28,2024-07-28,no,not_core_family
+SKU:3830102,3830102,פוטוצל אפור6.5K VEGA NAOR ג.ת.כתובת,,UNKNOWN,OTHER,,,,אפור,,,1,1,no,2023-06-29,2023-06-29,no,not_core_family
+SKU:38301022,38301022,IP65 לבן3CCT 50W נוט הצפה,,UNKNOWN,OTHER,,,,לבן,,,1,1,no,2024-10-31,2024-10-31,no,not_core_family
+SKU:3830103,3830103,אור קר פוטוצל לבן6.5K VEGA NAOR ג.ת.כתובת,,UNKNOWN,OTHER,,,,לבן,,,5,5,no,2020-12-30,2023-12-31,no,not_core_family
+SKU:3830106,3830106,(בתי נורה)ב.נ. כל מטר1 מ' כבל11 גרלנדה מארז תקני,cable,UNKNOWN,OTHER,,,,,,,3,2,no,2020-12-30,2022-12-29,no,not_core_family
+SKU:3830108,3830108,(בתי נורה)ב.נ. כל מטר2 מ' כבל21 גרלנדה מארז תקני,cable,UNKNOWN,OTHER,,,,,,,5,3,no,2020-02-27,2022-12-29,no,not_core_family
+SKU:38301085,38301085,) בתי נורה25 מ' כבל26 גרלנדה מארז תקני,cable,UNKNOWN,OTHER,,,,,,,1,1,no,2022-02-24,2022-02-24,no,not_core_family
+SKU:38301088,38301088,מ1 ב.נ כל5 מ' כבל51 גרלנדה מארז תקני,cable,UNKNOWN,OTHER,,,,,,,1,1,no,2019-10-25,2019-10-25,no,not_core_family
+SKU:3830122,3830122,EVIK ג'ל השחלה21048,,UNKNOWN,OTHER,,,,,,,28,18,no,2019-09-24,2024-10-31,no,not_core_family
+SKU:3830123,3830123,!!! בלדח דקור' קומפלט תקני1050020,,UNKNOWN,OTHER,,,,,,,32,19,no,2019-07-28,2024-10-31,no,not_core_family
+SKU:383014,383014,אור ירוק10W VEGA NOTE1 פ.הצפה שחור,,UNKNOWN,OTHER,,,,שחור,,,1,0,no,2019-06-27,2019-06-27,no,not_core_family
+SKU:3830153,3830153,IP65 גוון משתנה18W M אריאלVEGA פלפון,,UNKNOWN,OTHER,,,,,,,1,1,no,2024-08-29,2024-08-29,no,not_core_family
+SKU:383029,383029,W 2400LM 6.5K VEGA NOTE1 פ.הצפה שחור,lighting,OTHER,OTHER,,,,שחור,,,3,3,no,2019-06-27,2020-10-22,no,not_core_family
+SKU:383033,383033,LM 6.5K 50W VEGA NOTE1 פ.הצפה שחור,lighting,OTHER,OTHER,,,,שחור,,,2,2,no,2020-01-28,2020-09-24,no,not_core_family
+SKU:383035,383035,LM 6.5K 50W VEGA NOTE1 פ.הצפה לבן,lighting,OTHER,OTHER,,,,לבן,,,6,6,no,2020-07-26,2023-02-28,no,not_core_family
+SKU:383037,383037,LM 6.5K 100W VEGA NOTE1 פנס הצפה שחור,lighting,OTHER,OTHER,,,,שחור,,,1,1,no,2022-06-27,2022-06-27,no,not_core_family
+SKU:3830384,3830384,K Lm 4K 150W VEGA NOTE1 פנס הצפה שחור,lighting,OTHER,OTHER,,,,שחור,,,1,1,no,2022-04-27,2022-04-27,no,not_core_family
+SKU:383039,383039,80A תלת פאזי מזלגR.S.T פס696444021 CW דגם צדפהLED מנורת לילה839092,lighting,OTHER,OTHER,,,,,,,5,4,no,2020-11-26,2022-10-27,no,not_core_family
+SKU:3830391,3830391,K Lm 6.5K 150W VEGA NOTE1 פ.הצפה לבן,lighting,OTHER,OTHER,,,,לבן,,,1,1,no,2020-03-29,2020-03-29,no,not_core_family
+SKU:3830392,3830392,K Lm 6.5K 150W VEGA NOTE1 פנס הצפה שחור,lighting,OTHER,OTHER,,,,שחור,,,1,1,no,2022-04-27,2022-04-27,no,not_core_family
+SKU:3830393,3830393,K Lm 6.5K 200W VEGA NOTE1 פנס הצפה לבן,lighting,OTHER,OTHER,,,,לבן,,,2,2,no,2021-08-26,2021-10-27,no,not_core_family
+SKU:3830394,3830394,KLm 6.5K 200W VEGA NOTE1 פנס הצפה שחור,lighting,OTHER,OTHER,,,,שחור,,,1,0,no,2021-12-29,2021-12-29,no,not_core_family
+SKU:38303967,38303967,חיישן+2700LM 6.5K 30W NOTE1 פנס הצפה שחור,lighting,OTHER,OTHER,,,,שחור,,,1,1,no,2022-10-27,2022-10-27,no,not_core_family
+SKU:38304442,38304442,בזלת6500K 30W ORIA פנס הצפה אדריכלי,,UNKNOWN,OTHER,,,,,,,1,0,no,2021-08-26,2021-08-26,no,not_core_family
+SKU:38304443,38304443,לבן2700K 30W ORIA פנס הצפה אדריכלי,,UNKNOWN,OTHER,,,,לבן,,,2,1,no,2021-06-30,2021-07-28,no,not_core_family
+SKU:38305974,38305974,אפורDL 30W SMD VEGA DORF פ.הצפה לד,,UNKNOWN,OTHER,,,,אפור,,,1,1,no,2018-12-31,2018-12-31,no,not_core_family
+SKU:383059974,383059974,SUPER UFO 160lm/w 200w DL פעמון,lighting,OTHER,OTHER,,,,,,SUPER,1,1,no,2023-02-28,2023-02-28,no,not_core_family
+SKU:3830675,3830675,IP654K 18WxL גבע עגולVEGA פלפון,,UNKNOWN,OTHER,,,,,,,7,6,no,2021-07-28,2021-12-29,no,not_core_family
+SKU:3830676,3830676,IP65 אור ניטרלי4K 24WxxL גבע עגולVEGA פלפון,,UNKNOWN,OTHER,,,,,,,3,2,no,2020-02-27,2023-09-28,no,not_core_family
+SKU:3830678,3830678,IP65 אור ניטרלי4K 18W M אריאלVEGA פלפון,,UNKNOWN,OTHER,,,,,,,6,6,no,2020-06-28,2024-09-30,no,not_core_family
+SKU:3830679,3830679,IP654K 24W L אריאלVEGA פלפון,,UNKNOWN,OTHER,,,,,,,1,1,no,2021-10-27,2021-10-27,no,not_core_family
+SKU:3830681,3830681,IP546.5K 14W M גבע אובליVEGA פלפון,,UNKNOWN,OTHER,,,,,,,2,1,no,2019-06-27,2019-06-27,no,not_core_family
+SKU:3830685,3830685,"4000K 18W מ""מ225 לד עגולVEGA שקוע38500574",,UNKNOWN,OTHER,,,,,,,9,7,no,2019-06-27,2023-03-29,no,not_core_family
+SKU:3830688,3830688,IP656.5K 18W M אריאלVEGA פלפון,,UNKNOWN,OTHER,,,,,,,2,2,no,2022-08-25,2023-04-27,no,not_core_family
+SKU:38306991,38306991,IP444K 1200LM 15W VEGA HELENA ג.ת.מראה,lighting,OTHER,OTHER,,,,,,,1,1,no,2021-10-27,2021-10-27,no,not_core_family
+SKU:3830700,3830700,CW ' מ1.236W LEDMETICO SMD ג.ת,lighting,OTHER,OTHER,,,,,,,7,6,no,2021-05-27,2021-12-29,no,not_core_family
+SKU:3830701,3830701,DL ' מ1.236W VEGA LEDMETICO SMD ג.ת,lighting,OTHER,OTHER,,,,,,,3,3,no,2019-10-25,2021-06-30,no,not_core_family
+SKU:3830705,3830705,DL 2x22W VEGA LEDMETICO TUBE ג.ת הרמטי,lighting,OTHER,OTHER,,,,,,,2,1,no,2019-01-27,2019-03-29,no,not_core_family
+SKU:3830737,3830737,משתרשר1.2M אור קרDL 60W גיטה מקס הרמטי,,UNKNOWN,OTHER,,,,,,,1,1,no,2023-09-28,2023-09-28,no,not_core_family
+SKU:3830812,3830812,VEGA CW 4W קירפלסט לבן,,UNKNOWN,OTHER,,,,לבן,,,1,1,no,2024-03-31,2024-03-31,no,not_core_family
+SKU:38308120,38308120,גוון לבחירהVEGA 4W CCT קירפלסט לבן,,UNKNOWN,OTHER,,,,לבן,,,2,2,no,2021-11-25,2021-12-29,no,not_core_family
+SKU:383081311,383081311,גוון לבחירהVEGA 4W CCT קירפלסט אפור,,UNKNOWN,OTHER,,,,אפור,,,1,1,no,2023-05-28,2023-05-28,no,not_core_family
+SKU:38308760,38308760,גוון לבחירהVEGA 12W-15W לבןS סטארפלסט,,UNKNOWN,OTHER,,,,לבן,,,2,2,no,2024-11-28,2024-11-28,no,not_core_family
+SKU:38308770,38308770,גוון לבחירהVEGA 15w CCT אפורS סטארפלסט,,UNKNOWN,OTHER,,,,אפור,,,1,1,no,2023-05-28,2023-05-28,no,not_core_family
+SKU:3830878,3830878,VEGA DL 15w לבןS סטארפלסט,,UNKNOWN,OTHER,,,,לבן,,,2,1,no,2019-06-27,2019-06-27,no,not_core_family
+SKU:3830881,3830881,VEGA CW 24w אפורM סטארפלסט,,UNKNOWN,OTHER,,,,אפור,,,3,2,no,2019-06-27,2020-02-27,no,not_core_family
+SKU:38308820,38308820,גוון לבחירהVEGA 24w CCT לבןM סטארפלסט,,UNKNOWN,OTHER,,,,לבן,,,1,1,no,2021-10-27,2021-10-27,no,not_core_family
+SKU:38308830,38308830,גוון לבחירהVEGA 24w CCT אפורM סטארפלסט,,UNKNOWN,OTHER,,,,אפור,,,1,0,no,2023-03-29,2023-03-29,no,not_core_family
+SKU:38308831,38308831,VEGA WW 24W לבןM סטארפלסט,,UNKNOWN,OTHER,,,,לבן,,,2,1,no,2021-06-30,2021-07-28,no,not_core_family
+SKU:38308840,38308840,גוון לבחירהVEGA 39w CCT לבןL סטארפלסט,,UNKNOWN,OTHER,,,,לבן,,,2,2,no,2021-10-27,2022-01-02,no,not_core_family
+SKU:38308850,38308850,גוון לבחירהVEGA 39w CCT אפורL סטארפלסט,,UNKNOWN,OTHER,,,,אפור,,,2,1,no,2021-07-28,2023-03-29,no,not_core_family
+SKU:3830891,3830891,IP-654000K CW שחור8W עגולADI ג.ת,,UNKNOWN,OTHER,,,,שחור,,,2,1,no,2021-06-30,2021-07-28,no,not_core_family
+SKU:3830905,3830905,IP-653000K WW לבן8W מרובעADI ג.ת,,UNKNOWN,OTHER,,,,לבן,,,2,1,no,2021-06-30,2021-07-28,no,not_core_family
+SKU:3830914,3830914,IP-653000K WW שחור12W אפ/דאוןADI ג.ת,,UNKNOWN,OTHER,,,,שחור,,,1,1,no,2021-11-25,2021-11-25,no,not_core_family
+SKU:3830915,3830915,IP-654000K CW שחור12W אפ/דאוןADI ג.ת,,UNKNOWN,OTHER,,,,שחור,,,1,1,no,2021-11-25,2021-11-25,no,not_core_family
+SKU:3830936,3830936,IP-444000K CW לבן8W רטרוADI ג.ת,,UNKNOWN,OTHER,,,,לבן,,,1,1,no,2020-10-22,2020-10-22,no,not_core_family
+SKU:3832015004,3832015004,"w ס""מ3 פלפון לד שחור דק גוון אור משתנה קוטרSLIM",,UNKNOWN,OTHER,,,,שחור,,,1,1,no,2023-08-29,2023-08-29,no,not_core_family
+SKU:3832015005,3832015005,"w ס""מ4 פלפון לד לבן דק גוון אור משתנה קוטרSLIM",,UNKNOWN,OTHER,,,,לבן,,,1,1,no,2023-05-28,2023-05-28,no,not_core_family
+SKU:38320182,38320182,IP6520W 6.5K VEGA GALAxY פלפון עגול,,UNKNOWN,OTHER,,,,,,,1,1,no,2022-12-29,2022-12-29,no,not_core_family
+SKU:38320427,38320427,אור חם שחור2.7K 2x6W אלומותVEGA UP/DOWN .ג.ת,,ALUMINIUM,OTHER,,,,שחור,,,2,1,no,2024-08-29,2024-10-31,no,not_core_family
+SKU:38320452,38320452,אור חם שחור2.7K 2x3W עגולVEGA UP/DOWN .ג.ת,,UNKNOWN,OTHER,,,,שחור,,,2,2,no,2024-08-29,2024-09-30,no,not_core_family
+SKU:38320511,38320511,"ס""מ שחור23 גוון אור משתנה קוטר18W סלים פלפון לד",,UNKNOWN,OTHER,,,,שחור,,,2,1,no,2024-11-28,2024-12-29,no,not_core_family
+SKU:38320513,38320513,"ס""מ שחור3 גוון אור משתנה קוטר24W סלים פלפון לד",,UNKNOWN,OTHER,,,,שחור,,,1,1,no,2024-03-31,2024-03-31,no,not_core_family
+SKU:38320518,38320518,"ס""מ לבן5 גוון אור משתנה קוטר40W סלים פלפון לד",,UNKNOWN,OTHER,,,,לבן,,,2,2,no,2024-11-28,2025-02-26,no,not_core_family
+SKU:383502,383502,GU-114 מרובע עומקVEGA שקוע רצפה,,UNKNOWN,OTHER,,,,,,,2,1,no,2021-11-25,2021-11-25,no,not_core_family
+SKU:3850007,3850007,3CCT ממ225 לבן18W פיתה שקוע עגול,,UNKNOWN,OTHER,,,,לבן,,,3,1,no,2024-10-31,2024-12-29,no,not_core_family
+SKU:3850009,3850009,CCT ממ30 לבן30W פיתה שקוע עגול,,UNKNOWN,OTHER,,,,לבן,,,1,1,no,2024-07-28,2024-07-28,no,not_core_family
+SKU:38500251,38500251,CCT ממ225 לבן18W פיתה שקוע מרובע,,UNKNOWN,OTHER,,,,לבן,,,2,1,no,2025-01-28,2025-02-26,no,not_core_family
+SKU:3850034,3850034,"ס""מ גוון אור לבחירה6 תאורת קיר30W חץ לבן",,UNKNOWN,OTHER,,,,לבן,,,1,1,no,2025-01-28,2025-01-28,no,not_core_family
+SKU:3850039,3850039,CCT ממ225 לבן18W פיתה חיצוני מרובע,,UNKNOWN,OTHER,,,,לבן,,,2,1,no,2025-01-28,2025-02-26,no,not_core_family
+SKU:3850044,3850044,"(100) מ""מ6. סופיות מבודדת992201063P 20A 6kA C GEWISS RB68 מאמ""ת דגם3991568",breaker,OTHER,OTHER,,,,,,GEWISS,9,0,no,2019-03-04,2021-03-25,no,not_core_family
+SKU:3850045,3850045,"K 4W מ""מ105 לד עגולVEGA שקוע",,UNKNOWN,OTHER,,,,,,,1,0,no,2023-06-29,2023-06-29,no,not_core_family
+SKU:3850047,3850047,CCT ממ225 לבן18W פיתה חיצוני עגול,,UNKNOWN,OTHER,,,,לבן,,,1,1,no,2024-07-28,2024-07-28,no,not_core_family
+SKU:38500561,38500561,"4000K 4W מ""מ105 לד עגולVEGA שקוע3850044",,UNKNOWN,OTHER,,,,,,,2,1,no,2020-06-28,2021-03-25,no,not_core_family
+SKU:38500562,38500562,CW ממ115-12 קוטר6-7W לד עגולVEGA שקוע,,UNKNOWN,OTHER,,,,,,,9,8,no,2019-06-27,2021-07-28,no,not_core_family
+SKU:38500565,38500565,"4000K 4W מ""מ105 לד עגולVEGA שקוע3850044 GEWISS מודול תה""ט לבטון3 'קופ3924403",,UNKNOWN,OTHER,,,,,,GEWISS,3,1,no,2020-06-28,2021-06-30,no,not_core_family
+SKU:38500574,38500574,"10A לחצן מדרגות מואר נועה תה""ט836006",,UNKNOWN,OTHER,,,,,,,13,2,no,2020-01-28,2023-09-28,no,not_core_family
+SKU:38500575,38500575,2700K 18W 225 לד עגולVEGA חיצוני38502066500K 30W 30 לד עגולVEGA חיצוני3850211,,UNKNOWN,OTHER,,,,,,,11,1,no,2020-10-22,2023-11-28,no,not_core_family
+SKU:38500581,38500581,"K 30W מ""מ30 לד עגולVEGA שקוע",,UNKNOWN,OTHER,,,,,,,1,0,no,2022-06-27,2022-06-27,no,not_core_family
+SKU:38500582,38500582,"K 30W מ""מ30 לד עגולVEGA שקוע",,UNKNOWN,OTHER,,,,,,,7,3,no,2020-11-26,2023-11-28,no,not_core_family
+SKU:3850104,3850104,K 4W 105x105 לד מרובעVEGA שקוע,,UNKNOWN,OTHER,,,,,,,1,1,no,2019-08-25,2019-08-25,no,not_core_family
+SKU:3850108,3850108,5x1.5 N2XY (מטר כבל)בחבילה5951041,cable,COPPER,N2XY_COPPER_CABLE,N2XY,5,1.5,,,,4,0,yes,2019-03-04,2019-03-04,no,sku_conflict
+SKU:3850119,3850119,6500K 18W 225x225 לד מרובעVEGA שקוע3850120,,UNKNOWN,OTHER,,,,,,,1,1,no,2019-03-29,2019-03-29,no,not_core_family
+SKU:3850120,3850120,' מגול200x85 תעלת רשת7000002 (כללי3w)1W AWEx160Lm חרום שקוע כפתור23101033083,lighting,OTHER,OTHER,,,,,,,5,2,no,2019-03-29,2019-09-24,no,not_core_family
+SKU:3850123,3850123,K 20W 240x24 לד מרובעVEGA שקוע,,UNKNOWN,OTHER,,,,,,,1,0,no,2018-11-27,2018-11-27,no,not_core_family
+SKU:3850131,3850131,קדחTRIMDARK 10w גוון משתנה שקוע לבן,accessory,OTHER,OTHER,,,,לבן,,,4,4,no,2021-05-27,2021-11-25,no,not_core_family
+SKU:3850183,3850183,"מ""מ40 לבן40W 4000LM 4K HIGH-Q ג""ת",lighting,OTHER,OTHER,,,,לבן,,,1,1,no,2021-10-27,2021-10-27,no,not_core_family
+SKU:3850184,3850184,LR03 AAA גודלVEGA סוללות4 מארז167008 SM-2155 סוללות+תאורת לד+זכוכית מגדלת99315044,,UNKNOWN,OTHER,,,,,,,1,0,no,2020-08-27,2020-08-27,no,not_core_family
+SKU:3850186,3850186,4000K 30W 30 לד עגולVEGA חיצוני3850210,,UNKNOWN,OTHER,,,,,,,1,0,no,2020-08-27,2020-08-27,no,not_core_family
+SKU:3850188,3850188,"מ""מ60 לבן60W 6000LM 2.7K HIGH-Q ג""ת",lighting,OTHER,OTHER,,,,לבן,,,1,0,no,2020-09-24,2020-09-24,no,not_core_family
+SKU:3850190,3850190,E.F אקדח מרק מקצועי99565216,accessory,OTHER,OTHER,,,,,,,1,1,no,2019-11-27,2019-11-27,no,not_core_family
+SKU:3850199230,3850199230,גוון אור משתנה40w 40. לבן קHIGH-Q,,UNKNOWN,OTHER,,,,לבן,,,1,1,no,2020-09-24,2020-09-24,no,not_core_family
+SKU:3850199240,3850199240,גוון אור לפי בח50w 50. לבן קHIGH-Q .ג.ת,,UNKNOWN,OTHER,,,,לבן,,,2,1,no,2022-02-24,2022-02-24,no,not_core_family
+SKU:3850199250,3850199250,גוון אור לפי בחירה60w 60. לבן קHIGH-Q .ג.ת,,UNKNOWN,OTHER,,,,לבן,,,1,1,no,2022-04-27,2022-04-27,no,not_core_family
+SKU:3850199303,3850199303,גוון אור60w 60. מעוגל לבן קHIGH-Q .ג.ת,,UNKNOWN,OTHER,,,,לבן,,,1,1,no,2022-02-24,2022-02-24,no,not_core_family
+SKU:38502,38502,"W עה""טVEGA ג.ת. חרום",,UNKNOWN,OTHER,,,,,,,10,9,no,2020-11-26,2024-08-29,no,not_core_family
+SKU:3850201,3850201,K 6W 12 לד עגולVEGA חיצוני,,UNKNOWN,OTHER,,,,,,,2,1,no,2019-06-27,2019-06-27,no,not_core_family
+SKU:3850204,3850204,K 12W 17 לד עגולVEGA חיצוני,,UNKNOWN,OTHER,,,,,,,1,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:3850206,3850206,"6500K 18W מ""מ225 לד עגולVEGA שקוע38500575",,UNKNOWN,OTHER,,,,,,,4,2,no,2019-06-27,2021-03-25,no,not_core_family
+SKU:3850207,3850207,4000K 18W 225 לד עגולVEGA חיצוני,,UNKNOWN,OTHER,,,,,,,17,13,no,2020-06-28,2023-09-28,no,not_core_family
+SKU:38502071,38502071,שחור4000K 18W 225 לד עגולVEGA חיצוני,,UNKNOWN,OTHER,,,,שחור,,,1,1,no,2021-08-26,2021-08-26,no,not_core_family
+SKU:3850208,3850208,K 18W 225 לד עגולVEGA חיצוני,,UNKNOWN,OTHER,,,,,,,7,5,no,2020-11-26,2023-11-28,no,not_core_family
+SKU:3850209,3850209,K 30W 30 לד עגולVEGA חיצוני,,UNKNOWN,OTHER,,,,,,,3,3,no,2020-09-24,2021-11-25,no,not_core_family
+SKU:385021,385021,W כפתור שקועVEGA ג.ת. חרום,,UNKNOWN,OTHER,,,,,,,15,13,no,2020-02-27,2023-03-29,no,not_core_family
+SKU:3850210,3850210,K 30W 30 לד עגולVEGA חיצוני,,UNKNOWN,OTHER,,,,,,,4,3,no,2019-06-27,2020-08-27,no,not_core_family
+SKU:3850211,3850211,"6500K 18W מ""מ225 לד עגולVEGA שקוע38500575",,UNKNOWN,OTHER,,,,,,,8,5,no,2019-07-28,2023-11-28,no,not_core_family
+SKU:3850219,3850219,"4000K 4W מ""מ105 לד עגולVEGA שקוע3850044 TOP נ.סימון לבן+מפ' דו קוטבי3920504",,UNKNOWN,OTHER,,,,לבן,,,3,2,no,2019-01-27,2019-06-27,no,not_core_family
+SKU:3850220,3850220,"(כללי3w)1W AWEx160Lm חרום שקוע כפתור23101033083150Lm 3H עה""טAWExבדיקה עצמית+ג.ת. חרום23104033083",lighting,OTHER,OTHER,,,,,,,3,0,no,2019-03-29,2019-09-24,no,not_core_family
+SKU:38502231,38502231,שחור אור קר6500K 30W 300x30 לד מרובעVEGAחיצוני,,UNKNOWN,OTHER,,,,שחור,,,1,1,no,2023-11-28,2023-11-28,no,not_core_family
+SKU:3850237,3850237,W 1200x30 חיצוני לד מלבן לבן,,UNKNOWN,OTHER,,,,לבן,,,1,1,no,2020-11-26,2020-11-26,no,not_core_family
+SKU:38502391,38502391,אור ניטרלי4K ממ3017W VEGA אגם פלפון לד לבן,,UNKNOWN,OTHER,,,,לבן,,,1,1,no,2024-09-30,2024-09-30,no,not_core_family
+SKU:38502392,38502392,K ממ3017W VEGA פלפון לד אגם לבן,,UNKNOWN,OTHER,,,,לבן,,,1,1,no,2019-03-29,2019-03-29,no,not_core_family
+SKU:38502393,38502393,K ממ40 פוליקרבו28W VEGA פלפון לד לבן,,UNKNOWN,OTHER,,,,לבן,,,3,2,no,2019-01-27,2020-02-27,no,not_core_family
+SKU:38502395,38502395,אור ניטרלי קוטר4K 20W VEGA BAR דו תכליתי לד,,UNKNOWN,OTHER,,,,,,,2,2,no,2023-06-29,2024-09-30,no,not_core_family
+SKU:3850241,3850241,"W DL מ""מ40 עגולVEGA חיצוני",,UNKNOWN,OTHER,,,,,,,6,0,no,2017-10-03,2023-11-28,no,not_core_family
+SKU:3850242,3850242,"לבן55W CW מ""מ50 עגולVEGA חיצוני לד",,UNKNOWN,OTHER,,,,לבן,,,1,0,no,2019-06-27,2019-06-27,no,not_core_family
+SKU:3850248,3850248,"שחור45W CW מ""מ40 עגולVEGA חיצוני לד",,UNKNOWN,OTHER,,,,שחור,,,2,0,no,2019-06-27,2019-06-27,no,not_core_family
+SKU:3850263,3850263,W דקל חירום חיצוני,,UNKNOWN,OTHER,,,,,,,2,2,no,2023-11-28,2024-08-29,no,not_core_family
+SKU:3850500,3850500,תקרה/קירVEGA 36 שלט יציאה חירום,,UNKNOWN,OTHER,,,,תקרה/קיר,,,2,2,no,2021-07-28,2021-07-28,no,not_core_family
+SKU:38505002,38505002,"חץ ימינה+"" ""יציאהVEGA 360-פיקטוגרמה ל",,UNKNOWN,OTHER,,,,,,,1,1,no,2021-10-27,2021-10-27,no,not_core_family
+SKU:3850501,3850501,"עה""ט קיר/תקרה דVEGA 22 שלט יציאה חירום",,UNKNOWN,OTHER,,,,קיר/תקרה,,,11,10,no,2020-12-30,2021-12-29,no,not_core_family
+SKU:38505012,38505012,"""יציאה""חץ ימינהVEGA 219/220-פיקטוגרמה ל",,UNKNOWN,OTHER,,,,,,,1,1,no,2020-12-30,2020-12-30,no,not_core_family
+SKU:38505016,38505016,לקיר בדיקה עצמיתIP65 שלט יציאה חירום,,UNKNOWN,OTHER,,,,,,,9,8,no,2023-05-28,2025-02-26,no,not_core_family
+SKU:38700170,38700170,DL 6500K 60x6 לבןCK VEGA פאנל,,UNKNOWN,OTHER,,,,לבן,,,2,2,no,2020-10-22,2020-11-26,no,not_core_family
+SKU:3880001,3880001,VEGA 20 LM CREE פנס ראש לד,lighting,OTHER,OTHER,,,,,,,3,3,no,2020-09-24,2021-04-27,no,not_core_family
+SKU:3880107,3880107,MINI-OR ניידת לד-ליתיום- תאורת חרום,,UNKNOWN,OTHER,,,,,,,3,3,no,2022-10-27,2023-02-28,no,not_core_family
+SKU:389250,389250,לבן6.5K 500LM 7W VEGA שקוע עגול מתכוונן,lighting,OTHER,OTHER,,,,לבן,,,2,1,no,2022-06-27,2022-06-27,no,not_core_family
+SKU:389251,389251,3W כפתור שקועVEGA ג.ת. חרום385021,,UNKNOWN,OTHER,,,,,,,1,1,no,2021-03-25,2021-03-25,no,not_core_family
+SKU:389252,389252,לבן3K 500LM 7W VEGA שקוע עגול מתכוונן,lighting,OTHER,OTHER,,,,לבן,,,1,1,no,2022-06-27,2022-06-27,no,not_core_family
+SKU:389253,389253,"10A מפסק יחיד נועה תה""ט83600312VDC 12.5A/150W ספק כח לד2910383",switchgear,OTHER,OTHER,,,,,,,2,0,yes,2021-03-25,2021-03-25,no,not_core_family
+SKU:3894011,3894011,גוון משתנה114 קוטר7W פז שקוע,,UNKNOWN,OTHER,,,,,,,3,3,no,2024-06-27,2024-09-30,no,not_core_family
+SKU:3910001,3910001,(100) SAPISELCO 284.5 חבק לבן90020,,UNKNOWN,OTHER,,,,לבן,,,97,0,yes,2019-10-25,2025-01-28,no,not_core_family
+SKU:3910003,3910003,מוד' לבן1 מפ' יחיד מואר-קורוס,,UNKNOWN,OTHER,,,,לבן,,,1,1,no,2020-10-22,2020-10-22,no,not_core_family
+SKU:3910004,3910004,"שח0.78 מטר2, 000.0 ירוק2 צינור מריכף8600103",,UNKNOWN,OTHER,,,,ירוק,,,1,1,no,2020-08-27,2020-08-27,no,not_core_family
+SKU:3910005,3910005,230V 0.6W נורית סימון לד אדום3910883,,UNKNOWN,OTHER,,,,אדום,,,47,47,no,2019-10-25,2024-12-29,no,not_core_family
+SKU:3910021,3910021,מודול לבן1/2 מפסק יחיד-קורוס,switchgear,OTHER,OTHER,,,,לבן,,,1,1,no,2024-04-30,2024-04-30,no,not_core_family
+SKU:3910031,3910031,SUPER N N-4 קופסא695220104,,UNKNOWN,OTHER,,,,,,SUPER,2,2,no,2021-01-26,2023-09-28,no,not_core_family
+SKU:3910051,3910051,9V סוללה דורסל3300007 EL-014 PG 11 צינור גמיש שחור1020105,,UNKNOWN,OTHER,,,,שחור,,,87,0,yes,2019-10-25,2024-10-31,no,not_core_family
+SKU:3910053,3910053,מוד' לבן1 מפ' מחליף מואר-קורוס,,UNKNOWN,OTHER,,,,לבן,,,1,1,no,2021-04-27,2021-04-27,no,not_core_family
+SKU:3910091,3910091,AA סוללות דורסל4 מארז3300005 IRWIN SDS-PLUS 22x400/46 מקדח לפטישון2400089,accessory,OTHER,OTHER,,,,,,,22,0,yes,2020-08-27,2024-06-27,no,not_core_family
+SKU:3910122,3910122,P לבן1 'מוד מפסק תריס-קורוס,switchgear,OTHER,OTHER,,,,לבן,,,3,3,no,2019-10-25,2021-06-30,no,not_core_family
+SKU:3910131,3910131,מודול לבן1 לחצן-קורוס,,UNKNOWN,OTHER,,,,לבן,,,3,3,no,2021-02-28,2023-11-05,no,not_core_family
+SKU:3910133,3910133,(לבן)לא כולל נורית מוד1 לחצן מואר-קורוס,,UNKNOWN,OTHER,,,,לבן,,,36,35,no,2019-10-25,2025-02-26,no,not_core_family
+SKU:3910134,3910134,מודול לבן1 לחצן דו קוטבי-קורוס,,UNKNOWN,OTHER,,,,לבן,,,1,1,no,2020-11-26,2020-11-26,no,not_core_family
+SKU:3910140,3910140,מוד' לבן מבריק1 לחצן תריס-קורוס,,UNKNOWN,OTHER,,,,לבן,,,53,50,no,2019-10-25,2024-09-30,no,not_core_family
+SKU:3910151,3910151,מודול לבן1 סימון נורה+קורוס לחצן מואר,,UNKNOWN,OTHER,,,,לבן,,,6,6,no,2021-05-27,2024-05-29,no,not_core_family
+SKU:3910153,3910153,מודול לבן מבריק1 סימון פעמון+לחצן מואר-קורוס,,UNKNOWN,OTHER,,,,לבן,,,12,12,no,2020-02-27,2025-02-26,no,not_core_family
+SKU:3910195,3910195,!!! בלדח דקור' קומפלט תקני1050020,,UNKNOWN,OTHER,,,,,,,79,0,yes,2019-10-25,2024-09-30,no,not_core_family
+SKU:3910281,3910281,!!! בלדח דקור' קומפלט תקני1050020,,UNKNOWN,OTHER,,,,,,,100,99,no,2019-10-25,2024-10-31,no,not_core_family
+SKU:3910282,3910282,תקני16A שקע ישראלי דו פיני לבן,switchgear,OTHER,OTHER,,,,לבן,,,1,1,no,2020-12-30,2020-12-30,no,not_core_family
+SKU:3910297,3910297,IRWIN SDS-PLUS 7x50/11 מקדח לפטישון2400074,accessory,OTHER,OTHER,,,,,,,3,0,yes,2020-09-24,2021-03-25,no,not_core_family
+SKU:3910361,3910361,מוד' לבן1 זכר ישירTV שקע-קורוס,switchgear,OTHER,OTHER,,,,לבן,,,2,2,no,2021-06-30,2021-06-30,no,not_core_family
+SKU:3910408,3910408,(1293) ONKA 4 מהדק להארקה לפס1800351,,UNKNOWN,OTHER,,,,,,,41,40,no,2019-10-25,2024-09-30,no,not_core_family
+SKU:3910421,3910421,' מוד1 לבןUTP Cat. 5e RJ-45 שקע,switchgear,OTHER,OTHER,UTP,,,לבן,,,2,2,no,2023-08-29,2023-11-05,no,not_core_family
+SKU:3910431,3910431,מתאם לשקע קיסטון לבן-קורוס,switchgear,OTHER,OTHER,,,,לבן,,,5,5,no,2020-06-28,2023-11-05,no,not_core_family
+SKU:3910448,3910448,230V 0.6W נורית סימון לד אדום3910883,,UNKNOWN,OTHER,,,,אדום,,,26,0,yes,2019-10-25,2022-06-27,no,not_core_family
+SKU:3910450,3910450,מקור2.1A מודול1 כפול לבןUSB קורוס ש,,UNKNOWN,OTHER,,,,לבן,,,4,4,no,2020-09-24,2023-11-05,no,not_core_family
+SKU:3910561,3910561,500W ' מוד1 'עמעם סיב-קורוס,,UNKNOWN,OTHER,,,,,,,2,2,no,2020-10-22,2024-02-28,no,not_core_family
+SKU:3910564,3910564,900W ' מוד1 עמעם סיבובי,,UNKNOWN,OTHER,,,,,,,1,1,no,2023-08-29,2023-08-29,no,not_core_family
+SKU:3910882,3910882,V 0.6W נורית סימון לד לבן,,UNKNOWN,OTHER,,,,לבן,,,1,1,no,2020-10-22,2020-10-22,no,not_core_family
+SKU:3910883,3910883,V 0.6W נורית סימון לד אדום,,UNKNOWN,OTHER,,,,אדום,,,42,41,no,2020-01-28,2025-02-26,no,not_core_family
+SKU:3910915,3910915,מודול לבן1 קורוס לחצן אלקטרוני,,UNKNOWN,OTHER,,,,לבן,,,1,1,no,2020-11-26,2020-11-26,no,not_core_family
+SKU:3912001,3912001,מודול גוון שחור מט/סאטן1 מפסק יחיד-קורוס,switchgear,OTHER,OTHER,,,,שחור,,,5,5,no,2020-12-30,2024-09-30,no,not_core_family
+SKU:3912005,3912005,שחור מודול1מפסק דו קטבי מואר,switchgear,OTHER,OTHER,,,,שחור,,,1,1,no,2023-02-28,2023-02-28,no,not_core_family
+SKU:3912051,3912051,מודול שחור1 מפסק מחליף,switchgear,OTHER,OTHER,,,,שחור,,,2,2,no,2020-12-30,2023-02-28,no,not_core_family
+SKU:3912091,3912091,מודול שחור1 מפסק צלב,switchgear,OTHER,OTHER,,,,שחור,,,1,1,no,2020-12-30,2020-12-30,no,not_core_family
+SKU:3912131,3912131,מודול שחור1 לחצן,,UNKNOWN,OTHER,,,,שחור,,,1,1,no,2023-04-27,2023-04-27,no,not_core_family
+SKU:3912132,3912132,מודול שחור1 ת.איתור+ לחצן,,UNKNOWN,OTHER,,,,שחור,,,1,1,no,2023-04-27,2023-04-27,no,not_core_family
+SKU:3912133,3912133,מודול שחור מט/סאטן1 לחצן מואר-קורוס,,UNKNOWN,OTHER,,,,שחור,,,4,3,no,2020-12-30,2024-11-28,no,not_core_family
+SKU:3912140,3912140,מודול שחור1 חיצים+לחצן תריס,,UNKNOWN,OTHER,,,,שחור,,,2,2,no,2020-12-30,2023-02-28,no,not_core_family
+SKU:3912153,3912153,מוד. שחור1 סימון פעמון+ל.מואר,,UNKNOWN,OTHER,,,,שחור,,,1,1,no,2024-08-29,2024-08-29,no,not_core_family
+SKU:3912172,3912172,מודול שחור מט/סאטן2 ת.איתור+ לחצן-קורוס,,UNKNOWN,OTHER,,,,שחור,,,1,1,no,2024-11-28,2024-11-28,no,not_core_family
+SKU:3912192,3912192,200x0.8 מכסה לתעלת פח מלא6802006,,UNKNOWN,OTHER,,,,,,,1,1,no,2020-08-27,2020-08-27,no,not_core_family
+SKU:3912195,3912195,מודול שחור1 דמי,,UNKNOWN,OTHER,,,,שחור,,,6,5,no,2023-03-29,2024-09-30,no,not_core_family
+SKU:3912281,3912281,56.00% שח22.18 מטר81.0 מגולוון100x85 תעלת רשת חיבור מהיר70000090,,UNKNOWN,OTHER,,,,,,,10,10,no,2020-12-30,2024-08-29,no,not_core_family
+SKU:3912282,3912282,תקני16A שקע ישראלי דו פיני שחור,switchgear,OTHER,OTHER,,,,שחור,,,1,1,no,2023-04-27,2023-04-27,no,not_core_family
+SKU:3916101,3916101,3x2.5 N2XY (מטר כבל)בחבילה5951061,cable,COPPER,N2XY_COPPER_CABLE,N2XY,3,2.5,,,,54,52,no,2019-10-25,2025-02-26,yes,
+SKU:3916102,3916102,"16A שקע כח נועה תה""ט836001",switchgear,OTHER,OTHER,,,,,,,49,49,no,2020-01-28,2025-02-26,no,not_core_family
+SKU:3916103,3916103,מודול3 לבן חלבי ONE מסגרת-קורוס,,UNKNOWN,OTHER,,,,לבן,,,31,31,no,2019-10-25,2024-10-31,no,not_core_family
+SKU:3916104,3916104,מודו4 לבן חלבי ONE מסגרת-קורוס,,UNKNOWN,OTHER,,,,לבן,,,49,49,no,2020-01-28,2025-02-26,no,not_core_family
+SKU:3916106,3916106,מודול6 לבן חלביONE מסגרת-קורוס,,UNKNOWN,OTHER,,,,לבן,,,10,10,no,2020-10-22,2024-05-29,no,not_core_family
+SKU:3916122,3916122,' לקופONE ' מוד2 מסגרת לבן-קורוס,,UNKNOWN,OTHER,,,,לבן,,,4,4,no,2020-08-27,2023-11-05,no,not_core_family
+SKU:3916403,3916403,GEO מודול3 מסגרת לבן חלבי,,UNKNOWN,OTHER,,,,לבן,,,2,1,no,2022-01-26,2022-02-24,no,not_core_family
+SKU:3916703,3916703,"!!! בלדח דקור' קומפלט תקני105002 ' מוד4 מסגרת מ""מ לבן- קורוס3916704",,UNKNOWN,OTHER,,,,לבן,,,81,0,yes,2020-01-28,2025-01-28,no,not_core_family
+SKU:3916704,3916704,"' מוד4 מסגרת מ""מ לבן- קורוס",,UNKNOWN,OTHER,,,,לבן,,,31,12,no,2020-02-27,2024-07-28,no,not_core_family
+SKU:3916803,3916803,(100) SAPISELCO 284.5 חבק לבן90020,,UNKNOWN,OTHER,,,,לבן,,,101,0,yes,2019-10-25,2025-02-26,no,not_core_family
+SKU:3916804,3916804,(12) אדום-גיר סימון שמן99565212,,UNKNOWN,OTHER,,,,אדום,,,62,0,yes,2019-10-25,2024-10-31,no,not_core_family
+SKU:3916806,3916806,WERA COMFORT 1000V 4.0x10 מברג9956615011,tool,OTHER,OTHER,,,,,,WERA,10,10,no,2020-10-22,2024-05-29,no,not_core_family
+SKU:3916821,3916821,' מודול לקופ2-מתאם ל,,UNKNOWN,OTHER,,,,,,,3,3,no,2023-08-29,2023-11-05,no,not_core_family
+SKU:3920209,3920209,GW לבן13A'שקע בריטי פין עג,switchgear,OTHER,OTHER,,,,לבן,,,1,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:3920220,3920220,GW לבן16A 250V שקע ישראלי,switchgear,OTHER,OTHER,,,,לבן,,,22,22,no,2017-10-03,2022-02-24,no,not_core_family
+SKU:39202283,39202283,"50.00% שח1.11 מטר200.0 מ""מ16 צינור שרשורי3700320",,UNKNOWN,OTHER,,,,,,,34,34,no,2017-10-03,2022-09-28,no,not_core_family
+SKU:3920244,3920244,"!!! בלדח דקור' קומפלט תקני105002 GW מוד' לבן3 מ""מCOM מסגרת3922451",,UNKNOWN,OTHER,,,,לבן,,,45,43,no,2017-10-03,2024-10-31,no,not_core_family
+SKU:3920504,3920504,TOP נ.סימון לבן+מפ' דו קוטבי,,UNKNOWN,OTHER,,,,לבן,,,8,8,no,2018-11-27,2023-12-31,no,not_core_family
+SKU:3920510,3920510,TOP קוטבי לבן1 NO לוחץ,panel,OTHER,OTHER,,,,לבן,,,3,3,no,2019-06-27,2019-09-24,no,not_core_family
+SKU:3920512,3920512,לחצן חד קוטבי עם סימון פעמון,,UNKNOWN,OTHER,,,,,,,1,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:3920515,3920515,TOP נ.סימון לבן+ קוטבי1 NO לוחץ,panel,OTHER,OTHER,,,,לבן,,,6,6,no,2017-10-03,2019-01-27,no,not_core_family
+SKU:3920521,3920521,TOP חיצים לבן1-0-2 NO לוחץ,panel,OTHER,OTHER,,,,לבן,,,6,6,no,2018-11-27,2020-03-29,no,not_core_family
+SKU:3920560,3920560,TOP לבן2P 1-0-2 מפסק דו כווני,switchgear,OTHER,OTHER,,,,לבן,,,4,3,no,2017-10-03,2020-03-29,no,not_core_family
+SKU:3920571,3920571,!!! בלדח דקור' קומפלט תקני105002 GW........ מקום3 מתאם למסגרת3924201,,UNKNOWN,OTHER,,,,,,,23,23,no,2018-11-27,2020-12-30,no,not_core_family
+SKU:3920576,3920576,TOP מפ' משנה כוון/חילוף לבן,,UNKNOWN,OTHER,,,,לבן,,,10,10,no,2018-11-27,2020-03-29,no,not_core_family
+SKU:3920579,3920579,TOP לבן10A מפ' מצליב,,UNKNOWN,OTHER,,,,לבן,,,3,3,no,2018-12-31,2019-10-25,no,not_core_family
+SKU:3920603,3920603,()ללא נורהGW דפיוזר סימון שטוחה אדום,,UNKNOWN,OTHER,,,,אדום,,,1,1,no,2020-07-26,2020-07-26,no,not_core_family
+SKU:392080755,392080755,"12x8 "" ""הארקה לא לנתקPVC מדבקה801442843.00% שח2.54 מטר2.0 גמישNYAF חום4. חוט5955230",wire,COPPER_PVC,COPPER_WIRE,,12,8,חום,,PVC,1,0,no,2021-02-28,2021-02-28,no,no_usable_prices
+SKU:3920905,3920905,GW ממ3 לבן24V נורה פיוז,,UNKNOWN,OTHER,,,,לבן,,,3,3,no,2017-10-03,2020-12-30,no,not_core_family
+SKU:3920906,3920906,GW נורה פיוז אדום פלורסנט,,UNKNOWN,OTHER,,,,אדום,,,1,1,no,2020-07-26,2020-07-26,no,not_core_family
+SKU:3921220,3921220,GEWISS SYS BLACK שקע כח,switchgear,OTHER,OTHER,,,,,,GEWISS,3,3,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:3922101,3922101,(חדש20) 16 צינור מופה אדום84000791 GW........ מקום3 מתאם למסגרת3924201,,UNKNOWN,OTHER,,,,אדום,,,23,23,no,2017-10-03,2020-04-30,no,not_core_family
+SKU:3922102,3922102,SYSTEM לבן2 מודולVIRNA מסגרת,,UNKNOWN,OTHER,,,,לבן,,,3,3,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:3922103,3922103,GW........ מקום3 מתאם למסגרת3924201 SYSTEM לבן1 מודולVIRNA מסגרת3922101,,UNKNOWN,OTHER,,,,לבן,,,24,24,no,2017-10-03,2019-11-27,no,not_core_family
+SKU:3922104,3922104,"4000K 4W מ""מ105 לד עגולVEGA שקוע3850044",,UNKNOWN,OTHER,,,,,,,16,16,no,2017-10-03,2019-11-27,no,not_core_family
+SKU:3922106,3922106,SYSTEM לבן6 מודולVIRNA מסגרת,,UNKNOWN,OTHER,,,,לבן,,,5,5,no,2017-10-03,2019-10-25,no,not_core_family
+SKU:3922114,3922114,VIRNA שחור4 מודולSYS מסגרת,,UNKNOWN,OTHER,,,,שחור,,,2,2,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:3922451,3922451,"GW מוד' לבן3 מ""מCOM מסגרת",,UNKNOWN,OTHER,,,,לבן,,,15,1,no,2017-10-03,2024-01-28,no,not_core_family
+SKU:3922461,3922461,"GW מוד' לבן4 מ""מCOM מסגרת",,UNKNOWN,OTHER,,,,לבן,,,8,1,no,2019-08-25,2023-12-31,no,not_core_family
+SKU:3922501,3922501,TOP מוד' לבן1 מסגרת,,UNKNOWN,OTHER,,,,לבן,,,3,3,no,2017-10-03,2020-03-29,no,not_core_family
+SKU:3922502,3922502,TOP מוד' לבן2 מסגרת,,UNKNOWN,OTHER,,,,לבן,,,1,1,no,2020-03-29,2020-03-29,no,not_core_family
+SKU:3922503,3922503,TOP מוד' לבן3 מסגרת,,UNKNOWN,OTHER,,,,לבן,,,2,2,no,2019-10-25,2020-07-26,no,not_core_family
+SKU:3922504,3922504,TOP מוד' לבן4 מסגרת,,UNKNOWN,OTHER,,,,לבן,,,2,2,no,2019-10-25,2020-07-26,no,not_core_family
+SKU:3924201,3924201,GW SYSTEM מודול3 מתאם למסגרת,,UNKNOWN,OTHER,,,,,,,21,21,no,2017-10-03,2024-08-29,no,not_core_family
+SKU:3924202,3924202,GW SYSTEM מודול4 מתאם למסגרת,,UNKNOWN,OTHER,,,,,,,13,13,no,2017-10-03,2024-08-29,no,not_core_family
+SKU:3924211,3924211,GEWISS מוד' לבן3 מסגרת אטומה,,UNKNOWN,OTHER,,,,לבן,,GEWISS,2,2,no,2017-10-03,2019-06-27,no,not_core_family
+SKU:3924220,3924220,ברגים+7 גוויס מכסה,,UNKNOWN,OTHER,,,,,,,2,2,no,2021-09-26,2022-01-26,no,not_core_family
+SKU:3924230,3924230,TOP ' מודו6 ל TOP מתאם,,UNKNOWN,OTHER,,,,,,,2,2,no,2019-06-27,2023-12-31,no,not_core_family
+SKU:3924262,3924262,GEWISS TOP מודול2-מתאם ל,,UNKNOWN,OTHER,,,,,,GEWISS,1,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:3924403,3924403,"GEWISS מודול תה""ט לבטון3 קופסא",,UNKNOWN,OTHER,,,,,,GEWISS,3,3,no,2022-08-25,2022-08-25,no,not_core_family
+SKU:3924404,3924404,"GEWISS מודול תה""ט לבטון4 קופסא",,UNKNOWN,OTHER,,,,,,GEWISS,1,1,no,2022-08-25,2022-08-25,no,not_core_family
+SKU:3927043,3927043,"מקום עה""ט מ.מים3 קומבי",,UNKNOWN,OTHER,,,,,,,1,1,no,2019-01-27,2019-01-27,no,not_core_family
+SKU:3940102,3940102,"CE 4 IP-65 מודול8 לוח עה""ט",panel,OTHER,OTHER,,,,,,,2,1,no,2020-11-26,2020-11-26,no,not_core_family
+SKU:3942201,3942201,(GW42216)ללא פטישGEWISS 10A לוחץ חרום,panel,OTHER,OTHER,,,,,,GEWISS,13,0,yes,2018-11-27,2024-10-31,no,not_core_family
+SKU:3942211,3942211,זכוכית להחלפה עבור,,UNKNOWN,OTHER,,,,,,,2,2,no,2023-07-27,2023-08-29,no,not_core_family
+SKU:3942216,3942216,GEWISS פטיש עם כבל בטחון,cable,UNKNOWN,OTHER,,,,,,GEWISS,3,3,no,2018-11-27,2021-11-25,no,not_core_family
+SKU:3944002,3944002,GEWISS 80x4650° קופסא סעף,,UNKNOWN,OTHER,,,,,,GEWISS,2,2,no,2023-04-27,2024-04-30,no,not_core_family
+SKU:3944003,3944003,IP-44 כניסות+ 80x80x4 קופ' סעף,,UNKNOWN,OTHER,,,,,,,4,4,no,2017-10-03,2019-10-25,no,not_core_family
+SKU:3944006,3944006,IP55 כניסות+150x110x7 °65 קופ' סעף,,UNKNOWN,OTHER,,,,,,,5,5,no,2020-04-30,2022-08-25,no,not_core_family
+SKU:3944007,3944007,GEWISS IP55 כניסות+190x140x7650° קופסא סעף,,UNKNOWN,OTHER,,,,,,GEWISS,3,3,no,2020-09-24,2024-09-30,no,not_core_family
+SKU:3944024,3944024,כניסותIP5510x10x5650° קופ' אטומה,,UNKNOWN,OTHER,,,,,,,2,2,no,2019-09-24,2020-04-30,no,not_core_family
+SKU:3944053,3944053,GEWISS IP44 כניסות+ 80x8960° קופסא סעף,,UNKNOWN,OTHER,,,,,,GEWISS,5,5,no,2020-07-26,2024-08-29,no,not_core_family
+SKU:3944054,3944054,(100) SAPISELCO 284.5 חבק לבן90020,,UNKNOWN,OTHER,,,,לבן,,,2,2,no,2020-08-27,2022-12-29,no,not_core_family
+SKU:3944205,3944205,GEWISS IP56120x80x5650° קופסא אטומה,,UNKNOWN,OTHER,,,,,,GEWISS,1,1,no,2024-11-28,2024-11-28,no,not_core_family
+SKU:3944206,3944206,IP56150x110x7650° קופ' אטומה,,UNKNOWN,OTHER,,,,,,,7,7,no,2020-02-27,2022-06-27,no,not_core_family
+SKU:3944207,3944207,GEWISS IP56190x140x7650° קופסא אטומה,,UNKNOWN,OTHER,,,,,,GEWISS,9,9,no,2021-03-25,2024-11-28,no,not_core_family
+SKU:3944208,3944208,IP56190x140x7650° קופ' אטומה3944207 DIN 8.4 קדח-1 נ.כ4951330011,accessory,OTHER,OTHER,,,,,,,5,5,no,2021-03-25,2022-06-27,no,not_core_family
+SKU:3944216,3944216,IP56150x100x14650° קופסא אטומה,,UNKNOWN,OTHER,,,,,,,2,1,no,2021-11-25,2021-11-25,no,not_core_family
+SKU:3944234,3944234,IP56120x80x5650° קופ' אטומה3944205,,UNKNOWN,OTHER,,,,,,,1,1,no,2021-03-25,2021-03-25,no,not_core_family
+SKU:3948004,3948004,"x98x7 קופ' סעף תה""ט",,UNKNOWN,OTHER,,,,,,,1,1,no,2021-05-27,2021-05-27,no,not_core_family
+SKU:3952007,3952007,IP66 PG 29 כניסה אנטיגרון,,UNKNOWN,OTHER,,,,,,,2,1,no,2019-08-25,2019-08-25,no,not_core_family
+SKU:3960004,3960004,GW IP443x16 ניידCEE תקע,,UNKNOWN,OTHER,,,,,,,3,2,no,2020-07-26,2024-12-29,no,not_core_family
+SKU:3960009,3960009,GW IP445x16 ניידCEE תקע,,UNKNOWN,OTHER,,,,,,,2,2,no,2020-01-28,2024-09-30,no,not_core_family
+SKU:3960020,3960020,GW IP445x32 ניידCEE תקע,,UNKNOWN,OTHER,,,,,,,1,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:3960042,3960042,IP675x32 ניידCEE תקע,,UNKNOWN,OTHER,,,,,,,1,1,no,2020-03-29,2020-03-29,no,not_core_family
+SKU:3962020,3962020,GW IP445x32 ניידCEE שקע,switchgear,OTHER,OTHER,,,,,,,1,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:3962042,3962042,GW IP675x32 ניידCEE שקע,switchgear,OTHER,OTHER,,,,,,,2,1,no,2020-03-29,2020-03-29,no,not_core_family
+SKU:3962477,3962477,GW IP443x1690° עהטCEE שקע,switchgear,OTHER,OTHER,,,,,,,2,1,no,2024-10-31,2024-12-29,no,not_core_family
+SKU:3962482,3962482,GW IP445x169 עהטCEE שקע,switchgear,OTHER,OTHER,,,,,,,5,4,no,2017-10-03,2021-09-26,no,not_core_family
+SKU:3962488,3962488,GW IP443x329 עהטCEE שקע,switchgear,OTHER,OTHER,,,,,,,1,1,no,2019-01-27,2019-01-27,no,not_core_family
+SKU:3962493,3962493,GW IP445x3290° עהטCEE שקע,switchgear,OTHER,OTHER,,,,,,,1,0,no,2024-12-29,2024-12-29,no,not_core_family
+SKU:39689199,39689199,GEWISS IP67 פחתים2 + 25A ארון חשמל זמני,,UNKNOWN,OTHER,,,,,,GEWISS,1,1,no,2021-08-26,2021-08-26,no,not_core_family
+SKU:3970432,3970432,IP-653x16A מנתק בעומס/פקטGEWISS,,UNKNOWN,OTHER,,,,בעומס/פקט,,GEWISS,1,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:3990226,3990226,"P 10A+NA 6kA C מודול1 GEWISS מאמ""ת",breaker,OTHER,OTHER,,,,,,GEWISS,2,0,no,2019-06-27,2020-03-29,no,not_core_family
+SKU:3991507,3991507,"(100) מ""מ6-נ.כ צינור מצופה ל901556",,UNKNOWN,OTHER,,,,,,,1,0,no,2021-03-25,2021-03-25,no,not_core_family
+SKU:3991568,3991568,"3P 20A 6kA C GEWISS RB68 מאמ""ת דגם39915683P 25A 6kA C GEWISS מאמ""ת3992069",breaker,OTHER,OTHER,,,,,,GEWISS,4,0,no,2019-03-04,2019-03-04,no,not_core_family
+SKU:3992006,3992006,P 10A 6kA C GEWISS חצי אוטומט,,UNKNOWN,OTHER,,,,,,GEWISS,36,16,no,2018-11-27,2025-02-26,no,not_core_family
+SKU:3992007,3992007,P 16A 6kA C GEWISS חצי אוטומט,,UNKNOWN,OTHER,,,,,,GEWISS,45,24,no,2018-11-27,2024-10-31,no,not_core_family
+SKU:3992008,3992008,P 20A 6kA C GEWISS חצי אוטומט,,UNKNOWN,OTHER,,,,,,GEWISS,2,1,no,2018-11-27,2024-07-28,no,not_core_family
+SKU:3992009,3992009,"P 25A 6kA C GEWISS מאמ""ת",breaker,OTHER,OTHER,,,,,,GEWISS,1,0,no,2018-11-27,2018-11-27,no,not_core_family
+SKU:3992011,3992011,"P 40A 6kA C GEWISS מאמ""ת",breaker,OTHER,OTHER,,,,,,GEWISS,2,0,no,2020-01-28,2020-02-27,no,not_core_family
+SKU:3992067,3992067,P 16A 6kA C GEWISS חצי אוטומט,,UNKNOWN,OTHER,,,,,,GEWISS,32,15,no,2018-12-31,2024-05-29,no,not_core_family
+SKU:3992068,3992068,P 20A 6kA C GEWISS חצי אוטומט,,UNKNOWN,OTHER,,,,,,GEWISS,4,4,no,2024-05-29,2024-07-28,no,not_core_family
+SKU:3992069,3992069,P 25A 6kA C GEWISS חצי אוטומט,,UNKNOWN,OTHER,,,,,,GEWISS,23,10,no,2019-06-27,2024-06-27,no,not_core_family
+SKU:3992070,3992070,P 32A 6kA C GEWISS חצי אוטומט,,UNKNOWN,OTHER,,,,,,GEWISS,3,3,no,2022-01-26,2024-07-28,no,not_core_family
+SKU:3992071,3992071,P 40A 6kA C GEWISS חצי אוטומט,,UNKNOWN,OTHER,,,,,,GEWISS,5,4,no,2020-03-29,2024-06-27,no,not_core_family
+SKU:3992073,3992073,P 63A 6kA C GEWISS חצי אוטומט,,UNKNOWN,OTHER,,,,,,GEWISS,2,1,no,2020-10-22,2024-06-27,no,not_core_family
+SKU:4201506,4201506,!!! בלדח דקור' קומפלט תקני10500246.00% שח1.33 מטר100.00קשיח PVC כחול2.5 חוט55034,wire,COPPER_PVC,COPPER_WIRE,,,2.5,כחול,,PVC,2,2,no,2019-03-04,2019-03-04,yes,
+SKU:4223214172,4223214172,3000K שקוע לבן35/35 לונה7,,UNKNOWN,OTHER,,,,לבן,,,13,13,no,2024-07-28,2024-08-29,no,not_core_family
+SKU:4314100,4314100,ExL צהובOLFA סכין יפנית רחבה995650531,,UNKNOWN,OTHER,,,,צהוב,,,4,4,no,2019-01-27,2024-02-28,no,not_core_family
+SKU:4320020,4320020,"M5 בורג+ ממ""ר10-25 מהדק אומגה",,UNKNOWN,OTHER,,,,,,,1,0,no,2019-10-25,2019-10-25,no,not_core_family
+SKU:4320050,4320050,פלטה+M6 בורג+ 95-12 מהדק אומגה,,UNKNOWN,OTHER,,,,,,,1,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:4413935,4413935,(אוזנים4 אוזני תליה)סט של,,UNKNOWN,OTHER,,,,,,,2,2,no,2022-06-27,2025-01-28,no,not_core_family
+SKU:4426152,4426152,"LP1K0910BD כ""ס5.5 מגען מיני",,UNKNOWN,OTHER,,,,,,,1,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:4426439,4426439,V LC1K0910B71NO 5.5HP מגען מיני,,UNKNOWN,OTHER,,,,,,,1,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:4427825,4427825,xALK174/178 לחצן פיטריה+'קופ,,UNKNOWN,OTHER,,,,,,,3,2,no,2017-10-03,2024-10-31,no,not_core_family
+SKU:4427826,4427826,xALK184/188 מפתח+לחצן פטריה+'קופ,,UNKNOWN,OTHER,,,,,,,6,6,no,2017-10-03,2024-10-31,no,not_core_family
+SKU:4429761,4429761,ZENL1111xAL לקופסאNO מגע,,UNKNOWN,OTHER,,,,,,,2,2,no,2021-10-27,2024-10-31,no,not_core_family
+SKU:4429763,4429763,ZENL1121xAL לקופסאNC מגע,,UNKNOWN,OTHER,,,,,,,2,2,no,2021-10-27,2021-10-27,no,not_core_family
+SKU:4610401,4610401,x16 לקירCEE שקע,switchgear,OTHER,OTHER,,,,,,,5,5,no,2022-04-27,2022-12-29,no,not_core_family
+SKU:4610405,4610405,x16 לקירCEE שקע,switchgear,OTHER,OTHER,,,,,,,25,25,no,2019-06-27,2024-09-30,no,not_core_family
+SKU:4610406,4610406,x32 לקירCEE שקע,switchgear,OTHER,OTHER,,,,,,,7,6,no,2017-10-03,2023-11-28,no,not_core_family
+SKU:4610417,4610417,x16 ניידCEE שקע,switchgear,OTHER,OTHER,,,,,,,1,1,no,2022-06-27,2022-06-27,no,not_core_family
+SKU:4610421,4610421,5x16 ניידCEE שקע,switchgear,OTHER,OTHER,,,,,,,2,1,no,2023-03-29,2023-07-27,no,not_core_family
+SKU:4610422,4610422,x32 ניידCEE שקע,switchgear,OTHER,OTHER,,,,,,,2,2,no,2019-09-24,2023-07-27,no,not_core_family
+SKU:4610425,4610425,x16 ניידCEE תקע,,UNKNOWN,OTHER,,,,,,,11,11,no,2019-09-24,2024-08-29,no,not_core_family
+SKU:4610429,4610429,5x16 ניידCEE תקע,,UNKNOWN,OTHER,,,,,,,15,14,no,2018-11-27,2024-04-30,no,not_core_family
+SKU:4610430,4610430,5x32 ניידCEE תקע,,UNKNOWN,OTHER,,,,,,,10,9,no,2019-09-24,2024-12-29,no,not_core_family
+SKU:4610440,4610440,x32 לקירCEE תקע,,UNKNOWN,OTHER,,,,,,,1,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:4611002,4611002,W בהירE27 נורה ליבון,,UNKNOWN,OTHER,,,,,,,1,1,no,2020-12-30,2020-12-30,no,not_core_family
+SKU:4611004,4611004,W בהירE27 נורה ליבון,,UNKNOWN,OTHER,,,,,,,8,8,no,2019-10-25,2023-02-28,no,not_core_family
+SKU:46112061,46112061,W.W 220V דקרויקה7W LED נורה,lighting,OTHER,OTHER,,,,,,,1,1,no,2019-09-24,2019-09-24,no,not_core_family
+SKU:461123053,461123053,DL E277W נורה כדור לד,,UNKNOWN,OTHER,,,,,,,1,1,no,2022-04-27,2022-04-27,no,not_core_family
+SKU:461123054,461123054,אור חםWW E277W נורה כדור לד,,UNKNOWN,OTHER,,,,,,,1,1,no,2024-08-29,2024-08-29,no,not_core_family
+SKU:4611230540,4611230540,CW E277W נורה כדור לד,,UNKNOWN,OTHER,,,,,,,1,1,no,2022-02-24,2022-02-24,no,not_core_family
+SKU:461123424,461123424,WW E-277W LED נורת נר,lighting,OTHER,OTHER,,,,,,,2,2,no,2020-09-24,2021-05-27,no,not_core_family
+SKU:461123442,461123442,WW E-147W LED נורת נר,lighting,OTHER,OTHER,,,,,,,2,0,no,2020-06-28,2020-06-28,no,not_core_family
+SKU:461123467,461123467,הזנה אחתTUBE LED 18-22W DL'מ1.2 T8 נורה,lighting,OTHER,OTHER,,,,,,,2,2,no,2019-01-27,2019-07-28,no,not_core_family
+SKU:4611235033,4611235033,DL E27 נורה לד תואם ליבון ' יח90.04611235033 אור קר11W,,UNKNOWN,OTHER,,,,,,,3,2,no,2020-07-26,2025-09-30,no,not_core_family
+SKU:4611235056,4611235056,בית חכם 14W RGB נורה ליבון לד,,UNKNOWN,OTHER,,,,,,,3,3,no,2021-11-25,2023-11-28,no,not_core_family
+SKU:461123506,461123506,E2715W/DL נורה לד תואם ליבון,,UNKNOWN,OTHER,,,,,,,1,1,no,2022-04-27,2022-04-27,no,not_core_family
+SKU:4611235061,4611235061,E2715W/WW נורת לד תואם ליבון,,UNKNOWN,OTHER,,,,,,,1,1,no,2019-08-25,2019-08-25,no,not_core_family
+SKU:4611235062,4611235062,E27 אור ניטרליCW נורה לד תואם ליבון ' יח2.0461123506215W,,UNKNOWN,OTHER,,,,,,,6,5,no,2020-12-30,2024-12-29,no,not_core_family
+SKU:4611235063,4611235063,E2715W/DL (נורות לד3) מארז,,UNKNOWN,OTHER,,,,,,,3,3,no,2020-02-27,2022-06-27,no,not_core_family
+SKU:4611235064,4611235064,E2715W CW (נורות לד3) מארז,,UNKNOWN,OTHER,,,,,,,2,2,no,2022-05-29,2022-11-27,no,not_core_family
+SKU:461123512,461123512,לעמעום12W DL E27 נורת לד ליבון,,UNKNOWN,OTHER,,,,,,,1,1,no,2019-09-24,2019-09-24,no,not_core_family
+SKU:4611235342,4611235342,8W נורה לד ליבון מוזהבת ' יח8.04611235342 E27 פחם2000K,,UNKNOWN,OTHER,,,,,,,3,2,no,2024-08-29,2025-08-28,no,not_core_family
+SKU:46112386,46112386,E-2730W DL נורה להצפה סופר לד,,UNKNOWN,OTHER,,,,,,,1,1,no,2025-01-28,2025-01-28,no,not_core_family
+SKU:4611302,4611302,K מוגן505 לד6 (' מ5) פס,,UNKNOWN,OTHER,,,,,,,1,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:46113091,46113091,"RGB 50515W IP68('מ5) לד מ""מ6 סטריפ",,UNKNOWN,OTHER,,,,,,,1,1,no,2020-04-30,2020-04-30,no,not_core_family
+SKU:46120783,46120783,V 50W נורה הלוגן,,UNKNOWN,OTHER,,,,,,,1,1,no,2024-11-28,2024-11-28,no,not_core_family
+SKU:4615010,4615010,x400x20 ± ארון פוליאסטר בזק,,UNKNOWN,OTHER,,,,,,,1,1,no,2025-01-28,2025-01-28,no,not_core_family
+SKU:46200065,46200065,מודול+ 400x300x20 ± ארון מתכת,,UNKNOWN,OTHER,,,,,,,1,1,no,2020-12-30,2020-12-30,no,not_core_family
+SKU:47000062,47000062,SAMSUNG ערכת טעינה מקורית לרכב,,UNKNOWN,OTHER,,,,,,,1,1,no,2018-11-27,2018-11-27,no,not_core_family
+SKU:47000492,47000492,()חדש4.5A שלוש כניסותATS מטען לרכב,,UNKNOWN,OTHER,,,,,,,1,1,no,2021-02-28,2021-02-28,no,not_core_family
+SKU:47000820,47000820,כבל מקורי+ לסמסונג גלקסי2A מטען מקורי,cable,UNKNOWN,OTHER,,,,,,,1,1,no,2019-06-27,2019-06-27,no,not_core_family
+SKU:47000821,47000821,SAMSUNG 2A ערכת טעינה מהירה מקורית,,UNKNOWN,OTHER,,,,,,,1,1,no,2018-11-27,2018-11-27,no,not_core_family
+SKU:4700142,4700142,טעינה מהירה20000MA סוללת גיבוי אוניברסלי ניידת,,UNKNOWN,OTHER,,,,,,,3,2,no,2024-08-29,2024-12-29,no,not_core_family
+SKU:4700148,4700148,()חדש4.5A שלוש כניסותATS מטען לרכב47000492,,UNKNOWN,OTHER,,,,,,,2,2,no,2021-02-28,2021-04-27,no,not_core_family
+SKU:4700156,4700156,איכותי5V 3.1A לרכב כפולUSB מטען,,UNKNOWN,OTHER,,,,,,,2,1,no,2022-10-27,2022-10-27,no,not_core_family
+SKU:4700158,4700158,איכותי5V 1A/2.4A לרכב כפולUSB מטען,,UNKNOWN,OTHER,,,,,,,3,3,no,2021-04-27,2022-11-27,no,not_core_family
+SKU:4700160,4700160,מטר לסמסונג1.5 כבל+ לרכבUSB מטען,cable,UNKNOWN,OTHER,,,,,,,4,3,no,2019-08-25,2024-10-31,no,not_core_family
+SKU:4710042,4710042,TYPE C 3A כבל,cable,UNKNOWN,OTHER,,,,,,,1,0,no,2019-08-25,2019-08-25,no,not_core_family
+SKU:4710071,4710071,SIGMA Type-C ' מ1.2 כבל+ 5V 3A 20W PD מטען מהיר,cable,UNKNOWN,OTHER,,,,,,,2,2,no,2024-06-27,2024-11-28,no,not_core_family
+SKU:47100732,47100732,שזורTYPE C לTYPE C מטר2 כבל נתונים וטעינה,cable,UNKNOWN,OTHER,,,,,,,2,1,no,2024-06-27,2024-10-31,no,not_core_family
+SKU:472000067,472000067,לבןTYPE-C כבל+USB 2A מטען קיר,cable,UNKNOWN,OTHER,,,,לבן,,,1,1,no,2020-12-30,2020-12-30,no,not_core_family
+SKU:4720000711,4720000711,לבן3A כפול20W מטען קיר,,UNKNOWN,OTHER,,,,לבן,,,1,1,no,2023-02-28,2023-02-28,no,not_core_family
+SKU:47500020,47500020,"1P 16A 6kA C GEWISS מאמ""ת399200724VDC 4.5A 100W ספק כח לסטריפ/פרופיל לד29103912",breaker,OTHER,OTHER,,,,לסטריפ/פרופיל,,GEWISS,2,0,yes,2021-03-25,2025-03-27,no,not_core_family
+SKU:47500024,47500024,"תה""ט16A WIFI מפסק חכם לדוד",switchgear,OTHER,OTHER,,,,,,,2,2,no,2023-02-28,2023-11-28,no,not_core_family
+SKU:4750015,4750015,RCD TEST בודק שקע מקצועי צג דיגטלי,switchgear,OTHER,OTHER,,,,,,,1,1,no,2024-02-28,2024-02-28,no,not_core_family
+SKU:4931103,4931103,"/4"" מ.מרחק",,UNKNOWN,OTHER,,,,,,,6,2,no,2017-10-03,2023-06-29,no,not_core_family
+SKU:4931104,4931104,""" מ.מרחק",,UNKNOWN,OTHER,,,,,,,2,1,no,2020-11-26,2023-06-29,no,not_core_family
+SKU:4931105,4931105,"/4"" מ.מרחק",,UNKNOWN,OTHER,,,,,,,2,0,no,2017-10-03,2019-06-27,no,not_core_family
+SKU:4931615,4931615,"/2"" אומגה כבד",,UNKNOWN,OTHER,,,,,,,1,1,no,2020-02-27,2020-02-27,no,not_core_family
+SKU:4931617,4931617,""" אומגה כבד",,UNKNOWN,OTHER,,,,,,,1,1,no,2024-10-31,2024-10-31,no,not_core_family
+SKU:4931899,4931899,"(מ""מ)לגאז8 מהדק הארקה כבד",,UNKNOWN,OTHER,,,,,,,3,1,no,2021-07-28,2024-02-28,no,not_core_family
+SKU:4931901,4931901,"/2"" מהדק הארקה כבד",,UNKNOWN,OTHER,,,,,,,2,2,no,2020-11-26,2024-02-28,no,not_core_family
+SKU:4931906,4931906,""" מהדק הארקה כבד",,UNKNOWN,OTHER,,,,,,,3,3,no,2018-12-31,2021-11-25,no,not_core_family
+SKU:4931907,4931907,"/2"" מהדק הארקה כבד",,UNKNOWN,OTHER,,,,,,,1,1,no,2021-11-25,2021-11-25,no,not_core_family
+SKU:4931908,4931908,""" מהדק הארקה כבד",,UNKNOWN,OTHER,,,,,,,6,6,no,2020-11-26,2024-11-28,no,not_core_family
+SKU:4931909,4931909,""" מהדק הארקה כבד",,UNKNOWN,OTHER,,,,,,,1,1,no,2023-09-28,2023-09-28,no,not_core_family
+SKU:4932101,4932101,' מ0.6 פס הארקה לגשר,,UNKNOWN,OTHER,,,,,,,2,2,no,2020-04-30,2024-11-28,no,not_core_family
+SKU:49322000,49322000,44.00% שח19.33 מטר23.0 קשיחPVC (צ/י)בחבילה35 מטר חוט560431,wire,COPPER_PVC,COPPER_WIRE,,,560431,צ/י,,PVC,12,12,no,2019-03-29,2025-03-27,yes,
+SKU:49322001,49322001,x20x125 ברגים5 פס השוואה לעמוד,,UNKNOWN,OTHER,,,,,,,1,1,no,2022-02-24,2022-02-24,no,not_core_family
+SKU:49322002,49322002,x20x16 ברגים7 פס השוואה לעמוד,,UNKNOWN,OTHER,,,,,,,1,1,no,2018-11-27,2018-11-27,no,not_core_family
+SKU:4932201,4932201,ברגים94x40x25 פס השוואה,,UNKNOWN,OTHER,,,,,,,8,8,no,2021-08-26,2023-08-29,no,not_core_family
+SKU:4932202,4932202,IP656.5K 18WxL גבע עגולVEGA פלפון3830685,,UNKNOWN,OTHER,,,,,,,22,22,no,2017-10-03,2024-10-31,no,not_core_family
+SKU:49322021,49322021,ברגים10-114x40x30 פס השוואה,,UNKNOWN,OTHER,,,,,,,5,5,no,2021-08-26,2024-05-29,no,not_core_family
+SKU:4932203,4932203,ברגים17 - כ4x40x40 פס השוואה,,UNKNOWN,OTHER,,,,,,,4,4,no,2019-06-27,2024-07-28,no,not_core_family
+SKU:4932302,4932302,40x4 פס הארקת יסוד,,UNKNOWN,OTHER,,,,,,,14,13,no,2020-06-28,2024-03-31,no,not_core_family
+SKU:4932305,4932305,40x4 פס הארקת יסוד בגליל,,UNKNOWN,OTHER,,,,,,,4,4,no,2018-12-31,2024-04-30,no,not_core_family
+SKU:4932503,4932503,"מ""מ18 אלקטרודה להארקה",,UNKNOWN,OTHER,,,,,,,7,0,no,2017-10-03,2023-04-27,no,not_core_family
+SKU:4932505,4932505,"מ""מ18 'מהדק טבעת לאלק",,UNKNOWN,OTHER,,,,,,,4,0,no,2017-10-03,2023-04-27,no,not_core_family
+SKU:49327231,49327231,מגולבן- נקוב2x12x4 U פרופיל,,UNKNOWN,OTHER,,,,לבן,,,2,2,no,2020-12-30,2020-12-30,no,not_core_family
+SKU:4932731,4932731,10x8 צדדים חריץ רחב2 מנוקב25x25x25x2 Z פרופיל מגלוון,,UNKNOWN,OTHER,,,,,,,11,11,no,2019-06-27,2024-03-31,no,not_core_family
+SKU:4932743,4932743,' מגול100x85 תעלת רשת7000001230V 0.6W נורית סימון לד אדום3910883,,UNKNOWN,OTHER,,,,אדום,,,21,19,no,2017-10-03,2025-02-26,no,not_core_family
+SKU:4932760,4932760,פס לח.א מפח מגולבן,,UNKNOWN,OTHER,,,,לבן,,,1,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:4932763,4932763,פס לח.א מפח מצופה מחורץ,,UNKNOWN,OTHER,,,,,,,1,1,no,2021-08-26,2021-08-26,no,not_core_family
+SKU:495124010,495124010,"מ""ר1 מהדק קנדי",,UNKNOWN,OTHER,,,,,,,6,6,no,2018-11-27,2023-12-31,no,not_core_family
+SKU:495124020,495124020,"ממ""ר16 מהדק קנדי",,UNKNOWN,OTHER,,,,,,,15,15,no,2018-12-31,2024-04-30,no,not_core_family
+SKU:495124030,495124030,VEGA CR2032 סוללה ליתיום167004,,UNKNOWN,OTHER,,,,,,,2,2,no,2021-02-28,2022-01-26,no,not_core_family
+SKU:495132774,495132774,"מ""ר חור1 נ.כ נחושת",,UNKNOWN,OTHER,,,,,,,1,0,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:4951327742,4951327742,"מ""ר חור1 נ.כ נחושת",,UNKNOWN,OTHER,,,,,,,35,3,no,2017-10-03,2024-05-29,no,not_core_family
+SKU:4951327743,4951327743,"מ""ר חור1 נ.כ נחושת",,UNKNOWN,OTHER,,,,,,,5,2,no,2018-11-27,2023-04-27,no,not_core_family
+SKU:4951327752,4951327752,"מ""ר חור16 נ.כ נחושת",,UNKNOWN,OTHER,,,,,,,13,0,no,2017-10-03,2024-02-28,no,not_core_family
+SKU:4951327753,4951327753,"מ""ר חור16 נ.כ נחושת",,UNKNOWN,OTHER,,,,,,,1,0,no,2018-11-27,2018-11-27,no,not_core_family
+SKU:495132776,495132776,"מ""ר חור25 נ.כ נחושת",,UNKNOWN,OTHER,,,,,,,11,2,no,2017-10-03,2024-02-28,no,not_core_family
+SKU:4951327763,4951327763,"מ""ר חור25 נעל כבל נחושת",cable,COPPER,OTHER_CABLE,,,,,,,3,0,no,2023-04-27,2023-06-29,no,not_core_family
+SKU:4951327770,4951327770,"מ""ר חור35 נעל כבל נחושת",cable,COPPER,OTHER_CABLE,,,,,,,1,0,no,2023-08-29,2023-08-29,no,not_core_family
+SKU:4951327790,4951327790,"מ""ר חור7 נעל כבל נחושת",cable,COPPER,OTHER_CABLE,,,,,,,1,0,no,2023-08-29,2023-08-29,no,not_core_family
+SKU:495132780,495132780,"ממ""ר חור35 נ.כ נחושת49513277712x8 "" ""הארקה לא לנתקPVC מדבקה80144280",,UNKNOWN,OTHER,,,,,,PVC,1,1,no,2021-02-28,2021-02-28,no,not_core_family
+SKU:495132789,495132789,"ממ""ר חור1 נ.כ נחושת4951327742",,UNKNOWN,OTHER,,,,,,,10,10,no,2019-06-27,2024-02-28,no,not_core_family
+SKU:495132790,495132790,"ממ""ר16 שרוול לחץ נחושת",,UNKNOWN,OTHER,,,,,,,1,1,no,2023-11-28,2023-11-28,no,not_core_family
+SKU:495132791,495132791,"מ""ר25 שרוול לחץ נחושת",,UNKNOWN,OTHER,,,,,,,4,4,no,2023-05-28,2023-11-28,no,not_core_family
+SKU:4951327911,4951327911,(10)25 שרוול לחץ נחושת,,UNKNOWN,OTHER,,,,,,,1,1,no,2023-09-28,2023-09-28,no,not_core_family
+SKU:495132812,495132812,/4 מבודד אוקולון,,UNKNOWN,OTHER,,,,,,,1,1,no,2018-11-27,2018-11-27,no,not_core_family
+SKU:4951330011,4951330011,DIN 8.4 קדח-1 נ.כ,accessory,OTHER,OTHER,,,,,,,13,0,yes,2018-11-27,2026-02-28,no,not_core_family
+SKU:495133003,495133003,DIN 8.5 קדח-16 נ.כ,accessory,OTHER,OTHER,,,,,,,3,0,yes,2020-03-29,2024-05-29,no,not_core_family
+SKU:4951330031,4951330031,DIN 10.5 קדח-16 נ.כ,accessory,OTHER,OTHER,,,,,,,1,1,no,2020-06-28,2020-06-28,no,not_core_family
+SKU:495133004,495133004,DIN 8.5 קדח-25 נ.כ,accessory,OTHER,OTHER,,,,,,,11,0,yes,2019-09-24,2025-03-27,no,not_core_family
+SKU:495133006,495133006,DIN 10. קדח-35 נעל כבל,cable,UNKNOWN,OTHER,,,,,,,2,2,no,2023-08-29,2024-04-30,no,not_core_family
+SKU:495133014,495133014,DIN 10. קדח-95 נעל כבל,cable,UNKNOWN,OTHER,,,,,,,2,2,no,2021-11-25,2022-01-26,no,not_core_family
+SKU:495133020,495133020,DIN 13. קדח-15 נעל כבל,cable,UNKNOWN,OTHER,,,,,,,1,1,no,2024-03-31,2024-03-31,no,not_core_family
+SKU:495133032,495133032,DIN נחושת-16 מחבר לחץ,,UNKNOWN,OTHER,,,,,,,1,1,no,2024-08-29,2024-08-29,no,not_core_family
+SKU:495133033,495133033,DIN נחושת-25 מחבר לחץ,,UNKNOWN,OTHER,,,,,,,1,1,no,2024-08-29,2024-08-29,no,not_core_family
+SKU:495146120,495146120,קופסא מלבנית להארקת יסוד/פתח תחתון,,UNKNOWN,OTHER,,,,יסוד/פתח,,,4,4,no,2021-12-29,2024-11-28,no,not_core_family
+SKU:55022,55022,קשיחPVC חום1.5 חוט,wire,COPPER_PVC,COPPER_WIRE,,,1.5,חום,,PVC,236,206,no,2017-10-03,2025-02-26,yes,
+SKU:55023,55023,קשיחPVC צ/י1.5 חוט,wire,COPPER_PVC,COPPER_WIRE,,,1.5,צ/י,,PVC,258,220,no,2017-10-03,2025-03-27,yes,
+SKU:55024,55024,קשיחPVC כחול1.5 חוט,wire,COPPER_PVC,COPPER_WIRE,,,1.5,כחול,,PVC,258,220,no,2017-10-03,2025-03-27,yes,
+SKU:55027,55027,קשיחPVC ח/ש1.5 חוט,wire,COPPER_PVC,COPPER_WIRE,,,1.5,ח/ש,,PVC,175,169,no,2017-10-03,2025-03-27,yes,
+SKU:55028,55028,קשיחPVC ח/כ1.5 חוט,wire,COPPER_PVC,COPPER_WIRE,,,1.5,ח/כ,,PVC,187,180,no,2017-10-03,2025-03-27,yes,
+SKU:55032,55032,קשיח PVC חום2.5 חוט,wire,COPPER_PVC,COPPER_WIRE,,,2.5,חום,,PVC,164,156,no,2017-10-03,2024-12-29,yes,
+SKU:55033,55033,קשיח PVC צ/י2.5 חוט,wire,COPPER_PVC,COPPER_WIRE,,,2.5,צ/י,,PVC,176,169,no,2017-10-03,2025-03-27,yes,
+SKU:55034,55034,קשיח PVC כחול2.5 חוט,wire,COPPER_PVC,COPPER_WIRE,,,2.5,כחול,,PVC,178,168,no,2017-10-03,2025-03-27,yes,
+SKU:55037,55037,קשיח PVC ח/ש2.5 חוט,wire,COPPER_PVC,COPPER_WIRE,,,2.5,ח/ש,,PVC,2,1,no,2019-09-24,2019-09-24,yes,
+SKU:55038,55038,קשיח PVC ח/כ2.5 חוט,wire,COPPER_PVC,COPPER_WIRE,,,2.5,ח/כ,,PVC,2,1,no,2019-09-24,2019-09-24,yes,
+SKU:55052,55052,קשיחPVC חום6. חוט,wire,PVC,OTHER,,,,חום,,PVC,1,1,no,2024-01-28,2024-01-28,no,not_core_family
+SKU:56013,56013,קשיחPVC צ/י1 חוט,wire,COPPER_PVC,COPPER_WIRE,,,1,צ/י,,PVC,12,12,no,2020-01-28,2025-03-27,yes,
+SKU:560131,560131,חבילה- קשיחPVC צהוב/ירוק1 חוט,wire,COPPER_PVC,COPPER_WIRE,,,1,ירוק,,PVC,25,0,yes,2017-10-03,2025-02-26,no,sku_conflict
+SKU:56014,56014,10 ' קשיח חבPVC כחול1 חוט,wire,COPPER_PVC,COPPER_WIRE,,,1,כחול,,PVC,1,1,no,2024-03-31,2024-03-31,yes,
+SKU:56023,56023,קשיחPVC צ/י16 חוט,wire,COPPER_PVC,COPPER_WIRE,,,16,צ/י,,PVC,4,4,no,2021-06-30,2024-02-28,yes,
+SKU:560231,560231,קשיחPVC (צ/י)בחבילה16 מטר חוט,wire,PVC,OTHER,,,,צ/י,,PVC,4,4,no,2018-12-31,2023-09-28,no,not_core_family
+SKU:56033,56033,קשיחPVC צ/י25 חוט,wire,COPPER_PVC,COPPER_WIRE,,,25,צ/י,,PVC,7,7,no,2020-12-30,2024-10-31,yes,
+SKU:560331,560331,חבילה- קשיחPVC צהוב/ירוק 25 חוט,wire,COPPER_PVC,COPPER_WIRE,,,25,ירוק,,PVC,7,0,yes,2021-04-27,2025-02-26,no,sku_conflict
+SKU:56043,56043,קשיחPVC צ/י35 חוט,wire,COPPER_PVC,COPPER_WIRE,,,35,צ/י,,PVC,1,1,no,2020-12-30,2020-12-30,yes,
+SKU:560431,560431,קשיחPVC (צהוב/ירוק)בחבילה 35 מטר חוט,wire,PVC,OTHER,,,,ירוק,,PVC,2,2,no,2023-08-29,2023-09-28,no,not_core_family
+SKU:58140,58140,לבן3x1.5 פנדל פלסטי,,UNKNOWN,OTHER,,,,לבן,,,4,3,no,2019-09-24,2024-12-29,no,not_core_family
+SKU:58150,58150,לבן4x1.5 פנדל פלסטי,,UNKNOWN,OTHER,,,,לבן,,,1,1,no,2021-10-27,2021-10-27,no,not_core_family
+SKU:58160,58160,לבן5x1.5 פנדל פלסטי,,UNKNOWN,OTHER,,,,לבן,,,1,1,no,2023-06-29,2023-06-29,no,not_core_family
+SKU:58200,58200,לבן2x2.5 פנדל פלסטי,,UNKNOWN,OTHER,,,,לבן,,,2,1,no,2024-11-28,2024-11-28,no,not_core_family
+SKU:582111,582111,' מ4 ' – חב3x2.5 פנדל פלסטי כתום,,UNKNOWN,OTHER,,,,כתום,,,1,1,no,2021-05-27,2021-05-27,no,not_core_family
+SKU:590201,590201,"(H-100)' ממ""ר בחב1 נחושת גלויה",,UNKNOWN,OTHER,,,,,,,9,9,no,2018-11-27,2024-08-29,no,not_core_family
+SKU:590301,590301,"(H-100)' ממ""ר בחב16 נחושת גלויה",,UNKNOWN,OTHER,,,,,,,5,5,no,2020-12-30,2022-11-27,no,not_core_family
+SKU:5951020,5951020,3x1.5 FR N2XY כבל,cable,COPPER,N2XY_COPPER_CABLE,N2XY,3,1.5,,,,5,4,no,2018-12-31,2024-03-31,yes,
+SKU:5951021,5951021,3x1.5 N2XY (מטר כבל)בחבילה,cable,COPPER,N2XY_COPPER_CABLE,N2XY,3,1.5,,,,141,141,no,2017-10-03,2025-02-26,yes,
+SKU:5951040,5951040,5x1.5 FR N2XY כבל,cable,COPPER,N2XY_COPPER_CABLE,N2XY,5,1.5,,,,5,5,no,2021-07-28,2025-02-26,yes,
+SKU:5951041,5951041,5x1.5 N2XY (מטר כבל)בחבילה,cable,COPPER,N2XY_COPPER_CABLE,N2XY,5,1.5,,,,70,70,no,2019-01-27,2025-02-26,yes,
+SKU:5951060,5951060,3x2.5 FR N2XY כבל,cable,COPPER,N2XY_COPPER_CABLE,N2XY,3,2.5,,,,11,11,no,2020-01-28,2025-02-26,yes,
+SKU:5951061,5951061,3x2.5 N2XY (מטר כבל)בחבילה,cable,COPPER,N2XY_COPPER_CABLE,N2XY,3,2.5,,,,81,0,yes,2017-10-03,2025-01-28,no,sku_conflict
+SKU:5951080,5951080,5x2.5 N2XY כבל,cable,COPPER,N2XY_COPPER_CABLE,N2XY,5,2.5,,,,12,0,yes,2020-11-26,2024-04-30,no,sku_conflict
+SKU:5951081,5951081,5x2.5 N2XY (מטר כבל)בחבילה,cable,COPPER,N2XY_COPPER_CABLE,N2XY,5,2.5,,,,46,0,yes,2017-10-03,2025-02-26,no,sku_conflict
+SKU:5951100,5951100,"ממ""ר3x4 N2XY כבל",cable,COPPER,N2XY_COPPER_CABLE,N2XY,3,4,,,,4,4,no,2023-12-31,2025-03-27,yes,
+SKU:5951101,5951101,3x4 N2XY (מטר כבל)בחבילה,cable,COPPER,N2XY_COPPER_CABLE,N2XY,3,4,,,,1,1,no,2017-10-03,2017-10-03,yes,
+SKU:5951120,5951120,"ממ""ר5x4 N2XY כבל",cable,COPPER,N2XY_COPPER_CABLE,N2XY,5,4,,,,12,12,no,2020-09-24,2025-01-28,yes,
+SKU:59511201,59511201,"ממ""ר5x4 N2XY (מטר כבל)בחבילה",cable,COPPER,N2XY_COPPER_CABLE,N2XY,5,4,,,,20,20,no,2017-10-03,2025-01-28,yes,
+SKU:5951160,5951160,"ממ""ר5x6 FR N2XY כבל",cable,COPPER,N2XY_COPPER_CABLE,N2XY,5,6,,,,3,3,no,2021-07-28,2024-06-27,yes,
+SKU:59511601,59511601,"ממ""ר5x6 N2XY (מטר כבל)בחבילה",cable,COPPER,N2XY_COPPER_CABLE,N2XY,5,6,,,,8,7,no,2019-10-25,2024-06-27,yes,
+SKU:5952030,5952030,"ממ""ר4x1 N2XY כבל",cable,COPPER,N2XY_COPPER_CABLE,N2XY,4,1,,,,1,1,no,2022-06-27,2022-06-27,yes,
+SKU:5952040,5952040,"ממ""ר5x1 N2XY כבל",cable,COPPER,N2XY_COPPER_CABLE,N2XY,5,1,,,,23,20,no,2019-01-27,2024-09-30,yes,
+SKU:59520401,59520401,"ממ""ר5x1 N2XY (מטר כבל)בחבילה",cable,COPPER,N2XY_COPPER_CABLE,N2XY,5,1,,,,2,2,no,2017-10-03,2020-12-30,yes,
+SKU:5952060,5952060,"ממ""ר4x16 N2XY כבל",cable,COPPER,N2XY_COPPER_CABLE,N2XY,4,16,,,,1,1,no,2020-01-28,2020-01-28,yes,
+SKU:5952070,5952070,"ממ""ר5x16 FR N2XY כבל",cable,COPPER,N2XY_COPPER_CABLE,N2XY,5,16,,,,9,9,no,2019-01-27,2024-02-28,yes,
+SKU:5952080,5952080,"ממ""ר3x25+16 N2XY כבל",cable,COPPER,N2XY_COPPER_CABLE,N2XY,3,25,,,,2,2,no,2023-08-29,2024-02-28,yes,
+SKU:5952090,5952090,"ממ""ר4x25 N2XY כבל",cable,COPPER,N2XY_COPPER_CABLE,N2XY,4,25,,,,1,1,no,2020-02-27,2020-02-27,yes,
+SKU:5952100,5952100,"ממ""ר3x35+16 N2XY כבל",cable,COPPER,N2XY_COPPER_CABLE,N2XY,3,35,,,,5,5,no,2023-02-28,2024-05-29,yes,
+SKU:5952110,5952110,"ממ""ר4x35 N2XY כבל",cable,COPPER,N2XY_COPPER_CABLE,N2XY,4,35,,,,3,3,no,2019-09-24,2020-10-22,yes,
+SKU:5953030,5953030,4x5 N2XY כבל,cable,COPPER,N2XY_COPPER_CABLE,N2XY,4,5,,,,2,2,no,2021-07-28,2024-10-31,yes,
+SKU:5954380,5954380,גיד צ/יNA2xY 1x24 כבל,cable,UNKNOWN,OTHER,,1,24,צ/י,,,1,1,no,2023-08-29,2023-08-29,no,not_core_family
+SKU:5955150,5955150,גמישNYAF חום1.5 חוט,wire,COPPER,COPPER_WIRE,,,1.5,חום,,,1,1,no,2017-10-03,2017-10-03,yes,
+SKU:5955161,5955161,גמישNYAF כחול1.5 חוט,wire,COPPER,COPPER_WIRE,,,1.5,כחול,,,1,1,no,2017-10-03,2017-10-03,yes,
+SKU:5955230,5955230,גמישNYAF חום4. חוט,wire,UNKNOWN,OTHER,,,,חום,,,3,3,no,2021-10-27,2025-01-28,no,not_core_family
+SKU:5955240,5955240,גמישNYAF צ/י4. חוט,wire,UNKNOWN,OTHER,,,,צ/י,,,1,1,no,2020-02-27,2020-02-27,no,not_core_family
+SKU:5955241,5955241,גמישNYAF כחול4. חוט,wire,UNKNOWN,OTHER,,,,כחול,,,1,1,no,2025-01-28,2025-01-28,no,not_core_family
+SKU:5955270,5955270,גמישNYAF חום6. חוט,wire,UNKNOWN,OTHER,,,,חום,,,18,18,no,2019-10-25,2025-01-28,no,not_core_family
+SKU:5955290,5955290,גמישNYAF כחול6. חוט,wire,UNKNOWN,OTHER,,,,כחול,,,16,16,no,2019-10-25,2025-01-28,no,not_core_family
+SKU:5956030,5956030,גמישNYAF חום1 חוט,wire,COPPER,COPPER_WIRE,,,1,חום,,,1,1,no,2024-07-28,2024-07-28,yes,
+SKU:5956041,5956041,גמישNYAF כחול1 חוט,wire,COPPER,COPPER_WIRE,,,1,כחול,,,2,2,no,2020-03-29,2024-07-28,yes,
+SKU:5956070,5956070,גמישNYAF חום16 חוט,wire,COPPER,COPPER_WIRE,,,16,חום,,,1,1,no,2020-06-28,2020-06-28,yes,
+SKU:5956300,5956300,גמישNYAF שחור12 חוט,wire,COPPER,COPPER_WIRE,,,12,שחור,,,2,1,no,2017-10-03,2017-10-03,yes,
+SKU:5959060,5959060,14x1.5 N2XY כבל,cable,COPPER,N2XY_COPPER_CABLE,N2XY,14,1.5,,,,1,1,no,2022-08-25,2022-08-25,yes,
+SKU:5974008,5974008,תוף דיקט,,UNKNOWN,OTHER,,,,,,,1,0,no,2020-12-30,2020-12-30,no,not_core_family
+SKU:5974010,5974010,"16x2x0.5 כבל רכזת99911034 (H-100)' ממ""ר בחב16 נחושת גלויה590301",cable,COPPER,OTHER_CABLE,,16,2,,,,14,0,yes,2019-08-25,2025-02-26,no,not_core_family
+SKU:5974020,5974020,"52.00% שח81.0 מטר50.0 ממ""ר4x35 N2XY כבל5952110",cable,COPPER,N2XY_COPPER_CABLE,N2XY,4,35,,,,15,14,no,2019-11-27,2024-03-31,yes,
+SKU:5974030,5974030,"ס""מ8 תוף קוטר",,UNKNOWN,OTHER,,,,,,,13,11,no,2020-02-27,2025-01-28,no,not_core_family
+SKU:5974040,5974040,"44.00% שח26.48 מטר500.0 ממ""ר5x1 N2XY כבל5952040",cable,COPPER,N2XY_COPPER_CABLE,N2XY,5,1,,,,17,14,no,2018-12-31,2024-02-28,yes,
+SKU:5974050,5974050,16x2x0.5 כבל רכזת99911034,cable,UNKNOWN,OTHER,,16,2,,,,12,0,yes,2020-08-27,2022-12-29,no,not_core_family
+SKU:5974060,5974060,"FE18 E9 NHxH 5x1.5 כבל10613P 25A 6kA C GEWISS מאמ""ת3992069",cable,UNKNOWN,OTHER,,5,1.5,,,GEWISS,2,2,no,2020-10-22,2021-02-28,no,not_core_family
+SKU:5974063,5974063,"ס""מ13 תוף קוטר",,UNKNOWN,OTHER,,,,,,,1,1,no,2020-12-30,2020-12-30,no,not_core_family
+SKU:61119612,61119612,ARKE מודול לקופסא מלבנית2 מתאם,,UNKNOWN,OTHER,,,,,,,3,3,no,2021-09-26,2021-11-25,no,not_core_family
+SKU:6112350613,6112350613,E2715W/WW (נורות לד3) מארז4,,UNKNOWN,OTHER,,,,,,,1,1,no,2020-02-27,2020-02-27,no,not_core_family
+SKU:6112351310,6112351310,אור קרDL 23W E-27 נורה לד ליבון4,,UNKNOWN,OTHER,,,,,,,1,1,no,2024-06-27,2024-06-27,no,not_core_family
+SKU:63300320,63300320,ממ24 מחבר לחץ פין אל/נח,,UNKNOWN,OTHER,,,,אל/נח,,,1,1,no,2021-11-25,2021-11-25,no,not_core_family
+SKU:63301958,63301958,x1 נ.כ אלומ' מובדל,,ALUMINIUM,OTHER,,,,,,,1,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:63301959,63301959,x1 נ.כ אלומ' מובדל,,ALUMINIUM,OTHER,,,,,,,1,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:63302191,63302191,x13 נעל כבל אלומניום מובדל,cable,ALUMINIUM,ALUMINIUM_CABLE,,,,,,,4,4,no,2021-11-25,2023-08-29,no,missing_attributes
+SKU:6600020,6600020,מודו1 יומי ללא רזרבהHAGER שעון,,UNKNOWN,OTHER,,,,,,HAGER,1,1,no,2020-11-26,2020-11-26,no,not_core_family
+SKU:6600104,6600104,VAC אוטומט חדר מדרגות,,UNKNOWN,OTHER,,,,,,,13,12,no,2019-01-27,2025-02-26,no,not_core_family
+SKU:6600152,6600152,"x16A מפ""ז חד קוטבי",,UNKNOWN,OTHER,,,,,,,1,1,no,2022-06-27,2022-06-27,no,not_core_family
+SKU:6600153,6600153,"x25A מפ""ז חד קוטבי",,UNKNOWN,OTHER,,,,,,,1,1,no,2023-11-28,2023-11-28,no,not_core_family
+SKU:6600154,6600154,"x32A מפ""ז חד קוטבי",,UNKNOWN,OTHER,,,,,,,1,0,no,2022-10-27,2022-10-27,no,not_core_family
+SKU:6600156,6600156,"x40A מפ""ז חד קוטבי",,UNKNOWN,OTHER,,,,,,,1,1,no,2021-10-27,2021-10-27,no,not_core_family
+SKU:6600163,6600163,"x25A מפ""ז דו קוטבי",,UNKNOWN,OTHER,,,,,,,2,2,no,2024-03-31,2025-02-26,no,not_core_family
+SKU:6600175,6600175,"x25A מפ""ז תלת קוטבי",,UNKNOWN,OTHER,,,,,,,1,1,no,2024-02-28,2024-02-28,no,not_core_family
+SKU:6600176,6600176,"x32A מפ""ז תלת קוטבי",,UNKNOWN,OTHER,,,,,,,1,1,no,2023-05-28,2023-05-28,no,not_core_family
+SKU:6600178,6600178,"x40A מפ""ז תלת קוטבי",,UNKNOWN,OTHER,,,,,,,3,2,no,2022-09-28,2023-04-27,no,not_core_family
+SKU:6600302,6600302,"x25A 1-0-2 מפ""ז מחליף",,UNKNOWN,OTHER,,,,,,,3,3,no,2017-10-03,2023-11-28,no,not_core_family
+SKU:66010492,66010492,"VF412M מודול תה""ט48 בסיס ללוח חשמל",panel,OTHER,OTHER,,,,,,,1,1,no,2023-02-28,2023-02-28,no,not_core_family
+SKU:6601164,6601164,(מטר)מזלג180A מגשר תלת פזי,,UNKNOWN,OTHER,,,,,,,3,0,no,2021-07-28,2022-07-26,no,not_core_family
+SKU:6601165,6601165,KD19 פס גישור חד פזי מזלג,,UNKNOWN,OTHER,,,,,,,3,2,no,2018-11-27,2022-01-26,no,not_core_family
+SKU:66011783,66011783,PVC 50x12 תעלת דריכה,,PVC,OTHER,,,,,,PVC,1,1,no,2024-03-31,2024-03-31,no,not_core_family
+SKU:6601202,6601202,מכני יומי ללא רזרבהHAGER שעון,,UNKNOWN,OTHER,,,,,,HAGER,1,1,no,2022-11-27,2022-11-27,no,not_core_family
+SKU:6601507,6601507,"חשמל תה""ט54 בסיס ללוח ל",panel,OTHER,OTHER,,,,,,,1,1,no,2021-02-28,2021-02-28,no,not_core_family
+SKU:6601518,6601518,"תקשורת תה""ט36 בסיס ללוח ל",panel,OTHER,OTHER,,,,,,,3,3,no,2019-01-27,2020-12-30,no,not_core_family
+SKU:6801001,6801001,40x40x0.8 תעלת פח מלא,,UNKNOWN,OTHER,,,,,,,2,2,no,2019-08-25,2023-07-27,no,not_core_family
+SKU:6801002,6801002,60x40x0.8 תעלת פח מלא,,UNKNOWN,OTHER,,,,,,,1,1,no,2023-02-28,2023-02-28,no,not_core_family
+SKU:6801003,6801003,60x60x0.8 תעלת פח מלא,,UNKNOWN,OTHER,,,,,,,1,1,no,2023-12-31,2023-12-31,no,not_core_family
+SKU:6801004,6801004,100x60x0.8 תעלת פח מלא,,UNKNOWN,OTHER,,,,,,,4,3,no,2017-10-03,2021-11-25,no,not_core_family
+SKU:6801007,6801007,100x100x0.8 תעלת פח מלא,,UNKNOWN,OTHER,,,,,,,7,7,no,2019-01-27,2025-02-26,no,not_core_family
+SKU:6801008,6801008,200x100x0.8 תעלת פח מלא,,UNKNOWN,OTHER,,,,,,,7,6,no,2017-10-03,2024-11-28,no,not_core_family
+SKU:6801090,6801090,300x100x1 תעלת פח מלא,,UNKNOWN,OTHER,,,,,,,1,1,no,2020-11-26,2020-11-26,no,not_core_family
+SKU:6801091,6801091,300x100x0.8 תעלת פח מלא,,UNKNOWN,OTHER,,,,,,,1,1,no,2024-11-28,2024-11-28,no,not_core_family
+SKU:6801100,6801100,400x100x1 תעלת פח מלא,,UNKNOWN,OTHER,,,,,,,1,1,no,2021-06-30,2021-06-30,no,not_core_family
+SKU:6801160,6801160,60x6 תעלת חיפוי,,UNKNOWN,OTHER,,,,,,,2,2,no,2019-10-25,2022-04-27,no,not_core_family
+SKU:6802001,6802001,40x0.8 מכסה לתעלת פח מלא,,UNKNOWN,OTHER,,,,,,,1,1,no,2019-08-25,2019-08-25,no,not_core_family
+SKU:6802002,6802002,60x0.8 מכסה לתעלת פח מלא,,UNKNOWN,OTHER,,,,,,,1,1,no,2023-12-31,2023-12-31,no,not_core_family
+SKU:6802003,6802003,100x0.8 מכסה לתעלת פח מלא,,UNKNOWN,OTHER,,,,,,,22,21,no,2017-10-03,2024-12-29,no,not_core_family
+SKU:6802004,6802004,120x0.8 מכסה לתעלת פח מלא,,UNKNOWN,OTHER,,,,,,,3,3,no,2020-02-27,2023-09-28,no,not_core_family
+SKU:6802006,6802006,200x0.8 מכסה לתעלת פח מלא,,UNKNOWN,OTHER,,,,,,,13,13,no,2017-10-03,2024-06-27,no,not_core_family
+SKU:6802060,6802060,200x1 מכסה לתעלה פח,,UNKNOWN,OTHER,,,,,,,1,1,no,2022-07-26,2022-07-26,no,not_core_family
+SKU:6802070,6802070,300x1 מכסה לתעלה פח,,UNKNOWN,OTHER,,,,,,,5,5,no,2021-10-27,2022-07-26,no,not_core_family
+SKU:6802071,6802071,300x0.8 מכסה לתעלת פח,,UNKNOWN,OTHER,,,,,,,1,1,no,2023-12-31,2023-12-31,no,not_core_family
+SKU:6802080,6802080,400x1 מכסה לתעלה פח,,UNKNOWN,OTHER,,,,,,,1,1,no,2021-11-25,2021-11-25,no,not_core_family
+SKU:6814450,6814450,"מ""מ12 מ'(סרט תליה רב תכליתי10) מארז",,UNKNOWN,OTHER,,,,,,,2,0,no,2024-02-28,2024-03-31,no,not_core_family
+SKU:6814451,6814451,"מ""מ17 מ'(סרט תליה רב תכליתי10) מארז",,UNKNOWN,OTHER,,,,,,,10,0,no,2022-09-28,2024-08-29,no,not_core_family
+SKU:6950020681,6950020681,(שקע כח מוגן מים)חדש ' יח1.06950020681 SUPER NW-1,switchgear,OTHER,OTHER,,,,,,SUPER,19,15,no,2019-01-27,2026-06-25,no,not_core_family
+SKU:695110107,695110107,סוללת גיבוי+ 230V גלאי עשן ארופאי תקני,,UNKNOWN,OTHER,,,,,,,11,10,no,2017-10-03,2022-05-29,no,not_core_family
+SKU:6951101075,6951101075,+ 230V תקני גלאי עשן ' יח30.06951101075 סוללת גיבוי,,UNKNOWN,OTHER,,,,,,,11,10,no,2023-08-29,2025-12-31,no,not_core_family
+SKU:695110111,695110111,"גלאי תנועה תקרתי תה""ט",,UNKNOWN,OTHER,,,,,,,2,2,no,2021-06-30,2021-08-26,no,not_core_family
+SKU:695220102,695220102,SUPER N N-2 קופסא,,UNKNOWN,OTHER,,,,,,SUPER,7,7,no,2018-11-27,2023-09-28,no,not_core_family
+SKU:695220103,695220103,SUPER N N-3 קופסא,,UNKNOWN,OTHER,,,,,,SUPER,9,9,no,2017-10-03,2022-01-26,no,not_core_family
+SKU:695220104,695220104,SUPER N N-4 קופסא,,UNKNOWN,OTHER,,,,,,SUPER,33,33,no,2017-10-03,2025-03-27,no,not_core_family
+SKU:695220106,695220106,SUPER N N-6 קופסא,,UNKNOWN,OTHER,,,,,,SUPER,5,5,no,2017-10-03,2022-02-24,no,not_core_family
+SKU:695220501,695220501,SUPER N1-A מפסק יחיד,switchgear,OTHER,OTHER,,,,,,SUPER,7,7,no,2019-06-27,2024-04-30,no,not_core_family
+SKU:695220503,695220503,SUPER N1-C מפסק חילוף,switchgear,OTHER,OTHER,,,,,,SUPER,2,2,no,2017-10-03,2021-08-26,no,not_core_family
+SKU:695220505,695220505,SUPER N1DL לחצן מואר,,UNKNOWN,OTHER,,,,,,SUPER,3,3,no,2020-01-28,2020-01-28,no,not_core_family
+SKU:695220506,695220506,SUPER N1-DK מפסק דו קוטבי,switchgear,OTHER,OTHER,,,,,,SUPER,2,2,no,2017-10-03,2023-05-28,no,not_core_family
+SKU:695220521,695220521,SUPER N-1 שקע כח,switchgear,OTHER,OTHER,,,,,,SUPER,38,38,no,2018-11-27,2025-01-28,no,not_core_family
+SKU:695220591,695220591,SUPER N-1xקופסא ריקה,,UNKNOWN,OTHER,,,,,,SUPER,1,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:695220592,695220592,SUPER N-2xקופסא ריקה,,UNKNOWN,OTHER,,,,,,SUPER,1,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:695220605,695220605,SUPER NW-1DL לחצן מואר מוגן,,UNKNOWN,OTHER,,,,,,SUPER,1,1,no,2024-01-28,2024-01-28,no,not_core_family
+SKU:695220611,695220611,SUPER NW-1AE מפסק יחיד מוגן גמיש,switchgear,OTHER,OTHER,,,,,,SUPER,12,10,no,2019-10-25,2024-06-27,no,not_core_family
+SKU:695220621,695220621,SUPER NW-1 שקע כח מוגן מים,switchgear,OTHER,OTHER,,,,,,SUPER,1,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:695234024,695234024,ספיר-לחצן מדרגות מואר,,UNKNOWN,OTHER,,,,,,,1,1,no,2022-05-29,2022-05-29,no,not_core_family
+SKU:695234029,695234029,ספיר0-1-2 מפסק לתריס,switchgear,OTHER,OTHER,,,,,,,1,1,no,2020-10-22,2020-10-22,no,not_core_family
+SKU:695240004,695240004,NB4 גובה לבןN - ניסקול,,UNKNOWN,OTHER,,,,לבן,,,1,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:695260008,695260008,"מודול תה""ט8 אופיס ריקה",,UNKNOWN,OTHER,,,,,,,1,1,no,2023-07-27,2023-07-27,no,not_core_family
+SKU:695320374,695320374,' אוטו400W נורה מטל אגסי שקוף,,UNKNOWN,OTHER,,,,,,,1,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:695321381,695321381,ST-111/S-14-80W 'סטרטר אוני,,UNKNOWN,OTHER,,,,,,,1,1,no,2019-08-25,2019-08-25,no,not_core_family
+SKU:695321404,695321404,שקוף40W נורה ליבון,,UNKNOWN,OTHER,,,,,,,1,1,no,2018-11-27,2018-11-27,no,not_core_family
+SKU:695321405,695321405,46.00% שח0.83 מטר100.0 קשיחPVC צ/י1.5 חוט55023,wire,COPPER_PVC,COPPER_WIRE,,,1.5,צ/י,,PVC,8,0,yes,2018-11-27,2019-03-04,no,sku_conflict
+SKU:695321681,695321681,W/865 D.L T5 'נורה פלו,,UNKNOWN,OTHER,,,,,,,1,1,no,2019-08-25,2019-08-25,no,not_core_family
+SKU:695331236,695331236,תוספת כיתוב לאוסקר,,UNKNOWN,OTHER,,,,,,,1,1,no,2020-01-28,2020-01-28,no,not_core_family
+SKU:695331907,695331907,ללא נורהPOP IP-54 ג.ת,,UNKNOWN,OTHER,,,,,,,1,1,no,2019-01-27,2019-01-27,no,not_core_family
+SKU:69537719,69537719,SMD IP65100W DL פנס הצפה דקוליין,,UNKNOWN,OTHER,,,,,,,1,1,no,2023-09-28,2023-09-28,no,not_core_family
+SKU:695384100,695384100,OS-LEDV 100W/84 IP65 פנס הצפה שחור,lighting,OTHER,OTHER,,,,שחור,,,2,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:695386250,695386250,OS-LEDV 50W/865 IP65 פנס הצפה לבן,lighting,OTHER,OTHER,,,,לבן,,,1,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:695387201,695387201,V לנורת דקרויקהGU1 בסיס,,UNKNOWN,OTHER,,,,,,,1,1,no,2019-07-28,2019-07-28,no,not_core_family
+SKU:695640806,695640806,"VEGA 1x16C 6KA ח""א161005 (100) SAPISELCO 304.5 חבק לבן90024",,UNKNOWN,OTHER,,,,לבן,,,2,2,no,2019-03-29,2021-04-27,no,not_core_family
+SKU:695642831,695642831,קופסא ללא חצי אוטומט,,UNKNOWN,OTHER,,,,,,,1,1,no,2022-02-24,2022-02-24,no,not_core_family
+SKU:696444021,696444021,A תלת פאזי מזלגR.S.T פס,,UNKNOWN,OTHER,,,,,,,27,26,no,2018-11-27,2024-12-31,no,not_core_family
+SKU:696444022,696444022,"1P 16A 6kA C GEWISS מאמ""ת3992007",breaker,OTHER,OTHER,,,,,,GEWISS,6,6,no,2017-10-03,2020-02-27,no,not_core_family
+SKU:696444023,696444023,פס גישור סגור תלת פאזי פין,,UNKNOWN,OTHER,,,,,,,2,2,no,2020-12-30,2024-01-28,no,not_core_family
+SKU:696444032,696444032,40.00% שח3.78 מטר100.0 גמישNYAF חום6. חוט5955275x1.5 N2XY (מטר כבל)בחבילה5951041,cable,COPPER,N2XY_COPPER_CABLE,N2XY,75,1.5,חום,,,11,11,no,2018-11-27,2023-06-29,yes,
+SKU:69644407,69644407,i-Test Pro בודק שקע ישראלי,switchgear,OTHER,OTHER,,,,,,,3,3,no,2018-12-31,2020-09-24,no,not_core_family
+SKU:7000001,7000001,' מגול100x85 תעלת רשת,,UNKNOWN,OTHER,,,,,,,5,5,no,2019-08-25,2024-11-28,no,not_core_family
+SKU:7000002,7000002,' מגול200x85 תעלת רשת,,UNKNOWN,OTHER,,,,,,,1,1,no,2019-09-24,2019-09-24,no,not_core_family
+SKU:7000003,7000003,' מגול300x85 תעלת רשת,,UNKNOWN,OTHER,,,,,,,2,2,no,2019-01-27,2019-01-27,no,not_core_family
+SKU:7000005,7000005,מגולוון500x85 תעלת רשת,,UNKNOWN,OTHER,,,,,,,1,1,no,2023-05-28,2023-05-28,no,not_core_family
+SKU:70000090,70000090,מגולוון100x85 תעלת רשת חיבור מהיר,,UNKNOWN,OTHER,,,,,,,23,23,no,2020-11-26,2025-02-26,no,not_core_family
+SKU:70000091,70000091,מגולוון200x85 תעלת רשת חיבור מהיר,,UNKNOWN,OTHER,,,,,,,4,4,no,2020-10-22,2023-05-28,no,not_core_family
+SKU:70000092,70000092,מגולוון300x85 תעלת רשת חיבור מהיר,,UNKNOWN,OTHER,,,,,,,3,3,no,2020-12-30,2025-02-26,no,not_core_family
+SKU:7000026,7000026,30 מכסה לתעלת רשת,,UNKNOWN,OTHER,,,,,,,1,1,no,2024-01-28,2024-01-28,no,not_core_family
+SKU:7300951,7300951,x20A מפסק מודולרי,switchgear,OTHER,OTHER,,,,,,,1,1,no,2020-11-26,2020-11-26,no,not_core_family
+SKU:7327002,7327002,K60N 1P 10A 6kA C חצי אוטומט אופיין,,UNKNOWN,OTHER,,,,,,,4,4,no,2019-01-27,2022-02-24,no,not_core_family
+SKU:7327003,7327003,K60N 1P 16A 6kA C חצי אוטומט אופיין,,UNKNOWN,OTHER,,,,,,,7,6,no,2017-10-03,2022-02-24,no,not_core_family
+SKU:7327004,7327004,K60N 1P 20A 6kA C חצי אוטומט אופיין,,UNKNOWN,OTHER,,,,,,,1,0,no,2022-02-24,2022-02-24,no,not_core_family
+SKU:7327023,7327023,K60N 3P 16A 6kA C מאמט אופיין,,UNKNOWN,OTHER,,,,,,,3,3,no,2019-01-27,2019-01-27,no,not_core_family
+SKU:7327025,7327025,K60N 3P 25A 6kA C מאמט אופיין,,UNKNOWN,OTHER,,,,,,,5,5,no,2019-01-27,2019-01-27,no,not_core_family
+SKU:7327107,7327107,"iC60N 3P 20A 6kA C מאמ""ט אופיין",,UNKNOWN,OTHER,,,,,,,1,0,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:7327403,7327403,iID 2P 25A 30mA A-type מפסק פחת,switchgear,OTHER,OTHER,,,,,,,1,1,no,2020-11-26,2020-11-26,no,not_core_family
+SKU:7327405,7327405,iID 2P 40A 30mA A-type מפסק פחת,switchgear,OTHER,OTHER,,,,,,,1,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:7327411,7327411,iID 4P 40A 30mA A-type מפסק פחת,switchgear,OTHER,OTHER,,,,,,,1,1,no,2020-11-26,2020-11-26,no,not_core_family
+SKU:73274115,73274115,K60N 1P 16A 6kA C מאמט אופיין7327003,,UNKNOWN,OTHER,,,,,,,4,4,no,2019-01-27,2019-02-28,no,not_core_family
+SKU:73274461,73274461,"iDPN 6KA 1P+N 10A מא""ז",,UNKNOWN,OTHER,,,,,,,1,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:73274748,73274748,iCT25A 2NO 230V מ.מודולרי,,UNKNOWN,OTHER,,,,,,,1,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:73275310,73275310,' יח1.0 CVS160B TM160D 3P3D 25KA מנתק,,UNKNOWN,OTHER,,,,,,,1,0,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:73275312,73275312,' יח-1.0 CVS250B TM200D 3P3D 25KA מנתק,,UNKNOWN,OTHER,,,,,,,2,0,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:7340505,7340505,NSx100B-TM83P 25KA מפסק,switchgear,OTHER,OTHER,,,,,,,2,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:7340526,7340526,"ממ""ר1.5-953P מחברים מהירים",,UNKNOWN,OTHER,,,,,,,1,0,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:7340528,7340528,"ממ""ר120-183P מחברים מהירים",,UNKNOWN,OTHER,,,,,,,1,0,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:7340538,7340538,NSx100-63220-240VAC סליל הפסקה,,UNKNOWN,OTHER,,,,,,,1,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:7427112512,7427112512,ללא קליפסים1200MM IP654000K 4320LM 36W טופז,lighting,OTHER,OTHER,,,,,,,3,1,no,2023-05-28,2026-01-28,no,not_core_family
+SKU:7457241410,7457241410,IP654000K ברקת פלפון ' יח5.074572414133 קוטר2880LM 24W,lighting,OTHER,OTHER,,,,,,,1,0,no,2025-08-28,2025-08-28,no,not_core_family
+SKU:7469241412,7469241412,1200MM IP65 טופז הרמטי ' יח10.074692414124000K 4200LM 30W,lighting,OTHER,OTHER,,,,,,,2,0,no,2025-10-30,2025-11-27,no,not_core_family
+SKU:747100110,747100110,250LM 3W אופל חירום שקוע,lighting,OTHER,OTHER,,,,,,,12,10,no,2022-12-29,2025-02-26,no,not_core_family
+SKU:748100110,748100110,LM 3W אופל חיצוני,lighting,OTHER,OTHER,,,,,,,7,6,no,2023-06-29,2025-02-26,no,not_core_family
+SKU:748200110,748200110,LM 6W אופל חירום חיצוני,lighting,OTHER,OTHER,,,,,,,1,1,no,2023-11-28,2023-11-28,no,not_core_family
+SKU:749100110,749100110,ספיר שלט יציאה,,UNKNOWN,OTHER,,,,,,,9,9,no,2022-12-29,2024-09-30,no,not_core_family
+SKU:7610207,7610207,"מ""מ31/8"" מהדק כבל פלדה",cable,UNKNOWN,OTHER,,,,,,,1,0,no,2023-04-27,2023-04-27,no,not_core_family
+SKU:7620004,7620004,(ממ מגולוון)אופצ' להארקה26x7 כבל פלדה,cable,UNKNOWN,OTHER,,26,7,,,,2,2,no,2023-04-27,2023-11-05,no,not_core_family
+SKU:78000040,78000040,לבן17x17 PVC מכסה+תעלה,,PVC,OTHER,,,,לבן,,PVC,6,2,no,2020-09-24,2023-09-28,no,not_core_family
+SKU:78000045,78000045,לבן30x17 PVC מכסה+תעלה,,PVC,OTHER,,,,לבן,,PVC,5,1,no,2018-12-31,2021-06-30,no,not_core_family
+SKU:78000046,78000046,לבן30x25 מכסה+תעלה,,UNKNOWN,OTHER,,,,לבן,,,4,0,no,2017-10-03,2020-04-30,no,not_core_family
+SKU:78000054,78000054,לבן60x42 PVC מכסה+תעלה,,PVC,OTHER,,,,לבן,,PVC,2,1,no,2019-07-28,2022-02-24,no,not_core_family
+SKU:78000056,78000056,לבן60x6 מכסה+תעלה,,UNKNOWN,OTHER,,,,לבן,,,1,0,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:78000067,78000067,מחיצה+ 120x6 תעלה,,UNKNOWN,OTHER,,,,,,,2,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:79002012,79002012,דבק+ 17x17 PVC מכסה+תעלה,,PVC,OTHER,,,,,,PVC,3,3,no,2022-02-24,2022-08-25,no,not_core_family
+SKU:80142801,80142801,"PVC 12x8 ""שלט קשיח ""הארקה לא לנתק",,PVC,OTHER,,,,,,PVC,2,2,no,2019-01-27,2021-12-29,no,not_core_family
+SKU:80142811,80142811,"PVC 12x8 ""שלט קשיח ""הארקת יסוד",,PVC,OTHER,,,,,,PVC,2,2,no,2021-12-29,2024-01-28,no,not_core_family
+SKU:80142821,80142821,"PVC 12x8 ""שלט קשיח ""הארקה לא לפרק",,PVC,OTHER,,,,,,PVC,3,3,no,2018-11-27,2021-12-29,no,not_core_family
+SKU:8014292,8014292,"x8 "" ""פס השוואת פוטנציאליםPVC מדבקה",,PVC,OTHER,,,,,,PVC,2,2,no,2020-06-28,2024-03-31,no,not_core_family
+SKU:80144280,80144280,"x8 "" ""הארקה לא לנתקPVC מדבקה",,PVC,OTHER,,,,,,PVC,2,2,no,2019-09-24,2021-02-28,no,not_core_family
+SKU:80144281,80144281,"x8 "" ""הארקת יסודPVC מדבקה",,PVC,OTHER,,,,,,PVC,2,2,no,2020-01-28,2023-02-28,no,not_core_family
+SKU:80144282,80144282,"x12 "" ""הארקה לא לפרקPVC מדבקה",,PVC,OTHER,,,,,,PVC,1,1,no,2020-01-28,2020-01-28,no,not_core_family
+SKU:80144306,80144306,"x8 "" ""לוח חשמלPVC מדבקה",panel,PVC,OTHER,,,,,,PVC,2,2,no,2019-06-27,2020-06-28,no,not_core_family
+SKU:80145019,80145019,x8 מדבקה זהירות הצבע הכחול של בידוד,,UNKNOWN,OTHER,,,,כחול,,,1,1,no,2023-07-27,2023-07-27,no,not_core_family
+SKU:80145049,80145049,"(' יח3) 8x4 "" ""הארקה לא לפרקPVC מדבקה",,PVC,OTHER,,,,,,PVC,7,7,no,2017-10-03,2023-09-28,no,not_core_family
+SKU:80145079,80145079,"(' יח3) 8x4 "" ""הארקת יסודPVC מדבקה",,PVC,OTHER,,,,,,PVC,2,2,no,2020-06-28,2021-11-25,no,not_core_family
+SKU:8014719,8014719,x2 שלט פולט אור מפסק זרם ראשי גודל,switchgear,OTHER,OTHER,,,,,,,1,1,no,2022-08-25,2022-08-25,no,not_core_family
+SKU:801473308,801473308,""" ""מאופס8x12 שלט חריטה",,UNKNOWN,OTHER,,,,,,,1,1,no,2024-02-28,2024-02-28,no,not_core_family
+SKU:801473312,801473312,""" ""הארקת יסוד8x12 שלט חריטה",,UNKNOWN,OTHER,,,,,,,1,1,no,2024-03-31,2024-03-31,no,not_core_family
+SKU:81010057,81010057,PVC אטם לחץ לצינור,,PVC,OTHER,,,,,,PVC,2,2,no,2021-08-26,2022-04-27,no,not_core_family
+SKU:81010058,81010058,PVC אטם לחץ לצינור,,PVC,OTHER,,,,,,PVC,1,1,no,2022-04-27,2022-04-27,no,not_core_family
+SKU:8103006,8103006,ממ4.9 עובי דופן8 דרג16 צינור אפור לחשמל,,UNKNOWN,OTHER,,,,אפור,,,2,2,no,2022-04-27,2022-10-27,no,not_core_family
+SKU:8103007,8103007,"ממ6.2 ע""ד1 דרג16 צינור אפור לחשמל",,UNKNOWN,OTHER,,,,אפור,,,1,1,no,2021-08-26,2021-08-26,no,not_core_family
+SKU:8103016,8103016,ממ6.9 עובי דופן8 דרג225 צינור אפור לחשמל,,UNKNOWN,OTHER,,,,אפור,,,1,1,no,2022-04-27,2022-04-27,no,not_core_family
+SKU:8103301,8103301,פקק זכר לצינור,,UNKNOWN,OTHER,,,,,,,1,1,no,2021-08-26,2021-08-26,no,not_core_family
+SKU:8103390,8103390,פקק נקבה לצינור,,UNKNOWN,OTHER,,,,,,,2,1,no,2022-04-27,2023-03-29,no,not_core_family
+SKU:8103400,8103400,פקק נקבה לצינור,,UNKNOWN,OTHER,,,,,,,3,2,no,2022-04-27,2023-03-29,no,not_core_family
+SKU:8107005,8107005,"8 חוט+(8.)ד13.5 מ""מ5 צינור י.ק.ע",wire,UNKNOWN,OTHER,,,,,,,1,1,no,2021-05-27,2021-05-27,no,not_core_family
+SKU:8107006,8107006,"חוט+(8.)ד13.5 מ""מ63 צינור י.ק.ע",wire,UNKNOWN,OTHER,,,,,,,1,0,no,2019-10-25,2019-10-25,no,not_core_family
+SKU:833001,833001,CA-22 חותך ומקלף כבלים9956513582 TOP ' מודו6 ל TOP מתאם3924230,cable,UNKNOWN,OTHER,,,,,,,38,38,no,2018-11-27,2024-06-27,no,not_core_family
+SKU:833005,833005,פעמון גונג מכני דגם,,UNKNOWN,OTHER,,,,,,,4,4,no,2017-10-03,2022-07-26,no,not_core_family
+SKU:835001,835001,"מנ' סימון+מפסק לדוד מואר תה""ט",switchgear,OTHER,OTHER,,,,,,,2,2,no,2022-02-24,2022-08-25,no,not_core_family
+SKU:835013,835013,"נורת סימון+מפסק לדוד עה""ט",switchgear,OTHER,OTHER,,,,,,,2,2,no,2020-07-26,2020-11-26,no,not_core_family
+SKU:835034,835034,A תקע למזגן,,UNKNOWN,OTHER,,,,,,,1,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:835551,835551,"A/250V P-1 שקע כח ירדן עה""ט",switchgear,OTHER,OTHER,,,,,,,8,8,no,2020-06-28,2022-09-28,no,not_core_family
+SKU:835560,835560,A מוגן מיםP1 שקע כח ירדן,switchgear,OTHER,OTHER,,,,,,,5,5,no,2020-09-24,2021-11-25,no,not_core_family
+SKU:835602,835602,"מפסק יחיד ירדן עה""ט",switchgear,OTHER,OTHER,,,,,,,3,3,no,2020-07-26,2022-09-28,no,not_core_family
+SKU:835900,835900,A-250V שקע כח על פס/מסילה,switchgear,OTHER,OTHER,,,,פס/מסילה,,,1,1,no,2022-06-27,2022-06-27,no,not_core_family
+SKU:836001,836001,"A שקע כח נועה תה""ט",switchgear,OTHER,OTHER,,,,,,,12,12,no,2020-06-28,2023-11-28,no,not_core_family
+SKU:836003,836003,"A מפסק יחיד נועה תה""ט",switchgear,OTHER,OTHER,,,,,,,6,6,no,2020-06-28,2025-01-28,no,not_core_family
+SKU:836005,836005,"A מפסק כפול נועה תה""ט",switchgear,OTHER,OTHER,,,,,,,2,2,no,2021-10-27,2022-08-25,no,not_core_family
+SKU:836006,836006,"A לחצן מדרגות מואר נועה תה""ט",,UNKNOWN,OTHER,,,,,,,4,4,no,2020-06-28,2023-12-31,no,not_core_family
+SKU:836009,836009,"A מפסק דוד מואר נועה תה""ט",switchgear,OTHER,OTHER,,,,,,,3,3,no,2020-11-26,2023-06-29,no,not_core_family
+SKU:836013,836013,"קרם16A שקע כח נועה תה""ט",switchgear,OTHER,OTHER,,,,,,,1,1,no,2020-09-24,2020-09-24,no,not_core_family
+SKU:8390084,8390084,N.K. / שובל1xE-27 אוברלוקס,,UNKNOWN,OTHER,,,,,,,3,3,no,2018-11-27,2021-11-25,no,not_core_family
+SKU:839512,839512,"כפולRJ-45 שקע רשת+ קופסא למחשב עה""ט",switchgear,OTHER,OTHER,,,,,,,1,1,no,2024-08-29,2024-08-29,no,not_core_family
+SKU:839513,839513,"מסוכך קיסטון ע""הטRJ-45 שקע",switchgear,OTHER,OTHER,,,,,,,1,1,no,2020-03-29,2020-03-29,no,not_core_family
+SKU:839514,839514,(1013) ONKA קרם2.5 מהדק לפס1800102,,UNKNOWN,OTHER,,,,,,,12,12,no,2017-10-03,2021-11-25,no,not_core_family
+SKU:839526,839526,"קופסא למחשב עה""ט כפול",,UNKNOWN,OTHER,,,,,,,1,1,no,2024-05-29,2024-05-29,no,not_core_family
+SKU:8400003,8400003,פתחים תקן455 קופסא עומק,,UNKNOWN,OTHER,,,,,,,1,1,no,2023-08-29,2023-08-29,no,not_core_family
+SKU:8400004,8400004,תקן55 'קופ,,UNKNOWN,OTHER,,,,,,,26,0,no,2018-12-31,2023-09-28,no,not_core_family
+SKU:8400005,8400005,EL-014 PG 11 צינור גמיש שחור10201055/16 עוגן מתכת ראש אום99565630,,UNKNOWN,OTHER,,,,שחור,,,23,4,no,2017-10-03,2024-07-28,no,not_core_family
+SKU:8400009,8400009,מקום ליציקה3 קופ' מלבנית ירוקה,,UNKNOWN,OTHER,,,,ירוק,,,3,2,no,2019-09-24,2020-02-27,no,not_core_family
+SKU:8400010,8400010,(חדש20) 16 יציאות8 קופ' שוודית,,UNKNOWN,OTHER,,,,,,,20,20,no,2019-10-25,2024-07-28,no,not_core_family
+SKU:8400012,8400012,פטנט תקן55 קופ' לקיר גבס,,UNKNOWN,OTHER,,,,,,,8,8,no,2020-01-28,2025-03-27,no,not_core_family
+SKU:8400013,8400013,44.00% שח4.96 מטר100.0 קשיחPVC (צ/י)בחבילה1 מטר חוט5601313x1.5 N2XY (מטר כבל)בחבילה5951021,cable,COPPER,N2XY_COPPER_CABLE,N2XY,13,1.5,צ/י,,PVC,20,20,no,2020-01-28,2025-02-26,yes,
+SKU:8400014,8400014,גבס עומק פטנט תקן55 'קופ,,UNKNOWN,OTHER,,,,,,,3,3,no,2019-06-27,2025-03-27,no,not_core_family
+SKU:8400016,8400016,)ברגים(תקן7 קופ' לקיר גבס,,UNKNOWN,OTHER,,,,,,,2,1,no,2019-10-25,2019-11-27,no,not_core_family
+SKU:8400017,8400017,מודול לקיר גבס עם ברגים3 קופסא,,UNKNOWN,OTHER,,,,,,,1,1,no,2021-08-26,2021-08-26,no,not_core_family
+SKU:840001800,840001800,6500K 6W 120x12 לד מרובעVEGA שקוע3850108,,UNKNOWN,OTHER,,,,,,,46,46,no,2017-10-03,2023-06-29,no,not_core_family
+SKU:840001801,840001801,"200x0.8 מכסה לתעלת פח מלא680200644.00% שח26.48 מטר500.0 ממ""ר5x1 N2XY כבל5952040",cable,COPPER,N2XY_COPPER_CABLE,N2XY,5,1,,,,73,0,yes,2017-10-03,2025-01-28,no,sku_conflict
+SKU:840001802,840001802,ברגים ללא מחיצות+ מודול פטנט גבס3 קופ,,UNKNOWN,OTHER,,,,,,,22,19,no,2018-11-27,2025-02-26,no,not_core_family
+SKU:840001810,840001810,"VEGA מ""מ18 סכין יפני רחב99598019",,UNKNOWN,OTHER,,,,,,,24,24,no,2017-10-03,2023-07-27,no,not_core_family
+SKU:840001811,840001811,42.00% שח1.5 מטר500.00קשיח PVC כחול2.5 חוט55034,wire,COPPER_PVC,COPPER_WIRE,,,2.5,כחול,,PVC,31,0,yes,2017-10-03,2025-03-27,no,sku_conflict
+SKU:840001812,840001812,ברגים ללא מחיצות+ מודול פטנט גבס4 קופ,,UNKNOWN,OTHER,,,,,,,8,6,no,2020-01-28,2025-02-26,no,not_core_family
+SKU:840001813,840001813,ברגים ללא מחיצות+ מודול לגבס4 קופסא,,UNKNOWN,OTHER,,,,,,,2,0,no,2023-03-29,2023-03-29,no,not_core_family
+SKU:840001814,840001814,"מודול תה""ט עמוקה4 'קופ",,UNKNOWN,OTHER,,,,,,,3,3,no,2020-02-27,2020-07-30,no,not_core_family
+SKU:840001815,840001815,5x1.5/2.5 מהדק חיבור מהיר9915059244.00% שח0.74 מטר500.0 קשיחPVC חום1.5 חוט55022,wire,COPPER_PVC,COPPER_WIRE,,5,1.5,חום,,PVC,7,7,no,2020-02-27,2021-04-27,yes,
+SKU:840001831,840001831,"מודול תה""ט ללא מחיצות6 קופסא תקן",,UNKNOWN,OTHER,,,,,,,3,3,no,2020-06-28,2023-06-29,no,not_core_family
+SKU:84000184,84000184,ALPEN 9x16 מקדח לפטישון ראש צלב2400173,accessory,OTHER,OTHER,,,,,,,10,10,no,2019-01-27,2024-05-29,no,not_core_family
+SKU:840001891,840001891,ברגים+ מודול לקיר גבס פטנט6 'קופ,,UNKNOWN,OTHER,,,,,,,1,1,no,2019-01-27,2019-01-27,no,not_core_family
+SKU:8400027,8400027,תקן סגור 2 קופ' רון,,UNKNOWN,OTHER,,,,,,,2,2,no,2018-11-27,2019-06-27,no,not_core_family
+SKU:8400028,8400028,פתחים2 תקן 2 קופ' רון,,UNKNOWN,OTHER,,,,,,,7,7,no,2020-09-24,2023-12-31,no,not_core_family
+SKU:8400029,8400029,(100) SAPISELCO 304.5 חבק לבן90024,,UNKNOWN,OTHER,,,,לבן,,,3,3,no,2019-03-04,2022-09-28,no,not_core_family
+SKU:8400030,8400030,פתחים4 תקן 2 קופ' רון,,UNKNOWN,OTHER,,,,,,,1,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:84000385,84000385,מחיצות פטנט+ מודול לקיר גבס3 קופסא,,UNKNOWN,OTHER,,,,,,,1,1,no,2025-03-27,2025-03-27,no,not_core_family
+SKU:84000386,84000386,מחיצות+ מודול לקיר גבס פטנט4 קופסא,,UNKNOWN,OTHER,,,,,,,1,1,no,2025-03-27,2025-03-27,no,not_core_family
+SKU:8400039,8400039,כסה פלסטיק לקופסא,,UNKNOWN,OTHER,,,,,,,30,30,no,2017-10-03,2024-08-29,no,not_core_family
+SKU:84000395,84000395,כסה פח לקופסא,,UNKNOWN,OTHER,,,,,,,1,1,no,2020-11-26,2020-11-26,no,not_core_family
+SKU:84000399,84000399,ברגים לקופסאות+מכסה פלסטי תקן,,UNKNOWN,OTHER,,,,,,,6,6,no,2021-05-27,2024-06-27,no,not_core_family
+SKU:8400040,8400040,3x1.5 N2XY (מטר כבל)בחבילה5951021,cable,COPPER,N2XY_COPPER_CABLE,N2XY,3,1.5,,,,14,0,yes,2018-12-31,2022-04-27,no,sku_conflict
+SKU:84000400,84000400,כסה פלסטי תקן לקופסאות,,UNKNOWN,OTHER,,,,,,,1,1,no,2024-06-27,2024-06-27,no,not_core_family
+SKU:8400041,8400041,ברגים תקן+7 מכסה,,UNKNOWN,OTHER,,,,,,,8,8,no,2019-07-28,2024-02-28,no,not_core_family
+SKU:840005209,840005209,"IP-55 מ""מ84x42x38 מיני°85 קופסת סעף",,UNKNOWN,OTHER,,,,,,,1,1,no,2021-05-27,2021-05-27,no,not_core_family
+SKU:840005211,840005211,PW6195x149x75 מכסה+קופ' סעף לגבס,,UNKNOWN,OTHER,,,,,,,1,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:84000541,84000541,"(100) מ""מ אדום6 דיבל",,UNKNOWN,OTHER,,,,אדום,,,1,0,no,2021-05-27,2021-05-27,no,not_core_family
+SKU:8400055,8400055,"(100) מ""מ7 דיבל",,UNKNOWN,OTHER,,,,,,,17,2,no,2019-10-25,2024-12-29,no,not_core_family
+SKU:8400057,8400057,"(100) מ""מ8 דיבל",,UNKNOWN,OTHER,,,,,,,2,0,no,2023-09-28,2025-02-26,no,not_core_family
+SKU:8400059,8400059,(' יח100) דיבל פרפר לקיר גבס,,UNKNOWN,OTHER,,,,,,,7,7,no,2019-01-27,2024-07-28,no,not_core_family
+SKU:84000592,84000592,בנעיצה0.5 דיבל מחוסם לגבס עובי,,UNKNOWN,OTHER,,,,,,,1,1,no,2021-07-28,2021-07-28,no,not_core_family
+SKU:8400061,8400061,"מ""מ2 קשת רון",,UNKNOWN,OTHER,,,,,,,6,0,no,2018-08-30,2022-12-29,no,not_core_family
+SKU:8400062,8400062,קשת רון,,UNKNOWN,OTHER,,,,,,,2,0,no,2018-12-31,2019-01-27,no,not_core_family
+SKU:8400066,8400066,ופה רון,,UNKNOWN,OTHER,,,,,,,1,0,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:84000665,84000665,"מ""מ חסין אש2 מופה רון",,UNKNOWN,OTHER,,,,,,,1,1,no,2020-10-22,2020-10-22,no,not_core_family
+SKU:8400074,8400074,40W בהירE27 נורה ליבון4611002 (שקעים4) 3x1.5 ' מ25 כבל כתום+תוף1525010,cable,UNKNOWN,OTHER,,3,1.5,כתום,,,17,0,yes,2017-10-03,2024-06-27,no,not_core_family
+SKU:84000791,84000791,(חדש20) 16 צינור מופה אדום,,UNKNOWN,OTHER,,,,אדום,,,100,95,no,2017-10-03,2025-03-27,no,not_core_family
+SKU:8400089,8400089,"מ""מ שחור12 צינור בידוד",,UNKNOWN,OTHER,,,,שחור,,,1,1,no,2020-06-28,2020-06-28,no,not_core_family
+SKU:84001,84001,!!! בלדח דקור' קומפלט תקני1050020,,UNKNOWN,OTHER,,,,,,,19,0,yes,2017-10-03,2024-09-30,no,not_core_family
+SKU:84001915,84001915,"מ""מ לבן12 חיתוך)בלבד(צינור בידוד",,UNKNOWN,OTHER,,,,לבן,,,1,1,no,2022-05-29,2022-05-29,no,not_core_family
+SKU:841999,841999,אטומה8x8 קופסא חיצונית,,UNKNOWN,OTHER,,,,,,,2,2,no,2020-11-26,2022-09-28,no,not_core_family
+SKU:842000,842000,עם פיטמות8x8 קופסא חיצונית,,UNKNOWN,OTHER,,,,,,,7,7,no,2019-01-27,2024-09-30,no,not_core_family
+SKU:842002,842002,עם פיטמות10x1 קופסא חיצונית,,UNKNOWN,OTHER,,,,,,,2,2,no,2021-11-25,2022-09-28,no,not_core_family
+SKU:8600003,8600003,שחור/כתום חדש2 מריכף,,UNKNOWN,OTHER,,,,שחור,,,55,38,no,2017-10-03,2024-10-31,no,not_core_family
+SKU:8600004,8600004,שחור/כתום25 צינור מריכף,,UNKNOWN,OTHER,,,,שחור,,,22,22,no,2019-10-25,2024-10-31,no,not_core_family
+SKU:8600005,8600005,שחור/כתום32 צינור מריכף,,UNKNOWN,OTHER,,,,שחור,,,2,2,no,2021-05-27,2023-07-27,no,not_core_family
+SKU:8600007,8600007,שחור/כתום5 צינור מריכף,,UNKNOWN,OTHER,,,,שחור,,,5,4,no,2019-10-25,2021-08-26,no,not_core_family
+SKU:8600103,8600103,ירוק חדש2 מריכף,,UNKNOWN,OTHER,,,,ירוק,,,114,83,no,2017-10-03,2025-03-27,no,not_core_family
+SKU:8600104,8600104,ירוק חדש25 מריכף,,UNKNOWN,OTHER,,,,ירוק,,,41,41,no,2017-10-03,2024-12-29,no,not_core_family
+SKU:8600105,8600105,ירוק32 צינור מריכף,,UNKNOWN,OTHER,,,,ירוק,,,5,5,no,2020-01-28,2021-04-27,no,not_core_family
+SKU:8600108,8600108,אדום חדש2 מריכף,,UNKNOWN,OTHER,,,,אדום,,,21,20,no,2018-11-27,2024-08-29,no,not_core_family
+SKU:8600113,8600113,לבן חדש2 מריכף,,UNKNOWN,OTHER,,,,לבן,,,56,40,no,2017-10-03,2025-03-27,no,not_core_family
+SKU:8600114,8600114,כחול חדש2 מריכף,,UNKNOWN,OTHER,,,,כחול,,,7,4,no,2017-10-03,2024-12-29,no,not_core_family
+SKU:8600116,8600116,כחול25 צינור מריכף,,UNKNOWN,OTHER,,,,כחול,,,2,2,no,2024-09-30,2024-12-29,no,not_core_family
+SKU:8600119,8600119,לבן חדש25 מריכף,,UNKNOWN,OTHER,,,,לבן,,,41,39,no,2018-08-30,2024-10-31,no,not_core_family
+SKU:8600209,8600209,"מ""מ4 חוט+ שחור5 צינור מריכף",wire,COPPER,COPPER_WIRE,,,4,שחור,,,1,1,no,2022-04-27,2022-04-27,yes,
+SKU:8600216,8600216,"(2"") 5 צינור מופה",,UNKNOWN,OTHER,,,,,,,2,2,no,2020-03-29,2024-08-29,no,not_core_family
+SKU:8910266,8910266,FLM 10x25 F אום+ בורג,lighting,OTHER,OTHER,,,,,,,1,1,no,2020-12-30,2020-12-30,no,not_core_family
+SKU:8911111,8911111,KU 5 מחבר עליון לתקרה,,UNKNOWN,OTHER,,,,,,,5,5,no,2020-12-30,2023-06-29,no,not_core_family
+SKU:8911121,8911121,U 50/300 עמוד לחיבור זרועות,,UNKNOWN,OTHER,,,,,,,3,3,no,2020-12-30,2022-12-29,no,not_core_family
+SKU:8911126,8911126,UD 24 זרועות במישור אחד2 מחבר להרכבת,,UNKNOWN,OTHER,,,,,,,1,1,no,2021-05-27,2021-05-27,no,not_core_family
+SKU:8911136,8911136,KTUM 10 דגםU5 זרוע לעמוד,,UNKNOWN,OTHER,,,,,,,1,1,no,2021-05-27,2021-05-27,no,not_core_family
+SKU:8911141,8911141,KTUM 20 דגםU5 זרוע לעמוד,,UNKNOWN,OTHER,,,,,,,1,0,no,2022-06-27,2022-06-27,no,not_core_family
+SKU:8911146,8911146,KTUM 30 דגםU5 זרוע לעמוד,,UNKNOWN,OTHER,,,,,,,1,1,no,2021-06-30,2021-06-30,no,not_core_family
+SKU:8911151,8911151,KTUM 40 דגםU5 זרוע לעמוד,,UNKNOWN,OTHER,,,,,,,3,3,no,2020-12-30,2022-11-27,no,not_core_family
+SKU:90003,90003,SAPISELCO 102.5 יח'(חבק לבן100) מארז,,UNKNOWN,OTHER,,,,לבן,,,2,2,no,2021-02-28,2021-10-27,no,not_core_family
+SKU:90010,90010,(100) SAPISELCO 284.5 חבק לבן9002 SAPISELCO 102.5 יח'(חבק לבן100) מארז90003,,UNKNOWN,OTHER,,,,לבן,,,1,1,no,2021-02-28,2021-02-28,no,not_core_family
+SKU:90015,90015,"SAPISELCO 102.5 יח'(חבק לבן100) מארז900031P 6A 6kA C GEWISS מאמ""ת3992005",breaker,OTHER,OTHER,,,,לבן,,GEWISS,1,1,no,2021-02-28,2021-02-28,no,not_core_family
+SKU:90018,90018,(100) SAPISELCO 254.5 חבק לבן,,UNKNOWN,OTHER,,,,לבן,,,39,39,no,2017-10-03,2025-01-28,no,not_core_family
+SKU:90019,90019,(100) SAPISELCO 253.5 חבק לבן,,UNKNOWN,OTHER,,,,לבן,,,2,2,no,2017-10-03,2023-05-28,no,not_core_family
+SKU:90020,90020,(100) 1.5 סופית מבודדת כפולה99220115 TTC CA-22 חותך ומקלף כבלים9956513582,cable,UNKNOWN,OTHER,,,,,,TTC,47,0,yes,2018-11-27,2025-03-27,no,not_core_family
+SKU:90022,90022,(100) SAPISELCO 283.5 חבק לבן,,UNKNOWN,OTHER,,,,לבן,,,1,1,no,2019-10-25,2019-10-25,no,not_core_family
+SKU:90024,90024,(100) SAPISELCO 304.5 חבק לבן,,UNKNOWN,OTHER,,,,לבן,,,12,11,no,2019-03-04,2024-12-29,no,not_core_family
+SKU:90025,90025,(100) SAPISELCO 327.5 חבק לבן,,UNKNOWN,OTHER,,,,לבן,,,2,2,no,2021-02-28,2021-04-27,no,not_core_family
+SKU:90028,90028,(100) SAPISELCO 367.5 חבק לבן,,UNKNOWN,OTHER,,,,לבן,,,3,3,no,2021-04-27,2023-08-29,no,not_core_family
+SKU:90032,90032,(100) SAPISELCO 547.5 חבק לבן,,UNKNOWN,OTHER,,,,לבן,,,1,1,no,2021-04-27,2021-04-27,no,not_core_family
+SKU:90051,90051,(100) SAPISELCO 10 חבק דגלון,,UNKNOWN,OTHER,,,,,,,8,8,no,2020-01-28,2024-07-28,no,not_core_family
+SKU:90052,90052,SAPISELCO 20 יח'(חבק דגלון100) מארז,,UNKNOWN,OTHER,,,,,,,4,4,no,2022-07-26,2024-03-31,no,not_core_family
+SKU:901102,901102,IP44 כניסות+ 80x8 °96 קופ' סעף3944053,,UNKNOWN,OTHER,,,,,,,1,1,no,2021-02-28,2021-02-28,no,not_core_family
+SKU:901123,901123,יח'(חבק שחור100) מארז,,UNKNOWN,OTHER,,,,שחור,,,1,1,no,2025-01-28,2025-01-28,no,not_core_family
+SKU:901130,901130,(100) SAPISELCO 457.5 חבק שחור,,UNKNOWN,OTHER,,,,שחור,,,1,1,no,2021-04-27,2021-04-27,no,not_core_family
+SKU:901151,901151,x19. (100) HC-101 בסיס לחבק,,UNKNOWN,OTHER,,,,,,,1,1,no,2020-12-30,2020-12-30,no,not_core_family
+SKU:901155,901155,(100) HC-1 חור+ בסיס לחבק,,UNKNOWN,OTHER,,,,,,,2,2,no,2020-12-30,2021-07-28,no,not_core_family
+SKU:901555,901555,"(100) מ""מ2.5-נ.כ צינור מצופה ל",,UNKNOWN,OTHER,,,,,,,3,0,no,2020-06-28,2021-09-26,no,not_core_family
+SKU:901556,901556,"(100) מ""מ6-נ.כ צינור מצופה ל",,UNKNOWN,OTHER,,,,,,,1,0,no,2020-06-28,2020-06-28,no,not_core_family
+SKU:904002,904002,x1.5 מטר2 כבל מאריך,cable,UNKNOWN,OTHER,,,,,,,1,0,no,2025-01-28,2025-01-28,no,not_core_family
+SKU:904003,904003,x1.5 מטר3 כבל מאריך,cable,UNKNOWN,OTHER,,,,,,,1,0,no,2019-01-27,2019-01-27,no,not_core_family
+SKU:904004,904004,x1.5 מטר5 כבל מאריך,cable,UNKNOWN,OTHER,,,,,,,3,0,no,2020-12-30,2022-10-27,no,not_core_family
+SKU:904005,904005,x1.5 מטר1 כבל מאריך,cable,UNKNOWN,OTHER,,,,,,,1,0,no,2023-10-29,2023-10-29,no,not_core_family
+SKU:906002,906002,(100) עגול4 קליפס,,UNKNOWN,OTHER,,,,,,,3,3,no,2020-02-27,2020-12-30,no,not_core_family
+SKU:906003,906003,(100) עגול6 קליפס,,UNKNOWN,OTHER,,,,,,,1,1,no,2021-10-27,2021-10-27,no,not_core_family
+SKU:908006,908006,אום+PG11 כניסת אנטיגרון לכבל,cable,UNKNOWN,OTHER,,,,,,,2,2,no,2021-12-29,2023-09-28,no,not_core_family
+SKU:908008,908008,אום+PG13.5 כניסת אנטיגרון לכבל,cable,UNKNOWN,OTHER,,,,,,,2,2,no,2019-08-25,2021-12-29,no,not_core_family
+SKU:908010,908010,אום+PG16 כניסת אנטיגרון לכבל,cable,UNKNOWN,OTHER,,,,,,,1,1,no,2021-11-25,2021-11-25,no,not_core_family
+SKU:908012,908012,אום+PG21 כניסת אנטיגרון לכבל,cable,UNKNOWN,OTHER,,,,,,,1,1,no,2021-11-25,2021-11-25,no,not_core_family
+SKU:908014,908014,אום+PG29 כניסת אנטיגרון לכבל,cable,UNKNOWN,OTHER,,,,,,,1,1,no,2021-11-25,2021-11-25,no,not_core_family
+SKU:908019,908019,אום+ M25 כניסת אנטיגרון לכבל,cable,UNKNOWN,OTHER,,,,,,,1,1,no,2024-09-30,2024-09-30,no,not_core_family
+SKU:9411000,9411000,D 4Kx2K 60Hz 1080p מטר1 איכותHDMI כבל,cable,UNKNOWN,OTHER,,,,,,,2,0,yes,2019-01-27,2019-11-27,no,not_core_family
+SKU:9411003,9411003,D 4Kx2K 60Hz 1080p מטר5 איכותHDMI כבל,cable,UNKNOWN,OTHER,,,,,,,1,0,no,2019-01-27,2019-01-27,no,not_core_family
+SKU:9411004,9411004,D 4Kx2K 60Hz 1080p ' מ1 איכותHDMI כבל,cable,UNKNOWN,OTHER,,,,,,,1,1,no,2020-12-30,2020-12-30,no,not_core_family
+SKU:9411012,9411012,"' יח1.0 VEGA 7"" מסך+קיט וילה פנל קודן רחב תה""ט",,UNKNOWN,OTHER,,,,,,,1,0,no,2023-07-27,2023-07-27,no,not_core_family
+SKU:9411080,9411080,מסוכך פלסטיק RJ45 CAT-5e שקע מחשב,switchgear,OTHER,OTHER,,,,,,,2,2,no,2020-06-28,2021-02-28,no,not_core_family
+SKU:9411120,9411120,פלסטיקRJ45 CAT-6 תקע רשת מחשב ללא כלים,,UNKNOWN,OTHER,,,,,,,1,1,no,2023-08-29,2023-08-29,no,not_core_family
+SKU:9480019,9480019,"""-32"" זרוע צמוד קיר ללא הטיה עד מידה",,UNKNOWN,OTHER,,,,,,,1,1,no,2020-07-26,2020-07-26,no,not_core_family
+SKU:9565035019,9565035019,"IRWIN חלקים37/ מ""מ25 תיק פתוח9",,UNKNOWN,OTHER,,,,,,,1,0,no,2018-11-27,2018-11-27,no,not_core_family
+SKU:9565106010,9565106010,קסדת בטיחות תקנית בצבע לבן9,,UNKNOWN,OTHER,,,,לבן,,,3,3,no,2021-12-29,2024-03-31,no,not_core_family
+SKU:9566104292,9566104292,WERA (לברגי פחפח/גבס)כחולPH2x25 ביט פיליפס9,tool,OTHER,OTHER,,,,כחול,,WERA,3,0,yes,2020-08-27,2024-10-31,no,not_core_family
+SKU:9566150095,9566150095,WERA 1060i 1000V 3.5x10 מברג שטוח9,tool,OTHER,OTHER,,,,,,WERA,2,2,no,2024-05-29,2024-07-28,no,not_core_family
+SKU:9566150115,9566150115,WERA 1060i 1000V 4.0x10 מברג שטוח9,tool,OTHER,OTHER,,,,,,WERA,3,3,no,2024-03-31,2024-07-28,no,not_core_family
+SKU:9566150415,9566150415,WERA) טסטר+ שטוח3+ 9,tool,OTHER,OTHER,,,,,,WERA,1,1,no,2024-02-28,2024-02-28,no,not_core_family
+SKU:9566150481,9566150481,WERA 1000V להב דק4x10 מברג שטוח מבודד 9,tool,OTHER,OTHER,,,,,,WERA,4,4,no,2019-10-25,2025-03-27,no,not_core_family
+SKU:9566152631,9566152631,WERA 1/4x5 מחזיק ביט מגנטי9,tool,OTHER,OTHER,,,,,,WERA,3,3,no,2020-10-22,2023-06-29,no,not_core_family
+SKU:9566152632,9566152632,WERA 1/4x75 מחזיק ביט מגנטי9,tool,OTHER,OTHER,,,,,,WERA,2,2,no,2020-10-22,2023-06-29,no,not_core_family
+SKU:980001,980001,בבליסטרAA TOSHIBA סוללות4,,UNKNOWN,OTHER,,,,,,,1,1,no,2021-04-27,2021-04-27,no,not_core_family
+SKU:9800415,9800415,TOSHIBA AA סוללות1 בליסטר,,UNKNOWN,OTHER,,,,,,,1,1,no,2024-08-29,2024-08-29,no,not_core_family
+SKU:9800435,9800435,TOSHIBA AAA סוללות1 בליסטר,,UNKNOWN,OTHER,,,,,,,2,2,no,2021-05-27,2021-08-26,no,not_core_family
+SKU:9810405,9810405,LED 5W פנס יד נטען,lighting,OTHER,OTHER,,,,,,,2,2,no,2023-02-28,2023-04-27,no,not_core_family
+SKU:990200193,990200193,לבן8W WW בלה טרימלס עגול גדול פלסטיק,,UNKNOWN,OTHER,,,,לבן,,,1,1,no,2019-06-27,2019-06-27,no,not_core_family
+SKU:9902001930,9902001930,שחור8W WW בלה טרימלס עגול גדול פלסטיק,,UNKNOWN,OTHER,,,,שחור,,,1,0,no,2019-06-27,2019-06-27,no,not_core_family
+SKU:990200704,990200704,אור קר5W לילי שקוע לבן עגול קטן פלסטיק,,UNKNOWN,OTHER,,,,לבן,,,2,1,no,2019-06-27,2019-06-27,no,not_core_family
+SKU:990218702,990218702,IP54 לבן אור חם12W צרלי אפ דאון אלומות,,ALUMINIUM,OTHER,,,,לבן,,,1,1,no,2020-07-26,2020-07-26,no,not_core_family
+SKU:990218728,990218728,שחור18W גרפה קיר מסתובב,,UNKNOWN,OTHER,,,,שחור,,,1,1,no,2021-11-25,2021-11-25,no,not_core_family
+SKU:99060003,99060003,' חב1.0 ('יח100) 16/2 שלה פלס' בודד,,UNKNOWN,OTHER,,,,,,,86,84,no,2017-10-03,2025-03-27,no,not_core_family
+SKU:99060004,99060004,(' יח100) 23/25 שלה פלס' בודד,,UNKNOWN,OTHER,,,,,,,7,7,no,2020-02-27,2024-08-29,no,not_core_family
+SKU:99060006,99060006,' חב1.0 ('יח100) 16/2 שלה פלס' כפול,,UNKNOWN,OTHER,,,,,,,69,68,no,2017-10-03,2025-02-26,no,not_core_family
+SKU:99060007,99060007,(' יח100) 23/25 שלה פלס' כפול,,UNKNOWN,OTHER,,,,,,,6,5,no,2020-02-27,2024-10-31,no,not_core_family
+SKU:990700021,990700021,(מטר)מזלג180A מגשר תלת פזי6601164,,UNKNOWN,OTHER,,,,,,,12,12,no,2020-02-27,2024-08-29,no,not_core_family
+SKU:990700022,990700022,ידית מנוף4x32-35A פקט בקופסא,,UNKNOWN,OTHER,,,,,,,37,36,no,2020-12-30,2024-10-31,no,not_core_family
+SKU:99070003,99070003,x40A 'פקט בקופ,,UNKNOWN,OTHER,,,,,,,4,4,no,2020-04-30,2022-02-24,no,not_core_family
+SKU:99070004,99070004,x63A 'פקט בקופ,,UNKNOWN,OTHER,,,,,,,3,3,no,2019-06-27,2023-05-28,no,not_core_family
+SKU:99070005,99070005,(סמ12x10x7)קופ' גדולה3x32A 'פקט בקופ,,UNKNOWN,OTHER,,,,,,,22,20,no,2017-10-03,2020-11-26,no,not_core_family
+SKU:99070010,99070010,x100A פקט בקופסא,,UNKNOWN,OTHER,,,,,,,1,1,no,2024-03-31,2024-03-31,no,not_core_family
+SKU:99080055,99080055,מטר אדום2 סרט בידוד,,UNKNOWN,OTHER,,,,אדום,,,1,1,no,2022-04-27,2022-04-27,no,not_core_family
+SKU:990800550,990800550,חום שחור20mx19mm סרט בידוד,,UNKNOWN,OTHER,,,,שחור,,,6,6,no,2019-01-27,2023-09-28,no,not_core_family
+SKU:990800552,990800552,20mx19mm סרט בידוד 990800552 צהוב ירוק,,UNKNOWN,OTHER,,,,ירוק,,,31,31,no,2019-03-04,2024-07-28,no,not_core_family
+SKU:990800553,990800553,חום20mx19mm סרט בידוד,,UNKNOWN,OTHER,,,,חום,,,6,6,no,2019-03-04,2023-09-28,no,not_core_family
+SKU:990800554,990800554,"1.1/2"" אומגה כבד4931615 DIN 8.5 קדח-16 נ.כ495133003",accessory,OTHER,OTHER,,,,,,,10,10,no,2019-03-04,2024-05-29,no,not_core_family
+SKU:990800557,990800557,מטר שחור2 סרט בידוד,,UNKNOWN,OTHER,,,,שחור,,,1,1,no,2022-02-24,2022-02-24,no,not_core_family
+SKU:990800559,990800559,חום כתום20mx19mm סרט בידוד,,UNKNOWN,OTHER,,,,חום,,,6,6,no,2019-01-27,2023-09-28,no,not_core_family
+SKU:99080056,99080056,3x1.5 N2XY (מטר כבל)בחבילה5951021,cable,COPPER,N2XY_COPPER_CABLE,N2XY,3,1.5,,,,70,70,no,2018-11-27,2025-03-27,yes,
+SKU:990800561,990800561,8x1.5/2.5 מהדק חיבור מהיר99150596,,UNKNOWN,OTHER,,,,,,,18,18,no,2017-10-03,2023-07-27,no,not_core_family
+SKU:99080235,99080235,"לדקר' ""מרקורי"" לבן שקוע",,UNKNOWN,OTHER,,,,לבן,,,2,1,no,2019-06-27,2019-06-27,no,not_core_family
+SKU:990830044,990830044,מרובעCB1 ספוט שקוע דגם,,UNKNOWN,OTHER,,,,,,,3,2,no,2019-06-27,2019-09-24,no,not_core_family
+SKU:990861052,990861052,50.00% שח0.83 מטר800.0 קשיחPVC כחול1.5 חוט55024,wire,COPPER_PVC,COPPER_WIRE,,,1.5,כחול,,PVC,3,0,yes,2019-06-27,2019-11-27,no,sku_conflict
+SKU:990861058,990861058,CW 8W שקוע/צמוד חומה בזלת ירושלים,,UNKNOWN,OTHER,,,,שקוע/צמוד,,,1,0,no,2019-06-27,2019-06-27,no,not_core_family
+SKU:99086145,99086145,"CW 36-40W עגול עה""טLED פאנל",lighting,OTHER,OTHER,,,,,,,1,1,no,2022-10-27,2022-10-27,no,not_core_family
+SKU:990861451,990861451,"DL 36-40W עגול עה""טLED פאנל",lighting,OTHER,OTHER,,,,,,,1,0,no,2022-11-27,2022-11-27,no,not_core_family
+SKU:99110298,99110298,CR2032 סוללה ליתיום,,UNKNOWN,OTHER,,,,,,,1,1,no,2021-11-25,2021-11-25,no,not_core_family
+SKU:99110337,99110337,WL-01 פנס יד דגם פלקון,,UNKNOWN,OTHER,,,,,,,2,2,no,2019-01-27,2019-09-24,no,not_core_family
+SKU:991300541,991300541,קומקום חשמלי גוף נסתר מזכוכית צבע שחור,,UNKNOWN,OTHER,,,,שחור,,,1,1,no,2024-08-29,2024-08-29,no,not_core_family
+SKU:99130078,99130078,ליטר יונדאי בצבע2 קומקום חשמלי,,UNKNOWN,OTHER,,,,,,,3,3,no,2019-10-25,2022-04-27,no,not_core_family
+SKU:99130907,99130907,דרגות3 תנור אמבטיה אינפרא,,UNKNOWN,OTHER,,,,,,,2,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:99131206,99131206,מקרן חום מסתובב רצפתי,,UNKNOWN,OTHER,,,,חום,,,2,2,no,2025-02-26,2025-02-26,no,not_core_family
+SKU:99131212,99131212,ספירלות3 תנור קרמי,,UNKNOWN,OTHER,,,,,,,1,1,no,2023-12-31,2023-12-31,no,not_core_family
+SKU:99131803,99131803,"Cata B1 plus 4"" שואב אויר ונטה",,UNKNOWN,OTHER,,,,,,,1,1,no,2023-02-28,2023-02-28,no,not_core_family
+SKU:99131804,99131804,"Cata B15 plus 6"" שואב אויר ונטה",,UNKNOWN,OTHER,,,,,,,1,1,no,2025-03-27,2025-03-27,no,not_core_family
+SKU:99131807,99131807,"Cata CB10 plus 4/6"" מפוח מתחת לטיח",,UNKNOWN,OTHER,,,,,,,1,1,no,2020-06-28,2020-06-28,no,not_core_family
+SKU:991330564,991330564,"ס""מ54x7600W סירים6 פלטת שבת",,UNKNOWN,OTHER,,,,,,,1,1,no,2022-10-27,2022-10-27,no,not_core_family
+SKU:991360046,991360046,MK345 LOGITECH סט עכבר ומקלדת אלחוטי,wire,UNKNOWN,OTHER,,,,,,,1,1,no,2022-11-27,2022-11-27,no,not_core_family
+SKU:991370553,991370553,ליטר יונדאי2 קומקום זכוכית שחור,,UNKNOWN,OTHER,,,,שחור,,,1,1,no,2025-02-26,2025-02-26,no,not_core_family
+SKU:991370556,991370556,לבן יונדאי1.7 קומקום נירו' דגם חרמון,,UNKNOWN,OTHER,,,,לבן,,,2,2,no,2020-02-27,2022-04-27,no,not_core_family
+SKU:991380030,991380030,MICROSOFT 85 עכבר+סט אלחוטי מקלדת,wire,UNKNOWN,OTHER,,,,,,,1,1,no,2023-08-29,2023-08-29,no,not_core_family
+SKU:99150591,99150591,x1.5/2.5 מהדק חיבור מהיר,,UNKNOWN,OTHER,,,,,,,4,4,no,2020-03-29,2021-08-26,no,not_core_family
+SKU:99150592,99150592,5x1.5/2.5 מהדק חיבור מהיר,,UNKNOWN,OTHER,,,,,,,64,60,no,2018-12-31,2023-05-28,no,not_core_family
+SKU:991505920,991505920,(10)מארז5x0.5/2.5 מהדק חיבור מהיר,,UNKNOWN,OTHER,,,,,,,34,32,no,2023-06-29,2025-02-26,no,not_core_family
+SKU:99150596,99150596,8x1.5/2.5 מהדק חיבור מהיר,,UNKNOWN,OTHER,,,,,,,29,27,no,2018-12-31,2023-05-28,no,not_core_family
+SKU:991505960,991505960,(5)מארז8x1.5/2.5 מהדק חיבור מהיר,,UNKNOWN,OTHER,,,,,,,12,9,no,2023-05-28,2025-02-26,no,not_core_family
+SKU:992200062,992200062,"'מ15/מ""מ4 סטלבנד כתום פלוס ראש מתברג",,UNKNOWN,OTHER,,,,כתום,,,1,0,no,2020-09-24,2020-09-24,no,not_core_family
+SKU:99220007,99220007,"' מ15/ מ""מ4 סטלבנד שחור ראש מתברג",,UNKNOWN,OTHER,,,,שחור,,,4,0,no,2019-03-04,2020-09-24,no,not_core_family
+SKU:99220008,99220008,"' מ20/ מ""מ4 סרט משיכה ראש מתברג",,UNKNOWN,OTHER,,,,,,,1,0,no,2019-09-24,2019-09-24,no,not_core_family
+SKU:992200099,992200099,"מ""מ קשיח5.5-6. מטר5 סטלבנד",,PVC,OTHER,,,,,,,7,1,no,2017-10-03,2021-06-30,no,not_core_family
+SKU:99220011,99220011,24VDC 4.5A 100W ספק כח לסטריפ/פרופיל לד29103912 AD1123M שניות ג'ל3 זוג דבק995659910,,UNKNOWN,OTHER,,,,לסטריפ/פרופיל,,,5,4,no,2021-03-25,2025-03-27,no,not_core_family
+SKU:99220057,99220057,"(' יח500) מ""מ6. סופיות ניקל",,UNKNOWN,OTHER,,,,,,,2,2,no,2021-11-25,2021-11-25,no,not_core_family
+SKU:992200591,992200591,"(' יח250) מ""מ16 סופיות ניקל",,UNKNOWN,OTHER,,,,,,,1,0,no,2020-06-28,2020-06-28,no,not_core_family
+SKU:99220065,99220065,"(מ""מ)יחידה12 סופיות ניקל",,UNKNOWN,OTHER,,,,,,,1,0,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:9922010003,9922010003,"(100) מ""מ0.75 סופיות מבודדת",,UNKNOWN,OTHER,,,,,,,1,0,no,2019-10-25,2019-10-25,no,not_core_family
+SKU:992201010,992201010,(1013) ONKA קרם2.5 מהדק לפס1800102,,UNKNOWN,OTHER,,,,,,,26,10,no,2018-11-27,2024-08-29,no,not_core_family
+SKU:99220103,99220103,"(200) מ""מ1.5 סופיות מבודדת",,UNKNOWN,OTHER,,,,,,,7,3,no,2017-10-03,2024-11-28,no,not_core_family
+SKU:99220104,99220104,"(200) מ""מ2.5 סופיות מבודדת",,UNKNOWN,OTHER,,,,,,,3,2,no,2017-10-03,2024-11-28,no,not_core_family
+SKU:99220105,99220105,"(200) מ""מ4. סופיות מבודדת",,UNKNOWN,OTHER,,,,,,,3,2,no,2020-02-27,2025-01-28,no,not_core_family
+SKU:99220106,99220106,"(100) מ""מ2.5-נ.כ צינור מצופה ל901555",,UNKNOWN,OTHER,,,,,,,46,16,no,2018-11-27,2025-01-28,no,not_core_family
+SKU:99220107,99220107,"מ""מ חום1 סופיות מבודדת10 מארז",,UNKNOWN,OTHER,,,,חום,,,2,1,no,2020-03-29,2024-07-28,no,not_core_family
+SKU:99220108,99220108,"(100) מ""מ16 סופיות מבודדת",,UNKNOWN,OTHER,,,,,,,1,0,no,2019-06-27,2019-06-27,no,not_core_family
+SKU:99220111,99220111,"(' מ""מ)יח5 סופיות מבודדות",,UNKNOWN,OTHER,,,,,,,1,0,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:99220115,99220115,(100) 1.5 סופית מבודדת כפולה,,UNKNOWN,OTHER,,,,,,,3,3,no,2021-10-27,2023-09-28,no,not_core_family
+SKU:99220941,99220941,VAC פין שטוח8 ממסר,,UNKNOWN,OTHER,,,,,,,1,1,no,2018-11-27,2018-11-27,no,not_core_family
+SKU:99221070,99221070,(100) 1.5 סופית מבודדת כפולה99220115,,UNKNOWN,OTHER,,,,,,,12,12,no,2017-10-03,2020-09-24,no,not_core_family
+SKU:99221071,99221071,"ממ""ר2.5 מהדק כחול לפס",,UNKNOWN,OTHER,,,,כחול,,,1,1,no,2019-01-27,2019-01-27,no,not_core_family
+SKU:99221073,99221073,"ממ""ר4. מהדק לפס",,UNKNOWN,OTHER,,,,,,,1,1,no,2019-01-27,2019-01-27,no,not_core_family
+SKU:99221074,99221074,"ממ""ר4. מהדק כחול לפס",,UNKNOWN,OTHER,,,,כחול,,,1,1,no,2019-01-27,2019-01-27,no,not_core_family
+SKU:99221082,99221082,"ממ""ר4. מהדק צ/י להארקה",,UNKNOWN,OTHER,,,,צ/י,,,1,1,no,2019-01-27,2019-01-27,no,not_core_family
+SKU:992210831,992210831,(100) 1.5 סופית מבודדת כפולה99220115 (חדש20) 16 צינור מופה אדום84000791,,UNKNOWN,OTHER,,,,אדום,,,3,3,no,2019-03-04,2019-09-24,no,not_core_family
+SKU:99221084,99221084,"ממ""ר6. מהדק לפס",,UNKNOWN,OTHER,,,,,,,1,1,no,2019-01-27,2019-01-27,no,not_core_family
+SKU:99221085,99221085,"ממ""ר6. מהדק כחול לפס",,UNKNOWN,OTHER,,,,כחול,,,1,1,no,2019-01-27,2019-01-27,no,not_core_family
+SKU:99221087,99221087,"ממ""ר1 מהדק לפס",,UNKNOWN,OTHER,,,,,,,2,2,no,2019-01-27,2019-10-25,no,not_core_family
+SKU:99221089,99221089,"ממ""ר6. מהדק צ/י להארקה",,UNKNOWN,OTHER,,,,צ/י,,,1,1,no,2019-01-27,2019-01-27,no,not_core_family
+SKU:992210891,992210891,"ממ""ר1 מהדק צ/י להארקה",,UNKNOWN,OTHER,,,,צ/י,,,1,1,no,2019-01-27,2019-01-27,no,not_core_family
+SKU:99221090,99221090,' מגול100x85 תעלת רשת7000001,,UNKNOWN,OTHER,,,,,,,4,4,no,2019-01-27,2019-03-04,no,not_core_family
+SKU:99221091,99221091,"ממ""ר16 מהדק לפס",,UNKNOWN,OTHER,,,,,,,1,1,no,2020-03-29,2020-03-29,no,not_core_family
+SKU:99221092,99221092,"ממ""ר16 מהדק כחול לפס",,UNKNOWN,OTHER,,,,כחול,,,1,1,no,2020-03-29,2020-03-29,no,not_core_family
+SKU:99221099,99221099,"ממ""ר95/12 מהדק לפס",,UNKNOWN,OTHER,,,,,,,1,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:99221122,99221122,(1.5-2.5)KE21 סימוניות נעיצה20,,UNKNOWN,OTHER,,,,,,,1,1,no,2024-03-31,2024-03-31,no,not_core_family
+SKU:99221132,99221132,(0.5-1.0)KE1 סימוניות נעיצה20,,UNKNOWN,OTHER,,,,,,,3,3,no,2024-07-28,2024-10-31,no,not_core_family
+SKU:99221133,99221133,(0.5-1.0)KE11 סימוניות נעיצה20,,UNKNOWN,OTHER,,,,,,,2,2,no,2024-07-28,2024-10-31,no,not_core_family
+SKU:99221134,99221134,(0.5-1.0)KE12 סימוניות נעיצה20,,UNKNOWN,OTHER,,,,,,,1,1,no,2024-07-28,2024-07-28,no,not_core_family
+SKU:99221138,99221138,(0.5-1.0)KE16 סימוניות נעיצה20,,UNKNOWN,OTHER,,,,,,,1,1,no,2024-07-28,2024-07-28,no,not_core_family
+SKU:99221141,99221141,(0.5-1.5)KE19 סימוניות נעיצה20,,UNKNOWN,OTHER,,,,,,,1,1,no,2024-07-28,2024-07-28,no,not_core_family
+SKU:99221142,99221142,(4-6) 1 KE3 סימוניות בנעיצה20,,UNKNOWN,OTHER,,,,,,,4,4,no,2024-03-31,2024-10-31,no,not_core_family
+SKU:992211421,992211421,(4-6) 2 KE3 סימוניות בנעיצה20,,UNKNOWN,OTHER,,,,,,,3,3,no,2024-07-28,2024-10-31,no,not_core_family
+SKU:992211422,992211422,(4-6) 3 KE3 סימוניות בנעיצה20,,UNKNOWN,OTHER,,,,,,,3,3,no,2024-07-28,2024-10-31,no,not_core_family
+SKU:992211423,992211423,(4-6) 4 KE3 סימוניות בנעיצה20,,UNKNOWN,OTHER,,,,,,,1,1,no,2024-07-28,2024-07-28,no,not_core_family
+SKU:992211424,992211424,(4-6) KE3 סימוניות בנעיצה20,,UNKNOWN,OTHER,,,,,,,3,3,no,2024-07-28,2024-10-31,no,not_core_family
+SKU:9922114241,9922114241,(4-6) 5 KE3 סימוניות בנעיצה20,,UNKNOWN,OTHER,,,,,,,1,1,no,2024-07-28,2024-07-28,no,not_core_family
+SKU:992211425,992211425,(4-6) 6 KE3 סימוניות בנעיצה20,,UNKNOWN,OTHER,,,,,,,1,1,no,2024-07-28,2024-07-28,no,not_core_family
+SKU:992211426,992211426,(4-6) 7 KE3 סימוניות בנעיצה20,,UNKNOWN,OTHER,,,,,,,1,1,no,2024-07-28,2024-07-28,no,not_core_family
+SKU:992211427,992211427,(4-6) 8 KE3 סימוניות בנעיצה20,,UNKNOWN,OTHER,,,,,,,1,1,no,2024-07-28,2024-07-28,no,not_core_family
+SKU:992211428,992211428,(4-6) 9 KE3 סימוניות בנעיצה20,,UNKNOWN,OTHER,,,,,,,1,1,no,2024-07-28,2024-07-28,no,not_core_family
+SKU:99223002,99223002,125A 2x7 פס צבירה מבודד99223001 D-.. זוג שקעי כח לבן לקופסא99761232,switchgear,OTHER,OTHER,,,,לבן,,,1,1,no,2021-02-28,2021-02-28,no,not_core_family
+SKU:99223005,99223005,125A 4x15 פס צבירה מבודד,,UNKNOWN,OTHER,,,,,,,1,1,no,2025-01-28,2025-01-28,no,not_core_family
+SKU:99291518,99291518,W ליבון עד+דימר אוניברסלי אלקט' לד,,UNKNOWN,OTHER,,,,,,,2,1,no,2019-07-28,2019-09-24,no,not_core_family
+SKU:992915190,992915190,LED 350W דימר נסתר עבור,lighting,OTHER,OTHER,,,,,,,2,2,no,2023-09-28,2023-11-05,no,not_core_family
+SKU:99291722,99291722,NO 230V מגען מיני,,UNKNOWN,OTHER,,,,,,,1,1,no,2022-04-27,2022-04-27,no,not_core_family
+SKU:99291724,99291724,NO+1NC 230V מגען מיני,,UNKNOWN,OTHER,,,,,,,2,2,no,2022-01-26,2024-02-28,no,not_core_family
+SKU:99311006,99311006,SEL-17 שעון אסטרונומי,,UNKNOWN,OTHER,,,,,,,1,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:99311034,99311034,לבן°18 גלאי תנועה לקיר,,UNKNOWN,OTHER,,,,לבן,,,2,2,no,2023-05-28,2023-11-28,no,not_core_family
+SKU:99311036,99311036,W 360° גלאי תנועה תקרתי,,UNKNOWN,OTHER,,,,,,,2,2,no,2019-06-27,2021-08-26,no,not_core_family
+SKU:99315044,99315044,IRWIN SDS-PLUS 7x50/11 מקדח לפטישון2400074,accessory,OTHER,OTHER,,,,,,,1,1,no,2020-08-27,2020-08-27,no,not_core_family
+SKU:99317042,99317042,6500K 18W 225x225 לד מרובעVEGA שקוע3850120,,UNKNOWN,OTHER,,,,,,,1,1,no,2019-03-29,2019-03-29,no,not_core_family
+SKU:99317045,99317045,"ס""מ(דו""צ30x68) ת.חרום אורנוס קניון",,UNKNOWN,OTHER,,,,,,,2,2,no,2021-11-25,2021-12-29,no,not_core_family
+SKU:99317046,99317046,"ס""מ(חד""צ30x68) ת.חרום אורנוס קניון",,UNKNOWN,OTHER,,,,,,,1,1,no,2021-11-25,2021-11-25,no,not_core_family
+SKU:993188781,993188781,IRWIN SDS-PLUS 7x50/11 מקדח לפטישון24000743x1.5 מטר5 כבל מאריך904004,cable,UNKNOWN,OTHER,,7,50,,,,1,1,no,2020-08-27,2020-08-27,no,not_core_family
+SKU:993189191,993189191,"ס""מ6 WW 18-20W גלשן",,UNKNOWN,OTHER,,,,,,,1,1,no,2019-06-27,2019-06-27,no,not_core_family
+SKU:993189675,993189675,פלפון חלום קוטר,,UNKNOWN,OTHER,,,,,,,1,1,no,2020-07-26,2020-07-26,no,not_core_family
+SKU:993191225,993191225,W LED 4000k פלפון דלוקס לבן,lighting,OTHER,OTHER,,,,לבן,,,1,1,no,2020-06-28,2020-06-28,no,not_core_family
+SKU:993191226,993191226,W LED 4000K פלפון דלוקס לבן,lighting,OTHER,OTHER,,,,לבן,,,1,1,no,2020-06-28,2020-06-28,no,not_core_family
+SKU:993191659,993191659,K מוגן מים לבןLED 2x3W 8105 אגם קיר,lighting,OTHER,OTHER,,,,לבן,,,2,1,no,2020-07-26,2020-07-26,no,not_core_family
+SKU:993200259,993200259,מדבקת כיתוב לגוף תאורה 993200259 לכתובת בית,,UNKNOWN,OTHER,,,,,,,7,7,no,2020-12-30,2023-11-28,no,not_core_family
+SKU:9932002591,9932002591,"הרא""ה",,UNKNOWN,OTHER,,,,,,,5,0,no,2021-08-26,2025-07-27,no,not_core_family
+SKU:9932002592,9932002592,' א' ב46,,UNKNOWN,OTHER,,,,,,,4,1,no,2021-08-26,2025-07-27,no,not_core_family
+SKU:99322761,99322761,LED 2x3W מישל קטן,lighting,OTHER,OTHER,,,,,,,1,1,no,2019-06-27,2019-06-27,no,not_core_family
+SKU:9932652434,9932652434,שחור אור חםLED 21W 1712 אגם,lighting,OTHER,OTHER,,,,שחור,,,2,2,no,2021-10-27,2022-01-26,no,not_core_family
+SKU:993265402,993265402,' יח1.03500k עץ106W LED 80.פלפון מגיק ק,lighting,OTHER,OTHER,,,,,,,1,0,no,2020-07-26,2020-07-26,no,not_core_family
+SKU:9932657447,9932657447,K עגול שחורLED 30W 288 הייטק צמוד,lighting,OTHER,OTHER,,,,שחור,,,1,1,no,2021-12-29,2021-12-29,no,not_core_family
+SKU:9932657451,9932657451,K מוגן מים לבןLED 4x3W 8105 אגם קיר,lighting,OTHER,OTHER,,,,לבן,,,1,1,no,2020-07-26,2020-07-26,no,not_core_family
+SKU:9932658708,9932658708,CCT שחור2 קוטר18W פלפון אפולו,,UNKNOWN,OTHER,,,,שחור,,,4,4,no,2024-07-28,2024-08-29,no,not_core_family
+SKU:9932658712,9932658712,CCT שחור4 קוטר32W פלפון אפולו,,UNKNOWN,OTHER,,,,שחור,,,1,1,no,2023-09-28,2023-09-28,no,not_core_family
+SKU:9932659190,9932659190,' יח1.0 LED (25755) זהב+ לבן6 פלפון אימפקט קוטר,lighting,OTHER,OTHER,,,,לבן,,,1,0,no,2024-11-28,2024-11-28,no,not_core_family
+SKU:994200013,994200013,(תקע)מארז+' מ1 כבל גירלנדה יצוק,cable,UNKNOWN,OTHER,,,,,,,1,1,no,2020-11-26,2020-11-26,no,not_core_family
+SKU:994500221,994500221,"ממ חום12. 1/2"" שרוול מתכווץ",,UNKNOWN,OTHER,,,,חום,,,1,1,no,2021-04-27,2021-04-27,no,not_core_family
+SKU:994500261,994500261,"ממ חום20. 3/4"" שרוול מתכווץ",,UNKNOWN,OTHER,,,,חום,,,1,1,no,2021-04-27,2021-04-27,no,not_core_family
+SKU:99450028,99450028,"ממ שחור24. 1"" שרוול מתכווץ בגליל",,UNKNOWN,OTHER,,,,שחור,,,1,1,no,2021-11-25,2021-11-25,no,not_core_family
+SKU:994500281,994500281,"ממ חום24. 1"" שרוול מתכווץ",,UNKNOWN,OTHER,,,,חום,,,1,1,no,2021-04-27,2021-04-27,no,not_core_family
+SKU:994500300,994500300,"ממ כחול321-1/4"" שרוול מתכווץ",,UNKNOWN,OTHER,,,,כחול,,,2,2,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:994500320,994500320,"ממ כחול381-1/2"" שרוול מתכווץ",,UNKNOWN,OTHER,,,,כחול,,,2,2,no,2017-10-03,2021-11-25,no,not_core_family
+SKU:994500341,994500341,"ממ חום50. 2"" שרוול מתכווץ",,UNKNOWN,OTHER,,,,חום,,,1,1,no,2021-04-27,2021-04-27,no,not_core_family
+SKU:99459013,99459013,VEGAxxL כפפות עבודה מיקרופייבר,,UNKNOWN,OTHER,,,,,,,1,1,no,2022-04-27,2022-04-27,no,not_core_family
+SKU:99470001,99470001,(חמם ללא תרמוסטט)גוף חימום מאושר מכון התקנים,,UNKNOWN,OTHER,,,,,,,1,1,no,2022-11-27,2022-11-27,no,not_core_family
+SKU:99470016,99470016,"(ק""ג1) גבס",,UNKNOWN,OTHER,,,,,,,6,0,no,2018-12-31,2020-03-29,no,not_core_family
+SKU:99470022,99470022,דגם אמבטיה5.5KW אטמור,,UNKNOWN,OTHER,,,,,,,2,2,no,2022-11-27,2023-02-28,no,not_core_family
+SKU:994806819,994806819,ליתיום3.7V לדים18 ת.חרום ניידת,,UNKNOWN,OTHER,,,,,,,5,5,no,2021-03-25,2023-04-27,no,not_core_family
+SKU:994898986,994898986,AE ליטר4 נוזל לניקוי שמשות,,UNKNOWN,OTHER,,,,,,,1,1,no,2021-04-27,2021-04-27,no,not_core_family
+SKU:99510260,99510260,לבן/שחור12x7 סרט דיימו פוליאסטר,,UNKNOWN,OTHER,,,,שחור,,,3,2,no,2017-10-03,2018-11-27,no,not_core_family
+SKU:99510365,99510365,TZE13112MM סרט כיתוב שחור על שקוף,,UNKNOWN,OTHER,,,,שחור,,,1,1,no,2018-11-27,2018-11-27,no,not_core_family
+SKU:99520120,99520120,400ml כסוף- ספריי גילוון קר,,UNKNOWN,OTHER,,,,,,,6,5,no,2020-11-26,2024-05-29,no,not_core_family
+SKU:99521001,99521001,"' חב1.0 (' מ700) מ""מ2 חוט משיכה/קשירה",wire,COPPER,COPPER_WIRE,,,2,משיכה/קשירה,,,34,6,no,2019-09-24,2024-11-28,yes,
+SKU:99521002,99521002,"' חב1.0 (' מ700) מ""מ4 חוט משיכה/קשירה",wire,COPPER,COPPER_WIRE,,,4,משיכה/קשירה,,,8,0,no,2019-01-27,2024-09-30,no,no_usable_prices
+SKU:99521003,99521003,"' חב1.0 (' מ500) מ""מ6 חוט משיכה/קשירה",wire,COPPER,COPPER_WIRE,,,6,משיכה/קשירה,,,1,0,no,2021-04-27,2021-04-27,no,no_usable_prices
+SKU:99531290,99531290,ידית פיבר לטפסן+פטיש,,UNKNOWN,OTHER,,,,,,,4,2,no,2020-10-22,2021-06-30,no,not_core_family
+SKU:99531444,99531444,אקדח מרק דגם אנגלי,accessory,OTHER,OTHER,,,,,,,1,1,no,2022-05-29,2022-05-29,no,not_core_family
+SKU:9954073,9954073,AH 12V מצבר,,UNKNOWN,OTHER,,,,,,,1,1,no,2024-10-31,2024-10-31,no,not_core_family
+SKU:99540743,99540743,AH-9AH 12V מצבר,,UNKNOWN,OTHER,,,,,,,3,3,no,2019-10-25,2023-10-29,no,not_core_family
+SKU:995450563,995450563,SM-3129 נטען קוברה10W פנס הצפה נייד לד,,UNKNOWN,OTHER,,,,,,,3,3,no,2020-02-27,2021-03-25,no,not_core_family
+SKU:995459910,995459910,K גוון50W פנס הצפה סולארי,,UNKNOWN,OTHER,,,,,,,1,1,no,2021-04-27,2021-04-27,no,not_core_family
+SKU:9954645,9954645,DL 2x22W VEGA LEDMETICO TUBE ג.ת הרמטי3830705,lighting,OTHER,OTHER,,,,,,,2,1,no,2019-03-29,2019-03-29,no,not_core_family
+SKU:9956500153,9956500153,"עם סוגרים נירוסטה16"" ארגז כלים",,UNKNOWN,OTHER,,,,,,,1,1,no,2021-05-27,2021-05-27,no,not_core_family
+SKU:99565002,99565002,FE18 E9 NHxH 12x1.5 כבל106141000V 1160I WERA טסטר+ מברגים מבודד5 סט9956615041,cable,UNKNOWN,OTHER,,,,,,WERA,35,35,no,2019-11-27,2025-03-27,no,not_core_family
+SKU:99565021,99565021,"לגבס ידית פלסטיק רחב מקצועי6"" מסור",,UNKNOWN,OTHER,,,,,,,4,4,no,2020-11-26,2023-08-29,no,not_core_family
+SKU:995650275,995650275,VEGA 4-32 מקדח מדורג לאימפקט,accessory,OTHER,OTHER,,,,,,,7,7,no,2019-09-24,2024-02-28,no,not_core_family
+SKU:995650276,995650276,12/20/32 סט מקדחים מדורג טיטניום,accessory,OTHER,OTHER,,,,,,,5,5,no,2020-02-27,2024-03-31,no,not_core_family
+SKU:995650277,995650277,VEGA 6-3 מקדח מדורג לאימפקט,accessory,OTHER,OTHER,,,,,,,6,6,no,2019-07-28,2025-02-26,no,not_core_family
+SKU:995650305,995650305,תיק צד נפתח לכלי עבודה,,UNKNOWN,OTHER,,,,,,,1,1,no,2021-07-28,2021-07-28,no,not_core_family
+SKU:99565034,99565034,VEGA להבים5 סכין יפני רחב מתכת צ.גומי99565110,,UNKNOWN,OTHER,,,,,,,3,3,no,2020-06-28,2024-10-31,no,not_core_family
+SKU:995650350,995650350,()צד רךIRWIN תיק כלי עבודה מקצועי גדול,,UNKNOWN,OTHER,,,,,,,1,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:9956503506,9956503506,"IRWIN חלקים מ""מ19 תיק גב מקצועי",,UNKNOWN,OTHER,,,,,,,2,0,no,2020-01-28,2020-06-28,no,not_core_family
+SKU:9956503535,9956503535,/16 אירגונית פלסטיק,,UNKNOWN,OTHER,,,,,,,1,1,no,2020-09-24,2020-09-24,no,not_core_family
+SKU:99565037,99565037,!!! בלדח דקור' קומפלט תקני1050020,,UNKNOWN,OTHER,,,,,,,69,0,yes,2019-07-28,2025-01-28,no,not_core_family
+SKU:995650372,995650372,IRWIN עקום ישר103 מספרי פח,,UNKNOWN,OTHER,,,,,,,2,2,no,2022-12-29,2024-10-31,no,not_core_family
+SKU:995650432,995650432,"VEGA ס""מ4 פלס מגנטי",,UNKNOWN,OTHER,,,,,,,7,7,no,2018-11-27,2025-01-28,no,not_core_family
+SKU:995650434,995650434,"VEGA ס""מ6 פלס מגנטי",,UNKNOWN,OTHER,,,,,,,1,1,no,2020-11-26,2020-11-26,no,not_core_family
+SKU:995650435,995650435,44.00% שח1.19 מטר500.00קשיח PVC חום2.5 חוט550325x1.5/2.5 מהדק חיבור מהיר99150592,wire,COPPER_PVC,COPPER_WIRE,,25,1.5,חום,,PVC,4,4,no,2020-08-27,2021-11-25,yes,
+SKU:995650442,995650442,"KAPRO 923 ס""מ25 פלס יצוק מקצועי",,UNKNOWN,OTHER,,,,,,,1,1,no,2020-10-22,2020-10-22,no,not_core_family
+SKU:995650443,995650443,"KAPRO 227 ס""מ23 פלס טורפדו",,UNKNOWN,OTHER,,,,,,,1,1,no,2023-02-28,2023-02-28,no,not_core_family
+SKU:995650470,995650470,CW 8W שקוע/צמוד חומה שחור ירושלים990861052,,UNKNOWN,OTHER,,,,שחור,,,2,1,no,2019-11-27,2025-02-26,no,not_core_family
+SKU:995650473,995650473,סיליקון שקוף,,UNKNOWN,OTHER,,,,,,,1,0,no,2022-10-27,2022-10-27,no,not_core_family
+SKU:995650476,995650476,5x1.5 N2XY (מטר כבל)בחבילה595104155.00% שח1.43 מטר100.0 תקני בחבילהRG-6 לבןTV כבל999110090,cable,COPPER,N2XY_COPPER_CABLE,N2XY,5,1.5,לבן,,,30,0,yes,2018-12-31,2025-02-26,no,sku_conflict
+SKU:9956505150,9956505150,להבים3+ VEGA סכין מקצועי,,UNKNOWN,OTHER,,,,,,,1,1,no,2021-04-27,2021-04-27,no,not_core_family
+SKU:995650531,995650531,ExL צהובOLFA סכין יפנית רחבה,,UNKNOWN,OTHER,,,,צהוב,,,1,1,no,2020-04-30,2020-04-30,no,not_core_family
+SKU:99565055,99565055,ZI-201 סטנדרטי מוגןZICO טסטר,,UNKNOWN,OTHER,,,,,,,1,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:99565065,99565065,מגן גומי+ מטר איכותי5 מטר,,UNKNOWN,OTHER,,,,,,,1,0,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:9956506965,9956506965,000MA בוסטר להתנעת רכב,,UNKNOWN,OTHER,,,,,,,1,1,no,2022-02-24,2022-02-24,no,not_core_family
+SKU:995650697,995650697,65x65x3 קופסת חבורים1780002,,UNKNOWN,OTHER,,,,,,,1,1,no,2021-03-25,2021-03-25,no,not_core_family
+SKU:995650699,995650699,"MAH בוסטר התנעה ומטען נייד 99565069910, 000",,UNKNOWN,OTHER,,,,,,,1,1,no,2024-02-28,2024-02-28,no,not_core_family
+SKU:99565074,99565074,קערה לגבס,,UNKNOWN,OTHER,,,,,,,1,0,no,2018-12-31,2018-12-31,no,not_core_family
+SKU:9956510601,9956510601,קסדת בטיחות תקנית בצבע כחול,,UNKNOWN,OTHER,,,,כחול,,,2,2,no,2023-04-27,2023-05-28,no,not_core_family
+SKU:995651061,995651061,תיקני3M כובע מגן,,UNKNOWN,OTHER,,,,,,,4,4,no,2022-04-27,2022-12-29,no,not_core_family
+SKU:99565110,99565110,VEGA להבים5 סכין יפני רחב מתכת צ.גומי,,UNKNOWN,OTHER,,,,,,,2,2,no,2021-01-26,2021-07-28,no,not_core_family
+SKU:99565123,99565123,VEGA מטר עם תפס מגנטי מקצועי5 מטר,,UNKNOWN,OTHER,,,,,,,5,2,no,2018-11-27,2024-03-31,no,not_core_family
+SKU:99565124,99565124,VEGA מטר עם תפס מגנטי מקצועי7.5 מטר,,UNKNOWN,OTHER,,,,,,,12,1,no,2021-12-29,2024-10-31,no,not_core_family
+SKU:995651250,995651250,IRWIN מטר מגנטי מקצועי8 מטר,,UNKNOWN,OTHER,,,,,,,1,0,no,2020-06-28,2020-06-28,no,not_core_family
+SKU:995651357,995651357,CA-38 / CC-38 חותך ומקלף כבלים,cable,UNKNOWN,OTHER,,,,,,,4,3,no,2017-10-03,2022-12-29,no,not_core_family
+SKU:9956513582,9956513582,CA-22 חותך ומקלף כבלים,cable,UNKNOWN,OTHER,,,,,,,13,13,no,2019-01-27,2023-06-29,no,not_core_family
+SKU:9956513583,9956513583,TTC CA-22S חותך ומקלף כבלים עם קפיץ,cable,UNKNOWN,OTHER,,,,,,TTC,4,3,no,2022-02-24,2026-02-28,no,not_core_family
+SKU:995651923,995651923,IRWIN ' יח7 סט אלן אולר מיקצועי,,UNKNOWN,OTHER,,,,,,,2,2,no,2018-11-27,2023-08-29,no,not_core_family
+SKU:99565202,99565202,נשמיות חד פעמיות,,UNKNOWN,OTHER,,,,,,,1,1,no,2021-07-28,2021-07-28,no,not_core_family
+SKU:995652075,995652075,IRWIN 7R פלייר פטנט,,UNKNOWN,OTHER,,,,,,,2,2,no,2019-06-27,2024-10-31,no,not_core_family
+SKU:99565212,99565212,(12) אדום-גיר סימון שמן,,UNKNOWN,OTHER,,,,אדום,,,17,17,no,2019-09-24,2024-08-29,no,not_core_family
+SKU:995652125,995652125,(10) אדום-גיר סימון שמן,,UNKNOWN,OTHER,,,,אדום,,,2,2,no,2024-11-28,2025-01-28,no,not_core_family
+SKU:99565213,99565213,(12) כחול-גיר סימון שמן,,UNKNOWN,OTHER,,,,כחול,,,22,21,no,2019-01-27,2024-10-31,no,not_core_family
+SKU:995652156,995652156,אבקה כחולה+ 6xIRWIN (אנך סימון)מתכת,,UNKNOWN,OTHER,,,,כחול,,,1,1,no,2019-06-27,2019-06-27,no,not_core_family
+SKU:995652159,995652159,"IRWIN מ""מ עם כיפת הקשה2 מפסלת",,UNKNOWN,OTHER,,,,,,,4,0,no,2020-06-28,2022-04-27,no,not_core_family
+SKU:995652166,995652166,CY-E017-C אקדח סיליקון מיקצועי,accessory,OTHER,OTHER,,,,,,,1,1,no,2021-06-30,2021-06-30,no,not_core_family
+SKU:99565256,99565256,4x4 בורג סיבית,,UNKNOWN,OTHER,,,,,,,9,7,no,2020-02-27,2022-02-24,no,not_core_family
+SKU:99565257,99565257,4x45 בורג סיבית,,UNKNOWN,OTHER,,,,,,,3,2,no,2019-10-25,2021-07-28,no,not_core_family
+SKU:99565264,99565264,4.5x4 בורג סיבית,,UNKNOWN,OTHER,,,,,,,3,2,no,2020-09-24,2022-08-25,no,not_core_family
+SKU:99565274,99565274,x4 בורג סיבית,,UNKNOWN,OTHER,,,,,,,1,1,no,2021-05-27,2021-05-27,no,not_core_family
+SKU:99565278,99565278,x7 בורג סיבית,,UNKNOWN,OTHER,,,,,,,1,1,no,2022-04-27,2022-04-27,no,not_core_family
+SKU:99565310,99565310,שחור שפיץ3.5x25 בורג גבס,,UNKNOWN,OTHER,,,,שחור,,,1,1,no,2022-11-27,2022-11-27,no,not_core_family
+SKU:99565332,99565332,"אטם+ 1"" בורג איסכורית קודח",,UNKNOWN,OTHER,,,,,,,2,2,no,2019-08-25,2019-09-24,no,not_core_family
+SKU:99565336,99565336,"/16"" 2 בורג הידוק אורך",,UNKNOWN,OTHER,,,,,,,2,2,no,2019-09-24,2020-06-28,no,not_core_family
+SKU:99565351,99565351,"VEGA ממ""ר0.5-6 לוחץ רצ'ט לנעלי כבל מבודדים מזלג/טבעת/נקבה",cable,UNKNOWN,OTHER,,,,מזלג/טבעת,,,2,0,yes,2020-06-28,2022-06-27,no,not_core_family
+SKU:99565355,99565355,43.00% שח1.59 מטר100.0 גמישNYAF צ/י2.5 חוט5955200,wire,COPPER,COPPER_WIRE,,,2.5,צ/י,,,4,0,yes,2020-11-26,2024-04-30,no,sku_conflict
+SKU:995653551,995653551,בקים6 לוחץ רצ'ט מיוחד,panel,OTHER,OTHER,,,,,,,4,4,no,2021-06-30,2024-03-31,no,not_core_family
+SKU:99565358,99565358,"VEGA ממ""ר1.25-16 לוחץ נעלי כבל גלויים",cable,UNKNOWN,OTHER,,,,,,,1,0,no,2021-12-29,2021-12-29,no,not_core_family
+SKU:99565359,99565359,"T-2 תקע כפול15240111 ממ""ר חור25 נ.כ נחושת4951327763",,UNKNOWN,OTHER,,,,,,,3,2,no,2019-11-27,2024-04-30,no,not_core_family
+SKU:99565360,99565360,"VEGA ממ""ר5-38 לוחץ נעלי כבל",cable,UNKNOWN,OTHER,,,,,,,2,1,no,2021-11-25,2023-02-28,no,not_core_family
+SKU:995653682,995653682,RG-59/6 לוחץ משולב,panel,OTHER,OTHER,,,,,,,1,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:99565370,99565370,"' יח-1.0 HAUPA מ""מ אל/נח גרמני32 חותך כבל רצ'ט עד",cable,UNKNOWN,OTHER,,,,אל/נח,,,2,0,no,2021-08-26,2021-08-26,no,not_core_family
+SKU:99565373,99565373,"VEGA מ""מ18 סכין יפני רחב99598019",,UNKNOWN,OTHER,,,,,,,8,5,no,2017-10-03,2024-09-30,no,not_core_family
+SKU:995653741,995653741,"ממ""ר8-28 Jokari מקלף כבל 995653741 ()המקורי",cable,UNKNOWN,OTHER,,,,,,,2,2,no,2023-06-29,2023-06-29,no,not_core_family
+SKU:995653749,995653749,"WEICON NO.S4-28 ממ""ר4-28 מקלף כבלים כולל להב תוכי",cable,UNKNOWN,OTHER,,,,,,,2,1,no,2020-01-28,2024-04-30,no,not_core_family
+SKU:995655504,995655504,נשמיה עם פילטר דגם,,UNKNOWN,OTHER,,,,,,,1,1,no,2020-02-27,2020-02-27,no,not_core_family
+SKU:9956555051,9956555051,צדדי חזק במיוחד-דבק דו,,UNKNOWN,OTHER,,,,,,,7,7,no,2019-08-25,2024-03-31,no,not_core_family
+SKU:99565556,99565556,"(מ""מ לחיתוך ברזל)עבה4.5x1/8 דיסק",,UNKNOWN,OTHER,,,,,,,3,0,no,2022-07-26,2022-08-25,no,not_core_family
+SKU:995655892,995655892,"(1/4"" 3/8"" 1/2"") יח'(מתאמים לאימפקט לבוקסות3) סט",,UNKNOWN,OTHER,,,,,,,1,1,no,2022-11-27,2022-11-27,no,not_core_family
+SKU:99565602,99565602,'כף בנאים מס,,UNKNOWN,OTHER,,,,,,,8,8,no,2017-10-03,2024-10-31,no,not_core_family
+SKU:99565615,99565615,B2 קצף פוליאורטן מעכב בערה,,UNKNOWN,OTHER,,,,,,,5,4,no,2019-06-27,2022-01-26,no,not_core_family
+SKU:99565630,99565630,/16 עוגן מתכת ראש אום,,UNKNOWN,OTHER,,,,,,,1,1,no,2024-08-29,2024-08-29,no,not_core_family
+SKU:99565636,99565636,/4 עוגן ג'מבו מתכת ראש בורג,,UNKNOWN,OTHER,,,,,,,1,1,no,2022-10-27,2022-10-27,no,not_core_family
+SKU:99565638,99565638,/16 עוגן ג'מבו מתכת ראש בורג,,UNKNOWN,OTHER,,,,,,,8,8,no,2017-10-03,2023-04-27,no,not_core_family
+SKU:99565640,99565640,/8 עוגן ג'מבו מתכת ראש בורג,,UNKNOWN,OTHER,,,,,,,2,2,no,2022-11-27,2024-09-30,no,not_core_family
+SKU:99565645,99565645,/4 עוגן וו סגור,,UNKNOWN,OTHER,,,,,,,2,2,no,2023-02-28,2023-04-27,no,not_core_family
+SKU:99565646,99565646,/16 עוגן וו פתוח,,UNKNOWN,OTHER,,,,,,,1,1,no,2023-02-28,2023-02-28,no,not_core_family
+SKU:99565647,99565647,/16 עוגן וו סגור,,UNKNOWN,OTHER,,,,,,,1,1,no,2021-08-26,2021-08-26,no,not_core_family
+SKU:99565653,99565653,/16 אום,,UNKNOWN,OTHER,,,,,,,2,0,no,2019-09-24,2020-06-28,no,not_core_family
+SKU:99565656,99565656,/4 שייבות,,UNKNOWN,OTHER,,,,,,,1,0,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:99565657,99565657,/16 שייבות,,UNKNOWN,OTHER,,,,,,,1,0,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:99565658,99565658,/16 שייבות,,UNKNOWN,OTHER,,,,,,,2,0,no,2019-09-24,2020-06-28,no,not_core_family
+SKU:995657431,995657431,/L כפפות שחורות לחשמלאים,,UNKNOWN,OTHER,,,,שחור,,,1,1,no,2018-11-27,2018-11-27,no,not_core_family
+SKU:995657432,995657432,/xL כפפות שחורות לחשמלאים,,UNKNOWN,OTHER,,,,שחור,,,9,9,no,2019-09-24,2022-08-25,no,not_core_family
+SKU:995657433,995657433,/xxL כפפות שחורות לחשמלאים,,UNKNOWN,OTHER,,,,שחור,,,4,4,no,2019-09-24,2021-06-30,no,not_core_family
+SKU:995657438,995657438,FE18 E9 NHxH 3x1.5 כבל10603 !!! בלדח דקור' קומפלט תקני1050020,cable,UNKNOWN,OTHER,,3,1.5,,,,2,2,no,2019-03-04,2019-03-04,no,not_core_family
+SKU:99565761,99565761,ספריי צבע לבן,,UNKNOWN,OTHER,,,,לבן,,,1,1,no,2020-03-29,2020-03-29,no,not_core_family
+SKU:99565764,99565764,(12) כחול-גיר סימון שמן99565213,,UNKNOWN,OTHER,,,,כחול,,,22,20,no,2019-09-24,2024-12-29,no,not_core_family
+SKU:99565765,99565765,ספריי צבע כסף,,UNKNOWN,OTHER,,,,,,,2,2,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:99565767,99565767,ספריי צבע צהוב,,UNKNOWN,OTHER,,,,צהוב,,,1,1,no,2019-09-24,2019-09-24,no,not_core_family
+SKU:9956596,9956596,משקפי מגן וירטואה שקוף/אפור,,UNKNOWN,OTHER,,,,אפור,,,1,1,no,2020-02-27,2020-02-27,no,not_core_family
+SKU:99565989,99565989,"VEGA ממ""ר4-16 בקים4/לוחץ רצ'ט לסופיות גלויות ריבוע",panel,OTHER,OTHER,,,,,,,1,0,no,2024-02-28,2024-02-28,no,not_core_family
+SKU:995659910,995659910,AD1123M שניות ג'ל3 זוג דבק,,UNKNOWN,OTHER,,,,,,,3,3,no,2018-12-31,2021-08-26,no,not_core_family
+SKU:9956599111,9956599111,"מ""ל נקי330453M דבק ג'יל שקוף",,UNKNOWN,OTHER,,,,,,,2,2,no,2018-12-31,2022-11-27,no,not_core_family
+SKU:99566003,99566003,"VDE 1000V מ""מ מבודד20 פלייר שפיץ",,UNKNOWN,OTHER,,,,,,,4,1,no,2022-02-24,2025-01-28,no,not_core_family
+SKU:99566004,99566004,VDE 1000V 18 פלייר מבודד,,UNKNOWN,OTHER,,,,,,,3,2,no,2020-10-22,2023-07-27,no,not_core_family
+SKU:99566007,99566007,VDE 1000V 20 פלייר שפיץ מכופף,,UNKNOWN,OTHER,,,,,,,1,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:995660430,995660430,VDE 1000V 5mm אלן מבודדT מפתח/ידית,,UNKNOWN,OTHER,,,,מפתח/ידית,,,1,1,no,2024-03-31,2024-03-31,no,not_core_family
+SKU:99566061,99566061,8x1.5/2.5 מהדק חיבור מהיר991505963x1.5 N2XY (מטר כבל)בחבילה5951021,cable,COPPER,N2XY_COPPER_CABLE,N2XY,8,1.5,,,,3,0,yes,2019-03-04,2020-12-30,no,sku_conflict
+SKU:9956615010,9956615010,WERA COMFORT 1000V 3.0x10 מברג,tool,OTHER,OTHER,,,,,,WERA,1,1,no,2020-12-30,2020-12-30,no,not_core_family
+SKU:9956615011,9956615011,IRWIN SDS-PLUS 22x400/46 מקדח לפטישון2400089,accessory,OTHER,OTHER,,,,,,,9,0,yes,2018-11-27,2022-06-27,no,not_core_family
+SKU:9956615018,9956615018,WERA קצה לייזר1000V 3x10 מברג,tool,OTHER,OTHER,,,,,,WERA,1,1,no,2019-10-25,2019-10-25,no,not_core_family
+SKU:9956615019,9956615019,1000V 4x10 מברג שטוח ' יח1.09956615019 WERA קצה לייזר,tool,OTHER,OTHER,,,,,,WERA,1,0,no,2025-11-27,2025-11-27,no,not_core_family
+SKU:9956615030,9956615030,WERA COMFORT 1000V 0x8 מברג פיליפס,tool,OTHER,OTHER,,,,,,WERA,1,1,no,2022-08-25,2022-08-25,no,not_core_family
+SKU:9956615041,9956615041,(מבצע מקומית)חולון,,UNKNOWN,OTHER,,,,,,,15,14,no,2020-09-24,2023-08-29,no,not_core_family
+SKU:9956615048,9956615048,WERA 1000V להב דק3.5x10 מברג שטוח מבודד,tool,OTHER,OTHER,,,,,,WERA,1,1,no,2024-04-30,2024-04-30,no,not_core_family
+SKU:9956615055,9956615055,WERA 1000V יח'(להב דק7) סט מברגים,tool,OTHER,OTHER,,,,,,WERA,1,1,no,2024-04-30,2024-04-30,no,not_core_family
+SKU:9956615223,9956615223,!!! בלדח דקור' קומפלט תקני1050020,,UNKNOWN,OTHER,,,,,,,1,1,no,2019-11-27,2019-11-27,no,not_core_family
+SKU:9956615244,9956615244,WERA 1000V פיליפס+ יח קצה לייזר שטוח7 סט מברגים,tool,OTHER,OTHER,,,,,,WERA,1,1,no,2022-11-27,2022-11-27,no,not_core_family
+SKU:9956615254,9956615254,WERA 2x25 (ביט פיליפס100) מארז,tool,OTHER,OTHER,,,,,,WERA,1,1,no,2020-11-26,2020-11-26,no,not_core_family
+SKU:9956615255,9956615255,WERA PH2x5 ביט פיליפס מגנטי קצה לייזר ' יח2.09956615255 ()ירוק/אדום,tool,OTHER,OTHER,,,,אדום,,WERA,2,0,no,2024-12-29,2026-07-26,no,not_core_family
+SKU:9956615256,9956615256,()ירוק/אדוםWERA PH2x9 ביט פיליפס מגנטי קצה לייזר,tool,OTHER,OTHER,,,,אדום,,WERA,4,2,no,2024-02-28,2025-12-31,no,not_core_family
+SKU:9956615257,9956615257,()ירוקWERA PH2x15 ביט פיליפס מגנטי קצה לייזר,tool,OTHER,OTHER,,,,ירוק,,WERA,1,1,no,2022-10-27,2022-10-27,no,not_core_family
+SKU:9956615277,9956615277,WERA ביט פיליפס מוזהב ' יח4.09956615277 PH1x25,tool,OTHER,OTHER,,,,,,WERA,1,0,no,2025-12-31,2025-12-31,no,not_core_family
+SKU:9956615280,9956615280,בוקסות+ ביטים+ חלקים ראצ'ט38 סט,tool,OTHER,OTHER,,,,,,,1,1,no,2019-11-27,2019-11-27,no,not_core_family
+SKU:9956615404,9956615404,"WERA 1000V מ""מ6x10 VDE מברג אלן מבודד",tool,OTHER,OTHER,,,,,,WERA,1,0,no,2024-03-31,2024-03-31,no,not_core_family
+SKU:9956615425,9956615425,סט מפתחות אלן מילימטרי כדורי צבעוני ארוך,,UNKNOWN,OTHER,,,,,,,1,0,no,2021-04-27,2021-04-27,no,not_core_family
+SKU:9956615429,9956615429,WERA יחידות9 סט מפתחות אלן מילימטרי שחור קצר,tool,OTHER,OTHER,,,,שחור,,WERA,2,0,no,2024-03-31,2024-03-31,no,not_core_family
+SKU:9956615511,9956615511,ביט פוזידרייב מגנטי לסיבית ' יח1.09956615511 ()שחורWERA PZ2x90,tool,OTHER,OTHER,,,,שחור,,WERA,1,0,no,2026-02-28,2026-02-28,no,not_core_family
+SKU:995781141,995781141,גרם ידית פיבר30 פטיש מכונאים,,UNKNOWN,OTHER,,,,,,,1,1,no,2024-05-29,2024-05-29,no,not_core_family
+SKU:99578468,99578468,M 17068 (2) מתלה בינוני,,UNKNOWN,OTHER,,,,,,,1,1,no,2019-08-25,2019-08-25,no,not_core_family
+SKU:99578702,99578702,שקוף7 סופר,,UNKNOWN,OTHER,,,,,,,1,0,no,2022-01-26,2022-01-26,no,not_core_family
+SKU:99585110,99585110,שלבים / חגית4 סולם עץ תקני,,UNKNOWN,OTHER,,,,,,,1,1,no,2019-10-25,2019-10-25,no,not_core_family
+SKU:99586018,99586018,"מ""מ סיגנט13 לבוקסהT ידית",,UNKNOWN,OTHER,,,,,,,1,1,no,2024-10-31,2024-10-31,no,not_core_family
+SKU:99586072,99586072,"סיגנטD3/8 יחידות24 מ""מ6-24 סט בוקסות",,UNKNOWN,OTHER,,,,,,,1,0,no,2023-02-28,2023-02-28,no,not_core_family
+SKU:99586085,99586085,"סיגנט8"" מפתח שוודי כרום",,UNKNOWN,OTHER,,,,,,,2,1,no,2022-08-25,2022-08-25,no,not_core_family
+SKU:99586176,99586176,אוזניות מגן מפני רעשים סיגנט,,UNKNOWN,OTHER,,,,,,,1,1,no,2022-07-26,2022-07-26,no,not_core_family
+SKU:99586223,99586223,"SIGNET מצבים6 ווסת+9"" לוחץ סופיות",panel,OTHER,OTHER,,,,,,,1,1,no,2021-09-26,2021-09-26,no,not_core_family
+SKU:99597004,99597004,(200) WD - 4 תרסיס,,UNKNOWN,OTHER,,,,,,,3,3,no,2022-12-29,2024-10-31,no,not_core_family
+SKU:99597006,99597006,(330) WD - 4 תרסיס,,UNKNOWN,OTHER,,,,,,,2,2,no,2019-01-27,2020-07-26,no,not_core_family
+SKU:995980191,995980191,"KDS L-18 להבים3 + מ""מ נעילה אוטומטית18 סכין יפני",,UNKNOWN,OTHER,,,,,,,1,1,no,2023-03-29,2023-03-29,no,not_core_family
+SKU:995980192,995980192,"KDS L-19 להבים3 + מ""מ עם גלגל עצר18 סכין יפני",,UNKNOWN,OTHER,,,,,,,3,0,no,2023-02-28,2024-10-31,no,not_core_family
+SKU:995980193,995980193,"KDS L-25 להב שחור+ מ""מ עם סנפיר18 סכין יפני",,UNKNOWN,OTHER,,,,שחור,,,1,0,no,2024-05-29,2024-05-29,no,not_core_family
+SKU:995980205,995980205,"KDS LB-10EVO (' יח10) מ""מ18 מארז להבים לסכין יפני",,UNKNOWN,OTHER,,,,,,,1,0,no,2024-06-27,2024-06-27,no,not_core_family
+SKU:99598042,99598042,שכבות3 נשמיה חד פעמית כירורגית,,UNKNOWN,OTHER,,,,,,,2,2,no,2020-06-28,2021-09-26,no,not_core_family
+SKU:9960110591,9960110591,LED זהב+ לבן4 פלפון אימפקט קוטר,lighting,OTHER,OTHER,,,,לבן,,,1,1,no,2024-11-28,2024-11-28,no,not_core_family
+SKU:99610611,99610611,KAPRO / GPT שלבים4 סולם עץ תקני,,UNKNOWN,OTHER,,,,,,,3,3,no,2020-03-29,2022-10-27,no,not_core_family
+SKU:99610612,99610612,KAPRO / GPT שלבים5 סולם עץ תקני,,UNKNOWN,OTHER,,,,,,,6,6,no,2020-03-29,2022-04-27,no,not_core_family
+SKU:99610615,99610615,KAPRO /GPT שלבים6 סולם עץ תקני,,UNKNOWN,OTHER,,,,,,,2,2,no,2020-03-29,2022-06-27,no,not_core_family
+SKU:99610621,99610621,KAPRO שלבים8 סולם עץ תקני,,UNKNOWN,OTHER,,,,,,,1,1,no,2022-02-24,2022-02-24,no,not_core_family
+SKU:996106750,996106750,4000K שקוע לבן35/35 פרופיל,,UNKNOWN,OTHER,,,,לבן,,,3,3,no,2021-10-27,2021-10-27,no,not_core_family
+SKU:996106759,996106759,4000K חיצוני לבן35/35 פרופיל,,UNKNOWN,OTHER,,,,לבן,,,5,5,no,2021-10-27,2021-10-27,no,not_core_family
+SKU:996106848,996106848,3000K שקוע לבן8 לגונה,,UNKNOWN,OTHER,,,,לבן,,,3,3,no,2020-06-28,2020-06-28,no,not_core_family
+SKU:996106849,996106849,4000K שקוע לבן8 לגונה,,UNKNOWN,OTHER,,,,לבן,,,3,3,no,2020-06-28,2020-06-28,no,not_core_family
+SKU:996107015,996107015,15W 3000K שקוע לבן8 לגונה,,UNKNOWN,OTHER,,,,לבן,,,2,2,no,2022-02-24,2022-02-24,no,not_core_family
+SKU:99630353,99630353,דיגיטלי2000W צלעות9 רדיאטור,,UNKNOWN,OTHER,,,,,,,1,1,no,2023-02-28,2023-02-28,no,not_core_family
+SKU:99634001,99634001,(סירים4) פלטת חימום ענק,,UNKNOWN,OTHER,,,,,,,1,1,no,2022-10-27,2022-10-27,no,not_core_family
+SKU:99634005,99634005,שנים/כ.לבן3 מפזר חום מולדת לבן לאמבטיה,,UNKNOWN,OTHER,,,,לבן,,,1,1,no,2025-01-28,2025-01-28,no,not_core_family
+SKU:99638213,99638213,"SP-252"" מתאם עד+זרוע דו מפרקית",,UNKNOWN,OTHER,,,,,,,1,1,no,2019-01-27,2019-01-27,no,not_core_family
+SKU:99638232,99638232,""" זרוע דו מפרקית עד",,UNKNOWN,OTHER,,,,,,,1,1,no,2019-01-27,2019-01-27,no,not_core_family
+SKU:99641117,99641117,אש-(לא מאושר מכבי9V גלאי עשן עצמאי)רק,,UNKNOWN,OTHER,,,,,,,3,3,no,2022-09-28,2023-11-05,no,not_core_family
+SKU:99688760,99688760,ניתוק אוט' ללא שקע+SM-2/B2 מזגנית,switchgear,OTHER,OTHER,,,,,,,1,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:99688762,99688762,שקע+ 'ניתוק אוט+SM-2/U2 מזגנית,switchgear,OTHER,OTHER,,,,,,,1,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:99700002,99700002,קומקום חשמלי לבן/קרם דגם מפואר,,UNKNOWN,OTHER,,,,לבן,,,1,1,no,2023-02-28,2023-02-28,no,not_core_family
+SKU:99700051,99700051,כירת בישול קרמית יחיד,,UNKNOWN,OTHER,,,,,,,1,1,no,2019-09-24,2019-09-24,no,not_core_family
+SKU:997217091,997217091,MFT) פונקציות7 או5 רב תחומי230V טיימר,,UNKNOWN,OTHER,,,,,,,2,2,no,2021-09-26,2021-10-27,no,not_core_family
+SKU:997217092,997217092,פונקציות5 רב תחומיMFT-24V טיימר,,UNKNOWN,OTHER,,,,,,,2,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:99721814,99721814,RPGNP1 אוGNP13P ממסר גנרטור,,UNKNOWN,OTHER,,,,,,,2,2,no,2019-01-27,2019-11-27,no,not_core_family
+SKU:99723502,99723502,מפסק+ מנעול חשמלי צר,switchgear,OTHER,OTHER,,,,,,,2,2,no,2020-12-30,2022-12-29,no,not_core_family
+SKU:997238071,997238071,"מ""מ למברגת אימפקט12 ביט בוקסה מגנטי",tool,OTHER,OTHER,,,,,,,1,1,no,2020-12-30,2020-12-30,no,not_core_family
+SKU:997238074,997238074,"מ""מ למברגת אימפקט13 ביט בוקסה מגנטי",tool,OTHER,OTHER,,,,,,,1,1,no,2020-12-30,2020-12-30,no,not_core_family
+SKU:997238155,997238155,(מהדקים12)שורה של1 'מהדק פחית מס,,UNKNOWN,OTHER,,,,,,,2,2,no,2018-11-27,2018-11-27,no,not_core_family
+SKU:997238165,997238165,(מהדקים12)שורה של2 'מהדק פחית מס,,UNKNOWN,OTHER,,,,,,,1,1,no,2018-11-27,2018-11-27,no,not_core_family
+SKU:997600200,997600200,חלק אפור שקוףBBI-3-13 'קופ,,UNKNOWN,OTHER,,,,אפור,,,9,9,no,2019-09-24,2023-02-28,no,not_core_family
+SKU:99760021,99760021,חלק אפור שקוףBBI-3-15 'קופ,,UNKNOWN,OTHER,,,,אפור,,,1,1,no,2019-07-28,2019-07-28,no,not_core_family
+SKU:997600221,997600221,3x2.5 N2XY (מטר כבל)בחבילה595106141.00% שח79.34 מטר16.0 סקטור4x24 NA2xY כבל5954091,cable,COPPER,N2XY_COPPER_CABLE,N2XY,3,2.5,,,,10,10,no,2019-09-24,2024-02-28,yes,
+SKU:99760023,99760023,3x1.5 N2XY (מטר כבל)בחבילה5951021,cable,COPPER,N2XY_COPPER_CABLE,N2XY,3,1.5,,,,4,4,no,2019-11-27,2022-06-27,yes,
+SKU:99760025,99760025,חלק אפור שקוףBBI-4-15 קופסא,,UNKNOWN,OTHER,,,,אפור,,,1,0,no,2022-01-26,2022-01-26,no,not_core_family
+SKU:99760026,99760026,חלק אפור שקוףBBI-4-13 'קופ,,UNKNOWN,OTHER,,,,אפור,,,2,2,no,2017-10-03,2023-08-29,no,not_core_family
+SKU:99760027,99760027,חלק אפור אטוםBDI-4-15 קופסא,,UNKNOWN,OTHER,,,,אפור,,,3,3,no,2021-11-25,2024-04-30,no,not_core_family
+SKU:99761002,99761002,בורג+ יח'(אוזני תליה ממתכת4) סט,,UNKNOWN,OTHER,,,,,,,3,2,no,2017-10-03,2024-12-29,no,not_core_family
+SKU:99761022,99761022,"מ""מ1.25 BBI-3פלטה מתכת ל",,UNKNOWN,OTHER,,,,,,,1,0,no,2022-06-27,2022-06-27,no,not_core_family
+SKU:99761026,99761026,"מ""מ1.25 BBI-4פלטה מתכת ל",,UNKNOWN,OTHER,,,,,,,1,0,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:99761102,99761102,x80x5 פטמות+ אטומהD-8P קופסא,,UNKNOWN,OTHER,,,,,,,67,63,no,2018-08-30,2025-02-26,no,not_core_family
+SKU:99761104,99761104,100x100x5 פטמותD-1P קופסא,,UNKNOWN,OTHER,,,,,,,28,27,no,2017-10-03,2025-02-26,no,not_core_family
+SKU:99761106,99761106,EVIK ג'ל השחלה21048 SUPER NW-1 (שקע כח מוגן מים)חדש6950020681,switchgear,OTHER,OTHER,,,,,,SUPER,2,2,no,2020-08-27,2023-02-28,no,not_core_family
+SKU:99761109,99761109,50.00% שח3.32 מטר100.0 גמישNYAF חום6. חוט5955270,wire,COPPER,COPPER_WIRE,,,5955270,חום,,,7,0,yes,2019-01-27,2023-11-28,no,sku_conflict
+SKU:99761110,99761110,חלק80x80x5 אפור אטוםD-8,,UNKNOWN,OTHER,,,,אפור,,,10,10,no,2017-10-03,2024-11-28,no,not_core_family
+SKU:99761112,99761112,חלקה100x100x5 אפור אטוםD-1 קופסא,,UNKNOWN,OTHER,,,,אפור,,,2,2,no,2019-10-25,2024-10-31,no,not_core_family
+SKU:99761113,99761113,חלק190x150x10 אפור אטוםD-2 קופסא,,UNKNOWN,OTHER,,,,אפור,,,1,1,no,2018-11-27,2018-11-27,no,not_core_family
+SKU:997611131,997611131,x150x10 פטמות+ אטוםD-2P קופסא,,UNKNOWN,OTHER,,,,,,,1,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:99761114,99761114,חלק190x150x8 אפור אטוםD-2 קופסא,,UNKNOWN,OTHER,,,,אפור,,,3,3,no,2017-10-03,2019-09-24,no,not_core_family
+SKU:99761118,99761118,x114x7 אפור חלק אטוםD-24 קופסא,,UNKNOWN,OTHER,,,,אפור,,,2,2,no,2017-10-03,2019-10-25,no,not_core_family
+SKU:99761214,99761214,"מקום תה""ט4 D-14 קופסא",,UNKNOWN,OTHER,,,,,,,15,15,no,2020-07-26,2023-07-27,no,not_core_family
+SKU:99761215,99761215,SUPER N1-C מפסק חילוף69522050303-207125A 2x7 פס צבירה מבודד99223001,switchgear,OTHER,OTHER,,,,,,SUPER,2,2,no,2018-11-27,2021-02-28,no,not_core_family
+SKU:99761216,99761216,(12) אדום-גיר סימון שמן99565212 (חדש20) 16 צינור מופה צבעוני84000791,,UNKNOWN,OTHER,,,,אדום,,,41,0,yes,2017-10-03,2024-01-28,no,not_core_family
+SKU:997612160,997612160,מתאם+ שקע כח לבן4+ תהטD-17 'קופ,switchgear,OTHER,OTHER,,,,לבן,,,2,2,no,2018-11-27,2022-08-25,no,not_core_family
+SKU:99761217,99761217,"מקום עה""ט ריקה8 D-18 'קופ",,UNKNOWN,OTHER,,,,,,,1,1,no,2017-10-03,2017-10-03,no,not_core_family
+SKU:99761218,99761218,"מקום תה""ט ריקה8 D-18 'קופ",,UNKNOWN,OTHER,,,,,,,71,68,no,2017-10-03,2024-06-27,no,not_core_family
+SKU:99761220,99761220,מתאם+ שקע כח לבן6+ תהטD-18 'קופ,switchgear,OTHER,OTHER,,,,לבן,,,1,1,no,2018-11-27,2018-11-27,no,not_core_family
+SKU:997612215,997612215,"16A/250V P-1 שקע כח ירדן עה""ט835551",switchgear,OTHER,OTHER,,,,,,,12,10,no,2019-03-29,2025-01-28,no,not_core_family
+SKU:99761222,99761222,D-.. זוג שקעי כח לבן לקופסא99761232,switchgear,OTHER,OTHER,,,,לבן,,,2,2,no,2019-03-04,2019-03-04,no,not_core_family
+SKU:99761224,99761224,D-.. זוג שקעי כח לבן לקופסא99761232,switchgear,OTHER,OTHER,,,,לבן,,,47,45,no,2017-10-03,2024-10-31,no,not_core_family
+SKU:99761232,99761232,D-.. זוג שקעי כח לבן לקופסא,switchgear,OTHER,OTHER,,,,לבן,,,29,28,no,2017-10-03,2024-10-31,no,not_core_family
+SKU:99761301,99761301,"ח""א4 חלון ל+ D24 'קופ",,UNKNOWN,OTHER,,,,,,,8,8,no,2020-01-28,2025-02-26,no,not_core_family
+SKU:99761410,99761410,עגול כניסות+D-07'קופ,,UNKNOWN,OTHER,,,,,,,1,0,no,2019-06-27,2019-06-27,no,not_core_family
+SKU:99761414,99761414,"x150x8 ח""א8 חלון+D-2'קופ",,UNKNOWN,OTHER,,,,,,,4,4,no,2017-10-03,2025-02-26,no,not_core_family
+SKU:99761416,99761416,"A-T-36 לוח תקשורת תה""ט ללא בסיס99761557",panel,OTHER,OTHER,,,,,,,10,8,no,2019-01-27,2023-08-29,no,not_core_family
+SKU:99761418,99761418,x13 חצי אוטומט12-חלון ל+BDI-4 קופסא,,UNKNOWN,OTHER,,,,,,,1,1,no,2022-01-02,2022-01-02,no,not_core_family
+SKU:99761504,99761504,ח.א24- חלון ל+ BDI-4-13 קופסא,,UNKNOWN,OTHER,,,,,,,6,5,no,2019-01-27,2025-01-28,no,not_core_family
+SKU:997615041,997615041,ח.א36-חלון ל+D-4,,UNKNOWN,OTHER,,,,,,,2,1,no,2017-10-03,2023-11-28,no,not_core_family
+SKU:99761506,99761506,"דלת אטום+ ח""א24-לוח תה""ט ל",panel,OTHER,OTHER,,,,,,,3,2,no,2020-02-27,2020-06-28,no,not_core_family
+SKU:99761511,99761511,"דלת אטום+ ח""א18-לוח עה""ט ל",panel,OTHER,OTHER,,,,,,,1,1,no,2018-11-27,2018-11-27,no,not_core_family
+SKU:99761512,99761512,Anguila מטר2 סטלבנד שחור ניילון16005103,,UNKNOWN,OTHER,,,,שחור,,,13,13,no,2019-01-27,2023-10-29,no,not_core_family
+SKU:99761516,99761516,"דלת אטום+ ח""א36-לוח תה""ט ל",panel,OTHER,OTHER,,,,,,,3,0,yes,2019-03-29,2021-04-27,no,not_core_family
+SKU:99761521,99761521,"דלת לבן+ ח""א54-לוח עה""ט ל",panel,OTHER,OTHER,,,,לבן,,,1,1,no,2022-01-26,2022-01-26,no,not_core_family
+SKU:997615213,997615213,CW דגם צדפהLED מנורת לילה839092,lighting,OTHER,OTHER,,,,,,,4,0,yes,2020-03-29,2021-02-28,no,not_core_family
+SKU:99761528,99761528,6mm מפתח אלן מבודד995660431,,UNKNOWN,OTHER,,,,,,,14,12,no,2019-01-27,2024-12-29,no,not_core_family
+SKU:997615311,997615311,"דלת לבן+ ח""א72-לוח תה""ט ל",panel,OTHER,OTHER,,,,לבן,,,2,1,no,2025-03-27,2025-03-27,no,not_core_family
+SKU:99761534,99761534,"AT-24 לוח תקשורת תה""ט",panel,OTHER,OTHER,,,,,,,1,1,no,2021-04-27,2021-04-27,no,not_core_family
+SKU:99761538,99761538,"AT-36 לוח תקשורת תה""ט",panel,OTHER,OTHER,,,,,,,2,1,no,2021-04-27,2024-12-29,no,not_core_family
+SKU:99761546,99761546,"תה""טAA-12 בסיס בלבד ללוח",panel,OTHER,OTHER,,,,,,,1,1,no,2018-12-31,2018-12-31,no,not_core_family
+SKU:99761548,99761548,"לבן תה""טAA-24 בסיס בלבד ללוח",panel,OTHER,OTHER,,,,לבן,,,7,6,no,2017-10-03,2023-02-28,no,not_core_family
+SKU:997615481,997615481,"גב עץ+ 24 בסיס תה""ט ללוח תקשורת",panel,OTHER,OTHER,,,,,,,5,5,no,2017-10-03,2022-12-29,no,not_core_family
+SKU:997615482,997615482,"(100) מ""מ7 דיבל8400055",,UNKNOWN,OTHER,,,,,,,59,0,yes,2018-12-31,2024-12-29,no,not_core_family
+SKU:99761550,99761550,(חדש20) 16 יציאות8 קופ' שוודית8400010,,UNKNOWN,OTHER,,,,,,,33,0,yes,2017-10-03,2023-06-29,no,not_core_family
+SKU:997615501,997615501,שח1.7 מטר50.0 לבן25 צינור מריכף8600119,,UNKNOWN,OTHER,,,,לבן,,,52,50,no,2018-12-31,2024-12-29,no,not_core_family
+SKU:997615503,997615503,"תה""ט72 בסיס ללוח",panel,OTHER,OTHER,,,,,,,3,3,no,2023-02-28,2025-03-27,no,not_core_family
+SKU:99761551,99761551,לבןAA-36 דלת ללוח,panel,OTHER,OTHER,,,,לבן,,,2,1,no,2022-04-27,2022-06-27,no,not_core_family
+SKU:99761552,99761552,48-לוח ללא בסיס ל997615531,panel,OTHER,OTHER,,,,,,,18,18,no,2018-11-27,2024-10-31,no,not_core_family
+SKU:997615520,997615520,"מגנט+ תה""ט36-לוח ללא בסיס ל",panel,OTHER,OTHER,,,,,,,2,2,no,2024-01-28,2024-08-29,no,not_core_family
+SKU:997615521,997615521,לוח ללא בסיס ל,panel,OTHER,OTHER,,,,,,,2,2,no,2021-08-26,2022-04-27,no,not_core_family
+SKU:9976155210,9976155210,+ 54-לוח ללא בסיס ל ' יח1.0997615521 מגנט,panel,OTHER,OTHER,,,,,,,2,1,no,2024-04-30,2025-08-28,no,not_core_family
+SKU:99761553,99761553,לוח ללא בסיס ל,panel,OTHER,OTHER,,,,,,,3,3,no,2019-01-27,2020-06-28,no,not_core_family
+SKU:997615531,997615531,לוח ללא בסיס ל,panel,OTHER,OTHER,,,,,,,18,18,no,2018-12-31,2024-06-27,no,not_core_family
+SKU:9976155310,9976155310,גנט+ 48-לוח ללא בסיס ל,panel,OTHER,OTHER,,,,,,,6,5,no,2022-12-29,2025-05-29,no,not_core_family
+SKU:99761555,99761555,"A-T-24 לוח תקשורת תה""ט ללא בסיס",panel,OTHER,OTHER,,,,,,,10,10,no,2018-11-27,2024-10-31,no,not_core_family
+SKU:99761556,99761556,"A-T-12 לוח תקשורת תה""ט ללא בסיס",panel,OTHER,OTHER,,,,,,,1,1,no,2020-01-28,2020-01-28,no,not_core_family
+SKU:99761557,99761557,230V 0.6W נורית סימון לד אדום3910883 FE18 E9 NHxH 12x1.5 כבל10614,cable,UNKNOWN,OTHER,,12,1.5,אדום,,,30,0,yes,2018-12-31,2024-08-29,no,not_core_family
+SKU:997615570,997615570,"מגנט+ ללא בסיס36-לוח תקשורת תה""ט ל",panel,OTHER,OTHER,,,,,,,7,7,no,2022-12-29,2024-09-30,no,not_core_family
+SKU:99761559,99761559,"תה""ט54 בסיס בלבד ללוח",panel,OTHER,OTHER,,,,,,,3,3,no,2017-10-03,2019-01-27,no,not_core_family
+SKU:997615610,997615610,קומפלט25A ארון חשמל זמני,,UNKNOWN,OTHER,,,,,,,1,0,no,2019-09-24,2019-09-24,no,not_core_family
+SKU:99761700,99761700,(100) SAPISELCO 327.5 חבק לבן900259V סוללה דורסל3300007,,UNKNOWN,OTHER,,,,לבן,,,51,0,yes,2017-10-03,2024-10-31,no,not_core_family
+SKU:99762010,99762010,GEWISS ציוד+ 3316 קופסא,,UNKNOWN,OTHER,,,,,,GEWISS,7,6,no,2023-02-28,2024-08-29,no,not_core_family
+SKU:997620115,997620115,VEGA ציוד+ 516.21 'קופ,,UNKNOWN,OTHER,,,,,,,1,1,no,2020-03-29,2020-03-29,no,not_core_family
+SKU:99762013,99762013,GEWISS ציוד+ 516.2316 קופסא,,UNKNOWN,OTHER,,,,,,GEWISS,2,2,no,2023-02-28,2023-05-28,no,not_core_family
+SKU:997620135,997620135,VEGA ציוד+ 516.2316 קופסא,,UNKNOWN,OTHER,,,,,,,1,1,no,2024-07-28,2024-07-28,no,not_core_family
+SKU:997620235,997620235,GEWISS ציוד4x4 ממסר פחת+516.2316 קופסא,,UNKNOWN,OTHER,,,,,,GEWISS,4,4,no,2022-07-26,2023-03-29,no,not_core_family
+SKU:9976202353,9976202353,VEGA ציוד4x4 ממסר פחת+516.2316 קופסא,,UNKNOWN,OTHER,,,,,,,3,3,no,2020-01-28,2022-09-28,no,not_core_family
+SKU:99820510,99820510,כפול2 'מהדק חרסינה מס,,UNKNOWN,OTHER,,,,,,,2,1,no,2021-12-29,2022-01-26,no,not_core_family
+SKU:99820518,99820518,כפול3 'מהדק חרסינה מס,,UNKNOWN,OTHER,,,,,,,1,0,no,2022-06-27,2022-06-27,no,not_core_family
+SKU:99840524,99840524,דיגיטלי80A 3P מונה אלק' לפס,,UNKNOWN,OTHER,,,,,,,5,5,no,2019-07-28,2023-04-27,no,not_core_family
+SKU:99850038,99850038,"(מטר250) ""סרט צהוב ""זהירות חשמל",,UNKNOWN,OTHER,,,,צהוב,,,1,1,no,2021-08-26,2021-08-26,no,not_core_family
+SKU:99870003,99870003,מכסה פלסט' להארקה+בריכה,,UNKNOWN,OTHER,,,,,,,5,4,no,2017-10-03,2023-04-27,no,not_core_family
+SKU:99890308,99890308,LUNA 16A מפסק חילוף מואר,switchgear,OTHER,OTHER,,,,,,,1,1,no,2019-10-25,2019-10-25,no,not_core_family
+SKU:99890332,99890332,LUNA שקע כח איטלקי,switchgear,OTHER,OTHER,,,,,,,1,1,no,2019-10-25,2019-10-25,no,not_core_family
+SKU:99890364,99890364,LUNA מודול3 מתאם,,UNKNOWN,OTHER,,,,,,,1,1,no,2019-10-25,2019-10-25,no,not_core_family
+SKU:99890381,99890381,LUNA מודול מלבן לבן1 מסגרת,,UNKNOWN,OTHER,,,,לבן,,,1,1,no,2019-10-25,2019-10-25,no,not_core_family
+SKU:99890391,99890391,LUNA מודול מלבן לבן3 מסגרת,,UNKNOWN,OTHER,,,,לבן,,,2,2,no,2019-10-25,2024-08-29,no,not_core_family
+SKU:99890604,99890604,"' יח1.0110-230V AC כפולLED ג""ת אזהרה למטוסים",lighting,OTHER,OTHER,,,,,,,1,0,no,2020-12-30,2020-12-30,no,not_core_family
+SKU:99910004,99910004,"""מתנתק"" תקןLSA פס קרונה",,UNKNOWN,OTHER,,,,,,,33,33,no,2017-10-03,2025-01-28,no,not_core_family
+SKU:99910010,99910010,זוג10-אמבטיה ל,,UNKNOWN,OTHER,,,,,,,21,0,no,2017-10-03,2024-09-30,no,not_core_family
+SKU:99910012,99910012,5x16 לקירCEE שקע4610405,switchgear,OTHER,OTHER,,,,,,,13,0,no,2017-10-03,2023-08-29,no,not_core_family
+SKU:99910014,99910014,זוג30-אמבטיה ל,,UNKNOWN,OTHER,,,,,,,5,0,no,2020-11-26,2021-07-28,no,not_core_family
+SKU:99910016,99910016,זוג50-אמבטיה ל,,UNKNOWN,OTHER,,,,,,,5,0,no,2020-11-26,2024-09-30,no,not_core_family
+SKU:99910018,99910018,SUPER N N-4 קופסא695220104,,UNKNOWN,OTHER,,,,,,SUPER,10,10,no,2019-01-27,2024-07-28,no,not_core_family
+SKU:99910020,99910020,TTC CA-22 חותך ומקלף כבלים9956513582,cable,UNKNOWN,OTHER,,,,,,TTC,10,1,no,2019-01-27,2025-02-26,no,not_core_family
+SKU:99910024,99910024,KRONE מכשיר נועץ קרונה מקורי,,UNKNOWN,OTHER,,,,,,,1,1,no,2020-06-28,2020-06-28,no,not_core_family
+SKU:99911009,99911009,בתוף/מארזRG-6 לבןTV כבל,cable,UNKNOWN,OTHER,,,,לבן,,,46,46,no,2018-12-31,2024-12-29,no,not_core_family
+SKU:999110090,999110090,בחבילהRG-6 לבןTV כבל,cable,UNKNOWN,OTHER,,,,לבן,,,21,21,no,2017-10-03,2022-12-29,no,not_core_family
+SKU:999110091,999110091,תקני שחור בתוףRG-6 TV כבל,cable,UNKNOWN,OTHER,,,,שחור,,,3,2,no,2017-10-03,2024-10-31,no,not_core_family
+SKU:99911034,99911034,16x2x0.5 כבל רכזת,cable,UNKNOWN,OTHER,,16,2,,,,2,2,no,2020-10-22,2021-10-27,no,not_core_family
+SKU:9991105090,9991105090,בחבילה4x2x24 CAT5e כבל מחשב אפור,cable,UNKNOWN,OTHER,,4,2,אפור,,,2,0,yes,2023-03-29,2024-11-28,no,not_core_family
+SKU:99911051,99911051,305 קרטון של4x2x24 CAT5e כבל מחשב אפור,cable,UNKNOWN,OTHER,,4,2,אפור,,,1,1,no,2024-09-30,2024-09-30,no,not_core_family
+SKU:999110510,999110510,נחושת מסוכך בתוף/מארזFTP-CAT-6 כבל,cable,COPPER,OTHER_CABLE,FTP,,,בתוף/מארז,,,4,0,yes,2020-03-29,2024-11-28,no,not_core_family
+SKU:9991105100,9991105100,נחושת מסוכך בחבילהFTP-CAT-6 כבל,cable,COPPER,OTHER_CABLE,FTP,,,,,,9,9,no,2019-01-27,2024-03-31,no,not_core_family
+SKU:999110525,999110525,בחבילות 4x2x23 בודדCAT7 כבל מחשב אדום,cable,COPPER,OTHER_CABLE,CAT7,4,2,אדום,,,2,2,no,2024-02-28,2025-03-27,no,not_core_family
+SKU:999110556,999110556,10 ' חב4x2x23 CAT7 כבל מחשב אדום טלדור,cable,COPPER,OTHER_CABLE,CAT7,4,2,אדום,,,3,3,no,2024-05-29,2024-06-27,no,not_core_family
+SKU:99911066,99911066,(בתוף/מארז)מתח+RG59B/U קואקס,,UNKNOWN,OTHER,,,,בתוף/מארז,,,1,0,no,2019-08-25,2019-08-25,no,not_core_family
+SKU:9991115490,9991115490,CAT 6A SFTP ' מ2. מגשר אפור,,UNKNOWN,OTHER,FTP,,,אפור,,,2,1,no,2024-12-29,2025-02-26,no,not_core_family
+SKU:999111591,999111591,CAT 6A SFTP ' מ3. מגשר אפור,,UNKNOWN,OTHER,FTP,,,אפור,,,1,0,no,2024-12-29,2024-12-29,no,not_core_family
+SKU:999111631,999111631,' מ1 CAT 6A מגשר אפור,,UNKNOWN,OTHER,,,,אפור,,,1,1,no,2020-12-30,2020-12-30,no,not_core_family
+SKU:99911164,99911164,' מ20. מסוכךRG45 מגשר,,UNKNOWN,OTHER,,,,,,,1,1,no,2021-10-27,2021-10-27,no,not_core_family
+SKU:99911165,99911165,' מ30. מסוכךRG45 מגשר,,UNKNOWN,OTHER,,,,,,,1,1,no,2020-04-30,2020-04-30,no,not_core_family
+SKU:99913015,99913015,3x2.5 N2XY (מטר כבל)בחבילה5951061,cable,COPPER,N2XY_COPPER_CABLE,N2XY,3,2.5,,,,1,1,no,2020-08-27,2020-08-27,yes,
+SKU:99913059,99913059,Discovery DS-50 משאבה חשמלית ניידת,,UNKNOWN,OTHER,,,,,,,2,1,no,2022-06-27,2022-06-27,no,not_core_family
+SKU:999810035,999810035,"VEGA ס""מ4 פלס מגנטי995650432 T-2 תקע כפול1524011",,UNKNOWN,OTHER,,,,,,,1,1,no,2021-02-28,2021-02-28,no,not_core_family

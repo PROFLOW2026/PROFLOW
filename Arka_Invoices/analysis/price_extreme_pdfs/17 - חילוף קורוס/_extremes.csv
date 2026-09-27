@@ -1,0 +1,3 @@
+﻿year,invoice_number,invoice_date,sku,description,quantity,unit,net_unit_price,local_median,local_min,local_max,deviation_percent,peer_observation_count,comparison_window,reason_for_flag,pdf_filename
+2020,,28/01/20,3910051,מודול לבן1 מפסק מחליף-קורוס,12.00,unit,8.8095,5.90,5.90,5.90,49.3,21,same_year,Local high: 49.3% above nearby median; outside robust local range,2020-01-28__2020-02-10__ניר-סאייג__p4474400593.pdf
+2021,R34212510300,29/12/21,3910051,מודול לבן1 מפסק מחליף-קורוס,24.00,unit,8.96,5.90,5.90,7.16,51.9,20,same_year,Local high: 51.9% above nearby median; outside robust local range,2021-12-29__R34212510300__2021-12-30__קרן-ממויה__(מסמך ממוחשב) הדפסת חשבונית מרכזת - R34212510300.pdf

@@ -1,0 +1,11 @@
+﻿SOURCE INVOICE LINES CHECKED = 11830
+VALID OBSERVATIONS RESTORED = 0
+PRODUCTS REPAIRED = 0
+YEARS REPAIRED = 0
+2020 ╫ù╫ò╫ÿ 1.5 = FOUND
+2020 ╫ù╫ò╫ÿ 2.5 = FOUND
+2026 INVOICES FOUND = YES
+2026 PRODUCTS MATCHED = 20
+ROOT CAUSE = product_price_history price_outlier=YES + global cross-year MAD filter; fixed by staging PASS source + per-year MAD only
+REPORT UPDATED = YES
+CSV UPDATED = YES

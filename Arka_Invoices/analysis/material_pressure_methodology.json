@@ -1,0 +1,202 @@
+{
+  "generated_at": "2026-09-26T19:06:07.099260",
+  "engine_version": "V1",
+  "no_ai": true,
+  "no_ml": true,
+  "no_paid_data": true,
+  "score_formula": "pressure_score = 50 + 50 * weighted_mean(component_signals); components mapped from capped driver signals",
+  "direction_bands": {
+    "0-20": "STRONG_DOWN",
+    "21-40": "DOWN",
+    "41-59": "NEUTRAL",
+    "60-79": "UP",
+    "80-100": "STRONG_UP"
+  },
+  "horizon_weights": {
+    "1m": 0.2,
+    "3m": 0.5,
+    "6m": 0.3
+  },
+  "thresholds": {
+    "commodity_pct": [
+      [
+        -10.0,
+        -1.0
+      ],
+      [
+        -5.0,
+        -0.6
+      ],
+      [
+        -2.0,
+        -0.25
+      ],
+      [
+        0.0,
+        0.0
+      ],
+      [
+        2.0,
+        0.25
+      ],
+      [
+        5.0,
+        0.6
+      ],
+      [
+        10.0,
+        1.0
+      ]
+    ],
+    "fx_pct": [
+      [
+        -5.0,
+        -1.0
+      ],
+      [
+        -2.5,
+        -0.6
+      ],
+      [
+        -1.0,
+        -0.25
+      ],
+      [
+        0.0,
+        0.0
+      ],
+      [
+        1.0,
+        0.25
+      ],
+      [
+        2.5,
+        0.6
+      ],
+      [
+        5.0,
+        1.0
+      ]
+    ],
+    "cbs_index_pct": [
+      [
+        -3.0,
+        -1.0
+      ],
+      [
+        -1.5,
+        -0.6
+      ],
+      [
+        -0.5,
+        -0.25
+      ],
+      [
+        0.0,
+        0.0
+      ],
+      [
+        0.5,
+        0.25
+      ],
+      [
+        1.5,
+        0.6
+      ],
+      [
+        3.0,
+        1.0
+      ]
+    ],
+    "supplier_pct": [
+      [
+        -3.0,
+        -1.0
+      ],
+      [
+        -1.5,
+        -0.6
+      ],
+      [
+        -0.5,
+        -0.25
+      ],
+      [
+        0.0,
+        0.0
+      ],
+      [
+        0.5,
+        0.25
+      ],
+      [
+        1.5,
+        0.6
+      ],
+      [
+        3.0,
+        1.0
+      ]
+    ]
+  },
+  "trade_weights": {
+    "ELECTRICAL": {
+      "copper": 0.35,
+      "cbs": 0.25,
+      "fx": 0.1,
+      "aluminium": 0.1,
+      "energy": 0.05,
+      "supplier": 0.15
+    },
+    "PLUMBING": {
+      "cbs": 0.3,
+      "supplier": 0.3,
+      "polymer": 0.2,
+      "energy": 0.1,
+      "fx": 0.1
+    },
+    "STEEL_REBAR": {
+      "cbs": 0.35,
+      "scrap": 0.2,
+      "iron_ore": 0.15,
+      "steel": 0.1,
+      "fx": 0.1,
+      "energy": 0.1
+    }
+  },
+  "confidence_rules": {
+    "HIGH": ">=80% weight coverage",
+    "MEDIUM": "60-79%",
+    "LOW": "<60% or sparse local supplier history"
+  },
+  "renormalization": "Weights renormalized over available drivers only if >=60% original coverage; else LOW confidence",
+  "data_sources": {
+    "fred": {
+      "COPPER_USD": "PCOPPUSDM",
+      "ALUMINIUM_USD": "PALUMUSDM",
+      "USD_ILS": "CCUSMA02ILM618N",
+      "OIL_OR_ENERGY": "POILBREUSDM",
+      "IRON_ORE": "PIORECRUSDM",
+      "STEEL_SCRAP": "WPS101211",
+      "HRC_STEEL": "WPS101704",
+      "PVC_POLYMER_PROXY": "WPU063801"
+    },
+    "cbs": {
+      "CBS_CONDUCTORS": "201340",
+      "CBS_PLUMBING": "201380",
+      "CBS_PLASTIC_PIPES": "201400",
+      "CBS_REBAR": "201230"
+    },
+    "golan_pdfs": [
+      [
+        "2022-03-01",
+        "https://golanisrael.com/wp-content/uploads/2022/03/800-111-mehiron_dirati_idkun_merch_2022_02_mail.pdf"
+      ],
+      [
+        "2024-01-01",
+        "https://golanisrael.com/wp-content/uploads/2024/08/800-111-mehiron_dirati_38_biz.pdf"
+      ]
+    ],
+    "erco_supplier": "material_family_monthly_index.csv blend COPPER_WIRE + N2XY_COPPER_CABLE"
+  }
+}

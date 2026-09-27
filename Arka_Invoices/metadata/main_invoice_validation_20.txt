@@ -1,0 +1,187 @@
+﻿# Main Invoice Selection ΓÇö 20-Message Validation
+
+## 1. [newest]
+- **message_date:** 2026-09-03 14:01:37
+- **subject:** (╫₧╫í╫₧╫Ü ╫₧╫₧╫ò╫ù╫⌐╫æ) ╫ö╫ô╫ñ╫í╫¬ ╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫₧╫¿╫¢╫û╫¬ - 25342607483, ╫ù╫⌐. ╫₧╫¿╫¢╫û╫¬ ╫É╫ò╫Æ-26
+- **attachment_count:** 18
+- **selected_main_invoice:** ╫ö╫ô╫ñ╫í╫¬ ╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫₧╫¿╫¢╫û╫¬ - 25342607483_ ╫ù╫⌐.pdf
+- **selection_reason:** +100 filename contains '╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫₧╫¿╫¢╫û╫¬'; +80 filename contains '╫ù╫⌐╫æ╫ò╫á╫Ö╫¬'; +40 filename contains '╫ù╫⌐.'; +35 filename contains '╫₧╫¿╫¢╫û╫¬' (+2 more signals)
+- **other_attachments_ignored:** 44512612700.pdf; 44512612420.pdf; 44512613801.pdf; 44512612281.pdf; 44512613681.pdf; M5126050372.pdf; 44512613323.pdf; 44512613623.pdf; ... +9 more
+- **confidence:** HIGH
+
+## 2. [oldest]
+- **message_date:** 2017-10-03 10:10:45
+- **subject:** R3417309113 - ╫ö╫ô╫ñ╫í╫¬ ╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫₧╫¿╫¢╫û╫¬
+- **attachment_count:** 87
+- **selected_main_invoice:** R3417309113 - ╫ö╫ô╫ñ╫í╫¬ ╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫₧╫¿╫¢╫û╫¬.pdf
+- **selection_reason:** +100 filename contains '╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫₧╫¿╫¢╫û╫¬'; +80 filename contains '╫ù╫⌐╫æ╫ò╫á╫Ö╫¬'; +35 filename contains '╫₧╫¿╫¢╫û╫¬'; +20 subject/filename both mention ╫₧╫¿╫¢╫û╫¬ (+1 more signals)
+- **other_attachments_ignored:** r5117332398-1.pdf; r5117333214-1.pdf; r5117333428-1.pdf; r5117334220-1.pdf; r5117334784-1.pdf; r5117335498-1.pdf; r5117335757-1.pdf; r5117332400-1.pdf; ... +78 more
+- **confidence:** HIGH
+
+## 3. [middle-by-date]
+- **message_date:** 2021-11-28 12:14:08
+- **subject:** (╫₧╫í╫₧╫Ü ╫₧╫₧╫ò╫ù╫⌐╫æ) ╫ö╫ô╫ñ╫í╫¬ ╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫₧╫¿╫¢╫û╫¬ - R34212508991, ╫ù╫⌐. ╫₧╫¿╫¢╫û╫¬ ╫á╫ò╫æ-21
+- **attachment_count:** 36
+- **selected_main_invoice:** (╫₧╫í╫₧╫Ü ╫₧╫₧╫ò╫ù╫⌐╫æ) ╫ö╫ô╫ñ╫í╫¬ ╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫₧╫¿╫¢╫û╫¬ - R34212508991, ╫ù╫⌐. ╫₧╫¿╫¢╫û╫¬ ╫á╫ò╫æ.pdf
+- **selection_reason:** +100 filename contains '╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫₧╫¿╫¢╫û╫¬'; +80 filename contains '╫ù╫⌐╫æ╫ò╫á╫Ö╫¬'; +40 filename contains '╫ù╫⌐.'; +35 filename contains '╫₧╫¿╫¢╫û╫¬' (+2 more signals)
+- **other_attachments_ignored:** H51214415410.pdf; P51214015430.pdf; M5121080530.pdf; H51214415411.pdf; H51214414631.pdf; H51214415151.pdf; H51214414892.pdf; H51214414992.pdf; ... +27 more
+- **confidence:** HIGH
+
+## 4. [year-2018]
+- **message_date:** 2018-12-09 15:57:44
+- **subject:** ╫ö╫ô╫ñ╫í╫¬ ╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫₧╫¿╫¢╫û╫¬ - R3418312083
+- **attachment_count:** 1
+- **selected_main_invoice:** p3285200593.pdf
+- **selection_reason:** +5 larger PDF (possible central invoice)
+- **other_attachments_ignored:** (none)
+- **confidence:** MEDIUM
+
+## 5. [year-2019]
+- **message_date:** 2019-11-28 09:59:59
+- **subject:** ╫ö╫ô╫ñ╫í╫¬ ╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫₧╫¿╫¢╫û╫¬ - R3419311922
+- **attachment_count:** 8
+- **selected_main_invoice:** p3034801372.pdf
+- **selection_reason:** +5 larger PDF (possible central invoice)
+- **other_attachments_ignored:** R5119336146.pdf; R5119336147.pdf; R5119337423.pdf; R5119338682.pdf; R5119339212.pdf; R5119339818.pdf; R5119340162.pdf
+- **confidence:** MEDIUM
+
+## 6. [year-2020]
+- **message_date:** 2020-12-31 14:24:19
+- **subject:** (╫₧╫í╫₧╫Ü ╫₧╫₧╫ò╫ù╫⌐╫æ) ╫ö╫ô╫ñ╫í╫¬ ╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫₧╫¿╫¢╫û╫¬ - R3420309267
+- **attachment_count:** 12
+- **selected_main_invoice:** p5002802046.pdf
+- **selection_reason:** +5 larger PDF (possible central invoice)
+- **other_attachments_ignored:** M5120070743.pdf; P5120438673.pdf; H51204400008.pdf; H51204400183.pdf; H51204400184.pdf; H51204400259.pdf; H51204400609.pdf; M5120076342.pdf; ... +3 more
+- **confidence:** LOW
+
+## 7. [year-2021]
+- **message_date:** 2021-12-30 16:04:59
+- **subject:** (╫₧╫í╫₧╫Ü ╫₧╫₧╫ò╫ù╫⌐╫æ) ╫ö╫ô╫ñ╫í╫¬ ╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫₧╫¿╫¢╫û╫¬ - R34212510300
+- **attachment_count:** 14
+- **selected_main_invoice:** (╫₧╫í╫₧╫Ü ╫₧╫₧╫ò╫ù╫⌐╫æ) ╫ö╫ô╫ñ╫í╫¬ ╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫₧╫¿╫¢╫û╫¬ - R34212510300.pdf
+- **selection_reason:** +100 filename contains '╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫₧╫¿╫¢╫û╫¬'; +80 filename contains '╫ù╫⌐╫æ╫ò╫á╫Ö╫¬'; +35 filename contains '╫₧╫¿╫¢╫û╫¬'; +20 subject/filename both mention ╫₧╫¿╫¢╫û╫¬ (+1 more signals)
+- **other_attachments_ignored:** H51214416621.pdf; M5121091732.pdf; M5121094843.pdf; M5121089373.pdf; R51212523444N02.pdf; R51212523444_001.pdf; M5121089915.pdf; M5121094685.pdf; ... +5 more
+- **confidence:** HIGH
+
+## 8. [year-2022]
+- **message_date:** 2022-11-30 10:39:49
+- **subject:** (╫₧╫í╫₧╫Ü ╫₧╫₧╫ò╫ù╫⌐╫æ) ╫ö╫ô╫ñ╫í╫¬ ╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫₧╫¿╫¢╫û╫¬ - 25342209304
+- **attachment_count:** 1
+- **selected_main_invoice:** (╫₧╫í╫₧╫Ü ╫₧╫₧╫ò╫ù╫⌐╫æ) ╫ö╫ô╫ñ╫í╫¬ ╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫₧╫¿╫¢╫û╫¬ - 25342209304.pdf
+- **selection_reason:** +100 filename contains '╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫₧╫¿╫¢╫û╫¬'; +80 filename contains '╫ù╫⌐╫æ╫ò╫á╫Ö╫¬'; +35 filename contains '╫₧╫¿╫¢╫û╫¬'; +150 invoice number match: 25342209304 (+2 more signals)
+- **other_attachments_ignored:** (none)
+- **confidence:** HIGH
+
+## 9. [year-2023]
+- **message_date:** 2023-12-10 10:59:22
+- **subject:** (╫₧╫í╫₧╫Ü ╫₧╫₧╫ò╫ù╫⌐╫æ) ╫ö╫ô╫ñ╫í╫¬ ╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫₧╫¿╫¢╫û╫¬ - 25352300738, ╫æ╫Æ╫Ö╫ƒ ╫ù"╫ƒ:25342311158
+- **attachment_count:** 1
+- **selected_main_invoice:** (╫₧╫í╫₧╫Ü ╫₧╫₧╫ò╫ù╫⌐╫æ) ╫ö╫ô╫ñ╫í╫¬ ╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫₧╫¿╫¢╫û╫¬ - 25352300738, ╫æ╫Æ╫Ö╫ƒ ╫ù ╫ƒ 25342.pdf
+- **selection_reason:** +100 filename contains '╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫₧╫¿╫¢╫û╫¬'; +80 filename contains '╫ù╫⌐╫æ╫ò╫á╫Ö╫¬'; +35 filename contains '╫₧╫¿╫¢╫û╫¬'; +150 invoice number match: 25352300738 (+2 more signals)
+- **other_attachments_ignored:** (none)
+- **confidence:** HIGH
+
+## 10. [year-2024]
+- **message_date:** 2024-12-31 13:23:34
+- **subject:** (╫₧╫í╫₧╫Ü ╫₧╫₧╫ò╫ù╫⌐╫æ) ╫ö╫ô╫ñ╫í╫¬ ╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫₧╫¿╫¢╫û╫¬ - 25342411682
+- **attachment_count:** 16
+- **selected_main_invoice:** ╫ö╫ô╫ñ╫í╫¬ ╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫₧╫¿╫¢╫û╫¬ - 25342411682.pdf
+- **selection_reason:** +100 filename contains '╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫₧╫¿╫¢╫û╫¬'; +80 filename contains '╫ù╫⌐╫æ╫ò╫á╫Ö╫¬'; +35 filename contains '╫₧╫¿╫¢╫û╫¬'; +150 invoice number match: 25342411682 (+2 more signals)
+- **other_attachments_ignored:** SIG_25512418750_6576.pdf; 44512419160.pdf; 44512419160_001.pdf; 44512419590.pdf; 44512418131.pdf; 44512418322.pdf; 44512418832.pdf; 44512419152.pdf; ... +7 more
+- **confidence:** HIGH
+
+## 11. [year-2025]
+- **message_date:** 2025-12-03 16:43:29
+- **subject:** (╫₧╫í╫₧╫Ü ╫₧╫₧╫ò╫ù╫⌐╫æ) ╫ö╫ô╫ñ╫í╫¬ ╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫₧╫¿╫¢╫û╫¬ - 25342508770
+- **attachment_count:** 8
+- **selected_main_invoice:** ╫ö╫ô╫ñ╫í╫¬ ╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫₧╫¿╫¢╫û╫¬ - 25342508770.pdf
+- **selection_reason:** +100 filename contains '╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫₧╫¿╫¢╫û╫¬'; +80 filename contains '╫ù╫⌐╫æ╫ò╫á╫Ö╫¬'; +35 filename contains '╫₧╫¿╫¢╫û╫¬'; +150 invoice number match: 25342508770 (+2 more signals)
+- **other_attachments_ignored:** 44512518413.pdf; 44512518963.pdf; 44512517814.pdf; SIG_M5125073615_8871.pdf; SIG_M5125073615_8871.pdf; 44512518016.pdf; 44512518717.pdf
+- **confidence:** HIGH
+
+## 12. [attachments-2+]
+- **message_date:** 2026-07-06 12:26:14
+- **subject:** (╫₧╫í╫₧╫Ü ╫₧╫₧╫ò╫ù╫⌐╫æ) ╫ö╫ô╫ñ╫í╫¬ ╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫₧╫¿╫¢╫û╫¬ - 25342605225
+- **attachment_count:** 2
+- **selected_main_invoice:** ╫ö╫ô╫ñ╫í╫¬ ╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫₧╫¿╫¢╫û╫¬ - 25342605225.pdf
+- **selection_reason:** +100 filename contains '╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫₧╫¿╫¢╫û╫¬'; +80 filename contains '╫ù╫⌐╫æ╫ò╫á╫Ö╫¬'; +35 filename contains '╫₧╫¿╫¢╫û╫¬'; +150 invoice number match: 25342605225 (+2 more signals)
+- **other_attachments_ignored:** 44512609899.pdf
+- **confidence:** HIGH
+
+## 13. [ambiguous-example]
+- **message_date:** 2023-11-27 12:31:49
+- **subject:** ╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ 25352300218  25342306862 25352300219
+- **attachment_count:** 3
+- **selected_main_invoice:** (AMBIGUOUS)
+- **selection_reason:** Tied top candidates (score 5): p7058002007.pdf; p4297201925.pdf; p4297201998.pdf
+- **other_attachments_ignored:** (none)
+- **confidence:** LOW
+- **candidates:** p7058002007.pdf (score 5) | p4297201925.pdf (score 5) | p4297201998.pdf (score 5)
+
+## 14. [no-main-invoice-example]
+- **message_date:** 2020-08-09 11:41:43
+- **subject:** RE: ╫ÿ╫ò╫ñ╫í ╫ö╫í╫¢╫₧╫ö ╫£╫º╫æ╫£╫¬ ╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫ô╫Ö╫Æ╫Ö╫ÿ╫£╫Ö╫¬- ╫₧╫¬╫ù ╫ù.╫Ö ╫ö╫á╫ô╫í╫¬ ╫ù╫⌐╫₧╫£ ╫æ╫ó"╫₧
+- **attachment_count:** 0
+- **selected_main_invoice:** (NO_MAIN_INVOICE)
+- **selection_reason:** No saved PDF attachments
+- **other_attachments_ignored:** LOGO_fe6ee77d-dc46-4295-a84d-7cda99d4d25c.png; PASS_83d8f18d-1340-428c-a9cb-48e68e50c6fc.png; yt-icon_2330b865-8d61-49a4-8f3c-df37bef85f09.gif; fb-icon_0b4ec9f5-ab2e-4d54-b2e7-b2918fc24f5d.gif
+- **confidence:** LOW
+
+## 15. [fill-spread]
+- **message_date:** 2026-09-03 14:00:28
+- **subject:** (╫₧╫í╫₧╫Ü ╫₧╫₧╫ò╫ù╫⌐╫æ) ╫ö╫ô╫ñ╫í╫¬ ╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫₧╫¿╫¢╫û╫¬ - 25342607482
+- **attachment_count:** 3
+- **selected_main_invoice:** ╫ö╫ô╫ñ╫í╫¬ ╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫₧╫¿╫¢╫û╫¬ - 25342607482.pdf
+- **selection_reason:** +100 filename contains '╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫₧╫¿╫¢╫û╫¬'; +80 filename contains '╫ù╫⌐╫æ╫ò╫á╫Ö╫¬'; +35 filename contains '╫₧╫¿╫¢╫û╫¬'; +150 invoice number match: 25342607482 (+2 more signals)
+- **other_attachments_ignored:** 44512613320.pdf; 44512613347.pdf
+- **confidence:** HIGH
+
+## 16. [fill-spread]
+- **message_date:** 2026-09-03 14:00:22
+- **subject:** (╫₧╫í╫₧╫Ü ╫₧╫₧╫ò╫ù╫⌐╫æ) ╫ö╫ô╫ñ╫í╫¬ ╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫₧╫¿╫¢╫û╫¬ - 25342607484
+- **attachment_count:** 5
+- **selected_main_invoice:** ╫ö╫ô╫ñ╫í╫¬ ╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫₧╫¿╫¢╫û╫¬ - 25342607484.pdf
+- **selection_reason:** +100 filename contains '╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫₧╫¿╫¢╫û╫¬'; +80 filename contains '╫ù╫⌐╫æ╫ò╫á╫Ö╫¬'; +35 filename contains '╫₧╫¿╫¢╫û╫¬'; +150 invoice number match: 25342607484 (+2 more signals)
+- **other_attachments_ignored:** 44512613800.pdf; 44512612522.pdf; 44512612542.pdf; 44512613127.pdf
+- **confidence:** HIGH
+
+## 17. [fill-spread]
+- **message_date:** 2026-09-03 14:00:17
+- **subject:** (╫₧╫í╫₧╫Ü ╫₧╫₧╫ò╫ù╫⌐╫æ) ╫ö╫ô╫ñ╫í╫¬ ╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫₧╫¿╫¢╫û╫¬ - 25342607485
+- **attachment_count:** 5
+- **selected_main_invoice:** ╫ö╫ô╫ñ╫í╫¬ ╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫₧╫¿╫¢╫û╫¬ - 25342607485.pdf
+- **selection_reason:** +100 filename contains '╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫₧╫¿╫¢╫û╫¬'; +80 filename contains '╫ù╫⌐╫æ╫ò╫á╫Ö╫¬'; +35 filename contains '╫₧╫¿╫¢╫û╫¬'; +150 invoice number match: 25342607485 (+2 more signals)
+- **other_attachments_ignored:** 44512613051.pdf; SIG_25512614683_3397.pdf; SIG_25512614683_3397.pdf; 44512612139.pdf
+- **confidence:** HIGH
+
+## 18. [fill-spread]
+- **message_date:** 2026-08-03 16:23:59
+- **subject:** (╫₧╫í╫₧╫Ü ╫₧╫₧╫ò╫ù╫⌐╫æ) ╫ö╫ô╫ñ╫í╫¬ ╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫₧╫¿╫¢╫û╫¬ - 25342606185
+- **attachment_count:** 10
+- **selected_main_invoice:** ╫ö╫ô╫ñ╫í╫¬ ╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫₧╫¿╫¢╫û╫¬ - 25342606185.pdf
+- **selection_reason:** +100 filename contains '╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫₧╫¿╫¢╫û╫¬'; +80 filename contains '╫ù╫⌐╫æ╫ò╫á╫Ö╫¬'; +35 filename contains '╫₧╫¿╫¢╫û╫¬'; +150 invoice number match: 25342606185 (+2 more signals)
+- **other_attachments_ignored:** 44512611220.pdf; 44512610502.pdf; 44512611626.pdf; 44512610837.pdf; 44512611719.pdf; SIG_M5126042239_1305.pdf; M5126042239.pdf; SIG_M5126042239_1305.pdf; ... +1 more
+- **confidence:** HIGH
+
+## 19. [fill-spread]
+- **message_date:** 2026-08-03 16:23:34
+- **subject:** (╫₧╫í╫₧╫Ü ╫₧╫₧╫ò╫ù╫⌐╫æ) ╫ö╫ô╫ñ╫í╫¬ ╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫₧╫¿╫¢╫û╫¬ - 25342606188, ╫ù╫⌐. ╫₧╫¿╫¢╫û╫¬ ╫Ö╫ò╫£-26
+- **attachment_count:** 10
+- **selected_main_invoice:** ╫ö╫ô╫ñ╫í╫¬ ╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫₧╫¿╫¢╫û╫¬ - 25342606188_ ╫ù╫⌐.pdf
+- **selection_reason:** +100 filename contains '╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫₧╫¿╫¢╫û╫¬'; +80 filename contains '╫ù╫⌐╫æ╫ò╫á╫Ö╫¬'; +40 filename contains '╫ù╫⌐.'; +35 filename contains '╫₧╫¿╫¢╫û╫¬' (+2 more signals)
+- **other_attachments_ignored:** M5126044020.pdf; 44512610570.pdf; 44512610551.pdf; 44512610551_001.pdf; 44512611463.pdf; 44512611663.pdf; 44512610626.pdf; 44512611488.pdf; ... +1 more
+- **confidence:** HIGH
+
+## 20. [fill-spread]
+- **message_date:** 2026-08-03 16:23:03
+- **subject:** (╫₧╫í╫₧╫Ü ╫₧╫₧╫ò╫ù╫⌐╫æ) ╫ö╫ô╫ñ╫í╫¬ ╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫₧╫¿╫¢╫û╫¬ - 25342606187
+- **attachment_count:** 7
+- **selected_main_invoice:** ╫ö╫ô╫ñ╫í╫¬ ╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫₧╫¿╫¢╫û╫¬ - 25342606187.pdf
+- **selection_reason:** +100 filename contains '╫ù╫⌐╫æ╫ò╫á╫Ö╫¬ ╫₧╫¿╫¢╫û╫¬'; +80 filename contains '╫ù╫⌐╫æ╫ò╫á╫Ö╫¬'; +35 filename contains '╫₧╫¿╫¢╫û╫¬'; +150 invoice number match: 25342606187 (+2 more signals)
+- **other_attachments_ignored:** 44512611080.pdf; 44512610881.pdf; 44512610743.pdf; 44512610175.pdf; 44512610716.pdf; 44512610718.pdf
+- **confidence:** HIGH
+
+---
+Preview across all 527 messages:
+  SELECTED=476 AMBIGUOUS=4 NO_MAIN=47
+JSON saved: C:\Users\ERAN YOSEF\Desktop\Arka_Invoices\metadata\main_invoice_validation_20.json
