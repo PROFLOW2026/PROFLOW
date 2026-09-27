@@ -71,7 +71,6 @@ export function BillingListTable({ records, locale, routeBase = '/billing' }: Bi
                     <BillingNetPrimaryDisplay
                       netAmount={record.subtotalAmount ?? record.totalAmount}
                       grossAmount={record.totalAmount}
-                      netLabel={t('list.beforeVat')}
                       grossLabel={t('list.includingVat')}
                       netClassName="text-sm"
                     />
@@ -127,7 +126,6 @@ export function BillingListTable({ records, locale, routeBase = '/billing' }: Bi
             <BillingNetPrimaryDisplay
               netAmount={record.subtotalAmount ?? record.totalAmount}
               grossAmount={record.totalAmount}
-              netLabel={t('list.beforeVat')}
               grossLabel={t('list.includingVat')}
             />
             <span>
