@@ -5,8 +5,12 @@ import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { linkDocumentToEntity } from '@/modules/documents';
 import { relocateDocumentToSemanticFolder } from '@/modules/external-storage/application/relocate-document-file';
-import { confirmOcrCandidate } from '@/modules/ocr/application/confirm-candidate';
+import {
+  confirmOcrCandidate,
+  type ConfirmOcrCandidateResult,
+} from '@/modules/ocr/application/confirm-candidate';
 import { getOcrRepository } from '@/modules/ocr';
+import type { ExtractionJob } from '@/modules/ocr/domain/types';
 import type { SemanticFolderType } from '@drizzle/schema/external-storage';
 import { assertFieldMediaCategory, type FieldMediaCategory } from '../domain/field-media-categories';
 import type { CaptureItemRecord, DetectedType } from '../domain/types';
@@ -35,6 +39,39 @@ export type ApproveOtherDocumentInput = {
   readonly label?: string | null;
   readonly semanticFolderType?: SemanticFolderType;
 };
+
+type FinancialDraftRoute = {
+  readonly routedEntityType: 'expense' | 'vendor_bill' | 'vendor_credit';
+  readonly routedEntityId: string;
+};
+
+function resolveFinancialDraftRouteFromJob(job: ExtractionJob): FinancialDraftRoute | null {
+  if (job.confirmedExpenseId) {
+    return { routedEntityType: 'expense', routedEntityId: job.confirmedExpenseId };
+  }
+  if (job.confirmedVendorBillId) {
+    return { routedEntityType: 'vendor_bill', routedEntityId: job.confirmedVendorBillId };
+  }
+  if (job.confirmedVendorCreditId) {
+    return { routedEntityType: 'vendor_credit', routedEntityId: job.confirmedVendorCreditId };
+  }
+  return null;
+}
+
+function resolveFinancialDraftRouteFromConfirmResult(
+  result: ConfirmOcrCandidateResult,
+): FinancialDraftRoute {
+  if (result.kind !== 'created') {
+    throw new DomainRuleError('OCR confirm must create a draft', 'quickCapture.errors.ocrConfirmRequired');
+  }
+  if (result.draftTarget === 'expense') {
+    return { routedEntityType: 'expense', routedEntityId: result.expenseId };
+  }
+  if (result.draftTarget === 'vendor_bill') {
+    return { routedEntityType: 'vendor_bill', routedEntityId: result.vendorBillId };
+  }
+  return { routedEntityType: 'vendor_credit', routedEntityId: result.vendorCreditId };
+}
 
 export async function approveFieldMediaCapture(
   context: OrgContext,
@@ -113,6 +150,9 @@ export async function approveFinancialCapture(
 
   const capture = await findCaptureById(context.db, context.organizationId, input.captureId);
   if (!capture) throw new NotFoundError('Quick capture');
+  if (capture.status === 'approved') {
+    return capture;
+  }
   if (capture.status !== 'ready_for_review') {
     throw new DomainRuleError('Capture is not ready for review', 'quickCapture.errors.notReady');
   }
@@ -138,23 +178,32 @@ export async function approveFinancialCapture(
   }
 
   const job = await getOcrRepository(context.db).findJob(context.organizationId, jobId);
-  if (!job || job.status !== 'needs_review') {
+  if (!job) {
     throw new DomainRuleError('OCR not ready for confirm', 'quickCapture.errors.ocrNotReady');
   }
 
-  await confirmOcrCandidate(context, {
-    ...input.confirmInput,
-    jobId,
-    confirm: true,
-  });
+  const existingRoute = resolveFinancialDraftRouteFromJob(job);
+  let resolvedRoute = existingRoute;
+  if (!resolvedRoute) {
+    if (job.status !== 'needs_review') {
+      throw new DomainRuleError('OCR not ready for confirm', 'quickCapture.errors.ocrNotReady');
+    }
+    resolvedRoute = resolveFinancialDraftRouteFromConfirmResult(
+      await confirmOcrCandidate(context, {
+        ...input.confirmInput,
+        jobId,
+        confirm: true,
+      }),
+    );
+  }
 
   const approved = await updateCaptureItem(context.db, context.organizationId, capture.id, {
     status: 'approved',
     ownerSelectedType: 'financial_document',
     selectedFinancialDocumentId: financialDocumentId,
     primaryOcrJobId: jobId,
-    routedEntityType: 'ocr_confirmed_draft',
-    routedEntityId: jobId,
+    routedEntityType: resolvedRoute.routedEntityType,
+    routedEntityId: resolvedRoute.routedEntityId,
     approvedAt: new Date(),
   });
   if (!approved) throw new NotFoundError('Quick capture');
@@ -163,7 +212,13 @@ export async function approveFinancialCapture(
     action: AUDIT_ACTIONS.APPROVED,
     entityType: 'quick_capture',
     entityId: capture.id,
-    metadata: { route: 'financial_document', jobId },
+    metadata: {
+      route: 'financial_document',
+      jobId,
+      draftTarget: resolvedRoute.routedEntityType,
+      draftId: resolvedRoute.routedEntityId,
+      reconciledExistingDraft: existingRoute != null,
+    },
   });
 
   return approved;

@@ -8,8 +8,9 @@ import {
   AppError,
   AuthorizationError,
   DomainRuleError,
-  translateMessageKey,
+  mapServerActionError,
 } from '@/shared/errors';
+import { logger } from '@/shared/observability';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { CaptureSource, SessionFileInput } from '../domain/types';
@@ -27,31 +28,32 @@ export type QuickCaptureActionResult<T> =
   | { readonly ok: true; readonly data: T }
   | { readonly ok: false; readonly error: string; readonly messageKey?: string };
 
+function logUnexpectedQuickCaptureError(action: string, error: unknown): void {
+  if (
+    error instanceof AuthorizationError ||
+    error instanceof DomainRuleError ||
+    error instanceof AppError
+  ) {
+    return;
+  }
+  logger.error('quick_capture.action_failed', {
+    action,
+    error: error instanceof Error ? error : { message: String(error) },
+  });
+}
+
 async function failMessage(error: unknown): Promise<string> {
   const tErrors = await getTranslations('errors');
   const tQuickCapture = await getTranslations('quickCapture');
-  if (error instanceof AuthorizationError) return tErrors('notAllowed');
-  if (error instanceof DomainRuleError) {
-    const key = error.messageKey;
-    if (key?.startsWith('quickCapture.')) {
-      try {
-        const subKey = key.replace(/^quickCapture\./, '') as 'errors.emptySession';
-        return tQuickCapture(subKey);
-      } catch {
-        return error.message;
-      }
-    }
-    if (key) {
-      const translated = translateMessageKey(key, {
-        tErrors: (k) => tErrors(k as 'unexpected'),
-      });
-      if (translated) return translated;
-    }
-    return error.message;
-  }
-  if (error instanceof AppError) return error.message;
-  if (error instanceof Error && error.message.trim()) return error.message;
-  return tErrors('unexpected');
+  const tOcr = await getTranslations('ocr');
+  return mapServerActionError(error, {
+    tErrors: (key) => tErrors(key as 'unexpected'),
+    namespaces: {
+      quickCapture: (key) => tQuickCapture(key as 'errors.emptySession'),
+      ocr: (key) => tOcr(key as 'errors.alreadyConfirmed'),
+    },
+    rethrowUnknown: false,
+  }).error;
 }
 
 function domainMessageKey(error: unknown): string | undefined {
@@ -230,6 +232,7 @@ export async function approveQuickCaptureAction(input: {
     });
     return { ok: true, data };
   } catch (error) {
+    logUnexpectedQuickCaptureError('approve', error);
     return {
       ok: false,
       error: await failMessage(error),
