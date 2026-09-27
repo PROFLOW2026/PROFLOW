@@ -26,24 +26,13 @@ export async function loadDocumentBytesForOcr(
   }
 
   if (document.storageBackend === 'external' && document.externalFileId) {
-    const { getExternalDocumentDownload } = await import('@/modules/external-storage/server');
-    const payload = await getExternalDocumentDownload(context, document.id);
-    if ('url' in payload) {
-      const response = await fetch(payload.url);
-      if (!response.ok) {
-        throw new ServiceUnavailableError(
-          'External file unavailable',
-          'externalStorage.errors.fileUnavailable',
-        );
-      }
-      const buffer = new Uint8Array(await response.arrayBuffer());
-      const checksumSha256 = document.checksum ?? sha256Hex(buffer);
-      return {
-        bytes: buffer,
-        mimeType: payload.mimeType,
-        filename: payload.filename,
-        checksumSha256,
-      };
+    const { streamExternalDocumentDownload } = await import('@/modules/external-storage/server');
+    const payload = await streamExternalDocumentDownload(context, document.id);
+    if ('unsatisfiable' in payload) {
+      throw new ServiceUnavailableError(
+        'External file unavailable',
+        'externalStorage.errors.fileUnavailable',
+      );
     }
     const buffer = new Uint8Array(await new Response(payload.stream).arrayBuffer());
     const checksumSha256 = document.checksum ?? sha256Hex(buffer);
