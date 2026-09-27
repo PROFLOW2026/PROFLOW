@@ -45,9 +45,11 @@ export function redactForLog(value: unknown, depth = 0): unknown {
   }
   if (typeof value === 'number' || typeof value === 'boolean') return value;
   if (value instanceof Error) {
+    const cause = 'cause' in value ? (value as Error & { cause?: unknown }).cause : undefined;
     return {
       name: value.name,
       message: redactForLog(value.message, depth + 1),
+      ...(cause !== undefined ? { cause: redactForLog(cause, depth + 1) } : {}),
     };
   }
   if (value instanceof Date) return value.toISOString();

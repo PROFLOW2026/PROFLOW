@@ -50,6 +50,7 @@ import {
   mapFieldsToVendorCreditDraft,
   type CreateVendorCreditDraftFn,
 } from './create-vendor-credit-draft';
+import { runBestEffortInTransaction } from '@/shared/db/best-effort-savepoint';
 import { rememberOcrCorrections } from './remember-corrections';
 
 export type CreateExpenseFn = (
@@ -343,17 +344,21 @@ export async function confirmOcrCandidate(
       rejectedFields: input.rejectedFields ?? null,
     });
 
-    await rememberOcrCorrections(context, {
-      vendorName: confirmed.vendor,
-      companyNumber: confirmed.companyNumber,
-      vatId: confirmed.vatId,
-      currency: confirmed.currency,
-      vendorId: input.vendorId,
-      projectId: input.rememberProjectId,
-      purchaseOrderId: input.rememberPurchaseOrderId,
-      subcontractAgreementId: input.rememberSubcontractAgreementId,
-    });
-    await markExpenseImportLinkedByOcrJob(context, job.id).catch(() => undefined);
+    await runBestEffortInTransaction(context.db, () =>
+      rememberOcrCorrections(context, {
+        vendorName: confirmed.vendor,
+        companyNumber: confirmed.companyNumber,
+        vatId: confirmed.vatId,
+        currency: confirmed.currency,
+        vendorId: input.vendorId,
+        projectId: input.rememberProjectId,
+        purchaseOrderId: input.rememberPurchaseOrderId,
+        subcontractAgreementId: input.rememberSubcontractAgreementId,
+      }),
+    );
+    await runBestEffortInTransaction(context.db, () =>
+      markExpenseImportLinkedByOcrJob(context, job.id),
+    );
 
     return {
       kind: 'created',
@@ -402,17 +407,21 @@ export async function confirmOcrCandidate(
       acceptedFields: input.acceptedFields,
       rejectedFields: input.rejectedFields ?? null,
     });
-    await rememberOcrCorrections(context, {
-      vendorName: confirmed.vendor,
-      companyNumber: confirmed.companyNumber,
-      vatId: confirmed.vatId,
-      currency: confirmed.currency,
-      vendorId: input.vendorId,
-      projectId: input.rememberProjectId,
-      purchaseOrderId: input.rememberPurchaseOrderId,
-      subcontractAgreementId: input.rememberSubcontractAgreementId,
-    });
-    await markExpenseImportLinkedByOcrJob(context, job.id).catch(() => undefined);
+    await runBestEffortInTransaction(context.db, () =>
+      rememberOcrCorrections(context, {
+        vendorName: confirmed.vendor,
+        companyNumber: confirmed.companyNumber,
+        vatId: confirmed.vatId,
+        currency: confirmed.currency,
+        vendorId: input.vendorId,
+        projectId: input.rememberProjectId,
+        purchaseOrderId: input.rememberPurchaseOrderId,
+        subcontractAgreementId: input.rememberSubcontractAgreementId,
+      }),
+    );
+    await runBestEffortInTransaction(context.db, () =>
+      markExpenseImportLinkedByOcrJob(context, job.id),
+    );
     return {
       kind: 'created',
       draftTarget: 'vendor_credit',
@@ -448,17 +457,21 @@ export async function confirmOcrCandidate(
     rejectedFields: input.rejectedFields ?? null,
   });
 
-  await rememberOcrCorrections(context, {
-    vendorName: confirmed.vendor,
-    companyNumber: confirmed.companyNumber,
-    vatId: confirmed.vatId,
-    currency: confirmed.currency,
-    vendorId: input.vendorId,
-    projectId: input.rememberProjectId,
-    purchaseOrderId: input.rememberPurchaseOrderId,
-    subcontractAgreementId: input.rememberSubcontractAgreementId,
-  });
-  await markExpenseImportLinkedByOcrJob(context, job.id).catch(() => undefined);
+  await runBestEffortInTransaction(context.db, () =>
+    rememberOcrCorrections(context, {
+      vendorName: confirmed.vendor,
+      companyNumber: confirmed.companyNumber,
+      vatId: confirmed.vatId,
+      currency: confirmed.currency,
+      vendorId: input.vendorId,
+      projectId: input.rememberProjectId,
+      purchaseOrderId: input.rememberPurchaseOrderId,
+      subcontractAgreementId: input.rememberSubcontractAgreementId,
+    }),
+  );
+  await runBestEffortInTransaction(context.db, () =>
+    markExpenseImportLinkedByOcrJob(context, job.id),
+  );
 
   return {
     kind: 'created',
@@ -494,9 +507,7 @@ async function linkSourceDocument(
 ): Promise<void> {
   if (!documentId) return;
   if (!context.db || typeof (context.db as { select?: unknown }).select !== 'function') return;
-  try {
-    await linkDocumentToEntity(context, { documentId, ownerType, ownerId });
-  } catch {
-    // Job retains documentId; entity link is best-effort.
-  }
+  await runBestEffortInTransaction(context.db, () =>
+    linkDocumentToEntity(context, { documentId, ownerType, ownerId }).then(() => undefined),
+  );
 }
