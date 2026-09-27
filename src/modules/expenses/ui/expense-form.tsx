@@ -700,8 +700,6 @@ export function ExpenseForm({
           paymentMethod === 'other' ? paymentMethodOther.trim() || 'other' : paymentMethod
         } />
         <input type="hidden" name="paymentInstrumentId" value={paymentInstrumentId} />
-        <input type="hidden" name="markPaidOnCreate" value={paymentStructure === 'single' && markPaid ? 'true' : 'false'} />
-        <input type="hidden" name="paidAt" value={paymentStructure === 'single' && markPaid ? paidAt : ''} />
         <input type="hidden" name="vendorId" value={vendorId} />
         <input type="hidden" name="workPackageId" value={workPackageId} />
       </>
@@ -1063,8 +1061,23 @@ export function ExpenseForm({
                 )}
               </Field>
             ) : null}
+            <input
+              type="hidden"
+              name="markPaidOnCreate"
+              value={paymentStructure === 'single' && markPaid ? 'true' : 'false'}
+            />
+            <input
+              type="hidden"
+              name="paidAt"
+              value={paymentStructure === 'single' && markPaid ? paidAt : ''}
+            />
           </div>
-        ) : null}
+        ) : (
+          <>
+            <input type="hidden" name="markPaidOnCreate" value="false" />
+            <input type="hidden" name="paidAt" value="" />
+          </>
+        )}
 
         {children}
       </section>

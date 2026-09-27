@@ -202,9 +202,9 @@ export async function createExpenseAction(
         );
       }
       if (
-        parsed.data.markPaidOnCreate &&
+        parsed.data.markPaidOnCreate === true &&
         parsed.data.paymentStructure !== 'installments' &&
-        parsed.data.costCategoryId
+        refreshed.status === 'finalized'
       ) {
         const paidAt = parsed.data.paidAt
           ? businessDate(parsed.data.paidAt)
@@ -289,9 +289,9 @@ export async function updateExpenseAction(
         );
       }
       if (
-        parsed.data.markPaidOnCreate &&
+        parsed.data.markPaidOnCreate === true &&
         parsed.data.paymentStructure !== 'installments' &&
-        parsed.data.costCategoryId
+        refreshed.status === 'finalized'
       ) {
         const paidAt = parsed.data.paidAt
           ? businessDate(parsed.data.paidAt)
