@@ -301,6 +301,8 @@ export async function approveChangeRequest(
       currency: changeRequest.currency,
       effectiveDate,
       notes: input.notes ?? null,
+      // Carry billing timing from the request to the approved order.
+      billingCondition: changeRequest.billingCondition ?? null,
     },
     context.organizationId,
     changeRequest.projectId,

@@ -564,6 +564,7 @@ export async function insertChangeOrder(
     reversalOfChangeOrderId?: string | null;
     reversalReason?: string | null;
     reversedByUserId?: string | null;
+    billingCondition?: ChangeOrderRecord['billingCondition'];
   },
 ): Promise<ChangeOrderRecord> {
   const [row] = await db
@@ -584,6 +585,7 @@ export async function insertChangeOrder(
       reversalOfChangeOrderId: input.reversalOfChangeOrderId ?? null,
       reversalReason: input.reversalReason ?? null,
       reversedByUserId: input.reversedByUserId ?? null,
+      billingCondition: input.billingCondition ?? null,
     })
     .returning();
 

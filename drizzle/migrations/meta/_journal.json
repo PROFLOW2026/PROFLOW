@@ -1009,6 +1009,13 @@
                         "when":  1789712880000,
                         "tag":  "0145_change_request_billing_condition",
                         "breakpoints":  true
+                    },
+                    {
+                        "idx":  144,
+                        "version":  "7",
+                        "when":  1789712940000,
+                        "tag":  "0146_material_classification_correction",
+                        "breakpoints":  true
                     }
                 ]
 }
