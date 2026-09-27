@@ -16,7 +16,7 @@ import 'server-only';
  *    not await it in the primary issuance path.
  */
 
-import { getAdminDb, withUserContext } from '@/shared/db/client';
+import { withUserContext } from '@/shared/db/client';
 import { resolveOrgContext } from '@/modules/tenancy';
 import type { OrgContext } from '@/shared/auth/context';
 import { uploadBytesToOrgStorageFolder } from '@/modules/external-storage/server';
@@ -166,7 +166,6 @@ export async function retryPendingStatutoryPdfArchival(
     await archiveStatutoryPdfToProvider(userId, organizationId, externalDocumentId);
 
     // Re-read to see if it succeeded or is still pending.
-    const db = getAdminDb();
     let archived = false;
     await withUserContext(userId, async (tx) => {
       const context = await resolveOrgContext(tx, { userId, organizationId, locale: 'he-IL' });

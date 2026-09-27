@@ -190,6 +190,7 @@
     "useProductQuoteBanner": "New customer bids belong in Product Quotes (/quotes). CRM sales quotes are legacy and read-only.",
     "legacyQuoteReadOnly": "Legacy CRM quote — read-only. Create new bids as Product Quotes.",
     "legacyQuotesEmpty": "No legacy CRM sales quotes on this opportunity.",
+    "convertToProductQuote": "Convert to Product Quote",
     "createProductQuote": "Create quote",
     "productQuotesSection": "Quotes (bids)",
     "productQuotesHint": "Customer bids live in Quotes. Accept and convert there - this is not a second quote book.",

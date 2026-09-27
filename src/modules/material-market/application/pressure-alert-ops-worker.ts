@@ -6,7 +6,7 @@ import { findActiveOrgOwnerUserId } from '@/modules/recurring-drafts/application
 import { emitNotification } from '@/modules/notifications/application/emit';
 import type { OrgContext } from '@/shared/auth/context';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import { listUserIdsWithPermission } from '@/modules/notifications/data/permission-holders.repository';
+import { listUserIdsWithPermission } from '@/modules/notifications';
 import { MATERIAL_TRADES, type MaterialTrade } from '../domain/types';
 import { loadLatestSnapshotsForTrades } from '../data/repositories';
 

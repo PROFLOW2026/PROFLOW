@@ -234,7 +234,12 @@
     "agreement": "اتفاقية مقاول باطن",
     "agreementNone": "بدون اتفاقية",
     "agreementRetention": "مسودات الحسابات ستستخدم {percent}% حجزاً ما لم تُعدّله.",
-    "retentionPercent": "نسبة الحجز %"
+    "retentionPercent": "نسبة الحجز %",
+    "reconciliation": {
+      "pending": "AP: في انتظار المطابقة",
+      "matched": "AP: مطابق",
+      "unmatched": "AP: غير مطابق"
+    }
   },
   "comparison": {
     "title": "جدول الكميات مقابل المالية",

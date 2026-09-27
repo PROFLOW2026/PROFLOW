@@ -234,7 +234,12 @@
     "agreement": "Соглашение с субподрядчиком",
     "agreementNone": "Без соглашения",
     "agreementRetention": "Черновики счетов будут использовать {percent}% удержания, если не переопределите.",
-    "retentionPercent": "Удержание %"
+    "retentionPercent": "Удержание %",
+    "reconciliation": {
+      "pending": "AP: ожидает сопоставления",
+      "matched": "AP: сопоставлено",
+      "unmatched": "AP: не сопоставлено"
+    }
   },
   "comparison": {
     "title": "BOQ vs финансы",

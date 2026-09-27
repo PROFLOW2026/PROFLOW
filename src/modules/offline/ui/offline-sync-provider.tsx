@@ -111,8 +111,7 @@ export function OfflineSyncProvider({
       if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
         navigator.serviceWorker.ready.then((reg) => {
           if ('sync' in reg) {
-            // @ts-ignore — SyncManager typings not in all TS lib versions
-            (reg.sync as { register(tag: string): Promise<void> })
+            (reg.sync as unknown as { register(tag: string): Promise<void> })
               .register('draft-sync')
               .catch(() => {
                 // Background Sync unavailable in this browser; window.online is the fallback.

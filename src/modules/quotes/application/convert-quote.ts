@@ -38,7 +38,7 @@ import {
 import { convertQuoteSchema, type ConvertQuoteInput } from '../validation/schemas';
 import { recordQuoteClientActivity } from './timeline-events';
 import { createProjectBoq, upsertBoqNode } from '@/modules/boq/application/manage-boq';
-import { findActiveBoqForProject } from '@/modules/boq/data/boq.repository';
+import { findActiveBoqForProject } from '@/modules/boq';
 
 export interface ConvertQuoteResult {
   readonly quote: QuoteRecord;

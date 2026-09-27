@@ -39,6 +39,7 @@
     "action_required": "إجراء مطلوب",
     "task_assigned_to_you": "تم إسناد مهمة إليك",
     "task_comment_mention": "تعليق جديد على مهمتك",
+    "task_status_updated": "تم تحديث حالة المهمة",
     "capture_needs_review": "التقاط بانتظار المراجعة"
   },
   "copy": {
@@ -177,6 +178,12 @@
       "titleDefault": "التقاط بانتظار المراجعة",
       "bodyWithExtra": "{extra}",
       "bodyDefault": "التقاط سريع بانتظار مراجعتك."
+    },
+    "task_status_updated": {
+      "titleWithReference": "تم تحديث المهمة - {reference}",
+      "titleDefault": "تم تحديث المهمة",
+      "bodyWithExtra": "تم تغيير الحالة إلى {extra}",
+      "bodyDefault": "تم تحديث مهمة تتابعها."
     }
   },
   "viewAll": "عرض الكل",

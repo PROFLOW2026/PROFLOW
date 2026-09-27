@@ -4,7 +4,7 @@
  * Thin data-access layer — no business logic here.
  */
 
-import { and, desc, eq, isNull, sql } from 'drizzle-orm';
+import { and, desc, eq, sql } from 'drizzle-orm';
 import { attendanceCorrectionRequests } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 

@@ -195,7 +195,8 @@
     "useProductQuoteBannerTitle": "השתמשו בהצעת מחיר",
     "useProductQuoteBanner": "מכרזים חדשים ללקוח שייכים להצעות מחיר (/quotes). הצעות מכירה ב-CRM הן ישנות ולקריאה בלבד.",
     "legacyQuoteReadOnly": "הצעת CRM ישנה - לקריאה בלבד. צרו מכרזים חדשים כהצעות מחיר.",
-    "legacyQuotesEmpty": "אין הצעות מכירה ישנות ב-CRM להזדמנות זו."
+    "legacyQuotesEmpty": "אין הצעות מכירה ישנות ב-CRM להזדמנות זו.",
+    "convertToProductQuote": "המרה להצעת מחיר"
   },
   "convert": {
     "title": "המרה דרך הצעות מחיר",

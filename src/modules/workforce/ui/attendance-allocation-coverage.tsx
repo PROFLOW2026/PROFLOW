@@ -12,7 +12,7 @@
  *   project allocation. These are candidates for follow-up or overhead coding.
  */
 
-import { getTranslations, getLocale } from 'next-intl/server';
+import { getTranslations } from 'next-intl/server';
 import { withOrgContext } from '@/shared/auth/session';
 import { getAttendanceAllocationCoverage } from '../application/attendance-owner-views';
 

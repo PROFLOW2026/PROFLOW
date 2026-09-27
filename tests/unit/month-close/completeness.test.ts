@@ -94,7 +94,7 @@ describe('month-close completeness scoring', () => {
 
   it('treats zero applicable checks as complete', () => {
     const items = buildCompletenessItems([]);
-    expect(items).toHaveLength(9);
+    expect(items).toHaveLength(11);
     expect(items.every((item) => !item.applicable && item.scorePercent === 100)).toBe(true);
 
     const snapshot = scoreCompleteness([], { yearMonth: '2026-01' });

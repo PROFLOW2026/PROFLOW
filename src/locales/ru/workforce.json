@@ -906,5 +906,30 @@
     "companyOnlyHint": "Сумма только компании в применённых распределениях.",
     "unavailable": "Недоступно",
     "companyOnlyUnavailable": "Разделение «только компания» недоступно."
+  },
+  "attendanceCorrection": {
+    "submitted": "Запрос на исправление отправлен. Руководитель скоро рассмотрит его.",
+    "workDate": "Дата работы",
+    "requestedClockIn": "Запрошенное время прихода",
+    "requestedClockOut": "Запрошенное время ухода",
+    "reason": "Причина запроса",
+    "reasonPlaceholder": "Опишите причину необходимости исправления...",
+    "submitting": "Отправка...",
+    "submit": "Отправить запрос"
+  },
+  "attendanceCorrectionRequests": {
+    "empty": "Нет ожидающих запросов на исправление",
+    "statusPending": "Ожидает",
+    "requestedClockIn": "Запрошенное время прихода",
+    "requestedClockOut": "Запрошенное время ухода",
+    "reason": "Причина",
+    "approve": "Утвердить",
+    "reject": "Отклонить",
+    "rejectionNotePlaceholder": "Укажите причину отклонения...",
+    "approvalNotePlaceholder": "Необязательная заметка для утверждения...",
+    "processing": "Обработка...",
+    "confirmApprove": "Подтвердить утверждение",
+    "confirmReject": "Подтвердить отклонение",
+    "cancel": "Отмена"
   }
 }

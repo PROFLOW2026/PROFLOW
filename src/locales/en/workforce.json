@@ -906,5 +906,30 @@
     "companyOnlyHint": "Company-only amount on applied allocation runs.",
     "unavailable": "Unavailable",
     "companyOnlyUnavailable": "Company-only split is not available."
+  },
+  "attendanceCorrection": {
+    "submitted": "Your correction request was submitted. A manager will review it shortly.",
+    "workDate": "Work Date",
+    "requestedClockIn": "Requested Clock-In",
+    "requestedClockOut": "Requested Clock-Out",
+    "reason": "Reason for Request",
+    "reasonPlaceholder": "Describe why this correction is needed...",
+    "submitting": "Submitting...",
+    "submit": "Submit Request"
+  },
+  "attendanceCorrectionRequests": {
+    "empty": "No pending correction requests",
+    "statusPending": "Pending",
+    "requestedClockIn": "Requested Clock-In",
+    "requestedClockOut": "Requested Clock-Out",
+    "reason": "Reason",
+    "approve": "Approve",
+    "reject": "Reject",
+    "rejectionNotePlaceholder": "Provide a reason for rejection...",
+    "approvalNotePlaceholder": "Optional note for approval...",
+    "processing": "Processing...",
+    "confirmApprove": "Confirm Approval",
+    "confirmReject": "Confirm Rejection",
+    "cancel": "Cancel"
   }
 }

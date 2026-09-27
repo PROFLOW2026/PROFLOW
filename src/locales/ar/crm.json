@@ -190,6 +190,7 @@
     "useProductQuoteBanner": "عطاءات العملاء الجديدة تنتمي إلى عروض الأسعار (/quotes). عروض مبيعات CRM قديمة وللقراءة فقط.",
     "legacyQuoteReadOnly": "عرض CRM قديم — للقراءة فقط. أنشئ عطاءات جديدة كعروض أسعار منتج.",
     "legacyQuotesEmpty": "لا عروض مبيعات CRM قديمة على هذه الفرصة.",
+    "convertToProductQuote": "تحويل إلى عرض سعر",
     "createProductQuote": "إنشاء عرض سعر",
     "productQuotesSection": "عروض الأسعار (عطاءات)",
     "productQuotesHint": "عطاءات العملاء في عروض الأسعار. اقبل وحوّل هناك - هذا ليس دفتر عروض ثانياً.",

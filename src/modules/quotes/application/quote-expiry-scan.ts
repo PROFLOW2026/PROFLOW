@@ -21,7 +21,7 @@ import { estimates } from '@drizzle/schema/next-gen';
 import { getAdminDb, withUserContext } from '@/shared/db/client';
 import { addDays, todayInTimeZone, type BusinessDate } from '@/shared/dates';
 import { emitNotification } from '@/modules/notifications/application/emit';
-import { listUserIdsWithPermission } from '@/modules/notifications/data/permission-holders.repository';
+import { listUserIdsWithPermission } from '@/modules/notifications';
 import { buildDedupeKey } from '@/modules/notifications/domain/dedupe';
 import { listActiveOrganizationIds, resolveOrgContext } from '@/modules/tenancy';
 import { findActiveOrgOwnerUserId } from '@/modules/recurring-drafts/application/ops-worker';

@@ -906,5 +906,30 @@
     "companyOnlyHint": "סכום company-only בריצות הקצאה שהוחלו.",
     "unavailable": "לא זמין",
     "companyOnlyUnavailable": "פיצול עלות החברה בלבד אינו זמין."
+  },
+  "attendanceCorrection": {
+    "submitted": "בקשת התיקון נשלחה בהצלחה. המנהל יסקור אותה בקרוב.",
+    "workDate": "תאריך עבודה",
+    "requestedClockIn": "כניסה מבוקשת",
+    "requestedClockOut": "יציאה מבוקשת",
+    "reason": "סיבה לבקשה",
+    "reasonPlaceholder": "תארו מדוע נדרש תיקון זה...",
+    "submitting": "שולח...",
+    "submit": "שליחת בקשה"
+  },
+  "attendanceCorrectionRequests": {
+    "empty": "אין בקשות תיקון ממתינות",
+    "statusPending": "ממתין",
+    "requestedClockIn": "כניסה מבוקשת",
+    "requestedClockOut": "יציאה מבוקשת",
+    "reason": "סיבה",
+    "approve": "אישור",
+    "reject": "דחייה",
+    "rejectionNotePlaceholder": "ציינו את הסיבה לדחייה...",
+    "approvalNotePlaceholder": "הערה אופציונלית לאישור...",
+    "processing": "מעבד...",
+    "confirmApprove": "אישור התיקון",
+    "confirmReject": "דחיית הבקשה",
+    "cancel": "ביטול"
   }
 }

@@ -234,7 +234,12 @@
     "agreement": "הסכם קבלן משנה",
     "agreementNone": "ללא הסכם",
     "agreementRetention": "טיוטות חשבון ישתמשו ב-{percent}% עיכבון אלא אם תשנו.",
-    "retentionPercent": "אחוז עיכבון"
+    "retentionPercent": "אחוז עיכבון",
+    "reconciliation": {
+      "pending": "AP: ממתין לשיוך",
+      "matched": "AP: שויך",
+      "unmatched": "AP: לא שויך"
+    }
   },
   "comparison": {
     "title": "כתב כמויות מול כספים",

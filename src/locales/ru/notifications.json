@@ -39,6 +39,7 @@
     "action_required": "Требуется действие",
     "task_assigned_to_you": "Вам назначена задача",
     "task_comment_mention": "Новый комментарий к вашей задаче",
+    "task_status_updated": "Статус задачи обновлён",
     "capture_needs_review": "Захват ожидает проверки"
   },
   "copy": {
@@ -177,6 +178,12 @@
       "titleDefault": "Захват ожидает проверки",
       "bodyWithExtra": "{extra}",
       "bodyDefault": "Быстрый захват ожидает вашей проверки."
+    },
+    "task_status_updated": {
+      "titleWithReference": "Задача обновлена — {reference}",
+      "titleDefault": "Задача обновлена",
+      "bodyWithExtra": "Статус изменён на {extra}",
+      "bodyDefault": "Задача, за которой вы следите, была обновлена."
     }
   },
   "viewAll": "Показать все",

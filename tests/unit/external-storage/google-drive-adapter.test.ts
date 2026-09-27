@@ -441,31 +441,34 @@ describe('GoogleDriveStorageProvider', () => {
       expect(result.contentRange).toBe('bytes 100-199/5000');
     });
 
-    it('throws for Google native documents without auto-export', async () => {
+    it('exports Google native documents to PDF via exportLinks', async () => {
       vi.stubGlobal(
         'fetch',
         vi.fn(async (url: string) => {
-          if (!url.includes('alt=media')) {
+          if (!url.includes('alt=media') && !url.includes('/export')) {
             return jsonResponse({
               id: 'gdoc-1',
               name: 'Notes',
               mimeType: 'application/vnd.google-apps.document',
               parents: ['root'],
+              exportLinks: {
+                'application/pdf': 'https://www.googleapis.com/drive/v3/files/gdoc-1/export?mimeType=application%2Fpdf',
+              },
+            });
+          }
+          if (url.includes('/export')) {
+            return new Response('PDF_BYTES', {
+              status: 200,
+              headers: { 'Content-Type': 'application/pdf' },
             });
           }
           throw new Error('native docs must not reach media download');
         }),
       );
 
-      try {
-        await provider.downloadFileStream(ACCESS_TOKEN, 'gdoc-1');
-        expect.fail('expected native doc download to throw');
-      } catch (error) {
-        expect(error).toBeInstanceOf(ProviderHttpError);
-        const httpError = error as ProviderHttpError;
-        expect(httpError.status).toBe(400);
-        expect(httpError.bodySnippet).toMatch(/export required/i);
-      }
+      const result = await provider.downloadFileStream(ACCESS_TOKEN, 'gdoc-1');
+      expect(result.httpStatus).toBe(200);
+      expect(result.mimeType).toBe('application/pdf');
     });
   });
 

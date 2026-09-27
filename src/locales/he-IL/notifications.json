@@ -39,6 +39,7 @@
     "action_required": "דורש טיפול",
     "task_assigned_to_you": "משימה שויכה אליך",
     "task_comment_mention": "תגובה חדשה על משימה שלך",
+    "task_status_updated": "סטטוס משימה עודכן",
     "capture_needs_review": "קליטה ממתינה לבדיקה"
   },
   "copy": {
@@ -177,6 +178,12 @@
       "titleDefault": "קליטה ממתינה לבדיקה",
       "bodyWithExtra": "{extra}",
       "bodyDefault": "קליטה מהירה ממתינה לבדיקה שלך."
+    },
+    "task_status_updated": {
+      "titleWithReference": "משימה עודכנה - {reference}",
+      "titleDefault": "משימה עודכנה",
+      "bodyWithExtra": "הסטטוס שונה ל-{extra}",
+      "bodyDefault": "משימה שאתה עוקב אחריה עודכנה."
     }
   },
   "viewAll": "כל ההתראות",

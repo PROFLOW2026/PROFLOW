@@ -143,7 +143,7 @@ function SortableHeader({
           ? 'text-[var(--pf-text-primary)]'
           : 'text-[var(--pf-text-muted)] hover:text-[var(--pf-text-secondary)]',
       )}
-      aria-sort={active ? (currentDir === 'asc' ? 'ascending' : 'descending') : 'none'}
+      aria-pressed={active}
     >
       {children}
       {active ? (

@@ -66,7 +66,6 @@ async function resolveEmployeeForCorrection(
   requestedEmployeeId: string | undefined,
 ): Promise<{ id: string; name: string }> {
   const manage = hasPermission(context, PERMISSIONS.ATTENDANCE_MANAGE);
-  const self = hasPermission(context, PERMISSIONS.ATTENDANCE_SELF);
 
   if (manage && requestedEmployeeId) {
     const emp = await findEmployeeById(context.db, context.organizationId, requestedEmployeeId);

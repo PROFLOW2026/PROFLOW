@@ -108,5 +108,5 @@ export {
   listSubcontractorSchedulesForBoqWorkspace,
 } from './application/manage-subcontractor-schedule';
 export { getBoqFinancialComparison } from './application/compare-boq-financials';
-export { findBoqById, listBoqNodes, listBoqsForProject } from './data/boq.repository';
+export { findBoqById, listBoqNodes, listBoqsForProject, findActiveBoqForProject } from './data/boq.repository';
 export type { BoqFinancialComparison } from './application/compare-boq-financials';

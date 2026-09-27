@@ -9,6 +9,7 @@ import {
   quotes,
 } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
+import type { BillingCondition } from '../domain/types';
 import { ConflictError } from '@/shared/errors';
 import type {
   ChangeOrderRecord,
@@ -387,7 +388,7 @@ function mapChangeOrder(row: typeof changeOrders.$inferSelect): ChangeOrderRecor
     reversalOfChangeOrderId: row.reversalOfChangeOrderId,
     reversalReason: row.reversalReason,
     reversedByUserId: row.reversedByUserId,
-    billingCondition: (row.billingCondition as import('../domain/types').BillingCondition | null) ?? null,
+    billingCondition: (row.billingCondition as BillingCondition | null) ?? null,
   };
 }
 

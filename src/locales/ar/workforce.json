@@ -906,5 +906,30 @@
     "companyOnlyHint": "مبلغ الشركة فقط في عمليات التوزيع المطبّقة.",
     "unavailable": "غير متاح",
     "companyOnlyUnavailable": "تقسيم تكلفة الشركة فقط غير متاح."
+  },
+  "attendanceCorrection": {
+    "submitted": "تم تقديم طلب التصحيح. سيراجعه المدير قريباً.",
+    "workDate": "تاريخ العمل",
+    "requestedClockIn": "وقت الدخول المطلوب",
+    "requestedClockOut": "وقت الخروج المطلوب",
+    "reason": "سبب الطلب",
+    "reasonPlaceholder": "اشرح سبب الحاجة إلى هذا التصحيح...",
+    "submitting": "جارٍ الإرسال...",
+    "submit": "إرسال الطلب"
+  },
+  "attendanceCorrectionRequests": {
+    "empty": "لا توجد طلبات تصحيح معلّقة",
+    "statusPending": "معلّق",
+    "requestedClockIn": "وقت الدخول المطلوب",
+    "requestedClockOut": "وقت الخروج المطلوب",
+    "reason": "السبب",
+    "approve": "موافقة",
+    "reject": "رفض",
+    "rejectionNotePlaceholder": "أدخل سبب الرفض...",
+    "approvalNotePlaceholder": "ملاحظة اختيارية للموافقة...",
+    "processing": "جارٍ المعالجة...",
+    "confirmApprove": "تأكيد الموافقة",
+    "confirmReject": "تأكيد الرفض",
+    "cancel": "إلغاء"
   }
 }
