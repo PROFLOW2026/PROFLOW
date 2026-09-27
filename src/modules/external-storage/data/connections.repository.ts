@@ -161,13 +161,14 @@ export async function updateStorageConnection(
     !Object.prototype.hasOwnProperty.call(patch.capabilitiesJson, PROVISION_CHAIN_LEASE_KEY)
   ) {
     const rest = { ...patch.capabilitiesJson };
+    // Lease key must be SQL literals — binding it breaks Postgres type inference (42P18).
     setValues.capabilitiesJson = sql`(
       ${JSON.stringify(rest)}::jsonb
       || CASE
-        WHEN jsonb_exists(${organizationStorageConnections.capabilitiesJson}, ${PROVISION_CHAIN_LEASE_KEY})
+        WHEN jsonb_exists(${organizationStorageConnections.capabilitiesJson}, 'provisionChainLease')
         THEN jsonb_build_object(
-          ${PROVISION_CHAIN_LEASE_KEY},
-          ${organizationStorageConnections.capabilitiesJson}->${PROVISION_CHAIN_LEASE_KEY}
+          'provisionChainLease',
+          ${organizationStorageConnections.capabilitiesJson}->'provisionChainLease'
         )
         ELSE '{}'::jsonb
       END

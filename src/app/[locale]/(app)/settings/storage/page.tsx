@@ -4,9 +4,8 @@ import {
   isOrganizationStorageConfigured,
   listConfiguredStorageProviders,
   listOrganizationStorageConnections,
-  loadStorageProvisionProgress,
-  kickStorageProvisionIfPreparing,
 } from '@/modules/external-storage/server';
+import { loadStorageSettingsPageData } from '@/modules/external-storage/application/settings-page-data';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { hasPermission } from '@/shared/permissions/assert';
 import { withOrgContext } from '@/shared/auth/session';
@@ -34,64 +33,15 @@ export default async function StorageSettingsPage({
       listOrganizationStorageConnections(context),
       isOrganizationStorageConfigured(context),
     ]);
-    const { reconcileProjectTemplateGateState, healStorageConnectionTreeForSettings } =
-      await import('@/modules/external-storage/server');
-    const connections = await Promise.all(
-      rawConnections.map(async (connection) => {
-        if (connection.status !== 'connected') return connection;
-        let next = await reconcileProjectTemplateGateState(
-          context.db,
-          context.organizationId,
-          connection,
-        );
-        try {
-          next = await healStorageConnectionTreeForSettings(
-            context.db,
-            context.organizationId,
-            next,
-          );
-        } catch (error) {
-          const detail = error instanceof Error ? error.message : String(error);
-          const { updateStorageConnection } = await import(
-            '@/modules/external-storage/data/connections.repository'
-          );
-          const { withStorageTreeHealth } = await import(
-            '@/modules/external-storage/domain/storage-tree-health'
-          );
-          const capabilities = withStorageTreeHealth(next.capabilitiesJson, {
-            status: 'needs_repair',
-            reason: 'root_folder_missing',
-            checkedAt: new Date().toISOString(),
-          });
-          next =
-            (await updateStorageConnection(context.db, context.organizationId, next.id, {
-              capabilitiesJson: capabilities as Record<string, unknown>,
-              lastError: `storage_tree_invalid: ${detail}`.slice(0, 500),
-            })) ?? {
-              ...next,
-              capabilitiesJson: capabilities,
-              lastError: `storage_tree_invalid: ${detail}`.slice(0, 500),
-            };
-        }
-        return next;
-      }),
-    );
-    const connected = connections.filter((connection) => connection.status === 'connected');
-    const progressEntries = await Promise.all(
-      connected.map(async (connection) => [
-        connection.id,
-        await loadStorageProvisionProgress(context.db, context.organizationId, connection.id),
-      ] as const),
-    );
-    for (const [, progress] of progressEntries) {
-      kickStorageProvisionIfPreparing(progress);
-    }
+    const settingsData = await loadStorageSettingsPageData(context, rawConnections);
     return {
       allowed: true as const,
-      connections,
+      connections: settingsData.connections,
       storageActive,
       canManage: hasPermission(context, PERMISSIONS.SETTINGS_MANAGE),
-      provisionProgress: Object.fromEntries(progressEntries),
+      provisionProgress: settingsData.provisionProgress,
+      provisionProgressUnavailable: settingsData.provisionProgressUnavailable,
+      pageWarnings: settingsData.pageWarnings,
     };
   });
 
@@ -109,12 +59,16 @@ export default async function StorageSettingsPage({
     <SettingsPageShell title={t('title')}>
       {query.connected ? <AlertSuccess message={t('oauthSuccess')} /> : null}
       {query.error ? <AlertFailed message={t('oauthFailed')} /> : null}
+      {data.pageWarnings.map((warningKey) => (
+        <AlertWarning key={warningKey} message={t(warningKey)} />
+      ))}
       <StorageSettingsPanel
         connections={data.connections}
         configuredProviders={configuredProviders}
         storageActive={data.storageActive}
         canManage={data.canManage}
         provisionProgress={data.provisionProgress}
+        provisionProgressUnavailable={data.provisionProgressUnavailable}
       />
     </SettingsPageShell>
   );
@@ -131,6 +85,14 @@ function AlertSuccess({ message }: { message: string }) {
 function AlertFailed({ message }: { message: string }) {
   return (
     <div className="mb-4 rounded-md border border-[var(--pf-status-danger-border)] bg-[var(--pf-status-danger-bg)] px-4 py-3 text-sm">
+      {message}
+    </div>
+  );
+}
+
+function AlertWarning({ message }: { message: string }) {
+  return (
+    <div className="mb-4 rounded-md border border-[var(--pf-status-warning-border)] bg-[var(--pf-status-warning-bg)] px-4 py-3 text-sm">
       {message}
     </div>
   );

@@ -59,7 +59,7 @@ function storageLastErrorMessage(
   if (lastError === 'unauthorized' || lastError === 'token_expired' || lastError === 'missing_credentials') {
     return t('errors.reconnectRequired');
   }
-  return lastError;
+  return t('errors.settingsDiagnosticFailed');
 }
 
 export function StorageSettingsPanel({
@@ -68,12 +68,14 @@ export function StorageSettingsPanel({
   storageActive,
   canManage,
   provisionProgress,
+  provisionProgressUnavailable = {},
 }: {
   connections: readonly StorageConnectionRecord[];
   configuredProviders: readonly StorageProviderKey[];
   storageActive: boolean;
   canManage: boolean;
   provisionProgress: Readonly<Record<string, StorageProvisionProgress>>;
+  provisionProgressUnavailable?: Readonly<Record<string, boolean>>;
 }) {
   const t = useTranslations('externalStorage');
   const tStatus = useTranslations('externalStorage.status');
@@ -148,7 +150,8 @@ export function StorageSettingsPanel({
                     connection.lastError.startsWith('provision_failed') ||
                     connection.lastError.startsWith('storage_tree_invalid')) ? (
                     <Alert tone="warning">
-                      {storageLastErrorMessage(connection.lastError, t) ?? connection.lastError}
+                      {storageLastErrorMessage(connection.lastError, t) ??
+                        t('errors.settingsDiagnosticFailed')}
                     </Alert>
                   ) : null}
                   {connection &&
@@ -167,6 +170,8 @@ export function StorageSettingsPanel({
                       router={router}
                       t={t}
                     />
+                  ) : connection && provisionProgressUnavailable[connection.id] ? (
+                    <Alert tone="warning">{t('errors.settingsProvisionStatusUnavailable')}</Alert>
                   ) : connection && progress ? (
                     <StorageProvisionStatus progress={progress} t={t} />
                   ) : null}
