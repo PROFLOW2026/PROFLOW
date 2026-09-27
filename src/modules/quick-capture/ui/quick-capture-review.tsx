@@ -336,41 +336,50 @@ export function QuickCaptureReview({
     [initialData.ocrLive],
   );
 
+  const hasPreview =
+    capture.sessionKind === 'images' ||
+    (isVideo && soleDocument) ||
+    ((capture.sessionKind === 'pdf' || capture.sessionKind === 'file') && soleDocument);
+
   return (
-    <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(20rem,26rem)_minmax(0,1fr)] lg:items-start lg:gap-8">
-      <div className="flex min-w-0 flex-col gap-4 lg:max-w-[26rem]">
-        {capture.sessionKind === 'images' ? (
-          <QuickCaptureGallery
-            documents={initialData.documents}
-            selectable={ownerType === 'financial_document' && isMultiImage}
-            selectedDocumentId={selectedFinancialDocumentId}
-            onSelectDocument={handleSelectFinancialDocument}
-          />
-        ) : null}
+    <div className="mx-auto flex w-full max-w-[88rem] flex-col gap-6">
+      {hasPreview ? (
+        <div className="flex w-full flex-col gap-4 lg:items-center">
+          <div className="w-full lg:mx-auto lg:max-w-[28rem]">
+            {capture.sessionKind === 'images' ? (
+              <QuickCaptureGallery
+                documents={initialData.documents}
+                selectable={ownerType === 'financial_document' && isMultiImage}
+                selectedDocumentId={selectedFinancialDocumentId}
+                onSelectDocument={handleSelectFinancialDocument}
+              />
+            ) : null}
 
-        {isVideo && soleDocument ? (
-          <QuickCaptureVideoPreview
-            documentId={soleDocument.documentId}
-            mimeType={soleDocument.mimeType}
-          />
-        ) : null}
+            {isVideo && soleDocument ? (
+              <QuickCaptureVideoPreview
+                documentId={soleDocument.documentId}
+                mimeType={soleDocument.mimeType}
+              />
+            ) : null}
 
-        {(capture.sessionKind === 'pdf' || capture.sessionKind === 'file') && soleDocument ? (
-          <DocumentInlinePreview
-            documentId={soleDocument.documentId}
-            filename={soleDocument.fileName}
-            mimeType={soleDocument.mimeType}
-          />
-        ) : null}
-
-        {capture.ownerNote ? (
-          <div className="rounded-md border border-[var(--pf-border-default)] px-3 py-2 text-sm">
-            {capture.ownerNote}
+            {(capture.sessionKind === 'pdf' || capture.sessionKind === 'file') && soleDocument ? (
+              <DocumentInlinePreview
+                documentId={soleDocument.documentId}
+                filename={soleDocument.fileName}
+                mimeType={soleDocument.mimeType}
+              />
+            ) : null}
           </div>
-        ) : null}
-      </div>
 
-      <div className="flex min-w-0 flex-col gap-4">
+          {capture.ownerNote ? (
+            <div className="w-full rounded-md border border-[var(--pf-border-default)] px-3 py-2 text-sm lg:max-w-[88rem]">
+              {capture.ownerNote}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
+      <div className="flex min-w-0 w-full flex-col gap-4">
         {error ? (
           <Alert tone="danger" role="alert">
             {error}
