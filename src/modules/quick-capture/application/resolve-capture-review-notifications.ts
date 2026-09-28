@@ -1,5 +1,5 @@
 import type { OrgContext } from '@/shared/auth/context';
-import { resolveNotificationsRpc } from '@/modules/notifications/data/notifications.repository';
+import { resolveNotificationsAsSystem } from '@/modules/notifications/data/notifications.repository';
 
 /**
  * Resolves all open `capture_needs_review` notifications for a capture row.
@@ -9,8 +9,7 @@ export async function resolveCaptureReviewNotifications(
   context: OrgContext,
   captureId: string,
 ): Promise<number> {
-  return resolveNotificationsRpc(
-    context.db,
+  return resolveNotificationsAsSystem(
     context.organizationId,
     'capture_needs_review',
     captureId,

@@ -98,13 +98,13 @@ describe('command center collection cost', () => {
 });
 
 describe('notification bell shell', () => {
-  it('reads the stored unread count and does not collect the command center', async () => {
+  it('uses the merged inbox unread count for the initial badge', async () => {
     const loaderSource = readFileSync(
       path.join(process.cwd(), 'src/modules/notifications/ui/notification-bell-loader.tsx'),
       'utf8',
     );
-    expect(loaderSource).not.toMatch(/listMergedNotificationInbox|collectAllSources|getOrganizationProjectRollup/);
-    expect(loaderSource).toContain('countUnreadForRecipient');
+    expect(loaderSource).toContain('listMergedNotificationInbox');
+    expect(loaderSource).not.toMatch(/collectAllSources|getOrganizationProjectRollup/);
 
     const shellSource = readFileSync(
       path.join(process.cwd(), 'src/components/shell/app-shell.tsx'),
@@ -114,12 +114,13 @@ describe('notification bell shell', () => {
 
     unreadMock.mockClear();
     mergedInboxMock.mockClear();
+    mergedInboxMock.mockResolvedValue({ items: [], unreadCount: 12 });
     const { NotificationBellLoader } = await import(
       '@/modules/notifications/ui/notification-bell-loader'
     );
     const element = await NotificationBellLoader();
-    expect(unreadMock).toHaveBeenCalledTimes(1);
-    expect(mergedInboxMock).not.toHaveBeenCalled();
-    expect(element.props.initialInbox).toEqual({ items: [], unreadCount: 4 });
+    expect(mergedInboxMock).toHaveBeenCalledTimes(1);
+    expect(unreadMock).not.toHaveBeenCalled();
+    expect(element.props.initialInbox).toEqual({ items: [], unreadCount: 12 });
   });
 });

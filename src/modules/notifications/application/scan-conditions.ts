@@ -801,8 +801,7 @@ async function scanStaleCaptureReviewNotifications(
   for (const captureId of uniqueCaptureIds) {
     const status = statusById.get(captureId);
     if (!status || inboxStatuses.has(status)) continue;
-    resolved += await resolveNotificationsRpc(
-      ctx.context.db,
+    resolved += await resolveNotificationsAsSystem(
       ctx.context.organizationId,
       'capture_needs_review',
       captureId,
