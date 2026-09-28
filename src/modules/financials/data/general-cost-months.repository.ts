@@ -125,6 +125,8 @@ async function upsertOpenGeneralCostMonthInTx(
 
     readonly basisMode: string;
 
+    readonly allowFrozenReplace?: boolean;
+
   },
 
 ): Promise<GeneralCostMonthRow> {
@@ -155,7 +157,7 @@ async function upsertOpenGeneralCostMonthInTx(
 
 
 
-  if (locked?.status === 'frozen') {
+  if (locked?.status === 'frozen' && !input.allowFrozenReplace) {
 
     return locked;
 
@@ -193,7 +195,7 @@ async function upsertOpenGeneralCostMonthInTx(
 
           eq(generalCostMonths.organizationId, input.organizationId),
 
-          eq(generalCostMonths.status, 'open'),
+          ...(input.allowFrozenReplace ? [] : [eq(generalCostMonths.status, 'open')]),
 
         ),
 
@@ -601,6 +603,9 @@ export interface PersistGeneralCostMonthRecomputeInput {
 
   readonly basisMode: string;
 
+  /** Replace allocation/source children when month status is frozen (canonical retroactive refresh). */
+  readonly allowFrozenReplace?: boolean;
+
   readonly allocations: readonly {
 
     readonly projectId: string;
@@ -671,7 +676,7 @@ export async function persistGeneralCostMonthRecompute(
 
       const monthRow = await upsertOpenGeneralCostMonthInTx(tx, input);
 
-      if (monthRow.status === 'frozen') {
+      if (monthRow.status === 'frozen' && !input.allowFrozenReplace) {
 
         return monthRow;
 

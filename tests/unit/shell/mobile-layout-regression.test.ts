@@ -56,6 +56,7 @@ describe('mobile layout regressions', () => {
   it('positions FAB fixed to viewport with bottom-nav clearance on mobile', () => {
     const quickCreate = read('src/components/shell/quick-create.tsx');
     expect(quickCreate).toContain('QuickCreateFabPortal');
+    expect(quickCreate).toContain('useLocaleDir');
     expect(quickCreate).toContain('--pf-bottomnav-total-height');
     expect(quickCreate).toContain('inset-inline-end-4');
     expect(quickCreate).toContain('lg:bottom-[var(--pf-fab-gap)]');

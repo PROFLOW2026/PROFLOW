@@ -6,7 +6,7 @@
  * Remaining stock cost_basis is NEVER General Pool / operating Actual.
  */
 
-import { and, eq, inArray, isNotNull, sql } from 'drizzle-orm';
+import { and, eq, gte, inArray, isNotNull, lte, sql } from 'drizzle-orm';
 import { inventoryCostConsumptions } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 import {
@@ -110,8 +110,11 @@ export async function loadInventoryConsumptionContributionsForProjects(
   db: DbExecutor,
   organizationId: string,
   projectIds: readonly string[],
+  options?: { readonly yearMonth?: string },
 ): Promise<ProjectExpenseContribution[]> {
   if (projectIds.length === 0) return [];
+
+  const monthBounds = options?.yearMonth ? yearMonthDateBounds(options.yearMonth) : null;
 
   const rows = await db
     .select({
@@ -126,6 +129,12 @@ export async function loadInventoryConsumptionContributionsForProjects(
         inArray(inventoryCostConsumptions.projectId, [...projectIds]),
         eq(inventoryCostConsumptions.kind, 'project_consume'),
         isNotNull(inventoryCostConsumptions.projectId),
+        ...(monthBounds
+          ? [
+              gte(inventoryCostConsumptions.occurredOn, monthBounds.startDate),
+              lte(inventoryCostConsumptions.occurredOn, monthBounds.endDate),
+            ]
+          : []),
       ),
     )
     .groupBy(inventoryCostConsumptions.projectId, inventoryCostConsumptions.currency);

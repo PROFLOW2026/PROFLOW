@@ -5,7 +5,7 @@ import { previewAllocationFromPreparedInputs } from '@/modules/financials/applic
 const ILS = 'ILS';
 
 describe('batched GCM preview allocation', () => {
-  it('allocates many months from one basis without changing per-month math', () => {
+  it('allocates each month from that month basis when bases are identical', () => {
     const bases = [
       { projectId: 'a', directActual: money('75000', ILS) },
       { projectId: 'b', directActual: money('25000', ILS) },

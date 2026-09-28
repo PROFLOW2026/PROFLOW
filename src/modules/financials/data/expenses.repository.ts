@@ -8,7 +8,7 @@ import {
   organizations,
   vendors,
 } from '@drizzle/schema';
-import { currentYearMonth } from '@/modules/month-close';
+import { currentYearMonth, yearMonthFromBusinessDate } from '@/modules/month-close';
 import type { BusinessDate } from '@/shared/dates';
 import {
   divideMoney,
@@ -62,6 +62,17 @@ export async function loadExpenseContributionsForProjects(
   return loadExpenseContributions(db, organizationId, { projectIds });
 }
 
+/** Direct Actual expense contributions for one calendar month (GCM weight basis). */
+export async function loadExpenseContributionsForProjectsInMonth(
+  db: DbExecutor,
+  organizationId: string,
+  projectIds: readonly string[],
+  yearMonth: string,
+): Promise<ProjectExpenseContribution[]> {
+  if (projectIds.length === 0) return [];
+  return loadExpenseContributions(db, organizationId, { projectIds, yearMonth });
+}
+
 /**
  * Project Actual expense contributions.
  *
@@ -75,8 +86,14 @@ export async function loadExpenseContributionsForProjects(
 async function loadExpenseContributions(
   db: DbExecutor,
   organizationId: string,
-  scope: { readonly projectId?: string; readonly projectIds?: readonly string[] },
+  scope: {
+    readonly projectId?: string;
+    readonly projectIds?: readonly string[];
+    /** When set, only that month's recognized expense amounts (not cumulative). */
+    readonly yearMonth?: string;
+  },
 ): Promise<ProjectExpenseContribution[]> {
+  const { yearMonth } = scope;
   const directFilters = [
     eq(expenses.organizationId, organizationId),
     eq(expenses.status, 'finalized'),
@@ -105,6 +122,7 @@ async function loadExpenseContributions(
       classificationStatus: expenses.classificationStatus,
       workPackageId: expenses.workPackageId,
       installmentCount: expenses.installmentCount,
+      expenseDate: expenses.expenseDate,
       /** Cost code for budget-line mapping (0141). */
       costCodeId: expenses.costCodeId,
       /** Pre-computed base-currency equivalent for FX expenses (0141). */
@@ -152,6 +170,7 @@ async function loadExpenseContributions(
       /** Line-level cost code; fallback to header (0141). */
       allocationLineCostCodeId: expenseAllocations.costCodeId,
       parentCostCodeId: expenses.costCodeId,
+      parentExpenseDate: expenses.expenseDate,
     })
     .from(expenseAllocations)
     .innerJoin(expenses, eq(expenses.id, expenseAllocations.expenseId))
@@ -167,25 +186,43 @@ async function loadExpenseContributions(
         .map((row) => row.expenseId),
     ),
   ];
-  const installmentRecognition = await loadInstallmentRecognitionByExpense(
-    db,
-    organizationId,
-    installmentExpenseIds,
-  );
+  const installmentRecognition = yearMonth
+    ? null
+    : await loadInstallmentRecognitionByExpense(db, organizationId, installmentExpenseIds);
+  const monthInstallmentByExpense = yearMonth
+    ? await loadInstallmentAmountByExpenseForMonth(
+        db,
+        organizationId,
+        installmentExpenseIds,
+        yearMonth,
+      )
+    : null;
 
   const contributions: ProjectExpenseContribution[] = [];
 
   for (const row of directRows) {
+    const amount = yearMonth
+      ? resolveExpenseContributionAmountForMonth({
+          fullAmount: row.netAmount,
+          currency: row.currency,
+          installmentCount: row.installmentCount,
+          parentNet: row.netAmount,
+          expenseDate: row.expenseDate,
+          yearMonth,
+          monthInstallment: monthInstallmentByExpense?.get(row.expenseId),
+        })
+      : contributionAmountWithInstallments(
+          row.netAmount,
+          row.currency,
+          row.installmentCount,
+          row.netAmount,
+          installmentRecognition?.get(row.expenseId),
+        );
+    if (yearMonth && amount == null) continue;
     contributions.push({
       // Profitability uses NET - VAT must not inflate Actual Cost / margin.
       // Multi-month managerial schedules contribute recognized-to-date, not future lines.
-      amount: contributionAmountWithInstallments(
-        row.netAmount,
-        row.currency,
-        row.installmentCount,
-        row.netAmount,
-        installmentRecognition.get(row.expenseId),
-      ),
+      amount: amount ?? row.netAmount,
       currency: row.currency,
       costFamily: row.costFamily as DbCostFamily,
       isDirectOnProject: true,
@@ -218,14 +255,26 @@ async function loadExpenseContributions(
             row.parentGrossAmount,
             row.currency,
           );
+    const amount = yearMonth
+      ? resolveExpenseContributionAmountForMonth({
+          fullAmount: allocatedNet,
+          currency: row.currency,
+          installmentCount: row.installmentCount,
+          parentNet: row.parentNetAmount,
+          expenseDate: row.parentExpenseDate,
+          yearMonth,
+          monthInstallment: monthInstallmentByExpense?.get(row.expenseId),
+        })
+      : contributionAmountWithInstallments(
+          allocatedNet,
+          row.currency,
+          row.installmentCount,
+          row.parentNetAmount,
+          installmentRecognition?.get(row.expenseId),
+        );
+    if (yearMonth && amount == null) continue;
     contributions.push({
-      amount: contributionAmountWithInstallments(
-        allocatedNet,
-        row.currency,
-        row.installmentCount,
-        row.parentNetAmount,
-        installmentRecognition.get(row.expenseId),
-      ),
+      amount: amount ?? allocatedNet,
       currency: row.currency,
       costFamily: row.costFamily as DbCostFamily,
       isDirectOnProject: false,
@@ -1084,6 +1133,81 @@ export async function sumExpensesRequiringProjectAllocation(
 interface InstallmentRecognition {
   readonly recognizedAmount: string;
   readonly hasActiveLines: boolean;
+}
+
+type MonthInstallmentSlice = {
+  readonly hasActiveLines: true;
+  readonly lineAmount: string;
+};
+
+/** Sum scheduled|recognized schedule lines for one expense in one calendar month. */
+async function loadInstallmentAmountByExpenseForMonth(
+  db: DbExecutor,
+  organizationId: string,
+  expenseIds: readonly string[],
+  yearMonth: string,
+): Promise<Map<string, MonthInstallmentSlice>> {
+  const map = new Map<string, MonthInstallmentSlice>();
+  if (expenseIds.length === 0) return map;
+
+  const rows = await db
+    .select({
+      expenseId: expenseManagerialScheduleLines.expenseId,
+      amount: expenseManagerialScheduleLines.amount,
+      currency: expenseManagerialScheduleLines.currency,
+    })
+    .from(expenseManagerialScheduleLines)
+    .where(
+      and(
+        eq(expenseManagerialScheduleLines.organizationId, organizationId),
+        inArray(expenseManagerialScheduleLines.expenseId, [...expenseIds]),
+        eq(expenseManagerialScheduleLines.yearMonth, yearMonth),
+        inArray(expenseManagerialScheduleLines.status, ['scheduled', 'recognized']),
+      ),
+    );
+
+  const grouped = new Map<string, MoneyValue[]>();
+  for (const row of rows) {
+    const value = fromNumericString(row.amount, row.currency);
+    if (!value) continue;
+    const list = grouped.get(row.expenseId) ?? [];
+    list.push(value);
+    grouped.set(row.expenseId, list);
+  }
+
+  for (const [expenseId, parts] of grouped) {
+    if (parts.length === 0) continue;
+    const total = roundMoney(sumMoney(parts, parts[0]!.currency));
+    if (isZeroMoney(total)) continue;
+    map.set(expenseId, { hasActiveLines: true, lineAmount: total.amount });
+  }
+  return map;
+}
+
+function resolveExpenseContributionAmountForMonth(input: {
+  readonly fullAmount: string;
+  readonly currency: string;
+  readonly installmentCount: number;
+  readonly parentNet: string;
+  readonly expenseDate: string;
+  readonly yearMonth: string;
+  readonly monthInstallment: MonthInstallmentSlice | InstallmentRecognition | undefined;
+}): string | null {
+  if (input.installmentCount > 1 && input.monthInstallment?.hasActiveLines) {
+    const lineAmountRaw =
+      'lineAmount' in input.monthInstallment
+        ? input.monthInstallment.lineAmount
+        : input.monthInstallment.recognizedAmount;
+    const lineTotal = fromNumericString(lineAmountRaw, input.currency);
+    if (!lineTotal || isZeroMoney(lineTotal)) return null;
+    const parentNet = fromNumericString(input.parentNet, input.currency);
+    const slice = fromNumericString(input.fullAmount, input.currency);
+    if (!parentNet || !slice || isZeroMoney(parentNet)) return null;
+    if (slice.amount === parentNet.amount) return lineTotal.amount;
+    return roundMoney(divideMoney(multiplyMoney(lineTotal, slice.amount), parentNet.amount)).amount;
+  }
+  if (yearMonthFromBusinessDate(input.expenseDate) !== input.yearMonth) return null;
+  return input.fullAmount;
 }
 
 /**

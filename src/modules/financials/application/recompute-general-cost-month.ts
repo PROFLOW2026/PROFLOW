@@ -1,6 +1,6 @@
 /**
- * Recompute open-month general business cost pool and auto project allocations.
- * Frozen months are left unchanged (Month Close integrity).
+ * Recompute general business cost pool and auto project allocations for one month.
+ * Canonical inputs refresh frozen months in place (status stays frozen; children replaced).
  */
 
 import { and, eq, isNull } from 'drizzle-orm';
@@ -61,7 +61,7 @@ function observeGeneralCostRecomputeFailure(
 export interface RecomputeGeneralCostMonthResult {
   readonly yearMonth: string;
   readonly skipped: boolean;
-  readonly reason: null | 'frozen' | 'month_closed_without_row' | 'future_economic_period';
+  readonly reason: null | 'month_closed_without_row' | 'future_economic_period';
   readonly poolAmount: string;
   readonly allocatedAmount: string;
   readonly unallocatableAmount: string;
@@ -97,18 +97,6 @@ export async function recomputeGeneralCostMonth(
     yearMonth,
     currency,
   );
-  if (existing?.status === 'frozen') {
-    return {
-      yearMonth,
-      skipped: true,
-      reason: 'frozen',
-      poolAmount: existing.poolAmount,
-      allocatedAmount: existing.allocatedAmount,
-      unallocatableAmount: existing.unallocatableAmount,
-      projectCount: 0,
-    };
-  }
-
   const closed = await isMonthClosed(context, yearMonth);
   if (closed && !existing) {
     // Do not invent open-month rows under a closed period without Owner reopen flow.
@@ -272,7 +260,7 @@ export async function recomputeGeneralCostMonth(
   // Does not include general-cost allocation, so weights are not understated.
   const bases =
     eligibleIds.length > 0
-      ? await loadDirectActualBasisByProject(context, eligibleIds, currency)
+      ? await loadDirectActualBasisByProject(context, eligibleIds, currency, yearMonth)
       : [];
 
   const allocation = allocateGeneralPoolByDirectActual({ pool: autoPool, projects: bases });
@@ -289,6 +277,7 @@ export async function recomputeGeneralCostMonth(
     allocatedAmount: toNumericString(allocation.allocated),
     unallocatableAmount: toNumericString(unallocatableWithCompanyOnly),
     basisMode: allocation.basisMode,
+    allowFrozenReplace: true,
     allocations: allocation.lines.map((line) => ({
       projectId: line.projectId,
       directActualBasis: toNumericString(line.directActualBasis),
@@ -339,7 +328,7 @@ function resolveOpenGeneralCostYearMonth(
 
 /**
  * Recompute general-cost pool for an open month when recognition changes.
- * Skips frozen rows and closed periods without an open row (same guards as recompute).
+ * Skips closed periods without a row (same guard as recompute).
  */
 export async function recomputeOpenGeneralCostMonthForDate(
   context: OrgContext,

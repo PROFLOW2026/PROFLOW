@@ -806,14 +806,19 @@ export async function sumOpenApPayableForProjects(
  * Recognized vendor bills for many projects - bills + linked expenses in two queries.
  * Honors allocation-line precedence when the 0021 allocations gate is on.
  */
+function apBillRecognizedYearMonthSql() {
+  return sql<string>`to_char(coalesce(${apBills.billDate}, (${apBills.createdAt}::timestamptz)::date), 'YYYY-MM')`;
+}
+
 export async function loadRecognizedVendorBillsForProjects(
   db: DbExecutor,
   organizationId: string,
   projectIds: readonly string[],
   currency: string,
+  options?: { readonly yearMonth?: string },
 ): Promise<Map<string, RecognizedVendorBillRollup>> {
   const cached = getApOrgReadFactsCache(db as object);
-  if (cached) {
+  if (cached && !options?.yearMonth) {
     const folded = foldRecognizedVendorBillsForProjectsFromFacts(cached, projectIds, currency);
     const result = new Map<string, RecognizedVendorBillRollup>();
     for (const [projectId, rollup] of folded) {
@@ -851,6 +856,7 @@ export async function loadRecognizedVendorBillsForProjects(
           inArray(apBills.status, [...RECOGNIZED_VENDOR_BILL_STATUSES]),
           isNull(apBills.archivedAt),
           apBillNotStockPurchaseSql(),
+          ...(options?.yearMonth ? [eq(apBillRecognizedYearMonthSql(), options.yearMonth)] : []),
         ),
       );
 
@@ -1028,6 +1034,7 @@ export async function loadRecognizedVendorBillsForProjects(
         inArray(apBills.status, [...RECOGNIZED_VENDOR_BILL_STATUSES]),
         isNull(apBills.archivedAt),
         apBillNotStockPurchaseSql(),
+        ...(options?.yearMonth ? [eq(apBillRecognizedYearMonthSql(), options.yearMonth)] : []),
         or(
           inArray(apBills.projectId, projectIdList),
           sql`EXISTS (

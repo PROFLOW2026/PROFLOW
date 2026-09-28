@@ -1,6 +1,8 @@
 /**
  * Batched Direct Actual basis for GCM weighting — same compose math as
  * `loadProjectFinancialsBatch({ directActualBasisOnly })`, without per-project full compose.
+ *
+ * When `yearMonth` is set, basis is that calendar month only (pool month = weight month).
  */
 
 import type { OrgContext } from '@/shared/auth/context';
@@ -22,6 +24,9 @@ import {
 } from '../domain/cost-aggregation';
 import { applyLinkedExpenseDeductionsToContributions } from '../domain/expense-ap-dedup';
 import { loadRecognizedVendorBillsForProjects } from '../data/committed-costs.repository';
+import { loadExpenseContributionsForProjectsInMonth } from '../data/expenses.repository';
+import { loadInventoryConsumptionContributionsForProjects } from '../data/inventory-consumptions.repository';
+import { loadMonthCloseEconomicForProjects } from '../data/month-close-economic.repository';
 import {
   loadCachedOrganizationExpenseContributions,
   loadCachedInventoryContributionsForProjects,
@@ -33,6 +38,7 @@ export async function loadDirectActualBasisByProject(
   context: OrgContext,
   projectIds: readonly string[],
   currency: string,
+  yearMonth: string,
 ): Promise<readonly DirectActualAllocationBasis[]> {
   if (projectIds.length === 0) return [];
 
@@ -48,18 +54,22 @@ export async function loadDirectActualBasisByProject(
   const [allExpenses, laborByProject, monthlyLaborByProject, recognizedByProject, monthCloseByProject, inventoryRows] =
     await Promise.all([
       canReadExpenses
-        ? loadCachedOrganizationExpenseContributions(context.db, context.organizationId)
-        : Promise.resolve([] as readonly ProjectExpenseContribution[]),
-      canReadWorkforce
-        ? sumLaborCostGroupedByProject(context.db, context.organizationId, projectIds, normalized)
-        : Promise.resolve(new Map()),
-      monthCostsReady
-        ? sumMonthlyAllocatedLaborByProject(
+        ? loadExpenseContributionsForProjectsInMonth(
             context.db,
             context.organizationId,
             projectIds,
-            normalized,
+            yearMonth,
           )
+        : Promise.resolve([] as readonly ProjectExpenseContribution[]),
+      canReadWorkforce
+        ? sumLaborCostGroupedByProject(context.db, context.organizationId, projectIds, normalized, {
+            onlyYearMonth: yearMonth,
+          })
+        : Promise.resolve(new Map()),
+      monthCostsReady
+        ? sumMonthlyAllocatedLaborByProject(context.db, context.organizationId, projectIds, normalized, {
+            onlyYearMonths: [yearMonth],
+          })
         : Promise.resolve(new Map()),
       canReadAp
         ? loadRecognizedVendorBillsForProjects(
@@ -67,19 +77,22 @@ export async function loadDirectActualBasisByProject(
             context.organizationId,
             projectIds,
             normalized,
+            { yearMonth },
           )
         : Promise.resolve(new Map()),
-      loadCachedMonthCloseEconomicForProjects(
+      loadMonthCloseEconomicForProjects(
         context.db,
         context.organizationId,
         projectIds,
         normalized,
+        { yearMonth },
       ),
       canReadExpenses
-        ? loadCachedInventoryContributionsForProjects(
+        ? loadInventoryConsumptionContributionsForProjects(
             context.db,
             context.organizationId,
             projectIds,
+            { yearMonth },
           )
         : Promise.resolve([] as ProjectExpenseContribution[]),
     ]);
@@ -163,8 +176,141 @@ export async function loadDirectActualBasisByProject(
 
   if (process.env.PF_TAB_PROFILE === '1') {
     console.error(
-      `[gcm-basis] projects=${projectIds.length} ms=${Math.round(performance.now() - t0)}`,
+      `[gcm-basis] month=${yearMonth} projects=${projectIds.length} ms=${Math.round(performance.now() - t0)}`,
     );
+  }
+
+  return result;
+}
+
+/** Cumulative Direct Actual (profitability surfaces) — not used for GCM weights. */
+export async function loadDirectActualBasisByProjectToDate(
+  context: OrgContext,
+  projectIds: readonly string[],
+  currency: string,
+): Promise<readonly DirectActualAllocationBasis[]> {
+  if (projectIds.length === 0) return [];
+
+  const canReadExpenses = hasPermission(context, PERMISSIONS.EXPENSES_READ);
+  const canReadAp = hasPermission(context, PERMISSIONS.AP_READ);
+  const canReadWorkforce = hasPermission(context, PERMISSIONS.WORKFORCE_READ);
+  const monthCostsReady = canReadWorkforce && areEmployeeMonthCostsAvailable();
+  const normalized = currency.toUpperCase();
+  const projectIdSet = new Set(projectIds);
+
+  const [allExpenses, laborByProject, monthlyLaborByProject, recognizedByProject, monthCloseByProject, inventoryRows] =
+    await Promise.all([
+      canReadExpenses
+        ? loadCachedOrganizationExpenseContributions(context.db, context.organizationId)
+        : Promise.resolve([] as readonly ProjectExpenseContribution[]),
+      canReadWorkforce
+        ? sumLaborCostGroupedByProject(context.db, context.organizationId, projectIds, normalized)
+        : Promise.resolve(new Map()),
+      monthCostsReady
+        ? sumMonthlyAllocatedLaborByProject(
+            context.db,
+            context.organizationId,
+            projectIds,
+            normalized,
+          )
+        : Promise.resolve(new Map()),
+      canReadAp
+        ? loadRecognizedVendorBillsForProjects(
+            context.db,
+            context.organizationId,
+            projectIds,
+            normalized,
+          )
+        : Promise.resolve(new Map()),
+      loadCachedMonthCloseEconomicForProjects(
+        context.db,
+        context.organizationId,
+        projectIds,
+        normalized,
+      ),
+      canReadExpenses
+        ? loadCachedInventoryContributionsForProjects(
+            context.db,
+            context.organizationId,
+            projectIds,
+          )
+        : Promise.resolve([] as ProjectExpenseContribution[]),
+    ]);
+
+  const inventoryByProject = groupContributionsByProject(inventoryRows);
+  const expensesByProject = groupContributionsByProject(
+    allExpenses.filter((row) => row.projectId != null && projectIdSet.has(row.projectId)),
+  );
+
+  const result: DirectActualAllocationBasis[] = [];
+  for (const projectId of projectIds) {
+    const projectCurrency = normalized;
+    const expenseLines = canReadExpenses
+      ? [...(expensesByProject.get(projectId) ?? []), ...(inventoryByProject.get(projectId) ?? [])]
+      : [];
+
+    const laborAgg = laborByProject.get(projectId);
+    const monthlyAgg = monthlyLaborByProject.get(projectId);
+    const residualTimeLabor =
+      fromNumericString(laborAgg?.totalAmount ?? '0', projectCurrency) ?? zeroMoney(projectCurrency);
+    const monthlyAllocatedLabor =
+      fromNumericString(monthlyAgg?.totalAmount ?? '0', projectCurrency) ?? zeroMoney(projectCurrency);
+    const hasWorkforce = hasWorkforceLaborData({
+      residualEntryCount: laborAgg?.entryCount ?? 0,
+      monthlyAllocatedLabor,
+    });
+
+    const laborInput =
+      canReadWorkforce && hasWorkforce
+        ? {
+            laborCost: mergeResidualTimeAndMonthlyAllocatedLabor({
+              residualTimeLabor,
+              monthlyAllocatedLabor,
+            }),
+            hasWorkforceData: true as const,
+            entriesMissingCost: laborAgg?.entriesMissingCost ?? 0,
+            excludedForeignCurrencyEntries: laborAgg?.excludedForeignCurrencyEntries ?? 0,
+          }
+        : null;
+
+    const recognized = canReadAp ? recognizedByProject.get(projectId) : null;
+    const linked = recognized?.linkedExpenseDeductions ?? new Map<string, string>();
+    const expensesForActual = applyLinkedExpenseDeductionsToContributions(expenseLines, linked);
+
+    const hasRecognizedBills = (recognized?.billCount ?? 0) > 0;
+    let cost =
+      expensesForActual.length > 0 || laborInput?.hasWorkforceData || hasRecognizedBills
+        ? aggregateProjectCosts(expensesForActual, laborInput, projectCurrency).cost
+        : aggregateProjectCosts([], null, projectCurrency).cost;
+
+    if (recognized) {
+      const recognition = composeVendorCostRecognition({
+        currency: projectCurrency,
+        recognizedBillAmounts: recognized.billAmounts,
+        linkedExpenseAmounts: [],
+      });
+      cost = withRecognizedVendorBills(cost, recognition.netRecognizedVendorActual);
+    }
+
+    const monthClose = monthCloseByProject.get(projectId)?.costNet;
+    if (monthClose && !isZeroMoney(monthClose) && monthClose.currency === projectCurrency) {
+      const actualCostToDate = roundMoney(addMoney(cost.actualCostToDate, monthClose));
+      cost = {
+        ...cost,
+        actualCostToDate,
+        directActualCostToDate: actualCostToDate,
+      };
+    } else {
+      cost = {
+        ...cost,
+        directActualCostToDate: roundMoney(cost.actualCostToDate),
+      };
+    }
+
+    result.push({
+      projectId,
+      directActual: cost.directActualCostToDate ?? cost.actualCostToDate,
+    });
   }
 
   return result;

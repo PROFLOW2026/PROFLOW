@@ -59,30 +59,41 @@ export type DirectActualAllocationBasis = {
   readonly directActual: MoneyValue;
 };
 
-const allocationBasesByDb = new WeakMap<object, Promise<readonly DirectActualAllocationBasis[]>>();
+const allocationBasesByMonth = new WeakMap<
+  object,
+  Map<string, Promise<readonly DirectActualAllocationBasis[]>>
+>();
 
-/** One org-wide Direct Actual basis load per DB transaction — never per GCM month. */
+/** Direct Actual basis for one GCM month (same month as pool weights). */
 export async function loadDirectActualAllocationBases(
   context: OrgContext,
+  yearMonth: string,
 ): Promise<readonly DirectActualAllocationBasis[]> {
-  const key = context.db as object;
-  const hit = allocationBasesByDb.get(key);
+  const dbKey = context.db as object;
+  let byMonth = allocationBasesByMonth.get(dbKey);
+  if (!byMonth) {
+    byMonth = new Map();
+    allocationBasesByMonth.set(dbKey, byMonth);
+  }
+  const hit = byMonth.get(yearMonth);
   if (hit) return hit;
-  const pending = loadDirectActualAllocationBasesUncached(context);
-  allocationBasesByDb.set(key, pending);
+  const pending = loadDirectActualAllocationBasesUncached(context, yearMonth);
+  byMonth.set(yearMonth, pending);
   return pending;
 }
 
 async function loadDirectActualAllocationBasesUncached(
   context: OrgContext,
+  yearMonth: string,
 ): Promise<readonly DirectActualAllocationBasis[]> {
   return timedPhase('loadDirectActualAllocationBases', () =>
-    loadDirectActualAllocationBasesUncachedInner(context),
+    loadDirectActualAllocationBasesUncachedInner(context, yearMonth),
   );
 }
 
 async function loadDirectActualAllocationBasesUncachedInner(
   context: OrgContext,
+  yearMonth: string,
 ): Promise<readonly DirectActualAllocationBasis[]> {
   const currency = context.organization.baseCurrency;
   const projectRows = await context.db
@@ -100,7 +111,7 @@ async function loadDirectActualAllocationBasesUncachedInner(
     .filter((row) => (row.currency ?? currency).toUpperCase() === currency.toUpperCase())
     .map((row) => row.id);
 
-  return loadDirectActualBasisByProject(context, eligibleIds, currency);
+  return loadDirectActualBasisByProject(context, eligibleIds, currency, yearMonth);
 }
 
 function sourcesFromMonthTotals(input: {
@@ -359,14 +370,20 @@ export async function previewGeneralCostMonthAllocations(
   if (yearMonths.length === 0) return result;
   const allowFuture = options?.allowFuture === true;
   const currency = context.organization.baseCurrency;
-  const [bases, existingByMonth, closedMonths, sourcesByMonth] = await Promise.all([
-    loadDirectActualAllocationBases(context),
+  const [existingByMonth, closedMonths, sourcesByMonth] = await Promise.all([
     listGeneralCostMonthsByYearMonth(context, yearMonths),
     listClosedYearMonths(context, yearMonths),
     timedPhase('gatherGeneralCostSourcesByMonths', () =>
       gatherGeneralCostSourcesByMonths(context, yearMonths),
     ),
   ]);
+  const basesByMonth = await Promise.all(
+    yearMonths.map(async (yearMonth) => ({
+      yearMonth,
+      bases: await loadDirectActualAllocationBases(context, yearMonth),
+    })),
+  );
+  const basesMap = new Map(basesByMonth.map((entry) => [entry.yearMonth, entry.bases]));
   for (const yearMonth of yearMonths) {
     result.set(
       yearMonth,
@@ -378,7 +395,7 @@ export async function previewGeneralCostMonthAllocations(
         existing: existingByMonth.get(yearMonth),
         monthClosed: closedMonths.has(yearMonth),
         sources: sourcesByMonth.get(yearMonth) ?? [],
-        bases,
+        bases: basesMap.get(yearMonth) ?? [],
       }),
     );
   }

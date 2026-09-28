@@ -1,5 +1,5 @@
 import { and, eq, inArray, isNotNull } from 'drizzle-orm';
-import { monthCloseAdjustments } from '@drizzle/schema';
+import { monthCloseAdjustments, monthClosePeriods } from '@drizzle/schema';
 import { netEconomicAdjustments } from '@/modules/month-close/domain/economic-corrections';
 import { zeroMoney, type MoneyValue } from '@/shared/money';
 import type { DbExecutor } from '@/shared/db/types';
@@ -32,6 +32,7 @@ export async function loadMonthCloseEconomicForProjects(
   organizationId: string,
   projectIds: readonly string[],
   currency: string,
+  options?: { readonly yearMonth?: string },
 ): Promise<Map<string, MonthCloseEconomicNets>> {
   const result = new Map<string, MonthCloseEconomicNets>();
   if (projectIds.length === 0) return result;
@@ -46,11 +47,13 @@ export async function loadMonthCloseEconomicForProjects(
       supersedesAdjustmentId: monthCloseAdjustments.supersedesAdjustmentId,
     })
     .from(monthCloseAdjustments)
+    .innerJoin(monthClosePeriods, eq(monthCloseAdjustments.periodId, monthClosePeriods.id))
     .where(
       and(
         eq(monthCloseAdjustments.organizationId, organizationId),
         inArray(monthCloseAdjustments.projectId, [...projectIds]),
         isNotNull(monthCloseAdjustments.amount),
+        ...(options?.yearMonth ? [eq(monthClosePeriods.yearMonth, options.yearMonth)] : []),
       ),
     );
 

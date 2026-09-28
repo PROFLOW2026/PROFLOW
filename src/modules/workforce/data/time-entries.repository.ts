@@ -14,6 +14,7 @@ import {
   resolveListOffset,
 } from '@/shared/db/list-limits';
 import type { DbExecutor } from '@/shared/db/types';
+import { yearMonthBounds } from '@/modules/month-close/domain/year-month';
 import { coerceBusinessDate, type BusinessDate } from '@/shared/dates';
 import { areEmployeeMonthCostsAvailable } from '../domain/monthly-cost-gates';
 import type {
@@ -487,12 +488,14 @@ export async function sumLaborCostGroupedByProject(
   organizationId: string,
   projectIds: readonly string[],
   projectCurrency: string,
+  options?: { readonly onlyYearMonth?: string },
 ): Promise<Map<string, ProjectLaborCostAggregate>> {
   const result = new Map<string, ProjectLaborCostAggregate>();
   if (projectIds.length === 0) return result;
 
   const displacement = notDisplacedByMonthlyAllocation(db, organizationId);
   const effectiveCost = effectiveLaborCostAmountExpr();
+  const monthBounds = options?.onlyYearMonth ? yearMonthBounds(options.onlyYearMonth) : null;
   const rows = await db
     .select({
       projectId: timeEntries.projectId,
@@ -518,6 +521,12 @@ export async function sumLaborCostGroupedByProject(
         eq(timeEntries.status, 'recorded'),
         eq(timeEntries.approvalStatus, 'approved'),
         isNull(timeEntries.archivedAt),
+        ...(monthBounds
+          ? [
+              gte(timeEntries.workDate, monthBounds.startDate),
+              lte(timeEntries.workDate, monthBounds.endDate),
+            ]
+          : []),
         ...(displacement ? [displacement] : []),
       ),
     )

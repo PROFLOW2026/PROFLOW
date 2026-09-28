@@ -1,0 +1,115 @@
+{
+  "organizationId": "8ef9e353-ca0c-4cad-b0c7-c2de612eb1ec",
+  "repairedAt": "2026-09-28T19:56:21.763Z",
+  "monthsRecomputed": [
+    "2026-01",
+    "2026-02",
+    "2026-03",
+    "2026-04",
+    "2026-05",
+    "2026-06",
+    "2026-07",
+    "2026-08",
+    "2026-09"
+  ],
+  "monthsSkippedFuture": ["2026-10", "2026-11", "2026-12"],
+  "september2026": {
+    "before": {
+      "autoPoolDistributable": 6920.03,
+      "allocations": [
+        {
+          "project": "ברנדייס",
+          "projectId": "f3f79519-fed6-4307-81ac-0a7bd11df986",
+          "directActualBasisCumulative": 186528.35,
+          "weightPercent": 33.7302,
+          "allocatedAmount": 2334.14
+        },
+        {
+          "project": "פינס",
+          "projectId": "ee7cb842-bbd1-4188-b95e-9f98446c92aa",
+          "directActualBasisCumulative": 217374.47,
+          "weightPercent": 39.3082,
+          "allocatedAmount": 2720.14
+        },
+        {
+          "project": "חורגין",
+          "projectId": "685e5343-606e-43fb-b5b2-d2b3bc2f9662",
+          "directActualBasisCumulative": 148723.1,
+          "weightPercent": 26.8938,
+          "allocatedAmount": 1861.06
+        },
+        {
+          "project": "ויתקין",
+          "projectId": "13e2886d-8fe3-47fd-be89-f9c66cbd4c71",
+          "directActualBasisCumulative": 375,
+          "weightPercent": 0.0678,
+          "allocatedAmount": 4.69
+        }
+      ],
+      "reconciliationSum": 6920.03
+    },
+    "after": {
+      "poolTotal": 18517.87,
+      "autoPoolDistributable": 6920.03,
+      "companyOnlyUnallocatable": 11597.84,
+      "monthlyDirectActualByProject": [
+        {
+          "project": "ברנדייס",
+          "projectId": "f3f79519-fed6-4307-81ac-0a7bd11df986",
+          "directActualMonthly": 12250
+        },
+        {
+          "project": "חורגין",
+          "projectId": "685e5343-606e-43fb-b5b2-d2b3bc2f9662",
+          "directActualMonthly": 21806.53
+        },
+        {
+          "project": "פינס",
+          "projectId": "ee7cb842-bbd1-4188-b95e-9f98446c92aa",
+          "directActualMonthly": 1125
+        },
+        {
+          "project": "ויתקין",
+          "projectId": "13e2886d-8fe3-47fd-be89-f9c66cbd4c71",
+          "directActualMonthly": 375
+        }
+      ],
+      "allocations": [
+        {
+          "project": "ברנדייס",
+          "projectId": "f3f79519-fed6-4307-81ac-0a7bd11df986",
+          "directActualBasisMonthly": 12250,
+          "weightPercent": 34.4522,
+          "allocatedAmount": 2384.1
+        },
+        {
+          "project": "חורגין",
+          "projectId": "685e5343-606e-43fb-b5b2-d2b3bc2f9662",
+          "directActualBasisMonthly": 21806.53,
+          "weightPercent": 61.3292,
+          "allocatedAmount": 4244
+        },
+        {
+          "project": "פינס",
+          "projectId": "ee7cb842-bbd1-4188-b95e-9f98446c92aa",
+          "directActualBasisMonthly": 1125,
+          "weightPercent": 3.164,
+          "allocatedAmount": 218.95
+        },
+        {
+          "project": "ויתקין",
+          "projectId": "13e2886d-8fe3-47fd-be89-f9c66cbd4c71",
+          "directActualBasisMonthly": 375,
+          "weightPercent": 1.0547,
+          "allocatedAmount": 72.98
+        }
+      ],
+      "reconciliation": {
+        "allocatedSum": 6920.03,
+        "autoPoolDistributable": 6920.03,
+        "pass": true
+      },
+      "computedAt": "2026-09-28T19:57:01.327Z"
+    }
+  }
+}

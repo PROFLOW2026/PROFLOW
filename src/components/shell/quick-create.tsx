@@ -2,6 +2,7 @@
 
 import { Plus } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { useLocaleDir } from '@/shared/i18n/direction';
 import { Suspense, useSyncExternalStore, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import {
@@ -23,13 +24,14 @@ export interface QuickCreateAction {
 }
 
 function QuickCreateFabPortal({ children }: { children: ReactNode }) {
+  const localeDir = useLocaleDir();
   const mounted = useSyncExternalStore(
     () => () => {},
     () => true,
     () => false,
   );
   if (!mounted || typeof document === 'undefined') return null;
-  return createPortal(children, document.body);
+  return createPortal(<div dir={localeDir}>{children}</div>, document.body);
 }
 
 function QuickCreateMenu({ actions }: { actions: QuickCreateAction[] }) {
