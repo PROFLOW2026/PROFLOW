@@ -11,7 +11,6 @@ import {
   loadTaskAssigneeDisplayMap,
 } from '@/modules/tasks/application/enrich-task-assignees';
 import { employeePermissionScope } from '@/modules/employee-app/application/load-employee-app-context';
-import { employeeCanUpdateTaskGrant } from '@/modules/employee-app/application/task-permission-scope';
 import { listEmployeePmTasks } from './employee-pm-tasks';
 import type { EmployeeTaskListItem } from '../ui/employee-filter-logic';
 
@@ -87,11 +86,6 @@ export async function buildEmployeeTaskListPayload(
     loadAssigneeEmployeeIdsByTask(context, taskIds),
   ]);
 
-  const updateScope =
-    employeePermissionScope(context, PERMISSIONS.TASKS_UPDATE) ??
-    employeePermissionScope(context, PERMISSIONS.TASKS_MANAGE_ALL);
-  const canUpdateGrant = employeeCanUpdateTaskGrant(context);
-
   const assigneeNameById = new Map<string, string>();
   const tasks: EmployeeTaskListItem[] = rows.map((row) => {
     const assigneeEmployeeIds = assigneeEmployeeIdsByTask.get(row.id) ?? [];
@@ -105,14 +99,7 @@ export async function buildEmployeeTaskListPayload(
       if (label) assigneeNameById.set(id, label);
     }
 
-    let canPostpone = false;
-    if (canUpdateGrant) {
-      if (updateScope === 'self_only') {
-        canPostpone = assigneeEmployeeIds.includes(employeeId);
-      } else {
-        canPostpone = true;
-      }
-    }
+    const canPostpone = assigneeEmployeeIds.includes(employeeId);
 
     return {
       id: row.id,

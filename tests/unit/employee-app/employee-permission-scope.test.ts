@@ -5,6 +5,7 @@ import { resolveEmployeeAppEffectivePermissions } from '@/modules/employee-app/a
 import { grantsMapFromPreset } from '@/modules/employee-app/application/permission-editor';
 import {
   employeeCanExerciseTaskPermission,
+  employeeCanPostponeTask,
   employeeCanUpdateTaskGrant,
 } from '@/modules/employee-app/application/task-permission-scope';
 import { resolveAccessibleProjectIdsForUser } from '@/modules/employee-app/application/project-scope';
@@ -84,6 +85,37 @@ describe('employee task permission scope', () => {
       'emp-self',
     );
     expect(canUpdateAssignedTask).toBe(true);
+  });
+
+  it('assigned employee with tasks.read can postpone without tasks.update', async () => {
+    const context = contextFromGrants([{ permissionKey: PERMISSIONS.TASKS_READ, scope: 'self_only' }]);
+    expect(employeeCanUpdateTaskGrant(context)).toBe(false);
+    await expect(
+      employeeCanPostponeTask(context, { taskId: 'task-1', projectId: 'proj-1' }, 'emp-self'),
+    ).resolves.toBe(true);
+  });
+
+  it('employee without assignee row cannot postpone even with tasks.read', async () => {
+    const context: OrgContext = {
+      ...contextFromGrants([{ permissionKey: PERMISSIONS.TASKS_READ, scope: 'self_only' }]),
+      db: {
+        select: vi.fn().mockReturnValue({
+          from: vi.fn().mockReturnValue({
+            where: vi.fn().mockResolvedValue([]),
+          }),
+        }),
+      } as unknown as OrgContext['db'],
+    };
+    await expect(
+      employeeCanPostponeTask(context, { taskId: 'task-1', projectId: 'proj-1' }, 'emp-self'),
+    ).resolves.toBe(false);
+  });
+
+  it('employee without tasks.read cannot postpone', async () => {
+    const context = contextFromGrants([{ permissionKey: PERMISSIONS.TASKS_UPDATE, scope: 'self_only' }]);
+    await expect(
+      employeeCanPostponeTask(context, { taskId: 'task-1', projectId: 'proj-1' }, 'emp-self'),
+    ).resolves.toBe(false);
   });
 });
 

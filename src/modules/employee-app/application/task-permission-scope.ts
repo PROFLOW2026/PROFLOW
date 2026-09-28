@@ -103,6 +103,50 @@ export async function assertEmployeeCanExerciseTaskPermission(
   }
 }
 
+/**
+ * Narrow self-service rule: assigned employees may postpone a task they can read.
+ * Does not require tasks.update or tasks.manage_all.
+ */
+export async function employeeCanPostponeTask(
+  context: OrgContext,
+  task: EmployeeTaskRef,
+  employeeId: string,
+): Promise<boolean> {
+  if (!employeeHasPermission(context, PERMISSIONS.TASKS_READ)) return false;
+
+  const canRead = await employeeCanExerciseTaskPermission(
+    context,
+    PERMISSIONS.TASKS_READ,
+    task,
+    employeeId,
+  );
+  if (!canRead) return false;
+
+  const [assignee] = await context.db
+    .select({ id: taskAssignees.id })
+    .from(taskAssignees)
+    .where(
+      and(
+        eq(taskAssignees.taskId, task.taskId),
+        eq(taskAssignees.employeeId, employeeId),
+        eq(taskAssignees.organizationId, context.organizationId),
+      ),
+    );
+  return Boolean(assignee);
+}
+
+export async function assertEmployeeCanPostponeTask(
+  context: OrgContext,
+  task: EmployeeTaskRef,
+  employeeId: string,
+): Promise<void> {
+  const allowed = await employeeCanPostponeTask(context, task, employeeId);
+  if (!allowed) {
+    const { NotFoundError } = await import('@/shared/errors');
+    throw new NotFoundError('Task');
+  }
+}
+
 export async function employeeCanCreateTaskInProject(
   context: OrgContext,
   projectId: string,

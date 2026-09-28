@@ -22,8 +22,10 @@ import { employeePermissionScope } from './load-employee-app-context';
 import { assertEmployeeProjectScope, resolveAccessibleProjectIdsForEmployeePermission } from './project-scope';
 import {
   assertEmployeeCanExerciseTaskPermission,
+  assertEmployeeCanPostponeTask,
   employeeCanCreateTaskInProject,
   employeeCanExerciseTaskPermission,
+  employeeCanPostponeTask,
   employeeCanUpdateTaskGrant,
   employeeHasTaskMutationGrant,
 } from './task-permission-scope';
@@ -622,9 +624,6 @@ export async function updateEmployeePmTaskDueDate(
   input: EmployeePmTaskPostponementInput,
 ): Promise<{ newDueDate: string }> {
   const employeeId = requireEmployeeId(context);
-  if (!employeeCanUpdateTaskGrant(context)) {
-    throw new DomainRuleError('No permission to update tasks', 'employeeApp.errors.notAuthorized');
-  }
 
   const trimmedReason = input.reason?.trim() || null;
 
@@ -646,11 +645,8 @@ export async function updateEmployeePmTaskDueDate(
     );
   if (!task) throw new NotFoundError('Task');
 
-  const updateScope = employeePermissionScope(context, PERMISSIONS.TASKS_UPDATE);
-  const permissionKey = updateScope ? PERMISSIONS.TASKS_UPDATE : PERMISSIONS.TASKS_MANAGE_ALL;
-  await assertEmployeeCanExerciseTaskPermission(
+  await assertEmployeeCanPostponeTask(
     context,
-    permissionKey,
     { taskId, projectId: task.projectId },
     employeeId,
   );
@@ -781,6 +777,7 @@ export async function toggleEmployeePmTaskChecklistItem(
 export interface EmployeePmTaskCapabilities {
   readonly canRead: boolean;
   readonly canUpdate: boolean;
+  readonly canPostpone: boolean;
   readonly canComment: boolean;
   readonly canAssign: boolean;
   readonly canApprove: boolean;
@@ -792,7 +789,7 @@ export async function getEmployeePmTaskCapabilities(
 ): Promise<EmployeePmTaskCapabilities> {
   const employeeId = requireEmployeeId(context);
   const taskRef = { taskId: task.id, projectId: task.projectId };
-  const [canUpdate, canComment, canAssign, canApprove] = await Promise.all([
+  const [canUpdate, canPostpone, canComment, canAssign, canApprove] = await Promise.all([
     employeeCanExerciseTaskPermission(context, PERMISSIONS.TASKS_UPDATE, taskRef, employeeId).then(
       (direct) =>
         direct ||
@@ -803,6 +800,7 @@ export async function getEmployeePmTaskCapabilities(
           employeeId,
         ),
     ),
+    employeeCanPostponeTask(context, taskRef, employeeId),
     employeeCanExerciseTaskPermission(context, PERMISSIONS.TASKS_COMMENT, taskRef, employeeId),
     employeeCanExerciseTaskPermission(context, PERMISSIONS.TASKS_ASSIGN, taskRef, employeeId),
     employeeCanExerciseTaskPermission(context, PERMISSIONS.TASKS_APPROVE, taskRef, employeeId),
@@ -810,6 +808,7 @@ export async function getEmployeePmTaskCapabilities(
   return {
     canRead: true,
     canUpdate,
+    canPostpone,
     canComment,
     canAssign,
     canApprove,

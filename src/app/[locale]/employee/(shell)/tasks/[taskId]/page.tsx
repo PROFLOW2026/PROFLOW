@@ -74,6 +74,7 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
 
   let task: Awaited<ReturnType<typeof getEmployeePmTaskDetail>>;
   let canUpdate = false;
+  let canPostpone = false;
   let canComment = false;
   let canAssign = false;
   let canApprove = false;
@@ -110,6 +111,7 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
       return {
         task: detail,
         canUpdate: capabilities.canUpdate,
+        canPostpone: capabilities.canPostpone,
         canComment: capabilities.canComment,
         canAssign: capabilities.canAssign,
         canApprove: capabilities.canApprove,
@@ -126,6 +128,7 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
     });
     task = result.task;
     canUpdate = result.canUpdate;
+    canPostpone = result.canPostpone;
     canComment = result.canComment;
     canAssign = result.canAssign;
     canApprove = result.canApprove;
@@ -169,7 +172,7 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
               {t('dueDate', { date: task.dueDate })}
             </span>
           ) : null}
-          {canUpdate ? (
+          {canPostpone ? (
             <EmployeePostponeMenu taskId={taskId} dueDate={task.dueDate} today={today} />
           ) : null}
         </div>
