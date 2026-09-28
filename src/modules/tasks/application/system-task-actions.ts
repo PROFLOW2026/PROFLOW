@@ -16,6 +16,7 @@ import { generateSortKey } from '../domain/lexorank';
 import { updateTaskAsSystem } from './update-task-as-system';
 import type { AutomationMatch } from '@/modules/automations/domain/types';
 import type { TaskPriority, TaskStatus } from '../domain/types';
+import { getTranslations } from 'next-intl/server';
 
 export async function createTaskAsSystem(
   context: OrgContext,
@@ -23,7 +24,10 @@ export async function createTaskAsSystem(
   payload: Record<string, unknown> = {},
 ) {
   const workspaceId = String(payload.workspaceId ?? match.workspaceId ?? '');
-  const title = String(payload.title ?? match.title ?? 'Automation task');
+  const t = await getTranslations('automations');
+  const title = String(
+    payload.title ?? match.title ?? t('runActions.systemTaskDefaultTitle'),
+  );
   if (!workspaceId) throw new NotFoundError('Workspace');
 
   const task = await insertTask(context.db, {

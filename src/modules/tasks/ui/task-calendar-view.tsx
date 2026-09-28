@@ -15,6 +15,7 @@ import {
   type BusinessDate,
 } from '@/shared/dates';
 import { formatBusinessDateMonthDay } from '@/shared/dates/format';
+import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
 import { cn } from '@/shared/ui/cn';
 import { uwmPrimaryPanelClass } from '@/shared/ui/uwm-surface-styles';
 import type { TaskCardData, TaskStatus } from './_task-api-stub';
@@ -139,7 +140,7 @@ export function TaskCalendarView({
             <span className="sr-only">{t('calendar.next')}</span>
           </Button>
           <h2 className="text-sm font-semibold text-[var(--pf-text-primary)]">
-            {new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(
+            {intlDateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(
               new Date(`${anchor}T12:00:00`),
             )}
           </h2>

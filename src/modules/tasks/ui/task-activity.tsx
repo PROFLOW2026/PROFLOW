@@ -23,7 +23,8 @@ import {
   CalendarDays,
   Settings2,
 } from 'lucide-react';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
+import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
 import {
   loadTaskActivityForDisplay,
   type TaskActivityDisplayRow,
@@ -89,16 +90,21 @@ function PayloadDiff({
   eventType,
   payload,
   t,
+  locale,
 }: {
   eventType: string;
   payload: Record<string, unknown> | null;
   t: Awaited<ReturnType<typeof getTranslations<'tasks'>>>;
+  locale: string;
 }) {
   const summary = formatActivityPayloadSummary(eventType, payload, (key, values) =>
     t(key as Parameters<typeof t>[0], values as never),
   );
-  const diff = formatActivityDiff(eventType, payload, (key, values) =>
-    t(key as Parameters<typeof t>[0], values as never),
+  const diff = formatActivityDiff(
+    eventType,
+    payload,
+    (key, values) => t(key as Parameters<typeof t>[0], values as never),
+    locale,
   );
 
   if (summary && !diff) {
@@ -130,6 +136,7 @@ function PayloadDiff({
 function toActivityViewRow(
   event: TaskActivityEventRow,
   t: Awaited<ReturnType<typeof getTranslations<'tasks'>>>,
+  locale: string,
 ): TaskActivityViewRow {
   const isSystem = event.actorSystem;
   const actorLabel = isSystem
@@ -139,15 +146,18 @@ function toActivityViewRow(
   const summary = formatActivityPayloadSummary(event.eventType, event.payload, (key, values) =>
     t(key as Parameters<typeof t>[0], values as never),
   );
-  const diff = formatActivityDiff(event.eventType, event.payload, (key, values) =>
-    t(key as Parameters<typeof t>[0], values as never),
+  const diff = formatActivityDiff(
+    event.eventType,
+    event.payload,
+    (key, values) => t(key as Parameters<typeof t>[0], values as never),
+    locale,
   );
 
   return {
     id: event.id,
     eventType: event.eventType,
     createdAtIso: event.createdAt.toISOString(),
-    formattedTime: new Intl.DateTimeFormat(undefined, {
+    formattedTime: intlDateTimeFormat(locale, {
       dateStyle: 'medium',
       timeStyle: 'short',
     }).format(event.createdAt),
@@ -163,9 +173,11 @@ function toActivityViewRow(
 function ActivityEventRow({
   event,
   t,
+  locale,
 }: {
   event: TaskActivityEventRow;
   t: Awaited<ReturnType<typeof getTranslations<'tasks'>>>;
+  locale: string;
 }) {
   const isSystem = event.actorSystem;
   const actorLabel = isSystem
@@ -197,13 +209,13 @@ function ActivityEventRow({
           )}
           {' '}
           <span className="text-[var(--pf-text-secondary)]">{eventLabel}</span>
-          <PayloadDiff eventType={event.eventType} payload={event.payload} t={t} />
+          <PayloadDiff eventType={event.eventType} payload={event.payload} t={t} locale={locale} />
         </p>
         <time
           dateTime={event.createdAt.toISOString()}
           className="text-xs text-[var(--pf-text-muted)]"
         >
-          {new Intl.DateTimeFormat(undefined, {
+          {intlDateTimeFormat(locale, {
             dateStyle: 'medium',
             timeStyle: 'short',
           }).format(event.createdAt)}
@@ -220,9 +232,10 @@ interface TaskActivityProps {
 }
 
 export async function TaskActivity({ taskId }: TaskActivityProps) {
-  const [events, t] = await Promise.all([
+  const [events, t, locale] = await Promise.all([
     loadActivity(taskId),
     getTranslations('tasks'),
+    getLocale(),
   ]);
 
   const needsExpander = events.length > COMPACT_THRESHOLD;
@@ -237,7 +250,7 @@ export async function TaskActivity({ taskId }: TaskActivityProps) {
         <p className="text-sm text-[var(--pf-text-muted)]">{t('activity.empty')}</p>
       ) : needsExpander ? (
         <ActivityExpandClient
-          allEvents={events.map((event) => toActivityViewRow(event, t))}
+          allEvents={events.map((event) => toActivityViewRow(event, t, locale))}
           compactCount={COMPACT_THRESHOLD}
           showLessLabel={t('activity.showLess')}
           showAllLabel={t('activity.showAll', { count: events.length })}
@@ -245,7 +258,7 @@ export async function TaskActivity({ taskId }: TaskActivityProps) {
       ) : (
         <ol className="relative flex flex-col border-s border-[var(--pf-border-subtle)] ps-4">
           {events.map((event) => (
-            <ActivityEventRow key={event.id} event={event} t={t} />
+            <ActivityEventRow key={event.id} event={event} t={t} locale={locale} />
           ))}
         </ol>
       )}

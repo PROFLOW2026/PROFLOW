@@ -21,7 +21,8 @@
 // eslint-disable-next-line no-restricted-imports
 import { desc, eq, and } from 'drizzle-orm';
 import { BadgeCheck, Clock, XCircle, ShieldAlert } from 'lucide-react';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
+import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
 // eslint-disable-next-line no-restricted-imports
 import { approvalRequests, profiles } from '@drizzle/schema';
 import { withOrgContext } from '@/shared/auth/session';
@@ -177,9 +178,11 @@ function ApprovalStatusBadge({ status }: { status: ApprovalHistoryItem['status']
 function ApprovalHistoryList({
   history,
   t,
+  locale,
 }: {
   history: ApprovalHistoryItem[];
   t: Awaited<ReturnType<typeof getTranslations<'tasks'>>>;
+  locale: string;
 }) {
   if (history.length === 0) return null;
 
@@ -194,7 +197,7 @@ function ApprovalHistoryList({
             <div className="flex flex-wrap items-center gap-1.5">
               <ApprovalStatusBadge status={item.status} />
               <time dateTime={item.createdAt.toISOString()} className="text-[var(--pf-text-muted)]">
-                {new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(item.createdAt)}
+                {intlDateTimeFormat(locale, { dateStyle: 'medium' }).format(item.createdAt)}
               </time>
             </div>
             {item.submitterName ? (
@@ -206,7 +209,7 @@ function ApprovalHistoryList({
               <span>
                 {t('approval.decidedBy')}: <strong>{item.decidedByName}</strong>
                 {' · '}
-                {new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(item.decidedAt)}
+                {intlDateTimeFormat(locale, { dateStyle: 'medium' }).format(item.decidedAt)}
               </span>
             ) : null}
             {item.decisionNote ? (
@@ -232,9 +235,10 @@ interface TaskApprovalGateProps {
 export async function TaskApprovalGate({ taskId, approvalRequired }: TaskApprovalGateProps) {
   if (!approvalRequired) return null;
 
-  const [data, t] = await Promise.all([
+  const [data, t, locale] = await Promise.all([
     loadApprovalGate(taskId),
     getTranslations('tasks'),
+    getLocale(),
   ]);
 
   const { openRequest, history, canRequest, canDecide, submitterName } = data;
@@ -323,7 +327,7 @@ export async function TaskApprovalGate({ taskId, approvalRequired }: TaskApprova
             </div>
           ) : null}
 
-          <ApprovalHistoryList history={history} t={t} />
+          <ApprovalHistoryList history={history} t={t} locale={locale} />
         </div>
       </div>
     </section>

@@ -14,6 +14,7 @@
   },
   "citations": "Sources",
   "errors": {
+    "emptyQuestion": "Enter a question first.",
     "noPermission": "You do not have permission for this.",
     "noProvider": "No live model is connected. Local tools still run on your records."
   },

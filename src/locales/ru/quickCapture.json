@@ -40,7 +40,7 @@
     "expenseAssignmentRequired": "Выберите привязку расхода."
   },
   "inbox": {
-    "title": "Умный inbox",
+    "title": "Входящие захваты",
     "empty": "Нет захватов, ожидающих проверки",
     "photoCount": "{count, plural, one {# фото} few {# фото} many {# фото} other {# фото}}",
     "videoBadge": "Видео",

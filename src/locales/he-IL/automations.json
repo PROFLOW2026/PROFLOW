@@ -103,6 +103,12 @@
   "errors": {
     "unsafeAction": "הכלל הזה לא יכול לרשום, לשלם, לאשר או לשנות חוזים."
   },
+  "runActions": {
+    "draftExpenseDescription": "טיוטת אוטומציה: {title}",
+    "draftExpenseNotes": "נוצרה באוטומציה מ-{entityType}:{entityId}. נשארת טיוטה — ללא סגירה.",
+    "planningFollowupName": "מעקב: {title}",
+    "systemTaskDefaultTitle": "משימת אוטומציה"
+  },
   "empty": {
     "title": "אין עדיין כללים",
     "body": "הפעילו כלל מוכן. אפשר לשנות ספים אחר כך."

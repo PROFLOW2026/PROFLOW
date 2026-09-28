@@ -524,7 +524,10 @@ async function buildVendor360(
         {
           label: ctx.copy.fields.cashOutstandingSum,
 
-          value: totalOutstanding.toFixed(2),
+          value: formatMoney(
+            money(String(totalOutstanding), context.organization.baseCurrency),
+            ctx.locale,
+          ),
 
           nature: "cash",
         },
@@ -532,7 +535,7 @@ async function buildVendor360(
         ...subs.slice(0, 12).map((sub) => ({
           label: `${sub.projectName} · ${sub.subcontractNumber ?? sub.title}`,
 
-          value: `${sub.outstandingAmount} ${sub.currency}`,
+          value: formatMoney(money(sub.outstandingAmount, sub.currency), ctx.locale),
 
           nature: "cash" as const,
 
@@ -615,7 +618,7 @@ async function buildVendor360(
       rows: vendorBills.slice(0, 15).map((bill) => ({
         label: bill.reference ?? bill.id.slice(0, 8),
 
-        value: `${bill.totalAmount} ${bill.currency} · ${localizeCode(ctx.locale, bill.status)}`,
+        value: `${formatMoney(money(bill.totalAmount, bill.currency), ctx.locale)} · ${localizeCode(ctx.locale, bill.status)}`,
 
         nature: "cash" as const,
 
@@ -959,7 +962,13 @@ async function buildLaborUtilization(
 
         {
           label: ctx.copy.fields.sumSnapshottedCost,
-          value: costTotal.toFixed(2),
+          value: formatMoney(
+            money(
+              String(costTotal),
+              withCost[0]?.costCurrency ?? context.organization.baseCurrency,
+            ),
+            ctx.locale,
+          ),
           nature: "actual",
         },
       ],
@@ -1442,7 +1451,9 @@ async function buildCrmFunnel(
     label: opp.name,
 
     value:
-      `${opp.stage} · ${opp.expectedValueAmount ?? "-"} ${opp.currency ?? ""}`.trim(),
+      opp.expectedValueAmount && opp.currency
+        ? `${opp.stage} · ${formatMoney(money(opp.expectedValueAmount, opp.currency), ctx.locale)}`
+        : `${opp.stage} · -`,
 
     href: `/crm/opportunities/${opp.id}`,
   }));
@@ -1481,7 +1492,10 @@ async function buildCrmFunnel(
           {
             label: ctx.copy.fields.weightedPipeline,
 
-            value: pipelineValue.toFixed(2),
+            value: formatMoney(
+              money(String(pipelineValue), context.organization.baseCurrency),
+              ctx.locale,
+            ),
 
             nature: "estimate",
           },

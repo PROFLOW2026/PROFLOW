@@ -9,6 +9,7 @@ import { Plus, Trash2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 import { MoneyInput } from '@/components/patterns/money-input';
+import { MoneyText } from '@/components/patterns/money-text';
 
 import { Alert } from '@/components/ui/alert';
 
@@ -497,11 +498,7 @@ export function QuoteCaptureForm({
 
         {t('totalLabel')}:{' '}
 
-        <span className="pf-numeric font-medium" dir="ltr">
-
-          {totalAmount} {currency}
-
-        </span>
+        <MoneyText value={money(totalAmount, currency)} className="font-medium" />
 
       </p>
 

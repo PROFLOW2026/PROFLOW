@@ -225,7 +225,7 @@ function PortfolioFilterControls({
               aria-pressed={draft.hasOverdue}
               className={cn(
                 uwmFilterInputClass,
-                'justify-center text-left',
+                'justify-center text-start',
                 draft.hasOverdue &&
                   'border-red-300 bg-red-50 text-red-800 dark:border-red-700 dark:bg-red-950 dark:text-red-200',
               )}
@@ -243,7 +243,7 @@ function PortfolioFilterControls({
               aria-pressed={draft.stale}
               className={cn(
                 uwmFilterInputClass,
-                'justify-center text-left',
+                'justify-center text-start',
                 draft.stale &&
                   'border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200',
               )}

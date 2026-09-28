@@ -4,6 +4,7 @@ import { useMemo, useState, useActionState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { MoneyInput } from '@/components/patterns/money-input';
+import { MoneyText } from '@/components/patterns/money-text';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -584,10 +585,7 @@ export function ApBillCreateForm({
         </div>
 
         <p className="mt-3 text-sm font-medium">
-          {t('totalLabel')}:{' '}
-          <span dir="ltr" className="pf-numeric">
-            {totalAmount} {currency}
-          </span>
+          {t('totalLabel')}: <MoneyText value={money(totalAmount, currency)} className="inline" />
         </p>
       </div>
 

@@ -245,20 +245,20 @@ export function WorkloadExpandableRows({
                           <table className="w-full text-sm">
                             <thead>
                               <tr className="border-b border-[var(--pf-border)]">
-                                <th className="pb-1.5 pr-4 text-left font-medium text-[var(--pf-text-muted)]">
+                                <th className="pb-1.5 pe-4 text-start font-medium text-[var(--pf-text-muted)]">
                                   {t('workload.preview.columns.task')}
                                 </th>
-                                <th className="pb-1.5 pr-4 text-left font-medium text-[var(--pf-text-muted)]">
+                                <th className="pb-1.5 pe-4 text-start font-medium text-[var(--pf-text-muted)]">
                                   {t('workload.preview.columns.project')}
                                 </th>
-                                <th className="pb-1.5 pr-4 text-left font-medium text-[var(--pf-text-muted)]">
+                                <th className="pb-1.5 pe-4 text-start font-medium text-[var(--pf-text-muted)]">
                                   {t('workload.preview.columns.due')}
                                 </th>
-                                <th className="pb-1.5 text-left font-medium text-[var(--pf-text-muted)]">
+                                <th className="pb-1.5 text-start font-medium text-[var(--pf-text-muted)]">
                                   {t('workload.preview.columns.status')}
                                 </th>
                                 {canAssign && (
-                                  <th className="pb-1.5 text-left font-medium text-[var(--pf-text-muted)]">
+                                  <th className="pb-1.5 text-start font-medium text-[var(--pf-text-muted)]">
                                     {t('workload.reassign')}
                                   </th>
                                 )}
@@ -267,7 +267,7 @@ export function WorkloadExpandableRows({
                             <tbody className="divide-y divide-[var(--pf-border)]">
                               {previewTasks.map((task) => (
                                 <tr key={task.taskId} className="hover:bg-[var(--pf-bg-secondary)]">
-                                  <td className="py-1.5 pr-4">
+                                  <td className="py-1.5 pe-4">
                                     <Link
                                       href={`/tasks/${task.taskId}`}
                                       className={cn(textNavLinkClassName, 'rounded-sm')}
@@ -276,7 +276,7 @@ export function WorkloadExpandableRows({
                                       {task.title}
                                     </Link>
                                   </td>
-                                  <td className="py-1.5 pr-4 text-[var(--pf-text-secondary)]">
+                                  <td className="py-1.5 pe-4 text-[var(--pf-text-secondary)]">
                                     {task.projectId ? (
                                       <Link
                                         href={`/projects/${task.projectId}`}
@@ -291,10 +291,10 @@ export function WorkloadExpandableRows({
                                       </span>
                                     )}
                                   </td>
-                                  <td className={cn('py-1.5 pr-4', dueDateClass(task.dueDate))}>
+                                  <td className={cn('py-1.5 pe-4', dueDateClass(task.dueDate))}>
                                     {dueDateLabel(task.dueDate, t)}
                                   </td>
-                                  <td className="py-1.5 pr-4 text-[var(--pf-text-secondary)]">
+                                  <td className="py-1.5 pe-4 text-[var(--pf-text-secondary)]">
                                     <span className="rounded bg-[var(--pf-bg-secondary)] px-1.5 py-0.5 text-xs">
                                       {t(`status.${task.status}`)}
                                     </span>

@@ -1,7 +1,9 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { getTranslations } from 'next-intl/server';
 import { withOrgContext } from '@/shared/auth/session';
+import { mapServerActionError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { updateMaterialItemTrade } from '@/modules/procurement';
@@ -20,6 +22,13 @@ export async function setMaterialTradeAction(
     revalidatePath(`/procurement/materials/${materialId}`);
     return { ok: true };
   } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    const tErrors = await getTranslations('errors');
+    return {
+      ok: false,
+      error: mapServerActionError(error, {
+        tErrors: (key) => tErrors(key as 'unexpected'),
+        rethrowUnknown: false,
+      }).error,
+    };
   }
 }

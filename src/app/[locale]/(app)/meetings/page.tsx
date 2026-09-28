@@ -103,7 +103,7 @@ export default async function MeetingsPage({ searchParams }: MeetingsPageProps) 
           canManage ? (
             <Button asChild>
               <Link href="/meetings/new" prefetch={false}>
-                <Plus aria-hidden className="mr-1 h-4 w-4" />
+                <Plus aria-hidden className="me-1 h-4 w-4" />
                 {t('meetings.newMeeting')}
               </Link>
             </Button>
@@ -125,7 +125,7 @@ export default async function MeetingsPage({ searchParams }: MeetingsPageProps) 
             canManage ? (
               <Button asChild>
                 <Link href="/meetings/new" prefetch={false}>
-                  <Plus aria-hidden className="mr-1 h-4 w-4" />
+                  <Plus aria-hidden className="me-1 h-4 w-4" />
                   {t('meetings.newMeeting')}
                 </Link>
               </Button>

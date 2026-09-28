@@ -203,6 +203,7 @@
     "manualModeActive": "Manual mode is active — no external provider is required for business operations.",
     "paymentVoid": "Cannot issue a receipt for a void payment.",
     "invalidDocumentKind": "This statutory document kind is not supported for this action.",
-    "shareFailed": "Could not create share link."
+    "shareFailed": "Could not create share link.",
+    "storageLocationUnavailable": "Could not open the saved file location."
   }
 }

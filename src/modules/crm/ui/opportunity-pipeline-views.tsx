@@ -1,5 +1,7 @@
 'use client';
 
+import { MoneyText } from '@/components/patterns/money-text';
+import { money } from '@/shared/money';
 import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
 
 import { useActionState } from 'react';
@@ -76,12 +78,8 @@ function OpportunityValue({
   amount: string | null;
   currency: string | null;
 }) {
-  if (!amount) return <span>—</span>;
-  return (
-    <span dir="ltr">
-      {`${amount} ${currency ?? ''}`.trim()}
-    </span>
-  );
+  if (!amount || !currency) return <span>—</span>;
+  return <MoneyText value={money(amount, currency)} />;
 }
 
 function BoardStageSelect({

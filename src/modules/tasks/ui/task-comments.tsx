@@ -17,7 +17,8 @@
  *   - RTL-compatible: logical CSS properties throughout.
  */
 
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
+import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
 import {
   loadTaskCommentsForDisplay,
   type TaskCommentDisplayRow,
@@ -66,11 +67,13 @@ function CommentRow({
   taskId,
   isOwn,
   t,
+  locale,
 }: {
   comment: TaskCommentRow;
   taskId: string;
   isOwn: boolean;
   t: Awaited<ReturnType<typeof getTranslations<'tasks'>>>;
+  locale: string;
 }) {
   if (comment.isDeleted) return <DeletedCommentRow t={t} />;
 
@@ -85,7 +88,7 @@ function CommentRow({
             dateTime={comment.createdAt.toISOString()}
             className="text-xs text-[var(--pf-text-muted)]"
           >
-            {new Intl.DateTimeFormat(undefined, {
+            {intlDateTimeFormat(locale, {
               dateStyle: 'medium',
               timeStyle: 'short',
             }).format(comment.createdAt)}
@@ -153,7 +156,7 @@ interface TaskCommentsProps {
 }
 
 export async function TaskComments({ taskId }: TaskCommentsProps) {
-  const t = await getTranslations('tasks');
+  const [t, locale] = await Promise.all([getTranslations('tasks'), getLocale()]);
 
   const { comments, hasMore, currentMembershipId } = await loadComments(taskId);
 
@@ -195,6 +198,7 @@ export async function TaskComments({ taskId }: TaskCommentsProps) {
                 comment.authorActorId === currentMembershipId
               }
               t={t}
+              locale={locale}
             />
           ))}
         </ul>

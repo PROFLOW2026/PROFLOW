@@ -103,6 +103,12 @@
   "errors": {
     "unsafeAction": "لا يمكن لهذه القاعدة الترحيل أو الدفع أو الموافقة أو تغيير العقود."
   },
+  "runActions": {
+    "draftExpenseDescription": "مسودة أتمتة: {title}",
+    "draftExpenseNotes": "أُنشئت بواسطة الأتمتة من {entityType}:{entityId}. تبقى مسودة — دون إنهاء.",
+    "planningFollowupName": "متابعة: {title}",
+    "systemTaskDefaultTitle": "مهمة أتمتة"
+  },
   "empty": {
     "title": "لا توجد قواعد بعد",
     "body": "فعّل إعداداً مسبقاً. يمكنك تغيير العتبات لاحقاً."

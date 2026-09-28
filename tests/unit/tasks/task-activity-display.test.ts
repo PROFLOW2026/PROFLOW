@@ -28,12 +28,12 @@ describe('resolveActivityEventLabelKey', () => {
 
 describe('localizeActivityScalar', () => {
   it('localizes status enums', () => {
-    expect(localizeActivityScalar('status', 'todo', t)).toBe('To do');
-    expect(localizeActivityScalar('status', 'in_progress', t)).toBe('In progress');
+    expect(localizeActivityScalar('status', 'todo', t, 'en')).toBe('To do');
+    expect(localizeActivityScalar('status', 'in_progress', t, 'en')).toBe('In progress');
   });
 
   it('localizes priority enums', () => {
-    expect(localizeActivityScalar('priority', 'high', t)).toBe('High');
+    expect(localizeActivityScalar('priority', 'high', t, 'en')).toBe('High');
   });
 });
 
@@ -44,6 +44,7 @@ describe('formatActivityDiff', () => {
         'status_changed',
         { from: 'todo', to: 'in_progress' },
         t,
+        'en',
       ),
     ).toEqual({ from: 'To do', to: 'In progress' });
   });

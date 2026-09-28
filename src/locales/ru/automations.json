@@ -103,6 +103,12 @@
   "errors": {
     "unsafeAction": "Это правило не может проводить, оплачивать, утверждать или изменять договоры."
   },
+  "runActions": {
+    "draftExpenseDescription": "Черновик автоматизации: {title}",
+    "draftExpenseNotes": "Создано автоматизацией из {entityType}:{entityId}. Остаётся черновиком — без проведения.",
+    "planningFollowupName": "Повторный контакт: {title}",
+    "systemTaskDefaultTitle": "Задача автоматизации"
+  },
   "empty": {
     "title": "Правил пока нет",
     "body": "Включите готовый шаблон. Пороги можно изменить позже."

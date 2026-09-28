@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
+import { formatMoneyString } from '@/shared/money/format';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
@@ -76,12 +77,22 @@ function maintenanceShape(status: MaintenanceStatus): StatusShape {
   }
 }
 
+function formatAssetCost(
+  amount: string | null | undefined,
+  currency: string | null | undefined,
+  locale: string,
+): string {
+  if (!amount) return '-';
+  if (!currency) return amount;
+  return formatMoneyString(amount, currency, locale);
+}
+
 export default async function AssetDetailPage({
   params,
 }: {
   params: Promise<{ assetId: string }>;
 }) {
-  const { assetId } = await params;
+  const [{ assetId }, locale] = await Promise.all([params, getLocale()]);
   const t = await getTranslations('assets');
   const tAssetStatus = await getTranslations('status.asset');
   const tMaintStatus = await getTranslations('status.maintenance');
@@ -198,13 +209,7 @@ export default async function AssetDetailPage({
           <div>
             <dt className="text-[var(--pf-text-secondary)]">{t('createAsset.acquisitionAmountLabel')}</dt>
             <dd>
-              {asset.acquisitionAmount ? (
-                <span className="pf-numeric" dir="ltr">
-                  {`${asset.acquisitionAmount}${asset.acquisitionCurrency ? ` ${asset.acquisitionCurrency}` : ''}`}
-                </span>
-              ) : (
-                '-'
-              )}
+              {formatAssetCost(asset.acquisitionAmount, asset.acquisitionCurrency, locale)}
             </dd>
           </div>
           <div>
@@ -404,8 +409,8 @@ export default async function AssetDetailPage({
                         <TableCell numeric>
                           {row.costAmount ? (
                             <>
-                              <span dir="ltr">
-                                {`${row.costAmount}${row.currency ? ` ${row.currency}` : ''}`}
+                              <span>
+                                {formatAssetCost(row.costAmount, row.currency, locale)}
                               </span>
                               <span className="mt-0.5 block text-xs text-[var(--pf-text-secondary)]">
                                 {t('detail.costNotExpense')}
@@ -472,8 +477,8 @@ export default async function AssetDetailPage({
                   {row.costAmount ? (
                     <>
                       {' · '}
-                      <span className="pf-numeric" dir="ltr">
-                        {`${row.costAmount}${row.currency ? ` ${row.currency}` : ''}`}
+                      <span className="pf-numeric">
+                        {formatAssetCost(row.costAmount, row.currency, locale)}
                       </span>
                     </>
                   ) : null}

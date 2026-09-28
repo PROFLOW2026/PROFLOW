@@ -103,6 +103,12 @@
   "errors": {
     "unsafeAction": "This rule cannot post, pay, approve, or change contracts."
   },
+  "runActions": {
+    "draftExpenseDescription": "Automation draft: {title}",
+    "draftExpenseNotes": "Created by automation from {entityType}:{entityId}. Remains draft — never finalized.",
+    "planningFollowupName": "Follow-up: {title}",
+    "systemTaskDefaultTitle": "Automation task"
+  },
   "empty": {
     "title": "No rules yet",
     "body": "Turn on a preset. You can change the thresholds later."

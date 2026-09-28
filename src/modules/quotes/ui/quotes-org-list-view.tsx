@@ -1,5 +1,5 @@
 import { FileSpreadsheet, Plus } from 'lucide-react';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
 import { Alert } from '@/components/ui/alert';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { MoneyText } from '@/components/patterns/money-text';
 import { listQuotesForOrg, type QuoteStatus } from '@/modules/quotes';
 import { money } from '@/shared/money';
+import { formatMoneyString } from '@/shared/money/format';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -52,8 +53,11 @@ export async function QuotesOrgListView({
   surface,
   searchParams,
 }: QuotesOrgListViewProps) {
-  const t = await getTranslations('quotes');
-  const tStatus = await getTranslations('status.estimateQuote');
+  const [t, tStatus, locale] = await Promise.all([
+    getTranslations('quotes'),
+    getTranslations('status.estimateQuote'),
+    getLocale(),
+  ]);
   const params = await searchParams;
   const isOwner = surface === 'owner';
 
@@ -180,7 +184,9 @@ export async function QuotesOrgListView({
               </div>
               <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
                 {item.clientName ?? '-'}
-                {item.totalAmount ? ` · ${item.totalAmount} ${item.currency}` : ''}
+                {item.totalAmount && item.currency
+                  ? ` · ${formatMoneyString(item.totalAmount, item.currency, locale)}`
+                  : ''}
               </p>
             </Link>
           )}

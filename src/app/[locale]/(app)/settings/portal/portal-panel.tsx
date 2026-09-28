@@ -2,6 +2,7 @@
 
 import { useActionState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
+import { formatMoneyString } from '@/shared/money/format';
 import { ResponsiveTable } from '@/components/patterns/responsive-table';
 import { Alert } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -340,8 +341,12 @@ function CustomerSafePreview({
           {summary.outstanding ? (
             <div className="min-w-0">
               <dt className="text-[var(--pf-text-secondary)]">{t('preview.fields.outstanding')}</dt>
-              <dd dir="ltr" className="pf-numeric">
-                {summary.outstanding.amount} {summary.outstanding.currency}
+              <dd className="pf-numeric">
+                {formatMoneyString(
+                  summary.outstanding.amount,
+                  summary.outstanding.currency,
+                  locale,
+                )}
               </dd>
             </div>
           ) : null}
@@ -356,9 +361,9 @@ function CustomerSafePreview({
                 {summary.billing.items.length > 0 ? (
                   <ul className="mt-1 flex flex-col gap-1 text-xs text-[var(--pf-text-muted)]">
                     {summary.billing.items.slice(0, 5).map((item) => (
-                      <li key={item.billingRecordId} dir="ltr" className="pf-ltr-island">
-                        {item.reference ?? item.billingRecordId.slice(0, 8)} · {item.totalAmount}{' '}
-                        {item.currency}
+                      <li key={item.billingRecordId} className="pf-ltr-island">
+                        {item.reference ?? item.billingRecordId.slice(0, 8)} ·{' '}
+                        {formatMoneyString(item.totalAmount, item.currency, locale)}
                       </li>
                     ))}
                   </ul>
@@ -393,10 +398,10 @@ function CustomerSafePreview({
                   {summary.quotes.map((quote) => (
                     <li key={quote.quoteId} className="break-words text-sm">
                       {quote.title} · {localizeCode(locale, quote.status)}
-                      {quote.totalAmount ? (
-                        <span dir="ltr" className="pf-numeric">
+                      {quote.totalAmount && quote.currency ? (
+                        <span className="pf-numeric">
                           {' '}
-                          · {quote.totalAmount} {quote.currency}
+                          · {formatMoneyString(quote.totalAmount, quote.currency, locale)}
                         </span>
                       ) : null}
                     </li>
@@ -880,6 +885,7 @@ function VendorCandidateReviewQueue({
   canEdit: boolean;
 }) {
   const t = useTranslations('portal');
+  const locale = useLocale();
   const [state, action, pending] = useActionState(
     reviewVendorCandidateAction,
     {} as PortalActionState,
@@ -917,8 +923,8 @@ function VendorCandidateReviewQueue({
           >
             <p className="font-medium">
               {t('candidateReview.apLabel')} ·{' '}
-              <span dir="ltr" className="pf-numeric">
-                {candidate.totalAmount} {candidate.currency}
+              <span className="pf-numeric">
+                {formatMoneyString(candidate.totalAmount, candidate.currency, locale)}
               </span>
             </p>
             <p className="text-[var(--pf-text-secondary)]">

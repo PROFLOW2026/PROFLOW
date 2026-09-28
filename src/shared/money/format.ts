@@ -122,7 +122,7 @@ export function formatMoneyDelta(value: MoneyValue, locale: string, options: For
 }
 
 export function formatNumber(value: number | string, locale: string, options: Intl.NumberFormatOptions = {}): string {
-  return getFormatter(resolveIntlLocale(locale), options).format(Number(value));
+  return getFormatter(resolveIntlLocale(locale), { notation: 'standard', ...options }).format(Number(value));
 }
 
 export function formatPercent(

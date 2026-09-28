@@ -2,7 +2,7 @@
 
 import { getTranslations } from 'next-intl/server';
 import { withOrgContext } from '@/shared/auth/session';
-import { AppError, AuthorizationError, DomainRuleError } from '@/shared/errors';
+import { mapServerActionError } from '@/shared/errors';
 import { createBankAccount } from './accounts';
 import { decideBankMatch } from './decide-match';
 import { importBankStatement } from './import-statement';
@@ -26,41 +26,27 @@ import {
 
 type ActionFail = { readonly ok: false; readonly error: string };
 
-async function failMessage(error: unknown, fallbackKey: string): Promise<string> {
+async function mapBankingActionError(error: unknown, fallbackKey: string): Promise<string> {
+  const tErrors = await getTranslations('errors');
+  const tBanking = await getTranslations('banking');
+  const mapped = mapServerActionError(error, {
+    tErrors: (key) => tErrors(key as 'unexpected'),
+    namespaces: {
+      banking: (key) => tBanking(key as 'errors.importFailed'),
+    },
+    rethrowUnknown: false,
+  });
+  if (mapped.error !== tErrors('unexpected')) return mapped.error;
   try {
-    const t = await getTranslations('banking');
-    if (
-      error instanceof DomainRuleError &&
-      error.messageKey.startsWith('banking.errors.')
-    ) {
-      const key = error.messageKey.replace('banking.', '') as 'errors.targetRequired';
-      try {
-        return t(key);
-      } catch {
-        /* fall through */
-      }
-    }
+    return tBanking(fallbackKey as 'errors.importFailed');
   } catch {
-    /* banking namespace may not be wired yet */
+    return tErrors('unexpected');
   }
+}
 
-  if (error instanceof AuthorizationError) {
-    try {
-      const t = await getTranslations('errors');
-      return t('notAllowed');
-    } catch {
-      return 'Not allowed';
-    }
-  }
-  if (error instanceof AppError) return error.message;
-  if (error instanceof Error && error.message.trim()) return error.message;
-
-  try {
-    const t = await getTranslations('banking');
-    return t(fallbackKey as 'errors.importFailed');
-  } catch {
-    return 'Request failed';
-  }
+async function validationFailedMessage(): Promise<string> {
+  const tErrors = await getTranslations('errors');
+  return tErrors('validationFailed');
 }
 
 export async function createBankAccountAction(
@@ -68,7 +54,7 @@ export async function createBankAccountAction(
 ): Promise<{ ok: true; account: BankAccount } | ActionFail> {
   const parsed = createBankAccountSchema.safeParse(raw);
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0]?.message ?? 'Validation failed' };
+    return { ok: false, error: await validationFailedMessage() };
   }
   try {
     const account = await withOrgContext(async (context) =>
@@ -76,7 +62,7 @@ export async function createBankAccountAction(
     );
     return { ok: true, account };
   } catch (error) {
-    return { ok: false, error: await failMessage(error, 'errors.importFailed') };
+    return { ok: false, error: await mapBankingActionError(error, 'errors.importFailed') };
   }
 }
 
@@ -95,7 +81,7 @@ export async function importBankStatementAction(
 > {
   const parsed = importBankStatementSchema.safeParse(raw);
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0]?.message ?? 'Validation failed' };
+    return { ok: false, error: await validationFailedMessage() };
   }
   try {
     const result = await withOrgContext(async (context) =>
@@ -110,7 +96,7 @@ export async function importBankStatementAction(
       financialMutationPerformed: false,
     };
   } catch (error) {
-    return { ok: false, error: await failMessage(error, 'errors.importFailed') };
+    return { ok: false, error: await mapBankingActionError(error, 'errors.importFailed') };
   }
 }
 
@@ -125,7 +111,7 @@ export async function refreshSuggestionsAction(
 ): Promise<{ ok: true; suggestions: BankMatchSuggestion[] } | ActionFail> {
   const parsed = refreshSuggestionsSchema.safeParse(raw);
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0]?.message ?? 'Validation failed' };
+    return { ok: false, error: await validationFailedMessage() };
   }
   try {
     const suggestions = await withOrgContext(async (context) =>
@@ -137,7 +123,7 @@ export async function refreshSuggestionsAction(
     );
     return { ok: true, suggestions: [...suggestions] };
   } catch (error) {
-    return { ok: false, error: await failMessage(error, 'errors.decideFailed') };
+    return { ok: false, error: await mapBankingActionError(error, 'errors.decideFailed') };
   }
 }
 
@@ -153,7 +139,7 @@ export async function decideBankMatchAction(
 > {
   const parsed = decideBankMatchSchema.safeParse(raw);
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0]?.message ?? 'Validation failed' };
+    return { ok: false, error: await validationFailedMessage() };
   }
   try {
     const result = await withOrgContext(async (context) =>
@@ -165,6 +151,6 @@ export async function decideBankMatchAction(
       financialMutationPerformed: false,
     };
   } catch (error) {
-    return { ok: false, error: await failMessage(error, 'errors.decideFailed') };
+    return { ok: false, error: await mapBankingActionError(error, 'errors.decideFailed') };
   }
 }

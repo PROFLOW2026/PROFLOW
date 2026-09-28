@@ -1,6 +1,7 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
+import { formatMoneyString } from '@/shared/money/format';
 import { Alert } from '@/components/ui/alert';
 import { Link } from '@/shared/i18n/navigation';
 
@@ -21,6 +22,7 @@ export function ExpenseApOverlapWarning({
   readonly namespace: 'ap.create' | 'expenses.capture';
 }) {
   const t = useTranslations(namespace);
+  const locale = useLocale();
 
   if (hits.length === 0) return null;
 
@@ -34,7 +36,7 @@ export function ExpenseApOverlapWarning({
               {hit.label}
             </Link>
             <span dir="ltr" className="pf-numeric ms-1">
-              · {hit.amount} {hit.currency}
+              · {formatMoneyString(hit.amount, hit.currency, locale)}
             </span>
           </li>
         ))}

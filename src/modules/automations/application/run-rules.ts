@@ -4,6 +4,9 @@ import { DomainRuleError, ValidationError } from '@/shared/errors';
 import { assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { emitNotification } from '@/modules/notifications';
+import { notificationCopy } from '@/modules/notifications/domain/copy';
+import { createNotificationsCopyTranslator } from '@/shared/i18n/namespace-translator';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { saveCommunicationDraft } from '@/modules/communications/application/manage';
 import { createExpense } from '@/modules/expenses';
 import { upsertPlanningWorkItem } from '@/modules/planning';
@@ -66,6 +69,19 @@ function parseOrThrow<T>(
   return result.data;
 }
 
+async function localizedMatchNotificationCopy(
+  presetKey: AutomationPresetKey,
+  match: AutomationMatch,
+): Promise<{ title: string; body: string }> {
+  const locale = await getLocale();
+  const notificationT = await createNotificationsCopyTranslator(locale);
+  const type = notificationTypeForPreset(presetKey);
+  return notificationCopy(notificationT, type, {
+    reference: match.title,
+    extra: null,
+  });
+}
+
 function notificationTypeForPreset(presetKey: AutomationPresetKey) {
   switch (presetKey) {
     case 'client_balance_overdue':
@@ -123,6 +139,7 @@ async function executeDraftExpense(
   if (!hasPermission(context, PERMISSIONS.EXPENSES_CREATE)) {
     return { kind: 'draft_expense', count: 0 };
   }
+  const t = await getTranslations('automations');
   let count = 0;
   for (const match of matches) {
     if (count >= DRAFT_CAP) break;
@@ -131,8 +148,11 @@ async function executeDraftExpense(
       amount: match.amount!,
       currency: match.currency!,
       projectId: match.projectId!,
-      description: `Automation draft: ${match.title}`.slice(0, 2000),
-      notes: `Created by automation from ${match.entityType}:${match.entityId}. Remains draft — never finalized.`,
+      description: t('runActions.draftExpenseDescription', { title: match.title }).slice(0, 2000),
+      notes: t('runActions.draftExpenseNotes', {
+        entityType: match.entityType,
+        entityId: match.entityId,
+      }),
       expenseDate: todayInTimeZone(context.organization.timezone),
     });
     count += 1;
@@ -147,6 +167,7 @@ async function executePlanningFollowup(
   if (!hasPermission(context, PERMISSIONS.PLANNING_WRITE)) {
     return { kind: 'planning_followup', count: 0 };
   }
+  const t = await getTranslations('automations');
   let count = 0;
   for (const match of matches) {
     if (count >= DRAFT_CAP) break;
@@ -164,7 +185,7 @@ async function executePlanningFollowup(
       {
         organizationId: context.organizationId,
         projectId: match.projectId,
-        name: `Follow-up: ${match.title}`.slice(0, 200),
+        name: t('runActions.planningFollowupName', { title: match.title }).slice(0, 200),
         kind: 'task',
         workKind,
         startDate: today,
@@ -210,11 +231,17 @@ async function executeSystemTaskAction(
         count += 1;
         break;
       case 'notify_user': {
+        const locale = await getLocale();
+        const notificationT = await createNotificationsCopyTranslator(locale);
+        const copy = notificationCopy(notificationT, 'task_assigned_to_you', {
+          reference: match.title,
+          extra: null,
+        });
         await emitNotification(context, {
           recipientUserId: context.userId,
           type: 'task_assigned_to_you',
-          title: match.title,
-          body: match.body,
+          title: copy.title,
+          body: copy.body,
           dedupeKey: `automation:notify_user:${match.entityType}:${match.entityId}`,
           severity: 'info',
           entityType: match.entityType,
@@ -242,11 +269,12 @@ async function executeSafeAction(
   if (action.kind === 'notify') {
     let count = 0;
     for (const match of matches.slice(0, NOTIFY_CAP)) {
+      const copy = await localizedMatchNotificationCopy(presetKey, match);
       await emitNotification(context, {
         recipientUserId: context.userId,
         type: notificationTypeForPreset(presetKey),
-        title: match.title,
-        body: match.body,
+        title: copy.title,
+        body: copy.body,
         dedupeKey: `automation:${presetKey}:${match.entityType}:${match.entityId}`,
         severity: 'warning',
         entityType: match.entityType,
@@ -263,12 +291,13 @@ async function executeSafeAction(
     }
     const match = matches[0];
     if (!match) return { kind: 'draft_communication', count: 0 };
+    const copy = await localizedMatchNotificationCopy(presetKey, match);
     await saveCommunicationDraft(context, {
       relatedEntityType: 'other',
       relatedEntityId: match.entityId,
       recipientEmail: 'draft@invalid.local',
-      subject: match.title,
-      bodyText: match.body,
+      subject: copy.title,
+      bodyText: copy.body,
     });
     return { kind: 'draft_communication', count: 1 };
   }

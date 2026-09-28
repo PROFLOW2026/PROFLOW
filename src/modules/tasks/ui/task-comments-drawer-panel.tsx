@@ -1,7 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useState, useTransition } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
+import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
 import { Spinner } from '@/components/ui/spinner';
 import {
   loadTaskCommentsPanelAction,
@@ -20,6 +21,7 @@ import {
 
 export function TaskCommentsDrawerPanel({ taskId }: { taskId: string }) {
   const t = useTranslations('tasks');
+  const locale = useLocale();
   const [data, setData] = useState<TaskCommentsPanelPayload | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -83,7 +85,7 @@ export function TaskCommentsDrawerPanel({ taskId }: { taskId: string }) {
                       dateTime={comment.createdAt}
                       className="text-xs text-[var(--pf-text-muted)]"
                     >
-                      {new Intl.DateTimeFormat(undefined, {
+                      {intlDateTimeFormat(locale, {
                         dateStyle: 'medium',
                         timeStyle: 'short',
                       }).format(new Date(comment.createdAt))}

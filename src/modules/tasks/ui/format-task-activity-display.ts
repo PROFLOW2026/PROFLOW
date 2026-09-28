@@ -1,3 +1,5 @@
+import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
+
 export type ActivityTranslate = (
   key: string,
   values?: Record<string, string | number | Date>,
@@ -15,6 +17,7 @@ export function localizeActivityScalar(
   field: string | undefined,
   raw: unknown,
   t: ActivityTranslate,
+  locale: string,
 ): string {
   if (raw == null || raw === '') return '—';
 
@@ -27,7 +30,7 @@ export function localizeActivityScalar(
   if (field === 'dueDate' && typeof raw === 'string') {
     const date = new Date(`${raw}T00:00:00`);
     if (!Number.isNaN(date.getTime())) {
-      return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(date);
+      return intlDateTimeFormat(locale, { dateStyle: 'medium' }).format(date);
     }
   }
 
@@ -119,6 +122,7 @@ export function formatActivityDiff(
   eventType: string,
   payload: Record<string, unknown> | null,
   t: ActivityTranslate,
+  locale: string,
 ): { from: string; to: string } | null {
   if (!payload || !isRecord(payload)) return null;
 
@@ -138,7 +142,7 @@ export function formatActivityDiff(
             : undefined;
 
   return {
-    from: localizeActivityScalar(field, from, t),
-    to: localizeActivityScalar(field, to, t),
+    from: localizeActivityScalar(field, from, t, locale),
+    to: localizeActivityScalar(field, to, t, locale),
   };
 }

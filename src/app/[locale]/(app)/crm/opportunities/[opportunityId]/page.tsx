@@ -12,6 +12,7 @@ import { listCustomFieldValuesForEntity } from '@/modules/custom-fields';
 import { EntityCustomFieldsPanel } from '@/modules/custom-fields/ui';
 import { withOrgContext } from '@/shared/auth/session';
 import { formatBusinessDate, formatInstant } from '@/shared/dates/format';
+import { formatMoneyString } from '@/shared/money/format';
 import { isBusinessDate } from '@/shared/dates/dates';
 import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
@@ -344,7 +345,9 @@ export default async function OpportunityDetailPage({
                       : t.has(`statuses.estimate.${quote.status}` as 'statuses.estimate.draft')
                         ? t(`statuses.estimate.${quote.status}` as 'statuses.estimate.draft')
                         : localizeCode(locale, quote.status)}
-                    {quote.totalAmount ? ` · ${quote.totalAmount} ${quote.currency}` : ''}
+                    {quote.totalAmount && quote.currency
+                      ? ` · ${formatMoneyString(quote.totalAmount, quote.currency, locale)}`
+                      : ''}
                   </span>
                 </li>
               ))}
@@ -372,8 +375,8 @@ export default async function OpportunityDetailPage({
                   <li key={estimate.id} className="flex flex-wrap items-start justify-between gap-2">
                     <span className="min-w-0 flex-1 text-start">{estimate.name}</span>
                     <span className="shrink-0 text-[var(--pf-text-secondary)]" dir={estimate.internalAmount ? 'ltr' : undefined}>
-                      {estimate.internalAmount
-                        ? `${estimate.internalAmount} ${estimate.currency}`
+                      {estimate.internalAmount && estimate.currency
+                        ? formatMoneyString(estimate.internalAmount, estimate.currency, locale)
                         : t(`statuses.estimate.${estimate.status}`)}
                     </span>
                   </li>
@@ -419,12 +422,14 @@ export default async function OpportunityDetailPage({
                     >
                       <span className="min-w-0 flex-1 text-start">
                         {t('opportunity.versionLabel', { number: version.versionNumber })} ·{' '}
-                        <span dir="ltr">
-                          {t('opportunity.quoteNet')}: {version.subtotalAmount} {version.currency}
+                        <span>
+                          {t('opportunity.quoteNet')}:{' '}
+                          {formatMoneyString(version.subtotalAmount, version.currency, locale)}
                           {version.taxAmount && version.taxAmount !== '0'
-                            ? ` · ${t('opportunity.quoteTax')}: ${version.taxAmount}`
+                            ? ` · ${t('opportunity.quoteTax')}: ${formatMoneyString(version.taxAmount, version.currency, locale)}`
                             : ''}{' '}
-                          · {t('opportunity.quoteTotal')}: {version.totalAmount} {version.currency}
+                          · {t('opportunity.quoteTotal')}:{' '}
+                          {formatMoneyString(version.totalAmount, version.currency, locale)}
                         </span>{' '}
                         · {t(`statuses.version.${version.status}`)}
                       </span>

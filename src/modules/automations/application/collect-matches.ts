@@ -66,8 +66,8 @@ export async function collectPresetMatches(
       return records.map((row) => ({
         entityType: 'billing_record',
         entityId: row.id,
-        title: row.reference ?? row.projectName ?? 'Overdue balance',
-        body: 'Client balance is past due.',
+        title: row.reference ?? row.projectName ?? row.id,
+        body: row.reference ?? row.projectName ?? row.id,
         href: `/billing/${row.id}`,
         projectId: row.projectId,
         amount: row.outstandingAmount?.amount ?? null,
@@ -81,7 +81,7 @@ export async function collectPresetMatches(
         entityType: 'quote',
         entityId: row.id,
         title: row.title,
-        body: 'Issued quote with no follow-up message tracked here.',
+        body: row.title,
         href: `/quotes/${row.id}`,
         projectId: row.convertedProjectId,
       }));
@@ -95,8 +95,8 @@ export async function collectPresetMatches(
         .map((bill) => ({
           entityType: 'ap_bill',
           entityId: bill.id,
-          title: bill.vendorName ?? bill.reference ?? 'Supplier bill',
-          body: 'Supplier bill has reached its due date.',
+          title: bill.vendorName ?? bill.reference ?? bill.id,
+          body: bill.vendorName ?? bill.reference ?? bill.id,
           href: `/procurement/ap/${bill.id}`,
           projectId: bill.projectId,
           amount: bill.totalAmount ?? null,
@@ -112,8 +112,8 @@ export async function collectPresetMatches(
       return sheets.slice(0, MATCH_CAP).map((row) => ({
         entityType: 'timesheet',
         entityId: row.id,
-        title: 'Timesheet not submitted',
-        body: 'A timesheet is still a draft.',
+        title: row.id,
+        body: row.id,
         href: `/workforce/timesheets/${row.id}`,
       }));
     }
@@ -126,8 +126,8 @@ export async function collectPresetMatches(
       return sheets.slice(0, MATCH_CAP).map((row) => ({
         entityType: 'timesheet',
         entityId: row.id,
-        title: 'Timesheet waiting for approval',
-        body: 'A timesheet is waiting for approval.',
+        title: row.id,
+        body: row.id,
         href: `/workforce/timesheets/${row.id}`,
       }));
     }
@@ -150,8 +150,8 @@ export async function collectPresetMatches(
         {
           entityType: 'ocr_queue',
           entityId: context.organizationId,
-          title: 'Invoice capture waiting for review',
-          body: `${snapshot.needsReview} capture jobs need review.`,
+          title: String(snapshot.needsReview),
+          body: String(snapshot.needsReview),
           href: '/settings/ocr',
         },
       ];
@@ -165,7 +165,7 @@ export async function collectPresetMatches(
         .map((item) => ({
           entityType: 'project',
           entityId: item.projectId,
-          title: 'Forecast over budget',
+          title: item.projectId,
           body: item.kind,
           href: item.href,
           projectId: item.projectId,
@@ -180,7 +180,7 @@ export async function collectPresetMatches(
         .map((item) => ({
           entityType: 'project',
           entityId: item.projectId,
-          title: 'Forecast margin low',
+          title: item.projectId,
           body: item.kind,
           href: item.href,
           projectId: item.projectId,
@@ -201,9 +201,7 @@ export async function collectPresetMatches(
           entityType: 'warranty_coverage',
           entityId: row.id,
           title: row.title,
-          body: row.endDate
-            ? `Warranty coverage ends on ${row.endDate}.`
-            : 'Warranty coverage is nearing its end date.',
+          body: row.endDate ?? row.title,
           href: `/projects/${row.projectId}?tab=warranty`,
           projectId: row.projectId,
         }));
@@ -223,9 +221,7 @@ export async function collectPresetMatches(
           entityType: 'compliance_artifact',
           entityId: artifact.id,
           title: artifact.name,
-          body: artifact.expiresOn
-            ? `Compliance document is ${artifact.status} (${artifact.expiresOn}).`
-            : `Compliance document is ${artifact.status}.`,
+          body: artifact.expiresOn ?? artifact.name,
           href: `/compliance/${artifact.id}`,
         }));
     }
@@ -238,10 +234,8 @@ export async function collectPresetMatches(
       return [...schedule.overdue, ...schedule.upcoming].slice(0, MATCH_CAP).map((record) => ({
         entityType: 'maintenance_record',
         entityId: record.id,
-        title: record.title || record.assetName || 'Equipment service',
-        body: record.performedOn
-          ? `Equipment service (${record.status}) dated ${record.performedOn}.`
-          : `Equipment service is ${record.status}.`,
+        title: record.title || record.assetName || record.id,
+        body: record.performedOn ?? record.title ?? record.assetName ?? record.id,
         href: '/assets/maintenance',
       }));
     }
@@ -257,7 +251,7 @@ export async function collectPresetMatches(
         entityType: 'billing_plan',
         entityId: row.planId,
         title: row.planName || row.projectName,
-        body: 'Retention is still held on this billing plan.',
+        body: row.planName || row.projectName || row.planId,
         href: `/projects/${row.projectId}?tab=billingPlan`,
         projectId: row.projectId,
       }));
@@ -279,8 +273,8 @@ export async function collectPresetMatches(
         .map((row) => ({
           entityType: 'closeout',
           entityId: row.projectId,
-          title: byId.get(row.projectId)?.name ?? 'Project closeout',
-          body: `Closeout is ${row.status}.`,
+          title: byId.get(row.projectId)?.name ?? row.projectId,
+          body: row.status,
           href: `/projects/${row.projectId}?tab=closeout`,
           projectId: row.projectId,
         }));
@@ -297,7 +291,7 @@ export async function collectPresetMatches(
         taskId: row.id,
         workspaceId: row.workspaceId,
         title: row.title,
-        body: 'Task is past its due date.',
+        body: row.title,
         href: `/tasks/${row.id}`,
         projectId: row.projectId,
       }));
@@ -323,7 +317,7 @@ export async function collectPresetMatches(
             entityType: 'milestone',
             entityId: milestone.id,
             title: milestone.name,
-            body: `Milestone target date is ${milestone.targetDate}.`,
+            body: milestone.targetDate ?? milestone.name,
             href: `/projects/${project.id}?tab=milestones`,
             projectId: project.id,
           });

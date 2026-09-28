@@ -296,8 +296,8 @@ export default async function RecurringDraftDetailPage({
                   <TableBody>
                     {[...amountVersions].reverse().map((version) => (
                       <TableRow key={version.id}>
-                        <TableCell dir="ltr">
-                          {version.amount} {version.currency}
+                        <TableCell>
+                          {formatMoneyString(version.amount, version.currency, locale)}
                         </TableCell>
                         <TableCell dir="ltr">
                           {formatSafeBusinessDate(version.validFrom, locale, t('fields.none'))}
@@ -315,8 +315,8 @@ export default async function RecurringDraftDetailPage({
             }
             renderMobileCard={(version) => (
               <div className="rounded-lg border border-[var(--pf-border-default)] p-3">
-                <p className="font-medium" dir="ltr">
-                  {version.amount} {version.currency}
+                <p className="font-medium">
+                  {formatMoneyString(version.amount, version.currency, locale)}
                 </p>
                 <p className="mt-1 text-sm text-[var(--pf-text-secondary)]" dir="ltr">
                   {formatSafeBusinessDate(version.validFrom, locale, t('fields.none'))}

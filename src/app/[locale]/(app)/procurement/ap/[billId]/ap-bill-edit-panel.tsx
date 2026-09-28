@@ -4,6 +4,7 @@ import { useMemo, useState, useActionState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { MoneyInput } from '@/components/patterns/money-input';
+import { MoneyText } from '@/components/patterns/money-text';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -398,10 +399,7 @@ export function ApBillRecognizedEditPanel({
           ))}
 
           <p className="text-sm font-medium">
-            {tCreate('totalLabel')}:{' '}
-            <span dir="ltr" className="pf-numeric">
-              {totalAmount} {currency}
-            </span>
+            {tCreate('totalLabel')}: <MoneyText value={money(totalAmount, currency)} className="inline" />
           </p>
         </div>
 

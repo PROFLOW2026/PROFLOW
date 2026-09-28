@@ -138,13 +138,13 @@ export default async function MeetingDetailPage({ params }: MeetingDetailPagePro
               >
                 {attendee.resolvedName ?? attendee.displayName ?? t('meetings.attendee.unknown')}
                 {attendee.orgMemberId && (
-                  <span className="ml-1 text-xs text-[var(--pf-text-muted)]">{t('meetings.attendee.member')}</span>
+                  <span className="ms-1 text-xs text-[var(--pf-text-muted)]">{t('meetings.attendee.member')}</span>
                 )}
                 {attendee.employeeId && (
-                  <span className="ml-1 text-xs text-[var(--pf-text-muted)]">{t('meetings.attendee.employee')}</span>
+                  <span className="ms-1 text-xs text-[var(--pf-text-muted)]">{t('meetings.attendee.employee')}</span>
                 )}
                 {attendee.contactId && (
-                  <span className="ml-1 text-xs text-[var(--pf-text-muted)]">{t('meetings.attendee.contact')}</span>
+                  <span className="ms-1 text-xs text-[var(--pf-text-muted)]">{t('meetings.attendee.contact')}</span>
                 )}
               </span>
             ))}

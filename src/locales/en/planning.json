@@ -2,6 +2,12 @@
   "title": "Planning & timeline",
   "subtitle": "Project Gantt planning: dates, progress, milestones, and finish-to-start (FS) links only. Not the resource board, not daily dispatch, not MS Project, and not CPM.",
   "jobsOptOut": "Detailed planning is for projects only. Short jobs keep simple dates.",
+  "dependencyErrors": {
+    "cycle": "This dependency would create a cycle in the schedule.",
+    "unknownItem": "The predecessor or successor no longer exists in this plan.",
+    "self": "A planning item cannot depend on itself.",
+    "crossProject": "Dependencies must stay within the same project."
+  },
   "empty": "No dated planning items yet.",
   "emptyHint": "Add tasks or milestones with a target date to see this light timeline. FS links only - no critical path.",
   "timeline": "Timeline",

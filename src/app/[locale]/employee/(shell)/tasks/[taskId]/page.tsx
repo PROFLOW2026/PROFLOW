@@ -335,7 +335,7 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
                   <form action={toggleAction}>
                     <button
                       type="submit"
-                      className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-[var(--pf-surface-2)] active:bg-[var(--pf-surface-3)]"
+                      className="flex w-full items-center gap-3 px-4 py-3 text-start transition-colors hover:bg-[var(--pf-surface-2)] active:bg-[var(--pf-surface-3)]"
                     >
                       <ChecklistMark done={item.isDone} />
                       <span className={cn('flex-1 text-sm', item.isDone && 'line-through text-[var(--pf-text-muted)]')}>

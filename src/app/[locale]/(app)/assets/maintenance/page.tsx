@@ -1,6 +1,7 @@
 import { Wrench } from 'lucide-react';
 import type { Metadata } from 'next';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
+import { formatMoneyString } from '@/shared/money/format';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
@@ -45,14 +46,26 @@ type ScheduleRow = Awaited<
   ReturnType<typeof listMaintenanceScheduleForOrg>
 >['all'][number];
 
+function formatMaintenanceCost(
+  amount: string | null | undefined,
+  currency: string | null | undefined,
+  locale: string,
+): string {
+  if (!amount) return '-';
+  if (!currency) return amount;
+  return formatMoneyString(amount, currency, locale);
+}
+
 function MaintenanceTable({
   items,
   t,
   tStatus,
+  locale,
 }: {
   readonly items: readonly ScheduleRow[];
   readonly t: Awaited<ReturnType<typeof getTranslations<'assets'>>>;
   readonly tStatus: Awaited<ReturnType<typeof getTranslations>>;
+  readonly locale: string;
 }) {
   return (
     <ResponsiveTable
@@ -95,13 +108,7 @@ function MaintenanceTable({
                     )}
                   </TableCell>
                   <TableCell numeric>
-                    {row.costAmount ? (
-                      <span dir="ltr">
-                        {`${row.costAmount}${row.currency ? ` ${row.currency}` : ''}`}
-                      </span>
-                    ) : (
-                      '-'
-                    )}
+                    {formatMaintenanceCost(row.costAmount, row.currency, locale)}
                   </TableCell>
                 </TableRow>
               ))}
@@ -128,8 +135,8 @@ function MaintenanceTable({
             {row.costAmount ? (
               <>
                 {' · '}
-                <span className="pf-numeric" dir="ltr">
-                  {`${row.costAmount}${row.currency ? ` ${row.currency}` : ''}`}
+                <span className="pf-numeric">
+                  {formatMaintenanceCost(row.costAmount, row.currency, locale)}
                 </span>
               </>
             ) : null}
@@ -141,8 +148,11 @@ function MaintenanceTable({
 }
 
 export default async function MaintenanceSchedulePage() {
-  const t = await getTranslations('assets');
-  const tStatus = await getTranslations('status.maintenance');
+  const [t, tStatus, locale] = await Promise.all([
+    getTranslations('assets'),
+    getTranslations('status.maintenance'),
+    getLocale(),
+  ]);
 
   const schedule = await withOrgContext((context) => listMaintenanceScheduleForOrg(context));
 
@@ -164,7 +174,7 @@ export default async function MaintenanceSchedulePage() {
             {schedule.overdue.length === 0 ? (
               <p className="text-sm text-[var(--pf-text-secondary)]">{t('schedule.emptyOverdue')}</p>
             ) : (
-              <MaintenanceTable items={schedule.overdue} t={t} tStatus={tStatus} />
+              <MaintenanceTable items={schedule.overdue} t={t} tStatus={tStatus} locale={locale} />
             )}
           </section>
 
@@ -173,7 +183,7 @@ export default async function MaintenanceSchedulePage() {
             {schedule.upcoming.length === 0 ? (
               <p className="text-sm text-[var(--pf-text-secondary)]">{t('schedule.emptyUpcoming')}</p>
             ) : (
-              <MaintenanceTable items={schedule.upcoming} t={t} tStatus={tStatus} />
+              <MaintenanceTable items={schedule.upcoming} t={t} tStatus={tStatus} locale={locale} />
             )}
           </section>
         </>

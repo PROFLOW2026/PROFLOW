@@ -164,7 +164,8 @@
     "paymentVoid": "لا يمكن إصدار إيصال لدفعة ملغاة.",
     "invalidDocumentKind": "نوع المستند القانوني غير مدعوم لهذا الإجراء.",
     "missingCustomerSnapshot": "لا يوجد لقطة عميل مجمدة لسجل الفوترة. اربط عميلاً بالمشروع قبل الإنهاء.",
-    "shareFailed": "تعذر إنشاء رابط المشاركة."
+    "shareFailed": "تعذر إنشاء رابط المشاركة.",
+    "storageLocationUnavailable": "تعذر فتح موقع الملف المحفوظ."
   },
   "documentTypeLabels": {
     "tax_invoice": "فاتورة ضريبية",

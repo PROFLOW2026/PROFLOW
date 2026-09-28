@@ -86,7 +86,7 @@ export function ProjectStageSelector({
 
       {/* Dropdown */}
       {open && availableStages.length > 0 && (
-        <div className="absolute left-0 top-full z-50 mt-1 min-w-48 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-surface-primary)] shadow-lg">
+        <div className="absolute start-0 top-full z-50 mt-1 min-w-48 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-surface-primary)] shadow-lg">
           <form action={action}>
             <input type="hidden" name="projectId" value={projectId} />
             <input type="hidden" name="toStageId" value={selectedStageId ?? ''} />

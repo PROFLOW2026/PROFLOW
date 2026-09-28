@@ -18,6 +18,12 @@ import {
   NotFoundError,
   mapServerActionError,
 } from '@/shared/errors';
+import {
+  DEPENDENCY_CROSS_PROJECT_MESSAGE,
+  DEPENDENCY_CYCLE_MESSAGE,
+  DEPENDENCY_SELF_MESSAGE,
+  DEPENDENCY_UNKNOWN_ITEM_MESSAGE,
+} from '@/modules/planning/domain/dependencies';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 
@@ -29,14 +35,27 @@ export interface PlanningActionState {
 
 async function mapPlanningError(error: unknown): Promise<PlanningActionState> {
   const tErrors = await getTranslations('errors');
+  const tPlanning = await getTranslations('planning');
   if (error instanceof PlanningEligibilityError) {
-    return { error: error.message };
+    return { error: tPlanning('jobsOptOut') };
   }
   if (error instanceof PlanningDependencyError) {
-    return { error: error.message };
+    const dependencyKeyByMessage: Record<string, string> = {
+      [DEPENDENCY_CYCLE_MESSAGE]: 'dependencyErrors.cycle',
+      [DEPENDENCY_UNKNOWN_ITEM_MESSAGE]: 'dependencyErrors.unknownItem',
+      [DEPENDENCY_SELF_MESSAGE]: 'dependencyErrors.self',
+      [DEPENDENCY_CROSS_PROJECT_MESSAGE]: 'dependencyErrors.crossProject',
+    };
+    const shortKey = dependencyKeyByMessage[error.message];
+    if (shortKey) {
+      return { error: tPlanning(shortKey as 'dependencyErrors.cycle') };
+    }
   }
   return mapServerActionError(error, {
     tErrors: (key) => tErrors(key as 'unexpected'),
+    namespaces: {
+      planning: (key) => tPlanning(key as 'jobsOptOut'),
+    },
   });
 }
 

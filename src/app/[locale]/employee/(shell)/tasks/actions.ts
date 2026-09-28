@@ -14,7 +14,7 @@ import {
   toggleEmployeePmTaskChecklistItem,
 } from '@/modules/employee-app/application/employee-pm-tasks';
 import { assertEmployeeAppContext } from '@/modules/employee-app/application/session-guard';
-import { DomainRuleError, serializeError } from '@/shared/errors';
+import { mapServerActionError } from '@/shared/errors';
 import {
   getEmployeeTaskDocumentPanelData,
   linkDocumentToEmployeeTask,
@@ -33,6 +33,20 @@ function fv(formData: FormData, key: string): string | undefined {
   if (v === null) return undefined;
   const s = String(v).trim();
   return s === '' ? undefined : s;
+}
+
+async function mapEmployeeTaskActionError(error: unknown): Promise<string> {
+  const tErrors = await getTranslations('errors');
+  const tEmployeeApp = await getTranslations('employeeApp');
+  const tTasks = await getTranslations('tasks');
+  return mapServerActionError(error, {
+    tErrors: (key) => tErrors(key as 'unexpected'),
+    namespaces: {
+      employeeApp: (key) => tEmployeeApp(key as 'errors.notAuthorized'),
+      tasks: (key) => tTasks(key as 'errors.noWorkspace'),
+    },
+    rethrowUnknown: false,
+  }).error;
 }
 
 function parseIdList(raw: string | undefined): string[] {
@@ -97,11 +111,7 @@ export async function employeeAddTaskCommentAction(
     revalidatePath(`/employee/tasks/${taskId}`);
     return { ok: true, commentId: result.commentId };
   } catch (error) {
-    if (error instanceof DomainRuleError) {
-      return { error: error.message };
-    }
-    const serialized = serializeError(error);
-    return { error: tErrors(serialized.messageKey.replace(/^errors\./, '') as 'notAllowed') };
+    return { error: await mapEmployeeTaskActionError(error) };
   }
 }
 
@@ -119,9 +129,7 @@ export async function employeeUpdateTaskStatusAction(
     revalidatePath('/employee/tasks');
     return {};
   } catch (error) {
-    if (error instanceof DomainRuleError) return { error: error.message };
-    const tErrors = await getTranslations('settings.workflowActions.employeeTasks.errors');
-    return { error: tErrors('updateStatusFailed') };
+    return { error: await mapEmployeeTaskActionError(error) };
   }
 }
 
@@ -146,8 +154,7 @@ export async function employeePostponeTaskAction(
     revalidatePath('/employee');
     return {};
   } catch (error) {
-    if (error instanceof DomainRuleError) return { error: error.message };
-    return { error: tErrors('updateDueDateFailed') };
+    return { error: await mapEmployeeTaskActionError(error) };
   }
 }
 
@@ -165,9 +172,7 @@ export async function employeeToggleChecklistItemAction(
     revalidatePath(`/employee/tasks/${taskId}`);
     return {};
   } catch (error) {
-    if (error instanceof DomainRuleError) return { error: error.message };
-    const tErrors = await getTranslations('settings.workflowActions.employeeTasks.errors');
-    return { error: tErrors('updateChecklistFailed') };
+    return { error: await mapEmployeeTaskActionError(error) };
   }
 }
 
@@ -279,9 +284,7 @@ export async function employeeLinkTaskDocumentAction(
     revalidatePath(`/employee/tasks/${taskId}`);
     return {};
   } catch (error) {
-    if (error instanceof DomainRuleError) return { error: error.message };
-    const tErrors = await getTranslations('settings.workflowActions.employeeTasks.errors');
-    return { error: tErrors('linkDocumentFailed') };
+    return { error: await mapEmployeeTaskActionError(error) };
   }
 }
 
@@ -297,9 +300,7 @@ export async function employeeUnlinkTaskDocumentAction(
     revalidatePath(`/employee/tasks/${taskId}`);
     return {};
   } catch (error) {
-    if (error instanceof DomainRuleError) return { error: error.message };
-    const tErrors = await getTranslations('settings.workflowActions.employeeTasks.errors');
-    return { error: tErrors('unlinkDocumentFailed') };
+    return { error: await mapEmployeeTaskActionError(error) };
   }
 }
 
@@ -316,9 +317,7 @@ export async function employeeLinkProviderFileToTaskAction(
     revalidatePath(`/employee/tasks/${taskId}`);
     return {};
   } catch (error) {
-    if (error instanceof DomainRuleError) return { error: error.message };
-    const tErrors = await getTranslations('settings.workflowActions.employeeTasks.errors');
-    return { error: tErrors('attachCloudFileFailed') };
+    return { error: await mapEmployeeTaskActionError(error) };
   }
 }
 
@@ -334,8 +333,6 @@ export async function employeeRecordTaskAttachmentAddedAction(
     revalidatePath(`/employee/tasks/${taskId}`);
     return {};
   } catch (error) {
-    if (error instanceof DomainRuleError) return { error: error.message };
-    const tErrors = await getTranslations('settings.workflowActions.employeeTasks.errors');
-    return { error: tErrors('recordAttachmentFailed') };
+    return { error: await mapEmployeeTaskActionError(error) };
   }
 }

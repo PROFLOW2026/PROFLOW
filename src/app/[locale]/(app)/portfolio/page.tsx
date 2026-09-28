@@ -231,7 +231,7 @@ export default async function PortfolioPage({ searchParams }: PortfolioPageProps
                         {row.displayName}
                       </Link>
                       {row.workKind !== 'project' && (
-                        <span className="ml-2 rounded bg-[var(--pf-bg-tertiary)] px-1 py-0.5 text-[10px] text-[var(--pf-text-muted)] uppercase tracking-wide">
+                        <span className="ms-2 rounded bg-[var(--pf-bg-tertiary)] px-1 py-0.5 text-[10px] text-[var(--pf-text-muted)] uppercase tracking-wide">
                           {t(portfolioWorkKindKey(row.workKind))}
                         </span>
                       )}

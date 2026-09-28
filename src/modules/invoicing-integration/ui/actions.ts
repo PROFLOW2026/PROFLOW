@@ -10,7 +10,11 @@ import {
   createStatutoryShareToken,
 } from '../application/statutory-share-token';
 import { requireSession, withOrgContext } from '@/shared/auth/session';
-import { isAppError, mapServerActionError } from '@/shared/errors';
+import {
+  OrganizationContextRequiredError,
+  isAppError,
+  mapServerActionError,
+} from '@/shared/errors';
 import { getTranslations } from 'next-intl/server';
 import { revalidatePath } from 'next/cache';
 
@@ -50,7 +54,7 @@ export async function requestExternalStatutoryDocumentAction(
   try {
     const session = await requireSession();
     if (!session.activeOrganizationId) {
-      return { error: await mapExternalDocError(new Error('No active organization')) };
+      return { error: await mapExternalDocError(new OrganizationContextRequiredError()) };
     }
 
     await requestExternalStatutoryDocumentCommitted(
@@ -123,7 +127,8 @@ export async function resolveStatutoryStorageLocationAction(
         storageDocumentId,
       );
       if (!document?.externalConnectionId || !document.externalFileId) {
-        return { error: 'location_unavailable' };
+        const tInvoicing = await getTranslations('invoicingIntegration');
+        return { error: tInvoicing('errors.storageLocationUnavailable') };
       }
       const payload = await getExternalFileDownload(context, {
         connectionId: document.externalConnectionId,
@@ -135,7 +140,8 @@ export async function resolveStatutoryStorageLocationAction(
       if ('url' in payload && payload.url) {
         return { url: payload.url };
       }
-      return { error: 'location_unavailable' };
+      const tInvoicing = await getTranslations('invoicingIntegration');
+      return { error: tInvoicing('errors.storageLocationUnavailable') };
     });
   } catch (error) {
     logUnmappedExternalDocError('storageLocation', error);
@@ -169,7 +175,7 @@ export async function createStatutoryShareLinkAction(
   try {
     const session = await requireSession();
     if (!session.activeOrganizationId) {
-      return { error: await mapExternalDocError(new Error('No active organization')) };
+      return { error: await mapExternalDocError(new OrganizationContextRequiredError()) };
     }
     const token = createStatutoryShareToken({
       organizationId: session.activeOrganizationId,

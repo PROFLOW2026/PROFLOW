@@ -10,7 +10,7 @@ import {
 } from '@/modules/communications';
 import type { SaveCommunicationDraftInput } from '@/modules/communications';
 import { withOrgContext } from '@/shared/auth/session';
-import { AppError, AuthorizationError, ValidationError } from '@/shared/errors';
+import { mapServerActionError } from '@/shared/errors';
 import { redirect } from '@/shared/i18n/navigation';
 import type { CommunicationEntityType } from '@/modules/communications/domain/types';
 import { COMMUNICATION_ENTITY_TYPES } from '@/modules/communications/domain/types';
@@ -35,24 +35,12 @@ function isEntityType(value: string | undefined): value is CommunicationEntityTy
 async function mapError(error: unknown): Promise<CommunicationsFormState> {
   const tErrors = await getTranslations('errors');
   const t = await getTranslations('communications');
-  if (error instanceof ValidationError) {
-    const fieldErrors: Record<string, string> = {};
-    for (const issue of error.issues) {
-      if (issue.path) {
-        fieldErrors[issue.path] =
-          issue.message === 'invalidEmail' ? t('errors.invalidEmail') : issue.message;
-      }
-    }
-    return { error: t('errors.invalidEmail'), fieldErrors };
-  }
-  if (error instanceof AuthorizationError) return { error: tErrors('notAllowed') };
-  if (error instanceof AppError) {
-    if (error.messageKey === 'communications.errors.cannotMarkSent') {
-      return { error: t('errors.cannotMarkSent') };
-    }
-    return { error: tErrors('unexpected') };
-  }
-  throw error;
+  return mapServerActionError(error, {
+    tErrors: (key) => tErrors(key as 'unexpected'),
+    namespaces: {
+      communications: (key) => t(key as 'errors.invalidEmail'),
+    },
+  });
 }
 
 function draftInput(formData: FormData): SaveCommunicationDraftInput {

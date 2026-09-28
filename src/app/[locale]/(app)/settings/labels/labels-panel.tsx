@@ -36,7 +36,7 @@ function LabelRow({ label, canEdit }: { label: TaskLabel; canEdit: boolean }) {
         {label.isArchived && (
           <Badge tone="neutral" className="text-xs text-[var(--pf-text-muted)]">{t('archivedBadge')}</Badge>
         )}
-        <div className="ml-auto flex gap-1">
+        <div className="ms-auto flex gap-1">
           {canEdit && (
             <>
               <Button size="sm" variant="ghost" onClick={() => setEditing(!editing)}>

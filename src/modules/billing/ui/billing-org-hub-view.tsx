@@ -360,7 +360,7 @@ export async function BillingOrgHubView({
         <div className="rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-4 py-3 text-sm">
           <span className="font-medium">{t('list.collectedInPeriodLabel')} </span>
           <MoneyText value={collectionsInPeriod} />
-          <span className="ml-2 text-[var(--pf-text-secondary)]">{t('list.collectedInPeriodHint')}</span>
+          <span className="ms-2 text-[var(--pf-text-secondary)]">{t('list.collectedInPeriodHint')}</span>
         </div>
       ) : null}
 

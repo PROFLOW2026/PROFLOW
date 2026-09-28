@@ -1,11 +1,13 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { getTranslations } from 'next-intl/server';
 import { withOrgContext } from '@/shared/auth/session';
 import { assertEmployeeAppContext } from '@/modules/employee-app/application/session-guard';
 import {
   submitAttendanceCorrectionRequest,
 } from '@/modules/workforce/application/attendance-correction-requests';
+import { mapServerActionError } from '@/shared/errors';
 import type { BusinessDate } from '@/shared/dates';
 
 /**
@@ -35,9 +37,17 @@ export async function employeeSubmitAttendanceCorrectionAction(
     revalidatePath('/employee/attendance');
     return { ok: true };
   } catch (error) {
+    const tErrors = await getTranslations('errors');
+    const tWorkforce = await getTranslations('workforce');
     return {
       ok: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: mapServerActionError(error, {
+        tErrors: (key) => tErrors(key as 'unexpected'),
+        namespaces: {
+          workforce: (key) => tWorkforce(key as 'errors.emptyBulk'),
+        },
+        rethrowUnknown: false,
+      }).error,
     };
   }
 }
