@@ -2,11 +2,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { OrgContext } from '@/shared/auth/context';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { CaptureItemRecord } from '@/modules/quick-capture/domain/types';
+import type * as ResolveCaptureReviewNotificationsModule from '@/modules/quick-capture/application/resolve-capture-review-notifications';
+import type * as QuickCaptureRepository from '@/modules/quick-capture/data/quick-capture.repository';
 
-const findCaptureById = vi.fn<typeof import('@/modules/quick-capture/data/quick-capture.repository').findCaptureById>();
-const updateCaptureItem = vi.fn<typeof import('@/modules/quick-capture/data/quick-capture.repository').updateCaptureItem>();
+const findCaptureById = vi.fn<typeof QuickCaptureRepository.findCaptureById>();
+const updateCaptureItem = vi.fn<typeof QuickCaptureRepository.updateCaptureItem>();
 const resolveCaptureReviewNotifications = vi.fn<
-  typeof import('@/modules/quick-capture/application/resolve-capture-review-notifications').resolveCaptureReviewNotifications
+  typeof ResolveCaptureReviewNotificationsModule.resolveCaptureReviewNotifications
 >();
 
 vi.mock('@/modules/quick-capture/data/quick-capture.repository', () => ({

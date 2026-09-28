@@ -3,20 +3,24 @@ import type { OrgContext } from '@/shared/auth/context';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { CaptureItemRecord } from '@/modules/quick-capture/domain/types';
 import type { ExtractionJob } from '@/modules/ocr/domain/types';
+import type * as AssertCaptureSessionDocumentModule from '@/modules/quick-capture/application/assert-capture-session-document';
+import type * as ResolveCaptureReviewNotificationsModule from '@/modules/quick-capture/application/resolve-capture-review-notifications';
+import type * as CaptureDocumentsRepository from '@/modules/quick-capture/data/capture-documents.repository';
+import type * as QuickCaptureRepository from '@/modules/quick-capture/data/quick-capture.repository';
+import type * as RelocateDocumentModule from '@/modules/external-storage/application/relocate-document-file';
+import type * as ConfirmOcrCandidateModule from '@/modules/ocr/application/confirm-candidate';
 
-const findCaptureById = vi.fn<typeof import('@/modules/quick-capture/data/quick-capture.repository').findCaptureById>();
-const updateCaptureItem = vi.fn<typeof import('@/modules/quick-capture/data/quick-capture.repository').updateCaptureItem>();
+const findCaptureById = vi.fn<typeof QuickCaptureRepository.findCaptureById>();
+const updateCaptureItem = vi.fn<typeof QuickCaptureRepository.updateCaptureItem>();
 const listCaptureDocumentsByCaptureId = vi.fn<
-  typeof import('@/modules/quick-capture/data/capture-documents.repository').listCaptureDocumentsByCaptureId
+  typeof CaptureDocumentsRepository.listCaptureDocumentsByCaptureId
 >();
 const assertCaptureSessionDocument = vi.fn<
-  typeof import('@/modules/quick-capture/application/assert-capture-session-document').assertCaptureSessionDocument
+  typeof AssertCaptureSessionDocumentModule.assertCaptureSessionDocument
 >();
-const confirmOcrCandidate = vi.fn<
-  typeof import('@/modules/ocr/application/confirm-candidate').confirmOcrCandidate
->();
+const confirmOcrCandidate = vi.fn<typeof ConfirmOcrCandidateModule.confirmOcrCandidate>();
 const relocateDocumentToSemanticFolder = vi.fn<
-  typeof import('@/modules/external-storage/application/relocate-document-file').relocateDocumentToSemanticFolder
+  typeof RelocateDocumentModule.relocateDocumentToSemanticFolder
 >();
 const findJob = vi.fn<(organizationId: string, jobId: string) => Promise<ExtractionJob | null>>();
 
@@ -54,7 +58,7 @@ vi.mock('@/shared/audit', () => ({
 }));
 
 const resolveCaptureReviewNotifications = vi.fn<
-  typeof import('@/modules/quick-capture/application/resolve-capture-review-notifications').resolveCaptureReviewNotifications
+  typeof ResolveCaptureReviewNotificationsModule.resolveCaptureReviewNotifications
 >();
 
 vi.mock('@/modules/quick-capture/application/resolve-capture-review-notifications', () => ({

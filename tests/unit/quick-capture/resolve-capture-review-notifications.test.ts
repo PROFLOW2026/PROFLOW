@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
+import type * as NotificationsRepository from '@/modules/notifications/data/notifications.repository';
 
 const resolveNotificationsAsSystem = vi.fn<
-  typeof import('@/modules/notifications/data/notifications.repository').resolveNotificationsAsSystem
+  typeof NotificationsRepository.resolveNotificationsAsSystem
 >();
 
 vi.mock('@/modules/notifications/data/notifications.repository', () => ({
