@@ -2,6 +2,7 @@ import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
 import type { OrgContext } from '@/shared/auth/context';
 import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
 import { PERMISSIONS, type PermissionKey } from '@/shared/permissions/catalog';
+import { mockDbExecutor } from '../shared/mock-db-executor';
 
 vi.mock('@/modules/documents/data/documents.repository', () => ({
   findDocumentById: vi.fn(async (_db: unknown, organizationId: string, documentId: string) => {
@@ -62,7 +63,7 @@ function contextWith(permissions: readonly PermissionKey[]): OrgContext {
     },
     permissions: new Set(permissions),
     roleKeys: [],
-    db: {} as OrgContext['db'],
+    db: mockDbExecutor(),
     locale: 'he-IL',
   };
 }

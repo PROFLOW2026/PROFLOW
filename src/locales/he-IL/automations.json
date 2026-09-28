@@ -105,7 +105,7 @@
   },
   "runActions": {
     "draftExpenseDescription": "טיוטת אוטומציה: {title}",
-    "draftExpenseNotes": "נוצרה באוטומציה מ-{entityType}:{entityId}. נשארת טיוטה — ללא סגירה.",
+    "draftExpenseNotes": "נוצרה באוטומציה מ-{entityType}:{entityId}. נשארת טיוטה, ללא סגירה.",
     "planningFollowupName": "מעקב: {title}",
     "systemTaskDefaultTitle": "משימת אוטומציה"
   },
