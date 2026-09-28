@@ -53,12 +53,13 @@ describe('mobile layout regressions', () => {
     expect(nav).not.toContain('mobileNavPositionStyle');
   });
 
-  it('positions FAB fixed to viewport with bottom-nav clearance on mobile', () => {
+  it('positions FAB on physical left for RTL and physical right for LTR', () => {
     const quickCreate = read('src/components/shell/quick-create.tsx');
     expect(quickCreate).toContain('QuickCreateFabPortal');
     expect(quickCreate).toContain('useLocaleDir');
+    expect(quickCreate).toContain("localeDir === 'rtl' ? 'left-4' : 'right-4'");
+    expect(quickCreate).not.toContain('inset-inline-end-4');
     expect(quickCreate).toContain('--pf-bottomnav-total-height');
-    expect(quickCreate).toContain('inset-inline-end-4');
     expect(quickCreate).toContain('lg:bottom-[var(--pf-fab-gap)]');
     expect(quickCreate).not.toContain('lg:static');
     expect(quickCreate).not.toMatch(/\b100vw\b/);

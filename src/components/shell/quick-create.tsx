@@ -36,6 +36,7 @@ function QuickCreateFabPortal({ children }: { children: ReactNode }) {
 
 function QuickCreateMenu({ actions }: { actions: QuickCreateAction[] }) {
   const t = useTranslations('nav.newMenu');
+  const localeDir = useLocaleDir();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const demoteFab = isFocusedComposerPath(pathname);
@@ -60,7 +61,8 @@ function QuickCreateMenu({ actions }: { actions: QuickCreateAction[] }) {
         demoteFab
           ? 'static size-auto h-11 min-h-11 shrink-0 rounded-md px-3 text-[0.8125rem] shadow-none hover:bg-[var(--pf-action-primary-hover)]'
           : cn(
-              'fixed inset-inline-end-4 z-50 size-[var(--pf-fab-size)] max-w-[var(--pf-fab-size)] shadow-[var(--pf-shadow-lg)]',
+              'fixed z-50 size-[var(--pf-fab-size)] max-w-[var(--pf-fab-size)] shadow-[var(--pf-shadow-lg)]',
+              localeDir === 'rtl' ? 'left-4' : 'right-4',
               'bottom-[calc(var(--pf-bottomnav-total-height)+var(--pf-fab-gap))] lg:bottom-[var(--pf-fab-gap)]',
               'hover:bg-[var(--pf-action-primary-hover)]',
             ),
