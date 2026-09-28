@@ -99,7 +99,8 @@ export async function buildEmployeeTaskListPayload(
       if (label) assigneeNameById.set(id, label);
     }
 
-    const canPostpone = assigneeEmployeeIds.includes(employeeId);
+    // Listed tasks are already within the viewer's tasks.read scope.
+    const canPostpone = true;
 
     return {
       id: row.id,

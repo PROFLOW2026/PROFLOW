@@ -1,7 +1,7 @@
 import 'server-only';
 
 import { and, eq } from 'drizzle-orm';
-import { employees, organizationMemberships } from '@drizzle/schema';
+import { employees } from '@drizzle/schema';
 import type { OrgContext } from '@/shared/auth/context';
 import { emitNotification } from '@/modules/notifications';
 import { taskPostponedByEmployeeNotificationCopy } from '@/modules/notifications/domain/copy';
@@ -13,7 +13,7 @@ import {
 import { notificationsCopyTranslator } from '@/shared/i18n/sync-namespace-translator';
 import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
 import { listEffectiveProjectParticipants } from '@/modules/projects/application/project-participants';
-import { listTaskFollowerUserIds } from '../data/tasks.repository';
+import { findActiveOrgOwnerUserId } from '@/modules/recurring-drafts/application/ops-worker';
 import type { PostponementOption } from '../domain/postpone-task-due-date';
 
 function formatNotificationDate(locale: string, isoDate: string | null): string {
@@ -23,19 +23,17 @@ function formatNotificationDate(locale: string, isoDate: string | null): string 
   return intlDateTimeFormat(locale, { dateStyle: 'medium' }).format(date);
 }
 
-async function resolveManagerRecipientUserIds(
+/** Org owner and project managers only — not followers, assignees, or creator by default. */
+export async function resolveTaskPostponementManagerRecipientUserIds(
   context: OrgContext,
   input: {
-    readonly taskId: string;
     readonly projectId: string | null;
-    readonly createdByOrgMemberId: string | null;
   },
 ): Promise<string[]> {
   const userIds = new Set<string>();
 
-  for (const userId of await listTaskFollowerUserIds(context.db, input.taskId)) {
-    if (userId) userIds.add(userId);
-  }
+  const owner = await findActiveOrgOwnerUserId(context.db, context.organizationId);
+  if (owner?.userId) userIds.add(owner.userId);
 
   if (input.projectId) {
     const participants = await listEffectiveProjectParticipants(
@@ -51,25 +49,12 @@ async function resolveManagerRecipientUserIds(
     }
   }
 
-  if (input.createdByOrgMemberId) {
-    const [creator] = await context.db
-      .select({ userId: organizationMemberships.userId })
-      .from(organizationMemberships)
-      .where(
-        and(
-          eq(organizationMemberships.id, input.createdByOrgMemberId),
-          eq(organizationMemberships.organizationId, context.organizationId),
-        ),
-      );
-    if (creator?.userId) userIds.add(creator.userId);
-  }
-
   return [...userIds];
 }
 
 /**
- * Informational notification to task followers, project managers, and creator
- * when an employee postpones a task. Read/open clears unread state; no approval.
+ * Informational notification to org owner and project managers when a task is
+ * postponed. Read/open clears unread state; no approval.
  */
 export async function notifyTaskPostponedByEmployee(
   context: OrgContext,
@@ -77,7 +62,6 @@ export async function notifyTaskPostponedByEmployee(
     readonly taskId: string;
     readonly taskTitle: string;
     readonly projectId: string | null;
-    readonly createdByOrgMemberId: string | null;
     readonly employeeId: string;
     readonly employeeName: string;
     readonly previousDueDate: string | null;
@@ -87,10 +71,8 @@ export async function notifyTaskPostponedByEmployee(
     readonly activityId: string;
   },
 ): Promise<void> {
-  const recipientUserIds = await resolveManagerRecipientUserIds(context, {
-    taskId: input.taskId,
+  const recipientUserIds = await resolveTaskPostponementManagerRecipientUserIds(context, {
     projectId: input.projectId,
-    createdByOrgMemberId: input.createdByOrgMemberId,
   });
   if (recipientUserIds.length === 0) return;
 

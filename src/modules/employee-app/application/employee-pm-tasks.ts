@@ -702,7 +702,6 @@ export async function updateEmployeePmTaskDueDate(
       taskId,
       taskTitle: task.title,
       projectId: task.projectId,
-      createdByOrgMemberId: task.createdByOrgMemberId,
       employeeId,
       employeeName,
       previousDueDate,

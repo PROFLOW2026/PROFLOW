@@ -87,28 +87,25 @@ describe('employee task permission scope', () => {
     expect(canUpdateAssignedTask).toBe(true);
   });
 
-  it('assigned employee with tasks.read can postpone without tasks.update', async () => {
-    const context = contextFromGrants([{ permissionKey: PERMISSIONS.TASKS_READ, scope: 'self_only' }]);
+  it('canPostpone mirrors tasks.read without requiring tasks.update', async () => {
+    const context = contextFromGrants([{ permissionKey: PERMISSIONS.TASKS_READ, scope: 'all_organization' }]);
     expect(employeeCanUpdateTaskGrant(context)).toBe(false);
+    const taskRef = { taskId: 'task-1', projectId: 'proj-1' };
+    const canRead = await employeeCanExerciseTaskPermission(
+      context,
+      PERMISSIONS.TASKS_READ,
+      taskRef,
+      'emp-self',
+    );
+    await expect(employeeCanPostponeTask(context, taskRef, 'emp-self')).resolves.toBe(canRead);
+    expect(canRead).toBe(true);
+  });
+
+  it('authorized non-assignee with organization read scope can postpone', async () => {
+    const context = contextFromGrants([{ permissionKey: PERMISSIONS.TASKS_READ, scope: 'all_organization' }]);
     await expect(
       employeeCanPostponeTask(context, { taskId: 'task-1', projectId: 'proj-1' }, 'emp-self'),
     ).resolves.toBe(true);
-  });
-
-  it('employee without assignee row cannot postpone even with tasks.read', async () => {
-    const context: OrgContext = {
-      ...contextFromGrants([{ permissionKey: PERMISSIONS.TASKS_READ, scope: 'self_only' }]),
-      db: {
-        select: vi.fn().mockReturnValue({
-          from: vi.fn().mockReturnValue({
-            where: vi.fn().mockResolvedValue([]),
-          }),
-        }),
-      } as unknown as OrgContext['db'],
-    };
-    await expect(
-      employeeCanPostponeTask(context, { taskId: 'task-1', projectId: 'proj-1' }, 'emp-self'),
-    ).resolves.toBe(false);
   });
 
   it('employee without tasks.read cannot postpone', async () => {
