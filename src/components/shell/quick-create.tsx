@@ -58,7 +58,7 @@ function QuickCreateMenu({ actions }: { actions: QuickCreateAction[] }) {
         demoteFab
           ? 'static size-auto h-11 min-h-11 shrink-0 rounded-md px-3 text-[0.8125rem] shadow-none hover:bg-[var(--pf-action-primary-hover)]'
           : cn(
-              'fixed start-4 z-50 size-[var(--pf-fab-size)] max-w-[var(--pf-fab-size)] shadow-[var(--pf-shadow-lg)]',
+              'fixed inset-inline-end-4 z-50 size-[var(--pf-fab-size)] max-w-[var(--pf-fab-size)] shadow-[var(--pf-shadow-lg)]',
               'bottom-[calc(var(--pf-bottomnav-total-height)+var(--pf-fab-gap))] lg:bottom-[var(--pf-fab-gap)]',
               'hover:bg-[var(--pf-action-primary-hover)]',
             ),
