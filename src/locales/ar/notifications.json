@@ -40,6 +40,7 @@
     "task_assigned_to_you": "تم إسناد مهمة إليك",
     "task_comment_mention": "تعليق جديد على مهمتك",
     "task_status_updated": "تم تحديث حالة المهمة",
+    "task_postponed_by_employee": "أجل موظف مهمة",
     "capture_needs_review": "التقاط بانتظار المراجعة",
     "material_pressure_alert": "ضغط سوق المواد"
   },
@@ -207,6 +208,13 @@
       "titleDefault": "تم تحديث المهمة",
       "bodyWithExtra": "تم تغيير الحالة إلى {extra}",
       "bodyDefault": "تم تحديث مهمة تتابعها."
+    },
+    "task_postponed_by_employee": {
+      "title": "{employeeName} أجل مهمة",
+      "titleDefault": "أجل موظف مهمة",
+      "body": "تم تأجيل {taskTitle} من {fromDate} إلى {toDate}",
+      "bodyDefault": "تم تأجيل مهمة من قبل موظف.",
+      "reasonSuffix": "السبب: {reason}"
     },
     "material_pressure_alert": {
       "titleHigh": "⚠️ ضغط مواد مرتفع: {trade} ({score}/100)",

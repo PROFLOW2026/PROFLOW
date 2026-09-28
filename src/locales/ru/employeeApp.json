@@ -165,6 +165,23 @@
     "reportedTimeLabel": "Учтённое время",
     "reportedTimeHours": "{hours} ч",
     "reportTimeForTask": "Списать время на задачу",
+    "postpone": {
+      "action": "Отложить задачу",
+      "optionDay": "День",
+      "optionWeek": "Неделя",
+      "optionMonth": "Месяц",
+      "optionCustom": "Своя дата",
+      "customDateLabel": "Новый срок",
+      "reasonLabel": "Причина переноса",
+      "reasonPlaceholder": "Необязательно",
+      "confirm": "Отложить задачу",
+      "cancel": "Отмена",
+      "success": "Задача перенесена на {date}",
+      "errors": {
+        "invalidOption": "Недопустимый вариант переноса",
+        "customDateInvalid": "Выберите корректную будущую дату"
+      }
+    },
     "assignSection": "Назначение задачи",
     "assignSelect": "Выберите участника команды",
     "assignSubmit": "Назначить",

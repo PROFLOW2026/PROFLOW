@@ -96,6 +96,31 @@ export function captureNeedsReviewNotificationCopy(
   return { title, body };
 }
 
+export function taskPostponedByEmployeeNotificationCopy(
+  t: NotificationCopyTranslator,
+  input: {
+    readonly employeeName: string;
+    readonly taskTitle: string;
+    readonly fromDate: string;
+    readonly toDate: string;
+    readonly reason?: string | null;
+  },
+): { title: string; body: string } {
+  const title = t('copy.task_postponed_by_employee.title', {
+    employeeName: input.employeeName,
+  });
+  let body = t('copy.task_postponed_by_employee.body', {
+    taskTitle: input.taskTitle,
+    fromDate: input.fromDate,
+    toDate: input.toDate,
+  });
+  const reason = input.reason?.trim();
+  if (reason) {
+    body = `${body}\n${t('copy.task_postponed_by_employee.reasonSuffix', { reason })}`;
+  }
+  return { title, body };
+}
+
 export function notificationCopy(
   t: NotificationCopyTranslator,
   type: NotificationEventType,
@@ -226,6 +251,11 @@ export function notificationCopy(
       return {
         title: titleWithReference(t, type, ref),
         body: bodyWithExtra(t, type, extra),
+      };
+    case 'task_postponed_by_employee':
+      return {
+        title: t('copy.task_postponed_by_employee.titleDefault'),
+        body: t('copy.task_postponed_by_employee.bodyDefault'),
       };
     case 'material_pressure_alert':
       // Pressure alerts are emitted directly by the ops-worker with pre-built title/body.

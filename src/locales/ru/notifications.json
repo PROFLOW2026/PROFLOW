@@ -40,6 +40,7 @@
     "task_assigned_to_you": "Вам назначена задача",
     "task_comment_mention": "Новый комментарий к вашей задаче",
     "task_status_updated": "Статус задачи обновлён",
+    "task_postponed_by_employee": "Сотрудник перенёс задачу",
     "capture_needs_review": "Захват ожидает проверки",
     "material_pressure_alert": "Давление рынка материалов"
   },
@@ -207,6 +208,13 @@
       "titleDefault": "Задача обновлена",
       "bodyWithExtra": "Статус изменён на {extra}",
       "bodyDefault": "Задача, за которой вы следите, была обновлена."
+    },
+    "task_postponed_by_employee": {
+      "title": "{employeeName} перенёс задачу",
+      "titleDefault": "Сотрудник перенёс задачу",
+      "body": "{taskTitle} перенесена с {fromDate} на {toDate}",
+      "bodyDefault": "Задача была перенесена сотрудником.",
+      "reasonSuffix": "Причина: {reason}"
     },
     "material_pressure_alert": {
       "titleHigh": "⚠️ Высокое давление материалов: {trade} ({score}/100)",

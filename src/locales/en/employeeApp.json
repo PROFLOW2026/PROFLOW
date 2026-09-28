@@ -390,7 +390,24 @@
     },
     "reportedTimeLabel": "Reported time",
     "reportedTimeHours": "{hours} h",
-    "reportTimeForTask": "Report time for task"
+    "reportTimeForTask": "Report time for task",
+    "postpone": {
+      "action": "Postpone task",
+      "optionDay": "Day",
+      "optionWeek": "Week",
+      "optionMonth": "Month",
+      "optionCustom": "Custom",
+      "customDateLabel": "New due date",
+      "reasonLabel": "Reason for postponement",
+      "reasonPlaceholder": "Optional",
+      "confirm": "Postpone task",
+      "cancel": "Cancel",
+      "success": "Task postponed to {date}",
+      "errors": {
+        "invalidOption": "Invalid postponement option",
+        "customDateInvalid": "Choose a valid future date"
+      }
+    }
   },
   "projects": {
     "createButton": "New project",

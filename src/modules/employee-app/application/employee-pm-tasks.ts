@@ -17,6 +17,7 @@ import type { OrgContext } from '@/shared/auth/context';
 import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { todayInTimeZone } from '@/shared/dates';
+import type { PostponementOption } from '@/modules/tasks/domain/postpone-task-due-date';
 import { employeePermissionScope } from './load-employee-app-context';
 import { assertEmployeeProjectScope, resolveAccessibleProjectIdsForEmployeePermission } from './project-scope';
 import {
@@ -605,6 +606,12 @@ export async function updateEmployeePmTaskStatus(
   });
 }
 
+export interface EmployeePmTaskPostponementInput {
+  readonly newDueDate: string;
+  readonly postponementOption: PostponementOption;
+  readonly reason?: string | null;
+}
+
 /**
  * Updates the due date of a PM task (postpone / reschedule).
  * Records task_activity with actor_employee_id — NEVER actor_org_member_id.
@@ -612,18 +619,22 @@ export async function updateEmployeePmTaskStatus(
 export async function updateEmployeePmTaskDueDate(
   context: OrgContext,
   taskId: string,
-  newDueDate: string | null,
-): Promise<void> {
+  input: EmployeePmTaskPostponementInput,
+): Promise<{ newDueDate: string }> {
   const employeeId = requireEmployeeId(context);
   if (!employeeCanUpdateTaskGrant(context)) {
     throw new DomainRuleError('No permission to update tasks', 'employeeApp.errors.notAuthorized');
   }
 
+  const trimmedReason = input.reason?.trim() || null;
+
   const [task] = await context.db
     .select({
       id: tasks.id,
+      title: tasks.title,
       projectId: tasks.projectId,
       dueDate: tasks.dueDate,
+      createdByOrgMemberId: tasks.createdByOrgMemberId,
     })
     .from(tasks)
     .where(
@@ -645,7 +656,10 @@ export async function updateEmployeePmTaskDueDate(
   );
 
   const previousDueDate = task.dueDate;
-  if (previousDueDate === newDueDate) return;
+  const newDueDate = input.newDueDate;
+  if (previousDueDate === newDueDate) {
+    return { newDueDate };
+  }
 
   const updated = await context.db
     .update(tasks)
@@ -665,14 +679,45 @@ export async function updateEmployeePmTaskDueDate(
     throw new DomainRuleError('Task update was not permitted', 'employeeApp.errors.notAuthorized');
   }
 
-  await context.db.insert(taskActivity).values({
-    taskId,
-    organizationId: context.organizationId,
-    actorEmployeeId: employeeId,
-    actorSystem: false,
-    eventType: 'due_date_changed',
-    payload: { from: previousDueDate, to: newDueDate },
-  });
+  const activityRows = await context.db
+    .insert(taskActivity)
+    .values({
+      taskId,
+      organizationId: context.organizationId,
+      actorEmployeeId: employeeId,
+      actorSystem: false,
+      eventType: 'due_date_changed',
+      payload: {
+        from: previousDueDate,
+        to: newDueDate,
+        postponementOption: input.postponementOption,
+        ...(trimmedReason ? { reason: trimmedReason } : {}),
+      },
+    })
+    .returning({ id: taskActivity.id });
+
+  const activityRow = activityRows[0];
+  if (activityRow) {
+    const { notifyTaskPostponedByEmployee, loadEmployeeDisplayName } = await import(
+      '@/modules/tasks/application/notify-task-postponed-by-employee'
+    );
+    const employeeName = await loadEmployeeDisplayName(context, employeeId);
+    await notifyTaskPostponedByEmployee(context, {
+      taskId,
+      taskTitle: task.title,
+      projectId: task.projectId,
+      createdByOrgMemberId: task.createdByOrgMemberId,
+      employeeId,
+      employeeName,
+      previousDueDate,
+      newDueDate,
+      postponementOption: input.postponementOption,
+      reason: trimmedReason,
+      activityId: activityRow.id,
+    });
+  }
+
+  return { newDueDate };
 }
 
 /**

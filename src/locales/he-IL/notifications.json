@@ -40,6 +40,7 @@
     "task_assigned_to_you": "משימה שויכה אליך",
     "task_comment_mention": "תגובה חדשה על משימה שלך",
     "task_status_updated": "סטטוס משימה עודכן",
+    "task_postponed_by_employee": "עובד דחה משימה",
     "capture_needs_review": "קליטה ממתינה לבדיקה",
     "material_pressure_alert": "לחץ שוק חומרים"
   },
@@ -207,6 +208,13 @@
       "titleDefault": "משימה עודכנה",
       "bodyWithExtra": "הסטטוס שונה ל-{extra}",
       "bodyDefault": "משימה שאתה עוקב אחריה עודכנה."
+    },
+    "task_postponed_by_employee": {
+      "title": "{employeeName} דחה משימה",
+      "titleDefault": "עובד דחה משימה",
+      "body": "{taskTitle} נדחתה מ־{fromDate} ל־{toDate}",
+      "bodyDefault": "משימה נדחתה על ידי עובד.",
+      "reasonSuffix": "סיבה: {reason}"
     },
     "material_pressure_alert": {
       "titleHigh": "⚠️ לחץ חומרים גבוה: {trade} ({score}/100)",

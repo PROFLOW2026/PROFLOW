@@ -165,6 +165,23 @@
     "reportedTimeLabel": "الوقت المُبلَّغ",
     "reportedTimeHours": "{hours} س",
     "reportTimeForTask": "تسجيل وقت للمهمة",
+    "postpone": {
+      "action": "تأجيل المهمة",
+      "optionDay": "يوم",
+      "optionWeek": "أسبوع",
+      "optionMonth": "شهر",
+      "optionCustom": "مخصص",
+      "customDateLabel": "تاريخ استحقاق جديد",
+      "reasonLabel": "سبب التأجيل",
+      "reasonPlaceholder": "اختياري",
+      "confirm": "تأجيل المهمة",
+      "cancel": "إلغاء",
+      "success": "تم تأجيل المهمة إلى {date}",
+      "errors": {
+        "invalidOption": "خيار تأجيل غير صالح",
+        "customDateInvalid": "اختر تاريخاً مستقبلياً صالحاً"
+      }
+    },
     "assignSection": "إسناد المهمة",
     "assignSelect": "اختر عضو الفريق",
     "assignSubmit": "إسناد",

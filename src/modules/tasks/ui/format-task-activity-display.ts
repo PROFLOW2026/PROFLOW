@@ -9,7 +9,13 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-export function resolveActivityEventLabelKey(eventType: string): `activity.${string}` {
+export function resolveActivityEventLabelKey(
+  eventType: string,
+  payload?: Record<string, unknown> | null,
+): `activity.${string}` {
+  if (eventType === 'due_date_changed' && payload?.postponementOption) {
+    return 'activity.employeePostponed';
+  }
   return `activity.${eventType}` as `activity.${string}`;
 }
 
@@ -50,6 +56,7 @@ export function formatActivityPayloadSummary(
   eventType: string,
   payload: Record<string, unknown> | null,
   t: ActivityTranslate,
+  locale = 'en',
 ): string | null {
   if (!payload) return null;
 
@@ -115,6 +122,17 @@ export function formatActivityPayloadSummary(
     if (title) return t('activity.subtaskName', { title });
   }
 
+  if (eventType === 'due_date_changed' && payload.postponementOption) {
+    const from = localizeActivityScalar('dueDate', payload.from, t, locale);
+    const to = localizeActivityScalar('dueDate', payload.to, t, locale);
+    let summary = t('activity.employeePostponedFromTo', { from, to });
+    const reason = payload.reason as string | undefined;
+    if (reason?.trim()) {
+      summary = `${summary} ${t('activity.employeePostponedReason', { reason: reason.trim() })}`;
+    }
+    return summary;
+  }
+
   return null;
 }
 
@@ -125,6 +143,10 @@ export function formatActivityDiff(
   locale: string,
 ): { from: string; to: string } | null {
   if (!payload || !isRecord(payload)) return null;
+
+  if (eventType === 'due_date_changed' && payload.postponementOption) {
+    return null;
+  }
 
   const from = payload.from;
   const to = payload.to;

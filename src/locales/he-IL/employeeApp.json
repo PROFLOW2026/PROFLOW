@@ -375,6 +375,23 @@
     "reportedTimeLabel": "זמן שדווח",
     "reportedTimeHours": "{hours} שעות",
     "reportTimeForTask": "דווח זמן למשימה",
+    "postpone": {
+      "action": "דחה משימה",
+      "optionDay": "יום",
+      "optionWeek": "שבוע",
+      "optionMonth": "חודש",
+      "optionCustom": "מותאם אישית",
+      "customDateLabel": "תאריך יעד חדש",
+      "reasonLabel": "סיבת הדחייה",
+      "reasonPlaceholder": "אופציונלי",
+      "confirm": "דחה משימה",
+      "cancel": "ביטול",
+      "success": "המשימה נדחתה ל־{date}",
+      "errors": {
+        "invalidOption": "אפשרות דחייה לא תקינה",
+        "customDateInvalid": "יש לבחור תאריך עתידי תקין"
+      }
+    },
     "create": {
       "formTitle": "משימה חדשה",
       "noProjects": "אין פרויקטים זמינים ליצירת משימות בהיקף שלך",

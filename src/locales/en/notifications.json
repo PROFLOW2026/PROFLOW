@@ -41,6 +41,7 @@
     "task_comment_mention": "New comment on your task",
     "capture_needs_review": "Capture needs review",
     "task_status_updated": "Task status updated",
+    "task_postponed_by_employee": "Employee postponed a task",
     "material_pressure_alert": "Material market pressure"
   },
   "copy": {
@@ -207,6 +208,13 @@
       "titleDefault": "Task updated",
       "bodyWithExtra": "Status changed to {extra}",
       "bodyDefault": "A task you follow has been updated."
+    },
+    "task_postponed_by_employee": {
+      "title": "{employeeName} postponed a task",
+      "titleDefault": "Employee postponed a task",
+      "body": "{taskTitle} postponed from {fromDate} to {toDate}",
+      "bodyDefault": "A task was postponed by an employee.",
+      "reasonSuffix": "Reason: {reason}"
     },
     "material_pressure_alert": {
       "titleHigh": "⚠️ High material pressure: {trade} ({score}/100)",

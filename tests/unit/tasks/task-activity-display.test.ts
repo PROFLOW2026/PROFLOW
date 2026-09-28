@@ -16,6 +16,8 @@ const t = (key: string, values?: Record<string, string | number | Date>) => {
     'activity.fields.description': 'Description',
     'activity.checklistAdded': `Added "${values?.title ?? ''}"`,
     'activity.assigneeRemoved': 'Removed assignee',
+    'activity.employeePostponedFromTo': `from ${values?.from ?? ''} to ${values?.to ?? ''}`,
+    'activity.employeePostponedReason': `Reason: ${values?.reason ?? ''}`,
   };
   return map[key] ?? key;
 };
@@ -60,7 +62,31 @@ describe('formatActivityDiff', () => {
   });
 });
 
+describe('resolveActivityEventLabelKey with postponement payload', () => {
+  it('uses employee postponement label', () => {
+    expect(
+      resolveActivityEventLabelKey('due_date_changed', { postponementOption: 'day' }),
+    ).toBe('activity.employeePostponed');
+  });
+});
+
 describe('formatActivityPayloadSummary', () => {
+  it('describes employee postponement with optional reason', () => {
+    expect(
+      formatActivityPayloadSummary(
+        'due_date_changed',
+        {
+          from: '2026-09-12',
+          to: '2026-09-19',
+          postponementOption: 'week',
+          reason: 'Waiting for supplier',
+        },
+        t,
+        'en',
+      ),
+    ).toContain('Waiting for supplier');
+  });
+
   it('describes checklist additions', () => {
     expect(
       formatActivityPayloadSummary(

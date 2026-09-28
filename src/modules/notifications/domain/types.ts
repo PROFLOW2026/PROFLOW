@@ -37,6 +37,7 @@ export const NOTIFICATION_EVENT_TYPES = [
   'milestone_approaching',
   'capture_needs_review',
   'task_status_updated',
+  'task_postponed_by_employee',
   // ── Market Intelligence ────────────────────────────────────────────────────
   'material_pressure_alert',
 ] as const;
@@ -95,6 +96,7 @@ export const EVENT_DOMAIN: Readonly<Record<NotificationEventType, NotificationDo
   milestone_approaching: 'tasks',
   capture_needs_review: 'documents',
   task_status_updated: 'tasks',
+  task_postponed_by_employee: 'tasks',
   // ── Market Intelligence ────────────────────────────────────────────────────
   material_pressure_alert: 'market_intelligence',
 };

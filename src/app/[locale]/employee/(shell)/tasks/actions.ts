@@ -14,7 +14,16 @@ import {
   toggleEmployeePmTaskChecklistItem,
 } from '@/modules/employee-app/application/employee-pm-tasks';
 import { assertEmployeeAppContext } from '@/modules/employee-app/application/session-guard';
-import { mapServerActionError } from '@/shared/errors';
+import { mapServerActionError, NotFoundError } from '@/shared/errors';
+import { todayInTimeZone } from '@/shared/dates';
+import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
+import {
+  computePostponedDueDate,
+  isPostponementOption,
+  type PostponementOption,
+} from '@/modules/tasks/domain/postpone-task-due-date';
+import { tasks } from '@drizzle/schema';
+import { and, eq, isNull } from 'drizzle-orm';
 import {
   getEmployeeTaskDocumentPanelData,
   linkDocumentToEmployeeTask,
@@ -133,28 +142,69 @@ export async function employeeUpdateTaskStatusAction(
   }
 }
 
+export type EmployeePostponementOption = PostponementOption;
+
+export interface EmployeePostponeTaskResult extends TaskActionState {
+  readonly successMessage?: string;
+}
+
 /** Postpones/reschedules a PM task due date (Employee App surface). */
 export async function employeePostponeTaskAction(
   taskId: string,
-  dueDate: string,
-): Promise<TaskActionState> {
+  option: EmployeePostponementOption,
+  customDate?: string,
+  reason?: string,
+): Promise<EmployeePostponeTaskResult> {
+  const locale = await getLocale();
+  const tPostpone = await getTranslations('employeeApp.tasks.postpone');
   const tErrors = await getTranslations('settings.workflowActions.employeeTasks.errors');
-  const trimmed = dueDate.trim();
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
-    return { error: tErrors('invalidDueDate') };
+
+  if (!isPostponementOption(option)) {
+    return { error: tPostpone('errors.invalidOption') };
   }
 
   try {
-    await withOrgContext(async (context) => {
+    const newDueDate = await withOrgContext(async (context) => {
       await assertEmployeeAppContext(context);
-      await updateEmployeePmTaskDueDate(context, taskId, trimmed);
+      const [task] = await context.db
+        .select({ dueDate: tasks.dueDate })
+        .from(tasks)
+        .where(
+          and(
+            eq(tasks.id, taskId),
+            eq(tasks.organizationId, context.organizationId),
+            isNull(tasks.archivedAt),
+          ),
+        );
+      if (!task) throw new NotFoundError('Task');
+
+      const today = todayInTimeZone(context.organization.timezone);
+      const computed = computePostponedDueDate(option, task.dueDate, today, customDate);
+      const result = await updateEmployeePmTaskDueDate(context, taskId, {
+        newDueDate: computed,
+        postponementOption: option,
+        reason: reason?.trim() || null,
+      });
+      return result.newDueDate;
     });
+
     revalidatePath(`/employee/tasks/${taskId}`);
     revalidatePath('/employee/tasks');
     revalidatePath('/employee');
-    return {};
+
+    const formattedDate = intlDateTimeFormat(locale, { dateStyle: 'medium' }).format(
+      new Date(`${newDueDate}T00:00:00`),
+    );
+    return { successMessage: tPostpone('success', { date: formattedDate }) };
   } catch (error) {
-    return { error: await mapEmployeeTaskActionError(error) };
+    if (error instanceof NotFoundError) {
+      return { error: await mapEmployeeTaskActionError(error) };
+    }
+    const mapped = await mapEmployeeTaskActionError(error);
+    if (mapped === tErrors('invalidDueDate')) {
+      return { error: tPostpone('errors.customDateInvalid') };
+    }
+    return { error: mapped };
   }
 }
 

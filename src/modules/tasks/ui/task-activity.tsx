@@ -97,8 +97,11 @@ function PayloadDiff({
   t: Awaited<ReturnType<typeof getTranslations<'tasks'>>>;
   locale: string;
 }) {
-  const summary = formatActivityPayloadSummary(eventType, payload, (key, values) =>
-    t(key as Parameters<typeof t>[0], values as never),
+  const summary = formatActivityPayloadSummary(
+    eventType,
+    payload,
+    (key, values) => t(key as Parameters<typeof t>[0], values as never),
+    locale,
   );
   const diff = formatActivityDiff(
     eventType,
@@ -142,9 +145,12 @@ function toActivityViewRow(
   const actorLabel = isSystem
     ? t('activity.systemActor')
     : (event.actorName ?? t('activity.unknownActor'));
-  const eventLabel = t(resolveActivityEventLabelKey(event.eventType));
-  const summary = formatActivityPayloadSummary(event.eventType, event.payload, (key, values) =>
-    t(key as Parameters<typeof t>[0], values as never),
+  const eventLabel = t(resolveActivityEventLabelKey(event.eventType, event.payload));
+  const summary = formatActivityPayloadSummary(
+    event.eventType,
+    event.payload,
+    (key, values) => t(key as Parameters<typeof t>[0], values as never),
+    locale,
   );
   const diff = formatActivityDiff(
     event.eventType,
@@ -184,7 +190,7 @@ function ActivityEventRow({
     ? t('activity.systemActor')
     : (event.actorName ?? t('activity.unknownActor'));
 
-  const eventLabelKey = resolveActivityEventLabelKey(event.eventType);
+  const eventLabelKey = resolveActivityEventLabelKey(event.eventType, event.payload);
   const eventLabel = t(eventLabelKey);
 
   return (
