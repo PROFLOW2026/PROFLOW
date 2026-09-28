@@ -1,13 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
-import type * as NotificationsRepository from '@/modules/notifications/data/notifications.repository';
 
-const resolveNotificationsAsSystem = vi.fn<
-  typeof NotificationsRepository.resolveNotificationsAsSystem
->();
+const resolveNotificationsAsSystem = vi.hoisted(() => vi.fn());
 
-vi.mock('@/modules/notifications/data/notifications.repository', () => ({
-  resolveNotificationsAsSystem: (...args: Parameters<typeof resolveNotificationsAsSystem>) =>
-    resolveNotificationsAsSystem(...args),
+vi.mock('@/modules/notifications', () => ({
+  resolveNotificationsAsSystem: (...args: unknown[]) => resolveNotificationsAsSystem(...args),
 }));
 
 describe('resolveCaptureReviewNotifications', () => {

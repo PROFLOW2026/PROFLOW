@@ -270,7 +270,24 @@ export function ExpenseForm({
   const [costFamily, setCostFamily] = React.useState<CostFamily | ''>(
     initialValues?.costFamily ?? (initialValues?.projectId ? 'direct_project' : ''),
   );
-  const [costCategoryId, setCostCategoryId] = React.useState(initialValues?.costCategoryId ?? '');
+  const [costCategoryId, setCostCategoryId] = React.useState(() => {
+    const id = initialValues?.costCategoryId ?? '';
+    if (!id) return '';
+    const category = categories.find((item) => item.id === id);
+    if (!category) return '';
+    const mode = resolveInitialCostDestination(initialValues);
+    const stockPurchase = Boolean(initialValues?.inventoryStockPurchase);
+    if (mode === 'project_single' && category.family !== 'direct_project') return '';
+    if (
+      mode !== 'project_single' &&
+      mode !== 'project_multi' &&
+      category.family === 'direct_project' &&
+      !stockPurchase
+    ) {
+      return '';
+    }
+    return id;
+  });
   const [vatMode, setVatMode] = React.useState<ExpenseVatMode>(() =>
     resolveExpenseVatMode({
       vatMode: initialValues?.vatMode,
@@ -356,36 +373,6 @@ export function ExpenseForm({
       ? targeting
       : '';
 
-  React.useEffect(() => {
-    if (!isProjectDestinationMode) return;
-    setAllocationIntent('project_allocate');
-    setDestination('project');
-    setCostFamily('direct_project');
-  }, [isProjectDestinationMode]);
-
-  React.useEffect(() => {
-    if (!costCategoryId) return;
-    const category = categories.find((item) => item.id === costCategoryId);
-    if (!category) return;
-    if (isProjectDestinationMode && category.family !== 'direct_project') {
-      setCostCategoryId('');
-      return;
-    }
-    if (
-      !isProjectDestinationMode &&
-      costDestinationMode !== 'project_multi' &&
-      category.family === 'direct_project' &&
-      !inventoryStockPurchase
-    ) {
-      setCostCategoryId('');
-    }
-  }, [
-    isProjectDestinationMode,
-    costDestinationMode,
-    costCategoryId,
-    categories,
-    inventoryStockPurchase,
-  ]);
   const usesAutomaticDriver =
     Boolean(allocationDriverMethod) && isWeightAllocationMethod(allocationDriverMethod as AllocationMethod);
   const hasProjectAllocation = allocations.some(
@@ -497,18 +484,31 @@ export function ExpenseForm({
     setPolicyOverridden(false);
   }
 
-  function clearCategoryIncompatibleWithDestination(mode: CostDestinationMode) {
+  function isCategoryCompatibleWithDestination(
+    category: CostCategoryRow,
+    mode: CostDestinationMode,
+    stockPurchase: boolean,
+  ): boolean {
+    if (mode === 'project_single') {
+      return category.family === 'direct_project';
+    }
+    if (mode === 'project_multi') {
+      return true;
+    }
+    if (category.family === 'direct_project') {
+      return stockPurchase;
+    }
+    return true;
+  }
+
+  function clearCategoryIncompatibleWithDestination(
+    mode: CostDestinationMode,
+    stockPurchase = inventoryStockPurchase,
+  ) {
     if (!costCategoryId) return;
     const category = categories.find((item) => item.id === costCategoryId);
     if (!category) return;
-    if (mode === 'project_single' && category.family !== 'direct_project') {
-      setCostCategoryId('');
-      return;
-    }
-    if (
-      (mode === 'auto_pool' || mode === 'company_only') &&
-      category.family === 'direct_project'
-    ) {
+    if (!isCategoryCompatibleWithDestination(category, mode, stockPurchase)) {
       setCostCategoryId('');
     }
   }
@@ -930,8 +930,18 @@ export function ExpenseForm({
                 value={costCategoryId || NONE_VALUE}
                 onValueChange={(value) => {
                   const nextId = value === NONE_VALUE ? '' : value;
-                  setCostCategoryId(nextId);
                   const category = categories.find((item) => item.id === nextId);
+                  if (
+                    category &&
+                    !isCategoryCompatibleWithDestination(
+                      category,
+                      costDestinationMode,
+                      inventoryStockPurchase,
+                    )
+                  ) {
+                    return;
+                  }
+                  setCostCategoryId(nextId);
                   if (nextId && category) {
                     applyCategoryPolicy(category);
                     if (
@@ -1208,6 +1218,7 @@ export function ExpenseForm({
                     if (!next) {
                       setInventoryItemId('');
                       setInventoryPurchaseQty('');
+                      clearCategoryIncompatibleWithDestination(costDestinationMode, false);
                       if (destination === 'inventory') {
                         setDestination(projectId ? 'project' : 'general');
                       }

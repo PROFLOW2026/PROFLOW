@@ -1,5 +1,5 @@
 import type { OrgContext } from '@/shared/auth/context';
-import { resolveNotificationsAsSystem } from '@/modules/notifications/data/notifications.repository';
+import { resolveNotificationsAsSystem } from '@/modules/notifications';
 
 /**
  * Resolves all open `capture_needs_review` notifications for a capture row.

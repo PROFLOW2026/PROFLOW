@@ -119,7 +119,7 @@ export function QuickCaptureReview({
   const [category, setCategory] = useState<FieldMediaCategory>('progress');
   const [error, setError] = useState<string | null>(null);
   const [ocrParsing, setOcrParsing] = useState(false);
-  const [ocrSlow, setOcrSlow] = useState(false);
+  const [ocrSlowTriggered, setOcrSlowTriggered] = useState(false);
   const [ocrPollHalted, setOcrPollHalted] = useState(false);
   const ocrRunningStartedAtRef = useRef<number | null>(null);
 
@@ -134,12 +134,12 @@ export function QuickCaptureReview({
     ocrJob?.status === 'queued' ||
     ocrJob?.status === 'processing' ||
     ocrJob?.status === 'running';
+  const ocrSlow = financialOcrRunning && ocrSlowTriggered;
 
   useEffect(() => {
     if (ownerType !== 'financial_document' || !financialOcrRunning || ocrPollHalted) {
       if (!financialOcrRunning) {
         ocrRunningStartedAtRef.current = null;
-        setOcrSlow(false);
       }
       return;
     }
@@ -152,7 +152,7 @@ export function QuickCaptureReview({
     const tick = async () => {
       const startedAt = ocrRunningStartedAtRef.current ?? Date.now();
       if (Date.now() - startedAt >= OCR_SLOW_MS) {
-        setOcrSlow(true);
+        setOcrSlowTriggered(true);
         setOcrParsing(false);
       }
 
@@ -162,7 +162,7 @@ export function QuickCaptureReview({
       if (!result.ok) {
         setOcrPollHalted(true);
         setOcrParsing(false);
-        setOcrSlow(false);
+        setOcrSlowTriggered(false);
         setError(result.error ?? t('review.pollFailed'));
         return;
       }
@@ -172,7 +172,7 @@ export function QuickCaptureReview({
       const status = result.data.job?.status;
       if (isTerminalOcrStatus(status)) {
         setOcrParsing(false);
-        setOcrSlow(false);
+        setOcrSlowTriggered(false);
         setOcrPollHalted(true);
       } else if (isActiveOcrStatus(status)) {
         setOcrPollHalted(false);
@@ -212,6 +212,8 @@ export function QuickCaptureReview({
       setError(t('review.ocrUnavailable'));
       return;
     }
+    setOcrSlowTriggered(false);
+    ocrRunningStartedAtRef.current = null;
     setOcrParsing(true);
     startTransition(async () => {
       const result = await startCaptureFinancialOcrAction({
@@ -250,7 +252,7 @@ export function QuickCaptureReview({
   const handleRetryOcr = () => {
     if (!selectedFinancialDocumentId) return;
     setError(null);
-    setOcrSlow(false);
+    setOcrSlowTriggered(false);
     setOcrPollHalted(false);
     ocrRunningStartedAtRef.current = Date.now();
     setOcrParsing(true);

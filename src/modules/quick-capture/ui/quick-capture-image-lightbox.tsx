@@ -2,7 +2,7 @@
 
 import { ZoomIn, ZoomOut } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -29,9 +29,15 @@ export function QuickCaptureImageLightbox({
   const t = useTranslations('quickCapture.preview');
   const [zoomIndex, setZoomIndex] = useState(0);
 
-  useEffect(() => {
-    if (!open) setZoomIndex(0);
-  }, [open]);
+  const handleOpenChange = useCallback(
+    (nextOpen: boolean) => {
+      if (!nextOpen) {
+        setZoomIndex(0);
+      }
+      onOpenChange(nextOpen);
+    },
+    [onOpenChange],
+  );
 
   const zoomIn = useCallback(() => {
     setZoomIndex((current) => Math.min(current + 1, ZOOM_STEPS.length - 1));
@@ -44,7 +50,7 @@ export function QuickCaptureImageLightbox({
   const scale = ZOOM_STEPS[zoomIndex] ?? 1;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
         closeLabel={t('close')}
         mobileSheet={false}
@@ -85,7 +91,7 @@ export function QuickCaptureImageLightbox({
             'overflow-auto bg-[var(--pf-bg-muted)] p-0',
             'touch-pan-x touch-pan-y',
           )}
-          onClick={() => onOpenChange(false)}
+          onClick={() => handleOpenChange(false)}
         >
           <div className="flex min-h-[min(70vh,720px)] items-center justify-center p-4">
             {/* eslint-disable-next-line @next/next/no-img-element */}

@@ -39,3 +39,5 @@ export {
   normalizeRecorderVideoMime,
   APPROVED_VIDEO_MIME_TYPES,
 } from './domain/video-mime';
+
+export { listCaptureStatusesByIds } from './application/list-capture-statuses';

@@ -72,7 +72,7 @@ import {
   type ScanEntity,
 } from '../data/scan-sources.repository';
 import { INBOX_CAPTURE_STATUSES } from '@/modules/quick-capture/application/list-inbox';
-import { listCaptureStatusesByIds } from '@/modules/quick-capture/data/quick-capture.repository';
+import { listCaptureStatusesByIds } from '@/modules/quick-capture';
 import { emitNotification } from './emit';
 import { runNotificationScanSchema, type RunNotificationScanInput } from '../validation/schemas';
 
