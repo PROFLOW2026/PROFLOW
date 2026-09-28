@@ -76,6 +76,7 @@ export interface Task {
   readonly milestoneId: string | null;
   readonly recurrenceRuleId: string | null;
   readonly generatedFromOccurrenceId: string | null;
+  readonly generatedFromOrgProjectTaskTemplateId: string | null;
   readonly source: TaskSource;
   readonly approvalRequired: boolean;
   /** Opt-in. Default false so existing tasks do not move project progress. */
@@ -292,6 +293,31 @@ export interface UpdateTaskInput {
   readonly progressWeight?: number | string | null;
   readonly ownerOrgMemberId?: string | null;
   readonly ownerEmployeeId?: string | null;
+}
+
+export interface OrgProjectTaskTemplate {
+  readonly id: string;
+  readonly organizationId: string;
+  readonly title: string;
+  readonly description: string | null;
+  readonly isEnabled: boolean;
+  readonly isArchived: boolean;
+  readonly archivedAt: Date | null;
+  readonly position: number;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
+}
+
+export interface OrgProjectTaskTemplateDefaultAssignee {
+  readonly employeeId: string;
+  readonly name: string | null;
+  readonly invalid: boolean;
+}
+
+export interface OrgProjectTaskTemplateSummary extends OrgProjectTaskTemplate {
+  readonly defaultAssigneeEmployeeIds: readonly string[];
+  readonly defaultAssignees: readonly OrgProjectTaskTemplateDefaultAssignee[];
+  readonly defaultAssigneeInvalid: boolean;
 }
 
 export interface TaskListFilters {

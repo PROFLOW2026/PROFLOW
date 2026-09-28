@@ -54,6 +54,7 @@ function mapTaskRow(row: typeof tasks.$inferSelect): Task {
     milestoneId: row.milestoneId ?? null,
     recurrenceRuleId: row.recurrenceRuleId ?? null,
     generatedFromOccurrenceId: row.generatedFromOccurrenceId ?? null,
+    generatedFromOrgProjectTaskTemplateId: row.generatedFromOrgProjectTaskTemplateId ?? null,
     source: row.source as TaskSource,
     approvalRequired: row.approvalRequired,
     contributesToProgress: row.contributesToProgress ?? false,

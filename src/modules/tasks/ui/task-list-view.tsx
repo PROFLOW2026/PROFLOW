@@ -91,6 +91,60 @@ function isTaskOverdue(dueDate: string, status: TaskStatus): boolean {
   return dueDate < today;
 }
 
+function AssigneeAvatar({
+  displayName,
+  avatarUrl,
+}: {
+  displayName: string | null;
+  avatarUrl?: string | null;
+}) {
+  if (avatarUrl) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={avatarUrl}
+        alt=""
+        aria-hidden
+        className="size-5 shrink-0 rounded-full border border-[var(--pf-bg-surface)] object-cover"
+      />
+    );
+  }
+
+  return (
+    <span
+      aria-hidden
+      className="flex size-5 shrink-0 items-center justify-center rounded-full border border-[var(--pf-bg-surface)] bg-[var(--pf-teal-100)] text-[0.55rem] font-semibold uppercase text-[var(--pf-teal-800)]"
+    >
+      {(displayName ?? '?')[0]}
+    </span>
+  );
+}
+
+function AssigneeNamesCell({
+  assignees,
+  unassignedLabel,
+}: {
+  assignees: TaskCardData['assignees'];
+  unassignedLabel: string;
+}) {
+  if (assignees.length === 0) {
+    return <span className="text-xs text-[var(--pf-text-muted)]">{unassignedLabel}</span>;
+  }
+
+  return (
+    <div className="flex max-w-xs flex-col gap-1">
+      {assignees.map((assignee) => (
+        <div key={assignee.id} className="flex min-w-0 items-center gap-1.5">
+          <AssigneeAvatar displayName={assignee.displayName} avatarUrl={assignee.avatarUrl} />
+          <span className="truncate text-xs text-[var(--pf-text-primary)]">
+            {assignee.displayName ?? unassignedLabel}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function sortTasks(tasks: TaskCardData[], field: SortField, dir: SortDir): TaskCardData[] {
   return [...tasks].sort((a, b) => {
     let cmp = 0;
@@ -221,6 +275,11 @@ function TaskMobileCard({
           </span>
         )}
       </div>
+      {task.assignees.length > 0 ? (
+        <AssigneeNamesCell assignees={task.assignees} unassignedLabel={t('unassigned')} />
+      ) : (
+        <span className="text-xs text-[var(--pf-text-muted)]">{t('unassigned')}</span>
+      )}
     </button>
   );
 }
@@ -381,8 +440,9 @@ export function TaskListView({
                   }}
                   className={cn(
                     uwmListRowClass,
-                    'cursor-pointer focus-visible:outline-2 focus-visible:outline-[var(--pf-focus-ring)]',
+                    'group/tr cursor-pointer focus-visible:outline-2 focus-visible:outline-[var(--pf-focus-ring)]',
                   )}
+                  aria-label={t('list.openTask', { title: task.title })}
                 >
                   <td className="px-4 py-2.5">
                     <div className="flex items-center gap-2">
@@ -392,7 +452,9 @@ export function TaskListView({
                           className="size-3.5 shrink-0 text-[var(--pf-status-danger-fg)]"
                         />
                       )}
-                      <span className="font-medium">{task.title}</span>
+                      <span className="font-medium text-[var(--pf-text-brand)] underline-offset-2 group-hover/tr:underline">
+                        {task.title}
+                      </span>
                     </div>
                   </td>
                   {showProject && (
@@ -485,31 +547,8 @@ export function TaskListView({
                           </option>
                         ))}
                       </select>
-                    ) : task.assignees.length === 0 ? (
-                      <span className="text-xs text-[var(--pf-text-muted)]">
-                        {t('unassigned')}
-                      </span>
                     ) : (
-                      <div className="flex -space-x-1.5 rtl:space-x-reverse">
-                        {task.assignees.slice(0, 3).map((a) =>
-                          a.avatarUrl ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              key={a.id}
-                              src={a.avatarUrl}
-                              alt={a.displayName ?? ''}
-                              className="size-6 rounded-full border-2 border-[var(--pf-bg-surface)] object-cover"
-                            />
-                          ) : (
-                            <span
-                              key={a.id}
-                              className="flex size-6 items-center justify-center rounded-full border-2 border-[var(--pf-bg-surface)] bg-[var(--pf-teal-100)] text-[0.625rem] font-semibold uppercase text-[var(--pf-teal-800)]"
-                            >
-                              {(a.displayName ?? '?')[0]}
-                            </span>
-                          ),
-                        )}
-                      </div>
+                      <AssigneeNamesCell assignees={task.assignees} unassignedLabel={t('unassigned')} />
                     )}
                   </td>
                   <td className="px-4 py-2.5" onClick={stopRowClick} onKeyDown={stopRowClick}>

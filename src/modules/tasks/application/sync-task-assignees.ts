@@ -18,6 +18,7 @@ import {
 } from '../data/tasks.repository';
 import { buildActivityActorFieldsFromContext } from '../domain/actor';
 import { assertCanAssignOnTask, assertAssigneeIsProjectParticipant } from './task-assignment-auth';
+import { ensureAssigneeProjectAccess } from './ensure-assignee-project-access';
 import { notifyTaskAssigned } from './notify-task-assignment';
 
 function actorKey(actor: TaskAssigneeActor): string {
@@ -91,6 +92,14 @@ export async function syncTaskAssignees(
   const desiredActors: TaskAssigneeActor[] = [];
   for (const key of desiredKeys) {
     const actor = parseProjectParticipantAssigneeKey(key);
+    if (task.projectId && actor.employeeId) {
+      await ensureAssigneeProjectAccess(
+        context,
+        task.projectId,
+        actor.employeeId,
+        'project.task.assign',
+      );
+    }
     if (task.projectId) {
       await assertAssigneeIsProjectParticipant(context, task.projectId, actor);
     }

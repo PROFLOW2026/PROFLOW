@@ -102,9 +102,12 @@ export async function resolveAccessibleProjectIdsForUser(
     const projectsRead =
       employeeHasPermission(context, PERMISSIONS.PROJECTS_READ) ||
       hasPermission(context, PERMISSIONS.PROJECTS_READ);
-    if (!projectsRead) return [];
+    if (projectsRead) {
+      return resolveAccessibleProjectIdsForEmployeePermission(context, PERMISSIONS.PROJECTS_READ);
+    }
 
-    return resolveAccessibleProjectIdsForEmployeePermission(context, PERMISSIONS.PROJECTS_READ);
+    // Project-specific team assignments (e.g. template assignees) without broad projects.read.
+    return listAssignedProjectIdsForEmployee(context, context.employeeApp.employeeId);
   }
 
   const mode = await getStoredProjectAccessMode(context.db, context.organizationId);

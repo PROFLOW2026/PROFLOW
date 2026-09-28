@@ -16,6 +16,14 @@ describe('billing record lifecycle', () => {
     expect(() => assertVoidable('finalized', null, [{ status: 'void' }])).not.toThrow();
   });
 
+  it('allows voiding obsolete draft billing records without payments', () => {
+    expect(() => assertVoidable('draft', null, [])).not.toThrow();
+  });
+
+  it('blocks voiding draft billing records that still have recorded payments', () => {
+    expect(() => assertVoidable('draft', null, [{ status: 'recorded' }])).toThrow(DomainRuleError);
+  });
+
   it('blocks payments against credit notes (Payment ≠ Credit)', () => {
     expect(() => assertPaymentTarget('finalized', 'credit_note')).toThrow(DomainRuleError);
     expect(() => assertPaymentTarget('finalized', 'invoice')).not.toThrow();

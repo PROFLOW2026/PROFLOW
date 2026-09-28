@@ -3,8 +3,6 @@ import 'server-only';
 import { and, asc, eq, inArray, isNull } from 'drizzle-orm';
 import { projects, punchListItems } from '@drizzle/schema';
 import type { OrgContext } from '@/shared/auth/context';
-import { employeeHasPermission } from './load-employee-app-context';
-import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { resolveAccessibleProjectIdsForUser } from './project-scope';
 import { formatProjectDisplayName } from '@/modules/projects/domain/display';
 
@@ -12,7 +10,6 @@ export async function listEmployeeAssignedProjects(
   context: OrgContext,
 ): Promise<Array<{ id: string; name: string; documentNumber: string | null; displayName: string }>> {
   if (!context.employeeApp?.employeeId) return [];
-  if (!employeeHasPermission(context, PERMISSIONS.PROJECTS_READ)) return [];
 
   const allowedProjectIds = await resolveAccessibleProjectIdsForUser(context);
   if (allowedProjectIds !== null && allowedProjectIds.length === 0) return [];

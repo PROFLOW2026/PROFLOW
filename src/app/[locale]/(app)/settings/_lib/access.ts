@@ -38,6 +38,7 @@ export type SettingsSectionKey =
   | 'stages'
   | 'labels'
   | 'taskTemplates'
+  | 'projectTaskTemplates'
   | 'projectTemplates'
   | 'orgProfile'
   | 'modules'
@@ -84,6 +85,12 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
   { key: 'stages', href: '/settings/stages', permission: PERMISSIONS.STAGES_MANAGE, group: 'workflow' },
   { key: 'labels', href: '/settings/labels', permission: PERMISSIONS.LABELS_MANAGE, group: 'workflow' },
   { key: 'taskTemplates', href: '/settings/task-templates', permission: PERMISSIONS.TASK_TEMPLATES_MANAGE, group: 'workflow' },
+  {
+    key: 'projectTaskTemplates',
+    href: '/settings/project-task-templates',
+    permission: PERMISSIONS.TASK_TEMPLATES_MANAGE,
+    group: 'workflow',
+  },
   { key: 'projectTemplates', href: '/settings/project-templates', permission: PERMISSIONS.PROJECT_TEMPLATES_MANAGE, group: 'workflow' },
   { key: 'modules', href: '/settings/modules', permission: PERMISSIONS.MODULES_MANAGE, group: 'workflow' },
   { key: 'adoption', href: '/settings/adoption', permission: PERMISSIONS.SETTINGS_MANAGE, group: 'workflow', hideFromNav: true },
@@ -185,6 +192,7 @@ export function canManageSection(context: OrgContext, sectionKey: SettingsSectio
       return hasPermission(context, PERMISSIONS.STAGES_MANAGE);
     case 'labels':
     case 'taskTemplates':
+    case 'projectTaskTemplates':
       return hasPermission(context, PERMISSIONS.TASK_TEMPLATES_MANAGE);
     case 'projectTemplates':
       return hasPermission(context, PERMISSIONS.PROJECT_TEMPLATES_MANAGE);

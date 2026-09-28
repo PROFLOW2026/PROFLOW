@@ -36,6 +36,7 @@
     "stages": "مراحل المشروع",
     "labels": "تسميات المهام",
     "taskTemplates": "قوالب المهام",
+    "projectTaskTemplates": "قالب مهام للمشروع الجديد",
     "projectTemplates": "قوالب المشاريع",
     "modules": "الوحدات"
   },
@@ -1341,6 +1342,35 @@
     "nav": "قوالب المهام",
     "description": "تعريفات المهام القابلة لإعادة الاستخدام"
   },
+  "projectTaskTemplatesSection": {
+    "nav": "قالب مهام للمشروع الجديد",
+    "description": "مهام تُنشأ تلقائيًا عند إنشاء مشروع جديد"
+  },
+  "projectTaskTemplatesPanel": {
+    "intro": "حدّد المهام التي تُنشأ تلقائيًا عند إنشاء مشروع جديد. إذا لم تُعرّف قوالب، لن تُضاف مهام.",
+    "empty": "لا توجد قوالب بعد. المشاريع الجديدة لن تحصل على مهام تلقائية.",
+    "createTitle": "إضافة مهمة قالب",
+    "createButton": "إضافة قالب",
+    "templateTitle": "عنوان المهمة",
+    "descriptionOptional": "الوصف (اختياري)",
+    "defaultAssignee": "المكلف الافتراضي",
+    "defaultAssignees": "المكلفون الافتراضيون",
+    "assigneePlaceholder": "اختر موظفًا",
+    "assigneeNone": "غير مكلف",
+    "assigneeBadge": "المكلف: {name}",
+    "assigneesBadge": "المكلفون: {names}",
+    "unknownAssignee": "موظف غير معروف",
+    "unassignedBadge": "غير مكلف",
+    "invalidAssigneeBadge": "مكلف غير صالح — يرجى التصحيح في الإعدادات",
+    "disabledBadge": "معطّل",
+    "archivedBadge": "مؤرشف",
+    "enable": "تفعيل",
+    "disable": "تعطيل",
+    "retroactiveTitle": "هل تريد تطبيق هذا التغيير على المهام الحالية؟",
+    "retroactiveDescription": "اختر ما إذا كنت تريد تحديث المهام المفتوحة التي نُشئت من هذا القالب، أو تطبيق التغيير على المشاريع الجديدة فقط.",
+    "retroactiveFutureOnly": "المشاريع الجديدة فقط",
+    "retroactiveExistingTasks": "تحديث المهام المفتوحة الحالية أيضًا"
+  },
   "projectTemplatesSection": {
     "nav": "قوالب المشاريع",
     "description": "قوالب المشاريع مع المراحل والمهام"
@@ -1562,6 +1592,23 @@
       "success": {
         "created": "تم إنشاء قالب المهمة",
         "updated": "تم تحديث القالب",
+        "archived": "تم أرشفة القالب",
+        "restored": "تم استعادة القالب"
+      }
+    },
+    "projectTaskTemplates": {
+      "errors": {
+        "titleRequired": "عنوان المهمة مطلوب",
+        "idRequired": "معرّف القالب مطلوب",
+        "createFailed": "فشل إنشاء القالب",
+        "updateFailed": "فشل تحديث القالب",
+        "unexpected": "حدث خطأ. يرجى المحاولة مرة أخرى."
+      },
+      "success": {
+        "created": "تمت إضافة مهمة القالب",
+        "updated": "تم تحديث القالب",
+        "enabled": "تم تفعيل القالب",
+        "disabled": "تم تعطيل القالب",
         "archived": "تم أرشفة القالب",
         "restored": "تم استعادة القالب"
       }

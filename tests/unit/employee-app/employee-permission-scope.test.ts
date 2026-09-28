@@ -140,4 +140,36 @@ describe('employee project access resolver', () => {
 
     await expect(resolveAccessibleProjectIdsForUser(context)).resolves.toEqual([]);
   });
+
+  it('tasks.read self_only without projects.read still returns formal team assignments', async () => {
+    const context: OrgContext = {
+      ...contextFromGrants([{ permissionKey: PERMISSIONS.TASKS_READ, scope: 'self_only' }]),
+      db: {
+        select: vi.fn().mockReturnValue({
+          from: vi.fn().mockReturnValue({
+            where: vi.fn().mockResolvedValue([{ projectId: 'proj-template-demo' }]),
+          }),
+        }),
+      } as unknown as OrgContext['db'],
+    };
+
+    await expect(resolveAccessibleProjectIdsForUser(context)).resolves.toEqual([
+      'proj-template-demo',
+    ]);
+  });
+
+  it('tasks.read self_only without projects.read returns empty when no team assignments', async () => {
+    const context: OrgContext = {
+      ...contextFromGrants([{ permissionKey: PERMISSIONS.TASKS_READ, scope: 'self_only' }]),
+      db: {
+        select: vi.fn().mockReturnValue({
+          from: vi.fn().mockReturnValue({
+            where: vi.fn().mockResolvedValue([]),
+          }),
+        }),
+      } as unknown as OrgContext['db'],
+    };
+
+    await expect(resolveAccessibleProjectIdsForUser(context)).resolves.toEqual([]);
+  });
 });

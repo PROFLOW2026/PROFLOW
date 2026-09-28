@@ -145,5 +145,16 @@ export async function createProject(
   );
   await provisionProjectStorageFolder(context, project.id);
 
+  if (workKind === 'project') {
+    try {
+      const { instantiateOrgProjectTaskTemplates } = await import(
+        '@/modules/tasks/application/instantiate-org-project-task-templates'
+      );
+      await instantiateOrgProjectTaskTemplates(context, project.id, project.name);
+    } catch (error) {
+      console.error('[createProject] org project task template instantiation failed', error);
+    }
+  }
+
   return { projectId: project.id, clientId };
 }

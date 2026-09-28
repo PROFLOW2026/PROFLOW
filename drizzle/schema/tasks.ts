@@ -95,6 +95,72 @@ export const taskBuckets = pgTable(
   ],
 );
 
+/**
+ * Org-level recipe: tasks auto-created when a new project is created.
+ * Distinct from task_templates (manual reuse) and project_template_tasks (UWM board templates).
+ */
+export const orgProjectTaskTemplates = pgTable(
+  'org_project_task_templates',
+  {
+    id: primaryId(),
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    title: text('title').notNull(),
+    description: text('description'),
+    isEnabled: boolean('is_enabled').notNull().default(true),
+    isArchived: boolean('is_archived').notNull().default(false),
+    archivedAt: archivedAt(),
+    position: integer('position').notNull().default(0),
+    ...timestamps(),
+  },
+  (t) => [
+    uniqueIndex('org_project_task_templates_id_organization_id_uq').on(t.id, t.organizationId),
+    index('org_project_task_templates_org_idx').on(t.organizationId, t.position),
+    index('org_project_task_templates_org_active_idx')
+      .on(t.organizationId)
+      .where(sql`${t.isArchived} = false AND ${t.isEnabled} = true`),
+  ],
+);
+
+/** Default employee assignees for org project task templates (0..N). */
+export const orgProjectTaskTemplateAssignees = pgTable(
+  'org_project_task_template_assignees',
+  {
+    id: primaryId(),
+    templateId: uuid('template_id').notNull(),
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    employeeId: uuid('employee_id').notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    uniqueIndex('org_project_task_template_assignees_template_employee_uq').on(
+      t.templateId,
+      t.employeeId,
+    ),
+    index('org_project_task_template_assignees_org_template_idx').on(
+      t.organizationId,
+      t.templateId,
+    ),
+    index('org_project_task_template_assignees_employee_idx').on(
+      t.employeeId,
+      t.organizationId,
+    ),
+    foreignKey({
+      name: 'org_project_task_template_assignees_template_org_fk',
+      columns: [t.templateId, t.organizationId],
+      foreignColumns: [orgProjectTaskTemplates.id, orgProjectTaskTemplates.organizationId],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'org_project_task_template_assignees_employee_org_fk',
+      columns: [t.employeeId, t.organizationId],
+      foreignColumns: [employees.id, employees.organizationId],
+    }).onDelete('cascade'),
+  ],
+);
+
 // ─── Tasks ───────────────────────────────────────────────────────────────────
 
 export const tasks = pgTable(
@@ -158,6 +224,10 @@ export const tasks = pgTable(
     }),
     recurrenceRuleId: uuid('recurrence_rule_id'),
     generatedFromOccurrenceId: uuid('generated_from_occurrence_id'),
+    /** Provenance for org project task template auto-generation (idempotency + retroactive apply). */
+    generatedFromOrgProjectTaskTemplateId: uuid(
+      'generated_from_org_project_task_template_id',
+    ),
 
     source: taskSourceEnum('source').notNull().default('manual'),
 
@@ -198,6 +268,19 @@ export const tasks = pgTable(
     index('tasks_bucket_idx').on(t.bucketId, t.sortKey),
     index('tasks_parent_idx').on(t.parentTaskId).where(sql`${t.parentTaskId} IS NOT NULL`),
     index('tasks_created_by_idx').on(t.organizationId, t.createdByOrgMemberId),
+    uniqueIndex('tasks_project_org_project_task_template_unique')
+      .on(t.projectId, t.generatedFromOrgProjectTaskTemplateId)
+      .where(
+        sql`${t.generatedFromOrgProjectTaskTemplateId} IS NOT NULL AND ${t.projectId} IS NOT NULL`,
+      ),
+    index('tasks_org_project_task_template_idx')
+      .on(t.organizationId, t.generatedFromOrgProjectTaskTemplateId)
+      .where(sql`${t.generatedFromOrgProjectTaskTemplateId} IS NOT NULL`),
+    foreignKey({
+      name: 'tasks_generated_org_project_task_template_org_fk',
+      columns: [t.generatedFromOrgProjectTaskTemplateId, t.organizationId],
+      foreignColumns: [orgProjectTaskTemplates.id, orgProjectTaskTemplates.organizationId],
+    }).onDelete('restrict'),
     index('tasks_portfolio_rollup_idx').on(
       t.organizationId,
       t.workspaceId,

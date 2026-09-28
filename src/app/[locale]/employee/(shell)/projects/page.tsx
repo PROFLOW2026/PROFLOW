@@ -4,6 +4,7 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { withOrgContext } from '@/shared/auth/session';
 import { listEmployeeAssignedProjects } from '@/modules/employee-app';
 import { employeeHasPermission } from '@/modules/employee-app/application/load-employee-app-context';
+import { resolveAccessibleProjectIdsForUser } from '@/modules/employee-app/application/project-scope';
 import { Link } from '@/shared/i18n/navigation';
 import { EmployeeProjectSearch } from '@/modules/employee-app/ui/employee-project-search';
 import { Button } from '@/components/ui/button';
@@ -19,13 +20,18 @@ export default async function EmployeeProjectsPage() {
   const payload = await withOrgContext(async (context) => {
     const canCreate = employeeHasPermission(context, PERMISSIONS.PROJECTS_CREATE);
     const canRead = employeeHasPermission(context, PERMISSIONS.PROJECTS_READ);
+    const allowedProjectIds = await resolveAccessibleProjectIdsForUser(context);
+    const hasAssignedProjectSurface =
+      allowedProjectIds === null || allowedProjectIds.length > 0;
+
     if (canRead) {
       await authorize(context, { permission: PERMISSIONS.PROJECTS_READ });
-    } else if (!canCreate) {
+    } else if (!canCreate && !hasAssignedProjectSurface) {
       await authorize(context, { permission: PERMISSIONS.PROJECTS_READ });
     }
+
     return {
-      projectRows: canRead ? await listEmployeeAssignedProjects(context) : [],
+      projectRows: hasAssignedProjectSurface ? await listEmployeeAssignedProjects(context) : [],
       canCreate,
     };
   });

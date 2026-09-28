@@ -72,6 +72,7 @@ function mapTaskRow(row: typeof tasks.$inferSelect): Task {
     milestoneId: row.milestoneId ?? null,
     recurrenceRuleId: row.recurrenceRuleId ?? null,
     generatedFromOccurrenceId: row.generatedFromOccurrenceId ?? null,
+    generatedFromOrgProjectTaskTemplateId: row.generatedFromOrgProjectTaskTemplateId ?? null,
     source: row.source as TaskSource,
     approvalRequired: row.approvalRequired,
     contributesToProgress: row.contributesToProgress ?? false,
@@ -195,6 +196,7 @@ export async function insertTask(
     createdBySystem?: boolean;
     recurrenceRuleId?: string | null;
     generatedFromOccurrenceId?: string | null;
+    generatedFromOrgProjectTaskTemplateId?: string | null;
   },
 ): Promise<Task> {
   const [row] = await db
@@ -221,6 +223,7 @@ export async function insertTask(
       createdBySystem: input.createdBySystem ?? false,
       recurrenceRuleId: input.recurrenceRuleId ?? null,
       generatedFromOccurrenceId: input.generatedFromOccurrenceId ?? null,
+      generatedFromOrgProjectTaskTemplateId: input.generatedFromOrgProjectTaskTemplateId ?? null,
     })
     .returning();
   return mapTaskRow(row!);

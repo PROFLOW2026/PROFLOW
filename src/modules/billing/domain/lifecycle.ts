@@ -28,9 +28,16 @@ export function assertVoidable(
   voidsBillingRecordId: string | null,
   payments: readonly PaymentPresence[] = [],
 ): void {
-  if (status !== 'finalized') {
+  if (status === 'void') {
     throw new DomainRuleError(
-      'Only finalized billing records can be voided',
+      'Billing record is already void',
+      'billing.errors.notVoidable',
+      { status },
+    );
+  }
+  if (status !== 'finalized' && status !== 'draft') {
+    throw new DomainRuleError(
+      'Only draft or finalized billing records can be voided',
       'billing.errors.notVoidable',
       { status },
     );

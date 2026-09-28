@@ -679,7 +679,8 @@
     },
     "hasMore": "Есть ещё",
     "loadMore": "Загрузить ещё",
-    "notAvailable": "—"
+    "notAvailable": "—",
+    "openTask": "Открыть задачу: {title}"
   },
   "errors": {
     "invalidTransition": "Такое изменение статуса не допускается.",

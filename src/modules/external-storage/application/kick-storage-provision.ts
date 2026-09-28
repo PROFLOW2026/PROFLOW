@@ -2,6 +2,7 @@ import 'server-only';
 
 import { after } from 'next/server';
 import { getAdminDb } from '@/shared/db/client';
+import { serverEnv } from '@/shared/env/server';
 import { organizationStorageConnections } from '@drizzle/schema';
 import { eq } from 'drizzle-orm';
 import { decideStorageProvisionRecovery } from '../domain/provision-chain-lease';
@@ -21,12 +22,19 @@ export function resolveStorageProvisionWorkerTarget(): {
   const origin =
     process.env.NEXT_PUBLIC_APP_URL?.trim() ||
     process.env.APP_URL?.trim() ||
+    serverEnv().APP_URL.trim() ||
     (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '');
   if (!secret || !origin) return null;
   return {
     url: `${origin.replace(/\/$/, '')}/api/internal/storage-provision-worker`,
     secret,
   };
+}
+
+function formatKickError(error: unknown): string {
+  if (error instanceof Error && error.message.trim()) return error.message;
+  if (typeof error === 'string' && error.trim()) return error;
+  return 'unknown error';
 }
 
 export async function postStorageProvisionWorker(input?: {
@@ -56,9 +64,9 @@ function scheduleAfter(task: () => Promise<void>): boolean {
   try {
     after(() => {
       void task().catch((error) => {
-        console.error('[org-storage/provision] background task failed', {
-          detail: error instanceof Error ? error.message : String(error),
-        });
+        console.error(
+          `[org-storage/provision] background task failed: ${formatKickError(error)}`,
+        );
       });
     });
     return true;
@@ -70,7 +78,11 @@ function scheduleAfter(task: () => Promise<void>): boolean {
   }
 }
 
-export type StorageProvisionKickMode = 'worker_await' | 'worker_after' | 'skipped_test';
+export type StorageProvisionKickMode =
+  | 'worker_await'
+  | 'worker_after'
+  | 'skipped_test'
+  | 'skipped_unconfigured';
 
 /**
  * Ensures provisioning starts via the durable HTTP worker.
@@ -86,6 +98,10 @@ export async function ensureStorageProvisionStarted(options?: {
   const preferBackground = Boolean(options?.preferBackground);
   const target = resolveStorageProvisionWorkerTarget();
   if (!target) {
+    if (preferBackground) {
+      console.info('[org-storage/provision] kick skipped (worker not configured locally)');
+      return { mode: 'skipped_unconfigured' };
+    }
     throw new Error(
       'STORAGE_PROVISION_WORKER_SECRET (and APP_URL / NEXT_PUBLIC_APP_URL) required to start provisioning',
     );
@@ -121,9 +137,7 @@ export async function ensureStorageProvisionStarted(options?: {
 export function kickStorageProvision(): void {
   if (isTestEnv()) return;
   void ensureStorageProvisionStarted({ preferBackground: true }).catch((error) => {
-    console.error('[org-storage/provision] kick failed', {
-      detail: error instanceof Error ? error.message : String(error),
-    });
+    console.error(`[org-storage/provision] kick failed: ${formatKickError(error)}`);
   });
 }
 

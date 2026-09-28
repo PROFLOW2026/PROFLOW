@@ -679,7 +679,8 @@
     },
     "hasMore": "هناك المزيد",
     "loadMore": "تحميل المزيد",
-    "notAvailable": "—"
+    "notAvailable": "—",
+    "openTask": "فتح المهمة: {title}"
   },
   "errors": {
     "invalidTransition": "تغيير الحالة هذا غير مسموح.",

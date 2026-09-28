@@ -127,7 +127,10 @@ async function loadOwnerStoryCopy(): Promise<OwnerStoryCopy> {
       expenseDate: t('sourcePayment.expenseDate'),
       dueDate: t('sourcePayment.dueDate'),
       paymentStatus: t('sourcePayment.paymentStatus'),
-      projectShare: t('sourcePayment.projectShare'),
+      projectShare: (() => {
+        const raw = t.raw('sourcePayment.projectShare');
+        return typeof raw === 'string' ? raw : '';
+      })(),
       multiProjectNote: t('sourcePayment.multiProjectNote'),
       netBasis: t('sourcePayment.netBasis'),
       grossBasis: t('sourcePayment.grossBasis'),

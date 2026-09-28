@@ -49,7 +49,7 @@ export async function voidBillingRecord(context: OrgContext, billingRecordId: st
     action: BILLING_AUDIT_VOIDED,
     entityType: 'billing_record',
     entityId: billingRecordId,
-    before: { status: 'finalized' },
+    before: { status: existing.status },
     after: { status: 'void', voidedAt: voidedAt.toISOString() },
   });
 

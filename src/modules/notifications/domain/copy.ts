@@ -213,7 +213,7 @@ export function notificationCopy(
     case 'task_assigned_to_you':
       return {
         title: titleWithReference(t, type, ref),
-        body: bodyWithExtra(t, type, extra),
+        body: bodyWithExtra(t, type, extra, 'body'),
       };
     case 'task_comment_mention':
       return {

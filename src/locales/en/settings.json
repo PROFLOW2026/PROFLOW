@@ -36,6 +36,7 @@
     "stages": "Project stages",
     "labels": "Task labels",
     "taskTemplates": "Task templates",
+    "projectTaskTemplates": "New project task templates",
     "projectTemplates": "Project templates",
     "modules": "Modules"
   },
@@ -1341,6 +1342,35 @@
     "nav": "Task Templates",
     "description": "Reusable task definitions"
   },
+  "projectTaskTemplatesSection": {
+    "nav": "New project task templates",
+    "description": "Tasks created automatically when a new project is created"
+  },
+  "projectTaskTemplatesPanel": {
+    "intro": "Define tasks that are created automatically whenever a new project is created. If you leave this empty, no tasks are added.",
+    "empty": "No templates yet. New projects will not receive automatic tasks.",
+    "createTitle": "Add template task",
+    "createButton": "Add template",
+    "templateTitle": "Task title",
+    "descriptionOptional": "Description (optional)",
+    "defaultAssignee": "Default assignee",
+    "defaultAssignees": "Default assignees",
+    "assigneePlaceholder": "Select employee",
+    "assigneeNone": "Unassigned",
+    "assigneeBadge": "Assignee: {name}",
+    "assigneesBadge": "Assignees: {names}",
+    "unknownAssignee": "Unknown employee",
+    "unassignedBadge": "Unassigned",
+    "invalidAssigneeBadge": "Invalid assignee — fix in settings",
+    "disabledBadge": "Disabled",
+    "archivedBadge": "Archived",
+    "enable": "Enable",
+    "disable": "Disable",
+    "retroactiveTitle": "Apply this change to existing tasks?",
+    "retroactiveDescription": "Choose whether to update open tasks that were generated from this template, or apply the change only to future projects.",
+    "retroactiveFutureOnly": "New projects only",
+    "retroactiveExistingTasks": "Also update existing open tasks"
+  },
   "projectTemplatesSection": {
     "nav": "Project Templates",
     "description": "Project templates with stages and tasks"
@@ -1562,6 +1592,23 @@
       "success": {
         "created": "Task template created",
         "updated": "Template updated",
+        "archived": "Template archived",
+        "restored": "Template restored"
+      }
+    },
+    "projectTaskTemplates": {
+      "errors": {
+        "titleRequired": "Task title is required",
+        "idRequired": "Template ID is required",
+        "createFailed": "Failed to create template",
+        "updateFailed": "Failed to update template",
+        "unexpected": "Something went wrong. Please try again."
+      },
+      "success": {
+        "created": "Template task added",
+        "updated": "Template updated",
+        "enabled": "Template enabled",
+        "disabled": "Template disabled",
         "archived": "Template archived",
         "restored": "Template restored"
       }

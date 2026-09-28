@@ -40,6 +40,7 @@ export {
   toggleEmployeePmTaskChecklistItem,
   type EmployeePmTaskSummary,
   type EmployeePmTaskDetail,
+  type EmployeePmTaskAssignee,
   type EmployeePmTaskComment,
   type EmployeePmTaskChecklistItem,
   type EmployeePmTaskWorkSummary,

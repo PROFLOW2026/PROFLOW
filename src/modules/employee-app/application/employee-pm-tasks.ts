@@ -61,7 +61,14 @@ export interface EmployeePmTaskChecklistItem {
   readonly dueDate: string | null;
 }
 
+export interface EmployeePmTaskAssignee {
+  readonly id: string;
+  readonly displayName: string | null;
+  readonly avatarUrl: string | null;
+}
+
 export interface EmployeePmTaskDetail extends EmployeePmTaskSummary {
+  readonly assignees: readonly EmployeePmTaskAssignee[];
   readonly checklistItems: readonly EmployeePmTaskChecklistItem[];
   readonly comments: readonly EmployeePmTaskComment[];
 }
@@ -462,8 +469,21 @@ export async function getEmployeePmTaskDetail(
     commentRows.map((row) => row.id),
   );
 
+  const { loadTaskAssigneeDisplayMap } = await import(
+    '@/modules/tasks/application/enrich-task-assignees'
+  );
+  const assigneeMap = await loadTaskAssigneeDisplayMap(context.db, context.organizationId, [
+    taskId,
+  ]);
+  const assignees = (assigneeMap.get(taskId) ?? []).map((row) => ({
+    id: row.id,
+    displayName: row.displayName,
+    avatarUrl: row.avatarUrl ?? null,
+  }));
+
   return {
     ...task,
+    assignees,
     checklistItems: checklistRows,
     comments: commentRows.map((row) => ({
       id: row.id,

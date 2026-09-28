@@ -1,6 +1,7 @@
 import type { OrgContext } from '@/shared/auth/context';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { employeeHasPermission, isEmployeeAppUser } from './load-employee-app-context';
+import { resolveAccessibleProjectIdsForUser } from './project-scope';
 import { findEmployeeByUserId } from '@/modules/workforce';
 import { getAttendanceClockSurface } from '@/modules/workforce/application/attendance';
 
@@ -179,7 +180,17 @@ export async function getEmployeeShellData(context: OrgContext): Promise<Employe
     context.userId,
   );
 
-  const nav = buildEmployeeNavItems(context);
+  let nav = buildEmployeeNavItems(context);
+  const allowedProjectIds = await resolveAccessibleProjectIdsForUser(context);
+  if (
+    allowedProjectIds !== null &&
+    allowedProjectIds.length > 0 &&
+    !employeeHasPermission(context, PERMISSIONS.PROJECTS_READ)
+  ) {
+    nav = nav.map((item) =>
+      item.href === '/employee/projects' ? { ...item, visible: true } : item,
+    );
+  }
 
   let clock: EmployeeShellData['clock'] = null;
   if (employee && employeeHasPermission(context, PERMISSIONS.ATTENDANCE_SELF)) {

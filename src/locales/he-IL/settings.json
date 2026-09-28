@@ -36,6 +36,7 @@
     "stages": "שלבי פרויקט",
     "labels": "תגיות משימה",
     "taskTemplates": "תבניות משימה",
+    "projectTaskTemplates": "תבנית משימות לפרויקט חדש",
     "projectTemplates": "תבניות פרויקט",
     "modules": "מודולים"
   },
@@ -1341,6 +1342,35 @@
     "nav": "תבניות משימה",
     "description": "הגדרות משימה לשימוש חוזר"
   },
+  "projectTaskTemplatesSection": {
+    "nav": "תבנית משימות לפרויקט חדש",
+    "description": "משימות שנוצרות אוטומטית בעת יצירת פרויקט חדש"
+  },
+  "projectTaskTemplatesPanel": {
+    "intro": "הגדירו משימות שייווצרו אוטומטית בכל פעם שנוצר פרויקט חדש. אם לא מוגדרות תבניות — לא נוצרות משימות.",
+    "empty": "אין תבניות עדיין. פרויקטים חדשים לא יקבלו משימות אוטומטיות.",
+    "createTitle": "הוספת משימת תבנית",
+    "createButton": "הוספת תבנית",
+    "templateTitle": "כותרת משימה",
+    "descriptionOptional": "תיאור (אופציונלי)",
+    "defaultAssignee": "ממונה ברירת מחדל",
+    "defaultAssignees": "ממונים ברירת מחדל",
+    "assigneePlaceholder": "בחירת עובד",
+    "assigneeNone": "ללא שיוך",
+    "assigneeBadge": "ממונה: {name}",
+    "assigneesBadge": "ממונים: {names}",
+    "unknownAssignee": "עובד לא ידוע",
+    "unassignedBadge": "ללא שיוך",
+    "invalidAssigneeBadge": "ממונה לא תקין — יש לתקן בהגדרות",
+    "disabledBadge": "מושבת",
+    "archivedBadge": "בארכיון",
+    "enable": "הפעלה",
+    "disable": "השבתה",
+    "retroactiveTitle": "האם להחיל את השינוי גם על משימות קיימות?",
+    "retroactiveDescription": "בחרו אם לעדכן משימות פתוחות שנוצרו מתבנית זו, או להחיל את השינוי רק על פרויקטים חדשים.",
+    "retroactiveFutureOnly": "רק לפרויקטים חדשים",
+    "retroactiveExistingTasks": "גם למשימות קיימות בפרויקטים"
+  },
   "projectTemplatesSection": {
     "nav": "תבניות פרויקט",
     "description": "תבניות פרויקט עם שלבים ומשימות"
@@ -1562,6 +1592,23 @@
       "success": {
         "created": "תבנית המשימה נוצרה",
         "updated": "התבנית עודכנה",
+        "archived": "התבנית הועברה לארכיון",
+        "restored": "התבנית שוחזרה"
+      }
+    },
+    "projectTaskTemplates": {
+      "errors": {
+        "titleRequired": "כותרת משימה נדרשת",
+        "idRequired": "מזהה תבנית נדרש",
+        "createFailed": "יצירת התבנית נכשלה",
+        "updateFailed": "עדכון התבנית נכשל",
+        "unexpected": "משהו השתבש. נסו שוב."
+      },
+      "success": {
+        "created": "משימת התבנית נוספה",
+        "updated": "התבנית עודכנה",
+        "enabled": "התבנית הופעלה",
+        "disabled": "התבנית הושבתה",
         "archived": "התבנית הועברה לארכיון",
         "restored": "התבנית שוחזרה"
       }

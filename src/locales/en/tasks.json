@@ -679,7 +679,8 @@
     },
     "hasMore": "More tasks are not shown",
     "loadMore": "Load more",
-    "notAvailable": "—"
+    "notAvailable": "—",
+    "openTask": "Open task: {title}"
   },
   "errors": {
     "invalidTransition": "That status change is not allowed.",

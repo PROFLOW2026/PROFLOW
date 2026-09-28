@@ -679,7 +679,8 @@
     },
     "hasMore": "יש עוד",
     "loadMore": "טען עוד",
-    "notAvailable": "-"
+    "notAvailable": "-",
+    "openTask": "פתיחת משימה: {title}"
   },
   "errors": {
     "invalidTransition": "מעבר הסטטוס הזה אינו מותר.",

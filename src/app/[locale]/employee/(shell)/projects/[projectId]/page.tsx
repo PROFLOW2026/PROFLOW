@@ -2,8 +2,9 @@ import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { withOrgContext } from '@/shared/auth/session';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import { employeeHasPermission } from '@/modules/employee-app/application/load-employee-app-context';
 import { getEmployeeProjectTaskOverview } from '@/modules/employee-app/application/employee-pm-tasks';
+import { resolveAccessibleProjectIdsForUser } from '@/modules/employee-app/application/project-scope';
+import { employeeHasPermission } from '@/modules/employee-app/application/load-employee-app-context';
 import {
   buildEmployeeProjectHubLinks,
   EmployeeProjectHubNav,
@@ -23,7 +24,10 @@ export default async function EmployeeProjectOverviewPage({ params }: PageProps)
   const t = await getTranslations('employeeApp.projects');
 
   const { overview, hubLinks } = await withOrgContext(async (context) => {
-    const overviewData = employeeHasPermission(context, PERMISSIONS.PROJECTS_READ)
+    const allowedProjectIds = await resolveAccessibleProjectIdsForUser(context);
+    const canAccessProject =
+      allowedProjectIds === null || allowedProjectIds.includes(projectId);
+    const overviewData = canAccessProject
       ? await getEmployeeProjectTaskOverview(context, projectId)
       : null;
     if (!overviewData) return { overview: null, hubLinks: [] as Awaited<ReturnType<typeof buildEmployeeProjectHubLinks>> };
