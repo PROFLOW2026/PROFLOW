@@ -40,7 +40,8 @@
     "task_assigned_to_you": "تم إسناد مهمة إليك",
     "task_comment_mention": "تعليق جديد على مهمتك",
     "task_status_updated": "تم تحديث حالة المهمة",
-    "capture_needs_review": "التقاط بانتظار المراجعة"
+    "capture_needs_review": "التقاط بانتظار المراجعة",
+    "material_pressure_alert": "ضغط سوق المواد"
   },
   "copy": {
     "billing_overdue": {
@@ -206,6 +207,18 @@
       "titleDefault": "تم تحديث المهمة",
       "bodyWithExtra": "تم تغيير الحالة إلى {extra}",
       "bodyDefault": "تم تحديث مهمة تتابعها."
+    },
+    "material_pressure_alert": {
+      "titleHigh": "⚠️ ضغط مواد مرتفع: {trade} ({score}/100)",
+      "titleRising": "⚠️ ضغط سوق متصاعد: {trade} ({score}/100)",
+      "deltaSuffix": " تغيّر شهري: {delta} نقطة.",
+      "body": "{trade}: ضغط سوق المواد عند {score}/100.{deltaSuffix} راجع أسعار الموردين قبل إصدار أوامر الشراء. هذا مؤشر احتمالي فقط وليس توقعًا ملزمًا.",
+      "trades": {
+        "electrical": "كهرباء",
+        "plumbing": "سباكة",
+        "steel_rebar": "حديد وتسليح",
+        "concrete": "خرسانة وأسمنت"
+      }
     }
   },
   "viewAll": "عرض الكل",

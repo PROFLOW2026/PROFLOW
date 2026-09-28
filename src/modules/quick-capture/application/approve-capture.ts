@@ -18,6 +18,7 @@ import { listCaptureDocumentsByCaptureId } from '../data/capture-documents.repos
 import { findCaptureById, updateCaptureItem } from '../data/quick-capture.repository';
 import type { ConfirmOcrCandidateInput } from '@/modules/ocr/validation/schemas';
 import { assertCaptureSessionDocument } from './assert-capture-session-document';
+import { resolveCaptureReviewNotifications } from './resolve-capture-review-notifications';
 
 export type ApproveFieldMediaInput = {
   readonly captureId: string;
@@ -147,6 +148,8 @@ export async function approveFieldMediaCapture(
     metadata: { route: 'field_media', projectId: input.projectId, documentCount: junctionDocs.length },
   });
 
+  await resolveCaptureReviewNotifications(context, capture.id);
+
   return approved;
 }
 
@@ -160,6 +163,7 @@ export async function approveFinancialCapture(
   const capture = await findCaptureById(context.db, context.organizationId, input.captureId);
   if (!capture) throw new NotFoundError('Quick capture');
   if (capture.status === 'approved') {
+    await resolveCaptureReviewNotifications(context, capture.id);
     return capture;
   }
   if (capture.status !== 'ready_for_review') {
@@ -259,6 +263,8 @@ export async function approveFinancialCapture(
     },
   });
 
+  await resolveCaptureReviewNotifications(context, capture.id);
+
   return approved;
 }
 
@@ -312,6 +318,8 @@ export async function approveOtherDocumentCapture(
     entityId: capture.id,
     metadata: { route: 'other_document', ownerType: input.ownerType, ownerId: input.ownerId },
   });
+
+  await resolveCaptureReviewNotifications(context, capture.id);
 
   return approved;
 }

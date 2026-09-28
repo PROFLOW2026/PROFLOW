@@ -40,7 +40,8 @@
     "task_assigned_to_you": "Task assigned to you",
     "task_comment_mention": "New comment on your task",
     "capture_needs_review": "Capture needs review",
-    "task_status_updated": "Task status updated"
+    "task_status_updated": "Task status updated",
+    "material_pressure_alert": "Material market pressure"
   },
   "copy": {
     "billing_overdue": {
@@ -206,6 +207,18 @@
       "titleDefault": "Task updated",
       "bodyWithExtra": "Status changed to {extra}",
       "bodyDefault": "A task you follow has been updated."
+    },
+    "material_pressure_alert": {
+      "titleHigh": "⚠️ High material pressure: {trade} ({score}/100)",
+      "titleRising": "⚠️ Rising pressure: {trade} ({score}/100)",
+      "deltaSuffix": " 1-month change: {delta} pts.",
+      "body": "{trade}: material market pressure is at {score}/100.{deltaSuffix} Review supplier pricing before placing procurement orders. This is an indicative score only, not a binding forecast.",
+      "trades": {
+        "electrical": "Electrical",
+        "plumbing": "Plumbing",
+        "steel_rebar": "Steel & rebar",
+        "concrete": "Concrete & cement"
+      }
     }
   },
   "viewAll": "View all",

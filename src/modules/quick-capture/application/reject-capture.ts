@@ -5,6 +5,7 @@ import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { CaptureItemRecord, CaptureStatus } from '../domain/types';
 import { findCaptureById, updateCaptureItem } from '../data/quick-capture.repository';
+import { resolveCaptureReviewNotifications } from './resolve-capture-review-notifications';
 
 export type RejectCaptureInput = {
   readonly captureId: string;
@@ -36,6 +37,8 @@ export async function rejectCapture(
     entityId: capture.id,
     metadata: { mode: input.mode, reason: input.reason ?? null },
   });
+
+  await resolveCaptureReviewNotifications(context, capture.id);
 
   return updated;
 }

@@ -71,6 +71,8 @@ import {
   listSubmittedTimesheets,
   type ScanEntity,
 } from '../data/scan-sources.repository';
+import { INBOX_CAPTURE_STATUSES } from '@/modules/quick-capture/application/list-inbox';
+import { listCaptureStatusesByIds } from '@/modules/quick-capture/data/quick-capture.repository';
 import { emitNotification } from './emit';
 import { runNotificationScanSchema, type RunNotificationScanInput } from '../validation/schemas';
 
@@ -775,6 +777,41 @@ async function scanUnmatchedBoqValuations(ctx: ScannerContext): Promise<{ emitte
   return { emitted, resolved };
 }
 
+async function scanStaleCaptureReviewNotifications(
+  ctx: ScannerContext,
+): Promise<{ emitted: number; resolved: number }> {
+  const openCaptureIds = await listUnresolvedEntityIdsForType(
+    ctx.context.db,
+    ctx.context.organizationId,
+    'capture_needs_review',
+  );
+  if (openCaptureIds.length === 0) {
+    return { emitted: 0, resolved: 0 };
+  }
+
+  const uniqueCaptureIds = [...new Set(openCaptureIds)];
+  const statusById = await listCaptureStatusesByIds(
+    ctx.context.db,
+    ctx.context.organizationId,
+    uniqueCaptureIds,
+  );
+  const inboxStatuses = new Set<string>(INBOX_CAPTURE_STATUSES);
+
+  let resolved = 0;
+  for (const captureId of uniqueCaptureIds) {
+    const status = statusById.get(captureId);
+    if (!status || inboxStatuses.has(status)) continue;
+    resolved += await resolveNotificationsRpc(
+      ctx.context.db,
+      ctx.context.organizationId,
+      'capture_needs_review',
+      captureId,
+    );
+  }
+
+  return { emitted: 0, resolved };
+}
+
 async function scanBillingPlanRetentionHeld(
   ctx: ScannerContext,
 ): Promise<{ emitted: number; resolved: number }> {
@@ -839,6 +876,7 @@ const SCANNERS: readonly {
   { key: 'billing_plan_milestone_due', run: scanBillingPlanMilestonesDue },
   { key: 'billing_plan_retention_held', run: scanBillingPlanRetentionHeld },
   { key: 'boq_valuation_unmatched', run: scanUnmatchedBoqValuations },
+  { key: 'capture_needs_review_stale', run: scanStaleCaptureReviewNotifications },
 ];
 
 async function buildScannerContext(

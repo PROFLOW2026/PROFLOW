@@ -173,6 +173,29 @@ export async function listCapturesForOrg(
   return rows.map(mapRow);
 }
 
+export async function listCaptureStatusesByIds(
+  db: DbExecutor,
+  organizationId: string,
+  captureIds: readonly string[],
+): Promise<ReadonlyMap<string, CaptureStatus>> {
+  if (captureIds.length === 0) return new Map();
+
+  const rows = await db
+    .select({
+      id: quickCaptureItems.id,
+      status: quickCaptureItems.status,
+    })
+    .from(quickCaptureItems)
+    .where(
+      and(
+        eq(quickCaptureItems.organizationId, organizationId),
+        inArray(quickCaptureItems.id, [...captureIds]),
+      ),
+    );
+
+  return new Map(rows.map((row) => [row.id, row.status as CaptureStatus]));
+}
+
 export async function countCapturesForOrg(
   db: DbExecutor,
   organizationId: string,

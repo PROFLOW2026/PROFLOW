@@ -28,24 +28,6 @@ function isoWeek(date: Date): string {
   return `${d.getUTCFullYear()}-W${weekNo.toString().padStart(2, '0')}`;
 }
 
-function tradeLabelEn(trade: MaterialTrade): string {
-  switch (trade) {
-    case 'electrical': return 'Electrical';
-    case 'plumbing': return 'Plumbing';
-    case 'steel_rebar': return 'Steel / Rebar';
-    case 'concrete': return 'Concrete / Cement';
-  }
-}
-
-function tradeLabelHe(trade: MaterialTrade): string {
-  switch (trade) {
-    case 'electrical': return 'חשמל';
-    case 'plumbing': return 'אינסטלציה';
-    case 'steel_rebar': return 'ברזל זיון';
-    case 'concrete': return 'בטון / מלט';
-  }
-}
-
 interface PressureAlertPayload {
   trade: MaterialTrade;
   score: number;
@@ -71,24 +53,7 @@ async function emitPressureAlertsForOrg(
 
   let emitted = 0;
   for (const alert of alerts) {
-    const tradeEn = tradeLabelEn(alert.trade);
-    const tradeHe = tradeLabelHe(alert.trade);
     const scoreRounded = Math.round(alert.score);
-
-    const title =
-      alert.reason === 'high_pressure'
-        ? `⚠️ High material pressure: ${tradeEn} (${scoreRounded}/100)`
-        : `⚠️ Rising pressure: ${tradeEn} (${scoreRounded}/100)`;
-
-    const deltaStr =
-      alert.delta !== null
-        ? ` 1-month change: ${alert.delta > 0 ? '+' : ''}${alert.delta.toFixed(1)} pts.`
-        : '';
-
-    const body =
-      `${tradeHe}: לחץ שוק מחומרים נמצא ב-${scoreRounded}/100.${deltaStr} ` +
-      `בדוק מחירי ספקים לפני הוצאת הזמנות רכש. ` +
-      `זהו מדד הסתברותי בלבד ואינו תחזית מחייבת.`;
 
     for (const recipientUserId of recipientIds) {
       // Stable dedupe key: one alert per trade per org per week
@@ -98,14 +63,15 @@ async function emitPressureAlertsForOrg(
         await emitNotification(context, {
           recipientUserId,
           type: 'material_pressure_alert',
-          title,
-          body,
+          title: 'material_pressure_alert',
+          body: 'material_pressure_alert',
           dedupeKey,
           severity: alert.reason === 'high_pressure' ? 'warning' : 'info',
           entityType: 'material_trade',
           entityId: null,
           deepLink: `/material-market/${alert.trade}`,
           metadata: {
+            i18n: true,
             trade: alert.trade,
             score: scoreRounded,
             delta: alert.delta,

@@ -53,6 +53,15 @@ vi.mock('@/shared/audit', () => ({
   recordAuditEvent: vi.fn(async () => undefined),
 }));
 
+const resolveCaptureReviewNotifications = vi.fn<
+  typeof import('@/modules/quick-capture/application/resolve-capture-review-notifications').resolveCaptureReviewNotifications
+>();
+
+vi.mock('@/modules/quick-capture/application/resolve-capture-review-notifications', () => ({
+  resolveCaptureReviewNotifications: (...args: Parameters<typeof resolveCaptureReviewNotifications>) =>
+    resolveCaptureReviewNotifications(...args),
+}));
+
 import { approveFinancialCapture } from '@/modules/quick-capture/application/approve-capture';
 
 const captureId = '01900000-0000-7000-8000-000000000101';
@@ -158,6 +167,7 @@ function baseJob(overrides: Partial<ExtractionJob> = {}): ExtractionJob {
 describe('approveFinancialCapture', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    resolveCaptureReviewNotifications.mockResolvedValue(1);
     findCaptureById.mockResolvedValue(baseCapture());
     listCaptureDocumentsByCaptureId.mockResolvedValue([
       {
@@ -211,6 +221,7 @@ describe('approveFinancialCapture', () => {
         routedEntityId: expenseId,
       }),
     );
+    expect(resolveCaptureReviewNotifications).toHaveBeenCalledWith(expect.anything(), captureId);
   });
 
   it('routes new confirms to the created expense draft id', async () => {

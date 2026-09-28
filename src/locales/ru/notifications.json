@@ -40,7 +40,8 @@
     "task_assigned_to_you": "Вам назначена задача",
     "task_comment_mention": "Новый комментарий к вашей задаче",
     "task_status_updated": "Статус задачи обновлён",
-    "capture_needs_review": "Захват ожидает проверки"
+    "capture_needs_review": "Захват ожидает проверки",
+    "material_pressure_alert": "Давление рынка материалов"
   },
   "copy": {
     "billing_overdue": {
@@ -206,6 +207,18 @@
       "titleDefault": "Задача обновлена",
       "bodyWithExtra": "Статус изменён на {extra}",
       "bodyDefault": "Задача, за которой вы следите, была обновлена."
+    },
+    "material_pressure_alert": {
+      "titleHigh": "⚠️ Высокое давление материалов: {trade} ({score}/100)",
+      "titleRising": "⚠️ Растущее давление: {trade} ({score}/100)",
+      "deltaSuffix": " Изменение за месяц: {delta} п.",
+      "body": "{trade}: давление рынка материалов — {score}/100.{deltaSuffix} Проверьте цены поставщиков перед заказами. Это только индикативная оценка, не обязательный прогноз.",
+      "trades": {
+        "electrical": "Электрика",
+        "plumbing": "Сантехника",
+        "steel_rebar": "Сталь и арматура",
+        "concrete": "Бетон и цемент"
+      }
     }
   },
   "viewAll": "Показать все",

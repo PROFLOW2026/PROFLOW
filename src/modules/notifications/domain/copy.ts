@@ -33,6 +33,55 @@ export type CaptureNotificationVariant =
   | 'video'
   | 'default';
 
+export type MaterialPressureAlertReason = 'high_pressure' | 'significant_delta';
+
+export type MaterialPressureAlertTrade =
+  | 'electrical'
+  | 'plumbing'
+  | 'steel_rebar'
+  | 'concrete';
+
+function materialPressureTradeLabel(
+  t: NotificationCopyTranslator,
+  trade: MaterialPressureAlertTrade,
+): string {
+  const key = `copy.material_pressure_alert.trades.${trade}`;
+  return t.has(key) ? t(key) : trade;
+}
+
+export function materialPressureAlertNotificationCopy(
+  t: NotificationCopyTranslator,
+  input: {
+    readonly trade: MaterialPressureAlertTrade;
+    readonly score: number;
+    readonly delta: number | null;
+    readonly reason: MaterialPressureAlertReason;
+  },
+): { title: string; body: string } {
+  const tradeLabel = materialPressureTradeLabel(t, input.trade);
+  const titleKey =
+    input.reason === 'high_pressure'
+      ? 'copy.material_pressure_alert.titleHigh'
+      : 'copy.material_pressure_alert.titleRising';
+
+  const title = t(titleKey, { trade: tradeLabel, score: input.score });
+
+  const deltaSuffix =
+    input.delta != null
+      ? t('copy.material_pressure_alert.deltaSuffix', {
+          delta: `${input.delta > 0 ? '+' : ''}${input.delta.toFixed(1)}`,
+        })
+      : '';
+
+  const body = t('copy.material_pressure_alert.body', {
+    trade: tradeLabel,
+    score: input.score,
+    deltaSuffix,
+  });
+
+  return { title, body };
+}
+
 export function captureNeedsReviewNotificationCopy(
   t: NotificationCopyTranslator,
   variant: CaptureNotificationVariant,

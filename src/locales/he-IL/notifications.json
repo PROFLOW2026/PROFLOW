@@ -40,7 +40,8 @@
     "task_assigned_to_you": "משימה שויכה אליך",
     "task_comment_mention": "תגובה חדשה על משימה שלך",
     "task_status_updated": "סטטוס משימה עודכן",
-    "capture_needs_review": "קליטה ממתינה לבדיקה"
+    "capture_needs_review": "קליטה ממתינה לבדיקה",
+    "material_pressure_alert": "לחץ שוק חומרים"
   },
   "copy": {
     "billing_overdue": {
@@ -206,6 +207,18 @@
       "titleDefault": "משימה עודכנה",
       "bodyWithExtra": "הסטטוס שונה ל-{extra}",
       "bodyDefault": "משימה שאתה עוקב אחריה עודכנה."
+    },
+    "material_pressure_alert": {
+      "titleHigh": "⚠️ לחץ חומרים גבוה: {trade} ({score}/100)",
+      "titleRising": "⚠️ לחץ שוק עולה: {trade} ({score}/100)",
+      "deltaSuffix": " שינוי חודשי: {delta} נק׳.",
+      "body": "{trade}: לחץ שוק מחומרים נמצא ב-{score}/100.{deltaSuffix} בדוק מחירי ספקים לפני הוצאת הזמנות רכש. זהו מדד הסתברותי בלבד ואינו תחזית מחייבת.",
+      "trades": {
+        "electrical": "חשמל",
+        "plumbing": "אינסטלציה",
+        "steel_rebar": "ברזל / ברזל זיון",
+        "concrete": "בטון / מלט"
+      }
     }
   },
   "viewAll": "כל ההתראות",
