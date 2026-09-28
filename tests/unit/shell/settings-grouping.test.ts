@@ -50,6 +50,7 @@ describe('settings section grouping', () => {
       'stages',
       'labels',
       'taskTemplates',
+      'projectTaskTemplates',
       'projectTemplates',
       'modules',
       'customFields',

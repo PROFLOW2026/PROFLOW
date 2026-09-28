@@ -1,5 +1,4 @@
 import { getTranslations } from 'next-intl/server';
-import { Plus } from 'lucide-react';
 import { notFound } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/page-header';

@@ -146,7 +146,7 @@ async function main(): Promise<void> {
     organizationName: CONSULTANCY_ORG_NAME,
   };
 
-  let createdProjects: { id: string; name: string }[] = [];
+  const createdProjects: { id: string; name: string }[] = [];
   let accountsByUsername = new Map<
     string,
     { username: string; employeeId: string; userId: string; status: string; employeeName: string }

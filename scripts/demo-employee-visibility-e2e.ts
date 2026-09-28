@@ -7,7 +7,7 @@
  *   npx tsx scripts/demo-employee-visibility-e2e.ts
  */
 import { config } from 'dotenv';
-import { and, eq, inArray, isNull, sql } from 'drizzle-orm';
+import { and, eq, isNull, sql } from 'drizzle-orm';
 
 config({ path: '.env.local' });
 
@@ -299,7 +299,7 @@ async function main(): Promise<void> {
     const canonicalTests: Record<string, unknown>[] = [];
 
     for (const emp of loginCapable) {
-      let loginAttempt: Record<string, unknown> = {
+      const loginAttempt: Record<string, unknown> = {
         employeeName: emp.employeeName,
         username: emp.username,
         loginAttempted: false,

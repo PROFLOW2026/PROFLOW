@@ -3,7 +3,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vites
 vi.mock('server-only', () => ({}));
 
 import { and, eq } from 'drizzle-orm';
-import { employeeProjectAssignments, taskAssignees, tasks } from '@drizzle/schema';
+import { employeeProjectAssignments, taskAssignees } from '@drizzle/schema';
 import { createProject } from '@/modules/projects';
 import { createTask, syncTaskAssignees } from '@/modules/tasks';
 import { mapTasksToCardDataForOrg } from '@/modules/tasks/application/map-tasks-for-ui';
