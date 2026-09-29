@@ -39,12 +39,19 @@ import { RelatedCommunicationsPanel } from '@/modules/communications/ui/related-
 import { PrepareMessageLink } from '@/modules/communications/ui/prepare-message-link';
 import { CustomerStatementActions } from '@/modules/reports/ui';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { ClientDetailTabNav } from '@/modules/clients/ui/client-detail-tab-nav';
+import {
+  parseClientDetailTab,
+  type ClientDetailTabKey,
+} from '@/modules/clients/ui/client-detail-tab-order';
+import { ClientOverviewPanel } from '@/modules/clients/ui/client-overview-panel';
 
 interface ClientsOrgDetailPageProps {
   readonly clientId: string;
   readonly routeBase: string;
   readonly surface?: OrgListSurface;
   readonly locale: string;
+  readonly tabParam?: string;
 }
 
 export async function ClientsOrgDetailPage({
@@ -52,6 +59,7 @@ export async function ClientsOrgDetailPage({
   routeBase,
   surface = 'owner',
   locale,
+  tabParam,
 }: ClientsOrgDetailPageProps) {
   const [t, tStatus] = await Promise.all([
     getTranslations('clients.detail'),
@@ -190,55 +198,54 @@ export async function ClientsOrgDetailPage({
   const projectsRouteBase = employeeSurface ? '/employee/projects' : undefined;
   const tasksRouteBase = employeeSurface ? '/employee/tasks' : '/tasks';
   const billingRouteBase = employeeSurface ? '/employee/billing' : '/billing';
+  const tabbedOwner = surface === 'owner';
+  const activeTab = tabbedOwner ? parseClientDetailTab(tabParam) : ('all' as const);
+  const openQuoteCount = quotes.filter(
+    (quote) => !['accepted', 'rejected', 'expired', 'cancelled'].includes(quote.status),
+  ).length;
 
-  return (
-    <div className="flex flex-col gap-6">
-      <PageHeader
-        title={client.name}
-        description={t('title')}
-        meta={
-          <StatusBadge
-            shape={client.archivedAt || client.status === 'inactive' ? 'archived' : 'active'}
-            label={client.archivedAt ? t('archivedBadge') : tStatus(client.status)}
-          />
-        }
-      />
-      <ClientDetailView
-        client={client}
-        customFields={customFields}
-        linkedProjects={linkedProjects}
-        canManage={canManage}
-        timelineEvents={timelineEvents}
-        timelineState={timelineState}
-        clientTypes={clientTypes}
-        paymentTerms={paymentTerms}
-        quotes={quotes}
-        routeBase={routeBase}
-        quotesRouteBase={quotesRouteBase}
-        projectsRouteBase={projectsRouteBase}
-        surface={surface}
-        afterProjects={
-          <>
-            {showContracts ? (
-              <ClientContractsPanel
-                contracts={contracts}
-                projects={linkedProjects}
-                projectsRouteBase={projectsRouteBase}
-              />
-            ) : null}
-            {showTasks ? (
-              <ClientTasksPanel
-                tasks={projectTasks}
-                projects={linkedProjects}
-                projectsRouteBase={projectsRouteBase}
-                tasksRouteBase={tasksRouteBase}
-                locale={locale}
-              />
-            ) : null}
-          </>
-        }
-        afterSales={crmHistory ? <ClientCrmHistoryPanel history={crmHistory} /> : null}
-      />
+  const detailView = (
+    <ClientDetailView
+      client={client}
+      customFields={customFields}
+      linkedProjects={linkedProjects}
+      canManage={canManage}
+      timelineEvents={timelineEvents}
+      timelineState={timelineState}
+      clientTypes={clientTypes}
+      paymentTerms={paymentTerms}
+      quotes={quotes}
+      routeBase={routeBase}
+      quotesRouteBase={quotesRouteBase}
+      projectsRouteBase={projectsRouteBase}
+      surface={surface}
+      activeTab={tabbedOwner ? activeTab : 'all'}
+      afterProjects={
+        <>
+          {showContracts ? (
+            <ClientContractsPanel
+              contracts={contracts}
+              projects={linkedProjects}
+              projectsRouteBase={projectsRouteBase}
+            />
+          ) : null}
+          {showTasks ? (
+            <ClientTasksPanel
+              tasks={projectTasks}
+              projects={linkedProjects}
+              projectsRouteBase={projectsRouteBase}
+              tasksRouteBase={tasksRouteBase}
+              locale={locale}
+            />
+          ) : null}
+        </>
+      }
+      afterSales={crmHistory ? <ClientCrmHistoryPanel history={crmHistory} /> : null}
+    />
+  );
+
+  const moneyPanels = (
+    <>
       {profitability ? (
         <ClientProfitabilityPanel
           snapshot={profitability}
@@ -252,7 +259,7 @@ export async function ClientsOrgDetailPage({
           billingRouteBase={billingRouteBase}
         />
       ) : null}
-      {surface === 'owner' && canReadBilling && financials ? (
+      {canReadBilling && financials ? (
         <Card className="min-w-0">
           <CardHeader>
             <CardTitle className="text-start text-base">{t('customerStatement.title')}</CardTitle>
@@ -269,7 +276,46 @@ export async function ClientsOrgDetailPage({
           </CardContent>
         </Card>
       ) : null}
-      {surface === 'owner' ? (
+    </>
+  );
+
+  return (
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title={client.name}
+        description={t('title')}
+        meta={
+          <StatusBadge
+            shape={client.archivedAt || client.status === 'inactive' ? 'archived' : 'active'}
+            label={client.archivedAt ? t('archivedBadge') : tStatus(client.status)}
+          />
+        }
+      />
+      {tabbedOwner ? (
+        <ClientDetailTabNav clientId={clientId} activeTab={activeTab as ClientDetailTabKey} />
+      ) : null}
+
+      {tabbedOwner && activeTab === 'overview' ? (
+        <ClientOverviewPanel
+          clientId={clientId}
+          linkedProjectCount={linkedProjects.length}
+          openQuoteCount={openQuoteCount}
+          financials={financials}
+          profitability={profitability}
+        />
+      ) : null}
+
+      {!tabbedOwner ||
+      activeTab === 'projects' ||
+      activeTab === 'sales' ||
+      activeTab === 'details' ||
+      activeTab === 'activity'
+        ? detailView
+        : null}
+
+      {!tabbedOwner || activeTab === 'money' ? moneyPanels : null}
+
+      {!tabbedOwner || activeTab === 'activity' ? (
         <>
           <PrepareMessageLink
             entityType="other"
@@ -281,7 +327,8 @@ export async function ClientsOrgDetailPage({
           <RelatedCommunicationsPanel clientId={client.id} />
         </>
       ) : null}
-      {documentsPanel ? (
+
+      {documentsPanel && (!tabbedOwner || activeTab === 'documents') ? (
         <DocumentAttachments
           ownerType="client"
           ownerId={client.id}

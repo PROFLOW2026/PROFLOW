@@ -41,10 +41,6 @@ export async function CommercialDocsHub({
 
   return (
     <section className="flex min-w-0 flex-col gap-3" aria-label={t('title')}>
-      {current === 'hub' ? null : (
-        <p className="text-sm text-[var(--pf-text-secondary)]">{t('stripIntro')}</p>
-      )}
-
       <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-3">
         {cards.map((card) => {
           const here = current === card.key;
@@ -75,18 +71,12 @@ export async function CommercialDocsHub({
         })}
       </div>
 
-      {current === 'crm' || current === 'hub' ? (
+      {current === 'hub' ? (
         <p className="text-xs text-[var(--pf-text-muted)]">
           {t('crmNote')}{' '}
-          {current === 'hub' ? (
-            <Link href="/crm" className="font-medium text-[var(--pf-text-brand)] underline-offset-4 hover:underline">
-              {t('crmAction')}
-            </Link>
-          ) : (
-            <Link href="/quotes" className="font-medium text-[var(--pf-text-brand)] underline-offset-4 hover:underline">
-              {t('preProjectAction')}
-            </Link>
-          )}
+          <Link href="/crm" className="font-medium text-[var(--pf-text-brand)] underline-offset-4 hover:underline">
+            {t('crmAction')}
+          </Link>
         </p>
       ) : null}
     </section>

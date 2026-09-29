@@ -19,14 +19,19 @@ export async function generateMetadata({ params }: ClientPageProps): Promise<Met
   }
 }
 
-export default async function ClientPage({ params }: ClientPageProps) {
+export default async function ClientPage({
+  params,
+  searchParams,
+}: ClientPageProps & { searchParams: Promise<{ tab?: string }> }) {
   const { clientId, locale } = await params;
+  const { tab } = await searchParams;
   return (
     <ClientsOrgDetailPage
       clientId={clientId}
       routeBase="/clients"
       surface="owner"
       locale={locale}
+      tabParam={tab}
     />
   );
 }

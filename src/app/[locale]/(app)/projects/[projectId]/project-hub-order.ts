@@ -44,14 +44,25 @@ export const HUB_SECTION_PRIORITY: Readonly<Record<ProjectHubKey, readonly Proje
   details: ['details', 'closeout', 'warranty'],
 };
 
+/** Legacy deep links (e.g. org contracts list, search). */
+export const PROJECT_TAB_ALIASES: Readonly<Record<string, ProjectTabKey>> = {
+  contracts: 'details',
+};
+
 export function resolveHubFromTabParam(rawTab: string | undefined): {
   hub: ProjectHubKey;
   section: ProjectTabKey;
 } {
-  const tab = (rawTab ?? 'overview') as ProjectTabKey;
+  const normalized = rawTab?.trim() || 'overview';
+  const aliased = PROJECT_TAB_ALIASES[normalized] ?? normalized;
+  const tab = aliased as ProjectTabKey;
   const mapped = LEGACY_TAB_TO_HUB[tab];
   if (mapped) return mapped;
   return { hub: 'overview', section: 'overview' };
+}
+
+export function shouldFocusProjectContracts(rawTab: string | undefined): boolean {
+  return rawTab?.trim() === 'contracts';
 }
 
 /** Which hubs are visible given module/permission flags. */

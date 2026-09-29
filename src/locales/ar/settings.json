@@ -3,7 +3,10 @@
   "navLabel": "الإعدادات",
   "groups": {
     "myBusiness": "أعمالي",
-    "workflow": "كيف نعمل",
+    "money": "المال والضرائب",
+    "peoplePermissions": "الموظفون والصلاحيات",
+    "workflow": "سير العمل",
+    "connectionsStorage": "الاتصالات والتخزين",
     "advanced": "متقدم",
     "developers": "المطوّرون"
   },

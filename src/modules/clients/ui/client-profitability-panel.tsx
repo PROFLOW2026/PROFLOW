@@ -44,7 +44,6 @@ export async function ClientProfitabilityPanel({
   readonly projectsRouteBase?: string;
 }) {
   const t = await getTranslations('clients.detail.profitability');
-  const tFinancial = await getTranslations('financial');
   const unavailable = t('unavailable');
 
   return (
@@ -55,7 +54,6 @@ export async function ClientProfitabilityPanel({
           <CardDescription>{t('subtitle')}</CardDescription>
         </CardHeader>
         <CardContent className="flex min-w-0 flex-col gap-4">
-          <p className="text-start text-sm text-[var(--pf-text-secondary)]">{tFinancial('profitVsCash')}</p>
           {!snapshot.hasProjects ? (
             <p className="text-start text-sm text-[var(--pf-text-secondary)]">{t('empty')}</p>
           ) : (

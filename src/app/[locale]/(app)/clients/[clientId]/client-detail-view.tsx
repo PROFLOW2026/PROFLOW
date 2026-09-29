@@ -24,6 +24,7 @@ import { EntityCustomFieldsPanel } from '@/modules/custom-fields/ui';
 import { Link } from '@/shared/i18n/navigation';
 import { workEntityHref } from '@/modules/search/domain/hrefs';
 import type { OrgListSurface } from '@/modules/employee-app/application/org-list-permissions';
+import type { ClientDetailTabKey } from '@/modules/clients/ui/client-detail-tab-order';
 import { upsertEntityFieldValueAction } from '../../settings/custom-fields/actions';
 import { ClientTimeline } from './client-timeline';
 import {
@@ -62,6 +63,8 @@ interface ClientDetailViewProps {
   surface?: OrgListSurface;
   afterProjects?: ReactNode;
   afterSales?: ReactNode;
+  /** Owner tabbed layout; `all` keeps legacy single-scroll (employee app). */
+  activeTab?: ClientDetailTabKey | 'all';
 }
 
 export function ClientDetailView({
@@ -80,6 +83,7 @@ export function ClientDetailView({
   surface = 'owner',
   afterProjects,
   afterSales,
+  activeTab = 'all',
 }: ClientDetailViewProps) {
   const t = useTranslations('clients.detail');
   const tClients = useTranslations('clients');
@@ -95,10 +99,15 @@ export function ClientDetailView({
   );
   const [lifecyclePending, startLifecycle] = useTransition();
   const isArchived = client.archivedAt != null;
+  const tab = activeTab;
+  const showDetails = tab === 'all' || tab === 'details';
+  const showProjects = tab === 'all' || tab === 'projects';
+  const showSales = tab === 'all' || tab === 'sales';
+  const showActivity = tab === 'all' || tab === 'activity';
 
   return (
     <div className="flex flex-col gap-6">
-      {canManage ? (
+      {showDetails && canManage ? (
         <form action={formAction} className="mx-auto flex w-full max-w-xl flex-col gap-4">
           <input type="hidden" name="clientId" value={client.id} />
           {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
@@ -267,15 +276,20 @@ export function ClientDetailView({
         </form>
       ) : null}
 
+      {showDetails ? (
       <EntityCustomFieldsPanel
         entityId={client.id}
         fields={customFields}
         revalidatePath={`${routeBase}/${client.id}`}
         saveAction={upsertEntityFieldValueAction}
       />
+      ) : null}
 
-      <ClientTimeline events={timelineEvents} state={timelineState} />
+      {showActivity ? (
+        <ClientTimeline events={timelineEvents} state={timelineState} />
+      ) : null}
 
+      {showDetails ? (
       <Card>
         <CardHeader>
           <CardTitle>{t('contactsSection')}</CardTitle>
@@ -295,8 +309,9 @@ export function ClientDetailView({
           {canManage ? <AddContactForm clientId={client.id} /> : null}
         </CardContent>
       </Card>
+      ) : null}
 
-      {canManage ? (
+      {showDetails && canManage ? (
         <Card>
           <CardHeader>
             <CardTitle>{t('identifiersSection')}</CardTitle>
@@ -352,6 +367,7 @@ export function ClientDetailView({
         </Card>
       ) : null}
 
+      {showProjects ? (
       <Card>
         <CardHeader>
           <CardTitle>{t('projectsSection')}</CardTitle>
@@ -387,13 +403,15 @@ export function ClientDetailView({
           ) : null}
         </CardContent>
       </Card>
+      ) : null}
 
-      {afterProjects}
+      {showProjects ? afterProjects : null}
 
+      {showSales ? (
       <Card>
         <CardHeader>
           <CardTitle>{t('salesSection')}</CardTitle>
-          <CardDescription>{t('salesHint')}</CardDescription>
+          <CardDescription>{t('salesHintShort')}</CardDescription>
         </CardHeader>
         <CardContent>
           {quotes.length === 0 ? (
@@ -422,10 +440,11 @@ export function ClientDetailView({
           )}
         </CardContent>
       </Card>
+      ) : null}
 
-      {afterSales}
+      {showSales ? afterSales : null}
 
-      {surface === 'owner' ? (
+      {showDetails && surface === 'owner' ? (
         <Card>
           <CardHeader>
             <CardTitle>{t('relatedSection')}</CardTitle>

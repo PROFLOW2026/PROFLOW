@@ -1,7 +1,6 @@
 import { FileSpreadsheet, Plus } from 'lucide-react';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
-import { Alert } from '@/components/ui/alert';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge, type StatusShape } from '@/components/ui/status-badge';
@@ -106,7 +105,6 @@ export async function QuotesOrgListView({
         />
       ) : null}
 
-      {isOwner ? <Alert tone="info">{t('salesVsCrmBanner')}</Alert> : null}
       {isOwner ? <CommercialDocsHub current="quotes" /> : null}
       {isOwner ? <SavedListViewsBar listKey="quotes" searchParams={params} /> : null}
 

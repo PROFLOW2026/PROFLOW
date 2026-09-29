@@ -3,7 +3,10 @@
   "navLabel": "הגדרות",
   "groups": {
     "myBusiness": "העסק שלי",
-    "workflow": "איך עובדים",
+    "money": "כספים",
+    "peoplePermissions": "עובדים והרשאות",
+    "workflow": "תהליכי עבודה",
+    "connectionsStorage": "חיבורים ואחסון",
     "advanced": "מתקדם",
     "developers": "מפתחים"
   },

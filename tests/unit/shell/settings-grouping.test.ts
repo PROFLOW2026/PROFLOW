@@ -35,36 +35,38 @@ describe('settings section grouping', () => {
     expect(listed.map((section) => section.key)).toEqual([
       'business',
       'branding',
-      'people',
       'profile',
+      'orgProfile',
       'tax',
       'numbering',
-      'orgProfile',
-      'features',
+      'banking',
       'costCategories',
+      'people',
+      'roles',
+      'features',
       'businessCatalogs',
       'templates',
       'approvals',
       'catalog',
-      'roles',
       'stages',
       'labels',
       'taskTemplates',
       'projectTaskTemplates',
       'projectTemplates',
       'modules',
-      'customFields',
-      'forms',
-      'banking',
       'integrations',
       'storage',
+      'customFields',
+      'forms',
       'activity',
       'offlineDrafts',
       'app',
     ]);
 
     expect(listed.find((s) => s.key === 'business')?.group).toBe('myBusiness');
-    expect(listed.find((s) => s.key === 'integrations')?.group).toBe('myBusiness');
+    expect(listed.find((s) => s.key === 'integrations')?.group).toBe('connectionsStorage');
+    expect(listed.find((s) => s.key === 'tax')?.group).toBe('money');
+    expect(listed.find((s) => s.key === 'people')?.group).toBe('peoplePermissions');
     expect(listed.find((s) => s.key === 'branding')?.group).toBe('myBusiness');
     expect(listed.find((s) => s.key === 'branding')?.href).toBe('/settings/branding');
     expect(listed.find((s) => s.key === 'features')?.group).toBe('workflow');

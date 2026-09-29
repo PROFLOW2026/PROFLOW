@@ -53,6 +53,12 @@ export function SumitIntegrationPanel({
       </CardHeader>
       <CardContent className="flex flex-col gap-3 text-sm">
         <p className="text-[var(--pf-text-secondary)]">{t('settings.sumitDescription')}</p>
+        <details className="text-xs text-[var(--pf-text-muted)]">
+          <summary className="cursor-pointer font-medium text-[var(--pf-text-secondary)]">
+            {t('settings.sumitTechnicalSummary')}
+          </summary>
+          <p className="mt-2">{t('settings.sumitTechnicalNote')}</p>
+        </details>
         <Alert tone="warning">{t('settings.testOnlyNotice')}</Alert>
         {connected && companyId != null ? (
           <p className="text-[var(--pf-text-secondary)]">

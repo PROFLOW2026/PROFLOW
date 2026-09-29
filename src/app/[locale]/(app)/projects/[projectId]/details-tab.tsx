@@ -1,7 +1,8 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useActionState, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useActionState, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -119,6 +120,14 @@ export function DetailsTab({
     setProgressSource(project.progressSource);
   }
   const tasksProgress = progressSource === 'tasks';
+  const searchParams = useSearchParams();
+  const contractAnchorRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (searchParams.get('tab') === 'contracts') {
+      contractAnchorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [searchParams]);
 
   return (
     <>
@@ -318,6 +327,7 @@ export function DetailsTab({
         )}
 
         {canManageContract ? (
+          <div id="project-contracts" ref={contractAnchorRef} className="scroll-mt-24">
           <ContractAmountFields
             baseCurrency={currency}
             currencySymbol={currencySymbol}
@@ -335,6 +345,7 @@ export function DetailsTab({
             amountPlaceholder={amountPlaceholder}
             taxModeDescription={taxModeDescription}
           />
+          </div>
         ) : null}
 
         <Field label={t('domainLabel')} optionalLabel={tCommon('labels.optional')}>

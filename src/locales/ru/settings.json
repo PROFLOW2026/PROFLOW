@@ -3,7 +3,10 @@
   "navLabel": "Настройки",
   "groups": {
     "myBusiness": "Мой бизнес",
-    "workflow": "Как мы работаем",
+    "money": "Деньги и налоги",
+    "peoplePermissions": "Люди и права",
+    "workflow": "Рабочие процессы",
+    "connectionsStorage": "Подключения и хранилище",
     "advanced": "Расширенные",
     "developers": "Разработчики"
   },

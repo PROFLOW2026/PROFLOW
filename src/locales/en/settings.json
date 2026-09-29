@@ -3,7 +3,10 @@
   "navLabel": "Settings",
   "groups": {
     "myBusiness": "My business",
+    "money": "Money & tax",
+    "peoplePermissions": "People & permissions",
     "workflow": "How we work",
+    "connectionsStorage": "Connections & storage",
     "advanced": "Advanced",
     "developers": "Developers"
   },
