@@ -84,3 +84,26 @@ export function assertNoAllocationsOnProjectExpense(
     );
   }
 }
+
+export function expenseHasProjectAttribution(input: {
+  readonly projectId?: string | null;
+  readonly allocations?: readonly {
+    readonly targetType?: string | null;
+    readonly projectId?: string | null;
+  }[];
+}): boolean {
+  if (input.projectId?.trim()) return true;
+  return (input.allocations ?? []).some(
+    (line) => line.targetType === 'project' && Boolean(line.projectId?.trim()),
+  );
+}
+
+export function expenseAllowsFinalizeWithoutCategory(input: {
+  readonly projectId?: string | null;
+  readonly allocations?: readonly {
+    readonly targetType?: string | null;
+    readonly projectId?: string | null;
+  }[];
+}): boolean {
+  return expenseHasProjectAttribution(input);
+}

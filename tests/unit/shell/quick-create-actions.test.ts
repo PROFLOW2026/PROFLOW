@@ -168,6 +168,69 @@ describe('buildQuickCreateActions', () => {
     expect(actions.map((a) => a.key)).toEqual(['job', 'project']);
   });
 
+  it('returns all permission-gated actions for owner persona without a six-item cap', () => {
+    const permissions = new Set([
+      PERMISSIONS.PROJECTS_CREATE,
+      PERMISSIONS.EXPENSES_CREATE,
+      PERMISSIONS.QUOTES_MANAGE,
+      PERMISSIONS.CLIENTS_MANAGE,
+      PERMISSIONS.VENDORS_MANAGE,
+      PERMISSIONS.BILLING_MANAGE,
+      PERMISSIONS.WORKFORCE_MANAGE,
+      PERMISSIONS.TIME_MANAGE,
+      PERMISSIONS.AP_MANAGE,
+      PERMISSIONS.DOCUMENTS_MANAGE,
+      PERMISSIONS.CHANGES_MANAGE,
+      PERMISSIONS.FIELD_OPS_MANAGE,
+      PERMISSIONS.ATTENDANCE_MANAGE,
+      PERMISSIONS.SERVICE_MANAGE,
+      PERMISSIONS.ASSETS_MANAGE,
+    ]);
+
+    const contractor = buildQuickCreateActions(
+      permissions,
+      modules({
+        changes: true,
+        quotes: true,
+        billing: true,
+        clients: true,
+        vendors: true,
+        field_ops: true,
+        service: true,
+        assets: true,
+        jobs: true,
+      }),
+      'mixed',
+      null,
+      null,
+      'project_contractor',
+    );
+    const ownerAll = buildQuickCreateActions(
+      permissions,
+      modules({
+        changes: true,
+        quotes: true,
+        billing: true,
+        clients: true,
+        vendors: true,
+        field_ops: true,
+        service: true,
+        assets: true,
+        jobs: true,
+      }),
+      'mixed',
+      null,
+      null,
+      'all',
+    );
+
+    expect(contractor.length).toBeGreaterThan(6);
+    expect(ownerAll.length).toBeGreaterThan(6);
+    expect(contractor.map((action) => action.key).sort()).toEqual(
+      ownerAll.map((action) => action.key).sort(),
+    );
+  });
+
   it('surfaces quickCapture for electrical and all personas when DOCUMENTS_MANAGE is granted', () => {
     const permissions = new Set([
       PERMISSIONS.PROJECTS_CREATE,

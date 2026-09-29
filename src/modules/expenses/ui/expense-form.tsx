@@ -366,6 +366,8 @@ export function ExpenseForm({
   );
 
   const isProjectDestinationMode = costDestinationMode === 'project_single';
+  const isProjectRouteMode =
+    costDestinationMode === 'project_single' || costDestinationMode === 'project_multi';
   const isOverhead = !isProjectDestinationMode;
   const submitCostFamily: CostFamily | '' = isProjectDestinationMode ? 'direct_project' : costFamily;
   const projectId =
@@ -464,7 +466,7 @@ export function ExpenseForm({
 
   function applyCategoryPolicy(category: CostCategoryRow | null | undefined) {
     if (!category) return;
-    if (isProjectDestinationMode) {
+    if (isProjectRouteMode) {
       if (category.family !== 'direct_project') return;
       applyPeriodBehavior(category.defaultPeriodBehavior);
       setPolicyOverridden(false);
@@ -493,7 +495,7 @@ export function ExpenseForm({
       return category.family === 'direct_project';
     }
     if (mode === 'project_multi') {
-      return true;
+      return category.family === 'direct_project';
     }
     if (category.family === 'direct_project') {
       return stockPurchase;
@@ -630,7 +632,7 @@ export function ExpenseForm({
       !isDeprecatedForNewTransactionEntry(category.key),
   );
 
-  const categoriesByFamily = isProjectDestinationMode
+  const categoriesByFamily = isProjectRouteMode
     ? projectCategoryItems.length > 0
       ? [{ family: 'direct_project' as CostFamily, items: projectCategoryItems }]
       : []
@@ -915,14 +917,13 @@ export function ExpenseForm({
 
         <div id="expense-category" className="scroll-mt-24">
           <Field
-            label={
-              isProjectDestinationMode ? t('fields.projectCostType') : t('fields.category')
-            }
+            label={isProjectRouteMode ? t('fields.projectCostType') : t('fields.category')}
             description={
-              isProjectDestinationMode
+              isProjectRouteMode
                 ? t('fields.projectCostTypeHint')
                 : t('fields.categoryRequiredHint')
             }
+            optionalLabel={isProjectRouteMode ? tCommon('labels.optional') : undefined}
             error={fieldErrors.costCategoryId}
           >
             {(controlProps) => (

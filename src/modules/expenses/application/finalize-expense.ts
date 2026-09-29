@@ -15,6 +15,7 @@ import { bookInventoryPurchaseFromExpenseOnExecutor } from '@/modules/assets/app
 import { assertExpenseFinalizeHasNoUnlinkedApOverlap } from '@/modules/financials/application/assert-expense-ap-overlap';
 import { resolveExpenseClassificationStatus } from '@/modules/financials/domain/economic-classification';
 import { isPositiveMoney, toNumericString } from '@/shared/money';
+import { expenseAllowsFinalizeWithoutCategory } from '../domain/targeting';
 import { assertFinalizable } from '../domain/lifecycle';
 import { captureTaxSnapshot } from '../domain/tax';
 import { isWeightAllocationMethod } from '../domain/types';
@@ -61,17 +62,32 @@ export async function finalizeExpense(
     }
   }
 
-  const nextClassificationStatus = resolveExpenseClassificationStatus({
-    costCategoryId: existing.costCategoryId,
-    categoryKey,
-    inventoryStockPurchase: existing.inventoryStockPurchase,
-    costFamily: existing.costFamily,
+  const allowsMissingCategory = expenseAllowsFinalizeWithoutCategory({
+    projectId: existing.projectId,
+    allocations: existing.allocations,
   });
 
+  const nextClassificationStatus = allowsMissingCategory
+    ? existing.costCategoryId
+      ? resolveExpenseClassificationStatus({
+          costCategoryId: existing.costCategoryId,
+          categoryKey,
+          inventoryStockPurchase: existing.inventoryStockPurchase,
+          costFamily: existing.costFamily,
+        })
+      : 'needs_classification'
+    : resolveExpenseClassificationStatus({
+        costCategoryId: existing.costCategoryId,
+        categoryKey,
+        inventoryStockPurchase: existing.inventoryStockPurchase,
+        costFamily: existing.costFamily,
+      });
+
   if (
-    nextClassificationStatus !== 'classified' ||
-    !existing.costCategoryId ||
-    String(existing.costCategoryId).trim() === ''
+    !allowsMissingCategory &&
+    (nextClassificationStatus !== 'classified' ||
+      !existing.costCategoryId ||
+      String(existing.costCategoryId).trim() === '')
   ) {
     throw new DomainRuleError(
       'Choose an expense type before recognizing this cost',

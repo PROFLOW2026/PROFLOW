@@ -1,5 +1,5 @@
 /**
- * Quick Create allowlists — visibly smaller menus per persona.
+ * Quick Create persona emphasis — reorder only; never hide permission-gated actions.
  */
 
 import type { ExperiencePersonaKey } from './experience-persona';
@@ -33,27 +33,22 @@ export const PERSONA_QUICK_CREATE_KEYS: Readonly<
   ],
 };
 
-const MAX_ACTIONS = 6;
-
 export function limitQuickCreateForPersona<T extends { key: string }>(
   actions: readonly T[],
   persona: ExperiencePersonaKey,
 ): T[] {
   const allow = PERSONA_QUICK_CREATE_KEYS[persona];
-  const allowSet = new Set(allow);
   const preferred: T[] = [];
-  const rest: T[] = [];
+  const seen = new Set<string>();
 
   for (const key of allow) {
     const match = actions.find((action) => action.key === key);
-    if (match) preferred.push(match);
-  }
-  for (const action of actions) {
-    if (!allowSet.has(action.key) && persona === 'all') {
-      rest.push(action);
+    if (match) {
+      preferred.push(match);
+      seen.add(match.key);
     }
   }
 
-  const combined = persona === 'all' ? [...preferred, ...rest] : preferred;
-  return combined.slice(0, persona === 'all' ? 12 : MAX_ACTIONS);
+  const rest = actions.filter((action) => !seen.has(action.key));
+  return [...preferred, ...rest];
 }

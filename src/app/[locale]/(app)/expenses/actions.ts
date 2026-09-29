@@ -14,6 +14,7 @@ import {
   updateExpenseSchema,
   voidExpense,
 } from '@/modules/expenses';
+import { expenseHasProjectAttribution } from '@/modules/expenses/domain/targeting';
 import { confirmExpensePaid } from '@/modules/expenses/application/expense-payments';
 import { businessDate } from '@/shared/dates';
 import { promoteVendorFromTransaction } from '@/modules/vendors';
@@ -170,7 +171,11 @@ export async function createExpenseAction(
     };
   }
 
-  if (parsed.data.finalizeOnCreate === true && !parsed.data.costCategoryId) {
+  if (
+    parsed.data.finalizeOnCreate === true &&
+    !parsed.data.costCategoryId &&
+    !expenseHasProjectAttribution(parsed.data)
+  ) {
     const tExpenses = await getTranslations('expenses');
     return {
       error: tExpenses('errors.classificationRequired'),
@@ -182,12 +187,13 @@ export async function createExpenseAction(
     const expense = await withOrgContext(async (context) => {
       const created = await createExpense(context, parsed.data);
       const wantsApprove = parsed.data.finalizeOnCreate === true;
+      const canFinalizeWithoutCategory = expenseHasProjectAttribution(parsed.data);
       const shouldFinalize =
         wantsApprove ||
         (parsed.data.markPaidOnCreate === true &&
           parsed.data.paymentStructure !== 'installments' &&
-          Boolean(parsed.data.costCategoryId));
-      if (shouldFinalize && parsed.data.costCategoryId) {
+          (Boolean(parsed.data.costCategoryId) || canFinalizeWithoutCategory));
+      if (shouldFinalize && (parsed.data.costCategoryId || canFinalizeWithoutCategory)) {
         await finalizeExpense(context, created.id, {
           confirmDistinctCosts: formData.get('confirmDistinctCosts') === 'true',
         });
@@ -262,7 +268,11 @@ export async function updateExpenseAction(
     };
   }
 
-  if (parsed.data.finalizeOnCreate === true && !parsed.data.costCategoryId) {
+  if (
+    parsed.data.finalizeOnCreate === true &&
+    !parsed.data.costCategoryId &&
+    !expenseHasProjectAttribution(parsed.data)
+  ) {
     const tExpenses = await getTranslations('expenses');
     return {
       error: tExpenses('errors.classificationRequired'),
@@ -274,7 +284,12 @@ export async function updateExpenseAction(
     const expense = await withOrgContext(async (context) => {
       const updated = await updateExpense(context, parsed.data);
       const wantsApprove = parsed.data.finalizeOnCreate === true;
-      if (wantsApprove && updated.status === 'draft' && parsed.data.costCategoryId) {
+      const canFinalizeWithoutCategory = expenseHasProjectAttribution(parsed.data);
+      if (
+        wantsApprove &&
+        updated.status === 'draft' &&
+        (parsed.data.costCategoryId || canFinalizeWithoutCategory)
+      ) {
         await finalizeExpense(context, updated.id, {
           confirmDistinctCosts: formData.get('confirmDistinctCosts') === 'true',
         });

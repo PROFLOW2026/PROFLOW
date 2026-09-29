@@ -47,6 +47,7 @@ import { ExpenseRoutingStatusPanel } from '@/modules/expenses/ui/expense-routing
 import { ExpensePaymentPanel } from '@/modules/expenses/ui/expense-payment-panel';
 import { ExpenseActivityTimelineSection } from '@/modules/expenses/ui/expense-activity-timeline-section';
 import { resolveExpenseDetailAttention } from '@/modules/expenses/domain/expense-attention';
+import { expenseHasProjectAttribution } from '@/modules/expenses/domain/targeting';
 import { resolveExpenseBackNavigation } from '@/modules/expenses/domain/expense-return-navigation';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 
@@ -182,7 +183,13 @@ export async function ExpensesOrgDetailPage({
     canUpdateExpense;
   const readOnly = expense.status !== 'draft' && !canEditFinalized;
   const canFinalize =
-    expense.status === 'draft' && canFinalizeExpense && Boolean(expense.costCategoryId);
+    expense.status === 'draft' &&
+    canFinalizeExpense &&
+    (Boolean(expense.costCategoryId) ||
+      expenseHasProjectAttribution({
+        projectId: expense.projectId,
+        allocations: expense.allocations,
+      }));
   const canVoid = expense.status === 'finalized' && !expense.voidsExpenseId && canFinalizeExpense;
   const canReverse =
     expense.status === 'finalized' &&

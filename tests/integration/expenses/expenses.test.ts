@@ -526,6 +526,88 @@ describe('expenses integration', () => {
     });
   });
 
+  it('finalizes project expense without cost category when project is selected', async () => {
+    const { projectId } = await createProjectWithDefaultPackage(
+      database,
+      userA.id,
+      orgAId,
+      'No category single project',
+    );
+
+    await database.asUser(userA.id, async (tx) => {
+      const context = await resolveOrgContext(tx, {
+        userId: userA.id,
+        organizationId: orgAId,
+        locale: 'en',
+      });
+
+      const draft = await createExpense(context, {
+        amount: '750',
+        currency: 'ILS',
+        projectId,
+        vatMode: 'zero',
+        costFamily: 'direct_project',
+      });
+      expect(draft.costCategoryId).toBeNull();
+
+      const approved = await finalizeExpense(context, draft.id);
+      expect(approved.status).toBe('finalized');
+      expect(approved.classificationStatus).toBe('needs_classification');
+    });
+  });
+
+  it('finalizes multi-project expense without cost category when projects are allocated', async () => {
+    const projectA = await createProjectWithDefaultPackage(
+      database,
+      userA.id,
+      orgAId,
+      'No category multi A',
+    );
+    const projectB = await createProjectWithDefaultPackage(
+      database,
+      userA.id,
+      orgAId,
+      'No category multi B',
+    );
+
+    await database.asUser(userA.id, async (tx) => {
+      const context = await resolveOrgContext(tx, {
+        userId: userA.id,
+        organizationId: orgAId,
+        locale: 'en',
+      });
+
+      const draft = await createExpense(context, {
+        amount: '2000',
+        currency: 'ILS',
+        vatMode: 'zero',
+        costFamily: 'direct_project',
+        allocationIntent: 'project_allocate',
+        allocations: [
+          {
+            targetType: 'project',
+            projectId: projectA.projectId,
+            method: 'manual_amount',
+            amount: '1200',
+            sortOrder: 0,
+          },
+          {
+            targetType: 'project',
+            projectId: projectB.projectId,
+            method: 'manual_amount',
+            amount: '800',
+            sortOrder: 1,
+          },
+        ],
+      });
+      expect(draft.costCategoryId).toBeNull();
+
+      const approved = await finalizeExpense(context, draft.id);
+      expect(approved.status).toBe('finalized');
+      expect(approved.classificationStatus).toBe('needs_classification');
+    });
+  });
+
   it('finalizes on approve path while payment stays open', async () => {
     const { projectId } = await createProjectWithDefaultPackage(
       database,

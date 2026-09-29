@@ -163,9 +163,8 @@ describe('persona UX acceptance matrix', () => {
       expect.arrayContaining(['dashboard', 'today', 'workOrders']),
     );
     expect(consulting.quickCreate).toEqual(
-      expect.arrayContaining(['client', 'quote', 'project', 'timeEntry']),
+      expect.arrayContaining(['client', 'quote', 'project', 'timeEntry', 'vendorBill']),
     );
-    expect(consulting.quickCreate).not.toContain('vendorBill');
     expect(contractor.dashboardCards).toEqual(
       expect.arrayContaining(['contractValue', 'profit', 'commitments']),
     );
@@ -199,8 +198,12 @@ describe('persona UX acceptance matrix', () => {
     expect(allPersona.dashboardCards.length).toBeGreaterThan(
       surfaceFingerprint('small_works').dashboardCards.length,
     );
-    expect(allPersona.quickCreate.length).toBeGreaterThan(
-      surfaceFingerprint('consulting').quickCreate.length,
+    const consultingPersona = surfaceFingerprint('consulting');
+    expect(allPersona.quickCreate).toEqual(
+      expect.arrayContaining(consultingPersona.quickCreate),
+    );
+    expect(allPersona.quickCreate.slice(0, 3)).not.toEqual(
+      consultingPersona.quickCreate.slice(0, 3),
     );
   });
 

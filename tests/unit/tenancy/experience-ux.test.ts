@@ -92,7 +92,7 @@ describe('experience complexity filter', () => {
 });
 
 describe('quick create persona limits', () => {
-  it('keeps allowlisted actions and caps length', () => {
+  it('reorders by persona emphasis without hiding authorized actions', () => {
     const actions = [
       { key: 'quickCapture' },
       { key: 'project' },
@@ -105,7 +105,7 @@ describe('quick create persona limits', () => {
       { key: 'vendor' },
     ];
     const limited = limitQuickCreateForPersona(actions, 'project_contractor');
-    expect(limited.map((a) => a.key)).toEqual([
+    expect(limited.map((a) => a.key).slice(0, 6)).toEqual([
       'quickCapture',
       'project',
       'quote',
@@ -113,11 +113,11 @@ describe('quick create persona limits', () => {
       'vendorBill',
       'fieldLog',
     ]);
-    expect(limited).toHaveLength(6);
-    expect(limited.find((a) => a.key === 'employee')).toBeUndefined();
+    expect(limited).toHaveLength(9);
+    expect(limited.find((a) => a.key === 'employee')).toBeDefined();
   });
 
-  it('allows a longer menu for all persona', () => {
+  it('keeps every allowed action for all persona', () => {
     const actions = [
       { key: 'project' },
       { key: 'job' },
@@ -134,8 +134,7 @@ describe('quick create persona limits', () => {
       { key: 'payment' },
     ];
     const limited = limitQuickCreateForPersona(actions, 'all');
-    expect(limited.length).toBeGreaterThan(6);
-    expect(limited.length).toBeLessThanOrEqual(12);
+    expect(limited).toHaveLength(actions.length);
   });
 
   it('surfaces quickCapture for electrical and all personas when present', () => {
@@ -149,7 +148,7 @@ describe('quick create persona limits', () => {
       { key: 'timeEntry' },
     ];
     const electrical = limitQuickCreateForPersona(actions, 'electrical');
-    expect(electrical.map((a) => a.key)).toEqual([
+    expect(electrical.map((a) => a.key).slice(0, 6)).toEqual([
       'quickCapture',
       'job',
       'project',
@@ -157,9 +156,11 @@ describe('quick create persona limits', () => {
       'expense',
       'fieldLog',
     ]);
+    expect(electrical.map((a) => a.key)).toContain('timeEntry');
 
     const all = limitQuickCreateForPersona(actions, 'all');
     expect(all[0]?.key).toBe('quickCapture');
+    expect(all).toHaveLength(actions.length);
   });
 });
 

@@ -16,6 +16,7 @@ import {
   updateExpense,
   updateExpenseSchema,
 } from '@/modules/expenses';
+import { expenseHasProjectAttribution } from '@/modules/expenses/domain/targeting';
 import {
   createDailyLog,
   createInspection,
@@ -240,7 +241,11 @@ async function submitExpense(
     }
     const updated = await withOrgContext(async (context) => {
       const row = await updateExpense(context, parsed.data);
-      if (parsed.data.finalizeOnCreate === true && row.status === 'draft' && parsed.data.costCategoryId) {
+      if (
+        parsed.data.finalizeOnCreate === true &&
+        row.status === 'draft' &&
+        (parsed.data.costCategoryId || expenseHasProjectAttribution(parsed.data))
+      ) {
         await finalizeExpense(context, row.id);
         const refreshed = await getExpense(context, row.id);
         return refreshed;
@@ -278,7 +283,10 @@ async function submitExpense(
       return { id: existing.id, updatedAt: existing.updatedAt };
     }
     const row = await createExpense(context, parsed.data);
-    if (parsed.data.finalizeOnCreate === true && parsed.data.costCategoryId) {
+    if (
+      parsed.data.finalizeOnCreate === true &&
+      (parsed.data.costCategoryId || expenseHasProjectAttribution(parsed.data))
+    ) {
       await finalizeExpense(context, row.id);
       return getExpense(context, row.id);
     }
