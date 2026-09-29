@@ -89,13 +89,21 @@ export default async function BusinessSettingsPage() {
 
         <Card className="flex flex-col gap-6 p-4 sm:p-5">
           <BusinessProfileForm organization={data.organization} canEdit={data.canEdit} />
+        </Card>
+        <Card className="flex flex-col gap-6 p-4 sm:p-5">
           <LegalIdentityForm
             taxId={companyValues.vatTaxId}
             companyNumber={companyValues.registrationNumber}
             canEdit={data.canEdit}
           />
+        </Card>
+        <Card className="flex flex-col gap-6 p-4 sm:p-5">
           <BusinessProfilePresetForm canEdit={data.canEdit} currentProfileKey={data.currentProfileKey} />
+        </Card>
+        <Card className="flex flex-col gap-6 p-4 sm:p-5">
           <OrgFinancialPoliciesPanel initialPolicies={data.financialPolicies} canEdit={data.canEdit} />
+        </Card>
+        <Card className="flex flex-col gap-6 p-4 sm:p-5">
           <PaymentInstrumentsPanel initialInstruments={data.paymentInstruments} canEdit={data.canEdit} />
         </Card>
       </div>

@@ -8,7 +8,11 @@ import {
   visibleNavItems,
   type NavItemGroup,
 } from '@/components/shell/navigation';
-import { SETTINGS_SECTIONS, groupSettingsSections } from '@/app/[locale]/(app)/settings/_lib/access';
+import {
+  SETTINGS_NAV_GROUP_ORDER,
+  SETTINGS_SECTIONS,
+  groupSettingsSections,
+} from '@/app/[locale]/(app)/settings/_lib/access';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { ModuleVisibility } from '@/modules/tenancy';
 import { OPTIONAL_MODULE_KEYS } from '@/modules/tenancy';
@@ -151,7 +155,11 @@ describe('authenticated product simplification', () => {
 
     const listed = SETTINGS_SECTIONS.filter((s) => !s.hideFromNav);
     const grouped = groupSettingsSections(listed);
-    expect(grouped.map((g) => g.group)).toEqual(['myBusiness', 'workflow', 'advanced']);
+    expect(grouped.map((g) => g.group)).toEqual(
+      SETTINGS_NAV_GROUP_ORDER.filter((group) => grouped.some((entry) => entry.group === group)),
+    );
+    expect(listed.find((s) => s.key === 'integrations')?.group).toBe('money');
+    expect(listed.find((s) => s.key === 'approvals')?.group).toBe('peoplePermissions');
     expect(listed.some((s) => s.key === 'portal')).toBe(false);
     expect(listed.some((s) => s.key === 'api')).toBe(false);
   });
@@ -183,7 +191,7 @@ describe('authenticated product simplification', () => {
     const he = flattenLocaleCatalog(readLocaleCatalog('he-IL', 'settings'));
     const en = flattenLocaleCatalog(readLocaleCatalog('en', 'settings'));
     expect(he.get('groups.myBusiness')).toBe('העסק שלי');
-    expect(he.get('groups.workflow')).toBe('איך עובדים');
+    expect(he.get('groups.workflow')).toBe('תהליכי עבודה');
     expect(he.get('groups.advanced')).toBe('מתקדם');
     expect(he.get('groups.developers')).toBe('מפתחים');
     expect(en.get('groups.myBusiness')).toBe('My business');

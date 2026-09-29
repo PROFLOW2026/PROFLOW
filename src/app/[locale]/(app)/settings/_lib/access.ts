@@ -71,24 +71,30 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
   { key: 'branding', href: '/settings/branding', permission: PERMISSIONS.ORG_READ, group: 'myBusiness' },
   { key: 'profile', href: '/settings/profile', permission: null, group: 'myBusiness' },
   { key: 'orgProfile', href: '/settings/org-profile', permission: PERMISSIONS.SETTINGS_MANAGE, group: 'myBusiness' },
+  {
+    key: 'businessCatalogs',
+    href: '/settings/business-catalogs',
+    permission: PERMISSIONS.SETTINGS_MANAGE,
+    group: 'myBusiness',
+  },
 
   { key: 'tax', href: '/settings/tax', permission: PERMISSIONS.TAX_MANAGE, group: 'money' },
   { key: 'numbering', href: '/settings/numbering', permission: PERMISSIONS.ORG_READ, group: 'money' },
   { key: 'banking', href: '/settings/banking', permission: PERMISSIONS.BANKING_READ, group: 'money' },
   { key: 'costCategories', href: '/settings/cost-categories', permission: PERMISSIONS.SETTINGS_MANAGE, group: 'money' },
+  {
+    key: 'integrations',
+    href: '/settings/integrations',
+    permission: PERMISSIONS.INTEGRATIONS_READ,
+    group: 'money',
+  },
 
   { key: 'people', href: '/settings/people', permission: PERMISSIONS.MEMBERS_READ, group: 'peoplePermissions' },
   { key: 'roles', href: '/settings/roles', permission: PERMISSIONS.ROLES_MANAGE, group: 'peoplePermissions' },
+  { key: 'approvals', href: '/settings/approvals', permission: PERMISSIONS.APPROVALS_MANAGE, group: 'peoplePermissions' },
 
-  { key: 'features', href: '/settings/features', permission: PERMISSIONS.SETTINGS_MANAGE, group: 'workflow' },
-  {
-    key: 'businessCatalogs',
-    href: '/settings/business-catalogs',
-    permission: PERMISSIONS.SETTINGS_MANAGE,
-    group: 'workflow',
-  },
+  { key: 'features', href: '/settings/features', permission: PERMISSIONS.SETTINGS_MANAGE, group: 'advanced' },
   { key: 'templates', href: '/settings/templates', permission: PERMISSIONS.SETTINGS_MANAGE, group: 'workflow' },
-  { key: 'approvals', href: '/settings/approvals', permission: PERMISSIONS.APPROVALS_MANAGE, group: 'workflow' },
   { key: 'catalog', href: '/settings/catalog', permission: PERMISSIONS.SETTINGS_MANAGE, group: 'workflow' },
   // Universal Work Management workflow settings
   { key: 'stages', href: '/settings/stages', permission: PERMISSIONS.STAGES_MANAGE, group: 'workflow' },
@@ -101,35 +107,29 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
     group: 'workflow',
   },
   { key: 'projectTemplates', href: '/settings/project-templates', permission: PERMISSIONS.PROJECT_TEMPLATES_MANAGE, group: 'workflow' },
-  { key: 'modules', href: '/settings/modules', permission: PERMISSIONS.MODULES_MANAGE, group: 'workflow' },
+  { key: 'forms', href: '/settings/forms', permission: PERMISSIONS.FORMS_MANAGE, group: 'workflow' },
   { key: 'adoption', href: '/settings/adoption', permission: PERMISSIONS.SETTINGS_MANAGE, group: 'workflow', hideFromNav: true },
 
-  {
-    key: 'integrations',
-    href: '/settings/integrations',
-    permission: PERMISSIONS.INTEGRATIONS_READ,
-    group: 'connectionsStorage',
-  },
   {
     key: 'storage',
     href: '/settings/storage',
     permission: PERMISSIONS.INTEGRATIONS_READ,
     group: 'connectionsStorage',
   },
-
-  { key: 'customFields', href: '/settings/custom-fields', permission: PERMISSIONS.CUSTOM_FIELDS_MANAGE, group: 'advanced' },
-  { key: 'forms', href: '/settings/forms', permission: PERMISSIONS.FORMS_MANAGE, group: 'advanced' },
-  { key: 'activity', href: '/settings/activity', permission: PERMISSIONS.AUDIT_READ, group: 'advanced' },
-  { key: 'offlineDrafts', href: '/settings/offline-drafts', permission: null, group: 'advanced' },
-  { key: 'app', href: '/settings/app', permission: null, group: 'advanced' },
   {
     key: 'ocr',
     href: '/settings/ocr',
     permission: PERMISSIONS.SETTINGS_MANAGE,
-    group: 'advanced',
+    group: 'connectionsStorage',
     /** Listed in nav only when OCR_INGESTION_ENABLED is on - see accessibleSections. */
     hideFromNav: true,
   },
+  { key: 'offlineDrafts', href: '/settings/offline-drafts', permission: null, group: 'connectionsStorage' },
+
+  { key: 'modules', href: '/settings/modules', permission: PERMISSIONS.MODULES_MANAGE, group: 'advanced' },
+  { key: 'customFields', href: '/settings/custom-fields', permission: PERMISSIONS.CUSTOM_FIELDS_MANAGE, group: 'advanced' },
+  { key: 'activity', href: '/settings/activity', permission: PERMISSIONS.AUDIT_READ, group: 'advanced' },
+  { key: 'app', href: '/settings/app', permission: null, group: 'advanced' },
 
   {
     key: 'api',

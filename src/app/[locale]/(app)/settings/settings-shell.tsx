@@ -3,7 +3,7 @@ import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { withOrgContext } from '@/shared/auth/session';
 import { accessibleSections } from './_lib/access';
-import { SettingsSectionNav } from './settings-section-nav';
+import { SettingsNavShell } from './settings-nav-shell';
 
 export async function SettingsPageShell({
   title,
@@ -27,8 +27,8 @@ export async function SettingsPageShell({
       <PageHeader title={title} description={description} />
 
       <div className="flex w-full min-w-0 flex-col gap-6 lg:flex-row lg:items-start">
-        <aside className="w-full min-w-0 shrink-0 lg:w-52">
-          <SettingsSectionNav items={navItems} />
+        <aside className="w-full min-w-0 shrink-0 lg:w-56">
+          <SettingsNavShell items={navItems} />
         </aside>
         <div className="min-w-0 max-w-full flex-1">{children}</div>
       </div>

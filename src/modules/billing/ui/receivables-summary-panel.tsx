@@ -16,7 +16,12 @@ export async function ReceivablesSummaryPanel({
     <section className="flex min-w-0 flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-4">
       <div className="min-w-0 text-start">
         <h2 className="text-sm font-semibold">{t('title')}</h2>
-        <p className="mt-1 text-xs text-[var(--pf-text-secondary)]">{t('integrityNote')}</p>
+        <details className="mt-1 text-xs text-[var(--pf-text-secondary)]">
+          <summary className="cursor-pointer font-medium text-[var(--pf-text-muted)]">
+            {t('integritySummary')}
+          </summary>
+          <p className="mt-2">{t('integrityNote')}</p>
+        </details>
       </div>
       <div className="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <div className="min-w-0 rounded-md bg-[var(--pf-bg-muted)] p-3 text-start">

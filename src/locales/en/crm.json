@@ -3,6 +3,10 @@
   "description": "Follow inquiries and opportunities through to a quote and closing the work.",
   "quotesVsCrmBanner": "Quotes are bids. This CRM pipeline is optional and separate from the quotes book.",
   "navLabel": "CRM sections",
+  "pipelineAria": "Sales flow: prospect, lead, opportunity, quote",
+  "pipeline": {
+    "quotes": "Quote"
+  },
   "nav": {
     "prospects": "Prospects",
     "leads": "Leads",

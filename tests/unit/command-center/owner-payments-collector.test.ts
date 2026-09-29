@@ -82,6 +82,6 @@ describe('Today inbox grouping', () => {
     const sections = groupInboxForToday([other, payment] as CommandCenterItem[]);
     expect(sections[0]?.key).toBe('pendingPayments');
     expect(sections[0]?.items.map((item) => item.sourceType)).toEqual(['expense_pending_review']);
-    expect(sections.some((section) => section.key === 'medium')).toBe(true);
+    expect(sections.some((section) => section.key === 'people')).toBe(true);
   });
 });

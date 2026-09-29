@@ -83,9 +83,12 @@
     "overview": {
       "atAGlance": "نظرة سريعة",
       "activeProjects": "مشاريع مرتبطة",
+      "contracts": "عقود",
       "openQuotes": "عروض مفتوحة",
+      "totalBilled": "إجمالي الفوترة (صافي)",
       "outstanding": "متبقي للتحصيل",
       "collected": "المحصل",
+      "overdue": "متأخر",
       "currentProfit": "الربح (عرض إداري)",
       "needsAttention": "يتطلب انتباهًا",
       "overdueSummary": "{count, plural, one {سجل فوترة متأخر} other {# سجلات فوترة متأخرة}}",

@@ -300,6 +300,7 @@ export async function ClientsOrgDetailPage({
           clientId={clientId}
           linkedProjectCount={linkedProjects.length}
           openQuoteCount={openQuoteCount}
+          contractCount={contracts.length}
           financials={financials}
           profitability={profitability}
         />

@@ -1,6 +1,21 @@
 {
   "title": "הגדרות",
   "navLabel": "הגדרות",
+  "hub": {
+    "description": "בחרו תחום, ואז את ההגדרה הספציפית.",
+    "backToGroups": "כל תחומי ההגדרות",
+    "groupSwitcherLabel": "תחום הגדרות",
+    "andMore": "+{count} נוספים",
+    "groupHint": {
+      "myBusiness": "פרטי החברה, מיתוג, הפרופיל שלך וקטלוגים עסקיים.",
+      "money": "מס ומע״מ, מספור, בנק, קטגוריות עלות וחיבור חשבוניות.",
+      "peoplePermissions": "משתמשים, תפקידים וכללי אישורים.",
+      "workflow": "שלבים, תוויות, תבניות, תבניות משימה/פרויקט וטפסים.",
+      "connectionsStorage": "אחסון קבצים, סריקת חשבוניות וטיוטות לא מקוון.",
+      "advanced": "מודולים, שדות מותאמים, יומן פעילות והגדרות אפליקציה.",
+      "developers": "גישת API וכלי מפתחים."
+    }
+  },
   "groups": {
     "myBusiness": "העסק שלי",
     "money": "כספים",
@@ -1178,8 +1193,10 @@
     "vatTaxIdHint": "מסונכרן גם להתאמת חשבוניות בסריקה.",
     "registrationNumber": "מספר רישום",
     "registrationNumberHint": "מספר חברה / ח.פ. אם שונה ממספר העוסק.",
-    "contactSection": "יצירת קשר",
+    "identitySection": "זהות החברה",
+    "contactSection": "פרטי קשר",
     "addressSection": "כתובת",
+    "optionalContactSection": "אימיילים נוספים",
     "mainPhone": "טלפון ראשי",
     "secondaryPhone": "טלפון משני",
     "whatsappPhone": "וואטסאפ",

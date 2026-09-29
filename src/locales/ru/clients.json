@@ -83,9 +83,12 @@
     "overview": {
       "atAGlance": "Кратко",
       "activeProjects": "Связанные проекты",
+      "contracts": "Договоры",
       "openQuotes": "Открытые предложения",
+      "totalBilled": "Выставлено (нетто)",
       "outstanding": "К получению",
       "collected": "Получено",
+      "overdue": "Просрочено",
       "currentProfit": "Прибыль (управленческий вид)",
       "needsAttention": "Требует внимания",
       "overdueSummary": "{count, plural, one {# просроченная запись} few {# просроченные записи} other {# просроченных записей}}",

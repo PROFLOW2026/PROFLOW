@@ -83,9 +83,12 @@
     "overview": {
       "atAGlance": "At a glance",
       "activeProjects": "Linked projects",
+      "contracts": "Contracts",
       "openQuotes": "Open quotes",
+      "totalBilled": "Billed (net)",
       "outstanding": "Outstanding to collect",
       "collected": "Collected",
+      "overdue": "Overdue",
       "currentProfit": "Profit (management view)",
       "needsAttention": "Needs attention",
       "overdueSummary": "{count, plural, one {# overdue billing record} other {# overdue billing records}}",

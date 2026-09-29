@@ -1,6 +1,21 @@
 {
   "title": "Settings",
   "navLabel": "Settings",
+  "hub": {
+    "description": "Pick an area first — then open the specific setting you need.",
+    "backToGroups": "All settings areas",
+    "groupSwitcherLabel": "Settings area",
+    "andMore": "+{count} more",
+    "groupHint": {
+      "myBusiness": "Company identity, branding, your profile, and business catalogs.",
+      "money": "Tax, numbering, banking, cost categories, and invoice integrations.",
+      "peoplePermissions": "Users, roles, and approval rules.",
+      "workflow": "Stages, labels, templates, task and project templates, and forms.",
+      "connectionsStorage": "File storage, OCR, and offline drafts.",
+      "advanced": "Modules, custom fields, activity log, and app preferences.",
+      "developers": "API access and developer tools."
+    }
+  },
   "groups": {
     "myBusiness": "My business",
     "money": "Money & tax",
@@ -1178,8 +1193,10 @@
     "vatTaxIdHint": "Also synced for invoice OCR matching.",
     "registrationNumber": "Registration number",
     "registrationNumberHint": "Company number / ח.פ. when different from the tax ID.",
-    "contactSection": "Contact",
+    "identitySection": "Company identity",
+    "contactSection": "Contact details",
     "addressSection": "Address",
+    "optionalContactSection": "Additional contact emails",
     "mainPhone": "Main phone",
     "secondaryPhone": "Secondary phone",
     "whatsappPhone": "WhatsApp",

@@ -29,7 +29,7 @@ import { Link } from '@/shared/i18n/navigation';
 import type { BillingListFilter } from '@/modules/billing';
 import { CommercialDocsHub } from '@/modules/quotes/ui/commercial-docs-hub';
 import { ReportsEntryLink } from '@/modules/financials/ui/reports-entry-link';
-import { isZeroMoney, money, type MoneyValue } from '@/shared/money';
+import { isPositiveMoney, isZeroMoney, money, type MoneyValue } from '@/shared/money';
 import { sumCollectionsInDateRange } from '@/modules/financials';
 import type { UnallocatedPaymentRow } from '@/modules/billing/domain/types';
 import { QueryPagination } from '@/components/ui/query-pagination';
@@ -303,8 +303,39 @@ export async function BillingOrgHubView({
           </div>
         }
       />
-      <p className="text-xs text-[var(--pf-text-muted)]">{t('statutoryDisclosure')}</p>
-      {isOwnerSurface ? <CommercialDocsHub current="billing" /> : null}
+
+      {showSummary && summary ? (
+        <ReceivablesSummaryPanel summary={summary} unallocatedReceipts={unallocatedReceipts} />
+      ) : null}
+
+      {showSummary && summary && (summary.overdueCount > 0 || isPositiveMoney(unallocatedReceipts)) ? (
+        <div className="flex min-w-0 flex-wrap gap-2">
+          {summary.overdueCount > 0 ? (
+            <Link
+              href={billingListHref('overdue')}
+              className="inline-flex min-h-10 items-center rounded-md border border-[var(--pf-border-strong)] bg-[var(--pf-bg-muted)] px-3 text-sm font-medium"
+            >
+              {t('hub.viewOverdue', { count: summary.overdueCount })}
+            </Link>
+          ) : null}
+          {unallocatedReceipts && isPositiveMoney(unallocatedReceipts) ? (
+            <a
+              href="#billing-unallocated"
+              className="inline-flex min-h-10 items-center rounded-md border border-dashed border-[var(--pf-border-default)] px-3 text-sm font-medium"
+            >
+              {t('hub.viewUnallocated')}
+            </a>
+          ) : null}
+        </div>
+      ) : null}
+
+      <details className="rounded-lg border border-[var(--pf-border-default)] p-3 text-sm">
+        <summary className="cursor-pointer font-medium text-[var(--pf-text-primary)]">
+          {t('hub.moreFilters')}
+        </summary>
+        <div className="mt-4 flex flex-col gap-4">
+          <p className="text-xs text-[var(--pf-text-muted)]">{t('statutoryDisclosure')}</p>
+          {isOwnerSurface ? <CommercialDocsHub current="billing" /> : null}
 
       <form method="get" className="flex flex-col gap-3">
         {filter !== 'all' && <input type="hidden" name="filter" value={filter} />}
@@ -355,6 +386,8 @@ export async function BillingOrgHubView({
           ) : null}
         </div>
       </form>
+        </div>
+      </details>
 
       {collectionsInPeriod && parseFloat(collectionsInPeriod.amount) > 0 ? (
         <div className="rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-4 py-3 text-sm">
@@ -364,17 +397,16 @@ export async function BillingOrgHubView({
         </div>
       ) : null}
 
-      {showSummary && summary ? (
-        <ReceivablesSummaryPanel summary={summary} unallocatedReceipts={unallocatedReceipts} />
-      ) : null}
       {showAging && aging ? <ReceivablesAgingPanel aging={aging} /> : null}
 
+      <div id="billing-unallocated">
       <UnallocatedReceiptsPanel
         rows={unallocatedRows}
         locale={locale}
         canManage={canManage}
         routeBase={routeBase}
       />
+      </div>
 
       {!paymentsView && contractOptions.length > 1 ? (
         <nav className="flex min-w-0 flex-wrap gap-2" aria-label={t('list.contract')}>

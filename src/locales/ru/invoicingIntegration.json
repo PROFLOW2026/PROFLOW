@@ -111,6 +111,8 @@
     "saved": "Настройки сохранены",
     "sumitTitle": "SUMIT",
     "sumitDescription": "Подключите ID компании и API-ключ SUMIT. ProjectFlow обращается только к живому API api.sumit.co.il.",
+    "sumitTechnicalSummary": "Технические детали",
+    "sumitTechnicalNote": "ProjectFlow обращается только к живому API SUMIT на api.sumit.co.il.",
     "companyId": "ID компании",
     "apiKey": "API-ключ",
     "connect": "Подключить SUMIT",

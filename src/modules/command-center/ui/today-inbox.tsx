@@ -127,7 +127,7 @@ export async function TodayInboxPanel({
           <h2 className="text-sm font-semibold text-[var(--pf-text-secondary)]">
             {section.key === 'pendingPayments'
               ? t('sections.pendingPayments')
-              : t(`sections.${section.key}`)}
+              : t(`sections.domain.${section.key}`)}
           </h2>
           <ul className="flex flex-col gap-3">
             {section.items.map((item) => (

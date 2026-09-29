@@ -2,6 +2,11 @@
   "title": "חיובים וגבייה",
   "subtitle": "מעקב אחר סכום החיובים, מה נגבה ומה נותר לגבייה במזומן. חיוב אינו הצעת מחיר.",
   "reportsEntry": "דוח תזרים וחייבים",
+  "hub": {
+    "viewOverdue": "חיובים באיחור ({count})",
+    "viewUnallocated": "קבלות שלא שויכו",
+    "moreFilters": "תאריכים, סינון וקישורים"
+  },
   "statutoryDisclosure": "מעקב חיובים, תשלומים ויתרות לגבייה ב-ProjectFlow.",
   "collectionMode": {
     "externalAccountingNote": "חשבוניות וקבלות מופקות מחוץ ל־ProjectFlow.",
@@ -65,6 +70,7 @@
   },
   "receivables": {
     "title": "סיכום יתרות לגבייה",
+    "integritySummary": "איך הסכומים מחושבים",
     "integrityNote": "יתרה לגבייה כולל מע״מ (ברוטו − שולם − עיכבון); הכנסה לפני מע״מ. זיכויים מפחיתים סכומים ורשומות מבוטלות מוחרגות.",
     "totalOutstanding": "סה״כ יתרה לגבייה כולל מע״מ",
     "overdueTotal": "באיחור",

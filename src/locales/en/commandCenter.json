@@ -34,7 +34,15 @@
     "critical": "Critical",
     "high": "Overdue",
     "medium": "Needs review",
-    "low": "To handle"
+    "low": "To handle",
+    "domain": {
+      "money": "Money & collections",
+      "approvals": "Approvals",
+      "people": "People & workforce",
+      "projects": "Projects & field",
+      "documents": "Documents & capture",
+      "sales": "Sales & follow-ups"
+    }
   },
   "sources": {
     "overdue_ar": "Overdue billing",

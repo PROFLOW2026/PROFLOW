@@ -80,7 +80,8 @@ export function CompanyDetailsForm({
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
       {state.ok ? <Alert tone="success">{t('saved')}</Alert> : null}
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 border-t border-[var(--pf-border-default)] pt-4 sm:grid-cols-2">
+        <h3 className="text-sm font-semibold sm:col-span-2">{t('identitySection')}</h3>
         <Field label={t('legalName')} required className="sm:col-span-2">
           {(props) => (
             <Input {...props} name="legalName" defaultValue={values.legalName} disabled={!canEdit} required />
@@ -193,6 +194,23 @@ export function CompanyDetailsForm({
             />
           )}
         </Field>
+        <Field label={t('website')} optionalLabel={tCommon('labels.optional')}>
+          {(props) => (
+            <Input
+              {...props}
+              name="website"
+              defaultValue={values.website ?? ''}
+              disabled={!canEdit}
+              dir="ltr"
+              type="url"
+              placeholder="https://"
+            />
+          )}
+        </Field>
+      </div>
+
+      <div className="grid gap-4 border-t border-[var(--pf-border-default)] pt-4 sm:grid-cols-2">
+        <h3 className="text-sm font-semibold sm:col-span-2">{t('optionalContactSection')}</h3>
         <Field label={t('billingEmail')} optionalLabel={tCommon('labels.optional')}>
           {(props) => (
             <Input
@@ -226,19 +244,6 @@ export function CompanyDetailsForm({
               disabled={!canEdit}
               dir="ltr"
               type="email"
-            />
-          )}
-        </Field>
-        <Field label={t('website')} optionalLabel={tCommon('labels.optional')}>
-          {(props) => (
-            <Input
-              {...props}
-              name="website"
-              defaultValue={values.website ?? ''}
-              disabled={!canEdit}
-              dir="ltr"
-              type="url"
-              placeholder="https://"
             />
           )}
         </Field>

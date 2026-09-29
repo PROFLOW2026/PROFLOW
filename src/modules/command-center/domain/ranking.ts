@@ -2,6 +2,7 @@ import {
   COMMAND_CENTER_SEVERITIES,
   isFinancialSourceType,
   isPaymentPendingSourceType,
+  isTaskSourceType,
   type CommandCenterItem,
   type CommandCenterSeverity,
   type CommandCenterSourceType,
@@ -92,23 +93,89 @@ export function groupInboxBySeverity(
   );
 }
 
-export type TodayInboxSection =
-  | { readonly key: 'pendingPayments'; readonly items: readonly CommandCenterItem[] }
-  | { readonly key: CommandCenterSeverity; readonly items: readonly CommandCenterItem[] };
+export type TodayInboxDomainKey =
+  | 'pendingPayments'
+  | 'money'
+  | 'approvals'
+  | 'people'
+  | 'projects'
+  | 'documents'
+  | 'sales';
 
-/** Today layout: pending payment confirmations first, then severity groups. */
+export const TODAY_INBOX_DOMAIN_ORDER: readonly TodayInboxDomainKey[] = [
+  'pendingPayments',
+  'money',
+  'approvals',
+  'people',
+  'projects',
+  'documents',
+  'sales',
+];
+
+export type TodayInboxSection = {
+  readonly key: TodayInboxDomainKey;
+  readonly items: readonly CommandCenterItem[];
+};
+
+function todayDomainForSource(sourceType: CommandCenterSourceType): Exclude<TodayInboxDomainKey, 'pendingPayments'> {
+  if (isPaymentPendingSourceType(sourceType)) return 'money';
+  switch (sourceType) {
+    case 'open_approval':
+    case 'boq_measurement_awaiting_approval':
+    case 'task_approval_requested':
+      return 'approvals';
+    case 'missing_attendance_today':
+    case 'attendance_open':
+    case 'timesheet_missing':
+    case 'monthly_workforce_report_ready':
+      return 'people';
+    case 'ocr_needs_review':
+    case 'ocr_failed':
+    case 'storage_attention':
+      return 'documents';
+    case 'automation_followup':
+    case 'communication_failed':
+    case 'recurring_draft_issue':
+      return 'sales';
+    default:
+      if (isTaskSourceType(sourceType)) return 'projects';
+      if (isFinancialSourceType(sourceType)) return 'money';
+      return 'projects';
+  }
+}
+
+/** Today layout: domain buckets (money, approvals, …); pending payments listed first when present. */
 export function groupInboxForToday(items: readonly CommandCenterItem[]): TodayInboxSection[] {
   const paymentItems = sortCommandCenterItems(
     items.filter((item) => isPaymentPendingSourceType(item.sourceType)),
   );
   const otherItems = items.filter((item) => !isPaymentPendingSourceType(item.sourceType));
+
+  const buckets: Record<Exclude<TodayInboxDomainKey, 'pendingPayments'>, CommandCenterItem[]> = {
+    money: [],
+    approvals: [],
+    people: [],
+    projects: [],
+    documents: [],
+    sales: [],
+  };
+
+  for (const item of otherItems) {
+    buckets[todayDomainForSource(item.sourceType)].push(item);
+  }
+
   const sections: TodayInboxSection[] = [];
   if (paymentItems.length > 0) {
     sections.push({ key: 'pendingPayments', items: paymentItems });
   }
-  for (const section of groupInboxBySeverity(otherItems)) {
-    sections.push({ key: section.severity, items: section.items });
+
+  for (const key of TODAY_INBOX_DOMAIN_ORDER) {
+    if (key === 'pendingPayments') continue;
+    const bucket = buckets[key];
+    if (bucket.length === 0) continue;
+    sections.push({ key, items: sortCommandCenterItems(bucket) });
   }
+
   return sections;
 }
 

@@ -1,6 +1,21 @@
 {
   "title": "Настройки",
   "navLabel": "Настройки",
+  "hub": {
+    "description": "Сначала выберите раздел — затем нужную настройку.",
+    "backToGroups": "Все разделы настроек",
+    "groupSwitcherLabel": "Раздел настроек",
+    "andMore": "+ещё {count}",
+    "groupHint": {
+      "myBusiness": "Компания, брендинг, профиль и каталоги.",
+      "money": "Налоги, нумерация, банк, категории затрат и интеграции счетов.",
+      "peoplePermissions": "Пользователи, роли и согласования.",
+      "workflow": "Этапы, метки, шаблоны задач/проектов и формы.",
+      "connectionsStorage": "Хранилище, OCR и офлайн-черновики.",
+      "advanced": "Модули, поля, журнал и настройки приложения.",
+      "developers": "API и инструменты разработчика."
+    }
+  },
   "groups": {
     "myBusiness": "Мой бизнес",
     "money": "Деньги и налоги",
@@ -1178,8 +1193,10 @@
     "vatTaxIdHint": "Также синхронизируется для сопоставления OCR счетов-фактур.",
     "registrationNumber": "Регистрационный номер",
     "registrationNumberHint": "Номер компании / ח.פ. если отличается от налогового ID.",
-    "contactSection": "Контакт",
+    "identitySection": "Идентичность компании",
+    "contactSection": "Контактные данные",
     "addressSection": "Адрес",
+    "optionalContactSection": "Дополнительные email",
     "mainPhone": "Основной телефон",
     "secondaryPhone": "Дополнительный телефон",
     "whatsappPhone": "Вотсап",

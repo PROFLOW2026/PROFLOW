@@ -37,41 +37,45 @@ describe('settings section grouping', () => {
       'branding',
       'profile',
       'orgProfile',
+      'businessCatalogs',
       'tax',
       'numbering',
       'banking',
       'costCategories',
+      'integrations',
       'people',
       'roles',
-      'features',
-      'businessCatalogs',
-      'templates',
       'approvals',
+      'features',
+      'templates',
       'catalog',
       'stages',
       'labels',
       'taskTemplates',
       'projectTaskTemplates',
       'projectTemplates',
-      'modules',
-      'integrations',
-      'storage',
-      'customFields',
       'forms',
-      'activity',
+      'storage',
       'offlineDrafts',
+      'modules',
+      'customFields',
+      'activity',
       'app',
     ]);
 
     expect(listed.find((s) => s.key === 'business')?.group).toBe('myBusiness');
-    expect(listed.find((s) => s.key === 'integrations')?.group).toBe('connectionsStorage');
+    expect(listed.find((s) => s.key === 'integrations')?.group).toBe('money');
     expect(listed.find((s) => s.key === 'tax')?.group).toBe('money');
     expect(listed.find((s) => s.key === 'people')?.group).toBe('peoplePermissions');
+    expect(listed.find((s) => s.key === 'approvals')?.group).toBe('peoplePermissions');
     expect(listed.find((s) => s.key === 'branding')?.group).toBe('myBusiness');
     expect(listed.find((s) => s.key === 'branding')?.href).toBe('/settings/branding');
-    expect(listed.find((s) => s.key === 'features')?.group).toBe('workflow');
+    expect(listed.find((s) => s.key === 'features')?.group).toBe('advanced');
+    expect(listed.find((s) => s.key === 'forms')?.group).toBe('workflow');
+    expect(listed.find((s) => s.key === 'modules')?.group).toBe('advanced');
     expect(listed.find((s) => s.key === 'customFields')?.group).toBe('advanced');
     expect(listed.find((s) => s.key === 'app')?.group).toBe('advanced');
+    expect(listed.find((s) => s.key === 'offlineDrafts')?.group).toBe('connectionsStorage');
     expect(SETTINGS_SECTIONS.find((s) => s.key === 'api')?.group).toBe('developers');
     expect(SETTINGS_SECTIONS.find((s) => s.key === 'api')?.hideFromNav).toBe(true);
   });

@@ -2,6 +2,11 @@
   "title": "Billing and collections",
   "subtitle": "Track invoice totals, what was collected, and cash still outstanding to collect. Billing is not a quote.",
   "reportsEntry": "Cash & receivables report",
+  "hub": {
+    "viewOverdue": "Overdue billing ({count})",
+    "viewUnallocated": "Unallocated receipts",
+    "moreFilters": "Dates, filters & related pages"
+  },
   "statutoryDisclosure": "Track billing, payments, and outstanding balances in ProjectFlow.",
   "collectionMode": {
     "externalAccountingNote": "Invoices and receipts are issued outside ProjectFlow.",
@@ -65,6 +70,7 @@
   },
   "receivables": {
     "title": "Receivables summary",
+    "integritySummary": "How totals are calculated",
     "integrityNote": "Outstanding includes VAT (gross − paid − held retention); revenue is pre-VAT. Credit notes reduce totals and voided records are excluded.",
     "totalOutstanding": "Total outstanding including VAT",
     "overdueTotal": "Overdue",

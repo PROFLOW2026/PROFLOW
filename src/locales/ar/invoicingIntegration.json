@@ -111,6 +111,8 @@
     "saved": "تم حفظ الإعدادات",
     "sumitTitle": "SUMIT",
     "sumitDescription": "اربط معرّف الشركة ومفتاح API في SUMIT. ProjectFlow يتصل فقط بواجهة API الحية على api.sumit.co.il.",
+    "sumitTechnicalSummary": "تفاصيل تقنية",
+    "sumitTechnicalNote": "يتصل ProjectFlow فقط بواجهة SUMIT الحية على api.sumit.co.il.",
     "companyId": "معرّف الشركة",
     "apiKey": "مفتاح API",
     "connect": "ربط SUMIT",

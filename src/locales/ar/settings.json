@@ -1,6 +1,21 @@
 {
   "title": "الإعدادات",
   "navLabel": "الإعدادات",
+  "hub": {
+    "description": "اختر مجالاً ثم افتح الإعداد المطلوب.",
+    "backToGroups": "كل مجالات الإعدادات",
+    "groupSwitcherLabel": "مجال الإعدادات",
+    "andMore": "+{count} أخرى",
+    "groupHint": {
+      "myBusiness": "هوية الشركة، العلامة، ملفك والفهارس التجارية.",
+      "money": "الضرائب، الترقيم، البنوك، فئات التكلفة وتكامل الفواتير.",
+      "peoplePermissions": "المستخدمون، الأدوار وقواعد الموافقة.",
+      "workflow": "المراحل، التسميات، القوالب والنماذج.",
+      "connectionsStorage": "التخزين، OCR والمسودات دون اتصال.",
+      "advanced": "الوحدات، الحقول المخصصة، السجل وتفضيلات التطبيق.",
+      "developers": "واجهة API وأدوات المطوّر."
+    }
+  },
   "groups": {
     "myBusiness": "أعمالي",
     "money": "المال والضرائب",
@@ -1178,8 +1193,10 @@
     "vatTaxIdHint": "يُزامَن أيضاً لمطابقة OCR الفواتير.",
     "registrationNumber": "رقم التسجيل",
     "registrationNumberHint": "رقم الشركة / ח.פ. إذا اختلف عن الرقم الضريبي.",
-    "contactSection": "اتصال",
+    "identitySection": "هوية الشركة",
+    "contactSection": "بيانات الاتصال",
     "addressSection": "العنوان",
+    "optionalContactSection": "رسائل بريد إضافية",
     "mainPhone": "الهاتف الرئيسي",
     "secondaryPhone": "هاتف ثانوي",
     "whatsappPhone": "واتساب",
