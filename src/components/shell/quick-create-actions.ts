@@ -5,11 +5,7 @@ import type {
   SuggestedBusinessDefaults,
   WorkMix,
 } from '@/modules/tenancy';
-import {
-  limitQuickCreateForPersona,
-  orderQuickCreateActions,
-  workMixSurfacesJobs,
-} from '@/modules/tenancy';
+import { orderCanonicalQuickCreateActions, workMixSurfacesJobs } from '@/modules/tenancy';
 import type { QuickCreateAction } from './quick-create';
 
 export type CreateWorkKind = SuggestedBusinessDefaults['defaultWorkKind'];
@@ -33,7 +29,7 @@ export function quickCreateKeyForWorkKind(kind: CreateWorkKind): 'project' | 'jo
 
 /**
  * Pin the profile default work-type action first when it is already in the list.
- * Does not invent destinations the org cannot use.
+ * Used by create-page hints only — not Quick Create menu ordering.
  */
 export function pinDefaultWorkKindFirst<T extends { key: string }>(
   actions: readonly T[],
@@ -89,116 +85,70 @@ export function listAvailableCreateWorkKinds(
 
 /**
  * Permission- and module-aware Quick Create destinations.
- * Keep this short: daily field/office capture only - not compensation,
- * allocation, OCR, or every module's "new" page.
- *
- * `suggestedDefaults.defaultWorkKind` wins the first slot when that action
- * is allowed. Emphasis still orders the rest. Manual override stays in the menu.
+ * Fixed Owner-curated list (13 items max) — never persona-expanded.
  */
 export function buildQuickCreateActions(
   permissions: ReadonlySet<string>,
   modules: Record<string, boolean>,
   workMix: WorkMix,
-  emphasis?: readonly QuickCreateEmphasisKey[] | null,
+  _emphasis?: readonly QuickCreateEmphasisKey[] | null,
   suggestedDefaults?: SuggestedBusinessDefaults | null,
-  persona?: ExperiencePersonaKey | null,
+  _persona?: ExperiencePersonaKey | null,
 ): QuickCreateAction[] {
-  const actions: QuickCreateAction[] = [];
+  const candidates: QuickCreateAction[] = [];
   const canCreateWork = permissions.has(PERMISSIONS.PROJECTS_CREATE);
-  const defaultWorkKind = suggestedDefaults?.defaultWorkKind;
-  const jobsVisible = jobsCreateVisible(modules, workMix, defaultWorkKind);
+  const jobsVisible = jobsCreateVisible(modules, workMix, suggestedDefaults?.defaultWorkKind);
+
+  if (permissions.has(PERMISSIONS.DOCUMENTS_MANAGE)) {
+    candidates.push({ key: 'quickCapture', href: '/quick-capture', labelKey: 'quickCapture' });
+  }
 
   if (canCreateWork) {
-    const jobAction = { key: 'job', href: '/jobs/new', labelKey: 'job' } as const;
-    const projectAction = { key: 'project', href: '/projects/new', labelKey: 'project' } as const;
-    if (workMix === 'jobs') {
-      if (jobsVisible) actions.push(jobAction);
-      actions.push(projectAction);
-    } else if (workMix === 'mixed') {
-      if (jobsVisible) actions.push(jobAction);
-      actions.push(projectAction);
-    } else {
-      actions.push(projectAction);
-      if (jobsVisible) actions.push(jobAction);
+    candidates.push({ key: 'project', href: '/projects/new', labelKey: 'project' });
+    if (jobsVisible) {
+      candidates.push({ key: 'job', href: '/jobs/new', labelKey: 'job' });
     }
   }
 
-  if (permissions.has(PERMISSIONS.EXPENSES_CREATE)) {
-    // Expense hub exposes manual entry, OCR capture, recurring, and received flows.
-    actions.push({ key: 'expense', href: '/expenses', labelKey: 'expense' });
-  }
-  if (modules.changes && permissions.has(PERMISSIONS.CHANGES_MANAGE)) {
-    actions.push({ key: 'change', href: '/changes/new', labelKey: 'change' });
-  }
-  if (modules.quotes && permissions.has(PERMISSIONS.QUOTES_MANAGE)) {
-    actions.push({ key: 'quote', href: '/quotes/new', labelKey: 'quote' });
-  }
-  if (modules.billing && permissions.has(PERMISSIONS.BILLING_MANAGE)) {
-    actions.push({ key: 'billingRecord', href: '/billing/new', labelKey: 'billingRecord' });
-    actions.push({ key: 'payment', href: '/billing/payments/new', labelKey: 'payment' });
-  }
-  if (modules.clients && permissions.has(PERMISSIONS.CLIENTS_MANAGE)) {
-    actions.push({ key: 'client', href: '/clients/new', labelKey: 'client' });
-  }
-  if (modules.vendors && permissions.has(PERMISSIONS.VENDORS_MANAGE)) {
-    actions.push({ key: 'vendor', href: '/vendors/new', labelKey: 'vendor' });
-  }
-  if (permissions.has(PERMISSIONS.WORKFORCE_MANAGE)) {
-    actions.push({ key: 'employee', href: '/workforce/employees/new', labelKey: 'employee' });
-  }
-  if (permissions.has(PERMISSIONS.TIME_MANAGE)) {
-    actions.push({ key: 'timeEntry', href: '/workforce/time/new', labelKey: 'timeEntry' });
-  }
-
-  // Field daily capture - module-gated like Field Ops nav.
-  if (modules.field_ops && permissions.has(PERMISSIONS.FIELD_OPS_MANAGE)) {
-    actions.push({ key: 'fieldLog', href: '/field-ops/logs/new', labelKey: 'fieldLog' });
-  }
-
-  if (permissions.has(PERMISSIONS.DOCUMENTS_MANAGE)) {
-    actions.push({ key: 'quickCapture', href: '/quick-capture', labelKey: 'quickCapture' });
-  }
-
-  // Assets hub — maintenance work starts from a registered asset.
-  if (modules.assets && permissions.has(PERMISSIONS.ASSETS_MANAGE)) {
-    actions.push({ key: 'asset', href: '/assets/new', labelKey: 'asset' });
-  }
-
-  // Permission-only (same discoverability rule as Vendor bills nav).
-  if (permissions.has(PERMISSIONS.AP_MANAGE)) {
-    actions.push({ key: 'vendorBill', href: '/procurement/ap/new', labelKey: 'vendorBill' });
-  }
-
-  if (
-    permissions.has(PERMISSIONS.ATTENDANCE_MANAGE) ||
-    permissions.has(PERMISSIONS.ATTENDANCE_SELF)
-  ) {
-    actions.push({
-      key: 'attendance',
-      href: '/workforce/attendance',
-      labelKey: 'clockAttendance',
-    });
-  }
-
-  // Next-gen surfaces - only when module is visible and permission exists.
   if (modules.service && permissions.has(PERMISSIONS.SERVICE_MANAGE)) {
-    actions.push({ key: 'service', href: '/work-orders/new', labelKey: 'service' });
+    candidates.push({ key: 'service', href: '/work-orders/new', labelKey: 'service' });
   }
 
-  if (
-    permissions.has(PERMISSIONS.EXPENSES_CREATE) ||
-    permissions.has(PERMISSIONS.AP_MANAGE) ||
-    permissions.has(PERMISSIONS.BILLING_MANAGE)
-  ) {
-    actions.push({
-      key: 'recurringDrafts',
-      href: '/recurring-drafts/new',
-      labelKey: 'recurringDrafts',
-    });
+  if (modules.quotes && permissions.has(PERMISSIONS.QUOTES_MANAGE)) {
+    candidates.push({ key: 'quote', href: '/quotes/new', labelKey: 'quote' });
   }
 
-  const ordered = orderQuickCreateActions(actions, emphasis);
-  const pinned = pinDefaultWorkKindFirst(ordered, defaultWorkKind);
-  if (!persona) return pinned;
-  return limitQuickCreateForPersona(pinned, persona);
+  if (modules.clients && permissions.has(PERMISSIONS.CLIENTS_MANAGE)) {
+    candidates.push({ key: 'client', href: '/clients/new', labelKey: 'client' });
+  }
+
+  if (permissions.has(PERMISSIONS.EXPENSES_CREATE)) {
+    candidates.push({ key: 'expense', href: '/expenses', labelKey: 'expense' });
+  }
+
+  if (modules.vendors && permissions.has(PERMISSIONS.VENDORS_MANAGE)) {
+    candidates.push({ key: 'vendor', href: '/vendors/new', labelKey: 'vendor' });
+  }
+
+  if (modules.billing && permissions.has(PERMISSIONS.BILLING_MANAGE)) {
+    candidates.push({ key: 'billingRecord', href: '/billing/new', labelKey: 'billingRecord' });
+  }
+
+  if (permissions.has(PERMISSIONS.WORKFORCE_MANAGE)) {
+    candidates.push({ key: 'employee', href: '/workforce/employees/new', labelKey: 'employee' });
+  }
+
+  if (permissions.has(PERMISSIONS.TIME_MANAGE)) {
+    candidates.push({ key: 'timeEntry', href: '/workforce/time/new', labelKey: 'timeEntry' });
+  }
+
+  if (modules.field_ops && permissions.has(PERMISSIONS.FIELD_OPS_MANAGE)) {
+    candidates.push({ key: 'fieldLog', href: '/field-ops/logs/new', labelKey: 'fieldLog' });
+  }
+
+  if (modules.changes && permissions.has(PERMISSIONS.CHANGES_MANAGE)) {
+    candidates.push({ key: 'change', href: '/changes/new', labelKey: 'change' });
+  }
+
+  return orderCanonicalQuickCreateActions(candidates);
 }

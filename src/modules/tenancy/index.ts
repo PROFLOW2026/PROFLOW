@@ -249,9 +249,12 @@ export {
 } from './domain/experience-today';
 export type { TodayFocusCategory } from './domain/experience-today';
 export {
+  CANONICAL_QUICK_CREATE_KEYS,
   PERSONA_QUICK_CREATE_KEYS,
   limitQuickCreateForPersona,
+  orderCanonicalQuickCreateActions,
 } from './domain/experience-quick-create';
+export type { CanonicalQuickCreateKey } from './domain/experience-quick-create';
 export {
   getExperienceComplexityForOrg,
   saveExperienceComplexity,

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   applyComplexityToVisibility,
+  CANONICAL_QUICK_CREATE_KEYS,
   filterModulesByComplexity,
   limitQuickCreateForPersona,
   PERSONA_PRIMARY_NAV_KEYS,
@@ -92,75 +93,36 @@ describe('experience complexity filter', () => {
 });
 
 describe('quick create persona limits', () => {
-  it('reorders by persona emphasis without hiding authorized actions', () => {
+  it('returns the canonical order regardless of persona', () => {
     const actions = [
+      { key: 'change' },
+      { key: 'expense' },
       { key: 'quickCapture' },
       { key: 'project' },
-      { key: 'quote' },
-      { key: 'expense' },
-      { key: 'vendorBill' },
-      { key: 'fieldLog' },
-      { key: 'change' },
-      { key: 'employee' },
-      { key: 'vendor' },
-    ];
-    const limited = limitQuickCreateForPersona(actions, 'project_contractor');
-    expect(limited.map((a) => a.key).slice(0, 6)).toEqual([
-      'quickCapture',
-      'project',
-      'quote',
-      'expense',
-      'vendorBill',
-      'fieldLog',
-    ]);
-    expect(limited).toHaveLength(9);
-    expect(limited.find((a) => a.key === 'employee')).toBeDefined();
-  });
-
-  it('keeps every allowed action for all persona', () => {
-    const actions = [
-      { key: 'project' },
-      { key: 'job' },
-      { key: 'service' },
-      { key: 'quote' },
-      { key: 'client' },
-      { key: 'expense' },
-      { key: 'vendor' },
-      { key: 'billingRecord' },
-      { key: 'employee' },
-      { key: 'timeEntry' },
-      { key: 'fieldLog' },
-      { key: 'change' },
       { key: 'payment' },
+      { key: 'vendorBill' },
     ];
-    const limited = limitQuickCreateForPersona(actions, 'all');
-    expect(limited).toHaveLength(actions.length);
+    const contractor = limitQuickCreateForPersona(actions, 'project_contractor');
+    const all = limitQuickCreateForPersona(actions, 'all');
+    expect(contractor.map((a) => a.key)).toEqual(['quickCapture', 'project', 'expense', 'change']);
+    expect(all.map((a) => a.key)).toEqual(contractor.map((a) => a.key));
   });
 
-  it('surfaces quickCapture for electrical and all personas when present', () => {
+  it('never surfaces non-canonical keys', () => {
     const actions = [
+      { key: 'payment' },
+      { key: 'asset' },
+      { key: 'vendorBill' },
+      { key: 'attendance' },
+      { key: 'recurringDrafts' },
       { key: 'quickCapture' },
-      { key: 'job' },
       { key: 'project' },
-      { key: 'quote' },
-      { key: 'expense' },
-      { key: 'fieldLog' },
-      { key: 'timeEntry' },
     ];
-    const electrical = limitQuickCreateForPersona(actions, 'electrical');
-    expect(electrical.map((a) => a.key).slice(0, 6)).toEqual([
-      'quickCapture',
-      'job',
-      'project',
-      'quote',
-      'expense',
-      'fieldLog',
-    ]);
-    expect(electrical.map((a) => a.key)).toContain('timeEntry');
-
-    const all = limitQuickCreateForPersona(actions, 'all');
-    expect(all[0]?.key).toBe('quickCapture');
-    expect(all).toHaveLength(actions.length);
+    const limited = limitQuickCreateForPersona(actions, 'electrical');
+    expect(limited.map((a) => a.key)).toEqual(['quickCapture', 'project']);
+    for (const key of limited.map((a) => a.key)) {
+      expect(CANONICAL_QUICK_CREATE_KEYS).toContain(key);
+    }
   });
 });
 

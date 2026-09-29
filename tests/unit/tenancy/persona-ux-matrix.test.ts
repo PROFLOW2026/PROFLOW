@@ -92,18 +92,19 @@ function surfaceFingerprint(persona: ExperiencePersonaKey) {
   const mobile = selectMobilePrimaryItems(items);
   const qc = limitQuickCreateForPersona(
     [
+      { key: 'quickCapture' },
       { key: 'project' },
       { key: 'job' },
       { key: 'service' },
       { key: 'quote' },
-      { key: 'expense' },
       { key: 'client' },
-      { key: 'vendorBill' },
+      { key: 'expense' },
+      { key: 'vendor' },
+      { key: 'billingRecord' },
+      { key: 'employee' },
+      { key: 'timeEntry' },
       { key: 'fieldLog' },
       { key: 'change' },
-      { key: 'timeEntry' },
-      { key: 'billingRecord' },
-      { key: 'attendance' },
     ],
     persona,
   );
@@ -163,7 +164,7 @@ describe('persona UX acceptance matrix', () => {
       expect.arrayContaining(['dashboard', 'today', 'workOrders']),
     );
     expect(consulting.quickCreate).toEqual(
-      expect.arrayContaining(['client', 'quote', 'project', 'timeEntry', 'vendorBill']),
+      expect.arrayContaining(['client', 'quote', 'project', 'timeEntry']),
     );
     expect(contractor.dashboardCards).toEqual(
       expect.arrayContaining(['contractValue', 'profit', 'commitments']),
@@ -175,8 +176,8 @@ describe('persona UX acceptance matrix', () => {
     expect(contractor.todayFocus).toContain('boq');
     expect(consulting.todayFocus).toContain('time_people');
     expect(service.mobileKeys).toContain('workOrders');
-    expect(PERSONA_QUICK_CREATE_KEYS.small_works.length).toBeLessThanOrEqual(6);
-    expect(PERSONA_QUICK_CREATE_KEYS.consulting.length).toBeLessThanOrEqual(6);
+    expect(PERSONA_QUICK_CREATE_KEYS.small_works).toHaveLength(13);
+    expect(PERSONA_QUICK_CREATE_KEYS.consulting[0]).toBe('quickCapture');
   });
 
   it('keeps project tab allowlists visibly different across experience profiles', () => {
@@ -199,12 +200,8 @@ describe('persona UX acceptance matrix', () => {
       surfaceFingerprint('small_works').dashboardCards.length,
     );
     const consultingPersona = surfaceFingerprint('consulting');
-    expect(allPersona.quickCreate).toEqual(
-      expect.arrayContaining(consultingPersona.quickCreate),
-    );
-    expect(allPersona.quickCreate.slice(0, 3)).not.toEqual(
-      consultingPersona.quickCreate.slice(0, 3),
-    );
+    expect(allPersona.quickCreate).toEqual(consultingPersona.quickCreate);
+    expect(allPersona.quickCreate[0]).toBe('quickCapture');
   });
 
   it('does not leave empty groups in partitioned nav for major personas', () => {

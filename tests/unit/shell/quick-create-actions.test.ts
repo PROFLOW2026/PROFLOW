@@ -5,6 +5,7 @@ import {
   pinDefaultWorkKindFirst,
   quickCreateKeyForWorkKind,
 } from '@/components/shell/quick-create-actions';
+import { CANONICAL_QUICK_CREATE_KEYS } from '@/modules/tenancy';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { ModuleVisibility, SuggestedBusinessDefaults } from '@/modules/tenancy';
 import { OPTIONAL_MODULE_KEYS } from '@/modules/tenancy/domain/types';
@@ -20,39 +21,90 @@ function defaults(defaultWorkKind: SuggestedBusinessDefaults['defaultWorkKind'])
   return { defaultWorkKind, preferServiceSurface: defaultWorkKind === 'work_order' };
 }
 
+const OWNER_CREATE_PERMISSIONS = new Set([
+  PERMISSIONS.PROJECTS_CREATE,
+  PERMISSIONS.EXPENSES_CREATE,
+  PERMISSIONS.QUOTES_MANAGE,
+  PERMISSIONS.CLIENTS_MANAGE,
+  PERMISSIONS.VENDORS_MANAGE,
+  PERMISSIONS.BILLING_MANAGE,
+  PERMISSIONS.WORKFORCE_MANAGE,
+  PERMISSIONS.TIME_MANAGE,
+  PERMISSIONS.CHANGES_MANAGE,
+  PERMISSIONS.FIELD_OPS_MANAGE,
+  PERMISSIONS.DOCUMENTS_MANAGE,
+  PERMISSIONS.SERVICE_MANAGE,
+]);
+
+const OWNER_MODULES = modules({
+  changes: true,
+  quotes: true,
+  billing: true,
+  clients: true,
+  vendors: true,
+  field_ops: true,
+  service: true,
+  jobs: true,
+});
+
 describe('buildQuickCreateActions', () => {
-  it('keeps core create paths and avoids dumping every module', () => {
-    const actions = buildQuickCreateActions(
-      new Set([
-        PERMISSIONS.PROJECTS_CREATE,
-        PERMISSIONS.EXPENSES_CREATE,
-        PERMISSIONS.TIME_MANAGE,
-        PERMISSIONS.FIELD_OPS_MANAGE,
-        PERMISSIONS.ASSETS_MANAGE,
-        PERMISSIONS.AP_MANAGE,
-        PERMISSIONS.ATTENDANCE_SELF,
-        PERMISSIONS.DOCUMENTS_MANAGE,
-        PERMISSIONS.CRM_MANAGE,
-        PERMISSIONS.PROCUREMENT_MANAGE,
-      ]),
-      modules({ field_ops: true, assets: true, documents: true, crm: true, procurement: true }),
-      'projects',
+  it('returns the Owner canonical 13-item menu in fixed order for full access', () => {
+    const desktop = buildQuickCreateActions(
+      OWNER_CREATE_PERMISSIONS,
+      OWNER_MODULES,
+      'mixed',
+      null,
+      null,
+      'all',
     );
-    const keys = actions.map((action) => action.key);
-    expect(keys).toContain('project');
-    expect(keys).toContain('expense');
-    expect(actions.find((action) => action.key === 'expense')?.href).toBe('/expenses');
-    expect(keys).toContain('timeEntry');
-    expect(keys).toContain('fieldLog');
-    expect(keys).toContain('asset');
-    expect(keys).toContain('vendorBill');
-    expect(keys).toContain('attendance');
-    expect(keys).not.toContain('document');
-    expect(keys).not.toContain('opportunity');
-    expect(keys).not.toContain('purchaseOrder');
+    const mobile = buildQuickCreateActions(
+      OWNER_CREATE_PERMISSIONS,
+      OWNER_MODULES,
+      'mixed',
+      null,
+      null,
+      'project_contractor',
+    );
+
+    const expected = [...CANONICAL_QUICK_CREATE_KEYS];
+    expect(desktop.map((action) => action.key)).toEqual(expected);
+    expect(mobile.map((action) => action.key)).toEqual(expected);
+    expect(desktop[0]?.key).toBe('quickCapture');
   });
 
-  it('gates field log / maintenance / vendor bill / attendance tightly', () => {
+  it('never exposes non-canonical Quick Create actions', () => {
+    const actions = buildQuickCreateActions(
+      new Set([
+        ...OWNER_CREATE_PERMISSIONS,
+        PERMISSIONS.AP_MANAGE,
+        PERMISSIONS.ATTENDANCE_MANAGE,
+        PERMISSIONS.ASSETS_MANAGE,
+      ]),
+      modules({
+        changes: true,
+        quotes: true,
+        billing: true,
+        clients: true,
+        vendors: true,
+        field_ops: true,
+        service: true,
+        assets: true,
+        jobs: true,
+      }),
+      'mixed',
+    );
+    const keys = actions.map((action) => action.key);
+    expect(keys).not.toContain('payment');
+    expect(keys).not.toContain('asset');
+    expect(keys).not.toContain('vendorBill');
+    expect(keys).not.toContain('attendance');
+    expect(keys).not.toContain('recurringDrafts');
+    for (const key of keys) {
+      expect(CANONICAL_QUICK_CREATE_KEYS).toContain(key);
+    }
+  });
+
+  it('gates canonical items by permission and module without adding extras', () => {
     const none = buildQuickCreateActions(new Set([PERMISSIONS.PROJECTS_READ]), modules(), 'projects');
     expect(none.map((a) => a.key)).toEqual([]);
 
@@ -64,14 +116,36 @@ describe('buildQuickCreateActions', () => {
     expect(fieldWithoutModule.some((a) => a.key === 'fieldLog')).toBe(false);
 
     const apOnly = buildQuickCreateActions(new Set([PERMISSIONS.AP_MANAGE]), modules(), 'projects');
-    expect(apOnly.map((a) => a.key)).toEqual(['vendorBill', 'recurringDrafts']);
+    expect(apOnly.map((a) => a.key)).toEqual([]);
 
-    const attendanceReadOnly = buildQuickCreateActions(
-      new Set([PERMISSIONS.ATTENDANCE_READ]),
+    const attendanceOnly = buildQuickCreateActions(
+      new Set([PERMISSIONS.ATTENDANCE_MANAGE]),
       modules(),
       'projects',
     );
-    expect(attendanceReadOnly.some((a) => a.key === 'attendance')).toBe(false);
+    expect(attendanceOnly.some((a) => a.key === 'attendance')).toBe(false);
+  });
+
+  it('ignores persona and emphasis reordering', () => {
+    const contractor = buildQuickCreateActions(
+      OWNER_CREATE_PERMISSIONS,
+      OWNER_MODULES,
+      'mixed',
+      ['expense', 'job', 'project'],
+      defaults('job'),
+      'project_contractor',
+    );
+    const all = buildQuickCreateActions(
+      OWNER_CREATE_PERMISSIONS,
+      OWNER_MODULES,
+      'mixed',
+      ['expense', 'job', 'project'],
+      defaults('job'),
+      'all',
+    );
+    expect(contractor.map((action) => action.key)).toEqual(all.map((action) => action.key));
+    expect(all[0]?.key).toBe('quickCapture');
+    expect(all.map((action) => action.key)).toEqual([...CANONICAL_QUICK_CREATE_KEYS]);
   });
 
   it('maps profile defaultWorkKind to the matching Quick Create key', () => {
@@ -88,184 +162,9 @@ describe('buildQuickCreateActions', () => {
       'project',
       'service',
     ]);
-    expect(pinDefaultWorkKindFirst(actions, 'work_order').map((a) => a.key)).toEqual([
-      'service',
-      'expense',
-      'project',
-      'job',
-    ]);
-    expect(pinDefaultWorkKindFirst(actions, 'project').map((a) => a.key)).toEqual([
-      'project',
-      'expense',
-      'job',
-      'service',
-    ]);
-    expect(pinDefaultWorkKindFirst(actions, null).map((a) => a.key)).toEqual([
-      'expense',
-      'project',
-      'job',
-      'service',
-    ]);
   });
 
-  it('puts job first when the profile default is job, and keeps project reachable', () => {
-    const actions = buildQuickCreateActions(
-      new Set([PERMISSIONS.PROJECTS_CREATE, PERMISSIONS.EXPENSES_CREATE]),
-      modules({ jobs: true }),
-      'projects',
-      ['expense', 'project', 'job'],
-      defaults('job'),
-    );
-    const keys = actions.map((action) => action.key);
-    expect(keys[0]).toBe('job');
-    expect(keys).toContain('project');
-    expect(keys).toContain('expense');
-  });
-
-  it('puts service first when the profile default is work_order and the module is on', () => {
-    const actions = buildQuickCreateActions(
-      new Set([PERMISSIONS.PROJECTS_CREATE, PERMISSIONS.SERVICE_MANAGE, PERMISSIONS.EXPENSES_CREATE]),
-      modules({ jobs: true, service: true }),
-      'mixed',
-      ['job', 'expense', 'service'],
-      defaults('work_order'),
-    );
-    const keys = actions.map((action) => action.key);
-    expect(keys[0]).toBe('service');
-    expect(keys).toContain('job');
-    expect(keys).toContain('project');
-  });
-
-  it('does not invent a service action when the module or permission is missing', () => {
-    const noModule = buildQuickCreateActions(
-      new Set([PERMISSIONS.PROJECTS_CREATE, PERMISSIONS.SERVICE_MANAGE]),
-      modules({ jobs: true }),
-      'jobs',
-      null,
-      defaults('work_order'),
-    );
-    expect(noModule.map((a) => a.key)).toEqual(['job', 'project']);
-
-    const noPermission = buildQuickCreateActions(
-      new Set([PERMISSIONS.PROJECTS_CREATE]),
-      modules({ jobs: true, service: true }),
-      'jobs',
-      null,
-      defaults('work_order'),
-    );
-    expect(noPermission.some((a) => a.key === 'service')).toBe(false);
-    expect(noPermission.map((a) => a.key)[0]).toBe('job');
-  });
-
-  it('surfaces job create when the profile default is job even on a projects-first mix', () => {
-    const actions = buildQuickCreateActions(
-      new Set([PERMISSIONS.PROJECTS_CREATE]),
-      modules(),
-      'projects',
-      null,
-      defaults('job'),
-    );
-    expect(actions.map((a) => a.key)).toEqual(['job', 'project']);
-  });
-
-  it('returns all permission-gated actions for owner persona without a six-item cap', () => {
-    const permissions = new Set([
-      PERMISSIONS.PROJECTS_CREATE,
-      PERMISSIONS.EXPENSES_CREATE,
-      PERMISSIONS.QUOTES_MANAGE,
-      PERMISSIONS.CLIENTS_MANAGE,
-      PERMISSIONS.VENDORS_MANAGE,
-      PERMISSIONS.BILLING_MANAGE,
-      PERMISSIONS.WORKFORCE_MANAGE,
-      PERMISSIONS.TIME_MANAGE,
-      PERMISSIONS.AP_MANAGE,
-      PERMISSIONS.DOCUMENTS_MANAGE,
-      PERMISSIONS.CHANGES_MANAGE,
-      PERMISSIONS.FIELD_OPS_MANAGE,
-      PERMISSIONS.ATTENDANCE_MANAGE,
-      PERMISSIONS.SERVICE_MANAGE,
-      PERMISSIONS.ASSETS_MANAGE,
-    ]);
-
-    const contractor = buildQuickCreateActions(
-      permissions,
-      modules({
-        changes: true,
-        quotes: true,
-        billing: true,
-        clients: true,
-        vendors: true,
-        field_ops: true,
-        service: true,
-        assets: true,
-        jobs: true,
-      }),
-      'mixed',
-      null,
-      null,
-      'project_contractor',
-    );
-    const ownerAll = buildQuickCreateActions(
-      permissions,
-      modules({
-        changes: true,
-        quotes: true,
-        billing: true,
-        clients: true,
-        vendors: true,
-        field_ops: true,
-        service: true,
-        assets: true,
-        jobs: true,
-      }),
-      'mixed',
-      null,
-      null,
-      'all',
-    );
-
-    expect(contractor.length).toBeGreaterThan(6);
-    expect(ownerAll.length).toBeGreaterThan(6);
-    expect(contractor.map((action) => action.key).sort()).toEqual(
-      ownerAll.map((action) => action.key).sort(),
-    );
-  });
-
-  it('surfaces quickCapture for electrical and all personas when DOCUMENTS_MANAGE is granted', () => {
-    const permissions = new Set([
-      PERMISSIONS.PROJECTS_CREATE,
-      PERMISSIONS.EXPENSES_CREATE,
-      PERMISSIONS.QUOTES_MANAGE,
-      PERMISSIONS.FIELD_OPS_MANAGE,
-      PERMISSIONS.DOCUMENTS_MANAGE,
-    ]);
-    const moduleFlags = modules({ jobs: true, quotes: true, field_ops: true });
-
-    const electrical = buildQuickCreateActions(
-      permissions,
-      moduleFlags,
-      'jobs',
-      null,
-      null,
-      'electrical',
-    );
-    const electricalKeys = electrical.map((action) => action.key);
-    expect(electricalKeys).toContain('quickCapture');
-    expect(electricalKeys.indexOf('quickCapture')).toBeLessThan(electricalKeys.indexOf('job'));
-    expect(electricalKeys).toEqual(
-      expect.arrayContaining(['project', 'quote', 'expense', 'fieldLog']),
-    );
-
-    const all = buildQuickCreateActions(
-      permissions,
-      moduleFlags,
-      'jobs',
-      null,
-      null,
-      'all',
-    );
-    expect(all.map((action) => action.key)).toContain('quickCapture');
-
+  it('hides quickCapture when DOCUMENTS_MANAGE is missing', () => {
     const withoutDocuments = buildQuickCreateActions(
       new Set([
         PERMISSIONS.PROJECTS_CREATE,
@@ -273,13 +172,14 @@ describe('buildQuickCreateActions', () => {
         PERMISSIONS.QUOTES_MANAGE,
         PERMISSIONS.FIELD_OPS_MANAGE,
       ]),
-      moduleFlags,
+      modules({ jobs: true, quotes: true, field_ops: true }),
       'jobs',
       null,
       null,
       'electrical',
     );
     expect(withoutDocuments.some((action) => action.key === 'quickCapture')).toBe(false);
+    expect(withoutDocuments[0]?.key).toBe('project');
   });
 
   it('lists create-page work-type options without trapping mixed orgs', () => {
