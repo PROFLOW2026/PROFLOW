@@ -4,10 +4,18 @@ import { useActionState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { ExpenseForm } from '@/modules/expenses/ui/expense-form';
+import { ExpenseForm, type ExpenseFormValues } from '@/modules/expenses/ui/expense-form';
 import { decodeRecurrenceRule } from '@/modules/expenses/domain/recurrence';
 import { inferExpenseTaxModeFromAmounts } from '@/modules/expenses/domain/tax';
-import type { CostCategoryRow, ExpenseDetail, InventoryItemOption, ProjectOption, VendorOption, WorkPackageOption } from '@/modules/expenses/domain/types';
+import type {
+  AllocationMethod,
+  CostCategoryRow,
+  ExpenseDetail,
+  InventoryItemOption,
+  ProjectOption,
+  VendorOption,
+  WorkPackageOption,
+} from '@/modules/expenses/domain/types';
 import type { PaymentInstrumentRow } from '@/modules/payment-instruments/domain/types';
 import type { SupplierBillReferenceRow } from '@/modules/expenses/domain/supplier-cost-guidance';
 import type { AllocationDraft } from '@/modules/expenses/ui/allocation-editor';
@@ -84,17 +92,77 @@ export function ExpenseEditForm({
     vatMode: expense.vatMode,
     taxSnapshot: expense.taxSnapshot,
   });
-  const allocations: AllocationDraft[] = expense.allocations.map((line) => ({
-    targetType: line.targetType,
-    projectId: line.projectId,
-    workPackageId: line.workPackageId,
-    costCategoryId: line.costCategoryId,
-    method: line.method,
-    amount: line.amount.amount,
-    percent: line.percent ?? '',
-    notes: line.notes ?? '',
-    sortOrder: line.sortOrder,
-  }));
+  const baseInitialValues = useMemo(
+    () => {
+      const allocations: AllocationDraft[] = expense.allocations.map((line) => ({
+        targetType: line.targetType,
+        projectId: line.projectId,
+        workPackageId: line.workPackageId,
+        costCategoryId: line.costCategoryId,
+        method: line.method,
+        amount: line.amount.amount,
+        percent: line.percent ?? '',
+        notes: line.notes ?? '',
+        sortOrder: line.sortOrder,
+      }));
+
+      return {
+        amount: taxMode.amount,
+        currency: expense.grossAmount.currency,
+        description: expense.description ?? '',
+        expenseDate: expense.expenseDate,
+        supplierName: expense.supplierName ?? '',
+        vendorId: expense.vendorId ?? '',
+        targeting: expense.projectId ?? '__overhead__',
+        projectId: expense.projectId ?? '',
+        workPackageId: expense.workPackageId ?? '',
+        costFamily: expense.costFamily,
+        costCategoryId: expense.costCategoryId ?? '',
+        amountIncludesTax: taxMode.amountIncludesTax,
+        vatMode: taxMode.vatMode,
+        netAmount: '',
+        taxAmount: '',
+        paymentMethod: expense.paymentMethod ?? '',
+        paymentInstrumentId: expense.paymentInstrumentId ?? '',
+        markPaid: Boolean(expense.paidAt && expense.paymentStatus === 'paid'),
+        paidAt: expense.paidAt ?? defaultToday,
+        paymentTermId: expense.paymentTermId ?? '',
+        dueDate: expense.dueDate ?? '',
+        notes: expense.notes ?? '',
+        recurrenceCadence: recurrence.cadence,
+        recurrenceCustomLabel: recurrence.customLabel ?? '',
+        allocations,
+        allocationDriverMethod: (expense.allocationDriverMethod ?? '') as AllocationMethod | '',
+        allocationPeriodStart: expense.allocationPeriodStart ?? '',
+        allocationPeriodEnd: expense.allocationPeriodEnd ?? '',
+        allocationScheduleMode: expense.allocationScheduleMode ?? '',
+        allocationIntent: expense.projectId
+          ? 'project_allocate'
+          : expense.allocationIntent ??
+            (allocations.some((line) => line.targetType === 'project' && line.projectId)
+              ? 'project_allocate'
+              : 'auto_pool'),
+        installmentCount: String(expense.installmentCount ?? 1),
+        installmentStartDate: expense.installmentStartDate ?? expense.expenseDate,
+        cashInstallmentSchedule: expense.cashInstallmentSchedule,
+        installmentsPaidCount: expense.installmentsPaidCount ?? 0,
+        automaticInstallmentPayment: expense.automaticInstallmentPayment,
+        inventoryStockPurchase: expense.inventoryStockPurchase,
+        inventoryItemId: expense.inventoryItemId ?? '',
+        inventoryPurchaseQty: expense.inventoryPurchaseQty ?? '',
+      } satisfies Partial<ExpenseFormValues>;
+    },
+    [defaultToday, expense, recurrence.cadence, recurrence.customLabel, taxMode],
+  );
+
+  const formInitialValues = useMemo(
+    () => (state.formValues ? { ...baseInitialValues, ...state.formValues } : baseInitialValues),
+    [baseInitialValues, state.formValues],
+  );
+
+  const formRestoreKey = state.formValues
+    ? `preserved-${JSON.stringify(state.formValues)}`
+    : expense.id;
 
   return (
     <form action={formAction} className="flex flex-col gap-6">
@@ -112,6 +180,7 @@ export function ExpenseEditForm({
       ) : null}
 
       <ExpenseForm
+        key={formRestoreKey}
         mode="edit"
         defaultCurrency={expense.grossAmount.currency}
         projects={projects}
@@ -123,49 +192,7 @@ export function ExpenseEditForm({
         supplierBillReferences={supplierBillReferences}
         defaultToday={defaultToday}
         taxRatePercent={taxRatePercent}
-        initialValues={{
-          amount: taxMode.amount,
-          currency: expense.grossAmount.currency,
-          description: expense.description ?? '',
-          expenseDate: expense.expenseDate,
-          supplierName: expense.supplierName ?? '',
-          vendorId: expense.vendorId ?? '',
-          targeting: expense.projectId ?? '__overhead__',
-          projectId: expense.projectId ?? '',
-          workPackageId: expense.workPackageId ?? '',
-          costFamily: expense.costFamily,
-          costCategoryId: expense.costCategoryId ?? '',
-          amountIncludesTax: taxMode.amountIncludesTax,
-          vatMode: taxMode.vatMode,
-          // Leave advanced overrides empty so re-save uses the tax engine + mode.
-          netAmount: '',
-          taxAmount: '',
-          paymentMethod: expense.paymentMethod ?? '',
-          paymentInstrumentId: expense.paymentInstrumentId ?? '',
-          markPaid: Boolean(expense.paidAt && expense.paymentStatus === 'paid'),
-          paidAt: expense.paidAt ?? defaultToday,
-          paymentTermId: expense.paymentTermId ?? '',
-          dueDate: expense.dueDate ?? '',
-          notes: expense.notes ?? '',
-          recurrenceCadence: recurrence.cadence,
-          recurrenceCustomLabel: recurrence.customLabel ?? '',
-          allocations,
-          allocationDriverMethod: expense.allocationDriverMethod ?? '',
-          allocationPeriodStart: expense.allocationPeriodStart ?? '',
-          allocationPeriodEnd: expense.allocationPeriodEnd ?? '',
-          allocationScheduleMode: expense.allocationScheduleMode ?? '',
-          allocationIntent: expense.projectId
-            ? 'project_allocate'
-            : (expense.allocationIntent ?? 'auto_pool'),
-          installmentCount: String(expense.installmentCount ?? 1),
-          installmentStartDate: expense.installmentStartDate ?? expense.expenseDate,
-          cashInstallmentSchedule: expense.cashInstallmentSchedule,
-          installmentsPaidCount: expense.installmentsPaidCount ?? 0,
-          automaticInstallmentPayment: expense.automaticInstallmentPayment,
-          inventoryStockPurchase: expense.inventoryStockPurchase,
-          inventoryItemId: expense.inventoryItemId ?? '',
-          inventoryPurchaseQty: expense.inventoryPurchaseQty ?? '',
-        }}
+        initialValues={formInitialValues}
         error={state.error ?? null}
         fieldErrors={state.fieldErrors}
       />

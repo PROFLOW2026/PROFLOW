@@ -72,6 +72,27 @@ export function ExpenseCaptureForm({
     {},
   );
 
+  const defaultInitialValues = useMemo(
+    () => ({
+      targeting: initialProjectId ?? '__overhead__',
+      projectId: initialProjectId,
+      vatMode: 'inclusive' as const,
+    }),
+    [initialProjectId],
+  );
+
+  const formInitialValues = useMemo(
+    () =>
+      state.formValues
+        ? { ...defaultInitialValues, ...state.formValues }
+        : defaultInitialValues,
+    [defaultInitialValues, state.formValues],
+  );
+
+  const formRestoreKey = state.formValues
+    ? `preserved-${JSON.stringify(state.formValues)}`
+    : 'initial';
+
   return (
     <form action={formAction} className="flex flex-col gap-6">
       {state.offlineQueued ? (
@@ -86,6 +107,7 @@ export function ExpenseCaptureForm({
       ) : null}
 
       <ExpenseForm
+        key={formRestoreKey}
         mode="create"
         defaultCurrency={defaultCurrency}
         projects={projects}
@@ -99,12 +121,7 @@ export function ExpenseCaptureForm({
         supplierBillReferences={supplierBillReferences}
         paymentInstruments={paymentInstruments}
         defaultToday={defaultToday}
-        initialValues={{
-          targeting: initialProjectId ?? '__overhead__',
-          projectId: initialProjectId,
-          /** Default for new expenses: VAT-inclusive (`inclusive`). */
-          vatMode: 'inclusive' as const,
-        }}
+        initialValues={formInitialValues}
         error={state.error ?? null}
         fieldErrors={state.fieldErrors}
       />

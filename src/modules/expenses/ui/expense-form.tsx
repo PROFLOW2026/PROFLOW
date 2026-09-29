@@ -56,6 +56,7 @@ import type { ExpenseVatMode } from '../domain/vat-mode';
 import { resolveExpenseVatMode } from '../domain/vat-mode';
 import type { SupplierBillReferenceRow } from '../domain/supplier-cost-guidance';
 import { SupplierCostGuidance } from './supplier-cost-guidance';
+import { normalizeExpenseFormError } from './expense-form-preservation';
 
 const OVERHEAD_VALUE = '__overhead__';
 const NONE_VALUE = '__none__';
@@ -334,6 +335,7 @@ export function ExpenseForm({
   const [installmentStartDate] = React.useState(
     initialValues?.installmentStartDate ?? initialValues?.expenseDate ?? '',
   );
+  const [cashInstallmentSchedule] = React.useState(initialValues?.cashInstallmentSchedule ?? null);
   const [paymentStructure, setPaymentStructure] = React.useState<'single' | 'installments'>(
     () =>
       (initialValues?.cashInstallmentSchedule?.lines?.length ?? 0) > 1 ||
@@ -369,7 +371,8 @@ export function ExpenseForm({
   const isProjectRouteMode =
     costDestinationMode === 'project_single' || costDestinationMode === 'project_multi';
   const isOverhead = !isProjectDestinationMode;
-  const submitCostFamily: CostFamily | '' = isProjectDestinationMode ? 'direct_project' : costFamily;
+  const submitCostFamily: CostFamily | '' = isProjectRouteMode ? 'direct_project' : costFamily;
+  const displayError = normalizeExpenseFormError(error);
   const projectId =
     isProjectDestinationMode && targeting !== OVERHEAD_VALUE && targeting !== NONE_VALUE
       ? targeting
@@ -558,6 +561,7 @@ export function ExpenseForm({
       case 'project_multi': {
         handleDestinationChange('general');
         setAllocationIntent('project_allocate');
+        setCostFamily('direct_project');
         setAllocationDriverMethod('');
         break;
       }
@@ -710,9 +714,12 @@ export function ExpenseForm({
 
   return (
     <div className="flex min-w-0 w-full flex-col gap-6">
-      {error ? (
-        <p className="rounded-md border border-[var(--pf-action-danger)] bg-[var(--pf-status-danger-bg)] px-3 py-2 text-start text-sm text-[var(--pf-status-danger-fg)]">
-          {error}
+      {displayError ? (
+        <p
+          role="alert"
+          className="rounded-md border border-[var(--pf-action-danger)] bg-[var(--pf-status-danger-bg)] px-3 py-2 text-start text-sm text-[var(--pf-status-danger-fg)]"
+        >
+          {displayError}
         </p>
       ) : null}
       {mode === 'create' ? (
@@ -1030,7 +1037,7 @@ export function ExpenseForm({
           initialStructure={paymentStructure}
           initialCount={Number(installmentCount) > 1 ? installmentCount : '6'}
           initialFirstDate={installmentStartDate || expenseDate}
-          initialLines={(initialValues?.cashInstallmentSchedule?.lines ?? []).map((line) => ({
+          initialLines={(cashInstallmentSchedule?.lines ?? []).map((line) => ({
             dueDate: line.dueDate,
             amount: line.amount,
           }))}

@@ -15,6 +15,8 @@ import {
   voidExpense,
 } from '@/modules/expenses';
 import { expenseHasProjectAttribution } from '@/modules/expenses/domain/targeting';
+import { expenseFormValuesFromFormData } from '@/modules/expenses/ui/expense-form-preservation';
+import type { ExpenseFormValues } from '@/modules/expenses/ui/expense-form';
 import { confirmExpensePaid } from '@/modules/expenses/application/expense-payments';
 import { businessDate } from '@/shared/dates';
 import { promoteVendorFromTransaction } from '@/modules/vendors';
@@ -80,10 +82,33 @@ export interface ExpenseActionState {
   error?: string;
   expenseId?: string;
   fieldErrors?: Record<string, string>;
+  /** Re-applied client form state after a failed submit. */
+  formValues?: Partial<ExpenseFormValues>;
   /** Local draft queued - not server truth. */
   offlineQueued?: boolean;
   /** Offline queue includes save+approve intent (not yet approved on server). */
   pendingApproveSync?: boolean;
+}
+
+function withPreservedFormValues(
+  formData: FormData,
+  state: ExpenseActionState,
+): ExpenseActionState {
+  return {
+    ...state,
+    formValues: expenseFormValuesFromFormData(formData),
+  };
+}
+
+function canApproveWithoutCategory(data: {
+  readonly costCategoryId?: string | null;
+  readonly projectId?: string | null;
+  readonly allocations?: readonly {
+    readonly targetType?: string | null;
+    readonly projectId?: string | null;
+  }[];
+}): boolean {
+  return Boolean(data.costCategoryId) || expenseHasProjectAttribution(data);
 }
 
 function formValue(formData: FormData, key: string): string | undefined {
@@ -165,22 +190,17 @@ export async function createExpenseAction(
         fieldErrors.inventoryPurchaseQty = tExpenses('errors.inventoryQtyRequired');
       }
     }
-    return {
+    return withPreservedFormValues(formData, {
       error: tErrors('validationFailed'),
       ...(Object.keys(fieldErrors).length > 0 ? { fieldErrors } : {}),
-    };
+    });
   }
 
-  if (
-    parsed.data.finalizeOnCreate === true &&
-    !parsed.data.costCategoryId &&
-    !expenseHasProjectAttribution(parsed.data)
-  ) {
+  if (parsed.data.finalizeOnCreate === true && !canApproveWithoutCategory(parsed.data)) {
     const tExpenses = await getTranslations('expenses');
-    return {
+    return withPreservedFormValues(formData, {
       error: tExpenses('errors.classificationRequired'),
-      fieldErrors: { costCategoryId: tExpenses('errors.classificationRequired') },
-    };
+    });
   }
 
   try {
@@ -228,14 +248,14 @@ export async function createExpenseAction(
       );
       if (taxIssue) {
         const tExpenses = await getTranslations('expenses');
-        return {
+        return withPreservedFormValues(formData, {
           error: tExpenses('errors.inclusiveTaxRateRequired'),
           fieldErrors: { vatMode: tExpenses('errors.inclusiveTaxRateRequired') },
-        };
+        });
       }
-      return { error: tErrors('validationFailed') };
+      return withPreservedFormValues(formData, { error: tErrors('validationFailed') });
     }
-    return mapExpenseActionError(error);
+    return withPreservedFormValues(formData, await mapExpenseActionError(error));
   }
 }
 
@@ -262,22 +282,17 @@ export async function updateExpenseAction(
         fieldErrors.inventoryPurchaseQty = tExpenses('errors.inventoryQtyRequired');
       }
     }
-    return {
+    return withPreservedFormValues(formData, {
       error: tErrors('validationFailed'),
       ...(Object.keys(fieldErrors).length > 0 ? { fieldErrors } : {}),
-    };
+    });
   }
 
-  if (
-    parsed.data.finalizeOnCreate === true &&
-    !parsed.data.costCategoryId &&
-    !expenseHasProjectAttribution(parsed.data)
-  ) {
+  if (parsed.data.finalizeOnCreate === true && !canApproveWithoutCategory(parsed.data)) {
     const tExpenses = await getTranslations('expenses');
-    return {
+    return withPreservedFormValues(formData, {
       error: tExpenses('errors.classificationRequired'),
-      fieldErrors: { costCategoryId: tExpenses('errors.classificationRequired') },
-    };
+    });
   }
 
   try {
@@ -325,14 +340,14 @@ export async function updateExpenseAction(
       );
       if (taxIssue) {
         const tExpenses = await getTranslations('expenses');
-        return {
+        return withPreservedFormValues(formData, {
           error: tExpenses('errors.inclusiveTaxRateRequired'),
           fieldErrors: { vatMode: tExpenses('errors.inclusiveTaxRateRequired') },
-        };
+        });
       }
-      return { error: tErrors('validationFailed') };
+      return withPreservedFormValues(formData, { error: tErrors('validationFailed') });
     }
-    return mapExpenseActionError(error);
+    return withPreservedFormValues(formData, await mapExpenseActionError(error));
   }
 }
 
