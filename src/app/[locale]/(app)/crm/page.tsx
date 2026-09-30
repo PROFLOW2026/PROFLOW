@@ -12,7 +12,6 @@ import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { CrmSectionNav, CrmShell } from './crm-shell';
 import { CrmPipelineHint } from './crm-pipeline-hint';
-import { CommercialDocsHub } from '@/modules/quotes/ui/commercial-docs-hub';
 
 export async function generateMetadata({
   params,
@@ -60,9 +59,8 @@ export default async function CrmOpportunitiesPage() {
           ) : null
         }
       />
-      <CrmPipelineHint />
-      <CommercialDocsHub current="crm" />
       <CrmSectionNav active="opportunities" />
+      <CrmPipelineHint />
 
       {opportunities.length === 0 ? (
         <EmptyState

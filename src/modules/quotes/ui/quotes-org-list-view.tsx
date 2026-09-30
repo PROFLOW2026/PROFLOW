@@ -15,7 +15,6 @@ import { Link } from '@/shared/i18n/navigation';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
-import { CommercialDocsHub } from '@/modules/quotes/ui/commercial-docs-hub';
 import { SavedListViewsBar } from '@/modules/tenancy/ui/saved-list-views-bar';
 import {
   orgListHasPermission,
@@ -105,7 +104,6 @@ export async function QuotesOrgListView({
         />
       ) : null}
 
-      {isOwner ? <CommercialDocsHub current="quotes" /> : null}
       {isOwner ? <SavedListViewsBar listKey="quotes" searchParams={params} /> : null}
 
       {items.length === 0 ? (
