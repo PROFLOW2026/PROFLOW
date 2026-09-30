@@ -1058,6 +1058,13 @@
                         "when":  1789713300000,
                         "tag":  "0152_quotes_root_and_text_blocks",
                         "breakpoints":  true
+                    },
+                    {
+                        "idx":  151,
+                        "version":  "7",
+                        "when":  1789713360000,
+                        "tag":  "0153_quote_text_blocks_rls",
+                        "breakpoints":  true
                     }
                 ]
 }
