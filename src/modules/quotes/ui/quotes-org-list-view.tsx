@@ -93,12 +93,17 @@ export async function QuotesOrgListView({
           description={t('description')}
           actions={
             canManage ? (
-              <Button asChild>
-                <Link href={`${routeBase}/new`}>
-                  <Plus aria-hidden />
-                  {t('newQuote')}
-                </Link>
-              </Button>
+              <div className="flex flex-wrap items-center gap-2">
+                <Button asChild variant="secondary">
+                  <Link href="/settings/quotes">{t('settingsLink')}</Link>
+                </Button>
+                <Button asChild>
+                  <Link href={`${routeBase}/new`}>
+                    <Plus aria-hidden />
+                    {t('newQuote')}
+                  </Link>
+                </Button>
+              </div>
             ) : null
           }
         />

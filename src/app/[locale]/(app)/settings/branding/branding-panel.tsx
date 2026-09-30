@@ -578,28 +578,12 @@ export function BrandingSettingsPanel({
                 />
               )}
             </Field>
-            <Field label={t('fields.quoteTermsText')} optionalLabel={tCommon('labels.optional')}>
-              {(props) => (
-                <Textarea
-                  {...props}
-                  name="quoteTermsText"
-                  defaultValue={selected.quoteTermsText ?? ''}
-                  disabled={!canEdit}
-                  rows={3}
-                />
-              )}
-            </Field>
-            <Field label={t('fields.quoteFooterText')} optionalLabel={tCommon('labels.optional')}>
-              {(props) => (
-                <Textarea
-                  {...props}
-                  name="quoteFooterText"
-                  defaultValue={selected.quoteFooterText ?? ''}
-                  disabled={!canEdit}
-                  rows={2}
-                />
-              )}
-            </Field>
+            <p className="text-sm text-[var(--pf-text-secondary)]">
+              {t('quoteTextsMoved')}{' '}
+              <Link href="/settings/quotes" className="font-medium text-[var(--pf-action-primary)] underline-offset-2 hover:underline">
+                {t('quoteTextsMovedLink')}
+              </Link>
+            </p>
             <Field label={t('fields.reportFooterText')} optionalLabel={tCommon('labels.optional')}>
               {(props) => (
                 <Textarea

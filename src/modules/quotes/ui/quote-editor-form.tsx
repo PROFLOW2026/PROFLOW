@@ -20,6 +20,10 @@ import {
   updateQuoteAction,
   type QuotesFormState,
 } from '@/app/[locale]/(app)/quotes/actions';
+import {
+  QuoteTextBlocksEditor,
+  type QuoteTextBlockDraft,
+} from '@/modules/quotes/ui/quote-text-blocks-editor';
 
 export interface QuoteEditorLine {
   description: string;
@@ -52,6 +56,7 @@ export function QuoteEditorForm({
   defaultListSubtotalAmount,
   defaultDiscountPercent,
   defaultLines,
+  defaultTextBlocks,
   clients,
 }: {
   mode: 'create' | 'edit';
@@ -68,6 +73,7 @@ export function QuoteEditorForm({
   defaultListSubtotalAmount?: string | null;
   defaultDiscountPercent?: string | null;
   defaultLines?: readonly QuoteEditorLine[];
+  defaultTextBlocks?: readonly QuoteTextBlockDraft[];
   clients: readonly { id: string; name: string }[];
 }) {
   const t = useTranslations('quotes.create');
@@ -335,6 +341,13 @@ export function QuoteEditorForm({
           </div>
         ))}
       </section>
+
+      <QuoteTextBlocksEditor
+        initialBlocks={
+          defaultTextBlocks ??
+          []
+        }
+      />
 
       <Field label={t('notesLabel')}>
         {(control) => (

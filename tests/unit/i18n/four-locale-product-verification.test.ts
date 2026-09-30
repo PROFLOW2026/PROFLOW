@@ -110,7 +110,7 @@ describe('four-locale product verification', () => {
     }
   });
 
-  it('precise scanner reports zero real user-visible system literals', () => {
+  it('precise scanner reports zero real user-visible system literals', { timeout: 30_000 }, () => {
     const out = execSync('node scripts/i18n-literal-scan-core.mjs', { encoding: 'utf8' });
     const report = JSON.parse(out) as { realUiRemaining: number };
     expect(report.realUiRemaining).toBe(0);

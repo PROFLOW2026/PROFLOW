@@ -320,6 +320,12 @@ export async function convertQuote(
     }
   }
 
+  const { saveApprovedQuoteArtifact, relocateApprovedQuoteArtifactsToProject } = await import(
+    './quote-artifact'
+  );
+  await saveApprovedQuoteArtifact(context, updated.id);
+  await relocateApprovedQuoteArtifactsToProject(context, updated.id, projectId);
+
   return { quote: updated, projectId, workKind, seededBoqNodeIds };
 }
 

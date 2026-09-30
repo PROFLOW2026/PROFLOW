@@ -41,6 +41,7 @@
     "portal": "Portal access",
     "customFields": "Custom fields",
     "forms": "Form templates",
+    "quotes": "Quote settings",
     "api": "API and webhooks",
     "activity": "Activity log",
     "app": "App",
@@ -1230,6 +1231,8 @@
     "pageTitle": "Branding & documents",
     "pageDescription": "Logos, colors, and layouts for customer documents. These colors do not theme the whole app.",
     "subtitle": "Configure how quotes, reports, and other outputs present your company.",
+    "quoteTextsMoved": "Reusable quote text (terms, sections) is managed in",
+    "quoteTextsMovedLink": "Quote settings",
     "companyLink": "Edit legal name, VAT, and address in <link>Company details</link>.",
     "saved": "Branding saved.",
     "emptyLogo": {

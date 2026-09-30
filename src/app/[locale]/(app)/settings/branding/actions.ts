@@ -77,8 +77,12 @@ export async function updateBrandProfileAction(
         includeSignatureByDefault: formBool(formData, 'includeSignatureByDefault'),
         includeStampByDefault: formBool(formData, 'includeStampByDefault'),
         footerCustomText: formNullableText(formData, 'footerCustomText'),
-        quoteFooterText: formNullableText(formData, 'quoteFooterText'),
-        quoteTermsText: formNullableText(formData, 'quoteTermsText'),
+        ...(formData.has('quoteFooterText')
+          ? { quoteFooterText: formNullableText(formData, 'quoteFooterText') }
+          : {}),
+        ...(formData.has('quoteTermsText')
+          ? { quoteTermsText: formNullableText(formData, 'quoteTermsText') }
+          : {}),
         reportFooterText: formNullableText(formData, 'reportFooterText'),
         paymentInstructionsText: formNullableText(formData, 'paymentInstructionsText'),
         generalDocumentNote: formNullableText(formData, 'generalDocumentNote'),

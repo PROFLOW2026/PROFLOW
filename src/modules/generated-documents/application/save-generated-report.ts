@@ -30,7 +30,11 @@ export async function saveGeneratedReportToStorage(
   context: OrgContext,
   raw: SaveGeneratedReportInput,
 ): Promise<SaveGeneratedDocumentResult> {
-  assertPermission(context, PERMISSIONS.DOCUMENTS_MANAGE);
+  if (raw.kind === 'quote_estimate') {
+    assertPermission(context, PERMISSIONS.QUOTES_MANAGE);
+  } else {
+    assertPermission(context, PERMISSIONS.DOCUMENTS_MANAGE);
+  }
   assertReportKindPermission(context, raw.kind);
 
   const storageReady = await isOrganizationStorageConfigured(context);

@@ -55,6 +55,7 @@ describe('settings section grouping', () => {
       'projectTaskTemplates',
       'projectTemplates',
       'forms',
+      'quotes',
       'storage',
       'offlineDrafts',
       'modules',

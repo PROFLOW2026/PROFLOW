@@ -1,6 +1,7 @@
 'use client';
 
 import { QuoteEditorForm } from '@/modules/quotes/ui/quote-editor-form';
+import type { QuoteTextBlockDraft } from '@/modules/quotes/ui/quote-text-blocks-editor';
 
 export function QuoteCreateForm({
   defaultCurrency,
@@ -8,12 +9,14 @@ export function QuoteCreateForm({
   opportunityId,
   defaultTitle,
   defaultClientId,
+  defaultTextBlocks,
 }: {
   defaultCurrency: string;
   clients: readonly { id: string; name: string }[];
   opportunityId?: string | null;
   defaultTitle?: string;
   defaultClientId?: string | null;
+  defaultTextBlocks?: readonly QuoteTextBlockDraft[];
 }) {
   return (
     <QuoteEditorForm
@@ -23,6 +26,7 @@ export function QuoteCreateForm({
       opportunityId={opportunityId}
       defaultTitle={defaultTitle}
       defaultClientId={defaultClientId}
+      defaultTextBlocks={defaultTextBlocks}
     />
   );
 }

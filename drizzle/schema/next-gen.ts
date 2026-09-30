@@ -121,6 +121,59 @@ export const estimateLineItemsRelations = relations(estimateLineItems, ({ one })
     references: [estimates.id, estimates.organizationId],
   }),
 }));
+
+/** Org-wide reusable default sections for product quotes (Settings → Quotes). */
+export const quoteDefaultTextBlocks = pgTable(
+  'quote_default_text_blocks',
+  {
+    id: primaryId(),
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    title: text('title').notNull(),
+    body: text('body').notNull().default(''),
+    enabled: boolean('enabled').notNull().default(true),
+    sortOrder: integer('sort_order').notNull().default(0),
+    /** `legacy_terms` | `legacy_footer` when seeded from brand profile — not shown in UI. */
+    legacyKey: text('legacy_key'),
+    ...timestamps(),
+  },
+  (table) => [
+    uniqueIndex('quote_default_text_blocks_id_organization_id_uq').on(table.id, table.organizationId),
+    index('quote_default_text_blocks_org_order_idx').on(table.organizationId, table.sortOrder),
+    uniqueIndex('quote_default_text_blocks_org_legacy_uq')
+      .on(table.organizationId, table.legacyKey)
+      .where(sql`${table.legacyKey} IS NOT NULL`),
+  ],
+);
+
+/** Per-quote copy of text blocks (snapshot at create; editable while quote is editable). */
+export const estimateTextBlocks = pgTable(
+  'estimate_text_blocks',
+  {
+    id: primaryId(),
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    estimateId: uuid('estimate_id').notNull(),
+    title: text('title').notNull(),
+    body: text('body').notNull().default(''),
+    enabled: boolean('enabled').notNull().default(true),
+    sortOrder: integer('sort_order').notNull().default(0),
+    sourceDefaultBlockId: uuid('source_default_block_id'),
+    ...timestamps(),
+  },
+  (table) => [
+    uniqueIndex('estimate_text_blocks_id_organization_id_uq').on(table.id, table.organizationId),
+    index('estimate_text_blocks_estimate_idx').on(table.organizationId, table.estimateId),
+    foreignKey({
+      name: 'estimate_text_blocks_estimate_org_fk',
+      columns: [table.estimateId, table.organizationId],
+      foreignColumns: [estimates.id, estimates.organizationId],
+    }).onDelete('cascade'),
+  ],
+);
+
 /** Optional service / work-order layer on the same projects economic entity. */
 export const projectServiceDetails = pgTable(
   'project_service_details',

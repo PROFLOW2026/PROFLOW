@@ -8,6 +8,7 @@ import { Link } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { textNavLinkMutedClassName } from '@/components/ui/pressable';
+import { listQuoteSettingsBlocks } from '@/modules/quotes/application/manage-quote-settings';
 import { QuoteCreateForm } from './quote-create-form';
 
 export async function generateMetadata({
@@ -31,7 +32,7 @@ export default async function NewQuotePage({
   const opportunityId =
     rawOpportunityId && /^[0-9a-f-]{36}$/i.test(rawOpportunityId) ? rawOpportunityId : undefined;
 
-  const { clients, opportunity } = await withOrgContext(async (context) => {
+  const { clients, opportunity, defaultTextBlocks } = await withOrgContext(async (context) => {
     const listed = hasPermission(context, PERMISSIONS.CLIENTS_READ)
       ? await listClientsForOrg(context, { status: 'active' }).catch(() => [])
       : [];
@@ -43,7 +44,19 @@ export default async function NewQuotePage({
         linked = null;
       }
     }
-    return { clients: listed, opportunity: linked };
+    const settingsBlocks =
+      hasPermission(context, PERMISSIONS.QUOTES_READ)
+        ? await listQuoteSettingsBlocks(context)
+        : [];
+    const defaultTextBlocks = settingsBlocks
+      .filter((block) => block.enabled)
+      .map((block) => ({
+        title: block.title,
+        body: block.body,
+        enabled: true,
+        sortOrder: block.sortOrder,
+      }));
+    return { clients: listed, opportunity: linked, defaultTextBlocks };
   });
 
   const defaultClientId =
@@ -68,6 +81,7 @@ export default async function NewQuotePage({
         opportunityId={opportunity?.id ?? opportunityId}
         defaultTitle={opportunity?.name}
         defaultClientId={defaultClientId}
+        defaultTextBlocks={defaultTextBlocks}
       />
     </div>
   );

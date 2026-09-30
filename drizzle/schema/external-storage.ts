@@ -35,6 +35,7 @@ export const SEMANTIC_FOLDER_TYPES = [
   'client_root',
   'projects_root',
   'project_root',
+  'quotes_root',
   'quotes',
   'contracts',
   'billing',

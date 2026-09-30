@@ -29,6 +29,23 @@
     "pipelineBody": "Inquiries and opportunities through to a Product Quote and closing the work."
   },
   "newQuote": "New quote",
+  "settingsLink": "Settings",
+  "settings": {
+    "title": "Quote settings",
+    "subtitle": "Reusable text blocks copied into each new quote.",
+    "intro": "Edit default sections for customer-facing quotes. Changes here do not alter quotes already saved.",
+    "addBlock": "Add section",
+    "editBlock": "Edit",
+    "deleteBlock": "Delete",
+    "blockTitle": "Title",
+    "blockBody": "Content",
+    "blockEnabled": "Enabled by default",
+    "saveBlock": "Save section",
+    "saved": "Saved",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "order": "Order"
+  },
   "empty": {
     "title": "No quotes yet",
     "body": "Create a quote for a client. You can edit, issue, and convert it to a project, job, or work order.",
@@ -94,6 +111,8 @@
     "convertedTo": "Converted to work",
     "openWork": "Open project / job",
     "print": "Print / share",
+    "preview": "Preview",
+    "textBlocksTitle": "Quote text sections",
     "editDraft": "Edit draft",
     "markReady": "Mark ready",
     "markSent": "Issue quote",

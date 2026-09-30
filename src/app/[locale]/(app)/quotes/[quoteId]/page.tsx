@@ -16,7 +16,9 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { textNavLinkClassName, textNavLinkMutedClassName } from '@/components/ui/pressable';
 import { QuoteDetailActions, QuotePrintButton } from './quote-detail-actions';
 import { PrepareMessageLink } from '@/modules/communications/ui/prepare-message-link';
+import { reportPreviewPath } from '@/modules/reports/domain/paths';
 import { ReportDownloadButtons } from '@/modules/reports/ui';
+import { Button } from '@/components/ui/button';
 import { QuoteEditorForm } from '@/modules/quotes/ui/quote-editor-form';
 import { listClientsForOrg } from '@/modules/clients';
 
@@ -104,6 +106,9 @@ export default async function QuoteDetailPage({
         actions={
           <div className="flex items-center gap-2">
             <StatusBadge shape={quoteShape(quote.status)} label={tStatus(quote.status)} />
+            <Button asChild variant="secondary" size="sm">
+              <Link href={reportPreviewPath('quote_estimate', quoteId)}>{t('detail.preview')}</Link>
+            </Button>
             <QuotePrintButton label={t('detail.print')} />
             <PrepareMessageLink
               entityType="quote"
@@ -292,6 +297,12 @@ export default async function QuoteDetailPage({
             defaultDiscountAmount={quote.discountAmount}
             defaultListSubtotalAmount={quote.listSubtotalAmount}
             defaultDiscountPercent={quote.discountPercent}
+            defaultTextBlocks={quote.textBlocks.map((block) => ({
+              title: block.title,
+              body: block.body,
+              enabled: block.enabled,
+              sortOrder: block.sortOrder,
+            }))}
             defaultLines={quote.lines.map((line) => ({
               description: line.description,
               quantity: line.quantity,

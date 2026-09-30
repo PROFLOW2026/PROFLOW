@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { generateReport, isReportKind } from '@/modules/reports';
-import { ReportDownloadButtons, ReportPrintButton, ReportPrintView } from '@/modules/reports/ui';
+import { ReportBrandedPreview } from '@/modules/reports/ui/report-branded-preview';
+import { ReportDownloadButtons, ReportPrintButton } from '@/modules/reports/ui';
 import { supportsGeneratedStorageSave } from '@/modules/generated-documents/domain/supported-kinds';
 import { AppError } from '@/shared/errors';
 import { withOrgContext } from '@/shared/auth/session';
@@ -53,7 +54,7 @@ export default async function ReportPreviewPage({
           />
         ) : null}
       </div>
-      <ReportPrintView payload={payload} />
+      <ReportBrandedPreview payload={payload} />
     </div>
   );
 }

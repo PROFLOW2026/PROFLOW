@@ -4,6 +4,7 @@ import { getClientById } from '@/modules/clients';
 import { getPurchaseOrderById } from '@/modules/procurement';
 import { findContractById } from '@/modules/projects';
 import { getQuoteById } from '@/modules/quotes';
+import { quoteStorageFolderSegment } from '@/modules/quotes/domain/quote-storage-path';
 import type { OrgContext } from '@/shared/auth/context';
 import { NotFoundError, ValidationError } from '@/shared/errors';
 import type { ReportKind } from '@/modules/reports';
@@ -42,6 +43,7 @@ export async function resolveGeneratedDocumentBinding(
 
   if (kind === 'quote_estimate') {
     const quote = await getQuoteById(context, entityId);
+    const folderSegment = quoteStorageFolderSegment({ title: quote.title, quoteId: quote.id });
     if (quote.convertedProjectId) {
       return {
         ownerType: 'organization',
@@ -59,10 +61,10 @@ export async function resolveGeneratedDocumentBinding(
       ownerId: organizationId,
       sourceEntityType: 'quote',
       sourceEntityId: quote.id,
-      semanticFolder: 'organization_documents',
+      semanticFolder: 'quotes_root',
       folderEntityType: null,
       folderEntityId: null,
-      nestedPathSegments: [],
+      nestedPathSegments: [folderSegment],
     };
   }
 

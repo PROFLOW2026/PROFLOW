@@ -131,6 +131,8 @@ export async function transitionQuoteStatus(
       summary: updated.title,
       deepLink: `/quotes/${updated.id}`,
     });
+    const { saveApprovedQuoteArtifact } = await import('./quote-artifact');
+    await saveApprovedQuoteArtifact(context, updated.id);
   }
 
   return updated;

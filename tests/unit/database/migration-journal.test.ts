@@ -431,7 +431,10 @@ describe('migration journal', () => {
     expect(tags.indexOf('0150_org_project_task_template_assignees')).toBeLessThan(
       tags.indexOf('0151_expense_project_finalize_without_category'),
     );
-    expect(tags.at(-1)).toBe('0151_expense_project_finalize_without_category');
+    expect(tags.indexOf('0151_expense_project_finalize_without_category')).toBeLessThan(
+      tags.indexOf('0152_quotes_root_and_text_blocks'),
+    );
+    expect(tags.at(-1)).toBe('0152_quotes_root_and_text_blocks');
 
     const sql66 = await readFile(
       path.join(MIGRATIONS_DIR, '0066_workforce_time_integrity.sql'),

@@ -4,6 +4,7 @@ import {
   QUOTE_STATUSES,
   QUOTE_TAX_MODES,
 } from '../domain/types';
+import { QUOTE_TEXT_BLOCK_BODY_MAX } from '../domain/text-blocks';
 
 const emptyToNull = (value: unknown) => {
   if (value === '' || value === null || value === undefined) return null;
@@ -53,6 +54,13 @@ const quantityAmount = z
   .regex(/^\d+(\.\d+)?$/, 'Quantity must be a non-negative number')
   .refine((value) => Number(value) > 0, 'Quantity must be greater than zero');
 
+export const quoteTextBlockSchema = z.object({
+  title: z.string().trim().min(1).max(200),
+  body: z.string().max(QUOTE_TEXT_BLOCK_BODY_MAX),
+  enabled: z.boolean().optional().default(true),
+  sortOrder: z.number().int().min(0).optional(),
+});
+
 export const quoteLineSchema = z.object({
   description: z.string().trim().min(1).max(2000),
   quantity: quantityAmount.default('1'),
@@ -78,6 +86,7 @@ export const createQuoteSchema = z.object({
   listSubtotalAmount: optionalDiscountMoney,
   discountPercent: optionalDiscountPercent,
   lines: z.array(quoteLineSchema).min(1, 'At least one line item is required'),
+  textBlocks: z.array(quoteTextBlockSchema).optional(),
   /** Back-reference to the CRM sales quote this was converted from. */
   sourceCrmQuoteId: optionalUuid,
 });
@@ -99,6 +108,7 @@ export const updateQuoteSchema = z.object({
   listSubtotalAmount: optionalDiscountMoney,
   discountPercent: optionalDiscountPercent,
   lines: z.array(quoteLineSchema).min(1).optional(),
+  textBlocks: z.array(quoteTextBlockSchema).optional(),
 });
 
 export type UpdateQuoteInput = z.input<typeof updateQuoteSchema>;

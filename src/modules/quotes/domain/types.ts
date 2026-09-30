@@ -3,6 +3,7 @@
  */
 
 import { AUDIT_ACTIONS } from '@/shared/audit/actions';
+import type { EstimateTextBlockRecord } from './text-blocks';
 
 export const QUOTE_STATUSES = [
   'draft',
@@ -82,6 +83,7 @@ export interface QuoteRecord {
 export interface QuoteDetail extends QuoteRecord {
   readonly lines: readonly QuoteLineItemRecord[];
   readonly clientName: string | null;
+  readonly textBlocks: readonly EstimateTextBlockRecord[];
 }
 
 export interface QuoteListItem {

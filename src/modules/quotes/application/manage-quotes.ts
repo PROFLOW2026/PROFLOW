@@ -175,7 +175,7 @@ export async function createQuote(
     createdByUserId: context.userId,
   });
 
-  const lines = await replaceQuoteLines(
+  await replaceQuoteLines(
     context.db,
     context.organizationId,
     quote.id,
@@ -236,11 +236,28 @@ export async function createQuote(
     deepLink: `/quotes/${quote.id}`,
   });
 
-  return {
-    ...quote,
-    lines,
-    clientName: null,
-  };
+  const { copyDefaultBlocksToEstimate, replaceEstimateTextBlocks } = await import(
+    '../data/text-blocks.repository'
+  );
+  if (input.textBlocks && input.textBlocks.length > 0) {
+    await replaceEstimateTextBlocks(
+      context.db,
+      context.organizationId,
+      quote.id,
+      input.textBlocks.map((block, index) => ({
+        title: block.title,
+        body: block.body,
+        enabled: block.enabled ?? true,
+        sortOrder: block.sortOrder ?? index,
+      })),
+    );
+  } else {
+    await copyDefaultBlocksToEstimate(context.db, context.organizationId, quote.id);
+  }
+
+  const detail = await findQuoteDetail(context.db, context.organizationId, quote.id);
+  if (!detail) throw new NotFoundError('Quote');
+  return detail;
 }
 
 export async function updateQuote(
@@ -319,6 +336,21 @@ export async function updateQuote(
     ...totalsPatch,
   });
   if (!updated) throw new NotFoundError('Quote');
+
+  if (input.textBlocks) {
+    const { replaceEstimateTextBlocks } = await import('../data/text-blocks.repository');
+    await replaceEstimateTextBlocks(
+      context.db,
+      context.organizationId,
+      existing.id,
+      input.textBlocks.map((block, index) => ({
+        title: block.title,
+        body: block.body,
+        enabled: block.enabled ?? true,
+        sortOrder: block.sortOrder ?? index,
+      })),
+    );
+  }
 
   await noteModuleUsage(context.db, context.organizationId, 'quotes');
   await recordAuditEvent(context, {

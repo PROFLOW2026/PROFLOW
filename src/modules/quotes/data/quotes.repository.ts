@@ -141,7 +141,9 @@ export async function findQuoteDetail(
     clientName = client?.name ?? null;
   }
 
-  return { ...quote, lines, clientName };
+  const { listEstimateTextBlocks } = await import('./text-blocks.repository');
+  const textBlocks = await listEstimateTextBlocks(db, organizationId, quoteId);
+  return { ...quote, lines, clientName, textBlocks };
 }
 
 export async function listQuoteLines(

@@ -644,6 +644,79 @@ async function buildQuote(
       });
     }
   }
+  if (quote.discountAmount || quote.listSubtotalAmount || quote.discountPercent) {
+    if (quote.listSubtotalAmount) {
+      totalRows.unshift({
+        label: ctx.copy.fields.subtotal,
+        value: formatMoney(money(quote.listSubtotalAmount, currency), ctx.locale),
+      });
+    }
+    if (quote.discountAmount) {
+      totalRows.splice(totalRows.length - 2, 0, {
+        label: 'Discount',
+        value: formatMoney(money(quote.discountAmount, currency), ctx.locale),
+      });
+    }
+    if (quote.discountPercent) {
+      totalRows.splice(totalRows.length - 2, 0, {
+        label: 'Discount %',
+        value: formatPercent(quote.discountPercent, ctx.locale),
+      });
+    }
+  }
+
+  const sections: ReportSection[] = [];
+
+  if (quote.description?.trim()) {
+    sections.push({
+      id: 'description',
+      heading: ctx.copy.fields.description,
+      paragraphs: [quote.description.trim()],
+    });
+  }
+
+  sections.push({
+    id: 'lines',
+    heading: ctx.copy.sections.quoteLines,
+    tables:
+      lineRows.length > 0 ? [{ headers: lineHeaders, rows: lineRows }] : undefined,
+    paragraphs: lineRows.length === 0 ? [ctx.copy.empty.lines] : [ctx.copy.notices.quoteNotBilling],
+  });
+
+  sections.push({
+    id: 'totals',
+    heading: ctx.copy.sections.quoteTotals,
+    rows: totalRows,
+    paragraphs: [ctx.copy.notices.vatNotProfit, ctx.copy.notices.quoteNotBilling],
+  });
+
+  for (const block of quote.textBlocks ?? []) {
+    if (!block.enabled) continue;
+    const body = block.body.trim();
+    if (!body) continue;
+    sections.push({
+      id: `text-block-${block.id}`,
+      heading: block.title,
+      paragraphs: [body],
+    });
+  }
+
+  if (quote.notes?.trim()) {
+    sections.push({
+      id: 'notes',
+      heading: 'Notes',
+      paragraphs: [quote.notes.trim()],
+    });
+  }
+
+  if (quote.validityDate) {
+    sections.push({
+      id: 'validity',
+      heading: 'Valid until',
+      paragraphs: [quote.validityDate],
+    });
+  }
+
   const omitted = canProfit ? {} : { profit: true as const };
   return envelope({
     kind: 'quote_estimate',
@@ -657,23 +730,7 @@ async function buildQuote(
       clientName: quote.clientName,
       extra: quote.title,
     },
-    sections: [
-      {
-        id: 'lines',
-        heading: ctx.copy.sections.quoteLines,
-        tables:
-          lineRows.length > 0
-            ? [{ headers: lineHeaders, rows: lineRows }]
-            : undefined,
-        paragraphs: lineRows.length === 0 ? [ctx.copy.empty.lines] : [ctx.copy.notices.quoteNotBilling],
-      },
-      {
-        id: 'totals',
-        heading: ctx.copy.sections.quoteTotals,
-        rows: totalRows,
-        paragraphs: [ctx.copy.notices.vatNotProfit, ctx.copy.notices.quoteNotBilling],
-      },
-    ],
+    sections,
     notices: [ctx.copy.notices.quoteNotBilling, ctx.copy.notices.vatNotProfit],
     omitted,
   });

@@ -75,6 +75,30 @@ function parseLines(formData: FormData) {
   return lines;
 }
 
+function parseTextBlocks(formData: FormData) {
+  const count = Number(formData.get('textBlockCount') ?? '0');
+  if (!Number.isFinite(count) || count <= 0) return undefined;
+  const blocks: Array<{
+    title: string;
+    body: string;
+    enabled: boolean;
+    sortOrder: number;
+  }> = [];
+  for (let i = 0; i < count; i += 1) {
+    const title = formValue(formData, `textBlock.${i}.title`);
+    const bodyRaw = formData.get(`textBlock.${i}.body`);
+    if (!title || bodyRaw === null) continue;
+    const enabledRaw = formValue(formData, `textBlock.${i}.enabled`);
+    blocks.push({
+      title,
+      body: String(bodyRaw),
+      enabled: enabledRaw !== 'false',
+      sortOrder: Number(formValue(formData, `textBlock.${i}.sortOrder`) ?? i),
+    });
+  }
+  return blocks.length > 0 ? blocks : undefined;
+}
+
 export async function createQuoteAction(
   _prev: QuotesFormState,
   formData: FormData,
@@ -95,6 +119,7 @@ export async function createQuoteAction(
         listSubtotalAmount: formValue(formData, 'listSubtotalAmount') ?? null,
         discountPercent: formValue(formData, 'discountPercent') ?? null,
         lines: parseLines(formData),
+        textBlocks: parseTextBlocks(formData),
         opportunityId: optionalUuid(formData, 'opportunityId'),
       }),
     );
@@ -126,6 +151,7 @@ export async function updateQuoteAction(
         listSubtotalAmount: formValue(formData, 'listSubtotalAmount') ?? null,
         discountPercent: formValue(formData, 'discountPercent') ?? null,
         lines: parseLines(formData),
+        textBlocks: parseTextBlocks(formData),
       }),
     );
     revalidatePath('/quotes');

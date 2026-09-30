@@ -7,6 +7,7 @@ export const SEMANTIC_FOLDER_DISPLAY: Record<SemanticFolderType, string> = {
   client_root: '',
   projects_root: 'פרויקטים',
   project_root: '',
+  quotes_root: 'הצעות מחיר',
   quotes: '01 - הצעות מחיר',
   contracts: '02 - חוזים',
   billing: '03 - חשבונות חיוב',
@@ -36,6 +37,7 @@ export const PROJECT_SEMANTIC_FOLDERS: readonly SemanticFolderType[] = [
 export const ORGANIZATION_BASE_FOLDERS: readonly SemanticFolderType[] = [
   'clients_root',
   'projects_root',
+  'quotes_root',
   'vendors_root',
   'employees_root',
   'organization_documents',

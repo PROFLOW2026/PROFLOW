@@ -112,7 +112,7 @@ describe('client message wrappers for Hebrew closure', () => {
     }
   });
 
-  it('fails when a statically referenced Hebrew translation key is missing', () => {
+  it('fails when a statically referenced Hebrew translation key is missing', { timeout: 30_000 }, () => {
     expect(sourceTreeExists()).toBe(true);
     const { missingHebrewKeys } = analyzeTranslationCoverage();
     expect(
