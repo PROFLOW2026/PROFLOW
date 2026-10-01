@@ -95,7 +95,7 @@ export async function QuotesOrgListView({
             canManage ? (
               <div className="flex flex-wrap items-center gap-2">
                 <Button asChild variant="secondary">
-                  <Link href="/settings/quotes">{t('settingsLink')}</Link>
+                  <Link href="/quotes/settings">{t('settingsLink')}</Link>
                 </Button>
                 <Button asChild>
                   <Link href={`${routeBase}/new`}>

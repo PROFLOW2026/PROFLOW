@@ -25,7 +25,6 @@ export type SettingsSectionKey =
   | 'portal'
   | 'customFields'
   | 'forms'
-  | 'quotes'
   | 'api'
   | 'activity'
   | 'app'
@@ -109,7 +108,6 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
   },
   { key: 'projectTemplates', href: '/settings/project-templates', permission: PERMISSIONS.PROJECT_TEMPLATES_MANAGE, group: 'workflow' },
   { key: 'forms', href: '/settings/forms', permission: PERMISSIONS.FORMS_MANAGE, group: 'workflow' },
-  { key: 'quotes', href: '/settings/quotes', permission: PERMISSIONS.QUOTES_READ, group: 'workflow' },
   { key: 'adoption', href: '/settings/adoption', permission: PERMISSIONS.SETTINGS_MANAGE, group: 'workflow', hideFromNav: true },
 
   {
@@ -230,8 +228,6 @@ export function canManageSection(context: OrgContext, sectionKey: SettingsSectio
       return hasPermission(context, PERMISSIONS.CUSTOM_FIELDS_MANAGE);
     case 'forms':
       return hasPermission(context, PERMISSIONS.FORMS_MANAGE);
-    case 'quotes':
-      return hasPermission(context, PERMISSIONS.QUOTES_MANAGE);
     case 'api':
       return hasPermission(context, PERMISSIONS.API_MANAGE);
     case 'banking':

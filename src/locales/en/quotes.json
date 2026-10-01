@@ -32,7 +32,7 @@
   "settingsLink": "Settings",
   "settings": {
     "title": "Quote settings",
-    "subtitle": "Default text sections included in new quotes.",
+    "subtitle": "Define fixed content that appears in new quotes.",
     "emptyBlocks": "No default text sections yet.",
     "addBlock": "Add section",
     "editBlock": "Edit",

@@ -580,7 +580,7 @@ export function BrandingSettingsPanel({
             </Field>
             <p className="text-sm text-[var(--pf-text-secondary)]">
               {t('quoteTextsMoved')}{' '}
-              <Link href="/settings/quotes" className="font-medium text-[var(--pf-action-primary)] underline-offset-2 hover:underline">
+              <Link href="/quotes/settings" className="font-medium text-[var(--pf-action-primary)] underline-offset-2 hover:underline">
                 {t('quoteTextsMovedLink')}
               </Link>
             </p>

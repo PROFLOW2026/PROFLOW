@@ -28,6 +28,11 @@ function formNumber(formData: FormData, key: string, fallback: number): number {
   return Number.isFinite(n) ? n : fallback;
 }
 
+function revalidateQuoteSettingsPaths() {
+  revalidatePath('/quotes/settings');
+  revalidatePath('/settings/quotes');
+}
+
 export async function saveQuoteSettingsBlockAction(
   _prev: QuoteSettingsFormState,
   formData: FormData,
@@ -42,7 +47,7 @@ export async function saveQuoteSettingsBlockAction(
         sortOrder: formNumber(formData, 'sortOrder', 0),
       }),
     );
-    revalidatePath('/settings/quotes');
+    revalidateQuoteSettingsPaths();
     return { success: true };
   } catch (error) {
     const tErrors = await getTranslations('errors');
@@ -57,7 +62,7 @@ export async function deleteQuoteSettingsBlockAction(
   try {
     const blockId = String(formData.get('blockId') ?? '').trim();
     await withOrgContext((context) => deleteQuoteSettingsBlock(context, blockId));
-    revalidatePath('/settings/quotes');
+    revalidateQuoteSettingsPaths();
     return { success: true };
   } catch (error) {
     const tErrors = await getTranslations('errors');
@@ -71,7 +76,7 @@ export async function reorderQuoteSettingsBlockAction(
 ): Promise<QuoteSettingsFormState> {
   try {
     await withOrgContext((context) => reorderQuoteSettingsBlock(context, blockId, direction));
-    revalidatePath('/settings/quotes');
+    revalidateQuoteSettingsPaths();
     return { success: true };
   } catch (error) {
     const tErrors = await getTranslations('errors');
@@ -85,7 +90,7 @@ export async function toggleQuoteSettingsBlockAction(
 ): Promise<QuoteSettingsFormState> {
   try {
     await withOrgContext((context) => setQuoteSettingsBlockEnabled(context, blockId, enabled));
-    revalidatePath('/settings/quotes');
+    revalidateQuoteSettingsPaths();
     return { success: true };
   } catch (error) {
     const tErrors = await getTranslations('errors');
