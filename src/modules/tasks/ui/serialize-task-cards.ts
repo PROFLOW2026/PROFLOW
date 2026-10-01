@@ -1,5 +1,10 @@
 import type { TaskCardData } from './_task-api-stub';
 
+function coerceIsoTimestamp(value: unknown): string {
+  if (value instanceof Date) return value.toISOString();
+  return String(value ?? '');
+}
+
 /** Ensures RSC → client boundaries receive JSON-serializable task cards. */
 export function serializeTaskCardsForClient(tasks: readonly TaskCardData[]): TaskCardData[] {
   return tasks.map((task) => ({
@@ -16,14 +21,8 @@ export function serializeTaskCardsForClient(tasks: readonly TaskCardData[]): Tas
       task.progressWeight == null || task.progressWeight === ''
         ? null
         : String(task.progressWeight),
-    createdAt:
-      task.createdAt instanceof Date
-        ? task.createdAt.toISOString()
-        : String(task.createdAt),
-    updatedAt:
-      task.updatedAt instanceof Date
-        ? task.updatedAt.toISOString()
-        : String(task.updatedAt),
+    createdAt: coerceIsoTimestamp(task.createdAt),
+    updatedAt: coerceIsoTimestamp(task.updatedAt),
     assignees: task.assignees.map((assignee) => ({
       id: assignee.id,
       displayName: assignee.displayName ?? null,
