@@ -58,6 +58,7 @@ import type { TaskListFilters, TaskStatus, TaskPriority, TaskDependencyType } fr
 import { MY_WORK_VIEW_LIMIT, TASK_LIST_MAX_LIMIT } from '@/modules/tasks/domain/list-window';
 import { mapTasksToCardDataForOrg } from '@/modules/tasks/application/map-tasks-for-ui';
 import type { TaskCardData } from '@/modules/tasks/ui/_task-api-stub';
+import { serializeTaskCardsForClient } from '@/modules/tasks/ui/serialize-task-cards';
 
 // ─── Shared state type ────────────────────────────────────────────────────────
 
@@ -142,10 +143,25 @@ export async function loadMoreAccessibleTasksAction(input: {
       ? page.tasks.filter((task) => task.status !== 'cancelled')
       : page.tasks;
     return {
-      tasks: await mapTasksToCardDataForOrg(context, visible),
+      tasks: serializeTaskCardsForClient(await mapTasksToCardDataForOrg(context, visible)),
       hasMore: page.hasMore,
       nextOffset: input.offset + page.tasks.length,
     };
+  });
+}
+
+export async function loadMoreGlobalBoardTasksAction(offset: number) {
+  return loadMoreAccessibleTasksAction({
+    offset,
+    limit: TASK_LIST_MAX_LIMIT,
+    excludeCancelled: true,
+  });
+}
+
+export async function loadMoreWorkSurfaceTasksAction(offset: number) {
+  return loadMoreAccessibleTasksAction({
+    offset,
+    limit: TASK_LIST_MAX_LIMIT,
   });
 }
 
@@ -156,7 +172,7 @@ export async function loadMoreMyWorkAction(
   return withOrgContext(async (context) => {
     const page = await getMyWorkPage(context, { view, limit: MY_WORK_VIEW_LIMIT, offset });
     return {
-      tasks: await mapTasksToCardDataForOrg(context, page.tasks),
+      tasks: serializeTaskCardsForClient(await mapTasksToCardDataForOrg(context, page.tasks)),
       hasMore: page.hasMore,
     };
   });

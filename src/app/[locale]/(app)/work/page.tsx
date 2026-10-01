@@ -10,6 +10,7 @@ import type { MyWorkView } from '@/modules/tasks';
 import { MY_WORK_VIEW_LIMIT } from '@/modules/tasks/domain/list-window';
 import { mapTasksToCardDataForOrg } from '@/modules/tasks/application/map-tasks-for-ui';
 import type { MyWorkItem, TaskCardData } from '@/modules/tasks/ui/_task-api-stub';
+import { serializeTaskCardsForClient } from '@/modules/tasks/ui/serialize-task-cards';
 import { MyWorkView as MyWorkViewComponent } from '@/modules/tasks/ui/my-work-view';
 import { getTaskDetailAction, loadMoreMyWorkAction, updateTaskFieldsAction } from './actions';
 
@@ -35,17 +36,8 @@ const MY_WORK_VIEWS: MyWorkView[] = [
   'no_project',
 ];
 
-/** Ensures RSC → client boundary receives only JSON-serializable task cards. */
 function serializeMyWorkItems(tasks: TaskCardData[]): MyWorkItem[] {
-  return tasks.map(
-    (task) =>
-      ({
-        ...task,
-        dueDate: task.dueDate ?? null,
-        createdAt: String(task.createdAt),
-        updatedAt: String(task.updatedAt),
-      }) as MyWorkItem,
-  );
+  return serializeTaskCardsForClient(tasks) as MyWorkItem[];
 }
 
 /**

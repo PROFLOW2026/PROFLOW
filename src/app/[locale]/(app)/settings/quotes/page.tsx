@@ -38,7 +38,7 @@ export default async function QuoteSettingsPage() {
 
   return (
     <SettingsPageShell title={t('title')} description={t('subtitle')}>
-      <Card className="p-5">
+      <Card className="min-w-0 overflow-hidden p-5">
         <QuoteSettingsPanel blocks={data.blocks} canEdit={data.canEdit} />
       </Card>
     </SettingsPageShell>

@@ -1,13 +1,20 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
+import { notFound } from 'next/navigation';
 import { PageHeader } from '@/components/ui/page-header';
-import { withOrgContext } from '@/shared/auth/session';
+import { withOrgContext, getShellContext } from '@/shared/auth/session';
+import { PERMISSIONS } from '@/shared/permissions/catalog';
 // Agent A's real API
 import { listAccessibleTasksPage } from '@/modules/tasks';
 import { TASK_LIST_MAX_LIMIT } from '@/modules/tasks/domain/list-window';
 import { mapTasksToCardDataForOrg } from '@/modules/tasks/application/map-tasks-for-ui';
 import { GlobalBoardView } from './_global-board-view';
-import { getTaskDetailAction, loadMoreAccessibleTasksAction, updateTaskFieldsAction } from '../actions';
+import { serializeTaskCardsForClient } from '@/modules/tasks/ui/serialize-task-cards';
+import {
+  getTaskDetailAction,
+  loadMoreGlobalBoardTasksAction,
+  updateTaskFieldsAction,
+} from '../actions';
 
 export async function generateMetadata({
   params,
@@ -27,6 +34,11 @@ export async function generateMetadata({
  * /workspaces/[workspaceId]/boards/[boardId] and /projects/[projectId]/boards/[boardId].
  */
 export default async function GlobalBoardPage() {
+  const shell = await getShellContext();
+  if (!shell?.permissions.has(PERMISSIONS.TASKS_READ) || !shell.modules.work_management) {
+    notFound();
+  }
+
   const t = await getTranslations('tasks');
 
   const board = await withOrgContext(async (context) => {
@@ -36,7 +48,7 @@ export default async function GlobalBoardPage() {
     });
     const visible = page.tasks.filter((task) => task.status !== 'cancelled');
     return {
-      tasks: await mapTasksToCardDataForOrg(context, visible),
+      tasks: serializeTaskCardsForClient(await mapTasksToCardDataForOrg(context, visible)),
       hasMore: page.hasMore,
       nextOffset: page.tasks.length,
     };
@@ -55,13 +67,7 @@ export default async function GlobalBoardPage() {
         nextOffset={board.nextOffset}
         onLoadTaskDetail={getTaskDetailAction}
         onUpdateTask={updateTaskFieldsAction}
-        onLoadMore={(offset) =>
-          loadMoreAccessibleTasksAction({
-            offset,
-            limit: TASK_LIST_MAX_LIMIT,
-            excludeCancelled: true,
-          })
-        }
+        onLoadMore={loadMoreGlobalBoardTasksAction}
       />
     </div>
   );

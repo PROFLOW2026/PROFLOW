@@ -1,18 +1,40 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { Plus } from 'lucide-react';
+import { useActionState, useCallback, useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { ConfirmAction } from '@/components/patterns/confirm-action';
 import { Alert } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { EmptyState } from '@/components/ui/empty-state';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import type { QuoteDefaultTextBlockRecord } from '@/modules/quotes/domain/text-blocks';
 import {
   deleteQuoteSettingsBlockAction,
+  reorderQuoteSettingsBlockAction,
   saveQuoteSettingsBlockAction,
+  toggleQuoteSettingsBlockAction,
   type QuoteSettingsFormState,
 } from './actions';
+
+type BlockDraft = {
+  blockId?: string;
+  title: string;
+  body: string;
+  enabled: boolean;
+  sortOrder: number;
+};
 
 export function QuoteSettingsPanel({
   blocks: initialBlocks,
@@ -23,31 +45,44 @@ export function QuoteSettingsPanel({
 }) {
   const t = useTranslations('quotes.settings');
   const tCommon = useTranslations('common');
-  const [blocks] = useState([...initialBlocks]);
+  const router = useRouter();
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [draft, setDraft] = useState<BlockDraft | null>(null);
+  const [pending, startTransition] = useTransition();
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  const saveBlock = useCallback(
+    async (prev: QuoteSettingsFormState, formData: FormData) => {
+      const result = await saveQuoteSettingsBlockAction(prev, formData);
+      if (result.success) {
+        setEditorOpen(false);
+        setDraft(null);
+        router.refresh();
+      }
+      return result;
+    },
+    [router],
+  );
+
   const [saveState, saveAction, savePending] = useActionState<
     QuoteSettingsFormState,
     FormData
-  >(saveQuoteSettingsBlockAction, {});
-  const [deleteState, deleteAction, deletePending] = useActionState<
-    QuoteSettingsFormState,
-    FormData
-  >(deleteQuoteSettingsBlockAction, {});
+  >(saveBlock, {});
 
-  const [draft, setDraft] = useState<{
-    blockId?: string;
-    title: string;
-    body: string;
-    enabled: boolean;
-    sortOrder: number;
-  } | null>(null);
+  const sortedBlocks = [...initialBlocks].sort(
+    (a, b) => a.sortOrder - b.sortOrder || a.title.localeCompare(b.title, 'he'),
+  );
 
-  function startNew() {
+  function openNewBlock() {
     const nextOrder =
-      blocks.length > 0 ? Math.max(...blocks.map((b) => b.sortOrder)) + 10 : 0;
+      sortedBlocks.length > 0
+        ? Math.max(...sortedBlocks.map((block) => block.sortOrder)) + 10
+        : 0;
     setDraft({ title: '', body: '', enabled: true, sortOrder: nextOrder });
+    setEditorOpen(true);
   }
 
-  function startEdit(block: QuoteDefaultTextBlockRecord) {
+  function openEditBlock(block: QuoteDefaultTextBlockRecord) {
     setDraft({
       blockId: block.id,
       title: block.title,
@@ -55,59 +90,158 @@ export function QuoteSettingsPanel({
       enabled: block.enabled,
       sortOrder: block.sortOrder,
     });
+    setEditorOpen(true);
+  }
+
+  function runBlockAction(action: () => Promise<QuoteSettingsFormState>) {
+    setActionError(null);
+    startTransition(() => {
+      void action().then((result) => {
+        if (result.error) {
+          setActionError(result.error);
+          return;
+        }
+        router.refresh();
+      });
+    });
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex min-w-0 flex-col gap-4">
       {saveState.error ? <Alert tone="danger">{saveState.error}</Alert> : null}
-      {deleteState.error ? <Alert tone="danger">{deleteState.error}</Alert> : null}
+      {actionError ? <Alert tone="danger">{actionError}</Alert> : null}
       {saveState.success ? <Alert tone="success">{t('saved')}</Alert> : null}
 
-      <p className="text-sm text-[var(--pf-text-secondary)]">{t('intro')}</p>
+      {canEdit ? (
+        <div>
+          <Button type="button" className="w-fit gap-1.5" onClick={openNewBlock}>
+            <Plus className="size-4" aria-hidden />
+            {t('addBlock')}
+          </Button>
+        </div>
+      ) : null}
 
-      <ul className="flex flex-col gap-3">
-        {blocks.map((block) => (
-          <li
-            key={block.id}
-            className="rounded-lg border border-[var(--pf-border-default)] p-4"
-          >
-            <div className="flex flex-wrap items-start justify-between gap-2">
-              <div>
-                <p className="font-medium">{block.title}</p>
-                <p className="text-xs text-[var(--pf-text-muted)]">
-                  {block.enabled ? t('enabled') : t('disabled')} · {t('order')}{' '}
-                  {block.sortOrder}
-                </p>
+      {sortedBlocks.length === 0 ? (
+        <EmptyState
+          title={t('emptyBlocks')}
+          className="min-w-0"
+          action={
+            canEdit ? (
+              <Button type="button" className="w-fit gap-1.5" onClick={openNewBlock}>
+                <Plus className="size-4" aria-hidden />
+                {t('addBlock')}
+              </Button>
+            ) : undefined
+          }
+        />
+      ) : (
+        <ul className="flex min-w-0 flex-col gap-3">
+          {sortedBlocks.map((block, index) => (
+            <li
+              key={block.id}
+              className="min-w-0 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4"
+            >
+              <div className="flex min-w-0 flex-wrap items-start justify-between gap-3">
+                <div className="min-w-0 flex-1 text-start">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="font-medium break-words">{block.title}</p>
+                    <Badge tone={block.enabled ? 'success' : 'neutral'}>
+                      {block.enabled ? t('enabled') : t('disabled')}
+                    </Badge>
+                  </div>
+                </div>
               </div>
+
+              <p className="mt-3 whitespace-pre-wrap break-words text-sm text-[var(--pf-text-secondary)]">
+                {block.body}
+              </p>
+
               {canEdit ? (
-                <div className="flex gap-2">
-                  <Button type="button" variant="secondary" size="sm" onClick={() => startEdit(block)}>
+                <div className="mt-4 flex min-w-0 flex-wrap items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => openEditBlock(block)}
+                  >
                     {t('editBlock')}
                   </Button>
-                  <form action={deleteAction}>
-                    <input type="hidden" name="blockId" value={block.id} />
-                    <Button type="submit" variant="ghost" size="sm" disabled={deletePending}>
-                      {t('deleteBlock')}
-                    </Button>
-                  </form>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    disabled={pending || index === 0}
+                    aria-label={t('moveUp')}
+                    onClick={() =>
+                      runBlockAction(() => reorderQuoteSettingsBlockAction(block.id, 'up'))
+                    }
+                  >
+                    ↑
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    disabled={pending || index === sortedBlocks.length - 1}
+                    aria-label={t('moveDown')}
+                    onClick={() =>
+                      runBlockAction(() => reorderQuoteSettingsBlockAction(block.id, 'down'))
+                    }
+                  >
+                    ↓
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    disabled={pending}
+                    onClick={() =>
+                      runBlockAction(() =>
+                        toggleQuoteSettingsBlockAction(block.id, !block.enabled),
+                      )
+                    }
+                  >
+                    {block.enabled ? t('disableBlock') : t('enableBlock')}
+                  </Button>
+                  <ConfirmAction
+                    title={t('deleteBlock')}
+                    description={<p>{t('deleteConfirm', { title: block.title })}</p>}
+                    confirmLabel={t('deleteBlock')}
+                    successMessage={t('saved')}
+                    onConfirm={async () => {
+                      const formData = new FormData();
+                      formData.set('blockId', block.id);
+                      const result = await deleteQuoteSettingsBlockAction({}, formData);
+                      if (result.error) return { error: result.error };
+                      router.refresh();
+                      return { ok: true };
+                    }}
+                    trigger={
+                      <Button type="button" variant="ghost" size="sm">
+                        {t('deleteBlock')}
+                      </Button>
+                    }
+                  />
                 </div>
               ) : null}
-            </div>
-            <p className="mt-2 line-clamp-4 whitespace-pre-wrap text-sm text-[var(--pf-text-secondary)]">
-              {block.body}
-            </p>
-          </li>
-        ))}
-      </ul>
+            </li>
+          ))}
+        </ul>
+      )}
 
-      {canEdit ? (
-        <div className="flex flex-col gap-4">
-          {!draft ? (
-            <Button type="button" onClick={startNew}>
-              {t('addBlock')}
-            </Button>
-          ) : (
-            <form action={saveAction} className="flex flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-4">
+      <Dialog
+        open={editorOpen}
+        onOpenChange={(open) => {
+          setEditorOpen(open);
+          if (!open) setDraft(null);
+        }}
+      >
+        <DialogContent className="max-h-[min(90vh,720px)] overflow-y-auto sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{draft?.blockId ? t('editBlock') : t('addBlock')}</DialogTitle>
+          </DialogHeader>
+          {draft ? (
+            <form action={saveAction} className="flex flex-col gap-3">
               {draft.blockId ? <input type="hidden" name="blockId" value={draft.blockId} /> : null}
               <input type="hidden" name="sortOrder" value={draft.sortOrder} />
               <Field label={t('blockTitle')} required>
@@ -117,7 +251,7 @@ export function QuoteSettingsPanel({
                     name="title"
                     required
                     value={draft.title}
-                    onChange={(e) => setDraft({ ...draft, title: e.target.value })}
+                    onChange={(event) => setDraft({ ...draft, title: event.target.value })}
                   />
                 )}
               </Field>
@@ -127,9 +261,10 @@ export function QuoteSettingsPanel({
                     {...control}
                     name="body"
                     required
-                    rows={8}
+                    rows={10}
+                    className="min-h-[12rem] w-full max-w-full"
                     value={draft.body}
-                    onChange={(e) => setDraft({ ...draft, body: e.target.value })}
+                    onChange={(event) => setDraft({ ...draft, body: event.target.value })}
                   />
                 )}
               </Field>
@@ -138,24 +273,31 @@ export function QuoteSettingsPanel({
                   type="checkbox"
                   name="enabled"
                   checked={draft.enabled}
-                  onChange={(e) => setDraft({ ...draft, enabled: e.target.checked })}
+                  onChange={(event) => setDraft({ ...draft, enabled: event.target.checked })}
                   value="true"
                 />
                 {t('blockEnabled')}
               </label>
               {!draft.enabled ? <input type="hidden" name="enabled" value="false" /> : null}
-              <div className="flex gap-2">
+              <DialogFooter className="gap-2 sm:justify-start">
                 <Button type="submit" disabled={savePending}>
                   {t('saveBlock')}
                 </Button>
-                <Button type="button" variant="ghost" onClick={() => setDraft(null)}>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => {
+                    setEditorOpen(false);
+                    setDraft(null);
+                  }}
+                >
                   {tCommon('actions.cancel')}
                 </Button>
-              </div>
+              </DialogFooter>
             </form>
-          )}
-        </div>
-      ) : null}
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

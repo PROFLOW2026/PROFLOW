@@ -72,3 +72,41 @@ export async function deleteQuoteSettingsBlock(
   const ok = await deleteQuoteDefaultTextBlock(context.db, context.organizationId, blockId);
   if (!ok) throw new ValidationError([{ path: 'blockId', message: 'Not found' }]);
 }
+
+export async function reorderQuoteSettingsBlock(
+  context: OrgContext,
+  blockId: string,
+  direction: 'up' | 'down',
+): Promise<void> {
+  assertPermission(context, PERMISSIONS.QUOTES_MANAGE);
+  const blocks = [...(await listQuoteDefaultTextBlocks(context.db, context.organizationId))];
+  const index = blocks.findIndex((block) => block.id === blockId);
+  if (index < 0) {
+    throw new ValidationError([{ path: 'blockId', message: 'Not found' }]);
+  }
+  const targetIndex = direction === 'up' ? index - 1 : index + 1;
+  if (targetIndex < 0 || targetIndex >= blocks.length) return;
+
+  const current = blocks[index]!;
+  const neighbor = blocks[targetIndex]!;
+  await updateQuoteDefaultTextBlock(context.db, context.organizationId, current.id, {
+    sortOrder: neighbor.sortOrder,
+  });
+  await updateQuoteDefaultTextBlock(context.db, context.organizationId, neighbor.id, {
+    sortOrder: current.sortOrder,
+  });
+}
+
+export async function setQuoteSettingsBlockEnabled(
+  context: OrgContext,
+  blockId: string,
+  enabled: boolean,
+): Promise<void> {
+  assertPermission(context, PERMISSIONS.QUOTES_MANAGE);
+  const updated = await updateQuoteDefaultTextBlock(context.db, context.organizationId, blockId, {
+    enabled,
+  });
+  if (!updated) {
+    throw new ValidationError([{ path: 'blockId', message: 'Not found' }]);
+  }
+}

@@ -2,6 +2,8 @@
 
 import {
   deleteQuoteSettingsBlock,
+  reorderQuoteSettingsBlock,
+  setQuoteSettingsBlockEnabled,
   upsertQuoteSettingsBlock,
 } from '@/modules/quotes/application/manage-quote-settings';
 import { withOrgContext } from '@/shared/auth/session';
@@ -55,6 +57,34 @@ export async function deleteQuoteSettingsBlockAction(
   try {
     const blockId = String(formData.get('blockId') ?? '').trim();
     await withOrgContext((context) => deleteQuoteSettingsBlock(context, blockId));
+    revalidatePath('/settings/quotes');
+    return { success: true };
+  } catch (error) {
+    const tErrors = await getTranslations('errors');
+    return mapServerActionError(error, { tErrors: (key) => tErrors(key as 'unexpected') });
+  }
+}
+
+export async function reorderQuoteSettingsBlockAction(
+  blockId: string,
+  direction: 'up' | 'down',
+): Promise<QuoteSettingsFormState> {
+  try {
+    await withOrgContext((context) => reorderQuoteSettingsBlock(context, blockId, direction));
+    revalidatePath('/settings/quotes');
+    return { success: true };
+  } catch (error) {
+    const tErrors = await getTranslations('errors');
+    return mapServerActionError(error, { tErrors: (key) => tErrors(key as 'unexpected') });
+  }
+}
+
+export async function toggleQuoteSettingsBlockAction(
+  blockId: string,
+  enabled: boolean,
+): Promise<QuoteSettingsFormState> {
+  try {
+    await withOrgContext((context) => setQuoteSettingsBlockEnabled(context, blockId, enabled));
     revalidatePath('/settings/quotes');
     return { success: true };
   } catch (error) {
