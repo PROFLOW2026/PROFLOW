@@ -1,0 +1,146 @@
+{
+  "title": "Submittals",
+  "description": "Material, product and shop drawing approvals with every revision kept.",
+  "type": {
+    "product": "Product",
+    "equipment": "Equipment",
+    "sample": "Sample",
+    "technical_data": "Technical data",
+    "catalogue": "Catalogue",
+    "shop_drawing": "Shop drawing",
+    "material": "Material"
+  },
+  "status": {
+    "draft": "Draft",
+    "submitted": "Submitted",
+    "under_review": "Under review",
+    "approved": "Approved",
+    "approved_with_comments": "Approved with comments",
+    "revise_and_resubmit": "Revise and resubmit",
+    "rejected": "Rejected",
+    "withdrawn": "Withdrawn"
+  },
+  "decision": {
+    "approved": "Approve",
+    "approved_with_comments": "Approve with comments",
+    "revise_and_resubmit": "Revise and resubmit",
+    "rejected": "Reject"
+  },
+  "filters": {
+    "label": "Filter submittals",
+    "all": "All",
+    "pending": "Awaiting review",
+    "action_required": "Contractor action",
+    "overdue": "Overdue",
+    "approved": "Approved",
+    "draft": "Drafts"
+  },
+  "summary": {
+    "pendingReview": "Awaiting review",
+    "actionRequired": "Contractor action",
+    "approved": "Approved",
+    "overdue": "Overdue",
+    "drafts": "Drafts"
+  },
+  "list": {
+    "empty": "No submittals yet",
+    "emptyDescription": "Contractor submissions for approval appear here.",
+    "emptyFiltered": "No submittals match this filter",
+    "hasMore": "Showing the first {count} submittals.",
+    "overdue": "Review overdue",
+    "dueOn": "Review by {date}",
+    "noDue": "No review date",
+    "revision": "Rev {number}",
+    "columns": {
+      "number": "No.",
+      "title": "Title",
+      "type": "Type",
+      "contractor": "Contractor",
+      "revision": "Revision",
+      "due": "Review by",
+      "status": "Status"
+    }
+  },
+  "fields": {
+    "title": "Title",
+    "type": "Type",
+    "description": "Description",
+    "specSection": "Specification section",
+    "contractor": "Contractor",
+    "location": "Location",
+    "noLocation": "No location",
+    "drawingReference": "Drawing / revision reference",
+    "drawingReferenceHint": "For example A-101 Rev C",
+    "workPackage": "Work package",
+    "noWorkPackage": "No work package",
+    "dueDate": "Review needed by",
+    "reviewer": "Reviewer",
+    "unassigned": "Unassigned",
+    "notes": "Revision notes",
+    "notesHint": "What is included in this submission.",
+    "optional": "Optional"
+  },
+  "create": {
+    "title": "Register a submittal",
+    "description": "Register on behalf of a contractor. Files are attached to the revision after saving.",
+    "contractorTitle": "New submittal",
+    "save": "Create draft",
+    "created": "Submittal created"
+  },
+  "detail": {
+    "back": "All submittals",
+    "details": "Details",
+    "revisions": "Revisions",
+    "revision": "Revision {number}",
+    "current": "Current",
+    "draftRevision": "Draft, not submitted yet",
+    "submittedOn": "Submitted {date}",
+    "submittedBy": "by {name}",
+    "noNotes": "No notes.",
+    "review": "Review",
+    "reviewedOn": "Reviewed {date}",
+    "reviewedBy": "by {name}",
+    "awaitingReview": "Awaiting review",
+    "attachments": "Revision files",
+    "discussion": "Discussion"
+  },
+  "actions": {
+    "title": "Actions",
+    "submit": "Submit for review",
+    "startReview": "Start review",
+    "reviewTitle": "Review decision",
+    "decision": "Decision",
+    "comments": "Comments",
+    "commentsHint": "Required unless the submittal is approved as is.",
+    "saveReview": "Record decision",
+    "openRevision": "Start next revision",
+    "openRevisionHint": "Earlier revisions and their reviews stay on record.",
+    "withdraw": "Withdraw",
+    "saveNotes": "Save notes",
+    "editTitle": "Edit submittal",
+    "save": "Save changes",
+    "saved": "Saved"
+  },
+  "errors": {
+    "invalidTransition": "This action is not available in the current status.",
+    "decisionRequired": "Choose a decision.",
+    "commentsRequired": "Comments are required for this decision.",
+    "staleRevision": "A newer revision exists. Refresh to review the current one.",
+    "revisionFrozen": "This revision was already submitted and cannot change.",
+    "contentFrozen": "Package details are frozen once submitted.",
+    "closedNotEditable": "This submittal is closed and cannot be edited.",
+    "concurrentChange": "Someone else just updated this submittal. Refresh and try again."
+  },
+  "notAllowed": {
+    "title": "No access to submittals",
+    "body": "You need access to this project to view its submittals."
+  },
+  "portal": {
+    "title": "Submittals",
+    "description": "Submit products, samples and shop drawings for approval.",
+    "empty": "Your company has no submittals on this project yet.",
+    "back": "Back to submittals",
+    "resubmitHint": "The reviewer asked for changes. Start the next revision, attach the updated files and submit again.",
+    "noAccess": "Your access does not include submittals on this project."
+  }
+}

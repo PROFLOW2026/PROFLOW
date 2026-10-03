@@ -7,6 +7,7 @@ import { listAccessibleTasksPage } from '@/modules/tasks';
 import { TASK_LIST_MAX_LIMIT } from '@/modules/tasks/domain/list-window';
 import { mapTasksToCardDataForOrg } from '@/modules/tasks/application/map-tasks-for-ui';
 import { TaskWorkSurfaceClient } from '@/modules/tasks/ui/task-work-surface-client';
+import { CoordinationCalendarSource } from '@/modules/coordination/ui/coordination-calendar-source';
 import {
   getTaskDetailAction,
   loadMoreAccessibleTasksAction,
@@ -38,6 +39,8 @@ export default async function ProjectCalendarPage({
         title={t('calendar.projectPageTitle')}
         description={t('calendar.projectPageDescription')}
       />
+
+      <CoordinationCalendarSource projectId={projectId} />
 
       <TaskWorkSurfaceClient
         tasks={data.tasks}

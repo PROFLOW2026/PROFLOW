@@ -92,7 +92,43 @@
     "task_due_today": "משימה ליעד היום",
     "task_unassigned": "משימה ללא שיוך",
     "storage_attention": "אחסון קבצים",
-    "statutory_attention": "מסמך מס"
+    "statutory_attention": "מסמך מס",
+    "dg_claim_awaiting_review": "חשבון קבלן לבדיקה",
+    "dg_coordination_blocked": "אירוע תיאום חסום",
+    "dg_acknowledgement_overdue": "אישור קבלה באיחור",
+    "dg_critical_task_overdue": "משימת קבלן קריטית באיחור",
+    "dg_defect_awaiting_verification": "תיקון ליקוי לאימות",
+    "dg_rfi_overdue": "בירור באיחור",
+    "dg_compliance_expiring": "מסמך רגולציה של קבלן פג",
+    "dg_submittal_pending": "הגשה לבדיקה",
+    "dg_payment_eligibility_blocked": "תשלום חסום"
+  },
+  "dg": {
+    "dg_claim_awaiting_review": { "what": "לבדוק חשבון חלקי של קבלן", "whatWithReference": "לבדוק חשבון חלקי {reference}", "why": "החשבון ממתין לבדיקה." },
+    "dg_coordination_blocked": { "what": "לפתור חסימה באירוע תיאום", "whatWithReference": "לפתור חסימה באירוע: {reference}", "why": "קבלן נדרש חסום או לא מוכן." },
+    "dg_acknowledgement_overdue": { "what": "לעקוב אחר אישור קבלה חסר", "whatWithReference": "מעקב אישור קבלה: {reference}", "why": "הקבלן לא אישר קבלה בזמן." },
+    "dg_critical_task_overdue": { "what": "משימת קבלן קריטית באיחור", "whatWithReference": "משימה קריטית באיחור: {reference}", "why": "המשימה עברה את מועד היעד." },
+    "dg_defect_awaiting_verification": { "what": "לאמת תיקון ליקוי", "whatWithReference": "לאמת תיקון ליקוי {reference}", "why": "הקבלן דיווח שהתיקון הושלם." },
+    "dg_rfi_overdue": { "what": "לענות על בירור באיחור", "whatWithReference": "לענות על בירור {reference}", "why": "הבירור עבר את מועד היעד." },
+    "dg_compliance_expiring": { "what": "לחדש מסמך רגולציה של קבלן", "whatWithReference": "לחדש {reference}", "why": "תוקפו של מסמך נדרש עומד לפוג." },
+    "dg_submittal_pending": { "what": "לבדוק הגשה", "whatWithReference": "לבדוק הגשה {reference}", "why": "ההגשה ממתינה להחלטה." },
+    "dg_payment_eligibility_blocked": { "what": "להסיר עיכוב תשלום", "whatWithReference": "להסיר עיכוב תשלום: {reference}", "why": "עדיין לא ניתן לשלם עבור עבודה שאושרה." },
+    "why": {
+      "overdue": "באיחור של {days, plural, one {יום אחד} two {יומיים} other {# ימים}} (יעד {date})",
+      "waiting": "{days, plural, =0 {ממתין מהיום} one {ממתין יום אחד} two {ממתין יומיים} other {ממתין # ימים}}",
+      "startsOn": "מתחיל ב-{date}",
+      "expiresOn": "בתוקף עד {date}",
+      "expired": "פג תוקף ב-{date}"
+    },
+    "reasons": {
+      "missing_invoice": "חסרה חשבונית",
+      "expired_insurance": "תוקף הביטוח פג",
+      "missing_tax_document": "חסר אישור מס",
+      "missing_guarantee": "חסרה ערבות",
+      "missing_handover_document": "חסר מסמך מסירה",
+      "compliance_missing": "חסר מסמך רגולציה נדרש",
+      "other": "עיכוב תשלום"
+    }
   },
   "itemCopy": {
     "where": {

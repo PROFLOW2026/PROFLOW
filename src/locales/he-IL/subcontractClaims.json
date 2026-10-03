@@ -1,0 +1,98 @@
+{
+  "common": {
+    "reason": "סיבה",
+    "save": "שמירה"
+  },
+  "list": {
+    "pageTitle": "חשבונות קבלנים",
+    "pageDescription": "הגשות, אישורים והחזרות לתיקון — כל החלטה נשמרת בהיסטוריה.",
+    "empty": "אין חשבונות להצגה.",
+    "number": "מס׳",
+    "contractor": "קבלן",
+    "period": "תקופה",
+    "status": "סטטוס",
+    "submitted": "מוגש (נטו)",
+    "certified": "מאושר (נטו)"
+  },
+  "status": {
+    "draft": "טיוטה",
+    "submitted": "הוגש",
+    "under_review": "בבדיקה",
+    "returned": "הוחזר לתיקון",
+    "certified": "אושר",
+    "cancelled": "בוטל"
+  },
+  "decision": {
+    "certify": "אישור שורה",
+    "reassess": "הערכה מחדש",
+    "reject_line": "דחיית שורה",
+    "return": "החזרה לקבלן",
+    "request_evidence": "בקשת ראיות"
+  },
+  "detail": {
+    "lines": "שורות חשבון",
+    "line": "שורה",
+    "revised": "ערך מעודכן",
+    "assessments": "היסטוריית החלטות",
+    "noAssessments": "עדיין אין החלטות.",
+    "revision": "גרסה {no}",
+    "certifiedAmount": "סכום מאושר",
+    "totalsSubmitted": "סה״כ מוגש",
+    "totalsCertified": "סה״כ מאושר"
+  },
+  "actions": {
+    "review": "בדיקת חשבון",
+    "startReview": "התחלת בדיקה",
+    "return": "החזרה לקבלן",
+    "certify": "אישור חשבון",
+    "certifySubmit": "אישור והפקת בסיס לתשלום",
+    "reassess": "הערכה מחדש",
+    "reassessSubmit": "שמירת הערכה מחדש",
+    "submitOnBehalf": "הגשה בשם הקבלן"
+  },
+  "deductions": {
+    "pageTitle": "קיזוזים והחזרים",
+    "pageDescription": "רשומות קיזוז נפרדות מהחשבון — עם היסטוריה והפיכה.",
+    "empty": "אין קיזוזים.",
+    "agreement": "חוזה",
+    "type": "סוג",
+    "amount": "סכום (נטו)",
+    "issue": "הוצאת קיזוז",
+    "visibleToContractor": "גלוי לקבלן"
+  },
+  "deductionType": {
+    "back_charge": "חיוב חוזר",
+    "penalty": "קנס",
+    "damage": "נזק",
+    "materials": "חומרים",
+    "cleanup": "ניקוי",
+    "safety": "בטיחות",
+    "other": "אחר"
+  },
+  "portal": {
+    "claimsTitle": "החשבונות שלי",
+    "paymentsTitle": "תשלומים",
+    "submit": "הגשת חשבון",
+    "startCorrection": "פתיחת גרסה מתוקנת",
+    "cancel": "ביטול טיוטה",
+    "paid": "שולם",
+    "payable": "לתשלום",
+    "retention": "עיכבון",
+    "holds": "עיכובי תשלום"
+  },
+  "errors": {
+    "openClaimExists": "כבר קיים חשבון פתוח לחוזה זה.",
+    "reviewRequired": "פתיחת חשבון דורשת הרשאה לבדיקת חשבונות.",
+    "notEditable": "ניתן לערוך רק טיוטה.",
+    "reasonRequired": "נדרשת סיבה.",
+    "reasonRequiredForReduction": "נדרשת סיבה כשמאשרים פחות מהמוגש."
+  },
+  "validation": {
+    "amount": "סכום לא תקין",
+    "amountNonNegative": "הסכום חייב להיות אי-שלילי",
+    "amountPositive": "הסכום חייב להיות חיובי",
+    "percent": "אחוז לא תקין",
+    "date": "תאריך לא תקין",
+    "required": "שדה חובה"
+  }
+}

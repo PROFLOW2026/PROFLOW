@@ -24,7 +24,8 @@ export const REPORT_KIND_DEFINITIONS: readonly ReportKindDefinition[] = [
   { kind: 'client_360', permission: PERMISSIONS.CLIENTS_READ, projectScoped: false },
   { kind: 'vendor_360', permission: PERMISSIONS.VENDORS_READ, projectScoped: false },
   { kind: 'contract_portfolio', permission: PERMISSIONS.CONTRACTS_READ, projectScoped: false },
-  { kind: 'subcontract_cash', permission: PERMISSIONS.VENDORS_READ, projectScoped: false },
+  // Cash / commitment money: vendors.read alone is operational and must not open this report.
+  { kind: 'subcontract_cash', permission: PERMISSIONS.PROJECT_FINANCIALS_READ, projectScoped: false },
   { kind: 'labor_utilization', permission: PERMISSIONS.WORKFORCE_READ, projectScoped: false },
   { kind: 'retention_schedule', permission: PERMISSIONS.BILLING_READ, projectScoped: false },
   { kind: 'inventory_movement', permission: PERMISSIONS.ASSETS_READ, projectScoped: false },

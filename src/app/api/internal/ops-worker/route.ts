@@ -9,6 +9,7 @@ import { runSumitRecoveryOpsWorker } from '@/modules/invoicing-integration/appli
 import { runQuoteExpiryScan } from '@/modules/quotes';
 import { runMaterialPressureAlertScan } from '@/modules/material-market/application/pressure-alert-ops-worker';
 import { runMarginSnapshotOpsWorker } from '@/modules/ops-finance/application/margin-snapshot-ops-worker';
+import { runDgEventsOpsWorker } from '@/modules/dg-events/application/ops-worker';
 import { isInternalWorkerAuthorized } from '@/shared/http/internal-worker-auth';
 
 export const maxDuration = 300;
@@ -38,6 +39,7 @@ export async function POST(request: Request): Promise<Response> {
     quoteExpiry,
     materialPressureAlerts,
     marginSnapshots,
+    dgEvents,
   ] = await Promise.all([
     generateDueRecurringDrafts(),
     runTaskRecurrenceOpsWorker(),
@@ -83,6 +85,12 @@ export async function POST(request: Request): Promise<Response> {
       failed: 1,
       errors: [error instanceof Error ? error.message : String(error)],
     })),
+    runDgEventsOpsWorker().catch((error) => ({
+      claimed: 0,
+      processed: 0,
+      failed: 1,
+      errors: [error instanceof Error ? error.message : String(error)],
+    })),
   ]);
   return NextResponse.json({
     expenseRecurrence,
@@ -95,6 +103,7 @@ export async function POST(request: Request): Promise<Response> {
     quoteExpiry,
     materialPressureAlerts,
     marginSnapshots,
+    dgEvents,
   });
 }
 

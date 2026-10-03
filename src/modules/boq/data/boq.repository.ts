@@ -1311,16 +1311,36 @@ export async function listSubcontractorValuationLines(
   organizationId: string,
   valuationId: string,
 ) {
-  return db
-    .select()
-    .from(boqSubcontractorValuationLines)
-    .where(
-      and(
-        eq(boqSubcontractorValuationLines.organizationId, organizationId),
-        eq(boqSubcontractorValuationLines.valuationId, valuationId),
-      ),
-    )
-    .orderBy(boqSubcontractorValuationLines.createdAt);
+  const result = await db.execute(sql`
+    SELECT *
+    FROM public.boq_subcontractor_valuation_lines_secure
+    WHERE organization_id = ${organizationId}::uuid
+      AND valuation_id = ${valuationId}::uuid
+    ORDER BY created_at ASC
+  `);
+  const list = Array.isArray(result)
+    ? result
+    : ((result as { rows?: Array<Record<string, unknown>> }).rows ?? []);
+  return list.map(mapSecureSubValuationLine);
+}
+
+function mapSecureSubValuationLine(raw: Record<string, unknown>) {
+  return {
+    id: String(raw.id),
+    organizationId: String(raw.organization_id ?? raw.organizationId),
+    valuationId: String(raw.valuation_id ?? raw.valuationId),
+    scheduleLineId: String(raw.schedule_line_id ?? raw.scheduleLineId),
+    previousApprovedQuantity: String(
+      raw.previous_approved_quantity ?? raw.previousApprovedQuantity ?? '0',
+    ),
+    approvedQuantity: String(raw.approved_quantity ?? raw.approvedQuantity ?? '0'),
+    unitRateSnapshot: String(raw.unit_rate_snapshot ?? raw.unitRateSnapshot ?? '0'),
+    periodAmount: String(raw.period_amount ?? raw.periodAmount ?? '0'),
+    currency: String(raw.currency),
+    notes: (raw.notes ?? null) as string | null,
+    createdAt: (raw.created_at ?? raw.createdAt) as Date,
+    updatedAt: (raw.updated_at ?? raw.updatedAt) as Date,
+  };
 }
 
 export async function listDraftProgressBatchesForOrg(db: DbExecutor, organizationId: string) {

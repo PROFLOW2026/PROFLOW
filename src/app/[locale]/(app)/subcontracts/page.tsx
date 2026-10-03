@@ -9,7 +9,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { MoneyText } from '@/components/patterns/money-text';
 import { DateRangeSelector } from '@/components/patterns/date-range-selector';
 import { listProjectsForOrg } from '@/modules/projects';
-import { listOrgSubcontracts, listVendorsForOrg } from '@/modules/vendors';
+import {
+  isFinancialSubcontractRow,
+  listOrgSubcontractsForViewer,
+  listVendorsForOrg,
+  type SubcontractListRow,
+} from '@/modules/vendors';
 import { money } from '@/shared/money';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
@@ -43,6 +48,40 @@ function statusShape(status: string): StatusShape {
   }
 }
 
+const MONEY_COLUMN_COUNT = 6;
+
+function SubcontractMoneyCells({ item }: { item: SubcontractListRow }) {
+  if (!isFinancialSubcontractRow(item)) {
+    return (
+      <>
+        {Array.from({ length: MONEY_COLUMN_COUNT }, (_, index) => (
+          <TableCell key={index}>—</TableCell>
+        ))}
+      </>
+    );
+  }
+  return (
+    <>
+      <TableCell>
+        <MoneyText value={money(item.originalAmount, item.currency)} />
+      </TableCell>
+      <TableCell>
+        <MoneyText value={money(item.currentAmount, item.currency)} />
+      </TableCell>
+      <TableCell>
+        <MoneyText value={money(item.billedAmount, item.currency)} />
+      </TableCell>
+      <TableCell>
+        <MoneyText value={money(item.paidAmount, item.currency)} />
+      </TableCell>
+      <TableCell>
+        <MoneyText value={money(item.outstandingAmount, item.currency)} />
+      </TableCell>
+      <TableCell dir="ltr">{item.retentionPercent ? `${item.retentionPercent}%` : '—'}</TableCell>
+    </>
+  );
+}
+
 export default async function SubcontractsPage({
   searchParams,
 }: {
@@ -55,7 +94,7 @@ export default async function SubcontractsPage({
   const toDate = params.to || undefined;
 
   const { items, vendors, projects } = await withOrgContext(async (context) => ({
-    items: await listOrgSubcontracts(context, {
+    items: await listOrgSubcontractsForViewer(context, {
       vendorId: params.vendorId && params.vendorId !== 'all' ? params.vendorId : undefined,
       projectId: params.projectId && params.projectId !== 'all' ? params.projectId : undefined,
       status:
@@ -68,6 +107,7 @@ export default async function SubcontractsPage({
     vendors: await listVendorsForOrg(context, {}).catch(() => []),
     projects: await listProjectsForOrg(context, {}).catch(() => []),
   }));
+  const showMoney = items.some(isFinancialSubcontractRow);
 
   return (
     <WithClientMessages extra={['vendors']}>
@@ -104,12 +144,16 @@ export default async function SubcontractsPage({
                       <TableHead>{t('list.columns.project')}</TableHead>
                       <TableHead>{t('list.columns.number')}</TableHead>
                       <TableHead>{t('list.columns.status')}</TableHead>
-                      <TableHead>{t('list.columns.original')}</TableHead>
-                      <TableHead>{t('list.columns.current')}</TableHead>
-                      <TableHead>{t('list.columns.billed')}</TableHead>
-                      <TableHead>{t('list.columns.paid')}</TableHead>
-                      <TableHead>{t('list.columns.outstanding')}</TableHead>
-                      <TableHead>{t('list.columns.retention')}</TableHead>
+                      {showMoney ? (
+                        <>
+                          <TableHead>{t('list.columns.original')}</TableHead>
+                          <TableHead>{t('list.columns.current')}</TableHead>
+                          <TableHead>{t('list.columns.billed')}</TableHead>
+                          <TableHead>{t('list.columns.paid')}</TableHead>
+                          <TableHead>{t('list.columns.outstanding')}</TableHead>
+                          <TableHead>{t('list.columns.retention')}</TableHead>
+                        </>
+                      ) : null}
                       <TableHead>{t('list.columns.dates')}</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -134,24 +178,7 @@ export default async function SubcontractsPage({
                             label={tSub(`status.${item.status}`)}
                           />
                         </TableCell>
-                        <TableCell>
-                          <MoneyText value={money(item.originalAmount, item.currency)} />
-                        </TableCell>
-                        <TableCell>
-                          <MoneyText value={money(item.currentAmount, item.currency)} />
-                        </TableCell>
-                        <TableCell>
-                          <MoneyText value={money(item.billedAmount, item.currency)} />
-                        </TableCell>
-                        <TableCell>
-                          <MoneyText value={money(item.paidAmount, item.currency)} />
-                        </TableCell>
-                        <TableCell>
-                          <MoneyText value={money(item.outstandingAmount, item.currency)} />
-                        </TableCell>
-                        <TableCell dir="ltr">
-                          {item.retentionPercent ? `${item.retentionPercent}%` : '—'}
-                        </TableCell>
+                        {showMoney ? <SubcontractMoneyCells item={item} /> : null}
                         <TableCell>
                           <span className="pf-ltr-island" dir="ltr">
                             {[item.startDate, item.endDate].filter(Boolean).join(' → ') || '—'}

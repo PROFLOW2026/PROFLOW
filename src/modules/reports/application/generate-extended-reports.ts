@@ -9,7 +9,9 @@ import { listOrgContracts, listProjectsForOrg } from "@/modules/projects";
 
 import {
   getVendorById,
+  isFinancialSubcontractRow,
   listVendorSubcontracts,
+  listVendorSubcontractsForViewer,
   listVendorsForOrg,
 } from "@/modules/vendors";
 
@@ -503,11 +505,12 @@ async function buildVendor360(
   ];
 
   const subs = hasPermission(context, PERMISSIONS.VENDORS_READ)
-    ? await listVendorSubcontracts(context, vendorId).catch(() => [])
+    ? await listVendorSubcontractsForViewer(context, vendorId).catch(() => [])
     : [];
+  const financialSubs = subs.filter(isFinancialSubcontractRow);
 
   if (subs.length > 0) {
-    const totalOutstanding = subs.reduce(
+    const totalOutstanding = financialSubs.reduce(
       (sum, sub) => sum + Number(sub.outstandingAmount ?? 0),
 
       0,
@@ -521,26 +524,40 @@ async function buildVendor360(
       rows: [
         { label: ctx.copy.fields.activeSubcontracts, value: String(subs.length) },
 
-        {
-          label: ctx.copy.fields.cashOutstandingSum,
+        ...(financialSubs.length > 0
+          ? [
+              {
+                label: ctx.copy.fields.cashOutstandingSum,
 
-          value: formatMoney(
-            money(String(totalOutstanding), context.organization.baseCurrency),
-            ctx.locale,
-          ),
+                value: formatMoney(
+                  money(String(totalOutstanding), context.organization.baseCurrency),
+                  ctx.locale,
+                ),
 
-          nature: "cash",
-        },
+                nature: "cash" as const,
+              },
+            ]
+          : []),
 
-        ...subs.slice(0, 12).map((sub) => ({
-          label: `${sub.projectName} · ${sub.subcontractNumber ?? sub.title}`,
+        ...subs.slice(0, 12).map((sub) =>
+          isFinancialSubcontractRow(sub)
+            ? {
+                label: `${sub.projectName} · ${sub.subcontractNumber ?? sub.title}`,
 
-          value: formatMoney(money(sub.outstandingAmount, sub.currency), ctx.locale),
+                value: formatMoney(money(sub.outstandingAmount, sub.currency), ctx.locale),
 
-          nature: "cash" as const,
+                nature: "cash" as const,
 
-          href: `/projects/${sub.projectId}`,
-        })),
+                href: `/projects/${sub.projectId}`,
+              }
+            : {
+                label: `${sub.projectName} · ${sub.subcontractNumber ?? sub.title}`,
+
+                value: localizeCode(ctx.locale, sub.status),
+
+                href: `/projects/${sub.projectId}`,
+              },
+        ),
       ],
     });
   } else if (hasPermission(context, PERMISSIONS.VENDORS_READ)) {
@@ -555,12 +572,10 @@ async function buildVendor360(
     });
   }
 
-  const omitted: ReportPayload["omitted"] = hasPermission(
-    context,
-    PERMISSIONS.AP_READ,
-  )
-    ? {}
-    : { commercial: true };
+  const omitted: ReportPayload["omitted"] =
+    hasPermission(context, PERMISSIONS.AP_READ) && financialSubs.length === subs.length
+      ? {}
+      : { commercial: true };
 
   if (hasPermission(context, PERMISSIONS.AP_READ)) {
     const [apSummary, bills] = await Promise.all([

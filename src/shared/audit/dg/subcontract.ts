@@ -1,0 +1,20 @@
+/** Audit actions for the 'subcontract' track (Developer/GC build). Shape: entity.verb. Labels go in settings.activity.actions (4 locales). */
+export const SUBCONTRACT_AUDIT_ACTIONS = {
+  DG_SUBCONTRACT_AGREEMENT_CREATED: 'subcontract_agreement.created',
+  DG_SUBCONTRACT_AGREEMENT_UPDATED: 'subcontract_agreement.updated',
+  DG_SUBCONTRACT_AGREEMENT_TERMS_UPDATED: 'subcontract_agreement.terms_updated',
+  DG_SUBCONTRACT_AGREEMENT_STATUS_CHANGED: 'subcontract_agreement.status_changed',
+  DG_SUBCONTRACT_WORK_LINE_CREATED: 'subcontract_work_line.created',
+  DG_SUBCONTRACT_WORK_LINE_UPDATED: 'subcontract_work_line.updated',
+  DG_SUBCONTRACT_WORK_LINE_ARCHIVED: 'subcontract_work_line.archived',
+  DG_SUBCONTRACT_CHANGE_CREATED: 'subcontract_change.created',
+  DG_SUBCONTRACT_CHANGE_SUBMITTED: 'subcontract_change.submitted',
+  DG_SUBCONTRACT_CHANGE_VERSION_PROPOSED: 'subcontract_change.version_proposed',
+  DG_SUBCONTRACT_CHANGE_APPROVED: 'subcontract_change.approved',
+  DG_SUBCONTRACT_CHANGE_REJECTED: 'subcontract_change.rejected',
+  DG_SUBCONTRACT_CHANGE_WITHDRAWN: 'subcontract_change.withdrawn',
+  DG_UNPRICED_WORK_RECORDED: 'unpriced_work.recorded',
+  DG_UNPRICED_WORK_CONVERTED: 'unpriced_work.converted',
+  DG_UNPRICED_WORK_REJECTED: 'unpriced_work.rejected',
+  DG_UNPRICED_WORK_CANCELLED: 'unpriced_work.cancelled',
+} as const;

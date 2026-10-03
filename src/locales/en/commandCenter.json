@@ -92,7 +92,43 @@
     "task_due_today": "Task due today",
     "task_unassigned": "Unassigned task",
     "storage_attention": "File storage",
-    "statutory_attention": "Tax document"
+    "statutory_attention": "Tax document",
+    "dg_claim_awaiting_review": "Contractor claim to review",
+    "dg_coordination_blocked": "Blocked coordination event",
+    "dg_acknowledgement_overdue": "Overdue acknowledgement",
+    "dg_critical_task_overdue": "Critical contractor task overdue",
+    "dg_defect_awaiting_verification": "Defect repair to verify",
+    "dg_rfi_overdue": "Overdue RFI",
+    "dg_compliance_expiring": "Contractor compliance expiring",
+    "dg_submittal_pending": "Submittal to review",
+    "dg_payment_eligibility_blocked": "Payment blocked"
+  },
+  "dg": {
+    "dg_claim_awaiting_review": { "what": "Review contractor progress claim", "whatWithReference": "Review progress claim {reference}", "why": "The claim is waiting for review." },
+    "dg_coordination_blocked": { "what": "Resolve blocked coordination event", "whatWithReference": "Resolve blocked event: {reference}", "why": "A required contractor is blocked or not ready." },
+    "dg_acknowledgement_overdue": { "what": "Follow up on a missing acknowledgement", "whatWithReference": "Follow up acknowledgement: {reference}", "why": "The contractor has not acknowledged in time." },
+    "dg_critical_task_overdue": { "what": "Critical contractor task is overdue", "whatWithReference": "Critical task overdue: {reference}", "why": "The task is past its due date." },
+    "dg_defect_awaiting_verification": { "what": "Verify defect repair", "whatWithReference": "Verify repair of defect {reference}", "why": "The contractor reported the repair as complete." },
+    "dg_rfi_overdue": { "what": "Answer overdue RFI", "whatWithReference": "Answer RFI {reference}", "why": "The RFI is past its due date." },
+    "dg_compliance_expiring": { "what": "Renew contractor compliance document", "whatWithReference": "Renew {reference}", "why": "A required document is expiring." },
+    "dg_submittal_pending": { "what": "Review submittal", "whatWithReference": "Review submittal {reference}", "why": "The submittal is waiting for a decision." },
+    "dg_payment_eligibility_blocked": { "what": "Clear payment hold", "whatWithReference": "Clear payment hold: {reference}", "why": "Certified work cannot be paid yet." },
+    "why": {
+      "overdue": "{days, plural, one {# day overdue} other {# days overdue}} (due {date})",
+      "waiting": "{days, plural, =0 {Waiting since today} one {Waiting # day} other {Waiting # days}}",
+      "startsOn": "Starts {date}",
+      "expiresOn": "Expires {date}",
+      "expired": "Expired on {date}"
+    },
+    "reasons": {
+      "missing_invoice": "Missing invoice",
+      "expired_insurance": "Insurance expired",
+      "missing_tax_document": "Missing tax document",
+      "missing_guarantee": "Missing guarantee",
+      "missing_handover_document": "Missing handover document",
+      "compliance_missing": "Required compliance document missing",
+      "other": "Payment hold"
+    }
   },
   "itemCopy": {
     "where": {

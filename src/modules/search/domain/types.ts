@@ -40,6 +40,17 @@ export const GLOBAL_SEARCH_KINDS = [
   'approval',
   // ── Universal Work Management (Agent I) ─────────────────────────────────
   'task',
+  // ── Developer / GC project search (Track U) ─────────────────────────────
+  'contractor',
+  'coordination_event',
+  'claim',
+  'rfi',
+  'submittal',
+  'defect',
+  'drawing',
+  'location',
+  'meeting',
+  'site_instruction',
 ] as const;
 
 export type GlobalSearchKind = (typeof GLOBAL_SEARCH_KINDS)[number];

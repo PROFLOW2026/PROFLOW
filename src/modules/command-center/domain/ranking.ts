@@ -71,6 +71,16 @@ export const SOURCE_DEFAULT_SEVERITY: Record<CommandCenterSourceType, CommandCen
   recurring_task_generated: 'low',
   storage_attention: 'high',
   statutory_attention: 'high',
+  // ── Developer / GC ─────────────────────────────────────────────────────────
+  dg_claim_awaiting_review: 'high',
+  dg_coordination_blocked: 'critical',
+  dg_acknowledgement_overdue: 'high',
+  dg_critical_task_overdue: 'critical',
+  dg_defect_awaiting_verification: 'medium',
+  dg_rfi_overdue: 'high',
+  dg_compliance_expiring: 'medium',
+  dg_submittal_pending: 'medium',
+  dg_payment_eligibility_blocked: 'high',
 };
 
 export const INBOX_SECTION_ORDER = ['critical', 'high', 'medium', 'low'] as const;
@@ -123,6 +133,9 @@ function todayDomainForSource(sourceType: CommandCenterSourceType): Exclude<Toda
     case 'open_approval':
     case 'boq_measurement_awaiting_approval':
     case 'task_approval_requested':
+    case 'dg_claim_awaiting_review':
+    case 'dg_submittal_pending':
+    case 'dg_defect_awaiting_verification':
       return 'approvals';
     case 'missing_attendance_today':
     case 'attendance_open':

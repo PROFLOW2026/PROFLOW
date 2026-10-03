@@ -1,0 +1,146 @@
+{
+  "title": "הגשות לאישור",
+  "description": "אישורי חומרים, מוצרים ותוכניות ייצור, כשכל גרסה נשמרת.",
+  "type": {
+    "product": "מוצר",
+    "equipment": "ציוד",
+    "sample": "דוגמה",
+    "technical_data": "נתונים טכניים",
+    "catalogue": "קטלוג",
+    "shop_drawing": "תוכנית ייצור",
+    "material": "חומר"
+  },
+  "status": {
+    "draft": "טיוטה",
+    "submitted": "הוגשה",
+    "under_review": "בבדיקה",
+    "approved": "אושרה",
+    "approved_with_comments": "אושרה עם הערות",
+    "revise_and_resubmit": "לתיקון והגשה חוזרת",
+    "rejected": "נדחתה",
+    "withdrawn": "בוטלה"
+  },
+  "decision": {
+    "approved": "אישור",
+    "approved_with_comments": "אישור עם הערות",
+    "revise_and_resubmit": "תיקון והגשה חוזרת",
+    "rejected": "דחייה"
+  },
+  "filters": {
+    "label": "סינון הגשות",
+    "all": "הכול",
+    "pending": "ממתינות לבדיקה",
+    "action_required": "ממתינות לקבלן",
+    "overdue": "באיחור",
+    "approved": "מאושרות",
+    "draft": "טיוטות"
+  },
+  "summary": {
+    "pendingReview": "ממתינות לבדיקה",
+    "actionRequired": "ממתינות לקבלן",
+    "approved": "מאושרות",
+    "overdue": "באיחור",
+    "drafts": "טיוטות"
+  },
+  "list": {
+    "empty": "אין עדיין הגשות לאישור",
+    "emptyDescription": "הגשות של קבלנים לאישור יופיעו כאן.",
+    "emptyFiltered": "אין הגשות שתואמות לסינון",
+    "hasMore": "מוצגות {count} ההגשות הראשונות.",
+    "overdue": "הבדיקה באיחור",
+    "dueOn": "לבדיקה עד {date}",
+    "noDue": "ללא תאריך בדיקה",
+    "revision": "גרסה {number}",
+    "columns": {
+      "number": "מס׳",
+      "title": "כותרת",
+      "type": "סוג",
+      "contractor": "קבלן",
+      "revision": "גרסה",
+      "due": "לבדיקה עד",
+      "status": "סטטוס"
+    }
+  },
+  "fields": {
+    "title": "כותרת",
+    "type": "סוג",
+    "description": "תיאור",
+    "specSection": "סעיף במפרט",
+    "contractor": "קבלן",
+    "location": "מיקום",
+    "noLocation": "ללא מיקום",
+    "drawingReference": "הפניה לתוכנית / גרסה",
+    "drawingReferenceHint": "לדוגמה A-101 גרסה C",
+    "workPackage": "חבילת עבודה",
+    "noWorkPackage": "ללא חבילת עבודה",
+    "dueDate": "בדיקה נדרשת עד",
+    "reviewer": "בודק",
+    "unassigned": "לא שויך",
+    "notes": "הערות לגרסה",
+    "notesHint": "מה כלול בהגשה הזו.",
+    "optional": "רשות"
+  },
+  "create": {
+    "title": "רישום הגשה לאישור",
+    "description": "רישום בשם קבלן. קבצים מצורפים לגרסה לאחר השמירה.",
+    "contractorTitle": "הגשה חדשה",
+    "save": "יצירת טיוטה",
+    "created": "ההגשה נוצרה"
+  },
+  "detail": {
+    "back": "כל ההגשות",
+    "details": "פרטים",
+    "revisions": "גרסאות",
+    "revision": "גרסה {number}",
+    "current": "נוכחית",
+    "draftRevision": "טיוטה, טרם הוגשה",
+    "submittedOn": "הוגשה ב־{date}",
+    "submittedBy": "על ידי {name}",
+    "noNotes": "אין הערות.",
+    "review": "בדיקה",
+    "reviewedOn": "נבדקה ב־{date}",
+    "reviewedBy": "על ידי {name}",
+    "awaitingReview": "ממתינה לבדיקה",
+    "attachments": "קבצי הגרסה",
+    "discussion": "דיון"
+  },
+  "actions": {
+    "title": "פעולות",
+    "submit": "הגשה לבדיקה",
+    "startReview": "התחלת בדיקה",
+    "reviewTitle": "החלטת בדיקה",
+    "decision": "החלטה",
+    "comments": "הערות",
+    "commentsHint": "חובה, אלא אם ההגשה מאושרת כפי שהיא.",
+    "saveReview": "רישום ההחלטה",
+    "openRevision": "פתיחת הגרסה הבאה",
+    "openRevisionHint": "הגרסאות הקודמות והבדיקות שלהן נשמרות ברשומה.",
+    "withdraw": "ביטול ההגשה",
+    "saveNotes": "שמירת הערות",
+    "editTitle": "עריכת ההגשה",
+    "save": "שמירת שינויים",
+    "saved": "נשמר"
+  },
+  "errors": {
+    "invalidTransition": "הפעולה אינה זמינה בסטטוס הנוכחי.",
+    "decisionRequired": "יש לבחור החלטה.",
+    "commentsRequired": "בהחלטה הזו חובה לכתוב הערות.",
+    "staleRevision": "קיימת גרסה חדשה יותר. רעננו כדי לבדוק את הגרסה הנוכחית.",
+    "revisionFrozen": "הגרסה הזו כבר הוגשה ולא ניתן לשנות אותה.",
+    "contentFrozen": "פרטי ההגשה ננעלים לאחר ההגשה.",
+    "closedNotEditable": "ההגשה סגורה ולא ניתן לערוך אותה.",
+    "concurrentChange": "מישהו אחר עדכן את ההגשה הזו כרגע. רעננו ונסו שוב."
+  },
+  "notAllowed": {
+    "title": "אין גישה להגשות לאישור",
+    "body": "נדרשת גישה לפרויקט כדי לצפות בהגשות שלו."
+  },
+  "portal": {
+    "title": "הגשות לאישור",
+    "description": "הגישו מוצרים, דוגמאות ותוכניות ייצור לאישור.",
+    "empty": "לחברה שלכם אין עדיין הגשות בפרויקט הזה.",
+    "back": "חזרה להגשות",
+    "resubmitHint": "הבודק ביקש שינויים. פתחו את הגרסה הבאה, צרפו את הקבצים המעודכנים והגישו שוב.",
+    "noAccess": "ההרשאה שלכם אינה כוללת הגשות לאישור בפרויקט הזה."
+  }
+}

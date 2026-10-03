@@ -95,6 +95,24 @@ export const GC_OWNER = {
   displayName: 'קבלן ראשי',
 } as const;
 
+/** Operational project member on the GC smoke project. Employee login, no financial grants. */
+export const GC_OPS_EMPLOYEE = {
+  id: '12121212-1212-4212-8212-121212121212',
+  email: 'ops@e2e.test',
+  displayName: 'מנהל תפעול',
+} as const;
+
+export const E2E_GC_OPS_EMPLOYEE = {
+  username: 'opspm',
+  pin: '135790',
+} as const;
+
+/** Contractor portal account on the GC smoke agreement. */
+export const E2E_GC_CONTRACTOR = {
+  username: 'kablan1',
+  displayName: 'קבלן משנה בדיקה',
+} as const;
+
 export const ELECTRICAL_OWNER = {
   id: '77777777-7777-4777-8777-777777777777',
   email: 'electrical@e2e.test',
@@ -134,6 +152,7 @@ export const SEED_USERS = [
   MANAGER,
   FINANCE,
   GC_OWNER,
+  GC_OPS_EMPLOYEE,
   ELECTRICAL_OWNER,
   PLUMBING_OWNER,
   MAINTENANCE_OWNER,

@@ -1,0 +1,280 @@
+{
+  "list": {
+    "pageTitle": "Site coordination",
+    "pageDescription": "Multi-contractor site events with readiness from every required contractor before the work starts.",
+    "open": "Upcoming and open",
+    "closed": "Completed and cancelled",
+    "emptyOpenTitle": "No open coordination events",
+    "emptyOpenDescription": "Schedule an event such as a slab pour or an installation, invite the contractors involved and track who is ready.",
+    "emptyClosedTitle": "No closed coordination events yet",
+    "emptyClosedDescription": "Completed, partially completed and cancelled events appear here with their outcome.",
+    "scheduleEvent": "Schedule a coordination event",
+    "readyCount": "{ready} of {total} required ready",
+    "contractorCount": "{count, plural, =0 {No contractors} one {# contractor} other {# contractors}}",
+    "loadMore": "Show more",
+    "prepareBy": "Prepare by {date}"
+  },
+  "kinds": {
+    "concrete_pour": "Concrete pour",
+    "installation": "Installation",
+    "inspection": "Inspection",
+    "delivery": "Delivery",
+    "handover": "Handover",
+    "testing": "Testing",
+    "meeting": "Site meeting",
+    "other": "Other"
+  },
+  "statuses": {
+    "scheduled": "Scheduled",
+    "completed": "Completed",
+    "partially_completed": "Partially completed",
+    "postponed": "Postponed",
+    "cancelled": "Cancelled"
+  },
+  "readiness": {
+    "label": "Readiness",
+    "ready": "Ready",
+    "ready_with_conditions": "Ready with conditions",
+    "waiting": "Waiting for answers",
+    "not_ready": "Not ready",
+    "blocked": "Blocked",
+    "overridden": "Overridden",
+    "computed": "Calculated from contractors: {state}"
+  },
+  "partyStatus": {
+    "waiting": "Waiting",
+    "ready": "Ready",
+    "not_ready": "Not ready",
+    "ready_with_conditions": "Ready with conditions",
+    "acknowledged": "Acknowledged",
+    "blocked": "Blocked"
+  },
+  "fields": {
+    "title": "Title",
+    "description": "Description",
+    "kind": "Type",
+    "startsAt": "Starts",
+    "endsAt": "Ends",
+    "preparationDeadline": "Preparation deadline",
+    "location": "Location",
+    "locationNote": "Location details",
+    "workPackage": "Work package",
+    "phase": "Phase",
+    "requiredAcknowledgements": "Required acknowledgements",
+    "acknowledgementsHint": "One per line, e.g. \"Safety briefing read\". Every required contractor must confirm each item.",
+    "contractors": "Contractors",
+    "internalParticipants": "Site team",
+    "documents": "Documents and plans",
+    "tradeLabel": "Trade",
+    "required": "Required",
+    "optional": "Optional",
+    "agreement": "Agreement",
+    "note": "Note",
+    "reason": "Reason",
+    "actualStartAt": "Actual start",
+    "actualEndAt": "Actual end",
+    "dueDate": "Due date",
+    "priority": "Priority",
+    "none": "None",
+    "contractorVisible": "Visible to contractors",
+    "status": "Status"
+  },
+  "priorities": {
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "urgent": "Urgent"
+  },
+  "create": {
+    "title": "New coordination event",
+    "description": "Set the time and place, invite the contractors and choose who must confirm readiness.",
+    "submit": "Schedule event",
+    "addContractor": "Add contractor",
+    "removeContractor": "Remove",
+    "noContractorsAvailable": "No contractors with an agreement on this project yet.",
+    "cancel": "Cancel",
+    "selectContractor": "Choose a contractor"
+  },
+  "detail": {
+    "backToList": "Coordination",
+    "matrix": "Contractor readiness",
+    "matrixDescription": "The event is ready when every required contractor is ready and has confirmed the required acknowledgements.",
+    "party": "Contractor",
+    "lastAnswer": "Last answer",
+    "acknowledgements": "Acknowledgements",
+    "acksProgress": "{done} of {total}",
+    "noContractors": "No contractors invited yet.",
+    "openIssues": "{count, plural, one {# open issue} other {# open issues}}",
+    "requestedAt": "Asked {date}",
+    "answeredAt": "Answered {date}",
+    "byContractor": "by the contractor",
+    "bySiteTeam": "recorded by {name}",
+    "superseded": "Before reschedule",
+    "issues": "Issues raised",
+    "noIssues": "No issues raised.",
+    "documents": "Linked documents",
+    "noDocuments": "No documents linked.",
+    "internalTeam": "Site team",
+    "noInternalTeam": "No site team members added.",
+    "history": "History",
+    "historyEmpty": "Nothing recorded yet.",
+    "evidence": "Event photos and documents",
+    "discussion": "Internal discussion",
+    "details": "Details",
+    "missingAcks": "Missing: {items}"
+  },
+  "history": {
+    "response": "{party} answered: {status}",
+    "reschedule": "Rescheduled from {from} to {to}",
+    "override": "Readiness override: {decision}",
+    "outcome": "Outcome: {outcome}",
+    "by": "by {name}"
+  },
+  "actions": {
+    "recordAnswer": "Record answer",
+    "createTask": "Create follow-up task",
+    "dismissIssue": "Dismiss",
+    "remindAll": "Ask all contractors again",
+    "remind": "Ask again",
+    "remove": "Remove",
+    "makeRequired": "Make required",
+    "makeOptional": "Make optional",
+    "invite": "Invite",
+    "override": "Override readiness",
+    "reschedule": "Reschedule",
+    "recordOutcome": "Record outcome",
+    "linkDocument": "Link document",
+    "unlink": "Unlink",
+    "edit": "Edit details",
+    "save": "Save",
+    "cancel": "Cancel",
+    "open": "Open"
+  },
+  "invite": {
+    "title": "Invite participants",
+    "contractorsHint": "Required contractors decide the event readiness; optional ones are kept informed.",
+    "teamHint": "Site team members see the event in their schedule."
+  },
+  "answer": {
+    "title": "Record a contractor answer",
+    "description": "Use this when the contractor answered by phone or on site. The answer is recorded under your name."
+  },
+  "task": {
+    "title": "Create follow-up task",
+    "description": "Creates a task assigned to the contractor company and linked to this event.",
+    "created": "Task created"
+  },
+  "issue": {
+    "statuses": {
+      "open": "Open",
+      "task_created": "Task created",
+      "dismissed": "Dismissed"
+    },
+    "raisedBy": "Raised {by}"
+  },
+  "override": {
+    "title": "Override readiness",
+    "description": "Overrides are recorded with your name, the time and the reason, and are visible in the history.",
+    "force_ready": "Mark as ready",
+    "force_not_ready": "Hold as not ready",
+    "cleared": "Return to calculated readiness",
+    "reasonPlaceholder": "Why is the readiness being overridden?"
+  },
+  "reschedule": {
+    "title": "Reschedule event",
+    "requiresReconfirmation": "Contractors must confirm readiness again",
+    "requiresReconfirmationHint": "Earlier answers are kept in the history but no longer count.",
+    "preparationHint": "Leave empty to move the preparation deadline with the event."
+  },
+  "outcome": {
+    "title": "Record outcome",
+    "description": "Completed and partially completed outcomes need the actual start time. Any other outcome needs a note."
+  },
+  "outcomes": {
+    "completed": "Completed",
+    "partially_completed": "Partially completed",
+    "postponed": "Postponed",
+    "cancelled": "Cancelled"
+  },
+  "documents": {
+    "select": "Choose a project document",
+    "noneAvailable": "No project documents available to link."
+  },
+  "calendar": {
+    "sectionTitle": "Coordination events",
+    "sectionDescription": "Multi-contractor events in this period with their readiness.",
+    "viewAll": "All coordination events",
+    "empty": "No coordination events in this period."
+  },
+  "portal": {
+    "scheduleTitle": "Schedule",
+    "scheduleDescription": "Site events you are invited to. Confirm your readiness before the preparation deadline.",
+    "upcoming": "Upcoming",
+    "past": "Past",
+    "emptyUpcoming": "No upcoming events for your company on this project.",
+    "emptyPast": "No past events yet.",
+    "needsAnswer": "Answer needed",
+    "eventDetails": "Event details",
+    "backToSchedule": "Schedule",
+    "yourParty": "Your company",
+    "yourStatus": "Your current answer",
+    "notAnswered": "Not answered yet",
+    "respondTitle": "Your readiness",
+    "respondDescription": "Choose your answer. Not ready, blocked and ready with conditions need a short explanation.",
+    "statusHints": {
+      "ready": "Everything is prepared on our side.",
+      "ready_with_conditions": "We can proceed if the conditions in the note are met.",
+      "not_ready": "We will not be ready in time.",
+      "acknowledged": "We received the invitation and are preparing.",
+      "blocked": "Something outside our control is blocking us."
+    },
+    "acknowledgeTitle": "Required acknowledgements",
+    "acknowledged": "Confirmed",
+    "notePlaceholder": "What is missing, what conditions apply, or what is blocking you?",
+    "raiseIssue": "Raise an issue for the site team",
+    "issueTitle": "Issue title",
+    "issueDescription": "Issue details",
+    "submit": "Send answer",
+    "submitted": "Your answer was sent.",
+    "cannotRespond": "Answers are closed for this event.",
+    "noRespondPermission": "Your access lets you view this event but not answer it.",
+    "history": "Your answers",
+    "historyEmpty": "No answers yet.",
+    "issues": "Your issues",
+    "documents": "Documents for this event",
+    "reschedules": "Schedule changes",
+    "movedFrom": "Moved from {from} to {to}",
+    "attachEvidence": "Add photos or documents to your last answer",
+    "discussion": "Messages with the site team",
+    "required": "Your readiness is required",
+    "optional": "Your participation is optional",
+    "pendingResponse": "Waiting for your answer",
+    "pendingAcknowledgement": "Acknowledgements missing"
+  },
+  "validation": {
+    "titleRequired": "Enter a title.",
+    "invalidDate": "Enter a valid date and time.",
+    "endBeforeStart": "The end must be after the start.",
+    "preparationAfterStart": "The preparation deadline must be before the start.",
+    "notInProject": "This item does not belong to the project.",
+    "contractorNotOnProject": "This contractor has no agreement on the project.",
+    "documentNotInProject": "This document is not linked to the project.",
+    "noteRequired": "Add a short explanation.",
+    "issueTitleRequired": "Enter an issue title.",
+    "reasonRequired": "Enter a reason.",
+    "sameTime": "Choose a different time.",
+    "actualStartRequired": "Enter the actual start time.",
+    "unknownAcknowledgement": "One of the acknowledgements no longer exists. Reload the page."
+  },
+  "errors": {
+    "eventClosed": "This event is closed and can no longer be changed.",
+    "eventNotOpen": "This event is not open for readiness answers.",
+    "cannotReschedule": "This event can no longer be rescheduled.",
+    "outcomeNotAllowed": "This outcome is not possible for the event's current status.",
+    "noOverride": "There is no active readiness override to clear.",
+    "issueResolved": "This issue was already handled."
+  },
+  "toast": {
+    "saved": "Saved"
+  }
+}

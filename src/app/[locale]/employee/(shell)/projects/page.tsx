@@ -8,6 +8,8 @@ import { resolveAccessibleProjectIdsForUser } from '@/modules/employee-app/appli
 import { Link } from '@/shared/i18n/navigation';
 import { EmployeeProjectSearch } from '@/modules/employee-app/ui/employee-project-search';
 import { Button } from '@/components/ui/button';
+import { listMyProjectMembershipsOrEmpty } from '@/modules/project-team';
+import { MyProjectMembershipsList } from '@/modules/project-team/ui/my-project-access';
 import {
   employeeListPanelClass,
   employeeListRowLinkClass,
@@ -17,6 +19,7 @@ import {
 export default async function EmployeeProjectsPage() {
   const t = await getTranslations('employeeApp.lists');
   const tProjects = await getTranslations('employeeApp.projects');
+  const memberships = await withOrgContext(listMyProjectMembershipsOrEmpty);
   const payload = await withOrgContext(async (context) => {
     const canCreate = employeeHasPermission(context, PERMISSIONS.PROJECTS_CREATE);
     const canRead = employeeHasPermission(context, PERMISSIONS.PROJECTS_READ);
@@ -26,12 +29,13 @@ export default async function EmployeeProjectsPage() {
 
     if (canRead) {
       await authorize(context, { permission: PERMISSIONS.PROJECTS_READ });
-    } else if (!canCreate && !hasAssignedProjectSurface) {
+    } else if (!canCreate && !hasAssignedProjectSurface && memberships.length === 0) {
       await authorize(context, { permission: PERMISSIONS.PROJECTS_READ });
     }
 
     return {
       projectRows: hasAssignedProjectSurface ? await listEmployeeAssignedProjects(context) : [],
+      memberships,
       canCreate,
     };
   });
@@ -43,23 +47,29 @@ export default async function EmployeeProjectsPage() {
           <Link href="/employee/projects/new">{tProjects('createButton')}</Link>
         </Button>
       ) : null}
+      <MyProjectMembershipsList
+        memberships={payload.memberships}
+        hrefFor={(projectId) => `/employee/projects/${projectId}/team`}
+      />
       {payload.projectRows.length > 0 ? (
         <EmployeeProjectSearch projects={payload.projectRows} />
       ) : null}
-      <ul className={employeeListPanelClass}>
-        {payload.projectRows.map((project) => (
-          <li key={project.id} data-project-row data-search={project.displayName.toLowerCase()}>
-            <Link href={`/employee/projects/${project.id}`} className={employeeListRowLinkClass}>
-              <span className="text-sm font-medium">{project.displayName}</span>
-            </Link>
-          </li>
-        ))}
-        {payload.projectRows.length === 0 ? (
-          <li className="px-4 py-6 text-center text-sm text-[var(--pf-text-secondary)]">
-            {t('projectsEmpty')}
-          </li>
-        ) : null}
-      </ul>
+      {payload.projectRows.length > 0 || payload.memberships.length === 0 ? (
+        <ul className={employeeListPanelClass}>
+          {payload.projectRows.map((project) => (
+            <li key={project.id} data-project-row data-search={project.displayName.toLowerCase()}>
+              <Link href={`/employee/projects/${project.id}`} className={employeeListRowLinkClass}>
+                <span className="text-sm font-medium">{project.displayName}</span>
+              </Link>
+            </li>
+          ))}
+          {payload.projectRows.length === 0 ? (
+            <li className="px-4 py-6 text-center text-sm text-[var(--pf-text-secondary)]">
+              {t('projectsEmpty')}
+            </li>
+          ) : null}
+        </ul>
+      ) : null}
     </div>
   );
 }

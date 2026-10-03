@@ -1,0 +1,126 @@
+{
+  "discussion": {
+    "title": "Обсуждение",
+    "empty": "Сообщений пока нет.",
+    "audienceInternal": "Только команда",
+    "audienceContractor": "Доступно подрядчику",
+    "kindComment": "Комментарий",
+    "kindDecision": "Официальное решение",
+    "submit": "Отправить",
+    "decisionBadge": "Решение",
+    "you": "Вы"
+  },
+  "activity": {
+    "title": "Активность",
+    "pageTitle": "Активность проекта",
+    "pageDescription": "Хронология операционных событий. Финансовые детали — только для уполномоченных.",
+    "empty": "Активности пока нет.",
+    "filtersLabel": "Фильтр",
+    "filters": {
+      "all": "Все",
+      "tasks": "Задачи",
+      "coordination": "Координация"
+    },
+    "financialBadge": "Финансы",
+    "events": {
+      "generic": "{type}",
+      "financialRedacted": "Финансовое обновление (детали скрыты)",
+      "task_external_assigned": "Задача назначена подрядчику: {title}",
+      "task_external_acknowledged": "Подрядчик подтвердил задачу",
+      "task_external_started": "Подрядчик начал работу",
+      "task_external_completion_submitted": "Отправлено на проверку",
+      "task_external_verified": "Проверено ({outcome})",
+      "task_external_reopened": "Задача переоткрыта",
+      "task_external_closed": "Задача закрыта",
+      "task_linked_created": "Создана связанная задача: {title}",
+      "collab_comment_posted": "Новое сообщение",
+      "subcontract_claim_certified": "Претензия сертифицирована: {title}"
+    }
+  },
+  "contractorPanel": {
+    "title": "Назначение подрядчику",
+    "evidenceRequired": "Требуется доказательство",
+    "due": "Срок {date}"
+  },
+  "taskStatus": {
+    "assigned": "Назначена",
+    "acknowledged": "Подтверждена",
+    "in_progress": "В работе",
+    "completion_submitted": "На проверке",
+    "resubmitted": "Повторно отправлена",
+    "approved": "Одобрена",
+    "rejected": "Отклонена",
+    "rework_required": "Нужна доработка",
+    "reopened": "Переоткрыта",
+    "closed": "Закрыта",
+    "cancelled": "Отменена"
+  },
+  "taskEvent": {
+    "assigned": "Назначена подрядчику",
+    "reassigned": "Переназначена",
+    "acknowledged": "Подтверждена",
+    "started": "Работа начата",
+    "completion_submitted": "Отправлено на проверку",
+    "verified": "Проверено",
+    "reopened": "Переоткрыта",
+    "closed": "Закрыта",
+    "cancelled": "Отменена"
+  },
+  "verificationOutcome": {
+    "approved": "Одобрено",
+    "approved_with_remarks": "Одобрено с замечаниями",
+    "rejected": "Отклонено",
+    "rework_required": "Нужна доработка"
+  },
+  "quality": {
+    "satisfactory": "Удовлетворительно",
+    "needs_attention": "Требует внимания",
+    "unacceptable": "Неприемлемо"
+  },
+  "internalCommands": {
+    "verify": "Проверить выполнение",
+    "submitVerify": "Отправить проверку",
+    "close": "Закрыть задачу",
+    "reopen": "Переоткрыть",
+    "cancel": "Отменить назначение",
+    "notePlaceholder": "Замечания (обязательны при отклонении)",
+    "reopenReason": "Причина переоткрытия",
+    "cancelReason": "Причина отмены",
+    "qualityOptional": "Качество (необяз.)"
+  },
+  "portal": {
+    "tasks": {
+      "title": "Мои задачи",
+      "description": "Работа, назначенная вашей компании на проекте.",
+      "back": "К списку задач",
+      "emptyTitle": "Нет задач",
+      "emptyDescription": "Когда команде назначит работу вашей компании, она появится здесь.",
+      "filterLabel": "Фильтр",
+      "filters": { "open": "Открытые", "all": "Все" },
+      "actionRequired": "Требуется действие",
+      "evidence": "Фото и документы",
+      "history": "История",
+      "completionNote": "Комментарий (необяз.)",
+      "command": {
+        "acknowledge": "Подтвердить получение",
+        "start": "Начать работу",
+        "submit_completion": "Отправить выполнение",
+        "reopen": "Переоткрыть после отклонения"
+      }
+    }
+  },
+  "errors": {
+    "invalidTransition": "Действие недоступно в текущем статусе.",
+    "evidenceRequired": "Прикрепите хотя бы одно фото или документ.",
+    "newEvidenceRequired": "Добавьте новые доказательства перед повторной отправкой.",
+    "notSharedWithContractors": "Не доступно подрядчикам.",
+    "concurrentChange": "Задача изменена другим пользователем. Обновите страницу.",
+    "reassignNotAllowed": "Подрядчика можно сменить только до начала работы.",
+    "actorNotAllowed": "Недостаточно прав.",
+    "remarkRequired": "Требуется комментарий.",
+    "reasonRequired": "Требуется причина.",
+    "noteTooLong": "Слишком длинный комментарий.",
+    "invalidOutcome": "Неизвестный результат.",
+    "invalidQuality": "Неизвестная оценка качества."
+  }
+}

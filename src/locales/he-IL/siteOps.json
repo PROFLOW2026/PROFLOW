@@ -1,0 +1,377 @@
+{
+  "nav": {
+    "siteLog": "יומן עבודה",
+    "siteMeetings": "ישיבות קבלנים",
+    "instructions": "הוראות אתר",
+    "portalSiteLog": "דיווח יומי",
+    "portalInstructions": "הוראות"
+  },
+  "common": {
+    "save": "שמירה",
+    "saved": "נשמר",
+    "none": "—",
+    "remove": "הסרה",
+    "select": "בחירה…",
+    "location": "מיקום",
+    "contractor": "קבלן",
+    "unknown": "לא ידוע",
+    "previous": "הקודם",
+    "next": "הבא"
+  },
+  "siteLog": {
+    "title": "יומן עבודה",
+    "description": "יומן אחד לכל יום: מי היה באתר, מה בוצע ומה עיכב את העבודה. אין שדות חובה.",
+    "openToday": "פתיחת היומן של היום",
+    "jumpToDate": "מעבר לתאריך",
+    "open": "פתיחה",
+    "status": {
+      "open": "פתוח",
+      "closed": "סגור",
+      "notStarted": "טרם נפתח"
+    },
+    "startToday": "פתיחת היומן של היום",
+    "noEntries": "אין רישומים",
+    "dayCounts": "{entries, plural, one {רישום אחד} other {# רישומים}} · {reports, plural, one {דיווח קבלן אחד} other {# דיווחי קבלנים}}",
+    "pagination": "עמודי היומן",
+    "older": "ימים קודמים",
+    "newer": "ימים מאוחרים",
+    "dayDescription": "רשמו כל מה שקרה היום באתר. מוסיפים רק את מה שרלוונטי.",
+    "backToCalendar": "חזרה ליומן העבודה",
+    "previousDay": "היום הקודם",
+    "nextDay": "היום הבא",
+    "futureTitle": "היום הזה עוד לא הגיע",
+    "futureDescription": "היומן של תאריך עתידי נפתח באותו יום.",
+    "summary": {
+      "title": "סיכום היום",
+      "contractorsPresent": "קבלנים באתר",
+      "recordedManpower": "עובדים שנרשמו",
+      "reportedManpower": "עובדים שדווחו ע״י קבלנים",
+      "blockingIssues": "חסמים",
+      "delays": "עיכובים",
+      "safetyEvents": "אירועי בטיחות",
+      "inspections": "בדיקות",
+      "contractorReports": "דיווחי קבלנים"
+    },
+    "general": {
+      "title": "כללי",
+      "weather": "מזג אוויר",
+      "notes": "הערות"
+    },
+    "entries": {
+      "title": "רישומי היומן",
+      "empty": "עדיין לא נרשם דבר ליום הזה.",
+      "headcountValue": "{count, plural, one {עובד אחד} other {# עובדים}}",
+      "hoursValue": "{hours} שעות",
+      "removeConfirm": "להסיר את הרישום?",
+      "add": "הוספת רישום",
+      "addHint": "נוכחות, עבודה שבוצעה, כוח אדם, ציוד, אספקות, עיכובים, חסמים, בדיקות, בטיחות, הוראות או הערה",
+      "addSubmit": "הוספה ליומן",
+      "type": "סוג",
+      "contractor": "קבלן",
+      "description": "תיאור",
+      "headcount": "עובדים",
+      "hours": "שעות",
+      "quantity": "כמות",
+      "unit": "יחידה"
+    },
+    "reports": {
+      "title": "דיווחים יומיים של קבלנים",
+      "empty": "אף קבלן לא דיווח ליום הזה.",
+      "onBehalf": "נרשם ע״י צוות האתר",
+      "revision": "גרסה {revision}",
+      "history": "{count, plural, one {גרסה קודמת אחת} other {# גרסאות קודמות}}",
+      "recordOnBehalf": "רישום דיווח של קבלן",
+      "recordOnBehalfHint": "לדיווחים שהתקבלו בטלפון או על נייר",
+      "submit": "שמירת הדיווח",
+      "noDetails": "לא נמסרו פרטים."
+    },
+    "instructions": {
+      "title": "הוראות היום",
+      "issue": "מתן הוראה",
+      "empty": "לא ניתנו הוראות ביום הזה."
+    },
+    "media": {
+      "title": "תמונות, סרטונים וקבצים"
+    },
+    "close": "סגירת היום",
+    "closeConfirm": "לסגור את היומן של היום? אפשר לפתוח אותו מחדש בהמשך.",
+    "reopen": "פתיחת היום מחדש"
+  },
+  "entryTypes": {
+    "contractor_presence": "קבלנים באתר",
+    "work_performed": "עבודה שבוצעה",
+    "manpower": "כוח אדם",
+    "equipment": "ציוד",
+    "delivery": "אספקות",
+    "delay": "עיכובים",
+    "blocking_issue": "חסמים",
+    "inspection": "בדיקות",
+    "safety_event": "אירועי בטיחות",
+    "instruction": "הוראות",
+    "note": "הערות"
+  },
+  "reportFields": {
+    "manpower": "עובדים באתר",
+    "workPerformed": "עבודה שבוצעה",
+    "equipment": "ציוד",
+    "deliveries": "אספקות",
+    "delays": "עיכובים",
+    "blockingIssues": "חסמים",
+    "safetyNotes": "בטיחות",
+    "notes": "הערות"
+  },
+  "instructionStatus": {
+    "issued": "ממתינה לאישור קבלה",
+    "acknowledged": "התקבלה",
+    "performed": "בוצעה",
+    "closed": "נסגרה",
+    "cancelled": "בוטלה"
+  },
+  "instructionCategory": {
+    "operational": "תפעולית",
+    "potentially_financial": "בעלת השלכה כספית אפשרית",
+    "urgent_before_price": "דחופה – לפני תמחור"
+  },
+  "instructionCategoryHint": {
+    "operational": "חלק מהיקף העבודה הקיים; ללא השלכה מסחרית צפויה.",
+    "potentially_financial": "עשויה לשנות את ערך החוזה; הצוות המסחרי מטפל בהמשך.",
+    "urgent_before_price": "יש לבצע מיד; המחיר יסוכם לאחר מכן."
+  },
+  "instructionEvents": {
+    "issued": "ניתנה",
+    "acknowledged": "אושרה קבלתה",
+    "performed": "דווחה כבוצעה",
+    "closed": "נסגרה",
+    "cancelled": "בוטלה",
+    "reopened": "נפתחה מחדש",
+    "conversion_requested": "הועברה לטיפול מסחרי",
+    "converted": "קושרה לשינוי / עבודה לא מתומחרת",
+    "conversion_dismissed": "הטיפול המסחרי בוטל",
+    "note": "הערה"
+  },
+  "instructions": {
+    "title": "הוראות אתר",
+    "description": "הוראות בכתב לקבלנים, עם אישור קבלה ומעקב.",
+    "issue": "מתן הוראה",
+    "issueHint": "בחרו קבלן, תארו את ההוראה ואת ההשלכה המסחרית שלה",
+    "noContractors": "יש להוסיף הסכם קבלן לפרויקט לפני מתן הוראות.",
+    "issueSubmit": "מתן ההוראה",
+    "fields": {
+      "contractor": "קבלן",
+      "title": "הוראה",
+      "description": "פירוט",
+      "category": "השלכה מסחרית",
+      "dueDate": "תאריך יעד",
+      "issuedAt": "ניתנה",
+      "acknowledgedAt": "אושרה קבלתה"
+    },
+    "filterLabel": "סינון הוראות",
+    "filters": {
+      "open": "פתוחות",
+      "issued": "ממתינות לאישור",
+      "acknowledged": "התקבלו",
+      "performed": "בוצעו",
+      "closed": "נסגרו",
+      "cancelled": "בוטלו",
+      "all": "הכול"
+    },
+    "emptyTitle": "אין כאן הוראות",
+    "emptyDescription": "הוראות שניתנו לקבלנים בפרויקט יופיעו כאן.",
+    "dueOn": "יעד {date}",
+    "overdue": "באיחור",
+    "pagination": "עמודי ההוראות",
+    "back": "חזרה להוראות",
+    "byContractor": "ע״י הקבלן",
+    "byTeam": "ע״י צוות האתר",
+    "notAcknowledged": "טרם אושרה קבלתה",
+    "actions": {
+      "title": "השלב הבא",
+      "acknowledged": "רישום אישור קבלה",
+      "performed": "סימון כבוצעה",
+      "closed": "אימות וסגירה",
+      "reopened": "פתיחה מחדש",
+      "cancelled": "ביטול ההוראה",
+      "conversion_dismissed": "ללא השלכה מסחרית",
+      "cancelConfirm": "לבטל את ההוראה?",
+      "notePlaceholder": "הערה (לא חובה)"
+    },
+    "edit": "עריכת ההוראה",
+    "history": "היסטוריה",
+    "addNote": "הוספת הערה",
+    "media": "תמונות וקבצים"
+  },
+  "conversion": {
+    "pending": "טיפול מסחרי",
+    "converted": "הומרה",
+    "dismissed": "ללא השלכה מסחרית",
+    "title": "טיפול מסחרי",
+    "explain": {
+      "none": "להוראה זו אין טיפול מסחרי.",
+      "pending": "ההוראה עשויה להשפיע על החוזה. המירו אותה לשינוי קבלן או לעבודה לא מתומחרת.",
+      "converted": "ההוראה מקושרת לרשומה מסחרית.",
+      "dismissed": "הטיפול המסחרי בוטל."
+    },
+    "targets": {
+      "subcontract_change": "שינוי קבלן",
+      "unpriced_work": "עבודה לא מתומחרת"
+    },
+    "request": "העברה לטיפול מסחרי",
+    "target": "המרה ל",
+    "targetOptions": {
+      "change": "שינוי קבלן",
+      "unpriced_work": "עבודה לא מתומחרת"
+    },
+    "linkExisting": "קישור לרשומה קיימת",
+    "linkExistingHint": "כאשר רשומת השינוי או העבודה הלא מתומחרת כבר קיימת",
+    "link": "קישור הרשומה",
+    "recordId": "מזהה רשומה"
+  },
+  "meetings": {
+    "title": "ישיבות קבלנים",
+    "description": "ישיבות קבלנים שבועיות, ישיבות אתר, תכנון ויועצים – עם סיכום, החלטות ומשימות.",
+    "schedule": "קביעת ישיבה",
+    "scheduleHint": "סוג, מועד, מקום וסדר יום",
+    "scheduleSubmit": "קביעת הישיבה",
+    "fields": {
+      "title": "כותרת",
+      "type": "סוג ישיבה",
+      "scheduledAt": "תאריך ושעה",
+      "location": "מקום",
+      "agenda": "סדר יום"
+    },
+    "emptyTitle": "עדיין אין ישיבות",
+    "emptyDescription": "ישיבות הפרויקט והסיכומים שפורסמו יופיעו כאן.",
+    "counts": "{contractors, plural, one {קבלן אחד} other {# קבלנים}} · {actions, plural, one {משימה פתוחה אחת} other {# משימות פתוחות}}",
+    "pagination": "עמודי הישיבות",
+    "back": "חזרה לישיבות",
+    "publishedVersion": "סיכום גרסה {version}",
+    "markHeld": "סימון כהתקיימה",
+    "publish": "פרסום הסיכום",
+    "republish": "פרסום סיכום מעודכן",
+    "publishConfirm": "לפרסם את הסיכום לקבלנים שהשתתפו?",
+    "cancel": "ביטול הישיבה",
+    "cancelConfirm": "לבטל את הישיבה?",
+    "issueInstruction": "מתן הוראה מהישיבה",
+    "editDetails": "עריכת פרטי הישיבה",
+    "attendees": {
+      "title": "משתתפים",
+      "internal": "צוות",
+      "contractors": "קבלנים",
+      "noContractors": "לא הוזמנו קבלנים.",
+      "add": "הוספת משתתף",
+      "choose": "משתתף"
+    },
+    "minutes": {
+      "title": "סיכום ישיבה",
+      "save": "שמירת הסיכום"
+    },
+    "decisions": {
+      "title": "החלטות",
+      "empty": "לא נרשמו החלטות.",
+      "add": "רישום החלטה",
+      "decision": "החלטה",
+      "details": "פירוט"
+    },
+    "actions": {
+      "title": "משימות לביצוע",
+      "empty": "אין משימות.",
+      "unassigned": "ללא אחראי",
+      "due": "יעד {date}",
+      "taskLinked": "נוצרה משימה",
+      "markDone": "סימון כבוצע",
+      "add": "הוספת משימה",
+      "item": "משימה",
+      "assignee": "אחראי",
+      "dueDate": "תאריך יעד",
+      "fromDecision": "בעקבות החלטה",
+      "createTask": "יצירת משימה במערכת המשימות"
+    },
+    "attachments": "קבצים מצורפים",
+    "publications": {
+      "title": "גרסאות שפורסמו"
+    }
+  },
+  "meetingTypes": {
+    "weekly_contractor": "ישיבת קבלנים שבועית",
+    "site": "ישיבת אתר",
+    "design": "ישיבת תכנון",
+    "consultant": "ישיבת יועצים",
+    "other": "ישיבה אחרת"
+  },
+  "meetingStatus": {
+    "scheduled": "נקבעה",
+    "held": "התקיימה",
+    "published": "הסיכום פורסם",
+    "cancelled": "בוטלה"
+  },
+  "attendance": {
+    "invited": "הוזמן",
+    "attended": "השתתף",
+    "absent": "נעדר"
+  },
+  "attendanceAction": {
+    "invited": "סימון כמוזמן",
+    "attended": "סימון כהשתתף",
+    "absent": "סימון כנעדר"
+  },
+  "actionItemStatus": {
+    "open": "פתוחה",
+    "done": "בוצעה",
+    "cancelled": "בוטלה"
+  },
+  "portal": {
+    "instructions": {
+      "title": "הוראות אתר",
+      "description": "הוראות מצוות האתר לחברה שלכם.",
+      "pendingCount": "{count, plural, one {הוראה אחת ממתינה לאישורכם} other {# הוראות ממתינות לאישורכם}}",
+      "emptyTitle": "אין הוראות",
+      "emptyDescription": "הוראות מצוות האתר יופיעו כאן.",
+      "tapToAcknowledge": "פתחו לאישור קבלה",
+      "back": "חזרה להוראות",
+      "acknowledge": "אישור קבלת ההוראה",
+      "reportPerformed": "דיווח על ביצוע",
+      "notePlaceholder": "הערה (לא חובה)",
+      "byYou": "ע״י החברה שלכם",
+      "bySiteTeam": "ע״י צוות האתר"
+    },
+    "siteLog": {
+      "title": "דיווח יומי",
+      "description": "דווחו על יום העבודה של החברה באתר. כל השדות אופציונליים.",
+      "submitTitle": "הדיווח של היום",
+      "submit": "שליחת הדיווח",
+      "submitted": "הדיווח נשלח",
+      "reportFor": "דיווח עבור",
+      "scopeOption": "היקף הסכם {index}",
+      "date": "תאריך",
+      "revisionHint": "שליחה חוזרת לאותו תאריך מוסיפה גרסה חדשה; הגרסאות הקודמות נשמרות.",
+      "myReports": "הדיווחים האחרונים שלי",
+      "noReportsTitle": "עדיין אין דיווחים",
+      "noReportsDescription": "דיווחים שתשלחו יופיעו כאן.",
+      "addPhotos": "הוספת תמונות או סרטון"
+    },
+    "minutes": {
+      "title": "סיכומי ישיבות",
+      "emptyTitle": "אין סיכומים שפורסמו",
+      "emptyDescription": "סיכומי ישיבות שהחברה שלכם השתתפה בהן יופיעו כאן.",
+      "myActionsCount": "{count, plural, one {משימה אחת עבורכם} other {# משימות עבורכם}}",
+      "myActions": "המשימות שלכם",
+      "publishedAt": "גרסה {version} · פורסמה {date}"
+    }
+  },
+  "errors": {
+    "logClosed": "היומן של היום הזה סגור. יש לפתוח אותו מחדש כדי לערוך.",
+    "logNotClosed": "היומן של היום הזה אינו סגור.",
+    "futureDate": "לא ניתן לרשום תאריך עתידי.",
+    "emptyEntry": "הוסיפו תיאור, קבלן או מספר.",
+    "instructionLocked": "לא ניתן עוד לערוך את ההוראה.",
+    "notAllowedForContractor": "שלב זה מבוצע ע״י צוות האתר.",
+    "invalidTransition": "השלב אינו זמין בסטטוס הנוכחי.",
+    "conversionNotAllowed": "רק הוראות בעלות השלכה כספית אפשרית ניתנות להמרה.",
+    "alreadyConverted": "ההוראה כבר הומרה.",
+    "nothingToDismiss": "אין טיפול מסחרי ממתין.",
+    "meetingCancelled": "הישיבה בוטלה.",
+    "alreadyAttendee": "כבר משתתף.",
+    "invalidAssignee": "בחרו אחראי או קבלן תקינים.",
+    "publishNotHeld": "יש לסמן שהישיבה התקיימה לפני פרסום הסיכום."
+  }
+}

@@ -89,7 +89,16 @@
     "quote": "Коммерческое предложение",
     "service": "Сервисный вызов",
     "recurringDrafts": "Повторяющийся черновик",
-    "quickCapture": "Быстрый захват"
+    "quickCapture": "Быстрый захват",
+    "contractorContract": "Договор подрядчика",
+    "projectTask": "Задача",
+    "coordinationEvent": "Событие координации",
+    "rfi": "Запрос информации",
+    "submittal": "Представление",
+    "defect": "Дефект",
+    "inspection": "Проверка качества",
+    "siteInstruction": "Указание на площадке",
+    "claim": "Заявка подрядчика"
   },
   "organizationSwitcher": {
     "label": "Организация",

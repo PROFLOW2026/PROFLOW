@@ -1,0 +1,177 @@
+{
+  "title": "ליקויים ורשימת תיקונים",
+  "description": "כל ליקוי עם מיקום, קבלן אחראי, תאריך יעד והיסטוריית תיקון מלאה.",
+  "detailTitle": "ליקוי מס' {ref}",
+  "counts": {
+    "toFix": "לתיקון",
+    "awaitingVerification": "ממתינים לאימות",
+    "overdue": "באיחור",
+    "closed": "סגורים"
+  },
+  "filters": {
+    "status": "סטטוס",
+    "active": "לתיקון",
+    "awaiting_verification": "ממתינים לאימות",
+    "closed": "סגורים",
+    "all": "הכל",
+    "severity": "חומרה",
+    "anySeverity": "כל חומרה",
+    "contractor": "קבלן",
+    "anyContractor": "כל קבלן",
+    "overdueOnly": "באיחור בלבד",
+    "mode": "סוג",
+    "anyMode": "כל סוג",
+    "apply": "סינון",
+    "clear": "ניקוי"
+  },
+  "status": {
+    "open": "פתוח",
+    "assigned": "שויך",
+    "completion_submitted": "תיקון הוגש",
+    "verification": "באימות",
+    "closed": "סגור",
+    "reopened": "נפתח מחדש",
+    "cancelled": "בוטל"
+  },
+  "severity": {
+    "low": "נמוכה",
+    "medium": "בינונית",
+    "high": "גבוהה",
+    "critical": "קריטית"
+  },
+  "mode": {
+    "construction": "ביצוע",
+    "warranty": "בדק"
+  },
+  "recordKind": {
+    "opened": "הליקוי נפתח",
+    "assigned": "שויך",
+    "completion_submitted": "תיקון הוגש",
+    "verification_started": "האימות התחיל",
+    "accepted": "התיקון אושר - נסגר",
+    "rejected": "התיקון נדחה",
+    "reopened": "נפתח מחדש",
+    "cancelled": "בוטל",
+    "updated": "הפרטים עודכנו",
+    "note": "הערה"
+  },
+  "fields": {
+    "title": "כותרת",
+    "description": "תיאור",
+    "severity": "חומרה",
+    "dueDate": "תאריך יעד",
+    "location": "מיקום",
+    "noLocation": "ללא מיקום מסוים",
+    "contractor": "קבלן אחראי",
+    "noContractor": "ללא קבלן",
+    "workLine": "סעיף בחוזה",
+    "noWorkLine": "ללא סעיף",
+    "assignee": "אחראי",
+    "noAssignee": "ללא אחראי",
+    "inspector": "בודק",
+    "contractorVisible": "גלוי לקבלן בפורטל",
+    "mode": "סוג",
+    "sourceInspection": "מבקרה",
+    "sourceItem": "פריט בדיקה",
+    "warrantySource": "הפניית בדק",
+    "cycle": "סבב תיקון",
+    "reference": "מס'",
+    "overdue": "באיחור",
+    "submittedAt": "תיקון הוגש",
+    "closedAt": "נסגר",
+    "createdAt": "נפתח",
+    "note": "הערה",
+    "rejectReason": "מדוע התיקון נדחה?",
+    "reopenReason": "מדוע הליקוי נפתח מחדש?",
+    "cancelReason": "מדוע הליקוי מבוטל?",
+    "newDueDate": "תאריך יעד חדש"
+  },
+  "list": {
+    "empty": "אין ליקויים כאן",
+    "emptyDescription": "ליקויים שנפתחו ידנית או מבקרות שנכשלו יופיעו כאן עם סטטוס התיקון.",
+    "cycle": "סבב {n}",
+    "due": "יעד {date}",
+    "noDueDate": "ללא תאריך יעד",
+    "overdue": "באיחור",
+    "loadMore": "הצג עוד",
+    "previous": "הקודם"
+  },
+  "create": {
+    "title": "פתיחת ליקוי",
+    "description": "תעדו את הליקוי, היכן הוא ומי צריך לתקן.",
+    "submit": "פתיחת ליקוי",
+    "success": "הליקוי נפתח"
+  },
+  "edit": {
+    "title": "פרטי הליקוי",
+    "submit": "שמירת פרטים",
+    "success": "הפרטים נשמרו"
+  },
+  "assign": {
+    "title": "שיוך אחריות",
+    "submit": "שיוך",
+    "success": "הליקוי שויך"
+  },
+  "completion": {
+    "title": "רישום תיקון שבוצע",
+    "internalHint": "לשימוש כשהתיקון בוצע בצוות עצמי או אושר בשטח. צרפו תמונות למטה.",
+    "submit": "סימון תיקון כבוצע",
+    "success": "התיקון הוגש לאימות"
+  },
+  "verify": {
+    "title": "אימות התיקון",
+    "start": "התחלת אימות",
+    "started": "האימות התחיל",
+    "accept": "אישור וסגירה",
+    "reject": "דחיית התיקון",
+    "accepted": "הליקוי נסגר",
+    "rejected": "התיקון נדחה - נפתח סבב תיקון חדש",
+    "rejectHint": "הקבלן יראה סיבה זו ויצטרך להגיש תיקון חדש עם תיעוד חדש."
+  },
+  "reopen": {
+    "title": "פתיחה מחדש",
+    "submit": "פתיחה מחדש",
+    "success": "הליקוי נפתח מחדש"
+  },
+  "cancel": {
+    "title": "ביטול ליקוי",
+    "submit": "ביטול ליקוי",
+    "success": "הליקוי בוטל"
+  },
+  "history": {
+    "title": "היסטוריית תיקון",
+    "cycle": "סבב תיקון {n}",
+    "by": "על ידי {name}",
+    "contractor": "קבלן",
+    "system": "מערכת",
+    "internal": "פנימי",
+    "empty": "אין עדיין היסטוריה."
+  },
+  "evidence": {
+    "title": "תמונות ומסמכים"
+  },
+  "discussion": {
+    "title": "דיון"
+  },
+  "portal": {
+    "title": "ליקויים לתיקון",
+    "description": "ליקויים ששויכו לחברה שלכם בפרויקט זה.",
+    "empty": "אין ליקויים משויכים אליכם. עבודה מצוינת!",
+    "submitTitle": "הגשת התיקון",
+    "submitHint": "העלו לפחות תמונה, סרטון או מסמך אחד של התיקון בסבב הנוכחי ואז הגישו.",
+    "submit": "הגשת התיקון לאימות",
+    "submitted": "התיקון הוגש - ממתין לאימות",
+    "awaiting": "התיקון שלכם ממתין לאימות צוות האתר.",
+    "closed": "הליקוי סגור.",
+    "back": "כל הליקויים",
+    "inspections": "בקרות",
+    "rejectedReason": "סיבת הדחייה"
+  },
+  "errors": {
+    "invalidTransition": "הפעולה אינה זמינה בסטטוס הנוכחי של הליקוי.",
+    "concurrentChange": "הליקוי עודכן על ידי משתמש אחר. רעננו ונסו שוב.",
+    "notEditable": "לא ניתן לערוך ליקוי סגור או מבוטל.",
+    "evidenceRequired": "יש להעלות קודם לפחות תמונה, סרטון או מסמך של התיקון.",
+    "invalidReference": "הפריט שנבחר אינו שייך לפרויקט זה."
+  }
+}

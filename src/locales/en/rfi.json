@@ -1,0 +1,144 @@
+{
+  "title": "RFIs",
+  "description": "Requests for information between the project team and contractors.",
+  "status": {
+    "draft": "Draft",
+    "submitted": "Submitted",
+    "under_review": "Under review",
+    "answered": "Answered",
+    "closed": "Closed"
+  },
+  "priority": {
+    "low": "Low",
+    "normal": "Normal",
+    "high": "High",
+    "urgent": "Urgent"
+  },
+  "filters": {
+    "label": "Filter RFIs",
+    "all": "All",
+    "open": "Open",
+    "overdue": "Overdue",
+    "draft": "Drafts",
+    "submitted": "Submitted",
+    "under_review": "Under review",
+    "answered": "Answered",
+    "closed": "Closed"
+  },
+  "summary": {
+    "awaitingAnswer": "Awaiting answer",
+    "overdue": "Overdue",
+    "answered": "Answered",
+    "drafts": "Drafts",
+    "closed": "Closed"
+  },
+  "list": {
+    "empty": "No RFIs yet",
+    "emptyDescription": "Questions raised by the project team or by contractors appear here.",
+    "emptyFiltered": "No RFIs match this filter",
+    "hasMore": "Showing the first {count} RFIs.",
+    "overdue": "Overdue",
+    "dueOn": "Due {date}",
+    "noDue": "No due date",
+    "columns": {
+      "number": "No.",
+      "subject": "Subject",
+      "contractor": "Contractor",
+      "location": "Location",
+      "due": "Due",
+      "assignee": "Assignee",
+      "status": "Status"
+    }
+  },
+  "fields": {
+    "subject": "Subject",
+    "question": "Question",
+    "contractor": "Contractor",
+    "noContractor": "No contractor (internal)",
+    "location": "Location",
+    "noLocation": "No location",
+    "drawingReference": "Drawing / revision reference",
+    "drawingReferenceHint": "For example A-101 Rev C",
+    "workPackage": "Work package",
+    "noWorkPackage": "No work package",
+    "dueDate": "Answer needed by",
+    "assignee": "Assignee",
+    "unassigned": "Unassigned",
+    "priority": "Priority",
+    "raisedBy": "Raised by",
+    "optional": "Optional"
+  },
+  "actor": {
+    "team": "Project team",
+    "contractor": "Contractor",
+    "system": "System"
+  },
+  "create": {
+    "title": "Raise an RFI",
+    "description": "Ask a precise question. Attachments can be added after saving.",
+    "saveDraft": "Save draft",
+    "submit": "Submit RFI",
+    "created": "RFI saved"
+  },
+  "detail": {
+    "back": "All RFIs",
+    "details": "Details",
+    "question": "Question",
+    "answers": "Official answers",
+    "currentAnswer": "Current answer",
+    "superseded": "Superseded",
+    "noAnswers": "No official answer yet.",
+    "answeredOn": "Answered {date}",
+    "answeredBy": "by {name}",
+    "history": "History",
+    "attachments": "Attachments",
+    "discussion": "Discussion",
+    "reopened": "Reopened {count, plural, one {once} other {# times}}",
+    "raisedOn": "Raised {date}"
+  },
+  "history": {
+    "created": "Created as {status}",
+    "changed": "{from} → {to}"
+  },
+  "actions": {
+    "title": "Actions",
+    "submit": "Submit",
+    "startReview": "Start review",
+    "answerLabel": "Official answer",
+    "answerHint": "Answers are permanent. A later answer supersedes this one but both stay on record.",
+    "answerAndClose": "Close the RFI after answering",
+    "answer": "Publish answer",
+    "close": "Close RFI",
+    "reopen": "Reopen",
+    "reason": "Reason",
+    "reasonHint": "Required. Explain why.",
+    "closeWithoutAnswerHint": "Closing without an official answer requires a reason.",
+    "editTitle": "Edit RFI",
+    "triageTitle": "Assignment and dates",
+    "save": "Save changes",
+    "saved": "Saved"
+  },
+  "errors": {
+    "invalidTransition": "This action is not available in the current status.",
+    "reasonRequired": "Please give a reason.",
+    "questionFrozen": "The question cannot change after the RFI was submitted.",
+    "closedNotEditable": "A closed RFI cannot be edited. Reopen it first.",
+    "concurrentChange": "Someone else just updated this RFI. Refresh and try again.",
+    "agreementNotOnProject": "This contractor agreement does not belong to the project.",
+    "assigneeNotOnTeam": "The selected person is not on the project team.",
+    "contractorDraftOnly": "Only your company's drafts can be changed."
+  },
+  "notAllowed": {
+    "title": "No access to RFIs",
+    "body": "You need access to this project to view its RFIs."
+  },
+  "portal": {
+    "title": "RFIs",
+    "description": "Ask the project team and track official answers.",
+    "newTitle": "New RFI",
+    "empty": "Your company has no RFIs on this project yet.",
+    "back": "Back to RFIs",
+    "draftHint": "A draft is visible only to your company until you submit it.",
+    "noAccess": "Your access does not include RFIs on this project."
+  }
+}

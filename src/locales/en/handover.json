@@ -1,0 +1,33 @@
+{
+  "closeout": {
+    "title": "Contractor closeout",
+    "description": "Per-subcontract checklist before agreement close.",
+    "empty": { "title": "No closeouts", "description": "Open a closeout from a subcontract agreement." },
+    "agreementLabel": "Agreement {id}",
+    "status": { "open": "Open", "ready": "Ready", "closed": "Closed" }
+  },
+  "warranty": {
+    "title": "Contractor warranty",
+    "description": "Warranty periods and defect links (via quality defects).",
+    "empty": { "title": "No warranty reports", "description": "Report warranty issues linked to agreements." },
+    "flagsHint": "Retention or guarantee implications flagged.",
+    "status": {
+      "open": "Open",
+      "in_progress": "In progress",
+      "resolved": "Resolved",
+      "cancelled": "Cancelled"
+    }
+  },
+  "portal": {
+    "title": "Handover",
+    "description": "Submit closeout checklist items for your subcontract.",
+    "checklist": "Checklist"
+  },
+  "itemStatus": {
+    "pending": "Pending",
+    "submitted": "Submitted",
+    "complete": "Complete",
+    "waived": "Waived"
+  },
+  "errors": { "incompleteChecklist": "Required checklist items are still open." }
+}

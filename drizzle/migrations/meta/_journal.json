@@ -1065,6 +1065,125 @@
                         "when":  1789713360000,
                         "tag":  "0153_quote_text_blocks_rls",
                         "breakpoints":  true
+                    },
+                    {
+                        "idx":  152,
+                        "version":  "7",
+                        "when":  1789713420000,
+                        "tag":  "0154_project_team_capabilities",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  153,
+                        "version":  "7",
+                        "when":  1789713480000,
+                        "tag":  "0155_dg_foundation",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  154,
+                        "version":  "7",
+                        "when":  1789713540000,
+                        "tag":  "0156_dg_external_identity",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  155,
+                        "version":  "7",
+                        "when":  1789713600000,
+                        "tag":  "0157_dg_project_profile",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  156,
+                        "version":  "7",
+                        "when":  1789713660000,
+                        "tag":  "0158_dg_subcontract_core",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  157,
+                        "version":  "7",
+                        "when":  1789713720000,
+                        "tag":  "0159_dg_claims",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  158,
+                        "version":  "7",
+                        "when":  1789713780000,
+                        "tag":  "0160_dg_collaboration_tasks",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  159,
+                        "version":  "7",
+                        "when":  1789713840000,
+                        "tag":  "0161_dg_coordination_events",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  160,
+                        "version":  "7",
+                        "when":  1789713900000,
+                        "tag":  "0162_dg_documents_plans",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  161,
+                        "version":  "7",
+                        "when":  1789713960000,
+                        "tag":  "0163_dg_rfi_submittals",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  162,
+                        "version":  "7",
+                        "when":  1789714020000,
+                        "tag":  "0164_dg_inspections_defects",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  163,
+                        "version":  "7",
+                        "when":  1789714080000,
+                        "tag":  "0165_dg_daily_log_meetings_instructions",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  164,
+                        "version":  "7",
+                        "when":  1789714140000,
+                        "tag":  "0166_dg_compliance_safety_materials",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  165,
+                        "version":  "7",
+                        "when":  1789714200000,
+                        "tag":  "0167_dg_procurement_closeout",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  166,
+                        "version":  "7",
+                        "when":  1789714260000,
+                        "tag":  "0168_dg_financial_projection_rls",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  167,
+                        "version":  "7",
+                        "when":  1789714320000,
+                        "tag":  "0169_dg_notifications_command_center",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  168,
+                        "version":  "7",
+                        "when":  1789714380000,
+                        "tag":  "0170_dg_surfaces_cost_control",
+                        "breakpoints":  true
                     }
                 ]
 }

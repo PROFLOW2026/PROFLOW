@@ -92,7 +92,43 @@
     "task_due_today": "Задача на сегодня",
     "task_unassigned": "Задача без исполнителя",
     "storage_attention": "Файловое хранилище",
-    "statutory_attention": "Налоговый документ"
+    "statutory_attention": "Налоговый документ",
+    "dg_claim_awaiting_review": "Акт подрядчика на проверку",
+    "dg_coordination_blocked": "Заблокированное координационное событие",
+    "dg_acknowledgement_overdue": "Просроченное подтверждение",
+    "dg_critical_task_overdue": "Критическая задача подрядчика просрочена",
+    "dg_defect_awaiting_verification": "Устранение дефекта на проверку",
+    "dg_rfi_overdue": "Просроченный запрос (RFI)",
+    "dg_compliance_expiring": "Истекает документ подрядчика",
+    "dg_submittal_pending": "Материалы на согласование",
+    "dg_payment_eligibility_blocked": "Оплата заблокирована"
+  },
+  "dg": {
+    "dg_claim_awaiting_review": { "what": "Проверить промежуточный акт подрядчика", "whatWithReference": "Проверить акт {reference}", "why": "Акт ждёт проверки." },
+    "dg_coordination_blocked": { "what": "Устранить блокировку координационного события", "whatWithReference": "Устранить блокировку: {reference}", "why": "Обязательный подрядчик заблокирован или не готов." },
+    "dg_acknowledgement_overdue": { "what": "Проконтролировать отсутствующее подтверждение", "whatWithReference": "Проконтролировать подтверждение: {reference}", "why": "Подрядчик не подтвердил получение вовремя." },
+    "dg_critical_task_overdue": { "what": "Критическая задача подрядчика просрочена", "whatWithReference": "Критическая задача просрочена: {reference}", "why": "Срок задачи истёк." },
+    "dg_defect_awaiting_verification": { "what": "Проверить устранение дефекта", "whatWithReference": "Проверить устранение дефекта {reference}", "why": "Подрядчик сообщил об устранении." },
+    "dg_rfi_overdue": { "what": "Ответить на просроченный запрос", "whatWithReference": "Ответить на запрос {reference}", "why": "Срок ответа на запрос истёк." },
+    "dg_compliance_expiring": { "what": "Обновить документ подрядчика", "whatWithReference": "Обновить {reference}", "why": "Срок обязательного документа истекает." },
+    "dg_submittal_pending": { "what": "Рассмотреть материалы", "whatWithReference": "Рассмотреть материалы {reference}", "why": "Материалы ждут решения." },
+    "dg_payment_eligibility_blocked": { "what": "Снять блокировку оплаты", "whatWithReference": "Снять блокировку оплаты: {reference}", "why": "Утверждённые работы пока нельзя оплатить." },
+    "why": {
+      "overdue": "Просрочено на {days, plural, one {# день} few {# дня} many {# дней} other {# дня}} (срок {date})",
+      "waiting": "{days, plural, =0 {Ожидает с сегодняшнего дня} one {Ожидает # день} few {Ожидает # дня} many {Ожидает # дней} other {Ожидает # дня}}",
+      "startsOn": "Начало {date}",
+      "expiresOn": "Истекает {date}",
+      "expired": "Истёк {date}"
+    },
+    "reasons": {
+      "missing_invoice": "Нет счёта",
+      "expired_insurance": "Истекла страховка",
+      "missing_tax_document": "Нет налогового документа",
+      "missing_guarantee": "Нет гарантии",
+      "missing_handover_document": "Нет документа о сдаче",
+      "compliance_missing": "Нет обязательного документа",
+      "other": "Блокировка оплаты"
+    }
   },
   "itemCopy": {
     "where": {

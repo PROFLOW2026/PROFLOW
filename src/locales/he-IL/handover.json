@@ -1,0 +1,33 @@
+{
+  "closeout": {
+    "title": "סגירת קבלן",
+    "description": "צ'ק-ליסט לכל הסכם לפני סגירה.",
+    "empty": { "title": "אין סגירות", "description": "פתח סגירה מהסכם קבלן." },
+    "agreementLabel": "הסכם {id}",
+    "status": { "open": "פתוח", "ready": "מוכן", "closed": "סגור" }
+  },
+  "warranty": {
+    "title": "אחריות קבלן",
+    "description": "תקופות אחריות וקישור לליקויים.",
+    "empty": { "title": "אין דיווחי אחריות", "description": "דווח בעיות אחריות מקושרות להסכם." },
+    "flagsHint": "סימון השלכות עכבון או ערבות.",
+    "status": {
+      "open": "פתוח",
+      "in_progress": "בטיפול",
+      "resolved": "נפתר",
+      "cancelled": "בוטל"
+    }
+  },
+  "portal": {
+    "title": "מסירה",
+    "description": "הגש פריטי צ'ק-ליסט לסגירת ההסכם.",
+    "checklist": "צ'ק-ליסט"
+  },
+  "itemStatus": {
+    "pending": "ממתין",
+    "submitted": "הוגש",
+    "complete": "הושלם",
+    "waived": "ויתור"
+  },
+  "errors": { "incompleteChecklist": "פריטי חובה עדיין פתוחים." }
+}

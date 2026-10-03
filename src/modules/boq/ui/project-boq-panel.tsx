@@ -9,7 +9,11 @@ import {
 import { listCostCategoriesForOrg, listWorkPackagesForOrg } from '@/modules/expenses';
 import { displayCostCategoryName } from '@/modules/expenses/domain/cost-category-display';
 import { getProjectBudgetWorkspace } from '@/modules/budgets';
-import { listProjectSubcontracts, listProjectVendorEngagements } from '@/modules/vendors';
+import {
+  isFinancialSubcontractRow,
+  listProjectSubcontractsForViewer,
+  listProjectVendorEngagements,
+} from '@/modules/vendors';
 import { listImportableKinds } from '@/modules/imports';
 import { ImportWizardLazy } from '@/modules/imports/ui/import-wizard-lazy';
 import { fromNumericString, zeroMoney } from '@/shared/money';
@@ -101,7 +105,7 @@ export async function ProjectBoqPanel({ projectId, contractId }: ProjectBoqPanel
       ? await listProjectVendorEngagements(context, projectId).catch(() => [])
       : [];
     const projectSubcontracts = hasPermission(context, PERMISSIONS.VENDORS_READ)
-      ? await listProjectSubcontracts(context, projectId).catch(() => [])
+      ? await listProjectSubcontractsForViewer(context, projectId).catch(() => [])
       : [];
     const subSchedules = workspace.activeBoq
       ? await listSubcontractorSchedulesForBoqWorkspace(context, workspace.activeBoq.id).catch(
@@ -419,7 +423,9 @@ export async function ProjectBoqPanel({ projectId, contractId }: ProjectBoqPanel
             id: agreement.id,
             vendorId: agreement.vendorId,
             title: agreement.title,
-            retentionPercent: agreement.retentionPercent,
+            retentionPercent: isFinancialSubcontractRow(agreement)
+              ? agreement.retentionPercent
+              : null,
             status: agreement.status,
           }))}
           items={itemNodes.map((node) => ({

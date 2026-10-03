@@ -12,6 +12,7 @@ import {
 } from '@/modules/tasks';
 import { TASK_LIST_MAX_LIMIT } from '@/modules/tasks/domain/list-window';
 import { mapTasksToCardDataForOrg } from '@/modules/tasks/application/map-tasks-for-ui';
+import { PROJECT_CAPABILITIES, assertProjectCapability } from '@/modules/project-team';
 import { listProjectParticipantAssigneeOptions } from '@/modules/projects';
 import { findWorkspaceIdsByProject } from '@/modules/workspaces';
 import type { CreateTaskInput } from '@/modules/tasks';
@@ -25,10 +26,12 @@ import {
 
 export default async function ProjectTasksPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string; projectId: string }>;
+  searchParams: Promise<{ new?: string }>;
 }) {
-  const { projectId } = await params;
+  const [{ projectId }, query] = await Promise.all([params, searchParams]);
   const t = await getTranslations('tasks');
 
   const data = await withOrgContext(async (context) => {
@@ -66,6 +69,9 @@ export default async function ProjectTasksPage({
   async function createTaskAction(formData: CreateTaskInput): Promise<TaskCardData> {
     'use server';
     return withOrgContext(async (ctx) => {
+      if (formData.projectId) {
+        await assertProjectCapability(ctx, formData.projectId, PROJECT_CAPABILITIES.TASKS_MANAGE);
+      }
       const task = await createTask(ctx, formData);
       const cards = await mapTasksToCardDataForOrg(ctx, [task]);
       return cards[0]!;
@@ -111,6 +117,7 @@ export default async function ProjectTasksPage({
         assigneeOptions={assigneeOptions}
         canAssign={canAssign}
         today={today}
+        initialCreateOpen={query.new === '1'}
       />
     </div>
   );

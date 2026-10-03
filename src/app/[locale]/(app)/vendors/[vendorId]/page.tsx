@@ -22,8 +22,8 @@ import { looksLikeEnglishDisplayName, looksLikeInternalCode, localizeCode } from
 import {
   getVendorById,
   listVendorEngagementHistory,
-  listVendorSubcontracts,
-  getSubcontractById,
+  listVendorSubcontractsForViewer,
+  getSubcontractForViewer,
   listSubcontractParentContracts,
   listSubcontractDocumentCandidates,
 } from '@/modules/vendors';
@@ -77,8 +77,8 @@ export default async function VendorDetailPage({
   let documentsPanel;
   let customFields: Awaited<ReturnType<typeof listCustomFieldValuesForEntity>> = [];
   let engagementHistory: Awaited<ReturnType<typeof listVendorEngagementHistory>> = [];
-  let subcontracts: Awaited<ReturnType<typeof listVendorSubcontracts>> = [];
-  let subcontractDetails: Awaited<ReturnType<typeof getSubcontractById>>[] = [];
+  let subcontracts: Awaited<ReturnType<typeof listVendorSubcontractsForViewer>> = [];
+  let subcontractDetails: Awaited<ReturnType<typeof getSubcontractForViewer>>[] = [];
   let parentContracts: Awaited<ReturnType<typeof listSubcontractParentContracts>> = [];
   let documentCandidates: Awaited<ReturnType<typeof listSubcontractDocumentCandidates>> = [];
   let candidateProjects: { id: string; name: string }[] = [];
@@ -121,7 +121,7 @@ export default async function VendorDetailPage({
         allowManage
           ? listProjectsForOrg(context, {}).catch(() => [])
           : Promise.resolve([]),
-        listVendorSubcontracts(context, vendorId).catch(() => []),
+        listVendorSubcontractsForViewer(context, vendorId).catch(() => []),
         listSubcontractParentContracts(context).catch(() => []),
         listSubcontractDocumentCandidates(context).catch(() => []),
         getVendorPerformance(context, vendorId).catch(() => null),
@@ -130,7 +130,9 @@ export default async function VendorDetailPage({
         listBusinessCatalog(context, 'vendor_specialty').catch(() => []),
       ]);
       const details = await Promise.all(
-        agreements.map((agreement) => getSubcontractById(context, agreement.id).catch(() => null)),
+        agreements.map((agreement) =>
+          getSubcontractForViewer(context, agreement.id).catch(() => null),
+        ),
       );
       const [outstanding, aging, credits, payments, financial] = allowAp
         ? await Promise.all([

@@ -1,0 +1,83 @@
+{
+  "title": "תאימות קבלנים",
+  "description": "ביטוח, אישורי מס, רישיונות ודרישות נוספות לפי הסכם קבלן.",
+  "status": {
+    "missing": "חסר",
+    "current": "בתוקף",
+    "expiring": "פג בקרוב",
+    "expired": "פג תוקף"
+  },
+  "kinds": {
+    "insurance": "ביטוח",
+    "guarantee": "ערבות",
+    "tax_certificate": "אישור מס",
+    "bookkeeping_certificate": "אישור ניהול ספרים",
+    "safety_certification": "אישור בטיחות",
+    "license": "רישיון",
+    "custom": "מותאם"
+  },
+  "counts": {
+    "blocking": "{count, plural, one {דרישה חוסמת אחת} other {# דרישות חוסמות}}"
+  },
+  "actions": {
+    "applyStandardSet": "החלת סט דרישות סטנדרטי"
+  },
+  "review": {
+    "queueTitle": "ממתין לבדיקה",
+    "approve": "אישור",
+    "reject": "דחייה",
+    "rejectionPlaceholder": "סיבת דחייה (חובה לדחייה)"
+  },
+  "fields": {
+    "referenceNumber": "מספר אסמכתא / פוליסה",
+    "expiresOn": "תאריך תפוגה"
+  },
+  "empty": {
+    "title": "אין הסכמי קבלן",
+    "description": "הוסיפו קבלנים לפרויקט כדי לנהל דרישות תאימות.",
+    "noAgreements": "עדיין אין הסכמים בפרויקט זה."
+  },
+  "portal": {
+    "title": "מסמכי תאימות",
+    "description": "העלו וחדשו את המסמכים שההסכם דורש.",
+    "actionRequired": "נדרשת פעולה",
+    "submit": "שליחה לבדיקה",
+    "empty": "לא הוקצו לכם דרישות תאימות בפרויקט זה."
+  },
+  "errors": {
+    "expiryRequired": "נדרש תאריך תפוגה לדרישה זו.",
+    "expiryBeforeIssue": "תאריך התפוגה לפני תאריך ההנפקה.",
+    "requirementArchived": "הדרישה בארכיון.",
+    "alreadyReviewed": "ההגשה כבר נבדקה.",
+    "evidenceRequired": "לאישור נדרש מסמך מצורף.",
+    "rejectionReasonRequired": "דחייה דורשת סיבה."
+  },
+  "safety": {
+    "title": "בטיחות באתר",
+    "description": "תצפיות, סיכונים, אירועים ופעולות תיקון הקשורים לקבלן.",
+    "portalTitle": "דיווחי בטיחות",
+    "portalDescription": "דווחו על אירועי בטיחות עבור החברה שלכם.",
+    "reportTitle": "דיווח אירוע בטיחות",
+    "submit": "שליחת דיווח",
+    "empty": "עדיין אין רשומות בטיחות.",
+    "fields": {
+      "type": "סוג",
+      "title": "כותרת",
+      "description": "תיאור"
+    },
+    "types": {
+      "observation": "תצפית",
+      "hazard": "סיכון",
+      "near_miss": "כמעט תאונה",
+      "incident": "אירוע",
+      "accident": "תאונה",
+      "ppe_issue": "ציוד מגן"
+    },
+    "errors": {
+      "missingScope": "חסר היקף קבלן לדיווח זה.",
+      "notOpen": "רשומת הבטיחות אינה פתוחה.",
+      "openActions": "יש לסגור תחילה פעולות תיקון פתוחות.",
+      "verificationRequired": "נדרש אימות סגירה."
+    }
+  }
+}

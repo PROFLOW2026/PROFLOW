@@ -1,0 +1,32 @@
+{
+  "title": "مناقصات المقاولين",
+  "description": "حزم ودعوات ومقارنة وترسية — منفصلة عن عروض العملاء.",
+  "empty": { "title": "لا توجد حزم", "description": "أنشئ حزمة لدعوة المقاولين." },
+  "fields": { "trade": "التخصص" },
+  "status": {
+    "draft": "مسودة",
+    "inviting": "دعوات",
+    "evaluating": "تقييم",
+    "awarded": "مُرسى",
+    "cancelled": "ملغى"
+  },
+  "detail": {
+    "scopeEmpty": "لا يوجد وصف للنطاق.",
+    "offers": "العروض",
+    "noOffers": "لا عروض بعد.",
+    "vendorOffer": "مورد {vendor}",
+    "amountHidden": "المبلغ مقيّد"
+  },
+  "offerStatus": {
+    "draft": "مسودة",
+    "submitted": "مُقدَّم",
+    "withdrawn": "مسحوب",
+    "selected": "مختار",
+    "rejected": "مرفوض"
+  },
+  "portal": { "title": "مناقصات مفتوحة", "description": "حزم دُعيتم للتقديم عليها." },
+  "errors": {
+    "alreadyAwarded": "تمت الترسية مسبقاً.",
+    "bidAlreadySubmitted": "تم تقديم عرض لهذه الحزمة."
+  }
+}

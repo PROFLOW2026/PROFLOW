@@ -1,0 +1,280 @@
+{
+  "list": {
+    "pageTitle": "תיאום באתר",
+    "pageDescription": "אירועי אתר רב-קבלניים עם אישור מוכנות מכל קבלן נדרש לפני תחילת העבודה.",
+    "open": "קרובים ופתוחים",
+    "closed": "הושלמו ובוטלו",
+    "emptyOpenTitle": "אין אירועי תיאום פתוחים",
+    "emptyOpenDescription": "קבעו אירוע כמו יציקת תקרה או התקנה, הזמינו את הקבלנים המעורבים ועקבו מי מוכן.",
+    "emptyClosedTitle": "עדיין אין אירועי תיאום סגורים",
+    "emptyClosedDescription": "אירועים שהושלמו, הושלמו חלקית או בוטלו מופיעים כאן עם התוצאה שלהם.",
+    "scheduleEvent": "קביעת אירוע תיאום",
+    "readyCount": "{ready} מתוך {total} נדרשים מוכנים",
+    "contractorCount": "{count, plural, =0 {אין קבלנים} one {קבלן אחד} other {# קבלנים}}",
+    "loadMore": "הצגת עוד",
+    "prepareBy": "היערכות עד {date}"
+  },
+  "kinds": {
+    "concrete_pour": "יציקת בטון",
+    "installation": "התקנה",
+    "inspection": "בדיקה",
+    "delivery": "אספקה",
+    "handover": "מסירה",
+    "testing": "ניסוי",
+    "meeting": "פגישת אתר",
+    "other": "אחר"
+  },
+  "statuses": {
+    "scheduled": "מתוכנן",
+    "completed": "הושלם",
+    "partially_completed": "הושלם חלקית",
+    "postponed": "נדחה",
+    "cancelled": "בוטל"
+  },
+  "readiness": {
+    "label": "מוכנות",
+    "ready": "מוכן",
+    "ready_with_conditions": "מוכן בתנאים",
+    "waiting": "ממתין לתשובות",
+    "not_ready": "לא מוכן",
+    "blocked": "חסום",
+    "overridden": "נקבע ידנית",
+    "computed": "מחושב לפי הקבלנים: {state}"
+  },
+  "partyStatus": {
+    "waiting": "ממתין",
+    "ready": "מוכן",
+    "not_ready": "לא מוכן",
+    "ready_with_conditions": "מוכן בתנאים",
+    "acknowledged": "אישר קבלה",
+    "blocked": "חסום"
+  },
+  "fields": {
+    "title": "כותרת",
+    "description": "תיאור",
+    "kind": "סוג",
+    "startsAt": "התחלה",
+    "endsAt": "סיום",
+    "preparationDeadline": "מועד אחרון להיערכות",
+    "location": "מיקום",
+    "locationNote": "פירוט מיקום",
+    "workPackage": "חבילת עבודה",
+    "phase": "שלב",
+    "requiredAcknowledgements": "אישורים נדרשים",
+    "acknowledgementsHint": "אחד בכל שורה, למשל \"קראתי את תדריך הבטיחות\". כל קבלן נדרש חייב לאשר כל פריט.",
+    "contractors": "קבלנים",
+    "internalParticipants": "צוות האתר",
+    "documents": "מסמכים ותוכניות",
+    "tradeLabel": "מקצוע",
+    "required": "נדרש",
+    "optional": "רשות",
+    "agreement": "הסכם",
+    "note": "הערה",
+    "reason": "סיבה",
+    "actualStartAt": "התחלה בפועל",
+    "actualEndAt": "סיום בפועל",
+    "dueDate": "תאריך יעד",
+    "priority": "עדיפות",
+    "none": "ללא",
+    "contractorVisible": "גלוי לקבלנים",
+    "status": "סטטוס"
+  },
+  "priorities": {
+    "low": "נמוכה",
+    "medium": "בינונית",
+    "high": "גבוהה",
+    "urgent": "דחופה"
+  },
+  "create": {
+    "title": "אירוע תיאום חדש",
+    "description": "קבעו זמן ומקום, הזמינו את הקבלנים ובחרו מי חייב לאשר מוכנות.",
+    "submit": "קביעת האירוע",
+    "addContractor": "הוספת קבלן",
+    "removeContractor": "הסרה",
+    "noContractorsAvailable": "עדיין אין קבלנים עם הסכם בפרויקט הזה.",
+    "cancel": "ביטול",
+    "selectContractor": "בחירת קבלן"
+  },
+  "detail": {
+    "backToList": "תיאום",
+    "matrix": "מוכנות קבלנים",
+    "matrixDescription": "האירוע מוכן כשכל הקבלנים הנדרשים מוכנים ואישרו את כל האישורים הנדרשים.",
+    "party": "קבלן",
+    "lastAnswer": "תשובה אחרונה",
+    "acknowledgements": "אישורים",
+    "acksProgress": "{done} מתוך {total}",
+    "noContractors": "עדיין לא הוזמנו קבלנים.",
+    "openIssues": "{count, plural, one {בעיה פתוחה אחת} other {# בעיות פתוחות}}",
+    "requestedAt": "נשאל ב-{date}",
+    "answeredAt": "ענה ב-{date}",
+    "byContractor": "על ידי הקבלן",
+    "bySiteTeam": "נרשם על ידי {name}",
+    "superseded": "לפני שינוי המועד",
+    "issues": "בעיות שדווחו",
+    "noIssues": "לא דווחו בעיות.",
+    "documents": "מסמכים מקושרים",
+    "noDocuments": "לא קושרו מסמכים.",
+    "internalTeam": "צוות האתר",
+    "noInternalTeam": "לא נוספו אנשי צוות.",
+    "history": "היסטוריה",
+    "historyEmpty": "עדיין לא נרשם דבר.",
+    "evidence": "תמונות ומסמכים של האירוע",
+    "discussion": "דיון פנימי",
+    "details": "פרטים",
+    "missingAcks": "חסר: {items}"
+  },
+  "history": {
+    "response": "{party} ענה: {status}",
+    "reschedule": "המועד שונה מ-{from} ל-{to}",
+    "override": "קביעת מוכנות ידנית: {decision}",
+    "outcome": "תוצאה: {outcome}",
+    "by": "על ידי {name}"
+  },
+  "actions": {
+    "recordAnswer": "רישום תשובה",
+    "createTask": "יצירת משימת המשך",
+    "dismissIssue": "סגירה ללא משימה",
+    "remindAll": "לשאול שוב את כל הקבלנים",
+    "remind": "לשאול שוב",
+    "remove": "הסרה",
+    "makeRequired": "הפיכה לנדרש",
+    "makeOptional": "הפיכה לרשות",
+    "invite": "הזמנה",
+    "override": "קביעת מוכנות ידנית",
+    "reschedule": "שינוי מועד",
+    "recordOutcome": "רישום תוצאה",
+    "linkDocument": "קישור מסמך",
+    "unlink": "ביטול קישור",
+    "edit": "עריכת פרטים",
+    "save": "שמירה",
+    "cancel": "ביטול",
+    "open": "פתיחה"
+  },
+  "invite": {
+    "title": "הזמנת משתתפים",
+    "contractorsHint": "קבלנים נדרשים קובעים את מוכנות האירוע; קבלני רשות מקבלים עדכון בלבד.",
+    "teamHint": "אנשי צוות האתר יראו את האירוע בלוח הזמנים שלהם."
+  },
+  "answer": {
+    "title": "רישום תשובת קבלן",
+    "description": "לשימוש כשהקבלן ענה בטלפון או באתר. התשובה נרשמת על שמכם."
+  },
+  "task": {
+    "title": "יצירת משימת המשך",
+    "description": "יוצר משימה המשויכת לחברת הקבלן ומקושרת לאירוע הזה.",
+    "created": "המשימה נוצרה"
+  },
+  "issue": {
+    "statuses": {
+      "open": "פתוחה",
+      "task_created": "נוצרה משימה",
+      "dismissed": "נסגרה"
+    },
+    "raisedBy": "דווח {by}"
+  },
+  "override": {
+    "title": "קביעת מוכנות ידנית",
+    "description": "קביעה ידנית נרשמת עם שמכם, השעה והסיבה, ומופיעה בהיסטוריה.",
+    "force_ready": "סימון כמוכן",
+    "force_not_ready": "החזקה כלא מוכן",
+    "cleared": "חזרה למוכנות המחושבת",
+    "reasonPlaceholder": "מדוע המוכנות נקבעת ידנית?"
+  },
+  "reschedule": {
+    "title": "שינוי מועד האירוע",
+    "requiresReconfirmation": "הקבלנים חייבים לאשר מוכנות מחדש",
+    "requiresReconfirmationHint": "תשובות קודמות נשמרות בהיסטוריה אך כבר אינן נספרות.",
+    "preparationHint": "השאירו ריק כדי להזיז את מועד ההיערכות יחד עם האירוע."
+  },
+  "outcome": {
+    "title": "רישום תוצאה",
+    "description": "תוצאה של הושלם או הושלם חלקית מחייבת שעת התחלה בפועל. כל תוצאה אחרת מחייבת הערה."
+  },
+  "outcomes": {
+    "completed": "הושלם",
+    "partially_completed": "הושלם חלקית",
+    "postponed": "נדחה",
+    "cancelled": "בוטל"
+  },
+  "documents": {
+    "select": "בחירת מסמך מהפרויקט",
+    "noneAvailable": "אין מסמכי פרויקט זמינים לקישור."
+  },
+  "calendar": {
+    "sectionTitle": "אירועי תיאום",
+    "sectionDescription": "אירועים רב-קבלניים בתקופה הזו ומצב המוכנות שלהם.",
+    "viewAll": "כל אירועי התיאום",
+    "empty": "אין אירועי תיאום בתקופה הזו."
+  },
+  "portal": {
+    "scheduleTitle": "לוח זמנים",
+    "scheduleDescription": "אירועי אתר שהוזמנתם אליהם. אשרו מוכנות לפני המועד האחרון להיערכות.",
+    "upcoming": "קרובים",
+    "past": "קודמים",
+    "emptyUpcoming": "אין אירועים קרובים לחברה שלכם בפרויקט הזה.",
+    "emptyPast": "עדיין אין אירועים קודמים.",
+    "needsAnswer": "נדרשת תשובה",
+    "eventDetails": "פרטי האירוע",
+    "backToSchedule": "לוח זמנים",
+    "yourParty": "החברה שלכם",
+    "yourStatus": "התשובה הנוכחית שלכם",
+    "notAnswered": "טרם נענה",
+    "respondTitle": "המוכנות שלכם",
+    "respondDescription": "בחרו תשובה. לא מוכן, חסום ומוכן בתנאים מחייבים הסבר קצר.",
+    "statusHints": {
+      "ready": "הכל מוכן מהצד שלנו.",
+      "ready_with_conditions": "נוכל להתקדם אם התנאים שבהערה יתקיימו.",
+      "not_ready": "לא נהיה מוכנים בזמן.",
+      "acknowledged": "קיבלנו את ההזמנה ואנחנו נערכים.",
+      "blocked": "משהו שאינו בשליטתנו חוסם אותנו."
+    },
+    "acknowledgeTitle": "אישורים נדרשים",
+    "acknowledged": "אושר",
+    "notePlaceholder": "מה חסר, אילו תנאים חלים או מה חוסם אתכם?",
+    "raiseIssue": "דיווח על בעיה לצוות האתר",
+    "issueTitle": "כותרת הבעיה",
+    "issueDescription": "פרטי הבעיה",
+    "submit": "שליחת התשובה",
+    "submitted": "התשובה שלכם נשלחה.",
+    "cannotRespond": "המענה לאירוע הזה סגור.",
+    "noRespondPermission": "ההרשאה שלכם מאפשרת לצפות באירוע אך לא לענות עליו.",
+    "history": "התשובות שלכם",
+    "historyEmpty": "עדיין אין תשובות.",
+    "issues": "הבעיות שדיווחתם",
+    "documents": "מסמכים לאירוע הזה",
+    "reschedules": "שינויי מועד",
+    "movedFrom": "הועבר מ-{from} ל-{to}",
+    "attachEvidence": "הוספת תמונות או מסמכים לתשובה האחרונה",
+    "discussion": "הודעות עם צוות האתר",
+    "required": "המוכנות שלכם נדרשת",
+    "optional": "ההשתתפות שלכם היא רשות",
+    "pendingResponse": "ממתין לתשובה שלכם",
+    "pendingAcknowledgement": "חסרים אישורים"
+  },
+  "validation": {
+    "titleRequired": "יש להזין כותרת.",
+    "invalidDate": "יש להזין תאריך ושעה תקינים.",
+    "endBeforeStart": "הסיום חייב להיות אחרי ההתחלה.",
+    "preparationAfterStart": "המועד האחרון להיערכות חייב להיות לפני ההתחלה.",
+    "notInProject": "הפריט הזה אינו שייך לפרויקט.",
+    "contractorNotOnProject": "לקבלן הזה אין הסכם בפרויקט.",
+    "documentNotInProject": "המסמך הזה אינו מקושר לפרויקט.",
+    "noteRequired": "יש להוסיף הסבר קצר.",
+    "issueTitleRequired": "יש להזין כותרת לבעיה.",
+    "reasonRequired": "יש להזין סיבה.",
+    "sameTime": "יש לבחור מועד אחר.",
+    "actualStartRequired": "יש להזין את שעת ההתחלה בפועל.",
+    "unknownAcknowledgement": "אחד האישורים כבר אינו קיים. יש לרענן את הדף."
+  },
+  "errors": {
+    "eventClosed": "האירוע סגור ולא ניתן לשנות אותו.",
+    "eventNotOpen": "האירוע אינו פתוח לתשובות מוכנות.",
+    "cannotReschedule": "כבר לא ניתן לשנות את מועד האירוע.",
+    "outcomeNotAllowed": "התוצאה הזו אינה אפשרית בסטטוס הנוכחי של האירוע.",
+    "noOverride": "אין קביעת מוכנות ידנית פעילה לביטול.",
+    "issueResolved": "הבעיה הזו כבר טופלה."
+  },
+  "toast": {
+    "saved": "נשמר"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "title": "מכרזי קבלנים",
+  "description": "חבילות, הזמנות, השוואה והכרעה — נפרד מ הצעות מחיר ללקוח.",
+  "empty": { "title": "אין חבילות מכרז", "description": "צור חבילה להזמנת קבלנים." },
+  "fields": { "trade": "מקצוע" },
+  "status": {
+    "draft": "טיוטה",
+    "inviting": "בהזמנה",
+    "evaluating": "בהערכה",
+    "awarded": "הוכרע",
+    "cancelled": "בוטל"
+  },
+  "detail": {
+    "scopeEmpty": "אין תיאור היקף.",
+    "offers": "הצעות",
+    "noOffers": "אין הצעות עדיין.",
+    "vendorOffer": "ספק {vendor}",
+    "amountHidden": "סכום מוגבל"
+  },
+  "offerStatus": {
+    "draft": "טיוטה",
+    "submitted": "הוגש",
+    "withdrawn": "בוטל",
+    "selected": "נבחר",
+    "rejected": "נדחה"
+  },
+  "portal": { "title": "מכרזים פתוחים", "description": "חבילות שהוזמנתם להגיש בהן הצעה." },
+  "errors": {
+    "alreadyAwarded": "החבילה כבר הוכרעה.",
+    "bidAlreadySubmitted": "כבר הוגשה הצעה לחבילה זו."
+  }
+}

@@ -1,0 +1,21 @@
+/** Audit actions for the 'quality' track (Developer/GC build). Shape: entity.verb. Labels go in settings.activity.actions (4 locales). */
+export const QUALITY_AUDIT_ACTIONS = {
+  QUALITY_TEMPLATE_CREATED: 'quality_inspection_template.created',
+  QUALITY_TEMPLATE_UPDATED: 'quality_inspection_template.updated',
+  QUALITY_TEMPLATE_ARCHIVED: 'quality_inspection_template.archived',
+  QUALITY_INSPECTION_CREATED: 'quality_inspection.created',
+  QUALITY_INSPECTION_UPDATED: 'quality_inspection.updated',
+  QUALITY_INSPECTION_STARTED: 'quality_inspection.started',
+  QUALITY_INSPECTION_OUTCOME_RECORDED: 'quality_inspection.outcome_recorded',
+  QUALITY_INSPECTION_REINSPECTION_STARTED: 'quality_inspection.reinspection_started',
+  QUALITY_INSPECTION_CANCELLED: 'quality_inspection.cancelled',
+  DEFECT_CREATED: 'defect.created',
+  DEFECT_UPDATED: 'defect.updated',
+  DEFECT_ASSIGNED: 'defect.assigned',
+  DEFECT_COMPLETION_SUBMITTED: 'defect.completion_submitted',
+  DEFECT_VERIFICATION_STARTED: 'defect.verification_started',
+  DEFECT_ACCEPTED: 'defect.accepted',
+  DEFECT_REJECTED: 'defect.rejected',
+  DEFECT_REOPENED: 'defect.reopened',
+  DEFECT_CANCELLED: 'defect.cancelled',
+} as const;

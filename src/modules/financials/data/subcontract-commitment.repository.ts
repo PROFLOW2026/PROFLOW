@@ -221,7 +221,6 @@ export async function sumSubcontractRemainingCommitmentForProject(
       id: subcontractAgreements.id,
       vendorId: subcontractAgreements.vendorId,
       currency: subcontractAgreements.currency,
-      originalAmount: subcontractAgreements.originalAmount,
     })
     .from(subcontractAgreements)
     .where(
@@ -327,7 +326,6 @@ export async function sumSubcontractRemainingCommitmentForProjects(
       projectId: subcontractAgreements.projectId,
       vendorId: subcontractAgreements.vendorId,
       currency: subcontractAgreements.currency,
-      originalAmount: subcontractAgreements.originalAmount,
     })
     .from(subcontractAgreements)
     .where(

@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import { getShellQuickCreatePrefs } from '@/shared/auth/session';
 import { QuickCreate, type QuickCreateAction } from './quick-create';
 import { buildQuickCreateActions } from './quick-create-actions';
+import { loadProjectQuickCreateActions } from './quick-create-project-actions';
 import type { ShellContext } from '@/shared/auth/session';
 
 function QuickCreateSkeleton() {
@@ -24,7 +25,7 @@ async function QuickCreateInner({ shellCore }: { shellCore: ShellContext }) {
     shellCore.suggestedDefaults ?? null,
     shellCore.persona,
   );
-  return <QuickCreate actions={actions} />;
+  return <QuickCreate actions={actions} loadProjectActions={loadProjectQuickCreateActions} />;
 }
 
 /** Quick Create emphasis/defaults load in a separate Suspense island — not on nav critical path. */

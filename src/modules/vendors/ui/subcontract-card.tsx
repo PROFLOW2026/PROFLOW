@@ -14,7 +14,11 @@ import { money } from '@/shared/money';
 import { Link } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
 import { textNavLinkClassName } from '@/components/ui/pressable';
-import type { SubcontractDetail, SubcontractListItem, SubcontractStatus } from '@/modules/vendors';
+import {
+  isFinancialSubcontractDetail,
+  isFinancialSubcontractRow,
+} from '@/modules/vendors/domain/subcontract-projections';
+import type { SubcontractDetailView, SubcontractListRow, SubcontractStatus } from '@/modules/vendors';
 import {
   addSubcontractChangeAction,
   changeSubcontractStatusAction,
@@ -31,8 +35,9 @@ function statusShape(status: SubcontractStatus) {
 }
 
 export interface SubcontractCardProps {
-  readonly item: SubcontractListItem;
-  readonly detail?: SubcontractDetail;
+  /** Operational rows carry no money; money sections render only for financial rows. */
+  readonly item: SubcontractListRow;
+  readonly detail?: SubcontractDetailView;
   readonly canManage: boolean;
   readonly canManageAdvances?: boolean;
   readonly counterpartHref: string;
@@ -75,6 +80,8 @@ export function SubcontractCard({
       : (documentCandidates[0]?.id ?? '');
 
   const flags = detail?.documentFlags;
+  const financialItem = isFinancialSubcontractRow(item) ? item : null;
+  const financialDetail = detail && isFinancialSubcontractDetail(detail) ? detail : null;
 
   return (
     <li className="flex flex-col gap-3 rounded-md border border-[var(--pf-border-default)] p-3">
@@ -93,123 +100,141 @@ export function SubcontractCard({
         <StatusBadge shape={statusShape(item.status)} label={t(`status.${item.status}`)} />
       </div>
 
-      <dl className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-3 lg:grid-cols-6">
-        <div className="text-start">
-          <dt className="text-[var(--pf-text-muted)]">{t('currentAmountLabel')}</dt>
-          <dd>
-            <MoneyText value={money(item.currentAmount, item.currency)} />
-          </dd>
-        </div>
-        <div className="text-start">
-          <dt className="text-[var(--pf-text-muted)]">{t('recognizedActualLabel')}</dt>
-          <dd>
-            <MoneyText value={money(item.recognizedActualAmount, item.currency)} />
-          </dd>
-        </div>
-        <div className="text-start">
-          <dt className="text-[var(--pf-text-muted)]">{t('remainingCommitmentLabel')}</dt>
-          <dd>
-            <MoneyText value={money(item.remainingCommitmentAmount, item.currency)} />
-          </dd>
-        </div>
-        <div className="text-start">
-          <dt className="text-[var(--pf-text-muted)]">{t('paidLabel')}</dt>
-          <dd>
-            <MoneyText value={money(item.paidAmount, item.currency)} />
-          </dd>
-        </div>
-        <div className="text-start">
-          <dt className="text-[var(--pf-text-muted)]">{t('outstandingLabel')}</dt>
-          <dd>
-            <MoneyText value={money(item.outstandingAmount, item.currency)} />
-          </dd>
-        </div>
-        <div className="text-start">
-          <dt className="text-[var(--pf-text-muted)]">{t('billedLabel')}</dt>
-          <dd>
-            <MoneyText value={money(item.billedAmount, item.currency)} />
-          </dd>
-        </div>
-      </dl>
-      <p className="text-start text-xs text-[var(--pf-text-muted)]">{t('cardMetricsHint')}</p>
+      {financialItem ? (
+        <>
+          <dl className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-3 lg:grid-cols-6">
+            <div className="text-start">
+              <dt className="text-[var(--pf-text-muted)]">{t('currentAmountLabel')}</dt>
+              <dd>
+                <MoneyText value={money(financialItem.currentAmount, financialItem.currency)} />
+              </dd>
+            </div>
+            <div className="text-start">
+              <dt className="text-[var(--pf-text-muted)]">{t('recognizedActualLabel')}</dt>
+              <dd>
+                <MoneyText
+                  value={money(financialItem.recognizedActualAmount, financialItem.currency)}
+                />
+              </dd>
+            </div>
+            <div className="text-start">
+              <dt className="text-[var(--pf-text-muted)]">{t('remainingCommitmentLabel')}</dt>
+              <dd>
+                <MoneyText
+                  value={money(financialItem.remainingCommitmentAmount, financialItem.currency)}
+                />
+              </dd>
+            </div>
+            <div className="text-start">
+              <dt className="text-[var(--pf-text-muted)]">{t('paidLabel')}</dt>
+              <dd>
+                <MoneyText value={money(financialItem.paidAmount, financialItem.currency)} />
+              </dd>
+            </div>
+            <div className="text-start">
+              <dt className="text-[var(--pf-text-muted)]">{t('outstandingLabel')}</dt>
+              <dd>
+                <MoneyText value={money(financialItem.outstandingAmount, financialItem.currency)} />
+              </dd>
+            </div>
+            <div className="text-start">
+              <dt className="text-[var(--pf-text-muted)]">{t('billedLabel')}</dt>
+              <dd>
+                <MoneyText value={money(financialItem.billedAmount, financialItem.currency)} />
+              </dd>
+            </div>
+          </dl>
+          <p className="text-start text-xs text-[var(--pf-text-muted)]">{t('cardMetricsHint')}</p>
+        </>
+      ) : null}
 
-      <section className="flex flex-col gap-2 rounded-md border border-dashed border-[var(--pf-border-default)] p-3">
-        <h3 className="text-sm font-medium">{t('advances.title')}</h3>
-        <p className="text-xs text-[var(--pf-text-muted)]">{t('advances.hint')}</p>
-        <dl className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-3">
-          <div className="text-start">
-            <dt className="text-[var(--pf-text-muted)]">{t('advances.paid')}</dt>
-            <dd>
-              <MoneyText
-                value={money(detail?.advancePosition.paid ?? item.advancePaidAmount, item.currency)}
-              />
-            </dd>
-          </div>
-          <div className="text-start">
-            <dt className="text-[var(--pf-text-muted)]">{t('advances.applied')}</dt>
-            <dd>
-              <MoneyText
-                value={money(
-                  detail?.advancePosition.applied ?? item.advanceAppliedAmount,
-                  item.currency,
-                )}
-              />
-            </dd>
-          </div>
-          <div className="text-start">
-            <dt className="text-[var(--pf-text-muted)]">{t('advances.outstanding')}</dt>
-            <dd>
-              <MoneyText
-                value={money(
-                  detail?.advancePosition.outstanding ?? item.advanceOutstandingAmount,
-                  item.currency,
-                )}
-              />
-            </dd>
-          </div>
-        </dl>
-        {canManageAdvances ? (
-          <>
-            <Button
-              type="button"
-              size="sm"
-              variant="ghost"
-              className="self-start"
-              onClick={() => setShowAdvance((value) => !value)}
-            >
-              {t('advances.add')}
-            </Button>
-            {showAdvance ? (
-              <form
-                action={advanceAction}
-                className="flex flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-3"
+      {financialItem ? (
+        <section className="flex flex-col gap-2 rounded-md border border-dashed border-[var(--pf-border-default)] p-3">
+          <h3 className="text-sm font-medium">{t('advances.title')}</h3>
+          <p className="text-xs text-[var(--pf-text-muted)]">{t('advances.hint')}</p>
+          <dl className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-3">
+            <div className="text-start">
+              <dt className="text-[var(--pf-text-muted)]">{t('advances.paid')}</dt>
+              <dd>
+                <MoneyText
+                  value={money(
+                    financialDetail?.advancePosition.paid ?? financialItem.advancePaidAmount,
+                    financialItem.currency,
+                  )}
+                />
+              </dd>
+            </div>
+            <div className="text-start">
+              <dt className="text-[var(--pf-text-muted)]">{t('advances.applied')}</dt>
+              <dd>
+                <MoneyText
+                  value={money(
+                    financialDetail?.advancePosition.applied ?? financialItem.advanceAppliedAmount,
+                    financialItem.currency,
+                  )}
+                />
+              </dd>
+            </div>
+            <div className="text-start">
+              <dt className="text-[var(--pf-text-muted)]">{t('advances.outstanding')}</dt>
+              <dd>
+                <MoneyText
+                  value={money(
+                    financialDetail?.advancePosition.outstanding ??
+                      financialItem.advanceOutstandingAmount,
+                    financialItem.currency,
+                  )}
+                />
+              </dd>
+            </div>
+          </dl>
+          {canManageAdvances ? (
+            <>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                className="self-start"
+                onClick={() => setShowAdvance((value) => !value)}
               >
-                <input type="hidden" name="subcontractAgreementId" value={item.id} />
-                <input type="hidden" name="vendorId" value={item.vendorId} />
-                <input type="hidden" name="projectId" value={item.projectId} />
-                {advanceState.error ? <Alert tone="danger">{advanceState.error}</Alert> : null}
-                {advanceState.ok ? <Alert tone="success">{t('advances.addSuccess')}</Alert> : null}
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <Field label={t('advances.amountLabel')} required>
-                    {(control) => (
-                      <Input {...control} name="amount" inputMode="decimal" dir="ltr" required />
-                    )}
+                {t('advances.add')}
+              </Button>
+              {showAdvance ? (
+                <form
+                  action={advanceAction}
+                  className="flex flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-3"
+                >
+                  <input type="hidden" name="subcontractAgreementId" value={item.id} />
+                  <input type="hidden" name="vendorId" value={item.vendorId} />
+                  <input type="hidden" name="projectId" value={item.projectId} />
+                  {advanceState.error ? <Alert tone="danger">{advanceState.error}</Alert> : null}
+                  {advanceState.ok ? (
+                    <Alert tone="success">{t('advances.addSuccess')}</Alert>
+                  ) : null}
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <Field label={t('advances.amountLabel')} required>
+                      {(control) => (
+                        <Input {...control} name="amount" inputMode="decimal" dir="ltr" required />
+                      )}
+                    </Field>
+                    <Field label={t('advances.paidDateLabel')} required>
+                      {(control) => (
+                        <Input {...control} name="paidDate" type="date" dir="ltr" required />
+                      )}
+                    </Field>
+                  </div>
+                  <Field label={t('notesLabel')}>
+                    {(control) => <Input {...control} name="notes" />}
                   </Field>
-                  <Field label={t('advances.paidDateLabel')} required>
-                    {(control) => <Input {...control} name="paidDate" type="date" dir="ltr" required />}
-                  </Field>
-                </div>
-                <Field label={t('notesLabel')}>
-                  {(control) => <Input {...control} name="notes" />}
-                </Field>
-                <Button type="submit" size="sm" loading={advancePending} className="self-start">
-                  {t('advances.addSave')}
-                </Button>
-              </form>
-            ) : null}
-          </>
-        ) : null}
-      </section>
+                  <Button type="submit" size="sm" loading={advancePending} className="self-start">
+                    {t('advances.addSave')}
+                  </Button>
+                </form>
+              ) : null}
+            </>
+          ) : null}
+        </section>
+      ) : null}
 
       {flags ? (
         <p className="text-start text-xs text-[var(--pf-text-secondary)]">

@@ -1,0 +1,83 @@
+{
+  "title": "Contractor compliance",
+  "description": "Insurance, tax certificates, licenses and other requirements per subcontract agreement.",
+  "status": {
+    "missing": "Missing",
+    "current": "Current",
+    "expiring": "Expiring",
+    "expired": "Expired"
+  },
+  "kinds": {
+    "insurance": "Insurance",
+    "guarantee": "Guarantee",
+    "tax_certificate": "Tax certificate",
+    "bookkeeping_certificate": "Bookkeeping certificate",
+    "safety_certification": "Safety certification",
+    "license": "License",
+    "custom": "Custom"
+  },
+  "counts": {
+    "blocking": "{count, plural, one {# blocking} other {# blocking}}"
+  },
+  "actions": {
+    "applyStandardSet": "Apply standard requirement set"
+  },
+  "review": {
+    "queueTitle": "Pending review",
+    "approve": "Approve",
+    "reject": "Reject",
+    "rejectionPlaceholder": "Rejection reason (required to reject)"
+  },
+  "fields": {
+    "referenceNumber": "Reference / policy number",
+    "expiresOn": "Expiry date"
+  },
+  "empty": {
+    "title": "No subcontract agreements",
+    "description": "Add contractors to the project to manage compliance requirements.",
+    "noAgreements": "No agreements on this project yet."
+  },
+  "portal": {
+    "title": "Compliance documents",
+    "description": "Upload and renew the documents your agreement requires.",
+    "actionRequired": "Action required",
+    "submit": "Submit for review",
+    "empty": "No compliance requirements are assigned to you on this project."
+  },
+  "errors": {
+    "expiryRequired": "Expiry date is required for this requirement.",
+    "expiryBeforeIssue": "Expiry date is before issue date.",
+    "requirementArchived": "Requirement is archived.",
+    "alreadyReviewed": "Submission was already reviewed.",
+    "evidenceRequired": "Approval requires an attached document.",
+    "rejectionReasonRequired": "Rejection requires a reason."
+  },
+  "safety": {
+    "title": "Site safety",
+    "description": "Contractor-linked observations, hazards, incidents and corrective actions.",
+    "portalTitle": "Safety reports",
+    "portalDescription": "Report site safety events for your company.",
+    "reportTitle": "Report safety event",
+    "submit": "Submit report",
+    "empty": "No safety records yet.",
+    "fields": {
+      "type": "Type",
+      "title": "Title",
+      "description": "Description"
+    },
+    "types": {
+      "observation": "Observation",
+      "hazard": "Hazard",
+      "near_miss": "Near miss",
+      "incident": "Incident",
+      "accident": "Accident",
+      "ppe_issue": "PPE issue"
+    },
+    "errors": {
+      "missingScope": "Missing contractor scope for this report.",
+      "notOpen": "Safety record is not open.",
+      "openActions": "Close open corrective actions first.",
+      "verificationRequired": "Closure verification is required."
+    }
+  }
+}

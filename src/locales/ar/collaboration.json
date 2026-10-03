@@ -1,0 +1,126 @@
+{
+  "discussion": {
+    "title": "المناقشة",
+    "empty": "لا توجد رسائل بعد.",
+    "audienceInternal": "الفريق الداخلي فقط",
+    "audienceContractor": "مشترك مع المقاول",
+    "kindComment": "تعليق",
+    "kindDecision": "قرار رسمي",
+    "submit": "نشر",
+    "decisionBadge": "قرار",
+    "you": "أنت"
+  },
+  "activity": {
+    "title": "النشاط",
+    "pageTitle": "نشاط المشروع",
+    "pageDescription": "جدول زمني للتحديثات التشغيلية. التفاصيل المالية للمصرّح لهم فقط.",
+    "empty": "لا يوجد نشاط بعد.",
+    "filtersLabel": "تصفية النشاط",
+    "filters": {
+      "all": "الكل",
+      "tasks": "المهام",
+      "coordination": "التنسيق"
+    },
+    "financialBadge": "مالي",
+    "events": {
+      "generic": "{type}",
+      "financialRedacted": "تحديث مالي (تفاصيل مقيّدة)",
+      "task_external_assigned": "تم تعيين مهمة للمقاول: {title}",
+      "task_external_acknowledged": "أقر المقاول بالمهمة",
+      "task_external_started": "بدأ المقاول العمل",
+      "task_external_completion_submitted": "تم تقديم الإنجاز للتحقق",
+      "task_external_verified": "تم التحقق ({outcome})",
+      "task_external_reopened": "أُعيد فتح المهمة",
+      "task_external_closed": "أُغلقت المهمة",
+      "task_linked_created": "مهمة مرتبطة: {title}",
+      "collab_comment_posted": "رسالة جديدة",
+      "subcontract_claim_certified": "تم اعتماد المطالبة: {title}"
+    }
+  },
+  "contractorPanel": {
+    "title": "تعيين المقاول",
+    "evidenceRequired": "مطلوب دليل",
+    "due": "الاستحقاق {date}"
+  },
+  "taskStatus": {
+    "assigned": "معيّنة",
+    "acknowledged": "مُقرّ بها",
+    "in_progress": "قيد التنفيذ",
+    "completion_submitted": "بانتظار التحقق",
+    "resubmitted": "أُعيد تقديمها",
+    "approved": "مقبولة",
+    "rejected": "مرفوضة",
+    "rework_required": "يلزم إصلاح",
+    "reopened": "أُعيد فتحها",
+    "closed": "مغلقة",
+    "cancelled": "ملغاة"
+  },
+  "taskEvent": {
+    "assigned": "تعيين للمقاول",
+    "reassigned": "إعادة تعيين",
+    "acknowledged": "إقرار",
+    "started": "بدء العمل",
+    "completion_submitted": "تقديم الإنجاز",
+    "verified": "تحقق",
+    "reopened": "إعادة فتح",
+    "closed": "إغلاق",
+    "cancelled": "إلغاء"
+  },
+  "verificationOutcome": {
+    "approved": "مقبول",
+    "approved_with_remarks": "مقبول مع ملاحظات",
+    "rejected": "مرفوض",
+    "rework_required": "يلزم إصلاح"
+  },
+  "quality": {
+    "satisfactory": "مرضٍ",
+    "needs_attention": "يحتاج انتباه",
+    "unacceptable": "غير مقبول"
+  },
+  "internalCommands": {
+    "verify": "التحقق من الإنجاز",
+    "submitVerify": "إرسال التحقق",
+    "close": "إغلاق المهمة",
+    "reopen": "إعادة فتح",
+    "cancel": "إلغاء التعيين",
+    "notePlaceholder": "ملاحظات (مطلوبة عند الرفض)",
+    "reopenReason": "سبب إعادة الفتح",
+    "cancelReason": "سبب الإلغاء",
+    "qualityOptional": "الجودة (اختياري)"
+  },
+  "portal": {
+    "tasks": {
+      "title": "مهامي",
+      "description": "العمل المعيّن لشركتك في هذا المشروع.",
+      "back": "العودة للمهام",
+      "emptyTitle": "لا مهام",
+      "emptyDescription": "عند تعيين عمل لشركتك سيظهر هنا.",
+      "filterLabel": "تصفية",
+      "filters": { "open": "مفتوحة", "all": "الكل" },
+      "actionRequired": "إجراء مطلوب",
+      "evidence": "صور ومستندات",
+      "history": "السجل",
+      "completionNote": "ملاحظة الإنجاز (اختياري)",
+      "command": {
+        "acknowledge": "إقرار الاستلام",
+        "start": "بدء العمل",
+        "submit_completion": "تقديم الإنجاز",
+        "reopen": "إعادة فتح بعد الرفض"
+      }
+    }
+  },
+  "errors": {
+    "invalidTransition": "هذا الإجراء غير مسموح في الحالة الحالية.",
+    "evidenceRequired": "أرفق دليلاً واحداً على الأقل قبل التقديم.",
+    "newEvidenceRequired": "أضف دليلاً جديداً قبل إعادة التقديم.",
+    "notSharedWithContractors": "غير مشترك مع المقاولين.",
+    "concurrentChange": "تم تحديث المهمة. حدّث الصفحة وحاول مجدداً.",
+    "reassignNotAllowed": "لا يمكن تغيير المقاول بعد بدء العمل.",
+    "actorNotAllowed": "غير مصرّح لك.",
+    "remarkRequired": "ملاحظة مطلوبة.",
+    "reasonRequired": "السبب مطلوب.",
+    "noteTooLong": "الملاحظة طويلة جداً.",
+    "invalidOutcome": "نتيجة غير معروفة.",
+    "invalidQuality": "تقييم جودة غير معروف."
+  }
+}

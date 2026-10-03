@@ -591,6 +591,12 @@
         "additional_created": "Additional contract created",
         "updated": "Contract updated"
       },
+      "project_member": {
+        "added": "Project team member added",
+        "capabilities_changed": "Project team member capabilities changed",
+        "deactivated": "Project team member deactivated",
+        "reactivated": "Project team member reactivated"
+      },
       "project_access": {
         "granted": "Project access granted",
         "revoked": "Project access removed"
@@ -1051,6 +1057,265 @@
         "approved": "Quick capture approved",
         "rejected": "Quick capture rejected",
         "routed": "Quick capture routed"
+      },
+      "site_daily_log": {
+        "created": "Daily site log opened",
+        "updated": "Daily site log updated",
+        "closed": "Daily site log closed",
+        "reopened": "Daily site log reopened",
+        "entry_added": "Site log entry added",
+        "entry_updated": "Site log entry updated",
+        "entry_removed": "Site log entry removed"
+      },
+      "site_daily_report": {
+        "submitted": "Contractor daily report submitted"
+      },
+      "site_meeting": {
+        "created": "Contractor meeting created",
+        "updated": "Contractor meeting updated",
+        "held": "Contractor meeting held",
+        "cancelled": "Contractor meeting cancelled",
+        "published": "Contractor meeting minutes published",
+        "attendee_added": "Meeting attendee added",
+        "attendee_removed": "Meeting attendee removed",
+        "decision_recorded": "Meeting decision recorded",
+        "action_item_created": "Meeting action item created"
+      },
+      "site_instruction": {
+        "issued": "Site instruction issued",
+        "updated": "Site instruction updated",
+        "acknowledged": "Site instruction acknowledged",
+        "performed": "Site instruction marked performed",
+        "closed": "Site instruction closed",
+        "cancelled": "Site instruction cancelled",
+        "reopened": "Site instruction reopened",
+        "conversion_requested": "Commercial conversion requested for site instruction",
+        "converted": "Site instruction converted to a commercial change",
+        "conversion_dismissed": "Commercial conversion of site instruction dismissed"
+      },
+      "subcontract_agreement": {
+        "created": "Subcontract agreement created",
+        "updated": "Subcontract agreement updated",
+        "terms_updated": "Subcontract agreement terms updated",
+        "status_changed": "Subcontract agreement status changed"
+      },
+      "subcontract_work_line": {
+        "created": "Agreement work line created",
+        "updated": "Agreement work line updated",
+        "archived": "Agreement work line archived"
+      },
+      "subcontract_change": {
+        "created": "Subcontract change created",
+        "submitted": "Subcontract change submitted",
+        "version_proposed": "Subcontract change version proposed",
+        "approved": "Subcontract change approved",
+        "rejected": "Subcontract change rejected",
+        "withdrawn": "Subcontract change withdrawn"
+      },
+      "unpriced_work": {
+        "recorded": "Unpriced work recorded",
+        "converted": "Unpriced work converted to a change",
+        "rejected": "Unpriced work rejected",
+        "cancelled": "Unpriced work cancelled"
+      },
+      "subcontract_claim": {
+        "created": "Contractor claim created",
+        "updated": "Contractor claim updated",
+        "submitted": "Contractor claim submitted",
+        "cancelled": "Contractor claim cancelled",
+        "revision_opened": "Corrected contractor claim revision opened",
+        "review_started": "Contractor claim review started",
+        "returned": "Contractor claim returned for correction",
+        "evidence_requested": "Evidence requested for contractor claim",
+        "certified": "Contractor claim certified",
+        "reassessed": "Contractor claim reassessed",
+        "ap_bill_drafted": "Supplier bill draft created from contractor claim"
+      },
+      "subcontract_deduction": {
+        "issued": "Contractor deduction issued",
+        "reversed": "Contractor deduction reversed",
+        "disputed": "Contractor deduction disputed"
+      },
+      "subcontract_payment_hold": {
+        "placed": "Contractor payment hold placed",
+        "released": "Contractor payment hold released"
+      },
+      "task_external": {
+        "assigned": "Task assigned to a contractor",
+        "reassigned": "Contractor task reassigned",
+        "acknowledged": "Contractor task acknowledged",
+        "started": "Contractor task started",
+        "completion_submitted": "Contractor task completion submitted",
+        "verified": "Contractor task verified",
+        "reopened": "Contractor task reopened",
+        "closed": "Contractor task closed",
+        "cancelled": "Contractor task cancelled"
+      },
+      "task_link": {
+        "created": "Task link created"
+      },
+      "collab_comment": {
+        "posted": "Discussion comment posted"
+      },
+      "collab_decision": {
+        "recorded": "Discussion decision recorded"
+      },
+      "coordination_event": {
+        "created": "Coordination event created",
+        "updated": "Coordination event updated",
+        "rescheduled": "Coordination event rescheduled",
+        "outcome_recorded": "Coordination event outcome recorded",
+        "readiness_overridden": "Coordination event readiness set manually",
+        "document_linked": "Document linked to coordination event",
+        "document_unlinked": "Document unlinked from coordination event"
+      },
+      "coordination_participant": {
+        "invited": "Coordination participant invited",
+        "removed": "Coordination participant removed"
+      },
+      "coordination_response": {
+        "recorded": "Contractor response to coordination event recorded"
+      },
+      "coordination_issue": {
+        "raised": "Coordination issue raised",
+        "task_created": "Follow-up task created from coordination issue",
+        "dismissed": "Coordination issue dismissed"
+      },
+      "evidence": {
+        "uploaded": "Evidence uploaded",
+        "updated": "Evidence updated",
+        "removed": "Evidence removed"
+      },
+      "document_share": {
+        "created": "Document share created",
+        "revoked": "Document share revoked",
+        "acknowledged": "Document share acknowledged"
+      },
+      "drawing": {
+        "created": "Drawing created",
+        "updated": "Drawing updated",
+        "archived": "Drawing archived",
+        "distribution_updated": "Drawing distribution updated"
+      },
+      "drawing_revision": {
+        "uploaded": "Drawing revision uploaded",
+        "published": "Drawing revision published",
+        "withdrawn": "Drawing revision withdrawn",
+        "acknowledged": "Drawing revision acknowledged"
+      },
+      "quality_inspection_template": {
+        "created": "Quality inspection template created",
+        "updated": "Quality inspection template updated",
+        "archived": "Quality inspection template archived"
+      },
+      "quality_inspection": {
+        "created": "Quality inspection created",
+        "updated": "Quality inspection updated",
+        "started": "Quality inspection started",
+        "outcome_recorded": "Quality inspection outcome recorded",
+        "reinspection_started": "Quality reinspection started",
+        "cancelled": "Quality inspection cancelled"
+      },
+      "defect": {
+        "created": "Defect opened",
+        "updated": "Defect updated",
+        "assigned": "Defect assigned",
+        "completion_submitted": "Defect fix submitted",
+        "verification_started": "Defect fix verification started",
+        "accepted": "Defect fix accepted",
+        "rejected": "Defect fix rejected",
+        "reopened": "Defect reopened",
+        "cancelled": "Defect cancelled"
+      },
+      "rfi": {
+        "created": "RFI created",
+        "updated": "RFI updated",
+        "submitted": "RFI submitted",
+        "review_started": "RFI review started",
+        "answered": "RFI answered",
+        "closed": "RFI closed",
+        "reopened": "RFI reopened"
+      },
+      "submittal": {
+        "created": "Submittal created",
+        "updated": "Submittal updated",
+        "submitted": "Submittal submitted",
+        "review_started": "Submittal review started",
+        "reviewed": "Submittal reviewed",
+        "revision_opened": "New submittal revision opened",
+        "withdrawn": "Submittal withdrawn"
+      },
+      "compliance_requirement": {
+        "created": "Contractor compliance requirement created",
+        "updated": "Contractor compliance requirement updated",
+        "archived": "Contractor compliance requirement archived"
+      },
+      "compliance_document": {
+        "submitted": "Contractor compliance document submitted",
+        "reviewed": "Contractor compliance document reviewed"
+      },
+      "contractor_safety": {
+        "reported": "Contractor safety event reported",
+        "action_created": "Action created for contractor safety event",
+        "task_created": "Task created for contractor safety event",
+        "closed": "Contractor safety event closed"
+      },
+      "delivery_item": {
+        "created": "Delivery item created",
+        "updated": "Delivery item updated",
+        "reported": "Delivery status reported"
+      },
+      "external_principal": {
+        "invited": "Contractor user invited",
+        "invite_reissued": "Contractor user invitation reissued",
+        "activated": "Contractor user account activated",
+        "password_reset_issued": "Password reset sent to contractor user",
+        "password_reset_completed": "Contractor user password reset completed",
+        "password_changed": "Contractor user password changed",
+        "profile_updated": "Contractor user profile updated",
+        "sessions_revoked": "Contractor user sessions revoked",
+        "disabled": "Contractor user disabled",
+        "enabled": "Contractor user enabled"
+      },
+      "external_grant": {
+        "created": "Contractor project access created",
+        "updated": "Contractor project access updated",
+        "revoked": "Contractor project access revoked"
+      },
+      "project_delivery_profile": {
+        "updated": "Project delivery profile updated"
+      },
+      "project_characteristics": {
+        "updated": "Project construction characteristics updated"
+      },
+      "project_location": {
+        "created": "Project location created",
+        "updated": "Project location updated",
+        "moved": "Project location moved",
+        "archived": "Project location archived",
+        "restored": "Project location restored",
+        "bulk_generated": "Location tree generated in bulk"
+      },
+      "project_recommendation": {
+        "accepted": "Planning recommendation accepted",
+        "dismissed": "Planning recommendation dismissed",
+        "restored": "Planning recommendation restored"
+      },
+      "tender_package": {
+        "created": "Tender package created",
+        "awarded": "Tender package awarded"
+      },
+      "tender_offer": {
+        "submitted": "Tender offer submitted"
+      },
+      "agreement_closeout": {
+        "closed": "Agreement closeout completed"
+      },
+      "handover_item": {
+        "submitted": "Handover item submitted"
+      },
+      "warranty_report": {
+        "reported": "Contractor warranty report opened"
       }
     },
     "entities": {

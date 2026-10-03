@@ -1,0 +1,289 @@
+{
+  "common": {
+    "none": "بدون",
+    "save": "حفظ",
+    "saved": "تم الحفظ",
+    "reason": "السبب",
+    "note": "ملاحظة",
+    "previous": "السابق",
+    "next": "التالي"
+  },
+  "nav": {
+    "label": "أقسام العقد",
+    "overview": "نظرة عامة",
+    "lines": "بنود العمل",
+    "changes": "التغييرات"
+  },
+  "agreementStatus": {
+    "draft": "مسودة",
+    "active": "نشط",
+    "suspended": "موقوف",
+    "completed": "مكتمل",
+    "closed": "مغلق",
+    "cancelled": "ملغى"
+  },
+  "changeStatus": {
+    "draft": "مسودة",
+    "submitted": "مقدَّم",
+    "under_negotiation": "قيد التفاوض",
+    "approved": "معتمد",
+    "rejected": "مرفوض",
+    "withdrawn": "مسحوب"
+  },
+  "unpricedStatus": {
+    "recorded": "بانتظار التسعير",
+    "converted": "حُوِّل إلى تغيير",
+    "rejected": "مرفوض",
+    "cancelled": "ملغى"
+  },
+  "lineTypes": {
+    "quantity_rate": "كمية × سعر الوحدة",
+    "lump_sum": "مبلغ مقطوع",
+    "weighted_milestone": "مرحلة موزونة",
+    "percentage": "نسبة الإنجاز",
+    "allowance": "مبلغ احتياطي",
+    "custom": "مخصص"
+  },
+  "changeTypes": {
+    "addition": "إضافة",
+    "deduction": "خصم",
+    "scope": "تغيير النطاق",
+    "quantity": "تغيير الكمية",
+    "rate": "تغيير سعر الوحدة",
+    "extension": "تمديد المدة",
+    "instruction": "تعليمات موقع",
+    "contractor_proposal": "اقتراح المقاول"
+  },
+  "origins": {
+    "internal": "فتحه الفريق",
+    "contractor": "فتحه المقاول",
+    "site_instruction": "من تعليمات موقع",
+    "unpriced_work": "من عمل غير مسعّر"
+  },
+  "actors": {
+    "internal": "فريقنا",
+    "external": "المقاول",
+    "system": "النظام"
+  },
+  "vat": {
+    "standard": "ضريبة قيمة مضافة عادية",
+    "reverse_charge": "احتساب عكسي",
+    "exempt": "معفى",
+    "zero_rated": "نسبة صفرية",
+    "not_applicable": "غير منطبق"
+  },
+  "advanceRecovery": {
+    "none": "بدون استرداد",
+    "proportional": "بالتناسب مع العمل المعتمد",
+    "fixed_percent_per_claim": "نسبة ثابتة من كل مطالبة"
+  },
+  "agreement": {
+    "createSubmit": "إنشاء مسودة عقد",
+    "created": "تم إنشاء مسودة العقد",
+    "chooseVendor": "اختر مقاولًا",
+    "editTitle": "تفاصيل العقد",
+    "fields": {
+      "vendor": "المقاول",
+      "title": "اسم العقد",
+      "number": "رقم العقد",
+      "trade": "المجال",
+      "workPackage": "حزمة العمل",
+      "startDate": "تاريخ البدء",
+      "endDate": "تاريخ الانتهاء",
+      "originalAmount": "قيمة العقد (صافي)",
+      "scope": "ملخص النطاق",
+      "period": "مدة العقد"
+    }
+  },
+  "terms": {
+    "title": "الشروط التجارية",
+    "retentionPercent": "نسبة المحتجزات",
+    "retentionCapPercent": "سقف المحتجزات بالنسبة",
+    "retentionCapAmount": "سقف المحتجزات بالمبلغ",
+    "advancePercent": "نسبة الدفعة المقدمة",
+    "advanceAmount": "مبلغ الدفعة المقدمة",
+    "advanceRecoveryMethod": "استرداد الدفعة المقدمة",
+    "advanceRecoveryPercent": "نسبة الاسترداد من كل مطالبة",
+    "vatTreatment": "معاملة ضريبة القيمة المضافة",
+    "paymentTermsDays": "شروط الدفع (أيام)",
+    "paymentTermsText": "ملاحظات شروط الدفع"
+  },
+  "value": {
+    "title": "قيمة العقد",
+    "original": "القيمة الأصلية",
+    "approvedChanges": "التغييرات المعتمدة",
+    "current": "القيمة الحالية",
+    "netNote": "جميع مبالغ العقد صافية. تُحتسب الضريبة في فاتورة المقاول."
+  },
+  "lifecycle": {
+    "title": "حالة العقد",
+    "suspensionReason": "سبب الإيقاف",
+    "actions": {
+      "activate": "تفعيل العقد",
+      "suspend": "إيقاف",
+      "resume": "استئناف",
+      "complete": "وضع علامة مكتمل",
+      "close": "إغلاق العقد",
+      "cancel": "إلغاء المسودة"
+    },
+    "hints": {
+      "activate": "يقفل بنود العمل ويسجل القيمة الأصلية للعقد.",
+      "suspend": "يتوقف العمل؛ ولا يزال بالإمكان معالجة التغييرات.",
+      "resume": "يعيد العقد إلى حالة النشاط.",
+      "complete": "انتهى العمل؛ تستمر المطالبات والتسليم.",
+      "close": "نهائي. يتطلب حسم جميع التغييرات والأعمال غير المسعّرة.",
+      "cancel": "تُحفظ المسودة للسجل ولا يمكن تفعيلها لاحقًا."
+    }
+  },
+  "lines": {
+    "title": "بنود العمل",
+    "pageDescription": "نطاق العقد مقسم إلى بنود عمل قابلة للقياس.",
+    "add": "إضافة بند عمل",
+    "added": "تمت إضافة بند العمل",
+    "edit": "تعديل",
+    "archive": "إزالة من المسودة",
+    "pricingHint": "بنود الكمية × السعر تُسعَّر حسب سعر الوحدة؛ والأنواع الأخرى حسب مبلغ البند.",
+    "lockedHint": "العقد نشط: يتغير النطاق والكمية والسعر فقط عبر تغيير معتمد.",
+    "baselineLocked": "الأساس مقفل. استخدم تبويب التغييرات للإضافة أو الخصم أو إعادة التسعير.",
+    "emptyTitle": "لا توجد بنود عمل بعد",
+    "emptyDescription": "أضف البنود التي يتكون منها العقد قبل تفعيله.",
+    "fromChange": "أضيف بتغيير معتمد",
+    "fields": {
+      "code": "الرمز",
+      "description": "الوصف",
+      "lineType": "نوع البند",
+      "unit": "الوحدة",
+      "quantity": "الكمية",
+      "weightPercent": "الوزن بالنسبة",
+      "plannedStart": "البدء المخطط",
+      "plannedEnd": "الانتهاء المخطط",
+      "planned": "التواريخ المخططة",
+      "location": "الموقع",
+      "workPackage": "حزمة العمل",
+      "unitPrice": "سعر الوحدة",
+      "contractAmount": "مبلغ البند",
+      "baseline": "أساس العقد",
+      "approvedChanges": "التغييرات المعتمدة",
+      "revised": "القيمة المحدّثة"
+    }
+  },
+  "changes": {
+    "title": "التغييرات",
+    "pageDescription": "الإضافات والخصومات والتعليمات على هذا العقد. التغييرات المعتمدة فقط تغيّر قيمة العقد.",
+    "createTitle": "فتح تغيير",
+    "create": "إنشاء تغيير",
+    "created": "تم إنشاء التغيير كمسودة",
+    "notRunning": "يمكن فتح التغييرات بعد تفعيل العقد.",
+    "operationalNote": "الأسعار ومبالغ التفاوض تظهر فقط لمن لديهم صلاحية مالية على العقد.",
+    "emptyTitle": "لا توجد تغييرات بعد",
+    "emptyDescription": "تظهر هنا التغييرات التي يفتحها الفريق أو يقترحها المقاول.",
+    "extensionDays": "{days} أيام إضافية",
+    "decisionReason": "ملاحظة القرار",
+    "fields": {
+      "type": "نوع التغيير",
+      "title": "العنوان",
+      "description": "الوصف",
+      "timeExtensionDays": "تمديد المدة (أيام)",
+      "approveVersion": "الإصدار المراد اعتماده"
+    },
+    "actions": {
+      "submit": "تقديم للتسعير",
+      "withdraw": "سحب",
+      "approve": "اعتماد التغيير",
+      "reject": "رفض التغيير"
+    }
+  },
+  "versions": {
+    "label": "الإصدار {no}",
+    "none": "لم يُسعَّر بعد",
+    "propose": "تسعير / عرض مضاد",
+    "proposeSubmit": "إضافة إصدار",
+    "amount": "المبلغ الإجمالي (صافي)",
+    "note": "ملاحظة",
+    "linesTitle": "تفصيل حسب البنود (اختياري)",
+    "linesHint": "عند إدخال البنود يكون الإجمالي مجموعها.",
+    "target": "بند العمل",
+    "chooseTarget": "اختر بندًا",
+    "newLine": "بند جديد",
+    "quantityDelta": "تغيير الكمية",
+    "unitRate": "سعر الوحدة",
+    "amountDelta": "تغيير المبلغ",
+    "addLine": "إضافة بند",
+    "removeLine": "إزالة"
+  },
+  "unpriced": {
+    "pageTitle": "أعمال غير مسعّرة",
+    "pageDescription": "أعمال نُفذت قبل الاتفاق على السعر. حوّل كل سجل إلى تغيير للتسعير أو ارفضه.",
+    "recordTitle": "تسجيل عمل غير مسعّر",
+    "record": "تسجيل",
+    "recorded": "تم تسجيل العمل",
+    "chooseAgreement": "اختر عقدًا",
+    "filterLabel": "تصفية حسب الحالة",
+    "filters": {
+      "open": "بانتظار التسعير",
+      "converted": "محوَّل",
+      "rejected": "مرفوض",
+      "cancelled": "ملغى",
+      "all": "الكل"
+    },
+    "fields": {
+      "agreement": "عقد المقاول",
+      "title": "ما الذي نُفذ",
+      "workDate": "تاريخ التنفيذ",
+      "issuer": "بطلب من",
+      "scope": "تفاصيل النطاق"
+    },
+    "actions": {
+      "convert": "تحويل إلى تغيير",
+      "reject": "رفض",
+      "cancel": "إلغاء السجل"
+    },
+    "issuedBy": "بطلب من {name}",
+    "viewChange": "عرض التغيير",
+    "emptyTitle": "لا توجد أعمال غير مسعّرة",
+    "emptyDescription": "سجّل العمل الذي نفذه المقاول قبل الاتفاق على السعر حتى لا يضيع."
+  },
+  "portal": {
+    "contractDescription": "بنود العمل وحالة عقدك.",
+    "changesDescription": "التغييرات على عقدك واقتراحاتك.",
+    "proposeTitle": "اقتراح تغيير",
+    "proposeSubmit": "إرسال الاقتراح",
+    "proposed": "تم إرسال الاقتراح",
+    "counterTitle": "إرسال عرض مضاد",
+    "counterSubmit": "إرسال العرض المضاد",
+    "countered": "تم إرسال العرض المضاد"
+  },
+  "errors": {
+    "lifecycleTransition": "تغيير الحالة هذا غير مسموح في الحالة الحالية للعقد.",
+    "baselineLocked": "العقد نشط. غيّر النطاق أو الكمية أو السعر عبر تغيير معتمد.",
+    "changeRequiresRunningAgreement": "تتطلب التغييرات عقدًا نشطًا أو موقوفًا.",
+    "changeTransition": "هذا الإجراء غير متاح في الحالة الحالية للتغيير.",
+    "unpricedTransition": "تمت معالجة هذا السجل مسبقًا.",
+    "closeBlocked": "احسم جميع التغييرات المفتوحة والأعمال غير المسعّرة قبل إغلاق العقد.",
+    "weightsIncomplete": "يجب أن يكون مجموع بنود المراحل الموزونة 100% تمامًا.",
+    "additionNegative": "لا يمكن للإضافة أن تخفّض قيمة العقد.",
+    "deductionPositive": "لا يمكن للخصم أن يرفع قيمة العقد.",
+    "belowZero": "لا يمكن تحديث بند عمل إلى قيمة سالبة.",
+    "contractBelowZero": "لا يمكن أن تنخفض قيمة العقد عن الصفر.",
+    "vendorNotSubcontractor": "يمكن إنشاء عقد فقط للمقاولين المعرّفين كمقاولي باطن.",
+    "numberTaken": "رقم العقد مستخدم بالفعل.",
+    "notEditable": "لا يمكن تعديل عقد مغلق أو ملغى.",
+    "valueDerivedFromLines": "قيمة العقد هي مجموع بنود العمل.",
+    "originalMismatch": "القيمة الأصلية المسجلة تختلف عن مجموع بنود العمل.",
+    "lineCodeTaken": "رمز البند مستخدم بالفعل في العقد.",
+    "changeNotPriced": "سعّر التغيير قبل اعتماده.",
+    "lineNotActive": "أحد البنود في التغيير لم يعد نشطًا.",
+    "cannotWithdrawExternal": "يُرفض اقتراح المقاول ولا يُسحب.",
+    "unpricedRequiresRunningAgreement": "يُسجَّل العمل غير المسعّر على عقد نشط أو موقوف أو مكتمل."
+  },
+  "validation": {
+    "parentContractProject": "يجب أن يتبع العقد الأم هذا المشروع.",
+    "workPackageProject": "يجب أن تتبع حزمة العمل هذا المشروع.",
+    "locationProject": "يجب أن يتبع الموقع هذا المشروع.",
+    "reasonRequired": "يرجى ذكر السبب.",
+    "versionLineTarget": "اختر بندًا موجودًا أو صِف بندًا جديدًا.",
+    "lineNotInAgreement": "هذا البند لا يتبع العقد.",
+    "contractorProposalExternal": "تُقدَّم اقتراحات المقاول من بوابة المقاولين.",
+    "newLineNegative": "لا يمكن أن تكون كمية أو مبلغ البند الجديد سالبة."
+  }
+}

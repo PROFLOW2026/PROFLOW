@@ -73,6 +73,8 @@ export {
 
 // Application functions
 export { createTask } from './application/create-task';
+export { createProjectCapabilityTask } from './application/create-project-capability-task';
+export type { CreateProjectCapabilityTaskInput } from './application/create-project-capability-task';
 export { updateTask } from './application/update-task';
 export { archiveTask } from './application/archive-task';
 export { listAccessibleTasks, listAccessibleTasksPage } from './application/list-tasks';

@@ -1,4 +1,5 @@
 import { createServerClient } from '@supabase/ssr';
+import type { User } from '@supabase/supabase-js';
 import type { NextRequest, NextResponse } from 'next/server';
 
 /**
@@ -10,6 +11,8 @@ import type { NextRequest, NextResponse } from 'next/server';
 export async function refreshSupabaseSession(
   request: NextRequest,
   response: NextResponse,
+  /** Lets the proxy route by identity without a second auth round trip (contractor surface split). */
+  decide?: (user: User | null) => NextResponse | null,
 ): Promise<NextResponse> {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -28,7 +31,15 @@ export async function refreshSupabaseSession(
     },
   });
 
-  await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
+  const override = decide?.(user ?? null);
+  if (override) {
+    // Keep refreshed auth cookies on the redirect.
+    for (const cookie of response.cookies.getAll()) override.cookies.set(cookie);
+    return override;
+  }
   return response;
 }

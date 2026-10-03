@@ -5,8 +5,8 @@ import {
   listProjectVendorEngagementHistory,
   listProjectVendorEngagements,
   listVendorsForOrg,
-  listProjectSubcontracts,
-  getSubcontractById,
+  listProjectSubcontractsForViewer,
+  getSubcontractForViewer,
   listSubcontractParentContracts,
   listSubcontractDocumentCandidates,
 } from '@/modules/vendors';
@@ -43,7 +43,7 @@ export async function ProjectContractorsPanel({ projectId }: ProjectContractorsP
         allowManage
           ? listVendorsForOrg(context, { status: 'active' })
           : Promise.resolve([]),
-        listProjectSubcontracts(context, projectId).catch(() => []),
+        listProjectSubcontractsForViewer(context, projectId).catch(() => []),
         listSubcontractParentContracts(context, projectId).catch(() => []),
         listSubcontractDocumentCandidates(context).catch(() => []),
         allowManage
@@ -51,7 +51,9 @@ export async function ProjectContractorsPanel({ projectId }: ProjectContractorsP
           : Promise.resolve([]),
       ]);
     const details = await Promise.all(
-      agreements.map((agreement) => getSubcontractById(context, agreement.id).catch(() => null)),
+      agreements.map((agreement) =>
+        getSubcontractForViewer(context, agreement.id).catch(() => null),
+      ),
     );
 
     return {

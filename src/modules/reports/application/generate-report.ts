@@ -25,7 +25,11 @@ import {
 } from '@/modules/projects/application/project-progress-mode';
 import { getQuoteById } from '@/modules/quotes';
 import { getModuleVisibility } from '@/modules/tenancy';
-import { listProjectSubcontracts, listProjectVendorEngagements } from '@/modules/vendors';
+import {
+  isFinancialSubcontractRow,
+  listProjectSubcontractsForViewer,
+  listProjectVendorEngagements,
+} from '@/modules/vendors';
 import { canReadWorkforceCost } from '@/modules/workforce';
 import type { OrgContext } from '@/shared/auth/context';
 import { nowUtc } from '@/shared/dates';
@@ -103,7 +107,7 @@ export const defaultReportDeps = {
   listPunchListItemsForOrg,
   listInspectionsForOrg,
   listProjectVendorEngagements,
-  listProjectSubcontracts,
+  listProjectSubcontractsForViewer,
   getProjectFieldOpsSummary,
 };
 
@@ -935,8 +939,10 @@ async function buildVendors(
   const chrome = await loadProjectChrome(context, projectId, ctx.deps);
   const [engagements, agreements] = await Promise.all([
     ctx.deps.listProjectVendorEngagements(context, projectId),
-    ctx.deps.listProjectSubcontracts(context, projectId),
+    ctx.deps.listProjectSubcontractsForViewer(context, projectId),
   ]);
+  const financialAgreements = agreements.filter(isFinancialSubcontractRow);
+  const showMoney = agreements.length > 0 && financialAgreements.length === agreements.length;
   return envelope({
     kind: 'vendor_subcontract_summary',
     locale: ctx.locale,
@@ -961,35 +967,53 @@ async function buildVendors(
         id: 'subcontracts',
         heading: ctx.copy.sections.subcontracts,
         tables:
-          agreements.length > 0
-            ? [
-                {
-                  headers: [
-                    ctx.copy.fields.agreement,
-                    ctx.copy.fields.vendor,
-                    ctx.copy.identity.status,
-                    ctx.copy.fields.currentValue,
-                    ctx.copy.fields.billed,
-                    ctx.copy.fields.paidCash,
-                  ],
-                  rows: agreements.map((row) => [
-                    row.title,
-                    row.vendorName,
-                    localizeCode(ctx.locale, row.status),
-                    formatMoney(money(row.currentAmount, row.currency), ctx.locale),
-                    formatMoney(money(row.billedAmount, row.currency), ctx.locale),
-                    formatMoney(money(row.paidAmount, row.currency), ctx.locale),
-                  ]),
-                },
-              ]
-            : undefined,
+          agreements.length === 0
+            ? undefined
+            : showMoney
+              ? [
+                  {
+                    headers: [
+                      ctx.copy.fields.agreement,
+                      ctx.copy.fields.vendor,
+                      ctx.copy.identity.status,
+                      ctx.copy.fields.currentValue,
+                      ctx.copy.fields.billed,
+                      ctx.copy.fields.paidCash,
+                    ],
+                    rows: financialAgreements.map((row) => [
+                      row.title,
+                      row.vendorName,
+                      localizeCode(ctx.locale, row.status),
+                      formatMoney(money(row.currentAmount, row.currency), ctx.locale),
+                      formatMoney(money(row.billedAmount, row.currency), ctx.locale),
+                      formatMoney(money(row.paidAmount, row.currency), ctx.locale),
+                    ]),
+                  },
+                ]
+              : [
+                  {
+                    headers: [
+                      ctx.copy.fields.agreement,
+                      ctx.copy.fields.vendor,
+                      ctx.copy.identity.status,
+                    ],
+                    rows: agreements.map((row) => [
+                      row.title,
+                      row.vendorName,
+                      localizeCode(ctx.locale, row.status),
+                    ]),
+                  },
+                ],
         paragraphs:
           agreements.length === 0
             ? [ctx.copy.empty.subcontracts]
-            : [ctx.copy.notices.billingNotPayment, ctx.copy.notices.actualCommittedForecast],
+            : showMoney
+              ? [ctx.copy.notices.billingNotPayment, ctx.copy.notices.actualCommittedForecast]
+              : undefined,
       },
     ],
-    notices: [ctx.copy.notices.billingNotPayment],
+    notices: showMoney ? [ctx.copy.notices.billingNotPayment] : [],
+    omitted: showMoney || agreements.length === 0 ? {} : { commercial: true },
   });
 }
 

@@ -1,0 +1,186 @@
+{
+  "nav": {
+    "signIn": "Sign in",
+    "activate": "Activate account",
+    "forgotPassword": "Forgot password",
+    "resetPassword": "Reset password",
+    "dashboard": "My day",
+    "notifications": "Notifications",
+    "account": "My account",
+    "projectHome": "Project home",
+    "tasks": "Tasks",
+    "schedule": "Schedule",
+    "documents": "Documents",
+    "plans": "Plans",
+    "rfi": "RFIs",
+    "submittals": "Submittals",
+    "defects": "Defects",
+    "inspections": "Inspections",
+    "instructions": "Site instructions",
+    "siteLog": "Daily log",
+    "compliance": "Compliance",
+    "deliveries": "Deliveries",
+    "safety": "Safety",
+    "contract": "My contract",
+    "contractChanges": "Contract changes",
+    "claims": "Progress claims",
+    "payments": "Payments",
+    "tenders": "Tenders",
+    "handover": "Handover",
+    "more": "More"
+  },
+  "shell": {
+    "title": "Contractor portal",
+    "navLabel": "Contractor portal navigation",
+    "switchProject": "Switch project",
+    "allProjects": "All projects",
+    "myProjects": "My projects",
+    "multipleOrganizations": "{count} clients",
+    "organizationFallback": "Client",
+    "notificationsUnread": "Notifications, {count} unread",
+    "userMenu": "User menu",
+    "anonymousUser": "Contractor user",
+    "language": "Language",
+    "signOut": "Sign out"
+  },
+  "dashboard": {
+    "title": "My day",
+    "greeting": "Hello, {name}",
+    "subtitle": "What needs you today across your projects",
+    "projectsTitle": "My projects",
+    "installApp": "Install the app",
+    "noAccess": {
+      "title": "No active project access yet",
+      "description": "Your account is active but has not been added to a project yet. Ask the client's project manager to grant you access."
+    }
+  },
+  "project": {
+    "title": "Project",
+    "unnamed": "Project {reference}",
+    "workingAs": "working as {vendor}",
+    "linksLabel": "Project areas",
+    "nothingShared": "Nothing has been shared with you on this project yet. Tasks, events and documents the client shares will appear here."
+  },
+  "sections": {
+    "attention": "{count} need action",
+    "dueAt": "Due {date}",
+    "partial": "Some information could not be loaded right now. Try refreshing the page.",
+    "viewAll": "View all",
+    "today": {
+      "title": "Today",
+      "description": "Events and tasks for today",
+      "empty": "Nothing scheduled for today."
+    },
+    "schedule": {
+      "title": "Upcoming events",
+      "description": "Coordination and schedule events you are invited to",
+      "empty": "No upcoming events."
+    },
+    "acknowledgements": {
+      "title": "Waiting for your acknowledgement",
+      "description": "Plans, instructions and events that need your acknowledgement or readiness",
+      "empty": "No open acknowledgement requests."
+    },
+    "tasks": {
+      "title": "Open tasks",
+      "description": "Tasks assigned to you or your company",
+      "empty": "No open tasks."
+    },
+    "overdueTasks": {
+      "title": "Overdue tasks",
+      "description": "Tasks past their due date",
+      "empty": "No overdue tasks."
+    },
+    "milestones": {
+      "title": "Milestones",
+      "description": "Upcoming project milestones",
+      "empty": "No upcoming milestones."
+    },
+    "planRevisions": {
+      "title": "New plan revisions",
+      "description": "Plans with a newly published revision",
+      "empty": "No new revisions."
+    },
+    "rfis": {
+      "title": "RFIs",
+      "description": "Open requests for information and new answers",
+      "empty": "No open RFIs."
+    },
+    "defects": {
+      "title": "Defects",
+      "description": "Defects assigned to you awaiting repair",
+      "empty": "No open defects."
+    },
+    "submittals": {
+      "title": "Submittals",
+      "description": "Submittals under review or returned for revision",
+      "empty": "No open submittals."
+    },
+    "claims": {
+      "title": "Progress claims",
+      "description": "Claims in draft, under review or returned",
+      "empty": "No open claims."
+    },
+    "certifications": {
+      "title": "Certification results",
+      "description": "Claims certified or reassessed",
+      "empty": "No new results."
+    },
+    "retention": {
+      "title": "Retention",
+      "description": "Retention balances and releases",
+      "empty": "No retention balances."
+    },
+    "payments": {
+      "title": "Payments",
+      "description": "Status of expected and completed payments",
+      "empty": "No payments to show."
+    },
+    "documents": {
+      "title": "Shared documents",
+      "description": "New documents shared with you",
+      "empty": "No new documents."
+    },
+    "notifications": {
+      "title": "Recent notifications",
+      "description": "Latest updates from your projects",
+      "empty": "No new notifications."
+    }
+  },
+  "badges": {
+    "overdue": "Overdue",
+    "today": "Today",
+    "actionRequired": "Action required",
+    "awaitingVerification": "Awaiting review",
+    "awaitingResponse": "Awaiting your response",
+    "awaitingAcknowledgement": "Awaiting your acknowledgement",
+    "open": "Open",
+    "unread": "New"
+  },
+  "metrics": {
+    "rfiAwaitingAnswer": "Awaiting answer",
+    "rfiAnswered": "Answered",
+    "rfiDrafts": "Drafts",
+    "overdue": "Overdue",
+    "defectsToFix": "To fix",
+    "defectsReopened": "Reopened",
+    "awaitingVerification": "Awaiting review"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "subtitle": "Updates on tasks, events, documents and claims",
+    "unreadSummary": "{count} unread notifications",
+    "markAllRead": "Mark all as read",
+    "markRead": "Mark as read",
+    "loadOlder": "Show older notifications",
+    "empty": {
+      "title": "No notifications",
+      "description": "When something on your projects needs your attention, it will appear here."
+    },
+    "severity": {
+      "info": "Update",
+      "warning": "Attention",
+      "urgent": "Urgent"
+    }
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "title": "Contractor tenders",
+  "description": "Package, invite, compare and award subcontract work — separate from customer quotes.",
+  "empty": { "title": "No tender packages", "description": "Create a package to invite subcontractor bids." },
+  "fields": { "trade": "Trade" },
+  "status": {
+    "draft": "Draft",
+    "inviting": "Inviting",
+    "evaluating": "Evaluating",
+    "awarded": "Awarded",
+    "cancelled": "Cancelled"
+  },
+  "detail": {
+    "scopeEmpty": "No scope description.",
+    "offers": "Offers",
+    "noOffers": "No bids yet.",
+    "vendorOffer": "Vendor {vendor}",
+    "amountHidden": "Amount restricted"
+  },
+  "offerStatus": {
+    "draft": "Draft",
+    "submitted": "Submitted",
+    "withdrawn": "Withdrawn",
+    "selected": "Selected",
+    "rejected": "Rejected"
+  },
+  "portal": {
+    "title": "Open tenders",
+    "description": "Packages your company is invited to bid on."
+  },
+  "errors": {
+    "alreadyAwarded": "This package was already awarded.",
+    "bidAlreadySubmitted": "You already submitted a bid for this package."
+  }
+}

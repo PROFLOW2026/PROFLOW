@@ -59,6 +59,16 @@
     "billing_plan": "Billing plan",
     "billing_cycle": "Billing cycle",
     "recurring_draft": "Recurring draft",
-    "approval": "Approval"
+    "approval": "Approval",
+    "contractor": "Contractor",
+    "coordination_event": "Coordination event",
+    "claim": "Claim",
+    "rfi": "RFI",
+    "submittal": "Submittal",
+    "defect": "Defect",
+    "drawing": "Drawing",
+    "location": "Location",
+    "meeting": "Meeting",
+    "site_instruction": "Site instruction"
   }
 }

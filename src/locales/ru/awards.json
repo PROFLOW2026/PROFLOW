@@ -1,0 +1,32 @@
+{
+  "title": "Тендеры подрядчиков",
+  "description": "Пакеты, приглашения, сравнение и награждение — отдельно от КП клиенту.",
+  "empty": { "title": "Нет пакетов", "description": "Создайте пакет для приглашения подрядчиков." },
+  "fields": { "trade": "Специальность" },
+  "status": {
+    "draft": "Черновик",
+    "inviting": "Приглашение",
+    "evaluating": "Оценка",
+    "awarded": "Присуждён",
+    "cancelled": "Отменён"
+  },
+  "detail": {
+    "scopeEmpty": "Нет описания объёма.",
+    "offers": "Предложения",
+    "noOffers": "Пока нет ставок.",
+    "vendorOffer": "Поставщик {vendor}",
+    "amountHidden": "Сумма скрыта"
+  },
+  "offerStatus": {
+    "draft": "Черновик",
+    "submitted": "Подано",
+    "withdrawn": "Отозвано",
+    "selected": "Выбрано",
+    "rejected": "Отклонено"
+  },
+  "portal": { "title": "Открытые тендеры", "description": "Пакеты, на которые вас пригласили." },
+  "errors": {
+    "alreadyAwarded": "Пакет уже присуждён.",
+    "bidAlreadySubmitted": "Ставка по этому пакету уже подана."
+  }
+}

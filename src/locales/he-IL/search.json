@@ -59,6 +59,16 @@
     "billing_plan": "תוכנית חיוב",
     "billing_cycle": "מחזור חיוב",
     "recurring_draft": "טיוטה חוזרת",
-    "approval": "אישור"
+    "approval": "אישור",
+    "contractor": "קבלן",
+    "coordination_event": "אירוע תיאום",
+    "claim": "חשבון",
+    "rfi": "בקשת מידע",
+    "submittal": "הגשה",
+    "defect": "ליקוי",
+    "drawing": "תוכנית",
+    "location": "מיקום",
+    "meeting": "ישיבה",
+    "site_instruction": "הוראת אתר"
   }
 }

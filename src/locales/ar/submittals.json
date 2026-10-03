@@ -1,0 +1,146 @@
+{
+  "title": "التقديمات للاعتماد",
+  "description": "اعتماد المواد والمنتجات والمخططات التنفيذية مع حفظ كل إصدار.",
+  "type": {
+    "product": "منتج",
+    "equipment": "معدات",
+    "sample": "عيّنة",
+    "technical_data": "بيانات فنية",
+    "catalogue": "كتالوج",
+    "shop_drawing": "مخطط تنفيذي",
+    "material": "مادة"
+  },
+  "status": {
+    "draft": "مسودة",
+    "submitted": "مُقدَّم",
+    "under_review": "قيد المراجعة",
+    "approved": "معتمد",
+    "approved_with_comments": "معتمد مع ملاحظات",
+    "revise_and_resubmit": "للتعديل وإعادة التقديم",
+    "rejected": "مرفوض",
+    "withdrawn": "مسحوب"
+  },
+  "decision": {
+    "approved": "اعتماد",
+    "approved_with_comments": "اعتماد مع ملاحظات",
+    "revise_and_resubmit": "تعديل وإعادة تقديم",
+    "rejected": "رفض"
+  },
+  "filters": {
+    "label": "تصفية التقديمات",
+    "all": "الكل",
+    "pending": "بانتظار المراجعة",
+    "action_required": "بانتظار المقاول",
+    "overdue": "متأخرة",
+    "approved": "معتمدة",
+    "draft": "مسودات"
+  },
+  "summary": {
+    "pendingReview": "بانتظار المراجعة",
+    "actionRequired": "بانتظار المقاول",
+    "approved": "معتمدة",
+    "overdue": "متأخرة",
+    "drafts": "مسودات"
+  },
+  "list": {
+    "empty": "لا توجد تقديمات بعد",
+    "emptyDescription": "تظهر هنا تقديمات المقاولين للاعتماد.",
+    "emptyFiltered": "لا توجد تقديمات تطابق هذا التصفية",
+    "hasMore": "يتم عرض أول {count} تقديمات.",
+    "overdue": "المراجعة متأخرة",
+    "dueOn": "المراجعة حتى {date}",
+    "noDue": "بدون موعد مراجعة",
+    "revision": "الإصدار {number}",
+    "columns": {
+      "number": "رقم",
+      "title": "العنوان",
+      "type": "النوع",
+      "contractor": "المقاول",
+      "revision": "الإصدار",
+      "due": "المراجعة حتى",
+      "status": "الحالة"
+    }
+  },
+  "fields": {
+    "title": "العنوان",
+    "type": "النوع",
+    "description": "الوصف",
+    "specSection": "بند المواصفات",
+    "contractor": "المقاول",
+    "location": "الموقع",
+    "noLocation": "بدون موقع",
+    "drawingReference": "مرجع المخطط / الإصدار",
+    "drawingReferenceHint": "مثال: A-101 الإصدار C",
+    "workPackage": "حزمة العمل",
+    "noWorkPackage": "بدون حزمة عمل",
+    "dueDate": "المراجعة مطلوبة حتى",
+    "reviewer": "المراجِع",
+    "unassigned": "غير معيّن",
+    "notes": "ملاحظات الإصدار",
+    "notesHint": "ما الذي يتضمنه هذا التقديم.",
+    "optional": "اختياري"
+  },
+  "create": {
+    "title": "تسجيل تقديم للاعتماد",
+    "description": "تسجيل نيابةً عن مقاول. تُرفق الملفات بالإصدار بعد الحفظ.",
+    "contractorTitle": "تقديم جديد",
+    "save": "إنشاء مسودة",
+    "created": "تم إنشاء التقديم"
+  },
+  "detail": {
+    "back": "كل التقديمات",
+    "details": "التفاصيل",
+    "revisions": "الإصدارات",
+    "revision": "الإصدار {number}",
+    "current": "الحالي",
+    "draftRevision": "مسودة، لم تُقدَّم بعد",
+    "submittedOn": "قُدِّم في {date}",
+    "submittedBy": "بواسطة {name}",
+    "noNotes": "لا توجد ملاحظات.",
+    "review": "المراجعة",
+    "reviewedOn": "روجع في {date}",
+    "reviewedBy": "بواسطة {name}",
+    "awaitingReview": "بانتظار المراجعة",
+    "attachments": "ملفات الإصدار",
+    "discussion": "النقاش"
+  },
+  "actions": {
+    "title": "الإجراءات",
+    "submit": "تقديم للمراجعة",
+    "startReview": "بدء المراجعة",
+    "reviewTitle": "قرار المراجعة",
+    "decision": "القرار",
+    "comments": "الملاحظات",
+    "commentsHint": "إلزامية ما لم يُعتمد التقديم كما هو.",
+    "saveReview": "تسجيل القرار",
+    "openRevision": "بدء الإصدار التالي",
+    "openRevisionHint": "تبقى الإصدارات السابقة ومراجعاتها في السجل.",
+    "withdraw": "سحب التقديم",
+    "saveNotes": "حفظ الملاحظات",
+    "editTitle": "تعديل التقديم",
+    "save": "حفظ التغييرات",
+    "saved": "تم الحفظ"
+  },
+  "errors": {
+    "invalidTransition": "هذا الإجراء غير متاح في الحالة الحالية.",
+    "decisionRequired": "اختر قراراً.",
+    "commentsRequired": "الملاحظات إلزامية لهذا القرار.",
+    "staleRevision": "يوجد إصدار أحدث. حدّث الصفحة لمراجعة الإصدار الحالي.",
+    "revisionFrozen": "تم تقديم هذا الإصدار ولا يمكن تغييره.",
+    "contentFrozen": "تُقفل تفاصيل التقديم بعد تقديمه.",
+    "closedNotEditable": "هذا التقديم مغلق ولا يمكن تعديله.",
+    "concurrentChange": "قام شخص آخر بتحديث هذا التقديم للتو. حدّث الصفحة وحاول مرة أخرى."
+  },
+  "notAllowed": {
+    "title": "لا يوجد وصول إلى التقديمات",
+    "body": "تحتاج إلى صلاحية الوصول إلى هذا المشروع لعرض تقديماته."
+  },
+  "portal": {
+    "title": "التقديمات للاعتماد",
+    "description": "قدّم المنتجات والعيّنات والمخططات التنفيذية للاعتماد.",
+    "empty": "لا توجد لشركتك تقديمات في هذا المشروع بعد.",
+    "back": "العودة إلى التقديمات",
+    "resubmitHint": "طلب المراجِع تعديلات. ابدأ الإصدار التالي وأرفق الملفات المحدّثة وقدّم مرة أخرى.",
+    "noAccess": "صلاحيتك لا تشمل التقديمات في هذا المشروع."
+  }
+}

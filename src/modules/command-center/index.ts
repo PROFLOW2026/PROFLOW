@@ -34,4 +34,12 @@ export {
 export {
   updateCommandCenterItemStateSchema,
 } from './validation/schemas';
+
+/** Developer / GC sources: domain tracks register their actionable-item queries here. */
+export { DG_SOURCE_TYPES } from './domain/types';
+export type { DgSourceType } from './domain/types';
+export { DG_ITEM_DEFINITIONS, buildDgItems } from './domain/dg-items';
+export type { DgCommandCenterRow, DgItemDefinition } from './domain/dg-items';
+export { registerDgCommandCenterPort } from './data/dg-ports';
+export type { DgCommandCenterQuery, DgCommandCenterQueryInput } from './data/dg-ports';
 export type { UpdateCommandCenterItemStateInput } from './validation/schemas';

@@ -3,6 +3,22 @@
  * Import from here in domain/UI modules - never from `@/shared/audit` (server/DB).
  */
 
+import { CLAIMS_AUDIT_ACTIONS } from './dg/claims';
+import { COLLAB_AUDIT_ACTIONS } from './dg/collab';
+import { COMPLIANCE_AUDIT_ACTIONS } from './dg/compliance';
+import { COORDINATION_AUDIT_ACTIONS } from './dg/coordination';
+import { DOCUMENTS_AUDIT_ACTIONS } from './dg/documents';
+import { EXTERNAL_AUDIT_ACTIONS } from './dg/external';
+import { FIELD_AUDIT_ACTIONS } from './dg/field';
+import { NOTIFICATIONS_AUDIT_ACTIONS } from './dg/notifications';
+import { PERMISSIONS_AUDIT_ACTIONS } from './dg/permissions';
+import { PROCUREMENT_AUDIT_ACTIONS } from './dg/procurement';
+import { PROFILE_AUDIT_ACTIONS } from './dg/profile';
+import { QUALITY_AUDIT_ACTIONS } from './dg/quality';
+import { RFI_AUDIT_ACTIONS } from './dg/rfi';
+import { SUBCONTRACT_AUDIT_ACTIONS } from './dg/subcontract';
+import { SURFACES_AUDIT_ACTIONS } from './dg/surfaces';
+
 export const AUDIT_ACTIONS = {
   ORGANIZATION_CREATED: 'organization.created',
   ORGANIZATION_UPDATED: 'organization.updated',
@@ -34,6 +50,10 @@ export const AUDIT_ACTIONS = {
   PROJECT_TEMPLATE_APPLIED: 'project.template_applied',
   PROJECT_ACCESS_GRANTED: 'project_access.granted',
   PROJECT_ACCESS_REVOKED: 'project_access.revoked',
+  PROJECT_MEMBER_ADDED: 'project_member.added',
+  PROJECT_MEMBER_CAPABILITIES_CHANGED: 'project_member.capabilities_changed',
+  PROJECT_MEMBER_DEACTIVATED: 'project_member.deactivated',
+  PROJECT_MEMBER_REACTIVATED: 'project_member.reactivated',
   WORK_PACKAGE_CREATED: 'work_package.created',
   WORK_PACKAGE_UPDATED: 'work_package.updated',
   WORK_PACKAGE_ARCHIVED: 'work_package.archived',
@@ -386,6 +406,22 @@ export const AUDIT_ACTIONS = {
   APPROVED: 'quick_capture.approved',
   REJECTED: 'quick_capture.rejected',
   ROUTED: 'quick_capture.routed',
+  // Developer/GC build: per-track registries (src/shared/audit/dg/*)
+  ...CLAIMS_AUDIT_ACTIONS,
+  ...COLLAB_AUDIT_ACTIONS,
+  ...COMPLIANCE_AUDIT_ACTIONS,
+  ...COORDINATION_AUDIT_ACTIONS,
+  ...DOCUMENTS_AUDIT_ACTIONS,
+  ...EXTERNAL_AUDIT_ACTIONS,
+  ...FIELD_AUDIT_ACTIONS,
+  ...NOTIFICATIONS_AUDIT_ACTIONS,
+  ...PERMISSIONS_AUDIT_ACTIONS,
+  ...PROCUREMENT_AUDIT_ACTIONS,
+  ...PROFILE_AUDIT_ACTIONS,
+  ...QUALITY_AUDIT_ACTIONS,
+  ...RFI_AUDIT_ACTIONS,
+  ...SUBCONTRACT_AUDIT_ACTIONS,
+  ...SURFACES_AUDIT_ACTIONS,
 } as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[keyof typeof AUDIT_ACTIONS];

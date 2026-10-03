@@ -32,6 +32,11 @@ export const GLOBAL_SEARCH_KIND_CAP = 8;
  * To activate a kind: add a search fn in search.repository.ts, wire a
  * fetchXxxHits call in global-search.ts/fetchAllowedHits, and append the
  * kind here with its required permission in SEARCH_KIND_PERMISSION.
+ *
+ * Developer / GC kinds (contractor, coordination event, claim, RFI, submittal,
+ * defect, drawing, location, meeting, site instruction) are queried separately.
+ * They are gated by project capability, not an organization read key, and each
+ * stays inside this same per-kind cap. Task and document stay on the list above.
  */
 export const QUERIED_SEARCH_KINDS = [
   'client',

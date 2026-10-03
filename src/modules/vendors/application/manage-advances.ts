@@ -44,6 +44,7 @@ export async function listSubcontractAdvancesForAgreement(
   agreementId: string,
 ): Promise<SubcontractAdvanceRecord[]> {
   assertPermission(context, PERMISSIONS.VENDORS_READ);
+  assertPermission(context, PERMISSIONS.AP_READ);
   const agreement = await findSubcontractAgreementById(
     context.db,
     context.organizationId,
@@ -59,6 +60,7 @@ export async function getSubcontractAdvanceOutstanding(
   agreementId: string,
 ): Promise<SubcontractAdvancePosition | null> {
   assertPermission(context, PERMISSIONS.VENDORS_READ);
+  assertPermission(context, PERMISSIONS.AP_READ);
   const agreement = await findSubcontractAgreementById(
     context.db,
     context.organizationId,

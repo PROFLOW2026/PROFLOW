@@ -58,9 +58,32 @@ export const COMMAND_CENTER_SOURCE_TYPES = [
   'recurring_task_generated',
   'storage_attention',
   'statutory_attention',
+  // ── Developer / GC (collectors behind ports, data/collect-dg.ts) ────────────
+  'dg_claim_awaiting_review',
+  'dg_coordination_blocked',
+  'dg_acknowledgement_overdue',
+  'dg_critical_task_overdue',
+  'dg_defect_awaiting_verification',
+  'dg_rfi_overdue',
+  'dg_compliance_expiring',
+  'dg_submittal_pending',
+  'dg_payment_eligibility_blocked',
 ] as const;
 
 export type CommandCenterSourceType = (typeof COMMAND_CENTER_SOURCE_TYPES)[number];
+
+export const DG_SOURCE_TYPES = [
+  'dg_claim_awaiting_review',
+  'dg_coordination_blocked',
+  'dg_acknowledgement_overdue',
+  'dg_critical_task_overdue',
+  'dg_defect_awaiting_verification',
+  'dg_rfi_overdue',
+  'dg_compliance_expiring',
+  'dg_submittal_pending',
+  'dg_payment_eligibility_blocked',
+] as const satisfies readonly CommandCenterSourceType[];
+export type DgSourceType = (typeof DG_SOURCE_TYPES)[number];
 
 export const COMMAND_CENTER_SEVERITIES = ['critical', 'high', 'medium', 'low'] as const;
 export type CommandCenterSeverity = (typeof COMMAND_CENTER_SEVERITIES)[number];
@@ -90,6 +113,8 @@ export const FINANCIAL_SOURCE_TYPES = [
   'payroll_due_soon',
   'payroll_overdue',
   'payroll_pending_review',
+  'dg_claim_awaiting_review',
+  'dg_payment_eligibility_blocked',
 ] as const satisfies readonly CommandCenterSourceType[];
 
 /** Owner payment confirmation items grouped under Today pending-payments section. */

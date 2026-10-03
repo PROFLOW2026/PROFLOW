@@ -1,0 +1,144 @@
+{
+  "title": "طلبات المعلومات (RFI)",
+  "description": "أسئلة وطلبات توضيح بين فريق المشروع والمقاولين.",
+  "status": {
+    "draft": "مسودة",
+    "submitted": "مُقدَّم",
+    "under_review": "قيد المراجعة",
+    "answered": "تمت الإجابة",
+    "closed": "مغلق"
+  },
+  "priority": {
+    "low": "منخفضة",
+    "normal": "عادية",
+    "high": "عالية",
+    "urgent": "عاجلة"
+  },
+  "filters": {
+    "label": "تصفية طلبات المعلومات",
+    "all": "الكل",
+    "open": "مفتوحة",
+    "overdue": "متأخرة",
+    "draft": "مسودات",
+    "submitted": "مقدَّمة",
+    "under_review": "قيد المراجعة",
+    "answered": "تمت الإجابة",
+    "closed": "مغلقة"
+  },
+  "summary": {
+    "awaitingAnswer": "بانتظار الإجابة",
+    "overdue": "متأخرة",
+    "answered": "تمت الإجابة",
+    "drafts": "مسودات",
+    "closed": "مغلقة"
+  },
+  "list": {
+    "empty": "لا توجد طلبات معلومات بعد",
+    "emptyDescription": "تظهر هنا الأسئلة التي يطرحها فريق المشروع أو المقاولون.",
+    "emptyFiltered": "لا توجد طلبات معلومات تطابق هذا التصفية",
+    "hasMore": "يتم عرض أول {count} طلبات معلومات.",
+    "overdue": "متأخر",
+    "dueOn": "الموعد {date}",
+    "noDue": "بدون موعد",
+    "columns": {
+      "number": "رقم",
+      "subject": "الموضوع",
+      "contractor": "المقاول",
+      "location": "الموقع",
+      "due": "الموعد",
+      "assignee": "المسؤول",
+      "status": "الحالة"
+    }
+  },
+  "fields": {
+    "subject": "الموضوع",
+    "question": "السؤال",
+    "contractor": "المقاول",
+    "noContractor": "بدون مقاول (داخلي)",
+    "location": "الموقع",
+    "noLocation": "بدون موقع",
+    "drawingReference": "مرجع المخطط / الإصدار",
+    "drawingReferenceHint": "مثال: A-101 الإصدار C",
+    "workPackage": "حزمة العمل",
+    "noWorkPackage": "بدون حزمة عمل",
+    "dueDate": "الإجابة مطلوبة حتى",
+    "assignee": "المسؤول",
+    "unassigned": "غير معيّن",
+    "priority": "الأولوية",
+    "raisedBy": "مقدَّم من",
+    "optional": "اختياري"
+  },
+  "actor": {
+    "team": "فريق المشروع",
+    "contractor": "المقاول",
+    "system": "النظام"
+  },
+  "create": {
+    "title": "تقديم طلب معلومات",
+    "description": "اكتب سؤالاً دقيقاً. يمكن إرفاق الملفات بعد الحفظ.",
+    "saveDraft": "حفظ كمسودة",
+    "submit": "تقديم الطلب",
+    "created": "تم حفظ طلب المعلومات"
+  },
+  "detail": {
+    "back": "كل طلبات المعلومات",
+    "details": "التفاصيل",
+    "question": "السؤال",
+    "answers": "الإجابات الرسمية",
+    "currentAnswer": "الإجابة السارية",
+    "superseded": "مستبدلة",
+    "noAnswers": "لا توجد إجابة رسمية بعد.",
+    "answeredOn": "أُجيب في {date}",
+    "answeredBy": "بواسطة {name}",
+    "history": "السجل",
+    "attachments": "المرفقات",
+    "discussion": "النقاش",
+    "reopened": "{count, plural, one {أُعيد فتحه مرة واحدة} other {أُعيد فتحه # مرات}}",
+    "raisedOn": "قُدِّم في {date}"
+  },
+  "history": {
+    "created": "أُنشئ بحالة {status}",
+    "changed": "{from} ← {to}"
+  },
+  "actions": {
+    "title": "الإجراءات",
+    "submit": "تقديم",
+    "startReview": "بدء المراجعة",
+    "answerLabel": "الإجابة الرسمية",
+    "answerHint": "الإجابات دائمة. الإجابة اللاحقة تحل محل السابقة وتبقى كلتاهما في السجل.",
+    "answerAndClose": "إغلاق الطلب بعد الإجابة",
+    "answer": "نشر الإجابة",
+    "close": "إغلاق الطلب",
+    "reopen": "إعادة الفتح",
+    "reason": "السبب",
+    "reasonHint": "إلزامي. وضّح السبب.",
+    "closeWithoutAnswerHint": "الإغلاق دون إجابة رسمية يتطلب سبباً.",
+    "editTitle": "تعديل طلب المعلومات",
+    "triageTitle": "التعيين والمواعيد",
+    "save": "حفظ التغييرات",
+    "saved": "تم الحفظ"
+  },
+  "errors": {
+    "invalidTransition": "هذا الإجراء غير متاح في الحالة الحالية.",
+    "reasonRequired": "يرجى ذكر السبب.",
+    "questionFrozen": "لا يمكن تغيير السؤال بعد تقديم الطلب.",
+    "closedNotEditable": "لا يمكن تعديل طلب مغلق. أعد فتحه أولاً.",
+    "concurrentChange": "قام شخص آخر بتحديث هذا الطلب للتو. حدّث الصفحة وحاول مرة أخرى.",
+    "agreementNotOnProject": "اتفاقية المقاول هذه لا تخص المشروع.",
+    "assigneeNotOnTeam": "الشخص المختار ليس ضمن فريق المشروع.",
+    "contractorDraftOnly": "يمكن تعديل مسودات شركتك فقط."
+  },
+  "notAllowed": {
+    "title": "لا يوجد وصول إلى طلبات المعلومات",
+    "body": "تحتاج إلى صلاحية الوصول إلى هذا المشروع لعرض طلبات المعلومات الخاصة به."
+  },
+  "portal": {
+    "title": "طلبات المعلومات",
+    "description": "اسأل فريق المشروع وتابع الإجابات الرسمية.",
+    "newTitle": "طلب معلومات جديد",
+    "empty": "لا توجد لشركتك طلبات معلومات في هذا المشروع بعد.",
+    "back": "العودة إلى طلبات المعلومات",
+    "draftHint": "المسودة مرئية لشركتك فقط حتى تقدّمها.",
+    "noAccess": "صلاحيتك لا تشمل طلبات المعلومات في هذا المشروع."
+  }
+}

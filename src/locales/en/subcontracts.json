@@ -1,0 +1,289 @@
+{
+  "common": {
+    "none": "None",
+    "save": "Save",
+    "saved": "Saved",
+    "reason": "Reason",
+    "note": "Note",
+    "previous": "Previous",
+    "next": "Next"
+  },
+  "nav": {
+    "label": "Contract sections",
+    "overview": "Overview",
+    "lines": "Work lines",
+    "changes": "Changes"
+  },
+  "agreementStatus": {
+    "draft": "Draft",
+    "active": "Active",
+    "suspended": "Suspended",
+    "completed": "Completed",
+    "closed": "Closed",
+    "cancelled": "Cancelled"
+  },
+  "changeStatus": {
+    "draft": "Draft",
+    "submitted": "Submitted",
+    "under_negotiation": "Under negotiation",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "withdrawn": "Withdrawn"
+  },
+  "unpricedStatus": {
+    "recorded": "Awaiting pricing",
+    "converted": "Converted to change",
+    "rejected": "Rejected",
+    "cancelled": "Cancelled"
+  },
+  "lineTypes": {
+    "quantity_rate": "Quantity × rate",
+    "lump_sum": "Lump sum",
+    "weighted_milestone": "Weighted milestone",
+    "percentage": "Percentage complete",
+    "allowance": "Allowance",
+    "custom": "Custom"
+  },
+  "changeTypes": {
+    "addition": "Addition",
+    "deduction": "Deduction",
+    "scope": "Scope change",
+    "quantity": "Quantity change",
+    "rate": "Rate change",
+    "extension": "Time extension",
+    "instruction": "Site instruction",
+    "contractor_proposal": "Contractor proposal"
+  },
+  "origins": {
+    "internal": "Raised internally",
+    "contractor": "Raised by the contractor",
+    "site_instruction": "From a site instruction",
+    "unpriced_work": "From unpriced work"
+  },
+  "actors": {
+    "internal": "Our team",
+    "external": "Contractor",
+    "system": "System"
+  },
+  "vat": {
+    "standard": "Standard VAT",
+    "reverse_charge": "Reverse charge",
+    "exempt": "Exempt",
+    "zero_rated": "Zero rated",
+    "not_applicable": "Not applicable"
+  },
+  "advanceRecovery": {
+    "none": "No recovery",
+    "proportional": "Proportional to certified work",
+    "fixed_percent_per_claim": "Fixed percent per claim"
+  },
+  "agreement": {
+    "createSubmit": "Create draft contract",
+    "created": "Draft contract created",
+    "chooseVendor": "Choose a contractor",
+    "editTitle": "Contract details",
+    "fields": {
+      "vendor": "Contractor",
+      "title": "Contract title",
+      "number": "Contract number",
+      "trade": "Trade",
+      "workPackage": "Work package",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "originalAmount": "Contract value (net)",
+      "scope": "Scope summary",
+      "period": "Contract period"
+    }
+  },
+  "terms": {
+    "title": "Commercial terms",
+    "retentionPercent": "Retention %",
+    "retentionCapPercent": "Retention cap %",
+    "retentionCapAmount": "Retention cap amount",
+    "advancePercent": "Advance %",
+    "advanceAmount": "Advance amount",
+    "advanceRecoveryMethod": "Advance recovery",
+    "advanceRecoveryPercent": "Recovery % per claim",
+    "vatTreatment": "VAT treatment",
+    "paymentTermsDays": "Payment terms (days)",
+    "paymentTermsText": "Payment terms notes"
+  },
+  "value": {
+    "title": "Contract value",
+    "original": "Original value",
+    "approvedChanges": "Approved changes",
+    "current": "Current value",
+    "netNote": "All contract amounts are net. VAT is applied on the contractor invoice."
+  },
+  "lifecycle": {
+    "title": "Contract status",
+    "suspensionReason": "Suspension reason",
+    "actions": {
+      "activate": "Activate contract",
+      "suspend": "Suspend",
+      "resume": "Resume",
+      "complete": "Mark completed",
+      "close": "Close contract",
+      "cancel": "Cancel draft"
+    },
+    "hints": {
+      "activate": "Locks the work lines and records the original contract value.",
+      "suspend": "Work is paused; changes can still be handled.",
+      "resume": "Returns the contract to active.",
+      "complete": "Work is finished; claims and closeout continue.",
+      "close": "Final. Requires all changes and unpriced work to be resolved.",
+      "cancel": "The draft is kept for history and can no longer be activated."
+    }
+  },
+  "lines": {
+    "title": "Work lines",
+    "pageDescription": "Contract scope broken into measurable work lines.",
+    "add": "Add work line",
+    "added": "Work line added",
+    "edit": "Edit",
+    "archive": "Remove from draft",
+    "pricingHint": "Quantity × rate lines are priced from the rate; other line types use the line amount.",
+    "lockedHint": "The contract is active: scope, quantity and price change only through an approved change.",
+    "baselineLocked": "Baseline locked. Use the Changes tab to add, deduct or re-rate work.",
+    "emptyTitle": "No work lines yet",
+    "emptyDescription": "Add the lines that make up this contract before activating it.",
+    "fromChange": "Added by an approved change",
+    "fields": {
+      "code": "Code",
+      "description": "Description",
+      "lineType": "Line type",
+      "unit": "Unit",
+      "quantity": "Quantity",
+      "weightPercent": "Weight %",
+      "plannedStart": "Planned start",
+      "plannedEnd": "Planned end",
+      "planned": "Planned dates",
+      "location": "Location",
+      "workPackage": "Work package",
+      "unitPrice": "Rate",
+      "contractAmount": "Line amount",
+      "baseline": "Contract baseline",
+      "approvedChanges": "Approved changes",
+      "revised": "Revised value"
+    }
+  },
+  "changes": {
+    "title": "Changes",
+    "pageDescription": "Additions, deductions and instructions on this contract. Only approved changes move the contract value.",
+    "createTitle": "Raise a change",
+    "create": "Create change",
+    "created": "Change created as draft",
+    "notRunning": "Changes can be raised once the contract is active.",
+    "operationalNote": "Prices and negotiation amounts are visible to users with contract financial access.",
+    "emptyTitle": "No changes yet",
+    "emptyDescription": "Changes raised by the team or proposed by the contractor appear here.",
+    "extensionDays": "{days} extra days",
+    "decisionReason": "Decision note",
+    "fields": {
+      "type": "Change type",
+      "title": "Title",
+      "description": "Description",
+      "timeExtensionDays": "Time extension (days)",
+      "approveVersion": "Version to approve"
+    },
+    "actions": {
+      "submit": "Submit for pricing",
+      "withdraw": "Withdraw",
+      "approve": "Approve change",
+      "reject": "Reject change"
+    }
+  },
+  "versions": {
+    "label": "Version {no}",
+    "none": "Not priced yet",
+    "propose": "Price / counter-offer",
+    "proposeSubmit": "Add version",
+    "amount": "Total amount (net)",
+    "note": "Note",
+    "linesTitle": "Line breakdown (optional)",
+    "linesHint": "When lines are entered, the total is the sum of the lines.",
+    "target": "Work line",
+    "chooseTarget": "Choose a line",
+    "newLine": "New line",
+    "quantityDelta": "Quantity change",
+    "unitRate": "Rate",
+    "amountDelta": "Amount change",
+    "addLine": "Add line",
+    "removeLine": "Remove"
+  },
+  "unpriced": {
+    "pageTitle": "Unpriced work",
+    "pageDescription": "Work carried out before it was priced. Convert each record into a change for pricing, or reject it.",
+    "recordTitle": "Record unpriced work",
+    "record": "Record",
+    "recorded": "Unpriced work recorded",
+    "chooseAgreement": "Choose a contract",
+    "filterLabel": "Filter by status",
+    "filters": {
+      "open": "Awaiting pricing",
+      "converted": "Converted",
+      "rejected": "Rejected",
+      "cancelled": "Cancelled",
+      "all": "All"
+    },
+    "fields": {
+      "agreement": "Contractor contract",
+      "title": "What was done",
+      "workDate": "Work date",
+      "issuer": "Ordered by",
+      "scope": "Scope details"
+    },
+    "actions": {
+      "convert": "Convert to change",
+      "reject": "Reject",
+      "cancel": "Cancel record"
+    },
+    "issuedBy": "Ordered by {name}",
+    "viewChange": "View the change",
+    "emptyTitle": "No unpriced work",
+    "emptyDescription": "Record work a contractor performed before a price was agreed so it is never lost."
+  },
+  "portal": {
+    "contractDescription": "Your contract work lines and status.",
+    "changesDescription": "Changes on your contract and your proposals.",
+    "proposeTitle": "Propose a change",
+    "proposeSubmit": "Send proposal",
+    "proposed": "Proposal sent",
+    "counterTitle": "Send a counter-offer",
+    "counterSubmit": "Send counter-offer",
+    "countered": "Counter-offer sent"
+  },
+  "errors": {
+    "lifecycleTransition": "This status change is not allowed for the contract's current status.",
+    "baselineLocked": "The contract is active. Change scope, quantity or price through an approved change.",
+    "changeRequiresRunningAgreement": "Changes require an active or suspended contract.",
+    "changeTransition": "This action is not available for the change's current status.",
+    "unpricedTransition": "This record was already handled.",
+    "closeBlocked": "Resolve all open changes and unpriced work before closing the contract.",
+    "weightsIncomplete": "Weighted milestone lines must total exactly 100%.",
+    "additionNegative": "An addition cannot reduce the contract value.",
+    "deductionPositive": "A deduction cannot increase the contract value.",
+    "belowZero": "A work line cannot be revised below zero.",
+    "contractBelowZero": "The contract value cannot drop below zero.",
+    "vendorNotSubcontractor": "Only contractors marked as subcontractors can receive a contract.",
+    "numberTaken": "This contract number is already used.",
+    "notEditable": "Closed or cancelled contracts cannot be edited.",
+    "valueDerivedFromLines": "The contract value is the total of its work lines.",
+    "originalMismatch": "The recorded original value differs from the work lines total.",
+    "lineCodeTaken": "This line code is already used on the contract.",
+    "changeNotPriced": "Price the change before approving it.",
+    "lineNotActive": "One of the changed lines is no longer active.",
+    "cannotWithdrawExternal": "A contractor proposal is rejected, not withdrawn.",
+    "unpricedRequiresRunningAgreement": "Unpriced work is recorded on active, suspended or completed contracts."
+  },
+  "validation": {
+    "parentContractProject": "The parent contract must belong to this project.",
+    "workPackageProject": "The work package must belong to this project.",
+    "locationProject": "The location must belong to this project.",
+    "reasonRequired": "Please give a reason.",
+    "versionLineTarget": "Choose an existing line or describe a new one.",
+    "lineNotInAgreement": "This line does not belong to the contract.",
+    "contractorProposalExternal": "Contractor proposals are submitted from the contractor portal.",
+    "newLineNegative": "A new line cannot have a negative quantity or amount."
+  }
+}

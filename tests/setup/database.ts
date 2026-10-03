@@ -23,6 +23,7 @@ import type { Database, Transaction } from '@/shared/db/types';
  */
 
 const MIGRATIONS_DIR = path.resolve(process.cwd(), 'drizzle/migrations');
+const WIP_MIGRATIONS_DIR = path.resolve(process.cwd(), 'drizzle/migrations-wip');
 
 /**
  * Normalises raw `db.execute` results. postgres-js returns an array while
@@ -179,9 +180,21 @@ async function readMigrations(): Promise<CachedMigration[]> {
   const entries = await readdir(MIGRATIONS_DIR);
   const files = entries.filter((entry) => entry.endsWith('.sql')).sort();
 
+  // Parallel-development aid (Developer/GC build): `PF_WIP_FILES=0156_x.sql,0159_y.sql` makes the
+  // harness read those reserved migration slots from drizzle/migrations-wip/ instead, so an
+  // in-progress migration only affects the process that opted in. Unset in CI / normal runs.
+  const wipFiles = new Set(
+    (process.env.PF_WIP_FILES ?? '')
+      .split(',')
+      .map((entry) => entry.trim())
+      .filter(Boolean),
+  );
+
   const migrations: CachedMigration[] = [];
   for (const file of files) {
-    const raw = await readFile(path.join(MIGRATIONS_DIR, file), 'utf8');
+    const wipPath = path.join(WIP_MIGRATIONS_DIR, file);
+    const source = wipFiles.has(file) && existsSync(wipPath) ? wipPath : path.join(MIGRATIONS_DIR, file);
+    const raw = await readFile(source, 'utf8');
     // drizzle-kit separates statements with this marker in generated files.
     const normalised = raw.replaceAll('--> statement-breakpoint', '');
     migrations.push({ name: file, statements: splitSqlStatements(normalised) });

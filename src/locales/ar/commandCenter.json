@@ -92,7 +92,43 @@
     "task_due_today": "مهمة مستحقة اليوم",
     "task_unassigned": "مهمة بدون إسناد",
     "storage_attention": "تخزين الملفات",
-    "statutory_attention": "مستند ضريبي"
+    "statutory_attention": "مستند ضريبي",
+    "dg_claim_awaiting_review": "مطالبة مقاول للمراجعة",
+    "dg_coordination_blocked": "حدث تنسيق متعثر",
+    "dg_acknowledgement_overdue": "تأكيد استلام متأخر",
+    "dg_critical_task_overdue": "مهمة مقاول حرجة متأخرة",
+    "dg_defect_awaiting_verification": "إصلاح عيب للتحقق",
+    "dg_rfi_overdue": "طلب استيضاح متأخر",
+    "dg_compliance_expiring": "امتثال مقاول على وشك الانتهاء",
+    "dg_submittal_pending": "تقديم للمراجعة",
+    "dg_payment_eligibility_blocked": "دفعة محجوبة"
+  },
+  "dg": {
+    "dg_claim_awaiting_review": { "what": "مراجعة مطالبة دفعة المقاول", "whatWithReference": "مراجعة مطالبة الدفعة {reference}", "why": "المطالبة بانتظار المراجعة." },
+    "dg_coordination_blocked": { "what": "حل تعثر حدث التنسيق", "whatWithReference": "حل تعثر الحدث: {reference}", "why": "مقاول مطلوب متعثر أو غير جاهز." },
+    "dg_acknowledgement_overdue": { "what": "متابعة تأكيد استلام مفقود", "whatWithReference": "متابعة تأكيد الاستلام: {reference}", "why": "لم يؤكد المقاول الاستلام في الوقت المحدد." },
+    "dg_critical_task_overdue": { "what": "مهمة مقاول حرجة متأخرة", "whatWithReference": "مهمة حرجة متأخرة: {reference}", "why": "تجاوزت المهمة موعدها." },
+    "dg_defect_awaiting_verification": { "what": "التحقق من إصلاح العيب", "whatWithReference": "التحقق من إصلاح العيب {reference}", "why": "أبلغ المقاول عن اكتمال الإصلاح." },
+    "dg_rfi_overdue": { "what": "الرد على طلب استيضاح متأخر", "whatWithReference": "الرد على طلب الاستيضاح {reference}", "why": "تجاوز طلب الاستيضاح موعده." },
+    "dg_compliance_expiring": { "what": "تجديد مستند امتثال المقاول", "whatWithReference": "تجديد {reference}", "why": "مستند مطلوب على وشك الانتهاء." },
+    "dg_submittal_pending": { "what": "مراجعة التقديم", "whatWithReference": "مراجعة التقديم {reference}", "why": "التقديم بانتظار قرار." },
+    "dg_payment_eligibility_blocked": { "what": "رفع حجز الدفع", "whatWithReference": "رفع حجز الدفع: {reference}", "why": "لا يمكن دفع الأعمال المعتمدة بعد." },
+    "why": {
+      "overdue": "متأخر {days, plural, zero {# يوم} one {يومًا واحدًا} two {يومين} few {# أيام} many {# يومًا} other {# يوم}} (الموعد {date})",
+      "waiting": "{days, plural, =0 {بانتظار منذ اليوم} one {بانتظار منذ يوم واحد} two {بانتظار منذ يومين} few {بانتظار منذ # أيام} many {بانتظار منذ # يومًا} other {بانتظار منذ # يوم}}",
+      "startsOn": "يبدأ في {date}",
+      "expiresOn": "ينتهي في {date}",
+      "expired": "انتهى في {date}"
+    },
+    "reasons": {
+      "missing_invoice": "فاتورة مفقودة",
+      "expired_insurance": "انتهى التأمين",
+      "missing_tax_document": "مستند ضريبي مفقود",
+      "missing_guarantee": "ضمان مفقود",
+      "missing_handover_document": "مستند تسليم مفقود",
+      "compliance_missing": "مستند امتثال مطلوب مفقود",
+      "other": "حجز دفع"
+    }
   },
   "itemCopy": {
     "where": {

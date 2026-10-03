@@ -1,0 +1,186 @@
+{
+  "nav": {
+    "signIn": "כניסה",
+    "activate": "הפעלת חשבון",
+    "forgotPassword": "שכחתי סיסמה",
+    "resetPassword": "איפוס סיסמה",
+    "dashboard": "היום שלי",
+    "notifications": "התראות",
+    "account": "החשבון שלי",
+    "projectHome": "דף הפרויקט",
+    "tasks": "משימות",
+    "schedule": "לוח זמנים",
+    "documents": "מסמכים",
+    "plans": "תוכניות",
+    "rfi": "בקשות הבהרה",
+    "submittals": "הגשות לאישור",
+    "defects": "ליקויים",
+    "inspections": "בדיקות",
+    "instructions": "הוראות שטח",
+    "siteLog": "יומן עבודה",
+    "compliance": "מסמכי חובה",
+    "deliveries": "אספקות",
+    "safety": "בטיחות",
+    "contract": "החוזה שלי",
+    "contractChanges": "שינויים בחוזה",
+    "claims": "חשבונות חלקיים",
+    "payments": "תשלומים",
+    "tenders": "מכרזים",
+    "handover": "מסירה",
+    "more": "עוד"
+  },
+  "shell": {
+    "title": "פורטל קבלנים",
+    "navLabel": "ניווט בפורטל הקבלנים",
+    "switchProject": "החלפת פרויקט",
+    "allProjects": "כל הפרויקטים",
+    "myProjects": "הפרויקטים שלי",
+    "multipleOrganizations": "{count} מזמינים",
+    "organizationFallback": "המזמין",
+    "notificationsUnread": "התראות, {count} שלא נקראו",
+    "userMenu": "תפריט משתמש",
+    "anonymousUser": "משתמש קבלן",
+    "language": "שפה",
+    "signOut": "יציאה"
+  },
+  "dashboard": {
+    "title": "היום שלי",
+    "greeting": "שלום, {name}",
+    "subtitle": "מה מחכה לך היום בפרויקטים שלך",
+    "projectsTitle": "הפרויקטים שלי",
+    "installApp": "התקנת האפליקציה",
+    "noAccess": {
+      "title": "אין עדיין גישה פעילה לפרויקט",
+      "description": "החשבון שלך פעיל, אבל עדיין לא שויך לפרויקט. פנה למנהל הפרויקט אצל המזמין כדי לקבל הרשאה."
+    }
+  },
+  "project": {
+    "title": "פרויקט",
+    "unnamed": "פרויקט {reference}",
+    "workingAs": "עובד כ־{vendor}",
+    "linksLabel": "אזורי הפרויקט",
+    "nothingShared": "עדיין לא שותף איתך מידע בפרויקט הזה. כשהמזמין ישתף משימות, אירועים או מסמכים הם יופיעו כאן."
+  },
+  "sections": {
+    "attention": "{count} דורשים טיפול",
+    "dueAt": "עד {date}",
+    "partial": "חלק מהמידע לא נטען כרגע. נסה לרענן את הדף.",
+    "viewAll": "הצג הכול",
+    "today": {
+      "title": "היום",
+      "description": "אירועים ומשימות להיום",
+      "empty": "אין פריטים להיום."
+    },
+    "schedule": {
+      "title": "אירועים קרובים",
+      "description": "אירועי תיאום ולוח זמנים שהוזמנת אליהם",
+      "empty": "אין אירועים קרובים."
+    },
+    "acknowledgements": {
+      "title": "ממתין לאישור שלך",
+      "description": "תוכניות, הוראות ואירועים שדורשים אישור קבלה או מוכנות",
+      "empty": "אין בקשות אישור פתוחות."
+    },
+    "tasks": {
+      "title": "משימות פתוחות",
+      "description": "משימות שהוקצו לך או לחברה שלך",
+      "empty": "אין משימות פתוחות."
+    },
+    "overdueTasks": {
+      "title": "משימות באיחור",
+      "description": "משימות שעבר מועד היעד שלהן",
+      "empty": "אין משימות באיחור."
+    },
+    "milestones": {
+      "title": "אבני דרך",
+      "description": "אבני דרך קרובות בפרויקט",
+      "empty": "אין אבני דרך קרובות."
+    },
+    "planRevisions": {
+      "title": "גרסאות תוכניות חדשות",
+      "description": "תוכניות שפורסמה להן גרסה חדשה",
+      "empty": "אין גרסאות חדשות."
+    },
+    "rfis": {
+      "title": "בקשות הבהרה",
+      "description": "בקשות הבהרה פתוחות ותשובות חדשות",
+      "empty": "אין בקשות הבהרה פתוחות."
+    },
+    "defects": {
+      "title": "ליקויים",
+      "description": "ליקויים באחריותך שממתינים לתיקון",
+      "empty": "אין ליקויים פתוחים."
+    },
+    "submittals": {
+      "title": "הגשות לאישור",
+      "description": "הגשות בבדיקה או שהוחזרו לתיקון",
+      "empty": "אין הגשות פתוחות."
+    },
+    "claims": {
+      "title": "חשבונות חלקיים",
+      "description": "חשבונות בטיוטה, בבדיקה או שהוחזרו",
+      "empty": "אין חשבונות פתוחים."
+    },
+    "certifications": {
+      "title": "תוצאות אישור חשבון",
+      "description": "חשבונות שאושרו או נבדקו מחדש",
+      "empty": "אין תוצאות חדשות."
+    },
+    "retention": {
+      "title": "עכבון",
+      "description": "יתרות עכבון ושחרורים",
+      "empty": "אין יתרות עכבון."
+    },
+    "payments": {
+      "title": "תשלומים",
+      "description": "מצב תשלומים צפויים ושבוצעו",
+      "empty": "אין תשלומים להצגה."
+    },
+    "documents": {
+      "title": "מסמכים ששותפו",
+      "description": "מסמכים חדשים ששותפו איתך",
+      "empty": "אין מסמכים חדשים."
+    },
+    "notifications": {
+      "title": "התראות אחרונות",
+      "description": "עדכונים אחרונים מהפרויקטים שלך",
+      "empty": "אין התראות חדשות."
+    }
+  },
+  "badges": {
+    "overdue": "באיחור",
+    "today": "היום",
+    "actionRequired": "נדרשת פעולה",
+    "awaitingVerification": "ממתין לבדיקה",
+    "awaitingResponse": "ממתין לתשובתך",
+    "awaitingAcknowledgement": "ממתין לאישורך",
+    "open": "פתוח",
+    "unread": "חדש"
+  },
+  "metrics": {
+    "rfiAwaitingAnswer": "ממתינות לתשובה",
+    "rfiAnswered": "נענו",
+    "rfiDrafts": "טיוטות",
+    "overdue": "באיחור",
+    "defectsToFix": "לתיקון",
+    "defectsReopened": "נפתחו מחדש",
+    "awaitingVerification": "ממתינים לבדיקה"
+  },
+  "notifications": {
+    "title": "התראות",
+    "subtitle": "עדכונים על משימות, אירועים, מסמכים וחשבונות",
+    "unreadSummary": "{count} התראות שלא נקראו",
+    "markAllRead": "סימון הכול כנקרא",
+    "markRead": "סימון כנקרא",
+    "loadOlder": "הצגת התראות קודמות",
+    "empty": {
+      "title": "אין התראות",
+      "description": "כשמשהו בפרויקטים שלך ידרוש את תשומת לבך, ההתראה תופיע כאן."
+    },
+    "severity": {
+      "info": "עדכון",
+      "warning": "לתשומת לב",
+      "urgent": "דחוף"
+    }
+  }
+}

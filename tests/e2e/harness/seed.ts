@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { eq, sql } from 'drizzle-orm';
 import { costCategories, organizationMemberships, profiles } from '@drizzle/schema';
 import { seedSystemData } from '@drizzle/seed/system';
@@ -9,14 +10,17 @@ import {
   createChangeRequest,
   submitChangeRequestForApproval,
 } from '@/modules/commercial';
-import { createProject } from '@/modules/projects';
+import { createMilestone, createProject } from '@/modules/projects';
+import { addProjectMember } from '@/modules/project-team';
+import { activateContractorAccount, inviteContractor } from '@/modules/contractor-access';
+import type { ContractorAuthPort } from '@/modules/contractor-access/application/auth-port';
 import { assignRole, findRoleByKey } from '@/modules/rbac';
 import { createOrganization, resolveOrgContext, setModuleVisibility } from '@/modules/tenancy';
 import { createOpportunity } from '@/modules/crm';
 import { createQuote } from '@/modules/quotes';
 import { createTask } from '@/modules/tasks';
 import { lazyCreateProjectWorkspace } from '@/modules/workspaces';
-import { createVendor, createVendorEngagement } from '@/modules/vendors';
+import { createSubcontract, createVendor, createVendorEngagement } from '@/modules/vendors';
 import type { Database, Transaction } from '@/shared/db/types';
 import { buildEmployeeAuthEmail } from '@/modules/employee-app/domain/username';
 import { employeeSupabaseAuthPassword } from '@/modules/employee-app/domain/auth-password';
@@ -32,10 +36,13 @@ import {
   E2E_DUAL_EMPLOYEE,
   E2E_DUAL_ORG_A_PROJECT,
   E2E_DUAL_ORG_B_SECRET_PROJECT,
+  E2E_GC_CONTRACTOR,
+  E2E_GC_OPS_EMPLOYEE,
   E2E_SINGLE_EMPLOYEE,
   ELECTRICAL_OWNER,
   FIELD_OWNER,
   FINANCE,
+  GC_OPS_EMPLOYEE,
   GC_OWNER,
   MAINTENANCE_OWNER,
   MANAGER,
@@ -43,6 +50,7 @@ import {
   OTHER_OWNER,
   OWNER,
   PLUMBING_OWNER,
+  SEED_PASSWORD,
   SINGLE_EMPLOYEE_USER,
   WORKER,
 } from './config';
@@ -64,6 +72,11 @@ export interface SeededWorld {
   vendorId: string;
   advancedProjectId: string;
   changeProjectId: string;
+  gcOrganizationId: string;
+  gcProjectId: string;
+  gcAgreementId: string;
+  gcContractorUsername: string;
+  gcOpsUsername: string;
 }
 
 async function seedDualOrgEmployeeScenario(
@@ -226,6 +239,167 @@ async function seedDualOrgEmployeeScenario(
   );
 }
 
+function harnessContractorAuth(): ContractorAuthPort {
+  const users = new Map<string, { email: string; password: string; displayName: string }>();
+  return {
+    async createUser({ email, password, displayName }) {
+      const authUserId = randomUUID();
+      const name = displayName ?? email;
+      users.set(authUserId, { email, password, displayName: name });
+      registerStubAuthUser({ id: authUserId, email, displayName: name }, password);
+      return { authUserId };
+    },
+    async deleteUser(authUserId) {
+      users.delete(authUserId);
+    },
+    async setPassword(authUserId, password) {
+      const user = users.get(authUserId);
+      if (!user) throw new Error('harness contractor auth user missing');
+      user.password = password;
+      registerStubAuthUser({ id: authUserId, email: user.email, displayName: user.displayName }, password);
+    },
+    async setBanned() {},
+    async signInWithPassword() {
+      return { ok: false, reason: 'invalid_credentials' };
+    },
+    async verifyPassword() {
+      return false;
+    },
+    async signOutCurrent() {},
+  };
+}
+
+/** GC project, agreement, contractor portal account, and an operational employee. */
+async function seedGcBrowserWorld(
+  db: Database,
+  organizationId: string,
+): Promise<{ projectId: string; agreementId: string }> {
+  const auth = harnessContractorAuth();
+  const invited = await asUser(db, GC_OWNER.id, async (tx) => {
+    const context = await resolveOrgContext(tx, {
+      userId: GC_OWNER.id,
+      organizationId,
+      locale: 'he-IL',
+    });
+    const project = await createProject(context, {
+      name: 'מגדל הבדיקה',
+      contractValueAmount: '500000',
+      location: 'תל אביב',
+      status: 'active',
+    });
+    await createMilestone(context, {
+      projectId: project.projectId,
+      name: 'אבן דרך גג',
+      targetDate: '2026-12-01',
+    });
+    const vendor = await createVendor(context, {
+      name: 'קבלן שלד בדיקה',
+      type: 'subcontractor',
+    });
+    const agreement = await createSubcontract(context, {
+      title: 'הסכם שלד',
+      vendorId: vendor.id,
+      projectId: project.projectId,
+      originalAmount: '246810',
+    });
+    const invite = await inviteContractor(context, { auth }, {
+      displayName: E2E_GC_CONTRACTOR.displayName,
+      username: E2E_GC_CONTRACTOR.username,
+      projectId: project.projectId,
+      vendorId: vendor.id,
+      subcontractAgreementId: agreement.id,
+      template: 'contractor_admin',
+      locale: 'he-IL',
+    });
+    return {
+      projectId: project.projectId,
+      agreementId: agreement.id,
+      activationPath: invite.activationPath,
+    };
+  });
+
+  const token = new URL(invited.activationPath, 'http://127.0.0.1').searchParams.get('token');
+  if (!token) throw new Error('contractor activation token missing');
+  const activated = await activateContractorAccount(
+    { db, auth, now: () => new Date() },
+    { token, password: SEED_PASSWORD, confirmation: SEED_PASSWORD },
+  );
+  if (!activated.ok) throw new Error(`contractor activation failed: ${activated.reason}`);
+
+  const usernameNorm = E2E_GC_OPS_EMPLOYEE.username.toLowerCase();
+  await asUser(db, GC_OWNER.id, async (tx) => {
+    const context = await resolveOrgContext(tx, {
+      userId: GC_OWNER.id,
+      organizationId,
+      locale: 'he-IL',
+    });
+    const employeeRole = await findRoleByKey(tx, context.organizationId, 'employee');
+    if (!employeeRole) throw new Error('employee role missing in GC org');
+    const [membership] = await tx
+      .insert(organizationMemberships)
+      .values({ organizationId, userId: GC_OPS_EMPLOYEE.id, status: 'active' })
+      .returning({ id: organizationMemberships.id });
+    await assignRole(tx, {
+      organizationId,
+      membershipId: membership!.id,
+      userId: GC_OPS_EMPLOYEE.id,
+      roleId: employeeRole.id,
+    });
+    const employee = await createEmployee(context, {
+      name: GC_OPS_EMPLOYEE.displayName,
+      rateUnit: 'hourly',
+      userId: GC_OPS_EMPLOYEE.id,
+    });
+    const authEmail = buildEmployeeAuthEmail(organizationId, usernameNorm);
+    await insertEmployeeAppAccount(tx, {
+      organizationId,
+      employeeId: employee.id,
+      userId: GC_OPS_EMPLOYEE.id,
+      username: E2E_GC_OPS_EMPLOYEE.username,
+      usernameNormalized: usernameNorm,
+      authEmail,
+      status: 'active',
+      pinMustChange: false,
+      temporaryPinExpiresAt: null,
+      createdByUserId: GC_OWNER.id,
+    });
+    const preset = employeePreset('foreman');
+    for (const grant of preset.grants) {
+      await upsertEmployeePermissionGrant(tx, {
+        organizationId,
+        employeeId: employee.id,
+        permissionKey: grant.permissionKey,
+        scope: grant.scope,
+        granted: true,
+        grantedByUserId: GC_OWNER.id,
+      });
+    }
+    await insertEmployeeProjectAssignment(tx, {
+      organizationId,
+      projectId: invited.projectId,
+      employeeId: employee.id,
+      startDate: new Date().toISOString().slice(0, 10),
+      role: 'field',
+    });
+    await addProjectMember(context, {
+      projectId: invited.projectId,
+      userId: GC_OPS_EMPLOYEE.id,
+      templateKey: 'project_manager_operational',
+      title: 'מנהל פרויקט תפעולי',
+    });
+    registerStubAuthUser(
+      { id: GC_OPS_EMPLOYEE.id, email: authEmail, displayName: GC_OPS_EMPLOYEE.displayName },
+      employeeSupabaseAuthPassword(E2E_GC_OPS_EMPLOYEE.pin),
+    );
+  });
+
+  await asUser(db, GC_OPS_EMPLOYEE.id, async (tx) => {
+    await setActiveOrganizationPreference(tx, GC_OPS_EMPLOYEE.id, organizationId);
+  });
+
+  return { projectId: invited.projectId, agreementId: invited.agreementId };
+}
+
 async function asUser<T>(db: Database, userId: string, fn: (tx: Transaction) => Promise<T>): Promise<T> {
   return db.transaction(async (tx) => {
     await tx.execute(sql`select set_config('request.jwt.claim.sub', ${userId}, true)`);
@@ -256,6 +430,7 @@ export async function seedWorld(db: Database): Promise<SeededWorld> {
         MIXED_OWNER,
         DUAL_ORG_USER,
         SINGLE_EMPLOYEE_USER,
+        GC_OPS_EMPLOYEE,
       ].map((user) => ({
         id: user.id,
         email: user.email,
@@ -536,20 +711,25 @@ export async function seedWorld(db: Database): Promise<SeededWorld> {
     { user: FIELD_OWNER, profile: 'FIELD_SERVICE', name: 'שירות שטח בדיקה' },
     { user: MIXED_OWNER, profile: 'MIXED_PROJECT_SERVICE', name: 'מעורב בדיקה' },
   ];
+  let gcOrganizationId = '';
   for (const row of profileOrgs) {
-    await asUser(db, row.user.id, (tx) =>
+    const created = await asUser(db, row.user.id, (tx) =>
       createOrganization(tx, row.user.id, {
         name: row.name,
         countryCode: 'IL',
         businessProfile: row.profile,
       }),
     );
+    if (row.user.id === GC_OWNER.id) gcOrganizationId = created.organization.id;
   }
+  if (!gcOrganizationId) throw new Error('GC organization was not seeded');
 
   await seedDualOrgEmployeeScenario(db, {
     orgAId: primary.organization.id,
     orgBId: secondary.organization.id,
   });
+
+  const gcWorld = await seedGcBrowserWorld(db, gcOrganizationId);
 
   return {
     organizationId: primary.organization.id,
@@ -559,5 +739,10 @@ export async function seedWorld(db: Database): Promise<SeededWorld> {
     vendorId,
     advancedProjectId,
     changeProjectId,
+    gcOrganizationId,
+    gcProjectId: gcWorld.projectId,
+    gcAgreementId: gcWorld.agreementId,
+    gcContractorUsername: E2E_GC_CONTRACTOR.username,
+    gcOpsUsername: E2E_GC_OPS_EMPLOYEE.username,
   };
 }

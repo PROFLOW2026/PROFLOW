@@ -1,0 +1,377 @@
+{
+  "nav": {
+    "siteLog": "Site log",
+    "siteMeetings": "Contractor meetings",
+    "instructions": "Site instructions",
+    "portalSiteLog": "Daily report",
+    "portalInstructions": "Instructions"
+  },
+  "common": {
+    "save": "Save",
+    "saved": "Saved",
+    "none": "—",
+    "remove": "Remove",
+    "select": "Select…",
+    "location": "Location",
+    "contractor": "Contractor",
+    "unknown": "Unknown",
+    "previous": "Previous",
+    "next": "Next"
+  },
+  "siteLog": {
+    "title": "Daily site log",
+    "description": "One log per day: who was on site, what was done, what blocked the work. Nothing is mandatory.",
+    "openToday": "Open today's log",
+    "jumpToDate": "Go to date",
+    "open": "Open",
+    "status": {
+      "open": "Open",
+      "closed": "Closed",
+      "notStarted": "Not started"
+    },
+    "startToday": "Start today's log",
+    "noEntries": "No entries",
+    "dayCounts": "{entries, plural, one {# entry} other {# entries}} · {reports, plural, one {# contractor report} other {# contractor reports}}",
+    "pagination": "Log pages",
+    "older": "Earlier days",
+    "newer": "Later days",
+    "dayDescription": "Record anything that happened on site today. Add only what is relevant.",
+    "backToCalendar": "Back to the site log",
+    "previousDay": "Previous day",
+    "nextDay": "Next day",
+    "futureTitle": "This day has not happened yet",
+    "futureDescription": "The log of a future date opens on that day.",
+    "summary": {
+      "title": "Day summary",
+      "contractorsPresent": "Contractors on site",
+      "recordedManpower": "Workers recorded",
+      "reportedManpower": "Workers reported by contractors",
+      "blockingIssues": "Blocking issues",
+      "delays": "Delays",
+      "safetyEvents": "Safety events",
+      "inspections": "Inspections",
+      "contractorReports": "Contractor reports"
+    },
+    "general": {
+      "title": "General",
+      "weather": "Weather",
+      "notes": "Notes"
+    },
+    "entries": {
+      "title": "Log entries",
+      "empty": "Nothing recorded for this day yet.",
+      "headcountValue": "{count, plural, one {# worker} other {# workers}}",
+      "hoursValue": "{hours} h",
+      "removeConfirm": "Remove this entry?",
+      "add": "Add entry",
+      "addHint": "Presence, work, manpower, equipment, deliveries, delays, blockers, inspections, safety, instructions or a note",
+      "addSubmit": "Add to log",
+      "type": "Type",
+      "contractor": "Contractor",
+      "description": "Description",
+      "headcount": "Workers",
+      "hours": "Hours",
+      "quantity": "Quantity",
+      "unit": "Unit"
+    },
+    "reports": {
+      "title": "Contractor daily reports",
+      "empty": "No contractor has reported for this day.",
+      "onBehalf": "Recorded by site team",
+      "revision": "Revision {revision}",
+      "history": "{count, plural, one {# earlier revision} other {# earlier revisions}}",
+      "recordOnBehalf": "Record a contractor report",
+      "recordOnBehalfHint": "For reports received by phone or on paper",
+      "submit": "Save report",
+      "noDetails": "No details were provided."
+    },
+    "instructions": {
+      "title": "Instructions of the day",
+      "issue": "Issue instruction",
+      "empty": "No instructions were issued on this day."
+    },
+    "media": {
+      "title": "Photos, videos and files"
+    },
+    "close": "Close the day",
+    "closeConfirm": "Close this day's log? It can be reopened later.",
+    "reopen": "Reopen the day"
+  },
+  "entryTypes": {
+    "contractor_presence": "Contractors on site",
+    "work_performed": "Work performed",
+    "manpower": "Manpower",
+    "equipment": "Equipment",
+    "delivery": "Deliveries",
+    "delay": "Delays",
+    "blocking_issue": "Blocking issues",
+    "inspection": "Inspections",
+    "safety_event": "Safety events",
+    "instruction": "Instructions",
+    "note": "Notes"
+  },
+  "reportFields": {
+    "manpower": "Workers on site",
+    "workPerformed": "Work performed",
+    "equipment": "Equipment",
+    "deliveries": "Deliveries",
+    "delays": "Delays",
+    "blockingIssues": "Blocking issues",
+    "safetyNotes": "Safety",
+    "notes": "Notes"
+  },
+  "instructionStatus": {
+    "issued": "Awaiting acknowledgement",
+    "acknowledged": "Acknowledged",
+    "performed": "Performed",
+    "closed": "Closed",
+    "cancelled": "Cancelled"
+  },
+  "instructionCategory": {
+    "operational": "Operational",
+    "potentially_financial": "Potentially financial",
+    "urgent_before_price": "Urgent – before pricing"
+  },
+  "instructionCategoryHint": {
+    "operational": "Part of the existing scope; no commercial impact expected.",
+    "potentially_financial": "May change the contract value; the commercial team follows up.",
+    "urgent_before_price": "Must be done now; the price is agreed afterwards."
+  },
+  "instructionEvents": {
+    "issued": "Issued",
+    "acknowledged": "Acknowledged",
+    "performed": "Reported performed",
+    "closed": "Closed",
+    "cancelled": "Cancelled",
+    "reopened": "Reopened",
+    "conversion_requested": "Commercial follow-up requested",
+    "converted": "Linked to a change / unpriced work",
+    "conversion_dismissed": "Commercial follow-up dismissed",
+    "note": "Note"
+  },
+  "instructions": {
+    "title": "Site instructions",
+    "description": "Written instructions to contractors, with acknowledgement and follow-up.",
+    "issue": "Issue an instruction",
+    "issueHint": "Choose the contractor, describe the instruction and its commercial impact",
+    "noContractors": "Add a contractor agreement to this project before issuing instructions.",
+    "issueSubmit": "Issue instruction",
+    "fields": {
+      "contractor": "Contractor",
+      "title": "Instruction",
+      "description": "Details",
+      "category": "Commercial impact",
+      "dueDate": "Due date",
+      "issuedAt": "Issued",
+      "acknowledgedAt": "Acknowledged"
+    },
+    "filterLabel": "Filter instructions",
+    "filters": {
+      "open": "Open",
+      "issued": "Awaiting acknowledgement",
+      "acknowledged": "Acknowledged",
+      "performed": "Performed",
+      "closed": "Closed",
+      "cancelled": "Cancelled",
+      "all": "All"
+    },
+    "emptyTitle": "No instructions here",
+    "emptyDescription": "Instructions issued to contractors on this project appear here.",
+    "dueOn": "Due {date}",
+    "overdue": "Overdue",
+    "pagination": "Instruction pages",
+    "back": "Back to instructions",
+    "byContractor": "by the contractor",
+    "byTeam": "by the site team",
+    "notAcknowledged": "Not acknowledged yet",
+    "actions": {
+      "title": "Next step",
+      "acknowledged": "Record acknowledgement",
+      "performed": "Mark performed",
+      "closed": "Verify and close",
+      "reopened": "Reopen",
+      "cancelled": "Cancel instruction",
+      "conversion_dismissed": "No commercial impact",
+      "cancelConfirm": "Cancel this instruction?",
+      "notePlaceholder": "Note (optional)"
+    },
+    "edit": "Edit instruction",
+    "history": "History",
+    "addNote": "Add note",
+    "media": "Photos and files"
+  },
+  "conversion": {
+    "pending": "Commercial follow-up",
+    "converted": "Converted",
+    "dismissed": "No commercial impact",
+    "title": "Commercial follow-up",
+    "explain": {
+      "none": "This instruction has no commercial follow-up.",
+      "pending": "This instruction may affect the contract. Convert it to a contractor change or to unpriced work.",
+      "converted": "This instruction is linked to a commercial record.",
+      "dismissed": "The commercial follow-up was dismissed."
+    },
+    "targets": {
+      "subcontract_change": "Contractor change",
+      "unpriced_work": "Unpriced work"
+    },
+    "request": "Send to commercial follow-up",
+    "target": "Convert to",
+    "targetOptions": {
+      "change": "Contractor change",
+      "unpriced_work": "Unpriced work"
+    },
+    "linkExisting": "Link an existing record",
+    "linkExistingHint": "When the change or unpriced-work record already exists",
+    "link": "Link record",
+    "recordId": "Record ID"
+  },
+  "meetings": {
+    "title": "Contractor meetings",
+    "description": "Weekly contractor, site, design and consultant meetings with minutes, decisions and action items.",
+    "schedule": "Schedule a meeting",
+    "scheduleHint": "Type, date, place and agenda",
+    "scheduleSubmit": "Schedule meeting",
+    "fields": {
+      "title": "Title",
+      "type": "Meeting type",
+      "scheduledAt": "Date and time",
+      "location": "Place",
+      "agenda": "Agenda"
+    },
+    "emptyTitle": "No meetings yet",
+    "emptyDescription": "Meetings of this project and their published minutes appear here.",
+    "counts": "{contractors, plural, one {# contractor} other {# contractors}} · {actions, plural, one {# open action} other {# open actions}}",
+    "pagination": "Meeting pages",
+    "back": "Back to meetings",
+    "publishedVersion": "Minutes v{version}",
+    "markHeld": "Mark as held",
+    "publish": "Publish minutes",
+    "republish": "Publish updated minutes",
+    "publishConfirm": "Publish the minutes to the attending contractors?",
+    "cancel": "Cancel meeting",
+    "cancelConfirm": "Cancel this meeting?",
+    "issueInstruction": "Issue instruction from meeting",
+    "editDetails": "Edit meeting details",
+    "attendees": {
+      "title": "Attendees",
+      "internal": "Team",
+      "contractors": "Contractors",
+      "noContractors": "No contractors invited.",
+      "add": "Add attendee",
+      "choose": "Attendee"
+    },
+    "minutes": {
+      "title": "Minutes",
+      "save": "Save minutes"
+    },
+    "decisions": {
+      "title": "Decisions",
+      "empty": "No decisions recorded.",
+      "add": "Record decision",
+      "decision": "Decision",
+      "details": "Details"
+    },
+    "actions": {
+      "title": "Action items",
+      "empty": "No action items.",
+      "unassigned": "Unassigned",
+      "due": "Due {date}",
+      "taskLinked": "Task created",
+      "markDone": "Mark done",
+      "add": "Add action item",
+      "item": "Action",
+      "assignee": "Responsible",
+      "dueDate": "Due date",
+      "fromDecision": "Following decision",
+      "createTask": "Create a task for this action"
+    },
+    "attachments": "Attachments",
+    "publications": {
+      "title": "Published versions"
+    }
+  },
+  "meetingTypes": {
+    "weekly_contractor": "Weekly contractors meeting",
+    "site": "Site meeting",
+    "design": "Design meeting",
+    "consultant": "Consultants meeting",
+    "other": "Other meeting"
+  },
+  "meetingStatus": {
+    "scheduled": "Scheduled",
+    "held": "Held",
+    "published": "Minutes published",
+    "cancelled": "Cancelled"
+  },
+  "attendance": {
+    "invited": "Invited",
+    "attended": "Attended",
+    "absent": "Absent"
+  },
+  "attendanceAction": {
+    "invited": "Mark invited",
+    "attended": "Mark attended",
+    "absent": "Mark absent"
+  },
+  "actionItemStatus": {
+    "open": "Open",
+    "done": "Done",
+    "cancelled": "Cancelled"
+  },
+  "portal": {
+    "instructions": {
+      "title": "Site instructions",
+      "description": "Instructions from the site team to your company.",
+      "pendingCount": "{count, plural, one {# awaiting your acknowledgement} other {# awaiting your acknowledgement}}",
+      "emptyTitle": "No instructions",
+      "emptyDescription": "Instructions from the site team will appear here.",
+      "tapToAcknowledge": "Open to acknowledge",
+      "back": "Back to instructions",
+      "acknowledge": "Acknowledge instruction",
+      "reportPerformed": "Report as performed",
+      "notePlaceholder": "Comment (optional)",
+      "byYou": "by your company",
+      "bySiteTeam": "by the site team"
+    },
+    "siteLog": {
+      "title": "Daily report",
+      "description": "Report your company's day on site. Every field is optional.",
+      "submitTitle": "Today's report",
+      "submit": "Send report",
+      "submitted": "Report sent",
+      "reportFor": "Report for",
+      "scopeOption": "Agreement scope {index}",
+      "date": "Date",
+      "revisionHint": "Sending again for the same date adds a new revision; earlier revisions are kept.",
+      "myReports": "My recent reports",
+      "noReportsTitle": "No reports yet",
+      "noReportsDescription": "Reports you send appear here.",
+      "addPhotos": "Add photos or video"
+    },
+    "minutes": {
+      "title": "Meeting minutes",
+      "emptyTitle": "No published minutes",
+      "emptyDescription": "Minutes of meetings your company attended appear here.",
+      "myActionsCount": "{count, plural, one {# action for you} other {# actions for you}}",
+      "myActions": "Your action items",
+      "publishedAt": "Version {version} · published {date}"
+    }
+  },
+  "errors": {
+    "logClosed": "This day's log is closed. Reopen it to make changes.",
+    "logNotClosed": "This day's log is not closed.",
+    "futureDate": "Future dates cannot be logged.",
+    "emptyEntry": "Add a description, a contractor or a number.",
+    "instructionLocked": "This instruction can no longer be edited.",
+    "notAllowedForContractor": "This step is done by the site team.",
+    "invalidTransition": "This step is not available in the current status.",
+    "conversionNotAllowed": "Only potentially financial instructions can be converted.",
+    "alreadyConverted": "This instruction is already converted.",
+    "nothingToDismiss": "There is no pending commercial follow-up.",
+    "meetingCancelled": "This meeting was cancelled.",
+    "alreadyAttendee": "Already an attendee.",
+    "invalidAssignee": "Choose a valid responsible person or contractor.",
+    "publishNotHeld": "Mark the meeting as held before publishing minutes."
+  }
+}

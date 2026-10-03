@@ -1,0 +1,95 @@
+{
+  "common": { "reason": "Reason", "save": "Save" },
+  "list": {
+    "pageTitle": "Contractor claims",
+    "pageDescription": "Submissions, certification, and returns — every decision is kept in history.",
+    "empty": "No claims to show.",
+    "number": "No.",
+    "contractor": "Contractor",
+    "period": "Period",
+    "status": "Status",
+    "submitted": "Submitted (net)",
+    "certified": "Certified (net)"
+  },
+  "status": {
+    "draft": "Draft",
+    "submitted": "Submitted",
+    "under_review": "Under review",
+    "returned": "Returned",
+    "certified": "Certified",
+    "cancelled": "Cancelled"
+  },
+  "decision": {
+    "certify": "Line certified",
+    "reassess": "Reassessed",
+    "reject_line": "Line rejected",
+    "return": "Returned to contractor",
+    "request_evidence": "Evidence requested"
+  },
+  "detail": {
+    "lines": "Claim lines",
+    "line": "Line",
+    "revised": "Revised value",
+    "assessments": "Decision history",
+    "noAssessments": "No decisions yet.",
+    "revision": "Revision {no}",
+    "certifiedAmount": "Certified amount",
+    "totalsSubmitted": "Total submitted",
+    "totalsCertified": "Total certified"
+  },
+  "actions": {
+    "review": "Review claim",
+    "startReview": "Start review",
+    "return": "Return to contractor",
+    "certify": "Certify claim",
+    "certifySubmit": "Certify",
+    "reassess": "Reassess",
+    "reassessSubmit": "Save reassessment",
+    "submitOnBehalf": "Submit on behalf"
+  },
+  "deductions": {
+    "pageTitle": "Deductions",
+    "pageDescription": "First-class deduction records with reversal history.",
+    "empty": "No deductions.",
+    "agreement": "Agreement",
+    "type": "Type",
+    "amount": "Amount (net)",
+    "issue": "Issue deduction",
+    "visibleToContractor": "Visible to contractor"
+  },
+  "deductionType": {
+    "back_charge": "Back charge",
+    "penalty": "Penalty",
+    "damage": "Damage",
+    "materials": "Materials",
+    "cleanup": "Cleanup",
+    "safety": "Safety",
+    "other": "Other"
+  },
+  "portal": {
+    "claimsTitle": "My claims",
+    "paymentsTitle": "Payments",
+    "submit": "Submit claim",
+    "startCorrection": "Start correction",
+    "cancel": "Cancel draft",
+    "paid": "Paid",
+    "payable": "Payable",
+    "retention": "Retention",
+    "holds": "Payment holds"
+  },
+  "errors": {
+    "openClaimExists": "This agreement already has an open claim.",
+    "reviewRequired": "Opening a claim requires permission to review claims.",
+    "notEditable": "Only a draft can be edited.",
+    "reasonRequired": "A reason is required.",
+    "reasonRequiredForReduction": "A reason is required when certifying less than submitted."
+  },
+  "validation": {
+    "amount": "Invalid amount",
+    "amountNonNegative": "Amount must be non-negative",
+    "amountPositive": "Amount must be positive",
+    "percent": "Invalid percent",
+    "date": "Invalid date",
+    "required": "Required"
+  }
+}

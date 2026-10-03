@@ -40,6 +40,17 @@ export const NOTIFICATION_EVENT_TYPES = [
   'task_postponed_by_employee',
   // ── Market Intelligence ────────────────────────────────────────────────────
   'material_pressure_alert',
+  // ── Developer / GC (domain-event consumer, src/modules/dg-events) ─────────
+  'dg_contract',
+  'dg_claim',
+  'dg_task',
+  'dg_coordination',
+  'dg_document',
+  'dg_rfi',
+  'dg_quality',
+  'dg_field',
+  'dg_compliance',
+  'dg_procurement',
 ] as const;
 export type NotificationEventType = (typeof NOTIFICATION_EVENT_TYPES)[number];
 
@@ -61,6 +72,8 @@ export const NOTIFICATION_DOMAINS = [
   'automations',
   'tasks',
   'market_intelligence',
+  'contractors',
+  'contractor_finance',
 ] as const;
 export type NotificationDomain = (typeof NOTIFICATION_DOMAINS)[number];
 
@@ -99,7 +112,36 @@ export const EVENT_DOMAIN: Readonly<Record<NotificationEventType, NotificationDo
   task_postponed_by_employee: 'tasks',
   // ── Market Intelligence ────────────────────────────────────────────────────
   material_pressure_alert: 'market_intelligence',
+  // ── Developer / GC ─────────────────────────────────────────────────────────
+  dg_contract: 'contractor_finance',
+  dg_claim: 'contractor_finance',
+  dg_task: 'contractors',
+  dg_coordination: 'contractors',
+  dg_document: 'contractors',
+  dg_rfi: 'contractors',
+  dg_quality: 'contractors',
+  dg_field: 'contractors',
+  dg_compliance: 'contractors',
+  dg_procurement: 'contractor_finance',
 };
+
+export const DG_NOTIFICATION_EVENT_TYPES = [
+  'dg_contract',
+  'dg_claim',
+  'dg_task',
+  'dg_coordination',
+  'dg_document',
+  'dg_rfi',
+  'dg_quality',
+  'dg_field',
+  'dg_compliance',
+  'dg_procurement',
+] as const satisfies readonly NotificationEventType[];
+export type DgNotificationEventType = (typeof DG_NOTIFICATION_EVENT_TYPES)[number];
+
+export function isDgNotificationEventType(value: string): value is DgNotificationEventType {
+  return (DG_NOTIFICATION_EVENT_TYPES as readonly string[]).includes(value);
+}
 
 export function isNotificationSeverity(value: string): value is NotificationSeverity {
   return (NOTIFICATION_SEVERITIES as readonly string[]).includes(value);

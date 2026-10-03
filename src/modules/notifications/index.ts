@@ -7,6 +7,8 @@ export {
   EVENT_DOMAIN,
   isNotificationSeverity,
   isNotificationEventType,
+  DG_NOTIFICATION_EVENT_TYPES,
+  isDgNotificationEventType,
 } from './domain/types';
 export type {
   NotificationSeverity,
@@ -17,7 +19,27 @@ export type {
   NotificationInbox,
   EmitNotificationInput,
   NotificationScanResult,
+  DgNotificationEventType,
 } from './domain/types';
+export {
+  renderDgNotificationCopy,
+  readDgNotificationMetadata,
+  hasDgNotificationCopy,
+} from './domain/dg-copy';
+export type { DgCopyParams, DgNotificationMetadata } from './domain/dg-copy';
+export { externalNotificationVisible } from './domain/external-visibility';
+
+/** Contractor portal notification center (external principals; track R consumes these). */
+export {
+  listExternalNotifications,
+  markExternalNotificationRead,
+  markAllExternalNotificationsRead,
+  unreadExternalCount,
+} from './application/external-notifications';
+export type {
+  ExternalNotificationListItem,
+  ListExternalNotificationsInput,
+} from './application/external-notifications';
 
 export { buildDedupeKey } from './domain/dedupe';
 export { selectActorRecipients, NOTIFICATION_RECIPIENT_FANOUT_CAP } from './domain/recipients';

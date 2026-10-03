@@ -1,0 +1,144 @@
+{
+  "title": "בקשות מידע (RFI)",
+  "description": "שאלות ובקשות הבהרה בין צוות הפרויקט לקבלנים.",
+  "status": {
+    "draft": "טיוטה",
+    "submitted": "הוגשה",
+    "under_review": "בבדיקה",
+    "answered": "נענתה",
+    "closed": "סגורה"
+  },
+  "priority": {
+    "low": "נמוכה",
+    "normal": "רגילה",
+    "high": "גבוהה",
+    "urgent": "דחופה"
+  },
+  "filters": {
+    "label": "סינון בקשות מידע",
+    "all": "הכול",
+    "open": "פתוחות",
+    "overdue": "באיחור",
+    "draft": "טיוטות",
+    "submitted": "הוגשו",
+    "under_review": "בבדיקה",
+    "answered": "נענו",
+    "closed": "סגורות"
+  },
+  "summary": {
+    "awaitingAnswer": "ממתינות לתשובה",
+    "overdue": "באיחור",
+    "answered": "נענו",
+    "drafts": "טיוטות",
+    "closed": "סגורות"
+  },
+  "list": {
+    "empty": "אין עדיין בקשות מידע",
+    "emptyDescription": "שאלות שמעלים צוות הפרויקט או הקבלנים יופיעו כאן.",
+    "emptyFiltered": "אין בקשות מידע שתואמות לסינון",
+    "hasMore": "מוצגות {count} בקשות המידע הראשונות.",
+    "overdue": "באיחור",
+    "dueOn": "יעד {date}",
+    "noDue": "ללא תאריך יעד",
+    "columns": {
+      "number": "מס׳",
+      "subject": "נושא",
+      "contractor": "קבלן",
+      "location": "מיקום",
+      "due": "יעד",
+      "assignee": "אחראי",
+      "status": "סטטוס"
+    }
+  },
+  "fields": {
+    "subject": "נושא",
+    "question": "שאלה",
+    "contractor": "קבלן",
+    "noContractor": "ללא קבלן (פנימי)",
+    "location": "מיקום",
+    "noLocation": "ללא מיקום",
+    "drawingReference": "הפניה לתוכנית / גרסה",
+    "drawingReferenceHint": "לדוגמה A-101 גרסה C",
+    "workPackage": "חבילת עבודה",
+    "noWorkPackage": "ללא חבילת עבודה",
+    "dueDate": "תשובה נדרשת עד",
+    "assignee": "אחראי",
+    "unassigned": "לא שויך",
+    "priority": "עדיפות",
+    "raisedBy": "הועלתה על ידי",
+    "optional": "רשות"
+  },
+  "actor": {
+    "team": "צוות הפרויקט",
+    "contractor": "קבלן",
+    "system": "מערכת"
+  },
+  "create": {
+    "title": "העלאת בקשת מידע",
+    "description": "נסחו שאלה מדויקת. אפשר לצרף קבצים לאחר השמירה.",
+    "saveDraft": "שמירת טיוטה",
+    "submit": "הגשת בקשת מידע",
+    "created": "בקשת המידע נשמרה"
+  },
+  "detail": {
+    "back": "כל בקשות המידע",
+    "details": "פרטים",
+    "question": "השאלה",
+    "answers": "תשובות רשמיות",
+    "currentAnswer": "התשובה בתוקף",
+    "superseded": "הוחלפה",
+    "noAnswers": "עדיין אין תשובה רשמית.",
+    "answeredOn": "נענתה ב־{date}",
+    "answeredBy": "על ידי {name}",
+    "history": "היסטוריה",
+    "attachments": "קבצים מצורפים",
+    "discussion": "דיון",
+    "reopened": "{count, plural, one {נפתחה מחדש פעם אחת} other {נפתחה מחדש # פעמים}}",
+    "raisedOn": "הועלתה ב־{date}"
+  },
+  "history": {
+    "created": "נוצרה בסטטוס {status}",
+    "changed": "{from} ← {to}"
+  },
+  "actions": {
+    "title": "פעולות",
+    "submit": "הגשה",
+    "startReview": "התחלת בדיקה",
+    "answerLabel": "תשובה רשמית",
+    "answerHint": "תשובות נשמרות לצמיתות. תשובה מאוחרת יותר מחליפה את הקודמת ושתיהן נשמרות ברשומה.",
+    "answerAndClose": "סגירת בקשת המידע לאחר המענה",
+    "answer": "פרסום תשובה",
+    "close": "סגירת בקשת המידע",
+    "reopen": "פתיחה מחדש",
+    "reason": "סיבה",
+    "reasonHint": "חובה. הסבירו מדוע.",
+    "closeWithoutAnswerHint": "סגירה ללא תשובה רשמית מחייבת סיבה.",
+    "editTitle": "עריכת בקשת המידע",
+    "triageTitle": "שיוך ותאריכים",
+    "save": "שמירת שינויים",
+    "saved": "נשמר"
+  },
+  "errors": {
+    "invalidTransition": "הפעולה אינה זמינה בסטטוס הנוכחי.",
+    "reasonRequired": "יש לציין סיבה.",
+    "questionFrozen": "לא ניתן לשנות את השאלה לאחר שבקשת המידע הוגשה.",
+    "closedNotEditable": "לא ניתן לערוך בקשת מידע סגורה. יש לפתוח אותה מחדש קודם.",
+    "concurrentChange": "מישהו אחר עדכן את בקשת המידע הזו כרגע. רעננו ונסו שוב.",
+    "agreementNotOnProject": "הסכם הקבלן הזה אינו שייך לפרויקט.",
+    "assigneeNotOnTeam": "האדם שנבחר אינו בצוות הפרויקט.",
+    "contractorDraftOnly": "ניתן לשנות רק טיוטות של החברה שלכם."
+  },
+  "notAllowed": {
+    "title": "אין גישה לבקשות מידע",
+    "body": "נדרשת גישה לפרויקט כדי לצפות בבקשות המידע שלו."
+  },
+  "portal": {
+    "title": "בקשות מידע",
+    "description": "שאלו את צוות הפרויקט ועקבו אחר התשובות הרשמיות.",
+    "newTitle": "בקשת מידע חדשה",
+    "empty": "לחברה שלכם אין עדיין בקשות מידע בפרויקט הזה.",
+    "back": "חזרה לבקשות המידע",
+    "draftHint": "טיוטה גלויה רק לחברה שלכם עד שתגישו אותה.",
+    "noAccess": "ההרשאה שלכם אינה כוללת בקשות מידע בפרויקט הזה."
+  }
+}

@@ -1,0 +1,186 @@
+{
+  "nav": {
+    "signIn": "تسجيل الدخول",
+    "activate": "تفعيل الحساب",
+    "forgotPassword": "نسيت كلمة المرور",
+    "resetPassword": "إعادة تعيين كلمة المرور",
+    "dashboard": "يومي",
+    "notifications": "الإشعارات",
+    "account": "حسابي",
+    "projectHome": "صفحة المشروع",
+    "tasks": "المهام",
+    "schedule": "الجدول الزمني",
+    "documents": "المستندات",
+    "plans": "المخططات",
+    "rfi": "طلبات الاستيضاح",
+    "submittals": "التقديمات للاعتماد",
+    "defects": "العيوب",
+    "inspections": "الفحوصات",
+    "instructions": "تعليمات الموقع",
+    "siteLog": "يومية العمل",
+    "compliance": "المستندات الإلزامية",
+    "deliveries": "التوريدات",
+    "safety": "السلامة",
+    "contract": "عقدي",
+    "contractChanges": "تغييرات العقد",
+    "claims": "المستخلصات",
+    "payments": "المدفوعات",
+    "tenders": "المناقصات",
+    "handover": "التسليم",
+    "more": "المزيد"
+  },
+  "shell": {
+    "title": "بوابة المقاولين",
+    "navLabel": "التنقل في بوابة المقاولين",
+    "switchProject": "تبديل المشروع",
+    "allProjects": "كل المشاريع",
+    "myProjects": "مشاريعي",
+    "multipleOrganizations": "{count} جهات مالكة",
+    "organizationFallback": "الجهة المالكة",
+    "notificationsUnread": "الإشعارات، {count} غير مقروءة",
+    "userMenu": "قائمة المستخدم",
+    "anonymousUser": "مستخدم مقاول",
+    "language": "اللغة",
+    "signOut": "تسجيل الخروج"
+  },
+  "dashboard": {
+    "title": "يومي",
+    "greeting": "مرحبًا، {name}",
+    "subtitle": "ما ينتظرك اليوم في مشاريعك",
+    "projectsTitle": "مشاريعي",
+    "installApp": "تثبيت التطبيق",
+    "noAccess": {
+      "title": "لا يوجد وصول فعّال إلى مشروع بعد",
+      "description": "حسابك فعّال لكنه لم يُضَف إلى مشروع بعد. تواصل مع مدير المشروع لدى الجهة المالكة للحصول على صلاحية."
+    }
+  },
+  "project": {
+    "title": "مشروع",
+    "unnamed": "مشروع {reference}",
+    "workingAs": "تعمل باسم {vendor}",
+    "linksLabel": "أقسام المشروع",
+    "nothingShared": "لم تتم مشاركة أي معلومات معك في هذا المشروع بعد. ستظهر هنا المهام والأحداث والمستندات التي تشاركها الجهة المالكة."
+  },
+  "sections": {
+    "attention": "{count} تحتاج إلى إجراء",
+    "dueAt": "حتى {date}",
+    "partial": "تعذّر تحميل جزء من المعلومات حاليًا. حاول تحديث الصفحة.",
+    "viewAll": "عرض الكل",
+    "today": {
+      "title": "اليوم",
+      "description": "أحداث ومهام اليوم",
+      "empty": "لا توجد عناصر لليوم."
+    },
+    "schedule": {
+      "title": "الأحداث القادمة",
+      "description": "أحداث التنسيق والجدول الزمني المدعو إليها",
+      "empty": "لا توجد أحداث قادمة."
+    },
+    "acknowledgements": {
+      "title": "بانتظار تأكيدك",
+      "description": "مخططات وتعليمات وأحداث تتطلب تأكيد الاستلام أو الجاهزية",
+      "empty": "لا توجد طلبات تأكيد مفتوحة."
+    },
+    "tasks": {
+      "title": "المهام المفتوحة",
+      "description": "مهام مسندة إليك أو إلى شركتك",
+      "empty": "لا توجد مهام مفتوحة."
+    },
+    "overdueTasks": {
+      "title": "المهام المتأخرة",
+      "description": "مهام تجاوزت موعدها النهائي",
+      "empty": "لا توجد مهام متأخرة."
+    },
+    "milestones": {
+      "title": "المراحل الرئيسية",
+      "description": "المراحل الرئيسية القادمة في المشروع",
+      "empty": "لا توجد مراحل قادمة."
+    },
+    "planRevisions": {
+      "title": "إصدارات مخططات جديدة",
+      "description": "مخططات نُشر لها إصدار جديد",
+      "empty": "لا توجد إصدارات جديدة."
+    },
+    "rfis": {
+      "title": "طلبات الاستيضاح",
+      "description": "طلبات استيضاح مفتوحة وإجابات جديدة",
+      "empty": "لا توجد طلبات استيضاح مفتوحة."
+    },
+    "defects": {
+      "title": "العيوب",
+      "description": "عيوب مسؤوليتك بانتظار الإصلاح",
+      "empty": "لا توجد عيوب مفتوحة."
+    },
+    "submittals": {
+      "title": "التقديمات للاعتماد",
+      "description": "تقديمات قيد المراجعة أو أُعيدت للتعديل",
+      "empty": "لا توجد تقديمات مفتوحة."
+    },
+    "claims": {
+      "title": "المستخلصات",
+      "description": "مستخلصات كمسودة أو قيد المراجعة أو مُعادة",
+      "empty": "لا توجد مستخلصات مفتوحة."
+    },
+    "certifications": {
+      "title": "نتائج اعتماد المستخلصات",
+      "description": "مستخلصات اعتُمدت أو أُعيد تقييمها",
+      "empty": "لا توجد نتائج جديدة."
+    },
+    "retention": {
+      "title": "المحتجزات",
+      "description": "أرصدة المحتجزات والإفراج عنها",
+      "empty": "لا توجد أرصدة محتجزات."
+    },
+    "payments": {
+      "title": "المدفوعات",
+      "description": "حالة المدفوعات المتوقعة والمنفذة",
+      "empty": "لا توجد مدفوعات للعرض."
+    },
+    "documents": {
+      "title": "المستندات المشتركة",
+      "description": "مستندات جديدة تمت مشاركتها معك",
+      "empty": "لا توجد مستندات جديدة."
+    },
+    "notifications": {
+      "title": "أحدث الإشعارات",
+      "description": "آخر التحديثات من مشاريعك",
+      "empty": "لا توجد إشعارات جديدة."
+    }
+  },
+  "badges": {
+    "overdue": "متأخر",
+    "today": "اليوم",
+    "actionRequired": "مطلوب إجراء",
+    "awaitingVerification": "بانتظار المراجعة",
+    "awaitingResponse": "بانتظار ردّك",
+    "awaitingAcknowledgement": "بانتظار تأكيدك",
+    "open": "مفتوح",
+    "unread": "جديد"
+  },
+  "metrics": {
+    "rfiAwaitingAnswer": "بانتظار الإجابة",
+    "rfiAnswered": "تمت الإجابة",
+    "rfiDrafts": "مسودات",
+    "overdue": "متأخرة",
+    "defectsToFix": "للإصلاح",
+    "defectsReopened": "أُعيد فتحها",
+    "awaitingVerification": "بانتظار المراجعة"
+  },
+  "notifications": {
+    "title": "الإشعارات",
+    "subtitle": "تحديثات حول المهام والأحداث والمستندات والمستخلصات",
+    "unreadSummary": "{count} إشعارات غير مقروءة",
+    "markAllRead": "تعليم الكل كمقروء",
+    "markRead": "تعليم كمقروء",
+    "loadOlder": "عرض الإشعارات الأقدم",
+    "empty": {
+      "title": "لا توجد إشعارات",
+      "description": "عندما يتطلب شيء في مشاريعك انتباهك، سيظهر الإشعار هنا."
+    },
+    "severity": {
+      "info": "تحديث",
+      "warning": "للانتباه",
+      "urgent": "عاجل"
+    }
+  }
+}

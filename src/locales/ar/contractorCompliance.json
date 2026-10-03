@@ -1,0 +1,83 @@
+{
+  "title": "امتثال المقاولين",
+  "description": "التأمين وشهادات الضرائب والتراخيص ومتطلبات أخرى لكل عقد مقاول.",
+  "status": {
+    "missing": "ناقص",
+    "current": "ساري",
+    "expiring": "ينتهي قريباً",
+    "expired": "منتهٍ"
+  },
+  "kinds": {
+    "insurance": "تأمين",
+    "guarantee": "ضمان",
+    "tax_certificate": "شهادة ضريبية",
+    "bookkeeping_certificate": "شهادة محاسبة",
+    "safety_certification": "شهادة سلامة",
+    "license": "رخصة",
+    "custom": "مخصص"
+  },
+  "counts": {
+    "blocking": "{count, plural, one {متطلب حاجز واحد} other {# متطلبات حاجزة}}"
+  },
+  "actions": {
+    "applyStandardSet": "تطبيق مجموعة المتطلبات القياسية"
+  },
+  "review": {
+    "queueTitle": "بانتظار المراجعة",
+    "approve": "موافقة",
+    "reject": "رفض",
+    "rejectionPlaceholder": "سبب الرفض (مطلوب للرفض)"
+  },
+  "fields": {
+    "referenceNumber": "رقم المرجع / الوثيقة",
+    "expiresOn": "تاريخ الانتهاء"
+  },
+  "empty": {
+    "title": "لا توجد عقود مقاول",
+    "description": "أضف مقاولين إلى المشروع لإدارة متطلبات الامتثال.",
+    "noAgreements": "لا توجد عقود في هذا المشروع بعد."
+  },
+  "portal": {
+    "title": "مستندات الامتثال",
+    "description": "حمّل وجدّد المستندات التي يتطلبها عقدك.",
+    "actionRequired": "إجراء مطلوب",
+    "submit": "إرسال للمراجعة",
+    "empty": "لا توجد متطلبات امتثال مخصصة لك في هذا المشروع."
+  },
+  "errors": {
+    "expiryRequired": "تاريخ الانتهاء مطلوب لهذا المتطلب.",
+    "expiryBeforeIssue": "تاريخ الانتهاء قبل تاريخ الإصدار.",
+    "requirementArchived": "المتطلب مؤرشف.",
+    "alreadyReviewed": "تمت مراجعة التقديم مسبقاً.",
+    "evidenceRequired": "الموافقة تتطلب مستنداً مرفقاً.",
+    "rejectionReasonRequired": "الرفض يتطلب سبباً."
+  },
+  "safety": {
+    "title": "سلامة الموقع",
+    "description": "ملاحظات ومخاطر وحوادث وإجراءات تصحيحية مرتبطة بالمقاول.",
+    "portalTitle": "بلاغات السلامة",
+    "portalDescription": "أبلغ عن أحداث السلامة لشركتك.",
+    "reportTitle": "بلاغ سلامة",
+    "submit": "إرسال البلاغ",
+    "empty": "لا توجد سجلات سلامة بعد.",
+    "fields": {
+      "type": "النوع",
+      "title": "العنوان",
+      "description": "الوصف"
+    },
+    "types": {
+      "observation": "ملاحظة",
+      "hazard": "خطر",
+      "near_miss": "كادت تحدث",
+      "incident": "حادث",
+      "accident": "حادث جسيم",
+      "ppe_issue": "معدات وقاية"
+    },
+    "errors": {
+      "missingScope": "نطاق المقاول مفقود لهذا البلاغ.",
+      "notOpen": "سجل السلامة غير مفتوح.",
+      "openActions": "أغلق الإجراءات التصحيحية المفتوحة أولاً.",
+      "verificationRequired": "التحقق من الإغلاق مطلوب."
+    }
+  }
+}

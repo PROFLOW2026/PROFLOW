@@ -33,6 +33,7 @@ import {
   type QueriedSearchKind,
 } from '../domain/search-scope';
 import type { GlobalSearchHit, GlobalSearchResult } from '../domain/types';
+import { searchProjectCapabilityHits } from './project-search';
 import {
   searchApBills,
   searchBillingRecords,
@@ -397,16 +398,18 @@ export async function globalSearch(
     loadSearchScope(context, allowed),
   ]);
 
-  const [commands, hits] = await Promise.all([
+  const [commands, hits, projectHits] = await Promise.all([
     Promise.resolve(matchSearchCommands(query, context, modules)),
     fetchAllowedHits(context, query, limit, allowed, scope),
+    searchProjectCapabilityHits(context, query, limit),
   ]);
+  const allHits = [...hits, ...projectHits];
 
   return {
     query,
     commands,
-    groups: groupSearchHits(hits, null),
-    hits,
+    groups: groupSearchHits(allHits, null),
+    hits: allHits,
   };
 }
 

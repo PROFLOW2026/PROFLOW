@@ -51,6 +51,8 @@ export const externalAccessGrants = pgTable(
     clientId: uuid('client_id').references(() => clients.id, { onDelete: 'cascade' }),
     projectId: uuid('project_id').references(() => projects.id, { onDelete: 'cascade' }),
     vendorId: uuid('vendor_id').references(() => vendors.id, { onDelete: 'cascade' }),
+    /** Contractor grants may narrow to one subcontract agreement (migration 0155). */
+    subcontractAgreementId: uuid('subcontract_agreement_id'),
     scopes: jsonb('scopes').$type<string[]>().notNull().default([]),
     status: text('status').notNull().default('active'),
     expiresAt: timestamp('expires_at', { withTimezone: true, mode: 'date' }),
@@ -62,7 +64,16 @@ export const externalAccessGrants = pgTable(
     index('external_access_grants_org_idx').on(table.organizationId),
     index('external_access_grants_principal_idx').on(table.principalId),
     index('external_access_grants_vendor_idx').on(table.vendorId),
-    check('external_access_grants_kind_known', sql`${table.portalKind} IN ('customer', 'vendor')`),
+    index('external_access_grants_agreement_idx')
+      .on(table.organizationId, table.subcontractAgreementId)
+      .where(sql`${table.subcontractAgreementId} is not null`),
+    index('external_access_grants_project_idx')
+      .on(table.organizationId, table.projectId)
+      .where(sql`${table.projectId} is not null`),
+    check(
+      'external_access_grants_kind_known',
+      sql`${table.portalKind} IN ('customer', 'vendor', 'contractor')`,
+    ),
     check(
       'external_access_grants_status_known',
       sql`${table.status} IN ('active', 'revoked', 'expired')`,
@@ -71,8 +82,9 @@ export const externalAccessGrants = pgTable(
     check(
       'external_access_grants_scope_present',
       sql`(
-        (${table.portalKind} = 'vendor' AND ${table.vendorId} IS NOT NULL AND ${table.clientId} IS NULL AND ${table.projectId} IS NULL)
-        OR (${table.portalKind} = 'customer' AND ${table.vendorId} IS NULL AND num_nonnulls(${table.clientId}, ${table.projectId}) >= 1)
+        (${table.portalKind} = 'vendor' AND ${table.vendorId} IS NOT NULL AND ${table.clientId} IS NULL AND ${table.projectId} IS NULL AND ${table.subcontractAgreementId} IS NULL)
+        OR (${table.portalKind} = 'customer' AND ${table.vendorId} IS NULL AND ${table.subcontractAgreementId} IS NULL AND num_nonnulls(${table.clientId}, ${table.projectId}) >= 1)
+        OR (${table.portalKind} = 'contractor' AND ${table.vendorId} IS NOT NULL AND ${table.clientId} IS NULL)
       )`,
     ),
   ],

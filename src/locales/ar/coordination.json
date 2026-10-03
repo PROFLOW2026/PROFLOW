@@ -1,0 +1,280 @@
+{
+  "list": {
+    "pageTitle": "التنسيق في الموقع",
+    "pageDescription": "أحداث موقع متعددة المقاولين مع تأكيد الجاهزية من كل مقاول مطلوب قبل بدء العمل.",
+    "open": "القادمة والمفتوحة",
+    "closed": "المكتملة والملغاة",
+    "emptyOpenTitle": "لا توجد أحداث تنسيق مفتوحة",
+    "emptyOpenDescription": "حدد حدثًا مثل صب سقف أو تركيب، وادعُ المقاولين المعنيين وتابع من هو جاهز.",
+    "emptyClosedTitle": "لا توجد أحداث تنسيق مغلقة بعد",
+    "emptyClosedDescription": "تظهر هنا الأحداث المكتملة والمكتملة جزئيًا والملغاة مع نتيجتها.",
+    "scheduleEvent": "تحديد حدث تنسيق",
+    "readyCount": "{ready} من {total} مطلوبين جاهزون",
+    "contractorCount": "{count, plural, =0 {لا مقاولين} one {مقاول واحد} two {مقاولان} few {# مقاولين} many {# مقاولًا} other {# مقاول}}",
+    "loadMore": "عرض المزيد",
+    "prepareBy": "الاستعداد حتى {date}"
+  },
+  "kinds": {
+    "concrete_pour": "صب خرسانة",
+    "installation": "تركيب",
+    "inspection": "فحص",
+    "delivery": "توريد",
+    "handover": "تسليم",
+    "testing": "اختبار",
+    "meeting": "اجتماع موقع",
+    "other": "أخرى"
+  },
+  "statuses": {
+    "scheduled": "مجدول",
+    "completed": "مكتمل",
+    "partially_completed": "مكتمل جزئيًا",
+    "postponed": "مؤجل",
+    "cancelled": "ملغى"
+  },
+  "readiness": {
+    "label": "الجاهزية",
+    "ready": "جاهز",
+    "ready_with_conditions": "جاهز بشروط",
+    "waiting": "بانتظار الردود",
+    "not_ready": "غير جاهز",
+    "blocked": "متوقف",
+    "overridden": "محدد يدويًا",
+    "computed": "محسوبة من المقاولين: {state}"
+  },
+  "partyStatus": {
+    "waiting": "بانتظار",
+    "ready": "جاهز",
+    "not_ready": "غير جاهز",
+    "ready_with_conditions": "جاهز بشروط",
+    "acknowledged": "تم الاستلام",
+    "blocked": "متوقف"
+  },
+  "fields": {
+    "title": "العنوان",
+    "description": "الوصف",
+    "kind": "النوع",
+    "startsAt": "البداية",
+    "endsAt": "النهاية",
+    "preparationDeadline": "آخر موعد للاستعداد",
+    "location": "الموقع",
+    "locationNote": "تفاصيل الموقع",
+    "workPackage": "حزمة العمل",
+    "phase": "المرحلة",
+    "requiredAcknowledgements": "الإقرارات المطلوبة",
+    "acknowledgementsHint": "إقرار في كل سطر، مثل \"تمت قراءة إرشادات السلامة\". يجب على كل مقاول مطلوب تأكيد كل بند.",
+    "contractors": "المقاولون",
+    "internalParticipants": "فريق الموقع",
+    "documents": "المستندات والمخططات",
+    "tradeLabel": "التخصص",
+    "required": "مطلوب",
+    "optional": "اختياري",
+    "agreement": "الاتفاقية",
+    "note": "ملاحظة",
+    "reason": "السبب",
+    "actualStartAt": "البداية الفعلية",
+    "actualEndAt": "النهاية الفعلية",
+    "dueDate": "تاريخ الاستحقاق",
+    "priority": "الأولوية",
+    "none": "بدون",
+    "contractorVisible": "مرئي للمقاولين",
+    "status": "الحالة"
+  },
+  "priorities": {
+    "low": "منخفضة",
+    "medium": "متوسطة",
+    "high": "عالية",
+    "urgent": "عاجلة"
+  },
+  "create": {
+    "title": "حدث تنسيق جديد",
+    "description": "حدد الوقت والمكان، وادعُ المقاولين واختر من يجب أن يؤكد الجاهزية.",
+    "submit": "تحديد الحدث",
+    "addContractor": "إضافة مقاول",
+    "removeContractor": "إزالة",
+    "noContractorsAvailable": "لا يوجد مقاولون لديهم اتفاقية في هذا المشروع بعد.",
+    "cancel": "إلغاء",
+    "selectContractor": "اختر مقاولًا"
+  },
+  "detail": {
+    "backToList": "التنسيق",
+    "matrix": "جاهزية المقاولين",
+    "matrixDescription": "يكون الحدث جاهزًا عندما يكون كل مقاول مطلوب جاهزًا وأكد الإقرارات المطلوبة.",
+    "party": "المقاول",
+    "lastAnswer": "آخر رد",
+    "acknowledgements": "الإقرارات",
+    "acksProgress": "{done} من {total}",
+    "noContractors": "لم تتم دعوة أي مقاول بعد.",
+    "openIssues": "{count, plural, zero {لا مشكلات مفتوحة} one {مشكلة مفتوحة واحدة} two {مشكلتان مفتوحتان} few {# مشكلات مفتوحة} many {# مشكلة مفتوحة} other {# مشكلة مفتوحة}}",
+    "requestedAt": "طُلب في {date}",
+    "answeredAt": "رد في {date}",
+    "byContractor": "من المقاول",
+    "bySiteTeam": "سجله {name}",
+    "superseded": "قبل تغيير الموعد",
+    "issues": "المشكلات المبلغ عنها",
+    "noIssues": "لم يتم الإبلاغ عن مشكلات.",
+    "documents": "المستندات المرتبطة",
+    "noDocuments": "لا توجد مستندات مرتبطة.",
+    "internalTeam": "فريق الموقع",
+    "noInternalTeam": "لم تتم إضافة أعضاء من فريق الموقع.",
+    "history": "السجل",
+    "historyEmpty": "لم يُسجل شيء بعد.",
+    "evidence": "صور ومستندات الحدث",
+    "discussion": "نقاش داخلي",
+    "details": "التفاصيل",
+    "missingAcks": "ناقص: {items}"
+  },
+  "history": {
+    "response": "{party} رد: {status}",
+    "reschedule": "تم تغيير الموعد من {from} إلى {to}",
+    "override": "تحديد الجاهزية يدويًا: {decision}",
+    "outcome": "النتيجة: {outcome}",
+    "by": "بواسطة {name}"
+  },
+  "actions": {
+    "recordAnswer": "تسجيل رد",
+    "createTask": "إنشاء مهمة متابعة",
+    "dismissIssue": "إغلاق",
+    "remindAll": "سؤال جميع المقاولين مجددًا",
+    "remind": "السؤال مجددًا",
+    "remove": "إزالة",
+    "makeRequired": "جعله مطلوبًا",
+    "makeOptional": "جعله اختياريًا",
+    "invite": "دعوة",
+    "override": "تحديد الجاهزية يدويًا",
+    "reschedule": "تغيير الموعد",
+    "recordOutcome": "تسجيل النتيجة",
+    "linkDocument": "ربط مستند",
+    "unlink": "إلغاء الربط",
+    "edit": "تعديل التفاصيل",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "open": "فتح"
+  },
+  "invite": {
+    "title": "دعوة المشاركين",
+    "contractorsHint": "المقاولون المطلوبون يحددون جاهزية الحدث؛ والاختياريون يتم إبلاغهم فقط.",
+    "teamHint": "يرى أعضاء فريق الموقع الحدث في جدولهم."
+  },
+  "answer": {
+    "title": "تسجيل رد المقاول",
+    "description": "استخدم هذا عندما يرد المقاول هاتفيًا أو في الموقع. يُسجل الرد باسمك."
+  },
+  "task": {
+    "title": "إنشاء مهمة متابعة",
+    "description": "ينشئ مهمة مسندة إلى شركة المقاول ومرتبطة بهذا الحدث.",
+    "created": "تم إنشاء المهمة"
+  },
+  "issue": {
+    "statuses": {
+      "open": "مفتوحة",
+      "task_created": "تم إنشاء مهمة",
+      "dismissed": "مغلقة"
+    },
+    "raisedBy": "أبلغ عنها {by}"
+  },
+  "override": {
+    "title": "تحديد الجاهزية يدويًا",
+    "description": "يُسجل التحديد اليدوي مع اسمك والوقت والسبب، ويظهر في السجل.",
+    "force_ready": "تحديد كجاهز",
+    "force_not_ready": "إبقاؤه غير جاهز",
+    "cleared": "العودة إلى الجاهزية المحسوبة",
+    "reasonPlaceholder": "لماذا يتم تحديد الجاهزية يدويًا؟"
+  },
+  "reschedule": {
+    "title": "تغيير موعد الحدث",
+    "requiresReconfirmation": "يجب على المقاولين تأكيد الجاهزية من جديد",
+    "requiresReconfirmationHint": "تبقى الردود السابقة في السجل لكنها لم تعد تُحتسب.",
+    "preparationHint": "اتركه فارغًا لتحريك موعد الاستعداد مع الحدث."
+  },
+  "outcome": {
+    "title": "تسجيل النتيجة",
+    "description": "النتيجة المكتملة أو المكتملة جزئيًا تتطلب وقت البداية الفعلي. أي نتيجة أخرى تتطلب ملاحظة."
+  },
+  "outcomes": {
+    "completed": "مكتمل",
+    "partially_completed": "مكتمل جزئيًا",
+    "postponed": "مؤجل",
+    "cancelled": "ملغى"
+  },
+  "documents": {
+    "select": "اختر مستندًا من المشروع",
+    "noneAvailable": "لا توجد مستندات مشروع متاحة للربط."
+  },
+  "calendar": {
+    "sectionTitle": "أحداث التنسيق",
+    "sectionDescription": "أحداث متعددة المقاولين في هذه الفترة مع جاهزيتها.",
+    "viewAll": "جميع أحداث التنسيق",
+    "empty": "لا توجد أحداث تنسيق في هذه الفترة."
+  },
+  "portal": {
+    "scheduleTitle": "الجدول",
+    "scheduleDescription": "أحداث الموقع المدعو إليها. أكد جاهزيتك قبل آخر موعد للاستعداد.",
+    "upcoming": "القادمة",
+    "past": "السابقة",
+    "emptyUpcoming": "لا توجد أحداث قادمة لشركتك في هذا المشروع.",
+    "emptyPast": "لا توجد أحداث سابقة بعد.",
+    "needsAnswer": "مطلوب رد",
+    "eventDetails": "تفاصيل الحدث",
+    "backToSchedule": "الجدول",
+    "yourParty": "شركتك",
+    "yourStatus": "ردك الحالي",
+    "notAnswered": "لم يتم الرد بعد",
+    "respondTitle": "جاهزيتك",
+    "respondDescription": "اختر ردك. غير جاهز ومتوقف وجاهز بشروط تتطلب شرحًا قصيرًا.",
+    "statusHints": {
+      "ready": "كل شيء جاهز من جهتنا.",
+      "ready_with_conditions": "يمكننا المتابعة إذا تحققت الشروط المذكورة في الملاحظة.",
+      "not_ready": "لن نكون جاهزين في الوقت المحدد.",
+      "acknowledged": "استلمنا الدعوة ونحن نستعد.",
+      "blocked": "هناك أمر خارج عن سيطرتنا يعيقنا."
+    },
+    "acknowledgeTitle": "الإقرارات المطلوبة",
+    "acknowledged": "تم التأكيد",
+    "notePlaceholder": "ما الناقص، وما الشروط المطبقة، أو ما الذي يعيقك؟",
+    "raiseIssue": "الإبلاغ عن مشكلة لفريق الموقع",
+    "issueTitle": "عنوان المشكلة",
+    "issueDescription": "تفاصيل المشكلة",
+    "submit": "إرسال الرد",
+    "submitted": "تم إرسال ردك.",
+    "cannotRespond": "الردود مغلقة لهذا الحدث.",
+    "noRespondPermission": "تسمح لك صلاحيتك بعرض هذا الحدث دون الرد عليه.",
+    "history": "ردودك",
+    "historyEmpty": "لا توجد ردود بعد.",
+    "issues": "مشكلاتك",
+    "documents": "مستندات هذا الحدث",
+    "reschedules": "تغييرات الموعد",
+    "movedFrom": "نُقل من {from} إلى {to}",
+    "attachEvidence": "أضف صورًا أو مستندات إلى ردك الأخير",
+    "discussion": "رسائل مع فريق الموقع",
+    "required": "جاهزيتك مطلوبة",
+    "optional": "مشاركتك اختيارية",
+    "pendingResponse": "بانتظار ردك",
+    "pendingAcknowledgement": "إقرارات ناقصة"
+  },
+  "validation": {
+    "titleRequired": "أدخل عنوانًا.",
+    "invalidDate": "أدخل تاريخًا ووقتًا صالحين.",
+    "endBeforeStart": "يجب أن تكون النهاية بعد البداية.",
+    "preparationAfterStart": "يجب أن يكون آخر موعد للاستعداد قبل البداية.",
+    "notInProject": "هذا العنصر لا ينتمي إلى المشروع.",
+    "contractorNotOnProject": "ليس لهذا المقاول اتفاقية في المشروع.",
+    "documentNotInProject": "هذا المستند غير مرتبط بالمشروع.",
+    "noteRequired": "أضف شرحًا قصيرًا.",
+    "issueTitleRequired": "أدخل عنوانًا للمشكلة.",
+    "reasonRequired": "أدخل سببًا.",
+    "sameTime": "اختر وقتًا مختلفًا.",
+    "actualStartRequired": "أدخل وقت البداية الفعلي.",
+    "unknownAcknowledgement": "أحد الإقرارات لم يعد موجودًا. أعد تحميل الصفحة."
+  },
+  "errors": {
+    "eventClosed": "هذا الحدث مغلق ولا يمكن تغييره.",
+    "eventNotOpen": "هذا الحدث غير مفتوح لردود الجاهزية.",
+    "cannotReschedule": "لم يعد من الممكن تغيير موعد هذا الحدث.",
+    "outcomeNotAllowed": "هذه النتيجة غير ممكنة في الحالة الحالية للحدث.",
+    "noOverride": "لا يوجد تحديد يدوي نشط للجاهزية لإلغائه.",
+    "issueResolved": "تمت معالجة هذه المشكلة بالفعل."
+  },
+  "toast": {
+    "saved": "تم الحفظ"
+  }
+}

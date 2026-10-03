@@ -59,6 +59,16 @@
     "billing_plan": "План выставления счетов",
     "billing_cycle": "Цикл выставления счетов",
     "recurring_draft": "Повторяющийся черновик",
-    "approval": "Согласование"
+    "approval": "Согласование",
+    "contractor": "Подрядчик",
+    "coordination_event": "Событие координации",
+    "claim": "Заявка",
+    "rfi": "Запрос информации",
+    "submittal": "Представление",
+    "defect": "Дефект",
+    "drawing": "Чертёж",
+    "location": "Место",
+    "meeting": "Совещание",
+    "site_instruction": "Указание на площадке"
   }
 }

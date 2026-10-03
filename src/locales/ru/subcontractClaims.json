@@ -1,0 +1,95 @@
+{
+  "common": { "reason": "Причина", "save": "Сохранить" },
+  "list": {
+    "pageTitle": "Акты подрядчиков",
+    "pageDescription": "Подача, сертификация и возвраты — каждое решение сохраняется.",
+    "empty": "Нет актов.",
+    "number": "№",
+    "contractor": "Подрядчик",
+    "period": "Период",
+    "status": "Статус",
+    "submitted": "Заявлено (нетто)",
+    "certified": "Сертифицировано (нетто)"
+  },
+  "status": {
+    "draft": "Черновик",
+    "submitted": "Подано",
+    "under_review": "На проверке",
+    "returned": "Возвращено",
+    "certified": "Сертифицировано",
+    "cancelled": "Отменено"
+  },
+  "decision": {
+    "certify": "Строка сертифицирована",
+    "reassess": "Переоценка",
+    "reject_line": "Строка отклонена",
+    "return": "Возврат подрядчику",
+    "request_evidence": "Запрос документов"
+  },
+  "detail": {
+    "lines": "Строки акта",
+    "line": "Строка",
+    "revised": "Пересмотренная сумма",
+    "assessments": "История решений",
+    "noAssessments": "Решений пока нет.",
+    "revision": "Редакция {no}",
+    "certifiedAmount": "Сертифицированная сумма",
+    "totalsSubmitted": "Итого заявлено",
+    "totalsCertified": "Итого сертифицировано"
+  },
+  "actions": {
+    "review": "Проверка акта",
+    "startReview": "Начать проверку",
+    "return": "Вернуть подрядчику",
+    "certify": "Сертифицировать",
+    "certifySubmit": "Сертифицировать",
+    "reassess": "Переоценить",
+    "reassessSubmit": "Сохранить переоценку",
+    "submitOnBehalf": "Подать от имени"
+  },
+  "deductions": {
+    "pageTitle": "Удержания",
+    "pageDescription": "Отдельные записи удержаний с историей стorno.",
+    "empty": "Нет удержаний.",
+    "agreement": "Договор",
+    "type": "Тип",
+    "amount": "Сумма (нетто)",
+    "issue": "Выписать удержание",
+    "visibleToContractor": "Видно подрядчику"
+  },
+  "deductionType": {
+    "back_charge": "Обратное начисление",
+    "penalty": "Штраф",
+    "damage": "Ущерб",
+    "materials": "Материалы",
+    "cleanup": "Уборка",
+    "safety": "Безопасность",
+    "other": "Прочее"
+  },
+  "portal": {
+    "claimsTitle": "Мои акты",
+    "paymentsTitle": "Платежи",
+    "submit": "Подать акт",
+    "startCorrection": "Исправление",
+    "cancel": "Отменить черновик",
+    "paid": "Оплачено",
+    "payable": "К оплате",
+    "retention": "Удержание",
+    "holds": "Блокировки оплаты"
+  },
+  "errors": {
+    "openClaimExists": "По этому договору уже есть открытый акт.",
+    "reviewRequired": "Чтобы открыть акт, нужно право на проверку актов.",
+    "notEditable": "Редактируется только черновик.",
+    "reasonRequired": "Нужна причина.",
+    "reasonRequiredForReduction": "Нужна причина при сертификации меньше заявленного."
+  },
+  "validation": {
+    "amount": "Неверная сумма",
+    "amountNonNegative": "Сумма должна быть неотрицательной",
+    "amountPositive": "Сумма должна быть положительной",
+    "percent": "Неверный процент",
+    "date": "Неверная дата",
+    "required": "Обязательно"
+  }
+}

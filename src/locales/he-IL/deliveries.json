@@ -1,0 +1,49 @@
+{
+  "title": "אספקות קריטיות",
+  "description": "מעקב אחר אספקת חומרים וציוד, תאריכים צפויים ועיכובים.",
+  "fields": {
+    "itemName": "פריט",
+    "expectedDate": "תאריך צפוי",
+    "unassigned": "ללא קבלן"
+  },
+  "state": {
+    "planned": "מתוכנן",
+    "ordered": "הוזמן",
+    "in_transit": "בדרך",
+    "partially_delivered": "נמסר חלקית",
+    "delivered": "נמסר",
+    "rejected": "נדחה",
+    "cancelled": "בוטל"
+  },
+  "filters": {
+    "open": "פתוח",
+    "all": "הכל"
+  },
+  "create": {
+    "title": "הוספת אספקה",
+    "submit": "שמירה",
+    "cancel": "ביטול"
+  },
+  "empty": {
+    "title": "אין אספקות",
+    "description": "רשמו חומרים או ציוד קריטיים שצפויים באתר."
+  },
+  "portal": {
+    "title": "אספקות",
+    "description": "רשמו ועדכנו את האספקות הקריטיות שלכם.",
+    "registerTitle": "רישום אספקה",
+    "registerSubmit": "רישום",
+    "reportDelay": "אישור הודעת עיכוב",
+    "delayNote": "הודעת עיכוב מהקבלן",
+    "summaryOpen": "{count} פתוחות",
+    "summaryDelayed": "{count} באיחור",
+    "empty": "אין לכם אספקות גלויות בפרויקט זה."
+  },
+  "errors": {
+    "invalidTransition": "שינוי סטטוס זה אינו מותר.",
+    "contractorStateNotAllowed": "קבלנים לא יכולים לקבוע סטטוס זה.",
+    "closed": "האספקה סגורה.",
+    "actualDateRequired": "נדרש תאריך מסירה בפועל.",
+    "newDateRequired": "להודעת עיכוב נדרש תאריך צפוי חדש."
+  }
+}

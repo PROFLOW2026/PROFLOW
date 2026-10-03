@@ -179,6 +179,13 @@ export const PERMISSIONS = {
 
   MEETINGS_READ: 'meetings.read',
   MEETINGS_MANAGE: 'meetings.manage',
+
+  /**
+   * Developer / GC layer: organization-wide authority over project teams and every
+   * project-scoped capability. Per-person authority lives in `project_members`
+   * (see `src/modules/project-team`), never in an org-wide role.
+   */
+  PROJECT_TEAM_ADMIN: 'project_team.admin',
 } as const;
 
 export type PermissionKey = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
@@ -486,6 +493,12 @@ export const PERMISSION_CATALOG: readonly PermissionDefinition[] = [
 
   { key: PERMISSIONS.MEETINGS_READ, category: 'projects', description: 'View meeting records and decisions' },
   { key: PERMISSIONS.MEETINGS_MANAGE, category: 'projects', description: 'Create and manage meetings and decisions' },
+
+  {
+    key: PERMISSIONS.PROJECT_TEAM_ADMIN,
+    category: 'projects',
+    description: 'Administer project teams and hold every project capability on every project',
+  },
 ];
 
 export const ALL_PERMISSION_KEYS: readonly PermissionKey[] = PERMISSION_CATALOG.map((p) => p.key);

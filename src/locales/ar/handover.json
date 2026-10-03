@@ -1,0 +1,33 @@
+{
+  "closeout": {
+    "title": "إغلاق المقاول",
+    "description": "قائمة تحقق لكل عقد قبل الإغلاق.",
+    "empty": { "title": "لا إغلاقات", "description": "افتح إغلاقاً من عقد المقاول." },
+    "agreementLabel": "عقد {id}",
+    "status": { "open": "مفتوح", "ready": "جاهز", "closed": "مغلق" }
+  },
+  "warranty": {
+    "title": "ضمان المقاول",
+    "description": "فترات الضمان وربط العيوب.",
+    "empty": { "title": "لا بلاغات ضمان", "description": "أبلغ عن مشاكل ضمان مرتبطة بالعقد." },
+    "flagsHint": "تنبيهات احتجاز أو كفالة.",
+    "status": {
+      "open": "مفتوح",
+      "in_progress": "قيد المعالجة",
+      "resolved": "محلول",
+      "cancelled": "ملغى"
+    }
+  },
+  "portal": {
+    "title": "التسليم",
+    "description": "قدّم بنود قائمة التحقق للعقد.",
+    "checklist": "قائمة التحقق"
+  },
+  "itemStatus": {
+    "pending": "معلق",
+    "submitted": "مُقدَّم",
+    "complete": "مكتمل",
+    "waived": "معفى"
+  },
+  "errors": { "incompleteChecklist": "بنود مطلوبة ما زالت مفتوحة." }
+}

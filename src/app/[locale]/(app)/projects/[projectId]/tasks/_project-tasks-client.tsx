@@ -31,6 +31,7 @@ export function ProjectTasksClient({
   assigneeOptions = [],
   canAssign = false,
   today,
+  initialCreateOpen = false,
 }: {
   tasks: TaskCardData[];
   projectId: string;
@@ -45,6 +46,7 @@ export function ProjectTasksClient({
   assigneeOptions?: TaskAssigneePickerOption[];
   canAssign?: boolean;
   today: string;
+  initialCreateOpen?: boolean;
 }) {
   const t = useTranslations('tasks');
   const [, startTransition] = useTransition();
@@ -52,7 +54,7 @@ export function ProjectTasksClient({
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [taskDetail, setTaskDetail] = useState<TaskDetail | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
-  const [createSheetOpen, setCreateSheetOpen] = useState(false);
+  const [createSheetOpen, setCreateSheetOpen] = useState(initialCreateOpen);
 
   const handleOpenTask = async (taskId: string) => {
     setSelectedTaskId(taskId);

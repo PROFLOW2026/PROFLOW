@@ -10,6 +10,7 @@ import {
 import { isLocale, type Locale } from '@/shared/i18n/config';
 import { routing } from '@/shared/i18n/routing';
 import { refreshSupabaseSession } from '@/shared/supabase/middleware';
+import { decideContractorSurface } from '@/modules/contractor-access/domain/surface';
 
 const handleIntl = createIntlMiddleware(routing);
 
@@ -68,7 +69,26 @@ export default async function proxy(request: NextRequest) {
   if (pathLocale) {
     persistLocaleCookie(response, pathLocale);
   }
-  return refreshSupabaseSession(request, response);
+  return refreshSupabaseSession(request, response, (user) => contractorSurfaceRedirect(request, user));
+}
+
+/** Contractor accounts never reach the org app; protected contractor pages need a session. */
+function contractorSurfaceRedirect(
+  request: NextRequest,
+  user: { app_metadata?: unknown } | null,
+): NextResponse | null {
+  const decision = decideContractorSurface({
+    pathname: request.nextUrl.pathname,
+    search: request.nextUrl.search,
+    locales: routing.locales,
+    defaultLocale: routing.defaultLocale,
+    user: user ? { appMetadata: user.app_metadata } : null,
+  });
+  if (decision.kind === 'pass') return null;
+  const url = request.nextUrl.clone();
+  url.pathname = decision.pathname;
+  url.search = decision.search ?? '';
+  return NextResponse.redirect(url);
 }
 
 export const config = {

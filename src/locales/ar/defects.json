@@ -1,0 +1,177 @@
+{
+  "title": "العيوب وقائمة الإصلاحات",
+  "description": "كل عيب مع موقعه والمقاول المسؤول والموعد النهائي وسجل إصلاح كامل.",
+  "detailTitle": "العيب رقم {ref}",
+  "counts": {
+    "toFix": "للإصلاح",
+    "awaitingVerification": "بانتظار التحقق",
+    "overdue": "متأخرة",
+    "closed": "مغلقة"
+  },
+  "filters": {
+    "status": "الحالة",
+    "active": "للإصلاح",
+    "awaiting_verification": "بانتظار التحقق",
+    "closed": "مغلقة",
+    "all": "الكل",
+    "severity": "الخطورة",
+    "anySeverity": "أي خطورة",
+    "contractor": "المقاول",
+    "anyContractor": "أي مقاول",
+    "overdueOnly": "المتأخرة فقط",
+    "mode": "النوع",
+    "anyMode": "أي نوع",
+    "apply": "تصفية",
+    "clear": "مسح"
+  },
+  "status": {
+    "open": "مفتوح",
+    "assigned": "مُسند",
+    "completion_submitted": "تم تقديم الإصلاح",
+    "verification": "قيد التحقق",
+    "closed": "مغلق",
+    "reopened": "أعيد فتحه",
+    "cancelled": "ملغى"
+  },
+  "severity": {
+    "low": "منخفضة",
+    "medium": "متوسطة",
+    "high": "عالية",
+    "critical": "حرجة"
+  },
+  "mode": {
+    "construction": "تنفيذ",
+    "warranty": "ضمان"
+  },
+  "recordKind": {
+    "opened": "تم فتح العيب",
+    "assigned": "تم الإسناد",
+    "completion_submitted": "تم تقديم الإصلاح",
+    "verification_started": "بدأ التحقق",
+    "accepted": "قُبل الإصلاح - مغلق",
+    "rejected": "رُفض الإصلاح",
+    "reopened": "أعيد فتحه",
+    "cancelled": "ملغى",
+    "updated": "تم تحديث التفاصيل",
+    "note": "ملاحظة"
+  },
+  "fields": {
+    "title": "العنوان",
+    "description": "الوصف",
+    "severity": "الخطورة",
+    "dueDate": "الموعد النهائي",
+    "location": "الموقع",
+    "noLocation": "بدون موقع محدد",
+    "contractor": "المقاول المسؤول",
+    "noContractor": "بدون مقاول",
+    "workLine": "بند العقد",
+    "noWorkLine": "بدون بند",
+    "assignee": "الشخص المسؤول",
+    "noAssignee": "بدون شخص",
+    "inspector": "المفتش",
+    "contractorVisible": "ظاهر للمقاول في البوابة",
+    "mode": "النوع",
+    "sourceInspection": "من الفحص",
+    "sourceItem": "بند الفحص",
+    "warrantySource": "مرجع الضمان",
+    "cycle": "دورة الإصلاح",
+    "reference": "رقم",
+    "overdue": "متأخر",
+    "submittedAt": "تقديم الإصلاح",
+    "closedAt": "أُغلق",
+    "createdAt": "فُتح",
+    "note": "ملاحظة",
+    "rejectReason": "لماذا رُفض الإصلاح؟",
+    "reopenReason": "لماذا أعيد فتح العيب؟",
+    "cancelReason": "لماذا أُلغي العيب؟",
+    "newDueDate": "موعد نهائي جديد"
+  },
+  "list": {
+    "empty": "لا توجد عيوب هنا",
+    "emptyDescription": "تظهر هنا العيوب المفتوحة يدويًا أو من الفحوصات الراسبة مع حالة الإصلاح.",
+    "cycle": "الدورة {n}",
+    "due": "الموعد {date}",
+    "noDueDate": "بدون موعد",
+    "overdue": "متأخر",
+    "loadMore": "عرض المزيد",
+    "previous": "السابق"
+  },
+  "create": {
+    "title": "فتح عيب",
+    "description": "سجلوا العيب ومكانه ومن يجب أن يصلحه.",
+    "submit": "فتح العيب",
+    "success": "تم فتح العيب"
+  },
+  "edit": {
+    "title": "تفاصيل العيب",
+    "submit": "حفظ التفاصيل",
+    "success": "تم حفظ التفاصيل"
+  },
+  "assign": {
+    "title": "إسناد المسؤولية",
+    "submit": "إسناد",
+    "success": "تم إسناد العيب"
+  },
+  "completion": {
+    "title": "تسجيل إنجاز الإصلاح",
+    "internalHint": "يستخدم عندما نفذ الإصلاح طاقم ذاتي أو تم تأكيده في الموقع. أرفقوا صورًا أدناه.",
+    "submit": "وضع علامة إنجاز الإصلاح",
+    "success": "تم تقديم الإصلاح للتحقق"
+  },
+  "verify": {
+    "title": "التحقق من الإصلاح",
+    "start": "بدء التحقق",
+    "started": "بدأ التحقق",
+    "accept": "قبول وإغلاق",
+    "reject": "رفض الإصلاح",
+    "accepted": "تم إغلاق العيب",
+    "rejected": "رُفض الإصلاح - بدأت دورة إصلاح جديدة",
+    "rejectHint": "سيرى المقاول هذا السبب وعليه تقديم إصلاح جديد مع توثيق جديد."
+  },
+  "reopen": {
+    "title": "إعادة فتح العيب",
+    "submit": "إعادة الفتح",
+    "success": "أعيد فتح العيب"
+  },
+  "cancel": {
+    "title": "إلغاء العيب",
+    "submit": "إلغاء العيب",
+    "success": "تم إلغاء العيب"
+  },
+  "history": {
+    "title": "سجل الإصلاح",
+    "cycle": "دورة الإصلاح {n}",
+    "by": "بواسطة {name}",
+    "contractor": "المقاول",
+    "system": "النظام",
+    "internal": "داخلي",
+    "empty": "لا يوجد سجل بعد."
+  },
+  "evidence": {
+    "title": "صور ومستندات"
+  },
+  "discussion": {
+    "title": "نقاش"
+  },
+  "portal": {
+    "title": "عيوب للإصلاح",
+    "description": "العيوب المسندة إلى شركتكم في هذا المشروع.",
+    "empty": "لا توجد عيوب مسندة إليكم. عمل رائع!",
+    "submitTitle": "تقديم الإصلاح",
+    "submitHint": "ارفعوا صورة أو فيديو أو مستندًا واحدًا على الأقل للإصلاح في هذه الدورة ثم قدّموا.",
+    "submit": "تقديم الإصلاح للتحقق",
+    "submitted": "تم تقديم الإصلاح - بانتظار التحقق",
+    "awaiting": "إصلاحكم بانتظار تحقق فريق الموقع.",
+    "closed": "هذا العيب مغلق.",
+    "back": "كل العيوب",
+    "inspections": "الفحوصات",
+    "rejectedReason": "سبب الرفض"
+  },
+  "errors": {
+    "invalidTransition": "هذا الإجراء غير متاح في الحالة الحالية للعيب.",
+    "concurrentChange": "تم تعديل العيب من قبل مستخدم آخر. حدّثوا الصفحة وحاولوا مجددًا.",
+    "notEditable": "لا يمكن تعديل عيب مغلق أو ملغى.",
+    "evidenceRequired": "ارفعوا أولًا صورة أو فيديو أو مستندًا واحدًا على الأقل للإصلاح.",
+    "invalidReference": "العنصر المحدد لا ينتمي إلى هذا المشروع."
+  }
+}

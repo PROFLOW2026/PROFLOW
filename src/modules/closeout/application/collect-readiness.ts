@@ -13,7 +13,7 @@ import {
 import { listPurchaseOrdersForOrg } from '@/modules/procurement';
 import { listProjectMilestones } from '@/modules/projects';
 import { listSafetyRecordsForOrg } from '@/modules/safety';
-import { listProjectSubcontracts } from '@/modules/vendors';
+import { listProjectSubcontractsOperational } from '@/modules/vendors';
 import { listProjectTimeEntries } from '@/modules/workforce';
 import type { OrgContext } from '@/shared/auth/context';
 import { addMoney, isPositiveMoney, money, zeroMoney, type MoneyValue } from '@/shared/money';
@@ -176,7 +176,7 @@ export async function collectCloseoutReadiness(
 
   if (hasPermission(context, PERMISSIONS.VENDORS_READ)) {
     facts.openSubcontract = await countOrZero(async () => {
-      const rows = await listProjectSubcontracts(context, projectId);
+      const rows = await listProjectSubcontractsOperational(context, projectId);
       return rows.filter((row) => row.status === 'draft' || row.status === 'active').length;
     });
   }

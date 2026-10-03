@@ -1,0 +1,129 @@
+{
+  "discussion": {
+    "title": "דיון",
+    "empty": "אין הודעות עדיין.",
+    "audienceInternal": "צוות פנימי בלבד",
+    "audienceContractor": "משותף לקבלן",
+    "kindComment": "הערה",
+    "kindDecision": "החלטה רשמית",
+    "submit": "פרסום",
+    "decisionBadge": "החלטה",
+    "you": "את/ה"
+  },
+  "activity": {
+    "title": "פעילות",
+    "pageTitle": "פעילות בפרויקט",
+    "pageDescription": "ציר זמן של עדכונים תפעוליים בפרויקט. פרטים פיננסיים מוצגים רק למורשים.",
+    "empty": "אין פעילות עדיין.",
+    "filtersLabel": "סינון פעילות",
+    "filters": {
+      "all": "הכל",
+      "tasks": "משימות",
+      "coordination": "תיאום"
+    },
+    "financialBadge": "פיננסי",
+    "events": {
+      "generic": "{type}",
+      "financialRedacted": "עדכון פיננסי (פרטים מוגבלים)",
+      "task_external_assigned": "משימה הוקצתה לקבלן: {title}",
+      "task_external_acknowledged": "הקבלן אישר קבלת משימה",
+      "task_external_started": "הקבלן התחיל ביצוע",
+      "task_external_completion_submitted": "הוגשה השלמה לאימות",
+      "task_external_verified": "משימה אומתה ({outcome})",
+      "task_external_reopened": "משימה נפתחה מחדש",
+      "task_external_closed": "משימה נסגרה",
+      "task_linked_created": "נוצרה משימת המשך: {title}",
+      "collab_comment_posted": "הודעה חדשה בדיון",
+      "subcontract_claim_certified": "תביעה אושרה: {title}"
+    }
+  },
+  "contractorPanel": {
+    "title": "הקצאה לקבלן",
+    "evidenceRequired": "נדרשת ראיה (תמונה/מסמך)",
+    "due": "יעד {date}"
+  },
+  "taskStatus": {
+    "assigned": "הוקצתה",
+    "acknowledged": "אושרה",
+    "in_progress": "בביצוע",
+    "completion_submitted": "ממתינה לאימות",
+    "resubmitted": "הוגשה מחדש",
+    "approved": "אושרה",
+    "rejected": "נדחתה",
+    "rework_required": "נדרש תיקון",
+    "reopened": "נפתחה מחדש",
+    "closed": "נסגרה",
+    "cancelled": "בוטלה"
+  },
+  "taskEvent": {
+    "assigned": "הוקצתה לקבלן",
+    "reassigned": "הוקצתה מחדש",
+    "acknowledged": "אושרה",
+    "started": "התחיל ביצוע",
+    "completion_submitted": "הוגשה השלמה",
+    "verified": "אומתה",
+    "reopened": "נפתחה מחדש",
+    "closed": "נסגרה",
+    "cancelled": "בוטלה"
+  },
+  "verificationOutcome": {
+    "approved": "מאושר",
+    "approved_with_remarks": "מאושר עם הערות",
+    "rejected": "נדחה",
+    "rework_required": "נדרש תיקון"
+  },
+  "quality": {
+    "satisfactory": "מרשים",
+    "needs_attention": "דורש תשומת לב",
+    "unacceptable": "לא מתקבל"
+  },
+  "internalCommands": {
+    "verify": "אימות השלמה",
+    "submitVerify": "שליחת אימות",
+    "close": "סגירת משימה",
+    "reopen": "פתיחה מחדש",
+    "cancel": "ביטול הקצאה",
+    "notePlaceholder": "הערות (חובה בדחייה)",
+    "reopenReason": "סיבת פתיחה מחדש",
+    "cancelReason": "סיבת ביטול",
+    "qualityOptional": "איכות (אופציונלי)"
+  },
+  "portal": {
+    "tasks": {
+      "title": "המשימות שלי",
+      "description": "עבודות שהוקצו לחברה שלך בפרויקט.",
+      "back": "חזרה למשימות",
+      "emptyTitle": "אין משימות",
+      "emptyDescription": "כשצוות האתר יקצה עבודה לחברה שלך, היא תופיע כאן.",
+      "filterLabel": "סינון משימות",
+      "filters": {
+        "open": "פתוחות",
+        "all": "הכל"
+      },
+      "actionRequired": "נדרשת פעולה",
+      "evidence": "תמונות ומסמכים",
+      "history": "היסטוריה",
+      "completionNote": "הערת השלמה (אופציונלי)",
+      "command": {
+        "acknowledge": "אישור קבלה",
+        "start": "התחלת עבודה",
+        "submit_completion": "הגשת השלמה",
+        "reopen": "פתיחה מחדש לאחר דחייה"
+      }
+    }
+  },
+  "errors": {
+    "invalidTransition": "פעולה זו אינה מותרת בסטטוס הנוכחי.",
+    "evidenceRequired": "יש לצרף לפחות תמונה או מסמך לפני הגשת השלמה.",
+    "newEvidenceRequired": "יש להוסיף ראיה חדשה לפני הגשה מחדש.",
+    "notSharedWithContractors": "פריט זה אינו משותף לקבלנים.",
+    "concurrentChange": "המשימה עודכנה על ידי משתמש אחר. רענן ונסה שוב.",
+    "reassignNotAllowed": "ניתן לשנות קבלן רק לפני תחילת העבודה.",
+    "actorNotAllowed": "אין לך הרשאה לפעולה זו.",
+    "remarkRequired": "נדרשת הערה לתוצאה זו.",
+    "reasonRequired": "נדרשת סיבה.",
+    "noteTooLong": "ההערה ארוכה מדי.",
+    "invalidOutcome": "תוצאת אימות לא מוכרת.",
+    "invalidQuality": "דירוג איכות לא מוכר."
+  }
+}

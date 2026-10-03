@@ -1,0 +1,377 @@
+{
+  "nav": {
+    "siteLog": "سجل الموقع",
+    "siteMeetings": "اجتماعات المقاولين",
+    "instructions": "تعليمات الموقع",
+    "portalSiteLog": "التقرير اليومي",
+    "portalInstructions": "التعليمات"
+  },
+  "common": {
+    "save": "حفظ",
+    "saved": "تم الحفظ",
+    "none": "—",
+    "remove": "إزالة",
+    "select": "اختر…",
+    "location": "الموقع",
+    "contractor": "مقاول",
+    "unknown": "غير معروف",
+    "previous": "السابق",
+    "next": "التالي"
+  },
+  "siteLog": {
+    "title": "سجل الموقع اليومي",
+    "description": "سجل واحد لكل يوم: من كان في الموقع، ماذا أُنجز، وما الذي عطّل العمل. لا توجد حقول إلزامية.",
+    "openToday": "فتح سجل اليوم",
+    "jumpToDate": "الانتقال إلى تاريخ",
+    "open": "فتح",
+    "status": {
+      "open": "مفتوح",
+      "closed": "مغلق",
+      "notStarted": "لم يبدأ"
+    },
+    "startToday": "بدء سجل اليوم",
+    "noEntries": "لا توجد قيود",
+    "dayCounts": "{entries, plural, one {قيد واحد} other {# قيود}} · {reports, plural, one {تقرير مقاول واحد} other {# تقارير مقاولين}}",
+    "pagination": "صفحات السجل",
+    "older": "أيام سابقة",
+    "newer": "أيام لاحقة",
+    "dayDescription": "سجّل كل ما حدث في الموقع اليوم. أضف فقط ما هو ذو صلة.",
+    "backToCalendar": "العودة إلى سجل الموقع",
+    "previousDay": "اليوم السابق",
+    "nextDay": "اليوم التالي",
+    "futureTitle": "هذا اليوم لم يأتِ بعد",
+    "futureDescription": "يُفتح سجل التاريخ المستقبلي في ذلك اليوم.",
+    "summary": {
+      "title": "ملخص اليوم",
+      "contractorsPresent": "المقاولون في الموقع",
+      "recordedManpower": "العمال المسجّلون",
+      "reportedManpower": "العمال وفق تقارير المقاولين",
+      "blockingIssues": "عوائق",
+      "delays": "تأخيرات",
+      "safetyEvents": "أحداث سلامة",
+      "inspections": "فحوصات",
+      "contractorReports": "تقارير المقاولين"
+    },
+    "general": {
+      "title": "عام",
+      "weather": "الطقس",
+      "notes": "ملاحظات"
+    },
+    "entries": {
+      "title": "قيود السجل",
+      "empty": "لم يُسجَّل شيء لهذا اليوم بعد.",
+      "headcountValue": "{count, plural, one {عامل واحد} other {# عمال}}",
+      "hoursValue": "{hours} ساعة",
+      "removeConfirm": "إزالة هذا القيد؟",
+      "add": "إضافة قيد",
+      "addHint": "حضور، عمل منجز، قوى عاملة، معدات، توريدات، تأخيرات، عوائق، فحوصات، سلامة، تعليمات أو ملاحظة",
+      "addSubmit": "إضافة إلى السجل",
+      "type": "النوع",
+      "contractor": "المقاول",
+      "description": "الوصف",
+      "headcount": "العمال",
+      "hours": "الساعات",
+      "quantity": "الكمية",
+      "unit": "الوحدة"
+    },
+    "reports": {
+      "title": "التقارير اليومية للمقاولين",
+      "empty": "لم يقدّم أي مقاول تقريرًا لهذا اليوم.",
+      "onBehalf": "سجّله فريق الموقع",
+      "revision": "النسخة {revision}",
+      "history": "{count, plural, one {نسخة سابقة واحدة} other {# نسخ سابقة}}",
+      "recordOnBehalf": "تسجيل تقرير مقاول",
+      "recordOnBehalfHint": "للتقارير التي وصلت هاتفيًا أو ورقيًا",
+      "submit": "حفظ التقرير",
+      "noDetails": "لم تُقدَّم تفاصيل."
+    },
+    "instructions": {
+      "title": "تعليمات اليوم",
+      "issue": "إصدار تعليمات",
+      "empty": "لم تصدر تعليمات في هذا اليوم."
+    },
+    "media": {
+      "title": "صور وفيديوهات وملفات"
+    },
+    "close": "إغلاق اليوم",
+    "closeConfirm": "إغلاق سجل هذا اليوم؟ يمكن إعادة فتحه لاحقًا.",
+    "reopen": "إعادة فتح اليوم"
+  },
+  "entryTypes": {
+    "contractor_presence": "المقاولون في الموقع",
+    "work_performed": "العمل المنجز",
+    "manpower": "القوى العاملة",
+    "equipment": "المعدات",
+    "delivery": "التوريدات",
+    "delay": "التأخيرات",
+    "blocking_issue": "العوائق",
+    "inspection": "الفحوصات",
+    "safety_event": "أحداث السلامة",
+    "instruction": "التعليمات",
+    "note": "ملاحظات"
+  },
+  "reportFields": {
+    "manpower": "العمال في الموقع",
+    "workPerformed": "العمل المنجز",
+    "equipment": "المعدات",
+    "deliveries": "التوريدات",
+    "delays": "التأخيرات",
+    "blockingIssues": "العوائق",
+    "safetyNotes": "السلامة",
+    "notes": "ملاحظات"
+  },
+  "instructionStatus": {
+    "issued": "بانتظار تأكيد الاستلام",
+    "acknowledged": "تم الاستلام",
+    "performed": "تم التنفيذ",
+    "closed": "مغلقة",
+    "cancelled": "ملغاة"
+  },
+  "instructionCategory": {
+    "operational": "تشغيلية",
+    "potentially_financial": "ذات أثر مالي محتمل",
+    "urgent_before_price": "عاجلة – قبل التسعير"
+  },
+  "instructionCategoryHint": {
+    "operational": "ضمن نطاق العمل القائم؛ لا أثر تجاري متوقع.",
+    "potentially_financial": "قد تغيّر قيمة العقد؛ يتابعها الفريق التجاري.",
+    "urgent_before_price": "يجب تنفيذها فورًا؛ يُتفق على السعر لاحقًا."
+  },
+  "instructionEvents": {
+    "issued": "صدرت",
+    "acknowledged": "تم تأكيد الاستلام",
+    "performed": "أُبلغ عن التنفيذ",
+    "closed": "أُغلقت",
+    "cancelled": "أُلغيت",
+    "reopened": "أُعيد فتحها",
+    "conversion_requested": "أُحيلت للمتابعة التجارية",
+    "converted": "رُبطت بتغيير / عمل غير مسعّر",
+    "conversion_dismissed": "أُلغيت المتابعة التجارية",
+    "note": "ملاحظة"
+  },
+  "instructions": {
+    "title": "تعليمات الموقع",
+    "description": "تعليمات مكتوبة للمقاولين مع تأكيد الاستلام والمتابعة.",
+    "issue": "إصدار تعليمات",
+    "issueHint": "اختر المقاول، صف التعليمات وأثرها التجاري",
+    "noContractors": "أضف اتفاقية مقاول إلى هذا المشروع قبل إصدار التعليمات.",
+    "issueSubmit": "إصدار التعليمات",
+    "fields": {
+      "contractor": "المقاول",
+      "title": "التعليمات",
+      "description": "التفاصيل",
+      "category": "الأثر التجاري",
+      "dueDate": "تاريخ الاستحقاق",
+      "issuedAt": "تاريخ الإصدار",
+      "acknowledgedAt": "تأكيد الاستلام"
+    },
+    "filterLabel": "تصفية التعليمات",
+    "filters": {
+      "open": "مفتوحة",
+      "issued": "بانتظار التأكيد",
+      "acknowledged": "تم الاستلام",
+      "performed": "منفّذة",
+      "closed": "مغلقة",
+      "cancelled": "ملغاة",
+      "all": "الكل"
+    },
+    "emptyTitle": "لا توجد تعليمات هنا",
+    "emptyDescription": "تظهر هنا التعليمات الصادرة للمقاولين في هذا المشروع.",
+    "dueOn": "الاستحقاق {date}",
+    "overdue": "متأخرة",
+    "pagination": "صفحات التعليمات",
+    "back": "العودة إلى التعليمات",
+    "byContractor": "بواسطة المقاول",
+    "byTeam": "بواسطة فريق الموقع",
+    "notAcknowledged": "لم يُؤكَّد الاستلام بعد",
+    "actions": {
+      "title": "الخطوة التالية",
+      "acknowledged": "تسجيل تأكيد الاستلام",
+      "performed": "وضع علامة منفّذة",
+      "closed": "التحقق والإغلاق",
+      "reopened": "إعادة فتح",
+      "cancelled": "إلغاء التعليمات",
+      "conversion_dismissed": "لا أثر تجاري",
+      "cancelConfirm": "إلغاء هذه التعليمات؟",
+      "notePlaceholder": "ملاحظة (اختياري)"
+    },
+    "edit": "تعديل التعليمات",
+    "history": "السجل",
+    "addNote": "إضافة ملاحظة",
+    "media": "صور وملفات"
+  },
+  "conversion": {
+    "pending": "متابعة تجارية",
+    "converted": "تم التحويل",
+    "dismissed": "لا أثر تجاري",
+    "title": "المتابعة التجارية",
+    "explain": {
+      "none": "لا توجد متابعة تجارية لهذه التعليمات.",
+      "pending": "قد تؤثر هذه التعليمات على العقد. حوّلها إلى تغيير للمقاول أو إلى عمل غير مسعّر.",
+      "converted": "التعليمات مرتبطة بسجل تجاري.",
+      "dismissed": "أُلغيت المتابعة التجارية."
+    },
+    "targets": {
+      "subcontract_change": "تغيير للمقاول",
+      "unpriced_work": "عمل غير مسعّر"
+    },
+    "request": "إحالة للمتابعة التجارية",
+    "target": "التحويل إلى",
+    "targetOptions": {
+      "change": "تغيير للمقاول",
+      "unpriced_work": "عمل غير مسعّر"
+    },
+    "linkExisting": "ربط بسجل موجود",
+    "linkExistingHint": "عندما يكون سجل التغيير أو العمل غير المسعّر موجودًا",
+    "link": "ربط السجل",
+    "recordId": "معرّف السجل"
+  },
+  "meetings": {
+    "title": "اجتماعات المقاولين",
+    "description": "اجتماعات المقاولين الأسبوعية واجتماعات الموقع والتصميم والاستشاريين مع المحاضر والقرارات والمهام.",
+    "schedule": "تحديد اجتماع",
+    "scheduleHint": "النوع والموعد والمكان وجدول الأعمال",
+    "scheduleSubmit": "تحديد الاجتماع",
+    "fields": {
+      "title": "العنوان",
+      "type": "نوع الاجتماع",
+      "scheduledAt": "التاريخ والوقت",
+      "location": "المكان",
+      "agenda": "جدول الأعمال"
+    },
+    "emptyTitle": "لا توجد اجتماعات بعد",
+    "emptyDescription": "تظهر هنا اجتماعات المشروع ومحاضرها المنشورة.",
+    "counts": "{contractors, plural, one {مقاول واحد} other {# مقاولين}} · {actions, plural, one {مهمة مفتوحة واحدة} other {# مهام مفتوحة}}",
+    "pagination": "صفحات الاجتماعات",
+    "back": "العودة إلى الاجتماعات",
+    "publishedVersion": "المحضر النسخة {version}",
+    "markHeld": "وضع علامة انعقد",
+    "publish": "نشر المحضر",
+    "republish": "نشر محضر محدّث",
+    "publishConfirm": "نشر المحضر للمقاولين المشاركين؟",
+    "cancel": "إلغاء الاجتماع",
+    "cancelConfirm": "إلغاء هذا الاجتماع؟",
+    "issueInstruction": "إصدار تعليمات من الاجتماع",
+    "editDetails": "تعديل تفاصيل الاجتماع",
+    "attendees": {
+      "title": "المشاركون",
+      "internal": "الفريق",
+      "contractors": "المقاولون",
+      "noContractors": "لم يُدعَ أي مقاول.",
+      "add": "إضافة مشارك",
+      "choose": "المشارك"
+    },
+    "minutes": {
+      "title": "المحضر",
+      "save": "حفظ المحضر"
+    },
+    "decisions": {
+      "title": "القرارات",
+      "empty": "لم تُسجَّل قرارات.",
+      "add": "تسجيل قرار",
+      "decision": "القرار",
+      "details": "التفاصيل"
+    },
+    "actions": {
+      "title": "مهام للتنفيذ",
+      "empty": "لا توجد مهام.",
+      "unassigned": "بدون مسؤول",
+      "due": "الاستحقاق {date}",
+      "taskLinked": "أُنشئت مهمة",
+      "markDone": "وضع علامة منجزة",
+      "add": "إضافة مهمة",
+      "item": "المهمة",
+      "assignee": "المسؤول",
+      "dueDate": "تاريخ الاستحقاق",
+      "fromDecision": "بناءً على قرار",
+      "createTask": "إنشاء مهمة في نظام المهام"
+    },
+    "attachments": "المرفقات",
+    "publications": {
+      "title": "النسخ المنشورة"
+    }
+  },
+  "meetingTypes": {
+    "weekly_contractor": "اجتماع المقاولين الأسبوعي",
+    "site": "اجتماع موقع",
+    "design": "اجتماع تصميم",
+    "consultant": "اجتماع استشاريين",
+    "other": "اجتماع آخر"
+  },
+  "meetingStatus": {
+    "scheduled": "محدد",
+    "held": "انعقد",
+    "published": "نُشر المحضر",
+    "cancelled": "ملغى"
+  },
+  "attendance": {
+    "invited": "مدعو",
+    "attended": "حضر",
+    "absent": "غائب"
+  },
+  "attendanceAction": {
+    "invited": "وضع علامة مدعو",
+    "attended": "وضع علامة حضر",
+    "absent": "وضع علامة غائب"
+  },
+  "actionItemStatus": {
+    "open": "مفتوحة",
+    "done": "منجزة",
+    "cancelled": "ملغاة"
+  },
+  "portal": {
+    "instructions": {
+      "title": "تعليمات الموقع",
+      "description": "تعليمات من فريق الموقع إلى شركتكم.",
+      "pendingCount": "{count, plural, one {تعليمات واحدة بانتظار تأكيدكم} other {# تعليمات بانتظار تأكيدكم}}",
+      "emptyTitle": "لا توجد تعليمات",
+      "emptyDescription": "ستظهر هنا التعليمات من فريق الموقع.",
+      "tapToAcknowledge": "افتح لتأكيد الاستلام",
+      "back": "العودة إلى التعليمات",
+      "acknowledge": "تأكيد استلام التعليمات",
+      "reportPerformed": "الإبلاغ عن التنفيذ",
+      "notePlaceholder": "تعليق (اختياري)",
+      "byYou": "بواسطة شركتكم",
+      "bySiteTeam": "بواسطة فريق الموقع"
+    },
+    "siteLog": {
+      "title": "التقرير اليومي",
+      "description": "أبلغوا عن يوم عمل شركتكم في الموقع. جميع الحقول اختيارية.",
+      "submitTitle": "تقرير اليوم",
+      "submit": "إرسال التقرير",
+      "submitted": "تم إرسال التقرير",
+      "reportFor": "تقرير عن",
+      "scopeOption": "نطاق الاتفاقية {index}",
+      "date": "التاريخ",
+      "revisionHint": "الإرسال مجددًا لنفس التاريخ يضيف نسخة جديدة؛ وتبقى النسخ السابقة محفوظة.",
+      "myReports": "تقاريري الأخيرة",
+      "noReportsTitle": "لا توجد تقارير بعد",
+      "noReportsDescription": "ستظهر هنا التقارير التي ترسلونها.",
+      "addPhotos": "إضافة صور أو فيديو"
+    },
+    "minutes": {
+      "title": "محاضر الاجتماعات",
+      "emptyTitle": "لا توجد محاضر منشورة",
+      "emptyDescription": "تظهر هنا محاضر الاجتماعات التي شاركت فيها شركتكم.",
+      "myActionsCount": "{count, plural, one {مهمة واحدة لكم} other {# مهام لكم}}",
+      "myActions": "مهامكم",
+      "publishedAt": "النسخة {version} · نُشرت {date}"
+    }
+  },
+  "errors": {
+    "logClosed": "سجل هذا اليوم مغلق. أعد فتحه لإجراء تغييرات.",
+    "logNotClosed": "سجل هذا اليوم غير مغلق.",
+    "futureDate": "لا يمكن تسجيل تاريخ مستقبلي.",
+    "emptyEntry": "أضف وصفًا أو مقاولًا أو رقمًا.",
+    "instructionLocked": "لم يعد بالإمكان تعديل هذه التعليمات.",
+    "notAllowedForContractor": "هذه الخطوة يقوم بها فريق الموقع.",
+    "invalidTransition": "هذه الخطوة غير متاحة في الحالة الحالية.",
+    "conversionNotAllowed": "يمكن تحويل التعليمات ذات الأثر المالي المحتمل فقط.",
+    "alreadyConverted": "تم تحويل هذه التعليمات بالفعل.",
+    "nothingToDismiss": "لا توجد متابعة تجارية معلّقة.",
+    "meetingCancelled": "أُلغي هذا الاجتماع.",
+    "alreadyAttendee": "مشارك بالفعل.",
+    "invalidAssignee": "اختر مسؤولًا أو مقاولًا صالحًا.",
+    "publishNotHeld": "ضع علامة على انعقاد الاجتماع قبل نشر المحضر."
+  }
+}

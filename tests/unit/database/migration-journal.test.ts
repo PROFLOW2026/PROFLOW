@@ -437,7 +437,11 @@ describe('migration journal', () => {
     expect(tags.indexOf('0152_quotes_root_and_text_blocks')).toBeLessThan(
       tags.indexOf('0153_quote_text_blocks_rls'),
     );
-    expect(tags.at(-1)).toBe('0153_quote_text_blocks_rls');
+    expect(tags.indexOf('0153_quote_text_blocks_rls')).toBeLessThan(
+      tags.indexOf('0154_project_team_capabilities'),
+    );
+    expect([...tags].sort()).toEqual(tags);
+    expect(tags.at(-1)).toBe('0170_dg_surfaces_cost_control');
 
     const sql66 = await readFile(
       path.join(MIGRATIONS_DIR, '0066_workforce_time_integrity.sql'),

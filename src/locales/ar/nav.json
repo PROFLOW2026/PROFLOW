@@ -89,7 +89,16 @@
     "quote": "عرض سعر",
     "service": "طلب خدمة",
     "recurringDrafts": "مسودة متكررة",
-    "quickCapture": "التقاط سريع"
+    "quickCapture": "التقاط سريع",
+    "contractorContract": "عقد مقاول",
+    "projectTask": "مهمة",
+    "coordinationEvent": "حدث تنسيق",
+    "rfi": "طلب معلومات",
+    "submittal": "تقديم للاعتماد",
+    "defect": "عيب",
+    "inspection": "فحص جودة",
+    "siteInstruction": "تعليمات موقع",
+    "claim": "مطالبة مقاول"
   },
   "organizationSwitcher": {
     "label": "منظمة",

@@ -29,19 +29,35 @@ import {
   findDocumentInOrg,
   findSubcontractAgreementById,
   findSubcontractAgreementByIdForUpdate,
+  findSubcontractAgreementMoneyById,
+  findSubcontractAgreementOperationalById,
+  findSubcontractAgreementWithMoneyById,
   insertSubcontractAgreement,
   insertSubcontractValueEvent,
   listApBillCashForSubcontractAgreement,
   listLinkableDocuments,
-  listOrgSubcontracts as listOrgSubcontractsRows,
   listParentContractOptions,
   listSubcontractLinkedDocuments,
   listSubcontractValueEvents,
-  listSubcontractsForProject,
-  listSubcontractsForVendor,
+  listSubcontractsOperational,
+  loadSubcontractFinancialRows,
   updateDocumentRequirementFlags,
   updateSubcontractAgreementById,
+  withSubcontractAgreementMoney,
+  type SubcontractListFilters,
 } from '../data/subcontracts.repository';
+import {
+  assertSubcontractFinancialAccess,
+  canViewSubcontractFinancials,
+  resolveSubcontractFinancialProjectIds,
+} from './subcontract-financial-access';
+import {
+  toSubcontractOperationalView,
+  type SubcontractDetailView,
+  type SubcontractListRow,
+  type SubcontractOperationalDetail,
+  type SubcontractOperationalView,
+} from '../domain/subcontract-projections';
 import { computeSubcontractCashPosition } from '../domain/subcontract-cash';
 import {
   computeAdvanceOutstandingBalance,
@@ -99,7 +115,7 @@ async function loadDetail(
   context: OrgContext,
   subcontractId: string,
 ): Promise<SubcontractDetail> {
-  const agreement = await findSubcontractAgreementById(
+  const agreement = await findSubcontractAgreementWithMoneyById(
     context.db,
     context.organizationId,
     subcontractId,
@@ -298,7 +314,7 @@ export async function createSubcontract(
       action: AUDIT_ACTIONS.SUBCONTRACT_CREATED,
       entityType: 'subcontract_agreement',
       entityId: locked.id,
-      after: locked,
+      after: withSubcontractAgreementMoney(locked, agreement),
     });
 
     return locked.id;
@@ -323,6 +339,11 @@ export async function updateSubcontract(
     );
     if (!existing) throw new NotFoundError('Subcontract');
     assertSubcontractMetadataEditable(existing.status);
+    const existingMoney = await findSubcontractAgreementMoneyById(
+      tx,
+      context.organizationId,
+      existing.id,
+    );
 
     const nextVendorId = input.vendorId ?? existing.vendorId;
     const nextProjectId = input.projectId ?? existing.projectId;
@@ -367,13 +388,18 @@ export async function updateSubcontract(
       throw error;
     }
     if (!updated) throw new ConflictError('Subcontract was updated concurrently');
+    const updatedMoney = await findSubcontractAgreementMoneyById(
+      tx,
+      context.organizationId,
+      updated.id,
+    );
 
     await recordAuditEvent(txContext, {
       action: AUDIT_ACTIONS.SUBCONTRACT_UPDATED,
       entityType: 'subcontract_agreement',
       entityId: updated.id,
-      before: existing,
-      after: updated,
+      before: existingMoney ? withSubcontractAgreementMoney(existing, existingMoney) : existing,
+      after: updatedMoney ? withSubcontractAgreementMoney(updated, updatedMoney) : updated,
     });
     return updated.id;
   });
@@ -493,35 +519,188 @@ export async function addApprovedSubcontractChange(
   return loadDetail(context, agreementId);
 }
 
+async function loadOperationalDetail(
+  context: OrgContext,
+  subcontractId: string,
+): Promise<SubcontractOperationalDetail> {
+  const agreement = await findSubcontractAgreementOperationalById(
+    context.db,
+    context.organizationId,
+    subcontractId,
+  );
+  if (!agreement) throw new NotFoundError('Subcontract');
+
+  const [vendor, project, docs] = await Promise.all([
+    findVendorById(context.db, context.organizationId, agreement.vendorId),
+    findProjectById(context.db, context.organizationId, agreement.projectId),
+    listSubcontractLinkedDocuments(context.db, context.organizationId, agreement.id),
+  ]);
+  const parent = agreement.parentContractId
+    ? await findContractInOrg(context.db, context.organizationId, agreement.parentContractId)
+    : null;
+
+  return {
+    ...toSubcontractOperationalView({
+      ...agreement,
+      vendorName: vendor?.name ?? '',
+      projectName: project?.name ?? '',
+    }),
+    parentContractLabel: parent?.label ?? null,
+    documents: docs,
+    documentFlags: assessSubcontractDocuments(docs, todayInTimeZone(context.organization.timezone)),
+  };
+}
+
+async function requireOperationalAgreement(context: OrgContext, subcontractId: string) {
+  const agreement = await findSubcontractAgreementOperationalById(
+    context.db,
+    context.organizationId,
+    subcontractId,
+  );
+  if (!agreement) throw new NotFoundError('Subcontract');
+  return agreement;
+}
+
+/** Financial projection. Requires vendors.read AND the subcontract money gate. */
 export async function getSubcontractById(
   context: OrgContext,
   subcontractId: string,
 ): Promise<SubcontractDetail> {
   assertPermission(context, PERMISSIONS.VENDORS_READ);
+  const agreement = await requireOperationalAgreement(context, subcontractId);
+  await assertSubcontractFinancialAccess(context, agreement.projectId);
   return loadDetail(context, subcontractId);
 }
 
+/** Operational projection (no money). Requires vendors.read only. */
+export async function getSubcontractOperationalById(
+  context: OrgContext,
+  subcontractId: string,
+): Promise<SubcontractOperationalDetail> {
+  assertPermission(context, PERMISSIONS.VENDORS_READ);
+  return loadOperationalDetail(context, subcontractId);
+}
+
+/** Financial projection when the viewer holds the money gate, operational otherwise. */
+export async function getSubcontractForViewer(
+  context: OrgContext,
+  subcontractId: string,
+): Promise<SubcontractDetailView> {
+  assertPermission(context, PERMISSIONS.VENDORS_READ);
+  const agreement = await requireOperationalAgreement(context, subcontractId);
+  if (await canViewSubcontractFinancials(context, agreement.projectId)) {
+    return loadDetail(context, subcontractId);
+  }
+  return loadOperationalDetail(context, subcontractId);
+}
+
+async function listAccessibleOperational(
+  context: OrgContext,
+  filters: SubcontractListFilters,
+): Promise<SubcontractOperationalView[]> {
+  const allowed = await resolveAccessibleProjectIds(context);
+  const rows = await listSubcontractsOperational(context.db, context.organizationId, filters);
+  return rows.filter((row) => isAccessibleProjectId(allowed, row.projectId));
+}
+
+/** Only rows whose project passes the money gate, with money loaded. */
+async function toFinancialRows(
+  context: OrgContext,
+  rows: readonly SubcontractOperationalView[],
+): Promise<SubcontractListItem[]> {
+  const financialProjects = await resolveSubcontractFinancialProjectIds(
+    context,
+    rows.map((row) => row.projectId),
+  );
+  return loadSubcontractFinancialRows(
+    context.db,
+    context.organizationId,
+    rows.filter((row) => financialProjects.has(row.projectId)),
+  );
+}
+
+/** Per-row projection: money only on rows whose project passes the money gate. */
+async function toViewerRows(
+  context: OrgContext,
+  rows: readonly SubcontractOperationalView[],
+): Promise<SubcontractListRow[]> {
+  const financial = new Map(
+    (await toFinancialRows(context, rows)).map((row) => [row.id, row] as const),
+  );
+  return rows.map((row) => financial.get(row.id) ?? toSubcontractOperationalView(row));
+}
+
+async function requireVendor(context: OrgContext, vendorId: string): Promise<void> {
+  const vendor = await findVendorById(context.db, context.organizationId, vendorId);
+  if (!vendor) throw new NotFoundError('Vendor');
+}
+
+async function requireProject(context: OrgContext, projectId: string): Promise<void> {
+  const project = await findProjectById(context.db, context.organizationId, projectId);
+  if (!project) throw new NotFoundError('Project');
+  await assertCanAccessProject(context, projectId);
+}
+
+/** Financial projection: only agreements on projects where the viewer passes the money gate. */
 export async function listVendorSubcontracts(
   context: OrgContext,
   vendorId: string,
 ): Promise<SubcontractListItem[]> {
   assertPermission(context, PERMISSIONS.VENDORS_READ);
-  const vendor = await findVendorById(context.db, context.organizationId, vendorId);
-  if (!vendor) throw new NotFoundError('Vendor');
-  const allowed = await resolveAccessibleProjectIds(context);
-  const rows = await listSubcontractsForVendor(context.db, context.organizationId, vendorId);
-  return rows.filter((row) => isAccessibleProjectId(allowed, row.projectId));
+  await requireVendor(context, vendorId);
+  return toFinancialRows(context, await listAccessibleOperational(context, { vendorId }));
 }
 
+export async function listVendorSubcontractsOperational(
+  context: OrgContext,
+  vendorId: string,
+): Promise<SubcontractOperationalView[]> {
+  assertPermission(context, PERMISSIONS.VENDORS_READ);
+  await requireVendor(context, vendorId);
+  return listAccessibleOperational(context, { vendorId });
+}
+
+export async function listVendorSubcontractsForViewer(
+  context: OrgContext,
+  vendorId: string,
+): Promise<SubcontractListRow[]> {
+  assertPermission(context, PERMISSIONS.VENDORS_READ);
+  await requireVendor(context, vendorId);
+  return toViewerRows(context, await listAccessibleOperational(context, { vendorId }));
+}
+
+/** Financial projection. Throws AuthorizationError without the money gate on this project. */
 export async function listProjectSubcontracts(
   context: OrgContext,
   projectId: string,
 ): Promise<SubcontractListItem[]> {
   assertPermission(context, PERMISSIONS.VENDORS_READ);
-  const project = await findProjectById(context.db, context.organizationId, projectId);
-  if (!project) throw new NotFoundError('Project');
-  await assertCanAccessProject(context, projectId);
-  return listSubcontractsForProject(context.db, context.organizationId, projectId);
+  await requireProject(context, projectId);
+  await assertSubcontractFinancialAccess(context, projectId);
+  const rows = await listSubcontractsOperational(context.db, context.organizationId, { projectId });
+  return loadSubcontractFinancialRows(context.db, context.organizationId, rows);
+}
+
+export async function listProjectSubcontractsOperational(
+  context: OrgContext,
+  projectId: string,
+): Promise<SubcontractOperationalView[]> {
+  assertPermission(context, PERMISSIONS.VENDORS_READ);
+  await requireProject(context, projectId);
+  return listSubcontractsOperational(context.db, context.organizationId, { projectId });
+}
+
+export async function listProjectSubcontractsForViewer(
+  context: OrgContext,
+  projectId: string,
+): Promise<SubcontractListRow[]> {
+  assertPermission(context, PERMISSIONS.VENDORS_READ);
+  await requireProject(context, projectId);
+  const rows = await listSubcontractsOperational(context.db, context.organizationId, { projectId });
+  if (!(await canViewSubcontractFinancials(context, projectId))) {
+    return rows.map(toSubcontractOperationalView);
+  }
+  return loadSubcontractFinancialRows(context.db, context.organizationId, rows);
 }
 
 export async function listSubcontractParentContracts(
@@ -597,22 +776,43 @@ export async function linkSubcontractDocument(
   return loadDetail(context, agreement.id);
 }
 
-export async function listOrgSubcontracts(
-  context: OrgContext,
-  rawFilters: ListOrgSubcontractsInput = {},
-): Promise<SubcontractListItem[]> {
-  assertPermission(context, PERMISSIONS.VENDORS_READ);
+function orgListFilters(rawFilters: ListOrgSubcontractsInput): SubcontractListFilters {
   const input = parseOrThrow(listOrgSubcontractsSchema.safeParse(rawFilters));
-  const allowed = await resolveAccessibleProjectIds(context);
-  const rows = await listOrgSubcontractsRows(context.db, context.organizationId, {
+  return {
     vendorId: input.vendorId,
     projectId: input.projectId,
     status: input.status,
     limit: input.limit,
     fromDate: input.fromDate ?? null,
     toDate: input.toDate ?? null,
-  });
-  return rows.filter((row) => isAccessibleProjectId(allowed, row.projectId));
+  };
+}
+
+/** Financial projection: only agreements on projects where the viewer passes the money gate. */
+export async function listOrgSubcontracts(
+  context: OrgContext,
+  rawFilters: ListOrgSubcontractsInput = {},
+): Promise<SubcontractListItem[]> {
+  assertPermission(context, PERMISSIONS.VENDORS_READ);
+  const filters = orgListFilters(rawFilters);
+  return toFinancialRows(context, await listAccessibleOperational(context, filters));
+}
+
+export async function listOrgSubcontractsOperational(
+  context: OrgContext,
+  rawFilters: ListOrgSubcontractsInput = {},
+): Promise<SubcontractOperationalView[]> {
+  assertPermission(context, PERMISSIONS.VENDORS_READ);
+  return listAccessibleOperational(context, orgListFilters(rawFilters));
+}
+
+export async function listOrgSubcontractsForViewer(
+  context: OrgContext,
+  rawFilters: ListOrgSubcontractsInput = {},
+): Promise<SubcontractListRow[]> {
+  assertPermission(context, PERMISSIONS.VENDORS_READ);
+  const filters = orgListFilters(rawFilters);
+  return toViewerRows(context, await listAccessibleOperational(context, filters));
 }
 
 /** Original amount is immutable after create - only append-only events change current. */

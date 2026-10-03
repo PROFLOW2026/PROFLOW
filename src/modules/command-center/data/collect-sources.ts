@@ -39,6 +39,7 @@ import { collectExpensesDueToday, collectExpensesNeedingAllocation, collectPayro
 import { collectMonthlyWorkforceReportReady } from './collect-monthly-workforce-report';
 import { collectUwmTaskSources } from './collect-tasks';
 import { collectStatutoryAttention, collectStorageAttention } from './collect-attention';
+import { collectDgSources } from './collect-dg';
 import {
   attendanceEmployeeDateAlertHref,
   missingAttendanceTodayAlertHref,
@@ -1248,12 +1249,19 @@ export async function collectAllSources(ctx: CollectContext): Promise<CommandCen
     collectStatutoryAttention,
     // ── Universal Work Management (sequential savepoint isolation) ──────────
     collectUwmTaskSources,
+    // ── Developer / GC (ports registered by domain tracks; savepoint isolation) ─
+    collectDgSources,
   ];
 
-  const settled = await Promise.allSettled(collectors.map((fn) => fn(sharedCtx)));
+  // One shared transaction. Savepoint isolation is only valid when collectors
+  // do not pipeline statements on that connection.
   const items: CommandCenterItem[] = [];
-  for (const result of settled) {
-    if (result.status === 'fulfilled') items.push(...result.value);
+  for (const collect of collectors) {
+    try {
+      items.push(...(await collect(sharedCtx)));
+    } catch {
+      // A collector that escapes its own savepoint must not blank the inbox.
+    }
   }
   return items;
 }

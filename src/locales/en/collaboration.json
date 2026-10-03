@@ -1,0 +1,129 @@
+{
+  "discussion": {
+    "title": "Discussion",
+    "empty": "No messages yet.",
+    "audienceInternal": "Team only",
+    "audienceContractor": "Shared with contractor",
+    "kindComment": "Comment",
+    "kindDecision": "Formal decision",
+    "submit": "Post",
+    "decisionBadge": "Decision",
+    "you": "You"
+  },
+  "activity": {
+    "title": "Activity",
+    "pageTitle": "Project activity",
+    "pageDescription": "Timeline of operational updates on this project. Financial details appear only to authorized viewers.",
+    "empty": "No activity recorded yet.",
+    "filtersLabel": "Filter activity",
+    "filters": {
+      "all": "All",
+      "tasks": "Tasks",
+      "coordination": "Coordination"
+    },
+    "financialBadge": "Financial",
+    "events": {
+      "generic": "{type}",
+      "financialRedacted": "Financial update (details restricted)",
+      "task_external_assigned": "Contractor task assigned: {title}",
+      "task_external_acknowledged": "Contractor acknowledged task",
+      "task_external_started": "Contractor started work",
+      "task_external_completion_submitted": "Completion submitted for verification",
+      "task_external_verified": "Task verified ({outcome})",
+      "task_external_reopened": "Task reopened",
+      "task_external_closed": "Task closed",
+      "task_linked_created": "Linked task created: {title}",
+      "collab_comment_posted": "New discussion message",
+      "subcontract_claim_certified": "Claim certified: {title}"
+    }
+  },
+  "contractorPanel": {
+    "title": "Contractor assignment",
+    "evidenceRequired": "Evidence required",
+    "due": "Due {date}"
+  },
+  "taskStatus": {
+    "assigned": "Assigned",
+    "acknowledged": "Acknowledged",
+    "in_progress": "In progress",
+    "completion_submitted": "Awaiting verification",
+    "resubmitted": "Resubmitted",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "rework_required": "Rework required",
+    "reopened": "Reopened",
+    "closed": "Closed",
+    "cancelled": "Cancelled"
+  },
+  "taskEvent": {
+    "assigned": "Assigned to contractor",
+    "reassigned": "Reassigned",
+    "acknowledged": "Acknowledged",
+    "started": "Work started",
+    "completion_submitted": "Completion submitted",
+    "verified": "Verified",
+    "reopened": "Reopened",
+    "closed": "Closed",
+    "cancelled": "Cancelled"
+  },
+  "verificationOutcome": {
+    "approved": "Approved",
+    "approved_with_remarks": "Approved with remarks",
+    "rejected": "Rejected",
+    "rework_required": "Rework required"
+  },
+  "quality": {
+    "satisfactory": "Satisfactory",
+    "needs_attention": "Needs attention",
+    "unacceptable": "Unacceptable"
+  },
+  "internalCommands": {
+    "verify": "Verify completion",
+    "submitVerify": "Submit verification",
+    "close": "Close task",
+    "reopen": "Reopen",
+    "cancel": "Cancel assignment",
+    "notePlaceholder": "Remarks (required for rejection)",
+    "reopenReason": "Reason for reopening",
+    "cancelReason": "Reason for cancellation",
+    "qualityOptional": "Quality (optional)"
+  },
+  "portal": {
+    "tasks": {
+      "title": "My tasks",
+      "description": "Work assigned to your company on this project.",
+      "back": "Back to tasks",
+      "emptyTitle": "No tasks",
+      "emptyDescription": "When the site team assigns work to your company, it will appear here.",
+      "filterLabel": "Task filter",
+      "filters": {
+        "open": "Open",
+        "all": "All"
+      },
+      "actionRequired": "Action required",
+      "evidence": "Photos and documents",
+      "history": "History",
+      "completionNote": "Completion note (optional)",
+      "command": {
+        "acknowledge": "Acknowledge assignment",
+        "start": "Start work",
+        "submit_completion": "Submit completion",
+        "reopen": "Reopen after rejection"
+      }
+    }
+  },
+  "errors": {
+    "invalidTransition": "This action is not allowed in the current status.",
+    "evidenceRequired": "Attach at least one photo or document before submitting completion.",
+    "newEvidenceRequired": "Add new evidence before resubmitting.",
+    "notSharedWithContractors": "This item is not shared with contractors.",
+    "concurrentChange": "The task was updated by someone else. Refresh and try again.",
+    "reassignNotAllowed": "Contractor can only be changed before work starts.",
+    "actorNotAllowed": "You are not allowed to perform this action.",
+    "remarkRequired": "A remark is required for this outcome.",
+    "reasonRequired": "A reason is required.",
+    "noteTooLong": "Note is too long.",
+    "invalidOutcome": "Unknown verification outcome.",
+    "invalidQuality": "Unknown quality rating."
+  }
+}

@@ -591,6 +591,12 @@
         "additional_created": "تم إنشاء عقد إضافي",
         "updated": "تم تحديث العقد"
       },
+      "project_member": {
+        "added": "تمت إضافة عضو إلى فريق المشروع",
+        "capabilities_changed": "تم تغيير صلاحيات عضو فريق المشروع",
+        "deactivated": "تم تعطيل عضو فريق المشروع",
+        "reactivated": "تمت إعادة تفعيل عضو فريق المشروع"
+      },
       "project_access": {
         "granted": "تم منح وصول المشروع",
         "revoked": "تمت إزالة وصول المشروع"
@@ -1051,6 +1057,265 @@
         "approved": "اعتُمد التقاط سريع",
         "rejected": "رُفض التقاط سريع",
         "routed": "تم توجيه التقاط سريع"
+      },
+      "site_daily_log": {
+        "created": "فُتح سجل العمل اليومي",
+        "updated": "حُدّث سجل العمل اليومي",
+        "closed": "أُغلق سجل العمل اليومي",
+        "reopened": "أُعيد فتح سجل العمل اليومي",
+        "entry_added": "أُضيف قيد إلى سجل العمل",
+        "entry_updated": "حُدّث قيد في سجل العمل",
+        "entry_removed": "أُزيل قيد من سجل العمل"
+      },
+      "site_daily_report": {
+        "submitted": "قُدّم التقرير اليومي للمقاول"
+      },
+      "site_meeting": {
+        "created": "أُنشئ اجتماع المقاولين",
+        "updated": "حُدّث اجتماع المقاولين",
+        "held": "عُقد اجتماع المقاولين",
+        "cancelled": "أُلغي اجتماع المقاولين",
+        "published": "نُشر محضر اجتماع المقاولين",
+        "attendee_added": "أُضيف مشارك إلى اجتماع المقاولين",
+        "attendee_removed": "أُزيل مشارك من اجتماع المقاولين",
+        "decision_recorded": "سُجّل قرار في اجتماع المقاولين",
+        "action_item_created": "أُنشئت مهمة من اجتماع المقاولين"
+      },
+      "site_instruction": {
+        "issued": "أُصدرت تعليمات الموقع",
+        "updated": "حُدّثت تعليمات الموقع",
+        "acknowledged": "أُقرّ باستلام تعليمات الموقع",
+        "performed": "عُلّمت تعليمات الموقع كمنفّذة",
+        "closed": "أُغلقت تعليمات الموقع",
+        "cancelled": "أُلغيت تعليمات الموقع",
+        "reopened": "أُعيد فتح تعليمات الموقع",
+        "conversion_requested": "طُلب تحويل تعليمات الموقع تجاريًا",
+        "converted": "حُوّلت تعليمات الموقع إلى تغيير تجاري",
+        "conversion_dismissed": "رُفض التحويل التجاري لتعليمات الموقع"
+      },
+      "subcontract_agreement": {
+        "created": "أُنشئ عقد مقاول باطن",
+        "updated": "حُدّث عقد مقاول باطن",
+        "terms_updated": "حُدّثت شروط عقد مقاول باطن",
+        "status_changed": "تغيّرت حالة عقد مقاول باطن"
+      },
+      "subcontract_work_line": {
+        "created": "أُنشئ بند عمل في العقد",
+        "updated": "حُدّث بند عمل في العقد",
+        "archived": "أُرشف بند عمل في العقد"
+      },
+      "subcontract_change": {
+        "created": "أُنشئ تغيير على عقد المقاول",
+        "submitted": "قُدّم تغيير على عقد المقاول",
+        "version_proposed": "اقتُرحت نسخة لتغيير عقد المقاول",
+        "approved": "اعتُمد تغيير عقد المقاول",
+        "rejected": "رُفض تغيير عقد المقاول",
+        "withdrawn": "سُحب تغيير عقد المقاول"
+      },
+      "unpriced_work": {
+        "recorded": "سُجّل عمل غير مسعّر",
+        "converted": "حُوّل عمل غير مسعّر إلى تغيير",
+        "rejected": "رُفض عمل غير مسعّر",
+        "cancelled": "أُلغي عمل غير مسعّر"
+      },
+      "subcontract_claim": {
+        "created": "أُنشئت مطالبة مقاول",
+        "updated": "حُدّثت مطالبة مقاول",
+        "submitted": "قُدّمت مطالبة مقاول",
+        "cancelled": "أُلغيت مطالبة مقاول",
+        "revision_opened": "فُتحت نسخة مصححة لمطالبة مقاول",
+        "review_started": "بدأت مراجعة مطالبة مقاول",
+        "returned": "أُعيدت مطالبة مقاول للتصحيح",
+        "evidence_requested": "طُلبت أدلة لمطالبة مقاول",
+        "certified": "اعتُمدت مطالبة مقاول",
+        "reassessed": "أُعيد تقدير مطالبة مقاول",
+        "ap_bill_drafted": "أُنشئت مسودة فاتورة مورّد من مطالبة مقاول"
+      },
+      "subcontract_deduction": {
+        "issued": "أُصدر خصم على المقاول",
+        "reversed": "أُلغي خصم على المقاول",
+        "disputed": "اعتُرض على خصم المقاول"
+      },
+      "subcontract_payment_hold": {
+        "placed": "عُلّق دفع للمقاول",
+        "released": "رُفع تعليق الدفع عن المقاول"
+      },
+      "task_external": {
+        "assigned": "كُلّفت مهمة إلى مقاول",
+        "reassigned": "أُعيد تكليف مهمة المقاول",
+        "acknowledged": "أُقرّ باستلام مهمة المقاول",
+        "started": "بدأت مهمة المقاول",
+        "completion_submitted": "قُدّم إنجاز مهمة المقاول",
+        "verified": "تم التحقق من مهمة المقاول",
+        "reopened": "أُعيد فتح مهمة المقاول",
+        "closed": "أُغلقت مهمة المقاول",
+        "cancelled": "أُلغيت مهمة المقاول"
+      },
+      "task_link": {
+        "created": "أُنشئ ربط بين المهام"
+      },
+      "collab_comment": {
+        "posted": "نُشر تعليق في النقاش"
+      },
+      "collab_decision": {
+        "recorded": "سُجّل قرار في النقاش"
+      },
+      "coordination_event": {
+        "created": "أُنشئ حدث تنسيق",
+        "updated": "حُدّث حدث تنسيق",
+        "rescheduled": "أُعيدت جدولة حدث التنسيق",
+        "outcome_recorded": "سُجّلت نتيجة حدث التنسيق",
+        "readiness_overridden": "حُدّدت جاهزية حدث التنسيق يدويًا",
+        "document_linked": "رُبط مستند بحدث التنسيق",
+        "document_unlinked": "أُلغي ربط مستند بحدث التنسيق"
+      },
+      "coordination_participant": {
+        "invited": "دُعي مشارك إلى حدث التنسيق",
+        "removed": "أُزيل مشارك من حدث التنسيق"
+      },
+      "coordination_response": {
+        "recorded": "سُجّل رد المقاول على حدث التنسيق"
+      },
+      "coordination_issue": {
+        "raised": "رُفعت مشكلة في حدث التنسيق",
+        "task_created": "أُنشئت مهمة متابعة من مشكلة تنسيق",
+        "dismissed": "أُسقطت مشكلة التنسيق"
+      },
+      "evidence": {
+        "uploaded": "رُفع دليل",
+        "updated": "حُدّث الدليل",
+        "removed": "أُزيل الدليل"
+      },
+      "document_share": {
+        "created": "أُنشئت مشاركة مستند",
+        "revoked": "أُلغيت مشاركة المستند",
+        "acknowledged": "أُقرّ باستلام مشاركة المستند"
+      },
+      "drawing": {
+        "created": "أُنشئ مخطط",
+        "updated": "حُدّث المخطط",
+        "archived": "أُرشف المخطط",
+        "distribution_updated": "حُدّث توزيع المخطط"
+      },
+      "drawing_revision": {
+        "uploaded": "رُفعت مراجعة المخطط",
+        "published": "نُشرت مراجعة المخطط",
+        "withdrawn": "سُحبت مراجعة المخطط",
+        "acknowledged": "أُقرّ باستلام مراجعة المخطط"
+      },
+      "quality_inspection_template": {
+        "created": "أُنشئ قالب فحص جودة",
+        "updated": "حُدّث قالب فحص جودة",
+        "archived": "أُرشف قالب فحص جودة"
+      },
+      "quality_inspection": {
+        "created": "أُنشئ فحص جودة",
+        "updated": "حُدّث فحص الجودة",
+        "started": "بدأ فحص الجودة",
+        "outcome_recorded": "سُجّلت نتيجة فحص الجودة",
+        "reinspection_started": "بدأ إعادة فحص الجودة",
+        "cancelled": "أُلغي فحص الجودة"
+      },
+      "defect": {
+        "created": "فُتح عيب",
+        "updated": "حُدّث العيب",
+        "assigned": "أُسند العيب إلى مسؤول",
+        "completion_submitted": "قُدّم إصلاح العيب",
+        "verification_started": "بدأ التحقق من إصلاح العيب",
+        "accepted": "قُبل إصلاح العيب",
+        "rejected": "رُفض إصلاح العيب",
+        "reopened": "أُعيد فتح العيب",
+        "cancelled": "أُلغي العيب"
+      },
+      "rfi": {
+        "created": "أُنشئ طلب معلومات",
+        "updated": "حُدّث طلب المعلومات",
+        "submitted": "قُدّم طلب المعلومات",
+        "review_started": "بدأت مراجعة طلب المعلومات",
+        "answered": "أُجيب عن طلب المعلومات",
+        "closed": "أُغلق طلب المعلومات",
+        "reopened": "أُعيد فتح طلب المعلومات"
+      },
+      "submittal": {
+        "created": "أُنشئ تقديم للاعتماد",
+        "updated": "حُدّث التقديم للاعتماد",
+        "submitted": "قُدّم التقديم للاعتماد",
+        "review_started": "بدأت مراجعة التقديم للاعتماد",
+        "reviewed": "رُوجع التقديم للاعتماد",
+        "revision_opened": "فُتحت نسخة جديدة للتقديم للاعتماد",
+        "withdrawn": "سُحب التقديم للاعتماد"
+      },
+      "compliance_requirement": {
+        "created": "أُنشئ متطلب امتثال للمقاول",
+        "updated": "حُدّث متطلب امتثال للمقاول",
+        "archived": "أُرشف متطلب امتثال للمقاول"
+      },
+      "compliance_document": {
+        "submitted": "قُدّم مستند امتثال للمقاول",
+        "reviewed": "رُوجع مستند امتثال للمقاول"
+      },
+      "contractor_safety": {
+        "reported": "أُبلغ عن حدث سلامة للمقاول",
+        "action_created": "أُنشئ إجراء لحدث سلامة المقاول",
+        "task_created": "أُنشئت مهمة لحدث سلامة المقاول",
+        "closed": "أُغلق حدث سلامة المقاول"
+      },
+      "delivery_item": {
+        "created": "أُنشئ بند توريد",
+        "updated": "حُدّث بند التوريد",
+        "reported": "أُبلغ عن حالة التوريد"
+      },
+      "external_principal": {
+        "invited": "دُعي مستخدم مقاول",
+        "invite_reissued": "أُعيد إصدار دعوة مستخدم المقاول",
+        "activated": "فُعّل حساب مستخدم المقاول",
+        "password_reset_issued": "أُرسلت إعادة تعيين كلمة المرور لمستخدم المقاول",
+        "password_reset_completed": "اكتملت إعادة تعيين كلمة مرور مستخدم المقاول",
+        "password_changed": "تغيّرت كلمة مرور مستخدم المقاول",
+        "profile_updated": "حُدّث ملف مستخدم المقاول",
+        "sessions_revoked": "أُلغيت جلسات مستخدم المقاول",
+        "disabled": "عُطّل مستخدم المقاول",
+        "enabled": "فُعّل مستخدم المقاول من جديد"
+      },
+      "external_grant": {
+        "created": "أُنشئ وصول مقاول إلى المشروع",
+        "updated": "حُدّث وصول المقاول إلى المشروع",
+        "revoked": "أُلغي وصول المقاول إلى المشروع"
+      },
+      "project_delivery_profile": {
+        "updated": "حُدّث ملف تنفيذ المشروع"
+      },
+      "project_characteristics": {
+        "updated": "حُدّثت خصائص بناء المشروع"
+      },
+      "project_location": {
+        "created": "أُنشئ موقع في المشروع",
+        "updated": "حُدّث موقع في المشروع",
+        "moved": "نُقل موقع في المشروع",
+        "archived": "أُرشف موقع في المشروع",
+        "restored": "استُعيد موقع في المشروع",
+        "bulk_generated": "وُلّدت شجرة المواقع دفعة واحدة"
+      },
+      "project_recommendation": {
+        "accepted": "قُبلت توصية التخطيط",
+        "dismissed": "رُفضت توصية التخطيط",
+        "restored": "استُعيدت توصية التخطيط"
+      },
+      "tender_package": {
+        "created": "أُنشئت حزمة مناقصة",
+        "awarded": "أُرسيت حزمة المناقصة"
+      },
+      "tender_offer": {
+        "submitted": "قُدّم عرض للمناقصة"
+      },
+      "agreement_closeout": {
+        "closed": "أُكمل إغلاق عقد المقاول"
+      },
+      "handover_item": {
+        "submitted": "قُدّم بند تسليم"
+      },
+      "warranty_report": {
+        "reported": "فُتح بلاغ ضمان للمقاول"
       }
     },
     "entities": {

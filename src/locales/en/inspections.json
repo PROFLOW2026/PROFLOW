@@ -1,0 +1,271 @@
+{
+  "title": "Quality inspections",
+  "description": "Checklists per location and contractor, with pass / conditional / fail outcomes and follow-up defects.",
+  "detailTitle": "Inspection #{ref}",
+  "counts": {
+    "open": "Open",
+    "passed": "Passed",
+    "conditional": "Conditional",
+    "failed": "Failed"
+  },
+  "filters": {
+    "status": "Status",
+    "outcome": "Outcome",
+    "contractor": "Contractor",
+    "all": "All",
+    "anyOutcome": "Any outcome",
+    "anyContractor": "Any contractor",
+    "apply": "Filter",
+    "clear": "Clear"
+  },
+  "status": {
+    "scheduled": "Scheduled",
+    "in_progress": "In progress",
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "open": "Open"
+  },
+  "outcome": {
+    "pass": "Passed",
+    "conditional_pass": "Conditional pass",
+    "fail": "Failed",
+    "none": "No outcome yet"
+  },
+  "result": {
+    "pending": "Not checked",
+    "pass": "OK",
+    "fail": "Fail",
+    "na": "N/A"
+  },
+  "category": {
+    "general": "General",
+    "waterproofing": "Waterproofing",
+    "concrete": "Concrete",
+    "electrical": "Electrical",
+    "plumbing": "Plumbing",
+    "finishes": "Finishes",
+    "fire": "Fire protection",
+    "facade": "Facade / aluminium",
+    "structure": "Structure",
+    "mechanical": "Mechanical",
+    "safety": "Safety"
+  },
+  "catalog": {
+    "waterproofing": {
+      "name": "Waterproofing",
+      "items": {
+        "substrate_prepared": "Substrate clean, dry and primed",
+        "membrane_continuous": "Membrane continuous, no tears or blisters",
+        "overlaps_sealed": "Overlaps and joints sealed to specification",
+        "upstands_height": "Upstands and wall turn-ups at required height",
+        "drains_detailed": "Drains and penetrations detailed and sealed",
+        "flood_test": "Flood test held 24-48h without leakage",
+        "protection_layer": "Protection layer installed before covering"
+      }
+    },
+    "concrete_pre_pour": {
+      "name": "Concrete pre-pour",
+      "items": {
+        "formwork_dimensions": "Formwork dimensions and levels per drawings",
+        "formwork_stable": "Formwork propped, stable and clean",
+        "rebar_per_drawings": "Reinforcement diameter, spacing and laps per drawings",
+        "cover_spacers": "Concrete cover spacers in place",
+        "embedded_items": "Sleeves, conduits and embedded items fixed",
+        "engineer_approval": "Structural engineer approval recorded",
+        "pour_logistics": "Mix order, pump and vibrators confirmed"
+      }
+    },
+    "electrical_panel": {
+      "name": "Electrical panel",
+      "items": {
+        "panel_location": "Panel location and clearances per plan",
+        "breakers_rating": "Breakers and RCDs rated per single-line diagram",
+        "wiring_labeled": "Circuits labeled and schedule attached",
+        "earthing_bonding": "Earthing and bonding connected and tested",
+        "insulation_test": "Insulation resistance test passed",
+        "cover_closed": "Covers, blanks and IP rating intact"
+      }
+    },
+    "pressure_test": {
+      "name": "Pressure test",
+      "items": {
+        "system_isolated": "Section isolated and open ends capped",
+        "gauge_calibrated": "Calibrated gauge installed",
+        "test_pressure_reached": "Test pressure reached per specification",
+        "hold_duration": "Pressure held for the required duration without drop",
+        "no_visible_leaks": "No visible leaks at joints and fittings",
+        "test_record_signed": "Test record signed by the contractor"
+      }
+    },
+    "ceiling_closure": {
+      "name": "Ceiling closure",
+      "items": {
+        "services_complete": "All above-ceiling services installed and tested",
+        "fire_stopping": "Fire stopping at penetrations completed",
+        "insulation_installed": "Thermal / acoustic insulation installed",
+        "access_panels": "Access panels positioned for valves and equipment",
+        "mep_signoff": "MEP trades signed off for closure",
+        "photos_taken": "Photos taken before closing"
+      }
+    },
+    "fire_system": {
+      "name": "Fire system",
+      "items": {
+        "sprinkler_layout": "Sprinkler heads per approved layout",
+        "pipe_pressure_test": "Sprinkler piping pressure tested",
+        "detectors_installed": "Detectors and call points installed",
+        "panel_commissioned": "Fire alarm panel commissioned",
+        "doors_dampers": "Fire doors and dampers operating",
+        "signage": "Exit signage and emergency lighting working"
+      }
+    },
+    "aluminium_installation": {
+      "name": "Aluminium installation",
+      "items": {
+        "frames_plumb": "Frames plumb, level and anchored",
+        "sealing": "Perimeter sealing continuous",
+        "glazing_intact": "Glazing intact, correct type and labels",
+        "hardware_operation": "Sashes, handles and locks operate smoothly",
+        "drainage_slots": "Drainage slots clear; water test passed",
+        "protection_film": "Protection film and cleanliness"
+      }
+    }
+  },
+  "fields": {
+    "title": "Title",
+    "template": "Checklist",
+    "noTemplate": "No checklist (custom items only)",
+    "customTemplate": "Custom",
+    "category": "Category",
+    "scheduledFor": "Scheduled for",
+    "location": "Location",
+    "noLocation": "No specific location",
+    "contractor": "Contractor",
+    "noContractor": "Own work / no contractor",
+    "workLine": "Contract work line",
+    "noWorkLine": "No work line",
+    "workPackage": "Work package",
+    "noWorkPackage": "No work package",
+    "milestone": "Milestone",
+    "noMilestone": "No milestone",
+    "inspector": "Inspector",
+    "contractorVisible": "Visible to the contractor in the portal",
+    "extraItems": "Additional checklist items",
+    "extraItemsHint": "One item per line. Added after the checklist items.",
+    "summary": "Summary",
+    "conditions": "Conditions",
+    "outcome": "Outcome",
+    "attempt": "Attempt",
+    "reference": "No.",
+    "completedAt": "Completed",
+    "startedAt": "Started",
+    "openDefects": "Open defects"
+  },
+  "list": {
+    "empty": "No inspections yet",
+    "emptyDescription": "Schedule an inspection from a checklist to record the result per location and contractor.",
+    "attempt": "Attempt {n}",
+    "scheduled": "Scheduled {date}",
+    "notScheduled": "Not scheduled",
+    "openDefects": "{count, plural, one {# open defect} other {# open defects}}",
+    "loadMore": "Show more",
+    "previous": "Previous"
+  },
+  "create": {
+    "title": "Schedule an inspection",
+    "description": "Pick a checklist, the location and the responsible contractor.",
+    "submit": "Schedule inspection",
+    "success": "Inspection scheduled"
+  },
+  "edit": {
+    "title": "Inspection details",
+    "submit": "Save details",
+    "success": "Details saved"
+  },
+  "checklist": {
+    "title": "Checklist",
+    "empty": "This inspection has no checklist items. Record the outcome with a summary.",
+    "save": "Save checklist",
+    "saved": "Checklist saved",
+    "required": "Required",
+    "optional": "Optional",
+    "notePlaceholder": "Note (optional)",
+    "suggested": "The checklist suggests: {outcome}",
+    "locked": "The checklist is locked once an outcome is recorded."
+  },
+  "outcomeForm": {
+    "title": "Record outcome",
+    "submit": "Record outcome",
+    "summaryHint": "Required for a failed inspection without failed items.",
+    "conditionsHint": "Required for a conditional pass: what must still be done.",
+    "followUpTitle": "Follow-up for a failed or conditional inspection",
+    "createDefects": "Open a defect for each failed item",
+    "defectSeverity": "Defect severity",
+    "defectDueDate": "Defect due date",
+    "defectDueDateHint": "Empty = based on severity.",
+    "createTask": "Create a corrective task",
+    "taskTitle": "Task title",
+    "taskDueDate": "Task due date",
+    "recorded": "Outcome recorded"
+  },
+  "actions": {
+    "start": "Start inspection",
+    "started": "Inspection started",
+    "reinspect": "Schedule re-inspection",
+    "reinspectDate": "Re-inspection date",
+    "reinspected": "Re-inspection scheduled",
+    "cancel": "Cancel inspection",
+    "cancelled": "Inspection cancelled",
+    "back": "All inspections"
+  },
+  "history": {
+    "title": "Outcome history",
+    "empty": "No outcome recorded yet.",
+    "decidedBy": "Recorded by {name}",
+    "counts": "{pass} OK · {fail} failed · {na} N/A"
+  },
+  "linkedDefects": {
+    "title": "Defects from this inspection",
+    "empty": "No defects were opened from this inspection."
+  },
+  "evidence": {
+    "title": "Photos and documents"
+  },
+  "discussion": {
+    "title": "Discussion"
+  },
+  "templates": {
+    "title": "Checklist templates",
+    "description": "Built-in checklists are always available. Add your own for this project or the whole organization.",
+    "builtIn": "Built-in",
+    "empty": "No custom templates yet.",
+    "name": "Template name",
+    "items": "Checklist items",
+    "itemsHint": "One item per line. Start a line with \"?\" to make it optional.",
+    "scope": "Available in",
+    "scopeProject": "This project",
+    "scopeOrganization": "All projects",
+    "create": "Add template",
+    "created": "Template added",
+    "archive": "Archive",
+    "archived": "Template archived",
+    "itemCount": "{count, plural, one {# item} other {# items}}"
+  },
+  "portal": {
+    "title": "Inspections",
+    "description": "Inspections of your work on this project and their results.",
+    "empty": "No inspections of your work yet.",
+    "failedItems": "Items to fix",
+    "conditions": "Conditions",
+    "summary": "Inspector summary"
+  },
+  "errors": {
+    "invalidTransition": "This action is not available in the inspection's current status.",
+    "concurrentChange": "The inspection was changed by someone else. Refresh and try again.",
+    "checklistLocked": "The checklist is locked once an outcome is recorded.",
+    "required_items_pending": "Check every required item before recording the outcome.",
+    "pass_with_required_failure": "A required item failed - the inspection cannot pass.",
+    "conditions_required": "Describe the conditions for a conditional pass.",
+    "fail_reason_required": "Add a summary explaining the failure."
+  }
+}

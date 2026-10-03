@@ -3,7 +3,7 @@ import { createDraftApBill } from '@/modules/ap';
 import { recordAuditEvent } from '@/shared/audit';
 import type { OrgContext } from '@/shared/auth/context';
 import { withTransaction } from '@/shared/db';
-import { ConflictError, NotFoundError, ValidationError } from '@/shared/errors';
+import { AuthorizationError, ConflictError, NotFoundError, ValidationError } from '@/shared/errors';
 import { addMoney, compareMoney, money, multiplyMoney, toNumericString, zeroMoney } from '@/shared/money';
 import { assertAllPermissions, assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -11,6 +11,7 @@ import { noteModuleUsage } from '@/modules/tenancy';
 import {
   findActiveEngagementForVendorProject,
   findSubcontractAgreementById,
+  findSubcontractAgreementMoneyById,
   findVendorEngagementById,
 } from '@/modules/vendors';
 import { parseQuantity, quantityString } from '../domain/amounts';
@@ -461,8 +462,16 @@ export async function createDraftApFromSubcontractorValuation(
     vendorId = agreement.vendorId;
   }
 
-  const retentionPercent =
-    parsed.data.retentionPercent ?? agreement?.retentionPercent ?? undefined;
+  let retentionPercent = parsed.data.retentionPercent;
+  if (retentionPercent === undefined && agreement) {
+    const agreementMoney = await findSubcontractAgreementMoneyById(
+      context.db,
+      context.organizationId,
+      agreement.id,
+    );
+    if (!agreementMoney) throw new AuthorizationError('subcontract.financial');
+    retentionPercent = agreementMoney.retentionPercent ?? undefined;
+  }
 
   const valuationLines = await listSubcontractorValuationLines(
     context.db,
@@ -599,16 +608,26 @@ export async function listSubcontractorSchedulesForBoqWorkspace(
       context.organizationId,
       schedule.id,
     );
+    const agreement = schedule.subcontractAgreementId
+      ? await findSubcontractAgreementById(
+          context.db,
+          context.organizationId,
+          schedule.subcontractAgreementId,
+        )
+      : null;
+    const agreementMoney = agreement
+      ? await findSubcontractAgreementMoneyById(
+          context.db,
+          context.organizationId,
+          agreement.id,
+        )
+      : null;
     detailed.push({
       schedule,
       lines,
       valuations,
-      agreement: schedule.subcontractAgreementId
-        ? await findSubcontractAgreementById(
-            context.db,
-            context.organizationId,
-            schedule.subcontractAgreementId,
-          )
+      agreement: agreement
+        ? { ...agreement, retentionPercent: agreementMoney?.retentionPercent ?? null }
         : null,
     });
   }

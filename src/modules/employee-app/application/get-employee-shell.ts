@@ -4,6 +4,7 @@ import { employeeHasPermission, isEmployeeAppUser } from './load-employee-app-co
 import { resolveAccessibleProjectIdsForUser } from './project-scope';
 import { findEmployeeByUserId } from '@/modules/workforce';
 import { getAttendanceClockSurface } from '@/modules/workforce/application/attendance';
+import { hasActiveProjectMembership } from '@/modules/project-team/application/queries';
 
 export type EmployeeNavGroup = 'planner' | 'management';
 
@@ -182,10 +183,11 @@ export async function getEmployeeShellData(context: OrgContext): Promise<Employe
 
   let nav = buildEmployeeNavItems(context);
   const allowedProjectIds = await resolveAccessibleProjectIdsForUser(context);
+  const projectsNavHidden = !nav.some((item) => item.href === '/employee/projects' && item.visible);
   if (
-    allowedProjectIds !== null &&
-    allowedProjectIds.length > 0 &&
-    !employeeHasPermission(context, PERMISSIONS.PROJECTS_READ)
+    projectsNavHidden &&
+    ((allowedProjectIds !== null && allowedProjectIds.length > 0) ||
+      (await hasActiveProjectMembership(context)))
   ) {
     nav = nav.map((item) =>
       item.href === '/employee/projects' ? { ...item, visible: true } : item,

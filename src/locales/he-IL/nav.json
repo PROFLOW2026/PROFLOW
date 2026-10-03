@@ -90,7 +90,16 @@
     "quote": "הצעת מחיר",
     "service": "קריאת שירות",
     "recurringDrafts": "טיוטה חוזרת",
-    "quickCapture": "קליטה מהירה"
+    "quickCapture": "קליטה מהירה",
+    "contractorContract": "הסכם קבלן",
+    "projectTask": "משימה",
+    "coordinationEvent": "אירוע תיאום",
+    "rfi": "בקשת מידע",
+    "submittal": "הגשה לאישור",
+    "defect": "ליקוי",
+    "inspection": "בדיקת איכות",
+    "siteInstruction": "הוראת אתר",
+    "claim": "חשבון קבלן"
   },
   "organizationSwitcher": {
     "label": "עסק",

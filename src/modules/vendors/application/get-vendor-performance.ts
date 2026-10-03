@@ -16,7 +16,11 @@ import { listComplianceArtifactsForOrg } from '@/modules/compliance';
 import { listPurchaseOrdersForOrg } from '@/modules/procurement';
 import { getVendorById } from './list-vendors';
 import { listVendorEngagementHistory } from './manage-engagements';
-import { listVendorSubcontracts } from './subcontracts';
+import { listVendorSubcontractsForViewer } from './subcontracts';
+import {
+  isFinancialSubcontractRow,
+  type SubcontractListRow,
+} from '../domain/subcontract-projections';
 import {
   buildSupplierPerformance,
   moneyOrNull,
@@ -192,7 +196,7 @@ export async function getVendorPerformance(
   const [history, subcontracts, ap, payments, procurement, warrantyQuality, complianceRows] =
     await Promise.all([
       listVendorEngagementHistory(context, vendorId).catch(() => []),
-      listVendorSubcontracts(context, vendorId).catch(() => []),
+      listVendorSubcontractsForViewer(context, vendorId).catch((): SubcontractListRow[] => []),
       canAp ? getVendorApOutstanding(context, vendorId).catch(() => null) : Promise.resolve(null),
       canAp
         ? listVendorPaymentsForVendor(context, vendorId).catch(() => [])
@@ -238,12 +242,14 @@ export async function getVendorPerformance(
         )
       : null;
 
+  // Money facts only from rows this viewer may see financially; operational rows add no money.
+  const financialSubcontracts = subcontracts.filter(isFinancialSubcontractRow);
   let subcontract: SupplierSubcontractSnapshot | null = null;
-  if (subcontracts.length > 0) {
+  if (financialSubcontracts.length > 0) {
     let currentValue = zeroMoney(currency);
     let billed = zeroMoney(currency);
     let outstanding = zeroMoney(currency);
-    for (const agreement of subcontracts) {
+    for (const agreement of financialSubcontracts) {
       if (agreement.currency.toUpperCase() !== currency.toUpperCase()) continue;
       currentValue = addSameCurrency(currentValue, money(agreement.currentAmount, agreement.currency));
       billed = addSameCurrency(billed, money(agreement.billedAmount, agreement.currency));
@@ -253,7 +259,7 @@ export async function getVendorPerformance(
       );
     }
     subcontract = {
-      agreementCount: subcontracts.length,
+      agreementCount: financialSubcontracts.length,
       currentValue,
       billed,
       outstanding,

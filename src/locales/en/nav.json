@@ -90,7 +90,16 @@
     "quote": "Quote",
     "service": "Service call",
     "recurringDrafts": "Recurring draft",
-    "quickCapture": "Quick capture"
+    "quickCapture": "Quick capture",
+    "contractorContract": "Contractor contract",
+    "projectTask": "Task",
+    "coordinationEvent": "Coordination event",
+    "rfi": "RFI",
+    "submittal": "Submittal",
+    "defect": "Defect",
+    "inspection": "Inspection",
+    "siteInstruction": "Site instruction",
+    "claim": "Contractor claim"
   },
   "organizationSwitcher": {
     "label": "Organization",

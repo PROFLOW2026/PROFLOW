@@ -1,0 +1,183 @@
+{
+  "register": {
+    "pageTitle": "תוכניות ושרטוטים",
+    "pageDescription": "רישום תוכניות הפרויקט, מהדורות ופרסום לקבלנים",
+    "empty": "אין שרטוטים להצגה",
+    "emptyTitle": "אין עדיין שרטוטים",
+    "emptyDescription": "הוסיפו שרטוט ראשון לרישום התוכניות של הפרויקט",
+    "currentRev": "מהדורה {label}",
+    "drafts": "{count, plural, one {# טיוטה} other {# טיוטות}}",
+    "discipline": {
+      "architecture": "אדריכלות",
+      "structure": "קונструקציה",
+      "mechanical": "מכונות",
+      "electrical": "חשמל",
+      "plumbing": "אינסטלציה",
+      "hvac": "מיזוג",
+      "fire_protection": "כיבוי אש",
+      "civil": "פיתוח",
+      "landscape": "נוף",
+      "interior": "פנים",
+      "aluminium": "אלומיניום",
+      "survey": "מדידות",
+      "other": "אחר"
+    }
+  },
+  "create": {
+    "title": "שרטוט חדש",
+    "number": "מספר שרטוט",
+    "titleField": "כותרת",
+    "disciplineLabel": "תחום",
+    "submit": "יצירה",
+    "discipline": {
+      "architecture": "אדריכלות",
+      "structure": "קונструקציה",
+      "mechanical": "מכונות",
+      "electrical": "חשמל",
+      "plumbing": "אינסטלציה",
+      "hvac": "מיזוג",
+      "fire_protection": "כיבוי אש",
+      "civil": "פיתוח",
+      "landscape": "נוף",
+      "interior": "פנים",
+      "aluminium": "אלומיניום",
+      "survey": "מדידות",
+      "other": "אחר"
+    }
+  },
+  "detail": {
+    "back": "חזרה לרישום",
+    "revisions": "מהדורות",
+    "evidence": "קבצים מצורפים",
+    "discipline": {
+      "architecture": "אדריכלות",
+      "structure": "קונструקציה",
+      "mechanical": "מכונות",
+      "electrical": "חשמל",
+      "plumbing": "אינסטלציה",
+      "hvac": "מיזוג",
+      "fire_protection": "כיבוי אש",
+      "civil": "פיתוח",
+      "landscape": "נוף",
+      "interior": "פנים",
+      "aluminium": "אלומיניום",
+      "survey": "מדידות",
+      "other": "אחר"
+    },
+    "revisionStatus": {
+      "draft": "טיוטה",
+      "current": "נוכחית",
+      "superseded": "הוחלפה",
+      "withdrawn": "בוטלה"
+    }
+  },
+  "revision": {
+    "uploadTitle": "מהדורה חדשה",
+    "label": "תווית מהדורה",
+    "choosePdf": "בחירת PDF או תמונה",
+    "publish": "פרסום מהדורה",
+    "uploadFailed": "העלאת הקובץ נכשלה"
+  },
+  "evidence": {
+    "gallery": {
+      "empty": "אין קבצים מצורפים",
+      "kind": {
+        "photo": "תמונה",
+        "video": "וידאו",
+        "document": "מסמך"
+      }
+    },
+    "uploader": {
+      "visibility": "נראות",
+      "visibilityContractor": "גלוי לקבלנים",
+      "visibilityInternal": "פנימי בלבד",
+      "captionPlaceholder": "כיתוב (אופציונלי)",
+      "chooseFile": "בחירת קובץ",
+      "capture": "צילום",
+      "uploadFailed": "העלאה נכשלה"
+    },
+    "errors": {
+      "fileType": "סוג קובץ לא נתמך",
+      "tooLarge": "הקובץ גדול מדי",
+      "empty": "קובץ ריק",
+      "contentMismatch": "תוכן הקובץ אינו תואם לסוג",
+      "notPending": "העלאה אינה ממתינה",
+      "internalOnly": "ישות פנימית בלבד"
+    }
+  },
+  "errors": {
+    "numberTaken": "מספר השרטוט כבר קיים",
+    "archived": "השרטוט בארכיון",
+    "revisionTaken": "תווית המהדורה כבר בשימוש",
+    "fileNotReady": "יש להשלים העלאת קובץ לפני פרסום",
+    "notCurrent": "ניתן לאשר רק את המהדורה הנוכחית",
+    "notDraft": "פעולה זו מותרת רק לטיוטות",
+    "newerPublished": "קיימת מהדורה מפורסמת חדשה יותר",
+    "concurrentPublish": "המהדורה השתנתה — רעננו ונסו שוב",
+    "drawingFileType": "יש להעלות PDF או תמונה"
+  },
+  "sharing": {
+    "errors": {
+      "alreadyShared": "המסמך כבר שותף לקהל זה"
+    }
+  },
+  "portal": {
+    "plans": {
+      "pageTitle": "תוכניות",
+      "pageDescription": "מהדורות שרטוט מפורסמות",
+      "empty": "אין תוכניות זמינות",
+      "emptyTitle": "אין תוכניות",
+      "ackRequired": "נדרש אישור קבלה",
+      "discipline": {
+        "architecture": "אדריכלות",
+        "structure": "קונструקציה",
+        "mechanical": "מכונות",
+        "electrical": "חשמל",
+        "plumbing": "אינסטלציה",
+        "hvac": "מיזוג",
+        "fire_protection": "כיבוי אש",
+        "civil": "פיתוח",
+        "landscape": "נוף",
+        "interior": "פנים",
+        "aluminium": "אלומיניום",
+        "survey": "מדידות",
+        "other": "אחר"
+      }
+    },
+    "documents": {
+      "pageTitle": "מסמכים",
+      "pageDescription": "מסמכים ששותפו אליכם",
+      "empty": "אין מסמכים",
+      "emptyTitle": "אין מסמכים משותפים",
+      "acknowledge": "אישור קבלה",
+      "acknowledged": "אושר"
+    },
+    "drawing": {
+      "pageTitle": "פרטי שרטוט",
+      "back": "חזרה לתוכניות",
+      "acknowledgeCurrent": "אישור קבלת המהדורה הנוכחית",
+      "acknowledged": "המהדורה אושרה",
+      "discipline": {
+        "architecture": "אדריכלות",
+        "structure": "קונструקציה",
+        "mechanical": "מכונות",
+        "electrical": "חשמל",
+        "plumbing": "אינסטלציה",
+        "hvac": "מיזוג",
+        "fire_protection": "כיבוי אש",
+        "civil": "פיתוח",
+        "landscape": "נוף",
+        "interior": "פנים",
+        "aluminium": "אלומיניום",
+        "survey": "מדידות",
+        "other": "אחר"
+      },
+      "status": {
+        "draft": "טיוטה",
+        "current": "נוכחית",
+        "superseded": "הוחלפה",
+        "withdrawn": "בוטלה"
+      }
+    }
+  }
+}

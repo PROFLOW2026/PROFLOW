@@ -14,6 +14,7 @@ const listSubcontractorValuationLines = vi.fn();
 const proposeSubcontractorValuationApRpc = vi.fn();
 const findVendorEngagementById = vi.fn();
 const findSubcontractAgreementById = vi.fn();
+const findSubcontractAgreementMoneyById = vi.fn();
 const createDraftApBill = vi.fn();
 
 vi.mock('@/modules/boq/data/boq.repository', () => ({
@@ -42,6 +43,8 @@ vi.mock('@/modules/boq/data/boq.repository', () => ({
 vi.mock('@/modules/vendors', () => ({
   findVendorEngagementById: (...args: unknown[]) => findVendorEngagementById(...args),
   findSubcontractAgreementById: (...args: unknown[]) => findSubcontractAgreementById(...args),
+  findSubcontractAgreementMoneyById: (...args: unknown[]) =>
+    findSubcontractAgreementMoneyById(...args),
   findActiveEngagementForVendorProject: vi.fn(),
 }));
 
@@ -99,6 +102,7 @@ describe('createDraftApFromSubcontractorValuation', () => {
     proposeSubcontractorValuationApRpc.mockReset();
     findVendorEngagementById.mockReset();
     findSubcontractAgreementById.mockReset();
+    findSubcontractAgreementMoneyById.mockReset();
     createDraftApBill.mockReset();
 
     findSubcontractorValuationById.mockResolvedValue({
@@ -125,6 +129,12 @@ describe('createDraftApFromSubcontractorValuation', () => {
       id: AGREEMENT_ID,
       vendorId: VENDOR_ID,
       projectId: PROJECT_ID,
+      currency: 'ILS',
+    });
+    findSubcontractAgreementMoneyById.mockResolvedValue({
+      id: AGREEMENT_ID,
+      currency: 'ILS',
+      originalAmount: '1000.000000',
       retentionPercent: '10.000000',
     });
     listSubcontractorValuationLines.mockResolvedValue([
@@ -216,5 +226,15 @@ describe('createDraftApFromSubcontractorValuation', () => {
     const payload = createDraftApBill.mock.calls[0]?.[1] as Record<string, unknown>;
     expect(payload.retentionPercent).toBe('5');
     expect(payload.subcontractAgreementId).toBe(AGREEMENT_ID);
+    expect(findSubcontractAgreementMoneyById).not.toHaveBeenCalled();
+  });
+
+  it('refuses to default retention when agreement money is not visible', async () => {
+    findSubcontractAgreementMoneyById.mockResolvedValue(null);
+    const manager = contextWith([PERMISSIONS.BOQ_MANAGE, PERMISSIONS.AP_MANAGE]);
+    await expect(
+      createDraftApFromSubcontractorValuation(manager, { valuationId: VALUATION_ID }),
+    ).rejects.toBeInstanceOf(AuthorizationError);
+    expect(createDraftApBill).not.toHaveBeenCalled();
   });
 });

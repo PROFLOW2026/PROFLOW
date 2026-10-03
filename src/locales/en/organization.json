@@ -84,6 +84,9 @@
       "archive": "Archive and restore projects",
       "access_all": "See every project even when access is assignment-scoped"
     },
+    "project_team": {
+      "admin": "Manage project teams and hold every project capability"
+    },
     "project_financials": {
       "read": "View project costs"
     },

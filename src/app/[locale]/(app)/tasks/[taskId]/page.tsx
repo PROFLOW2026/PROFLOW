@@ -18,6 +18,7 @@ import { TaskApprovalGate, TaskApprovalGateSkeleton } from '@/modules/tasks/ui/t
 import { getTaskDetailAction, updateTaskFieldsAction, getTaskDocumentPanelAction } from '../../work/actions';
 import { TaskDocumentAttachments } from '@/modules/tasks/ui/task-document-attachments';
 import { TaskDetailPageClient } from './_task-detail-page-client';
+import { TaskContractorSection } from '@/modules/collaboration/ui';
 
 export async function generateMetadata({
   params,
@@ -101,6 +102,12 @@ export default async function TaskDetailPage({
       <Suspense fallback={<TaskActivitySkeleton />}>
         <TaskActivity taskId={taskId} />
       </Suspense>
+
+      {detail.projectId ? (
+        <Suspense fallback={<Skeleton className="h-32 w-full rounded-lg" />}>
+          <TaskContractorSection taskId={taskId} />
+        </Suspense>
+      ) : null}
     </div>
   );
 }

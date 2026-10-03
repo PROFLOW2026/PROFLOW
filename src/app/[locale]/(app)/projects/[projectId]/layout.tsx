@@ -28,6 +28,9 @@ import {
   resolveProjectHubs,
   type ProjectHubKey,
 } from './project-hub-order';
+import { loadProjectExecutionNav } from '@/modules/project-workspace';
+import { withOrgContext } from '@/shared/auth/session';
+import { ProjectExecutionNav } from './project-execution-nav';
 import { ProjectTabsShell } from './project-tabs-shell';
 import { TabPanelSkeleton } from './tab-panel-skeleton';
 import { ProjectReportActions } from '@/modules/reports/ui';
@@ -74,7 +77,7 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
   const showDocumentsTab = resolveProjectFilesTabVisible(can(PERMISSIONS.DOCUMENTS_READ));
   const showUsageTab = can(PERMISSIONS.MATERIALS_READ) || can(PERMISSIONS.ASSETS_READ);
 
-  const [t, tHubs, tStatus, tCloseout, detail, locale, closeoutStatus] = await Promise.all([
+  const [t, tHubs, tStatus, tCloseout, detail, locale, closeoutStatus, executionNav] = await Promise.all([
     getTranslations('projects'),
     getTranslations('projects.workspace.hubs'),
     getTranslations('status.project'),
@@ -82,6 +85,10 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
     loadProjectDetail(projectId, false).catch(() => null),
     getLocale(),
     loadProjectCloseoutStatus(projectId).catch(() => null),
+    withOrgContext((context) => loadProjectExecutionNav(context, projectId)).catch(() => ({
+      showGroup: false,
+      links: [],
+    })),
   ]);
   if (!detail) notFound();
 
@@ -253,6 +260,9 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
         projectHref={`/projects/${projectId}`}
         dir={dir}
       >
+        {executionNav.showGroup ? (
+          <ProjectExecutionNav links={executionNav.links} dir={dir} />
+        ) : null}
         <Suspense
           fallback={
             <div className="min-w-0 max-w-full">

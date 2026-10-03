@@ -59,6 +59,16 @@
     "billing_plan": "خطة فوترة",
     "billing_cycle": "دورة فوترة",
     "recurring_draft": "مسودة متكررة",
-    "approval": "موافقة"
+    "approval": "موافقة",
+    "contractor": "مقاول",
+    "coordination_event": "حدث تنسيق",
+    "claim": "مطالبة",
+    "rfi": "طلب معلومات",
+    "submittal": "تقديم",
+    "defect": "عيب",
+    "drawing": "مخطط",
+    "location": "موقع",
+    "meeting": "اجتماع",
+    "site_instruction": "تعليمات موقع"
   }
 }

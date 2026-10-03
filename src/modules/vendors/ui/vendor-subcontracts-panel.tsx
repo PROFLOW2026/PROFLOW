@@ -10,8 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import type {
-  SubcontractDetail,
-  SubcontractListItem,
+  SubcontractDetailView,
+  SubcontractListRow,
   SubcontractParentContractOption,
 } from '@/modules/vendors';
 import {
@@ -23,8 +23,8 @@ import { SubcontractCard } from './subcontract-card';
 export interface VendorSubcontractsPanelProps {
   readonly vendorId: string;
   readonly vendorType?: 'supplier' | 'subcontractor' | 'both' | 'other';
-  readonly items: readonly SubcontractListItem[];
-  readonly details: readonly SubcontractDetail[];
+  readonly items: readonly SubcontractListRow[];
+  readonly details: readonly SubcontractDetailView[];
   readonly candidateProjects: readonly { id: string; name: string }[];
   readonly parentContracts: readonly SubcontractParentContractOption[];
   readonly documentCandidates: readonly { id: string; originalFilename: string }[];
@@ -66,7 +66,7 @@ export function VendorSubcontractsPanel({
   );
 
   const detailById = useMemo(() => {
-    const map = new Map<string, SubcontractDetail>();
+    const map = new Map<string, SubcontractDetailView>();
     for (const detail of details) map.set(detail.id, detail);
     return map;
   }, [details]);

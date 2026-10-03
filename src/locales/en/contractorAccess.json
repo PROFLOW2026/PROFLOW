@@ -1,0 +1,252 @@
+{
+  "auth": {
+    "brand": "ProjectFlow contractor portal",
+    "signIn": {
+      "title": "Contractor sign-in",
+      "subtitle": "Sign in with the username you received from the contractor that invited you.",
+      "username": "Username",
+      "password": "Password",
+      "submit": "Sign in",
+      "forgot": "Forgot your password?",
+      "reason": {
+        "not_contractor": "You are signed in with an organization account. Sign in with your contractor username to open the contractor portal.",
+        "inactive": "This contractor account is not active. Contact the company that invited you.",
+        "session_revoked": "Your session has ended. Please sign in again."
+      }
+    },
+    "activate": {
+      "title": "Activate your account",
+      "subtitle": "Choose a strong password. You will use it with your username to sign in.",
+      "usernameLabel": "Your username:",
+      "password": "New password",
+      "confirmation": "Repeat password",
+      "submit": "Activate and sign in"
+    },
+    "reset": {
+      "title": "Set a new password",
+      "subtitle": "Choose a new password. All other devices will be signed out.",
+      "usernameLabel": "Username:",
+      "password": "New password",
+      "confirmation": "Repeat password",
+      "submit": "Save and sign in"
+    },
+    "forgot": {
+      "title": "Forgot your password?",
+      "subtitle": "Enter your username. The company that invited you will be notified and can send you a secure reset link.",
+      "username": "Username",
+      "submit": "Request a reset",
+      "sent": "If the username exists, the request was sent. You will receive a reset link from the company that invited you.",
+      "backToSignIn": "Back to sign-in"
+    },
+    "passwordRules": {
+      "title": "Password requirements",
+      "too_short": "At least 10 characters",
+      "too_long": "At most 128 characters",
+      "needs_variety": "At least 3 of: lowercase, uppercase, digit, symbol",
+      "contains_username": "Does not contain your username",
+      "too_common": "This password is too common",
+      "mismatch": "Both passwords match"
+    }
+  },
+  "errors": {
+    "invalid_credentials": "Incorrect username or password.",
+    "rate_limited": "Too many attempts. Please wait 15 minutes and try again.",
+    "invalid_link": "This link is not valid.",
+    "link_invalid": "This link is not valid. Ask the company that invited you for a new one.",
+    "link_expired": "This link has expired. Ask the company that invited you for a new one.",
+    "link_used": "This link was already used. Sign in with your username and password.",
+    "weak_password": "The password does not meet the requirements:",
+    "wrong_current_password": "The current password is incorrect.",
+    "same_password": "The new password must be different from the current one.",
+    "not_active": "The account is not active.",
+    "auth_error": "Sign-in service error. Please try again.",
+    "invalid_locale": "Unsupported language.",
+    "display_name_required": "Enter a name (up to 120 characters).",
+    "invalid_phone": "The phone number is too long.",
+    "unknown_template": "Unknown access template.",
+    "unknown_capability": "Unknown permission.",
+    "empty_capabilities": "Select at least one permission.",
+    "financial_requires_financial_grantor": "Only users with contract financial access on this project can grant financial permissions (contract values, claims, payments).",
+    "vendor_wide_requires_org_admin": "Access to all projects of a contractor can only be granted by an organization administrator.",
+    "agreement_requires_project": "An agreement-scoped access must be limited to the agreement's project.",
+    "expiry_in_past": "The expiry date must be in the future.",
+    "invalid_username": "Username: 3-32 characters, lowercase letters, digits, dot, dash or underscore, starting with a letter or digit.",
+    "username_taken": "This username is already taken. Choose another one.",
+    "grant_exists": "This account already has active access with exactly this scope. Edit it instead.",
+    "grant_not_active": "This access is no longer active.",
+    "not_invited": "The account was already activated.",
+    "forbidden": "You do not have permission for this action.",
+    "not_found": "Not found.",
+    "validation": "Some fields are missing or invalid.",
+    "generic": "Something went wrong. Please try again."
+  },
+  "account": {
+    "title": "My account",
+    "subtitle": "Your contractor account details, language and password.",
+    "signOut": "Sign out",
+    "details": {
+      "username": "Username",
+      "lastSignIn": "Last sign-in",
+      "never": "Never"
+    },
+    "access": {
+      "title": "My access",
+      "empty": "You have no active access right now.",
+      "allProjects": "All projects"
+    },
+    "profile": {
+      "title": "Profile",
+      "displayName": "Name",
+      "phone": "Phone",
+      "language": "Language",
+      "save": "Save",
+      "saved": "Profile saved."
+    },
+    "password": {
+      "title": "Change password",
+      "current": "Current password",
+      "next": "New password",
+      "confirmation": "Repeat new password",
+      "submit": "Change password",
+      "changed": "Password changed. Other devices were signed out."
+    }
+  },
+  "manage": {
+    "title": "Contractor access",
+    "subtitle": "Invite subcontractor users, decide exactly what each person can see and do, and revoke access at any time.",
+    "forbidden": "You need the \"Invite contractors\" or \"Manage external access\" capability on this project.",
+    "financialWarning": "Financial permissions let the contractor see contract values, claims or payments of its own agreements.",
+    "financialLocked": "Financial permissions require contract financial access on this project.",
+    "invite": {
+      "title": "Invite a contractor user",
+      "description": "Creates a username account (no organization membership) and a single-use activation link.",
+      "displayName": "Full name",
+      "username": "Username",
+      "usernameHint": "Leave empty to generate one from the name.",
+      "contactEmail": "Contact email",
+      "phone": "Phone",
+      "language": "Language",
+      "vendor": "Contractor company",
+      "vendorPlaceholder": "Select…",
+      "agreement": "Agreement",
+      "agreementAny": "All agreements of the company on this project",
+      "allProjects": "All projects of this company",
+      "allProjectsHint": "Organization administrators only.",
+      "template": "Access template",
+      "customCapabilities": "Permissions ({count} selected)",
+      "expiresAt": "Access expires on",
+      "expiresHint": "Optional.",
+      "submit": "Create invitation",
+      "noVendors": "Add the contractor company under Vendors first."
+    },
+    "inviteResult": {
+      "title": "Link ready",
+      "body": "Send this activation link to the contractor (it works once). They will choose a password and sign in with the username.",
+      "resetBody": "Send this password reset link to the contractor (it works once and signs out other devices).",
+      "username": "Username:",
+      "copy": "Copy link",
+      "copied": "Copied",
+      "expires": "Valid until {date}."
+    },
+    "templates": {
+      "site_contractor": {
+        "name": "Site contractor",
+        "description": "Operational work: schedule, tasks, documents, plans, RFIs, quality, field reports. No money."
+      },
+      "contractor_admin": {
+        "name": "Contractor administrator",
+        "description": "Everything operational plus contract values, changes, claims and payments."
+      },
+      "claims_only": {
+        "name": "Claims and billing",
+        "description": "Contract values, claims, payments and documents only."
+      },
+      "read_only": {
+        "name": "Read only",
+        "description": "View project, schedule, documents and plans."
+      },
+      "custom": {
+        "name": "Custom",
+        "description": "Pick individual permissions."
+      }
+    },
+    "capabilityGroups": {
+      "operational": "Operational",
+      "financial": "Financial",
+      "procurement": "Tenders"
+    },
+    "capabilities": {
+      "ext_project_view": "View project",
+      "ext_schedule_view": "View schedule",
+      "ext_event_respond": "Respond to coordination events",
+      "ext_task_work": "Work on assigned tasks",
+      "ext_task_report": "Report task progress",
+      "ext_thread_post": "Post in discussions",
+      "ext_document_view": "View shared documents",
+      "ext_document_upload": "Upload documents",
+      "ext_plan_view": "View plans",
+      "ext_plan_acknowledge": "Acknowledge plan revisions",
+      "ext_rfi_raise": "Raise RFIs",
+      "ext_submittal_submit": "Submit submittals",
+      "ext_inspection_view": "View inspections",
+      "ext_defect_work": "Work on defects",
+      "ext_daily_log_submit": "Submit daily site reports",
+      "ext_delivery_report": "Report deliveries",
+      "ext_safety_report": "Report safety events",
+      "ext_site_instruction_ack": "Acknowledge site instructions",
+      "ext_contract_view_value": "View contract values",
+      "ext_change_request": "Request changes",
+      "ext_claim_view": "View claims",
+      "ext_claim_submit": "Submit claims",
+      "ext_payment_view": "View payments",
+      "ext_compliance_submit": "Submit compliance documents",
+      "ext_handover_submit": "Submit handover documents",
+      "ext_bid_submit": "Submit bids"
+    },
+    "list": {
+      "title": "Contractor users with access to this project",
+      "empty": "No contractor users yet.",
+      "lastSignIn": "Last sign-in:",
+      "never": "never",
+      "status": {
+        "invited": "Invited",
+        "active": "Active",
+        "disabled": "Disabled"
+      },
+      "resetRequested": "Asked for a password reset",
+      "locked": "Temporarily locked",
+      "inviteOpen": "Invite link valid until {date}",
+      "resetOpen": "Reset link valid until {date}",
+      "allAgreements": "All agreements",
+      "thisProject": "This project",
+      "allProjects": "All projects",
+      "revoked": "Revoked",
+      "expires": "Until {date}",
+      "noExpiry": "No expiry",
+      "homeOrgOnly": "This account belongs to another organization: you can manage its access here, not the account itself."
+    },
+    "actions": {
+      "editCapabilities": "Edit permissions",
+      "save": "Save",
+      "cancel": "Cancel",
+      "revoke": "Revoke access",
+      "revokeConfirm": "Confirm revoke",
+      "revokeReason": "Reason (optional)",
+      "addAccess": "Grant access",
+      "addAccessTitle": "Grant access to an existing contractor user",
+      "addAccessDescription": "Give a user who already has an account access to this project or another agreement.",
+      "existingAccount": "Contractor user",
+      "issueReset": "Create password reset link",
+      "reissueInvite": "Create new activation link",
+      "revokeSessions": "Sign out everywhere",
+      "disable": "Disable account",
+      "enable": "Enable account",
+      "linkReady": "Link ready",
+      "sessionsRevoked": "All sessions were signed out.",
+      "saved": "Saved.",
+      "revoked": "Access revoked.",
+      "disabled": "Account disabled.",
+      "enabled": "Account enabled."
+    }
+  }
+}

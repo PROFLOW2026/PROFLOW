@@ -1,0 +1,177 @@
+{
+  "title": "Defects and punch list",
+  "description": "Every defect with its location, responsible contractor, due date and full repair history.",
+  "detailTitle": "Defect #{ref}",
+  "counts": {
+    "toFix": "To fix",
+    "awaitingVerification": "Awaiting verification",
+    "overdue": "Overdue",
+    "closed": "Closed"
+  },
+  "filters": {
+    "status": "Status",
+    "active": "To fix",
+    "awaiting_verification": "Awaiting verification",
+    "closed": "Closed",
+    "all": "All",
+    "severity": "Severity",
+    "anySeverity": "Any severity",
+    "contractor": "Contractor",
+    "anyContractor": "Any contractor",
+    "overdueOnly": "Overdue only",
+    "mode": "Type",
+    "anyMode": "Any type",
+    "apply": "Filter",
+    "clear": "Clear"
+  },
+  "status": {
+    "open": "Open",
+    "assigned": "Assigned",
+    "completion_submitted": "Fix submitted",
+    "verification": "In verification",
+    "closed": "Closed",
+    "reopened": "Reopened",
+    "cancelled": "Cancelled"
+  },
+  "severity": {
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "critical": "Critical"
+  },
+  "mode": {
+    "construction": "Construction",
+    "warranty": "Warranty"
+  },
+  "recordKind": {
+    "opened": "Defect opened",
+    "assigned": "Assigned",
+    "completion_submitted": "Fix submitted",
+    "verification_started": "Verification started",
+    "accepted": "Fix accepted - closed",
+    "rejected": "Fix rejected",
+    "reopened": "Reopened",
+    "cancelled": "Cancelled",
+    "updated": "Details updated",
+    "note": "Note"
+  },
+  "fields": {
+    "title": "Title",
+    "description": "Description",
+    "severity": "Severity",
+    "dueDate": "Due date",
+    "location": "Location",
+    "noLocation": "No specific location",
+    "contractor": "Responsible contractor",
+    "noContractor": "No contractor",
+    "workLine": "Contract work line",
+    "noWorkLine": "No work line",
+    "assignee": "Responsible person",
+    "noAssignee": "No person",
+    "inspector": "Inspector",
+    "contractorVisible": "Visible to the contractor in the portal",
+    "mode": "Type",
+    "sourceInspection": "From inspection",
+    "sourceItem": "Checklist item",
+    "warrantySource": "Warranty reference",
+    "cycle": "Repair cycle",
+    "reference": "No.",
+    "overdue": "Overdue",
+    "submittedAt": "Fix submitted",
+    "closedAt": "Closed",
+    "createdAt": "Opened",
+    "note": "Note",
+    "rejectReason": "Why is the fix rejected?",
+    "reopenReason": "Why is the defect reopened?",
+    "cancelReason": "Why is the defect cancelled?",
+    "newDueDate": "New due date"
+  },
+  "list": {
+    "empty": "No defects here",
+    "emptyDescription": "Defects opened manually or from failed inspections appear here with their repair status.",
+    "cycle": "Cycle {n}",
+    "due": "Due {date}",
+    "noDueDate": "No due date",
+    "overdue": "Overdue",
+    "loadMore": "Show more",
+    "previous": "Previous"
+  },
+  "create": {
+    "title": "Open a defect",
+    "description": "Record the defect, where it is and who must fix it.",
+    "submit": "Open defect",
+    "success": "Defect opened"
+  },
+  "edit": {
+    "title": "Defect details",
+    "submit": "Save details",
+    "success": "Details saved"
+  },
+  "assign": {
+    "title": "Assign responsibility",
+    "submit": "Assign",
+    "success": "Defect assigned"
+  },
+  "completion": {
+    "title": "Record fix completed",
+    "internalHint": "Use when the fix was done by own crews or confirmed on site. Attach photos below.",
+    "submit": "Mark fix completed",
+    "success": "Fix submitted for verification"
+  },
+  "verify": {
+    "title": "Verify the fix",
+    "start": "Start verification",
+    "started": "Verification started",
+    "accept": "Accept and close",
+    "reject": "Reject fix",
+    "accepted": "Defect closed",
+    "rejected": "Fix rejected - a new repair cycle started",
+    "rejectHint": "The contractor sees this reason and must submit a new fix with new evidence."
+  },
+  "reopen": {
+    "title": "Reopen defect",
+    "submit": "Reopen",
+    "success": "Defect reopened"
+  },
+  "cancel": {
+    "title": "Cancel defect",
+    "submit": "Cancel defect",
+    "success": "Defect cancelled"
+  },
+  "history": {
+    "title": "Repair history",
+    "cycle": "Repair cycle {n}",
+    "by": "by {name}",
+    "contractor": "Contractor",
+    "system": "System",
+    "internal": "Internal",
+    "empty": "No history yet."
+  },
+  "evidence": {
+    "title": "Photos and documents"
+  },
+  "discussion": {
+    "title": "Discussion"
+  },
+  "portal": {
+    "title": "Defects to fix",
+    "description": "Defects assigned to your company on this project.",
+    "empty": "No defects assigned to you. Great work!",
+    "submitTitle": "Submit the fix",
+    "submitHint": "Upload at least one photo, video or document of the fix in this repair cycle, then submit.",
+    "submit": "Submit fix for verification",
+    "submitted": "Fix submitted - waiting for verification",
+    "awaiting": "Your fix is waiting for the site team to verify it.",
+    "closed": "This defect is closed.",
+    "back": "All defects",
+    "inspections": "Inspections",
+    "rejectedReason": "Reason for rejection"
+  },
+  "errors": {
+    "invalidTransition": "This action is not available in the defect's current status.",
+    "concurrentChange": "The defect was changed by someone else. Refresh and try again.",
+    "notEditable": "Closed or cancelled defects cannot be edited.",
+    "evidenceRequired": "Upload at least one photo, video or document of the fix first.",
+    "invalidReference": "The selected item does not belong to this project."
+  }
+}

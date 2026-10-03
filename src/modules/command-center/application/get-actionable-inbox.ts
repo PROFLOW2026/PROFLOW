@@ -78,10 +78,10 @@ export async function getActionableInbox(context: OrgContext): Promise<CommandCe
 
   const collectCtx = await buildCollectContext({ context, modules, today });
 
-  const [rawItems, states] = await Promise.all([
-    collectAllSources(collectCtx),
-    listCommandCenterItemStates(context.db, context.organizationId),
-  ]);
+  // Collectors use savepoints on this transaction. They must finish before the
+  // state read; a parallel query on the same connection aborts the transaction.
+  const rawItems = await collectAllSources(collectCtx);
+  const states = await listCommandCenterItemStates(context.db, context.organizationId);
 
   const stateByKey = new Map(states.map((row) => [row.itemKey, row]));
   let hiddenByState = 0;

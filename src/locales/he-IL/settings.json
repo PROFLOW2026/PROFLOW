@@ -501,6 +501,12 @@
         "additional_created": "יצירת חוזה נוסף",
         "updated": "עדכון חוזה"
       },
+      "project_member": {
+        "added": "חבר צוות נוסף לפרויקט",
+        "capabilities_changed": "יכולות חבר צוות בפרויקט שונו",
+        "deactivated": "חבר צוות הושבת בפרויקט",
+        "reactivated": "חבר צוות הופעל מחדש בפרויקט"
+      },
       "project_access": {
         "granted": "הוענקה גישה לפרויקט",
         "revoked": "הוסרה גישה לפרויקט"
@@ -961,6 +967,265 @@
         "approved": "קליטה מהירה אושרה",
         "rejected": "קליטה מהירה נדחתה",
         "routed": "קליטה מהירה נותבה"
+      },
+      "site_daily_log": {
+        "created": "יומן עבודה נפתח",
+        "updated": "יומן עבודה עודכן",
+        "closed": "יומן עבודה נסגר",
+        "reopened": "יומן עבודה נפתח מחדש",
+        "entry_added": "נוסף רישום ליומן עבודה",
+        "entry_updated": "רישום ביומן עבודה עודכן",
+        "entry_removed": "רישום הוסר מיומן עבודה"
+      },
+      "site_daily_report": {
+        "submitted": "דיווח יומי של קבלן הוגש"
+      },
+      "site_meeting": {
+        "created": "ישיבת קבלנים נוצרה",
+        "updated": "ישיבת קבלנים עודכנה",
+        "held": "ישיבת קבלנים התקיימה",
+        "cancelled": "ישיבת קבלנים בוטלה",
+        "published": "פרוטוקול ישיבת קבלנים פורסם",
+        "attendee_added": "נוסף משתתף לישיבת קבלנים",
+        "attendee_removed": "משתתף הוסר מישיבת קבלנים",
+        "decision_recorded": "נרשמה החלטה בישיבת קבלנים",
+        "action_item_created": "נוצרה משימה מישיבת קבלנים"
+      },
+      "site_instruction": {
+        "issued": "הוראת אתר הונפקה",
+        "updated": "הוראת אתר עודכנה",
+        "acknowledged": "הוראת אתר אושרה לקבלה",
+        "performed": "הוראת אתר סומנה כבוצעה",
+        "closed": "הוראת אתר נסגרה",
+        "cancelled": "הוראת אתר בוטלה",
+        "reopened": "הוראת אתר נפתחה מחדש",
+        "conversion_requested": "התבקשה המרה מסחרית להוראת אתר",
+        "converted": "הוראת אתר הומרה לשינוי מסחרי",
+        "conversion_dismissed": "המרה מסחרית של הוראת אתר נדחתה"
+      },
+      "subcontract_agreement": {
+        "created": "הסכם קבלן משנה נוצר",
+        "updated": "הסכם קבלן משנה עודכן",
+        "terms_updated": "תנאי הסכם קבלן משנה עודכנו",
+        "status_changed": "סטטוס הסכם קבלן משנה שונה"
+      },
+      "subcontract_work_line": {
+        "created": "סעיף עבודה בהסכם נוצר",
+        "updated": "סעיף עבודה בהסכם עודכן",
+        "archived": "סעיף עבודה בהסכם הועבר לארכיון"
+      },
+      "subcontract_change": {
+        "created": "שינוי להסכם קבלן נוצר",
+        "submitted": "שינוי להסכם קבלן הוגש",
+        "version_proposed": "הוצעה גרסה לשינוי בהסכם קבלן",
+        "approved": "שינוי להסכם קבלן אושר",
+        "rejected": "שינוי להסכם קבלן נדחה",
+        "withdrawn": "שינוי להסכם קבלן נמשך"
+      },
+      "unpriced_work": {
+        "recorded": "נרשמה עבודה לא מתומחרת",
+        "converted": "עבודה לא מתומחרת הומרה לשינוי",
+        "rejected": "עבודה לא מתומחרת נדחתה",
+        "cancelled": "עבודה לא מתומחרת בוטלה"
+      },
+      "subcontract_claim": {
+        "created": "חשבון קבלן נוצר",
+        "updated": "חשבון קבלן עודכן",
+        "submitted": "חשבון קבלן הוגש",
+        "cancelled": "חשבון קבלן בוטל",
+        "revision_opened": "נפתחה גרסה מתוקנת לחשבון קבלן",
+        "review_started": "החלה בדיקת חשבון קבלן",
+        "returned": "חשבון קבלן הוחזר לתיקון",
+        "evidence_requested": "התבקשו ראיות לחשבון קבלן",
+        "certified": "חשבון קבלן אושר",
+        "reassessed": "חשבון קבלן הוערך מחדש",
+        "ap_bill_drafted": "נוצרה טיוטת חשבונית ספק מחשבון קבלן"
+      },
+      "subcontract_deduction": {
+        "issued": "הוצא קיזוז לקבלן",
+        "reversed": "קיזוז לקבלן בוטל",
+        "disputed": "הוגשה מחלוקת על קיזוז לקבלן"
+      },
+      "subcontract_payment_hold": {
+        "placed": "הוטל עיכוב תשלום לקבלן",
+        "released": "עיכוב תשלום לקבלן שוחרר"
+      },
+      "task_external": {
+        "assigned": "משימה הוקצתה לקבלן",
+        "reassigned": "משימת קבלן הוקצתה מחדש",
+        "acknowledged": "משימת קבלן אושרה לקבלה",
+        "started": "משימת קבלן התחילה",
+        "completion_submitted": "הוגשה השלמת משימת קבלן",
+        "verified": "משימת קבלן אומתה",
+        "reopened": "משימת קבלן נפתחה מחדש",
+        "closed": "משימת קבלן נסגרה",
+        "cancelled": "משימת קבלן בוטלה"
+      },
+      "task_link": {
+        "created": "נוצר קישור בין משימות"
+      },
+      "collab_comment": {
+        "posted": "פורסמה תגובה בדיון"
+      },
+      "collab_decision": {
+        "recorded": "נרשמה החלטה בדיון"
+      },
+      "coordination_event": {
+        "created": "אירוע תיאום נוצר",
+        "updated": "אירוע תיאום עודכן",
+        "rescheduled": "מועד אירוע תיאום שונה",
+        "outcome_recorded": "נרשמה תוצאת אירוע תיאום",
+        "readiness_overridden": "מוכנות אירוע תיאום נקבעה ידנית",
+        "document_linked": "מסמך קושר לאירוע תיאום",
+        "document_unlinked": "מסמך נותק מאירוע תיאום"
+      },
+      "coordination_participant": {
+        "invited": "משתתף הוזמן לאירוע תיאום",
+        "removed": "משתתף הוסר מאירוע תיאום"
+      },
+      "coordination_response": {
+        "recorded": "נרשמה תשובת קבלן לאירוע תיאום"
+      },
+      "coordination_issue": {
+        "raised": "הועלתה בעיה באירוע תיאום",
+        "task_created": "נוצרה משימת המשך מבעיית תיאום",
+        "dismissed": "בעיית תיאום נדחתה"
+      },
+      "evidence": {
+        "uploaded": "ראיה הועלתה",
+        "updated": "ראיה עודכנה",
+        "removed": "ראיה הוסרה"
+      },
+      "document_share": {
+        "created": "שיתוף מסמך נוצר",
+        "revoked": "שיתוף מסמך בוטל",
+        "acknowledged": "שיתוף מסמך אושר לקבלה"
+      },
+      "drawing": {
+        "created": "שרטוט נוצר",
+        "updated": "שרטוט עודכן",
+        "archived": "שרטוט הועבר לארכיון",
+        "distribution_updated": "הפצת שרטוט עודכנה"
+      },
+      "drawing_revision": {
+        "uploaded": "מהדורת שרטוט הועלתה",
+        "published": "מהדורת שרטוט פורסמה",
+        "withdrawn": "מהדורת שרטוט נמשכה",
+        "acknowledged": "מהדורת שרטוט אושרה לקבלה"
+      },
+      "quality_inspection_template": {
+        "created": "תבנית בקרת איכות נוצרה",
+        "updated": "תבנית בקרת איכות עודכנה",
+        "archived": "תבנית בקרת איכות הועברה לארכיון"
+      },
+      "quality_inspection": {
+        "created": "בקרת איכות נוצרה",
+        "updated": "בקרת איכות עודכנה",
+        "started": "בקרת איכות התחילה",
+        "outcome_recorded": "נרשמה תוצאת בקרת איכות",
+        "reinspection_started": "החלה בקרת איכות חוזרת",
+        "cancelled": "בקרת איכות בוטלה"
+      },
+      "defect": {
+        "created": "ליקוי נפתח",
+        "updated": "ליקוי עודכן",
+        "assigned": "ליקוי שויך לאחראי",
+        "completion_submitted": "הוגש תיקון ליקוי",
+        "verification_started": "החל אימות תיקון ליקוי",
+        "accepted": "תיקון ליקוי התקבל",
+        "rejected": "תיקון ליקוי נדחה",
+        "reopened": "ליקוי נפתח מחדש",
+        "cancelled": "ליקוי בוטל"
+      },
+      "rfi": {
+        "created": "בקשת מידע נוצרה",
+        "updated": "בקשת מידע עודכנה",
+        "submitted": "בקשת מידע הוגשה",
+        "review_started": "החלה בדיקת בקשת מידע",
+        "answered": "בקשת מידע נענתה",
+        "closed": "בקשת מידע נסגרה",
+        "reopened": "בקשת מידע נפתחה מחדש"
+      },
+      "submittal": {
+        "created": "הגשה לאישור נוצרה",
+        "updated": "הגשה לאישור עודכנה",
+        "submitted": "הגשה לאישור הוגשה",
+        "review_started": "החלה בדיקת הגשה לאישור",
+        "reviewed": "הגשה לאישור נבדקה",
+        "revision_opened": "נפתחה גרסה חדשה להגשה לאישור",
+        "withdrawn": "הגשה לאישור נמשכה"
+      },
+      "compliance_requirement": {
+        "created": "דרישת תאימות קבלן נוצרה",
+        "updated": "דרישת תאימות קבלן עודכנה",
+        "archived": "דרישת תאימות קבלן הועברה לארכיון"
+      },
+      "compliance_document": {
+        "submitted": "מסמך תאימות קבלן הוגש",
+        "reviewed": "מסמך תאימות קבלן נבדק"
+      },
+      "contractor_safety": {
+        "reported": "אירוע בטיחות קבלן דווח",
+        "action_created": "נוצרה פעולה לאירוע בטיחות קבלן",
+        "task_created": "נוצרה משימה לאירוע בטיחות קבלן",
+        "closed": "אירוע בטיחות קבלן נסגר"
+      },
+      "delivery_item": {
+        "created": "פריט אספקה נוצר",
+        "updated": "פריט אספקה עודכן",
+        "reported": "סטטוס אספקה דווח"
+      },
+      "external_principal": {
+        "invited": "משתמש קבלן הוזמן",
+        "invite_reissued": "הזמנת משתמש קבלן הונפקה מחדש",
+        "activated": "חשבון משתמש קבלן הופעל",
+        "password_reset_issued": "נשלח איפוס סיסמה למשתמש קבלן",
+        "password_reset_completed": "איפוס סיסמה של משתמש קבלן הושלם",
+        "password_changed": "סיסמת משתמש קבלן שונתה",
+        "profile_updated": "פרופיל משתמש קבלן עודכן",
+        "sessions_revoked": "ההתחברויות של משתמש קבלן בוטלו",
+        "disabled": "משתמש קבלן הושבת",
+        "enabled": "משתמש קבלן הופעל מחדש"
+      },
+      "external_grant": {
+        "created": "גישת קבלן לפרויקט נוצרה",
+        "updated": "גישת קבלן לפרויקט עודכנה",
+        "revoked": "גישת קבלן לפרויקט בוטלה"
+      },
+      "project_delivery_profile": {
+        "updated": "פרופיל ביצוע הפרויקט עודכן"
+      },
+      "project_characteristics": {
+        "updated": "מאפייני הבנייה של הפרויקט עודכנו"
+      },
+      "project_location": {
+        "created": "מיקום בפרויקט נוצר",
+        "updated": "מיקום בפרויקט עודכן",
+        "moved": "מיקום בפרויקט הועבר",
+        "archived": "מיקום בפרויקט הועבר לארכיון",
+        "restored": "מיקום בפרויקט שוחזר",
+        "bulk_generated": "עץ מיקומים נוצר במרוכז"
+      },
+      "project_recommendation": {
+        "accepted": "המלצת תכנון התקבלה",
+        "dismissed": "המלצת תכנון נדחתה",
+        "restored": "המלצת תכנון שוחזרה"
+      },
+      "tender_package": {
+        "created": "חבילת מכרז נוצרה",
+        "awarded": "חבילת מכרז הוכרעה"
+      },
+      "tender_offer": {
+        "submitted": "הצעה למכרז הוגשה"
+      },
+      "agreement_closeout": {
+        "closed": "סגירת הסכם קבלן הושלמה"
+      },
+      "handover_item": {
+        "submitted": "פריט מסירה הוגש"
+      },
+      "warranty_report": {
+        "reported": "דיווח אחריות קבלן נפתח"
       }
     },
     "entities": {

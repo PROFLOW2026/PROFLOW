@@ -16,9 +16,12 @@ export async function buildEmployeeProjectHubLinks(input: {
   canDocuments: boolean;
   canLogTime: boolean;
   canFinancials?: boolean;
+  canProjectTeam?: boolean;
 }): Promise<EmployeeProjectHubLink[]> {
   const t = await getTranslations('employeeApp.projects');
-  const { projectId, openTasks, canMeetings, canDocuments, canLogTime, canFinancials } = input;
+  const tNav = await getTranslations('employeeApp.nav');
+  const { projectId, openTasks, canMeetings, canDocuments, canLogTime, canFinancials, canProjectTeam } =
+    input;
 
   return [
     {
@@ -26,6 +29,11 @@ export async function buildEmployeeProjectHubLinks(input: {
       label: t('hub.tasks'),
       count: openTasks,
       visible: true,
+    },
+    {
+      href: `/employee/projects/${projectId}/team`,
+      label: tNav('team'),
+      visible: Boolean(canProjectTeam),
     },
     {
       href: `/employee/projects/${projectId}/board`,

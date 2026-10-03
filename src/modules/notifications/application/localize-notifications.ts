@@ -6,7 +6,12 @@ import {
   type MaterialPressureAlertReason,
   type MaterialPressureAlertTrade,
 } from '../domain/copy';
-import type { NotificationInbox, NotificationListItem } from '../domain/types';
+import { readDgNotificationMetadata, renderDgNotificationCopy } from '../domain/dg-copy';
+import {
+  isDgNotificationEventType,
+  type NotificationInbox,
+  type NotificationListItem,
+} from '../domain/types';
 
 function captureVariantFromMetadata(
   metadata: Record<string, unknown> | null | undefined,
@@ -100,10 +105,21 @@ function localizeMaterialPressureAlert(
   return { ...item, title: copy.title, body: copy.body };
 }
 
+function localizeDgNotification(item: NotificationListItem, t: NamespaceTranslator): NotificationListItem {
+  const dg = readDgNotificationMetadata(item.metadata);
+  if (!dg) return item;
+  const copy = renderDgNotificationCopy(t, dg);
+  return { ...item, title: copy.title, body: copy.body };
+}
+
 export function localizeNotificationListItem(
   item: NotificationListItem,
   t: NamespaceTranslator,
 ): NotificationListItem {
+  if (isDgNotificationEventType(item.type)) {
+    return localizeDgNotification(item, t);
+  }
+
   if (item.type === 'material_pressure_alert') {
     return localizeMaterialPressureAlert(item, t);
   }

@@ -1,4 +1,6 @@
 import { getLocale } from 'next-intl/server';
+import { EmployeeQuickCreate } from '@/components/shell/employee-quick-create';
+import { buildEmployeeOrgQuickCreateActions } from '@/components/shell/employee-quick-create-actions';
 import { EmployeeBottomNav } from '@/modules/employee-app/ui/employee-bottom-nav';
 import { EmployeeSideNav } from '@/modules/employee-app/ui/employee-side-nav';
 import { EmployeeShellHeader } from '@/modules/employee-app/ui/employee-shell-header';
@@ -15,9 +17,12 @@ export default async function EmployeeShellLayout({ children }: { children: Reac
     redirect({ href: '/employee/login', locale });
   }
 
-  const shell = await withOrgContext(async (context) => {
+  const { shell, quickCreateActions } = await withOrgContext(async (context) => {
     await assertEmployeeAppContext(context);
-    return getEmployeeShellData(context);
+    return {
+      shell: await getEmployeeShellData(context),
+      quickCreateActions: buildEmployeeOrgQuickCreateActions(context.permissions),
+    };
   });
 
   return (
@@ -35,6 +40,7 @@ export default async function EmployeeShellLayout({ children }: { children: Reac
         </main>
         <EmployeeBottomNav items={shell.nav} />
       </div>
+      <EmployeeQuickCreate actions={quickCreateActions} />
     </div>
   );
 }

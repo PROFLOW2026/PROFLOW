@@ -1,0 +1,271 @@
+{
+  "title": "فحوصات الجودة",
+  "description": "قوائم تحقق حسب الموقع والمقاول، مع نتيجة ناجح / ناجح بشروط / راسب وعيوب للمتابعة.",
+  "detailTitle": "الفحص رقم {ref}",
+  "counts": {
+    "open": "مفتوحة",
+    "passed": "ناجحة",
+    "conditional": "بشروط",
+    "failed": "راسبة"
+  },
+  "filters": {
+    "status": "الحالة",
+    "outcome": "النتيجة",
+    "contractor": "المقاول",
+    "all": "الكل",
+    "anyOutcome": "أي نتيجة",
+    "anyContractor": "أي مقاول",
+    "apply": "تصفية",
+    "clear": "مسح"
+  },
+  "status": {
+    "scheduled": "مجدول",
+    "in_progress": "قيد التنفيذ",
+    "completed": "مكتمل",
+    "cancelled": "ملغى",
+    "open": "مفتوح"
+  },
+  "outcome": {
+    "pass": "ناجح",
+    "conditional_pass": "ناجح بشروط",
+    "fail": "راسب",
+    "none": "لا توجد نتيجة بعد"
+  },
+  "result": {
+    "pending": "لم يُفحص",
+    "pass": "سليم",
+    "fail": "غير سليم",
+    "na": "غير منطبق"
+  },
+  "category": {
+    "general": "عام",
+    "waterproofing": "العزل المائي",
+    "concrete": "الخرسانة",
+    "electrical": "الكهرباء",
+    "plumbing": "السباكة",
+    "finishes": "التشطيبات",
+    "fire": "الحماية من الحريق",
+    "facade": "الواجهات / الألمنيوم",
+    "structure": "الهيكل",
+    "mechanical": "الميكانيك والتكييف",
+    "safety": "السلامة"
+  },
+  "catalog": {
+    "waterproofing": {
+      "name": "العزل المائي",
+      "items": {
+        "substrate_prepared": "السطح نظيف وجاف ومعالج بالبرايمر",
+        "membrane_continuous": "الغشاء متصل دون تمزقات أو فقاعات",
+        "overlaps_sealed": "التراكبات والوصلات محكمة حسب المواصفات",
+        "upstands_height": "الارتدادات على الجدران بالارتفاع المطلوب",
+        "drains_detailed": "المصارف والفتحات مفصلة ومحكمة",
+        "flood_test": "اختبار الغمر 24-48 ساعة دون تسرب",
+        "protection_layer": "تركيب طبقة حماية قبل التغطية"
+      }
+    },
+    "concrete_pre_pour": {
+      "name": "قبل صب الخرسانة",
+      "items": {
+        "formwork_dimensions": "أبعاد ومناسيب القوالب حسب المخططات",
+        "formwork_stable": "القوالب مدعمة ومستقرة ونظيفة",
+        "rebar_per_drawings": "قطر الحديد والتباعد والتراكب حسب المخططات",
+        "cover_spacers": "فواصل الغطاء الخرساني في مكانها",
+        "embedded_items": "الأكمام والمواسير والعناصر المدفونة مثبتة",
+        "engineer_approval": "تسجيل موافقة المهندس الإنشائي",
+        "pour_logistics": "تأكيد طلب الخلطة والمضخة والهزازات"
+      }
+    },
+    "electrical_panel": {
+      "name": "لوحة كهرباء",
+      "items": {
+        "panel_location": "موقع اللوحة والمسافات حسب المخطط",
+        "breakers_rating": "القواطع وقواطع التسرب حسب المخطط الأحادي",
+        "wiring_labeled": "الدوائر مرقمة وجدول الدوائر مرفق",
+        "earthing_bonding": "التأريض وتوصيلات المساواة موصولة ومختبرة",
+        "insulation_test": "نجاح اختبار مقاومة العزل",
+        "cover_closed": "الأغطية والسدادات ودرجة الحماية سليمة"
+      }
+    },
+    "pressure_test": {
+      "name": "اختبار الضغط",
+      "items": {
+        "system_isolated": "القسم معزول والنهايات المفتوحة مسدودة",
+        "gauge_calibrated": "تركيب مقياس ضغط معاير",
+        "test_pressure_reached": "الوصول إلى ضغط الاختبار حسب المواصفات",
+        "hold_duration": "ثبات الضغط للمدة المطلوبة دون انخفاض",
+        "no_visible_leaks": "لا تسربات ظاهرة في الوصلات والقطع",
+        "test_record_signed": "محضر الاختبار موقع من المقاول"
+      }
+    },
+    "ceiling_closure": {
+      "name": "إغلاق السقف",
+      "items": {
+        "services_complete": "جميع الخدمات فوق السقف مركبة ومختبرة",
+        "fire_stopping": "اكتمال سد الحريق في الفتحات",
+        "insulation_installed": "تركيب العزل الحراري / الصوتي",
+        "access_panels": "فتحات الصيانة مقابل المحابس والمعدات",
+        "mep_signoff": "موافقة أعمال الأنظمة على الإغلاق",
+        "photos_taken": "التقاط صور قبل الإغلاق"
+      }
+    },
+    "fire_system": {
+      "name": "نظام الإطفاء",
+      "items": {
+        "sprinkler_layout": "رؤوس الرشاشات حسب المخطط المعتمد",
+        "pipe_pressure_test": "اختبار ضغط أنابيب الرشاشات",
+        "detectors_installed": "تركيب الكواشف ونقاط الإنذار",
+        "panel_commissioned": "تشغيل لوحة إنذار الحريق",
+        "doors_dampers": "أبواب الحريق والمخمدات تعمل",
+        "signage": "لافتات الخروج وإنارة الطوارئ تعمل"
+      }
+    },
+    "aluminium_installation": {
+      "name": "تركيب الألمنيوم",
+      "items": {
+        "frames_plumb": "الإطارات رأسية ومستوية ومثبتة",
+        "sealing": "إحكام محيطي متصل",
+        "glazing_intact": "الزجاج سليم ومن النوع الصحيح ومعلّم",
+        "hardware_operation": "الدرف والمقابض والأقفال تعمل بسلاسة",
+        "drainage_slots": "فتحات التصريف نظيفة؛ نجاح اختبار الماء",
+        "protection_film": "غشاء الحماية والنظافة"
+      }
+    }
+  },
+  "fields": {
+    "title": "العنوان",
+    "template": "قائمة التحقق",
+    "noTemplate": "بدون قائمة (بنود مخصصة فقط)",
+    "customTemplate": "مخصصة",
+    "category": "الفئة",
+    "scheduledFor": "موعد الفحص",
+    "location": "الموقع",
+    "noLocation": "بدون موقع محدد",
+    "contractor": "المقاول",
+    "noContractor": "تنفيذ ذاتي / بدون مقاول",
+    "workLine": "بند العقد",
+    "noWorkLine": "بدون بند",
+    "workPackage": "حزمة العمل",
+    "noWorkPackage": "بدون حزمة عمل",
+    "milestone": "المرحلة",
+    "noMilestone": "بدون مرحلة",
+    "inspector": "المفتش",
+    "contractorVisible": "ظاهر للمقاول في البوابة",
+    "extraItems": "بنود فحص إضافية",
+    "extraItemsHint": "بند واحد في كل سطر. تضاف بعد بنود القائمة.",
+    "summary": "الملخص",
+    "conditions": "الشروط",
+    "outcome": "النتيجة",
+    "attempt": "المحاولة",
+    "reference": "رقم",
+    "completedAt": "اكتمل",
+    "startedAt": "بدأ",
+    "openDefects": "عيوب مفتوحة"
+  },
+  "list": {
+    "empty": "لا توجد فحوصات بعد",
+    "emptyDescription": "جدولوا فحصًا من قائمة تحقق لتسجيل النتيجة حسب الموقع والمقاول.",
+    "attempt": "المحاولة {n}",
+    "scheduled": "مجدول في {date}",
+    "notScheduled": "غير مجدول",
+    "openDefects": "{count, plural, one {عيب مفتوح واحد} other {# عيوب مفتوحة}}",
+    "loadMore": "عرض المزيد",
+    "previous": "السابق"
+  },
+  "create": {
+    "title": "جدولة فحص",
+    "description": "اختاروا قائمة التحقق والموقع والمقاول المسؤول.",
+    "submit": "جدولة الفحص",
+    "success": "تمت جدولة الفحص"
+  },
+  "edit": {
+    "title": "تفاصيل الفحص",
+    "submit": "حفظ التفاصيل",
+    "success": "تم حفظ التفاصيل"
+  },
+  "checklist": {
+    "title": "قائمة التحقق",
+    "empty": "لا توجد بنود في هذا الفحص. سجلوا النتيجة مع ملخص.",
+    "save": "حفظ القائمة",
+    "saved": "تم حفظ القائمة",
+    "required": "إلزامي",
+    "optional": "اختياري",
+    "notePlaceholder": "ملاحظة (اختياري)",
+    "suggested": "حسب القائمة: {outcome}",
+    "locked": "تُقفل القائمة بعد تسجيل النتيجة."
+  },
+  "outcomeForm": {
+    "title": "تسجيل النتيجة",
+    "submit": "تسجيل النتيجة",
+    "summaryHint": "إلزامي لفحص راسب دون بنود راسبة.",
+    "conditionsHint": "إلزامي للنجاح بشروط: ما الذي يجب استكماله.",
+    "followUpTitle": "المتابعة لفحص راسب أو ناجح بشروط",
+    "createDefects": "فتح عيب لكل بند راسب",
+    "defectSeverity": "خطورة العيب",
+    "defectDueDate": "الموعد النهائي للعيب",
+    "defectDueDateHint": "فارغ = حسب الخطورة.",
+    "createTask": "إنشاء مهمة تصحيحية",
+    "taskTitle": "عنوان المهمة",
+    "taskDueDate": "موعد المهمة",
+    "recorded": "تم تسجيل النتيجة"
+  },
+  "actions": {
+    "start": "بدء الفحص",
+    "started": "بدأ الفحص",
+    "reinspect": "جدولة إعادة فحص",
+    "reinspectDate": "موعد إعادة الفحص",
+    "reinspected": "تمت جدولة إعادة الفحص",
+    "cancel": "إلغاء الفحص",
+    "cancelled": "تم إلغاء الفحص",
+    "back": "كل الفحوصات"
+  },
+  "history": {
+    "title": "سجل النتائج",
+    "empty": "لم تسجل نتيجة بعد.",
+    "decidedBy": "سجلها {name}",
+    "counts": "{pass} سليم · {fail} غير سليم · {na} غير منطبق"
+  },
+  "linkedDefects": {
+    "title": "عيوب من هذا الفحص",
+    "empty": "لم تُفتح عيوب من هذا الفحص."
+  },
+  "evidence": {
+    "title": "صور ومستندات"
+  },
+  "discussion": {
+    "title": "نقاش"
+  },
+  "templates": {
+    "title": "قوالب قوائم التحقق",
+    "description": "القوائم المدمجة متاحة دائمًا. أضيفوا قوائمكم لهذا المشروع أو للمؤسسة كلها.",
+    "builtIn": "مدمجة",
+    "empty": "لا توجد قوالب مخصصة بعد.",
+    "name": "اسم القالب",
+    "items": "بنود الفحص",
+    "itemsHint": "بند واحد في كل سطر. ابدأوا السطر بـ \"?\" لجعله اختياريًا.",
+    "scope": "متاح في",
+    "scopeProject": "هذا المشروع",
+    "scopeOrganization": "كل المشاريع",
+    "create": "إضافة قالب",
+    "created": "تمت إضافة القالب",
+    "archive": "أرشفة",
+    "archived": "تمت أرشفة القالب",
+    "itemCount": "{count, plural, one {بند واحد} other {# بنود}}"
+  },
+  "portal": {
+    "title": "الفحوصات",
+    "description": "فحوصات أعمالكم في هذا المشروع ونتائجها.",
+    "empty": "لا توجد فحوصات لأعمالكم بعد.",
+    "failedItems": "بنود للإصلاح",
+    "conditions": "الشروط",
+    "summary": "ملخص المفتش"
+  },
+  "errors": {
+    "invalidTransition": "هذا الإجراء غير متاح في الحالة الحالية للفحص.",
+    "concurrentChange": "تم تعديل الفحص من قبل مستخدم آخر. حدّثوا الصفحة وحاولوا مجددًا.",
+    "checklistLocked": "تُقفل القائمة بعد تسجيل النتيجة.",
+    "required_items_pending": "افحصوا كل البنود الإلزامية قبل تسجيل النتيجة.",
+    "pass_with_required_failure": "رسب بند إلزامي - لا يمكن أن ينجح الفحص.",
+    "conditions_required": "اذكروا شروط النجاح المشروط.",
+    "fail_reason_required": "أضيفوا ملخصًا يوضح سبب الرسوب."
+  }
+}

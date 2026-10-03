@@ -1,0 +1,95 @@
+{
+  "common": { "reason": "السبب", "save": "حفظ" },
+  "list": {
+    "pageTitle": "مطالبات المقاولين",
+    "pageDescription": "التقديم والاعتماد والإرجاع — كل قرار يُحفظ في السجل.",
+    "empty": "لا توجد مطالبات.",
+    "number": "رقم",
+    "contractor": "المقاول",
+    "period": "الفترة",
+    "status": "الحالة",
+    "submitted": "مقدّم (صافي)",
+    "certified": "معتمد (صافي)"
+  },
+  "status": {
+    "draft": "مسودة",
+    "submitted": "مقدّم",
+    "under_review": "قيد المراجعة",
+    "returned": "مُرجَع",
+    "certified": "معتمد",
+    "cancelled": "ملغى"
+  },
+  "decision": {
+    "certify": "اعتماد بند",
+    "reassess": "إعادة تقدير",
+    "reject_line": "رفض بند",
+    "return": "إرجاع للمقاول",
+    "request_evidence": "طلب مستندات"
+  },
+  "detail": {
+    "lines": "بنود المطالبة",
+    "line": "بند",
+    "revised": "القيمة المحدّثة",
+    "assessments": "سجل القرارات",
+    "noAssessments": "لا قرارات بعد.",
+    "revision": "الإصدار {no}",
+    "certifiedAmount": "المبلغ المعتمد",
+    "totalsSubmitted": "إجمالي المقدّم",
+    "totalsCertified": "إجمالي المعتمد"
+  },
+  "actions": {
+    "review": "مراجعة المطالبة",
+    "startReview": "بدء المراجعة",
+    "return": "إرجاع للمقاول",
+    "certify": "اعتماد المطالبة",
+    "certifySubmit": "اعتماد",
+    "reassess": "إعادة تقدير",
+    "reassessSubmit": "حفظ إعادة التقدير",
+    "submitOnBehalf": "تقديم بالنيابة"
+  },
+  "deductions": {
+    "pageTitle": "الخصومات",
+    "pageDescription": "سجلات خصم مستقلة مع إمكانية الإلغاء.",
+    "empty": "لا خصومات.",
+    "agreement": "العقد",
+    "type": "النوع",
+    "amount": "المبلغ (صافي)",
+    "issue": "إصدار خصم",
+    "visibleToContractor": "مرئي للمقاول"
+  },
+  "deductionType": {
+    "back_charge": "رسوم retroactive",
+    "penalty": "غرامة",
+    "damage": "أضرار",
+    "materials": "مواد",
+    "cleanup": "تنظيف",
+    "safety": "سلامة",
+    "other": "أخرى"
+  },
+  "portal": {
+    "claimsTitle": "مطالباتي",
+    "paymentsTitle": "المدفوعات",
+    "submit": "تقديم المطالبة",
+    "startCorrection": "بدء التصحيح",
+    "cancel": "إلغاء المسودة",
+    "paid": "مدفوع",
+    "payable": "مستحق",
+    "retention": "احتجاز",
+    "holds": "تعليق الدفع"
+  },
+  "errors": {
+    "openClaimExists": "يوجد مطالبة مفتوحة لهذا العقد.",
+    "reviewRequired": "فتح مطالبة يتطلب صلاحية مراجعة المطالبات.",
+    "notEditable": "يمكن تعديل المسودة فقط.",
+    "reasonRequired": "السبب مطلوب.",
+    "reasonRequiredForReduction": "السبب مطلوب عند اعتماد أقل من المقدّم."
+  },
+  "validation": {
+    "amount": "مبلغ غير صالح",
+    "amountNonNegative": "يجب أن يكون المبلغ غير سالب",
+    "amountPositive": "يجب أن يكون المبلغ موجباً",
+    "percent": "نسبة غير صالحة",
+    "date": "تاريخ غير صالح",
+    "required": "مطلوب"
+  }
+}

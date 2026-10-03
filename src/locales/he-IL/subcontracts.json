@@ -1,0 +1,289 @@
+{
+  "common": {
+    "none": "ללא",
+    "save": "שמירה",
+    "saved": "נשמר",
+    "reason": "סיבה",
+    "note": "הערה",
+    "previous": "הקודם",
+    "next": "הבא"
+  },
+  "nav": {
+    "label": "חלקי החוזה",
+    "overview": "תמונת מצב",
+    "lines": "סעיפי עבודה",
+    "changes": "שינויים"
+  },
+  "agreementStatus": {
+    "draft": "טיוטה",
+    "active": "פעיל",
+    "suspended": "מושהה",
+    "completed": "הושלם",
+    "closed": "סגור",
+    "cancelled": "בוטל"
+  },
+  "changeStatus": {
+    "draft": "טיוטה",
+    "submitted": "הוגש",
+    "under_negotiation": "במשא ומתן",
+    "approved": "אושר",
+    "rejected": "נדחה",
+    "withdrawn": "בוטל"
+  },
+  "unpricedStatus": {
+    "recorded": "ממתין לתמחור",
+    "converted": "הומר לשינוי",
+    "rejected": "נדחה",
+    "cancelled": "בוטל"
+  },
+  "lineTypes": {
+    "quantity_rate": "כמות × מחיר יחידה",
+    "lump_sum": "פאושלי",
+    "weighted_milestone": "אבן דרך משוקללת",
+    "percentage": "אחוז ביצוע",
+    "allowance": "סכום שמור",
+    "custom": "מותאם אישית"
+  },
+  "changeTypes": {
+    "addition": "תוספת",
+    "deduction": "הפחתה",
+    "scope": "שינוי היקף",
+    "quantity": "שינוי כמות",
+    "rate": "שינוי מחיר יחידה",
+    "extension": "הארכת זמן",
+    "instruction": "הוראת אתר",
+    "contractor_proposal": "הצעת קבלן"
+  },
+  "origins": {
+    "internal": "נפתח על ידי הצוות",
+    "contractor": "נפתח על ידי הקבלן",
+    "site_instruction": "מהוראת אתר",
+    "unpriced_work": "מעבודה שלא תומחרה"
+  },
+  "actors": {
+    "internal": "הצוות שלנו",
+    "external": "הקבלן",
+    "system": "מערכת"
+  },
+  "vat": {
+    "standard": "מע\"מ רגיל",
+    "reverse_charge": "חיוב הפוך",
+    "exempt": "פטור",
+    "zero_rated": "מע\"מ אפס",
+    "not_applicable": "לא רלוונטי"
+  },
+  "advanceRecovery": {
+    "none": "ללא קיזוז",
+    "proportional": "יחסי לעבודה המאושרת",
+    "fixed_percent_per_claim": "אחוז קבוע מכל חשבון"
+  },
+  "agreement": {
+    "createSubmit": "יצירת טיוטת חוזה",
+    "created": "טיוטת החוזה נוצרה",
+    "chooseVendor": "בחירת קבלן",
+    "editTitle": "פרטי החוזה",
+    "fields": {
+      "vendor": "קבלן",
+      "title": "שם החוזה",
+      "number": "מספר חוזה",
+      "trade": "תחום",
+      "workPackage": "חבילת עבודה",
+      "startDate": "תאריך התחלה",
+      "endDate": "תאריך סיום",
+      "originalAmount": "שווי החוזה (נטו)",
+      "scope": "תקציר היקף",
+      "period": "תקופת החוזה"
+    }
+  },
+  "terms": {
+    "title": "תנאים מסחריים",
+    "retentionPercent": "אחוז עיכבון",
+    "retentionCapPercent": "תקרת עיכבון באחוזים",
+    "retentionCapAmount": "תקרת עיכבון בסכום",
+    "advancePercent": "אחוז מקדמה",
+    "advanceAmount": "סכום מקדמה",
+    "advanceRecoveryMethod": "קיזוז מקדמה",
+    "advanceRecoveryPercent": "אחוז קיזוז מכל חשבון",
+    "vatTreatment": "טיפול במע\"מ",
+    "paymentTermsDays": "תנאי תשלום (ימים)",
+    "paymentTermsText": "הערות לתנאי התשלום"
+  },
+  "value": {
+    "title": "שווי החוזה",
+    "original": "שווי מקורי",
+    "approvedChanges": "שינויים מאושרים",
+    "current": "שווי נוכחי",
+    "netNote": "כל סכומי החוזה הם נטו. המע\"מ מחושב בחשבונית הקבלן."
+  },
+  "lifecycle": {
+    "title": "סטטוס החוזה",
+    "suspensionReason": "סיבת ההשהיה",
+    "actions": {
+      "activate": "הפעלת החוזה",
+      "suspend": "השהיה",
+      "resume": "חידוש",
+      "complete": "סימון כהושלם",
+      "close": "סגירת החוזה",
+      "cancel": "ביטול הטיוטה"
+    },
+    "hints": {
+      "activate": "נועל את סעיפי העבודה ורושם את שווי החוזה המקורי.",
+      "suspend": "העבודה נעצרת; עדיין ניתן לטפל בשינויים.",
+      "resume": "מחזיר את החוזה למצב פעיל.",
+      "complete": "העבודה הסתיימה; חשבונות ומסירה ממשיכים.",
+      "close": "סופי. מחייב סגירה של כל השינויים והעבודות שלא תומחרו.",
+      "cancel": "הטיוטה נשמרת להיסטוריה ולא ניתן יהיה להפעיל אותה."
+    }
+  },
+  "lines": {
+    "title": "סעיפי עבודה",
+    "pageDescription": "היקף החוזה מחולק לסעיפי עבודה מדידים.",
+    "add": "הוספת סעיף עבודה",
+    "added": "סעיף העבודה נוסף",
+    "edit": "עריכה",
+    "archive": "הסרה מהטיוטה",
+    "pricingHint": "סעיפי כמות × מחיר מתומחרים לפי מחיר היחידה; שאר הסוגים לפי סכום הסעיף.",
+    "lockedHint": "החוזה פעיל: היקף, כמות ומחיר משתנים רק דרך שינוי מאושר.",
+    "baselineLocked": "הבסיס נעול. השתמשו בלשונית השינויים כדי להוסיף, להפחית או לתמחר מחדש.",
+    "emptyTitle": "עדיין אין סעיפי עבודה",
+    "emptyDescription": "הוסיפו את הסעיפים שמרכיבים את החוזה לפני הפעלתו.",
+    "fromChange": "נוסף בשינוי מאושר",
+    "fields": {
+      "code": "קוד",
+      "description": "תיאור",
+      "lineType": "סוג סעיף",
+      "unit": "יחידה",
+      "quantity": "כמות",
+      "weightPercent": "משקל באחוזים",
+      "plannedStart": "התחלה מתוכננת",
+      "plannedEnd": "סיום מתוכנן",
+      "planned": "תאריכים מתוכננים",
+      "location": "מיקום",
+      "workPackage": "חבילת עבודה",
+      "unitPrice": "מחיר יחידה",
+      "contractAmount": "סכום הסעיף",
+      "baseline": "בסיס החוזה",
+      "approvedChanges": "שינויים מאושרים",
+      "revised": "שווי מעודכן"
+    }
+  },
+  "changes": {
+    "title": "שינויים",
+    "pageDescription": "תוספות, הפחתות והוראות בחוזה זה. רק שינויים מאושרים משנים את שווי החוזה.",
+    "createTitle": "פתיחת שינוי",
+    "create": "יצירת שינוי",
+    "created": "השינוי נוצר כטיוטה",
+    "notRunning": "ניתן לפתוח שינויים לאחר הפעלת החוזה.",
+    "operationalNote": "מחירים וסכומי משא ומתן מוצגים רק למורשי גישה פיננסית לחוזה.",
+    "emptyTitle": "עדיין אין שינויים",
+    "emptyDescription": "שינויים שנפתחו על ידי הצוות או הוצעו על ידי הקבלן יופיעו כאן.",
+    "extensionDays": "{days} ימים נוספים",
+    "decisionReason": "הערת החלטה",
+    "fields": {
+      "type": "סוג השינוי",
+      "title": "כותרת",
+      "description": "תיאור",
+      "timeExtensionDays": "הארכת זמן (ימים)",
+      "approveVersion": "גרסה לאישור"
+    },
+    "actions": {
+      "submit": "הגשה לתמחור",
+      "withdraw": "משיכה",
+      "approve": "אישור השינוי",
+      "reject": "דחיית השינוי"
+    }
+  },
+  "versions": {
+    "label": "גרסה {no}",
+    "none": "טרם תומחר",
+    "propose": "תמחור / הצעה נגדית",
+    "proposeSubmit": "הוספת גרסה",
+    "amount": "סכום כולל (נטו)",
+    "note": "הערה",
+    "linesTitle": "פירוט לפי סעיפים (רשות)",
+    "linesHint": "כאשר מוזנים סעיפים, הסכום הכולל הוא סכום הסעיפים.",
+    "target": "סעיף עבודה",
+    "chooseTarget": "בחירת סעיף",
+    "newLine": "סעיף חדש",
+    "quantityDelta": "שינוי כמות",
+    "unitRate": "מחיר יחידה",
+    "amountDelta": "שינוי סכום",
+    "addLine": "הוספת סעיף",
+    "removeLine": "הסרה"
+  },
+  "unpriced": {
+    "pageTitle": "עבודות שלא תומחרו",
+    "pageDescription": "עבודות שבוצעו לפני שסוכם מחיר. המירו כל רשומה לשינוי לתמחור או דחו אותה.",
+    "recordTitle": "רישום עבודה שלא תומחרה",
+    "record": "רישום",
+    "recorded": "העבודה נרשמה",
+    "chooseAgreement": "בחירת חוזה",
+    "filterLabel": "סינון לפי סטטוס",
+    "filters": {
+      "open": "ממתין לתמחור",
+      "converted": "הומר",
+      "rejected": "נדחה",
+      "cancelled": "בוטל",
+      "all": "הכול"
+    },
+    "fields": {
+      "agreement": "חוזה קבלן",
+      "title": "מה בוצע",
+      "workDate": "תאריך ביצוע",
+      "issuer": "הוזמן על ידי",
+      "scope": "פירוט ההיקף"
+    },
+    "actions": {
+      "convert": "המרה לשינוי",
+      "reject": "דחייה",
+      "cancel": "ביטול הרשומה"
+    },
+    "issuedBy": "הוזמן על ידי {name}",
+    "viewChange": "צפייה בשינוי",
+    "emptyTitle": "אין עבודות שלא תומחרו",
+    "emptyDescription": "רשמו עבודה שקבלן ביצע לפני שסוכם מחיר כדי שלא תלך לאיבוד."
+  },
+  "portal": {
+    "contractDescription": "סעיפי העבודה והסטטוס של החוזה שלכם.",
+    "changesDescription": "שינויים בחוזה שלכם וההצעות שהגשתם.",
+    "proposeTitle": "הצעת שינוי",
+    "proposeSubmit": "שליחת ההצעה",
+    "proposed": "ההצעה נשלחה",
+    "counterTitle": "שליחת הצעה נגדית",
+    "counterSubmit": "שליחת הצעה נגדית",
+    "countered": "ההצעה הנגדית נשלחה"
+  },
+  "errors": {
+    "lifecycleTransition": "שינוי הסטטוס אינו אפשרי במצב הנוכחי של החוזה.",
+    "baselineLocked": "החוזה פעיל. שינוי היקף, כמות או מחיר נעשה דרך שינוי מאושר.",
+    "changeRequiresRunningAgreement": "שינויים מחייבים חוזה פעיל או מושהה.",
+    "changeTransition": "הפעולה אינה זמינה במצב הנוכחי של השינוי.",
+    "unpricedTransition": "הרשומה כבר טופלה.",
+    "closeBlocked": "יש לסגור את כל השינויים הפתוחים והעבודות שלא תומחרו לפני סגירת החוזה.",
+    "weightsIncomplete": "סעיפי אבני הדרך המשוקללות חייבים להסתכם ב-100% בדיוק.",
+    "additionNegative": "תוספת אינה יכולה להקטין את שווי החוזה.",
+    "deductionPositive": "הפחתה אינה יכולה להגדיל את שווי החוזה.",
+    "belowZero": "לא ניתן לעדכן סעיף עבודה לשווי שלילי.",
+    "contractBelowZero": "שווי החוזה אינו יכול לרדת מתחת לאפס.",
+    "vendorNotSubcontractor": "ניתן ליצור חוזה רק לספקים המוגדרים כקבלני משנה.",
+    "numberTaken": "מספר החוזה כבר בשימוש.",
+    "notEditable": "לא ניתן לערוך חוזה סגור או מבוטל.",
+    "valueDerivedFromLines": "שווי החוזה הוא סכום סעיפי העבודה.",
+    "originalMismatch": "השווי המקורי שנרשם שונה מסכום סעיפי העבודה.",
+    "lineCodeTaken": "קוד הסעיף כבר בשימוש בחוזה.",
+    "changeNotPriced": "יש לתמחר את השינוי לפני האישור.",
+    "lineNotActive": "אחד הסעיפים בשינוי כבר אינו פעיל.",
+    "cannotWithdrawExternal": "הצעת קבלן נדחית ואינה נמשכת.",
+    "unpricedRequiresRunningAgreement": "עבודה שלא תומחרה נרשמת על חוזה פעיל, מושהה או שהושלם."
+  },
+  "validation": {
+    "parentContractProject": "חוזה האב חייב להיות שייך לפרויקט זה.",
+    "workPackageProject": "חבילת העבודה חייבת להיות שייכת לפרויקט זה.",
+    "locationProject": "המיקום חייב להיות שייך לפרויקט זה.",
+    "reasonRequired": "יש לציין סיבה.",
+    "versionLineTarget": "בחרו סעיף קיים או תארו סעיף חדש.",
+    "lineNotInAgreement": "הסעיף אינו שייך לחוזה.",
+    "contractorProposalExternal": "הצעות קבלן מוגשות מפורטל הקבלנים.",
+    "newLineNegative": "לסעיף חדש לא יכולים להיות כמות או סכום שליליים."
+  }
+}

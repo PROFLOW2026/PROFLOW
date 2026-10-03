@@ -1,0 +1,271 @@
+{
+  "title": "בקרות איכות",
+  "description": "רשימות תיוג לפי מיקום וקבלן, עם תוצאה עבר / עבר בתנאים / נכשל וליקויים להמשך טיפול.",
+  "detailTitle": "בקרה מס' {ref}",
+  "counts": {
+    "open": "פתוחות",
+    "passed": "עברו",
+    "conditional": "בתנאים",
+    "failed": "נכשלו"
+  },
+  "filters": {
+    "status": "סטטוס",
+    "outcome": "תוצאה",
+    "contractor": "קבלן",
+    "all": "הכל",
+    "anyOutcome": "כל תוצאה",
+    "anyContractor": "כל קבלן",
+    "apply": "סינון",
+    "clear": "ניקוי"
+  },
+  "status": {
+    "scheduled": "מתוכננת",
+    "in_progress": "בביצוע",
+    "completed": "הושלמה",
+    "cancelled": "בוטלה",
+    "open": "פתוחה"
+  },
+  "outcome": {
+    "pass": "עבר",
+    "conditional_pass": "עבר בתנאים",
+    "fail": "נכשל",
+    "none": "טרם נקבעה תוצאה"
+  },
+  "result": {
+    "pending": "לא נבדק",
+    "pass": "תקין",
+    "fail": "לא תקין",
+    "na": "לא רלוונטי"
+  },
+  "category": {
+    "general": "כללי",
+    "waterproofing": "איטום",
+    "concrete": "בטון",
+    "electrical": "חשמל",
+    "plumbing": "אינסטלציה",
+    "finishes": "גמרים",
+    "fire": "כיבוי אש",
+    "facade": "חזיתות / אלומיניום",
+    "structure": "שלד",
+    "mechanical": "מיזוג ומכניקה",
+    "safety": "בטיחות"
+  },
+  "catalog": {
+    "waterproofing": {
+      "name": "איטום",
+      "items": {
+        "substrate_prepared": "התשתית נקייה, יבשה ומפוריימרת",
+        "membrane_continuous": "יריעה רציפה, ללא קרעים או בועות",
+        "overlaps_sealed": "חפיות ותפרים אטומים לפי המפרט",
+        "upstands_height": "הגבהות וקיפולי קיר בגובה הנדרש",
+        "drains_detailed": "מחסומים ומעברים מפורטים ואטומים",
+        "flood_test": "בדיקת הצפה 24-48 שעות ללא נזילה",
+        "protection_layer": "שכבת הגנה הותקנה לפני כיסוי"
+      }
+    },
+    "concrete_pre_pour": {
+      "name": "לפני יציקת בטון",
+      "items": {
+        "formwork_dimensions": "מידות ומפלסי טפסות לפי התוכניות",
+        "formwork_stable": "טפסות מתומכות, יציבות ונקיות",
+        "rebar_per_drawings": "קוטר, מרווח וחפיית זיון לפי התוכניות",
+        "cover_spacers": "סומכי כיסוי בטון במקומם",
+        "embedded_items": "שרוולים, צנרת ופריטים יצוקים מקובעים",
+        "engineer_approval": "אישור מהנדס קונסטרוקציה נרשם",
+        "pour_logistics": "הזמנת תערובת, משאבה ומרטטים אושרו"
+      }
+    },
+    "electrical_panel": {
+      "name": "לוח חשמל",
+      "items": {
+        "panel_location": "מיקום הלוח ומרווחים לפי התוכנית",
+        "breakers_rating": "מפסקים ומפסקי פחת לפי הסכימה החד-קווית",
+        "wiring_labeled": "מעגלים מסומנים וטבלת מעגלים מצורפת",
+        "earthing_bonding": "הארקה והשוואת פוטנציאלים מחוברות ונבדקו",
+        "insulation_test": "בדיקת התנגדות בידוד עברה",
+        "cover_closed": "מכסים, פקקים ודרגת אטימות תקינים"
+      }
+    },
+    "pressure_test": {
+      "name": "בדיקת לחץ",
+      "items": {
+        "system_isolated": "הקטע מבודד וקצוות פתוחים פקוקים",
+        "gauge_calibrated": "מד לחץ מכויל מותקן",
+        "test_pressure_reached": "הושג לחץ הבדיקה לפי המפרט",
+        "hold_duration": "הלחץ נשמר לאורך הזמן הנדרש ללא ירידה",
+        "no_visible_leaks": "אין נזילות נראות בחיבורים ובאביזרים",
+        "test_record_signed": "פרוטוקול הבדיקה חתום על ידי הקבלן"
+      }
+    },
+    "ceiling_closure": {
+      "name": "סגירת תקרה",
+      "items": {
+        "services_complete": "כל המערכות מעל התקרה הותקנו ונבדקו",
+        "fire_stopping": "חסימת אש במעברים הושלמה",
+        "insulation_installed": "בידוד תרמי / אקוסטי הותקן",
+        "access_panels": "פתחי שירות ממוקמים מול ברזים וציוד",
+        "mep_signoff": "מקצועות המערכות אישרו סגירה",
+        "photos_taken": "צולמו תמונות לפני הסגירה"
+      }
+    },
+    "fire_system": {
+      "name": "מערכת כיבוי אש",
+      "items": {
+        "sprinkler_layout": "ראשי ספרינקלרים לפי התוכנית המאושרת",
+        "pipe_pressure_test": "צנרת ספרינקלרים עברה בדיקת לחץ",
+        "detectors_installed": "גלאים ולחצני אזעקה הותקנו",
+        "panel_commissioned": "רכזת גילוי אש הופעלה ונבדקה",
+        "doors_dampers": "דלתות אש ומדפים פועלים",
+        "signage": "שילוט יציאה ותאורת חירום פועלים"
+      }
+    },
+    "aluminium_installation": {
+      "name": "התקנת אלומיניום",
+      "items": {
+        "frames_plumb": "משקופים מפולסים, מאונכים ומעוגנים",
+        "sealing": "איטום היקפי רציף",
+        "glazing_intact": "זיגוג שלם, מהסוג הנכון ומסומן",
+        "hardware_operation": "כנפיים, ידיות ומנעולים פועלים בחלקות",
+        "drainage_slots": "חריצי ניקוז פתוחים; בדיקת מים עברה",
+        "protection_film": "ניילון מגן וניקיון"
+      }
+    }
+  },
+  "fields": {
+    "title": "כותרת",
+    "template": "רשימת תיוג",
+    "noTemplate": "ללא רשימה (פריטים מותאמים בלבד)",
+    "customTemplate": "מותאם",
+    "category": "קטגוריה",
+    "scheduledFor": "מתוכנן לתאריך",
+    "location": "מיקום",
+    "noLocation": "ללא מיקום מסוים",
+    "contractor": "קבלן",
+    "noContractor": "ביצוע עצמי / ללא קבלן",
+    "workLine": "סעיף בחוזה",
+    "noWorkLine": "ללא סעיף",
+    "workPackage": "חבילת עבודה",
+    "noWorkPackage": "ללא חבילת עבודה",
+    "milestone": "אבן דרך",
+    "noMilestone": "ללא אבן דרך",
+    "inspector": "בודק",
+    "contractorVisible": "גלוי לקבלן בפורטל",
+    "extraItems": "פריטי בדיקה נוספים",
+    "extraItemsHint": "פריט אחד בכל שורה. יתווספו אחרי פריטי הרשימה.",
+    "summary": "סיכום",
+    "conditions": "תנאים",
+    "outcome": "תוצאה",
+    "attempt": "ניסיון",
+    "reference": "מס'",
+    "completedAt": "הושלמה",
+    "startedAt": "התחילה",
+    "openDefects": "ליקויים פתוחים"
+  },
+  "list": {
+    "empty": "אין עדיין בקרות",
+    "emptyDescription": "תזמנו בקרה מתוך רשימת תיוג כדי לתעד תוצאה לפי מיקום וקבלן.",
+    "attempt": "ניסיון {n}",
+    "scheduled": "מתוכננת ל-{date}",
+    "notScheduled": "לא תוזמנה",
+    "openDefects": "{count, plural, one {ליקוי פתוח אחד} other {# ליקויים פתוחים}}",
+    "loadMore": "הצג עוד",
+    "previous": "הקודם"
+  },
+  "create": {
+    "title": "תזמון בקרה",
+    "description": "בחרו רשימת תיוג, מיקום וקבלן אחראי.",
+    "submit": "תזמון בקרה",
+    "success": "הבקרה תוזמנה"
+  },
+  "edit": {
+    "title": "פרטי הבקרה",
+    "submit": "שמירת פרטים",
+    "success": "הפרטים נשמרו"
+  },
+  "checklist": {
+    "title": "רשימת תיוג",
+    "empty": "אין פריטי בדיקה בבקרה זו. רשמו תוצאה עם סיכום.",
+    "save": "שמירת רשימה",
+    "saved": "הרשימה נשמרה",
+    "required": "חובה",
+    "optional": "רשות",
+    "notePlaceholder": "הערה (רשות)",
+    "suggested": "לפי הרשימה: {outcome}",
+    "locked": "הרשימה ננעלת לאחר רישום תוצאה."
+  },
+  "outcomeForm": {
+    "title": "רישום תוצאה",
+    "submit": "רישום תוצאה",
+    "summaryHint": "חובה בבקרה שנכשלה ללא פריטים שנכשלו.",
+    "conditionsHint": "חובה במעבר בתנאים: מה עוד צריך להשלים.",
+    "followUpTitle": "המשך טיפול בבקרה שנכשלה או עברה בתנאים",
+    "createDefects": "פתיחת ליקוי לכל פריט שנכשל",
+    "defectSeverity": "חומרת הליקוי",
+    "defectDueDate": "תאריך יעד לליקוי",
+    "defectDueDateHint": "ריק = לפי החומרה.",
+    "createTask": "יצירת משימת תיקון",
+    "taskTitle": "כותרת המשימה",
+    "taskDueDate": "תאריך יעד למשימה",
+    "recorded": "התוצאה נרשמה"
+  },
+  "actions": {
+    "start": "התחלת בקרה",
+    "started": "הבקרה התחילה",
+    "reinspect": "תזמון בקרה חוזרת",
+    "reinspectDate": "תאריך בקרה חוזרת",
+    "reinspected": "בקרה חוזרת תוזמנה",
+    "cancel": "ביטול בקרה",
+    "cancelled": "הבקרה בוטלה",
+    "back": "כל הבקרות"
+  },
+  "history": {
+    "title": "היסטוריית תוצאות",
+    "empty": "טרם נרשמה תוצאה.",
+    "decidedBy": "נרשם על ידי {name}",
+    "counts": "{pass} תקין · {fail} לא תקין · {na} לא רלוונטי"
+  },
+  "linkedDefects": {
+    "title": "ליקויים מבקרה זו",
+    "empty": "לא נפתחו ליקויים מבקרה זו."
+  },
+  "evidence": {
+    "title": "תמונות ומסמכים"
+  },
+  "discussion": {
+    "title": "דיון"
+  },
+  "templates": {
+    "title": "תבניות רשימות תיוג",
+    "description": "הרשימות המובנות זמינות תמיד. הוסיפו רשימות משלכם לפרויקט זה או לכל הארגון.",
+    "builtIn": "מובנית",
+    "empty": "אין עדיין תבניות מותאמות.",
+    "name": "שם התבנית",
+    "items": "פריטי בדיקה",
+    "itemsHint": "פריט אחד בכל שורה. התחילו שורה ב-\"?\" כדי לסמן פריט רשות.",
+    "scope": "זמינה ב",
+    "scopeProject": "פרויקט זה",
+    "scopeOrganization": "כל הפרויקטים",
+    "create": "הוספת תבנית",
+    "created": "התבנית נוספה",
+    "archive": "העברה לארכיון",
+    "archived": "התבנית הועברה לארכיון",
+    "itemCount": "{count, plural, one {פריט אחד} other {# פריטים}}"
+  },
+  "portal": {
+    "title": "בקרות",
+    "description": "בקרות על העבודה שלכם בפרויקט ותוצאותיהן.",
+    "empty": "אין עדיין בקרות על העבודה שלכם.",
+    "failedItems": "פריטים לתיקון",
+    "conditions": "תנאים",
+    "summary": "סיכום הבודק"
+  },
+  "errors": {
+    "invalidTransition": "הפעולה אינה זמינה בסטטוס הנוכחי של הבקרה.",
+    "concurrentChange": "הבקרה עודכנה על ידי משתמש אחר. רעננו ונסו שוב.",
+    "checklistLocked": "הרשימה ננעלת לאחר רישום תוצאה.",
+    "required_items_pending": "יש לבדוק את כל פריטי החובה לפני רישום התוצאה.",
+    "pass_with_required_failure": "פריט חובה נכשל - הבקרה לא יכולה לעבור.",
+    "conditions_required": "פרטו את התנאים למעבר בתנאים.",
+    "fail_reason_required": "הוסיפו סיכום שמסביר את הכישלון."
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "title": "Critical deliveries",
+  "description": "Track material and equipment deliveries, expected dates and delays.",
+  "fields": {
+    "itemName": "Item",
+    "expectedDate": "Expected date",
+    "unassigned": "Unassigned contractor"
+  },
+  "state": {
+    "planned": "Planned",
+    "ordered": "Ordered",
+    "in_transit": "In transit",
+    "partially_delivered": "Partially delivered",
+    "delivered": "Delivered",
+    "rejected": "Rejected",
+    "cancelled": "Cancelled"
+  },
+  "filters": {
+    "open": "Open",
+    "all": "All"
+  },
+  "create": {
+    "title": "Add delivery",
+    "submit": "Save",
+    "cancel": "Cancel"
+  },
+  "empty": {
+    "title": "No deliveries",
+    "description": "Register critical material or equipment expected on site."
+  },
+  "portal": {
+    "title": "Deliveries",
+    "description": "Register and update your critical deliveries.",
+    "registerTitle": "Register delivery",
+    "registerSubmit": "Register",
+    "reportDelay": "Confirm delay notice",
+    "delayNote": "Contractor delay notice",
+    "summaryOpen": "{count} open",
+    "summaryDelayed": "{count} delayed",
+    "empty": "You have no visible deliveries on this project."
+  },
+  "errors": {
+    "invalidTransition": "This status change is not allowed.",
+    "contractorStateNotAllowed": "Contractors cannot set this delivery state.",
+    "closed": "Delivery is closed.",
+    "actualDateRequired": "Actual delivery date is required.",
+    "newDateRequired": "A delay notice needs the new expected date."
+  }
+}

@@ -95,3 +95,45 @@ export function expenseSearchHref(id: string): string {
 export function purchaseOrderSearchHref(id: string): string {
   return `/procurement/po/${id}`;
 }
+
+/** Agreement the contractors list already opens. */
+export function contractorSearchHref(projectId: string, agreementId: string): string {
+  return `/projects/${projectId}/contractors/${agreementId}/changes`;
+}
+
+export function coordinationEventSearchHref(projectId: string, eventId: string): string {
+  return `/projects/${projectId}/coordination/${eventId}`;
+}
+
+export function claimSearchHref(projectId: string, claimId: string): string {
+  return `/projects/${projectId}/claims/${claimId}`;
+}
+
+export function rfiSearchHref(projectId: string, rfiId: string): string {
+  return `/projects/${projectId}/rfi/${rfiId}`;
+}
+
+export function submittalSearchHref(projectId: string, submittalId: string): string {
+  return `/projects/${projectId}/submittals/${submittalId}`;
+}
+
+export function defectSearchHref(projectId: string, defectId: string): string {
+  return `/projects/${projectId}/defects/${defectId}`;
+}
+
+export function drawingSearchHref(projectId: string, drawingId: string): string {
+  return `/projects/${projectId}/plans/${drawingId}`;
+}
+
+/** Structure page is the location surface the viewer can open. */
+export function locationSearchHref(projectId: string): string {
+  return `/projects/${projectId}/structure`;
+}
+
+export function meetingSearchHref(projectId: string, meetingId: string): string {
+  return `/projects/${projectId}/site-meetings/${meetingId}`;
+}
+
+export function siteInstructionSearchHref(projectId: string, instructionId: string): string {
+  return `/projects/${projectId}/instructions/${instructionId}`;
+}

@@ -11,6 +11,7 @@
  */
 
 import { and, desc, eq, gte, inArray, isNull, lte, or } from 'drizzle-orm';
+import { numeric, pgView, text, uuid } from 'drizzle-orm/pg-core';
 import {
   apBills,
   apPaymentApplications,
@@ -36,6 +37,13 @@ import type {
   SubcontractValueEventKind,
   SubcontractValueEventRecord,
 } from '../domain/subcontract-types';
+import {
+  toSubcontractOperationalView,
+  type SubcontractAgreementHeaderRecord,
+  type SubcontractAgreementMoney,
+  type SubcontractAgreementOperationalRecord,
+  type SubcontractOperationalView,
+} from '../domain/subcontract-projections';
 import { computeSubcontractCashPosition } from '../domain/subcontract-cash';
 import { computeCurrentSubcontractValue } from '../domain/subcontract-value';
 import {
@@ -48,7 +56,54 @@ import {
 import { listSubcontractAdvances } from './subcontract-advances.repository';
 import { loadRecognizedActualForSubcontractAgreement } from '@/modules/financials';
 
-function mapAgreement(row: typeof subcontractAgreements.$inferSelect): SubcontractAgreementRecord {
+/**
+ * Security-barrier view (migration 0168). Header money is column-revoked on
+ * `subcontract_agreements` for `authenticated`; rows appear here only when
+ * `app.subcontract_money_visible` (or the external value scope) allows.
+ */
+const subcontractAgreementMoneySecure = pgView('subcontract_agreement_money_secure', {
+  id: uuid('id').notNull(),
+  organizationId: uuid('organization_id').notNull(),
+  projectId: uuid('project_id').notNull(),
+  vendorId: uuid('vendor_id').notNull(),
+  currency: text('currency').notNull(),
+  originalAmount: numeric('original_amount', { precision: 18, scale: 6 }).notNull(),
+  retentionPercent: numeric('retention_percent', { precision: 9, scale: 6 }),
+}).existing();
+
+/** Agreement columns without money (no original_amount / retention_percent / currency). */
+const OPERATIONAL_AGREEMENT_COLUMNS = {
+  id: subcontractAgreements.id,
+  organizationId: subcontractAgreements.organizationId,
+  subcontractNumber: subcontractAgreements.subcontractNumber,
+  vendorId: subcontractAgreements.vendorId,
+  projectId: subcontractAgreements.projectId,
+  parentContractId: subcontractAgreements.parentContractId,
+  title: subcontractAgreements.title,
+  status: subcontractAgreements.status,
+  paymentTermId: subcontractAgreements.paymentTermId,
+  startDate: subcontractAgreements.startDate,
+  endDate: subcontractAgreements.endDate,
+  notes: subcontractAgreements.notes,
+  archivedAt: subcontractAgreements.archivedAt,
+  createdByUserId: subcontractAgreements.createdByUserId,
+  createdAt: subcontractAgreements.createdAt,
+  updatedAt: subcontractAgreements.updatedAt,
+};
+
+/** Every column `authenticated` may still SELECT on `subcontract_agreements`. */
+const HEADER_AGREEMENT_COLUMNS = {
+  ...OPERATIONAL_AGREEMENT_COLUMNS,
+  currency: subcontractAgreements.currency,
+};
+
+type OperationalAgreementRow = {
+  [K in keyof typeof OPERATIONAL_AGREEMENT_COLUMNS]: (typeof subcontractAgreements.$inferSelect)[K];
+};
+
+type HeaderAgreementRow = OperationalAgreementRow & { currency: string };
+
+function mapOperationalAgreement(row: OperationalAgreementRow): SubcontractAgreementOperationalRecord {
   return {
     id: row.id,
     organizationId: row.organizationId,
@@ -58,9 +113,6 @@ function mapAgreement(row: typeof subcontractAgreements.$inferSelect): Subcontra
     parentContractId: row.parentContractId,
     title: row.title,
     status: row.status as SubcontractStatus,
-    originalAmount: row.originalAmount,
-    currency: row.currency,
-    retentionPercent: row.retentionPercent,
     paymentTermId: row.paymentTermId ?? null,
     startDate: row.startDate,
     endDate: row.endDate,
@@ -69,6 +121,21 @@ function mapAgreement(row: typeof subcontractAgreements.$inferSelect): Subcontra
     createdByUserId: row.createdByUserId,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
+  };
+}
+
+function mapHeaderAgreement(row: HeaderAgreementRow): SubcontractAgreementHeaderRecord {
+  return { ...mapOperationalAgreement(row), currency: row.currency };
+}
+
+export function withSubcontractAgreementMoney(
+  header: SubcontractAgreementHeaderRecord,
+  agreementMoney: Pick<SubcontractAgreementMoney, 'originalAmount' | 'retentionPercent'>,
+): SubcontractAgreementRecord {
+  return {
+    ...header,
+    originalAmount: agreementMoney.originalAmount,
+    retentionPercent: agreementMoney.retentionPercent,
   };
 }
 
@@ -126,9 +193,12 @@ export async function insertSubcontractAgreement(
       notes: input.notes ?? null,
       createdByUserId: input.createdByUserId,
     })
-    .returning();
+    .returning(HEADER_AGREEMENT_COLUMNS);
 
-  return mapAgreement(row!);
+  return withSubcontractAgreementMoney(mapHeaderAgreement(row!), {
+    originalAmount: input.originalAmount,
+    retentionPercent: input.retentionPercent ?? null,
+  });
 }
 
 export async function insertSubcontractValueEvent(
@@ -161,13 +231,14 @@ export async function insertSubcontractValueEvent(
   return mapEvent(row!);
 }
 
+/** Agreement header (no `original_amount` / `retention_percent`). */
 export async function findSubcontractAgreementById(
   db: DbExecutor,
   organizationId: string,
   subcontractId: string,
-): Promise<SubcontractAgreementRecord | null> {
+): Promise<SubcontractAgreementHeaderRecord | null> {
   const [row] = await db
-    .select()
+    .select(HEADER_AGREEMENT_COLUMNS)
     .from(subcontractAgreements)
     .where(
       and(
@@ -178,16 +249,64 @@ export async function findSubcontractAgreementById(
     )
     .limit(1);
 
-  return row ? mapAgreement(row) : null;
+  return row ? mapHeaderAgreement(row) : null;
+}
+
+/**
+ * Header money from `subcontract_agreement_money_secure`. Null when the agreement does not
+ * exist or the caller fails the DB money gate. Callers must already have passed the app gate.
+ */
+export async function findSubcontractAgreementMoneyById(
+  db: DbExecutor,
+  organizationId: string,
+  subcontractId: string,
+): Promise<SubcontractAgreementMoney | null> {
+  const byId = await listSubcontractAgreementMoney(db, organizationId, [subcontractId]);
+  return byId.get(subcontractId) ?? null;
+}
+
+export async function listSubcontractAgreementMoney(
+  db: DbExecutor,
+  organizationId: string,
+  subcontractIds: readonly string[],
+): Promise<Map<string, SubcontractAgreementMoney>> {
+  if (subcontractIds.length === 0) return new Map();
+  const rows = await db
+    .select({
+      id: subcontractAgreementMoneySecure.id,
+      currency: subcontractAgreementMoneySecure.currency,
+      originalAmount: subcontractAgreementMoneySecure.originalAmount,
+      retentionPercent: subcontractAgreementMoneySecure.retentionPercent,
+    })
+    .from(subcontractAgreementMoneySecure)
+    .where(
+      and(
+        eq(subcontractAgreementMoneySecure.organizationId, organizationId),
+        inArray(subcontractAgreementMoneySecure.id, [...subcontractIds]),
+      ),
+    );
+  return new Map(rows.map((row) => [row.id, row]));
+}
+
+/** Full agreement (header + money). Null when missing or money is not visible to the caller. */
+export async function findSubcontractAgreementWithMoneyById(
+  db: DbExecutor,
+  organizationId: string,
+  subcontractId: string,
+): Promise<SubcontractAgreementRecord | null> {
+  const header = await findSubcontractAgreementById(db, organizationId, subcontractId);
+  if (!header) return null;
+  const agreementMoney = await findSubcontractAgreementMoneyById(db, organizationId, header.id);
+  return agreementMoney ? withSubcontractAgreementMoney(header, agreementMoney) : null;
 }
 
 export async function findSubcontractAgreementByIdForUpdate(
   db: DbExecutor,
   organizationId: string,
   subcontractId: string,
-): Promise<SubcontractAgreementRecord | null> {
+): Promise<SubcontractAgreementHeaderRecord | null> {
   const [row] = await db
-    .select()
+    .select(HEADER_AGREEMENT_COLUMNS)
     .from(subcontractAgreements)
     .where(
       and(
@@ -199,7 +318,7 @@ export async function findSubcontractAgreementByIdForUpdate(
     .for('update')
     .limit(1);
 
-  return row ? mapAgreement(row) : null;
+  return row ? mapHeaderAgreement(row) : null;
 }
 
 export async function updateSubcontractAgreementById(
@@ -219,7 +338,7 @@ export async function updateSubcontractAgreementById(
     notes: string | null;
   }>,
   options?: { readonly fromStatuses?: readonly SubcontractStatus[] },
-): Promise<SubcontractAgreementRecord | null> {
+): Promise<SubcontractAgreementHeaderRecord | null> {
   const conditions = [
     eq(subcontractAgreements.id, subcontractId),
     eq(subcontractAgreements.organizationId, organizationId),
@@ -232,9 +351,9 @@ export async function updateSubcontractAgreementById(
     .update(subcontractAgreements)
     .set({ ...patch, updatedAt: new Date() })
     .where(and(...conditions))
-    .returning();
+    .returning(HEADER_AGREEMENT_COLUMNS);
 
-  return row ? mapAgreement(row) : null;
+  return row ? mapHeaderAgreement(row) : null;
 }
 
 export async function listSubcontractValueEvents(
@@ -256,19 +375,43 @@ export async function listSubcontractValueEvents(
   return rows.map(mapEvent);
 }
 
-async function listAgreements(
+/** Operational read of one agreement: never selects money columns. */
+export async function findSubcontractAgreementOperationalById(
   db: DbExecutor,
   organizationId: string,
-  filters: {
-    vendorId?: string;
-    projectId?: string;
-    status?: string;
-    limit?: number;
-    /** Filter agreements active within this period (startDate <= toDate AND (endDate IS NULL OR endDate >= fromDate)) */
-    fromDate?: string | null;
-    toDate?: string | null;
-  },
-): Promise<SubcontractListItem[]> {
+  subcontractId: string,
+): Promise<SubcontractAgreementOperationalRecord | null> {
+  const [row] = await db
+    .select(OPERATIONAL_AGREEMENT_COLUMNS)
+    .from(subcontractAgreements)
+    .where(
+      and(
+        eq(subcontractAgreements.id, subcontractId),
+        eq(subcontractAgreements.organizationId, organizationId),
+        isNull(subcontractAgreements.archivedAt),
+      ),
+    )
+    .limit(1);
+
+  return row ? mapOperationalAgreement(row) : null;
+}
+
+export interface SubcontractListFilters {
+  vendorId?: string;
+  projectId?: string;
+  status?: string;
+  limit?: number;
+  /** Filter agreements active within this period (startDate <= toDate AND (endDate IS NULL OR endDate >= fromDate)) */
+  fromDate?: string | null;
+  toDate?: string | null;
+}
+
+/** Operational list (vendor / project names, no money). */
+export async function listSubcontractsOperational(
+  db: DbExecutor,
+  organizationId: string,
+  filters: SubcontractListFilters,
+): Promise<SubcontractOperationalView[]> {
   const conditions = [
     eq(subcontractAgreements.organizationId, organizationId),
     isNull(subcontractAgreements.archivedAt),
@@ -299,7 +442,7 @@ async function listAgreements(
 
   const rows = await db
     .select({
-      agreement: subcontractAgreements,
+      agreement: OPERATIONAL_AGREEMENT_COLUMNS,
       vendorName: vendors.name,
       projectName: projects.name,
     })
@@ -310,9 +453,40 @@ async function listAgreements(
     .orderBy(desc(subcontractAgreements.createdAt))
     .limit(resolveListLimit(filters.limit, { hardCap: ORG_LIST_HARD_CAP }));
 
+  return rows.map((row) => ({
+    ...mapOperationalAgreement(row.agreement),
+    vendorName: row.vendorName,
+    projectName: row.projectName,
+  }));
+}
+
+/**
+ * Financial enrichment for already-authorized operational rows. Callers must have passed the
+ * subcontract financial gate for every row's project before calling this.
+ */
+export async function loadSubcontractFinancialRows(
+  db: DbExecutor,
+  organizationId: string,
+  rows: readonly SubcontractOperationalView[],
+): Promise<SubcontractListItem[]> {
+  if (rows.length === 0) return [];
+  const moneyById = await listSubcontractAgreementMoney(
+    db,
+    organizationId,
+    rows.map((row) => row.id),
+  );
+
   const items: SubcontractListItem[] = [];
   for (const row of rows) {
-    const agreement = mapAgreement(row.agreement);
+    const moneyRow = moneyById.get(row.id);
+    if (!moneyRow) continue;
+    const { vendorName, projectName, ...operational } = toSubcontractOperationalView(row);
+    const agreement: SubcontractAgreementRecord = {
+      ...operational,
+      originalAmount: moneyRow.originalAmount,
+      currency: moneyRow.currency,
+      retentionPercent: moneyRow.retentionPercent,
+    };
     const events = await listSubcontractValueEvents(db, organizationId, agreement.id);
     const current = computeCurrentSubcontractValue(events, agreement.currency);
     const recognized = await loadRecognizedActualForSubcontractAgreement(
@@ -340,8 +514,8 @@ async function listAgreements(
     );
     items.push({
       ...agreement,
-      vendorName: row.vendorName,
-      projectName: row.projectName,
+      vendorName,
+      projectName,
       currentAmount: current.amount,
       recognizedActualAmount: recognized.amount,
       remainingCommitmentAmount: remaining.amount,
@@ -354,37 +528,6 @@ async function listAgreements(
     });
   }
   return items;
-}
-
-export async function listSubcontractsForVendor(
-  db: DbExecutor,
-  organizationId: string,
-  vendorId: string,
-): Promise<SubcontractListItem[]> {
-  return listAgreements(db, organizationId, { vendorId });
-}
-
-export async function listSubcontractsForProject(
-  db: DbExecutor,
-  organizationId: string,
-  projectId: string,
-): Promise<SubcontractListItem[]> {
-  return listAgreements(db, organizationId, { projectId });
-}
-
-export async function listOrgSubcontracts(
-  db: DbExecutor,
-  organizationId: string,
-  filters: {
-    vendorId?: string;
-    projectId?: string;
-    status?: string;
-    limit?: number;
-    fromDate?: string | null;
-    toDate?: string | null;
-  } = {},
-): Promise<SubcontractListItem[]> {
-  return listAgreements(db, organizationId, filters);
 }
 
 export async function findContractInOrg(

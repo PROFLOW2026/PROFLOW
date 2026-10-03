@@ -40,13 +40,40 @@ export {
   changeSubcontractStatus,
   addApprovedSubcontractChange,
   getSubcontractById,
+  getSubcontractOperationalById,
+  getSubcontractForViewer,
   listVendorSubcontracts,
+  listVendorSubcontractsOperational,
+  listVendorSubcontractsForViewer,
   listProjectSubcontracts,
+  listProjectSubcontractsOperational,
+  listProjectSubcontractsForViewer,
   listOrgSubcontracts,
+  listOrgSubcontractsOperational,
+  listOrgSubcontractsForViewer,
   listSubcontractParentContracts,
   listSubcontractDocumentCandidates,
   linkSubcontractDocument,
 } from './application/subcontracts';
+export {
+  assertSubcontractFinancialAccess,
+  canViewSubcontractFinancials,
+  hasOrgSubcontractFinancialAccess,
+  resolveSubcontractFinancialProjectIds,
+} from './application/subcontract-financial-access';
+export {
+  SUBCONTRACT_MONEY_KEYS,
+  isFinancialSubcontractDetail,
+  isFinancialSubcontractRow,
+} from './domain/subcontract-projections';
+export type {
+  SubcontractAgreementHeaderRecord,
+  SubcontractAgreementMoney,
+  SubcontractDetailView,
+  SubcontractListRow,
+  SubcontractOperationalDetail,
+  SubcontractOperationalView,
+} from './domain/subcontract-projections';
 export {
   listSubcontractAdvancesForAgreement,
   getSubcontractAdvanceOutstanding,
@@ -167,5 +194,8 @@ export {
   findVendorEngagementById,
   findActiveEngagementForVendorProject,
 } from './data/vendors.repository';
-export { findSubcontractAgreementById } from './data/subcontracts.repository';
+export {
+  findSubcontractAgreementById,
+  findSubcontractAgreementMoneyById,
+} from './data/subcontracts.repository';
 export { sumPaidSubcontractAdvancesInDateRange } from './data/subcontract-advances.repository';

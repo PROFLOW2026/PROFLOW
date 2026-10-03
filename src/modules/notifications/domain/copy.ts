@@ -264,5 +264,20 @@ export function notificationCopy(
         title: titleWithReference(t, type, ref),
         body: bodyWithExtra(t, type, extra),
       };
+    case 'dg_contract':
+    case 'dg_claim':
+    case 'dg_task':
+    case 'dg_coordination':
+    case 'dg_document':
+    case 'dg_rfi':
+    case 'dg_quality':
+    case 'dg_field':
+    case 'dg_compliance':
+    case 'dg_procurement':
+      // Rendered per domain event by `renderDgNotificationCopy`; this is the generic fallback.
+      return {
+        title: ref ? t('dg.genericTitleWithReference', { reference: ref }) : t(`types.${type}`),
+        body: t('dg.genericBody'),
+      };
   }
 }

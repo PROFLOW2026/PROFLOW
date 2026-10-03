@@ -5,6 +5,7 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { getEmployeeProjectTaskOverview } from '@/modules/employee-app/application/employee-pm-tasks';
 import { resolveAccessibleProjectIdsForUser } from '@/modules/employee-app/application/project-scope';
 import { employeeHasPermission } from '@/modules/employee-app/application/load-employee-app-context';
+import { loadProjectCapabilities, PROJECT_CAPABILITIES } from '@/modules/project-team';
 import {
   buildEmployeeProjectHubLinks,
   EmployeeProjectHubNav,
@@ -32,6 +33,7 @@ export default async function EmployeeProjectOverviewPage({ params }: PageProps)
       : null;
     if (!overviewData) return { overview: null, hubLinks: [] as Awaited<ReturnType<typeof buildEmployeeProjectHubLinks>> };
 
+    const projectCapabilities = await loadProjectCapabilities(context, projectId);
     const links = await buildEmployeeProjectHubLinks({
       projectId,
       openTasks: overviewData.openTasks,
@@ -39,6 +41,7 @@ export default async function EmployeeProjectOverviewPage({ params }: PageProps)
       canDocuments: employeeHasPermission(context, PERMISSIONS.DOCUMENTS_READ),
       canLogTime: employeeHasPermission(context, PERMISSIONS.TIME_MANAGE),
       canFinancials: employeeHasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ),
+      canProjectTeam: projectCapabilities.has(PROJECT_CAPABILITIES.PROJECT_VIEW),
     });
 
     return { overview: overviewData, hubLinks: links };

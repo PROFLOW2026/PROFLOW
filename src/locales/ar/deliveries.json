@@ -1,0 +1,49 @@
+{
+  "title": "توريدات حرجة",
+  "description": "تتبع توريد المواد والمعدات والتواريخ المتوقعة والتأخيرات.",
+  "fields": {
+    "itemName": "البند",
+    "expectedDate": "التاريخ المتوقع",
+    "unassigned": "بدون مقاول"
+  },
+  "state": {
+    "planned": "مخطط",
+    "ordered": "تم الطلب",
+    "in_transit": "في الطريق",
+    "partially_delivered": "تسليم جزئي",
+    "delivered": "تم التسليم",
+    "rejected": "مرفوض",
+    "cancelled": "ملغى"
+  },
+  "filters": {
+    "open": "مفتوح",
+    "all": "الكل"
+  },
+  "create": {
+    "title": "إضافة توريد",
+    "submit": "حفظ",
+    "cancel": "إلغاء"
+  },
+  "empty": {
+    "title": "لا توجد توريدات",
+    "description": "سجّل المواد أو المعدات الحرجة المتوقعة في الموقع."
+  },
+  "portal": {
+    "title": "التوريدات",
+    "description": "سجّل وحدّث توريداتك الحرجة.",
+    "registerTitle": "تسجيل توريد",
+    "registerSubmit": "تسجيل",
+    "reportDelay": "تأكيد إشعار التأخير",
+    "delayNote": "إشعار تأخير من المقاول",
+    "summaryOpen": "{count} مفتوحة",
+    "summaryDelayed": "{count} متأخرة",
+    "empty": "لا توجد توريدات مرئية لك في هذا المشروع."
+  },
+  "errors": {
+    "invalidTransition": "تغيير الحالة هذا غير مسموح.",
+    "contractorStateNotAllowed": "لا يمكن للمقاولين تعيين هذه الحالة.",
+    "closed": "التوريد مغلق.",
+    "actualDateRequired": "تاريخ التسليم الفعلي مطلوب.",
+    "newDateRequired": "إشعار التأخير يحتاج تاريخاً متوقعاً جديداً."
+  }
+}
