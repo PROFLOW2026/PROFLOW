@@ -1,7 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 import {
   ANON_KEY,
-  APP_PORT,
   APP_URL,
   AUTH_URL,
   DATABASE_URL as PGLITE_DATABASE_URL,
