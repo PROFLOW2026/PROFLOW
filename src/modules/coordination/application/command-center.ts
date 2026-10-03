@@ -1,6 +1,6 @@
 import { and, asc, eq, inArray, sql } from 'drizzle-orm';
 import { coordinationEvents, projects } from '@drizzle/schema';
-import type { DgCommandCenterQueryInput } from '@/modules/command-center/data/dg-ports';
+import type { DgCommandCenterQueryInput } from '@/modules/command-center';
 import type { DgCommandCenterRow } from '@/modules/command-center/domain/dg-items';
 import type { OrgContext } from '@/shared/auth/context';
 import { addDays } from '@/shared/dates';

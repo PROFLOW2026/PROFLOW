@@ -65,7 +65,7 @@
     "addingFinancialTitle": "Heads up: financial access is being added",
     "addingFinancial": "After saving, this person will see project and contractor financial data according to the capabilities you selected.",
     "noChanges": "No changes to save.",
-    "changeSummary": "{added, plural, one {One capability} other {# capabilities}} will be added and {removed, plural, one {one} other {#}} removed.",
+    "changeSummary": "{added, plural, one {# capability} other {# capabilities}} will be added and {removed, plural, one {#} other {#}} removed.",
     "beyondActor": "This change includes capabilities you do not hold. You can only change capabilities you hold on this project."
   },
   "groups": {

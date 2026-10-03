@@ -33,3 +33,4 @@ export {
   type ContractorDailyReportsView,
 } from './application/contractor-reports';
 export type { ExternalProjectTarget } from './shared/external-scope';
+export { findDailyLog } from './data/site-log.repository';

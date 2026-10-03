@@ -60,7 +60,7 @@
     "reconnectRequired": "أعد ربط خدمة التخزين.",
     "providerNotConfigured": "المزود غير مهيأ في هذه البيئة.",
     "connectionNotFound": "لم يُعثر على اتصال التخزين.",
-    "oauthSessionMismatch": "Sign in as the same user who started the storage connection, then try again.",
+    "oauthSessionMismatch": "سجّلوا الدخول بنفس المستخدم الذي بدأ ربط التخزين، ثم أعيدوا المحاولة.",
     "rootNotReady": "التخزين متصل لكن مجلد ProjectFlow غير جاهز بعد. أعد الاتصال أو اختبر الاتصال.",
     "rootFolderMissing": "تم حذف مجلد ProjectFlow من التخزين السحابي. أعاد ProjectFlow بناء مجلدات المنظمة وقالب المشروع — أكّد القالب للمتابعة. لا حاجة لإعادة الاتصال.",
     "templateIncomplete": "قالب المشروع في التخزين السحابي غير مكتمل. حاول ProjectFlow إصلاحه؛ إذا استمرت المشكلة افتح القالب في التخزين وحاول مرة أخرى.",

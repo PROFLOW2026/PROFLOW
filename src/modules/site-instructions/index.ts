@@ -1,5 +1,7 @@
 import './register-ports';
 
+export { SITE_INSTRUCTION_CATEGORIES } from '@drizzle/schema';
+
 /** Public API for site instructions (Track O). */
 
 export {

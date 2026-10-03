@@ -33,7 +33,25 @@ const ALLOWED_ENTIRE_LATIN = new Set(['ProjectFlow', 'PDF', 'CSV', 'Excel', 'OCR
  * Optional allowlist of `namespace.json:dotted.path` for rare intentional dotted values.
  * Keep empty unless a real product string must match the raw-key shape.
  */
-const RAW_KEY_VALUE_ALLOWLIST = new Set<string>([]);
+const RAW_KEY_VALUE_ALLOWLIST = new Set<string>([
+  'marketing.json:hero.shotFile',
+  'marketing.json:hero.mobileShotFile',
+  'marketing.json:capabilities.shotFile',
+  'marketing.json:financial.shotFile',
+  'marketing.json:commercial.changesFile',
+  'marketing.json:commercial.billingFile',
+  'marketing.json:tour.tabs[0].file',
+  'marketing.json:tour.tabs[1].file',
+  'marketing.json:tour.tabs[2].file',
+  'marketing.json:tour.tabs[3].file',
+  'marketing.json:tour.tabs[4].file',
+  'marketing.json:tour.tabs[5].file',
+  'marketing.json:tour.tabs[6].file',
+  'marketing.json:tour.tabs[7].file',
+  'marketing.json:tour.tabs[8].file',
+  'marketing.json:tour.tabs[9].file',
+  'marketing.json:mobile.shotFile',
+]);
 
 function looksLikeNaturalHebrew(value: string): boolean {
   const trimmed = value.trim();

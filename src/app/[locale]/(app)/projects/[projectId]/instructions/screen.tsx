@@ -7,14 +7,13 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/page-header';
 import { Textarea } from '@/components/ui/textarea';
-import { listProjectInstructions } from '@/modules/site-instructions';
+import { SITE_INSTRUCTION_CATEGORIES, listProjectInstructions } from '@/modules/site-instructions';
 import { INSTRUCTION_STATUS_TONE } from '@/modules/site-instructions/ui/status-tone';
 import { isIsoDate } from '@/modules/site-log';
 import { loadOrNotFound } from '@/modules/site-log/shared/page-guard';
 import { FieldActionForm, FieldLabel, fieldSelectClassName } from '@/modules/site-log/ui/field-action-form';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
-import { SITE_INSTRUCTION_CATEGORIES } from '@drizzle/schema';
 import { issueInstructionAction } from './actions';
 
 const FILTERS = ['open', 'issued', 'acknowledged', 'performed', 'closed', 'cancelled', 'all'] as const;

@@ -6,8 +6,8 @@ import {
   insertDocument,
   updateDocumentById,
 } from '@/modules/documents';
-import { insertDocumentLink } from '@/modules/documents/data/documents.repository';
-import { insertStorageFile } from '@/modules/external-storage/data/files.repository';
+import { insertDocumentLink } from '@/modules/documents';
+import { insertStorageFile } from '@/modules/external-storage/server';
 import type { DbExecutor } from '@/shared/db/types';
 import { NotFoundError } from '@/shared/errors';
 import type { StorageConnectionRef, StoredFile } from './file-store';

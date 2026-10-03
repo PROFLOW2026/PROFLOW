@@ -254,16 +254,19 @@ const WAVE_TAGS = [
 
 async function assertWaveSchema(client: { query: (sql: string) => Promise<{ rows: unknown[] }> }) {
   const tables = await client.query(
-    `SELECT tablename FROM pg_tables
-     WHERE schemaname = 'public'
-       AND tablename IN (
+    `SELECT c.relname
+     FROM pg_class c
+     JOIN pg_namespace n ON n.oid = c.relnamespace
+     WHERE n.nspname = 'public'
+       AND c.relkind IN ('r', 'p', 'v')
+       AND c.relname IN (
          'notifications', 'timesheets', 'document_versions', 'document_folders',
          'activity_events', 'subcontract_agreements', 'subcontract_value_events',
          'ocr_batches', 'work_order_billing_sources', 'resource_bookings',
          'employee_unavailability', 'project_access_grants', 'safety_records',
          'safety_corrective_actions', 'inventory_reservations', 'inventory_counts'
        )
-     ORDER BY tablename`,
+     ORDER BY c.relname`,
   );
   expect(tables.rows).toHaveLength(16);
 

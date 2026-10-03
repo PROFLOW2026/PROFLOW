@@ -1,14 +1,15 @@
 import type { OrgContext } from '@/shared/auth/context';
 import { assertProjectCapability, PROJECT_CAPABILITIES } from '@/modules/project-team';
-import { listAssigneeOptions, type AssigneeOption } from '@/modules/rfi/application/support';
 import {
+  listAssigneeOptions,
   listProjectAgreementOptions,
   listProjectLocationOptions,
   listProjectWorkPackageOptions,
   type AgreementOption,
+  type AssigneeOption,
   type LocationOption,
   type WorkPackageOption,
-} from '@/modules/rfi/data/project-options.repository';
+} from '@/modules/rfi';
 
 export interface SubmittalFormOptions {
   readonly agreements: readonly AgreementOption[];

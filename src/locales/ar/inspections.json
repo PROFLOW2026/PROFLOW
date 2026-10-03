@@ -149,6 +149,7 @@
     "milestone": "المرحلة",
     "noMilestone": "بدون مرحلة",
     "inspector": "المفتش",
+    "noAssignee": "بدون مفتش",
     "contractorVisible": "ظاهر للمقاول في البوابة",
     "extraItems": "بنود فحص إضافية",
     "extraItemsHint": "بند واحد في كل سطر. تضاف بعد بنود القائمة.",

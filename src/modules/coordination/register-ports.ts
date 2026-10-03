@@ -1,4 +1,4 @@
-import { registerDgCommandCenterPort } from '@/modules/command-center/data/dg-ports';
+import { registerDgCommandCenterPort } from '@/modules/command-center';
 import { queryCoordinationAcknowledgementOverdue, queryCoordinationBlocked } from './application/command-center';
 
 registerDgCommandCenterPort('dg_coordination_blocked', queryCoordinationBlocked);

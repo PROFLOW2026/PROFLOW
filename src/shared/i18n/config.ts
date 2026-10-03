@@ -185,3 +185,23 @@ export const APP_CLIENT_MESSAGE_NAMESPACES = [
   'quickCapture',
   'materialMarket',
 ] as const satisfies readonly MessageNamespace[];
+
+/** Developer/GC surfaces. Nested on project and contractor routes, not the root provider. */
+export const PROJECT_SURFACE_CLIENT_MESSAGE_NAMESPACES = [
+  'collaboration',
+  'contractorAccess',
+  'contractorCompliance',
+  'coordination',
+  'defects',
+  'deliveries',
+  'inspections',
+  'projectPlans',
+  'projectProfile',
+  'projectTeam',
+  'projectWorkspace',
+  'rfi',
+  'siteOps',
+  'subcontractClaims',
+  'subcontracts',
+  'submittals',
+] as const satisfies readonly MessageNamespace[];

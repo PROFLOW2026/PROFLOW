@@ -37,6 +37,7 @@ export {
   respondToCoordinationEvent,
 } from './application/external';
 export { coordinationAccess } from './application/authorization';
+export { listParticipants } from './data/coordination.repository';
 export {
   computeEventReadiness,
   isReadyState,

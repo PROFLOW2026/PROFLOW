@@ -22,7 +22,6 @@ import { warrantyCoverages } from './next-gen-experience';
 import { projects, workPackages } from './projects';
 import { organizations } from './tenancy';
 import { subcontractAgreements } from './platform-ops';
-import { vendors } from './vendors';
 
 /** Track Q — contractor tender/award, agreement closeout, warranty reports, performance snapshots. */
 

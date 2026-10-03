@@ -5,7 +5,7 @@ import { todayInTimeZone } from '@/shared/dates';
 import { DOMAIN_EVENTS, emitDomainEvent, type DomainEventType } from '@/shared/domain-events';
 import { DomainRuleError, NotFoundError } from '@/shared/errors';
 import { PROJECT_CAPABILITIES, assertProjectCapability, loadProjectCapabilities } from '@/modules/project-team';
-import { findDailyLog } from '@/modules/site-log/data/site-log.repository';
+import { findDailyLog } from '@/modules/site-log';
 import {
   listProjectContractors,
   listProjectLocationOptions,

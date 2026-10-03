@@ -1184,6 +1184,13 @@
                         "when":  1789714380000,
                         "tag":  "0170_dg_surfaces_cost_control",
                         "breakpoints":  true
+                    },
+                    {
+                        "idx":  169,
+                        "version":  "7",
+                        "when":  1789714440000,
+                        "tag":  "0171_retention_release_service_grant",
+                        "breakpoints":  true
                     }
                 ]
 }

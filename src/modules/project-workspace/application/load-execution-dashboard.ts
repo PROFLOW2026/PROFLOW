@@ -6,7 +6,7 @@ import { countProjectDefects } from '@/modules/defects';
 import { countProjectInspections } from '@/modules/inspections';
 import { PROJECT_CAPABILITIES as C, loadProjectCapabilities } from '@/modules/project-team';
 import { countOverdueRfis } from '@/modules/rfi';
-import { countSubmittalsByStatus } from '@/modules/submittals/data/submittals.repository';
+import { countSubmittalsByStatus } from '@/modules/submittals';
 import type { OrgContext } from '@/shared/auth/context';
 import { todayInTimeZone } from '@/shared/dates';
 import { AuthorizationError } from '@/shared/errors';

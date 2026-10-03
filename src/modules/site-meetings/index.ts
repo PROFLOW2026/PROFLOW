@@ -1,5 +1,7 @@
 /** Public API for project contractor meetings & minutes (Track O; extends `@/modules/meetings` tables). */
 
+export { SITE_MEETING_ATTENDANCE, SITE_MEETING_TYPES } from '@drizzle/schema';
+
 export {
   canCancelMeeting,
   canEditMeeting,

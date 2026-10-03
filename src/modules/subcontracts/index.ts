@@ -61,3 +61,7 @@ export type {
   CreateChangeFromInstructionInput,
   CreateDraftAgreementInput,
 } from './validation/schemas';
+export {
+  listProjectAgreementsOperational,
+  listProjectWorkPackageOptions,
+} from './data/agreements.repository';

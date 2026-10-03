@@ -9,7 +9,7 @@
   "common": {
     "save": "שמירה",
     "saved": "נשמר",
-    "none": "—",
+    "none": "אין",
     "remove": "הסרה",
     "select": "בחירה…",
     "location": "מיקום",
@@ -130,7 +130,7 @@
   "instructionCategory": {
     "operational": "תפעולית",
     "potentially_financial": "בעלת השלכה כספית אפשרית",
-    "urgent_before_price": "דחופה – לפני תמחור"
+    "urgent_before_price": "דחופה: לפני תמחור"
   },
   "instructionCategoryHint": {
     "operational": "חלק מהיקף העבודה הקיים; ללא השלכה מסחרית צפויה.",
@@ -228,7 +228,7 @@
   },
   "meetings": {
     "title": "ישיבות קבלנים",
-    "description": "ישיבות קבלנים שבועיות, ישיבות אתר, תכנון ויועצים – עם סיכום, החלטות ומשימות.",
+    "description": "ישיבות קבלנים שבועיות, ישיבות אתר, תכנון ויועצים: עם סיכום, החלטות ומשימות.",
     "schedule": "קביעת ישיבה",
     "scheduleHint": "סוג, מועד, מקום וסדר יום",
     "scheduleSubmit": "קביעת הישיבה",

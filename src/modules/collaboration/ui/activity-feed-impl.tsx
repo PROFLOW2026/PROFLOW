@@ -56,24 +56,25 @@ export async function ActivityFeed(props: ActivityFeedProps) {
 
   if (props.viewer === 'external') {
     const context = await requireExternalContext();
+    let page;
     try {
-      const page = await loadContractorActivity(context, {
+      page = await loadContractorActivity(context, {
         organizationId: props.organizationId,
         projectId: props.projectId,
         limit: props.limit,
         hasMessage,
       });
-      return (
-        <ActivityFeedPanel
-          page={page}
-          title={t('activity.title')}
-          empty={t('activity.empty')}
-          financialRedacted={t('activity.events.financialRedacted')}
-        />
-      );
     } catch {
       notFound();
     }
+    return (
+      <ActivityFeedPanel
+        page={page}
+        title={t('activity.title')}
+        empty={t('activity.empty')}
+        financialRedacted={t('activity.events.financialRedacted')}
+      />
+    );
   }
 
   const page = await withOrgContext(async (context) => {

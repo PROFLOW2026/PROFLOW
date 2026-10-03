@@ -113,7 +113,7 @@
     "notCurrent": "ניתן לאשר רק את המהדורה הנוכחית",
     "notDraft": "פעולה זו מותרת רק לטיוטות",
     "newerPublished": "קיימת מהדורה מפורסמת חדשה יותר",
-    "concurrentPublish": "המהדורה השתנתה — רעננו ונסו שוב",
+    "concurrentPublish": "המהדורה השתנתה. רעננו ונסו שוב",
     "drawingFileType": "יש להעלות PDF או תמונה"
   },
   "sharing": {

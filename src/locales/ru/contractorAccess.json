@@ -186,6 +186,7 @@
       "ext_document_upload": "Загрузка документов",
       "ext_plan_view": "Просмотр чертежей",
       "ext_plan_acknowledge": "Подтверждение ревизий чертежей",
+      "ext_rfi_view": "Просмотр запросов (RFI)",
       "ext_rfi_raise": "Создание запросов (RFI)",
       "ext_submittal_submit": "Подача документов на согласование",
       "ext_inspection_view": "Просмотр проверок",

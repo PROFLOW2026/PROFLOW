@@ -1,182 +1,182 @@
 {
   "register": {
     "pageTitle": "Планы и чертежи",
-    "pageDescription": "Drawing register, revisions, and contractor publishing",
-    "empty": "No drawings to show",
-    "emptyTitle": "No drawings yet",
-    "emptyDescription": "Add the first drawing to start the project register",
-    "currentRev": "Rev {label}",
-    "drafts": "{count, plural, one {# draft} other {# drafts}}",
+    "pageDescription": "Реестр чертежей, редакции и публикация подрядчикам",
+    "empty": "Нет чертежей для показа",
+    "emptyTitle": "Чертежей пока нет",
+    "emptyDescription": "Добавьте первый чертёж, чтобы начать реестр проекта",
+    "currentRev": "Ред. {label}",
+    "drafts": "{count, plural, one {# черновик} few {# черновика} many {# черновиков} other {# черновика}}",
     "discipline": {
-      "architecture": "Architecture",
-      "structure": "Structure",
-      "mechanical": "Mechanical",
-      "electrical": "Electrical",
-      "plumbing": "Plumbing",
-      "hvac": "HVAC",
-      "fire_protection": "Fire protection",
-      "civil": "Civil",
-      "landscape": "Landscape",
-      "interior": "Interior",
-      "aluminium": "Aluminium",
-      "survey": "Survey",
-      "other": "Other"
+      "architecture": "Архитектура",
+      "structure": "Конструкции",
+      "mechanical": "Механика",
+      "electrical": "Электрика",
+      "plumbing": "Водоснабжение",
+      "hvac": "ОВиК",
+      "fire_protection": "Пожарная защита",
+      "civil": "Генплан",
+      "landscape": "Благоустройство",
+      "interior": "Интерьер",
+      "aluminium": "Алюминий",
+      "survey": "Геодезия",
+      "other": "Другое"
     }
   },
   "create": {
-    "title": "New drawing",
-    "number": "Drawing number",
-    "titleField": "Title",
-    "disciplineLabel": "Discipline",
-    "submit": "Create",
+    "title": "Новый чертёж",
+    "number": "Номер чертежа",
+    "titleField": "Название",
+    "disciplineLabel": "Раздел",
+    "submit": "Создать",
     "discipline": {
-      "architecture": "Architecture",
-      "structure": "Structure",
-      "mechanical": "Mechanical",
-      "electrical": "Electrical",
-      "plumbing": "Plumbing",
-      "hvac": "HVAC",
-      "fire_protection": "Fire protection",
-      "civil": "Civil",
-      "landscape": "Landscape",
-      "interior": "Interior",
-      "aluminium": "Aluminium",
-      "survey": "Survey",
-      "other": "Other"
+      "architecture": "Архитектура",
+      "structure": "Конструкции",
+      "mechanical": "Механика",
+      "electrical": "Электрика",
+      "plumbing": "Водоснабжение",
+      "hvac": "ОВиК",
+      "fire_protection": "Пожарная защита",
+      "civil": "Генплан",
+      "landscape": "Благоустройство",
+      "interior": "Интерьер",
+      "aluminium": "Алюминий",
+      "survey": "Геодезия",
+      "other": "Другое"
     }
   },
   "detail": {
-    "back": "Back to register",
-    "revisions": "Revisions",
-    "evidence": "Attachments",
+    "back": "Назад к реестру",
+    "revisions": "Редакции",
+    "evidence": "Вложения",
     "discipline": {
-      "architecture": "Architecture",
-      "structure": "Structure",
-      "mechanical": "Mechanical",
-      "electrical": "Electrical",
-      "plumbing": "Plumbing",
-      "hvac": "HVAC",
-      "fire_protection": "Fire protection",
-      "civil": "Civil",
-      "landscape": "Landscape",
-      "interior": "Interior",
-      "aluminium": "Aluminium",
-      "survey": "Survey",
-      "other": "Other"
+      "architecture": "Архитектура",
+      "structure": "Конструкции",
+      "mechanical": "Механика",
+      "electrical": "Электрика",
+      "plumbing": "Водоснабжение",
+      "hvac": "ОВиК",
+      "fire_protection": "Пожарная защита",
+      "civil": "Генплан",
+      "landscape": "Благоустройство",
+      "interior": "Интерьер",
+      "aluminium": "Алюминий",
+      "survey": "Геодезия",
+      "other": "Другое"
     },
     "revisionStatus": {
-      "draft": "Draft",
-      "current": "Current",
-      "superseded": "Superseded",
-      "withdrawn": "Withdrawn"
+      "draft": "Черновик",
+      "current": "Текущая",
+      "superseded": "Заменена",
+      "withdrawn": "Отозвана"
     }
   },
   "revision": {
-    "uploadTitle": "New revision",
-    "label": "Revision label",
-    "choosePdf": "Choose PDF or image",
-    "publish": "Publish revision",
-    "uploadFailed": "File upload failed"
+    "uploadTitle": "Новая редакция",
+    "label": "Обозначение редакции",
+    "choosePdf": "Выберите PDF или изображение",
+    "publish": "Опубликовать редакцию",
+    "uploadFailed": "Не удалось загрузить файл"
   },
   "evidence": {
     "gallery": {
-      "empty": "No attachments",
+      "empty": "Нет вложений",
       "kind": {
-        "photo": "Photo",
-        "video": "Video",
-        "document": "Document"
+        "photo": "Фото",
+        "video": "Видео",
+        "document": "Документ"
       }
     },
     "uploader": {
-      "visibility": "Visibility",
-      "visibilityContractor": "Visible to contractors",
-      "visibilityInternal": "Internal only",
-      "captionPlaceholder": "Caption (optional)",
-      "chooseFile": "Choose file",
-      "capture": "Camera",
-      "uploadFailed": "Upload failed"
+      "visibility": "Видимость",
+      "visibilityContractor": "Видно подрядчикам",
+      "visibilityInternal": "Только внутреннее",
+      "captionPlaceholder": "Подпись (необязательно)",
+      "chooseFile": "Выберите файл",
+      "capture": "Камера",
+      "uploadFailed": "Загрузка не удалась"
     },
     "errors": {
-      "fileType": "Unsupported file type",
-      "tooLarge": "File is too large",
-      "empty": "Empty file",
-      "contentMismatch": "File content does not match its type",
-      "notPending": "Upload is not pending",
-      "internalOnly": "Internal-only entity"
+      "fileType": "Неподдерживаемый тип файла",
+      "tooLarge": "Файл слишком большой",
+      "empty": "Пустой файл",
+      "contentMismatch": "Содержимое файла не соответствует типу",
+      "notPending": "Загрузка не ожидает завершения",
+      "internalOnly": "Только внутренняя сущность"
     }
   },
   "errors": {
-    "numberTaken": "Drawing number already exists",
-    "archived": "Drawing is archived",
-    "revisionTaken": "Revision label already in use",
-    "fileNotReady": "Upload the file before publishing",
-    "notCurrent": "Only the current revision can be acknowledged",
-    "notDraft": "Only drafts support this action",
-    "newerPublished": "A newer revision is already published",
-    "concurrentPublish": "Revision changed — refresh and try again",
-    "drawingFileType": "Upload a PDF or image"
+    "numberTaken": "Номер чертежа уже существует",
+    "archived": "Чертёж в архиве",
+    "revisionTaken": "Обозначение редакции уже занято",
+    "fileNotReady": "Загрузите файл перед публикацией",
+    "notCurrent": "Подтвердить можно только текущую редакцию",
+    "notDraft": "Это действие доступно только для черновиков",
+    "newerPublished": "Уже опубликована более новая редакция",
+    "concurrentPublish": "Редакция изменилась. Обновите страницу и повторите",
+    "drawingFileType": "Загрузите PDF или изображение"
   },
   "sharing": {
     "errors": {
-      "alreadyShared": "Already shared with this audience"
+      "alreadyShared": "Уже передано этой аудитории"
     }
   },
   "portal": {
     "plans": {
-      "pageTitle": "Plans",
-      "pageDescription": "Published drawing revisions",
-      "empty": "No plans available",
-      "emptyTitle": "No plans",
-      "ackRequired": "Acknowledgement required",
+      "pageTitle": "Планы",
+      "pageDescription": "Опубликованные редакции чертежей",
+      "empty": "Нет доступных планов",
+      "emptyTitle": "Нет планов",
+      "ackRequired": "Требуется подтверждение",
       "discipline": {
-        "architecture": "Architecture",
-        "structure": "Structure",
-        "mechanical": "Mechanical",
-        "electrical": "Electrical",
-        "plumbing": "Plumbing",
-        "hvac": "HVAC",
-        "fire_protection": "Fire protection",
-        "civil": "Civil",
-        "landscape": "Landscape",
-        "interior": "Interior",
-        "aluminium": "Aluminium",
-        "survey": "Survey",
-        "other": "Other"
+        "architecture": "Архитектура",
+        "structure": "Конструкции",
+        "mechanical": "Механика",
+        "electrical": "Электрика",
+        "plumbing": "Водоснабжение",
+        "hvac": "ОВиК",
+        "fire_protection": "Пожарная защита",
+        "civil": "Генплан",
+        "landscape": "Благоустройство",
+        "interior": "Интерьер",
+        "aluminium": "Алюминий",
+        "survey": "Геодезия",
+        "other": "Другое"
       }
     },
     "documents": {
-      "pageTitle": "Documents",
-      "pageDescription": "Documents shared with you",
-      "empty": "No documents",
-      "emptyTitle": "No shared documents",
-      "acknowledge": "Acknowledge receipt",
-      "acknowledged": "Acknowledged"
+      "pageTitle": "Документы",
+      "pageDescription": "Документы, переданные вам",
+      "empty": "Нет документов",
+      "emptyTitle": "Нет переданных документов",
+      "acknowledge": "Подтвердить получение",
+      "acknowledged": "Подтверждено"
     },
     "drawing": {
-      "pageTitle": "Drawing detail",
-      "back": "Back to plans",
-      "acknowledgeCurrent": "Acknowledge current revision",
-      "acknowledged": "Revision acknowledged",
+      "pageTitle": "Карточка чертежа",
+      "back": "Назад к планам",
+      "acknowledgeCurrent": "Подтвердить текущую редакцию",
+      "acknowledged": "Редакция подтверждена",
       "discipline": {
-        "architecture": "Architecture",
-        "structure": "Structure",
-        "mechanical": "Mechanical",
-        "electrical": "Electrical",
-        "plumbing": "Plumbing",
-        "hvac": "HVAC",
-        "fire_protection": "Fire protection",
-        "civil": "Civil",
-        "landscape": "Landscape",
-        "interior": "Interior",
-        "aluminium": "Aluminium",
-        "survey": "Survey",
-        "other": "Other"
+        "architecture": "Архитектура",
+        "structure": "Конструкции",
+        "mechanical": "Механика",
+        "electrical": "Электрика",
+        "plumbing": "Водоснабжение",
+        "hvac": "ОВиК",
+        "fire_protection": "Пожарная защита",
+        "civil": "Генплан",
+        "landscape": "Благоустройство",
+        "interior": "Интерьер",
+        "aluminium": "Алюминий",
+        "survey": "Геодезия",
+        "other": "Другое"
       },
       "status": {
-        "draft": "Draft",
-        "current": "Current",
-        "superseded": "Superseded",
-        "withdrawn": "Withdrawn"
+        "draft": "Черновик",
+        "current": "Текущая",
+        "superseded": "Заменена",
+        "withdrawn": "Отозвана"
       }
     }
   }

@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { createLinkedTask } from '@/modules/collaboration';
 import { createDefect } from '@/modules/defects/application/manage-defects';
-import { resolveQualityRefs } from '@/modules/defects/data/quality-refs.repository';
+import { resolveQualityRefs } from '@/modules/defects';
 import { addDaysIso, defaultDueInDays } from '@/modules/defects/domain/lifecycle';
 import { parseOrThrow } from '@/modules/defects/validation/schemas';
 import { assertProjectCapability, PROJECT_CAPABILITIES } from '@/modules/project-team';

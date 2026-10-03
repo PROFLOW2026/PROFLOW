@@ -457,6 +457,9 @@ function wrapClient(client: PGlite): TestDatabase {
   const asService = async <T>(fn: (database: Database) => Promise<T>): Promise<T> => fn(db);
 
   const reset = async (): Promise<void> => {
+    // A previous test may have left SET ROLE service_role on this connection.
+    // Truncate runs as the database owner so revoked internal tables stay reachable.
+    await client.exec('RESET ROLE');
     await truncatePublicAndApp(client);
   };
 

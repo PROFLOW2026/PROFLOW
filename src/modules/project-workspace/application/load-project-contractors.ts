@@ -1,8 +1,7 @@
 import 'server-only';
 
 import { PROJECT_CAPABILITIES as C, loadProjectCapabilities } from '@/modules/project-team';
-import { loadAgreementValuePosition } from '@/modules/subcontracts';
-import { listProjectAgreementsOperational } from '@/modules/subcontracts/data/agreements.repository';
+import { listProjectAgreementsOperational, loadAgreementValuePosition } from '@/modules/subcontracts';
 import type { AgreementOperationalView } from '@/modules/subcontracts/domain/types';
 import type { OrgContext } from '@/shared/auth/context';
 import { resolveProjectSurfaceRoot } from '../domain/project-surface-path';

@@ -149,6 +149,7 @@
     "milestone": "Milestone",
     "noMilestone": "No milestone",
     "inspector": "Inspector",
+    "noAssignee": "No inspector",
     "contractorVisible": "Visible to the contractor in the portal",
     "extraItems": "Additional checklist items",
     "extraItemsHint": "One item per line. Added after the checklist items.",

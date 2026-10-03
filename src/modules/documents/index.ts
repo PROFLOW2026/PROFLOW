@@ -130,6 +130,7 @@ export {
 } from './validation/schemas';
 export type { PrepareUploadInput, FinalizeUploadInput } from './validation/schemas';
 export { findPrimaryDocumentLinkForUpload } from './data/document-link-read';
+export { insertDocumentLink } from './data/documents.repository';
 export {
   isTaskCommentDocument,
   runElevatedTaskCommentDocumentWrite,

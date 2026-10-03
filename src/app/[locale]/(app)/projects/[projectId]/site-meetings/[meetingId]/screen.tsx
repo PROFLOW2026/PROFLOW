@@ -8,13 +8,12 @@ import { PageHeader } from '@/components/ui/page-header';
 import { Textarea } from '@/components/ui/textarea';
 import { EntityDiscussion } from '@/modules/collaboration/ui';
 import { EvidenceGallery, EvidenceUploader } from '@/modules/evidence/ui';
-import { canCancelMeeting, canEditMeeting, canMarkHeld, canPublishMinutes, getSiteMeetingDetail, toZonedLocalInput } from '@/modules/site-meetings';
+import { SITE_MEETING_ATTENDANCE, SITE_MEETING_TYPES, canCancelMeeting, canEditMeeting, canMarkHeld, canPublishMinutes, getSiteMeetingDetail, toZonedLocalInput } from '@/modules/site-meetings';
 import { MEETING_STATUS_TONE } from '@/modules/site-meetings/ui/status-tone';
 import { loadOrNotFound } from '@/modules/site-log/shared/page-guard';
 import { FieldActionForm, FieldLabel, fieldSelectClassName } from '@/modules/site-log/ui/field-action-form';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
-import { SITE_MEETING_ATTENDANCE, SITE_MEETING_TYPES } from '@drizzle/schema';
 import {
   addActionItemAction,
   addAttendeeAction,

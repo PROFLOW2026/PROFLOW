@@ -36,7 +36,10 @@ const STATUS_TONE: Record<string, BadgeTone> = { invited: 'pending', active: 'su
 
 function useOrigin(): string {
   const [origin, setOrigin] = useState('');
-  useEffect(() => setOrigin(window.location.origin), []);
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setOrigin(window.location.origin));
+    return () => cancelAnimationFrame(frame);
+  }, []);
   return origin;
 }
 
@@ -154,10 +157,7 @@ function InviteForm({ projectId, overview, action }: { projectId: string; overvi
   const t = useTranslations('contractorAccess.manage.invite');
   const [state, formAction, pending] = useActionState<ContractorAccessActionStateView, FormData>(action, {});
   const [vendorId, setVendorId] = useState('');
-  const [formKey, setFormKey] = useState(0);
-  useEffect(() => {
-    if (state.link) setFormKey((key) => key + 1);
-  }, [state.link]);
+  const formKey = state.link ? `${state.link.kind}:${state.link.path}` : 'new';
 
   return (
     <Card className="p-4">

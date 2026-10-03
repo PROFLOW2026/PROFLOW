@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { SUBMITTAL_TYPES } from '../domain/types';
 import { useRouter } from '@/shared/i18n/navigation';
 import { createContractorSubmittalAction } from '../actions/external-actions';
-import type { LocationOption, WorkPackageOption } from '@/modules/rfi/data/project-options.repository';
+import type { LocationOption, WorkPackageOption } from '@/modules/rfi';
 import { FormError, FormRow, selectClassName } from './form-controls';
 
 export function ContractorSubmittalCreateForm({

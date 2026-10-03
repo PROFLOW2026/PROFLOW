@@ -2,14 +2,13 @@ import 'server-only';
 
 import { createHash } from 'node:crypto';
 import { findDocumentById } from '@/modules/documents';
-import { runCommittedStorageWrite } from '@/modules/external-storage/server';
+import { findStorageConnectionById, runCommittedStorageWrite } from '@/modules/external-storage/server';
 import {
   organizationHasActiveStorage,
   resolveValidAccessToken,
 } from '@/modules/external-storage/application/connection-service';
 import { resolveProjectScopedUploadFolderId } from '@/modules/external-storage/application/project-upload-folder';
 import { ensureUsablePrimaryStorageConnection } from '@/modules/external-storage/application/reconcile-primary-storage';
-import { findStorageConnectionById } from '@/modules/external-storage/data/connections.repository';
 import { getStorageProviderAdapter } from '@/modules/external-storage/providers/registry';
 import { parseByteRangeHeader } from '@/modules/external-storage/server/byte-range';
 import type { OrgContext } from '@/shared/auth/context';

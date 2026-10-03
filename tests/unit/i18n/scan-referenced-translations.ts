@@ -30,6 +30,22 @@ const MODULE_PATH_NAMESPACE_ALLOW: ReadonlyArray<{
   { pathPrefix: 'src/modules/commercial/', namespaces: ['contracts'] },
   { pathPrefix: 'src/modules/procurement/', namespaces: ['procurement'] },
   { pathPrefix: 'src/app/[locale]/(app)/contracts/', namespaces: ['contracts'] },
+  { pathPrefix: 'src/modules/collaboration/', namespaces: ['collaboration'] },
+  { pathPrefix: 'src/modules/contractor-access/', namespaces: ['contractorAccess'] },
+  { pathPrefix: 'src/modules/contractor-compliance/', namespaces: ['contractorCompliance'] },
+  { pathPrefix: 'src/modules/coordination/', namespaces: ['coordination'] },
+  { pathPrefix: 'src/modules/defects/', namespaces: ['defects'] },
+  { pathPrefix: 'src/modules/deliveries/', namespaces: ['deliveries'] },
+  { pathPrefix: 'src/modules/evidence/', namespaces: ['projectPlans'] },
+  { pathPrefix: 'src/modules/inspections/', namespaces: ['inspections'] },
+  { pathPrefix: 'src/modules/project-plans/', namespaces: ['projectPlans'] },
+  { pathPrefix: 'src/modules/project-profile/', namespaces: ['projectProfile'] },
+  { pathPrefix: 'src/modules/project-team/', namespaces: ['projectTeam'] },
+  { pathPrefix: 'src/modules/rfi/', namespaces: ['rfi'] },
+  { pathPrefix: 'src/modules/safety/contractor/', namespaces: ['contractorCompliance'] },
+  { pathPrefix: 'src/modules/subcontract-claims/', namespaces: ['subcontractClaims'] },
+  { pathPrefix: 'src/modules/subcontracts/', namespaces: ['subcontracts'] },
+  { pathPrefix: 'src/modules/submittals/', namespaces: ['submittals'] },
 ];
 
 const FILE_NAMESPACE_ALLOW: Readonly<Record<string, readonly MessageNamespace[]>> = {

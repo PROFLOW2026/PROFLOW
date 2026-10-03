@@ -148,6 +148,7 @@
     "noWorkPackage": "ללא חבילת עבודה",
     "milestone": "אבן דרך",
     "noMilestone": "ללא אבן דרך",
+    "noAssignee": "ללא בודק",
     "inspector": "בודק",
     "contractorVisible": "גלוי לקבלן בפורטל",
     "extraItems": "פריטי בדיקה נוספים",

@@ -11,7 +11,7 @@
     "predev": "npm run copy-pdf-worker",
     "dev": "next dev",
     "dev:local": "next dev -p 3100",
-    "build": "node scripts/copy-pdf-worker.mjs && next build",
+    "build": "node scripts/copy-pdf-worker.mjs && next build --webpack",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",

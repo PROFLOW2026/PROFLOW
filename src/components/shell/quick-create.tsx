@@ -49,26 +49,30 @@ function QuickCreateMenu({
   const projectId = projectIdFromPathname(pathname);
   const projectRoot =
     projectId && pathname.includes('/employee/') ? `/employee/projects/${projectId}` : undefined;
-  const [projectActions, setProjectActions] = useState<QuickCreateAction[]>([]);
+  const [loadedProjectActions, setLoadedProjectActions] = useState<{
+    projectId: string;
+    actions: QuickCreateAction[];
+  } | null>(null);
 
   useEffect(() => {
-    if (!projectId || !loadProjectActions) {
-      setProjectActions([]);
-      return;
-    }
+    if (!projectId || !loadProjectActions) return;
     let cancelled = false;
-    setProjectActions([]);
     void loadProjectActions(projectId, projectRoot)
       .then((next) => {
-        if (!cancelled) setProjectActions(next);
+        if (!cancelled) setLoadedProjectActions({ projectId, actions: next });
       })
       .catch(() => {
-        if (!cancelled) setProjectActions([]);
+        if (!cancelled) setLoadedProjectActions({ projectId, actions: [] });
       });
     return () => {
       cancelled = true;
     };
   }, [projectId, projectRoot, loadProjectActions]);
+
+  const projectActions =
+    projectId && loadProjectActions && loadedProjectActions?.projectId === projectId
+      ? loadedProjectActions.actions
+      : [];
 
   if (shouldHideQuickCreateForRoute(pathname, searchParams)) {
     return null;

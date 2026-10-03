@@ -2,7 +2,7 @@ import 'server-only';
 
 import { findProjectDeliveryProfile } from '@/modules/project-profile';
 import { loadProjectCapabilities } from '@/modules/project-team';
-import { listProjectAgreementsOperational } from '@/modules/subcontracts/data/agreements.repository';
+import { listProjectAgreementsOperational } from '@/modules/subcontracts';
 import type { OrgContext } from '@/shared/auth/context';
 import {
   selectExecutionNavLinks,

@@ -4,6 +4,8 @@ export {
   getActiveBudgetForProject,
   getProjectBudgetWorkspace,
 } from './application/queries';
+export { listBudgetLinesForRevision } from './data/budgets.repository';
+export { loadBudgetAmountsByCostCodeForProject } from './data/cost-code-attribution.repository';
 export type { ProjectBudgetWorkspace } from './application/queries';
 
 export { getProjectCostCodeVariance } from './application/cost-code-variance';

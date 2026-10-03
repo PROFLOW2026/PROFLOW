@@ -47,6 +47,7 @@ export {
   type ContractorClaimDetail,
 } from './application/external';
 export type { AgreementPaymentStatus } from './application/payables';
+export { loadPaymentFacts } from './data/contract-basis.repository';
 export type {
   CertifyClaimInput,
   CreateClaimInput,

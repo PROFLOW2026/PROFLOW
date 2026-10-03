@@ -1,182 +1,182 @@
 {
   "register": {
     "pageTitle": "المخططات والرسوم",
-    "pageDescription": "Drawing register, revisions, and contractor publishing",
-    "empty": "No drawings to show",
-    "emptyTitle": "No drawings yet",
-    "emptyDescription": "Add the first drawing to start the project register",
-    "currentRev": "Rev {label}",
-    "drafts": "{count, plural, one {# draft} other {# drafts}}",
+    "pageDescription": "سجل المخططات والمراجعات والنشر للمقاولين",
+    "empty": "لا توجد مخططات للعرض",
+    "emptyTitle": "لا توجد مخططات بعد",
+    "emptyDescription": "أضيفوا المخطط الأول لبدء سجل المشروع",
+    "currentRev": "مراجعة {label}",
+    "drafts": "{count, plural, one {# مسودة} other {# مسودات}}",
     "discipline": {
-      "architecture": "Architecture",
-      "structure": "Structure",
-      "mechanical": "Mechanical",
-      "electrical": "Electrical",
-      "plumbing": "Plumbing",
-      "hvac": "HVAC",
-      "fire_protection": "Fire protection",
-      "civil": "Civil",
-      "landscape": "Landscape",
-      "interior": "Interior",
-      "aluminium": "Aluminium",
-      "survey": "Survey",
-      "other": "Other"
+      "architecture": "عمارة",
+      "structure": "إنشائي",
+      "mechanical": "ميكانيك",
+      "electrical": "كهرباء",
+      "plumbing": "سباكة",
+      "hvac": "تكييف",
+      "fire_protection": "إطفاء",
+      "civil": "مدني",
+      "landscape": "تنسيق موقع",
+      "interior": "داخلي",
+      "aluminium": "ألمنيوم",
+      "survey": "مساحة",
+      "other": "أخرى"
     }
   },
   "create": {
-    "title": "New drawing",
-    "number": "Drawing number",
-    "titleField": "Title",
-    "disciplineLabel": "Discipline",
-    "submit": "Create",
+    "title": "مخطط جديد",
+    "number": "رقم المخطط",
+    "titleField": "العنوان",
+    "disciplineLabel": "التخصص",
+    "submit": "إنشاء",
     "discipline": {
-      "architecture": "Architecture",
-      "structure": "Structure",
-      "mechanical": "Mechanical",
-      "electrical": "Electrical",
-      "plumbing": "Plumbing",
-      "hvac": "HVAC",
-      "fire_protection": "Fire protection",
-      "civil": "Civil",
-      "landscape": "Landscape",
-      "interior": "Interior",
-      "aluminium": "Aluminium",
-      "survey": "Survey",
-      "other": "Other"
+      "architecture": "عمارة",
+      "structure": "إنشائي",
+      "mechanical": "ميكانيك",
+      "electrical": "كهرباء",
+      "plumbing": "سباكة",
+      "hvac": "تكييف",
+      "fire_protection": "إطفاء",
+      "civil": "مدني",
+      "landscape": "تنسيق موقع",
+      "interior": "داخلي",
+      "aluminium": "ألمنيوم",
+      "survey": "مساحة",
+      "other": "أخرى"
     }
   },
   "detail": {
-    "back": "Back to register",
-    "revisions": "Revisions",
-    "evidence": "Attachments",
+    "back": "العودة إلى السجل",
+    "revisions": "المراجعات",
+    "evidence": "مرفقات",
     "discipline": {
-      "architecture": "Architecture",
-      "structure": "Structure",
-      "mechanical": "Mechanical",
-      "electrical": "Electrical",
-      "plumbing": "Plumbing",
-      "hvac": "HVAC",
-      "fire_protection": "Fire protection",
-      "civil": "Civil",
-      "landscape": "Landscape",
-      "interior": "Interior",
-      "aluminium": "Aluminium",
-      "survey": "Survey",
-      "other": "Other"
+      "architecture": "عمارة",
+      "structure": "إنشائي",
+      "mechanical": "ميكانيك",
+      "electrical": "كهرباء",
+      "plumbing": "سباكة",
+      "hvac": "تكييف",
+      "fire_protection": "إطفاء",
+      "civil": "مدني",
+      "landscape": "تنسيق موقع",
+      "interior": "داخلي",
+      "aluminium": "ألمنيوم",
+      "survey": "مساحة",
+      "other": "أخرى"
     },
     "revisionStatus": {
-      "draft": "Draft",
-      "current": "Current",
-      "superseded": "Superseded",
-      "withdrawn": "Withdrawn"
+      "draft": "مسودة",
+      "current": "حالية",
+      "superseded": "مستبدلة",
+      "withdrawn": "ملغاة"
     }
   },
   "revision": {
-    "uploadTitle": "New revision",
-    "label": "Revision label",
-    "choosePdf": "Choose PDF or image",
-    "publish": "Publish revision",
-    "uploadFailed": "File upload failed"
+    "uploadTitle": "مراجعة جديدة",
+    "label": "تسمية المراجعة",
+    "choosePdf": "اختيار PDF أو صورة",
+    "publish": "نشر المراجعة",
+    "uploadFailed": "فشل رفع الملف"
   },
   "evidence": {
     "gallery": {
-      "empty": "No attachments",
+      "empty": "لا توجد مرفقات",
       "kind": {
-        "photo": "Photo",
-        "video": "Video",
-        "document": "Document"
+        "photo": "صورة",
+        "video": "فيديو",
+        "document": "مستند"
       }
     },
     "uploader": {
-      "visibility": "Visibility",
-      "visibilityContractor": "Visible to contractors",
-      "visibilityInternal": "Internal only",
-      "captionPlaceholder": "Caption (optional)",
-      "chooseFile": "Choose file",
-      "capture": "Camera",
-      "uploadFailed": "Upload failed"
+      "visibility": "الظهور",
+      "visibilityContractor": "ظاهر للمقاولين",
+      "visibilityInternal": "داخلي فقط",
+      "captionPlaceholder": "تعليق (اختياري)",
+      "chooseFile": "اختيار ملف",
+      "capture": "كاميرا",
+      "uploadFailed": "فشل الرفع"
     },
     "errors": {
-      "fileType": "Unsupported file type",
-      "tooLarge": "File is too large",
-      "empty": "Empty file",
-      "contentMismatch": "File content does not match its type",
-      "notPending": "Upload is not pending",
-      "internalOnly": "Internal-only entity"
+      "fileType": "نوع ملف غير مدعوم",
+      "tooLarge": "الملف كبير جدًا",
+      "empty": "ملف فارغ",
+      "contentMismatch": "محتوى الملف لا يطابق نوعه",
+      "notPending": "الرفع ليس قيد الانتظار",
+      "internalOnly": "كيان داخلي فقط"
     }
   },
   "errors": {
-    "numberTaken": "Drawing number already exists",
-    "archived": "Drawing is archived",
-    "revisionTaken": "Revision label already in use",
-    "fileNotReady": "Upload the file before publishing",
-    "notCurrent": "Only the current revision can be acknowledged",
-    "notDraft": "Only drafts support this action",
-    "newerPublished": "A newer revision is already published",
-    "concurrentPublish": "Revision changed — refresh and try again",
-    "drawingFileType": "Upload a PDF or image"
+    "numberTaken": "رقم المخطط موجود مسبقًا",
+    "archived": "المخطط مؤرشف",
+    "revisionTaken": "تسمية المراجعة مستخدمة",
+    "fileNotReady": "أتموا رفع الملف قبل النشر",
+    "notCurrent": "يمكن تأكيد المراجعة الحالية فقط",
+    "notDraft": "هذا الإجراء للمسودات فقط",
+    "newerPublished": "توجد مراجعة منشورة أحدث",
+    "concurrentPublish": "تغيّرت المراجعة. حدّثوا وحاولوا مرة أخرى",
+    "drawingFileType": "ارفعوا PDF أو صورة"
   },
   "sharing": {
     "errors": {
-      "alreadyShared": "Already shared with this audience"
+      "alreadyShared": "المستند مشارك مع هذا الجمهور مسبقًا"
     }
   },
   "portal": {
     "plans": {
-      "pageTitle": "Plans",
-      "pageDescription": "Published drawing revisions",
-      "empty": "No plans available",
-      "emptyTitle": "No plans",
-      "ackRequired": "Acknowledgement required",
+      "pageTitle": "مخططات",
+      "pageDescription": "مراجعات مخططات منشورة",
+      "empty": "لا توجد مخططات متاحة",
+      "emptyTitle": "لا توجد مخططات",
+      "ackRequired": "مطلوب تأكيد الاستلام",
       "discipline": {
-        "architecture": "Architecture",
-        "structure": "Structure",
-        "mechanical": "Mechanical",
-        "electrical": "Electrical",
-        "plumbing": "Plumbing",
-        "hvac": "HVAC",
-        "fire_protection": "Fire protection",
-        "civil": "Civil",
-        "landscape": "Landscape",
-        "interior": "Interior",
-        "aluminium": "Aluminium",
-        "survey": "Survey",
-        "other": "Other"
+        "architecture": "عمارة",
+        "structure": "إنشائي",
+        "mechanical": "ميكانيك",
+        "electrical": "كهرباء",
+        "plumbing": "سباكة",
+        "hvac": "تكييف",
+        "fire_protection": "إطفاء",
+        "civil": "مدني",
+        "landscape": "تنسيق موقع",
+        "interior": "داخلي",
+        "aluminium": "ألمنيوم",
+        "survey": "مساحة",
+        "other": "أخرى"
       }
     },
     "documents": {
-      "pageTitle": "Documents",
-      "pageDescription": "Documents shared with you",
-      "empty": "No documents",
-      "emptyTitle": "No shared documents",
-      "acknowledge": "Acknowledge receipt",
-      "acknowledged": "Acknowledged"
+      "pageTitle": "مستندات",
+      "pageDescription": "مستندات تمت مشاركتها معكم",
+      "empty": "لا توجد مستندات",
+      "emptyTitle": "لا توجد مستندات مشتركة",
+      "acknowledge": "تأكيد الاستلام",
+      "acknowledged": "تم التأكيد"
     },
     "drawing": {
-      "pageTitle": "Drawing detail",
-      "back": "Back to plans",
-      "acknowledgeCurrent": "Acknowledge current revision",
-      "acknowledged": "Revision acknowledged",
+      "pageTitle": "تفاصيل المخطط",
+      "back": "العودة إلى المخططات",
+      "acknowledgeCurrent": "تأكيد استلام المراجعة الحالية",
+      "acknowledged": "تم تأكيد المراجعة",
       "discipline": {
-        "architecture": "Architecture",
-        "structure": "Structure",
-        "mechanical": "Mechanical",
-        "electrical": "Electrical",
-        "plumbing": "Plumbing",
-        "hvac": "HVAC",
-        "fire_protection": "Fire protection",
-        "civil": "Civil",
-        "landscape": "Landscape",
-        "interior": "Interior",
-        "aluminium": "Aluminium",
-        "survey": "Survey",
-        "other": "Other"
+        "architecture": "عمارة",
+        "structure": "إنشائي",
+        "mechanical": "ميكانيك",
+        "electrical": "كهرباء",
+        "plumbing": "سباكة",
+        "hvac": "تكييف",
+        "fire_protection": "إطفاء",
+        "civil": "مدني",
+        "landscape": "تنسيق موقع",
+        "interior": "داخلي",
+        "aluminium": "ألمنيوم",
+        "survey": "مساحة",
+        "other": "أخرى"
       },
       "status": {
-        "draft": "Draft",
-        "current": "Current",
-        "superseded": "Superseded",
-        "withdrawn": "Withdrawn"
+        "draft": "مسودة",
+        "current": "حالية",
+        "superseded": "مستبدلة",
+        "withdrawn": "ملغاة"
       }
     }
   }

@@ -1,7 +1,8 @@
 import { getLocale } from 'next-intl/server';
 import { ProjectExecutionNav } from '@/app/[locale]/(app)/projects/[projectId]/project-execution-nav';
 import { employeeProjectRoot, loadProjectExecutionNav } from '@/modules/project-workspace';
-import { localeDirection } from '@/shared/i18n/config';
+import { localeDirection, PROJECT_SURFACE_CLIENT_MESSAGE_NAMESPACES } from '@/shared/i18n/config';
+import { WithClientMessages } from '@/shared/i18n/with-client-messages';
 import { withOrgContext } from '@/shared/auth/session';
 
 export default async function EmployeeProjectLayout({
@@ -18,11 +19,13 @@ export default async function EmployeeProjectLayout({
   ).catch(() => ({ showGroup: false, links: [] }));
 
   return (
+    <WithClientMessages extra={PROJECT_SURFACE_CLIENT_MESSAGE_NAMESPACES}>
     <div className="flex min-w-0 flex-col gap-4">
       {executionNav.showGroup ? (
         <ProjectExecutionNav links={executionNav.links} dir={localeDirection(locale)} />
       ) : null}
       {children}
     </div>
+    </WithClientMessages>
   );
 }

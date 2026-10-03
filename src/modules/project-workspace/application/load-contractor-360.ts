@@ -2,14 +2,11 @@ import 'server-only';
 
 import { listProjectContractorTasks } from '@/modules/collaboration';
 import { canReadWith } from '@/modules/coordination/application/authorization';
-import { listProjectCoordinationEvents } from '@/modules/coordination';
-import { listParticipants } from '@/modules/coordination/data/coordination.repository';
+import { listParticipants, listProjectCoordinationEvents } from '@/modules/coordination';
 import { getProjectComplianceOverview } from '@/modules/contractor-compliance';
 import { listProjectDefects } from '@/modules/defects';
 import { listProjectInspections } from '@/modules/inspections';
-import { listProjectDrawings } from '@/modules/project-plans';
-import { listDistribution } from '@/modules/project-plans/data/plans.repository';
-import { listDocumentSharesForProject } from '@/modules/project-plans/data/shares.repository';
+import { listDistribution, listDocumentSharesForProject, listProjectDrawings } from '@/modules/project-plans';
 import type { DocumentShareAudience } from '@/modules/project-plans';
 import { PROJECT_CAPABILITIES as C, loadProjectCapabilities } from '@/modules/project-team';
 import { listProjectRfis } from '@/modules/rfi';

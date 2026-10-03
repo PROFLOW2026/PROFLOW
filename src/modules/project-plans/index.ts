@@ -72,3 +72,5 @@ export {
   type ContractorSharedDocument,
 } from './application/contractor-plans';
 export type { ShareableDocument } from './data/audience.repository';
+export { listDistribution } from './data/plans.repository';
+export { listDocumentSharesForProject } from './data/shares.repository';

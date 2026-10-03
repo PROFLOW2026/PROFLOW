@@ -1,16 +1,17 @@
 import 'server-only';
 
-import { getActiveBudgetForProject } from '@/modules/budgets';
-import { listBudgetLinesForRevision } from '@/modules/budgets/data/budgets.repository';
-import { loadBudgetAmountsByCostCodeForProject } from '@/modules/budgets/data/cost-code-attribution.repository';
+import {
+  getActiveBudgetForProject,
+  listBudgetLinesForRevision,
+  loadBudgetAmountsByCostCodeForProject,
+} from '@/modules/budgets';
 import { PROJECT_CAPABILITIES as C, loadProjectCapabilities } from '@/modules/project-team';
-import { loadAgreementValuePosition } from '@/modules/subcontracts';
 import {
   listProjectAgreementsOperational,
   listProjectWorkPackageOptions,
-} from '@/modules/subcontracts/data/agreements.repository';
-import { listProjectClaims } from '@/modules/subcontract-claims';
-import { loadPaymentFacts } from '@/modules/subcontract-claims/data/contract-basis.repository';
+  loadAgreementValuePosition,
+} from '@/modules/subcontracts';
+import { listProjectClaims, loadPaymentFacts } from '@/modules/subcontract-claims';
 import { loadAgreementContext } from '@/modules/subcontract-claims/application/claim-engine';
 import { loadAgreementPaymentStatus } from '@/modules/subcontract-claims/application/payables';
 import type { OrgContext } from '@/shared/auth/context';

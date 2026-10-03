@@ -441,7 +441,7 @@ describe('migration journal', () => {
       tags.indexOf('0154_project_team_capabilities'),
     );
     expect([...tags].sort()).toEqual(tags);
-    expect(tags.at(-1)).toBe('0170_dg_surfaces_cost_control');
+    expect(tags.at(-1)).toBe('0171_retention_release_service_grant');
 
     const sql66 = await readFile(
       path.join(MIGRATIONS_DIR, '0066_workforce_time_integrity.sql'),

@@ -61,7 +61,6 @@ import {
   depsFor,
   elevatedFor,
   streamToBytes,
-  type FakeFileStore,
 } from '@tests/setup/dg-fixtures-documents';
 import { seedOrganizationStorageConnection } from '@tests/setup/external-storage-fixture';
 import { provisionTwoTenants } from '../projects/setup';

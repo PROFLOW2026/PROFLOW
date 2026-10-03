@@ -98,7 +98,7 @@
   },
   "history": {
     "created": "Создан со статусом {status}",
-    "changed": "{from} → {to}"
+    "changed": "{from} ← {to}"
   },
   "actions": {
     "title": "Действия",

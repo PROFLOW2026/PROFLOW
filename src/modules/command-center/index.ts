@@ -1,3 +1,8 @@
+// Evaluated before inbox collectors. Domain tracks import this barrel from their
+// register-ports modules, and those modules are loaded by the collectors.
+export { registerDgCommandCenterPort } from './data/dg-ports';
+export type { DgCommandCenterQuery, DgCommandCenterQueryInput } from './data/dg-ports';
+
 export { getTodayInbox } from './application/get-today-inbox';
 export { latestCompletedMonth } from './data/collect-monthly-workforce-report';
 export { getActionableInbox, getActionableInboxIfAllowed } from './application/get-actionable-inbox';
@@ -40,6 +45,4 @@ export { DG_SOURCE_TYPES } from './domain/types';
 export type { DgSourceType } from './domain/types';
 export { DG_ITEM_DEFINITIONS, buildDgItems } from './domain/dg-items';
 export type { DgCommandCenterRow, DgItemDefinition } from './domain/dg-items';
-export { registerDgCommandCenterPort } from './data/dg-ports';
-export type { DgCommandCenterQuery, DgCommandCenterQueryInput } from './data/dg-ports';
 export type { UpdateCommandCenterItemStateInput } from './validation/schemas';

@@ -93,7 +93,7 @@
     "history": "History",
     "attachments": "Attachments",
     "discussion": "Discussion",
-    "reopened": "Reopened {count, plural, one {once} other {# times}}",
+    "reopened": "Reopened {count, plural, one {# time} other {# times}}",
     "raisedOn": "Raised {date}"
   },
   "history": {

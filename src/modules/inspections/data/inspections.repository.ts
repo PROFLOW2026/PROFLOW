@@ -12,7 +12,7 @@ import {
   subcontractWorkLines,
   workPackages,
 } from '@drizzle/schema';
-import { projectVendorNames } from '@/modules/defects/data/quality-refs.repository';
+import { projectVendorNames } from '@/modules/defects';
 import type { DbExecutor } from '@/shared/db/types';
 import type { CheckResult, InspectionOutcome, InspectionStatus } from '../domain/rules';
 import type {

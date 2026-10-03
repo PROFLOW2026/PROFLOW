@@ -110,7 +110,8 @@ export {
 } from './application/folder-provisioning';
 export { listConfiguredStorageProviders, isStorageProviderConfigured } from './providers/registry';
 export { findFolderMapping } from './data/folder-mappings.repository';
-export { findStorageFileByDocumentId } from './data/files.repository';
+export { findStorageFileByDocumentId, insertStorageFile } from './data/files.repository';
+export { findStorageConnectionById } from './data/connections.repository';
 export {
   assertProjectProviderFileAccess,
 } from './application/browser-service';

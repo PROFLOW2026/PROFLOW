@@ -72,6 +72,7 @@ export {
   type PendingSubmittalItem,
 } from './application/queries';
 export { loadSubmittalFormOptions, type SubmittalFormOptions } from './application/form-options';
+export { countSubmittalsByStatus } from './data/submittals.repository';
 export type {
   CreateExternalSubmittalInput,
   CreateInternalSubmittalInput,

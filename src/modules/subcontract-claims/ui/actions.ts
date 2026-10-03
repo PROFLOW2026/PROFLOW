@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation';
 import { requireExternalContext } from '@/modules/contractor-access';
 import { withOrgContext } from '@/shared/auth/session';
 import { mapServerActionError } from '@/shared/errors';
+import type { DeductionType } from '../domain/types';
 import {
   cancelContractorClaim,
   certifyClaim,
@@ -37,11 +38,6 @@ async function mapError(error: unknown): Promise<ActionState> {
 
 function field(formData: FormData, key: string): string {
   return String(formData.get(key) ?? '').trim();
-}
-
-function revalidateClaims(projectId: string, basePath: string) {
-  revalidatePath(basePath);
-  revalidatePath(`${basePath}/${projectId}/claims`);
 }
 
 export async function startReviewAction(formData: FormData): Promise<void> {
@@ -162,7 +158,7 @@ export async function issueDeductionAction(_prev: ActionState, formData: FormDat
         projectId: field(formData, 'projectId'),
         agreementId: field(formData, 'agreementId'),
         claimId: field(formData, 'claimId') || null,
-        deductionType: field(formData, 'deductionType') as import('../domain/types').DeductionType,
+        deductionType: field(formData, 'deductionType') as DeductionType,
         amount: field(formData, 'amount'),
         reason: field(formData, 'reason'),
         contractorVisible: formData.get('contractorVisible') === 'on',

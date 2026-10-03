@@ -31,6 +31,7 @@ export type {
   DefectStatusCounts,
 } from './domain/types';
 export { computeContractorQualityMetrics, type ContractorQualityMetrics } from './domain/metrics';
+export { projectVendorNames, resolveQualityRefs } from './data/quality-refs.repository';
 
 export {
   assignDefect,

@@ -25,16 +25,17 @@ export async function EntityDiscussion(props: EntityDiscussionProps) {
 
   if (props.viewer === 'external') {
     const context = await requireExternalContext();
+    let thread;
     try {
-      const thread = await loadExternalDiscussion(context, {
+      thread = await loadExternalDiscussion(context, {
         organizationId: props.organizationId,
         entityType: props.entityType,
         entityId: props.entityId,
       });
-      return <EntityDiscussionPanel thread={thread} hidden={hidden} viewer="external" labels={labels} />;
     } catch {
       notFound();
     }
+    return <EntityDiscussionPanel thread={thread} hidden={hidden} viewer="external" labels={labels} />;
   }
 
   const thread = await withOrgContext(async (context) => {
