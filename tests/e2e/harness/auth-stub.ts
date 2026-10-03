@@ -19,9 +19,21 @@ interface StubUser {
 
 const users = new Map<string, StubUser>();
 const tokens = new Map<string, string>();
+/** Per-email password (employee peppered PIN, etc.). Default for seed users is {@link SEED_PASSWORD}. */
+const passwordByEmail = new Map<string, string>();
 
 for (const user of SEED_USERS) {
   users.set(user.email.toLowerCase(), { ...user });
+}
+
+/** Register or override a harness auth identity (e.g. employee synthetic auth emails). */
+export function registerStubAuthUser(user: StubUser, password: string): void {
+  users.set(user.email.toLowerCase(), { ...user });
+  passwordByEmail.set(user.email.toLowerCase(), password);
+}
+
+function expectedPasswordForEmail(email: string): string {
+  return passwordByEmail.get(email) ?? SEED_PASSWORD;
 }
 
 function encodeSegment(value: object): string {
@@ -189,7 +201,8 @@ export function startAuthStub(port: number): Promise<() => Promise<void>> {
 
         const email = String(body.email ?? '').toLowerCase();
         const user = users.get(email);
-        if (!user || String(body.password ?? '') !== SEED_PASSWORD) {
+        const expectedPassword = expectedPasswordForEmail(email);
+        if (!user || String(body.password ?? '') !== expectedPassword) {
           return send(response, 400, {
             error: 'invalid_grant',
             error_description: 'Invalid login credentials',

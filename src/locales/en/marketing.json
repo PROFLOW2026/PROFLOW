@@ -21,10 +21,12 @@
     "subtitle": "ProjectFlow brings together projects, jobs, and service - from quote through expenses, collections, and profitability - so you know what is happening and what needs handling.",
     "primaryCta": "Get started",
     "secondaryCta": "See how it works",
-    "shotCaption": "Project financials - value, cost, billing, and collections at a glance",
-    "shotAlt": "Preview of project financials in ProjectFlow",
-    "mobileShotCaption": "The work on your phone - the same system from the field",
-    "mobileShotAlt": "Preview of the work on mobile"
+    "shotFile": "today-desktop.png",
+    "shotCaption": "Today - open the business and see what needs attention",
+    "shotAlt": "Preview of the Today screen in ProjectFlow",
+    "mobileShotFile": "today-mobile.png",
+    "mobileShotCaption": "Today on your phone - the same priorities from the field",
+    "mobileShotAlt": "Preview of Today on mobile"
   },
   "questions": {
     "title": "The questions every business owner asks",
@@ -68,30 +70,39 @@
     "title": "What you can manage",
     "blocks": [
       {
-        "title": "Projects and jobs",
+        "title": "Business dashboard & Today",
+        "body": "See how the business is doing and open Today for approvals, collections, and items waiting on you."
+      },
+      {
+        "title": "CRM & pipeline",
+        "body": "Track prospects, leads, and opportunities before they become a quote or a project."
+      },
+      {
+        "title": "Quotes & proposals",
+        "body": "Build estimates with reusable text blocks, preview before sending, and move into work when the client says yes."
+      },
+      {
+        "title": "Projects, jobs & service",
         "body": "Manage projects, jobs, and service calls from opening through closeout."
       },
       {
-        "title": "Money and profitability",
-        "body": "See costs, commitments, billing, payments, and profitability on every project."
+        "title": "Money on every project",
+        "body": "See costs, commitments, billing, payments, and profitability on each job."
       },
       {
-        "title": "People and field work",
-        "body": "Hours, attendance, scheduling, daily logs, punch items, and inspections."
+        "title": "Work management",
+        "body": "Tasks, board, calendar, and timeline so daily work stays visible alongside the money."
       },
       {
-        "title": "Vendors and purchasing",
-        "body": "Vendors, purchase orders, supplier invoices, and subcontractors."
+        "title": "Team, field & Employee app",
+        "body": "Hours, attendance, and field work for the office - plus a separate Employee app with simple sign-in for workers."
       },
       {
-        "title": "Bill of quantities",
-        "body": "Quantities, progress, changes, and progress invoices."
-      },
-      {
-        "title": "Documents and invoices",
-        "body": "Upload documents, photograph invoices, and prepare a draft for review."
+        "title": "Purchasing, BOQ & documents",
+        "body": "Vendors, purchase orders, supplier invoices, bill of quantities, and invoice capture for review."
       }
     ],
+    "shotFile": "invoice-capture-desktop.png",
     "shotCaption": "Photograph an invoice - the system prepares a draft for review",
     "shotAlt": "Preview of invoice review"
   },
@@ -115,6 +126,7 @@
       "Get a warning when profitability or budget starts to weaken."
     ],
     "cta": "Get started",
+    "shotFile": "financials-desktop.png",
     "shotCaption": "Project financials - value, cost, billing, and collections at a glance",
     "shotAlt": "Preview of project financials"
   },
@@ -134,6 +146,8 @@
         "body": "See what was actually received and what is still open."
       }
     ],
+    "changesFile": "changes-desktop.png",
+    "billingFile": "billing-desktop.png",
     "changesCaption": "Changes - waiting for approval separately",
     "billingCaption": "Billing and payments - know what is open",
     "changesAlt": "Preview of changes",
@@ -147,49 +161,70 @@
         "id": "today",
         "label": "Today",
         "caption": "Today - open and immediately see what needs attention",
-        "src": "/marketing/screenshots/today-desktop.png",
+        "file": "today-desktop.png",
         "alt": "Today screen preview"
+      },
+      {
+        "id": "dashboard",
+        "label": "Dashboard",
+        "caption": "Business dashboard - month view, cash, and projects that need a look",
+        "file": "dashboard-desktop.png",
+        "alt": "Business dashboard preview"
       },
       {
         "id": "project",
         "label": "Project",
         "caption": "The project - work, money, and field in one screen",
-        "src": "/marketing/screenshots/project-overview-desktop.png",
+        "file": "project-overview-desktop.png",
         "alt": "Project workspace preview"
       },
       {
         "id": "financials",
         "label": "Financials",
         "caption": "Project financials - value, cost, billing, and collections",
-        "src": "/marketing/screenshots/financials-desktop.png",
+        "file": "financials-desktop.png",
         "alt": "Project financials preview"
+      },
+      {
+        "id": "crm",
+        "label": "CRM",
+        "caption": "Prospects, leads, and opportunities in one pipeline",
+        "file": "crm-desktop.png",
+        "alt": "CRM preview"
+      },
+      {
+        "id": "quotes",
+        "label": "Quotes",
+        "caption": "Quotes and estimates with settings and preview",
+        "file": "quotes-desktop.png",
+        "alt": "Quotes preview"
+      },
+      {
+        "id": "work",
+        "label": "Tasks",
+        "caption": "Task board - see work moving across the team",
+        "file": "work-board-desktop.png",
+        "alt": "Task board preview"
       },
       {
         "id": "invoice",
         "label": "Invoice",
         "caption": "Photograph an invoice, check the details, and continue",
-        "src": "/marketing/screenshots/invoice-capture-desktop.png",
+        "file": "invoice-capture-desktop.png",
         "alt": "Invoice review preview"
-      },
-      {
-        "id": "warnings",
-        "label": "Warnings",
-        "caption": "A warning when a project starts to overrun budget or profitability",
-        "src": "/marketing/screenshots/warnings-desktop.png",
-        "alt": "Project warnings preview"
       },
       {
         "id": "billing",
         "label": "Collections",
         "caption": "Billing and payments - know what is open",
-        "src": "/marketing/screenshots/billing-desktop.png",
+        "file": "billing-desktop.png",
         "alt": "Collections preview"
       },
       {
         "id": "reports",
         "label": "Reports",
         "caption": "Client reports - status, money, and progress without giving system access",
-        "src": "/marketing/screenshots/reports-desktop.png",
+        "file": "reports-desktop.png",
         "alt": "Reports preview"
       }
     ]
@@ -200,19 +235,25 @@
     "modules": [
       "Today - what needs attention",
       "Quick search across the business",
-      "Photograph an invoice for review",
-      "Overrun warnings",
+      "Scheduling and shared calendar",
+      "Field logs, punch items, and inspections",
+      "External file storage for the company",
+      "Material market monitoring",
       "Printable reports for clients",
-      "Multiple contracts on a complex project",
-      "Materials, assets & compliance"
+      "Hebrew, English, Arabic, and Russian"
     ]
   },
   "mobile": {
-    "title": "From the office and the field - same system",
-    "body": "Daily work from your phone: logs, expenses, and invoice photos stay available in the field. You can also install ProjectFlow as an app on your device.",
+    "title": "From the office and the field - two ways to work",
+    "body": "Owners and managers use ProjectFlow in the browser or as an installed app. Workers can use a dedicated Employee app built for the tasks they actually perform.",
+    "ownerTitle": "ProjectFlow for owners & managers",
+    "ownerBody": "Install from the browser when you want app-like access. Today, projects, money, and capture stay with you on the go.",
+    "employeeTitle": "Employee app for the team",
+    "employeeBody": "Simple employee sign-in, mobile-first layout, and only the work you allow: time, tasks, forms, and more by permission.",
     "installHeading": "Install ProjectFlow",
-    "shotCaption": "The work on your phone - the same system from the field",
-    "shotAlt": "ProjectFlow mobile preview"
+    "shotFile": "employee-app-mobile.png",
+    "shotCaption": "Employee app - focused work on a phone",
+    "shotAlt": "Preview of the Employee app on mobile"
   },
   "audience": {
     "title": "Fits the way your business works",
@@ -248,8 +289,8 @@
             "a": "Yes. You can start with clients, jobs, and basic expenses - without turning everything on."
           },
           {
-            "q": "Can I manage both projects and service calls?",
-            "a": "Yes. You can manage projects, jobs, and service calls according to the type of work."
+            "q": "Can I track sales before a project starts?",
+            "a": "Yes. When CRM is on, you can manage prospects, leads, and opportunities until they become a quote or a project."
           },
           {
             "q": "Do I have to use every capability?",
@@ -288,8 +329,8 @@
             "a": "Yes. You can manage employees, time reporting, attendance, and scheduling."
           },
           {
-            "q": "Can I manage vendors and subcontractors?",
-            "a": "Yes. Vendors, purchase orders, supplier invoices, and subcontractors can be linked to the work."
+            "q": "Is there a separate app for employees?",
+            "a": "Yes. The Employee app uses its own sign-in and shows only what you allow - time, tasks, documents, and other areas by permission."
           },
           {
             "q": "Can I photograph or upload an invoice?",
@@ -297,7 +338,7 @@
           },
           {
             "q": "Can workers use it from a phone?",
-            "a": "Yes. The same system is mobile-ready - reports, expenses, and invoice capture are available in the field."
+            "a": "Yes. Managers can use ProjectFlow mobile or installed PWA. Workers use the Employee app when you invite them."
           }
         ]
       },
@@ -306,16 +347,16 @@
         "title": "Using the system",
         "items": [
           {
+            "q": "Can I prepare quotes with standard wording?",
+            "a": "Yes. Quote settings support reusable text blocks, and you can preview an estimate before you share it."
+          },
+          {
             "q": "Can I produce reports for a client?",
-            "a": "Yes. You can produce printable reports for project status, financial summary, progress, changes, and daily logs."
+            "a": "Yes. You can open print-friendly reports for project status, financial summary, progress, changes, and daily logs."
           },
           {
-            "q": "Can I install ProjectFlow?",
-            "a": "Yes. You can install it from the browser to the home screen or desktop when the device supports it."
-          },
-          {
-            "q": "Does every worker see the financial data?",
-            "a": "No. You set permissions - each person sees what they need."
+            "q": "Can files live in external storage?",
+            "a": "Yes. When configured, company and project files can connect to your external storage so documents stay where your business already works."
           },
           {
             "q": "Does ProjectFlow replace bookkeeping?",
@@ -331,7 +372,18 @@
     "cta": "Get started"
   },
   "footer": {
-    "note": "ProjectFlow"
+    "note": "ProjectFlow",
+    "tagline": "Work and money for project, job, and service businesses.",
+    "languages": "Available in Hebrew, English, Arabic, and Russian.",
+    "bookkeepingNote": "ProjectFlow does not replace bookkeeping or statutory accounting software.",
+    "navLabel": "Footer links",
+    "links": {
+      "howItWorks": "How it works",
+      "capabilities": "Capabilities",
+      "faq": "FAQ",
+      "signIn": "Sign in",
+      "employeeLogin": "Employee sign in"
+    }
   },
   "valueStories": [
     {
@@ -340,7 +392,7 @@
     },
     {
       "title": "Spot a problem before it grows",
-      "body": "ProjectFlow shows when a project starts to overrun budget, when profitability is eroding, or when collections are delayed."
+      "body": "The dashboard and project financials show when budget or profitability starts to weaken, or when collections slip."
     },
     {
       "title": "Photograph an invoice and continue to review",

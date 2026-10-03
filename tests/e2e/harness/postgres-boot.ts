@@ -1,9 +1,8 @@
-import path from 'node:path';
 import { drizzle } from 'drizzle-orm/postgres-js';
-import { migrate } from 'drizzle-orm/postgres-js/migrator';
 import postgres from 'postgres';
 import * as schema from '@drizzle/schema';
 import type { Database } from '@/shared/db/types';
+import { applySqlMigrationsPostgres } from '../../setup/database';
 import { resolveHarnessDatabaseUrl } from './database-mode';
 import { DATABASE_URL as PGLITE_DATABASE_URL } from './config';
 import { seedWorld } from './seed';
@@ -18,9 +17,8 @@ export async function bootPostgresHarness(): Promise<void> {
   const client = postgres(connectionString, { max: 1, prepare: false, onnotice: () => {} });
 
   try {
-    const migrationsFolder = path.resolve(process.cwd(), 'drizzle/migrations');
     console.log('[harness] applying migrations to postgres…');
-    await migrate(drizzle(client, { schema, casing: 'snake_case' }), { migrationsFolder });
+    await applySqlMigrationsPostgres(client);
     const db = drizzle(client, { schema, casing: 'snake_case' }) as unknown as Database;
     console.log('[harness] seeding E2E world…');
     const world = await seedWorld(db);

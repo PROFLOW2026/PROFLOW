@@ -2,6 +2,11 @@ import 'server-only';
 
 import { sql } from 'drizzle-orm';
 import { asServiceRoleWrite } from '@/shared/db/service-role-write';
+
+/** PGlite integration: one wire cannot nest admin commit while user tx is open (see oauth-callback-binding.test). */
+function inlineCommittedStorageWriteEnabled(): boolean {
+  return process.env.PROJECTFLOW_TEST_INLINE_COMMITTED_STORAGE === '1';
+}
 import type { DbExecutor } from '@/shared/db/types';
 import { openOAuthPayload, sealOAuthPayload, type StoredOAuthPayload } from '../application/token-seal';
 import { runCommittedStorageWrite } from './storage-admin-write';
@@ -44,7 +49,7 @@ async function writeStorageConnectionCredentials(
 
 /** Persists credentials in a committed admin transaction (survives request tx rollback). */
 export async function saveStorageConnectionCredentials(
-  _db: DbExecutor,
+  db: DbExecutor,
   input: {
     organizationId: string;
     connectionId: string;
@@ -52,6 +57,10 @@ export async function saveStorageConnectionCredentials(
     tokenExpiresAt: Date | null;
   },
 ): Promise<void> {
+  if (inlineCommittedStorageWriteEnabled()) {
+    await asServiceRoleWrite(db, () => writeStorageConnectionCredentials(db, input));
+    return;
+  }
   await runCommittedStorageWrite((adminDb) => writeStorageConnectionCredentials(adminDb, input));
 }
 

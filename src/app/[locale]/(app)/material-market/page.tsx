@@ -4,7 +4,6 @@ import { PageHeader } from '@/components/ui/page-header';
 import { loadMaterialMarketDashboard } from '@/modules/material-market';
 import { TradePressureCard } from '@/modules/material-market/ui/trade-pressure-card';
 import { withOrgContext } from '@/shared/auth/session';
-import { getDb } from '@/shared/db/client';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { redirect } from '@/shared/i18n/navigation';
@@ -26,14 +25,11 @@ export default async function MaterialMarketPage({
 }) {
   const [{ locale }, t] = await Promise.all([params, getTranslations('materialMarket')]);
 
-  const allowed = await withOrgContext(async (context) =>
-    hasPermission(context, PERMISSIONS.MATERIALS_READ),
-  );
-  if (!allowed) redirect({ href: '/', locale });
-
-  const entries = await withOrgContext(async () => {
-    const db = getDb();
-    return loadMaterialMarketDashboard(db);
+  const entries = await withOrgContext(async (context) => {
+    if (!hasPermission(context, PERMISSIONS.MATERIALS_READ)) {
+      redirect({ href: '/', locale });
+    }
+    return loadMaterialMarketDashboard(context.db);
   });
 
   return (

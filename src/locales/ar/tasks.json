@@ -24,6 +24,7 @@
     "defaultBoard": "اللوحة الافتراضية",
     "archivedBoards": "اللوحات المؤرشفة",
     "globalPageTitle": "لوحة المهام",
+    "globalPageDescription": "أضف مهام إلى مشاريعك لرؤيتها هنا",
     "moveToStatus": "نقل إلى حالة",
     "empty": {
       "title": "لا توجد مهام هنا",

@@ -16,10 +16,10 @@ export function ScreenshotFrame({
   mobile?: boolean;
 }) {
   return (
-    <figure className={cn('min-w-0', className)} data-pf-screenshot-frame={mobile ? 'mobile' : 'desktop'}>
+    <figure className={cn('min-w-0 max-w-full', className)} data-pf-screenshot-frame={mobile ? 'mobile' : 'desktop'}>
       <div
         className={cn(
-          'overflow-hidden border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] shadow-[var(--pf-shadow-sm)]',
+          'max-w-full overflow-hidden border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] shadow-[var(--pf-shadow-sm)]',
           mobile ? 'mx-auto max-w-[280px] rounded-[1.25rem]' : 'rounded-xl',
         )}
       >
@@ -27,9 +27,7 @@ export function ScreenshotFrame({
         <img
           src={src}
           alt={alt}
-          width={mobile ? 390 : 1280}
-          height={mobile ? 844 : 800}
-          className="h-auto w-full"
+          className="block h-auto w-full max-w-full"
           decoding="async"
           loading={priority ? 'eager' : 'lazy'}
           fetchPriority={priority ? 'high' : 'auto'}

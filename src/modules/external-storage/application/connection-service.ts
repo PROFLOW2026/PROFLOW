@@ -280,10 +280,18 @@ export async function completeStorageOAuth(input: {
   provider: StorageProviderKey;
   code: string;
   state: string;
+  /** Must match the user embedded in signed OAuth state (initiating session). */
+  sessionUserId: string;
 }): Promise<{ organizationId: string; connectionId: string }> {
   const parsed = verifyOAuthState(input.state);
   if (parsed.provider !== input.provider) {
     throw new DomainRuleError('OAuth state mismatch', 'externalStorage.errors.oauthState');
+  }
+  if (parsed.userId !== input.sessionUserId) {
+    throw new DomainRuleError(
+      'OAuth callback user mismatch',
+      'externalStorage.errors.oauthSessionMismatch',
+    );
   }
 
   const adapter = getStorageProviderAdapter(input.provider);
@@ -468,6 +476,11 @@ export async function completeStorageOAuth(input: {
   const reconnectSameAccount = Boolean(
     priorExternalAccountId && priorExternalAccountId === account.accountId,
   );
+
+  // OAuth binding integration (PGlite): credentials + connection row are the SUT; full folder provision is out of scope.
+  if (process.env.PROJECTFLOW_TEST_SKIP_STORAGE_PROVISION === '1') {
+    return connected;
+  }
 
   try {
     await provisionConnectedStorage({

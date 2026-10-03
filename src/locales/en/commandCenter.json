@@ -90,6 +90,7 @@
     "monthly_workforce_report_ready": "Monthly workforce report",
     "task_overdue": "Overdue task",
     "task_due_today": "Task due today",
+    "task_unassigned": "Unassigned task",
     "storage_attention": "File storage",
     "statutory_attention": "Tax document"
   },

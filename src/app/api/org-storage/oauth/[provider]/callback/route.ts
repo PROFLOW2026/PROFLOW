@@ -1,4 +1,5 @@
 import { completeStorageOAuth, failStorageOAuthCallback } from '@/modules/external-storage/server';
+import { createSupabaseServerClient } from '@/shared/supabase/server';
 import type { StorageProviderKey } from '@/modules/external-storage/server';
 import {
   buildStorageOAuthSettingsRedirectUrl,
@@ -47,7 +48,14 @@ export async function GET(
   }
 
   try {
-    await completeStorageOAuth({ provider, code, state });
+    const supabase = await createSupabaseServerClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user?.id) {
+      return redirectToSettings(request, state, 'error=oauth_session');
+    }
+    await completeStorageOAuth({ provider, code, state, sessionUserId: user.id });
     return redirectToSettings(request, state, `connected=${provider}`);
   } catch (error) {
     const detail =

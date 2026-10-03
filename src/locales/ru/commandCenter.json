@@ -90,6 +90,7 @@
     "monthly_workforce_report_ready": "Ежемесячный отчёт по персоналу",
     "task_overdue": "Просроченная задача",
     "task_due_today": "Задача на сегодня",
+    "task_unassigned": "Задача без исполнителя",
     "storage_attention": "Файловое хранилище",
     "statutory_attention": "Налоговый документ"
   },

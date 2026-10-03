@@ -60,6 +60,7 @@
     "reconnectRequired": "Переподключите службу хранилища.",
     "providerNotConfigured": "Провайдер не настроен в этой среде.",
     "connectionNotFound": "Подключение хранилища не найдено.",
+    "oauthSessionMismatch": "Sign in as the same user who started the storage connection, then try again.",
     "rootNotReady": "Хранилище подключено, но папка ProjectFlow ещё не готова. Переподключитесь или проверьте подключение.",
     "rootFolderMissing": "Папка ProjectFlow удалена в облачном хранилище. ProjectFlow заново создал папки организации и шаблон проекта — подтвердите шаблон, чтобы продолжить. Переподключение не требуется.",
     "templateIncomplete": "Шаблон проекта в облачном хранилище неполный. ProjectFlow попытался исправить его; если проблема сохраняется, откройте шаблон в хранилище и повторите попытку.",

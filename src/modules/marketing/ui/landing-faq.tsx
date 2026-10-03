@@ -27,7 +27,7 @@ export function LandingFaq() {
         className="mt-6 min-w-0"
         onValueChange={() => setOpenKey(null)}
       >
-        <TabsList aria-label={t('groupsLabel')}>
+        <TabsList aria-label={t('groupsLabel')} className="h-auto flex-wrap">
           {groups.map((group) => (
             <TabsTrigger key={group.id} value={group.id}>
               {group.title}
@@ -57,6 +57,12 @@ export function LandingFaq() {
                       aria-expanded={open}
                       aria-controls={panelId}
                       onClick={() => setOpenKey(open ? null : key)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
+                          setOpenKey(open ? null : key);
+                        }
+                      }}
                     >
                       <span>{item.q}</span>
                       <span

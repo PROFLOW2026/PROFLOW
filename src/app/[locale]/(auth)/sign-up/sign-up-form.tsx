@@ -119,6 +119,18 @@ export function SignUpForm() {
         )}
       </Field>
 
+      <p className="text-xs leading-relaxed text-[var(--pf-text-muted)]" lang="he" dir="rtl">
+        בהרשמה אתם מאשרים שקראתם את{' '}
+        <Link href="/legal/terms" className={textNavLinkClassName}>
+          תנאי השימוש
+        </Link>{' '}
+        ואת{' '}
+        <Link href="/legal/privacy" className={textNavLinkClassName}>
+          מדיניות הפרטיות
+        </Link>{' '}
+        (עברית).
+      </p>
+
       <Button type="submit" loading={pending} block>
         {t('submit')}
       </Button>

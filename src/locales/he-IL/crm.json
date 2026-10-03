@@ -229,6 +229,7 @@
     "quoteOpportunityMismatch": "הצעת המחיר אינה שייכת להזדמנות זו",
     "acceptedQuoteRequired": "נדרשת הצעת מחיר שהתקבלה להמרה",
     "useProductQuote": "יש ליצור ולקבל הצעת מחיר תחת הצעות מחיר לפני המרה",
+    "useProductQuoteConversionForWin": "לא ניתן לסמן \"זכייה\" ידנית. יש להמיר דרך הצעת מחיר שהתקבלה ופעולת המרה מפורשת.",
     "quoteFinalized": "לא ניתן להוסיף גרסאות להצעת מחיר סופית",
     "cannotIssueVersion": "ניתן להנפיק רק גרסאות טיוטה",
     "cannotAcceptVersion": "ניתן לקבל רק גרסאות טיוטה או שהונפקו"

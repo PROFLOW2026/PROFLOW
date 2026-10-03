@@ -24,6 +24,7 @@
     "defaultBoard": "Default board",
     "archivedBoards": "Archived boards",
     "globalPageTitle": "Task board",
+    "globalPageDescription": "Add tasks to your projects to see them here",
     "moveToStatus": "Move to status",
     "empty": {
       "title": "No tasks here",

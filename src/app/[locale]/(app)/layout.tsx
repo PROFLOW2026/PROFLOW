@@ -1,4 +1,9 @@
+import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 import { AppShell } from '@/components/shell/app-shell';
 import { assertOwnerAppSurface } from '@/modules/employee-app/application/session-guard';
 import { withOrgContext } from '@/shared/auth/session';

@@ -16,6 +16,7 @@ import {
 import { assertStatutoryFeatureEnabled } from './assert-feature-enabled';
 import { buildStatutoryBridgeFromBillingRecord } from './build-statutory-bridge';
 import { resolveStatutoryProviderForOrg } from './resolve-statutory-provider';
+import { resolveIssuanceOutcomeAfterProviderRefresh } from '../domain/resolve-issuance-outcome-after-refresh';
 import { SumitStatutoryProvider } from '../providers/sumit/sumit-statutory-provider';
 
 function mapProviderStatus(
@@ -83,6 +84,12 @@ export async function refreshExternalStatutoryStatus(
     };
   }
 
+  const nextIssuanceOutcome = resolveIssuanceOutcomeAfterProviderRefresh({
+    previousOutcome: existing.issuanceOutcome,
+    providerStatus: result.value.status,
+    hasExternalId: Boolean(existing.externalId ?? result.value.externalId),
+  });
+
   const updated = await updateExternalDocument(context, existing.id, {
     status: mapProviderStatus(result.value.status),
     externalNumber: result.value.externalNumber,
@@ -93,6 +100,7 @@ export async function refreshExternalStatutoryStatus(
     reconciliationMetadata,
     lastErrorCode: null,
     lastErrorMessage: null,
+    ...(nextIssuanceOutcome !== undefined ? { issuanceOutcome: nextIssuanceOutcome } : {}),
   });
   return updated!;
 }

@@ -229,6 +229,7 @@
     "quoteOpportunityMismatch": "CRM-коммерческое предложение не относится к этой возможности",
     "acceptedQuoteRequired": "Для преобразования требуется принятое product quote",
     "useProductQuote": "Создайте и примите product quote на /quotes перед преобразованием",
+    "useProductQuoteConversionForWin": "Do not set status to won manually. Convert via an accepted product quote and the explicit conversion action.",
     "quoteFinalized": "Нельзя добавлять версии к финализированному CRM-коммерческому предложению",
     "cannotIssueVersion": "Выпускать можно только черновые версии CRM-коммерческого предложения",
     "cannotAcceptVersion": "Принимать можно только черновые или выпущенные версии CRM-коммерческого предложения"

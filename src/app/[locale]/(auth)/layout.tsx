@@ -1,5 +1,11 @@
+import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import type { ReactNode } from 'react';
+import { LegalFooterLinks } from '@/modules/legal/ui/legal-footer-links';
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 import { PwaInstallCta } from '@/modules/offline/ui/pwa-install-cta';
 import { LocaleSwitcherInline } from '@/shared/i18n/locale-switcher-inline';
 import { WithClientMessages } from '@/shared/i18n/with-client-messages';
@@ -25,6 +31,8 @@ export default async function AuthLayout({ children }: { children: ReactNode }) 
 
         {/* Pre-login install - no account required (LEO-style discoverability). */}
         <PwaInstallCta variant="auth" />
+
+        <LegalFooterLinks className="mt-6 text-center text-xs text-[var(--pf-text-muted)] [&_a]:text-[var(--pf-text-muted)] [&_a:hover]:text-[var(--pf-text-brand)]" />
       </div>
     </WithClientMessages>
   );

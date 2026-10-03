@@ -23,6 +23,7 @@ export interface EmployeeLoginResult {
   readonly pinMustChange: boolean;
   readonly accountId: string;
   readonly employeeId: string;
+  readonly organizationId: string;
 }
 
 type EmployeeLoginFailureReason =
@@ -176,6 +177,7 @@ export async function employeeLogin(input: EmployeeLoginInput): Promise<Employee
     pinMustChange: account.pinMustChange,
     accountId: account.id,
     employeeId: account.employeeId,
+    organizationId: account.organizationId,
   };
 }
 

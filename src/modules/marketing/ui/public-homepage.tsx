@@ -1,7 +1,9 @@
 import dynamic from 'next/dynamic';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
+import { marketingScreenshotSrc } from '@/modules/marketing/domain/marketing-screenshots';
 import { Link } from '@/shared/i18n/navigation';
+import { LandingFooter } from './landing-footer';
 import { LandingHeader } from './landing-header';
 import { ScreenshotFrame } from './screenshot-frame';
 
@@ -23,7 +25,8 @@ const LandingFaq = dynamic(() => import('./landing-faq').then((mod) => mod.Landi
  * Authenticated users never reach this tree - locale root branches first.
  */
 export async function PublicHomepage() {
-  const t = await getTranslations('marketing');
+  const [t, locale] = await Promise.all([getTranslations('marketing'), getLocale()]);
+  const shot = (file: string) => marketingScreenshotSrc(locale, file);
 
   const questions = t.raw('questions.items') as string[];
   const problemPoints = t.raw('problem.points') as Array<{ title: string; body: string }>;
@@ -79,7 +82,7 @@ export async function PublicHomepage() {
             <div className="min-w-0">
               <div className="hidden lg:block">
                 <ScreenshotFrame
-                  src="/marketing/screenshots/financials-desktop.png"
+                  src={shot(t('hero.shotFile'))}
                   alt={t('hero.shotAlt')}
                   caption={t('hero.shotCaption')}
                   priority
@@ -87,7 +90,7 @@ export async function PublicHomepage() {
               </div>
               <div className="lg:hidden">
                 <ScreenshotFrame
-                  src="/marketing/screenshots/today-mobile.png"
+                  src={shot(t('hero.mobileShotFile'))}
                   alt={t('hero.mobileShotAlt')}
                   caption={t('hero.mobileShotCaption')}
                   mobile
@@ -206,7 +209,7 @@ export async function PublicHomepage() {
             </div>
             <div className="mt-8">
               <ScreenshotFrame
-                src="/marketing/screenshots/invoice-capture-desktop.png"
+                src={shot(t('capabilities.shotFile'))}
                 alt={t('capabilities.shotAlt')}
                 caption={t('capabilities.shotCaption')}
                 className="mx-auto max-w-4xl"
@@ -246,7 +249,7 @@ export async function PublicHomepage() {
                 </ul>
               </div>
               <ScreenshotFrame
-                src="/marketing/screenshots/financials-desktop.png"
+                src={shot(t('financial.shotFile'))}
                 alt={t('financial.shotAlt')}
                 caption={t('financial.shotCaption')}
               />
@@ -321,12 +324,12 @@ export async function PublicHomepage() {
             </div>
             <div className="mt-8 grid gap-6 lg:grid-cols-2">
               <ScreenshotFrame
-                src="/marketing/screenshots/changes-desktop.png"
+                src={shot(t('commercial.changesFile'))}
                 alt={t('commercial.changesAlt')}
                 caption={t('commercial.changesCaption')}
               />
               <ScreenshotFrame
-                src="/marketing/screenshots/billing-desktop.png"
+                src={shot(t('commercial.billingFile'))}
                 alt={t('commercial.billingAlt')}
                 caption={t('commercial.billingCaption')}
               />
@@ -405,10 +408,24 @@ export async function PublicHomepage() {
               <p className="mt-3 max-w-[36em] text-[0.975rem] leading-relaxed text-[var(--pf-text-secondary)]">
                 {t('mobile.body')}
               </p>
+              <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                <article className="rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4">
+                  <h3 className="text-sm font-bold text-[var(--pf-text-brand)]">{t('mobile.ownerTitle')}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-[var(--pf-text-secondary)]">
+                    {t('mobile.ownerBody')}
+                  </p>
+                </article>
+                <article className="rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-4">
+                  <h3 className="text-sm font-bold text-[var(--pf-text-brand)]">{t('mobile.employeeTitle')}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-[var(--pf-text-secondary)]">
+                    {t('mobile.employeeBody')}
+                  </p>
+                </article>
+              </div>
               <LandingInstallBlock />
             </div>
             <ScreenshotFrame
-              src="/marketing/screenshots/today-mobile.png"
+              src={shot(t('mobile.shotFile'))}
               alt={t('mobile.shotAlt')}
               caption={t('mobile.shotCaption')}
               mobile
@@ -494,13 +511,7 @@ export async function PublicHomepage() {
         </section>
       </main>
 
-      <footer className="border-t border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] py-6">
-        <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
-          <span className="text-sm font-semibold text-[var(--pf-text-primary)]" dir="ltr">
-            {t('footer.note')}
-          </span>
-        </div>
-      </footer>
+      <LandingFooter />
     </div>
   );
 }

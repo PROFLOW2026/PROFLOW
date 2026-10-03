@@ -4,6 +4,7 @@ import type auth from '../../../src/locales/he-IL/auth.json';
 import type billing from '../../../src/locales/he-IL/billing.json';
 import type common from '../../../src/locales/he-IL/common.json';
 import type dashboard from '../../../src/locales/he-IL/dashboard.json';
+import type employeeApp from '../../../src/locales/he-IL/employeeApp.json';
 import type errors from '../../../src/locales/he-IL/errors.json';
 import type expenses from '../../../src/locales/he-IL/expenses.json';
 import type exportsNs from '../../../src/locales/he-IL/exports.json';
@@ -30,6 +31,7 @@ export const he = {
   billing: loadLocale<typeof billing>('billing'),
   common: loadLocale<typeof common>('common'),
   dashboard: loadLocale<typeof dashboard>('dashboard'),
+  employeeApp: loadLocale<typeof employeeApp>('employeeApp'),
   errors: loadLocale<typeof errors>('errors'),
   expenses: loadLocale<typeof expenses>('expenses'),
   exports: loadLocale<typeof exportsNs>('exports'),

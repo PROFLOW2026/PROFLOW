@@ -6,7 +6,7 @@ import { isLocale, type Locale } from '@/shared/i18n/config';
 import { redirect } from '@/shared/i18n/navigation';
 import { resolveLocaleAfterAuth } from '@/shared/i18n/persist-locale-preference';
 import { getAdminDb } from '@/shared/db/client';
-import { getSessionState } from '@/shared/auth/session';
+import { getSessionState, setActiveOrganization } from '@/shared/auth/session';
 import { createSupabaseServerClient, getSupabaseUser, isSupabaseConfigured } from '@/shared/supabase/server';
 import {
   employeeLogin,
@@ -31,6 +31,7 @@ export async function employeeLoginAction(
 
   try {
     const result = await employeeLogin({ username, pin });
+    await setActiveOrganization(result.organizationId);
     const locale = await resolveLocaleAfterAuth((await getSupabaseUser())?.id, urlLocale);
     if (result.pinMustChange) {
       redirect({ href: '/employee/set-pin', locale });

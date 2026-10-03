@@ -28,6 +28,8 @@ describe('homepage marketing copy hygiene', () => {
     expect(en).not.toMatch(/\bOCR\b/i);
     expect(en).not.toMatch(/customer portal|vendor portal/i);
     expect(JSON.parse(en).financial.insights?.length).toBeGreaterThanOrEqual(3);
-    expect(JSON.parse(en).tour.tabs).toHaveLength(7);
+    expect(JSON.parse(en).tour.tabs).toHaveLength(10);
+    expect(JSON.parse(en).hero.shotFile).toBe('today-desktop.png');
+    expect(JSON.parse(en).capabilities.blocks).toHaveLength(8);
   });
 });

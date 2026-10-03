@@ -229,6 +229,7 @@
     "quoteOpportunityMismatch": "Sales quote does not belong to this opportunity",
     "acceptedQuoteRequired": "An accepted product quote is required to convert",
     "useProductQuote": "Create and accept a product quote at /quotes before converting",
+    "useProductQuoteConversionForWin": "Do not set status to won manually. Convert via an accepted product quote and the explicit conversion action.",
     "quoteFinalized": "Cannot add versions to a finalized sales quote",
     "cannotIssueVersion": "Only draft sales quote versions can be issued",
     "cannotAcceptVersion": "Only draft or issued sales quote versions can be accepted"

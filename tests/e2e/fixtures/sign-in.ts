@@ -30,10 +30,18 @@ export async function waitForAuthenticatedShell(page: Page): Promise<void> {
     await page.waitForURL((url) => isLocaleHome(url), { timeout: 30_000 });
   }
 
-  // One recovery if the first post-auth RSC render hit the error boundary.
-  if (await errorRetry.isVisible().catch(() => false)) {
-    await errorRetry.click();
-    await page.waitForURL((url) => isLocaleHome(url), { timeout: 30_000 });
+  // Recover if the first post-auth RSC render hit the error boundary (common right after harness boot).
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (await shell.isVisible().catch(() => false)) break;
+    if (await errorRetry.isVisible().catch(() => false)) {
+      await errorRetry.click();
+      await page.waitForURL((url) => isLocaleHome(url), { timeout: 30_000 });
+      continue;
+    }
+    if (attempt < 2) {
+      await page.goto('/he-IL/', { waitUntil: 'commit' });
+      await page.waitForURL((url) => isLocaleHome(url), { timeout: 30_000 });
+    }
   }
 
   // Wait for shell without thrashing navigations (CI aborts in-flight RSC streams).

@@ -37,6 +37,7 @@ test.describe('public homepage', () => {
       'how-it-works',
       'capabilities',
       'financial',
+      'value-stories',
       'commercial',
       'product-tour',
       'advanced',
@@ -69,6 +70,7 @@ test.describe('public homepage', () => {
     const firstTrigger = faq.locator('[data-pf-faq-question]').first();
     await firstTrigger.scrollIntoViewIfNeeded();
     await expect(firstTrigger).toHaveAttribute('aria-expanded', 'false');
+    await firstTrigger.focus();
     await firstTrigger.press('Enter');
     await expect(firstTrigger).toHaveAttribute('aria-expanded', 'true');
 

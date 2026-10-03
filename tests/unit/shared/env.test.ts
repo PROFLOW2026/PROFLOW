@@ -93,6 +93,18 @@ describe('serverEnv', () => {
     expect(() => serverEnv()).toThrow(/HTTPS/);
   });
 
+  it('accepts complete production guard set (L10)', () => {
+    process.env.APP_ENV = 'production';
+    process.env.APP_URL = 'https://app.example.com';
+    process.env.DATABASE_URL = 'postgres://example/db';
+    process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-role-for-tests';
+    process.env.WEBHOOK_SECRET_KEK = 'a'.repeat(64);
+    process.env.STORAGE_TOKEN_ENCRYPTION_KEY = 'b'.repeat(64);
+    process.env.EMAIL_DRIVER = 'console';
+    resetServerEnvCache();
+    expect(serverEnv().APP_ENV).toBe('production');
+  });
+
   it('requires RESEND_API_KEY when EMAIL_DRIVER=resend in production', () => {
     process.env.APP_ENV = 'production';
     process.env.APP_URL = 'https://app.example.com';

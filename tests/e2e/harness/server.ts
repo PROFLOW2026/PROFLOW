@@ -1,11 +1,21 @@
+import path from 'node:path';
+import { config as loadEnv } from 'dotenv';
 import { PGlite } from '@electric-sql/pglite';
+
+loadEnv({ path: path.join(process.cwd(), '.env.local') });
 import { PGLiteSocketServer } from '@electric-sql/pglite-socket';
 import { drizzle } from 'drizzle-orm/pglite';
 import * as schema from '@drizzle/schema';
 import type { Database } from '@/shared/db/types';
 import { applyMigrations } from './migrate';
 import { startAuthStub } from './auth-stub';
-import { AUTH_PORT, DATABASE_PORT } from './config';
+import {
+  AUTH_PORT,
+  DATABASE_PORT,
+  E2E_EMPLOYEE_AUTH_PASSWORD_PEPPER,
+  E2E_STORAGE_TOKEN_ENCRYPTION_KEY,
+  E2E_SUPABASE_SERVICE_ROLE_KEY,
+} from './config';
 import { isPostgresHarnessMode } from './database-mode';
 import { bootPostgresHarness } from './postgres-boot';
 import { seedWorld } from './seed';
@@ -35,6 +45,10 @@ async function bootPgliteHarness(): Promise<{ socketServer: PGLiteSocketServer; 
 }
 
 async function main(): Promise<void> {
+  process.env.STORAGE_TOKEN_ENCRYPTION_KEY = E2E_STORAGE_TOKEN_ENCRYPTION_KEY;
+  process.env.SUPABASE_SERVICE_ROLE_KEY = E2E_SUPABASE_SERVICE_ROLE_KEY;
+  process.env.EMPLOYEE_AUTH_PASSWORD_PEPPER = E2E_EMPLOYEE_AUTH_PASSWORD_PEPPER;
+
   let socketServer: PGLiteSocketServer | undefined;
   let pgliteClient: PGlite | undefined;
 

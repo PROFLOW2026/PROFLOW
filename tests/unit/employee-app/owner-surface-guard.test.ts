@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { OrgContext } from '@/shared/auth/context';
+import { assertOwnerAppSurface } from '@/modules/employee-app/application/session-guard';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 
 const redirectMock = vi.fn((value: unknown) => {
@@ -53,20 +54,12 @@ describe('assertOwnerAppSurface', () => {
     redirectMock.mockClear();
   });
 
-  it('redirects active employee app users to employee home', async () => {
-    const { assertOwnerAppSurface } = await import(
-      '@/modules/employee-app/application/session-guard'
-    );
-
+  it('redirects active employee app users to employee home', () => {
     expect(() => assertOwnerAppSurface(employeeContext())).toThrow();
     expect(redirectMock).toHaveBeenCalledWith({ href: '/employee', locale: 'he-IL' });
   });
 
-  it('allows owner sessions without employee app context', async () => {
-    const { assertOwnerAppSurface } = await import(
-      '@/modules/employee-app/application/session-guard'
-    );
-
+  it('allows owner sessions without employee app context', () => {
     const owner: OrgContext = {
       ...employeeContext(),
       roleKeys: ['owner'],

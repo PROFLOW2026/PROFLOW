@@ -1,7 +1,7 @@
 import { noteModuleUsage } from '@/modules/tenancy';
 import { listAuditEventSummariesForEntity, recordAuditEvent } from '@/shared/audit';
 import type { OrgContext } from '@/shared/auth/context';
-import { NotFoundError, ValidationError } from '@/shared/errors';
+import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import {
@@ -222,6 +222,13 @@ export async function updateOpportunity(
 
   if (existing.status === 'won' && existing.convertedAt) {
     // Converted opportunities stay historical; allow notes/lostReason tweaks only via status guards elsewhere.
+  }
+
+  if (input.status === 'won' && !existing.convertedAt) {
+    throw new DomainRuleError(
+      'Use product quote conversion to win an opportunity — do not set status to won manually',
+      'crm.errors.useProductQuoteConversionForWin',
+    );
   }
 
   const statusFromStage =

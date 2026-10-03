@@ -1,5 +1,14 @@
 import { defineConfig, devices } from '@playwright/test';
-import { ANON_KEY, APP_PORT, APP_URL, AUTH_URL, DATABASE_URL as PGLITE_DATABASE_URL } from './tests/e2e/harness/config';
+import {
+  ANON_KEY,
+  APP_PORT,
+  APP_URL,
+  AUTH_URL,
+  DATABASE_URL as PGLITE_DATABASE_URL,
+  E2E_STORAGE_TOKEN_ENCRYPTION_KEY,
+  E2E_SUPABASE_SERVICE_ROLE_KEY,
+  E2E_EMPLOYEE_AUTH_PASSWORD_PEPPER,
+} from './tests/e2e/harness/config';
 import { e2eDatabaseMode, isPostgresHarnessMode, resolveHarnessDatabaseUrl } from './tests/e2e/harness/database-mode';
 
 const harnessDatabaseUrl = resolveHarnessDatabaseUrl(PGLITE_DATABASE_URL);
@@ -7,6 +16,7 @@ const harnessDatabaseUrl = resolveHarnessDatabaseUrl(PGLITE_DATABASE_URL);
 const harnessEnv: Record<string, string> = {
   APP_ENV: 'local',
   DATABASE_URL: harnessDatabaseUrl,
+  DIRECT_DATABASE_URL: harnessDatabaseUrl,
   E2E_DATABASE_MODE: e2eDatabaseMode(),
   NEXT_PUBLIC_SUPABASE_URL: AUTH_URL,
   NEXT_PUBLIC_SUPABASE_ANON_KEY: ANON_KEY,
@@ -19,6 +29,9 @@ const harnessEnv: Record<string, string> = {
   OCR_AZURE_QUERY_FIELDS: 'false',
   OCR_E2E_MOCK_PROVIDER: 'true',
   E2E_INMEMORY_STORAGE: 'true',
+  STORAGE_TOKEN_ENCRYPTION_KEY: E2E_STORAGE_TOKEN_ENCRYPTION_KEY,
+  SUPABASE_SERVICE_ROLE_KEY: E2E_SUPABASE_SERVICE_ROLE_KEY,
+  EMPLOYEE_AUTH_PASSWORD_PEPPER: E2E_EMPLOYEE_AUTH_PASSWORD_PEPPER,
 };
 
 // PGlite socket backend: single wire connection. Real Postgres smoke uses app default pool (5).
@@ -29,6 +42,11 @@ if (!isPostgresHarnessMode()) {
 const harnessServerEnv: Record<string, string> = {
   E2E_DATABASE_MODE: e2eDatabaseMode(),
   DATABASE_URL: harnessDatabaseUrl,
+  DIRECT_DATABASE_URL: harnessDatabaseUrl,
+  STORAGE_TOKEN_ENCRYPTION_KEY: E2E_STORAGE_TOKEN_ENCRYPTION_KEY,
+  SUPABASE_SERVICE_ROLE_KEY: E2E_SUPABASE_SERVICE_ROLE_KEY,
+  EMPLOYEE_AUTH_PASSWORD_PEPPER: E2E_EMPLOYEE_AUTH_PASSWORD_PEPPER,
+  APP_ENV: 'local',
 };
 
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? APP_URL;
@@ -40,7 +58,7 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   workers: 1,
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : [['list']],
-  timeout: 60_000,
+  timeout: process.env.CAPTURE_MARKETING === '1' ? 900_000 : 60_000,
   expect: { timeout: 15_000 },
   use: {
     baseURL,
@@ -69,7 +87,8 @@ export default defineConfig({
     {
       name: 'desktop-he-authenticated',
       testMatch: /authenticated\/(owner|regression|performance-verify|performance-signoff|jobs-flows|master-completion-journeys|pwa-startup|ocr-review|boq-happy-path|capture-marketing-screenshots|branding|hebrew-runtime-closure|overnight-surfaces|billing-plan|project-time-mobile-gate|project-centric-money-chain|release-smoke|locale-profile-persistence)\.spec\.ts/,
-      dependencies: ['setup-owner'],
+      dependencies:
+        process.env.CAPTURE_MARKETING === '1' ? ['setup-owner', 'setup-worker'] : ['setup-owner'],
       use: {
         ...devices['Desktop Chrome'],
         viewport: { width: 1440, height: 900 },
@@ -110,14 +129,17 @@ export default defineConfig({
         {
           command: 'node --import ./tests/e2e/harness/alias-server-only.mjs --import tsx tests/e2e/harness/server.ts',
           url: `${AUTH_URL}/health`,
-          reuseExistingServer: !process.env.CI,
+          reuseExistingServer: !process.env.CI && !process.env.E2E_FORCE_FRESH_SERVER,
           timeout: 240_000,
           env: harnessServerEnv,
         },
         {
-          command: `npm run build && npm run start -- -p ${APP_PORT}`,
+          command:
+            process.env.CAPTURE_MARKETING === '1'
+              ? 'node tests/e2e/harness/start-app-for-playwright.mjs'
+              : `npm run build && node tests/e2e/harness/start-app-for-playwright.mjs`,
           url: baseURL,
-          reuseExistingServer: !process.env.CI,
+          reuseExistingServer: !process.env.CI && !process.env.E2E_FORCE_FRESH_SERVER,
           timeout: 720_000,
           env: harnessEnv,
         },

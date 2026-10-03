@@ -12,9 +12,27 @@ import {
 import { createProject } from '@/modules/projects';
 import { assignRole, findRoleByKey } from '@/modules/rbac';
 import { createOrganization, resolveOrgContext, setModuleVisibility } from '@/modules/tenancy';
+import { createOpportunity } from '@/modules/crm';
+import { createQuote } from '@/modules/quotes';
+import { createTask } from '@/modules/tasks';
+import { lazyCreateProjectWorkspace } from '@/modules/workspaces';
 import { createVendor, createVendorEngagement } from '@/modules/vendors';
 import type { Database, Transaction } from '@/shared/db/types';
+import { buildEmployeeAuthEmail } from '@/modules/employee-app/domain/username';
+import { employeeSupabaseAuthPassword } from '@/modules/employee-app/domain/auth-password';
+import { insertEmployeeAppAccount } from '@/modules/employee-app/data/accounts.repository';
+import { upsertEmployeePermissionGrant } from '@/modules/employee-app/data/grants.repository';
+import { employeePreset } from '@/modules/employee-app/application/presets';
+import { createEmployee } from '@/modules/workforce/application/employees';
+import { insertEmployeeProjectAssignment } from '@/modules/workforce/data/project-team.repository';
+import { setActiveOrganizationPreference } from '@/modules/identity';
+import { registerStubAuthUser } from './auth-stub';
 import {
+  DUAL_ORG_USER,
+  E2E_DUAL_EMPLOYEE,
+  E2E_DUAL_ORG_A_PROJECT,
+  E2E_DUAL_ORG_B_SECRET_PROJECT,
+  E2E_SINGLE_EMPLOYEE,
   ELECTRICAL_OWNER,
   FIELD_OWNER,
   FINANCE,
@@ -25,6 +43,7 @@ import {
   OTHER_OWNER,
   OWNER,
   PLUMBING_OWNER,
+  SINGLE_EMPLOYEE_USER,
   WORKER,
 } from './config';
 import type { BusinessProfileKey } from '@/modules/tenancy/domain/business-profiles';
@@ -45,6 +64,166 @@ export interface SeededWorld {
   vendorId: string;
   advancedProjectId: string;
   changeProjectId: string;
+}
+
+async function seedDualOrgEmployeeScenario(
+  db: Database,
+  input: { orgAId: string; orgBId: string },
+): Promise<void> {
+  const dualUsernameNorm = E2E_DUAL_EMPLOYEE.username.toLowerCase();
+  const singleUsernameNorm = E2E_SINGLE_EMPLOYEE.username.toLowerCase();
+
+  await asUser(db, OTHER_OWNER.id, async (tx) => {
+    const contextB = await resolveOrgContext(tx, {
+      userId: OTHER_OWNER.id,
+      organizationId: input.orgBId,
+      locale: 'he-IL',
+    });
+    const ownerRole = await findRoleByKey(tx, contextB.organizationId, 'owner');
+    if (!ownerRole) throw new Error('owner role missing in secondary org');
+    const [membership] = await tx
+      .insert(organizationMemberships)
+      .values({ organizationId: contextB.organizationId, userId: DUAL_ORG_USER.id, status: 'active' })
+      .returning({ id: organizationMemberships.id });
+    await assignRole(tx, {
+      organizationId: contextB.organizationId,
+      membershipId: membership!.id,
+      userId: DUAL_ORG_USER.id,
+      roleId: ownerRole.id,
+    });
+    await createProject(contextB, {
+      name: E2E_DUAL_ORG_B_SECRET_PROJECT,
+      contractValueAmount: '1',
+      status: 'active',
+    });
+  });
+
+  await asUser(db, DUAL_ORG_USER.id, async (tx) => {
+    await setActiveOrganizationPreference(tx, DUAL_ORG_USER.id, input.orgBId);
+  });
+
+  let dualAuthEmail = '';
+  await asUser(db, OWNER.id, async (tx) => {
+    const contextA = await resolveOrgContext(tx, {
+      userId: OWNER.id,
+      organizationId: input.orgAId,
+      locale: 'he-IL',
+    });
+    const employeeRole = await findRoleByKey(tx, contextA.organizationId, 'employee');
+    if (!employeeRole) throw new Error('employee role missing in primary org');
+    const [dualMembershipA] = await tx
+      .insert(organizationMemberships)
+      .values({ organizationId: contextA.organizationId, userId: DUAL_ORG_USER.id, status: 'active' })
+      .returning({ id: organizationMemberships.id });
+    await assignRole(tx, {
+      organizationId: contextA.organizationId,
+      membershipId: dualMembershipA!.id,
+      userId: DUAL_ORG_USER.id,
+      roleId: employeeRole.id,
+    });
+
+    const employee = await createEmployee(contextA, { name: 'עובד דו-ארגוני', rateUnit: 'hourly' });
+    dualAuthEmail = buildEmployeeAuthEmail(contextA.organizationId, dualUsernameNorm);
+    await insertEmployeeAppAccount(tx, {
+      organizationId: contextA.organizationId,
+      employeeId: employee.id,
+      userId: DUAL_ORG_USER.id,
+      username: E2E_DUAL_EMPLOYEE.username.toUpperCase(),
+      usernameNormalized: dualUsernameNorm,
+      authEmail: dualAuthEmail,
+      status: 'active',
+      pinMustChange: false,
+      temporaryPinExpiresAt: null,
+      createdByUserId: OWNER.id,
+    });
+    const preset = employeePreset('project_manager');
+    for (const grant of preset.grants) {
+      await upsertEmployeePermissionGrant(tx, {
+        organizationId: contextA.organizationId,
+        employeeId: employee.id,
+        permissionKey: grant.permissionKey,
+        scope: grant.scope,
+        granted: true,
+        grantedByUserId: OWNER.id,
+      });
+    }
+    const orgAProject = await createProject(contextA, {
+      name: E2E_DUAL_ORG_A_PROJECT,
+      contractValueAmount: '1',
+      status: 'active',
+    });
+    await insertEmployeeProjectAssignment(tx, {
+      organizationId: contextA.organizationId,
+      projectId: orgAProject.projectId,
+      employeeId: employee.id,
+      startDate: new Date().toISOString().slice(0, 10),
+      role: 'field',
+    });
+  });
+
+  registerStubAuthUser(
+    { id: DUAL_ORG_USER.id, email: dualAuthEmail, displayName: DUAL_ORG_USER.displayName },
+    employeeSupabaseAuthPassword(E2E_DUAL_EMPLOYEE.pin),
+  );
+
+  let singleAuthEmail = '';
+  await asUser(db, OWNER.id, async (tx) => {
+    const contextA = await resolveOrgContext(tx, {
+      userId: OWNER.id,
+      organizationId: input.orgAId,
+      locale: 'he-IL',
+    });
+    const employeeRole = await findRoleByKey(tx, contextA.organizationId, 'employee');
+    if (!employeeRole) throw new Error('employee role missing');
+    const [membership] = await tx
+      .insert(organizationMemberships)
+      .values({
+        organizationId: contextA.organizationId,
+        userId: SINGLE_EMPLOYEE_USER.id,
+        status: 'active',
+      })
+      .returning({ id: organizationMemberships.id });
+    await assignRole(tx, {
+      organizationId: contextA.organizationId,
+      membershipId: membership!.id,
+      userId: SINGLE_EMPLOYEE_USER.id,
+      roleId: employeeRole.id,
+    });
+    const employee = await createEmployee(contextA, { name: 'עובד יחיד', rateUnit: 'hourly' });
+    singleAuthEmail = buildEmployeeAuthEmail(contextA.organizationId, singleUsernameNorm);
+    await insertEmployeeAppAccount(tx, {
+      organizationId: contextA.organizationId,
+      employeeId: employee.id,
+      userId: SINGLE_EMPLOYEE_USER.id,
+      username: E2E_SINGLE_EMPLOYEE.username.toUpperCase(),
+      usernameNormalized: singleUsernameNorm,
+      authEmail: singleAuthEmail,
+      status: 'active',
+      pinMustChange: false,
+      temporaryPinExpiresAt: null,
+      createdByUserId: OWNER.id,
+    });
+    const preset = employeePreset('field_worker');
+    for (const grant of preset.grants) {
+      await upsertEmployeePermissionGrant(tx, {
+        organizationId: contextA.organizationId,
+        employeeId: employee.id,
+        permissionKey: grant.permissionKey,
+        scope: grant.scope,
+        granted: true,
+        grantedByUserId: OWNER.id,
+      });
+    }
+  });
+
+  registerStubAuthUser(
+    {
+      id: SINGLE_EMPLOYEE_USER.id,
+      email: singleAuthEmail,
+      displayName: SINGLE_EMPLOYEE_USER.displayName,
+    },
+    employeeSupabaseAuthPassword(E2E_SINGLE_EMPLOYEE.pin),
+  );
 }
 
 async function asUser<T>(db: Database, userId: string, fn: (tx: Transaction) => Promise<T>): Promise<T> {
@@ -75,6 +254,8 @@ export async function seedWorld(db: Database): Promise<SeededWorld> {
         MAINTENANCE_OWNER,
         FIELD_OWNER,
         MIXED_OWNER,
+        DUAL_ORG_USER,
+        SINGLE_EMPLOYEE_USER,
       ].map((user) => ({
         id: user.id,
         email: user.email,
@@ -185,7 +366,16 @@ export async function seedWorld(db: Database): Promise<SeededWorld> {
     await finalizeExpense(context, expense.id);
 
     // Enable optional workspace tabs used by authenticated product flows / perf verification.
-    for (const moduleKey of ['changes', 'billing', 'documents', 'boq'] as const) {
+    for (const moduleKey of [
+      'changes',
+      'billing',
+      'documents',
+      'boq',
+      'crm',
+      'quotes',
+      'work_management',
+      'materials',
+    ] as const) {
       await setModuleVisibility(context, { moduleKey, enabled: true });
     }
 
@@ -207,6 +397,22 @@ export async function seedWorld(db: Database): Promise<SeededWorld> {
         unitPrice: '100',
       });
     }
+
+    await createOpportunity(context, { name: 'הצעה לשיפוץ משרדים — רמת אביב' });
+    await createQuote(context, {
+      title: 'הצעת מחיר — שיפוץ דירה ברמת גן',
+      lines: [{ description: 'עבודות חשמל וגמר', quantity: '1', unitPriceAmount: '150000' }],
+    });
+    const { workspace } = await lazyCreateProjectWorkspace(
+      context,
+      project.projectId,
+      'שיפוץ דירה ברמת גן',
+    );
+    await createTask(context, {
+      workspaceId: workspace.id,
+      projectId: project.projectId,
+      title: 'הכנת לוח חשמל ראשי',
+    });
 
     return project.projectId;
   });
@@ -339,6 +545,11 @@ export async function seedWorld(db: Database): Promise<SeededWorld> {
       }),
     );
   }
+
+  await seedDualOrgEmployeeScenario(db, {
+    orgAId: primary.organization.id,
+    orgBId: secondary.organization.id,
+  });
 
   return {
     organizationId: primary.organization.id,

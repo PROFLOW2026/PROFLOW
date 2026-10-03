@@ -24,6 +24,7 @@
     "defaultBoard": "Доска по умолчанию",
     "archivedBoards": "Архивные доски",
     "globalPageTitle": "Доска задач",
+    "globalPageDescription": "Добавьте задачи в проекты, чтобы увидеть их здесь",
     "moveToStatus": "Перенести в статус",
     "empty": {
       "title": "Нет задач здесь",

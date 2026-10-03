@@ -38,6 +38,8 @@ export function resultRows<T>(result: unknown): T[] {
 
 export interface TestDatabase {
   readonly db: Database;
+  /** Same drizzle handle as `db` (production uses a separate admin pool). */
+  readonly adminDb: Database;
   /** Runs `fn` as `authenticated` with `userId` pinned, exactly like production. */
   asUser: <T>(userId: string, fn: (tx: Transaction) => Promise<T>) => Promise<T>;
   /**
@@ -192,31 +194,27 @@ function migrationTag(fileName: string): string {
   return fileName.replace(/\.sql$/, '');
 }
 
-/**
- * Applies committed SQL migrations onto a disposable PGlite.
- * `untilInclusive` is the journal tag (filename without `.sql`).
- */
-export async function applySqlMigrations(
-  client: PGlite,
+/** Supabase auth shim for throwaway Postgres / PGlite (not production). */
+const AUTH_BOOTSTRAP_SQL = `
+  CREATE SCHEMA IF NOT EXISTS auth;
+  CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid
+  LANGUAGE sql STABLE
+  AS $$
+    SELECT NULLIF(current_setting('app.user_id', true), '')::uuid
+  $$;
+`;
+
+async function runMigrationStatements(
+  runStatement: (statement: string) => Promise<void>,
   untilInclusive?: string,
 ): Promise<void> {
-  // Migration 0120 references auth.uid(); PGlite has no Supabase auth schema in tests.
-  await client.exec(`
-    CREATE SCHEMA IF NOT EXISTS auth;
-    CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid
-    LANGUAGE sql STABLE
-    AS $$
-      SELECT NULLIF(current_setting('app.user_id', true), '')::uuid
-    $$;
-  `);
-
   const migrations = await readMigrations();
   for (const migration of migrations) {
     const tag = migrationTag(migration.name);
     if (untilInclusive && tag > untilInclusive) break;
     for (const statement of migration.statements) {
       try {
-        await client.exec(statement);
+        await runStatement(statement);
       } catch (error) {
         throw new Error(
           `Migration ${migration.name} failed on statement:\n${statement.slice(0, 400)}\n\n${String(error)}`,
@@ -225,6 +223,33 @@ export async function applySqlMigrations(
     }
     if (untilInclusive && tag === untilInclusive) break;
   }
+}
+
+/**
+ * Applies committed SQL migrations onto a disposable PGlite.
+ * `untilInclusive` is the journal tag (filename without `.sql`).
+ */
+export async function applySqlMigrations(
+  client: PGlite,
+  untilInclusive?: string,
+): Promise<void> {
+  await client.exec(AUTH_BOOTSTRAP_SQL);
+  await runMigrationStatements(async (statement) => {
+    await client.exec(statement);
+  }, untilInclusive);
+}
+
+/**
+ * Same migration chain as PGlite, on real throwaway PostgreSQL (E2E harness / TEST_DATABASE_URL).
+ */
+export async function applySqlMigrationsPostgres(
+  client: { unsafe: (query: string) => Promise<unknown> },
+  untilInclusive?: string,
+): Promise<void> {
+  await client.unsafe(AUTH_BOOTSTRAP_SQL);
+  await runMigrationStatements(async (statement) => {
+    await client.unsafe(statement);
+  }, untilInclusive);
 }
 
 export async function withRawPglite<T>(fn: (client: PGlite) => Promise<T>): Promise<T> {
@@ -367,6 +392,22 @@ export function serializePglite(client: PGlite): PGlite {
   return client;
 }
 
+async function truncatePublicAndApp(client: PGlite): Promise<void> {
+  await client.exec(`
+    DO $$
+    DECLARE stmt text;
+    BEGIN
+      SELECT string_agg(format('TRUNCATE TABLE %I.%I CASCADE', schemaname, tablename), '; ')
+      INTO stmt
+      FROM pg_tables
+      WHERE schemaname IN ('public', 'app')
+        AND tablename <> '__drizzle_migrations';
+      IF stmt IS NOT NULL THEN EXECUTE stmt; END IF;
+    END
+    $$;
+  `);
+}
+
 function wrapClient(client: PGlite): TestDatabase {
   const db = drizzle(client, {
     schema,
@@ -403,25 +444,13 @@ function wrapClient(client: PGlite): TestDatabase {
   const asService = async <T>(fn: (database: Database) => Promise<T>): Promise<T> => fn(db);
 
   const reset = async (): Promise<void> => {
-    // Truncating rather than recreating keeps the suite fast; RESTART IDENTITY
-    // is unnecessary because every primary key is a UUID.
-    await client.exec(`
-      DO $$
-      DECLARE stmt text;
-      BEGIN
-        SELECT string_agg(format('TRUNCATE TABLE public.%I CASCADE', tablename), '; ')
-        INTO stmt
-        FROM pg_tables
-        WHERE schemaname = 'public' AND tablename <> '__drizzle_migrations';
-        IF stmt IS NOT NULL THEN EXECUTE stmt; END IF;
-      END
-      $$;
-    `);
+    await truncatePublicAndApp(client);
   };
 
   let closing: Promise<void> | null = null;
   const handle: TestDatabase = {
     db,
+    adminDb: db,
     asUser,
     asUserCountingQueries,
     asService,

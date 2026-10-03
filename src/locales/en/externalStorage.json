@@ -60,6 +60,7 @@
     "reconnectRequired": "Reconnect storage service.",
     "providerNotConfigured": "Provider not configured in this environment.",
     "connectionNotFound": "Storage connection not found.",
+    "oauthSessionMismatch": "Sign in as the same user who started the storage connection, then try again.",
     "rootNotReady": "Storage is connected but the ProjectFlow folder is not ready yet. Reconnect or test the connection.",
     "rootFolderMissing": "The ProjectFlow folder was deleted in cloud storage. ProjectFlow rebuilt the organization folders and project template — confirm the template to continue. No reconnect is required.",
     "templateIncomplete": "The project template in cloud storage is incomplete. ProjectFlow tried to repair it; if the problem continues, open the template in storage and try again.",

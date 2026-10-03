@@ -6,7 +6,6 @@ import { loadTradeDetail, MATERIAL_TRADES, type MaterialTrade } from '@/modules/
 import { TradeDetailPanel } from '@/modules/material-market/ui/trade-detail-panel';
 import { TradePendingPanel } from '@/modules/material-market/ui/trade-pending-panel';
 import { withOrgContext } from '@/shared/auth/session';
-import { getDb } from '@/shared/db/client';
 import { Link, redirect } from '@/shared/i18n/navigation';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -38,14 +37,11 @@ export default async function MaterialMarketTradePage({
 
   const t = await getTranslations('materialMarket');
 
-  const allowed = await withOrgContext(async (context) =>
-    hasPermission(context, PERMISSIONS.MATERIALS_READ),
-  );
-  if (!allowed) redirect({ href: '/', locale });
-
-  const detail = await withOrgContext(async () => {
-    const db = getDb();
-    return loadTradeDetail(db, trade, 'all');
+  const detail = await withOrgContext(async (context) => {
+    if (!hasPermission(context, PERMISSIONS.MATERIALS_READ)) {
+      redirect({ href: '/', locale });
+    }
+    return loadTradeDetail(context.db, trade, 'all');
   });
 
   return (

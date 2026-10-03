@@ -22,6 +22,41 @@ export const ANON_KEY = 'e2e-anon-key';
 
 export const SEED_PASSWORD = 'projectflow-e2e-pass';
 
+/** Fixed 64-char hex material so employee PIN pepper matches harness app + seed. */
+export const E2E_STORAGE_TOKEN_ENCRYPTION_KEY = 'e2e'.padEnd(64, '0');
+
+export const E2E_SUPABASE_SERVICE_ROLE_KEY = 'e2e-supabase-service-role-key';
+
+/** Dedicated pepper so harness seed + Next agree even when `.env.local` differs. */
+export const E2E_EMPLOYEE_AUTH_PASSWORD_PEPPER = 'projectflow-e2e-employee-auth-pepper-v1';
+
+/** Owner in Org B with employee account in Org A (primary tenant). */
+export const DUAL_ORG_USER = {
+  id: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+  email: 'dual@e2e.test',
+  displayName: 'משתמש דו-ארגוני',
+} as const;
+
+/** Employee-only user in primary org (single-org smoke). */
+export const SINGLE_EMPLOYEE_USER = {
+  id: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+  email: 'single-emp@e2e.test',
+  displayName: 'עובד יחיד',
+} as const;
+
+export const E2E_DUAL_EMPLOYEE = {
+  username: 'dual2485',
+  pin: '248516',
+} as const;
+
+export const E2E_SINGLE_EMPLOYEE = {
+  username: 'single99',
+  pin: '990011',
+} as const;
+
+export const E2E_DUAL_ORG_A_PROJECT = 'פרויקט אימות עובד A';
+export const E2E_DUAL_ORG_B_SECRET_PROJECT = 'סוד org B e2e';
+
 export const OWNER = {
   id: '11111111-1111-4111-8111-111111111111',
   email: 'owner@e2e.test',
@@ -93,6 +128,8 @@ export const MIXED_OWNER = {
 export const SEED_USERS = [
   OWNER,
   OTHER_OWNER,
+  DUAL_ORG_USER,
+  SINGLE_EMPLOYEE_USER,
   WORKER,
   MANAGER,
   FINANCE,

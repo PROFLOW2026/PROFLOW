@@ -229,6 +229,7 @@
     "quoteOpportunityMismatch": "عرض المبيعات لا ينتمي لهذه الفرصة",
     "acceptedQuoteRequired": "عرض منتج مقبول مطلوب للتحويل",
     "useProductQuote": "أنشئ واقبل عرض منتج في /quotes قبل التحويل",
+    "useProductQuoteConversionForWin": "Do not set status to won manually. Convert via an accepted product quote and the explicit conversion action.",
     "quoteFinalized": "لا يمكن إضافة نسخ لعرض مبيعات منتهٍ",
     "cannotIssueVersion": "يمكن إصدار نسخ المسودة فقط",
     "cannotAcceptVersion": "يمكن قبول نسخ المسودة أو الصادرة فقط"

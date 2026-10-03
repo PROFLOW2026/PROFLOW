@@ -90,6 +90,7 @@
     "monthly_workforce_report_ready": "تقرير موظفين شهري جاهز",
     "task_overdue": "مهمة متأخرة",
     "task_due_today": "مهمة مستحقة اليوم",
+    "task_unassigned": "مهمة بدون إسناد",
     "storage_attention": "تخزين الملفات",
     "statutory_attention": "مستند ضريبي"
   },
