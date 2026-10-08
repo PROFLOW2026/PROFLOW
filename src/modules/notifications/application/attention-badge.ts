@@ -26,7 +26,8 @@ export async function persistAttentionBadgeSnapshot(
       activeAttentionCount,
     );
   } catch {
-    // Table may be absent until migration 0172 is applied.
+    // Non-query failures only. A missing 0172 relation is skipped inside the
+    // repository; a failed query inside this transaction is rethrown by postgres.js.
   }
 }
 
@@ -35,7 +36,7 @@ export async function getShellNotificationBadgeCount(context: OrgContext): Promi
   assertPermission(context, PERMISSIONS.NOTIFICATIONS_READ);
   const [persistedUnread, snapshot] = await Promise.all([
     countUnreadForRecipient(context.db, context.organizationId, context.userId),
-    readAttentionBadgeSnapshot(context.db, context.organizationId, context.userId).catch(() => null),
+    readAttentionBadgeSnapshot(context.db, context.organizationId, context.userId),
   ]);
   if (snapshot) return snapshot.activeAttentionCount;
   return persistedUnread;
