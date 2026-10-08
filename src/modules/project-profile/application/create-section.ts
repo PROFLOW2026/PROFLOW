@@ -1,4 +1,4 @@
-import { isOrgProjectAdmin } from '@/modules/project-team';
+import { isOrgProjectAdmin } from '@/modules/project-team/application/capability-guard';
 import type { OrgContext } from '@/shared/auth/context';
 import type { DeliveryCreateInput } from '../domain/create-section';
 import { isManagementMode, operatingRolesForMode } from '../domain/management-mode';

@@ -26,7 +26,7 @@ import {
   type ProjectStructureSnapshot,
 } from '@/modules/projects';
 import { parseProjectCreateForm } from '@/modules/projects/application/parse-project-create-form';
-import { applyManagementModeAtCreate } from '@/modules/project-profile';
+import { applyManagementModeAtCreate } from '@/modules/project-profile/application/create-section';
 import { previewUwmProjectTemplate } from '@/modules/tasks';
 import { withOrgContext } from '@/shared/auth/session';
 import {

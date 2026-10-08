@@ -1,7 +1,7 @@
 'use server';
 
-import { findProjectDeliveryProfile } from '@/modules/project-profile';
-import { loadProjectCapabilities } from '@/modules/project-team';
+import { findProjectDeliveryProfile } from '@/modules/project-profile/application/structure';
+import { loadProjectCapabilities } from '@/modules/project-team/application/capability-guard';
 import { shouldShowExecutionNavGroup } from '@/modules/project-workspace/domain/select-execution-nav-links';
 import { withOrgContext } from '@/shared/auth/session';
 import { buildProjectQuickCreateActions, isProjectQuickCreateId } from './quick-create-project';

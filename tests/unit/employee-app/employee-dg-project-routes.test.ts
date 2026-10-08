@@ -3,7 +3,11 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { PROJECT_CAPABILITIES as C } from '@/modules/project-team';
 import { buildDeliveryProfile } from '@/modules/project-profile';
-import { selectExecutionNavLinks } from '@/modules/project-workspace';
+import {
+  selectExecutionHubChildren,
+  selectExecutionHubs,
+} from '@/modules/project-workspace/domain/execution-hubs';
+import { shouldShowExecutionNavGroup } from '@/modules/project-workspace/domain/select-execution-nav-links';
 
 const EMPLOYEE_PROJECT = join(
   process.cwd(),
@@ -80,19 +84,69 @@ describe('employee DG project routes', () => {
     expect(deductions).toContain("'claim.view'");
   });
 
-  it('builds execution nav hrefs under the employee project root', () => {
-    const links = selectExecutionNavLinks({
+  it('shows the seven employee hubs only for developer + general contractor', () => {
+    const surfaceRoot = '/employee/projects/p1';
+    const links = selectExecutionHubs({
       projectId: 'p1',
       capabilities: new Set(Object.values(C)),
-      deliveryProfile: buildDeliveryProfile({ operatingRoles: ['developer'] }),
-      hasSubcontractAgreements: true,
-      surfaceRoot: '/employee/projects/p1',
+      deliveryProfile: buildDeliveryProfile({ operatingRoles: ['developer', 'general_contractor'] }),
+      surfaceRoot,
     });
 
-    expect(links.find((link) => link.key === 'structure')?.href).toBe('/employee/projects/p1/structure');
-    expect(links.find((link) => link.key === 'claims')?.href).toBe('/employee/projects/p1/claims');
-    expect(links.find((link) => link.key === 'costControl')?.href).toBe('/employee/projects/p1/cost-control');
-    expect(links.some((link) => link.key === 'contractorAccess')).toBe(false);
-    expect(links.every((link) => link.href.startsWith('/employee/projects/p1/'))).toBe(true);
+    expect(links.map((link) => link.key)).toEqual([
+      'overview',
+      'contractors',
+      'contracts',
+      'payments',
+      'planning',
+      'quality',
+      'team',
+    ]);
+    expect(links.find((link) => link.key === 'overview')?.href).toBe(`${surfaceRoot}/execution`);
+    expect(links.find((link) => link.key === 'payments')?.href).toBe(`${surfaceRoot}/contractor-payments`);
+    expect(links.every((link) => link.href.startsWith(`${surfaceRoot}/`))).toBe(true);
+    expect(links.some((link) => link.href.includes('?tab=schedule'))).toBe(false);
+
+    const payments = selectExecutionHubChildren({
+      hub: 'payments',
+      projectId: 'p1',
+      capabilities: new Set(Object.values(C)),
+      surfaceRoot,
+    });
+    expect(payments.find((child) => child.path === 'claims')?.href).toBe(`${surfaceRoot}/claims`);
+    expect(payments.find((child) => child.path === 'cost-control')?.href).toBe(`${surfaceRoot}/cost-control`);
+
+    const overviewScreen = readFileSync(
+      join(
+        process.cwd(),
+        'src/app/[locale]/(app)/projects/[projectId]/execution/screen.tsx',
+      ),
+      'utf8',
+    );
+    expect(overviewScreen).toContain('${base}/structure');
+  });
+
+  it('does not open the GC layer for developer only or for a subcontract agreement alone', () => {
+    const developerOnly = buildDeliveryProfile({ operatingRoles: ['developer'] });
+    expect(
+      selectExecutionHubs({
+        projectId: 'p1',
+        capabilities: new Set(Object.values(C)),
+        deliveryProfile: developerOnly,
+        surfaceRoot: '/employee/projects/p1',
+      }),
+    ).toEqual([]);
+    expect(
+      shouldShowExecutionNavGroup({
+        deliveryProfile: developerOnly,
+        hasSubcontractAgreements: true,
+      }),
+    ).toBe(false);
+    expect(
+      shouldShowExecutionNavGroup({
+        deliveryProfile: null,
+        hasSubcontractAgreements: true,
+      }),
+    ).toBe(false);
   });
 });

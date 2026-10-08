@@ -441,7 +441,12 @@ describe('migration journal', () => {
       tags.indexOf('0154_project_team_capabilities'),
     );
     expect([...tags].sort()).toEqual(tags);
-    expect(tags.at(-1)).toBe('0171_retention_release_service_grant');
+    expect(tags).toContain('0171_retention_release_service_grant');
+    expect(tags).toContain('0172_notification_attention_badge_snapshot');
+    expect(tags.indexOf('0171_retention_release_service_grant')).toBeLessThan(
+      tags.indexOf('0172_notification_attention_badge_snapshot'),
+    );
+    expect(tags.at(-1)).toBe('0172_notification_attention_badge_snapshot');
 
     const sql66 = await readFile(
       path.join(MIGRATIONS_DIR, '0066_workforce_time_integrity.sql'),

@@ -6,8 +6,6 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { PROJECT_CAPABILITIES } from '@/modules/project-team/domain/capabilities';
 import { requireProjectCapabilityPage } from '@/modules/project-team/server';
-import { listProjectPaymentStageLines } from '@/modules/subcontracts/application/payment-stage-lines';
-import { loadProjectContractorList } from '@/modules/project-workspace/application/load-project-contractors';
 import {
   EXECUTION_HUBS,
   selectExecutionHubChildren,
@@ -49,13 +47,21 @@ export async function ExecutionHubScreen({
 
   const stages =
     hub === 'contracts'
-      ? await withOrgContext((context) =>
-          listProjectPaymentStageLines(context.db, context.organizationId, projectId),
-        )
+      ? await withOrgContext(async (context) => {
+          const { listProjectPaymentStageLines } = await import(
+            '@/modules/subcontracts/application/payment-stage-lines'
+          );
+          return listProjectPaymentStageLines(context.db, context.organizationId, projectId);
+        })
       : [];
   const contractors =
     hub === 'contracts'
-      ? await withOrgContext((context) => loadProjectContractorList(context, projectId, { surfaceRoot: root }))
+      ? await withOrgContext(async (context) => {
+          const { loadProjectContractorList } = await import(
+            '@/modules/project-workspace/application/load-project-contractors'
+          );
+          return loadProjectContractorList(context, projectId, { surfaceRoot: root });
+        })
       : null;
   const titles = new Map(contractors?.items.map((item) => [item.agreement.id, item.agreement.title]) ?? []);
 

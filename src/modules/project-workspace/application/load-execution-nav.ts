@@ -1,7 +1,7 @@
 import 'server-only';
 
-import { findProjectDeliveryProfile } from '@/modules/project-profile';
-import { loadProjectCapabilities } from '@/modules/project-team';
+import { findProjectDeliveryProfile } from '@/modules/project-profile/application/structure';
+import { loadProjectCapabilities } from '@/modules/project-team/application/capability-guard';
 import type { OrgContext } from '@/shared/auth/context';
 import { selectExecutionHubs, type ExecutionHubLink } from '../domain/execution-hubs';
 import { shouldShowExecutionNavGroup } from '../domain/select-execution-nav-links';

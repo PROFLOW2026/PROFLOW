@@ -29,9 +29,9 @@ import {
   resolveProjectHubs,
   type ProjectHubKey,
 } from './project-hub-order';
-import { loadProjectExecutionNav } from '@/modules/project-workspace';
+import { loadProjectExecutionNav } from '@/modules/project-workspace/application/load-execution-nav';
 import { withOrgContext } from '@/shared/auth/session';
-import { ProjectExecutionNav } from './project-execution-nav';
+import { ProjectExecutionNav } from '@/modules/project-workspace/ui/project-execution-nav';
 import { ProjectTabsShell } from './project-tabs-shell';
 import { TabPanelSkeleton } from './tab-panel-skeleton';
 import { ProjectReportActions } from '@/modules/reports/ui';

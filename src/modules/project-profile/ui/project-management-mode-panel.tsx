@@ -1,12 +1,9 @@
 import { getTranslations } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  findProjectDeliveryProfile,
-  loadStructurePermissions,
-  MANAGEMENT_MODES,
-  resolveManagementMode,
-} from '@/modules/project-profile';
+import { loadStructurePermissions } from '@/modules/project-profile/application/authorize';
+import { findProjectDeliveryProfile } from '@/modules/project-profile/application/structure';
+import { MANAGEMENT_MODES, resolveManagementMode } from '@/modules/project-profile/domain/management-mode';
 import { withOrgContext } from '@/shared/auth/session';
 import { saveProjectManagementModeAction } from './management-mode-actions';
 

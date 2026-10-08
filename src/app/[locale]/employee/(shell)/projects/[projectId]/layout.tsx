@@ -1,6 +1,7 @@
 import { getLocale } from 'next-intl/server';
-import { ProjectExecutionNav } from '@/app/[locale]/(app)/projects/[projectId]/project-execution-nav';
-import { employeeProjectRoot, loadProjectExecutionNav } from '@/modules/project-workspace';
+import { loadProjectExecutionNav } from '@/modules/project-workspace/application/load-execution-nav';
+import { employeeProjectRoot } from '@/modules/project-workspace/domain/project-surface-path';
+import { ProjectExecutionNav } from '@/modules/project-workspace/ui/project-execution-nav';
 import { localeDirection, PROJECT_SURFACE_CLIENT_MESSAGE_NAMESPACES } from '@/shared/i18n/config';
 import { WithClientMessages } from '@/shared/i18n/with-client-messages';
 import { withOrgContext } from '@/shared/auth/session';
