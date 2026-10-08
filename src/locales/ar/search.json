@@ -69,6 +69,8 @@
     "drawing": "مخطط",
     "location": "موقع",
     "meeting": "اجتماع",
-    "site_instruction": "تعليمات موقع"
+    "site_instruction": "تعليمات موقع",
+    "delivery": "توريد",
+    "tender": "مناقصة"
   }
 }

@@ -69,6 +69,8 @@
     "drawing": "תוכנית",
     "location": "מיקום",
     "meeting": "ישיבה",
-    "site_instruction": "הוראת אתר"
+    "site_instruction": "הוראת אתר",
+    "delivery": "אספקה",
+    "tender": "מכרז"
   }
 }

@@ -88,6 +88,23 @@ export async function ProjectDrawingDetailScreen({ surfaceRoot,
 
       <Card>
         <CardHeader>
+          <CardTitle>{t('distribution')}</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-2">
+          {detail.distribution.length === 0 ? (
+            <p className="text-sm text-[var(--pf-text-secondary)]">{t('distributionEmpty')}</p>
+          ) : (
+            detail.distribution.map((entry) => (
+              <p key={entry.id} className="text-sm">
+                {entry.agreementTitle ?? entry.vendorName ?? entry.principalName ?? entry.audience}
+              </p>
+            ))
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>{t('evidence')}</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">

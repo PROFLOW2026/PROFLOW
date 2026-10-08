@@ -247,6 +247,10 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
         }
       />
 
+      {executionNav.showGroup ? (
+        <ProjectExecutionNav links={executionNav.links} dir={dir} />
+      ) : null}
+
       {showUwmLinks ? <ProjectUwmLinks projectId={projectId} /> : null}
 
       <Suspense fallback={<Project360SummaryFallback />}>
@@ -264,9 +268,6 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
         projectHref={`/projects/${projectId}`}
         dir={dir}
       >
-        {executionNav.showGroup ? (
-          <ProjectExecutionNav links={executionNav.links} dir={dir} />
-        ) : null}
         <Suspense
           fallback={
             <div className="min-w-0 max-w-full">

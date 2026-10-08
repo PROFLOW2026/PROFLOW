@@ -1,6 +1,8 @@
 import { getTranslations } from 'next-intl/server';
 import {
+  EXECUTION_NAV_GROUP_IDS,
   EXECUTION_ROUTE_CATALOG,
+  type ExecutionNavGroupId,
   type ExecutionNavLink,
 } from '@/modules/project-workspace';
 import {
@@ -50,17 +52,21 @@ export async function ProjectExecutionNav({ links, dir }: ProjectExecutionNavPro
     getTranslations('projectWorkspace'),
     resolveExecutionNavLabels(links),
   ]);
+  const groupLabels = Object.fromEntries(
+    EXECUTION_NAV_GROUP_IDS.map((id) => [id, t(`execution.groups.${id}`)]),
+  ) as Record<ExecutionNavGroupId, string>;
 
   return (
     <nav
       aria-label={t('execution.navAriaLabel')}
       dir={dir}
-      className="min-w-0 max-w-full space-y-2 pt-3"
+      className="min-w-0 max-w-full space-y-3 rounded-xl border border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] p-3 sm:p-4"
     >
-      <h2 className="text-xs font-semibold uppercase tracking-wide text-[var(--pf-text-secondary)]">
-        {t('execution.groupTitle')}
-      </h2>
-      <ProjectExecutionNavList links={resolved} />
+      <div className="min-w-0">
+        <h2 className="text-base font-semibold text-[var(--pf-text-primary)]">{t('execution.identityTitle')}</h2>
+        <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">{t('execution.identityHint')}</p>
+      </div>
+      <ProjectExecutionNavList links={resolved} groupLabels={groupLabels} />
     </nav>
   );
 }

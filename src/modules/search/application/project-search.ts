@@ -17,24 +17,32 @@ import {
   searchProjectClaims,
   searchProjectContractors,
   searchProjectDefects,
+  searchProjectDeliveries,
   searchProjectDrawings,
+  searchProjectInspections,
   searchProjectInstructions,
   searchProjectLocations,
   searchProjectMeetings,
   searchProjectRfis,
+  searchProjectSafety,
   searchProjectSubmittals,
+  searchProjectTenders,
 } from '../data/project-search.repository';
 import {
   mapClaimSearchHit,
   mapContractorSearchHit,
   mapCoordinationSearchHit,
   mapDefectSearchHit,
+  mapDeliverySearchHit,
   mapDrawingSearchHit,
+  mapInspectionSearchHit,
   mapInstructionSearchHit,
   mapLocationSearchHit,
   mapMeetingSearchHit,
   mapRfiSearchHit,
+  mapSafetySearchHit,
   mapSubmittalSearchHit,
+  mapTenderSearchHit,
 } from '../domain/project-hit-map';
 import type { GlobalSearchHit } from '../domain/types';
 
@@ -68,6 +76,10 @@ export async function searchProjectCapabilityHits(
     locations,
     meetings,
     instructions,
+    inspections,
+    deliveries,
+    tenders,
+    safety,
   ] = await Promise.all([
     searchProjectContractors(db, organizationId, exact, contractorIds, limit),
     searchCoordinationEvents(db, organizationId, exact, coordinationIds, limit),
@@ -79,6 +91,10 @@ export async function searchProjectCapabilityHits(
     searchProjectLocations(db, organizationId, exact, projectViewIds, limit),
     searchProjectMeetings(db, organizationId, exact, projectViewIds, limit),
     searchProjectInstructions(db, organizationId, exact, instructionIds, limit),
+    searchProjectInspections(db, organizationId, exact, projectViewIds, limit),
+    searchProjectDeliveries(db, organizationId, exact, projectViewIds, limit),
+    searchProjectTenders(db, organizationId, exact, contractorIds, limit),
+    searchProjectSafety(db, organizationId, exact, projectViewIds, limit),
   ]);
 
   const moneyIds = contractors
@@ -114,5 +130,9 @@ export async function searchProjectCapabilityHits(
     ...locations.map(mapLocationSearchHit),
     ...meetings.map(mapMeetingSearchHit),
     ...instructions.map(mapInstructionSearchHit),
+    ...inspections.map(mapInspectionSearchHit),
+    ...deliveries.map(mapDeliverySearchHit),
+    ...tenders.map(mapTenderSearchHit),
+    ...safety.map(mapSafetySearchHit),
   ];
 }

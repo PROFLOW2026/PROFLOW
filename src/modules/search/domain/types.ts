@@ -51,6 +51,8 @@ export const GLOBAL_SEARCH_KINDS = [
   'location',
   'meeting',
   'site_instruction',
+  'delivery',
+  'tender',
 ] as const;
 
 export type GlobalSearchKind = (typeof GLOBAL_SEARCH_KINDS)[number];

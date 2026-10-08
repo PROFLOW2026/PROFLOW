@@ -69,6 +69,8 @@
     "drawing": "Чертёж",
     "location": "Место",
     "meeting": "Совещание",
-    "site_instruction": "Указание на площадке"
+    "site_instruction": "Указание на площадке",
+    "delivery": "Поставка",
+    "tender": "Тендер"
   }
 }

@@ -137,3 +137,19 @@ export function meetingSearchHref(projectId: string, meetingId: string): string 
 export function siteInstructionSearchHref(projectId: string, instructionId: string): string {
   return `/projects/${projectId}/instructions/${instructionId}`;
 }
+
+export function inspectionSearchHref(projectId: string, inspectionId: string): string {
+  return `/projects/${projectId}/inspections/${inspectionId}`;
+}
+
+export function deliverySearchHref(projectId: string): string {
+  return `/projects/${projectId}/deliveries`;
+}
+
+export function tenderSearchHref(projectId: string, packageId: string): string {
+  return `/projects/${projectId}/tenders/${packageId}`;
+}
+
+export function safetySearchHref(projectId: string): string {
+  return `/projects/${projectId}/site-safety`;
+}

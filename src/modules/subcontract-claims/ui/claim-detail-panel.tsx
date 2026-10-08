@@ -75,6 +75,36 @@ export function ClaimDetailPanel({
         </CardContent>
       </Card>
 
+      {detail.payableBases.length > 0 && can.viewPayments ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('detail.payableBases')}</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3">
+            {detail.payableBases.map((basis) => (
+              <div key={basis.id} className="rounded-lg border border-[var(--pf-border-subtle)] p-3 text-sm">
+                <p className="font-medium">
+                  {t(`decision.${basis.sourceDecision}`)} · v{basis.version}
+                </p>
+                <p className="mt-1 tabular-nums text-[var(--pf-text-secondary)]">
+                  {t('detail.certifiedAmount')}: {bidiIsolate(basis.certifiedTotal)}
+                  {' · '}
+                  {t('detail.retention')}: {bidiIsolate(basis.retentionAmount)}
+                  {' · '}
+                  {t('detail.advanceRecovery')}: {bidiIsolate(basis.advanceRecoveryAmount)}
+                  {' · '}
+                  {t('detail.deductions')}: {bidiIsolate(basis.deductionsAmount)}
+                  {' · '}
+                  {t('detail.payableNet')}: {bidiIsolate(basis.payableNet)}
+                  {' · '}
+                  {t('detail.apStatus')}: {t(`detail.apBillStatus.${basis.apBillStatus}`)}
+                </p>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      ) : null}
+
       <Card>
         <CardHeader>
           <CardTitle>{t('detail.assessments')}</CardTitle>

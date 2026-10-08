@@ -8,6 +8,8 @@ export type ExecutionNavLinkKey =
   | 'team'
   | 'contractorAccess'
   | 'contractors'
+  | 'schedule'
+  | 'tasks'
   | 'coordination'
   | 'plans'
   | 'rfi'
@@ -35,6 +37,8 @@ export type ExecutionNavLabelRef =
   | { readonly namespace: 'projectTeam'; readonly key: 'page.title' }
   | { readonly namespace: 'contractorAccess'; readonly key: 'manage.title' }
   | { readonly namespace: 'vendors'; readonly key: 'subcontracts.sectionTitle' }
+  | { readonly namespace: 'projectWorkspace'; readonly key: 'execution.schedule' }
+  | { readonly namespace: 'projectWorkspace'; readonly key: 'execution.tasks' }
   | { readonly namespace: 'coordination'; readonly key: 'list.pageTitle' }
   | { readonly namespace: 'projectPlans'; readonly key: 'register.pageTitle' }
   | { readonly namespace: 'rfi'; readonly key: 'title' }
@@ -120,6 +124,20 @@ export const EXECUTION_ROUTE_CATALOG: readonly ExecutionRouteDefinition[] = [
     pageExists: projectRoutePageExists('contractors'),
     required: C.CONTRACTOR_VIEW,
     label: { namespace: 'vendors', key: 'subcontracts.sectionTitle' },
+  },
+  {
+    key: 'schedule',
+    path: '?tab=schedule',
+    pageExists: true,
+    required: C.SCHEDULE_VIEW,
+    label: { namespace: 'projectWorkspace', key: 'execution.schedule' },
+  },
+  {
+    key: 'tasks',
+    path: 'tasks',
+    pageExists: projectRoutePageExists('tasks'),
+    required: C.TASKS_VIEW,
+    label: { namespace: 'projectWorkspace', key: 'execution.tasks' },
   },
   {
     key: 'coordination',

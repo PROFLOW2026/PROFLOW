@@ -69,6 +69,8 @@
     "drawing": "Drawing",
     "location": "Location",
     "meeting": "Meeting",
-    "site_instruction": "Site instruction"
+    "site_instruction": "Site instruction",
+    "delivery": "Delivery",
+    "tender": "Tender"
   }
 }

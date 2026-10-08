@@ -48,6 +48,8 @@
   "detail": {
     "back": "חזרה לרישום",
     "revisions": "מהדורות",
+    "distribution": "הפצה לקבלנים",
+    "distributionEmpty": "התוכנית עדיין לא הופצה לקבלנים.",
     "evidence": "קבצים מצורפים",
     "discipline": {
       "architecture": "אדריכלות",

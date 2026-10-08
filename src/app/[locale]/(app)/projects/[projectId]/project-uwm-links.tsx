@@ -70,7 +70,7 @@ export async function ProjectUwmLinks({ projectId }: ProjectUwmLinksProps) {
         </li>
         <li>
           <Link
-            href={`/meetings?projectId=${projectId}`}
+            href={`/projects/${projectId}/site-meetings`}
             className={cn(pressableCardLinkClassName, 'flex items-center gap-3 px-3 py-3')}
           >
             <Users aria-hidden className="size-5 shrink-0 text-[var(--pf-text-brand)]" />

@@ -99,6 +99,8 @@
     "backToList": "Coordination",
     "matrix": "Contractor readiness",
     "matrixDescription": "The event is ready when every required contractor is ready and has confirmed the required acknowledgements.",
+    "linkedTasks": "Follow-up tasks",
+    "linkedTasksEmpty": "No follow-up tasks are linked to this event.",
     "party": "Contractor",
     "lastAnswer": "Last answer",
     "acknowledgements": "Acknowledgements",

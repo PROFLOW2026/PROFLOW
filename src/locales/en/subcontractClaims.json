@@ -35,7 +35,20 @@
     "revision": "Revision {no}",
     "certifiedAmount": "Certified amount",
     "totalsSubmitted": "Total submitted",
-    "totalsCertified": "Total certified"
+    "totalsCertified": "Total certified",
+    "payableBases": "Payable basis (separate from AP and payment)",
+    "retention": "Retention",
+    "advanceRecovery": "Advance recovery",
+    "deductions": "Deductions",
+    "payableNet": "Net payable",
+    "apStatus": "AP status",
+    "apBillStatus": {
+      "pending": "Pending",
+      "requested": "Requested",
+      "created": "Draft AP created",
+      "not_required": "Not required",
+      "credit_required": "Credit required"
+    }
   },
   "actions": {
     "review": "Review claim",

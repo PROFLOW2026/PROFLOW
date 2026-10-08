@@ -48,6 +48,8 @@
   "detail": {
     "back": "العودة إلى السجل",
     "revisions": "المراجعات",
+    "distribution": "توزيع على المقاولين",
+    "distributionEmpty": "لم تُوزَّع هذه المخططات على المقاولين بعد.",
     "evidence": "مرفقات",
     "discipline": {
       "architecture": "عمارة",

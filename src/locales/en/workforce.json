@@ -473,6 +473,7 @@
     "noHoursYet": "Assigned · no hours logged yet",
     "memberHours": "{hours} h · {count, plural, one {# entry} other {# entries}}",
     "assignmentNote": "Assignment ≠ labor Actual.",
+    "capabilityTeamLink": "Project team and capabilities (including the project manager)",
     "showHistory": "Show history",
     "hideHistory": "Hide history",
     "laborActualTitle": "Labor Actual by employee",

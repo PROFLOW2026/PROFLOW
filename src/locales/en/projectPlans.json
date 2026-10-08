@@ -48,6 +48,8 @@
   "detail": {
     "back": "Back to register",
     "revisions": "Revisions",
+    "distribution": "Contractor distribution",
+    "distributionEmpty": "This drawing has not been distributed to contractors.",
     "evidence": "Attachments",
     "discipline": {
       "architecture": "Architecture",

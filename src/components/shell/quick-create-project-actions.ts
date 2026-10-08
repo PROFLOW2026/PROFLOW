@@ -1,6 +1,9 @@
 'use server';
 
+import { findProjectDeliveryProfile } from '@/modules/project-profile';
 import { loadProjectCapabilities } from '@/modules/project-team';
+import { shouldShowExecutionNavGroup } from '@/modules/project-workspace/domain/select-execution-nav-links';
+import { listProjectAgreementsOperational } from '@/modules/subcontracts';
 import { withOrgContext } from '@/shared/auth/session';
 import { buildProjectQuickCreateActions, isProjectQuickCreateId } from './quick-create-project';
 import type { QuickCreateAction } from './quick-create';
@@ -16,7 +19,16 @@ export async function loadProjectQuickCreateActions(
   if (!isProjectQuickCreateId(projectId)) return [];
   try {
     return await withOrgContext(async (context) => {
-      const held = await loadProjectCapabilities(context, projectId);
+      const [held, deliveryProfile, agreements] = await Promise.all([
+        loadProjectCapabilities(context, projectId),
+        findProjectDeliveryProfile(context, projectId),
+        listProjectAgreementsOperational(context.db, context.organizationId, projectId).catch(() => []),
+      ]);
+      const showGcActions = shouldShowExecutionNavGroup({
+        deliveryProfile,
+        hasSubcontractAgreements: agreements.length > 0,
+      });
+      if (!showGcActions) return [];
       return buildProjectQuickCreateActions(projectId, held, root);
     });
   } catch {

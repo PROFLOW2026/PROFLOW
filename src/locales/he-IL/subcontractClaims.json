@@ -38,7 +38,20 @@
     "revision": "גרסה {no}",
     "certifiedAmount": "סכום מאושר",
     "totalsSubmitted": "סה״כ מוגש",
-    "totalsCertified": "סה״כ מאושר"
+    "totalsCertified": "סה״כ מאושר",
+    "payableBases": "בסיס לתשלום (נפרד מ-AP ומתשלום)",
+    "retention": "עיכבון",
+    "advanceRecovery": "קיזוז מקדמה",
+    "deductions": "קיזוזים",
+    "payableNet": "נטו לתשלום",
+    "apStatus": "סטטוס AP",
+    "apBillStatus": {
+      "pending": "ממתין",
+      "requested": "התבקש",
+      "created": "נוצרה טיוטת AP",
+      "not_required": "לא נדרש",
+      "credit_required": "נדרש זיכוי"
+    }
   },
   "actions": {
     "review": "בדיקת חשבון",

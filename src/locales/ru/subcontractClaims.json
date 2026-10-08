@@ -35,7 +35,20 @@
     "revision": "Редакция {no}",
     "certifiedAmount": "Сертифицированная сумма",
     "totalsSubmitted": "Итого заявлено",
-    "totalsCertified": "Итого сертифицировано"
+    "totalsCertified": "Итого сертифицировано",
+    "payableBases": "База к оплате (отдельно от AP и платежа)",
+    "retention": "Удержание",
+    "advanceRecovery": "Возврат аванса",
+    "deductions": "Удержания",
+    "payableNet": "Нетто к оплате",
+    "apStatus": "Статус AP",
+    "apBillStatus": {
+      "pending": "Ожидает",
+      "requested": "Запрошено",
+      "created": "Черновик AP создан",
+      "not_required": "Не требуется",
+      "credit_required": "Нужен кредит"
+    }
   },
   "actions": {
     "review": "Проверка акта",

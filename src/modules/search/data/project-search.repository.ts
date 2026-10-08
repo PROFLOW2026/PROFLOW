@@ -7,9 +7,13 @@
 import { and, desc, eq, ilike, inArray, isNull, or, sql } from 'drizzle-orm';
 import { numeric, pgView, text, uuid } from 'drizzle-orm/pg-core';
 import {
+  contractorTenderPackages,
   coordinationEvents,
   defects,
+  deliveryItems,
   drawings,
+  inspections,
+  safetyRecords,
   meetingRecords,
   projectLocations,
   projects,
@@ -506,4 +510,174 @@ export async function searchProjectInstructions(
     status: row.status,
     projectName: row.projectName,
   }));
+}
+
+export async function searchProjectInspections(
+  db: DbExecutor,
+  organizationId: string,
+  query: string,
+  projectIds: readonly string[] | null,
+  limit: number,
+): Promise<NumberedSearchRow[]> {
+  const exact = trimmed(query);
+  if (!exact || blocked(projectIds)) return [];
+  const term = ilikeContainsPattern(exact);
+  const rows = await db
+    .select({
+      id: inspections.id,
+      projectId: inspections.projectId,
+      title: inspections.title,
+      status: inspections.status,
+      projectName: projects.name,
+    })
+    .from(inspections)
+    .innerJoin(projects, and(eq(projects.id, inspections.projectId), eq(projects.organizationId, inspections.organizationId)))
+    .where(
+      and(
+        eq(inspections.organizationId, organizationId),
+        isNull(inspections.archivedAt),
+        projectScope(projectIds, inspections.projectId),
+        ilike(inspections.title, term),
+      ),
+    )
+    .orderBy(desc(inspections.updatedAt))
+    .limit(limit);
+  return rows.map((row) => ({
+    id: row.id,
+    projectId: row.projectId,
+    title: row.title,
+    numberLabel: null,
+    status: row.status,
+    projectName: row.projectName,
+  }));
+}
+
+export async function searchProjectDeliveries(
+  db: DbExecutor,
+  organizationId: string,
+  query: string,
+  projectIds: readonly string[] | null,
+  limit: number,
+): Promise<NumberedSearchRow[]> {
+  const exact = trimmed(query);
+  if (!exact || blocked(projectIds)) return [];
+  const term = ilikeContainsPattern(exact);
+  const rows = await db
+    .select({
+      id: deliveryItems.id,
+      projectId: deliveryItems.projectId,
+      title: deliveryItems.itemName,
+      status: deliveryItems.state,
+      projectName: projects.name,
+    })
+    .from(deliveryItems)
+    .innerJoin(projects, and(eq(projects.id, deliveryItems.projectId), eq(projects.organizationId, deliveryItems.organizationId)))
+    .where(
+      and(
+        eq(deliveryItems.organizationId, organizationId),
+        isNull(deliveryItems.archivedAt),
+        projectScope(projectIds, deliveryItems.projectId),
+        ilike(deliveryItems.itemName, term),
+      ),
+    )
+    .orderBy(desc(deliveryItems.updatedAt))
+    .limit(limit);
+  return rows.map((row) => ({
+    id: row.id,
+    projectId: row.projectId,
+    title: row.title,
+    numberLabel: null,
+    status: row.status,
+    projectName: row.projectName,
+  }));
+}
+
+export async function searchProjectTenders(
+  db: DbExecutor,
+  organizationId: string,
+  query: string,
+  projectIds: readonly string[] | null,
+  limit: number,
+): Promise<NumberedSearchRow[]> {
+  const exact = trimmed(query);
+  if (!exact || blocked(projectIds)) return [];
+  const term = ilikeContainsPattern(exact);
+  const rows = await db
+    .select({
+      id: contractorTenderPackages.id,
+      projectId: contractorTenderPackages.projectId,
+      title: contractorTenderPackages.title,
+      tradeKey: contractorTenderPackages.tradeKey,
+      status: contractorTenderPackages.status,
+      projectName: projects.name,
+    })
+    .from(contractorTenderPackages)
+    .innerJoin(
+      projects,
+      and(eq(projects.id, contractorTenderPackages.projectId), eq(projects.organizationId, contractorTenderPackages.organizationId)),
+    )
+    .where(
+      and(
+        eq(contractorTenderPackages.organizationId, organizationId),
+        isNull(contractorTenderPackages.archivedAt),
+        projectScope(projectIds, contractorTenderPackages.projectId),
+        or(ilike(contractorTenderPackages.title, term), ilike(contractorTenderPackages.tradeKey, term)),
+      ),
+    )
+    .orderBy(desc(contractorTenderPackages.updatedAt))
+    .limit(limit);
+  return rows.map((row) => ({
+    id: row.id,
+    projectId: row.projectId,
+    title: row.title,
+    numberLabel: row.tradeKey,
+    status: row.status,
+    projectName: row.projectName,
+  }));
+}
+
+export async function searchProjectSafety(
+  db: DbExecutor,
+  organizationId: string,
+  query: string,
+  projectIds: readonly string[] | null,
+  limit: number,
+): Promise<NumberedSearchRow[]> {
+  const exact = trimmed(query);
+  if (!exact || blocked(projectIds)) return [];
+  const term = ilikeContainsPattern(exact);
+  const rows = await db
+    .select({
+      id: safetyRecords.id,
+      projectId: safetyRecords.projectId,
+      title: safetyRecords.title,
+      status: safetyRecords.status,
+      projectName: projects.name,
+    })
+    .from(safetyRecords)
+    .innerJoin(projects, and(eq(projects.id, safetyRecords.projectId), eq(projects.organizationId, safetyRecords.organizationId)))
+    .where(
+      and(
+        eq(safetyRecords.organizationId, organizationId),
+        isNull(safetyRecords.archivedAt),
+        projectScope(projectIds, safetyRecords.projectId),
+        ilike(safetyRecords.title, term),
+      ),
+    )
+    .orderBy(desc(safetyRecords.updatedAt))
+    .limit(limit);
+  return rows.flatMap((row) =>
+    row.projectId
+      ? [
+          {
+            id: row.id,
+            projectId: row.projectId,
+            title: row.title,
+            numberLabel: null,
+            status: row.status,
+            projectName: row.projectName,
+          },
+        ]
+      : [],
+  );
 }

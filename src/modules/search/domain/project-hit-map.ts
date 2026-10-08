@@ -13,8 +13,12 @@ import {
   locationSearchHref,
   meetingSearchHref,
   rfiSearchHref,
+  deliverySearchHref,
+  inspectionSearchHref,
+  safetySearchHref,
   siteInstructionSearchHref,
   submittalSearchHref,
+  tenderSearchHref,
 } from './hrefs';
 import type { GlobalSearchHit, GlobalSearchKind } from './types';
 
@@ -247,4 +251,34 @@ export function mapInstructionSearchHit(row: InstructionSearchRow): GlobalSearch
     row.status,
     joinContext([row.numberLabel, row.projectName]),
   );
+}
+
+export function mapInspectionSearchHit(row: NumberedSearchRow): GlobalSearchHit {
+  return labeledHit(
+    'inspection',
+    row.id,
+    row.title,
+    inspectionSearchHref(row.projectId, row.id),
+    row.status,
+    joinContext([row.numberLabel, row.projectName]),
+  );
+}
+
+export function mapDeliverySearchHit(row: NumberedSearchRow): GlobalSearchHit {
+  return labeledHit('delivery', row.id, row.title, deliverySearchHref(row.projectId), row.status, row.projectName);
+}
+
+export function mapTenderSearchHit(row: NumberedSearchRow): GlobalSearchHit {
+  return labeledHit(
+    'tender',
+    row.id,
+    row.title,
+    tenderSearchHref(row.projectId, row.id),
+    row.status,
+    joinContext([row.numberLabel, row.projectName]),
+  );
+}
+
+export function mapSafetySearchHit(row: NumberedSearchRow): GlobalSearchHit {
+  return labeledHit('safety', row.id, row.title, safetySearchHref(row.projectId), row.status, row.projectName);
 }

@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageHeader } from '@/components/ui/page-header';
+import { listTasksLinkedFrom } from '@/modules/collaboration/data/collaboration.repository';
 import { EntityDiscussion } from '@/modules/collaboration/ui';
 import {
   getCoordinationEventDetail,
@@ -39,7 +40,13 @@ export async function CoordinationEventScreen({ surfaceRoot,
       const formOptions: CoordinationFormOptions | null = detail.canManage
         ? await loadCoordinationFormOptions(context, projectId)
         : null;
-      return { detail, formOptions, timeZone: context.organization.timezone };
+      const followUpTasks = await listTasksLinkedFrom(
+        context.db,
+        context.organizationId,
+        'coordination_event',
+        eventId,
+      );
+      return { detail, formOptions, timeZone: context.organization.timezone, followUpTasks };
     } catch (error) {
       if (error instanceof AuthorizationError || error instanceof NotFoundError) return null;
       throw error;
@@ -47,7 +54,7 @@ export async function CoordinationEventScreen({ surfaceRoot,
   });
   if (!data) notFound();
 
-  const { detail, formOptions, timeZone } = data;
+  const { detail, formOptions, timeZone, followUpTasks } = data;
   const [t, locale] = await Promise.all([getTranslations('coordination'), getLocale()]);
   const fmt = (value: Date | null) => (value ? formatInstant(value, locale, timeZone) : null);
   const views = buildDetailViews(detail, locale, timeZone);
@@ -116,6 +123,31 @@ export async function CoordinationEventScreen({ surfaceRoot,
                       ]),
                   )}
                 />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('detail.linkedTasks')}</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-2">
+                {followUpTasks.length === 0 ? (
+                  <p className="text-sm text-[var(--pf-text-secondary)]">{t('detail.linkedTasksEmpty')}</p>
+                ) : (
+                  followUpTasks.map((task) => (
+                    <Link
+                      key={task.id}
+                      href={
+                        surfaceRoot?.startsWith('/employee')
+                          ? `/employee/tasks/${task.id}`
+                          : `/tasks/${task.id}`
+                      }
+                      className="inline-flex min-h-11 items-center text-sm font-medium text-[var(--pf-text-brand)] hover:underline"
+                    >
+                      {task.title}
+                    </Link>
+                  ))
+                )}
               </CardContent>
             </Card>
 

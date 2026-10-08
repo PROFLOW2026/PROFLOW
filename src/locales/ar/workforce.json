@@ -473,6 +473,7 @@
     "noHoursYet": "مُخصّص · لا ساعات مسجّلة بعد",
     "memberHours": "{hours} س · {count, plural, one {إدخال واحد} other {# إدخالات}}",
     "assignmentNote": "التخصيص ≠ فعلي عمالة.",
+    "capabilityTeamLink": "فريق المشروع والصلاحيات (بما في ذلك مدير المشروع)",
     "showHistory": "عرض التاريخ",
     "hideHistory": "إخفاء التاريخ",
     "laborActualTitle": "فعلي عمالة حسب الموظف",

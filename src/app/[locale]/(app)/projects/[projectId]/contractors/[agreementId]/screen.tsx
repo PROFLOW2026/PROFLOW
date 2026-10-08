@@ -81,6 +81,18 @@ export async function Contractor360Screen({
             {section.label}
           </a>
         ))}
+        <Link
+          href={`${root}/contractor-closeout`}
+          className="inline-flex min-h-11 items-center rounded-md px-3 text-sm font-medium text-[var(--pf-text-secondary)] hover:bg-[var(--pf-action-subtle-hover)]"
+        >
+          {t('contractors.overview.closeout')}
+        </Link>
+        <Link
+          href={`${root}/contractor-warranty`}
+          className="inline-flex min-h-11 items-center rounded-md px-3 text-sm font-medium text-[var(--pf-text-secondary)] hover:bg-[var(--pf-action-subtle-hover)]"
+        >
+          {t('contractors.overview.warranty')}
+        </Link>
       </nav>
 
       <section id="contract" className="flex scroll-mt-20 flex-col gap-3">

@@ -12,6 +12,11 @@ export {
   resolveProjectSurfaceRoot,
 } from './domain/project-surface-path';
 export {
+  EXECUTION_NAV_GROUP_IDS,
+  groupExecutionNavLinks,
+  type ExecutionNavGroupId,
+} from './domain/execution-nav-groups';
+export {
   executionRoutesMissingPages,
   selectExecutionNavLinks,
   shouldShowExecutionNavGroup,

@@ -270,6 +270,34 @@ export interface TaskLinkRow {
   readonly direction: 'source' | 'target';
 }
 
+/** Follow-up tasks created from a source entity (coordination event, defect, meeting, …). */
+export async function listTasksLinkedFrom(
+  db: DbExecutor,
+  organizationId: string,
+  sourceType: string,
+  sourceId: string,
+): Promise<Array<{ id: string; title: string }>> {
+  const rows = await db
+    .select({ id: tasks.id, title: tasks.title })
+    .from(entityLinks)
+    .innerJoin(
+      tasks,
+      and(eq(tasks.id, entityLinks.targetId), eq(tasks.organizationId, entityLinks.organizationId)),
+    )
+    .where(
+      and(
+        eq(entityLinks.organizationId, organizationId),
+        eq(entityLinks.sourceType, sourceType),
+        eq(entityLinks.sourceId, sourceId),
+        eq(entityLinks.targetType, 'task'),
+        eq(tasks.isArchived, false),
+      ),
+    )
+    .orderBy(asc(tasks.title))
+    .limit(50);
+  return rows;
+}
+
 /** Links where the task is either end (internal readers only; RLS denies externals). */
 export async function listTaskEntityLinks(
   db: DbExecutor,

@@ -35,7 +35,20 @@
     "revision": "الإصدار {no}",
     "certifiedAmount": "المبلغ المعتمد",
     "totalsSubmitted": "إجمالي المقدّم",
-    "totalsCertified": "إجمالي المعتمد"
+    "totalsCertified": "إجمالي المعتمد",
+    "payableBases": "أساس الدفع (منفصل عن AP والدفع)",
+    "retention": "احتجاز",
+    "advanceRecovery": "استرداد الدفعة المقدمة",
+    "deductions": "خصومات",
+    "payableNet": "صافي مستحق",
+    "apStatus": "حالة AP",
+    "apBillStatus": {
+      "pending": "قيد الانتظار",
+      "requested": "تم الطلب",
+      "created": "أُنشئت مسودة AP",
+      "not_required": "غير مطلوب",
+      "credit_required": "يلزم إشعار دائن"
+    }
   },
   "actions": {
     "review": "مراجعة المطالبة",

@@ -38,6 +38,7 @@ function capabilityAllowed(
 }
 
 function routeIsMounted(route: ExecutionRouteDefinition, surfaceRoot: string | undefined): boolean {
+  if (route.path.startsWith('?')) return !surfaceRoot?.startsWith('/employee/');
   if (surfaceRoot?.startsWith('/employee/')) return employeeExecutionPageExists(route.path);
   return route.pageExists;
 }
@@ -49,6 +50,7 @@ function resolveHref(
 ): string | null {
   const root = surfaceRoot ?? `/projects/${projectId}`;
   if (!routeIsMounted(route, surfaceRoot)) return null;
+  if (route.path.startsWith('?')) return `${root}${route.path}`;
   return `${root}/${route.path}`;
 }
 

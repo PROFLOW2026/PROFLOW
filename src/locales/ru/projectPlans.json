@@ -48,6 +48,8 @@
   "detail": {
     "back": "Назад к реестру",
     "revisions": "Редакции",
+    "distribution": "Рассылка подрядчикам",
+    "distributionEmpty": "Чертёж ещё не разослан подрядчикам.",
     "evidence": "Вложения",
     "discipline": {
       "architecture": "Архитектура",

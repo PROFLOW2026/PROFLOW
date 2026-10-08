@@ -1,5 +1,6 @@
 import { getTranslations } from 'next-intl/server';
 import { Card } from '@/components/ui/card';
+import { Link } from '@/shared/i18n/navigation';
 import {
   canManageProjectAccess,
   getProjectAccessModeForOrg,
@@ -92,6 +93,12 @@ export async function ProjectTeamPanel({ projectId }: ProjectTeamPanelProps) {
         <ProjectLaborActualSummary projectId={projectId} surface="team" />
       </Card>
       <p className="text-start text-sm text-[var(--pf-text-muted)]">{t('projectPanel.assignmentNote')}</p>
+      <Link
+        href={`/projects/${projectId}/team`}
+        className="inline-flex min-h-11 items-center text-sm font-medium text-[var(--pf-text-brand)] hover:underline"
+      >
+        {t('projectPanel.capabilityTeamLink')}
+      </Link>
 
       {(data.allowAccessManage || data.grants.length > 0 || data.accessMode !== 'all') && (
         <WithClientMessages extra={['settings']}>

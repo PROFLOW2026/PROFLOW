@@ -445,6 +445,7 @@
     "noHoursYet": "משויך · עדיין אין דיווח שעות",
     "memberHours": "{hours} ש׳ · {count, plural, one {דיווח #} other {# דיווחים}}",
     "assignmentNote": "שיוך עובד לפרויקט אינו יוצר עלות עבודה בפועל.",
+    "capabilityTeamLink": "צוות פרויקט והרשאות (כולל מנהל הפרויקט)",
     "showHistory": "הצג היסטוריה",
     "hideHistory": "הסתר היסטוריה",
     "laborActualTitle": "עלות עבודה בפועל לפי עובד",

@@ -99,6 +99,8 @@
     "backToList": "תיאום",
     "matrix": "מוכנות קבלנים",
     "matrixDescription": "האירוע מוכן כשכל הקבלנים הנדרשים מוכנים ואישרו את כל האישורים הנדרשים.",
+    "linkedTasks": "משימות המשך",
+    "linkedTasksEmpty": "אין משימות המשך מקושרות לאירוע זה.",
     "party": "קבלן",
     "lastAnswer": "תשובה אחרונה",
     "acknowledgements": "אישורים",
