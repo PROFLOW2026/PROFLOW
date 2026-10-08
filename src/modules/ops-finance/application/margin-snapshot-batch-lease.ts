@@ -1,12 +1,9 @@
 import 'server-only';
 
-import { asc, isNull } from 'drizzle-orm';
-import { organizations } from '@drizzle/schema';
-import type { DbExecutor } from '@/shared/db/types';
-import {
-  getOrganizationSettingValue,
-  upsertOrganizationSettingValue,
-} from '@/modules/tenancy';
+import { and, asc, eq, isNull, sql } from 'drizzle-orm';
+import { organizationSettings, organizations } from '@drizzle/schema';
+import type { Database, DbExecutor, Transaction } from '@/shared/db/types';
+import { upsertOrganizationSettingValue } from '@/modules/tenancy/application/organization-setting-values';
 
 /** Stored on the lexicographically first active org — platform-wide batch lease (single deployment). */
 export const MARGIN_SNAPSHOT_BATCH_LEASE_SETTING_KEY = 'platform.margin_snapshot_batch_utc_v1';
@@ -48,6 +45,30 @@ function parseLease(raw: unknown): MarginSnapshotBatchLeaseValue | null {
   };
 }
 
+async function lockMarginSnapshotBatchLease(tx: Transaction): Promise<void> {
+  await tx.execute(
+    sql`SELECT pg_advisory_xact_lock(hashtext(${MARGIN_SNAPSHOT_BATCH_LEASE_SETTING_KEY}))`,
+  );
+}
+
+async function readLeaseForUpdate(
+  tx: Transaction,
+  holderOrganizationId: string,
+): Promise<MarginSnapshotBatchLeaseValue | null> {
+  const [row] = await tx
+    .select({ value: organizationSettings.value })
+    .from(organizationSettings)
+    .where(
+      and(
+        eq(organizationSettings.organizationId, holderOrganizationId),
+        eq(organizationSettings.key, MARGIN_SNAPSHOT_BATCH_LEASE_SETTING_KEY),
+      ),
+    )
+    .for('update');
+
+  return parseLease(row?.value ?? null);
+}
+
 export async function pickMarginSnapshotBatchLeaseHolderOrganizationId(
   db: DbExecutor,
 ): Promise<string | null> {
@@ -60,25 +81,12 @@ export async function pickMarginSnapshotBatchLeaseHolderOrganizationId(
   return row?.id ?? null;
 }
 
-export async function decideMarginSnapshotBatchLease(
-  db: DbExecutor,
+function decideFromExistingLease(
+  existing: MarginSnapshotBatchLeaseValue | null,
+  utcDay: string,
   token: string,
-  now: Date = new Date(),
-): Promise<MarginSnapshotBatchLeaseDecision> {
-  const holderOrganizationId = await pickMarginSnapshotBatchLeaseHolderOrganizationId(db);
-  if (!holderOrganizationId) {
-    return { action: 'skip', reason: 'already_completed' };
-  }
-
-  const utcDay = utcDayKey(now);
-  const existing = parseLease(
-    await getOrganizationSettingValue<unknown>(
-      db,
-      holderOrganizationId,
-      MARGIN_SNAPSHOT_BATCH_LEASE_SETTING_KEY,
-    ),
-  );
-
+  now: Date,
+): MarginSnapshotBatchLeaseDecision | 'acquire' {
   if (existing?.status === 'completed' && existing.utcDay === utcDay) {
     return { action: 'skip', reason: 'already_completed' };
   }
@@ -92,23 +100,51 @@ export async function decideMarginSnapshotBatchLease(
     return { action: 'skip', reason: 'lease_held' };
   }
 
-  const startedAt = now.toISOString();
-  const expiresAt = new Date(now.getTime() + RUNNING_LEASE_TTL_MS).toISOString();
-  const next: MarginSnapshotBatchLeaseValue = {
-    utcDay,
-    status: 'running',
-    token,
-    startedAt,
-    expiresAt,
-  };
-  await upsertOrganizationSettingValue(
-    db,
-    holderOrganizationId,
-    MARGIN_SNAPSHOT_BATCH_LEASE_SETTING_KEY,
-    next,
-  );
+  return 'acquire';
+}
 
-  return { action: 'run', holderOrganizationId, token };
+function asDatabase(db: DbExecutor): Database {
+  return db as Database;
+}
+
+export async function decideMarginSnapshotBatchLease(
+  db: DbExecutor,
+  token: string,
+  now: Date = new Date(),
+): Promise<MarginSnapshotBatchLeaseDecision> {
+  return asDatabase(db).transaction(async (tx) => {
+    await lockMarginSnapshotBatchLease(tx);
+
+    const holderOrganizationId = await pickMarginSnapshotBatchLeaseHolderOrganizationId(tx);
+    if (!holderOrganizationId) {
+      return { action: 'skip', reason: 'already_completed' };
+    }
+
+    const utcDay = utcDayKey(now);
+    const existing = await readLeaseForUpdate(tx, holderOrganizationId);
+    const decision = decideFromExistingLease(existing, utcDay, token, now);
+    if (decision !== 'acquire') {
+      return decision;
+    }
+
+    const startedAt = now.toISOString();
+    const expiresAt = new Date(now.getTime() + RUNNING_LEASE_TTL_MS).toISOString();
+    const next: MarginSnapshotBatchLeaseValue = {
+      utcDay,
+      status: 'running',
+      token,
+      startedAt,
+      expiresAt,
+    };
+    await upsertOrganizationSettingValue(
+      tx,
+      holderOrganizationId,
+      MARGIN_SNAPSHOT_BATCH_LEASE_SETTING_KEY,
+      next,
+    );
+
+    return { action: 'run', holderOrganizationId, token };
+  });
 }
 
 export async function markMarginSnapshotBatchCompleted(
@@ -117,27 +153,25 @@ export async function markMarginSnapshotBatchCompleted(
   token: string,
   now: Date = new Date(),
 ): Promise<void> {
-  const existing = parseLease(
-    await getOrganizationSettingValue<unknown>(
-      db,
+  await asDatabase(db).transaction(async (tx) => {
+    await lockMarginSnapshotBatchLease(tx);
+
+    const existing = await readLeaseForUpdate(tx, holderOrganizationId);
+    if (!existing || existing.token !== token) return;
+
+    const completed: MarginSnapshotBatchLeaseValue = {
+      ...existing,
+      status: 'completed',
+      completedAt: now.toISOString(),
+      expiresAt: now.toISOString(),
+    };
+    await upsertOrganizationSettingValue(
+      tx,
       holderOrganizationId,
       MARGIN_SNAPSHOT_BATCH_LEASE_SETTING_KEY,
-    ),
-  );
-  if (!existing || existing.token !== token) return;
-
-  const completed: MarginSnapshotBatchLeaseValue = {
-    ...existing,
-    status: 'completed',
-    completedAt: now.toISOString(),
-    expiresAt: now.toISOString(),
-  };
-  await upsertOrganizationSettingValue(
-    db,
-    holderOrganizationId,
-    MARGIN_SNAPSHOT_BATCH_LEASE_SETTING_KEY,
-    completed,
-  );
+      completed,
+    );
+  });
 }
 
 export async function releaseMarginSnapshotBatchRunningLease(
@@ -145,22 +179,20 @@ export async function releaseMarginSnapshotBatchRunningLease(
   holderOrganizationId: string,
   token: string,
 ): Promise<void> {
-  const existing = parseLease(
-    await getOrganizationSettingValue<unknown>(
-      db,
+  await asDatabase(db).transaction(async (tx) => {
+    await lockMarginSnapshotBatchLease(tx);
+
+    const existing = await readLeaseForUpdate(tx, holderOrganizationId);
+    if (!existing || existing.token !== token || existing.status !== 'running') return;
+
+    await upsertOrganizationSettingValue(
+      tx,
       holderOrganizationId,
       MARGIN_SNAPSHOT_BATCH_LEASE_SETTING_KEY,
-    ),
-  );
-  if (!existing || existing.token !== token || existing.status !== 'running') return;
-
-  await upsertOrganizationSettingValue(
-    db,
-    holderOrganizationId,
-    MARGIN_SNAPSHOT_BATCH_LEASE_SETTING_KEY,
-    {
-      ...existing,
-      expiresAt: new Date(0).toISOString(),
-    },
-  );
+      {
+        ...existing,
+        expiresAt: new Date(0).toISOString(),
+      },
+    );
+  });
 }
