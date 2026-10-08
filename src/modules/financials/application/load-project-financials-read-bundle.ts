@@ -36,15 +36,16 @@ import type { MonthCloseEconomicNets } from '../data/month-close-economic.reposi
 import type { ProjectExpenseContribution } from '../domain/cost-aggregation';
 import type { ResolvedProjectGeneralAllocations } from './resolve-project-general-allocations';
 import {
-  loadFinancialsApOrgFactsBundle,
   loadFinancialsBillingBundle,
   loadFinancialsGcmStoredBundle,
   loadFinancialsLaborAggregateBundle,
-  loadFinancialsOrgPreflightBundle,
   loadFinancialsProcurementBundle,
   loadFinancialsProjectSetupBundle,
 } from '../data/financials-read-bundle.repository';
-import { seedApOrgReadFactsCache } from '@/modules/ap/application/seed-ap-read-facts-cache';
+import {
+  loadCachedFinancialsApOrgFactsBundle,
+  loadCachedFinancialsOrgPreflightBundle,
+} from './financials-org-read-cache';
 import {
   loadCachedMonthCloseEconomicByProject,
   loadCachedMonthCloseEconomicForProject,
@@ -176,19 +177,15 @@ async function loadProjectFinancialsReadBundleUncached(
 
   const [setup, orgPreflight, apOrgFacts] = await Promise.all([
     loadFinancialsProjectSetupBundle(context.db, context.organizationId, projectId),
-    loadFinancialsOrgPreflightBundle(context.db, context.organizationId),
+    loadCachedFinancialsOrgPreflightBundle(context.db, context.organizationId),
     canReadAp
-      ? loadFinancialsApOrgFactsBundle(context.db, context.organizationId)
+      ? loadCachedFinancialsApOrgFactsBundle(context.db, context.organizationId)
       : Promise.resolve(null),
   ]);
   if (!setup.exists) throw new NotFoundError('Project');
 
   const currency = (setup.currency ?? context.organization.baseCurrency).toUpperCase();
   const throughYearMonth = actualRecognitionThroughYearMonth(context.organization.timezone);
-
-  if (apOrgFacts) {
-    seedApOrgReadFactsCache(context.db as object, apOrgFacts);
-  }
   seedCachedClosedYearMonthsSet(context.db as object, orgPreflight.closedYearMonths);
   seedCachedLaborCostDefaults(
     context.db as object,
