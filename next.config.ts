@@ -1,9 +1,11 @@
 import createNextIntlPlugin from 'next-intl/plugin';
+import { PHASE_PRODUCTION_BUILD } from 'next/constants';
 import type { NextConfig } from 'next';
 
 const withNextIntl = createNextIntlPlugin('./src/shared/i18n/request.ts');
 
-const nextConfig: NextConfig = {
+function nextConfig(phase: string): NextConfig {
+  return {
   reactStrictMode: true,
   poweredByHeader: false,
   allowedDevOrigins: ['127.0.0.1', 'localhost'],
@@ -14,6 +16,12 @@ const nextConfig: NextConfig = {
     '/*': ['./src/modules/reports/fonts/**/*'],
   },
   typedRoutes: false,
+  // Full-repo typecheck stays on `npm run typecheck` (tsconfig.json).
+  // Production build typecheck skips tests/scripts so it does not repeat that graph in-process.
+  typescript:
+    phase === PHASE_PRODUCTION_BUILD
+      ? { tsconfigPath: 'tsconfig.build.json' }
+      : undefined,
   // package-lock.json lives beside this file, not at the drive root Next infers.
   turbopack: { root: import.meta.dirname },
   async headers() {
@@ -49,6 +57,9 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-};
+  };
+}
 
-export default withNextIntl(nextConfig);
+export default function config(phase: string) {
+  return withNextIntl(nextConfig(phase));
+}
