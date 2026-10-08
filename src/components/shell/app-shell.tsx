@@ -58,6 +58,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
             })),
             activeOrganizationId: shell.organizationId,
           }}
+          footer={experiencePreviewSwitcher}
         />
 
         <div className="relative flex min-w-0 max-w-full flex-1 flex-col">
@@ -84,15 +85,6 @@ export async function AppShell({ children }: { children: ReactNode }) {
             }
           />
 
-          {experiencePreviewSwitcher ? (
-            <div
-              className="sticky top-[var(--pf-topbar-height)] z-20 border-b border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-4 py-2 print:hidden sm:px-6"
-              data-pf-experience-preview-bar=""
-            >
-              {experiencePreviewSwitcher}
-            </div>
-          ) : null}
-
           <main
             id="main"
             className="min-w-0 w-full max-w-full flex-1 px-4 pt-5 pb-[var(--pf-mobile-content-bottom)] sm:px-6 lg:pb-8"
@@ -104,7 +96,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
           </main>
         </div>
 
-        <MobileNav items={items} />
+        <MobileNav items={items} moreFooter={experiencePreviewSwitcher} />
       </div>
     </OfflineSyncProvider>
   );

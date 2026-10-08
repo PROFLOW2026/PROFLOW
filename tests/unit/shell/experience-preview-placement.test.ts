@@ -13,6 +13,7 @@ describe('Experience preview shell placement', () => {
     );
 
     expect(headerSlice).not.toContain('<ExperiencePreviewSwitcher');
+    expect(source).not.toContain('data-pf-experience-preview-bar');
     expect(source).toContain('footer={experiencePreviewSwitcher}');
     expect(source).toContain('moreFooter={experiencePreviewSwitcher}');
   });
