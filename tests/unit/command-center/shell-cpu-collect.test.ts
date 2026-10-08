@@ -25,8 +25,10 @@ vi.mock('@/modules/command-center/application/get-actionable-inbox', () => ({
   getActionableInboxIfAllowed: vi.fn(),
 }));
 
-vi.mock('@/modules/notifications/application/unread-count', () => ({
-  getPersistedNotificationUnreadCount: unreadMock,
+vi.mock('@/modules/notifications/application/attention-badge', () => ({
+  getShellNotificationBadgeCount: unreadMock,
+  persistAttentionBadgeSnapshot: vi.fn(),
+  computeMergedAttentionCount: vi.fn(),
 }));
 
 vi.mock('@/modules/notifications/application/actionable-inbox', () => ({
@@ -103,7 +105,7 @@ describe('notification bell shell', () => {
       path.join(process.cwd(), 'src/modules/notifications/ui/notification-bell-loader.tsx'),
       'utf8',
     );
-    expect(loaderSource).toContain('getPersistedNotificationUnreadCount');
+    expect(loaderSource).toContain('getShellNotificationBadgeCount');
     expect(loaderSource).not.toMatch(/collectAllSources|getOrganizationProjectRollup|listMergedNotificationInbox|getActionableInbox/);
 
     const shellSource = readFileSync(

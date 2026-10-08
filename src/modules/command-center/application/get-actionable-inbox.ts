@@ -1,4 +1,9 @@
 import type { OrgContext } from '@/shared/auth/context';
+import {
+  computeMergedAttentionCount,
+  persistAttentionBadgeSnapshot,
+} from '@/modules/notifications/application/attention-badge';
+import { listNotifications } from '@/modules/notifications/application/list';
 import { assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import {
@@ -115,6 +120,14 @@ export async function getActionableInbox(context: OrgContext): Promise<CommandCe
   }
 
   const items = sortCommandCenterItems(visible).slice(0, MAX_INBOX_ITEMS);
+
+  if (hasPermission(context, PERMISSIONS.NOTIFICATIONS_READ)) {
+    const persisted = await listNotifications(context);
+    await persistAttentionBadgeSnapshot(
+      context,
+      computeMergedAttentionCount(persisted, { items }),
+    );
+  }
 
   return {
     items,

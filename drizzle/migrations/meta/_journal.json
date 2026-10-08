@@ -1191,6 +1191,13 @@
                         "when":  1789714440000,
                         "tag":  "0171_retention_release_service_grant",
                         "breakpoints":  true
+                    },
+                    {
+                        "idx":  170,
+                        "version":  "7",
+                        "when":  1789714500000,
+                        "tag":  "0172_notification_attention_badge_snapshot",
+                        "breakpoints":  true
                     }
                 ]
 }
