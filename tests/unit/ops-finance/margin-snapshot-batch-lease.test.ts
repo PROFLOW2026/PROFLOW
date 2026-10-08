@@ -29,7 +29,9 @@ function leaseStore(): { value: unknown } {
 function createSerializedTransactionDb(store: { value: unknown }, holderId = HOLDER_ID) {
   let chain: Promise<unknown> = Promise.resolve();
   const tx = {
-    execute: vi.fn(async () => []),
+    execute: vi.fn(async () =>
+      store.value == null ? [] : [{ value: store.value }],
+    ),
     select: vi.fn(() => ({
       from: vi.fn(() => ({
         where: vi.fn(() => ({

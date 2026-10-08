@@ -12,9 +12,7 @@
     "next.config.ts",
     "src/**/*.ts",
     "src/**/*.tsx",
-    "drizzle/**/*.ts",
-    ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts"
+    "drizzle/**/*.ts"
   ],
   "exclude": [
     "node_modules/**",

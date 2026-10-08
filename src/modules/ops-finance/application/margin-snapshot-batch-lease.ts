@@ -1,8 +1,8 @@
 import 'server-only';
 
-import { and, asc, eq, isNull, sql } from 'drizzle-orm';
-import { organizationSettings, organizations } from '@drizzle/schema';
-import type { Database, DbExecutor, Transaction } from '@/shared/db/types';
+import { asc, isNull, sql } from 'drizzle-orm';
+import { organizations } from '@drizzle/schema';
+import type { DbExecutor } from '@/shared/db/types';
 import { upsertOrganizationSettingValue } from '@/modules/tenancy/application/organization-setting-values';
 
 /** Stored on the lexicographically first active org — platform-wide batch lease (single deployment). */
@@ -22,6 +22,10 @@ export type MarginSnapshotBatchLeaseValue = {
 export type MarginSnapshotBatchLeaseDecision =
   | { readonly action: 'run'; readonly holderOrganizationId: string; readonly token: string }
   | { readonly action: 'skip'; readonly reason: 'already_completed' | 'lease_held' };
+
+type TransactionCapableDb = {
+  transaction: <T>(fn: (tx: DbExecutor) => Promise<T>) => Promise<T>;
+};
 
 function utcDayKey(now: Date): string {
   return now.toISOString().slice(0, 10);
@@ -45,27 +49,24 @@ function parseLease(raw: unknown): MarginSnapshotBatchLeaseValue | null {
   };
 }
 
-async function lockMarginSnapshotBatchLease(tx: Transaction): Promise<void> {
+function runLeaseTransaction<T>(db: DbExecutor, fn: (tx: DbExecutor) => Promise<T>): Promise<T> {
+  return (db as DbExecutor & TransactionCapableDb).transaction(fn);
+}
+
+async function lockMarginSnapshotBatchLease(tx: DbExecutor): Promise<void> {
   await tx.execute(
     sql`SELECT pg_advisory_xact_lock(hashtext(${MARGIN_SNAPSHOT_BATCH_LEASE_SETTING_KEY}))`,
   );
 }
 
 async function readLeaseForUpdate(
-  tx: Transaction,
+  tx: DbExecutor,
   holderOrganizationId: string,
 ): Promise<MarginSnapshotBatchLeaseValue | null> {
-  const [row] = await tx
-    .select({ value: organizationSettings.value })
-    .from(organizationSettings)
-    .where(
-      and(
-        eq(organizationSettings.organizationId, holderOrganizationId),
-        eq(organizationSettings.key, MARGIN_SNAPSHOT_BATCH_LEASE_SETTING_KEY),
-      ),
-    )
-    .for('update');
-
+  const rows = (await tx.execute(
+    sql`SELECT value FROM organization_settings WHERE organization_id = ${holderOrganizationId}::uuid AND key = ${MARGIN_SNAPSHOT_BATCH_LEASE_SETTING_KEY} FOR UPDATE`,
+  )) as { value: unknown }[];
+  const row = rows[0];
   return parseLease(row?.value ?? null);
 }
 
@@ -103,22 +104,18 @@ function decideFromExistingLease(
   return 'acquire';
 }
 
-function asDatabase(db: DbExecutor): Database {
-  return db as Database;
-}
-
 export async function decideMarginSnapshotBatchLease(
   db: DbExecutor,
   token: string,
   now: Date = new Date(),
 ): Promise<MarginSnapshotBatchLeaseDecision> {
-  return asDatabase(db).transaction(async (tx) => {
-    await lockMarginSnapshotBatchLease(tx);
+  const holderOrganizationId = await pickMarginSnapshotBatchLeaseHolderOrganizationId(db);
+  if (!holderOrganizationId) {
+    return { action: 'skip', reason: 'already_completed' };
+  }
 
-    const holderOrganizationId = await pickMarginSnapshotBatchLeaseHolderOrganizationId(tx);
-    if (!holderOrganizationId) {
-      return { action: 'skip', reason: 'already_completed' };
-    }
+  return runLeaseTransaction(db, async (tx) => {
+    await lockMarginSnapshotBatchLease(tx);
 
     const utcDay = utcDayKey(now);
     const existing = await readLeaseForUpdate(tx, holderOrganizationId);
@@ -153,7 +150,7 @@ export async function markMarginSnapshotBatchCompleted(
   token: string,
   now: Date = new Date(),
 ): Promise<void> {
-  await asDatabase(db).transaction(async (tx) => {
+  await runLeaseTransaction(db, async (tx) => {
     await lockMarginSnapshotBatchLease(tx);
 
     const existing = await readLeaseForUpdate(tx, holderOrganizationId);
@@ -179,7 +176,7 @@ export async function releaseMarginSnapshotBatchRunningLease(
   holderOrganizationId: string,
   token: string,
 ): Promise<void> {
-  await asDatabase(db).transaction(async (tx) => {
+  await runLeaseTransaction(db, async (tx) => {
     await lockMarginSnapshotBatchLease(tx);
 
     const existing = await readLeaseForUpdate(tx, holderOrganizationId);
