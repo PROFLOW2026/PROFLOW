@@ -6,7 +6,7 @@ import { ConflictError, DomainRuleError, NotFoundError, ValidationError } from '
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
-import type { Database, DbExecutor } from '@/shared/db/types';
+import type { DbExecutor } from '@/shared/db/types';
 import { assertCanGrantRole, ensureRoleAssigned, findRoleByKey } from '@/modules/rbac';
 import { findActiveMembership, insertMembership } from '../data/organizations.repository';
 import { inviteMemberSchema } from '../validation/schemas';
@@ -161,7 +161,10 @@ export async function acceptInvitation(
   db: DbExecutor,
   input: { token: string; userId: string; userEmail: string },
 ): Promise<AcceptInvitationResult> {
-  return (db as Database).transaction(async (tx) => acceptInvitationInTransaction(tx, input));
+  const txCapable = db as DbExecutor & {
+    transaction: <T>(fn: (tx: DbExecutor) => Promise<T>) => Promise<T>;
+  };
+  return txCapable.transaction(async (tx) => acceptInvitationInTransaction(tx, input));
 }
 
 async function acceptInvitationInTransaction(

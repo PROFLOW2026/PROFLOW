@@ -5,7 +5,7 @@ import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
 import type { OrgContext } from '@/shared/auth/context';
 import { todayInTimeZone } from '@/shared/dates';
 import { withTransaction } from '@/shared/db';
-import type { DbExecutor, Transaction } from '@/shared/db/types';
+import type { DbExecutor } from '@/shared/db/types';
 import { DOMAIN_EVENTS, emitDomainEvent } from '@/shared/domain-events';
 import { ConflictError, DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
 import { addMoney, isZeroMoney, money, toNumericString } from '@/shared/money';
@@ -136,7 +136,7 @@ interface InsertChangeArgs {
 }
 
 /** Internal change header insert (inside the caller's transaction). */
-export async function insertInternalChange(context: OrgContext, tx: Transaction, args: InsertChangeArgs): Promise<string> {
+export async function insertInternalChange(context: OrgContext, tx: DbExecutor, args: InsertChangeArgs): Promise<string> {
   const id = randomUUID();
   const changeNumber = await nextChangeNumber(tx, context.organizationId, args.agreement.id);
   await insertChange(tx, {

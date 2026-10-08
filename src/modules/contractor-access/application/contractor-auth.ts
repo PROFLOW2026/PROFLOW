@@ -1,7 +1,7 @@
 import { sql } from 'drizzle-orm';
 import { AUDIT_ACTIONS } from '@/shared/audit/actions';
 import { externalActor } from '@/shared/actor';
-import type { Database, DbExecutor, Transaction } from '@/shared/db/types';
+import type { DbExecutor } from '@/shared/db/types';
 import { DOMAIN_EVENTS, emitDomainEvent } from '@/shared/domain-events';
 import { DomainRuleError } from '@/shared/errors';
 import type { ExternalContext } from '@/shared/external';
@@ -122,8 +122,10 @@ async function setPasswordWithToken(
   });
   if (violations.length > 0) throw new ContractorPasswordPolicyError(violations);
 
-  const consumed = await (deps.db as Database).transaction(
-    async (tx: Transaction) => {
+  const txCapable = deps.db as DbExecutor & {
+    transaction: <T>(fn: (tx: DbExecutor) => Promise<T>) => Promise<T>;
+  };
+  const consumed = await txCapable.transaction(async (tx) => {
       if (!(await consumeContractorToken(tx, token.id, at))) return false;
       await updateContractorPrincipal(tx, principal.id, {
         status: 'active',

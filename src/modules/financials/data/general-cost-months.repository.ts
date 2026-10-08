@@ -10,7 +10,7 @@ import {
 
 } from '@drizzle/schema';
 
-import type { DbExecutor, Transaction } from '@/shared/db/types';
+import type { DbExecutor } from '@/shared/db/types';
 
 import { withTransaction } from '@/shared/db/client';
 import { asServiceRoleWrite } from '@/shared/db/service-role-write';
@@ -87,7 +87,7 @@ export async function findGeneralCostMonth(
 
 async function acquireGeneralCostMonthLock(
 
-  tx: Transaction,
+  tx: DbExecutor,
 
   organizationId: string,
 
@@ -107,7 +107,7 @@ async function acquireGeneralCostMonthLock(
 
 async function upsertOpenGeneralCostMonthInTx(
 
-  tx: Transaction,
+  tx: DbExecutor,
 
   input: {
 
@@ -247,7 +247,7 @@ async function upsertOpenGeneralCostMonthInTx(
 
 async function replaceGeneralCostMonthChildrenInTx(
 
-  tx: Transaction,
+  tx: DbExecutor,
 
   organizationId: string,
 
@@ -381,7 +381,7 @@ async function replaceGeneralCostMonthChildrenInTx(
 
 async function assertPersistedGeneralCostMonthIntegrity(
 
-  tx: Transaction,
+  tx: DbExecutor,
 
   organizationId: string,
 
@@ -900,7 +900,7 @@ export async function replaceGeneralCostMonthChildren(
 
     await replaceGeneralCostMonthChildrenInTx(
 
-      db as Transaction,
+      db,
 
       organizationId,
 

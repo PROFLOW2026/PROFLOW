@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import type { Database, DbExecutor } from '@/shared/db/types';
+import type { DbExecutor } from '@/shared/db/types';
 import type { ExternalContext, ExternalGrantView } from '@/shared/external';
 import { isLocale } from '@/shared/i18n/config';
 import { createRlsBoundExecutor } from '../data/rls-executor';
@@ -48,7 +48,7 @@ export function grantRowToView(row: ContractorGrantRow): ExternalGrantView | nul
 }
 
 export async function loadExternalContext(
-  base: Database,
+  base: DbExecutor,
   input: LoadExternalContextInput,
 ): Promise<LoadExternalContextResult> {
   const now = input.now ?? new Date();

@@ -1,10 +1,10 @@
 import 'server-only';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import type { OrgAuthzSnapshot } from '@/shared/auth/org-authz-memo';
-import type { Transaction } from '@/shared/db/types';
+import type { DbExecutor } from '@/shared/db/types';
 
 export type OrgRequestTxFrame = {
-  readonly tx: Transaction;
+  readonly tx: DbExecutor;
   readonly snapshot: OrgAuthzSnapshot;
 };
 

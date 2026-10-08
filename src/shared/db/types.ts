@@ -1,22 +1,16 @@
-import type { ExtractTablesWithRelations } from 'drizzle-orm';
 import type { PgDatabase, PgQueryResultHKT, PgTransaction } from 'drizzle-orm/pg-core';
-import type * as schema from '@drizzle/schema';
 
 /**
- * Driver-agnostic database handles.
+ * Lightweight SQL / query-builder executor for repositories.
  *
- * Repositories accept these types rather than importing a concrete client, so
- * the same code runs against Supabase Postgres in production and against an
- * in-process PGlite instance in the integration tests - including the RLS
- * policies, which is the whole point.
+ * Does not import `@drizzle/schema` or `ExtractTablesWithRelations`. Table typing
+ * comes from `@drizzle/schema` imports at each call site (`.from(organizations)`).
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- relational erasure for TSC graph only
+type LiteRelationalConfig = any;
 
-export type AppSchema = typeof schema;
-export type AppRelations = ExtractTablesWithRelations<AppSchema>;
+type LiteSchema = Record<string, unknown>;
 
-export type Database = PgDatabase<PgQueryResultHKT, AppSchema, AppRelations>;
-
-export type Transaction = PgTransaction<PgQueryResultHKT, AppSchema, AppRelations>;
-
-/** Anything a repository can run against: the pool or an open transaction. */
-export type DbExecutor = Database | Transaction;
+export type DbExecutor =
+  | PgDatabase<PgQueryResultHKT, LiteSchema, LiteRelationalConfig>
+  | PgTransaction<PgQueryResultHKT, LiteSchema, LiteRelationalConfig>;

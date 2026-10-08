@@ -2,8 +2,8 @@ import { randomUUID } from 'node:crypto';
 import { externalActor } from '@/shared/actor';
 import { AUDIT_ACTIONS, writeAuditEvent } from '@/shared/audit';
 import { withTransaction } from '@/shared/db';
+import type { DbExecutor } from '@/shared/db/types';
 import { asServiceRoleWrite } from '@/shared/db/service-role-write';
-import type { Transaction } from '@/shared/db/types';
 import { DOMAIN_EVENTS, emitDomainEvent } from '@/shared/domain-events';
 import { NotFoundError } from '@/shared/errors';
 import {
@@ -137,7 +137,7 @@ export async function listContractorChanges(
 }
 
 async function auditExternal(
-  tx: Transaction,
+  tx: DbExecutor,
   context: ExternalContext,
   organizationId: string,
   action: (typeof AUDIT_ACTIONS)[keyof typeof AUDIT_ACTIONS],

@@ -11,7 +11,7 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as schema from '@drizzle/schema';
 import { serverEnv } from '@/shared/env/server';
-import type { Database, DbExecutor, Transaction } from './types';
+import type { DbExecutor } from './types';
 
 /**
  * Runtime database access (doc 74 §2).
@@ -66,7 +66,15 @@ function rawAdminSql(): postgres.Sql {
   return globalThis.__projectflowAdminSql;
 }
 
-export function getDb(): Database {
+type TransactionCapableDb = DbExecutor & {
+  transaction: <T>(fn: (tx: DbExecutor) => Promise<T>) => Promise<T>;
+};
+
+function asTransactionCapable(db: DbExecutor): TransactionCapableDb {
+  return db as TransactionCapableDb;
+}
+
+export function getDb(): DbExecutor {
   const logger = isTabProfilingEnabled()
     ? {
         logQuery(query: string) {
@@ -74,17 +82,17 @@ export function getDb(): Database {
         },
       }
     : undefined;
-  return drizzle(rawSql(), { schema, casing: 'snake_case', logger }) as unknown as Database;
+  return drizzle(rawSql(), { schema, casing: 'snake_case', logger }) as unknown as DbExecutor;
 }
 
-export function getAdminDb(): Database {
-  return drizzle(rawAdminSql(), { schema, casing: 'snake_case' }) as unknown as Database;
+export function getAdminDb(): DbExecutor {
+  return drizzle(rawAdminSql(), { schema, casing: 'snake_case' }) as unknown as DbExecutor;
 }
 
 export async function withUserContext<T>(
   userId: string,
-  fn: (tx: Transaction) => Promise<T>,
-  db: Database = getDb(),
+  fn: (tx: DbExecutor) => Promise<T>,
+  db: DbExecutor = getDb(),
 ): Promise<T> {
   const profile = isTabProfilingEnabled();
   const txLabel = `user:${userId.slice(0, 8)}`;
@@ -92,11 +100,11 @@ export async function withUserContext<T>(
   if (profile) profileTxStart(txLabel);
 
   try {
-    return await db.transaction(async (tx) => {
+    return await asTransactionCapable(db).transaction(async (tx) => {
       await tx.execute(sql`select set_config('request.jwt.claim.sub', ${userId}, true)`);
       await tx.execute(sql`select set_config('app.user_id', ${userId}, true)`);
       await tx.execute(sql`set local role authenticated`);
-      const result = await fn(tx as Transaction);
+      const result = await fn(tx);
       if (profile) profileTxEnd(txLabel, Math.round(performance.now() - t0));
       return result;
     });
@@ -107,7 +115,7 @@ export async function withUserContext<T>(
 
 export async function withTransaction<T>(
   executor: DbExecutor,
-  fn: (tx: Transaction) => Promise<T>,
+  fn: (tx: DbExecutor) => Promise<T>,
 ): Promise<T> {
-  return (executor as Database).transaction(async (tx) => fn(tx as Transaction));
+  return asTransactionCapable(executor).transaction(async (tx) => fn(tx));
 }
