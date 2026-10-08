@@ -1,4 +1,4 @@
-import { listMergedNotificationInbox } from '../application/actionable-inbox';
+import { getPersistedNotificationUnreadCount } from '../application/unread-count';
 import type { NotificationInboxDto } from '../application/serialize';
 import { withOrgContext } from '@/shared/auth/session';
 import { hasPermission } from '@/shared/permissions/assert';
@@ -6,16 +6,15 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { NotificationBell } from './notification-bell';
 
 /**
- * Initial bell badge uses the same merged inbox unread count as the drawer
- * (persisted notifications + Command Center actionable items).
+ * Shell badge uses persisted notifications only — never Command Center collectors.
  */
 export async function NotificationBellLoader() {
   const initialInbox = await withOrgContext(async (context): Promise<NotificationInboxDto> => {
     if (!hasPermission(context, PERMISSIONS.NOTIFICATIONS_READ)) {
       return { items: [], unreadCount: 0 };
     }
-    const merged = await listMergedNotificationInbox(context);
-    return { items: [], unreadCount: merged.unreadCount };
+    const unreadCount = await getPersistedNotificationUnreadCount(context);
+    return { items: [], unreadCount };
   });
   return <NotificationBell initialInbox={initialInbox} />;
 }

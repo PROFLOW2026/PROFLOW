@@ -25,12 +25,12 @@ vi.mock('@/modules/command-center/application/get-actionable-inbox', () => ({
   getActionableInboxIfAllowed: vi.fn(),
 }));
 
-vi.mock('@/modules/notifications/application/actionable-inbox', () => ({
-  listMergedNotificationInbox: mergedInboxMock,
+vi.mock('@/modules/notifications/application/unread-count', () => ({
+  getPersistedNotificationUnreadCount: unreadMock,
 }));
 
-vi.mock('@/modules/notifications/data/notifications.repository', () => ({
-  countUnreadForRecipient: unreadMock,
+vi.mock('@/modules/notifications/application/actionable-inbox', () => ({
+  listMergedNotificationInbox: mergedInboxMock,
 }));
 
 vi.mock('@/shared/auth/session', () => ({
@@ -98,13 +98,13 @@ describe('command center collection cost', () => {
 });
 
 describe('notification bell shell', () => {
-  it('uses the merged inbox unread count for the initial badge', async () => {
+  it('uses persisted unread count only (never Command Center collectors)', async () => {
     const loaderSource = readFileSync(
       path.join(process.cwd(), 'src/modules/notifications/ui/notification-bell-loader.tsx'),
       'utf8',
     );
-    expect(loaderSource).toContain('listMergedNotificationInbox');
-    expect(loaderSource).not.toMatch(/collectAllSources|getOrganizationProjectRollup/);
+    expect(loaderSource).toContain('getPersistedNotificationUnreadCount');
+    expect(loaderSource).not.toMatch(/collectAllSources|getOrganizationProjectRollup|listMergedNotificationInbox|getActionableInbox/);
 
     const shellSource = readFileSync(
       path.join(process.cwd(), 'src/components/shell/app-shell.tsx'),
@@ -114,13 +114,13 @@ describe('notification bell shell', () => {
 
     unreadMock.mockClear();
     mergedInboxMock.mockClear();
-    mergedInboxMock.mockResolvedValue({ items: [], unreadCount: 12 });
+    unreadMock.mockResolvedValue(4);
     const { NotificationBellLoader } = await import(
       '@/modules/notifications/ui/notification-bell-loader'
     );
     const element = await NotificationBellLoader();
-    expect(mergedInboxMock).toHaveBeenCalledTimes(1);
-    expect(unreadMock).not.toHaveBeenCalled();
-    expect(element.props.initialInbox).toEqual({ items: [], unreadCount: 12 });
+    expect(unreadMock).toHaveBeenCalledTimes(1);
+    expect(mergedInboxMock).not.toHaveBeenCalled();
+    expect(element.props.initialInbox).toEqual({ items: [], unreadCount: 4 });
   });
 });

@@ -214,6 +214,14 @@ export interface ContractorAccessOverview {
   readonly existingPrincipals: ReadonlyArray<{ principalId: string; vendorId: string; label: string }>;
 }
 
+/** Read-only grant rows for a project contractor list (no service-role write). */
+export async function listProjectContractorGrantsForProject(
+  context: OrgContext,
+  projectId: string,
+): Promise<Awaited<ReturnType<typeof listProjectContractorGrants>>> {
+  return listProjectContractorGrants(context.db, context.organizationId, projectId);
+}
+
 export async function getContractorAccessOverview(
   context: OrgContext,
   projectId: string,

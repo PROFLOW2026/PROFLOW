@@ -2,8 +2,6 @@ import 'server-only';
 
 import { after } from 'next/server';
 
-const DRAIN_LIMIT_MS = 20_000;
-
 let scheduled = false;
 
 function workerUrl(): string | null {
@@ -25,16 +23,9 @@ function kickRemote(): void {
   }).catch(() => undefined);
 }
 
-function kickLocal(): void {
-  void import('./ops-worker')
-    .then(({ runDgEventsOpsWorker }) => runDgEventsOpsWorker({ maxMs: DRAIN_LIMIT_MS }))
-    .catch(() => undefined);
-}
-
 /**
- * Deliver domain-event notifications in this request, then also POST the existing
- * worker so a separate invocation can finish the batch. The daily ops worker remains
- * the recovery path. Concurrent drains are safe (SKIP LOCKED).
+ * After a domain event is written, POST the internal worker once (non-blocking).
+ * The daily ops worker remains the recovery path. Concurrent drains are safe (SKIP LOCKED).
  */
 export function scheduleDgEventDrain(): void {
   if (scheduled) return;
@@ -42,7 +33,6 @@ export function scheduleDgEventDrain(): void {
   scheduled = true;
   const run = () => {
     scheduled = false;
-    kickLocal();
     kickRemote();
   };
   try {

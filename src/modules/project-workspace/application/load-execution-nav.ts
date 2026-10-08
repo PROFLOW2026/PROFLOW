@@ -32,13 +32,11 @@ export async function loadProjectExecutionNav(
     return { showGroup: false, links: [] };
   }
 
-  const fallbackContractorAgreementId = agreements[0]?.id ?? null;
   const links = selectExecutionNavLinks({
     projectId,
     capabilities,
     deliveryProfile,
     hasSubcontractAgreements,
-    fallbackContractorAgreementId,
     surfaceRoot: options?.surfaceRoot,
   });
 

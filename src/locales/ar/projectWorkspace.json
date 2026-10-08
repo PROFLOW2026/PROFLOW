@@ -23,6 +23,20 @@
     "emptyDescription": "أنشئ أو فعّل اتفاقية مقاول لعرضها هنا.",
     "unknownVendor": "مورد",
     "committed": "القيمة الملتزم بها",
+    "createHint": "لإضافة اتفاقية مقاول — استخدم زر + العام واختر «اتفاقية مقاول».",
+    "countSummary": "{count, plural, one {اتفاقية مقاول #} other {# اتفاقيات مقاول}}",
+    "managePortalAccess": "وصول بوابة المقاولين (كلمات المرور والصلاحيات)",
+    "portalUsername": "اسم مستخدم البوابة",
+    "portalUsernameMissing": "غير محدد",
+    "portalAccess": "الوصول",
+    "portalNone": "لا يوجد حساب بوابة مرتبط بعد.",
+    "open360": "بطاقة المقاول 360",
+    "manageAccessForContractor": "وصول البوابة",
+    "portalStatus": {
+      "active": "نشط",
+      "revoked": "ملغى",
+      "expired": "منتهٍ"
+    },
     "overview": {
       "description": "العقد والجدول والمطالبات والمستندات والجودة لهذه الاتفاقية.",
       "jumpLabel": "أقسام بطاقة المقاول",

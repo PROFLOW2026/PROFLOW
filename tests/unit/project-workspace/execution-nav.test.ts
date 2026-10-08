@@ -39,7 +39,6 @@ describe('execution nav (Track S)', () => {
       capabilities: held,
       deliveryProfile: developerProfile,
       hasSubcontractAgreements: true,
-      fallbackContractorAgreementId: 'ag1',
     });
 
     const keys = links.map((link) => link.key);
@@ -53,6 +52,17 @@ describe('execution nav (Track S)', () => {
 
     const contractors = links.find((link) => link.key === 'contractors');
     expect(contractors?.href).toBe('/projects/p1/contractors');
+  });
+
+  it('never deep-links contractors to a single agreement when the list page is missing', () => {
+    const held = new Set([C.CONTRACTOR_VIEW]);
+    const links = selectExecutionNavLinks({
+      projectId: 'p1',
+      capabilities: held,
+      deliveryProfile: developerProfile,
+      hasSubcontractAgreements: true,
+    });
+    expect(links.some((link) => link.key === 'contractors' && link.href.includes('/changes'))).toBe(false);
   });
 
   it('reports missing page routes for release notes', () => {

@@ -18,8 +18,6 @@ export interface ExecutionNavInput {
   readonly capabilities: ReadonlySet<ProjectCapability>;
   readonly deliveryProfile: DeliveryProfile | null;
   readonly hasSubcontractAgreements: boolean;
-  /** When the contractors list route is missing, link the first agreement changes shell if any. */
-  readonly fallbackContractorAgreementId?: string | null;
   /**
    * Project root for hrefs. Defaults to `/projects/{projectId}`.
    * Employee app passes `/employee/projects/{projectId}` and only links routes that have an employee page.
@@ -47,16 +45,10 @@ function routeIsMounted(route: ExecutionRouteDefinition, surfaceRoot: string | u
 function resolveHref(
   projectId: string,
   route: ExecutionRouteDefinition,
-  fallbackContractorAgreementId: string | null | undefined,
   surfaceRoot: string | undefined,
 ): string | null {
   const root = surfaceRoot ?? `/projects/${projectId}`;
-  if (!routeIsMounted(route, surfaceRoot)) {
-    if (!surfaceRoot && route.key === 'contractors' && fallbackContractorAgreementId) {
-      return `/projects/${projectId}/contractors/${fallbackContractorAgreementId}/changes`;
-    }
-    return null;
-  }
+  if (!routeIsMounted(route, surfaceRoot)) return null;
   return `${root}/${route.path}`;
 }
 
@@ -81,7 +73,7 @@ export function selectExecutionNavLinks(input: ExecutionNavInput): ExecutionNavL
     if (!route) continue;
     if (!capabilityAllowed(input.capabilities, route.required, route.mode ?? 'all')) continue;
 
-    const href = resolveHref(input.projectId, route, input.fallbackContractorAgreementId, input.surfaceRoot);
+    const href = resolveHref(input.projectId, route, input.surfaceRoot);
     if (!href) continue;
 
     links.push({ key, href });

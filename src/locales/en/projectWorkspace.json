@@ -23,6 +23,20 @@
     "emptyDescription": "Create or activate a subcontract agreement to see it here.",
     "unknownVendor": "Vendor",
     "committed": "Committed value",
+    "createHint": "Use the global + button and choose “Contractor agreement” to add a subcontract on this project.",
+    "countSummary": "{count, plural, one {# subcontractor agreement} other {# subcontractor agreements}}",
+    "managePortalAccess": "Contractor portal access (passwords and grants)",
+    "portalUsername": "Portal username",
+    "portalUsernameMissing": "Not set",
+    "portalAccess": "Access",
+    "portalNone": "No contractor portal account linked yet.",
+    "open360": "Contractor 360",
+    "manageAccessForContractor": "Portal access",
+    "portalStatus": {
+      "active": "Active",
+      "revoked": "Revoked",
+      "expired": "Expired"
+    },
     "overview": {
       "description": "Contract, schedule, claims, documents, and quality for this agreement.",
       "jumpLabel": "Contractor card sections",

@@ -46,6 +46,7 @@ export {
   getAgreementWorkspace,
   listRevisedWorkLines,
   loadAgreementValuePosition,
+  loadAgreementValuePositionsBatch,
   type AgreementWorkspace,
   type RevisedWorkLine,
 } from './application/read-models';

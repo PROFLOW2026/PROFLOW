@@ -1,9 +1,11 @@
+import { and, eq, inArray, isNull } from 'drizzle-orm';
+import { subcontractAgreements, subcontractValueEvents } from '@drizzle/schema';
 import type { OrgContext } from '@/shared/auth/context';
 import type { DbExecutor } from '@/shared/db/types';
 import { money, toNumericString } from '@/shared/money';
 import {
   findAgreementFinancial,
-  listAgreementValueEvents,
+  listAgreementFinancialForIds,
   listProjectWorkPackageOptions,
 } from '../data/agreements.repository';
 import {
@@ -32,13 +34,73 @@ export async function loadAgreementValuePosition(
   organizationId: string,
   agreementId: string,
 ): Promise<(ApprovedContractValue & { readonly currency: string }) | null> {
-  const financial = await findAgreementFinancial(db, organizationId, agreementId);
-  if (!financial) return null;
-  const events = await listAgreementValueEvents(db, organizationId, agreementId);
-  return {
-    currency: financial.currency,
-    ...approvedContractValue({ currency: financial.currency, draftOriginalAmount: financial.originalAmount, events }),
-  };
+  const batch = await loadAgreementValuePositionsBatch(db, organizationId, [agreementId]);
+  return batch.get(agreementId) ?? null;
+}
+
+/** Batched financial position for project contractor lists (2 queries + in-memory fold). */
+export async function loadAgreementValuePositionsBatch(
+  db: DbExecutor,
+  organizationId: string,
+  agreementIds: readonly string[],
+): Promise<Map<string, ApprovedContractValue & { readonly currency: string }>> {
+  const ids = [...new Set(agreementIds)].filter(Boolean);
+  const result = new Map<string, ApprovedContractValue & { readonly currency: string }>();
+  if (ids.length === 0) return result;
+
+  const financialById = await listAgreementFinancialForIds(db, organizationId, ids);
+  const visibleIds = ids.filter((id) => financialById.has(id));
+  if (visibleIds.length === 0) return result;
+
+  const eventRows = await db
+    .select({
+      subcontractId: subcontractValueEvents.subcontractId,
+      id: subcontractValueEvents.id,
+      kind: subcontractValueEvents.kind,
+      amount: subcontractValueEvents.amount,
+      currency: subcontractValueEvents.currency,
+      effectiveDate: subcontractValueEvents.effectiveDate,
+      reason: subcontractValueEvents.reason,
+      createdAt: subcontractValueEvents.createdAt,
+    })
+    .from(subcontractValueEvents)
+    .innerJoin(
+      subcontractAgreements,
+      and(
+        eq(subcontractAgreements.id, subcontractValueEvents.subcontractId),
+        eq(subcontractAgreements.organizationId, organizationId),
+        isNull(subcontractAgreements.archivedAt),
+      ),
+    )
+    .where(
+      and(
+        eq(subcontractValueEvents.organizationId, organizationId),
+        inArray(subcontractValueEvents.subcontractId, visibleIds),
+      ),
+    )
+    .orderBy(subcontractValueEvents.createdAt);
+
+  const eventsByAgreement = new Map<string, typeof eventRows>();
+  for (const row of eventRows) {
+    const list = eventsByAgreement.get(row.subcontractId) ?? [];
+    list.push(row);
+    eventsByAgreement.set(row.subcontractId, list);
+  }
+
+  for (const agreementId of ids) {
+    const financial = financialById.get(agreementId);
+    if (!financial) continue;
+    const events = eventsByAgreement.get(agreementId) ?? [];
+    result.set(agreementId, {
+      currency: financial.currency,
+      ...approvedContractValue({
+        currency: financial.currency,
+        draftOriginalAmount: financial.originalAmount,
+        events,
+      }),
+    });
+  }
+  return result;
 }
 
 export interface RevisedWorkLine extends WorkLineOperationalView {

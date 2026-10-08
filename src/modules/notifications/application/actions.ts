@@ -4,7 +4,8 @@ import { revalidatePath } from 'next/cache';
 import { getTranslations } from 'next-intl/server';
 import { withOrgContext } from '@/shared/auth/session';
 import { localizeNotificationInbox } from './localize-notifications';
-import { listMergedNotificationInbox, isActionableNotificationId } from './actionable-inbox';
+import { isActionableNotificationId } from './actionable-inbox';
+import { listNotifications } from './list';
 import { markNotificationRead } from './mark-read';
 import { markAllNotificationsRead } from './mark-all-read';
 import { runNotificationScan } from './scan-conditions';
@@ -18,7 +19,7 @@ export type { NotificationListItemDto } from './serialize';
 export async function listNotificationsAction(): Promise<NotificationInboxDto> {
   const t = await getTranslations('notifications');
   return withOrgContext(async (context) =>
-    toNotificationInboxDto(localizeNotificationInbox(await listMergedNotificationInbox(context), t)),
+    toNotificationInboxDto(localizeNotificationInbox(await listNotifications(context), t)),
   );
 }
 
@@ -30,7 +31,7 @@ export async function markNotificationReadAction(notificationId: string): Promis
     revalidatePath('/notifications');
     const t = await getTranslations('notifications');
     return toNotificationInboxDto(
-      localizeNotificationInbox(await listMergedNotificationInbox(context), t),
+      localizeNotificationInbox(await listNotifications(context), t),
     );
   });
 }
@@ -41,7 +42,7 @@ export async function markAllNotificationsReadAction(): Promise<NotificationInbo
     await markAllNotificationsRead(context);
     revalidatePath('/notifications');
     return toNotificationInboxDto(
-      localizeNotificationInbox(await listMergedNotificationInbox(context), t),
+      localizeNotificationInbox(await listNotifications(context), t),
     );
   });
 }
@@ -57,7 +58,7 @@ export async function runNotificationScanAction(): Promise<{
     return {
       scan,
       inbox: toNotificationInboxDto(
-        localizeNotificationInbox(await listMergedNotificationInbox(context), t),
+        localizeNotificationInbox(await listNotifications(context), t),
       ),
     };
   });

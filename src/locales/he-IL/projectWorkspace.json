@@ -23,6 +23,20 @@
     "emptyDescription": "צור או הפעל הסכם קבלן כדי לראות אותו כאן.",
     "unknownVendor": "ספק",
     "committed": "ערך מחויב",
+    "createHint": "להוספת הסכם קבלן בפרויקט — השתמשו בכפתור + הגלובלי ובחרו «הסכם קבלן».",
+    "countSummary": "{count, plural, one {הסכם קבלן #} two {# הסכמי קבלן} many {# הסכמי קבלן} other {# הסכמי קבלן}}",
+    "managePortalAccess": "גישת פורטל קבלנים (סיסמאות והרשאות)",
+    "portalUsername": "שם משתמש בפורטל",
+    "portalUsernameMissing": "לא הוגדר",
+    "portalAccess": "גישה",
+    "portalNone": "עדיין לא קושר חשבון פורטל לקבלן זה.",
+    "open360": "כרטיס קבלן 360",
+    "manageAccessForContractor": "גישת פורטל",
+    "portalStatus": {
+      "active": "פעיל",
+      "revoked": "בוטל",
+      "expired": "פג תוקף"
+    },
     "overview": {
       "description": "חוזה, לוח, חשבונות, מסמכים ואיכות של הסכם זה.",
       "jumpLabel": "מקטעי כרטיס הקבלן",

@@ -51,6 +51,7 @@ export {
 } from './application/auth-port';
 export {
   getContractorAccessOverview,
+  listProjectContractorGrantsForProject,
   grantContractorAccess,
   inviteContractor,
   issueContractorPasswordReset,

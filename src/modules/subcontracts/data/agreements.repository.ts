@@ -217,6 +217,62 @@ export async function findAgreementFinancial(
   return row ?? null;
 }
 
+/** FINANCIAL batch read for project contractor lists (same visibility as {@link findAgreementFinancial}). */
+export async function listAgreementFinancialForIds(
+  db: DbExecutor,
+  organizationId: string,
+  agreementIds: readonly string[],
+): Promise<Map<string, AgreementFinancialRow>> {
+  const ids = [...new Set(agreementIds)].filter(Boolean);
+  const result = new Map<string, AgreementFinancialRow>();
+  if (ids.length === 0) return result;
+
+  const rows = await db
+    .select({
+      agreementId: subcontractAgreementMoneySecure.id,
+      currency: subcontractAgreementMoneySecure.currency,
+      originalAmount: subcontractAgreementMoneySecure.originalAmount,
+      retentionPercent: subcontractAgreementMoneySecure.retentionPercent,
+      retentionCapPercent: subcontractAgreementFinancialTerms.retentionCapPercent,
+      retentionCapAmount: subcontractAgreementFinancialTerms.retentionCapAmount,
+      advancePercent: subcontractAgreementFinancialTerms.advancePercent,
+      advanceAmount: subcontractAgreementFinancialTerms.advanceAmount,
+      advanceRecoveryMethod: subcontractAgreementFinancialTerms.advanceRecoveryMethod,
+      advanceRecoveryPercent: subcontractAgreementFinancialTerms.advanceRecoveryPercent,
+      vatTreatment: subcontractAgreementFinancialTerms.vatTreatment,
+      paymentTermsDays: subcontractAgreementFinancialTerms.paymentTermsDays,
+      paymentTermsText: subcontractAgreementFinancialTerms.paymentTermsText,
+    })
+    .from(subcontractAgreementMoneySecure)
+    .innerJoin(
+      subcontractAgreements,
+      and(
+        eq(subcontractAgreements.id, subcontractAgreementMoneySecure.id),
+        eq(subcontractAgreements.organizationId, organizationId),
+        isNull(subcontractAgreements.archivedAt),
+      ),
+    )
+    .leftJoin(
+      subcontractAgreementFinancialTerms,
+      and(
+        eq(subcontractAgreementFinancialTerms.agreementId, subcontractAgreementMoneySecure.id),
+        eq(subcontractAgreementFinancialTerms.organizationId, organizationId),
+      ),
+    )
+    .where(
+      and(
+        eq(subcontractAgreementMoneySecure.organizationId, organizationId),
+        inArray(subcontractAgreementMoneySecure.id, ids),
+      ),
+    );
+
+  for (const row of rows) {
+    const { agreementId, ...financial } = row;
+    result.set(agreementId, financial);
+  }
+  return result;
+}
+
 /** FINANCIAL. */
 export async function listAgreementValueEvents(db: DbExecutor, organizationId: string, agreementId: string) {
   return db
