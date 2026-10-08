@@ -14,3 +14,7 @@ type LiteSchema = Record<string, unknown>;
 export type DbExecutor =
   | PgDatabase<PgQueryResultHKT, LiteSchema, LiteRelationalConfig>
   | PgTransaction<PgQueryResultHKT, LiteSchema, LiteRelationalConfig>;
+
+/** Test harness aliases — same lite executor, no relational schema graph. */
+export type Database = DbExecutor;
+export type Transaction = DbExecutor;
