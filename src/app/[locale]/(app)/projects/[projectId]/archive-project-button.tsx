@@ -5,7 +5,7 @@ import { useTransition } from 'react';
 import { Button } from '@/components/ui/button';
 import { isProjectSoftArchived } from '@/modules/projects/domain/soft-archive';
 import type { ProjectStatus } from '@/modules/projects/domain/types';
-import { archiveProjectAction, restoreProjectAction } from '../actions';
+import { archiveProjectAction, restoreProjectAction } from '../archive-project-actions';
 
 interface ArchiveProjectButtonProps {
   projectId: string;

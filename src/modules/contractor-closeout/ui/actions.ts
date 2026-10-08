@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { ensureAgreementCloseout, reportWarrantyIssue } from '@/modules/contractor-closeout';
+import { ensureAgreementCloseout, reportWarrantyIssue } from '../application/closeout';
 import { withOrgContext } from '@/shared/auth/session';
 
 function revalidateHandover(projectId: string) {

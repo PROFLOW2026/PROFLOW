@@ -101,11 +101,8 @@ export {
   type ProjectRecommendationState,
   type RecommendationTitleResolver,
 } from './application/recommendations';
-export {
-  findProjectDeliveryProfile,
-  getProjectStructure,
-  type ProjectStructureView,
-} from './application/structure';
+export { findProjectDeliveryProfile } from './application/read-delivery-profile';
+export { getProjectStructure, type ProjectStructureView } from './application/structure';
 export {
   DELIVERY_CREATE_FIELD,
   parseDeliveryCreateFormData,

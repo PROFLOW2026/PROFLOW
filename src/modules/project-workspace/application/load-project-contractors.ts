@@ -1,7 +1,8 @@
 import 'server-only';
 
 import { listProjectContractorGrantsForProject } from '@/modules/contractor-access';
-import { PROJECT_CAPABILITIES as C, loadProjectCapabilities } from '@/modules/project-team';
+import { loadProjectCapabilities } from '@/modules/project-team/application/capability-guard';
+import { PROJECT_CAPABILITIES as C } from '@/modules/project-team/domain/capabilities';
 import { listProjectAgreementsOperational, loadAgreementValuePositionsBatch } from '@/modules/subcontracts';
 import type { AgreementOperationalView } from '@/modules/subcontracts/domain/types';
 import type { OrgContext } from '@/shared/auth/context';

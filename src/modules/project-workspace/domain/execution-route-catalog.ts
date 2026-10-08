@@ -1,4 +1,4 @@
-import { PROJECT_CAPABILITIES, type ProjectCapability } from '@/modules/project-team';
+import { PROJECT_CAPABILITIES, type ProjectCapability } from '@/modules/project-team/domain/capabilities';
 
 /** Stable keys for the Execution / ביצוע nav (Track S). */
 export type ExecutionNavLinkKey =

@@ -7,10 +7,11 @@ import {
   assembleProjectDetailChrome,
   type ProjectDetailChrome,
 } from '@/modules/projects/application/get-project-detail';
-import { mapProjectRow, mapContractRow } from '@/modules/projects';
+import { mapContractRow } from '../data/contracts.repository';
+import { mapProjectRow } from '../data/projects.repository';
 import type { ContractValueEventRecord } from '@/modules/projects/domain/types';
 import { assertCanAccessProject } from '@/modules/projects/application/project-access';
-import { loadProjectCommercialBundle } from '@/modules/financials';
+import { loadProjectCommercialBundle } from '@/modules/financials/application/load-commercial-bundle';
 import type { OrgContext } from '@/shared/auth/context';
 import { NotFoundError } from '@/shared/errors';
 import { assertPermission, assertSameOrganization, hasPermission } from '@/shared/permissions/assert';

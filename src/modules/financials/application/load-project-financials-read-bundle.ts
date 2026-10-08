@@ -24,7 +24,7 @@ import {
 import {
   hasWorkforceLaborData,
   mergeResidualTimeAndMonthlyAllocatedLabor,
-} from '@/modules/workforce';
+} from '@/modules/workforce/domain/labor-recognition';
 import { areEmployeeMonthCostsAvailable } from '@/modules/workforce/domain/monthly-cost-gates';
 import { previewCurrentMonthAllocatedLaborForProject } from '@/modules/workforce/application/preview-project-monthly-labor-allocation';
 import type { ProjectCommercialData } from '../data/commercial.repository';
@@ -44,7 +44,7 @@ import {
   loadFinancialsProcurementBundle,
   loadFinancialsProjectSetupBundle,
 } from '../data/financials-read-bundle.repository';
-import { seedApOrgReadFactsCache } from '@/modules/ap';
+import { seedApOrgReadFactsCache } from '@/modules/ap/application/seed-ap-read-facts-cache';
 import {
   loadCachedMonthCloseEconomicByProject,
   loadCachedMonthCloseEconomicForProject,

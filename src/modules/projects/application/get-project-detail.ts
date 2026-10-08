@@ -4,7 +4,7 @@ import { assertPermission, assertSameOrganization } from '@/shared/permissions/a
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
 import { NotFoundError } from '@/shared/errors';
-import { loadDisplayContactForProject } from '@/modules/clients';
+import { loadDisplayContactForProject } from '@/modules/clients/application/list-clients';
 import {
   computeHeaderCurrentContractValue,
   isOriginalContractAmountLocked,
@@ -33,6 +33,8 @@ import {
   listWorkPackagesByProject,
 } from '../data/work-packages.repository';
 import { type MoneyValue } from '@/shared/money';
+
+export { findProjectById };
 
 export interface ProjectClientContactSummary {
   readonly id: string;

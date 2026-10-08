@@ -2,7 +2,7 @@ import type { OrgContext } from '@/shared/auth/context';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS, type PermissionKey } from '@/shared/permissions/catalog';
 import type { DocumentCategory } from '@/modules/documents/domain/categories';
-import { listOrgMemberDocumentCategoryGrants } from '@/modules/employee-app';
+import { listOrgMemberDocumentCategoryGrants } from '../data/org-member-grants.repository';
 import { isEmployeeAppUser, loadEmployeeAppContextForUser } from './load-employee-app-context';
 
 /** Baseline always available to active Employee App users (attendance self). */

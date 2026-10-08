@@ -18,19 +18,17 @@ import {
   runInOrgRequestTxFrame,
   type OrgRequestTxFrame,
 } from '@/shared/auth/org-request-tx';
+import { setActiveOrganizationPreference } from '@/modules/identity/application/ensure-profile';
+import { getModuleVisibility } from '@/modules/tenancy/application/read-module-visibility';
+import { loadShellOrgSettings } from '@/modules/tenancy/application/shell-org-settings';
+import { getBusinessProfile } from '@/modules/tenancy/domain/business-profiles';
+import { dashboardCardsForPersona } from '@/modules/tenancy/domain/experience-dashboard';
+import { applyComplexityToVisibility } from '@/modules/tenancy/domain/experience-complexity';
 import {
-  setActiveOrganizationPreference,
-} from '@/modules/identity';
-import {
-  applyComplexityToVisibility,
-  dashboardCardsForPersona,
-  getBusinessProfile,
-  getModuleVisibility,
-  loadShellOrgSettings,
   personaForBusinessProfile,
   resolveExperienceRoleSurface,
-  type ModuleVisibility,
-} from '@/modules/tenancy';
+} from '@/modules/tenancy/domain/experience-persona';
+import type { ModuleVisibility } from '@/modules/tenancy/domain/types';
 import { getShellOrgLogoUrl } from '@/modules/branding';
 import {
   canUseExperiencePreview,

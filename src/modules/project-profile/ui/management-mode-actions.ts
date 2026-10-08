@@ -1,12 +1,9 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import {
-  findProjectDeliveryProfile,
-  isManagementMode,
-  operatingRolesForMode,
-  updateDeliveryProfile,
-} from '@/modules/project-profile';
+import { findProjectDeliveryProfile } from '../application/read-delivery-profile';
+import { updateDeliveryProfile } from '../application/profile';
+import { isManagementMode, operatingRolesForMode } from '../domain/management-mode';
 import { withOrgContext } from '@/shared/auth/session';
 
 export async function saveProjectManagementModeAction(formData: FormData): Promise<void> {

@@ -11,14 +11,9 @@ import type {
   CloseoutEventRecord,
   CloseoutFinancialSnapshot,
   CloseoutRecord,
-  CloseoutStatus,
   ReadinessItem,
 } from '../domain/types';
-import {
-  findCloseoutByProject,
-  listCloseoutEvents,
-  listCloseoutStatusesByProjectIds,
-} from '../data/closeout.repository';
+import { findCloseoutByProject, listCloseoutEvents } from '../data/closeout.repository';
 
 export interface CloseoutWorkspace {
   readonly projectId: string;
@@ -101,18 +96,4 @@ export async function getCloseoutWorkspace(
   };
 }
 
-export async function listCloseoutStatusesForProjects(
-  context: OrgContext,
-  projectIds: readonly string[],
-): Promise<readonly { readonly projectId: string; readonly status: CloseoutStatus }[]> {
-  assertPermission(context, PERMISSIONS.PROJECTS_READ);
-  try {
-    return await listCloseoutStatusesByProjectIds(
-      context.db,
-      context.organizationId,
-      projectIds,
-    );
-  } catch {
-    return [];
-  }
-}
+export { listCloseoutStatusesForProjects } from './list-closeout-statuses';

@@ -1,9 +1,9 @@
-import { ExecutionHubScreen } from '@/modules/project-workspace/ui/execution-hub-screen';
+import { ExecutionHubLinks } from '@/modules/project-workspace/ui/execution-hub-links';
 
 export default function ExecutionPlanningPage({
   params,
 }: {
   params: Promise<{ projectId: string }>;
 }) {
-  return <ExecutionHubScreen hub="planning" params={params} />;
+  return <ExecutionHubLinks hub="planning" params={params} />;
 }

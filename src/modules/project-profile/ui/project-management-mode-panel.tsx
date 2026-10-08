@@ -1,9 +1,10 @@
 import { getTranslations } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { loadStructurePermissions } from '@/modules/project-profile/application/authorize';
-import { findProjectDeliveryProfile } from '@/modules/project-profile/application/structure';
+import { findProjectDeliveryProfile } from '@/modules/project-profile/application/read-delivery-profile';
 import { MANAGEMENT_MODES, resolveManagementMode } from '@/modules/project-profile/domain/management-mode';
+import { loadProjectCapabilities } from '@/modules/project-team/application/capability-guard';
+import { PROJECT_CAPABILITIES } from '@/modules/project-team/domain/capabilities';
 import { withOrgContext } from '@/shared/auth/session';
 import { saveProjectManagementModeAction } from './management-mode-actions';
 
@@ -11,11 +12,14 @@ import { saveProjectManagementModeAction } from './management-mode-actions';
 export async function ProjectManagementModePanel({ projectId }: { readonly projectId: string }) {
   const t = await getTranslations('projects');
   const view = await withOrgContext(async (context) => {
-    const [profile, permissions] = await Promise.all([
+    const [profile, held] = await Promise.all([
       findProjectDeliveryProfile(context, projectId),
-      loadStructurePermissions(context, projectId),
+      loadProjectCapabilities(context, projectId),
     ]);
-    return { mode: resolveManagementMode(profile), canEdit: permissions.canManageSettings };
+    return {
+      mode: resolveManagementMode(profile),
+      canEdit: held.has(PROJECT_CAPABILITIES.PROJECT_SETTINGS_MANAGE),
+    };
   });
 
   return (

@@ -8,7 +8,6 @@ import {
   applyOrgProjectTemplate,
   applyOrgWorkPackagePack,
   applyStructureProjectTemplate,
-  archiveProject,
   cloneProjectStructure,
   createMilestone,
   createPhase,
@@ -16,7 +15,6 @@ import {
   DATE_ORDER_MESSAGE,
   launchProject,
   previewProjectStructureSnapshot,
-  restoreProject,
   splitProjectIntoWorkPackages,
   updateMilestone,
   updatePhase,
@@ -212,43 +210,6 @@ export async function updateProjectAction(
         },
       };
     }
-    if (error instanceof AppError) return { error: tErrors('unexpected') };
-    throw error;
-  }
-}
-
-export async function archiveProjectAction(projectId: string): Promise<{ error?: string }> {
-  const tErrors = await getTranslations('errors');
-  const locale = await getLocale();
-
-  try {
-    await withOrgContext(async (context) => {
-      await archiveProject(context, { projectId });
-    });
-    revalidatePath('/projects');
-    revalidatePath('/jobs');
-    redirect({ href: '/projects', locale });
-  } catch (error) {
-    if (error instanceof AppError) return { error: tErrors('unexpected') };
-    throw error;
-  }
-
-  return {};
-}
-
-export async function restoreProjectAction(projectId: string): Promise<{ error?: string }> {
-  const tErrors = await getTranslations('errors');
-
-  try {
-    await withOrgContext(async (context) => {
-      await restoreProject(context, { projectId });
-    });
-    revalidatePath('/projects');
-    revalidatePath('/jobs');
-    revalidatePath(`/projects/${projectId}`);
-    revalidatePath(`/jobs/${projectId}`);
-    return {};
-  } catch (error) {
     if (error instanceof AppError) return { error: tErrors('unexpected') };
     throw error;
   }

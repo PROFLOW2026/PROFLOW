@@ -1,4 +1,4 @@
-import { ExecutionHubScreen } from '@/modules/project-workspace/ui/execution-hub-screen';
+import { ContractsExecutionHub } from '@/modules/project-workspace/ui/contracts-execution-hub';
 
 export default async function EmployeeExecutionContractsPage({
   params,
@@ -7,8 +7,7 @@ export default async function EmployeeExecutionContractsPage({
 }) {
   const { projectId } = await params;
   return (
-    <ExecutionHubScreen
-      hub="contracts"
+    <ContractsExecutionHub
       params={Promise.resolve({ projectId })}
       surfaceRoot={`/employee/projects/${projectId}`}
     />

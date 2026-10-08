@@ -2,15 +2,13 @@ import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
+import { findOriginalValueEvent } from '@/modules/projects/domain/contract-value';
 import {
-  findOriginalValueEvent,
   hasStoredOpeningReduction,
   resolveDisplayOriginalNet,
-} from '@/modules/projects';
-import {
-  resolveProjectExperienceProfile,
-  titleWithDocumentNumber,
-} from '@/modules/tenancy';
+} from '@/modules/projects/domain/entry-baseline';
+import { titleWithDocumentNumber } from '@/modules/tenancy/domain/document-numbers';
+import { resolveProjectExperienceProfile } from '@/modules/tenancy/domain/project-profiles';
 import { loadProjectDetail, loadProjectCloseoutStatus } from './load-project-detail';
 import { getShellContext } from '@/shared/auth/session';
 import { fromNumericString } from '@/shared/money';
@@ -34,7 +32,7 @@ import { withOrgContext } from '@/shared/auth/session';
 import { ProjectExecutionNav } from '@/modules/project-workspace/ui/project-execution-nav';
 import { ProjectTabsShell } from './project-tabs-shell';
 import { TabPanelSkeleton } from './tab-panel-skeleton';
-import { ProjectReportActions } from '@/modules/reports/ui';
+import { ProjectReportActions } from '@/modules/reports/ui/project-report-actions';
 import { ProjectUwmLinks } from './project-uwm-links';
 import {
   Project360Summary,

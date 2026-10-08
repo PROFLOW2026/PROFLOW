@@ -1,9 +1,9 @@
-import { ExecutionHubScreen } from '@/modules/project-workspace/ui/execution-hub-screen';
+import { ContractsExecutionHub } from '@/modules/project-workspace/ui/contracts-execution-hub';
 
 export default function ExecutionContractsPage({
   params,
 }: {
   params: Promise<{ projectId: string }>;
 }) {
-  return <ExecutionHubScreen hub="contracts" params={params} />;
+  return <ContractsExecutionHub params={params} />;
 }

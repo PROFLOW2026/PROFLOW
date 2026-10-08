@@ -63,12 +63,4 @@ export async function getProjectStructure(context: OrgContext, projectId: string
   };
 }
 
-/** Cheap profile read for navigation decisions (Track S "Execution" group). Null = standard / no access. */
-export async function findProjectDeliveryProfile(
-  context: OrgContext,
-  projectId: string,
-): Promise<DeliveryProfile | null> {
-  const permissions = await loadStructurePermissions(context, projectId);
-  if (!permissions.canView) return null;
-  return findDeliveryProfile(context.db, context.organizationId, projectId);
-}
+export { findProjectDeliveryProfile } from './read-delivery-profile';

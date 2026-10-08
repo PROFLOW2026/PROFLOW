@@ -1,4 +1,4 @@
-import { ExecutionHubScreen } from '@/modules/project-workspace/ui/execution-hub-screen';
+import { ExecutionHubLinks } from '@/modules/project-workspace/ui/execution-hub-links';
 
 export default async function EmployeeExecutionQualityPage({
   params,
@@ -7,7 +7,7 @@ export default async function EmployeeExecutionQualityPage({
 }) {
   const { projectId } = await params;
   return (
-    <ExecutionHubScreen
+    <ExecutionHubLinks
       hub="quality"
       params={Promise.resolve({ projectId })}
       surfaceRoot={`/employee/projects/${projectId}`}

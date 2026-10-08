@@ -11,9 +11,10 @@ import {
   requireExternalScope,
   type ExternalContext,
 } from '@/shared/external';
-import { recordExternalAudit } from '@/modules/contractor-compliance';
-import { findAgreementScope } from '@/modules/contractor-compliance';
-import { PROJECT_CAPABILITIES as C, assertProjectCapability, hasProjectCapability } from '@/modules/project-team';
+import { findAgreementScope } from '@/modules/contractor-compliance/application/agreement-scope';
+import { recordExternalAudit } from '@/modules/contractor-compliance/application/external-audit';
+import { assertProjectCapability, hasProjectCapability } from '@/modules/project-team/application/capability-guard';
+import { PROJECT_CAPABILITIES as C } from '@/modules/project-team/domain/capabilities';
 import { assertCloseoutCompleteness, DEFAULT_CLOSEOUT_CHECKLIST } from '../domain/checklist';
 import {
   findCloseoutForAgreement,

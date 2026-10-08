@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { findProjectDeliveryProfile } from '@/modules/project-profile/application/structure';
+import { findProjectDeliveryProfile } from '@/modules/project-profile/application/read-delivery-profile';
 import { loadProjectCapabilities } from '@/modules/project-team/application/capability-guard';
 import type { OrgContext } from '@/shared/auth/context';
 import { selectExecutionHubs, type ExecutionHubLink } from '../domain/execution-hubs';

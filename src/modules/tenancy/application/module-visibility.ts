@@ -4,11 +4,7 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
 import type { DbExecutor } from '@/shared/db/types';
 import { ValidationError } from '@/shared/errors';
-import {
-  listModulePreferences,
-  markModuleUsed,
-  setModulePreference,
-} from '../data/organizations.repository';
+import { markModuleUsed, setModulePreference } from '../data/organizations.repository';
 import { upsertOrganizationSettingValue, getOrganizationSettingValue } from '../data/organization-settings.repository';
 import {
   CAPABILITY_MODE_SETTING_KEY,
@@ -17,12 +13,7 @@ import {
   type CapabilityCustomizationMode,
 } from '../domain/capability-overrides';
 import { requiredFoundationsFor } from '../domain/capability-registry';
-import {
-  CUSTOMER_FEATURE_MODULE_KEYS,
-  resolveModuleVisibility,
-  type ModuleVisibility,
-  type OptionalModuleKey,
-} from '../domain/types';
+import { CUSTOMER_FEATURE_MODULE_KEYS, type OptionalModuleKey } from '../domain/types';
 import { getBusinessProfileKeyForOrg } from './apply-business-profile';
 
 /**
@@ -36,10 +27,7 @@ import { getBusinessProfileKeyForOrg } from './apply-business-profile';
 export type { ModuleVisibility } from '../domain/types';
 export { resolveModuleVisibility } from '../domain/types';
 
-export async function getModuleVisibility(context: OrgContext): Promise<ModuleVisibility> {
-  const preferences = await listModulePreferences(context.db, context.organizationId);
-  return resolveModuleVisibility(preferences);
-}
+export { getModuleVisibility } from './read-module-visibility';
 
 /** Soft read for shell — missing mode returns null (no forced profile overlay). */
 export async function getCapabilityCustomizationModeForOrg(

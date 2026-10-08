@@ -1,6 +1,6 @@
 'use server';
 
-import { findProjectDeliveryProfile } from '@/modules/project-profile/application/structure';
+import { findProjectDeliveryProfile } from '@/modules/project-profile/application/read-delivery-profile';
 import { loadProjectCapabilities } from '@/modules/project-team/application/capability-guard';
 import { shouldShowExecutionNavGroup } from '@/modules/project-workspace/domain/select-execution-nav-links';
 import { withOrgContext } from '@/shared/auth/session';

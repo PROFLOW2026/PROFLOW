@@ -3,7 +3,7 @@ import { unstable_cache } from 'next/cache';
 import type { OrgAuthzSnapshot } from '@/shared/auth/org-authz-memo';
 import type { PermissionKey } from '@/shared/permissions/catalog';
 import { withUserContext } from '@/shared/db/client';
-import { resolveOrgContext } from '@/modules/tenancy';
+import { resolveOrgContext } from '@/modules/tenancy/application/resolve-org-context';
 import { toOrgAuthzSnapshot } from '@/shared/auth/org-authz-memo';
 
 /** Serializable authz snapshot for cross-request cache (never includes `db`). */

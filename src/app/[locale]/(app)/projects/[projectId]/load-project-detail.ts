@@ -1,5 +1,5 @@
 import { cache } from 'react';
-import { listCloseoutStatusesForProjects } from '@/modules/closeout';
+import { listCloseoutStatusesForProjects } from '@/modules/closeout/application/list-closeout-statuses';
 import {
   assembleProjectDetail,
   countProjectActiveWorkPackages,
@@ -7,8 +7,8 @@ import {
   getProjectDetailChrome,
   getProjectDetailStructure,
   type ProjectDetail,
-} from '@/modules/projects';
-import { getBusinessProfileKeyForOrg } from '@/modules/tenancy';
+} from '@/modules/projects/application/get-project-detail';
+import { getBusinessProfileKeyForOrg } from '@/modules/tenancy/application/read-business-profile-key';
 import { withOrgContext } from '@/shared/auth/session';
 import type { OrgContext } from '@/shared/auth/context';
 

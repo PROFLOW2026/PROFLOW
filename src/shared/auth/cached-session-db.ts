@@ -5,8 +5,8 @@ import { withUserContext } from '@/shared/db/client';
 import {
   ensureProfile,
   getActiveOrganizationPreference,
-} from '@/modules/identity';
-import { listMembershipsForUser } from '@/modules/tenancy';
+} from '@/modules/identity/application/ensure-profile';
+import { listMembershipsForUser } from '@/modules/tenancy/application/user-memberships';
 import { localeFromAuthMetadata } from '@/shared/i18n/auth-locale';
 
 export type SessionDbSnapshot = {

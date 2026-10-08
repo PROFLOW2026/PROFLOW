@@ -1,4 +1,4 @@
-import type { ProjectCapability } from '@/modules/project-team';
+import type { ProjectCapability } from '@/modules/project-team/domain/capabilities';
 import { isDeveloperGcMode } from '@/modules/project-profile/domain/management-mode';
 import type { DeliveryProfile } from '@/modules/project-profile/domain/profile';
 import {

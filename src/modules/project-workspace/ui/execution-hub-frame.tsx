@@ -1,69 +1,51 @@
-import 'server-only';
-
 import { getTranslations } from 'next-intl/server';
+import type { ReactNode } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
-import { PROJECT_CAPABILITIES } from '@/modules/project-team/domain/capabilities';
-import { requireProjectCapabilityPage } from '@/modules/project-team/server';
-import {
-  EXECUTION_HUBS,
-  selectExecutionHubChildren,
-  type ExecutionHubKey,
-} from '@/modules/project-workspace/domain/execution-hubs';
-import { withOrgContext } from '@/shared/auth/session';
+import type { ExecutionHubChildLink, ExecutionHubKey } from '@/modules/project-workspace/domain/execution-hubs';
 import { Link } from '@/shared/i18n/navigation';
 
-const HUB_CAPABILITY = Object.fromEntries(EXECUTION_HUBS.map((hub) => [hub.key, hub.anyOf])) as Record<
-  ExecutionHubKey,
-  (typeof EXECUTION_HUBS)[number]['anyOf']
->;
+export interface ExecutionHubStageRow {
+  readonly id: string;
+  readonly agreementId: string;
+  readonly code: string | null;
+  readonly description: string;
+  readonly lineType: string;
+  readonly weightPercent: string | null;
+  readonly plannedStart: string | null;
+  readonly plannedEnd: string | null;
+}
 
-export async function ExecutionHubScreen({
-  hub,
-  surfaceRoot,
-  params,
-}: {
-  readonly hub: Exclude<ExecutionHubKey, 'overview' | 'contractors' | 'team'>;
-  readonly surfaceRoot?: string;
-  readonly params: Promise<{ projectId: string }>;
-}) {
-  const { projectId } = await params;
-  const access = await requireProjectCapabilityPage(projectId, HUB_CAPABILITY[hub], { mode: 'any' });
-  const t = await getTranslations('projectWorkspace');
-  const root = surfaceRoot ?? `/projects/${projectId}`;
-  const children = selectExecutionHubChildren({
-    hub,
-    projectId,
-    capabilities: access.capabilities,
-    surfaceRoot: root,
-  });
-  const groups = new Map<string, typeof children>();
+export function groupHubChildren<T extends { readonly groupKey: string }>(
+  children: readonly T[],
+): Map<string, T[]> {
+  const groups = new Map<string, T[]>();
   for (const child of children) {
     const bucket = groups.get(child.groupKey);
     if (bucket) bucket.push(child);
     else groups.set(child.groupKey, [child]);
   }
+  return groups;
+}
 
-  const stages =
-    hub === 'contracts'
-      ? await withOrgContext(async (context) => {
-          const { listProjectPaymentStageLines } = await import(
-            '@/modules/subcontracts/application/payment-stage-lines'
-          );
-          return listProjectPaymentStageLines(context.db, context.organizationId, projectId);
-        })
-      : [];
-  const contractors =
-    hub === 'contracts'
-      ? await withOrgContext(async (context) => {
-          const { loadProjectContractorList } = await import(
-            '@/modules/project-workspace/application/load-project-contractors'
-          );
-          return loadProjectContractorList(context, projectId, { surfaceRoot: root });
-        })
-      : null;
-  const titles = new Map(contractors?.items.map((item) => [item.agreement.id, item.agreement.title]) ?? []);
+/** Shared hub presentation. Callers load their own data and pass it in. */
+export async function ExecutionHubFrame({
+  hub,
+  root,
+  groups,
+  footer,
+  stages,
+  titles,
+}: {
+  readonly hub: Exclude<ExecutionHubKey, 'overview' | 'contractors' | 'team'>;
+  readonly root: string;
+  readonly groups: ReadonlyMap<string, readonly (ExecutionHubChildLink & { readonly href: string })[]>;
+  readonly footer?: ReactNode;
+  readonly stages?: readonly ExecutionHubStageRow[];
+  readonly titles?: ReadonlyMap<string, string>;
+}) {
+  const t = await getTranslations('projectWorkspace');
 
   return (
     <div className="flex min-w-0 flex-col gap-6">
@@ -97,25 +79,9 @@ export async function ExecutionHubScreen({
         </section>
       ))}
 
-      {hub === 'contracts' && access.capabilities.has(PROJECT_CAPABILITIES.CONTRACT_MANAGE) ? (
-        <Link
-          href={`${root}/contractors?new=1`}
-          className="inline-flex min-h-11 items-center self-start rounded-md px-3 text-sm font-medium text-[var(--pf-text-brand)] hover:bg-[var(--pf-action-subtle-hover)]"
-        >
-          {t('execution.hubLinks.newAgreement')}
-        </Link>
-      ) : null}
+      {footer}
 
-      {hub === 'payments' && access.capabilities.has(PROJECT_CAPABILITIES.CLAIM_REVIEW) ? (
-        <Link
-          href={`${root}/claims?new=1`}
-          className="inline-flex min-h-11 items-center self-start rounded-md px-3 text-sm font-medium text-[var(--pf-text-brand)] hover:bg-[var(--pf-action-subtle-hover)]"
-        >
-          {t('execution.hubLinks.newClaim')}
-        </Link>
-      ) : null}
-
-      {hub === 'contracts' ? (
+      {stages ? (
         <Card>
           <CardHeader>
             <CardTitle>{t('execution.paymentStages.title')}</CardTitle>
@@ -133,7 +99,7 @@ export async function ExecutionHubScreen({
                       {stage.description}
                     </Link>
                     <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
-                      {titles.get(stage.agreementId) ?? t('contractors.unknownVendor')}
+                      {titles?.get(stage.agreementId) ?? t('contractors.unknownVendor')}
                       {' · '}
                       {t(`execution.paymentStages.types.${stage.lineType}` as never)}
                       {stage.weightPercent ? ` · ${t('execution.paymentStages.weight', { weight: stage.weightPercent })}` : ''}
