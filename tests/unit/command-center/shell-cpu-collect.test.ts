@@ -122,5 +122,11 @@ describe('notification bell shell', () => {
     expect(unreadMock).toHaveBeenCalledTimes(1);
     expect(mergedInboxMock).not.toHaveBeenCalled();
     expect(element.props.initialInbox).toEqual({ items: [], unreadCount: 4 });
+
+    const actionsSource = readFileSync(
+      path.join(process.cwd(), 'src/modules/notifications/application/actions.ts'),
+      'utf8',
+    );
+    expect(actionsSource).toContain('listMergedNotificationInbox');
   });
 });

@@ -33,15 +33,24 @@ export function NotificationBell({
   );
   const [inbox, setInbox] = React.useState<NotificationInboxDto>(inboxOrEmpty(initialInbox));
   const [scanning, setScanning] = React.useState(false);
+  /** Shell passes persisted-only unread; after the user opens the bell once, show merged unread. */
+  const persistedUnread = initialInbox?.unreadCount ?? 0;
+  const [mergedBadge, setMergedBadge] = React.useState(false);
+  const inFlightRef = React.useRef(false);
 
   const fetchInbox = React.useCallback(async () => {
+    if (inFlightRef.current) return;
+    inFlightRef.current = true;
     setStatus('loading');
     try {
       const next = loadInbox ? await loadInbox() : await listNotificationsAction();
       setInbox(next);
+      setMergedBadge(true);
       setStatus('ready');
     } catch {
       setStatus('error');
+    } finally {
+      inFlightRef.current = false;
     }
   }, [loadInbox]);
 
@@ -83,7 +92,7 @@ export function NotificationBell({
     }
   }
 
-  const unread = inbox.unreadCount;
+  const unread = mergedBadge ? inbox.unreadCount : persistedUnread;
   const label = unread > 0 ? `${t('bellLabel')}. ${t('unreadCount', { count: unread })}` : t('bellLabel');
 
   return (

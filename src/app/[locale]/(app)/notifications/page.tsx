@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
-import { listNotifications } from '@/modules/notifications/application/list';
+import { listMergedNotificationInbox } from '@/modules/notifications/application/actionable-inbox';
+import { localizeNotificationInbox } from '@/modules/notifications/application/localize-notifications';
 import { toNotificationInboxDto } from '@/modules/notifications/application/serialize';
 import { NotificationInboxClient } from '@/modules/notifications/ui';
 import { withOrgContext } from '@/shared/auth/session';
@@ -25,7 +26,10 @@ export default async function NotificationsPage() {
 
   const inbox = await withOrgContext(async (context) => {
     if (!hasPermission(context, PERMISSIONS.NOTIFICATIONS_READ)) return null;
-    return toNotificationInboxDto(await listNotifications(context));
+    const copy = await getTranslations('notifications');
+    return toNotificationInboxDto(
+      localizeNotificationInbox(await listMergedNotificationInbox(context), copy),
+    );
   });
 
   if (!inbox) {
