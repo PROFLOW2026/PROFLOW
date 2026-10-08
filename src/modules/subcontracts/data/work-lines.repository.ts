@@ -258,3 +258,52 @@ export async function countActiveLines(
     );
   return rows.length;
 }
+
+export interface ProjectPaymentStageLine {
+  readonly id: string;
+  readonly agreementId: string;
+  readonly code: string | null;
+  readonly description: string;
+  readonly lineType: SubcontractLineType;
+  readonly weightPercent: string | null;
+  readonly plannedStart: string | null;
+  readonly plannedEnd: string | null;
+  readonly status: 'active' | 'closed' | 'cancelled';
+}
+
+/** Milestone and percentage lines for one project. No price columns. */
+export async function listProjectPaymentStageLines(
+  db: DbExecutor,
+  organizationId: string,
+  projectId: string,
+): Promise<ProjectPaymentStageLine[]> {
+  return db
+    .select({
+      id: subcontractWorkLines.id,
+      agreementId: subcontractWorkLines.agreementId,
+      code: subcontractWorkLines.code,
+      description: subcontractWorkLines.description,
+      lineType: subcontractWorkLineAttributes.lineType,
+      weightPercent: subcontractWorkLineAttributes.weightPercent,
+      plannedStart: subcontractWorkLineAttributes.plannedStart,
+      plannedEnd: subcontractWorkLineAttributes.plannedEnd,
+      status: subcontractWorkLines.status,
+    })
+    .from(subcontractWorkLines)
+    .innerJoin(
+      subcontractWorkLineAttributes,
+      and(
+        eq(subcontractWorkLineAttributes.workLineId, subcontractWorkLines.id),
+        eq(subcontractWorkLineAttributes.organizationId, subcontractWorkLines.organizationId),
+      ),
+    )
+    .where(
+      and(
+        eq(subcontractWorkLines.organizationId, organizationId),
+        eq(subcontractWorkLines.projectId, projectId),
+        isNull(subcontractWorkLines.archivedAt),
+        inArray(subcontractWorkLineAttributes.lineType, ['weighted_milestone', 'percentage']),
+      ),
+    )
+    .orderBy(asc(subcontractWorkLines.sortOrder), asc(subcontractWorkLines.description));
+}

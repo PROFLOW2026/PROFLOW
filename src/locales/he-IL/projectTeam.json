@@ -90,7 +90,11 @@
     "safety_manager": "ממונה בטיחות",
     "quality_manager": "מנהל איכות",
     "consultant": "יועץ",
-    "viewer": "צפייה בלבד"
+    "viewer": "צפייה בלבד",
+    "senior_project_manager": "מנהל פרויקט בכיר",
+    "project_secretary": "מזכיר / מנהלן פרויקט",
+    "client_coordinator": "רכז לקוח",
+    "developer_representative": "נציג יזם"
   },
   "capabilities": {
     "project_view": "צפייה בפרויקט",

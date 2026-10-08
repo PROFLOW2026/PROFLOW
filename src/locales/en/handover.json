@@ -6,6 +6,15 @@
     "agreementLabel": "Agreement {id}",
     "status": { "open": "Open", "ready": "Ready", "closed": "Closed" }
   },
+  "agreement": {
+    "title": "Handover and warranty for this contractor",
+    "description": "The lists below belong to this agreement only.",
+    "openCloseout": "This contractor's handover",
+    "openWarranty": "This contractor's warranty",
+    "startCloseout": "Open handover for this agreement",
+    "warrantyTitle": "Warranty report title",
+    "reportWarranty": "Report warranty"
+  },
   "warranty": {
     "title": "Contractor warranty",
     "description": "Warranty periods and defect links (via quality defects).",

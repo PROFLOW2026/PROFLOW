@@ -38,6 +38,15 @@
     "templateHint": "Создаёт редактируемые копии рабочих зон, этапов и предложенных папок. Сам шаблон не изменяется.",
     "recommendedTemplatesTip": "Рекомендуется для вашей компании: {templates}. Выберите ниже.",
     "nameLabel": "Название проекта",
+    "managementModeLabel": "Тип проекта",
+    "managementModeHint": "Один выбор. Состав команды задаётся на отдельном экране.",
+    "managementModeSave": "Сохранить тип проекта",
+    "managementModes": {
+      "standard_project": "Обычный проект",
+      "execution_contractor": "Подрядчик исполнения",
+      "developer_gc": "Девелопер / генподрядчик",
+      "project_management": "Управление проектом"
+    },
     "namePlaceholder": "напр. Квартира Коэн",
     "clientLabel": "Клиент",
     "clientNone": "Клиента пока нет",

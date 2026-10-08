@@ -57,6 +57,15 @@
       "summaryHint": "עברו על הפרטים ואז צרו את הפרויקט."
     },
     "nameLabel": "שם הפרויקט",
+    "managementModeLabel": "סוג הפרויקט",
+    "managementModeHint": "בחירה אחת. צוות הפרויקט נקבע במסך נפרד.",
+    "managementModeSave": "שמירת סוג הפרויקט",
+    "managementModes": {
+      "standard_project": "פרויקט רגיל",
+      "execution_contractor": "קבלן ביצוע",
+      "developer_gc": "יזם / קבלן ראשי",
+      "project_management": "ניהול פרויקט"
+    },
     "namePlaceholder": "לדוגמה: בית כהן",
     "clientLabel": "לקוח",
     "clientNone": "ללא לקוח",

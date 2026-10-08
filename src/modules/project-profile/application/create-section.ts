@@ -1,6 +1,7 @@
 import { isOrgProjectAdmin } from '@/modules/project-team';
 import type { OrgContext } from '@/shared/auth/context';
 import type { DeliveryCreateInput } from '../domain/create-section';
+import { isManagementMode, operatingRolesForMode } from '../domain/management-mode';
 import { updateConstructionCharacteristics, updateDeliveryProfile } from './profile';
 
 /** The section is offered to org-wide project admins (they hold every capability on a new project). */
@@ -45,4 +46,22 @@ export async function applyDeliveryAtProjectCreate(
     });
   }
   return { applied: true };
+}
+
+/**
+ * Single-choice project type from create forms. Standard is the default and writes nothing.
+ * Does not create a project_members row for the Owner.
+ */
+export async function applyManagementModeAtCreate(
+  context: OrgContext,
+  projectId: string,
+  rawMode: unknown,
+): Promise<void> {
+  if (!isManagementMode(rawMode) || rawMode === 'standard_project') return;
+  if (!canSetDeliveryProfileAtCreate(context)) return;
+  await updateDeliveryProfile(context, {
+    projectId,
+    operatingRoles: operatingRolesForMode(rawMode),
+    ownershipModel: rawMode === 'developer_gc' ? 'own_development' : 'client_project',
+  });
 }

@@ -90,7 +90,11 @@
     "safety_manager": "Safety manager",
     "quality_manager": "Quality manager",
     "consultant": "Consultant",
-    "viewer": "View only"
+    "viewer": "View only",
+    "senior_project_manager": "Senior project manager",
+    "project_secretary": "Project secretary / administrator",
+    "client_coordinator": "Client coordinator",
+    "developer_representative": "Developer representative"
   },
   "capabilities": {
     "project_view": "View project",

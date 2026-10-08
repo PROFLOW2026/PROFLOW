@@ -26,6 +26,7 @@ import {
   type ProjectStructureSnapshot,
 } from '@/modules/projects';
 import { parseProjectCreateForm } from '@/modules/projects/application/parse-project-create-form';
+import { applyManagementModeAtCreate } from '@/modules/project-profile';
 import { previewUwmProjectTemplate } from '@/modules/tasks';
 import { withOrgContext } from '@/shared/auth/session';
 import {
@@ -73,11 +74,13 @@ export async function createProjectAction(
     const result = await withOrgContext(async (context) => {
       const templateLocale = locale === 'he-IL' ? 'he-IL' : 'en';
       const form = await parseProjectCreateForm(context, formData, { templateLocale });
-      return launchProject(context, {
+      const created = await launchProject(context, {
         create: form.input,
         launch: form.launch,
         team: form.team,
       });
+      await applyManagementModeAtCreate(context, created.projectId, formData.get('managementMode'));
+      return created;
     });
 
     const billingPlanMode = formValue(formData, 'billingPlanMode') ?? 'none';

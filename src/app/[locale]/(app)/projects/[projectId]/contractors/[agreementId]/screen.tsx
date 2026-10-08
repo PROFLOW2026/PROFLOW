@@ -7,6 +7,7 @@ import { ActivityFeed } from '@/modules/collaboration/ui';
 import { PROJECT_CAPABILITIES } from '@/modules/project-team';
 import { requireProjectCapabilityPage } from '@/modules/project-team/server';
 import { loadContractor360 } from '@/modules/project-workspace/application/load-contractor-360';
+import { AgreementHandoverPanel } from '@/modules/contractor-closeout/ui/agreement-handover-panel';
 import { formatRfiNumber } from '@/modules/rfi';
 import { formatSubmittalNumber } from '@/modules/submittals';
 import { AgreementSubNav } from '@/modules/subcontracts/ui/agreement-nav';
@@ -54,6 +55,7 @@ export async function Contractor360Screen({
   const showSchedule = data.events !== null || data.tasks !== null;
   const sections = [
     { id: 'contract', label: t('contractors.overview.contract') },
+    ...(data.progress ? [{ id: 'progress', label: t('contractors.overview.progress') }] : []),
     ...(showSchedule ? [{ id: 'schedule', label: t('contractors.overview.schedule') }] : []),
     ...(data.claims ? [{ id: 'claims', label: t('contractors.overview.claims') }] : []),
     { id: 'changes', label: t('contractors.overview.changes') },
@@ -81,18 +83,13 @@ export async function Contractor360Screen({
             {section.label}
           </a>
         ))}
-        <Link
-          href={`${root}/contractor-closeout`}
+        <a
+          key="handover"
+          href="#handover"
           className="inline-flex min-h-11 items-center rounded-md px-3 text-sm font-medium text-[var(--pf-text-secondary)] hover:bg-[var(--pf-action-subtle-hover)]"
         >
           {t('contractors.overview.closeout')}
-        </Link>
-        <Link
-          href={`${root}/contractor-warranty`}
-          className="inline-flex min-h-11 items-center rounded-md px-3 text-sm font-medium text-[var(--pf-text-secondary)] hover:bg-[var(--pf-action-subtle-hover)]"
-        >
-          {t('contractors.overview.warranty')}
-        </Link>
+        </a>
       </nav>
 
       <section id="contract" className="flex scroll-mt-20 flex-col gap-3">
@@ -128,6 +125,39 @@ export async function Contractor360Screen({
           </ul>
         )}
       </section>
+
+      {data.progress ? (
+        <section id="progress" className="flex scroll-mt-20 flex-col gap-3">
+          <SectionHeading title={t('contractors.overview.progress')} href={`${base}/lines`} linkLabel={t('contractors.overview.fullList')} />
+          {data.progress.length === 0 ? (
+            <EmptyState size="sm" title={t('contractors.overview.empty.progressTitle')} description={t('contractors.overview.empty.progressDescription')} />
+          ) : (
+            <ul className="flex flex-col gap-2">
+              {data.progress.map((line) => (
+                <li key={line.id} className="rounded-lg border border-[var(--pf-border-subtle)] p-3">
+                  <p className="font-medium break-words">
+                    {line.code ? `${line.code} · ` : ''}
+                    {line.description}
+                  </p>
+                  <p className="mt-1 text-sm text-[var(--pf-text-secondary)]">
+                    {tSub(`lineTypes.${line.lineType}`)}
+                    {line.weightPercent ? ` · ${t('contractors.overview.progressWeight', { weight: line.weightPercent })}` : ''}
+                    {line.plannedStart ? ` · ${line.plannedStart}` : ''}
+                    {line.plannedEnd ? ` – ${line.plannedEnd}` : ''}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      ) : null}
+
+      <AgreementHandoverPanel
+        projectId={projectId}
+        agreementId={agreementId}
+        root={root}
+        canManage={data.canManageHandover}
+      />
 
       {showSchedule ? (
         <section id="schedule" className="flex scroll-mt-20 flex-col gap-3">

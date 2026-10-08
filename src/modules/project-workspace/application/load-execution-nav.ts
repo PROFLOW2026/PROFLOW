@@ -2,17 +2,13 @@ import 'server-only';
 
 import { findProjectDeliveryProfile } from '@/modules/project-profile';
 import { loadProjectCapabilities } from '@/modules/project-team';
-import { listProjectAgreementsOperational } from '@/modules/subcontracts';
 import type { OrgContext } from '@/shared/auth/context';
-import {
-  selectExecutionNavLinks,
-  shouldShowExecutionNavGroup,
-  type ExecutionNavLink,
-} from '../domain/select-execution-nav-links';
+import { selectExecutionHubs, type ExecutionHubLink } from '../domain/execution-hubs';
+import { shouldShowExecutionNavGroup } from '../domain/select-execution-nav-links';
 
 export interface ProjectExecutionNavView {
   readonly showGroup: boolean;
-  readonly links: readonly ExecutionNavLink[];
+  readonly links: readonly ExecutionHubLink[];
 }
 
 export async function loadProjectExecutionNav(
@@ -20,23 +16,23 @@ export async function loadProjectExecutionNav(
   projectId: string,
   options?: { readonly surfaceRoot?: string },
 ): Promise<ProjectExecutionNavView> {
-  const [capabilities, deliveryProfile, agreements] = await Promise.all([
+  const [capabilities, deliveryProfile] = await Promise.all([
     loadProjectCapabilities(context, projectId),
     findProjectDeliveryProfile(context, projectId),
-    listProjectAgreementsOperational(context.db, context.organizationId, projectId).catch(() => []),
   ]);
 
-  const hasSubcontractAgreements = agreements.length > 0;
-  const showGroup = shouldShowExecutionNavGroup({ deliveryProfile, hasSubcontractAgreements });
+  const showGroup = shouldShowExecutionNavGroup({
+    deliveryProfile,
+    hasSubcontractAgreements: false,
+  });
   if (!showGroup) {
     return { showGroup: false, links: [] };
   }
 
-  const links = selectExecutionNavLinks({
+  const links = selectExecutionHubs({
     projectId,
     capabilities,
     deliveryProfile,
-    hasSubcontractAgreements,
     surfaceRoot: options?.surfaceRoot,
   });
 

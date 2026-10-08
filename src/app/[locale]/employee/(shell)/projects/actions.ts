@@ -9,6 +9,7 @@ import {
   loadProjectCreateTeamPickerOptions,
 } from '@/modules/projects/application/load-project-create-team-options';
 import { parseProjectCreateForm } from '@/modules/projects/application/parse-project-create-form';
+import { applyManagementModeAtCreate } from '@/modules/project-profile';
 import { listLaunchableUwmProjectTemplates } from '@/modules/tasks';
 import type { ProjectCreateTeamPickerOption } from '@/modules/projects/domain/project-create-team';
 import { assertEmployeeAppContext } from '@/modules/employee-app/application/session-guard';
@@ -58,6 +59,7 @@ export async function employeeCreateProjectAction(
         launch: form.launch,
         team: form.team,
       });
+      await applyManagementModeAtCreate(context, created.projectId, formData.get('managementMode'));
       return created.projectId;
     });
 

@@ -12,6 +12,16 @@ export {
   resolveProjectSurfaceRoot,
 } from './domain/project-surface-path';
 export {
+  EXECUTION_HUBS,
+  EXECUTION_HUB_CHILDREN,
+  EXECUTION_HUB_KEYS,
+  selectExecutionHubChildren,
+  selectExecutionHubs,
+  type ExecutionHubChildLink,
+  type ExecutionHubKey,
+  type ExecutionHubLink,
+} from './domain/execution-hubs';
+export {
   EXECUTION_NAV_GROUP_IDS,
   groupExecutionNavLinks,
   type ExecutionNavGroupId,

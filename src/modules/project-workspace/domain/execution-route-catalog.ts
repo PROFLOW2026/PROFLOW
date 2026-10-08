@@ -1,5 +1,3 @@
-import { existsSync } from 'node:fs';
-import { join } from 'node:path';
 import { PROJECT_CAPABILITIES, type ProjectCapability } from '@/modules/project-team';
 
 /** Stable keys for the Execution / ביצוע nav (Track S). */
@@ -71,25 +69,52 @@ export interface ExecutionRouteDefinition {
   readonly label: ExecutionNavLabelRef;
 }
 
-const APP_PROJECT_ROOT = join(process.cwd(), 'src', 'app', '[locale]', '(app)', 'projects', '[projectId]');
-const EMPLOYEE_PROJECT_ROOT = join(
-  process.cwd(),
-  'src',
-  'app',
-  '[locale]',
-  'employee',
-  '(shell)',
-  'projects',
-  '[projectId]',
-);
-
-function projectRoutePageExists(...segments: string[]): boolean {
-  return existsSync(join(APP_PROJECT_ROOT, ...segments, 'page.tsx'));
+/**
+ * Registered owner routes are treated as mounted. Navigation must not probe
+ * `page.tsx` on the serverless filesystem.
+ */
+function projectRoutePageExists(..._segments: string[]): boolean {
+  return true;
 }
+
+const EMPLOYEE_EXECUTION_PATHS = new Set([
+  'structure',
+  'team',
+  'contractors',
+  'tasks',
+  'coordination',
+  'plans',
+  'rfi',
+  'submittals',
+  'inspections',
+  'defects',
+  'site-log',
+  'site-meetings',
+  'instructions',
+  'contractor-compliance',
+  'site-safety',
+  'deliveries',
+  'tenders',
+  'contractor-closeout',
+  'contractor-warranty',
+  'claims',
+  'deductions',
+  'activity',
+  'unpriced-work',
+  'cost-control',
+  'execution',
+  'calendar',
+  'files',
+  'board',
+  'execution-contracts',
+  'contractor-payments',
+  'execution-planning',
+  'execution-quality',
+]);
 
 /** True when the Employee app has a page for this execution route segment. */
 export function employeeExecutionPageExists(path: string): boolean {
-  return existsSync(join(EMPLOYEE_PROJECT_ROOT, path, 'page.tsx'));
+  return EMPLOYEE_EXECUTION_PATHS.has(path);
 }
 
 const C = PROJECT_CAPABILITIES;

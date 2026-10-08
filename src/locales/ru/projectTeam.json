@@ -90,7 +90,11 @@
     "safety_manager": "Инженер по охране труда",
     "quality_manager": "Менеджер по качеству",
     "consultant": "Консультант",
-    "viewer": "Только просмотр"
+    "viewer": "Только просмотр",
+    "senior_project_manager": "Старший руководитель проекта",
+    "project_secretary": "Секретарь / администратор проекта",
+    "client_coordinator": "Координатор заказчика",
+    "developer_representative": "Представитель девелопера"
   },
   "capabilities": {
     "project_view": "Просмотр проекта",

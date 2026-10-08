@@ -1,29 +1,49 @@
 import { describe, expect, it } from 'vitest';
 import { PROJECT_CAPABILITIES as C } from '@/modules/project-team';
 import { buildDeliveryProfile } from '@/modules/project-profile';
+import { resolveManagementMode } from '@/modules/project-profile/domain/management-mode';
+import {
+  EXECUTION_HUB_KEYS,
+  selectExecutionHubChildren,
+  selectExecutionHubs,
+} from '@/modules/project-workspace/domain/execution-hubs';
 import {
   EXECUTION_NAV_PRIORITY,
   executionRoutesMissingPages,
-  selectExecutionNavLinks,
   shouldShowExecutionNavGroup,
 } from '@/modules/project-workspace';
 
-describe('execution nav (Track S)', () => {
-  const developerProfile = buildDeliveryProfile({ operatingRoles: ['developer'] });
+const developerGc = buildDeliveryProfile({ operatingRoles: ['developer', 'general_contractor'] });
 
-  it('orders structure before team and keeps financial routes after field ops', () => {
+describe('developer / GC execution hubs', () => {
+  it('keeps the registered route catalog static', () => {
     expect(EXECUTION_NAV_PRIORITY.indexOf('structure')).toBeLessThan(EXECUTION_NAV_PRIORITY.indexOf('team'));
-    expect(EXECUTION_NAV_PRIORITY.indexOf('claims')).toBeLessThan(EXECUTION_NAV_PRIORITY.indexOf('deductions'));
-    expect(EXECUTION_NAV_PRIORITY.indexOf('unpricedWork')).toBeLessThan(EXECUTION_NAV_PRIORITY.indexOf('costControl'));
+    expect(executionRoutesMissingPages()).not.toContain('contractors');
+    expect(executionRoutesMissingPages()).not.toContain('executionDashboard');
   });
 
-  it('shows the group for a non-standard delivery profile or subcontract agreements', () => {
-    expect(shouldShowExecutionNavGroup({ deliveryProfile: developerProfile, hasSubcontractAgreements: false })).toBe(
-      true,
-    );
+  it('opens the layer only for an explicit developer + general contractor mode', () => {
+    expect(resolveManagementMode(developerGc)).toBe('developer_gc');
+    expect(shouldShowExecutionNavGroup({ deliveryProfile: developerGc, hasSubcontractAgreements: false })).toBe(true);
+    expect(shouldShowExecutionNavGroup({ deliveryProfile: null, hasSubcontractAgreements: true })).toBe(false);
     expect(
-      shouldShowExecutionNavGroup({ deliveryProfile: null, hasSubcontractAgreements: true }),
-    ).toBe(true);
+      shouldShowExecutionNavGroup({
+        deliveryProfile: buildDeliveryProfile({ operatingRoles: ['developer'] }),
+        hasSubcontractAgreements: true,
+      }),
+    ).toBe(false);
+    expect(
+      shouldShowExecutionNavGroup({
+        deliveryProfile: buildDeliveryProfile({ operatingRoles: ['subcontractor'] }),
+        hasSubcontractAgreements: false,
+      }),
+    ).toBe(false);
+    expect(
+      shouldShowExecutionNavGroup({
+        deliveryProfile: buildDeliveryProfile({ operatingRoles: ['project_management'] }),
+        hasSubcontractAgreements: false,
+      }),
+    ).toBe(false);
     expect(
       shouldShowExecutionNavGroup({
         deliveryProfile: buildDeliveryProfile({ operatingRoles: [] }),
@@ -32,43 +52,34 @@ describe('execution nav (Track S)', () => {
     ).toBe(false);
   });
 
-  it('filters links by capability and skips routes without pages', () => {
-    const held = new Set([C.PROJECT_VIEW, C.CONTRACTOR_VIEW, C.CLAIM_VIEW]);
-    const links = selectExecutionNavLinks({
+  it('shows all seven hubs to a viewer who holds every capability', () => {
+    const links = selectExecutionHubs({
       projectId: 'p1',
-      capabilities: held,
-      deliveryProfile: developerProfile,
-      hasSubcontractAgreements: true,
+      capabilities: new Set(Object.values(C)),
+      deliveryProfile: developerGc,
     });
-
-    const keys = links.map((link) => link.key);
-    expect(keys).toContain('structure');
-    expect(keys).toContain('team');
-    expect(keys).toContain('unpricedWork');
-    expect(keys).not.toContain('contractorAccess');
-    expect(keys).toContain('claims');
-    expect(keys).not.toContain('costControl');
-    expect(keys).toContain('executionDashboard');
-
-    const contractors = links.find((link) => link.key === 'contractors');
-    expect(contractors?.href).toBe('/projects/p1/contractors');
+    expect(links.map((link) => link.key)).toEqual([...EXECUTION_HUB_KEYS]);
+    expect(links.find((link) => link.key === 'planning')?.href).toBe('/projects/p1/execution-planning');
+    expect(links.some((link) => link.href.includes('?tab=schedule'))).toBe(false);
   });
 
-  it('never deep-links contractors to a single agreement when the list page is missing', () => {
-    const held = new Set([C.CONTRACTOR_VIEW]);
-    const links = selectExecutionNavLinks({
+  it('hides hubs the viewer cannot open', () => {
+    const links = selectExecutionHubs({
       projectId: 'p1',
-      capabilities: held,
-      deliveryProfile: developerProfile,
-      hasSubcontractAgreements: true,
+      capabilities: new Set([C.PROJECT_VIEW]),
+      deliveryProfile: developerGc,
     });
-    expect(links.some((link) => link.key === 'contractors' && link.href.includes('/changes'))).toBe(false);
+    expect(links.map((link) => link.key)).toEqual(['overview', 'team']);
   });
 
-  it('reports missing page routes for release notes', () => {
-    const missing = executionRoutesMissingPages();
-    expect(missing).not.toContain('contractors');
-    expect(missing).not.toContain('costControl');
-    expect(missing).not.toContain('executionDashboard');
+  it('keeps the planning hub off the classic schedule tab', () => {
+    const children = selectExecutionHubChildren({
+      hub: 'planning',
+      projectId: 'p1',
+      capabilities: new Set(Object.values(C)),
+    });
+    expect(children.some((child) => child.href.includes('?tab=schedule'))).toBe(false);
+    expect(children.map((child) => child.path)).toContain('coordination');
+    expect(children.map((child) => child.path)).toContain('timeline');
   });
 });

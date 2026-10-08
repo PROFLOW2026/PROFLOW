@@ -65,6 +65,20 @@ export async function ProjectExecutionDashboardScreen({ surfaceRoot, params }: {
     <WithClientMessages extra={['projectWorkspace']}>
       <div className="flex flex-col gap-6">
         <PageHeader title={t('execution.dashboard')} description={t('execution.dashboardDescription')} />
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href={`${base}/structure`}
+            className="inline-flex min-h-11 items-center rounded-md border border-[var(--pf-border-default)] px-3 text-sm font-medium"
+          >
+            {t('execution.hubLinks.structure')}
+          </Link>
+          <Link
+            href={`${base}/team`}
+            className="inline-flex min-h-11 items-center rounded-md border border-[var(--pf-border-default)] px-3 text-sm font-medium"
+          >
+            {t('execution.hubs.team')}
+          </Link>
+        </div>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {cards.map((card) => (
             <ExecutionMetricCard

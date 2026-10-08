@@ -25,6 +25,7 @@ import { PERMISSIONS, type PermissionKey } from '@/shared/permissions/catalog';
 import { TabPanelSkeleton } from './tab-panel-skeleton';
 import { WorkTab } from './work-tab';
 import { DetailsTab } from './details-tab';
+import { ProjectManagementModePanel } from '@/modules/project-profile/ui/project-management-mode-panel';
 import { OverviewTab } from './overview-tab';
 import { type ProjectTabKey } from './project-tabs-shell';
 import {
@@ -246,6 +247,7 @@ async function ProjectStructuredTabPanel({
 
         {activeTab === 'details' ? (
           <div className="pt-4">
+            <ProjectManagementModePanel projectId={projectId} />
             <DetailsTab
               detail={detail}
               clients={clients}

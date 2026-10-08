@@ -12,7 +12,15 @@
   },
   "profile": {
     "title": "Delivery profile",
-    "description": "Which role your organization plays on this project. Roles can be combined and never change the organization type.",
+    "description": "One management type for this project. It does not change the organization type and does not add the owner to the member list.",
+    "modeLabel": "Project type",
+    "modeHint": "One choice. Any other role mix is not Developer / GC until it is saved here.",
+    "modes": {
+      "standard_project": "Standard project",
+      "execution_contractor": "Execution contractor",
+      "developer_gc": "Developer / general contractor",
+      "project_management": "Project management"
+    },
     "rolesLabel": "Your roles on this project",
     "standard": "Standard project",
     "standardHint": "No role selected – the project behaves like a standard project.",

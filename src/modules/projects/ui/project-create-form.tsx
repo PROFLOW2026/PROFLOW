@@ -154,6 +154,7 @@ export function ProjectCreateForm({
   const [contactMode, setContactMode] = useState<ContactMode>('none');
   const [selectedContactId, setSelectedContactId] = useState<string>('');
   const [projectName, setProjectName] = useState('');
+  const [managementMode, setManagementMode] = useState('standard_project');
   const [newClientName, setNewClientName] = useState('');
   const [showMore, setShowMore] = useState(false);
   const [launchMode, setLaunchMode] = useState<LaunchMode>('none');
@@ -276,6 +277,25 @@ export function ProjectCreateForm({
               value={projectName}
               onChange={(event) => setProjectName(event.target.value)}
             />
+          )}
+        </Field>
+
+        <Field label={t('create.managementModeLabel')}>
+          {(control) => (
+            <>
+              <input type="hidden" name="managementMode" value={managementMode} />
+              <Select value={managementMode} onValueChange={setManagementMode}>
+                <SelectTrigger {...control}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="standard_project">{t('create.managementModes.standard_project')}</SelectItem>
+                  <SelectItem value="execution_contractor">{t('create.managementModes.execution_contractor')}</SelectItem>
+                  <SelectItem value="developer_gc">{t('create.managementModes.developer_gc')}</SelectItem>
+                  <SelectItem value="project_management">{t('create.managementModes.project_management')}</SelectItem>
+                </SelectContent>
+              </Select>
+            </>
           )}
         </Field>
 

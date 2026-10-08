@@ -66,3 +66,4 @@ export {
   listProjectAgreementsOperational,
   listProjectWorkPackageOptions,
 } from './data/agreements.repository';
+export { listProjectPaymentStageLines, type ProjectPaymentStageLine } from './data/work-lines.repository';

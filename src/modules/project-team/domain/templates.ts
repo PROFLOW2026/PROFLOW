@@ -26,6 +26,10 @@ export const PROJECT_TEMPLATE_KEYS = [
   'quality_manager',
   'consultant',
   'viewer',
+  'senior_project_manager',
+  'project_secretary',
+  'client_coordinator',
+  'developer_representative',
 ] as const;
 
 export type ProjectTemplateKey = (typeof PROJECT_TEMPLATE_KEYS)[number];
@@ -177,6 +181,47 @@ export const PROJECT_CAPABILITY_TEMPLATES: readonly ProjectCapabilityTemplate[] 
     name: 'Viewer',
     financialAccess: 'none',
     capabilities: [C.PROJECT_VIEW, C.SCHEDULE_VIEW, C.TASKS_VIEW, C.CONTRACTOR_VIEW, C.PROGRESS_VIEW, C.DOCUMENTS_VIEW],
+  },
+  {
+    key: 'senior_project_manager',
+    name: 'Senior project manager',
+    financialAccess: 'none',
+    capabilities: OPS_FULL,
+  },
+  {
+    key: 'project_secretary',
+    name: 'Project secretary / administrator',
+    financialAccess: 'none',
+    capabilities: [
+      C.PROJECT_VIEW,
+      C.CONTRACTOR_VIEW,
+      C.DOCUMENTS_SHARE,
+      C.MEETINGS_MANAGE,
+      C.TASKS_MANAGE,
+      C.SCHEDULE_VIEW,
+      C.CONTRACTOR_INVITE,
+      C.EXTERNAL_ACCESS_MANAGE,
+    ],
+  },
+  {
+    key: 'client_coordinator',
+    name: 'Client coordinator',
+    financialAccess: 'none',
+    capabilities: [C.PROJECT_VIEW, C.DOCUMENTS_VIEW, C.MEETINGS_MANAGE, C.SCHEDULE_VIEW, C.TASKS_VIEW, C.CONTRACTOR_VIEW],
+  },
+  {
+    key: 'developer_representative',
+    name: 'Developer representative',
+    financialAccess: 'none',
+    capabilities: [
+      C.PROJECT_VIEW,
+      C.CONTRACTOR_VIEW,
+      C.DOCUMENTS_VIEW,
+      C.SCHEDULE_VIEW,
+      C.PROGRESS_VIEW,
+      C.MEETINGS_MANAGE,
+      C.TASKS_VIEW,
+    ],
   },
 ];
 

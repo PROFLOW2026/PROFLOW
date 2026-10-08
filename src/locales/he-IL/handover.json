@@ -6,6 +6,15 @@
     "agreementLabel": "הסכם {id}",
     "status": { "open": "פתוח", "ready": "מוכן", "closed": "סגור" }
   },
+  "agreement": {
+    "title": "מסירה ואחריות לקבלן זה",
+    "description": "הרשימות למטה שייכות להסכם הזה בלבד.",
+    "openCloseout": "מסירת הקבלן",
+    "openWarranty": "אחריות הקבלן",
+    "startCloseout": "פתיחת מסירה להסכם",
+    "warrantyTitle": "כותרת דיווח אחריות",
+    "reportWarranty": "דיווח אחריות"
+  },
   "warranty": {
     "title": "אחריות קבלן",
     "description": "תקופות אחריות וקישור לליקויים.",

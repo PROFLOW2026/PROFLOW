@@ -187,6 +187,9 @@ export interface Contractor360View {
   readonly defects: { readonly items: readonly Contractor360Defect[]; readonly hasMore: boolean };
   /** Null when the viewer lacks payment.view. Amounts are the payment loader's own totals. */
   readonly payments: Contractor360Payments | null;
+  /** Null when the viewer lacks progress.view. Weights and dates only — no prices. */
+  readonly progress: readonly WorkLineView[] | null;
+  readonly canManageHandover: boolean;
   readonly compliance: {
     readonly requirements: readonly Contractor360Requirement[];
     readonly blockingCount: number;
@@ -359,6 +362,12 @@ export async function loadContractor360(
     defects,
     payments,
     compliance,
+    progress: held.has(C.PROGRESS_VIEW)
+      ? workspace.lines.filter(
+          (line) => line.lineType === 'weighted_milestone' || line.lineType === 'percentage',
+        )
+      : null,
+    canManageHandover: held.has(C.CONTRACTOR_COORDINATE),
   };
 }
 

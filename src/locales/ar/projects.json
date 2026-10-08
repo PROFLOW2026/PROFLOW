@@ -38,6 +38,15 @@
     "templateHint": "يُطبّق نسخاً قابلة للتعديل من مناطق العمل والمعالم والمجلدات المقترحة. القالب نفسه لا يُغيّر أبداً.",
     "recommendedTemplatesTip": "موصى به لعملك: {templates}. اختر واحداً أدناه.",
     "nameLabel": "اسم المشروع",
+    "managementModeLabel": "نوع المشروع",
+    "managementModeHint": "اختيار واحد. فريق المشروع يُحدد في شاشة منفصلة.",
+    "managementModeSave": "حفظ نوع المشروع",
+    "managementModes": {
+      "standard_project": "مشروع عادي",
+      "execution_contractor": "مقاول تنفيذ",
+      "developer_gc": "مطوّر / مقاول عام",
+      "project_management": "إدارة مشروع"
+    },
     "namePlaceholder": "مثال: منزل كوهين",
     "clientLabel": "العميل",
     "clientNone": "لا يوجد عميل بعد",

@@ -6,6 +6,15 @@
     "agreementLabel": "عقد {id}",
     "status": { "open": "مفتوح", "ready": "جاهز", "closed": "مغلق" }
   },
+  "agreement": {
+    "title": "التسليم والضمان لهذا المقاول",
+    "description": "القوائم أدناه تخص هذه الاتفاقية فقط.",
+    "openCloseout": "تسليم هذا المقاول",
+    "openWarranty": "ضمان هذا المقاول",
+    "startCloseout": "فتح تسليم لهذه الاتفاقية",
+    "warrantyTitle": "عنوان بلاغ الضمان",
+    "reportWarranty": "بلاغ ضمان"
+  },
   "warranty": {
     "title": "ضمان المقاول",
     "description": "فترات الضمان وربط العيوب.",

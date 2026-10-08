@@ -1,5 +1,6 @@
 import type { ProjectCapability } from '@/modules/project-team';
-import { usesExecutionLayer, type DeliveryProfile } from '@/modules/project-profile';
+import { isDeveloperGcMode } from '@/modules/project-profile/domain/management-mode';
+import type { DeliveryProfile } from '@/modules/project-profile/domain/profile';
 import {
   employeeExecutionPageExists,
   EXECUTION_NAV_PRIORITY,
@@ -54,14 +55,15 @@ function resolveHref(
   return `${root}/${route.path}`;
 }
 
-/** Whether the Execution group chrome should render for this project (before capability filtering). */
+/**
+ * Developer / GC chrome only. Subcontract agreements and any other role mix do not open it.
+ * `hasSubcontractAgreements` is ignored and kept so existing callers compile.
+ */
 export function shouldShowExecutionNavGroup(input: Pick<
   ExecutionNavInput,
   'deliveryProfile' | 'hasSubcontractAgreements'
 >): boolean {
-  if (input.hasSubcontractAgreements) return true;
-  const profile = input.deliveryProfile;
-  return profile !== null && usesExecutionLayer(profile);
+  return isDeveloperGcMode(input.deliveryProfile);
 }
 
 export function selectExecutionNavLinks(input: ExecutionNavInput): ExecutionNavLink[] {

@@ -78,13 +78,13 @@ export function ProjectStructureClient({
       <CharacteristicsCard
         projectId={projectId}
         characteristics={characteristics}
-        canEdit={permissions.canManageStructure}
+        canEdit={permissions.canManageStructure || permissions.canManageSettings}
         saveCharacteristics={actions.saveCharacteristics}
       />
       <LocationsCard
         projectId={projectId}
         locations={locations}
-        canEdit={permissions.canManageStructure}
+        canEdit={permissions.canManageStructure || permissions.canManageSettings}
         actions={actions}
       />
       <RecommendationsCard

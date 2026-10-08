@@ -3,23 +3,24 @@
 import { useTranslations } from 'next-intl';
 import { useState, type FormEvent } from 'react';
 import { Alert } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Field } from '@/components/ui/field';
 import { Input, inputClassName } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import {
-  OPERATING_ROLES,
   OWNERSHIP_MODELS,
   clientRequirement,
-  normalizeOperatingRoles,
   resolveOwnershipModel,
   type DeliveryProfile,
-  type OperatingRole,
   type OwnershipModel,
 } from '../domain/profile';
+import {
+  MANAGEMENT_MODES,
+  operatingRolesForMode,
+  resolveManagementMode,
+  type ManagementMode,
+} from '../domain/management-mode';
 import type { ProjectStructureActions } from './types';
 import { useStructureAction } from './use-structure-action';
 
@@ -38,30 +39,27 @@ export function DeliveryProfileCard({
 }) {
   const t = useTranslations('projectProfile');
   const action = useStructureAction();
-  const [roles, setRoles] = useState<OperatingRole[]>([...profile.operatingRoles]);
+  const [mode, setMode] = useState<ManagementMode>(resolveManagementMode(profile));
   const [ownership, setOwnership] = useState<OwnershipModel>(profile.ownershipModel);
   const [entityName, setEntityName] = useState(profile.developerEntityName ?? '');
   const [notes, setNotes] = useState(profile.notes ?? '');
 
-  const isDeveloper = roles.includes('developer');
-  const effectiveOwnership = resolveOwnershipModel(roles, isDeveloper ? ownership : null);
-  const requirement = clientRequirement({ operatingRoles: roles, ownershipModel: effectiveOwnership });
-
-  const toggleRole = (role: OperatingRole, checked: boolean) => {
-    const next = normalizeOperatingRoles(checked ? [...roles, role] : roles.filter((r) => r !== role));
-    setRoles(next);
-    if (role === 'developer' && checked && ownership === 'client_project' && !hasClient) setOwnership('own_development');
-  };
+  const operatingRoles = operatingRolesForMode(mode);
+  const isDeveloper = mode === 'developer_gc';
+  const effectiveOwnership = resolveOwnershipModel(operatingRoles, isDeveloper ? ownership : null);
+  const requirement = clientRequirement({ operatingRoles, ownershipModel: effectiveOwnership });
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
+    const operatingRoles = operatingRolesForMode(mode);
+    const developer = operatingRoles.includes('developer');
     action.run(
       saveProfile,
       {
         projectId,
-        operatingRoles: roles,
-        ownershipModel: isDeveloper ? ownership : null,
-        developerEntityName: isDeveloper ? entityName : null,
+        operatingRoles,
+        ownershipModel: developer ? ownership : null,
+        developerEntityName: developer ? entityName : null,
         notes,
       },
       () => t('profile.saved'),
@@ -77,36 +75,25 @@ export function DeliveryProfileCard({
       <CardContent>
         <form className="flex flex-col gap-5" onSubmit={submit}>
           <fieldset className="flex flex-col gap-3" disabled={!canEdit || action.pending}>
-            <legend className="mb-1 text-sm font-medium text-[var(--pf-text-primary)]">{t('profile.rolesLabel')}</legend>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              {OPERATING_ROLES.map((role) => {
-                const checkboxId = `profile-role-${role}`;
-                return (
-                  <label
-                    key={role}
-                    htmlFor={checkboxId}
-                    className="flex min-h-11 cursor-pointer items-start gap-3 rounded-md border border-[var(--pf-border-default)] p-3"
-                  >
-                    <Checkbox
-                      id={checkboxId}
-                      checked={roles.includes(role)}
-                      onCheckedChange={(checked) => toggleRole(role, checked === true)}
-                      className="mt-0.5"
-                    />
-                    <span className="flex min-w-0 flex-col gap-0.5">
-                      <span className="text-sm font-medium">{t(`profile.roles.${role}`)}</span>
-                      <span className="text-xs text-[var(--pf-text-secondary)]">{t(`profile.roleHints.${role}`)}</span>
-                    </span>
-                  </label>
-                );
-              })}
-            </div>
-            {roles.length === 0 ? (
-              <p className="flex items-center gap-2 text-xs text-[var(--pf-text-secondary)]">
-                <Badge tone="neutral">{t('profile.standard')}</Badge>
-                {t('profile.standardHint')}
-              </p>
-            ) : null}
+            <legend className="mb-1 text-sm font-medium text-[var(--pf-text-primary)]">{t('profile.modeLabel')}</legend>
+            <select
+              className={inputClassName}
+              value={mode}
+              onChange={(event) => {
+                const next = event.target.value as ManagementMode;
+                setMode(next);
+                if (next === 'developer_gc' && !hasClient && ownership === 'client_project') {
+                  setOwnership('own_development');
+                }
+              }}
+            >
+              {MANAGEMENT_MODES.map((option) => (
+                <option key={option} value={option}>
+                  {t(`profile.modes.${option}`)}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-[var(--pf-text-secondary)]">{t('profile.modeHint')}</p>
           </fieldset>
 
           {isDeveloper ? (

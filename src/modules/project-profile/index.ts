@@ -17,6 +17,14 @@ export {
   type OwnershipModel,
 } from './domain/profile';
 export {
+  MANAGEMENT_MODES,
+  isDeveloperGcMode,
+  isManagementMode,
+  operatingRolesForMode,
+  resolveManagementMode,
+  type ManagementMode,
+} from './domain/management-mode';
+export {
   CONSTRUCTION_CATEGORIES,
   CONSTRUCTION_METHODS,
   EMPTY_CHARACTERISTICS,
@@ -103,4 +111,4 @@ export {
   parseDeliveryCreateFormData,
   type DeliveryCreateInput,
 } from './domain/create-section';
-export { applyDeliveryAtProjectCreate, canSetDeliveryProfileAtCreate } from './application/create-section';
+export { applyDeliveryAtProjectCreate, applyManagementModeAtCreate, canSetDeliveryProfileAtCreate } from './application/create-section';

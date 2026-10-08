@@ -90,7 +90,11 @@
     "safety_manager": "مسؤول السلامة",
     "quality_manager": "مدير الجودة",
     "consultant": "استشاري",
-    "viewer": "عرض فقط"
+    "viewer": "عرض فقط",
+    "senior_project_manager": "مدير مشروع أول",
+    "project_secretary": "سكرتير / إداري المشروع",
+    "client_coordinator": "منسق العميل",
+    "developer_representative": "ممثل المطوّر"
   },
   "capabilities": {
     "project_view": "عرض المشروع",
