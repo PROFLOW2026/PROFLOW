@@ -23,7 +23,7 @@ export function MonthCashMonthPicker({
         aria-label={label}
         value={selectedMonth}
         max={maxMonth}
-        className="min-h-11 rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-3 py-2 text-sm font-medium"
+        className="w-full max-w-full min-h-11 rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-3 py-2 text-sm font-medium"
         onChange={(event) => {
           const month = event.target.value;
           if (!/^\d{4}-\d{2}$/.test(month) || month > maxMonth) return;

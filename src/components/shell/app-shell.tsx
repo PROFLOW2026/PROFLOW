@@ -6,8 +6,6 @@ import { ConnectivityBanner } from '@/modules/offline/ui/connectivity-banner';
 import { OfflineSyncProvider } from '@/modules/offline/ui/offline-sync-provider';
 import { NotificationBellLoader } from '@/modules/notifications/ui/notification-bell-loader';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import { isExperiencePreviewEnvironment } from '@/modules/tenancy/domain/experience-preview';
-import { serverEnv } from '@/shared/env/server';
 import { ExperiencePreviewSwitcher } from './experience-preview-switcher';
 import { MobileNav } from './mobile-nav';
 import { visibleNavItems } from './navigation';
@@ -37,11 +35,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
   });
 
   const organizationLogoUrl = shell.organizationLogoUrl;
-  const env = serverEnv();
-  const showExperiencePreview =
-    shell.experiencePreview.allowed &&
-    isExperiencePreviewEnvironment(env.APP_ENV, env.PF_EXPERIENCE_PREVIEW);
-  const experiencePreviewSwitcher = showExperiencePreview ? (
+  const experiencePreviewSwitcher = shell.experiencePreview.allowed ? (
     <ExperiencePreviewSwitcher
       selection={shell.experiencePreview.selection}
       active={shell.experiencePreview.active}
@@ -64,7 +58,6 @@ export async function AppShell({ children }: { children: ReactNode }) {
             })),
             activeOrganizationId: shell.organizationId,
           }}
-          footer={experiencePreviewSwitcher}
         />
 
         <div className="relative flex min-w-0 max-w-full flex-1 flex-col">
@@ -91,6 +84,15 @@ export async function AppShell({ children }: { children: ReactNode }) {
             }
           />
 
+          {experiencePreviewSwitcher ? (
+            <div
+              className="sticky top-[var(--pf-topbar-height)] z-20 border-b border-[var(--pf-border-default)] bg-[var(--pf-bg-muted)] px-4 py-2 print:hidden sm:px-6"
+              data-pf-experience-preview-bar=""
+            >
+              {experiencePreviewSwitcher}
+            </div>
+          ) : null}
+
           <main
             id="main"
             className="min-w-0 w-full max-w-full flex-1 px-4 pt-5 pb-[var(--pf-mobile-content-bottom)] sm:px-6 lg:pb-8"
@@ -102,7 +104,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
           </main>
         </div>
 
-        <MobileNav items={items} moreFooter={experiencePreviewSwitcher} />
+        <MobileNav items={items} />
       </div>
     </OfflineSyncProvider>
   );

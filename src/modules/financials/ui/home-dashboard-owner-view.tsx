@@ -34,6 +34,7 @@ import { DashboardContractSummaryRow } from './dashboard-contract-summary-row';
 import { DashboardRecentProjectsSection } from './dashboard-recent-projects-section';
 import { DashboardKpiDetailTrigger } from './dashboard-kpi-detail-trigger';
 import { HomeDashboardCashForecast } from './home-dashboard-cash-forecast';
+import { HomeDashboardRestoredSections } from './home-dashboard-restored-sections';
 import {
   mapDashboardKpiDetailCopy,
   mapDashboardKpiDetailTriggerCopy,
@@ -343,6 +344,8 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
         </section>
       ) : null}
 
+      <HomeDashboardRestoredSections data={data} />
+
       <DashboardRecentProjectsSection
         projects={data.recentProjects}
         workKindFilter={data.workKindFilter}
@@ -484,9 +487,17 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
         </div>
       </section>
 
-      <p className="text-sm">
+      <p className="flex min-w-0 flex-wrap gap-x-4 gap-y-2 text-sm">
         <Link href="/reports" className={textNavLinkClassName} prefetch={false}>
           {t('ownerHeadline.reportsLink')}
+        </Link>
+        <Link
+          href="/reports?section=management"
+          className={textNavLinkClassName}
+          prefetch={false}
+          data-pf-owner-management-link=""
+        >
+          {t('ownerLinks.management')}
         </Link>
       </p>
     </div>

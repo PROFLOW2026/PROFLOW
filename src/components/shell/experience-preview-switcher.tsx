@@ -43,11 +43,11 @@ export function ExperiencePreviewSwitcher({
 
   return (
     <div
-      className="flex w-full min-w-0 flex-col gap-2 print:hidden"
+      className="flex w-full min-w-0 flex-col gap-2 print:hidden sm:flex-row sm:items-center sm:justify-between"
       data-pf-experience-preview=""
     >
       {active && activeLabel ? (
-        <div className="flex min-w-0 flex-col gap-1 text-xs text-[var(--pf-text-secondary)]">
+        <div className="flex min-w-0 flex-col gap-1 text-xs text-[var(--pf-text-secondary)] sm:max-w-[40%]">
           <p className="min-w-0 text-start">{t('previewing', { label: activeLabel })}</p>
           <button
             type="button"
@@ -59,10 +59,10 @@ export function ExperiencePreviewSwitcher({
         </div>
       ) : null}
 
-      <label className="flex min-w-0 flex-col gap-1 text-start">
-        <span className="text-xs font-medium text-[var(--pf-text-secondary)]">{t('label')}</span>
+      <label className="flex min-w-0 flex-1 items-center gap-2 text-start sm:max-w-md sm:ms-auto">
+        <span className="shrink-0 text-xs font-medium text-[var(--pf-text-secondary)]">{t('label')}</span>
         <select
-          className="h-9 w-full min-w-0 rounded-md border border-[var(--pf-border-strong)] bg-[var(--pf-bg-surface)] px-2 text-sm text-[var(--pf-text-primary)]"
+          className="h-11 min-h-11 w-full min-w-0 flex-1 rounded-md border border-[var(--pf-border-strong)] bg-[var(--pf-bg-surface)] px-2 text-sm text-[var(--pf-text-primary)]"
           value={selection}
           aria-label={t('label')}
           onChange={(event) => void applyPreview(event.target.value)}

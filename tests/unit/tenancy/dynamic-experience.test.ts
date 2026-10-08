@@ -79,10 +79,11 @@ describe('experience preview', () => {
     expect(resolveExperiencePreview('actual').active).toBe(false);
   });
 
-  it('gates to owner + non-production by default', () => {
+  it('gates to the owner role in every environment', () => {
     expect(canUseExperiencePreview(['owner'], 'local', undefined)).toBe(true);
     expect(canUseExperiencePreview(['admin'], 'local', undefined)).toBe(false);
-    expect(canUseExperiencePreview(['owner'], 'production', undefined)).toBe(false);
+    expect(canUseExperiencePreview(['owner'], 'production', undefined)).toBe(true);
+    expect(canUseExperiencePreview(['member'], 'production', '1')).toBe(false);
     expect(canUseExperiencePreview(['owner'], 'production', '1')).toBe(true);
   });
 });

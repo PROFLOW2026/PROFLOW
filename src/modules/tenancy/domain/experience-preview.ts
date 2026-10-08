@@ -120,8 +120,8 @@ export function resolveExperiencePreview(
 }
 
 /**
- * Gate: development/preview environments, or explicit server flag.
- * Production stays off unless PF_EXPERIENCE_PREVIEW=1 for Owner staging.
+ * Environment hint kept for callers that still distinguish local/preview.
+ * The Owner experience switcher does not use this gate.
  */
 export function isExperiencePreviewEnvironment(
   appEnv: string | undefined,
@@ -131,12 +131,14 @@ export function isExperiencePreviewEnvironment(
   return appEnv === 'local' || appEnv === 'preview';
 }
 
-/** Owner role only — not permission-by-obscurity for normal members. */
+/**
+ * Owner role only, in every environment including production.
+ * Visual preview cookie only — never a permission or organization-settings grant.
+ */
 export function canUseExperiencePreview(
   roleKeys: readonly string[],
-  appEnv: string | undefined,
-  flag: string | undefined,
+  _appEnv?: string,
+  _flag?: string,
 ): boolean {
-  if (!isExperiencePreviewEnvironment(appEnv, flag)) return false;
   return roleKeys.includes('owner');
 }

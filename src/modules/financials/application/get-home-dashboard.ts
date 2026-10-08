@@ -369,13 +369,6 @@ export async function getHomeDashboard(
     Boolean(effectiveModules.jobs) || workMixSurfacesJobs(effectiveWorkMix);
   const serviceReachable = Boolean(effectiveModules.service) && canCreateService;
   const preferServiceSurface = Boolean(effectiveSuggestedDefaults?.preferServiceSurface);
-  const slimOwnerDashboard =
-    !preferServiceSurface &&
-    (persona === 'project_contractor' ||
-      persona === 'renovation' ||
-      persona === 'architecture' ||
-      persona === 'consulting' ||
-      persona === 'mixed');
   const parsedWorkKindFilter = parseWorkKindFilter(options.workKindFilter);
   let emptyStartKind: 'project' | 'job' | 'work_order' = 'project';
   if (
@@ -540,14 +533,13 @@ export async function getHomeDashboard(
 
   const wantBilling = canReadBilling && hasBilling;
   const wantMonthInvoiced =
-    !slimOwnerDashboard && parsedWorkKindFilter === 'all' && canReadFinancials && wantBilling;
+    parsedWorkKindFilter === 'all' && canReadFinancials && wantBilling;
   const wantMonthCosts =
-    !slimOwnerDashboard &&
     parsedWorkKindFilter === 'all' &&
     canReadFinancials &&
     (wantBilling || hasExpenses);
   const wantMonthCollections =
-    !slimOwnerDashboard && parsedWorkKindFilter === 'all' && canReadFinancials && wantBilling;
+    parsedWorkKindFilter === 'all' && canReadFinancials && wantBilling;
 
   const scopedProjectIds =
     parsedWorkKindFilter !== 'all' && rollup
@@ -604,7 +596,7 @@ export async function getHomeDashboard(
           monthEnd,
         )
       : Promise.resolve(null),
-    canReadFinancials && !slimOwnerDashboard
+    canReadFinancials
       ? sumOrganizationGeneralPoolTotals(context.db, context.organizationId, currency)
       : Promise.resolve(null),
     canReadAp
@@ -629,7 +621,7 @@ export async function getHomeDashboard(
       : null;
 
   const monthCash =
-    !slimOwnerDashboard && parsedWorkKindFilter === 'all' && (canReadFinancials || canReadAp)
+    parsedWorkKindFilter === 'all' && (canReadFinancials || canReadAp)
       ? await getMonthCashFlow(context, {
           from: monthStart,
           to: monthEnd,
@@ -719,7 +711,7 @@ export async function getHomeDashboard(
         ? addMoney(cost.actual.value, allocatedGeneralToProjects)
         : null;
     const companyComposition =
-      !slimOwnerDashboard && parsedWorkKindFilter === 'all' && generalPoolTotals && fullProjectActual
+      parsedWorkKindFilter === 'all' && generalPoolTotals && fullProjectActual
         ? composeCompanyActualFromOrgTotals({
             currency,
             fullProjectActual,
@@ -756,17 +748,13 @@ export async function getHomeDashboard(
     forecast = {
       totalCurrentContract: commercial?.current.value ?? zeroMoney(currency),
       totalActualProjectCost: cost.actual?.value ?? null,
-      totalAllocatedOverhead: slimOwnerDashboard ? null : (cost.overhead?.value ?? null),
-      totalRemainingCommitments: slimOwnerDashboard ? null : (cost.committed?.value ?? null),
-      totalExpectedRemaining: slimOwnerDashboard ? null : (cost.expectedRemaining?.value ?? null),
-      totalForecastFinalCost: slimOwnerDashboard ? null : (cost.estimatedFinal?.value ?? null),
+      totalAllocatedOverhead: cost.overhead?.value ?? null,
+      totalRemainingCommitments: cost.committed?.value ?? null,
+      totalExpectedRemaining: cost.expectedRemaining?.value ?? null,
+      totalForecastFinalCost: cost.estimatedFinal?.value ?? null,
       totalActualMargin: canReadProfit ? (profitability?.actualProfit?.value ?? null) : null,
-      totalForecastMargin: slimOwnerDashboard
-        ? null
-        : canReadProfit
-          ? (profitability?.estimatedProfit?.value ?? null)
-          : null,
-      unallocatedBusinessCosts: slimOwnerDashboard ? null : (unallocatedBusinessCosts ?? null),
+      totalForecastMargin: canReadProfit ? (profitability?.estimatedProfit?.value ?? null) : null,
+      unallocatedBusinessCosts: unallocatedBusinessCosts ?? null,
       companyActual,
       companyProfit,
       eligibleProjectCount: rollup.totalEligibleProjectCount,
@@ -795,7 +783,7 @@ export async function getHomeDashboard(
   let billingCoverage: FinancialCoverage | null = null;
   let organizationSummary: HomeDashboardData['organizationSummary'] = null;
 
-  if (billingRows && !slimOwnerDashboard) {
+  if (billingRows) {
     const position = computeBillingPositionFromRows(billingRows, currency);
     billing = {
       invoiced: position.invoiced,
@@ -827,7 +815,7 @@ export async function getHomeDashboard(
         monthCash: monthCash ?? emptyMonthCash(currency, collectionTriplet),
       };
     }
-  } else if (!slimOwnerDashboard && canReadFinancials && hasExpenses && costsThisMonth) {
+  } else if (canReadFinancials && hasExpenses && costsThisMonth) {
     organizationSummary = {
       outstanding: zeroMoney(currency),
       netOutstanding: zeroMoney(currency),
