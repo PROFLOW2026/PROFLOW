@@ -1,16 +1,18 @@
+import 'server-only';
+
 import { getTranslations } from 'next-intl/server';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { PROJECT_CAPABILITIES } from '@/modules/project-team/domain/capabilities';
 import { requireProjectCapabilityPage } from '@/modules/project-team/server';
-import { listProjectPaymentStageLines } from '@/modules/subcontracts';
+import { listProjectPaymentStageLines } from '@/modules/subcontracts/application/payment-stage-lines';
+import { loadProjectContractorList } from '@/modules/project-workspace/application/load-project-contractors';
 import {
   EXECUTION_HUBS,
   selectExecutionHubChildren,
   type ExecutionHubKey,
 } from '@/modules/project-workspace/domain/execution-hubs';
-import { loadProjectContractorList } from '@/modules/project-workspace/application/load-project-contractors';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
 

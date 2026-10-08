@@ -1,4 +1,4 @@
-import { ExecutionHubScreen } from '@/app/[locale]/(app)/projects/[projectId]/execution-hub-screen';
+import { ExecutionHubScreen } from '@/modules/project-workspace/ui/execution-hub-screen';
 
 export default async function EmployeeExecutionPlanningPage({
   params,

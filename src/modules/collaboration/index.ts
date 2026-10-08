@@ -139,3 +139,4 @@ export {
   type VerificationOutcome,
 } from './domain/task-lifecycle';
 export { canSeeEventDetails, financialCapabilitiesFor } from './domain/activity';
+export { listTasksLinkedFrom } from './data/collaboration.repository';

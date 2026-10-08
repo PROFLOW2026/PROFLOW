@@ -1,4 +1,4 @@
-import { ExecutionHubScreen } from '../execution-hub-screen';
+import { ExecutionHubScreen } from '@/modules/project-workspace/ui/execution-hub-screen';
 
 export default function ExecutionContractsPage({
   params,

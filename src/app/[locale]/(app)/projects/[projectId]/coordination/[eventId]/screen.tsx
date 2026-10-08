@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageHeader } from '@/components/ui/page-header';
-import { listTasksLinkedFrom } from '@/modules/collaboration/data/collaboration.repository';
+import { listTasksLinkedFrom } from '@/modules/collaboration';
 import { EntityDiscussion } from '@/modules/collaboration/ui';
 import {
   getCoordinationEventDetail,
