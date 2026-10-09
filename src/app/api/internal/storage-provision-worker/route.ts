@@ -2,6 +2,11 @@ import { NextResponse } from 'next/server';
 import { waitUntil } from '@vercel/functions';
 import { runStorageProvisionCycle } from '@/modules/external-storage/application/provision-batch';
 import { isStorageProvisionWorkerAuthorized } from '@/modules/external-storage/application/storage-provision-worker-auth';
+import {
+  inferWorkerTrigger,
+  logUsageWorkerEnd,
+  logUsageWorkerStart,
+} from '@/shared/observability/runtime-usage-diag';
 
 /** Multi-batch provision inside waitUntil + next-hop kick. */
 export const maxDuration = 300;
@@ -25,10 +30,23 @@ export async function POST(request: Request): Promise<Response> {
   const rateLimitStreak = typeof body.rateLimitStreak === 'number' ? body.rateLimitStreak : 0;
   const chainToken = typeof body.chainToken === 'string' ? body.chainToken : undefined;
   console.info('[org-storage/provision] worker POST accept', { chain, rateLimitStreak });
+  const trigger = inferWorkerTrigger(request);
+  const startedMs = Date.now();
+  logUsageWorkerStart('storage-provision-worker', trigger === 'unknown' ? 'recovery' : trigger);
 
   waitUntil(
     runStorageProvisionCycle({ chain, rateLimitStreak, chainToken })
       .then((result) => {
+        logUsageWorkerEnd('storage-provision-worker', trigger === 'unknown' ? 'recovery' : trigger, startedMs, {
+          processed:
+            result.clientsProcessed +
+            result.projectsProcessed +
+            (result.partiesProcessed ?? 0),
+          remaining: result.remaining,
+          chain,
+          nextHop: result.continued,
+          rateLimited: result.rateLimited,
+        });
         console.info('[org-storage/provision] worker waitUntil done', {
           clientsProcessed: result.clientsProcessed,
           projectsProcessed: result.projectsProcessed,

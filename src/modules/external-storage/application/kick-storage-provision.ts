@@ -9,6 +9,7 @@ import { decideStorageProvisionRecovery } from '../domain/provision-chain-lease'
 import { isStorageProvisionLeaseHeld } from './provision-chain-lease';
 import { loadStorageProvisionProgress } from './provision-progress';
 import { resolveStorageProvisionWorkerSecret } from './storage-provision-worker-auth';
+import { logUsageSelfHttp } from '@/shared/observability/runtime-usage-diag';
 
 function isTestEnv(): boolean {
   return process.env.VITEST === 'true' || process.env.NODE_ENV === 'test';
@@ -46,6 +47,12 @@ export async function postStorageProvisionWorker(input?: {
   if (!target) {
     throw new Error('STORAGE_PROVISION_WORKER_SECRET or app URL not configured');
   }
+  logUsageSelfHttp({
+    fromModule: 'external-storage/kick',
+    toPath: '/api/internal/storage-provision-worker',
+    chain: input?.chain ?? 0,
+    reason: 'storage_provision',
+  });
   return fetch(target.url, {
     method: 'POST',
     headers: {

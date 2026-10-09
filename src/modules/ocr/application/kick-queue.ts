@@ -1,4 +1,5 @@
 import { after } from 'next/server';
+import { logUsageSelfHttp } from '@/shared/observability/runtime-usage-diag';
 
 const OCR_WORKER_LIMIT = 5;
 
@@ -24,6 +25,11 @@ function requestRemoteOcrWorkerDrain(): void {
     return;
   }
 
+  logUsageSelfHttp({
+    fromModule: 'ocr/kick-queue',
+    toPath: '/api/internal/ocr-worker',
+    reason: 'ocr_enqueue',
+  });
   void fetch(url, {
     method: 'POST',
     headers: {

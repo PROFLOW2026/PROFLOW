@@ -11,6 +11,12 @@ import { runMaterialPressureAlertScan } from '@/modules/material-market/applicat
 import { runMarginSnapshotOpsWorker } from '@/modules/ops-finance/application/margin-snapshot-ops-worker';
 import { runDgEventsOpsWorker } from '@/modules/dg-events/application/ops-worker';
 import { isInternalWorkerAuthorized } from '@/shared/http/internal-worker-auth';
+import {
+  inferWorkerTrigger,
+  logUsageWorkerEnd,
+  logUsageWorkerStart,
+  measureJsonResponseBytes,
+} from '@/shared/observability/runtime-usage-diag';
 
 export const maxDuration = 300;
 
@@ -28,6 +34,9 @@ export async function POST(request: Request): Promise<Response> {
   if (!isInternalWorkerAuthorized(request)) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
+  const trigger = inferWorkerTrigger(request);
+  const startedMs = Date.now();
+  logUsageWorkerStart('ops-worker', trigger);
   const [
     expenseRecurrence,
     taskRecurrence,
@@ -92,7 +101,7 @@ export async function POST(request: Request): Promise<Response> {
       errors: [error instanceof Error ? error.message : String(error)],
     })),
   ]);
-  return NextResponse.json({
+  const payload = {
     expenseRecurrence,
     taskRecurrence,
     taskReminders,
@@ -104,7 +113,23 @@ export async function POST(request: Request): Promise<Response> {
     materialPressureAlerts,
     marginSnapshots,
     dgEvents,
+  };
+  const response = NextResponse.json(payload);
+  const responseBytes = await measureJsonResponseBytes(response);
+  const dgProcessed =
+    dgEvents && typeof dgEvents === 'object' && 'processed' in dgEvents
+      ? (dgEvents as { processed?: number }).processed
+      : undefined;
+  logUsageWorkerEnd('ops-worker', trigger, startedMs, {
+    processed: dgProcessed,
+    nextHop:
+      storageProvision &&
+      typeof storageProvision === 'object' &&
+      'kicked' in storageProvision &&
+      (storageProvision as { kicked?: boolean }).kicked === true,
+    responseBytes,
   });
+  return response;
 }
 
 export async function GET(request: Request): Promise<Response> {

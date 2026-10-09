@@ -14,6 +14,7 @@ import { shouldSkipProxySessionRefresh } from '@/shared/proxy/public-session-fas
 import { refreshSupabaseSession } from '@/shared/supabase/middleware';
 import { REQUEST_PATHNAME_HEADER } from '@/shared/http/request-pathname';
 import { decideContractorSurface } from '@/modules/contractor-access/domain/surface';
+import { logUsageRequestDiag } from '@/shared/observability/runtime-usage-diag';
 
 function withRequestPathname(response: NextResponse, pathname: string): NextResponse {
   response.headers.set(REQUEST_PATHNAME_HEADER, pathname);
@@ -54,6 +55,7 @@ function localizeBarePath(request: NextRequest): NextResponse | null {
 /** Next 16's replacement for the `middleware` file convention. */
 export default async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
+  logUsageRequestDiag(request, pathname);
 
   const bare = localizeBarePath(request);
   if (bare) {

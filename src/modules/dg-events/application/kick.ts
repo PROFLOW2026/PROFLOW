@@ -1,6 +1,7 @@
 import 'server-only';
 
 import { after } from 'next/server';
+import { logUsageSelfHttp } from '@/shared/observability/runtime-usage-diag';
 
 let scheduled = false;
 
@@ -17,6 +18,11 @@ function kickRemote(): void {
   const secret = process.env.CRON_SECRET?.trim() || process.env.OCR_WORKER_SECRET?.trim();
   const url = workerUrl();
   if (!secret || !url) return;
+  logUsageSelfHttp({
+    fromModule: 'dg-events/kick',
+    toPath: '/api/internal/dg-events-worker',
+    reason: 'emit_domain_event',
+  });
   void fetch(url, {
     method: 'POST',
     headers: { Authorization: `Bearer ${secret}` },
