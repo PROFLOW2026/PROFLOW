@@ -16,11 +16,14 @@ import type {
   PlanningWorkItem,
   PlanningWorkItemKind,
 } from '../domain/types';
+import { Link } from '@/shared/i18n/navigation';
 import type {
   archivePlanningWorkItemAction,
   createPlanningWorkItemAction,
+  linkPlanningWorkItemTaskAction,
   removePlanningDependencyAction,
   setPlanningDependencyAction,
+  unlinkPlanningWorkItemTaskAction,
   updatePlanningWorkItemAction,
   PlanningActionState,
 } from '@/app/[locale]/(app)/projects/planning-actions';
@@ -37,6 +40,8 @@ interface PlanningWritePanelProps {
   readonly archiveAction: typeof archivePlanningWorkItemAction;
   readonly setDepAction: typeof setPlanningDependencyAction;
   readonly removeDepAction: typeof removePlanningDependencyAction;
+  readonly linkTaskAction: typeof linkPlanningWorkItemTaskAction;
+  readonly unlinkTaskAction: typeof unlinkPlanningWorkItemTaskAction;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -360,6 +365,83 @@ function AddDependencyForm({
   );
 }
 
+// ─── Link execution task ─────────────────────────────────────────────────────
+
+function LinkTaskControl({
+  projectId,
+  workItemId,
+  taskId,
+  linkTaskAction,
+  unlinkTaskAction,
+}: {
+  projectId: string;
+  workItemId: string;
+  taskId: string | null;
+  linkTaskAction: typeof linkPlanningWorkItemTaskAction;
+  unlinkTaskAction: typeof unlinkPlanningWorkItemTaskAction;
+}) {
+  const t = useTranslations('planning.write');
+  const [, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+  const [draftTaskId, setDraftTaskId] = useState('');
+
+  function handleLink(e: React.FormEvent) {
+    e.preventDefault();
+    const id = draftTaskId.trim();
+    if (!id) return;
+    startTransition(async () => {
+      const result = await linkTaskAction(projectId, workItemId, id);
+      if (result.error) setError(result.error);
+      else {
+        setError(null);
+        setDraftTaskId('');
+      }
+    });
+  }
+
+  function handleUnlink() {
+    startTransition(async () => {
+      const result = await unlinkTaskAction(projectId, workItemId);
+      if (result.error) setError(result.error);
+      else setError(null);
+    });
+  }
+
+  return (
+    <div className="mt-1 text-xs space-y-1">
+      {taskId ? (
+        <div className="flex flex-wrap items-center gap-2 text-[var(--pf-text-secondary)]">
+          <span>{t('taskLink.linked')}</span>
+          <Link href={`/tasks/${taskId}`} className="text-[var(--pf-status-info-fg)] underline">
+            {taskId.slice(0, 8)}…
+          </Link>
+          <button type="button" onClick={handleUnlink} className={cn(BTN_SECONDARY, 'text-xs px-2')}>
+            {t('taskLink.unlink')}
+          </button>
+        </div>
+      ) : (
+        <form onSubmit={handleLink} className="flex flex-wrap items-end gap-2">
+          <div className="min-w-[200px] flex-1">
+            <label className="block text-[var(--pf-text-secondary)] mb-0.5">
+              {t('taskLink.label')}
+            </label>
+            <input
+              value={draftTaskId}
+              onChange={(e) => setDraftTaskId(e.target.value)}
+              placeholder={t('taskLink.placeholder')}
+              className={INPUT_CLASS}
+            />
+          </div>
+          <button type="submit" className={cn(BTN_SECONDARY, 'text-xs px-2')}>
+            {t('taskLink.linkButton')}
+          </button>
+        </form>
+      )}
+      {error ? <p className="text-[var(--pf-status-danger-fg)]">{error}</p> : null}
+    </div>
+  );
+}
+
 // ─── Row Actions ──────────────────────────────────────────────────────────────
 
 type RowMode = 'view' | 'edit' | 'archive' | 'dep';
@@ -373,6 +455,8 @@ function WriteItemRow({
   archiveAction,
   setDepAction,
   removeDepAction,
+  linkTaskAction,
+  unlinkTaskAction,
 }: {
   item: PlanningWorkItem;
   projectId: string;
@@ -382,6 +466,8 @@ function WriteItemRow({
   archiveAction: typeof archivePlanningWorkItemAction;
   setDepAction: typeof setPlanningDependencyAction;
   removeDepAction: typeof removePlanningDependencyAction;
+  linkTaskAction: typeof linkPlanningWorkItemTaskAction;
+  unlinkTaskAction: typeof unlinkPlanningWorkItemTaskAction;
 }) {
   const t = useTranslations('planning');
   const tWrite = useTranslations('planning.write');
@@ -448,6 +534,16 @@ function WriteItemRow({
         </div>
       </div>
 
+      {item.kind === 'task' ? (
+        <LinkTaskControl
+          projectId={projectId}
+          workItemId={item.id}
+          taskId={item.taskId}
+          linkTaskAction={linkTaskAction}
+          unlinkTaskAction={unlinkTaskAction}
+        />
+      ) : null}
+
       {predecessorNames.length > 0 && (
         <div className="mt-1 flex flex-wrap gap-1">
           {predecessorNames.map((p) => (
@@ -512,6 +608,8 @@ export function PlanningWritePanel({
   archiveAction,
   setDepAction,
   removeDepAction,
+  linkTaskAction,
+  unlinkTaskAction,
 }: PlanningWritePanelProps) {
   const tWrite = useTranslations('planning.write');
   const [addKind, setAddKind] = useState<PlanningWorkItemKind | null>(null);
@@ -569,6 +667,8 @@ export function PlanningWritePanel({
               archiveAction={archiveAction}
               setDepAction={setDepAction}
               removeDepAction={removeDepAction}
+              linkTaskAction={linkTaskAction}
+              unlinkTaskAction={unlinkTaskAction}
             />
           ))}
         </ul>

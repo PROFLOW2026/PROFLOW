@@ -81,8 +81,8 @@
     "urgent": "דחוף"
   },
   "myWork": {
-    "pageTitle": "היום",
-    "pageDescription": "משימות להיום, ותצוגות נוספות בלשוניות למטה",
+    "pageTitle": "המשימות שלי",
+    "pageDescription": "המשימות שלך בכל הפרויקטים וסביבות העבודה",
     "tabsLabel": "תצוגות המשימות שלי",
     "views": {
       "today": "היום",
@@ -244,6 +244,9 @@
     },
     "noEffortData": "אין הערכות זמן",
     "reassign": "הקצה מחדש",
+    "reassignTo": "הקצה ל…",
+    "reassigning": "מקצה מחדש…",
+    "reassignFailed": "ההקצאה מחדש נכשלה",
     "expand": "צפה במשימות",
     "empty": "לא נמצאו עובדים",
     "accessDenied": {
@@ -573,6 +576,24 @@
     "timelineLink": "ציר זמן משימות",
     "filesLink": "קבצי פרויקט",
     "meetingsLink": "ישיבות פרויקט"
+  },
+  "workFilters": {
+    "title": "סינון משימות",
+    "apply": "החל",
+    "clear": "נקה מסננים",
+    "active": "מסננים פעילים",
+    "mobile": "מסננים",
+    "mobileWithCount": "מסננים ({count})",
+    "resultCount": "{count, plural, one {משימה #} other {# משימות}}",
+    "client": "לקוח",
+    "allClients": "כל הלקוחות",
+    "dueFrom": "יעד מ-",
+    "dueTo": "יעד עד",
+    "toggleOn": "פעיל",
+    "toggleOff": "כבוי",
+    "chipSearch": "חיפוש: {value}",
+    "chipStatus": "סטטוס: {value}",
+    "chipClient": "לקוח: {value}"
   },
   "filters": {
     "search": "חיפוש משימות",

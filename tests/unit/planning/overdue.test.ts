@@ -18,6 +18,7 @@ function workItem(
   overrides: Partial<PlanningWorkItem> & Pick<PlanningWorkItem, 'id' | 'name'>,
 ): PlanningWorkItem {
   const now = new Date('2026-08-01T12:00:00.000Z');
+  const { taskId, ...rest } = overrides;
   return {
     organizationId: ORG,
     projectId: PROJECT,
@@ -32,7 +33,8 @@ function workItem(
     archivedAt: null,
     createdAt: now,
     updatedAt: now,
-    ...overrides,
+    ...rest,
+    taskId: taskId ?? null,
   };
 }
 

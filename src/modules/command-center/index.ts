@@ -24,6 +24,8 @@ export type {
   FinancialSourceType,
 } from './domain/types';
 
+export { dedupeCommandCenterItems } from './domain/dedupe-command-center-items';
+
 export {
   buildItemKey,
   computeRankScore,

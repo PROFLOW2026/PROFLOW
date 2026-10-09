@@ -59,6 +59,7 @@
     "nameLabel": "Project name",
     "managementModeLabel": "Project type",
     "managementModeHint": "One choice. Who works on the project is set on the team screen.",
+    "managementModeGcGuidance": "Most contractors start with Standard project. Choose Developer / general contractor only when you act as both developer and GC on the same job — that unlocks execution hubs (RFIs, submittals, coordination) under the usual access rules. This does not change your organization profile or grant Dev+GC privileges automatically.",
     "managementModeSave": "Save project type",
     "managementModes": {
       "standard_project": "Standard project",

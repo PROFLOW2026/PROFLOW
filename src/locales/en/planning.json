@@ -63,6 +63,13 @@
       "removeAria": "Remove dependency on {name}"
     },
     "editAria": "Edit {name}",
-    "archiveAria": "Archive {name}"
+    "archiveAria": "Archive {name}",
+    "taskLink": {
+      "label": "Link execution task (optional)",
+      "placeholder": "Task ID (UUID)",
+      "linkButton": "Link",
+      "linked": "Linked task:",
+      "unlink": "Unlink"
+    }
   }
 }

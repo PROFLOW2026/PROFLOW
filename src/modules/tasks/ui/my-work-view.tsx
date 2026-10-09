@@ -3,12 +3,7 @@
 /**
  * MyWorkView — Aggregated My Work hub with tab/segment navigation.
  *
- * Views: Today | Overdue | This Week | Upcoming | Waiting | Assigned to Me | Following | Completed
- * Each view shows tasks from across all projects/workspaces/boards.
- *
- * Agent A dependency:
- *   MyWorkItem, MyWorkViewKey — from task-api.ts
- *   TODO: swap to `import { MyWorkItem, MyWorkViewKey } from '@/modules/tasks'` when Agent A delivers.
+ * Lazy-loads one view at a time; tab switches update `?view=` and fetch via server action when needed.
  */
 
 import {
@@ -23,10 +18,13 @@ import {
   ListChecks,
   User,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { useSearchParams } from 'next/navigation';
+import { usePathname, useRouter } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
 import { uwmPrimaryPanelClass, uwmPageHeadingClass, uwmTabBarClass } from '@/shared/ui/uwm-surface-styles';
+import { DEFAULT_MY_WORK_VIEW } from '@/modules/tasks/domain/my-work-views';
 import type { MyWorkItem, MyWorkViewKey, TaskCardData, TaskDetail } from './task-api';
 import { TaskListView } from './task-list-view';
 import { TaskDetailSheet } from './task-detail-sheet';
@@ -142,18 +140,22 @@ function ViewTabBar({
             aria-selected={active}
             onClick={() => onChange(v.key)}
             className={cn(
-              'inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-3 py-2 text-sm font-semibold transition-colors',
+              'inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 py-2 text-sm font-semibold transition-colors sm:px-3',
               active
                 ? 'bg-[var(--pf-action-primary)] text-[var(--pf-action-primary-fg)] shadow-sm'
                 : 'border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] text-[var(--pf-text-primary)] hover:bg-[var(--pf-bg-subtle)]',
             )}
           >
-            <span className={cn('shrink-0', active ? 'text-[var(--pf-text-brand)]' : 'text-[var(--pf-text-muted)] group-hover:text-[var(--pf-text-secondary)]')}>
+            <span
+              className={cn(
+                'shrink-0',
+                active ? 'text-[var(--pf-text-brand)]' : 'text-[var(--pf-text-muted)]',
+              )}
+            >
               {v.icon}
             </span>
-            <span className="hidden sm:inline">{t(v.labelKey)}</span>
-            {/* Badge for non-zero counts (especially overdue) */}
-            {count != null && count > 0 && (
+            <span className="max-w-[5.5rem] truncate text-xs sm:max-w-none sm:text-sm">{t(v.labelKey)}</span>
+            {count != null && count > 0 ? (
               <span
                 className={cn(
                   'min-w-[1.25rem] rounded-full px-1 py-0.5 text-center text-[0.6rem] font-bold leading-none',
@@ -164,7 +166,7 @@ function ViewTabBar({
               >
                 {count > 99 ? '99+' : count}
               </span>
-            )}
+            ) : null}
           </button>
         );
       })}
@@ -177,57 +179,83 @@ function ViewTabBar({
 // ---------------------------------------------------------------------------
 
 export interface MyWorkViewProps {
-  /**
-   * Tasks pre-fetched from Server Component, keyed by view.
-   * Agent A's getMyWork is called per-view server-side; results passed here.
-   * TODO: When Agent A delivers, server page calls getMyWork for each view and passes results.
-   */
   tasksByView: Partial<Record<MyWorkViewKey, MyWorkItem[]>>;
   hasMoreByView?: Partial<Record<MyWorkViewKey, boolean>>;
+  /** Active view from URL (`?view=`). */
+  activeView: MyWorkViewKey;
   onLoadMore?: (
     view: MyWorkViewKey,
     offset: number,
   ) => Promise<{ tasks: TaskCardData[]; hasMore: boolean }>;
-  /**
-   * Loads task detail on demand (called when user clicks a task).
-   * TODO: wire to getTaskDetail Server Action once Agent A delivers.
-   */
+  /** Loads the first page when the user switches to a view not yet fetched. */
+  onFetchView?: (view: MyWorkViewKey) => Promise<{ tasks: TaskCardData[]; hasMore: boolean }>;
   onLoadTaskDetail?: (taskId: string) => Promise<TaskDetail | null>;
-  /**
-   * Called when user updates a task field in the detail sheet.
-   * TODO: wire to updateTask Server Action once Agent A delivers.
-   */
   onUpdateTask?: (
     taskId: string,
     data: Record<string, unknown>,
-  ) => void | Promise<unknown>;
-  /** Initial active view (from URL search param) */
-  defaultView?: MyWorkViewKey;
+  ) => void | Promise<void | { success?: boolean; error?: string }>;
   today?: string;
 }
 
 export function MyWorkView({
   tasksByView: initialTasksByView,
   hasMoreByView: initialHasMoreByView = {},
+  activeView: activeViewFromUrl,
   onLoadMore,
+  onFetchView,
   onLoadTaskDetail,
   onUpdateTask,
-  defaultView = 'today',
   today,
 }: MyWorkViewProps) {
   const t = useTranslations('tasks');
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [tasksByView, setTasksByView] = useState(initialTasksByView);
   const [hasMoreByView, setHasMoreByView] = useState(initialHasMoreByView);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [activeView, setActiveView] = useState<MyWorkViewKey>(defaultView);
+  const [loadingView, setLoadingView] = useState<MyWorkViewKey | null>(null);
+  const [loadedViews, setLoadedViews] = useState<Set<MyWorkViewKey>>(
+    () => new Set(Object.keys(initialTasksByView) as MyWorkViewKey[]),
+  );
+  const activeView = activeViewFromUrl;
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [taskDetail, setTaskDetail] = useState<TaskDetail | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
 
-  // Count badges per view
+  const updateViewInUrl = useCallback(
+    (view: MyWorkViewKey) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (view === DEFAULT_MY_WORK_VIEW) {
+        params.delete('view');
+      } else {
+        params.set('view', view);
+      }
+      const query = params.toString();
+      router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+    },
+    [pathname, router, searchParams],
+  );
+
+  const ensureViewLoaded = useCallback(
+    async (view: MyWorkViewKey) => {
+      if (loadedViews.has(view) || !onFetchView) return;
+      setLoadingView(view);
+      try {
+        const page = await onFetchView(view);
+        setTasksByView((prev) => ({ ...prev, [view]: page.tasks as MyWorkItem[] }));
+        setHasMoreByView((prev) => ({ ...prev, [view]: page.hasMore }));
+        setLoadedViews((prev) => new Set(prev).add(view));
+      } finally {
+        setLoadingView(null);
+      }
+    },
+    [loadedViews, onFetchView],
+  );
+
   const counts = Object.fromEntries(
-    VIEWS.map((v) => [v.key, (tasksByView[v.key] ?? []).length]),
-  ) as Record<MyWorkViewKey, number>;
+    VIEWS.map((v) => [v.key, tasksByView[v.key]?.length]),
+  ) as Partial<Record<MyWorkViewKey, number>>;
 
   const currentTasks = tasksByView[activeView] ?? [];
   const currentViewDef = VIEWS.find((v) => v.key === activeView)!;
@@ -242,7 +270,7 @@ export function MyWorkView({
   };
 
   const handleUpdateTask = (taskId: string, data: Record<string, unknown>) => {
-    onUpdateTask?.(taskId, data);
+    void onUpdateTask?.(taskId, data);
   };
 
   async function handleLoadMore() {
@@ -262,37 +290,43 @@ export function MyWorkView({
 
   return (
     <div className="flex flex-col gap-0">
-      {/* Tab bar */}
       <ViewTabBar
         views={VIEWS}
         current={activeView}
         counts={counts}
         onChange={(key) => {
-          setActiveView(key);
+          updateViewInUrl(key);
+          void ensureViewLoaded(key);
           setSheetOpen(false);
           setSelectedTaskId(null);
         }}
       />
 
-      {/* Task list for active view */}
       <div className={cn(uwmPrimaryPanelClass, 'mt-4')}>
         <div className="mb-3 flex items-center gap-2">
           <span className="text-[var(--pf-text-muted)]">{currentViewDef.icon}</span>
           <h2 className={uwmPageHeadingClass}>{t(currentViewDef.labelKey)}</h2>
-          {currentTasks.length > 0 && (
+          {currentTasks.length > 0 ? (
             <span className="text-sm font-medium text-[var(--pf-text-muted)]">
               ({currentTasks.length})
             </span>
-          )}
+          ) : null}
         </div>
 
-        <TaskListView
-          tasks={currentTasks}
-          onOpenTask={handleOpenTask}
-          showProject
-          emptyTitle={t(currentViewDef.emptyTitleKey)}
-          emptyDescription={t(currentViewDef.emptyDescKey)}
-        />
+        {loadingView === activeView ? (
+          <p role="status" className="py-8 text-center text-sm text-[var(--pf-text-muted)]">
+            {t('loadingTask')}
+          </p>
+        ) : (
+          <TaskListView
+            tasks={currentTasks}
+            onOpenTask={handleOpenTask}
+            showProject
+            emptyTitle={t(currentViewDef.emptyTitleKey)}
+            emptyDescription={t(currentViewDef.emptyDescKey)}
+          />
+        )}
+
         {hasMoreByView[activeView] ? (
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <p role="status" className="text-sm text-[var(--pf-text-muted)]">
@@ -311,6 +345,7 @@ export function MyWorkView({
           </div>
         ) : null}
       </div>
+
       <TaskDetailSheet
         task={selectedTaskId != null && taskDetail?.id === selectedTaskId ? taskDetail : null}
         open={sheetOpen}
@@ -332,15 +367,14 @@ export function MyWorkView({
         timeLogBasePath="/workforce/time/new"
       />
 
-      {/* Loading indicator when task detail not yet fetched */}
-      {sheetOpen && selectedTaskId && taskDetail == null && (
+      {sheetOpen && selectedTaskId && taskDetail == null ? (
         <div className="pointer-events-none fixed inset-0 flex items-center justify-end pe-4">
-          <div className="flex items-center gap-2 rounded-full bg-[var(--pf-bg-elevated)] px-3 py-1.5 shadow-[var(--pf-shadow-md)] text-sm text-[var(--pf-text-muted)]">
+          <div className="flex items-center gap-2 rounded-full bg-[var(--pf-bg-elevated)] px-3 py-1.5 text-sm text-[var(--pf-text-muted)] shadow-[var(--pf-shadow-md)]">
             <ListChecks aria-hidden className="size-4 animate-pulse" />
             {t('loadingTask')}
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

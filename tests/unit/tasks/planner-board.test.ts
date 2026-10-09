@@ -95,6 +95,7 @@ describe('office tasks', () => {
       organizationId: 'org-1',
       workspaceIds: ['ws-1'],
       view: 'no_project',
+      today: '2026-10-10',
       limit: 100,
     });
     expect(limit).toHaveBeenCalledWith(101);

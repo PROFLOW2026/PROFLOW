@@ -160,6 +160,13 @@ export type {
   TaskInsightsProjectRow,
 } from './application/get-task-insights';
 export type { MyWorkView, MyWorkOptions, MyWorkPage } from './application/my-work';
+export {
+  MY_WORK_VIEWS,
+  DEFAULT_MY_WORK_VIEW,
+  parseMyWorkViewParam,
+  resolveMyWorkView,
+} from './domain/my-work-views';
+export type { MyWorkHubView } from './domain/my-work-views';
 export { generateOccurrences, createGeneratedTask } from './application/schedule-recurrence';
 export {
   getTaskRecurrence,

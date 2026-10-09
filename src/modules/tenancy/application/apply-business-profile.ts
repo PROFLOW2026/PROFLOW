@@ -156,6 +156,11 @@ export async function applyBusinessProfileConfig(
     }
 
     await seedBusinessProfileSetup(db, organizationId, profileKey, locale);
+
+    const { seedProfileTaskTemplates } = await import(
+      '@/modules/tasks/application/seed-profile-task-templates'
+    );
+    await seedProfileTaskTemplates(db, organizationId, profileKey, locale);
   }
 
   // Vocabulary catalogs (vendor categories, specialties, cost codes, doc requirements)

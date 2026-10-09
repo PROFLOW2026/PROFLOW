@@ -3,6 +3,10 @@
 import { revalidatePath } from 'next/cache';
 import { getTranslations } from 'next-intl/server';
 import {
+  linkPlanningWorkItemToTask,
+  unlinkPlanningWorkItemTask,
+} from '@/modules/planning/application/link-planning-work-item-task';
+import {
   archivePlanningWorkItem,
   upsertPlanningWorkItem,
 } from '@/modules/planning/application/upsert-work-item';
@@ -164,6 +168,67 @@ export async function updatePlanningWorkItemAction(
           progressPercent,
           phaseId: phaseId ?? undefined,
           sortOrder: 0,
+          workKind: project.workKind as 'project' | 'job',
+        },
+        { db: context.db },
+      );
+    });
+
+    revalidateProject(projectId);
+    return { success: true };
+  } catch (error) {
+    return mapPlanningError(error);
+  }
+}
+
+// ─── Link / unlink UWM task ───────────────────────────────────────────────────
+
+export async function linkPlanningWorkItemTaskAction(
+  projectId: string,
+  workItemId: string,
+  taskId: string,
+): Promise<PlanningActionState> {
+  try {
+    await withOrgContext(async (context) => {
+      assertPermission(context, PERMISSIONS.PLANNING_WRITE);
+      assertPermission(context, PERMISSIONS.TASKS_READ);
+      const project = await findProjectById(context.db, context.organizationId, projectId);
+      if (!project) throw new NotFoundError('Project');
+
+      await linkPlanningWorkItemToTask(
+        {
+          organizationId: context.organizationId,
+          projectId,
+          workItemId,
+          taskId: taskId.trim(),
+          workKind: project.workKind as 'project' | 'job',
+        },
+        { db: context.db },
+      );
+    });
+
+    revalidateProject(projectId);
+    return { success: true };
+  } catch (error) {
+    return mapPlanningError(error);
+  }
+}
+
+export async function unlinkPlanningWorkItemTaskAction(
+  projectId: string,
+  workItemId: string,
+): Promise<PlanningActionState> {
+  try {
+    await withOrgContext(async (context) => {
+      assertPermission(context, PERMISSIONS.PLANNING_WRITE);
+      const project = await findProjectById(context.db, context.organizationId, projectId);
+      if (!project) throw new NotFoundError('Project');
+
+      await unlinkPlanningWorkItemTask(
+        {
+          organizationId: context.organizationId,
+          projectId,
+          workItemId,
           workKind: project.workKind as 'project' | 'job',
         },
         { db: context.db },

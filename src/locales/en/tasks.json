@@ -244,6 +244,9 @@
     },
     "noEffortData": "No effort estimates",
     "reassign": "Reassign",
+    "reassignTo": "Reassign to…",
+    "reassigning": "Reassigning…",
+    "reassignFailed": "Could not reassign",
     "expand": "View tasks",
     "empty": "No team members found",
     "accessDenied": {
@@ -573,6 +576,24 @@
     "timelineLink": "Task timeline",
     "filesLink": "Project files",
     "meetingsLink": "Project meetings"
+  },
+  "workFilters": {
+    "title": "Filter tasks",
+    "apply": "Apply",
+    "clear": "Clear filters",
+    "active": "Filters active",
+    "mobile": "Filters",
+    "mobileWithCount": "Filters ({count})",
+    "resultCount": "{count, plural, one {# task} other {# tasks}}",
+    "client": "Client",
+    "allClients": "All clients",
+    "dueFrom": "Due from",
+    "dueTo": "Due to",
+    "toggleOn": "On",
+    "toggleOff": "Off",
+    "chipSearch": "Search: {value}",
+    "chipStatus": "Status: {value}",
+    "chipClient": "Client: {value}"
   },
   "filters": {
     "search": "Search tasks",

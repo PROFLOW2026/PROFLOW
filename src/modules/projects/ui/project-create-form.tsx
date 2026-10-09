@@ -26,6 +26,7 @@ import { ProjectCreateTeamPicker } from '@/modules/projects/ui/project-create-te
 import type { ProjectCreateTeamPickerOption } from '@/modules/projects/domain/project-create-team';
 import { rtlFlipClassName } from '@/shared/i18n/ltr-island';
 import type { ProjectFormState } from '@/app/[locale]/(app)/projects/actions';
+import type { BusinessProfileKey } from '@/modules/tenancy/domain/business-profiles';
 
 type ClientMode = 'none' | 'new' | 'existing';
 type ContactMode = 'none' | 'existing' | 'new';
@@ -80,6 +81,8 @@ export interface ProjectCreateFormProps {
   teamCandidates?: ProjectCreateTeamPickerOption[];
   capabilities?: ProjectCreateFormCapabilities;
   submitLabel?: string;
+  /** Org business profile — used for in-form guidance only (never auto-sets management mode). */
+  businessProfileKey?: BusinessProfileKey | null;
 }
 
 const DEFAULT_CAPABILITIES: Required<ProjectCreateFormCapabilities> = {
@@ -139,6 +142,7 @@ export function ProjectCreateForm({
   teamCandidates = [],
   capabilities: capabilitiesInput,
   submitLabel,
+  businessProfileKey = null,
 }: ProjectCreateFormProps) {
   const capabilities = { ...DEFAULT_CAPABILITIES, ...capabilitiesInput };
   const t = useTranslations('projects');
@@ -248,6 +252,9 @@ export function ProjectCreateForm({
     return t('create.clientNone');
   }, [clientMode, newClientName, selectedClient, t]);
 
+  const showGcManagementGuidance =
+    businessProfileKey === 'GENERAL_CONTRACTOR' || businessProfileKey === 'RENOVATION';
+
   const clientModeOptions = useMemo(() => {
     const options: { value: ClientMode; label: string }[] = [
       { value: 'none', label: t('create.clientNone') },
@@ -280,7 +287,10 @@ export function ProjectCreateForm({
           )}
         </Field>
 
-        <Field label={t('create.managementModeLabel')}>
+        <Field
+          label={t('create.managementModeLabel')}
+          description={t('create.managementModeHint')}
+        >
           {(control) => (
             <>
               <input type="hidden" name="managementMode" value={managementMode} />
@@ -295,6 +305,9 @@ export function ProjectCreateForm({
                   <SelectItem value="project_management">{t('create.managementModes.project_management')}</SelectItem>
                 </SelectContent>
               </Select>
+              {showGcManagementGuidance ? (
+                <p className="text-xs text-[var(--pf-text-muted)]">{t('create.managementModeGcGuidance')}</p>
+              ) : null}
             </>
           )}
         </Field>

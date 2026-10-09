@@ -33,6 +33,25 @@ describe('business profiles', () => {
     }
   });
 
+  it('adds work_management on Owner-approved Planner+ profiles', () => {
+    const approved = [
+      'GENERAL_CONTRACTOR',
+      'RENOVATION',
+      'ELECTRICAL',
+      'PLUMBING',
+      'HVAC',
+      'SMALL_WORKS',
+      'ARCHITECT',
+      'DESIGNER',
+      'ENGINEERING_CONSULTANT',
+      'PROJECT_MANAGEMENT',
+    ] as const;
+    for (const key of approved) {
+      expect(getBusinessProfile(key)?.visibleModules).toContain('work_management');
+    }
+    expect(getBusinessProfile('MAINTENANCE')?.visibleModules).not.toContain('work_management');
+  });
+
   it('maps legacy profession keys without inventing new products', () => {
     expect(resolveBusinessProfileKey('electrician')).toBe('ELECTRICAL');
     expect(resolveBusinessProfileKey('architect')).toBe('ARCHITECT');

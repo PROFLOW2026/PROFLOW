@@ -456,6 +456,7 @@ export async function collectOverduePlanning(ctx: CollectContext): Promise<Comma
       kind: planningWorkItems.kind,
       targetEndDate: planningWorkItems.targetEndDate,
       progressPercent: planningWorkItems.progressPercent,
+      taskId: planningWorkItems.taskId,
     })
     .from(planningWorkItems)
     .where(
@@ -502,6 +503,7 @@ export async function collectOverduePlanning(ctx: CollectContext): Promise<Comma
         projectId: row.projectId,
         targetEndDate: row.targetEndDate,
         scheduleKind: row.kind,
+        ...(row.taskId ? { scheduleLinkedTaskId: row.taskId } : {}),
       },
     });
   });

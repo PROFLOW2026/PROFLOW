@@ -326,8 +326,13 @@ export interface TaskListFilters {
   readonly assigneeOrgMemberId?: string;
   readonly assigneeEmployeeId?: string;
   readonly labelId?: string;
+  /** Filter tasks whose project belongs to this client (join projects.client_id). */
+  readonly clientId?: string;
   readonly dueBefore?: string;
   readonly dueAfter?: string;
+  readonly overdue?: boolean;
+  readonly blocked?: boolean;
+  readonly noProjectOnly?: boolean;
   readonly projectId?: string;
   readonly boardId?: string;
   readonly bucketId?: string;

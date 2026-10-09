@@ -188,6 +188,7 @@ export default async function NewProjectPage({
         cloneSourceProjects={cloneSourceProjects}
         teamCandidates={teamCandidates}
         capabilities={{ showTeamSection }}
+        businessProfileKey={shell?.businessProfileKey ?? null}
       />
     </div>
   );

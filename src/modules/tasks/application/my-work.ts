@@ -1,16 +1,18 @@
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
+import { todayInTimeZone } from '@/shared/dates';
 import { queryMyWorkPage, type MyWorkPage, type MyWorkView } from '../data/my-work.repository';
-import { findWorkspaceIdsByActor, listWorkspacesForOrg } from '@/modules/workspaces';
-import { getWorkspaceScope } from '@/modules/workspaces/domain/access';
 import { findEmployeeByUserId } from '@/modules/workforce';
 import type { Task } from '../domain/types';
+import { resolveAccessibleWorkspaceIds } from './accessible-workspaces';
 
 export type { MyWorkPage, MyWorkView };
 
 export interface MyWorkOptions {
   readonly view: MyWorkView;
+  /** Org-local YYYY-MM-DD; defaults from organization timezone when omitted. */
+  readonly today?: string;
   readonly limit?: number;
   readonly offset?: number;
 }
@@ -35,37 +37,14 @@ export async function getMyWorkPage(
 ): Promise<MyWorkPage> {
   assertPermission(context, PERMISSIONS.TASKS_READ);
 
-  const scope = getWorkspaceScope(context);
-
-  let workspaceIds: string[];
-
-  if (scope === 'full') {
-    const allWorkspaces = await listWorkspacesForOrg(context.db, context.organizationId, {
-      includeArchived: false,
-    });
-    workspaceIds = allWorkspaces.map((ws) => ws.id);
-  } else {
-    const memberIds = await findWorkspaceIdsByActor(
-      context.db,
-      context.organizationId,
-      { orgMemberId: context.membershipId },
-    );
-
-    const orgVisibleWorkspaces = await listWorkspacesForOrg(context.db, context.organizationId, {
-      includeArchived: false,
-    });
-    const orgVisibleIds = orgVisibleWorkspaces
-      .filter((ws) => ws.workspaceVisibility === 'organization')
-      .map((ws) => ws.id);
-
-    const seen = new Set([...orgVisibleIds, ...memberIds]);
-    workspaceIds = Array.from(seen);
-  }
+  const workspaceIds = await resolveAccessibleWorkspaceIds(context);
 
   const linkedEmployee =
     context.employeeApp?.employeeId != null
       ? { id: context.employeeApp.employeeId }
       : await findEmployeeByUserId(context.db, context.organizationId, context.userId);
+
+  const today = options.today ?? todayInTimeZone(context.organization.timezone);
 
   return queryMyWorkPage(context.db, {
     orgMemberId: context.membershipId,
@@ -73,6 +52,7 @@ export async function getMyWorkPage(
     organizationId: context.organizationId,
     workspaceIds,
     view: options.view,
+    today,
     limit: options.limit,
     offset: options.offset,
   });

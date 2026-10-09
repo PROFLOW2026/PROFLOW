@@ -1226,6 +1226,13 @@
                         "when":  1789714740000,
                         "tag":  "0176_project_access_mode_default_selected",
                         "breakpoints":  true
+                    },
+                    {
+                        "idx":  175,
+                        "version":  "7",
+                        "when":  1789714800000,
+                        "tag":  "0177_tasks_uwm_scale_indexes",
+                        "breakpoints":  true
                     }
                 ]
 }

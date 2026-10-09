@@ -21,6 +21,8 @@ export interface TaskWorkSurfaceClientProps {
   showProject?: boolean;
   timelineDateEdit?: boolean;
   hasMore?: boolean;
+  /** When true, filters come from the URL on the server; hide the local filter bar. */
+  urlBackedFilters?: boolean;
   getTaskDetail: (taskId: string) => Promise<TaskDetail | null>;
   updateTask: (taskId: string, data: Record<string, unknown>) => Promise<WorkActionState>;
   onLoadMore?: (offset: number) => Promise<{ tasks: TaskCardData[]; hasMore: boolean }>;
@@ -33,12 +35,14 @@ export function TaskWorkSurfaceClient({
   showProject = true,
   timelineDateEdit = false,
   hasMore: initialHasMore = false,
+  urlBackedFilters = false,
   getTaskDetail,
   updateTask,
   onLoadMore,
 }: TaskWorkSurfaceClientProps) {
   const t = useTranslations('tasks');
   const [filters, setFilters] = useState<TaskFilterBarState>(DEFAULT_TASK_FILTER_STATE);
+  const useLocalFilters = !urlBackedFilters;
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [taskDetail, setTaskDetail] = useState<TaskDetail | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -49,8 +53,8 @@ export function TaskWorkSurfaceClient({
   const allTasks = useMemo(() => [...tasks, ...extraTasks], [tasks, extraTasks]);
 
   const filteredTasks = useMemo(
-    () => applyClientTaskFilters(allTasks, filters, today),
-    [allTasks, filters, today],
+    () => (useLocalFilters ? applyClientTaskFilters(allTasks, filters, today) : allTasks),
+    [allTasks, filters, today, useLocalFilters],
   );
 
   async function handleLoadMore() {
@@ -87,7 +91,7 @@ export function TaskWorkSurfaceClient({
 
   return (
     <div className="flex flex-col gap-4">
-      <TaskFiltersBar value={filters} onChange={setFilters} />
+      {useLocalFilters ? <TaskFiltersBar value={filters} onChange={setFilters} /> : null}
 
       {hasMore ? (
         <div className="flex flex-wrap items-center gap-3">

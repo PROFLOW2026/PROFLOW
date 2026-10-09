@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray, or, sql, ilike, lte, gte, lt } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, isNotNull, isNull, or, sql, ilike, lte, gte, lt } from 'drizzle-orm';
 import {
   tasks,
   taskAssignees,
@@ -15,6 +15,7 @@ import {
   taskTemplates,
   taskTemplateItems,
   organizationMemberships,
+  projects,
 } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 import { clampTaskListLimit, splitTaskListPage } from '../domain/list-window';
@@ -284,6 +285,11 @@ export interface TaskListPage {
   readonly hasMore: boolean;
 }
 
+export interface TaskListAccessScope {
+  /** When set, restricts tasks to accessible projects (null = unrestricted). */
+  readonly accessibleProjectIds?: string[] | null;
+}
+
 export async function listTasks(
   db: DbExecutor,
   organizationId: string,
@@ -299,6 +305,7 @@ export async function listTasksPage(
   organizationId: string,
   workspaceIds: string[],
   filters: TaskListFilters = {},
+  accessScope: TaskListAccessScope = {},
 ): Promise<TaskListPage> {
   if (workspaceIds.length === 0) return { tasks: [], hasMore: false };
 
@@ -323,6 +330,61 @@ export async function listTasksPage(
     conditions.push(eq(tasks.projectId, filters.projectId));
   }
 
+  if (filters.clientId) {
+    conditions.push(
+      sql`EXISTS (
+        SELECT 1 FROM ${projects} p
+        WHERE p.id = ${tasks.projectId}
+          AND p.organization_id = ${organizationId}
+          AND p.client_id = ${filters.clientId}
+      )`,
+    );
+  }
+
+  if (filters.noProjectOnly) {
+    conditions.push(isNull(tasks.projectId));
+  }
+
+  if (filters.blocked) {
+    conditions.push(eq(tasks.status, 'blocked'));
+  }
+
+  if (filters.overdue) {
+    conditions.push(isNotNull(tasks.dueDate));
+    conditions.push(lt(tasks.dueDate, sql`CURRENT_DATE`));
+    conditions.push(sql`${tasks.status} NOT IN ('done', 'cancelled')`);
+  }
+
+  if (filters.assigneeOrgMemberId) {
+    conditions.push(
+      sql`EXISTS (
+        SELECT 1 FROM ${taskAssignees} ta
+        WHERE ta.task_id = ${tasks.id}
+          AND ta.organization_id = ${organizationId}
+          AND ta.org_member_id = ${filters.assigneeOrgMemberId}
+      )`,
+    );
+  } else if (filters.assigneeEmployeeId) {
+    conditions.push(
+      sql`EXISTS (
+        SELECT 1 FROM ${taskAssignees} ta
+        WHERE ta.task_id = ${tasks.id}
+          AND ta.organization_id = ${organizationId}
+          AND ta.employee_id = ${filters.assigneeEmployeeId}
+      )`,
+    );
+  }
+
+  if (filters.labelId) {
+    conditions.push(
+      sql`EXISTS (
+        SELECT 1 FROM ${taskLabelAssignments} tla
+        WHERE tla.task_id = ${tasks.id}
+          AND tla.label_id = ${filters.labelId}
+      )`,
+    );
+  }
+
   if (filters.boardId) {
     conditions.push(eq(tasks.boardId, filters.boardId));
   }
@@ -344,6 +406,17 @@ export async function listTasksPage(
     conditions.push(ilike(tasks.title, term));
   }
 
+  const accessibleProjectIds = accessScope.accessibleProjectIds;
+  if (accessibleProjectIds !== undefined && accessibleProjectIds !== null) {
+    if (accessibleProjectIds.length === 0) {
+      conditions.push(isNull(tasks.projectId));
+    } else {
+      conditions.push(
+        sql`(${tasks.projectId} IS NULL OR ${tasks.projectId} = ANY(${accessibleProjectIds}))`,
+      );
+    }
+  }
+
   const limit = clampTaskListLimit(filters.limit);
   const offset = filters.offset ?? 0;
 
@@ -356,48 +429,7 @@ export async function listTasksPage(
     .offset(offset);
 
   const window = splitTaskListPage(rows, limit);
-  // Filter by assignee if requested (join-based would be cleaner but this keeps the repo simple)
-  let result = window.items.map(mapTaskRow);
-
-  if (filters.assigneeOrgMemberId || filters.assigneeEmployeeId) {
-    const taskIds = result.map((t) => t.id);
-    if (taskIds.length === 0) return { tasks: [], hasMore: window.hasMore };
-
-    const assigneeConditions = [inArray(taskAssignees.taskId, taskIds)];
-    if (filters.assigneeOrgMemberId) {
-      assigneeConditions.push(eq(taskAssignees.orgMemberId, filters.assigneeOrgMemberId));
-    } else if (filters.assigneeEmployeeId) {
-      assigneeConditions.push(eq(taskAssignees.employeeId, filters.assigneeEmployeeId));
-    }
-
-    const matchingAssignees = await db
-      .select({ taskId: taskAssignees.taskId })
-      .from(taskAssignees)
-      .where(and(...assigneeConditions));
-
-    const matchingTaskIds = new Set(matchingAssignees.map((a) => a.taskId));
-    result = result.filter((t) => matchingTaskIds.has(t.id));
-  }
-
-  if (filters.labelId) {
-    const taskIds = result.map((t) => t.id);
-    if (taskIds.length === 0) return { tasks: [], hasMore: window.hasMore };
-
-    const matchingLabels = await db
-      .select({ taskId: taskLabelAssignments.taskId })
-      .from(taskLabelAssignments)
-      .where(
-        and(
-          inArray(taskLabelAssignments.taskId, taskIds),
-          eq(taskLabelAssignments.labelId, filters.labelId),
-        ),
-      );
-
-    const matchingTaskIds = new Set(matchingLabels.map((l) => l.taskId));
-    result = result.filter((t) => matchingTaskIds.has(t.id));
-  }
-
-  return { tasks: result, hasMore: window.hasMore };
+  return { tasks: window.items.map(mapTaskRow), hasMore: window.hasMore };
 }
 
 // ─── Task Detail ──────────────────────────────────────────────────────────────

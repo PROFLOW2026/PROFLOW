@@ -142,8 +142,17 @@ export async function listExistingDatedSources(
         targetEndDate: planningWorkItems.targetEndDate,
         projectId: planningWorkItems.projectId,
         kind: planningWorkItems.kind,
+        taskId: planningWorkItems.taskId,
+        linkedTaskDueDate: tasks.dueDate,
       })
       .from(planningWorkItems)
+      .leftJoin(
+        tasks,
+        and(
+          eq(tasks.id, planningWorkItems.taskId),
+          eq(tasks.organizationId, planningWorkItems.organizationId),
+        ),
+      )
       .where(
         and(
           eq(planningWorkItems.organizationId, organizationId),
@@ -154,6 +163,10 @@ export async function listExistingDatedSources(
       .limit(resolveListLimit(undefined, LIST_CAP)),
   );
   for (const row of planningRows) {
+    // C1: linked UWM task with a due date is the canonical calendar entry (task:{id}).
+    if (row.taskId && row.linkedTaskDueDate) {
+      continue;
+    }
     const kind = row.kind === 'milestone' ? 'milestone' : 'task';
     if (row.startDate) {
       const date = toStoredCalendarDate(row.startDate);

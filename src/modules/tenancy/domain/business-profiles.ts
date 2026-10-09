@@ -46,6 +46,7 @@ export interface WorkTerminologyLabels {
 export type QuickCreateEmphasisKey =
   | 'project'
   | 'job'
+  | 'task'
   | 'expense'
   | 'change'
   | 'billingRecord'
@@ -131,6 +132,7 @@ export const BUSINESS_PROFILES: readonly BusinessProfile[] = [
       'quotes',
       'month_close',
       'command_center',
+      'work_management',
     ],
     quickCreateEmphasis: ['project', 'expense', 'change', 'client', 'vendor', 'billingRecord'],
     terminology: TERM_PROJECT_JOB,
@@ -157,6 +159,7 @@ export const BUSINESS_PROFILES: readonly BusinessProfile[] = [
       'materials',
       'boq',
       'command_center',
+      'work_management',
     ],
     quickCreateEmphasis: ['project', 'job', 'expense', 'quote', 'client', 'change'],
     terminology: {
@@ -187,8 +190,9 @@ export const BUSINESS_PROFILES: readonly BusinessProfile[] = [
       'materials',
       'forms',
       'service',
+      'work_management',
     ],
-    quickCreateEmphasis: ['job', 'project', 'expense', 'quote', 'client', 'timeEntry'],
+    quickCreateEmphasis: ['job', 'task', 'project', 'expense', 'quote', 'client', 'timeEntry'],
     terminology: TERM_PROJECT_JOB,
     domains: [{ key: 'electrical', nameEn: 'Electrical', nameHe: 'חשמל' }],
     costCategories: cats([
@@ -211,8 +215,9 @@ export const BUSINESS_PROFILES: readonly BusinessProfile[] = [
       'quotes',
       'forms',
       'materials',
+      'work_management',
     ],
-    quickCreateEmphasis: ['job', 'expense', 'service', 'client', 'timeEntry', 'quote'],
+    quickCreateEmphasis: ['job', 'task', 'expense', 'service', 'client', 'timeEntry', 'quote'],
     terminology: TERM_SERVICE_FORWARD,
     domains: [{ key: 'plumbing', nameEn: 'Plumbing', nameHe: 'אינסטלציה' }],
     costCategories: cats([
@@ -236,6 +241,7 @@ export const BUSINESS_PROFILES: readonly BusinessProfile[] = [
       'assets',
       'forms',
       'materials',
+      'work_management',
     ],
     quickCreateEmphasis: ['job', 'service', 'expense', 'quote', 'client', 'maintenance'],
     terminology: TERM_SERVICE_FORWARD,
@@ -459,8 +465,9 @@ export const BUSINESS_PROFILES: readonly BusinessProfile[] = [
       'quotes',
       'changes',
       'billing',
+      'work_management',
     ],
-    quickCreateEmphasis: ['project', 'quote', 'client', 'change', 'expense', 'billingRecord'],
+    quickCreateEmphasis: ['project', 'task', 'quote', 'client', 'change', 'expense', 'billingRecord'],
     terminology: {
       project: { en: 'Design project', he: 'פרויקט תכנון' },
       job: { en: 'Job', he: 'עבודה' },
@@ -484,8 +491,9 @@ export const BUSINESS_PROFILES: readonly BusinessProfile[] = [
       'changes',
       'billing',
       'jobs',
+      'work_management',
     ],
-    quickCreateEmphasis: ['job', 'project', 'quote', 'client', 'change', 'expense'],
+    quickCreateEmphasis: ['job', 'task', 'project', 'quote', 'client', 'change', 'expense'],
     terminology: {
       project: { en: 'Design project', he: 'פרויקט עיצוב' },
       job: { en: 'Design job', he: 'עבודת עיצוב' },
@@ -507,8 +515,9 @@ export const BUSINESS_PROFILES: readonly BusinessProfile[] = [
       'documents',
       'quotes',
       'billing',
+      'work_management',
     ],
-    quickCreateEmphasis: ['project', 'quote', 'client', 'expense', 'billingRecord', 'change'],
+    quickCreateEmphasis: ['project', 'task', 'quote', 'client', 'expense', 'billingRecord', 'change'],
     terminology: {
       project: { en: 'Engagement', he: 'ליווי הנדסי' },
       job: { en: 'Job', he: 'עבודה' },
@@ -558,6 +567,7 @@ export const BUSINESS_PROFILES: readonly BusinessProfile[] = [
       'command_center',
       'documents',
       'billing',
+      'work_management',
     ],
     quickCreateEmphasis: ['project', 'change', 'client', 'expense', 'billingRecord', 'quote'],
     terminology: TERM_PROJECT_JOB,
@@ -579,8 +589,9 @@ export const BUSINESS_PROFILES: readonly BusinessProfile[] = [
       'workforce',
       'documents',
       'command_center',
+      'work_management',
     ],
-    quickCreateEmphasis: ['job', 'quote', 'client', 'expense', 'billingRecord', 'payment'],
+    quickCreateEmphasis: ['job', 'task', 'quote', 'client', 'expense', 'billingRecord', 'payment'],
     terminology: {
       project: { en: 'Project', he: 'פרויקט' },
       job: { en: 'Job', he: 'עבודה' },
@@ -733,6 +744,7 @@ export function parseQuickCreateEmphasis(value: unknown): readonly QuickCreateEm
   const allowed = new Set<string>([
     'project',
     'job',
+    'task',
     'expense',
     'change',
     'billingRecord',

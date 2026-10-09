@@ -1,20 +1,26 @@
-import { and, asc, desc, eq, inArray, isNotNull, isNull, lte, gte, or, sql } from 'drizzle-orm';
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  getTableColumns,
+  inArray,
+  isNotNull,
+  isNull,
+  lte,
+  gte,
+  or,
+  sql,
+} from 'drizzle-orm';
 import { tasks, taskAssignees, taskFollowers } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
+import { addDays, type BusinessDate } from '@/shared/dates';
 import { clampTaskListLimit, splitTaskListPage } from '../domain/list-window';
 import type { Task, TaskStatus, TaskPriority, TaskSource } from '../domain/types';
 
-export type MyWorkView =
-  | 'today'
-  | 'overdue'
-  | 'this_week'
-  | 'upcoming'
-  | 'waiting'
-  | 'assigned_to_me'
-  | 'created_by_me'
-  | 'following'
-  | 'completed'
-  | 'no_project';
+import type { MyWorkView } from '../domain/my-work-view';
+
+export type { MyWorkView };
 
 export interface MyWorkPage {
   readonly tasks: Task[];
@@ -22,6 +28,15 @@ export interface MyWorkPage {
 }
 
 const EMPTY_MY_WORK_PAGE: MyWorkPage = { tasks: [], hasMore: false };
+const taskColumns = getTableColumns(tasks);
+
+/** Upcoming Sunday from org calendar day (legacy My Work "this week" upper bound). */
+function upcomingSundayFrom(today: BusinessDate): BusinessDate {
+  const [year, month, day] = today.split('-').map(Number) as [number, number, number];
+  const weekday = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+  const daysUntilSunday = weekday === 0 ? 7 : 7 - weekday;
+  return addDays(today, daysUntilSunday);
+}
 
 function toMyWorkPage(rows: Array<typeof tasks.$inferSelect>, limit: number): MyWorkPage {
   const split = splitTaskListPage(rows, limit);
@@ -69,30 +84,14 @@ function mapTaskRow(row: typeof tasks.$inferSelect): Task {
   };
 }
 
-function todayISOString(): string {
-  return new Date().toISOString().split('T')[0]!;
-}
-
-function endOfWeekISOString(): string {
-  const d = new Date();
-  const dayOfWeek = d.getDay();
-  const daysUntilSunday = 7 - dayOfWeek;
-  d.setDate(d.getDate() + daysUntilSunday);
-  return d.toISOString().split('T')[0]!;
-}
-
-function sevenDaysFromNow(): string {
-  const d = new Date();
-  d.setDate(d.getDate() + 7);
-  return d.toISOString().split('T')[0]!;
-}
-
 export interface MyWorkQueryOptions {
   readonly orgMemberId: string;
   readonly assigneeEmployeeId?: string | null;
   readonly organizationId: string;
   readonly workspaceIds: string[];
   readonly view: MyWorkView;
+  /** Org-timezone calendar day (YYYY-MM-DD) for date-bound views. */
+  readonly today: string;
   readonly limit?: number;
   readonly offset?: number;
 }
@@ -113,10 +112,10 @@ export async function queryMyWorkPage(
   db: DbExecutor,
   options: MyWorkQueryOptions,
 ): Promise<MyWorkPage> {
-  const { orgMemberId, assigneeEmployeeId, organizationId, workspaceIds, view } = options;
+  const { orgMemberId, assigneeEmployeeId, organizationId, workspaceIds, view, today } = options;
   const limit = clampTaskListLimit(options.limit);
   const offset = options.offset ?? 0;
-  const today = todayISOString();
+  const todayDate = today as BusinessDate;
 
   if (workspaceIds.length === 0) return EMPTY_MY_WORK_PAGE;
 
@@ -164,7 +163,7 @@ export async function queryMyWorkPage(
     }
 
     case 'this_week': {
-      const endOfWeek = endOfWeekISOString();
+      const endOfWeekDate = upcomingSundayFrom(todayDate);
       const rows = await db
         .select()
         .from(tasks)
@@ -173,7 +172,7 @@ export async function queryMyWorkPage(
             ...baseConditions,
             isNotNull(tasks.dueDate),
             gte(tasks.dueDate, today),
-            lte(tasks.dueDate, endOfWeek),
+            lte(tasks.dueDate, endOfWeekDate),
             sql`${tasks.status} NOT IN ('done', 'cancelled')`,
           ),
         )
@@ -184,7 +183,7 @@ export async function queryMyWorkPage(
     }
 
     case 'upcoming': {
-      const sevenDays = sevenDaysFromNow();
+      const upcomingEnd = addDays(todayDate, 14);
       const rows = await db
         .select()
         .from(tasks)
@@ -193,7 +192,7 @@ export async function queryMyWorkPage(
             ...baseConditions,
             isNotNull(tasks.dueDate),
             gte(tasks.dueDate, today),
-            lte(tasks.dueDate, sevenDays),
+            lte(tasks.dueDate, upcomingEnd),
             sql`${tasks.status} NOT IN ('done', 'cancelled')`,
           ),
         )
@@ -229,29 +228,24 @@ export async function queryMyWorkPage(
       }
       if (identityConditions.length === 0) return EMPTY_MY_WORK_PAGE;
 
-      const assignedTaskIds = await db
-        .select({ taskId: taskAssignees.taskId })
-        .from(taskAssignees)
-        .where(
-          and(
-            eq(taskAssignees.organizationId, organizationId),
-            or(...identityConditions),
-          ),
-        );
-      const ids = [...new Set(assignedTaskIds.map((row) => row.taskId))];
-      if (ids.length === 0) return EMPTY_MY_WORK_PAGE;
-
       const rows = await db
-        .select()
+        .selectDistinctOn([tasks.id], taskColumns)
         .from(tasks)
+        .innerJoin(
+          taskAssignees,
+          and(
+            eq(taskAssignees.taskId, tasks.id),
+            eq(taskAssignees.organizationId, organizationId),
+          ),
+        )
         .where(
           and(
             ...baseConditions,
-            inArray(tasks.id, ids),
+            or(...identityConditions),
             sql`${tasks.status} NOT IN ('done', 'cancelled')`,
           ),
         )
-        .orderBy(asc(tasks.dueDate), asc(tasks.priority))
+        .orderBy(tasks.id, asc(tasks.dueDate), asc(tasks.priority))
         .limit(limit + 1)
         .offset(offset);
       return toMyWorkPage(rows, limit);
@@ -275,34 +269,26 @@ export async function queryMyWorkPage(
     }
 
     case 'following': {
-      const followedTaskIds = await db
-        .select({ taskId: taskFollowers.taskId })
-        .from(taskFollowers)
-        .where(
-          and(
-            eq(taskFollowers.orgMemberId, orgMemberId),
-            eq(taskFollowers.organizationId, organizationId),
-          ),
-        );
-      const ids = followedTaskIds.map((r) => r.taskId);
-      if (ids.length === 0) return EMPTY_MY_WORK_PAGE;
-
       const rows = await db
-        .select()
+        .selectDistinctOn([tasks.id], taskColumns)
         .from(tasks)
-        .where(
+        .innerJoin(
+          taskFollowers,
           and(
-            ...baseConditions,
-            inArray(tasks.id, ids),
+            eq(taskFollowers.taskId, tasks.id),
+            eq(taskFollowers.organizationId, organizationId),
+            eq(taskFollowers.orgMemberId, orgMemberId),
           ),
         )
-        .orderBy(desc(tasks.updatedAt))
+        .where(and(...baseConditions))
+        .orderBy(tasks.id, desc(tasks.updatedAt))
         .limit(limit + 1)
         .offset(offset);
       return toMyWorkPage(rows, limit);
     }
 
     case 'completed': {
+      const completedSince = addDays(todayDate, -30);
       const rows = await db
         .select()
         .from(tasks)
@@ -310,6 +296,8 @@ export async function queryMyWorkPage(
           and(
             ...baseConditions,
             eq(tasks.status, 'done'),
+            isNotNull(tasks.completionDate),
+            gte(tasks.completionDate, completedSince),
           ),
         )
         .orderBy(desc(tasks.completionDate))

@@ -70,6 +70,7 @@ export async function upsertPlanningWorkItem(
     progressPercent: progress,
     phaseId: parsed.phaseId,
     workPackageId: parsed.workPackageId,
+    taskId: existing?.taskId ?? null,
     sortOrder: parsed.sortOrder,
     archivedAt: existing?.archivedAt ?? null,
     createdAt: existing?.createdAt ?? now,

@@ -14,6 +14,7 @@ import {
 import { archivedAt, createdAt, primaryId, timestamps } from './_shared';
 import { organizations } from './tenancy';
 import { phases, projects, workPackages } from './projects';
+import { tasks } from './tasks';
 
 /**
  * Project planning / Gantt foundations.
@@ -38,6 +39,8 @@ export const planningWorkItems = pgTable(
       .default('0'),
     phaseId: uuid('phase_id'),
     workPackageId: uuid('work_package_id'),
+    /** Optional UWM task link (migration 0110). Schedule layer only — no auto sync. */
+    taskId: uuid('task_id').references(() => tasks.id, { onDelete: 'set null' }),
     sortOrder: integer('sort_order').notNull().default(0),
     archivedAt: archivedAt(),
     ...timestamps(),
@@ -61,6 +64,9 @@ export const planningWorkItems = pgTable(
       table.projectId,
       table.phaseId,
     ),
+    index('planning_work_items_task_idx')
+      .on(table.taskId)
+      .where(sql`${table.taskId} is not null`),
     foreignKey({
       name: 'planning_work_items_project_org_fk',
       columns: [table.projectId, table.organizationId],

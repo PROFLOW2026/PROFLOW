@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { PageHeader } from '@/components/ui/page-header';
@@ -6,13 +7,21 @@ import { withOrgContext, getShellContext } from '@/shared/auth/session';
 import { todayInTimeZone } from '@/shared/dates';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { getMyWorkPage } from '@/modules/tasks';
-import type { MyWorkView } from '@/modules/tasks';
 import { MY_WORK_VIEW_LIMIT } from '@/modules/tasks/domain/list-window';
+import { resolveMyWorkView } from '@/modules/tasks/domain/my-work-views';
 import { mapTasksToCardDataForOrg } from '@/modules/tasks/application/map-tasks-for-ui';
 import type { MyWorkItem, TaskCardData } from '@/modules/tasks/ui/task-api';
 import { serializeTaskCardsForClient } from '@/modules/tasks/ui/serialize-task-cards';
 import { MyWorkView as MyWorkViewComponent } from '@/modules/tasks/ui/my-work-view';
-import { getTaskDetailAction, loadMoreMyWorkAction, updateTaskFieldsAction } from './actions';
+import { MyWorkQuickCreate } from '@/modules/tasks/ui/my-work-quick-create';
+import { listWorkspaces } from '@/modules/workspaces';
+import {
+  createMyWorkTaskFromFabAction,
+  fetchMyWorkViewAction,
+  getTaskDetailAction,
+  loadMoreMyWorkAction,
+  updateTaskFieldsAction,
+} from './actions';
 
 export async function generateMetadata({
   params,
@@ -24,27 +33,18 @@ export async function generateMetadata({
   return { title: t('myWork.pageTitle') };
 }
 
-const MY_WORK_VIEWS: MyWorkView[] = [
-  'today',
-  'overdue',
-  'this_week',
-  'upcoming',
-  'waiting',
-  'assigned_to_me',
-  'following',
-  'completed',
-  'no_project',
-];
-
 function serializeMyWorkItems(tasks: TaskCardData[]): MyWorkItem[] {
   return serializeTaskCardsForClient(tasks) as MyWorkItem[];
 }
 
+interface MyWorkPageProps {
+  searchParams: Promise<{ view?: string | string[] }>;
+}
+
 /**
- * My Work hub — cross-project, cross-workspace, cross-board task aggregation.
- * Views: Today | Overdue | This Week | Upcoming | Waiting | Assigned to Me | Following | Completed
+ * My Work hub — lazy-loads the active tab only (Planner+ scale).
  */
-export default async function MyWorkPage() {
+export default async function MyWorkPage({ searchParams }: MyWorkPageProps) {
   const shell = await getShellContext();
 
   if (!shell?.permissions.has(PERMISSIONS.TASKS_READ) || !shell.modules.work_management) {
@@ -52,44 +52,56 @@ export default async function MyWorkPage() {
   }
 
   const t = await getTranslations('tasks');
+  const { view: viewParam } = await searchParams;
+  const activeView = resolveMyWorkView(viewParam);
 
-  const { tasksByView, hasMoreByView, today } = await withOrgContext(async (context) => {
-    const results = await Promise.all(
-      MY_WORK_VIEWS.map(async (view) => {
-        const page = await getMyWorkPage(context, { view, limit: MY_WORK_VIEW_LIMIT });
-        const items = serializeMyWorkItems(await mapTasksToCardDataForOrg(context, page.tasks));
-        return [view, { items, hasMore: page.hasMore }] as const;
-      }),
-    );
-    return {
-      tasksByView: Object.fromEntries(results.map(([view, page]) => [view, page.items])) as Record<
-        MyWorkView,
-        MyWorkItem[]
-      >,
-      hasMoreByView: Object.fromEntries(results.map(([view, page]) => [view, page.hasMore])) as Record<
-        MyWorkView,
-        boolean
-      >,
-      today: todayInTimeZone(context.organization.timezone),
-    };
+  const canCreateTask = shell.permissions.has(PERMISSIONS.TASKS_CREATE);
+  let defaultWorkspaceId: string | null = null;
+  if (canCreateTask) {
+    try {
+      const workspaces = await withOrgContext((context) => listWorkspaces(context));
+      defaultWorkspaceId = workspaces[0]?.id ?? null;
+    } catch {
+      defaultWorkspaceId = null;
+    }
+  }
+
+  const { initialTasks, hasMore, today } = await withOrgContext(async (context) => {
+    const todayLocal = todayInTimeZone(context.organization.timezone);
+    const page = await getMyWorkPage(context, {
+      view: activeView,
+      today: todayLocal,
+      limit: MY_WORK_VIEW_LIMIT,
+    });
+    const items = serializeMyWorkItems(await mapTasksToCardDataForOrg(context, page.tasks));
+    return { initialTasks: items, hasMore: page.hasMore, today: todayLocal };
   });
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
-        title={t('myWork.pageTitle')}
-        description={t('myWork.pageDescription')}
-      />
+      <PageHeader title={t('myWork.pageTitle')} description={t('myWork.pageDescription')} />
 
       <MyWorkViewComponent
-        tasksByView={tasksByView}
-        hasMoreByView={hasMoreByView}
-        defaultView="today"
+        key={activeView}
+        tasksByView={{ [activeView]: initialTasks }}
+        hasMoreByView={{ [activeView]: hasMore }}
+        activeView={activeView}
         onLoadTaskDetail={getTaskDetailAction}
         onUpdateTask={updateTaskFieldsAction}
         onLoadMore={loadMoreMyWorkAction}
+        onFetchView={fetchMyWorkViewAction}
         today={today}
       />
+
+      {canCreateTask && defaultWorkspaceId ? (
+        <Suspense fallback={null}>
+          <MyWorkQuickCreate
+            canCreate
+            defaultWorkspaceId={defaultWorkspaceId}
+            createTask={createMyWorkTaskFromFabAction}
+          />
+        </Suspense>
+      ) : null}
     </div>
   );
 }

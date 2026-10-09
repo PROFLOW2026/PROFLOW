@@ -1,5 +1,5 @@
 /**
- * Quick Create — fixed Owner-curated menu (13 items, fixed order).
+ * Quick Create — fixed Owner-curated menu (fixed order).
  * Persona/business profile must not add, remove, or reorder Quick Create actions.
  */
 
@@ -11,6 +11,7 @@ export const CANONICAL_QUICK_CREATE_KEYS = [
   'project',
   'job',
   'service',
+  'task',
   'quote',
   'client',
   'expense',

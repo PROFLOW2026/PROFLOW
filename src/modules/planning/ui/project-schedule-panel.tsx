@@ -17,6 +17,8 @@ import {
   archivePlanningWorkItemAction,
   setPlanningDependencyAction,
   removePlanningDependencyAction,
+  linkPlanningWorkItemTaskAction,
+  unlinkPlanningWorkItemTaskAction,
 } from '@/app/[locale]/(app)/projects/planning-actions';
 import type { PlanningLocale } from './messages';
 
@@ -122,6 +124,8 @@ export async function ProjectSchedulePanel({ projectId }: ProjectSchedulePanelPr
           archiveAction={archivePlanningWorkItemAction}
           setDepAction={setPlanningDependencyAction}
           removeDepAction={removePlanningDependencyAction}
+          linkTaskAction={linkPlanningWorkItemTaskAction}
+          unlinkTaskAction={unlinkPlanningWorkItemTaskAction}
         />
       ) : null}
     </div>

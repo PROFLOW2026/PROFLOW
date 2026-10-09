@@ -1,10 +1,10 @@
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
+import { resolveAccessibleProjectIds } from '@/modules/projects/application/project-access';
 import { listTasksPage } from '../data/tasks.repository';
-import { findWorkspaceIdsByActor, listWorkspacesForOrg } from '@/modules/workspaces';
-import { getWorkspaceScope } from '@/modules/workspaces/domain/access';
 import type { Task, TaskListFilters } from '../domain/types';
+import { resolveAccessibleWorkspaceIds } from './accessible-workspaces';
 
 export interface AccessibleTaskListPage {
   readonly tasks: Task[];
@@ -19,31 +19,6 @@ export interface AccessibleTaskListPage {
  *
  * Supports server-side filtering by status/priority/assignee/label/due/project/board/bucket.
  */
-async function accessibleWorkspaceIds(
-  context: OrgContext,
-  filters: TaskListFilters & { workspaceId?: string },
-): Promise<string[]> {
-  if (filters.workspaceId) return [filters.workspaceId];
-
-  const scope = getWorkspaceScope(context);
-  if (scope === 'full') {
-    const allWorkspaces = await listWorkspacesForOrg(context.db, context.organizationId);
-    return allWorkspaces.map((ws) => ws.id);
-  }
-
-  const memberIds = await findWorkspaceIdsByActor(context.db, context.organizationId, {
-    orgMemberId: context.membershipId,
-  });
-  const orgVisibleWorkspaces = await listWorkspacesForOrg(context.db, context.organizationId, {
-    includeArchived: false,
-  });
-  const orgVisibleIds = orgVisibleWorkspaces
-    .filter((ws) => ws.workspaceVisibility === 'organization')
-    .map((ws) => ws.id);
-
-  return Array.from(new Set([...orgVisibleIds, ...memberIds]));
-}
-
 export async function listAccessibleTasks(
   context: OrgContext,
   filters: TaskListFilters & { workspaceId?: string } = {},
@@ -62,8 +37,14 @@ export async function listAccessibleTasksPage(
 ): Promise<AccessibleTaskListPage> {
   assertPermission(context, PERMISSIONS.TASKS_READ);
 
-  const workspaceIds = await accessibleWorkspaceIds(context, filters);
+  const [workspaceIds, accessibleProjectIds] = await Promise.all([
+    resolveAccessibleWorkspaceIds(context, { workspaceId: filters.workspaceId }),
+    resolveAccessibleProjectIds(context),
+  ]);
+
   if (workspaceIds.length === 0) return { tasks: [], hasMore: false };
 
-  return listTasksPage(context.db, context.organizationId, workspaceIds, filters);
+  return listTasksPage(context.db, context.organizationId, workspaceIds, filters, {
+    accessibleProjectIds,
+  });
 }

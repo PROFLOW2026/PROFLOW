@@ -2,7 +2,8 @@
 
 import { getTranslations } from 'next-intl/server';
 import { withOrgContext } from '@/shared/auth/session';
-import { mapServerActionError } from '@/shared/errors';
+import { todayInTimeZone } from '@/shared/dates';
+import { mapServerActionError, ValidationError } from '@/shared/errors';
 import {
   getMyWork,
   getMyWorkPage,
@@ -54,8 +55,15 @@ import {
   upsertReminderForTask,
 } from '@/modules/tasks/application/manage-reminders';
 import type { MyWorkView } from '@/modules/tasks';
-import type { TaskListFilters, TaskStatus, TaskPriority, TaskDependencyType } from '@/modules/tasks';
+import type {
+  CreateTaskInput,
+  TaskListFilters,
+  TaskStatus,
+  TaskPriority,
+  TaskDependencyType,
+} from '@/modules/tasks';
 import { MY_WORK_VIEW_LIMIT, TASK_LIST_MAX_LIMIT } from '@/modules/tasks/domain/list-window';
+import { listAccessibleWorkLensTasksPage } from '@/modules/tasks/application/work-lens-task-list';
 import { mapTasksToCardDataForOrg } from '@/modules/tasks/application/map-tasks-for-ui';
 import type { TaskCardData } from '@/modules/tasks/ui/task-api';
 import { serializeTaskCardsForClient } from '@/modules/tasks/ui/serialize-task-cards';
@@ -85,6 +93,23 @@ async function mapWorkActionError(error: unknown): Promise<WorkActionState> {
 export async function getMyWorkAction(view: MyWorkView, options: { limit?: number; offset?: number } = {}) {
   return withOrgContext(async (context) => {
     return getMyWork(context, { view, ...options });
+  });
+}
+
+export async function fetchMyWorkViewAction(
+  view: MyWorkView,
+): Promise<{ tasks: TaskCardData[]; hasMore: boolean }> {
+  return withOrgContext(async (context) => {
+    const page = await getMyWorkPage(context, {
+      view,
+      today: todayInTimeZone(context.organization.timezone),
+      limit: MY_WORK_VIEW_LIMIT,
+      offset: 0,
+    });
+    return {
+      tasks: serializeTaskCardsForClient(await mapTasksToCardDataForOrg(context, page.tasks)),
+      hasMore: page.hasMore,
+    };
   });
 }
 
@@ -151,17 +176,31 @@ export async function loadMoreAccessibleTasksAction(input: {
 }
 
 export async function loadMoreGlobalBoardTasksAction(offset: number) {
-  return loadMoreAccessibleTasksAction({
-    offset,
-    limit: TASK_LIST_MAX_LIMIT,
-    excludeCancelled: true,
-  });
+  return loadMoreWorkLensTasksAction(offset, {}, { excludeCancelled: true });
 }
 
 export async function loadMoreWorkSurfaceTasksAction(offset: number) {
-  return loadMoreAccessibleTasksAction({
-    offset,
-    limit: TASK_LIST_MAX_LIMIT,
+  return loadMoreWorkLensTasksAction(offset, {});
+}
+
+export async function loadMoreWorkLensTasksAction(
+  offset: number,
+  urlParams: Record<string, string> = {},
+  options: { excludeCancelled?: boolean } = {},
+): Promise<{ tasks: TaskCardData[]; hasMore: boolean; nextOffset: number }> {
+  return withOrgContext(async (context) => {
+    const today = todayInTimeZone(context.organization.timezone);
+    const page = await listAccessibleWorkLensTasksPage(context, urlParams, {
+      limit: TASK_LIST_MAX_LIMIT,
+      offset,
+      excludeCancelled: options.excludeCancelled,
+      today,
+    });
+    return {
+      tasks: serializeTaskCardsForClient(await mapTasksToCardDataForOrg(context, page.tasks)),
+      hasMore: page.hasMore,
+      nextOffset: offset + page.tasks.length,
+    };
   });
 }
 
@@ -170,7 +209,12 @@ export async function loadMoreMyWorkAction(
   offset: number,
 ): Promise<{ tasks: TaskCardData[]; hasMore: boolean }> {
   return withOrgContext(async (context) => {
-    const page = await getMyWorkPage(context, { view, limit: MY_WORK_VIEW_LIMIT, offset });
+    const page = await getMyWorkPage(context, {
+      view,
+      today: todayInTimeZone(context.organization.timezone),
+      limit: MY_WORK_VIEW_LIMIT,
+      offset,
+    });
     return {
       tasks: serializeTaskCardsForClient(await mapTasksToCardDataForOrg(context, page.tasks)),
       hasMore: page.hasMore,
@@ -217,6 +261,25 @@ export async function createTaskAction(
       tErrors: (key) => tErrors(key as 'unexpected'),
     });
   }
+}
+
+/** FAB / ?new=1 on My Work — uses first accessible workspace when none is set. */
+export async function createMyWorkTaskFromFabAction(input: CreateTaskInput): Promise<void> {
+  await withOrgContext(async (context) => {
+    const { listWorkspaces } = await import('@/modules/workspaces');
+    const workspaces = await listWorkspaces(context);
+    const workspaceId = input.workspaceId || workspaces[0]?.id;
+    if (!workspaceId) {
+      throw new ValidationError([{ path: 'workspaceId', message: 'No workspace available' }]);
+    }
+    await createTask(context, {
+      ...input,
+      workspaceId,
+      projectId: input.projectId ?? null,
+      boardId: input.boardId ?? null,
+      bucketId: input.bucketId ?? null,
+    });
+  });
 }
 
 // ─── Update Task ──────────────────────────────────────────────────────────────

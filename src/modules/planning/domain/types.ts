@@ -33,6 +33,8 @@ export interface PlanningWorkItem {
   readonly phaseId: string | null;
   /** Optional link to `work_packages.id` (work area / תחום עבודה). */
   readonly workPackageId: string | null;
+  /** Optional link to UWM `tasks.id` (migration 0110). No automatic date/status sync. */
+  readonly taskId: string | null;
   readonly sortOrder: number;
   readonly archivedAt: Date | null;
   readonly createdAt: Date;

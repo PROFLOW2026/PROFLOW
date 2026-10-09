@@ -15,6 +15,7 @@ export const SAVED_LIST_KEYS = [
   'inventory',
   'portfolio',
   'workload',
+  'tasks',
 ] as const;
 
 export type SavedListKey = (typeof SAVED_LIST_KEYS)[number];

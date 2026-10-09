@@ -45,12 +45,18 @@ const OWNER_MODULES = modules({
   field_ops: true,
   service: true,
   jobs: true,
+  work_management: true,
 });
 
+const OWNER_CREATE_WITH_TASKS = new Set([
+  ...OWNER_CREATE_PERMISSIONS,
+  PERMISSIONS.TASKS_CREATE,
+]);
+
 describe('buildQuickCreateActions', () => {
-  it('returns the Owner canonical 13-item menu in fixed order for full access', () => {
+  it('returns the Owner canonical menu in fixed order for full access', () => {
     const desktop = buildQuickCreateActions(
-      OWNER_CREATE_PERMISSIONS,
+      OWNER_CREATE_WITH_TASKS,
       OWNER_MODULES,
       'mixed',
       null,
@@ -58,7 +64,7 @@ describe('buildQuickCreateActions', () => {
       'all',
     );
     const mobile = buildQuickCreateActions(
-      OWNER_CREATE_PERMISSIONS,
+      OWNER_CREATE_WITH_TASKS,
       OWNER_MODULES,
       'mixed',
       null,
@@ -128,7 +134,7 @@ describe('buildQuickCreateActions', () => {
 
   it('ignores persona and emphasis reordering', () => {
     const contractor = buildQuickCreateActions(
-      OWNER_CREATE_PERMISSIONS,
+      OWNER_CREATE_WITH_TASKS,
       OWNER_MODULES,
       'mixed',
       ['expense', 'job', 'project'],
@@ -136,7 +142,7 @@ describe('buildQuickCreateActions', () => {
       'project_contractor',
     );
     const all = buildQuickCreateActions(
-      OWNER_CREATE_PERMISSIONS,
+      OWNER_CREATE_WITH_TASKS,
       OWNER_MODULES,
       'mixed',
       ['expense', 'job', 'project'],
@@ -162,6 +168,23 @@ describe('buildQuickCreateActions', () => {
       'project',
       'service',
     ]);
+  });
+
+  it('includes task when TASKS_CREATE and work_management are on', () => {
+    const withTask = buildQuickCreateActions(
+      OWNER_CREATE_WITH_TASKS,
+      OWNER_MODULES,
+      'mixed',
+    );
+    const taskAction = withTask.find((action) => action.key === 'task');
+    expect(taskAction?.href).toBe('/work?new=1');
+
+    const gated = buildQuickCreateActions(
+      OWNER_CREATE_WITH_TASKS,
+      modules({ work_management: false, service: true, jobs: true, quotes: true }),
+      'mixed',
+    );
+    expect(gated.some((action) => action.key === 'task')).toBe(false);
   });
 
   it('hides quickCapture when DOCUMENTS_MANAGE is missing', () => {

@@ -3,6 +3,8 @@
 import { useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import { ChevronDown, ChevronRight } from 'lucide-react';
+import { useRouter } from '@/shared/i18n/navigation';
+import { reassignWorkloadTaskAction } from './actions';
 import type { WorkloadEmployeeRow, WorkloadTaskPreview } from '@/modules/tasks/application/get-team-workload';
 import { cn } from '@/shared/ui/cn';
 import { Link } from '@/shared/i18n/navigation';
@@ -93,7 +95,10 @@ export function WorkloadExpandableRows({
   initialPreviewTasks,
 }: WorkloadExpandableRowsProps) {
   const t = useTranslations('tasks');
+  const router = useRouter();
   const [expandedId, setExpandedId] = useState<string | null>(initialExpandedId);
+  const [reassignError, setReassignError] = useState<string | null>(null);
+  const [reassigningTaskId, setReassigningTaskId] = useState<string | null>(null);
   const [taskCache, setTaskCache] = useState<Record<string, WorkloadTaskPreview[]>>(
     initialExpandedId && initialPreviewTasks.length > 0
       ? { [initialExpandedId]: initialPreviewTasks }
@@ -103,6 +108,38 @@ export function WorkloadExpandableRows({
   const [, startTransition] = useTransition();
 
   const colSpan = showEstimatedEffort ? 6 : 5;
+
+  const reassignTargets = rows.map((row) => ({ employeeId: row.employeeId, name: row.name }));
+
+  async function handleReassign(
+    taskId: string,
+    fromEmployeeId: string,
+    toEmployeeId: string,
+  ): Promise<void> {
+    setReassignError(null);
+    setReassigningTaskId(taskId);
+    try {
+      const result = await reassignWorkloadTaskAction(taskId, fromEmployeeId, toEmployeeId);
+      if (!result.success) {
+        setReassignError(result.error ?? t('workload.reassignFailed'));
+        return;
+      }
+      startTransition(() => {
+        setTaskCache((prev) => {
+          const next = { ...prev };
+          for (const employeeId of Object.keys(next)) {
+            next[employeeId] = next[employeeId]!.filter((task) => task.taskId !== taskId);
+          }
+          return next;
+        });
+      });
+      router.refresh();
+    } catch {
+      setReassignError(t('workload.reassignFailed'));
+    } finally {
+      setReassigningTaskId(null);
+    }
+  }
 
   async function toggleEmployee(employeeId: string) {
     if (expandedId === employeeId) {
@@ -242,6 +279,12 @@ export function WorkloadExpandableRows({
                             {t('workload.preview.noTasks')}
                           </p>
                         ) : (
+                          <>
+                          {reassignError ? (
+                            <p className="mb-2 text-sm text-red-600 dark:text-red-400" role="alert">
+                              {reassignError}
+                            </p>
+                          ) : null}
                           <table className="w-full text-sm">
                             <thead>
                               <tr className="border-b border-[var(--pf-border)]">
@@ -301,10 +344,14 @@ export function WorkloadExpandableRows({
                                   </td>
                                   {canAssign && (
                                     <td className="py-1.5">
-                                      <ReassignButton
+                                      <WorkloadReassignSelect
                                         taskId={task.taskId}
-                                        currentEmployeeId={row.employeeId}
-                                        label={t('workload.preview.open')}
+                                        fromEmployeeId={row.employeeId}
+                                        targets={reassignTargets}
+                                        disabled={reassigningTaskId === task.taskId}
+                                        onReassign={handleReassign}
+                                        placeholder={t('workload.reassignTo')}
+                                        busyLabel={t('workload.reassigning')}
                                       />
                                     </td>
                                   )}
@@ -312,6 +359,7 @@ export function WorkloadExpandableRows({
                               ))}
                             </tbody>
                           </table>
+                          </>
                         )}
                       </div>
                     </TableCell>
@@ -327,28 +375,52 @@ export function WorkloadExpandableRows({
 }
 
 // ---------------------------------------------------------------------------
-// Reassign button (stub — requires tasks.assign permission)
+// Inline reassign (tasks.assign — server action → assign-task.ts)
 // ---------------------------------------------------------------------------
 
-function ReassignButton({
+function WorkloadReassignSelect({
   taskId,
-  currentEmployeeId: _currentEmployeeId,
-  label,
+  fromEmployeeId,
+  targets,
+  disabled,
+  onReassign,
+  placeholder,
+  busyLabel,
 }: {
   taskId: string;
-  currentEmployeeId: string;
-  label: string;
+  fromEmployeeId: string;
+  targets: readonly { employeeId: string; name: string }[];
+  disabled: boolean;
+  onReassign: (taskId: string, fromEmployeeId: string, toEmployeeId: string) => void;
+  placeholder: string;
+  busyLabel: string;
 }) {
-  // Placeholder: routes to the task detail page where reassignment can be done.
-  // Full inline reassign dropdown is out of scope for this wave
-  // (requires the task mutation API from Agent A).
+  const options = targets.filter((target) => target.employeeId !== fromEmployeeId);
+  if (options.length === 0) {
+    return <span className="text-xs text-[var(--pf-text-muted)]">—</span>;
+  }
+
   return (
-    <Link
-      href={`/tasks/${taskId}`}
-      className="rounded border border-[var(--pf-border)] px-2 py-0.5 text-xs text-[var(--pf-text-secondary)] hover:bg-[var(--pf-bg-secondary)]"
+    <select
+      className="max-w-[10rem] rounded border border-[var(--pf-border)] bg-[var(--pf-bg-primary)] px-2 py-0.5 text-xs text-[var(--pf-text-secondary)] disabled:opacity-60"
+      defaultValue=""
+      disabled={disabled}
+      aria-label={placeholder}
       onClick={(e) => e.stopPropagation()}
+      onChange={(e) => {
+        e.stopPropagation();
+        const toEmployeeId = e.target.value;
+        if (!toEmployeeId) return;
+        onReassign(taskId, fromEmployeeId, toEmployeeId);
+        e.target.value = '';
+      }}
     >
-      {label}
-    </Link>
+      <option value="">{disabled ? busyLabel : placeholder}</option>
+      {options.map((option) => (
+        <option key={option.employeeId} value={option.employeeId}>
+          {option.name}
+        </option>
+      ))}
+    </select>
   );
 }

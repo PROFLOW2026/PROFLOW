@@ -152,7 +152,9 @@ describe('nav layout primary keys by persona', () => {
     );
     expect(PERSONA_PRIMARY_NAV_KEYS.service).toContain('workOrders');
     expect(PERSONA_PRIMARY_NAV_KEYS.project_contractor).toContain('projects');
-    expect(PERSONA_PRIMARY_NAV_KEYS.consulting).toContain('time');
+    expect(PERSONA_PRIMARY_NAV_KEYS.consulting).toContain('portfolio');
+    expect(PERSONA_PRIMARY_NAV_KEYS.consulting).toContain('myWork');
+    expect(PERSONA_PRIMARY_NAV_KEYS.architecture).toContain('portfolio');
     expect(PERSONA_PRIMARY_NAV_KEYS.inspection).toContain('fieldOps');
   });
 });

@@ -114,6 +114,10 @@ export function buildQuickCreateActions(
     candidates.push({ key: 'service', href: '/work-orders/new', labelKey: 'service' });
   }
 
+  if (modules.work_management && permissions.has(PERMISSIONS.TASKS_CREATE)) {
+    candidates.push({ key: 'task', href: '/work?new=1', labelKey: 'projectTask' });
+  }
+
   if (modules.quotes && permissions.has(PERMISSIONS.QUOTES_MANAGE)) {
     candidates.push({ key: 'quote', href: '/quotes/new', labelKey: 'quote' });
   }

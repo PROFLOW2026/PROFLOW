@@ -63,6 +63,13 @@
       "removeAria": "הסרת תלות ב-{name}"
     },
     "editAria": "עריכת {name}",
-    "archiveAria": "ארכוב {name}"
+    "archiveAria": "ארכוב {name}",
+    "taskLink": {
+      "label": "קישור למשימת ביצוע (אופציונלי)",
+      "placeholder": "מזהה משימה (UUID)",
+      "linkButton": "קשר",
+      "linked": "משימה מקושרת:",
+      "unlink": "נתק"
+    }
   }
 }

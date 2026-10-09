@@ -25,6 +25,7 @@ import { serverEnv } from '@/shared/env/server';
 import { todayInTimeZone } from '@/shared/dates';
 import { buildCollectContext, collectAllSources } from '../data/collect-sources';
 import { listCommandCenterItemStates } from '../data/item-states.repository';
+import { dedupeCommandCenterItems } from '../domain/dedupe-command-center-items';
 import { computeRankScore, sortCommandCenterItems } from '../domain/ranking';
 import type {
   CommandCenterInbox,
@@ -85,7 +86,7 @@ export async function getActionableInbox(context: OrgContext): Promise<CommandCe
 
   // Collectors use savepoints on this transaction. They must finish before the
   // state read; a parallel query on the same connection aborts the transaction.
-  const rawItems = await collectAllSources(collectCtx);
+  const rawItems = dedupeCommandCenterItems(await collectAllSources(collectCtx));
   const states = await listCommandCenterItemStates(context.db, context.organizationId);
 
   const stateByKey = new Map(states.map((row) => [row.itemKey, row]));
