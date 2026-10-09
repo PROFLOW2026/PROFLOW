@@ -63,6 +63,13 @@
       "removeAria": "إزالة الاعتمادية على {name}"
     },
     "editAria": "تحرير {name}",
-    "archiveAria": "أرشفة {name}"
+    "archiveAria": "أرشفة {name}",
+    "taskLink": {
+      "label": "ربط مهمة تنفيذ (اختياري)",
+      "placeholder": "معرف المهمة (UUID)",
+      "linkButton": "ربط",
+      "linked": "المهمة المرتبطة:",
+      "unlink": "فك الربط"
+    }
   }
 }

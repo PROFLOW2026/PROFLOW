@@ -5,7 +5,8 @@ import { CollapsibleSection } from '@/components/ui/collapsible-section';
 import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/ui/page-header';
 import { Textarea } from '@/components/ui/textarea';
-import { EntityDiscussion } from '@/modules/collaboration/ui';
+import { EntityDiscussion, EntityLinkedTasksSection } from '@/modules/collaboration/ui';
+import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 import { EvidenceGallery, EvidenceUploader } from '@/modules/evidence/ui';
 import { INSTRUCTION_CONVERSION_TARGETS, getInstructionDetail } from '@/modules/site-instructions';
 import { INSTRUCTION_STATUS_TONE } from '@/modules/site-instructions/ui/status-tone';
@@ -255,6 +256,15 @@ export async function InstructionDetailScreen({ surfaceRoot,
           ) : null}
         </CardContent>
       </Card>
+
+      <WithAppClientMessages extra={['collaboration']}>
+        <EntityLinkedTasksSection
+          projectId={projectId}
+          entityType="site_instruction"
+          entityId={instruction.id}
+          defaultTaskTitle={`#${instruction.instructionNumber} · ${instruction.title}`}
+        />
+      </WithAppClientMessages>
 
       <EntityDiscussion
         organizationId={instruction.organizationId}

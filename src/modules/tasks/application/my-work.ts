@@ -5,6 +5,7 @@ import { todayInTimeZone } from '@/shared/dates';
 import { queryMyWorkPage, type MyWorkPage, type MyWorkView } from '../data/my-work.repository';
 import { findEmployeeByUserId } from '@/modules/workforce';
 import type { Task } from '../domain/types';
+import { resolveAccessibleProjectIds } from '@/modules/projects/application/project-access';
 import { resolveAccessibleWorkspaceIds } from './accessible-workspaces';
 
 export type { MyWorkPage, MyWorkView };
@@ -37,7 +38,10 @@ export async function getMyWorkPage(
 ): Promise<MyWorkPage> {
   assertPermission(context, PERMISSIONS.TASKS_READ);
 
-  const workspaceIds = await resolveAccessibleWorkspaceIds(context);
+  const [workspaceIds, accessibleProjectIds] = await Promise.all([
+    resolveAccessibleWorkspaceIds(context),
+    resolveAccessibleProjectIds(context),
+  ]);
 
   const linkedEmployee =
     context.employeeApp?.employeeId != null
@@ -53,6 +57,7 @@ export async function getMyWorkPage(
     workspaceIds,
     view: options.view,
     today,
+    accessibleProjectIds,
     limit: options.limit,
     offset: options.offset,
   });

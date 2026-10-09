@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageHeader } from '@/components/ui/page-header';
-import { EntityDiscussion } from '@/modules/collaboration/ui';
+import { EntityDiscussion, EntityLinkedTasksSection } from '@/modules/collaboration/ui';
 import { formatRfiNumber, getRfi, rfiStatusTone } from '@/modules/rfi';
 import { RfiDetailActions } from '@/modules/rfi/ui/rfi-detail-actions';
 import { RfiHistory } from '@/modules/rfi/ui/rfi-history';
@@ -129,6 +129,15 @@ export async function ProjectRfiDetailScreen({ surfaceRoot,
               ) : null}
             </CardContent>
           </Card>
+
+          <WithAppClientMessages extra={['collaboration']}>
+            <EntityLinkedTasksSection
+              projectId={detail.projectId}
+              entityType="rfi"
+              entityId={detail.id}
+              defaultTaskTitle={`${formatRfiNumber(detail.number)} · ${detail.subject}`}
+            />
+          </WithAppClientMessages>
 
           <Card>
             <CardHeader>

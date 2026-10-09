@@ -22,6 +22,8 @@ import { PunchStatusForm } from '../punch-status-form';
 import { PunchEditDetailsForm } from '../punch-edit-details-form';
 import { textNavLinkClassName, textNavLinkMutedClassName } from '@/components/ui/pressable';
 import { ReportDownloadButtons } from '@/modules/reports/ui';
+import { EntityLinkedTasksSection } from '@/modules/collaboration/ui';
+import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 
 export async function generateMetadata({
   params,
@@ -167,6 +169,15 @@ export default async function PunchDetailPage({
         canManage={documentsPanel.canManage}
         storageConfigured={documentsPanel.storageConfigured}
       />
+
+      <WithAppClientMessages extra={['collaboration']}>
+        <EntityLinkedTasksSection
+          projectId={item.projectId}
+          entityType="punch_list_item"
+          entityId={item.id}
+          defaultTaskTitle={item.title}
+        />
+      </WithAppClientMessages>
     </div>
   );
 }

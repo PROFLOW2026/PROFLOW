@@ -139,6 +139,14 @@
     },
     "noTasksToday": "لا توجد مهام مستحقة اليوم"
   },
+  "relatedWork": {
+    "title": "عمل مرتبط",
+    "relations": {
+      "follow_up": "متابعة",
+      "remediation": "معالجة",
+      "schedule_link": "رابط الجدول"
+    }
+  },
   "portfolio": {
     "pageTitle": "محفظة المشاريع",
     "columns": {
@@ -244,6 +252,9 @@
     },
     "noEffortData": "لا توجد تقديرات وقت",
     "reassign": "إعادة تعيين",
+    "reassignTo": "إعادة تعيين إلى…",
+    "reassigning": "جاري إعادة التعيين…",
+    "reassignFailed": "تعذرت إعادة التعيين",
     "expand": "عرض المهام",
     "empty": "لم يتم العثور على أعضاء الفريق",
     "accessDenied": {
@@ -573,6 +584,24 @@
     "timelineLink": "الجدول الزمني للمهام",
     "filesLink": "ملفات المشروع",
     "meetingsLink": "اجتماعات المشروع"
+  },
+  "workFilters": {
+    "title": "تصفية المهام",
+    "apply": "تطبيق",
+    "clear": "مسح المرشحات",
+    "active": "مرشحات نشطة",
+    "mobile": "مرشحات",
+    "mobileWithCount": "مرشحات ({count})",
+    "resultCount": "{count, plural, one {مهمة #} other {# مهام}}",
+    "client": "العميل",
+    "allClients": "كل العملاء",
+    "dueFrom": "استحقاق من",
+    "dueTo": "استحقاق إلى",
+    "toggleOn": "تشغيل",
+    "toggleOff": "إيقاف",
+    "chipSearch": "بحث: {value}",
+    "chipStatus": "الحالة: {value}",
+    "chipClient": "العميل: {value}"
   },
   "filters": {
     "search": "بحث في المهام",

@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 import { PageHeader } from '@/components/ui/page-header';
 
-import { EntityDiscussion } from '@/modules/collaboration/ui';
+import { EntityDiscussion, EntityLinkedTasksSection } from '@/modules/collaboration/ui';
 
 import { getDefectDetail, loadQualityFormData } from '@/modules/defects';
 
@@ -88,7 +88,7 @@ export async function ProjectDefectDetailScreen({ surfaceRoot,
 
   return (
 
-    <WithAppClientMessages extra={['defects', 'inspections']}>
+    <WithAppClientMessages extra={['defects', 'inspections', 'collaboration']}>
 
       <div className="flex flex-col gap-6">
 
@@ -279,6 +279,13 @@ export async function ProjectDefectDetailScreen({ surfaceRoot,
         </section>
 
 
+
+        <EntityLinkedTasksSection
+          projectId={projectId}
+          entityType="defect"
+          entityId={defect.id}
+          defaultTaskTitle={defect.title}
+        />
 
         <EntityDiscussion
 

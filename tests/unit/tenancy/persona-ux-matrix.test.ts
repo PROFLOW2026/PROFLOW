@@ -176,7 +176,8 @@ describe('persona UX acceptance matrix', () => {
     expect(contractor.todayFocus).toContain('boq');
     expect(consulting.todayFocus).toContain('time_people');
     expect(service.mobileKeys).toContain('workOrders');
-    expect(PERSONA_QUICK_CREATE_KEYS.small_works).toHaveLength(13);
+    expect(PERSONA_QUICK_CREATE_KEYS.small_works).toHaveLength(14);
+    expect(PERSONA_QUICK_CREATE_KEYS.small_works).toContain('task');
     expect(PERSONA_QUICK_CREATE_KEYS.consulting[0]).toBe('quickCapture');
   });
 

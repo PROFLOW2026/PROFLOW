@@ -109,6 +109,15 @@
       }
     }
   },
+  "linkedTasks": {
+    "title": "المهام المرتبطة",
+    "empty": "لا توجد مهام متابعة بعد.",
+    "taskTitleLabel": "عنوان المهمة",
+    "createButton": "إنشاء مهمة متابعة",
+    "creating": "جارٍ الإنشاء…",
+    "createFailed": "تعذّر إنشاء المهمة.",
+    "titleRequired": "العنوان مطلوب."
+  },
   "errors": {
     "invalidTransition": "هذا الإجراء غير مسموح في الحالة الحالية.",
     "evidenceRequired": "أرفق دليلاً واحداً على الأقل قبل التقديم.",

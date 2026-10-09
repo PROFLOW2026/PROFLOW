@@ -112,6 +112,15 @@
       }
     }
   },
+  "linkedTasks": {
+    "title": "Linked tasks",
+    "empty": "No follow-up tasks yet.",
+    "taskTitleLabel": "Task title",
+    "createButton": "Create follow-up task",
+    "creating": "Creating…",
+    "createFailed": "Could not create task.",
+    "titleRequired": "Title is required."
+  },
   "errors": {
     "invalidTransition": "This action is not allowed in the current status.",
     "evidenceRequired": "Attach at least one photo or document before submitting completion.",

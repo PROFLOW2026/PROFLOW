@@ -112,6 +112,15 @@
       }
     }
   },
+  "linkedTasks": {
+    "title": "משימות מקושרות",
+    "empty": "אין עדיין משימות המשך.",
+    "taskTitleLabel": "כותרת משימה",
+    "createButton": "יצירת משימת המשך",
+    "creating": "יוצר…",
+    "createFailed": "לא ניתן ליצור משימה.",
+    "titleRequired": "נדרשת כותרת."
+  },
   "errors": {
     "invalidTransition": "פעולה זו אינה מותרת בסטטוס הנוכחי.",
     "evidenceRequired": "יש לצרף לפחות תמונה או מסמך לפני הגשת השלמה.",

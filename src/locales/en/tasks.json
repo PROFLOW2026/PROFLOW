@@ -139,6 +139,14 @@
     },
     "noTasksToday": "No tasks due today"
   },
+  "relatedWork": {
+    "title": "Related work",
+    "relations": {
+      "follow_up": "Follow-up",
+      "remediation": "Remediation",
+      "schedule_link": "Schedule link"
+    }
+  },
   "portfolio": {
     "pageTitle": "Portfolio",
     "columns": {

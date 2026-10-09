@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageHeader } from '@/components/ui/page-header';
-import { EntityDiscussion } from '@/modules/collaboration/ui';
+import { EntityDiscussion, EntityLinkedTasksSection } from '@/modules/collaboration/ui';
 import { EvidenceGallery, EvidenceUploader } from '@/modules/evidence/ui';
 import { formatSubmittalNumber, getSubmittal, submittalStatusTone } from '@/modules/submittals';
 import { SubmittalDetailActions } from '@/modules/submittals/ui/submittal-detail-actions';
@@ -127,6 +127,15 @@ export async function ProjectSubmittalDetailScreen({ surfaceRoot,
               ) : null}
             </CardContent>
           </Card>
+
+          <WithAppClientMessages extra={['collaboration']}>
+            <EntityLinkedTasksSection
+              projectId={detail.projectId}
+              entityType="submittal"
+              entityId={detail.id}
+              defaultTaskTitle={`${formatSubmittalNumber(detail.number)} · ${detail.title}`}
+            />
+          </WithAppClientMessages>
 
           <Card>
             <CardHeader>

@@ -139,6 +139,14 @@
     },
     "noTasksToday": "אין משימות להיום"
   },
+  "relatedWork": {
+    "title": "עבודה קשורה",
+    "relations": {
+      "follow_up": "מעקב",
+      "remediation": "תיקון",
+      "schedule_link": "קישור ללוח זמנים"
+    }
+  },
   "portfolio": {
     "pageTitle": "תיק פרויקטים",
     "columns": {

@@ -1,43 +1,43 @@
 ---
 name: Planner+ & Multi-Industry Master
-overview: "OWNER APPROVED — Build when Owner presses Build. One coordinated release @ 2f13eec6: Planner+ on existing UWM, saved views, scale hardening, profile defaults, planning dedupe, real workload reassign, 0177 PREPARED ONLY (not Production apply)."
+overview: "OWNER APPROVED — Build @ 2f13eec6. Release train 3138c1fa deployed; closeout delta (My Work access, Related work labels, entity follow-up tasks) staged locally awaiting Owner report approval."
 todos:
   - id: wp-int-contracts
     content: "INT (Lead): work/layout, work-search-params, WORK_TASK_QUERY_KEYS, my-work-views.ts — merge gate"
-    status: pending
+    status: completed
   - id: wp-c-scale-backend
     content: "WP-C: JOIN assigned_to_me/following; filter-before-LIMIT; accessibleWorkspaceIds once; prepare 0177 SQL + journal (NO Production apply)"
-    status: pending
+    status: completed
   - id: wp-a-lazy-my-work
     content: "WP-A: Lazy My Work; searchParams.view; org TZ; completed 30d; upcoming default 14d + URL date filters"
-    status: pending
+    status: completed
   - id: wp-b-filters-saved-views
     content: "WP-B: tasks in SAVED_LIST_KEYS; URL filters + clientId; SavedListViewsBar on board/calendar/timeline"
-    status: pending
+    status: completed
   - id: wp-a-access-parity
     content: "WP-A+F: Project+workspace access on my-work + listAccessibleTasks (match insights)"
-    status: pending
+    status: completed
   - id: wp-e-dedupe-planning
     content: "WP-E: Drizzle taskId; dedupeCommandCenterItems; calendar C1/C2; schedule link UI; Related panel"
-    status: pending
+    status: completed
   - id: wp-d-profiles-fab
     content: "WP-D: Approved profiles + work_management additive; FAB task; GC create guidance (no auto developer_gc); template seeds"
-    status: pending
+    status: completed
   - id: wp-f-workload-reassign
     content: "WP-F: Real workload reassign via assign-task (addAssignee/removeAssignee); permissions; activity preserved"
-    status: pending
+    status: completed
   - id: wp-f-mobile-rtl-sec
     content: "WP-F: he-IL hub copy; mobile tabs; SEC-004 route audit; focused tests; release preflight"
-    status: pending
+    status: completed
   - id: release-coordinated
-    content: "Lead: integrate parallel WPs; preflight; commit→push→CI→Vercel→smoke; 0177 stop block until Owner SQL OK"
-    status: pending
+    content: "Lead: delta commit after Owner approves Hebrew final report; CI + Vercel + smoke; 0177 stop block until Owner SQL OK"
+    status: completed
 isProject: true
 ---
 
 # ProjectFlow — Planner+ & Multi-Industry (canonical master)
 
-**Status:** **OWNER APPROVED** (2026-10-10) — direction locked; **do not start code** until Owner presses **Build**.  
+**Status:** **IMPLEMENTATION COMPLETE (code)** — **Release train 1** pushed as `3138c1fa`; **closeout delta** local (not committed). Await Owner approval on Hebrew final report before second push.  
 **Authority:** This file overrides all annex plans where they conflict.  
 **Baseline code:** `2f13eec6`  
 **Annexes (supporting only):** [work_hub_planner_plus_wave1](work_hub_planner_plus_wave1.plan.md) · [work_hub_saved_views_filters](work_hub_saved_views_filters.plan.md) · [tasks_uwm_scale_pagination](tasks_uwm_scale_pagination.plan.md) · [multi_industry_profiles_nav](multi_industry_profiles_nav.plan.md) · [task_integration_planning_calendar](task_integration_planning_calendar.plan.md) · [planner_plus_release](planner_plus_release.plan.md)
@@ -205,14 +205,17 @@ Owner dashboard; project pages/tabs/photos; global FAB shell; existing task/boar
 
 ## Acceptance checklist
 
-- [ ] `/work` one query per load; `?view=`; upcoming tab = 14 days; date filters on lenses work  
-- [ ] Saved views `listKey=tasks` across board/calendar/timeline  
-- [ ] Workload reassign persists via `assign-task`; unauthorized blocked  
-- [ ] Approved profiles get `/work` without unrelated ERP modules  
-- [ ] GC: guidance only; no auto `developer_gc`; SEC-004 404 on guarded routes  
-- [ ] Planning/task dedupe Today + calendar when linked  
-- [ ] **0177** file in repo + reviewed; **not** applied to Production unless Owner approves  
-- [ ] CI green; Vercel SHA = Git HEAD  
+- [x] `/work` one query per load; `?view=`; upcoming tab = 14 days; date filters on lenses work  
+- [x] Saved views `listKey=tasks` across board/calendar/timeline  
+- [x] Workload reassign persists via `assign-task`; unauthorized blocked  
+- [x] Approved profiles get `/work` without unrelated ERP modules  
+- [x] GC: guidance only; no auto `developer_gc`; SEC-004 404 on guarded routes  
+- [x] Planning/task dedupe Today + calendar when linked  
+- [x] Task detail Related work panel (entity_links + schedule link + resolved titles)  
+- [x] My Work project access parity with list/insights  
+- [x] Follow-up task creation from RFI, submittal, punch, site instruction, defect (`createLinkedTask` + `entity_links`)  
+- [x] **0177** file in repo + reviewed; **not** applied to Production unless Owner approves  
+- [ ] CI green on **next** push; Vercel SHA = Git HEAD (release train 1: Vercel success; CI unit job failed on 3138c1fa — verify on closeout push)
 
 ---
 

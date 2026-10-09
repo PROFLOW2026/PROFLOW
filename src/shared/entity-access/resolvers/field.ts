@@ -1,5 +1,5 @@
 import { and, eq } from 'drizzle-orm';
-import { siteDailyLogs, siteDailyReports, siteInstructions, siteMeetingDetails } from '@drizzle/schema';
+import { punchListItems, siteDailyLogs, siteDailyReports, siteInstructions, siteMeetingDetails } from '@drizzle/schema';
 import type { EntityAccessResolver } from '../types';
 
 /** Entity access resolvers owned by the 'field' track. One resolver per entity type that supports threads/attachments/evidence. */
@@ -48,6 +48,17 @@ export const FIELD_ENTITY_RESOLVERS: readonly EntityAccessResolver[] = [
         .where(and(eq(siteMeetingDetails.meetingId, entityId), eq(siteMeetingDetails.organizationId, organizationId)))
         .limit(1);
       return row ? { organizationId, projectId: row.projectId, vendorId: null, internalOnly: true } : null;
+    },
+  },
+  {
+    entityType: 'punch_list_item',
+    async resolve(db, organizationId, entityId) {
+      const [row] = await db
+        .select({ projectId: punchListItems.projectId })
+        .from(punchListItems)
+        .where(and(eq(punchListItems.id, entityId), eq(punchListItems.organizationId, organizationId)))
+        .limit(1);
+      return row ? { organizationId, projectId: row.projectId, vendorId: null } : null;
     },
   },
   {

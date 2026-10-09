@@ -1,7 +1,9 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { getTranslations } from 'next-intl/server';
 import {
+  createLinkedTask,
   postExternalComment,
   postInternalComment,
   runContractorTaskCommand,
@@ -9,6 +11,8 @@ import {
   type ContractorTaskCommand,
   type InternalTaskCommand,
 } from '@/modules/collaboration';
+import { assertProjectCapability } from '@/modules/project-team/application/capability-guard';
+import { PROJECT_CAPABILITIES } from '@/modules/project-team/domain/capabilities';
 import { requireExternalContext } from '@/modules/contractor-access';
 import { withOrgContext } from '@/shared/auth/session';
 import { COLLAB_ACTION_OK, mapCollabActionError } from '../shared/action-state';
@@ -78,6 +82,77 @@ export async function contractorTaskCommandAction(_prev: CollabActionState, form
     return COLLAB_ACTION_OK();
   } catch (error) {
     return mapCollabActionError(error);
+  }
+}
+
+function revalidateEntityFollowUpPaths(
+  projectId: string,
+  entityType: string,
+  entityId: string,
+  taskId: string,
+): void {
+  revalidatePath(`/tasks/${taskId}`);
+  revalidatePath(`/projects/${projectId}/activity`);
+  switch (entityType) {
+    case 'rfi':
+      revalidatePath(`/projects/${projectId}/rfi/${entityId}`);
+      break;
+    case 'submittal':
+      revalidatePath(`/projects/${projectId}/submittals/${entityId}`);
+      break;
+    case 'site_instruction':
+      revalidatePath(`/projects/${projectId}/instructions/${entityId}`);
+      break;
+    case 'defect':
+      revalidatePath(`/projects/${projectId}/defects/${entityId}`);
+      break;
+    case 'punch_list_item':
+      revalidatePath(`/field-ops/punch/${entityId}`);
+      break;
+    default:
+      break;
+  }
+}
+
+export type CreateEntityFollowUpTaskResult =
+  | { readonly ok: true; readonly taskId: string }
+  | { readonly ok: false; readonly error: string };
+
+export async function createEntityFollowUpTaskAction(input: {
+  readonly projectId: string;
+  readonly entityType: string;
+  readonly entityId: string;
+  readonly title: string;
+}): Promise<CreateEntityFollowUpTaskResult> {
+  const title = input.title.trim();
+  if (!title) {
+    const t = await getTranslations('collaboration.linkedTasks');
+    return { ok: false, error: t('titleRequired') };
+  }
+  try {
+    const taskId = await withOrgContext(async (context) => {
+      await assertProjectCapability(context, input.projectId, PROJECT_CAPABILITIES.TASKS_MANAGE);
+      const created = await createLinkedTask(context, {
+        projectId: input.projectId,
+        title,
+        assignee: { kind: 'none' },
+        sources: [
+          {
+            entityType: input.entityType,
+            entityId: input.entityId,
+            relation: 'follow_up',
+          },
+        ],
+      });
+      return created.taskId;
+    });
+    revalidateEntityFollowUpPaths(input.projectId, input.entityType, input.entityId, taskId);
+    return { ok: true, taskId };
+  } catch (error) {
+    const mapped = await mapCollabActionError(error);
+    if (mapped.error) return { ok: false, error: mapped.error };
+    const t = await getTranslations('collaboration.linkedTasks');
+    return { ok: false, error: t('createFailed') };
   }
 }
 

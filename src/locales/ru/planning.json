@@ -63,6 +63,13 @@
       "removeAria": "Удалить зависимость от {name}"
     },
     "editAria": "Изменить {name}",
-    "archiveAria": "Архивировать {name}"
+    "archiveAria": "Архивировать {name}",
+    "taskLink": {
+      "label": "Связать задачу исполнения (необязательно)",
+      "placeholder": "ID задачи (UUID)",
+      "linkButton": "Связать",
+      "linked": "Связанная задача:",
+      "unlink": "Отвязать"
+    }
   }
 }

@@ -139,6 +139,14 @@
     },
     "noTasksToday": "Нет задач на сегодня"
   },
+  "relatedWork": {
+    "title": "Связанная работа",
+    "relations": {
+      "follow_up": "Дальнейшие действия",
+      "remediation": "Исправление",
+      "schedule_link": "Связь с графиком"
+    }
+  },
   "portfolio": {
     "pageTitle": "Портфель проектов",
     "columns": {
@@ -244,6 +252,9 @@
     },
     "noEffortData": "Нет оценок времени",
     "reassign": "Переназначить",
+    "reassignTo": "Переназначить на…",
+    "reassigning": "Переназначение…",
+    "reassignFailed": "Не удалось переназначить",
     "expand": "Показать задачи",
     "empty": "Сотрудники не найдены",
     "accessDenied": {
@@ -573,6 +584,24 @@
     "timelineLink": "Хронология задач",
     "filesLink": "Файлы проекта",
     "meetingsLink": "Встречи проекта"
+  },
+  "workFilters": {
+    "title": "Фильтр задач",
+    "apply": "Применить",
+    "clear": "Сбросить фильтры",
+    "active": "Фильтры активны",
+    "mobile": "Фильтры",
+    "mobileWithCount": "Фильтры ({count})",
+    "resultCount": "{count, plural, one {# задача} few {# задачи} many {# задач} other {# задачи}}",
+    "client": "Клиент",
+    "allClients": "Все клиенты",
+    "dueFrom": "Срок с",
+    "dueTo": "Срок до",
+    "toggleOn": "Вкл.",
+    "toggleOff": "Выкл.",
+    "chipSearch": "Поиск: {value}",
+    "chipStatus": "Статус: {value}",
+    "chipClient": "Клиент: {value}"
   },
   "filters": {
     "search": "Поиск задач",

@@ -16,6 +16,7 @@ import { tasks, taskAssignees, taskFollowers } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 import { addDays, type BusinessDate } from '@/shared/dates';
 import { clampTaskListLimit, splitTaskListPage } from '../domain/list-window';
+import { taskProjectAccessCondition } from '../domain/task-project-access-filter';
 import type { Task, TaskStatus, TaskPriority, TaskSource } from '../domain/types';
 
 import type { MyWorkView } from '../domain/my-work-view';
@@ -92,6 +93,8 @@ export interface MyWorkQueryOptions {
   readonly view: MyWorkView;
   /** Org-timezone calendar day (YYYY-MM-DD) for date-bound views. */
   readonly today: string;
+  /** Same semantics as accessible task list / insights (`null` = full project scope). */
+  readonly accessibleProjectIds?: readonly string[] | null;
   readonly limit?: number;
   readonly offset?: number;
 }
@@ -119,10 +122,12 @@ export async function queryMyWorkPage(
 
   if (workspaceIds.length === 0) return EMPTY_MY_WORK_PAGE;
 
+  const projectAccess = taskProjectAccessCondition(options.accessibleProjectIds);
   const baseConditions = [
     eq(tasks.organizationId, organizationId),
     inArray(tasks.workspaceId, workspaceIds),
     eq(tasks.isArchived, false),
+    ...(projectAccess ? [projectAccess] : []),
   ];
 
   switch (view) {

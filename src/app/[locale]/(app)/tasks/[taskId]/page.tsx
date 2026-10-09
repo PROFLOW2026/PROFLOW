@@ -19,6 +19,7 @@ import { getTaskDetailAction, updateTaskFieldsAction, getTaskDocumentPanelAction
 import { TaskDocumentAttachments } from '@/modules/tasks/ui/task-document-attachments';
 import { TaskDetailPageClient } from './_task-detail-page-client';
 import { TaskContractorSection } from '@/modules/collaboration/ui';
+import { TaskRelatedWorkSection } from '@/modules/tasks/ui/task-related-work-section';
 import { EvidenceGallery, EvidenceUploader } from '@/modules/evidence/ui';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -115,6 +116,10 @@ export default async function TaskDetailPage({
           </CardContent>
         </Card>
       ) : null}
+
+      <Suspense fallback={<Skeleton className="h-24 w-full rounded-lg" />}>
+        <TaskRelatedWorkSection taskId={taskId} />
+      </Suspense>
 
       {detail.approvalRequired ? (
         <Suspense fallback={<TaskApprovalGateSkeleton />}>
