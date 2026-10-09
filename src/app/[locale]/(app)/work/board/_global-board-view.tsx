@@ -4,14 +4,20 @@
  * Global board grouped by canonical STATUS.
  * Dragging a card updates task status via updateTask. This board has no buckets,
  * so it must not call moveTaskToBucket.
+ *
+ * Mobile: vertical accordion (one full-width column per status).
+ * Desktop: horizontal Kanban columns with drag-and-drop.
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Badge } from '@/components/ui/badge';
+import { CollapsibleSection } from '@/components/ui/collapsible-section';
+import { BoardStatusMoveSelect } from '@/modules/tasks/ui/board-status-move-select';
 import { TaskCard } from '@/modules/tasks/ui/task-card';
 import { TaskDetailSheet } from '@/modules/tasks/ui/task-detail-sheet';
 import { isValidTransition } from '@/modules/tasks/domain/lifecycle';
+import { useDesktopBoardDrag } from '@/modules/tasks/ui/use-desktop-board-drag';
 import { loadMoreWorkLensTasksAction } from '@/app/[locale]/(app)/work/actions';
 import type { TaskCardData, TaskDetail, TaskStatus } from '@/modules/tasks/ui/task-api';
 
@@ -26,18 +32,6 @@ const STATUS_COLUMNS: {
   { status: 'blocked', labelKey: 'status.blocked', tone: 'danger' },
   { status: 'done', labelKey: 'status.done', tone: 'success' },
 ];
-
-function useDesktopDrag() {
-  const [enabled, setEnabled] = useState(true);
-  useEffect(() => {
-    const media = window.matchMedia('(min-width: 768px) and (pointer: fine)');
-    const update = () => setEnabled(media.matches);
-    update();
-    media.addEventListener('change', update);
-    return () => media.removeEventListener('change', update);
-  }, []);
-  return enabled;
-}
 
 export interface GlobalBoardPage {
   tasks: TaskCardData[];
@@ -69,7 +63,7 @@ export function GlobalBoardView({
 }: GlobalBoardViewProps) {
   const canLoadMore = workLensFilterQuery !== undefined;
   const t = useTranslations('tasks');
-  const dragEnabled = useDesktopDrag();
+  const dragEnabled = useDesktopBoardDrag();
   const [tasks, setTasks] = useState(initialTasks);
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [nextOffset, setNextOffset] = useState(initialNextOffset);
@@ -89,6 +83,15 @@ export function GlobalBoardView({
     const column = byStatus.get(task.status);
     if (column) column.push(task);
   }
+
+  const statusMoveOptions = STATUS_COLUMNS.map((column) => ({
+    status: column.status,
+    label: t(column.labelKey),
+  }));
+
+  const firstOpenStatus: TaskStatus =
+    STATUS_COLUMNS.find((column) => (byStatus.get(column.status)?.length ?? 0) > 0)?.status ??
+    'todo';
 
   async function moveTask(taskId: string, nextStatus: TaskStatus) {
     if (movingIds.current.has(taskId)) return;
@@ -150,6 +153,38 @@ export function GlobalBoardView({
     }
   }
 
+  function renderColumnTasks(columnTasks: TaskCardData[]) {
+    if (columnTasks.length === 0) {
+      return (
+        <p className="py-2 text-center text-xs text-[var(--pf-text-muted)]">{t('emptyColumn')}</p>
+      );
+    }
+
+    return (
+      <ul className="flex min-w-0 max-w-full flex-col gap-2">
+        {columnTasks.map((task) => (
+          <li key={task.id} className="min-w-0 max-w-full">
+            <TaskCard
+              task={task}
+              onOpen={handleOpenTask}
+              isDragging={draggingId === task.id}
+              className="w-full max-w-full"
+            />
+            {!dragEnabled ? (
+              <BoardStatusMoveSelect
+                currentStatus={task.status}
+                options={statusMoveOptions.filter((option) =>
+                  isValidTransition(task.status, option.status),
+                )}
+                onMove={(next) => void moveTask(task.id, next)}
+              />
+            ) : null}
+          </li>
+        ))}
+      </ul>
+    );
+  }
+
   return (
     <>
       {moveError ? (
@@ -158,89 +193,87 @@ export function GlobalBoardView({
         </p>
       ) : null}
 
-      <div className="flex gap-3 overflow-x-auto overscroll-x-contain pb-3">
-        {STATUS_COLUMNS.map((column) => {
-          const columnTasks = byStatus.get(column.status) ?? [];
-          return (
-            <section
-              key={column.status}
-              aria-labelledby={`global-status-col-${column.status}`}
-              className={`flex w-[min(17rem,80vw)] shrink-0 flex-col gap-2 rounded-xl border bg-[var(--pf-bg-subtle)] p-3 ${
-                dropStatus === column.status
-                  ? 'border-[var(--pf-border-brand)]'
-                  : 'border-[var(--pf-border-default)]'
-              }`}
-              onDragOver={(event) => {
-                if (!dragEnabled) return;
-                event.preventDefault();
-                setDropStatus(column.status);
-              }}
-              onDragLeave={() => setDropStatus((current) => (current === column.status ? null : current))}
-              onDrop={(event) => {
-                event.preventDefault();
-                setDropStatus(null);
-                const taskId = event.dataTransfer.getData('taskId');
-                if (taskId) void moveTask(taskId, column.status);
-              }}
-            >
-              <header className="flex items-center justify-between gap-2">
-                <Badge id={`global-status-col-${column.status}`} tone={column.tone} className="text-xs">
-                  {t(column.labelKey)}
-                </Badge>
-                <span className="text-xs text-[var(--pf-text-muted)]" aria-hidden>
-                  {columnTasks.length}
-                </span>
-              </header>
+      <div className="min-w-0 max-w-full">
+        {/* Desktop Kanban */}
+        <div className="hidden min-w-0 gap-3 overflow-x-auto overscroll-x-contain pb-3 md:flex">
+          {STATUS_COLUMNS.map((column) => {
+            const columnTasks = byStatus.get(column.status) ?? [];
+            return (
+              <section
+                key={column.status}
+                aria-labelledby={`global-status-col-${column.status}`}
+                className={`flex w-[min(17rem,80vw)] shrink-0 flex-col gap-2 rounded-xl border bg-[var(--pf-bg-subtle)] p-3 ${
+                  dropStatus === column.status
+                    ? 'border-[var(--pf-border-brand)]'
+                    : 'border-[var(--pf-border-default)]'
+                }`}
+                onDragOver={(event) => {
+                  if (!dragEnabled) return;
+                  event.preventDefault();
+                  setDropStatus(column.status);
+                }}
+                onDragLeave={() =>
+                  setDropStatus((current) => (current === column.status ? null : current))
+                }
+                onDrop={(event) => {
+                  event.preventDefault();
+                  setDropStatus(null);
+                  const taskId = event.dataTransfer.getData('taskId');
+                  if (taskId) void moveTask(taskId, column.status);
+                }}
+              >
+                <header className="flex items-center justify-between gap-2">
+                  <Badge id={`global-status-col-${column.status}`} tone={column.tone} className="text-xs">
+                    {t(column.labelKey)}
+                  </Badge>
+                  <span className="text-xs text-[var(--pf-text-muted)]" aria-hidden>
+                    {columnTasks.length}
+                  </span>
+                </header>
 
-              {columnTasks.length === 0 ? (
-                <p className="py-2 text-center text-xs text-[var(--pf-text-muted)]">{t('emptyColumn')}</p>
-              ) : (
-                <ul className="flex flex-col gap-2">
-                  {columnTasks.map((task) => (
-                    <li
-                      key={task.id}
-                      draggable={dragEnabled}
-                      onDragStart={(event) => {
-                        if (!dragEnabled) return;
-                        event.dataTransfer.setData('taskId', task.id);
-                        event.dataTransfer.effectAllowed = 'move';
-                        setDraggingId(task.id);
-                      }}
-                      onDragEnd={() => setDraggingId(null)}
-                    >
-                      <TaskCard task={task} onOpen={handleOpenTask} isDragging={draggingId === task.id} />
-                      {!dragEnabled ? (
-                        <label className="mt-1 block">
-                          <span className="sr-only">{t('board.moveToStatus')}</span>
-                          <select
-                            aria-label={t('board.moveToStatus')}
-                            defaultValue=""
-                            className="h-9 w-full rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-2 text-xs"
-                            onClick={(event) => event.stopPropagation()}
-                            onChange={(event) => {
-                              const next = event.target.value as TaskStatus;
-                              event.target.value = '';
-                              if (next) void moveTask(task.id, next);
-                            }}
-                          >
-                            <option value="">{t('board.moveToStatus')}</option>
-                            {STATUS_COLUMNS.filter((target) =>
-                              isValidTransition(task.status, target.status),
-                            ).map((target) => (
-                              <option key={target.status} value={target.status}>
-                                {t(target.labelKey)}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
-                      ) : null}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </section>
-          );
-        })}
+                {columnTasks.length === 0 ? (
+                  <p className="py-2 text-center text-xs text-[var(--pf-text-muted)]">{t('emptyColumn')}</p>
+                ) : (
+                  <ul className="flex flex-col gap-2">
+                    {columnTasks.map((task) => (
+                      <li
+                        key={task.id}
+                        draggable={dragEnabled}
+                        onDragStart={(event) => {
+                          if (!dragEnabled) return;
+                          event.dataTransfer.setData('taskId', task.id);
+                          event.dataTransfer.effectAllowed = 'move';
+                          setDraggingId(task.id);
+                        }}
+                        onDragEnd={() => setDraggingId(null)}
+                      >
+                        <TaskCard task={task} onOpen={handleOpenTask} isDragging={draggingId === task.id} />
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+            );
+          })}
+        </div>
+
+        {/* Mobile accordion */}
+        <div className="flex flex-col gap-2 pb-6 md:hidden">
+          {STATUS_COLUMNS.map((column) => {
+            const columnTasks = byStatus.get(column.status) ?? [];
+            const title = `${t(column.labelKey)} (${columnTasks.length})`;
+            return (
+              <CollapsibleSection
+                key={column.status}
+                title={title}
+                defaultOpen={column.status === firstOpenStatus}
+                className="min-w-0 max-w-full bg-[var(--pf-bg-subtle)]"
+              >
+                {renderColumnTasks(columnTasks)}
+              </CollapsibleSection>
+            );
+          })}
+        </div>
       </div>
 
       {hasMore ? (

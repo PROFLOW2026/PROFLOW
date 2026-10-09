@@ -26,6 +26,7 @@
     "globalPageTitle": "لوحة المهام",
     "globalPageDescription": "أضف مهام إلى مشاريعك لرؤيتها هنا",
     "moveToStatus": "نقل إلى حالة",
+    "moveToBucket": "نقل إلى عمود",
     "empty": {
       "title": "لا توجد مهام هنا",
       "description": "أضف مهمة إلى هذا العمود للبدء",

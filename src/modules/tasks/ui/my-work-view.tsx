@@ -127,7 +127,7 @@ function ViewTabBar({
   return (
     <nav
       aria-label={t('myWork.tabsLabel')}
-      className={cn(uwmTabBarClass, 'overflow-x-auto')}
+      className={cn(uwmTabBarClass, 'max-w-full min-w-0 overflow-x-auto overscroll-x-contain')}
     >
       {views.map((v) => {
         const count = counts[v.key];
@@ -289,7 +289,7 @@ export function MyWorkView({
   }
 
   return (
-    <div className="flex flex-col gap-0">
+    <div className="flex min-w-0 max-w-full flex-col gap-0">
       <ViewTabBar
         views={VIEWS}
         current={activeView}

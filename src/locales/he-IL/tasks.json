@@ -26,6 +26,7 @@
     "globalPageTitle": "לוח משימות",
     "globalPageDescription": "הוסף משימות לפרויקטים שלך כדי לראות אותן כאן",
     "moveToStatus": "העבר לסטטוס",
+    "moveToBucket": "העבר לעמודה",
     "empty": {
       "title": "אין משימות כאן",
       "description": "הוסף משימה לעמודה זו כדי להתחיל",

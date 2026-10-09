@@ -90,7 +90,7 @@ export function TaskFiltersBar({
     'h-9 rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-2 text-sm text-[var(--pf-text-primary)]';
 
   return (
-    <div className={cn(uwmFilterPanelClass, 'flex flex-wrap items-center gap-2', className)}>
+    <div className={cn(uwmFilterPanelClass, 'flex min-w-0 max-w-full flex-wrap items-center gap-2', className)}>
       <label className="sr-only" htmlFor="task-filter-search">
         {t('filters.search')}
       </label>
@@ -100,7 +100,7 @@ export function TaskFiltersBar({
         value={value.search}
         onChange={(e) => onChange({ ...value, search: e.target.value })}
         placeholder={t('filters.searchPlaceholder')}
-        className={cn(selectClass, 'min-w-[10rem] flex-1 sm:max-w-xs')}
+        className={cn(selectClass, 'min-w-0 w-full flex-1 basis-full sm:min-w-[10rem] sm:max-w-xs sm:basis-auto')}
       />
 
       <select

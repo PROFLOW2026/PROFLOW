@@ -22,9 +22,12 @@ import { useTranslations } from 'next-intl';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
+import { CollapsibleSection } from '@/components/ui/collapsible-section';
 import { cn } from '@/shared/ui/cn';
+import { BoardBucketMoveSelect } from './board-bucket-move-select';
 import type { Bucket, TaskCardData, TaskPriority, TaskStatus } from './task-api';
 import { TaskCard } from './task-card';
+import { useDesktopBoardDrag } from './use-desktop-board-drag';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -253,6 +256,10 @@ function BoardColumn({
   onDrop,
   draggingId,
   setDraggingId,
+  dragEnabled,
+  shellClassName,
+  bucketMoveTargets,
+  showHeader = true,
 }: {
   column: Column;
   groupBy: GroupBy;
@@ -261,6 +268,10 @@ function BoardColumn({
   onDrop: (taskId: string, targetBucketId: string, afterTaskId: string | null) => void;
   draggingId: string | null;
   setDraggingId: (id: string | null) => void;
+  dragEnabled: boolean;
+  shellClassName?: string;
+  bucketMoveTargets?: { id: string; label: string }[];
+  showHeader?: boolean;
 }) {
   const t = useTranslations('tasks');
   const isOverWipLimit =
@@ -271,69 +282,67 @@ function BoardColumn({
     <section
       aria-labelledby={`board-col-${column.key}`}
       className={cn(
-        'flex w-[min(17rem,80vw)] shrink-0 flex-col gap-2 rounded-xl border bg-[var(--pf-bg-subtle)] p-3',
+        'flex flex-col gap-2 rounded-xl border bg-[var(--pf-bg-subtle)] p-3',
+        shellClassName ?? 'w-[min(17rem,80vw)] shrink-0',
         isDropTarget
           ? 'border-[var(--pf-border-brand)] bg-[var(--pf-teal-50)]'
           : 'border-[var(--pf-border-default)]',
       )}
       onDragOver={(e) => {
+        if (!dragEnabled) return;
         e.preventDefault();
         setIsDropTarget(true);
       }}
       onDragLeave={() => setIsDropTarget(false)}
       onDrop={(e) => {
+        if (!dragEnabled) return;
         e.preventDefault();
         setIsDropTarget(false);
         const taskId = e.dataTransfer.getData('taskId');
         if (taskId) onDrop(taskId, column.key, null);
       }}
     >
-      {/* Column header */}
-      <header className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 min-w-0">
-          {/* Color indicator */}
-          {column.color && (
-            <span
-              className="inline-block size-2.5 shrink-0 rounded-full"
-              style={{ background: column.color }}
-              aria-hidden
-            />
-          )}
-          <h2
-            id={`board-col-${column.key}`}
-            className="truncate text-sm font-semibold"
-          >
-            {column.label}
-          </h2>
-          {/* Status-on-enter badge */}
-          {column.statusOnEnter && (
-            <Badge tone="neutral" className="shrink-0 text-[0.6rem]">
-              → {t(`status.${column.statusOnEnter}`)}
-            </Badge>
-          )}
-        </div>
+      {showHeader ? (
+        <header className="flex items-center justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-2">
+            {column.color ? (
+              <span
+                className="inline-block size-2.5 shrink-0 rounded-full"
+                style={{ background: column.color }}
+                aria-hidden
+              />
+            ) : null}
+            <h2 id={`board-col-${column.key}`} className="truncate text-sm font-semibold">
+              {column.label}
+            </h2>
+            {column.statusOnEnter ? (
+              <Badge tone="neutral" className="shrink-0 text-[0.6rem]">
+                → {t(`status.${column.statusOnEnter}`)}
+              </Badge>
+            ) : null}
+          </div>
 
-        <div className="flex shrink-0 items-center gap-1">
-          {/* WIP limit indicator */}
-          <span
-            className={cn(
-              'text-xs font-medium tabular-nums',
-              isOverWipLimit
-                ? 'text-[var(--pf-status-danger-fg)]'
-                : 'text-[var(--pf-text-muted)]',
-            )}
-            aria-label={
-              column.wipLimit != null
-                ? t('wipLimitLabel', { count: column.tasks.length, limit: column.wipLimit })
-                : undefined
-            }
-          >
-            {column.wipLimit != null
-              ? `${column.tasks.length}/${column.wipLimit}`
-              : column.tasks.length}
-          </span>
-        </div>
-      </header>
+          <div className="flex shrink-0 items-center gap-1">
+            <span
+              className={cn(
+                'text-xs font-medium tabular-nums',
+                isOverWipLimit
+                  ? 'text-[var(--pf-status-danger-fg)]'
+                  : 'text-[var(--pf-text-muted)]',
+              )}
+              aria-label={
+                column.wipLimit != null
+                  ? t('wipLimitLabel', { count: column.tasks.length, limit: column.wipLimit })
+                  : undefined
+              }
+            >
+              {column.wipLimit != null
+                ? `${column.tasks.length}/${column.wipLimit}`
+                : column.tasks.length}
+            </span>
+          </div>
+        </header>
+      ) : null}
 
       {/* Task list */}
       <ul className="flex flex-col gap-2 overflow-y-auto">
@@ -347,26 +356,36 @@ function BoardColumn({
           column.tasks.map((task) => (
             <li
               key={task.id}
-              draggable
+              draggable={dragEnabled}
               onDragStart={(e) => {
+                if (!dragEnabled) return;
                 e.dataTransfer.setData('taskId', task.id);
                 setDraggingId(task.id);
               }}
               onDragEnd={() => setDraggingId(null)}
-              className="group relative"
+              className={cn('min-w-0 max-w-full', dragEnabled && 'group relative')}
             >
-              {/* Drag handle (visible on hover) */}
-              <span
-                className="absolute start-0 top-1/2 -translate-y-1/2 -translate-x-full ps-0.5 opacity-0 group-hover:opacity-60 cursor-grab active:cursor-grabbing"
-                aria-hidden
-              >
-                <GripVertical className="size-3.5 text-[var(--pf-text-muted)]" />
-              </span>
+              {dragEnabled ? (
+                <span
+                  className="absolute start-0 top-1/2 -translate-y-1/2 -translate-x-full ps-0.5 opacity-0 group-hover:opacity-60 cursor-grab active:cursor-grabbing"
+                  aria-hidden
+                >
+                  <GripVertical className="size-3.5 text-[var(--pf-text-muted)]" />
+                </span>
+              ) : null}
               <TaskCard
                 task={task}
                 onOpen={onOpenTask}
                 isDragging={draggingId === task.id}
+                className="w-full max-w-full"
               />
+              {!dragEnabled && groupBy === 'bucket' && bucketMoveTargets ? (
+                <BoardBucketMoveSelect
+                  currentBucketId={task.bucketId}
+                  buckets={bucketMoveTargets}
+                  onMove={(bucketId) => onDrop(task.id, bucketId, null)}
+                />
+              ) : null}
             </li>
           ))
         )}
@@ -453,6 +472,7 @@ export function BoardView({
   onMoveTask,
 }: BoardViewProps) {
   const t = useTranslations('tasks');
+  const dragEnabled = useDesktopBoardDrag();
   const [groupBy, setGroupBy] = useState<GroupBy>('bucket');
   const [filters, setFilters] = useState<FilterState>({});
   const [draggingId, setDraggingId] = useState<string | null>(null);
@@ -506,14 +526,22 @@ export function BoardView({
 
   const hasActiveFilters = Object.values(filters).some(Boolean);
 
+  const bucketMoveTargets =
+    groupBy === 'bucket'
+      ? columns.map((col) => ({ id: col.key, label: col.label }))
+      : undefined;
+
+  const firstOpenKey =
+    columns.find((col) => col.tasks.length > 0)?.key ?? columns[0]?.key;
+
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex min-w-0 max-w-full flex-col gap-3">
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex min-w-0 max-w-full flex-wrap items-center gap-2">
         <GroupByToggle value={groupBy} onChange={setGroupBy} />
 
         {/* Filter chips */}
-        <div className="ms-auto flex flex-wrap items-center gap-2">
+        <div className="flex w-full min-w-0 flex-wrap items-center gap-2 md:ms-auto md:w-auto">
           <button
             type="button"
             onClick={() =>
@@ -561,24 +589,49 @@ export function BoardView({
           description={t('board.empty.description')}
         />
       ) : (
-        <div
-          className="flex gap-3 overflow-x-auto overscroll-x-contain pb-3 md:pb-0"
-          // Mobile: show as stacked single column
-          style={{}}
-        >
-          {columns.map((col) => (
-            <BoardColumn
-              key={col.key}
-              column={col}
-              groupBy={groupBy}
-              onOpenTask={onOpenTask}
-              onAddTask={onAddTask}
-              onDrop={handleDrop}
-              draggingId={draggingId}
-              setDraggingId={setDraggingId}
-            />
-          ))}
-        </div>
+        <>
+          <div className="hidden min-w-0 gap-3 overflow-x-auto overscroll-x-contain pb-3 md:flex">
+            {columns.map((col) => (
+              <BoardColumn
+                key={col.key}
+                column={col}
+                groupBy={groupBy}
+                onOpenTask={onOpenTask}
+                onAddTask={onAddTask}
+                onDrop={handleDrop}
+                draggingId={draggingId}
+                setDraggingId={setDraggingId}
+                dragEnabled={dragEnabled}
+                bucketMoveTargets={bucketMoveTargets}
+              />
+            ))}
+          </div>
+
+          <div className="flex flex-col gap-2 pb-6 md:hidden">
+            {columns.map((col) => (
+              <CollapsibleSection
+                key={col.key}
+                title={`${col.label} (${col.tasks.length})`}
+                defaultOpen={col.key === firstOpenKey}
+                className="min-w-0 max-w-full bg-[var(--pf-bg-subtle)]"
+              >
+                <BoardColumn
+                  column={col}
+                  groupBy={groupBy}
+                  onOpenTask={onOpenTask}
+                  onAddTask={onAddTask}
+                  onDrop={handleDrop}
+                  draggingId={draggingId}
+                  setDraggingId={setDraggingId}
+                  dragEnabled={false}
+                  showHeader={false}
+                  shellClassName="w-full min-w-0 max-w-full border-0 bg-transparent p-0"
+                  bucketMoveTargets={bucketMoveTargets}
+                />
+              </CollapsibleSection>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );

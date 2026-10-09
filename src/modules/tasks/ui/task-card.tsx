@@ -132,7 +132,7 @@ export function TaskCard({ task, onOpen, isDragging, className }: TaskCardProps)
       }}
       aria-label={task.title}
       className={cn(
-        'group flex cursor-pointer flex-col gap-2 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-3 text-start',
+        'group flex w-full max-w-full min-w-0 cursor-pointer flex-col gap-2 rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] p-3 text-start',
         'transition-shadow duration-[var(--pf-motion-fast)]',
         'hover:border-[var(--pf-border-strong)] hover:shadow-[var(--pf-shadow-sm)]',
         'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pf-focus-ring)]',

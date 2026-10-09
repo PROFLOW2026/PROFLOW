@@ -67,7 +67,7 @@ export default async function GlobalBoardPage({ searchParams }: WorkLensPageProp
   });
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex min-w-0 max-w-full flex-col gap-6">
       <PageHeader
         title={t('board.globalPageTitle')}
         description={t('board.globalPageDescription')}

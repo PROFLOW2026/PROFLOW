@@ -110,7 +110,7 @@ export function TaskWorkSurfaceClient({
     : undefined;
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex min-w-0 max-w-full flex-col gap-4">
       {useLocalFilters ? <TaskFiltersBar value={filters} onChange={setFilters} /> : null}
 
       {hasMore ? (

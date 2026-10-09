@@ -26,6 +26,7 @@
     "globalPageTitle": "Task board",
     "globalPageDescription": "Add tasks to your projects to see them here",
     "moveToStatus": "Move to status",
+    "moveToBucket": "Move to column",
     "empty": {
       "title": "No tasks here",
       "description": "Add a task to this column to get started",
