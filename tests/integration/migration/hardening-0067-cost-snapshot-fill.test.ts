@@ -203,15 +203,22 @@ describe('0067 time entry cost snapshot fill lock', () => {
   });
 
   it('2. normal worker cannot fill approved null cost', async () => {
-    await expectUpdateFails(
-      workerId,
-      sql`
+    await database.asUser(workerId, async (tx) => {
+      await tx.execute(sql`
         update time_entries
         set cost_amount = 100, cost_currency = 'ILS', rate_version_id = ${rateId}::uuid
         where id = ${entryId}::uuid
-      `,
-      'workforce.cost.manage',
+      `);
+    });
+
+    const rows = await database.asService(async (db) =>
+      db.execute(sql`
+        select cost_amount::text as cost_amount
+        from time_entries
+        where id = ${entryId}::uuid
+      `),
     );
+    expect(resultRows<{ cost_amount: string | null }>(rows)[0]?.cost_amount ?? null).toBeNull();
   });
 
   it('3. existing non-null cost cannot be changed', async () => {
