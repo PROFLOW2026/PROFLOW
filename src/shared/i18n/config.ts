@@ -174,6 +174,7 @@ export const CONTRACTOR_AUTH_CLIENT_MESSAGE_NAMESPACES = [
 export const MARKETING_CLIENT_MESSAGE_NAMESPACES = [
   'common',
   'marketing',
+  'offline',
 ] as const satisfies readonly MessageNamespace[];
 
 export const ONBOARDING_CLIENT_MESSAGE_NAMESPACES = [
