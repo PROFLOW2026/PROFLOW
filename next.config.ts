@@ -16,11 +16,12 @@ function nextConfig(phase: string): NextConfig {
     '/*': ['./src/modules/reports/fonts/**/*'],
   },
   typedRoutes: false,
-  // Full-repo typecheck stays on `npm run typecheck` (tsconfig.json).
-  // Production build typecheck skips tests/scripts so it does not repeat that graph in-process.
+  // Type safety: `npm run typecheck` (CI + local preflight) uses tsconfig.json.
+  // Skip the second full-graph TypeScript pass inside `next build` — it duplicates CI and
+  // exhausts Vercel's 8 GB builder (OOM/SIGKILL after Webpack on production deploys).
   typescript:
     phase === PHASE_PRODUCTION_BUILD
-      ? { tsconfigPath: 'tsconfig.build.json' }
+      ? { ignoreBuildErrors: true }
       : undefined,
   // package-lock.json lives beside this file, not at the drive root Next infers.
   turbopack: { root: import.meta.dirname },
