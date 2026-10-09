@@ -12,7 +12,7 @@ import { ContractorSubmittalActions } from '@/modules/submittals/ui/contractor-s
 import { statusTone } from '@/modules/submittals/ui/tones';
 import { NotFoundError } from '@/shared/errors';
 import { Link } from '@/shared/i18n/navigation';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithPortalClientMessages } from '@/shared/i18n/with-client-messages';
 import { formatInstant } from '@/shared/dates';
 
 export default async function ContractorSubmittalDetailPage({
@@ -99,7 +99,7 @@ export default async function ContractorSubmittalDetailPage({
         </CardContent>
       </Card>
 
-      <WithClientMessages extra={['submittals', 'common']}>
+      <WithPortalClientMessages extra={['submittals', 'common']}>
         <ContractorSubmittalActions
           organizationId={organizationId}
           submittalId={detail.id}
@@ -107,7 +107,7 @@ export default async function ContractorSubmittalDetailPage({
           availableActions={detail.availableActions}
           draftRevisionId={detail.draftRevisionId}
         />
-      </WithClientMessages>
+      </WithPortalClientMessages>
 
       <Card>
         <CardHeader>

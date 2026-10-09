@@ -6,7 +6,7 @@ import { DeveloperGcExecutionEntry } from '@/modules/project-workspace/ui/develo
 import { ProjectExecutionNav } from '@/modules/project-workspace/ui/project-execution-nav';
 import { getRequestPathname } from '@/shared/http/request-pathname';
 import { localeDirection, PROJECT_SURFACE_CLIENT_MESSAGE_NAMESPACES } from '@/shared/i18n/config';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 import { withOrgContext } from '@/shared/auth/session';
 
 export default async function EmployeeProjectLayout({
@@ -30,7 +30,7 @@ export default async function EmployeeProjectLayout({
   const inExecutionWorkspace = isEmployeeExecutionWorkspacePath(requestPathname, projectId);
 
   return (
-    <WithClientMessages extra={PROJECT_SURFACE_CLIENT_MESSAGE_NAMESPACES}>
+    <WithAppClientMessages extra={PROJECT_SURFACE_CLIENT_MESSAGE_NAMESPACES}>
     <div className="flex min-w-0 flex-col gap-4">
       {inExecutionWorkspace ? (
         <>
@@ -52,6 +52,6 @@ export default async function EmployeeProjectLayout({
         </>
       )}
     </div>
-    </WithClientMessages>
+    </WithAppClientMessages>
   );
 }

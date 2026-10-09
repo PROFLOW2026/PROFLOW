@@ -14,7 +14,7 @@ import { CoordinationEventList } from '@/modules/coordination/ui/coordination-ev
 import { withOrgContext } from '@/shared/auth/session';
 import { AuthorizationError } from '@/shared/errors';
 import { Link } from '@/shared/i18n/navigation';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 import { cn } from '@/shared/ui/cn';
 
 const PAGE_SIZE = 30;
@@ -65,9 +65,9 @@ export async function ProjectCoordinationScreen({ surfaceRoot,
       <PageHeader title={t('list.pageTitle')} description={t('list.pageDescription')} />
 
       {data.formOptions ? (
-        <WithClientMessages extra={['coordination']}>
+        <WithAppClientMessages extra={['coordination']}>
           <CoordinationCreateForm projectId={projectId} options={data.formOptions} cancelHref={base} />
-        </WithClientMessages>
+        </WithAppClientMessages>
       ) : null}
 
       <nav className="flex gap-1" aria-label={t('list.pageTitle')}>

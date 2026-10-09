@@ -3,6 +3,7 @@ import { getTranslations } from 'next-intl/server';
 import type { ReactNode } from 'react';
 import { LegalFooterLinks } from '@/modules/legal/ui/legal-footer-links';
 import { LocaleSwitcherInline } from '@/shared/i18n/locale-switcher-inline';
+import { CONTRACTOR_AUTH_CLIENT_MESSAGE_NAMESPACES } from '@/shared/i18n/config';
 import { WithClientMessages } from '@/shared/i18n/with-client-messages';
 
 export const metadata: Metadata = {
@@ -14,7 +15,7 @@ export default async function ContractorAuthLayout({ children }: { children: Rea
   const t = await getTranslations('contractorAccess.auth');
 
   return (
-    <WithClientMessages extra={['auth', 'contractorAccess', 'validation']}>
+    <WithClientMessages namespaces={[...CONTRACTOR_AUTH_CLIENT_MESSAGE_NAMESPACES]}>
       <div className="flex min-h-dvh min-w-0 max-w-full flex-col items-center justify-center bg-[var(--pf-bg-page)] px-4 py-8 pb-[max(2.5rem,env(safe-area-inset-bottom))] sm:py-10">
         <div className="mb-6 flex min-w-0 max-w-full items-center gap-2">
           <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[var(--pf-action-primary)] text-sm font-bold text-[var(--pf-action-primary-fg)]">

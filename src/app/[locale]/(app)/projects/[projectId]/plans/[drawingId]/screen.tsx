@@ -13,7 +13,7 @@ import { projectFileDeps } from '@/modules/evidence/server';
 import { withOrgContext } from '@/shared/auth/session';
 import { AuthorizationError, NotFoundError } from '@/shared/errors';
 import { Link } from '@/shared/i18n/navigation';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 import { INTERNAL_REVISION_DOWNLOAD_PATH } from '@/modules/project-plans/routes';
 
 export async function ProjectDrawingDetailScreen({ surfaceRoot,
@@ -53,9 +53,9 @@ export async function ProjectDrawingDetailScreen({ surfaceRoot,
       />
 
       {detail.canManage ? (
-        <WithClientMessages extra={['projectPlans']}>
+        <WithAppClientMessages extra={['projectPlans']}>
           <RevisionUploadForm projectId={projectId} drawingId={drawingId} suggestedLabel={detail.suggestedNextLabel} />
-        </WithClientMessages>
+        </WithAppClientMessages>
       ) : null}
 
       <Card>

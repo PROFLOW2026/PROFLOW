@@ -22,7 +22,8 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { isLocale } from '@/shared/i18n/config';
 import { preLaunchHomepageRobots } from '@/shared/seo/pre-launch';
 import { redirect } from '@/shared/i18n/navigation';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { MARKETING_CLIENT_MESSAGE_NAMESPACES } from '@/shared/i18n/config';
+import { WithAppClientMessages, WithClientMessages } from '@/shared/i18n/with-client-messages';
 import { DashboardSkeleton } from './(app)/(home)/dashboard-skeleton';
 import { listModulePreferencesForOrg } from './(app)/settings/_lib/module-preferences';
 
@@ -101,7 +102,7 @@ export default async function LocaleRootPage({
 
   if (session.status === 'anonymous') {
     return (
-      <WithClientMessages extra={['marketing']}>
+      <WithClientMessages namespaces={[...MARKETING_CLIENT_MESSAGE_NAMESPACES]}>
         <PublicHomepage />
       </WithClientMessages>
     );
@@ -124,17 +125,19 @@ export default async function LocaleRootPage({
   // without waiting for org financial rollup — PWA splash dismisses on shell paint.
   const tCommon = await getTranslations('common');
   return (
-    <AppShell>
-      <Suspense
-        fallback={<DashboardSkeleton showTitle label={tCommon('states.loading')} />}
-      >
-        <AuthenticatedDashboardHome
-          workKind={query.workKind}
-          month={query.month}
-          displayName={session.user.displayName}
-        />
-      </Suspense>
-    </AppShell>
+    <WithAppClientMessages>
+      <AppShell>
+        <Suspense
+          fallback={<DashboardSkeleton showTitle label={tCommon('states.loading')} />}
+        >
+          <AuthenticatedDashboardHome
+            workKind={query.workKind}
+            month={query.month}
+            displayName={session.user.displayName}
+          />
+        </Suspense>
+      </AppShell>
+    </WithAppClientMessages>
   );
 }
 
@@ -194,9 +197,9 @@ async function DashboardCapabilityTip() {
 
   if (!tip) return null;
   return (
-    <WithClientMessages extra={['settings']}>
+    <WithAppClientMessages extra={['settings']}>
       <UnusedCapabilityDashboardTip moduleKey={tip} canEdit />
-    </WithClientMessages>
+    </WithAppClientMessages>
   );
 }
 

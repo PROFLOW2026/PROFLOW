@@ -34,7 +34,7 @@ import { withOrgContext } from '@/shared/auth/session';
 
 import { Link } from '@/shared/i18n/navigation';
 
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 
 import { cn } from '@/shared/ui/cn';
 
@@ -124,7 +124,7 @@ export async function ProjectDefectsScreen({ surfaceRoot,
 
   return (
 
-    <WithClientMessages extra={['defects', 'inspections']}>
+    <WithAppClientMessages extra={['defects', 'inspections']}>
 
       <div className="flex flex-col gap-6">
 
@@ -296,7 +296,7 @@ export async function ProjectDefectsScreen({ surfaceRoot,
 
       </div>
 
-    </WithClientMessages>
+    </WithAppClientMessages>
 
   );
 

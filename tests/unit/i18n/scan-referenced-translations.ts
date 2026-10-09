@@ -2,7 +2,13 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import {
   APP_CLIENT_MESSAGE_NAMESPACES,
+  AUTH_CLIENT_MESSAGE_NAMESPACES,
+  CONTRACTOR_AUTH_CLIENT_MESSAGE_NAMESPACES,
+  CONTRACTOR_PORTAL_CLIENT_MESSAGE_NAMESPACES,
+  MARKETING_CLIENT_MESSAGE_NAMESPACES,
   MESSAGE_NAMESPACES,
+  ONBOARDING_CLIENT_MESSAGE_NAMESPACES,
+  ROOT_CLIENT_MESSAGE_NAMESPACES,
   type MessageNamespace,
 } from '@/shared/i18n/config';
 import { flattenLocaleCatalog, readLocaleCatalog } from '../shared/i18n-messages.test';
@@ -124,27 +130,85 @@ function extractStaticTranslationKeys(source: string, varName: string): readonly
   return keys;
 }
 
-function parseWithClientMessagesExtras(source: string): readonly string[] {
-  if (!source.includes('WithClientMessages')) return [];
+function parseMessageWrapperExtras(source: string): readonly string[] {
   const extras: string[] = [];
-  const blockMatch = source.match(/WithClientMessages[\s\S]*?extra=\{?\[([\s\S]*?)\]\s*\}/);
-  const block = blockMatch?.[1] ?? '';
-  for (const match of block.matchAll(/['"]([a-zA-Z0-9_-]+)['"]/g)) {
-    extras.push(match[1]!);
+  for (const tag of [
+    'WithAppClientMessages',
+    'WithPortalClientMessages',
+    'WithClientMessages',
+  ] as const) {
+    if (!source.includes(tag)) continue;
+    const extraMatch = source.match(
+      new RegExp(`${tag}[\\s\\S]*?extra=\\{?\\[([\\s\\S]*?)\\]\\s*\\}`),
+    );
+    const block = extraMatch?.[1] ?? '';
+    for (const match of block.matchAll(/['"]([a-zA-Z0-9_-]+)['"]/g)) {
+      extras.push(match[1]!);
+    }
+    const nsMatch = source.match(
+      new RegExp(`${tag}[\\s\\S]*?namespaces=\\{\\[\\.\\.\\.([A-Z_]+)\\]\\}`),
+    );
+    if (nsMatch?.[1] === 'AUTH_CLIENT_MESSAGE_NAMESPACES') {
+      for (const ns of AUTH_CLIENT_MESSAGE_NAMESPACES) extras.push(ns);
+    }
+    if (nsMatch?.[1] === 'MARKETING_CLIENT_MESSAGE_NAMESPACES') {
+      for (const ns of MARKETING_CLIENT_MESSAGE_NAMESPACES) extras.push(ns);
+    }
+    if (nsMatch?.[1] === 'ONBOARDING_CLIENT_MESSAGE_NAMESPACES') {
+      for (const ns of ONBOARDING_CLIENT_MESSAGE_NAMESPACES) extras.push(ns);
+    }
+    if (nsMatch?.[1] === 'CONTRACTOR_AUTH_CLIENT_MESSAGE_NAMESPACES') {
+      for (const ns of CONTRACTOR_AUTH_CLIENT_MESSAGE_NAMESPACES) extras.push(ns);
+    }
   }
   return extras;
 }
 
+function routeGroupBaseNamespaces(relativePath: string): readonly string[] {
+  const normalized = relativePath.replace(/\\/g, '/');
+  if (normalized.includes('/modules/marketing/')) {
+    return MARKETING_CLIENT_MESSAGE_NAMESPACES;
+  }
+  if (normalized.includes('/contractor/(portal)/') || normalized.includes('/modules/contractor-portal/')) {
+    return CONTRACTOR_PORTAL_CLIENT_MESSAGE_NAMESPACES;
+  }
+  if (normalized.includes('/contractor/(auth)/')) {
+    return CONTRACTOR_AUTH_CLIENT_MESSAGE_NAMESPACES;
+  }
+  if (normalized.includes('/(auth)/')) {
+    return AUTH_CLIENT_MESSAGE_NAMESPACES;
+  }
+  if (normalized.includes('/onboarding/')) {
+    return ONBOARDING_CLIENT_MESSAGE_NAMESPACES;
+  }
+  if (
+    normalized.includes('/(app)/') ||
+    normalized.includes('/employee/(shell)/') ||
+    normalized.startsWith('src/modules/') ||
+    normalized.startsWith('src/components/')
+  ) {
+    return APP_CLIENT_MESSAGE_NAMESPACES;
+  }
+  return ROOT_CLIENT_MESSAGE_NAMESPACES;
+}
+
 function layoutExtrasForFile(relativePath: string): Set<string> {
-  const available = new Set<string>(APP_CLIENT_MESSAGE_NAMESPACES as readonly string[]);
+  const available = new Set<string>(routeGroupBaseNamespaces(relativePath) as readonly string[]);
   let dir = dirname(relativePath).replace(/\\/g, '/');
 
   while (dir.startsWith('src')) {
     for (const fileName of ['layout.tsx', 'page.tsx'] as const) {
       const routeFilePath = join(process.cwd(), dir, fileName);
       if (existsSync(routeFilePath)) {
-        for (const ns of parseWithClientMessagesExtras(readFileSync(routeFilePath, 'utf8'))) {
+        const source = readFileSync(routeFilePath, 'utf8');
+        for (const ns of parseMessageWrapperExtras(source)) {
           available.add(ns);
+        }
+        if (source.includes('WithAppClientMessages') && !source.includes('extra=')) {
+          for (const ns of APP_CLIENT_MESSAGE_NAMESPACES) available.add(ns);
+        }
+        if (source.includes('WithPortalClientMessages') && !source.includes('extra=')) {
+          for (const ns of CONTRACTOR_PORTAL_CLIENT_MESSAGE_NAMESPACES) available.add(ns);
         }
       }
     }
@@ -157,7 +221,13 @@ function layoutExtrasForFile(relativePath: string): Set<string> {
 }
 
 function fileProvidesClientNamespace(fileSource: string, rootNamespace: string): boolean {
-  if (!fileSource.includes('WithClientMessages')) return false;
+  if (
+    !fileSource.includes('WithClientMessages') &&
+    !fileSource.includes('WithAppClientMessages') &&
+    !fileSource.includes('WithPortalClientMessages')
+  ) {
+    return false;
+  }
   return (
     fileSource.includes(`'${rootNamespace}'`) || fileSource.includes(`"${rootNamespace}"`)
   );

@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 
 export default function FieldOpsLayout({ children }: { children: ReactNode }) {
-  return <WithClientMessages extra={['fieldOps', 'reports']}>{children}</WithClientMessages>;
+  return <WithAppClientMessages extra={['fieldOps', 'reports']}>{children}</WithAppClientMessages>;
 }

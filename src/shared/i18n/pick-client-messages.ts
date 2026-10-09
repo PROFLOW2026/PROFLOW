@@ -12,7 +12,7 @@ import {
  */
 export function pickClientMessages(
   messages: AbstractIntlMessages,
-  namespaces: readonly MessageNamespace[] = APP_CLIENT_MESSAGE_NAMESPACES,
+  namespaces: readonly MessageNamespace[],
 ): AbstractIntlMessages {
   const picked: AbstractIntlMessages = {};
   for (const namespace of namespaces) {
@@ -24,11 +24,29 @@ export function pickClientMessages(
   return picked;
 }
 
-/** Merge base app client namespaces with route-specific extras (deduped). */
-export function clientMessageNamespaces(
+/** Merge authenticated app client namespaces with route-specific extras (deduped). */
+export function appClientMessageNamespaces(
   ...extra: readonly MessageNamespace[]
 ): MessageNamespace[] {
   const set = new Set<MessageNamespace>(APP_CLIENT_MESSAGE_NAMESPACES);
+  for (const namespace of extra) {
+    set.add(namespace);
+  }
+  return [...set];
+}
+
+/** @deprecated Use `appClientMessageNamespaces` — kept for transitional imports. */
+export function clientMessageNamespaces(
+  ...extra: readonly MessageNamespace[]
+): MessageNamespace[] {
+  return appClientMessageNamespaces(...extra);
+}
+
+export function mergeClientMessageNamespaces(
+  base: readonly MessageNamespace[],
+  ...extra: readonly MessageNamespace[]
+): MessageNamespace[] {
+  const set = new Set<MessageNamespace>(base);
   for (const namespace of extra) {
     set.add(namespace);
   }

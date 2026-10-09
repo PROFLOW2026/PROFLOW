@@ -12,7 +12,7 @@ import { loadOrNotFound } from '@/modules/site-log/shared/page-guard';
 import { FieldActionForm, FieldLabel, fieldSelectClassName } from '@/modules/site-log/ui/field-action-form';
 import { listContractorMeetingMinutes } from '@/modules/site-meetings';
 import { todayInTimeZone } from '@/shared/dates';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithPortalClientMessages } from '@/shared/i18n/with-client-messages';
 import { submitDailyReportAction } from './actions';
 
 /** Portal default for the report date; the server accepts any date that is "today" somewhere. */
@@ -33,7 +33,7 @@ export default async function ContractorSiteLogPage({ params }: { params: Promis
   const latest = reports.reports.filter((report) => report.isLatest);
 
   return (
-    <WithClientMessages extra={['siteOps', 'projectPlans']}>
+    <WithPortalClientMessages extra={['siteOps', 'projectPlans']}>
     <div className="flex min-w-0 flex-col gap-4 pb-6">
       <PageHeader title={t('portal.siteLog.title')} description={t('portal.siteLog.description')} />
 
@@ -194,6 +194,6 @@ export default async function ContractorSiteLogPage({ params }: { params: Promis
         )}
       </section>
     </div>
-    </WithClientMessages>
+    </WithPortalClientMessages>
   );
 }

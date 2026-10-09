@@ -11,7 +11,7 @@ import type { MetricMoney } from '@/modules/project-workspace/domain/metric-valu
 import type { AgreementLifecycleStatus } from '@/modules/subcontracts';
 import { AgreementStatusBadge } from '@/modules/subcontracts/ui/status';
 import { withOrgContext } from '@/shared/auth/session';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 import { LineChart } from 'lucide-react';
 
 export async function ProjectCostControlScreen({
@@ -51,7 +51,7 @@ export async function ProjectCostControlScreen({
     ] as const;
 
   return (
-    <WithClientMessages extra={['projectWorkspace', 'subcontracts']}>
+    <WithAppClientMessages extra={['projectWorkspace', 'subcontracts']}>
       <div className="flex flex-col gap-6">
         <PageHeader title={t('execution.costControl')} description={t('costControl.pageDescription')} />
 
@@ -124,7 +124,7 @@ export async function ProjectCostControlScreen({
           </>
         )}
       </div>
-    </WithClientMessages>
+    </WithAppClientMessages>
   );
 }
 

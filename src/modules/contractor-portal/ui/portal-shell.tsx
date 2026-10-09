@@ -329,7 +329,7 @@ function BottomNav({ primary, projectItems }: { primary: readonly PortalNavItem[
   );
 }
 
-/** Must render inside `<WithClientMessages extra={['contractorPortal']}>` (the portal layout does). */
+/** Must render inside `<WithAppClientMessages extra={['contractorPortal']}>` (the portal layout does). */
 export function ContractorPortalShell({ shell, children }: { shell: PortalShellData; children: React.ReactNode }) {
   const t = useTranslations('contractorPortal');
   const pathname = usePathname();

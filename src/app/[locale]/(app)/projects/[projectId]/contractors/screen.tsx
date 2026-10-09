@@ -12,7 +12,7 @@ import { CreateAgreementForm } from '@/modules/subcontracts/ui/forms';
 import { withOrgContext } from '@/shared/auth/session';
 import { AuthorizationError } from '@/shared/errors';
 import { Link } from '@/shared/i18n/navigation';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 import { bidiIsolate, formatMoneyString } from '@/shared/money';
 import { getLocale } from 'next-intl/server';
 
@@ -45,7 +45,7 @@ export async function ProjectContractorsScreen({
   ]);
 
   return (
-    <WithClientMessages extra={['projectWorkspace', 'subcontracts']}>
+    <WithAppClientMessages extra={['projectWorkspace', 'subcontracts']}>
       <div className="flex flex-col gap-6">
         <PageHeader
           title={t('contractors.pageTitle')}
@@ -170,7 +170,7 @@ export async function ProjectContractorsScreen({
           </ul>
         )}
       </div>
-    </WithClientMessages>
+    </WithAppClientMessages>
   );
 }
 

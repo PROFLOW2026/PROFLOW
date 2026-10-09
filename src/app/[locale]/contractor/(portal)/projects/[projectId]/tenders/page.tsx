@@ -2,7 +2,7 @@ import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { listPortalTenders } from '@/modules/contractor-procurement';
 import { requireExternalContext } from '@/modules/contractor-access';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithPortalClientMessages } from '@/shared/i18n/with-client-messages';
 
 export default async function ContractorTendersPage({
   params,
@@ -17,7 +17,7 @@ export default async function ContractorTendersPage({
   const packages = await listPortalTenders(context, { organizationId, projectId });
 
   return (
-    <WithClientMessages extra={['awards']}>
+    <WithPortalClientMessages extra={['awards']}>
       <div className="flex flex-col gap-4">
         <PageHeader title={t('portal.title')} description={t('portal.description')} />
         <ul className="flex flex-col gap-2">
@@ -29,6 +29,6 @@ export default async function ContractorTendersPage({
           ))}
         </ul>
       </div>
-    </WithClientMessages>
+    </WithPortalClientMessages>
   );
 }

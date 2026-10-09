@@ -13,7 +13,7 @@ import { EvidenceGallery, EvidenceUploader } from '@/modules/evidence/ui';
 import { formatInstant } from '@/shared/dates';
 import { NotFoundError } from '@/shared/errors';
 import { Link } from '@/shared/i18n/navigation';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithPortalClientMessages } from '@/shared/i18n/with-client-messages';
 
 export default async function ContractorEventPage({
   params,
@@ -86,7 +86,7 @@ export default async function ContractorEventPage({
         </CardContent>
       </Card>
 
-      <WithClientMessages extra={['coordination']}>
+      <WithPortalClientMessages extra={['coordination']}>
         {detail.invitations.map((invitation) => {
           const latest = detail.responses.find(
             (response) => response.participantId === invitation.participantId && !response.superseded,
@@ -167,7 +167,7 @@ export default async function ContractorEventPage({
             </Card>
           );
         })}
-      </WithClientMessages>
+      </WithPortalClientMessages>
 
       <Card>
         <CardHeader>

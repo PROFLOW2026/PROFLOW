@@ -39,12 +39,12 @@ const CRITICAL_CLIENT_LAYOUTS: ReadonlyArray<{
 ];
 
 describe('client message wrappers for Hebrew closure', () => {
-  it('keeps critical client namespaces wrapped by WithClientMessages layouts', () => {
+  it('keeps critical client namespaces wrapped by app message layouts', () => {
     for (const entry of CRITICAL_CLIENT_LAYOUTS) {
       const path = join(process.cwd(), entry.layout);
       expect(existsSync(path), entry.layout).toBe(true);
       const text = readFileSync(path, 'utf8');
-      expect(text).toMatch(/WithClientMessages/);
+      expect(text).toMatch(/WithAppClientMessages/);
       expect(text).toContain(`'${entry.ns}'`);
     }
   });
@@ -83,7 +83,7 @@ describe('client message wrappers for Hebrew closure', () => {
     const path = join(process.cwd(), 'src/modules/assets/ui/project-usage-panel.tsx');
     expect(existsSync(path)).toBe(true);
     const text = readFileSync(path, 'utf8');
-    expect(text).toMatch(/WithClientMessages/);
+    expect(text).toMatch(/WithAppClientMessages/);
     expect(text).toContain("'assets'");
     expect(text).toMatch(/MaterialUsageForm|EquipmentUsageForm/);
   });
@@ -92,7 +92,7 @@ describe('client message wrappers for Hebrew closure', () => {
     const path = join(process.cwd(), 'src/modules/workforce/ui/project-team-panel.tsx');
     expect(existsSync(path)).toBe(true);
     const text = readFileSync(path, 'utf8');
-    expect(text).toMatch(/WithClientMessages/);
+    expect(text).toMatch(/WithAppClientMessages/);
     expect(text).toContain("'settings'");
     expect(text).toMatch(/ProjectScopedAccessPanel/);
   });

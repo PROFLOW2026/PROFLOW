@@ -10,7 +10,7 @@ import { RfiList } from '@/modules/rfi/ui/rfi-list';
 import { withOrgContext } from '@/shared/auth/session';
 import { AuthorizationError } from '@/shared/errors';
 import { Link } from '@/shared/i18n/navigation';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 import { cn } from '@/shared/ui/cn';
 import type { RfiStatus } from '@/modules/rfi/domain/types';
 
@@ -64,9 +64,9 @@ export async function ProjectRfisScreen({ surfaceRoot,
       <PageHeader title={t('title')} description={t('description')} />
 
       {data.formOptions ? (
-        <WithClientMessages extra={['rfi', 'common']}>
+        <WithAppClientMessages extra={['rfi', 'common']}>
           <RfiCreateForm projectId={projectId} options={data.formOptions} cancelHref={base} />
-        </WithClientMessages>
+        </WithAppClientMessages>
       ) : null}
 
       <nav className="flex flex-wrap gap-1" aria-label={t('filters.label')}>

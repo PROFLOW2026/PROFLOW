@@ -9,7 +9,7 @@ import { ContractorComplianceSubmitForm } from '@/modules/contractor-compliance/
 import { StatusBadge } from '@/components/ui/status-badge';
 import { complianceStatusShape } from '@/modules/contractor-compliance/ui/status-shape';
 import { EXTERNAL_CAPABILITIES } from '@/shared/external';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithPortalClientMessages } from '@/shared/i18n/with-client-messages';
 
 export default async function ContractorCompliancePage({ params }: { params: Promise<{ projectId: string }> }) {
   const { projectId } = await params;
@@ -32,7 +32,7 @@ export default async function ContractorCompliancePage({ params }: { params: Pro
   );
 
   return (
-    <WithClientMessages extra={['contractorCompliance']}>
+    <WithPortalClientMessages extra={['contractorCompliance']}>
       <div className="flex min-w-0 flex-col gap-4 pb-6">
         <PageHeader title={t('portal.title')} description={t('portal.description')} />
 
@@ -70,6 +70,6 @@ export default async function ContractorCompliancePage({ params }: { params: Pro
           </ul>
         )}
       </div>
-    </WithClientMessages>
+    </WithPortalClientMessages>
   );
 }

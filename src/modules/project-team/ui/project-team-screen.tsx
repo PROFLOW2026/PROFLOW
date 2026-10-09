@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 import type { ProjectTeamPageData } from '../application/queries';
 import type { ProjectTeamScreenProps } from '../domain/views';
 import { ProjectTeamManager } from './project-team-manager';
@@ -28,8 +28,8 @@ export function toProjectTeamScreenProps(data: ProjectTeamPageData): ProjectTeam
 /** Shared body of the Owner-app and Employee-App team routes. */
 export function ProjectTeamScreen({ data }: { data: ProjectTeamPageData }) {
   return (
-    <WithClientMessages extra={['projectTeam']}>
+    <WithAppClientMessages extra={['projectTeam']}>
       <ProjectTeamManager {...toProjectTeamScreenProps(data)} />
-    </WithClientMessages>
+    </WithAppClientMessages>
   );
 }

@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 
 export default function RecurringDraftsLayout({ children }: { children: ReactNode }) {
-  return <WithClientMessages extra={['recurringDrafts']}>{children}</WithClientMessages>;
+  return <WithAppClientMessages extra={['recurringDrafts']}>{children}</WithAppClientMessages>;
 }

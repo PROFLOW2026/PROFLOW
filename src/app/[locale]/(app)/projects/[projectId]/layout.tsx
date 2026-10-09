@@ -15,7 +15,7 @@ import { fromNumericString } from '@/shared/money';
 import { PERMISSIONS, type PermissionKey } from '@/shared/permissions/catalog';
 import { Link } from '@/shared/i18n/navigation';
 import { localeDirection, PROJECT_SURFACE_CLIENT_MESSAGE_NAMESPACES } from '@/shared/i18n/config';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 import { ArchiveProjectButton } from './archive-project-button';
 import { ProjectHeaderMetrics } from './project-header-metrics';
 import { ProjectStatusBadge } from '../project-status-badge';
@@ -100,14 +100,14 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
   // The same summary still sits above whatever this layout renders for those kinds.
   if (detail.project.workKind === 'job' || detail.project.workKind === 'work_order') {
     return (
-      <WithClientMessages extra={PROJECT_SURFACE_CLIENT_MESSAGE_NAMESPACES}>
+      <WithAppClientMessages extra={PROJECT_SURFACE_CLIENT_MESSAGE_NAMESPACES}>
       <div className="flex flex-col gap-6">
         <Suspense fallback={<Project360SummaryFallback />}>
           <Project360Summary projectId={projectId} />
         </Suspense>
         {children}
       </div>
-      </WithClientMessages>
+      </WithAppClientMessages>
     );
   }
 
@@ -158,7 +158,7 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
   const inExecutionWorkspace = isOwnerExecutionWorkspacePath(requestPathname, projectId);
 
   return (
-    <WithClientMessages extra={PROJECT_SURFACE_CLIENT_MESSAGE_NAMESPACES}>
+    <WithAppClientMessages extra={PROJECT_SURFACE_CLIENT_MESSAGE_NAMESPACES}>
     <div className="flex flex-col gap-6">
       <PageHeader
         title={titleWithDocumentNumber(detail.project.name, detail.project.documentNumber ?? '')}
@@ -310,6 +310,6 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
         </>
       )}
     </div>
-    </WithClientMessages>
+    </WithAppClientMessages>
   );
 }

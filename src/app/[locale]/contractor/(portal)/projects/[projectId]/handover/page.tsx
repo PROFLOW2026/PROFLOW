@@ -2,7 +2,7 @@ import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { getPortalHandover } from '@/modules/contractor-closeout';
 import { requireExternalContext } from '@/modules/contractor-access';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithPortalClientMessages } from '@/shared/i18n/with-client-messages';
 
 export default async function ContractorHandoverPage({
   params,
@@ -17,7 +17,7 @@ export default async function ContractorHandoverPage({
   const { closeouts } = await getPortalHandover(context, { organizationId, projectId });
 
   return (
-    <WithClientMessages extra={['handover']}>
+    <WithPortalClientMessages extra={['handover']}>
       <div className="flex flex-col gap-4">
         <PageHeader title={t('portal.title')} description={t('portal.description')} />
         {closeouts.map(({ closeout, items }) => (
@@ -34,6 +34,6 @@ export default async function ContractorHandoverPage({
           </section>
         ))}
       </div>
-    </WithClientMessages>
+    </WithPortalClientMessages>
   );
 }

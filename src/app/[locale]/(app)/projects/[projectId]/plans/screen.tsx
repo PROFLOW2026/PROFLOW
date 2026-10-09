@@ -8,7 +8,7 @@ import { DrawingsRegister } from '@/modules/project-plans/ui/drawings-register';
 import { PROJECT_CAPABILITIES } from '@/modules/project-team';
 import { requireProjectCapabilityPage } from '@/modules/project-team/server';
 import { withOrgContext } from '@/shared/auth/session';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 
 export async function ProjectPlansScreen({ surfaceRoot,
   params,
@@ -30,9 +30,9 @@ export async function ProjectPlansScreen({ surfaceRoot,
     <div className="flex flex-col gap-6">
       <PageHeader title={t('pageTitle')} description={t('pageDescription')} />
       {query.new === '1' && register.canManage ? (
-        <WithClientMessages extra={['projectPlans']}>
+        <WithAppClientMessages extra={['projectPlans']}>
           <DrawingCreateForm projectId={projectId} basePath={base} />
-        </WithClientMessages>
+        </WithAppClientMessages>
       ) : null}
       {register.drawings.length === 0 ? (
         <EmptyState icon={Map} title={t('emptyTitle')} description={t('emptyDescription')} />

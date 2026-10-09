@@ -7,7 +7,7 @@ import {
 import { loadOrNotFound } from '@/modules/subcontract-claims/ui/page-guard';
 import { PortalClaimDetail } from '@/modules/subcontract-claims/ui/portal-claim-detail';
 import { Link } from '@/shared/i18n/navigation';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithPortalClientMessages } from '@/shared/i18n/with-client-messages';
 
 export default async function ContractorClaimDetailPage({
   params,
@@ -21,11 +21,11 @@ export default async function ContractorClaimDetailPage({
   const view = await loadOrNotFound(() => getContractorClaimDetail(context, organizationId, projectId, claimId));
 
   return (
-    <WithClientMessages extra={['subcontractClaims']}>
+    <WithPortalClientMessages extra={['subcontractClaims']}>
       <Link href={`/contractor/projects/${projectId}/claims`} className="text-sm text-[var(--pf-text-brand)] hover:underline">
         ← {t('portal.claimsTitle')}
       </Link>
       <PortalClaimDetail organizationId={organizationId} projectId={projectId} view={view} />
-    </WithClientMessages>
+    </WithPortalClientMessages>
   );
 }

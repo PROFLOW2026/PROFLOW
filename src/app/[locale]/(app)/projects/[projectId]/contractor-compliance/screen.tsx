@@ -9,7 +9,7 @@ import { ComplianceReviewActions } from '@/modules/contractor-compliance/ui/comp
 import { PROJECT_CAPABILITIES } from '@/modules/project-team/domain/capabilities';
 import { requireProjectCapabilityPage } from '@/modules/project-team/server';
 import { withOrgContext } from '@/shared/auth/session';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 
 export async function ProjectContractorComplianceScreen({ surfaceRoot: _surfaceRoot,
   params,
@@ -27,7 +27,7 @@ export async function ProjectContractorComplianceScreen({ surfaceRoot: _surfaceR
   const agreementIds = overview.agreements.map((a) => a.agreementId);
 
   return (
-    <WithClientMessages extra={['contractorCompliance']}>
+    <WithAppClientMessages extra={['contractorCompliance']}>
       <div className="flex flex-col gap-6">
         <PageHeader title={t('title')} description={t('description')} />
 
@@ -53,7 +53,7 @@ export async function ProjectContractorComplianceScreen({ surfaceRoot: _surfaceR
           <ComplianceAgreementList overview={overview} />
         )}
       </div>
-    </WithClientMessages>
+    </WithAppClientMessages>
   );
 }
 

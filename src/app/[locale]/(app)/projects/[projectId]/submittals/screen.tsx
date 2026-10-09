@@ -10,7 +10,7 @@ import { SubmittalList } from '@/modules/submittals/ui/submittal-list';
 import { withOrgContext } from '@/shared/auth/session';
 import { AuthorizationError } from '@/shared/errors';
 import { Link } from '@/shared/i18n/navigation';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 import { cn } from '@/shared/ui/cn';
 import type { SubmittalStatus } from '@/modules/submittals/domain/types';
 
@@ -64,9 +64,9 @@ export async function ProjectSubmittalsScreen({ surfaceRoot,
       <PageHeader title={t('title')} description={t('description')} />
 
       {data.formOptions ? (
-        <WithClientMessages extra={['submittals', 'common']}>
+        <WithAppClientMessages extra={['submittals', 'common']}>
           <SubmittalCreateForm projectId={projectId} options={data.formOptions} cancelHref={base} />
-        </WithClientMessages>
+        </WithAppClientMessages>
       ) : null}
 
       <nav className="flex flex-wrap gap-1" aria-label={t('filters.label')}>

@@ -144,6 +144,45 @@ export type MessageNamespace = (typeof MESSAGE_NAMESPACES)[number];
  * namespace (~237KB he-IL) dominated soft-nav RSC flights (~250KB sibling).
  * Route layouts that need more nest a provider with `clientMessageNamespaces(...)`.
  */
+/**
+ * Serialized from `[locale]/layout.tsx` only — toast/PWA shell, not product UI.
+ */
+export const ROOT_CLIENT_MESSAGE_NAMESPACES = [
+  'common',
+  'errors',
+  'offline',
+] as const satisfies readonly MessageNamespace[];
+
+/** Org auth chrome (sign-in/up, portal-access). */
+export const AUTH_CLIENT_MESSAGE_NAMESPACES = [
+  'common',
+  'auth',
+  'validation',
+  'offline',
+] as const satisfies readonly MessageNamespace[];
+
+/** Contractor auth chrome. */
+export const CONTRACTOR_AUTH_CLIENT_MESSAGE_NAMESPACES = [
+  'common',
+  'auth',
+  'contractorAccess',
+  'validation',
+  'offline',
+] as const satisfies readonly MessageNamespace[];
+
+/** Signed-out marketing homepage client islands. */
+export const MARKETING_CLIENT_MESSAGE_NAMESPACES = [
+  'common',
+  'marketing',
+] as const satisfies readonly MessageNamespace[];
+
+export const ONBOARDING_CLIENT_MESSAGE_NAMESPACES = [
+  'common',
+  'auth',
+  'onboarding',
+  'validation',
+] as const satisfies readonly MessageNamespace[];
+
 export const APP_CLIENT_MESSAGE_NAMESPACES = [
   'common',
   'nav',
@@ -204,4 +243,13 @@ export const PROJECT_SURFACE_CLIENT_MESSAGE_NAMESPACES = [
   'subcontractClaims',
   'subcontracts',
   'submittals',
+] as const satisfies readonly MessageNamespace[];
+
+export const CONTRACTOR_PORTAL_CLIENT_MESSAGE_NAMESPACES = [
+  'common',
+  'errors',
+  'offline',
+  'validation',
+  'contractorPortal',
+  ...PROJECT_SURFACE_CLIENT_MESSAGE_NAMESPACES,
 ] as const satisfies readonly MessageNamespace[];

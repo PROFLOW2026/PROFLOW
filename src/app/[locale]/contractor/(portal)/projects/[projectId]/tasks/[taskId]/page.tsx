@@ -9,7 +9,7 @@ import { requireExternalContext } from '@/modules/contractor-access';
 import { EvidenceGallery, EvidenceUploader } from '@/modules/evidence/ui';
 import { loadOrNotFound } from '@/modules/site-log/shared/page-guard';
 import { Link } from '@/shared/i18n/navigation';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithPortalClientMessages } from '@/shared/i18n/with-client-messages';
 
 export default async function ContractorTaskDetailPage({
   params,
@@ -56,14 +56,14 @@ export default async function ContractorTaskDetailPage({
       </Card>
 
       {task.canAct && task.availableCommands.length > 0 ? (
-        <WithClientMessages extra={['collaboration']}>
+        <WithPortalClientMessages extra={['collaboration']}>
           <ContractorTaskCommandForm
             organizationId={organizationId}
             projectId={projectId}
             taskId={taskId}
             commands={task.availableCommands}
           />
-        </WithClientMessages>
+        </WithPortalClientMessages>
       ) : null}
 
       <Card>

@@ -2,7 +2,7 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 import type { DiscussionThread } from '../application/discussions';
 import { DiscussionComposerClient } from './discussion-composer-client';
 import { postExternalDiscussionAction, postInternalDiscussionAction } from './actions';
@@ -71,7 +71,7 @@ export async function EntityDiscussionPanel({
         )}
 
         {showComposer ? (
-          <WithClientMessages extra={['collaboration']}>
+          <WithAppClientMessages extra={['collaboration']}>
             <DiscussionComposerClient
               action={viewer === 'external' ? postExternalDiscussionAction : postInternalDiscussionAction}
               hidden={hidden}
@@ -85,7 +85,7 @@ export async function EntityDiscussionPanel({
                 kindDecision: labels.kindDecision,
               }}
             />
-          </WithClientMessages>
+          </WithAppClientMessages>
         ) : null}
       </CardContent>
     </Card>

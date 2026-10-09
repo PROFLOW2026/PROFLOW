@@ -14,7 +14,7 @@ import { peekOpsExpenseLinksForRecords } from '@/modules/ops-finance';
 import { CreateLinkedExpenseForm } from '@/modules/ops-finance/ui/create-linked-expense-form';
 import { withOrgContext } from '@/shared/auth/session';
 import { todayInTimeZone } from '@/shared/dates';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 import { hasAnyPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import {
@@ -136,7 +136,7 @@ export async function ProjectUsagePanel({ projectId }: ProjectUsagePanelProps) {
   if (!data) return null;
 
   return (
-    <WithClientMessages extra={['assets']}>
+    <WithAppClientMessages extra={['assets']}>
       <div className="flex flex-col gap-6">
         <p className="text-sm text-[var(--pf-text-muted)]">{t('panelNote')}</p>
         <p className="text-sm text-[var(--pf-text-muted)]">{t('threeActionsHint')}</p>
@@ -314,6 +314,6 @@ export async function ProjectUsagePanel({ projectId }: ProjectUsagePanelProps) {
           </Card>
         ) : null}
       </div>
-    </WithClientMessages>
+    </WithAppClientMessages>
   );
 }

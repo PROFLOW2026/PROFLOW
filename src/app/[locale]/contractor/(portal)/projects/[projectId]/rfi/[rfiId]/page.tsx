@@ -12,7 +12,7 @@ import { ContractorRfiActions } from '@/modules/rfi/ui/contractor-rfi-actions';
 import { statusTone } from '@/modules/rfi/ui/tones';
 import { NotFoundError } from '@/shared/errors';
 import { Link } from '@/shared/i18n/navigation';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithPortalClientMessages } from '@/shared/i18n/with-client-messages';
 import { formatInstant } from '@/shared/dates';
 
 export default async function ContractorRfiDetailPage({
@@ -100,7 +100,7 @@ export default async function ContractorRfiDetailPage({
         </CardContent>
       </Card>
 
-      <WithClientMessages extra={['rfi', 'common']}>
+      <WithPortalClientMessages extra={['rfi', 'common']}>
         <ContractorRfiActions
           organizationId={organizationId}
           rfiId={detail.id}
@@ -109,7 +109,7 @@ export default async function ContractorRfiDetailPage({
           subject={detail.subject}
           question={detail.question}
         />
-      </WithClientMessages>
+      </WithPortalClientMessages>
 
       <Card>
         <CardHeader>

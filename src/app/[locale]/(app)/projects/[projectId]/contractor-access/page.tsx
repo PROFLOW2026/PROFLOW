@@ -5,7 +5,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { getContractorAccessOverview, loadContractorAccessAuthority } from '@/modules/contractor-access';
 import { ContractorAccessManager } from '@/modules/contractor-access/ui/contractor-access-manager';
 import { withOrgContext } from '@/shared/auth/session';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 import {
   contractorPrincipalCommandAction,
   grantContractorAccessAction,
@@ -31,7 +31,7 @@ export default async function ProjectContractorAccessPage({ params }: { params: 
   });
 
   return (
-    <WithClientMessages extra={['contractorAccess']}>
+    <WithAppClientMessages extra={['contractorAccess']}>
       <div className="flex flex-col gap-6">
         <PageHeader title={t('manage.title')} description={t('manage.subtitle')} />
         {overview ? (
@@ -50,6 +50,6 @@ export default async function ProjectContractorAccessPage({ params }: { params: 
           <Alert tone="warning">{t('manage.forbidden')}</Alert>
         )}
       </div>
-    </WithClientMessages>
+    </WithAppClientMessages>
   );
 }

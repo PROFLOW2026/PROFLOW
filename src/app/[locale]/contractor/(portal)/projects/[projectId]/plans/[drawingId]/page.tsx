@@ -6,7 +6,7 @@ import { getContractorDrawing } from '@/modules/project-plans';
 import { ContractorDrawingDetailPanel } from '@/modules/project-plans/ui/contractor-drawing-detail';
 import { EXTERNAL_CAPABILITIES } from '@/shared/external';
 import { Link } from '@/shared/i18n/navigation';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithPortalClientMessages } from '@/shared/i18n/with-client-messages';
 
 export default async function ContractorDrawingPage({
   params,
@@ -40,9 +40,9 @@ export default async function ContractorDrawingPage({
         }
         title={t('pageTitle')}
       />
-      <WithClientMessages extra={['projectPlans']}>
+      <WithPortalClientMessages extra={['projectPlans']}>
         <ContractorDrawingDetailPanel organizationId={grant.organizationId} projectId={projectId} detail={detail} />
-      </WithClientMessages>
+      </WithPortalClientMessages>
     </div>
   );
 }

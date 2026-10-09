@@ -12,7 +12,7 @@ import { AgreementSubNav } from '@/modules/subcontracts/ui/agreement-nav';
 import { ChangesPanel } from '@/modules/subcontracts/ui/changes-panel';
 import { ContractorCounterForm, ContractorProposalForm } from '@/modules/subcontracts/ui/forms';
 import { loadOrNotFound } from '@/modules/subcontracts/ui/page-guard';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithPortalClientMessages } from '@/shared/i18n/with-client-messages';
 
 /** Contractor portal: changes of the own contract; proposals and counter-offers with ext.change.request. */
 export default async function ContractorChangesPage({
@@ -39,7 +39,7 @@ export default async function ContractorChangesPage({
     .map((line) => ({ id: line.id, label: line.code ? `${line.code} · ${line.description}` : line.description }));
 
   return (
-    <WithClientMessages extra={['subcontracts']}>
+    <WithPortalClientMessages extra={['subcontracts']}>
       <div className="flex flex-col gap-4 pb-6">
         <PageHeader title={agreementView.agreement.title} description={t('portal.changesDescription')} />
         <AgreementSubNav linesHref={base} changesHref={`${base}/changes`} current="changes" />
@@ -90,6 +90,6 @@ export default async function ContractorChangesPage({
           </CardContent>
         </Card>
       </div>
-    </WithClientMessages>
+    </WithPortalClientMessages>
   );
 }

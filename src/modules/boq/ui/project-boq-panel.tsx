@@ -21,7 +21,7 @@ import { withOrgContext } from '@/shared/auth/session';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { Link } from '@/shared/i18n/navigation';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 import { Button } from '@/components/ui/button';
 import {
   getBoqFinancialComparison,
@@ -319,13 +319,13 @@ export async function ProjectBoqPanel({ projectId, contractId }: ProjectBoqPanel
           {boq && boq.status !== 'draft' ? (
             <p className="text-xs text-[var(--pf-text-muted)]">{t('import.draftOnlyHint')}</p>
           ) : null}
-          <WithClientMessages extra={['imports']}>
+          <WithAppClientMessages extra={['imports']}>
             <ImportWizardLazy
               allowedKinds={importKinds}
               projectId={projectId}
               boqId={boq?.status === 'draft' ? boq.id : undefined}
             />
-          </WithClientMessages>
+          </WithAppClientMessages>
         </section>
       ) : null}
 

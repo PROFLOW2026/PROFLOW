@@ -12,7 +12,7 @@ import {
 } from '@/modules/deliveries/ui/contractor-delivery-forms';
 import { deliveryStateShape } from '@/modules/deliveries/ui';
 import { EXTERNAL_CAPABILITIES } from '@/shared/external';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithPortalClientMessages } from '@/shared/i18n/with-client-messages';
 
 export default async function ContractorDeliveriesPage({ params }: { params: Promise<{ projectId: string }> }) {
   const { projectId } = await params;
@@ -30,7 +30,7 @@ export default async function ContractorDeliveriesPage({ params }: { params: Pro
   const t = await getTranslations('deliveries');
 
   return (
-    <WithClientMessages extra={['deliveries']}>
+    <WithPortalClientMessages extra={['deliveries']}>
       <div className="flex min-w-0 flex-col gap-4 pb-6">
         <PageHeader title={t('portal.title')} description={t('portal.description')} />
 
@@ -64,6 +64,6 @@ export default async function ContractorDeliveriesPage({ params }: { params: Pro
           </ul>
         )}
       </div>
-    </WithClientMessages>
+    </WithPortalClientMessages>
   );
 }

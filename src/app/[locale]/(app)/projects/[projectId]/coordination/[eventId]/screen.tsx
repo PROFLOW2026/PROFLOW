@@ -23,7 +23,7 @@ import { withOrgContext } from '@/shared/auth/session';
 import { formatInstant } from '@/shared/dates';
 import { AuthorizationError, NotFoundError } from '@/shared/errors';
 import { Link } from '@/shared/i18n/navigation';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 
 export async function CoordinationEventScreen({ surfaceRoot,
   params,
@@ -87,7 +87,7 @@ export async function CoordinationEventScreen({ surfaceRoot,
         }
       />
 
-      <WithClientMessages extra={['coordination']}>
+      <WithAppClientMessages extra={['coordination']}>
         <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
           <div className="flex min-w-0 flex-col gap-6">
             <Card>
@@ -321,7 +321,7 @@ export async function CoordinationEventScreen({ surfaceRoot,
             </Card>
           </aside>
         </div>
-      </WithClientMessages>
+      </WithAppClientMessages>
     </div>
   );
 }

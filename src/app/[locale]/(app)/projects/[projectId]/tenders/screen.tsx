@@ -8,7 +8,7 @@ import { PROJECT_CAPABILITIES } from '@/modules/project-team/domain/capabilities
 import { requireProjectCapabilityPage } from '@/modules/project-team/server';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 
 export async function ProjectTendersScreen({ surfaceRoot, params }: {
     surfaceRoot?: string;
@@ -20,7 +20,7 @@ export async function ProjectTendersScreen({ surfaceRoot, params }: {
   const packages = await withOrgContext((context) => listProjectTenderPackages(context, projectId));
 
   return (
-    <WithClientMessages extra={['awards']}>
+    <WithAppClientMessages extra={['awards']}>
       <div className="flex flex-col gap-6">
         <PageHeader title={t('title')} description={t('description')} />
         {packages.length === 0 ? (
@@ -46,7 +46,7 @@ export async function ProjectTendersScreen({ surfaceRoot, params }: {
           </ul>
         )}
       </div>
-    </WithClientMessages>
+    </WithAppClientMessages>
   );
 }
 

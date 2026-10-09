@@ -30,7 +30,7 @@ import { AuthorizationError, NotFoundError } from '@/shared/errors';
 
 import { Link } from '@/shared/i18n/navigation';
 
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 
 
 
@@ -88,7 +88,7 @@ export async function ProjectDefectDetailScreen({ surfaceRoot,
 
   return (
 
-    <WithClientMessages extra={['defects', 'inspections']}>
+    <WithAppClientMessages extra={['defects', 'inspections']}>
 
       <div className="flex flex-col gap-6">
 
@@ -296,7 +296,7 @@ export async function ProjectDefectDetailScreen({ surfaceRoot,
 
       </div>
 
-    </WithClientMessages>
+    </WithAppClientMessages>
 
   );
 

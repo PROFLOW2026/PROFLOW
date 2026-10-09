@@ -11,7 +11,7 @@ import { ContractorSubmittalCreateForm } from '@/modules/submittals/ui/contracto
 import { SubmittalList } from '@/modules/submittals/ui/submittal-list';
 import { EXTERNAL_CAPABILITIES } from '@/shared/external';
 import { Link } from '@/shared/i18n/navigation';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithPortalClientMessages } from '@/shared/i18n/with-client-messages';
 
 export default async function ContractorSubmittalsPage({
   params,
@@ -61,7 +61,7 @@ export default async function ContractorSubmittalsPage({
       </div>
 
       {wantsCreate ? (
-        <WithClientMessages extra={['submittals', 'common']}>
+        <WithPortalClientMessages extra={['submittals', 'common']}>
           <ContractorSubmittalCreateForm
             organizationId={organizationId}
             projectId={projectId}
@@ -69,7 +69,7 @@ export default async function ContractorSubmittalsPage({
             locations={locations}
             workPackages={workPackages}
           />
-        </WithClientMessages>
+        </WithPortalClientMessages>
       ) : (
         <Link href={`${base}?new=1`} className={buttonVariants({ variant: 'primary' })}>
           {t('create.contractorTitle')}

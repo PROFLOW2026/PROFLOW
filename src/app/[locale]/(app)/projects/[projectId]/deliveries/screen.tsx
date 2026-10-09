@@ -11,7 +11,7 @@ import { PROJECT_CAPABILITIES } from '@/modules/project-team/domain/capabilities
 import { requireProjectCapabilityPage } from '@/modules/project-team/server';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 import { cn } from '@/shared/ui/cn';
 
 export async function ProjectDeliveriesScreen({ surfaceRoot,
@@ -48,7 +48,7 @@ export async function ProjectDeliveriesScreen({ surfaceRoot,
     );
 
   return (
-    <WithClientMessages extra={['deliveries']}>
+    <WithAppClientMessages extra={['deliveries']}>
       <div className="flex flex-col gap-6">
         <PageHeader
           title={t('title')}
@@ -99,7 +99,7 @@ export async function ProjectDeliveriesScreen({ surfaceRoot,
           </ul>
         )}
       </div>
-    </WithClientMessages>
+    </WithAppClientMessages>
   );
 }
 

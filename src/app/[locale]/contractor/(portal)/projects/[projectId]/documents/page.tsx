@@ -7,7 +7,7 @@ import { requireExternalContext } from '@/modules/contractor-access';
 import { listContractorSharedDocuments } from '@/modules/project-plans';
 import { ContractorDocumentsList } from '@/modules/project-plans/ui/contractor-documents-list';
 import { EXTERNAL_CAPABILITIES } from '@/shared/external';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithPortalClientMessages } from '@/shared/i18n/with-client-messages';
 
 export default async function ContractorDocumentsPage({ params }: { params: Promise<{ projectId: string }> }) {
   const { projectId } = await params;
@@ -31,9 +31,9 @@ export default async function ContractorDocumentsPage({ params }: { params: Prom
       {listed.items.length === 0 ? (
         <EmptyState icon={FileText} title={t('emptyTitle')} size="sm" />
       ) : (
-        <WithClientMessages extra={['projectPlans']}>
+        <WithPortalClientMessages extra={['projectPlans']}>
           <ContractorDocumentsList organizationId={grant.organizationId} projectId={projectId} items={listed.items} />
-        </WithClientMessages>
+        </WithPortalClientMessages>
       )}
     </div>
   );

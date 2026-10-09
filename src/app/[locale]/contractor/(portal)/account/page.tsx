@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { getContractorAccount, listExternalDirectory, requireExternalContext } from '@/modules/contractor-access';
 import { ContractorPasswordForm, ContractorProfileForm } from '@/modules/contractor-access/ui/contractor-account-forms';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithPortalClientMessages } from '@/shared/i18n/with-client-messages';
 import { contractorChangePasswordAction, contractorSignOutAction, contractorUpdateProfileAction } from './actions';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
@@ -24,7 +24,7 @@ export default async function ContractorAccountPage({ params }: { params: Promis
   ]);
 
   return (
-    <WithClientMessages extra={['auth', 'contractorAccess']}>
+    <WithPortalClientMessages extra={['auth', 'contractorAccess']}>
       <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 px-4 py-6">
         <header className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
@@ -87,6 +87,6 @@ export default async function ContractorAccountPage({ params }: { params: Promis
           <ContractorPasswordForm action={contractorChangePasswordAction} username={account.username} />
         </Card>
       </div>
-    </WithClientMessages>
+    </WithPortalClientMessages>
   );
 }

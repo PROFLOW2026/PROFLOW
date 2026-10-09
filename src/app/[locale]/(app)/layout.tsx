@@ -7,6 +7,7 @@ export const metadata: Metadata = {
 import { AppShell } from '@/components/shell/app-shell';
 import { assertOwnerAppSurface } from '@/modules/employee-app/application/session-guard';
 import { withOrgContext } from '@/shared/auth/session';
+import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 
 /**
  * Authenticated application frame for all product routes under (app).
@@ -21,5 +22,9 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
     assertOwnerAppSurface(context);
   });
 
-  return <AppShell>{children}</AppShell>;
+  return (
+    <WithAppClientMessages>
+      <AppShell>{children}</AppShell>
+    </WithAppClientMessages>
+  );
 }

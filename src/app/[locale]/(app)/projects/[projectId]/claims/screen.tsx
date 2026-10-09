@@ -7,7 +7,7 @@ import { ClaimsList } from '@/modules/subcontract-claims/ui/claims-list';
 import { createClaimAction } from '@/modules/subcontract-claims/ui/actions';
 import { loadOrNotFound } from '@/modules/subcontract-claims/ui/page-guard';
 import { withOrgContext } from '@/shared/auth/session';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 
 export async function ProjectClaimsScreen({
   surfaceRoot,
@@ -40,7 +40,7 @@ export async function ProjectClaimsScreen({
       : 'list.empty';
 
   return (
-    <WithClientMessages extra={['subcontractClaims']}>
+    <WithAppClientMessages extra={['subcontractClaims']}>
       <div className="flex flex-col gap-6">
         <PageHeader title={t('list.pageTitle')} description={t('list.pageDescription')} />
 
@@ -93,7 +93,7 @@ export async function ProjectClaimsScreen({
           <ClaimsList items={data.items} basePath={basePath} />
         ) : null}
       </div>
-    </WithClientMessages>
+    </WithAppClientMessages>
   );
 }
 

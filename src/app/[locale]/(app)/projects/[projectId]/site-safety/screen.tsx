@@ -11,7 +11,7 @@ import { listContractorSafety } from '@/modules/safety/contractor';
 import { SafetyReportForm } from '@/modules/safety/contractor/ui/safety-report-form';
 import { withOrgContext } from '@/shared/auth/session';
 import { AuthorizationError } from '@/shared/errors';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 
 export async function ProjectSiteSafetyScreen({ surfaceRoot: _surfaceRoot, params }: {
     surfaceRoot?: string;
@@ -37,7 +37,7 @@ export async function ProjectSiteSafetyScreen({ surfaceRoot: _surfaceRoot, param
   const defaultVendor = data.agreements[0]?.vendorId;
 
   return (
-    <WithClientMessages extra={['contractorCompliance']}>
+    <WithAppClientMessages extra={['contractorCompliance']}>
       <div className="flex flex-col gap-6">
         <PageHeader title={t('safety.title')} description={t('safety.description')} />
 
@@ -62,7 +62,7 @@ export async function ProjectSiteSafetyScreen({ surfaceRoot: _surfaceRoot, param
           </ul>
         )}
       </div>
-    </WithClientMessages>
+    </WithAppClientMessages>
   );
 }
 

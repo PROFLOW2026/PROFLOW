@@ -1,5 +1,5 @@
 import { getTranslations } from 'next-intl/server';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 import type { ReportKind } from '../domain/types';
 import { ReportDownloadButtons } from './report-download-buttons';
 
@@ -19,13 +19,13 @@ export async function ProjectReportActions({
   if (kinds.length === 0) return null;
 
   return (
-    <WithClientMessages extra={['reports', 'exports']}>
+    <WithAppClientMessages extra={['reports', 'exports']}>
       <div className="flex flex-wrap items-center gap-2 print:hidden">
         <span className="sr-only">{t('title')}</span>
         {kinds.map((kind) => (
           <ReportDownloadButtons key={kind} kind={kind} id={projectId} compact />
         ))}
       </div>
-    </WithClientMessages>
+    </WithAppClientMessages>
   );
 }

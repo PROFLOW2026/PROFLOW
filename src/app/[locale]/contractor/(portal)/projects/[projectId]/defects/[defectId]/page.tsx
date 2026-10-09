@@ -11,7 +11,7 @@ import { defectStatusTone } from '@/modules/defects/ui/tones';
 import { EvidenceGallery, EvidenceUploader } from '@/modules/evidence/ui';
 import { loadOrNotFound } from '@/modules/site-log/shared/page-guard';
 import { Link } from '@/shared/i18n/navigation';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithPortalClientMessages } from '@/shared/i18n/with-client-messages';
 
 export default async function ContractorDefectDetailPage({
   params,
@@ -28,7 +28,7 @@ export default async function ContractorDefectDetailPage({
   const lastRejected = [...defect.records].reverse().find((record) => record.kind === 'rejected');
 
   return (
-    <WithClientMessages extra={['defects']}>
+    <WithPortalClientMessages extra={['defects']}>
       <div className="flex min-w-0 flex-col gap-4 pb-6">
         <PageHeader
           title={t('detailTitle', { ref: defect.referenceNo })}
@@ -88,7 +88,7 @@ export default async function ContractorDefectDetailPage({
           viewer="external"
         />
       </div>
-    </WithClientMessages>
+    </WithPortalClientMessages>
   );
 }
 

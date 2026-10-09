@@ -14,7 +14,7 @@ import { AgreementValueCard } from '@/modules/subcontracts/ui/lines-panel';
 import { loadOrNotFound } from '@/modules/subcontracts/ui/page-guard';
 import { AgreementStatusBadge } from '@/modules/subcontracts/ui/status';
 import { withOrgContext } from '@/shared/auth/session';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 
 export async function AgreementChangesScreen({ surfaceRoot,
   params,
@@ -43,7 +43,7 @@ export async function AgreementChangesScreen({ surfaceRoot,
     .map((line) => ({ id: line.id, label: line.code ? `${line.code} · ${line.description}` : line.description }));
 
   return (
-    <WithClientMessages extra={['subcontracts']}>
+    <WithAppClientMessages extra={['subcontracts']}>
       <div className="flex flex-col gap-6">
         <PageHeader
           title={agreement.title}
@@ -102,7 +102,7 @@ export async function AgreementChangesScreen({ surfaceRoot,
           </CardContent>
         </Card>
       </div>
-    </WithClientMessages>
+    </WithAppClientMessages>
   );
 }
 

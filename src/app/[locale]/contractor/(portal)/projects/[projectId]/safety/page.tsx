@@ -8,7 +8,7 @@ import { requireExternalContext } from '@/modules/contractor-access';
 import { listContractorSafetyForPortal } from '@/modules/safety/contractor';
 import { SafetyReportForm } from '@/modules/safety/contractor/ui/safety-report-form';
 import { EXTERNAL_CAPABILITIES } from '@/shared/external';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithPortalClientMessages } from '@/shared/i18n/with-client-messages';
 
 export default async function ContractorSafetyPage({ params }: { params: Promise<{ projectId: string }> }) {
   const { projectId } = await params;
@@ -23,7 +23,7 @@ export default async function ContractorSafetyPage({ params }: { params: Promise
   const t = await getTranslations('contractorCompliance');
 
   return (
-    <WithClientMessages extra={['contractorCompliance']}>
+    <WithPortalClientMessages extra={['contractorCompliance']}>
       <div className="flex min-w-0 flex-col gap-4 pb-6">
         <PageHeader title={t('safety.portalTitle')} description={t('safety.portalDescription')} />
 
@@ -45,6 +45,6 @@ export default async function ContractorSafetyPage({ params }: { params: Promise
           </ul>
         )}
       </div>
-    </WithClientMessages>
+    </WithPortalClientMessages>
   );
 }

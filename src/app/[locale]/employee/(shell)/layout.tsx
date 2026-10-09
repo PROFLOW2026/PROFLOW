@@ -9,6 +9,7 @@ import { getEmployeeShellData } from '@/modules/employee-app/application/get-emp
 import { assertEmployeeAppContext } from '@/modules/employee-app/application/session-guard';
 import { getSessionState, withOrgContext } from '@/shared/auth/session';
 import { redirect } from '@/shared/i18n/navigation';
+import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 
 export default async function EmployeeShellLayout({ children }: { children: React.ReactNode }) {
   const locale = await getLocale();
@@ -26,6 +27,7 @@ export default async function EmployeeShellLayout({ children }: { children: Reac
   });
 
   return (
+    <WithAppClientMessages>
     <div className="flex h-svh overflow-hidden" data-pf-employee-app>
       <EmployeeSideNav items={shell.nav} organizationName={shell.organizationName} />
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
@@ -42,5 +44,6 @@ export default async function EmployeeShellLayout({ children }: { children: Reac
       </div>
       <EmployeeQuickCreate actions={quickCreateActions} />
     </div>
+    </WithAppClientMessages>
   );
 }

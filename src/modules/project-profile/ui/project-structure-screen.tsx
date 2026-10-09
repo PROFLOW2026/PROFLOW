@@ -3,7 +3,7 @@ import 'server-only';
 import { getProjectStructure } from '@/modules/project-profile';
 import { loadOrNotFound } from '@/modules/site-log/shared/page-guard';
 import { withOrgContext } from '@/shared/auth/session';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 import { ProjectStructureClient } from './project-structure-client';
 import {
   acceptRecommendationsAction,
@@ -32,7 +32,7 @@ export async function ProjectStructureScreen({ projectId, basePath }: ProjectStr
   );
 
   return (
-    <WithClientMessages extra={['projectProfile']}>
+    <WithAppClientMessages extra={['projectProfile']}>
       <ProjectStructureClient
         projectId={view.project.id}
         basePath={basePath}
@@ -56,6 +56,6 @@ export async function ProjectStructureScreen({ projectId, basePath }: ProjectStr
           restoreRecommendations: restoreRecommendationsAction,
         }}
       />
-    </WithClientMessages>
+    </WithAppClientMessages>
   );
 }

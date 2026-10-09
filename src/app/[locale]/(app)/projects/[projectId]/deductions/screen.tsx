@@ -6,7 +6,7 @@ import { listClaimableAgreements, listProjectDeductions } from '@/modules/subcon
 import { DeductionsList, IssueDeductionForm } from '@/modules/subcontract-claims/ui/deductions-panel';
 import { loadOrNotFound } from '@/modules/subcontract-claims/ui/page-guard';
 import { withOrgContext } from '@/shared/auth/session';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 
 export async function ProjectDeductionsScreen({ surfaceRoot: _surfaceRoot, params }: {
     surfaceRoot?: string;
@@ -25,7 +25,7 @@ export async function ProjectDeductionsScreen({ surfaceRoot: _surfaceRoot, param
   );
 
   return (
-    <WithClientMessages extra={['subcontractClaims']}>
+    <WithAppClientMessages extra={['subcontractClaims']}>
       <div className="flex flex-col gap-6">
         <PageHeader title={t('deductions.pageTitle')} description={t('deductions.pageDescription')} />
         {access.has('deductions.manage') && data.agreements.length > 0 ? (
@@ -40,7 +40,7 @@ export async function ProjectDeductionsScreen({ surfaceRoot: _surfaceRoot, param
         ) : null}
         <DeductionsList items={data.items} />
       </div>
-    </WithClientMessages>
+    </WithAppClientMessages>
   );
 }
 

@@ -16,7 +16,7 @@ import { AgreementFacts, AgreementValueCard, WorkLinesPanel } from '@/modules/su
 import { loadOrNotFound } from '@/modules/subcontracts/ui/page-guard';
 import { AgreementStatusBadge } from '@/modules/subcontracts/ui/status';
 import { withOrgContext } from '@/shared/auth/session';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 
 export async function AgreementLinesScreen({ surfaceRoot,
   params,
@@ -41,7 +41,7 @@ export async function AgreementLinesScreen({ surfaceRoot,
   const editableLines = access.canManageContract || access.canCoordinate;
 
   return (
-    <WithClientMessages extra={['subcontracts']}>
+    <WithAppClientMessages extra={['subcontracts']}>
       <div className="flex flex-col gap-6">
         <PageHeader
           title={agreement.title}
@@ -151,7 +151,7 @@ export async function AgreementLinesScreen({ surfaceRoot,
           </Card>
         ) : null}
       </div>
-    </WithClientMessages>
+    </WithAppClientMessages>
   );
 }
 

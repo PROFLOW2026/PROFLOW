@@ -5,7 +5,7 @@ import { requireExternalContext } from '@/modules/contractor-access';
 import { listContractorProjectPayments, resolveContractorPaymentsOrganization } from '@/modules/subcontract-claims';
 import { loadOrNotFound } from '@/modules/subcontract-claims/ui/page-guard';
 import { bidiIsolate } from '@/shared/money';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithPortalClientMessages } from '@/shared/i18n/with-client-messages';
 
 export default async function ContractorPaymentsPage({ params }: { params: Promise<{ projectId: string }> }) {
   const { projectId } = await params;
@@ -15,7 +15,7 @@ export default async function ContractorPaymentsPage({ params }: { params: Promi
   const rows = await loadOrNotFound(() => listContractorProjectPayments(context, organizationId, projectId));
 
   return (
-    <WithClientMessages extra={['subcontractClaims']}>
+    <WithPortalClientMessages extra={['subcontractClaims']}>
       <div className="flex flex-col gap-4 pb-6">
         <PageHeader title={t('portal.paymentsTitle')} />
         {rows.map((row) => (
@@ -42,6 +42,6 @@ export default async function ContractorPaymentsPage({ params }: { params: Promi
           </Card>
         ))}
       </div>
-    </WithClientMessages>
+    </WithPortalClientMessages>
   );
 }

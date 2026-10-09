@@ -7,6 +7,7 @@ import { ToastProvider } from '@/components/ui/toast';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { PwaBootstrap } from '@/modules/offline/ui/pwa-bootstrap';
 import { IntlClientProvider } from '@/shared/i18n/intl-client-provider';
+import { ROOT_CLIENT_MESSAGE_NAMESPACES } from '@/shared/i18n/config';
 import { pickClientMessages } from '@/shared/i18n/pick-client-messages';
 import { LocaleDocumentAttributes } from '@/shared/i18n/locale-document-attributes';
 import { routing } from '@/shared/i18n/routing';
@@ -62,8 +63,8 @@ export default async function LocaleLayout({
   setRequestLocale(locale);
 
   // Server Components still see full catalogs via getRequestConfig.
-  // Client flights only carry the lean app set (~80KB vs ~237KB).
-  const clientMessages = pickClientMessages(await getMessages());
+  // Client flights carry only universal shell namespaces; app/auth/marketing scopes nest below.
+  const clientMessages = pickClientMessages(await getMessages(), ROOT_CLIENT_MESSAGE_NAMESPACES);
 
   return (
     <IntlClientProvider locale={locale} messages={clientMessages}>

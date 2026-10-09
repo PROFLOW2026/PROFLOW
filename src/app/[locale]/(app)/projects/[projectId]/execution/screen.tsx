@@ -11,7 +11,7 @@ import {
 import { ExecutionMetricCard } from '@/modules/project-workspace/ui/execution-metric-card';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 import { formatMoneyString, money, sumMoney } from '@/shared/money';
 
 function commitmentTotal(
@@ -62,7 +62,7 @@ export async function ProjectExecutionDashboardScreen({ surfaceRoot, params }: {
   ] as const;
 
   return (
-    <WithClientMessages extra={['projectWorkspace']}>
+    <WithAppClientMessages extra={['projectWorkspace']}>
       <div className="flex flex-col gap-6">
         <PageHeader title={t('execution.dashboard')} description={t('execution.dashboardDescription')} />
         <div className="flex flex-wrap gap-2">
@@ -158,7 +158,7 @@ export async function ProjectExecutionDashboardScreen({ surfaceRoot, params }: {
           </ul>
         </section>
       </div>
-    </WithClientMessages>
+    </WithAppClientMessages>
   );
 }
 

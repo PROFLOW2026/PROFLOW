@@ -10,7 +10,7 @@ import { ContractorRfiCreateForm } from '@/modules/rfi/ui/contractor-rfi-create-
 import { RfiList } from '@/modules/rfi/ui/rfi-list';
 import { EXTERNAL_CAPABILITIES } from '@/shared/external';
 import { Link } from '@/shared/i18n/navigation';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithPortalClientMessages } from '@/shared/i18n/with-client-messages';
 
 export default async function ContractorRfisPage({
   params,
@@ -53,7 +53,7 @@ export default async function ContractorRfisPage({
       </div>
 
       {wantsCreate ? (
-        <WithClientMessages extra={['rfi', 'common']}>
+        <WithPortalClientMessages extra={['rfi', 'common']}>
           <ContractorRfiCreateForm
             organizationId={organizationId}
             projectId={projectId}
@@ -61,7 +61,7 @@ export default async function ContractorRfisPage({
             locations={locations}
             workPackages={workPackages}
           />
-        </WithClientMessages>
+        </WithPortalClientMessages>
       ) : (
         <Link href={`${base}?new=1`} className={buttonVariants({ variant: 'primary' })}>
           {t('portal.newTitle')}

@@ -13,7 +13,7 @@ import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
 import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import {
   orgListHasPermission,
@@ -109,7 +109,7 @@ export async function ContractsOrgListView({
   }
 
   return (
-    <WithClientMessages extra={['contracts']}>
+    <WithAppClientMessages extra={['contracts']}>
       <div className="flex flex-col gap-6">
         {surface === 'owner' ? (
           <PageHeader title={t('title')} description={t('description')} />
@@ -215,6 +215,6 @@ export async function ContractsOrgListView({
           />
         )}
       </div>
-    </WithClientMessages>
+    </WithAppClientMessages>
   );
 }

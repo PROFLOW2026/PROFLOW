@@ -6,10 +6,7 @@ import {
   loadPortalShellData,
 } from '@/modules/contractor-portal/application/load-portal-session';
 import { ContractorPortalShell } from '@/modules/contractor-portal/ui/portal-shell';
-import {
-  PROJECT_SURFACE_CLIENT_MESSAGE_NAMESPACES,
-} from '@/shared/i18n/config';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithPortalClientMessages } from '@/shared/i18n/with-client-messages';
 
 export async function generateMetadata({
   params,
@@ -30,8 +27,8 @@ export default async function ContractorPortalLayout({ children }: { children: R
   const shell = await loadPortalShellData(session);
 
   return (
-    <WithClientMessages extra={['contractorPortal', ...PROJECT_SURFACE_CLIENT_MESSAGE_NAMESPACES]}>
+    <WithPortalClientMessages>
       <ContractorPortalShell shell={shell}>{children}</ContractorPortalShell>
-    </WithClientMessages>
+    </WithPortalClientMessages>
   );
 }

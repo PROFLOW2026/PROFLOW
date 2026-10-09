@@ -8,7 +8,7 @@ import { OwnerFormsPanel } from '@/modules/forms/ui/owner-forms-panel';
 import { withOrgContext } from '@/shared/auth/session';
 import { hasAnyPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 
 /** Project / job / work-order overview panel for field forms. */
 export async function ProjectFormsPanel({
@@ -37,7 +37,7 @@ export async function ProjectFormsPanel({
   if (!data) return null;
 
   return (
-    <WithClientMessages extra={['forms']}>
+    <WithAppClientMessages extra={['forms']}>
       <OwnerFormsPanel
         ownerType={ownerType}
         ownerId={ownerId}
@@ -45,7 +45,7 @@ export async function ProjectFormsPanel({
         submissions={data.submissions}
         canManage={data.canManage}
       />
-    </WithClientMessages>
+    </WithAppClientMessages>
   );
 }
 

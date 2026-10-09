@@ -14,7 +14,7 @@ import { withOrgContext } from '@/shared/auth/session';
 import { formatBusinessDate, formatInstant } from '@/shared/dates';
 import { AuthorizationError, NotFoundError } from '@/shared/errors';
 import { Link } from '@/shared/i18n/navigation';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 
 export async function ProjectRfiDetailScreen({ surfaceRoot,
   params,
@@ -184,9 +184,9 @@ export async function ProjectRfiDetailScreen({ surfaceRoot,
           </Card>
 
           {detail.canManage ? (
-            <WithClientMessages extra={['rfi', 'common']}>
+            <WithAppClientMessages extra={['rfi', 'common']}>
               <RfiDetailActions rfiId={detail.id} availableActions={detail.availableActions} />
-            </WithClientMessages>
+            </WithAppClientMessages>
           ) : null}
         </aside>
       </div>

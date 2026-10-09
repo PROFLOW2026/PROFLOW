@@ -4,7 +4,7 @@ import { getTenderPackageDetail } from '@/modules/contractor-procurement';
 import { PROJECT_CAPABILITIES } from '@/modules/project-team/domain/capabilities';
 import { requireProjectCapabilityPage } from '@/modules/project-team/server';
 import { withOrgContext } from '@/shared/auth/session';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 
 export async function TenderPackageScreen({ surfaceRoot: _surfaceRoot,
   params,
@@ -19,7 +19,7 @@ export async function TenderPackageScreen({ surfaceRoot: _surfaceRoot,
   const detail = await withOrgContext((context) => getTenderPackageDetail(context, { projectId, packageId }));
 
   return (
-    <WithClientMessages extra={['awards']}>
+    <WithAppClientMessages extra={['awards']}>
       <div className="flex flex-col gap-6">
         <PageHeader title={detail.pkg.title} description={detail.pkg.scopeDescription ?? t('detail.scopeEmpty')} />
         <section className="rounded-md border border-[var(--pf-border)] p-4 text-sm">
@@ -45,7 +45,7 @@ export async function TenderPackageScreen({ surfaceRoot: _surfaceRoot,
           )}
         </section>
       </div>
-    </WithClientMessages>
+    </WithAppClientMessages>
   );
 }
 

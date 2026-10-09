@@ -7,7 +7,7 @@ import {
 } from '@/modules/subcontract-claims';
 import { ClaimsList } from '@/modules/subcontract-claims/ui/claims-list';
 import { loadOrNotFound } from '@/modules/subcontract-claims/ui/page-guard';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithPortalClientMessages } from '@/shared/i18n/with-client-messages';
 
 export default async function ContractorClaimsPage({ params }: { params: Promise<{ projectId: string }> }) {
   const { projectId } = await params;
@@ -18,11 +18,11 @@ export default async function ContractorClaimsPage({ params }: { params: Promise
   const basePath = `/contractor/projects/${projectId}/claims`;
 
   return (
-    <WithClientMessages extra={['subcontractClaims']}>
+    <WithPortalClientMessages extra={['subcontractClaims']}>
       <div className="flex flex-col gap-4 pb-6">
         <PageHeader title={t('portal.claimsTitle')} />
         <ClaimsList items={items} basePath={basePath} />
       </div>
-    </WithClientMessages>
+    </WithPortalClientMessages>
   );
 }

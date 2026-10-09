@@ -7,7 +7,7 @@ import { listProjectAgreementCloseouts } from '@/modules/contractor-closeout';
 import { PROJECT_CAPABILITIES } from '@/modules/project-team/domain/capabilities';
 import { requireProjectCapabilityPage } from '@/modules/project-team/server';
 import { withOrgContext } from '@/shared/auth/session';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 
 export async function ContractorCloseoutScreen({
   surfaceRoot: _surfaceRoot,
@@ -25,7 +25,7 @@ export async function ContractorCloseoutScreen({
   const visible = agreementId ? rows.filter((row) => row.subcontractAgreementId === agreementId) : rows;
 
   return (
-    <WithClientMessages extra={['handover']}>
+    <WithAppClientMessages extra={['handover']}>
       <div className="flex flex-col gap-6">
         <PageHeader title={t('closeout.title')} description={t('closeout.description')} />
         {visible.length === 0 ? (
@@ -44,7 +44,7 @@ export async function ContractorCloseoutScreen({
           </ul>
         )}
       </div>
-    </WithClientMessages>
+    </WithAppClientMessages>
   );
 }
 

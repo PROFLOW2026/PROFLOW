@@ -13,7 +13,7 @@ import { withOrgContext } from '@/shared/auth/session';
 import { formatBusinessDate, formatInstant } from '@/shared/dates';
 import { AuthorizationError, NotFoundError } from '@/shared/errors';
 import { Link } from '@/shared/i18n/navigation';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 
 export async function ProjectSubmittalDetailScreen({ surfaceRoot,
   params,
@@ -170,14 +170,14 @@ export async function ProjectSubmittalDetailScreen({ surfaceRoot,
           </Card>
 
           {detail.canManage || detail.draftRevisionId ? (
-            <WithClientMessages extra={['submittals', 'common']}>
+            <WithAppClientMessages extra={['submittals', 'common']}>
               <SubmittalDetailActions
                 submittalId={detail.id}
                 availableActions={detail.availableActions}
                 draftRevisionId={detail.draftRevisionId}
                 currentRevisionId={currentRevision?.id ?? detail.revisions[0]!.id}
               />
-            </WithClientMessages>
+            </WithAppClientMessages>
           ) : null}
         </aside>
       </div>

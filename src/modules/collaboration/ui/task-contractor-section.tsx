@@ -2,7 +2,7 @@ import { getFormatter, getTranslations } from 'next-intl/server';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { withOrgContext } from '@/shared/auth/session';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 import { getTaskContractorPanel } from '../index';
 import { EntityDiscussion } from './entity-discussion-impl';
 import { InternalTaskCommandForm } from './internal-task-command-form';
@@ -39,13 +39,13 @@ export async function TaskContractorSection({ taskId }: { readonly taskId: strin
             </p>
           ) : null}
           {panel.canVerify || panel.canManage ? (
-            <WithClientMessages extra={['collaboration']}>
+            <WithAppClientMessages extra={['collaboration']}>
               <InternalTaskCommandForm
                 taskId={taskId}
                 projectId={projectId}
                 commands={assignment.availableCommands}
               />
-            </WithClientMessages>
+            </WithAppClientMessages>
           ) : null}
           {panel.history.length > 0 ? (
             <ol className="mt-2 flex flex-col gap-2 border-s border-[var(--pf-border-default)] ps-4">

@@ -20,7 +20,7 @@ import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
 import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 import { SubcontractsListFilters } from './subcontracts-list-filters';
 
 export async function generateMetadata({
@@ -110,7 +110,7 @@ export default async function SubcontractsPage({
   const showMoney = items.some(isFinancialSubcontractRow);
 
   return (
-    <WithClientMessages extra={['vendors']}>
+    <WithAppClientMessages extra={['vendors']}>
       <div className="flex flex-col gap-6">
         <PageHeader title={t('title')} description={t('description')} />
 
@@ -210,6 +210,6 @@ export default async function SubcontractsPage({
           />
         )}
       </div>
-    </WithClientMessages>
+    </WithAppClientMessages>
   );
 }

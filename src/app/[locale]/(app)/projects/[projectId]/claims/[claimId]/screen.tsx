@@ -6,7 +6,7 @@ import { ClaimDetailPanel } from '@/modules/subcontract-claims/ui/claim-detail-p
 import { loadOrNotFound } from '@/modules/subcontract-claims/ui/page-guard';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 
 export async function ProjectClaimDetailScreen({ surfaceRoot,
   params,
@@ -23,7 +23,7 @@ export async function ProjectClaimDetailScreen({ surfaceRoot,
   const view = await loadOrNotFound(() => withOrgContext((context) => getClaimDetail(context, projectId, claimId)));
 
   return (
-    <WithClientMessages extra={['subcontractClaims']}>
+    <WithAppClientMessages extra={['subcontractClaims']}>
       <div className="flex flex-col gap-4">
         <Link href={basePath} className="text-sm text-[var(--pf-text-brand)] hover:underline">
           ← {t('list.pageTitle')}
@@ -31,7 +31,7 @@ export async function ProjectClaimDetailScreen({ surfaceRoot,
         <PageHeader title={`CLM-${view.detail.header.claimNumber}`} />
         <ClaimDetailPanel projectId={projectId} view={view} basePath={basePath} />
       </div>
-    </WithClientMessages>
+    </WithAppClientMessages>
   );
 }
 

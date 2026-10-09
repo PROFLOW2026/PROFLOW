@@ -11,7 +11,7 @@ import { INSTRUCTION_STATUS_TONE } from '@/modules/site-instructions/ui/status-t
 import { loadOrNotFound } from '@/modules/site-log/shared/page-guard';
 import { FieldActionForm } from '@/modules/site-log/ui/field-action-form';
 import { Link } from '@/shared/i18n/navigation';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithPortalClientMessages } from '@/shared/i18n/with-client-messages';
 import { contractorInstructionAction } from '../actions';
 
 export default async function ContractorInstructionPage({
@@ -29,7 +29,7 @@ export default async function ContractorInstructionPage({
   const hidden = { projectId, instructionId };
 
   return (
-    <WithClientMessages extra={['siteOps', 'projectPlans', 'collaboration']}>
+    <WithPortalClientMessages extra={['siteOps', 'projectPlans', 'collaboration']}>
     <div className="flex min-w-0 flex-col gap-4 pb-6">
       <PageHeader
         breadcrumb={
@@ -132,6 +132,6 @@ export default async function ContractorInstructionPage({
         viewer="external"
       />
     </div>
-    </WithClientMessages>
+    </WithPortalClientMessages>
   );
 }

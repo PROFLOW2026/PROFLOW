@@ -9,7 +9,7 @@ import { UnpricedStatusBadge } from '@/modules/subcontracts/ui/status';
 import { withOrgContext } from '@/shared/auth/session';
 import { todayInTimeZone } from '@/shared/dates';
 import { Link } from '@/shared/i18n/navigation';
-import { WithClientMessages } from '@/shared/i18n/with-client-messages';
+import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 import { bidiIsolate } from '@/shared/money';
 import { cn } from '@/shared/ui/cn';
 
@@ -56,7 +56,7 @@ export async function UnpricedWorkScreen({ surfaceRoot,
   const base = `${surfaceRoot ?? ('/projects/' + projectId)}/unpriced-work`;
 
   return (
-    <WithClientMessages extra={['subcontracts']}>
+    <WithAppClientMessages extra={['subcontracts']}>
       <div className="flex flex-col gap-6">
         <PageHeader title={t('unpriced.pageTitle')} description={t('unpriced.pageDescription')} />
 
@@ -164,7 +164,7 @@ export async function UnpricedWorkScreen({ surfaceRoot,
           </div>
         ) : null}
       </div>
-    </WithClientMessages>
+    </WithAppClientMessages>
   );
 }
 
