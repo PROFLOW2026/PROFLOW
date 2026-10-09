@@ -1,26 +1,23 @@
 import { expect, test } from '@playwright/test';
 
-test.describe('SEO runtime (L9)', () => {
-  test('robots.txt allows public marketing and legal', async ({ request, baseURL }) => {
+test.describe('SEO runtime (pre-launch containment)', () => {
+  test('robots.txt disallows all crawling and omits sitemap', async ({ request, baseURL }) => {
     const res = await request.get(`${baseURL}/robots.txt`);
     expect(res.status()).toBe(200);
     const body = await res.text();
-    expect(body).toMatch(/Allow:\s*\//);
-    expect(body).toMatch(/Allow:\s*\/legal\//);
-    expect(body).toContain('Disallow: /api/');
-    expect(body).toContain('Sitemap:');
-    expect(body).not.toMatch(/Disallow:\s*\/he-IL\s*$/m);
+    expect(body).toMatch(/Disallow:\s*\//);
+    expect(body).not.toContain('Sitemap:');
   });
 
-  test('sitemap.xml lists locale home and legal URLs', async ({ request, baseURL }) => {
+  test('sitemap.xml has no discoverable URLs while pre-launch', async ({ request, baseURL }) => {
     const res = await request.get(`${baseURL}/sitemap.xml`);
     expect(res.status()).toBe(200);
     const body = await res.text();
-    expect(body).toContain('/he-IL/legal/terms');
-    expect(body).toContain('/he-IL/legal/privacy');
+    expect(body).not.toContain('/he-IL/legal/terms');
+    expect(body).not.toContain('/he-IL/legal/privacy');
   });
 
-  test('public homepage is indexable; authenticated app layout is noindex', async ({
+  test('public homepage is noindex; auth and employee surfaces stay noindex', async ({
     page,
     request,
     baseURL,
@@ -30,7 +27,7 @@ test.describe('SEO runtime (L9)', () => {
       test.skip(true, 'App not configured');
     }
     const homeMeta = await page.locator('head meta[name="robots"]').getAttribute('content');
-    expect(homeMeta === null || !homeMeta.includes('noindex')).toBe(true);
+    expect(homeMeta).toContain('noindex');
 
     await page.goto('/he-IL/sign-in');
     const authRobots = await page.locator('head meta[name="robots"]').getAttribute('content');

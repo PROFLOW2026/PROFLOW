@@ -9,6 +9,8 @@ import {
 } from '@/shared/i18n/bare-path';
 import { isLocale, type Locale } from '@/shared/i18n/config';
 import { routing } from '@/shared/i18n/routing';
+import { persistLocaleCookieIfNeeded } from '@/shared/proxy/locale-cookie';
+import { shouldSkipProxySessionRefresh } from '@/shared/proxy/public-session-fast-path';
 import { refreshSupabaseSession } from '@/shared/supabase/middleware';
 import { REQUEST_PATHNAME_HEADER } from '@/shared/http/request-pathname';
 import { decideContractorSurface } from '@/modules/contractor-access/domain/surface';
@@ -19,16 +21,6 @@ function withRequestPathname(response: NextResponse, pathname: string): NextResp
 }
 
 const handleIntl = createIntlMiddleware(routing);
-
-const LOCALE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
-
-function persistLocaleCookie(response: NextResponse, locale: Locale): void {
-  response.cookies.set(LOCALE_COOKIE_NAME, locale, {
-    path: '/',
-    sameSite: 'lax',
-    maxAge: LOCALE_COOKIE_MAX_AGE,
-  });
-}
 
 function localeFromPathname(pathname: string): Locale | null {
   const segment = pathname.split('/').filter(Boolean)[0];
@@ -55,7 +47,7 @@ function localizeBarePath(request: NextRequest): NextResponse | null {
 
   const response =
     kind === 'rewrite-root' ? NextResponse.rewrite(url) : NextResponse.redirect(url);
-  persistLocaleCookie(response, locale);
+  persistLocaleCookieIfNeeded(request, response, locale);
   return response;
 }
 
@@ -76,8 +68,13 @@ export default async function proxy(request: NextRequest) {
   const response = handleIntl(request);
   const pathLocale = localeFromPathname(pathname);
   if (pathLocale) {
-    persistLocaleCookie(response, pathLocale);
+    persistLocaleCookieIfNeeded(request, response, pathLocale);
   }
+
+  if (shouldSkipProxySessionRefresh(request, pathname)) {
+    return withRequestPathname(response, pathname);
+  }
+
   const refreshed = await refreshSupabaseSession(request, response, (user) =>
     contractorSurfaceRedirect(request, user),
   );

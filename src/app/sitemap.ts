@@ -1,8 +1,13 @@
 import type { MetadataRoute } from 'next';
 import { routing } from '@/shared/i18n/routing';
 import { serverEnv } from '@/shared/env/server';
+import { PRE_LAUNCH_BLOCK_SEARCH_INDEXING } from '@/shared/seo/pre-launch';
 
 export default function sitemap(): MetadataRoute.Sitemap {
+  if (PRE_LAUNCH_BLOCK_SEARCH_INDEXING) {
+    return [];
+  }
+
   let base = 'http://localhost:3000';
   try {
     base = serverEnv().APP_URL.replace(/\/$/, '');

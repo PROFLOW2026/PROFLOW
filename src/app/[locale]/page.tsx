@@ -20,6 +20,7 @@ import {
 import { getSessionState, withOrgContext } from '@/shared/auth/session';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { isLocale } from '@/shared/i18n/config';
+import { preLaunchHomepageRobots } from '@/shared/seo/pre-launch';
 import { redirect } from '@/shared/i18n/navigation';
 import { WithClientMessages } from '@/shared/i18n/with-client-messages';
 import { DashboardSkeleton } from './(app)/(home)/dashboard-skeleton';
@@ -65,7 +66,7 @@ export async function generateMetadata({
       title: ogTitle,
       description: ogDescription,
     },
-    robots: { index: true, follow: true },
+    robots: preLaunchHomepageRobots(),
   };
 }
 

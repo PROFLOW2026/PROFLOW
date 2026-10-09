@@ -1,12 +1,27 @@
 import type { MetadataRoute } from 'next';
 import { serverEnv } from '@/shared/env/server';
+import { PRE_LAUNCH_BLOCK_SEARCH_INDEXING } from '@/shared/seo/pre-launch';
 
-export default function robots(): MetadataRoute.Robots {
+function appBaseUrl(): string {
   let base = 'http://localhost:3000';
   try {
     base = serverEnv().APP_URL.replace(/\/$/, '');
   } catch {
     base = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') ?? base;
+  }
+  return base;
+}
+
+export default function robots(): MetadataRoute.Robots {
+  if (PRE_LAUNCH_BLOCK_SEARCH_INDEXING) {
+    return {
+      rules: [
+        {
+          userAgent: '*',
+          disallow: ['/'],
+        },
+      ],
+    };
   }
 
   return {
@@ -17,6 +32,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ['/api/', '/*/employee', '/*/onboarding'],
       },
     ],
-    sitemap: `${base}/sitemap.xml`,
+    sitemap: `${appBaseUrl()}/sitemap.xml`,
   };
 }
