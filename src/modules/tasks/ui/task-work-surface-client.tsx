@@ -12,7 +12,12 @@ import {
 } from './task-filters-bar';
 import { TaskTimelineView } from './task-timeline-view';
 import type { TaskCardData, TaskDetail } from './task-api';
-import type { WorkActionState } from '@/app/[locale]/(app)/work/actions';
+import {
+  loadMoreAccessibleTasksAction,
+  loadMoreWorkLensTasksAction,
+  type WorkActionState,
+} from '@/app/[locale]/(app)/work/actions';
+import { TASK_LIST_MAX_LIMIT } from '@/modules/tasks/domain/list-window';
 
 export interface TaskWorkSurfaceClientProps {
   tasks: TaskCardData[];
@@ -23,9 +28,13 @@ export interface TaskWorkSurfaceClientProps {
   hasMore?: boolean;
   /** When true, filters come from the URL on the server; hide the local filter bar. */
   urlBackedFilters?: boolean;
+  /** Work hub lenses: URL filter snapshot for paginated server actions (no inline RSC callbacks). */
+  workLensFilterQuery?: Record<string, string>;
+  loadMoreExcludeCancelled?: boolean;
+  /** Project calendar/timeline: paginate within one project. */
+  projectId?: string;
   getTaskDetail: (taskId: string) => Promise<TaskDetail | null>;
   updateTask: (taskId: string, data: Record<string, unknown>) => Promise<WorkActionState>;
-  onLoadMore?: (offset: number) => Promise<{ tasks: TaskCardData[]; hasMore: boolean }>;
 }
 
 export function TaskWorkSurfaceClient({
@@ -36,10 +45,13 @@ export function TaskWorkSurfaceClient({
   timelineDateEdit = false,
   hasMore: initialHasMore = false,
   urlBackedFilters = false,
+  workLensFilterQuery,
+  loadMoreExcludeCancelled = false,
+  projectId,
   getTaskDetail,
   updateTask,
-  onLoadMore,
 }: TaskWorkSurfaceClientProps) {
+  const canLoadMore = Boolean(projectId ?? workLensFilterQuery !== undefined);
   const t = useTranslations('tasks');
   const [filters, setFilters] = useState<TaskFilterBarState>(DEFAULT_TASK_FILTER_STATE);
   const useLocalFilters = !urlBackedFilters;
@@ -58,10 +70,18 @@ export function TaskWorkSurfaceClient({
   );
 
   async function handleLoadMore() {
-    if (!onLoadMore || loadingMore) return;
+    if (!canLoadMore || loadingMore) return;
     setLoadingMore(true);
     try {
-      const page = await onLoadMore(allTasks.length);
+      const page = projectId
+        ? await loadMoreAccessibleTasksAction({
+            offset: allTasks.length,
+            projectId,
+            limit: TASK_LIST_MAX_LIMIT,
+          })
+        : await loadMoreWorkLensTasksAction(allTasks.length, workLensFilterQuery ?? {}, {
+            excludeCancelled: loadMoreExcludeCancelled,
+          });
       setExtraTasks((prev) => [...prev, ...page.tasks]);
       setHasMore(page.hasMore);
     } finally {
@@ -98,7 +118,7 @@ export function TaskWorkSurfaceClient({
           <p role="status" className="text-sm text-[var(--pf-text-muted)]">
             {t('list.hasMore')}
           </p>
-          {onLoadMore ? (
+          {canLoadMore ? (
             <button
               type="button"
               onClick={() => void handleLoadMore()}

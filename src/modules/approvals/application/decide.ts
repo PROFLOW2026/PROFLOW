@@ -3,6 +3,10 @@ import type { OrgContext } from '@/shared/auth/context';
 import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
 import { assertPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import {
+  assertCanDecideTaskApproval,
+  assertNotSelfTaskApproval,
+} from '@/modules/tasks/application/task-approval-auth';
 import { noteModuleUsage } from '@/modules/tenancy';
 import { canDecideCurrentStep } from '../domain/steps';
 import {
@@ -20,8 +24,6 @@ import {
 } from '../validation/schemas';
 
 export async function decideApprovalRequest(context: OrgContext, raw: DecideApprovalInput) {
-  assertPermission(context, PERMISSIONS.APPROVALS_DECIDE);
-
   const parsed = decideApprovalSchema.safeParse(raw);
   if (!parsed.success) {
     throw new ValidationError(
@@ -36,6 +38,14 @@ export async function decideApprovalRequest(context: OrgContext, raw: DecideAppr
     input.requestId,
   );
   if (!existing) throw new NotFoundError('Approval request');
+
+  if (existing.entityType === 'task') {
+    assertCanDecideTaskApproval(context);
+    assertNotSelfTaskApproval(context, existing.submittedByUserId);
+  } else {
+    assertPermission(context, PERMISSIONS.APPROVALS_DECIDE);
+  }
+
   if (existing.status !== 'submitted') {
     throw new DomainRuleError(
       'Only submitted requests can be decided',

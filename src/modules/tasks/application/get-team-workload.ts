@@ -1,9 +1,11 @@
 import 'server-only';
-import { sql } from 'drizzle-orm';
+import { sql, type SQL } from 'drizzle-orm';
 import type { OrgContext } from '@/shared/auth/context';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { AuthorizationError } from '@/shared/errors';
+import { resolveAccessibleProjectIds } from '@/modules/projects/application/project-access';
+import { getWorkspaceScope } from '@/modules/workspaces/domain/access';
 
 // ---------------------------------------------------------------------------
 // Domain types
@@ -55,6 +57,59 @@ function sqlRows<T>(result: unknown): T[] {
   return [];
 }
 
+/** Task rows visible on Workload — workspace rules in SQL (no full workspace ID list). */
+function workloadTaskVisibilitySql(context: OrgContext, workspaceScope: ReturnType<typeof getWorkspaceScope>): SQL {
+  if (workspaceScope === 'full') return sql``;
+
+  return sql`AND (
+    EXISTS (
+      SELECT 1 FROM workspaces w
+      WHERE w.id = t.workspace_id
+        AND w.organization_id = ${context.organizationId}
+        AND w.is_archived = false
+        AND (
+          w.workspace_visibility = 'organization'
+          OR EXISTS (
+            SELECT 1 FROM workspace_members wm
+            WHERE wm.workspace_id = w.id
+              AND wm.org_member_id = ${context.membershipId}::uuid
+              AND wm.organization_id = ${context.organizationId}
+          )
+        )
+    )
+  )`;
+}
+
+function workloadTaskProjectAccessSql(accessibleProjectIds: readonly string[] | null): SQL {
+  if (accessibleProjectIds === null) return sql``;
+  if (accessibleProjectIds.length === 0) {
+    return sql`AND t.project_id IS NULL`;
+  }
+  return sql`AND (t.project_id IS NULL OR t.project_id = ANY(${accessibleProjectIds}::uuid[]))`;
+}
+
+function workloadAssignmentProjectAccessSql(accessibleProjectIds: readonly string[] | null): SQL {
+  if (accessibleProjectIds === null) return sql``;
+  if (accessibleProjectIds.length === 0) {
+    return sql`AND false`;
+  }
+  return sql`AND epa.project_id = ANY(${accessibleProjectIds}::uuid[])`;
+}
+
+type WorkloadAccessScope = {
+  readonly workspaceScope: ReturnType<typeof getWorkspaceScope>;
+  readonly accessibleProjectIds: readonly string[] | null;
+};
+
+async function resolveWorkloadAccessScope(context: OrgContext): Promise<WorkloadAccessScope> {
+  const workspaceScope = getWorkspaceScope(context);
+  if (workspaceScope === 'none') {
+    return { workspaceScope, accessibleProjectIds: [] };
+  }
+  const accessibleProjectIds = await resolveAccessibleProjectIds(context);
+  return { workspaceScope, accessibleProjectIds };
+}
+
 // ---------------------------------------------------------------------------
 // Main query
 // ---------------------------------------------------------------------------
@@ -65,13 +120,27 @@ function sqlRows<T>(result: unknown): T[] {
  * Design rules:
  * - Only active employees in the organization.
  * - Task counts scoped to org tasks (via task_assignees.employee_id).
+ * - Task / project assignment stats aggregated in separate CTEs (no assignee × EPA join blow-up).
  * - No fabricated utilization %. Show effort only when data exists.
- * - Permission: workload.read
+ * - Permission: workload.read; tasks scoped like My Work (workspace + project access).
  */
-export async function getTeamWorkload(context: OrgContext): Promise<TeamWorkloadResult> {
+export async function getTeamWorkload(
+  context: OrgContext,
+  scope?: WorkloadAccessScope,
+): Promise<TeamWorkloadResult> {
   if (!hasPermission(context, PERMISSIONS.WORKLOAD_READ)) {
     throw new AuthorizationError('workload.read permission required');
   }
+
+  const access = scope ?? (await resolveWorkloadAccessScope(context));
+  if (access.workspaceScope === 'none') {
+    return { rows: [], showEstimatedEffort: false };
+  }
+
+  const { workspaceScope, accessibleProjectIds } = access;
+  const taskVisibility = workloadTaskVisibilitySql(context, workspaceScope);
+  const taskProjectAccess = workloadTaskProjectAccessSql(accessibleProjectIds);
+  const assignmentProjectAccess = workloadAssignmentProjectAccessSql(accessibleProjectIds);
 
   type WorkloadRow = {
     employee_id: string;
@@ -85,40 +154,59 @@ export async function getTeamWorkload(context: OrgContext): Promise<TeamWorkload
 
   const rows = sqlRows<WorkloadRow>(
     await context.db.execute(sql`
+      WITH task_stats AS (
+        SELECT
+          ta.employee_id,
+          COUNT(ta.task_id) FILTER (
+            WHERE t.status NOT IN ('done', 'cancelled')
+              AND t.is_archived = false
+          )::int AS open_tasks,
+          COUNT(ta.task_id) FILTER (
+            WHERE t.status NOT IN ('done', 'cancelled')
+              AND t.due_date < CURRENT_DATE
+              AND t.is_archived = false
+          )::int AS overdue_tasks,
+          COUNT(ta.task_id) FILTER (
+            WHERE t.due_date >= CURRENT_DATE
+              AND t.due_date <= CURRENT_DATE + INTERVAL '7 days'
+              AND t.status NOT IN ('done', 'cancelled')
+              AND t.is_archived = false
+          )::int AS due_this_week,
+          SUM(t.estimated_effort_minutes) FILTER (
+            WHERE t.status NOT IN ('done', 'cancelled')
+              AND t.is_archived = false
+          ) AS total_estimated_minutes
+        FROM task_assignees ta
+        INNER JOIN tasks t ON t.id = ta.task_id
+          AND t.organization_id = ${context.organizationId}
+        WHERE 1 = 1
+          ${taskVisibility}
+          ${taskProjectAccess}
+        GROUP BY ta.employee_id
+      ),
+      project_stats AS (
+        SELECT
+          epa.employee_id,
+          COUNT(DISTINCT epa.project_id)::int AS project_count
+        FROM employee_project_assignments epa
+        WHERE epa.organization_id = ${context.organizationId}
+          AND epa.status = 'active'
+          ${assignmentProjectAccess}
+        GROUP BY epa.employee_id
+      )
       SELECT
         e.id AS employee_id,
         e.name,
-        COUNT(ta.task_id) FILTER (
-          WHERE t.status NOT IN ('done', 'cancelled')
-            AND t.is_archived = false
-        )::int AS open_tasks,
-        COUNT(ta.task_id) FILTER (
-          WHERE t.status NOT IN ('done', 'cancelled')
-            AND t.due_date < CURRENT_DATE
-            AND t.is_archived = false
-        )::int AS overdue_tasks,
-        COUNT(ta.task_id) FILTER (
-          WHERE t.due_date >= CURRENT_DATE
-            AND t.due_date <= CURRENT_DATE + INTERVAL '7 days'
-            AND t.status NOT IN ('done', 'cancelled')
-            AND t.is_archived = false
-        )::int AS due_this_week,
-        COUNT(DISTINCT epa.project_id)::int AS project_count,
-        SUM(t.estimated_effort_minutes) FILTER (
-          WHERE t.status NOT IN ('done', 'cancelled')
-            AND t.is_archived = false
-        ) AS total_estimated_minutes
+        COALESCE(ts.open_tasks, 0)::int AS open_tasks,
+        COALESCE(ts.overdue_tasks, 0)::int AS overdue_tasks,
+        COALESCE(ts.due_this_week, 0)::int AS due_this_week,
+        COALESCE(ps.project_count, 0)::int AS project_count,
+        ts.total_estimated_minutes
       FROM employees e
-      LEFT JOIN task_assignees ta ON ta.employee_id = e.id
-      LEFT JOIN tasks t ON t.id = ta.task_id
-        AND t.organization_id = ${context.organizationId}
-      LEFT JOIN employee_project_assignments epa
-        ON epa.employee_id = e.id
-        AND epa.organization_id = ${context.organizationId}
-        AND epa.status = 'active'
+      LEFT JOIN task_stats ts ON ts.employee_id = e.id
+      LEFT JOIN project_stats ps ON ps.employee_id = e.id
       WHERE e.organization_id = ${context.organizationId}
         AND e.status = 'active'
-      GROUP BY e.id, e.name
       ORDER BY open_tasks DESC, e.name ASC
     `),
   );
@@ -156,10 +244,18 @@ export async function getTeamWorkload(context: OrgContext): Promise<TeamWorkload
 export async function getEmployeeTaskPreview(
   context: OrgContext,
   employeeId: string,
+  scope?: WorkloadAccessScope,
 ): Promise<WorkloadTaskPreview[]> {
   if (!hasPermission(context, PERMISSIONS.WORKLOAD_READ)) {
     throw new AuthorizationError('workload.read permission required');
   }
+
+  const access = scope ?? (await resolveWorkloadAccessScope(context));
+  if (access.workspaceScope === 'none') return [];
+
+  const { workspaceScope, accessibleProjectIds } = access;
+  const taskVisibility = workloadTaskVisibilitySql(context, workspaceScope);
+  const taskProjectAccess = workloadTaskProjectAccessSql(accessibleProjectIds);
 
   type PreviewRow = {
     task_id: string;
@@ -186,8 +282,9 @@ export async function getEmployeeTaskPreview(
       WHERE t.organization_id = ${context.organizationId}
         AND t.status NOT IN ('done', 'cancelled')
         AND t.is_archived = false
+        ${taskVisibility}
+        ${taskProjectAccess}
       ORDER BY
-        -- overdue first (by how late they are), then due soonest
         CASE WHEN t.due_date < CURRENT_DATE THEN 0 ELSE 1 END ASC,
         t.due_date ASC NULLS LAST,
         t.created_at ASC
@@ -203,4 +300,17 @@ export async function getEmployeeTaskPreview(
     projectName: row.project_name,
     projectId: row.project_id,
   }));
+}
+
+/** Workload page: one access-scope resolution, then table + optional expand preview. */
+export async function loadWorkloadPageData(
+  context: OrgContext,
+  expandEmployeeId: string | null,
+): Promise<{ workload: TeamWorkloadResult; previewTasks: WorkloadTaskPreview[] }> {
+  const access = await resolveWorkloadAccessScope(context);
+  const workload = await getTeamWorkload(context, access);
+  const previewTasks = expandEmployeeId
+    ? await getEmployeeTaskPreview(context, expandEmployeeId, access)
+    : [];
+  return { workload, previewTasks };
 }

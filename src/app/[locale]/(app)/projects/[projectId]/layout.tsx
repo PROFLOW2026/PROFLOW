@@ -30,13 +30,15 @@ import {
 import { loadProjectExecutionNav } from '@/modules/project-workspace/application/load-execution-nav';
 import { withOrgContext } from '@/shared/auth/session';
 import { isOwnerExecutionWorkspacePath } from '@/modules/project-workspace/domain/execution-workspace-path';
+import { isOwnerProjectWorkWorkspacePath } from '@/modules/project-workspace/domain/project-work-workspace-path';
 import { DeveloperGcExecutionEntry } from '@/modules/project-workspace/ui/developer-gc-execution-entry';
 import { ProjectExecutionNav } from '@/modules/project-workspace/ui/project-execution-nav';
+import { ProjectWorkManagementEntry } from '@/modules/project-workspace/ui/project-work-management-entry';
+import { ProjectWorkNav } from '@/modules/project-workspace/ui/project-work-nav';
 import { getRequestPathname } from '@/shared/http/request-pathname';
 import { ProjectTabsShell } from './project-tabs-shell';
 import { TabPanelSkeleton } from './tab-panel-skeleton';
 import { ProjectReportActions } from '@/modules/reports/ui/project-report-actions';
-import { ProjectUwmLinks } from './project-uwm-links';
 import {
   Project360Summary,
   Project360SummaryFallback,
@@ -157,6 +159,9 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
 
   const requestPathname = await getRequestPathname();
   const inExecutionWorkspace = isOwnerExecutionWorkspacePath(requestPathname, projectId);
+  const inProjectWorkWorkspace =
+    !inExecutionWorkspace && isOwnerProjectWorkWorkspacePath(requestPathname, projectId);
+  const projectWorkEntryHref = showUwmLinks ? `/projects/${projectId}/tasks` : null;
 
   return (
     <WithAppClientMessages extra={PROJECT_SURFACE_CLIENT_MESSAGE_NAMESPACES}>
@@ -273,13 +278,30 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
             {children}
           </Suspense>
         </>
+      ) : inProjectWorkWorkspace ? (
+        <>
+          <ProjectWorkNav
+            projectId={projectId}
+            dir={dir}
+            backToProjectHref={`/projects/${projectId}`}
+          />
+          <Suspense
+            fallback={
+              <div className="min-w-0 max-w-full pt-4">
+                <TabPanelSkeleton />
+              </div>
+            }
+          >
+            {children}
+          </Suspense>
+        </>
       ) : (
         <>
           {executionNav.showGroup && executionEntryHref ? (
             <DeveloperGcExecutionEntry href={executionEntryHref} />
           ) : null}
 
-          {showUwmLinks ? <ProjectUwmLinks projectId={projectId} /> : null}
+          {projectWorkEntryHref ? <ProjectWorkManagementEntry href={projectWorkEntryHref} /> : null}
 
           <Suspense fallback={<Project360SummaryFallback />}>
             <Project360Summary projectId={projectId} />

@@ -576,14 +576,18 @@
   "noProject": "بدون مشروع",
   "projectWork": {
     "sectionLabel": "إدارة عمل المشروع",
-    "sectionTitle": "المهام واللوحات",
-    "sectionDescription": "إدارة مهام المشروع ولوحات Kanban والعمل ذي الصلة.",
-    "tasksLink": "مهام المشروع",
-    "boardsLink": "لوحات المشروع",
-    "calendarLink": "تقويم المهام",
-    "timelineLink": "الجدول الزمني للمهام",
-    "filesLink": "ملفات المشروع",
-    "meetingsLink": "اجتماعات المشروع"
+    "identityTitle": "إدارة المهام",
+    "identityHint": "المهام ولوحة Kanban والتقويم والجدول الزمني في مساحة عمل مخصصة للمشروع.",
+    "entryHint": "افتح مساحة إدارة المهام — منفصلة عن صفحة المشروع التجارية.",
+    "enterWorkspace": "إدارة المهام",
+    "backToProject": "العودة إلى المشروع",
+    "navAriaLabel": "تنقل إدارة المهام",
+    "nav": {
+      "tasks": "المهام",
+      "boards": "اللوحة",
+      "calendar": "التقويم",
+      "timeline": "الجدول الزمني"
+    }
   },
   "workFilters": {
     "title": "تصفية المهام",

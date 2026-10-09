@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { TaskCard } from '@/modules/tasks/ui/task-card';
 import { TaskDetailSheet } from '@/modules/tasks/ui/task-detail-sheet';
 import { isValidTransition } from '@/modules/tasks/domain/lifecycle';
+import { loadMoreWorkLensTasksAction } from '@/app/[locale]/(app)/work/actions';
 import type { TaskCardData, TaskDetail, TaskStatus } from '@/modules/tasks/ui/task-api';
 
 const STATUS_COLUMNS: {
@@ -48,22 +49,25 @@ export interface GlobalBoardViewProps {
   tasks: TaskCardData[];
   hasMore?: boolean;
   nextOffset?: number;
+  workLensFilterQuery?: Record<string, string>;
+  loadMoreExcludeCancelled?: boolean;
   onLoadTaskDetail?: (taskId: string) => Promise<TaskDetail | null>;
   onUpdateTask?: (
     taskId: string,
     data: Record<string, unknown>,
   ) => void | Promise<{ error?: string } | void>;
-  onLoadMore?: (offset: number) => Promise<GlobalBoardPage>;
 }
 
 export function GlobalBoardView({
   tasks: initialTasks,
   hasMore: initialHasMore = false,
   nextOffset: initialNextOffset = 0,
+  workLensFilterQuery,
+  loadMoreExcludeCancelled = false,
   onLoadTaskDetail,
   onUpdateTask,
-  onLoadMore,
 }: GlobalBoardViewProps) {
+  const canLoadMore = workLensFilterQuery !== undefined;
   const t = useTranslations('tasks');
   const dragEnabled = useDesktopDrag();
   const [tasks, setTasks] = useState(initialTasks);
@@ -129,10 +133,12 @@ export function GlobalBoardView({
   }
 
   async function handleLoadMore() {
-    if (!onLoadMore || loadingMore) return;
+    if (!canLoadMore || loadingMore) return;
     setLoadingMore(true);
     try {
-      const page = await onLoadMore(nextOffset);
+      const page = await loadMoreWorkLensTasksAction(nextOffset, workLensFilterQuery ?? {}, {
+        excludeCancelled: loadMoreExcludeCancelled,
+      });
       setTasks((prev) => {
         const seen = new Set(prev.map((task) => task.id));
         return [...prev, ...page.tasks.filter((task) => !seen.has(task.id))];
@@ -242,7 +248,7 @@ export function GlobalBoardView({
           <p role="status" className="text-sm text-[var(--pf-text-muted)]">
             {t('list.hasMore')}
           </p>
-          {onLoadMore ? (
+          {canLoadMore ? (
             <button
               type="button"
               onClick={() => void handleLoadMore()}

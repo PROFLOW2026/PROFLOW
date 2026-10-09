@@ -576,14 +576,18 @@
   "noProject": "Office (no project)",
   "projectWork": {
     "sectionLabel": "Project work management",
-    "sectionTitle": "Tasks and boards",
-    "sectionDescription": "Manage project tasks, Kanban boards, and related work.",
-    "tasksLink": "Project tasks",
-    "boardsLink": "Project boards",
-    "calendarLink": "Task calendar",
-    "timelineLink": "Task timeline",
-    "filesLink": "Project files",
-    "meetingsLink": "Project meetings"
+    "identityTitle": "Task management",
+    "identityHint": "Tasks, Kanban board, calendar, and timeline in a dedicated project workspace.",
+    "entryHint": "Open the task management workspace — separate from the commercial project page.",
+    "enterWorkspace": "Task management",
+    "backToProject": "Back to project",
+    "navAriaLabel": "Task management navigation",
+    "nav": {
+      "tasks": "Tasks",
+      "boards": "Board",
+      "calendar": "Calendar",
+      "timeline": "Timeline"
+    }
   },
   "workFilters": {
     "title": "Filter tasks",
@@ -720,7 +724,10 @@
     "dependencyCycle": "Adding this dependency would create a cycle.",
     "maxSubtaskDepth": "Subtasks can only be nested one level deep.",
     "subtaskWorkspaceMismatch": "Subtask must use the same workspace as its parent.",
-    "subtaskProjectMismatch": "Subtask must use the same project as its parent."
+    "subtaskProjectMismatch": "Subtask must use the same project as its parent.",
+    "selfApprovalBlocked": "You cannot approve your own task submission.",
+    "approvalRequiredBeforeDone": "This task needs manager approval before it can be marked done.",
+    "approvalNotRequired": "This task does not require approval."
   },
   "actions": {
     "duplicate": "Duplicate task",

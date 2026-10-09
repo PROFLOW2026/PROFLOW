@@ -13,11 +13,7 @@ import { mapTasksToCardDataForOrg } from '@/modules/tasks/application/map-tasks-
 import { WorkLensChrome } from '@/modules/tasks/ui/work-lens-chrome';
 import { TaskWorkSurfaceClient } from '@/modules/tasks/ui/task-work-surface-client';
 import { serializeTaskCardsForClient } from '@/modules/tasks/ui/serialize-task-cards';
-import {
-  getTaskDetailAction,
-  loadMoreWorkLensTasksAction,
-  updateTaskFieldsAction,
-} from '../actions';
+import { getTaskDetailAction, updateTaskFieldsAction } from '../actions';
 export async function generateMetadata({
   params,
 }: {
@@ -80,9 +76,9 @@ export default async function WorkTimelinePage({ searchParams }: WorkLensPagePro
         viewMode="timeline"
         timelineDateEdit
         urlBackedFilters
+        workLensFilterQuery={filterQuery}
         getTaskDetail={getTaskDetailAction}
         updateTask={updateTaskFieldsAction}
-        onLoadMore={(offset) => loadMoreWorkLensTasksAction(offset, filterQuery)}
       />
     </div>
   );

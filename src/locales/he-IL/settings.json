@@ -981,15 +981,15 @@
         "submitted": "דיווח יומי של קבלן הוגש"
       },
       "site_meeting": {
-        "created": "ישיבת קבלנים נוצרה",
-        "updated": "ישיבת קבלנים עודכנה",
-        "held": "ישיבת קבלנים התקיימה",
-        "cancelled": "ישיבת קבלנים בוטלה",
-        "published": "פרוטוקול ישיבת קבלנים פורסם",
-        "attendee_added": "נוסף משתתף לישיבת קבלנים",
-        "attendee_removed": "משתתף הוסר מישיבת קבלנים",
-        "decision_recorded": "נרשמה החלטה בישיבת קבלנים",
-        "action_item_created": "נוצרה משימה מישיבת קבלנים"
+        "created": "נוצרה ישיבה",
+        "updated": "ישיבה עודכנה",
+        "held": "ישיבה התקיימה",
+        "cancelled": "ישיבה בוטלה",
+        "published": "פורסם סיכום ישיבה",
+        "attendee_added": "נוסף משתתף לישיבה",
+        "attendee_removed": "משתתף הוסר מישיבה",
+        "decision_recorded": "נרשמה החלטה בישיבה",
+        "action_item_created": "נוצרה משימה מישיבה"
       },
       "site_instruction": {
         "issued": "הוראת אתר הונפקה",

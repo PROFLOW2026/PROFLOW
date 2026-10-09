@@ -13,11 +13,7 @@ import { mapTasksToCardDataForOrg } from '@/modules/tasks/application/map-tasks-
 import { WorkLensChrome } from '@/modules/tasks/ui/work-lens-chrome';
 import { GlobalBoardView } from './_global-board-view';
 import { serializeTaskCardsForClient } from '@/modules/tasks/ui/serialize-task-cards';
-import {
-  getTaskDetailAction,
-  loadMoreWorkLensTasksAction,
-  updateTaskFieldsAction,
-} from '../actions';
+import { getTaskDetailAction, updateTaskFieldsAction } from '../actions';
 
 export async function generateMetadata({
   params,
@@ -83,11 +79,10 @@ export default async function GlobalBoardPage({ searchParams }: WorkLensPageProp
         tasks={board.tasks}
         hasMore={board.hasMore}
         nextOffset={board.nextOffset}
+        workLensFilterQuery={filterQuery}
+        loadMoreExcludeCancelled
         onLoadTaskDetail={getTaskDetailAction}
         onUpdateTask={updateTaskFieldsAction}
-        onLoadMore={(offset) =>
-          loadMoreWorkLensTasksAction(offset, filterQuery, { excludeCancelled: true })
-        }
       />
     </div>
   );

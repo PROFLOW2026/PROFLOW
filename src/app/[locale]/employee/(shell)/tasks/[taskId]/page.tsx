@@ -1,7 +1,13 @@
 import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { withOrgContext } from '@/shared/auth/session';
-import { getEmployeePmTaskDetail, getEmployeePmTaskCapabilities, listEmployeePmTaskAssigneeOptions, listEmployeePmTaskPendingApprovals } from '@/modules/employee-app/application/employee-pm-tasks';
+import {
+  findEmployeePmTaskOpenApprovalRequest,
+  getEmployeePmTaskDetail,
+  getEmployeePmTaskCapabilities,
+  listEmployeePmTaskAssigneeOptions,
+  listEmployeePmTaskPendingApprovals,
+} from '@/modules/employee-app/application/employee-pm-tasks';
 import { loadProjectDisplayNameMap } from '@/modules/projects/application/project-display-names';
 import { todayInTimeZone } from '@/shared/dates';
 import { EmployeePostponeMenu } from '@/modules/employee-app/ui/employee-postpone-menu';
@@ -28,6 +34,7 @@ import {
   employeeAddTaskCommentAction,
   employeeAssignTaskAction,
   employeeDecideTaskApprovalAction,
+  employeeSubmitTaskApprovalAction,
 } from '../actions';
 import {
   CommentFormClient,
@@ -80,6 +87,7 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
   let canApprove = false;
   let assigneeOptions: Awaited<ReturnType<typeof listEmployeePmTaskAssigneeOptions>> = [];
   let pendingApprovals: Awaited<ReturnType<typeof listEmployeePmTaskPendingApprovals>> = [];
+  let openApprovalRequest: Awaited<ReturnType<typeof findEmployeePmTaskOpenApprovalRequest>> = null;
   let assigneeNames = '';
   let projectDisplayName: string | null = null;
   let today = '';
@@ -91,13 +99,17 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
       await assertEmployeeAppContext(context);
       const detail = await getEmployeePmTaskDetail(context, taskId);
       const capabilities = await getEmployeePmTaskCapabilities(context, detail);
-      const [assignees, approvals, assigneeMap, projectLabels, hoursTotal] = await Promise.all([
+      const [assignees, approvals, openApproval, assigneeMap, projectLabels, hoursTotal] =
+        await Promise.all([
         capabilities.canAssign
           ? listEmployeePmTaskAssigneeOptions(context, detail.projectId)
           : Promise.resolve([]),
         capabilities.canApprove
           ? listEmployeePmTaskPendingApprovals(context, taskId)
           : Promise.resolve([]),
+        detail.approvalRequired
+          ? findEmployeePmTaskOpenApprovalRequest(context, taskId)
+          : Promise.resolve(null),
         loadTaskAssigneeDisplayMap(context.db, context.organizationId, [taskId]),
         detail.projectId
           ? loadProjectDisplayNameMap(context.db, context.organizationId, [detail.projectId])
@@ -117,6 +129,7 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
         canApprove: capabilities.canApprove,
         assigneeOptions: assignees,
         pendingApprovals: approvals,
+        openApprovalRequest: openApproval,
         assigneeNames: assigneeLabels,
         projectDisplayName: detail.projectId ? (projectLabels.get(detail.projectId) ?? null) : null,
         today: todayInTimeZone(context.organization.timezone),
@@ -134,6 +147,7 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
     canApprove = result.canApprove;
     assigneeOptions = result.assigneeOptions;
     pendingApprovals = result.pendingApprovals;
+    openApprovalRequest = result.openApprovalRequest;
     assigneeNames = result.assigneeNames;
     projectDisplayName = result.projectDisplayName;
     today = result.today;
@@ -204,6 +218,23 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
           </Link>
         ) : null}
       </section>
+
+      {task.approvalRequired ? (
+        <section className={cn(employeePanelClass, 'space-y-2')}>
+          <h2 className={employeeSectionTitleClass}>{t('approvalSection')}</h2>
+          {openApprovalRequest ? (
+            <p className="text-sm text-[var(--pf-text-secondary)]">{t('approvalPending')}</p>
+          ) : canUpdate ? (
+            <form action={submitTaskApprovalForEmployee.bind(null, taskId)}>
+              <button type="submit" className={employeePrimaryButtonClass}>
+                {t('submitForApproval')}
+              </button>
+            </form>
+          ) : (
+            <p className="text-sm text-[var(--pf-text-secondary)]">{t('approvalRequiredHint')}</p>
+          )}
+        </section>
+      ) : null}
 
       {canAssign && assigneeOptions.length > 0 ? (
         <section className="space-y-2">
@@ -447,5 +478,10 @@ async function updateEmployeeTaskStatus(taskId: string, newStatus: string) {
 async function toggleChecklistItem(taskId: string, itemId: string, isDone: boolean) {
   'use server';
   await employeeToggleChecklistItemAction(taskId, itemId, isDone);
+}
+
+async function submitTaskApprovalForEmployee(taskId: string) {
+  'use server';
+  await employeeSubmitTaskApprovalAction(taskId);
 }
 

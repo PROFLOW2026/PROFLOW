@@ -1071,11 +1071,11 @@
         "submitted": "Contractor daily report submitted"
       },
       "site_meeting": {
-        "created": "Contractor meeting created",
-        "updated": "Contractor meeting updated",
-        "held": "Contractor meeting held",
-        "cancelled": "Contractor meeting cancelled",
-        "published": "Contractor meeting minutes published",
+        "created": "Meeting created",
+        "updated": "Meeting updated",
+        "held": "Meeting held",
+        "cancelled": "Meeting cancelled",
+        "published": "Meeting minutes published",
         "attendee_added": "Meeting attendee added",
         "attendee_removed": "Meeting attendee removed",
         "decision_recorded": "Meeting decision recorded",

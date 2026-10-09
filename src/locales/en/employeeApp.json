@@ -349,6 +349,10 @@
     "approveAction": "Approve",
     "rejectAction": "Reject",
     "approveEmpty": "No pending approvals for this task.",
+    "approvalSection": "Submit for review",
+    "submitForApproval": "Submit for approval",
+    "approvalPending": "Waiting for manager approval.",
+    "approvalRequiredHint": "A manager must approve this task before it can be completed.",
     "assignHint": "You can assign this task within the project team context.",
     "approveHint": "Approval actions are available when a pending approval request exists.",
     "attention": {

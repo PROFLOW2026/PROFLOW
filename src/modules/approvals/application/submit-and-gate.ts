@@ -3,6 +3,8 @@ import type { OrgContext } from '@/shared/auth/context';
 import { DomainRuleError, ValidationError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { assertCanSubmitTaskApproval } from '@/modules/tasks/application/task-approval-auth';
+import type { ApprovalEntityType } from '../domain/types';
 import { noteModuleUsage } from '@/modules/tenancy';
 import { approvalCoversAmount, selectMatchingRule } from '../domain/rules';
 import {
@@ -74,14 +76,19 @@ async function createSubmittedRequest(
  * Idempotent for an open (submitted) request on the same entity.
  * Approvals 2.0: matching rule with steps creates request + request steps.
  */
+function assertCanSubmitApprovalRequest(context: OrgContext, entityType: ApprovalEntityType): void {
+  if (entityType === 'task') {
+    assertCanSubmitTaskApproval(context);
+    return;
+  }
+  // Submitters are domain actors (expense finalize, PO issue) - not approvals.manage.
+  assertPermission(context, PERMISSIONS.APPROVALS_READ);
+}
+
 export async function submitApprovalRequest(
   context: OrgContext,
   raw: SubmitApprovalRequestInput,
 ): Promise<SubmitApprovalResult> {
-  // Submitters are domain actors (expense finalize, PO issue) - not approvals.manage.
-  // Read permission is enough to open a request; decide is separate.
-  assertPermission(context, PERMISSIONS.APPROVALS_READ);
-
   const parsed = submitApprovalRequestSchema.safeParse(raw);
   if (!parsed.success) {
     throw new ValidationError(
@@ -90,6 +97,7 @@ export async function submitApprovalRequest(
   }
 
   const input = parsed.data;
+  assertCanSubmitApprovalRequest(context, input.entityType);
   const open = await findOpenRequestForEntity(
     context.db,
     context.organizationId,

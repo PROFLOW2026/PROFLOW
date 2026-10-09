@@ -7,12 +7,9 @@ import { listAccessibleTasksPage } from '@/modules/tasks';
 import { TASK_LIST_MAX_LIMIT } from '@/modules/tasks/domain/list-window';
 import { mapTasksToCardDataForOrg } from '@/modules/tasks/application/map-tasks-for-ui';
 import { TaskWorkSurfaceClient } from '@/modules/tasks/ui/task-work-surface-client';
+import { serializeTaskCardsForClient } from '@/modules/tasks/ui/serialize-task-cards';
 import { CoordinationCalendarSource } from '@/modules/coordination/ui/coordination-calendar-source';
-import {
-  getTaskDetailAction,
-  loadMoreAccessibleTasksAction,
-  updateTaskFieldsAction,
-} from '../../../work/actions';
+import { getTaskDetailAction, updateTaskFieldsAction } from '../../../work/actions';
 
 export default async function ProjectCalendarPage({
   params,
@@ -25,7 +22,9 @@ export default async function ProjectCalendarPage({
   const data = await withOrgContext(async (context) => {
     const page = await listAccessibleTasksPage(context, { projectId, limit: TASK_LIST_MAX_LIMIT });
     return {
-      tasks: await mapTasksToCardDataForOrg(context, page.tasks),
+      tasks: serializeTaskCardsForClient(
+        await mapTasksToCardDataForOrg(context, page.tasks),
+      ),
       hasMore: page.hasMore,
       today: todayInTimeZone(context.organization.timezone),
     };
@@ -48,11 +47,9 @@ export default async function ProjectCalendarPage({
         hasMore={data.hasMore}
         viewMode="calendar"
         showProject={false}
+        projectId={projectId}
         getTaskDetail={getTaskDetailAction}
         updateTask={updateTaskFieldsAction}
-        onLoadMore={(offset) =>
-          loadMoreAccessibleTasksAction({ offset, projectId, limit: TASK_LIST_MAX_LIMIT })
-        }
       />
     </div>
   );

@@ -40,6 +40,7 @@ export interface EmployeePmTaskSummary {
   readonly priority: string;
   readonly dueDate: string | null;
   readonly projectId: string | null;
+  readonly approvalRequired: boolean;
 }
 
 export interface EmployeePmTaskComment {
@@ -208,6 +209,7 @@ async function queryEmployeePmTaskRows(
     priority: string;
     dueDate: string | null;
     projectId: string | null;
+    approvalRequired: boolean;
   }>
 > {
   const baseWhere = and(
@@ -227,6 +229,7 @@ async function queryEmployeePmTaskRows(
         priority: tasks.priority,
         dueDate: tasks.dueDate,
         projectId: tasks.projectId,
+        approvalRequired: tasks.approvalRequired,
       })
       .from(tasks)
       .innerJoin(
@@ -253,6 +256,7 @@ async function queryEmployeePmTaskRows(
         priority: tasks.priority,
         dueDate: tasks.dueDate,
         projectId: tasks.projectId,
+        approvalRequired: tasks.approvalRequired,
       })
       .from(tasks)
       .where(
@@ -274,6 +278,7 @@ async function queryEmployeePmTaskRows(
       priority: tasks.priority,
       dueDate: tasks.dueDate,
       projectId: tasks.projectId,
+      approvalRequired: tasks.approvalRequired,
     })
     .from(tasks)
     .where(baseWhere)
@@ -383,6 +388,7 @@ export async function getEmployeePmTaskDetail(
       priority: tasks.priority,
       dueDate: tasks.dueDate,
       projectId: tasks.projectId,
+      approvalRequired: tasks.approvalRequired,
     })
     .from(tasks)
     .where(
@@ -575,6 +581,7 @@ export async function updateEmployeePmTaskStatus(
       id: tasks.id,
       projectId: tasks.projectId,
       status: tasks.status,
+      approvalRequired: tasks.approvalRequired,
     })
     .from(tasks)
     .where(
@@ -597,6 +604,13 @@ export async function updateEmployeePmTaskStatus(
 
   const previousStatus = task.status;
   if (previousStatus === newStatus) return;
+
+  if (newStatus === 'done' && task.approvalRequired) {
+    const { assertTaskCompletionApprovalSatisfied } = await import(
+      '@/modules/tasks/application/submit-task-approval'
+    );
+    await assertTaskCompletionApprovalSatisfied(context, taskId);
+  }
 
   const isDone = newStatus === 'done';
   const updated = await context.db
@@ -998,6 +1012,58 @@ export async function decideEmployeePmTaskApproval(
     decision,
     decisionNote: decisionNote ?? null,
   });
+
+  const { recordTaskApprovalActivity } = await import(
+    '@/modules/tasks/application/record-task-approval-activity'
+  );
+  await recordTaskApprovalActivity(context, taskId, { decision, requestId });
+}
+
+export async function submitEmployeePmTaskApproval(
+  context: OrgContext,
+  taskId: string,
+): Promise<{ requestId: string | null; alreadyOpen: boolean }> {
+  const employeeId = requireEmployeeId(context);
+  if (!employeeCanUpdateTaskGrant(context)) {
+    throw new DomainRuleError('No permission to update tasks', 'employeeApp.errors.notAuthorized');
+  }
+
+  const [task] = await context.db
+    .select({
+      id: tasks.id,
+      projectId: tasks.projectId,
+      approvalRequired: tasks.approvalRequired,
+    })
+    .from(tasks)
+    .where(
+      and(
+        eq(tasks.id, taskId),
+        eq(tasks.organizationId, context.organizationId),
+        isNull(tasks.archivedAt),
+      ),
+    );
+  if (!task) throw new NotFoundError('Task');
+
+  const updateScope = employeePermissionScope(context, PERMISSIONS.TASKS_UPDATE);
+  const permissionKey = updateScope ? PERMISSIONS.TASKS_UPDATE : PERMISSIONS.TASKS_MANAGE_ALL;
+  await assertEmployeeCanExerciseTaskPermission(
+    context,
+    permissionKey,
+    { taskId, projectId: task.projectId },
+    employeeId,
+  );
+
+  if (!task.approvalRequired) {
+    throw new DomainRuleError(
+      'This task does not require approval',
+      'tasks.errors.approvalNotRequired',
+    );
+  }
+
+  const { submitTaskApprovalRequest } = await import(
+    '@/modules/tasks/application/submit-task-approval'
+  );
+  return submitTaskApprovalRequest(context, taskId);
 }
 
 export async function listEmployeePmCreatableProjects(
@@ -1069,6 +1135,15 @@ export interface EmployeePmTaskPendingApproval {
   readonly createdAt: Date;
 }
 
+export async function findEmployeePmTaskOpenApprovalRequest(
+  context: OrgContext,
+  taskId: string,
+): Promise<EmployeePmTaskPendingApproval | null> {
+  await assertEmployeePmTaskReadAccess(context, taskId);
+  const rows = await listEmployeePmTaskPendingApprovals(context, taskId);
+  return rows[0] ?? null;
+}
+
 export async function listEmployeePmTaskPendingApprovals(
   context: OrgContext,
   taskId: string,
@@ -1085,7 +1160,7 @@ export async function listEmployeePmTaskPendingApprovals(
         eq(approvalRequests.organizationId, context.organizationId),
         eq(approvalRequests.entityType, 'task'),
         eq(approvalRequests.entityId, taskId),
-        eq(approvalRequests.status, 'pending'),
+        eq(approvalRequests.status, 'submitted'),
       ),
     )
     .orderBy(desc(approvalRequests.createdAt));

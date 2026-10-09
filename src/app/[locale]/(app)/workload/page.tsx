@@ -2,10 +2,7 @@ import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
-import {
-  getTeamWorkload,
-  getEmployeeTaskPreview,
-} from '@/modules/tasks/application/get-team-workload';
+import { loadWorkloadPageData } from '@/modules/tasks/application/get-team-workload';
 import { getShellContext, withOrgContext } from '@/shared/auth/session';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { WorkloadExpandableRows } from './workload-expandable-rows';
@@ -52,14 +49,9 @@ export default async function WorkloadPage({ searchParams }: WorkloadPageProps) 
 
   const expandEmployeeId = params.expand ?? null;
 
-  const { workload, previewTasks } = await withOrgContext(async (context) => {
-    const wl = await getTeamWorkload(context);
-    const preview =
-      expandEmployeeId
-        ? await getEmployeeTaskPreview(context, expandEmployeeId)
-        : [];
-    return { workload: wl, previewTasks: preview };
-  });
+  const { workload, previewTasks } = await withOrgContext((context) =>
+    loadWorkloadPageData(context, expandEmployeeId),
+  );
 
   const { rows, showEstimatedEffort } = workload;
 

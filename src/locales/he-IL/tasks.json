@@ -576,14 +576,18 @@
   "noProject": "ללא פרויקט",
   "projectWork": {
     "sectionLabel": "ניהול עבודה בפרויקט",
-    "sectionTitle": "משימות ולוחות",
-    "sectionDescription": "נהל משימות פרויקט, לוחות Kanban ועבודה קשורה.",
-    "tasksLink": "משימות פרויקט",
-    "boardsLink": "לוחות פרויקט",
-    "calendarLink": "לוח שנה משימות",
-    "timelineLink": "ציר זמן משימות",
-    "filesLink": "קבצי פרויקט",
-    "meetingsLink": "ישיבות פרויקט"
+    "identityTitle": "ניהול משימות",
+    "identityHint": "משימות, לוח Kanban, לוח שנה וציר זמן — בסביבת עבודה ייעודית לפרויקט.",
+    "entryHint": "פתיחת סביבת ניהול המשימות, מחוץ לעמוד הפרויקט המסחרי.",
+    "enterWorkspace": "ניהול משימות",
+    "backToProject": "חזרה לפרויקט",
+    "navAriaLabel": "ניווט ניהול משימות",
+    "nav": {
+      "tasks": "משימות",
+      "boards": "לוח",
+      "calendar": "לוח שנה",
+      "timeline": "ציר זמן"
+    }
   },
   "workFilters": {
     "title": "סינון משימות",

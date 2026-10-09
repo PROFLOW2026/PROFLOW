@@ -1,7 +1,7 @@
 {
   "nav": {
     "siteLog": "Site log",
-    "siteMeetings": "Contractor meetings",
+    "siteMeetings": "Meetings",
     "instructions": "Site instructions",
     "portalSiteLog": "Daily report",
     "portalInstructions": "Instructions"
@@ -227,8 +227,8 @@
     "recordId": "Record ID"
   },
   "meetings": {
-    "title": "Contractor meetings",
-    "description": "Weekly contractor, site, design and consultant meetings with minutes, decisions and action items.",
+    "title": "Meetings",
+    "description": "Project meetings — weekly, site, design, consultant, and other types — with minutes, decisions, and action items.",
     "schedule": "Schedule a meeting",
     "scheduleHint": "Type, date, place and agenda",
     "scheduleSubmit": "Schedule meeting",
@@ -248,7 +248,7 @@
     "markHeld": "Mark as held",
     "publish": "Publish minutes",
     "republish": "Publish updated minutes",
-    "publishConfirm": "Publish the minutes to the attending contractors?",
+    "publishConfirm": "Publish minutes to invited external attendees?",
     "cancel": "Cancel meeting",
     "cancelConfirm": "Cancel this meeting?",
     "issueInstruction": "Issue instruction from meeting",
@@ -292,7 +292,7 @@
     }
   },
   "meetingTypes": {
-    "weekly_contractor": "Weekly contractors meeting",
+    "weekly_contractor": "Weekly contractor meeting",
     "site": "Site meeting",
     "design": "Design meeting",
     "consultant": "Consultants meeting",

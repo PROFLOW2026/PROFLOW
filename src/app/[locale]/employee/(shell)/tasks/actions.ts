@@ -9,6 +9,7 @@ import {
   assignEmployeePmTaskAssignee,
   createEmployeePmTask,
   decideEmployeePmTaskApproval,
+  submitEmployeePmTaskApproval,
   updateEmployeePmTaskStatus,
   updateEmployeePmTaskDueDate,
   toggleEmployeePmTaskChecklistItem,
@@ -271,6 +272,19 @@ export async function employeeAssignTaskAction(taskId: string, formData: FormDat
   });
 
   revalidatePath(`/employee/tasks/${taskId}`);
+}
+
+export async function employeeSubmitTaskApprovalAction(taskId: string): Promise<TaskActionState> {
+  try {
+    await withOrgContext(async (context) => {
+      await assertEmployeeAppContext(context);
+      await submitEmployeePmTaskApproval(context, taskId);
+    });
+    revalidatePath(`/employee/tasks/${taskId}`);
+    return {};
+  } catch (error) {
+    return { error: await mapEmployeeTaskActionError(error) };
+  }
 }
 
 export async function employeeDecideTaskApprovalAction(
