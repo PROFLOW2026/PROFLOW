@@ -204,6 +204,24 @@ export function logUsageSelfHttp(input: {
   );
 }
 
+/** OPS-004: structured log for self-HTTP kick failures (always emitted, not gated by USAGE_RUNTIME_DIAG). */
+export function logUsageKickFailure(input: {
+  readonly fromModule: string;
+  readonly toPath: string;
+  readonly reason: string;
+  readonly detail: string;
+}): void {
+  console.error(
+    [
+      'tag=PF_USAGE_KICK_FAILURE',
+      `from=${compact(input.fromModule)}`,
+      `toPath=${compact(input.toPath)}`,
+      `reason=${compact(input.reason)}`,
+      `detail=${compact(input.detail)}`,
+    ].join(' '),
+  );
+}
+
 export async function measureJsonResponseBytes(response: Response): Promise<number> {
   try {
     const clone = response.clone();

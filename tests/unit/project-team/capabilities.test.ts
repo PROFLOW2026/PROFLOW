@@ -97,6 +97,12 @@ describe('project capability templates', () => {
     expect(full.size).toBe(ALL_PROJECT_CAPABILITIES.length);
   });
 
+  it('gives client_coordinator operational approve without any financial capability', () => {
+    const client = new Set(expandTemplate('client_coordinator'));
+    expect(client.has(C.OPERATIONAL_APPROVE)).toBe(true);
+    expect([...client].filter(isFinancialCapability)).toEqual([]);
+  });
+
   it('keeps the site manager operational: no prices, claims, retention or payments', () => {
     const site = new Set(expandTemplate('site_manager'));
     for (const forbidden of [

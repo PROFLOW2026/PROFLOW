@@ -39,7 +39,7 @@ function ownerCopy(): OwnerStoryCopy {
     collected: o.collected,
     actualProfit: o.actualProfit,
     afterGeneralProfit: o.afterGeneralProfit,
-    forecastProfit: o.forecastProfit,
+    contractForecastBalance: o.contractForecastBalance,
     unavailable: o.unavailable,
     breakdownTitle: o.breakdownTitle,
     categories: o.categories,

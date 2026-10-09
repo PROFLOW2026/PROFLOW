@@ -46,6 +46,22 @@ export class ScriptedStatutoryProvider implements StatutoryInvoicingProvider {
     return FULL_ADAPTER_CAPABILITIES;
   }
 
+  /** Unit/integration tests — seed provider state when DB row was inserted directly. */
+  registerExternalDocumentForTests(input: {
+    readonly externalId: string;
+    readonly billingRecordId: string;
+  }): void {
+    this.docs.set(input.externalId, {
+      externalId: input.externalId,
+      externalNumber: `EXT-SEED-${this.seq + 1}`,
+      externalUrl: `https://example.test/statutory/${input.externalId}`,
+      status: 'issued',
+      allocationReference: null,
+      billingRecordId: input.billingRecordId,
+      issuedAt: new Date().toISOString(),
+    });
+  }
+
   async createDocument(
     input: CreateExternalDocumentInput,
   ): Promise<StatutoryProviderResult<CreateExternalDocumentOutput>> {

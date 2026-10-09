@@ -3,7 +3,8 @@
  * RLS `app.can_access_project` is the data-plane gate; this module mirrors it
  * in application code for PGlite tests and UI.
  *
- * Default remains `all` so existing tenants are unchanged.
+ * New orgs default to `selected` (onboarding + SQL helper). Legacy rows without a setting
+ * use the migration-defined SQL default.
  */
 
 export const PROJECT_ACCESS_MODES = ['all', 'selected', 'assigned'] as const;
@@ -24,7 +25,7 @@ export function parseProjectAccessMode(raw: unknown): ProjectAccessMode {
       return mode as ProjectAccessMode;
     }
   }
-  return 'all';
+  return 'selected';
 }
 
 export function isProjectAccessMode(value: unknown): value is ProjectAccessMode {

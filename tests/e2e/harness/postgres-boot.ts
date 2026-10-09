@@ -5,6 +5,7 @@ import type { Database } from '@/shared/db/types';
 import { applySqlMigrationsPostgres } from '../../setup/database';
 import { resolveHarnessDatabaseUrl } from './database-mode';
 import { DATABASE_URL as PGLITE_DATABASE_URL } from './config';
+import { collectAuditRouteFixtures, writeAuditRouteFixtures } from './audit-fixtures';
 import { seedWorld } from './seed';
 import { writeWorldJson } from './world-json';
 
@@ -23,6 +24,8 @@ export async function bootPostgresHarness(): Promise<void> {
     console.log('[harness] seeding E2E world…');
     const world = await seedWorld(db);
     await writeWorldJson(world);
+    const auditFixtures = await collectAuditRouteFixtures(db, world.organizationId, world);
+    await writeAuditRouteFixtures(auditFixtures);
     console.log('[harness] postgres migrations + seed complete');
   } finally {
     await client.end({ timeout: 5 });

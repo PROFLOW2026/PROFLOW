@@ -11,12 +11,22 @@ import { businessDate } from '@/shared/dates';
 import { DomainRuleError } from '@/shared/errors';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import { listTimeEntries, voidTimeEntryRow } from '../data/time-entries.repository';
+import {
+  listTimeEntries,
+  voidTimeEntryRow,
+} from '../data/time-entries.repository';
 import { hoursEqualLoose } from '../domain/daily-time-integrity';
 import type { TimeEntryRecord } from '../domain/types';
 import { assertNotSelfTimeApproval, isUnrestrictedOwner } from './time-scope';
-import { createBulkTimeEntries, createTimeEntry, deleteDraftTimeEntry } from './time-entries';
+import {
+  correctTimeEntry,
+  createBulkTimeEntries,
+  createTimeEntry,
+  deleteDraftTimeEntry,
+} from './time-entries';
 import { approveTimeEntry, submitTimeEntries } from './timesheets';
+import { getLaborCostDefaults } from '@/modules/tenancy/application/labor-cost-defaults';
+import { shouldAutoApproveAttendanceProjectTime } from '@/modules/tenancy/domain/labor-cost-defaults';
 import { recomputeEmployeeCostsAfterTimeChange } from './daily-cost-recompute';
 
 export interface AttendanceProjectSyncResult {
@@ -112,8 +122,55 @@ async function promoteToApproved(
 }
 
 /**
+ * Repoint manager-approved rows to match attendance overwrite (no void).
+ */
+async function reconcileApprovedTimeForAttendanceOverwrite(
+  context: OrgContext,
+  input: {
+    readonly employeeId: string;
+    readonly workDate: string;
+    readonly projectId: string;
+    readonly hours: string;
+    readonly notes?: string | null;
+  },
+): Promise<number> {
+  const dayRows = await listTimeEntries(context.db, context.organizationId, {
+    employeeId: input.employeeId,
+    fromDate: input.workDate,
+    toDate: input.workDate,
+    status: 'recorded',
+    approvalStatus: 'all',
+    limit: 200,
+  });
+
+  let adjusted = 0;
+  for (const row of dayRows) {
+    if (row.voidedAt || row.archivedAt) continue;
+    if (row.approvalStatus !== 'approved') continue;
+
+    const sameProject = row.kind === 'project' && row.projectId === input.projectId;
+    const sameHours = hoursMatch(row.hours, input.hours);
+    if (sameProject && sameHours) continue;
+
+    const corrected = await correctTimeEntry(context, {
+      correctsEntryId: row.id,
+      employeeId: input.employeeId,
+      workDate: businessDate(input.workDate),
+      hours: input.hours,
+      kind: 'project',
+      projectId: input.projectId,
+      description: input.notes ?? row.description ?? undefined,
+    });
+    if (corrected.mode !== 'void_replace') continue;
+
+    adjusted += 1;
+  }
+  return adjusted;
+}
+
+/**
  * Remove current recorded work on a date so overwrite can rewrite the business fact.
- * Drafts are deleted; submitted/approved rows are voided (audit preserved).
+ * Drafts are deleted; submitted rows are voided; approved rows are corrected via correctTimeEntry.
  */
 async function clearRecordedWorkForDate(
   context: OrgContext,
@@ -136,6 +193,10 @@ async function clearRecordedWorkForDate(
   for (const row of dayRows) {
     if (row.voidedAt || row.archivedAt) continue;
     if (input.keepEntryId && row.id === input.keepEntryId) continue;
+
+    if (row.approvalStatus === 'approved') {
+      continue;
+    }
 
     if (row.approvalStatus === 'draft' || row.approvalStatus === 'returned') {
       try {
@@ -213,7 +274,12 @@ export async function syncProjectWorkFromAttendance(
     };
   }
 
-  const canApprove = await canApproveEmployeeTime(context, input.employeeId);
+  const [canApprove, laborDefaults] = await Promise.all([
+    canApproveEmployeeTime(context, input.employeeId),
+    getLaborCostDefaults(context),
+  ]);
+  const autoApproveOnSync = shouldAutoApproveAttendanceProjectTime(laborDefaults);
+  const canPromote = canApprove && autoApproveOnSync;
   let createdCount = 0;
   let approvedCount = 0;
   let pendingCount = 0;
@@ -265,7 +331,7 @@ export async function syncProjectWorkFromAttendance(
       continue;
     }
 
-    if (canApprove) {
+    if (canPromote) {
       const approved = await promoteToApproved(context, primary, options);
       if (approved.approvalStatus === 'approved') approvedCount += 1;
       else pendingCount += 1;
@@ -275,7 +341,7 @@ export async function syncProjectWorkFromAttendance(
   }
 
   if (datesNeedingCreate.length > 0) {
-    if (canApprove) {
+    if (canPromote) {
       for (const workDate of datesNeedingCreate) {
         const entry = await createTimeEntry(
           context,
@@ -327,7 +393,7 @@ export async function syncProjectWorkFromAttendance(
     voidedDuplicateCount,
     voidedPriorWorkCount: 0,
     warningKey:
-      !canApprove && (createdCount > 0 || pendingCount > 0)
+      (createdCount > 0 || pendingCount > 0) && !canPromote
         ? 'workforce.errors.attendanceProjectTimePendingApproval'
         : null,
   };
@@ -363,6 +429,15 @@ export async function reconcileProjectWorkAfterAttendanceOverwrite(
   let voidedPriorWorkCount = 0;
   if (hasPermission(context, PERMISSIONS.TIME_MANAGE)) {
     for (const workDate of input.dates) {
+      if (input.workScope === 'project' && input.projectId) {
+        voidedPriorWorkCount += await reconcileApprovedTimeForAttendanceOverwrite(context, {
+          employeeId: input.employeeId,
+          workDate,
+          projectId: input.projectId,
+          hours: input.hours,
+          notes: input.notes ?? null,
+        });
+      }
       voidedPriorWorkCount += await clearRecordedWorkForDate(context, {
         employeeId: input.employeeId,
         workDate,

@@ -4,6 +4,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PROJECT_CAPABILITIES } from '@/modules/project-team/domain/capabilities';
 import { requireProjectCapabilityPage } from '@/modules/project-team/server';
+import { requireDeveloperGcExecutionPage } from '@/modules/project-workspace/server/require-developer-gc-execution';
 import { loadProjectCostControl } from '@/modules/project-workspace/application/load-cost-control';
 import type { CostControlTradeRollup } from '@/modules/project-workspace/domain/cost-control-rows';
 import { CostControlFigure } from '@/modules/project-workspace/ui/cost-control-figure';
@@ -22,6 +23,7 @@ export async function ProjectCostControlScreen({
   params: Promise<{ projectId: string }>;
 }) {
   const { projectId } = await params;
+  await requireDeveloperGcExecutionPage(projectId);
   await requireProjectCapabilityPage(
     projectId,
     [PROJECT_CAPABILITIES.FINANCIAL_VIEW, PROJECT_CAPABILITIES.PROJECT_BUDGET_VIEW],

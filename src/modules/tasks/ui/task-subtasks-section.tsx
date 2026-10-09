@@ -5,7 +5,7 @@ import { useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/shared/i18n/navigation';
 import { Badge } from '@/components/ui/badge';
-import type { TaskLinkUi, TaskSubtaskUi } from './_task-api-stub';
+import type { TaskLinkUi, TaskSubtaskUi } from './task-api';
 
 interface TaskSubtasksSectionProps {
   taskId: string;

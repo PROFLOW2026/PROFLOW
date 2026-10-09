@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { TaskDetailSheet } from '@/modules/tasks/ui/task-detail-sheet';
-import type { TaskDetail } from '@/modules/tasks/ui/_task-api-stub';
+import type { TaskDetail } from '@/modules/tasks/ui/task-api';
 import type { TaskReminderType } from '@/modules/tasks';
 import type { RecurrencePreset } from '@/modules/tasks/domain/recurrence-presets';
 import type { TaskReminderToggle } from '@/modules/tasks/ui/task-reminders-section';

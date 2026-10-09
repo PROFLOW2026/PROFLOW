@@ -57,7 +57,7 @@ import type { MyWorkView } from '@/modules/tasks';
 import type { TaskListFilters, TaskStatus, TaskPriority, TaskDependencyType } from '@/modules/tasks';
 import { MY_WORK_VIEW_LIMIT, TASK_LIST_MAX_LIMIT } from '@/modules/tasks/domain/list-window';
 import { mapTasksToCardDataForOrg } from '@/modules/tasks/application/map-tasks-for-ui';
-import type { TaskCardData } from '@/modules/tasks/ui/_task-api-stub';
+import type { TaskCardData } from '@/modules/tasks/ui/task-api';
 import { serializeTaskCardsForClient } from '@/modules/tasks/ui/serialize-task-cards';
 
 // ─── Shared state type ────────────────────────────────────────────────────────

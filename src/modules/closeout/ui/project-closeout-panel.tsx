@@ -228,6 +228,22 @@ export async function ProjectCloseoutPanel({ projectId }: { readonly projectId: 
         <ReadinessGroup title={t('readiness.info')} items={info} empty={t('readiness.empty')} t={t} />
       </section>
 
+      {workspace.templateRequirementKeys.length > 0 ? (
+        <section className="flex min-w-0 flex-col gap-2 rounded-lg border border-[var(--pf-border-default)] p-4">
+          <h3 className="text-sm font-semibold">{t('templateRequirements.title')}</h3>
+          <p className="text-xs text-[var(--pf-text-secondary)]">{t('templateRequirements.hint')}</p>
+          <ul className="mt-1 flex flex-col gap-1">
+            {workspace.templateRequirementKeys.map((key) => (
+              <li key={key} className="text-sm">
+                {t(`templateRequirements.keys.${key}` as 'templateRequirements.keys.handover_photos', {
+                  default: key,
+                })}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
       {workspace.snapshot ? (
         <section className="flex min-w-0 flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-4">
           <h3 className="text-sm font-semibold">{t('snapshot.title')}</h3>

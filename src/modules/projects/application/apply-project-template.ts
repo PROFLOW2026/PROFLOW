@@ -9,11 +9,18 @@ import { findProjectById } from '../data/projects.repository';
 import { listWorkPackagesByProject } from '../data/work-packages.repository';
 import {
   cloneProjectTemplateForApply,
+  defaultProgressSourceForTemplate,
   offsetBusinessDate,
   PROJECT_TEMPLATE_KEYS,
   type ProjectTemplateKey,
   type TemplateLocale,
 } from '../domain/templates';
+import {
+  applyTemplateBoqSkeleton,
+  applyTemplateDefaultProgressSource,
+  applyTemplateFormChecklists,
+  persistProjectCloseoutRequirementKeys,
+} from './apply-template-metadata';
 import { countActiveWorkPackages } from '../domain/work-package-visibility';
 import { createMilestone } from './milestones';
 import { createPhase } from './phases';
@@ -30,6 +37,9 @@ export interface ApplyProjectTemplateResult {
   readonly workPackageNames: readonly string[];
   readonly milestoneNames: readonly string[];
   readonly phaseCount: number;
+  readonly skippedDocumentFolders: readonly string[];
+  readonly boqSectionCount: number;
+  readonly formTemplatesCreated: number;
 }
 
 /**
@@ -87,6 +97,9 @@ export async function applyStructureProjectTemplate(
       workPackageNames: [],
       milestoneNames: [],
       phaseCount: 0,
+      skippedDocumentFolders: [],
+      boqSectionCount: 0,
+      formTemplatesCreated: 0,
     };
   }
 
@@ -121,18 +134,33 @@ export async function applyStructureProjectTemplate(
     milestoneNames.push(created.name);
   }
 
-  if (
-    copy.documentFolders.length > 0 &&
-    hasPermission(context, PERMISSIONS.DOCUMENTS_MANAGE)
-  ) {
-    for (const folderName of copy.documentFolders) {
-      await createFolder(context, {
-        name: folderName,
-        ownerType: 'project',
-        ownerId: project.id,
-      });
+  const skippedDocumentFolders: string[] = [];
+  if (copy.documentFolders.length > 0) {
+    if (hasPermission(context, PERMISSIONS.DOCUMENTS_MANAGE)) {
+      for (const folderName of copy.documentFolders) {
+        await createFolder(context, {
+          name: folderName,
+          ownerType: 'project',
+          ownerId: project.id,
+        });
+      }
+    } else {
+      skippedDocumentFolders.push(...copy.documentFolders);
     }
   }
+
+  const { sectionCount: boqSectionCount } = await applyTemplateBoqSkeleton(
+    context,
+    project.id,
+    copy.boqSkeleton,
+  );
+  const formTemplatesCreated = await applyTemplateFormChecklists(context, copy.formChecklists);
+  await persistProjectCloseoutRequirementKeys(context, project.id, copy.closeoutRequirementKeys);
+  await applyTemplateDefaultProgressSource(
+    context,
+    project.id,
+    defaultProgressSourceForTemplate(copy.templateKey),
+  );
 
   await recordAuditEvent(context, {
     action: AUDIT_ACTIONS.PROJECT_TEMPLATE_APPLIED,
@@ -145,6 +173,9 @@ export async function applyStructureProjectTemplate(
       phaseCount,
       documentFolders: copy.documentFolders,
       closeoutRequirementKeys: copy.closeoutRequirementKeys,
+      boqSectionCount,
+      formTemplatesCreated,
+      skippedDocumentFolders,
     },
   });
 
@@ -153,5 +184,8 @@ export async function applyStructureProjectTemplate(
     workPackageNames: packageNames,
     milestoneNames,
     phaseCount,
+    skippedDocumentFolders,
+    boqSectionCount,
+    formTemplatesCreated,
   };
 }

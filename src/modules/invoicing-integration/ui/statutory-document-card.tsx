@@ -5,12 +5,14 @@ import { useTranslations } from 'next-intl';
 import { useRouter } from '@/shared/i18n/navigation';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { ConfirmAction } from '@/components/patterns/confirm-action';
 import { MoneyText } from '@/components/patterns/money-text';
 import type { StorageProviderKey } from '@/modules/external-storage/client';
 import { buildWhatsAppShareUrl } from '@/modules/communications/domain/whatsapp-share';
 import type {
   ExternalStatutoryDocument,
   ReconciliationStatus,
+  StatutoryProviderCapabilities,
 } from '../domain/types';
 import {
   resolveStatutoryStorageUiStatus,
@@ -18,7 +20,9 @@ import {
   type StatutoryStorageUiStatus,
 } from '../domain/statutory-storage-ui';
 import {
+  cancelExternalStatutoryDocumentAction,
   createStatutoryShareLinkAction,
+  creditExternalStatutoryDocumentAction,
   refreshExternalStatutoryStatusAction,
   resolveStatutoryStorageLocationAction,
   saveStatutoryPdfToStorageAction,
@@ -61,6 +65,7 @@ export type StatutoryDocumentCardProps = {
   customerPhone?: string | null;
   primaryStorageProvider: StorageProviderKey | null;
   providerLabel: string;
+  providerCapabilities?: StatutoryProviderCapabilities;
   onPreview: (target: { externalDocumentId: string; title: string }) => void;
   /** Parent-owned send dialog (preferred). */
   onSendOpen?: (doc: ExternalStatutoryDocument) => void;
@@ -74,6 +79,7 @@ export function StatutoryDocumentCard({
   customerPhone = null,
   primaryStorageProvider,
   providerLabel,
+  providerCapabilities,
   onPreview,
   onSendOpen,
 }: StatutoryDocumentCardProps) {
@@ -103,6 +109,22 @@ export function StatutoryDocumentCard({
   const title = docTitle(doc, t);
   const pendingIssuance =
     doc.issuanceOutcome === 'in_flight' || doc.issuanceOutcome === 'ambiguous';
+  const docNumber = doc.externalNumber ?? '—';
+  const canCreditStatutory =
+    !isHistorical &&
+    canManage &&
+    providerCapabilities?.creditDocument === true &&
+    doc.kind === 'tax_invoice' &&
+    issued &&
+    doc.status !== 'credited';
+  const canCancelStatutory =
+    !isHistorical &&
+    canManage &&
+    providerCapabilities?.cancelDocument === true &&
+    issued &&
+    doc.kind !== 'credit_note' &&
+    doc.status !== 'cancelled' &&
+    doc.status !== 'credited';
 
   const storageLocationUrl =
     storageDocumentId && resolvedStorageDocumentId === storageDocumentId
@@ -367,6 +389,44 @@ export function StatutoryDocumentCard({
                 <Button type="button" variant="secondary" size="sm" disabled={pending} onClick={handleSaveCopy}>
                   {storageStatus === 'failed' ? t('actions.retryStorageSave') : t('actions.saveCopy')}
                 </Button>
+              ) : null}
+              {canCreditStatutory ? (
+                <ConfirmAction
+                  title={t('confirm.creditTitle')}
+                  description={t('confirm.creditQuestion', { number: docNumber })}
+                  confirmLabel={t('actions.credit')}
+                  successMessage={t('confirm.creditSuccess')}
+                  onConfirm={async () => {
+                    const result = await creditExternalStatutoryDocumentAction(doc.id, billingRecordId);
+                    if (result.error) return { error: result.error };
+                    router.refresh();
+                    return { ok: true };
+                  }}
+                  trigger={
+                    <Button type="button" variant="secondary" size="sm" disabled={pending}>
+                      {t('actions.credit')}
+                    </Button>
+                  }
+                />
+              ) : null}
+              {canCancelStatutory ? (
+                <ConfirmAction
+                  title={t('confirm.cancelTitle')}
+                  description={t('confirm.cancelQuestion', { number: docNumber })}
+                  confirmLabel={t('actions.cancel')}
+                  successMessage={t('confirm.cancelSuccess')}
+                  onConfirm={async () => {
+                    const result = await cancelExternalStatutoryDocumentAction(doc.id, billingRecordId);
+                    if (result.error) return { error: result.error };
+                    router.refresh();
+                    return { ok: true };
+                  }}
+                  trigger={
+                    <Button type="button" variant="secondary" size="sm" disabled={pending}>
+                      {t('actions.cancel')}
+                    </Button>
+                  }
+                />
               ) : null}
             </>
           ) : null}

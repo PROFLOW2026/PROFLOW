@@ -55,6 +55,11 @@ export const REPORT_KIND_DEFINITIONS: readonly ReportKindDefinition[] = [
     permission: PERMISSIONS.ATTENDANCE_MANAGE,
     projectScoped: false,
   },
+  {
+    kind: 'labor_by_period',
+    permission: PERMISSIONS.WORKFORCE_READ,
+    projectScoped: false,
+  },
   // ── Operational report kinds (Agent I) ──────────────────────────────────────
   {
     kind: 'project_task_status',

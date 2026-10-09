@@ -9,7 +9,7 @@
  * Click row → opens TaskDetailSheet via onOpenTask callback.
  *
  * Agent A dependency:
- *   TaskCardData type from _task-api-stub.ts
+ *   TaskCardData type from task-api.ts
  *   TODO: swap to `import { TaskCardData } from '@/modules/tasks'` when Agent A delivers.
  */
 
@@ -22,7 +22,7 @@ import { coerceBusinessDate, type BusinessDate } from '@/shared/dates/dates';
 import { formatBusinessDateMonthDay } from '@/shared/dates/format';
 import { cn } from '@/shared/ui/cn';
 import { uwmListPanelClass, uwmListRowClass } from '@/shared/ui/uwm-surface-styles';
-import type { TaskCardData, TaskPriority, TaskStatus } from './_task-api-stub';
+import type { TaskCardData, TaskPriority, TaskStatus } from './task-api';
 
 // ---------------------------------------------------------------------------
 // Types

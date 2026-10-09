@@ -16,9 +16,9 @@
 import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
 import type { OrgContext } from '@/shared/auth/context';
 import { withExecutor } from '@/shared/auth/context';
-import { withTransaction } from '@/shared/db';
-import { ConflictError, DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
-import { assertAnyPermission, assertPermission, hasPermission } from '@/shared/permissions/assert';
+import { asServiceRoleWrite, withTransaction } from '@/shared/db';
+import { AuthorizationError, ConflictError, DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
+import { assertAnyPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import {
   findAttendanceDayByEmployeeDate,
@@ -46,6 +46,26 @@ import {
   type ReviewAttendanceCorrectionRequestInput,
   type SubmitAttendanceCorrectionRequestInput,
 } from '../validation/schemas';
+import {
+  assertCanReviewAttendanceCorrection,
+  canReviewAttendanceCorrection,
+  hasOrgWideAttendanceReview,
+  listEmployeeProjectIdsOnWorkDate,
+  listOperationalApproveProjectIds,
+} from './scoped-operational-approval';
+import { notifyOperationalApproversForAttendanceCorrection } from './notify-operational-approvers';
+
+async function assertCanListAttendanceCorrectionRequests(context: OrgContext): Promise<void> {
+  if (
+    hasPermission(context, PERMISSIONS.ATTENDANCE_MANAGE) ||
+    hasPermission(context, PERMISSIONS.ATTENDANCE_SELF)
+  ) {
+    return;
+  }
+  const scopedProjects = await listOperationalApproveProjectIds(context);
+  if (scopedProjects.length > 0) return;
+  throw new AuthorizationError(PERMISSIONS.ATTENDANCE_MANAGE);
+}
 
 function parseOrThrow<T>(
   schema: { safeParse: (input: unknown) => { success: true; data: T } | { success: false; error: { issues: readonly { path: PropertyKey[]; message: string }[] } } },
@@ -147,6 +167,22 @@ export async function submitAttendanceCorrectionRequest(
     },
   });
 
+  const projectIds = await listEmployeeProjectIdsOnWorkDate(
+    context.db,
+    context.organizationId,
+    employee.id,
+    input.workDate,
+  );
+  if (projectIds.length > 0) {
+    await notifyOperationalApproversForAttendanceCorrection(context, {
+      requestId: request.id,
+      employeeId: employee.id,
+      employeeName: employee.name,
+      workDate: input.workDate,
+      projectIds,
+    });
+  }
+
   return request;
 }
 
@@ -157,26 +193,36 @@ export async function listAttendanceCorrectionRequests(
   context: OrgContext,
   rawInput: ListAttendanceCorrectionRequestsInput = {},
 ): Promise<AttendanceCorrectionRequestRecord[]> {
-  assertAnyPermission(context, [
-    PERMISSIONS.ATTENDANCE_MANAGE,
-    PERMISSIONS.ATTENDANCE_SELF,
-  ]);
+  await assertCanListAttendanceCorrectionRequests(context);
 
   const input = parseOrThrow(listAttendanceCorrectionRequestsSchema, rawInput);
 
-  // Self-only users may only see their own requests.
+  const orgWideReview = hasOrgWideAttendanceReview(context);
+  const scopedProjects = await listOperationalApproveProjectIds(context);
+
   let scopedEmployeeId = input.employeeId;
-  if (!hasPermission(context, PERMISSIONS.ATTENDANCE_MANAGE)) {
+  if (!orgWideReview && scopedProjects.length === 0) {
     const linked = await findEmployeeByUserId(context.db, context.organizationId, context.userId);
     if (!linked || linked.archivedAt) return [];
     scopedEmployeeId = linked.id;
   }
 
-  return listCorrectionRequestsByOrg(context.db, context.organizationId, {
+  const rows = await listCorrectionRequestsByOrg(context.db, context.organizationId, {
     status: input.status === 'all' ? undefined : input.status,
     employeeId: scopedEmployeeId,
     limit: input.limit,
   });
+
+  if (orgWideReview) return rows;
+  if (scopedProjects.length === 0) return rows;
+
+  const filtered: AttendanceCorrectionRequestRecord[] = [];
+  for (const row of rows) {
+    if (await canReviewAttendanceCorrection(context, row)) {
+      filtered.push(row);
+    }
+  }
+  return filtered;
 }
 
 /**
@@ -194,8 +240,6 @@ export async function reviewAttendanceCorrectionRequest(
   context: OrgContext,
   rawInput: ReviewAttendanceCorrectionRequestInput,
 ): Promise<AttendanceCorrectionRequestRecord> {
-  assertPermission(context, PERMISSIONS.ATTENDANCE_MANAGE);
-
   const input = parseOrThrow(reviewAttendanceCorrectionRequestSchema, rawInput);
 
   const request = await findCorrectionRequestById(
@@ -204,6 +248,7 @@ export async function reviewAttendanceCorrectionRequest(
     input.requestId,
   );
   if (!request) throw new NotFoundError('Attendance correction request');
+  await assertCanReviewAttendanceCorrection(context, request);
   if (request.status !== 'pending') {
     throw new DomainRuleError(
       'Correction request has already been reviewed',
@@ -213,30 +258,37 @@ export async function reviewAttendanceCorrectionRequest(
 
   const reviewedAt = new Date();
 
+  const elevateWrites = !hasOrgWideAttendanceReview(context);
+
   if (input.decision === 'rejected') {
-    const updated = await updateCorrectionRequestReview(context.db, {
-      organizationId: context.organizationId,
-      requestId: request.id,
-      status: 'rejected',
-      reviewedByUserId: context.userId,
-      reviewedAt,
-      reviewerNote: input.reviewerNote ?? null,
-    });
-    if (!updated) throw new NotFoundError('Attendance correction request');
+    const reject = async (db: typeof context.db) => {
+      const updated = await updateCorrectionRequestReview(db, {
+        organizationId: context.organizationId,
+        requestId: request.id,
+        status: 'rejected',
+        reviewedByUserId: context.userId,
+        reviewedAt,
+        reviewerNote: input.reviewerNote ?? null,
+      });
+      if (!updated) throw new NotFoundError('Attendance correction request');
 
-    await recordAuditEvent(context, {
-      action: AUDIT_ACTIONS.ATTENDANCE_EVENT_VOIDED,
-      entityType: 'attendance_correction_request',
-      entityId: request.id,
-      before: { status: 'pending' },
-      after: { status: 'rejected', reviewerNote: input.reviewerNote ?? null },
-    });
+      await recordAuditEvent(context, {
+        action: AUDIT_ACTIONS.ATTENDANCE_EVENT_VOIDED,
+        entityType: 'attendance_correction_request',
+        entityId: request.id,
+        before: { status: 'pending' },
+        after: { status: 'rejected', reviewerNote: input.reviewerNote ?? null },
+      });
 
-    return updated;
+      return updated;
+    };
+
+    return elevateWrites ? asServiceRoleWrite(context.db, () => reject(context.db)) : reject(context.db);
   }
 
   // APPROVAL: apply the correction inside a transaction.
   return withTransaction(context.db, async (tx) => {
+    const applyApproval = async () => {
     const txCtx = withExecutor(context, tx);
 
     // Ensure an attendance day row exists for the target date.
@@ -328,6 +380,9 @@ export async function reviewAttendanceCorrectionRequest(
     });
 
     return updated;
+    };
+
+    return elevateWrites ? asServiceRoleWrite(tx, applyApproval) : applyApproval();
   });
 }
 

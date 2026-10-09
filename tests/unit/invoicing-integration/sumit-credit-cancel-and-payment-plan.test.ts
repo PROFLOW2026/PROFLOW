@@ -293,7 +293,7 @@ describe('split payment statutory plan', () => {
     expect(plan).toEqual({
       action: 'issue',
       kind: 'receipt',
-      idempotencyKey: `pf:payment:${PAYMENT_ID}:receipt:v1`,
+      idempotencyKey: `pf:payment:${PAYMENT_ID}:billing:${BILL_A}:receipt:v1`,
       linkedTaxInvoiceExternalId: '42',
     });
     if (plan.action === 'issue') {
@@ -303,7 +303,7 @@ describe('split payment statutory plan', () => {
     }
   });
 
-  it('skips a second receipt for another allocation of the same payment', () => {
+  it('issues a separate receipt for another allocation of the same payment (FIN-001)', () => {
     const plan = planStatutoryIssuanceAfterPayment({
       settings: automaticReceipts,
       billingDocuments: [
@@ -322,7 +322,33 @@ describe('split payment statutory plan', () => {
       billingRecordId: BILL_B,
     });
 
-    expect(plan).toEqual({ action: 'skip', reason: 'payment_document_already_scoped' });
+    expect(plan).toEqual({
+      action: 'issue',
+      kind: 'receipt',
+      idempotencyKey: `pf:payment:${PAYMENT_ID}:billing:${BILL_B}:receipt:v1`,
+      linkedTaxInvoiceExternalId: '77',
+    });
+  });
+
+  it('skips a duplicate receipt for the same payment and billing record', () => {
+    const plan = planStatutoryIssuanceAfterPayment({
+      settings: automaticReceipts,
+      billingDocuments: [
+        statutoryDoc({ id: 'inv-a', billingRecordId: BILL_A, kind: 'tax_invoice', externalId: '42' }),
+        statutoryDoc({
+          id: 'receipt-a',
+          billingRecordId: BILL_A,
+          kind: 'receipt',
+          paymentId: PAYMENT_ID,
+          idempotencyKey: buildStatutoryIdempotencyKey(BILL_A, 'receipt', PAYMENT_ID),
+        }),
+      ],
+      paymentDocuments: [],
+      paymentId: PAYMENT_ID,
+      billingRecordId: BILL_A,
+    });
+
+    expect(plan).toEqual({ action: 'skip', reason: 'already_issued_for_billing' });
   });
 
   it('issues a tax invoice receipt only when no tax invoice exists and policy allows it', () => {
@@ -339,7 +365,7 @@ describe('split payment statutory plan', () => {
     expect(combined).toEqual({
       action: 'issue',
       kind: 'tax_invoice_receipt',
-      idempotencyKey: `pf:payment:${PAYMENT_ID}:tax_invoice_receipt:v1`,
+      idempotencyKey: `pf:payment:${PAYMENT_ID}:billing:${BILL_A}:tax_invoice_receipt:v1`,
       linkedTaxInvoiceExternalId: null,
     });
 

@@ -258,7 +258,7 @@ export function aggregateOrgCost(
       exclusions: [...fx, 'entriesMissingRate'],
     }),
     vendors: moneyMetricFromSum({
-      key: 'vendorActual',
+      key: 'vendorsRecognized',
       kind: 'actual',
       value: sumFieldOrNull(rows, currency, (r) => r.vendorActual),
       inclusions: ['subcontractorExpenses', 'recognizedVendorBills'],

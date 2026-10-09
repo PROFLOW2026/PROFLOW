@@ -40,9 +40,9 @@ export function canEmployeeReadDocumentCategory(
   const grants = resolveEffectiveDocumentCategoryGrants(context);
 
   if (!category || !isDocumentCategory(category)) {
-    // Uncategorized: allow in project scope, or when no category restriction is configured.
-    if (options?.inProjectScope === true) return true;
-    return grants === null;
+    // Uncategorized project files: only when no category grant list is configured.
+    if (grants === null) return true;
+    return false;
   }
 
   if (grants === null) return true;

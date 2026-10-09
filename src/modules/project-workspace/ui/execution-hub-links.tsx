@@ -3,6 +3,7 @@ import 'server-only';
 import { getTranslations } from 'next-intl/server';
 import { PROJECT_CAPABILITIES } from '@/modules/project-team/domain/capabilities';
 import { requireProjectCapabilityPage } from '@/modules/project-team/server';
+import { requireDeveloperGcExecutionPage } from '@/modules/project-workspace/server/require-developer-gc-execution';
 import {
   EXECUTION_HUBS,
   selectExecutionHubChildren,
@@ -29,6 +30,7 @@ export async function ExecutionHubLinks({
   readonly params: Promise<{ projectId: string }>;
 }) {
   const { projectId } = await params;
+  await requireDeveloperGcExecutionPage(projectId);
   const access = await requireProjectCapabilityPage(projectId, HUB_CAPABILITY[hub], { mode: 'any' });
   const t = await getTranslations('projectWorkspace');
   const root = surfaceRoot ?? `/projects/${projectId}`;

@@ -338,7 +338,6 @@ async function markLinkedOpportunityWon(
   },
 ): Promise<void> {
   if (!input.quote.opportunityId) return;
-  if (!hasPermission(context, PERMISSIONS.CRM_MANAGE)) return;
 
   const opportunity = await findOpportunityById(
     context.db,

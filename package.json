@@ -25,6 +25,8 @@
     "playwright:smoke": "playwright test --project=setup-owner --project=desktop-he-authenticated tests/e2e/authenticated/release-smoke.spec.ts",
     "playwright:regression": "playwright test --project=setup-owner --project=setup-worker --project=desktop-he-authenticated --project=desktop-he-worker --project=mobile-he tests/e2e/authenticated/owner.spec.ts tests/e2e/authenticated/worker.spec.ts tests/e2e/authenticated/boq-happy-path.spec.ts tests/e2e/authenticated/master-completion-journeys.spec.ts tests/e2e/authenticated/project-centric-money-chain.spec.ts tests/e2e/authenticated/mobile-money-journeys.spec.ts",
     "playwright:ci": "npm run playwright:regression",
+    "audit:resolve-routes": "node scripts/audit-verification/resolve-route-urls.mjs",
+    "audit:verification:e2e": "npm run audit:resolve-routes && playwright test --project=setup-owner --project=audit-verification tests/e2e/audit/verification-route-matrix.spec.ts tests/e2e/audit/verification-route-personas.spec.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx drizzle/scripts/migrate.ts",
     "db:check-journal": "node drizzle/scripts/check-migration-journal.mjs",

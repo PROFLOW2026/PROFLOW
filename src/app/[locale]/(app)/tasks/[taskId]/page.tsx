@@ -19,6 +19,8 @@ import { getTaskDetailAction, updateTaskFieldsAction, getTaskDocumentPanelAction
 import { TaskDocumentAttachments } from '@/modules/tasks/ui/task-document-attachments';
 import { TaskDetailPageClient } from './_task-detail-page-client';
 import { TaskContractorSection } from '@/modules/collaboration/ui';
+import { EvidenceGallery, EvidenceUploader } from '@/modules/evidence/ui';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export async function generateMetadata({
   params,
@@ -50,10 +52,11 @@ export default async function TaskDetailPage({
 
   const t = await getTranslations('tasks');
 
-  const { detail, today, documentsPanel } = await withOrgContext(async (context) => ({
+  const { detail, today, documentsPanel, organizationId } = await withOrgContext(async (context) => ({
     detail: await getTaskDetailAction(taskId),
     today: todayInTimeZone(context.organization.timezone),
     documentsPanel: await getTaskDocumentPanelAction(taskId),
+    organizationId: context.organizationId,
   }));
   if (!detail) notFound();
 
@@ -88,6 +91,30 @@ export default async function TaskDetailPage({
         projectId={documentsPanel.projectId}
         canBrowseCloudFiles={documentsPanel.canBrowseCloudFiles}
       />
+
+      {detail.projectId ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('evidenceSection.title')}</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3">
+            <EvidenceGallery
+              organizationId={organizationId}
+              entityType="task"
+              entityId={taskId}
+              viewer="internal"
+            />
+            <EvidenceUploader
+              organizationId={organizationId}
+              projectId={detail.projectId}
+              entityType="task"
+              entityId={taskId}
+              viewer="internal"
+              accept={['photo', 'video', 'document']}
+            />
+          </CardContent>
+        </Card>
+      ) : null}
 
       {detail.approvalRequired ? (
         <Suspense fallback={<TaskApprovalGateSkeleton />}>

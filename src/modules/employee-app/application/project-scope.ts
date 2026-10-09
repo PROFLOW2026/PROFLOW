@@ -125,7 +125,21 @@ export async function assertCanAccessProjectForUser(
 ): Promise<void> {
   const allowed = await resolveAccessibleProjectIdsForUser(context);
   if (allowed === null) return;
-  if (!allowed.includes(projectId)) throw new NotFoundError('Project');
+  if (allowed.includes(projectId)) return;
+
+  const executed = await context.db.execute(
+    sql`SELECT app.can_access_project(${context.organizationId}::uuid, ${projectId}::uuid) AS ok`,
+  );
+  const rows = Array.isArray(executed)
+    ? executed
+    : executed &&
+        typeof executed === 'object' &&
+        Array.isArray((executed as { rows?: unknown }).rows)
+      ? (executed as { rows: { ok: boolean }[] }).rows
+      : [];
+  if (rows[0]?.ok === true) return;
+
+  throw new NotFoundError('Project');
 }
 
 export async function assertEmployeeProjectScope(

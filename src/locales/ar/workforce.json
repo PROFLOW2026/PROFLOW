@@ -416,6 +416,11 @@
     "standardWorkEndTime": "وقت الانتهاء المعياري",
     "daysPerMonth": "أيام عمل شهرياً",
     "daysPerMonthOptional": "اختياري — غير مطلوب لتكلفة مشروع شهرية",
+    "workingDaysPerMonthAccrualWarn": "القيم أقل من {min} يوم عمل في الشهر تُرفع إلى حد أدنى في استحقاق تكلفة المُوظِّف الشهرية.",
+    "attendanceProjectTimeApproval": "وقت المشروع من الحضور",
+    "attendanceProjectTimeApprovalHint": "عند مزامنة الحضور مع ساعات المشروع: اتركها مسودة للاعتماد، أو اختر الاعتماد التلقائي.",
+    "attendanceProjectTimeDraft": "مسودة — تتطلب اعتمادًا",
+    "attendanceProjectTimeAutoApprove": "اعتماد تلقائي عندما يستطيع المدير الاعتماد",
     "workWeek": "أيام أسبوع العمل",
     "workWeekHint": "افتراض ProjectFlow الأحد–الخميس. الحفظ هنا يعيّن أسبوع عمل هذه المنظمة.",
     "configuredSummary": "{hours} ساعة/يوم · {weekdays}",
@@ -482,7 +487,8 @@
     "laborActualMissingCost": "تكلفة ناقصة ({count, plural, one {إدخال واحد} other {# إدخالات}} بدون تكلفة — لا تُعرض كـ ₪0)",
     "laborActualEmployeeMeta": "{hours} س · {days} أيام عمل",
     "laborActualCostUnavailable": "التكلفة غير متاحة",
-    "laborPoolEquation": "مُوزّع {allocated} + معلّق {unallocated} = {total} مجموعة عمالة"
+    "laborPoolEquation": "مُوزّع {allocated} + معلّق {unallocated} = {total} مجموعة عمالة",
+    "unallocatedHoursBanner": "{hours} ساعات بانتظار الاعتماد ولا تُحسب بعد في التكلفة الفعلية للمشروع."
   },
   "payrollPayment": {
     "title": "دفع رواتب · {yearMonth}",
@@ -509,6 +515,7 @@
     "cost": "التكلفة",
     "allocated": "مُوزّع",
     "unallocated": "غير مُوزّع",
+    "pendingSubmittedHoursBanner": "{hours} ساعات عمل مُرسلة لم تُعتمد بعد — لا تُحسب في التكلفة الفعلية للعمل حتى الاعتماد.",
     "status": "الحالة",
     "statuses": {
       "not_started": "لم يبدأ",

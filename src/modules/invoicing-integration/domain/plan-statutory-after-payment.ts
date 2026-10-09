@@ -1,4 +1,4 @@
-import { findBlockingExternalDocument, isBlockingIssuanceOutcome } from './assert-issuance-eligible';
+import { findBlockingExternalDocument } from './assert-issuance-eligible';
 import { buildStatutoryIdempotencyKey } from './idempotency-key';
 import { shouldAutoIssueReceiptAfterPayment, type OrgInvoicingSettings } from './org-invoicing-settings';
 import type { ExternalDocumentKind, ExternalStatutoryDocument } from './types';
@@ -9,7 +9,6 @@ export type StatutoryAfterPaymentSkipReason =
   | 'receipt_issuance_off'
   | 'tax_invoice_required_first'
   | 'already_issued_for_billing'
-  | 'payment_document_already_scoped';
 
 export type StatutoryAfterPaymentPlan =
   | {
@@ -34,8 +33,8 @@ export interface PlanStatutoryAfterPaymentInput {
 /**
  * Decides the statutory document for one payment allocation.
  * Never chooses a second tax invoice. Receipt kinds stay on the existing
- * payment-scoped idempotency key, so a second allocation of the same payment
- * and kind is skipped (one blocking row per payment id).
+ * payment-and-billing-scoped idempotency key, so split allocations across
+ * invoices each get their own receipt while the same invoice is not issued twice.
  */
 export function planStatutoryIssuanceAfterPayment(
   input: PlanStatutoryAfterPaymentInput,
@@ -66,18 +65,6 @@ export function planStatutoryIssuanceAfterPayment(
   const onThisBilling = input.billingDocuments.filter((doc) => doc.paymentId === input.paymentId);
   if (findBlockingExternalDocument(onThisBilling, kind)) {
     return { action: 'skip', reason: 'already_issued_for_billing' };
-  }
-
-  const samePaymentKind = input.paymentDocuments.filter(
-    (doc) => doc.paymentId === input.paymentId && doc.kind === kind,
-  );
-  const heldOnAnotherInvoice = samePaymentKind.some(
-    (doc) =>
-      doc.billingRecordId !== input.billingRecordId &&
-      (isBlockingIssuanceOutcome(doc.issuanceOutcome) || doc.idempotencyKey === idempotencyKey),
-  );
-  if (heldOnAnotherInvoice) {
-    return { action: 'skip', reason: 'payment_document_already_scoped' };
   }
 
   return {

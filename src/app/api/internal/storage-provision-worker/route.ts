@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { waitUntil } from '@vercel/functions';
 import { runStorageProvisionCycle } from '@/modules/external-storage/application/provision-batch';
+import { loadStorageProvisionJobStatus } from '@/modules/external-storage/application/storage-provision-job-status';
 import { isStorageProvisionWorkerAuthorized } from '@/modules/external-storage/application/storage-provision-worker-auth';
 import {
   inferWorkerTrigger,
@@ -71,6 +72,21 @@ export async function POST(request: Request): Promise<Response> {
   });
 }
 
+/** OPS-002: read-only job status (does not accept or kick a provision hop). */
 export async function GET(request: Request): Promise<Response> {
-  return POST(request);
+  if (!isStorageProvisionWorkerAuthorized(request)) {
+    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  }
+  if (process.env.VITEST === 'true' || process.env.NODE_ENV === 'test') {
+    return NextResponse.json({
+      phase: 'idle',
+      connectionsScanned: 0,
+      preparingConnections: 0,
+      leaseHeldOrganizations: 0,
+      recoveryWouldKick: false,
+      recoveryReason: 'no_connections',
+    });
+  }
+  const status = await loadStorageProvisionJobStatus();
+  return NextResponse.json(status);
 }

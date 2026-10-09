@@ -264,6 +264,7 @@
     "previewFolders": "Document folders",
     "apply": "Apply as copies",
     "applied": "Template applied as editable copies.",
+    "skippedFoldersWarning": "Template applied, but {count, plural, one {# document folder was} other {# document folders were}} not created (documents manage permission required): {folders}.",
     "phasePack": "Phase pack",
     "applyPhasePack": "Add phases from pack",
     "wpPack": "Work-area pack",

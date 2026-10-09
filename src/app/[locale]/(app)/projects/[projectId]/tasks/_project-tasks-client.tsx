@@ -14,7 +14,7 @@ import {
 import { TaskListView } from '@/modules/tasks/ui/task-list-view';
 import { TaskDetailSheet } from '@/modules/tasks/ui/task-detail-sheet';
 import { TaskCreateForm } from '@/modules/tasks/ui/task-create-form';
-import type { TaskCardData, TaskDetail } from '@/modules/tasks/ui/_task-api-stub';
+import type { TaskCardData, TaskDetail } from '@/modules/tasks/ui/task-api';
 import type { CreateTaskInput } from '@/modules/tasks';
 import type { TaskAssigneePickerOption } from '@/modules/tasks/ui/task-assignee-picker';
 import type { WorkActionState } from '@/app/[locale]/(app)/work/actions';

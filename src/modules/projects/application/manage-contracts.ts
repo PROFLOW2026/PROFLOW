@@ -31,7 +31,7 @@ import {
   updateContractValueEventAmount,
 } from '../data/contracts.repository';
 import { findProjectById } from '../data/projects.repository';
-import { assertCanAccessProject } from './project-access';
+import { scopeOrgContextToProject } from '@/modules/rbac';
 import {
   computeEntryBaselineAmounts,
   normalizeOpeningReductionInput,
@@ -76,12 +76,12 @@ function validationFromZod(error: {
   );
 }
 
-async function assertProjectOwned(context: OrgContext, projectId: string) {
+async function requireProjectScope(context: OrgContext, projectId: string) {
   const project = await findProjectById(context.db, context.organizationId, projectId);
   if (!project) throw new NotFoundError('Project');
   assertSameOrganization(context, project, 'Project');
-  await assertCanAccessProject(context, projectId);
-  return project;
+  const scoped = await scopeOrgContextToProject(context, projectId);
+  return { project, context: scoped };
 }
 
 async function assertClientInOrg(context: OrgContext, clientId: string | null | undefined) {
@@ -222,21 +222,21 @@ export async function listProjectContracts(
   context: OrgContext,
   raw: { projectId: string },
 ): Promise<ProjectContractListItem[]> {
-  assertPermission(context, PERMISSIONS.CONTRACTS_READ);
   const parsed = listProjectContractsSchema.safeParse(raw);
   if (!parsed.success) throw validationFromZod(parsed.error);
 
-  const project = await assertProjectOwned(context, parsed.data.projectId);
+  const { project, context: scoped } = await requireProjectScope(context, parsed.data.projectId);
+  assertPermission(scoped, PERMISSIONS.CONTRACTS_READ);
   const contracts = await listContractsByProject(
-    context.db,
-    context.organizationId,
+    scoped.db,
+    scoped.organizationId,
     parsed.data.projectId,
   );
   if (contracts.length === 0) return [];
 
   const allEvents = await listContractValueEventsForContracts(
-    context.db,
-    context.organizationId,
+    scoped.db,
+    scoped.organizationId,
     contracts.map((contract) => contract.id),
   );
   const eventsByContract = new Map<string, typeof allEvents>();
@@ -265,12 +265,12 @@ export async function createAdditionalContract(
   context: OrgContext,
   raw: CreateAdditionalContractInput,
 ): Promise<ContractRecord> {
-  assertPermission(context, PERMISSIONS.CONTRACTS_MANAGE);
   const parsed = createAdditionalContractSchema.safeParse(raw);
   if (!parsed.success) throw validationFromZod(parsed.error);
   const input = parsed.data;
 
-  const project = await assertProjectOwned(context, input.projectId);
+  const { project, context: scoped } = await requireProjectScope(context, input.projectId);
+  assertPermission(scoped, PERMISSIONS.CONTRACTS_MANAGE);
   await assertClientInOrg(context, input.clientId);
 
   if (input.contractNumber) {
@@ -298,15 +298,15 @@ export async function createAdditionalContract(
     clientDefaultPaymentTermId = clientRow?.defaultPaymentTermId ?? null;
   }
 
-  const orgDefaultId = await resolveOrgDefaultPaymentTermIdForContext(context);
+  const orgDefaultId = await resolveOrgDefaultPaymentTermIdForContext(scoped);
   const paymentTermId = resolveDocumentPaymentTermId({
     explicitId: input.paymentTermId,
     partyDefaultId: clientDefaultPaymentTermId,
     orgDefaultId,
   });
 
-  const created = await insertContract(context.db, {
-    organizationId: context.organizationId,
+  const created = await insertContract(scoped.db, {
+    organizationId: scoped.organizationId,
     projectId: input.projectId,
     isPrimary: false,
     contractType,
@@ -325,7 +325,7 @@ export async function createAdditionalContract(
 
   let result = created;
   if (input.enteredAmount?.trim()) {
-    const applied = await applyOpeningToContract(context, created, {
+    const applied = await applyOpeningToContract(scoped, created, {
       enteredAmount: input.enteredAmount,
       currency,
       amountIncludesTax: input.amountIncludesTax ?? false,
@@ -334,7 +334,7 @@ export async function createAdditionalContract(
     result = applied.contract;
   }
 
-  await recordAuditEvent(context, {
+  await recordAuditEvent(scoped, {
     action: AUDIT_ACTIONS.CONTRACT_ADDITIONAL_CREATED,
     entityType: 'contract',
     entityId: result.id,
@@ -355,7 +355,6 @@ export async function updateContract(
   context: OrgContext,
   raw: UpdateContractInput,
 ): Promise<ContractRecord> {
-  assertPermission(context, PERMISSIONS.CONTRACTS_MANAGE);
   const parsed = updateContractSchema.safeParse(raw);
   if (!parsed.success) throw validationFromZod(parsed.error);
   const input = parsed.data;
@@ -363,8 +362,9 @@ export async function updateContract(
   const existing = await findContractById(context.db, context.organizationId, input.contractId);
   if (!existing) throw new NotFoundError('Contract');
   assertSameOrganization(context, existing, 'Contract');
-  await assertProjectOwned(context, existing.projectId);
-  await assertClientInOrg(context, input.clientId);
+  const { context: scoped } = await requireProjectScope(context, existing.projectId);
+  assertPermission(scoped, PERMISSIONS.CONTRACTS_MANAGE);
+  await assertClientInOrg(scoped, input.clientId);
 
   if (input.contractNumber) {
     const numbered = await findContractByNumber(
@@ -385,12 +385,12 @@ export async function updateContract(
   }
 
   if (input.isPrimary === true && !existing.isPrimary) {
-    await setProjectPrimaryContract(context, {
+    await setProjectPrimaryContract(scoped, {
       projectId: existing.projectId,
       contractId: existing.id,
     });
   } else if (input.isPrimary === false && existing.isPrimary) {
-    await setProjectPrimaryContract(context, {
+    await setProjectPrimaryContract(scoped, {
       projectId: existing.projectId,
       contractId: null,
     });
@@ -398,7 +398,7 @@ export async function updateContract(
 
   const contractType = existing.isPrimary ? undefined : input.contractType;
 
-  const updated = await updateContractMetadata(context.db, context.organizationId, existing.id, {
+  const updated = await updateContractMetadata(scoped.db, scoped.organizationId, existing.id, {
     name: input.name,
     reference: input.reference,
     contractType,
@@ -412,7 +412,7 @@ export async function updateContract(
   });
   if (!updated) throw new NotFoundError('Contract');
 
-  await recordAuditEvent(context, {
+  await recordAuditEvent(scoped, {
     action: AUDIT_ACTIONS.CONTRACT_UPDATED,
     entityType: 'contract',
     entityId: updated.id,
@@ -430,7 +430,7 @@ export async function updateContract(
     (input.status === 'active' || input.status === 'closed')
   ) {
     const { captureBrandSnapshot } = await import('@/modules/branding');
-    await captureBrandSnapshot(context, {
+    await captureBrandSnapshot(scoped, {
       entityType: 'contract',
       entityId: updated.id,
       projectId: updated.projectId,
@@ -444,26 +444,26 @@ export async function setProjectPrimaryContract(
   context: OrgContext,
   raw: { projectId: string; contractId: string | null },
 ): Promise<ContractRecord | null> {
-  assertPermission(context, PERMISSIONS.CONTRACTS_MANAGE);
   const parsed = setPrimaryContractSchema.safeParse(raw);
   if (!parsed.success) throw validationFromZod(parsed.error);
 
-  await assertProjectOwned(context, parsed.data.projectId);
+  const { context: scoped } = await requireProjectScope(context, parsed.data.projectId);
+  assertPermission(scoped, PERMISSIONS.CONTRACTS_MANAGE);
 
-  return withTransaction(context.db, async (tx) => {
+  return withTransaction(scoped.db, async (tx) => {
     if (parsed.data.contractId) {
-      const target = await findContractById(tx, context.organizationId, parsed.data.contractId);
+      const target = await findContractById(tx, scoped.organizationId, parsed.data.contractId);
       if (!target || target.projectId !== parsed.data.projectId) {
         throw new NotFoundError('Contract');
       }
-      assertSameOrganization(context, target, 'Contract');
+      assertSameOrganization(scoped, target, 'Contract');
     }
 
-    await clearProjectPrimary(tx, context.organizationId, parsed.data.projectId);
+    await clearProjectPrimary(tx, scoped.organizationId, parsed.data.projectId);
 
     if (!parsed.data.contractId) return null;
 
-    const marked = await markContractPrimary(tx, context.organizationId, parsed.data.contractId);
+    const marked = await markContractPrimary(tx, scoped.organizationId, parsed.data.contractId);
     if (!marked) throw new NotFoundError('Contract');
     return marked;
   });

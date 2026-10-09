@@ -10,7 +10,29 @@ import {
  * project labor Actual for that (employee, YYYY-MM) comes ONLY from
  * labor_allocation_run_lines - never also from time_entries.cost_amount.
  * Assignment never creates Actual. Employee economic cost appears exactly once.
+ *
+ * Month close may lock draft actual rows that still use time_snapshot (lockedAt only).
+ * That preserves a reviewed employer actual without flipping recognition labels.
  */
+
+export function isEmployerMonthCloseableAsApplied(input: {
+  readonly status: string;
+  readonly recognitionSource: string;
+}): boolean {
+  return input.status === 'applied' && input.recognitionSource === 'monthly_allocated';
+}
+
+export function isDraftActualTimeSnapshotLockableAtMonthClose(input: {
+  readonly status: string;
+  readonly knownQuality: string;
+  readonly recognitionSource: string;
+}): boolean {
+  return (
+    input.status === 'draft' &&
+    input.knownQuality === 'actual' &&
+    input.recognitionSource === 'time_snapshot'
+  );
+}
 
 export function yearMonthFromWorkDate(workDate: string): string {
   const trimmed = workDate.trim();

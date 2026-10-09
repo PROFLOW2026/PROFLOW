@@ -9,7 +9,7 @@ import {
   uwmStatCardClass,
 } from '@/shared/ui/uwm-surface-styles';
 import type { TaskInsights } from '../application/get-task-insights';
-import type { TaskStatus } from './_task-api-stub';
+import type { TaskStatus } from './task-api';
 
 const OPEN_STATUSES: TaskStatus[] = ['todo', 'in_progress', 'in_review', 'blocked'];
 

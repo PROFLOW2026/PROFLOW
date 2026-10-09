@@ -182,6 +182,49 @@ export async function insertTimeEntry(
   return mapTimeEntry(row!);
 }
 
+/** Approved attendance overwrite: repoint project/hours without voiding approval. */
+export async function patchApprovedTimeEntryForAttendanceCorrection(
+  db: DbExecutor,
+  organizationId: string,
+  timeEntryId: string,
+  patch: {
+    readonly projectId: string;
+    readonly hours: string;
+    readonly costAmount: string | null;
+    readonly costCurrency: string | null;
+    readonly rateVersionId: string | null;
+    readonly description?: string | null;
+  },
+): Promise<TimeEntryRecord | null> {
+  const [row] = await db
+    .update(timeEntries)
+    .set({
+      kind: 'project',
+      projectId: patch.projectId,
+      timeCodeId: null,
+      workPackageId: null,
+      hours: patch.hours,
+      description: patch.description === undefined ? undefined : patch.description,
+      costAmount: patch.costAmount,
+      costCurrency: patch.costCurrency,
+      rateVersionId: patch.rateVersionId,
+      updatedAt: new Date(),
+    })
+    .where(
+      and(
+        eq(timeEntries.id, timeEntryId),
+        eq(timeEntries.organizationId, organizationId),
+        eq(timeEntries.status, 'recorded'),
+        eq(timeEntries.approvalStatus, 'approved'),
+        isNull(timeEntries.voidedAt),
+        isNull(timeEntries.archivedAt),
+      ),
+    )
+    .returning();
+
+  return row ? mapTimeEntry(row) : null;
+}
+
 /**
  * Backfill missing labor cost snapshots on recorded rows (any approval status).
  * Fills null `cost_amount` / currency, and/or stale null `rate_version_id`.

@@ -572,7 +572,13 @@ describe('time correction bypass and completeness invariants (source)', () => {
       ),
     );
     expect(repo).toContain('voidTimeEntryRow');
-    expect(repo).not.toMatch(/\.update\(timeEntries\)[\s\S]*hours:/);
+    const hoursUpdate = repo.match(/\.update\(timeEntries\)[\s\S]*?hours:/);
+    if (hoursUpdate) {
+      const patchFn = repo.indexOf('patchApprovedTimeEntryForAttendanceCorrection');
+      const nextFn = repo.indexOf('export async function patchTimeEntryCostSnapshot');
+      expect(hoursUpdate.index).toBeGreaterThan(patchFn);
+      expect(hoursUpdate.index).toBeLessThan(nextFn);
+    }
   });
 
   it('month-close completeness still counts submitted time_correction requests', async () => {

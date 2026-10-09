@@ -464,7 +464,7 @@
   },
   "assigneePicker": {
     "wholeTeam": "Whole project team",
-    "wholeTeamHint": "Every effective project participant will be assigned when you save.",
+    "wholeTeamHint": "Whole-team assign requires a project-linked task. Every effective project participant is synced when you save (no stored ALL assignee row).",
     "searchPlaceholder": "Search team members…",
     "optionsLabel": "Project participants",
     "noMatches": "No matching participants",
@@ -558,6 +558,9 @@
   "commentsSlot": "Comments",
   "openFullTask": "Open full task for comments and activity",
   "drawerExtendedDetails": "Comments, activity, and approvals",
+  "evidenceSection": {
+    "title": "Field evidence"
+  },
   "drawerExtendedDetailsHint": "Open the full task page for comments, activity history, and approval actions.",
   "noProject": "Office (no project)",
   "projectWork": {

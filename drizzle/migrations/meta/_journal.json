@@ -1198,6 +1198,34 @@
                         "when":  1789714500000,
                         "tag":  "0172_notification_attention_badge_snapshot",
                         "breakpoints":  true
+                    },
+                    {
+                        "idx":  171,
+                        "version":  "7",
+                        "when":  1789714560000,
+                        "tag":  "0173_force_rls_five_tables",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  172,
+                        "version":  "7",
+                        "when":  1789714620000,
+                        "tag":  "0174_audit_events_contracts_select_rls",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  173,
+                        "version":  "7",
+                        "when":  1789714680000,
+                        "tag":  "0175_attendance_correction_requests_service_policy",
+                        "breakpoints":  true
+                    },
+                    {
+                        "idx":  174,
+                        "version":  "7",
+                        "when":  1789714740000,
+                        "tag":  "0176_project_access_mode_default_selected",
+                        "breakpoints":  true
                     }
                 ]
 }

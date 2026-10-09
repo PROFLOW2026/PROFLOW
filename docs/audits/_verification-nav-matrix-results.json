@@ -1,0 +1,492 @@
+{
+  "generatedAt": "2026-10-09T11:19:45.540Z",
+  "count": 60,
+  "results": [
+    {
+      "key": "dashboard",
+      "href": "/",
+      "urlPath": "/he-IL",
+      "finalUrl": "http://127.0.0.1:3100/he-IL",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "today",
+      "href": "/today",
+      "urlPath": "/he-IL/today",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/today",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "operations",
+      "href": "/operations",
+      "urlPath": "/he-IL/operations",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/operations",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "myWork",
+      "href": "/work",
+      "urlPath": "/he-IL/work",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/work",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "taskBoard",
+      "href": "/work/board",
+      "urlPath": "/he-IL/work/board",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/work/board",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "taskCalendar",
+      "href": "/work/calendar",
+      "urlPath": "/he-IL/work/calendar",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/work/calendar",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "taskTimeline",
+      "href": "/work/timeline",
+      "urlPath": "/he-IL/work/timeline",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/work/timeline",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "taskInsights",
+      "href": "/work/insights",
+      "urlPath": "/he-IL/work/insights",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/work/insights",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "portfolio",
+      "href": "/portfolio",
+      "urlPath": "/he-IL/portfolio",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/portfolio",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "workload",
+      "href": "/workload",
+      "urlPath": "/he-IL/workload",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/workload",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "workspaces",
+      "href": "/workspaces",
+      "urlPath": "/he-IL/workspaces",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/workspaces",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "meetings",
+      "href": "/meetings",
+      "urlPath": "/he-IL/meetings",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/meetings",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "projects",
+      "href": "/projects",
+      "urlPath": "/he-IL/projects",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/projects",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "jobs",
+      "href": "/jobs",
+      "urlPath": "/he-IL/jobs",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/jobs",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "workOrders",
+      "href": "/work-orders",
+      "urlPath": "/he-IL/work-orders",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/work-orders",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "dispatch",
+      "href": "/dispatch",
+      "urlPath": "/he-IL/dispatch",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/dispatch",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "expenses",
+      "href": "/expenses",
+      "urlPath": "/he-IL/expenses",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/expenses",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "clients",
+      "href": "/clients",
+      "urlPath": "/he-IL/clients",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/clients",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "quotes",
+      "href": "/quotes",
+      "urlPath": "/he-IL/quotes",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/quotes",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "contracts",
+      "href": "/contracts",
+      "urlPath": "/he-IL/contracts",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/contracts",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "crm",
+      "href": "/crm",
+      "urlPath": "/he-IL/crm",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/crm",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "changes",
+      "href": "/changes",
+      "urlPath": "/he-IL/changes",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/changes",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "billing",
+      "href": "/billing",
+      "urlPath": "/he-IL/billing",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/billing",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "recurringDrafts",
+      "href": "/recurring-drafts",
+      "urlPath": "/he-IL/recurring-drafts",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/recurring-drafts",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "reports",
+      "href": "/reports",
+      "urlPath": "/he-IL/reports",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/reports",
+      "status": "OVERFLOW_BROKEN",
+      "overflowAt320": true
+    },
+    {
+      "key": "vendors",
+      "href": "/vendors",
+      "urlPath": "/he-IL/vendors",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/vendors",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "subcontracts",
+      "href": "/subcontracts",
+      "urlPath": "/he-IL/subcontracts",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/subcontracts",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "workforce",
+      "href": "/workforce/employees",
+      "urlPath": "/he-IL/workforce/employees",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/workforce/employees",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "attendance",
+      "href": "/workforce/attendance",
+      "urlPath": "/he-IL/workforce/attendance",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/workforce/attendance",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "timesheets",
+      "href": "/workforce/timesheets",
+      "urlPath": "/he-IL/workforce/timesheets",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/workforce/timesheets",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "time",
+      "href": "/workforce/time",
+      "urlPath": "/he-IL/workforce/time",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/workforce/time",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "scheduling",
+      "href": "/scheduling",
+      "urlPath": "/he-IL/scheduling",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/scheduling",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "calendar",
+      "href": "/calendar",
+      "urlPath": "/he-IL/calendar",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/calendar",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "cashFlow",
+      "href": "/cash-flow",
+      "urlPath": "/he-IL/cash-flow",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/cash-flow",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "financialsOverview",
+      "href": "/financials/overview",
+      "urlPath": "/he-IL/financials/overview",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/financials/overview",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "businessProfitability",
+      "href": "/financials/business-profitability",
+      "urlPath": "/he-IL/financials/business-profitability",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/financials/business-profitability",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "warranty",
+      "href": "/warranty",
+      "urlPath": "/he-IL/warranty",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/warranty",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "communications",
+      "href": "/communications",
+      "urlPath": "/he-IL/communications",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/communications",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "assistant",
+      "href": "/assistant",
+      "urlPath": "/he-IL/assistant",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/assistant",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "automations",
+      "href": "/automations",
+      "urlPath": "/he-IL/automations",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/automations",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "procurement",
+      "href": "/procurement",
+      "urlPath": "/he-IL/procurement",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/procurement",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "procurementRfqs",
+      "href": "/procurement/rfqs",
+      "urlPath": "/he-IL/procurement/rfqs",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/procurement/rfqs",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "vendorBills",
+      "href": "/procurement/ap",
+      "urlPath": "/he-IL/procurement/ap",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/procurement/ap",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "materials",
+      "href": "/procurement/materials",
+      "urlPath": "/he-IL/procurement/materials",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/procurement/materials",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "materialMarket",
+      "href": "/material-market",
+      "urlPath": "/he-IL/material-market",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/material-market",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "fieldOps",
+      "href": "/field-ops",
+      "urlPath": "/he-IL/field-ops",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/field-ops",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "fieldHome",
+      "href": "/field",
+      "urlPath": "/he-IL/field",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/field",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "safety",
+      "href": "/safety",
+      "urlPath": "/he-IL/safety",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/safety",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "forms",
+      "href": "/forms",
+      "urlPath": "/he-IL/forms",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/forms",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "serviceRecurring",
+      "href": "/service/recurring",
+      "urlPath": "/he-IL/service/recurring",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/service/recurring",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "documents",
+      "href": "/documents",
+      "urlPath": "/he-IL/documents",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/documents",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "quickCaptureInbox",
+      "href": "/quick-capture/inbox",
+      "urlPath": "/he-IL/quick-capture/inbox",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/quick-capture/inbox",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "companyFiles",
+      "href": "/company-files",
+      "urlPath": "/he-IL/company-files",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/company-files",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "imports",
+      "href": "/imports",
+      "urlPath": "/he-IL/imports",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/imports",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "assets",
+      "href": "/assets",
+      "urlPath": "/he-IL/assets",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/assets",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "compliance",
+      "href": "/compliance",
+      "urlPath": "/he-IL/compliance",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/compliance",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "approvals",
+      "href": "/approvals",
+      "urlPath": "/he-IL/approvals",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/approvals",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "monthClose",
+      "href": "/month-close",
+      "urlPath": "/he-IL/month-close",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/month-close",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "overhead",
+      "href": "/overhead",
+      "urlPath": "/he-IL/overhead",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/overhead",
+      "status": "VERIFIED_LOAD",
+      "overflowAt320": false
+    },
+    {
+      "key": "settings",
+      "href": "/settings",
+      "urlPath": "/he-IL/settings",
+      "finalUrl": "http://127.0.0.1:3100/he-IL/overhead",
+      "status": "ERROR",
+      "overflowAt320": false,
+      "note": "page.goto: net::ERR_ABORTED at http://127.0.0.1:3100/he-IL/settings\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:3100/he-IL/settings\", waiting until \"commit\"\u001b[22m\n"
+    }
+  ],
+  "summary": {
+    "VERIFIED_LOAD": 58,
+    "OVERFLOW_BROKEN": 1,
+    "ERROR": 1
+  }
+}

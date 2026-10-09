@@ -1,4 +1,4 @@
-import { and, eq, gte, inArray, isNotNull, isNull, lte, or, sql } from 'drizzle-orm';
+import { and, eq, inArray, isNotNull, isNull, sql } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import {
   costCategories,
@@ -326,35 +326,17 @@ function isSubcontractorVendor(type: string | null): boolean {
   return type === 'subcontractor' || type === 'both';
 }
 
-/** @deprecated Use `sumOrganizationRecognizedCostsInDateRange` — expenses-only legacy path. */
+/** @deprecated Use sumOrganizationRecognizedCostsInDateRange — expenses-only legacy path blocked (FIN2-009). */
 export async function sumOrganizationCostsInDateRange(
-  db: DbExecutor,
-  organizationId: string,
-  currency: string,
-  fromDate: BusinessDate,
-  toDate: BusinessDate,
+  _db: DbExecutor,
+  _organizationId: string,
+  _currency: string,
+  _fromDate: BusinessDate,
+  _toDate: BusinessDate,
 ): Promise<MoneyValue> {
-  const directRows = await db
-    .select({ netAmount: expenses.netAmount, currency: expenses.currency })
-    .from(expenses)
-    .where(
-      and(
-        eq(expenses.organizationId, organizationId),
-        eq(expenses.currency, currency),
-        eq(expenses.status, 'finalized'),
-        isNull(expenses.archivedAt),
-        gte(expenses.expenseDate, fromDate),
-        lte(expenses.expenseDate, toDate),
-        or(isNull(expenses.recurringTemplateId), sql`true`),
-      ),
-    );
-
-  const values = directRows
-    .map((row) => fromNumericString(row.netAmount, row.currency))
-    .filter((value): value is MoneyValue => value !== null);
-
-  if (values.length === 0) return zeroMoney(currency);
-  return sumMoney(values, currency);
+  throw new Error(
+    'sumOrganizationCostsInDateRange is deprecated — use sumOrganizationRecognizedCostsInDateRange',
+  );
 }
 
 /**

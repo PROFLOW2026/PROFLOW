@@ -48,7 +48,7 @@ async function loadOwnerStoryCopy(): Promise<OwnerStoryCopy> {
     collected: t('collected'),
     actualProfit: t('actualProfit'),
     afterGeneralProfit: t('afterGeneralProfit'),
-    forecastProfit: t('forecastProfit'),
+    contractForecastBalance: t('contractForecastBalance'),
     unavailable: t('unavailable'),
     breakdownTitle: t('breakdownTitle'),
     categories: {

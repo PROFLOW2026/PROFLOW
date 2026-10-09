@@ -11,6 +11,26 @@
   "badge": {
     "ready": "מוכן לסגירה"
   },
+  "templateRequirements": {
+    "title": "רשימת סגירה מהתבנית",
+    "hint": "מגיעה מתבנית המבנה שהוחלה על הפרויקט. יש להשלים לפני סגירה.",
+    "keys": {
+      "handover_photos": "תמונות מסירה",
+      "punch_closed": "רשימת ליקויים סגורה",
+      "electrical_cert": "תעודת חשמלאי",
+      "as_built": "תוכניות As-built",
+      "commissioning": "הרצת מערכות",
+      "issued_for_construction": "סט הנפקה לביצוע",
+      "practical_completion": "גמר בפועל",
+      "handover_pack": "חבילת מסירה",
+      "warranty_docs": "מסמכי אחריות",
+      "keys": "מסירת מפתחות",
+      "monthly_report": "דוח חודשי",
+      "final_report": "דוח סופי",
+      "commissioning_sheet": "גיליון הרצה",
+      "manuals": "מדריכי ציוד"
+    }
+  },
   "readiness": {
     "title": "מוכנות לסגירה",
     "hard": "חובה לטפל לפני הסגירה",

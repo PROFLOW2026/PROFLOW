@@ -102,6 +102,7 @@
   "laborActual": "عمالة (فعلي)",
   "laborActualUnavailable": "لا يمكن الحساب",
   "vendorActual": "مقاولو باطن وحسابات موردين (فعلي)",
+  "vendorsRecognized": "تكلفة موردين ومقاولي باطن معترف بها",
   "overheadActual": "مصاريف عامة للأعمال (فعلي)",
   "committedOpen": "تكلفة مُلتزم بها (أمر شراء مفتوح)",
   "committedVsActual": "الالتزام منفصل عن الفعلي — وليس مصروفاً",
@@ -333,7 +334,7 @@
     "collected": "نقد مُستلم",
     "actualProfit": "ربح فعلي",
     "afterGeneralProfit": "ربح بعد المصاريف العامة",
-    "forecastProfit": "ربح متوقع",
+    "contractForecastBalance": "رصيد العقد المتوقع",
     "unavailable": "غير متاح",
     "breakdownTitle": "مم يتكوّن التكلفة المعترف بها؟",
     "categories": {

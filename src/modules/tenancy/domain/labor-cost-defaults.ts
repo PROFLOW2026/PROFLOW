@@ -72,6 +72,13 @@ export const laborCostDefaultsSchema = z.object({
     .nullable()
     .optional()
     .default(null),
+  /**
+   * When attendance sync creates project time: `draft` leaves rows for explicit approval;
+   * `auto_approve` promotes when the actor may approve (legacy convenience).
+   */
+  attendanceProjectTimeApproval: z
+    .enum(['draft', 'auto_approve'])
+    .default('draft'),
 });
 
 export type LaborCostDefaults = z.infer<typeof laborCostDefaultsSchema>;
@@ -113,6 +120,7 @@ export function emptyLaborCostDefaults(): LaborCostDefaults {
     workWeekdays: null,
     standardWorkStartTime: null,
     standardWorkEndTime: null,
+    attendanceProjectTimeApproval: 'draft',
   };
 }
 
@@ -127,7 +135,14 @@ export function parseLaborCostDefaults(raw: unknown): LaborCostDefaults {
     workWeekdays: parsed.data.workWeekdays ?? null,
     standardWorkStartTime: normalizeStoredWorkTime(parsed.data.standardWorkStartTime),
     standardWorkEndTime: normalizeStoredWorkTime(parsed.data.standardWorkEndTime),
+    attendanceProjectTimeApproval: parsed.data.attendanceProjectTimeApproval ?? 'draft',
   };
+}
+
+export function shouldAutoApproveAttendanceProjectTime(
+  defaults: Pick<LaborCostDefaults, 'attendanceProjectTimeApproval'> | null | undefined,
+): boolean {
+  return defaults?.attendanceProjectTimeApproval === 'auto_approve';
 }
 
 export interface OrgStandardWorkTimes {

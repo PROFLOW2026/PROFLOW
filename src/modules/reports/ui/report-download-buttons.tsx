@@ -30,9 +30,14 @@ export function ReportDownloadButtons({
   const previewText = previewLabel ?? t('previewKindPrint', { kind: kindLabel });
 
   return (
-    <div className="flex flex-wrap items-center gap-2 print:hidden">
+    <div className="flex min-w-0 max-w-full flex-wrap items-center gap-2 print:hidden">
       {!hidePreview ? (
-        <Button asChild variant={compact ? 'ghost' : 'secondary'} size="sm">
+        <Button
+          asChild
+          variant={compact ? 'ghost' : 'secondary'}
+          size="sm"
+          className={compact ? 'h-auto min-h-11 max-w-full whitespace-normal text-start' : undefined}
+        >
           <Link href={previewHref}>{previewText}</Link>
         </Button>
       ) : null}

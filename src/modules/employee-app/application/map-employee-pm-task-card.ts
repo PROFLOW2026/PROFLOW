@@ -1,5 +1,5 @@
 import type { EmployeePmTaskSummary } from './employee-pm-tasks';
-import type { TaskAssigneeDisplay, TaskCardData, TaskPriority, TaskStatus } from '@/modules/tasks/ui/_task-api-stub';
+import type { TaskAssigneeDisplay, TaskCardData, TaskPriority, TaskStatus } from '@/modules/tasks/ui/task-api';
 
 /** Maps employee PM task rows to TaskCardData for BoardView / TaskCard. */
 export function mapEmployeePmTaskToCardData(

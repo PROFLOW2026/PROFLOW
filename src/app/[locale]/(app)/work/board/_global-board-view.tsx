@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { TaskCard } from '@/modules/tasks/ui/task-card';
 import { TaskDetailSheet } from '@/modules/tasks/ui/task-detail-sheet';
 import { isValidTransition } from '@/modules/tasks/domain/lifecycle';
-import type { TaskCardData, TaskDetail, TaskStatus } from '@/modules/tasks/ui/_task-api-stub';
+import type { TaskCardData, TaskDetail, TaskStatus } from '@/modules/tasks/ui/task-api';
 
 const STATUS_COLUMNS: {
   status: TaskStatus;

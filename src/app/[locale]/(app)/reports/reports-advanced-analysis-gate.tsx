@@ -16,7 +16,7 @@ export function ReportsAdvancedAnalysisGate({
   return (
     <details
       id="reports-advanced-analysis"
-      className="rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)]"
+      className="min-w-0 max-w-full rounded-lg border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)]"
       onToggle={(event) => {
         const target = event.currentTarget;
         if (!target.open) return;
@@ -28,10 +28,10 @@ export function ReportsAdvancedAnalysisGate({
         router.push(`${pathname}?${params.toString()}`, { scroll: false });
       }}
     >
-      <summary className="min-h-11 cursor-pointer px-4 py-3 text-sm font-semibold">
+      <summary className="min-h-11 cursor-pointer break-words px-4 py-3 text-sm font-semibold">
         {t('advancedAnalysis')}
       </summary>
-      <p className="border-t border-[var(--pf-border-default)] px-4 py-3 text-sm text-[var(--pf-text-secondary)]">
+      <p className="break-words border-t border-[var(--pf-border-default)] px-4 py-3 text-sm text-[var(--pf-text-secondary)]">
         {t('advancedAnalysisHint')}
       </p>
     </details>

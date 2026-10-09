@@ -125,6 +125,7 @@ export function lineHasReliableActualMapping(line: ProjectBudgetLineRecord): boo
   if (line.lineType === 'category') return Boolean(line.categoryKey);
   if (line.lineType === 'work_package') return Boolean(line.workPackageId);
   if (line.lineType === 'cost_code') return Boolean(line.costCodeId);
+  if (line.lineType === 'discipline') return Boolean(line.disciplineKey);
   return false;
 }
 
@@ -158,6 +159,13 @@ function contributionMatchesLine(
       Boolean(line.costCodeId) &&
       Boolean(contribution.costCodeId) &&
       contribution.costCodeId === line.costCodeId
+    );
+  }
+  if (line.lineType === 'discipline') {
+    return (
+      Boolean(line.disciplineKey) &&
+      Boolean(contribution.categoryKey) &&
+      contribution.categoryKey === line.disciplineKey
     );
   }
   return false;
@@ -219,7 +227,13 @@ function assignMappedActuals(
       actualByLineId.set(line.id, take(line));
     }
   }
-  // Pass 3 – category (least specific)
+  // Pass 3 – discipline (categoryKey aligned with disciplineKey on budget line)
+  for (const line of lines) {
+    if (line.lineType === 'discipline' && line.disciplineKey) {
+      actualByLineId.set(line.id, take(line));
+    }
+  }
+  // Pass 4 – category (least specific)
   for (const line of lines) {
     if (line.lineType === 'category' && line.categoryKey) {
       actualByLineId.set(line.id, take(line));

@@ -23,6 +23,19 @@ import {
   type HourCostBucket,
 } from './conserved-hour-allocation';
 
+/** Clamp configured denominators so a very low WDM cannot recognize the full pool in a few days (WF-004). */
+export const MIN_MONTHLY_ACCRUAL_WORKING_DAYS = 15;
+
+/** True when an explicit WDM is set below the monthly accrual floor (UI warning only). */
+export function isWorkingDaysPerMonthBelowAccrualFloor(
+  value: string | null | undefined,
+): boolean {
+  const trimmed = value?.trim();
+  if (!trimmed || !/^\d+(\.\d{1,4})?$/.test(trimmed)) return false;
+  const n = Number(trimmed);
+  return Number.isFinite(n) && n > 0 && n < MIN_MONTHLY_ACCRUAL_WORKING_DAYS;
+}
+
 export function resolveWorkingDaysPerMonthDenominator(input: {
   readonly rateVersionWorkingDaysPerMonth: string | null | undefined;
   readonly orgWorkingDaysPerMonth: string | null | undefined;
@@ -85,11 +98,13 @@ export function recognizeMonthlyEmployerPoolToDate(input: {
   readonly dailyBasis: MoneyValue;
   readonly recognizedWorkDayCount: number;
 } {
+  const configuredDays = new Decimal(input.workingDaysPerMonth);
+  const W = Decimal.max(configuredDays, MIN_MONTHLY_ACCRUAL_WORKING_DAYS);
+  const effectiveDenominator = W.toString();
   const dailyBasis = deriveMonthlyDailyCostBasis({
     fullMonthlyEmployerCost: input.fullMonthlyEmployerCost,
-    workingDaysPerMonth: input.workingDaysPerMonth,
+    workingDaysPerMonth: effectiveDenominator,
   });
-  const W = new Decimal(input.workingDaysPerMonth);
   const currency = input.fullMonthlyEmployerCost.currency;
 
   if (input.recognizeFullMonth) {

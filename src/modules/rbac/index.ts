@@ -2,6 +2,8 @@
 export {
   provisionOrganizationRoles,
   loadEffectivePermissions,
+  loadProjectRolePermissions,
+  loadEffectivePermissionsForProject,
   listOrganizationRoles,
   listRolePermissions,
   listPermissionsByRoleIds,
@@ -9,6 +11,7 @@ export {
   assignRole,
   ensureRoleAssigned,
 } from './data/roles.repository';
+export { scopeOrgContextToProject } from './application/scope-org-context-to-project';
 export { setRolePermissionToggle } from './application/manage-role-permissions';
 export { assertCanGrantRole } from './application/assert-can-grant-role';
 export { findEscalatingPermissions, isPermissionSubset } from './domain/permission-subset';

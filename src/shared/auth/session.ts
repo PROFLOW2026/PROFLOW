@@ -109,14 +109,30 @@ export async function requireSession(): Promise<
  * is set with `SET LOCAL`; handing out a context whose executor outlives the
  * transaction would silently produce unfiltered queries.
  */
-export async function withOrgContext<T>(fn: (context: OrgContext) => Promise<T>): Promise<T> {
+export type WithOrgContextOptions = {
+  /** Merges project-scoped role permissions after `can_access_project` (0174 app parity). */
+  readonly projectId?: string;
+};
+
+export async function withOrgContext<T>(
+  fn: (context: OrgContext) => Promise<T>,
+  options?: WithOrgContextOptions,
+): Promise<T> {
   const session = await requireSession();
 
   if (!session.activeOrganizationId) {
     redirect({ href: '/onboarding', locale: await getLocale() });
   }
 
-  return runInOrgContext(session.user.id, session.activeOrganizationId!, fn);
+  return runInOrgContext(session.user.id, session.activeOrganizationId!, fn, options);
+}
+
+/** Project routes: org-wide permissions plus roles scoped to this project only. */
+export async function withProjectOrgContext<T>(
+  projectId: string,
+  fn: (context: OrgContext) => Promise<T>,
+): Promise<T> {
+  return withOrgContext(fn, { projectId });
 }
 
 /** Same as `withOrgContext` but for an organization named explicitly in the URL. */
@@ -142,6 +158,7 @@ export async function runInOrgContext<T>(
   userId: string,
   organizationId: string,
   fn: (context: OrgContext) => Promise<T>,
+  options?: WithOrgContextOptions,
 ): Promise<T> {
   const nested = getOrgRequestTxFrame();
   const locale = await getLocale();
@@ -150,12 +167,18 @@ export async function runInOrgContext<T>(
     const { enrichOrgContextWithEmployeeApp } = await import(
       '@/modules/employee-app/application/enrich-context'
     );
+    const { scopeOrgContextToProject } = await import(
+      '@/modules/rbac/application/scope-org-context-to-project'
+    );
     const base = orgContextFromAuthzSnapshot(nested.snapshot, {
       userId,
       locale,
       db: nested.tx,
     });
-    const context = await enrichOrgContextWithEmployeeApp(base);
+    let context = await enrichOrgContextWithEmployeeApp(base);
+    if (options?.projectId) {
+      context = await scopeOrgContextToProject(context, options.projectId);
+    }
     return fn(context);
   }
 
@@ -175,12 +198,18 @@ export async function runInOrgContext<T>(
       const { enrichOrgContextWithEmployeeApp } = await import(
         '@/modules/employee-app/application/enrich-context'
       );
+      const { scopeOrgContextToProject } = await import(
+        '@/modules/rbac/application/scope-org-context-to-project'
+      );
       const base = orgContextFromAuthzSnapshot(snapshot, {
         userId,
         locale,
         db: tx,
       });
-      const context = await enrichOrgContextWithEmployeeApp(base);
+      let context = await enrichOrgContextWithEmployeeApp(base);
+      if (options?.projectId) {
+        context = await scopeOrgContextToProject(context, options.projectId);
+      }
       return fn(context);
     });
   });
@@ -296,6 +325,30 @@ export const getShellContext = cache(async () => {
 });
 
 export type ShellContext = NonNullable<Awaited<ReturnType<typeof getShellContext>>>;
+
+/**
+ * App shell permissions merged with project-scoped RBAC (tabs/chrome on project routes).
+ * Org-wide cached authz is unchanged; project overlay is computed per `(request, projectId)`.
+ */
+export async function getShellContextForProject(projectId: string): Promise<ShellContext | null> {
+  const base = await getShellContext();
+  if (!base) return null;
+
+  const session = await getSessionState();
+  if (session.status !== 'authenticated' || !session.activeOrganizationId) return base;
+
+  const scoped = await runInOrgContext(
+    session.user.id,
+    session.activeOrganizationId,
+    async (context) => ({
+      permissions: context.permissions,
+      roleKeys: context.roleKeys,
+    }),
+    { projectId },
+  );
+
+  return { ...base, permissions: scoped.permissions, roleKeys: scoped.roleKeys };
+}
 
 /** Deferred Quick Create prefs — not awaited by AppShell layout. */
 export const getShellQuickCreatePrefs = cache(async () => {

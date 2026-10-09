@@ -1,0 +1,2328 @@
+{
+  "generatedAt": "2026-10-09T11:16:35.556Z",
+  "count": 387,
+  "routes": [
+    {
+      "inventoryLine": "[locale]",
+      "persona": "owner",
+      "urlPath": "/he-IL",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/approvals",
+      "persona": "owner",
+      "urlPath": "/he-IL/approvals",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/assets",
+      "persona": "owner",
+      "urlPath": "/he-IL/assets",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/assets/[assetId]",
+      "persona": "owner",
+      "urlPath": "/he-IL/assets/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/assets/fleet",
+      "persona": "owner",
+      "urlPath": "/he-IL/assets/fleet",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/assets/inventory",
+      "persona": "owner",
+      "urlPath": "/he-IL/assets/inventory",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/assets/inventory/[itemId]",
+      "persona": "owner",
+      "urlPath": "/he-IL/assets/inventory/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/assets/maintenance",
+      "persona": "owner",
+      "urlPath": "/he-IL/assets/maintenance",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/assets/new",
+      "persona": "owner",
+      "urlPath": "/he-IL/assets/new",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/assistant",
+      "persona": "owner",
+      "urlPath": "/he-IL/assistant",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/automations",
+      "persona": "owner",
+      "urlPath": "/he-IL/automations",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/billing",
+      "persona": "owner",
+      "urlPath": "/he-IL/billing",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/billing/[billingRecordId]",
+      "persona": "owner",
+      "urlPath": "/he-IL/billing/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/billing/new",
+      "persona": "owner",
+      "urlPath": "/he-IL/billing/new",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/billing/payments/[paymentId]/allocate",
+      "persona": "owner",
+      "urlPath": "/he-IL/billing/payments/508765d2-3397-4916-9591-480faf00f007/allocate",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/billing/payments/new",
+      "persona": "owner",
+      "urlPath": "/he-IL/billing/payments/new",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/calendar",
+      "persona": "owner",
+      "urlPath": "/he-IL/calendar",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/cash-flow",
+      "persona": "owner",
+      "urlPath": "/he-IL/cash-flow",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/changes",
+      "persona": "owner",
+      "urlPath": "/he-IL/changes",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/changes/[changeRequestId]",
+      "persona": "owner",
+      "urlPath": "/he-IL/changes/5955ba8e-309e-4b66-8386-d2f5c3fedcd0",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/changes/[changeRequestId]/approve",
+      "persona": "owner",
+      "urlPath": "/he-IL/changes/5955ba8e-309e-4b66-8386-d2f5c3fedcd0/approve",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/changes/[changeRequestId]/price",
+      "persona": "owner",
+      "urlPath": "/he-IL/changes/5955ba8e-309e-4b66-8386-d2f5c3fedcd0/price",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/changes/new",
+      "persona": "owner",
+      "urlPath": "/he-IL/changes/new",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/clients",
+      "persona": "owner",
+      "urlPath": "/he-IL/clients",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/clients/[clientId]",
+      "persona": "owner",
+      "urlPath": "/he-IL/clients/4a81c4b1-4892-44dd-9a1d-b592df14420f",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/clients/new",
+      "persona": "owner",
+      "urlPath": "/he-IL/clients/new",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/communications",
+      "persona": "owner",
+      "urlPath": "/he-IL/communications",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/communications/[communicationId]",
+      "persona": "owner",
+      "urlPath": "/he-IL/communications/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/communications/new",
+      "persona": "owner",
+      "urlPath": "/he-IL/communications/new",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/company-files",
+      "persona": "owner",
+      "urlPath": "/he-IL/company-files",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/compliance",
+      "persona": "owner",
+      "urlPath": "/he-IL/compliance",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/compliance/[artifactId]",
+      "persona": "owner",
+      "urlPath": "/he-IL/compliance/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/compliance/new",
+      "persona": "owner",
+      "urlPath": "/he-IL/compliance/new",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/contracts",
+      "persona": "owner",
+      "urlPath": "/he-IL/contracts",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/crm",
+      "persona": "owner",
+      "urlPath": "/he-IL/crm",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/crm/leads",
+      "persona": "owner",
+      "urlPath": "/he-IL/crm/leads",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/crm/leads/[leadId]",
+      "persona": "owner",
+      "urlPath": "/he-IL/crm/leads/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/crm/leads/new",
+      "persona": "owner",
+      "urlPath": "/he-IL/crm/leads/new",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/crm/opportunities/[opportunityId]",
+      "persona": "owner",
+      "urlPath": "/he-IL/crm/opportunities/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/crm/opportunities/new",
+      "persona": "owner",
+      "urlPath": "/he-IL/crm/opportunities/new",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/crm/prospects",
+      "persona": "owner",
+      "urlPath": "/he-IL/crm/prospects",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/crm/prospects/[prospectId]",
+      "persona": "owner",
+      "urlPath": "/he-IL/crm/prospects/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/crm/prospects/new",
+      "persona": "owner",
+      "urlPath": "/he-IL/crm/prospects/new",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/dispatch",
+      "persona": "owner",
+      "urlPath": "/he-IL/dispatch",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/documents",
+      "persona": "owner",
+      "urlPath": "/he-IL/documents",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/documents/ocr-review",
+      "persona": "owner",
+      "urlPath": "/he-IL/documents/ocr-review",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/documents/ocr-review/history",
+      "persona": "owner",
+      "urlPath": "/he-IL/documents/ocr-review/history",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/expenses",
+      "persona": "owner",
+      "urlPath": "/he-IL/expenses",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/expenses/[expenseId]",
+      "persona": "owner",
+      "urlPath": "/he-IL/expenses/9ae12bd3-1baa-445a-8a76-7369d2bfe23d",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/expenses/new",
+      "persona": "owner",
+      "urlPath": "/he-IL/expenses/new",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/expenses/received",
+      "persona": "owner",
+      "urlPath": "/he-IL/expenses/received",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/field",
+      "persona": "owner",
+      "urlPath": "/he-IL/field",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/field-ops",
+      "persona": "owner",
+      "urlPath": "/he-IL/field-ops",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/field-ops/inspections",
+      "persona": "owner",
+      "urlPath": "/he-IL/field-ops/inspections",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/field-ops/inspections/[inspectionId]",
+      "persona": "owner",
+      "urlPath": "/he-IL/field-ops/inspections/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/field-ops/inspections/new",
+      "persona": "owner",
+      "urlPath": "/he-IL/field-ops/inspections/new",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/field-ops/logs",
+      "persona": "owner",
+      "urlPath": "/he-IL/field-ops/logs",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/field-ops/logs/[logId]",
+      "persona": "owner",
+      "urlPath": "/he-IL/field-ops/logs/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/field-ops/logs/new",
+      "persona": "owner",
+      "urlPath": "/he-IL/field-ops/logs/new",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/field-ops/punch",
+      "persona": "owner",
+      "urlPath": "/he-IL/field-ops/punch",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/field-ops/punch/[punchId]",
+      "persona": "owner",
+      "urlPath": "/he-IL/field-ops/punch/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/field-ops/punch/new",
+      "persona": "owner",
+      "urlPath": "/he-IL/field-ops/punch/new",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/financials/business-profitability",
+      "persona": "owner",
+      "urlPath": "/he-IL/financials/business-profitability",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/financials/overview",
+      "persona": "owner",
+      "urlPath": "/he-IL/financials/overview",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/forms",
+      "persona": "owner",
+      "urlPath": "/he-IL/forms",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/forms/[submissionId]",
+      "persona": "owner",
+      "urlPath": "/he-IL/forms/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/forms/new",
+      "persona": "owner",
+      "urlPath": "/he-IL/forms/new",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/imports",
+      "persona": "owner",
+      "urlPath": "/he-IL/imports",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/inbox",
+      "persona": "owner",
+      "urlPath": "/he-IL/inbox",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/integrations",
+      "persona": "owner",
+      "urlPath": "/he-IL/integrations",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/jobs",
+      "persona": "owner",
+      "urlPath": "/he-IL/jobs",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/jobs/[jobId]",
+      "persona": "owner",
+      "urlPath": "/he-IL/jobs/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/jobs/new",
+      "persona": "owner",
+      "urlPath": "/he-IL/jobs/new",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/material-market",
+      "persona": "owner",
+      "urlPath": "/he-IL/material-market",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/material-market/[trade]",
+      "persona": "owner",
+      "urlPath": "/he-IL/material-market/electrical",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/meetings",
+      "persona": "owner",
+      "urlPath": "/he-IL/meetings",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/meetings/[meetingId]",
+      "persona": "owner",
+      "urlPath": "/he-IL/meetings/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/meetings/[meetingId]/action-items/[actionItemId]/create-task",
+      "persona": "owner",
+      "urlPath": "/he-IL/meetings/508765d2-3397-4916-9591-480faf00f007/action-items/508765d2-3397-4916-9591-480faf00f007/create-task",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/meetings/[meetingId]/action-items/[actionItemId]/edit",
+      "persona": "owner",
+      "urlPath": "/he-IL/meetings/508765d2-3397-4916-9591-480faf00f007/action-items/508765d2-3397-4916-9591-480faf00f007/edit",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/meetings/[meetingId]/action-items/new",
+      "persona": "owner",
+      "urlPath": "/he-IL/meetings/508765d2-3397-4916-9591-480faf00f007/action-items/new",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/meetings/[meetingId]/attendees/add",
+      "persona": "owner",
+      "urlPath": "/he-IL/meetings/508765d2-3397-4916-9591-480faf00f007/attendees/add",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/meetings/[meetingId]/decisions/[decisionId]/edit",
+      "persona": "owner",
+      "urlPath": "/he-IL/meetings/508765d2-3397-4916-9591-480faf00f007/decisions/508765d2-3397-4916-9591-480faf00f007/edit",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/meetings/[meetingId]/decisions/new",
+      "persona": "owner",
+      "urlPath": "/he-IL/meetings/508765d2-3397-4916-9591-480faf00f007/decisions/new",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/meetings/[meetingId]/edit",
+      "persona": "owner",
+      "urlPath": "/he-IL/meetings/508765d2-3397-4916-9591-480faf00f007/edit",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/meetings/new",
+      "persona": "owner",
+      "urlPath": "/he-IL/meetings/new",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/month-close",
+      "persona": "owner",
+      "urlPath": "/he-IL/month-close",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/notifications",
+      "persona": "owner",
+      "urlPath": "/he-IL/notifications",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/operations",
+      "persona": "owner",
+      "urlPath": "/he-IL/operations",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/overhead",
+      "persona": "owner",
+      "urlPath": "/he-IL/overhead",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/portfolio",
+      "persona": "owner",
+      "urlPath": "/he-IL/portfolio",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/procurement",
+      "persona": "owner",
+      "urlPath": "/he-IL/procurement",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/procurement/[purchaseOrderId]",
+      "persona": "owner",
+      "urlPath": "/he-IL/procurement/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/procurement/ap",
+      "persona": "owner",
+      "urlPath": "/he-IL/procurement/ap",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/procurement/ap/[billId]",
+      "persona": "owner",
+      "urlPath": "/he-IL/procurement/ap/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/procurement/ap/aging",
+      "persona": "owner",
+      "urlPath": "/he-IL/procurement/ap/aging",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/procurement/ap/credits",
+      "persona": "owner",
+      "urlPath": "/he-IL/procurement/ap/credits",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/procurement/ap/credits/[creditId]",
+      "persona": "owner",
+      "urlPath": "/he-IL/procurement/ap/credits/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/procurement/ap/credits/new",
+      "persona": "owner",
+      "urlPath": "/he-IL/procurement/ap/credits/new",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/procurement/ap/new",
+      "persona": "owner",
+      "urlPath": "/he-IL/procurement/ap/new",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/procurement/materials",
+      "persona": "owner",
+      "urlPath": "/he-IL/procurement/materials",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/procurement/materials/[materialId]",
+      "persona": "owner",
+      "urlPath": "/he-IL/procurement/materials/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/procurement/new",
+      "persona": "owner",
+      "urlPath": "/he-IL/procurement/new",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/procurement/rfqs",
+      "persona": "owner",
+      "urlPath": "/he-IL/procurement/rfqs",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/procurement/rfqs/[rfqId]",
+      "persona": "owner",
+      "urlPath": "/he-IL/procurement/rfqs/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/procurement/rfqs/new",
+      "persona": "owner",
+      "urlPath": "/he-IL/procurement/rfqs/new",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/activity",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/activity",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/billing-plan/cycles/[cycleId]/print",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/billing-plan/cycles/508765d2-3397-4916-9591-480faf00f007/print",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/boards",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/boards",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/boards/[boardId]",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/boards/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/boq-measure",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/boq-measure",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/calendar",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/calendar",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/claims",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/claims",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/claims/[claimId]",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/claims/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/contractor-access",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/contractor-access",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/contractor-closeout",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/contractor-closeout",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/contractor-compliance",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/contractor-compliance",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/contractor-payments",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/contractor-payments",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/contractors",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/contractors",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/contractors/[agreementId]",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/contractors/af29ed2b-4bdc-4cc9-9066-cb32cdf7c268",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/contractors/[agreementId]/changes",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/contractors/af29ed2b-4bdc-4cc9-9066-cb32cdf7c268/changes",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/contractors/[agreementId]/lines",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/contractors/af29ed2b-4bdc-4cc9-9066-cb32cdf7c268/lines",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/contractor-warranty",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/contractor-warranty",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/coordination",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/coordination",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/coordination/[eventId]",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/coordination/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/cost-control",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/cost-control",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/deductions",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/deductions",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/defects",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/defects",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/defects/[defectId]",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/defects/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/deliveries",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/deliveries",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/execution",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/execution",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/execution-contracts",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/execution-contracts",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/execution-planning",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/execution-planning",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/execution-quality",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/execution-quality",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/financials",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/financials",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/inspections",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/inspections",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/inspections/[inspectionId]",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/inspections/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/instructions",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/instructions",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/instructions/[instructionId]",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/instructions/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/plans",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/plans",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/plans/[drawingId]",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/plans/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/rfi",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/rfi",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/rfi/[rfiId]",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/rfi/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/site-log",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/site-log",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/site-log/[logDate]",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/site-log/2026-08-01",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/site-meetings",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/site-meetings",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/site-meetings/[meetingId]",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/site-meetings/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/site-safety",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/site-safety",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/structure",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/structure",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/submittals",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/submittals",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/submittals/[submittalId]",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/submittals/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/tasks",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/tasks",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/team",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/team",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/tenders",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/tenders",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/tenders/[packageId]",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/tenders/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/timeline",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/timeline",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/[projectId]/unpriced-work",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/508765d2-3397-4916-9591-480faf00f007/unpriced-work",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/projects/new",
+      "persona": "owner",
+      "urlPath": "/he-IL/projects/new",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/quick-capture",
+      "persona": "owner",
+      "urlPath": "/he-IL/quick-capture",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/quick-capture/[captureId]",
+      "persona": "owner",
+      "urlPath": "/he-IL/quick-capture/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/quick-capture/inbox",
+      "persona": "owner",
+      "urlPath": "/he-IL/quick-capture/inbox",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/quotes",
+      "persona": "owner",
+      "urlPath": "/he-IL/quotes",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/quotes/[quoteId]",
+      "persona": "owner",
+      "urlPath": "/he-IL/quotes/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/quotes/new",
+      "persona": "owner",
+      "urlPath": "/he-IL/quotes/new",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/quotes/settings",
+      "persona": "owner",
+      "urlPath": "/he-IL/quotes/settings",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/recurring-drafts",
+      "persona": "owner",
+      "urlPath": "/he-IL/recurring-drafts",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/recurring-drafts/[draftId]",
+      "persona": "owner",
+      "urlPath": "/he-IL/recurring-drafts/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/recurring-drafts/[draftId]/edit",
+      "persona": "owner",
+      "urlPath": "/he-IL/recurring-drafts/508765d2-3397-4916-9591-480faf00f007/edit",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/recurring-drafts/new",
+      "persona": "owner",
+      "urlPath": "/he-IL/recurring-drafts/new",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/reports",
+      "persona": "owner",
+      "urlPath": "/he-IL/reports",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/reports/preview",
+      "persona": "owner",
+      "urlPath": "/he-IL/reports/preview",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/safety",
+      "persona": "owner",
+      "urlPath": "/he-IL/safety",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/safety/[recordId]",
+      "persona": "owner",
+      "urlPath": "/he-IL/safety/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/safety/new",
+      "persona": "owner",
+      "urlPath": "/he-IL/safety/new",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/sales",
+      "persona": "owner",
+      "urlPath": "/he-IL/sales",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/scheduling",
+      "persona": "owner",
+      "urlPath": "/he-IL/scheduling",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/service/recurring",
+      "persona": "owner",
+      "urlPath": "/he-IL/service/recurring",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/service/recurring/[definitionId]",
+      "persona": "owner",
+      "urlPath": "/he-IL/service/recurring/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/service/recurring/new",
+      "persona": "owner",
+      "urlPath": "/he-IL/service/recurring/new",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/settings",
+      "persona": "owner",
+      "urlPath": "/he-IL/settings",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/settings/activity",
+      "persona": "owner",
+      "urlPath": "/he-IL/settings/activity",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/settings/adoption",
+      "persona": "owner",
+      "urlPath": "/he-IL/settings/adoption",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/settings/api",
+      "persona": "owner",
+      "urlPath": "/he-IL/settings/api",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/settings/app",
+      "persona": "owner",
+      "urlPath": "/he-IL/settings/app",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/settings/approvals",
+      "persona": "owner",
+      "urlPath": "/he-IL/settings/approvals",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/settings/banking",
+      "persona": "owner",
+      "urlPath": "/he-IL/settings/banking",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/settings/branding",
+      "persona": "owner",
+      "urlPath": "/he-IL/settings/branding",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/settings/business",
+      "persona": "owner",
+      "urlPath": "/he-IL/settings/business",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/settings/business-catalogs",
+      "persona": "owner",
+      "urlPath": "/he-IL/settings/business-catalogs",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/settings/catalog",
+      "persona": "owner",
+      "urlPath": "/he-IL/settings/catalog",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/settings/cost-categories",
+      "persona": "owner",
+      "urlPath": "/he-IL/settings/cost-categories",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/settings/custom-fields",
+      "persona": "owner",
+      "urlPath": "/he-IL/settings/custom-fields",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/settings/features",
+      "persona": "owner",
+      "urlPath": "/he-IL/settings/features",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/settings/forms",
+      "persona": "owner",
+      "urlPath": "/he-IL/settings/forms",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/settings/integrations",
+      "persona": "owner",
+      "urlPath": "/he-IL/settings/integrations",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/settings/labels",
+      "persona": "owner",
+      "urlPath": "/he-IL/settings/labels",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/settings/modules",
+      "persona": "owner",
+      "urlPath": "/he-IL/settings/modules",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/settings/numbering",
+      "persona": "owner",
+      "urlPath": "/he-IL/settings/numbering",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/settings/ocr",
+      "persona": "owner",
+      "urlPath": "/he-IL/settings/ocr",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/settings/offline-drafts",
+      "persona": "owner",
+      "urlPath": "/he-IL/settings/offline-drafts",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/settings/org-profile",
+      "persona": "owner",
+      "urlPath": "/he-IL/settings/org-profile",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/settings/people",
+      "persona": "owner",
+      "urlPath": "/he-IL/settings/people",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/settings/portal",
+      "persona": "public",
+      "urlPath": "/he-IL/settings/portal",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/settings/profile",
+      "persona": "owner",
+      "urlPath": "/he-IL/settings/profile",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/settings/project-task-templates",
+      "persona": "owner",
+      "urlPath": "/he-IL/settings/project-task-templates",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/settings/project-templates",
+      "persona": "owner",
+      "urlPath": "/he-IL/settings/project-templates",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/settings/quotes",
+      "persona": "owner",
+      "urlPath": "/he-IL/settings/quotes",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/settings/roles",
+      "persona": "owner",
+      "urlPath": "/he-IL/settings/roles",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/settings/stages",
+      "persona": "owner",
+      "urlPath": "/he-IL/settings/stages",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/settings/storage",
+      "persona": "owner",
+      "urlPath": "/he-IL/settings/storage",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/settings/task-templates",
+      "persona": "owner",
+      "urlPath": "/he-IL/settings/task-templates",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/settings/tax",
+      "persona": "owner",
+      "urlPath": "/he-IL/settings/tax",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/settings/templates",
+      "persona": "owner",
+      "urlPath": "/he-IL/settings/templates",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/subcontracts",
+      "persona": "owner",
+      "urlPath": "/he-IL/subcontracts",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/tasks/[taskId]",
+      "persona": "owner",
+      "urlPath": "/he-IL/tasks/df4d0f71-66fd-4c5c-9d4b-d3f300bd1d80",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/today",
+      "persona": "owner",
+      "urlPath": "/he-IL/today",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/vendors",
+      "persona": "owner",
+      "urlPath": "/he-IL/vendors",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/vendors/[vendorId]",
+      "persona": "owner",
+      "urlPath": "/he-IL/vendors/df2da029-02f1-4e81-83d6-0d6fc812b853",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/vendors/new",
+      "persona": "owner",
+      "urlPath": "/he-IL/vendors/new",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/warranty",
+      "persona": "owner",
+      "urlPath": "/he-IL/warranty",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/work",
+      "persona": "owner",
+      "urlPath": "/he-IL/work",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/work/board",
+      "persona": "owner",
+      "urlPath": "/he-IL/work/board",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/work/calendar",
+      "persona": "owner",
+      "urlPath": "/he-IL/work/calendar",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/work/insights",
+      "persona": "owner",
+      "urlPath": "/he-IL/work/insights",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/work/timeline",
+      "persona": "owner",
+      "urlPath": "/he-IL/work/timeline",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/workforce",
+      "persona": "owner",
+      "urlPath": "/he-IL/workforce",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/workforce/attendance",
+      "persona": "owner",
+      "urlPath": "/he-IL/workforce/attendance",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/workforce/attendance/monthly",
+      "persona": "owner",
+      "urlPath": "/he-IL/workforce/attendance/monthly",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/workforce/attendance/reports",
+      "persona": "owner",
+      "urlPath": "/he-IL/workforce/attendance/reports",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/workforce/employees",
+      "persona": "owner",
+      "urlPath": "/he-IL/workforce/employees",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/workforce/employees/[employeeId]",
+      "persona": "owner",
+      "urlPath": "/he-IL/workforce/employees/4e23828e-5df1-4e55-84cc-55956949278b",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/workforce/employees/new",
+      "persona": "owner",
+      "urlPath": "/he-IL/workforce/employees/new",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/workforce/reports/monthly",
+      "persona": "owner",
+      "urlPath": "/he-IL/workforce/reports/monthly",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/workforce/time",
+      "persona": "owner",
+      "urlPath": "/he-IL/workforce/time",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/workforce/time/approvals",
+      "persona": "owner",
+      "urlPath": "/he-IL/workforce/time/approvals",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/workforce/time/new",
+      "persona": "owner",
+      "urlPath": "/he-IL/workforce/time/new",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/workforce/timesheets",
+      "persona": "owner",
+      "urlPath": "/he-IL/workforce/timesheets",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/workforce/timesheets/[timesheetId]",
+      "persona": "owner",
+      "urlPath": "/he-IL/workforce/timesheets/00000000-0000-4000-8000-000000000001",
+      "usedPlaceholder": true
+    },
+    {
+      "inventoryLine": "[locale]/(app)/workload",
+      "persona": "owner",
+      "urlPath": "/he-IL/workload",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/work-orders",
+      "persona": "owner",
+      "urlPath": "/he-IL/work-orders",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/work-orders/[id]",
+      "persona": "owner",
+      "urlPath": "/he-IL/work-orders/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/work-orders/new",
+      "persona": "owner",
+      "urlPath": "/he-IL/work-orders/new",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/workspaces",
+      "persona": "owner",
+      "urlPath": "/he-IL/workspaces",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/workspaces/[workspaceId]/boards",
+      "persona": "owner",
+      "urlPath": "/he-IL/workspaces/508765d2-3397-4916-9591-480faf00f007/boards",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/workspaces/[workspaceId]/boards/[boardId]",
+      "persona": "owner",
+      "urlPath": "/he-IL/workspaces/508765d2-3397-4916-9591-480faf00f007/boards/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(app)/workspaces/[workspaceId]/boards/new",
+      "persona": "owner",
+      "urlPath": "/he-IL/workspaces/508765d2-3397-4916-9591-480faf00f007/boards/new",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(auth)/accept-invite",
+      "persona": "public",
+      "urlPath": "/he-IL/accept-invite",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(auth)/forgot-password",
+      "persona": "public",
+      "urlPath": "/he-IL/forgot-password",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(auth)/portal-access",
+      "persona": "public",
+      "urlPath": "/he-IL/portal-access",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(auth)/reset-password",
+      "persona": "public",
+      "urlPath": "/he-IL/reset-password",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(auth)/sign-in",
+      "persona": "public",
+      "urlPath": "/he-IL/sign-in",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/(auth)/sign-up",
+      "persona": "public",
+      "urlPath": "/he-IL/sign-up",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/contractor/(auth)/activate",
+      "persona": "contractor",
+      "urlPath": "/he-IL/contractor/activate",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/contractor/(auth)/forgot-password",
+      "persona": "contractor",
+      "urlPath": "/he-IL/contractor/forgot-password",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/contractor/(auth)/reset-password",
+      "persona": "contractor",
+      "urlPath": "/he-IL/contractor/reset-password",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/contractor/(auth)/sign-in",
+      "persona": "contractor",
+      "urlPath": "/he-IL/contractor/sign-in",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/contractor/(portal)",
+      "persona": "contractor",
+      "urlPath": "/he-IL/contractor/(portal)",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/contractor/(portal)/account",
+      "persona": "contractor",
+      "urlPath": "/he-IL/contractor/account",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/contractor/(portal)/notifications",
+      "persona": "contractor",
+      "urlPath": "/he-IL/contractor/notifications",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/contractor/(portal)/projects/[projectId]",
+      "persona": "contractor",
+      "urlPath": "/he-IL/contractor/projects/59550d49-ea7a-4c22-b1dd-a436d739a292",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/contractor/(portal)/projects/[projectId]/claims",
+      "persona": "contractor",
+      "urlPath": "/he-IL/contractor/projects/59550d49-ea7a-4c22-b1dd-a436d739a292/claims",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/contractor/(portal)/projects/[projectId]/claims/[claimId]",
+      "persona": "contractor",
+      "urlPath": "/he-IL/contractor/projects/59550d49-ea7a-4c22-b1dd-a436d739a292/claims/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/contractor/(portal)/projects/[projectId]/compliance",
+      "persona": "contractor",
+      "urlPath": "/he-IL/contractor/projects/59550d49-ea7a-4c22-b1dd-a436d739a292/compliance",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/contractor/(portal)/projects/[projectId]/contracts/[agreementId]",
+      "persona": "contractor",
+      "urlPath": "/he-IL/contractor/projects/59550d49-ea7a-4c22-b1dd-a436d739a292/contracts/af29ed2b-4bdc-4cc9-9066-cb32cdf7c268",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/contractor/(portal)/projects/[projectId]/contracts/[agreementId]/changes",
+      "persona": "contractor",
+      "urlPath": "/he-IL/contractor/projects/59550d49-ea7a-4c22-b1dd-a436d739a292/contracts/af29ed2b-4bdc-4cc9-9066-cb32cdf7c268/changes",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/contractor/(portal)/projects/[projectId]/defects",
+      "persona": "contractor",
+      "urlPath": "/he-IL/contractor/projects/59550d49-ea7a-4c22-b1dd-a436d739a292/defects",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/contractor/(portal)/projects/[projectId]/defects/[defectId]",
+      "persona": "contractor",
+      "urlPath": "/he-IL/contractor/projects/59550d49-ea7a-4c22-b1dd-a436d739a292/defects/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/contractor/(portal)/projects/[projectId]/deliveries",
+      "persona": "contractor",
+      "urlPath": "/he-IL/contractor/projects/59550d49-ea7a-4c22-b1dd-a436d739a292/deliveries",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/contractor/(portal)/projects/[projectId]/documents",
+      "persona": "contractor",
+      "urlPath": "/he-IL/contractor/projects/59550d49-ea7a-4c22-b1dd-a436d739a292/documents",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/contractor/(portal)/projects/[projectId]/events/[eventId]",
+      "persona": "contractor",
+      "urlPath": "/he-IL/contractor/projects/59550d49-ea7a-4c22-b1dd-a436d739a292/events/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/contractor/(portal)/projects/[projectId]/handover",
+      "persona": "contractor",
+      "urlPath": "/he-IL/contractor/projects/59550d49-ea7a-4c22-b1dd-a436d739a292/handover",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/contractor/(portal)/projects/[projectId]/inspections",
+      "persona": "contractor",
+      "urlPath": "/he-IL/contractor/projects/59550d49-ea7a-4c22-b1dd-a436d739a292/inspections",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/contractor/(portal)/projects/[projectId]/instructions",
+      "persona": "contractor",
+      "urlPath": "/he-IL/contractor/projects/59550d49-ea7a-4c22-b1dd-a436d739a292/instructions",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/contractor/(portal)/projects/[projectId]/instructions/[instructionId]",
+      "persona": "contractor",
+      "urlPath": "/he-IL/contractor/projects/59550d49-ea7a-4c22-b1dd-a436d739a292/instructions/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/contractor/(portal)/projects/[projectId]/payments",
+      "persona": "contractor",
+      "urlPath": "/he-IL/contractor/projects/59550d49-ea7a-4c22-b1dd-a436d739a292/payments",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/contractor/(portal)/projects/[projectId]/plans",
+      "persona": "contractor",
+      "urlPath": "/he-IL/contractor/projects/59550d49-ea7a-4c22-b1dd-a436d739a292/plans",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/contractor/(portal)/projects/[projectId]/plans/[drawingId]",
+      "persona": "contractor",
+      "urlPath": "/he-IL/contractor/projects/59550d49-ea7a-4c22-b1dd-a436d739a292/plans/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/contractor/(portal)/projects/[projectId]/rfi",
+      "persona": "contractor",
+      "urlPath": "/he-IL/contractor/projects/59550d49-ea7a-4c22-b1dd-a436d739a292/rfi",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/contractor/(portal)/projects/[projectId]/rfi/[rfiId]",
+      "persona": "contractor",
+      "urlPath": "/he-IL/contractor/projects/59550d49-ea7a-4c22-b1dd-a436d739a292/rfi/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/contractor/(portal)/projects/[projectId]/safety",
+      "persona": "contractor",
+      "urlPath": "/he-IL/contractor/projects/59550d49-ea7a-4c22-b1dd-a436d739a292/safety",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/contractor/(portal)/projects/[projectId]/schedule",
+      "persona": "contractor",
+      "urlPath": "/he-IL/contractor/projects/59550d49-ea7a-4c22-b1dd-a436d739a292/schedule",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/contractor/(portal)/projects/[projectId]/site-log",
+      "persona": "contractor",
+      "urlPath": "/he-IL/contractor/projects/59550d49-ea7a-4c22-b1dd-a436d739a292/site-log",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/contractor/(portal)/projects/[projectId]/submittals",
+      "persona": "contractor",
+      "urlPath": "/he-IL/contractor/projects/59550d49-ea7a-4c22-b1dd-a436d739a292/submittals",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/contractor/(portal)/projects/[projectId]/submittals/[submittalId]",
+      "persona": "contractor",
+      "urlPath": "/he-IL/contractor/projects/59550d49-ea7a-4c22-b1dd-a436d739a292/submittals/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/contractor/(portal)/projects/[projectId]/tasks",
+      "persona": "contractor",
+      "urlPath": "/he-IL/contractor/projects/59550d49-ea7a-4c22-b1dd-a436d739a292/tasks",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/contractor/(portal)/projects/[projectId]/tasks/[taskId]",
+      "persona": "contractor",
+      "urlPath": "/he-IL/contractor/projects/59550d49-ea7a-4c22-b1dd-a436d739a292/tasks/df4d0f71-66fd-4c5c-9d4b-d3f300bd1d80",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/contractor/(portal)/projects/[projectId]/tenders",
+      "persona": "contractor",
+      "urlPath": "/he-IL/contractor/projects/59550d49-ea7a-4c22-b1dd-a436d739a292/tenders",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(public)/login",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/login",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(public)/set-pin",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/set-pin",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/(shell)",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/ap",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/ap",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/ap/[billId]",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/ap/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/ap/aging",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/ap/aging",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/ap/credits",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/ap/credits",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/ap/credits/[creditId]",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/ap/credits/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/ap/new",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/ap/new",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/attendance",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/attendance",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/billing",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/billing",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/billing/[id]",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/billing/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/billing/new",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/billing/new",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/billing/payments/[id]/allocate",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/billing/payments/508765d2-3397-4916-9591-480faf00f007/allocate",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/billing/payments/new",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/billing/payments/new",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/changes",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/changes",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/clients",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/clients",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/clients/[clientId]",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/clients/4a81c4b1-4892-44dd-9a1d-b592df14420f",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/clients/new",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/clients/new",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/contracts",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/contracts",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/documents",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/documents",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/expenses",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/expenses",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/expenses/[id]",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/expenses/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/expenses/new",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/expenses/new",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/forms",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/forms",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/forms/[templateId]",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/forms/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/hours",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/hours",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/hours/new",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/hours/new",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/meetings",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/meetings",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/procurement",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/procurement",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/procurement/[purchaseOrderId]",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/procurement/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]/activity",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007/activity",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]/board",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007/board",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]/calendar",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007/calendar",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]/claims",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007/claims",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]/claims/[claimId]",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007/claims/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]/contractor-closeout",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007/contractor-closeout",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]/contractor-compliance",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007/contractor-compliance",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]/contractor-payments",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007/contractor-payments",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]/contractors",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007/contractors",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]/contractors/[agreementId]",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007/contractors/af29ed2b-4bdc-4cc9-9066-cb32cdf7c268",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]/contractors/[agreementId]/changes",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007/contractors/af29ed2b-4bdc-4cc9-9066-cb32cdf7c268/changes",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]/contractors/[agreementId]/lines",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007/contractors/af29ed2b-4bdc-4cc9-9066-cb32cdf7c268/lines",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]/contractor-warranty",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007/contractor-warranty",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]/coordination",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007/coordination",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]/coordination/[eventId]",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007/coordination/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]/cost-control",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007/cost-control",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]/deductions",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007/deductions",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]/defects",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007/defects",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]/defects/[defectId]",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007/defects/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]/deliveries",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007/deliveries",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]/execution",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007/execution",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]/execution-contracts",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007/execution-contracts",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]/execution-planning",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007/execution-planning",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]/execution-quality",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007/execution-quality",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]/files",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007/files",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]/financials",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007/financials",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]/inspections",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007/inspections",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]/inspections/[inspectionId]",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007/inspections/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]/instructions",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007/instructions",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]/instructions/[instructionId]",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007/instructions/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]/meetings",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007/meetings",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]/plans",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007/plans",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]/plans/[drawingId]",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007/plans/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]/rfi",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007/rfi",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]/rfi/[rfiId]",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007/rfi/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]/site-log",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007/site-log",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]/site-log/[logDate]",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007/site-log/2026-08-01",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]/site-meetings",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007/site-meetings",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]/site-meetings/[meetingId]",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007/site-meetings/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]/site-safety",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007/site-safety",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]/structure",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007/structure",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]/submittals",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007/submittals",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]/submittals/[submittalId]",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007/submittals/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]/tasks",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007/tasks",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]/team",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007/team",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]/tenders",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007/tenders",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]/tenders/[packageId]",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007/tenders/508765d2-3397-4916-9591-480faf00f007",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/[projectId]/unpriced-work",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/508765d2-3397-4916-9591-480faf00f007/unpriced-work",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/projects/new",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/projects/new",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/quotes",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/quotes",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/tasks",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/tasks",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/tasks/[taskId]",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/tasks/df4d0f71-66fd-4c5c-9d4b-d3f300bd1d80",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/tasks/calendar",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/tasks/calendar",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/tasks/new",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/tasks/new",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/team",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/team",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/time",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/time",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/vendors",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/vendors",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/vendors/[vendorId]",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/vendors/df2da029-02f1-4e81-83d6-0d6fc812b853",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/employee/(shell)/vendors/new",
+      "persona": "employee",
+      "urlPath": "/he-IL/employee/vendors/new",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/legal/privacy",
+      "persona": "public",
+      "urlPath": "/he-IL/legal/privacy",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/legal/terms",
+      "persona": "public",
+      "urlPath": "/he-IL/legal/terms",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/onboarding",
+      "persona": "public",
+      "urlPath": "/he-IL/onboarding",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/portal",
+      "persona": "public",
+      "urlPath": "/he-IL/portal",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/portal/customer",
+      "persona": "public",
+      "urlPath": "/he-IL/portal/customer",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/portal/vendor",
+      "persona": "public",
+      "urlPath": "/he-IL/portal/vendor",
+      "usedPlaceholder": false
+    },
+    {
+      "inventoryLine": "[locale]/setup",
+      "persona": "public",
+      "urlPath": "/he-IL/setup",
+      "usedPlaceholder": false
+    }
+  ]
+}

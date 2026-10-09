@@ -558,6 +558,9 @@
   "commentsSlot": "التعليقات",
   "openFullTask": "افتح المهمة الكاملة للتعليقات والنشاط",
   "drawerExtendedDetails": "التعليقات والنشاط والموافقات",
+  "evidenceSection": {
+    "title": "أدلة ميدانية"
+  },
   "drawerExtendedDetailsHint": "افتح صفحة المهمة الكاملة للتعليقات وسجل النشاط وإجراءات الموافقة.",
   "noProject": "بدون مشروع",
   "projectWork": {

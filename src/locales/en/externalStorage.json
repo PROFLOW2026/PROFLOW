@@ -35,6 +35,7 @@
   "primaryRequiredNotice": "This provider is connected but not set as primary. Set it as primary to enable file uploads.",
   "oauthSuccess": "Account connected. Confirm the project template if prompted.",
   "oauthFailed": "Connection failed. Try again.",
+  "oauthFailedRetryHint": "Use Connect or Reconnect on a provider below to try again.",
   "treeHealth": {
     "needsRepair": "Cloud account is connected, but the ProjectFlow folder structure needs repair. Use Test connection to rebuild it.",
     "repaired": "ProjectFlow folder structure was rebuilt. Confirm the project template to continue."

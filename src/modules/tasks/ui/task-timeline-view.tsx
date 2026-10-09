@@ -9,7 +9,7 @@ import { coerceBusinessDate } from '@/shared/dates';
 import { formatBusinessDateMonthDay } from '@/shared/dates/format';
 import { cn } from '@/shared/ui/cn';
 import { uwmListPanelClass, uwmListRowClass, uwmTabBarClass } from '@/shared/ui/uwm-surface-styles';
-import type { TaskCardData, TaskPriority, TaskStatus } from './_task-api-stub';
+import type { TaskCardData, TaskPriority, TaskStatus } from './task-api';
 
 type TimelineGroupBy = 'date' | 'project' | 'status';
 

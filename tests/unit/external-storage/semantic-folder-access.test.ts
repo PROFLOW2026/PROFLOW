@@ -180,10 +180,26 @@ describe('semantic folder access mapping', () => {
 });
 
 describe('employee document category null handling', () => {
-  it('allows null category in project scope for standard privacy', () => {
+  it('denies null category in project scope when category grants are configured (DOC-011)', () => {
     const foreman = employeeContextFromPreset('foreman');
     expect(
       canEmployeeReadDocumentCategory(foreman, null, {
+        inProjectScope: true,
+        privacyClass: 'standard',
+      }),
+    ).toBe(false);
+  });
+
+  it('allows null category in project scope when no grant list is configured', () => {
+    const office = employeeContextFromPreset('office_admin');
+    const unrestricted = {
+      ...office,
+      employeeApp: office.employeeApp
+        ? { ...office.employeeApp, allowedDocumentCategories: null }
+        : null,
+    } as OrgContext;
+    expect(
+      canEmployeeReadDocumentCategory(unrestricted, null, {
         inProjectScope: true,
         privacyClass: 'standard',
       }),

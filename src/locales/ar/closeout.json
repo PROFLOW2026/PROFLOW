@@ -11,6 +11,26 @@
   "badge": {
     "ready": "جاهز للإغلاق"
   },
+  "templateRequirements": {
+    "title": "قائمة إغلاق من القالب",
+    "hint": "من قالب الهيكل المطبّق على هذا المشروع. أكمل هذه المخرجات قبل الإغلاق.",
+    "keys": {
+      "handover_photos": "صور التسليم",
+      "punch_closed": "قائمة العيوب مغلقة",
+      "electrical_cert": "شهادة كهربائية",
+      "as_built": "مخططات as-built",
+      "commissioning": "تشغيل وتسليم",
+      "issued_for_construction": "مجموعة الإصدار للتنفيذ",
+      "practical_completion": "الإنجاز العملي",
+      "handover_pack": "حزمة التسليم",
+      "warranty_docs": "مستندات الضمان",
+      "keys": "تسليم المفاتيح",
+      "monthly_report": "تقرير شهري",
+      "final_report": "تقرير نهائي",
+      "commissioning_sheet": "ورقة التشغيل",
+      "manuals": "دلائل المعدات"
+    }
+  },
   "readiness": {
     "title": "جاهزية الإغلاق",
     "hard": "يجب حلها قبل الإغلاق",

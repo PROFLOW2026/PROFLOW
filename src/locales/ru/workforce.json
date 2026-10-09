@@ -416,6 +416,11 @@
     "standardWorkEndTime": "Стандартное время окончания",
     "daysPerMonth": "Рабочих дней в месяце",
     "daysPerMonthOptional": "Необязательно — не требуется для месячной калькуляции проекта",
+    "workingDaysPerMonthAccrualWarn": "Значения ниже {min} рабочих дней в месяц ограничиваются при месячном начислении пула работодателя.",
+    "attendanceProjectTimeApproval": "Проектное время из посещаемости",
+    "attendanceProjectTimeApprovalHint": "При синхронизации посещаемости: по умолчанию черновик; можно включить автоутверждение.",
+    "attendanceProjectTimeDraft": "Черновик — требует утверждения",
+    "attendanceProjectTimeAutoApprove": "Автоутверждение, если менеджер может утверждать",
     "workWeek": "Рабочие дни недели",
     "workWeekHint": "По умолчанию в ProjectFlow — воскресенье–четверг. Сохранение здесь задаёт рабочую неделю организации.",
     "configuredSummary": "{hours} ч/день · {weekdays}",
@@ -482,7 +487,8 @@
     "laborActualMissingCost": "Стоимость неполная ({count, plural, one {# запись} few {# записи} many {# записей} other {# записей}} без стоимости — не показывается как ₪0)",
     "laborActualEmployeeMeta": "{hours} ч · {days} рабочих дней",
     "laborActualCostUnavailable": "Стоимость недоступна",
-    "laborPoolEquation": "Распределено {allocated} + в ожидании {unallocated} = {total} фонд труда"
+    "laborPoolEquation": "Распределено {allocated} + в ожидании {unallocated} = {total} фонд труда",
+    "unallocatedHoursBanner": "{hours} ч. ожидают утверждения и пока не входят в фактическую стоимость проекта."
   },
   "payrollPayment": {
     "title": "Платёж по зарплате · {yearMonth}",
@@ -509,6 +515,7 @@
     "cost": "Стоимость",
     "allocated": "Распределено",
     "unallocated": "Не распределено",
+    "pendingSubmittedHoursBanner": "{hours} отправленных часов ещё не утверждены — они не входят в фактическую стоимость труда до утверждения.",
     "status": "Статус",
     "statuses": {
       "not_started": "Не начато",

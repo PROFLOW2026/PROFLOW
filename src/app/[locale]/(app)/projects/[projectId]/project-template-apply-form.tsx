@@ -75,6 +75,7 @@ export function ProjectTemplateApplyForm({
       </div>
 
       {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
+      {state.warning ? <Alert tone="warning">{state.warning}</Alert> : null}
       {state.success ? <Alert tone="success">{t('applied')}</Alert> : null}
 
       {orgTemplates.length > 0 ? (

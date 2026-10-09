@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { serializeTaskCardsForClient } from '@/modules/tasks/ui/serialize-task-cards';
-import type { TaskCardData } from '@/modules/tasks/ui/_task-api-stub';
+import type { TaskCardData } from '@/modules/tasks/ui/task-api';
 
 describe('serializeTaskCardsForClient', () => {
   it('coerces dates and nested fields for RSC props', () => {

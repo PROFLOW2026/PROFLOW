@@ -14,6 +14,11 @@ import { findProjectById } from '../data/projects.repository';
 import { listWorkPackagesByProject } from '../data/work-packages.repository';
 import { countActiveWorkPackages } from '../domain/work-package-visibility';
 import { offsetBusinessDate } from '../domain/templates';
+import {
+  applyTemplateBoqSkeleton,
+  applyTemplateFormChecklists,
+  persistProjectCloseoutRequirementKeys,
+} from './apply-template-metadata';
 import { createMilestone } from './milestones';
 import { createPhase } from './phases';
 import { splitProjectIntoWorkPackages, createWorkPackage } from './work-packages';
@@ -122,6 +127,14 @@ export async function applyOrgProjectTemplate(
     }
   }
 
+  const { sectionCount: boqSectionCount } = await applyTemplateBoqSkeleton(
+    context,
+    project.id,
+    copy.boqSkeleton,
+  );
+  const formTemplatesCreated = await applyTemplateFormChecklists(context, copy.formChecklists);
+  await persistProjectCloseoutRequirementKeys(context, project.id, copy.closeoutRequirementKeys);
+
   await recordAuditEvent(context, {
     action: AUDIT_ACTIONS.PROJECT_TEMPLATE_APPLIED,
     entityType: 'project',
@@ -134,6 +147,8 @@ export async function applyOrgProjectTemplate(
       phaseCount,
       documentFolders: copy.documentFolders,
       closeoutRequirementKeys: copy.closeoutRequirementKeys,
+      boqSectionCount,
+      formTemplatesCreated,
     },
   });
 

@@ -416,6 +416,11 @@
     "standardWorkEndTime": "Standard end time",
     "daysPerMonth": "Working days per month",
     "daysPerMonthOptional": "Optional — not required for monthly project costing",
+    "workingDaysPerMonthAccrualWarn": "Values below {min} working days per month are floored for monthly employer-pool accrual so a few early days cannot recognize the full pool.",
+    "attendanceProjectTimeApproval": "Project time from attendance",
+    "attendanceProjectTimeApprovalHint": "When attendance sync creates project hours, leave them draft for a separate approval step unless you explicitly want auto-approve.",
+    "attendanceProjectTimeDraft": "Draft — requires approval",
+    "attendanceProjectTimeAutoApprove": "Auto-approve when manager may approve",
     "workWeek": "Work weekdays",
     "workWeekHint": "ProjectFlow default is Sunday–Thursday. Saving here sets this organization’s work week.",
     "configuredSummary": "{hours} hours/day · {weekdays}",
@@ -482,7 +487,8 @@
     "laborActualMissingCost": "Cost incomplete ({count, plural, one {# entry} other {# entries}} missing cost — not shown as ₪0)",
     "laborActualEmployeeMeta": "{hours} h · {days} work days",
     "laborActualCostUnavailable": "Cost unavailable",
-    "laborPoolEquation": "Allocated {allocated} + pending {unallocated} = {total} labor pool"
+    "laborPoolEquation": "Allocated {allocated} + pending {unallocated} = {total} labor pool",
+    "unallocatedHoursBanner": "{hours} hours are pending approval and are not yet in project labor Actual."
   },
   "payrollPayment": {
     "title": "Payroll payment · {yearMonth}",
@@ -509,6 +515,7 @@
     "cost": "Cost",
     "allocated": "Allocated",
     "unallocated": "Unallocated",
+    "pendingSubmittedHoursBanner": "{hours} submitted work hours are not approved yet — they stay outside recognized labor Actual until approved.",
     "status": "Status",
     "statuses": {
       "not_started": "Not started",

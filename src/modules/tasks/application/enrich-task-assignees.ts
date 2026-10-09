@@ -1,7 +1,7 @@
 import 'server-only';
 
 import type { DbExecutor } from '@/shared/db/types';
-import type { TaskAssigneeDisplay } from '../ui/_task-api-stub';
+import type { TaskAssigneeDisplay } from '../ui/task-api';
 import { queryTaskAssigneeDisplayRows } from '../data/task-assignee-display.repository';
 
 export type TaskAssigneeDisplayMap = ReadonlyMap<string, readonly TaskAssigneeDisplay[]>;

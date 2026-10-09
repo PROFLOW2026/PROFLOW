@@ -66,7 +66,9 @@
     "addingFinancial": "After saving, this person will see project and contractor financial data according to the capabilities you selected.",
     "noChanges": "No changes to save.",
     "changeSummary": "{added, plural, one {# capability} other {# capabilities}} will be added and {removed, plural, one {#} other {#}} removed.",
-    "beyondActor": "This change includes capabilities you do not hold. You can only change capabilities you hold on this project."
+    "beyondActor": "This change includes capabilities you do not hold. You can only change capabilities you hold on this project.",
+    "operationalDelegationTitle": "Operational approval (this project only)",
+    "operationalDelegationHint": "This person may approve pending attendance corrections and submitted project hours for team members linked to this project. They never see salary, employer cost, or margin data."
   },
   "groups": {
     "operational": "Operations",
@@ -116,6 +118,7 @@
     "daily_log_manage": "Daily site log",
     "meetings_manage": "Manage meetings and minutes",
     "safety_manage": "Manage safety",
+    "operational_approve": "Approve pending attendance and project hours",
     "financial_view": "View financial data",
     "contract_financial_view": "View contract values and prices",
     "contract_manage": "Manage contractor contracts",
@@ -154,6 +157,7 @@
     "daily_log_manage": "Fill in the daily site log.",
     "meetings_manage": "Meetings, minutes and follow-up tasks.",
     "safety_manage": "Record safety events and corrective actions.",
+    "operational_approve": "Review and approve pending attendance corrections and submitted project-time rows for this project only — not payroll or employer cost.",
     "financial_view": "See the project's financial totals.",
     "contract_financial_view": "See contractor contract values and prices.",
     "contract_manage": "Create and edit contractor contracts and work lines.",

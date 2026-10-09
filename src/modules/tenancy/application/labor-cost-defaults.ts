@@ -59,6 +59,8 @@ export async function saveOrgWorkFrameworkHours(
     readonly standardWorkStartTime?: string | null;
     /** Org default clock-out (HH:mm); omit to leave existing. */
     readonly standardWorkEndTime?: string | null;
+    /** Attendance → project time: draft vs auto-approve when actor may approve. */
+    readonly attendanceProjectTimeApproval?: 'draft' | 'auto_approve';
   },
 ): Promise<LaborCostDefaults> {
   assertAnyPermission(context, [
@@ -126,6 +128,11 @@ export async function saveOrgWorkFrameworkHours(
     standardWorkEndTime = parsedTimes.standardWorkEndTime;
   }
 
+  let attendanceProjectTimeApproval = existing.attendanceProjectTimeApproval ?? 'draft';
+  if (input.attendanceProjectTimeApproval !== undefined) {
+    attendanceProjectTimeApproval = input.attendanceProjectTimeApproval;
+  }
+
   return saveLaborCostDefaults(context, {
     ...existing,
     standardHoursPerDay: hours,
@@ -133,6 +140,7 @@ export async function saveOrgWorkFrameworkHours(
     workWeekdays,
     standardWorkStartTime,
     standardWorkEndTime,
+    attendanceProjectTimeApproval,
   });
 }
 

@@ -16,7 +16,7 @@ import { PROJECT_CAPABILITIES, assertProjectCapability } from '@/modules/project
 import { listProjectParticipantAssigneeOptions } from '@/modules/projects';
 import { findWorkspaceIdsByProject } from '@/modules/workspaces';
 import type { CreateTaskInput } from '@/modules/tasks';
-import type { TaskCardData } from '@/modules/tasks/ui/_task-api-stub';
+import type { TaskCardData } from '@/modules/tasks/ui/task-api';
 import { ProjectTasksClient } from './_project-tasks-client';
 import {
   getTaskDetailAction,

@@ -4,7 +4,6 @@ import { CalendarRange } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
-import { Alert } from '@/components/ui/alert';
 import { listCalendar } from '@/modules/calendar';
 import { addDays, businessDate, endOfMonth, startOfMonth, todayInTimeZone } from '@/shared/dates';
 import { getShellContext, withOrgContext } from '@/shared/auth/session';
@@ -55,10 +54,7 @@ export default async function CalendarPage({
         to,
         view,
         items: [],
-        providers: [
-          { providerKey: 'google' as const, status: 'unconfigured' as const, lastError: null },
-          { providerKey: 'microsoft' as const, status: 'unconfigured' as const, lastError: null },
-        ],
+        providers: [],
       };
     }
   });
@@ -89,8 +85,6 @@ export default async function CalendarPage({
           </div>
         }
       />
-
-      <Alert tone="info">{t('external.unconfigured')}</Alert>
 
       {canManage ? <CalendarEventForm /> : null}
 

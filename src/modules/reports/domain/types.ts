@@ -32,6 +32,7 @@ export const REPORT_KINDS = [
   'project_billing_account',
   'project_billing_plan_status',
   'monthly_workforce_report',
+  'labor_by_period',
   // ── Operational report kinds (Agent I) ─────────────────────────────────────
   'project_task_status',
   'overdue_tasks_org',

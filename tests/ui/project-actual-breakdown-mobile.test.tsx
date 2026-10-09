@@ -45,7 +45,7 @@ function ownerCopy(): OwnerStoryCopy {
     collected: o.collected,
     actualProfit: o.actualProfit,
     afterGeneralProfit: o.afterGeneralProfit,
-    forecastProfit: o.forecastProfit,
+    contractForecastBalance: o.contractForecastBalance,
     unavailable: o.unavailable,
     breakdownTitle: o.breakdownTitle,
     categories: o.categories,
@@ -202,7 +202,7 @@ describe('OWNER GATE — mobile 390 owner actual experience', () => {
     const viewport = screen.getByTestId('mobile-viewport');
     expect(viewport).toHaveStyle({ width: '390px' });
     expect(screen.getByText('תמונת הפרויקט')).toBeInTheDocument();
-    expect(screen.getByText(/ממה מורכבת העלות בפועל/)).toBeInTheDocument();
+    expect(screen.getByText(/ממה מורכבת העלות המוכרת/)).toBeInTheDocument();
     expect(screen.getByText('עובדים')).toBeInTheDocument();
     expect(screen.getByText('קבלני משנה')).toBeInTheDocument();
     expect(screen.getByText('ספקים')).toBeInTheDocument();

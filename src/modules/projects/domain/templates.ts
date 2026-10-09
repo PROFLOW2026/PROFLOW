@@ -59,7 +59,7 @@ export interface ProjectTemplate {
   readonly formChecklists: readonly FormChecklistTemplateDraft[];
   /** Budget category names if a budget copy API is used later. */
   readonly budgetCategories: readonly TemplateNamedItem[];
-  /** Closeout keys stored on org template JSON for a later closeout reader. */
+  /** Closeout keys persisted on apply; read by closeout workspace. */
   readonly closeoutRequirementKeys: readonly string[];
   /** BOQ section names (skeleton only - not priced). */
   readonly boqSkeleton: readonly TemplateNamedItem[];
@@ -536,6 +536,20 @@ export interface ProjectTemplateApplyCopy {
   readonly closeoutRequirementKeys: readonly string[];
   readonly boqSkeleton: readonly string[];
   readonly defaultRoleKeys: readonly string[];
+}
+
+const MANUAL_PROGRESS_TEMPLATE_KEYS = new Set<ProjectTemplateKey>([
+  'simple_finish',
+  'maintenance_contract',
+  'consulting_engagement',
+  'service_installation',
+]);
+
+/** Default progress rollup mode applied with structure templates (PM-008). */
+export function defaultProgressSourceForTemplate(
+  key: ProjectTemplateKey,
+): 'manual' | 'tasks' {
+  return MANUAL_PROGRESS_TEMPLATE_KEYS.has(key) ? 'manual' : 'tasks';
 }
 
 export function cloneProjectTemplateForApply(

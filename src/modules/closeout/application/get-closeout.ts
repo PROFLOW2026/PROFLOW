@@ -14,6 +14,7 @@ import type {
   ReadinessItem,
 } from '../domain/types';
 import { findCloseoutByProject, listCloseoutEvents } from '../data/closeout.repository';
+import { getProjectCloseoutRequirementKeys } from './closeout-requirements';
 
 export interface CloseoutWorkspace {
   readonly projectId: string;
@@ -37,6 +38,8 @@ export interface CloseoutWorkspace {
    * warranty start date when prompting setup after closeout.
    */
   readonly projectActualEndDate: string | null;
+  /** Template-driven closeout checklist keys (PM-002). */
+  readonly templateRequirementKeys: readonly string[];
 }
 
 export async function getCloseoutWorkspace(
@@ -51,6 +54,7 @@ export async function getCloseoutWorkspace(
   assertSameOrganization(context, project, 'Project');
 
   const closeout = await findCloseoutByProject(context.db, context.organizationId, projectId);
+  const templateRequirementKeys = await getProjectCloseoutRequirementKeys(context, projectId);
   const collected = await collectCloseoutReadiness(context, projectId);
   const events = closeout
     ? await listCloseoutEvents(context.db, context.organizationId, closeout.id)
@@ -93,6 +97,7 @@ export async function getCloseoutWorkspace(
     canReadProfit,
     hasWarrantyCoverage,
     projectActualEndDate: project.actualEndDate ?? null,
+    templateRequirementKeys,
   };
 }
 

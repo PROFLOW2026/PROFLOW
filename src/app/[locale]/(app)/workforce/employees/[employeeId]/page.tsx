@@ -340,6 +340,9 @@ export default async function EmployeeDetailPage({
           standardWorkStartTime={laborDefaults?.standardWorkStartTime ?? null}
           standardWorkEndTime={laborDefaults?.standardWorkEndTime ?? null}
           workWeekdays={laborDefaults?.workWeekdays ?? null}
+          attendanceProjectTimeApproval={
+            laborDefaults?.attendanceProjectTimeApproval ?? 'draft'
+          }
           setupRequired
           canBootstrapCosting={false}
           collapseWhenConfigured
@@ -623,6 +626,9 @@ export default async function EmployeeDetailPage({
           standardWorkStartTime={laborDefaults?.standardWorkStartTime ?? null}
           standardWorkEndTime={laborDefaults?.standardWorkEndTime ?? null}
           workWeekdays={laborDefaults?.workWeekdays ?? null}
+          attendanceProjectTimeApproval={
+            laborDefaults?.attendanceProjectTimeApproval ?? 'draft'
+          }
           setupRequired={false}
           canBootstrapCosting={false}
           collapseWhenConfigured

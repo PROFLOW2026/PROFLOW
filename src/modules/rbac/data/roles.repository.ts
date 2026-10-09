@@ -1,4 +1,4 @@
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, eq, inArray, isNotNull, isNull } from 'drizzle-orm';
 import { rolePermissions, roleAssignments, roles } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 import { isPermissionKey, type PermissionKey } from '@/shared/permissions/catalog';
@@ -131,13 +131,23 @@ export async function ensureRoleAssigned(
   await assignRole(db, input);
 }
 
+function collectPermissionRows(
+  rows: ReadonlyArray<{ permissionKey: string; roleKey: string }>,
+): { permissions: Set<PermissionKey>; roleKeys: string[] } {
+  const permissions = new Set<PermissionKey>();
+  const roleKeys = new Set<string>();
+
+  for (const row of rows) {
+    if (isPermissionKey(row.permissionKey)) permissions.add(row.permissionKey);
+    roleKeys.add(row.roleKey);
+  }
+
+  return { permissions, roleKeys: [...roleKeys] };
+}
+
 /**
- * Union of the permissions granted by every role the user holds in this
- * organization (doc 73 §7). `role_assignments.project_id` is reserved and
- * ignored in V1: permissions stay org-wide. Per-project permission unions
- * would change Owner/Manager globally and are not implemented. Assigned
- * project visibility uses `employee_project_assignments` and grants, not
- * per-project roles.
+ * Org-wide role union (doc 73 §7). Matches `app.has_org_permission` (SEC-003).
+ * Does not include project-scoped `role_assignments.project_id` rows.
  */
 export async function loadEffectivePermissions(
   db: DbExecutor,
@@ -152,18 +162,64 @@ export async function loadEffectivePermissions(
     .from(roleAssignments)
     .innerJoin(roles, eq(roles.id, roleAssignments.roleId))
     .innerJoin(rolePermissions, eq(rolePermissions.roleId, roleAssignments.roleId))
-    .where(and(eq(roleAssignments.organizationId, organizationId), eq(roleAssignments.userId, userId)));
+    .where(
+      and(
+        eq(roleAssignments.organizationId, organizationId),
+        eq(roleAssignments.userId, userId),
+        isNull(roleAssignments.projectId),
+      ),
+    );
 
-  const permissions = new Set<PermissionKey>();
-  const roleKeys = new Set<string>();
+  return collectPermissionRows(rows);
+}
 
-  for (const row of rows) {
-    // Guards against a stale key left behind by a removed permission.
-    if (isPermissionKey(row.permissionKey)) permissions.add(row.permissionKey);
-    roleKeys.add(row.roleKey);
-  }
+/** Permissions from roles assigned only on the given project (matches `app.has_project_permission`). */
+export async function loadProjectRolePermissions(
+  db: DbExecutor,
+  organizationId: string,
+  userId: string,
+  projectId: string,
+): Promise<{ permissions: Set<PermissionKey>; roleKeys: string[] }> {
+  const rows = await db
+    .selectDistinct({
+      permissionKey: rolePermissions.permissionKey,
+      roleKey: roles.key,
+    })
+    .from(roleAssignments)
+    .innerJoin(roles, eq(roles.id, roleAssignments.roleId))
+    .innerJoin(rolePermissions, eq(rolePermissions.roleId, roleAssignments.roleId))
+    .where(
+      and(
+        eq(roleAssignments.organizationId, organizationId),
+        eq(roleAssignments.userId, userId),
+        eq(roleAssignments.projectId, projectId),
+        isNotNull(roleAssignments.projectId),
+      ),
+    );
 
-  return { permissions, roleKeys: [...roleKeys] };
+  return collectPermissionRows(rows);
+}
+
+/**
+ * Org-wide union plus project-scoped roles for one project — application mirror
+ * of contracts SELECT (0174): org permission OR project permission, with access
+ * enforced separately via `assertCanAccessProject`.
+ */
+export async function loadEffectivePermissionsForProject(
+  db: DbExecutor,
+  organizationId: string,
+  userId: string,
+  projectId: string,
+): Promise<{ permissions: Set<PermissionKey>; roleKeys: string[] }> {
+  const [orgWide, projectScoped] = await Promise.all([
+    loadEffectivePermissions(db, organizationId, userId),
+    loadProjectRolePermissions(db, organizationId, userId, projectId),
+  ]);
+
+  return {
+    permissions: new Set([...orgWide.permissions, ...projectScoped.permissions]),
+    roleKeys: [...new Set([...orgWide.roleKeys, ...projectScoped.roleKeys])],
+  };
 }
 
 export async function grantPermissionToRole(

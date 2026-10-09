@@ -9,14 +9,17 @@ import {
 } from '@/modules/invoicing-integration/domain/org-invoicing-settings';
 
 describe('payment receipt idempotency', () => {
-  it('uses payment-scoped keys for receipts', () => {
+  it('uses payment-and-billing-scoped keys for receipts (FIN-001 allocations)', () => {
     const paymentId = 'pay-001';
     const billingId = 'bill-001';
     expect(buildStatutoryIdempotencyKey(billingId, 'receipt', paymentId)).toBe(
-      `pf:payment:${paymentId}:receipt:v1`,
+      `pf:payment:${paymentId}:billing:${billingId}:receipt:v1`,
     );
     expect(buildStatutoryIdempotencyKey(billingId, 'tax_invoice_receipt', paymentId)).toBe(
-      `pf:payment:${paymentId}:tax_invoice_receipt:v1`,
+      `pf:payment:${paymentId}:billing:${billingId}:tax_invoice_receipt:v1`,
+    );
+    expect(buildStatutoryIdempotencyKey('bill-002', 'receipt', paymentId)).not.toBe(
+      buildStatutoryIdempotencyKey(billingId, 'receipt', paymentId),
     );
   });
 

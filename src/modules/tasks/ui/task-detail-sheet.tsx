@@ -11,7 +11,7 @@
  * comments (Agent E slot), activity feed (Agent E slot), breadcrumb.
  *
  * Agent A dependency:
- *   updateTask, getTaskDetail — stubs from _task-api-stub.ts
+ *   updateTask, getTaskDetail — stubs from task-api.ts
  *   TODO: swap to `import { updateTask } from '@/modules/tasks'` when Agent A delivers.
  *
  * Agent E dependency:
@@ -61,7 +61,7 @@ import {
 import { TaskDependenciesSection } from './task-dependencies-section';
 import { TaskSubtasksSection } from './task-subtasks-section';
 import { TaskDetailActions } from './task-detail-actions';
-import type { TaskDetail, TaskPriority, TaskStatus } from './_task-api-stub';
+import type { TaskDetail, TaskPriority, TaskStatus } from './task-api';
 import { TaskRecurrenceSection } from './task-recurrence-section';
 import {
   TaskRemindersSection,

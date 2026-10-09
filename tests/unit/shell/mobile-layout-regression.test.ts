@@ -86,6 +86,15 @@ describe('mobile layout regressions', () => {
     expect(css).not.toContain('--pf-mobile-chrome-safety-inset');
   });
 
+  it('keeps reports route constrained for 320px overflow regression (UI-MOB-001)', () => {
+    const page = read('src/app/[locale]/(app)/reports/page.tsx');
+    const header = read('src/components/ui/page-header.tsx');
+    expect(page).toContain('data-pf-reports-page');
+    expect(page).toMatch(/min-w-0/);
+    expect(header).toMatch(/min-w-0 max-w-full/);
+    expect(read('src/modules/reports/ui/report-packs-section.tsx')).toMatch(/min-w-0 max-w-full/);
+  });
+
   it('uses normal fixed toast containers without visual viewport width tracking', () => {
     const toast = read('src/components/ui/toast.tsx');
     const statusToast = read('src/components/ui/status-toast.tsx');

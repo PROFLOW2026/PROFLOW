@@ -32,6 +32,7 @@ const CLIENT_KINDS: readonly ReportKind[] = ['client_360'];
 const VENDOR_KINDS: readonly ReportKind[] = ['vendor_360', 'subcontract_cash'];
 const ORG_KINDS: readonly ReportKind[] = [
   'contract_portfolio',
+  'labor_by_period',
   'labor_utilization',
   'retention_schedule',
   'inventory_movement',
@@ -61,13 +62,17 @@ function KindRows({
       {kinds.map((kind) => (
         <div
           key={kind}
-          className="flex flex-col gap-2 border-t border-[var(--pf-border-default)] pt-3 sm:flex-row sm:items-center sm:justify-between"
+          className="flex min-w-0 max-w-full flex-col gap-2 border-t border-[var(--pf-border-default)] pt-3 sm:flex-row sm:items-start sm:justify-between"
         >
-          <div>
-            <p className="font-medium">{t(`kinds.${kind}`)}</p>
-            <p className="text-sm text-[var(--pf-text-secondary)]">{t(`kindHints.${kind}`)}</p>
+          <div className="min-w-0 max-w-full flex-1">
+            <p className="break-words font-medium">{t(`kinds.${kind}`)}</p>
+            <p className="break-words text-sm text-[var(--pf-text-secondary)]">
+              {t(`kindHints.${kind}`)}
+            </p>
           </div>
-          <ReportDownloadButtons kind={kind} id={entityId} compact />
+          <div className="min-w-0 w-full max-w-full shrink-0 sm:w-auto sm:max-w-[min(100%,20rem)]">
+            <ReportDownloadButtons kind={kind} id={entityId} compact />
+          </div>
         </div>
       ))}
     </>
@@ -138,7 +143,7 @@ export function ReportPacksSection({
   );
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex min-w-0 max-w-full flex-col gap-6">
       <p className="text-sm text-[var(--pf-text-secondary)]">{t('csvStillHere')}</p>
 
       <Card>

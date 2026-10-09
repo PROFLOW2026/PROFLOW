@@ -58,7 +58,9 @@ export default async function StorageSettingsPage({
   return (
     <SettingsPageShell title={t('title')}>
       {query.connected ? <AlertSuccess message={t('oauthSuccess')} /> : null}
-      {query.error ? <AlertFailed message={t('oauthFailed')} /> : null}
+      {query.error ? (
+        <AlertFailed message={t('oauthFailed')} hint={t('oauthFailedRetryHint')} />
+      ) : null}
       {data.pageWarnings.map((warningKey) => (
         <AlertWarning key={warningKey} message={t(warningKey)} />
       ))}
@@ -82,10 +84,11 @@ function AlertSuccess({ message }: { message: string }) {
   );
 }
 
-function AlertFailed({ message }: { message: string }) {
+function AlertFailed({ message, hint }: { message: string; hint?: string }) {
   return (
     <div className="mb-4 rounded-md border border-[var(--pf-status-danger-border)] bg-[var(--pf-status-danger-bg)] px-4 py-3 text-sm">
-      {message}
+      <p>{message}</p>
+      {hint ? <p className="mt-1 text-[var(--pf-text-secondary)]">{hint}</p> : null}
     </div>
   );
 }

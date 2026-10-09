@@ -157,7 +157,7 @@ describe('mapBudgetLineActuals', () => {
     expect(result.rows.some((row) => row.kind === 'unmapped_remainder')).toBe(false);
   });
 
-  it('leaves discipline and cost_code lines unmapped (expense/AP have no such key)', () => {
+  it('maps discipline lines when contribution categoryKey matches disciplineKey', () => {
     const result = mapBudgetLineActuals({
       currency: ILS,
       cost: engineCost('50000'),
@@ -184,13 +184,11 @@ describe('mapBudgetLineActuals', () => {
 
     const disc = result.rows.find((row) => row.id === 'disc')!;
     const code = result.rows.find((row) => row.id === 'cc')!;
-    expect(disc.mappingStatus).toBe('unmapped');
-    expect(disc.metrics.actual).toBeNull();
-    expect(disc.metrics.forecast).toBeNull();
-    expect(disc.metrics.remainingCommitment).toBeNull();
+    expect(disc.mappingStatus).toBe('mapped');
+    expect(disc.metrics.actual).toEqual(money('50000', ILS));
     expect(code.mappingStatus).toBe('unmapped');
     expect(code.metrics.actual).toBeNull();
-    expect(result.unmappedRemainder).toEqual(money('50000', ILS));
+    expect(result.unmappedRemainder).toEqual(zeroMoney(ILS));
   });
 
   it('treats a category line without categoryKey as unmapped, never guessed', () => {

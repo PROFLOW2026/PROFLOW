@@ -91,6 +91,19 @@ async function listCapabilityKeys(
 }
 
 /** One round trip for members + profiles, one for all capabilities (no N+1). */
+/** Active members on a project who hold a given capability key (e.g. operational.approve). */
+export async function listActiveProjectMemberUserIdsWithCapability(
+  db: DbExecutor,
+  organizationId: string,
+  projectId: string,
+  capability: string,
+): Promise<string[]> {
+  const members = await listProjectMembers(db, organizationId, projectId);
+  return members
+    .filter((member) => member.status === 'active' && member.capabilities.includes(capability))
+    .map((member) => member.userId);
+}
+
 export async function listProjectMembers(
   db: DbExecutor,
   organizationId: string,

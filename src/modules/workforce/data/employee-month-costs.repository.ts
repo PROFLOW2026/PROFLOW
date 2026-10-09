@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray, ne, or } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, ne } from 'drizzle-orm';
 import { employeeMonthCosts } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 
@@ -130,10 +130,7 @@ export async function updateEmployeeMonthCostDraft(
 }
 
 /**
- * Freeze a month-cost row at close.
- * Applied rows close as-is. Draft rows close only when the owner already
- * recorded knownQuality=actual, so a reviewed actual is not left mutable
- * after the operational month is closed.
+ * Freeze an applied month-cost row at month close (must already be monthly_allocated).
  */
 export async function closeEmployeeMonthCost(
   db: DbExecutor,
@@ -151,13 +148,36 @@ export async function closeEmployeeMonthCost(
       and(
         eq(employeeMonthCosts.id, id),
         eq(employeeMonthCosts.organizationId, organizationId),
-        or(
-          eq(employeeMonthCosts.status, 'applied'),
-          and(
-            eq(employeeMonthCosts.status, 'draft'),
-            eq(employeeMonthCosts.knownQuality, 'actual'),
-          ),
-        ),
+        eq(employeeMonthCosts.status, 'applied'),
+      ),
+    )
+    .returning();
+  return row ?? null;
+}
+
+/**
+ * Operational month close for draft actual rows that still recognize via time snapshots.
+ * Locks without status=closed so displacement coupling stays intact.
+ */
+export async function lockDraftActualEmployerMonthAtMonthClose(
+  db: DbExecutor,
+  organizationId: string,
+  id: string,
+): Promise<EmployeeMonthCostRow | null> {
+  const now = new Date();
+  const [row] = await db
+    .update(employeeMonthCosts)
+    .set({
+      lockedAt: now,
+      updatedAt: now,
+    })
+    .where(
+      and(
+        eq(employeeMonthCosts.id, id),
+        eq(employeeMonthCosts.organizationId, organizationId),
+        eq(employeeMonthCosts.status, 'draft'),
+        eq(employeeMonthCosts.knownQuality, 'actual'),
+        eq(employeeMonthCosts.recognitionSource, 'time_snapshot'),
       ),
     )
     .returning();

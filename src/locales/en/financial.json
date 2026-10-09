@@ -102,6 +102,7 @@
   "laborActual": "Labor (Actual)",
   "laborActualUnavailable": "Cannot calculate",
   "vendorActual": "Subcontractors & vendor bills (Actual)",
+  "vendorsRecognized": "Recognized vendor & subcontractor cost",
   "overheadActual": "General business costs (Actual)",
   "committedOpen": "Committed cost (PO open)",
   "committedVsActual": "Committed stays separate from Actual - not an expense",
@@ -333,7 +334,7 @@
     "collected": "Cash received",
     "actualProfit": "Actual profit",
     "afterGeneralProfit": "Profit after general costs",
-    "forecastProfit": "Forecast profit",
+    "contractForecastBalance": "Forecast contract balance",
     "unavailable": "Unavailable",
     "breakdownTitle": "What makes up recognized cost?",
     "categories": {

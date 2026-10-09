@@ -2,7 +2,12 @@
 
 import { listExternalStatutoryDocumentsForBilling } from '../application/get-external-documents';
 import { refreshExternalStatutoryStatus } from '../application/refresh-external-status';
+import {
+  cancelExternalStatutoryDocument,
+  creditExternalStatutoryDocument,
+} from '../application/credit-or-cancel-external';
 import { requestExternalStatutoryDocumentCommitted } from '../application/request-external-document';
+import { resolveStatutoryProviderForOrg } from '../application/resolve-statutory-provider';
 import { saveStatutoryPdfToStorage } from '../application/save-statutory-pdf-to-storage';
 import { sendExternalStatutoryDocument } from '../application/send-external-statutory-document';
 import {
@@ -165,6 +170,58 @@ export async function sendExternalStatutoryDocumentAction(
     return { ok: true };
   } catch (error) {
     logUnmappedExternalDocError('send', error);
+    return { error: await mapExternalDocError(error) };
+  }
+}
+
+export async function creditExternalStatutoryDocumentAction(
+  externalDocumentId: string,
+  billingRecordId: string,
+  creditNoteBillingRecordId?: string,
+): Promise<ExternalStatutoryActionResult> {
+  try {
+    await withOrgContext(async (context) => {
+      const provider = await resolveStatutoryProviderForOrg(context);
+      await creditExternalStatutoryDocument(
+        context,
+        {
+          externalDocumentId,
+          idempotencyKey: `pf:statutory-credit:${externalDocumentId}:v1`,
+          reason: null,
+          creditNoteBillingRecordId,
+        },
+        provider,
+      );
+    });
+    revalidatePath(`/billing/${billingRecordId}`);
+    return { ok: true };
+  } catch (error) {
+    logUnmappedExternalDocError('credit', error);
+    return { error: await mapExternalDocError(error) };
+  }
+}
+
+export async function cancelExternalStatutoryDocumentAction(
+  externalDocumentId: string,
+  billingRecordId: string,
+): Promise<ExternalStatutoryActionResult> {
+  try {
+    await withOrgContext(async (context) => {
+      const provider = await resolveStatutoryProviderForOrg(context);
+      await cancelExternalStatutoryDocument(
+        context,
+        {
+          externalDocumentId,
+          idempotencyKey: `pf:statutory-cancel:${externalDocumentId}:v1`,
+          reason: null,
+        },
+        provider,
+      );
+    });
+    revalidatePath(`/billing/${billingRecordId}`);
+    return { ok: true };
+  } catch (error) {
+    logUnmappedExternalDocError('cancel', error);
     return { error: await mapExternalDocError(error) };
   }
 }

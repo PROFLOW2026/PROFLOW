@@ -18,7 +18,7 @@ import { formatBusinessDateMonthDay } from '@/shared/dates/format';
 import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
 import { cn } from '@/shared/ui/cn';
 import { uwmPrimaryPanelClass } from '@/shared/ui/uwm-surface-styles';
-import type { TaskCardData, TaskStatus } from './_task-api-stub';
+import type { TaskCardData, TaskStatus } from './task-api';
 
 type CalendarMode = 'month' | 'week';
 

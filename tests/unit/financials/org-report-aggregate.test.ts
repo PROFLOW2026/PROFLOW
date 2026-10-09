@@ -100,6 +100,19 @@ describe('aggregateOrgReport invariants', () => {
     expect(cost.estimatedFinal?.exclusions).toContain('unallocatedBusinessCosts');
   });
 
+  it('uses vendorsRecognized metric key for vendor rollup (RPT-005)', () => {
+    const rows = [
+      row({
+        projectId: 'a',
+        name: 'A',
+        vendorActual: money('2500', ILS),
+      }),
+    ];
+    const cost = aggregateOrgCost(rows, ILS);
+    expect(cost.vendors?.key).toBe('vendorsRecognized');
+    expect(cost.vendors?.value).toEqual(money('2500', ILS));
+  });
+
   it('labels cash invoiced/paid as actual and skips foreign currency rows', () => {
     const rows = [
       row({

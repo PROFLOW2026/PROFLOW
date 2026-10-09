@@ -226,6 +226,17 @@ export async function generateReport(
       });
       brandEntity = { preferSnapshot: false };
       break;
+    case 'labor_by_period': {
+      const { buildLaborByPeriodReport } = await import('./generate-labor-by-period-report');
+      payload = await buildLaborByPeriodReport(context, id, {
+        locale,
+        copy,
+        generatedAt,
+        companyName,
+      });
+      brandEntity = { preferSnapshot: false };
+      break;
+    }
     default: {
       const extended = await buildExtendedReport(context, kind, id, {
         locale,

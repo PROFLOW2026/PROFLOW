@@ -17,8 +17,8 @@ import type { CreateTaskInput } from '@/modules/tasks';
 import {
   mapBoardToUiBoard,
   mapBucketToUiBucket,
-} from '@/modules/tasks/ui/_task-api-stub';
-import type { TaskCardData, TaskDetail } from '@/modules/tasks/ui/_task-api-stub';
+} from '@/modules/tasks/ui/task-api';
+import type { TaskCardData, TaskDetail } from '@/modules/tasks/ui/task-api';
 import { mapTaskDetailToUiForOrg, mapTasksToCardDataForOrg } from '@/modules/tasks/application/map-tasks-for-ui';
 import { TASK_LIST_MAX_LIMIT } from '@/modules/tasks/domain/list-window';
 import { BoardShell } from './_board-shell';

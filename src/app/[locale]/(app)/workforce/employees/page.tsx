@@ -85,6 +85,9 @@ export default async function EmployeesPage() {
           standardWorkStartTime={laborDefaults?.standardWorkStartTime ?? null}
           standardWorkEndTime={laborDefaults?.standardWorkEndTime ?? null}
           workWeekdays={laborDefaults?.workWeekdays ?? null}
+          attendanceProjectTimeApproval={
+            laborDefaults?.attendanceProjectTimeApproval ?? 'draft'
+          }
           setupRequired={!orgFrameworkConfigured}
           canBootstrapCosting={canBootstrapCosting}
         />

@@ -121,6 +121,16 @@ export default defineConfig({
         storageState: 'tests/e2e/.auth/owner.json',
       },
     },
+    {
+      name: 'audit-verification',
+      testMatch: /audit\/verification.*\.spec\.ts/,
+      dependencies: ['setup-owner'],
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 1440, height: 900 },
+        storageState: 'tests/e2e/.auth/owner.json',
+      },
+    },
   ],
   webServer: process.env.PLAYWRIGHT_BASE_URL
     ? undefined
@@ -134,9 +144,9 @@ export default defineConfig({
         },
         {
           command:
-            process.env.CAPTURE_MARKETING === '1'
+            process.env.CAPTURE_MARKETING === '1' || process.env.E2E_SKIP_BUILD === '1'
               ? 'node tests/e2e/harness/start-app-for-playwright.mjs'
-              : `npm run build && node tests/e2e/harness/start-app-for-playwright.mjs`,
+              : 'node tests/e2e/harness/build-for-playwright.mjs && node tests/e2e/harness/start-app-for-playwright.mjs',
           url: baseURL,
           reuseExistingServer: !process.env.CI && !process.env.E2E_FORCE_FRESH_SERVER,
           timeout: 720_000,

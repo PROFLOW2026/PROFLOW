@@ -19,7 +19,7 @@ import {
   mapEmployeePmTaskToCardData,
 } from '@/modules/employee-app/application/map-employee-pm-task-card';
 import { EmployeeProjectBoardShell } from '@/modules/employee-app/ui/employee-project-board-shell';
-import type { Bucket, TaskStatus } from '@/modules/tasks/ui/_task-api-stub';
+import type { Bucket, TaskStatus } from '@/modules/tasks/ui/task-api';
 
 interface PageProps {
   params: Promise<{ projectId: string; locale: string }>;

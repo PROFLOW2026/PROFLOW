@@ -8,6 +8,7 @@ import {
   rethrowClosedPeriodRewrite,
   yearMonthFromBusinessDate,
 } from '@/modules/month-close';
+import { cancelIssuedStatutoryDocumentsForBillingVoid } from '@/modules/invoicing-integration/application/cancel-statutory-for-billing-void';
 import { assertVoidable } from '../domain/lifecycle';
 import { findBillingRecordById, updateBillingRecordRow } from '../data/billing.repository';
 
@@ -36,6 +37,8 @@ export async function voidBillingRecord(context: OrgContext, billingRecordId: st
       context,
       yearMonthFromBusinessDate(existing.issueDate),
     );
+
+    await cancelIssuedStatutoryDocumentsForBillingVoid(context, billingRecordId);
 
     await updateBillingRecordRow(context.db, context.organizationId, billingRecordId, {
       status: 'void',

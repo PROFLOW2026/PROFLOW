@@ -33,7 +33,7 @@ import {
 } from '../validation/schemas';
 import { assertStatutoryFeatureEnabled } from './assert-feature-enabled';
 import { buildStatutoryBridgeFromBillingRecord } from './build-statutory-bridge';
-import { runCommittedOrgPhase } from './request-external-document';
+import { runCommittedOrgPhase, scheduleStatutoryPdfToProjectFolders } from './request-external-document';
 
 /**
  * Credit where the provider supports it. Does not rewrite BillingRecord totals —
@@ -340,6 +340,7 @@ async function issueSumitCreditLinkedToBillingCreditNote(
       statutoryCreditOriginalStatusPatch(),
     ))!;
 
+    scheduleStatutoryPdfToProjectFolders(context.userId, context.organizationId, credit.id);
     return { original, credit };
   });
 }

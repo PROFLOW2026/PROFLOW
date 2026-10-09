@@ -388,6 +388,11 @@
     "standardWorkEndTime": "שעת סיום מקובלת",
     "daysPerMonth": "ימי עבודה בחודש",
     "daysPerMonthOptional": "אופציונלי - לא נדרש לעלות חודשית לפרויקט",
+    "workingDaysPerMonthAccrualWarn": "ערכים מתחת ל-{min} ימי עבודה בחודש מוגבלים (floor) בצבירת עלות מעסיק חודשית, כדי שימים מוקדמים לא יכירו את כל המאגר.",
+    "attendanceProjectTimeApproval": "שעות פרויקט מסנכרון נוכחות",
+    "attendanceProjectTimeApprovalHint": "כשסנכרון נוכחות יוצר שעות פרויקט: ברירת המחדל טיוטה לאישור נפרד; ניתן לבחור אישור אוטומטי.",
+    "attendanceProjectTimeDraft": "טיוטה, דורש אישור",
+    "attendanceProjectTimeAutoApprove": "אישור אוטומטי כשהמנהל רשאי לאשר",
     "workWeek": "ימי עבודה בשבוע",
     "workWeekHint": "ברירת המחדל ב־ProjectFlow היא א׳-ה׳. שמירה כאן קובעת את ימי השבוע של הארגון.",
     "configuredSummary": "{hours} שעות ביום · {weekdays}",
@@ -454,7 +459,8 @@
     "laborActualMissingCost": "עלות חלקית ({count, plural, one {דיווח #} other {# דיווחים}} ללא עלות; לא מוצג כ־₪0)",
     "laborActualEmployeeMeta": "{hours} ש׳ · {days} ימי עבודה",
     "laborActualCostUnavailable": "עלות לא זמינה",
-    "laborPoolEquation": "הוקצה {allocated} + ממתין {unallocated} = {total} מאגר עבודה"
+    "laborPoolEquation": "הוקצה {allocated} + ממתין {unallocated} = {total} מאגר עבודה",
+    "unallocatedHoursBanner": "{hours} שעות ממתינות לאישור ועדיין לא נספרות בעלות עבודה מוכרת בפרויקט."
   },
   "payrollPayment": {
     "title": "תשלום שכר · {yearMonth}",
@@ -481,6 +487,7 @@
     "cost": "עלות",
     "allocated": "הוקצה",
     "unallocated": "לא הוקצה",
+    "pendingSubmittedHoursBanner": "{hours} שעות עבודה במצב \"הוגש\" עדיין לא אושרו: הן לא נספרות בעלות עבודה מוכרת עד לאישור.",
     "status": "סטטוס",
     "statuses": {
       "not_started": "לא התחיל",

@@ -10,7 +10,7 @@ import {
 import { titleWithDocumentNumber } from '@/modules/tenancy/domain/document-numbers';
 import { resolveProjectExperienceProfile } from '@/modules/tenancy/domain/project-profiles';
 import { loadProjectDetail, loadProjectCloseoutStatus } from './load-project-detail';
-import { getShellContext } from '@/shared/auth/session';
+import { getShellContextForProject } from '@/shared/auth/session';
 import { fromNumericString } from '@/shared/money';
 import { PERMISSIONS, type PermissionKey } from '@/shared/permissions/catalog';
 import { Link } from '@/shared/i18n/navigation';
@@ -54,7 +54,8 @@ interface ProjectLayoutProps {
  * segment only - header, metrics, and tab list stay mounted without re-fetching.
  */
 export default async function ProjectLayout({ children, params }: ProjectLayoutProps) {
-  const [{ projectId }, shell] = await Promise.all([params, getShellContext()]);
+  const { projectId } = await params;
+  const shell = await getShellContextForProject(projectId);
 
   const can = (permission: PermissionKey) => shell?.permissions.has(permission) ?? false;
   const modules = shell?.modules;

@@ -2,6 +2,7 @@ import 'server-only';
 
 import { PROJECT_CAPABILITIES } from '@/modules/project-team/domain/capabilities';
 import { requireProjectCapabilityPage } from '@/modules/project-team/server';
+import { requireDeveloperGcExecutionPage } from '@/modules/project-workspace/server/require-developer-gc-execution';
 import { selectExecutionHubChildren } from '@/modules/project-workspace/domain/execution-hubs';
 import { listProjectAgreementTitles } from '@/modules/subcontracts/application/agreement-titles';
 import { listProjectPaymentStageLines } from '@/modules/subcontracts/application/payment-stage-lines';
@@ -19,6 +20,7 @@ export async function ContractsExecutionHub({
   readonly params: Promise<{ projectId: string }>;
 }) {
   const { projectId } = await params;
+  await requireDeveloperGcExecutionPage(projectId);
   const access = await requireProjectCapabilityPage(
     projectId,
     [PROJECT_CAPABILITIES.CONTRACTOR_VIEW, PROJECT_CAPABILITIES.CONTRACT_FINANCIAL_VIEW, PROJECT_CAPABILITIES.CONTRACT_MANAGE],

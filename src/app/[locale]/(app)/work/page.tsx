@@ -9,7 +9,7 @@ import { getMyWorkPage } from '@/modules/tasks';
 import type { MyWorkView } from '@/modules/tasks';
 import { MY_WORK_VIEW_LIMIT } from '@/modules/tasks/domain/list-window';
 import { mapTasksToCardDataForOrg } from '@/modules/tasks/application/map-tasks-for-ui';
-import type { MyWorkItem, TaskCardData } from '@/modules/tasks/ui/_task-api-stub';
+import type { MyWorkItem, TaskCardData } from '@/modules/tasks/ui/task-api';
 import { serializeTaskCardsForClient } from '@/modules/tasks/ui/serialize-task-cards';
 import { MyWorkView as MyWorkViewComponent } from '@/modules/tasks/ui/my-work-view';
 import { getTaskDetailAction, loadMoreMyWorkAction, updateTaskFieldsAction } from './actions';

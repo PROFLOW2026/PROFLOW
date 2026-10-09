@@ -141,6 +141,9 @@ export function MonthlyEmployerCostReview({
   const [allocationLines, setAllocationLines] = useState<AllocationLineDraft[]>(() =>
     mapReviewLines(initialReview?.lines ?? [], projects),
   );
+  const [pendingSubmittedHours, setPendingSubmittedHours] = useState(
+    () => initialReview?.pendingSubmittedHours ?? '0',
+  );
 
   function applyLoadedReview(review: MonthlyEmployerCostReviewData, targetYearMonth: string) {
     const month = monthRowFromReview(review, targetYearMonth);
@@ -151,6 +154,7 @@ export function MonthlyEmployerCostReview({
     setAllocationLines(mapReviewLines(review.lines, projects));
     setSavedDraft(false);
     setApplied(month?.status === 'applied' || month?.status === 'closed');
+    setPendingSubmittedHours(review.pendingSubmittedHours);
     setActionError(null);
   }
 
@@ -342,6 +346,14 @@ export function MonthlyEmployerCostReview({
       ) : null}
 
       {actionError ? <Alert tone="danger">{actionError}</Alert> : null}
+
+      {Number(pendingSubmittedHours) > 0 ? (
+        <Alert tone="warning">
+          {t('monthReview.pendingSubmittedHoursBanner', {
+            hours: Number(pendingSubmittedHours).toFixed(2).replace(/\.?0+$/, ''),
+          })}
+        </Alert>
+      ) : null}
 
       <Field label={t('monthReview.yearMonth')}>
         {(control) => (

@@ -207,7 +207,15 @@ export const PROJECT_CAPABILITY_TEMPLATES: readonly ProjectCapabilityTemplate[] 
     key: 'client_coordinator',
     name: 'Client coordinator',
     financialAccess: 'none',
-    capabilities: [C.PROJECT_VIEW, C.DOCUMENTS_VIEW, C.MEETINGS_MANAGE, C.SCHEDULE_VIEW, C.TASKS_VIEW, C.CONTRACTOR_VIEW],
+    capabilities: [
+      C.PROJECT_VIEW,
+      C.DOCUMENTS_VIEW,
+      C.MEETINGS_MANAGE,
+      C.SCHEDULE_VIEW,
+      C.TASKS_VIEW,
+      C.CONTRACTOR_VIEW,
+      C.OPERATIONAL_APPROVE,
+    ],
   },
   {
     key: 'developer_representative',

@@ -464,7 +464,7 @@
   },
   "assigneePicker": {
     "wholeTeam": "כל צוות הפרויקט",
-    "wholeTeamHint": "כל משתתפי הפרויקט יוקצו בעת השמירה.",
+    "wholeTeamHint": "הקצאת כל הצוות דורשת משימה מקושרת לפרויקט. כל המשתתפים מסונכרנים בשמירה (ללא שורת ALL במסד).",
     "searchPlaceholder": "חיפוש בצוות…",
     "optionsLabel": "משתתפי פרויקט",
     "noMatches": "לא נמצאו משתתפים",
@@ -558,6 +558,9 @@
   "commentsSlot": "הערות",
   "openFullTask": "פתח משימה מלאה להערות ופעילות",
   "drawerExtendedDetails": "הערות, פעילות ואישורים",
+  "evidenceSection": {
+    "title": "ראיות מהשטח"
+  },
   "drawerExtendedDetailsHint": "פתח את דף המשימה המלא להערות, היסטוריית פעילות ופעולות אישור.",
   "noProject": "ללא פרויקט",
   "projectWork": {

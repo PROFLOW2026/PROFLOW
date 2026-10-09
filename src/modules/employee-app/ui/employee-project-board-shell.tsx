@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import { BoardView } from '@/modules/tasks/ui/board-view';
-import type { Bucket, TaskCardData, TaskDetail, TaskStatus } from '@/modules/tasks/ui/_task-api-stub';
+import type { Bucket, TaskCardData, TaskDetail, TaskStatus } from '@/modules/tasks/ui/task-api';
 import { Link } from '@/shared/i18n/navigation';
 import { employeePrimaryButtonClass } from '@/modules/employee-app/ui/employee-surface-styles';
 

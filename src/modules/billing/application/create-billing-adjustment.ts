@@ -26,6 +26,7 @@ import {
   updateBillingRecordRow,
 } from '../data/billing.repository';
 import { createAdjustmentSchema, type CreateAdjustmentInput } from '../validation/schemas';
+import { issueStatutoryCreditForBillingAdjustment } from '@/modules/invoicing-integration/application/credit-statutory-for-billing-adjustment';
 import { getBillingRecord } from './get-billing-record';
 
 const BILLING_AUDIT_ADJUSTMENT = 'billing_record.adjustment_created';
@@ -145,6 +146,11 @@ export async function createBillingAdjustment(context: OrgContext, rawInput: Cre
       totalAmount: toNumericString(amounts.totalAmount),
       currency,
     },
+  });
+
+  await issueStatutoryCreditForBillingAdjustment(context, {
+    originalBillingRecordId: original.id,
+    creditNoteBillingRecordId: creditNoteId,
   });
 
   const created = await getBillingRecord(context, creditNoteId);

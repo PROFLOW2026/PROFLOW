@@ -1,6 +1,13 @@
 import { and, eq, or, sql } from 'drizzle-orm';
 import { employeeMonthCosts } from '@drizzle/schema';
-import { closeEmployeeMonthCost } from '@/modules/workforce/data/index';
+import {
+  closeEmployeeMonthCost,
+  lockDraftActualEmployerMonthAtMonthClose,
+} from '@/modules/workforce/data/index';
+import {
+  isDraftActualTimeSnapshotLockableAtMonthClose,
+  isEmployerMonthCloseableAsApplied,
+} from '@/modules/workforce/domain/labor-recognition';
 import { AUDIT_ACTIONS } from '@/shared/audit/actions';
 import { recordAuditEvent } from '@/shared/audit';
 import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors';
@@ -521,13 +528,18 @@ async function persistMonthCloseAdjustment(
   return adjustment;
 }
 
-/** Freeze applied rows and draft rows that already hold an owner actual. */
+/** Freeze applied rows; lock draft actual time-snapshot rows without status=closed. */
 async function closeAppliedEmployeeMonthCosts(
   context: OrgContext,
   yearMonth: string,
 ): Promise<number> {
   const rows = await context.db
-    .select({ id: employeeMonthCosts.id })
+    .select({
+      id: employeeMonthCosts.id,
+      status: employeeMonthCosts.status,
+      knownQuality: employeeMonthCosts.knownQuality,
+      recognitionSource: employeeMonthCosts.recognitionSource,
+    })
     .from(employeeMonthCosts)
     .where(
       and(
@@ -538,17 +550,29 @@ async function closeAppliedEmployeeMonthCosts(
           and(
             eq(employeeMonthCosts.status, 'draft'),
             eq(employeeMonthCosts.knownQuality, 'actual'),
+            eq(employeeMonthCosts.recognitionSource, 'time_snapshot'),
           ),
         ),
       ),
     );
 
-  let closed = 0;
+  let frozen = 0;
   for (const row of rows) {
-    const updated = await closeEmployeeMonthCost(context.db, context.organizationId, row.id);
-    if (updated) closed += 1;
+    if (isEmployerMonthCloseableAsApplied(row)) {
+      const updated = await closeEmployeeMonthCost(context.db, context.organizationId, row.id);
+      if (updated) frozen += 1;
+      continue;
+    }
+    if (isDraftActualTimeSnapshotLockableAtMonthClose(row)) {
+      const locked = await lockDraftActualEmployerMonthAtMonthClose(
+        context.db,
+        context.organizationId,
+        row.id,
+      );
+      if (locked) frozen += 1;
+    }
   }
-  return closed;
+  return frozen;
 }
 
 function closedFlag(result: unknown): boolean {

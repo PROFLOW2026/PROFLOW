@@ -16,7 +16,6 @@ import {
   listSalesQuoteLinesForVersions,
   listSalesQuotesForOpportunity,
   listSalesQuoteVersionsForQuotes,
-  updateLeadById,
   updateOpportunityById,
 } from '../data/crm.repository';
 import { listQuotes } from '@/modules/quotes/lookups';
@@ -172,16 +171,6 @@ export async function createOpportunity(
     nextActionAt: input.nextActionAt ?? null,
     nextActionText: input.nextActionText ?? null,
   });
-
-  // Lead → opportunity is the conversion step; mark the lead so lists stay coherent.
-  if (input.leadId) {
-    const lead = await findLeadById(context.db, context.organizationId, input.leadId);
-    if (lead && lead.status !== 'converted' && lead.status !== 'disqualified') {
-      await updateLeadById(context.db, context.organizationId, lead.id, {
-        status: 'converted',
-      });
-    }
-  }
 
   await noteModuleUsage(context.db, context.organizationId, 'crm');
   await recordAuditEvent(context, {

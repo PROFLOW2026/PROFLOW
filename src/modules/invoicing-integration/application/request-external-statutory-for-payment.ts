@@ -37,6 +37,7 @@ import { resolveStatutoryProviderForOrg } from './resolve-statutory-provider';
 import {
   requestExternalStatutoryDocumentCommitted,
   runCommittedOrgPhase,
+  scheduleStatutoryPdfToProjectFolders,
   setCommittedPhaseRunnerForTests,
 } from './request-external-document';
 
@@ -223,7 +224,9 @@ export async function requestExternalStatutoryDocumentForPaymentCommitted(
       lastErrorCode: null,
       lastErrorMessage: null,
     });
-    return updated ?? (await findExternalDocument(context, prepared.row.id))!;
+    const finalDoc = updated ?? (await findExternalDocument(context, prepared.row.id))!;
+    scheduleStatutoryPdfToProjectFolders(userId, organizationId, finalDoc.id);
+    return finalDoc;
   });
 }
 

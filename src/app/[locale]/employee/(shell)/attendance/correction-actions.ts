@@ -1,7 +1,7 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
 import { getTranslations } from 'next-intl/server';
+import { revalidateEmployeeAttendancePaths } from '@/modules/employee-app/application/revalidate-employee-attendance-paths';
 import { withOrgContext } from '@/shared/auth/session';
 import { assertEmployeeAppContext } from '@/modules/employee-app/application/session-guard';
 import {
@@ -34,7 +34,7 @@ export async function employeeSubmitAttendanceCorrectionAction(
         reason,
       });
     });
-    revalidatePath('/employee/attendance');
+    revalidateEmployeeAttendancePaths();
     return { ok: true };
   } catch (error) {
     const tErrors = await getTranslations('errors');

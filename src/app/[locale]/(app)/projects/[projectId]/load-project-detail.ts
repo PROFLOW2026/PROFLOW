@@ -9,7 +9,7 @@ import {
   type ProjectDetail,
 } from '@/modules/projects/application/get-project-detail';
 import { getBusinessProfileKeyForOrg } from '@/modules/tenancy/application/read-business-profile-key';
-import { withOrgContext } from '@/shared/auth/session';
+import { withOrgContext, withProjectOrgContext } from '@/shared/auth/session';
 import type { OrgContext } from '@/shared/auth/context';
 
 /** Load project detail inside an existing org context (one transaction). */
@@ -40,7 +40,7 @@ export async function loadProjectDetailInContext(
 
 /** Lightweight project row for module-tab soft-nav (skips contract/events chrome). */
 export const loadProjectTabMeta = cache(async (projectId: string) =>
-  withOrgContext(async (context) => {
+  withProjectOrgContext(projectId, async (context) => {
     const project = await findProjectById(context.db, context.organizationId, projectId);
     if (!project) return null;
     return {
@@ -58,15 +58,15 @@ export const loadProjectTabMeta = cache(async (projectId: string) =>
  * key and layout+page each paid for project/contract/events twice.
  */
 const loadProjectChrome = cache(async (projectId: string) =>
-  withOrgContext((context) => getProjectDetailChrome(context, projectId)),
+  withProjectOrgContext(projectId, (context) => getProjectDetailChrome(context, projectId)),
 );
 
 const loadProjectStructure = cache(async (projectId: string) =>
-  withOrgContext((context) => getProjectDetailStructure(context, projectId)),
+  withProjectOrgContext(projectId, (context) => getProjectDetailStructure(context, projectId)),
 );
 
 const loadActiveWorkPackageCount = cache(async (projectId: string) =>
-  withOrgContext((context) => countProjectActiveWorkPackages(context, projectId)),
+  withProjectOrgContext(projectId, (context) => countProjectActiveWorkPackages(context, projectId)),
 );
 
 /** Shared with layout + page so profile-aware tabs do not double-hit settings. */
@@ -78,7 +78,7 @@ export const loadOrgBusinessProfileKey = cache(async () =>
 
 /** Dedupes closeout status between project layout and overview tab. */
 export const loadProjectCloseoutStatus = cache(async (projectId: string) =>
-  withOrgContext(async (context) => {
+  withProjectOrgContext(projectId, async (context) => {
     const project = await findProjectById(context.db, context.organizationId, projectId);
     if (!project || project.status === 'completed') return null;
     const rows = await listCloseoutStatusesForProjects(context, [projectId]);

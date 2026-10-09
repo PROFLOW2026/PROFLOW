@@ -13,10 +13,10 @@ export function buildStatutoryIdempotencyKey(
   paymentId?: string | null,
 ): string {
   if (kind === 'receipt' && paymentId) {
-    return `pf:payment:${paymentId}:receipt:v1`;
+    return `pf:payment:${paymentId}:billing:${billingRecordId}:receipt:v1`;
   }
   if (kind === 'tax_invoice_receipt' && paymentId) {
-    return `pf:payment:${paymentId}:tax_invoice_receipt:v1`;
+    return `pf:payment:${paymentId}:billing:${billingRecordId}:tax_invoice_receipt:v1`;
   }
   return `pf:${billingRecordId}:${kind}:v1`;
 }

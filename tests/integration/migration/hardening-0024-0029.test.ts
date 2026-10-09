@@ -22,6 +22,21 @@ import { createTestUser, seedSystem } from '@tests/setup/fixtures';
 
 const MIGRATIONS_DIR = path.resolve(process.cwd(), 'drizzle/migrations');
 
+async function grantProjectReadAccess(
+  database: TestDatabase,
+  organizationId: string,
+  userId: string,
+  projectId: string,
+): Promise<void> {
+  await database.asService(async (db) => {
+    await db.execute(sql`
+      INSERT INTO project_access_grants (organization_id, user_id, project_id, access_level)
+      VALUES (${organizationId}::uuid, ${userId}::uuid, ${projectId}::uuid, 'read')
+      ON CONFLICT (organization_id, user_id, project_id) DO NOTHING
+    `);
+  });
+}
+
 async function onboardRole(
   database: TestDatabase,
   ownerId: string,
@@ -376,6 +391,8 @@ describe('migration hardening 0024–0029', () => {
         const created = await createProject(context, { name: 'Site' });
         return created.projectId;
       });
+      await grantProjectReadAccess(database, organizationId, worker.id, projectId);
+      await grantProjectReadAccess(database, organizationId, worker2.id, projectId);
 
       const templateId = await database.asUser(owner.id, async (tx) => {
         const inserted = resultRows<{ id: string }>(
@@ -782,6 +799,7 @@ describe('migration hardening 0024–0029', () => {
         const created = await createProject(context, { name: 'Site A' });
         return created.projectId;
       });
+      await grantProjectReadAccess(database, orgA, worker.id, projectA);
       const logA = await database.asUser(ownerA.id, async (tx) => {
         const inserted = resultRows<{ id: string }>(
           await tx.execute(sql`

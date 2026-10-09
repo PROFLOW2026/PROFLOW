@@ -8,6 +8,7 @@ import { resolveBusinessProfileKey } from '../domain/business-profiles';
 import { WORK_MIX_SETTING_KEY, isWorkMix } from '../domain/work-mix';
 import { applyBusinessProfileConfig } from './apply-business-profile';
 import { createOrganizationSchema, type CreateOrganizationInput } from '../validation/schemas';
+import { PROJECT_ACCESS_SETTING_KEY } from '@/modules/projects/domain/project-access';
 import { upsertOrganizationSettingValue } from '../data/organization-settings.repository';
 import { seedUniversalBusinessCatalogs } from '@/modules/business-catalog/application/seed-catalog';
 import { ensureOrgDefaultPaymentTermKey } from '@/modules/business-catalog/application/payment-term-defaults';
@@ -120,6 +121,10 @@ export async function createOrganization(
 
   // UWM surfaces are core work chrome for every new organization.
   await setModulePreference(db, organization.id, 'work_management', true);
+
+  await upsertOrganizationSettingValue(db, organization.id, PROJECT_ACCESS_SETTING_KEY, {
+    mode: 'selected',
+  });
 
   await writeAuditEvent(db, {
     organizationId: organization.id,

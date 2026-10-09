@@ -12,7 +12,7 @@ import {
   mapTaskToCardData,
   type TaskCardData,
   type TaskDetail as UiTaskDetail,
-} from '../ui/_task-api-stub';
+} from '../ui/task-api';
 import {
   enrichTasksWithProjectDisplayNames,
   projectDisplayNameForTask,

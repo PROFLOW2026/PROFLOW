@@ -446,7 +446,19 @@ describe('migration journal', () => {
     expect(tags.indexOf('0171_retention_release_service_grant')).toBeLessThan(
       tags.indexOf('0172_notification_attention_badge_snapshot'),
     );
-    expect(tags.at(-1)).toBe('0172_notification_attention_badge_snapshot');
+    expect(tags.at(-1)).toBe('0176_project_access_mode_default_selected');
+    expect(tags.indexOf('0172_notification_attention_badge_snapshot')).toBeLessThan(
+      tags.indexOf('0173_force_rls_five_tables'),
+    );
+    expect(tags.indexOf('0173_force_rls_five_tables')).toBeLessThan(
+      tags.indexOf('0174_audit_events_contracts_select_rls'),
+    );
+    expect(tags.indexOf('0174_audit_events_contracts_select_rls')).toBeLessThan(
+      tags.indexOf('0175_attendance_correction_requests_service_policy'),
+    );
+    expect(tags.indexOf('0175_attendance_correction_requests_service_policy')).toBeLessThan(
+      tags.indexOf('0176_project_access_mode_default_selected'),
+    );
 
     const sql66 = await readFile(
       path.join(MIGRATIONS_DIR, '0066_workforce_time_integrity.sql'),

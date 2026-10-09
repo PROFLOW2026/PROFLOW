@@ -34,6 +34,8 @@ export const PROJECT_CAPABILITIES = {
   DAILY_LOG_MANAGE: 'daily_log.manage',
   MEETINGS_MANAGE: 'meetings.manage',
   SAFETY_MANAGE: 'safety.manage',
+  /** Approve pending attendance corrections and project-time rows for this project only (no payroll). */
+  OPERATIONAL_APPROVE: 'operational.approve',
 
   // ── Financial (money visible or decided) ─────────────────────────────────
   FINANCIAL_VIEW: 'financial.view',
@@ -88,6 +90,11 @@ export const PROJECT_CAPABILITY_CATALOG: readonly ProjectCapabilityDefinition[] 
   { key: C.DAILY_LOG_MANAGE, group: 'operational', description: 'Maintain the daily site log' },
   { key: C.MEETINGS_MANAGE, group: 'operational', description: 'Manage meetings and minutes' },
   { key: C.SAFETY_MANAGE, group: 'operational', description: 'Manage safety records' },
+  {
+    key: C.OPERATIONAL_APPROVE,
+    group: 'operational',
+    description: 'Approve pending attendance corrections and project hours for this project',
+  },
 
   { key: C.FINANCIAL_VIEW, group: 'financial', description: 'See project-level financial totals' },
   { key: C.CONTRACT_FINANCIAL_VIEW, group: 'financial', description: 'See contractor contract values and prices' },
@@ -167,6 +174,7 @@ export const IMPLIED_CAPABILITIES: Readonly<Record<ProjectCapability, readonly P
   [C.DAILY_LOG_MANAGE]: [C.PROJECT_VIEW],
   [C.MEETINGS_MANAGE]: [C.PROJECT_VIEW],
   [C.SAFETY_MANAGE]: [C.PROJECT_VIEW],
+  [C.OPERATIONAL_APPROVE]: [C.PROJECT_VIEW],
 
   [C.FINANCIAL_VIEW]: [C.PROJECT_VIEW],
   [C.CONTRACT_FINANCIAL_VIEW]: [C.PROJECT_VIEW, C.CONTRACTOR_VIEW],

@@ -11,6 +11,26 @@
   "badge": {
     "ready": "Ready to close"
   },
+  "templateRequirements": {
+    "title": "Template closeout checklist",
+    "hint": "From the structure template applied to this project. Complete these deliverables before closing.",
+    "keys": {
+      "handover_photos": "Handover photos",
+      "punch_closed": "Punch list closed",
+      "electrical_cert": "Electrical certificate",
+      "as_built": "As-built drawings",
+      "commissioning": "Commissioning sign-off",
+      "issued_for_construction": "Issued-for-construction set",
+      "practical_completion": "Practical completion",
+      "handover_pack": "Handover pack",
+      "warranty_docs": "Warranty documents",
+      "keys": "Keys handed over",
+      "monthly_report": "Monthly report",
+      "final_report": "Final report",
+      "commissioning_sheet": "Commissioning sheet",
+      "manuals": "Equipment manuals"
+    }
+  },
   "readiness": {
     "title": "Closeout readiness",
     "hard": "Must be resolved before closing",

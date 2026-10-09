@@ -6,7 +6,10 @@ import { getProviderConnectionsRepository } from '../data/external-documents';
 import type { StatutoryInvoicingProvider } from '../domain/provider';
 import { areInvoicingIntegrationTablesAvailable } from '../domain/persistence';
 import { SUMIT_PROVIDER_ID } from '../domain/types';
-import { createDefaultStatutoryProvider } from '../domain/unconfigured-provider';
+import {
+  createDefaultStatutoryProvider,
+  getStatutoryInvoicingProvider,
+} from '../domain/unconfigured-provider';
 import { SumitStatutoryProvider } from '../providers/sumit/sumit-statutory-provider';
 
 export async function resolveStatutoryProviderForOrg(
@@ -39,4 +42,17 @@ export async function resolveStatutoryProviderForOrg(
   }
 
   return new SumitStatutoryProvider({ credentials });
+}
+
+/** Production org connection first; fall back to DI/test provider when unconfigured. */
+export async function resolveStatutoryProviderForBillingHook(
+  context: Pick<OrgContext, 'db' | 'organizationId'>,
+  explicit?: StatutoryInvoicingProvider,
+): Promise<StatutoryInvoicingProvider> {
+  if (explicit) return explicit;
+  const orgProvider = await resolveStatutoryProviderForOrg(context);
+  if (orgProvider.isFeatureEnabled()) return orgProvider;
+  const testOrDefaultProvider = getStatutoryInvoicingProvider();
+  if (testOrDefaultProvider.isFeatureEnabled()) return testOrDefaultProvider;
+  return orgProvider;
 }

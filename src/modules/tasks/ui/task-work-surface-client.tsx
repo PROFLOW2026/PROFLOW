@@ -11,7 +11,7 @@ import {
   type TaskFilterBarState,
 } from './task-filters-bar';
 import { TaskTimelineView } from './task-timeline-view';
-import type { TaskCardData, TaskDetail } from './_task-api-stub';
+import type { TaskCardData, TaskDetail } from './task-api';
 import type { WorkActionState } from '@/app/[locale]/(app)/work/actions';
 
 export interface TaskWorkSurfaceClientProps {

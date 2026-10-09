@@ -1,4 +1,4 @@
-import type { TaskCardData } from './_task-api-stub';
+import type { TaskCardData } from './task-api';
 
 function coerceIsoTimestamp(value: unknown): string {
   if (value instanceof Date) return value.toISOString();

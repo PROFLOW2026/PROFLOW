@@ -15,8 +15,8 @@ export interface StatutoryPaymentAllocation {
 
 /**
  * Runs AFTER payment commit — provider failure must not affect the payment.
- * Does not issue a second tax invoice. A second receipt of the same kind for
- * the same payment id is skipped (existing idempotency key and unique index).
+ * Does not issue a second tax invoice. Duplicate receipt for the same payment
+ * and billing record is skipped (allocation-scoped idempotency key).
  */
 export async function triggerStatutoryAfterPayment(
   userId: string,

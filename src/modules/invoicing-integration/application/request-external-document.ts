@@ -36,7 +36,7 @@ import {
 import { assertStatutoryFeatureEnabledForOrg } from './assert-feature-enabled';
 import { buildStatutoryBridgeFromBillingRecord } from './build-statutory-bridge';
 import { resolveStatutoryProviderForOrg } from './resolve-statutory-provider';
-import { archiveStatutoryPdfToProvider } from './archive-statutory-pdf-to-provider';
+import { saveStatutoryPdfToStorage } from './save-statutory-pdf-to-storage';
 
 /**
  * Billing Record → user requests external statutory document → provider → store refs.
@@ -259,30 +259,29 @@ async function executeProviderCreateAndPersistOutcome(
 
   // Best-effort: archive the SUMIT PDF to external storage in the background.
   // This must NOT block or affect the issuance result.
-  scheduleStatutoryPdfArchival(userId, organizationId, confirmed.id);
+  scheduleStatutoryPdfToProjectFolders(userId, organizationId, confirmed.id);
 
   return confirmed;
 }
 
 /**
- * Kick off a best-effort PDF archival to external storage. Non-blocking —
- * the caller must NOT await this. Failures are logged and the document is
- * marked `archive_pending=true` so the daily ops-worker can retry.
+ * DOC-012 — best-effort statutory PDF into the project billing folder (documents module).
+ * Non-blocking; failures are recorded on reconciliation metadata via saveStatutoryPdfToStorage.
  */
-function scheduleStatutoryPdfArchival(
+export function scheduleStatutoryPdfToProjectFolders(
   userId: string,
   organizationId: string,
   externalDocumentId: string,
 ): void {
-  void archiveStatutoryPdfToProvider(userId, organizationId, externalDocumentId).catch(
-    (err: unknown) => {
-      console.error(
-        '[sumit-archival] unhandled error during scheduled archival',
-        externalDocumentId,
-        err,
-      );
-    },
-  );
+  void runCommittedOrgPhase(userId, organizationId, async (context) => {
+    await saveStatutoryPdfToStorage(context, externalDocumentId);
+  }).catch((err: unknown) => {
+    console.error(
+      '[statutory-pdf-archive] project folder save failed',
+      externalDocumentId,
+      err instanceof Error ? err.message : err,
+    );
+  });
 }
 
 /**

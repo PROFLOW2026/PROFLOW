@@ -221,6 +221,11 @@ export async function saveOrgWorkFrameworkAction(
     workWeekdaysRaw.length > 0 ? [...new Set(workWeekdaysRaw)].sort((a, b) => a - b) : null;
   const standardWorkStartTime = String(formData.get('standardWorkStartTime') ?? '').trim();
   const standardWorkEndTime = String(formData.get('standardWorkEndTime') ?? '').trim();
+  const attendanceProjectTimeRaw = String(
+    formData.get('attendanceProjectTimeApproval') ?? 'draft',
+  ).trim();
+  const attendanceProjectTimeApproval =
+    attendanceProjectTimeRaw === 'auto_approve' ? 'auto_approve' : 'draft';
 
   if (!standardHoursPerDay) {
     return { error: t('workFramework.validationRequired') };
@@ -235,6 +240,7 @@ export async function saveOrgWorkFrameworkAction(
         workWeekdays,
         standardWorkStartTime,
         standardWorkEndTime,
+        attendanceProjectTimeApproval,
       }),
     );
     revalidatePath('/workforce', 'layout');

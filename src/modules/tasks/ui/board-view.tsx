@@ -12,7 +12,7 @@
  * - RTL: logical CSS throughout
  *
  * Agent A dependency:
- *   moveTaskToBucket, listBuckets — imported from _task-api-stub.ts
+ *   moveTaskToBucket, listBuckets — imported from task-api.ts
  *   TODO: swap to `import { moveTaskToBucket } from '@/modules/tasks'` once Agent A delivers.
  */
 
@@ -23,7 +23,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { cn } from '@/shared/ui/cn';
-import type { Bucket, TaskCardData, TaskPriority, TaskStatus } from './_task-api-stub';
+import type { Bucket, TaskCardData, TaskPriority, TaskStatus } from './task-api';
 import { TaskCard } from './task-card';
 
 // ---------------------------------------------------------------------------

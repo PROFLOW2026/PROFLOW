@@ -41,7 +41,7 @@ export default async function ReportsPage({
   const packs = await withOrgContext((context) => loadReportPackCatalog(context));
 
   return (
-    <div className="flex min-w-0 max-w-full flex-col gap-6">
+    <div className="flex min-w-0 max-w-full flex-col gap-6" data-pf-reports-page="">
       <PageHeader
         title={t('title')}
         description={t('description')}

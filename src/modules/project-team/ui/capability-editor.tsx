@@ -63,9 +63,18 @@ export function CapabilityEditor({
     (capability) =>
       isFinancialCapability(capability as ProjectCapability) && !(original?.has(capability) ?? false),
   );
+  const showsOperationalDelegation =
+    !readOnly &&
+    (templateValue === 'client_coordinator' ||
+      selection.includes('operational.approve' as ProjectCapability));
 
   return (
     <div className="flex flex-col gap-5">
+      {showsOperationalDelegation ? (
+        <Alert tone="info" title={t('editor.operationalDelegationTitle')}>
+          {t('editor.operationalDelegationHint')}
+        </Alert>
+      ) : null}
       {readOnly ? null : (
         <div className="flex flex-col gap-1.5">
           <label className="text-sm font-medium" htmlFor="project-team-template">

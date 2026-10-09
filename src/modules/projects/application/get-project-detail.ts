@@ -25,7 +25,7 @@ import {
   listContractValueEventsForContracts,
 } from '../data/contracts.repository';
 import { findProjectById } from '../data/projects.repository';
-import { assertCanAccessProject } from './project-access';
+import { scopeOrgContextToProject } from '@/modules/rbac';
 import { listPhasesByProject } from '../data/phases.repository';
 import { listMilestonesByProject } from '../data/milestones.repository';
 import {
@@ -96,27 +96,26 @@ export async function getProjectDetailChrome(
   context: OrgContext,
   projectId: string,
 ): Promise<ProjectDetailChrome> {
-  assertPermission(context, PERMISSIONS.PROJECTS_READ);
-
   const project = await findProjectById(context.db, context.organizationId, projectId);
   if (!project) throw new NotFoundError('Project');
   assertSameOrganization(context, project, 'Project');
-  await assertCanAccessProject(context, projectId);
+  const scoped = await scopeOrgContextToProject(context, projectId);
+  assertPermission(scoped, PERMISSIONS.PROJECTS_READ);
 
-  const canReadContracts = context.permissions.has(PERMISSIONS.CONTRACTS_READ);
+  const canReadContracts = scoped.permissions.has(PERMISSIONS.CONTRACTS_READ);
 
   const projectContracts = canReadContracts
-    ? await listContractsByProject(context.db, context.organizationId, projectId)
+    ? await listContractsByProject(scoped.db, scoped.organizationId, projectId)
     : [];
   const contract =
     projectContracts.find((row) => row.isPrimary) ??
     (canReadContracts
-      ? await findPrimaryContractByProject(context.db, context.organizationId, projectId)
+      ? await findPrimaryContractByProject(scoped.db, scoped.organizationId, projectId)
       : null);
 
   const [clientName, clientContact, domainName, allContractEvents] = await Promise.all([
     project.clientId
-      ? context.db
+      ? scoped.db
           .select({ name: clients.name })
           .from(clients)
           .where(eq(clients.id, project.clientId))
@@ -222,12 +221,13 @@ export async function getProjectDetailStructure(
   context: OrgContext,
   projectId: string,
 ): Promise<ProjectDetailStructure> {
-  assertPermission(context, PERMISSIONS.PROJECTS_READ);
+  const scoped = await scopeOrgContextToProject(context, projectId);
+  assertPermission(scoped, PERMISSIONS.PROJECTS_READ);
 
   const [workPackages, phases, milestones] = await Promise.all([
-    listWorkPackagesByProject(context.db, context.organizationId, projectId),
-    listPhasesByProject(context.db, context.organizationId, projectId),
-    listMilestonesByProject(context.db, context.organizationId, projectId),
+    listWorkPackagesByProject(scoped.db, scoped.organizationId, projectId),
+    listPhasesByProject(scoped.db, scoped.organizationId, projectId),
+    listMilestonesByProject(scoped.db, scoped.organizationId, projectId),
   ]);
 
   return {
@@ -242,8 +242,9 @@ export async function countProjectActiveWorkPackages(
   context: OrgContext,
   projectId: string,
 ): Promise<number> {
-  assertPermission(context, PERMISSIONS.PROJECTS_READ);
-  return countActiveWorkPackagesByProject(context.db, context.organizationId, projectId);
+  const scoped = await scopeOrgContextToProject(context, projectId);
+  assertPermission(scoped, PERMISSIONS.PROJECTS_READ);
+  return countActiveWorkPackagesByProject(scoped.db, scoped.organizationId, projectId);
 }
 
 export function assembleProjectDetail(

@@ -9,7 +9,7 @@ import {
 import { buildOccurrenceReminderCopies } from '@/modules/tasks/application/process-recurrence-occurrences';
 import { listTasksPage } from '@/modules/tasks/data/tasks.repository';
 import { queryMyWork } from '@/modules/tasks/data/my-work.repository';
-import { mapTaskToCardData } from '@/modules/tasks/ui/_task-api-stub';
+import { mapTaskToCardData } from '@/modules/tasks/ui/task-api';
 import type { Task } from '@/modules/tasks/domain/types';
 
 function taskRow(id: string) {

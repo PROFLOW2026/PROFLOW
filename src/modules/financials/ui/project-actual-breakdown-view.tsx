@@ -49,7 +49,7 @@ export type OwnerStoryCopy = {
   readonly collected: string;
   readonly actualProfit: string;
   readonly afterGeneralProfit: string;
-  readonly forecastProfit: string;
+  readonly contractForecastBalance: string;
   readonly unavailable: string;
   readonly breakdownTitle: string;
   readonly categories: Record<ProjectActualBreakdownCategoryKey, string> & {
@@ -256,7 +256,7 @@ export function ProjectOwnerStoryPanel({
         />
       ) : null}
       <StoryRow
-        label={copy.forecastProfit}
+        label={copy.contractForecastBalance}
         value={metrics.priceNotSet ? null : metrics.forecastProfit}
         unavailable={copy.unavailable}
       />

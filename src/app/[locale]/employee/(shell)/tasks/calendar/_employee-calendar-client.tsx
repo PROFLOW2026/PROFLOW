@@ -10,7 +10,7 @@ import {
   type TaskFilterBarState,
 } from '@/modules/tasks/ui/task-filters-bar';
 import { TaskCalendarView } from '@/modules/tasks/ui/task-calendar-view';
-import type { TaskCardData } from '@/modules/tasks/ui/_task-api-stub';
+import type { TaskCardData } from '@/modules/tasks/ui/task-api';
 
 export function EmployeeTasksCalendarClient({
   tasks,

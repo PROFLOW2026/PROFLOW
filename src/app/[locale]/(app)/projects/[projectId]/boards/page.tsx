@@ -16,7 +16,7 @@ import {
 } from '@/modules/workspaces';
 // Agent A's real API
 import { listBoards } from '@/modules/tasks';
-import { mapBoardToUiBoard } from '@/modules/tasks/ui/_task-api-stub';
+import { mapBoardToUiBoard } from '@/modules/tasks/ui/task-api';
 
 export async function generateMetadata({
   params,

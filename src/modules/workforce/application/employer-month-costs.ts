@@ -32,6 +32,8 @@ import {
   resolveMonthlyAllocationAmounts,
   resolvePriorCorrectionAllocationMethod,
 } from '../domain/monthly-allocation';
+import { monthDateBounds } from '../domain/monthly-accrual';
+import { listTimeEntries } from '../data/time-entries.repository';
 import {
   areEmployeeMonthCostsAvailable,
   previewMonthlyCostStrip,
@@ -109,6 +111,29 @@ export interface MonthlyEmployerCostReview {
   readonly lines: readonly LaborAllocationRunLineRow[];
   readonly preview: ReturnType<typeof previewMonthlyCostStrip> | null;
   readonly months: readonly EmployeeMonthCostRow[];
+  /** Submitted project/general time not yet in labor Actual (WF-009). */
+  readonly pendingSubmittedHours: string;
+}
+
+async function sumPendingSubmittedHoursForMonth(
+  context: OrgContext,
+  employeeId: string,
+  yearMonth: string,
+): Promise<string> {
+  const { fromDate, toDate } = monthDateBounds(yearMonth);
+  const entries = await listTimeEntries(context.db, context.organizationId, {
+    employeeId,
+    fromDate,
+    toDate,
+    status: 'recorded',
+    approvalStatus: 'submitted',
+    limit: 5000,
+  });
+  const total = entries
+    .filter((row) => !row.voidedAt && !row.archivedAt)
+    .reduce((sum, row) => sum + Number(row.hours), 0);
+  if (!Number.isFinite(total) || total <= 0) return '0';
+  return total.toFixed(6);
 }
 
 export async function loadMonthlyEmployerCostReview(
@@ -134,6 +159,7 @@ export async function loadMonthlyEmployerCostReview(
       lines: [],
       preview: null,
       months: [],
+      pendingSubmittedHours: '0',
     };
   }
 
@@ -154,6 +180,7 @@ export async function loadMonthlyEmployerCostReview(
       lines: [],
       preview: null,
       months,
+      pendingSubmittedHours: '0',
     };
   }
 
@@ -176,6 +203,11 @@ export async function loadMonthlyEmployerCostReview(
       lines: [],
       preview: null,
       months,
+      pendingSubmittedHours: await sumPendingSubmittedHoursForMonth(
+        context,
+        parsed.data.employeeId,
+        yearMonth,
+      ),
     };
   }
 
@@ -194,6 +226,12 @@ export async function loadMonthlyEmployerCostReview(
     allocatedAmount: run?.allocatedAmount ?? '0',
   });
 
+  const pendingSubmittedHours = await sumPendingSubmittedHoursForMonth(
+    context,
+    parsed.data.employeeId,
+    yearMonth,
+  );
+
   return {
     available: true,
     employeeId: parsed.data.employeeId,
@@ -203,6 +241,7 @@ export async function loadMonthlyEmployerCostReview(
     lines,
     preview,
     months,
+    pendingSubmittedHours,
   };
 }
 

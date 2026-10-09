@@ -58,7 +58,11 @@ export function presentProjectFinancialSummary(
     id: 'billing',
     heading: copy.sections.billing,
     rows: [
-      { label: copy.fields.invoiced, value: formatMoney(financials.billing.netInvoiced, locale), nature: 'cash' },
+      {
+        label: copy.fields.invoicedNet ?? copy.fields.invoiced,
+        value: formatMoney(financials.billing.netInvoiced, locale),
+        nature: 'cash',
+      },
       { label: copy.fields.paid, value: formatMoney(financials.billing.paid, locale), nature: 'cash' },
       { label: copy.fields.outstanding, value: formatMoney(financials.billing.outstanding, locale), nature: 'cash' },
     ],

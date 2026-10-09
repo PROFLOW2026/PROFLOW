@@ -4,7 +4,7 @@ import { Copy, FileStack, Loader2, Save } from 'lucide-react';
 import { useState, useTransition } from 'react';
 import { useRouter } from '@/shared/i18n/navigation';
 import { useTranslations } from 'next-intl';
-import type { TaskTemplateUi } from './_task-api-stub';
+import type { TaskTemplateUi } from './task-api';
 
 interface TaskDetailActionsProps {
   taskId: string;

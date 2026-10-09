@@ -42,6 +42,8 @@ export interface ProjectFormState {
   error?: string;
   fieldErrors?: Record<string, string>;
   success?: boolean;
+  /** Non-blocking notice (e.g. template folders skipped for missing DOCUMENTS_MANAGE). */
+  warning?: string;
 }
 
 function formValue(formData: FormData, key: string): string | undefined {
@@ -390,18 +392,29 @@ export async function applyProjectTemplateAction(
   formData: FormData,
 ): Promise<ProjectFormState> {
   const tErrors = await getTranslations('errors');
+  const tProjects = await getTranslations('projects');
   const locale = await getLocale();
   const projectId = String(formData.get('projectId') ?? '');
 
   try {
-    await withOrgContext(async (context) => {
-      await applyStructureProjectTemplate(context, {
+    const applied = await withOrgContext(async (context) =>
+      applyStructureProjectTemplate(context, {
         projectId,
         templateKey: String(formData.get('templateKey') ?? ''),
         locale: locale === 'he-IL' ? 'he-IL' : 'en',
-      });
-    });
+      }),
+    );
     revalidatePath(`/projects/${projectId}`);
+    const skipped = applied.skippedDocumentFolders;
+    if (skipped.length > 0) {
+      return {
+        success: true,
+        warning: tProjects('templates.skippedFoldersWarning', {
+          folders: skipped.join(', '),
+          count: skipped.length,
+        }),
+      };
+    }
     return { success: true };
   } catch (error) {
     if (error instanceof ValidationError) return await mapValidationError(error);

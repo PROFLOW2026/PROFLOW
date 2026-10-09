@@ -177,6 +177,7 @@ export function ExternalStatutoryPanel({
                 customerPhone={customerPhone}
                 primaryStorageProvider={primaryStorageProvider}
                 providerLabel={providerLabel}
+                providerCapabilities={providerStatus.capabilities}
                 onSendOpen={openSendDialog}
                 onPreview={(target) => {
                   setPdfReloadKey((key) => key + 1);

@@ -59,3 +59,7 @@ export {
 } from './domain/editor';
 export type { ProjectTeamScreenProps, TeamMemberView, TeamTemplateOption } from './domain/views';
 export type { ProjectMemberListItem, ProjectMemberRecord } from './data/project-team.repository';
+export {
+  listActiveMembershipsForUser,
+  listActiveProjectMemberUserIdsWithCapability,
+} from './data/project-team.repository';

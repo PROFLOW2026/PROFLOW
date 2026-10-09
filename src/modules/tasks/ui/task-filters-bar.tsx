@@ -3,8 +3,8 @@
 import { useTranslations } from 'next-intl';
 import { cn } from '@/shared/ui/cn';
 import { uwmFilterPanelClass } from '@/shared/ui/uwm-surface-styles';
-import type { TaskListFilters, TaskPriority, TaskStatus } from './_task-api-stub';
-import type { TaskCardData } from './_task-api-stub';
+import type { TaskListFilters, TaskPriority, TaskStatus } from './task-api';
+import type { TaskCardData } from './task-api';
 
 export interface TaskFilterBarState {
   status: TaskStatus | 'all';

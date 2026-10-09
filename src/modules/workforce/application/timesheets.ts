@@ -11,6 +11,13 @@ import {
 } from '@/modules/projects/application/project-access';
 import { canReadWorkforceCost } from './workforce-cost-authz';
 import {
+  assertCanApproveProjectTimeEntry,
+  assertCanApproveSubmittedTimeEntries,
+  hasOrgWideTimeApproval,
+  listOperationalApproveProjectIds,
+} from './scoped-operational-approval';
+import { notifyOperationalApproversForSubmittedProjectTime } from './notify-operational-approvers';
+import {
   assertCanActOnEmployeeTime,
   assertNotSelfTimeApproval,
   canReadOrgWorkforce,
@@ -95,6 +102,7 @@ async function recomputeGeneralCostForWorkDates(
   context: OrgContext,
   workDates: readonly string[],
 ): Promise<void> {
+  if (!hasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ)) return;
   const yearMonths = [...new Set(workDates.map((date) => date.slice(0, 7)))];
   if (yearMonths.length === 0) return;
   const { tryRecomputeOpenGeneralCostMonth } = await import(
@@ -120,6 +128,53 @@ async function requireTimesheet(
   const sheet = await findTimesheetById(context.db, context.organizationId, timesheetId);
   if (!sheet || sheet.archivedAt) throw new NotFoundError('Timesheet');
   return sheet;
+}
+
+/** WF-007: entry-level approve closes the timesheet container when no submitted rows remain. */
+async function closeSubmittedTimesheetIfFullyApproved(
+  txContext: OrgContext,
+  timesheetId: string,
+  decidedAt: Date,
+): Promise<void> {
+  const sheet = await findTimesheetByIdForUpdate(
+    txContext.db,
+    txContext.organizationId,
+    timesheetId,
+  );
+  if (!sheet || sheet.status === 'approved' || sheet.status !== 'submitted') return;
+
+  const remaining = await listRecordedEntriesInPeriod(
+    txContext.db,
+    txContext.organizationId,
+    sheet.employeeId,
+    sheet.periodStart,
+    sheet.periodEnd,
+  );
+  const stillOpen = remaining.some(
+    (entry) => entry.timesheetId === sheet.id && entry.approvalStatus === 'submitted',
+  );
+  if (stillOpen) return;
+
+  const closed = await updateTimesheetLifecycle(
+    txContext.db,
+    txContext.organizationId,
+    sheet.id,
+    {
+      status: 'approved',
+      decidedAt,
+      decidedByUserId: txContext.userId,
+      lockedAt: decidedAt,
+    },
+    { fromStatuses: ['submitted'] },
+  );
+  if (!closed) throwTimesheetRace();
+
+  await recordAuditEvent(txContext, {
+    action: AUDIT_ACTIONS.TIMESHEET_APPROVED,
+    entityType: 'timesheet',
+    entityId: closed.id,
+    after: { status: 'approved', via: 'entry_level_sync' },
+  });
 }
 
 async function findOrCreateTimesheetForPeriod(
@@ -328,7 +383,7 @@ export async function submitTimesheet(
       ? timesheetPeriodForWorkDate(input.workDate, weekStart)
       : null;
 
-  return withTransaction(context.db, async (tx) => {
+  const result = await withTransaction(context.db, async (tx) => {
     const txContext = { ...context, db: tx };
     let periodStart = period?.periodStart;
     let periodEnd = period?.periodEnd;
@@ -446,6 +501,9 @@ export async function submitTimesheet(
 
     return { timesheet: updatedSheet, entries: updatedEntries };
   });
+
+  await notifyOperationalApproversForSubmittedProjectTime(context, result.entries);
+  return result;
 }
 
 export async function submitTimeEntries(
@@ -537,7 +595,6 @@ export async function approveTimesheet(
   context: OrgContext,
   rawInput: ApproveTimesheetInput,
 ): Promise<{ readonly timesheet: TimesheetRecord; readonly entries: readonly TimeEntryRecord[] }> {
-  assertPermission(context, PERMISSIONS.TIME_APPROVE);
   const input = parseOrThrow(approveTimesheetSchema.safeParse(rawInput));
 
   return withTransaction(context.db, async (tx) => {
@@ -567,6 +624,8 @@ export async function approveTimesheet(
     const submitted = periodEntries.filter(
       (entry) => entry.approvalStatus === 'submitted' && entry.timesheetId === sheet.id,
     );
+
+    await assertCanApproveSubmittedTimeEntries(txContext, submitted);
 
     for (const entry of submitted) {
       await refreshTimeEntryCostSnapshotIfMissing(txContext, entry.id);
@@ -633,7 +692,6 @@ export async function approveTimeEntry(
   context: OrgContext,
   rawInput: ApproveTimeEntryInput,
 ): Promise<TimeEntryRecord> {
-  assertPermission(context, PERMISSIONS.TIME_APPROVE);
   const input = parseOrThrow(approveTimeEntrySchema.safeParse(rawInput));
   const entry = await findTimeEntryById(context.db, context.organizationId, input.timeEntryId);
   if (!entry || entry.archivedAt) throw new NotFoundError('Time entry');
@@ -642,6 +700,7 @@ export async function approveTimeEntry(
   }
   if (entry.approvalStatus === 'approved') return entry;
 
+  await assertCanApproveProjectTimeEntry(context, entry);
   await assertNotSelfTimeApproval(context, entry.employeeId);
   assertTimeApprovalTransition(entry.approvalStatus, 'approved');
 
@@ -684,6 +743,16 @@ export async function approveTimeEntry(
 
   await recomputeGeneralCostForWorkDates(context, [updated.workDate]);
 
+  if (updated.timesheetId) {
+    await withTransaction(context.db, async (tx) => {
+      await closeSubmittedTimesheetIfFullyApproved(
+        { ...context, db: tx },
+        updated.timesheetId!,
+        now,
+      );
+    });
+  }
+
   return updated;
 }
 
@@ -699,7 +768,6 @@ export async function bulkApproveTimeEntries(
   readonly alreadyApprovedIds: readonly string[];
   readonly skippedIds: readonly string[];
 }> {
-  assertPermission(context, PERMISSIONS.TIME_APPROVE);
   const input = parseOrThrow(bulkApproveTimeEntriesSchema.safeParse(rawInput));
   const uniqueIds = [...new Set(input.timeEntryIds)];
 
@@ -713,6 +781,11 @@ export async function bulkApproveTimeEntries(
     for (const row of rows) {
       await assertNotSelfTimeApproval(txContext, row.employeeId);
     }
+
+    await assertCanApproveSubmittedTimeEntries(
+      txContext,
+      rows.filter((row) => row.approvalStatus === 'submitted' && row.status === 'recorded'),
+    );
 
     const alreadyApprovedIds = rows
       .filter((row) => row.approvalStatus === 'approved' && row.status === 'recorded')
@@ -774,36 +847,7 @@ export async function bulkApproveTimeEntries(
       ),
     ];
     for (const timesheetId of timesheetIds) {
-      const sheet = await findTimesheetByIdForUpdate(tx, context.organizationId, timesheetId);
-      if (!sheet || sheet.status === 'approved') continue;
-      if (sheet.status !== 'submitted') continue;
-      const remaining = await listRecordedEntriesInPeriod(
-        tx,
-        context.organizationId,
-        sheet.employeeId,
-        sheet.periodStart,
-        sheet.periodEnd,
-      );
-      const stillOpen = remaining.some(
-        (entry) =>
-          entry.timesheetId === sheet.id &&
-          entry.approvalStatus === 'submitted',
-      );
-      if (!stillOpen) {
-        const closed = await updateTimesheetLifecycle(
-          tx,
-          context.organizationId,
-          sheet.id,
-          {
-            status: 'approved',
-            decidedAt: now,
-            decidedByUserId: context.userId,
-            lockedAt: now,
-          },
-          { fromStatuses: ['submitted'] },
-        );
-        if (!closed) throwTimesheetRace();
-      }
+      await closeSubmittedTimesheetIfFullyApproved(txContext, timesheetId, now);
     }
 
     if (approved.length > 0) {
@@ -840,7 +884,13 @@ export async function bulkApproveTimeEntries(
 }
 
 export function canApproveTime(context: OrgContext): boolean {
-  return hasPermission(context, PERMISSIONS.TIME_APPROVE);
+  return hasOrgWideTimeApproval(context);
+}
+
+/** True when the user may approve submitted project time on at least one project. */
+export async function canApproveScopedProjectTime(context: OrgContext): Promise<boolean> {
+  if (hasOrgWideTimeApproval(context)) return true;
+  return (await listOperationalApproveProjectIds(context)).length > 0;
 }
 
 export async function approveTimeEntryExcess(

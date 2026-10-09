@@ -30,7 +30,7 @@ import type {
   Bucket,
   TaskCardData,
   TaskDetail,
-} from '@/modules/tasks/ui/_task-api-stub';
+} from '@/modules/tasks/ui/task-api';
 import type { CreateTaskInput } from '@/modules/tasks';
 import type { TaskAssigneePickerOption } from '@/modules/tasks/ui/task-assignee-picker';
 

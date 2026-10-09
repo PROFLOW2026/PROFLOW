@@ -18,6 +18,7 @@ import {
 } from './config';
 import { isPostgresHarnessMode } from './database-mode';
 import { bootPostgresHarness } from './postgres-boot';
+import { collectAuditRouteFixtures, writeAuditRouteFixtures } from './audit-fixtures';
 import { seedWorld } from './seed';
 import { writeWorldJson } from './world-json';
 
@@ -37,6 +38,8 @@ async function bootPgliteHarness(): Promise<{ socketServer: PGLiteSocketServer; 
   await applyMigrations(client);
   const world = await seedWorld(db);
   await writeWorldJson(world);
+  const auditFixtures = await collectAuditRouteFixtures(db, world.organizationId, world);
+  await writeAuditRouteFixtures(auditFixtures);
 
   const socketServer = new PGLiteSocketServer({ db: client, port: DATABASE_PORT, host: '127.0.0.1' });
   await socketServer.start();

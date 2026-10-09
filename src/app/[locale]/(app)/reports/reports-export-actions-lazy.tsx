@@ -8,7 +8,7 @@ const ReportsExportActions = dynamic(
     ssr: false,
     loading: () => (
       <div
-        className="inline-flex h-11 min-w-28 animate-pulse rounded-md bg-[var(--pf-bg-muted)]"
+        className="inline-flex h-11 max-w-full min-w-0 animate-pulse rounded-md bg-[var(--pf-bg-muted)] sm:min-w-28"
         aria-hidden
       />
     ),

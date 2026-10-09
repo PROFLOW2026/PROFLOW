@@ -10,6 +10,11 @@ export interface SeededWorld {
   vendorId?: string;
   advancedProjectId?: string;
   changeProjectId?: string;
+  gcOrganizationId?: string;
+  gcProjectId?: string;
+  gcAgreementId?: string;
+  gcContractorUsername?: string;
+  gcOpsUsername?: string;
 }
 
 const worldPath = path.resolve(process.cwd(), 'tests/e2e/.world.json');

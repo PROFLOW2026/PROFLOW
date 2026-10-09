@@ -11,6 +11,26 @@
   "badge": {
     "ready": "Готов к закрытию"
   },
+  "templateRequirements": {
+    "title": "Чек-лист закрытия из шаблона",
+    "hint": "Из структурного шаблона, применённого к проекту. Завершите эти deliverables перед закрытием.",
+    "keys": {
+      "handover_photos": "Фото при передаче",
+      "punch_closed": "Дефектный лист закрыт",
+      "electrical_cert": "Электросертификат",
+      "as_built": "As-built чертежи",
+      "commissioning": "Пусконаладка",
+      "issued_for_construction": "Комплект для строительства",
+      "practical_completion": "Фактическое завершение",
+      "handover_pack": "Пакет передачи",
+      "warranty_docs": "Гарантийные документы",
+      "keys": "Передача ключей",
+      "monthly_report": "Ежемесячный отчёт",
+      "final_report": "Итоговый отчёт",
+      "commissioning_sheet": "Лист пусконаладки",
+      "manuals": "Руководства по оборудованию"
+    }
+  },
   "readiness": {
     "title": "Готовность к закрытию",
     "hard": "Необходимо урегулировать перед закрытием",

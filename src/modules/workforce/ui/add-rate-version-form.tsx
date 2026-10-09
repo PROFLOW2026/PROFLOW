@@ -13,6 +13,10 @@ import {
   type WorkforceFormState,
 } from '@/app/[locale]/(app)/workforce/employees/actions';
 import { RATE_UNITS } from '@/modules/workforce/domain/types';
+import {
+  isWorkingDaysPerMonthBelowAccrualFloor,
+  MIN_MONTHLY_ACCRUAL_WORKING_DAYS,
+} from '@/modules/workforce/domain/monthly-accrual';
 
 export interface AddRateVersionFormProps {
   readonly employeeId: string;
@@ -110,22 +114,31 @@ export function AddRateVersionForm({
       </Field>
 
       {rateUnit === 'monthly' ? (
-        <Field
-          label={t('employees.form.workingDaysPerMonth')}
-          description={t('employees.form.workingDaysPerMonthHint')}
-        >
-          {(control) => (
-            <Input
-              {...control}
-              name="workingDaysPerMonth"
-              inputMode="decimal"
-              value={workingDaysPerMonth}
-              onChange={(event) => setWorkingDaysPerMonth(event.target.value)}
-              placeholder={defaultWorkingDaysPerMonth ?? '22'}
-              dir="ltr"
-            />
-          )}
-        </Field>
+        <>
+          <Field
+            label={t('employees.form.workingDaysPerMonth')}
+            description={t('employees.form.workingDaysPerMonthHint')}
+          >
+            {(control) => (
+              <Input
+                {...control}
+                name="workingDaysPerMonth"
+                inputMode="decimal"
+                value={workingDaysPerMonth}
+                onChange={(event) => setWorkingDaysPerMonth(event.target.value)}
+                placeholder={defaultWorkingDaysPerMonth ?? '22'}
+                dir="ltr"
+              />
+            )}
+          </Field>
+          {isWorkingDaysPerMonthBelowAccrualFloor(workingDaysPerMonth) ? (
+            <Alert tone="warning">
+              {t('workFramework.workingDaysPerMonthAccrualWarn', {
+                min: MIN_MONTHLY_ACCRUAL_WORKING_DAYS,
+              })}
+            </Alert>
+          ) : null}
+        </>
       ) : (
         <input type="hidden" name="workingDaysPerMonth" value="" />
       )}

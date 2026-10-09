@@ -1,4 +1,5 @@
 import { getTranslations } from 'next-intl/server';
+import { Alert } from '@/components/ui/alert';
 import { MoneyText } from '@/components/patterns/money-text';
 import { formatWorkHoursValue } from '@/modules/workforce/domain/format-work-hours';
 import { getProjectLaborByEmployeeAggregate } from '@/modules/financials/application/get-project-actual-breakdown';
@@ -67,6 +68,11 @@ export async function ProjectLaborActualSummary({
             total: totalHours,
           })}
         </p>
+        {hasPending ? (
+          <Alert tone="warning" className="mt-1">
+            {t('unallocatedHoursBanner', { hours: unallocatedHours })}
+          </Alert>
+        ) : null}
         {hasAllocated ? (
         <p className="text-sm text-[var(--pf-text-secondary)]">
           {t('laborActualSummary', {

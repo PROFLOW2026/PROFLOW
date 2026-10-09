@@ -102,6 +102,7 @@
   "laborActual": "עבודה (בפועל)",
   "laborActualUnavailable": "לא ניתן לחשב",
   "vendorActual": "קבלני משנה וחשבוניות ספק (בפועל)",
+  "vendorsRecognized": "עלות ספקים וקבלני משנה מוכרת",
   "overheadActual": "הוצאות כלליות (בפועל)",
   "committedOpen": "התחייבויות (הזמנת רכש פתוחה)",
   "committedVsActual": "התחייבויות נשארות נפרדות מבפועל - אינן הוצאה",
@@ -333,7 +334,7 @@
     "collected": "סכום שהתקבל בפועל",
     "actualProfit": "יתרת חוזה לאחר עלויות מוכרות",
     "afterGeneralProfit": "יתרת חוזה כולל הוצאות כלליות",
-    "forecastProfit": "יתרת חוזה צפויה",
+    "contractForecastBalance": "יתרת חוזה צפויה",
     "unavailable": "לא זמין",
     "breakdownTitle": "ממה מורכבת העלות המוכרת?",
     "categories": {

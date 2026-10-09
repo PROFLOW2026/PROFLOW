@@ -10,6 +10,7 @@ import {
   INTERNAL_EVIDENCE_DOWNLOAD_PATH,
 } from '@/modules/evidence/routes';
 import type { EvidenceGalleryProps } from './types';
+import { EvidenceInlinePreview } from './evidence-inline-preview';
 
 function downloadHref(viewer: EvidenceGalleryProps['viewer'], evidenceId: string | undefined): string | null {
   if (!evidenceId) return null;
@@ -58,6 +59,9 @@ export async function EvidenceGallery(props: EvidenceGalleryProps) {
             </span>
             {item.uploader.displayName ? (
               <span className="text-xs text-[var(--pf-text-secondary)]">{item.uploader.displayName}</span>
+            ) : null}
+            {href ? (
+              <EvidenceInlinePreview href={href} fileName={item.fileName} kind={item.kind} />
             ) : null}
           </li>
         );

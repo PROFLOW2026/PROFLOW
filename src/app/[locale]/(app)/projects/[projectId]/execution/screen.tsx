@@ -2,6 +2,7 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { PROJECT_CAPABILITIES } from '@/modules/project-team/domain/capabilities';
 import { requireProjectCapabilityPage } from '@/modules/project-team/server';
+import { requireDeveloperGcExecutionPage } from '@/modules/project-workspace/server/require-developer-gc-execution';
 import { loadExecutionPayableTotals } from '@/modules/project-workspace/application/load-execution-financials';
 import { loadProjectExecutionDashboard } from '@/modules/project-workspace/application/load-execution-dashboard';
 import {
@@ -32,6 +33,7 @@ export async function ProjectExecutionDashboardScreen({ surfaceRoot, params }: {
     surfaceRoot?: string;
  params: Promise<{ projectId: string }> }) {
   const { projectId } = await params;
+  await requireDeveloperGcExecutionPage(projectId);
   await requireProjectCapabilityPage(projectId, PROJECT_CAPABILITIES.PROJECT_VIEW);
   const [t, locale, bundle] = await Promise.all([
     getTranslations('projectWorkspace'),

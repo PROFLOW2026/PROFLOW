@@ -5,7 +5,7 @@ import { useCallback, useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/shared/i18n/navigation';
 import { Badge } from '@/components/ui/badge';
-import type { TaskDependencyUi, TaskLinkUi } from './_task-api-stub';
+import type { TaskDependencyUi, TaskLinkUi } from './task-api';
 
 interface TaskDependenciesSectionProps {
   taskId: string;

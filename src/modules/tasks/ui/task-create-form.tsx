@@ -8,7 +8,7 @@
  *  - Standalone form for /work/new or modal
  *
  * Agent A dependency:
- *   createTask — stub from _task-api-stub.ts
+ *   createTask — stub from task-api.ts
  *   TODO: swap to `import { createTask } from '@/modules/tasks'` when Agent A delivers.
  *
  * The form fires a Server Action via `onSubmit` prop (provided by the parent page's actions.ts).
@@ -20,7 +20,7 @@ import { useMemo, useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/shared/ui/cn';
-import type { TaskPriority, TaskStatus } from './_task-api-stub';
+import type { TaskPriority, TaskStatus } from './task-api';
 import { TaskRecurrenceSection } from './task-recurrence-section';
 import type { RecurrencePreset } from '../domain/recurrence-presets';
 import { TaskAssigneePicker, type TaskAssigneePickerOption } from './task-assignee-picker';

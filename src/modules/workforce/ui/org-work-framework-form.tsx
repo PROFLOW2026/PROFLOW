@@ -12,6 +12,11 @@ import {
   type WorkforceFormState,
 } from '@/app/[locale]/(app)/workforce/employees/actions';
 import { formatWorkHoursValue } from '@/modules/workforce/domain/format-work-hours';
+import {
+  isWorkingDaysPerMonthBelowAccrualFloor,
+  MIN_MONTHLY_ACCRUAL_WORKING_DAYS,
+} from '@/modules/workforce/domain/monthly-accrual';
+import type { LaborCostDefaults } from '@/modules/tenancy/domain/labor-cost-defaults';
 import Decimal from 'decimal.js';
 
 export interface OrgWorkFrameworkFormProps {
@@ -35,6 +40,7 @@ export interface OrgWorkFrameworkFormProps {
    * Defaults to true (Owner UX). Set false only for dedicated settings surfaces.
    */
   readonly collapseWhenConfigured?: boolean;
+  readonly attendanceProjectTimeApproval?: LaborCostDefaults['attendanceProjectTimeApproval'];
 }
 
 const WEEKDAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const;
@@ -63,6 +69,7 @@ export function OrgWorkFrameworkForm({
   setupRequired,
   canBootstrapCosting = false,
   collapseWhenConfigured = true,
+  attendanceProjectTimeApproval = 'draft',
 }: OrgWorkFrameworkFormProps) {
   const t = useTranslations('workforce');
   const [hoursPerDay, setHoursPerDay] = useState(standardHoursPerDay ?? '');
@@ -71,6 +78,9 @@ export function OrgWorkFrameworkForm({
   const [workEndTime, setWorkEndTime] = useState(standardWorkEndTime ?? '');
   const [weekdays, setWeekdays] = useState<number[]>(() =>
     workWeekdays && workWeekdays.length > 0 ? [...workWeekdays] : [0, 1, 2, 3, 4],
+  );
+  const [attendanceProjectTime, setAttendanceProjectTime] = useState(
+    attendanceProjectTimeApproval ?? 'draft',
   );
   const [expanded, setExpanded] = useState(() => setupRequired || !collapseWhenConfigured);
   const [state, formAction, pending] = useActionState<WorkforceFormState, FormData>(
@@ -106,6 +116,7 @@ export function OrgWorkFrameworkForm({
       : null;
 
   const showCollapsedSummary = collapseWhenConfigured && !setupRequired && !expanded;
+  const showWorkingDaysAccrualWarn = isWorkingDaysPerMonthBelowAccrualFloor(daysPerMonth);
 
   const editor = (
     <form
@@ -153,6 +164,38 @@ export function OrgWorkFrameworkForm({
           )}
         </Field>
       </div>
+
+      {showWorkingDaysAccrualWarn ? (
+        <Alert tone="warning">
+          {t('workFramework.workingDaysPerMonthAccrualWarn', {
+            min: MIN_MONTHLY_ACCRUAL_WORKING_DAYS,
+          })}
+        </Alert>
+      ) : null}
+
+      <Field
+        label={t('workFramework.attendanceProjectTimeApproval')}
+        description={t('workFramework.attendanceProjectTimeApprovalHint')}
+      >
+        {(control) => (
+          <select
+            {...control}
+            name="attendanceProjectTimeApproval"
+            value={attendanceProjectTime}
+            onChange={(event) =>
+              setAttendanceProjectTime(
+                event.target.value === 'auto_approve' ? 'auto_approve' : 'draft',
+              )
+            }
+            className="flex h-11 w-full rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-default)] px-3 text-sm"
+          >
+            <option value="draft">{t('workFramework.attendanceProjectTimeDraft')}</option>
+            <option value="auto_approve">
+              {t('workFramework.attendanceProjectTimeAutoApprove')}
+            </option>
+          </select>
+        )}
+      </Field>
 
       <div className="grid gap-3 sm:grid-cols-2">
         <Field label={t('workFramework.standardWorkStartTime')}>

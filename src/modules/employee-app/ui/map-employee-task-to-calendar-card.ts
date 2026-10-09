@@ -1,4 +1,4 @@
-import type { TaskCardData } from '@/modules/tasks/ui/_task-api-stub';
+import type { TaskCardData } from '@/modules/tasks/ui/task-api';
 import type { EmployeeTaskListItem } from './employee-filter-logic';
 
 /** Map employee PM task rows to TaskCardData for shared calendar/timeline views. */

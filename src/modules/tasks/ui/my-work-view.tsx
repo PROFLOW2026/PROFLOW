@@ -7,7 +7,7 @@
  * Each view shows tasks from across all projects/workspaces/boards.
  *
  * Agent A dependency:
- *   MyWorkItem, MyWorkViewKey — from _task-api-stub.ts
+ *   MyWorkItem, MyWorkViewKey — from task-api.ts
  *   TODO: swap to `import { MyWorkItem, MyWorkViewKey } from '@/modules/tasks'` when Agent A delivers.
  */
 
@@ -27,7 +27,7 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { cn } from '@/shared/ui/cn';
 import { uwmPrimaryPanelClass, uwmPageHeadingClass, uwmTabBarClass } from '@/shared/ui/uwm-surface-styles';
-import type { MyWorkItem, MyWorkViewKey, TaskCardData, TaskDetail } from './_task-api-stub';
+import type { MyWorkItem, MyWorkViewKey, TaskCardData, TaskDetail } from './task-api';
 import { TaskListView } from './task-list-view';
 import { TaskDetailSheet } from './task-detail-sheet';
 

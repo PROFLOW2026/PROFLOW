@@ -16,7 +16,7 @@ import { Badge } from '@/components/ui/badge';
 import { coerceBusinessDate } from '@/shared/dates/dates';
 import { formatBusinessDateMonthDay } from '@/shared/dates/format';
 import { cn } from '@/shared/ui/cn';
-import type { TaskCardData, TaskPriority, TaskStatus } from './_task-api-stub';
+import type { TaskCardData, TaskPriority, TaskStatus } from './task-api';
 
 // ---------------------------------------------------------------------------
 // Helpers

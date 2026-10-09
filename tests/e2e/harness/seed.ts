@@ -15,7 +15,12 @@ import { addProjectMember } from '@/modules/project-team';
 import { activateContractorAccount, inviteContractor } from '@/modules/contractor-access';
 import type { ContractorAuthPort } from '@/modules/contractor-access/application/auth-port';
 import { assignRole, findRoleByKey } from '@/modules/rbac';
-import { createOrganization, resolveOrgContext, setModuleVisibility } from '@/modules/tenancy';
+import {
+  createOrganization,
+  resolveOrgContext,
+  setModuleVisibility,
+} from '@/modules/tenancy';
+import { CUSTOMER_FEATURE_MODULE_KEYS } from '@/modules/tenancy/domain/types';
 import { createOpportunity } from '@/modules/crm';
 import { createQuote } from '@/modules/quotes';
 import { createTask } from '@/modules/tasks';
@@ -540,17 +545,8 @@ export async function seedWorld(db: Database): Promise<SeededWorld> {
     });
     await finalizeExpense(context, expense.id);
 
-    // Enable optional workspace tabs used by authenticated product flows / perf verification.
-    for (const moduleKey of [
-      'changes',
-      'billing',
-      'documents',
-      'boq',
-      'crm',
-      'quotes',
-      'work_management',
-      'materials',
-    ] as const) {
+    // Enable optional modules for audit route / nav matrix (harness only).
+    for (const moduleKey of CUSTOMER_FEATURE_MODULE_KEYS) {
       await setModuleVisibility(context, { moduleKey, enabled: true });
     }
 

@@ -96,6 +96,7 @@ export async function ReportsAnalyticsView({
               {t('truncatedRollup', { count: rollup.truncatedActiveProjectCount })}
             </li>
           ) : null}
+          <li className="break-words">{t('sections.lifetimeRollupNote')}</li>
         </ul>
         <DataConfidenceBadge
           level={rollup.dataConfidence.level as DataConfidenceLevel}
@@ -172,7 +173,7 @@ export async function ReportsAnalyticsView({
               <MoneyReportMetricTile
                 metric={analytics.cash.invoiced}
                 copy={{
-                  ...moneyCopy(analytics.cash.invoiced, tFinancial('invoiced'), 'billingNet'),
+                  ...moneyCopy(analytics.cash.invoiced, tFinancial('kpis.netBilled'), 'billingNet'),
                   secondaryMoney: analytics.cash.invoicedGross.value,
                   secondaryLabel: tFinancial('kpis.includingVat'),
                 }}
@@ -249,7 +250,10 @@ export async function ReportsAnalyticsView({
             {analytics.cost.vendors ? (
               <MoneyReportMetricTile
                 metric={analytics.cost.vendors}
-                copy={moneyCopy(analytics.cost.vendors, tFinancial('vendorActual'))}
+                copy={moneyCopy(
+                  analytics.cost.vendors,
+                  tFinancial('vendorsRecognized'),
+                )}
               />
             ) : null}
             {analytics.cost.overhead ? (
