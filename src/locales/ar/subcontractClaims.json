@@ -79,6 +79,11 @@
     "safety": "سلامة",
     "other": "أخرى"
   },
+  "totals": {
+    "certifiedCumulative": "معتمد تراكمي (غير مدفوع)",
+    "payableNet": "صافي مستحق",
+    "paidRecorded": "مدفوع فعلياً (AP)"
+  },
   "portal": {
     "claimsTitle": "مطالباتي",
     "paymentsTitle": "المدفوعات",

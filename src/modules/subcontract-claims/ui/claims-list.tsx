@@ -1,13 +1,18 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { Link } from '@/shared/i18n/navigation';
-import { bidiIsolate } from '@/shared/money';
+import { bidiIsolate, formatMoneyString } from '@/shared/money';
 import type { ClaimListItem } from '../domain/types';
 import { ClaimStatusBadge } from './status';
 
+function formatClaimAmount(amount: string, currency: string, locale: string): string {
+  return bidiIsolate(formatMoneyString(amount, currency, locale));
+}
+
 export function ClaimsList({ items, basePath }: { items: readonly ClaimListItem[]; basePath: string }) {
   const t = useTranslations('subcontractClaims');
+  const locale = useLocale();
   if (items.length === 0) {
     return <p className="text-sm text-[var(--pf-text-secondary)]">{t('list.empty')}</p>;
   }
@@ -40,9 +45,13 @@ export function ClaimsList({ items, basePath }: { items: readonly ClaimListItem[
                 <td className="px-3 py-2">
                   <ClaimStatusBadge status={item.status} label={t(`status.${item.status}`)} />
                 </td>
-                <td className="px-3 py-2 text-end tabular-nums">{bidiIsolate(item.currentSubmitted)}</td>
                 <td className="px-3 py-2 text-end tabular-nums">
-                  {item.currentCertified ? bidiIsolate(item.currentCertified) : '—'}
+                  {formatClaimAmount(item.currentSubmitted, item.currency, locale)}
+                </td>
+                <td className="px-3 py-2 text-end tabular-nums">
+                  {item.currentCertified
+                    ? formatClaimAmount(item.currentCertified, item.currency, locale)
+                    : '—'}
                 </td>
               </tr>
             ))}
@@ -65,8 +74,10 @@ export function ClaimsList({ items, basePath }: { items: readonly ClaimListItem[
               {t('list.period')}: {bidiIsolate(item.periodStart)} – {bidiIsolate(item.periodEnd)}
             </p>
             <p className="text-sm tabular-nums">
-              {t('list.submitted')}: {bidiIsolate(item.currentSubmitted)}
-              {item.currentCertified ? ` · ${t('list.certified')}: ${bidiIsolate(item.currentCertified)}` : null}
+              {t('list.submitted')}: {formatClaimAmount(item.currentSubmitted, item.currency, locale)}
+              {item.currentCertified
+                ? ` · ${t('list.certified')}: ${formatClaimAmount(item.currentCertified, item.currency, locale)}`
+                : null}
             </p>
           </li>
         ))}

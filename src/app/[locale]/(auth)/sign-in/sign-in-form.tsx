@@ -73,9 +73,9 @@ export function SignInForm({ next }: { next?: string }) {
           </Link>
         </p>
         <p className="text-[var(--pf-text-secondary)]">
-          {t('employeePrompt')}{' '}
-          <Link href="/employee/login" className={cn(textNavLinkClassName, 'font-medium')}>
-            {t('employeeLogin')}
+          {t('portalAccessPrompt')}{' '}
+          <Link href="/portal-access" className={cn(textNavLinkClassName, 'font-medium')}>
+            {t('portalAccessLink')}
           </Link>
         </p>
       </div>

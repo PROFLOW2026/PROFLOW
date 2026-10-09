@@ -63,6 +63,7 @@ export async function Contractor360Screen({
     { id: 'rfi', label: t('contractors.overview.rfi') },
     { id: 'quality', label: t('contractors.overview.quality') },
     { id: 'payments', label: t('contractors.overview.payments') },
+    { id: 'handover', label: t('contractors.overview.closeout') },
   ];
 
   return (
@@ -83,13 +84,6 @@ export async function Contractor360Screen({
             {section.label}
           </a>
         ))}
-        <a
-          key="handover"
-          href="#handover"
-          className="inline-flex min-h-11 items-center rounded-md px-3 text-sm font-medium text-[var(--pf-text-secondary)] hover:bg-[var(--pf-action-subtle-hover)]"
-        >
-          {t('contractors.overview.closeout')}
-        </a>
       </nav>
 
       <section id="contract" className="flex scroll-mt-20 flex-col gap-3">
@@ -151,13 +145,6 @@ export async function Contractor360Screen({
           )}
         </section>
       ) : null}
-
-      <AgreementHandoverPanel
-        projectId={projectId}
-        agreementId={agreementId}
-        root={root}
-        canManage={data.canManageHandover}
-      />
 
       {showSchedule ? (
         <section id="schedule" className="flex scroll-mt-20 flex-col gap-3">
@@ -462,9 +449,9 @@ export async function Contractor360Screen({
                 <div className="flex flex-col gap-3">
                   {data.payments.hasBases ? (
                     <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                      <Figure label={tClaims('list.certified')} value={money(data.payments.certified, data.payments.currency)} />
-                      <Figure label={tClaims('portal.payable')} value={money(data.payments.payableNet, data.payments.currency)} />
-                      <Figure label={tClaims('portal.paid')} value={money(data.payments.paid, data.payments.currency)} />
+                      <Figure label={tClaims('totals.certifiedCumulative')} value={money(data.payments.certified, data.payments.currency)} />
+                      <Figure label={tClaims('totals.payableNet')} value={money(data.payments.payableNet, data.payments.currency)} />
+                      <Figure label={tClaims('totals.paidRecorded')} value={money(data.payments.paid, data.payments.currency)} />
                       <Figure label={tClaims('portal.retention')} value={money(data.payments.retentionHeld, data.payments.currency)} />
                     </dl>
                   ) : null}
@@ -521,6 +508,13 @@ export async function Contractor360Screen({
           surfaceRoot={surfaceRoot}
         />
       </section>
+
+      <AgreementHandoverPanel
+        projectId={projectId}
+        agreementId={agreementId}
+        root={root}
+        canManage={data.canManageHandover}
+      />
     </div>
   );
 }

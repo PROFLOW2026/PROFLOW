@@ -82,6 +82,11 @@
     "safety": "בטיחות",
     "other": "אחר"
   },
+  "totals": {
+    "certifiedCumulative": "מאושר מצטבר (לא שולם)",
+    "payableNet": "נטו לתשלום",
+    "paidRecorded": "שולם בפועל (AP)"
+  },
   "portal": {
     "claimsTitle": "החשבונות שלי",
     "paymentsTitle": "תשלומים",

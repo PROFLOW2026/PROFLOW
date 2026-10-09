@@ -2,7 +2,10 @@
   "execution": {
     "groupTitle": "Execution",
     "identityTitle": "Execution management",
-    "identityHint": "Seven hubs by permission. The commercial project page stays above.",
+    "identityHint": "A separate workspace for contractors, contracts, payments, planning, and quality.",
+    "enterWorkspace": "Execution management",
+    "entryHint": "Open the execution workspace — separate from the commercial project page.",
+    "backToProject": "Back to project",
     "navAriaLabel": "Execution management navigation",
     "planningHint": "Coordination, tasks, calendar, and timeline. The classic schedule stays on the work tab of a standard project.",
     "hubs": {

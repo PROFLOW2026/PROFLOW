@@ -324,7 +324,7 @@ function PrincipalCommand({
   principalId: string;
   command: string;
   label: string;
-  variant?: 'secondary' | 'dangerGhost' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'dangerGhost' | 'ghost';
   action: (formData: FormData) => void;
 }) {
   return (
@@ -409,7 +409,14 @@ function AccountCard({
           ) : null}
           {canHomeManage && account.status === 'active' ? (
             <>
-              <PrincipalCommand projectId={projectId} principalId={account.principalId} command="issue_reset" label={t('actions.issueReset')} action={commandAction} />
+              <PrincipalCommand
+                projectId={projectId}
+                principalId={account.principalId}
+                command="issue_reset"
+                label={t('actions.issueReset')}
+                variant="primary"
+                action={commandAction}
+              />
               <PrincipalCommand projectId={projectId} principalId={account.principalId} command="revoke_sessions" label={t('actions.revokeSessions')} variant="ghost" action={commandAction} />
             </>
           ) : null}

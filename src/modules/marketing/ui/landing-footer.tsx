@@ -11,10 +11,7 @@ export async function LandingFooter() {
     { href: '#faq', label: t('links.faq') },
   ] as const;
 
-  const routeLinks = [
-    { href: '/sign-in', label: t('links.signIn') },
-    { href: '/employee/login', label: t('links.employeeLogin') },
-  ] as const;
+  const routeLinks = [{ href: '/sign-in', label: t('links.signIn') }] as const;
 
   return (
     <footer

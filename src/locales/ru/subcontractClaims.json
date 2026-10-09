@@ -79,6 +79,11 @@
     "safety": "Безопасность",
     "other": "Прочее"
   },
+  "totals": {
+    "certifiedCumulative": "Сертифицировано накопительно (не оплачено)",
+    "payableNet": "К выплате нетто",
+    "paidRecorded": "Фактически оплачено (AP)"
+  },
   "portal": {
     "claimsTitle": "Мои акты",
     "paymentsTitle": "Платежи",

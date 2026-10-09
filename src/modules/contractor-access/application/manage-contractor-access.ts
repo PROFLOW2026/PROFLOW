@@ -664,6 +664,9 @@ export async function issueContractorPasswordReset(
   const principal = await loadManageablePrincipal(context, input.principalId, { requireHome: true });
   if (principal.status !== 'active') throw err('not_active');
   const link = await issueToken(context, { projectId: input.projectId, principalId: principal.id, purpose: 'password_reset' });
+  await asServiceRoleWrite(context.db, () =>
+    updateContractorPrincipal(context.db, principal.id, { passwordResetRequestedAt: null }),
+  );
   await recordAuditEvent(context, {
     action: AUDIT_ACTIONS.EXTERNAL_PRINCIPAL_PASSWORD_RESET_ISSUED,
     entityType: 'external_principal',

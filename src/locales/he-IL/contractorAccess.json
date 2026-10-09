@@ -237,7 +237,7 @@
       "addAccessTitle": "מתן גישה למשתמש קבלן קיים",
       "addAccessDescription": "תנו למשתמש שכבר יש לו חשבון גישה לפרויקט הזה או להסכם נוסף.",
       "existingAccount": "משתמש קבלן",
-      "issueReset": "יצירת קישור לאיפוס סיסמה",
+      "issueReset": "איפוס סיסמה",
       "reissueInvite": "יצירת קישור הפעלה חדש",
       "revokeSessions": "ניתוק מכל המכשירים",
       "disable": "השבתת החשבון",

@@ -29,7 +29,9 @@ import {
 } from './project-hub-order';
 import { loadProjectExecutionNav } from '@/modules/project-workspace/application/load-execution-nav';
 import { withOrgContext } from '@/shared/auth/session';
+import { DeveloperGcExecutionEntry } from '@/modules/project-workspace/ui/developer-gc-execution-entry';
 import { ProjectExecutionNav } from '@/modules/project-workspace/ui/project-execution-nav';
+import { ProjectLayoutMode } from '@/modules/project-workspace/ui/project-layout-mode';
 import { ProjectTabsShell } from './project-tabs-shell';
 import { TabPanelSkeleton } from './tab-panel-skeleton';
 import { ProjectReportActions } from '@/modules/reports/ui/project-report-actions';
@@ -148,6 +150,8 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
     Record<ProjectHubKey, string>
   >;
   const dir = localeDirection(locale);
+  const executionEntryHref =
+    executionNav.links.find((link) => link.key === 'overview')?.href ?? executionNav.links[0]?.href ?? null;
 
   return (
     <WithClientMessages extra={PROJECT_SURFACE_CLIENT_MESSAGE_NAMESPACES}>
@@ -245,39 +249,67 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
         }
       />
 
-      {executionNav.showGroup ? (
-        <ProjectExecutionNav links={executionNav.links} dir={dir} />
-      ) : null}
+      <ProjectLayoutMode
+        projectId={projectId}
+        surface="owner"
+        commercial={
+          <>
+            {executionNav.showGroup && executionEntryHref ? (
+              <DeveloperGcExecutionEntry href={executionEntryHref} />
+            ) : null}
 
-      {showUwmLinks ? <ProjectUwmLinks projectId={projectId} /> : null}
+            {showUwmLinks ? <ProjectUwmLinks projectId={projectId} /> : null}
 
-      <Suspense fallback={<Project360SummaryFallback />}>
-        <Project360Summary projectId={projectId} />
-      </Suspense>
+            <Suspense fallback={<Project360SummaryFallback />}>
+              <Project360Summary projectId={projectId} />
+            </Suspense>
 
-      {/*
-        Tab list must not sit behind the page Suspense - otherwise open-project
-        wall clock waits on overview structure before tabs are selectable.
-        Soft-nav still only re-renders `children` (layout ignores searchParams).
-      */}
-      <ProjectTabsShell
-        tabs={hubs}
-        labels={hubLabels}
-        projectHref={`/projects/${projectId}`}
-        dir={dir}
-      >
-        <Suspense
-          fallback={
-            <div className="min-w-0 max-w-full">
-              <div className="pt-4">
-                <TabPanelSkeleton />
-              </div>
-            </div>
-          }
-        >
-          {children}
-        </Suspense>
-      </ProjectTabsShell>
+            {/*
+              Tab list must not sit behind the page Suspense - otherwise open-project
+              wall clock waits on overview structure before tabs are selectable.
+              Soft-nav still only re-renders `children` (layout ignores searchParams).
+            */}
+            <ProjectTabsShell
+              tabs={hubs}
+              labels={hubLabels}
+              projectHref={`/projects/${projectId}`}
+              dir={dir}
+            >
+              <Suspense
+                fallback={
+                  <div className="min-w-0 max-w-full">
+                    <div className="pt-4">
+                      <TabPanelSkeleton />
+                    </div>
+                  </div>
+                }
+              >
+                {children}
+              </Suspense>
+            </ProjectTabsShell>
+          </>
+        }
+        execution={
+          <>
+            {executionNav.showGroup ? (
+              <ProjectExecutionNav
+                links={executionNav.links}
+                dir={dir}
+                backToProjectHref={`/projects/${projectId}`}
+              />
+            ) : null}
+            <Suspense
+              fallback={
+                <div className="min-w-0 max-w-full pt-4">
+                  <TabPanelSkeleton />
+                </div>
+              }
+            >
+              {children}
+            </Suspense>
+          </>
+        }
+      />
     </div>
     </WithClientMessages>
   );

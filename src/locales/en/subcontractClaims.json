@@ -79,6 +79,11 @@
     "safety": "Safety",
     "other": "Other"
   },
+  "totals": {
+    "certifiedCumulative": "Certified cumulative (not paid)",
+    "payableNet": "Net payable",
+    "paidRecorded": "Actually paid (AP)"
+  },
   "portal": {
     "claimsTitle": "My claims",
     "paymentsTitle": "Payments",

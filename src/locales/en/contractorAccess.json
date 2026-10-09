@@ -237,7 +237,7 @@
       "addAccessTitle": "Grant access to an existing contractor user",
       "addAccessDescription": "Give a user who already has an account access to this project or another agreement.",
       "existingAccount": "Contractor user",
-      "issueReset": "Create password reset link",
+      "issueReset": "Reset password",
       "reissueInvite": "Create new activation link",
       "revokeSessions": "Sign out everywhere",
       "disable": "Disable account",
