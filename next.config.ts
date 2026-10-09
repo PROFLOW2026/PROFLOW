@@ -7,6 +7,9 @@ const withNextIntl = createNextIntlPlugin('./src/shared/i18n/request.ts');
 function nextConfig(phase: string): NextConfig {
   return {
   reactStrictMode: true,
+  experimental: {
+    webpackMemoryOptimizations: true,
+  },
   poweredByHeader: false,
   allowedDevOrigins: ['127.0.0.1', 'localhost'],
   // exceljs is large and export/import only — keep it out of the client graph.
