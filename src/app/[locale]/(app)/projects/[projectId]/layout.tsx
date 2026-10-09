@@ -29,9 +29,10 @@ import {
 } from './project-hub-order';
 import { loadProjectExecutionNav } from '@/modules/project-workspace/application/load-execution-nav';
 import { withOrgContext } from '@/shared/auth/session';
+import { isOwnerExecutionWorkspacePath } from '@/modules/project-workspace/domain/execution-workspace-path';
 import { DeveloperGcExecutionEntry } from '@/modules/project-workspace/ui/developer-gc-execution-entry';
 import { ProjectExecutionNav } from '@/modules/project-workspace/ui/project-execution-nav';
-import { ProjectLayoutMode } from '@/modules/project-workspace/ui/project-layout-mode';
+import { getRequestPathname } from '@/shared/http/request-pathname';
 import { ProjectTabsShell } from './project-tabs-shell';
 import { TabPanelSkeleton } from './tab-panel-skeleton';
 import { ProjectReportActions } from '@/modules/reports/ui/project-report-actions';
@@ -153,6 +154,9 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
   const executionEntryHref =
     executionNav.links.find((link) => link.key === 'overview')?.href ?? executionNav.links[0]?.href ?? null;
 
+  const requestPathname = await getRequestPathname();
+  const inExecutionWorkspace = isOwnerExecutionWorkspacePath(requestPathname, projectId);
+
   return (
     <WithClientMessages extra={PROJECT_SURFACE_CLIENT_MESSAGE_NAMESPACES}>
     <div className="flex flex-col gap-6">
@@ -249,67 +253,62 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
         }
       />
 
-      <ProjectLayoutMode
-        projectId={projectId}
-        surface="owner"
-        commercial={
-          <>
-            {executionNav.showGroup && executionEntryHref ? (
-              <DeveloperGcExecutionEntry href={executionEntryHref} />
-            ) : null}
-
-            {showUwmLinks ? <ProjectUwmLinks projectId={projectId} /> : null}
-
-            <Suspense fallback={<Project360SummaryFallback />}>
-              <Project360Summary projectId={projectId} />
-            </Suspense>
-
-            {/*
-              Tab list must not sit behind the page Suspense - otherwise open-project
-              wall clock waits on overview structure before tabs are selectable.
-              Soft-nav still only re-renders `children` (layout ignores searchParams).
-            */}
-            <ProjectTabsShell
-              tabs={hubs}
-              labels={hubLabels}
-              projectHref={`/projects/${projectId}`}
+      {inExecutionWorkspace ? (
+        <>
+          {executionNav.showGroup ? (
+            <ProjectExecutionNav
+              links={executionNav.links}
               dir={dir}
-            >
-              <Suspense
-                fallback={
-                  <div className="min-w-0 max-w-full">
-                    <div className="pt-4">
-                      <TabPanelSkeleton />
-                    </div>
-                  </div>
-                }
-              >
-                {children}
-              </Suspense>
-            </ProjectTabsShell>
-          </>
-        }
-        execution={
-          <>
-            {executionNav.showGroup ? (
-              <ProjectExecutionNav
-                links={executionNav.links}
-                dir={dir}
-                backToProjectHref={`/projects/${projectId}`}
-              />
-            ) : null}
+              backToProjectHref={`/projects/${projectId}`}
+            />
+          ) : null}
+          <Suspense
+            fallback={
+              <div className="min-w-0 max-w-full pt-4">
+                <TabPanelSkeleton />
+              </div>
+            }
+          >
+            {children}
+          </Suspense>
+        </>
+      ) : (
+        <>
+          {executionNav.showGroup && executionEntryHref ? (
+            <DeveloperGcExecutionEntry href={executionEntryHref} />
+          ) : null}
+
+          {showUwmLinks ? <ProjectUwmLinks projectId={projectId} /> : null}
+
+          <Suspense fallback={<Project360SummaryFallback />}>
+            <Project360Summary projectId={projectId} />
+          </Suspense>
+
+          {/*
+            Tab list must not sit behind the page Suspense - otherwise open-project
+            wall clock waits on overview structure before tabs are selectable.
+            Soft-nav still only re-renders `children` (layout ignores searchParams).
+          */}
+          <ProjectTabsShell
+            tabs={hubs}
+            labels={hubLabels}
+            projectHref={`/projects/${projectId}`}
+            dir={dir}
+          >
             <Suspense
               fallback={
-                <div className="min-w-0 max-w-full pt-4">
-                  <TabPanelSkeleton />
+                <div className="min-w-0 max-w-full">
+                  <div className="pt-4">
+                    <TabPanelSkeleton />
+                  </div>
                 </div>
               }
             >
               {children}
             </Suspense>
-          </>
-        }
-      />
+          </ProjectTabsShell>
+        </>
+      )}
     </div>
     </WithClientMessages>
   );

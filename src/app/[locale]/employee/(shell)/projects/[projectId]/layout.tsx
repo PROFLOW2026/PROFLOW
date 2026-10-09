@@ -1,9 +1,10 @@
 import { getLocale } from 'next-intl/server';
 import { loadProjectExecutionNav } from '@/modules/project-workspace/application/load-execution-nav';
+import { isEmployeeExecutionWorkspacePath } from '@/modules/project-workspace/domain/execution-workspace-path';
 import { employeeProjectRoot } from '@/modules/project-workspace/domain/project-surface-path';
 import { DeveloperGcExecutionEntry } from '@/modules/project-workspace/ui/developer-gc-execution-entry';
 import { ProjectExecutionNav } from '@/modules/project-workspace/ui/project-execution-nav';
-import { ProjectLayoutMode } from '@/modules/project-workspace/ui/project-layout-mode';
+import { getRequestPathname } from '@/shared/http/request-pathname';
 import { localeDirection, PROJECT_SURFACE_CLIENT_MESSAGE_NAMESPACES } from '@/shared/i18n/config';
 import { WithClientMessages } from '@/shared/i18n/with-client-messages';
 import { withOrgContext } from '@/shared/auth/session';
@@ -25,33 +26,31 @@ export default async function EmployeeProjectLayout({
   const executionEntryHref =
     executionNav.links.find((link) => link.key === 'overview')?.href ?? executionNav.links[0]?.href ?? null;
 
+  const requestPathname = await getRequestPathname();
+  const inExecutionWorkspace = isEmployeeExecutionWorkspacePath(requestPathname, projectId);
+
   return (
     <WithClientMessages extra={PROJECT_SURFACE_CLIENT_MESSAGE_NAMESPACES}>
     <div className="flex min-w-0 flex-col gap-4">
-      <ProjectLayoutMode
-        projectId={projectId}
-        surface="employee"
-        commercial={
-          <>
-            {executionNav.showGroup && executionEntryHref ? (
-              <DeveloperGcExecutionEntry href={executionEntryHref} />
-            ) : null}
-            {children}
-          </>
-        }
-        execution={
-          <>
-            {executionNav.showGroup ? (
-              <ProjectExecutionNav
-                links={executionNav.links}
-                dir={dir}
-                backToProjectHref={`/employee/projects/${projectId}`}
-              />
-            ) : null}
-            {children}
-          </>
-        }
-      />
+      {inExecutionWorkspace ? (
+        <>
+          {executionNav.showGroup ? (
+            <ProjectExecutionNav
+              links={executionNav.links}
+              dir={dir}
+              backToProjectHref={`/employee/projects/${projectId}`}
+            />
+          ) : null}
+          {children}
+        </>
+      ) : (
+        <>
+          {executionNav.showGroup && executionEntryHref ? (
+            <DeveloperGcExecutionEntry href={executionEntryHref} />
+          ) : null}
+          {children}
+        </>
+      )}
     </div>
     </WithClientMessages>
   );

@@ -10,7 +10,13 @@ import {
 import { isLocale, type Locale } from '@/shared/i18n/config';
 import { routing } from '@/shared/i18n/routing';
 import { refreshSupabaseSession } from '@/shared/supabase/middleware';
+import { REQUEST_PATHNAME_HEADER } from '@/shared/http/request-pathname';
 import { decideContractorSurface } from '@/modules/contractor-access/domain/surface';
+
+function withRequestPathname(response: NextResponse, pathname: string): NextResponse {
+  response.headers.set(REQUEST_PATHNAME_HEADER, pathname);
+  return response;
+}
 
 const handleIntl = createIntlMiddleware(routing);
 
@@ -55,21 +61,27 @@ function localizeBarePath(request: NextRequest): NextResponse | null {
 
 /** Next 16's replacement for the `middleware` file convention. */
 export default async function proxy(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+
   const bare = localizeBarePath(request);
   if (bare) {
-    const kind = barePathLocalization(request.nextUrl.pathname);
+    const kind = barePathLocalization(pathname);
     if (!shouldRefreshSessionOnBarePath(kind)) {
-      return bare;
+      return withRequestPathname(bare, pathname);
     }
-    return refreshSupabaseSession(request, bare);
+    const refreshed = await refreshSupabaseSession(request, bare);
+    return withRequestPathname(refreshed, pathname);
   }
 
   const response = handleIntl(request);
-  const pathLocale = localeFromPathname(request.nextUrl.pathname);
+  const pathLocale = localeFromPathname(pathname);
   if (pathLocale) {
     persistLocaleCookie(response, pathLocale);
   }
-  return refreshSupabaseSession(request, response, (user) => contractorSurfaceRedirect(request, user));
+  const refreshed = await refreshSupabaseSession(request, response, (user) =>
+    contractorSurfaceRedirect(request, user),
+  );
+  return withRequestPathname(refreshed, pathname);
 }
 
 /** Contractor accounts never reach the org app; protected contractor pages need a session. */
