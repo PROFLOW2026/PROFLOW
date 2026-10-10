@@ -1,4 +1,5 @@
 import { holdsRequirement } from './capability-requirement';
+import { buildContractorMobileNavItems } from './mobile-tabs';
 import { buildPortalHref, PORTAL_ROUTES, type PortalRouteDefinition } from './routes';
 
 export interface PortalNavItem {
@@ -6,6 +7,11 @@ export interface PortalNavItem {
   readonly href: string;
   /** Key inside the `contractorPortal` namespace. */
   readonly labelKey: string;
+}
+
+/** Fixed five-tab mobile / shell navigation (TODAY, PROJECTS, WORK, FINANCE, MORE). */
+export function buildPortalMobileNav(): readonly PortalNavItem[] {
+  return buildContractorMobileNavItems();
 }
 
 /** Portal-level destinations (dashboard, notifications, account) that exist on disk. */

@@ -183,6 +183,7 @@ function InviteForm({
   const tLayout = useTranslations('contractorAccess.manage.layout');
   const [state, formAction, pending] = useActionState<ContractorAccessActionStateView, FormData>(action, {});
   const [vendorId, setVendorId] = useState('');
+  const [linkExisting, setLinkExisting] = useState(false);
   const formKey = state.link ? `${state.link.kind}:${state.link.path}` : 'new';
 
   useEffect(() => {
@@ -209,13 +210,36 @@ function InviteForm({
       ) : (
         <form key={formKey} action={formAction} className="mt-3 flex flex-col gap-4">
           <input type="hidden" name="projectId" value={projectId} />
+          <label className="flex min-h-11 items-start gap-2 text-sm">
+            <input
+              type="checkbox"
+              name="linkExisting"
+              className="mt-1"
+              checked={linkExisting}
+              onChange={(event) => setLinkExisting(event.target.checked)}
+            />
+            <span>
+              {t('linkExisting')}
+              <span className="block text-xs text-[var(--pf-text-secondary)]">{t('linkExistingHint')}</span>
+            </span>
+          </label>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field id="invite-name" label={t('displayName')} required>
-              {(control) => <Input {...control} name="displayName" maxLength={120} required />}
-            </Field>
-            <Field id="invite-username" label={t('username')} description={t('usernameHint')}>
+            {!linkExisting ? (
+              <Field id="invite-name" label={t('displayName')} required>
+                {(control) => <Input {...control} name="displayName" maxLength={120} required />}
+              </Field>
+            ) : null}
+            <Field id="invite-username" label={t('username')} description={t('usernameHint')} required={linkExisting}>
               {(control) => (
-                <Input {...control} name="username" dir="ltr" maxLength={32} autoCapitalize="none" spellCheck={false} />
+                <Input
+                  {...control}
+                  name="username"
+                  dir="ltr"
+                  maxLength={32}
+                  autoCapitalize="none"
+                  spellCheck={false}
+                  required={linkExisting}
+                />
               )}
             </Field>
             <Field id="invite-email" label={t('contactEmail')}>
@@ -586,8 +610,6 @@ function AddAccessForm({ projectId, overview, action }: { projectId: string; ove
     () => overview.existingPrincipals.filter((principal) => principal.vendorId === vendorId),
     [overview.existingPrincipals, vendorId],
   );
-  if (overview.existingPrincipals.length === 0) return null;
-
   return (
     <CollapsiblePanel
       summary={
@@ -604,18 +626,23 @@ function AddAccessForm({ projectId, overview, action }: { projectId: string; ove
       <form action={formAction} className="mt-3 flex flex-col gap-4">
         <input type="hidden" name="projectId" value={projectId} />
         <ScopeFields idPrefix="grant" overview={overview} vendorId={vendorId} onVendorChange={setVendorId} />
-        <Field id="grant-principal" label={t('actions.existingAccount')} required>
+        {principals.length > 0 ? (
+          <Field id="grant-principal" label={t('actions.existingAccount')}>
+            {(control) => (
+              <select {...control} name="principalId" defaultValue="" className={selectClassName}>
+                <option value="">{t('invite.vendorPlaceholder')}</option>
+                {principals.map((principal) => (
+                  <option key={principal.principalId} value={principal.principalId}>
+                    {principal.label}
+                  </option>
+                ))}
+              </select>
+            )}
+          </Field>
+        ) : null}
+        <Field id="grant-username" label={t('actions.existingUsername')} description={t('actions.existingUsernameHint')}>
           {(control) => (
-            <select {...control} name="principalId" required defaultValue="" className={selectClassName}>
-              <option value="" disabled>
-                {t('invite.vendorPlaceholder')}
-              </option>
-              {principals.map((principal) => (
-                <option key={principal.principalId} value={principal.principalId}>
-                  {principal.label}
-                </option>
-              ))}
-            </select>
+            <Input {...control} name="existingUsername" dir="ltr" maxLength={32} autoCapitalize="none" spellCheck={false} />
           )}
         </Field>
         <CapabilityPicker idPrefix="grant" canGrantFinancial={overview.authority.canGrantFinancial} initialTemplate="read_only" />

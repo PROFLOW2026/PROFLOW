@@ -15,6 +15,9 @@ import {
   updateContractorGrantAction,
   updateContractorPrincipalProfileAction,
 } from './actions';
+import { issueConnectionCodeAction, revokeConnectionCodeAction } from '../connected-projects/actions';
+import { listConnectionInvitationsForAgreement } from '@/modules/connected-projects';
+import { DeveloperConnectionSection } from '@/modules/connected-projects/ui/developer-connection-section';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
@@ -30,13 +33,24 @@ export default async function ProjectContractorAccessPage({ params }: { params: 
     const authority = await loadContractorAccessAuthority(context, projectId);
     if (!authority.canView) return null;
     const overview = await getContractorAccessOverview(context, projectId);
-    return { overview, organizationName: context.organization.name };
+    const agreementIds = [...new Set(overview.agreements.map((row) => row.id))];
+    const invitationsByAgreement: Record<string, Awaited<ReturnType<typeof listConnectionInvitationsForAgreement>>> =
+      {};
+    if (overview.authority.canInvite) {
+      for (const agreementId of agreementIds) {
+        invitationsByAgreement[agreementId] = await listConnectionInvitationsForAgreement(context, {
+          projectId,
+          subcontractAgreementId: agreementId,
+        });
+      }
+    }
+    return { overview, organizationName: context.organization.name, invitationsByAgreement };
   });
   const overview = loaded?.overview ?? null;
   const organizationName = loaded?.organizationName ?? '';
 
   return (
-    <WithAppClientMessages extra={['contractorAccess']}>
+    <WithAppClientMessages extra={['contractorAccess', 'connectedProjects']}>
       <div className="flex flex-col gap-6">
         <PageHeader title={t('manage.title')} description={t('manage.subtitle')} />
         {overview ? (
@@ -54,6 +68,12 @@ export default async function ProjectContractorAccessPage({ params }: { params: 
               principalCommand: contractorPrincipalCommandAction,
               updatePrincipal: updateContractorPrincipalProfileAction,
             }}
+          />
+          <DeveloperConnectionSection
+            projectId={projectId}
+            overview={overview}
+            invitationsByAgreement={loaded?.invitationsByAgreement ?? {}}
+            actions={{ issue: issueConnectionCodeAction, revoke: revokeConnectionCodeAction }}
           />
           </>
         ) : (

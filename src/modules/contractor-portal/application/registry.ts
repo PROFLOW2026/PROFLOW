@@ -6,6 +6,7 @@ import {
   paymentsProvider,
   retentionProvider,
 } from './providers/claims';
+import { certifiedCashFlowProvider } from './providers/cash-flow';
 import {
   coordinationAcknowledgementProvider,
   coordinationScheduleProvider,
@@ -41,6 +42,7 @@ export const PORTAL_SECTION_PROVIDERS: readonly PortalSectionProvider[] = [
   certificationsProvider,
   retentionProvider,
   paymentsProvider,
+  certifiedCashFlowProvider,
   sharedDocumentsProvider,
   recentNotificationsProvider,
 ];

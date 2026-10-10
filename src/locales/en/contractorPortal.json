@@ -5,6 +5,10 @@
     "forgotPassword": "Forgot password",
     "resetPassword": "Reset password",
     "dashboard": "My day",
+    "today": "Today",
+    "projects": "Projects",
+    "work": "Work",
+    "finance": "Finance",
     "notifications": "Notifications",
     "account": "My account",
     "projectHome": "Project home",
@@ -42,6 +46,26 @@
     "anonymousUser": "Contractor user",
     "language": "Language",
     "signOut": "Sign out"
+  },
+  "hub": {
+    "projects": {
+      "subtitle": "All projects you can access, grouped by client"
+    },
+    "work": {
+      "subtitle": "Tasks, quality, field reports and coordination",
+      "empty": "No work modules are shared with you yet."
+    },
+    "finance": {
+      "subtitle": "Claims, payments and contract financials",
+      "empty": "No financial modules are shared with you yet."
+    },
+    "more": {
+      "subtitle": "Account, notifications, documents and app settings",
+      "accountSection": "Account & alerts",
+      "connectOrgTitle": "Run ProjectFlow as your company?",
+      "connectOrgDescription": "If your developer shared a connection code, sign in to your ProjectFlow organization and redeem it there. Your guest portal access stays unchanged; no duplicate business project is created when the engagement is already linked.",
+      "connectOrgCta": "Connect project in ProjectFlow"
+    }
   },
   "dashboard": {
     "title": "My day",
@@ -136,6 +160,11 @@
       "description": "Status of expected and completed payments",
       "empty": "No payments to show."
     },
+    "cashFlowForecast": {
+      "title": "Expected receipts (certified)",
+      "description": "Certified NET amounts and due dates — not bank payment",
+      "empty": "No certified amounts to forecast yet."
+    },
     "documents": {
       "title": "Shared documents",
       "description": "New documents shared with you",
@@ -156,6 +185,10 @@
     "awaitingAcknowledgement": "Awaiting your acknowledgement",
     "open": "Open",
     "unread": "New"
+  },
+  "cashFlow": {
+    "expectedReceipt": "Expected receipt",
+    "totalExpected": "Total expected (NET)"
   },
   "metrics": {
     "rfiAwaitingAnswer": "Awaiting answer",

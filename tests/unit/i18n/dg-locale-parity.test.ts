@@ -15,6 +15,7 @@ function developerGcNamespaces(): MessageNamespace[] {
 const REQUIRED_DG_NAMESPACES = [
   'projectTeam',
   'contractorAccess',
+  'connectedProjects',
   'contractorPortal',
   'projectProfile',
   'subcontracts',

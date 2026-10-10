@@ -33,7 +33,8 @@ export type CashFlowSourceType =
   | 'recurring_draft'
   | 'retention_release_out'
   | 'operating_expense'
-  | 'payroll_obligation';
+  | 'payroll_obligation'
+  | 'certified_subcontract_receipt';
 
 export interface CashFlowForecastItem {
   readonly id: string;

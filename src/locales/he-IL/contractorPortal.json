@@ -5,6 +5,10 @@
     "forgotPassword": "שכחתי סיסמה",
     "resetPassword": "איפוס סיסמה",
     "dashboard": "היום שלי",
+    "today": "היום",
+    "projects": "פרויקטים",
+    "work": "עבודה",
+    "finance": "כספים",
     "notifications": "התראות",
     "account": "החשבון שלי",
     "projectHome": "דף הפרויקט",
@@ -42,6 +46,26 @@
     "anonymousUser": "משתמש קבלן",
     "language": "שפה",
     "signOut": "יציאה"
+  },
+  "hub": {
+    "projects": {
+      "subtitle": "כל הפרויקטים שיש לך גישה אליהם, לפי לקוח"
+    },
+    "work": {
+      "subtitle": "משימות, איכות, שטח ותיאום",
+      "empty": "עדיין לא שותפו איתך מודולי עבודה."
+    },
+    "finance": {
+      "subtitle": "חשבונות, תשלומים וכספי חוזה",
+      "empty": "עדיין לא שותפו איתך מודולים כספיים."
+    },
+    "more": {
+      "subtitle": "חשבון, התראות, מסמכים והגדרות",
+      "accountSection": "חשבון והתראות",
+      "connectOrgTitle": "מריצים ProjectFlow כחברה?",
+      "connectOrgDescription": "אם היזם שיתף קוד חיבור, התחברו לארגון ProjectFlow שלכם וממשו אותו שם. גישת הפורטל נשמרת; לא נוצר פרויקט כפול כשהעסקה כבר מקושרת.",
+      "connectOrgCta": "חיבור פרויקט ב-ProjectFlow"
+    }
   },
   "dashboard": {
     "title": "היום שלי",
@@ -136,6 +160,11 @@
       "description": "מצב תשלומים צפויים ושבוצעו",
       "empty": "אין תשלומים להצגה."
     },
+    "cashFlowForecast": {
+      "title": "תקבולים צפויים (מאושרים)",
+      "description": "סכומי NET מאושרים ותאריכי יעד. לא תשלום בפועל",
+      "empty": "אין עדיין סכומים מאושרים לתחזית."
+    },
     "documents": {
       "title": "מסמכים ששותפו",
       "description": "מסמכים חדשים ששותפו איתך",
@@ -156,6 +185,10 @@
     "awaitingAcknowledgement": "ממתין לאישורך",
     "open": "פתוח",
     "unread": "חדש"
+  },
+  "cashFlow": {
+    "expectedReceipt": "תקבול צפוי",
+    "totalExpected": "סה״כ צפוי (NET)"
   },
   "metrics": {
     "rfiAwaitingAnswer": "ממתינות לתשובה",

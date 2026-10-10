@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { composePortalSections } from '@/modules/contractor-portal/application/compose-sections';
 import { loadPortalProject } from '@/modules/contractor-portal/application/load-portal-session';
+import { PORTAL_PROJECT_HOME_SECTION_EXCLUDE } from '@/modules/contractor-portal/domain/mobile-tabs';
 import { buildPortalProjectNav } from '@/modules/contractor-portal/domain/nav';
 import { portalOrganizationLabel, portalProjectLabel } from '@/modules/contractor-portal/ui/labels';
 import { PortalNavIcon } from '@/modules/contractor-portal/ui/portal-nav-icon';
@@ -27,7 +28,8 @@ export default async function ContractorPortalProjectPage({ params }: PageProps)
   const { session, project } = await loadPortalProject(projectId);
   if (!project) notFound();
 
-  const sections = await composePortalSections(session.context, [project]);
+  const allSections = await composePortalSections(session.context, [project]);
+  const sections = allSections.filter((section) => !PORTAL_PROJECT_HOME_SECTION_EXCLUDE.has(section.id));
   const links = buildPortalProjectNav(project.projectId, project.capabilities).filter(
     (item) => item.key !== 'project.home',
   );

@@ -38,16 +38,42 @@ const grantFields = {
   expiresAt: optionalDate,
 };
 
-export const inviteContractorSchema = z.object({
-  ...grantFields,
-  displayName: z.string().trim().min(1).max(120),
-  username: optionalText(32),
-  contactEmail: optionalText(200).pipe(z.string().email().nullable()),
-  phone: optionalText(40),
-  locale: optionalText(10),
-});
+export const inviteContractorSchema = z
+  .object({
+    ...grantFields,
+    linkExisting: z
+      .string()
+      .optional()
+      .transform((value) => value === 'on' || value === 'true'),
+    displayName: z.string().trim().max(120),
+    username: optionalText(32),
+    contactEmail: optionalText(200).pipe(z.string().email().nullable()),
+    phone: optionalText(40),
+    locale: optionalText(10),
+  })
+  .superRefine((data, ctx) => {
+    if (data.linkExisting) {
+      if (!data.username?.trim()) {
+        ctx.addIssue({ code: 'custom', message: 'username_required', path: ['username'] });
+      }
+      return;
+    }
+    if (!data.displayName.trim()) {
+      ctx.addIssue({ code: 'custom', message: 'display_name_required', path: ['displayName'] });
+    }
+  });
 
-export const grantContractorSchema = z.object({ ...grantFields, principalId: uuid });
+export const grantContractorSchema = z
+  .object({
+    ...grantFields,
+    principalId: uuid.optional(),
+    existingUsername: optionalText(32),
+  })
+  .superRefine((data, ctx) => {
+    if (!data.principalId && !data.existingUsername?.trim()) {
+      ctx.addIssue({ code: 'custom', message: 'principal_required', path: ['principalId'] });
+    }
+  });
 
 export const updateGrantSchema = z.object({
   projectId: uuid,

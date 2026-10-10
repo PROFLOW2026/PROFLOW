@@ -1240,6 +1240,13 @@
                         "when":  1789714860000,
                         "tag":  "0178_contractor_username_org_update",
                         "breakpoints":  true
+                    },
+                    {
+                        "idx":  177,
+                        "version":  "7",
+                        "when":  1789714920000,
+                        "tag":  "0179_connected_projects",
+                        "breakpoints":  true
                     }
                 ]
 }

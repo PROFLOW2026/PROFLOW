@@ -19,6 +19,7 @@ import {
 import {
   findContractorGrant,
   findContractorPrincipalById,
+  findContractorPrincipalByUsername,
   insertContractorGrant,
   insertContractorPrincipal,
   insertContractorToken,
@@ -336,6 +337,7 @@ export interface GrantScopeChoice {
 export interface InviteContractorInput extends GrantScopeChoice {
   readonly displayName: string;
   readonly username?: string | null;
+  readonly linkExisting?: boolean;
   readonly contactEmail?: string | null;
   readonly phone?: string | null;
   readonly locale?: string | null;
@@ -379,9 +381,37 @@ export async function inviteContractor(
   input: InviteContractorInput,
 ): Promise<InviteContractorResult> {
   const authority = await requireAuthority(context, input.projectId, 'invite');
+  const { scope, capabilities, templateKey } = resolveScope(input, authority);
+
+  if (input.linkExisting) {
+    const rawUsername = input.username?.trim() ?? '';
+    const check = validateContractorUsername(rawUsername);
+    if (!check.valid) throw err('invalid_username');
+    const principal = await asServiceRoleWrite(context.db, () =>
+      findContractorPrincipalByUsername(context.db, check.normalized),
+    );
+    if (!principal) throw new NotFoundError('Contractor account');
+    const { grantId } = await grantContractorAccess(context, {
+      principalId: principal.id,
+      projectId: input.projectId,
+      vendorId: input.vendorId,
+      subcontractAgreementId: input.subcontractAgreementId,
+      allProjects: input.allProjects,
+      template: input.template,
+      capabilities: input.capabilities,
+      expiresAt: input.expiresAt,
+    });
+    return {
+      principalId: principal.id,
+      grantId,
+      username: check.normalized,
+      activationPath: '',
+      activationExpiresAt: new Date(0),
+    };
+  }
+
   const displayName = input.displayName.trim();
   if (!displayName) throw err('display_name_required');
-  const { scope, capabilities, templateKey } = resolveScope(input, authority);
   const { vendorName } = await assertVendorAndAgreement(context, {
     projectId: input.projectId,
     vendorId: input.vendorId,
@@ -506,7 +536,23 @@ async function loadManageablePrincipal(
 }
 
 export interface GrantContractorAccessInput extends GrantScopeChoice {
-  readonly principalId: string;
+  readonly principalId?: string;
+  readonly existingUsername?: string | null;
+}
+
+async function resolveGrantPrincipalId(
+  context: OrgContext,
+  input: Pick<GrantContractorAccessInput, 'principalId' | 'existingUsername'>,
+): Promise<string> {
+  if (input.principalId) return input.principalId;
+  const rawUsername = input.existingUsername?.trim() ?? '';
+  const check = validateContractorUsername(rawUsername);
+  if (!check.valid) throw err('invalid_username');
+  const principal = await asServiceRoleWrite(context.db, () =>
+    findContractorPrincipalByUsername(context.db, check.normalized),
+  );
+  if (!principal) throw new NotFoundError('Contractor account');
+  return principal.id;
 }
 
 export async function grantContractorAccess(
@@ -514,7 +560,8 @@ export async function grantContractorAccess(
   input: GrantContractorAccessInput,
 ): Promise<{ grantId: string }> {
   const authority = await requireAuthority(context, input.projectId, 'manage');
-  await loadManageablePrincipal(context, input.principalId, { requireHome: false });
+  const principalId = await resolveGrantPrincipalId(context, input);
+  await loadManageablePrincipal(context, principalId, { requireHome: false });
   const { scope, capabilities, templateKey } = resolveScope(input, authority);
   await assertVendorAndAgreement(context, {
     projectId: input.projectId,
@@ -523,7 +570,7 @@ export async function grantContractorAccess(
   });
 
   const live = await asServiceRoleWrite(context.db, () =>
-    listOrgGrantsForPrincipal(context.db, context.organizationId, input.principalId),
+    listOrgGrantsForPrincipal(context.db, context.organizationId, principalId),
   );
   const duplicate = live.some(
     (grant) =>
@@ -535,7 +582,7 @@ export async function grantContractorAccess(
 
   const grantId = await insertContractorGrant(context.db, {
     organizationId: context.organizationId,
-    principalId: input.principalId,
+    principalId,
     vendorId: input.vendorId,
     projectId: scope.projectId,
     subcontractAgreementId: scope.subcontractAgreementId,
@@ -549,7 +596,7 @@ export async function grantContractorAccess(
     action: AUDIT_ACTIONS.EXTERNAL_GRANT_CREATED,
     entityType: 'external_access_grant',
     entityId: grantId,
-    after: { principalId: input.principalId, ...scope, capabilities, templateKey },
+    after: { principalId, ...scope, capabilities, templateKey },
   });
   await emitDomainEvent(context.db, {
     organizationId: context.organizationId,
@@ -558,7 +605,7 @@ export async function grantContractorAccess(
     entityType: 'external_access_grant',
     entityId: grantId,
     actor: internalActor(context.userId),
-    payload: { principalId: input.principalId, vendorId: input.vendorId, subcontractAgreementId: scope.subcontractAgreementId },
+    payload: { principalId, vendorId: input.vendorId, subcontractAgreementId: scope.subcontractAgreementId },
   });
   return { grantId };
 }

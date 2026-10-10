@@ -22,6 +22,7 @@ export const PORTAL_SECTION_IDS = [
   'certifications',
   'retention',
   'payments',
+  'cashFlowForecast',
   'documents',
   'notifications',
 ] as const;
@@ -51,6 +52,7 @@ export const PORTAL_SECTIONS: readonly PortalSectionDefinition[] = [
   { id: 'certifications', financial: true, projectRoute: 'project.claims' },
   { id: 'retention', financial: true, projectRoute: 'project.payments' },
   { id: 'payments', financial: true, projectRoute: 'project.payments' },
+  { id: 'cashFlowForecast', financial: true, projectRoute: 'project.claims' },
   { id: 'documents', financial: false, projectRoute: 'project.documents' },
   { id: 'notifications', financial: false, projectRoute: null },
 ];

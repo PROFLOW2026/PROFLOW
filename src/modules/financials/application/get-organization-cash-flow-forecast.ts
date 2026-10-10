@@ -46,6 +46,8 @@ import {
   type CashFlowForecastItem,
   type CashFlowSourceType,
 } from '../domain/cash-flow-forecast';
+import { connectedClaimProjectionCashItems } from '../domain/connected-claim-cash-flow';
+import { listActiveClaimCashProjectionsForOrg } from '@/modules/connected-projects';
 
 function mapApBillsForCash(
   rows: Awaited<ReturnType<typeof listApBills>>,
@@ -321,7 +323,7 @@ export async function getOrganizationCashFlowForecast(
   const showOutflows = true;
   const canReadDrafts = hasAnyPermission(context, ANY_DRAFT_ACCESS_PERMISSIONS);
 
-  const [records, paymentRows, apBundle, drafts, progressLines, expenseRows, payrollRows, commitmentRows] =
+  const [records, paymentRows, apBundle, drafts, progressLines, expenseRows, payrollRows, commitmentRows, connectedClaimRows] =
     await Promise.all([
     showInflows
       ? loadCashFlowOpenBillingRows(context.db, context.organizationId, currency)
@@ -363,6 +365,9 @@ export async function getOrganizationCashFlowForecast(
     showAp
       ? loadOpenCommitmentCashRows(context.db, context.organizationId, currency)
       : Promise.resolve([] as Awaited<ReturnType<typeof loadOpenCommitmentCashRows>>),
+    showInflows
+      ? listActiveClaimCashProjectionsForOrg(context.db, context.organizationId, { currency })
+      : Promise.resolve([]),
   ]);
 
   const outstandingRecords = records.map((record) => ({
@@ -399,6 +404,7 @@ export async function getOrganizationCashFlowForecast(
     ...operatingExpenseCashItems(expenseRows, currency, asOf),
     ...payrollObligationCashItems(payrollRows, currency),
     ...openCommitmentCashItems(commitmentRows, currency),
+    ...(showInflows ? connectedClaimProjectionCashItems(connectedClaimRows, currency) : []),
   ];
 
   return buildCashFlowForecast({

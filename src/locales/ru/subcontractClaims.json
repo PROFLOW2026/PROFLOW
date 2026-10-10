@@ -49,7 +49,27 @@
       "created": "Черновик AP создан",
       "not_required": "Не требуется",
       "credit_required": "Нужен кредит"
-    }
+    },
+    "draftEditorTitle": "Строки акта (текущий период)",
+    "draftEditorHint": "Введите сумму за период, накопленный % или количество. Показаны ранее сертифицированные суммы и остаток.",
+    "entryMode": "Способ ввода",
+    "entryMode.amount": "Фиксированная сумма",
+    "entryMode.percent": "Прогресс %",
+    "entryMode.quantity": "Количество",
+    "approvedChanges": "Утверждённые изменения",
+    "priorCertified": "Ранее сертифицировано",
+    "remaining": "Остаток по договору",
+    "thisClaimAmount": "За период (нетто)",
+    "progressPercent": "Накопленный прогресс %",
+    "claimQuantity": "Накопленное количество",
+    "lineNote": "Примечание",
+    "computedThisPeriod": "Рассчитано за период",
+    "revisionNote": "Примечание к версии",
+    "totalsDraft": "Итого черновика за период",
+    "saveDraft": "Сохранить строки черновика",
+    "periodStart": "Начало периода",
+    "periodEnd": "Конец периода",
+    "claimTitle": "Название (необязательно)"
   },
   "actions": {
     "review": "Проверка акта",
@@ -69,7 +89,11 @@
     "type": "Тип",
     "amount": "Сумма (нетто)",
     "issue": "Выписать удержание",
-    "visibleToContractor": "Видно подрядчику"
+    "visibleToContractor": "Видно подрядчику",
+    "title": "Удержания по этому акту",
+    "dispute": "Оспорить",
+    "disputePlaceholder": "Опишите, почему вы не согласны с удержанием",
+    "submitDispute": "Отправить возражение"
   },
   "deductionType": {
     "back_charge": "Обратное начисление",
@@ -94,7 +118,9 @@
     "paid": "Оплачено",
     "payable": "К оплате",
     "retention": "Удержание",
-    "holds": "Блокировки оплаты"
+    "holds": "Блокировки оплаты",
+    "newClaim": "Новый акт",
+    "createDraft": "Создать черновик"
   },
   "errors": {
     "openClaimExists": "По этому договору уже есть открытый акт.",

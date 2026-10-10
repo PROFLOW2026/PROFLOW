@@ -49,7 +49,27 @@
       "created": "أُنشئت مسودة AP",
       "not_required": "غير مطلوب",
       "credit_required": "يلزم إشعار دائن"
-    }
+    },
+    "draftEditorTitle": "بنود المطالبة (هذه الفترة)",
+    "draftEditorHint": "أدخل المبلغ أو نسبة التقدم التراكمية أو الكمية. تظهر المبالغ المعتمدة سابقاً والرصيد المتبقي.",
+    "entryMode": "طريقة الإدخال",
+    "entryMode.amount": "مبلغ ثابت",
+    "entryMode.percent": "نسبة التقدم",
+    "entryMode.quantity": "كمية",
+    "approvedChanges": "تغييرات معتمدة",
+    "priorCertified": "معتمد سابقاً",
+    "remaining": "الرصيد المتبقي",
+    "thisClaimAmount": "هذه الفترة (صافي)",
+    "progressPercent": "نسبة التقدم التراكمية",
+    "claimQuantity": "كمية تراكمية",
+    "lineNote": "ملاحظة",
+    "computedThisPeriod": "محسوب لهذه الفترة",
+    "revisionNote": "ملاحظة المراجعة",
+    "totalsDraft": "إجمالي المسودة للفترة",
+    "saveDraft": "حفظ بنود المسودة",
+    "periodStart": "بداية الفترة",
+    "periodEnd": "نهاية الفترة",
+    "claimTitle": "العنوان (اختياري)"
   },
   "actions": {
     "review": "مراجعة المطالبة",
@@ -69,7 +89,11 @@
     "type": "النوع",
     "amount": "المبلغ (صافي)",
     "issue": "إصدار خصم",
-    "visibleToContractor": "مرئي للمقاول"
+    "visibleToContractor": "مرئي للمقاول",
+    "title": "خصومات على هذه المطالبة",
+    "dispute": "اعتراض",
+    "disputePlaceholder": "اشرح سبب عدم موافقتك على الخصم",
+    "submitDispute": "إرسال الاعتراض"
   },
   "deductionType": {
     "back_charge": "رسوم retroactive",
@@ -94,7 +118,9 @@
     "paid": "مدفوع",
     "payable": "مستحق",
     "retention": "احتجاز",
-    "holds": "تعليق الدفع"
+    "holds": "تعليق الدفع",
+    "newClaim": "مطالبة جديدة",
+    "createDraft": "إنشاء مسودة"
   },
   "errors": {
     "openClaimExists": "يوجد مطالبة مفتوحة لهذا العقد.",

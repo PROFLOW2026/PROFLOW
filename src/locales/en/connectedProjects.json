@@ -1,0 +1,51 @@
+{
+  "title": "Connect ProjectFlow",
+  "developer": {
+    "panelTitle": "ProjectFlow connection code",
+    "panelHint": "Share a one-time code so a contractor with their own ProjectFlow organization can provision a linked project in their account.",
+    "issue": "Generate connection code",
+    "revoke": "Revoke",
+    "codeResultTitle": "Connection code (shown once)",
+    "codeResultHint": "Copy or share this code with the contractor. It expires automatically.",
+    "expiresAt": "Expires {date}",
+    "noAgreement": "Select a subcontract agreement first.",
+    "history": "Recent codes",
+    "vendor": "Contractor company",
+    "agreement": "Subcontract agreement"
+  },
+  "contractor": {
+    "title": "Connect project from developer",
+    "subtitle": "Enter the code from your developer to create a full project in {orgName}.",
+    "codeLabel": "Connection code",
+    "projectNameLabel": "Project name (optional)",
+    "confirmOrg": "I confirm this connection is for organization \"{orgName}\"",
+    "preview": "Preview",
+    "accept": "Accept and create project",
+    "previewTitle": "Connection preview",
+    "developer": "Developer",
+    "project": "Project",
+    "agreement": "Subcontract",
+    "contractNet": "Contract value (NET)",
+    "schedule": "Schedule",
+    "provisioningFailedTitle": "Project setup did not finish",
+    "provisioningFailedHint": "Your connection is saved. Retry setup to create the project in your organization without a new code.",
+    "retryProvisioning": "Retry project setup",
+    "retrySuccess": "Project created successfully.",
+    "openProject": "Open project"
+  },
+  "errors": {
+    "validation": "Check the form and try again.",
+    "generic": "Something went wrong. Try again.",
+    "forbidden": "You do not have permission for this action.",
+    "invalid_code": "Invalid connection code.",
+    "code_expired": "This connection code has expired.",
+    "code_consumed": "This connection code was already used.",
+    "code_revoked": "This connection code was revoked.",
+    "confirm_org_required": "Confirm your organization before accepting.",
+    "same_organization": "You cannot redeem a code issued by your own organization.",
+    "already_connected": "This engagement is already connected to your organization.",
+    "invitation_not_revocable": "This code cannot be revoked.",
+    "mapping_not_revocable": "This connection cannot be revoked.",
+    "provisioning_not_retryable": "This connection is not in a failed state and cannot be retried."
+  }
+}

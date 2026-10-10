@@ -1,4 +1,9 @@
 {
+  "connectedProjects": {
+    "title": "Developer project connection",
+    "description": "Redeem a connection code from a developer to create a linked project in this organization.",
+    "open": "Connect project from developer"
+  },
   "title": "Invoices & receipts",
   "description": "Choose whether ProjectFlow handles collections only, or also issues invoices and receipts through a connected accounting system.",
   "status": {

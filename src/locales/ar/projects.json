@@ -535,5 +535,43 @@
     "selectTask": "اختر مهمة…",
     "cancel": "إلغاء",
     "due": "الاستحقاق {date}"
+  },
+  "connectedDeveloper": {
+    "banner": {
+      "title": "مشروع مطور مرتبط",
+      "linkedProject": "{organization} | {project}",
+      "linkedProjectFallback": "مرتبط بتعاقد مع مطور",
+      "statusProvisioning": "إعداد الربط لا يزال قيد التنفيذ.",
+      "statusFailed": "فشل إعداد المشروع.",
+      "retrySetup": "إعادة المحاولة",
+      "statusDegraded": "تأخر المزامنة مع المطور. صلاحياتكم لم تتغير.",
+      "openDeveloperWork": "عمل المطور",
+      "noGrantedWork": "لم تُمنح بعد وحدات المطور لحساب البوابة.",
+      "linkPortalAccount": "سجّل الدخول إلى بوابة المقاول بالحساب المخوّل"
+    },
+    "shell": {
+      "title": "عمل المطور",
+      "description": "المهام وطلبات المعلومات والمخططات والملفات المشتركة في مشروع المطور. نفس وصول بوابة الضيف.",
+      "backToProject": "العودة إلى مشروعك",
+      "portalRequired": "افتح هذا القسم بحساب بوابة المقاول الذي لديه صلاحيات لهذا التعاقد.",
+      "noTabs": "لا توجد سير عمل مطور مفعّلة في صلاحيتك."
+    },
+    "navLabel": "سير عمل المطور",
+    "tabs": {
+      "tasks": "المهام",
+      "rfi": "طلبات معلومات",
+      "plans": "المخططات",
+      "documents": "مستندات مشتركة"
+    },
+    "documents": {
+      "saveCopy": "حفظ نسخة في التخزين الخاص بي",
+      "copySaved": "تم حفظ النسخة في تخزين مشروعك.",
+      "openProjectDocuments": "عرض في مستندات المشروع",
+      "storageNotConfigured": "اربط تخزين المؤسسة قبل حفظ النسخ.",
+      "configureStorage": "إعدادات التخزين",
+      "downloadNotPermitted": "المطور لم يسمح بتنزيل هذا الملف.",
+      "copyFailed": "تعذر حفظ النسخة. حاول مرة أخرى أو تواصل مع الدعم.",
+      "portalRequired": "سجّل الدخول بحساب بوابة المقاول لحفظ النسخ."
+    }
   }
 }

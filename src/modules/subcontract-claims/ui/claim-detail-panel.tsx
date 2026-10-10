@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { bidiIsolate } from '@/shared/money';
 import type { InternalClaimDetail } from '@/modules/subcontract-claims';
 import { AssessmentHistory } from './assessment-history';
+import { ClaimDraftEditor } from './claim-draft-editor';
 import { ClaimReviewActions } from './forms';
 import { ClaimStatusBadge } from './status';
 
@@ -37,6 +38,18 @@ export function ClaimDetailPanel({
         </div>
         <ClaimStatusBadge status={header.status} label={t(`status.${header.status}`)} />
       </div>
+
+      {can.edit && header.status === 'draft' && view.draftWorkLines.length > 0 ? (
+        <ClaimDraftEditor
+          mode="internal"
+          projectId={projectId}
+          claimId={header.id}
+          currency={header.currency}
+          workLines={view.draftWorkLines}
+          basePath={basePath}
+          revisionNote={detail.revisions.find((row) => row.id === detail.activeRevisionId)?.note ?? null}
+        />
+      ) : null}
 
       <Card>
         <CardHeader>

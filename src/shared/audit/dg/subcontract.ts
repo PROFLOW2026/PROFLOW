@@ -17,4 +17,10 @@ export const SUBCONTRACT_AUDIT_ACTIONS = {
   DG_UNPRICED_WORK_CONVERTED: 'unpriced_work.converted',
   DG_UNPRICED_WORK_REJECTED: 'unpriced_work.rejected',
   DG_UNPRICED_WORK_CANCELLED: 'unpriced_work.cancelled',
+  CONNECTED_PROJECT_INVITATION_CREATED: 'connected_project.invitation_created',
+  CONNECTED_PROJECT_INVITATION_REVOKED: 'connected_project.invitation_revoked',
+  CONNECTED_PROJECT_ACCEPTED: 'connected_project.accepted',
+  CONNECTED_PROJECT_MAPPING_REVOKED: 'connected_project.mapping_revoked',
+  CONNECTED_PROJECT_PROVISION_RETRY: 'connected_project.provision_retry',
+  CONNECTED_PROJECT_DOCUMENT_COPY_SAVED: 'connected_project.document_copy_saved',
 } as const;

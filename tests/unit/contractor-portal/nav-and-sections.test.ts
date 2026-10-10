@@ -1,15 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import {
+  activeContractorMobileTab,
   activePortalNavKey,
+  buildPortalMobileNav,
   buildPortalPrimaryNav,
   buildPortalProjectNav,
   mergeSectionResults,
   planPortalSections,
   PORTAL_ROUTES,
   PORTAL_SECTIONS,
+  PORTAL_TODAY_SECTION_IDS,
   projectIdFromPortalPath,
   resolvePortalProjects,
-  splitBottomNav,
   type PortalProjectAccess,
   type PortalRouteDefinition,
   type PortalSectionProvider,
@@ -112,17 +114,28 @@ describe('portal navigation filtering', () => {
     expect(projectIdFromPortalPath('/contractor/notifications')).toBeNull();
   });
 
-  it('splits the bottom nav into five slots with an overflow sheet', () => {
-    const primary = buildPortalPrimaryNav(ALL_IMPLEMENTED);
-    const projectItems = buildPortalProjectNav('p1', new Set(Object.values(CAP)), ALL_IMPLEMENTED);
-    const { visible, overflow } = splitBottomNav(primary, projectItems);
-    expect(visible).toHaveLength(4);
-    expect(visible[0]!.key).toBe('dashboard');
-    expect(visible[1]!.key).toBe('project.home');
-    expect(visible.length + overflow.length).toBe(primary.length + projectItems.length);
+  it('exposes five fixed mobile tabs with stable hrefs', () => {
+    const tabs = buildPortalMobileNav();
+    expect(tabs.map((item) => item.key)).toEqual(['today', 'projects', 'work', 'finance', 'more']);
+    expect(tabs[0]!.href).toBe('/contractor');
+    expect(tabs[1]!.href).toBe('/contractor/projects');
+    expect(tabs[2]!.href).toBe('/contractor/work');
+    expect(tabs[3]!.href).toBe('/contractor/finance');
+    expect(tabs[4]!.href).toBe('/contractor/more');
+  });
 
-    const small = splitBottomNav(primary.slice(0, 2), []);
-    expect(small.overflow).toEqual([]);
+  it('highlights the correct mobile tab for hub and deep links', () => {
+    expect(activeContractorMobileTab('/contractor')).toBe('today');
+    expect(activeContractorMobileTab('/contractor/projects')).toBe('projects');
+    expect(activeContractorMobileTab('/contractor/projects/p1')).toBe('projects');
+    expect(activeContractorMobileTab('/contractor/projects/p1/tasks')).toBe('work');
+    expect(activeContractorMobileTab('/contractor/projects/p1/claims')).toBe('finance');
+    expect(activeContractorMobileTab('/contractor/account')).toBe('more');
+    expect(activeContractorMobileTab('/contractor/work')).toBe('work');
+  });
+
+  it('limits TODAY dashboard sections to the urgent subset', () => {
+    expect(PORTAL_TODAY_SECTION_IDS).toEqual(['today', 'overdueTasks', 'acknowledgements', 'notifications']);
   });
 });
 

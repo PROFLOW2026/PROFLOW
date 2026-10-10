@@ -26,6 +26,13 @@ import {
 import { loadClaimState, type ClaimState } from './claim-engine';
 import { claimEventPayload } from './internal-claims';
 import { computeNextBasis } from './payables';
+import {
+  deliverClaimCashProjectionUpsert,
+  deliverClaimCashProjectionVoid,
+  enqueueClaimCashProjectionSync,
+  enqueueClaimCashProjectionVoidSync,
+} from '@/modules/connected-projects/application/sync-claim-cash-projection';
+import { getAdminDb } from '@/shared/db/client';
 import { parseOrThrow, recordInternalAudit } from './support';
 
 /**
@@ -54,10 +61,39 @@ export async function startClaimReview(context: OrgContext, projectId: string, c
   });
 }
 
+async function deliverCertifiedCashProjectionUpsert(input: {
+  readonly developerOrganizationId: string;
+  readonly subcontractAgreementId: string;
+  readonly payableBasisId: string;
+}): Promise<void> {
+  try {
+    await deliverClaimCashProjectionUpsert(getAdminDb(), input);
+  } catch (error) {
+    console.error('[subcontract-claims] claim cash projection delivery failed', error);
+  }
+}
+
+async function deliverCertifiedCashProjectionVoid(input: {
+  readonly developerOrganizationId: string;
+  readonly subcontractAgreementId: string;
+  readonly claimId: string;
+}): Promise<void> {
+  try {
+    await deliverClaimCashProjectionVoid(getAdminDb(), input);
+  } catch (error) {
+    console.error('[subcontract-claims] claim cash projection void delivery failed', error);
+  }
+}
+
 export async function returnClaim(context: OrgContext, projectId: string, claimId: string, raw: ReasonInput): Promise<void> {
   const input = parseOrThrow(reasonSchema.safeParse(raw));
   await assertProjectCapability(context, projectId, C.CLAIM_REVIEW);
   const actor = internalActor(context.userId);
+  let voidDelivery: {
+    readonly developerOrganizationId: string;
+    readonly subcontractAgreementId: string;
+    readonly claimId: string;
+  } | null = null;
   await withTransaction(context.db, async (tx) => {
     const claim = await lockForReview(tx, context, projectId, claimId);
     assertTransition(claim.status, 'returned', 'internal');
@@ -90,7 +126,19 @@ export async function returnClaim(context: OrgContext, projectId: string, claimI
       actor,
       payload: claimEventPayload(claim, 'returned', claim.currentRevisionNo),
     });
+    await enqueueClaimCashProjectionVoidSync(tx, {
+      developerOrganizationId: context.organizationId,
+      subcontractAgreementId: claim.agreementId,
+      claimId: claim.id,
+      sourceVersion: claim.currentRevisionNo,
+    });
+    voidDelivery = {
+      developerOrganizationId: context.organizationId,
+      subcontractAgreementId: claim.agreementId,
+      claimId: claim.id,
+    };
   });
+  if (voidDelivery) await deliverCertifiedCashProjectionVoid(voidDelivery);
 }
 
 export async function requestClaimEvidence(
@@ -219,7 +267,12 @@ export async function certifyClaim(
   const input = parseOrThrow(certifyClaimSchema.safeParse(raw));
   await assertProjectCapability(context, projectId, C.CLAIM_CERTIFY);
   const actor = internalActor(context.userId);
-  return withTransaction(context.db, async (tx) => {
+  let cashDelivery: {
+    readonly developerOrganizationId: string;
+    readonly subcontractAgreementId: string;
+    readonly payableBasisId: string;
+  } | null = null;
+  const { basisId } = await withTransaction(context.db, async (tx) => {
     const claim = await lockForReview(tx, context, projectId, claimId);
     assertTransition(claim.status, 'certified', 'internal');
     const state = await loadClaimState(tx, context.organizationId, claim);
@@ -254,6 +307,21 @@ export async function certifyClaim(
     await insertAssessments(tx, rows);
     await updateClaimRow(tx, context.organizationId, claim.id, { status: 'certified', certifiedAt: new Date() });
     const basisId = await appendBasis(tx, context, claim, state, certifiedByLine, 'certify');
+    const basisRow = await findBasis(tx, context.organizationId, basisId);
+    if (basisRow) {
+      await enqueueClaimCashProjectionSync(tx, {
+        developerOrganizationId: context.organizationId,
+        subcontractAgreementId: claim.agreementId,
+        claimId: claim.id,
+        payableBasisId: basisId,
+        sourceVersion: basisRow.version,
+      });
+      cashDelivery = {
+        developerOrganizationId: context.organizationId,
+        subcontractAgreementId: claim.agreementId,
+        payableBasisId: basisId,
+      };
+    }
     await recordInternalAudit(tx, context, {
       action: AUDIT_ACTIONS.SUBCONTRACT_CLAIM_CERTIFIED,
       entityType: CLAIM_ENTITY,
@@ -271,6 +339,8 @@ export async function certifyClaim(
     });
     return { basisId };
   });
+  if (cashDelivery) await deliverCertifiedCashProjectionUpsert(cashDelivery);
+  return { basisId };
 }
 
 /**
@@ -287,7 +357,12 @@ export async function reassessClaim(
   await assertProjectCapability(context, projectId, C.CLAIM_CERTIFY);
   const reason = requireReason(input.reason, 'subcontractClaims.errors.reasonRequired');
   const actor = internalActor(context.userId);
-  return withTransaction(context.db, async (tx) => {
+  let cashDelivery: {
+    readonly developerOrganizationId: string;
+    readonly subcontractAgreementId: string;
+    readonly payableBasisId: string;
+  } | null = null;
+  const { basisId } = await withTransaction(context.db, async (tx) => {
     const claim = await lockForReview(tx, context, projectId, claimId);
     assertCertified(claim.status);
     const state = await loadClaimState(tx, context.organizationId, claim);
@@ -323,6 +398,21 @@ export async function reassessClaim(
     await insertAssessments(tx, rows);
     await updateClaimRow(tx, context.organizationId, claim.id, { lastReassessedAt: new Date() });
     const basisId = await appendBasis(tx, context, claim, state, certifiedByLine, 'reassess');
+    const basisRow = await findBasis(tx, context.organizationId, basisId);
+    if (basisRow) {
+      await enqueueClaimCashProjectionSync(tx, {
+        developerOrganizationId: context.organizationId,
+        subcontractAgreementId: claim.agreementId,
+        claimId: claim.id,
+        payableBasisId: basisId,
+        sourceVersion: basisRow.version,
+      });
+      cashDelivery = {
+        developerOrganizationId: context.organizationId,
+        subcontractAgreementId: claim.agreementId,
+        payableBasisId: basisId,
+      };
+    }
     await recordInternalAudit(tx, context, {
       action: AUDIT_ACTIONS.SUBCONTRACT_CLAIM_REASSESSED,
       entityType: CLAIM_ENTITY,
@@ -340,6 +430,8 @@ export async function reassessClaim(
     });
     return { basisId };
   });
+  if (cashDelivery) await deliverCertifiedCashProjectionUpsert(cashDelivery);
+  return { basisId };
 }
 
 /**

@@ -46,7 +46,11 @@ export const PORTAL_ROUTES = [
   { key: 'auth.resetPassword', track: 'C', scope: 'auth', path: 'reset-password', pageFile: '(auth)/reset-password/page.tsx', capability: null, placement: 'hidden', labelKey: 'nav.resetPassword', implemented: true },
 
   // Track R - shell
-  { key: 'dashboard', track: 'R', scope: 'portal', path: '', pageFile: '(portal)/page.tsx', capability: null, placement: 'primary', labelKey: 'nav.dashboard', implemented: true },
+  { key: 'dashboard', track: 'R', scope: 'portal', path: '', pageFile: '(portal)/page.tsx', capability: null, placement: 'primary', labelKey: 'nav.today', implemented: true },
+  { key: 'portal.projects', track: 'R', scope: 'portal', path: 'projects', pageFile: '(portal)/projects/page.tsx', capability: null, placement: 'hidden', labelKey: 'nav.projects', implemented: true },
+  { key: 'portal.work', track: 'R', scope: 'portal', path: 'work', pageFile: '(portal)/work/page.tsx', capability: null, placement: 'hidden', labelKey: 'nav.work', implemented: true },
+  { key: 'portal.finance', track: 'R', scope: 'portal', path: 'finance', pageFile: '(portal)/finance/page.tsx', capability: null, placement: 'hidden', labelKey: 'nav.finance', implemented: true },
+  { key: 'portal.more', track: 'R', scope: 'portal', path: 'more', pageFile: '(portal)/more/page.tsx', capability: null, placement: 'hidden', labelKey: 'nav.more', implemented: true },
   { key: 'notifications', track: 'R', scope: 'portal', path: 'notifications', pageFile: '(portal)/notifications/page.tsx', capability: null, placement: 'primary', labelKey: 'nav.notifications', implemented: true },
   { key: 'account', track: 'C', scope: 'portal', path: 'account', pageFile: '(portal)/account/page.tsx', capability: null, placement: 'primary', labelKey: 'nav.account', implemented: true },
   { key: 'project.home', track: 'R', scope: 'project', path: 'projects/[projectId]', pageFile: '(portal)/projects/[projectId]/page.tsx', capability: CAP.PROJECT_VIEW, placement: 'project', labelKey: 'nav.projectHome', implemented: true },

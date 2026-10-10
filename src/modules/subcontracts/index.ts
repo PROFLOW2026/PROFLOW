@@ -63,6 +63,7 @@ export type {
   CreateDraftAgreementInput,
 } from './validation/schemas';
 export {
+  findAgreementOperational,
   listProjectAgreementsOperational,
   listProjectWorkPackageOptions,
 } from './data/agreements.repository';

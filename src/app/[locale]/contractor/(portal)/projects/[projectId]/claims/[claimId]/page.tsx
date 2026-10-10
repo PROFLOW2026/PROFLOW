@@ -2,6 +2,7 @@ import { getTranslations } from 'next-intl/server';
 import { requireExternalContext } from '@/modules/contractor-access';
 import {
   getContractorClaimDetail,
+  listContractorProjectDeductions,
   resolveContractorClaimsOrganization,
 } from '@/modules/subcontract-claims';
 import { loadOrNotFound } from '@/modules/subcontract-claims/ui/page-guard';
@@ -19,13 +20,19 @@ export default async function ContractorClaimDetailPage({
   const context = await requireExternalContext();
   const organizationId = await loadOrNotFound(() => resolveContractorClaimsOrganization(context, projectId));
   const view = await loadOrNotFound(() => getContractorClaimDetail(context, organizationId, projectId, claimId));
+  const deductions = await listContractorProjectDeductions(context, organizationId, projectId).catch(() => []);
 
   return (
     <WithPortalClientMessages extra={['subcontractClaims']}>
       <Link href={`/contractor/projects/${projectId}/claims`} className="text-sm text-[var(--pf-text-brand)] hover:underline">
         ← {t('portal.claimsTitle')}
       </Link>
-      <PortalClaimDetail organizationId={organizationId} projectId={projectId} view={view} />
+      <PortalClaimDetail
+        organizationId={organizationId}
+        projectId={projectId}
+        view={view}
+        deductions={deductions.filter((row) => row.claimId === claimId || row.claimId === null)}
+      />
     </WithPortalClientMessages>
   );
 }

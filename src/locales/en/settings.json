@@ -1137,6 +1137,14 @@
         "reversed": "Contractor deduction reversed",
         "disputed": "Contractor deduction disputed"
       },
+      "connected_project": {
+        "invitation_created": "ProjectFlow connection code issued",
+        "invitation_revoked": "ProjectFlow connection code revoked",
+        "accepted": "Developer project connected",
+        "mapping_revoked": "Connected developer project revoked",
+        "provision_retry": "Connected project setup retried",
+        "document_copy_saved": "Developer document copied to contractor storage"
+      },
       "subcontract_payment_hold": {
         "placed": "Contractor payment hold placed",
         "released": "Contractor payment hold released"

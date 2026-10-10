@@ -1137,6 +1137,14 @@
         "reversed": "أُلغي خصم على المقاول",
         "disputed": "اعتُرض على خصم المقاول"
       },
+      "connected_project": {
+        "invitation_created": "تم إصدار رمز ربط ProjectFlow",
+        "invitation_revoked": "تم إلغاء رمز ربط ProjectFlow",
+        "accepted": "تم ربط مشروع المطور",
+        "mapping_revoked": "تم إلغاء ربط مشروع المطور",
+        "provision_retry": "إعادة محاولة إعداد المشروع المرتبط",
+        "document_copy_saved": "تم نسخ مستند المطور إلى تخزين المقاول"
+      },
       "subcontract_payment_hold": {
         "placed": "عُلّق دفع للمقاول",
         "released": "رُفع تعليق الدفع عن المقاول"

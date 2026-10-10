@@ -1,0 +1,51 @@
+{
+  "title": "ربط ProjectFlow",
+  "developer": {
+    "panelTitle": "رمز ربط ProjectFlow",
+    "panelHint": "شارك رمزًا لمرة واحدة حتى يتمكن مقاول لديه مؤسسة ProjectFlow خاصة من إنشاء مشروع مرتبط في حسابه.",
+    "issue": "إنشاء رمز ربط",
+    "revoke": "إلغاء",
+    "codeResultTitle": "رمز الربط (يُعرض مرة واحدة)",
+    "codeResultHint": "انسخ الرمز أو شاركه مع المقاول. ينتهي تلقائيًا.",
+    "expiresAt": "ينتهي في {date}",
+    "noAgreement": "اختر اتفاقية مقاول أولًا.",
+    "history": "رموز حديثة",
+    "vendor": "شركة المقاول",
+    "agreement": "اتفاقية المقاول"
+  },
+  "contractor": {
+    "title": "ربط مشروع من المطور",
+    "subtitle": "أدخل الرمز من المطور لإنشاء مشروع كامل في {orgName}.",
+    "codeLabel": "رمز الربط",
+    "projectNameLabel": "اسم المشروع (اختياري)",
+    "confirmOrg": "أؤكد أن هذا الربط للمؤسسة \"{orgName}\"",
+    "preview": "معاينة",
+    "accept": "قبول وإنشاء مشروع",
+    "previewTitle": "معاينة الربط",
+    "developer": "المطور",
+    "project": "المشروع",
+    "agreement": "اتفاقية المقاول",
+    "contractNet": "قيمة العقد (صافي)",
+    "schedule": "الجدول الزمني",
+    "provisioningFailedTitle": "لم يكتمل إعداد المشروع",
+    "provisioningFailedHint": "تم حفظ الربط. أعد المحاولة لإنشاء المشروع دون رمز جديد.",
+    "retryProvisioning": "إعادة إعداد المشروع",
+    "retrySuccess": "تم إنشاء المشروع بنجاح.",
+    "openProject": "فتح المشروع"
+  },
+  "errors": {
+    "validation": "تحقق من النموذج وحاول مرة أخرى.",
+    "generic": "حدث خطأ. حاول مرة أخرى.",
+    "forbidden": "ليس لديك إذن لهذا الإجراء.",
+    "invalid_code": "رمز ربط غير صالح.",
+    "code_expired": "انتهت صلاحية رمز الربط.",
+    "code_consumed": "تم استخدام رمز الربط مسبقًا.",
+    "code_revoked": "تم إلغاء رمز الربط.",
+    "confirm_org_required": "أكد مؤسستك قبل القبول.",
+    "same_organization": "لا يمكنك استخدام رمز صادر من مؤسستك.",
+    "already_connected": "هذا التعاقد مرتبط بالفعل بمؤسستك.",
+    "invitation_not_revocable": "لا يمكن إلغاء هذا الرمز.",
+    "mapping_not_revocable": "لا يمكن إلغاء هذا الربط.",
+    "provisioning_not_retryable": "الربط ليس في حالة فشل ولا يمكن إعادة المحاولة."
+  }
+}

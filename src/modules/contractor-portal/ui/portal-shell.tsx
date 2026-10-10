@@ -1,9 +1,8 @@
 'use client';
 
-import { Bell, Building2, Check, ChevronsUpDown, HardHat, LogOut, MoreHorizontal, UserRound } from 'lucide-react';
+import { Bell, Building2, Check, ChevronsUpDown, HardHat, LogOut, UserRound } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import * as React from 'react';
-import { Dialog, DialogBody, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,12 +18,14 @@ import { Link, usePathname, useRouter } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
 import { contractorPortalSignOutAction } from '../application/actions';
 import type { PortalShellData, PortalShellProject } from '../application/load-portal-session';
+import { activeContractorMobileTab, contractorMobileTabIconKey } from '../domain/mobile-tabs';
 import {
   activePortalNavKey,
+  buildPortalMobileNav,
   projectIdFromPortalPath,
-  splitBottomNav,
   type PortalNavItem,
 } from '../domain/nav';
+import { ContractorBottomNav } from './contractor-bottom-nav';
 import { portalOrganizationLabel, portalProjectLabel } from './labels';
 import { PortalNavIcon } from './portal-nav-icon';
 
@@ -247,85 +248,30 @@ function UserMenu({
   );
 }
 
-function BottomNav({ primary, projectItems }: { primary: readonly PortalNavItem[]; projectItems: readonly PortalNavItem[] }) {
-  const t = useTranslations('contractorPortal');
-  const tCommon = useTranslations('common');
-  const pathname = usePathname();
-  const [moreOpen, setMoreOpen] = React.useState(false);
-  const { visible, overflow } = splitBottomNav(primary, projectItems);
-  const activeKey = activePortalNavKey(pathname, [...visible, ...overflow]);
-  const moreActive = overflow.some((item) => item.key === activeKey);
-
-  const itemClass = (active: boolean) =>
-    cn(
-      pressableChromeClassName,
-      'flex h-[var(--pf-bottomnav-height)] w-full min-w-0 flex-col items-center justify-center gap-0.5 px-1 text-[0.6875rem] font-medium',
-      active
-        ? 'text-[var(--pf-accent)]'
-        : 'text-[var(--pf-text-secondary)] active:bg-[var(--pf-action-subtle-active)]',
-    );
-
+function MobileTabSideLink({
+  item,
+  active,
+  t,
+}: {
+  item: PortalNavItem;
+  active: boolean;
+  t: Translate;
+}) {
+  const iconKey = contractorMobileTabIconKey(item.key as Parameters<typeof contractorMobileTabIconKey>[0]);
   return (
-    <>
-      <nav
-        className="fixed inset-x-0 bottom-0 z-40 box-border min-w-0 border-t border-[var(--pf-border)] bg-[var(--pf-surface)] pb-[env(safe-area-inset-bottom,0px)] lg:hidden print:hidden"
-        aria-label={t('shell.navLabel')}
-        data-pf-contractor-mobile-nav=""
-      >
-        <ul className="flex h-[var(--pf-bottomnav-height)] w-full min-w-0 items-stretch">
-          {visible.map((item) => (
-            <li key={item.key} className="min-w-0 flex-1">
-              <Link
-                href={item.href}
-                aria-current={item.key === activeKey ? 'page' : undefined}
-                className={itemClass(item.key === activeKey)}
-              >
-                <PortalNavIcon navKey={item.key} className="size-5" />
-                <span className="max-w-full truncate">{t(item.labelKey)}</span>
-              </Link>
-            </li>
-          ))}
-          {overflow.length > 0 ? (
-            <li className="min-w-0 flex-1">
-              <button
-                type="button"
-                onClick={() => setMoreOpen(true)}
-                aria-expanded={moreOpen}
-                aria-haspopup="dialog"
-                aria-controls="pf-contractor-mobile-nav-more"
-                className={itemClass(moreOpen || moreActive)}
-              >
-                <MoreHorizontal className="size-5" aria-hidden />
-                <span className="max-w-full truncate">{t('nav.more')}</span>
-              </button>
-            </li>
-          ) : null}
-        </ul>
-      </nav>
-
-      {overflow.length > 0 ? (
-        <Dialog open={moreOpen} onOpenChange={setMoreOpen}>
-          <DialogContent
-            id="pf-contractor-mobile-nav-more"
-            closeLabel={tCommon('actions.close')}
-            aria-describedby={undefined}
-          >
-            <DialogHeader>
-              <DialogTitle>{t('nav.more')}</DialogTitle>
-            </DialogHeader>
-            <DialogBody>
-              <ul className="flex flex-col gap-1">
-                {overflow.map((item) => (
-                  <li key={item.key} onClick={() => setMoreOpen(false)}>
-                    <SideNavLink item={item} active={item.key === activeKey} t={t} />
-                  </li>
-                ))}
-              </ul>
-            </DialogBody>
-          </DialogContent>
-        </Dialog>
-      ) : null}
-    </>
+    <Link
+      href={item.href}
+      aria-current={active ? 'page' : undefined}
+      className={cn(
+        'flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors',
+        active
+          ? 'bg-[var(--pf-accent-soft)] text-[var(--pf-accent)]'
+          : 'text-[var(--pf-text-secondary)] hover:bg-[var(--pf-surface-2)] hover:text-[var(--pf-text)]',
+      )}
+    >
+      <PortalNavIcon navKey={iconKey} className="size-4 shrink-0" />
+      <span className="min-w-0 truncate">{t(item.labelKey)}</span>
+    </Link>
   );
 }
 
@@ -333,13 +279,14 @@ function BottomNav({ primary, projectItems }: { primary: readonly PortalNavItem[
 export function ContractorPortalShell({ shell, children }: { shell: PortalShellData; children: React.ReactNode }) {
   const t = useTranslations('contractorPortal');
   const pathname = usePathname();
+  const mobileNav = React.useMemo(() => buildPortalMobileNav(), []);
+  const activeMobileTab = activeContractorMobileTab(pathname);
   const active = useActiveProject(shell.projects);
   const projectItems = active?.nav ?? [];
   const company = companyLabel(t, shell.projects, active);
   const notificationsHref = shell.primaryNav.find((item) => item.key === 'notifications')?.href ?? null;
   const accountHref = shell.primaryNav.find((item) => item.key === 'account')?.href ?? null;
-  const primaryForNav = shell.primaryNav.filter((item) => item.key !== 'account');
-  const activeKey = activePortalNavKey(pathname, [...primaryForNav, ...projectItems]);
+  const activeProjectNavKey = activePortalNavKey(pathname, projectItems);
 
   return (
     <div className="flex h-svh overflow-hidden" data-pf-contractor-portal>
@@ -363,9 +310,9 @@ export function ContractorPortalShell({ shell, children }: { shell: PortalShellD
           <ProjectSwitcher projects={shell.projects} active={active} className="w-full" />
 
           <ul className="flex flex-col gap-0.5">
-            {primaryForNav.map((item) => (
+            {mobileNav.map((item) => (
               <li key={item.key}>
-                <SideNavLink item={item} active={item.key === activeKey} t={t} />
+                <MobileTabSideLink item={item} active={item.key === activeMobileTab} t={t} />
               </li>
             ))}
           </ul>
@@ -378,7 +325,7 @@ export function ContractorPortalShell({ shell, children }: { shell: PortalShellD
               <ul className="flex flex-col gap-0.5">
                 {projectItems.map((item) => (
                   <li key={item.key}>
-                    <SideNavLink item={item} active={item.key === activeKey} t={t} />
+                    <SideNavLink item={item} active={item.key === activeProjectNavKey} t={t} />
                   </li>
                 ))}
               </ul>
@@ -427,7 +374,7 @@ export function ContractorPortalShell({ shell, children }: { shell: PortalShellD
         <main className="mx-auto min-h-0 w-full max-w-lg flex-1 overflow-y-auto bg-[var(--pf-bg-page)] px-4 pt-4 pb-[var(--pf-employee-main-bottom)] lg:max-w-5xl lg:pb-6">
           {children}
         </main>
-        <BottomNav primary={primaryForNav} projectItems={projectItems} />
+        <ContractorBottomNav items={mobileNav} />
       </div>
     </div>
   );

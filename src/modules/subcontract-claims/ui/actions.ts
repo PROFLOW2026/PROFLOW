@@ -1,8 +1,9 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
+import { isRedirectError } from 'next/dist/client/components/redirect-error';
+import { getTranslations } from 'next-intl/server';
 import { requireExternalContext } from '@/modules/contractor-access';
 import { withOrgContext } from '@/shared/auth/session';
 import { mapServerActionError } from '@/shared/errors';
@@ -11,6 +12,8 @@ import {
   cancelContractorClaim,
   certifyClaim,
   createClaim,
+  createContractorClaim,
+  disputeContractorDeduction,
   issueDeduction,
   reassessClaim,
   returnClaim,
@@ -128,7 +131,7 @@ export async function createClaimAction(formData: FormData): Promise<void> {
   redirect(`${basePath}/${result.claimId}`);
 }
 
-export async function saveClaimDraftAction(formData: FormData): Promise<ActionState> {
+export async function saveClaimDraftAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const projectId = field(formData, 'projectId');
   const claimId = field(formData, 'claimId');
   const basePath = field(formData, 'basePath') || `/projects/${projectId}/claims`;
@@ -198,7 +201,40 @@ export async function cancelContractorClaimAction(formData: FormData): Promise<v
   revalidatePath(`/contractor/projects/${projectId}/claims`);
 }
 
-export async function saveContractorClaimDraftAction(formData: FormData): Promise<ActionState> {
+export async function createContractorClaimAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const context = await requireExternalContext();
+  const organizationId = field(formData, 'organizationId');
+  const projectId = field(formData, 'projectId');
+  try {
+    const result = await createContractorClaim(context, {
+      organizationId,
+      projectId,
+      agreementId: field(formData, 'agreementId'),
+      periodStart: field(formData, 'periodStart'),
+      periodEnd: field(formData, 'periodEnd'),
+      title: field(formData, 'title') || null,
+    });
+    redirect(`/contractor/projects/${projectId}/claims/${result.claimId}`);
+  } catch (error) {
+    if (isRedirectError(error)) throw error;
+    return mapError(error);
+  }
+}
+
+export async function disputeContractorDeductionAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const context = await requireExternalContext();
+  try {
+    await disputeContractorDeduction(context, field(formData, 'organizationId'), field(formData, 'projectId'), field(formData, 'deductionId'), {
+      comment: field(formData, 'comment'),
+    });
+    revalidatePath(`/contractor/projects/${field(formData, 'projectId')}/claims`);
+    return null;
+  } catch (error) {
+    return mapError(error);
+  }
+}
+
+export async function saveContractorClaimDraftAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const context = await requireExternalContext();
   const organizationId = field(formData, 'organizationId');
   const projectId = field(formData, 'projectId');

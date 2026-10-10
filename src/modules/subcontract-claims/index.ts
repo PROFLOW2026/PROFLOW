@@ -36,7 +36,9 @@ export {
   createContractorClaim,
   disputeContractorDeduction,
   getContractorClaimDetail,
+  listContractorClaimAgreements,
   listContractorProjectClaims,
+  listContractorProjectDeductions,
   listContractorProjectPayments,
   resolveContractorClaimsOrganization,
   resolveContractorPaymentsOrganization,
@@ -47,6 +49,8 @@ export {
   type ContractorClaimDetail,
 } from './application/external';
 export type { AgreementPaymentStatus } from './application/payables';
+export { listContractorCertifiedReceiptForecast, certifiedReceiptFactsForBasis } from './application/certified-receipt-forecast';
+export type { CertifiedReceiptForecastEntry } from './domain/certified-receipt-cash-flow';
 export { loadPaymentFacts } from './data/contract-basis.repository';
 export type {
   CertifyClaimInput,

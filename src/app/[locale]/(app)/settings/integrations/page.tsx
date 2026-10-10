@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
+import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { listAccountingIntegrations } from '@/modules/integrations';
 import { getOrgInvoicingSettings } from '@/modules/invoicing-integration';
 import { isSumitTransactionInvoiceSupported } from '@/modules/invoicing-integration/providers/sumit/sumit-create-payload';
@@ -72,6 +74,17 @@ export default async function IntegrationsSettingsPage() {
     <SettingsPageShell title={t('title')}>
       <div className="flex flex-col gap-4">
         <p className="text-sm text-[var(--pf-text-secondary)]">{t('description')}</p>
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('connectedProjects.title')}</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3">
+            <p className="text-sm text-[var(--pf-text-secondary)]">{t('connectedProjects.description')}</p>
+            <Button asChild variant="secondary">
+              <Link href="../projects/connect-developer">{t('connectedProjects.open')}</Link>
+            </Button>
+          </CardContent>
+        </Card>
         <IntegrationsSettingsBody
           key={data.invoicingSettings.mode}
           invoicingSettings={data.invoicingSettings}

@@ -11,6 +11,7 @@ import { runQuoteExpiryScan } from '@/modules/quotes';
 import { runMaterialPressureAlertScan } from '@/modules/material-market/application/pressure-alert-ops-worker';
 import { runMarginSnapshotOpsWorker } from '@/modules/ops-finance/application/margin-snapshot-ops-worker';
 import { runDgEventsOpsWorker } from '@/modules/dg-events/application/ops-worker';
+import { retryClaimCashProjectionOutbox } from '@/modules/connected-projects/application/retry-claim-cash-projection-outbox';
 import { runWithMaxConcurrency } from '@/shared/async/run-with-concurrency';
 import { logUsageKickFailure } from '@/shared/observability/runtime-usage-diag';
 
@@ -193,6 +194,10 @@ export async function runDailyOpsWorker(startedMs: number = Date.now()): Promise
     jobs.map((job) => () => job.run()),
     OPS_WORKER_MAX_CONCURRENT,
   );
+
+  retryClaimCashProjectionOutbox().catch((error) => {
+    logSubWorkerFailure('connectedProjectsCashOutbox', error);
+  });
 
   return {
     expenseRecurrence: results[0] as DailyOpsWorkerPayload['expenseRecurrence'],

@@ -535,5 +535,43 @@
     "selectTask": "Select task…",
     "cancel": "Cancel",
     "due": "Due {date}"
+  },
+  "connectedDeveloper": {
+    "banner": {
+      "title": "Connected developer project",
+      "linkedProject": "{organization} · {project}",
+      "linkedProjectFallback": "Linked to a developer engagement",
+      "statusProvisioning": "Connection provisioning is still in progress.",
+      "statusFailed": "Project setup failed.",
+      "retrySetup": "Retry setup",
+      "statusDegraded": "Sync with the developer is delayed — your grants are unchanged.",
+      "openDeveloperWork": "Developer work",
+      "noGrantedWork": "No developer modules are granted for your portal account yet.",
+      "linkPortalAccount": "Sign in to the contractor portal with the granted account"
+    },
+    "shell": {
+      "title": "Developer work",
+      "description": "Tasks, RFIs, plans, and shared files on the developer’s project — same access as the guest portal.",
+      "backToProject": "Back to your project",
+      "portalRequired": "Open this section with the contractor portal account that has grants for this engagement. Org membership alone does not grant developer access.",
+      "noTabs": "No developer workflows are enabled on your grant."
+    },
+    "navLabel": "Developer workflows",
+    "tabs": {
+      "tasks": "Tasks",
+      "rfi": "RFI",
+      "plans": "Plans",
+      "documents": "Shared documents"
+    },
+    "documents": {
+      "saveCopy": "Save copy to my storage",
+      "copySaved": "Copy saved to your project storage.",
+      "openProjectDocuments": "View in project documents",
+      "storageNotConfigured": "Connect your organization storage before saving copies.",
+      "configureStorage": "Storage settings",
+      "downloadNotPermitted": "The developer has not allowed downloading this file.",
+      "copyFailed": "Could not save the copy. Try again or contact support.",
+      "portalRequired": "Sign in with your contractor portal account to save copies."
+    }
   }
 }

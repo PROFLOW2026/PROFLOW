@@ -42,6 +42,7 @@ export { moneyMetric, sumMoneyMetrics } from './domain/report-metric';
 export type { MoneyReportMetric, CountReportMetric, ReportMetricKind } from './domain/report-metric';
 export { getOrganizationCashFlowOutlook } from './application/get-organization-cash-flow';
 export { getOrganizationCashFlowForecast } from './application/get-organization-cash-flow-forecast';
+export { getProjectCashFlowForecast } from './application/get-project-cash-flow-forecast';
 export { getProjectCashFlowOutlook } from './application/get-project-cash-flow';
 export type {
   CashFlowOutlook,

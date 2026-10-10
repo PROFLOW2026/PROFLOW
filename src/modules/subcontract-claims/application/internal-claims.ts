@@ -37,6 +37,7 @@ import {
   type SaveClaimDraftInput,
 } from '../validation/schemas';
 import { loadAgreementContext, loadClaimState, loadPriorCertified } from './claim-engine';
+import { buildClaimDraftWorkLines, type ClaimDraftWorkLine } from './draft-work-lines';
 import { freezeRevision, writeDraftLines } from './draft-lines';
 import { parseOrThrow, recordInternalAudit } from './support';
 import { toDetailView, toListItems } from './views';
@@ -127,6 +128,7 @@ export async function listClaimableAgreements(context: OrgContext, projectId: st
 
 export interface InternalClaimDetail {
   readonly detail: ClaimDetailView;
+  readonly draftWorkLines: readonly ClaimDraftWorkLine[];
   readonly can: {
     readonly edit: boolean;
     readonly review: boolean;
@@ -146,13 +148,14 @@ export async function getClaimDetail(context: OrgContext, projectId: string, cla
   const review = capabilities.has(C.CLAIM_REVIEW);
   return {
     detail: toDetailView(claim, state, bases),
+    draftWorkLines: buildClaimDraftWorkLines(state, claim.currency),
     can: {
       edit: review && isEditableStatus(claim.status),
       review,
       certify: capabilities.has(C.CLAIM_CERTIFY),
       manageDeductions: capabilities.has(C.DEDUCTIONS_MANAGE),
-      viewPayments: capabilities.has(C.PAYMENT_VIEW),
       managePayments: capabilities.has(C.PAYMENT_MANAGE),
+      viewPayments: capabilities.has(C.PAYMENT_VIEW),
     },
   };
 }

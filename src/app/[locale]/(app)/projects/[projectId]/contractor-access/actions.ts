@@ -71,6 +71,9 @@ export async function inviteContractorAction(
   }
   return run(async (t) => {
     const result = await withOrgContext((context) => inviteContractor(context, contractorAccessDeps(), parsed.data));
+    if (!result.activationPath) {
+      return { success: t('manage.actions.linkedExisting') };
+    }
     const locale =
       parsed.data.locale && parsed.data.locale.trim() ? parsed.data.locale.trim() : null;
     return {

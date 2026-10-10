@@ -1,0 +1,51 @@
+{
+  "title": "חיבור ProjectFlow",
+  "developer": {
+    "panelTitle": "קוד חיבור ProjectFlow",
+    "panelHint": "שתף קוד חד-פעמי כדי שקבלן עם ארגון ProjectFlow משלו יוכל ליצור פרויקט מקושר בחשבון שלו.",
+    "issue": "יצירת קוד חיבור",
+    "revoke": "ביטול",
+    "codeResultTitle": "קוד חיבור (מוצג פעם אחת)",
+    "codeResultHint": "העתק או שתף את הקוד עם הקבלן. תוקף הקוד מוגבל.",
+    "expiresAt": "פג תוקף {date}",
+    "noAgreement": "בחר הסכם קבלן תחילה.",
+    "history": "קודים אחרונים",
+    "vendor": "חברת קבלן",
+    "agreement": "הסכם קבלן"
+  },
+  "contractor": {
+    "title": "חיבור פרויקט מיזם",
+    "subtitle": "הזן את הקוד מהיזם כדי ליצור פרויקט מלא ב-{orgName}.",
+    "codeLabel": "קוד חיבור",
+    "projectNameLabel": "שם פרויקט (אופציונלי)",
+    "confirmOrg": "אני מאשר/ת שהחיבור הוא עבור הארגון \"{orgName}\"",
+    "preview": "תצוגה מקדימה",
+    "accept": "אישור ויצירת פרויקט",
+    "previewTitle": "תצוגה מקדימה של החיבור",
+    "developer": "יזם",
+    "project": "פרויקט",
+    "agreement": "הסכם קבלן",
+    "contractNet": "שווי חוזה (נטו)",
+    "schedule": "לוח זמנים",
+    "provisioningFailedTitle": "הקמת הפרויקט לא הושלמה",
+    "provisioningFailedHint": "החיבור נשמר. נסו שוב להקים את הפרויקט בלי קוד חדש.",
+    "retryProvisioning": "נסיון חוזר להקמת פרויקט",
+    "retrySuccess": "הפרויקט נוצר בהצלחה.",
+    "openProject": "פתיחת פרויקט"
+  },
+  "errors": {
+    "validation": "בדוק/י את הטופס ונסה/י שוב.",
+    "generic": "משהו השתבש. נסה/י שוב.",
+    "forbidden": "אין הרשאה לפעולה זו.",
+    "invalid_code": "קוד חיבור לא תקין.",
+    "code_expired": "פג תוקף קוד החיבור.",
+    "code_consumed": "קוד החיבור כבר נוצל.",
+    "code_revoked": "קוד החיבור בוטל.",
+    "confirm_org_required": "אשר/י את הארגון לפני קבלה.",
+    "same_organization": "לא ניתן לממש קוד שהונפק על ידי הארגון שלך.",
+    "already_connected": "העסקה כבר מחוברת לארגון שלך.",
+    "invitation_not_revocable": "לא ניתן לבטל קוד זה.",
+    "mapping_not_revocable": "לא ניתן לבטל חיבור זה.",
+    "provisioning_not_retryable": "החיבור לא במצב כשל ולא ניתן לנסות שוב."
+  }
+}

@@ -52,7 +52,27 @@
       "created": "נוצרה טיוטת AP",
       "not_required": "לא נדרש",
       "credit_required": "נדרש זיכוי"
-    }
+    },
+    "draftEditorTitle": "שורות חשבון (תקופה זו)",
+    "draftEditorHint": "הזינו סכום לתקופה, אחוז התקדמות מצטבר או כמות. מוצגים סכומים מאושרים קודמים ויתרה.",
+    "entryMode": "אופן הזנה",
+    "entryMode.amount": "סכום קבוע",
+    "entryMode.percent": "אחוז התקדמות",
+    "entryMode.quantity": "כמות",
+    "approvedChanges": "שינויים מאושרים",
+    "priorCertified": "מאושר קודם",
+    "remaining": "יתרה בחוזה",
+    "thisClaimAmount": "תקופה זו (נטו)",
+    "progressPercent": "התקדמות מצטברת %",
+    "claimQuantity": "כמות מצטברת",
+    "lineNote": "הערה",
+    "computedThisPeriod": "מחושב לתקופה",
+    "revisionNote": "הערת גרסה",
+    "totalsDraft": "סה״כ טיוטה לתקופה",
+    "saveDraft": "שמירת שורות טיוטה",
+    "periodStart": "תחילת תקופה",
+    "periodEnd": "סוף תקופה",
+    "claimTitle": "כותרת (אופציונלי)"
   },
   "actions": {
     "review": "בדיקת חשבון",
@@ -72,7 +92,11 @@
     "type": "סוג",
     "amount": "סכום (נטו)",
     "issue": "הוצאת קיזוז",
-    "visibleToContractor": "גלוי לקבלן"
+    "visibleToContractor": "גלוי לקבלן",
+    "title": "קיזוזים בחשבון זה",
+    "dispute": "ערעור",
+    "disputePlaceholder": "הסבירו מדוע אינכם מסכימים לקיזוז",
+    "submitDispute": "שליחת ערעור"
   },
   "deductionType": {
     "back_charge": "חיוב חוזר",
@@ -97,7 +121,9 @@
     "paid": "שולם",
     "payable": "לתשלום",
     "retention": "עיכבון",
-    "holds": "עיכובי תשלום"
+    "holds": "עיכובי תשלום",
+    "newClaim": "חשבון חדש",
+    "createDraft": "יצירת טיוטה"
   },
   "errors": {
     "openClaimExists": "כבר קיים חשבון פתוח לחוזה זה.",

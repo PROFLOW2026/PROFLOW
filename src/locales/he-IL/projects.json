@@ -535,5 +535,43 @@
     "selectTask": "בחר משימה…",
     "cancel": "ביטול",
     "due": "יעד {date}"
+  },
+  "connectedDeveloper": {
+    "banner": {
+      "title": "פרויקט מפתח מחובר",
+      "linkedProject": "{organization} | {project}",
+      "linkedProjectFallback": "מקושר להתקשרות מול מפתח",
+      "statusProvisioning": "הקמת החיבור עדיין בתהליך.",
+      "statusFailed": "הקמת הפרויקט נכשלה.",
+      "retrySetup": "נסיון חוזר",
+      "statusDegraded": "סנכרון עם המפתח מתעכב. ההרשאות שלכם לא השתנו.",
+      "openDeveloperWork": "עבודה מול המפתח",
+      "noGrantedWork": "עדיין לא הוענקו מודולי מפתח לחשבון הפורטל שלכם.",
+      "linkPortalAccount": "התחברו לפורטל הקבלן עם החשבון שקיבל הרשאות"
+    },
+    "shell": {
+      "title": "עבודה מול המפתח",
+      "description": "משימות, RFIs, תוכניות ומסמכים משותפים בפרויקט של המפתח. אותה גישה כמו בפורטל האורח.",
+      "backToProject": "חזרה לפרויקט שלכם",
+      "portalRequired": "יש לפתוח את האזור עם חשבון פורטל הקבלן שיש לו grants להתקשרות זו. חברות בארגון לבדה לא מעניקה גישה למפתח.",
+      "noTabs": "אין תהליכי מפתח מופעלים ב-grant שלכם."
+    },
+    "navLabel": "תהליכי מפתח",
+    "tabs": {
+      "tasks": "משימות",
+      "rfi": "בקשות מידע",
+      "plans": "תוכניות",
+      "documents": "מסמכים משותפים"
+    },
+    "documents": {
+      "saveCopy": "שמירת עותק באחסון שלי",
+      "copySaved": "העותק נשמר באחסון הפרויקט שלכם.",
+      "openProjectDocuments": "מסמכי הפרויקט",
+      "storageNotConfigured": "יש לחבר אחסון ארגוני לפני שמירת עותקים.",
+      "configureStorage": "הגדרות אחסון",
+      "downloadNotPermitted": "המפתח לא אישר הורדה של קובץ זה.",
+      "copyFailed": "לא ניתן לשמור את העותק. נסו שוב.",
+      "portalRequired": "התחברו עם חשבון פורטל הקבלן כדי לשמור עותקים."
+    }
   }
 }

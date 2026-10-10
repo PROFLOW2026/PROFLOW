@@ -25,7 +25,8 @@ import {
   sumCurrentSubmitted,
   updateClaimRow,
 } from '../data/claims.repository';
-import { findDeduction, insertDispute, listBasesForClaims } from '../data/financial.repository';
+import { findDeduction, insertDispute, listBasesForClaims, listDeductionRows } from '../data/financial.repository';
+import { toDeductionViews } from './deductions';
 import {
   createExternalClaimSchema,
   disputeCommentSchema,
@@ -34,6 +35,7 @@ import {
   type DisputeCommentInput,
   type SaveClaimDraftInput,
 } from '../validation/schemas';
+import { buildClaimDraftWorkLines, type ClaimDraftWorkLine } from './draft-work-lines';
 import { loadAgreementContext, loadClaimState, loadPriorCertified } from './claim-engine';
 import { freezeRevision } from './draft-lines';
 import { claimEventPayload, openNewRevisionInTx, saveDraftInTx, type InternalClaimDetail } from './internal-claims';
@@ -110,6 +112,7 @@ async function loadExternalClaim(
 
 export interface ContractorClaimDetail extends InternalClaimDetail {
   readonly organizationId: string;
+  readonly draftWorkLines: readonly ClaimDraftWorkLine[];
 }
 
 export async function listContractorProjectClaims(
@@ -142,6 +145,7 @@ export async function getContractorClaimDetail(
   return {
     organizationId,
     detail: toDetailView(claim, state, bases),
+    draftWorkLines: buildClaimDraftWorkLines(state, claim.currency),
     can: {
       edit: canSubmit && isEditableStatus(claim.status),
       review: false,
@@ -380,6 +384,48 @@ export interface ContractorAgreementPayments {
   readonly agreementId: string;
   readonly title: string;
   readonly status: AgreementPaymentStatus;
+}
+
+export { listContractorCertifiedReceiptForecast } from './certified-receipt-forecast';
+
+export async function listContractorClaimAgreements(
+  context: ExternalContext,
+  organizationId: string,
+  projectId: string,
+): Promise<readonly { id: string; title: string; hasOpenClaim: boolean }[]> {
+  const vendorIds = scopedVendorIds(context, organizationId, projectId, [X.CLAIM_SUBMIT]);
+  if (vendorIds.length === 0) throw new NotFoundError('Project');
+  const rows = await context.db
+    .select({ id: subcontractAgreements.id, title: subcontractAgreements.title })
+    .from(subcontractAgreements)
+    .where(
+      and(
+        eq(subcontractAgreements.organizationId, organizationId),
+        eq(subcontractAgreements.projectId, projectId),
+        inArray(subcontractAgreements.vendorId, [...vendorIds]),
+        inArray(subcontractAgreements.status, ['active', 'completed']),
+      ),
+    )
+    .limit(200);
+  const open = await listClaimRows(context.db, organizationId, {
+    projectId,
+    vendorIds,
+    statuses: ['draft', 'submitted', 'under_review', 'returned'],
+  });
+  const openAgreements = new Set(open.map((row) => row.agreementId));
+  return rows.map((row) => ({ ...row, hasOpenClaim: openAgreements.has(row.id) }));
+}
+
+export async function listContractorProjectDeductions(
+  context: ExternalContext,
+  organizationId: string,
+  projectId: string,
+): Promise<Awaited<ReturnType<typeof toDeductionViews>>> {
+  const vendorIds = scopedVendorIds(context, organizationId, projectId, [X.CLAIM_VIEW]);
+  if (vendorIds.length === 0) throw new NotFoundError('Project');
+  const rows = await listDeductionRows(context.db, organizationId, { projectId, vendorIds });
+  const visible = rows.filter((row) => row.contractorVisible);
+  return toDeductionViews(context.db, organizationId, visible);
 }
 
 /** Portal payments tab: one row per granted agreement with ext.payment.view. */

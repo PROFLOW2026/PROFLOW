@@ -28,12 +28,21 @@ export {
 } from './domain/routes';
 export {
   activePortalNavKey,
+  buildPortalMobileNav,
   buildPortalPrimaryNav,
   buildPortalProjectNav,
   projectIdFromPortalPath,
   splitBottomNav,
   type PortalNavItem,
 } from './domain/nav';
+export {
+  activeContractorMobileTab,
+  buildContractorMobileNavItems,
+  CONTRACTOR_MOBILE_TABS,
+  PORTAL_TODAY_SECTION_IDS,
+  PORTAL_PROJECT_HOME_SECTION_EXCLUDE,
+  type ContractorMobileTabKey,
+} from './domain/mobile-tabs';
 export {
   findPortalProject,
   resolvePortalProjects,

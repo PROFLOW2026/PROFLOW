@@ -1047,6 +1047,14 @@
         "reversed": "קיזוז לקבלן בוטל",
         "disputed": "הוגשה מחלוקת על קיזוז לקבלן"
       },
+      "connected_project": {
+        "invitation_created": "הונפק קוד חיבור ProjectFlow",
+        "invitation_revoked": "קוד חיבור ProjectFlow בוטל",
+        "accepted": "פרויקט מפתח חובר",
+        "mapping_revoked": "חיבור פרויקט מפתח בוטל",
+        "provision_retry": "ניסיון חוזר להקמת פרויקט מחובר",
+        "document_copy_saved": "מסמך מפתח הועתק לאחסון הקבלן"
+      },
       "subcontract_payment_hold": {
         "placed": "הוטל עיכוב תשלום לקבלן",
         "released": "עיכוב תשלום לקבלן שוחרר"

@@ -40,6 +40,10 @@ import {
   Project360Summary,
   Project360SummaryFallback,
 } from '@/modules/projects/ui/project-360-summary';
+import {
+  loadConnectedProjectForLayout,
+} from '@/modules/connected-projects';
+import { ConnectedProjectBanner } from '@/modules/connected-projects/ui';
 
 interface ProjectLayoutProps {
   children: React.ReactNode;
@@ -76,7 +80,7 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
   const showDocumentsTab = resolveProjectFilesTabVisible(can(PERMISSIONS.DOCUMENTS_READ));
   const showUsageTab = can(PERMISSIONS.MATERIALS_READ) || can(PERMISSIONS.ASSETS_READ);
 
-  const [identity, locale, executionNav, t, tHubs, tStatus, tCloseout, detail, closeoutStatus] =
+  const [identity, locale, executionNav, t, tHubs, tStatus, tCloseout, detail, closeoutStatus, connectedProject] =
     await Promise.all([
       loadProjectLayoutIdentity(projectId),
       getLocale(),
@@ -90,6 +94,7 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
       getTranslations('closeout'),
       loadProjectDetail(projectId, false).catch(() => null),
       loadProjectCloseoutStatus(projectId).catch(() => null),
+      loadConnectedProjectForLayout(projectId).catch(() => null),
     ]);
 
   if (!identity || !detail) notFound();
@@ -281,6 +286,8 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
       ) : null}
 
       {projectWorkEntryHref ? <ProjectWorkManagementEntry href={projectWorkEntryHref} /> : null}
+
+      {connectedProject ? <ConnectedProjectBanner connected={connectedProject} /> : null}
 
       <Suspense fallback={<Project360SummaryFallback />}>
         <Project360Summary projectId={projectId} />

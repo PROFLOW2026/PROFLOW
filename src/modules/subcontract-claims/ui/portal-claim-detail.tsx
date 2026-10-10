@@ -5,18 +5,23 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { bidiIsolate } from '@/shared/money';
 import type { ContractorClaimDetail } from '@/modules/subcontract-claims';
+import type { DeductionView } from '../domain/types';
 import { AssessmentHistory } from './assessment-history';
 import { cancelContractorClaimAction, startContractorCorrectionAction, submitContractorClaimAction } from './actions';
+import { ClaimDraftEditor } from './claim-draft-editor';
 import { ClaimStatusBadge } from './status';
+import { PortalDeductionsSection } from './portal-deductions-section';
 
 export function PortalClaimDetail({
   organizationId,
   projectId,
   view,
+  deductions,
 }: {
   organizationId: string;
   projectId: string;
   view: ContractorClaimDetail;
+  deductions?: readonly DeductionView[];
 }) {
   const t = useTranslations('subcontractClaims');
   const { detail, can } = view;
@@ -30,6 +35,18 @@ export function PortalClaimDetail({
         </div>
         <ClaimStatusBadge status={header.status} label={t(`status.${header.status}`)} />
       </div>
+
+      {can.edit && header.status === 'draft' && view.draftWorkLines.length > 0 ? (
+        <ClaimDraftEditor
+          mode="contractor"
+          organizationId={organizationId}
+          projectId={projectId}
+          claimId={header.id}
+          currency={header.currency}
+          workLines={view.draftWorkLines}
+          revisionNote={detail.revisions.find((row) => row.id === detail.activeRevisionId)?.note ?? null}
+        />
+      ) : null}
 
       <Card>
         <CardHeader>
@@ -47,6 +64,14 @@ export function PortalClaimDetail({
           ))}
         </CardContent>
       </Card>
+
+      {deductions && deductions.length > 0 ? (
+        <PortalDeductionsSection
+          organizationId={organizationId}
+          projectId={projectId}
+          deductions={deductions}
+        />
+      ) : null}
 
       <Card>
         <CardHeader>

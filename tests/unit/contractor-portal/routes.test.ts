@@ -96,7 +96,11 @@ describe('contractor portal route config', () => {
   });
 
   it('matches deep links to their route and drops dead ones', () => {
+    expect(matchPortalRoute('/contractor/projects')?.key).toBe('portal.projects');
     expect(matchPortalRoute('/contractor/projects/abc')?.key).toBe('project.home');
+    expect(matchPortalRoute('/contractor/work')?.key).toBe('portal.work');
+    expect(matchPortalRoute('/contractor/finance')?.key).toBe('portal.finance');
+    expect(matchPortalRoute('/contractor/more')?.key).toBe('portal.more');
     expect(matchPortalRoute('/contractor/projects/abc/tasks/t1?x=1')?.key).toBe('project.task');
     expect(matchPortalRoute('/projects/abc')).toBeNull();
     expect(isLivePortalHref('/contractor/projects/abc')).toBe(true);

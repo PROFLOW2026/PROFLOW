@@ -31,6 +31,7 @@ export * from './billing-plans';
 export * from './tax';
 export * from './crm';
 export * from './portal';
+export * from './connected-projects';
 export * from './compliance';
 export * from './custom-fields';
 export * from './business-catalog';
@@ -74,4 +75,5 @@ export * from './dg-compliance-safety';
 export * from './dg-procurement-closeout';
 export * from './dg-notifications';
 export * from './dg-surfaces';
+export * from './connected-projects';
 

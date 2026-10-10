@@ -52,6 +52,7 @@ const MODULE_PATH_NAMESPACE_ALLOW: ReadonlyArray<{
   { pathPrefix: 'src/modules/rfi/', namespaces: ['rfi'] },
   { pathPrefix: 'src/modules/safety/contractor/', namespaces: ['contractorCompliance'] },
   { pathPrefix: 'src/modules/subcontract-claims/', namespaces: ['subcontractClaims'] },
+  { pathPrefix: 'src/modules/connected-projects/ui/', namespaces: ['connectedProjects', 'projectPlans', 'projects'] },
   { pathPrefix: 'src/modules/subcontracts/', namespaces: ['subcontracts'] },
   { pathPrefix: 'src/modules/submittals/', namespaces: ['submittals'] },
 ];

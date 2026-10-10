@@ -1,5 +1,6 @@
 import {
   Bell,
+  Building2,
   CalendarDays,
   ClipboardCheck,
   ClipboardList,
@@ -14,6 +15,7 @@ import {
   ListChecks,
   type LucideIcon,
   Map as MapIcon,
+  MoreHorizontal,
   NotebookPen,
   PackageCheck,
   Receipt,
@@ -25,6 +27,11 @@ import {
 } from 'lucide-react';
 
 const ICONS: Readonly<Record<string, LucideIcon>> = {
+  today: LayoutDashboard,
+  projects: Building2,
+  work: HardHat,
+  finance: Wallet,
+  more: MoreHorizontal,
   dashboard: LayoutDashboard,
   notifications: Bell,
   account: UserRound,
