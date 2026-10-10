@@ -155,7 +155,12 @@ function unusablePassword(): string {
 
 async function issueToken(
   context: OrgContext,
-  input: { projectId: string; principalId: string; purpose: ContractorTokenPurpose },
+  input: {
+    projectId: string;
+    principalId: string;
+    purpose: ContractorTokenPurpose;
+    linkLocale?: string | null;
+  },
 ): Promise<{ path: string; expiresAt: Date }> {
   const token = generateContractorToken();
   const expiresAt = tokenExpiry(input.purpose);
@@ -169,7 +174,12 @@ async function issueToken(
     expiresAt,
     createdByUserId: context.userId,
   });
-  const locale = isLocale(context.locale) ? context.locale : 'he-IL';
+  const locale =
+    input.linkLocale && isLocale(input.linkLocale)
+      ? input.linkLocale
+      : isLocale(context.locale)
+        ? context.locale
+        : 'he-IL';
   return { path: contractorTokenPath(locale, input.purpose, token), expiresAt };
 }
 
@@ -198,6 +208,7 @@ export interface ContractorAccountSummary {
   readonly username: string | null;
   readonly contactEmail: string | null;
   readonly phone: string | null;
+  readonly locale: string | null;
   readonly status: string;
   readonly isHomeOrganization: boolean;
   readonly lastSignInAt: Date | null;
@@ -277,6 +288,7 @@ export async function getContractorAccessOverview(
       username: principal.username,
       contactEmail: principal.contactEmail,
       phone: principal.phone,
+      locale: principal.locale,
       status: principal.status,
       isHomeOrganization: principal.homeOrganizationId === context.organizationId,
       lastSignInAt: principal.lastSignInAt,
@@ -419,7 +431,12 @@ export async function inviteContractor(
       templateKey,
       grantedByUserId: context.userId,
     });
-    const link = await issueToken(context, { projectId: input.projectId, principalId, purpose: 'invite' });
+    const link = await issueToken(context, {
+      projectId: input.projectId,
+      principalId,
+      purpose: 'invite',
+      linkLocale: locale,
+    });
 
     await recordAuditEvent(context, {
       action: AUDIT_ACTIONS.EXTERNAL_PRINCIPAL_INVITED,
@@ -727,27 +744,61 @@ export async function updateHomeContractorPrincipal(
 export async function reissueContractorInvite(
   context: OrgContext,
   input: { projectId: string; principalId: string },
-): Promise<{ activationPath: string; expiresAt: Date }> {
+): Promise<{
+  activationPath: string;
+  expiresAt: Date;
+  username: string | null;
+  displayName: string | null;
+  contactEmail: string | null;
+  phone: string | null;
+  locale: string | null;
+}> {
   await requireAuthority(context, input.projectId, 'invite');
   const principal = await loadManageablePrincipal(context, input.principalId, { requireHome: true });
   if (principal.status !== 'invited') throw err('not_invited');
-  const link = await issueToken(context, { projectId: input.projectId, principalId: principal.id, purpose: 'invite' });
+  const link = await issueToken(context, {
+    projectId: input.projectId,
+    principalId: principal.id,
+    purpose: 'invite',
+    linkLocale: principal.locale,
+  });
   await recordAuditEvent(context, {
     action: AUDIT_ACTIONS.EXTERNAL_PRINCIPAL_INVITE_REISSUED,
     entityType: 'external_principal',
     entityId: principal.id,
   });
-  return { activationPath: link.path, expiresAt: link.expiresAt };
+  return {
+    activationPath: link.path,
+    expiresAt: link.expiresAt,
+    username: principal.username,
+    displayName: principal.displayName,
+    contactEmail: principal.contactEmail,
+    phone: principal.phone,
+    locale: principal.locale,
+  };
 }
 
 export async function issueContractorPasswordReset(
   context: OrgContext,
   input: { projectId: string; principalId: string },
-): Promise<{ resetPath: string; expiresAt: Date }> {
+): Promise<{
+  resetPath: string;
+  expiresAt: Date;
+  username: string | null;
+  displayName: string | null;
+  contactEmail: string | null;
+  phone: string | null;
+  locale: string | null;
+}> {
   await requireAuthority(context, input.projectId, 'manage');
   const principal = await loadManageablePrincipal(context, input.principalId, { requireHome: true });
   if (principal.status !== 'active') throw err('not_active');
-  const link = await issueToken(context, { projectId: input.projectId, principalId: principal.id, purpose: 'password_reset' });
+  const link = await issueToken(context, {
+    projectId: input.projectId,
+    principalId: principal.id,
+    purpose: 'password_reset',
+    linkLocale: principal.locale,
+  });
   await asServiceRoleWrite(context.db, () =>
     updateContractorPrincipal(context.db, principal.id, { passwordResetRequestedAt: null }),
   );
@@ -756,7 +807,15 @@ export async function issueContractorPasswordReset(
     entityType: 'external_principal',
     entityId: principal.id,
   });
-  return { resetPath: link.path, expiresAt: link.expiresAt };
+  return {
+    resetPath: link.path,
+    expiresAt: link.expiresAt,
+    username: principal.username,
+    displayName: principal.displayName,
+    contactEmail: principal.contactEmail,
+    phone: principal.phone,
+    locale: principal.locale,
+  };
 }
 
 export async function revokeContractorSessions(

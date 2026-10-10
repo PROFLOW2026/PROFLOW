@@ -37,11 +37,14 @@ export default async function EmployeeProjectContractorAccessPage({
   );
   const t = await getTranslations('contractorAccess');
 
-  const overview = await withOrgContext(async (context) => {
+  const loaded = await withOrgContext(async (context) => {
     const authority = await loadContractorAccessAuthority(context, projectId);
     if (!authority.canView) return null;
-    return getContractorAccessOverview(context, projectId);
+    const overview = await getContractorAccessOverview(context, projectId);
+    return { overview, organizationName: context.organization.name };
   });
+  const overview = loaded?.overview ?? null;
+  const organizationName = loaded?.organizationName ?? '';
 
   return (
     <WithAppClientMessages extra={['contractorAccess']}>
@@ -53,6 +56,7 @@ export default async function EmployeeProjectContractorAccessPage({
             <ContractorAccessManager
               projectId={projectId}
               overview={overview}
+              organizationName={organizationName}
               actions={{
                 invite: inviteContractorAction,
                 grant: grantContractorAccessAction,

@@ -40,9 +40,9 @@
     },
     "passwordRules": {
       "title": "Требования к паролю",
-      "too_short": "Не менее 10 символов",
+      "too_short": "Не менее 8 символов",
       "too_long": "Не более 128 символов",
-      "needs_variety": "Не менее 3 из: строчная буква, заглавная буква, цифра, символ",
+      "needs_variety": "Хотя бы одна буква и одна цифра",
       "contains_username": "Не содержит имя пользователя",
       "too_common": "Слишком распространённый пароль",
       "mismatch": "Пароли совпадают"
@@ -148,7 +148,43 @@
       "username": "Имя пользователя:",
       "copy": "Копировать ссылку",
       "copied": "Скопировано",
-      "expires": "Действует до {date}."
+      "expires": "Действует до {date}.",
+      "dialogHint": "Используйте окно «Поделиться», чтобы отправить ссылку подрядчику."
+    },
+    "credentialsShare": {
+      "greeting": "Здравствуйте, {name},",
+      "inviteIntro": "{organization} приглашает вас в портал подрядчиков ProjectFlow.",
+      "resetIntro": "{organization} отправила вам защищённую ссылку для сброса пароля в портале подрядчиков ProjectFlow.",
+      "linkLabel": "Ссылка:",
+      "usernameLabel": "Имя пользователя:",
+      "expiresLabel": "Действует до:",
+      "inviteSteps": "Откройте ссылку один раз, задайте пароль и войдите с именем пользователя.",
+      "resetSteps": "Откройте ссылку один раз, задайте новый пароль и войдите. Другие устройства будут отключены.",
+      "emailSubjectInvite": "Активация портала подрядчика — {organization}",
+      "emailSubjectReset": "Сброс пароля подрядчика — {organization}"
+    },
+    "shareDialog": {
+      "titleInvite": "Поделиться приглашением",
+      "titleReset": "Поделиться ссылкой сброса пароля",
+      "messageLanguage": "Язык сообщения",
+      "displayName": "Имя",
+      "username": "Имя пользователя",
+      "link": "Защищённая ссылка",
+      "shareWhatsApp": "WhatsApp",
+      "shareEmail": "Email",
+      "shareSms": "SMS",
+      "shareNative": "Поделиться…",
+      "copyMessage": "Копировать сообщение",
+      "copyLink": "Копировать ссылку",
+      "messageCopied": "Сообщение скопировано",
+      "linkCopied": "Ссылка скопирована",
+      "copyFailed": "Не удалось скопировать",
+      "shareOpened": "Открыто меню «Поделиться»"
+    },
+    "layout": {
+      "accountsSection": "Учётные записи подрядчиков",
+      "inviteSection": "Пригласить нового пользователя",
+      "addAccessSection": "Выдать доступ существующему пользователю"
     },
     "templates": {
       "site_contractor": {
@@ -228,6 +264,8 @@
       "revoked": "Отозван",
       "expires": "До {date}",
       "noExpiry": "Без срока",
+      "permissionCount": "{count} разрешений",
+      "expandAccount": "Показать сведения об учётной записи",
       "homeOrgOnly": "Учётная запись принадлежит другой организации: здесь можно управлять её доступом, но не самой учётной записью."
     },
     "actions": {

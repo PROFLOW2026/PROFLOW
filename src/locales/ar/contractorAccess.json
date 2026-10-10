@@ -40,9 +40,9 @@
     },
     "passwordRules": {
       "title": "متطلبات كلمة المرور",
-      "too_short": "10 أحرف على الأقل",
+      "too_short": "8 أحرف على الأقل",
       "too_long": "128 حرفًا كحد أقصى",
-      "needs_variety": "3 على الأقل من: حرف صغير، حرف كبير، رقم، رمز",
+      "needs_variety": "حرف واحد على الأقل ورقم واحد على الأقل",
       "contains_username": "لا تحتوي على اسم المستخدم",
       "too_common": "كلمة المرور شائعة جدًا",
       "mismatch": "كلمتا المرور متطابقتان"
@@ -148,7 +148,43 @@
       "username": "اسم المستخدم:",
       "copy": "نسخ الرابط",
       "copied": "تم النسخ",
-      "expires": "صالح حتى {date}."
+      "expires": "صالح حتى {date}.",
+      "dialogHint": "استخدم نافذة المشاركة لإرسال الرابط إلى المقاول."
+    },
+    "credentialsShare": {
+      "greeting": "مرحبًا {name}،",
+      "inviteIntro": "دعاك {organization} إلى بوابة مقاولي ProjectFlow.",
+      "resetIntro": "أرسلت {organization} رابطًا آمنًا لإعادة تعيين كلمة المرور في بوابة المقاولين.",
+      "linkLabel": "الرابط:",
+      "usernameLabel": "اسم المستخدم:",
+      "expiresLabel": "صالح حتى:",
+      "inviteSteps": "افتح الرابط مرة واحدة، اختر كلمة مرور وسجّل الدخول باسم المستخدم.",
+      "resetSteps": "افتح الرابط مرة واحدة، اختر كلمة مرور جديدة وسجّل الدخول. سيتم تسجيل الخروج من الأجهزة الأخرى.",
+      "emailSubjectInvite": "تفعيل بوابة المقاول — {organization}",
+      "emailSubjectReset": "إعادة تعيين كلمة مرور المقاول — {organization}"
+    },
+    "shareDialog": {
+      "titleInvite": "مشاركة دعوة المقاول",
+      "titleReset": "مشاركة رابط إعادة تعيين كلمة المرور",
+      "messageLanguage": "لغة الرسالة",
+      "displayName": "الاسم",
+      "username": "اسم المستخدم",
+      "link": "رابط آمن",
+      "shareWhatsApp": "WhatsApp",
+      "shareEmail": "البريد",
+      "shareSms": "SMS",
+      "shareNative": "مشاركة…",
+      "copyMessage": "نسخ الرسالة",
+      "copyLink": "نسخ الرابط",
+      "messageCopied": "تم نسخ الرسالة",
+      "linkCopied": "تم نسخ الرابط",
+      "copyFailed": "فشل النسخ",
+      "shareOpened": "تم فتح ورقة المشاركة"
+    },
+    "layout": {
+      "accountsSection": "حسابات المقاولين",
+      "inviteSection": "دعوة مستخدم مقاول جديد",
+      "addAccessSection": "منح وصول لمستخدم موجود"
     },
     "templates": {
       "site_contractor": {
@@ -228,6 +264,8 @@
       "revoked": "ملغى",
       "expires": "حتى {date}",
       "noExpiry": "بدون انتهاء",
+      "permissionCount": "{count} صلاحيات",
+      "expandAccount": "عرض تفاصيل الحساب",
       "homeOrgOnly": "هذا الحساب تابع لمؤسسة أخرى: يمكنك هنا إدارة وصوله وليس الحساب نفسه."
     },
     "actions": {

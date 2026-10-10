@@ -33,7 +33,16 @@ export interface ContractorAccessActionState {
   readonly error?: string;
   readonly success?: string;
   /** Single-use link shown once (activation or reset); relative path, the client prefixes the origin. */
-  readonly link?: { readonly kind: 'invite' | 'reset'; readonly path: string; readonly expiresAt: string; readonly username?: string };
+  readonly link?: {
+    readonly kind: 'invite' | 'reset';
+    readonly path: string;
+    readonly expiresAt: string;
+    readonly username?: string;
+    readonly displayName?: string;
+    readonly contactEmail?: string | null;
+    readonly phone?: string | null;
+    readonly locale?: string | null;
+  };
 }
 
 async function run(
@@ -62,6 +71,8 @@ export async function inviteContractorAction(
   }
   return run(async (t) => {
     const result = await withOrgContext((context) => inviteContractor(context, contractorAccessDeps(), parsed.data));
+    const locale =
+      parsed.data.locale && parsed.data.locale.trim() ? parsed.data.locale.trim() : null;
     return {
       success: t('manage.inviteResult.title'),
       link: {
@@ -69,6 +80,10 @@ export async function inviteContractorAction(
         path: result.activationPath,
         expiresAt: result.activationExpiresAt.toISOString(),
         username: result.username,
+        displayName: parsed.data.displayName,
+        contactEmail: parsed.data.contactEmail,
+        phone: parsed.data.phone,
+        locale,
       },
     };
   });
@@ -153,11 +168,35 @@ export async function contractorPrincipalCommandAction(
     switch (command) {
       case 'reissue_invite': {
         const link = await withOrgContext((context) => reissueContractorInvite(context, parsed.data));
-        return { success: t('manage.actions.linkReady'), link: { kind: 'invite', path: link.activationPath, expiresAt: link.expiresAt.toISOString() } };
+        return {
+          success: t('manage.actions.linkReady'),
+          link: {
+            kind: 'invite',
+            path: link.activationPath,
+            expiresAt: link.expiresAt.toISOString(),
+            username: link.username ?? undefined,
+            displayName: link.displayName ?? undefined,
+            contactEmail: link.contactEmail,
+            phone: link.phone,
+            locale: link.locale,
+          },
+        };
       }
       case 'issue_reset': {
         const link = await withOrgContext((context) => issueContractorPasswordReset(context, parsed.data));
-        return { success: t('manage.actions.linkReady'), link: { kind: 'reset', path: link.resetPath, expiresAt: link.expiresAt.toISOString() } };
+        return {
+          success: t('manage.actions.linkReady'),
+          link: {
+            kind: 'reset',
+            path: link.resetPath,
+            expiresAt: link.expiresAt.toISOString(),
+            username: link.username ?? undefined,
+            displayName: link.displayName ?? undefined,
+            contactEmail: link.contactEmail,
+            phone: link.phone,
+            locale: link.locale,
+          },
+        };
       }
       case 'revoke_sessions':
         await withOrgContext((context) => revokeContractorSessions(context, parsed.data));

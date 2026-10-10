@@ -13,6 +13,10 @@ import heEmployeeApp from '@/locales/he-IL/employeeApp.json';
 import heImports from '@/locales/he-IL/imports.json';
 import heNotifications from '@/locales/he-IL/notifications.json';
 import heRecurringDrafts from '@/locales/he-IL/recurringDrafts.json';
+import enContractorAccess from '@/locales/en/contractorAccess.json';
+import heContractorAccess from '@/locales/he-IL/contractorAccess.json';
+import arContractorAccess from '@/locales/ar/contractorAccess.json';
+import ruContractorAccess from '@/locales/ru/contractorAccess.json';
 import { isLocale, type Locale } from './config';
 import type { NamespaceTranslator, TranslationValues } from './namespace-translator';
 
@@ -75,4 +79,16 @@ export function assetsCopyTranslator(locale: string): NamespaceTranslator {
   const resolved = resolveLocale(locale);
   const messages = resolved === 'en' ? enAssets : heAssets;
   return createSyncTranslator(resolved, messages);
+}
+
+const CONTRACTOR_ACCESS_MESSAGES: Record<Locale, Record<string, unknown>> = {
+  en: enContractorAccess,
+  'he-IL': heContractorAccess,
+  ar: arContractorAccess,
+  ru: ruContractorAccess,
+};
+
+export function contractorAccessCopyTranslator(locale: string): NamespaceTranslator {
+  const resolved = resolveLocale(locale);
+  return createSyncTranslator(resolved, CONTRACTOR_ACCESS_MESSAGES[resolved]);
 }

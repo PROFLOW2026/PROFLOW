@@ -40,9 +40,9 @@
     },
     "passwordRules": {
       "title": "Password requirements",
-      "too_short": "At least 10 characters",
+      "too_short": "At least 8 characters",
       "too_long": "At most 128 characters",
-      "needs_variety": "At least 3 of: lowercase, uppercase, digit, symbol",
+      "needs_variety": "At least one letter and one digit",
       "contains_username": "Does not contain your username",
       "too_common": "This password is too common",
       "mismatch": "Both passwords match"
@@ -148,7 +148,43 @@
       "username": "Username:",
       "copy": "Copy link",
       "copied": "Copied",
-      "expires": "Valid until {date}."
+      "expires": "Valid until {date}.",
+      "dialogHint": "Use the share dialog to send the link to the contractor."
+    },
+    "credentialsShare": {
+      "greeting": "Hello {name},",
+      "inviteIntro": "{organization} invited you to the ProjectFlow contractor portal.",
+      "resetIntro": "{organization} sent you a secure password reset link for the ProjectFlow contractor portal.",
+      "linkLabel": "Link:",
+      "usernameLabel": "Username:",
+      "expiresLabel": "Valid until:",
+      "inviteSteps": "Open the link once, choose a password, and sign in with your username.",
+      "resetSteps": "Open the link once, choose a new password, and sign in. Other devices will be signed out.",
+      "emailSubjectInvite": "Contractor portal activation — {organization}",
+      "emailSubjectReset": "Contractor password reset — {organization}"
+    },
+    "shareDialog": {
+      "titleInvite": "Share contractor invitation",
+      "titleReset": "Share password reset link",
+      "messageLanguage": "Message language",
+      "displayName": "Name",
+      "username": "Username",
+      "link": "Secure link",
+      "shareWhatsApp": "WhatsApp",
+      "shareEmail": "Email",
+      "shareSms": "SMS",
+      "shareNative": "Share…",
+      "copyMessage": "Copy message",
+      "copyLink": "Copy link",
+      "messageCopied": "Message copied",
+      "linkCopied": "Link copied",
+      "copyFailed": "Copy failed",
+      "shareOpened": "Share sheet opened"
+    },
+    "layout": {
+      "accountsSection": "Contractor accounts",
+      "inviteSection": "Invite a new contractor user",
+      "addAccessSection": "Grant access to an existing user"
     },
     "templates": {
       "site_contractor": {
@@ -228,6 +264,8 @@
       "revoked": "Revoked",
       "expires": "Until {date}",
       "noExpiry": "No expiry",
+      "permissionCount": "{count} permissions",
+      "expandAccount": "Show account details",
       "homeOrgOnly": "This account belongs to another organization: you can manage its access here, not the account itself."
     },
     "actions": {

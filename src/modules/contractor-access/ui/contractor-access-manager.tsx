@@ -1,22 +1,35 @@
 'use client';
 
-import { Copy, KeyRound, UserPlus } from 'lucide-react';
+import type { ReactNode } from 'react';
+import { ChevronDown, KeyRound, UserPlus } from 'lucide-react';
 import { useFormatter, useTranslations } from 'next-intl';
-import { useActionState, useEffect, useMemo, useState } from 'react';
+import { useActionState, useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert } from '@/components/ui/alert';
 import { Badge, type BadgeTone } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { LOCALES, LOCALE_METADATA } from '@/shared/i18n/config';
 import type { ContractorAccessOverview, ContractorAccountSummary, ContractorGrantSummary } from '../application/manage-contractor-access';
 import { CapabilityPicker, capabilityLabelKey } from './capability-picker';
+import {
+  ContractorCredentialsShareDialog,
+  type ContractorShareDialogPayload,
+} from './contractor-credentials-share-dialog';
 
 export interface ContractorAccessActionStateView {
   readonly error?: string;
   readonly success?: string;
-  readonly link?: { readonly kind: 'invite' | 'reset'; readonly path: string; readonly expiresAt: string; readonly username?: string };
+  readonly link?: {
+    readonly kind: 'invite' | 'reset';
+    readonly path: string;
+    readonly expiresAt: string;
+    readonly username?: string;
+    readonly displayName?: string;
+    readonly contactEmail?: string | null;
+    readonly phone?: string | null;
+    readonly locale?: string | null;
+  };
 }
 
 type Action = (state: ContractorAccessActionStateView, formData: FormData) => Promise<ContractorAccessActionStateView>;
@@ -35,58 +48,59 @@ const selectClassName =
 
 const STATUS_TONE: Record<string, BadgeTone> = { invited: 'pending', active: 'success', disabled: 'danger' };
 
-function useOrigin(): string {
-  const [origin, setOrigin] = useState('');
-  useEffect(() => {
-    const frame = requestAnimationFrame(() => setOrigin(window.location.origin));
-    return () => cancelAnimationFrame(frame);
-  }, []);
-  return origin;
+function sharePayloadFromLink(
+  link: NonNullable<ContractorAccessActionStateView['link']>,
+  fallback?: Pick<ContractorAccountSummary, 'displayName' | 'username' | 'contactEmail' | 'phone' | 'locale'>,
+): ContractorShareDialogPayload | null {
+  const username = link.username ?? fallback?.username;
+  if (!username) return null;
+  const displayName = link.displayName ?? fallback?.displayName ?? username;
+  return {
+    kind: link.kind,
+    path: link.path,
+    expiresAt: link.expiresAt,
+    username,
+    displayName,
+    contactEmail: link.contactEmail ?? fallback?.contactEmail,
+    phone: link.phone ?? fallback?.phone,
+    locale: link.locale ?? fallback?.locale,
+  };
 }
 
 function ActionFeedback({ state }: { state: ContractorAccessActionStateView }) {
   const t = useTranslations('contractorAccess.manage');
-  const format = useFormatter();
-  const origin = useOrigin();
-  const [copied, setCopied] = useState(false);
   if (state.error) return <Alert tone="danger">{state.error}</Alert>;
   if (!state.success) return null;
-  if (!state.link) return <Alert tone="success">{state.success}</Alert>;
-  const url = `${origin}${state.link.path}`;
+  if (state.link) {
+    return (
+      <Alert tone="success" title={state.success}>
+        {t('inviteResult.dialogHint')}
+      </Alert>
+    );
+  }
+  return <Alert tone="success">{state.success}</Alert>;
+}
+
+function CollapsiblePanel({
+  summary,
+  children,
+  defaultOpen = false,
+}: {
+  summary: ReactNode;
+  children: ReactNode;
+  defaultOpen?: boolean;
+}) {
   return (
-    <Alert tone="success" title={state.success}>
-      <div className="flex flex-col gap-2">
-        <p>{t(state.link.kind === 'invite' ? 'inviteResult.body' : 'inviteResult.resetBody')}</p>
-        {state.link.username ? (
-          <p>
-            {t('inviteResult.username')}{' '}
-            <bdi dir="ltr" className="font-mono font-semibold">
-              {state.link.username}
-            </bdi>
-          </p>
-        ) : null}
-        <div className="flex flex-wrap items-center gap-2">
-          <code dir="ltr" className="min-w-0 flex-1 break-all rounded bg-[var(--pf-bg-surface)] p-2 text-xs">
-            {url}
-          </code>
-          <Button
-            type="button"
-            size="sm"
-            variant="secondary"
-            onClick={async () => {
-              await navigator.clipboard.writeText(url);
-              setCopied(true);
-            }}
-          >
-            <Copy className="size-4" aria-hidden />
-            {copied ? t('inviteResult.copied') : t('inviteResult.copy')}
-          </Button>
-        </div>
-        <p className="text-xs">
-          {t('inviteResult.expires', { date: format.dateTime(new Date(state.link.expiresAt), { dateStyle: 'medium', timeStyle: 'short' }) })}
-        </p>
-      </div>
-    </Alert>
+    <details
+      className="group rounded-xl border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)]"
+      open={defaultOpen || undefined}
+    >
+      <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 marker:content-none [&::-webkit-details-marker]:hidden">
+        <div className="min-w-0 flex-1">{summary}</div>
+        <ChevronDown className="size-5 shrink-0 text-[var(--pf-text-secondary)] transition-transform group-open:rotate-180" aria-hidden />
+      </summary>
+      <div className="border-t border-[var(--pf-border-default)] px-4 pb-4 pt-3">{children}</div>
+    </details>
   );
 }
 
@@ -154,28 +168,46 @@ function ScopeFields({
   );
 }
 
-function InviteForm({ projectId, overview, action }: { projectId: string; overview: ContractorAccessOverview; action: Action }) {
+function InviteForm({
+  projectId,
+  overview,
+  action,
+  onShareLink,
+}: {
+  projectId: string;
+  overview: ContractorAccessOverview;
+  action: Action;
+  onShareLink: (payload: ContractorShareDialogPayload) => void;
+}) {
   const t = useTranslations('contractorAccess.manage.invite');
+  const tLayout = useTranslations('contractorAccess.manage.layout');
   const [state, formAction, pending] = useActionState<ContractorAccessActionStateView, FormData>(action, {});
   const [vendorId, setVendorId] = useState('');
   const formKey = state.link ? `${state.link.kind}:${state.link.path}` : 'new';
 
+  useEffect(() => {
+    if (!state.link) return;
+    const payload = sharePayloadFromLink(state.link);
+    if (payload) onShareLink(payload);
+  }, [state.link, onShareLink]);
+
   return (
-    <Card className="p-4">
-      <div className="mb-4 flex items-center gap-2">
-        <UserPlus className="size-5 text-[var(--pf-text-brand)]" aria-hidden />
-        <div>
-          <h2 className="text-base font-semibold">{t('title')}</h2>
-          <p className="text-sm text-[var(--pf-text-secondary)]">{t('description')}</p>
+    <CollapsiblePanel
+      summary={
+        <div className="flex items-center gap-2">
+          <UserPlus className="size-5 shrink-0 text-[var(--pf-text-brand)]" aria-hidden />
+          <div className="min-w-0">
+            <h2 className="text-base font-semibold">{tLayout('inviteSection')}</h2>
+            <p className="text-sm text-[var(--pf-text-secondary)]">{t('description')}</p>
+          </div>
         </div>
-      </div>
-      <div className="mb-4">
-        <ActionFeedback state={state} />
-      </div>
+      }
+    >
+      <ActionFeedback state={state} />
       {overview.vendors.length === 0 ? (
-        <p className="text-sm text-[var(--pf-text-secondary)]">{t('noVendors')}</p>
+        <p className="mt-3 text-sm text-[var(--pf-text-secondary)]">{t('noVendors')}</p>
       ) : (
-        <form key={formKey} action={formAction} className="flex flex-col gap-4">
+        <form key={formKey} action={formAction} className="mt-3 flex flex-col gap-4">
           <input type="hidden" name="projectId" value={projectId} />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field id="invite-name" label={t('displayName')} required>
@@ -206,12 +238,12 @@ function InviteForm({ projectId, overview, action }: { projectId: string; overvi
           </div>
           <ScopeFields idPrefix="invite" overview={overview} vendorId={vendorId} onVendorChange={setVendorId} />
           <CapabilityPicker idPrefix="invite" canGrantFinancial={overview.authority.canGrantFinancial} />
-          <Button type="submit" loading={pending} className="self-start">
+          <Button type="submit" loading={pending} className="min-h-11 self-start">
             {t('submit')}
           </Button>
         </form>
       )}
-    </Card>
+    </CollapsiblePanel>
   );
 }
 
@@ -251,13 +283,18 @@ function GrantRow({
             : t('manage.list.noExpiry')}
         </span>
       </div>
-      <ul className="flex flex-wrap gap-1">
-        {grant.capabilities.map((capability) => (
-          <li key={capability}>
-            <Badge tone="neutral">{t(capabilityLabelKey(capability))}</Badge>
-          </li>
-        ))}
-      </ul>
+      <details className="rounded-md border border-[var(--pf-border-default)] p-2">
+        <summary className="cursor-pointer text-xs font-medium text-[var(--pf-text-secondary)]">
+          {t('manage.list.permissionCount', { count: grant.capabilities.length })}
+        </summary>
+        <ul className="mt-2 flex flex-wrap gap-1">
+          {grant.capabilities.map((capability) => (
+            <li key={capability}>
+              <Badge tone="neutral">{t(capabilityLabelKey(capability))}</Badge>
+            </li>
+          ))}
+        </ul>
+      </details>
       <ActionFeedback state={updateState.error || updateState.success ? updateState : revokeState} />
       {active && manageable ? (
         <div className="flex flex-wrap gap-2">
@@ -422,11 +459,13 @@ function AccountCard({
   account,
   overview,
   actions,
+  onShareLink,
 }: {
   projectId: string;
   account: ContractorAccountSummary;
   overview: ContractorAccessOverview;
   actions: ContractorAccessActions;
+  onShareLink: (payload: ContractorShareDialogPayload) => void;
 }) {
   const t = useTranslations('contractorAccess.manage');
   const format = useFormatter();
@@ -435,65 +474,68 @@ function AccountCard({
   const canHomeManage = account.isHomeOrganization && authority.canManage;
   const vendorNames = [...new Set(account.grants.map((grant) => grant.vendorName).filter(Boolean))];
 
-  return (
-    <Card className="p-4">
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <div className="min-w-0">
-          {vendorNames.length > 0 ? (
-            <p className="text-xs text-[var(--pf-text-secondary)]">
-              {t('list.vendorCompanies')}: <span className="font-medium text-[var(--pf-text-primary)]">{vendorNames.join(' · ')}</span>
-            </p>
-          ) : null}
-          <p className="font-semibold">
-            {account.displayName ? (
-              <>
-                {t('list.contactPerson')}: {account.displayName}
-              </>
-            ) : (
-              (account.username ?? '')
-            )}
-          </p>
-          <p className="text-sm text-[var(--pf-text-secondary)]">
-            <bdi dir="ltr" className="font-mono">
-              {account.username}
-            </bdi>
-            {account.phone ? (
-              <>
-                {' · '}
-                <bdi dir="ltr">{account.phone}</bdi>
-              </>
-            ) : null}
-          </p>
-          {account.contactEmail ? (
-            <p className="text-sm text-[var(--pf-text-secondary)]">
-              {t('invite.contactEmail')}:{' '}
-              <bdi dir="ltr">{account.contactEmail}</bdi>
-            </p>
-          ) : null}
-          <p className="text-xs text-[var(--pf-text-secondary)]">
-            {t('list.lastSignIn')}{' '}
-            {account.lastSignInAt
-              ? format.dateTime(account.lastSignInAt, { dateStyle: 'medium', timeStyle: 'short' })
-              : t('list.never')}
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-1">
-          <Badge tone={STATUS_TONE[account.status] ?? 'neutral'}>{t(`list.status.${account.status}`)}</Badge>
-          {account.passwordResetRequestedAt ? <Badge tone="warning">{t('list.resetRequested')}</Badge> : null}
-          {account.lockedUntil && new Date(account.lockedUntil) > new Date() ? (
-            <Badge tone="danger">{t('list.locked')}</Badge>
-          ) : null}
-          {account.openLink ? (
-            <Badge tone="info">
-              {t(account.openLink.purpose === 'invite' ? 'list.inviteOpen' : 'list.resetOpen', {
-                date: format.dateTime(account.openLink.expiresAt, { dateStyle: 'short' }),
-              })}
-            </Badge>
-          ) : null}
-        </div>
-      </div>
+  useEffect(() => {
+    if (!state.link) return;
+    const payload = sharePayloadFromLink(state.link, account);
+    if (payload) onShareLink(payload);
+  }, [state.link, account, onShareLink]);
 
-      <ul className="mt-2 divide-y divide-[var(--pf-border-default)]">
+  const summaryTitle =
+    account.displayName ??
+    account.username ??
+    t('list.contactPerson');
+
+  return (
+    <CollapsiblePanel
+      summary={
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div className="min-w-0">
+            {vendorNames.length > 0 ? (
+              <p className="text-xs text-[var(--pf-text-secondary)]">
+                {vendorNames.join(' · ')}
+              </p>
+            ) : null}
+            <p className="font-semibold">{summaryTitle}</p>
+            <p className="text-sm text-[var(--pf-text-secondary)]">
+              <bdi dir="ltr" className="font-mono">{account.username}</bdi>
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-1">
+            <Badge tone={STATUS_TONE[account.status] ?? 'neutral'}>{t(`list.status.${account.status}`)}</Badge>
+            {account.passwordResetRequestedAt ? <Badge tone="warning">{t('list.resetRequested')}</Badge> : null}
+          </div>
+        </div>
+      }
+    >
+      <div className="flex flex-col gap-3">
+        {account.phone ? (
+          <p className="text-sm text-[var(--pf-text-secondary)]">
+            <bdi dir="ltr">{account.phone}</bdi>
+          </p>
+        ) : null}
+        {account.contactEmail ? (
+          <p className="text-sm text-[var(--pf-text-secondary)]">
+            {t('invite.contactEmail')}: <bdi dir="ltr">{account.contactEmail}</bdi>
+          </p>
+        ) : null}
+        <p className="text-xs text-[var(--pf-text-secondary)]">
+          {t('list.lastSignIn')}{' '}
+          {account.lastSignInAt
+            ? format.dateTime(account.lastSignInAt, { dateStyle: 'medium', timeStyle: 'short' })
+            : t('list.never')}
+        </p>
+        {account.openLink ? (
+          <Badge tone="info">
+            {t(account.openLink.purpose === 'invite' ? 'list.inviteOpen' : 'list.resetOpen', {
+              date: format.dateTime(account.openLink.expiresAt, { dateStyle: 'short' }),
+            })}
+          </Badge>
+        ) : null}
+        {account.lockedUntil && new Date(account.lockedUntil) > new Date() ? (
+          <Badge tone="danger">{t('list.locked')}</Badge>
+        ) : null}
+
+      <ul className="divide-y divide-[var(--pf-border-default)]">
         {account.grants.map((grant) => (
           <GrantRow key={grant.grantId} projectId={projectId} grant={grant} overview={overview} actions={actions} />
         ))}
@@ -530,12 +572,14 @@ function AccountCard({
         </div>
         {!account.isHomeOrganization ? <p className="text-xs text-[var(--pf-text-secondary)]">{t('list.homeOrgOnly')}</p> : null}
       </div>
-    </Card>
+      </div>
+    </CollapsiblePanel>
   );
 }
 
 function AddAccessForm({ projectId, overview, action }: { projectId: string; overview: ContractorAccessOverview; action: Action }) {
   const t = useTranslations('contractorAccess.manage');
+  const tLayout = useTranslations('contractorAccess.manage.layout');
   const [state, formAction, pending] = useActionState<ContractorAccessActionStateView, FormData>(action, {});
   const [vendorId, setVendorId] = useState('');
   const principals = useMemo(
@@ -545,18 +589,19 @@ function AddAccessForm({ projectId, overview, action }: { projectId: string; ove
   if (overview.existingPrincipals.length === 0) return null;
 
   return (
-    <Card className="p-4">
-      <div className="mb-4 flex items-center gap-2">
-        <KeyRound className="size-5 text-[var(--pf-text-brand)]" aria-hidden />
-        <div>
-          <h2 className="text-base font-semibold">{t('actions.addAccessTitle')}</h2>
-          <p className="text-sm text-[var(--pf-text-secondary)]">{t('actions.addAccessDescription')}</p>
+    <CollapsiblePanel
+      summary={
+        <div className="flex items-center gap-2">
+          <KeyRound className="size-5 shrink-0 text-[var(--pf-text-brand)]" aria-hidden />
+          <div className="min-w-0">
+            <h2 className="text-base font-semibold">{tLayout('addAccessSection')}</h2>
+            <p className="text-sm text-[var(--pf-text-secondary)]">{t('actions.addAccessDescription')}</p>
+          </div>
         </div>
-      </div>
-      <div className="mb-4">
-        <ActionFeedback state={state} />
-      </div>
-      <form action={formAction} className="flex flex-col gap-4">
+      }
+    >
+      <ActionFeedback state={state} />
+      <form action={formAction} className="mt-3 flex flex-col gap-4">
         <input type="hidden" name="projectId" value={projectId} />
         <ScopeFields idPrefix="grant" overview={overview} vendorId={vendorId} onVendorChange={setVendorId} />
         <Field id="grant-principal" label={t('actions.existingAccount')} required>
@@ -574,11 +619,11 @@ function AddAccessForm({ projectId, overview, action }: { projectId: string; ove
           )}
         </Field>
         <CapabilityPicker idPrefix="grant" canGrantFinancial={overview.authority.canGrantFinancial} initialTemplate="read_only" />
-        <Button type="submit" loading={pending} className="self-start">
+        <Button type="submit" loading={pending} className="min-h-11 self-start">
           {t('actions.addAccess')}
         </Button>
       </form>
-    </Card>
+    </CollapsiblePanel>
   );
 }
 
@@ -586,26 +631,54 @@ export function ContractorAccessManager({
   projectId,
   overview,
   actions,
+  organizationName,
 }: {
   projectId: string;
   overview: ContractorAccessOverview;
   actions: ContractorAccessActions;
+  organizationName: string;
 }) {
   const t = useTranslations('contractorAccess.manage');
+  const tLayout = useTranslations('contractorAccess.manage.layout');
+  const [shareOpen, setShareOpen] = useState(false);
+  const [sharePayload, setSharePayload] = useState<ContractorShareDialogPayload | null>(null);
+
+  const openShareLink = useCallback((payload: ContractorShareDialogPayload) => {
+    setSharePayload(payload);
+    setShareOpen(true);
+  }, []);
+
   return (
-    <div className="flex flex-col gap-6">
-      {overview.authority.canInvite ? <InviteForm projectId={projectId} overview={overview} action={actions.invite} /> : null}
-      {overview.authority.canManage ? <AddAccessForm projectId={projectId} overview={overview} action={actions.grant} /> : null}
+    <div className="flex min-w-0 flex-col gap-6">
       <section className="flex flex-col gap-3">
-        <h2 className="text-base font-semibold">{t('list.title')}</h2>
+        <h2 className="text-base font-semibold">{tLayout('accountsSection')}</h2>
         {overview.accounts.length === 0 ? (
           <p className="text-sm text-[var(--pf-text-secondary)]">{t('list.empty')}</p>
         ) : (
           overview.accounts.map((account) => (
-            <AccountCard key={account.principalId} projectId={projectId} account={account} overview={overview} actions={actions} />
+            <AccountCard
+              key={account.principalId}
+              projectId={projectId}
+              account={account}
+              overview={overview}
+              actions={actions}
+              onShareLink={openShareLink}
+            />
           ))
         )}
       </section>
+      {overview.authority.canManage ? (
+        <AddAccessForm projectId={projectId} overview={overview} action={actions.grant} />
+      ) : null}
+      {overview.authority.canInvite ? (
+        <InviteForm projectId={projectId} overview={overview} action={actions.invite} onShareLink={openShareLink} />
+      ) : null}
+      <ContractorCredentialsShareDialog
+        open={shareOpen}
+        onOpenChange={setShareOpen}
+        payload={sharePayload}
+        organizationName={organizationName}
+      />
     </div>
   );
 }

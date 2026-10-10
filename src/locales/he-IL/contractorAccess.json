@@ -40,9 +40,9 @@
     },
     "passwordRules": {
       "title": "דרישות הסיסמה",
-      "too_short": "לפחות 10 תווים",
+      "too_short": "לפחות 8 תווים",
       "too_long": "עד 128 תווים",
-      "needs_variety": "לפחות 3 מתוך: אות קטנה, אות גדולה, ספרה, סימן",
+      "needs_variety": "לפחות אות אחת וספרה אחת",
       "contains_username": "לא מכילה את שם המשתמש",
       "too_common": "הסיסמה נפוצה מדי",
       "mismatch": "שתי הסיסמאות זהות"
@@ -148,7 +148,43 @@
       "username": "שם משתמש:",
       "copy": "העתקת קישור",
       "copied": "הועתק",
-      "expires": "בתוקף עד {date}."
+      "expires": "בתוקף עד {date}.",
+      "dialogHint": "השתמשו בחלון השיתוף כדי לשלוח את הקישור לקבלן."
+    },
+    "credentialsShare": {
+      "greeting": "שלום {name},",
+      "inviteIntro": "{organization} הזמינה אותך לפורטל הקבלנים של ProjectFlow.",
+      "resetIntro": "{organization} שלחה לך קישור מאובטח לאיפוס סיסמה בפורטל הקבלנים של ProjectFlow.",
+      "linkLabel": "קישור:",
+      "usernameLabel": "שם משתמש:",
+      "expiresLabel": "בתוקף עד:",
+      "inviteSteps": "פתח/י את הקישור פעם אחת, בחר/י סיסמה והתחבר/י עם שם המשתמש.",
+      "resetSteps": "פתח/י את הקישור פעם אחת, בחר/י סיסמה חדשה והתחבר/י. שאר המכשירים ינותקו.",
+      "emailSubjectInvite": "הפעלת פורטל קבלנים — {organization}",
+      "emailSubjectReset": "איפוס סיסמת קבלן — {organization}"
+    },
+    "shareDialog": {
+      "titleInvite": "שיתוף הזמנת קבלן",
+      "titleReset": "שיתוף קישור איפוס סיסמה",
+      "messageLanguage": "שפת ההודעה",
+      "displayName": "שם",
+      "username": "שם משתמש",
+      "link": "קישור מאובטח",
+      "shareWhatsApp": "WhatsApp",
+      "shareEmail": "דוא\"ל",
+      "shareSms": "SMS",
+      "shareNative": "שיתוף…",
+      "copyMessage": "העתקת הודעה",
+      "copyLink": "העתקת קישור",
+      "messageCopied": "ההודעה הועתקה",
+      "linkCopied": "הקישור הועתק",
+      "copyFailed": "ההעתקה נכשלה",
+      "shareOpened": "גיליון השיתוף נפתח"
+    },
+    "layout": {
+      "accountsSection": "חשבונות קבלנים",
+      "inviteSection": "הזמנת משתמש קבלן חדש",
+      "addAccessSection": "מתן גישה למשתמש קיים"
     },
     "templates": {
       "site_contractor": {
@@ -228,6 +264,8 @@
       "revoked": "בוטל",
       "expires": "עד {date}",
       "noExpiry": "ללא תפוגה",
+      "permissionCount": "{count} הרשאות",
+      "expandAccount": "הצגת פרטי חשבון",
       "homeOrgOnly": "החשבון שייך לארגון אחר: כאן אפשר לנהל את הגישה שלו, לא את החשבון עצמו."
     },
     "actions": {

@@ -1,10 +1,8 @@
 /**
- * Strong password policy for contractor accounts (stricter than the owner sign-up floor in
- * `@/shared/auth/password-policy`: contractor accounts are username-only and cannot fall back to an
- * email-verified recovery path).
+ * Password policy for contractor accounts (username-only sign-in; no email recovery path).
  */
 
-export const CONTRACTOR_PASSWORD_MIN_LENGTH = 10;
+export const CONTRACTOR_PASSWORD_MIN_LENGTH = 8;
 export const CONTRACTOR_PASSWORD_MAX_LENGTH = 128;
 
 export type PasswordRuleViolation =
@@ -28,13 +26,12 @@ const COMMON_PASSWORDS = new Set([
   'contractor1',
 ]);
 
-function characterClasses(password: string): number {
-  let classes = 0;
-  if (/[a-z]/.test(password)) classes += 1;
-  if (/[A-Z]/.test(password)) classes += 1;
-  if (/[0-9]/.test(password)) classes += 1;
-  if (/[^A-Za-z0-9]/.test(password)) classes += 1;
-  return classes;
+function hasLetter(password: string): boolean {
+  return /[A-Za-z]/.test(password);
+}
+
+function hasDigit(password: string): boolean {
+  return /[0-9]/.test(password);
 }
 
 export function checkContractorPassword(input: {
@@ -46,7 +43,7 @@ export function checkContractorPassword(input: {
   const violations: PasswordRuleViolation[] = [];
   if (password.length < CONTRACTOR_PASSWORD_MIN_LENGTH) violations.push('too_short');
   if (password.length > CONTRACTOR_PASSWORD_MAX_LENGTH) violations.push('too_long');
-  if (characterClasses(password) < 3) violations.push('needs_variety');
+  if (!hasLetter(password) || !hasDigit(password)) violations.push('needs_variety');
   const username = input.username?.trim().toLowerCase();
   if (username && username.length >= 3 && password.toLowerCase().includes(username)) {
     violations.push('contains_username');

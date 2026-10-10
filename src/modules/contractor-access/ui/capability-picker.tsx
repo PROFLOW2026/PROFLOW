@@ -113,7 +113,7 @@ export function CapabilityPicker({
         })}
       </div>
 
-      <details className="rounded-md border border-[var(--pf-border-default)] p-3" open={template === 'custom'}>
+      <details className="rounded-md border border-[var(--pf-border-default)] p-3">
         <summary className="cursor-pointer text-sm font-medium">
           {t('manage.invite.customCapabilities', { count: selected.size })}
         </summary>

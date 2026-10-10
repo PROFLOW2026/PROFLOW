@@ -18,6 +18,11 @@ import {
   normalizeWhatsAppPhone,
   type EmployeeCredentialsShareInput,
 } from '@/modules/employee-app/domain/credentials-share';
+import {
+  buildSmsShareUrl,
+  copyTextToClipboard,
+  shareViaNativeSheet,
+} from '@/shared/credentials/outbound-share';
 import { cn } from '@/shared/ui/cn';
 import {
   ACCESS_CREDENTIALS_INSET_CLASS,
@@ -49,13 +54,17 @@ export function EmployeeCredentialsShareDialog({
   const expiryLabel = formatCredentialExpiry(credentials.temporaryPinExpiresAt, locale);
 
   async function copyText(text: string, successMessage: string) {
-    try {
-      await navigator.clipboard.writeText(text);
-      toast?.push(successMessage, 'success');
-    } catch {
-      toast?.push(t('copyFailed'), 'danger');
-    }
+    const ok = await copyTextToClipboard(text);
+    toast?.push(ok ? successMessage : t('copyFailed'), ok ? 'success' : 'danger');
   }
+
+  async function nativeShare() {
+    const outcome = await shareViaNativeSheet({ title: subject, text: message, url: credentials.loginUrl });
+    if (outcome === 'shared') toast?.push(t('shareOpened'), 'success');
+    if (outcome === 'failed') toast?.push(t('copyFailed'), 'danger');
+  }
+
+  const smsHref = buildSmsShareUrl(normalizeWhatsAppPhone(employeePhone), message);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -111,13 +120,19 @@ export function EmployeeCredentialsShareDialog({
                 {t('shareWhatsApp')}
               </a>
             </Button>
-            <Button type="button" asChild variant="secondary" className="flex-1">
+            <Button type="button" asChild variant="secondary" className="flex-1 min-h-11">
               <a href={buildMailtoUrl(employeeEmail, subject, message)}>{t('shareEmail')}</a>
+            </Button>
+            <Button type="button" asChild variant="secondary" className="flex-1 min-h-11">
+              <a href={smsHref}>{t('shareSms')}</a>
+            </Button>
+            <Button type="button" variant="secondary" className="flex-1 min-h-11" onClick={() => void nativeShare()}>
+              {t('shareNative')}
             </Button>
             <Button
               type="button"
               variant="secondary"
-              className="flex-1"
+              className="flex-1 min-h-11"
               onClick={() => void copyText(message, t('messageCopied'))}
             >
               {t('copyMessage')}

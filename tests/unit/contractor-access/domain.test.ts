@@ -57,7 +57,9 @@ describe('contractor password policy', () => {
   it('requires length, variety, no username, not common, confirmation match', () => {
     expect(checkContractorPassword({ password: 'Bricks&Mortar2026', confirmation: 'Bricks&Mortar2026' })).toEqual([]);
     expect(checkContractorPassword({ password: 'Ab1!' })).toContain('too_short');
-    expect(checkContractorPassword({ password: 'alllowercaseletters' })).toContain('needs_variety');
+    expect(checkContractorPassword({ password: 'abcdefgh' })).toContain('needs_variety');
+    expect(checkContractorPassword({ password: '12345678' })).toContain('needs_variety');
+    expect(checkContractorPassword({ password: 'abcd1234', confirmation: 'abcd1234' })).toEqual([]);
     expect(checkContractorPassword({ password: 'xdana.voltX9!', username: 'dana.volt' })).toContain('contains_username');
     expect(checkContractorPassword({ password: 'Password1!' })).toContain('too_common');
     expect(checkContractorPassword({ password: 'Bricks&Mortar2026', confirmation: 'other' })).toContain('mismatch');
