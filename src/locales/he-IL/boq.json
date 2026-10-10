@@ -235,6 +235,8 @@
     "agreementNone": "ללא הסכם",
     "agreementRetention": "טיוטות חשבון ישתמשו ב-{percent}% עיכבון אלא אם תשנו.",
     "retentionPercent": "אחוז עיכבון",
+    "linesCount": "{count} שורות",
+    "scheduleOption": "{title} · {status} · {lines}",
     "reconciliation": {
       "pending": "AP: ממתין לשיוך",
       "matched": "AP: שויך",

@@ -127,6 +127,7 @@
     "lineQuantity": "الكمية",
     "lineUnitAmount": "سعر الوحدة",
     "lineTotal": "إجمالي البند",
+    "lineTotalEmpty": "—",
     "linePoLine": "بند أمر الشراء",
     "linePoLineNone": "لا بند أمر شراء",
     "lineCategory": "فئة التكلفة",

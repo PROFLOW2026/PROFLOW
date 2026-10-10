@@ -1288,7 +1288,7 @@ export function OcrReviewPanel({
                       <ul className="list-disc ps-5 text-sm text-[var(--pf-text-secondary)]">
                         {selected.candidates.lines.map((line, index) => (
                           <li key={`line-${index}`}>
-                            {line.description.value ?? '-'}
+                            {line.description.value ?? t('lineItemDescriptionEmpty')}
                             {line.lineTotal.value ? ` · ${line.lineTotal.value}` : ''}
                           </li>
                         ))}

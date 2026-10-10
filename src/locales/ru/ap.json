@@ -127,6 +127,7 @@
     "lineQuantity": "Кол-во",
     "lineUnitAmount": "Цена за ед.",
     "lineTotal": "Итого по строке",
+    "lineTotalEmpty": "—",
     "linePoLine": "Строка заказа",
     "linePoLineNone": "Без строки заказа",
     "lineCategory": "Категория затрат",

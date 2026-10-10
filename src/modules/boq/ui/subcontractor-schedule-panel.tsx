@@ -160,7 +160,11 @@ export function SubcontractorSchedulePanel({
           >
             {schedules.map((s) => (
               <option key={s.id} value={s.id}>
-                {(s.title || s.id.slice(0, 8)) + ` · ${s.status} · ${s.lines.length} lines`}
+                {t('subcontractor.scheduleOption', {
+                  title: s.title || s.id.slice(0, 8),
+                  status: valuationStatusLabel(s.status),
+                  lines: t('subcontractor.linesCount', { count: s.lines.length }),
+                })}
               </option>
             ))}
           </select>

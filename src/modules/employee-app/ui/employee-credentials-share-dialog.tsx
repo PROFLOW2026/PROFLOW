@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -40,12 +40,13 @@ export function EmployeeCredentialsShareDialog({
   employeePhone,
   employeeEmail,
 }: Props) {
+  const locale = useLocale();
   const t = useTranslations('employeeApp.admin');
   const tCommon = useTranslations('common');
   const toast = useOptionalToast();
   const message = buildCredentialsShareMessage(credentials, t);
   const subject = buildCredentialsEmailSubject(credentials.organizationName, t);
-  const expiryLabel = formatCredentialExpiry(credentials.temporaryPinExpiresAt);
+  const expiryLabel = formatCredentialExpiry(credentials.temporaryPinExpiresAt, locale);
 
   async function copyText(text: string, successMessage: string) {
     try {

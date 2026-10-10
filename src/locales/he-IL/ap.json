@@ -71,6 +71,7 @@
     "lineQuantity": "כמות",
     "lineUnitAmount": "מחיר יחידה",
     "lineTotal": "סה״כ שורה",
+    "lineTotalEmpty": "—",
     "linePoLine": "שורת הזמנת רכש",
     "linePoLineNone": "ללא שורת הזמנה",
     "lineCategory": "קטגוריית עלות",

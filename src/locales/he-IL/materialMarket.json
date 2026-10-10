@@ -13,6 +13,7 @@
     "all": "הכל"
   },
   "historyInsufficientTrend": "אין מספיק היסטוריה להצגת מגמה",
+  "historyNoData": "אין נתונים להצגה",
   "driversTitle": "מה משפיע כרגע?",
   "changeTitle": "מה השתנה?",
   "methodologyTitle": "איך המדד מחושב?",

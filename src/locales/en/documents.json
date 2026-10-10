@@ -249,6 +249,7 @@
       "not_detected": "Not found"
     },
     "lineItems": "Line items",
+    "lineItemDescriptionEmpty": "—",
     "previewMapping": "Review before creating a draft",
     "confirmExpense": "Create draft expense",
     "confirmVendorBill": "Create draft vendor bill",

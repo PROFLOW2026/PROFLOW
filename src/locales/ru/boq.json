@@ -235,6 +235,8 @@
     "agreementNone": "Без соглашения",
     "agreementRetention": "Черновики счетов будут использовать {percent}% удержания, если не переопределите.",
     "retentionPercent": "Удержание %",
+    "linesCount": "{count} строк",
+    "scheduleOption": "{title} · {status} · {lines}",
     "reconciliation": {
       "pending": "AP: ожидает сопоставления",
       "matched": "AP: сопоставлено",

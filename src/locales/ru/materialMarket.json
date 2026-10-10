@@ -13,6 +13,7 @@
     "all": "Всё"
   },
   "historyInsufficientTrend": "Недостаточно истории для отображения тренда",
+  "historyNoData": "Нет данных для отображения",
   "driversTitle": "Что влияет сейчас?",
   "changeTitle": "Что изменилось?",
   "methodologyTitle": "Как рассчитывается балл?",

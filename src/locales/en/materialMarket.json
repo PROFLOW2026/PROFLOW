@@ -13,6 +13,7 @@
     "all": "All"
   },
   "historyInsufficientTrend": "Not enough history to show a trend",
+  "historyNoData": "No data to display",
   "driversTitle": "What is influencing now?",
   "changeTitle": "What changed?",
   "methodologyTitle": "How is the score calculated?",

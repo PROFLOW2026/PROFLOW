@@ -117,7 +117,8 @@
     "back": "Back",
     "shortcutsLabel": "Shortcuts:",
     "folderKind": "Folder",
-    "fileKind": "File"
+    "fileKind": "File",
+    "sizeMetaUnavailable": "Not available"
   },
   "orgFiles": {
     "title": "Company files",
@@ -155,6 +156,7 @@
     "shortcutsLabel": "Shortcuts:",
     "folderKind": "Folder",
     "fileKind": "File",
+    "sizeMetaUnavailable": "Not available",
     "tabs": {
       "cloudFiles": "Cloud files",
       "documentRegistry": "Document registry",
@@ -206,6 +208,7 @@
     "handTool": "Hand",
     "zoomLevel": "Zoom level",
     "pageNumber": "Page number",
+    "pageCountSuffix": "/ {total}",
     "more": "More",
     "rotate": "Rotate",
     "rotate90": "Rotate 90°",

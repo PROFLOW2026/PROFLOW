@@ -13,6 +13,7 @@
     "all": "الكل"
   },
   "historyInsufficientTrend": "لا يوجد سجل كافٍ لعرض اتجاه",
+  "historyNoData": "لا توجد بيانات للعرض",
   "driversTitle": "ما الذي يؤثر الآن؟",
   "changeTitle": "ما الذي تغيّر؟",
   "methodologyTitle": "كيف تُحسب الدرجة؟",

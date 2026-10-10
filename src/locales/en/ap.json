@@ -127,6 +127,7 @@
     "lineQuantity": "Qty",
     "lineUnitAmount": "Unit price",
     "lineTotal": "Line total",
+    "lineTotalEmpty": "—",
     "linePoLine": "PO line",
     "linePoLineNone": "No PO line",
     "lineCategory": "Cost category",

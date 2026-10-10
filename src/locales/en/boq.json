@@ -235,6 +235,8 @@
     "agreementNone": "No agreement",
     "agreementRetention": "Draft bills will use {percent}% retention unless you override it.",
     "retentionPercent": "Retention %",
+    "linesCount": "{count} lines",
+    "scheduleOption": "{title} · {status} · {lines}",
     "reconciliation": {
       "pending": "AP: pending match",
       "matched": "AP: matched",

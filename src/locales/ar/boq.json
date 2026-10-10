@@ -235,6 +235,8 @@
     "agreementNone": "بدون اتفاقية",
     "agreementRetention": "مسودات الحسابات ستستخدم {percent}% حجزاً ما لم تُعدّله.",
     "retentionPercent": "نسبة الحجز %",
+    "linesCount": "{count} بنود",
+    "scheduleOption": "{title} · {status} · {lines}",
     "reconciliation": {
       "pending": "AP: في انتظار المطابقة",
       "matched": "AP: مطابق",

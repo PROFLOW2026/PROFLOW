@@ -269,7 +269,7 @@ export function PressureHistoryChart({
   if (!chart) {
     return (
       <div className="flex h-[112px] items-center justify-center rounded-lg border border-border bg-muted/30 text-sm text-muted-foreground">
-        —
+        {t('historyNoData')}
       </div>
     );
   }

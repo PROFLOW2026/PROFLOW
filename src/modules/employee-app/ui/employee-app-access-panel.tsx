@@ -565,6 +565,7 @@ export function EmployeeAppAccessPanel({
                 label={t('tempPinExpiry')}
                 value={formatCredentialExpiry(
                   new Date(effectiveShareableCredentials.temporaryPinExpiresAt),
+                  locale,
                 )}
                 valueDir="ltr"
               />

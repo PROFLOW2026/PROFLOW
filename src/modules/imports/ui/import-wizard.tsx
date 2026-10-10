@@ -528,7 +528,9 @@ export function ImportWizard({
                               .filter(([, value]) => value)
                               .map(([key, value]) => (
                                 <div key={key}>
-                                  <span className="text-[var(--pf-text-secondary)]">{key}: </span>
+                                  <span className="text-[var(--pf-text-secondary)]">
+                                    {t(`fields.${key}`)}:{' '}
+                                  </span>
                                   {value}
                                 </div>
                               ))}
@@ -577,7 +579,9 @@ export function ImportWizard({
                       .filter(([, value]) => value)
                       .map(([key, value]) => (
                         <div key={key}>
-                          <span className="text-[var(--pf-text-secondary)]">{key}: </span>
+                          <span className="text-[var(--pf-text-secondary)]">
+                            {t(`fields.${key}`)}:{' '}
+                          </span>
                           {value}
                         </div>
                       ))}

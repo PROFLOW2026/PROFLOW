@@ -249,6 +249,7 @@
       "not_detected": "غير موجود"
     },
     "lineItems": "بنود",
+    "lineItemDescriptionEmpty": "—",
     "previewMapping": "راجع قبل إنشاء مسودة",
     "confirmExpense": "إنشاء مسودة مصروف",
     "confirmVendorBill": "إنشاء مسودة حساب مورد",

@@ -550,7 +550,7 @@ export function CompanyFilesTab({
                   icon={<Folder className="size-4 shrink-0 text-[var(--pf-text-secondary)]" aria-hidden />}
                   name={folder.name}
                   kind="folder"
-                  meta="—"
+                  meta={t('sizeMetaUnavailable')}
                   canManage={canManage}
                   onOpen={() => openSubfolder(folder)}
                   onRename={() => openRenameDialog(folder.id, 'folder', folder.name)}
@@ -567,7 +567,11 @@ export function CompanyFilesTab({
                   icon={<FileText className="size-4 shrink-0 text-[var(--pf-text-secondary)]" aria-hidden />}
                   name={file.name}
                   kind="file"
-                  meta={file.sizeBytes != null ? formatFileSize(file.sizeBytes, tFileSize) : '—'}
+                  meta={
+                    file.sizeBytes != null
+                      ? formatFileSize(file.sizeBytes, tFileSize)
+                      : t('sizeMetaUnavailable')
+                  }
                   canManage={canManage}
                   onOpen={() => openFilePreview(file)}
                   onOpenOnDevice={() => openFileOnDevice(file)}

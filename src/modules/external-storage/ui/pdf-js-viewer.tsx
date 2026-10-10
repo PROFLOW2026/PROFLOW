@@ -468,7 +468,9 @@ function PdfJsViewerInner({
               if (event.key === 'Enter') commitPageInput();
             }}
           />
-          <span className="text-sm text-[var(--pf-text-secondary)]">/ {numPages}</span>
+          <span className="pf-ltr-island text-sm text-[var(--pf-text-secondary)]" dir="ltr">
+            {t('pageCountSuffix', { total: numPages })}
+          </span>
           <Button
             type="button"
             size="sm"
