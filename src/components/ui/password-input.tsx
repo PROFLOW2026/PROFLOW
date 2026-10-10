@@ -22,7 +22,9 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
     const resolvedToggleId = toggleId ?? (id ? `${id}-toggle` : undefined);
 
     return (
-      <div className="relative">
+      // LTR shell: password text and the visibility toggle stay on the trailing (right) edge
+      // even when the surrounding form is RTL — logical `end` on the page would flip the icon.
+      <div className="relative w-full" dir="ltr">
         <Input
           {...props}
           ref={ref}
@@ -31,7 +33,7 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
           disabled={disabled}
           dir="ltr"
           autoComplete={props.autoComplete ?? 'new-password'}
-          className={cn('pe-11', className)}
+          className={cn('pr-11', className)}
         />
         <button
           id={resolvedToggleId}
@@ -39,7 +41,7 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
           tabIndex={0}
           disabled={disabled}
           className={cn(
-            'absolute inset-y-0 end-0 flex min-h-11 min-w-11 items-center justify-center rounded-e-md',
+            'absolute inset-y-0 right-0 flex min-h-11 min-w-11 items-center justify-center rounded-e-md',
             'text-[var(--pf-text-secondary)] transition-colors',
             'hover:text-[var(--pf-text-primary)]',
             'focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--pf-focus-ring)]',

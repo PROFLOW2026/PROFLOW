@@ -4,6 +4,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -68,13 +69,13 @@ export function EmployeeCredentialsShareDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent closeLabel={tCommon('actions.close')} className="max-w-lg">
+      <DialogContent closeLabel={tCommon('actions.close')} className="w-full min-w-0 sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{t('shareDialogTitle')}</DialogTitle>
         </DialogHeader>
 
-        <div className="flex flex-col gap-4">
-          <div className={cn('flex max-w-sm flex-col gap-4', ACCESS_CREDENTIALS_INSET_CLASS)}>
+        <DialogBody className="flex min-w-0 flex-col gap-4">
+          <div className={cn('flex w-full min-w-0 flex-col gap-4', ACCESS_CREDENTIALS_INSET_CLASS)}>
           <AccessInfoField
             label={t('username')}
             value={credentials.username}
@@ -138,7 +139,7 @@ export function EmployeeCredentialsShareDialog({
               {t('copyMessage')}
             </Button>
           </div>
-        </div>
+        </DialogBody>
       </DialogContent>
     </Dialog>
   );

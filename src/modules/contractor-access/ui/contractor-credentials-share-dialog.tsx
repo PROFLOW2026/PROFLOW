@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -129,12 +130,12 @@ function ContractorCredentialsShareDialogBody({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent closeLabel={tCommon('actions.close')} className="max-h-[90dvh] max-w-lg overflow-y-auto">
+      <DialogContent closeLabel={tCommon('actions.close')} className="w-full min-w-0 sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
 
-        <div className="flex flex-col gap-4">
+        <DialogBody className="flex min-w-0 flex-col gap-4">
           <label className="flex flex-col gap-1 text-sm">
             <span className="font-medium">{tUi('messageLanguage')}</span>
             <select
@@ -160,7 +161,12 @@ function ContractorCredentialsShareDialogBody({
             valueDir="ltr"
             valueClassName="font-mono"
           />
-          <AccessInfoField label={tUi('link')} value={linkUrl || '…'} valueDir="ltr" valueClassName="break-all text-xs" />
+          <AccessInfoField
+            label={tUi('link')}
+            value={linkUrl || '…'}
+            valueDir="ltr"
+            valueClassName="break-all font-mono text-xs font-normal"
+          />
 
           <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
             <Button type="button" asChild variant="secondary" className="min-h-11 flex-1">
@@ -190,7 +196,7 @@ function ContractorCredentialsShareDialogBody({
               {tUi('copyLink')}
             </Button>
           </div>
-        </div>
+        </DialogBody>
       </DialogContent>
     </Dialog>
   );
