@@ -50,6 +50,8 @@ jobs:
             migration:
               - 'drizzle/**'
               - 'drizzle.config.*'
+              - 'vitest.config.ts'
+              - 'tests/setup/**'
               - 'tests/integration/migration/**'
               - 'tests/integration/database/migrations.test.ts'
               - 'tests/unit/database/migration-journal.test.ts'
