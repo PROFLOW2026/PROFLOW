@@ -59,7 +59,7 @@ export async function ProjectContractorsScreen({
               {t('contractors.countSummary', { count: data.items.length })}
             </p>
           ) : null}
-          {data.canManagePortalAccess ? (
+          {data.canManagePortalAccess && data.contractorAccessHref ? (
             <Link
               href={data.contractorAccessHref}
               className="inline-flex min-h-11 w-fit items-center gap-2 font-medium text-[var(--pf-text-brand)]"
@@ -148,7 +148,7 @@ export async function ProjectContractorsScreen({
                       >
                         {t('contractors.open360')}
                       </Link>
-                      {data.canManagePortalAccess ? (
+                      {data.canManagePortalAccess && data.contractorAccessHref ? (
                         <Link
                           href={data.contractorAccessHref}
                           className="inline-flex min-h-11 items-center text-sm font-medium text-[var(--pf-text-brand)]"

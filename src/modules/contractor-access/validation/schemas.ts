@@ -60,6 +60,15 @@ export const updateGrantSchema = z.object({
 export const grantRefSchema = z.object({ projectId: uuid, grantId: uuid, reason: optionalText(500) });
 export const principalRefSchema = z.object({ projectId: uuid, principalId: uuid });
 
+export const updateHomePrincipalSchema = z.object({
+  projectId: uuid,
+  principalId: uuid,
+  displayName: z.string().trim().min(1).max(120),
+  username: z.string().trim().min(1).max(32),
+  contactEmail: optionalText(200).pipe(z.string().email().nullable()),
+  phone: optionalText(40),
+});
+
 export const signInSchema = z.object({
   username: z.string().trim().min(1).max(64),
   password: z.string().min(1).max(256),

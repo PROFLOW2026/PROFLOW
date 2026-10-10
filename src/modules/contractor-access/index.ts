@@ -61,6 +61,7 @@ export {
   revokeContractorSessions,
   setContractorAccountDisabled,
   updateContractorGrantCapabilities,
+  updateHomeContractorPrincipal,
   type ContractorAccessAuthority,
   type ContractorAccessDeps,
   type ContractorAccessOverview,
@@ -68,6 +69,7 @@ export {
   type ContractorGrantSummary,
   type InviteContractorInput,
   type InviteContractorResult,
+  type UpdateHomeContractorPrincipalInput,
 } from './application/manage-contractor-access';
 export {
   ContractorPasswordPolicyError,

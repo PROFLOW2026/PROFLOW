@@ -27,6 +27,7 @@ export interface ContractorAccessActions {
   readonly update: Action;
   readonly revoke: Action;
   readonly principalCommand: Action;
+  readonly updatePrincipal: Action;
 }
 
 const selectClassName =
@@ -339,6 +340,83 @@ function PrincipalCommand({
   );
 }
 
+function AccountProfileForm({
+  projectId,
+  account,
+  action,
+}: {
+  projectId: string;
+  account: ContractorAccountSummary;
+  action: Action;
+}) {
+  const t = useTranslations('contractorAccess.manage');
+  const tInvite = useTranslations('contractorAccess.manage.invite');
+  const [editing, setEditing] = useState(false);
+  const [state, formAction, pending] = useActionState<ContractorAccessActionStateView, FormData>(action, {});
+
+  if (!editing) {
+    return (
+      <Button type="button" size="sm" variant="secondary" onClick={() => setEditing(true)}>
+        {t('actions.editProfile')}
+      </Button>
+    );
+  }
+
+  return (
+    <form action={formAction} className="flex flex-col gap-3 rounded-md border border-[var(--pf-border-default)] p-3">
+      <input type="hidden" name="projectId" value={projectId} />
+      <input type="hidden" name="principalId" value={account.principalId} />
+      <ActionFeedback state={state} />
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <Field id={`profile-name-${account.principalId}`} label={tInvite('displayName')} required>
+          {(control) => (
+            <Input {...control} name="displayName" maxLength={120} required defaultValue={account.displayName ?? ''} />
+          )}
+        </Field>
+        <Field id={`profile-username-${account.principalId}`} label={tInvite('username')} description={t('actions.usernameChangeHint')} required>
+          {(control) => (
+            <Input
+              {...control}
+              name="username"
+              dir="ltr"
+              maxLength={32}
+              required
+              defaultValue={account.username ?? ''}
+              autoCapitalize="none"
+              spellCheck={false}
+            />
+          )}
+        </Field>
+        <Field id={`profile-email-${account.principalId}`} label={tInvite('contactEmail')}>
+          {(control) => (
+            <Input
+              {...control}
+              name="contactEmail"
+              type="email"
+              dir="ltr"
+              maxLength={200}
+              defaultValue={account.contactEmail ?? ''}
+            />
+          )}
+        </Field>
+        <Field id={`profile-phone-${account.principalId}`} label={tInvite('phone')}>
+          {(control) => (
+            <Input {...control} name="phone" type="tel" dir="ltr" maxLength={40} defaultValue={account.phone ?? ''} />
+          )}
+        </Field>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <Button type="submit" size="sm" loading={pending}>
+          {t('actions.save')}
+        </Button>
+        <Button type="button" size="sm" variant="ghost" onClick={() => setEditing(false)}>
+          {t('actions.cancel')}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
 function AccountCard({
   projectId,
   account,
@@ -386,6 +464,12 @@ function AccountCard({
               </>
             ) : null}
           </p>
+          {account.contactEmail ? (
+            <p className="text-sm text-[var(--pf-text-secondary)]">
+              {t('invite.contactEmail')}:{' '}
+              <bdi dir="ltr">{account.contactEmail}</bdi>
+            </p>
+          ) : null}
           <p className="text-xs text-[var(--pf-text-secondary)]">
             {t('list.lastSignIn')}{' '}
             {account.lastSignInAt
@@ -416,6 +500,9 @@ function AccountCard({
       </ul>
 
       <div className="mt-3 flex flex-col gap-2">
+        {canHomeManage ? (
+          <AccountProfileForm projectId={projectId} account={account} action={actions.updatePrincipal} />
+        ) : null}
         <ActionFeedback state={state} />
         <div className="flex flex-wrap gap-2">
           {account.isHomeOrganization && account.status === 'invited' && authority.canInvite ? (

@@ -136,17 +136,7 @@ describe('employee DG project routes', () => {
         surfaceRoot: '/employee/projects/p1',
       }),
     ).toEqual([]);
-    expect(
-      shouldShowExecutionNavGroup({
-        deliveryProfile: developerOnly,
-        hasSubcontractAgreements: true,
-      }),
-    ).toBe(false);
-    expect(
-      shouldShowExecutionNavGroup({
-        deliveryProfile: null,
-        hasSubcontractAgreements: true,
-      }),
-    ).toBe(false);
+    expect(shouldShowExecutionNavGroup({ deliveryProfile: developerOnly })).toBe(false);
+    expect(shouldShowExecutionNavGroup({ deliveryProfile: null })).toBe(false);
   });
 });

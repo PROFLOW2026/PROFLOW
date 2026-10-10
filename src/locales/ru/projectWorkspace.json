@@ -25,6 +25,7 @@
     },
     "hubGroups": {
       "contracts": "Договоры",
+      "contractors": "Подрядчики",
       "payments": "Заявки и платежи",
       "planning": "Планирование",
       "documents": "Документы",
@@ -33,6 +34,8 @@
       "closeout": "Сдача"
     },
     "hubLinks": {
+      "portalAccess": "Пользователи портала и пароли",
+      "contractorsList": "Договоры с подрядчиками",
       "agreementRegister": "Реестр соглашений",
       "unpricedWork": "Неоценённые работы",
       "claims": "Заявки и сертификация",

@@ -43,6 +43,10 @@ export function createSupabaseContractorAuthPort(): ContractorAuthPort {
       const { error } = await admin().auth.admin.updateUserById(authUserId, { password });
       if (error) throw new Error(error.message);
     },
+    async updateUserEmail(authUserId, email) {
+      const { error } = await admin().auth.admin.updateUserById(authUserId, { email, email_confirm: true });
+      if (error) throw new Error(error.message);
+    },
     async setBanned(authUserId, banned) {
       const { error } = await admin().auth.admin.updateUserById(authUserId, {
         ban_duration: banned ? BAN_FOREVER : 'none',

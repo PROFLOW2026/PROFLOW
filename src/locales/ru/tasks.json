@@ -588,7 +588,9 @@
       "tasks": "Задачи",
       "boards": "Доска",
       "calendar": "Календарь",
-      "timeline": "Хронология"
+      "timeline": "Хронология",
+      "files": "Файлы проекта",
+      "meetings": "Встречи проекта"
     }
   },
   "workFilters": {

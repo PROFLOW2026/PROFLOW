@@ -80,6 +80,22 @@ export interface ExecutionHubChildLink {
  */
 export const EXECUTION_HUB_CHILDREN: readonly ExecutionHubChildLink[] = [
   {
+    id: 'contractors-register',
+    hub: 'contractors',
+    path: 'contractors',
+    anyOf: [C.CONTRACTOR_VIEW],
+    labelKey: 'contractorsList',
+    groupKey: 'contractors',
+  },
+  {
+    id: 'contractors-portal-access',
+    hub: 'contractors',
+    path: 'contractor-access',
+    anyOf: [C.CONTRACTOR_INVITE, C.EXTERNAL_ACCESS_MANAGE],
+    labelKey: 'portalAccess',
+    groupKey: 'contractors',
+  },
+  {
     id: 'contracts-register',
     hub: 'contracts',
     path: 'contractors',

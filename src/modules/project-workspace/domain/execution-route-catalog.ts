@@ -117,6 +117,17 @@ export function employeeExecutionPageExists(path: string): boolean {
   return EMPLOYEE_EXECUTION_PATHS.has(path);
 }
 
+/**
+ * Employee routes reachable by inline links but intentionally omitted from
+ * `EMPLOYEE_EXECUTION_PATHS` (execution hub nav).
+ */
+const EMPLOYEE_INLINE_EXECUTION_PATHS = new Set(['contractor-access']);
+
+/** True when an Employee project URL segment is backed by a mounted page. */
+export function employeeProjectExecutionRouteMounted(path: string): boolean {
+  return employeeExecutionPageExists(path) || EMPLOYEE_INLINE_EXECUTION_PATHS.has(path);
+}
+
 const C = PROJECT_CAPABILITIES;
 
 /** Frozen route table aligned with Track brief §2; `pageExists` reflects the repo at build time. */

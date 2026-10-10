@@ -75,6 +75,24 @@ export async function isUsernameTaken(db: DbExecutor, usernameNormalized: string
   return Boolean(row);
 }
 
+export async function isUsernameTakenByOther(
+  db: DbExecutor,
+  usernameNormalized: string,
+  excludePrincipalId: string,
+): Promise<boolean> {
+  const [row] = await db
+    .select({ id: contractorPrincipals.id })
+    .from(contractorPrincipals)
+    .where(
+      and(
+        eq(contractorPrincipals.usernameNormalized, usernameNormalized),
+        ne(contractorPrincipals.id, excludePrincipalId),
+      ),
+    )
+    .limit(1);
+  return Boolean(row);
+}
+
 export async function insertContractorPrincipal(
   db: DbExecutor,
   values: typeof contractorPrincipals.$inferInsert,
@@ -94,6 +112,9 @@ export async function updateContractorPrincipal(
       | 'displayName'
       | 'phone'
       | 'contactEmail'
+      | 'username'
+      | 'usernameNormalized'
+      | 'email'
       | 'locale'
       | 'activatedAt'
       | 'passwordSetAt'

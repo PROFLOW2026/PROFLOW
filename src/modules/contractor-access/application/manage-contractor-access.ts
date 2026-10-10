@@ -23,6 +23,7 @@ import {
   insertContractorPrincipal,
   insertContractorToken,
   isUsernameTaken,
+  isUsernameTakenByOther,
   latestOpenTokenExpiry,
   listOrgContractorPrincipalsForVendors,
   listOrgGrantsForPrincipal,
@@ -639,6 +640,89 @@ export async function revokeContractorGrant(
 // ---------------------------------------------------------------------------
 // Account lifecycle (home organization only)
 // ---------------------------------------------------------------------------
+
+export interface UpdateHomeContractorPrincipalInput {
+  readonly projectId: string;
+  readonly principalId: string;
+  readonly displayName: string;
+  readonly phone?: string | null;
+  readonly contactEmail?: string | null;
+  readonly username?: string | null;
+}
+
+export async function updateHomeContractorPrincipal(
+  context: OrgContext,
+  deps: ContractorAccessDeps,
+  input: UpdateHomeContractorPrincipalInput,
+): Promise<{ readonly username: string }> {
+  await requireAuthority(context, input.projectId, 'manage');
+  const principal = await loadManageablePrincipal(context, input.principalId, { requireHome: true });
+  if (!principal.authUserId) throw new NotFoundError('Contractor account');
+
+  const displayName = input.displayName.trim();
+  if (!displayName) throw err('display_name_required');
+  const phone = input.phone?.trim() || null;
+  if (phone && phone.length > 40) throw err('invalid_phone');
+  const contactEmail = input.contactEmail?.trim() || null;
+
+  const rawUsername = input.username?.trim() || principal.username?.trim() || '';
+  if (!rawUsername) throw err('invalid_username');
+  const check = validateContractorUsername(rawUsername);
+  if (!check.valid) throw err('invalid_username');
+
+  const usernameChanged = check.normalized !== principal.usernameNormalized;
+  if (usernameChanged) {
+    const taken = await asServiceRoleWrite(context.db, () =>
+      isUsernameTakenByOther(context.db, check.normalized, principal.id),
+    );
+    if (taken) throw new ConflictError('Username taken', 'contractorAccess.errors.username_taken');
+  }
+
+  const nextEmail = contractorAuthEmail(check.normalized);
+  const before = {
+    displayName: principal.displayName,
+    phone: principal.phone,
+    contactEmail: principal.contactEmail,
+    username: principal.usernameNormalized,
+  };
+
+  if (usernameChanged) {
+    await deps.auth.updateUserEmail(principal.authUserId, nextEmail);
+  }
+
+  try {
+    await asServiceRoleWrite(context.db, () =>
+      updateContractorPrincipal(context.db, principal.id, {
+        displayName,
+        phone,
+        contactEmail,
+        ...(usernameChanged
+          ? { username: rawUsername, usernameNormalized: check.normalized, email: nextEmail }
+          : {}),
+      }),
+    );
+  } catch (error) {
+    if (usernameChanged) {
+      await deps.auth.updateUserEmail(principal.authUserId, principal.email).catch(() => undefined);
+    }
+    throw error;
+  }
+
+  await recordAuditEvent(context, {
+    action: AUDIT_ACTIONS.EXTERNAL_PRINCIPAL_PROFILE_UPDATED,
+    entityType: 'external_principal',
+    entityId: principal.id,
+    before,
+    after: {
+      displayName,
+      phone,
+      contactEmail,
+      username: check.normalized,
+    },
+  });
+
+  return { username: check.normalized };
+}
 
 export async function reissueContractorInvite(
   context: OrgContext,

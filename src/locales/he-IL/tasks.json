@@ -588,7 +588,9 @@
       "tasks": "משימות",
       "boards": "לוח",
       "calendar": "לוח שנה",
-      "timeline": "ציר זמן"
+      "timeline": "ציר זמן",
+      "files": "קבצי פרויקט",
+      "meetings": "ישיבות פרויקט"
     }
   },
   "workFilters": {

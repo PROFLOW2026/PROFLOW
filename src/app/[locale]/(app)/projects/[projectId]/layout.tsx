@@ -9,7 +9,8 @@ import {
 } from '@/modules/projects/domain/entry-baseline';
 import { titleWithDocumentNumber } from '@/modules/tenancy/domain/document-numbers';
 import { resolveProjectExperienceProfile } from '@/modules/tenancy/domain/project-profiles';
-import { loadProjectDetail, loadProjectCloseoutStatus } from './load-project-detail';
+import { loadProjectDetail, loadProjectCloseoutStatus, loadProjectLayoutIdentity } from './load-project-detail';
+import { ProjectOperationalContextHeader } from '@/modules/project-workspace/ui/project-operational-context-header';
 import { getShellContextForProject } from '@/shared/auth/session';
 import { fromNumericString } from '@/shared/money';
 import { PERMISSIONS, type PermissionKey } from '@/shared/permissions/catalog';
@@ -57,7 +58,15 @@ interface ProjectLayoutProps {
  */
 export default async function ProjectLayout({ children, params }: ProjectLayoutProps) {
   const { projectId } = await params;
-  const shell = await getShellContextForProject(projectId);
+  const [shell, requestPathname] = await Promise.all([
+    getShellContextForProject(projectId),
+    getRequestPathname(),
+  ]);
+
+  const inProjectWorkWorkspace = isOwnerProjectWorkWorkspacePath(requestPathname, projectId);
+  const inExecutionWorkspace =
+    !inProjectWorkWorkspace && isOwnerExecutionWorkspacePath(requestPathname, projectId);
+  const inOperationalWorkspace = inProjectWorkWorkspace || inExecutionWorkspace;
 
   const can = (permission: PermissionKey) => shell?.permissions.has(permission) ?? false;
   const modules = shell?.modules;
@@ -81,6 +90,57 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
   const showTimeTab = can(PERMISSIONS.WORKFORCE_READ);
   const showDocumentsTab = resolveProjectFilesTabVisible(can(PERMISSIONS.DOCUMENTS_READ));
   const showUsageTab = can(PERMISSIONS.MATERIALS_READ) || can(PERMISSIONS.ASSETS_READ);
+
+  if (inOperationalWorkspace) {
+    const [identity, locale, executionNav] = await Promise.all([
+      loadProjectLayoutIdentity(projectId),
+      getLocale(),
+      withOrgContext((context) => loadProjectExecutionNav(context, projectId)).catch(() => ({
+        showGroup: false,
+        links: [],
+      })),
+    ]);
+    if (!identity) notFound();
+
+    if (identity.workKind === 'job' || identity.workKind === 'work_order') {
+      return (
+        <WithAppClientMessages extra={PROJECT_SURFACE_CLIENT_MESSAGE_NAMESPACES}>
+          <div className="flex flex-col gap-6">{children}</div>
+        </WithAppClientMessages>
+      );
+    }
+
+    const dir = localeDirection(locale);
+    const projectHref = `/projects/${projectId}`;
+
+    return (
+      <WithAppClientMessages extra={PROJECT_SURFACE_CLIENT_MESSAGE_NAMESPACES}>
+        <div className="flex flex-col gap-6">
+          <ProjectOperationalContextHeader
+            projectName={identity.name}
+            documentNumber={identity.documentNumber}
+            backToProjectHref={projectHref}
+            workspaceKind={inProjectWorkWorkspace ? 'work' : 'execution'}
+          />
+          {inExecutionWorkspace && executionNav.showGroup ? (
+            <ProjectExecutionNav links={executionNav.links} dir={dir} compact />
+          ) : null}
+          {inProjectWorkWorkspace ? (
+            <ProjectWorkNav projectId={projectId} dir={dir} compact />
+          ) : null}
+          <Suspense
+            fallback={
+              <div className="min-w-0 max-w-full pt-4">
+                <TabPanelSkeleton />
+              </div>
+            }
+          >
+            {children}
+          </Suspense>
+        </div>
+      </WithAppClientMessages>
+    );
+  }
 
   const [t, tHubs, tStatus, tCloseout, detail, locale, closeoutStatus, executionNav] = await Promise.all([
     getTranslations('projects'),
@@ -157,10 +217,6 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
   const executionEntryHref =
     executionNav.links.find((link) => link.key === 'overview')?.href ?? executionNav.links[0]?.href ?? null;
 
-  const requestPathname = await getRequestPathname();
-  const inExecutionWorkspace = isOwnerExecutionWorkspacePath(requestPathname, projectId);
-  const inProjectWorkWorkspace =
-    !inExecutionWorkspace && isOwnerProjectWorkWorkspacePath(requestPathname, projectId);
   const projectWorkEntryHref = showUwmLinks ? `/projects/${projectId}/tasks` : null;
 
   return (
@@ -259,79 +315,39 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
         }
       />
 
-      {inExecutionWorkspace ? (
-        <>
-          {executionNav.showGroup ? (
-            <ProjectExecutionNav
-              links={executionNav.links}
-              dir={dir}
-              backToProjectHref={`/projects/${projectId}`}
-            />
-          ) : null}
-          <Suspense
-            fallback={
-              <div className="min-w-0 max-w-full pt-4">
+      {executionNav.showGroup && executionEntryHref ? (
+        <DeveloperGcExecutionEntry href={executionEntryHref} />
+      ) : null}
+
+      {projectWorkEntryHref ? <ProjectWorkManagementEntry href={projectWorkEntryHref} /> : null}
+
+      <Suspense fallback={<Project360SummaryFallback />}>
+        <Project360Summary projectId={projectId} />
+      </Suspense>
+
+      {/*
+        Tab list must not sit behind the page Suspense - otherwise open-project
+        wall clock waits on overview structure before tabs are selectable.
+        Soft-nav still only re-renders `children` (layout ignores searchParams).
+      */}
+      <ProjectTabsShell
+        tabs={hubs}
+        labels={hubLabels}
+        projectHref={`/projects/${projectId}`}
+        dir={dir}
+      >
+        <Suspense
+          fallback={
+            <div className="min-w-0 max-w-full">
+              <div className="pt-4">
                 <TabPanelSkeleton />
               </div>
-            }
-          >
-            {children}
-          </Suspense>
-        </>
-      ) : inProjectWorkWorkspace ? (
-        <>
-          <ProjectWorkNav
-            projectId={projectId}
-            dir={dir}
-            backToProjectHref={`/projects/${projectId}`}
-          />
-          <Suspense
-            fallback={
-              <div className="min-w-0 max-w-full pt-4">
-                <TabPanelSkeleton />
-              </div>
-            }
-          >
-            {children}
-          </Suspense>
-        </>
-      ) : (
-        <>
-          {executionNav.showGroup && executionEntryHref ? (
-            <DeveloperGcExecutionEntry href={executionEntryHref} />
-          ) : null}
-
-          {projectWorkEntryHref ? <ProjectWorkManagementEntry href={projectWorkEntryHref} /> : null}
-
-          <Suspense fallback={<Project360SummaryFallback />}>
-            <Project360Summary projectId={projectId} />
-          </Suspense>
-
-          {/*
-            Tab list must not sit behind the page Suspense - otherwise open-project
-            wall clock waits on overview structure before tabs are selectable.
-            Soft-nav still only re-renders `children` (layout ignores searchParams).
-          */}
-          <ProjectTabsShell
-            tabs={hubs}
-            labels={hubLabels}
-            projectHref={`/projects/${projectId}`}
-            dir={dir}
-          >
-            <Suspense
-              fallback={
-                <div className="min-w-0 max-w-full">
-                  <div className="pt-4">
-                    <TabPanelSkeleton />
-                  </div>
-                </div>
-              }
-            >
-              {children}
-            </Suspense>
-          </ProjectTabsShell>
-        </>
-      )}
+            </div>
+          }
+        >
+          {children}
+        </Suspense>
+      </ProjectTabsShell>
     </div>
     </WithAppClientMessages>
   );

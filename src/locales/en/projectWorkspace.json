@@ -25,6 +25,7 @@
     },
     "hubGroups": {
       "contracts": "Contracts",
+      "contractors": "Contractors",
       "payments": "Claims and payments",
       "planning": "Planning",
       "documents": "Documents",
@@ -33,6 +34,8 @@
       "closeout": "Handover"
     },
     "hubLinks": {
+      "portalAccess": "Portal users and passwords",
+      "contractorsList": "Contractor agreements",
       "agreementRegister": "Agreement register",
       "unpricedWork": "Unpriced work",
       "claims": "Claims and certification",

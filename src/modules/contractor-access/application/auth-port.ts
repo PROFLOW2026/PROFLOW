@@ -18,6 +18,8 @@ export interface ContractorAuthPort {
   /** Compensation when the database part of an invite fails. */
   deleteUser(authUserId: string): Promise<void>;
   setPassword(authUserId: string, password: string): Promise<void>;
+  /** Updates the synthetic sign-in email when a contractor username changes. */
+  updateUserEmail(authUserId: string, email: string): Promise<void>;
   /**
    * Disable = ban in Supabase Auth so no new session can be minted even with the right password.
    * Existing sessions are cut off by `sessions_revoked_at` in the session loader (the admin sign-out

@@ -11,6 +11,7 @@ describe('project work workspace path detection', () => {
     expect(isOwnerProjectWorkWorkspacePath(`/projects/${PROJECT_ID}/boards/abc`, PROJECT_ID)).toBe(true);
     expect(isOwnerProjectWorkWorkspacePath(`/he-IL/projects/${PROJECT_ID}/calendar`, PROJECT_ID)).toBe(true);
     expect(isOwnerProjectWorkWorkspacePath(`/projects/${PROJECT_ID}/timeline`, PROJECT_ID)).toBe(true);
+    expect(isOwnerProjectWorkWorkspacePath(`/projects/${PROJECT_ID}/site-meetings`, PROJECT_ID)).toBe(true);
   });
 
   it('keeps commercial project home and financial routes off project work workspace', () => {
@@ -18,8 +19,11 @@ describe('project work workspace path detection', () => {
     expect(isOwnerProjectWorkWorkspacePath(`/projects/${PROJECT_ID}/financials`, PROJECT_ID)).toBe(false);
   });
 
-  it('defers to execution workspace when both could match', () => {
-    expect(isOwnerExecutionWorkspacePath(`/projects/${PROJECT_ID}/boards`, PROJECT_ID)).toBe(true);
+  it('prefers project work over execution for shared UWM segments', () => {
     expect(isOwnerProjectWorkWorkspacePath(`/projects/${PROJECT_ID}/boards`, PROJECT_ID)).toBe(true);
+    expect(isOwnerExecutionWorkspacePath(`/projects/${PROJECT_ID}/boards`, PROJECT_ID)).toBe(false);
+    expect(isOwnerExecutionWorkspacePath(`/projects/${PROJECT_ID}/tasks`, PROJECT_ID)).toBe(false);
+    expect(isOwnerExecutionWorkspacePath(`/projects/${PROJECT_ID}/calendar`, PROJECT_ID)).toBe(false);
+    expect(isOwnerExecutionWorkspacePath(`/projects/${PROJECT_ID}/timeline`, PROJECT_ID)).toBe(false);
   });
 });

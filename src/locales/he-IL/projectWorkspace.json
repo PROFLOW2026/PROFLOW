@@ -25,6 +25,7 @@
     },
     "hubGroups": {
       "contracts": "חוזים",
+      "contractors": "קבלנים",
       "payments": "חשבונות ותשלומים",
       "planning": "תכנון",
       "documents": "מסמכים",
@@ -33,6 +34,8 @@
       "closeout": "מסירה"
     },
     "hubLinks": {
+      "portalAccess": "משתמשי פורטל וסיסמאות",
+      "contractorsList": "הסכמי קבלנים",
       "agreementRegister": "רשימת הסכמים",
       "unpricedWork": "עבודה לא מתומחרת",
       "claims": "חשבונות ואישור",

@@ -28,6 +28,7 @@ import {
   signInContractor,
   updateContractorGrantCapabilities,
   updateContractorProfile,
+  updateHomeContractorPrincipal,
 } from '@/modules/contractor-access';
 import { addProjectMember, PROJECT_CAPABILITIES as C } from '@/modules/project-team';
 import { AuthorizationError } from '@/shared/errors';
@@ -282,6 +283,28 @@ describe('contractor account lifecycle (Track C)', () => {
     );
     expect(afterProfile).toMatchObject({ displayName: 'Avi L.', phone: '052-0000000', locale: 'ar' });
 
+    await s.asOwner((ctx) =>
+      updateHomeContractorPrincipal(ctx, { auth }, {
+        projectId: s.otherProjectId,
+        principalId: second.principalId,
+        displayName: 'Avi Updated',
+        phone: '052-1111111',
+        contactEmail: 'avi@example.com',
+        username: 'avi.volt.new',
+      }),
+    );
+    expect(await signInContractor(svc(), { username: 'avi.volt.new', password: STRONG, ipHash: null })).toMatchObject({ ok: true });
+    expect(await signInContractor(svc(), { username: 'avi.volt', password: STRONG, ipHash: null })).toMatchObject({ ok: false });
+    const [orgUpdated] = await database.asService((db) =>
+      db.select().from(contractorPrincipals).where(eq(contractorPrincipals.id, second.principalId)),
+    );
+    expect(orgUpdated).toMatchObject({
+      displayName: 'Avi Updated',
+      phone: '052-1111111',
+      contactEmail: 'avi@example.com',
+      usernameNormalized: 'avi.volt.new',
+    });
+
     // Revoke sessions explicitly.
     await s.asOwner((ctx) => revokeContractorSessions(ctx, { projectId: s.otherProjectId, principalId: second.principalId }));
     expect(
@@ -297,7 +320,7 @@ describe('contractor account lifecycle (Track C)', () => {
       setContractorAccountDisabled(ctx, { auth }, { projectId: s.otherProjectId, principalId: second.principalId, disabled: true }),
     );
     expect(auth.users.get(secondUser.authUser.id)!.banned).toBe(true);
-    expect(await signInContractor(svc(), { username: 'avi.volt', password: STRONG, ipHash: null })).toEqual({
+    expect(await signInContractor(svc(), { username: 'avi.volt.new', password: STRONG, ipHash: null })).toEqual({
       ok: false,
       reason: 'invalid_credentials',
     });
@@ -311,7 +334,7 @@ describe('contractor account lifecycle (Track C)', () => {
     await s.asOwner((ctx) =>
       setContractorAccountDisabled(ctx, { auth }, { projectId: s.otherProjectId, principalId: second.principalId, disabled: false }),
     );
-    expect(await signInContractor(svc(), { username: 'avi.volt', password: STRONG, ipHash: null })).toMatchObject({ ok: true });
+    expect(await signInContractor(svc(), { username: 'avi.volt.new', password: STRONG, ipHash: null })).toMatchObject({ ok: true });
   });
 
   it('re-issued invites invalidate earlier links; expired / unknown tokens are rejected', async () => {

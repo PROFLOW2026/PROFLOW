@@ -1,25 +1,37 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import { useSearchParams } from 'next/navigation';
 import { pressableClassName } from '@/components/ui/pressable';
+import {
+  projectWorkNavHref,
+  projectWorkNavLinksForSurface,
+  projectWorkNavSegmentForActiveCheck,
+} from '@/modules/project-workspace/domain/project-work-nav-links';
 import { Link, usePathname } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
 
-const PROJECT_WORK_ROUTES = [
-  { segment: 'tasks', labelKey: 'tasks' as const },
-  { segment: 'boards', labelKey: 'boards' as const },
-  { segment: 'calendar', labelKey: 'calendar' as const },
-  { segment: 'timeline', labelKey: 'timeline' as const },
-] as const;
-
-function routeIsActive(pathname: string, projectId: string, segment: string): boolean {
-  const base = `/projects/${projectId}/${segment}`;
+function segmentIsActive(pathname: string, projectRoot: string, segment: string): boolean {
+  const base = `${projectRoot}/${segment}`;
   return pathname === base || pathname.startsWith(`${base}/`);
 }
 
-export function ProjectWorkNavTabs({ projectId }: { readonly projectId: string }) {
+export function ProjectWorkNavTabs({
+  projectId,
+  surfaceRoot,
+}: {
+  readonly projectId: string;
+  /** e.g. `/projects/{id}` or `/employee/projects/{id}` */
+  readonly surfaceRoot?: string;
+}) {
+  const projectRoot = surfaceRoot ?? `/projects/${projectId}`;
   const t = useTranslations('tasks');
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const tab = searchParams.get('tab');
+  const onProjectRoot = pathname === projectRoot || pathname === `${projectRoot}/`;
+
+  const links = projectWorkNavLinksForSurface(projectRoot);
 
   return (
     <div
@@ -28,12 +40,23 @@ export function ProjectWorkNavTabs({ projectId }: { readonly projectId: string }
         '[scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
       )}
     >
-      {PROJECT_WORK_ROUTES.map(({ segment, labelKey }) => {
-        const href = `/projects/${projectId}/${segment}`;
-        const selected = routeIsActive(pathname, projectId, segment);
+      {links.map((link) => {
+        const labelKey = link.labelKey;
+        const href = projectWorkNavHref(projectRoot, link);
+        let selected = false;
+
+        if (link.kind === 'documentsTab' && !projectRoot.startsWith('/employee/')) {
+          selected = onProjectRoot && tab === 'documents';
+        } else {
+          const segment = projectWorkNavSegmentForActiveCheck(projectRoot, link);
+          if (segment) {
+            selected = segmentIsActive(pathname, projectRoot, segment);
+          }
+        }
+
         return (
           <Link
-            key={segment}
+            key={labelKey}
             href={href}
             scroll={false}
             prefetch={false}

@@ -56,13 +56,12 @@ function resolveHref(
 }
 
 /**
- * Developer / GC chrome only. Subcontract agreements and any other role mix do not open it.
- * `hasSubcontractAgreements` is ignored and kept so existing callers compile.
+ * Developer / GC chrome only (REG-012): the seven hubs in `execution-hubs.ts` appear when the
+ * project profile is explicit developer + general contractor. Subcontract agreements alone, or
+ * any other role mix, do not open execution nav — use commercial contractor routes instead.
+ * `hasSubcontractAgreements` on {@link ExecutionNavInput} is legacy for Track S catalog callers.
  */
-export function shouldShowExecutionNavGroup(input: Pick<
-  ExecutionNavInput,
-  'deliveryProfile' | 'hasSubcontractAgreements'
->): boolean {
+export function shouldShowExecutionNavGroup(input: Pick<ExecutionNavInput, 'deliveryProfile'>): boolean {
   return isDeveloperGcMode(input.deliveryProfile);
 }
 

@@ -17,17 +17,19 @@ const HUB_CAPABILITY = Object.fromEntries(EXECUTION_HUBS.map((hub) => [hub.key, 
   (typeof EXECUTION_HUBS)[number]['anyOf']
 >;
 
-type LinkHub = Extract<ExecutionHubKey, 'payments' | 'planning' | 'quality'>;
+type LinkHub = Extract<ExecutionHubKey, 'contractors' | 'payments' | 'planning' | 'quality'>;
 
 /** Payments, planning, and quality hubs. Child links only, no subcontract loaders. */
 export async function ExecutionHubLinks({
   hub,
   surfaceRoot,
   params,
+  compact = false,
 }: {
   readonly hub: LinkHub;
   readonly surfaceRoot?: string;
   readonly params: Promise<{ projectId: string }>;
+  readonly compact?: boolean;
 }) {
   const { projectId } = await params;
   await requireDeveloperGcExecutionPage(projectId);
@@ -52,6 +54,6 @@ export async function ExecutionHubLinks({
     ) : null;
 
   return (
-    <ExecutionHubFrame hub={hub} root={root} groups={groupHubChildren(children)} footer={footer} />
+    <ExecutionHubFrame hub={hub} root={root} groups={groupHubChildren(children)} footer={footer} compact={compact} />
   );
 }

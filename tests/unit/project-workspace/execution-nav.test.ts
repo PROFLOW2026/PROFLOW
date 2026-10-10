@@ -16,6 +16,19 @@ import {
 const developerGc = buildDeliveryProfile({ operatingRoles: ['developer', 'general_contractor'] });
 
 describe('developer / GC execution hubs', () => {
+  it('registers exactly seven top-level execution hubs', () => {
+    expect(EXECUTION_HUB_KEYS).toHaveLength(7);
+    expect(EXECUTION_HUB_KEYS).toEqual([
+      'overview',
+      'contractors',
+      'contracts',
+      'payments',
+      'planning',
+      'quality',
+      'team',
+    ]);
+  });
+
   it('keeps the registered route catalog static', () => {
     expect(EXECUTION_NAV_PRIORITY.indexOf('structure')).toBeLessThan(EXECUTION_NAV_PRIORITY.indexOf('team'));
     expect(executionRoutesMissingPages()).not.toContain('contractors');
@@ -24,30 +37,26 @@ describe('developer / GC execution hubs', () => {
 
   it('opens the layer only for an explicit developer + general contractor mode', () => {
     expect(resolveManagementMode(developerGc)).toBe('developer_gc');
-    expect(shouldShowExecutionNavGroup({ deliveryProfile: developerGc, hasSubcontractAgreements: false })).toBe(true);
-    expect(shouldShowExecutionNavGroup({ deliveryProfile: null, hasSubcontractAgreements: true })).toBe(false);
+    expect(shouldShowExecutionNavGroup({ deliveryProfile: developerGc })).toBe(true);
+    expect(shouldShowExecutionNavGroup({ deliveryProfile: null })).toBe(false);
     expect(
       shouldShowExecutionNavGroup({
         deliveryProfile: buildDeliveryProfile({ operatingRoles: ['developer'] }),
-        hasSubcontractAgreements: true,
       }),
     ).toBe(false);
     expect(
       shouldShowExecutionNavGroup({
         deliveryProfile: buildDeliveryProfile({ operatingRoles: ['subcontractor'] }),
-        hasSubcontractAgreements: false,
       }),
     ).toBe(false);
     expect(
       shouldShowExecutionNavGroup({
         deliveryProfile: buildDeliveryProfile({ operatingRoles: ['project_management'] }),
-        hasSubcontractAgreements: false,
       }),
     ).toBe(false);
     expect(
       shouldShowExecutionNavGroup({
         deliveryProfile: buildDeliveryProfile({ operatingRoles: [] }),
-        hasSubcontractAgreements: false,
       }),
     ).toBe(false);
   });

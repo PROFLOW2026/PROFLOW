@@ -37,7 +37,7 @@ import {
   resolveProjectFilesTabVisible,
 } from './project-tab-order';
 import { resolveProjectExperienceProfile } from '@/modules/tenancy';
-import { getShellContext } from '@/shared/auth/session';
+import { getShellContextForProject } from '@/shared/auth/session';
 import { localeDirection } from '@/shared/i18n/config';
 import { ProjectHubSectionNav } from './project-hub-section-nav';
 
@@ -287,12 +287,13 @@ async function ModuleTabWithHubNav(input: {
   cycleId?: string;
 }) {
   const { hub, section } = resolveHubFromTabParam(input.activeTab);
-  const [locale, shell] = await Promise.all([getLocale(), getShellContext()]);
+  const [locale, shell] = await Promise.all([getLocale(), getShellContextForProject(input.projectId)]);
   const direction = localeDirection(locale);
+
+  const can = (permission: PermissionKey) => shell?.permissions.has(permission) ?? false;
 
   return withOrgContext(async (context) => {
     const modules = await getModuleVisibility(context);
-    const can = (permission: PermissionKey) => context.permissions.has(permission);
     const detail = await loadProjectDetail(input.projectId, false);
     const experienceProfile = resolveProjectExperienceProfile({
       stored: detail.project.experienceProfile ?? null,

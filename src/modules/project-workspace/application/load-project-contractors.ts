@@ -6,6 +6,7 @@ import { PROJECT_CAPABILITIES as C } from '@/modules/project-team/domain/capabil
 import { listProjectAgreementsOperational, loadAgreementValuePositionsBatch } from '@/modules/subcontracts';
 import type { AgreementOperationalView } from '@/modules/subcontracts/domain/types';
 import type { OrgContext } from '@/shared/auth/context';
+import { employeeProjectExecutionRouteMounted } from '../domain/execution-route-catalog';
 import { resolveProjectSurfaceRoot } from '../domain/project-surface-path';
 
 export interface ContractorPortalAccessSummary {
@@ -26,7 +27,7 @@ export interface ProjectContractorListView {
   readonly items: readonly ProjectContractorListItem[];
   readonly canViewFinancial: boolean;
   readonly canManagePortalAccess: boolean;
-  readonly contractorAccessHref: string;
+  readonly contractorAccessHref: string | null;
 }
 
 export function contractorAgreementDetailPath(
@@ -80,7 +81,10 @@ export async function loadProjectContractorList(
   const canViewFinancial = held.has(C.CONTRACT_FINANCIAL_VIEW);
   const canManagePortalAccess = held.has(C.CONTRACTOR_INVITE) || held.has(C.EXTERNAL_ACCESS_MANAGE);
   const surfaceRoot = resolveProjectSurfaceRoot(projectId, options?.surfaceRoot);
-  const contractorAccessHref = `${surfaceRoot}/contractor-access`;
+  const contractorAccessHref =
+    surfaceRoot.startsWith('/employee/') && !employeeProjectExecutionRouteMounted('contractor-access')
+      ? null
+      : `${surfaceRoot}/contractor-access`;
 
   const agreements = await listProjectAgreementsOperational(context.db, context.organizationId, projectId);
   const agreementIds = agreements.map((agreement) => agreement.id);

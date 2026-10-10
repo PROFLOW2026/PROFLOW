@@ -38,6 +38,21 @@ export async function loadProjectDetailInContext(
   });
 }
 
+/** Name + document number for operational project shells (no contract/financial chrome). */
+export const loadProjectLayoutIdentity = cache(async (projectId: string) =>
+  withProjectOrgContext(projectId, async (context) => {
+    const project = await findProjectById(context.db, context.organizationId, projectId);
+    if (!project) return null;
+    return {
+      name: project.name,
+      documentNumber: project.documentNumber ?? '',
+      workKind: project.workKind,
+      status: project.status,
+      experienceProfile: project.experienceProfile,
+    };
+  }).catch(() => null),
+);
+
 /** Lightweight project row for module-tab soft-nav (skips contract/events chrome). */
 export const loadProjectTabMeta = cache(async (projectId: string) =>
   withProjectOrgContext(projectId, async (context) => {

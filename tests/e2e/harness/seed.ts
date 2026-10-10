@@ -263,6 +263,12 @@ function harnessContractorAuth(): ContractorAuthPort {
       user.password = password;
       registerStubAuthUser({ id: authUserId, email: user.email, displayName: user.displayName }, password);
     },
+    async updateUserEmail(authUserId, email) {
+      const user = users.get(authUserId);
+      if (!user) throw new Error('harness contractor auth user missing');
+      user.email = email;
+      registerStubAuthUser({ id: authUserId, email, displayName: user.displayName }, user.password);
+    },
     async setBanned() {},
     async signInWithPassword() {
       return { ok: false, reason: 'invalid_credentials' };

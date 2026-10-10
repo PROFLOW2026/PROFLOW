@@ -588,7 +588,9 @@
       "tasks": "Tasks",
       "boards": "Board",
       "calendar": "Calendar",
-      "timeline": "Timeline"
+      "timeline": "Timeline",
+      "files": "Project files",
+      "meetings": "Project meetings"
     }
   },
   "workFilters": {

@@ -11,6 +11,7 @@ import {
   revokeContractorSessions,
   setContractorAccountDisabled,
   updateContractorGrantCapabilities,
+  updateHomeContractorPrincipal,
 } from '@/modules/contractor-access';
 import {
   contractorAccessDeps,
@@ -23,6 +24,7 @@ import {
   inviteContractorSchema,
   principalRefSchema,
   updateGrantSchema,
+  updateHomePrincipalSchema,
 } from '@/modules/contractor-access/validation/schemas';
 import { withOrgContext } from '@/shared/auth/session';
 import { isRedirectError } from '@/modules/workforce/application/map-workforce-action-error';
@@ -120,6 +122,21 @@ export async function revokeContractorGrantAction(
 }
 
 type PrincipalCommand = 'reissue_invite' | 'issue_reset' | 'revoke_sessions' | 'disable' | 'enable';
+
+export async function updateContractorPrincipalProfileAction(
+  _prev: ContractorAccessActionState,
+  formData: FormData,
+): Promise<ContractorAccessActionState> {
+  const parsed = updateHomePrincipalSchema.safeParse(formToObject(formData));
+  if (!parsed.success) {
+    const t = await getTranslations('contractorAccess');
+    return { error: t('errors.validation') };
+  }
+  return run(async (t) => {
+    await withOrgContext((context) => updateHomeContractorPrincipal(context, contractorAccessDeps(), parsed.data));
+    return { success: t('manage.actions.profileSaved') };
+  });
+}
 
 export async function contractorPrincipalCommandAction(
   _prev: ContractorAccessActionState,

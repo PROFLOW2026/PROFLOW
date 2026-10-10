@@ -21,11 +21,7 @@ export async function loadProjectExecutionNav(
     findProjectDeliveryProfile(context, projectId),
   ]);
 
-  const showGroup = shouldShowExecutionNavGroup({
-    deliveryProfile,
-    hasSubcontractAgreements: false,
-  });
-  if (!showGroup) {
+  if (!shouldShowExecutionNavGroup({ deliveryProfile })) {
     return { showGroup: false, links: [] };
   }
 

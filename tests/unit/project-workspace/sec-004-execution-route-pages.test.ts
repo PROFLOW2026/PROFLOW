@@ -13,9 +13,12 @@ function read(rel: string): string {
 
 describe('SEC-004 execution hub route gates', () => {
   it('execution dashboard screen calls requireDeveloperGcExecutionPage', () => {
-    expect(read('src/app/[locale]/(app)/projects/[projectId]/execution/screen.tsx')).toContain(
-      'requireDeveloperGcExecutionPage',
-    );
+    const src = read('src/app/[locale]/(app)/projects/[projectId]/execution/screen.tsx');
+    expect(src).toContain('requireDeveloperGcExecutionPage');
+    expect(src).not.toContain('execution.financialTitle');
+    expect(src).not.toContain('loadExecutionPayableTotals');
+    expect(src).toContain('${base}/cost-control');
+    expect(src).toContain('${base}/contractor-payments');
   });
 
   it('cost-control screen calls requireDeveloperGcExecutionPage', () => {

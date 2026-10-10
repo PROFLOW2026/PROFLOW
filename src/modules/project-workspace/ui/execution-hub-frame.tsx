@@ -37,19 +37,28 @@ export async function ExecutionHubFrame({
   footer,
   stages,
   titles,
+  compact = false,
 }: {
-  readonly hub: Exclude<ExecutionHubKey, 'overview' | 'contractors' | 'team'>;
+  readonly hub: Exclude<ExecutionHubKey, 'overview' | 'team'>;
   readonly root: string;
   readonly groups: ReadonlyMap<string, readonly (ExecutionHubChildLink & { readonly href: string })[]>;
   readonly footer?: ReactNode;
   readonly stages?: readonly ExecutionHubStageRow[];
   readonly titles?: ReadonlyMap<string, string>;
+  readonly compact?: boolean;
 }) {
   const t = await getTranslations('projectWorkspace');
 
   return (
     <div className="flex min-w-0 flex-col gap-6">
-      <PageHeader title={t(`execution.hubs.${hub}` as never)} description={t(`execution.hubDescriptions.${hub}` as never)} />
+      {compact ? null : (
+        <PageHeader
+          title={t(`execution.hubs.${hub}` as never)}
+          description={
+            hub === 'contractors' ? undefined : t(`execution.hubDescriptions.${hub}` as never)
+          }
+        />
+      )}
 
       {hub === 'payments' ? (
         <p className="text-sm text-[var(--pf-text-secondary)]">{t('execution.financialHint')}</p>

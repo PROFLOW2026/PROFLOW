@@ -1,6 +1,10 @@
 import { EXECUTION_HUBS, EXECUTION_HUB_CHILDREN } from './execution-hubs';
+import { PROJECT_WORK_WORKSPACE_SEGMENTS } from './project-work-workspace-path';
 
 const LOCALE_PREFIXES = new Set(['he-IL', 'he', 'en', 'ar', 'ru']);
+
+/** Shared UWM routes always use project-work layout, never execution layout. */
+const PROJECT_WORK_SEGMENT_SET = new Set<string>(PROJECT_WORK_WORKSPACE_SEGMENTS);
 
 const EXTRA_EXECUTION_SEGMENTS = [
   'contractors',
@@ -9,15 +13,17 @@ const EXTRA_EXECUTION_SEGMENTS = [
   'structure',
   'contractor-access',
   'tenders',
-  'timeline',
-  'boards',
 ] as const;
 
 function buildExecutionSegmentSet(): ReadonlySet<string> {
   const segments = new Set<string>();
   for (const hub of EXECUTION_HUBS) segments.add(hub.path);
-  for (const child of EXECUTION_HUB_CHILDREN) segments.add(child.path);
-  for (const segment of EXTRA_EXECUTION_SEGMENTS) segments.add(segment);
+  for (const child of EXECUTION_HUB_CHILDREN) {
+    if (!PROJECT_WORK_SEGMENT_SET.has(child.path)) segments.add(child.path);
+  }
+  for (const segment of EXTRA_EXECUTION_SEGMENTS) {
+    if (!PROJECT_WORK_SEGMENT_SET.has(segment)) segments.add(segment);
+  }
   return segments;
 }
 
@@ -50,11 +56,13 @@ export function isCommercialProjectHomePath(pathname: string, projectId: string)
 export function isOwnerExecutionWorkspacePath(pathname: string, projectId: string): boolean {
   const segment = firstSegmentAfterProject(pathname, `/projects/${projectId}`);
   if (!segment) return false;
+  if (PROJECT_WORK_SEGMENT_SET.has(segment)) return false;
   return EXECUTION_SEGMENTS.has(segment);
 }
 
 export function isEmployeeExecutionWorkspacePath(pathname: string, projectId: string): boolean {
   const segment = firstSegmentAfterProject(pathname, `/employee/projects/${projectId}`);
   if (!segment) return false;
+  if (PROJECT_WORK_SEGMENT_SET.has(segment) || segment === 'board') return false;
   return EXECUTION_SEGMENTS.has(segment);
 }

@@ -88,6 +88,11 @@ export function createFakeContractorAuth(): FakeContractorAuth {
       if (!user) throw new Error('unknown auth user');
       user.password = password;
     },
+    async updateUserEmail(authUserId, email) {
+      const user = users.get(authUserId);
+      if (!user) throw new Error('unknown auth user');
+      user.email = email;
+    },
     async setBanned(authUserId, banned) {
       const user = users.get(authUserId);
       if (user) user.banned = banned;

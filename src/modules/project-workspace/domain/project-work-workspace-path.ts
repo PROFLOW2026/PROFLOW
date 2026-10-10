@@ -6,6 +6,8 @@ export const PROJECT_WORK_WORKSPACE_SEGMENTS = [
   'boards',
   'calendar',
   'timeline',
+  /** Linked from project-work nav (meetings); layout uses work chrome, not execution hubs. */
+  'site-meetings',
 ] as const;
 
 const PROJECT_WORK_SEGMENT_SET = new Set<string>(PROJECT_WORK_WORKSPACE_SEGMENTS);
@@ -32,4 +34,16 @@ export function isOwnerProjectWorkWorkspacePath(pathname: string, projectId: str
   const segment = firstSegmentAfterProject(pathname, `/projects/${projectId}`);
   if (!segment) return false;
   return PROJECT_WORK_SEGMENT_SET.has(segment);
+}
+
+const EMPLOYEE_PROJECT_WORK_SEGMENT_SET = new Set<string>([
+  ...PROJECT_WORK_WORKSPACE_SEGMENTS,
+  'board',
+]);
+
+/** True on employee project-scoped task routes (tasks, board, calendar). */
+export function isEmployeeProjectWorkWorkspacePath(pathname: string, projectId: string): boolean {
+  const segment = firstSegmentAfterProject(pathname, `/employee/projects/${projectId}`);
+  if (!segment) return false;
+  return EMPLOYEE_PROJECT_WORK_SEGMENT_SET.has(segment);
 }

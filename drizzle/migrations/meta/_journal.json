@@ -1233,6 +1233,13 @@
                         "when":  1789714800000,
                         "tag":  "0177_tasks_uwm_scale_indexes",
                         "breakpoints":  true
+                    },
+                    {
+                        "idx":  176,
+                        "version":  "7",
+                        "when":  1789714860000,
+                        "tag":  "0178_contractor_username_org_update",
+                        "breakpoints":  true
                     }
                 ]
 }

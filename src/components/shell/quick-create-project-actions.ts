@@ -22,10 +22,7 @@ export async function loadProjectQuickCreateActions(
         loadProjectCapabilities(context, projectId),
         findProjectDeliveryProfile(context, projectId),
       ]);
-      const showGcActions = shouldShowExecutionNavGroup({
-        deliveryProfile,
-        hasSubcontractAgreements: false,
-      });
+      const showGcActions = shouldShowExecutionNavGroup({ deliveryProfile });
       if (!showGcActions) return [];
       return buildProjectQuickCreateActions(projectId, held, root);
     });

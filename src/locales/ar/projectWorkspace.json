@@ -25,6 +25,7 @@
     },
     "hubGroups": {
       "contracts": "العقود",
+      "contractors": "المقاولون",
       "payments": "المطالبات والمدفوعات",
       "planning": "التخطيط",
       "documents": "المستندات",
@@ -33,6 +34,8 @@
       "closeout": "التسليم"
     },
     "hubLinks": {
+      "portalAccess": "مستخدمو البوابة وكلمات المرور",
+      "contractorsList": "اتفاقيات المقاولين",
       "agreementRegister": "سجل الاتفاقيات",
       "unpricedWork": "عمل غير مسعّر",
       "claims": "المطالبات والاعتماد",

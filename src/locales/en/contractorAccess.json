@@ -251,7 +251,10 @@
       "saved": "Saved.",
       "revoked": "Access revoked.",
       "disabled": "Account disabled.",
-      "enabled": "Account enabled."
+      "enabled": "Account enabled.",
+      "editProfile": "Edit account details",
+      "profileSaved": "Account details saved.",
+      "usernameChangeHint": "The contractor signs in with this username. Changing it does not reset the password."
     }
   }
 }

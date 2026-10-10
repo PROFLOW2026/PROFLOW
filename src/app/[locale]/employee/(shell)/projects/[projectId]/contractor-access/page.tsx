@@ -4,8 +4,10 @@ import { Alert } from '@/components/ui/alert';
 import { PageHeader } from '@/components/ui/page-header';
 import { getContractorAccessOverview, loadContractorAccessAuthority } from '@/modules/contractor-access';
 import { ContractorAccessManager } from '@/modules/contractor-access/ui/contractor-access-manager';
-import { withOrgContext } from '@/shared/auth/session';
+import { PROJECT_CAPABILITIES } from '@/modules/project-team';
+import { requireProjectCapabilityPage } from '@/modules/project-team/server';
 import { ExecutionHubLinks } from '@/modules/project-workspace/ui/execution-hub-links';
+import { withOrgContext } from '@/shared/auth/session';
 import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 import {
   contractorPrincipalCommandAction,
@@ -22,8 +24,17 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   return { title: t('manage.title') };
 }
 
-export default async function ProjectContractorAccessPage({ params }: { params: Promise<{ projectId: string }> }) {
+export default async function EmployeeProjectContractorAccessPage({
+  params,
+}: {
+  params: Promise<{ projectId: string }>;
+}) {
   const { projectId } = await params;
+  await requireProjectCapabilityPage(
+    projectId,
+    [PROJECT_CAPABILITIES.CONTRACTOR_INVITE, PROJECT_CAPABILITIES.EXTERNAL_ACCESS_MANAGE],
+    { mode: 'any' },
+  );
   const t = await getTranslations('contractorAccess');
 
   const overview = await withOrgContext(async (context) => {
@@ -39,14 +50,14 @@ export default async function ProjectContractorAccessPage({ params }: { params: 
         {overview ? (
           <>
             <Alert tone="info">{t('manage.whereHint')}</Alert>
-          <ContractorAccessManager
-            projectId={projectId}
-            overview={overview}
-            actions={{
-              invite: inviteContractorAction,
-              grant: grantContractorAccessAction,
-              update: updateContractorGrantAction,
-              revoke: revokeContractorGrantAction,
+            <ContractorAccessManager
+              projectId={projectId}
+              overview={overview}
+              actions={{
+                invite: inviteContractorAction,
+                grant: grantContractorAccessAction,
+                update: updateContractorGrantAction,
+                revoke: revokeContractorGrantAction,
               principalCommand: contractorPrincipalCommandAction,
               updatePrincipal: updateContractorPrincipalProfileAction,
             }}
@@ -55,7 +66,14 @@ export default async function ProjectContractorAccessPage({ params }: { params: 
         ) : (
           <Alert tone="warning">{t('manage.forbidden')}</Alert>
         )}
-        {overview ? <ExecutionHubLinks hub="contractors" params={params} compact /> : null}
+        {overview ? (
+          <ExecutionHubLinks
+            hub="contractors"
+            params={params}
+            surfaceRoot={`/employee/projects/${projectId}`}
+            compact
+          />
+        ) : null}
       </div>
     </WithAppClientMessages>
   );
