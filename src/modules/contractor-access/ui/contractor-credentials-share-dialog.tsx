@@ -49,7 +49,7 @@ function resolveMessageLocale(raw: string | null | undefined, fallback: string):
   return 'he-IL';
 }
 
-export function ContractorCredentialsShareDialog({
+function ContractorCredentialsShareDialogBody({
   open,
   onOpenChange,
   payload,
@@ -57,24 +57,21 @@ export function ContractorCredentialsShareDialog({
 }: {
   readonly open: boolean;
   readonly onOpenChange: (open: boolean) => void;
-  readonly payload: ContractorShareDialogPayload | null;
+  readonly payload: ContractorShareDialogPayload;
   readonly organizationName: string;
 }) {
   const tUi = useTranslations('contractorAccess.manage.shareDialog');
   const tCommon = useTranslations('common');
   const toast = useOptionalToast();
   const [origin, setOrigin] = useState('');
-  const [messageLocale, setMessageLocale] = useState<Locale>('he-IL');
+  const [messageLocale, setMessageLocale] = useState<Locale>(() =>
+    resolveMessageLocale(payload.locale, 'he-IL'),
+  );
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => setOrigin(window.location.origin));
     return () => cancelAnimationFrame(frame);
   }, []);
-
-  useEffect(() => {
-    if (!payload) return;
-    setMessageLocale(resolveMessageLocale(payload.locale, 'he-IL'));
-  }, [payload]);
 
   const linkPath = useMemo(() => {
     if (!payload) return '';
@@ -109,8 +106,6 @@ export function ContractorCredentialsShareDialog({
     const t = contractorAccessCopyTranslator(messageLocale);
     return buildContractorShareEmailSubject(payload.kind, organizationName, t);
   }, [payload, messageLocale, organizationName]);
-
-  if (!payload) return null;
 
   const title = payload.kind === 'invite' ? tUi('titleInvite') : tUi('titleReset');
   const whatsAppHref = buildWhatsAppShareUrl(normalizeWhatsAppPhone(payload.phone), message);
@@ -198,5 +193,29 @@ export function ContractorCredentialsShareDialog({
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+export function ContractorCredentialsShareDialog({
+  open,
+  onOpenChange,
+  payload,
+  organizationName,
+}: {
+  readonly open: boolean;
+  readonly onOpenChange: (open: boolean) => void;
+  readonly payload: ContractorShareDialogPayload | null;
+  readonly organizationName: string;
+}) {
+  if (!payload) return null;
+
+  return (
+    <ContractorCredentialsShareDialogBody
+      key={`${payload.kind}:${payload.path}:${payload.expiresAt}`}
+      open={open}
+      onOpenChange={onOpenChange}
+      payload={payload}
+      organizationName={organizationName}
+    />
   );
 }
