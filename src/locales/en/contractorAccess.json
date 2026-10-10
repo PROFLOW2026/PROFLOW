@@ -113,6 +113,8 @@
   },
   "manage": {
     "title": "Contractor access",
+    "navTitle": "Portal users & passwords",
+    "whereHint": "Open a project → Execution → Contractors → \"Manage portal access\", or use the \"Portal users & passwords\" tab next to the contractors list.",
     "subtitle": "Invite subcontractor users, decide exactly what each person can see and do, and revoke access at any time.",
     "forbidden": "You need the \"Invite contractors\" or \"Manage external access\" capability on this project.",
     "financialWarning": "Financial permissions let the contractor see contract values, claims or payments of its own agreements.",
@@ -207,6 +209,8 @@
     "list": {
       "title": "Contractor users with access to this project",
       "empty": "No contractor users yet.",
+      "vendorCompanies": "Contractor company",
+      "contactPerson": "Contact person",
       "lastSignIn": "Last sign-in:",
       "never": "never",
       "status": {

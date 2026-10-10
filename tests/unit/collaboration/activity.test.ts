@@ -30,6 +30,7 @@ describe('activity feed (pure)', () => {
     );
     expect(item.redacted).toBe(true);
     expect(item.title).toBeNull();
+    expect(item.messageCatalog).toBe('collaboration');
   });
 
   it('maps event types to message keys', () => {

@@ -41,11 +41,25 @@ function buildHasMessage(messages: Record<string, unknown>): (key: string) => bo
   };
 }
 
+function buildHasSettingsAction(messages: Record<string, unknown>): (key: string) => boolean {
+  const settings = (messages.settings ?? {}) as Record<string, unknown>;
+  const activity = (settings.activity ?? {}) as Record<string, unknown>;
+  const actions = (activity.actions ?? {}) as Record<string, unknown>;
+  return (key: string) => {
+    const parts = key.split('.');
+    if (parts[0] !== 'actions' || parts.length !== 3) return false;
+    const group = actions[parts[1]!];
+    if (!group || typeof group !== 'object') return false;
+    return typeof (group as Record<string, unknown>)[parts[2]!] === 'string';
+  };
+}
+
 export async function ActivityFeed(props: ActivityFeedProps) {
   const t = await getTranslations('collaboration');
   const messages = (await getMessages()) as Record<string, unknown>;
   const collab = (messages.collaboration ?? {}) as Record<string, unknown>;
   const hasMessage = buildHasMessage(collab);
+  const hasSettingsAction = buildHasSettingsAction(messages);
 
   const filters = {
     vendorId: props.vendorId ?? undefined,
@@ -63,6 +77,7 @@ export async function ActivityFeed(props: ActivityFeedProps) {
         projectId: props.projectId,
         limit: props.limit,
         hasMessage,
+        hasSettingsAction,
       });
     } catch {
       notFound();
@@ -85,6 +100,7 @@ export async function ActivityFeed(props: ActivityFeedProps) {
         filters,
         limit: props.limit,
         hasMessage,
+        hasSettingsAction,
       });
     } catch (error) {
       if (error instanceof AuthorizationError) return null;

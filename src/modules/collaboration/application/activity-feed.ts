@@ -33,6 +33,8 @@ export interface LoadActivityInput {
   readonly limit?: number | null;
   /** Locale catalog probe: true when `collaboration.<key>` has a dedicated sentence. */
   readonly hasMessage?: (key: string) => boolean;
+  /** True when `settings.activity.<key>` exists (typically `actions.*`). */
+  readonly hasSettingsAction?: (key: string) => boolean;
 }
 
 function page(
@@ -62,7 +64,8 @@ export async function loadProjectActivity(context: OrgContext, input: LoadActivi
     limit: limit + 1,
   });
   const hasMessage = input.hasMessage ?? (() => false);
-  const result = page(records, limit, (record) => toActivityItem(record, held, hasMessage));
+  const hasSettingsAction = input.hasSettingsAction ?? (() => false);
+  const result = page(records, limit, (record) => toActivityItem(record, held, hasMessage, hasSettingsAction));
   const visible = result.items.filter((item) => !item.redacted);
   const userIds = visible.flatMap((item) => (item.actor.type === 'internal' && item.actor.id ? [item.actor.id] : []));
   const principalIds = visible.flatMap((item) => (item.actor.type === 'external' && item.actor.id ? [item.actor.id] : []));
@@ -99,9 +102,10 @@ export async function loadContractorActivity(
     limit: limit + 1,
   });
   const hasMessage = input.hasMessage ?? (() => false);
+  const hasSettingsAction = input.hasSettingsAction ?? (() => false);
   const empty = new Set<string>();
   const result = page(records, limit, (record) => {
-    const item = toActivityItem(record, empty, hasMessage);
+    const item = toActivityItem(record, empty, hasMessage, hasSettingsAction);
     return {
       ...item,
       href: record.entityType === 'task' ? `/contractor/projects/${input.projectId}/tasks/${record.entityId}` : null,

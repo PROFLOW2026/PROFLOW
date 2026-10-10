@@ -14,7 +14,7 @@ export type ExecutionNavGroupId = (typeof EXECUTION_NAV_GROUP_IDS)[number];
 const GROUP_KEYS: Readonly<Record<ExecutionNavGroupId, readonly ExecutionNavLinkKey[]>> = {
   overview: ['executionDashboard', 'structure', 'team'],
   execution: ['schedule', 'coordination', 'tasks', 'activity', 'siteLog', 'siteMeetings', 'instructions'],
-  contractors: ['contractors', 'tenders', 'contractorAccess'],
+  contractors: ['contractors', 'contractorAccess', 'tenders'],
   commercial: ['claims', 'unpricedWork', 'deductions', 'costControl'],
   quality: [
     'plans',

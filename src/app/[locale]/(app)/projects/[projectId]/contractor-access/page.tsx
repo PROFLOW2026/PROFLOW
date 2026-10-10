@@ -35,6 +35,8 @@ export default async function ProjectContractorAccessPage({ params }: { params: 
       <div className="flex flex-col gap-6">
         <PageHeader title={t('manage.title')} description={t('manage.subtitle')} />
         {overview ? (
+          <>
+            <Alert tone="info">{t('manage.whereHint')}</Alert>
           <ContractorAccessManager
             projectId={projectId}
             overview={overview}
@@ -46,6 +48,7 @@ export default async function ProjectContractorAccessPage({ params }: { params: 
               principalCommand: contractorPrincipalCommandAction,
             }}
           />
+          </>
         ) : (
           <Alert tone="warning">{t('manage.forbidden')}</Alert>
         )}

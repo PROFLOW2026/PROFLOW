@@ -33,7 +33,7 @@ export type ExecutionNavLinkKey =
 export type ExecutionNavLabelRef =
   | { readonly namespace: 'projectProfile'; readonly key: 'page.title' }
   | { readonly namespace: 'projectTeam'; readonly key: 'page.title' }
-  | { readonly namespace: 'contractorAccess'; readonly key: 'manage.title' }
+  | { readonly namespace: 'contractorAccess'; readonly key: 'manage.title' | 'manage.navTitle' }
   | { readonly namespace: 'vendors'; readonly key: 'subcontracts.sectionTitle' }
   | { readonly namespace: 'projectWorkspace'; readonly key: 'execution.schedule' }
   | { readonly namespace: 'projectWorkspace'; readonly key: 'execution.tasks' }
@@ -141,7 +141,7 @@ export const EXECUTION_ROUTE_CATALOG: readonly ExecutionRouteDefinition[] = [
     pageExists: projectRoutePageExists('contractor-access'),
     required: [C.CONTRACTOR_INVITE, C.EXTERNAL_ACCESS_MANAGE],
     mode: 'any',
-    label: { namespace: 'contractorAccess', key: 'manage.title' },
+    label: { namespace: 'contractorAccess', key: 'manage.navTitle' },
   },
   {
     key: 'contractors',

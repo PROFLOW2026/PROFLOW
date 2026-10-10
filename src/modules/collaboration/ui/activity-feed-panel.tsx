@@ -2,6 +2,7 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { humanizeEventType } from '../domain/activity';
+import { resolveDomainEventTypeForLabel } from '../domain/activity-event-label';
 import type { ActivityFeedPage } from '../application/activity-feed';
 import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
 import { Link } from '@/shared/i18n/navigation';
@@ -19,6 +20,7 @@ export async function ActivityFeedPanel({
 }) {
   const locale = await getLocale();
   const t = await getTranslations('collaboration');
+  const tSettingsActivity = await getTranslations('settings.activity');
   const dt = intlDateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' });
 
   if (page.items.length === 0) {
@@ -49,13 +51,17 @@ export async function ActivityFeedPanel({
             const message = item.redacted
               ? financialRedacted
               : item.messageKey === 'activity.events.generic'
-                ? t('activity.events.generic', { type: humanizeEventType(item.eventType) })
-                : t(item.messageKey as 'activity.events.task_external_assigned', {
-                    title: item.title ?? '',
-                    outcome: item.detail?.outcome ?? '',
-                    from: item.detail?.fromStatus ?? '',
-                    to: item.detail?.toStatus ?? '',
-                  });
+                ? t('activity.events.generic', {
+                    type: humanizeEventType(resolveDomainEventTypeForLabel(item.eventType)),
+                  })
+                : item.messageCatalog === 'settings.activity'
+                  ? tSettingsActivity(item.messageKey as 'actions.subcontract_claim.submitted')
+                  : t(item.messageKey as 'activity.events.task_external_assigned', {
+                      title: item.title ?? '',
+                      outcome: item.detail?.outcome ?? '',
+                      from: item.detail?.fromStatus ?? '',
+                      to: item.detail?.toStatus ?? '',
+                    });
             const inner = (
               <div className="flex min-w-0 flex-col gap-1 text-sm">
                 <div className="flex flex-wrap items-center gap-2">

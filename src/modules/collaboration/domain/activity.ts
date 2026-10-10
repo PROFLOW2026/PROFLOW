@@ -1,4 +1,5 @@
 import type { ProjectCapability } from '@/modules/project-team/domain/capabilities';
+import { domainEventToSettingsActionKey, resolveDomainEventTypeForLabel } from './activity-event-label';
 
 /**
  * Project activity feed - pure presentation + redaction rules over `domain_events`.
@@ -21,12 +22,15 @@ export interface ActivityEventRecord {
   readonly occurredAt: Date;
 }
 
+export type ActivityMessageCatalog = 'collaboration' | 'settings.activity';
+
 export interface ActivityItem {
   readonly id: string;
   readonly occurredAt: string;
   readonly eventType: string;
-  /** i18n key inside the `collaboration` namespace. */
+  /** i18n key inside {@link ActivityItem.messageCatalog}. */
   readonly messageKey: string;
+  readonly messageCatalog: ActivityMessageCatalog;
   readonly domain: string;
   readonly entityType: string | null;
   readonly entityId: string | null;
@@ -146,6 +150,7 @@ export function toActivityItem(
   record: ActivityEventRecord,
   held: ReadonlySet<string>,
   hasMessage: (key: string) => boolean,
+  hasSettingsAction: (key: string) => boolean = () => false,
 ): ActivityItem {
   const visible = canSeeEventDetails(record.eventType, record.payload, held);
   const actor = {
@@ -158,6 +163,7 @@ export function toActivityItem(
       occurredAt: record.occurredAt.toISOString(),
       eventType: 'financial',
       messageKey: REDACTED_EVENT_KEY,
+      messageCatalog: 'collaboration',
       domain: 'financial',
       entityType: null,
       entityId: null,
@@ -168,7 +174,9 @@ export function toActivityItem(
       href: null,
     };
   }
-  const key = eventMessageKey(record.eventType);
+  const labelEventType = resolveDomainEventTypeForLabel(record.eventType);
+  const key = eventMessageKey(labelEventType);
+  const settingsKey = domainEventToSettingsActionKey(labelEventType);
   const payload = record.payload ?? {};
   const detail: ActivityDetail = {
     fromStatus: stringField(payload, 'fromStatus'),
@@ -181,8 +189,10 @@ export function toActivityItem(
     id: record.id,
     occurredAt: record.occurredAt.toISOString(),
     eventType: record.eventType,
-    messageKey: hasMessage(key) ? key : GENERIC_EVENT_KEY,
-    domain: eventDomain(record.eventType),
+    messageKey: hasMessage(key) ? key : settingsKey && hasSettingsAction(settingsKey) ? settingsKey : GENERIC_EVENT_KEY,
+    messageCatalog:
+      hasMessage(key) ? 'collaboration' : settingsKey && hasSettingsAction(settingsKey) ? 'settings.activity' : 'collaboration',
+    domain: eventDomain(labelEventType),
     entityType: record.entityType,
     entityId: record.entityId,
     title: stringField(payload, 'title') ?? null,

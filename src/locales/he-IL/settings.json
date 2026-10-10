@@ -1007,7 +1007,8 @@
         "created": "הסכם קבלן משנה נוצר",
         "updated": "הסכם קבלן משנה עודכן",
         "terms_updated": "תנאי הסכם קבלן משנה עודכנו",
-        "status_changed": "סטטוס הסכם קבלן משנה שונה"
+        "status_changed": "סטטוס הסכם קבלן משנה שונה",
+        "activated": "הסכם קבלן הופעל"
       },
       "subcontract_work_line": {
         "created": "סעיף עבודה בהסכם נוצר",
@@ -1074,10 +1075,25 @@
         "created": "אירוע תיאום נוצר",
         "updated": "אירוע תיאום עודכן",
         "rescheduled": "מועד אירוע תיאום שונה",
+        "ready": "אירוע תיאום סומן כמוכן",
+        "completed": "אירוע תיאום הושלם",
+        "partially_completed": "אירוע תיאום הושלם חלקית",
+        "postponed": "אירוע תיאום נדחה",
+        "cancelled": "אירוע תיאום בוטל",
         "outcome_recorded": "נרשמה תוצאת אירוע תיאום",
         "readiness_overridden": "מוכנות אירוע תיאום נקבעה ידנית",
         "document_linked": "מסמך קושר לאירוע תיאום",
         "document_unlinked": "מסמך נותק מאירוע תיאום"
+      },
+      "coordination_readiness": {
+        "requested": "נדרש אישור מוכנות",
+        "overridden": "מוכנות תיאום נקבעה ידנית"
+      },
+      "coordination_contractor": {
+        "ready": "קבלן אישר מוכנות",
+        "not_ready": "קבלן לא מוכן",
+        "blocked": "קבלן חסם תיאום",
+        "acknowledged": "קבלן אישר קבלת אירוע תיאום"
       },
       "coordination_participant": {
         "invited": "משתתף הוזמן לאירוע תיאום",

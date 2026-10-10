@@ -355,12 +355,26 @@ function AccountCard({
   const [state, commandAction] = useActionState<ContractorAccessActionStateView, FormData>(actions.principalCommand, {});
   const { authority } = overview;
   const canHomeManage = account.isHomeOrganization && authority.canManage;
+  const vendorNames = [...new Set(account.grants.map((grant) => grant.vendorName).filter(Boolean))];
 
   return (
     <Card className="p-4">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="font-semibold">{account.displayName ?? account.username}</p>
+          {vendorNames.length > 0 ? (
+            <p className="text-xs text-[var(--pf-text-secondary)]">
+              {t('list.vendorCompanies')}: <span className="font-medium text-[var(--pf-text-primary)]">{vendorNames.join(' · ')}</span>
+            </p>
+          ) : null}
+          <p className="font-semibold">
+            {account.displayName ? (
+              <>
+                {t('list.contactPerson')}: {account.displayName}
+              </>
+            ) : (
+              (account.username ?? '')
+            )}
+          </p>
           <p className="text-sm text-[var(--pf-text-secondary)]">
             <bdi dir="ltr" className="font-mono">
               {account.username}

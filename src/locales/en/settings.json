@@ -1097,7 +1097,8 @@
         "created": "Subcontract agreement created",
         "updated": "Subcontract agreement updated",
         "terms_updated": "Subcontract agreement terms updated",
-        "status_changed": "Subcontract agreement status changed"
+        "status_changed": "Subcontract agreement status changed",
+        "activated": "Subcontract agreement activated"
       },
       "subcontract_work_line": {
         "created": "Agreement work line created",
@@ -1164,10 +1165,25 @@
         "created": "Coordination event created",
         "updated": "Coordination event updated",
         "rescheduled": "Coordination event rescheduled",
+        "ready": "Coordination event marked ready",
+        "completed": "Coordination event completed",
+        "partially_completed": "Coordination event partially completed",
+        "postponed": "Coordination event postponed",
+        "cancelled": "Coordination event cancelled",
         "outcome_recorded": "Coordination event outcome recorded",
         "readiness_overridden": "Coordination event readiness set manually",
         "document_linked": "Document linked to coordination event",
         "document_unlinked": "Document unlinked from coordination event"
+      },
+      "coordination_readiness": {
+        "requested": "Readiness confirmation requested",
+        "overridden": "Coordination readiness set manually"
+      },
+      "coordination_contractor": {
+        "ready": "Contractor confirmed readiness",
+        "not_ready": "Contractor not ready",
+        "blocked": "Contractor blocked coordination",
+        "acknowledged": "Contractor acknowledged coordination event"
       },
       "coordination_participant": {
         "invited": "Coordination participant invited",

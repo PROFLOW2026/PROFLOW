@@ -1097,7 +1097,8 @@
         "created": "أُنشئ عقد مقاول باطن",
         "updated": "حُدّث عقد مقاول باطن",
         "terms_updated": "حُدّثت شروط عقد مقاول باطن",
-        "status_changed": "تغيّرت حالة عقد مقاول باطن"
+        "status_changed": "تغيّرت حالة عقد مقاول باطن",
+        "activated": "تم تفعيل عقد مقاول الباطن"
       },
       "subcontract_work_line": {
         "created": "أُنشئ بند عمل في العقد",
@@ -1164,10 +1165,25 @@
         "created": "أُنشئ حدث تنسيق",
         "updated": "حُدّث حدث تنسيق",
         "rescheduled": "أُعيدت جدولة حدث التنسيق",
+        "ready": "حُدّد حدث التنسيق كجاهز",
+        "completed": "اكتمل حدث التنسيق",
+        "partially_completed": "اكتمل حدث التنسيق جزئيًا",
+        "postponed": "أُجّل حدث التنسيق",
+        "cancelled": "أُلغي حدث التنسيق",
         "outcome_recorded": "سُجّلت نتيجة حدث التنسيق",
         "readiness_overridden": "حُدّدت جاهزية حدث التنسيق يدويًا",
         "document_linked": "رُبط مستند بحدث التنسيق",
         "document_unlinked": "أُلغي ربط مستند بحدث التنسيق"
+      },
+      "coordination_readiness": {
+        "requested": "مطلوب تأكيد الجاهزية",
+        "overridden": "حُدّدت جاهزية التنسيق يدويًا"
+      },
+      "coordination_contractor": {
+        "ready": "أكد المقاول جاهزيته",
+        "not_ready": "المقاول غير جاهز",
+        "blocked": "المقاول حظر التنسيق",
+        "acknowledged": "أقر المقاول باستلام حدث التنسيق"
       },
       "coordination_participant": {
         "invited": "دُعي مشارك إلى حدث التنسيق",
