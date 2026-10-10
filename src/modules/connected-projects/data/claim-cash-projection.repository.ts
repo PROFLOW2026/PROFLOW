@@ -3,6 +3,7 @@ import 'server-only';
 import { and, eq, sql } from 'drizzle-orm';
 import { connectedClaimCashProjections } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
+import type { BusinessDate } from '@/shared/dates';
 import { claimCashProjectionIdempotencyKey } from '@/modules/subcontract-claims/domain/certified-receipt-cash-flow';
 import type { ActiveClaimCashProjectionRow } from '../domain/claim-cash-projection';
 
