@@ -208,7 +208,7 @@
     "handTool": "יד",
     "zoomLevel": "רמת הגדלה",
     "pageNumber": "מספר עמוד",
-    "pageCountSuffix": "/ {total}",
+    "pageCountSuffix": "מתוך {total}",
     "more": "עוד",
     "rotate": "סיבוב",
     "rotate90": "סובב 90°",

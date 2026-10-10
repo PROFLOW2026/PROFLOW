@@ -249,7 +249,7 @@
       "not_detected": "Не найдено"
     },
     "lineItems": "Строки",
-    "lineItemDescriptionEmpty": "—",
+    "lineItemDescriptionEmpty": "без описания",
     "previewMapping": "Проверьте перед созданием черновика",
     "confirmExpense": "Создать черновик расхода",
     "confirmVendorBill": "Создать черновик счёта поставщика",

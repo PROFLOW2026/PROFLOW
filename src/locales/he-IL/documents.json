@@ -249,7 +249,7 @@
       "not_detected": "לא זוהה"
     },
     "lineItems": "שורות",
-    "lineItemDescriptionEmpty": "—",
+    "lineItemDescriptionEmpty": "ללא תיאור",
     "previewMapping": "בדיקה לפני יצירת טיוטה",
     "confirmExpense": "יצירת טיוטת הוצאה",
     "confirmVendorBill": "יצירת טיוטת חשבונית ספק",

@@ -208,7 +208,7 @@
     "handTool": "Рука",
     "zoomLevel": "Уровень масштаба",
     "pageNumber": "Номер страницы",
-    "pageCountSuffix": "/ {total}",
+    "pageCountSuffix": "из {total}",
     "more": "Ещё",
     "rotate": "Повернуть",
     "rotate90": "Повернуть на 90°",

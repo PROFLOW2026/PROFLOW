@@ -208,7 +208,7 @@
     "handTool": "يد",
     "zoomLevel": "مستوى التكبير",
     "pageNumber": "رقم الصفحة",
-    "pageCountSuffix": "/ {total}",
+    "pageCountSuffix": "من {total}",
     "more": "المزيد",
     "rotate": "تدوير",
     "rotate90": "تدوير 90°",
