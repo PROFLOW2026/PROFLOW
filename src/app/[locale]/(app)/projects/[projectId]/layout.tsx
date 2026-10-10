@@ -10,7 +10,6 @@ import {
 import { titleWithDocumentNumber } from '@/modules/tenancy/domain/document-numbers';
 import { resolveProjectExperienceProfile } from '@/modules/tenancy/domain/project-profiles';
 import { loadProjectDetail, loadProjectCloseoutStatus, loadProjectLayoutIdentity } from './load-project-detail';
-import { ProjectOperationalContextHeader } from '@/modules/project-workspace/ui/project-operational-context-header';
 import { getShellContextForProject } from '@/shared/auth/session';
 import { fromNumericString } from '@/shared/money';
 import { PERMISSIONS, type PermissionKey } from '@/shared/permissions/catalog';
@@ -30,15 +29,12 @@ import {
 } from './project-hub-order';
 import { loadProjectExecutionNav } from '@/modules/project-workspace/application/load-execution-nav';
 import { withOrgContext } from '@/shared/auth/session';
-import { isOwnerExecutionWorkspacePath } from '@/modules/project-workspace/domain/execution-workspace-path';
-import { isOwnerProjectWorkWorkspacePath } from '@/modules/project-workspace/domain/project-work-workspace-path';
 import { DeveloperGcExecutionEntry } from '@/modules/project-workspace/ui/developer-gc-execution-entry';
 import { ProjectExecutionNav } from '@/modules/project-workspace/ui/project-execution-nav';
+import { ProjectOperationalContextHeader } from '@/modules/project-workspace/ui/project-operational-context-header';
 import { ProjectWorkManagementEntry } from '@/modules/project-workspace/ui/project-work-management-entry';
 import { ProjectWorkNav } from '@/modules/project-workspace/ui/project-work-nav';
-import { getRequestPathname } from '@/shared/http/request-pathname';
-import { ProjectTabsShell } from './project-tabs-shell';
-import { TabPanelSkeleton } from './tab-panel-skeleton';
+import { ProjectOwnerWorkspaceShell } from './project-owner-workspace-shell';
 import { ProjectReportActions } from '@/modules/reports/ui/project-report-actions';
 import {
   Project360Summary,
@@ -53,20 +49,13 @@ interface ProjectLayoutProps {
 /**
  * Stable project chrome for `?tab=` soft-nav.
  *
- * Layout does not read `searchParams`, so tab switches re-render the page
- * segment only - header, metrics, and tab list stay mounted without re-fetching.
+ * Commercial vs work vs execution chrome is chosen in
+ * `ProjectOwnerWorkspaceShell` (client pathname) because this layout does
+ * not re-run on sibling route client navigations.
  */
 export default async function ProjectLayout({ children, params }: ProjectLayoutProps) {
   const { projectId } = await params;
-  const [shell, requestPathname] = await Promise.all([
-    getShellContextForProject(projectId),
-    getRequestPathname(),
-  ]);
-
-  const inProjectWorkWorkspace = isOwnerProjectWorkWorkspacePath(requestPathname, projectId);
-  const inExecutionWorkspace =
-    !inProjectWorkWorkspace && isOwnerExecutionWorkspacePath(requestPathname, projectId);
-  const inOperationalWorkspace = inProjectWorkWorkspace || inExecutionWorkspace;
+  const shell = await getShellContextForProject(projectId);
 
   const can = (permission: PermissionKey) => shell?.permissions.has(permission) ?? false;
   const modules = shell?.modules;
@@ -79,97 +68,44 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
   const showChangesTab = Boolean(modules?.changes) && can(PERMISSIONS.CHANGES_READ);
   const showBoqTab = Boolean(modules?.boq) && can(PERMISSIONS.BOQ_READ);
   const showBillingTab = Boolean(modules?.billing) && can(PERMISSIONS.BILLING_READ);
-  // Billing plan shares billing module + BILLING_READ (hidden without financial access).
   const showBillingPlanTab = showBillingTab;
   const showBudgetsTab = Boolean(modules?.budgets) && can(PERMISSIONS.BUDGETS_READ);
-  // Team is permission-gated (not module) so owners can assign people before
-  // the workforce module preference flips on from first create.
   const showTeamTab = can(PERMISSIONS.WORKFORCE_READ);
-  // Schedule is permission-gated (not module) - `planning` is not in OPTIONAL_MODULE_KEYS.
   const showScheduleTab = can(PERMISSIONS.PLANNING_READ);
   const showTimeTab = can(PERMISSIONS.WORKFORCE_READ);
   const showDocumentsTab = resolveProjectFilesTabVisible(can(PERMISSIONS.DOCUMENTS_READ));
   const showUsageTab = can(PERMISSIONS.MATERIALS_READ) || can(PERMISSIONS.ASSETS_READ);
 
-  if (inOperationalWorkspace) {
-    const [identity, locale, executionNav] = await Promise.all([
+  const [identity, locale, executionNav, t, tHubs, tStatus, tCloseout, detail, closeoutStatus] =
+    await Promise.all([
       loadProjectLayoutIdentity(projectId),
       getLocale(),
       withOrgContext((context) => loadProjectExecutionNav(context, projectId)).catch(() => ({
         showGroup: false,
         links: [],
       })),
+      getTranslations('projects'),
+      getTranslations('projects.workspace.hubs'),
+      getTranslations('status.project'),
+      getTranslations('closeout'),
+      loadProjectDetail(projectId, false).catch(() => null),
+      loadProjectCloseoutStatus(projectId).catch(() => null),
     ]);
-    if (!identity) notFound();
 
-    if (identity.workKind === 'job' || identity.workKind === 'work_order') {
-      return (
-        <WithAppClientMessages extra={PROJECT_SURFACE_CLIENT_MESSAGE_NAMESPACES}>
-          <div className="flex flex-col gap-6">{children}</div>
-        </WithAppClientMessages>
-      );
-    }
-
-    const dir = localeDirection(locale);
-    const projectHref = `/projects/${projectId}`;
-
-    return (
-      <WithAppClientMessages extra={PROJECT_SURFACE_CLIENT_MESSAGE_NAMESPACES}>
-        <div className="flex flex-col gap-6">
-          <ProjectOperationalContextHeader
-            projectName={identity.name}
-            documentNumber={identity.documentNumber}
-            backToProjectHref={projectHref}
-            workspaceKind={inProjectWorkWorkspace ? 'work' : 'execution'}
-          />
-          {inExecutionWorkspace && executionNav.showGroup ? (
-            <ProjectExecutionNav links={executionNav.links} dir={dir} compact />
-          ) : null}
-          {inProjectWorkWorkspace ? (
-            <ProjectWorkNav projectId={projectId} dir={dir} compact />
-          ) : null}
-          <Suspense
-            fallback={
-              <div className="min-w-0 max-w-full pt-4">
-                <TabPanelSkeleton />
-              </div>
-            }
-          >
-            {children}
-          </Suspense>
-        </div>
-      </WithAppClientMessages>
-    );
-  }
-
-  const [t, tHubs, tStatus, tCloseout, detail, locale, closeoutStatus, executionNav] = await Promise.all([
-    getTranslations('projects'),
-    getTranslations('projects.workspace.hubs'),
-    getTranslations('status.project'),
-    getTranslations('closeout'),
-    loadProjectDetail(projectId, false).catch(() => null),
-    getLocale(),
-    loadProjectCloseoutStatus(projectId).catch(() => null),
-    withOrgContext((context) => loadProjectExecutionNav(context, projectId)).catch(() => ({
-      showGroup: false,
-      links: [],
-    })),
-  ]);
-  if (!detail) notFound();
+  if (!identity || !detail) notFound();
 
   const businessProfileKey = shell?.businessProfileKey ?? null;
+  const dir = localeDirection(locale);
 
-  // Jobs / work orders use dedicated routes - page owns redirect (preserves `?tab=`).
-  // The same summary still sits above whatever this layout renders for those kinds.
   if (detail.project.workKind === 'job' || detail.project.workKind === 'work_order') {
     return (
       <WithAppClientMessages extra={PROJECT_SURFACE_CLIENT_MESSAGE_NAMESPACES}>
-      <div className="flex flex-col gap-6">
-        <Suspense fallback={<Project360SummaryFallback />}>
-          <Project360Summary projectId={projectId} />
-        </Suspense>
-        {children}
-      </div>
+        <div className="flex flex-col gap-6">
+          <Suspense fallback={<Project360SummaryFallback />}>
+            <Project360Summary projectId={projectId} />
+          </Suspense>
+          {children}
+        </div>
       </WithAppClientMessages>
     );
   }
@@ -188,40 +124,65 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
   });
 
   const tabVisibility = applyProjectProfileToTabVisibility(
-      {
-        financials: canReadFinancials,
-        expenses: showExpensesTab,
-        changes: showChangesTab,
-        boq: showBoqTab,
-        billing: showBillingTab,
-        billingPlan: showBillingPlanTab,
-        budgets: showBudgetsTab,
-        team: showTeamTab,
-        schedule: showScheduleTab,
-        time: showTimeTab,
-        documents: showDocumentsTab,
-        usage: showUsageTab,
-        work: showWorkTab,
-        closeout: true,
-        warranty: true,
-      },
-      experienceProfile,
-    );
+    {
+      financials: canReadFinancials,
+      expenses: showExpensesTab,
+      changes: showChangesTab,
+      boq: showBoqTab,
+      billing: showBillingTab,
+      billingPlan: showBillingPlanTab,
+      budgets: showBudgetsTab,
+      team: showTeamTab,
+      schedule: showScheduleTab,
+      time: showTimeTab,
+      documents: showDocumentsTab,
+      usage: showUsageTab,
+      work: showWorkTab,
+      closeout: true,
+      warranty: true,
+    },
+    experienceProfile,
+  );
 
   const hubs = resolveProjectHubs(tabVisibility);
 
   const hubLabels = Object.fromEntries(hubs.map((hub) => [hub, tHubs(hub)])) as Partial<
     Record<ProjectHubKey, string>
   >;
-  const dir = localeDirection(locale);
   const executionEntryHref =
     executionNav.links.find((link) => link.key === 'overview')?.href ?? executionNav.links[0]?.href ?? null;
 
   const projectWorkEntryHref = showUwmLinks ? `/projects/${projectId}/tasks` : null;
+  const projectHref = `/projects/${projectId}`;
 
-  return (
-    <WithAppClientMessages extra={PROJECT_SURFACE_CLIENT_MESSAGE_NAMESPACES}>
-    <div className="flex flex-col gap-6">
+  const workChrome = (
+    <>
+      <ProjectOperationalContextHeader
+        projectName={identity.name}
+        documentNumber={identity.documentNumber ?? ''}
+        backToProjectHref={projectHref}
+        workspaceKind="work"
+      />
+      <ProjectWorkNav projectId={projectId} dir={dir} compact />
+    </>
+  );
+
+  const executionChrome = (
+    <>
+      <ProjectOperationalContextHeader
+        projectName={identity.name}
+        documentNumber={identity.documentNumber ?? ''}
+        backToProjectHref={projectHref}
+        workspaceKind="execution"
+      />
+      {executionNav.showGroup ? (
+        <ProjectExecutionNav links={executionNav.links} dir={dir} compact />
+      ) : null}
+    </>
+  );
+
+  const commercialTop = (
+    <>
       <PageHeader
         title={titleWithDocumentNumber(detail.project.name, detail.project.documentNumber ?? '')}
         actions={
@@ -324,31 +285,22 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
       <Suspense fallback={<Project360SummaryFallback />}>
         <Project360Summary projectId={projectId} />
       </Suspense>
+    </>
+  );
 
-      {/*
-        Tab list must not sit behind the page Suspense - otherwise open-project
-        wall clock waits on overview structure before tabs are selectable.
-        Soft-nav still only re-renders `children` (layout ignores searchParams).
-      */}
-      <ProjectTabsShell
-        tabs={hubs}
-        labels={hubLabels}
-        projectHref={`/projects/${projectId}`}
+  return (
+    <WithAppClientMessages extra={PROJECT_SURFACE_CLIENT_MESSAGE_NAMESPACES}>
+      <ProjectOwnerWorkspaceShell
+        projectId={projectId}
         dir={dir}
+        commercialTop={commercialTop}
+        workChrome={workChrome}
+        executionChrome={executionChrome}
+        tabs={hubs}
+        tabLabels={hubLabels}
       >
-        <Suspense
-          fallback={
-            <div className="min-w-0 max-w-full">
-              <div className="pt-4">
-                <TabPanelSkeleton />
-              </div>
-            </div>
-          }
-        >
-          {children}
-        </Suspense>
-      </ProjectTabsShell>
-    </div>
+        {children}
+      </ProjectOwnerWorkspaceShell>
     </WithAppClientMessages>
   );
 }
