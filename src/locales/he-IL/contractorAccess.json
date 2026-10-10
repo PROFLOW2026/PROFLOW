@@ -160,8 +160,8 @@
       "expiresLabel": "בתוקף עד:",
       "inviteSteps": "פתח/י את הקישור פעם אחת, בחר/י סיסמה והתחבר/י עם שם המשתמש.",
       "resetSteps": "פתח/י את הקישור פעם אחת, בחר/י סיסמה חדשה והתחבר/י. שאר המכשירים ינותקו.",
-      "emailSubjectInvite": "הפעלת פורטל קבלנים — {organization}",
-      "emailSubjectReset": "איפוס סיסמת קבלן — {organization}"
+      "emailSubjectInvite": "הפעלת פורטל קבלנים: {organization}",
+      "emailSubjectReset": "איפוס סיסמת קבלן: {organization}"
     },
     "shareDialog": {
       "titleInvite": "שיתוף הזמנת קבלן",
@@ -170,9 +170,9 @@
       "displayName": "שם",
       "username": "שם משתמש",
       "link": "קישור מאובטח",
-      "shareWhatsApp": "WhatsApp",
+      "shareWhatsApp": "וואטסאפ",
       "shareEmail": "דוא\"ל",
-      "shareSms": "SMS",
+      "shareSms": "מסרון",
       "shareNative": "שיתוף…",
       "copyMessage": "העתקת הודעה",
       "copyLink": "העתקת קישור",
