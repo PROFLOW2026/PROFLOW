@@ -240,6 +240,7 @@ export async function createTaskAction(
     const priority = (formData.get('priority') as TaskPriority | null) ?? undefined;
     const startDate = formData.get('startDate') as string | null;
     const dueDate = formData.get('dueDate') as string | null;
+    const approvalRequired = formData.get('approvalRequired') === 'on' || formData.get('approvalRequired') === '1';
 
     await withOrgContext(async (context) => {
       await createTask(context, {
@@ -252,6 +253,7 @@ export async function createTaskAction(
         priority,
         startDate: startDate || null,
         dueDate: dueDate || null,
+        approvalRequired,
       });
     });
 
@@ -298,6 +300,11 @@ export async function updateTaskAction(
     const priority = formData.get('priority') as TaskPriority | null;
     const dueDate = formData.get('dueDate') as string | null | undefined;
     const startDate = formData.get('startDate') as string | null | undefined;
+    const approvalRequiredRaw = formData.get('approvalRequired');
+    const approvalRequired =
+      approvalRequiredRaw === null
+        ? undefined
+        : approvalRequiredRaw === 'on' || approvalRequiredRaw === '1';
 
     await withOrgContext(async (context) => {
       await updateTask(context, taskId, {
@@ -307,6 +314,7 @@ export async function updateTaskAction(
         ...(priority ? { priority } : {}),
         ...(dueDate !== undefined ? { dueDate: dueDate || null } : {}),
         ...(startDate !== undefined ? { startDate: startDate || null } : {}),
+        ...(approvalRequired !== undefined ? { approvalRequired } : {}),
       });
     });
 

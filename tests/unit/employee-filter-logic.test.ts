@@ -19,6 +19,7 @@ const baseTask = (overrides: Partial<EmployeeTaskListItem>): EmployeeTaskListIte
   assigneeLabel: 'Alex',
   assigneeEmployeeIds: ['e1'],
   canPostpone: true,
+  approvalRequired: false,
   ...overrides,
 });
 

@@ -170,6 +170,15 @@ export const CONTRACTOR_AUTH_CLIENT_MESSAGE_NAMESPACES = [
   'offline',
 ] as const satisfies readonly MessageNamespace[];
 
+/** Employee app sign-in / set-pin (outside authenticated shell). */
+export const EMPLOYEE_AUTH_CLIENT_MESSAGE_NAMESPACES = [
+  'common',
+  'auth',
+  'employeeApp',
+  'validation',
+  'offline',
+] as const satisfies readonly MessageNamespace[];
+
 /** Signed-out marketing homepage client islands. */
 export const MARKETING_CLIENT_MESSAGE_NAMESPACES = [
   'common',
@@ -244,6 +253,8 @@ export const PROJECT_SURFACE_CLIENT_MESSAGE_NAMESPACES = [
   'subcontractClaims',
   'subcontracts',
   'submittals',
+  'handover',
+  'awards',
 ] as const satisfies readonly MessageNamespace[];
 
 export const CONTRACTOR_PORTAL_CLIENT_MESSAGE_NAMESPACES = [

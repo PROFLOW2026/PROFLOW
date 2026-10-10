@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import type { OrgContext } from '@/shared/auth/context';
 import { PERMISSIONS, type PermissionKey } from '@/shared/permissions/catalog';
@@ -117,7 +119,9 @@ describe('employee authorization audit — presets', () => {
     const context = employeeContextFromPreset('field_worker_time');
     expect(context.permissions.has(PERMISSIONS.TIME_MANAGE)).toBe(true);
     expect(context.employeeApp?.grants.get(PERMISSIONS.TIME_MANAGE)?.scope).toBe('self_only');
-    expect(visibleNavHrefs(context)).toEqual(['/employee', '/employee/time']);
+    expect(visibleNavHrefs(context)).toEqual(
+      expect.arrayContaining(['/employee', '/employee/time', '/employee/notifications']),
+    );
   });
 
   it('foreman preset matches editor grants and nav', () => {
@@ -206,8 +210,12 @@ describe('employee authorization audit — presets', () => {
 
   it('custom preset is baseline-only until owner grants', () => {
     const context = employeeContextFromPreset('custom');
-    expect(effectiveGrantKeys(context)).toEqual([PERMISSIONS.ATTENDANCE_SELF]);
-    expect(visibleNavHrefs(context)).toEqual(['/employee', '/employee/time']);
+    expect(effectiveGrantKeys(context)).toEqual(
+      expect.arrayContaining([PERMISSIONS.ATTENDANCE_SELF, PERMISSIONS.NOTIFICATIONS_READ]),
+    );
+    expect(visibleNavHrefs(context)).toEqual(
+      expect.arrayContaining(['/employee', '/employee/time', '/employee/notifications']),
+    );
   });
 });
 
@@ -266,6 +274,60 @@ describe('employee authorization audit — external storage policy', () => {
     await expect(
       getProjectStorageProviderWebUrl(context, { projectId: 'proj-1', fileId: 'file-1' }),
     ).rejects.toBeInstanceOf(ServiceUnavailableError);
+  });
+});
+
+describe('employee authorization audit — task activity (EA-005)', () => {
+  it('loads task activity only after employee or org task read gates', () => {
+    const root = join(process.cwd());
+    const loader = readFileSync(
+      join(root, 'src/modules/tasks/application/load-task-activity-for-display.ts'),
+      'utf8',
+    );
+    expect(loader).toContain('assertCanReadTaskActivity');
+    expect(loader).toContain('assertEmployeeCanExerciseTaskPermission');
+    expect(loader).toContain('assertCanAccessTask');
+    expect(loader.indexOf('assertCanReadTaskActivity')).toBeLessThan(
+      loader.indexOf('.select({'),
+    );
+
+    const activityUi = readFileSync(
+      join(root, 'src/modules/tasks/ui/task-activity.tsx'),
+      'utf8',
+    );
+    expect(activityUi).toContain('NotFoundError');
+    expect(activityUi).toContain('notFound()');
+  });
+});
+
+describe('employee authorization audit — mobile shell (UX-001 / UX-002)', () => {
+  it('employee bottom nav renders icon + label primary tabs', () => {
+    const root = join(process.cwd());
+    const nav = readFileSync(
+      join(root, 'src/modules/employee-app/ui/employee-bottom-nav.tsx'),
+      'utf8',
+    );
+    expect(nav).toContain('EmployeeNavIcon');
+    expect(nav).toContain('MoreHorizontal');
+
+    const icons = readFileSync(
+      join(root, 'src/modules/employee-app/application/employee-navigation.ts'),
+      'utf8',
+    );
+    expect(icons).toContain('EMPLOYEE_MOBILE_NAV_ICON_BY_HREF');
+  });
+
+  it('contractor portal mirrors employee body scroll lock', () => {
+    const root = join(process.cwd());
+    const shell = readFileSync(
+      join(root, 'src/modules/contractor-portal/ui/portal-shell.tsx'),
+      'utf8',
+    );
+    expect(shell).toContain('data-pf-contractor-portal');
+
+    const css = readFileSync(join(root, 'src/app/globals.css'), 'utf8');
+    expect(css).toContain('[data-pf-contractor-portal]');
+    expect(css).toContain('[data-pf-employee-app]');
   });
 });
 

@@ -258,7 +258,9 @@
     "empty": "No inspections of your work yet.",
     "failedItems": "Items to fix",
     "conditions": "Conditions",
-    "summary": "Inspector summary"
+    "summary": "Inspector summary",
+    "back": "All inspections",
+    "viewDetail": "View details"
   },
   "errors": {
     "invalidTransition": "This action is not available in the inspection's current status.",

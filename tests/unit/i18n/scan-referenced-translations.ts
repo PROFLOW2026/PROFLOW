@@ -39,6 +39,8 @@ const MODULE_PATH_NAMESPACE_ALLOW: ReadonlyArray<{
   { pathPrefix: 'src/modules/collaboration/', namespaces: ['collaboration'] },
   { pathPrefix: 'src/modules/contractor-access/', namespaces: ['contractorAccess'] },
   { pathPrefix: 'src/modules/contractor-compliance/', namespaces: ['contractorCompliance'] },
+  { pathPrefix: 'src/modules/contractor-closeout/', namespaces: ['handover'] },
+  { pathPrefix: 'src/modules/contractor-procurement/ui/', namespaces: ['awards'] },
   { pathPrefix: 'src/modules/coordination/', namespaces: ['coordination'] },
   { pathPrefix: 'src/modules/defects/', namespaces: ['defects'] },
   { pathPrefix: 'src/modules/deliveries/', namespaces: ['deliveries'] },

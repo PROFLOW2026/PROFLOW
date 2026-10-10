@@ -43,6 +43,7 @@ export interface TaskCreateInput {
   workspaceId: string | null;
   recurrencePreset: RecurrencePreset;
   recurrenceInterval: number;
+  approvalRequired: boolean;
 }
 
 interface BucketOption {
@@ -160,6 +161,7 @@ export function TaskCreateForm({
   const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
   const [recurrencePreset, setRecurrencePreset] = useState<RecurrencePreset>('none');
   const [recurrenceInterval, setRecurrenceInterval] = useState(1);
+  const [approvalRequired, setApprovalRequired] = useState(false);
 
   const toggleLabel = (label: string) => {
     setSelectedLabels((prev) =>
@@ -192,6 +194,7 @@ export function TaskCreateForm({
           workspaceId: defaultWorkspaceId,
           recurrencePreset,
           recurrenceInterval,
+          approvalRequired,
         });
       } catch (err) {
         setError(err instanceof Error ? err.message : t('create.error'));
@@ -330,6 +333,24 @@ export function TaskCreateForm({
         }}
         disabled={isPending}
       />
+
+      <FormField>
+        <label className="flex cursor-pointer items-start gap-2 text-sm text-[var(--pf-text-primary)]">
+          <input
+            type="checkbox"
+            checked={approvalRequired}
+            onChange={(event) => setApprovalRequired(event.target.checked)}
+            disabled={isPending}
+            className="mt-0.5 size-4 rounded border-[var(--pf-border-default)]"
+          />
+          <span>
+            <span className="font-medium">{t('approvalRequired')}</span>
+            <span className="mt-0.5 block text-xs text-[var(--pf-text-secondary)]">
+              {t('create.approvalRequiredHint')}
+            </span>
+          </span>
+        </label>
+      </FormField>
 
       {/* Assignees */}
       {assignees.length > 0 && (

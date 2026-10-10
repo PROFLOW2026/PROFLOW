@@ -29,6 +29,7 @@ export async function markNotificationReadAction(notificationId: string): Promis
       await markNotificationRead(context, { notificationId });
     }
     revalidatePath('/notifications');
+    revalidatePath('/employee/notifications');
     const t = await getTranslations('notifications');
     return toNotificationInboxDto(
       localizeNotificationInbox(await listMergedNotificationInbox(context), t),
@@ -41,6 +42,7 @@ export async function markAllNotificationsReadAction(): Promise<NotificationInbo
   return withOrgContext(async (context) => {
     await markAllNotificationsRead(context);
     revalidatePath('/notifications');
+    revalidatePath('/employee/notifications');
     return toNotificationInboxDto(
       localizeNotificationInbox(await listMergedNotificationInbox(context), t),
     );

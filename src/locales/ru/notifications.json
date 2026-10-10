@@ -125,6 +125,18 @@
       "bodyDefault": "Добавлен комментарий к задаче, в которой вы назначены исполнителем.",
       "bodyWithExtra": "{extra}"
     },
+    "task_approval_requested": {
+      "titleWithReference": "Требуется одобрение задачи — {reference}",
+      "titleDefault": "Требуется одобрение задачи",
+      "bodyDefault": "Задача ожидает вашего одобрения перед завершением.",
+      "bodyWithExtra": "{extra}"
+    },
+    "task_approval_decided": {
+      "titleWithReference": "Обновление одобрения задачи — {reference}",
+      "titleDefault": "Обновление одобрения задачи",
+      "bodyDefault": "Запрос на одобрение задачи рассмотрен.",
+      "bodyWithExtra": "Решение: {extra}"
+    },
     "low_stock": {
       "titleWithReference": "Низкий запас — {reference}",
       "titleDefault": "Низкий запас",

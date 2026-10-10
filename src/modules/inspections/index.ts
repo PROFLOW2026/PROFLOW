@@ -12,6 +12,7 @@ export {
   type InspectionOutcome,
   type InspectionStatus,
 } from './domain/rules';
+export type { ContractorInspectionDetail } from './application/contractor-inspections';
 export type {
   ContractorInspectionItem,
   CustomTemplateView,
@@ -44,7 +45,7 @@ export {
   type InspectionFormData,
   type InspectionPermissions,
 } from './application/query-inspections';
-export { listContractorInspections } from './application/contractor-inspections';
+export { getContractorInspection, listContractorInspections } from './application/contractor-inspections';
 export type {
   CreateInspectionInput,
   CreateTemplateInput,

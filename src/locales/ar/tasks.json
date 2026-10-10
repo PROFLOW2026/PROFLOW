@@ -499,7 +499,8 @@
     "labelsLabel": "التسميات",
     "submit": "إنشاء مهمة",
     "saving": "جارٍ الإنشاء...",
-    "error": "فشل في إنشاء المهمة"
+    "error": "فشل في إنشاء المهمة",
+    "approvalRequiredHint": "يجب أن يحصل المُكلف على موافقة قبل وضع علامة «منجز» على المهمة."
   },
   "cancel": "إلغاء",
   "add": "إضافة",
@@ -725,7 +726,10 @@
     "dependencyCycle": "إضافة هذا الاعتماد ستُنشئ حلقة.",
     "maxSubtaskDepth": "يمكن تداخل المهام الفرعية بمستوى واحد فقط.",
     "subtaskWorkspaceMismatch": "يجب أن تكون المهمة الفرعية في نفس مساحة العمل.",
-    "subtaskProjectMismatch": "يجب أن تكون المهمة الفرعية في نفس المشروع."
+    "subtaskProjectMismatch": "يجب أن تكون المهمة الفرعية في نفس المشروع.",
+    "selfApprovalBlocked": "لا يمكنك الموافقة على تسليم مهمتك بنفسك.",
+    "approvalRequiredBeforeDone": "تحتاج هذه المهمة إلى موافقة المدير قبل وضع علامة «منجز».",
+    "approvalNotRequired": "هذه المهمة لا تتطلب موافقة."
   },
   "actions": {
     "duplicate": "نسخ المهمة",

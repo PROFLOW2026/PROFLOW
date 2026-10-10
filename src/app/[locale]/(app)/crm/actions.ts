@@ -47,6 +47,18 @@ function mapError(error: unknown, tErrors: Awaited<ReturnType<typeof getTranslat
   });
 }
 
+function revalidateCrmHubPaths() {
+  revalidatePath('/crm');
+  revalidatePath('/employee/crm');
+}
+
+function revalidateCrmOpportunityPaths(opportunityId: string) {
+  revalidatePath('/crm');
+  revalidatePath(`/crm/opportunities/${opportunityId}`);
+  revalidatePath('/employee/crm');
+  revalidatePath(`/employee/crm/opportunities/${opportunityId}`);
+}
+
 export async function createProspectAction(
   _prev: CrmFormState,
   formData: FormData,
@@ -137,7 +149,7 @@ export async function createOpportunityAction(
         nextActionText: formValue(formData, 'nextActionText'),
       }),
     );
-    revalidatePath('/crm');
+    revalidateCrmHubPaths();
     redirect({ href: `/crm/opportunities/${opportunity.id}`, locale });
   } catch (error) {
     return mapError(error, tErrors);
@@ -184,7 +196,7 @@ export async function createOpportunityNoteAction(
         body: formValue(formData, 'body') ?? '',
       }),
     );
-    revalidatePath(`/crm/opportunities/${opportunityId}`);
+    revalidateCrmOpportunityPaths(opportunityId);
     return {};
   } catch (error) {
     return mapError(error, tErrors);
@@ -207,7 +219,7 @@ export async function createEstimateAction(
         notes: formValue(formData, 'notes'),
       }),
     );
-    revalidatePath(`/crm/opportunities/${opportunityId}`);
+    revalidateCrmOpportunityPaths(opportunityId);
     return {};
   } catch (error) {
     return mapError(error, tErrors);
@@ -240,7 +252,7 @@ export async function createSalesQuoteAction(
         ],
       }),
     );
-    revalidatePath(`/crm/opportunities/${opportunityId}`);
+    revalidateCrmOpportunityPaths(opportunityId);
     return {};
   } catch (error) {
     return mapError(error, tErrors);
@@ -294,7 +306,7 @@ export async function markOpportunityLostAction(
         lostReason: formValue(formData, 'lostReason'),
       }),
     );
-    revalidatePath(`/crm/opportunities/${opportunityId}`);
+    revalidateCrmOpportunityPaths(opportunityId);
     return {};
   } catch (error) {
     return mapError(error, tErrors);
@@ -330,8 +342,7 @@ export async function updateOpportunityAction(
         nextActionText: formValueOrNull(formData, 'nextActionText'),
       }),
     );
-    revalidatePath(`/crm/opportunities/${opportunityId}`);
-    revalidatePath('/crm');
+    revalidateCrmOpportunityPaths(opportunityId);
     return {};
   } catch (error) {
     return mapError(error, tErrors);

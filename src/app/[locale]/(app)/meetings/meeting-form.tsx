@@ -14,6 +14,11 @@ import {
   type MeetingFormState,
 } from './actions';
 
+type MeetingSubmitAction = (
+  prev: MeetingFormState,
+  formData: FormData,
+) => Promise<MeetingFormState>;
+
 const NONE = '__none__';
 
 function toDatetimeLocal(value: Date): string {
@@ -29,6 +34,8 @@ export function MeetingForm({
   defaultScheduledAt,
   defaultProjectId,
   defaultWorkspaceId,
+  createAction = createMeetingAction,
+  updateAction = updateMeetingAction,
 }: {
   mode: 'create' | 'edit';
   meeting?: MeetingRecord;
@@ -37,10 +44,12 @@ export function MeetingForm({
   defaultScheduledAt?: Date;
   defaultProjectId?: string;
   defaultWorkspaceId?: string;
+  createAction?: MeetingSubmitAction;
+  updateAction?: MeetingSubmitAction;
 }) {
   const t = useTranslations('tasks');
   const tCommon = useTranslations('common');
-  const action = mode === 'create' ? createMeetingAction : updateMeetingAction;
+  const action = mode === 'create' ? createAction : updateAction;
   const [state, formAction, pending] = useActionState<MeetingFormState, FormData>(action, {});
   const [projectId, setProjectId] = useState(
     meeting?.projectId ?? defaultProjectId ?? NONE,

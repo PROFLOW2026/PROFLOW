@@ -30,7 +30,10 @@
   "portal": {
     "title": "Handover",
     "description": "Submit closeout checklist items for your subcontract.",
-    "checklist": "Checklist"
+    "checklist": "Checklist",
+    "submitItem": "Mark submitted",
+    "itemSubmitted": "Item submitted",
+    "itemNotes": "Notes (optional)"
   },
   "itemStatus": {
     "pending": "Pending",

@@ -113,6 +113,7 @@ export async function buildEmployeeTaskListPayload(
       assigneeLabel,
       assigneeEmployeeIds,
       canPostpone,
+      approvalRequired: row.approvalRequired,
     };
   });
 

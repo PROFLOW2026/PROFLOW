@@ -41,6 +41,10 @@
     "managementOffice": "الإدارة / المكتب",
     "changes": "أوامر التغيير",
     "quotes": "عروض الأسعار",
+    "crm": "مبيعات",
+    "notifications": "الإشعارات",
+    "workforce": "القوى العاملة",
+    "reports": "التقارير",
     "more": "المزيد"
   },
   "back": {
@@ -191,6 +195,10 @@
     "approveAction": "موافقة",
     "rejectAction": "رفض",
     "approveEmpty": "لا توجد طلبات موافقة معلقة لهذه المهمة.",
+    "approvalSection": "إرسال للمراجعة",
+    "submitForApproval": "إرسال للموافقة",
+    "approvalPending": "بانتظار موافقة المدير.",
+    "approvalRequiredHint": "يجب أن يوافق المدير على هذه المهمة قبل إكمالها.",
     "assignHint": "يمكنك إسناد هذه المهمة ضمن سياق فريق المشروع.",
     "approveHint": "إجراءات الموافقة متاحة عند وجود طلب موافقة معلق.",
     "attention": {
@@ -213,6 +221,7 @@
       "priorityUrgent": "عاجلة",
       "dueDate": "تاريخ الاستحقاق",
       "assignees": "المُكلفون",
+      "approvalRequired": "يتطلب موافقة قبل الإكمال",
       "submit": "إنشاء مهمة"
     }
   },
@@ -436,6 +445,9 @@
       "ap": "فواتير الموردين",
       "procurement": "المشتريات",
       "banking": "الخدمات المصرفية",
+      "commercial": "CRM والمبيعات",
+      "financials": "عمليات مالية",
+      "notifications": "الإشعارات",
       "forms": "التقارير"
     },
     "items": {
@@ -465,6 +477,14 @@
       "workforceRead": "عرض الموظفين",
       "workforceManage": "إدارة الموظفين",
       "workforceCostRead": "عرض تكاليف الموظفين",
+      "workforceCostManage": "إدارة تكاليف الموظفين",
+      "crmRead": "عرض CRM",
+      "crmManage": "إدارة CRM",
+      "monthCloseRead": "عرض إغلاق الشهر",
+      "monthCloseManage": "إدارة إغلاق الشهر",
+      "taxManage": "إدارة إعدادات الضريبة",
+      "auditRead": "عرض سجل التدقيق",
+      "notificationsRead": "عرض الإشعارات",
       "clientsRead": "عرض العملاء",
       "clientsManage": "إدارة العملاء",
       "vendorsRead": "عرض الموردين",
@@ -492,7 +512,8 @@
       "pmTasksAssign": "إسناد مهام PM",
       "pmTasksManageAll": "إدارة كل مهام PM",
       "pmTasksApprove": "اعتماد مهام PM",
-      "meetingsRead": "عرض الاجتماعات"
+      "meetingsRead": "عرض الاجتماعات",
+      "meetingsManage": "إدارة الاجتماعات"
     },
     "scopes": {
       "self_only": "ذاتي فقط",
@@ -528,7 +549,23 @@
     "intro": "رؤية تشغيلية للفريق ضمن نطاق صلاحياتك.",
     "openTasks": "{count, plural, one {مهمة مفتوحة واحدة} other {# مهام مفتوحة}}",
     "viewTasks": "عرض المهام",
+    "workforceHubLink": "مراجعة تكلفة المُشغِّل",
     "empty": "لا يوجد أعضاء فريق في نطاقك"
+  },
+  "workforceHub": {
+    "intro": "رؤية القوى العاملة وتكلفة المُشغِّل ضمن نطاق صلاحياتك.",
+    "viewEmployerCost": "تكلفة المُشغِّل",
+    "employerCostSection": "مراجعة تكلفة المُشغِّل الشهرية",
+    "costReadRequired": "مطلوب إذن قراءة تكلفة المُشغِّل.",
+    "empty": "لا يوجد موظفون في نطاقك"
+  },
+  "reports": {
+    "title": "التقارير المالية",
+    "description": "اختصارات إلى العروض المالية المسموح لك بالوصول إليها.",
+    "billingLink": "الفوترة والتحصيل",
+    "projectsLink": "المشاريع",
+    "workforceLink": "القوى العاملة وتكلفة العمل",
+    "empty": "لا توجد وجهات تقارير متاحة لصلاحياتك."
   },
   "forms": {
     "intro": "النماذج التشغيلية المسموح بها.",

@@ -6,7 +6,15 @@ import 'server-only';
 
 import { asc, and, eq } from 'drizzle-orm';
 import { taskActivity, organizationMemberships, profiles, employees } from '@drizzle/schema';
+import type { OrgContext } from '@/shared/auth/context';
+import { hasPermission } from '@/shared/permissions/assert';
+import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { NotFoundError } from '@/shared/errors';
 import { withOrgContext } from '@/shared/auth/session';
+import { isEmployeeAppUser } from '@/modules/employee-app/application/load-employee-app-context';
+import { assertEmployeeCanExerciseTaskPermission } from '@/modules/employee-app/application/task-permission-scope';
+import { assertCanAccessTask } from './assert-task-access';
+import { findTaskById } from '../data/tasks.repository';
 
 export interface TaskActivityDisplayRow {
   id: string;
@@ -19,10 +27,34 @@ export interface TaskActivityDisplayRow {
 
 const PAGE_SIZE = 50;
 
+async function assertCanReadTaskActivity(context: OrgContext, taskId: string): Promise<void> {
+  if (isEmployeeAppUser(context)) {
+    const employeeId = context.employeeApp?.employeeId;
+    if (!employeeId || !hasPermission(context, PERMISSIONS.TASKS_READ)) {
+      throw new NotFoundError('Task');
+    }
+
+    const task = await findTaskById(context.db, context.organizationId, taskId);
+    if (!task) throw new NotFoundError('Task');
+
+    await assertEmployeeCanExerciseTaskPermission(
+      context,
+      PERMISSIONS.TASKS_READ,
+      { taskId, projectId: task.projectId },
+      employeeId,
+    );
+    return;
+  }
+
+  await assertCanAccessTask(context, taskId);
+}
+
 export async function loadTaskActivityForDisplay(
   taskId: string,
 ): Promise<TaskActivityDisplayRow[]> {
   return withOrgContext(async (context) => {
+    await assertCanReadTaskActivity(context, taskId);
+
     const rows = await context.db
       .select({
         id: taskActivity.id,

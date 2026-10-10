@@ -28,6 +28,8 @@ import { Link } from '@/shared/i18n/navigation';
 
 import { formatInstant } from '@/shared/dates';
 
+import { WithPortalClientMessages } from '@/shared/i18n/with-client-messages';
+
 
 
 export default async function ContractorInspectionsPage({ params }: { params: Promise<{ projectId: string }> }) {
@@ -65,11 +67,13 @@ export default async function ContractorInspectionsPage({ params }: { params: Pr
   ]);
 
   const defectsBase = `/contractor/projects/${projectId}/defects`;
+  const inspectionsBase = `/contractor/projects/${projectId}/inspections`;
 
 
 
   return (
 
+    <WithPortalClientMessages extra={['inspections', 'defects']}>
     <div className="flex min-w-0 flex-col gap-4 pb-6">
 
       <PageHeader title={t('portal.title')} description={t('portal.description')} />
@@ -180,6 +184,12 @@ export default async function ContractorInspectionsPage({ params }: { params: Pr
 
                   ) : null}
 
+                  <Link href={`${inspectionsBase}/${item.id}`} className="text-sm font-medium text-[var(--pf-text-brand)]">
+
+                    {t('portal.viewDetail')}
+
+                  </Link>
+
                 </CardContent>
 
               </Card>
@@ -193,6 +203,7 @@ export default async function ContractorInspectionsPage({ params }: { params: Pr
       )}
 
     </div>
+    </WithPortalClientMessages>
 
   );
 

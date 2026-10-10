@@ -378,7 +378,9 @@
    * visible mobile viewport when browser chrome is shown — causing empty scroll.
    */
   html:has([data-pf-employee-app]),
-  body:has([data-pf-employee-app]) {
+  body:has([data-pf-employee-app]),
+  html:has([data-pf-contractor-portal]),
+  body:has([data-pf-contractor-portal]) {
     min-height: auto;
     height: auto;
     overflow: hidden;

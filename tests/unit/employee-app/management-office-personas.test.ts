@@ -86,16 +86,19 @@ describe('Management / Office persona navigation', () => {
     expect(hrefs).not.toContain('/employee/clients');
   });
 
-  it('PM — planner + assigned scope, optional financials grant, no office finance by default', () => {
+  it('PM — planner + assigned scope, reports only in management (no office finance)', () => {
     const context = employeeContextFromPreset('project_manager');
     const nav = buildEmployeeNavItems(context);
+    const { management } = partitionEmployeeNavItems(nav);
 
-    expect(hasEmployeeManagementNav(context)).toBe(false);
+    expect(hasEmployeeManagementNav(context)).toBe(true);
     expect(context.permissions.has(PERMISSIONS.PROJECT_FINANCIALS_READ)).toBe(true);
     expect(context.permissions.has(PERMISSIONS.BILLING_READ)).toBe(false);
+    expect(management.map((item) => item.href)).toEqual(['/employee/reports']);
     expect(visibleHrefs(context)).toContain('/employee/projects');
     expect(visibleHrefs(context)).toContain('/employee/tasks');
     expect(visibleHrefs(context)).toContain('/employee/team');
+    expect(visibleHrefs(context)).not.toContain('/employee/billing');
     expect(partitionEmployeeNavItems(nav).planner.length).toBeGreaterThan(0);
   });
 
@@ -122,10 +125,22 @@ describe('Management / Office persona navigation', () => {
         '/employee/billing',
         '/employee/clients',
         '/employee/contracts',
+        '/employee/crm',
         '/employee/expenses',
+        '/employee/reports',
         '/employee/vendors',
       ].sort(),
     );
+  });
+
+  it('SECRETARY preset — CRM nav with CRM grants', () => {
+    const context = employeeContextFromPreset('secretary');
+    const hrefs = visibleHrefs(context);
+
+    expect(context.permissions.has(PERMISSIONS.CRM_READ)).toBe(true);
+    expect(context.permissions.has(PERMISSIONS.CRM_MANAGE)).toBe(true);
+    expect(hrefs).toContain('/employee/crm');
+    expect(hasEmployeeManagementNav(context)).toBe(true);
   });
 
   it('MANAGEMENT preset — broad planner + management finance modules', () => {
@@ -149,6 +164,16 @@ describe('Management / Office persona navigation', () => {
     expect(hrefs).not.toContain('/employee/billing');
     expect(hrefs).not.toContain('/employee/clients');
     expect(hrefs).not.toContain('/employee/expenses');
+    expect(hrefs).not.toContain('/employee/ap');
+    expect(hrefs).not.toContain('/employee/crm');
+  });
+
+  it('SECRETARY preset — meetings manage grant without office finance modules', () => {
+    const context = employeeContextFromPreset('secretary');
+    const hrefs = visibleHrefs(context);
+
+    expect(context.permissions.has(PERMISSIONS.MEETINGS_MANAGE)).toBe(true);
+    expect(hrefs).toContain('/employee/meetings');
     expect(hrefs).not.toContain('/employee/ap');
   });
 });

@@ -24,7 +24,20 @@
     "selected": "Выбрано",
     "rejected": "Отклонено"
   },
-  "portal": { "title": "Открытые тендеры", "description": "Пакеты, на которые вас пригласили." },
+  "portal": {
+    "title": "Открытые тендеры",
+    "description": "Пакеты, на которые вас пригласили.",
+    "back": "Все тендеры",
+    "scopeTitle": "Объём работ",
+    "yourBid": "Ваша ставка",
+    "submitBidTitle": "Подать ставку",
+    "submitBid": "Подать ставку",
+    "bidSubmitted": "Ставка подана",
+    "bidAmount": "Сумма ставки (₪)",
+    "leadTimeDays": "Срок (дней)",
+    "bidNotes": "Примечания",
+    "packageClosed": "Пакет больше не принимает ставки."
+  },
   "errors": {
     "alreadyAwarded": "Пакет уже присуждён.",
     "bidAlreadySubmitted": "Ставка по этому пакету уже подана."

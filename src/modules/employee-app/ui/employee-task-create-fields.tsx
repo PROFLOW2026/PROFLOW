@@ -127,6 +127,16 @@ export function EmployeeTaskCreateFields({
         <input id="dueDate" name="dueDate" type="date" className={employeeFilterInputClass} />
       </div>
 
+      <label className="flex cursor-pointer items-start gap-2 text-sm text-[var(--pf-text-primary)]">
+        <input
+          type="checkbox"
+          name="approvalRequired"
+          value="1"
+          className="mt-0.5 size-4 rounded border-[var(--pf-border-default)]"
+        />
+        <span>{t('approvalRequired')}</span>
+      </label>
+
       {activeAssigneeOptions.length > 0 ? (
         <div className="space-y-2">
           <span className="text-sm font-medium text-[var(--pf-text-primary)]">{t('assignees')}</span>

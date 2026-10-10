@@ -9,6 +9,7 @@ import {
 } from '../data/tasks.repository';
 import { isValidTransition, transitionTask } from '../domain/lifecycle';
 import { buildActivityActorFieldsFromContext } from '../domain/actor';
+import { assertTaskCompletionApprovalSatisfied } from './submit-task-approval';
 import { updateTaskSchema } from '../validation/task-schema';
 import type { Task, UpdateTaskInput } from '../domain/types';
 
@@ -88,6 +89,9 @@ export async function updateTask(
 
   // Status transition
   if (input.status !== undefined && input.status !== existing.status) {
+    if (input.status === 'done') {
+      await assertTaskCompletionApprovalSatisfied(context, taskId);
+    }
     if (!isValidTransition(existing.status, input.status)) {
       throw new DomainRuleError(
         `Invalid status transition: ${existing.status} → ${input.status}`,

@@ -1,6 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import { MoreHorizontal } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { Link } from '@/shared/i18n/navigation';
@@ -9,10 +10,12 @@ import { pressableChromeClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
 import type { EmployeeNavItem } from '@/modules/employee-app/application/get-employee-shell';
 import {
+  employeeMobileNavIconKey,
   employeeMobileNavLabelKey,
   selectEmployeeMobileOverflowItems,
   selectEmployeeMobilePrimaryItems,
 } from '@/modules/employee-app/application/employee-navigation';
+import { EmployeeNavIcon } from './employee-nav-icon';
 
 const EmployeeMobileNavMore = dynamic(
   () =>
@@ -48,6 +51,7 @@ export function EmployeeBottomNav({ items }: { items: readonly EmployeeNavItem[]
         <ul className="flex h-[var(--pf-bottomnav-height)] w-full min-w-0 items-stretch">
           {primary.map((item) => {
             const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+            const iconKey = employeeMobileNavIconKey(item);
             return (
               <li key={item.href} className="min-w-0 flex-1">
                 <Link
@@ -60,6 +64,7 @@ export function EmployeeBottomNav({ items }: { items: readonly EmployeeNavItem[]
                       : 'text-[var(--pf-text-secondary)] active:bg-[var(--pf-action-subtle-active)]',
                   )}
                 >
+                  {iconKey ? <EmployeeNavIcon iconKey={iconKey} className="size-5" /> : null}
                   <span className="max-w-full truncate">{t(employeeMobileNavLabelKey(item))}</span>
                 </Link>
               </li>
@@ -83,6 +88,7 @@ export function EmployeeBottomNav({ items }: { items: readonly EmployeeNavItem[]
                     : 'text-[var(--pf-text-secondary)] active:bg-[var(--pf-action-subtle-active)]',
                 )}
               >
+                <MoreHorizontal className="size-5" aria-hidden />
                 <span className="max-w-full truncate">{t('employeeApp.nav.more')}</span>
               </button>
             </li>

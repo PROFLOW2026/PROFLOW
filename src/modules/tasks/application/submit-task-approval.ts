@@ -1,7 +1,6 @@
 import 'server-only';
 
-import { submitApprovalRequest } from '@/modules/approvals';
-import { findLatestRequestForEntityGate } from '@/modules/approvals/data/approvals.repository';
+import { getLatestApprovalForEntity, submitApprovalRequest } from '@/modules/approvals';
 import type { OrgContext } from '@/shared/auth/context';
 import { DomainRuleError, NotFoundError } from '@/shared/errors';
 import { findTaskById } from '../data/tasks.repository';
@@ -24,7 +23,20 @@ export async function submitTaskApprovalRequest(
   }
 
   const requestId = result.request.id;
-  return { requestId, alreadyOpen: result.kind === 'already_open' };
+  const alreadyOpen = result.kind === 'already_open';
+
+  if (result.kind === 'submitted') {
+    const { notifyTaskApprovalSubmitted } = await import('./notify-task-approval');
+    void notifyTaskApprovalSubmitted(context, {
+      taskId,
+      requestId,
+      submittedByUserId: context.userId,
+    }).catch(() => {
+      /* notification failure must not block submit */
+    });
+  }
+
+  return { requestId, alreadyOpen };
 }
 
 export async function assertTaskCompletionApprovalSatisfied(
@@ -34,12 +46,7 @@ export async function assertTaskCompletionApprovalSatisfied(
   const task = await findTaskById(context.db, context.organizationId, taskId);
   if (!task?.approvalRequired) return;
 
-  const latest = await findLatestRequestForEntityGate(
-    context.db,
-    context.organizationId,
-    'task',
-    taskId,
-  );
+  const latest = await getLatestApprovalForEntity(context, 'task', taskId);
   if (latest?.status === 'approved') return;
 
   throw new DomainRuleError(

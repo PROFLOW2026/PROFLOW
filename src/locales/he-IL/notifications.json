@@ -125,6 +125,18 @@
       "bodyDefault": "תגובה נוספה על משימה שאתה מוקצה אליה.",
       "bodyWithExtra": "{extra}"
     },
+    "task_approval_requested": {
+      "titleWithReference": "נדרש אישור משימה - {reference}",
+      "titleDefault": "נדרש אישור משימה",
+      "bodyDefault": "משימה ממתינה לאישור לפני שניתן לסמן כבוצעה.",
+      "bodyWithExtra": "{extra}"
+    },
+    "task_approval_decided": {
+      "titleWithReference": "עדכון אישור משימה - {reference}",
+      "titleDefault": "עדכון אישור משימה",
+      "bodyDefault": "בקשת האישור למשימה נבדקה.",
+      "bodyWithExtra": "החלטה: {extra}"
+    },
     "low_stock": {
       "titleWithReference": "מלאי נמוך - {reference}",
       "titleDefault": "מלאי נמוך",

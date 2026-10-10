@@ -14,6 +14,10 @@ import {
   releaseBillingRetentionAction,
   updateBillingRetentionAction,
 } from '@/modules/billing/ui/actions';
+import {
+  employeeReleaseBillingRetentionAction,
+  employeeUpdateBillingRetentionAction,
+} from '@/app/[locale]/employee/(shell)/billing/actions';
 import { listBillingRetentionReleases } from '@/modules/retention';
 import { RetentionPanel } from '@/modules/retention/ui/retention-panel';
 import { getEntityDocumentPanelData } from '@/modules/documents';
@@ -145,6 +149,10 @@ export async function BillingOrgDetailView({
     ? resolveAccountingProviderDisplayName(statutoryProviderStatus.providerId)
     : null;
   const fullyPaid = isZeroMoney(record.outstandingAmount);
+  const captureRetentionAction =
+    surface === 'employee' ? employeeUpdateBillingRetentionAction : updateBillingRetentionAction;
+  const releaseRetentionAction =
+    surface === 'employee' ? employeeReleaseBillingRetentionAction : releaseBillingRetentionAction;
 
   return (
     <div className="flex min-w-0 flex-col gap-6">
@@ -190,6 +198,7 @@ export async function BillingOrgDetailView({
               canManage={canManage}
               status={record.status}
               recordReference={record.reference}
+              surface={surface}
               paymentActions={record.payments.map((payment) => ({
                 paymentId: payment.id,
                 status: payment.status,
@@ -225,6 +234,7 @@ export async function BillingOrgDetailView({
           customerPhone={record.customerSnapshot?.phone ?? null}
           primaryStorageProvider={primaryStorageProvider}
           accountingUiEnabled={showExternalStatutory}
+          surface={surface}
         />
       ) : null}
 
@@ -248,8 +258,8 @@ export async function BillingOrgDetailView({
           notes: row.notes,
         }))}
         locale={locale}
-        captureAction={updateBillingRetentionAction}
-        releaseAction={releaseBillingRetentionAction}
+        captureAction={captureRetentionAction}
+        releaseAction={releaseRetentionAction}
       />
 
       <div className="grid min-w-0 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -348,6 +358,7 @@ export async function BillingOrgDetailView({
           billingRecordId={record.id}
           currency={record.totalAmount.currency}
           defaultIssueDate={orgToday}
+          surface={surface}
         />
       ) : null}
 

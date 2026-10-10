@@ -125,6 +125,18 @@
       "bodyDefault": "A comment was added to a task you are assigned to.",
       "bodyWithExtra": "{extra}"
     },
+    "task_approval_requested": {
+      "titleWithReference": "Task approval requested - {reference}",
+      "titleDefault": "Task approval requested",
+      "bodyDefault": "A task is waiting for your approval before it can be completed.",
+      "bodyWithExtra": "{extra}"
+    },
+    "task_approval_decided": {
+      "titleWithReference": "Task approval updated - {reference}",
+      "titleDefault": "Task approval updated",
+      "bodyDefault": "Your task approval request was reviewed.",
+      "bodyWithExtra": "Decision: {extra}"
+    },
     "low_stock": {
       "titleWithReference": "Low stock - {reference}",
       "titleDefault": "Low stock",

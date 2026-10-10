@@ -19,6 +19,24 @@ export const EMPLOYEE_MOBILE_PRIMARY_HREFS = [
   '/employee/tasks',
 ] as const;
 
+/** Lucide icon keys for fixed mobile primary tabs (href → icon). */
+export const EMPLOYEE_MOBILE_NAV_ICON_BY_HREF: Readonly<
+  Record<(typeof EMPLOYEE_MOBILE_PRIMARY_HREFS)[number], string>
+> = {
+  '/employee': 'home',
+  '/employee/time': 'time',
+  '/employee/projects': 'projects',
+  '/employee/tasks': 'tasks',
+};
+
+export function employeeMobileNavIconKey(item: EmployeeNavItem): string | null {
+  return (
+    EMPLOYEE_MOBILE_NAV_ICON_BY_HREF[
+      item.href as (typeof EMPLOYEE_MOBILE_PRIMARY_HREFS)[number]
+    ] ?? null
+  );
+}
+
 /**
  * Mobile bottom bar: up to four primary tabs from the fixed candidate list.
  * Only items the employee can access are included; missing slots are not back-filled

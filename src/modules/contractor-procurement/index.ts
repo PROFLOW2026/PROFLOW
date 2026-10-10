@@ -5,6 +5,7 @@ export {
   inviteVendorToTender,
   awardTenderToSubcontract,
   listPortalTenders,
+  getPortalTenderDetail,
   submitContractorBid,
 } from './application/tenders';
 export {

@@ -31,6 +31,8 @@ import {
   isRedirectError,
   mapWorkforceActionError,
 } from '@/modules/workforce/application/map-workforce-action-error';
+import { assertEmployeeAppMutationGrant } from '@/modules/employee-app/application/assert-employee-workforce-mutations';
+import { PERMISSIONS } from '@/shared/permissions/catalog';
 import {
   EMPLOYEE_TIME_ENTRIES_PATH,
   resolveTimeEntryReturnPath,
@@ -74,6 +76,7 @@ function revalidateAfterTimeEntryMutation(
     revalidatePath(EMPLOYEE_TIME_ENTRIES_PATH);
     revalidatePath('/employee');
   }
+  revalidatePath('/employee/time');
 }
 
 function parseDayHours(raw: FormDataEntryValue | null): { workDate: string; hours: string }[] | undefined {
@@ -235,15 +238,18 @@ export async function submitTimeEntriesAction(
   const periodStartRaw = String(formData.get('periodStart') ?? '').trim();
   const periodStart = periodStartRaw ? businessDate(periodStartRaw) : undefined;
   try {
-    await withOrgContext((context) =>
-      employeeId
-        ? submitTimesheet(context, {
-            employeeId,
-            entryIds: entryIds.length > 0 ? entryIds : undefined,
-            periodStart,
-          })
-        : submitTimeEntries(context, { entryIds }),
-    );
+    await withOrgContext(async (context) => {
+      await assertEmployeeAppMutationGrant(context, PERMISSIONS.TIME_MANAGE);
+      if (employeeId) {
+        await submitTimesheet(context, {
+          employeeId,
+          entryIds: entryIds.length > 0 ? entryIds : undefined,
+          periodStart,
+        });
+        return;
+      }
+      await submitTimeEntries(context, { entryIds });
+    });
     revalidateAfterTimeEntryMutation('/workforce/time');
     return { ok: true };
   } catch (error) {
@@ -262,6 +268,7 @@ export async function approveTimesheetAction(
   const entryIds = parseIdList(formData, 'entryIds');
   try {
     await withOrgContext(async (context) => {
+      await assertEmployeeAppMutationGrant(context, PERMISSIONS.TIME_APPROVE);
       if (timesheetId) {
         await approveTimesheet(context, { timesheetId });
         return;
@@ -290,7 +297,10 @@ export async function returnTimesheetAction(
   const timesheetId = String(formData.get('timesheetId') ?? '');
   const managerNote = String(formData.get('managerNote') ?? '');
   try {
-    await withOrgContext((context) => returnTimesheet(context, { timesheetId, managerNote }));
+    await withOrgContext(async (context) => {
+      await assertEmployeeAppMutationGrant(context, PERMISSIONS.TIME_APPROVE);
+      await returnTimesheet(context, { timesheetId, managerNote });
+    });
     revalidateAfterTimeEntryMutation('/workforce/time');
     return { ok: true };
   } catch (error) {

@@ -24,7 +24,20 @@
     "selected": "مختار",
     "rejected": "مرفوض"
   },
-  "portal": { "title": "مناقصات مفتوحة", "description": "حزم دُعيتم للتقديم عليها." },
+  "portal": {
+    "title": "مناقصات مفتوحة",
+    "description": "حزم دُعيتم للتقديم عليها.",
+    "back": "كل المناقصات",
+    "scopeTitle": "النطاق",
+    "yourBid": "عرضكم",
+    "submitBidTitle": "تقديم عرض",
+    "submitBid": "تقديم عرض",
+    "bidSubmitted": "تم تقديم العرض",
+    "bidAmount": "مبلغ العرض (₪)",
+    "leadTimeDays": "مدة التوريد (أيام)",
+    "bidNotes": "ملاحظات",
+    "packageClosed": "هذه الحزمة لم تعد مفتوحة للعروض."
+  },
   "errors": {
     "alreadyAwarded": "تمت الترسية مسبقاً.",
     "bidAlreadySubmitted": "تم تقديم عرض لهذه الحزمة."

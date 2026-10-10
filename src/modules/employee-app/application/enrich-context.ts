@@ -6,7 +6,10 @@ import { listOrgMemberDocumentCategoryGrants } from '../data/org-member-grants.r
 import { isEmployeeAppUser, loadEmployeeAppContextForUser } from './load-employee-app-context';
 
 /** Baseline always available to active Employee App users (attendance self). */
-const EMPLOYEE_APP_BASELINE: readonly PermissionKey[] = [PERMISSIONS.ATTENDANCE_SELF];
+const EMPLOYEE_APP_BASELINE: readonly PermissionKey[] = [
+  PERMISSIONS.ATTENDANCE_SELF,
+  PERMISSIONS.NOTIFICATIONS_READ,
+];
 
 /**
  * Employee App effective permissions: explicit grants + attendance baseline only.

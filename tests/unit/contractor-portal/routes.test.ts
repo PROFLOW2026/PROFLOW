@@ -87,6 +87,8 @@ describe('contractor portal route config', () => {
           submittalId: 's',
           defectId: 'f',
           instructionId: 'i',
+          inspectionId: 'in1',
+          packageId: 'pkg1',
         }),
       ).not.toBeNull();
     }

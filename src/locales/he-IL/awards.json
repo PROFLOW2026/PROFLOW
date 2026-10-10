@@ -24,7 +24,20 @@
     "selected": "נבחר",
     "rejected": "נדחה"
   },
-  "portal": { "title": "מכרזים פתוחים", "description": "חבילות שהוזמנתם להגיש בהן הצעה." },
+  "portal": {
+    "title": "מכרזים פתוחים",
+    "description": "חבילות שהוזמנתם להגיש בהן הצעה.",
+    "back": "כל המכרזים",
+    "scopeTitle": "היקף",
+    "yourBid": "ההצעה שלכם",
+    "submitBidTitle": "הגשת הצעה",
+    "submitBid": "הגש הצעה",
+    "bidSubmitted": "ההצעה הוגשה",
+    "bidAmount": "סכום הצעה (₪)",
+    "leadTimeDays": "זמן אספקה (ימים)",
+    "bidNotes": "הערות",
+    "packageClosed": "חבילה זו אינה פתוחה להצעות."
+  },
   "errors": {
     "alreadyAwarded": "החבילה כבר הוכרעה.",
     "bidAlreadySubmitted": "כבר הוגשה הצעה לחבילה זו."

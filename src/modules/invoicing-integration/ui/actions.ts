@@ -38,6 +38,13 @@ function logUnmappedExternalDocError(action: string, error: unknown): void {
   });
 }
 
+function revalidateBillingRecordPaths(billingRecordId: string) {
+  revalidatePath(`/billing/${billingRecordId}`);
+  revalidatePath('/billing');
+  revalidatePath(`/employee/billing/${billingRecordId}`);
+  revalidatePath('/employee/billing');
+}
+
 async function mapExternalDocError(error: unknown): Promise<string> {
   const tErrors = await getTranslations('errors');
   const tInvoicing = await getTranslations('invoicingIntegration');
@@ -67,7 +74,7 @@ export async function requestExternalStatutoryDocumentAction(
       session.activeOrganizationId,
       billingRecordId,
     );
-    revalidatePath(`/billing/${billingRecordId}`);
+    revalidateBillingRecordPaths(billingRecordId);
     return { ok: true };
   } catch (error) {
     logUnmappedExternalDocError('request', error);
@@ -83,7 +90,7 @@ export async function refreshExternalStatutoryStatusAction(
     await withOrgContext(async (context) => {
       await refreshExternalStatutoryStatus(context, { externalDocumentId });
     });
-    revalidatePath(`/billing/${billingRecordId}`);
+    revalidateBillingRecordPaths(billingRecordId);
     return { ok: true };
   } catch (error) {
     logUnmappedExternalDocError('refresh', error);
@@ -107,7 +114,7 @@ export async function saveStatutoryPdfToStorageAction(
     const result = await withOrgContext(async (context) =>
       saveStatutoryPdfToStorage(context, externalDocumentId),
     );
-    revalidatePath(`/billing/${billingRecordId}`);
+    revalidateBillingRecordPaths(billingRecordId);
     if (result.status === 'failed') {
       const tInvoicing = await getTranslations('invoicingIntegration');
       return { error: tInvoicing('storage.failedStatus') };
@@ -166,7 +173,7 @@ export async function sendExternalStatutoryDocumentAction(
         emailAddress,
       });
     });
-    revalidatePath(`/billing/${billingRecordId}`);
+    revalidateBillingRecordPaths(billingRecordId);
     return { ok: true };
   } catch (error) {
     logUnmappedExternalDocError('send', error);
@@ -193,7 +200,7 @@ export async function creditExternalStatutoryDocumentAction(
         provider,
       );
     });
-    revalidatePath(`/billing/${billingRecordId}`);
+    revalidateBillingRecordPaths(billingRecordId);
     return { ok: true };
   } catch (error) {
     logUnmappedExternalDocError('credit', error);
@@ -218,7 +225,7 @@ export async function cancelExternalStatutoryDocumentAction(
         provider,
       );
     });
-    revalidatePath(`/billing/${billingRecordId}`);
+    revalidateBillingRecordPaths(billingRecordId);
     return { ok: true };
   } catch (error) {
     logUnmappedExternalDocError('cancel', error);

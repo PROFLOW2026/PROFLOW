@@ -56,8 +56,8 @@
   "roles": {
     "owner": { "name": "Owner", "description": "Full access, including profit figures and settings." },
     "manager": {
-      "name": "Project manager",
-      "description": "Runs projects and costs. Profit is hidden unless you turn it on."
+      "name": "Organization Manager",
+      "description": "Runs organization-wide operations and projects. Profit is hidden unless you turn it on."
     },
     "finance": { "name": "Finance", "description": "Billing, payments, expenses and tax." },
     "worker": { "name": "Worker", "description": "Records expenses and hours. No financial totals." }

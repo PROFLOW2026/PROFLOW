@@ -499,7 +499,8 @@
     "labelsLabel": "Labels",
     "submit": "Create task",
     "saving": "Creating...",
-    "error": "Failed to create task"
+    "error": "Failed to create task",
+    "approvalRequiredHint": "Assignee must receive approval before marking this task done."
   },
   "cancel": "Cancel",
   "add": "Add",

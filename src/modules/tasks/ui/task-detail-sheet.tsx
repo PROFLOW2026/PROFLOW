@@ -256,6 +256,7 @@ type TaskEditDraft = {
   dueDate: string | null;
   contributesToProgress: boolean;
   progressWeight: string;
+  approvalRequired: boolean;
 };
 
 function parseProgressWeightDraft(
@@ -309,6 +310,7 @@ export function TaskDetailSheet({
       dueDate: task.dueDate,
       contributesToProgress: task.contributesToProgress === true,
       progressWeight: task.progressWeight ?? '',
+      approvalRequired: task.approvalRequired === true,
     };
   }, [task]);
 
@@ -409,7 +411,8 @@ export function TaskDetailSheet({
       draft.priority !== task.priority ||
       draft.dueDate !== task.dueDate ||
       draft.contributesToProgress !== (task.contributesToProgress === true) ||
-      !sameProgressWeight(task.progressWeight, draft.progressWeight)
+      !sameProgressWeight(task.progressWeight, draft.progressWeight) ||
+      draft.approvalRequired !== (task.approvalRequired === true)
     );
   }, [task, draft]);
 
@@ -470,6 +473,9 @@ export function TaskDetailSheet({
                 return;
               }
               patch.progressWeight = weight.value;
+            }
+            if (draft.approvalRequired !== (task.approvalRequired === true)) {
+              patch.approvalRequired = draft.approvalRequired;
             }
 
             const result = await handleUpdate(patch);
@@ -620,6 +626,22 @@ export function TaskDetailSheet({
                       {statusOptions.find((o) => o.value === (draft?.status ?? task.status))?.label}
                   </Badge>
                 </div>
+              </Field>
+
+              <Field label={t('approvalRequired')} icon={<BadgeCheck className="size-4" />}>
+                <label className="flex cursor-pointer items-start gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={draft?.approvalRequired ?? task.approvalRequired === true}
+                    onChange={(event) =>
+                      setDraft((current) =>
+                        current ? { ...current, approvalRequired: event.target.checked } : current,
+                      )
+                    }
+                    className="mt-0.5 size-4 rounded border-[var(--pf-border-default)]"
+                  />
+                  <span className="text-[var(--pf-text-secondary)]">{t('create.approvalRequiredHint')}</span>
+                </label>
               </Field>
 
               {/* Priority */}

@@ -26,7 +26,7 @@ export function mapEmployeePmTaskToCardData(
     checklistTotal: 0,
     checklistDone: 0,
     isBlocked: status === 'blocked',
-    approvalRequired: false,
+    approvalRequired: task.approvalRequired,
     projectId: task.projectId,
     projectName: enrichment?.projectName ?? null,
     workspaceId: '',

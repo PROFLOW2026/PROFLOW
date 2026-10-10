@@ -22,6 +22,26 @@ import {
   type CancelApprovalInput,
   type DecideApprovalInput,
 } from '../validation/schemas';
+import type { ApprovalRequestRecord } from '../domain/types';
+
+async function notifyTaskApprovalDecisionIfNeeded(
+  context: OrgContext,
+  request: ApprovalRequestRecord,
+  decision: 'approved' | 'rejected',
+): Promise<void> {
+  if (request.entityType !== 'task') return;
+  const { notifyTaskApprovalDecided } = await import(
+    '@/modules/tasks/application/notify-task-approval'
+  );
+  void notifyTaskApprovalDecided(context, {
+    taskId: request.entityId,
+    requestId: request.id,
+    decision,
+    submittedByUserId: request.submittedByUserId,
+  }).catch(() => {
+    /* notification failure must not block decide */
+  });
+}
 
 export async function decideApprovalRequest(context: OrgContext, raw: DecideApprovalInput) {
   const parsed = decideApprovalSchema.safeParse(raw);
@@ -129,6 +149,7 @@ export async function decideApprovalRequest(context: OrgContext, raw: DecideAppr
           entityId: updated.entityId,
         },
       });
+      await notifyTaskApprovalDecisionIfNeeded(context, updated, 'rejected');
       return updated;
     }
 
@@ -189,6 +210,10 @@ export async function decideApprovalRequest(context: OrgContext, raw: DecideAppr
       entityId: updated.entityId,
     },
   });
+
+  if (updated.status === 'approved' || updated.status === 'rejected') {
+    await notifyTaskApprovalDecisionIfNeeded(context, updated, updated.status);
+  }
 
   return updated;
 }

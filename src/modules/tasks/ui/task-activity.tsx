@@ -23,7 +23,9 @@ import {
   CalendarDays,
   Settings2,
 } from 'lucide-react';
+import { notFound } from 'next/navigation';
 import { getLocale, getTranslations } from 'next-intl/server';
+import { NotFoundError } from '@/shared/errors';
 import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
 import {
   loadTaskActivityForDisplay,
@@ -40,7 +42,12 @@ import { ActivityExpandClient, type TaskActivityViewRow } from './task-activity-
 export type TaskActivityEventRow = TaskActivityDisplayRow;
 
 async function loadActivity(taskId: string): Promise<TaskActivityEventRow[]> {
-  return loadTaskActivityForDisplay(taskId);
+  try {
+    return await loadTaskActivityForDisplay(taskId);
+  } catch (error) {
+    if (error instanceof NotFoundError) notFound();
+    throw error;
+  }
 }
 
 function eventIcon(eventType: string) {

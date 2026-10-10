@@ -1,15 +1,23 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { getLocale } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { redirect } from '@/shared/i18n/navigation';
+import type { OrgContext } from '@/shared/auth/context';
 import { withOrgContext } from '@/shared/auth/session';
-import { DomainRuleError } from '@/shared/errors';
+import { AppError, DomainRuleError } from '@/shared/errors';
 import {
+  createBillingAdjustment,
   createBillingRecord,
+  finalizeBillingRecord,
   listBillingRecords,
   recordCustomerPayment,
+  updateBillingRecord,
+  voidBillingRecord,
+  voidPayment,
 } from '@/modules/billing';
+import { releaseBillingRecordRetention } from '@/modules/retention';
+import type { BillingFormState } from '@/modules/billing/ui/actions';
 import { assertEmployeeAppContext } from '@/modules/employee-app/application/session-guard';
 import { employeeHasPermission } from '@/modules/employee-app/application/load-employee-app-context';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -93,4 +101,147 @@ export async function employeeRecordPaymentAction(formData: FormData): Promise<v
 
   revalidatePath('/employee/billing');
   redirect({ href: '/employee/billing', locale });
+}
+
+function revalidateEmployeeBillingRecord(billingRecordId: string) {
+  revalidatePath(`/employee/billing/${billingRecordId}`);
+  revalidatePath('/employee/billing');
+}
+
+async function assertEmployeeBillingManage(context: OrgContext): Promise<void> {
+  await assertEmployeeAppContext(context);
+  if (!employeeHasPermission(context, PERMISSIONS.BILLING_MANAGE)) {
+    throw new DomainRuleError('Not allowed', 'employeeApp.errors.notAuthorized');
+  }
+}
+
+function mapBillingError(error: unknown, fallback: string): BillingFormState {
+  if (error instanceof AppError) {
+    return { error: error.messageKey };
+  }
+  return { error: fallback };
+}
+
+export async function employeeFinalizeBillingRecordAction(
+  billingRecordId: string,
+): Promise<BillingFormState> {
+  const tErrors = await getTranslations('errors');
+  try {
+    await withOrgContext(async (context) => {
+      await assertEmployeeBillingManage(context);
+      await finalizeBillingRecord(context, billingRecordId);
+    });
+    revalidateEmployeeBillingRecord(billingRecordId);
+  } catch (error) {
+    return mapBillingError(error, tErrors('unexpected'));
+  }
+  return {};
+}
+
+export async function employeeVoidBillingRecordAction(
+  billingRecordId: string,
+): Promise<BillingFormState> {
+  const tErrors = await getTranslations('errors');
+  try {
+    await withOrgContext(async (context) => {
+      await assertEmployeeBillingManage(context);
+      await voidBillingRecord(context, billingRecordId);
+    });
+    revalidateEmployeeBillingRecord(billingRecordId);
+  } catch (error) {
+    return mapBillingError(error, tErrors('unexpected'));
+  }
+  return {};
+}
+
+export async function employeeVoidPaymentAction(
+  paymentId: string,
+  billingRecordId: string,
+): Promise<BillingFormState> {
+  const tErrors = await getTranslations('errors');
+  try {
+    await withOrgContext(async (context) => {
+      await assertEmployeeBillingManage(context);
+      await voidPayment(context, paymentId);
+    });
+    revalidateEmployeeBillingRecord(billingRecordId);
+  } catch (error) {
+    return mapBillingError(error, tErrors('unexpected'));
+  }
+  return {};
+}
+
+export async function employeeCreateAdjustmentAction(
+  billingRecordId: string,
+  _prev: BillingFormState,
+  formData: FormData,
+): Promise<BillingFormState> {
+  const tErrors = await getTranslations('errors');
+  const locale = await getLocale();
+  try {
+    const created = await withOrgContext(async (context) => {
+      await assertEmployeeBillingManage(context);
+      return createBillingAdjustment(context, {
+        billingRecordId,
+        amount: String(formData.get('amount') ?? ''),
+        issueDate: String(formData.get('issueDate') ?? ''),
+        notes: formData.get('notes') ? String(formData.get('notes')) : null,
+      });
+    });
+    revalidatePath('/employee/billing');
+    redirect({ href: `/employee/billing/${created.id}`, locale });
+  } catch (error) {
+    if (error instanceof AppError) return mapBillingError(error, tErrors('validationFailed'));
+    throw error;
+  }
+  return {};
+}
+
+export async function employeeUpdateBillingRetentionAction(
+  _prev: BillingFormState,
+  formData: FormData,
+): Promise<BillingFormState> {
+  const tErrors = await getTranslations('errors');
+  const billingRecordId = String(formData.get('sourceId') ?? '');
+  try {
+    await withOrgContext(async (context) => {
+      await assertEmployeeBillingManage(context);
+      await updateBillingRecord(context, {
+        billingRecordId,
+        retentionAmount: formData.get('retentionAmount')
+          ? String(formData.get('retentionAmount'))
+          : null,
+        retentionPercent: formData.get('retentionPercent')
+          ? String(formData.get('retentionPercent'))
+          : null,
+      });
+    });
+    revalidateEmployeeBillingRecord(billingRecordId);
+  } catch (error) {
+    return mapBillingError(error, tErrors('validationFailed'));
+  }
+  return {};
+}
+
+export async function employeeReleaseBillingRetentionAction(
+  _prev: BillingFormState,
+  formData: FormData,
+): Promise<BillingFormState> {
+  const tErrors = await getTranslations('errors');
+  const billingRecordId = String(formData.get('sourceId') ?? '');
+  try {
+    await withOrgContext(async (context) => {
+      await assertEmployeeBillingManage(context);
+      await releaseBillingRecordRetention(context, {
+        sourceId: billingRecordId,
+        amount: String(formData.get('amount') ?? ''),
+        releasedOn: String(formData.get('releasedOn') ?? ''),
+        notes: formData.get('notes') ? String(formData.get('notes')) : null,
+      });
+    });
+    revalidateEmployeeBillingRecord(billingRecordId);
+  } catch (error) {
+    return mapBillingError(error, tErrors('validationFailed'));
+  }
+  return {};
 }

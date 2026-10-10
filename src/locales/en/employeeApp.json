@@ -41,6 +41,10 @@
     "managementOffice": "Management / Office",
     "changes": "Change orders",
     "quotes": "Quotes",
+    "crm": "CRM",
+    "notifications": "Notifications",
+    "workforce": "Workforce",
+    "reports": "Reports",
     "more": "More"
   },
   "back": {
@@ -129,7 +133,23 @@
     "intro": "Operational team visibility for your permitted scope.",
     "openTasks": "{count, plural, one {# open task} other {# open tasks}}",
     "viewTasks": "View tasks",
+    "workforceHubLink": "Employer cost review",
     "empty": "No team members in your scope"
+  },
+  "workforceHub": {
+    "intro": "Workforce and employer-cost visibility for your granted scope.",
+    "viewEmployerCost": "Employer cost",
+    "employerCostSection": "Monthly employer cost review",
+    "costReadRequired": "Employer cost read permission is required.",
+    "empty": "No employees in your scope"
+  },
+  "reports": {
+    "title": "Financial reports",
+    "description": "Shortcuts to financial views you are allowed to access.",
+    "billingLink": "Billing & collections",
+    "projectsLink": "Projects",
+    "workforceLink": "Workforce & labor cost",
+    "empty": "No report destinations available for your grants."
   },
   "forms": {
     "intro": "Permitted operational forms.",
@@ -375,6 +395,7 @@
       "priorityUrgent": "Urgent",
       "dueDate": "Due date",
       "assignees": "Assignees",
+      "approvalRequired": "Require approval before completion",
       "submit": "Create task"
     },
     "status": {
@@ -633,6 +654,9 @@
       "ap": "Vendor bills",
       "procurement": "Procurement",
       "banking": "Banking",
+      "commercial": "CRM & sales",
+      "financials": "Finance operations",
+      "notifications": "Notifications",
       "forms": "Reports"
     },
     "items": {
@@ -662,6 +686,14 @@
       "workforceRead": "View employees",
       "workforceManage": "Manage employees",
       "workforceCostRead": "View employee costs",
+      "workforceCostManage": "Manage employee costs",
+      "crmRead": "View CRM",
+      "crmManage": "Manage CRM",
+      "monthCloseRead": "View month close",
+      "monthCloseManage": "Manage month close",
+      "taxManage": "Manage tax settings",
+      "auditRead": "View audit trail",
+      "notificationsRead": "View notifications",
       "clientsRead": "View clients",
       "clientsManage": "Manage clients",
       "vendorsRead": "View vendors",
@@ -689,7 +721,8 @@
       "pmTasksAssign": "Assign PM tasks",
       "pmTasksManageAll": "Manage all PM tasks",
       "pmTasksApprove": "Approve PM tasks",
-      "meetingsRead": "View meetings"
+      "meetingsRead": "View meetings",
+      "meetingsManage": "Manage meetings"
     },
     "scopes": {
       "self_only": "Self only",

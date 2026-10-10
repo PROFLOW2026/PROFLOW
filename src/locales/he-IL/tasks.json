@@ -499,7 +499,8 @@
     "labelsLabel": "תגיות",
     "submit": "צור משימה",
     "saving": "יוצר...",
-    "error": "שגיאה ביצירת משימה"
+    "error": "שגיאה ביצירת משימה",
+    "approvalRequiredHint": "המבצע חייב לקבל אישור לפני סימון המשימה כהושלמה."
   },
   "cancel": "ביטול",
   "add": "הוסף",
@@ -578,7 +579,7 @@
   "projectWork": {
     "sectionLabel": "ניהול עבודה בפרויקט",
     "identityTitle": "ניהול משימות",
-    "identityHint": "משימות, לוח Kanban, לוח שנה וציר זמן — בסביבת עבודה ייעודית לפרויקט.",
+    "identityHint": "משימות, לוח Kanban, לוח שנה וציר זמן: בסביבת עבודה ייעודית לפרויקט.",
     "entryHint": "פתיחת סביבת ניהול המשימות, מחוץ לעמוד הפרויקט המסחרי.",
     "enterWorkspace": "ניהול משימות",
     "backToProject": "חזרה לפרויקט",
@@ -725,7 +726,10 @@
     "dependencyCycle": "הוספת תלות זו תיצור מעגל.",
     "maxSubtaskDepth": "ניתן לקנן תת-משימות רק ברמה אחת.",
     "subtaskWorkspaceMismatch": "תת-משימה חייבת להיות באותה סביבת עבודה כמו ההורה.",
-    "subtaskProjectMismatch": "תת-משימה חייבת להיות באותו פרויקט כמו ההורה."
+    "subtaskProjectMismatch": "תת-משימה חייבת להיות באותו פרויקט כמו ההורה.",
+    "selfApprovalBlocked": "לא ניתן לאשר את הגשת המשימה של עצמך.",
+    "approvalRequiredBeforeDone": "משימה זו דורשת אישור מנהל לפני שניתן לסמן אותה כהושלמה.",
+    "approvalNotRequired": "משימה זו אינה דורשת אישור."
   },
   "actions": {
     "duplicate": "שכפל משימה",

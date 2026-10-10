@@ -16,6 +16,7 @@ describe('employee permission editor', () => {
       expect.arrayContaining([
         'projects',
         'clients',
+        'commercial',
         'contracts',
         'changes',
         'quotes',
@@ -29,16 +30,27 @@ describe('employee permission editor', () => {
         'documents',
         'workforce',
         'banking',
+        'financials',
+        'notifications',
       ]),
     );
-    expect(EMPLOYEE_PERMISSION_EDITOR_GROUPS).toHaveLength(20);
+    expect(EMPLOYEE_PERMISSION_EDITOR_GROUPS).toHaveLength(23);
     expect(editorItemForPermission(PERMISSIONS.TASKS_DELETE)?.scopes).toEqual([
       'assigned_only',
       'all_organization',
     ]);
     expect(editorItemForPermission(PERMISSIONS.BANKING_READ)?.scopes).toEqual(['all_organization']);
     expect(editorItemForPermission(PERMISSIONS.BANKING_MANAGE)).toBeUndefined();
-    expect(editorItemForPermission(PERMISSIONS.WORKFORCE_COST_READ)).toBeUndefined();
+    expect(editorItemForPermission(PERMISSIONS.WORKFORCE_COST_READ)?.scopes).toEqual([
+      'assigned_only',
+      'all_organization',
+    ]);
+    expect(editorItemForPermission(PERMISSIONS.CRM_READ)?.scopes).toEqual(['all_organization']);
+    expect(editorItemForPermission(PERMISSIONS.MEETINGS_MANAGE)?.scopes).toEqual([
+      'assigned_only',
+      'all_organization',
+    ]);
+    expect(editorItemForPermission(PERMISSIONS.NOTIFICATIONS_READ)?.scopes).toEqual(['self_only']);
   });
 
   it('detects foreman preset from grant state', () => {

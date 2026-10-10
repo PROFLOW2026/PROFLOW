@@ -3,12 +3,22 @@
 import { useMemo, useState, useTransition } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import {
-  applyMonthlyEmployerCostAllocationAction,
-  correctMonthlyEmployerCostActualAction,
-  loadMonthlyEmployerCostReviewAction,
-  returnMonthlyEmployerCostToEstimateAction,
-  saveMonthlyEmployerCostDraftAction,
+  applyMonthlyEmployerCostAllocationAction as ownerApplyMonthlyEmployerCostAllocationAction,
+  correctMonthlyEmployerCostActualAction as ownerCorrectMonthlyEmployerCostActualAction,
+  loadMonthlyEmployerCostReviewAction as ownerLoadMonthlyEmployerCostReviewAction,
+  returnMonthlyEmployerCostToEstimateAction as ownerReturnMonthlyEmployerCostToEstimateAction,
+  saveMonthlyEmployerCostDraftAction as ownerSaveMonthlyEmployerCostDraftAction,
 } from '@/app/[locale]/(app)/workforce/employees/actions';
+
+export const ownerMonthlyEmployerCostReviewActions = {
+  loadMonthlyEmployerCostReviewAction: ownerLoadMonthlyEmployerCostReviewAction,
+  saveMonthlyEmployerCostDraftAction: ownerSaveMonthlyEmployerCostDraftAction,
+  applyMonthlyEmployerCostAllocationAction: ownerApplyMonthlyEmployerCostAllocationAction,
+  correctMonthlyEmployerCostActualAction: ownerCorrectMonthlyEmployerCostActualAction,
+  returnMonthlyEmployerCostToEstimateAction: ownerReturnMonthlyEmployerCostToEstimateAction,
+} as const;
+
+export type MonthlyEmployerCostReviewActions = typeof ownerMonthlyEmployerCostReviewActions;
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -57,6 +67,8 @@ export interface MonthlyEmployerCostReviewProps {
   readonly initialReview?: MonthlyEmployerCostReviewData | null;
   /** When true, show payroll month-end approval copy (salary alert path). */
   readonly payrollApprovalMode?: boolean;
+  /** Owner app actions by default; Employee App passes guarded equivalents. */
+  readonly reviewActions?: Partial<MonthlyEmployerCostReviewActions>;
 }
 
 function newLineKey(): string {
@@ -115,7 +127,9 @@ export function MonthlyEmployerCostReview({
   canManage = false,
   initialReview = null,
   payrollApprovalMode = false,
+  reviewActions,
 }: MonthlyEmployerCostReviewProps) {
+  const actions = { ...ownerMonthlyEmployerCostReviewActions, ...reviewActions };
   const t = useTranslations('workforce');
   const tCommon = useTranslations('common');
   const locale = useLocale();
@@ -159,7 +173,7 @@ export function MonthlyEmployerCostReview({
   }
 
   async function refreshCurrentMonthReview() {
-    const result = await loadMonthlyEmployerCostReviewAction({ employeeId, yearMonth });
+    const result = await actions.loadMonthlyEmployerCostReviewAction({ employeeId, yearMonth });
     if (result.error) {
       setActionError(result.error);
       return false;
@@ -182,7 +196,7 @@ export function MonthlyEmployerCostReview({
     }
 
     setLoadingMonth(true);
-    const result = await loadMonthlyEmployerCostReviewAction({
+    const result = await actions.loadMonthlyEmployerCostReviewAction({
       employeeId,
       yearMonth: nextYearMonth,
     });
@@ -245,12 +259,12 @@ export function MonthlyEmployerCostReview({
       actualAmount: actual.trim() === '' ? null : actual,
     };
     if (hasAppliedMonth) {
-      return correctMonthlyEmployerCostActualAction({
+      return actions.correctMonthlyEmployerCostActualAction({
         ...payload,
         correctionNote: null,
       });
     }
-    return saveMonthlyEmployerCostDraftAction({
+    return actions.saveMonthlyEmployerCostDraftAction({
       employeeId: payload.employeeId,
       yearMonth: payload.yearMonth,
       estimatedAmount: payload.estimatedAmount,
@@ -296,7 +310,7 @@ export function MonthlyEmployerCostReview({
         setApplied(true);
         return;
       }
-      const applyResult = await applyMonthlyEmployerCostAllocationAction({
+      const applyResult = await actions.applyMonthlyEmployerCostAllocationAction({
         employeeId,
         yearMonth,
       });
@@ -315,7 +329,7 @@ export function MonthlyEmployerCostReview({
     setActionError(null);
     if (!ready || !canManage) return;
     startTransition(async () => {
-      const result = await returnMonthlyEmployerCostToEstimateAction({
+      const result = await actions.returnMonthlyEmployerCostToEstimateAction({
         employeeId,
         yearMonth,
       });

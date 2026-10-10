@@ -30,7 +30,10 @@
   "portal": {
     "title": "Передача",
     "description": "Отправка пунктов чек-листа по договору.",
-    "checklist": "Чек-лист"
+    "checklist": "Чек-лист",
+    "submitItem": "Отметить как отправлено",
+    "itemSubmitted": "Пункт отправлен",
+    "itemNotes": "Примечания (необязательно)"
   },
   "itemStatus": {
     "pending": "Ожидает",

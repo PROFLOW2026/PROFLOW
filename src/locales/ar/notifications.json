@@ -125,6 +125,18 @@
       "bodyDefault": "أُضيف تعليق على مهمة مُسندة إليك.",
       "bodyWithExtra": "{extra}"
     },
+    "task_approval_requested": {
+      "titleWithReference": "مطلوب موافقة على مهمة - {reference}",
+      "titleDefault": "مطلوب موافقة على مهمة",
+      "bodyDefault": "مهمة بانتظار موافقتك قبل إكمالها.",
+      "bodyWithExtra": "{extra}"
+    },
+    "task_approval_decided": {
+      "titleWithReference": "تحديث موافقة المهمة - {reference}",
+      "titleDefault": "تحديث موافقة المهمة",
+      "bodyDefault": "تمت مراجعة طلب الموافقة على المهمة.",
+      "bodyWithExtra": "القرار: {extra}"
+    },
     "low_stock": {
       "titleWithReference": "مخزون منخفض - {reference}",
       "titleDefault": "مخزون منخفض",

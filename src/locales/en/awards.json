@@ -26,7 +26,17 @@
   },
   "portal": {
     "title": "Open tenders",
-    "description": "Packages your company is invited to bid on."
+    "description": "Packages your company is invited to bid on.",
+    "back": "All tenders",
+    "scopeTitle": "Scope",
+    "yourBid": "Your bid",
+    "submitBidTitle": "Submit bid",
+    "submitBid": "Submit bid",
+    "bidSubmitted": "Bid submitted",
+    "bidAmount": "Bid amount (ILS)",
+    "leadTimeDays": "Lead time (days)",
+    "bidNotes": "Notes",
+    "packageClosed": "This package is no longer open for bids."
   },
   "errors": {
     "alreadyAwarded": "This package was already awarded.",

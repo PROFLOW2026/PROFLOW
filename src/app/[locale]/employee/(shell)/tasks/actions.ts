@@ -239,6 +239,9 @@ export async function employeeCreateTaskAction(formData: FormData): Promise<void
     .map((value) => value.trim())
     .filter(Boolean);
   const assignAllProjectTeam = String(formData.get('assignAllProjectTeam') ?? '') === '1';
+  const approvalRequired =
+    String(formData.get('approvalRequired') ?? '') === 'on' ||
+    String(formData.get('approvalRequired') ?? '') === '1';
 
   const created = await withOrgContext(async (context) => {
     await assertEmployeeAppContext(context);
@@ -248,6 +251,7 @@ export async function employeeCreateTaskAction(formData: FormData): Promise<void
       description,
       priority,
       dueDate,
+      approvalRequired,
       assigneeKeys: assigneeKeys.length > 0 ? assigneeKeys : undefined,
       assignAllProjectTeam,
     });

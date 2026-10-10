@@ -41,6 +41,10 @@
     "managementOffice": "ניהול משרד",
     "changes": "שינויים",
     "quotes": "הצעות מחיר",
+    "crm": "מכירות",
+    "notifications": "התראות",
+    "workforce": "כוח אדם",
+    "reports": "דוחות",
     "more": "עוד"
   },
   "back": {
@@ -129,7 +133,23 @@
     "intro": "תצוגת צוות תפעולית בהיקף ההרשאות שלך.",
     "openTasks": "{count, plural, one {משימה פתוחה אחת} other {# משימות פתוחות}}",
     "viewTasks": "צפה במשימות",
+    "workforceHubLink": "סקירת עלות מעסיק",
     "empty": "אין חברי צוות בהיקף שלך"
+  },
+  "workforceHub": {
+    "intro": "נראות כוח אדם ועלות מעסיק בהיקף ההרשאות שלך.",
+    "viewEmployerCost": "עלות מעסיק",
+    "employerCostSection": "סקירת עלות מעסיק חודשית",
+    "costReadRequired": "נדרשת הרשאת קריאת עלות כוח אדם.",
+    "empty": "אין עובדים בהיקף שלך"
+  },
+  "reports": {
+    "title": "דוחות כספיים",
+    "description": "קיצורי דרך לתצוגות כספיות שמותרות לך לפי ההרשאות.",
+    "billingLink": "חיוב וגבייה",
+    "projectsLink": "פרויקטים",
+    "workforceLink": "כוח אדם ועלות עבודה",
+    "empty": "אין יעדי דוח זמינים להרשאות שלך."
   },
   "forms": {
     "intro": "טפסים תפעוליים מותרים.",
@@ -410,6 +430,7 @@
       "priorityUrgent": "דחוף",
       "dueDate": "תאריך יעד",
       "assignees": "מוקצים",
+      "approvalRequired": "דרישת אישור לפני השלמה",
       "submit": "יצירת משימה"
     }
   },
@@ -633,6 +654,9 @@
       "ap": "חשבוניות ספקים",
       "procurement": "רכש",
       "banking": "בנקאות",
+      "commercial": "CRM ומכירות",
+      "financials": "פעולות כספים",
+      "notifications": "התראות",
       "forms": "דוחות"
     },
     "items": {
@@ -662,6 +686,14 @@
       "workforceRead": "צפייה בעובדים",
       "workforceManage": "ניהול עובדים",
       "workforceCostRead": "צפייה בעלויות עובדים",
+      "workforceCostManage": "ניהול עלויות עובדים",
+      "crmRead": "צפייה ב-CRM",
+      "crmManage": "ניהול CRM",
+      "monthCloseRead": "צפייה בסגירת חודש",
+      "monthCloseManage": "ניהול סגירת חודש",
+      "taxManage": "ניהול הגדרות מס",
+      "auditRead": "צפייה ביומן ביקורת",
+      "notificationsRead": "צפייה בהתראות",
       "clientsRead": "צפייה בלקוחות",
       "clientsManage": "ניהול לקוחות",
       "vendorsRead": "צפייה בספקים",
@@ -689,7 +721,8 @@
       "pmTasksAssign": "שיוך משימות PM",
       "pmTasksManageAll": "ניהול כל משימות PM",
       "pmTasksApprove": "אישור משימות PM",
-      "meetingsRead": "צפייה בישיבות"
+      "meetingsRead": "צפייה בישיבות",
+      "meetingsManage": "ניהול ישיבות"
     },
     "scopes": {
       "self_only": "עצמי בלבד",

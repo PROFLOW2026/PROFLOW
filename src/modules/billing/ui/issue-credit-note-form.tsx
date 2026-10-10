@@ -9,6 +9,8 @@ import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { createAdjustmentAction, type BillingFormState } from './actions';
+import { employeeCreateAdjustmentAction } from '@/app/[locale]/employee/(shell)/billing/actions';
+import type { OrgListSurface } from '@/modules/employee-app/application/org-list-permissions';
 
 function resolveBillingMessage(
   key: string,
@@ -28,17 +30,21 @@ export function IssueCreditNoteForm({
   billingRecordId,
   currency,
   defaultIssueDate,
+  surface = 'owner',
 }: {
   readonly billingRecordId: string;
   readonly currency: string;
   readonly defaultIssueDate: string;
+  readonly surface?: OrgListSurface;
 }) {
   const t = useTranslations('billing');
   const tCommon = useTranslations('common');
   const tErrors = useTranslations('errors');
   const [amount, setAmount] = useState('');
+  const createAction =
+    surface === 'employee' ? employeeCreateAdjustmentAction : createAdjustmentAction;
   const [state, formAction, pending] = useActionState<BillingFormState, FormData>(
-    createAdjustmentAction.bind(null, billingRecordId),
+    createAction.bind(null, billingRecordId),
     {},
   );
 

@@ -21,7 +21,7 @@ export function mapEmployeeTaskToCalendarCard(task: EmployeeTaskListItem): TaskC
     checklistTotal: 0,
     checklistDone: 0,
     isBlocked: task.status === 'blocked',
-    approvalRequired: false,
+    approvalRequired: task.approvalRequired === true,
     projectId: task.projectId,
     projectName: task.projectDisplayName,
     workspaceId: '',

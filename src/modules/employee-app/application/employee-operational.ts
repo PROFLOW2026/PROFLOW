@@ -158,6 +158,7 @@ export interface EmployeePendingTimeRow {
   readonly workDate: string;
   readonly hours: string;
   readonly approvalStatus: string;
+  readonly timesheetId: string | null;
 }
 
 export async function listEmployeePendingTimeApprovals(
@@ -183,7 +184,18 @@ export async function listEmployeePendingTimeApprovals(
       workDate: entry.workDate,
       hours: entry.hours,
       approvalStatus: entry.approvalStatus,
+      timesheetId: entry.timesheetId,
     }));
+}
+
+export async function listEmployeeWorkforceHubRoster(
+  context: OrgContext,
+): Promise<EmployeeTeamMemberRow[]> {
+  const canCost =
+    employeeHasPermission(context, PERMISSIONS.WORKFORCE_COST_READ) ||
+    employeeHasPermission(context, PERMISSIONS.WORKFORCE_COST_MANAGE);
+  if (!canCost) return [];
+  return listEmployeeTeamRoster(context);
 }
 
 export async function listEmployeeAccessibleForms(context: OrgContext) {

@@ -98,6 +98,8 @@ export interface CollectContext {
   readonly modules: ModuleVisibility;
   readonly today: BusinessDate;
   readonly copyScope: CommandCenterCopyScope;
+  /** When true, task command-center links target `/employee/tasks/{id}`. */
+  readonly useEmployeeTaskLinks?: boolean;
   /**
    * One org rollup for this collection. Undefined means the collector may load
    * its own. Null means this collection already decided there is no rollup.

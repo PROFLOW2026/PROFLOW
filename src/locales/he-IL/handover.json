@@ -30,7 +30,10 @@
   "portal": {
     "title": "מסירה",
     "description": "הגש פריטי צ'ק-ליסט לסגירת ההסכם.",
-    "checklist": "צ'ק-ליסט"
+    "checklist": "צ'ק-ליסט",
+    "submitItem": "סמן כהוגש",
+    "itemSubmitted": "הפריט הוגש",
+    "itemNotes": "הערות (אופציונלי)"
   },
   "itemStatus": {
     "pending": "ממתין",

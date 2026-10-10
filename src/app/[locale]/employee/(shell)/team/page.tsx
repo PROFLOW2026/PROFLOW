@@ -2,6 +2,8 @@ import { getTranslations } from 'next-intl/server';
 import { Link } from '@/shared/i18n/navigation';
 import { withOrgContext } from '@/shared/auth/session';
 import { listEmployeeTeamRoster } from '@/modules/employee-app/application/employee-operational';
+import { employeeHasPermission } from '@/modules/employee-app/application/load-employee-app-context';
+import { PERMISSIONS } from '@/shared/permissions/catalog';
 import {
   employeeListPanelClass,
   employeeListRowClass,
@@ -10,11 +12,29 @@ import {
 
 export default async function EmployeeTeamPage() {
   const t = await getTranslations('employeeApp.team');
-  const members = await withOrgContext(async (context) => listEmployeeTeamRoster(context));
+  const { members, showWorkforceHubLink } = await withOrgContext(async (context) => {
+    const showWorkforceHubLink =
+      employeeHasPermission(context, PERMISSIONS.WORKFORCE_COST_READ) ||
+      employeeHasPermission(context, PERMISSIONS.WORKFORCE_COST_MANAGE);
+    return {
+      members: await listEmployeeTeamRoster(context),
+      showWorkforceHubLink,
+    };
+  });
 
   return (
     <div className={employeePageStackClass}>
-      <p className="text-sm text-[var(--pf-text-secondary)]">{t('intro')}</p>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm text-[var(--pf-text-secondary)]">{t('intro')}</p>
+        {showWorkforceHubLink ? (
+          <Link
+            href="/employee/workforce"
+            className="text-xs font-semibold text-[var(--pf-accent)] hover:underline"
+          >
+            {t('workforceHubLink')}
+          </Link>
+        ) : null}
+      </div>
       <ul className={employeeListPanelClass}>
         {members.map((member) => {
           const tasksHref = `/employee/tasks?scope=company&assignee=${encodeURIComponent(member.id)}&status=open`;

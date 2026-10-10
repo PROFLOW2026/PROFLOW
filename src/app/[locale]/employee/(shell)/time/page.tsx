@@ -34,6 +34,8 @@ import {
   employeePanelClass,
 } from '@/modules/employee-app/ui/employee-surface-styles';
 import { cn } from '@/shared/ui/cn';
+import { EmployeePendingTimeApprovalRow } from '@/modules/employee-app/ui/employee-pending-time-approval-row';
+import { BulkApproveEntriesForm } from '@/modules/workforce/ui/timesheet-actions';
 
 interface EmployeeRecentTimeEntry {
   readonly id: string;
@@ -244,19 +246,19 @@ export default async function EmployeeTimePage() {
 
       {payload.canTimeApprove ? (
         <section id="time-approve" className="space-y-4">
-          <h2 className="text-sm font-semibold">{t('time.approveSection')}</h2>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-sm font-semibold">{t('time.approveSection')}</h2>
+            {payload.pendingTime.length > 1 ? (
+              <BulkApproveEntriesForm entryIds={payload.pendingTime.map((row) => row.id)} />
+            ) : null}
+          </div>
           <ul className={employeeListPanelClass}>
             {payload.pendingTime.map((row) => (
-              <li key={row.id} className={employeeListRowClass}>
-                <div className="flex items-center justify-between gap-3 text-sm">
-                  <span>
-                    {row.employeeName} · {row.workDate}
-                  </span>
-                  <span>
-                    {formatEmployeeHoursLabel(row.hours, t)} · {row.approvalStatus}
-                  </span>
-                </div>
-              </li>
+              <EmployeePendingTimeApprovalRow
+                key={row.id}
+                row={row}
+                hoursLabel={formatEmployeeHoursLabel(row.hours, t)}
+              />
             ))}
             {payload.pendingTime.length === 0 ? (
               <li className="px-4 py-6 text-center text-sm text-[var(--pf-text-secondary)]">

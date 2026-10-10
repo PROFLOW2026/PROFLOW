@@ -30,7 +30,10 @@
   "portal": {
     "title": "التسليم",
     "description": "قدّم بنود قائمة التحقق للعقد.",
-    "checklist": "قائمة التحقق"
+    "checklist": "قائمة التحقق",
+    "submitItem": "تعليم كمُقدَّم",
+    "itemSubmitted": "تم تقديم البند",
+    "itemNotes": "ملاحظات (اختياري)"
   },
   "itemStatus": {
     "pending": "معلق",

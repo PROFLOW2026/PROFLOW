@@ -48,9 +48,37 @@ import {
   taskUnassignedCopy,
 } from '../domain/item-copy';
 import type { CommandCenterItem } from '../domain/types';
+import type { OrgContext } from '@/shared/auth/context';
+import {
+  findEmployeeAppAccountByUserId,
+  isActiveEmployeeAppAccount,
+} from '@/modules/employee-app';
 import type { CollectContext } from './collect-sources';
 
 const PER_SOURCE_CAP = 15;
+
+export async function resolveUseEmployeeTaskDeepLinks(context: OrgContext): Promise<boolean> {
+  if (context.employeeApp != null) return true;
+  const account = await findEmployeeAppAccountByUserId(
+    context.db,
+    context.organizationId,
+    context.userId,
+  );
+  return account != null && isActiveEmployeeAppAccount(account);
+}
+
+export function resolveTaskDeepLink(
+  useEmployeeLinks: boolean,
+  taskId: string,
+  options?: { readonly tab?: 'approvals' },
+): string {
+  const base = useEmployeeLinks ? `/employee/tasks/${taskId}` : `/tasks/${taskId}`;
+  return options?.tab === 'approvals' ? `${base}?tab=approvals` : base;
+}
+
+function taskHref(ctx: CollectContext, taskId: string, tab?: 'approvals'): string {
+  return resolveTaskDeepLink(ctx.useEmployeeTaskLinks === true, taskId, tab ? { tab } : undefined);
+}
 const MILESTONE_LOOKAHEAD_DAYS = 7;
 const STALE_THRESHOLD_DAYS = 14;
 const BLOCKED_THRESHOLD_DAYS = 3;
@@ -159,7 +187,7 @@ export async function collectTaskOverdue(ctx: CollectContext): Promise<CommandCe
       what: copy.what,
       why: copy.why,
       where: fallbackWhere(ctx.copyScope, 'tasks'),
-      href: `/tasks/${row.id}`,
+      href: taskHref(ctx, row.id),
       severity: daysOverdue > 7 ? 'high' : 'medium',
       urgencyBump: Math.min(99, daysOverdue),
       meta: {
@@ -218,7 +246,7 @@ export async function collectTaskDueToday(ctx: CollectContext): Promise<CommandC
       what: copy.what,
       why: copy.why,
       where: fallbackWhere(ctx.copyScope, 'tasks'),
-      href: `/tasks/${row.id}`,
+      href: taskHref(ctx, row.id),
       severity: row.priority === 'urgent' || row.priority === 'high' ? 'high' : 'medium',
       urgencyBump: 30,
       meta: { dueDate: ctx.today, projectId: row.projectId ?? null, priority: row.priority },
@@ -281,7 +309,7 @@ export async function collectTaskBlockedWaiting(ctx: CollectContext): Promise<Co
       what: copy.what,
       why: copy.why,
       where: fallbackWhere(ctx.copyScope, 'tasks'),
-      href: `/tasks/${row.id}`,
+      href: taskHref(ctx, row.id),
       severity: daysBlocked > 7 ? 'high' : 'medium',
       urgencyBump: Math.min(99, daysBlocked * 5),
       meta: { daysBlocked, projectId: row.projectId ?? null },
@@ -338,7 +366,7 @@ export async function collectTaskApprovalRequested(
       what: copy.what,
       why: copy.why,
       where: fallbackWhere(ctx.copyScope, 'tasks'),
-      href: `/tasks/${row.taskId}?tab=approvals`,
+      href: taskHref(ctx, row.taskId, 'approvals'),
       severity: 'high',
       urgencyBump: 40,
       meta: {
@@ -418,7 +446,7 @@ export async function collectTaskUnassigned(ctx: CollectContext): Promise<Comman
       what: copy.what,
       why: copy.why,
       where: row.projectName,
-      href: `/tasks/${row.id}`,
+      href: taskHref(ctx, row.id),
       severity: 'low',
       urgencyBump: 5,
       meta: { projectId: row.projectId ?? null },
@@ -624,7 +652,7 @@ export async function collectRecurringTaskGenerated(
       what: copy.what,
       why: copy.why,
       where: fallbackWhere(ctx.copyScope, 'tasks'),
-      href: `/tasks/${row.id}`,
+      href: taskHref(ctx, row.id),
       severity: 'low',
       urgencyBump: 5,
       meta: {
@@ -638,6 +666,9 @@ export async function collectRecurringTaskGenerated(
 
 /** Run UWM scanners sequentially so savepoint isolation stays predictable. */
 export async function collectUwmTaskSources(ctx: CollectContext): Promise<CommandCenterItem[]> {
+  const useEmployeeTaskLinks = await resolveUseEmployeeTaskDeepLinks(ctx.context);
+  ctx = { ...ctx, useEmployeeTaskLinks };
+
   const collectors = [
     collectTaskOverdue,
     collectTaskDueToday,

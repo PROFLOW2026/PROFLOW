@@ -9,7 +9,9 @@ import {
   type EmployeeNavItem,
 } from '@/modules/employee-app/application/get-employee-shell';
 import {
+  employeeMobileNavIconKey,
   employeeMobileNavLabelKey,
+  EMPLOYEE_MOBILE_NAV_ICON_BY_HREF,
   partitionEmployeeNavItems,
   selectEmployeeMobileOverflowItems,
   selectEmployeeMobilePrimaryItems,
@@ -91,7 +93,14 @@ describe('employee mobile navigation', () => {
       '/employee/projects',
       '/employee/tasks',
     ]);
-    expect(hrefs(overflow).sort()).toEqual(['/employee/documents', '/employee/team'].sort());
+    expect(hrefs(overflow).sort()).toEqual(
+      [
+        '/employee/documents',
+        '/employee/notifications',
+        '/employee/team',
+        '/employee/workforce',
+      ].sort(),
+    );
   });
 
   it('field_worker_time gets home and time only — no back-fill from secondary', () => {
@@ -105,7 +114,7 @@ describe('employee mobile navigation', () => {
     const overflow = selectEmployeeMobileOverflowItems(nav);
 
     expect(hrefs(primary)).toEqual(['/employee', '/employee/time']);
-    expect(overflow).toHaveLength(0);
+    expect(hrefs(overflow)).toEqual(['/employee/notifications']);
   });
 
   it('field worker primary includes projects; documents go to More', () => {
@@ -124,7 +133,7 @@ describe('employee mobile navigation', () => {
       '/employee/projects',
       '/employee/tasks',
     ]);
-    expect(hrefs(overflow)).toEqual(['/employee/documents']);
+    expect(hrefs(overflow)).toEqual(['/employee/documents', '/employee/notifications']);
   });
 
   it('uses short attendance label on mobile only', () => {
@@ -133,6 +142,19 @@ describe('employee mobile navigation', () => {
 
     expect(timeItem.labelKey).toBe('employeeApp.nav.timeAndAttendance');
     expect(employeeMobileNavLabelKey(timeItem)).toBe('employeeApp.nav.attendance');
+  });
+
+  it('maps primary mobile tabs to icon keys', () => {
+    const nav = buildEmployeeNavItems(employeeContextFromPreset('foreman'));
+    const primary = selectEmployeeMobilePrimaryItems(nav);
+
+    for (const item of primary) {
+      expect(employeeMobileNavIconKey(item)).toBe(
+        EMPLOYEE_MOBILE_NAV_ICON_BY_HREF[
+          item.href as keyof typeof EMPLOYEE_MOBILE_NAV_ICON_BY_HREF
+        ],
+      );
+    }
   });
 });
 
@@ -145,11 +167,13 @@ describe('employee management navigation grouping', () => {
     expect(visibleManagementHrefs(nav).sort()).toEqual(
       [
         '/employee/clients',
+        '/employee/crm',
         '/employee/billing',
         '/employee/contracts',
         '/employee/expenses',
         '/employee/vendors',
         '/employee/ap',
+        '/employee/reports',
       ].sort(),
     );
 
@@ -163,6 +187,8 @@ describe('employee management navigation grouping', () => {
       '/employee/meetings',
       '/employee/documents',
       '/employee/forms',
+      '/employee/notifications',
+      '/employee/workforce',
     ]);
     expect(hrefs(management).sort()).toEqual(visibleManagementHrefs(nav).sort());
     expect(

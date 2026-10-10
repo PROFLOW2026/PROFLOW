@@ -74,6 +74,7 @@ export const PORTAL_ROUTES = [
   { key: 'project.defects', track: 'MN', scope: 'project', path: 'projects/[projectId]/defects', pageFile: '(portal)/projects/[projectId]/defects/page.tsx', capability: CAP.DEFECT_WORK, placement: 'project', labelKey: 'nav.defects', implemented: true },
   { key: 'project.defect', track: 'MN', scope: 'project', path: 'projects/[projectId]/defects/[defectId]', pageFile: '(portal)/projects/[projectId]/defects/[defectId]/page.tsx', capability: CAP.DEFECT_WORK, placement: 'detail', labelKey: 'nav.defects', implemented: true },
   { key: 'project.inspections', track: 'MN', scope: 'project', path: 'projects/[projectId]/inspections', pageFile: '(portal)/projects/[projectId]/inspections/page.tsx', capability: CAP.INSPECTION_VIEW, placement: 'project', labelKey: 'nav.inspections', implemented: true },
+  { key: 'project.inspection', track: 'MN', scope: 'project', path: 'projects/[projectId]/inspections/[inspectionId]', pageFile: '(portal)/projects/[projectId]/inspections/[inspectionId]/page.tsx', capability: CAP.INSPECTION_VIEW, placement: 'detail', labelKey: 'nav.inspections', implemented: true },
 
   // Track O - field
   { key: 'project.instructions', track: 'O', scope: 'project', path: 'projects/[projectId]/instructions', pageFile: '(portal)/projects/[projectId]/instructions/page.tsx', capability: CAP.SITE_INSTRUCTION_ACK, placement: 'project', labelKey: 'nav.instructions', implemented: true },
@@ -96,6 +97,7 @@ export const PORTAL_ROUTES = [
 
   // Track Q - tenders / handover
   { key: 'project.tenders', track: 'Q', scope: 'project', path: 'projects/[projectId]/tenders', pageFile: '(portal)/projects/[projectId]/tenders/page.tsx', capability: CAP.BID_SUBMIT, placement: 'project', labelKey: 'nav.tenders', implemented: true },
+  { key: 'project.tender', track: 'Q', scope: 'project', path: 'projects/[projectId]/tenders/[packageId]', pageFile: '(portal)/projects/[projectId]/tenders/[packageId]/page.tsx', capability: CAP.BID_SUBMIT, placement: 'detail', labelKey: 'nav.tenders', implemented: true },
   { key: 'project.handover', track: 'Q', scope: 'project', path: 'projects/[projectId]/handover', pageFile: '(portal)/projects/[projectId]/handover/page.tsx', capability: CAP.HANDOVER_SUBMIT, placement: 'project', labelKey: 'nav.handover', implemented: true },
 ] as const satisfies readonly PortalRouteDefinition[];
 

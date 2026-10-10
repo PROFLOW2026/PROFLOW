@@ -12,6 +12,7 @@ import {
 import type { OrgInvoicingSettings } from '../domain/org-invoicing-settings';
 import type { ExternalStatutoryDocument, StatutoryProviderStatus } from '../domain/types';
 import { ExternalStatutoryPanel } from './external-statutory-panel';
+import type { OrgListSurface } from '@/modules/employee-app/application/org-list-permissions';
 
 export interface BillingAccountingDocumentsSectionProps {
   settings: OrgInvoicingSettings;
@@ -25,6 +26,7 @@ export interface BillingAccountingDocumentsSectionProps {
   customerPhone?: string | null;
   primaryStorageProvider: StorageProviderKey | null;
   accountingUiEnabled: boolean;
+  surface?: OrgListSurface;
 }
 
 function hasHistoricalDocuments(documents: readonly ExternalStatutoryDocument[]): boolean {
@@ -45,6 +47,7 @@ export async function BillingAccountingDocumentsSection({
   customerPhone = null,
   primaryStorageProvider,
   accountingUiEnabled,
+  surface = 'owner',
 }: BillingAccountingDocumentsSectionProps) {
   const t = await getTranslations('invoicingIntegration.accountingSection');
   const providerName = resolveAccountingProviderDisplayName(providerStatus.providerId);
@@ -69,6 +72,19 @@ export async function BillingAccountingDocumentsSection({
   }
 
   if (isAccountingInvoicingMode(settings) && !accountingUiEnabled) {
+    if (surface === 'employee') {
+      return (
+        <Card className="min-w-0">
+          <CardHeader>
+            <CardTitle className="text-start text-base">{t('title')}</CardTitle>
+            <p className="text-start text-sm text-[var(--pf-text-secondary)]">{t('connectPrompt')}</p>
+          </CardHeader>
+          <CardContent>
+            <Alert tone="warning">{t('connectPrompt')}</Alert>
+          </CardContent>
+        </Card>
+      );
+    }
     return (
       <Card className="min-w-0">
         <CardHeader>

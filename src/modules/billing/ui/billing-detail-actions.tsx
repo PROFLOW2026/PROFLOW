@@ -13,6 +13,12 @@ import {
   voidBillingRecordAction,
   voidPaymentAction,
 } from './actions';
+import {
+  employeeFinalizeBillingRecordAction,
+  employeeVoidBillingRecordAction,
+  employeeVoidPaymentAction,
+} from '@/app/[locale]/employee/(shell)/billing/actions';
+import type { OrgListSurface } from '@/modules/employee-app/application/org-list-permissions';
 
 interface PaymentAction {
   paymentId: string;
@@ -27,6 +33,7 @@ interface BillingDetailActionsProps {
   status: 'draft' | 'finalized' | 'void';
   recordReference: string | null;
   paymentActions?: readonly PaymentAction[];
+  surface?: OrgListSurface;
 }
 
 function FormattedDate({ date, locale }: { date: BusinessDate; locale: string }) {
@@ -61,7 +68,14 @@ export function BillingDetailActions({
   status,
   recordReference,
   paymentActions = [],
+  surface = 'owner',
 }: BillingDetailActionsProps) {
+  const finalizeAction =
+    surface === 'employee' ? employeeFinalizeBillingRecordAction : finalizeBillingRecordAction;
+  const voidRecordAction =
+    surface === 'employee' ? employeeVoidBillingRecordAction : voidBillingRecordAction;
+  const voidPayment =
+    surface === 'employee' ? employeeVoidPaymentAction : voidPaymentAction;
   const t = useTranslations('billing');
   const tErrors = useTranslations('errors');
   const locale = useLocale();
@@ -91,7 +105,7 @@ export function BillingDetailActions({
           }
           confirmLabel={t('detail.finalize')}
           successMessage={t('confirm.finalizeSuccess')}
-          onConfirm={() => runBillingAction(() => finalizeBillingRecordAction(billingRecordId))}
+          onConfirm={() => runBillingAction(() => finalizeAction(billingRecordId))}
           trigger={
             <Button type="button">
               {t('detail.finalize')}
@@ -111,7 +125,7 @@ export function BillingDetailActions({
           }
           confirmLabel={t('detail.void')}
           successMessage={t('confirm.voidRecordSuccess')}
-          onConfirm={() => runBillingAction(() => voidBillingRecordAction(billingRecordId))}
+          onConfirm={() => runBillingAction(() => voidRecordAction(billingRecordId))}
           trigger={
             <Button type="button" variant="secondary">
               {t('detail.void')}
@@ -149,7 +163,7 @@ export function BillingDetailActions({
               successMessage={t('confirm.voidPaymentSuccess')}
               triggerAriaLabel={ariaLabel}
               onConfirm={() =>
-                runBillingAction(() => voidPaymentAction(payment.paymentId, billingRecordId))
+                runBillingAction(() => voidPayment(payment.paymentId, billingRecordId))
               }
               trigger={
                 <Button type="button" variant="secondary">

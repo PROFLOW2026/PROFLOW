@@ -1,6 +1,10 @@
 import type { OrgContext } from '@/shared/auth/context';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
-import { employeeHasPermission, isEmployeeAppUser } from './load-employee-app-context';
+import {
+  employeeHasPermission,
+  isActiveEmployeeAppAccount,
+  isEmployeeAppUser,
+} from './load-employee-app-context';
 import { resolveAccessibleProjectIdsForUser } from './project-scope';
 import { findEmployeeByUserId } from '@/modules/workforce';
 import { getAttendanceClockSurface } from '@/modules/workforce/application/attendance';
@@ -18,6 +22,7 @@ export interface EmployeeNavItem {
 /** Employee app routes grouped under Management / Office navigation. */
 export const EMPLOYEE_MANAGEMENT_NAV_HREFS = [
   '/employee/clients',
+  '/employee/crm',
   '/employee/billing',
   '/employee/contracts',
   '/employee/expenses',
@@ -26,7 +31,15 @@ export const EMPLOYEE_MANAGEMENT_NAV_HREFS = [
   '/employee/procurement',
   '/employee/changes',
   '/employee/quotes',
+  '/employee/reports',
 ] as const;
+
+function canEmployeeNotifications(context: OrgContext): boolean {
+  if (employeeHasPermission(context, PERMISSIONS.NOTIFICATIONS_READ)) return true;
+  const account = context.employeeApp?.account;
+  if (!account?.userId || account.status === 'inactive') return false;
+  return isActiveEmployeeAppAccount(account);
+}
 
 export function hasEmployeeManagementNav(context: OrgContext): boolean {
   return buildEmployeeNavItems(context).some(
@@ -57,6 +70,12 @@ export function buildEmployeeNavItems(context: OrgContext): EmployeeNavItem[] {
   const canExpenses =
     employeeHasPermission(context, PERMISSIONS.EXPENSES_READ) ||
     employeeHasPermission(context, PERMISSIONS.EXPENSES_CREATE);
+  const canWorkforceHub =
+    employeeHasPermission(context, PERMISSIONS.WORKFORCE_READ) ||
+    employeeHasPermission(context, PERMISSIONS.WORKFORCE_COST_READ) ||
+    employeeHasPermission(context, PERMISSIONS.WORKFORCE_COST_MANAGE);
+  const canReports =
+    employeeHasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ);
 
   return [
     { href: '/employee', labelKey: 'employeeApp.nav.home', visible: true, group: 'planner' },
@@ -108,9 +127,27 @@ export function buildEmployeeNavItems(context: OrgContext): EmployeeNavItem[] {
       group: 'planner',
     },
     {
+      href: '/employee/notifications',
+      labelKey: 'employeeApp.nav.notifications',
+      visible: canEmployeeNotifications(context),
+      group: 'planner',
+    },
+    {
+      href: '/employee/workforce',
+      labelKey: 'employeeApp.nav.workforce',
+      visible: canWorkforceHub,
+      group: 'planner',
+    },
+    {
       href: '/employee/clients',
       labelKey: 'employeeApp.nav.clients',
       visible: employeeHasPermission(context, PERMISSIONS.CLIENTS_READ),
+      group: 'management',
+    },
+    {
+      href: '/employee/crm',
+      labelKey: 'employeeApp.nav.crm',
+      visible: employeeHasPermission(context, PERMISSIONS.CRM_READ),
       group: 'management',
     },
     {
@@ -159,6 +196,12 @@ export function buildEmployeeNavItems(context: OrgContext): EmployeeNavItem[] {
       href: '/employee/quotes',
       labelKey: 'employeeApp.nav.quotes',
       visible: employeeHasPermission(context, PERMISSIONS.QUOTES_READ),
+      group: 'management',
+    },
+    {
+      href: '/employee/reports',
+      labelKey: 'employeeApp.nav.reports',
+      visible: canReports,
       group: 'management',
     },
   ];

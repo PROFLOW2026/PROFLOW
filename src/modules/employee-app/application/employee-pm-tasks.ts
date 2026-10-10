@@ -605,21 +605,40 @@ export async function updateEmployeePmTaskStatus(
   const previousStatus = task.status;
   if (previousStatus === newStatus) return;
 
-  if (newStatus === 'done' && task.approvalRequired) {
-    const { assertTaskCompletionApprovalSatisfied } = await import(
-      '@/modules/tasks/application/submit-task-approval'
-    );
+  const { assertTaskCompletionApprovalSatisfied } = await import(
+    '@/modules/tasks/application/submit-task-approval'
+  );
+  const { isValidTransition, transitionTask } = await import('@/modules/tasks/domain/lifecycle');
+  const { insertTaskActivity } = await import('@/modules/tasks/data/tasks.repository');
+
+  if (newStatus === 'done') {
     await assertTaskCompletionApprovalSatisfied(context, taskId);
   }
 
-  const isDone = newStatus === 'done';
+  if (!isValidTransition(previousStatus as typeof tasks.$inferSelect.status, newStatus as typeof tasks.$inferSelect.status)) {
+    throw new DomainRuleError(
+      `Invalid status transition: ${previousStatus} → ${newStatus}`,
+      'tasks.errors.invalidTransition',
+      { from: previousStatus, to: newStatus },
+    );
+  }
+
+  const { status, completionDate } = transitionTask(
+    previousStatus as typeof tasks.$inferSelect.status,
+    newStatus as typeof tasks.$inferSelect.status,
+  );
   const updated = await context.db
     .update(tasks)
     .set({
-      status: newStatus as typeof tasks.$inferSelect.status,
+      status,
       updatedAt: new Date(),
-      completionDate: isDone ? new Date().toISOString().split('T')[0] : undefined,
-      completedByEmployeeId: isDone ? employeeId : undefined,
+      ...(completionDate
+        ? {
+            completionDate,
+            completedByEmployeeId: employeeId,
+            completedByOrgMemberId: null,
+          }
+        : {}),
     })
     .where(
       and(
@@ -633,12 +652,21 @@ export async function updateEmployeePmTaskStatus(
     throw new DomainRuleError('Task update was not permitted', 'employeeApp.errors.notAuthorized');
   }
 
-  await context.db.insert(taskActivity).values({
+  const eventType =
+    status === 'done'
+      ? 'completed'
+      : previousStatus === 'done' || previousStatus === 'cancelled'
+        ? 'reopened'
+        : 'status_changed';
+
+  await insertTaskActivity(context.db, {
     taskId,
     organizationId: context.organizationId,
+    actorOrgMemberId: null,
     actorEmployeeId: employeeId,
     actorSystem: false,
-    eventType: 'status_changed',
+    eventType,
+    payload: { from: previousStatus, to: status },
   });
 }
 
@@ -855,6 +883,7 @@ export interface CreateEmployeePmTaskInput {
   readonly priority?: string;
   readonly dueDate?: string | null;
   readonly estimatedEffortMinutes?: number | null;
+  readonly approvalRequired?: boolean;
   readonly assigneeEmployeeId?: string | null;
   readonly assigneeKeys?: readonly string[];
   readonly assignAllProjectTeam?: boolean;
@@ -894,6 +923,7 @@ export async function createEmployeePmTask(
     priority: (input.priority as 'none') ?? 'none',
     dueDate: input.dueDate ?? null,
     estimatedEffortMinutes: input.estimatedEffortMinutes ?? null,
+    approvalRequired: input.approvalRequired ?? false,
     source: 'manual',
     sortKey: generateSortKey(),
     createdByOrgMemberId: null,

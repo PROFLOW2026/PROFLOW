@@ -111,6 +111,22 @@ export const EMPLOYEE_PERMISSION_EDITOR_GROUPS: readonly EmployeePermissionEdito
     ],
   },
   {
+    id: 'commercial',
+    labelKey: 'commercial',
+    items: [
+      {
+        permissionKey: PERMISSIONS.CRM_READ,
+        labelKey: 'crmRead',
+        scopes: ['all_organization'],
+      },
+      {
+        permissionKey: PERMISSIONS.CRM_MANAGE,
+        labelKey: 'crmManage',
+        scopes: ['all_organization'],
+      },
+    ],
+  },
+  {
     id: 'contracts',
     labelKey: 'contracts',
     items: [
@@ -366,6 +382,16 @@ export const EMPLOYEE_PERMISSION_EDITOR_GROUPS: readonly EmployeePermissionEdito
         labelKey: 'workforceManage',
         scopes: ['assigned_only', 'all_organization'],
       },
+      {
+        permissionKey: PERMISSIONS.WORKFORCE_COST_READ,
+        labelKey: 'workforceCostRead',
+        scopes: ['assigned_only', 'all_organization'],
+      },
+      {
+        permissionKey: PERMISSIONS.WORKFORCE_COST_MANAGE,
+        labelKey: 'workforceCostManage',
+        scopes: ['assigned_only', 'all_organization'],
+      },
     ],
   },
   {
@@ -387,6 +413,48 @@ export const EMPLOYEE_PERMISSION_EDITOR_GROUPS: readonly EmployeePermissionEdito
         permissionKey: PERMISSIONS.MEETINGS_READ,
         labelKey: 'meetingsRead',
         scopes: ['assigned_only', 'all_organization'],
+      },
+      {
+        permissionKey: PERMISSIONS.MEETINGS_MANAGE,
+        labelKey: 'meetingsManage',
+        scopes: ['assigned_only', 'all_organization'],
+      },
+    ],
+  },
+  {
+    id: 'financials',
+    labelKey: 'financials',
+    items: [
+      {
+        permissionKey: PERMISSIONS.MONTH_CLOSE_READ,
+        labelKey: 'monthCloseRead',
+        scopes: ['all_organization'],
+      },
+      {
+        permissionKey: PERMISSIONS.MONTH_CLOSE_MANAGE,
+        labelKey: 'monthCloseManage',
+        scopes: ['all_organization'],
+      },
+      {
+        permissionKey: PERMISSIONS.TAX_MANAGE,
+        labelKey: 'taxManage',
+        scopes: ['all_organization'],
+      },
+      {
+        permissionKey: PERMISSIONS.AUDIT_READ,
+        labelKey: 'auditRead',
+        scopes: ['all_organization'],
+      },
+    ],
+  },
+  {
+    id: 'notifications',
+    labelKey: 'notifications',
+    items: [
+      {
+        permissionKey: PERMISSIONS.NOTIFICATIONS_READ,
+        labelKey: 'notificationsRead',
+        scopes: ['self_only'],
       },
     ],
   },

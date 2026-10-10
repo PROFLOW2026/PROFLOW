@@ -126,12 +126,18 @@ function BoardStageSelect({
   );
 }
 
+function opportunityDetailHref(opportunitiesRouteBase: string, id: string): string {
+  return `${opportunitiesRouteBase}/${id}`;
+}
+
 function BoardCard({
   item,
   canMoveStages,
+  opportunitiesRouteBase,
 }: {
   item: OpportunityBoardCard;
   canMoveStages: boolean;
+  opportunitiesRouteBase: string;
 }) {
   const t = useTranslations('crm');
   const locale = useLocale();
@@ -139,7 +145,10 @@ function BoardCard({
 
   return (
     <article className={cn(pressableCardLinkClassName, 'hover:bg-[var(--pf-bg-surface)]')}>
-      <Link href={`/crm/opportunities/${item.id}`} className="min-w-0 font-semibold">
+      <Link
+        href={opportunityDetailHref(opportunitiesRouteBase, item.id)}
+        className="min-w-0 font-semibold"
+      >
         {item.name}
       </Link>
       <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -180,7 +189,13 @@ function BoardCard({
   );
 }
 
-function OpportunityTable({ items }: { items: readonly OpportunityBoardCard[] }) {
+function OpportunityTable({
+  items,
+  opportunitiesRouteBase,
+}: {
+  items: readonly OpportunityBoardCard[];
+  opportunitiesRouteBase: string;
+}) {
   const t = useTranslations('crm');
 
   return (
@@ -203,7 +218,7 @@ function OpportunityTable({ items }: { items: readonly OpportunityBoardCard[] })
                 <TableRow key={row.id}>
                   <TableCell>
                     <Link
-                      href={`/crm/opportunities/${row.id}`}
+                      href={opportunityDetailHref(opportunitiesRouteBase, row.id)}
                       className={cn(textNavLinkClassName, 'font-medium')}
                     >
                       {row.name}
@@ -232,7 +247,10 @@ function OpportunityTable({ items }: { items: readonly OpportunityBoardCard[] })
         </div>
       }
       renderMobileCard={(row) => (
-        <Link href={`/crm/opportunities/${row.id}`} className={pressableCardLinkClassName}>
+        <Link
+          href={opportunityDetailHref(opportunitiesRouteBase, row.id)}
+          className={pressableCardLinkClassName}
+        >
           <div className="flex items-start justify-between gap-2">
             <span className="min-w-0 flex-1 truncate text-start font-semibold">{row.name}</span>
             <StatusBadge
@@ -263,9 +281,11 @@ function OpportunityTable({ items }: { items: readonly OpportunityBoardCard[] })
 export function OpportunityPipelineViews({
   items,
   canMoveStages = false,
+  opportunitiesRouteBase = '/crm/opportunities',
 }: {
   items: readonly OpportunityBoardCard[];
   canMoveStages?: boolean;
+  opportunitiesRouteBase?: string;
 }) {
   const t = useTranslations('crm');
   const columns = groupOpportunitiesByStage(items);
@@ -314,7 +334,11 @@ export function OpportunityPipelineViews({
                 <ul className="flex flex-col gap-2">
                   {column.items.map((item) => (
                     <li key={item.id}>
-                      <BoardCard item={item} canMoveStages={canMoveStages} />
+                      <BoardCard
+                        item={item}
+                        canMoveStages={canMoveStages}
+                        opportunitiesRouteBase={opportunitiesRouteBase}
+                      />
                     </li>
                   ))}
                 </ul>
@@ -325,7 +349,7 @@ export function OpportunityPipelineViews({
       </TabsContent>
 
       <TabsContent value="table">
-        <OpportunityTable items={items} />
+        <OpportunityTable items={items} opportunitiesRouteBase={opportunitiesRouteBase} />
       </TabsContent>
     </Tabs>
   );

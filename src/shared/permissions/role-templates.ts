@@ -218,8 +218,8 @@ export const ROLE_TEMPLATES: readonly RoleTemplate[] = [
   },
   {
     key: 'manager',
-    name: 'Project Manager',
-    description: 'Runs projects and costs. Profit and margin are hidden unless the owner grants them.',
+    name: 'Organization Manager',
+    description: 'Runs organization-wide operations and projects. Profit and margin are hidden unless the owner grants them.',
     rank: 2,
     isProtected: false,
     permissions: MANAGER_PERMISSIONS,

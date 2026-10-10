@@ -184,6 +184,49 @@ export async function listPortalTenders(context: ExternalContext, input: { reado
   return visible;
 }
 
+/** Portal: one invited package plus this vendor's offer state (no other vendors' bids). */
+export async function getPortalTenderDetail(
+  context: ExternalContext,
+  input: { readonly organizationId: string; readonly projectId: string; readonly packageId: string },
+) {
+  const seed = context.grants.find(
+    (g) =>
+      g.organizationId === input.organizationId &&
+      g.capabilities.has(X.BID_SUBMIT) &&
+      (!g.projectId || g.projectId === input.projectId),
+  );
+  if (!seed?.vendorId) throw new NotFoundError('Tender package');
+  const grant = requireExternalScope(
+    context,
+    {
+      organizationId: input.organizationId,
+      projectId: input.projectId,
+      vendorId: seed.vendorId,
+      subcontractAgreementId: null,
+    },
+    X.BID_SUBMIT,
+  );
+  const invitation = await findInvitationForVendor(context.db, input.organizationId, input.packageId, grant.vendorId);
+  if (!invitation) throw new NotFoundError('Tender package');
+  const pkg = await findTenderPackage(context.db, input.organizationId, input.packageId);
+  if (!pkg || pkg.projectId !== input.projectId) throw new NotFoundError('Tender package');
+  const offers = await listOffersForPackage(context.db, input.organizationId, input.packageId);
+  const vendorOffer = offers.find((row) => row.vendorId === grant.vendorId) ?? null;
+  const financials = vendorOffer
+    ? (await listOfferFinancialsForPackage(context.db, input.organizationId, input.packageId)).find(
+        (row) => row.offerId === vendorOffer.id,
+      ) ?? null
+    : null;
+  const closed = pkg.status === 'awarded' || pkg.status === 'cancelled';
+  const alreadySubmitted = vendorOffer?.status === 'submitted' || vendorOffer?.status === 'selected';
+  return {
+    pkg,
+    vendorOffer,
+    financials: financials ? { bidAmount: financials.bidAmount, currency: financials.currency } : null,
+    canSubmit: !closed && !alreadySubmitted,
+  };
+}
+
 export async function submitContractorBid(context: ExternalContext, raw: SubmitBidInput) {
   const input = parse(submitBidSchema, raw);
   const grant = context.grants.find(

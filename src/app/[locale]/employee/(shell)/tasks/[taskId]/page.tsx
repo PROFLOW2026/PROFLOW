@@ -25,7 +25,7 @@ import {
 import { employeeHasPermission } from '@/modules/employee-app/application/load-employee-app-context';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { sumReportedHoursForTask } from '@/modules/workforce';
-import { Link } from '@/shared/i18n/navigation';
+import { Link, redirect } from '@/shared/i18n/navigation';
 import { assertEmployeeAppContext } from '@/modules/employee-app/application/session-guard';
 import { NotFoundError } from '@/shared/errors';
 import {
@@ -44,6 +44,7 @@ import { TaskActivity } from '@/modules/tasks/ui/task-activity';
 import { getEmployeeTaskDocumentPanelData } from '@/modules/employee-app/application/employee-task-documents';
 import { EmployeeTaskDocumentAttachments } from '@/modules/employee-app/ui/employee-task-document-attachments';
 import { cn } from '@/shared/ui/cn';
+import { EmployeeTaskActionErrorBanner } from '@/modules/employee-app/ui/employee-task-action-error-banner';
 
 const TASK_STATUSES = [
   'todo',
@@ -72,10 +73,14 @@ const PRIORITY_BADGES: Record<string, string> = {
 
 interface PageProps {
   params: Promise<{ taskId: string; locale: string }>;
+  searchParams: Promise<{ taskError?: string | string[] }>;
 }
 
-export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
+export default async function EmployeePmTaskDetailPage({ params, searchParams }: PageProps) {
   const { taskId } = await params;
+  const rawTaskError = (await searchParams).taskError;
+  const taskErrorMessage =
+    typeof rawTaskError === 'string' && rawTaskError.trim().length > 0 ? rawTaskError : null;
   const locale = await getLocale();
   const t = await getTranslations('employeeApp.tasks');
 
@@ -162,6 +167,7 @@ export default async function EmployeePmTaskDetailPage({ params }: PageProps) {
   const statusColor = STATUS_COLORS[task.status] ?? STATUS_COLORS.todo;
   return (
     <div className="space-y-5 pb-8">
+      {taskErrorMessage ? <EmployeeTaskActionErrorBanner message={taskErrorMessage} /> : null}
       <div className={cn(employeePanelClass, 'space-y-3')}>
         <h1 className="text-base font-semibold leading-snug">{task.title}</h1>
         {projectDisplayName ? (
@@ -472,16 +478,37 @@ function ChecklistMark({ done }: { done: boolean }) {
 
 async function updateEmployeeTaskStatus(taskId: string, newStatus: string) {
   'use server';
-  await employeeUpdateTaskStatusAction(taskId, newStatus);
+  const locale = await getLocale();
+  const result = await employeeUpdateTaskStatusAction(taskId, newStatus);
+  if (result.error) {
+    redirect({
+      href: `/employee/tasks/${taskId}?taskError=${encodeURIComponent(result.error)}`,
+      locale,
+    });
+  }
 }
 
 async function toggleChecklistItem(taskId: string, itemId: string, isDone: boolean) {
   'use server';
-  await employeeToggleChecklistItemAction(taskId, itemId, isDone);
+  const locale = await getLocale();
+  const result = await employeeToggleChecklistItemAction(taskId, itemId, isDone);
+  if (result.error) {
+    redirect({
+      href: `/employee/tasks/${taskId}?taskError=${encodeURIComponent(result.error)}`,
+      locale,
+    });
+  }
 }
 
 async function submitTaskApprovalForEmployee(taskId: string) {
   'use server';
-  await employeeSubmitTaskApprovalAction(taskId);
+  const locale = await getLocale();
+  const result = await employeeSubmitTaskApprovalAction(taskId);
+  if (result.error) {
+    redirect({
+      href: `/employee/tasks/${taskId}?taskError=${encodeURIComponent(result.error)}`,
+      locale,
+    });
+  }
 }
 

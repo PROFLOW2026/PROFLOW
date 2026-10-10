@@ -52,6 +52,7 @@ export interface EmployeeTaskListItem {
   readonly assigneeLabel: string;
   readonly assigneeEmployeeIds: readonly string[];
   readonly canPostpone: boolean;
+  readonly approvalRequired: boolean;
 }
 
 export interface EmployeeMeetingListItem {
