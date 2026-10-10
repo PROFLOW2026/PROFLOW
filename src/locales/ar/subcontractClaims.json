@@ -9,7 +9,8 @@
     "period": "الفترة",
     "status": "الحالة",
     "submitted": "مقدّم (صافي)",
-    "certified": "معتمد (صافي)"
+    "certified": "معتمد (صافي)",
+    "claimReference": "CLM-{number}"
   },
   "status": {
     "draft": "مسودة",

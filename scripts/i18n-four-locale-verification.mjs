@@ -79,6 +79,38 @@ for (const locale of ['he-IL', 'ar', 'ru']) {
   missingByNamespace[locale].sort((a, b) => b.count - a.count);
 }
 
+const emptyValuesByLocale = { 'he-IL': 0, en: 0, ar: 0, ru: 0 };
+const emptyValueSamples = { 'he-IL': [], en: [], ar: [], ru: [] };
+const EMPTY_SAMPLE_LIMIT = 15;
+
+for (const locale of LOCALES) {
+  for (const ns of MESSAGE_NAMESPACES) {
+    const locFlat = flattenLocaleCatalog(readLocaleCatalog(locale, ns));
+    for (const [key, value] of locFlat) {
+      if (!String(value).trim()) {
+        emptyValuesByLocale[locale] += 1;
+        if (emptyValueSamples[locale].length < EMPTY_SAMPLE_LIMIT) {
+          emptyValueSamples[locale].push(`${ns}.${key}`);
+        }
+      }
+    }
+  }
+}
+
+const orphanLocaleFiles = [];
+for (const locale of LOCALES) {
+  const dir = join(LOCALES_DIR, locale);
+  if (!existsSync(dir)) continue;
+  for (const entry of readdirSync(dir)) {
+    if (!entry.endsWith('.json')) continue;
+    const ns = entry.slice(0, -'.json'.length);
+    if (!MESSAGE_NAMESPACES.includes(ns)) {
+      orphanLocaleFiles.push(`${locale}/${entry}`);
+    }
+  }
+}
+orphanLocaleFiles.sort();
+
 const SCAN_ROOTS = ['src/app', 'src/modules'];
 const UUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
 const JSX_TEXT_RE = />[^<{]*[A-Z][a-z]+/;
@@ -177,6 +209,9 @@ console.log(
       missingKeysVsEn: missingVsEn,
       extraKeysVsEn: extraVsEn,
       missingByNamespace,
+      emptyValuesByLocale,
+      emptyValueSamples,
+      orphanLocaleFiles,
       suspiciousRawLiteralLines: totalSuspiciousLines,
       suspiciousFiles: fileHits.size,
       top20SuspiciousFiles: top20,

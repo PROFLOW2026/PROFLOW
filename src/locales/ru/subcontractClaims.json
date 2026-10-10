@@ -9,7 +9,8 @@
     "period": "Период",
     "status": "Статус",
     "submitted": "Заявлено (нетто)",
-    "certified": "Сертифицировано (нетто)"
+    "certified": "Сертифицировано (нетто)",
+    "claimReference": "CLM-{number}"
   },
   "status": {
     "draft": "Черновик",

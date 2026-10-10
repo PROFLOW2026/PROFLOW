@@ -16,7 +16,8 @@ import {
   parseOrgListPage,
   resolveOrgListPage,
 } from '@/shared/db/org-list-pagination';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
+import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
 import type { MeetingListFilters } from '@/modules/meetings';
 import { withOrgContext, getShellContext } from '@/shared/auth/session';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -55,10 +56,11 @@ export default async function MeetingsPage({ searchParams }: MeetingsPageProps) 
   }
 
   const canManage = shell.permissions.has(PERMISSIONS.MEETINGS_MANAGE);
-  const [params, t, tCommon] = await Promise.all([
+  const [params, t, tCommon, locale] = await Promise.all([
     searchParams,
     getTranslations('tasks'),
     getTranslations('common'),
+    getLocale(),
   ]);
   const requestedPage = parseOrgListPage(params.page);
 
@@ -160,7 +162,7 @@ export default async function MeetingsPage({ searchParams }: MeetingsPageProps) 
                   <TableCell className="whitespace-nowrap text-sm text-[var(--pf-text-secondary)]">
                     <span className="flex items-center gap-1">
                       <Calendar className="h-3 w-3" aria-hidden />
-                      {formatMeetingDate(meeting.scheduledAt)}
+                      {formatMeetingDate(meeting.scheduledAt, locale)}
                     </span>
                   </TableCell>
                   <TableCell className="text-sm text-[var(--pf-text-secondary)]">
@@ -221,12 +223,12 @@ export default async function MeetingsPage({ searchParams }: MeetingsPageProps) 
   );
 }
 
-function formatMeetingDate(date: Date): string {
-  return date.toLocaleDateString(undefined, {
+function formatMeetingDate(date: Date, locale: string): string {
+  return intlDateTimeFormat(locale, {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
-  });
+  }).format(date);
 }

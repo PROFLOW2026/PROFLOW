@@ -858,6 +858,22 @@
       "custom": "تاريخ ووقت مخصصان"
     }
   },
+  "approval": {
+    "sectionLabel": "الموافقة",
+    "historyLabel": "{count, plural, one {طلب سابق واحد} other {# طلبات سابقة}}",
+    "requestedBy": "طُلب بواسطة",
+    "decidedBy": "قُرر بواسطة",
+    "noPendingRequest": "تتطلب هذه المهمة موافقة قبل وضع علامة «منجز». أرسل طلبًا لمراجعته من المدير.",
+    "requestButton": "طلب موافقة",
+    "reRequestButton": "طلب مرة أخرى",
+    "step": "الخطوة {current} من {total}",
+    "approveButton": "موافقة",
+    "rejectButton": "رفض",
+    "decisionNotePlaceholder": "ملاحظة اختيارية لقرارك…",
+    "awaitingDecision": "بانتظار قرار المعتمد.",
+    "submittedSuccess": "تم الإرسال للموافقة",
+    "decisionRecordedSuccess": "تم تسجيل القرار"
+  },
   "stageHistory": {
     "empty": "لم تُسجَّل انتقالات مراحل بعد.",
     "unknown": "غير معروف",

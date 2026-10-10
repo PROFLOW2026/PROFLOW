@@ -238,6 +238,7 @@
       "currency": "العملة",
       "assignee": "المُعيَّن الافتراضي",
       "checklistTemplateId": "معرّف قالب قائمة التحقق",
+      "checklistTemplateIdPlaceholder": "UUID للقالب",
       "notes": "ملاحظات",
       "noClient": "بدون عميل",
       "noAssignee": "بدون مُعيَّن افتراضي",

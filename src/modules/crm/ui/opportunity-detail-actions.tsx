@@ -318,7 +318,7 @@ export function ConvertCrmQuoteButton({
         disabled={disabled}
         className="text-xs"
       >
-        {t.has('convertToProductQuote') ? t('convertToProductQuote' as 'createProductQuote') : 'Convert to Product Quote'}
+        {t('convertToProductQuote')}
       </Button>
     </form>
   );

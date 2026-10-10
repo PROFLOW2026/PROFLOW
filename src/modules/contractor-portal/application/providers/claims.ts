@@ -4,6 +4,7 @@ import {
   type ClaimListItem,
   type ContractorAgreementPayments,
 } from '@/modules/subcontract-claims';
+import { getTranslations } from 'next-intl/server';
 import { NotFoundError } from '@/shared/errors';
 import {
   EXTERNAL_CAPABILITIES as CAP,
@@ -81,12 +82,17 @@ function needsContractorAction(status: ClaimListItem['status']): boolean {
   return status === 'draft' || status === 'returned';
 }
 
-function claimItem(claim: ClaimListItem, showAmount: boolean, certified: boolean): PortalSectionItem {
+function claimItem(
+  claim: ClaimListItem,
+  showAmount: boolean,
+  certified: boolean,
+  claimReference: (claimNumber: number) => string,
+): PortalSectionItem {
   const action = needsContractorAction(claim.status);
   return {
     id: claim.id,
     projectId: claim.projectId,
-    title: `CLM-${claim.claimNumber}`,
+    title: claimReference(claim.claimNumber),
     subtitle: claim.agreementTitle,
     dueAt: certified ? null : claim.periodEnd,
     statusKey: `subcontractClaims.status.${claim.status}`,
@@ -145,10 +151,12 @@ export const openClaimsProvider: PortalSectionProvider = {
   section: 'claims',
   capability: CAP.CLAIM_VIEW,
   async load(context, scope) {
+    const t = await getTranslations('subcontractClaims');
+    const claimReference = (claimNumber: number) => t('list.claimReference', { number: claimNumber });
     const open = (await loadClaims(context, scope)).filter((entry) => OPEN_CLAIM_STATUSES.has(entry.claim.status));
     const items = open
       .map((entry) =>
-        claimItem(entry.claim, claimShowsNetAmount(context, entry.organizationId, entry.claim), false),
+        claimItem(entry.claim, claimShowsNetAmount(context, entry.organizationId, entry.claim), false, claimReference),
       )
       .sort((a, b) => (a.dueAt ?? '9999-12-31').localeCompare(b.dueAt ?? '9999-12-31'));
     return {
@@ -165,11 +173,13 @@ export const certificationsProvider: PortalSectionProvider = {
   section: 'certifications',
   capability: CAP.CLAIM_VIEW,
   async load(context, scope) {
+    const t = await getTranslations('subcontractClaims');
+    const claimReference = (claimNumber: number) => t('list.claimReference', { number: claimNumber });
     const certified = (await loadClaims(context, scope))
       .filter((entry) => entry.claim.status === 'certified')
       .sort((a, b) => (b.claim.certifiedAt ?? '').localeCompare(a.claim.certifiedAt ?? ''));
     const items = certified.map((entry) =>
-      claimItem(entry.claim, claimShowsNetAmount(context, entry.organizationId, entry.claim), true),
+      claimItem(entry.claim, claimShowsNetAmount(context, entry.organizationId, entry.claim), true, claimReference),
     );
     return { count: items.length, attentionCount: 0, items: items.slice(0, scope.limit) };
   },

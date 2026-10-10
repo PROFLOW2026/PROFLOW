@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { authorize } from '@/shared/permissions/authorize';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { withOrgContext } from '@/shared/auth/session';
@@ -27,6 +27,8 @@ interface PageProps {
 export default async function EmployeeTasksPage({ searchParams }: PageProps) {
   const t = await getTranslations('employeeApp.tasks');
   const tLists = await getTranslations('employeeApp.lists');
+  const tPunchStatus = await getTranslations('status.punch');
+  const locale = await getLocale();
   const { tab } = await searchParams;
 
   const { punchTasks, taskPayload, hasPmTasksAccess, canCreateTask, attention } = await withOrgContext(async (context) => {
@@ -94,6 +96,7 @@ export default async function EmployeeTasksPage({ searchParams }: PageProps) {
         title={t('attention.title')}
         items={attention}
         labelFor={(kind) => t(`attention.${kind}`)}
+        locale={locale}
       />
       {hasPmTasksAccess && (
         <div className={employeeTabBarClass}>
@@ -133,7 +136,9 @@ export default async function EmployeeTasksPage({ searchParams }: PageProps) {
           {punchTasks.map((task) => (
             <li key={task.id} className={employeeListRowClass}>
               <div className="font-medium">{task.title}</div>
-              <div className="text-[var(--pf-text-secondary)]">{task.status}</div>
+              <div className="text-[var(--pf-text-secondary)]">
+                {tPunchStatus(task.status as 'open')}
+              </div>
             </li>
           ))}
           {punchTasks.length === 0 ? (

@@ -125,6 +125,8 @@ const IDENTICAL_MESSAGE_ALLOWLIST = new Set([
   'notifications.dg.repeated',
   'notifications.dg.bodyWithContext',
   'projectTeam.members.groupCount',
+  // Progress-claim reference format (CLM prefix is language-neutral).
+  'subcontractClaims.list.claimReference',
 ]);
 
 function hasActivityAction(catalog: Catalog, action: string): boolean {

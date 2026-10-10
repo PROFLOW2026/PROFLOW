@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
+import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
 import { notFound } from 'next/navigation';
 import {
   Calendar,
@@ -40,9 +41,10 @@ export default async function MeetingDetailPage({ params }: MeetingDetailPagePro
   }
 
   const { meetingId } = await params;
-  const [t, tCommon] = await Promise.all([
+  const [t, tCommon, locale] = await Promise.all([
     getTranslations('tasks'),
     getTranslations('common'),
+    getLocale(),
   ]);
   const canManage = shell.permissions.has(PERMISSIONS.MEETINGS_MANAGE);
   const canCreateTasks = shell.permissions.has(PERMISSIONS.TASKS_CREATE);
@@ -72,7 +74,7 @@ export default async function MeetingDetailPage({ params }: MeetingDetailPagePro
           <div className="flex flex-wrap items-center gap-3 text-sm text-[var(--pf-text-secondary)]">
             <span className="flex items-center gap-1">
               <Calendar className="h-3.5 w-3.5" aria-hidden />
-              {formatFullDate(detail.scheduledAt)}
+              {formatFullDate(detail.scheduledAt, locale)}
             </span>
             {detail.location && (
               <span className="flex items-center gap-1">
@@ -185,6 +187,7 @@ export default async function MeetingDetailPage({ params }: MeetingDetailPagePro
                 decision={decision}
                 meetingId={meetingId}
                 canManage={canManage}
+                locale={locale}
                 editLabel={tCommon('actions.edit')}
                 decidedAtLabel={(date) => t('meetings.detail.decidedAt', { date })}
               />
@@ -236,12 +239,14 @@ function DecisionItem({
   decision,
   meetingId,
   canManage,
+  locale,
   editLabel,
   decidedAtLabel,
 }: {
   decision: MeetingDecision;
   meetingId: string;
   canManage: boolean;
+  locale: string;
   editLabel: string;
   decidedAtLabel: (date: string) => string;
 }) {
@@ -257,7 +262,7 @@ function DecisionItem({
           )}
           {decision.decidedAt && (
             <p className="mt-1 text-xs text-[var(--pf-text-muted)]">
-              {decidedAtLabel(formatShortDate(decision.decidedAt))}
+              {decidedAtLabel(formatShortDate(decision.decidedAt, locale))}
             </p>
           )}
         </div>
@@ -355,21 +360,21 @@ function ActionItemRow({
 
 // ─── Date helpers ─────────────────────────────────────────────────────────────
 
-function formatFullDate(date: Date): string {
-  return date.toLocaleDateString(undefined, {
+function formatFullDate(date: Date, locale: string): string {
+  return intlDateTimeFormat(locale, {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
-  });
+  }).format(date);
 }
 
-function formatShortDate(date: Date): string {
-  return date.toLocaleDateString(undefined, {
+function formatShortDate(date: Date, locale: string): string {
+  return intlDateTimeFormat(locale, {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
-  });
+  }).format(date);
 }

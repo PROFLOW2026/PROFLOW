@@ -858,6 +858,22 @@
       "custom": "Свои дата и время"
     }
   },
+  "approval": {
+    "sectionLabel": "Согласование",
+    "historyLabel": "{count, plural, one {# прошлый запрос} few {# прошлых запроса} many {# прошлых запросов} other {# прошлых запроса}}",
+    "requestedBy": "Запросил",
+    "decidedBy": "Решение принял",
+    "noPendingRequest": "Перед завершением задачи требуется согласование. Отправьте запрос руководителю на проверку.",
+    "requestButton": "Запросить согласование",
+    "reRequestButton": "Запросить снова",
+    "step": "Шаг {current} из {total}",
+    "approveButton": "Утвердить",
+    "rejectButton": "Отклонить",
+    "decisionNotePlaceholder": "Необязательная заметка к решению…",
+    "awaitingDecision": "Ожидается решение согласующего.",
+    "submittedSuccess": "Отправлено на согласование",
+    "decisionRecordedSuccess": "Решение зафиксировано"
+  },
   "stageHistory": {
     "empty": "Переходы между этапами ещё не записаны.",
     "unknown": "Неизвестно",

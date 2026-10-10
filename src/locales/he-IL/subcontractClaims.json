@@ -12,7 +12,8 @@
     "period": "תקופה",
     "status": "סטטוס",
     "submitted": "מוגש (נטו)",
-    "certified": "מאושר (נטו)"
+    "certified": "מאושר (נטו)",
+    "claimReference": "CLM-{number}"
   },
   "status": {
     "draft": "טיוטה",

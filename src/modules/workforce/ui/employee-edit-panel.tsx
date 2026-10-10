@@ -95,7 +95,9 @@ export function EmployeeEditPanel({ employee, linkableUsers }: EmployeeEditPanel
                     <SelectItem value={UNLINKED}>{t('employees.form.linkedUserUnlink')}</SelectItem>
                     {linkableUsers.map((member) => (
                       <SelectItem key={member.userId} value={member.userId}>
-                        {formatOrgMemberLabel(member)}
+                        {formatOrgMemberLabel(member, {
+                          anonymousAppUserLabel: t('employees.form.anonymousAppUser'),
+                        })}
                       </SelectItem>
                     ))}
                   </SelectContent>

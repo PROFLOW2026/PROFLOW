@@ -238,7 +238,9 @@ export function EmployeeForm({
                 <SelectItem value={UNLINKED}>{t('employees.form.linkedUserNone')}</SelectItem>
                 {linkableUsers.map((member) => (
                   <SelectItem key={member.userId} value={member.userId}>
-                    {formatOrgMemberLabel(member)}
+                    {formatOrgMemberLabel(member, {
+                      anonymousAppUserLabel: t('employees.form.anonymousAppUser'),
+                    })}
                   </SelectItem>
                 ))}
               </SelectContent>

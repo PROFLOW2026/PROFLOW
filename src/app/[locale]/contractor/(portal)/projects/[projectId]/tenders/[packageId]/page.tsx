@@ -31,7 +31,9 @@ export default async function ContractorTenderDetailPage({
       <div className="flex flex-col gap-4 pb-6">
         <PageHeader
           title={pkg.title}
-          description={pkg.tradeKey}
+          description={
+            pkg.tradeKey ? `${t('fields.trade')}: ${t('portal.tradeLine', { trade: pkg.tradeKey })}` : undefined
+          }
           breadcrumb={
             <Link href={listHref} className="text-sm text-[var(--pf-text-brand)] hover:underline">
               {t('portal.back')}

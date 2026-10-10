@@ -43,6 +43,7 @@ export default async function ContractorRfisPage({
   const [t, locale] = await Promise.all([getTranslations('rfi'), getLocale()]);
 
   return (
+    <WithPortalClientMessages extra={['rfi', 'common']}>
     <div className="flex flex-col gap-4 pb-6">
       <PageHeader title={t('portal.title')} description={t('portal.description')} />
 
@@ -53,7 +54,6 @@ export default async function ContractorRfisPage({
       </div>
 
       {wantsCreate ? (
-        <WithPortalClientMessages extra={['rfi', 'common']}>
           <ContractorRfiCreateForm
             organizationId={organizationId}
             projectId={projectId}
@@ -61,7 +61,6 @@ export default async function ContractorRfisPage({
             locations={locations}
             workPackages={workPackages}
           />
-        </WithPortalClientMessages>
       ) : (
         <Link href={`${base}?new=1`} className={buttonVariants({ variant: 'primary' })}>
           {t('portal.newTitle')}
@@ -74,6 +73,7 @@ export default async function ContractorRfisPage({
         <RfiList items={items} basePath={base} locale={locale} />
       )}
     </div>
+    </WithPortalClientMessages>
   );
 }
 

@@ -238,6 +238,7 @@
       "currency": "מטבע",
       "assignee": "אחראי ברירת מחדל",
       "checklistTemplateId": "מזהה תבנית רשימת בדיקה",
+      "checklistTemplateIdPlaceholder": "UUID של תבנית",
       "notes": "הערות",
       "noClient": "ללא לקוח",
       "noAssignee": "ללא אחראי",

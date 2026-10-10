@@ -34,7 +34,16 @@
       "task_external_closed": "Task closed",
       "task_linked_created": "Linked task created: {title}",
       "collab_comment_posted": "New discussion message",
-      "subcontract_claim_certified": "Claim certified: {title}"
+      "subcontract_claim_certified": "Claim certified: {title}",
+      "subcontract_claim_reassessed": "Progress claim reassessed",
+      "subcontract_deduction_issued": "Deduction recorded on agreement",
+      "subcontract_claim_submitted": "Progress claim submitted",
+      "coordination_readiness_requested": "Readiness confirmation requested",
+      "coordination_contractor_ready": "Contractor confirmed readiness",
+      "subcontract_agreement_created": "Subcontract agreement created",
+      "external_principal_invited": "Contractor user invited",
+      "subcontract_agreement_activated": "Subcontract agreement activated",
+      "external_grant_created": "Contractor project access created"
     }
   },
   "contractorPanel": {

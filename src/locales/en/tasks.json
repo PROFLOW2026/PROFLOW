@@ -858,6 +858,22 @@
       "custom": "Custom date & time"
     }
   },
+  "approval": {
+    "sectionLabel": "Approval",
+    "historyLabel": "{count, plural, one {# past request} other {# past requests}}",
+    "requestedBy": "Requested by",
+    "decidedBy": "Decided by",
+    "noPendingRequest": "This task requires approval before it can be marked done. Submit a request for your manager to review.",
+    "requestButton": "Request approval",
+    "reRequestButton": "Request again",
+    "step": "Step {current} of {total}",
+    "approveButton": "Approve",
+    "rejectButton": "Reject",
+    "decisionNotePlaceholder": "Optional note for your decision…",
+    "awaitingDecision": "Waiting for an approver to decide.",
+    "submittedSuccess": "Submitted for approval",
+    "decisionRecordedSuccess": "Decision recorded"
+  },
   "stageHistory": {
     "empty": "No stage transitions recorded yet.",
     "unknown": "Unknown",

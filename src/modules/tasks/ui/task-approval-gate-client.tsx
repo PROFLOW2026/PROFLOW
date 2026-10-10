@@ -7,6 +7,7 @@
  */
 
 import { useActionState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -57,6 +58,7 @@ function RequestApprovalForm({
   taskId: string;
   requestLabel: string;
 }) {
+  const t = useTranslations('tasks.approval');
   const [state, formAction, pending] = useActionState(
     requestTaskApprovalAction,
     {} as TaskActionState,
@@ -75,7 +77,7 @@ function RequestApprovalForm({
       ) : null}
       {state.ok ? (
         <Alert tone="success" role="status" className="mt-2">
-          Submitted for approval
+          {t('submittedSuccess')}
         </Alert>
       ) : null}
     </form>
@@ -97,6 +99,7 @@ function DecideApprovalForm({
   rejectLabel: string;
   decisionNotePlaceholder: string;
 }) {
+  const t = useTranslations('tasks.approval');
   const [state, formAction, pending] = useActionState(
     decideTaskApprovalAction,
     {} as TaskActionState,
@@ -142,7 +145,7 @@ function DecideApprovalForm({
       ) : null}
       {state.ok ? (
         <Alert tone="success" role="status">
-          Decision recorded
+          {t('decisionRecordedSuccess')}
         </Alert>
       ) : null}
     </form>

@@ -107,6 +107,7 @@
       "linkedUserHint": "Connect this employee to an organization member so they can log their own time and clock in. Unlink anytime.",
       "linkedUserNone": "Not linked",
       "linkedUserUnlink": "Unlink login",
+      "anonymousAppUser": "Employee app user",
       "email": "Email",
       "phone": "Phone",
       "notes": "Notes",

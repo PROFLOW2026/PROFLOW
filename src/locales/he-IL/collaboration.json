@@ -34,7 +34,16 @@
       "task_external_closed": "משימה נסגרה",
       "task_linked_created": "נוצרה משימת המשך: {title}",
       "collab_comment_posted": "הודעה חדשה בדיון",
-      "subcontract_claim_certified": "תביעה אושרה: {title}"
+      "subcontract_claim_certified": "חשבון קבלן אושר: {title}",
+      "subcontract_claim_reassessed": "חשבון קבלן הוערך מחדש",
+      "subcontract_deduction_issued": "הוצא קיזוז לקבלן",
+      "subcontract_claim_submitted": "חשבון קבלן הוגש",
+      "coordination_readiness_requested": "נדרש אישור מוכנות",
+      "coordination_contractor_ready": "קבלן אישר מוכנות",
+      "subcontract_agreement_created": "הסכם קבלן משנה נוצר",
+      "external_principal_invited": "משתמש קבלן הוזמן",
+      "subcontract_agreement_activated": "הסכם קבלן הופעל",
+      "external_grant_created": "גישת קבלן לפרויקט נוצרה"
     }
   },
   "contractorPanel": {

@@ -34,7 +34,16 @@
       "task_external_closed": "Задача закрыта",
       "task_linked_created": "Создана связанная задача: {title}",
       "collab_comment_posted": "Новое сообщение",
-      "subcontract_claim_certified": "Претензия сертифицирована: {title}"
+      "subcontract_claim_certified": "Промежуточный акт утверждён: {title}",
+      "subcontract_claim_reassessed": "Промежуточный акт пересмотрен",
+      "subcontract_deduction_issued": "Зарегистрировано удержание по субподряду",
+      "subcontract_claim_submitted": "Подан промежуточный акт",
+      "coordination_readiness_requested": "Требуется подтверждение готовности",
+      "coordination_contractor_ready": "Подрядчик подтвердил готовность",
+      "subcontract_agreement_created": "Создан субподрядный договор",
+      "external_principal_invited": "Приглашён пользователь подрядчика",
+      "subcontract_agreement_activated": "Субподрядный договор активирован",
+      "external_grant_created": "Создан доступ подрядчика к проекту"
     }
   },
   "contractorPanel": {

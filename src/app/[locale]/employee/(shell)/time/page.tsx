@@ -65,9 +65,17 @@ function formatRecentTimeEntryContext(
   return tWorkforce('time.nonProject');
 }
 
+function teamAttendanceStatusLabel(
+  status: string,
+  tAttendance: Awaited<ReturnType<typeof getTranslations<'employeeApp.attendance'>>>,
+): string {
+  return tAttendance(`dayStatus.${status}` as 'dayStatus.open');
+}
+
 export default async function EmployeeTimePage() {
   const t = await getTranslations('employeeApp');
   const tWorkforce = await getTranslations('workforce');
+  const tAttendance = await getTranslations('employeeApp.attendance');
   const tLists = await getTranslations('employeeApp.lists');
   const locale = await getLocale();
 
@@ -231,7 +239,7 @@ export default async function EmployeeTimePage() {
               <li key={`${row.employeeId}-${row.workDate}`} className={employeeListRowClass}>
                 <div className="flex items-center justify-between gap-3">
                   <span>{row.employeeName}</span>
-                  <span>{row.status}</span>
+                  <span>{teamAttendanceStatusLabel(row.status, tAttendance)}</span>
                 </div>
               </li>
             ))}

@@ -34,7 +34,16 @@
       "task_external_closed": "أُغلقت المهمة",
       "task_linked_created": "مهمة مرتبطة: {title}",
       "collab_comment_posted": "رسالة جديدة",
-      "subcontract_claim_certified": "تم اعتماد المطالبة: {title}"
+      "subcontract_claim_certified": "اعتُمدت مطالبة المقاول: {title}",
+      "subcontract_claim_reassessed": "أُعيد تقدير مطالبة المقاول",
+      "subcontract_deduction_issued": "أُصدر خصم على المقاول",
+      "subcontract_claim_submitted": "قُدّمت مطالبة المقاول",
+      "coordination_readiness_requested": "مطلوب تأكيد الجاهزية",
+      "coordination_contractor_ready": "أكد المقاول جاهزيته",
+      "subcontract_agreement_created": "أُنشئ عقد مقاول باطن",
+      "external_principal_invited": "دُعي مستخدم المقاول",
+      "subcontract_agreement_activated": "فُعّل عقد المقاول",
+      "external_grant_created": "أُنشئ وصول المقاول للمشروع"
     }
   },
   "contractorPanel": {

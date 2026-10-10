@@ -9,7 +9,8 @@
     "period": "Period",
     "status": "Status",
     "submitted": "Submitted (net)",
-    "certified": "Certified (net)"
+    "certified": "Certified (net)",
+    "claimReference": "CLM-{number}"
   },
   "status": {
     "draft": "Draft",

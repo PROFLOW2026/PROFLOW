@@ -19,10 +19,13 @@ describe('employee app auth email masking', () => {
     ).toBe('Employee App Test');
 
     expect(
-      formatOrgMemberLabel({
-        displayName: null,
-        email: '8ef9.2485@employees.pf.internal',
-      }),
-    ).toBe('משתמש אפליקציית עובדים');
+      formatOrgMemberLabel(
+        {
+          displayName: null,
+          email: '8ef9.2485@employees.pf.internal',
+        },
+        { anonymousAppUserLabel: 'Employee app user' },
+      ),
+    ).toBe('Employee app user');
   });
 });

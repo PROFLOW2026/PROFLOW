@@ -1,16 +1,26 @@
 import { Link } from '@/shared/i18n/navigation';
+import { resolveIntlLocale } from '@/shared/i18n/intl-locale';
 import { cn } from '@/shared/ui/cn';
 import type { EmployeeTaskAttentionItem, EmployeeTaskAttentionKind } from '../domain/employee-task-attention';
 import { employeeListPanelClass, employeeListRowLinkClass } from './employee-surface-styles';
+
+function formatAttentionDueDate(dueDate: string, locale: string): string {
+  return new Intl.DateTimeFormat(resolveIntlLocale(locale), {
+    dateStyle: 'medium',
+    timeZone: 'UTC',
+  }).format(new Date(`${dueDate}T00:00:00.000Z`));
+}
 
 export function EmployeeTaskAttentionBlock({
   title,
   items,
   labelFor,
+  locale,
 }: {
   readonly title: string;
   readonly items: readonly EmployeeTaskAttentionItem[];
   readonly labelFor: (kind: EmployeeTaskAttentionKind) => string;
+  readonly locale: string;
 }) {
   if (items.length === 0) return null;
 
@@ -28,7 +38,9 @@ export function EmployeeTaskAttentionBlock({
                     <p className="truncate text-xs text-[var(--pf-text-secondary)]">{item.projectLabel}</p>
                   ) : null}
                   {item.dueDate ? (
-                    <p className="mt-0.5 text-xs text-[var(--pf-text-secondary)]">{item.dueDate}</p>
+                    <p className="mt-0.5 text-xs text-[var(--pf-text-secondary)]">
+                      {formatAttentionDueDate(item.dueDate, locale)}
+                    </p>
                   ) : null}
                 </div>
                 <span

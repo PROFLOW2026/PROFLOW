@@ -36,7 +36,9 @@
     "bidAmount": "مبلغ العرض (₪)",
     "leadTimeDays": "مدة التوريد (أيام)",
     "bidNotes": "ملاحظات",
-    "packageClosed": "هذه الحزمة لم تعد مفتوحة للعروض."
+    "packageClosed": "هذه الحزمة لم تعد مفتوحة للعروض.",
+    "emptyList": "لا توجد مناقصات مفتوحة لشركتكم في هذا المشروع.",
+    "tradeLine": "{trade}"
   },
   "errors": {
     "alreadyAwarded": "تمت الترسية مسبقاً.",

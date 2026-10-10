@@ -139,4 +139,10 @@ describe('four-locale product verification', () => {
       }
     }
   });
+
+  it('has no orphan locale JSON files outside MESSAGE_NAMESPACES', () => {
+    const out = execSync('node scripts/i18n-four-locale-verification.mjs', { encoding: 'utf8' });
+    const report = JSON.parse(out) as { orphanLocaleFiles: string[] };
+    expect(report.orphanLocaleFiles).toEqual([]);
+  });
 });

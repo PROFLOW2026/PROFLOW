@@ -238,6 +238,7 @@
       "currency": "Валюта",
       "assignee": "Исполнитель по умолчанию",
       "checklistTemplateId": "ID шаблона чек-листа",
+      "checklistTemplateIdPlaceholder": "UUID шаблона",
       "notes": "Примечания",
       "noClient": "Без клиента",
       "noAssignee": "Без исполнителя по умолчанию",

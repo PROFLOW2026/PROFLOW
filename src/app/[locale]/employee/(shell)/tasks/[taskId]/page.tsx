@@ -203,7 +203,7 @@ export default async function EmployeePmTaskDetailPage({ params, searchParams }:
         ) : null}
         {assigneeNames ? (
           <p className="text-sm text-[var(--pf-text-secondary)]">
-            {t('assigneesLabel', { defaultValue: 'Assignees' })}: {assigneeNames}
+            {t('assigneesLabel')}: {assigneeNames}
           </p>
         ) : null}
       </div>

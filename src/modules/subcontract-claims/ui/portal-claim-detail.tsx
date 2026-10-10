@@ -25,7 +25,7 @@ export function PortalClaimDetail({
     <div className="flex flex-col gap-4 pb-6">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <h1 className="text-lg font-semibold">CLM-{header.claimNumber}</h1>
+          <h1 className="text-lg font-semibold">{t('list.claimReference', { number: header.claimNumber })}</h1>
           <p className="text-sm text-[var(--pf-text-muted)]">{header.agreementTitle}</p>
         </div>
         <ClaimStatusBadge status={header.status} label={t(`status.${header.status}`)} />

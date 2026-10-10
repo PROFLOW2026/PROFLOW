@@ -68,8 +68,10 @@ const FORBIDDEN_SUBSTRINGS = [
 /** Case-insensitive tokens (clear technical jargon in copy). */
 const FORBIDDEN_CASE_INSENSITIVE = ['fixture'] as const;
 
+const CUSTOMER_LOCALES = ['he-IL', 'en', 'ar', 'ru'] as const;
+
 function collectHits(
-  locale: 'he-IL' | 'en',
+  locale: (typeof CUSTOMER_LOCALES)[number],
 ): Array<{ namespace: string; path: string; token: string; value: string }> {
   const hits: Array<{ namespace: string; path: string; token: string; value: string }> = [];
 
@@ -94,13 +96,8 @@ function collectHits(
 }
 
 describe('no technical leakage in customer locales', () => {
-  it('he-IL message values omit forbidden developer substrings', () => {
-    const hits = collectHits('he-IL');
-    expect(hits, JSON.stringify(hits, null, 2)).toEqual([]);
-  });
-
-  it('en message values omit forbidden developer substrings', () => {
-    const hits = collectHits('en');
+  it.each(CUSTOMER_LOCALES)('%s message values omit forbidden developer substrings', (locale) => {
+    const hits = collectHits(locale);
     expect(hits, JSON.stringify(hits, null, 2)).toEqual([]);
   });
 });

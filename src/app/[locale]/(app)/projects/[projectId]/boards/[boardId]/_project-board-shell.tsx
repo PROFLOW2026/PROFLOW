@@ -118,7 +118,7 @@ export function ProjectBoardShell({
     } catch (error) {
       return {
         success: false as const,
-        error: error instanceof Error ? error.message : 'Update failed',
+        error: error instanceof Error ? error.message : t('saveFailed'),
       };
     }
   };

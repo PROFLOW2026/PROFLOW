@@ -5,7 +5,8 @@
  * Uses Server Component data fetching pattern — accepts pre-fetched data.
  */
 
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
+import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
 
 interface StageDef {
   id: string;
@@ -27,14 +28,14 @@ interface ProjectStageHistoryProps {
   stageMap: Record<string, StageDef>;
 }
 
-function formatDate(date: Date): string {
-  return date.toLocaleDateString(undefined, {
+function formatDate(date: Date, locale: string): string {
+  return intlDateTimeFormat(locale, {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
-  });
+  }).format(date);
 }
 
 function StageChip({
@@ -70,7 +71,7 @@ function StageChip({
 }
 
 export async function ProjectStageHistory({ transitions, stageMap }: ProjectStageHistoryProps) {
-  const t = await getTranslations('tasks.stageHistory');
+  const [t, locale] = await Promise.all([getTranslations('tasks.stageHistory'), getLocale()]);
 
   if (transitions.length === 0) {
     return (
@@ -116,7 +117,7 @@ export async function ProjectStageHistory({ transitions, stageMap }: ProjectStag
                 )}
               </div>
               <p className="mt-0.5 text-xs text-[var(--pf-text-muted)]">
-                {formatDate(transition.transitionedAt)}
+                {formatDate(transition.transitionedAt, locale)}
                 {transition.transitionedByName && ` · ${transition.transitionedByName}`}
               </p>
               {transition.notes && (

@@ -858,6 +858,22 @@
       "custom": "תאריך ושעה מותאמים"
     }
   },
+  "approval": {
+    "sectionLabel": "אישור",
+    "historyLabel": "{count, plural, one {בקשה קודמת אחת} other {# בקשות קודמות}}",
+    "requestedBy": "הוגש על ידי",
+    "decidedBy": "הוחלט על ידי",
+    "noPendingRequest": "משימה זו דורשת אישור לפני שניתן לסמן אותה כהושלמה. שלחו בקשה לבדיקת המנהל.",
+    "requestButton": "בקשת אישור",
+    "reRequestButton": "בקשה מחדש",
+    "step": "שלב {current} מתוך {total}",
+    "approveButton": "אישור",
+    "rejectButton": "דחייה",
+    "decisionNotePlaceholder": "הערה אופציונלית להחלטה…",
+    "awaitingDecision": "ממתין להחלטת מאשר.",
+    "submittedSuccess": "נשלח לאישור",
+    "decisionRecordedSuccess": "ההחלטה נרשמה"
+  },
   "stageHistory": {
     "empty": "עדיין לא נרשמו מעברי שלבים.",
     "unknown": "לא ידוע",

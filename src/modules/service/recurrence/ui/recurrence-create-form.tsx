@@ -203,7 +203,13 @@ export function RecurrenceCreateForm({
 
       <Field label={t('fields.checklistTemplateId')} optionalLabel={tCommon('labels.optional')}>
         {(control) => (
-          <Input {...control} name="defaultChecklistTemplateId" placeholder="UUID" autoComplete="off" dir="ltr" />
+          <Input
+            {...control}
+            name="defaultChecklistTemplateId"
+            placeholder={t('fields.checklistTemplateIdPlaceholder')}
+            autoComplete="off"
+            dir="ltr"
+          />
         )}
       </Field>
 

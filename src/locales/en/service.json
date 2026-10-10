@@ -238,6 +238,7 @@
       "currency": "Currency",
       "assignee": "Default assignee",
       "checklistTemplateId": "Checklist template ID",
+      "checklistTemplateIdPlaceholder": "Template UUID",
       "notes": "Notes",
       "noClient": "No customer",
       "noAssignee": "No default assignee",

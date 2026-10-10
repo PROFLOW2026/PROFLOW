@@ -36,7 +36,9 @@
     "bidAmount": "Bid amount (ILS)",
     "leadTimeDays": "Lead time (days)",
     "bidNotes": "Notes",
-    "packageClosed": "This package is no longer open for bids."
+    "packageClosed": "This package is no longer open for bids.",
+    "emptyList": "No open tenders for your company on this project.",
+    "tradeLine": "{trade}"
   },
   "errors": {
     "alreadyAwarded": "This package was already awarded.",

@@ -152,7 +152,8 @@ export function toActivityItem(
   hasMessage: (key: string) => boolean,
   hasSettingsAction: (key: string) => boolean = () => false,
 ): ActivityItem {
-  const visible = canSeeEventDetails(record.eventType, record.payload, held);
+  const labelEventType = resolveDomainEventTypeForLabel(record.eventType);
+  const visible = canSeeEventDetails(labelEventType, record.payload, held);
   const actor = {
     type: record.actorType,
     id: record.actorType === 'internal' ? record.actorUserId : record.actorType === 'external' ? record.actorPrincipalId : null,
@@ -174,7 +175,6 @@ export function toActivityItem(
       href: null,
     };
   }
-  const labelEventType = resolveDomainEventTypeForLabel(record.eventType);
   const key = eventMessageKey(labelEventType);
   const settingsKey = domainEventToSettingsActionKey(labelEventType);
   const payload = record.payload ?? {};

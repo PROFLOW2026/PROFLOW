@@ -12,7 +12,9 @@ function formatClaimAmount(amount: string, currency: string, locale: string): st
 
 export function ClaimsList({ items, basePath }: { items: readonly ClaimListItem[]; basePath: string }) {
   const t = useTranslations('subcontractClaims');
+  const tCommon = useTranslations('common');
   const locale = useLocale();
+  const missingValue = tCommon('labels.none');
   if (items.length === 0) {
     return <p className="text-sm text-[var(--pf-text-secondary)]">{t('list.empty')}</p>;
   }
@@ -35,10 +37,10 @@ export function ClaimsList({ items, basePath }: { items: readonly ClaimListItem[
               <tr key={item.id} className="border-t border-[var(--pf-border-subtle)]">
                 <td className="px-3 py-2">
                   <Link href={`${basePath}/${item.id}`} className="font-medium text-[var(--pf-text-brand)] hover:underline">
-                    CLM-{item.claimNumber}
+                    {t('list.claimReference', { number: item.claimNumber })}
                   </Link>
                 </td>
-                <td className="px-3 py-2">{item.vendorName ?? '—'}</td>
+                <td className="px-3 py-2">{item.vendorName ?? missingValue}</td>
                 <td className="px-3 py-2 whitespace-nowrap">
                   {bidiIsolate(item.periodStart)} – {bidiIsolate(item.periodEnd)}
                 </td>
@@ -51,7 +53,7 @@ export function ClaimsList({ items, basePath }: { items: readonly ClaimListItem[
                 <td className="px-3 py-2 text-end tabular-nums">
                   {item.currentCertified
                     ? formatClaimAmount(item.currentCertified, item.currency, locale)
-                    : '—'}
+                    : missingValue}
                 </td>
               </tr>
             ))}
@@ -63,7 +65,7 @@ export function ClaimsList({ items, basePath }: { items: readonly ClaimListItem[
           <li key={item.id} className="rounded-lg border border-[var(--pf-border-subtle)] p-4">
             <div className="flex flex-wrap items-start justify-between gap-2">
               <Link href={`${basePath}/${item.id}`} className="font-semibold text-[var(--pf-text-brand)]">
-                CLM-{item.claimNumber}
+                {t('list.claimReference', { number: item.claimNumber })}
               </Link>
               <ClaimStatusBadge status={item.status} label={t(`status.${item.status}`)} />
             </div>

@@ -36,7 +36,9 @@
     "bidAmount": "סכום הצעה (₪)",
     "leadTimeDays": "זמן אספקה (ימים)",
     "bidNotes": "הערות",
-    "packageClosed": "חבילה זו אינה פתוחה להצעות."
+    "packageClosed": "חבילה זו אינה פתוחה להצעות.",
+    "emptyList": "אין מכרזים פתוחים לחברה שלכם בפרויקט זה.",
+    "tradeLine": "{trade}"
   },
   "errors": {
     "alreadyAwarded": "החבילה כבר הוכרעה.",

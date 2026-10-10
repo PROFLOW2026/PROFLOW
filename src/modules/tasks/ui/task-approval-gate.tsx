@@ -141,33 +141,39 @@ async function loadApprovalGate(taskId: string): Promise<ApprovalGateData> {
 
 // ─── Status Badge ─────────────────────────────────────────────────────────────
 
-function ApprovalStatusBadge({ status }: { status: ApprovalHistoryItem['status'] }) {
+function ApprovalStatusBadge({
+  status,
+  label,
+}: {
+  status: ApprovalHistoryItem['status'];
+  label: string;
+}) {
   switch (status) {
     case 'submitted':
       return (
         <Badge tone="warning" className="gap-1">
           <Clock className="size-3" aria-hidden />
-          Pending
+          {label}
         </Badge>
       );
     case 'approved':
       return (
         <Badge tone="success" className="gap-1">
           <BadgeCheck className="size-3" aria-hidden />
-          Approved
+          {label}
         </Badge>
       );
     case 'rejected':
       return (
         <Badge tone="danger" className="gap-1">
           <XCircle className="size-3" aria-hidden />
-          Rejected
+          {label}
         </Badge>
       );
     case 'cancelled':
       return (
         <Badge tone="neutral">
-          Cancelled
+          {label}
         </Badge>
       );
   }
@@ -179,10 +185,12 @@ function ApprovalHistoryList({
   history,
   t,
   locale,
+  statusLabel,
 }: {
   history: ApprovalHistoryItem[];
   t: Awaited<ReturnType<typeof getTranslations<'tasks'>>>;
   locale: string;
+  statusLabel: (status: ApprovalHistoryItem['status']) => string;
 }) {
   if (history.length === 0) return null;
 
@@ -195,7 +203,7 @@ function ApprovalHistoryList({
         {history.map((item) => (
           <li key={item.id} className="flex flex-col gap-0.5 text-xs text-[var(--pf-text-secondary)]">
             <div className="flex flex-wrap items-center gap-1.5">
-              <ApprovalStatusBadge status={item.status} />
+              <ApprovalStatusBadge status={item.status} label={statusLabel(item.status)} />
               <time dateTime={item.createdAt.toISOString()} className="text-[var(--pf-text-muted)]">
                 {intlDateTimeFormat(locale, { dateStyle: 'medium' }).format(item.createdAt)}
               </time>
@@ -235,13 +243,15 @@ interface TaskApprovalGateProps {
 export async function TaskApprovalGate({ taskId, approvalRequired }: TaskApprovalGateProps) {
   if (!approvalRequired) return null;
 
-  const [data, t, locale] = await Promise.all([
+  const [data, t, tStatus, locale] = await Promise.all([
     loadApprovalGate(taskId),
     getTranslations('tasks'),
+    getTranslations('status.approval'),
     getLocale(),
   ]);
 
   const { openRequest, history, canRequest, canDecide, submitterName } = data;
+  const statusLabel = (status: ApprovalHistoryItem['status']) => tStatus(status);
 
   return (
     <section
@@ -273,7 +283,7 @@ export async function TaskApprovalGate({ taskId, approvalRequired }: TaskApprova
           {!openRequest && history.length > 0 ? (
             <div className="mt-2 flex flex-col gap-3">
               <div className="flex flex-wrap items-center gap-2">
-                <ApprovalStatusBadge status={history[0]!.status} />
+                <ApprovalStatusBadge status={history[0]!.status} label={statusLabel(history[0]!.status)} />
                 {history[0]!.decidedByName ? (
                   <span className="text-sm text-[var(--pf-text-secondary)]">
                     {t('approval.decidedBy')}: <strong>{history[0]!.decidedByName}</strong>
@@ -296,7 +306,7 @@ export async function TaskApprovalGate({ taskId, approvalRequired }: TaskApprova
           {openRequest ? (
             <div className="mt-2 flex flex-col gap-3">
               <div className="flex flex-wrap items-center gap-2">
-                <ApprovalStatusBadge status="submitted" />
+                <ApprovalStatusBadge status="submitted" label={statusLabel('submitted')} />
                 {submitterName ? (
                   <span className="text-sm text-[var(--pf-text-secondary)]">
                     {t('approval.requestedBy')}: <strong>{submitterName}</strong>
@@ -327,7 +337,7 @@ export async function TaskApprovalGate({ taskId, approvalRequired }: TaskApprova
             </div>
           ) : null}
 
-          <ApprovalHistoryList history={history} t={t} locale={locale} />
+          <ApprovalHistoryList history={history} t={t} locale={locale} statusLabel={statusLabel} />
         </div>
       </div>
     </section>

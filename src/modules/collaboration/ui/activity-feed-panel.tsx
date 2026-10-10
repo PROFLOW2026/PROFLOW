@@ -1,8 +1,11 @@
 import { getLocale, getTranslations } from 'next-intl/server';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { humanizeEventType } from '../domain/activity';
-import { resolveDomainEventTypeForLabel } from '../domain/activity-event-label';
+import { GENERIC_EVENT_KEY, humanizeEventType } from '../domain/activity';
+import {
+  domainEventToSettingsActionKey,
+  resolveDomainEventTypeForLabel,
+} from '../domain/activity-event-label';
 import type { ActivityFeedPage } from '../application/activity-feed';
 import { intlDateTimeFormat } from '@/shared/i18n/intl-locale';
 import { Link } from '@/shared/i18n/navigation';
@@ -48,14 +51,26 @@ export async function ActivityFeedPanel({
               item.actor.id && page.actorNames[item.actor.id]
                 ? page.actorNames[item.actor.id]
                 : null;
+            const labelEventType = resolveDomainEventTypeForLabel(item.eventType);
+            const settingsActionKey =
+              item.messageCatalog === 'settings.activity' && item.messageKey.startsWith('actions.')
+                ? item.messageKey
+                : item.messageKey === GENERIC_EVENT_KEY
+                  ? domainEventToSettingsActionKey(labelEventType)
+                  : null;
+            const settingsActionLabel =
+              settingsActionKey && tSettingsActivity.has(settingsActionKey as 'actions.subcontract_claim.submitted')
+                ? tSettingsActivity(settingsActionKey as 'actions.subcontract_claim.submitted')
+                : null;
             const message = item.redacted
               ? financialRedacted
-              : item.messageKey === 'activity.events.generic'
-                ? t('activity.events.generic', {
-                    type: humanizeEventType(resolveDomainEventTypeForLabel(item.eventType)),
-                  })
-                : item.messageCatalog === 'settings.activity'
-                  ? tSettingsActivity(item.messageKey as 'actions.subcontract_claim.submitted')
+              : item.messageCatalog === 'settings.activity' && settingsActionLabel
+                ? settingsActionLabel
+                : item.messageKey === GENERIC_EVENT_KEY
+                  ? settingsActionLabel ??
+                    t('activity.events.generic', {
+                      type: humanizeEventType(labelEventType),
+                    })
                   : t(item.messageKey as 'activity.events.task_external_assigned', {
                       title: item.title ?? '',
                       outcome: item.detail?.outcome ?? '',
