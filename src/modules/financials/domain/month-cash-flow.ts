@@ -11,6 +11,7 @@ import {
   type RevenueTriplet,
 } from '@/modules/billing/domain/revenue-position';
 import { resolveCashInstallmentLines } from '@/modules/expenses/domain/cash-installment-schedule';
+import type { VerifiedInstallmentPayment } from '@/modules/expenses/domain/expense-installment-payment-evidence';
 import {
   expenseGrossAfterApMatches,
   isExpenseFullyApMatchedForCash,
@@ -94,6 +95,7 @@ export interface MonthExpenseCashSnapshot {
   readonly paidAt: BusinessDate | null;
   readonly paymentMethod: string | null;
   readonly cashInstallmentSchedule?: unknown;
+  readonly verifiedInstallmentPayments?: readonly VerifiedInstallmentPayment[];
   /** @deprecated Use acceptedApMatchedNetAmount — full match skips expense cash only. */
   readonly recognizedApMatch?: boolean;
   /** Sum of accepted AP match amounts (NET). Partial matches keep expense cash remainder. */
@@ -319,46 +321,53 @@ export function expandExpenseMonthCash(
     startDate: row.installmentStartDate ?? row.expenseDate,
     stored: row.cashInstallmentSchedule,
   });
-  const completed = Math.min(Math.max(row.installmentsPaidCount, 0), schedule.length);
-  let covered = zeroMoney(currency);
-  for (let index = 0; index < completed; index += 1) {
-    const line = schedule[index];
-    if (!line) continue;
-    covered = addMoney(covered, line.amount);
-    if (!inMonth(line.dueDate, from, to)) continue;
-    paidLines.push({
-      id: `expense:${row.id}:inst-${index}`,
-      source: 'expense',
-      party: row.party,
-      document: row.document,
-      paymentDate: line.dueDate,
-      amount: line.amount,
-      display: documentCashTriplet(line.amount, row),
-      reference: row.paymentMethod,
-    });
+  const verified = row.verifiedInstallmentPayments ?? [];
+  const paidIndexSet = new Set<number>();
+  if (verified.length > 0) {
+    for (const payment of verified) {
+      if (payment.verification !== 'verified') continue;
+      if (!inMonth(payment.actualPaidAt, from, to)) continue;
+      paidIndexSet.add(payment.installmentIndex);
+      paidLines.push({
+        id: `expense:${row.id}:inst-${payment.installmentIndex}`,
+        source: 'expense',
+        party: row.party,
+        document: row.document,
+        paymentDate: payment.actualPaidAt,
+        amount: payment.grossPaid,
+        display: documentCashTriplet(payment.grossPaid, row),
+        reference: row.paymentMethod,
+      });
+    }
+  } else {
+    const completed = Math.min(Math.max(row.installmentsPaidCount, 0), schedule.length);
+    let covered = zeroMoney(currency);
+    for (let index = 0; index < completed; index += 1) {
+      const line = schedule[index];
+      if (!line) continue;
+      covered = addMoney(covered, line.amount);
+    }
+    const extra = subtractMoney(paid, covered);
+    const openIndex = completed < schedule.length ? completed : null;
+    if (isPositiveMoney(extra) && openIndex != null && inMonth(row.paidAt, from, to)) {
+      paidLines.push({
+        id: `expense:${row.id}:partial-${openIndex}`,
+        source: 'expense',
+        party: row.party,
+        document: row.document,
+        paymentDate: row.paidAt!,
+        amount: extra,
+        display: documentCashTriplet(extra, row),
+        reference: row.paymentMethod,
+      });
+      paidIndexSet.add(openIndex);
+    }
   }
 
-  const extra = subtractMoney(paid, covered);
-  const openIndex = completed < schedule.length ? completed : null;
-  if (isPositiveMoney(extra) && openIndex != null && inMonth(row.paidAt, from, to)) {
-    paidLines.push({
-      id: `expense:${row.id}:partial-${openIndex}`,
-      source: 'expense',
-      party: row.party,
-      document: row.document,
-      paymentDate: row.paidAt,
-      amount: extra,
-      display: documentCashTriplet(extra, row),
-      reference: row.paymentMethod,
-    });
-  }
-
-  for (let index = completed; index < schedule.length; index += 1) {
+  for (let index = 0; index < schedule.length; index += 1) {
     const line = schedule[index];
     if (!line || !inMonth(line.dueDate, from, to)) continue;
-    const already = index === openIndex && isPositiveMoney(extra) ? extra : zeroMoney(currency);
-    const remaining = subtractMoney(line.amount, already);
-    if (!isPositiveMoney(remaining)) continue;
+    if (paidIndexSet.has(index)) continue;
     expectedLines.push({
       id: `expense:${row.id}:inst-${index}`,
       source: 'expense',
@@ -366,9 +375,9 @@ export function expandExpenseMonthCash(
       document: row.document,
       dueDate: line.dueDate,
       paymentTerms: row.paymentTerms,
-      remaining,
-      display: documentCashTriplet(remaining, row),
-      status: isPositiveMoney(already) ? 'partial' : 'unpaid',
+      remaining: line.amount,
+      display: documentCashTriplet(line.amount, row),
+      status: 'unpaid',
     });
   }
 

@@ -1,8 +1,9 @@
 /**
- * Owner policy: installment (and partial) expense Actual / profitability NET is recognized
+ * Owner policy: installment expense Actual / profitability NET is recognized
  * only in the calendar month when cash was paid — not on purchase date or planned spread.
  *
- * Cash out remains GROSS in month-cash-flow (separate module).
+ * Installment rows require verified payment evidence (audit or stored schedule paidAt).
+ * due_date alone is never treated as payment date.
  */
 
 import { yearMonthFromBusinessDate } from '@/modules/month-close';
@@ -19,6 +20,7 @@ import {
   type MoneyValue,
 } from '@/shared/money';
 import { resolveCashInstallmentLines } from './cash-installment-schedule';
+import type { VerifiedInstallmentPayment } from './expense-installment-payment-evidence';
 
 export interface ExpensePaymentRecognitionFields {
   readonly netAmount: string;
@@ -32,6 +34,7 @@ export interface ExpensePaymentRecognitionFields {
   readonly paidGrossAmount: string | null;
   readonly paidAt: string | null;
   readonly cashInstallmentSchedule: unknown;
+  readonly verifiedInstallmentPayments?: readonly VerifiedInstallmentPayment[];
 }
 
 function netFromGrossSlice(
@@ -47,6 +50,35 @@ function netFromGrossSlice(
 function paymentYearMonth(date: BusinessDate | null): string | null {
   if (!date) return null;
   return yearMonthFromBusinessDate(date);
+}
+
+function recognizedFromVerifiedInstallments(
+  fields: ExpensePaymentRecognitionFields,
+  yearMonth: string,
+  mode: 'net' | 'gross',
+): MoneyValue | null {
+  const verified = fields.verifiedInstallmentPayments ?? [];
+  if (verified.length === 0) return null;
+
+  const currency = fields.currency;
+  const netTotal = fromNumericString(fields.netAmount, currency);
+  const grossTotal = fromNumericString(fields.grossAmount, currency);
+  if (!netTotal || !grossTotal) return null;
+
+  let monthTotal = zeroMoney(currency);
+  for (const payment of verified) {
+    if (payment.verification !== 'verified') continue;
+    if (yearMonthFromBusinessDate(payment.actualPaidAt) !== yearMonth) continue;
+    if (mode === 'gross') {
+      monthTotal = addMoney(monthTotal, payment.grossPaid);
+    } else {
+      monthTotal = addMoney(
+        monthTotal,
+        netFromGrossSlice(payment.grossPaid, netTotal, grossTotal),
+      );
+    }
+  }
+  return isZeroMoney(monthTotal) ? null : roundMoney(monthTotal);
 }
 
 /**
@@ -78,6 +110,9 @@ export function recognizedExpenseNetInYearMonth(
     return null;
   }
 
+  const verifiedSlice = recognizedFromVerifiedInstallments(fields, yearMonth, 'net');
+  if (verifiedSlice) return verifiedSlice;
+
   const schedule = resolveCashInstallmentLines({
     totalGross: grossTotal,
     installmentCount: count,
@@ -88,15 +123,7 @@ export function recognizedExpenseNetInYearMonth(
     fromNumericString(fields.paidGrossAmount ?? '0', currency) ?? zeroMoney(currency);
   const completed = Math.min(Math.max(fields.installmentsPaidCount, 0), schedule.length);
 
-  let monthNet = zeroMoney(currency);
-
-  for (let index = 0; index < completed; index += 1) {
-    const line = schedule[index];
-    if (!line) continue;
-    const lineYm = yearMonthFromBusinessDate(line.dueDate);
-    if (lineYm !== yearMonth) continue;
-    monthNet = addMoney(monthNet, netFromGrossSlice(line.amount, netTotal, grossTotal));
-  }
+  if (completed <= 0 || !isPositiveMoney(paidGross)) return null;
 
   let covered = zeroMoney(currency);
   for (let index = 0; index < completed; index += 1) {
@@ -105,15 +132,12 @@ export function recognizedExpenseNetInYearMonth(
   }
   const extra = subtractMoney(paidGross, covered);
   const openIndex = completed < schedule.length ? completed : null;
-  if (
-    isPositiveMoney(extra) &&
-    openIndex != null &&
-    paymentYearMonth(fields.paidAt ? businessDate(fields.paidAt) : null) === yearMonth
-  ) {
-    monthNet = addMoney(monthNet, netFromGrossSlice(extra, netTotal, grossTotal));
+  const paidYm = paymentYearMonth(fields.paidAt ? businessDate(fields.paidAt) : null);
+  if (isPositiveMoney(extra) && openIndex != null && paidYm === yearMonth) {
+    return netFromGrossSlice(extra, netTotal, grossTotal);
   }
 
-  return isZeroMoney(monthNet) ? null : roundMoney(monthNet);
+  return null;
 }
 
 /** GROSS cash recognized in `yearMonth` (paid installments / partial payments). */
@@ -138,6 +162,9 @@ export function recognizedExpenseGrossInYearMonth(
     return null;
   }
 
+  const verifiedSlice = recognizedFromVerifiedInstallments(fields, yearMonth, 'gross');
+  if (verifiedSlice) return verifiedSlice;
+
   const schedule = resolveCashInstallmentLines({
     totalGross: grossTotal,
     installmentCount: count,
@@ -147,14 +174,7 @@ export function recognizedExpenseGrossInYearMonth(
   const paidGross =
     fromNumericString(fields.paidGrossAmount ?? '0', currency) ?? zeroMoney(currency);
   const completed = Math.min(Math.max(fields.installmentsPaidCount, 0), schedule.length);
-
-  let monthGross = zeroMoney(currency);
-  for (let index = 0; index < completed; index += 1) {
-    const line = schedule[index];
-    if (!line) continue;
-    if (yearMonthFromBusinessDate(line.dueDate) !== yearMonth) continue;
-    monthGross = addMoney(monthGross, line.amount);
-  }
+  if (completed <= 0 || !isPositiveMoney(paidGross)) return null;
 
   let covered = zeroMoney(currency);
   for (let index = 0; index < completed; index += 1) {
@@ -163,15 +183,12 @@ export function recognizedExpenseGrossInYearMonth(
   }
   const extra = subtractMoney(paidGross, covered);
   const openIndex = completed < schedule.length ? completed : null;
-  if (
-    isPositiveMoney(extra) &&
-    openIndex != null &&
-    paymentYearMonth(fields.paidAt ? businessDate(fields.paidAt) : null) === yearMonth
-  ) {
-    monthGross = addMoney(monthGross, extra);
+  const paidYm = paymentYearMonth(fields.paidAt ? businessDate(fields.paidAt) : null);
+  if (isPositiveMoney(extra) && openIndex != null && paidYm === yearMonth) {
+    return roundMoney(extra);
   }
 
-  return isZeroMoney(monthGross) ? null : roundMoney(monthGross);
+  return null;
 }
 
 function* yearMonthsInclusive(fromYm: string, toYm: string): Generator<string> {

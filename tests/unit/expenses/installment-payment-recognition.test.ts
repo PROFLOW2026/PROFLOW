@@ -1,10 +1,29 @@
 import { describe, expect, it } from 'vitest';
+import { businessDate } from '@/shared/dates';
+import { money } from '@/shared/money';
+import type { VerifiedInstallmentPayment } from '@/modules/expenses/domain/expense-installment-payment-evidence';
 import {
   recognizedExpenseNetInYearMonth,
   type ExpensePaymentRecognitionFields,
 } from '@/modules/expenses/domain/installment-payment-recognition';
 
 const ILS = 'ILS';
+
+function verifiedLine(
+  index: number,
+  dueDate: string,
+  paidAt: string,
+  gross = '236.000000',
+): VerifiedInstallmentPayment {
+  return {
+    installmentIndex: index,
+    dueDate: businessDate(dueDate),
+    actualPaidAt: businessDate(paidAt),
+    grossPaid: money(gross, ILS),
+    verification: 'verified',
+    source: 'audit',
+  };
+}
 
 function base(partial: Partial<ExpensePaymentRecognitionFields>): ExpensePaymentRecognitionFields {
   return {
@@ -24,11 +43,12 @@ function base(partial: Partial<ExpensePaymentRecognitionFields>): ExpensePayment
 }
 
 describe('installment payment recognition (owner policy)', () => {
-  it('1,000 NET / 5 installments — 200 NET per paid month only', () => {
+  it('1,000 NET / 5 installments — 200 NET per verified paid month only', () => {
     const jan = base({
       installmentsPaidCount: 1,
       paidGrossAmount: '236.000000',
       paidAt: '2026-01-15',
+      verifiedInstallmentPayments: [verifiedLine(0, '2026-01-01', '2026-01-15')],
     });
     expect(Number(recognizedExpenseNetInYearMonth(jan, '2026-01')?.amount)).toBeCloseTo(200, 2);
     expect(recognizedExpenseNetInYearMonth(jan, '2026-02')).toBeNull();
@@ -37,6 +57,10 @@ describe('installment payment recognition (owner policy)', () => {
       installmentsPaidCount: 2,
       paidGrossAmount: '472.000000',
       paidAt: '2026-02-10',
+      verifiedInstallmentPayments: [
+        verifiedLine(0, '2026-01-01', '2026-01-15'),
+        verifiedLine(1, '2026-02-01', '2026-02-10'),
+      ],
     });
     expect(Number(recognizedExpenseNetInYearMonth(feb, '2026-02')?.amount)).toBeCloseTo(200, 2);
 
@@ -44,16 +68,35 @@ describe('installment payment recognition (owner policy)', () => {
       installmentsPaidCount: 2,
       paidGrossAmount: '472.000000',
       paidAt: '2026-02-10',
+      verifiedInstallmentPayments: [
+        verifiedLine(0, '2026-01-01', '2026-01-15'),
+        verifiedLine(1, '2026-02-01', '2026-02-10'),
+      ],
     });
     expect(recognizedExpenseNetInYearMonth(marUnpaid, '2026-03')).toBeNull();
 
-    const apr = base({
+    const aprLate = base({
       installmentsPaidCount: 4,
       paidGrossAmount: '944.000000',
       paidAt: '2026-04-20',
+      verifiedInstallmentPayments: [
+        verifiedLine(0, '2026-01-01', '2026-01-15'),
+        verifiedLine(1, '2026-02-01', '2026-02-10'),
+        verifiedLine(2, '2026-03-01', '2026-04-20'),
+        verifiedLine(3, '2026-04-01', '2026-04-20'),
+      ],
     });
-    expect(Number(recognizedExpenseNetInYearMonth(apr, '2026-03')?.amount)).toBeCloseTo(200, 2);
-    expect(Number(recognizedExpenseNetInYearMonth(apr, '2026-04')?.amount)).toBeCloseTo(200, 2);
+    expect(recognizedExpenseNetInYearMonth(aprLate, '2026-03')).toBeNull();
+    expect(Number(recognizedExpenseNetInYearMonth(aprLate, '2026-04')?.amount)).toBeCloseTo(400, 2);
+  });
+
+  it('installments without verified evidence do not recognize on due date', () => {
+    const row = base({
+      installmentsPaidCount: 3,
+      paidGrossAmount: '708.000000',
+      paidAt: '2026-03-01',
+    });
+    expect(recognizedExpenseNetInYearMonth(row, '2026-03')).toBeNull();
   });
 
   it('zero-VAT expense uses NET = GROSS proportion', () => {

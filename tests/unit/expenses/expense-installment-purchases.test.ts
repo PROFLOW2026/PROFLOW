@@ -9,6 +9,7 @@ import {
   managerialRecognitionCount,
   resolveCashInstallmentLines,
 } from '@/modules/expenses/domain/cash-installment-schedule';
+import type { VerifiedInstallmentPayment } from '@/modules/expenses/domain/expense-installment-payment-evidence';
 import {
   composeMonthCashFlow,
   type MonthExpenseCashSnapshot,
@@ -200,6 +201,16 @@ describe('expense installment purchases', () => {
       expect(october.paidActual.amount).toBe(money('0', ILS).amount);
     }
 
+    const verifiedSeptember: VerifiedInstallmentPayment[] = [
+      {
+        installmentIndex: 0,
+        dueDate: businessDate('2026-09-15'),
+        actualPaidAt: businessDate('2026-09-15'),
+        grossPaid: money('2000.000000', ILS),
+        verification: 'verified',
+        source: 'audit',
+      },
+    ];
     const paidSeptember = month(
       '2026-09-01',
       '2026-09-30',
@@ -209,6 +220,7 @@ describe('expense installment purchases', () => {
         paidGrossAmount: '2000.000000',
         paidAt: businessDate('2026-09-15'),
         paymentMethod: 'check',
+        verifiedInstallmentPayments: verifiedSeptember,
       }),
     );
     expect(paidSeptember.paidActual.amount).toBe(money('2000', ILS).amount);
@@ -225,6 +237,7 @@ describe('expense installment purchases', () => {
         installmentsPaidCount: 1,
         paidGrossAmount: '2000.000000',
         paidAt: businessDate('2026-09-15'),
+        verifiedInstallmentPayments: verifiedSeptember,
       }),
     );
     expect(stillDueOctober.paidActual.amount).toBe(money('0', ILS).amount);
