@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { businessDate } from '@/shared/dates';
 import { money } from '@/shared/money';
-import type { VerifiedInstallmentPayment } from '@/modules/expenses/domain/expense-installment-payment-evidence';
+import type { InstallmentPaymentSlice } from '@/modules/expenses/domain/expense-installment-payment-evidence';
 import {
   recognizedExpenseNetInYearMonth,
   type ExpensePaymentRecognitionFields,
@@ -14,7 +14,7 @@ function verifiedLine(
   dueDate: string,
   paidAt: string,
   gross = '236.000000',
-): VerifiedInstallmentPayment {
+): InstallmentPaymentSlice {
   return {
     installmentIndex: index,
     dueDate: businessDate(dueDate),
@@ -88,6 +88,27 @@ describe('installment payment recognition (owner policy)', () => {
     });
     expect(recognizedExpenseNetInYearMonth(aprLate, '2026-03')).toBeNull();
     expect(Number(recognizedExpenseNetInYearMonth(aprLate, '2026-04')?.amount)).toBeCloseTo(400, 2);
+  });
+
+  it('lump manual audit without index recognizes in paid month (BMS pattern)', () => {
+    const row = base({
+      installmentCount: 12,
+      installmentsPaidCount: 9,
+      paidGrossAmount: '8689.000000',
+      paidAt: '2026-09-06',
+      verifiedInstallmentPayments: [
+        {
+          installmentIndex: -1,
+          dueDate: businessDate('2026-01-01'),
+          actualPaidAt: businessDate('2026-09-06'),
+          grossPaid: money('8689.000000', ILS),
+          verification: 'verified',
+          source: 'audit',
+        },
+      ],
+    });
+    expect(Number(recognizedExpenseNetInYearMonth(row, '2026-09')?.amount)).toBeCloseTo(7363.56, 0);
+    expect(recognizedExpenseNetInYearMonth(row, '2026-01')).toBeNull();
   });
 
   it('installments without verified evidence do not recognize on due date', () => {

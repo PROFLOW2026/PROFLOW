@@ -11,7 +11,7 @@ import {
   type RevenueTriplet,
 } from '@/modules/billing/domain/revenue-position';
 import { resolveCashInstallmentLines } from '@/modules/expenses/domain/cash-installment-schedule';
-import type { VerifiedInstallmentPayment } from '@/modules/expenses/domain/expense-installment-payment-evidence';
+import type { InstallmentPaymentSlice } from '@/modules/expenses/domain/expense-installment-payment-evidence';
 import {
   expenseGrossAfterApMatches,
   isExpenseFullyApMatchedForCash,
@@ -95,7 +95,7 @@ export interface MonthExpenseCashSnapshot {
   readonly paidAt: BusinessDate | null;
   readonly paymentMethod: string | null;
   readonly cashInstallmentSchedule?: unknown;
-  readonly verifiedInstallmentPayments?: readonly VerifiedInstallmentPayment[];
+  readonly verifiedInstallmentPayments?: readonly InstallmentPaymentSlice[];
   /** @deprecated Use acceptedApMatchedNetAmount — full match skips expense cash only. */
   readonly recognizedApMatch?: boolean;
   /** Sum of accepted AP match amounts (NET). Partial matches keep expense cash remainder. */
@@ -326,7 +326,7 @@ export function expandExpenseMonthCash(
   if (verified.length > 0) {
     for (const payment of verified) {
       if (payment.verification !== 'verified') continue;
-      if (!inMonth(payment.actualPaidAt, from, to)) continue;
+      if (!payment.actualPaidAt || !inMonth(payment.actualPaidAt, from, to)) continue;
       paidIndexSet.add(payment.installmentIndex);
       paidLines.push({
         id: `expense:${row.id}:inst-${payment.installmentIndex}`,

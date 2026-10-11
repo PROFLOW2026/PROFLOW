@@ -20,7 +20,10 @@ import {
   type MoneyValue,
 } from '@/shared/money';
 import { resolveCashInstallmentLines } from './cash-installment-schedule';
-import type { VerifiedInstallmentPayment } from './expense-installment-payment-evidence';
+import type {
+  ExpenseInstallmentPaymentStatus,
+  InstallmentPaymentSlice,
+} from './expense-installment-payment-evidence';
 
 export interface ExpensePaymentRecognitionFields {
   readonly netAmount: string;
@@ -34,7 +37,9 @@ export interface ExpensePaymentRecognitionFields {
   readonly paidGrossAmount: string | null;
   readonly paidAt: string | null;
   readonly cashInstallmentSchedule: unknown;
-  readonly verifiedInstallmentPayments?: readonly VerifiedInstallmentPayment[];
+  readonly verifiedInstallmentPayments?: readonly InstallmentPaymentSlice[];
+  readonly dateUnknownGross?: string | null;
+  readonly installmentPaymentStatus?: ExpenseInstallmentPaymentStatus;
 }
 
 function netFromGrossSlice(
@@ -67,7 +72,7 @@ function recognizedFromVerifiedInstallments(
 
   let monthTotal = zeroMoney(currency);
   for (const payment of verified) {
-    if (payment.verification !== 'verified') continue;
+    if (payment.verification !== 'verified' || !payment.actualPaidAt) continue;
     if (yearMonthFromBusinessDate(payment.actualPaidAt) !== yearMonth) continue;
     if (mode === 'gross') {
       monthTotal = addMoney(monthTotal, payment.grossPaid);

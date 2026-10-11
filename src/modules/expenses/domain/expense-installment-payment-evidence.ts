@@ -1,32 +1,42 @@
 /**
- * Verified installment payment slices — actual paid date must come from audit or stored schedule paidAt,
- * never from due_date alone.
+ * Installment payment evidence — never treat due_date as actual payment date.
  */
 
 import { yearMonthFromBusinessDate } from '@/modules/month-close';
 import { businessDate, type BusinessDate } from '@/shared/dates';
 import {
+  addMoney,
   fromNumericString,
   isPositiveMoney,
   isZeroMoney,
   money,
   roundMoney,
+  subtractMoney,
+  zeroMoney,
   type MoneyValue,
 } from '@/shared/money';
 import {
   parseStoredCashInstallmentSchedule,
   resolveCashInstallmentLines,
+  type CashInstallmentLine,
 } from './cash-installment-schedule';
 
-export type InstallmentPaymentVerification = 'verified' | 'not_verified';
+export type InstallmentSliceVerification = 'verified' | 'date_unknown';
 
-export interface VerifiedInstallmentPayment {
+export type ExpenseInstallmentPaymentStatus =
+  | 'UNPAID'
+  | 'PAID_VERIFIED'
+  | 'PAID_DATE_UNKNOWN'
+  | 'PARTIALLY_VERIFIED';
+
+/** Per-slice evidence. installmentIndex -1 = lump audit without index (single cash event). */
+export interface InstallmentPaymentSlice {
   readonly installmentIndex: number;
-  readonly dueDate: BusinessDate;
-  readonly actualPaidAt: BusinessDate;
+  readonly dueDate: BusinessDate | null;
+  readonly actualPaidAt: BusinessDate | null;
   readonly grossPaid: MoneyValue;
-  readonly verification: InstallmentPaymentVerification;
-  readonly source: 'audit' | 'stored_schedule' | 'ledger';
+  readonly verification: InstallmentSliceVerification;
+  readonly source: 'audit' | 'stored_schedule' | 'ledger' | 'inferred_gap';
   readonly paymentReference?: string | null;
 }
 
@@ -34,6 +44,16 @@ export interface ExpensePaymentAuditRow {
   readonly action: string;
   readonly createdAt: string;
   readonly after: unknown;
+}
+
+export interface InstallmentPaymentResolution {
+  readonly status: ExpenseInstallmentPaymentStatus;
+  readonly slices: readonly InstallmentPaymentSlice[];
+  /** Gross paid on expense row minus gross with verified month (still paid, month not assignable). */
+  readonly dateUnknownGross: MoneyValue;
+  readonly verifiedGrossTotal: MoneyValue;
+  readonly paidGrossTotal: MoneyValue;
+  readonly openGross: MoneyValue;
 }
 
 function readAuditPaymentSlice(after: unknown): {
@@ -58,31 +78,31 @@ function readAuditPaymentSlice(after: unknown): {
         ? record.installment_index
         : null;
   const source = typeof record.source === 'string' ? record.source : null;
-  if (!paidAt || !grossPaid) return null;
+  if (!grossPaid) return null;
   return { paidAt, grossPaid, installmentIndex, source };
 }
 
-/** Fold audit trail into verified installment payments (chronological). */
-export function verifiedInstallmentPaymentsFromAudits(
+function slicesFromIndexedAudits(
   audits: readonly ExpensePaymentAuditRow[],
-  scheduleDueDates: readonly BusinessDate[],
+  schedule: readonly CashInstallmentLine[],
   currency: string,
-): readonly VerifiedInstallmentPayment[] {
+): InstallmentPaymentSlice[] {
   const confirmed = audits
     .filter((row) => row.action === 'expense.payment_confirmed')
     .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
-
-  const out: VerifiedInstallmentPayment[] = [];
+  const out: InstallmentPaymentSlice[] = [];
   for (const row of confirmed) {
     const slice = readAuditPaymentSlice(row.after);
-    if (!slice || !slice.paidAt) continue;
-    const index = slice.installmentIndex;
-    if (index == null || index < 0 || index >= scheduleDueDates.length) continue;
+    if (!slice) continue;
     const gross = fromNumericString(slice.grossPaid, currency);
     if (!gross || !isPositiveMoney(gross)) continue;
+    const index = slice.installmentIndex;
+    if (index == null) continue;
+    if (index < 0 || index >= schedule.length) continue;
+    if (!slice.paidAt) continue;
     out.push({
       installmentIndex: index,
-      dueDate: scheduleDueDates[index]!,
+      dueDate: schedule[index]!.dueDate,
       actualPaidAt: businessDate(slice.paidAt.slice(0, 10)),
       grossPaid: roundMoney(gross),
       verification: 'verified',
@@ -93,15 +113,42 @@ export function verifiedInstallmentPaymentsFromAudits(
   return out;
 }
 
-/** Optional paidAt on stored cash schedule lines (no migration — JSON payload). */
-export function verifiedInstallmentPaymentsFromStoredSchedule(
-  stored: unknown,
+function slicesFromLumpAudits(
+  audits: readonly ExpensePaymentAuditRow[],
   currency: string,
-  scheduleDueDates: readonly BusinessDate[],
-): readonly VerifiedInstallmentPayment[] {
+  expenseDate: BusinessDate,
+): InstallmentPaymentSlice[] {
+  const confirmed = audits
+    .filter((row) => row.action === 'expense.payment_confirmed')
+    .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  const out: InstallmentPaymentSlice[] = [];
+  for (const row of confirmed) {
+    const slice = readAuditPaymentSlice(row.after);
+    if (!slice || slice.installmentIndex != null) continue;
+    const gross = fromNumericString(slice.grossPaid, currency);
+    if (!gross || !isPositiveMoney(gross)) continue;
+    if (!slice.paidAt) continue;
+    out.push({
+      installmentIndex: -1,
+      dueDate: expenseDate,
+      actualPaidAt: businessDate(slice.paidAt.slice(0, 10)),
+      grossPaid: roundMoney(gross),
+      verification: 'verified',
+      source: 'audit',
+      paymentReference: slice.source,
+    });
+  }
+  return out;
+}
+
+function slicesFromStoredSchedule(
+  stored: unknown,
+  schedule: readonly CashInstallmentLine[],
+  currency: string,
+): InstallmentPaymentSlice[] {
   const parsed = parseStoredCashInstallmentSchedule(stored);
   if (!parsed) return [];
-  const out: VerifiedInstallmentPayment[] = [];
+  const out: InstallmentPaymentSlice[] = [];
   for (let index = 0; index < parsed.lines.length; index += 1) {
     const line = parsed.lines[index]!;
     const raw = line as { paidAt?: string };
@@ -110,7 +157,7 @@ export function verifiedInstallmentPaymentsFromStoredSchedule(
     if (!gross || !isPositiveMoney(gross)) continue;
     out.push({
       installmentIndex: index,
-      dueDate: scheduleDueDates[index] ?? businessDate(line.dueDate),
+      dueDate: schedule[index]?.dueDate ?? businessDate(line.dueDate),
       actualPaidAt: businessDate(raw.paidAt),
       grossPaid: roundMoney(gross),
       verification: 'verified',
@@ -120,33 +167,44 @@ export function verifiedInstallmentPaymentsFromStoredSchedule(
   return out;
 }
 
-export function mergeVerifiedInstallmentPayments(
-  ...groups: readonly (readonly VerifiedInstallmentPayment[])[]
-): readonly VerifiedInstallmentPayment[] {
-  const byIndex = new Map<number, VerifiedInstallmentPayment>();
-  for (const group of groups) {
-    for (const payment of group) {
-      const existing = byIndex.get(payment.installmentIndex);
-      if (!existing || existing.verification !== 'verified') {
-        byIndex.set(payment.installmentIndex, payment);
-      }
-    }
-  }
-  return [...byIndex.values()].sort((a, b) => a.installmentIndex - b.installmentIndex);
-}
+/** @deprecated Use InstallmentPaymentSlice */
+export type VerifiedInstallmentPayment = InstallmentPaymentSlice & {
+  readonly actualPaidAt: BusinessDate;
+  readonly verification: 'verified';
+};
 
-export function resolveVerifiedInstallmentPayments(input: {
+export function resolveInstallmentPaymentState(input: {
   readonly grossAmount: string;
   readonly currency: string;
   readonly installmentCount: number;
   readonly installmentStartDate: string;
   readonly expenseDate: string;
   readonly cashInstallmentSchedule: unknown;
+  readonly installmentsPaidCount: number;
+  readonly paidGrossAmount: string | null;
+  readonly paidAt: string | null;
   readonly audits: readonly ExpensePaymentAuditRow[];
-}): readonly VerifiedInstallmentPayment[] {
-  if (input.installmentCount <= 1) return [];
-  const grossTotal = fromNumericString(input.grossAmount, input.currency);
-  if (!grossTotal || isZeroMoney(grossTotal)) return [];
+}): InstallmentPaymentResolution {
+  const currency = input.currency;
+  const grossTotal = fromNumericString(input.grossAmount, currency) ?? zeroMoney(currency);
+  const paidGross =
+    fromNumericString(input.paidGrossAmount ?? '0', currency) ?? zeroMoney(currency);
+
+  if (input.installmentCount <= 1 || isZeroMoney(grossTotal)) {
+    const open = subtractMoney(grossTotal, paidGross);
+    return {
+      status: isPositiveMoney(paidGross)
+        ? input.paidAt
+          ? 'PAID_VERIFIED'
+          : 'PAID_DATE_UNKNOWN'
+        : 'UNPAID',
+      slices: [],
+      dateUnknownGross: input.paidAt || !isPositiveMoney(paidGross) ? zeroMoney(currency) : paidGross,
+      verifiedGrossTotal: input.paidAt && isPositiveMoney(paidGross) ? roundMoney(paidGross) : zeroMoney(currency),
+      paidGrossTotal: roundMoney(paidGross),
+      openGross: isPositiveMoney(open) ? roundMoney(open) : zeroMoney(currency),
+    };
+  }
 
   const schedule = resolveCashInstallmentLines({
     totalGross: grossTotal,
@@ -154,27 +212,97 @@ export function resolveVerifiedInstallmentPayments(input: {
     startDate: businessDate(input.installmentStartDate ?? input.expenseDate),
     stored: input.cashInstallmentSchedule,
   });
-  const dueDates = schedule.map((line) => line.dueDate);
+  const expenseDate = businessDate(input.expenseDate);
 
-  return mergeVerifiedInstallmentPayments(
-    verifiedInstallmentPaymentsFromAudits(input.audits, dueDates, input.currency),
-    verifiedInstallmentPaymentsFromStoredSchedule(
-      input.cashInstallmentSchedule,
-      input.currency,
-      dueDates,
-    ),
+  const slices: InstallmentPaymentSlice[] = [
+    ...slicesFromIndexedAudits(input.audits, schedule, currency),
+    ...slicesFromLumpAudits(input.audits, currency, expenseDate),
+    ...slicesFromStoredSchedule(input.cashInstallmentSchedule, schedule, currency),
+  ];
+
+  let verifiedGross = zeroMoney(currency);
+  for (const slice of slices) {
+    if (slice.verification === 'verified' && slice.actualPaidAt) {
+      verifiedGross = addMoney(verifiedGross, slice.grossPaid);
+    }
+  }
+
+  const hasLump = slices.some((s) => s.installmentIndex === -1 && s.verification === 'verified');
+  let dateUnknownGross = zeroMoney(currency);
+
+  if (isPositiveMoney(paidGross)) {
+    const remainder = subtractMoney(paidGross, verifiedGross);
+    if (isPositiveMoney(remainder)) {
+      dateUnknownGross = roundMoney(remainder);
+    }
+  }
+
+  if (!hasLump && input.installmentsPaidCount > 0 && isPositiveMoney(paidGross)) {
+    const indexed = new Set(
+      slices.filter((s) => s.installmentIndex >= 0).map((s) => s.installmentIndex),
+    );
+    const completed = Math.min(input.installmentsPaidCount, schedule.length);
+    for (let index = 0; index < completed; index += 1) {
+      if (indexed.has(index)) continue;
+      const line = schedule[index];
+      if (!line) continue;
+      dateUnknownGross = addMoney(dateUnknownGross, line.amount);
+    }
+    dateUnknownGross = roundMoney(dateUnknownGross);
+  }
+
+  const openGross = subtractMoney(grossTotal, paidGross);
+  let status: ExpenseInstallmentPaymentStatus = 'UNPAID';
+  if (isPositiveMoney(paidGross)) {
+    if (isPositiveMoney(dateUnknownGross) && isPositiveMoney(verifiedGross)) {
+      status = 'PARTIALLY_VERIFIED';
+    } else if (isPositiveMoney(dateUnknownGross)) {
+      status = 'PAID_DATE_UNKNOWN';
+    } else if (isPositiveMoney(verifiedGross)) {
+      status = 'PAID_VERIFIED';
+    } else {
+      status = 'PAID_DATE_UNKNOWN';
+    }
+  }
+
+  return {
+    status,
+    slices,
+    dateUnknownGross,
+    verifiedGrossTotal: roundMoney(verifiedGross),
+    paidGrossTotal: roundMoney(paidGross),
+    openGross: isPositiveMoney(openGross) ? roundMoney(openGross) : zeroMoney(currency),
+  };
+}
+
+/** Back-compat wrapper for callers expecting indexed verified list only. */
+export function resolveVerifiedInstallmentPayments(input: {
+  readonly grossAmount: string;
+  readonly currency: string;
+  readonly installmentCount: number;
+  readonly installmentStartDate: string;
+  readonly expenseDate: string;
+  readonly cashInstallmentSchedule: unknown;
+  readonly installmentsPaidCount: number;
+  readonly paidGrossAmount: string | null;
+  readonly paidAt: string | null;
+  readonly audits: readonly ExpensePaymentAuditRow[];
+}): readonly InstallmentPaymentSlice[] {
+  return resolveInstallmentPaymentState(input).slices.filter(
+    (s) => s.verification === 'verified' && s.actualPaidAt != null,
   );
 }
 
 export function verifiedGrossInYearMonth(
-  payments: readonly VerifiedInstallmentPayment[],
+  slices: readonly InstallmentPaymentSlice[],
   yearMonth: string,
 ): MoneyValue {
-  let total = money('0', payments[0]?.grossPaid.currency ?? 'ILS');
-  for (const payment of payments) {
-    if (payment.verification !== 'verified') continue;
-    if (yearMonthFromBusinessDate(payment.actualPaidAt) !== yearMonth) continue;
-    total = roundMoney(money(String(Number(total.amount) + Number(payment.grossPaid.amount)), total.currency));
+  const currency = slices[0]?.grossPaid.currency ?? 'ILS';
+  let total = zeroMoney(currency);
+  for (const slice of slices) {
+    if (slice.verification !== 'verified' || !slice.actualPaidAt) continue;
+    if (yearMonthFromBusinessDate(slice.actualPaidAt) !== yearMonth) continue;
+    total = addMoney(total, slice.grossPaid);
   }
-  return total;
+  return roundMoney(total);
 }

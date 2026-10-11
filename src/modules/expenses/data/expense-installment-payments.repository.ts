@@ -4,8 +4,10 @@ import { AUDIT_ACTIONS } from '@/shared/audit/actions';
 import type { DbExecutor } from '@/shared/db/types';
 import type { ExpensePaymentAuditRow } from '../domain/expense-installment-payment-evidence';
 import {
+  resolveInstallmentPaymentState,
   resolveVerifiedInstallmentPayments,
-  type VerifiedInstallmentPayment,
+  type InstallmentPaymentResolution,
+  type InstallmentPaymentSlice,
 } from '../domain/expense-installment-payment-evidence';
 
 const PAYMENT_ACTIONS = [
@@ -60,38 +62,65 @@ export type ExpenseInstallmentPaymentFields = {
   readonly installmentStartDate: string | null;
   readonly expenseDate: string;
   readonly cashInstallmentSchedule: unknown;
+  readonly installmentsPaidCount: number;
+  readonly paidGrossAmount: string | null;
+  readonly paidAt: string | null;
 };
+
+function resolutionInput(
+  row: ExpenseInstallmentPaymentFields,
+  audits: readonly ExpensePaymentAuditRow[],
+) {
+  return {
+    grossAmount: row.grossAmount,
+    currency: row.currency,
+    installmentCount: row.installmentCount,
+    installmentStartDate: row.installmentStartDate ?? row.expenseDate,
+    expenseDate: row.expenseDate,
+    cashInstallmentSchedule: row.cashInstallmentSchedule,
+    installmentsPaidCount: row.installmentsPaidCount,
+    paidGrossAmount: row.paidGrossAmount,
+    paidAt: row.paidAt,
+    audits,
+  };
+}
+
+export async function loadInstallmentPaymentStateByExpenseIds(
+  db: DbExecutor,
+  organizationId: string,
+  expenseRows: readonly ExpenseInstallmentPaymentFields[],
+): Promise<Map<string, InstallmentPaymentResolution>> {
+  const installmentRows = expenseRows.filter((row) => row.installmentCount > 1);
+  const auditsByExpense = await loadExpensePaymentAuditsByExpenseIds(
+    db,
+    organizationId,
+    installmentRows.map((row) => row.id),
+  );
+
+  const map = new Map<string, InstallmentPaymentResolution>();
+  for (const row of installmentRows) {
+    const audits = auditsByExpense.get(row.id) ?? [];
+    map.set(row.id, resolveInstallmentPaymentState(resolutionInput(row, audits)));
+  }
+  return map;
+}
 
 export async function loadVerifiedInstallmentPaymentsByExpenseIds(
   db: DbExecutor,
   organizationId: string,
   expenseRows: readonly ExpenseInstallmentPaymentFields[],
-): Promise<Map<string, readonly VerifiedInstallmentPayment[]>> {
-  const installmentIds = expenseRows
-    .filter((row) => row.installmentCount > 1)
-    .map((row) => row.id);
+): Promise<Map<string, readonly InstallmentPaymentSlice[]>> {
+  const installmentRows = expenseRows.filter((row) => row.installmentCount > 1);
   const auditsByExpense = await loadExpensePaymentAuditsByExpenseIds(
     db,
     organizationId,
-    installmentIds,
+    installmentRows.map((row) => row.id),
   );
 
-  const map = new Map<string, readonly VerifiedInstallmentPayment[]>();
-  for (const row of expenseRows) {
-    if (row.installmentCount <= 1) continue;
+  const map = new Map<string, readonly InstallmentPaymentSlice[]>();
+  for (const row of installmentRows) {
     const audits = auditsByExpense.get(row.id) ?? [];
-    map.set(
-      row.id,
-      resolveVerifiedInstallmentPayments({
-        grossAmount: row.grossAmount,
-        currency: row.currency,
-        installmentCount: row.installmentCount,
-        installmentStartDate: row.installmentStartDate ?? row.expenseDate,
-        expenseDate: row.expenseDate,
-        cashInstallmentSchedule: row.cashInstallmentSchedule,
-        audits,
-      }),
-    );
+    map.set(row.id, resolveVerifiedInstallmentPayments(resolutionInput(row, audits)));
   }
   return map;
 }

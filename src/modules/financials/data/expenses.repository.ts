@@ -35,7 +35,10 @@ import {
   recognizedExpenseNetThroughYearMonth,
   type ExpensePaymentRecognitionFields,
 } from '@/modules/expenses/domain/installment-payment-recognition';
-import { loadVerifiedInstallmentPaymentsByExpenseIds } from '@/modules/expenses/data/expense-installment-payments.repository';
+import {
+  loadInstallmentPaymentStateByExpenseIds,
+  loadVerifiedInstallmentPaymentsByExpenseIds,
+} from '@/modules/expenses/data/expense-installment-payments.repository';
 import { sqlFirstRow, sqlRows } from './sql-rows';
 
 export async function loadProjectExpenseContributions(
@@ -1233,20 +1236,30 @@ async function loadExpensePaymentRecognitionFields(
         isNull(expenses.archivedAt),
       ),
     );
+  const paymentFieldRows = rows.map((row) => ({
+    id: row.id,
+    grossAmount: row.grossAmount,
+    currency: row.currency,
+    installmentCount: row.installmentCount,
+    installmentStartDate: row.installmentStartDate,
+    expenseDate: row.expenseDate,
+    cashInstallmentSchedule: row.cashInstallmentSchedule,
+    installmentsPaidCount: row.installmentsPaidCount,
+    paidGrossAmount: row.paidGrossAmount,
+    paidAt: row.paidAt,
+  }));
   const verifiedByExpense = await loadVerifiedInstallmentPaymentsByExpenseIds(
     db,
     organizationId,
-    rows.map((row) => ({
-      id: row.id,
-      grossAmount: row.grossAmount,
-      currency: row.currency,
-      installmentCount: row.installmentCount,
-      installmentStartDate: row.installmentStartDate,
-      expenseDate: row.expenseDate,
-      cashInstallmentSchedule: row.cashInstallmentSchedule,
-    })),
+    paymentFieldRows,
+  );
+  const stateByExpense = await loadInstallmentPaymentStateByExpenseIds(
+    db,
+    organizationId,
+    paymentFieldRows,
   );
   for (const row of rows) {
+    const paymentState = stateByExpense.get(row.id);
     map.set(row.id, {
       netAmount: row.netAmount,
       grossAmount: row.grossAmount,
@@ -1260,6 +1273,8 @@ async function loadExpensePaymentRecognitionFields(
       paidAt: row.paidAt,
       cashInstallmentSchedule: row.cashInstallmentSchedule,
       verifiedInstallmentPayments: verifiedByExpense.get(row.id),
+      dateUnknownGross: paymentState?.dateUnknownGross.amount ?? null,
+      installmentPaymentStatus: paymentState?.status,
     });
   }
   return map;

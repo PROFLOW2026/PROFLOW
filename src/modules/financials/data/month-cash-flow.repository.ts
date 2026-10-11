@@ -307,6 +307,9 @@ export async function loadMonthExpenseCashSnapshots(
       installmentStartDate: row.installmentStartDate,
       expenseDate: row.expenseDate,
       cashInstallmentSchedule: row.cashInstallmentSchedule,
+      installmentsPaidCount: row.installmentsPaidCount,
+      paidGrossAmount: row.paidGrossAmount,
+      paidAt: row.paidAt,
     })),
   );
 
