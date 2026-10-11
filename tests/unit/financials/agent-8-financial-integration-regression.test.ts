@@ -7,6 +7,7 @@ import { composeProjectFinancials } from '@/modules/financials/application/compo
 import type { ProjectExpenseContribution } from '@/modules/financials/domain/cost-aggregation';
 import { mapFinancialsToWarningInput } from '@/modules/forecast/application/map-financials-to-warning-input';
 import { buildFinancialCoverage } from '@/modules/financials/domain/coverage';
+import { buildSliceAvailability } from '@/modules/financials/domain/financial-slice-availability';
 import { emptyCostPosition, withAllocatedGeneralBusinessCost } from '@/modules/financials/domain/cost-aggregation';
 import {
   displacedEmployeeMonthKey,
@@ -196,6 +197,7 @@ describe('AGENT 8 — F11 warning input matches compose forecast basis', () => {
       estimatedFinalCost: directForecast,
     };
 
+    const zero = zeroMoney(ILS);
     return {
       projectId: 'p1',
       currency: ILS,
@@ -203,6 +205,28 @@ describe('AGENT 8 — F11 warning input matches compose forecast basis', () => {
       pricingMode: 'fixed',
       priceNotSet: false,
       projectProfitabilityMode: 'include_general',
+      commercial: {
+        originalContractValue: money('80000', ILS),
+        approvedAdditions: zero,
+        approvedReductions: zero,
+        currentContractValue: money('80000', ILS),
+        pendingChanges: zero,
+      },
+      profit: {
+        estimatedProfit: money('10000', ILS),
+        marginPercent: '12.50',
+        actualProfit: money('10000', ILS),
+        actualMarginPercent: '12.50',
+      },
+      sliceAvailability: buildSliceAvailability({
+        canReadCommercial: true,
+        canReadBilling: true,
+        canReadExpenses: true,
+        canReadWorkforce: true,
+        canReadProcurement: true,
+        canReadAp: true,
+        laborLoaded: true,
+      }),
       cost,
       billing: {
         invoiced: zeroMoney(ILS),

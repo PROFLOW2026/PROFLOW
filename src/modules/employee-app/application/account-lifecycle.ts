@@ -10,7 +10,7 @@ import { findEscalatingPermissions } from '@/modules/rbac/domain/permission-subs
 import {
   listProjectAccessGrants,
   replaceProjectAccessGrantsForUser,
-} from '@/modules/projects/data/project-access.repository';
+} from '@/modules/projects';
 import { listAssignableProjects } from '@/modules/workforce/application/project-team';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';

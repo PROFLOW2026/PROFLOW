@@ -164,3 +164,8 @@ export function isAccessibleProjectId(
   if (!projectId) return true;
   return allowed.includes(projectId);
 }
+
+export {
+  listProjectAccessGrants,
+  replaceProjectAccessGrantsForUser,
+} from '../data/project-access.repository';

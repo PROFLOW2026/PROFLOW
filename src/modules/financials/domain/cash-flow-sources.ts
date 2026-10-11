@@ -9,7 +9,6 @@ import { resolveExpensePaymentObligation } from '@/modules/expenses/domain/resol
 import {
   expenseGrossAfterApMatches,
   isExpenseFullyApMatchedForCash,
-  recurringDraftCashForecastBlocked,
   yearMonthFromBusinessDate,
 } from './expense-ap-cash';
 import {

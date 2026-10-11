@@ -47,6 +47,8 @@ export {
   resolveAccessibleProjectIds,
   isAccessibleProjectId,
   canManageProjectAccess,
+  listProjectAccessGrants,
+  replaceProjectAccessGrantsForUser,
 } from './application/project-access';
 export {
   listEffectiveProjectParticipants,

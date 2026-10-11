@@ -6,6 +6,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useSyncExternalStore,
   type ReactNode,
 } from 'react';
@@ -19,31 +20,28 @@ type UnsavedStore = {
 const EmployeeDetailUnsavedContext = createContext<UnsavedStore | null>(null);
 
 export function EmployeeDetailUnsavedProvider({ children }: { readonly children: ReactNode }) {
-  const dirtyKeys = useMemo(() => new Set<string>(), []);
-  const listeners = useMemo(() => new Set<() => void>(), []);
+  const dirtyKeysRef = useRef(new Set<string>());
+  const listenersRef = useRef(new Set<() => void>());
 
-  const subscribe = useCallback(
-    (listener: () => void) => {
-      listeners.add(listener);
-      return () => listeners.delete(listener);
-    },
-    [listeners],
-  );
+  const subscribe = useCallback((listener: () => void) => {
+    listenersRef.current.add(listener);
+    return () => {
+      listenersRef.current.delete(listener);
+    };
+  }, []);
 
-  const getSnapshot = useCallback(() => dirtyKeys.size > 0, [dirtyKeys]);
+  const getSnapshot = useCallback(() => dirtyKeysRef.current.size > 0, []);
 
-  const setDirty = useCallback(
-    (key: string, dirty: boolean) => {
-      const had = dirtyKeys.size > 0;
-      if (dirty) dirtyKeys.add(key);
-      else dirtyKeys.delete(key);
-      const has = dirtyKeys.size > 0;
-      if (had !== has) {
-        listeners.forEach((listener) => listener());
-      }
-    },
-    [dirtyKeys, listeners],
-  );
+  const setDirty = useCallback((key: string, dirty: boolean) => {
+    const dirtyKeys = dirtyKeysRef.current;
+    const had = dirtyKeys.size > 0;
+    if (dirty) dirtyKeys.add(key);
+    else dirtyKeys.delete(key);
+    const has = dirtyKeys.size > 0;
+    if (had !== has) {
+      for (const listener of listenersRef.current) listener();
+    }
+  }, []);
 
   const store = useMemo(
     (): UnsavedStore => ({ subscribe, getSnapshot, setDirty }),
