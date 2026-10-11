@@ -21,6 +21,8 @@ import { AuthorizationError, DomainRuleError } from '@/shared/errors';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { DbExecutor } from '@/shared/db/types';
+import { findEmployeeById } from '../data/employees.repository';
+import { isManagerRecordedDraftPendingApproval } from '../domain/manager-recorded-time';
 import type { TimeEntryRecord } from '../domain/types';
 
 export function hasOrgWideTimeApproval(context: OrgContext): boolean {
@@ -229,23 +231,61 @@ export async function assertCanApproveProjectTimeEntry(
   }
 }
 
+async function employeeUserIdByEmployeeIds(
+  context: OrgContext,
+  employeeIds: readonly string[],
+): Promise<Map<string, string | null>> {
+  const map = new Map<string, string | null>();
+  for (const employeeId of employeeIds) {
+    if (map.has(employeeId)) continue;
+    const employee = await findEmployeeById(context.db, context.organizationId, employeeId);
+    map.set(employeeId, employee?.userId ?? null);
+  }
+  return map;
+}
+
+function entryNeedsScopedOperationalApproval(
+  entry: Pick<TimeEntryRecord, 'employeeId' | 'approvalStatus' | 'createdByUserId'>,
+  employeeUserIds: ReadonlyMap<string, string | null>,
+): boolean {
+  if (entry.approvalStatus === 'submitted') return true;
+  return isManagerRecordedDraftPendingApproval({
+    approvalStatus: entry.approvalStatus,
+    createdByUserId: entry.createdByUserId,
+    employeeUserId: employeeUserIds.get(entry.employeeId) ?? null,
+  });
+}
+
 export async function assertCanApproveSubmittedTimeEntries(
   context: OrgContext,
-  entries: readonly Pick<TimeEntryRecord, 'kind' | 'projectId' | 'employeeId' | 'approvalStatus'>[],
+  entries: readonly Pick<
+    TimeEntryRecord,
+    'kind' | 'projectId' | 'employeeId' | 'approvalStatus' | 'createdByUserId'
+  >[],
 ): Promise<void> {
   if (hasOrgWideTimeApproval(context)) return;
 
-  const submitted = entries.filter((entry) => entry.approvalStatus === 'submitted');
-  if (submitted.length === 0) return;
+  const draftEntries = entries.filter((entry) => entry.approvalStatus === 'draft');
+  const employeeUserIds =
+    draftEntries.length > 0
+      ? await employeeUserIdByEmployeeIds(
+          context,
+          draftEntries.map((entry) => entry.employeeId),
+        )
+      : new Map<string, string | null>();
 
-  for (const entry of submitted) {
+  const scoped = entries.filter((entry) => {
+    if (entry.approvalStatus === 'submitted') return true;
+    return entryNeedsScopedOperationalApproval(entry, employeeUserIds);
+  });
+  if (scoped.length === 0) return;
+
+  for (const entry of scoped) {
     await assertCanApproveProjectTimeEntry(context, entry);
   }
 
   const projectIds = new Set(
-    submitted
-      .map((entry) => entry.projectId)
-      .filter((id): id is string => typeof id === 'string'),
+    scoped.map((entry) => entry.projectId).filter((id): id is string => typeof id === 'string'),
   );
   if (projectIds.size > 1) {
     throw new DomainRuleError(

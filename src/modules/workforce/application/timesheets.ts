@@ -45,7 +45,12 @@ import {
   updateTimesheetLifecycle,
 } from '../data/timesheets.repository';
 import {
-  assertTimeApprovalTransition,
+  approvalUpdateFromStatuses,
+  assertApprovableTimeEntryStatus,
+  canDecideTimeEntryApproval,
+  isManagerRecordedDraftPendingApproval,
+} from '../domain/manager-recorded-time';
+import {
   assertTimesheetTransition,
   canSubmitApprovalStatus,
   timesheetPeriodForWorkDate,
@@ -140,6 +145,26 @@ async function requireEmployee(
 ): Promise<void> {
   const employee = await findEmployeeById(context.db, context.organizationId, employeeId);
   if (!employee || employee.archivedAt) throw new NotFoundError('Employee');
+}
+
+async function resolveEmployeeUserId(
+  context: OrgContext,
+  employeeId: string,
+): Promise<string | null> {
+  const employee = await findEmployeeById(context.db, context.organizationId, employeeId);
+  return employee?.userId ?? null;
+}
+
+function isApprovableRecordedEntry(
+  entry: TimeEntryRecord,
+  employeeUserIds: ReadonlyMap<string, string | null>,
+): boolean {
+  if (entry.status !== 'recorded') return false;
+  return canDecideTimeEntryApproval({
+    approvalStatus: entry.approvalStatus,
+    createdByUserId: entry.createdByUserId,
+    employeeUserId: employeeUserIds.get(entry.employeeId) ?? null,
+  });
 }
 
 async function requireTimesheet(
@@ -765,7 +790,12 @@ export async function approveTimeEntry(
 
   await assertCanApproveProjectTimeEntry(context, entry);
   await assertNotSelfTimeApproval(context, entry.employeeId);
-  assertTimeApprovalTransition(entry.approvalStatus, 'approved');
+  const employeeUserId = await resolveEmployeeUserId(context, entry.employeeId);
+  assertApprovableTimeEntryStatus({
+    approvalStatus: entry.approvalStatus,
+    createdByUserId: entry.createdByUserId,
+    employeeUserId,
+  });
 
   await refreshTimeEntryCostSnapshotIfMissing(context, entry.id);
   // Daily: conserve day pool while still submitted (avoids approved-row lock pre-0067).
@@ -773,13 +803,18 @@ export async function approveTimeEntry(
   await recomputeDailyEmployeeCostForDate(context, {
     employeeId: entry.employeeId,
     workDate: entry.workDate,
-    approvalStatuses: ['submitted', 'approved'],
+    approvalStatuses: ['draft', 'submitted', 'approved'],
   });
 
   const now = new Date();
+  const fromStatuses = approvalUpdateFromStatuses({
+    approvalStatus: entry.approvalStatus,
+    createdByUserId: entry.createdByUserId,
+    employeeUserId,
+  });
   const [updated] = await updateEntriesApproval(context.db, context.organizationId, {
     timeEntryIds: [entry.id],
-    fromStatuses: ['submitted'],
+    fromStatuses,
     approvalStatus: 'approved',
     decidedAt: now,
     decidedByUserId: context.userId,
@@ -820,8 +855,8 @@ export async function approveTimeEntry(
 }
 
 /**
- * Bulk approve submitted rows in the same org. Already-approved ids are skipped
- * (idempotent). Non-submitted ids are skipped, not an error.
+ * Bulk approve submitted rows (and manager-recorded drafts) in the same org.
+ * Already-approved ids are skipped (idempotent). Non-decidable ids are skipped, not an error.
  */
 export async function bulkApproveTimeEntries(
   context: OrgContext,
@@ -846,37 +881,31 @@ export async function bulkApproveTimeEntries(
       await assertNotSelfTimeApproval(txContext, row.employeeId);
     }
 
-    await assertCanApproveSubmittedTimeEntries(
-      txContext,
-      rows.filter((row) => row.approvalStatus === 'submitted' && row.status === 'recorded'),
-    );
+    const employeeUserIds = new Map<string, string | null>();
+    for (const row of rows) {
+      if (employeeUserIds.has(row.employeeId)) continue;
+      employeeUserIds.set(row.employeeId, await resolveEmployeeUserId(txContext, row.employeeId));
+    }
+
+    const approvableRows = rows.filter((row) => isApprovableRecordedEntry(row, employeeUserIds));
+
+    await assertCanApproveSubmittedTimeEntries(txContext, approvableRows);
 
     const alreadyApprovedIds = rows
       .filter((row) => row.approvalStatus === 'approved' && row.status === 'recorded')
       .map((row) => row.id);
-    const submittedIds = rows
-      .filter((row) => row.approvalStatus === 'submitted' && row.status === 'recorded')
-      .map((row) => row.id);
     const skippedIds = rows
-      .filter(
-        (row) =>
-          row.status !== 'recorded' ||
-          (row.approvalStatus !== 'submitted' && row.approvalStatus !== 'approved'),
-      )
+      .filter((row) => row.status !== 'recorded' || !isApprovableRecordedEntry(row, employeeUserIds))
+      .filter((row) => row.approvalStatus !== 'approved')
       .map((row) => row.id);
 
-    for (const row of rows) {
-      if (row.approvalStatus === 'submitted' && row.status === 'recorded') {
-        await refreshTimeEntryCostSnapshotIfMissing(txContext, row.id);
-      }
+    for (const row of approvableRows) {
+      await refreshTimeEntryCostSnapshotIfMissing(txContext, row.id);
     }
 
-    const submittedRows = rows.filter(
-      (row) => row.approvalStatus === 'submitted' && row.status === 'recorded',
-    );
-    if (submittedRows.length > 0) {
+    if (approvableRows.length > 0) {
       const byEmployee = new Map<string, string[]>();
-      for (const row of submittedRows) {
+      for (const row of approvableRows) {
         const list = byEmployee.get(row.employeeId) ?? [];
         list.push(row.workDate);
         byEmployee.set(row.employeeId, list);
@@ -886,23 +915,44 @@ export async function bulkApproveTimeEntries(
         await recomputeDailyEmployeeCostsForDates(txContext, {
           employeeId,
           workDates,
-          approvalStatuses: ['submitted', 'approved'],
+          approvalStatuses: ['draft', 'submitted', 'approved'],
         });
       }
     }
 
     const now = new Date();
-    const approved =
-      submittedIds.length === 0
-        ? []
-        : await updateEntriesApproval(tx, context.organizationId, {
-            timeEntryIds: submittedIds,
-            fromStatuses: ['submitted'],
-            approvalStatus: 'approved',
-            decidedAt: now,
-            decidedByUserId: context.userId,
-          });
+    const approved: TimeEntryRecord[] = [];
+    const submittedBatch = approvableRows.filter((row) => row.approvalStatus === 'submitted');
+    const managerDraftBatch = approvableRows.filter((row) =>
+      isManagerRecordedDraftPendingApproval({
+        approvalStatus: row.approvalStatus,
+        createdByUserId: row.createdByUserId,
+        employeeUserId: employeeUserIds.get(row.employeeId) ?? null,
+      }),
+    );
 
+    if (submittedBatch.length > 0) {
+      approved.push(
+        ...(await updateEntriesApproval(tx, context.organizationId, {
+          timeEntryIds: submittedBatch.map((row) => row.id),
+          fromStatuses: ['submitted'],
+          approvalStatus: 'approved',
+          decidedAt: now,
+          decidedByUserId: context.userId,
+        })),
+      );
+    }
+    if (managerDraftBatch.length > 0) {
+      approved.push(
+        ...(await updateEntriesApproval(tx, context.organizationId, {
+          timeEntryIds: managerDraftBatch.map((row) => row.id),
+          fromStatuses: ['draft'],
+          approvalStatus: 'approved',
+          decidedAt: now,
+          decidedByUserId: context.userId,
+        })),
+      );
+    }
     const timesheetIds = [
       ...new Set(
         approved

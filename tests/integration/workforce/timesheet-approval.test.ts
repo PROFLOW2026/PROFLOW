@@ -16,6 +16,7 @@ import { createEmployee } from '@/modules/workforce/application/employees';
 import { getProjectLaborCost } from '@/modules/workforce/application/project-labor-cost';
 import { createTimeEntry, updateTimeEntry } from '@/modules/workforce/application/time-entries';
 import {
+  approveTimeEntry,
   approveTimesheet,
   bulkApproveTimeEntries,
   returnTimesheet,
@@ -198,6 +199,48 @@ describe('timesheet approval lifecycle', () => {
       await expect(approveTimesheet(context, { timesheetId: result.timesheetId })).rejects.toBeInstanceOf(
         NotFoundError,
       );
+    });
+  });
+
+  it('approves manager-recorded draft without submit and records Actual once', async () => {
+    await database.asUser(userAId, async (tx) => {
+      const context = await resolveOrgContext(tx, {
+        userId: userAId,
+        organizationId: orgAId,
+        locale: 'he-IL',
+      });
+
+      const employee = await createEmployee(context, {
+        name: 'Attendance synced worker',
+        rateUnit: 'hourly',
+        baseRate: '100',
+        currency: 'ILS',
+        validFrom: businessDate('2026-01-01'),
+      });
+
+      const entry = await createTimeEntry(context, {
+        employeeId: employee.id,
+        workDate: businessDate('2026-10-11'),
+        hours: '8',
+        kind: 'project',
+        projectId: projectAId,
+      });
+      expect(entry.approvalStatus).toBe('draft');
+
+      const before = await getProjectLaborCost(context, projectAId);
+      expect(before.entryCount).toBe(0);
+
+      const approved = await approveTimeEntry(context, { timeEntryId: entry.id });
+      expect(approved.approvalStatus).toBe('approved');
+
+      const after = await getProjectLaborCost(context, projectAId);
+      expect(after.entryCount).toBe(1);
+      expect(after.laborCost.amount).toBe('800.000000');
+
+      const idempotent = await approveTimeEntry(context, { timeEntryId: entry.id });
+      expect(idempotent.approvalStatus).toBe('approved');
+      const afterAgain = await getProjectLaborCost(context, projectAId);
+      expect(afterAgain.entryCount).toBe(1);
     });
   });
 

@@ -162,12 +162,14 @@ describe('AGENT 8 — scoped operational approval queue rules', () => {
           projectId: 'project-a',
           employeeId: 'e1',
           approvalStatus: 'submitted',
+          createdByUserId: null,
         },
         {
           kind: 'project',
           projectId: 'project-b',
           employeeId: 'e1',
           approvalStatus: 'submitted',
+          createdByUserId: null,
         },
       ]),
     ).rejects.toBeInstanceOf(DomainRuleError);

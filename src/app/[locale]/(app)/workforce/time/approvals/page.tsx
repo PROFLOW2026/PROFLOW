@@ -23,6 +23,7 @@ import { TimesheetApprovalFilters } from '@/modules/workforce/ui/timesheet-appro
 import { withOrgContext } from '@/shared/auth/session';
 import { assertCanAccessTimeApprovalQueue } from '@/modules/workforce/application/scoped-operational-approval';
 import { formatWorkHoursValue } from '@/modules/workforce/domain/format-work-hours';
+import { canDecideTimeEntryApproval } from '@/modules/workforce/domain/manager-recorded-time';
 import { businessDate, todayInTimeZone } from '@/shared/dates/dates';
 import { formatBusinessDate } from '@/shared/dates/format';
 
@@ -69,9 +70,14 @@ export default async function TimesheetApprovalsPage({
     return { ...queue, employees, today: todayInTimeZone(context.organization.timezone) };
   });
 
-  const submittedEntryIds = data.entries
-    .filter((entry) => entry.approvalStatus === 'submitted')
-    .map((entry) => entry.id);
+  const employeeUserIdById = new Map(data.employees.map((employee) => [employee.id, employee.userId]));
+  const entryApprovableNow = (entry: (typeof data.entries)[number]) =>
+    canDecideTimeEntryApproval({
+      approvalStatus: entry.approvalStatus,
+      createdByUserId: entry.createdByUserId,
+      employeeUserId: employeeUserIdById.get(entry.employeeId) ?? null,
+    });
+  const approvableEntryIds = data.entries.filter(entryApprovableNow).map((entry) => entry.id);
 
   return (
     <div className="flex flex-col gap-6">
@@ -98,8 +104,8 @@ export default async function TimesheetApprovalsPage({
         />
       ) : (
         <div className="flex flex-col gap-4">
-          {submittedEntryIds.length > 0 ? (
-            <BulkApproveEntriesForm entryIds={submittedEntryIds} />
+          {approvableEntryIds.length > 0 ? (
+            <BulkApproveEntriesForm entryIds={approvableEntryIds} />
           ) : null}
 
           {data.timesheets.map((sheet) => (
@@ -180,7 +186,7 @@ export default async function TimesheetApprovalsPage({
                         <TableCell numeric>{formatWorkHoursValue(entry.hours)}</TableCell>
                         <TableCell>
                           <div className="flex flex-col gap-2">
-                            {entry.approvalStatus === 'submitted' ? (
+                            {entryApprovableNow(entry) ? (
                               <ApproveTimesheetButton timeEntryId={entry.id} />
                             ) : null}
                             <ExcessHoursApprovalPanel
@@ -215,7 +221,7 @@ export default async function TimesheetApprovalsPage({
                     label={t(`time.approvalStatus.${entry.approvalStatus}`)}
                   />
                 </div>
-                {entry.approvalStatus === 'submitted' ? (
+                {entryApprovableNow(entry) ? (
                   <div className="mt-3">
                     <ApproveTimesheetButton timeEntryId={entry.id} />
                   </div>
