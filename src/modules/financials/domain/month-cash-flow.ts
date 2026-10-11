@@ -12,6 +12,10 @@ import {
 } from '@/modules/billing/domain/revenue-position';
 import { resolveCashInstallmentLines } from '@/modules/expenses/domain/cash-installment-schedule';
 import {
+  expenseGrossAfterApMatches,
+  isExpenseFullyApMatchedForCash,
+} from './expense-ap-cash';
+import {
   addMoney,
   compareMoney,
   fromNumericString,
@@ -90,8 +94,10 @@ export interface MonthExpenseCashSnapshot {
   readonly paidAt: BusinessDate | null;
   readonly paymentMethod: string | null;
   readonly cashInstallmentSchedule?: unknown;
-  /** Accepted match to a recognized vendor bill — AP payment is the cash. */
-  readonly recognizedApMatch: boolean;
+  /** @deprecated Use acceptedApMatchedNetAmount — full match skips expense cash only. */
+  readonly recognizedApMatch?: boolean;
+  /** Sum of accepted AP match amounts (NET). Partial matches keep expense cash remainder. */
+  readonly acceptedApMatchedNetAmount?: string | null;
   readonly voided: boolean;
 }
 
@@ -257,10 +263,21 @@ export function expandExpenseMonthCash(
   from: BusinessDate,
   to: BusinessDate,
 ): { readonly paid: MonthCashPaidLine[]; readonly expected: MonthCashExpectedLine[] } {
-  if (row.voided || row.recognizedApMatch) return { paid: [], expected: [] };
+  if (row.voided) return { paid: [], expected: [] };
+  const matchedNet =
+    row.acceptedApMatchedNetAmount ??
+    (row.recognizedApMatch ? row.netAmount ?? row.grossAmount : '0');
+  const apDocument = {
+    grossAmount: row.grossAmount,
+    netAmount: row.netAmount,
+    taxAmount: row.taxAmount,
+    currency: row.currency,
+    acceptedApMatchedNetAmount: matchedNet,
+  };
+  if (isExpenseFullyApMatchedForCash(apDocument)) return { paid: [], expected: [] };
   if (row.currency.toUpperCase() !== currency.toUpperCase()) return { paid: [], expected: [] };
 
-  const total = fromNumericString(row.grossAmount, currency);
+  const total = expenseGrossAfterApMatches(apDocument);
   if (!total || !isPositiveMoney(total)) return { paid: [], expected: [] };
   const paid = fromNumericString(row.paidGrossAmount ?? '0', currency) ?? zeroMoney(currency);
   const paidLines: MonthCashPaidLine[] = [];

@@ -346,6 +346,7 @@ export {
   MONTHLY_ALLOCATION_METHODS,
   areEmployeeMonthCostsAvailable,
   previewMonthlyCostStrip,
+  resolveKnownEmployerCostFields,
   setEmployeeMonthCostsReadyForTests,
 } from './domain/monthly-cost-gates';
 export type {

@@ -8,6 +8,7 @@
       "password": "Password",
       "submit": "Sign in",
       "forgot": "Forgot your password?",
+      "backToCustomerLogin": "Back to main sign in",
       "reason": {
         "not_contractor": "You are signed in with an organization account. Sign in with your contractor username to open the contractor portal.",
         "inactive": "This contractor account is not active. Contact the company that invited you.",

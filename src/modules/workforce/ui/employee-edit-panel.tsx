@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useActionState, useState, useTransition } from 'react';
+import { useActionState, useEffect, useState, useTransition } from 'react';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,15 +21,25 @@ import type { OrgMemberLinkOption } from '@/modules/workforce';
 
 const UNLINKED = '__none__';
 
-interface EmployeeEditPanelProps {
+export const EMPLOYEE_EDIT_FORM_ID = 'pf-employee-edit-form';
+
+export interface EmployeeEditPanelProps {
   readonly employee: EmployeeRecord;
   readonly linkableUsers: readonly OrgMemberLinkOption[];
+  readonly onFormDirtyChange?: (dirty: boolean) => void;
+  /** Hide card title when wrapped in a collapsible section. */
+  readonly showHeader?: boolean;
 }
 
 /**
  * Master-field edit only - compensation stays in the cost panel / rate history.
  */
-export function EmployeeEditPanel({ employee, linkableUsers }: EmployeeEditPanelProps) {
+export function EmployeeEditPanel({
+  employee,
+  linkableUsers,
+  onFormDirtyChange,
+  showHeader = true,
+}: EmployeeEditPanelProps) {
   const t = useTranslations('workforce');
   const tCommon = useTranslations('common');
   const [status, setStatus] = useState<(typeof EMPLOYEE_STATUSES)[number]>(employee.status);
@@ -47,13 +57,19 @@ export function EmployeeEditPanel({ employee, linkableUsers }: EmployeeEditPanel
   const [lifecyclePending, startLifecycle] = useTransition();
   const isArchived = employee.archivedAt != null;
 
+  useEffect(() => {
+    if (state.ok) onFormDirtyChange?.(false);
+  }, [state.ok, onFormDirtyChange]);
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base">{t('employees.detail.editTitle')}</CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4">
-        <form action={formAction} className="flex flex-col gap-4">
+    <Card className="min-w-0 max-w-full border-0 shadow-none">
+      {showHeader ? (
+        <CardHeader>
+          <CardTitle className="text-base">{t('employees.detail.editTitle')}</CardTitle>
+        </CardHeader>
+      ) : null}
+      <CardContent className={showHeader ? 'flex flex-col gap-4' : 'flex flex-col gap-4 p-0 pt-0'}>
+        <form id={EMPLOYEE_EDIT_FORM_ID} action={formAction} className="flex flex-col gap-4">
           <input type="hidden" name="employeeId" value={employee.id} />
           {state.error ? <Alert tone="danger">{state.error}</Alert> : null}
           {state.ok ? <Alert tone="success">{t('employees.detail.saved')}</Alert> : null}

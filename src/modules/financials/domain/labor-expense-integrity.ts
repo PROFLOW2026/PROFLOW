@@ -64,3 +64,20 @@ export function assertInternalPayrollExpenseAllowed(input: {
   err.name = 'DomainRuleError';
   throw err;
 }
+
+/**
+ * W08-008 process risk: generic `labor` expenses **stack** with workforce True Cost
+ * on the same project. Only `internal_employee_payroll` is excluded from Actual.
+ */
+export function wouldGenericLaborExpenseStackWithWorkforce(input: {
+  readonly categoryKey?: string | null;
+  readonly hasWorkforceLaborOnProject: boolean;
+}): boolean {
+  if (!input.hasWorkforceLaborOnProject) return false;
+  if (!isLaborCostCategoryKey(input.categoryKey)) return false;
+  return !shouldExcludeLaborExpenseForWorkforce({
+    categoryKey: input.categoryKey,
+    projectId: null,
+    hasWorkforceData: true,
+  });
+}

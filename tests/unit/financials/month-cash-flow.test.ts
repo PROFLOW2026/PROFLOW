@@ -195,6 +195,23 @@ describe('month cash flow', () => {
     expect(result.paidActual.amount).toBe(money('83200', ILS).amount);
   });
 
+  it('keeps partial AP match expense remainder in expected outgoing (V09-006)', () => {
+    const result = compose({
+      expenses: [
+        expense({
+          grossAmount: '11800',
+          netAmount: '10000',
+          taxAmount: '1800',
+          acceptedApMatchedNetAmount: '6000',
+          dueDate: businessDate('2026-09-20'),
+        }),
+      ],
+    });
+    expect(result.expectedLines).toHaveLength(1);
+    expect(result.expectedOutgoing.amount).toBe(money('4720', ILS).amount);
+    expect(result.paidLines).toHaveLength(0);
+  });
+
   it('does not count an expense that is already a recognized vendor bill', () => {
     const result = compose({
       apPayments: [paidAp('100', '2026-09-05')],

@@ -96,19 +96,21 @@ describe('audit WF-002: attendance overwrite vs approved time (EXEC)', () => {
       expect(activeFirst.length).toBeGreaterThanOrEqual(1);
       const entryId = activeFirst[0]!.id;
 
-      await submitTimesheet(context, { employeeId, entryIds: [entryId] });
-      await bulkApproveTimeEntries(context, { timeEntryIds: [entryId] });
-
-      const approvedRow = (
-        await listTimeEntries(context.db, context.organizationId, {
-          employeeId,
-          fromDate: workDate,
-          toDate: workDate,
-          status: 'recorded',
-          approvalStatus: 'all',
-          limit: 20,
-        })
-      ).find((r) => r.id === entryId);
+      let approvedRow = activeFirst.find((r) => r.id === entryId);
+      if (approvedRow?.approvalStatus !== 'approved') {
+        await submitTimesheet(context, { employeeId, entryIds: [entryId] });
+        await bulkApproveTimeEntries(context, { timeEntryIds: [entryId] });
+        approvedRow = (
+          await listTimeEntries(context.db, context.organizationId, {
+            employeeId,
+            fromDate: workDate,
+            toDate: workDate,
+            status: 'recorded',
+            approvalStatus: 'all',
+            limit: 20,
+          })
+        ).find((r) => r.id === entryId);
+      }
       expect(approvedRow?.approvalStatus).toBe('approved');
 
       await applyManualAttendanceWorkdayRange(context, {

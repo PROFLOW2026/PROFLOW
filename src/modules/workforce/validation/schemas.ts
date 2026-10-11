@@ -341,7 +341,8 @@ export type UpdateTimeEntryInput = z.infer<typeof updateTimeEntrySchema>;
 
 export const timesheetFiltersSchema = z.object({
   employeeId: z.string().uuid().optional(),
-  status: z.enum([...TIME_APPROVAL_STATUSES, 'all'] as const).optional(),
+  /** `pending` = draft + submitted (aligns with pendingHours KPI). */
+  status: z.enum([...TIME_APPROVAL_STATUSES, 'all', 'pending'] as const).optional(),
   fromDate: businessDateSchema.optional(),
   toDate: businessDateSchema.optional(),
   limit: z.coerce.number().int().min(0).optional(),

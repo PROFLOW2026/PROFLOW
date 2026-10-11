@@ -5,6 +5,7 @@ import {
   isInternalEmployeePayrollCategoryKey,
   isLaborCostCategoryKey,
   shouldExcludeLaborExpenseForWorkforce,
+  wouldGenericLaborExpenseStackWithWorkforce,
 } from '@/modules/financials/domain/labor-expense-integrity';
 import { money } from '@/shared/money';
 
@@ -53,6 +54,27 @@ describe('labor expense vs time-entry integrity', () => {
         isLaborCategory: true,
         projectId: 'p1',
         hasWorkforceData: true,
+      }),
+    ).toBe(false);
+  });
+
+  it('flags W08-008 stack risk for generic labor when workforce labor exists', () => {
+    expect(
+      wouldGenericLaborExpenseStackWithWorkforce({
+        categoryKey: 'labor',
+        hasWorkforceLaborOnProject: true,
+      }),
+    ).toBe(true);
+    expect(
+      wouldGenericLaborExpenseStackWithWorkforce({
+        categoryKey: 'internal_employee_payroll',
+        hasWorkforceLaborOnProject: true,
+      }),
+    ).toBe(false);
+    expect(
+      wouldGenericLaborExpenseStackWithWorkforce({
+        categoryKey: 'labor',
+        hasWorkforceLaborOnProject: false,
       }),
     ).toBe(false);
   });

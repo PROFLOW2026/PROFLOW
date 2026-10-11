@@ -1,5 +1,6 @@
 import { getTranslations } from 'next-intl/server';
 import { withOrgContext } from '@/shared/auth/session';
+import { canApproveScopedProjectTime } from '@/modules/workforce/application/timesheets';
 import { hasAnyPermission, hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import {
@@ -23,7 +24,9 @@ export async function WorkforceSubNav({ active }: WorkforceSubNavProps) {
         PERMISSIONS.ATTENDANCE_SELF,
         PERMISSIONS.ATTENDANCE_MANAGE,
       ]),
-      showApprovals: hasPermission(context, PERMISSIONS.TIME_APPROVE),
+      showApprovals:
+        hasPermission(context, PERMISSIONS.TIME_APPROVE) ||
+        (await canApproveScopedProjectTime(context)),
       showTimesheets: hasAnyPermission(context, [
         PERMISSIONS.WORKFORCE_READ,
         PERMISSIONS.TIME_MANAGE,

@@ -45,7 +45,8 @@
     "userMenu": "قائمة المستخدم",
     "anonymousUser": "مستخدم مقاول",
     "language": "اللغة",
-    "signOut": "تسجيل الخروج"
+    "signOut": "تسجيل الخروج",
+    "backToMainApp": "العودة لتسجيل الدخول الرئيسي"
   },
   "hub": {
     "projects": {

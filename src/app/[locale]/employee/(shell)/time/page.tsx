@@ -36,6 +36,7 @@ import {
 import { cn } from '@/shared/ui/cn';
 import { EmployeePendingTimeApprovalRow } from '@/modules/employee-app/ui/employee-pending-time-approval-row';
 import { BulkApproveEntriesForm } from '@/modules/workforce/ui/timesheet-actions';
+import { AttendanceCorrectionSubmitSection } from '@/modules/workforce/ui/attendance-correction-submit-section';
 
 interface EmployeeRecentTimeEntry {
   readonly id: string;
@@ -85,6 +86,7 @@ export default async function EmployeeTimePage() {
     const shell = await getEmployeeShellData(context);
 
     let days: EmployeeAttendanceDayRow[] = [];
+    let linkedEmployeeId: string | null = null;
     const timeZone = context.organization.timezone;
     let currentMonthKey = todayInTimeZone(timeZone).slice(0, 7);
 
@@ -92,6 +94,7 @@ export default async function EmployeeTimePage() {
       await authorize(context, { permission: PERMISSIONS.ATTENDANCE_SELF, scope: 'self_only' });
       const employee = await resolveLinkedEmployee(context);
       if (employee) {
+        linkedEmployeeId = employee.id;
         const rows = await listAttendanceDays(context.db, context.organizationId, {
           employeeId: employee.id,
           limit: 400,
@@ -162,6 +165,7 @@ export default async function EmployeeTimePage() {
       pendingTime,
       canTeamAttendance,
       canTimeApprove,
+      linkedEmployeeId,
     };
   });
 
@@ -192,6 +196,17 @@ export default async function EmployeeTimePage() {
             timeZone={payload.timeZone}
             currentMonthKey={payload.currentMonthKey}
           />
+          {payload.linkedEmployeeId ? (
+            <div className={cn(employeePanelClass, 'space-y-3')}>
+              <div className="space-y-1">
+                <h3 className="text-sm font-semibold">{tWorkforce('attendanceCorrection.title')}</h3>
+                <p className="text-xs text-[var(--pf-text-secondary)]">
+                  {tWorkforce('attendanceCorrection.hint')}
+                </p>
+              </div>
+              <AttendanceCorrectionSubmitSection employeeId={payload.linkedEmployeeId} />
+            </div>
+          ) : null}
         </section>
       ) : null}
 

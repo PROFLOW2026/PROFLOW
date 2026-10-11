@@ -45,7 +45,8 @@
     "userMenu": "תפריט משתמש",
     "anonymousUser": "משתמש קבלן",
     "language": "שפה",
-    "signOut": "יציאה"
+    "signOut": "יציאה",
+    "backToMainApp": "חזרה למסך הראשי"
   },
   "hub": {
     "projects": {

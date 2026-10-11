@@ -269,7 +269,7 @@
       "vendor_bill": "Vendor bill",
       "commitment": "Open commitment",
       "subcontractor_liability": "Subcontractor liability",
-      "recurring_draft": "Recurring draft (forecast)",
+      "recurring_draft": "Next recurring (forecast only)",
       "retention_release_out": "Retention release (out)",
       "operating_expense": "Operating expense (cash)",
       "payroll_obligation": "Payroll obligation (cash)"

@@ -9,7 +9,6 @@ import { StatusBadge } from '@/components/ui/status-badge';
 import { listComplianceArtifactsForOrg } from '@/modules/compliance';
 import { listCustomFieldValuesForEntity } from '@/modules/custom-fields';
 import { getEntityDocumentPanelData } from '@/modules/documents';
-import { DocumentAttachments } from '@/modules/documents/ui';
 import { EntityCustomFieldsPanel } from '@/modules/custom-fields/ui';
 import { resolveEmployeeDailyFramework, resolveEmployeeWorkCalendarForCosting } from '@/modules/workforce/application/work-calendar-context';
 import { buildEmployeeCompensationSummary } from '@/modules/workforce/application/compensation-summary';
@@ -19,6 +18,7 @@ import {
   listAssignableProjects,
   listEmployeeAssignmentHistoryLinks,
   listEmployeeProjectLinks,
+  listEmployeesForOrg,
   listLinkableOrgMembers,
   listRateHistory,
 } from '@/modules/workforce';
@@ -32,7 +32,11 @@ import { canManageWorkforceCost, canReadWorkforceCost } from '@/modules/workforc
 import { EmployeeProjectsPanel } from '@/modules/workforce/ui/employee-projects-panel';
 import { EmployeePeriodSummaryPanel } from '@/modules/workforce/ui/employee-period-summary';
 import { DateRangeSelector } from '@/components/patterns/date-range-selector';
-import { EmployeeEditPanel } from '@/modules/workforce/ui/employee-edit-panel';
+import { EmployeeEditPanelSection } from '@/modules/workforce/ui/employee-edit-panel-section';
+import { EmployeeDetailUnsavedProvider } from '@/modules/workforce/ui/employee-detail-unsaved-context';
+import { EmployeeEmployeeSwitcher } from '@/modules/workforce/ui/employee-employee-switcher';
+import { EmployeeSalarySections } from '@/modules/workforce/ui/employee-salary-sections';
+import { EmployeeDocumentAttachmentsSection } from '@/modules/workforce/ui/employee-document-attachments-section';
 import { MonthlyEmployerCostReview } from '@/modules/workforce/ui/monthly-employer-cost-review';
 import { EmployeePayrollMonthPanel } from '@/modules/workforce/ui/employee-payroll-month-panel';
 import { EmployeePageAlertFocus } from '@/modules/workforce/ui/employee-page-alert-focus';
@@ -73,9 +77,10 @@ export default async function EmployeeDetailPage({
     params,
     searchParams ?? Promise.resolve({} as Record<string, string | string[] | undefined>),
   ]);
-  const [t, tComplianceStatus, locale] = await Promise.all([
+  const [t, tComplianceStatus, tDocuments, locale] = await Promise.all([
     getTranslations('workforce'),
     getTranslations('status.compliance'),
+    getTranslations('documents'),
     getLocale(),
   ]);
 
@@ -174,6 +179,8 @@ export default async function EmployeeDetailPage({
         ? await getEmployeeAppAdminView(context, employeeId).catch(() => null)
         : null;
 
+      const switchableEmployees = await listEmployeesForOrg(context).catch(() => []);
+
       return {
         employee,
         dailyFramework,
@@ -204,8 +211,13 @@ export default async function EmployeeDetailPage({
         defaultYearMonth: reviewYearMonth,
         workWeekStartDay: context.organization.workWeekStartDay,
         appAdminView,
+        actorPermissions: [...context.permissions],
         organizationId: context.organizationId,
         organizationName: context.organization.name,
+        switchableEmployees: switchableEmployees.map((row) => ({
+          id: row.id,
+          name: row.name,
+        })),
       };
     } catch {
       return null;
@@ -248,7 +260,9 @@ export default async function EmployeeDetailPage({
     today,
     workWeekStartDay,
     appAdminView,
+    actorPermissions,
     organizationName,
+    switchableEmployees,
   } = data;
 
   const appOrigin = resolveEmployeeAppPublicOrigin();
@@ -258,13 +272,25 @@ export default async function EmployeeDetailPage({
     canReadRates &&
     Boolean(monthReview?.month || (monthReview?.months && monthReview.months.length > 0));
 
+  const rateHistorySummary =
+    rateHistory.length > 0
+      ? t('employees.detail.salaryHistoryCount', { count: rateHistory.length })
+      : t('employees.detail.noSalaryHistory');
+
   return (
-    <div className="flex flex-col gap-6">
+    <EmployeeDetailUnsavedProvider>
+      <div className="flex min-w-0 max-w-full flex-col gap-6 overflow-x-hidden">
       <Suspense fallback={null}>
         <EmployeePageAlertFocus />
       </Suspense>
       <PageHeader
-        title={employee.name}
+        title={
+          <EmployeeEmployeeSwitcher
+            currentEmployeeId={employee.id}
+            currentName={employee.name}
+            employees={switchableEmployees}
+          />
+        }
         meta={
           <StatusBadge
             shape={employee.status === 'active' && !employee.archivedAt ? 'active' : 'archived'}
@@ -330,6 +356,9 @@ export default async function EmployeeDetailPage({
                 }
               : null
           }
+          actorPermissions={actorPermissions}
+          assignableProjects={appAdminView?.assignableProjects ?? []}
+          grantedProjectIds={appAdminView?.grantedProjectIds ?? []}
         />
       ) : null}
 
@@ -368,9 +397,7 @@ export default async function EmployeeDetailPage({
       ) : null}
 
       {allowManage ? (
-        <div id="employee-edit">
-          <EmployeeEditPanel employee={employee} linkableUsers={linkableUsers} />
-        </div>
+        <EmployeeEditPanelSection employee={employee} linkableUsers={linkableUsers} />
       ) : (
       <Card className="flex flex-col gap-2 p-4 sm:p-6">
         <h2 className="text-base font-semibold">{t('employees.detail.profile')}</h2>
@@ -394,13 +421,11 @@ export default async function EmployeeDetailPage({
       )}
 
       {canReadRates ? (
-        <div
-          id="salary-update"
-          className="rounded-lg border border-[var(--pf-border-default)] p-4 sm:p-6"
-        >
-          <h2 className="text-base font-semibold">{t('employees.detail.salarySection')}</h2>
-          <div className="mt-4 flex flex-col gap-4">
-            {canManageCosts ? (
+        <EmployeeSalarySections
+          showSalaryUpdate={canManageCosts}
+          rateHistorySummary={rateHistorySummary}
+          salaryUpdate={
+            canManageCosts ? (
               <AddRateVersionForm
                 employeeId={employee.id}
                 defaultCurrency={currency}
@@ -416,13 +441,10 @@ export default async function EmployeeDetailPage({
                   null
                 }
               />
-            ) : null}
-            <div className="flex flex-col gap-3">
-              <h3 className="text-sm font-medium">{t('employees.detail.salaryHistory')}</h3>
-              <RateHistoryTable versions={rateHistory} />
-            </div>
-          </div>
-        </div>
+            ) : null
+          }
+          rateHistory={<RateHistoryTable versions={rateHistory} />}
+        />
       ) : null}
 
       {payrollPayment ? (
@@ -607,7 +629,8 @@ export default async function EmployeeDetailPage({
       ) : null}
 
       {documentsPanel ? (
-        <DocumentAttachments
+        <EmployeeDocumentAttachmentsSection
+          panelTitle={tDocuments('title')}
           ownerType="employee"
           ownerId={employee.id}
           documents={documentsPanel.documents}
@@ -634,6 +657,7 @@ export default async function EmployeeDetailPage({
           collapseWhenConfigured
         />
       ) : null}
-    </div>
+      </div>
+    </EmployeeDetailUnsavedProvider>
   );
 }

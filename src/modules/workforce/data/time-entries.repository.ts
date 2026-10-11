@@ -305,7 +305,9 @@ export interface TimeEntryFilters {
   /** Default `recorded` - void rows stay out of the working list unless requested. */
   readonly status?: TimeEntryStatus | 'all';
   /** Working lists omit this; costing callers must pass `approved`. */
-  readonly approvalStatus?: TimeApprovalStatus | 'all';
+  readonly approvalStatus?: TimeApprovalStatus | 'all' | 'pending';
+  /** When set, matches any of these approval statuses (overrides `approvalStatus`). */
+  readonly approvalStatuses?: readonly TimeApprovalStatus[];
   /**
    * Labor Actual slice: recorded + approved only (same gate as sum functions).
    * When true, overrides `status` / `approvalStatus` to the costing pair.
@@ -361,7 +363,11 @@ export async function listTimeEntries(
       conditions.push(eq(timeEntries.status, statusFilter));
     }
 
-    if (filters.approvalStatus && filters.approvalStatus !== 'all') {
+    if (filters.approvalStatuses && filters.approvalStatuses.length > 0) {
+      conditions.push(inArray(timeEntries.approvalStatus, [...filters.approvalStatuses]));
+    } else if (filters.approvalStatus === 'pending') {
+      conditions.push(inArray(timeEntries.approvalStatus, ['draft', 'submitted']));
+    } else if (filters.approvalStatus && filters.approvalStatus !== 'all') {
       conditions.push(eq(timeEntries.approvalStatus, filters.approvalStatus));
     }
   }

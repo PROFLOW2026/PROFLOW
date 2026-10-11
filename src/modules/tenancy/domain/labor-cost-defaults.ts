@@ -73,8 +73,10 @@ export const laborCostDefaultsSchema = z.object({
     .optional()
     .default(null),
   /**
-   * When attendance sync creates project time: `draft` leaves rows for explicit approval;
-   * `auto_approve` promotes when the actor may approve (legacy convenience).
+   * Legacy org toggle for attendance→project time approval. Manager attendance sync
+   * (`syncProjectWorkFromAttendance`) promotes when the actor has attendance.manage,
+   * time.manage, and may approve the employee — independent of this flag. Retained for
+   * settings UI / any future consumers that opt into org-wide auto_approve behavior.
    */
   attendanceProjectTimeApproval: z
     .enum(['draft', 'auto_approve'])

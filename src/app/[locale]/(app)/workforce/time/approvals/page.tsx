@@ -21,9 +21,7 @@ import {
 } from '@/modules/workforce/ui/timesheet-actions';
 import { TimesheetApprovalFilters } from '@/modules/workforce/ui/timesheet-approval-filters';
 import { withOrgContext } from '@/shared/auth/session';
-import { AuthorizationError } from '@/shared/errors';
-import { hasPermission } from '@/shared/permissions/assert';
-import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { assertCanAccessTimeApprovalQueue } from '@/modules/workforce/application/scoped-operational-approval';
 import { formatWorkHoursValue } from '@/modules/workforce/domain/format-work-hours';
 import { businessDate, todayInTimeZone } from '@/shared/dates/dates';
 import { formatBusinessDate } from '@/shared/dates/format';
@@ -54,22 +52,19 @@ export default async function TimesheetApprovalsPage({
     searchParams,
   ]);
 
+  const queueStatus =
+    !raw.status || raw.status === 'pending' ? undefined : raw.status;
   const parsed = timesheetFiltersSchema.safeParse({
     employeeId: raw.employeeId || undefined,
     fromDate: raw.fromDate || undefined,
     toDate: raw.toDate || undefined,
-    status: raw.status || undefined,
+    status: queueStatus,
   });
   const filters = parsed.success ? parsed.data : {};
 
   const data = await withOrgContext(async (context) => {
-    if (!hasPermission(context, PERMISSIONS.TIME_APPROVE)) {
-      throw new AuthorizationError(PERMISSIONS.TIME_APPROVE);
-    }
-    const queue = await listTimeApprovalQueue(context, {
-      ...filters,
-      status: filters.status ?? 'submitted',
-    });
+    await assertCanAccessTimeApprovalQueue(context);
+    const queue = await listTimeApprovalQueue(context, filters);
     const employees = await listEmployeesForOrg(context, { status: 'active' });
     return { ...queue, employees, today: todayInTimeZone(context.organization.timezone) };
   });
@@ -91,7 +86,7 @@ export default async function TimesheetApprovalsPage({
           employeeId: filters.employeeId,
           fromDate: filters.fromDate,
           toDate: filters.toDate,
-          status: filters.status ?? 'submitted',
+          status: raw.status && raw.status !== 'pending' ? raw.status : 'pending',
         }}
       />
 

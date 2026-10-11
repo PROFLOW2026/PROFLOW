@@ -6,6 +6,7 @@ import {
   isAllocationIntent,
   resolveExpenseAllocationIntent,
 } from '@/modules/financials/domain/allocation-intent';
+import { DomainRuleError } from '@/shared/errors';
 import { findExpenseById, replaceExpenseAllocations, updateExpenseRow } from '../data/expenses.repository';
 
 export type ExpenseIntegrityIssueCode =
@@ -384,4 +385,18 @@ export async function resolveExpenseRoutingAction(
   } catch {
     // Script / non-server runtime.
   }
+}
+
+/** Finalize guard: header project_id must not coexist with project allocation lines. */
+export function assertExpenseFinalizeHasNoProjectDoubleAttribution(expense: {
+  readonly projectId: string | null;
+  readonly allocations: readonly { readonly projectId: string | null }[];
+}): void {
+  if (!expense.projectId) return;
+  const hasProjectLines = expense.allocations.some((line) => Boolean(line.projectId));
+  if (!hasProjectLines) return;
+  throw new DomainRuleError(
+    'Expense cannot keep a header project while project allocation lines exist',
+    'expenses.errors.projectIdWithAllocations',
+  );
 }

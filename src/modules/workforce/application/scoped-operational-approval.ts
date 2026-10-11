@@ -59,6 +59,38 @@ export async function hasAnyOperationalApproveScope(context: OrgContext): Promis
   return scoped.length > 0;
 }
 
+/** Time approval queue / approve actions without granting org-wide `time.approve`. */
+export async function resolveTimeApprovalQueueAccess(context: OrgContext): Promise<{
+  readonly orgWide: boolean;
+  readonly operationalProjectIds: readonly string[];
+}> {
+  if (hasOrgWideTimeApproval(context)) {
+    return { orgWide: true, operationalProjectIds: [] };
+  }
+  const operationalProjectIds = await listOperationalApproveProjectIds(context);
+  if (operationalProjectIds.length === 0) {
+    throw new AuthorizationError(PERMISSIONS.TIME_APPROVE);
+  }
+  return { orgWide: false, operationalProjectIds };
+}
+
+export async function assertCanAccessTimeApprovalQueue(context: OrgContext): Promise<void> {
+  await resolveTimeApprovalQueueAccess(context);
+}
+
+export async function assertCanAttemptTimesheetApproval(context: OrgContext): Promise<void> {
+  await assertCanAccessTimeApprovalQueue(context);
+}
+
+export async function resolveTimeApprovalProjectScope(
+  context: OrgContext,
+): Promise<readonly string[] | 'all'> {
+  if (hasOrgWideTimeApproval(context) || isOrgProjectAdmin(context)) {
+    return 'all';
+  }
+  return listOperationalApproveProjectIds(context);
+}
+
 /** Project ids where the employee had an active assignment or project time on the date. */
 export async function listEmployeeProjectIdsOnWorkDate(
   db: DbExecutor,

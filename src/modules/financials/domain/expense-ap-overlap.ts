@@ -1,3 +1,4 @@
+import { DomainRuleError } from '@/shared/errors';
 import { compareMoney, money, subtractMoney, zeroMoney } from '@/shared/money';
 
 export interface ExpenseOverlapCandidate {
@@ -100,15 +101,19 @@ export function findSimilarFinalizedExpensesForBill(
 }
 
 /**
- * Similarity is a warning only. It must not block save, hide a row, or drop it
- * from cash. Counting once happens only after an accepted canonical match.
+ * Blocks finalize/post when an unlinked lookalike would double-count Actual.
+ * `confirmDistinctCosts` keeps separate expense + bill without a canonical match.
  */
-export function assertNoUnlinkedExpenseApOverlap(_input: {
+export function assertNoUnlinkedExpenseApOverlap(input: {
   readonly hitCount: number;
   readonly confirmDistinctCosts?: boolean;
   readonly messageKey: string;
 }): void {
-  return;
+  if (input.confirmDistinctCosts || input.hitCount <= 0) return;
+  throw new DomainRuleError(
+    'Similar expense and vendor bill may double-count Actual until linked or confirmed as distinct costs',
+    input.messageKey,
+  );
 }
 
 /** Recognized/open AP bills that may double-count if a similar expense is finalized. */

@@ -514,7 +514,7 @@ export function ProjectFinancialsKpiPanel({
             },
             {
               label: t('estimatedFinalCost'),
-              value: financials.cost.estimatedFinalCost,
+              value: kpis.forecastCost,
               hint: t('estimatedFinalCostHint'),
               emphasis: true,
             },

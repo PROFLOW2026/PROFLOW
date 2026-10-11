@@ -23,7 +23,9 @@ import {
   mergeDataConfidence,
   type DataConfidence,
 } from '../domain/data-confidence';
+import { resolveForecastCostBasis } from '../domain/resolve-forecast-cost-basis';
 import { resolveOrgRollupKpiMoneyFields } from '../domain/org-rollup-kpi-money';
+import { DEFAULT_PROJECT_PROFITABILITY_MODE } from '@/modules/tenancy/domain/project-profitability-mode';
 import {
   loadProjectFinancialsBatch,
   type ProjectForecastMeta,
@@ -309,6 +311,12 @@ async function computeOrganizationProjectRollup(
     const pendingChanges = canCommercial
       ? (financials.commercial?.pendingChanges ?? null)
       : null;
+    const profitabilityMode =
+      financials.projectProfitabilityMode ?? DEFAULT_PROJECT_PROFITABILITY_MODE;
+    const rollupForecastFinalCost = resolveForecastCostBasis(
+      profitabilityMode,
+      financials.cost,
+    ).primaryForecastFinalCost;
     // N-002: withhold partial/unavailable KPIs — never map denied slices to zeroMoney.
     const kpiMoney = resolveOrgRollupKpiMoneyFields({
       kpiAvailability: financials.kpiAvailability,
@@ -328,7 +336,7 @@ async function computeOrganizationProjectRollup(
       committedOpen: financials.cost.committedOpen,
       openApPayable: financials.cost.openApPayable,
       expectedRemainingCost: financials.cost.expectedRemainingCost,
-      estimatedFinalCost: financials.cost.estimatedFinalCost,
+      estimatedFinalCost: rollupForecastFinalCost,
       assetCapitalActual: financials.cost.byFamily.assetCapital,
       estimatedProfit: financials.profit?.estimatedProfit ?? null,
       marginPercent: financials.profit?.marginPercent ?? null,

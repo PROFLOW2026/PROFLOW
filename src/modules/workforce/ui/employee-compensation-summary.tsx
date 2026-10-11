@@ -58,6 +58,17 @@ export async function EmployeeCompensationSummaryPanel({
         <p className="text-sm text-[var(--pf-text-secondary)]">
           {t('employees.detail.compensationSummaryHint')}
         </p>
+        <div className="mt-2 rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-surface-subtle)] px-3 py-2 text-xs text-[var(--pf-text-secondary)]">
+          <p className="font-medium text-[var(--pf-text-primary)]">
+            {t('employees.detail.costConceptsTitle')}
+          </p>
+          <ul className="mt-1 list-inside list-disc space-y-0.5">
+            <li>{t('employees.detail.costConceptFullMonthPool')}</li>
+            <li>{t('employees.detail.costConceptOpenMonthAccrual')}</li>
+            <li>{t('employees.detail.costConceptActualOverride')}</li>
+            <li>{t('employees.detail.costConceptCashPayment')}</li>
+          </ul>
+        </div>
       </div>
 
       {!hireDate ? (
@@ -134,7 +145,7 @@ export async function EmployeeCompensationSummaryPanel({
           <div>
             <dt className="text-xs text-[var(--pf-text-muted)]">
               {summary.rateUnit === 'monthly'
-                ? t('employees.detail.monthlyEmployerCostLabel')
+                ? t('employees.detail.fullMonthEmployerPoolLabel')
                 : summary.rateUnit === 'daily'
                   ? t('employees.detail.dailyEmployerCostLabel')
                   : t('employees.detail.hourlyEmployerCostLabel')}
@@ -152,6 +163,11 @@ export async function EmployeeCompensationSummaryPanel({
                 <span className="ms-2 text-xs text-[var(--pf-text-secondary)]">
                   {t('employees.detail.burdenPercentLabel', { percent: summary.burdenPercent })}
                 </span>
+              ) : null}
+              {summary.rateUnit === 'monthly' ? (
+                <p className="mt-1 text-xs text-[var(--pf-text-muted)]">
+                  {t('employees.detail.fullMonthPoolFootnote')}
+                </p>
               ) : null}
             </dd>
           </div>

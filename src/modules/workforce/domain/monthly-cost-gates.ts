@@ -51,6 +51,42 @@ export interface MonthlyCostReviewDraft {
   readonly method: MonthlyAllocationMethod;
 }
 
+/**
+ * Same trim / actual-wins rules as {@link deriveKnownEmployerCost} in monthly-allocation.
+ * Keeps month-review preview strip aligned with persisted EMC known_amount.
+ */
+export function resolveKnownEmployerCostFields(input: {
+  readonly estimatedAmount?: string | null;
+  readonly actualAmount?: string | null;
+}): {
+  readonly knownQuality: 'estimated' | 'actual';
+  readonly knownNumeric: number;
+  readonly estimatedRaw: string | null;
+  readonly actualRaw: string | null;
+} {
+  const estimatedRaw = input.estimatedAmount?.trim() || null;
+  const actualRaw = input.actualAmount?.trim() || null;
+  const actualNum = actualRaw ? Number(actualRaw) : 0;
+  const useActual = Boolean(actualRaw) && Number.isFinite(actualNum) && actualNum > 0;
+
+  if (useActual) {
+    return {
+      knownQuality: 'actual',
+      knownNumeric: actualNum,
+      estimatedRaw,
+      actualRaw,
+    };
+  }
+
+  const estimatedNum = estimatedRaw ? Number(estimatedRaw) : 0;
+  return {
+    knownQuality: 'estimated',
+    knownNumeric: Number.isFinite(estimatedNum) ? estimatedNum : 0,
+    estimatedRaw,
+    actualRaw: null,
+  };
+}
+
 /** Pure preview: known = estimated or actual; unallocated = max(0, known − allocated). */
 export function previewMonthlyCostStrip(input: {
   readonly estimatedAmount: string;
@@ -63,11 +99,11 @@ export function previewMonthlyCostStrip(input: {
   readonly unallocatedAmount: string;
   readonly status: 'not_started' | 'partial' | 'balanced' | 'over';
 } {
-  const estimated = Number(input.estimatedAmount) || 0;
-  const actual = Number(input.actualAmount) || 0;
+  const { knownQuality, knownNumeric: known } = resolveKnownEmployerCostFields({
+    estimatedAmount: input.estimatedAmount,
+    actualAmount: input.actualAmount,
+  });
   const allocated = Number(input.allocatedAmount) || 0;
-  const useActual = actual > 0;
-  const known = useActual ? actual : estimated;
   const unallocated = Math.max(0, known - allocated);
   const over = allocated > known + 1e-9;
 
@@ -80,7 +116,7 @@ export function previewMonthlyCostStrip(input: {
 
   return {
     knownAmount: known.toFixed(2),
-    knownQuality: useActual ? 'actual' : 'estimated',
+    knownQuality,
     allocatedAmount: allocated.toFixed(2),
     unallocatedAmount: unallocated.toFixed(2),
     status,

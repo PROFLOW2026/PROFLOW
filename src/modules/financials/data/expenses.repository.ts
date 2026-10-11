@@ -200,7 +200,19 @@ async function loadExpenseContributions(
 
   const contributions: ProjectExpenseContribution[] = [];
 
+  const expenseIdsWithProjectAllocation = new Set(
+    allocationRows
+      .filter((row) => row.projectId)
+      .map((row) => `${row.expenseId}:${row.projectId}`),
+  );
+
   for (const row of directRows) {
+    if (
+      row.projectId &&
+      expenseIdsWithProjectAllocation.has(`${row.expenseId}:${row.projectId}`)
+    ) {
+      continue;
+    }
     const amount = yearMonth
       ? resolveExpenseContributionAmountForMonth({
           fullAmount: row.netAmount,

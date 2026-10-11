@@ -1,4 +1,6 @@
+import { resolveForecastCostBasis } from '@/modules/financials/domain/resolve-forecast-cost-basis';
 import type { ProjectFinancials } from '@/modules/financials/domain/types';
+import { DEFAULT_PROJECT_PROFITABILITY_MODE } from '@/modules/tenancy/domain/project-profitability-mode';
 import type { EarlyWarningInput } from '../domain/types';
 
 export function mapFinancialsToWarningInput(input: {
@@ -10,6 +12,8 @@ export function mapFinancialsToWarningInput(input: {
   readonly canReadProfit: boolean;
 }): EarlyWarningInput {
   const { financials } = input;
+  const mode = financials.projectProfitabilityMode ?? DEFAULT_PROJECT_PROFITABILITY_MODE;
+  const forecastBasis = resolveForecastCostBasis(mode, financials.cost);
   return {
     projectId: financials.projectId,
     workKind: financials.workKind,
@@ -17,7 +21,7 @@ export function mapFinancialsToWarningInput(input: {
     priceNotSet: financials.priceNotSet,
     currentContractAmount: financials.commercial?.currentContractValue.amount ?? null,
     actualCostAmount: financials.cost.actualCostToDate.amount,
-    forecastFinalCostAmount: financials.cost.estimatedFinalCost.amount,
+    forecastFinalCostAmount: forecastBasis.primaryForecastFinalCost.amount,
     committedOpenAmount: financials.cost.committedOpen.amount,
     expectedRemainingAmount: financials.cost.expectedRemainingCost.amount,
     invoicedAmount: financials.billing.netInvoiced.amount,

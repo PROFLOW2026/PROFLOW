@@ -272,11 +272,17 @@ export async function HomeDashboardRestoredSections({
     : [];
 
   const summary = data.organizationSummary;
-  const sourceLabels = {
+  const sourceLabelsPaid = {
     payroll: t('businessSummary.cashSource.payroll'),
     expense: t('businessSummary.cashSource.expense'),
     ap: t('businessSummary.cashSource.ap'),
     subcontract_advance: t('businessSummary.cashSource.subcontract_advance'),
+  } as const;
+  const sourceLabelsExpected = {
+    payroll: t('businessSummary.cashSourceExpected.payroll'),
+    expense: t('businessSummary.cashSourceExpected.expense'),
+    ap: t('businessSummary.cashSourceExpected.ap'),
+    subcontract_advance: t('businessSummary.cashSourceExpected.subcontract_advance'),
   } as const;
 
   return (
@@ -409,7 +415,7 @@ export async function HomeDashboardRestoredSections({
                     t('businessSummary.paidActualWhat'),
                     t('businessSummary.paidActualFormula'),
                     vatLabels,
-                    sourceLabels,
+                    sourceLabelsPaid,
                     locale,
                   )}
                   detailCopy={triggerCopy}
@@ -434,7 +440,7 @@ export async function HomeDashboardRestoredSections({
                       open: t('businessSummary.cashStatusOpen'),
                     },
                     vatLabels,
-                    sourceLabels,
+                    sourceLabelsExpected,
                     locale,
                   )}
                   detailCopy={triggerCopy}

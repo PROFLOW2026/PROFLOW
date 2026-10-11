@@ -98,6 +98,10 @@ describe('composeProjectFinancials', () => {
         linkedExpenseDeductions: new Map([['linked-expense', '80.00']]),
         excludedForeignCurrencyCount: 0,
         billCount: 1,
+        recognizedBillIds: ['bill-1'],
+        billMatchLinks: [
+          { billId: 'bill-1', expenseId: 'linked-expense', matchedAmount: '80.00' },
+        ],
       },
     });
 

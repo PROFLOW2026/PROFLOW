@@ -149,6 +149,40 @@ export async function deleteProjectAccessGrant(
   return deleted.length > 0;
 }
 
+/** Replaces explicit project_access_grants for one user (does not touch assignments or roles). */
+export async function replaceProjectAccessGrantsForUser(
+  db: DbExecutor,
+  input: {
+    organizationId: string;
+    userId: string;
+    projectIds: readonly string[];
+    grantedByUserId: string;
+    accessLevel?: ProjectAccessLevel;
+  },
+): Promise<void> {
+  const accessLevel = input.accessLevel ?? 'read';
+  const uniqueProjectIds = [...new Set(input.projectIds)];
+
+  await db
+    .delete(projectAccessGrants)
+    .where(
+      and(
+        eq(projectAccessGrants.organizationId, input.organizationId),
+        eq(projectAccessGrants.userId, input.userId),
+      ),
+    );
+
+  for (const projectId of uniqueProjectIds) {
+    await insertProjectAccessGrant(db, {
+      organizationId: input.organizationId,
+      userId: input.userId,
+      projectId,
+      accessLevel,
+      grantedByUserId: input.grantedByUserId,
+    });
+  }
+}
+
 export async function listAccessibleProjectIdsForUser(
   db: DbExecutor,
   organizationId: string,

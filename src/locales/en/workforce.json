@@ -163,7 +163,14 @@
       "noRateHistory": "No rate versions recorded yet.",
       "compensationSection": "Cost / employment terms",
       "compensationSummaryTitle": "Employment and salary",
-      "compensationSummaryHint": "Values already saved for this employee — no re-entry needed.",
+      "compensationSummaryHint": "Values already saved for this employee — no re-entry needed. This card shows compensation terms, not month-end payroll or cash paid.",
+      "costConceptsTitle": "Four different numbers (do not mix)",
+      "costConceptFullMonthPool": "Full-month employer pool — base + burden for a complete month (this card).",
+      "costConceptOpenMonthAccrual": "Open-month recognized labor — pro-rated by reported work days until the month ends (project Actual / approved time).",
+      "costConceptActualOverride": "Monthly actual override — optional exact employer total you enter in month review (wins over estimate when saved).",
+      "costConceptCashPayment": "Cash payroll payment — what was paid on the bank date; tracked separately and does not replace recognized cost.",
+      "fullMonthEmployerPoolLabel": "Full-month employer pool",
+      "fullMonthPoolFootnote": "Not the open-month accrual. Use month review below for override and allocation.",
       "monthlyCostLabel": "Monthly cost",
       "monthlyBaseSalaryLabel": "Base monthly salary",
       "monthlyEmployerCostLabel": "Monthly employer cost",
@@ -195,6 +202,9 @@
       "complianceOpen": "Open compliance",
       "complianceEmpty": "No compliance artifacts for this employee yet.",
       "editTitle": "Edit employee",
+      "switchEmployeeAria": "Switch employee — current: {name}",
+      "unsavedSwitchConfirm": "You have unsaved changes on this page. Switch employee anyway?",
+      "salaryHistoryCount": "{count, plural, one {# salary version} other {# salary versions}}",
       "save": "Save changes",
       "saved": "Employee saved",
       "archive": "Deactivate / archive",
@@ -326,7 +336,8 @@
         "description": "Submitted hours appear here for review. Nothing is required until someone submits a timesheet."
       },
       "filters": {
-        "approvalStatus": "Approval"
+        "approvalStatus": "Approval",
+        "pending": "Pending (draft + submitted)"
       }
     },
     "weekdays": {
@@ -514,6 +525,19 @@
     "gateOff": "Persistence is off until Lead enables monthly cost after migration. Preview and draft only - does not claim Actual.",
     "yearMonth": "Month",
     "cost": "Cost",
+    "costConceptsTitle": "How this month review relates to other payroll numbers",
+    "costConceptFullMonthPool": "Compensation card = full-month pool from rate + burden.",
+    "costConceptOpenMonthAccrual": "Open month = recognized labor accrues by reported days (time/attendance path) until month close.",
+    "costConceptActualOverride": "Actual override here = known employer total for allocation (displaces time snapshots after apply).",
+    "costConceptCashPayment": "Payroll payment = cash outflow only — separate from recognized project cost.",
+    "knownCostEstimated": "Known cost (estimate)",
+    "knownCostActualOverride": "Known cost (actual override)",
+    "knownQuality": {
+      "estimated": "From estimate until you enter actual",
+      "actual": "Actual override active"
+    },
+    "effectiveCostEstimated": "Known employer cost this month (estimate):",
+    "effectiveCostActualOverride": "Known employer cost this month (actual override):",
     "allocated": "Allocated",
     "unallocated": "Unallocated",
     "pendingSubmittedHoursBanner": "{hours} submitted work hours are not approved yet — they stay outside recognized labor Actual until approved.",
@@ -917,6 +941,8 @@
     "companyOnlyUnavailable": "Company-only split is not available."
   },
   "attendanceCorrection": {
+    "title": "Request attendance correction",
+    "hint": "Submit a correction when clock-in or clock-out times for a past day need to be updated.",
     "submitted": "Your correction request was submitted. A manager will review it shortly.",
     "workDate": "Work Date",
     "requestedClockIn": "Requested Clock-In",
@@ -927,6 +953,8 @@
     "submit": "Submit Request"
   },
   "attendanceCorrectionRequests": {
+    "title": "Pending correction requests",
+    "subtitle": "Review and approve or reject employee attendance corrections.",
     "empty": "No pending correction requests",
     "statusPending": "Pending",
     "requestedClockIn": "Requested Clock-In",

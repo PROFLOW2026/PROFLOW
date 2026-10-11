@@ -58,7 +58,7 @@ describe('audit WF-006: attendance sync auto-approve (EXEC)', () => {
     });
   });
 
-  it('applyManualAttendance leaves project time draft by default (org setting)', async () => {
+  it('applyManualAttendance auto-approves project time when manager may approve', async () => {
     await database.asUser(owner.id, async (tx) => {
       const context = await resolveOrgContext(tx, {
         userId: owner.id,
@@ -78,7 +78,7 @@ describe('audit WF-006: attendance sync auto-approve (EXEC)', () => {
       });
       expect(outcome.status).toBe('applied');
       if (outcome.status !== 'applied') return;
-      expect(outcome.result.projectTimeApprovedCount).toBe(0);
+      expect(outcome.result.projectTimeApprovedCount).toBeGreaterThanOrEqual(1);
 
       const rows = await listTimeEntries(context.db, context.organizationId, {
         employeeId,
@@ -91,7 +91,7 @@ describe('audit WF-006: attendance sync auto-approve (EXEC)', () => {
       });
       const active = rows.filter((r) => !r.voidedAt && !r.archivedAt);
       expect(active.length).toBeGreaterThanOrEqual(1);
-      expect(active.every((r) => r.approvalStatus === 'draft')).toBe(true);
+      expect(active.every((r) => r.approvalStatus === 'approved')).toBe(true);
     });
   });
 });

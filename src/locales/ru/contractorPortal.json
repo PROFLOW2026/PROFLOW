@@ -45,7 +45,8 @@
     "userMenu": "Меню пользователя",
     "anonymousUser": "Пользователь подрядчика",
     "language": "Язык",
-    "signOut": "Выйти"
+    "signOut": "Выйти",
+    "backToMainApp": "Назад ко входу в основное приложение"
   },
   "hub": {
     "projects": {

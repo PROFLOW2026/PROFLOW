@@ -6,7 +6,12 @@ import {
   apBillStockLineNetSql,
   operatingSliceAfterStockLines,
 } from '@/modules/ap/domain/inventory-stock-purchase';
-import { buildLinkedExpenseDeductions } from '@/modules/financials/domain/expense-ap-dedup';
+import {
+  applyPartialMatchPolicyToRecognizedVendorRollup,
+  buildLinkedExpenseDeductions,
+  buildRecognizedBillMatchLinks,
+  type RecognizedBillMatchLink,
+} from '@/modules/financials/domain/expense-ap-dedup';
 import {
   addMoney,
   fromNumericString,
@@ -295,6 +300,98 @@ export interface RecognizedVendorBillRollup {
   readonly linkedExpenseDeductions: ReadonlyMap<string, string>;
   readonly excludedForeignCurrencyCount: number;
   readonly billCount: number;
+  /** Parallel to `billAmounts` (post partial-match cap). */
+  readonly recognizedBillIds: readonly string[];
+  readonly billMatchLinks: readonly RecognizedBillMatchLink[];
+}
+
+const EMPTY_VENDOR_ROLLUP_FIELDS = {
+  recognizedBillIds: [] as readonly string[],
+  billMatchLinks: [] as readonly RecognizedBillMatchLink[],
+};
+
+async function loadExpenseNetAmountsById(
+  db: DbExecutor,
+  organizationId: string,
+  expenseIds: readonly string[],
+): Promise<Map<string, string>> {
+  const map = new Map<string, string>();
+  if (expenseIds.length === 0) return map;
+  const rows = await db
+    .select({ id: expenses.id, netAmount: expenses.netAmount })
+    .from(expenses)
+    .where(
+      and(
+        eq(expenses.organizationId, organizationId),
+        inArray(expenses.id, [...expenseIds]),
+        eq(expenses.status, 'finalized'),
+        isNull(expenses.archivedAt),
+      ),
+    );
+  for (const row of rows) {
+    map.set(row.id, row.netAmount);
+  }
+  return map;
+}
+
+async function applyPartialMatchPolicyToLoadedRollup(
+  db: DbExecutor,
+  organizationId: string,
+  currency: string,
+  rollup: RecognizedVendorBillRollup,
+): Promise<RecognizedVendorBillRollup> {
+  const expenseIds = [...rollup.linkedExpenseDeductions.keys()];
+  const expenseNetFallback = await loadExpenseNetAmountsById(db, organizationId, expenseIds);
+  return applyPartialMatchPolicyToRecognizedVendorRollup(rollup, {
+    currency,
+    expenseNetFallback,
+  });
+}
+
+function billMatchLinksForProject(
+  billIds: readonly string[],
+  linkedByBill: ReadonlyMap<
+    string,
+    readonly { expenseId: string; matchedAmount: string; expenseCurrency: string }[]
+  >,
+): RecognizedBillMatchLink[] {
+  const links: RecognizedBillMatchLink[] = [];
+  for (const billId of billIds) {
+    for (const row of linkedByBill.get(billId) ?? []) {
+      links.push({
+        billId,
+        expenseId: row.expenseId,
+        matchedAmount: row.matchedAmount,
+      });
+    }
+  }
+  return links;
+}
+
+async function applyPartialMatchPolicyToRollupMap(
+  db: DbExecutor,
+  organizationId: string,
+  currency: string,
+  rollups: Map<string, RecognizedVendorBillRollup>,
+): Promise<Map<string, RecognizedVendorBillRollup>> {
+  const expenseIds = new Set<string>();
+  for (const rollup of rollups.values()) {
+    for (const expenseId of rollup.linkedExpenseDeductions.keys()) {
+      expenseIds.add(expenseId);
+    }
+  }
+  const expenseNetFallback = await loadExpenseNetAmountsById(db, organizationId, [...expenseIds]);
+  const next = new Map<string, RecognizedVendorBillRollup>();
+  for (const [projectId, rollup] of rollups) {
+    next.set(
+      projectId,
+      applyPartialMatchPolicyToRecognizedVendorRollup(rollup, {
+        currency,
+        expenseNetFallback,
+      }),
+    );
+  }
+  return next;
 }
 
 /**
@@ -445,9 +542,11 @@ export async function loadRecognizedVendorBillsForProject(
   }
 
   let linkedExpenseDeductions = new Map<string, string>();
+  let billMatchLinks: RecognizedBillMatchLink[] = [];
   if (recognizedBillIds.length > 0) {
     const linkedRows = await db
       .select({
+        apBillId: apPoMatches.apBillId,
         expenseId: apPoMatches.expenseId,
         matchedAmount: apPoMatches.matchedAmount,
         expenseCurrency: expenses.currency,
@@ -465,6 +564,20 @@ export async function loadRecognizedVendorBillsForProject(
         ),
       );
 
+    billMatchLinks = buildRecognizedBillMatchLinks(
+      linkedRows.flatMap((row) =>
+        row.expenseId
+          ? [
+              {
+                apBillId: row.apBillId,
+                expenseId: row.expenseId,
+                matchedAmount: row.matchedAmount,
+              },
+            ]
+          : [],
+      ),
+    );
+
     linkedExpenseDeductions = buildLinkedExpenseDeductions(
       linkedRows.flatMap((row) =>
         row.expenseId
@@ -481,13 +594,17 @@ export async function loadRecognizedVendorBillsForProject(
     );
   }
 
-  return {
+  const rollup: RecognizedVendorBillRollup = {
     billAmounts,
     total: roundMoney(total),
     linkedExpenseDeductions,
     excludedForeignCurrencyCount,
     billCount: billAmounts.length,
+    recognizedBillIds,
+    billMatchLinks,
   };
+
+  return applyPartialMatchPolicyToLoadedRollup(db, organizationId, normalized, rollup);
 }
 
 export type ProjectMoneyRollup = {
@@ -828,9 +945,11 @@ export async function loadRecognizedVendorBillsForProjects(
         linkedExpenseDeductions: rollup.linkedExpenseDeductions,
         excludedForeignCurrencyCount: rollup.excludedForeignCurrencyCount,
         billCount: rollup.billCount,
+        recognizedBillIds: [...rollup.recognizedBillIds],
+        billMatchLinks: [...rollup.billMatchLinks],
       });
     }
-    return result;
+    return applyPartialMatchPolicyToRollupMap(db, organizationId, currency, result);
   }
 
   const result = new Map<string, RecognizedVendorBillRollup>();
@@ -985,6 +1104,7 @@ export async function loadRecognizedVendorBillsForProjects(
           linkedExpenseDeductions: new Map(),
           excludedForeignCurrencyCount: 0,
           billCount: 0,
+          ...EMPTY_VENDOR_ROLLUP_FIELDS,
         });
         continue;
       }
@@ -1000,9 +1120,11 @@ export async function loadRecognizedVendorBillsForProjects(
         linkedExpenseDeductions,
         excludedForeignCurrencyCount: bucket.excluded,
         billCount: bucket.billAmounts.length,
+        recognizedBillIds: bucket.recognizedBillIds,
+        billMatchLinks: billMatchLinksForProject(bucket.recognizedBillIds, linkedByBill),
       });
     }
-    return result;
+    return applyPartialMatchPolicyToRollupMap(db, organizationId, normalized, result);
   }
 
   // Allocations-aware set-based path — O(1) query groups, not O(N) single-project loads.
@@ -1015,6 +1137,7 @@ export async function loadRecognizedVendorBillsForProjects(
       linkedExpenseDeductions: new Map(),
       excludedForeignCurrencyCount: 0,
       billCount: 0,
+      ...EMPTY_VENDOR_ROLLUP_FIELDS,
     });
   }
 
@@ -1177,6 +1300,8 @@ export async function loadRecognizedVendorBillsForProjects(
       linkedExpenseDeductions: new Map(),
       excludedForeignCurrencyCount,
       billCount: billAmounts.length,
+      recognizedBillIds,
+      billMatchLinks: [],
     });
   }
 
@@ -1225,11 +1350,14 @@ export async function loadRecognizedVendorBillsForProjects(
     for (const billId of recognizedIdsByProject.get(projectId) ?? []) {
       matchRows.push(...(linkedByBill.get(billId) ?? []));
     }
+    const recognizedBillIds = recognizedIdsByProject.get(projectId) ?? [];
     result.set(projectId, {
       ...current,
       linkedExpenseDeductions: buildLinkedExpenseDeductions(matchRows, normalized),
+      recognizedBillIds,
+      billMatchLinks: billMatchLinksForProject(recognizedBillIds, linkedByBill),
     });
   }
 
-  return result;
+  return applyPartialMatchPolicyToRollupMap(db, organizationId, normalized, result);
 }

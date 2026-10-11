@@ -96,6 +96,7 @@ export type SaveEmployeeAppGrantsPayload = {
     readonly granted: boolean;
   }>;
   readonly documentCategories: readonly DocumentCategory[];
+  readonly projectIds?: readonly string[];
 };
 
 export async function saveEmployeeAppGrantsEditorAction(
@@ -113,6 +114,7 @@ export async function saveEmployeeAppGrantsEditorAction(
         employeeId,
         grants: [...payload.grants],
         documentCategories: categories,
+        projectIds: payload.projectIds,
       });
     } catch (error) {
       console.error('employee_app.grants_save_failed', {

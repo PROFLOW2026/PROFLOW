@@ -389,10 +389,27 @@ export function MonthlyEmployerCostReview({
         <p className="text-sm text-[var(--pf-text-muted)]">{tCommon('states.loading')}</p>
       ) : null}
 
+      <div className="rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-surface-subtle)] px-3 py-2 text-xs text-[var(--pf-text-secondary)]">
+        <p className="font-medium text-[var(--pf-text-primary)]">{t('monthReview.costConceptsTitle')}</p>
+        <ul className="mt-1 list-inside list-disc space-y-0.5">
+          <li>{t('monthReview.costConceptFullMonthPool')}</li>
+          <li>{t('monthReview.costConceptOpenMonthAccrual')}</li>
+          <li>{t('monthReview.costConceptActualOverride')}</li>
+          <li>{t('monthReview.costConceptCashPayment')}</li>
+        </ul>
+      </div>
+
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <div className="rounded-md border border-[var(--pf-border-default)] p-3">
-          <p className="text-xs text-[var(--pf-text-muted)]">{t('monthReview.cost')}</p>
+          <p className="text-xs text-[var(--pf-text-muted)]">
+            {preview.knownQuality === 'actual'
+              ? t('monthReview.knownCostActualOverride')
+              : t('monthReview.knownCostEstimated')}
+          </p>
           <MoneyText value={money(preview.knownAmount, currency)} />
+          <p className="mt-1 text-xs text-[var(--pf-text-muted)]">
+            {t(`monthReview.knownQuality.${preview.knownQuality}`)}
+          </p>
         </div>
         <div className="rounded-md border border-[var(--pf-border-default)] p-3">
           <p className="text-xs text-[var(--pf-text-muted)]">{t('monthReview.allocated')}</p>
@@ -409,7 +426,9 @@ export function MonthlyEmployerCostReview({
       </div>
 
       <p className="text-sm">
-        {t('monthReview.effectiveCostThisMonth')}{' '}
+        {preview.knownQuality === 'actual'
+          ? t('monthReview.effectiveCostActualOverride')
+          : t('monthReview.effectiveCostEstimated')}{' '}
         <MoneyText value={money(preview.knownAmount, currency)} />
       </p>
 

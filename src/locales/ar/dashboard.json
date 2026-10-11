@@ -211,9 +211,15 @@
     "paidActualWhat": "دفعات أُكدت يدويًا أو تلقائيًا. المسودات والخطط لا تُحتسب.",
     "paidActualFormula": "مجموع الدفعات الصادرة التي تاريخ دفعها داخل الشهر.",
     "cashSource": {
-      "payroll": "دفع راتب",
-      "expense": "مصروف",
-      "ap": "دفعة لمورد",
+      "payroll": "دفع راتب (مدفوع)",
+      "expense": "مصروف (مدفوع)",
+      "ap": "دفعة لمورد (مدفوعة)",
+      "subcontract_advance": "سلفة لمقاول"
+    },
+    "cashSourceExpected": {
+      "payroll": "راتب مستحق",
+      "expense": "مصروف مستحق",
+      "ap": "فاتورة مورد (معترف بها، مستحقة)",
       "subcontract_advance": "سلفة لمقاول"
     },
     "expectedOutgoing": "متوقع نزوله",

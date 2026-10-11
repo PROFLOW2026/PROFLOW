@@ -7,6 +7,12 @@ import type { BusinessDate } from '@/shared/dates';
 import { isPositiveMoney, isZeroMoney, money, type MoneyValue } from '@/shared/money';
 import { resolveExpensePaymentObligation } from '@/modules/expenses/domain/resolve-expense-payment-obligation';
 import {
+  expenseGrossAfterApMatches,
+  isExpenseFullyApMatchedForCash,
+  recurringDraftCashForecastBlocked,
+  yearMonthFromBusinessDate,
+} from './expense-ap-cash';
+import {
   certaintyForDatedSource,
   type CashFlowForecastItem,
 } from './cash-flow-forecast';
@@ -16,6 +22,10 @@ export interface OperatingExpenseCashRow {
   readonly description: string | null;
   readonly projectId: string | null;
   readonly grossAmount: string;
+  readonly netAmount?: string | null;
+  readonly taxAmount?: string | null;
+  /** Sum of accepted AP match amounts (NET, same currency). */
+  readonly acceptedApMatchedNetAmount?: string | null;
   readonly currency: string;
   readonly expenseDate: BusinessDate;
   readonly dueDate: BusinessDate | null;
@@ -64,9 +74,27 @@ export function operatingExpenseCashItems(
   const items: CashFlowForecastItem[] = [];
   for (const row of rows) {
     if (row.currency.toUpperCase() !== currency.toUpperCase()) continue;
+    if (
+      isExpenseFullyApMatchedForCash({
+        grossAmount: row.grossAmount,
+        netAmount: row.netAmount,
+        taxAmount: row.taxAmount,
+        currency: row.currency,
+        acceptedApMatchedNetAmount: row.acceptedApMatchedNetAmount,
+      })
+    ) {
+      continue;
+    }
+    const cashGross = expenseGrossAfterApMatches({
+      grossAmount: row.grossAmount,
+      netAmount: row.netAmount,
+      taxAmount: row.taxAmount,
+      currency: row.currency,
+      acceptedApMatchedNetAmount: row.acceptedApMatchedNetAmount,
+    });
     const obligation = resolveExpensePaymentObligation(
       {
-        grossAmount: row.grossAmount,
+        grossAmount: cashGross.amount,
         currency: row.currency,
         expenseDate: row.expenseDate,
         installmentCount: row.installmentCount,
@@ -163,10 +191,19 @@ export function payrollObligationCashItems(
 export function openCommitmentCashItems(
   rows: readonly OpenCommitmentCashRow[],
   currency: string,
+  options?: {
+    /** projectId → months (YYYY-MM) already settled by a paid recurring expense occurrence */
+    readonly paidRecurringMonthsByProjectId?: ReadonlyMap<string, ReadonlySet<string>>;
+  },
 ): CashFlowForecastItem[] {
   const items: CashFlowForecastItem[] = [];
   for (const row of rows) {
     if (row.currency.toUpperCase() !== currency.toUpperCase()) continue;
+    if (row.expectedCashDate && row.projectId) {
+      const month = yearMonthFromBusinessDate(row.expectedCashDate);
+      const paidMonths = options?.paidRecurringMonthsByProjectId?.get(row.projectId);
+      if (paidMonths?.has(month)) continue;
+    }
     let amount: MoneyValue;
     try {
       amount = money(row.amount, row.currency);

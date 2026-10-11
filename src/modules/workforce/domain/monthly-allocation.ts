@@ -19,7 +19,10 @@ import {
   toDecimalValue,
   type MoneyValue,
 } from '@/shared/money';
-import type { MonthlyAllocationMethod } from './monthly-cost-gates';
+import {
+  resolveKnownEmployerCostFields,
+  type MonthlyAllocationMethod,
+} from './monthly-cost-gates';
 
 export interface MonthlyAllocationLineInput {
   readonly projectId: string;
@@ -356,21 +359,21 @@ export function deriveKnownEmployerCost(input: {
   readonly estimatedAmount: string | null;
   readonly actualAmount: string | null;
 } {
-  const estimatedRaw = input.estimatedAmount?.trim() || null;
-  const actualRaw = input.actualAmount?.trim() || null;
-  const actualNum = actualRaw ? Number(actualRaw) : 0;
-  const useActual = Boolean(actualRaw) && actualNum > 0;
+  const resolved = resolveKnownEmployerCostFields({
+    estimatedAmount: input.estimatedAmount,
+    actualAmount: input.actualAmount,
+  });
 
-  if (useActual) {
+  if (resolved.knownQuality === 'actual' && resolved.actualRaw) {
     return {
-      knownAmount: money(actualRaw!, input.currency),
+      knownAmount: money(resolved.actualRaw, input.currency),
       knownQuality: 'actual',
-      estimatedAmount: estimatedRaw,
-      actualAmount: actualRaw,
+      estimatedAmount: resolved.estimatedRaw,
+      actualAmount: resolved.actualRaw,
     };
   }
 
-  if (!estimatedRaw) {
+  if (!resolved.estimatedRaw) {
     throw new DomainRuleError(
       'Estimated or actual employer cost is required',
       'workforce.errors.monthCostRequired',
@@ -378,9 +381,9 @@ export function deriveKnownEmployerCost(input: {
   }
 
   return {
-    knownAmount: money(estimatedRaw, input.currency),
+    knownAmount: money(resolved.estimatedRaw, input.currency),
     knownQuality: 'estimated',
-    estimatedAmount: estimatedRaw,
+    estimatedAmount: resolved.estimatedRaw,
     actualAmount: null,
   };
 }

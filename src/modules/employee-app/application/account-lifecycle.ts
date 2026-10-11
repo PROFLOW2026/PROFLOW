@@ -5,13 +5,19 @@ import { organizationMemberships } from '@drizzle/schema';
 import { revalidateTag } from 'next/cache';
 import type { OrgContext } from '@/shared/auth/context';
 import { orgAuthzCacheTag } from '@/shared/auth/cached-authz';
-import { DomainRuleError, NotFoundError } from '@/shared/errors';
+import { AuthorizationError, DomainRuleError, NotFoundError } from '@/shared/errors';
+import { findEscalatingPermissions } from '@/modules/rbac/domain/permission-subset';
+import {
+  listProjectAccessGrants,
+  replaceProjectAccessGrantsForUser,
+} from '@/modules/projects/data/project-access.repository';
+import { listAssignableProjects } from '@/modules/workforce/application/project-team';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { getSupabaseAdminClient, isSupabaseAdminConfigured } from '@/shared/supabase/admin';
 import { ensureProfile } from '@/modules/identity/application/ensure-profile';
 import { findActiveMembership, insertMembership } from '@/modules/tenancy';
-import { ensureRoleAssigned, findRoleByKey } from '@/modules/rbac';
+import { ensureRoleAssigned, findRoleByKey, loadEffectivePermissions } from '@/modules/rbac';
 import { findEmployeeById, updateEmployeeById } from '@/modules/workforce';
 import {
   findEmployeeAppAccountByEmployeeId,
@@ -101,11 +107,7 @@ async function revokeSupabaseSessions(userId: string): Promise<void> {
   await admin.auth.admin.signOut(userId, 'global');
 }
 
-async function ensureEmployeeMembershipAndRole(
-  context: OrgContext,
-  userId: string,
-  isNewUser: boolean,
-): Promise<void> {
+async function ensureEmployeeMembershipAndRole(context: OrgContext, userId: string): Promise<void> {
   let membership = await findActiveMembership(context.db, context.organizationId, userId);
   if (!membership) {
     membership = await insertMembership(context.db, {
@@ -114,8 +116,6 @@ async function ensureEmployeeMembershipAndRole(
       status: 'active',
     });
   }
-
-  if (!isNewUser) return;
 
   const employeeRole = await findRoleByKey(context.db, context.organizationId, 'employee');
   if (!employeeRole) {
@@ -127,6 +127,42 @@ async function ensureEmployeeMembershipAndRole(
     userId,
     roleId: employeeRole.id,
   });
+}
+
+/** Owner/manager linked employees need a dedicated portal auth user so owner login is not overwritten. */
+async function userNeedsDedicatedEmployeePortalAuth(
+  context: OrgContext,
+  userId: string,
+): Promise<boolean> {
+  const { roleKeys } = await loadEffectivePermissions(
+    context.db,
+    context.organizationId,
+    userId,
+  );
+  return roleKeys.some((key) => key !== 'employee');
+}
+
+async function syncSupabaseEmployeePortalIdentity(
+  userId: string,
+  authEmail: string,
+  temporaryPin: string,
+): Promise<void> {
+  if (!isSupabaseAdminConfigured()) {
+    throw new DomainRuleError('Supabase admin is not configured', 'employeeApp.errors.notConfigured');
+  }
+  const admin = getSupabaseAdminClient();
+  const { error } = await admin.auth.admin.updateUserById(userId, {
+    email: authEmail,
+    email_confirm: true,
+    password: employeeSupabaseAuthPassword(temporaryPin),
+    user_metadata: { employee_app: true },
+  });
+  if (error) {
+    throw new DomainRuleError(
+      error.message ?? 'Failed to sync employee portal auth',
+      'employeeApp.errors.provisionFailed',
+    );
+  }
 }
 
 export interface EmployeeAppLifecycleOptions {
@@ -171,30 +207,31 @@ export async function activateEmployeeAppAccess(
   const temporaryPin = generateTemporaryPin();
   const temporaryPinExpiresAt = pinExpiryFromNow();
 
-  let userId = employee.userId;
-  let authEmail: string;
+  const authEmail = buildEmployeeAuthEmail(context.organizationId, usernameCheck.normalized);
+  let accountUserId = employee.userId;
 
-  if (!userId) {
-    authEmail = buildEmployeeAuthEmail(context.organizationId, usernameCheck.normalized);
-    userId = await provisionSupabaseUser(authEmail, temporaryPin);
+  if (!accountUserId) {
+    accountUserId = await provisionSupabaseUser(authEmail, temporaryPin);
     await ensureProfile(context.db, {
-      id: userId,
+      id: accountUserId,
       email: authEmail,
       displayName: employee.name,
       localePreference: context.locale,
     });
-    await ensureEmployeeMembershipAndRole(context, userId, true);
-    await updateEmployeeById(context.db, context.organizationId, employee.id, { userId });
-  } else {
-    const profile = await ensureProfile(context.db, {
-      id: userId,
-      email: buildEmployeeAuthEmail(context.organizationId, usernameCheck.normalized),
+    await ensureEmployeeMembershipAndRole(context, accountUserId);
+    await updateEmployeeById(context.db, context.organizationId, employee.id, { userId: accountUserId });
+  } else if (await userNeedsDedicatedEmployeePortalAuth(context, accountUserId)) {
+    accountUserId = await provisionSupabaseUser(authEmail, temporaryPin);
+    await ensureProfile(context.db, {
+      id: accountUserId,
+      email: authEmail,
       displayName: employee.name,
       localePreference: context.locale,
     });
-    authEmail = profile.email;
-    await setSupabasePassword(userId, temporaryPin);
-    await ensureEmployeeMembershipAndRole(context, userId, false);
+    await ensureEmployeeMembershipAndRole(context, accountUserId);
+  } else {
+    await syncSupabaseEmployeePortalIdentity(accountUserId, authEmail, temporaryPin);
+    await ensureEmployeeMembershipAndRole(context, accountUserId);
   }
 
   const account =
@@ -202,7 +239,7 @@ export async function activateEmployeeAppAccess(
     (await insertEmployeeAppAccount(context.db, {
       organizationId: context.organizationId,
       employeeId: employee.id,
-      userId,
+      userId: accountUserId,
       username: usernameRaw.toUpperCase(),
       usernameNormalized: usernameCheck.normalized,
       authEmail,
@@ -214,6 +251,8 @@ export async function activateEmployeeAppAccess(
     }));
 
   await updateEmployeeAppAccount(context.db, context.organizationId, account.id, {
+    userId: accountUserId,
+    authEmail,
     status: 'invited',
     username: usernameRaw.toUpperCase(),
     usernameNormalized: usernameCheck.normalized,
@@ -259,7 +298,10 @@ export async function activateEmployeeAppAccess(
     ),
   });
 
-  safeRevalidateAuthzCache(userId, context.organizationId);
+  safeRevalidateAuthzCache(accountUserId, context.organizationId);
+  if (employee.userId && employee.userId !== accountUserId) {
+    safeRevalidateAuthzCache(employee.userId, context.organizationId);
+  }
 
   return {
     accountId: account.id,
@@ -391,11 +433,24 @@ export async function saveEmployeeAppGrants(
       granted: boolean;
     }>;
     documentCategories: ReadonlyMap<DocumentCategory, boolean>;
+    projectIds?: readonly string[];
   },
 ): Promise<void> {
   await assertWorkforceManage(context);
   const employee = await findEmployeeById(context.db, context.organizationId, input.employeeId);
   if (!employee) throw new NotFoundError('Employee');
+
+  const grantedKeys = input.grants.filter((grant) => grant.granted).map((grant) => grant.permissionKey);
+  const escalating = findEscalatingPermissions(context.permissions, grantedKeys);
+  if (escalating.length > 0) {
+    throw new AuthorizationError('Cannot grant employee permissions you do not hold');
+  }
+
+  const account = await findEmployeeAppAccountByEmployeeId(
+    context.db,
+    context.organizationId,
+    input.employeeId,
+  );
 
   await deleteEmployeePermissionGrants(context.db, context.organizationId, input.employeeId);
   for (const grant of input.grants) {
@@ -417,8 +472,24 @@ export async function saveEmployeeAppGrants(
     context.userId,
   );
 
-  if (employee.userId) {
-    safeRevalidateAuthzCache(employee.userId, context.organizationId);
+  if (input.projectIds !== undefined && account) {
+    const allowedProjectIds = new Set(
+      (await listAssignableProjects(context)).map((project) => project.id),
+    );
+    const projectIds = input.projectIds.filter((projectId) => allowedProjectIds.has(projectId));
+    await replaceProjectAccessGrantsForUser(context.db, {
+      organizationId: context.organizationId,
+      userId: account.userId,
+      projectIds,
+      grantedByUserId: context.userId,
+    });
+  }
+
+  const authUserIds = new Set<string>();
+  if (account?.userId) authUserIds.add(account.userId);
+  if (employee.userId) authUserIds.add(employee.userId);
+  for (const userId of authUserIds) {
+    safeRevalidateAuthzCache(userId, context.organizationId);
   }
 
   await insertEmployeeAppAuditEventTrusted({
@@ -462,5 +533,23 @@ export async function getEmployeeAppAdminView(context: OrgContext, employeeId: s
         )
       : null;
 
-  return { account, grants, categories, audit, shareableCredentials };
+  const [assignableProjects, projectAccessRows] = await Promise.all([
+    listAssignableProjects(context).catch(() => [] as { id: string; name: string }[]),
+    listProjectAccessGrants(context.db, context.organizationId),
+  ]);
+  const grantedProjectIds = account
+    ? projectAccessRows
+        .filter((grant) => grant.userId === account.userId)
+        .map((grant) => grant.projectId)
+    : [];
+
+  return {
+    account,
+    grants,
+    categories,
+    audit,
+    shareableCredentials,
+    assignableProjects,
+    grantedProjectIds,
+  };
 }

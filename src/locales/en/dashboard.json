@@ -212,8 +212,14 @@
     "paidActualFormula": "Sum of outgoing payments whose payment date is in the month.",
     "cashSource": {
       "payroll": "Payroll payment",
-      "expense": "Expense",
-      "ap": "Vendor payment",
+      "expense": "Expense paid",
+      "ap": "Vendor payment (paid)",
+      "subcontract_advance": "Subcontractor advance"
+    },
+    "cashSourceExpected": {
+      "payroll": "Payroll due",
+      "expense": "Expense due",
+      "ap": "Vendor bill due (recognized)",
       "subcontract_advance": "Subcontractor advance"
     },
     "expectedOutgoing": "Still due",

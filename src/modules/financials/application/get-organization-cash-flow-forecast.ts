@@ -26,8 +26,10 @@ import type { CashFlowOpenBillingRow } from '../data/billing.repository';
 import {
   loadOpenCommitmentCashRows,
   loadOperatingExpenseCashRows,
+  loadPaidRecurringOccurrenceMaps,
   loadPayrollObligationCashRows,
 } from '../data/cash-flow-sources.repository';
+import { recurringDraftCashForecastBlocked } from '../domain/expense-ap-cash';
 import {
   openCommitmentCashItems,
   operatingExpenseCashItems,
@@ -204,6 +206,7 @@ function itemsFromRecurringDrafts(
   canIn: boolean,
   canOut: boolean,
   includeExpenseDrafts: boolean,
+  paidOccurrenceMonthsByDraftId: ReadonlyMap<string, ReadonlySet<string>>,
 ): CashFlowForecastItem[] {
   const items: CashFlowForecastItem[] = [];
   for (const draft of drafts) {
@@ -215,6 +218,9 @@ function itemsFromRecurringDrafts(
 
     if (draft.draftKind === 'expense') {
       if (!includeExpenseDrafts) continue;
+      if (recurringDraftCashForecastBlocked(draft.id, fields.dueDate, paidOccurrenceMonthsByDraftId)) {
+        continue;
+      }
       items.push({
         id: `draft:${draft.id}`,
         href: `/recurring-drafts/${draft.id}`,
@@ -231,6 +237,9 @@ function itemsFromRecurringDrafts(
 
     if (draft.draftKind === 'billing_record') {
       if (!canIn) continue;
+      if (recurringDraftCashForecastBlocked(draft.id, fields.dueDate, paidOccurrenceMonthsByDraftId)) {
+        continue;
+      }
       items.push({
         id: `draft:${draft.id}`,
         href: `/recurring-drafts/${draft.id}`,
@@ -247,6 +256,9 @@ function itemsFromRecurringDrafts(
 
     if (draft.draftKind === 'vendor_bill') {
       if (!canOut) continue;
+      if (recurringDraftCashForecastBlocked(draft.id, fields.dueDate, paidOccurrenceMonthsByDraftId)) {
+        continue;
+      }
       items.push({
         id: `draft:${draft.id}`,
         href: `/recurring-drafts/${draft.id}`,
@@ -323,8 +335,18 @@ export async function getOrganizationCashFlowForecast(
   const showOutflows = true;
   const canReadDrafts = hasAnyPermission(context, ANY_DRAFT_ACCESS_PERMISSIONS);
 
-  const [records, paymentRows, apBundle, drafts, progressLines, expenseRows, payrollRows, commitmentRows, connectedClaimRows] =
-    await Promise.all([
+  const [
+    records,
+    paymentRows,
+    apBundle,
+    drafts,
+    progressLines,
+    expenseRows,
+    payrollRows,
+    commitmentRows,
+    connectedClaimRows,
+    paidRecurringMaps,
+  ] = await Promise.all([
     showInflows
       ? loadCashFlowOpenBillingRows(context.db, context.organizationId, currency)
       : Promise.resolve([] as CashFlowOpenBillingRow[]),
@@ -368,6 +390,7 @@ export async function getOrganizationCashFlowForecast(
     showInflows
       ? listActiveClaimCashProjectionsForOrg(context.db, context.organizationId, { currency })
       : Promise.resolve([]),
+    loadPaidRecurringOccurrenceMaps(context.db, context.organizationId),
   ]);
 
   const outstandingRecords = records.map((record) => ({
@@ -399,11 +422,20 @@ export async function getOrganizationCashFlowForecast(
   const items: CashFlowForecastItem[] = [
     ...(showInflows ? incomingFromBilling(records, currency) : []),
     ...(showAp && openApBills ? outgoingFromApBills(openApBills, currency) : []),
-    ...itemsFromRecurringDrafts(drafts, currency, showInflows, showAp, true),
+    ...itemsFromRecurringDrafts(
+      drafts,
+      currency,
+      showInflows,
+      showAp,
+      true,
+      paidRecurringMaps.paidMonthsByDraftId,
+    ),
     ...progressItems,
     ...operatingExpenseCashItems(expenseRows, currency, asOf),
     ...payrollObligationCashItems(payrollRows, currency),
-    ...openCommitmentCashItems(commitmentRows, currency),
+    ...openCommitmentCashItems(commitmentRows, currency, {
+      paidRecurringMonthsByProjectId: paidRecurringMaps.paidMonthsByProjectId,
+    }),
     ...(showInflows ? connectedClaimProjectionCashItems(connectedClaimRows, currency) : []),
   ];
 

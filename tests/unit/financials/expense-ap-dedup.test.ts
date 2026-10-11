@@ -89,6 +89,41 @@ describe('expense-ap amount-aware dedupe', () => {
         linkedExpenseDeductions: new Map([['linked-expense', '6000']]),
         excludedForeignCurrencyCount: 0,
         billCount: 1,
+        recognizedBillIds: ['bill-1'],
+        billMatchLinks: [
+          { billId: 'bill-1', expenseId: 'linked-expense', matchedAmount: '6000' },
+        ],
+      },
+    });
+
+    expect(result.cost.actualCostToDate.amount).toBe('10000.000000');
+    expect(result.cost.vendorActual.amount).toBe('6000.000000');
+  });
+
+  it('regression: 10k expense + 10k bill + 6k match must not yield 14k Actual', () => {
+    const result = composeProjectFinancials({
+      projectId: 'p1',
+      currency: ILS,
+      expectedRemainingCostAmount: null,
+      canReadCommercial: false,
+      canReadBilling: false,
+      canReadProfit: false,
+      commercialData: null,
+      billingRows: null,
+      expenseContributions: [expenseLine('linked-expense', '10000')],
+      laborInput: null,
+      committed: null,
+      openAp: null,
+      recognizedVendor: {
+        billAmounts: ['10000'],
+        total: money('10000', ILS),
+        linkedExpenseDeductions: new Map([['linked-expense', '6000']]),
+        excludedForeignCurrencyCount: 0,
+        billCount: 1,
+        recognizedBillIds: ['bill-1'],
+        billMatchLinks: [
+          { billId: 'bill-1', expenseId: 'linked-expense', matchedAmount: '6000' },
+        ],
       },
     });
 
@@ -116,6 +151,10 @@ describe('expense-ap amount-aware dedupe', () => {
         linkedExpenseDeductions: new Map([['linked-expense', '6000']]),
         excludedForeignCurrencyCount: 0,
         billCount: 1,
+        recognizedBillIds: ['bill-1'],
+        billMatchLinks: [
+          { billId: 'bill-1', expenseId: 'linked-expense', matchedAmount: '6000' },
+        ],
       },
     });
 

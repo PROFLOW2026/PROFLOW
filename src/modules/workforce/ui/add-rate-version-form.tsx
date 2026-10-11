@@ -18,6 +18,8 @@ import {
   MIN_MONTHLY_ACCRUAL_WORKING_DAYS,
 } from '@/modules/workforce/domain/monthly-accrual';
 
+export const EMPLOYEE_ADD_RATE_FORM_ID = 'pf-employee-add-rate-form';
+
 export interface AddRateVersionFormProps {
   readonly employeeId: string;
   readonly defaultCurrency: string;
@@ -59,7 +61,11 @@ export function AddRateVersionForm({
   );
 
   return (
-    <form action={formAction} className="flex flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-3">
+    <form
+      id={EMPLOYEE_ADD_RATE_FORM_ID}
+      action={formAction}
+      className="flex flex-col gap-3 rounded-lg border border-[var(--pf-border-default)] p-3"
+    >
       <input type="hidden" name="employeeId" value={employeeId} />
       <input type="hidden" name="currency" value={defaultCurrency} />
       <input type="hidden" name="rateUnit" value={rateUnit} />

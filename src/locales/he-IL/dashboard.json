@@ -211,9 +211,15 @@
     "paidActualWhat": "תשלומים שאושרו ידנית או אוטומטית. טיוטה ותכנון לא נספרים.",
     "paidActualFormula": "סכום התשלומים שבוצעו בתאריך תשלום שבתוך החודש.",
     "cashSource": {
-      "payroll": "תשלום שכר",
-      "expense": "הוצאה",
-      "ap": "תשלום לספק",
+      "payroll": "תשלום שכר (שולם)",
+      "expense": "הוצאה (שולם)",
+      "ap": "תשלום לספק (שולם)",
+      "subcontract_advance": "מקדמה לקבלן"
+    },
+    "cashSourceExpected": {
+      "payroll": "שכר לתשלום",
+      "expense": "הוצאה לתשלום",
+      "ap": "חשבונית ספק (מוכרת, לתשלום)",
       "subcontract_advance": "מקדמה לקבלן"
     },
     "expectedOutgoing": "צפוי לרדת",

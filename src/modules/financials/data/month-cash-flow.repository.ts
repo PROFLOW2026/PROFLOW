@@ -1,6 +1,6 @@
 /**
- * Month cash facts. Expenses matched to a recognized vendor bill are omitted
- * so the AP payment is the only cash line.
+ * Month cash facts. Accepted AP matches reduce expense cash; fully matched
+ * expenses are omitted so the AP payment is the only cash line.
  */
 
 import { and, eq, gt, gte, inArray, isNull, lte, notExists, or, sql } from 'drizzle-orm';
@@ -9,7 +9,6 @@ import {
   apBills,
   apPayments,
   apPaymentApplications,
-  apPoMatches,
   costCategories,
   employeeMonthCosts,
   employeePayrollPayments,
@@ -33,8 +32,8 @@ import {
   type MonthExpenseCashSnapshot,
   type MonthPayrollCashSnapshot,
 } from '../domain/month-cash-flow';
+import { loadAcceptedApMatchNetByExpenseId } from './cash-flow-sources.repository';
 
-const RECOGNIZED_AP_STATUSES = ['open', 'partially_matched', 'matched'] as const;
 const PAID_ADVANCE_STATUSES = [
   'paid',
   'partially_applied',
@@ -277,24 +276,6 @@ export async function loadMonthExpenseCashSnapshots(
         or(isNull(costCategories.key), sql`${costCategories.key} <> 'internal_employee_payroll'`),
         notExists(
           db
-            .select({ id: apPoMatches.id })
-            .from(apPoMatches)
-            .innerJoin(
-              apBills,
-              and(eq(apBills.id, apPoMatches.apBillId), eq(apBills.organizationId, apPoMatches.organizationId)),
-            )
-            .where(
-              and(
-                eq(apPoMatches.organizationId, organizationId),
-                eq(apPoMatches.expenseId, expenses.id),
-                eq(apPoMatches.status, 'accepted'),
-                inArray(apBills.status, [...RECOGNIZED_AP_STATUSES]),
-                isNull(apBills.archivedAt),
-              ),
-            ),
-        ),
-        notExists(
-          db
             .select({ id: reversal.id })
             .from(reversal)
             .where(
@@ -307,6 +288,12 @@ export async function loadMonthExpenseCashSnapshots(
         ),
       ),
     );
+
+  const matchedByExpense = await loadAcceptedApMatchNetByExpenseId(
+    db,
+    organizationId,
+    rows.map((row) => row.id),
+  );
 
   return rows.map((row) => ({
     id: row.id,
@@ -329,7 +316,7 @@ export async function loadMonthExpenseCashSnapshots(
     paidGrossAmount: row.paidGrossAmount,
     paidAt: asDate(row.paidAt),
     paymentMethod: row.paymentMethod,
-    recognizedApMatch: false,
+    acceptedApMatchedNetAmount: matchedByExpense.get(row.id) ?? '0',
     voided: false,
   }));
 }

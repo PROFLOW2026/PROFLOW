@@ -1,8 +1,10 @@
 import { afterEach, describe, expect, it } from 'vitest';
+import { deriveKnownEmployerCost } from '@/modules/workforce/domain/monthly-allocation';
 import {
   EMPLOYEE_MONTH_COSTS_READY,
   areEmployeeMonthCostsAvailable,
   previewMonthlyCostStrip,
+  resolveKnownEmployerCostFields,
   setEmployeeMonthCostsReadyForTests,
 } from '@/modules/workforce/domain/monthly-cost-gates';
 import {
@@ -58,6 +60,41 @@ describe('Post-0021 feature gates', () => {
     expect(preview.knownQuality).toBe('actual');
     expect(preview.status).toBe('balanced');
     expect(preview.unallocatedAmount).toBe('0.00');
+  });
+
+  it('resolveKnownEmployerCostFields trims whitespace and ignores zero actual', () => {
+    expect(
+      resolveKnownEmployerCostFields({ estimatedAmount: '10000', actualAmount: '   ' }).knownQuality,
+    ).toBe('estimated');
+    expect(
+      resolveKnownEmployerCostFields({ estimatedAmount: '10000', actualAmount: '0' }).knownQuality,
+    ).toBe('estimated');
+    expect(
+      resolveKnownEmployerCostFields({ estimatedAmount: '10000', actualAmount: ' 12000 ' }),
+    ).toMatchObject({ knownQuality: 'actual', knownNumeric: 12000 });
+  });
+
+  it('previewMonthlyCostStrip matches deriveKnownEmployerCost known amount and quality', () => {
+    const cases = [
+      { estimated: '10000', actual: '' },
+      { estimated: '10000', actual: '12000' },
+      { estimated: '10000', actual: '0' },
+      { estimated: '10000', actual: '   ' },
+    ] as const;
+    for (const sample of cases) {
+      const preview = previewMonthlyCostStrip({
+        estimatedAmount: sample.estimated,
+        actualAmount: sample.actual,
+        allocatedAmount: '0',
+      });
+      const derived = deriveKnownEmployerCost({
+        estimatedAmount: sample.estimated,
+        actualAmount: sample.actual,
+        currency: 'ILS',
+      });
+      expect(preview.knownQuality).toBe(derived.knownQuality);
+      expect(preview.knownAmount).toBe(Number(derived.knownAmount.amount).toFixed(2));
+    }
   });
 
   it('flags over-allocation without hiding remainder math', () => {

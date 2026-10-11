@@ -18,7 +18,9 @@ import {
   categoriesSetFromPreset,
   categoriesSetFromRecords,
   detectPresetFromState,
+  actorCanGrantEmployeePermission,
   editorItemForPermission,
+  employeeGrantsUseGrantedProjectsScope,
   grantsMapFromPreset,
   grantsMapFromRecords,
   presetTranslationKey,
@@ -53,11 +55,17 @@ import {
   AccessInfoField,
 } from './access-info-field';
 import { EmployeeCredentialsShareDialog } from './employee-credentials-share-dialog';
+import { useEmployeeDetailUnsaved } from '@/modules/workforce/ui/employee-detail-unsaved-context';
 
 interface ShareableCredentials {
   readonly username: string;
   readonly temporaryPin: string;
   readonly temporaryPinExpiresAt: string;
+}
+
+export interface EmployeeAppProjectOption {
+  readonly id: string;
+  readonly name: string;
 }
 
 interface Props {
@@ -73,6 +81,9 @@ interface Props {
   readonly grants: readonly EmployeePermissionGrantRecord[];
   readonly documentCategories: ReadonlyMap<DocumentCategory, boolean>;
   readonly shareableCredentials: ShareableCredentials | null;
+  readonly actorPermissions: readonly PermissionKey[];
+  readonly assignableProjects: readonly EmployeeAppProjectOption[];
+  readonly grantedProjectIds: readonly string[];
 }
 
 const PRESET_SELECT_KEYS = EMPLOYEE_PRESETS.filter((preset) => preset.key !== 'custom');
@@ -95,6 +106,10 @@ function categoriesSignature(categories: Set<DocumentCategory>): string {
   return [...categories].sort().join('|');
 }
 
+function projectIdsSignature(projectIds: Set<string>): string {
+  return [...projectIds].sort().join('|');
+}
+
 export function EmployeeAppAccessPanel({
   employeeId,
   employeeName,
@@ -107,6 +122,9 @@ export function EmployeeAppAccessPanel({
   grants: initialGrants,
   documentCategories: initialCategories,
   shareableCredentials: serverShareableCredentials,
+  actorPermissions,
+  assignableProjects,
+  grantedProjectIds: initialGrantedProjectIds,
 }: Props) {
   const t = useTranslations('employeeApp.admin');
   const tStatus = useTranslations('employeeApp.status');
@@ -140,8 +158,18 @@ export function EmployeeAppAccessPanel({
     return detected;
   }, [initialGrantMap, initialCategorySet, initialGrants.length, account]);
 
+  const actorPermissionSet = useMemo(
+    () => new Set<PermissionKey>(actorPermissions),
+    [actorPermissions],
+  );
+  const initialProjectIdSet = useMemo(
+    () => new Set(initialGrantedProjectIds),
+    [initialGrantedProjectIds],
+  );
+
   const [grantState, setGrantState] = useState(() => initialGrantMap);
   const [categoryState, setCategoryState] = useState(() => initialCategorySet);
+  const [projectIdState, setProjectIdState] = useState(() => initialProjectIdSet);
   const [selectedPreset, setSelectedPreset] = useState<EmployeePresetKey>(() => initialPreset);
   const [presetAppliedInSession, setPresetAppliedInSession] = useState(false);
   const [actionShareableCredentials, setActionShareableCredentials] =
@@ -150,12 +178,29 @@ export function EmployeeAppAccessPanel({
   const [saveMessage, setSaveMessage] = useState<'success' | 'error' | null>(null);
   const [pending, startTransition] = useTransition();
 
+  const usesGrantedProjects = useMemo(
+    () => employeeGrantsUseGrantedProjectsScope(grantState),
+    [grantState],
+  );
+
   const isDirty = useMemo(() => {
     return (
       savedGrantsSignature(grantState) !== savedGrantsSignature(initialGrantMap) ||
-      categoriesSignature(categoryState) !== categoriesSignature(initialCategorySet)
+      categoriesSignature(categoryState) !== categoriesSignature(initialCategorySet) ||
+      (usesGrantedProjects &&
+        projectIdsSignature(projectIdState) !== projectIdsSignature(initialProjectIdSet))
     );
-  }, [grantState, categoryState, initialGrantMap, initialCategorySet]);
+  }, [
+    grantState,
+    categoryState,
+    projectIdState,
+    initialGrantMap,
+    initialCategorySet,
+    initialProjectIdSet,
+    usesGrantedProjects,
+  ]);
+
+  useEmployeeDetailUnsaved('employee-app-grants', isDirty);
 
   const showPresetRequiresSave =
     Boolean(account && account.status !== 'inactive') &&
@@ -247,6 +292,7 @@ export function EmployeeAppAccessPanel({
   function setPermissionGranted(permissionKey: PermissionKey, granted: boolean) {
     const existing = grantState.get(permissionKey);
     if (existing?.roleBaseline) return;
+    if (granted && !actorCanGrantEmployeePermission(permissionKey, actorPermissionSet)) return;
 
     const nextGrants = new Map(grantState);
     if (granted) {
@@ -293,12 +339,70 @@ export function EmployeeAppAccessPanel({
     });
   }
 
+  function selectAllGrantablePermissions() {
+    const next = new Map(grantState);
+    for (const group of EMPLOYEE_PERMISSION_EDITOR_GROUPS) {
+      for (const item of group.items) {
+        const existing = next.get(item.permissionKey);
+        if (existing?.roleBaseline) continue;
+        if (!actorCanGrantEmployeePermission(item.permissionKey, actorPermissionSet)) continue;
+        next.set(item.permissionKey, {
+          permissionKey: item.permissionKey,
+          scope: existing?.scope ?? item.scopes[0] ?? 'self_only',
+          granted: true,
+        });
+      }
+    }
+    setGrantState(next);
+    syncPresetDetection(next, categoryState);
+    setSelectedPreset('custom');
+  }
+
+  function clearAllGrantablePermissions() {
+    const next = new Map(grantState);
+    for (const group of EMPLOYEE_PERMISSION_EDITOR_GROUPS) {
+      for (const item of group.items) {
+        const existing = next.get(item.permissionKey);
+        if (existing?.roleBaseline) continue;
+        if (!actorCanGrantEmployeePermission(item.permissionKey, actorPermissionSet)) continue;
+        next.delete(item.permissionKey);
+      }
+    }
+    const nextCategories =
+      next.get(PERMISSIONS.DOCUMENTS_READ)?.granted === true
+        ? categoryState
+        : new Set<DocumentCategory>();
+    setGrantState(next);
+    if (nextCategories !== categoryState) {
+      setCategoryState(nextCategories);
+    }
+    syncPresetDetection(next, nextCategories);
+    setSelectedPreset('custom');
+  }
+
+  function setAllProjects(selected: boolean) {
+    setProjectIdState(() => {
+      if (!selected) return new Set<string>();
+      return new Set(assignableProjects.map((project) => project.id));
+    });
+  }
+
+  function toggleProjectGrant(projectId: string, checked: boolean) {
+    setProjectIdState((prev) => {
+      const next = new Set(prev);
+      if (checked) next.add(projectId);
+      else next.delete(projectId);
+      return next;
+    });
+  }
+
   async function savePermissions() {
     setSaveMessage(null);
     try {
       await saveEmployeeAppGrantsEditorAction(employeeId, {
         grants: buildSaveGrantsPayload(grantState),
         documentCategories: [...categoryState],
+        projectIds: usesGrantedProjects ? [...projectIdState] : undefined,
       });
       setPresetAppliedInSession(false);
       setSaveMessage('success');
@@ -315,6 +419,9 @@ export function EmployeeAppAccessPanel({
     await saveEmployeeAppGrantsEditorAction(employeeId, {
       grants: buildSaveGrantsPayload(grantState),
       documentCategories: [...categoryState],
+      projectIds: employeeGrantsUseGrantedProjectsScope(grantState)
+        ? [...projectIdState]
+        : undefined,
     });
 
     openShareDialog({
@@ -370,6 +477,26 @@ export function EmployeeAppAccessPanel({
             <p className="text-xs text-[var(--pf-text-secondary)]">{t('presetRequiresSave')}</p>
           ) : null}
         </div>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            disabled={pending}
+            onClick={selectAllGrantablePermissions}
+          >
+            {t('selectAllPermissions')}
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            disabled={pending}
+            onClick={clearAllGrantablePermissions}
+          >
+            {t('clearAllPermissions')}
+          </Button>
+        </div>
       </div>
 
       <div className="space-y-5">
@@ -381,6 +508,7 @@ export function EmployeeAppAccessPanel({
                 const state = grantState.get(item.permissionKey);
                 const checked = state?.granted === true;
                 const locked = state?.roleBaseline === true;
+                const grantable = actorCanGrantEmployeePermission(item.permissionKey, actorPermissionSet);
                 const showScope = checked && item.scopes.length > 1 && !locked;
 
                 return (
@@ -391,7 +519,7 @@ export function EmployeeAppAccessPanel({
                     <label className="flex items-center gap-2 text-sm">
                       <Checkbox
                         checked={checked}
-                        disabled={locked || pending}
+                        disabled={locked || pending || !grantable}
                         onCheckedChange={(value) =>
                           setPermissionGranted(item.permissionKey, value === true)
                         }
@@ -430,6 +558,53 @@ export function EmployeeAppAccessPanel({
           </section>
         ))}
       </div>
+
+      {usesGrantedProjects && account && account.status !== 'inactive' ? (
+        <section className="space-y-3 rounded-lg border border-[var(--pf-border-default)] p-3">
+          <div className="space-y-1">
+            <h4 className="text-sm font-medium">{t('projectScopeTitle')}</h4>
+            <p className="text-xs text-[var(--pf-text-secondary)]">{t('projectScopeHint')}</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              disabled={pending || assignableProjects.length === 0}
+              onClick={() => setAllProjects(true)}
+            >
+              {t('selectAllProjects')}
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              disabled={pending}
+              onClick={() => setAllProjects(false)}
+            >
+              {t('clearAllProjects')}
+            </Button>
+          </div>
+          {assignableProjects.length === 0 ? (
+            <p className="text-sm text-[var(--pf-text-muted)]">{t('projectScopeEmpty')}</p>
+          ) : (
+            <ul className="grid gap-2 sm:grid-cols-2">
+              {assignableProjects.map((project) => (
+                <li key={project.id}>
+                  <label className="flex items-center gap-2 text-sm">
+                    <Checkbox
+                      checked={projectIdState.has(project.id)}
+                      disabled={pending}
+                      onCheckedChange={(value) => toggleProjectGrant(project.id, value === true)}
+                    />
+                    <span className="min-w-0 truncate">{project.name}</span>
+                  </label>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      ) : null}
 
       {account && account.status !== 'inactive' ? (
         <div className="flex flex-col gap-2">
@@ -680,16 +855,21 @@ export function EmployeeAppAccessPanel({
       </section>
     ) : null;
 
+  const permissionsSaveCollapsed =
+    account && account.status !== 'inactive' && isDirty ? (
+      <Button type="button" size="sm" disabled={pending} onClick={() => run(savePermissions)}>
+        {t('savePermissions')}
+      </Button>
+    ) : null;
+
   return (
-    <Card className="space-y-6 p-4">
+    <Card className="min-w-0 max-w-full space-y-4 p-4 sm:p-6">
       <h2 className="text-lg font-semibold">{t('title')}</h2>
 
-      <CollapsibleSection title={t('sectionAccess')} defaultOpen>
-        {accessDetailsSection}
-      </CollapsibleSection>
+      <CollapsibleSection title={t('sectionAccess')}>{accessDetailsSection}</CollapsibleSection>
 
       {accountActionsSection ? (
-        <CollapsibleSection title={t('sectionAccountActions')} defaultOpen>
+        <CollapsibleSection title={t('sectionAccountActions')}>
           {accountActionsSection}
         </CollapsibleSection>
       ) : null}
@@ -697,15 +877,14 @@ export function EmployeeAppAccessPanel({
       <CollapsibleSection
         title={t('sectionPermissions')}
         summary={tPresets(presetTranslationKey(selectedPreset))}
-        defaultOpen={!account || account.status === 'inactive'}
+        keepMounted
+        collapsedActions={permissionsSaveCollapsed}
       >
         {permissionEditor}
       </CollapsibleSection>
 
       {documentsSection ? (
-        <CollapsibleSection title={t('sectionDocuments')} defaultOpen={false}>
-          {documentsSection}
-        </CollapsibleSection>
+        <CollapsibleSection title={t('sectionDocuments')}>{documentsSection}</CollapsibleSection>
       ) : null}
 
       {shareDialogCredentials ? (

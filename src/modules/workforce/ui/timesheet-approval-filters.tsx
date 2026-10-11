@@ -62,7 +62,8 @@ export function TimesheetApprovalFilters({
 
       <Field label={t('time.approvals.filters.approvalStatus')} className="sm:w-48">
         {(control) => (
-          <select {...control} name="status" defaultValue={initial.status ?? 'submitted'} className={selectClass}>
+          <select {...control} name="status" defaultValue={initial.status ?? 'pending'} className={selectClass}>
+            <option value="pending">{t('time.approvals.filters.pending')}</option>
             <option value="submitted">{t('time.approvalStatus.submitted')}</option>
             <option value="returned">{t('time.approvalStatus.returned')}</option>
             <option value="approved">{t('time.approvalStatus.approved')}</option>

@@ -10,7 +10,11 @@ import {
   zeroMoney,
   type MoneyValue,
 } from '@/shared/money';
-import { buildLinkedExpenseDeductions } from '@/modules/financials/domain/expense-ap-dedup';
+import {
+  buildLinkedExpenseDeductions,
+  buildRecognizedBillMatchLinks,
+  type RecognizedBillMatchLink,
+} from '@/modules/financials/domain/expense-ap-dedup';
 import {
   areApBillProjectAllocationsAvailable,
   creditApplicationActualReduction,
@@ -136,6 +140,8 @@ export type RecognizedVendorBillRollupLike = {
   readonly linkedExpenseDeductions: ReadonlyMap<string, string>;
   readonly excludedForeignCurrencyCount: number;
   readonly billCount: number;
+  readonly recognizedBillIds: readonly string[];
+  readonly billMatchLinks: readonly RecognizedBillMatchLink[];
 };
 
 export function foldRecognizedVendorBillsForProjectsFromFacts(
@@ -234,17 +240,16 @@ export function foldRecognizedVendorBillsForProjectFromFacts(
     recognizedBillIds.push(billId);
   }
 
+  const matchRows = bundle.poMatches.filter((row) => recognizedBillIds.includes(row.apBillId));
   const linkedExpenseDeductions =
     recognizedBillIds.length === 0
       ? new Map<string, string>()
       : buildLinkedExpenseDeductions(
-          bundle.poMatches
-            .filter((row) => recognizedBillIds.includes(row.apBillId))
-            .map((row) => ({
-              expenseId: row.expenseId,
-              matchedAmount: row.matchedAmount,
-              expenseCurrency: row.expenseCurrency,
-            })),
+          matchRows.map((row) => ({
+            expenseId: row.expenseId,
+            matchedAmount: row.matchedAmount,
+            expenseCurrency: row.expenseCurrency,
+          })),
           normalized,
         );
 
@@ -254,5 +259,13 @@ export function foldRecognizedVendorBillsForProjectFromFacts(
     linkedExpenseDeductions,
     excludedForeignCurrencyCount,
     billCount: billAmounts.length,
+    recognizedBillIds,
+    billMatchLinks: buildRecognizedBillMatchLinks(
+      matchRows.map((row) => ({
+        apBillId: row.apBillId,
+        expenseId: row.expenseId,
+        matchedAmount: row.matchedAmount,
+      })),
+    ),
   };
 }

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { DomainRuleError } from '@/shared/errors';
 import {
   assertNoUnlinkedExpenseApOverlap,
   findSimilarFinalizedExpensesForBill,
@@ -86,10 +87,17 @@ describe('expense-ap overlap warnings', () => {
     expect(hits.map((row) => row.id)).toEqual(['b1']);
   });
 
-  it('does not drop a lookalike until the user accepts a canonical match', () => {
+  it('blocks finalize when unlinked lookalikes remain unless distinct costs confirmed', () => {
     expect(() =>
       assertNoUnlinkedExpenseApOverlap({
         hitCount: 1,
+        messageKey: 'expenses.errors.unlinkedApOverlap',
+      }),
+    ).toThrow(DomainRuleError);
+    expect(() =>
+      assertNoUnlinkedExpenseApOverlap({
+        hitCount: 1,
+        confirmDistinctCosts: true,
         messageKey: 'expenses.errors.unlinkedApOverlap',
       }),
     ).not.toThrow();

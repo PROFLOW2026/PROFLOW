@@ -269,7 +269,7 @@
       "vendor_bill": "Счёт поставщика",
       "commitment": "Открытое обязательство",
       "subcontractor_liability": "Обязательство субподрядчика",
-      "recurring_draft": "Повторяющийся черновик (прогноз)",
+      "recurring_draft": "Следующий повтор (только прогноз)",
       "retention_release_out": "Высвобождение удержания (расход)",
       "operating_expense": "Операционный расход (касса)",
       "payroll_obligation": "Обязательство по зарплате (касса)"

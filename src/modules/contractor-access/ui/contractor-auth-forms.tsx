@@ -71,6 +71,11 @@ export function ContractorSignInForm({
       <Link href="/contractor/forgot-password" className={`${textNavLinkClassName} text-sm`}>
         {t('forgot')}
       </Link>
+      <p className="text-center text-sm text-[var(--pf-text-secondary)]">
+        <Link href="/sign-in" className={`${textNavLinkClassName} font-medium`}>
+          {t('backToCustomerLogin')}
+        </Link>
+      </p>
     </form>
   );
 }

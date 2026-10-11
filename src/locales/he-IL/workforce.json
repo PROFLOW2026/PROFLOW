@@ -135,7 +135,14 @@
       "noRateHistory": "עדיין לא נרשמו גרסאות תעריף.",
       "compensationSection": "עלות / תנאי העסקה",
       "compensationSummaryTitle": "תנאי העסקה ושכר",
-      "compensationSummaryHint": "הנתונים שנשמרו לעובד - אין צורך להזין מחדש.",
+      "compensationSummaryHint": "הנתונים שנשמרו לעובד. אין צורך להזין מחדש. הכרטיס מציג תנאי תגמול, לא סגירת חודש שכר ולא מזומן ששולם.",
+      "costConceptsTitle": "ארבעה מספרים שונים (אין לערבב)",
+      "costConceptFullMonthPool": "מאגר מעסיק לחודש מלא: בסיס + העמסה לחודש שלם (בכרטיס זה).",
+      "costConceptOpenMonthAccrual": "עלות עבודה מוכרת בחודש פתוח: נצבר לפי ימי עבודה שדווחו עד סוף החודש (עבודה בפועל בפרויקט / שעות מאושרות).",
+      "costConceptActualOverride": "עקיפת עלות בפועל חודשית: סכום מעסיק מדויק אופציונלי בסקירת החודש (גובר על הערכה כשנשמר).",
+      "costConceptCashPayment": "תשלום שכר במזומן: מה שיצא בפועל בתאריך התשלום; נעקב בנפרד ולא מחליף עלות מוכרת.",
+      "fullMonthEmployerPoolLabel": "מאגר מעסיק לחודש מלא",
+      "fullMonthPoolFootnote": "זה לא הנצבר בחודש פתוח. לעקיפה והקצאה: סקירת החודש למטה.",
       "monthlyCostLabel": "עלות חודשית",
       "monthlyBaseSalaryLabel": "שכר בסיס חודשי",
       "monthlyEmployerCostLabel": "עלות מעסיק חודשית מחושבת",
@@ -161,6 +168,9 @@
       "hoursSection": "שעות",
       "hoursLink": "דיווחי שעות של העובד",
       "editTitle": "עריכת עובד",
+      "switchEmployeeAria": "החלפת עובד, נוכחי: {name}",
+      "unsavedSwitchConfirm": "יש שינויים שלא נשמרו בעמוד זה. להחליף עובד בכל זאת?",
+      "salaryHistoryCount": "{count, plural, one {גרסת שכר אחת} two {2 גרסאות שכר} other {# גרסאות שכר}}",
       "save": "שמירת שינויים",
       "saved": "העובד נשמר",
       "archive": "השבת/ארכיון",
@@ -298,7 +308,8 @@
         "description": "שעות שהוגשו יופיעו כאן לבדיקה. אין חובה עד שמישהו שולח גיליון שעות."
       },
       "filters": {
-        "approvalStatus": "אישור"
+        "approvalStatus": "אישור",
+        "pending": "ממתין (טיוטה + הוגש)"
       }
     },
     "weekdays": {
@@ -486,6 +497,19 @@
     "gateOff": "שמירה כבויה עד שמנהל המערכת יפעיל עלות חודשית אחרי עדכון המערכת. תצוגה מקדימה וטיוטה בלבד - לא טוענים עלות עבודה מוכרת.",
     "yearMonth": "חודש",
     "cost": "עלות",
+    "costConceptsTitle": "קשר בין סקירת החודש לשאר מספרי השכר",
+    "costConceptFullMonthPool": "כרטיס תגמול = מאגר מלא לחודש (תעריף + העמסה).",
+    "costConceptOpenMonthAccrual": "חודש פתוח = עלות עבודה מוכרת נצברת לפי ימים שדווחו (מסלול שעות/נוכחות) עד סגירת חודש.",
+    "costConceptActualOverride": "עקיפת בפועל כאן = סכום מעסיק ידוע להקצאה (לאחר החלה מחליפה דיווחי שעות).",
+    "costConceptCashPayment": "תשלום שכר = מזומן בלבד, נפרד מעלות מוכרת בפרויקט.",
+    "knownCostEstimated": "עלות ידועה (הערכה)",
+    "knownCostActualOverride": "עלות ידועה (עקיפת בפועל)",
+    "knownQuality": {
+      "estimated": "לפי הערכה עד הזנת בפועל",
+      "actual": "עקיפת בפועל פעילה"
+    },
+    "effectiveCostEstimated": "עלות מעסיק ידועה החודש (הערכה):",
+    "effectiveCostActualOverride": "עלות מעסיק ידועה החודש (עקיפת בפועל):",
     "allocated": "הוקצה",
     "unallocated": "לא הוקצה",
     "pendingSubmittedHoursBanner": "{hours} שעות עבודה במצב \"הוגש\" עדיין לא אושרו: הן לא נספרות בעלות עבודה מוכרת עד לאישור.",
@@ -917,6 +941,8 @@
     "companyOnlyUnavailable": "פיצול עלות החברה בלבד אינו זמין."
   },
   "attendanceCorrection": {
+    "title": "בקשת תיקון נוכחות",
+    "hint": "שלחו בקשה כשיש לתקן כניסה או יציאה ליום עבר.",
     "submitted": "בקשת התיקון נשלחה בהצלחה. המנהל יסקור אותה בקרוב.",
     "workDate": "תאריך עבודה",
     "requestedClockIn": "כניסה מבוקשת",
@@ -927,6 +953,8 @@
     "submit": "שליחת בקשה"
   },
   "attendanceCorrectionRequests": {
+    "title": "בקשות תיקון ממתינות",
+    "subtitle": "סקירה, אישור או דחייה של בקשות תיקון נוכחות מעובדים.",
     "empty": "אין בקשות תיקון ממתינות",
     "statusPending": "ממתין",
     "requestedClockIn": "כניסה מבוקשת",

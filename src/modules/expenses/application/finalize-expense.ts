@@ -12,6 +12,7 @@ import {
   yearMonthFromBusinessDate,
 } from '@/modules/month-close';
 import { bookInventoryPurchaseFromExpenseOnExecutor } from '@/modules/assets/application/inventory-cost';
+import { assertExpenseFinalizeHasNoProjectDoubleAttribution } from '@/modules/expenses/application/expense-integrity-audit';
 import { assertExpenseFinalizeHasNoUnlinkedApOverlap } from '@/modules/financials/application/assert-expense-ap-overlap';
 import { resolveExpenseClassificationStatus } from '@/modules/financials/domain/economic-classification';
 import { isPositiveMoney, toNumericString } from '@/shared/money';
@@ -108,6 +109,11 @@ export async function finalizeExpense(
     amount: existing.netAmount.amount,
     currency: existing.netAmount.currency,
     submitIfMissing: true,
+  });
+
+  assertExpenseFinalizeHasNoProjectDoubleAttribution({
+    projectId: existing.projectId,
+    allocations: existing.allocations,
   });
 
   await assertExpenseFinalizeHasNoUnlinkedApOverlap(

@@ -172,7 +172,9 @@ export async function findTimesheetByEmployeePeriodForUpdate(
 
 export interface TimesheetFilters {
   readonly employeeId?: string;
-  readonly status?: TimesheetStatus | 'all';
+  readonly status?: TimesheetStatus | 'all' | 'pending';
+  /** When set, matches any of these sheet statuses (overrides `status`). */
+  readonly statuses?: readonly TimesheetStatus[];
   readonly fromDate?: string;
   readonly toDate?: string;
   readonly includeArchived?: boolean;
@@ -193,8 +195,14 @@ export async function listTimesheets(
   if (filters.employeeId) {
     conditions.push(eq(timesheets.employeeId, filters.employeeId));
   }
-  if (filters.status && filters.status !== 'all') {
-    conditions.push(eq(timesheets.status, filters.status));
+  if (filters.statuses && filters.statuses.length > 0) {
+    conditions.push(inArray(timesheets.status, [...filters.statuses]));
+  } else   if (filters.status && filters.status !== 'all') {
+    if (filters.status === 'pending') {
+      conditions.push(inArray(timesheets.status, ['draft', 'submitted']));
+    } else {
+      conditions.push(eq(timesheets.status, filters.status));
+    }
   }
   if (filters.fromDate) {
     conditions.push(gte(timesheets.periodEnd, filters.fromDate));

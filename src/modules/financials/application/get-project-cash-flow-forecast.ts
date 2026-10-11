@@ -23,6 +23,7 @@ import type { CashFlowOpenBillingRow } from '../data/billing.repository';
 import {
   loadOpenCommitmentCashRows,
   loadOperatingExpenseCashRows,
+  loadPaidRecurringOccurrenceMaps,
   loadPayrollObligationCashRows,
 } from '../data/cash-flow-sources.repository';
 import { assertProjectInOrg, findProjectCurrency } from '../data/projects.repository';
@@ -168,8 +169,17 @@ export async function getProjectCashFlowForecast(
   const showInflows = hasPermission(context, PERMISSIONS.BILLING_READ);
   const showAp = hasPermission(context, PERMISSIONS.AP_READ);
   const showOutflows = true;
-  const [records, paymentRows, apBundle, progressLines, expenseRows, payrollRows, commitmentRows, connectedClaimRows] =
-    await Promise.all([
+  const [
+    records,
+    paymentRows,
+    apBundle,
+    progressLines,
+    expenseRows,
+    payrollRows,
+    commitmentRows,
+    connectedClaimRows,
+    paidRecurringMaps,
+  ] = await Promise.all([
       showInflows
         ? loadCashFlowOpenBillingRows(context.db, context.organizationId, currency).then((rows) =>
             rows.filter((row) => row.projectId === projectId),
@@ -220,6 +230,7 @@ export async function getProjectCashFlowForecast(
             currency,
           })
         : Promise.resolve([]),
+      loadPaidRecurringOccurrenceMaps(context.db, context.organizationId),
     ]);
 
   const outstandingRecords = records.map((record) => ({
@@ -279,7 +290,9 @@ export async function getProjectCashFlowForecast(
     ...progressItems,
     ...operatingExpenseCashItems(expenseRows, currency, asOf),
     ...payrollObligationCashItems(payrollRows, currency),
-    ...openCommitmentCashItems(commitmentRows, currency),
+    ...openCommitmentCashItems(commitmentRows, currency, {
+      paidRecurringMonthsByProjectId: paidRecurringMaps.paidMonthsByProjectId,
+    }),
     ...(showInflows ? connectedClaimProjectionCashItems(connectedClaimRows, currency) : []),
   ];
 

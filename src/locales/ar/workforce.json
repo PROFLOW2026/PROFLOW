@@ -163,7 +163,14 @@
       "noRateHistory": "لا إصدارات سعر مسجّلة بعد.",
       "compensationSection": "التكلفة / شروط التوظيف",
       "compensationSummaryTitle": "التوظيف والراتب",
-      "compensationSummaryHint": "قيم محفوظة لهذا الموظف — لا حاجة لإعادة الإدخال.",
+      "compensationSummaryHint": "قيم محفوظة لهذا الموظف — لا حاجة لإعادة الإدخال. البطاقة تعرض شروط التعويض وليس إغلاق شهر الرواتب أو النقد المدفوع.",
+      "costConceptsTitle": "أربعة أرقام مختلفة (لا تخلط بينها)",
+      "costConceptFullMonthPool": "مجموعة المُشغِّل لشهر كامل — الأساس + العبء لشهر كامل (هذه البطاقة).",
+      "costConceptOpenMonthAccrual": "تكلفة العمل المعترف بها في شهر مفتوح — تتراكم حسب أيام العمل المُبلَّغ عنها (Actual للمشروع / ساعات معتمدة).",
+      "costConceptActualOverride": "تجاوز التكلفة الفعلية الشهرية — إجمالي اختياري دقيق في مراجعة الشهر (يلغي التقدير عند الحفظ).",
+      "costConceptCashPayment": "دفع الرواتب نقداً — ما خرج في تاريخ الدفع؛ يُتابَع منفصلاً ولا يحل محل التكلفة المعترف بها.",
+      "fullMonthEmployerPoolLabel": "مجموعة المُشغِّل لشهر كامل",
+      "fullMonthPoolFootnote": "ليست تراكم الشهر المفتوح. استخدم مراجعة الشهر أدناه للتجاوز والتوزيع.",
       "monthlyCostLabel": "تكلفة شهرية",
       "monthlyBaseSalaryLabel": "راتب شهري أساسي",
       "monthlyEmployerCostLabel": "تكلفة شهرية للمُشغّل",
@@ -195,6 +202,9 @@
       "complianceOpen": "فتح الامتثال",
       "complianceEmpty": "لا قطع امتثال لهذا الموظف بعد.",
       "editTitle": "تعديل موظف",
+      "switchEmployeeAria": "تبديل الموظف — الحالي: {name}",
+      "unsavedSwitchConfirm": "لديك تغييرات غير محفوظة في هذه الصفحة. هل تريد تبديل الموظف على أي حال؟",
+      "salaryHistoryCount": "{count, plural, one {إصدار راتب واحد} other {# إصدارات راتب}}",
       "save": "حفظ التغييرات",
       "saved": "تم حفظ الموظف",
       "archive": "إلغاء تفعيل / أرشفة",
@@ -326,7 +336,8 @@
         "description": "الساعات المُرسلة تظهر هنا للمراجعة. لا شيء مطلوب حتى يرسل أحد جدول ساعات."
       },
       "filters": {
-        "approvalStatus": "الاعتماد"
+        "approvalStatus": "الاعتماد",
+        "pending": "معلق (مسودة + مُرسل)"
       }
     },
     "weekdays": {
@@ -514,6 +525,19 @@
     "gateOff": "الحفظ معطّل حتى يفعّل Lead التكلفة الشهرية بعد الهجرة. معاينة ومسودة فقط — لا يُطالب بالفعلي.",
     "yearMonth": "الشهر",
     "cost": "التكلفة",
+    "costConceptsTitle": "كيف ترتبط مراجعة الشهر بباقي أرقام الرواتب",
+    "costConceptFullMonthPool": "بطاقة التعويض = مجموعة شهر كامل (معدل + عبء).",
+    "costConceptOpenMonthAccrual": "شهر مفتوح = تكلفة عمل معترف بها تتراكم حسب الأيام المُبلَّغ عنها حتى إغلاق الشهر.",
+    "costConceptActualOverride": "التجاوز الفعلي هنا = إجمالي المُشغِّل المعروف للتوزيع (بعد التطبيق يستبدل لقطات الوقت).",
+    "costConceptCashPayment": "دفع الرواتب = تدفق نقدي فقط — منفصل عن تكلفة المشروع المعترف بها.",
+    "knownCostEstimated": "تكلفة معروفة (تقدير)",
+    "knownCostActualOverride": "تكلفة معروفة (تجاوز فعلي)",
+    "knownQuality": {
+      "estimated": "من التقدير حتى إدخال الفعلي",
+      "actual": "تجاوز فعلي نشط"
+    },
+    "effectiveCostEstimated": "تكلفة المُشغِّل المعروفة هذا الشهر (تقدير):",
+    "effectiveCostActualOverride": "تكلفة المُشغِّل المعروفة هذا الشهر (تجاوز فعلي):",
     "allocated": "مُوزّع",
     "unallocated": "غير مُوزّع",
     "pendingSubmittedHoursBanner": "{hours} ساعات عمل مُرسلة لم تُعتمد بعد — لا تُحسب في التكلفة الفعلية للعمل حتى الاعتماد.",
@@ -917,6 +941,8 @@
     "companyOnlyUnavailable": "تقسيم تكلفة الشركة فقط غير متاح."
   },
   "attendanceCorrection": {
+    "title": "طلب تصحيح حضور",
+    "hint": "قدّمو طلباً عند الحاجة لتصحيح وقت الدخول أو الخروج ليوم سابق.",
     "submitted": "تم تقديم طلب التصحيح. سيراجعه المدير قريباً.",
     "workDate": "تاريخ العمل",
     "requestedClockIn": "وقت الدخول المطلوب",
@@ -927,6 +953,8 @@
     "submit": "إرسال الطلب"
   },
   "attendanceCorrectionRequests": {
+    "title": "طلبات تصحيح معلّقة",
+    "subtitle": "مراجعة طلبات تصحيح الحضور والموافقة عليها أو رفضها.",
     "empty": "لا توجد طلبات تصحيح معلّقة",
     "statusPending": "معلّق",
     "requestedClockIn": "وقت الدخول المطلوب",

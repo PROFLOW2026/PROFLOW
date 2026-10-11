@@ -30,7 +30,7 @@ import type {
   ApCreditFactRow,
 } from '../data/financials-read-bundle.repository';
 import type { RecognizedVendorBillRollup } from '../data/committed-costs.repository';
-import { buildLinkedExpenseDeductions } from '../domain/expense-ap-dedup';
+import { buildLinkedExpenseDeductions, buildRecognizedBillMatchLinks } from '../domain/expense-ap-dedup';
 
 const OPEN_AP_CASH_STATUSES = RECOGNIZED_VENDOR_BILL_STATUSES;
 
@@ -132,29 +132,38 @@ export function foldRecognizedVendorBillsFromApBundle(
     recognizedBillIds.push(billId);
   }
 
+  const matchRows = bundle.poMatches.filter((row) => recognizedBillIds.includes(row.apBillId));
   const linkedExpenseDeductions =
     recognizedBillIds.length === 0
       ? new Map<string, string>()
       : buildLinkedExpenseDeductions(
-          bundle.poMatches
-            .filter((row) => recognizedBillIds.includes(row.apBillId))
-            .flatMap((row) => [
-              {
-                expenseId: row.expenseId,
-                matchedAmount: row.matchedAmount,
-                expenseCurrency: row.expenseCurrency,
-              },
-            ]),
+          matchRows.flatMap((row) => [
+            {
+              expenseId: row.expenseId,
+              matchedAmount: row.matchedAmount,
+              expenseCurrency: row.expenseCurrency,
+            },
+          ]),
           normalized,
         );
 
-  return {
+  const rollup: RecognizedVendorBillRollup = {
     billAmounts,
     total: roundMoney(total),
     linkedExpenseDeductions,
     excludedForeignCurrencyCount,
     billCount: billAmounts.length,
+    recognizedBillIds,
+    billMatchLinks: buildRecognizedBillMatchLinks(
+      matchRows.map((row) => ({
+        apBillId: row.apBillId,
+        expenseId: row.expenseId,
+        matchedAmount: row.matchedAmount,
+      })),
+    ),
   };
+
+  return rollup;
 }
 
 export function foldOpenApPayableFromApBundle(

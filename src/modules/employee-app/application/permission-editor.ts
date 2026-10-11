@@ -620,3 +620,25 @@ export function buildSaveGrantsPayload(
   }
   return payload;
 }
+
+export function listEmployeePermissionEditorItems(): readonly EmployeePermissionEditorItem[] {
+  return EMPLOYEE_PERMISSION_EDITOR_GROUPS.flatMap((group) => group.items);
+}
+
+export function actorCanGrantEmployeePermission(
+  permissionKey: PermissionKey,
+  actorPermissions: ReadonlySet<PermissionKey>,
+): boolean {
+  return actorPermissions.has(permissionKey);
+}
+
+/** True when saved grants need explicit project_access_grants (granted_projects scope). */
+export function employeeGrantsUseGrantedProjectsScope(
+  grants: Map<PermissionKey, EditorGrantState>,
+): boolean {
+  for (const state of grants.values()) {
+    if (!state.granted || state.roleBaseline) continue;
+    if (state.scope === 'granted_projects') return true;
+  }
+  return false;
+}

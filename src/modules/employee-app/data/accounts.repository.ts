@@ -172,6 +172,8 @@ export async function updateEmployeeAppAccount(
   organizationId: string,
   accountId: string,
   patch: Partial<{
+    userId: string;
+    authEmail: string;
     status: EmployeeAppStatus;
     username: string;
     usernameNormalized: string;

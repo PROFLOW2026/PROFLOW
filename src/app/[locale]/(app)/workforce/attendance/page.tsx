@@ -45,6 +45,11 @@ import { withOrgContext } from '@/shared/auth/session';
 import { AuthorizationError } from '@/shared/errors';
 import { todayInTimeZone, businessDate, type BusinessDate } from '@/shared/dates';
 import { Link } from '@/shared/i18n/navigation';
+import { listAttendanceCorrectionRequests } from '@/modules/workforce/application/attendance-correction-requests';
+import { hasAnyOperationalApproveScope } from '@/modules/workforce/application/scoped-operational-approval';
+import { resolveSelfScopedEmployeeId } from '@/modules/workforce/application/time-scope';
+import { AttendanceCorrectionReviewSection } from '@/modules/workforce/ui/attendance-correction-review-section';
+import { AttendanceCorrectionSubmitSection } from '@/modules/workforce/ui/attendance-correction-submit-section';
 
 export async function generateMetadata({
   params,
@@ -115,6 +120,12 @@ export default async function AttendancePage({
       ? businessDate(`${calendarMonth}-${String(new Date(Number(calendarMonth.split('-')[0]), Number(calendarMonth.split('-')[1]), 0).getDate()).padStart(2, '0')}`)
       : undefined;
 
+    const canReviewCorrections =
+      allowManage || (await hasAnyOperationalApproveScope(context));
+    const linkedEmployeeId = allowClock
+      ? await resolveSelfScopedEmployeeId(context)
+      : null;
+
     const [
       clock,
       days,
@@ -126,6 +137,7 @@ export default async function AttendancePage({
       laborDefaults,
       projects,
       todayOverview,
+      correctionRequests,
     ] =
       await Promise.all([
         allowClock ? getAttendanceClockSurface(context) : Promise.resolve(null),
@@ -168,6 +180,9 @@ export default async function AttendancePage({
         allowManage
           ? getTodayAttendanceOverview(context, today).catch(() => null)
           : Promise.resolve(null),
+        canReviewCorrections
+          ? listAttendanceCorrectionRequests(context, { status: 'pending' })
+          : Promise.resolve([]),
       ]);
 
     const selectedEmployee =
@@ -196,8 +211,22 @@ export default async function AttendancePage({
       defaultWorkTimes: resolveOrgStandardWorkTimes(laborDefaults),
       projects,
       todayOverview,
+      correctionRequests,
+      canReviewCorrections,
+      linkedEmployeeId,
+      canRequestCorrection: allowClock || allowManage,
+      timeZone: context.organization.timezone,
     };
   });
+
+  const correctionEmployeeNames = new Map(
+    data.employees.map((employee) => [employee.id, employee.name] as const),
+  );
+  for (const request of data.correctionRequests) {
+    if (!correctionEmployeeNames.has(request.employeeId)) {
+      correctionEmployeeNames.set(request.employeeId, request.employeeId);
+    }
+  }
 
   const formDefaultDate = preferredWorkDate ?? data.detail?.workDate ?? data.today;
   const canonicalEmployeeId = resolveCanonicalAttendanceEmployeeId(
@@ -256,6 +285,39 @@ export default async function AttendancePage({
       ) : null}
 
       <Alert tone="info">{t('attendance.scopeDisclaimer')}</Alert>
+
+      {data.canReviewCorrections && data.correctionRequests.length > 0 ? (
+        <section className="flex flex-col gap-3">
+          <div>
+            <h2 className="text-base font-semibold">{t('attendanceCorrectionRequests.title')}</h2>
+            <p className="text-sm text-[var(--pf-text-muted)]">
+              {t('attendanceCorrectionRequests.subtitle')}
+            </p>
+          </div>
+          <AttendanceCorrectionReviewSection
+            requests={data.correctionRequests}
+            employeeNames={correctionEmployeeNames}
+            timeZone={data.timeZone}
+          />
+        </section>
+      ) : null}
+
+      {data.canRequestCorrection ? (
+        <section className="flex flex-col gap-3">
+          <div>
+            <h2 className="text-base font-semibold">{t('attendanceCorrection.title')}</h2>
+            <p className="text-sm text-[var(--pf-text-muted)]">{t('attendanceCorrection.hint')}</p>
+          </div>
+          <AttendanceCorrectionSubmitSection
+            initialWorkDate={formDefaultDate}
+            employeeId={
+              data.allowManage && filters.employeeId
+                ? filters.employeeId
+                : data.linkedEmployeeId ?? undefined
+            }
+          />
+        </section>
+      ) : null}
 
       <div className="flex flex-col gap-6">
         {data.allowManage && data.todayOverview ? (

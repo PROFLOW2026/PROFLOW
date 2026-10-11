@@ -11,10 +11,12 @@ import {
 } from '@/modules/projects/application/project-access';
 import { canReadWorkforceCost } from './workforce-cost-authz';
 import {
+  assertCanAttemptTimesheetApproval,
   assertCanApproveProjectTimeEntry,
   assertCanApproveSubmittedTimeEntries,
   hasOrgWideTimeApproval,
   listOperationalApproveProjectIds,
+  resolveTimeApprovalQueueAccess,
 } from './scoped-operational-approval';
 import { notifyOperationalApproversForSubmittedProjectTime } from './notify-operational-approvers';
 import {
@@ -54,6 +56,7 @@ import type {
   TimeEntryRecord,
   TimesheetListItem,
   TimesheetRecord,
+  TimesheetStatus,
 } from '../domain/types';
 import {
   approveTimeEntrySchema,
@@ -73,6 +76,24 @@ import {
   type SubmitTimesheetInput,
   type TimesheetFiltersInput,
 } from '../validation/schemas';
+
+const DEFAULT_QUEUE_APPROVAL_STATUSES: readonly TimeApprovalStatus[] = ['draft', 'submitted'];
+const DEFAULT_QUEUE_TIMESHEET_STATUSES: readonly TimesheetStatus[] = ['draft', 'submitted'];
+
+function entryVisibleInApprovalQueue(
+  entry: Pick<TimeEntryListItem, 'kind' | 'projectId'>,
+  orgWide: boolean,
+  operationalProjectIds: readonly string[],
+  accessibleProjectIds: string[] | null,
+): boolean {
+  if (entry.kind !== 'project' || !entry.projectId) {
+    return orgWide;
+  }
+  if (orgWide) {
+    return isAccessibleProjectId(accessibleProjectIds, entry.projectId);
+  }
+  return operationalProjectIds.includes(entry.projectId);
+}
 
 function parseOrThrow<T>(parsed: {
   success: boolean;
@@ -260,14 +281,34 @@ export async function listTimeApprovalQueue(
   readonly timesheets: TimesheetListItem[];
   readonly entries: TimeEntryListItem[];
 }> {
-  assertPermission(context, PERMISSIONS.TIME_APPROVE);
+  const { orgWide, operationalProjectIds } = await resolveTimeApprovalQueueAccess(context);
   const parsed = parseOrThrow(timesheetFiltersSchema.safeParse(filters));
-  const requested = parsed.status ?? 'submitted';
+  const requestedStatus = parsed.status;
+
+  const timesheetListFilters =
+    requestedStatus === undefined
+      ? { statuses: DEFAULT_QUEUE_TIMESHEET_STATUSES }
+      : requestedStatus === 'all'
+        ? { status: 'all' as const }
+        : { status: requestedStatus };
+
+  const entryListFilters =
+    requestedStatus === undefined || requestedStatus === 'pending'
+      ? { approvalStatuses: DEFAULT_QUEUE_APPROVAL_STATUSES }
+      : requestedStatus === 'all'
+        ? { approvalStatus: 'all' as const }
+        : { approvalStatus: requestedStatus };
+
+  const timesheetListFiltersResolved =
+    requestedStatus === 'pending'
+      ? { statuses: DEFAULT_QUEUE_TIMESHEET_STATUSES }
+      : timesheetListFilters;
+
   const timesheets = await listTimesheets(context.db, context.organizationId, {
     employeeId: parsed.employeeId,
-    status: requested,
     fromDate: parsed.fromDate,
     toDate: parsed.toDate,
+    ...timesheetListFiltersResolved,
   });
 
   const entries = await listTimeEntries(context.db, context.organizationId, {
@@ -275,17 +316,38 @@ export async function listTimeApprovalQueue(
     fromDate: parsed.fromDate,
     toDate: parsed.toDate,
     status: 'recorded',
-    approvalStatus: requested === 'all' ? 'all' : requested,
+    ...entryListFilters,
   });
-  const allowed = await resolveAccessibleProjectIds(context);
+  const allowed = orgWide ? await resolveAccessibleProjectIds(context) : null;
   const canReadCost = canReadWorkforceCost(context);
   const visibleEntries = entries
-    .filter((row) => isAccessibleProjectId(allowed, row.projectId))
+    .filter((row) =>
+      entryVisibleInApprovalQueue(row, orgWide, operationalProjectIds, allowed),
+    )
     .map((row) =>
       canReadCost ? row : { ...row, costAmount: null, costCurrency: null },
     );
 
-  return { timesheets, entries: visibleEntries };
+  const visibleTimesheetIds = new Set(
+    visibleEntries
+      .map((row) => row.timesheetId)
+      .filter((id): id is string => typeof id === 'string'),
+  );
+  const visibleTimesheets = orgWide
+    ? timesheets
+    : timesheets.filter(
+        (sheet) =>
+          visibleTimesheetIds.has(sheet.id) ||
+          (sheet.status === 'submitted' &&
+            visibleEntries.some(
+              (entry) =>
+                entry.employeeId === sheet.employeeId &&
+                entry.approvalStatus === 'submitted' &&
+                entry.timesheetId === sheet.id,
+            )),
+      );
+
+  return { timesheets: visibleTimesheets, entries: visibleEntries };
 }
 
 export async function getTimesheetDetail(
@@ -596,6 +658,7 @@ export async function approveTimesheet(
   rawInput: ApproveTimesheetInput,
 ): Promise<{ readonly timesheet: TimesheetRecord; readonly entries: readonly TimeEntryRecord[] }> {
   const input = parseOrThrow(approveTimesheetSchema.safeParse(rawInput));
+  await assertCanAttemptTimesheetApproval(context);
 
   return withTransaction(context.db, async (tx) => {
     const txContext = { ...context, db: tx };
@@ -769,6 +832,7 @@ export async function bulkApproveTimeEntries(
   readonly skippedIds: readonly string[];
 }> {
   const input = parseOrThrow(bulkApproveTimeEntriesSchema.safeParse(rawInput));
+  await assertCanAttemptTimesheetApproval(context);
   const uniqueIds = [...new Set(input.timeEntryIds)];
 
   return withTransaction(context.db, async (tx) => {

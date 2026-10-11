@@ -7,12 +7,28 @@ import {
   money,
   roundMoney,
   subtractMoney,
+  sumMoney,
   zeroMoney,
   type MoneyValue,
 } from '@/shared/money';
-
 /** Accepted match totals per expense id (same currency as project compose). */
 export type LinkedExpenseDeductions = ReadonlyMap<string, string>;
+
+export interface RecognizedBillMatchLink {
+  readonly billId: string;
+  readonly expenseId: string;
+  readonly matchedAmount: string;
+}
+
+export interface RecognizedVendorBillRollupForDedupe {
+  readonly billAmounts: readonly string[];
+  readonly total: MoneyValue;
+  readonly linkedExpenseDeductions: LinkedExpenseDeductions;
+  readonly excludedForeignCurrencyCount: number;
+  readonly billCount: number;
+  readonly recognizedBillIds: readonly string[];
+  readonly billMatchLinks: readonly RecognizedBillMatchLink[];
+}
 
 export interface LinkedExpenseMatchRow {
   readonly expenseId: string;
@@ -118,4 +134,180 @@ export function applyLinkedExpenseDeductionsToContributions(
   }
 
   return next.filter((_, index) => !drop.has(index));
+}
+
+/** Sum project-scoped contribution NET per expense (for partial-match bill caps). */
+export function buildExpenseContributionTotalsById(
+  contributions: readonly ProjectExpenseContribution[] | null | undefined,
+  expenseNetFallback?: ReadonlyMap<string, string>,
+  fallbackCurrency = 'ILS',
+): Map<string, string> {
+  const totals = new Map<string, MoneyValue>();
+  if (contributions) {
+    for (const line of contributions) {
+      if (!line.expenseId) continue;
+      const amount = fromNumericString(line.amount, line.currency);
+      if (!amount) continue;
+      const prev = totals.get(line.expenseId);
+      totals.set(line.expenseId, prev ? addMoney(prev, amount) : amount);
+    }
+  }
+  if (expenseNetFallback) {
+    for (const [expenseId, net] of expenseNetFallback) {
+      if (totals.has(expenseId)) continue;
+      const parsed = fromNumericString(net, fallbackCurrency);
+      if (parsed) totals.set(expenseId, parsed);
+    }
+  }
+  const result = new Map<string, string>();
+  for (const [expenseId, total] of totals) {
+    result.set(expenseId, total.amount);
+  }
+  return result;
+}
+
+function expenseRemainderOnProject(
+  expenseId: string,
+  expenseTotalsById: ReadonlyMap<string, string>,
+  linkedExpenseDeductions: LinkedExpenseDeductions,
+  currency: string,
+): MoneyValue {
+  const normalized = currency.toUpperCase();
+  const totalRaw = expenseTotalsById.get(expenseId);
+  if (!totalRaw) return zeroMoney(normalized);
+  const total = money(totalRaw, normalized);
+  const deductRaw = linkedExpenseDeductions.get(expenseId) ?? '0';
+  const remaining = subtractMoney(total, money(deductRaw, normalized));
+  if (compareMoney(remaining, zeroMoney(normalized)) <= 0) return zeroMoney(normalized);
+  return remaining;
+}
+
+/**
+ * When a linked expense still has unmatched remainder, recognized bill Actual is capped
+ * at accepted match totals (not full bill NET). Fully matched expenses keep bill authority.
+ */
+export function capRecognizedBillAmountsForPartialMatches(input: {
+  readonly currency: string;
+  readonly billIds: readonly string[];
+  readonly billAmounts: readonly string[];
+  readonly billMatchLinks: readonly RecognizedBillMatchLink[];
+  readonly linkedExpenseDeductions: LinkedExpenseDeductions;
+  readonly expenseTotalsById: ReadonlyMap<string, string>;
+}): { readonly billAmounts: string[]; readonly total: MoneyValue } {
+  const normalized = input.currency.toUpperCase();
+  if (input.billAmounts.length === 0) {
+    return { billAmounts: [], total: zeroMoney(normalized) };
+  }
+
+  let billMatchLinks = input.billMatchLinks;
+  if (
+    billMatchLinks.length === 0 &&
+    input.billIds.length === 1 &&
+    input.billAmounts.length === 1
+  ) {
+    const billId = input.billIds[0]!;
+    const inferred: RecognizedBillMatchLink[] = [];
+    for (const [expenseId, matchedAmount] of input.linkedExpenseDeductions) {
+      const remainder = expenseRemainderOnProject(
+        expenseId,
+        input.expenseTotalsById,
+        input.linkedExpenseDeductions,
+        normalized,
+      );
+      if (compareMoney(remainder, zeroMoney(normalized)) <= 0) continue;
+      inferred.push({ billId, expenseId, matchedAmount });
+    }
+    billMatchLinks = inferred;
+  }
+
+  const matchesByBill = new Map<string, RecognizedBillMatchLink[]>();
+  for (const link of billMatchLinks) {
+    const list = matchesByBill.get(link.billId) ?? [];
+    list.push(link);
+    matchesByBill.set(link.billId, list);
+  }
+
+  const capped: string[] = [];
+  for (let index = 0; index < input.billAmounts.length; index += 1) {
+    const billId = input.billIds[index] ?? `bill-${index}`;
+    const slice = money(input.billAmounts[index]!, normalized);
+    const links = matchesByBill.get(billId) ?? [];
+    let capMatched = zeroMoney(normalized);
+    for (const link of links) {
+      const remainder = expenseRemainderOnProject(
+        link.expenseId,
+        input.expenseTotalsById,
+        input.linkedExpenseDeductions,
+        normalized,
+      );
+      if (compareMoney(remainder, zeroMoney(normalized)) <= 0) continue;
+      capMatched = addMoney(capMatched, money(link.matchedAmount, normalized));
+    }
+    if (compareMoney(capMatched, zeroMoney(normalized)) > 0) {
+      capped.push(minMoney(slice, capMatched).amount);
+    } else {
+      capped.push(slice.amount);
+    }
+  }
+
+  const parts = capped.map((amount) => money(amount, normalized));
+  const total =
+    parts.length === 0 ? zeroMoney(normalized) : roundMoney(sumMoney(parts, normalized));
+  return { billAmounts: capped, total };
+}
+
+export function buildRecognizedBillMatchLinks(
+  rows: readonly {
+    readonly apBillId: string;
+    readonly expenseId: string;
+    readonly matchedAmount: string;
+  }[],
+): RecognizedBillMatchLink[] {
+  return rows.map((row) => ({
+    billId: row.apBillId,
+    expenseId: row.expenseId,
+    matchedAmount: row.matchedAmount,
+  }));
+}
+
+/** Apply partial-match bill caps and refresh rollup total/count fields. */
+export function applyPartialMatchPolicyToRecognizedVendorRollup<
+  T extends RecognizedVendorBillRollupForDedupe,
+>(
+  rollup: T,
+  input: {
+    readonly currency: string;
+    readonly expenseContributions?: readonly ProjectExpenseContribution[] | null;
+    readonly expenseNetFallback?: ReadonlyMap<string, string>;
+  },
+): T {
+  const recognizedBillIds = rollup.recognizedBillIds ?? [];
+  const billMatchLinks = rollup.billMatchLinks ?? [];
+  const billIds =
+    recognizedBillIds.length === rollup.billAmounts.length
+      ? recognizedBillIds
+      : rollup.billAmounts.map((_, index) => recognizedBillIds[index] ?? `bill-${index}`);
+
+  const expenseTotalsById = buildExpenseContributionTotalsById(
+    input.expenseContributions,
+    input.expenseNetFallback,
+    input.currency,
+  );
+
+  const capped = capRecognizedBillAmountsForPartialMatches({
+    currency: input.currency,
+    billIds,
+    billAmounts: rollup.billAmounts,
+    billMatchLinks,
+    linkedExpenseDeductions: rollup.linkedExpenseDeductions,
+    expenseTotalsById,
+  });
+
+  return {
+    ...rollup,
+    billAmounts: capped.billAmounts,
+    total: capped.total,
+    billCount: capped.billAmounts.length,
+    recognizedBillIds: billIds,
+  };
 }

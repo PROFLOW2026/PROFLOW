@@ -12,6 +12,11 @@ import {
   purchaseOrders,
 } from '@drizzle/schema';
 import { RECOGNIZED_VENDOR_BILL_STATUSES } from '@/modules/ap/domain/vendor-cost-recognition';
+import {
+  applyLinkedExpenseDeductionsToContributions,
+  buildLinkedExpenseDeductions,
+} from '@/modules/financials/domain/expense-ap-dedup';
+import type { ProjectExpenseContribution } from '@/modules/financials/domain/cost-aggregation';
 import type { DbExecutor } from '@/shared/db/types';
 import type { CostCodeAmountSlice } from '../domain/cost-code-variance';
 
@@ -112,21 +117,66 @@ async function loadLinkedExpenseIdsForProject(
   organizationId: string,
   projectId: string,
 ): Promise<Set<string>> {
+  const deductions = await loadLinkedExpenseDeductionsForProject(
+    db,
+    organizationId,
+    projectId,
+    'ILS',
+  );
+  return new Set(deductions.keys());
+}
+
+async function loadLinkedExpenseDeductionsForProject(
+  db: DbExecutor,
+  organizationId: string,
+  projectId: string,
+  currency: string,
+): Promise<Map<string, string>> {
   const rows = await db
-    .select({ expenseId: apPoMatches.expenseId })
+    .select({
+      expenseId: apPoMatches.expenseId,
+      matchedAmount: apPoMatches.matchedAmount,
+      expenseCurrency: expenses.currency,
+    })
     .from(apPoMatches)
     .innerJoin(apBills, eq(apBills.id, apPoMatches.apBillId))
+    .innerJoin(expenses, eq(expenses.id, apPoMatches.expenseId))
     .where(
       and(
         eq(apPoMatches.organizationId, organizationId),
+        eq(apPoMatches.status, 'accepted'),
         eq(apBills.organizationId, organizationId),
-        eq(apBills.projectId, projectId),
         inArray(apBills.status, [...RECOGNIZED_VENDOR_BILL_STATUSES]),
+        isNull(apBills.archivedAt),
         isNotNull(apPoMatches.expenseId),
+        eq(expenses.status, 'finalized'),
+        isNull(expenses.archivedAt),
+        sql`(
+          ${apBills.projectId} = ${projectId}
+          OR EXISTS (
+            SELECT 1 FROM ap_bill_project_allocations a
+            WHERE a.ap_bill_id = ${apBills.id}
+              AND a.organization_id = ${organizationId}
+              AND a.target_type = 'project'
+              AND a.project_id = ${projectId}
+              AND a.status = 'applied'
+          )
+        )`,
       ),
     );
-  return new Set(
-    rows.map((row) => row.expenseId).filter((id): id is string => id != null),
+  return buildLinkedExpenseDeductions(
+    rows.flatMap((row) =>
+      row.expenseId
+        ? [
+            {
+              expenseId: row.expenseId,
+              matchedAmount: row.matchedAmount,
+              expenseCurrency: row.expenseCurrency,
+            },
+          ]
+        : [],
+    ),
+    currency,
   );
 }
 
@@ -140,8 +190,12 @@ export async function loadActualAmountsByCostCodeForProject(
   organizationId: string,
   projectId: string,
 ): Promise<CostCodeAmountSlice[]> {
-  const linkedExpenseIds = await loadLinkedExpenseIdsForProject(db, organizationId, projectId);
-  const linkedList = [...linkedExpenseIds];
+  const linkedExpenseDeductions = await loadLinkedExpenseDeductionsForProject(
+    db,
+    organizationId,
+    projectId,
+    'ILS',
+  );
 
   const allocationCostCode = sql<string>`${expenseAllocations.costCodeId}`;
   const allocationFilters = [
@@ -151,19 +205,73 @@ export async function loadActualAmountsByCostCodeForProject(
     eq(expenses.status, 'finalized'),
     isNull(expenses.archivedAt),
   ];
-  if (linkedList.length > 0) {
-    allocationFilters.push(notInArray(expenses.id, linkedList));
-  }
 
   const allocationRows = await db
     .select({
+      expenseId: expenses.id,
       costCodeId: allocationCostCode,
       amount: expenseAllocations.amount,
       currency: expenseAllocations.currency,
+      costFamily: expenses.costFamily,
     })
     .from(expenseAllocations)
     .innerJoin(expenses, eq(expenses.id, expenseAllocations.expenseId))
     .where(and(...allocationFilters));
+
+  const directRows = await db
+    .select({
+      expenseId: expenses.id,
+      costCodeId: expenses.costCodeId,
+      amount: expenses.netAmount,
+      currency: expenses.currency,
+      costFamily: expenses.costFamily,
+    })
+    .from(expenses)
+    .where(
+      and(
+        eq(expenses.organizationId, organizationId),
+        eq(expenses.projectId, projectId),
+        eq(expenses.status, 'finalized'),
+        isNull(expenses.archivedAt),
+        sql`${expenses.costCodeId} is not null`,
+        sql`NOT EXISTS (
+          SELECT 1 FROM ${expenseAllocations} a
+          WHERE a.expense_id = ${expenses.id}
+            AND a.organization_id = ${organizationId}
+            AND a.project_id = ${projectId}
+        )`,
+      ),
+    );
+
+  const contributionLines: ProjectExpenseContribution[] = [
+    ...allocationRows.map((row) => ({
+      amount: row.amount,
+      currency: row.currency,
+      costFamily: row.costFamily as ProjectExpenseContribution['costFamily'],
+      isDirectOnProject: false,
+      isAllocated: true,
+      isSubcontractor: false,
+      projectId,
+      expenseId: row.expenseId,
+      costCodeId: row.costCodeId,
+    })),
+    ...directRows.map((row) => ({
+      amount: row.amount,
+      currency: row.currency,
+      costFamily: row.costFamily as ProjectExpenseContribution['costFamily'],
+      isDirectOnProject: true,
+      isAllocated: false,
+      isSubcontractor: false,
+      projectId,
+      expenseId: row.expenseId,
+      costCodeId: row.costCodeId,
+    })),
+  ];
+
+  const adjusted = applyLinkedExpenseDeductionsToContributions(
+    contributionLines,
+    linkedExpenseDeductions,
+  );
 
   const apCostCode = sql<string>`${apBillLines.costCodeId}`;
   const apRows = await db
@@ -185,7 +293,15 @@ export async function loadActualAmountsByCostCodeForProject(
     );
 
   const slices: CostCodeAmountSlice[] = [];
-  for (const row of [...allocationRows, ...apRows]) {
+  for (const line of adjusted) {
+    if (!line.costCodeId) continue;
+    slices.push({
+      costCodeId: line.costCodeId,
+      amount: line.amount,
+      currency: line.currency,
+    });
+  }
+  for (const row of apRows) {
     if (!row.costCodeId) continue;
     slices.push({
       costCodeId: row.costCodeId,

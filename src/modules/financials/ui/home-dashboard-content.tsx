@@ -908,10 +908,10 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                   },
                   vatLabels,
                   {
-                    payroll: t('businessSummary.cashSource.payroll'),
-                    expense: t('businessSummary.cashSource.expense'),
-                    ap: t('businessSummary.cashSource.ap'),
-                    subcontract_advance: t('businessSummary.cashSource.subcontract_advance'),
+                    payroll: t('businessSummary.cashSourceExpected.payroll'),
+                    expense: t('businessSummary.cashSourceExpected.expense'),
+                    ap: t('businessSummary.cashSourceExpected.ap'),
+                    subcontract_advance: t('businessSummary.cashSourceExpected.subcontract_advance'),
                   },
                   locale,
                 )}

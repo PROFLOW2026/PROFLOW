@@ -41,10 +41,10 @@ describe('audit 81 — NOT VERIFIED execution proofs (2026-10-09)', () => {
     expect(MIN_MONTHLY_ACCRUAL_WORKING_DAYS).toBeGreaterThanOrEqual(15);
   });
 
-  it('WF-006: attendance sync auto-approves only when org setting allows', () => {
+  it('WF-006: manager attendance sync promotes when actor may approve', () => {
     const src = readSrc('src/modules/workforce/application/attendance-project-sync.ts');
-    expect(src).toContain('shouldAutoApproveAttendanceProjectTime');
-    expect(src).toContain('autoApproveOnSync');
+    expect(src).toContain('ATTENDANCE_MANAGE');
+    expect(src).toContain('canApproveEmployeeTime');
   });
 
   it('WF-007: parallel timesheet lifecycle + entry approval modules exist', () => {

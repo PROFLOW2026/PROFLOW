@@ -17,7 +17,10 @@ import {
   zeroMoney,
   type MoneyValue,
 } from '@/shared/money';
-import { applyLinkedExpenseDeductionsToContributions } from '../domain/expense-ap-dedup';
+import {
+  applyLinkedExpenseDeductionsToContributions,
+  applyPartialMatchPolicyToRecognizedVendorRollup,
+} from '../domain/expense-ap-dedup';
 import {
   buildFinancialCoverage,
   defaultCostSourcePresence,
@@ -158,14 +161,21 @@ export function composeProjectFinancials(
     }
   }
 
+  const recognizedVendor = input.recognizedVendor
+    ? applyPartialMatchPolicyToRecognizedVendorRollup(input.recognizedVendor, {
+        currency,
+        expenseContributions: input.expenseContributions,
+      })
+    : null;
+
   const linkedExpenseDeductions =
-    input.recognizedVendor?.linkedExpenseDeductions ?? new Map<string, string>();
+    recognizedVendor?.linkedExpenseDeductions ?? new Map<string, string>();
   const expensesForActual = applyLinkedExpenseDeductionsToContributions(
     input.expenseContributions ?? [],
     linkedExpenseDeductions,
   );
 
-  const hasRecognizedBills = (input.recognizedVendor?.billCount ?? 0) > 0;
+  const hasRecognizedBills = (recognizedVendor?.billCount ?? 0) > 0;
   const aggregated =
     expensesForActual.length > 0 || input.laborInput?.hasWorkforceData || hasRecognizedBills
       ? aggregateProjectCosts(expensesForActual, input.laborInput, currency)
@@ -183,17 +193,17 @@ export function composeProjectFinancials(
     });
   }
 
-  if (input.recognizedVendor) {
+  if (recognizedVendor) {
     const recognition = composeVendorCostRecognition({
       currency,
-      recognizedBillAmounts: input.recognizedVendor.billAmounts,
+      recognizedBillAmounts: recognizedVendor.billAmounts,
       linkedExpenseAmounts: [],
     });
     cost = withRecognizedVendorBills(cost, recognition.netRecognizedVendorActual);
-    if (input.recognizedVendor.excludedForeignCurrencyCount > 0) {
+    if (recognizedVendor.excludedForeignCurrencyCount > 0) {
       commitmentPartials.push({
         reason: 'foreign_currency_ap_excluded',
-        count: input.recognizedVendor.excludedForeignCurrencyCount,
+        count: recognizedVendor.excludedForeignCurrencyCount,
       });
     }
   }

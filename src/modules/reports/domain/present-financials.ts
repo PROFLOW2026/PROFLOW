@@ -1,4 +1,6 @@
+import { resolveForecastCostBasis } from '@/modules/financials/domain/resolve-forecast-cost-basis';
 import type { ProjectFinancials } from '@/modules/financials/domain/types';
+import { DEFAULT_PROJECT_PROFITABILITY_MODE } from '@/modules/tenancy/domain/project-profitability-mode';
 import { formatMoney, formatPercent } from '@/shared/money/format';
 import type { ReportsCopy } from './copy';
 import type { ReportOmitted, ReportSection } from './types';
@@ -23,6 +25,10 @@ export function presentProjectFinancialSummary(
   },
 ): FinancialPresentation {
   const { copy, locale, canReadWorkforceCost } = input;
+  const profitabilityMode =
+    financials.projectProfitabilityMode ?? DEFAULT_PROJECT_PROFITABILITY_MODE;
+  const forecastFinalCost = resolveForecastCostBasis(profitabilityMode, financials.cost)
+    .primaryForecastFinalCost;
   const sections: ReportSection[] = [];
   const notices: string[] = [
     copy.notices.actualCommittedForecast,
@@ -78,7 +84,7 @@ export function presentProjectFinancialSummary(
     },
     {
       label: copy.fields.forecastFinal,
-      value: formatMoney(financials.cost.estimatedFinalCost, locale),
+      value: formatMoney(forecastFinalCost, locale),
       nature: 'forecast' as const,
     },
     { label: copy.fields.openAp, value: formatMoney(financials.cost.openApPayable, locale), nature: 'cash' as const },

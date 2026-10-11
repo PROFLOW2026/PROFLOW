@@ -6,6 +6,11 @@ import {
   operatingExpenseCashItems,
   payrollObligationCashItems,
 } from '@/modules/financials/domain/cash-flow-sources';
+import {
+  expenseApMatchedGrossDeduction,
+  recurringDraftCashForecastBlocked,
+} from '@/modules/financials/domain/expense-ap-cash';
+import { money } from '@/shared/money';
 
 const today = businessDate('2026-09-01');
 
@@ -111,6 +116,111 @@ describe('cash forecast extra sources', () => {
       direction: 'out',
       href: '/procurement/po-1',
     });
+  });
+
+  it('keeps expense cash remainder when only part of the expense is AP-matched (V09-006)', () => {
+    const grossDoc = {
+      grossAmount: '11800',
+      netAmount: '10000',
+      taxAmount: '1800',
+      currency: 'ILS',
+    };
+    const matchedGross = expenseApMatchedGrossDeduction('6000', grossDoc);
+    expect(matchedGross.amount).toBe(money('7080', 'ILS').amount);
+
+    const items = operatingExpenseCashItems(
+      [
+        {
+          id: 'exp-partial-ap',
+          description: 'Partial AP match',
+          projectId: null,
+          grossAmount: '11800',
+          netAmount: '10000',
+          taxAmount: '1800',
+          acceptedApMatchedNetAmount: '6000',
+          currency: 'ILS',
+          expenseDate: businessDate('2026-09-01'),
+          dueDate: businessDate('2026-09-15'),
+          installmentCount: 1,
+          installmentStartDate: null,
+          installmentsPaidCount: 0,
+          paidGrossAmount: '0',
+          paymentStatus: 'upcoming',
+          paidAt: null,
+        },
+      ],
+      'ILS',
+      today,
+    );
+
+    expect(items).toHaveLength(1);
+    expect(items[0]?.amount.amount).toBe(money('4720', 'ILS').amount);
+    expect(items[0]?.sourceType).toBe('operating_expense');
+  });
+
+  it('drops expense cash when AP match covers the full expense gross', () => {
+    const items = operatingExpenseCashItems(
+      [
+        {
+          id: 'exp-full-ap',
+          description: 'Fully matched',
+          projectId: null,
+          grossAmount: '1000',
+          netAmount: '1000',
+          taxAmount: '0',
+          acceptedApMatchedNetAmount: '1000',
+          currency: 'ILS',
+          expenseDate: businessDate('2026-09-01'),
+          dueDate: businessDate('2026-09-15'),
+          installmentCount: 1,
+          installmentStartDate: null,
+          installmentsPaidCount: 0,
+          paidGrossAmount: '0',
+          paymentStatus: 'upcoming',
+          paidAt: null,
+        },
+      ],
+      'ILS',
+      today,
+    );
+    expect(items).toHaveLength(0);
+  });
+
+  it('hides open commitments in a month already settled by a paid recurring occurrence', () => {
+    const paidByProject = new Map<string, Set<string>>([
+      ['proj-1', new Set(['2026-09'])],
+    ]);
+    const items = openCommitmentCashItems(
+      [
+        {
+          id: 'cc-paid-rec',
+          purchaseOrderId: 'po-3',
+          reference: 'PO-rent',
+          projectId: 'proj-1',
+          amount: '5000.000000',
+          currency: 'ILS',
+          expectedCashDate: businessDate('2026-09-10'),
+        },
+        {
+          id: 'cc-next',
+          purchaseOrderId: 'po-4',
+          reference: 'PO-next',
+          projectId: 'proj-1',
+          amount: '5000.000000',
+          currency: 'ILS',
+          expectedCashDate: businessDate('2026-10-10'),
+        },
+      ],
+      'ILS',
+      { paidRecurringMonthsByProjectId: paidByProject },
+    );
+    expect(items.map((item) => item.id)).toEqual(['commitment:cc-next']);
+  });
+
+  it('blocks recurring draft forecast for a month with a paid occurrence', () => {
+    const paid = new Map<string, Set<string>>([['draft-1', new Set(['2026-09'])]]);
+    expect(recurringDraftCashForecastBlocked('draft-1', '2026-09-15', paid)).toBe(true);
+    expect(recurringDraftCashForecastBlocked('draft-1', '2026-10-15', paid)).toBe(false);
   });
 
   it('uses the PO expected cash date and expected certainty, not an invented order date', () => {

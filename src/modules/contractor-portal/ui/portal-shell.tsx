@@ -212,6 +212,11 @@ function UserMenu({
         ) : null}
 
         <DropdownMenuSeparator />
+        <DropdownMenuItem onSelect={() => router.push('/sign-in')}>
+          {t('shell.backToMainApp')}
+        </DropdownMenuItem>
+
+        <DropdownMenuSeparator />
         <DropdownMenuLabel>{t('shell.language')}</DropdownMenuLabel>
         {LOCALES.map((option) => (
           <DropdownMenuItem

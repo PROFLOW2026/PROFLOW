@@ -25,8 +25,6 @@ import {
   deleteDraftTimeEntry,
 } from './time-entries';
 import { approveTimeEntry, submitTimeEntries } from './timesheets';
-import { getLaborCostDefaults } from '@/modules/tenancy/application/labor-cost-defaults';
-import { shouldAutoApproveAttendanceProjectTime } from '@/modules/tenancy/domain/labor-cost-defaults';
 import { recomputeEmployeeCostsAfterTimeChange } from './daily-cost-recompute';
 
 export interface AttendanceProjectSyncResult {
@@ -274,12 +272,14 @@ export async function syncProjectWorkFromAttendance(
     };
   }
 
-  const [canApprove, laborDefaults] = await Promise.all([
-    canApproveEmployeeTime(context, input.employeeId),
-    getLaborCostDefaults(context),
-  ]);
-  const autoApproveOnSync = shouldAutoApproveAttendanceProjectTime(laborDefaults);
-  const canPromote = canApprove && autoApproveOnSync;
+  const canApprove = await canApproveEmployeeTime(context, input.employeeId);
+  /**
+   * Manager attendance sync only (callers require ATTENDANCE_MANAGE).
+   * Promote when the actor may approve time — not via org-wide auto_approve,
+   * so employee self-reported rows elsewhere stay on the approval workflow.
+   */
+  const canPromote =
+    hasPermission(context, PERMISSIONS.ATTENDANCE_MANAGE) && canApprove;
   let createdCount = 0;
   let approvedCount = 0;
   let pendingCount = 0;
