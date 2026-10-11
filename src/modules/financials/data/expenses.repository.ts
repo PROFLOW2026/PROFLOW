@@ -1,4 +1,4 @@
-import { and, eq, inArray, isNotNull, isNull, sql } from 'drizzle-orm';
+import { and, eq, inArray, isNotNull, isNull, sql, type SQL } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import {
   costCategories,
@@ -14,8 +14,10 @@ import {
   addMoney,
   divideMoney,
   fromNumericString,
+  isPositiveMoney,
   isZeroMoney,
   multiplyMoney,
+  subtractMoney,
   roundMoney,
   sumMoney,
   zeroMoney,
@@ -382,64 +384,14 @@ export async function sumOrganizationRecognizedCostsInDateRange(
   fromDate: BusinessDate,
   toDate: BusinessDate,
 ): Promise<MoneyValue> {
-  const row = sqlFirstRow<{ total: string }>(
-    await db.execute(sql`
-      SELECT coalesce(sum(s.amount), 0)::text AS total
-      FROM (
-        -- 1. Finalized expenses whose cost is NOT already covered by a recognized AP bill.
-        --    An expense is excluded when it has at least one accepted match to a recognized
-        --    bill (open/partially_matched/matched) so the AP bill amount is authoritative.
-        SELECT e.net_amount::numeric AS amount
-        FROM expenses e
-        WHERE e.organization_id = ${organizationId}
-          AND e.currency = ${currency}
-          AND e.status = 'finalized'
-          AND e.archived_at IS NULL
-          AND e.expense_date >= ${fromDate}
-          AND e.expense_date <= ${toDate}
-          AND NOT EXISTS (
-            SELECT 1
-            FROM ap_po_matches m
-            INNER JOIN ap_bills b
-              ON b.id = m.ap_bill_id
-              AND b.organization_id = m.organization_id
-            WHERE m.organization_id = ${organizationId}
-              AND m.expense_id = e.id
-              AND m.status = 'accepted'
-              AND b.status IN ('open', 'partially_matched', 'matched')
-              AND b.archived_at IS NULL
-          )
-
-        UNION ALL
-
-        -- 2. Recognized AP vendor bills — billDate used for period recognition
-        --    (billDate = recognition date; dueDate = cash payment date, not used here).
-        SELECT b.net_amount::numeric AS amount
-        FROM ap_bills b
-        WHERE b.organization_id = ${organizationId}
-          AND b.currency = ${currency}
-          AND b.status IN ('open', 'partially_matched', 'matched')
-          AND b.archived_at IS NULL
-          AND b.bill_date IS NOT NULL
-          AND b.bill_date >= ${fromDate}
-          AND b.bill_date <= ${toDate}
-
-        UNION ALL
-
-        -- 3. Employee monthly labor costs whose yearMonth overlaps the date range.
-        --    knownAmount is the best-available figure (actual when closed, estimated otherwise).
-        SELECT emc.known_amount::numeric AS amount
-        FROM employee_month_costs emc
-        WHERE emc.organization_id = ${organizationId}
-          AND emc.currency = ${currency}
-          AND emc.status IN ('draft', 'applied', 'closed')
-          AND emc.year_month >= to_char(${fromDate}::date, 'YYYY-MM')
-          AND emc.year_month <= to_char(${toDate}::date, 'YYYY-MM')
-      ) s
-    `),
+  const pair = await sumOrganizationRecognizedCostPairInDateRange(
+    db,
+    organizationId,
+    currency,
+    fromDate,
+    toDate,
   );
-
-  return fromNumericString(row?.total ?? '0', currency) ?? zeroMoney(currency);
+  return pair.net;
 }
 
 /**
@@ -619,13 +571,249 @@ export async function sumOrganizationActualCosts(
   return { total, hasExpenseData: (row?.count ?? 0) > 0 };
 }
 
+function paymentRecognizedNetShareInMonth(
+  fields: ExpensePaymentRecognitionFields,
+  yearMonth: string,
+  shareNetAmount: string,
+): MoneyValue | null {
+  const currency = fields.currency;
+  const monthNet = recognizedExpenseNetInYearMonth(fields, yearMonth);
+  if (!monthNet) return null;
+  const parentNet = fromNumericString(fields.netAmount, currency);
+  const share = fromNumericString(shareNet, currency);
+  if (!parentNet || !share || isZeroMoney(parentNet)) return null;
+  if (share.amount === parentNet.amount) return monthNet;
+  return roundMoney(divideMoney(multiplyMoney(monthNet, share.amount), parentNet.amount));
+}
+
+function sqlNoProjectExpenseAllocations(): SQL {
+  return sql`NOT EXISTS (
+    SELECT 1 FROM expense_allocations a
+    WHERE a.expense_id = ${expenses.id}
+      AND a.organization_id = ${expenses.organizationId}
+      AND a.project_id IS NOT NULL
+  )`;
+}
+
+async function loadAutoPoolUnallocatedExpenseIds(
+  db: DbExecutor,
+  organizationId: string,
+  currency: string,
+): Promise<readonly string[]> {
+  const intentReady = await isAllocationIntentSchemaReady(db);
+  const filters = [
+    eq(expenses.organizationId, organizationId),
+    eq(expenses.currency, currency),
+    eq(expenses.status, 'finalized'),
+    isNull(expenses.archivedAt),
+    eq(expenses.inventoryStockPurchase, false),
+    isNull(expenses.projectId),
+    sqlNoProjectExpenseAllocations(),
+  ];
+  if (intentReady) {
+    filters.push(eq(expenses.allocationIntent, 'auto_pool'));
+  }
+  const rows = await db.select({ id: expenses.id }).from(expenses).where(and(...filters));
+  return rows.map((row) => row.id);
+}
+
+/** General-cost expense sources (unallocated pool + company-only) by payment-based NET. */
+export async function loadGeneralCostExpenseSourceTotalsByMonths(
+  db: DbExecutor,
+  organizationId: string,
+  currency: string,
+  yearMonths: readonly string[],
+  options: { readonly includeUnallocated: boolean; readonly includeCompanyOnly: boolean },
+): Promise<
+  readonly { readonly yearMonth: string; readonly sourceKind: string; readonly total: string }[]
+> {
+  if (yearMonths.length === 0) return [];
+  const intentReady = await isAllocationIntentSchemaReady(db);
+  const unallocatedByMonth = new Map<string, MoneyValue>();
+  const companyOnlyByMonth = new Map<string, MoneyValue>();
+  for (const ym of yearMonths) {
+    unallocatedByMonth.set(ym, zeroMoney(currency));
+    companyOnlyByMonth.set(ym, zeroMoney(currency));
+  }
+
+  if (options.includeUnallocated) {
+    const ids = await loadAutoPoolUnallocatedExpenseIds(db, organizationId, currency);
+    const fieldsById = await loadExpensePaymentRecognitionFields(db, organizationId, ids);
+    for (const fields of fieldsById.values()) {
+      for (const ym of yearMonths) {
+        const slice = recognizedExpenseNetInYearMonth(fields, ym);
+        if (!slice) continue;
+        unallocatedByMonth.set(ym, addMoney(unallocatedByMonth.get(ym) ?? zeroMoney(currency), slice));
+      }
+    }
+
+    if (intentReady) {
+      const partialRows = await db
+        .select({
+          expenseId: expenses.id,
+          netAmount: expenses.netAmount,
+          projectAllocated: sql<string>`coalesce((
+            select sum(a.amount)
+            from expense_allocations a
+            where a.expense_id = ${expenses.id}
+              and a.organization_id = ${expenses.organizationId}
+              and a.project_id is not null
+          ), 0)::text`.as('projectAllocated'),
+        })
+        .from(expenses)
+        .where(
+          and(
+            eq(expenses.organizationId, organizationId),
+            eq(expenses.currency, currency),
+            eq(expenses.status, 'finalized'),
+            isNull(expenses.archivedAt),
+            eq(expenses.inventoryStockPurchase, false),
+            isNull(expenses.projectId),
+            eq(expenses.allocationIntent, 'auto_pool'),
+            sql`EXISTS (
+              SELECT 1 FROM expense_allocations a
+              WHERE a.expense_id = ${expenses.id}
+                AND a.organization_id = ${expenses.organizationId}
+                AND a.project_id IS NOT NULL
+            )`,
+          ),
+        );
+      const partialIds = partialRows.map((row) => row.expenseId);
+      const partialFields = await loadExpensePaymentRecognitionFields(
+        db,
+        organizationId,
+        partialIds,
+      );
+      for (const row of partialRows) {
+        const fields = partialFields.get(row.expenseId);
+        if (!fields) continue;
+        const parentNet = fromNumericString(row.netAmount, currency);
+        const allocated = fromNumericString(row.projectAllocated, currency) ?? zeroMoney(currency);
+        if (!parentNet) continue;
+        const remainder = subtractMoney(parentNet, allocated);
+        if (!isPositiveMoney(remainder)) continue;
+        for (const ym of yearMonths) {
+          const slice = paymentRecognizedNetShareInMonth(fields, ym, remainder.amount);
+          if (!slice) continue;
+          unallocatedByMonth.set(
+            ym,
+            addMoney(unallocatedByMonth.get(ym) ?? zeroMoney(currency), slice),
+          );
+        }
+      }
+    }
+  }
+
+  if (options.includeCompanyOnly && intentReady) {
+    const companyRows = await db
+      .select({
+        expenseId: expenses.id,
+        netAmount: expenses.netAmount,
+        projectAllocated: sql<string>`coalesce((
+          select sum(a.amount)
+          from expense_allocations a
+          where a.expense_id = ${expenses.id}
+            and a.organization_id = ${expenses.organizationId}
+            and a.project_id is not null
+        ), 0)::text`.as('projectAllocated'),
+      })
+      .from(expenses)
+      .where(
+        and(
+          eq(expenses.organizationId, organizationId),
+          eq(expenses.currency, currency),
+          eq(expenses.status, 'finalized'),
+          isNull(expenses.archivedAt),
+          eq(expenses.inventoryStockPurchase, false),
+          isNull(expenses.projectId),
+          eq(expenses.allocationIntent, 'company_only'),
+        ),
+      );
+    const companyIds = companyRows.map((row) => row.expenseId);
+    const companyFields = await loadExpensePaymentRecognitionFields(db, organizationId, companyIds);
+    for (const row of companyRows) {
+      const fields = companyFields.get(row.expenseId);
+      if (!fields) continue;
+      const parentNet = fromNumericString(row.netAmount, currency);
+      const allocated = fromNumericString(row.projectAllocated, currency) ?? zeroMoney(currency);
+      if (!parentNet) continue;
+      const share = subtractMoney(parentNet, allocated);
+      if (!isPositiveMoney(share)) continue;
+      for (const ym of yearMonths) {
+        const slice = paymentRecognizedNetShareInMonth(fields, ym, share.amount);
+        if (!slice) continue;
+        companyOnlyByMonth.set(
+          ym,
+          addMoney(companyOnlyByMonth.get(ym) ?? zeroMoney(currency), slice),
+        );
+      }
+    }
+
+    const overheadRows = await db
+      .select({
+        expenseId: expenses.id,
+        amount: expenseAllocations.amount,
+      })
+      .from(expenseAllocations)
+      .innerJoin(expenses, eq(expenses.id, expenseAllocations.expenseId))
+      .where(
+        and(
+          eq(expenseAllocations.organizationId, organizationId),
+          eq(expenses.currency, currency),
+          eq(expenses.status, 'finalized'),
+          isNull(expenses.archivedAt),
+          eq(expenses.inventoryStockPurchase, false),
+          isNull(expenses.projectId),
+          eq(expenses.allocationIntent, 'project_allocate'),
+          eq(expenseAllocations.targetType, 'overhead'),
+        ),
+      );
+    const overheadExpenseIds = [...new Set(overheadRows.map((row) => row.expenseId))];
+    const overheadFields = await loadExpensePaymentRecognitionFields(
+      db,
+      organizationId,
+      overheadExpenseIds,
+    );
+    for (const row of overheadRows) {
+      const fields = overheadFields.get(row.expenseId);
+      if (!fields) continue;
+      for (const ym of yearMonths) {
+        const slice = paymentRecognizedNetShareInMonth(fields, ym, row.amount);
+        if (!slice) continue;
+        companyOnlyByMonth.set(
+          ym,
+          addMoney(companyOnlyByMonth.get(ym) ?? zeroMoney(currency), slice),
+        );
+      }
+    }
+  }
+
+  const out: { yearMonth: string; sourceKind: string; total: string }[] = [];
+  for (const ym of yearMonths) {
+    if (options.includeUnallocated) {
+      out.push({
+        yearMonth: ym,
+        sourceKind: 'expense_unallocated',
+        total: roundMoney(unallocatedByMonth.get(ym) ?? zeroMoney(currency)).amount,
+      });
+    }
+    if (options.includeCompanyOnly && intentReady) {
+      out.push({
+        yearMonth: ym,
+        sourceKind: 'expense_company_only',
+        total: roundMoney(companyOnlyByMonth.get(ym) ?? zeroMoney(currency)).amount,
+      });
+    }
+  }
+  return out;
+}
+
 /**
  * Finalized expenses in a calendar month that do not touch a project
  * (no project_id and no expense_allocations lines) — monthly General Pool source.
  * Excludes inventory_stock_purchase (stock state, not operating Actual).
  *
- * Installment expenses (`installment_count` > 1 with schedule lines) contribute
- * only that month's schedule line, not full NET on expense_date.
+ * Installment expenses: NET only in months when installments were paid (owner policy).
  */
 export async function sumUnallocatedExpensesForMonth(
   db: DbExecutor,
@@ -633,51 +821,10 @@ export async function sumUnallocatedExpensesForMonth(
   currency: string,
   yearMonth: string,
 ): Promise<MoneyValue> {
-  const autoPoolFilter = await sqlExpenseAutoPoolFilterIfReady(db);
-  const row = sqlFirstRow<{ total: string }>(
-    await db.execute(sql`
-      select coalesce(sum(s.contrib), 0)::text as total
-      from (
-        select
-          case
-            when e.installment_count > 1 and exists (
-              select 1
-              from expense_managerial_schedule_lines l
-              where l.expense_id = e.id
-                and l.organization_id = e.organization_id
-                and l.status in ('scheduled', 'recognized')
-            )
-            then coalesce((
-              select sum(l2.amount)
-              from expense_managerial_schedule_lines l2
-              where l2.expense_id = e.id
-                and l2.organization_id = e.organization_id
-                and l2.year_month = ${yearMonth}
-                and l2.status in ('scheduled', 'recognized')
-            ), 0)
-            else case
-              when to_char(e.expense_date::date, 'YYYY-MM') = ${yearMonth} then e.net_amount
-              else 0
-            end
-          end as contrib
-        from expenses e
-        where e.organization_id = ${organizationId}
-          and e.currency = ${currency}
-          and e.status = 'finalized'
-          and e.archived_at is null
-          and coalesce(e.inventory_stock_purchase, false) = false
-          and e.project_id is null
-          ${autoPoolFilter}
-          and not exists (
-            select 1 from expense_allocations a
-            where a.expense_id = e.id
-              and a.organization_id = e.organization_id
-              and a.project_id is not null
-          )
-      ) s
-    `),
-  );
-  return fromNumericString(row?.total ?? '0', currency) ?? zeroMoney(currency);
+  const grouped = await sumUnallocatedExpensesGroupedByYearMonth(db, organizationId, currency, [
+    yearMonth,
+  ]);
+  return grouped.get(yearMonth) ?? zeroMoney(currency);
 }
 
 /** Company-only general expenses — excluded from GCM auto-allocation and project Actual. */
@@ -690,73 +837,14 @@ export async function sumCompanyOnlyExpensesForMonth(
   if (!(await isAllocationIntentSchemaReady(db))) {
     return zeroMoney(currency);
   }
-  const row = sqlFirstRow<{ total: string }>(
-    await db.execute(sql`
-      select coalesce(sum(s.contrib), 0)::text as total
-      from (
-        select
-          case
-            when e.installment_count > 1 and exists (
-              select 1
-              from expense_managerial_schedule_lines l
-              where l.expense_id = e.id
-                and l.organization_id = e.organization_id
-                and l.status in ('scheduled', 'recognized')
-            )
-            then coalesce((
-              select sum(l2.amount)
-              from expense_managerial_schedule_lines l2
-              where l2.expense_id = e.id
-                and l2.organization_id = e.organization_id
-                and l2.year_month = ${yearMonth}
-                and l2.status in ('scheduled', 'recognized')
-            ), 0)
-            else case
-              when to_char(e.expense_date::date, 'YYYY-MM') = ${yearMonth} then (
-                e.net_amount - coalesce((
-                  select sum(a.amount)
-                  from expense_allocations a
-                  where a.expense_id = e.id
-                    and a.organization_id = e.organization_id
-                    and a.project_id is not null
-                ), 0)
-              )
-              else 0
-            end
-          end as contrib
-        from expenses e
-        where e.organization_id = ${organizationId}
-          and e.currency = ${currency}
-          and e.status = 'finalized'
-          and e.archived_at is null
-          and coalesce(e.inventory_stock_purchase, false) = false
-          and e.project_id is null
-          and e.allocation_intent = 'company_only'
-        union all
-        select coalesce((
-          select sum(a.amount)
-          from expense_allocations a
-          where a.expense_id = e.id
-            and a.organization_id = e.organization_id
-            and a.target_type = 'overhead'
-        ), 0) as contrib
-        from expenses e
-        where e.organization_id = ${organizationId}
-          and e.currency = ${currency}
-          and e.status = 'finalized'
-          and e.archived_at is null
-          and coalesce(e.inventory_stock_purchase, false) = false
-          and e.project_id is null
-          and e.allocation_intent = 'project_allocate'
-          and exists (
-            select 1 from expense_allocations a
-            where a.expense_id = e.id
-              and a.organization_id = e.organization_id
-              and a.target_type = 'overhead'
-          )
-      ) s
-    `),
+  const rows = await loadGeneralCostExpenseSourceTotalsByMonths(
+    db,
+    organizationId,
+    currency,
+    [yearMonth],
+    { includeUnallocated: false, includeCompanyOnly: true },
   );
+  const row = rows.find((r) => r.sourceKind === 'expense_company_only' && r.yearMonth === yearMonth);
   return fromNumericString(row?.total ?? '0', currency) ?? zeroMoney(currency);
 }
 
@@ -827,68 +915,22 @@ export async function sumUnallocatedExpensesGroupedByYearMonth(
 ): Promise<Map<string, MoneyValue>> {
   const result = new Map<string, MoneyValue>();
   if (yearMonths.length === 0) return result;
-  const autoPoolFilter = await sqlExpenseAutoPoolFilterIfReady(db);
-  const rows = sqlRows<{ yearMonth: string; total: string }>(
-    await db.execute(sql`
-      select s.ym as "yearMonth", coalesce(sum(s.contrib), 0)::text as total
-      from (
-        select
-          l.year_month as ym,
-          l.amount as contrib
-        from expense_managerial_schedule_lines l
-        inner join expenses e
-          on e.id = l.expense_id
-          and e.organization_id = l.organization_id
-        where l.organization_id = ${organizationId}
-          and l.year_month in (${sql.join(yearMonths.map((ym) => sql`${ym}`), sql`, `)})
-          and l.status in ('scheduled', 'recognized')
-          and e.currency = ${currency}
-          and e.status = 'finalized'
-          and e.archived_at is null
-          and coalesce(e.inventory_stock_purchase, false) = false
-          and e.project_id is null
-          ${autoPoolFilter}
-          and e.installment_count > 1
-          and not exists (
-            select 1 from expense_allocations a
-            where a.expense_id = e.id
-              and a.organization_id = e.organization_id
-              and a.project_id is not null
-          )
-        union all
-        select
-          to_char(e.expense_date::date, 'YYYY-MM') as ym,
-          e.net_amount as contrib
-        from expenses e
-        where e.organization_id = ${organizationId}
-          and e.currency = ${currency}
-          and e.status = 'finalized'
-          and e.archived_at is null
-          and coalesce(e.inventory_stock_purchase, false) = false
-          and e.project_id is null
-          ${autoPoolFilter}
-          and to_char(e.expense_date::date, 'YYYY-MM') in (${sql.join(yearMonths.map((ym) => sql`${ym}`), sql`, `)})
-          and not (
-            e.installment_count > 1 and exists (
-              select 1
-              from expense_managerial_schedule_lines l
-              where l.expense_id = e.id
-                and l.organization_id = e.organization_id
-                and l.status in ('scheduled', 'recognized')
-            )
-          )
-          and not exists (
-            select 1 from expense_allocations a
-            where a.expense_id = e.id
-              and a.organization_id = e.organization_id
-              and a.project_id is not null
-          )
-      ) s
-      group by s.ym
-    `),
+  for (const ym of yearMonths) {
+    result.set(ym, zeroMoney(currency));
+  }
+  const rows = await loadGeneralCostExpenseSourceTotalsByMonths(
+    db,
+    organizationId,
+    currency,
+    yearMonths,
+    { includeUnallocated: true, includeCompanyOnly: false },
   );
   for (const row of rows) {
-    result.set(row.yearMonth, fromNumericString(row.total, currency) ?? zeroMoney(currency));
+    if (row.sourceKind !== 'expense_unallocated') continue;
+    result.set(
+      row.yearMonth,
+      fromNumericString(row.total, currency) ?? zeroMoney(currency),
+    );
   }
   return result;
 }

@@ -6,6 +6,7 @@
 import { sql } from 'drizzle-orm';
 import type { DbExecutor } from '@/shared/db/types';
 import { fromNumericString, zeroMoney, type MoneyValue } from '@/shared/money';
+import { loadGeneralCostExpenseSourceTotalsByMonths } from './expenses.repository';
 import { isAllocationIntentSchemaReady } from './allocation-intent-schema';
 import type { GeneralCostSourceKind } from '../domain/company-actual';
 import { sqlRows } from './sql-rows';
@@ -47,133 +48,16 @@ export async function loadGeneralCostNonApSourceTotalsByMonths(
   const ymList = sql.join(yearMonths.map((ym) => sql`${ym}`), sql`, `);
   const { startDate, endDate } = yearMonthDateBounds(yearMonths);
   const intentReady = await isAllocationIntentSchemaReady(db);
-  const autoPoolFilter = intentReady ? sql`and e.allocation_intent = 'auto_pool'` : sql``;
 
-  const expensePart = options.includeExpenses
-    ? sql`
-        select s.ym as "yearMonth", 'expense_unallocated'::text as "sourceKind", coalesce(sum(s.contrib), 0)::text as total
-        from (
-          select l.year_month as ym, l.amount as contrib
-          from expense_managerial_schedule_lines l
-          inner join expenses e on e.id = l.expense_id and e.organization_id = l.organization_id
-          where l.organization_id = ${organizationId}
-            and l.year_month in (${ymList})
-            and l.status in ('scheduled', 'recognized')
-            and e.currency = ${normalized}
-            and e.status = 'finalized'
-            and e.archived_at is null
-            and coalesce(e.inventory_stock_purchase, false) = false
-            and e.project_id is null
-            ${autoPoolFilter}
-            and e.installment_count > 1
-            and not exists (
-              select 1 from expense_allocations a
-              where a.expense_id = e.id and a.organization_id = e.organization_id and a.project_id is not null
-            )
-          union all
-          select to_char(e.expense_date::date, 'YYYY-MM') as ym, e.net_amount as contrib
-          from expenses e
-          where e.organization_id = ${organizationId}
-            and e.currency = ${normalized}
-            and e.status = 'finalized'
-            and e.archived_at is null
-            and coalesce(e.inventory_stock_purchase, false) = false
-            and e.project_id is null
-            ${autoPoolFilter}
-            and to_char(e.expense_date::date, 'YYYY-MM') in (${ymList})
-            and not (
-              e.installment_count > 1 and exists (
-                select 1 from expense_managerial_schedule_lines l
-                where l.expense_id = e.id and l.organization_id = e.organization_id
-                  and l.status in ('scheduled', 'recognized')
-              )
-            )
-            and not exists (
-              select 1 from expense_allocations a
-              where a.expense_id = e.id and a.organization_id = e.organization_id and a.project_id is not null
-            )
-          union all
-          select to_char(e.expense_date::date, 'YYYY-MM') as ym,
-            (
-              e.net_amount - coalesce((
-                select sum(a.amount)
-                from expense_allocations a
-                where a.expense_id = e.id
-                  and a.organization_id = e.organization_id
-                  and a.project_id is not null
-              ), 0)
-            ) as contrib
-          from expenses e
-          where e.organization_id = ${organizationId}
-            and e.currency = ${normalized}
-            and e.status = 'finalized'
-            and e.archived_at is null
-            and coalesce(e.inventory_stock_purchase, false) = false
-            and e.project_id is null
-            and e.allocation_intent = 'auto_pool'
-            and coalesce(e.installment_count, 1) <= 1
-            and to_char(e.expense_date::date, 'YYYY-MM') in (${ymList})
-            and exists (
-              select 1 from expense_allocations a
-              where a.expense_id = e.id
-                and a.organization_id = e.organization_id
-                and a.project_id is not null
-            )
-            and (
-              e.net_amount - coalesce((
-                select sum(a.amount)
-                from expense_allocations a
-                where a.expense_id = e.id
-                  and a.organization_id = e.organization_id
-                  and a.project_id is not null
-              ), 0)
-            ) > 0
-        ) s
-        group by s.ym
-        ${
-          intentReady
-            ? sql`
-        union all
-        select s.ym as "yearMonth", 'expense_company_only'::text as "sourceKind", coalesce(sum(s.contrib), 0)::text as total
-        from (
-          select to_char(e.expense_date::date, 'YYYY-MM') as ym,
-            (
-              e.net_amount - coalesce((
-                select sum(a.amount)
-                from expense_allocations a
-                where a.expense_id = e.id
-                  and a.organization_id = e.organization_id
-                  and a.project_id is not null
-              ), 0)
-            ) as contrib
-          from expenses e
-          where e.organization_id = ${organizationId}
-            and e.currency = ${normalized}
-            and e.status = 'finalized'
-            and e.archived_at is null
-            and coalesce(e.inventory_stock_purchase, false) = false
-            and e.project_id is null
-            and e.allocation_intent = 'company_only'
-            and to_char(e.expense_date::date, 'YYYY-MM') in (${ymList})
-          union all
-          select to_char(e.expense_date::date, 'YYYY-MM') as ym, a.amount as contrib
-          from expense_allocations a
-          inner join expenses e on e.id = a.expense_id and e.organization_id = a.organization_id
-          where a.organization_id = ${organizationId}
-            and e.currency = ${normalized}
-            and e.status = 'finalized'
-            and e.archived_at is null
-            and e.project_id is null
-            and e.allocation_intent = 'project_allocate'
-            and a.target_type = 'overhead'
-            and to_char(e.expense_date::date, 'YYYY-MM') in (${ymList})
-        ) s
-        group by s.ym
-              `
-            : sql``
-        }
-      `
-    : sql`select null::text as "yearMonth", null::text as "sourceKind", null::text as total where false`;
+  const expenseRows = options.includeExpenses
+    ? await loadGeneralCostExpenseSourceTotalsByMonths(
+        db,
+        organizationId,
+        normalized,
+        yearMonths,
+        { includeUnallocated: true, includeCompanyOnly: intentReady },
+      )
+    : [];
 
   const laborMonthlyPart = options.includeWorkforce
     ? sql`
@@ -265,10 +149,8 @@ export async function loadGeneralCostNonApSourceTotalsByMonths(
     group by 1
   `;
 
-  return sqlRows<GeneralCostNonApSourceRow>(
+  const laborRows = sqlRows<GeneralCostNonApSourceRow>(
     await db.execute(sql`
-      ${expensePart}
-      union all
       ${laborMonthlyPart}
       union all
       ${laborNonProjectPart}
@@ -276,6 +158,8 @@ export async function loadGeneralCostNonApSourceTotalsByMonths(
       ${writeoffPart}
     `),
   );
+
+  return [...expenseRows, ...laborRows] as readonly GeneralCostNonApSourceRow[];
 }
 
 export function foldGeneralCostNonApSourceRows(
