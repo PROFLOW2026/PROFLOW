@@ -33,7 +33,7 @@ import {
   type MonthPayrollCashSnapshot,
 } from '../domain/month-cash-flow';
 import { loadAcceptedApMatchNetByExpenseId } from './cash-flow-sources.repository';
-import { loadVerifiedInstallmentPaymentsByExpenseIds } from '@/modules/expenses/data/expense-installment-payments.repository';
+import { loadVerifiedInstallmentPaymentsByExpenseIds } from '@/modules/expenses';
 
 const PAID_ADVANCE_STATUSES = [
   'paid',

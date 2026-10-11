@@ -18,16 +18,12 @@ import {
   multiplyMoney,
   subtractMoney,
   roundMoney,
-  sumMoney,
   zeroMoney,
   type MoneyValue,
 } from '@/shared/money';
 import type { DbExecutor } from '@/shared/db/types';
 import type { DbCostFamily, ProjectExpenseContribution } from '../domain/cost-aggregation';
-import {
-  isAllocationIntentSchemaReady,
-  sqlExpenseAutoPoolFilterIfReady,
-} from './allocation-intent-schema';
+import { isAllocationIntentSchemaReady } from './allocation-intent-schema';
 import { isInternalEmployeePayrollCategoryKey } from '../domain/labor-expense-integrity';
 import {
   recognizedExpenseGrossInYearMonth,
@@ -38,7 +34,7 @@ import {
 import {
   loadInstallmentPaymentStateByExpenseIds,
   loadVerifiedInstallmentPaymentsByExpenseIds,
-} from '@/modules/expenses/data/expense-installment-payments.repository';
+} from '@/modules/expenses';
 import { sqlFirstRow, sqlRows } from './sql-rows';
 
 export async function loadProjectExpenseContributions(

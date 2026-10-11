@@ -118,6 +118,15 @@ export function recognizedExpenseNetInYearMonth(
   const verifiedSlice = recognizedFromVerifiedInstallments(fields, yearMonth, 'net');
   if (verifiedSlice) return verifiedSlice;
 
+  const dateUnknownGross =
+    fromNumericString(fields.dateUnknownGross ?? '0', currency) ?? zeroMoney(currency);
+  if (
+    isPositiveMoney(dateUnknownGross) ||
+    fields.installmentPaymentStatus === 'PAID_DATE_UNKNOWN'
+  ) {
+    return null;
+  }
+
   const schedule = resolveCashInstallmentLines({
     totalGross: grossTotal,
     installmentCount: count,
@@ -169,6 +178,15 @@ export function recognizedExpenseGrossInYearMonth(
 
   const verifiedSlice = recognizedFromVerifiedInstallments(fields, yearMonth, 'gross');
   if (verifiedSlice) return verifiedSlice;
+
+  const dateUnknownGross =
+    fromNumericString(fields.dateUnknownGross ?? '0', currency) ?? zeroMoney(currency);
+  if (
+    isPositiveMoney(dateUnknownGross) ||
+    fields.installmentPaymentStatus === 'PAID_DATE_UNKNOWN'
+  ) {
+    return null;
+  }
 
   const schedule = resolveCashInstallmentLines({
     totalGross: grossTotal,

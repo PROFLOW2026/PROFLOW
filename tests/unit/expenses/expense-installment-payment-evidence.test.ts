@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { businessDate } from '@/shared/dates';
 import {
   resolveInstallmentPaymentState,
   resolveVerifiedInstallmentPayments,
@@ -35,7 +34,7 @@ describe('expense installment payment evidence', () => {
     expect(state.slices[0]?.actualPaidAt).toBe('2026-03-01');
   });
 
-  it('lump audit without index is PAID_VERIFIED in paid month', () => {
+  it('manual lump audit on multi-installment expense is PAID_DATE_UNKNOWN (BMS)', () => {
     const state = resolveInstallmentPaymentState({
       grossAmount: '8689.000000',
       currency: 'ILS',
@@ -58,9 +57,11 @@ describe('expense installment payment evidence', () => {
         },
       ],
     });
-    expect(state.status).toBe('PAID_VERIFIED');
-    expect(state.verifiedGrossTotal.amount).toBe('8689.000000');
-    expect(state.dateUnknownGross.amount).toBe('0.000000');
+    expect(state.status).toBe('PAID_DATE_UNKNOWN');
+    expect(state.verifiedGrossTotal.amount).toBe('0.000000');
+    expect(state.dateUnknownGross.amount).toBe('8689.000000');
+    expect(state.slices[0]?.verification).toBe('date_unknown');
+    expect(state.slices[0]?.actualPaidAt).toBeNull();
   });
 
   it('resolveVerifiedInstallmentPayments for cellular-like row', () => {

@@ -90,4 +90,8 @@ export type {
 
 /** Cross-module org-scoped lookups (FK / tenancy guards). */
 export { findExpenseById, findCostCategoryById, updateExpenseRow } from './data/expenses.repository';
+export {
+  loadInstallmentPaymentStateByExpenseIds,
+  loadVerifiedInstallmentPaymentsByExpenseIds,
+} from './data/expense-installment-payments.repository';
 export { listScheduleLines } from './data/managerial-schedule.repository';

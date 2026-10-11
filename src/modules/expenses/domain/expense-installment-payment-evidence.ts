@@ -9,7 +9,6 @@ import {
   fromNumericString,
   isPositiveMoney,
   isZeroMoney,
-  money,
   roundMoney,
   subtractMoney,
   zeroMoney,
@@ -54,6 +53,24 @@ export interface InstallmentPaymentResolution {
   readonly verifiedGrossTotal: MoneyValue;
   readonly paidGrossTotal: MoneyValue;
   readonly openGross: MoneyValue;
+}
+
+/** Drop lump confirmations voided before indexed installment evidence (e.g. דלק). */
+function paymentConfirmedAudits(audits: readonly ExpensePaymentAuditRow[]): ExpensePaymentAuditRow[] {
+  const sorted = [...audits].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  const voidAt = sorted
+    .filter((row) => row.action === 'expense.payment_confirmation_voided')
+    .map((row) => row.createdAt);
+  if (voidAt.length === 0) {
+    return sorted.filter((row) => row.action === 'expense.payment_confirmed');
+  }
+  const lastVoid = voidAt[voidAt.length - 1]!;
+  return sorted.filter((row) => {
+    if (row.action !== 'expense.payment_confirmed') return false;
+    const slice = readAuditPaymentSlice(row.after);
+    if (slice?.installmentIndex != null) return true;
+    return row.createdAt > lastVoid;
+  });
 }
 
 function readAuditPaymentSlice(after: unknown): {
@@ -117,6 +134,7 @@ function slicesFromLumpAudits(
   audits: readonly ExpensePaymentAuditRow[],
   currency: string,
   expenseDate: BusinessDate,
+  installmentCount: number,
 ): InstallmentPaymentSlice[] {
   const confirmed = audits
     .filter((row) => row.action === 'expense.payment_confirmed')
@@ -127,7 +145,32 @@ function slicesFromLumpAudits(
     if (!slice || slice.installmentIndex != null) continue;
     const gross = fromNumericString(slice.grossPaid, currency);
     if (!gross || !isPositiveMoney(gross)) continue;
-    if (!slice.paidAt) continue;
+    const manualMultiInstallment =
+      installmentCount > 1 && (slice.source === 'manual' || slice.source == null);
+    if (manualMultiInstallment) {
+      out.push({
+        installmentIndex: -1,
+        dueDate: expenseDate,
+        actualPaidAt: null,
+        grossPaid: roundMoney(gross),
+        verification: 'date_unknown',
+        source: 'audit',
+        paymentReference: slice.source,
+      });
+      continue;
+    }
+    if (!slice.paidAt) {
+      out.push({
+        installmentIndex: -1,
+        dueDate: expenseDate,
+        actualPaidAt: null,
+        grossPaid: roundMoney(gross),
+        verification: 'date_unknown',
+        source: 'audit',
+        paymentReference: slice.source,
+      });
+      continue;
+    }
     out.push({
       installmentIndex: -1,
       dueDate: expenseDate,
@@ -213,31 +256,29 @@ export function resolveInstallmentPaymentState(input: {
     stored: input.cashInstallmentSchedule,
   });
   const expenseDate = businessDate(input.expenseDate);
+  const confirmedAudits = paymentConfirmedAudits(input.audits);
 
   const slices: InstallmentPaymentSlice[] = [
-    ...slicesFromIndexedAudits(input.audits, schedule, currency),
-    ...slicesFromLumpAudits(input.audits, currency, expenseDate),
+    ...slicesFromIndexedAudits(confirmedAudits, schedule, currency),
+    ...slicesFromLumpAudits(confirmedAudits, currency, expenseDate, input.installmentCount),
     ...slicesFromStoredSchedule(input.cashInstallmentSchedule, schedule, currency),
   ];
 
   let verifiedGross = zeroMoney(currency);
+  let dateUnknownGross = zeroMoney(currency);
   for (const slice of slices) {
+    if (slice.verification === 'date_unknown') {
+      dateUnknownGross = addMoney(dateUnknownGross, slice.grossPaid);
+      continue;
+    }
     if (slice.verification === 'verified' && slice.actualPaidAt) {
       verifiedGross = addMoney(verifiedGross, slice.grossPaid);
     }
   }
+  dateUnknownGross = roundMoney(dateUnknownGross);
 
-  const hasLump = slices.some((s) => s.installmentIndex === -1 && s.verification === 'verified');
-  let dateUnknownGross = zeroMoney(currency);
-
-  if (isPositiveMoney(paidGross)) {
-    const remainder = subtractMoney(paidGross, verifiedGross);
-    if (isPositiveMoney(remainder)) {
-      dateUnknownGross = roundMoney(remainder);
-    }
-  }
-
-  if (!hasLump && input.installmentsPaidCount > 0 && isPositiveMoney(paidGross)) {
+  const hasAnyLumpSlice = slices.some((s) => s.installmentIndex === -1);
+  if (!hasAnyLumpSlice && input.installmentsPaidCount > 0 && isPositiveMoney(paidGross)) {
     const indexed = new Set(
       slices.filter((s) => s.installmentIndex >= 0).map((s) => s.installmentIndex),
     );

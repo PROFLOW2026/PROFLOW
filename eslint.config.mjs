@@ -18,6 +18,8 @@ const config = [
       'next-env.d.ts',
       'public/pdf.worker.min.mjs',
       'scripts/.**',
+      '.tools/**',
+      'docs/**/scripts/**',
     ],
   },
   ...nextCoreWebVitals,

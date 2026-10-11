@@ -90,24 +90,17 @@ describe('installment payment recognition (owner policy)', () => {
     expect(Number(recognizedExpenseNetInYearMonth(aprLate, '2026-04')?.amount)).toBeCloseTo(400, 2);
   });
 
-  it('lump manual audit without index recognizes in paid month (BMS pattern)', () => {
+  it('BMS manual lump does not recognize NET in September without per-installment evidence', () => {
     const row = base({
       installmentCount: 12,
       installmentsPaidCount: 9,
       paidGrossAmount: '8689.000000',
       paidAt: '2026-09-06',
-      verifiedInstallmentPayments: [
-        {
-          installmentIndex: -1,
-          dueDate: businessDate('2026-01-01'),
-          actualPaidAt: businessDate('2026-09-06'),
-          grossPaid: money('8689.000000', ILS),
-          verification: 'verified',
-          source: 'audit',
-        },
-      ],
+      installmentPaymentStatus: 'PAID_DATE_UNKNOWN',
+      verifiedInstallmentPayments: [],
+      dateUnknownGross: '8689.000000',
     });
-    expect(Number(recognizedExpenseNetInYearMonth(row, '2026-09')?.amount)).toBeCloseTo(7363.56, 0);
+    expect(recognizedExpenseNetInYearMonth(row, '2026-09')).toBeNull();
     expect(recognizedExpenseNetInYearMonth(row, '2026-01')).toBeNull();
   });
 
