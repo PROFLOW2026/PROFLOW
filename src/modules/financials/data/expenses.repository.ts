@@ -11,6 +11,7 @@ import {
 import { currentYearMonth, yearMonthFromBusinessDate } from '@/modules/month-close';
 import type { BusinessDate } from '@/shared/dates';
 import {
+  addMoney,
   divideMoney,
   fromNumericString,
   isZeroMoney,
@@ -27,6 +28,12 @@ import {
   sqlExpenseAutoPoolFilterIfReady,
 } from './allocation-intent-schema';
 import { isInternalEmployeePayrollCategoryKey } from '../domain/labor-expense-integrity';
+import {
+  recognizedExpenseGrossInYearMonth,
+  recognizedExpenseNetInYearMonth,
+  recognizedExpenseNetThroughYearMonth,
+  type ExpensePaymentRecognitionFields,
+} from '@/modules/expenses/domain/installment-payment-recognition';
 import { sqlFirstRow, sqlRows } from './sql-rows';
 
 export async function loadProjectExpenseContributions(
@@ -76,9 +83,9 @@ export async function loadExpenseContributionsForProjectsInMonth(
 /**
  * Project Actual expense contributions.
  *
- * Installment expenses (`installment_count` > 1 with managerial schedule lines)
- * contribute SUM(scheduled|recognized lines where year_month <= org current month),
- * not full NET on expense_date. Count 1 or no lines keep full NET (back-compat).
+ * Installment expenses (`installment_count` > 1): NET recognized from payments made
+ * (owner policy), not managerial schedule spread. Single-payment rows keep purchase-month
+ * NET unless partially paid (then paid-month proportional NET).
  *
  * Excludes `inventory_stock_purchase` — those book to inventory cost layers (stock
  * state), not operating Actual. Project material Actual comes from consumptions.
@@ -179,6 +186,9 @@ async function loadExpenseContributions(
     .leftJoin(lineCategories, eq(lineCategories.id, expenseAllocations.costCategoryId))
     .where(and(...allocationFilters));
 
+  const allExpenseIds = [
+    ...new Set([...directRows, ...allocationRows].map((row) => row.expenseId)),
+  ];
   const installmentExpenseIds = [
     ...new Set(
       [...directRows, ...allocationRows]
@@ -193,7 +203,7 @@ async function loadExpenseContributions(
     ? await loadInstallmentAmountByExpenseForMonth(
         db,
         organizationId,
-        installmentExpenseIds,
+        allExpenseIds,
         yearMonth,
       )
     : null;
@@ -437,6 +447,82 @@ export async function sumOrganizationRecognizedCostsInDateRange(
  * NET and GROSS are summed from the stored amounts. Labor has no VAT, so its
  * NET and GROSS are the same stored figure.
  */
+async function sumFinalizedExpenseRecognizedPairForDateRange(
+  db: DbExecutor,
+  organizationId: string,
+  currency: string,
+  fromDate: BusinessDate,
+  toDate: BusinessDate,
+): Promise<{ readonly net: MoneyValue; readonly gross: MoneyValue }> {
+  const rows = await db
+    .select({
+      id: expenses.id,
+      netAmount: expenses.netAmount,
+      grossAmount: expenses.grossAmount,
+      taxAmount: expenses.taxAmount,
+      currency: expenses.currency,
+      expenseDate: expenses.expenseDate,
+      installmentCount: expenses.installmentCount,
+      installmentStartDate: expenses.installmentStartDate,
+      installmentsPaidCount: expenses.installmentsPaidCount,
+      paidGrossAmount: expenses.paidGrossAmount,
+      paidAt: expenses.paidAt,
+      cashInstallmentSchedule: expenses.cashInstallmentSchedule,
+    })
+    .from(expenses)
+    .where(
+      and(
+        eq(expenses.organizationId, organizationId),
+        eq(expenses.currency, currency),
+        eq(expenses.status, 'finalized'),
+        isNull(expenses.archivedAt),
+        sql`NOT EXISTS (
+          SELECT 1 FROM ap_po_matches m
+          INNER JOIN ap_bills b ON b.id = m.ap_bill_id AND b.organization_id = m.organization_id
+          WHERE m.organization_id = ${organizationId}
+            AND m.expense_id = ${expenses.id}
+            AND m.status = 'accepted'
+            AND b.status IN ('open', 'partially_matched', 'matched')
+            AND b.archived_at IS NULL
+        )`,
+      ),
+    );
+
+  const fromYm = yearMonthFromBusinessDate(fromDate);
+  const toYm = yearMonthFromBusinessDate(toDate);
+  let net = zeroMoney(currency);
+  let gross = zeroMoney(currency);
+  for (let y = Number(fromYm.slice(0, 4)), m = Number(fromYm.slice(5, 7)); ; ) {
+    const ym = `${y}-${String(m).padStart(2, '0')}`;
+    for (const row of rows) {
+      const fields: ExpensePaymentRecognitionFields = {
+        netAmount: row.netAmount,
+        grossAmount: row.grossAmount,
+        taxAmount: row.taxAmount,
+        currency: row.currency,
+        expenseDate: row.expenseDate,
+        installmentCount: row.installmentCount,
+        installmentStartDate: row.installmentStartDate,
+        installmentsPaidCount: row.installmentsPaidCount,
+        paidGrossAmount: row.paidGrossAmount,
+        paidAt: row.paidAt,
+        cashInstallmentSchedule: row.cashInstallmentSchedule,
+      };
+      const netSlice = recognizedExpenseNetInYearMonth(fields, ym);
+      const grossSlice = recognizedExpenseGrossInYearMonth(fields, ym);
+      if (netSlice) net = addMoney(net, netSlice);
+      if (grossSlice) gross = addMoney(gross, grossSlice);
+    }
+    if (ym === toYm) break;
+    m += 1;
+    if (m > 12) {
+      m = 1;
+      y += 1;
+    }
+  }
+  return { net: roundMoney(net), gross: roundMoney(gross) };
+}
+
 export async function sumOrganizationRecognizedCostPairInDateRange(
   db: DbExecutor,
   organizationId: string,
@@ -444,35 +530,19 @@ export async function sumOrganizationRecognizedCostPairInDateRange(
   fromDate: BusinessDate,
   toDate: BusinessDate,
 ): Promise<{ readonly net: MoneyValue; readonly gross: MoneyValue }> {
+  const expensePair = await sumFinalizedExpenseRecognizedPairForDateRange(
+    db,
+    organizationId,
+    currency,
+    fromDate,
+    toDate,
+  );
   const row = sqlFirstRow<{ net: string; gross: string }>(
     await db.execute(sql`
       SELECT
         coalesce(sum(s.net_amount), 0)::text AS net,
         coalesce(sum(s.gross_amount), 0)::text AS gross
       FROM (
-        SELECT e.net_amount::numeric AS net_amount, e.gross_amount::numeric AS gross_amount
-        FROM expenses e
-        WHERE e.organization_id = ${organizationId}
-          AND e.currency = ${currency}
-          AND e.status = 'finalized'
-          AND e.archived_at IS NULL
-          AND e.expense_date >= ${fromDate}
-          AND e.expense_date <= ${toDate}
-          AND NOT EXISTS (
-            SELECT 1
-            FROM ap_po_matches m
-            INNER JOIN ap_bills b
-              ON b.id = m.ap_bill_id
-              AND b.organization_id = m.organization_id
-            WHERE m.organization_id = ${organizationId}
-              AND m.expense_id = e.id
-              AND m.status = 'accepted'
-              AND b.status IN ('open', 'partially_matched', 'matched')
-              AND b.archived_at IS NULL
-          )
-
-        UNION ALL
-
         SELECT b.net_amount::numeric AS net_amount, b.gross_amount::numeric AS gross_amount
         FROM ap_bills b
         WHERE b.organization_id = ${organizationId}
@@ -496,9 +566,12 @@ export async function sumOrganizationRecognizedCostPairInDateRange(
     `),
   );
 
+  const apLaborNet = fromNumericString(row?.net ?? '0', currency) ?? zeroMoney(currency);
+  const apLaborGross = fromNumericString(row?.gross ?? '0', currency) ?? zeroMoney(currency);
+
   return {
-    net: fromNumericString(row?.net ?? '0', currency) ?? zeroMoney(currency),
-    gross: fromNumericString(row?.gross ?? '0', currency) ?? zeroMoney(currency),
+    net: roundMoney(addMoney(expensePair.net, apLaborNet)),
+    gross: roundMoney(addMoney(expensePair.gross, apLaborGross)),
   };
 }
 
@@ -1134,7 +1207,56 @@ type MonthInstallmentSlice = {
   readonly lineAmount: string;
 };
 
-/** Sum scheduled|recognized schedule lines for one expense in one calendar month. */
+async function loadExpensePaymentRecognitionFields(
+  db: DbExecutor,
+  organizationId: string,
+  expenseIds: readonly string[],
+): Promise<Map<string, ExpensePaymentRecognitionFields>> {
+  const map = new Map<string, ExpensePaymentRecognitionFields>();
+  if (expenseIds.length === 0) return map;
+  const rows = await db
+    .select({
+      id: expenses.id,
+      netAmount: expenses.netAmount,
+      grossAmount: expenses.grossAmount,
+      taxAmount: expenses.taxAmount,
+      currency: expenses.currency,
+      expenseDate: expenses.expenseDate,
+      installmentCount: expenses.installmentCount,
+      installmentStartDate: expenses.installmentStartDate,
+      installmentsPaidCount: expenses.installmentsPaidCount,
+      paidGrossAmount: expenses.paidGrossAmount,
+      paidAt: expenses.paidAt,
+      cashInstallmentSchedule: expenses.cashInstallmentSchedule,
+    })
+    .from(expenses)
+    .where(
+      and(
+        eq(expenses.organizationId, organizationId),
+        inArray(expenses.id, [...expenseIds]),
+        eq(expenses.status, 'finalized'),
+        isNull(expenses.archivedAt),
+      ),
+    );
+  for (const row of rows) {
+    map.set(row.id, {
+      netAmount: row.netAmount,
+      grossAmount: row.grossAmount,
+      taxAmount: row.taxAmount,
+      currency: row.currency,
+      expenseDate: row.expenseDate,
+      installmentCount: row.installmentCount,
+      installmentStartDate: row.installmentStartDate,
+      installmentsPaidCount: row.installmentsPaidCount,
+      paidGrossAmount: row.paidGrossAmount,
+      paidAt: row.paidAt,
+      cashInstallmentSchedule: row.cashInstallmentSchedule,
+    });
+  }
+  return map;
+}
+
+/** Payment-based NET recognized for one expense in one calendar month (owner policy). */
 async function loadInstallmentAmountByExpenseForMonth(
   db: DbExecutor,
   organizationId: string,
@@ -1142,38 +1264,11 @@ async function loadInstallmentAmountByExpenseForMonth(
   yearMonth: string,
 ): Promise<Map<string, MonthInstallmentSlice>> {
   const map = new Map<string, MonthInstallmentSlice>();
-  if (expenseIds.length === 0) return map;
-
-  const rows = await db
-    .select({
-      expenseId: expenseManagerialScheduleLines.expenseId,
-      amount: expenseManagerialScheduleLines.amount,
-      currency: expenseManagerialScheduleLines.currency,
-    })
-    .from(expenseManagerialScheduleLines)
-    .where(
-      and(
-        eq(expenseManagerialScheduleLines.organizationId, organizationId),
-        inArray(expenseManagerialScheduleLines.expenseId, [...expenseIds]),
-        eq(expenseManagerialScheduleLines.yearMonth, yearMonth),
-        inArray(expenseManagerialScheduleLines.status, ['scheduled', 'recognized']),
-      ),
-    );
-
-  const grouped = new Map<string, MoneyValue[]>();
-  for (const row of rows) {
-    const value = fromNumericString(row.amount, row.currency);
-    if (!value) continue;
-    const list = grouped.get(row.expenseId) ?? [];
-    list.push(value);
-    grouped.set(row.expenseId, list);
-  }
-
-  for (const [expenseId, parts] of grouped) {
-    if (parts.length === 0) continue;
-    const total = roundMoney(sumMoney(parts, parts[0]!.currency));
-    if (isZeroMoney(total)) continue;
-    map.set(expenseId, { hasActiveLines: true, lineAmount: total.amount });
+  const fieldsById = await loadExpensePaymentRecognitionFields(db, organizationId, expenseIds);
+  for (const [expenseId, fields] of fieldsById) {
+    const slice = recognizedExpenseNetInYearMonth(fields, yearMonth);
+    if (!slice || isZeroMoney(slice)) continue;
+    map.set(expenseId, { hasActiveLines: true, lineAmount: slice.amount });
   }
   return map;
 }
@@ -1187,6 +1282,9 @@ function resolveExpenseContributionAmountForMonth(input: {
   readonly yearMonth: string;
   readonly monthInstallment: MonthInstallmentSlice | InstallmentRecognition | undefined;
 }): string | null {
+  if (input.installmentCount > 1 && !input.monthInstallment?.hasActiveLines) {
+    return null;
+  }
   if (input.installmentCount > 1 && input.monthInstallment?.hasActiveLines) {
     const lineAmountRaw =
       'lineAmount' in input.monthInstallment
@@ -1205,9 +1303,8 @@ function resolveExpenseContributionAmountForMonth(input: {
 }
 
 /**
- * installment_count = 1 or missing lines: keep full NET (back-compat).
- * installment_count > 1 with scheduled|recognized lines: recognized-to-date
- * through the organization current month (future lines excluded).
+ * Installment expenses: cumulative NET recognized through org current month
+ * based on payments actually made (not managerial schedule spread).
  */
 async function loadInstallmentRecognitionByExpense(
   db: DbExecutor,
@@ -1224,44 +1321,12 @@ async function loadInstallmentRecognitionByExpense(
     .limit(1);
   const throughYearMonth = currentYearMonth(org?.timezone ?? 'UTC');
 
-  const rows = await db
-    .select({
-      expenseId: expenseManagerialScheduleLines.expenseId,
-      yearMonth: expenseManagerialScheduleLines.yearMonth,
-      amount: expenseManagerialScheduleLines.amount,
-      currency: expenseManagerialScheduleLines.currency,
-    })
-    .from(expenseManagerialScheduleLines)
-    .where(
-      and(
-        eq(expenseManagerialScheduleLines.organizationId, organizationId),
-        inArray(expenseManagerialScheduleLines.expenseId, [...expenseIds]),
-        inArray(expenseManagerialScheduleLines.status, ['scheduled', 'recognized']),
-      ),
-    );
-
-  const grouped = new Map<string, { currency: string; recognized: MoneyValue[] }>();
-  for (const row of rows) {
-    let entry = grouped.get(row.expenseId);
-    if (!entry) {
-      entry = { currency: row.currency, recognized: [] };
-      grouped.set(row.expenseId, entry);
-    }
-    if (row.yearMonth <= throughYearMonth) {
-      const value = fromNumericString(row.amount, row.currency);
-      if (value) entry.recognized.push(value);
-    }
-  }
-
-  for (const [expenseId, entry] of grouped) {
-    const recognized =
-      entry.recognized.length === 0
-        ? zeroMoney(entry.currency)
-        : roundMoney(sumMoney(entry.recognized, entry.currency));
-    map.set(expenseId, {
-      hasActiveLines: true,
-      recognizedAmount: recognized.amount,
-    });
+  const fieldsById = await loadExpensePaymentRecognitionFields(db, organizationId, expenseIds);
+  for (const [expenseId, fields] of fieldsById) {
+    if (fields.installmentCount <= 1) continue;
+    const recognized = recognizedExpenseNetThroughYearMonth(fields, throughYearMonth);
+    if (isZeroMoney(recognized)) continue;
+    map.set(expenseId, { hasActiveLines: true, recognizedAmount: recognized.amount });
   }
   return map;
 }
