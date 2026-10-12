@@ -22,6 +22,16 @@ import {
   type ExperienceComplexityKey,
 } from '../domain/experience-complexity';
 import { parseWorkMix, WORK_MIX_SETTING_KEY, type WorkMix } from '../domain/work-mix';
+import {
+  EXPERIENCE_BASE_TEMPLATE_SETTING_KEY,
+  EXPERIENCE_FAMILY_SETTING_KEY,
+  EXPERIENCE_PROJECTS_PRIMARY_SETTING_KEY,
+  EXPERIENCE_UI_OVERRIDES_SETTING_KEY,
+  parseExperienceFamilyKey,
+  parseExperienceUiOverrides,
+  type ExperienceFamilyKey,
+  type ExperienceUiOverrides,
+} from '../domain/experience-family';
 
 const SHELL_SETTING_KEYS = [
   WORK_MIX_SETTING_KEY,
@@ -30,6 +40,10 @@ const SHELL_SETTING_KEYS = [
   SUGGESTED_DEFAULTS_SETTING_KEY,
   EXPERIENCE_COMPLEXITY_SETTING_KEY,
   CAPABILITY_MODE_SETTING_KEY,
+  EXPERIENCE_FAMILY_SETTING_KEY,
+  EXPERIENCE_UI_OVERRIDES_SETTING_KEY,
+  EXPERIENCE_BASE_TEMPLATE_SETTING_KEY,
+  EXPERIENCE_PROJECTS_PRIMARY_SETTING_KEY,
 ] as const;
 
 export type ShellOrgSettings = {
@@ -39,6 +53,10 @@ export type ShellOrgSettings = {
   readonly suggestedDefaults: SuggestedBusinessDefaults | null;
   readonly complexity: ExperienceComplexityKey;
   readonly customizationMode: CapabilityCustomizationMode | null;
+  readonly experienceFamily: ExperienceFamilyKey | null;
+  readonly experienceUiOverrides: ExperienceUiOverrides;
+  readonly experienceBaseTemplate: ExperienceFamilyKey | null;
+  readonly experienceProjectsPrimary: boolean;
 };
 
 /** Batched read for app shell — replaces six separate setting queries per navigation. */
@@ -52,6 +70,10 @@ export async function loadShellOrgSettings(
   const businessProfileKey =
     typeof profileRaw === 'string' ? (getBusinessProfile(profileRaw)?.key ?? null) : null;
 
+  const projectsPrimaryRaw = values.get(EXPERIENCE_PROJECTS_PRIMARY_SETTING_KEY);
+  const experienceProjectsPrimary =
+    projectsPrimaryRaw === true || projectsPrimaryRaw === 'true' || projectsPrimaryRaw === 1;
+
   return {
     workMix: parseWorkMix(values.get(WORK_MIX_SETTING_KEY)),
     businessProfileKey,
@@ -59,5 +81,9 @@ export async function loadShellOrgSettings(
     suggestedDefaults: parseSuggestedDefaults(values.get(SUGGESTED_DEFAULTS_SETTING_KEY)),
     complexity: parseExperienceComplexity(values.get(EXPERIENCE_COMPLEXITY_SETTING_KEY)) ?? 'full',
     customizationMode: parseCapabilityCustomizationMode(values.get(CAPABILITY_MODE_SETTING_KEY)),
+    experienceFamily: parseExperienceFamilyKey(values.get(EXPERIENCE_FAMILY_SETTING_KEY)),
+    experienceUiOverrides: parseExperienceUiOverrides(values.get(EXPERIENCE_UI_OVERRIDES_SETTING_KEY)),
+    experienceBaseTemplate: parseExperienceFamilyKey(values.get(EXPERIENCE_BASE_TEMPLATE_SETTING_KEY)),
+    experienceProjectsPrimary,
   };
 }

@@ -59,6 +59,22 @@ export function OnboardingForm() {
     {},
   );
 
+  function buildSkipAllFormData(): FormData {
+    const data = new FormData();
+    data.set('name', name.trim());
+    data.set('countryCode', country);
+    data.set('businessProfile', 'ALL_CAPABILITIES');
+    data.set('workMix', 'mixed');
+    data.set('moduleMode', 'additive');
+    data.set('onboardingSkip', 'all');
+    return data;
+  }
+
+  function submitSkipAll() {
+    if (!name.trim()) return;
+    formAction(buildSkipAllFormData());
+  }
+
   const workMix = workMixForOnboardingStyle(workStyle);
   const profileKey = resolveOnboardingProfileKey({ path, businessType });
   const extraModules = useMemo(
@@ -121,6 +137,16 @@ export function OnboardingForm() {
         >
           {t('continue')}
         </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          block
+          disabled={!name.trim() || pending}
+          loading={pending}
+          onClick={() => submitSkipAll()}
+        >
+          {t('skipAndStart')}
+        </Button>
       </div>
     );
   }
@@ -138,6 +164,7 @@ export function OnboardingForm() {
 
       <p className="text-sm font-medium text-[var(--pf-text-primary)]">{t('stepExperience')}</p>
       <p className="text-sm text-[var(--pf-text-secondary)]">{t('experienceHint')}</p>
+      <p className="text-xs text-[var(--pf-text-muted)]">{t('experienceOptional')}</p>
 
       <Field id="onboarding-business-type" label={t('businessTypeLabel')} description={t('businessTypeHint')}>
         {(control) => (
@@ -238,6 +265,16 @@ export function OnboardingForm() {
       <div className="flex flex-col gap-2 pb-[env(safe-area-inset-bottom)]">
         <Button type="submit" loading={pending} block>
           {t('submit')}
+        </Button>
+        <Button
+          type="button"
+          variant="secondary"
+          block
+          disabled={pending}
+          loading={pending}
+          onClick={() => submitSkipAll()}
+        >
+          {t('skipQuestionnaire')}
         </Button>
         <Button type="button" variant="ghost" block onClick={() => setStep('required')}>
           {t('back')}

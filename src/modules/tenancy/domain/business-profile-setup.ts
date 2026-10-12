@@ -101,6 +101,17 @@ const BY_PROFILE: Record<BusinessProfileKey, BusinessProfileSetupSuggestions> = 
     projectTemplateKeys: ['main_contractor', 'apartment_renovation'],
     todayEmphasis: 'dashboard',
   },
+  REAL_ESTATE_DEVELOPMENT: {
+    documentFolders: folders(
+      ['Contracts', 'חוזים'],
+      ['Drawings', 'שרטוטים'],
+      ['Budgets', 'תקציבים'],
+      ['Sales', 'מכירות'],
+    ),
+    formTemplates: [SITE_CHECKLIST],
+    projectTemplateKeys: ['main_contractor', 'apartment_renovation'],
+    todayEmphasis: 'dashboard',
+  },
   RENOVATION: {
     documentFolders: SITE_PHOTOS,
     formTemplates: [SITE_CHECKLIST],

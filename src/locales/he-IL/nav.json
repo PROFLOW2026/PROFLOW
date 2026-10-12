@@ -116,16 +116,14 @@
     "previewing": "תצוגה לבדיקה: {label}",
     "returnToActual": "חזרה לפרופיל האמיתי",
     "profiles": {
-      "GENERAL_CONTRACTOR": "קבלן פרויקטים",
-      "ELECTRICAL": "קבלן חשמל",
-      "RENOVATION": "קבלן שיפוצים",
-      "SMALL_WORKS": "קבלן עבודות קטנות",
+      "ENGINEERING_CONSULTANT": "הנדסה / ייעוץ / אדריכלות",
+      "REAL_ESTATE_DEVELOPMENT": "יזמות ופיתוח",
+      "GENERAL_CONTRACTOR": "קבלנות פרויקטים",
+      "ELECTRICAL": "בעלי מקצוע / עבודות",
+      "PROJECT_MANAGEMENT": "ניהול ופיקוח פרויקטים",
       "FIELD_SERVICE": "שירות ותחזוקה",
-      "ARCHITECT": "אדריכלות ועיצוב",
-      "ENGINEERING_CONSULTANT": "הנדסה וייעוץ",
-      "SAFETY_INSPECTION_CONSULTANT": "ביקורת ופיקוח",
-      "MIXED_PROJECT_SERVICE": "עסק מעורב",
-      "ALL_CAPABILITIES": "כל האפשרויות"
+      "ALL_CAPABILITIES": "הכול",
+      "MIXED_PROJECT_SERVICE": "מותאם אישית (בסיס מעורב)"
     }
   },
   "hiddenCapability": {

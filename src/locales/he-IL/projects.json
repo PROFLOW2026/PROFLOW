@@ -135,6 +135,8 @@
     }
   },
   "workspace": {
+    "experienceShowHiddenTabs": "הצג {count} טאבים מוסתרים",
+    "experienceHideOptionalTabs": "הסתר טאבים אופציונליים",
     "fallbackTitle": "פרויקט",
     "noClient": "ללא לקוח",
     "completeClient": "הוספת לקוח",

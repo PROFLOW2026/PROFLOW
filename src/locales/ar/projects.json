@@ -135,6 +135,8 @@
     }
   },
   "workspace": {
+    "experienceShowHiddenTabs": "إظهار {count} علامات مخفية",
+    "experienceHideOptionalTabs": "إخفاء علامات اختيارية",
     "fallbackTitle": "مشروع",
     "noClient": "لا يوجد عميل بعد",
     "completeClient": "إضافة عميل",

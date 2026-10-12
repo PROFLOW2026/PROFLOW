@@ -1997,6 +1997,259 @@
       }
     }
   },
+  "experience": {
+    "title": "Business experience",
+    "description": "Choose an experience family and capability mode. This adjusts emphasis only — not permissions or data.",
+    "familyLabel": "Experience family",
+    "modeLabel": "Capability mode",
+    "save": "Save",
+    "families": {
+      "engineering_consulting_architecture": "Engineering / consulting / architecture",
+      "real_estate_development": "Real estate development",
+      "project_contracting": "Project contracting",
+      "trades_and_field_work": "Trades & field work",
+      "project_management_supervision": "Project management & supervision",
+      "service_and_maintenance": "Service & maintenance",
+      "all_capabilities": "All capabilities",
+      "custom": "Custom"
+    },
+    "modes": {
+      "profile": "Profile preset",
+      "custom": "Custom",
+      "all": "All"
+    },
+    "customTogglesHint": "In custom mode, choose what appears. Hiding does not block access to data.",
+    "togglesRequireCustomMode": "Display toggles are available in Custom mode.",
+    "v2DisabledHint": "Experience family V2 is off in this environment.",
+    "resetUi": "Reset display customizations",
+    "toggleLocked": "Locked for this family. Stays visible.",
+    "groups": {
+      "dashboardOwner": "Owner dashboard",
+      "dashboardCard": "Dashboard cards",
+      "dashboardCommon": "Shared dashboard blocks",
+      "navPrimary": "Main navigation",
+      "projectTab": "Optional project tabs",
+      "shortcuts": "Shortcuts"
+    },
+    "toggles": {
+      "common_pendingTime": {
+        "label": "Pending Time",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "common_laborReconciliation": {
+        "label": "Labor Reconciliation",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "common_attention": {
+        "label": "Attention",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "shortcuts_dashboardQuickAccess": {
+        "label": "Dashboard Quick Access",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "owner_contractSummary": {
+        "label": "Contract Summary",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "owner_kpiRow": {
+        "label": "Kpi Row",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "owner_cashForecast90": {
+        "label": "Cash Forecast90",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "owner_apOutstanding": {
+        "label": "Ap Outstanding",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "owner_restoredSections": {
+        "label": "Restored Sections",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "owner_recentProjects": {
+        "label": "Recent Projects",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "owner_projectProfitTable": {
+        "label": "Project Profit Table",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "owner_quickActions": {
+        "label": "Quick Actions",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "owner_reportsLinks": {
+        "label": "Reports Links",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "card_activeWork": {
+        "label": "Active Work",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "card_contractValue": {
+        "label": "Contract Value",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "card_profit": {
+        "label": "Profit",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "card_forecast": {
+        "label": "Forecast",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "card_commitments": {
+        "label": "Commitments",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "card_billing": {
+        "label": "Billing",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "card_collections": {
+        "label": "Collections",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "card_serviceToday": {
+        "label": "Service Today",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "card_timeUtilization": {
+        "label": "Time Utilization",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "card_quotePipeline": {
+        "label": "Quote Pipeline",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "card_firstActions": {
+        "label": "First Actions",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "nav_today": {
+        "label": "Today",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "nav_projects": {
+        "label": "Projects",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "nav_jobs": {
+        "label": "Jobs",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "nav_workOrders": {
+        "label": "Service calls",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "nav_clients": {
+        "label": "Clients",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "nav_expenses": {
+        "label": "Expenses",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "nav_quotes": {
+        "label": "Quotes",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "nav_procurement": {
+        "label": "Procurement",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "nav_cashFlow": {
+        "label": "Cash flow",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "nav_crm": {
+        "label": "Sales",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "nav_vendorBills": {
+        "label": "Vendor bills",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "nav_portfolio": {
+        "label": "Portfolio",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "nav_myWork": {
+        "label": "My Work",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "nav_fieldHome": {
+        "label": "Field",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "nav_fieldOps": {
+        "label": "Field operations",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "projectTab_financials": {
+        "label": "Financials",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "projectTab_expenses": {
+        "label": "Expenses",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "projectTab_changes": {
+        "label": "Changes",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "projectTab_boq": {
+        "label": "BOQ",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "projectTab_billing": {
+        "label": "Billing",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "projectTab_billingPlan": {
+        "label": "Billing plan",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "projectTab_budgets": {
+        "label": "Budget",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "projectTab_team": {
+        "label": "Team",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "projectTab_schedule": {
+        "label": "Schedule",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "projectTab_time": {
+        "label": "Time",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "projectTab_documents": {
+        "label": "Documents",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "projectTab_usage": {
+        "label": "Materials and equipment",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "projectTab_work": {
+        "label": "Work areas",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "projectTab_closeout": {
+        "label": "Closeout",
+        "description": "Show or hide in the UI. Does not delete data."
+      },
+      "projectTab_warranty": {
+        "label": "Warranty",
+        "description": "Show or hide in the UI. Does not delete data."
+      }
+    }
+  },
   "laborCost": {
     "validation": {
       "bothTimesRequired": "Both start and end times are required",

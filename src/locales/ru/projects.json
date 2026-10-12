@@ -135,6 +135,8 @@
     }
   },
   "workspace": {
+    "experienceShowHiddenTabs": "Показать скрытые вкладки ({count})",
+    "experienceHideOptionalTabs": "Скрыть необязательные вкладки",
     "fallbackTitle": "Проект",
     "noClient": "Клиента пока нет",
     "completeClient": "Добавить клиента",

@@ -39,6 +39,14 @@ import {
   mapDashboardKpiDetailCopy,
   mapDashboardKpiDetailTriggerCopy,
 } from './dashboard-kpi-detail-copy';
+import {
+  isExperienceUiVisible,
+  type ExperienceUiToggleId,
+} from '@/modules/tenancy/domain/experience-ui-registry';
+
+function showDashboardUi(data: HomeDashboardData, id: ExperienceUiToggleId): boolean {
+  return isExperienceUiVisible(id, data.experienceUiContext);
+}
 
 interface HomeDashboardOwnerViewProps {
   readonly data: HomeDashboardData;
@@ -154,14 +162,18 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
 
   return (
     <div className="flex min-w-0 max-w-full flex-col gap-4">
-      {data.pendingTime ? (
+      {data.pendingTime && showDashboardUi(data, 'common.pendingTime') ? (
         <HomePendingTimeAlert pendingTime={data.pendingTime} canApproveTime={data.canApproveTime} />
       ) : null}
-      {data.laborReconciliation ? (
+      {data.laborReconciliation && showDashboardUi(data, 'common.laborReconciliation') ? (
         <HomeLaborReconciliation laborReconciliation={data.laborReconciliation} />
       ) : null}
-      <DashboardQuickAccessSection shortcuts={data.quickAccessShortcuts} />
-      <DashboardAttentionCards attention={data.attention} />
+      {showDashboardUi(data, 'shortcuts.dashboardQuickAccess') ? (
+        <DashboardQuickAccessSection shortcuts={data.quickAccessShortcuts} />
+      ) : null}
+      {showDashboardUi(data, 'common.attention') ? (
+        <DashboardAttentionCards attention={data.attention} />
+      ) : null}
       {hasCompletenessTrigger ? (
         <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
           <DashboardMissingDataTrigger
@@ -183,13 +195,14 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
         </div>
       ) : null}
 
-      {data.contractSummary ? (
+      {data.contractSummary && showDashboardUi(data, 'owner.contractSummary') ? (
         <DashboardContractSummaryRow
           summary={data.contractSummary}
           netInvoiced={data.contractNetInvoiced}
         />
       ) : null}
 
+      {showDashboardUi(data, 'owner.kpiRow') ? (
       <section className={kpiColumnClass}>
         {showContractHeadline ? (
           <KpiTile
@@ -246,6 +259,7 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
           detailCopy={triggerCopy}
         />
       </section>
+      ) : null}
 
       {data.forecast?.companyActual != null || data.businessCashPosition ? (
         <section className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -296,7 +310,7 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
         </section>
       ) : null}
 
-      {data.cashForecast ? (
+      {data.cashForecast && showDashboardUi(data, 'owner.cashForecast90') ? (
         <HomeDashboardCashForecast
           cashForecast={data.cashForecast}
           copy={{
@@ -321,7 +335,9 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
         />
       ) : null}
 
-      {data.apOutstanding && !data.businessCashPosition?.outstandingPayable ? (
+      {data.apOutstanding &&
+      !data.businessCashPosition?.outstandingPayable &&
+      showDashboardUi(data, 'owner.apOutstanding') ? (
         <section className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
           <KpiTile
             title={tFinancial('apOutstanding')}
@@ -344,14 +360,18 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
         </section>
       ) : null}
 
-      <HomeDashboardRestoredSections data={data} />
+      {showDashboardUi(data, 'owner.restoredSections') ? (
+        <HomeDashboardRestoredSections data={data} />
+      ) : null}
 
-      <DashboardRecentProjectsSection
-        projects={data.recentProjects}
-        workKindFilter={data.workKindFilter}
-      />
+      {showDashboardUi(data, 'owner.recentProjects') ? (
+        <DashboardRecentProjectsSection
+          projects={data.recentProjects}
+          workKindFilter={data.workKindFilter}
+        />
+      ) : null}
 
-      {data.projectTableRows.length > 0 ? (
+      {data.projectTableRows.length > 0 && showDashboardUi(data, 'owner.projectProfitTable') ? (
         <section className="min-w-0 max-w-full">
           <h2 className="mb-2 text-sm font-semibold">{t('ownerHeadline.projectTableTitle')}</h2>
           <ResponsiveTable
@@ -465,6 +485,7 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
         </section>
       ) : null}
 
+      {showDashboardUi(data, 'owner.quickActions') ? (
       <section>
         <h2 className="mb-2 text-sm font-semibold">{t('quickActions')}</h2>
         <div className="flex flex-wrap gap-2">
@@ -486,20 +507,23 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
           ) : null}
         </div>
       </section>
+      ) : null}
 
-      <p className="flex min-w-0 flex-wrap gap-x-4 gap-y-2 text-sm">
-        <Link href="/reports" className={textNavLinkClassName} prefetch={false}>
-          {t('ownerHeadline.reportsLink')}
-        </Link>
-        <Link
-          href="/reports?section=management"
-          className={textNavLinkClassName}
-          prefetch={false}
-          data-pf-owner-management-link=""
-        >
-          {t('ownerLinks.management')}
-        </Link>
-      </p>
+      {showDashboardUi(data, 'owner.reportsLinks') ? (
+        <p className="flex min-w-0 flex-wrap gap-x-4 gap-y-2 text-sm">
+          <Link href="/reports" className={textNavLinkClassName} prefetch={false}>
+            {t('ownerHeadline.reportsLink')}
+          </Link>
+          <Link
+            href="/reports?section=management"
+            className={textNavLinkClassName}
+            prefetch={false}
+            data-pf-owner-management-link=""
+          >
+            {t('ownerLinks.management')}
+          </Link>
+        </p>
+      ) : null}
     </div>
   );
 }

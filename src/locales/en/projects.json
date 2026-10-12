@@ -135,6 +135,8 @@
     }
   },
   "workspace": {
+    "experienceShowHiddenTabs": "Show {count} hidden tabs",
+    "experienceHideOptionalTabs": "Hide optional tabs",
     "fallbackTitle": "Project",
     "noClient": "No client yet",
     "completeClient": "Add client",

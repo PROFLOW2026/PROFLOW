@@ -1997,6 +1997,259 @@
       }
     }
   },
+  "experience": {
+    "title": "تجربة العمل",
+    "description": "اختر عائلة التجربة ووضع القدرات. يغيّر الت emphasis فقط — لا الأذونات ولا البيانات.",
+    "familyLabel": "عائلة التجربة",
+    "modeLabel": "وضع القدرات",
+    "save": "حفظ",
+    "families": {
+      "engineering_consulting_architecture": "هندسة / استشارات / معمارية",
+      "real_estate_development": "تطوير عقاري",
+      "project_contracting": "مقاولات مشاريع",
+      "trades_and_field_work": "حرف وعمل ميداني",
+      "project_management_supervision": "إدارة وإشراف مشاريع",
+      "service_and_maintenance": "خدمة وصيانة",
+      "all_capabilities": "الكل",
+      "custom": "مخصص"
+    },
+    "modes": {
+      "profile": "حسب الملف",
+      "custom": "مخصص",
+      "all": "الكل"
+    },
+    "customTogglesHint": "في الوضع المخصص: اختر ما يُعرض. الإخفاء لا يمنع الوصول إلى البيانات.",
+    "togglesRequireCustomMode": "مفاتيح العرض متاحة في وضع «مخصص».",
+    "v2DisabledHint": "عرض العائلات V2 معطّل في هذه البيئة.",
+    "resetUi": "إعادة ضبط العرض",
+    "toggleLocked": "مقفل للعائلة الحالية. يبقى ظاهرًا.",
+    "groups": {
+      "dashboardOwner": "لوحة المالك",
+      "dashboardCard": "بطاقات لوحة التحكم",
+      "dashboardCommon": "أقسام مشتركة",
+      "navPrimary": "التنقل الرئيسي",
+      "projectTab": "علامات تبويب المشروع",
+      "shortcuts": "اختصارات"
+    },
+    "toggles": {
+      "common_pendingTime": {
+        "label": "ساعات بانتظار الموافقة",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "common_laborReconciliation": {
+        "label": "مطابقة العمل",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "common_attention": {
+        "label": "يتطلب انتباهًا",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "shortcuts_dashboardQuickAccess": {
+        "label": "وصول سريع في لوحة التحكم",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "owner_contractSummary": {
+        "label": "ملخص العقد",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "owner_kpiRow": {
+        "label": "صف مؤشرات الأداء",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "owner_cashForecast90": {
+        "label": "توقعات نقدية 90 يومًا",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "owner_apOutstanding": {
+        "label": "ذمم دائنة للموردين",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "owner_restoredSections": {
+        "label": "أقسام مستعادة",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "owner_recentProjects": {
+        "label": "مشاريع حديثة",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "owner_projectProfitTable": {
+        "label": "جدول ربحية المشاريع",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "owner_quickActions": {
+        "label": "إجراءات سريعة",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "owner_reportsLinks": {
+        "label": "روابط التقارير",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "card_activeWork": {
+        "label": "عمل نشط",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "card_contractValue": {
+        "label": "قيمة العقد",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "card_profit": {
+        "label": "ربح",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "card_forecast": {
+        "label": "توقعات",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "card_commitments": {
+        "label": "التزامات",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "card_billing": {
+        "label": "فوترة",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "card_collections": {
+        "label": "تحصيل",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "card_serviceToday": {
+        "label": "خدمة اليوم",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "card_timeUtilization": {
+        "label": "استخدام الوقت",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "card_quotePipeline": {
+        "label": "مسار عروض الأسعار",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "card_firstActions": {
+        "label": "إجراءات أولى",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "nav_today": {
+        "label": "اليوم",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "nav_projects": {
+        "label": "مشاريع",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "nav_jobs": {
+        "label": "أعمال",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "nav_workOrders": {
+        "label": "طلبات خدمة",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "nav_clients": {
+        "label": "عملاء",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "nav_expenses": {
+        "label": "مصروفات",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "nav_quotes": {
+        "label": "عروض أسعار",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "nav_procurement": {
+        "label": "مشتريات",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "nav_cashFlow": {
+        "label": "تدفق نقدي",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "nav_crm": {
+        "label": "مبيعات",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "nav_vendorBills": {
+        "label": "فواتير موردين",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "nav_portfolio": {
+        "label": "محفظة المشاريع",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "nav_myWork": {
+        "label": "مهامي",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "nav_fieldHome": {
+        "label": "ميدان",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "nav_fieldOps": {
+        "label": "عمل ميداني",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "projectTab_financials": {
+        "label": "البيانات المالية",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "projectTab_expenses": {
+        "label": "المصروفات",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "projectTab_changes": {
+        "label": "تغييرات وإضافات",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "projectTab_boq": {
+        "label": "جدول الكميات",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "projectTab_billing": {
+        "label": "فوترة وتحصيل",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "projectTab_billingPlan": {
+        "label": "خطة فوترة",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "projectTab_budgets": {
+        "label": "الميزانية",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "projectTab_team": {
+        "label": "الفريق",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "projectTab_schedule": {
+        "label": "الجدول الزمني",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "projectTab_time": {
+        "label": "الساعات",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "projectTab_documents": {
+        "label": "المستندات",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "projectTab_usage": {
+        "label": "المواد والمعدات",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "projectTab_work": {
+        "label": "مناطق العمل",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "projectTab_closeout": {
+        "label": "الإغلاق",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      },
+      "projectTab_warranty": {
+        "label": "الضمان",
+        "description": "إظهار أو إخفاء في الواجهة. لا يحذف البيانات."
+      }
+    }
+  },
   "laborCost": {
     "validation": {
       "bothTimesRequired": "وقتا البداية والنهاية مطلوبان",

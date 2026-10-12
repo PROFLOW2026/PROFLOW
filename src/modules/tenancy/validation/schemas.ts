@@ -64,6 +64,8 @@ export const createOrganizationSchema = z.object({
     optionalModuleKeysFromForm,
     z.array(z.enum(OPTIONAL_MODULE_KEYS)).optional(),
   ),
+  /** When `all`, org is provisioned with ALL_CAPABILITIES (optional onboarding). */
+  onboardingSkip: z.preprocess(optionalPresetToken, z.enum(['all']).optional()),
 });
 
 export type CreateOrganizationInput = z.input<typeof createOrganizationSchema>;

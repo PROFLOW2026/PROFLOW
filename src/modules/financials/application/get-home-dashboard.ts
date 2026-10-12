@@ -108,6 +108,12 @@ import {
   type BusinessCashPosition,
 } from './get-business-cash-position';
 import type { HomeDashboardKpiBreakdown } from '../domain/home-dashboard-kpi-breakdown';
+import { resolveHomeDashboardExperience } from '@/modules/tenancy/application/resolve-home-dashboard-experience';
+import { filterDashboardCards } from '@/modules/tenancy/domain/experience-ui-registry';
+import type { ExperienceUiContext } from '@/modules/tenancy/domain/experience-ui-registry';
+import type { DashboardLayoutMode } from '@/modules/tenancy/domain/experience-dashboard-layout';
+import type { AllCapabilitiesCardSupplement } from '@/modules/tenancy/domain/experience-dashboard-layout';
+import type { ExperienceFamilyKey } from '@/modules/tenancy/domain/experience-family';
 
 export interface DashboardAttention {
   readonly pendingChangesCount: number;
@@ -267,6 +273,10 @@ export interface HomeDashboardData {
   readonly contractNetInvoiced: MoneyValue | null;
   /** Resolved quick-access shortcuts for the signed-in user. */
   readonly quickAccessShortcuts: readonly DashboardQuickAccessDefinition[];
+  readonly experienceFamily: ExperienceFamilyKey | null;
+  readonly dashboardLayoutMode: DashboardLayoutMode;
+  readonly allCapabilitiesSupplements: readonly AllCapabilitiesCardSupplement[];
+  readonly experienceUiContext: ExperienceUiContext;
   /** Preloaded operands for KPI detail modals (same values as dashboard KPIs). */
   readonly kpiBreakdown: HomeDashboardKpiBreakdown | null;
   /**
@@ -355,7 +365,6 @@ export async function getHomeDashboard(
   const effectiveProfileKey =
     preview.active && preview.profileKey ? preview.profileKey : businessProfileKey;
   const persona = personaForBusinessProfile(effectiveProfileKey);
-  const dashboardCards = dashboardCardsForPersona(persona);
   const effectiveModules =
     preview.active && preview.modules ? preview.modules : modules;
   const effectiveWorkMix =
@@ -369,6 +378,15 @@ export async function getHomeDashboard(
     Boolean(effectiveModules.jobs) || workMixSurfacesJobs(effectiveWorkMix);
   const serviceReachable = Boolean(effectiveModules.service) && canCreateService;
   const preferServiceSurface = Boolean(effectiveSuggestedDefaults?.preferServiceSurface);
+  const experienceSlice = await resolveHomeDashboardExperience(context, {
+    effectiveProfileKey: effectiveProfileKey,
+    effectiveWorkMix,
+    preferServiceSurface,
+  });
+  const dashboardCards = filterDashboardCards(
+    dashboardCardsForPersona(persona),
+    experienceSlice.experienceUiContext,
+  );
   const parsedWorkKindFilter = parseWorkKindFilter(options.workKindFilter);
   let emptyStartKind: 'project' | 'job' | 'work_order' = 'project';
   if (
@@ -524,6 +542,10 @@ export async function getHomeDashboard(
       workKindFilter: options.workKindFilter ?? null,
       kpiBreakdown: null,
       cashForecast: null,
+      experienceFamily: experienceSlice.experienceFamily,
+      dashboardLayoutMode: experienceSlice.dashboardLayoutMode,
+      allCapabilitiesSupplements: experienceSlice.allCapabilitiesSupplements,
+      experienceUiContext: experienceSlice.experienceUiContext,
     };
   }
 
@@ -995,6 +1017,10 @@ export async function getHomeDashboard(
     quickAccessShortcuts,
     kpiBreakdown,
     cashForecast,
+    experienceFamily: experienceSlice.experienceFamily,
+    dashboardLayoutMode: experienceSlice.dashboardLayoutMode,
+    allCapabilitiesSupplements: experienceSlice.allCapabilitiesSupplements,
+    experienceUiContext: experienceSlice.experienceUiContext,
   };
 }
 

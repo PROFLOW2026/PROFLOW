@@ -116,16 +116,14 @@
     "previewing": "QA preview: {label}",
     "returnToActual": "Return to real profile",
     "profiles": {
-      "GENERAL_CONTRACTOR": "Project contractor",
-      "ELECTRICAL": "Electrical contractor",
-      "RENOVATION": "Renovation contractor",
-      "SMALL_WORKS": "Small works contractor",
+      "ENGINEERING_CONSULTANT": "Engineering / consulting / architecture",
+      "REAL_ESTATE_DEVELOPMENT": "Real estate development",
+      "GENERAL_CONTRACTOR": "Project contracting",
+      "ELECTRICAL": "Trades & field work",
+      "PROJECT_MANAGEMENT": "Project management & supervision",
       "FIELD_SERVICE": "Service & maintenance",
-      "ARCHITECT": "Architecture / design",
-      "ENGINEERING_CONSULTANT": "Engineering / consulting",
-      "SAFETY_INSPECTION_CONSULTANT": "Inspection / supervision",
-      "MIXED_PROJECT_SERVICE": "Mixed business",
-      "ALL_CAPABILITIES": "All capabilities"
+      "ALL_CAPABILITIES": "All capabilities",
+      "MIXED_PROJECT_SERVICE": "Custom (mixed base)"
     }
   },
   "hiddenCapability": {

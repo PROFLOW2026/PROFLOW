@@ -1,0 +1,1 @@
+export const EXPERIENCE_SHOW_HIDDEN_PROJECT_TABS_COOKIE = 'pf_experience_show_hidden_tabs';

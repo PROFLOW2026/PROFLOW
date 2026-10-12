@@ -9,6 +9,7 @@ import {
   getUnusedCapabilityDismissals,
   getWorkMixForOrg,
   getProjectProfitabilityModeForOrg,
+  loadShellOrgSettings,
   isOptionalModuleKey,
   listDiscoverabilityTipKeys,
   suggestUnusedCapabilities,
@@ -25,6 +26,7 @@ import { ComplexityPanel } from './complexity-panel';
 import { FeaturesSettingsPanel } from './features-panel';
 import { UnusedCapabilitySuggestionBanner } from './unused-capability-suggestion-banner';
 import { WorkMixPanel } from './work-mix-panel';
+import { ExperienceSettingsPanel } from './experience-settings-panel';
 import { ProjectProfitabilityModePanel } from './project-profitability-mode-panel';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -39,7 +41,7 @@ export default async function FeaturesSettingsPage() {
   const data = await withOrgContext(async (context) => {
     if (!canAccessSection(context, section)) return { allowed: false as const };
 
-    const [visibility, preferences, workMix, projectProfitabilityMode, currentProfileKey, complexity, dismissals] =
+    const [visibility, preferences, workMix, projectProfitabilityMode, currentProfileKey, complexity, dismissals, shellSettings] =
       await Promise.all([
         getModuleVisibility(context),
         listModulePreferencesForOrg(context),
@@ -48,6 +50,7 @@ export default async function FeaturesSettingsPage() {
         getBusinessProfileKeyForOrg(context.db, context.organizationId),
         getExperienceComplexityForOrg(context),
         getUnusedCapabilityDismissals(context),
+        loadShellOrgSettings(context.db, context.organizationId),
       ]);
 
     const suggestions = suggestUnusedCapabilities(preferences, {
@@ -71,6 +74,9 @@ export default async function FeaturesSettingsPage() {
       unusedSuggestion,
       discoverabilityTips,
       canEdit: canManageSection(context, 'features'),
+      experienceFamily: shellSettings.experienceFamily,
+      capabilityMode: shellSettings.customizationMode,
+      experienceUiOverrides: shellSettings.experienceUiOverrides,
     };
   });
 
@@ -111,6 +117,14 @@ export default async function FeaturesSettingsPage() {
           <BusinessProfilePresetForm canEdit={data.canEdit} currentProfileKey={null} />
         </Card>
       ) : null}
+      <Card className="mb-4 flex flex-col gap-4 p-5">
+        <ExperienceSettingsPanel
+          currentFamily={data.experienceFamily}
+          capabilityMode={data.capabilityMode}
+          currentOverrides={data.experienceUiOverrides}
+          canEdit={data.canEdit}
+        />
+      </Card>
       <Card className="flex flex-col gap-2 p-5">
         <WorkMixPanel initialWorkMix={data.workMix} canEdit={data.canEdit} />
         <ProjectProfitabilityModePanel

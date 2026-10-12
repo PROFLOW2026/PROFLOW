@@ -16,9 +16,9 @@ import {
 } from '@/modules/tenancy';
 
 describe('business profiles', () => {
-  it('exposes the twenty configuration presets', () => {
-    expect(BUSINESS_PROFILE_KEYS).toHaveLength(20);
-    expect(BUSINESS_PROFILES).toHaveLength(20);
+  it('exposes the twenty-one configuration presets', () => {
+    expect(BUSINESS_PROFILE_KEYS).toHaveLength(21);
+    expect(BUSINESS_PROFILES).toHaveLength(21);
     expect(BUSINESS_PROFILES.map((profile) => profile.key)).toEqual([...BUSINESS_PROFILE_KEYS]);
     expect(getBusinessProfile('ELECTRICAL')?.workMix).toBe('mixed');
     expect(getBusinessProfile('FIELD_SERVICE')?.visibleModules).toContain('service');

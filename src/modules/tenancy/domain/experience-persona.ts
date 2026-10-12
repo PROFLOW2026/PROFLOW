@@ -24,6 +24,7 @@ const PROFILE_TO_PERSONA: Readonly<Partial<Record<BusinessProfileKey, Experience
   // PLUMBING and HVAC share the service persona family but keep distinct profiles
   // (terminology, modules, today emphasis) — see business-profiles.ts entries.
   GENERAL_CONTRACTOR: 'project_contractor',
+  REAL_ESTATE_DEVELOPMENT: 'project_contractor',
   SUBCONTRACTOR: 'project_contractor',
   PROJECT_MANAGEMENT: 'project_contractor',
   ELECTRICAL: 'electrical',

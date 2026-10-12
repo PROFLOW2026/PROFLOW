@@ -4,6 +4,7 @@ import { cn } from '@/shared/ui/cn';
 import { pressableClassName } from '@/components/ui/pressable';
 import type { ProjectTabKey } from './project-tab-order';
 import type { ProjectHubKey } from './project-hub-order';
+import { ProjectExperienceHiddenTabsControl } from './project-experience-hidden-tabs-control';
 
 interface ProjectHubSectionNavProps {
   readonly hub: ProjectHubKey;
@@ -11,6 +12,8 @@ interface ProjectHubSectionNavProps {
   readonly activeSection: ProjectTabKey;
   readonly projectHref: string;
   readonly dir?: 'rtl' | 'ltr';
+  readonly experienceHiddenCount?: number;
+  readonly experienceShowHidden?: boolean;
 }
 
 function sectionHref(projectHref: string, section: ProjectTabKey): string {
@@ -27,10 +30,13 @@ export async function ProjectHubSectionNav({
   activeSection,
   projectHref,
   dir,
+  experienceHiddenCount = 0,
+  experienceShowHidden = false,
 }: ProjectHubSectionNavProps) {
-  if (sections.length <= 1) return null;
+  if (sections.length <= 1 && experienceHiddenCount <= 0) return null;
 
-  const t = await getTranslations('projects.workspace.tabs');
+  const t = await getTranslations('projects.workspace');
+  const tTabs = await getTranslations('projects.workspace.tabs');
 
   return (
     <nav
@@ -55,10 +61,16 @@ export async function ProjectHubSectionNav({
                 : 'text-[var(--pf-text-secondary)] hover:text-[var(--pf-text-primary)]',
             )}
           >
-            {t(section)}
+            {tTabs(section)}
           </Link>
         );
       })}
+      <ProjectExperienceHiddenTabsControl
+        hiddenCount={experienceHiddenCount}
+        showHidden={experienceShowHidden}
+        showLabel={t('experienceShowHiddenTabs', { count: experienceHiddenCount })}
+        hideLabel={t('experienceHideOptionalTabs')}
+      />
     </nav>
   );
 }

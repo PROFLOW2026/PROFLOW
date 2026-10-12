@@ -27,6 +27,8 @@ export const BUSINESS_PROFILE_KEYS = [
   'ENGINEERING_CONSULTANT',
   'SAFETY_INSPECTION_CONSULTANT',
   'PROJECT_MANAGEMENT',
+  /** Real-estate development / entrepreneurship — project + cash emphasis. */
+  'REAL_ESTATE_DEVELOPMENT',
   /** Lightweight contractor — calm nav, no ERP overload. */
   'SMALL_WORKS',
   /** Full platform visibility for Owner QA / power users. */
@@ -577,6 +579,35 @@ export const BUSINESS_PROFILES: readonly BusinessProfile[] = [
       { key: 'coordination', nameEn: 'Coordination', nameHe: 'תיאום', family: 'direct_project' },
     ]),
     suggestedDefaults: { defaultWorkKind: 'project', preferServiceSurface: false, todayEmphasis: 'today' },
+  },
+  {
+    key: 'REAL_ESTATE_DEVELOPMENT',
+    workMix: 'projects',
+    visibleModules: [
+      'clients',
+      'vendors',
+      'billing',
+      'changes',
+      'documents',
+      'workforce',
+      'procurement',
+      'budgets',
+      'boq',
+      'approvals',
+      'quotes',
+      'month_close',
+      'command_center',
+      'work_management',
+    ],
+    quickCreateEmphasis: ['project', 'client', 'expense', 'change', 'billingRecord', 'vendor'],
+    terminology: TERM_PROJECT_JOB,
+    domains: [{ key: 'real_estate_development', nameEn: 'Development', nameHe: 'יזמות' }],
+    costCategories: cats([
+      { key: 'development_direct', nameEn: 'Development direct', nameHe: 'ישיר ליזמות', family: 'direct_project' },
+      { key: 'land_acquisition', nameEn: 'Land / rights', nameHe: 'קרקע / זכויות', family: 'asset_capital' },
+      { key: 'marketing_dev', nameEn: 'Marketing', nameHe: 'שיווק', family: 'business_overhead' },
+    ]),
+    suggestedDefaults: { defaultWorkKind: 'project', preferServiceSurface: false, todayEmphasis: 'dashboard' },
   },
   {
     key: 'SMALL_WORKS',

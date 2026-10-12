@@ -115,16 +115,14 @@
     "previewing": "Предпросмотр QA: {label}",
     "returnToActual": "Вернуться к реальному профилю",
     "profiles": {
-      "GENERAL_CONTRACTOR": "Подрядчик проектов",
-      "ELECTRICAL": "Электромонтажный подрядчик",
-      "RENOVATION": "Подрядчик по ремонту",
-      "SMALL_WORKS": "Подрядчик мелких работ",
+      "ENGINEERING_CONSULTANT": "Инженерия / консалтинг / архитектура",
+      "REAL_ESTATE_DEVELOPMENT": "Девелопмент",
+      "GENERAL_CONTRACTOR": "Проектное подрядничество",
+      "ELECTRICAL": "Ремесленники / полевые работы",
+      "PROJECT_MANAGEMENT": "Управление и надзор проектов",
       "FIELD_SERVICE": "Сервис и обслуживание",
-      "ARCHITECT": "Архитектура / дизайн",
-      "ENGINEERING_CONSULTANT": "Инженерия / консалтинг",
-      "SAFETY_INSPECTION_CONSULTANT": "Инспекция / надзор",
-      "MIXED_PROJECT_SERVICE": "Смешанный бизнес",
-      "ALL_CAPABILITIES": "Все возможности"
+      "ALL_CAPABILITIES": "Всё",
+      "MIXED_PROJECT_SERVICE": "Своё (смешанная база)"
     }
   },
   "hiddenCapability": {

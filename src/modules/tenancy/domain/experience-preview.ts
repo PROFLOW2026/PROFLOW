@@ -23,17 +23,16 @@ export const EXPERIENCE_PREVIEW_COOKIE = 'pf_experience_preview';
  * Curated Owner QA preview targets (maps onto business profile keys + actual).
  * Text-only labels live in locales — this list is the switcher contract.
  */
+/** Owner QA — one representative profile per experience family (+ legacy spot checks). */
 export const EXPERIENCE_PREVIEW_PROFILE_KEYS = [
+  'ENGINEERING_CONSULTANT',
+  'REAL_ESTATE_DEVELOPMENT',
   'GENERAL_CONTRACTOR',
   'ELECTRICAL',
-  'RENOVATION',
-  'SMALL_WORKS',
+  'PROJECT_MANAGEMENT',
   'FIELD_SERVICE',
-  'ARCHITECT',
-  'ENGINEERING_CONSULTANT',
-  'SAFETY_INSPECTION_CONSULTANT',
-  'MIXED_PROJECT_SERVICE',
   'ALL_CAPABILITIES',
+  'MIXED_PROJECT_SERVICE',
 ] as const;
 
 export type ExperiencePreviewProfileKey = (typeof EXPERIENCE_PREVIEW_PROFILE_KEYS)[number];

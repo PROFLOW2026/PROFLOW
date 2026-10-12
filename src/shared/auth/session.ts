@@ -36,6 +36,7 @@ import {
 } from '@/modules/tenancy/domain/experience-preview';
 import { readExperiencePreviewCookie } from '@/modules/tenancy/application/experience-preview';
 import { serverEnv } from '@/shared/env/server';
+import { resolveExperienceFamily } from '@/modules/tenancy/domain/experience-family';
 import { AuthenticationRequiredError, AppError } from '@/shared/errors';
 
 /**
@@ -258,6 +259,9 @@ export const getShellContext = cache(async () => {
         businessProfileKey,
         complexity,
         customizationMode,
+        experienceFamily: storedExperienceFamily,
+        experienceProjectsPrimary,
+        suggestedDefaults,
       } = orgSettings;
 
       const env = serverEnv();
@@ -272,6 +276,20 @@ export const getShellContext = cache(async () => {
         preview.active && preview.profileKey ? preview.profileKey : businessProfileKey;
       const persona = personaForBusinessProfile(effectiveProfileKey);
       const roleSurface = resolveExperienceRoleSurface(context.roleKeys);
+      const effectiveWorkMix =
+        preview.active && preview.workMix != null ? preview.workMix : workMix;
+      const effectiveSuggestedDefaults =
+        preview.active && preview.suggestedDefaults
+          ? preview.suggestedDefaults
+          : suggestedDefaults;
+      const experienceFamily = resolveExperienceFamily({
+        businessProfileKey: effectiveProfileKey,
+        workMix: effectiveWorkMix,
+        preferServiceSurface: Boolean(effectiveSuggestedDefaults?.preferServiceSurface),
+        customizationMode,
+        storedFamily: storedExperienceFamily,
+        projectsPrimary: experienceProjectsPrimary,
+      });
 
       let resolvedModules: ModuleVisibility =
         preview.active && preview.modules ? preview.modules : modules;
@@ -304,11 +322,11 @@ export const getShellContext = cache(async () => {
         complexity,
         dashboardCards: dashboardCardsForPersona(persona),
         modules: resolvedModules,
-        workMix: preview.active && preview.workMix != null ? preview.workMix : workMix,
-        suggestedDefaults:
-          preview.active && preview.suggestedDefaults
-            ? preview.suggestedDefaults
-            : orgSettings.suggestedDefaults,
+        workMix: effectiveWorkMix,
+        suggestedDefaults: effectiveSuggestedDefaults,
+        experienceFamily,
+        customizationMode,
+        experienceUiOverrides: orgSettings.experienceUiOverrides,
         experiencePreview: {
           allowed: previewAllowed,
           selection: preview.selection,

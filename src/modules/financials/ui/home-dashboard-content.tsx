@@ -9,7 +9,6 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
 import type { ExperienceDashboardCard } from '@/modules/tenancy';
-import type { ExperiencePersonaKey } from '@/modules/tenancy';
 import type { HomeDashboardData } from '../application/get-home-dashboard';
 import { mapCoverageToSources, partialNote, standalonePartialNotes } from './map-coverage-sources';
 import { DashboardMissingDataTrigger } from './dashboard-missing-data-trigger';
@@ -62,23 +61,23 @@ import {
   mapDashboardKpiDetailTriggerCopy,
 } from './dashboard-kpi-detail-copy';
 import { DashboardKpiCard } from './dashboard-kpi-card';
+import { usesOwnerDashboardLayout } from '@/modules/tenancy/domain/experience-dashboard-layout';
+import { HomeDashboardCardSupplements } from './home-dashboard-card-supplements';
+import {
+  isExperienceUiVisible,
+  type ExperienceUiToggleId,
+} from '@/modules/tenancy/domain/experience-ui-registry';
+
+function showDashboardUi(data: HomeDashboardData, id: ExperienceUiToggleId): boolean {
+  return isExperienceUiVisible(id, data.experienceUiContext);
+}
 
 interface HomeDashboardContentProps {
   data: HomeDashboardData;
 }
 
-const PROJECT_FIRST_DASHBOARD_PERSONAS = new Set<ExperiencePersonaKey>([
-  'project_contractor',
-  'renovation',
-  'architecture',
-  'consulting',
-  'mixed',
-]);
-
 function shouldUseOwnerDashboard(data: HomeDashboardData): boolean {
-  if (data.preferServiceSurface) return false;
-  if (PROJECT_FIRST_DASHBOARD_PERSONAS.has(data.persona)) return true;
-  return false;
+  return usesOwnerDashboardLayout(data.dashboardLayoutMode);
 }
 
 export async function HomeDashboardContent({ data }: HomeDashboardContentProps) {
@@ -149,7 +148,16 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
   }
 
   if (!data.isBrandNew && shouldUseOwnerDashboard(data)) {
-    return <HomeDashboardOwnerView data={data} />;
+    const supplementCards =
+      data.dashboardLayoutMode === 'all_capabilities' ? data.allCapabilitiesSupplements : [];
+    return (
+      <div className="flex min-w-0 flex-col gap-6">
+        <HomeDashboardOwnerView data={data} />
+        {supplementCards.length > 0 ? (
+          <HomeDashboardCardSupplements data={data} cards={supplementCards} />
+        ) : null}
+      </div>
+    );
   }
 
   const cardSet = new Set(data.dashboardCards);
@@ -810,15 +818,19 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
         </div>
       ) : null}
 
-      {data.pendingTime ? (
+      {data.pendingTime && showDashboardUi(data, 'common.pendingTime') ? (
         <HomePendingTimeAlert pendingTime={data.pendingTime} canApproveTime={data.canApproveTime} />
       ) : null}
-      {data.laborReconciliation ? (
+      {data.laborReconciliation && showDashboardUi(data, 'common.laborReconciliation') ? (
         <HomeLaborReconciliation laborReconciliation={data.laborReconciliation} />
       ) : null}
 
-      <DashboardQuickAccessSection shortcuts={data.quickAccessShortcuts} />
-      <DashboardAttentionCards attention={data.attention} />
+      {showDashboardUi(data, 'shortcuts.dashboardQuickAccess') ? (
+        <DashboardQuickAccessSection shortcuts={data.quickAccessShortcuts} />
+      ) : null}
+      {showDashboardUi(data, 'common.attention') ? (
+        <DashboardAttentionCards attention={data.attention} />
+      ) : null}
 
       {data.dashboardCards.map((card) => renderCard(card))}
 

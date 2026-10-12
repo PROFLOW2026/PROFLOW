@@ -18,6 +18,14 @@ import {
   PERSONA_PRIMARY_NAV_KEYS,
   roleNavEmphasis,
 } from '@/modules/tenancy/domain/experience-nav-layout';
+import type { ExperienceFamilyKey } from '@/modules/tenancy/domain/experience-family';
+import { primaryNavKeysForExperience } from '@/modules/tenancy/domain/experience-family-nav';
+import type { CapabilityCustomizationMode } from '@/modules/tenancy/domain/capability-overrides';
+import type { ExperienceUiOverrides } from '@/modules/tenancy/domain/experience-family';
+import {
+  buildExperienceUiContext,
+  navDemoteKeysFromOverrides,
+} from '@/modules/tenancy/domain/experience-ui-registry';
 
 /**
  * Adaptive navigation model (docs 40 §4, 41, 48 U1).
@@ -703,6 +711,9 @@ export interface VisibleNavOptions {
   readonly persona?: ExperiencePersonaKey;
   readonly roleSurface?: ExperienceRoleSurface;
   readonly complexity?: ExperienceComplexityKey;
+  readonly experienceFamily?: ExperienceFamilyKey | null;
+  readonly customizationMode?: CapabilityCustomizationMode | null;
+  readonly experienceUiOverrides?: ExperienceUiOverrides;
 }
 
 /**
@@ -747,11 +758,30 @@ export function applyExperienceNavLayout(
   items: readonly NavItem[],
   persona: ExperiencePersonaKey = 'mixed',
   roleSurface: ExperienceRoleSurface = 'general',
+  navOptions: Pick<
+    VisibleNavOptions,
+    'experienceFamily' | 'customizationMode' | 'experienceUiOverrides'
+  > = {},
 ): NavItem[] {
-  const primaryKeys = PERSONA_PRIMARY_NAV_KEYS[persona];
+  const personaPrimary = PERSONA_PRIMARY_NAV_KEYS[persona];
+  const primaryKeys = primaryNavKeysForExperience(
+    navOptions.experienceFamily ?? null,
+    personaPrimary,
+  );
   const { prefer, demote } = roleNavEmphasis(roleSurface);
   const preferSet = new Set(prefer);
   const demoteSet = new Set(demote);
+
+  if (navOptions.customizationMode === 'custom') {
+    const uiCtx = buildExperienceUiContext({
+      customizationMode: 'custom',
+      family: navOptions.experienceFamily ?? 'custom',
+      overrides: navOptions.experienceUiOverrides ?? {},
+    });
+    for (const key of navDemoteKeysFromOverrides(uiCtx)) {
+      demoteSet.add(key);
+    }
+  }
 
   return items.map((item) => {
     if (item.key === 'settings') {
@@ -830,6 +860,11 @@ export function visibleNavItems(
     withMix,
     options.persona ?? 'mixed',
     options.roleSurface ?? 'general',
+    {
+      experienceFamily: options.experienceFamily ?? null,
+      customizationMode: options.customizationMode ?? null,
+      experienceUiOverrides: options.experienceUiOverrides ?? {},
+    },
   ).filter((item) =>
     filterNavKeysByComplexity([item.key], options.complexity ?? 'full').includes(item.key),
   );

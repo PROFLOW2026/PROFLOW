@@ -28,18 +28,17 @@ import { DetailsTab } from './details-tab';
 import { ProjectManagementModePanel } from '@/modules/project-profile/ui/project-management-mode-panel';
 import { OverviewTab } from './overview-tab';
 import { type ProjectTabKey } from './project-tabs-shell';
+import { resolveHubFromTabParam } from './project-hub-order';
+import { resolveProjectFilesTabVisible } from './project-tab-order';
 import {
-  resolveHubFromTabParam,
-  visibleHubSections,
-} from './project-hub-order';
-import {
-  applyProjectProfileToTabVisibility,
-  resolveProjectFilesTabVisible,
-} from './project-tab-order';
+  hubSectionsForDisplay,
+  resolveProjectTabVisibility,
+} from './resolve-project-tab-visibility';
 import { resolveProjectExperienceProfile } from '@/modules/tenancy';
 import { getShellContextForProject } from '@/shared/auth/session';
 import { localeDirection } from '@/shared/i18n/config';
 import { ProjectHubSectionNav } from './project-hub-section-nav';
+import { readExperienceShowHiddenProjectTabsCookie } from '@/modules/tenancy/application/experience-project-tabs-preference';
 
 interface ProjectPageProps {
   params: Promise<{ locale: string; projectId: string }>;
@@ -47,6 +46,7 @@ interface ProjectPageProps {
     tab?: string | string[];
     contractId?: string | string[];
     cycleId?: string | string[];
+    experienceShowHidden?: string | string[];
   }>;
 }
 
@@ -71,6 +71,11 @@ const MODULE_PANEL_TABS = new Set<ProjectTabKey>([
 function tabFromSearchParams(raw: string | string[] | undefined): string {
   if (Array.isArray(raw)) return raw[0] ?? 'overview';
   return raw ?? 'overview';
+}
+
+function experienceShowHiddenFromSearchParams(raw: string | string[] | undefined): boolean {
+  const value = Array.isArray(raw) ? raw[0] : raw;
+  return value === '1' || value === 'true';
 }
 
 export async function generateMetadata({ params }: ProjectPageProps): Promise<Metadata> {
@@ -104,6 +109,7 @@ export default async function ProjectPage({ params, searchParams }: ProjectPageP
       boqContractId:
         typeof search.contractId === 'string' ? search.contractId : search.contractId?.[0],
       cycleId: typeof search.cycleId === 'string' ? search.cycleId : search.cycleId?.[0],
+      experienceShowHidden: experienceShowHiddenFromSearchParams(search.experienceShowHidden),
     });
   }
 
@@ -270,6 +276,7 @@ function renderModuleTab(input: {
   projectId: string;
   boqContractId?: string;
   cycleId?: string;
+  experienceShowHidden?: boolean;
 }) {
   return (
     <div className="pt-4">
@@ -285,9 +292,14 @@ async function ModuleTabWithHubNav(input: {
   projectId: string;
   boqContractId?: string;
   cycleId?: string;
+  experienceShowHidden?: boolean;
 }) {
   const { hub, section } = resolveHubFromTabParam(input.activeTab);
-  const [locale, shell] = await Promise.all([getLocale(), getShellContextForProject(input.projectId)]);
+  const [locale, shell, prefShowHidden] = await Promise.all([
+    getLocale(),
+    getShellContextForProject(input.projectId),
+    readExperienceShowHiddenProjectTabsCookie(),
+  ]);
   const direction = localeDirection(locale);
 
   const can = (permission: PermissionKey) => shell?.permissions.has(permission) ?? false;
@@ -301,8 +313,8 @@ async function ModuleTabWithHubNav(input: {
       businessProfileKey: shell?.businessProfileKey ?? null,
       boqModuleEnabled: Boolean(modules.boq),
     });
-    const visibility = applyProjectProfileToTabVisibility(
-      {
+    const resolved = resolveProjectTabVisibility({
+      moduleVisibility: {
         financials:
           can(PERMISSIONS.PROJECT_FINANCIALS_READ) || can(PERMISSIONS.CONTRACTS_READ),
         expenses: can(PERMISSIONS.EXPENSES_READ),
@@ -321,20 +333,33 @@ async function ModuleTabWithHubNav(input: {
         warranty: true,
       },
       experienceProfile,
-    );
-    const sections = visibleHubSections(hub, visibility);
-    const activeSection = sections.includes(section) ? section : (sections[0] ?? section);
+      detail,
+      experienceFamily: shell?.experienceFamily ?? 'project_contracting',
+      customizationMode: shell?.customizationMode ?? null,
+      experienceUiOverrides: shell?.experienceUiOverrides ?? {},
+    });
+    const showHidden = Boolean(input.experienceShowHidden) || prefShowHidden;
+    const sections = hubSectionsForDisplay(hub, resolved, showHidden);
+    const allSections = hubSectionsForDisplay(hub, resolved, true);
+    const hiddenCount = allSections.length - hubSectionsForDisplay(hub, resolved, false).length;
+    const sectionKey = section as keyof typeof resolved.display;
+    const canAccessSection =
+      sections.includes(section) ||
+      (resolved.base[sectionKey] && !resolved.display[sectionKey]);
+    const activeSection = canAccessSection ? section : (sections[0] ?? section);
     const panel = await loadActiveModulePanel({ ...input, activeTab: activeSection });
 
     return (
       <div className="flex flex-col gap-4">
-        {sections.length > 1 ? (
+        {sections.length > 1 || hiddenCount > 0 ? (
           <ProjectHubSectionNav
             hub={hub}
             sections={sections}
             activeSection={activeSection}
             projectHref={`/projects/${input.projectId}`}
             dir={direction}
+            experienceHiddenCount={hiddenCount}
+            experienceShowHidden={showHidden}
           />
         ) : null}
         {panel}

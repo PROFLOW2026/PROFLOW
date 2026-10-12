@@ -19,10 +19,8 @@ import { WithAppClientMessages } from '@/shared/i18n/with-client-messages';
 import { ArchiveProjectButton } from './archive-project-button';
 import { ProjectHeaderMetrics } from './project-header-metrics';
 import { ProjectStatusBadge } from '../project-status-badge';
-import {
-  applyProjectProfileToTabVisibility,
-  resolveProjectFilesTabVisible,
-} from './project-tab-order';
+import { resolveProjectFilesTabVisible } from './project-tab-order';
+import { resolveProjectTabVisibility } from './resolve-project-tab-visibility';
 import {
   resolveProjectHubs,
   type ProjectHubKey,
@@ -128,8 +126,8 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
     boqModuleEnabled: Boolean(modules?.boq),
   });
 
-  const tabVisibility = applyProjectProfileToTabVisibility(
-    {
+  const tabVisibility = resolveProjectTabVisibility({
+    moduleVisibility: {
       financials: canReadFinancials,
       expenses: showExpensesTab,
       changes: showChangesTab,
@@ -147,7 +145,11 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
       warranty: true,
     },
     experienceProfile,
-  );
+    detail,
+    experienceFamily: shell?.experienceFamily ?? 'project_contracting',
+    customizationMode: shell?.customizationMode ?? null,
+    experienceUiOverrides: shell?.experienceUiOverrides ?? {},
+  }).display;
 
   const hubs = resolveProjectHubs(tabVisibility);
 

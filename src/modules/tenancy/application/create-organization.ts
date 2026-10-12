@@ -89,8 +89,10 @@ export async function createOrganization(
   });
 
   const profileKey =
-    resolveBusinessProfileKey(input.businessProfile) ??
-    resolveBusinessProfileKey(input.professionPreset);
+    input.onboardingSkip === 'all'
+      ? 'ALL_CAPABILITIES'
+      : resolveBusinessProfileKey(input.businessProfile) ??
+        resolveBusinessProfileKey(input.professionPreset);
   if (profileKey) {
     const moduleMode =
       input.moduleMode ?? (profileKey === 'ALL_CAPABILITIES' ? 'additive' : 'replace');

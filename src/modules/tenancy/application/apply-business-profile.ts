@@ -32,6 +32,11 @@ import {
   type ExperienceComplexityKey,
 } from '../domain/experience-complexity';
 import { isWorkMix, WORK_MIX_SETTING_KEY } from '../domain/work-mix';
+import {
+  EXPERIENCE_FAMILY_SETTING_KEY,
+  resolveExperienceFamily,
+} from '../domain/experience-family';
+import { parseCapabilityCustomizationMode } from '../domain/capability-overrides';
 import { seedBusinessProfileSetup } from './seed-business-profile-setup';
 
 export type ApplyBusinessProfileOptions = {
@@ -161,6 +166,24 @@ export async function applyBusinessProfileConfig(
       '@/modules/tasks/application/seed-profile-task-templates'
     );
     await seedProfileTaskTemplates(db, organizationId, profileKey, locale);
+
+    const customizationMode =
+      parseCapabilityCustomizationMode(
+        await getOrganizationSettingValue(db, organizationId, CAPABILITY_MODE_SETTING_KEY),
+      ) ?? (profileKey === 'ALL_CAPABILITIES' ? 'all' : 'profile');
+    const workMixForFamily =
+      options?.workMixOverride && isWorkMix(options.workMixOverride)
+        ? options.workMixOverride
+        : profile.workMix;
+    const family = resolveExperienceFamily({
+      businessProfileKey: profileKey,
+      workMix: workMixForFamily,
+      preferServiceSurface: Boolean(profile.suggestedDefaults.preferServiceSurface),
+      customizationMode,
+      storedFamily: null,
+      projectsPrimary: workMixForFamily === 'projects',
+    });
+    await upsertOrganizationSettingValue(db, organizationId, EXPERIENCE_FAMILY_SETTING_KEY, family);
   }
 
   // Vocabulary catalogs (vendor categories, specialties, cost codes, doc requirements)

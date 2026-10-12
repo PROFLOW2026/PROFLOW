@@ -1997,6 +1997,259 @@
       }
     }
   },
+  "experience": {
+    "title": "תצוגת עסק",
+    "description": "בחרו משפחת חוויה ומצב יכולות. אין הסתרת נתונים או הרשאות . רק הדגשה וסדר.",
+    "familyLabel": "משפחת חוויה",
+    "modeLabel": "מצב יכולות",
+    "save": "שמירה",
+    "families": {
+      "engineering_consulting_architecture": "הנדסה / ייעוץ / אדריכלות",
+      "real_estate_development": "יזמות",
+      "project_contracting": "קבלנות פרויקטים",
+      "trades_and_field_work": "בעלי מקצוע / עבודות",
+      "project_management_supervision": "ניהול ופיקוח פרויקטים",
+      "service_and_maintenance": "שירות ותחזוקה",
+      "all_capabilities": "הכול",
+      "custom": "מותאם אישית"
+    },
+    "modes": {
+      "profile": "לפי פרופיל",
+      "custom": "מותאם אישית",
+      "all": "הכול"
+    },
+    "customTogglesHint": "במצב מותאם אישית: בחרו מה מוצג. הסתרה אינה חוסמת גישה לנתונים.",
+    "togglesRequireCustomMode": "מתגי תצוגה זמינים במצב «מותאם אישית».",
+    "v2DisabledHint": "תצוגת משפחות V2 כבויה בסביבה זו.",
+    "resetUi": "איפוס התאמות תצוגה",
+    "toggleLocked": "נעול למשפחה הנוכחית. נשאר גלוי.",
+    "groups": {
+      "dashboardOwner": "דשבורד בעלים",
+      "dashboardCard": "כרטיסי דשבורד",
+      "dashboardCommon": "מקטעים משותפים",
+      "navPrimary": "ניווט ראשי",
+      "projectTab": "טאבי פרויקט אופציונליים",
+      "shortcuts": "קיצורי דרך"
+    },
+    "toggles": {
+      "common_pendingTime": {
+        "label": "שעות ממתינות לאישור",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "common_laborReconciliation": {
+        "label": "התאמת עבודה",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "common_attention": {
+        "label": "דורש תשומת לב",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "shortcuts_dashboardQuickAccess": {
+        "label": "גישה מהירה בדשבורד",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "owner_contractSummary": {
+        "label": "שורת סיכום חוזים",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "owner_kpiRow": {
+        "label": "שורת מדדי KPI",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "owner_cashForecast90": {
+        "label": "תחזית מזומנים 90 יום",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "owner_apOutstanding": {
+        "label": "חובות לספקים",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "owner_restoredSections": {
+        "label": "מקטעים משוחזרים",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "owner_recentProjects": {
+        "label": "פרויקטים אחרונים",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "owner_projectProfitTable": {
+        "label": "טבלת רווחיות פרויקטים",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "owner_quickActions": {
+        "label": "פעולות מהירות",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "owner_reportsLinks": {
+        "label": "קישורי דוחות",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "card_activeWork": {
+        "label": "עבודה פעילה",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "card_contractValue": {
+        "label": "שווי חוזים",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "card_profit": {
+        "label": "רווח",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "card_forecast": {
+        "label": "תחזית",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "card_commitments": {
+        "label": "התחייבויות",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "card_billing": {
+        "label": "חיובים",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "card_collections": {
+        "label": "גבייה",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "card_serviceToday": {
+        "label": "שירות היום",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "card_timeUtilization": {
+        "label": "ניצולת זמן",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "card_quotePipeline": {
+        "label": "צינור הצעות",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "card_firstActions": {
+        "label": "פעולות ראשונות",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "nav_today": {
+        "label": "היום",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "nav_projects": {
+        "label": "פרויקטים",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "nav_jobs": {
+        "label": "עבודות",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "nav_workOrders": {
+        "label": "קריאות שירות",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "nav_clients": {
+        "label": "לקוחות",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "nav_expenses": {
+        "label": "הוצאות",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "nav_quotes": {
+        "label": "הצעות מחיר",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "nav_procurement": {
+        "label": "רכש",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "nav_cashFlow": {
+        "label": "תזרים",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "nav_crm": {
+        "label": "מכירות",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "nav_vendorBills": {
+        "label": "חשבוניות ספק",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "nav_portfolio": {
+        "label": "תיק פרויקטים",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "nav_myWork": {
+        "label": "המשימות שלי",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "nav_fieldHome": {
+        "label": "שטח",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "nav_fieldOps": {
+        "label": "עבודה בשטח",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "projectTab_financials": {
+        "label": "פירוט כספי",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "projectTab_expenses": {
+        "label": "הוצאות",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "projectTab_changes": {
+        "label": "שינויים ותוספות",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "projectTab_boq": {
+        "label": "כתב כמויות",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "projectTab_billing": {
+        "label": "חיובים וגבייה",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "projectTab_billingPlan": {
+        "label": "תוכנית חיובים",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "projectTab_budgets": {
+        "label": "תקציב",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "projectTab_team": {
+        "label": "צוות",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "projectTab_schedule": {
+        "label": "לוח זמנים",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "projectTab_time": {
+        "label": "שעות",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "projectTab_documents": {
+        "label": "מסמכים",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "projectTab_usage": {
+        "label": "חומרים וציוד",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "projectTab_work": {
+        "label": "תחומי עבודה",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "projectTab_closeout": {
+        "label": "סגירה",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      },
+      "projectTab_warranty": {
+        "label": "אחריות",
+        "description": "הצגה או הסתרה בתצוגה. לא מוחק נתונים."
+      }
+    }
+  },
   "laborCost": {
     "validation": {
       "bothTimesRequired": "נדרשים שעת התחלה ושעת סיום",

@@ -115,16 +115,14 @@
     "previewing": "معاينة QA: {label}",
     "returnToActual": "العودة للملف الفعلي",
     "profiles": {
-      "GENERAL_CONTRACTOR": "مقاول مشاريع",
-      "ELECTRICAL": "مقاول كهرباء",
-      "RENOVATION": "مقاول ترميم",
-      "SMALL_WORKS": "مقاول أعمال صغيرة",
+      "ENGINEERING_CONSULTANT": "هندسة / استشارات / معمارية",
+      "REAL_ESTATE_DEVELOPMENT": "تطوير عقاري",
+      "GENERAL_CONTRACTOR": "مقاولات مشاريع",
+      "ELECTRICAL": "حرف وعمل ميداني",
+      "PROJECT_MANAGEMENT": "إدارة وإشراف مشاريع",
       "FIELD_SERVICE": "خدمة وصيانة",
-      "ARCHITECT": "هندسة معمارية / تصميم",
-      "ENGINEERING_CONSULTANT": "هندسة / استشارات",
-      "SAFETY_INSPECTION_CONSULTANT": "فحص / إشراف",
-      "MIXED_PROJECT_SERVICE": "أعمال مختلطة",
-      "ALL_CAPABILITIES": "كل الإمكانيات"
+      "ALL_CAPABILITIES": "الكل",
+      "MIXED_PROJECT_SERVICE": "مخصص (قاعدة مختلطة)"
     }
   },
   "hiddenCapability": {
