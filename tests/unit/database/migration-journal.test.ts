@@ -446,7 +446,10 @@ describe('migration journal', () => {
     expect(tags.indexOf('0171_retention_release_service_grant')).toBeLessThan(
       tags.indexOf('0172_notification_attention_badge_snapshot'),
     );
-    expect(tags.at(-1)).toBe('0181_owner_bms_installment_payment_backfill');
+    expect(tags.at(-1)).toBe('0182_expense_installment_payments_grants');
+    expect(tags.indexOf('0181_owner_bms_installment_payment_backfill')).toBeLessThan(
+      tags.indexOf('0182_expense_installment_payments_grants'),
+    );
     expect(tags.indexOf('0172_notification_attention_badge_snapshot')).toBeLessThan(
       tags.indexOf('0173_force_rls_five_tables'),
     );

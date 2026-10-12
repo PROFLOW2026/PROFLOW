@@ -3,6 +3,7 @@ import { auditEvents, expenseInstallmentPayments } from '@drizzle/schema';
 import { businessDate } from '@/shared/dates';
 import { fromNumericString, roundMoney } from '@/shared/money';
 import { AUDIT_ACTIONS } from '@/shared/audit/actions';
+import { isPostgresPermissionDenied } from '@/shared/db/postgres-sql-state';
 import type { DbExecutor } from '@/shared/db/types';
 import type { ExpensePaymentAuditRow } from '../domain/expense-installment-payment-evidence';
 import {
@@ -78,25 +79,33 @@ async function loadLedgerSlicesByExpenseIds(
   const map = new Map<string, InstallmentPaymentSlice[]>();
   if (expenseIds.length === 0) return map;
 
-  const rows = await db
-    .select({
-      expenseId: expenseInstallmentPayments.expenseId,
-      installmentIndex: expenseInstallmentPayments.installmentIndex,
-      dueDate: expenseInstallmentPayments.dueDate,
-      actualPaidAt: expenseInstallmentPayments.actualPaidAt,
-      grossPaid: expenseInstallmentPayments.grossPaid,
-      status: expenseInstallmentPayments.status,
-      paymentReference: expenseInstallmentPayments.paymentReference,
-    })
-    .from(expenseInstallmentPayments)
-    .where(
-      and(
-        eq(expenseInstallmentPayments.organizationId, organizationId),
-        inArray(expenseInstallmentPayments.expenseId, [...expenseIds]),
-        eq(expenseInstallmentPayments.status, 'paid'),
-      ),
-    )
-    .orderBy(expenseInstallmentPayments.installmentIndex, expenseInstallmentPayments.createdAt);
+  let rows;
+  try {
+    rows = await db
+      .select({
+        expenseId: expenseInstallmentPayments.expenseId,
+        installmentIndex: expenseInstallmentPayments.installmentIndex,
+        dueDate: expenseInstallmentPayments.dueDate,
+        actualPaidAt: expenseInstallmentPayments.actualPaidAt,
+        grossPaid: expenseInstallmentPayments.grossPaid,
+        status: expenseInstallmentPayments.status,
+        paymentReference: expenseInstallmentPayments.paymentReference,
+      })
+      .from(expenseInstallmentPayments)
+      .where(
+        and(
+          eq(expenseInstallmentPayments.organizationId, organizationId),
+          inArray(expenseInstallmentPayments.expenseId, [...expenseIds]),
+          eq(expenseInstallmentPayments.status, 'paid'),
+        ),
+      )
+      .orderBy(expenseInstallmentPayments.installmentIndex, expenseInstallmentPayments.createdAt);
+  } catch (error) {
+    if (isPostgresPermissionDenied(error)) {
+      return map;
+    }
+    throw error;
+  }
 
   for (const row of rows) {
     if (!row.expenseId || row.installmentIndex == null || !row.actualPaidAt) continue;
