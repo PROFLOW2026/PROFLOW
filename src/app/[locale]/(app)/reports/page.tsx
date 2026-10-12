@@ -9,6 +9,7 @@ import { WorkKindFilterChrome } from '@/modules/financials/ui/work-kind-filter-c
 import { loadReportPackCatalog } from '@/modules/reports';
 import { ReportPacksSection } from '@/modules/reports/ui';
 import { withOrgContext } from '@/shared/auth/session';
+import { FinancialYearBookExportGate } from './financial-year-book-export-gate';
 import { ReportsExportActionsLazy } from './reports-export-actions-lazy';
 import { ReportsAdvancedAnalysisGate } from './reports-advanced-analysis-gate';
 import { ReportsAnalyticsLoader } from './reports-analytics-loader';
@@ -45,7 +46,12 @@ export default async function ReportsPage({
       <PageHeader
         title={t('title')}
         description={t('description')}
-        actions={<ReportsExportActionsLazy />}
+        actions={
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <FinancialYearBookExportGate />
+            <ReportsExportActionsLazy />
+          </div>
+        }
       />
 
       <ReportPacksSection

@@ -79,6 +79,8 @@ export {
   computeVendorConcentration,
   emptyManagementAnalytics,
 } from './domain/management-analytics';
+export { loadFinancialYearBookData } from './application/load-financial-year-book-data';
+export type { FinancialYearBookData } from './domain/financial-year-book/types';
 export { getHomeDashboard } from './application/get-home-dashboard';
 export { getFinancialsOverview } from './application/get-financials-overview';
 export type { FinancialsOverviewData } from './application/get-financials-overview';

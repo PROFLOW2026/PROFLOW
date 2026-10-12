@@ -321,6 +321,7 @@ describe('export kinds coverage', () => {
         'purchase-orders',
         'ap-bills',
         'audit',
+        'financial-year-book',
       ]),
     );
   });

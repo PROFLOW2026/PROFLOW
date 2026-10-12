@@ -50,6 +50,7 @@ export const EXPORT_KINDS = [
   'ap-bills',
   'audit',
   'boq',
+  'financial-year-book',
 ] as const;
 
 export type ExportKind = (typeof EXPORT_KINDS)[number];
@@ -75,6 +76,7 @@ const KIND_ALIASES: Readonly<Record<string, ExportKind>> = {
   activity: 'audit',
   'bill-of-quantities': 'boq',
   boq_items: 'boq',
+  'financial-yearbook': 'financial-year-book',
 };
 
 function resolveExportKind(value: string): ExportKind | null {
@@ -92,11 +94,21 @@ const DEFAULT_FORMAT: ExportFormat = 'xlsx';
 export async function buildExport(
   context: OrgContext,
   kindRaw: string,
-  options: { projectId?: string | null; format?: string | null; locale?: string | null } = {},
+  options: {
+    projectId?: string | null;
+    format?: string | null;
+    locale?: string | null;
+    year?: string | null;
+  } = {},
 ): Promise<ExportResult> {
   const kind = resolveExportKind(kindRaw);
   if (!kind) {
     throw new ValidationError([{ path: 'kind', message: 'Unknown export kind' }]);
+  }
+
+  if (kind === 'financial-year-book') {
+    const { buildFinancialYearBookExport } = await import('./financial-year-book/build-export');
+    return buildFinancialYearBookExport(context, { year: options.year });
   }
 
   const format: ExportFormat = isExportFormat(options.format)
@@ -160,6 +172,10 @@ async function buildExportTables(
         throw new ValidationError([{ path: 'projectId', message: 'projectId is required' }]);
       }
       return [await tableBoq(context, projectId, copy)];
+    case 'financial-year-book':
+      throw new ValidationError([
+        { path: 'kind', message: 'financial-year-book uses dedicated XLSX builder' },
+      ]);
   }
 }
 

@@ -85,6 +85,17 @@ export function xlsxDownloadHeaders(fileName: string): HeadersInit {
   };
 }
 
+/** UTF-8 filename for Hebrew / non-ASCII download names (RFC 5987). */
+export function xlsxDownloadHeadersUtf8(fileName: string): HeadersInit {
+  const asciiFallback = fileName.replace(/[^\w.\-]+/g, '_') || 'export.xlsx';
+  const encoded = encodeURIComponent(fileName);
+  return {
+    'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'Content-Disposition': `attachment; filename="${asciiFallback}"; filename*=UTF-8''${encoded}`,
+    'Cache-Control': 'no-store',
+  };
+}
+
 function sanitizeSheetName(name: string): string {
   const cleaned = name.replace(/[\\/*?:\[\]]/g, '_').trim() || 'Sheet1';
   return cleaned.slice(0, 31);

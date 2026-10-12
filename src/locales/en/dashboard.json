@@ -347,6 +347,8 @@
   "reports": {
     "title": "Reports & exports",
     "description": "Organization visibility in the base currency. Every figure is labelled Actual, Committed, Forecast, Commercial, or Estimate. Profit uses net contract excluding VAT. Invoice totals are billing/cash, not profit.",
+    "financialYearBookExport": "Export financial year book (Excel)",
+    "financialYearBookYear": "Year for financial book",
     "exportMenu": "Export & import",
     "exportProjects": "Export projects",
     "exportClients": "Export clients",

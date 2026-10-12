@@ -11,10 +11,11 @@ export async function GET(
   const url = new URL(request.url);
   const projectId = url.searchParams.get('projectId');
   const format = url.searchParams.get('format');
+  const year = url.searchParams.get('year');
 
   try {
     const result = await withOrgContext((org) =>
-      buildExport(org, kind, { projectId, format, locale }),
+      buildExport(org, kind, { projectId, format, locale, year }),
     );
     // CSV is text; XLSX is binary. Cast binary through BodyInit for DOM lib variance.
     if (typeof result.body === 'string') {
