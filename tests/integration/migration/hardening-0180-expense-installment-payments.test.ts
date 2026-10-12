@@ -17,8 +17,10 @@ import {
 } from '@tests/setup/database';
 import { createTestUser, seedSystem } from '@tests/setup/fixtures';
 
-const MIGRATIONS_DIR = path.resolve(process.cwd(), 'drizzle/migrations');
-const TAG = '0180_expense_installment_payments';
+const PREPARED_MIGRATION = path.resolve(
+  process.cwd(),
+  'drizzle/prepared/0180_expense_installment_payments.sql',
+);
 const ILS = 'ILS';
 
 function errorBlob(error: unknown): string {
@@ -28,7 +30,7 @@ function errorBlob(error: unknown): string {
 }
 
 async function apply0180(db: TestDatabase) {
-  const raw = await readFile(path.join(MIGRATIONS_DIR, `${TAG}.sql`), 'utf8');
+  const raw = await readFile(PREPARED_MIGRATION, 'utf8');
   await db.asService(async (tx) => {
     for (const statement of splitSqlStatements(raw.replaceAll('--> statement-breakpoint', ''))) {
       await tx.execute(sql.raw(statement));
@@ -50,10 +52,12 @@ describe('0180 expense_installment_payments', () => {
   });
 
   it('SQL: partial credits, gross=net+vat, reversal org guard, idempotency indexes', async () => {
-    const raw = await readFile(path.join(MIGRATIONS_DIR, `${TAG}.sql`), 'utf8');
+    const raw = await readFile(PREPARED_MIGRATION, 'utf8');
     expect(raw).toContain('expense_installment_payments_gross_net_vat');
     expect(raw).toContain('expense_installment_payment_reversal_guard');
     expect(raw).toContain('cumulative credit exceeds original payment gross');
+    expect(raw).toContain('FOR UPDATE');
+    expect(raw).toContain('pg_advisory_xact_lock');
     expect(raw).toContain('expense_installment_payments_audit_uq');
     expect(raw).toContain('expense_installment_payments_idempotency_uq');
     expect(raw).toContain('install_org_parent_table_rls');
@@ -183,5 +187,111 @@ describe('0180 expense_installment_payments', () => {
         `);
       }),
     ).rejects.toSatisfy((err: unknown) => /unique|duplicate|idempotency/i.test(errorBlob(err)));
+  });
+
+  it('DB: blocks second void on same payment', async () => {
+    const orgId = resultRows<{ id: string }>(
+      await database.asService((tx) =>
+        tx.execute(sql`SELECT id FROM organizations ORDER BY created_at DESC LIMIT 1`),
+      ),
+    )[0]!.id;
+    const expenseId = resultRows<{ id: string }>(
+      await database.asService((tx) =>
+        tx.execute(sql`SELECT id FROM expenses WHERE organization_id = ${orgId}::uuid LIMIT 1`),
+      ),
+    )[0]!.id;
+
+    const paymentId = await database.asService(async (tx) => {
+      const rows = resultRows<{ id: string }>(
+        await tx.execute(sql`
+          INSERT INTO expense_installment_payments (
+            organization_id, expense_id, gross_paid, net_paid, vat_paid,
+            actual_paid_at, status
+          ) VALUES (
+            ${orgId}::uuid, ${expenseId}::uuid, 20, 16.95, 3.05, '2026-03-01', 'paid'
+          ) RETURNING id
+        `),
+      );
+      return rows[0]!.id;
+    });
+
+    await database.asService(async (tx) => {
+      await tx.execute(sql`
+        INSERT INTO expense_installment_payments (
+          organization_id, expense_id, gross_paid, net_paid, vat_paid,
+          status, reverses_payment_id
+        ) VALUES (
+          ${orgId}::uuid, ${expenseId}::uuid, 20, 16.95, 3.05,
+          'voided', ${paymentId}::uuid
+        )
+      `);
+    });
+
+    await expect(
+      database.asService(async (tx) => {
+        await tx.execute(sql`
+          INSERT INTO expense_installment_payments (
+            organization_id, expense_id, gross_paid, net_paid, vat_paid,
+            status, reverses_payment_id
+          ) VALUES (
+            ${orgId}::uuid, ${expenseId}::uuid, 20, 16.95, 3.05,
+            'voided', ${paymentId}::uuid
+          )
+        `);
+      }),
+    ).rejects.toSatisfy((err: unknown) => /already voided/i.test(errorBlob(err)));
+  });
+
+  it('DB: parallel partial credits cannot exceed gross cap', async () => {
+    const orgId = resultRows<{ id: string }>(
+      await database.asService((tx) =>
+        tx.execute(sql`SELECT id FROM organizations ORDER BY created_at DESC LIMIT 1`),
+      ),
+    )[0]!.id;
+    const expenseId = resultRows<{ id: string }>(
+      await database.asService((tx) =>
+        tx.execute(sql`SELECT id FROM expenses WHERE organization_id = ${orgId}::uuid LIMIT 1`),
+      ),
+    )[0]!.id;
+
+    const paymentId = await database.asService(async (tx) => {
+      const rows = resultRows<{ id: string }>(
+        await tx.execute(sql`
+          INSERT INTO expense_installment_payments (
+            organization_id, expense_id, gross_paid, net_paid, vat_paid,
+            actual_paid_at, status
+          ) VALUES (
+            ${orgId}::uuid, ${expenseId}::uuid, 100, 84.75, 15.25, '2026-04-01', 'paid'
+          ) RETURNING id
+        `),
+      );
+      return rows[0]!.id;
+    });
+
+    const creditSql = (gross: number) =>
+      database.asService(async (tx) => {
+        await tx.execute(sql`
+          INSERT INTO expense_installment_payments (
+            organization_id, expense_id, gross_paid, net_paid, vat_paid,
+            status, reverses_payment_id
+          ) VALUES (
+            ${orgId}::uuid, ${expenseId}::uuid, ${gross}, ${gross * 0.8475}, ${gross * 0.1525},
+            'credited', ${paymentId}::uuid
+          )
+        `);
+      });
+
+    const results = await Promise.allSettled([creditSql(65), creditSql(65)]);
+    const fulfilled = results.filter((r) => r.status === 'fulfilled').length;
+    const rejected = results.filter((r) => r.status === 'rejected').length;
+    expect(fulfilled).toBe(1);
+    expect(rejected).toBe(1);
+    expect(
+      results.some(
+        (r) =>
+          r.status === 'rejected' &&
+          /cumulative credit exceeds|already voided/i.test(errorBlob(r.reason)),
+      ),
+    ).toBe(true);
   });
 });

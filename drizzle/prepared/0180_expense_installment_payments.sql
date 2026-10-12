@@ -1,5 +1,5 @@
 -- 0180: Per-installment payment ledger (PREPARED ONLY — Owner approval before apply).
--- Supports partial payments, multiple rows per installment, void/credit linkage, audit idempotency.
+-- Not in drizzle/migrations/ until Owner approves apply; CI journal parity excludes this path.
 
 CREATE TABLE IF NOT EXISTS public.expense_installment_payments (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -49,6 +49,7 @@ SET search_path = public, app
 AS $$
 DECLARE
   target record;
+  credited_sum numeric(18, 6);
 BEGIN
   IF NEW.reverses_payment_id IS NULL THEN
     RETURN NEW;
@@ -56,10 +57,15 @@ BEGIN
   IF NEW.status NOT IN ('voided', 'credited') THEN
     RAISE EXCEPTION 'reverses_payment_id requires status voided or credited';
   END IF;
+
+  PERFORM pg_advisory_xact_lock(hashtext(NEW.reverses_payment_id::text));
+
   SELECT expense_id, organization_id, status, gross_paid
     INTO target
     FROM public.expense_installment_payments
-   WHERE id = NEW.reverses_payment_id;
+   WHERE id = NEW.reverses_payment_id
+   FOR UPDATE;
+
   IF NOT FOUND THEN
     RAISE EXCEPTION 'reverses_payment_id not found';
   END IF;
@@ -68,6 +74,9 @@ BEGIN
   END IF;
   IF target.expense_id IS DISTINCT FROM NEW.expense_id THEN
     RAISE EXCEPTION 'reversal must target same expense';
+  END IF;
+  IF target.status = 'voided' THEN
+    RAISE EXCEPTION 'payment already voided';
   END IF;
   IF target.status NOT IN ('paid', 'credited') THEN
     RAISE EXCEPTION 'cannot reverse a row that is not an active payment';
@@ -83,14 +92,15 @@ BEGIN
     RAISE EXCEPTION 'payment already voided';
   END IF;
   IF NEW.status = 'credited' THEN
-    IF (
-      SELECT COALESCE(SUM(p.gross_paid), 0)
-        FROM public.expense_installment_payments p
-       WHERE p.reverses_payment_id = NEW.reverses_payment_id
-         AND p.organization_id = NEW.organization_id
-         AND p.status IN ('credited', 'voided')
-         AND p.id IS DISTINCT FROM NEW.id
-    ) + NEW.gross_paid > target.gross_paid + 0.000001 THEN
+    SELECT COALESCE(SUM(p.gross_paid), 0)
+      INTO credited_sum
+      FROM public.expense_installment_payments p
+     WHERE p.reverses_payment_id = NEW.reverses_payment_id
+       AND p.organization_id = NEW.organization_id
+       AND p.status IN ('credited', 'voided')
+       AND p.id IS DISTINCT FROM NEW.id;
+
+    IF credited_sum + NEW.gross_paid > target.gross_paid + 0.000001 THEN
       RAISE EXCEPTION 'cumulative credit exceeds original payment gross';
     END IF;
   END IF;
