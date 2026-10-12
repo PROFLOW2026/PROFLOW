@@ -19,7 +19,7 @@ import { createTestUser, seedSystem } from '@tests/setup/fixtures';
 
 const PREPARED_MIGRATION = path.resolve(
   process.cwd(),
-  'drizzle/prepared/0180_expense_installment_payments.sql',
+  'drizzle/migrations/0180_expense_installment_payments.sql',
 );
 const ILS = 'ILS';
 

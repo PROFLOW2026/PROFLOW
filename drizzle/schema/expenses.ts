@@ -32,6 +32,7 @@ import {
   costFamilyEnum,
   expenseStatusEnum,
 } from './enums';
+import { auditEvents } from './audit';
 import { profiles } from './identity';
 import { phases, projects, workPackages } from './projects';
 import { organizations } from './tenancy';
@@ -287,6 +288,57 @@ export const expenses = pgTable(
  * historical split remains explainable. `amountBasis` distinguishes legacy
  * gross splits from net automatic runs.
  */
+/** Append-only installment payment facts (migration 0180). */
+export const expenseInstallmentPayments = pgTable(
+  'expense_installment_payments',
+  {
+    id: primaryId(),
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    expenseId: uuid('expense_id').notNull(),
+    installmentIndex: integer('installment_index'),
+    paymentSequence: integer('payment_sequence').notNull().default(1),
+    dueDate: date('due_date'),
+    actualPaidAt: date('actual_paid_at'),
+    grossPaid: moneyAmount('gross_paid').notNull(),
+    netPaid: moneyAmount('net_paid').notNull(),
+    vatPaid: moneyAmount('vat_paid').notNull().default('0'),
+    status: text('status').notNull().default('paid'),
+    paymentReference: text('payment_reference'),
+    reversesPaymentId: uuid('reverses_payment_id'),
+    auditEventId: uuid('audit_event_id').references(() => auditEvents.id, {
+      onDelete: 'set null',
+    }),
+    idempotencyKey: text('idempotency_key'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('expense_installment_payments_id_org_uq').on(table.id, table.organizationId),
+    uniqueIndex('expense_installment_payments_audit_uq')
+      .on(table.organizationId, table.auditEventId)
+      .where(sql`${table.auditEventId} is not null`),
+    uniqueIndex('expense_installment_payments_idempotency_uq')
+      .on(table.organizationId, table.idempotencyKey)
+      .where(sql`${table.idempotencyKey} is not null`),
+    index('expense_installment_payments_org_paid_idx')
+      .on(table.organizationId, table.actualPaidAt)
+      .where(sql`${table.status} = 'paid'`),
+    index('expense_installment_payments_expense_idx').on(
+      table.expenseId,
+      table.installmentIndex,
+    ),
+    check(
+      'expense_installment_payments_status_known',
+      sql`${table.status} IN ('paid', 'voided', 'credited')`,
+    ),
+    check(
+      'expense_installment_payments_index_range',
+      sql`${table.installmentIndex} IS NULL OR (${table.installmentIndex} >= 0 AND ${table.installmentIndex} < 120)`,
+    ),
+  ],
+);
+
 export const expenseAllocations = pgTable(
   'expense_allocations',
   {

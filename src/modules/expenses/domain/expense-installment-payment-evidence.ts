@@ -227,6 +227,7 @@ export function resolveInstallmentPaymentState(input: {
   readonly paidGrossAmount: string | null;
   readonly paidAt: string | null;
   readonly audits: readonly ExpensePaymentAuditRow[];
+  readonly ledgerSlices?: readonly InstallmentPaymentSlice[];
 }): InstallmentPaymentResolution {
   const currency = input.currency;
   const grossTotal = fromNumericString(input.grossAmount, currency) ?? zeroMoney(currency);
@@ -257,11 +258,23 @@ export function resolveInstallmentPaymentState(input: {
   });
   const expenseDate = businessDate(input.expenseDate);
   const confirmedAudits = paymentConfirmedAudits(input.audits);
+  const ledgerSlices = input.ledgerSlices ?? [];
+  const ledgerIndices = new Set(
+    ledgerSlices.filter((s) => s.installmentIndex >= 0).map((s) => s.installmentIndex),
+  );
+  const skipLumpAudits = ledgerSlices.some((s) => s.source === 'ledger' && s.installmentIndex >= 0);
 
   const slices: InstallmentPaymentSlice[] = [
-    ...slicesFromIndexedAudits(confirmedAudits, schedule, currency),
-    ...slicesFromLumpAudits(confirmedAudits, currency, expenseDate, input.installmentCount),
-    ...slicesFromStoredSchedule(input.cashInstallmentSchedule, schedule, currency),
+    ...ledgerSlices,
+    ...slicesFromIndexedAudits(confirmedAudits, schedule, currency).filter(
+      (s) => !ledgerIndices.has(s.installmentIndex),
+    ),
+    ...(skipLumpAudits
+      ? []
+      : slicesFromLumpAudits(confirmedAudits, currency, expenseDate, input.installmentCount)),
+    ...slicesFromStoredSchedule(input.cashInstallmentSchedule, schedule, currency).filter(
+      (s) => !ledgerIndices.has(s.installmentIndex),
+    ),
   ];
 
   let verifiedGross = zeroMoney(currency);
@@ -328,6 +341,7 @@ export function resolveVerifiedInstallmentPayments(input: {
   readonly paidGrossAmount: string | null;
   readonly paidAt: string | null;
   readonly audits: readonly ExpensePaymentAuditRow[];
+  readonly ledgerSlices?: readonly InstallmentPaymentSlice[];
 }): readonly InstallmentPaymentSlice[] {
   return resolveInstallmentPaymentState(input).slices.filter(
     (s) => s.verification === 'verified' && s.actualPaidAt != null,

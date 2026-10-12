@@ -3,6 +3,8 @@ import {
   resolveInstallmentPaymentState,
   resolveVerifiedInstallmentPayments,
 } from '@/modules/expenses/domain/expense-installment-payment-evidence';
+import { businessDate } from '@/shared/dates';
+import { money } from '@/shared/money';
 
 describe('expense installment payment evidence', () => {
   it('builds verified indexed payments from audit events', () => {
@@ -32,6 +34,52 @@ describe('expense installment payment evidence', () => {
     expect(state.status).toBe('PAID_VERIFIED');
     expect(state.slices).toHaveLength(1);
     expect(state.slices[0]?.actualPaidAt).toBe('2026-03-01');
+  });
+
+  it('BMS owner-approved ledger: nine verified months Jan–Sep, no date_unknown', () => {
+    const ledgerSlices = Array.from({ length: 9 }, (_, index) => {
+      const paidAt = businessDate(`2026-${String(index + 1).padStart(2, '0')}-01`);
+      return {
+        installmentIndex: index,
+        dueDate: paidAt,
+        actualPaidAt: paidAt,
+        grossPaid: money('724.080000', 'ILS'),
+        verification: 'verified' as const,
+        source: 'ledger' as const,
+      };
+    });
+    const state = resolveInstallmentPaymentState({
+      grossAmount: '8689.000000',
+      currency: 'ILS',
+      installmentCount: 12,
+      installmentStartDate: '2026-01-01',
+      expenseDate: '2026-01-01',
+      cashInstallmentSchedule: null,
+      installmentsPaidCount: 9,
+      paidGrossAmount: '6516.720000',
+      paidAt: '2026-09-01',
+      audits: [
+        {
+          action: 'expense.payment_confirmed',
+          createdAt: '2026-09-06T18:29:02.081Z',
+          after: {
+            paidAt: '2026-09-06',
+            source: 'manual',
+            paidGrossAmount: '8689.000000',
+          },
+        },
+        {
+          action: 'expense.payment_confirmation_voided',
+          createdAt: '2026-09-07T10:00:00.000Z',
+          after: null,
+        },
+      ],
+      ledgerSlices,
+    });
+    expect(state.status).toBe('PAID_VERIFIED');
+    expect(state.dateUnknownGross.amount).toBe('0.000000');
+    expect(state.verifiedGrossTotal.amount).toBe('6516.720000');
+    expect(state.slices.filter((s) => s.source === 'ledger')).toHaveLength(9);
   });
 
   it('manual lump audit on multi-installment expense is PAID_DATE_UNKNOWN (BMS)', () => {
