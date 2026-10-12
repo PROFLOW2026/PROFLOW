@@ -2,9 +2,9 @@
 
 **ארגון:** `8ef9e353-ca0c-4cad-b0c7-c2de612eb1ec`  
 **תאריך:** 2026-10-12  
-**Production deploy (GitHub):** `c29c61de2dc9f93d723eacdbbdd08356823eee45` (Production environment, 2026-10-11T22:59:14Z)  
-**CI על `c29c61de` (לפני תיקון journal):** **failure** — Migration journal parity (קובץ 0180 היה ב-`drizzle/migrations/` בלי journal).  
-**תיקון בסגירה זו:** 0180 הועבר ל-`drizzle/prepared/` → journal parity **ok** (178 קבצים, אחרון `0179_connected_projects`).
+**SHA פעיל (Production deploy):** `fbdfdc26da4680608a472865d94b6fc2dd96c59c` (GitHub Deployments, 2026-10-12T00:54:13Z)  
+**קודם:** `c29c61de` — CI **failure** (0180 ב-`drizzle/migrations/` בלי journal).  
+**תיקון:** 0180 ב-`drizzle/prepared/` → journal parity **ok** (178, אחרון `0179_connected_projects`).
 
 ---
 
@@ -12,8 +12,8 @@
 
 | בדיקה | תוצאה |
 |--------|--------|
-| Vercel Production SHA | **`c29c61de`** (מ-GitHub Deployments API) |
-| GitHub CI על אותו SHA | **נכשל** (journal) — **מתוקן ב-commit הבא** |
+| Vercel Production SHA | **`fbdfdc26`** |
+| GitHub CI run [#38189461868](https://github.com/PROFLOW2026/PROFLOW/actions/runs/38189461868) | **in_progress** בזמן כתיבה — journal parity ירוק מקומית |
 | Smoke Production (ללא session) | `/he-IL/financials/overview`, `/he-IL/cash-flow`, `/he-IL/financials/business-profitability`, `/he-IL/overhead` → **307 → sign-in** (אין 5xx; מסלולים קיימים) |
 | Smoke לוגיקה (local unit) | `month-cash-flow`, `cash-flow-sources`, `installment-payment-recognition` — **37 pass** |
 
@@ -95,7 +95,7 @@ READY FOR OWNER REVIEW = YES
 | BMS 8,689 ₪ | **PAID_DATE_UNKNOWN** — סגור |
 | פיצול תקבולים / הוצאות | **סגור** (JSON v2 + Excel) |
 | CI journal | **מתוקן** (0180 → prepared) |
-| commit/push/CI ירוק | **בביצוע** עם commit סגירה זה |
+| commit/push/deploy | **`fbdfdc26`** pushed; Production deployment קיים |
 
 ### נשאר לאישור בעלים בלבד
 
