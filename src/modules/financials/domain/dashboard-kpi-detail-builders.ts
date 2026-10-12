@@ -26,6 +26,20 @@ export function billingCollectedMonthHref(yearMonth: string): string {
     : '/billing';
 }
 
+export function dashboardRecognizedCostMonthHref(yearMonth: string): string {
+  const bounds = dashboardMonthBounds(yearMonth);
+  return bounds
+    ? `/financials/overview/recognized?fromDate=${bounds.fromDate}&toDate=${bounds.toDate}`
+    : '/financials/overview/recognized';
+}
+
+export function dashboardCashPaidMonthHref(yearMonth: string): string {
+  const bounds = dashboardMonthBounds(yearMonth);
+  return bounds
+    ? `/financials/overview/cash-paid?fromDate=${bounds.fromDate}&toDate=${bounds.toDate}`
+    : '/financials/overview/cash-paid';
+}
+
 export interface DashboardKpiDetailCopy {
   readonly contractOriginalWhat: string;
   readonly contractOriginalFormula: string;
@@ -731,11 +745,12 @@ export function buildCollectionsThisMonthDetail(
 
 export function buildCostsThisMonthDetail(
   costsThisMonth: MoneyValue,
-  _selectedMonth: string,
+  selectedMonth: string,
   title: string,
   copy: DashboardKpiDetailCopy,
   grossCosts?: MoneyValue,
   vatLabels?: MonthlyVatLabels,
+  fullScreenLabel?: string,
 ): DashboardKpiDetailContent {
   const gross = grossCosts ?? costsThisMonth;
   return {
@@ -748,5 +763,7 @@ export function buildCostsThisMonthDetail(
     breakdown: vatLabels
       ? monthlyVatLines(costsThisMonth, gross, vatLabels)
       : lines({ label: title, money: costsThisMonth }),
+    fullScreenHref: dashboardRecognizedCostMonthHref(selectedMonth),
+    fullScreenLabel,
   };
 }

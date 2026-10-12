@@ -241,7 +241,9 @@
     "viewApOutstanding": "פתיחת חשבוניות עם יתרה",
     "viewUnallocatedExpenses": "הצג הוצאות שממתינות לחלוקה",
     "viewMonthBillings": "הצג חיובים של החודש",
-    "viewMonthCollections": "הצג גבייה של החודש"
+    "viewMonthCollections": "הצג גבייה של החודש",
+    "viewMonthCashPaid": "פירוט מזומן ששולם בחודש",
+    "viewMonthRecognizedCosts": "פירוט עלות מוכרת בחודש"
   },
   "missingData": {
     "missingButtonOne": "חסר נתון אחד",

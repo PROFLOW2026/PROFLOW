@@ -1,14 +1,18 @@
-import { and, eq, inArray, isNotNull, isNull, sql, type SQL } from 'drizzle-orm';
+import { and, eq, gte, inArray, isNotNull, isNull, lte, sql, type SQL } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import {
   costCategories,
+  employeeMonthCosts,
+  employees,
   expenseAllocations,
   expenses,
   organizations,
+  apBills,
+  projects,
   vendors,
 } from '@drizzle/schema';
 import { currentYearMonth, yearMonthFromBusinessDate } from '@/modules/month-close';
-import type { BusinessDate } from '@/shared/dates';
+import { businessDate, type BusinessDate } from '@/shared/dates';
 import {
   addMoney,
   divideMoney,
@@ -36,6 +40,11 @@ import {
   loadVerifiedInstallmentPaymentsByExpenseIds,
 } from '@/modules/expenses';
 import { sqlFirstRow, sqlRows } from './sql-rows';
+import {
+  recognitionDateForExpenseInYearMonth,
+  vatFromNetGross,
+  zeroVat,
+} from '../domain/recognized-cost-breakdown';
 
 export async function loadProjectExpenseContributions(
   db: DbExecutor,
@@ -519,6 +528,219 @@ export async function sumOrganizationRecognizedCostPairInDateRange(
     net: roundMoney(addMoney(expensePair.net, apLaborNet)),
     gross: roundMoney(addMoney(expensePair.gross, apLaborGross)),
   };
+}
+
+export type RecognizedCostBreakdownSourceKind = 'expense' | 'ap_bill' | 'employer_cost';
+
+export interface RecognizedCostBreakdownLine {
+  readonly id: string;
+  readonly sourceKind: RecognizedCostBreakdownSourceKind;
+  readonly recognitionDate: BusinessDate;
+  readonly yearMonth: string;
+  readonly description: string;
+  readonly party: string;
+  readonly projectName: string | null;
+  readonly costFamily: DbCostFamily | null;
+  readonly installmentCount: number;
+  readonly net: MoneyValue;
+  readonly gross: MoneyValue;
+  readonly vat: MoneyValue;
+  readonly href: string;
+}
+
+/** Line-level breakdown using the same recognition rules as `sumOrganizationRecognizedCostPairInDateRange`. */
+export async function listOrganizationRecognizedCostBreakdownInDateRange(
+  db: DbExecutor,
+  organizationId: string,
+  currency: string,
+  fromDate: BusinessDate,
+  toDate: BusinessDate,
+): Promise<readonly RecognizedCostBreakdownLine[]> {
+  const expenseRows = await db
+    .select({
+      id: expenses.id,
+      supplierName: expenses.supplierName,
+      description: expenses.description,
+      costFamily: expenses.costFamily,
+      projectId: expenses.projectId,
+      projectName: projects.name,
+      netAmount: expenses.netAmount,
+      grossAmount: expenses.grossAmount,
+      taxAmount: expenses.taxAmount,
+      currency: expenses.currency,
+      expenseDate: expenses.expenseDate,
+      installmentCount: expenses.installmentCount,
+      installmentStartDate: expenses.installmentStartDate,
+      installmentsPaidCount: expenses.installmentsPaidCount,
+      paidGrossAmount: expenses.paidGrossAmount,
+      paidAt: expenses.paidAt,
+      cashInstallmentSchedule: expenses.cashInstallmentSchedule,
+    })
+    .from(expenses)
+    .leftJoin(projects, eq(projects.id, expenses.projectId))
+    .where(
+      and(
+        eq(expenses.organizationId, organizationId),
+        eq(expenses.currency, currency),
+        eq(expenses.status, 'finalized'),
+        isNull(expenses.archivedAt),
+        sql`NOT EXISTS (
+          SELECT 1 FROM ap_po_matches m
+          INNER JOIN ap_bills b ON b.id = m.ap_bill_id AND b.organization_id = m.organization_id
+          WHERE m.organization_id = ${organizationId}
+            AND m.expense_id = ${expenses.id}
+            AND m.status = 'accepted'
+            AND b.status IN ('open', 'partially_matched', 'matched')
+            AND b.archived_at IS NULL
+        )`,
+      ),
+    );
+
+  const fieldsById = await loadExpensePaymentRecognitionFields(
+    db,
+    organizationId,
+    expenseRows.map((row) => row.id),
+  );
+
+  const lines: RecognizedCostBreakdownLine[] = [];
+  const fromYm = yearMonthFromBusinessDate(fromDate);
+  const toYm = yearMonthFromBusinessDate(toDate);
+
+  for (let y = Number(fromYm.slice(0, 4)), m = Number(fromYm.slice(5, 7)); ; ) {
+    const ym = `${y}-${String(m).padStart(2, '0')}`;
+    for (const row of expenseRows) {
+      const fields = fieldsById.get(row.id);
+      if (!fields) continue;
+      const netSlice = recognizedExpenseNetInYearMonth(fields, ym);
+      const grossSlice = recognizedExpenseGrossInYearMonth(fields, ym);
+      if (!netSlice && !grossSlice) continue;
+      const net = netSlice ?? zeroMoney(currency);
+      const gross = grossSlice ?? net;
+      const vat = isZeroMoney(subtractMoney(gross, net)) ? zeroVat(currency) : vatFromNetGross(net, gross);
+      const recognitionDate =
+        recognitionDateForExpenseInYearMonth(fields, ym) ?? (`${ym}-01` as BusinessDate);
+      const party = row.supplierName?.trim() || row.description?.trim() || '';
+      lines.push({
+        id: `expense:${row.id}:${ym}`,
+        sourceKind: 'expense',
+        recognitionDate,
+        yearMonth: ym,
+        description: row.description?.trim() || '',
+        party,
+        projectName: row.projectName?.trim() || null,
+        costFamily: row.costFamily ?? null,
+        installmentCount: row.installmentCount,
+        net: roundMoney(net),
+        gross: roundMoney(gross),
+        vat: roundMoney(vat),
+        href: `/expenses/${row.id}`,
+      });
+    }
+    if (ym === toYm) break;
+    m += 1;
+    if (m > 12) {
+      m = 1;
+      y += 1;
+    }
+  }
+
+  const apRows = await db
+    .select({
+      id: apBills.id,
+      reference: apBills.reference,
+      billDate: apBills.billDate,
+      netAmount: apBills.netAmount,
+      grossAmount: apBills.grossAmount,
+      taxAmount: apBills.taxAmount,
+      vendorName: vendors.name,
+      projectName: projects.name,
+    })
+    .from(apBills)
+    .leftJoin(vendors, eq(vendors.id, apBills.vendorId))
+    .leftJoin(projects, eq(projects.id, apBills.projectId))
+    .where(
+      and(
+        eq(apBills.organizationId, organizationId),
+        eq(apBills.currency, currency),
+        isNull(apBills.archivedAt),
+        inArray(apBills.status, ['open', 'partially_matched', 'matched']),
+        isNotNull(apBills.billDate),
+        gte(apBills.billDate, fromDate),
+        lte(apBills.billDate, toDate),
+      ),
+    );
+
+  for (const bill of apRows) {
+    if (!bill.billDate) continue;
+    const net = fromNumericString(bill.netAmount, currency) ?? zeroMoney(currency);
+    const gross = fromNumericString(bill.grossAmount, currency) ?? net;
+    const vat =
+      fromNumericString(bill.taxAmount ?? '0', currency) ??
+      vatFromNetGross(net, gross);
+    const ym = yearMonthFromBusinessDate(businessDate(bill.billDate));
+    lines.push({
+      id: `ap:${bill.id}`,
+      sourceKind: 'ap_bill',
+      recognitionDate: businessDate(bill.billDate),
+      yearMonth: ym,
+      description: bill.reference?.trim() || '',
+      party: bill.vendorName?.trim() || '',
+      projectName: bill.projectName?.trim() || null,
+      costFamily: null,
+      installmentCount: 1,
+      net: roundMoney(net),
+      gross: roundMoney(gross),
+      vat: roundMoney(vat),
+      href: `/procurement/ap?billId=${bill.id}`,
+    });
+  }
+
+  const emcRows = await db
+    .select({
+      id: employeeMonthCosts.id,
+      yearMonth: employeeMonthCosts.yearMonth,
+      knownAmount: employeeMonthCosts.knownAmount,
+      employeeName: employees.name,
+    })
+    .from(employeeMonthCosts)
+    .innerJoin(employees, eq(employees.id, employeeMonthCosts.employeeId))
+    .where(
+      and(
+        eq(employeeMonthCosts.organizationId, organizationId),
+        eq(employeeMonthCosts.currency, currency),
+        inArray(employeeMonthCosts.status, ['draft', 'applied', 'closed']),
+        gte(employeeMonthCosts.yearMonth, fromYm),
+        lte(employeeMonthCosts.yearMonth, toYm),
+      ),
+    );
+
+  for (const row of emcRows) {
+    const amount = fromNumericString(row.knownAmount, currency) ?? zeroMoney(currency);
+    if (isZeroMoney(amount)) continue;
+    lines.push({
+      id: `emc:${row.id}`,
+      sourceKind: 'employer_cost',
+      recognitionDate: `${row.yearMonth}-01` as BusinessDate,
+      yearMonth: row.yearMonth,
+      description: row.yearMonth,
+      party: row.employeeName?.trim() || '',
+      projectName: null,
+      costFamily: null,
+      installmentCount: 1,
+      net: roundMoney(amount),
+      gross: roundMoney(amount),
+      vat: zeroVat(currency),
+      href: `/workforce/reports/monthly?month=${row.yearMonth}`,
+    });
+  }
+
+  lines.sort((a, b) => {
+    const dateCmp = a.recognitionDate.localeCompare(b.recognitionDate);
+    if (dateCmp !== 0) return dateCmp;
+    return a.id.localeCompare(b.id);
+  });
+
+  return lines;
 }
 
 export async function hasAnyExpenseUsage(

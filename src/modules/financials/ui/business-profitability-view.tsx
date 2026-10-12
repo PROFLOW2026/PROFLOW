@@ -54,6 +54,7 @@ export async function BusinessProfitabilityView({
   return (
     <div className="flex min-w-0 flex-col gap-8">
       <Alert tone="info">{t('disclaimer')}</Alert>
+      <Alert tone="info">{t('scopeNote')}</Alert>
       <p className="text-sm text-[var(--pf-text-secondary)]">{tFinancial('profitVsCash')}</p>
 
       <section className="flex min-w-0 flex-col gap-3">

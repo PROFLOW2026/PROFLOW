@@ -17,7 +17,7 @@ describe('overhead home page permission', () => {
     expect(canAccessOverheadHome(ownerWithExpenses)).toBe(true);
   });
 
-  it('legacy overhead route redirects to filtered expenses list', () => {
+  it('overhead route is a navigation hub backed by existing expense queries', () => {
     const page = readFileSync(
       join(process.cwd(), 'src/app/[locale]/(app)/overhead/page.tsx'),
       'utf8',
@@ -26,8 +26,8 @@ describe('overhead home page permission', () => {
       join(process.cwd(), 'src/modules/expenses/application/get-overhead-home.ts'),
       'utf8',
     );
-    expect(page).toContain('redirect');
-    expect(page).toContain('/expenses?costFamily=business_overhead');
+    expect(page).toContain('OverheadNavigationHub');
+    expect(page).toContain('canAccessOverheadHome');
     expect(query).toContain('canAccessOverheadHome');
     expect(query).toContain("costFamily: 'business_overhead'");
     expect(query).toContain("costFamily: 'shared'");

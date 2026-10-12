@@ -241,7 +241,9 @@
     "viewApOutstanding": "Счета поставщиков с остатком",
     "viewUnallocatedExpenses": "Расходы, ожидающие распределения",
     "viewMonthBillings": "Счета за этот месяц",
-    "viewMonthCollections": "Поступления за этот месяц"
+    "viewMonthCollections": "Поступления за этот месяц",
+    "viewMonthCashPaid": "פירוט מזומן ששולם בחודש",
+    "viewMonthRecognizedCosts": "פירוט עלות מוכרת בחודש"
   },
   "missingData": {
     "missingButtonOne": "1 недостающий показатель",

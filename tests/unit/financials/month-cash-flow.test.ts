@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { businessDate } from '@/shared/dates';
-import { money, multiplyMoney } from '@/shared/money';
+import { addMoney, money, multiplyMoney, zeroMoney } from '@/shared/money';
 import {
   apPaymentDisplay,
   cashLineDisplayText,
@@ -528,5 +528,23 @@ describe('monthly NET / GROSS display', () => {
     expect(september.paidActual.amount).toBe(money('8250', ILS).amount);
     expect(september.display.paid.net.amount).toBe(september.paidActual.amount);
     expect(september.display.paid.gross.amount).toBe(september.paidActual.amount);
+  });
+
+  it('paidActual equals the sum of paid line cash amounts', () => {
+    const result = compose({
+      apPayments: [paidAp('30000', '2026-09-15')],
+      expenses: [
+        expense({
+          paidAt: businessDate('2026-09-20'),
+          paidGrossAmount: '500',
+          grossAmount: '500',
+        }),
+      ],
+    });
+    let sum = zeroMoney(ILS);
+    for (const line of result.paidLines) {
+      sum = addMoney(sum, line.amount);
+    }
+    expect(result.paidActual.amount).toBe(sum.amount);
   });
 });

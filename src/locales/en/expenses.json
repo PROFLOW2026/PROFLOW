@@ -589,6 +589,38 @@
       "statusApplied": "Applied",
       "statusSuperseded": "Superseded"
     },
-    "showing": "Showing {count} of {total}"
+    "showing": "Showing {count} of {total}",
+    "hub": {
+      "generalOverhead": {
+        "title": "General overhead",
+        "body": "Rent, insurance, and company costs without a project.",
+        "action": "Open general overhead list"
+      },
+      "sharedExpenses": {
+        "title": "Shared expenses",
+        "body": "Costs allocated to projects by allocation method.",
+        "action": "Open shared expenses"
+      },
+      "allocatedOverhead": {
+        "title": "Overhead allocated to projects",
+        "body": "Allocated general costs on business profitability.",
+        "action": "Business profitability"
+      },
+      "companyOnly": {
+        "title": "Company-only costs",
+        "body": "Costs not allocated to projects — on business profitability.",
+        "action": "Business profitability"
+      },
+      "unallocated": {
+        "title": "Unassigned costs",
+        "body": "Cost reports and management views.",
+        "action": "Cost reports"
+      },
+      "allExpenses": {
+        "title": "All expenses",
+        "body": "Full expense list with filters.",
+        "action": "Expenses"
+      }
+    }
   }
 }

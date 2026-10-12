@@ -19,6 +19,8 @@ import {
   buildCommitmentsDetail,
   buildCompanyProfitDetail,
   buildCostsThisMonthDetail,
+  dashboardCashPaidMonthHref,
+  dashboardRecognizedCostMonthHref,
   buildExpectedRemainingDetail,
   buildForecastCostDetail,
   buildForecastProfitDetail,
@@ -417,8 +419,21 @@ export async function HomeDashboardRestoredSections({
                     vatLabels,
                     sourceLabelsPaid,
                     locale,
+                    dashboardCashPaidMonthHref(data.selectedMonth),
+                    t('businessSummary.viewMonthCashPaid'),
                   )}
                   detailCopy={triggerCopy}
+                  footer={
+                    <p className="break-words text-xs">
+                      <Link
+                        href={dashboardCashPaidMonthHref(data.selectedMonth)}
+                        className={textNavLinkClassName}
+                        prefetch={false}
+                      >
+                        {t('businessSummary.viewMonthCashPaid')}
+                      </Link>
+                    </p>
+                  }
                 />
               </div>
               <div data-pf-dashboard-metric="expected-outgoing">
@@ -523,8 +538,20 @@ export async function HomeDashboardRestoredSections({
                     detailCopy,
                     summary.grossCostsThisMonth,
                     vatLabels,
+                    t('businessSummary.viewMonthRecognizedCosts'),
                   )}
                   detailCopy={triggerCopy}
+                  footer={
+                    <p className="break-words text-xs">
+                      <Link
+                        href={dashboardRecognizedCostMonthHref(data.selectedMonth)}
+                        className={textNavLinkClassName}
+                        prefetch={false}
+                      >
+                        {t('businessSummary.viewMonthRecognizedCosts')}
+                      </Link>
+                    </p>
+                  }
                 />
               </div>
             </div>
@@ -612,6 +639,8 @@ function monthCashPaidDetail(
   labels: { exVat: string; vat: string; incVat: string; noVat: string },
   sourceLabels: Readonly<Record<MonthCashSource, string>>,
   locale: string,
+  fullScreenHref?: string,
+  fullScreenLabel?: string,
 ): DashboardKpiDetailContent {
   const ordered = [...lines].sort((left, right) => {
     if (left.source === right.source) return 0;
@@ -635,6 +664,8 @@ function monthCashPaidDetail(
       ),
       ...cashLineAmounts(line.display, line.amount, labels),
     })),
+    fullScreenHref,
+    fullScreenLabel,
   };
 }
 

@@ -237,7 +237,7 @@
   },
   "cashFlowForecast": {
     "pageTitle": "תחזית תזרים",
-    "pageHint": "מזומן נכנס ויוצא, לא רווח. פריטים עם תאריך לפי תאריך פירעון רשום. בלי תאריך נשאר בלי תאריך. טיוטות חוזרות הן תחזית ואינן מפורסמות.",
+    "pageHint": "תחזית תזרים ל־90 יום קדימה; לא דוח סגירת חודש. מזומן נכנס ויוצא, לא רווח. פריטים עם תאריך לפי תאריך פירעון רשום.",
     "managementLink": "תצוגת ניהול לבעלים",
     "noAccessTitle": "אין גישה לתזרים",
     "noAccessBody": "נדרשת הרשאת פיננסים לפרויקט כדי לפתוח את העמוד.",
@@ -467,8 +467,69 @@
     "cashOutTitle": "יציאות מזומן",
     "upcomingCashOut": "צפוי לתשלום",
     "upcomingCashOutHint": "הוצאות, שכר וחשבוניות ספק עם מועד פירעון ב־30 הימים הקרובים.",
-    "drilldown": "פתיחת הרשימה",
-    "unavailable": "אין הרשאה"
+    "drilldown": "פירוט",
+    "unavailable": "אין הרשאה",
+    "recognizedBreakdown": {
+      "pageTitle": "פירוט עלות מוכרת",
+      "pageHint": "שורות לפי תאריך הכרה ומדיניות ההכרה הקיימת; לא לפי תאריך רכישה בלבד.",
+      "noAccessTitle": "אין הרשאה",
+      "noAccessBody": "נדרשת הרשאת כספי פרויקט.",
+      "scopeHint": "עלות מוכרת = נטו. מע״מ וברוטו מוצגים לפי המסמך. עלות מעסיק לפי חודש עלות; לא כמזומן ששולם.",
+      "parityWarning": "סכום השורות לא תואם לסיכום העלות המוכרת. פנו לתמיכה.",
+      "backToOverview": "חזרה לסקירה העסקית",
+      "totalTitle": "סיכום התקופה",
+      "kpiNetLabel": "תואם לסיכום עלות מוכרת (נטו)",
+      "columnRecognitionDate": "תאריך הכרה",
+      "columnSource": "מקור",
+      "columnParty": "צד",
+      "columnDescription": "תיאור",
+      "columnAllocation": "שיוך",
+      "columnNet": "נטו",
+      "columnVat": "מע״מ",
+      "columnGross": "ברוטו",
+      "openRecord": "פתיחה",
+      "empty": "אין שורות בתקופה זו.",
+      "fallbackExpense": "הוצאה",
+      "installmentDescription": "{text} (פריסה · {month})",
+      "emcDescription": "עלות מעסיק · {month}",
+      "source": {
+        "expense": "הוצאה",
+        "ap_bill": "חשבונית ספק",
+        "employer_cost": "עלות מעסיק"
+      },
+      "allocation": {
+        "project": "פרויקט: {name}",
+        "overhead": "תקורה / חברה",
+        "apCompany": "חברה / חשבוניות ספק",
+        "employerCost": "שכר · חודש עלות",
+        "unassigned": "לא משויך",
+        "costFamily": "{family}"
+      }
+    },
+    "cashPaidBreakdown": {
+      "pageTitle": "פירוט מזומן ששולם",
+      "pageHint": "תשלומים שבוצעו בפועל בתקופה; ברוטו כמזומן שיצא.",
+      "noAccessTitle": "אין הרשאה",
+      "noAccessBody": "נדרשת הרשאת כספים או חשבוניות ספק.",
+      "scopeHint": "כולל הוצאות, תשלומי ספק, שכר במזומן ומקדמות לפי תאריך תשלום. לא כולל עלות מעסיק.",
+      "parityWarning": "סכום השורות לא תואם לסיכום שולם בפועל. פנו לתמיכה.",
+      "backToOverview": "חזרה לסקירה העסקית",
+      "totalTitle": "סיכום התקופה",
+      "columnPaymentDate": "תאריך תשלום",
+      "columnSource": "סוג",
+      "columnParty": "מוטב",
+      "columnDocument": "מסמך / אסמכתא",
+      "columnNet": "נטו",
+      "columnVat": "מע״מ",
+      "columnGross": "ברוטו (מזומן)",
+      "empty": "אין תשלומים בתקופה זו.",
+      "source": {
+        "payroll": "שכר",
+        "expense": "הוצאה",
+        "ap": "תשלום ספק",
+        "subcontract_advance": "מקדמת קבלן"
+      }
+    }
   },
   "businessProfitability": {
     "pageTitle": "רווחיות העסק",
@@ -476,6 +537,7 @@
     "noAccessTitle": "אין הרשאה לרווחיות העסק",
     "noAccessBody": "נדרשת הרשאת כספי פרויקט, חיוב או חוזים.",
     "disclaimer": "שווי חוזה, חיובים ומזומן שנגבה הם מדדים נפרדים. מזומן שנגבה אינו הכנסה. מע״מ אינו חלק מרווחיות.",
+    "scopeNote": "תמונה עסקית מצטברת וחוזית; לא רווח של חודש בודד. אין כאן בורר חודש. הנתונים נשענים על מנועי הדוחות הקיימים.",
     "billingNote": "חיובים וגבייה הם מדדי תזרים. לא הכרה בהכנסות.",
     "forecastFormula": "עלות סופית צפויה = בפועל עד היום + התחייבויות פתוחות + עלות צפויה לסיום (+ הקצאה כללית where applicable).",
     "unavailable": "אין הרשאה",

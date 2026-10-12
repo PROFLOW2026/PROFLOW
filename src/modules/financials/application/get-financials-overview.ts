@@ -24,6 +24,10 @@ import { sumOrganizationRecognizedCostsInDateRange } from '../data/expenses.repo
 import { getOrganizationProjectRollup } from './get-organization-project-rollup';
 import { aggregateOrgCost } from '../domain/aggregate-org-report';
 import { getMonthCashFlow } from './get-month-cash-flow';
+import {
+  financialOverviewCashPaidHref,
+  financialOverviewRecognizedHref,
+} from '../domain/financial-overview-drill-paths';
 
 export interface FinancialsOverviewPeriod {
   readonly fromDate: BusinessDate;
@@ -186,11 +190,11 @@ export async function getFinancialsOverview(
     costs: {
       recognizedActual: {
         value: recognizedActual,
-        href: `/expenses?dateFrom=${period.fromDate}&dateTo=${period.toDate}`,
+        href: financialOverviewRecognizedHref(period.fromDate, period.toDate),
       },
       cashPaid: {
         value: cashPaid,
-        href: `/procurement/ap?${qs}`,
+        href: financialOverviewCashPaidHref(period.fromDate, period.toDate),
       },
       openPayables: {
         value: apPayables ? money(apPayables.outstanding, apPayables.currency) : null,

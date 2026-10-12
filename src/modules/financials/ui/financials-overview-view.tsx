@@ -56,7 +56,7 @@ export async function FinancialsOverviewView({ data }: { readonly data: Financia
             hint={t('cashPaidHint')}
             kpi={data.costs.cashPaid}
             drillLabel={t('drilldown')}
-            unavailable={!data.canReadAp}
+            unavailable={!data.canReadAp && !data.canReadCosts}
             unavailableLabel={t('unavailable')}
           />
           <OverviewKpiCard

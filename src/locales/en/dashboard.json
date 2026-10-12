@@ -241,7 +241,9 @@
     "viewApOutstanding": "Open vendor bills with a balance",
     "viewUnallocatedExpenses": "Show expenses waiting for a project",
     "viewMonthBillings": "Show this month's billings",
-    "viewMonthCollections": "Show this month's collections"
+    "viewMonthCollections": "Show this month's collections",
+    "viewMonthCashPaid": "Cash paid breakdown for month",
+    "viewMonthRecognizedCosts": "Recognized cost breakdown for month"
   },
   "missingData": {
     "missingButtonOne": "1 missing data point",

@@ -241,7 +241,9 @@
     "viewApOutstanding": "فواتير الموردين التي عليها رصيد",
     "viewUnallocatedExpenses": "عرض المصروفات بانتظار التوزيع",
     "viewMonthBillings": "عرض فواتير هذا الشهر",
-    "viewMonthCollections": "عرض تحصيلات هذا الشهر"
+    "viewMonthCollections": "عرض تحصيلات هذا الشهر",
+    "viewMonthCashPaid": "פירוט מזומן ששולם בחודש",
+    "viewMonthRecognizedCosts": "פירוט עלות מוכרת בחודש"
   },
   "missingData": {
     "missingButtonOne": "نقطة بيانات ناقصة واحدة",

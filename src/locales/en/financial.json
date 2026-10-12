@@ -237,7 +237,7 @@
   },
   "cashFlowForecast": {
     "pageTitle": "Cash flow forecast",
-    "pageHint": "Cash in and out, not profit. Dated items use recorded due dates. Missing dates stay undated. Recurring drafts are forecast and are not posted.",
+    "pageHint": "90-day cash forecast — not a month-close report. Cash in and out, not profit. Dated items use recorded due dates.",
     "managementLink": "Owner management view",
     "noAccessTitle": "Cash flow is not available",
     "noAccessBody": "Project financials permission is required to open this page.",
@@ -467,8 +467,69 @@
     "cashOutTitle": "Cash out",
     "upcomingCashOut": "Upcoming cash out",
     "upcomingCashOutHint": "Expenses, payroll, and vendor bills due in the next 30 days.",
-    "drilldown": "Open list",
-    "unavailable": "No permission"
+    "drilldown": "Breakdown",
+    "unavailable": "No permission",
+    "recognizedBreakdown": {
+      "pageTitle": "Recognized cost breakdown",
+      "pageHint": "Lines by recognition date and existing policy — not purchase date alone.",
+      "noAccessTitle": "No access",
+      "noAccessBody": "Project financials permission is required.",
+      "scopeHint": "Recognized cost is NET. VAT and gross come from each document. Employer cost (EMC) uses cost month — not cash paid.",
+      "parityWarning": "Line totals do not match the recognized-cost KPI — contact support.",
+      "backToOverview": "Back to business overview",
+      "totalTitle": "Period total",
+      "kpiNetLabel": "Matches recognized-cost KPI (NET)",
+      "columnRecognitionDate": "Recognition date",
+      "columnSource": "Source",
+      "columnParty": "Party",
+      "columnDescription": "Description",
+      "columnAllocation": "Allocation",
+      "columnNet": "NET",
+      "columnVat": "VAT",
+      "columnGross": "Gross",
+      "openRecord": "Open",
+      "empty": "No lines in this period.",
+      "fallbackExpense": "Expense",
+      "installmentDescription": "{text} (installment · {month})",
+      "emcDescription": "Employer cost · {month}",
+      "source": {
+        "expense": "Expense",
+        "ap_bill": "Vendor bill",
+        "employer_cost": "Employer cost (EMC)"
+      },
+      "allocation": {
+        "project": "Project: {name}",
+        "overhead": "Overhead / company",
+        "apCompany": "Company / AP",
+        "employerCost": "Payroll · cost month",
+        "unassigned": "Unassigned",
+        "costFamily": "{family}"
+      }
+    },
+    "cashPaidBreakdown": {
+      "pageTitle": "Cash paid breakdown",
+      "pageHint": "Payments actually made in the period — gross as cash out.",
+      "noAccessTitle": "No access",
+      "noAccessBody": "Financials or vendor-bill permission is required.",
+      "scopeHint": "Includes expenses, AP payments, payroll cash, and advances by payment date. Excludes employer cost (EMC).",
+      "parityWarning": "Line totals do not match the cash-paid KPI — contact support.",
+      "backToOverview": "Back to business overview",
+      "totalTitle": "Period total",
+      "columnPaymentDate": "Payment date",
+      "columnSource": "Type",
+      "columnParty": "Payee",
+      "columnDocument": "Document / reference",
+      "columnNet": "NET",
+      "columnVat": "VAT",
+      "columnGross": "Gross (cash)",
+      "empty": "No payments in this period.",
+      "source": {
+        "payroll": "Payroll",
+        "expense": "Expense",
+        "ap": "Vendor payment",
+        "subcontract_advance": "Subcontract advance"
+      }
+    }
   },
   "businessProfitability": {
     "pageTitle": "Business profitability",
@@ -476,6 +537,7 @@
     "noAccessTitle": "No access to business profitability",
     "noAccessBody": "Project financials, billing, or contract permission is required.",
     "disclaimer": "Contract value, billed amounts, and collected cash are separate metrics. Collected cash is not revenue. VAT is excluded from profitability.",
+    "scopeNote": "Cumulative contractual business picture — not “this month’s profit”. There is no month picker; figures use existing report engines.",
     "billingNote": "Billing and collections are cash-flow metrics — not revenue recognition.",
     "forecastFormula": "Forecast final cost = actual to date + open commitments + expected remaining cost (+ general allocation where applicable).",
     "unavailable": "No permission",
