@@ -34,7 +34,6 @@ import type { RevenueTriplet } from '@/modules/billing/domain/revenue-position';
 import { isZeroMoney, subtractMoney } from '@/shared/money';
 import {
   billingCollectedMonthHref,
-  billingIssuedMonthHref,
   buildAllocatedOverheadDetail,
   buildApOutstandingDetail,
   buildBillingInvoicedDetail,
@@ -48,7 +47,6 @@ import {
   buildContractValueDetail,
   buildCostsThisMonthDetail,
   dashboardCashPaidMonthHref,
-  dashboardRecognizedCostMonthHref,
   buildCurrentProfitDetail,
   buildExpectedRemainingDetail,
   buildForecastCostDetail,
@@ -521,19 +519,9 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                     kpiBreakdown.actionableUnallocatedCosts,
                     tFinancial('unallocatedBusinessCosts'),
                     detailCopy,
+                    t('businessSummary.viewUnallocatedExpenses'),
                   )}
                   detailCopy={triggerCopy}
-                  footer={
-                    <p className="break-words text-xs">
-                      <Link
-                        href="/expenses?unallocated=true"
-                        className={textNavLinkClassName}
-                        prefetch={false}
-                      >
-                        {t('businessSummary.viewUnallocatedExpenses')}
-                      </Link>
-                    </p>
-                  }
                 />
               ) : null}
             </div>
@@ -665,19 +653,9 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                     data.apOutstanding!,
                     tFinancial('apOutstanding'),
                     detailCopy,
+                    t('businessSummary.viewApOutstanding'),
                   )}
                   detailCopy={triggerCopy}
-                  footer={
-                    <p className="break-words text-xs">
-                      <Link
-                        href="/procurement/ap?outstanding=1"
-                        className={textNavLinkClassName}
-                        prefetch={false}
-                      >
-                        {t('businessSummary.viewApOutstanding')}
-                      </Link>
-                    </p>
-                  }
                 />
               ) : null}
             </div>
@@ -867,17 +845,6 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                     t('businessSummary.viewMonthCollections'),
                   )}
                   detailCopy={triggerCopy}
-                  footer={
-                    <p className="break-words text-xs">
-                      <Link
-                        href={billingCollectedMonthHref(data.selectedMonth)}
-                        className={textNavLinkClassName}
-                        prefetch={false}
-                      >
-                        {t('businessSummary.viewMonthCollections')}
-                      </Link>
-                    </p>
-                  }
                 />
               ) : null}
               <DashboardKpiCard
@@ -904,17 +871,6 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                   t('businessSummary.viewMonthCashPaid'),
                 )}
                 detailCopy={triggerCopy}
-                footer={
-                  <p className="break-words text-xs">
-                    <Link
-                      href={dashboardCashPaidMonthHref(data.selectedMonth)}
-                      className={textNavLinkClassName}
-                      prefetch={false}
-                    >
-                      {t('businessSummary.viewMonthCashPaid')}
-                    </Link>
-                  </p>
-                }
               />
               <DashboardKpiCard
                 title={t('businessSummary.expectedOutgoing')}
@@ -990,19 +946,9 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                     t('businessSummary.invoicedThisMonth'),
                     detailCopy,
                     vatLabels,
+                    t('businessSummary.viewMonthBillings'),
                   )}
                   detailCopy={triggerCopy}
-                  footer={
-                    <p className="break-words text-xs">
-                      <Link
-                        href={billingIssuedMonthHref(data.selectedMonth)}
-                        className={textNavLinkClassName}
-                        prefetch={false}
-                      >
-                        {t('businessSummary.viewMonthBillings')}
-                      </Link>
-                    </p>
-                  }
                 />
               ) : null}
               <DashboardKpiCard
@@ -1021,17 +967,6 @@ export async function HomeDashboardContent({ data }: HomeDashboardContentProps) 
                   t('businessSummary.viewMonthRecognizedCosts'),
                 )}
                 detailCopy={triggerCopy}
-                footer={
-                  <p className="break-words text-xs">
-                    <Link
-                      href={dashboardRecognizedCostMonthHref(data.selectedMonth)}
-                      className={textNavLinkClassName}
-                      prefetch={false}
-                    >
-                      {t('businessSummary.viewMonthRecognizedCosts')}
-                    </Link>
-                  </p>
-                }
               />
             </div>
           </section>

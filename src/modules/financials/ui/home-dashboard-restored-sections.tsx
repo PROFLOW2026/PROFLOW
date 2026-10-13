@@ -11,7 +11,6 @@ import type { DashboardKpiKey } from '../domain/dashboard-missing-data';
 import type { DashboardKpiDetailContent } from '../domain/dashboard-kpi-detail';
 import {
   billingCollectedMonthHref,
-  billingIssuedMonthHref,
   buildAllocatedOverheadDetail,
   buildBillingInvoicedDetail,
   buildBillingOutstandingDetail,
@@ -20,7 +19,6 @@ import {
   buildCompanyProfitDetail,
   buildCostsThisMonthDetail,
   dashboardCashPaidMonthHref,
-  dashboardRecognizedCostMonthHref,
   buildExpectedRemainingDetail,
   buildForecastCostDetail,
   buildForecastProfitDetail,
@@ -232,19 +230,9 @@ export async function HomeDashboardRestoredSections({
               kpiBreakdown.actionableUnallocatedCosts,
               tFinancial('unallocatedBusinessCosts'),
               detailCopy,
+              t('businessSummary.viewUnallocatedExpenses'),
             )}
             detailCopy={triggerCopy}
-            footer={
-              <p className="break-words text-xs">
-                <Link
-                  href="/expenses?unallocated=true"
-                  className={textNavLinkClassName}
-                  prefetch={false}
-                >
-                  {t('businessSummary.viewUnallocatedExpenses')}
-                </Link>
-              </p>
-            }
           />
         </div>
       ) : null}
@@ -423,17 +411,6 @@ export async function HomeDashboardRestoredSections({
                     t('businessSummary.viewMonthCashPaid'),
                   )}
                   detailCopy={triggerCopy}
-                  footer={
-                    <p className="break-words text-xs">
-                      <Link
-                        href={dashboardCashPaidMonthHref(data.selectedMonth)}
-                        className={textNavLinkClassName}
-                        prefetch={false}
-                      >
-                        {t('businessSummary.viewMonthCashPaid')}
-                      </Link>
-                    </p>
-                  }
                 />
               </div>
               <div data-pf-dashboard-metric="expected-outgoing">
@@ -508,19 +485,9 @@ export async function HomeDashboardRestoredSections({
                       t('businessSummary.invoicedThisMonth'),
                       detailCopy,
                       vatLabels,
+                      t('businessSummary.viewMonthBillings'),
                     )}
                     detailCopy={triggerCopy}
-                    footer={
-                      <p className="break-words text-xs">
-                        <Link
-                          href={billingIssuedMonthHref(data.selectedMonth)}
-                          className={textNavLinkClassName}
-                          prefetch={false}
-                        >
-                          {t('businessSummary.viewMonthBillings')}
-                        </Link>
-                      </p>
-                    }
                   />
                 </div>
               ) : null}
@@ -541,17 +508,6 @@ export async function HomeDashboardRestoredSections({
                     t('businessSummary.viewMonthRecognizedCosts'),
                   )}
                   detailCopy={triggerCopy}
-                  footer={
-                    <p className="break-words text-xs">
-                      <Link
-                        href={dashboardRecognizedCostMonthHref(data.selectedMonth)}
-                        className={textNavLinkClassName}
-                        prefetch={false}
-                      >
-                        {t('businessSummary.viewMonthRecognizedCosts')}
-                      </Link>
-                    </p>
-                  }
                 />
               </div>
             </div>

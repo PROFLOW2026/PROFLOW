@@ -137,7 +137,12 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
         )
       : undefined;
   const apDetail = data.apOutstanding
-    ? buildApOutstandingDetail(data.apOutstanding, tFinancial('apOutstanding'), detailCopy)
+    ? buildApOutstandingDetail(
+        data.apOutstanding,
+        tFinancial('apOutstanding'),
+        detailCopy,
+        t('businessSummary.viewApOutstanding'),
+      )
     : undefined;
 
   const completenessPartitions = partitionDashboardCompletenessItems(data.missingDataItems);
@@ -345,17 +350,6 @@ export async function HomeDashboardOwnerView({ data }: HomeDashboardOwnerViewPro
             hint={tFinancial('apOutstandingHint')}
             detail={apDetail}
             detailCopy={triggerCopy}
-            footer={
-              <p className="break-words text-xs">
-                <Link
-                  href="/procurement/ap?outstanding=1"
-                  className={textNavLinkClassName}
-                  prefetch={false}
-                >
-                  {t('businessSummary.viewApOutstanding')}
-                </Link>
-              </p>
-            }
           />
         </section>
       ) : null}

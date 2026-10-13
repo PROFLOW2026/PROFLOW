@@ -322,4 +322,33 @@ describe('dashboard cleanup — detail modals', () => {
     expect(source).toContain('buildProfitabilityRateDetail');
     expect(source).toContain('buildCompanyActualDetail');
   });
+
+  it('dashboard KPI cards do not duplicate drill links in card footers', () => {
+    const footerDrillPattern =
+      /footer=\{[\s\S]{0,400}?businessSummary\.(viewMonthCashPaid|viewMonthBillings|viewMonthRecognizedCosts|viewMonthCollections|viewApOutstanding|viewUnallocatedExpenses)/;
+    for (const file of [
+      'home-dashboard-content.tsx',
+      'home-dashboard-restored-sections.tsx',
+      'home-dashboard-owner-view.tsx',
+    ]) {
+      const source = readFileSync(
+        resolve(process.cwd(), `src/modules/financials/ui/${file}`),
+        'utf8',
+      );
+      expect(source).not.toMatch(footerDrillPattern);
+    }
+  });
+
+  it('month invoiced detail exposes the month-scoped billing list inside the detail dialog', () => {
+    const invoiced = buildInvoicedThisMonthDetail(
+      money('100', ILS),
+      money('118', ILS),
+      '2026-08',
+      'Invoiced',
+      detailCopy,
+      undefined,
+      'View month billings',
+    );
+    expect(invoiced.fullScreenLabel).toBe('View month billings');
+  });
 });

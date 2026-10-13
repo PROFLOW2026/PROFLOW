@@ -308,6 +308,7 @@ export function buildApOutstandingDetail(
   apOutstanding: MoneyValue,
   title: string,
   copy: DashboardKpiDetailCopy,
+  fullScreenLabel?: string,
 ): DashboardKpiDetailContent {
   return {
     title,
@@ -316,7 +317,7 @@ export function buildApOutstandingDetail(
     formula: copy.apFormula,
     breakdown: lines({ label: title, money: apOutstanding, href: '/procurement/ap?outstanding=1' }),
     fullScreenHref: '/procurement/ap?outstanding=1',
-    fullScreenLabel: copy.apLink,
+    fullScreenLabel: fullScreenLabel ?? copy.apLink,
   };
 }
 
@@ -640,6 +641,7 @@ export function buildUnallocatedBusinessCostsDetail(
   total: MoneyValue,
   title: string,
   copy: DashboardKpiDetailCopy,
+  fullScreenLabel?: string,
 ): DashboardKpiDetailContent {
   return {
     title,
@@ -648,7 +650,7 @@ export function buildUnallocatedBusinessCostsDetail(
     formula: copy.unallocatedBusinessCostsFormula,
     breakdown: [{ label: title, money: total, href: '/expenses?unallocated=true' }],
     fullScreenHref: '/expenses?unallocated=true',
-    fullScreenLabel: copy.expensesLink,
+    fullScreenLabel: fullScreenLabel ?? copy.expensesLink,
   };
 }
 
@@ -703,6 +705,7 @@ export function buildInvoicedThisMonthDetail(
   title: string,
   copy: DashboardKpiDetailCopy,
   vatLabels?: MonthlyVatLabels,
+  fullScreenLabel?: string,
 ): DashboardKpiDetailContent {
   return {
     title,
@@ -718,7 +721,7 @@ export function buildInvoicedThisMonthDetail(
           { label: `${copy.labelBilled} (${copy.labelOutstanding})`, money: grossInvoiced },
         ),
     fullScreenHref: billingIssuedMonthHref(selectedMonth),
-    fullScreenLabel: copy.billingLink,
+    fullScreenLabel: fullScreenLabel ?? copy.billingLink,
   };
 }
 
