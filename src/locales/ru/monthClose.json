@@ -51,10 +51,14 @@
     "issueCount": "{count, plural, one {# открытый пункт} few {# открытых пункта} many {# открытых пунктов} other {# открытых пунктов}}",
     "stateOk": "В порядке",
     "stateIssue": "Требует внимания",
-    "stateNa": "Не применимо"
+    "stateInformational": "Справочно",
+    "stateNa": "Не применимо",
+    "informationalGroupTitle": "Заданная оценка — ожидается фактическая сумма",
+    "ownerDefinedEstimateHint": "Оценка допустима; фактическую сумму вводите только при наличии реальных данных по зарплате."
   },
   "checks": {
     "missing_employer_cost_actual": "Сотрудники без фактических затрат работодателя",
+    "owner_manager_defined_estimate_pending_actual": "Владелец/менеджер — заданная оценка, ожидается факт",
     "unallocated_employee_cost": "Нераспределённые затраты на сотрудников",
     "vendor_bills_unallocated": "Счета поставщиков с нераспределённым остатком",
     "open_time_corrections": "Открытые корректировки времени",

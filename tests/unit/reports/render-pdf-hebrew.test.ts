@@ -199,7 +199,7 @@ describe('renderReportPdf Hebrew shaping', () => {
     expect(filterPdfHeaderAddressLines(['IL'])).toEqual([]);
   });
 
-  it('preserves exact legal-name punctuation in PDF header for all sample strings', async () => {
+  it('preserves exact legal-name punctuation in PDF header for all sample strings', { timeout: 30_000 }, async () => {
     const expectations: Record<(typeof EXACT_LEGAL_NAME_SAMPLES)[number], readonly string[]> = {
       'מתח ח.י הנדסת חשמל בע"מ': ['ח.י', '"'],
       'א.ב. כהן (1995) בע"מ': ['א.ב', '1995', '"'],

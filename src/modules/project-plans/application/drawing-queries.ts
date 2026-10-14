@@ -3,6 +3,8 @@ import type { ProjectFileDeps, OpenedFile } from '@/modules/evidence';
 import { PROJECT_CAPABILITIES, assertProjectCapability, loadProjectCapabilities } from '@/modules/project-team';
 import type { OrgContext } from '@/shared/auth/context';
 import { NotFoundError } from '@/shared/errors';
+import { assertPermission } from '@/shared/permissions/assert';
+import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { listProjectAgreements, listProjectPrincipals, listShareableProjectDocuments, type ShareableDocument } from '../data/audience.repository';
 import {
   findDrawing,
@@ -140,7 +142,11 @@ export async function openInternalRevisionFile(
 ): Promise<OpenedFile & { fileName: string }> {
   const revision = await findRevision(context.db, context.organizationId, uuid.parse(input.revisionId));
   if (!revision || !revision.fileReady) throw new NotFoundError('Revision');
-  await assertProjectCapability(context, revision.projectId, PROJECT_CAPABILITIES.DOCUMENTS_VIEW);
+  if (revision.status === 'draft') {
+    assertPermission(context, PERMISSIONS.DOCUMENTS_MANAGE);
+  } else {
+    await assertProjectCapability(context, revision.projectId, PROJECT_CAPABILITIES.DOCUMENTS_VIEW);
+  }
   const opened = await deps.store.open({
     organizationId: revision.organizationId,
     documentId: revision.documentId,

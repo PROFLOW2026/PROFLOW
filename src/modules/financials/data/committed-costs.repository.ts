@@ -1,5 +1,12 @@
 import { and, eq, inArray, isNotNull, isNull, or, sql } from 'drizzle-orm';
-import { apBillProjectAllocations, apBills, apPoMatches, committedCosts, expenses } from '@drizzle/schema';
+import {
+  apBillProjectAllocations,
+  apBills,
+  apPoMatches,
+  committedCosts,
+  expenseAllocations,
+  expenses,
+} from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 import {
   apBillNotStockPurchaseSql,
@@ -8,12 +15,15 @@ import {
 } from '@/modules/ap/domain/inventory-stock-purchase';
 import {
   applyPartialMatchPolicyToRecognizedVendorRollup,
-  buildLinkedExpenseDeductions,
-  buildRecognizedBillMatchLinks,
+  buildProjectLinkedExpenseDeductions,
+  distributeMatchedAmountByExpenseWeights,
+  scaleAmountByExpenseProjectWeight,
+  type ExpenseProjectWeight,
   type RecognizedBillMatchLink,
 } from '@/modules/financials/domain/expense-ap-dedup';
 import {
   addMoney,
+  compareMoney,
   fromNumericString,
   isPositiveMoney,
   isZeroMoney,
@@ -310,6 +320,364 @@ const EMPTY_VENDOR_ROLLUP_FIELDS = {
   billMatchLinks: [] as readonly RecognizedBillMatchLink[],
 };
 
+async function loadExpenseProjectNetWeightsByIds(
+  db: DbExecutor,
+  organizationId: string,
+  expenseIds: readonly string[],
+): Promise<Map<string, readonly ExpenseProjectWeight[]>> {
+  const map = new Map<string, ExpenseProjectWeight[]>();
+  if (expenseIds.length === 0) return map;
+
+  const allocRows = await db
+    .select({
+      expenseId: expenseAllocations.expenseId,
+      projectId: expenseAllocations.projectId,
+      amount: expenseAllocations.amount,
+    })
+    .from(expenseAllocations)
+    .where(
+      and(
+        eq(expenseAllocations.organizationId, organizationId),
+        inArray(expenseAllocations.expenseId, [...expenseIds]),
+        eq(expenseAllocations.targetType, 'project'),
+        isNotNull(expenseAllocations.projectId),
+      ),
+    );
+
+  for (const row of allocRows) {
+    if (!row.projectId) continue;
+    const list = map.get(row.expenseId) ?? [];
+    list.push({ projectId: row.projectId, weightNet: row.amount });
+    map.set(row.expenseId, list);
+  }
+
+  const missing = expenseIds.filter((id) => !map.has(id));
+  if (missing.length > 0) {
+    const headers = await db
+      .select({
+        id: expenses.id,
+        projectId: expenses.projectId,
+        netAmount: expenses.netAmount,
+      })
+      .from(expenses)
+      .where(
+        and(eq(expenses.organizationId, organizationId), inArray(expenses.id, [...missing])),
+      );
+    for (const row of headers) {
+      if (row.projectId) {
+        map.set(row.id, [{ projectId: row.projectId, weightNet: row.netAmount }]);
+      }
+    }
+  }
+
+  return map;
+}
+
+type LinkedExpenseMatchDbRow = {
+  readonly expenseId: string;
+  readonly matchedAmount: string;
+  readonly expenseCurrency: string;
+  readonly expenseNetAmount: string;
+  readonly expenseGrossAmount: string;
+};
+
+function scaleRecognizedBillSliceForSplitExpense(input: {
+  readonly amount: string;
+  readonly billId: string;
+  readonly projectId: string;
+  readonly currency: string;
+  readonly billIdsWithAllocations: ReadonlySet<string>;
+  readonly linkedByBill: ReadonlyMap<string, readonly { readonly expenseId: string }[]>;
+  readonly weightsByExpenseId: ReadonlyMap<string, readonly ExpenseProjectWeight[]>;
+}): string {
+  if (input.billIdsWithAllocations.has(input.billId)) return input.amount;
+  const links = input.linkedByBill.get(input.billId) ?? [];
+  const expenseId = links[0]?.expenseId;
+  if (!expenseId) return input.amount;
+  const weights = input.weightsByExpenseId.get(expenseId);
+  if (!weights || weights.length <= 1) return input.amount;
+  return scaleAmountByExpenseProjectWeight({
+    amount: input.amount,
+    currency: input.currency,
+    weights,
+    projectId: input.projectId,
+  });
+}
+
+type SplitExpenseTouchRow = {
+  readonly apBillId: string;
+  readonly expenseId: string | null;
+  readonly matchedAmount: string;
+  readonly expenseCurrency: string;
+  readonly expenseNetAmount: string;
+  readonly expenseGrossAmount: string;
+  readonly expenseProjectId: string | null;
+};
+
+async function loadSplitExpenseTouchRowsForProjects(
+  db: DbExecutor,
+  organizationId: string,
+  projectIds: readonly string[],
+): Promise<SplitExpenseTouchRow[]> {
+  if (projectIds.length === 0) return [];
+  const projectIdList = [...projectIds];
+  return db
+    .select({
+      apBillId: apPoMatches.apBillId,
+      expenseId: apPoMatches.expenseId,
+      matchedAmount: apPoMatches.matchedAmount,
+      expenseCurrency: expenses.currency,
+      expenseNetAmount: expenses.netAmount,
+      expenseGrossAmount: expenses.grossAmount,
+      expenseProjectId: expenses.projectId,
+    })
+    .from(apPoMatches)
+    .innerJoin(expenses, eq(expenses.id, apPoMatches.expenseId))
+    .where(
+      and(
+        eq(apPoMatches.organizationId, organizationId),
+        eq(apPoMatches.status, 'accepted'),
+        isNotNull(apPoMatches.expenseId),
+        eq(expenses.status, 'finalized'),
+        isNull(expenses.archivedAt),
+        or(
+          inArray(expenses.projectId, projectIdList),
+          sql`EXISTS (
+            SELECT 1 FROM ${expenseAllocations} a
+            WHERE a.organization_id = ${organizationId}
+              AND a.expense_id = ${expenses.id}
+              AND a.target_type = 'project'
+              AND a.project_id IN (${sql.join(
+                projectIdList.map((id) => sql`${id}`),
+                sql`, `,
+              )})
+          )`,
+        ),
+      ),
+    );
+}
+
+function splitExpenseTouchRowTouchesProject(
+  row: SplitExpenseTouchRow,
+  projectId: string,
+  weightsByExpenseId: ReadonlyMap<string, readonly ExpenseProjectWeight[]>,
+): boolean {
+  if (!row.expenseId) return false;
+  if (row.expenseProjectId === projectId) return true;
+  const weights = weightsByExpenseId.get(row.expenseId);
+  return weights?.some((weight) => weight.projectId === projectId) ?? false;
+}
+
+async function augmentRollupWithSplitExpenseMatches(
+  db: DbExecutor,
+  organizationId: string,
+  projectId: string,
+  currency: string,
+  rollup: RecognizedVendorBillRollup,
+  billIdsWithAllocations: ReadonlySet<string>,
+  preloadedTouchRows?: readonly SplitExpenseTouchRow[] | null,
+): Promise<RecognizedVendorBillRollup> {
+  const normalized = currency.toUpperCase();
+  const recognizedSet = new Set(rollup.recognizedBillIds);
+
+  const touchRows =
+    preloadedTouchRows !== undefined && preloadedTouchRows !== null
+      ? [...preloadedTouchRows]
+      : await db
+          .select({
+            apBillId: apPoMatches.apBillId,
+            expenseId: apPoMatches.expenseId,
+            matchedAmount: apPoMatches.matchedAmount,
+            expenseCurrency: expenses.currency,
+            expenseNetAmount: expenses.netAmount,
+            expenseGrossAmount: expenses.grossAmount,
+            expenseProjectId: expenses.projectId,
+          })
+          .from(apPoMatches)
+          .innerJoin(expenses, eq(expenses.id, apPoMatches.expenseId))
+          .where(
+            and(
+              eq(apPoMatches.organizationId, organizationId),
+              eq(apPoMatches.status, 'accepted'),
+              isNotNull(apPoMatches.expenseId),
+              eq(expenses.status, 'finalized'),
+              isNull(expenses.archivedAt),
+              or(
+                eq(expenses.projectId, projectId),
+                sql`EXISTS (
+                  SELECT 1 FROM ${expenseAllocations} a
+                  WHERE a.organization_id = ${organizationId}
+                    AND a.expense_id = ${expenses.id}
+                    AND a.target_type = 'project'
+                    AND a.project_id = ${projectId}
+                )`,
+              ),
+            ),
+          );
+
+  const matchRows: LinkedExpenseMatchDbRow[] = [];
+  for (const row of touchRows) {
+    if (!row.expenseId || row.expenseCurrency.toUpperCase() !== normalized) continue;
+    matchRows.push({
+      expenseId: row.expenseId,
+      matchedAmount: row.matchedAmount,
+      expenseCurrency: row.expenseCurrency,
+      expenseNetAmount: row.expenseNetAmount,
+      expenseGrossAmount: row.expenseGrossAmount,
+    });
+  }
+  if (matchRows.length === 0) return rollup;
+
+  const expenseIds = [...new Set(matchRows.map((row) => row.expenseId))];
+  const weightsByExpenseId = await loadExpenseProjectNetWeightsByIds(db, organizationId, expenseIds);
+
+  const linkedExpenseDeductions = new Map(rollup.linkedExpenseDeductions);
+  for (const [expenseId, amount] of buildProjectLinkedExpenseDeductions(
+    matchRows,
+    projectId,
+    weightsByExpenseId,
+    normalized,
+  )) {
+    const prev = linkedExpenseDeductions.get(expenseId);
+    linkedExpenseDeductions.set(
+      expenseId,
+      prev ? addMoney(money(prev, normalized), money(amount, normalized)).amount : amount,
+    );
+  }
+
+  const linkedByBill = new Map<string, LinkedExpenseMatchDbRow[]>();
+  for (const row of touchRows) {
+    if (!row.expenseId) continue;
+    const list = linkedByBill.get(row.apBillId) ?? [];
+    list.push({
+      expenseId: row.expenseId,
+      matchedAmount: row.matchedAmount,
+      expenseCurrency: row.expenseCurrency,
+      expenseNetAmount: row.expenseNetAmount,
+      expenseGrossAmount: row.expenseGrossAmount,
+    });
+    linkedByBill.set(row.apBillId, list);
+  }
+
+  const extraBillIds = [...new Set(touchRows.map((row) => row.apBillId))].filter(
+    (billId) => !recognizedSet.has(billId) && !billIdsWithAllocations.has(billId),
+  );
+
+  const billAmounts = [...rollup.billAmounts];
+  const recognizedBillIds = [...rollup.recognizedBillIds];
+  let total = rollup.total;
+  let billMatchLinks = [...rollup.billMatchLinks];
+
+  if (extraBillIds.length > 0) {
+    const extraBills = await db
+      .select({
+        id: apBills.id,
+        netAmount: apBills.netAmount,
+        totalAmount: apBills.totalAmount,
+        currency: apBills.currency,
+        stockLineNet: apBillStockLineNetSql(),
+      })
+      .from(apBills)
+      .where(
+        and(
+          eq(apBills.organizationId, organizationId),
+          inArray(apBills.id, extraBillIds),
+          inArray(apBills.status, [...RECOGNIZED_VENDOR_BILL_STATUSES]),
+          isNull(apBills.archivedAt),
+          apBillNotStockPurchaseSql(),
+        ),
+      );
+
+    const creditsByBill = await listActiveCreditActualReductionsForBills(
+      db,
+      organizationId,
+      extraBillIds,
+    );
+
+    for (const bill of extraBills) {
+      if (bill.currency.toUpperCase() !== normalized) continue;
+      const billNet = bill.netAmount ?? bill.totalAmount;
+      const operating = operatingSliceAfterStockLines({
+        sliceAmount: billNet,
+        billNetAmount: billNet,
+        stockLineNet: String(bill.stockLineNet ?? '0'),
+        currency: bill.currency,
+      });
+      const netted = netProjectSliceAfterCredits({
+        currency: normalized,
+        billNetAmount: billNet,
+        sliceAmount: operating.amount,
+        creditActualReductions: creditsByBill.get(bill.id) ?? [],
+        projectId,
+      });
+      const scaled = scaleRecognizedBillSliceForSplitExpense({
+        amount: netted.amount,
+        billId: bill.id,
+        projectId,
+        currency: normalized,
+        billIdsWithAllocations,
+        linkedByBill,
+        weightsByExpenseId,
+      });
+      const parsed = money(scaled, normalized);
+      if (!isPositiveMoney(parsed)) continue;
+      billAmounts.push(parsed.amount);
+      recognizedBillIds.push(bill.id);
+      total = addMoney(total, parsed);
+    }
+
+    billMatchLinks = [
+      ...billMatchLinks,
+      ...projectScopedBillMatchLinks(
+        recognizedBillIds.filter((id) => extraBillIds.includes(id)),
+        linkedByBill,
+        projectId,
+        weightsByExpenseId,
+        normalized,
+      ),
+    ];
+  }
+
+  return {
+    ...rollup,
+    billAmounts,
+    recognizedBillIds,
+    total: roundMoney(total),
+    billCount: billAmounts.length,
+    linkedExpenseDeductions,
+    billMatchLinks,
+  };
+}
+
+function projectScopedBillMatchLinks(
+  billIds: readonly string[],
+  linkedByBill: ReadonlyMap<string, readonly LinkedExpenseMatchDbRow[]>,
+  projectId: string,
+  weightsByExpenseId: ReadonlyMap<string, readonly ExpenseProjectWeight[]>,
+  currency: string,
+): RecognizedBillMatchLink[] {
+  const links: RecognizedBillMatchLink[] = [];
+  for (const billId of billIds) {
+    for (const row of linkedByBill.get(billId) ?? []) {
+      const weights = weightsByExpenseId.get(row.expenseId);
+      const matchedAmount =
+        weights && weights.length > 1
+          ? distributeMatchedAmountByExpenseWeights({
+              matchedAmount: row.matchedAmount,
+              currency,
+              weights,
+              projectId,
+            })
+          : weights && weights.length === 1 && weights[0]!.projectId !== projectId
+            ? '0'
+            : row.matchedAmount;
+      if (compareMoney(money(matchedAmount, currency), zeroMoney(currency)) <= 0) continue;
+      links.push({ billId, expenseId: row.expenseId, matchedAmount });
+    }
+  }
+  return links;
+}
+
 async function loadExpenseNetAmountsById(
   db: DbExecutor,
   organizationId: string,
@@ -346,26 +714,6 @@ async function applyPartialMatchPolicyToLoadedRollup(
     currency,
     expenseNetFallback,
   });
-}
-
-function billMatchLinksForProject(
-  billIds: readonly string[],
-  linkedByBill: ReadonlyMap<
-    string,
-    readonly { expenseId: string; matchedAmount: string; expenseCurrency: string }[]
-  >,
-): RecognizedBillMatchLink[] {
-  const links: RecognizedBillMatchLink[] = [];
-  for (const billId of billIds) {
-    for (const row of linkedByBill.get(billId) ?? []) {
-      links.push({
-        billId,
-        expenseId: row.expenseId,
-        matchedAmount: row.matchedAmount,
-      });
-    }
-  }
-  return links;
 }
 
 async function applyPartialMatchPolicyToRollupMap(
@@ -518,6 +866,7 @@ export async function loadRecognizedVendorBillsForProject(
     resolved.billIds,
   );
 
+  const preScaleBillAmounts: string[] = [];
   for (let i = 0; i < resolved.amounts.length; i += 1) {
     const amountStr = resolved.amounts[i]!;
     const billId = resolved.billIds[i]!;
@@ -536,13 +885,15 @@ export async function loadRecognizedVendorBillsForProject(
       projectId,
     });
     if (isZeroMoney(netted) || !isPositiveMoney(netted)) continue;
-    billAmounts.push(netted.amount);
-    total = addMoney(total, netted);
+    preScaleBillAmounts.push(netted.amount);
     recognizedBillIds.push(billId);
   }
 
+  const linkedByBill = new Map<string, LinkedExpenseMatchDbRow[]>();
   let linkedExpenseDeductions = new Map<string, string>();
   let billMatchLinks: RecognizedBillMatchLink[] = [];
+  const billIdsWithAllocationsSet = useAllocations ? billIdsWithAllocations : new Set<string>();
+
   if (recognizedBillIds.length > 0) {
     const linkedRows = await db
       .select({
@@ -550,6 +901,8 @@ export async function loadRecognizedVendorBillsForProject(
         expenseId: apPoMatches.expenseId,
         matchedAmount: apPoMatches.matchedAmount,
         expenseCurrency: expenses.currency,
+        expenseNetAmount: expenses.netAmount,
+        expenseGrossAmount: expenses.grossAmount,
       })
       .from(apPoMatches)
       .innerJoin(expenses, eq(expenses.id, apPoMatches.expenseId))
@@ -564,37 +917,60 @@ export async function loadRecognizedVendorBillsForProject(
         ),
       );
 
-    billMatchLinks = buildRecognizedBillMatchLinks(
-      linkedRows.flatMap((row) =>
-        row.expenseId
-          ? [
-              {
-                apBillId: row.apBillId,
-                expenseId: row.expenseId,
-                matchedAmount: row.matchedAmount,
-              },
-            ]
-          : [],
-      ),
-    );
+    for (const row of linkedRows) {
+      if (!row.expenseId) continue;
+      const list = linkedByBill.get(row.apBillId) ?? [];
+      list.push({
+        expenseId: row.expenseId,
+        matchedAmount: row.matchedAmount,
+        expenseCurrency: row.expenseCurrency,
+        expenseNetAmount: row.expenseNetAmount,
+        expenseGrossAmount: row.expenseGrossAmount,
+      });
+      linkedByBill.set(row.apBillId, list);
+    }
 
-    linkedExpenseDeductions = buildLinkedExpenseDeductions(
-      linkedRows.flatMap((row) =>
-        row.expenseId
-          ? [
-              {
-                expenseId: row.expenseId,
-                matchedAmount: row.matchedAmount,
-                expenseCurrency: row.expenseCurrency,
-              },
-            ]
-          : [],
-      ),
+    const expenseIds = [...new Set(linkedRows.map((row) => row.expenseId).filter(Boolean))] as string[];
+    const weightsByExpenseId = await loadExpenseProjectNetWeightsByIds(db, organizationId, expenseIds);
+
+    const scaledRecognizedBillIds: string[] = [];
+    for (let i = 0; i < preScaleBillAmounts.length; i += 1) {
+      const billId = recognizedBillIds[i]!;
+      const scaled = scaleRecognizedBillSliceForSplitExpense({
+        amount: preScaleBillAmounts[i]!,
+        billId,
+        projectId,
+        currency: normalized,
+        billIdsWithAllocations: billIdsWithAllocationsSet,
+        linkedByBill,
+        weightsByExpenseId,
+      });
+      const parsed = money(scaled, normalized);
+      if (!isPositiveMoney(parsed)) continue;
+      billAmounts.push(parsed.amount);
+      scaledRecognizedBillIds.push(billId);
+      total = addMoney(total, parsed);
+    }
+    recognizedBillIds.length = 0;
+    recognizedBillIds.push(...scaledRecognizedBillIds);
+
+    const matchRows = [...linkedByBill.values()].flat();
+    linkedExpenseDeductions = buildProjectLinkedExpenseDeductions(
+      matchRows,
+      projectId,
+      weightsByExpenseId,
+      normalized,
+    );
+    billMatchLinks = projectScopedBillMatchLinks(
+      recognizedBillIds,
+      linkedByBill,
+      projectId,
+      weightsByExpenseId,
       normalized,
     );
   }
 
-  const rollup: RecognizedVendorBillRollup = {
+  let rollup: RecognizedVendorBillRollup = {
     billAmounts,
     total: roundMoney(total),
     linkedExpenseDeductions,
@@ -603,6 +979,15 @@ export async function loadRecognizedVendorBillsForProject(
     recognizedBillIds,
     billMatchLinks,
   };
+
+  rollup = await augmentRollupWithSplitExpenseMatches(
+    db,
+    organizationId,
+    projectId,
+    normalized,
+    rollup,
+    billIdsWithAllocationsSet,
+  );
 
   return applyPartialMatchPolicyToLoadedRollup(db, organizationId, normalized, rollup);
 }
@@ -1059,7 +1444,13 @@ export async function loadRecognizedVendorBillsForProjects(
 
     const linkedByBill = new Map<
       string,
-      { expenseId: string; matchedAmount: string; expenseCurrency: string }[]
+      {
+        expenseId: string;
+        matchedAmount: string;
+        expenseCurrency: string;
+        expenseNetAmount: string;
+        expenseGrossAmount: string;
+      }[]
     >();
     if (allRecognizedIds.length > 0) {
       const linkedRows = await db
@@ -1068,6 +1459,8 @@ export async function loadRecognizedVendorBillsForProjects(
           expenseId: apPoMatches.expenseId,
           matchedAmount: apPoMatches.matchedAmount,
           expenseCurrency: expenses.currency,
+          expenseNetAmount: expenses.netAmount,
+          expenseGrossAmount: expenses.grossAmount,
         })
         .from(apPoMatches)
         .innerJoin(expenses, eq(expenses.id, apPoMatches.expenseId))
@@ -1090,9 +1483,46 @@ export async function loadRecognizedVendorBillsForProjects(
           expenseId: row.expenseId,
           matchedAmount: row.matchedAmount,
           expenseCurrency: row.expenseCurrency,
+          expenseNetAmount: row.expenseNetAmount,
+          expenseGrossAmount: row.expenseGrossAmount,
         });
         linkedByBill.set(row.apBillId, list);
       }
+    }
+
+    const expenseIdsForWeights = [
+      ...new Set(
+        [...linkedByBill.values()]
+          .flat()
+          .map((row) => row.expenseId),
+      ),
+    ];
+    const weightsByExpenseId = await loadExpenseProjectNetWeightsByIds(
+      db,
+      organizationId,
+      expenseIdsForWeights,
+    );
+    const emptyBillAllocations = new Set<string>();
+    const projectIdListPreAlloc = [...projectIds];
+    const splitTouchRowsPreAlloc = await loadSplitExpenseTouchRowsForProjects(
+      db,
+      organizationId,
+      projectIdListPreAlloc,
+    );
+    let splitExpenseWeightsPreAlloc = weightsByExpenseId;
+    if (splitTouchRowsPreAlloc.length > 0) {
+      const splitExpenseIds = [
+        ...new Set(
+          splitTouchRowsPreAlloc
+            .map((row) => row.expenseId)
+            .filter((id): id is string => id != null),
+        ),
+      ];
+      splitExpenseWeightsPreAlloc = await loadExpenseProjectNetWeightsByIds(
+        db,
+        organizationId,
+        splitExpenseIds,
+      );
     }
 
     for (const projectId of projectIds) {
@@ -1108,21 +1538,65 @@ export async function loadRecognizedVendorBillsForProjects(
         });
         continue;
       }
-      const matchRows: { expenseId: string; matchedAmount: string; expenseCurrency: string }[] =
-        [];
+      const matchRows: LinkedExpenseMatchDbRow[] = [];
       for (const billId of bucket.recognizedBillIds) {
         matchRows.push(...(linkedByBill.get(billId) ?? []));
       }
-      const linkedExpenseDeductions = buildLinkedExpenseDeductions(matchRows, normalized);
-      result.set(projectId, {
-        billAmounts: bucket.billAmounts,
-        total: roundMoney(bucket.total),
-        linkedExpenseDeductions,
+      const scaledBillAmounts: string[] = [];
+      const scaledBillIds: string[] = [];
+      let scaledTotal = zeroMoney(normalized);
+      for (let i = 0; i < bucket.billAmounts.length; i += 1) {
+        const billId = bucket.recognizedBillIds[i]!;
+        const scaled = scaleRecognizedBillSliceForSplitExpense({
+          amount: bucket.billAmounts[i]!,
+          billId,
+          projectId,
+          currency: normalized,
+          billIdsWithAllocations: emptyBillAllocations,
+          linkedByBill,
+          weightsByExpenseId,
+        });
+        const parsed = money(scaled, normalized);
+        if (!isPositiveMoney(parsed)) continue;
+        scaledBillAmounts.push(parsed.amount);
+        scaledBillIds.push(billId);
+        scaledTotal = addMoney(scaledTotal, parsed);
+      }
+      let rollup: RecognizedVendorBillRollup = {
+        billAmounts: scaledBillAmounts,
+        total: roundMoney(scaledTotal),
+        linkedExpenseDeductions: buildProjectLinkedExpenseDeductions(
+          matchRows,
+          projectId,
+          weightsByExpenseId,
+          normalized,
+        ),
         excludedForeignCurrencyCount: bucket.excluded,
-        billCount: bucket.billAmounts.length,
-        recognizedBillIds: bucket.recognizedBillIds,
-        billMatchLinks: billMatchLinksForProject(bucket.recognizedBillIds, linkedByBill),
-      });
+        billCount: scaledBillAmounts.length,
+        recognizedBillIds: scaledBillIds,
+        billMatchLinks: projectScopedBillMatchLinks(
+          scaledBillIds,
+          linkedByBill,
+          projectId,
+          weightsByExpenseId,
+          normalized,
+        ),
+      };
+      if (splitTouchRowsPreAlloc.length > 0) {
+        const projectTouchRows = splitTouchRowsPreAlloc.filter((row) =>
+          splitExpenseTouchRowTouchesProject(row, projectId, splitExpenseWeightsPreAlloc),
+        );
+        rollup = await augmentRollupWithSplitExpenseMatches(
+          db,
+          organizationId,
+          projectId,
+          normalized,
+          rollup,
+          emptyBillAllocations,
+          projectTouchRows,
+        );
+      }
+      result.set(projectId, rollup);
     }
     return applyPartialMatchPolicyToRollupMap(db, organizationId, normalized, result);
   }
@@ -1307,7 +1781,13 @@ export async function loadRecognizedVendorBillsForProjects(
 
   const linkedByBill = new Map<
     string,
-    { expenseId: string; matchedAmount: string; expenseCurrency: string }[]
+    {
+      expenseId: string;
+      matchedAmount: string;
+      expenseCurrency: string;
+      expenseNetAmount: string;
+      expenseGrossAmount: string;
+    }[]
   >();
   const uniqueRecognizedIds = [...new Set(allRecognizedIds)];
   if (uniqueRecognizedIds.length > 0) {
@@ -1317,6 +1797,8 @@ export async function loadRecognizedVendorBillsForProjects(
         expenseId: apPoMatches.expenseId,
         matchedAmount: apPoMatches.matchedAmount,
         expenseCurrency: expenses.currency,
+        expenseNetAmount: expenses.netAmount,
+        expenseGrossAmount: expenses.grossAmount,
       })
       .from(apPoMatches)
       .innerJoin(expenses, eq(expenses.id, apPoMatches.expenseId))
@@ -1339,24 +1821,105 @@ export async function loadRecognizedVendorBillsForProjects(
         expenseId: row.expenseId,
         matchedAmount: row.matchedAmount,
         expenseCurrency: row.expenseCurrency,
+        expenseNetAmount: row.expenseNetAmount,
+        expenseGrossAmount: row.expenseGrossAmount,
       });
       linkedByBill.set(row.apBillId, list);
     }
   }
 
+  const expenseIdsForWeights = [
+    ...new Set([...linkedByBill.values()].flat().map((row) => row.expenseId)),
+  ];
+  const weightsByExpenseId = await loadExpenseProjectNetWeightsByIds(
+    db,
+    organizationId,
+    expenseIdsForWeights,
+  );
+
+  const splitTouchRows = await loadSplitExpenseTouchRowsForProjects(
+    db,
+    organizationId,
+    projectIdList,
+  );
+  let splitExpenseWeights = weightsByExpenseId;
+  if (splitTouchRows.length > 0) {
+    const splitExpenseIds = [
+      ...new Set(
+        splitTouchRows
+          .map((row) => row.expenseId)
+          .filter((id): id is string => id != null),
+      ),
+    ];
+    splitExpenseWeights = await loadExpenseProjectNetWeightsByIds(
+      db,
+      organizationId,
+      splitExpenseIds,
+    );
+  }
+
   for (const projectId of projectIds) {
     const current = result.get(projectId)!;
-    const matchRows: { expenseId: string; matchedAmount: string; expenseCurrency: string }[] = [];
+    const matchRows: LinkedExpenseMatchDbRow[] = [];
     for (const billId of recognizedIdsByProject.get(projectId) ?? []) {
       matchRows.push(...(linkedByBill.get(billId) ?? []));
     }
     const recognizedBillIds = recognizedIdsByProject.get(projectId) ?? [];
-    result.set(projectId, {
+    const scaledBillAmounts: string[] = [];
+    const scaledBillIds: string[] = [];
+    let scaledTotal = zeroMoney(normalized);
+    for (let i = 0; i < current.billAmounts.length; i += 1) {
+      const billId = recognizedBillIds[i]!;
+      const scaled = scaleRecognizedBillSliceForSplitExpense({
+        amount: current.billAmounts[i]!,
+        billId,
+        projectId,
+        currency: normalized,
+        billIdsWithAllocations: billIdsWithAllocations,
+        linkedByBill,
+        weightsByExpenseId,
+      });
+      const parsed = money(scaled, normalized);
+      if (!isPositiveMoney(parsed)) continue;
+      scaledBillAmounts.push(parsed.amount);
+      scaledBillIds.push(billId);
+      scaledTotal = addMoney(scaledTotal, parsed);
+    }
+    let rollup: RecognizedVendorBillRollup = {
       ...current,
-      linkedExpenseDeductions: buildLinkedExpenseDeductions(matchRows, normalized),
-      recognizedBillIds,
-      billMatchLinks: billMatchLinksForProject(recognizedBillIds, linkedByBill),
-    });
+      billAmounts: scaledBillAmounts,
+      total: roundMoney(scaledTotal),
+      billCount: scaledBillAmounts.length,
+      recognizedBillIds: scaledBillIds,
+      linkedExpenseDeductions: buildProjectLinkedExpenseDeductions(
+        matchRows,
+        projectId,
+        weightsByExpenseId,
+        normalized,
+      ),
+      billMatchLinks: projectScopedBillMatchLinks(
+        scaledBillIds,
+        linkedByBill,
+        projectId,
+        weightsByExpenseId,
+        normalized,
+      ),
+    };
+    if (splitTouchRows.length > 0) {
+      const projectTouchRows = splitTouchRows.filter((row) =>
+        splitExpenseTouchRowTouchesProject(row, projectId, splitExpenseWeights),
+      );
+      rollup = await augmentRollupWithSplitExpenseMatches(
+        db,
+        organizationId,
+        projectId,
+        normalized,
+        rollup,
+        billIdsWithAllocations,
+        projectTouchRows,
+      );
+    }
+    result.set(projectId, rollup);
   }
 
   return applyPartialMatchPolicyToRollupMap(db, organizationId, normalized, result);

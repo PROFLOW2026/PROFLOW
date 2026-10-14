@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { DomainRuleError } from '@/shared/errors';
 import {
-  assertNoUnlinkedExpenseApOverlap,
+  collectExpenseApOverlapWarnings,
+  expenseRemainingAfterMatches,
   findSimilarFinalizedExpensesForBill,
   findSimilarOpenApBillsForExpense,
 } from '@/modules/financials/domain/expense-ap-overlap';
@@ -87,25 +87,40 @@ describe('expense-ap overlap warnings', () => {
     expect(hits.map((row) => row.id)).toEqual(['b1']);
   });
 
-  it('blocks finalize when unlinked lookalikes remain unless distinct costs confirmed', () => {
-    expect(() =>
-      assertNoUnlinkedExpenseApOverlap({
+  it('F12: unlinked lookalike returns warning instead of throwing (OD-01)', () => {
+    expect(
+      collectExpenseApOverlapWarnings({
         hitCount: 1,
         messageKey: 'expenses.errors.unlinkedApOverlap',
       }),
-    ).toThrow(DomainRuleError);
-    expect(() =>
-      assertNoUnlinkedExpenseApOverlap({
+    ).toEqual([{ hitCount: 1, messageKey: 'expenses.errors.unlinkedApOverlap' }]);
+    expect(
+      collectExpenseApOverlapWarnings({
         hitCount: 1,
         confirmDistinctCosts: true,
         messageKey: 'expenses.errors.unlinkedApOverlap',
       }),
-    ).not.toThrow();
-    expect(() =>
-      assertNoUnlinkedExpenseApOverlap({
+    ).toEqual([]);
+    expect(
+      collectExpenseApOverlapWarnings({
         hitCount: 0,
         messageKey: 'expenses.errors.unlinkedApOverlap',
       }),
-    ).not.toThrow();
+    ).toEqual([]);
+  });
+
+  it('F06: expense remaining after GROSS match uses NET equivalent', () => {
+    expect(
+      expenseRemainingAfterMatches({
+        id: 'e1',
+        vendorId: 'v1',
+        projectId: 'p1',
+        netAmount: '20000',
+        grossAmount: '23600',
+        currency: ILS,
+        description: null,
+        matchedAmount: '11800',
+      }),
+    ).toBe('10000.000000');
   });
 });

@@ -6,12 +6,12 @@ import { DashboardCompanyDocumentsLink } from './dashboard-company-documents-lin
  * Persona-specific dashboard cards must not be the only place for company files.
  */
 export async function DashboardQuickAccessBar() {
-  const t = await getTranslations('dashboard');
+  const t = await getTranslations('externalStorage');
 
   return (
     <section
       className="flex min-w-0 max-w-full flex-wrap items-center gap-2"
-      aria-label={t('quickActions')}
+      aria-label={t('quickAccess.ariaLabel')}
       data-pf-dashboard-quick-access=""
     >
       <DashboardCompanyDocumentsLink />

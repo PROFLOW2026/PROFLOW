@@ -30,6 +30,39 @@ describe('task recurrence idempotency', () => {
     expect(detectPresetFromRrule(custom)).toMatchObject({ preset: 'custom', interval: 3 });
   });
 
+  it('respects maxOccurrences as a global cap across windows', async () => {
+    const { expandOccurrences } = await import('@/modules/tasks/domain/recurrence');
+    const rule = {
+      id: 'rule-cap',
+      organizationId: 'org',
+      rrule: 'FREQ=DAILY',
+      timezone: 'UTC',
+      startsAt: new Date('2026-01-01T09:00:00.000Z'),
+      endsAt: null,
+      maxOccurrences: 3,
+      templateTaskId: null,
+      isActive: true,
+      createdByOrgMemberId: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const windowA = await expandOccurrences(
+      rule,
+      new Date('2026-01-01T00:00:00.000Z'),
+      new Date('2026-01-03T00:00:00.000Z'),
+      { remainingOccurrences: 3 },
+    );
+    const windowB = await expandOccurrences(
+      rule,
+      new Date('2026-01-03T00:00:00.000Z'),
+      new Date('2026-01-10T00:00:00.000Z'),
+      { remainingOccurrences: 3 - windowA.length },
+    );
+
+    expect(windowA.length + windowB.length).toBe(3);
+  });
+
   it('treats on-conflict-do-nothing insert as idempotent skip', async () => {
     const insertOccurrence = vi.fn(async () => null);
     const existingAt = new Date('2026-09-21T09:00:00.000Z');

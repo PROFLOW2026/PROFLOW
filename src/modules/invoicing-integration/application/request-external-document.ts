@@ -151,11 +151,13 @@ async function persistAmbiguousOutcome(
   rowId: string,
   message: string,
   partialExternalId: string | null = null,
+  lastErrorCode: string | null = null,
 ): Promise<ExternalStatutoryDocument> {
   const updated = await updateExternalDocument(context, rowId, {
     status: 'pending',
     issuanceOutcome: 'ambiguous',
     externalId: partialExternalId,
+    lastErrorCode,
     lastErrorMessage: message,
     reconciliationStatus: 'pending',
   });
@@ -241,6 +243,8 @@ async function executeProviderCreateAndPersistOutcome(
         context,
         rowId,
         error instanceof Error ? error.message : 'Unknown provider error',
+        null,
+        'unclassified_error',
       ),
     );
     throw error;

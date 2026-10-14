@@ -75,6 +75,11 @@ export interface ProjectRecord {
   readonly progressSource: 'manual' | 'tasks';
   readonly progressStatus: ProgressStatus | null;
   readonly notes: string | null;
+  /** 0191 / U12 — null when no cover or schema not applied. */
+  readonly coverImageKey: string | null;
+  readonly coverImageContentType: string | null;
+  readonly coverImageWidth: number | null;
+  readonly coverImageHeight: number | null;
   readonly archivedAt: Date | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;

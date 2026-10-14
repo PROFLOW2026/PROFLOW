@@ -47,6 +47,7 @@ export const HUB_SECTION_PRIORITY: Readonly<Record<ProjectHubKey, readonly Proje
 /** Legacy deep links (e.g. org contracts list, search). */
 export const PROJECT_TAB_ALIASES: Readonly<Record<string, ProjectTabKey>> = {
   contracts: 'details',
+  files: 'documents',
 };
 
 export function resolveHubFromTabParam(rawTab: string | undefined): {

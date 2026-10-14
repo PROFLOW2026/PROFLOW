@@ -2,19 +2,10 @@
 
 /**
  * BoardShell — Client component that hosts the interactive Kanban board.
- *
- * Responsibilities:
- *  - Board switcher (horizontal tabs across boards in workspace)
- *  - Renders BoardView with bucket columns
- *  - Handles drag/drop via onMoveTask → fires moveTaskToBucket Server Action
- *  - Handles task click → opens TaskDetailSheet
- *  - Handles quick-add → fires createTask Server Action
- *
- * Agent A dependency:
- *  - moveTaskToBucket, createTask — stubs; TODO swap to real SA from Agent A
  */
 
-import { useState, useTransition } from 'react';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
@@ -31,11 +22,13 @@ import {
   SheetTitle,
   SheetBody,
 } from '@/components/ui/sheet';
+import { useToast } from '@/components/ui/toast';
 import type {
   Board,
   Bucket,
   TaskCardData,
   TaskDetail,
+  TaskPriority,
 } from '@/modules/tasks/ui/task-api';
 import type { CreateTaskInput } from '@/modules/tasks';
 
@@ -45,13 +38,13 @@ export interface BoardShellProps {
   activeBoard: Board;
   buckets: Bucket[];
   initialTasks: TaskCardData[];
-  /**
-   * Server actions provided by the page — Agent A's functions wrapped in SA.
-   * TODO: replace stubs with real Server Actions once Agent A delivers.
-   */
   actions: {
-    /** Agent A's moveTaskToBucket wrapped in SA. sortKey is optional (Agent A computes one if omitted). */
-    moveTask: (taskId: string, bucketId: string, sortKey?: string) => Promise<void>;
+    moveTask: (
+      taskId: string,
+      bucketId: string,
+      afterTaskId?: string | null,
+      beforeTaskId?: string | null,
+    ) => Promise<void>;
     createTask: (data: CreateTaskInput) => Promise<TaskCardData>;
     getTaskDetail: (taskId: string) => Promise<TaskDetail | null>;
     updateTask: (taskId: string, data: Record<string, unknown>) => Promise<void>;
@@ -67,12 +60,19 @@ export function BoardShell({
   actions,
 }: BoardShellProps) {
   const t = useTranslations('tasks');
-  const [, startTransition] = useTransition();
+  const router = useRouter();
+  const toast = useToast();
+  const [boardTasks, setBoardTasks] = useState(initialTasks);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [taskDetail, setTaskDetail] = useState<TaskDetail | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [createSheetOpen, setCreateSheetOpen] = useState(false);
   const [defaultBucketForCreate, setDefaultBucketForCreate] = useState<string | null>(null);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reset local board state when server props refresh
+    setBoardTasks(initialTasks);
+  }, [initialTasks]);
 
   const handleOpenTask = async (taskId: string) => {
     setSelectedTaskId(taskId);
@@ -81,57 +81,63 @@ export function BoardShell({
     setTaskDetail(detail);
   };
 
-  const handleAddTask = (title: string, bucketId: string) => {
-    // Quick-add: fires createTask with just title, then re-renders
-    startTransition(async () => {
-      try {
-        await actions.createTask({
-          title,
-          description: '',
-          bucketId,
-          priority: 'medium',
-          dueDate: null,
-          projectId: null,
-          workspaceId,
-        });
-      } catch {
-        // TODO: surface error toast
-      }
-    });
+  const handleAddTask = async (title: string, bucketId: string) => {
+    try {
+      const card = await actions.createTask({
+        title,
+        description: '',
+        bucketId,
+        boardId: activeBoard.id,
+        priority: 'medium',
+        dueDate: null,
+        projectId: null,
+        workspaceId,
+      });
+      setBoardTasks((prev) => [...prev, card]);
+      router.refresh();
+    } catch (error) {
+      toast.push(error instanceof Error ? error.message : t('saveFailed'), 'danger');
+    }
   };
 
-  const handleMoveTask = (
+  const handleMoveTask = async (
     taskId: string,
     targetBucketId: string,
-    _afterTaskId: string | null,
+    afterTaskId: string | null,
+    beforeTaskId?: string | null,
   ) => {
-    // Agent A's moveTaskToBucket generates a sortKey if none is provided.
-    // TODO: When Agent A's lexorank helpers are wired into the client, compute
-    //       insertBetween(prevKey, nextKey) for precise ordering.
-    startTransition(async () => {
-      try {
-        await actions.moveTask(taskId, targetBucketId);
-      } catch {
-        // TODO: surface error toast
-      }
-    });
+    try {
+      await actions.moveTask(taskId, targetBucketId, afterTaskId, beforeTaskId);
+      router.refresh();
+    } catch (error) {
+      toast.push(error instanceof Error ? error.message : t('saveFailed'), 'danger');
+      throw error;
+    }
   };
 
-  const handleUpdateTask = (taskId: string, data: Record<string, unknown>) => {
-    startTransition(async () => {
-      try {
-        await actions.updateTask(taskId, data);
-      } catch {
-        // TODO: surface error toast
-      }
-    });
+  const handleChangePriority = async (taskId: string, priority: TaskPriority) => {
+    try {
+      await actions.updateTask(taskId, { priority });
+      router.refresh();
+    } catch (error) {
+      toast.push(error instanceof Error ? error.message : t('saveFailed'), 'danger');
+      throw error;
+    }
+  };
+
+  const handleUpdateTask = async (taskId: string, data: Record<string, unknown>) => {
+    try {
+      await actions.updateTask(taskId, data);
+      router.refresh();
+    } catch (error) {
+      toast.push(error instanceof Error ? error.message : t('saveFailed'), 'danger');
+    }
   };
 
   const activeBoards = boards.filter((b) => !b.isArchived);
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Board switcher — horizontal tabs */}
       {activeBoards.length > 1 && (
         <nav
           aria-label={t('boards.switcherLabel')}
@@ -161,7 +167,6 @@ export function BoardShell({
             );
           })}
 
-          {/* Create board */}
           <div className="ms-auto flex items-center pe-1">
             <Button variant="ghost" size="sm" asChild>
               <Link href={`/workspaces/${workspaceId}/boards/new`}>
@@ -173,7 +178,6 @@ export function BoardShell({
         </nav>
       )}
 
-      {/* Board header: name + create-task button */}
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-lg font-semibold">{activeBoard.name}</h1>
         <Button
@@ -189,16 +193,15 @@ export function BoardShell({
         </Button>
       </div>
 
-      {/* Kanban board */}
       <BoardView
         buckets={buckets}
-        initialTasks={initialTasks}
+        initialTasks={boardTasks}
         onOpenTask={handleOpenTask}
         onAddTask={handleAddTask}
         onMoveTask={handleMoveTask}
+        onChangePriority={handleChangePriority}
       />
 
-      {/* Task detail sheet */}
       <TaskDetailSheet
         task={selectedTaskId != null && taskDetail?.id === selectedTaskId ? taskDetail : null}
         open={sheetOpen}
@@ -212,7 +215,6 @@ export function BoardShell({
         onUpdate={handleUpdateTask}
       />
 
-      {/* Create task sheet */}
       <Sheet open={createSheetOpen} onOpenChange={setCreateSheetOpen}>
         <SheetContent side="end" className="w-full sm:max-w-lg" closeLabel={t('close')}>
           <SheetHeader>
@@ -224,8 +226,18 @@ export function BoardShell({
               defaultBucketId={defaultBucketForCreate}
               defaultWorkspaceId={workspaceId}
               onSubmit={async (data) => {
-                await actions.createTask(data as CreateTaskInput);
-                setCreateSheetOpen(false);
+                try {
+                  const card = await actions.createTask({
+                    ...(data as CreateTaskInput),
+                    workspaceId,
+                    boardId: activeBoard.id,
+                  });
+                  setBoardTasks((prev) => [...prev, card]);
+                  setCreateSheetOpen(false);
+                  router.refresh();
+                } catch (error) {
+                  toast.push(error instanceof Error ? error.message : t('saveFailed'), 'danger');
+                }
               }}
               onCancel={() => setCreateSheetOpen(false)}
             />

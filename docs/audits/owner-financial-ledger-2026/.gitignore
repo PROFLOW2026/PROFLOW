@@ -1,0 +1,6 @@
+# Owner payroll / supplier detail — do not commit
+MASTER_FINANCIAL_LEDGER_2026.xlsx
+ledger-data.json
+RECONCILIATION_EVIDENCE.json
+compose-reconcile-cache.json
+*.csv

@@ -98,7 +98,7 @@ function catalogSources(
   status: typeof enStatus,
   expenses: ExpensesCatalog,
   vendors: VendorsCatalog,
-  fieldOps: typeof enFieldOps,
+  fieldOps: Pick<typeof enFieldOps, 'kinds' | 'priorities'>,
   approvals: typeof enApprovals,
   ap: ApCatalog,
   billingPlan: typeof enBillingPlan,

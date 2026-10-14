@@ -1,6 +1,7 @@
 'use client';
 
-import { Copy, FileStack, Loader2, Save } from 'lucide-react';
+import { ArrowRightLeft, Copy, FileStack, Loader2, Save } from 'lucide-react';
+import { TaskMoveCopyDialog } from './task-move-copy-dialog';
 import { useState, useTransition } from 'react';
 import { useRouter } from '@/shared/i18n/navigation';
 import { useTranslations } from 'next-intl';
@@ -49,6 +50,7 @@ export function TaskDetailActions({
     null,
   );
   const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
+  const [moveCopyOpen, setMoveCopyOpen] = useState(false);
   const [templates, setTemplates] = useState<TaskTemplateUi[]>([]);
   const [loadingTemplates, setLoadingTemplates] = useState(false);
 
@@ -88,6 +90,16 @@ export function TaskDetailActions({
   return (
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          disabled={isPending}
+          onClick={() => setMoveCopyOpen(true)}
+          className="inline-flex items-center gap-1.5 rounded-md border border-[var(--pf-border-default)] px-3 py-1.5 text-sm hover:bg-[var(--pf-bg-muted)] disabled:opacity-50"
+        >
+          <ArrowRightLeft className="size-3.5" />
+          {t('actions.moveCopy')}
+        </button>
+
         <button
           type="button"
           disabled={isPending}
@@ -184,6 +196,13 @@ export function TaskDetailActions({
           {message.text}
         </p>
       ) : null}
+
+      <TaskMoveCopyDialog
+        taskId={taskId}
+        currentProjectId={projectId}
+        open={moveCopyOpen}
+        onOpenChange={setMoveCopyOpen}
+      />
     </div>
   );
 }

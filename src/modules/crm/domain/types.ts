@@ -216,6 +216,7 @@ export interface OpportunityDetail extends Omit<OpportunityRecord, 'notes'> {
     readonly status: string;
     readonly totalAmount: string | null;
     readonly currency: string;
+    readonly sourceCrmQuoteId: string | null;
   }[];
   /** Org-scoped audit summaries for this opportunity; not a synthetic activity feed. */
   readonly auditEvents: readonly AuditEventSummary[];
@@ -241,6 +242,7 @@ export const CRM_AUDIT_ACTIONS = {
   ESTIMATE_CREATED: AUDIT_ACTIONS.CRM_ESTIMATE_CREATED,
   ESTIMATE_UPDATED: AUDIT_ACTIONS.CRM_ESTIMATE_UPDATED,
   SALES_QUOTE_CREATED: AUDIT_ACTIONS.CRM_SALES_QUOTE_CREATED,
+  SALES_QUOTE_CONVERTED: AUDIT_ACTIONS.CRM_SALES_QUOTE_CONVERTED,
   SALES_QUOTE_VERSION_CREATED: AUDIT_ACTIONS.CRM_SALES_QUOTE_VERSION_CREATED,
   SALES_QUOTE_VERSION_ISSUED: AUDIT_ACTIONS.CRM_SALES_QUOTE_VERSION_ISSUED,
   SALES_QUOTE_VERSION_ACCEPTED: AUDIT_ACTIONS.CRM_QUOTE_ACCEPTED,

@@ -17,7 +17,9 @@ import { DomainRuleError, NotFoundError, ValidationError } from '@/shared/errors
 import { addMoney, money, toNumericString } from '@/shared/money';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { enqueuePaymentReportedValueSync } from '@/modules/connected-projects/application/sync-contract-value-projection';
 import { noteModuleUsage } from '@/modules/tenancy';
+import { asServiceRoleWrite } from '@/shared/db/service-role-write';
 import {
   assertVendorInOrganization,
   findApBillById,
@@ -197,6 +199,7 @@ export async function recordVendorPayment(
         priorCreditAmounts: readonly string[];
         priorRetentionHeldRemaining: string;
         projectId: string | null;
+        subcontractAgreementId: string | null;
       }[] = [];
 
       let vendorId: string | null = input.vendorId ?? null;
@@ -244,6 +247,7 @@ export async function recordVendorPayment(
           priorCreditAmounts: priorCredits,
           priorRetentionHeldRemaining: bill.retentionHeldRemaining,
           projectId: bill.projectId,
+          subcontractAgreementId: bill.subcontractAgreementId ?? null,
         });
       }
 
@@ -292,6 +296,23 @@ export async function recordVendorPayment(
           currency,
         })),
       );
+
+      const syncVersion = Date.now();
+      await asServiceRoleWrite(tx, async () => {
+        for (const app of applicationDetails) {
+          if (!app.subcontractAgreementId) continue;
+          await enqueuePaymentReportedValueSync(tx, {
+            developerOrganizationId: context.organizationId,
+            subcontractAgreementId: app.subcontractAgreementId,
+            paymentId: insertedPayment.id,
+            apBillId: app.apBillId,
+            amountNet: toNumericString(money(app.appliedAmount, currency)),
+            currency,
+            effectiveDate: paymentDate,
+            sourceVersion: syncVersion,
+          });
+        }
+      });
 
       return {
         payment: insertedPayment,

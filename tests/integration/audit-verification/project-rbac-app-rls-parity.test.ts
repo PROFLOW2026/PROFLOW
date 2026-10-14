@@ -29,6 +29,10 @@ import { AuthorizationError } from '@/shared/errors';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { createTestDatabase, type TestDatabase } from '@tests/setup/database';
+import {
+  applyPreparedMigrations,
+  GATE_A_PG_LITE_SCHEMA_PARITY,
+} from '@tests/setup/pending-journal-migrations';
 
 describe('project RBAC — app layer matches project-scoped SQL (EXEC)', () => {
   let database: TestDatabase;
@@ -38,6 +42,7 @@ describe('project RBAC — app layer matches project-scoped SQL (EXEC)', () => {
 
   beforeAll(async () => {
     database = await createTestDatabase();
+    await applyPreparedMigrations(database, GATE_A_PG_LITE_SCHEMA_PARITY);
   });
 
   afterAll(async () => {

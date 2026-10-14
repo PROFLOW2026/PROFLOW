@@ -103,7 +103,7 @@
     "noPermission": "You can view the approval; billing actions require billing manage permission.",
     "status": {
       "changeAmount": "Change amount",
-      "billed": "{count, plural, =1 {Billed (# record)} other {Billed (# records)}}",
+      "billed": "{count, plural, =1 {Billed excl. VAT (# record)} other {Billed excl. VAT (# records)}}",
       "notBilledYet": "Not yet billed",
       "remaining": "Remaining to bill",
       "fullyBilled": "This change has been fully billed."

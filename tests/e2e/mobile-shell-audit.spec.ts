@@ -6,18 +6,31 @@ import { loadWorld, type SeededWorld } from './fixtures/world';
 type AuditRoute = {
   name: string;
   path: string | ((world: SeededWorld) => string);
+  fabCheck?: boolean;
 };
 
 const ROUTES: AuditRoute[] = [
-  { name: 'dashboard', path: '/he-IL' },
-  { name: 'project', path: (world) => `/he-IL/projects/${world.projectId}` },
+  { name: 'dashboard', path: '/he-IL', fabCheck: true },
+  { name: 'projects-list', path: '/he-IL/projects' },
+  { name: 'project-overview', path: (world) => `/he-IL/projects/${world.projectId}` },
+  { name: 'project-team', path: (world) => `/he-IL/projects/${world.projectId}?tab=team` },
+  { name: 'project-documents', path: (world) => `/he-IL/projects/${world.projectId}?tab=documents` },
+  {
+    name: 'project-files-alias',
+    path: (world) => `/he-IL/projects/${world.projectId}?tab=files`,
+  },
+  { name: 'project-financials', path: (world) => `/he-IL/projects/${world.projectId}?tab=financials` },
   { name: 'company-files', path: '/he-IL/company-files' },
-  { name: 'project-files', path: (world) => `/he-IL/projects/${world.projectId}?tab=files` },
+  { name: 'work', path: '/he-IL/work' },
+  { name: 'calendar', path: '/he-IL/calendar' },
+  { name: 'field', path: '/he-IL/field' },
+  { name: 'reports', path: '/he-IL/reports' },
+  { name: 'quotes-new', path: '/he-IL/quotes/new' },
 ];
 
 test.describe('mobile shell audit', () => {
   test.use({ viewport: { width: 390, height: 844 } });
-  test.setTimeout(120_000);
+  test.setTimeout(180_000);
 
   for (const route of ROUTES) {
     test(`${route.name} has stable HUD and no horizontal page scroll`, async ({ page }) => {
@@ -56,12 +69,10 @@ test.describe('mobile shell audit', () => {
 
       const metrics = await auditMobileShellOnPage(page);
       expect(metrics.documentScrollWidth).toBeLessThanOrEqual(metrics.documentClientWidth);
+
+      if (route.fabCheck) {
+        await assertFabClearsBottomNav(page);
+      }
     });
   }
-
-  test('dashboard FAB clears bottom nav', async ({ page }) => {
-    await page.goto('/he-IL', { waitUntil: 'domcontentloaded' });
-    await page.waitForSelector(MOBILE_NAV, { timeout: 30_000 });
-    await assertFabClearsBottomNav(page);
-  });
 });

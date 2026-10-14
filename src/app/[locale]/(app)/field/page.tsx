@@ -56,7 +56,7 @@ export default async function FieldHomePage() {
         {data.capabilities.fieldOpsManage ? (
           <>
             <ActionTile
-              href="/field-ops/logs/new"
+              href="/field/log/new"
               title={t('cockpit.actions.log')}
               description={t('cockpit.actions.logHint')}
             />
@@ -258,7 +258,9 @@ export default async function FieldHomePage() {
       {!data.dispatch.length &&
       !data.workOrders.length &&
       !data.punch.length &&
-      !data.inspections.length ? (
+      !data.inspections.length &&
+      !data.dailyLogs.length &&
+      !data.projects.length ? (
         <p className="text-sm text-[var(--pf-text-secondary)]">{t('cockpit.empty')}</p>
       ) : null}
     </div>

@@ -11,16 +11,12 @@ import {
 } from '@/modules/employee-app';
 import { taskDeepLinkForRecipient } from '@/modules/notifications/domain/task-links';
 import { notificationsCopyTranslator } from '@/shared/i18n/sync-namespace-translator';
+import { listTaskFollowerUserIds } from '../data/tasks.repository';
 
-/**
- * Resolves the user IDs of all members assigned to a task.
- * Returns an empty array if no assignees are found.
- */
 async function resolveTaskAssigneeUserIds(
   context: OrgContext,
   taskId: string,
 ): Promise<string[]> {
-  // Fetch assignees whose slot is an org member
   const memberRows = await context.db
     .select({ userId: organizationMemberships.userId })
     .from(taskAssignees)
@@ -39,7 +35,6 @@ async function resolveTaskAssigneeUserIds(
       ),
     );
 
-  // Fetch assignees whose slot is an employee
   const employeeRows = await context.db
     .select({ userId: employees.userId })
     .from(taskAssignees)
@@ -68,12 +63,45 @@ async function resolveTaskAssigneeUserIds(
   return [...userIds];
 }
 
+async function emitTaskCommentNotification(
+  context: OrgContext,
+  input: {
+    readonly taskId: string;
+    readonly taskTitle: string;
+    readonly commentId: string;
+    readonly recipientUserId: string;
+    readonly type: 'task_comment_mention' | 'task_comment_added';
+  },
+): Promise<void> {
+  if (input.recipientUserId === context.userId) return;
+
+  const t = notificationsCopyTranslator(context.locale);
+  const copy = notificationCopy(t, input.type, {
+    reference: input.taskTitle,
+  });
+
+  const account = await findEmployeeAppAccountByUserId(
+    context.db,
+    context.organizationId,
+    input.recipientUserId,
+  );
+  const recipientIsEmployee = account != null && isActiveEmployeeAppAccount(account);
+
+  await emitNotification(context, {
+    recipientUserId: input.recipientUserId,
+    type: input.type,
+    title: copy.title,
+    body: copy.body,
+    dedupeKey: `${input.type}:${input.commentId}:${input.recipientUserId}`,
+    entityType: 'task',
+    entityId: input.taskId,
+    deepLink: taskDeepLinkForRecipient(`/tasks/${input.taskId}`, recipientIsEmployee),
+    severity: 'info',
+  });
+}
+
 /**
- * Emits a `task_comment_mention` notification to all task assignees
- * (excluding the commenter) when a comment is created on a task.
- *
- * Uses a per-comment dedupe key so each comment produces exactly one
- * notification per recipient (re-emitting the same comment is idempotent).
+ * Notifies mentioned users and task assignees/followers when a comment is created.
  */
 export async function notifyTaskCommentAdded(
   context: OrgContext,
@@ -81,39 +109,29 @@ export async function notifyTaskCommentAdded(
     readonly taskId: string;
     readonly taskTitle: string;
     readonly commentId: string;
+    readonly mentionedUserIds?: readonly string[];
   },
 ): Promise<void> {
-  const assigneeUserIds = await resolveTaskAssigneeUserIds(context, input.taskId);
-  if (assigneeUserIds.length === 0) return;
+  const mentioned = new Set(input.mentionedUserIds ?? []);
 
-  const t = notificationsCopyTranslator(context.locale);
-
-  for (const recipientUserId of assigneeUserIds) {
-    // Do not notify the commenter themselves
-    if (recipientUserId === context.userId) continue;
-
-    const copy = notificationCopy(t, 'task_comment_mention', {
-      reference: input.taskTitle,
-    });
-
-    const account = await findEmployeeAppAccountByUserId(
-      context.db,
-      context.organizationId,
-      recipientUserId,
-    );
-    const recipientIsEmployee = account != null && isActiveEmployeeAppAccount(account);
-
-    await emitNotification(context, {
+  for (const recipientUserId of mentioned) {
+    await emitTaskCommentNotification(context, {
+      ...input,
       recipientUserId,
       type: 'task_comment_mention',
-      title: copy.title,
-      body: copy.body,
-      // Per-comment dedupe key: each comment produces one notification per recipient.
-      dedupeKey: `task_comment:${input.commentId}:${recipientUserId}`,
-      entityType: 'task',
-      entityId: input.taskId,
-      deepLink: taskDeepLinkForRecipient(`/tasks/${input.taskId}`, recipientIsEmployee),
-      severity: 'info',
+    });
+  }
+
+  const assigneeUserIds = await resolveTaskAssigneeUserIds(context, input.taskId);
+  const followerUserIds = await listTaskFollowerUserIds(context.db, input.taskId);
+  const audience = new Set([...assigneeUserIds, ...followerUserIds]);
+
+  for (const recipientUserId of audience) {
+    if (mentioned.has(recipientUserId)) continue;
+    await emitTaskCommentNotification(context, {
+      ...input,
+      recipientUserId,
+      type: 'task_comment_added',
     });
   }
 }

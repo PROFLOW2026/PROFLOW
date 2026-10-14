@@ -49,6 +49,7 @@ import {
   resolveNotificationsAsSystem,
   resolveNotificationsRpc,
 } from '../data/notifications.repository';
+import { resolveStaleNotificationsForEntityType } from './scan-stale';
 import { listUserIdsWithPermission } from '../data/permission-holders.repository';
 import {
   SCAN_SOURCE_CAP,
@@ -63,6 +64,7 @@ import {
   listFailedCommunications,
   listLowStockItems,
   listOverduePlanningTasks,
+  listOverdueUwmTaskIdsForScan,
   listOverdueUwmTasksForScan,
   listDueTaskRemindersForScan,
   listOverdueSafetyActions,
@@ -74,6 +76,7 @@ import {
 import { INBOX_CAPTURE_STATUSES } from '@/modules/quick-capture/application/list-inbox';
 import { listCaptureStatusesByIds } from '@/modules/quick-capture';
 import { emitNotification } from './emit';
+import { resolveUwmTaskOverdueRecipients } from './task-overdue-recipients';
 import { runNotificationScanSchema, type RunNotificationScanInput } from '../validation/schemas';
 
 const BILLING_PLAN_MILESTONE_DAYS = 7;
@@ -361,7 +364,12 @@ async function scanPlanning(ctx: ScannerContext): Promise<{ emitted: number; res
     entities,
     (entity) => permissionRecipients(ctx, PERMISSIONS.PLANNING_WRITE, entity),
   );
-  const resolved = await resolveStaleForType(ctx, 'task_overdue', new Set(entities.map((row) => row.id)));
+  const resolved = await resolveStaleNotificationsForEntityType(
+    ctx.context,
+    'task_overdue',
+    'planning_work_item',
+    new Set(entities.map((row) => row.id)),
+  );
   return { emitted, resolved };
 }
 
@@ -375,6 +383,11 @@ async function scanUwmTasksOverdue(ctx: ScannerContext): Promise<{ emitted: numb
     ctx.today,
     ctx.cap,
   );
+  const stillOverdueIds = await listOverdueUwmTaskIdsForScan(
+    ctx.context.db,
+    ctx.context.organizationId,
+    ctx.today,
+  );
   const employeeIds = await activeEmployeeUserIds(ctx);
   const emitted = await emitLive(
     ctx,
@@ -382,15 +395,16 @@ async function scanUwmTasksOverdue(ctx: ScannerContext): Promise<{ emitted: numb
     'task',
     'warning',
     entities,
-    (entity) => permissionRecipients(ctx, PERMISSIONS.TASKS_UPDATE, entity),
+    (entity) => resolveUwmTaskOverdueRecipients(ctx.context, entity, ctx.cap),
     {
       deepLinkFor: (entity, recipientUserId) => taskDeepLink(employeeIds, entity, recipientUserId),
     },
   );
-  const resolved = await resolveStaleForType(
-    ctx,
+  const resolved = await resolveStaleNotificationsForEntityType(
+    ctx.context,
     'task_overdue',
-    new Set(entities.map((row) => row.id)),
+    'task',
+    new Set(stillOverdueIds),
   );
   return { emitted, resolved };
 }

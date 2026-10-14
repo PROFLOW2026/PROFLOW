@@ -298,6 +298,7 @@
     "previewModules": "قدرات مقترحة",
     "previewTerminology": "أسماء العرض",
     "previewQuickCreate": "إنشاء سريع",
+    "previewQuickCreateHint": "يؤثر على ترتيب بطاقات الإجراءات السريعة في لوحة التحكم فقط — قائمة + العامة تبقى كما هي.",
     "previewCategories": "فئات تكلفة مقترحة",
     "previewFolders": "مجلدات مستندات مقترحة",
     "previewForms": "قوالب نماذج مقترحة",
@@ -569,7 +570,9 @@
         "updated": "تم تحديث المشروع",
         "archived": "تم أرشفة المشروع",
         "restored": "تمت استعادة المشروع",
-        "template_applied": "تم تطبيق قالب المشروع"
+        "template_applied": "تم تطبيق قالب المشروع",
+        "cover_changed": "تم تحديث صورة غلاف المشروع",
+        "cover_removed": "تمت إزالة صورة غلاف المشروع"
       },
       "work_package": {
         "created": "تم إنشاء منطقة العمل",
@@ -678,6 +681,10 @@
         "voided": "أُلغي سجل الفوترة",
         "adjustment_created": "أُضيف تعديل فوترة"
       },
+      "statutory_document": {
+        "absence_confirmed": "تم تأكيد غياب المستند القانوني",
+        "manually_linked": "تم ربط المستند القانوني يدويًا"
+      },
       "billing_plan": {
         "created": "تم إنشاء خطة الفوترة",
         "updated": "تم تحديث خطة الفوترة",
@@ -755,6 +762,9 @@
         "storage_cleanup_failed": "فشل تنظيف ملف المستند",
         "storage_cleanup_completed": "اكتمل تنظيف ملف المستند"
       },
+      "ops": {
+        "replay_requested": "طُلبت إعادة تشغيل قائمة التشغيل التشغيلية"
+      },
       "storage": {
         "connection_connected": "اتصل التخزين",
         "connection_disconnected": "انقطع التخزين",
@@ -802,6 +812,7 @@
         "sales_quote_created": "تم إنشاء عرض مبيعات",
         "sales_quote_version_created": "تم إنشاء إصدار عرض مبيعات",
         "sales_quote_version_issued": "صدر إصدار عرض مبيعات",
+        "sales_quote_converted": "تم تحويل عرض CRM إلى عرض منتج",
         "quote_accepted": "قُبل عرض المبيعات"
       },
       "compliance": {
@@ -1143,11 +1154,16 @@
         "accepted": "تم ربط مشروع المطور",
         "mapping_revoked": "تم إلغاء ربط مشروع المطور",
         "provision_retry": "إعادة محاولة إعداد المشروع المرتبط",
+        "provision_failed": "فشل إعداد المشروع المرتبط",
+        "provision_retry_failed": "فشلت إعادة محاولة إعداد المشروع المرتبط",
         "document_copy_saved": "تم نسخ مستند المطور إلى تخزين المقاول"
       },
       "subcontract_payment_hold": {
         "placed": "عُلّق دفع للمقاول",
         "released": "رُفع تعليق الدفع عن المقاول"
+      },
+      "task": {
+        "dependency_gate_overridden": "تم تجاوز بوابة تبعية المهمة"
       },
       "task_external": {
         "assigned": "كُلّفت مهمة إلى مقاول",
@@ -1327,7 +1343,8 @@
       },
       "tender_package": {
         "created": "أُنشئت حزمة مناقصة",
-        "awarded": "أُرسيت حزمة المناقصة"
+        "awarded": "أُرسيت حزمة المناقصة",
+        "bidding_closed": "أُغلقت المزايدة على المناقصة"
       },
       "tender_offer": {
         "submitted": "قُدّم عرض للمناقصة"
@@ -1419,7 +1436,26 @@
     "title": "ملفك الشخصي",
     "displayName": "اسمك",
     "language": "لغة الواجهة",
-    "saved": "تم تحديث الملف."
+    "saved": "تم تحديث الملف.",
+    "calendarFeed": {
+      "title": "تغذية تقويم شخصية (ICS)",
+      "description": "اشترك في Google Calendar أو Outlook لعرض مهامك المسندة. للقراءة فقط — التغييرات في التقويم الخارجي لا تُزامَن.",
+      "statusActive": "يوجد رابط تغذية نشط.",
+      "statusNone": "لا يوجد رابط تغذية نشط.",
+      "lastSync": "آخر جلب {date}",
+      "create": "إنشاء رابط",
+      "rotate": "تجديد الرابط",
+      "revoke": "إلغاء الرابط",
+      "urlLabel": "رابط الاشتراك",
+      "urlHint": "يُعرض مرة واحدة بعد الإنشاء أو التجديد. احفظه في تطبيق التقويم.",
+      "copy": "نسخ الرابط",
+      "copied": "تم نسخ الرابط.",
+      "copyFailed": "تعذّر النسخ — انسخ الرابط يدوياً.",
+      "created": "رابط التغذية جاهز. انسخه إلى تطبيق التقويم.",
+      "revoked": "تم إلغاء رابط التغذية.",
+      "unavailable": "تعذّر تحميل تغذية التقويم.",
+      "unavailableMigration": "تتطلب التغذية ترحيل قاعدة البيانات 0188 (Gate B)."
+    }
   },
   "numbering": {
     "title": "ترقيم المستندات",

@@ -113,6 +113,44 @@ describe('installment payment recognition (owner policy)', () => {
     expect(recognizedExpenseNetInYearMonth(row, '2026-03')).toBeNull();
   });
 
+  it('F01b (a): partial single payment — February remainder + March paid slice', () => {
+    const row = base({
+      netAmount: '10000.000000',
+      grossAmount: '11800.000000',
+      installmentCount: 1,
+      expenseDate: '2026-02-01',
+      paidGrossAmount: '4720.000000',
+      paidAt: '2026-03-15',
+    });
+    expect(Number(recognizedExpenseNetInYearMonth(row, '2026-02')?.amount)).toBeCloseTo(6000, 2);
+    expect(Number(recognizedExpenseNetInYearMonth(row, '2026-03')?.amount)).toBeCloseTo(4000, 2);
+  });
+
+  it('F01b (b): fully paid in March after February expense — March only', () => {
+    const row = base({
+      netAmount: '10000.000000',
+      grossAmount: '11800.000000',
+      installmentCount: 1,
+      expenseDate: '2026-02-01',
+      paidGrossAmount: '11800.000000',
+      paidAt: '2026-03-01',
+    });
+    expect(recognizedExpenseNetInYearMonth(row, '2026-02')).toBeNull();
+    expect(Number(recognizedExpenseNetInYearMonth(row, '2026-03')?.amount)).toBeCloseTo(10000, 2);
+  });
+
+  it('F01b (c): unpaid — full NET in expense month', () => {
+    const row = base({
+      netAmount: '10000.000000',
+      grossAmount: '11800.000000',
+      installmentCount: 1,
+      expenseDate: '2026-02-01',
+      paidGrossAmount: '0',
+      paidAt: null,
+    });
+    expect(Number(recognizedExpenseNetInYearMonth(row, '2026-02')?.amount)).toBeCloseTo(10000, 2);
+  });
+
   it('zero-VAT expense uses NET = GROSS proportion', () => {
     const row = base({
       netAmount: '800.000000',

@@ -324,7 +324,7 @@ describe('failed upload orphan cleanup', () => {
         organizationId,
         locale: 'en',
       });
-      return retryFailedDocumentCleanups(context);
+      return retryFailedDocumentCleanups(context, { documentIds: [prepared.document.id] });
     });
 
     expect(sweep).toEqual({
@@ -401,7 +401,7 @@ describe('failed upload orphan cleanup', () => {
         organizationId,
         locale: 'en',
       });
-      return retryFailedDocumentCleanups(context);
+      return retryFailedDocumentCleanups(context, { documentIds: [prepared.document.id] });
     });
 
     expect(sweep.succeededIds).toEqual([prepared.document.id]);

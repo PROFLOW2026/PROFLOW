@@ -27,6 +27,8 @@ export interface MetricDrilldownProps {
   readonly explanation?: string;
   /** Extra basis note shown only after the row is expanded. */
   readonly basis?: string;
+  /** F10 — short basis label always visible beside the amount (not only when expanded). */
+  readonly surfaceBasis?: string;
   /** Longer formula or warning shown only after the row is expanded. */
   readonly detail?: string;
   /** Localized "Why this number?" affordance next to the expand control. */
@@ -53,6 +55,7 @@ export function MetricDrilldown({
   value,
   explanation,
   basis,
+  surfaceBasis,
   detail,
   whyLabel,
   lines = [],
@@ -116,7 +119,14 @@ export function MetricDrilldown({
           {unavailable ? (
             <span className="shrink-0 text-[var(--pf-text-muted)]">{unavailableLabel}</span>
           ) : (
-            <MoneyText value={value} className={emphasis ? 'shrink-0 font-semibold' : 'shrink-0'} />
+            <span className="flex shrink-0 flex-col items-end gap-0.5">
+              <MoneyText value={value} className={emphasis ? 'font-semibold' : undefined} />
+              {surfaceBasis ? (
+                <span className="text-[10px] leading-tight text-[var(--pf-text-muted)]">
+                  {surfaceBasis}
+                </span>
+              ) : null}
+            </span>
           )}
         </button>
       ) : (
@@ -138,7 +148,14 @@ export function MetricDrilldown({
           {unavailable ? (
             <span className="shrink-0 text-[var(--pf-text-muted)]">{unavailableLabel}</span>
           ) : (
-            <MoneyText value={value} className={emphasis ? 'shrink-0 font-semibold' : 'shrink-0'} />
+            <span className="flex shrink-0 flex-col items-end gap-0.5">
+              <MoneyText value={value} className={emphasis ? 'font-semibold' : undefined} />
+              {surfaceBasis ? (
+                <span className="text-[10px] leading-tight text-[var(--pf-text-muted)]">
+                  {surfaceBasis}
+                </span>
+              ) : null}
+            </span>
           )}
         </div>
       )}

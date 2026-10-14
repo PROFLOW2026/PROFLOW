@@ -1,15 +1,28 @@
 import 'server-only';
 
-import { and, eq, inArray, lt, lte, or } from 'drizzle-orm';
+import { and, eq, lt, or, sql } from 'drizzle-orm';
 import { connectedProjectMappings, crossOrgSyncOutbox } from '@drizzle/schema';
 import { getAdminDb } from '@/shared/db/client';
 import {
   applyClaimCashProjectionUpsert,
   applyClaimCashProjectionVoid,
 } from './sync-claim-cash-projection';
+import {
+  applyContractValueProjectionUpsert,
+  CONTRACT_VALUE_SYNC_EVENT_TYPES,
+} from './sync-contract-value-projection';
+
+const CROSS_ORG_SYNC_EVENT_TYPES = [
+  'subcontract.claim.cash_projection.upsert',
+  'subcontract.claim.cash_projection.void',
+  CONTRACT_VALUE_SYNC_EVENT_TYPES.agreementValue,
+  CONTRACT_VALUE_SYNC_EVENT_TYPES.changeApproved,
+  CONTRACT_VALUE_SYNC_EVENT_TYPES.paymentReported,
+] as const;
 
 const MAX_ATTEMPTS = 5;
 const BATCH_SIZE = 25;
+const STALE_PROCESSING_MS = 15 * 60 * 1000;
 
 export interface ClaimCashProjectionOutboxRecoveryResult {
   readonly scanned: number;
@@ -23,6 +36,50 @@ function backoffMs(attempts: number): number {
   return Math.min(base * 2 ** Math.max(0, attempts - 1), 6 * 60 * 60 * 1000);
 }
 
+function sqlResultRows<T>(result: unknown): T[] {
+  if (Array.isArray(result)) return result as T[];
+  return ((result as { rows?: T[] }).rows ?? []) as T[];
+}
+
+type OutboxRow = typeof crossOrgSyncOutbox.$inferSelect;
+
+async function reclaimStaleProcessingRows(db: ReturnType<typeof getAdminDb>, now: Date): Promise<void> {
+  const staleBefore = new Date(now.getTime() - STALE_PROCESSING_MS);
+  await db
+    .update(crossOrgSyncOutbox)
+    .set({ status: 'pending', updatedAt: now })
+    .where(
+      and(
+        eq(crossOrgSyncOutbox.status, 'processing'),
+        lt(crossOrgSyncOutbox.updatedAt, staleBefore),
+        or(
+          ...CROSS_ORG_SYNC_EVENT_TYPES.map((eventType) => eq(crossOrgSyncOutbox.eventType, eventType)),
+        ),
+      ),
+    );
+}
+
+async function claimOutboxBatch(db: ReturnType<typeof getAdminDb>, now: Date): Promise<OutboxRow[]> {
+  const result = await db.execute(sql`
+    UPDATE cross_org_sync_outbox AS o
+    SET status = 'processing', updated_at = ${now}
+    FROM (
+      SELECT id
+      FROM cross_org_sync_outbox
+      WHERE status IN ('pending', 'failed')
+        AND next_attempt_at <= ${now}
+        AND attempts < ${MAX_ATTEMPTS}
+        AND event_type IN (${sql.join(CROSS_ORG_SYNC_EVENT_TYPES.map((t) => sql`${t}`), sql`, `)})
+      ORDER BY next_attempt_at
+      LIMIT ${BATCH_SIZE}
+      FOR UPDATE SKIP LOCKED
+    ) AS pick
+    WHERE o.id = pick.id
+    RETURNING o.*
+  `);
+  return sqlResultRows<OutboxRow>(result);
+}
+
 /** Bounded retry for failed cross-org claim cash projection delivery (service_role only). */
 export async function retryClaimCashProjectionOutbox(
   now: Date = new Date(),
@@ -32,22 +89,8 @@ export async function retryClaimCashProjectionOutbox(
   let failed = 0;
   let skipped = 0;
 
-  const rows = await db
-    .select()
-    .from(crossOrgSyncOutbox)
-    .where(
-      and(
-        inArray(crossOrgSyncOutbox.status, ['pending', 'failed']),
-        lte(crossOrgSyncOutbox.nextAttemptAt, now),
-        lt(crossOrgSyncOutbox.attempts, MAX_ATTEMPTS),
-        or(
-          eq(crossOrgSyncOutbox.eventType, 'subcontract.claim.cash_projection.upsert'),
-          eq(crossOrgSyncOutbox.eventType, 'subcontract.claim.cash_projection.void'),
-        ),
-      ),
-    )
-    .orderBy(crossOrgSyncOutbox.nextAttemptAt)
-    .limit(BATCH_SIZE);
+  await reclaimStaleProcessingRows(db, now);
+  const rows = await claimOutboxBatch(db, now);
 
   for (const row of rows) {
     const [mapping] = await db
@@ -72,11 +115,6 @@ export async function retryClaimCashProjectionOutbox(
       continue;
     }
 
-    await db
-      .update(crossOrgSyncOutbox)
-      .set({ status: 'processing', updatedAt: now })
-      .where(eq(crossOrgSyncOutbox.id, row.id));
-
     try {
       const payload = row.payload ?? {};
       if (row.eventType === 'subcontract.claim.cash_projection.upsert') {
@@ -96,7 +134,7 @@ export async function retryClaimCashProjectionOutbox(
           developerOrganizationId: mapping.developerOrganizationId,
           payableBasisId,
         });
-      } else {
+      } else if (row.eventType === 'subcontract.claim.cash_projection.void') {
         const claimId = String(payload.claimId ?? '');
         if (!claimId) {
           skipped += 1;
@@ -110,6 +148,33 @@ export async function retryClaimCashProjectionOutbox(
           mappingId: mapping.id,
           developerClaimId: claimId,
         });
+      } else if (
+        row.eventType === CONTRACT_VALUE_SYNC_EVENT_TYPES.agreementValue ||
+        row.eventType === CONTRACT_VALUE_SYNC_EVENT_TYPES.changeApproved ||
+        row.eventType === CONTRACT_VALUE_SYNC_EVENT_TYPES.paymentReported
+      ) {
+        if (!mapping.contractorProjectId) {
+          skipped += 1;
+          await db
+            .update(crossOrgSyncOutbox)
+            .set({ status: 'done', updatedAt: now })
+            .where(eq(crossOrgSyncOutbox.id, row.id));
+          continue;
+        }
+        await applyContractValueProjectionUpsert(db, {
+          mappingId: mapping.id,
+          contractorOrganizationId: mapping.contractorOrganizationId,
+          contractorProjectId: mapping.contractorProjectId,
+          idempotencyKey: row.idempotencyKey,
+          payload,
+        });
+      } else {
+        skipped += 1;
+        await db
+          .update(crossOrgSyncOutbox)
+          .set({ status: 'done', updatedAt: now })
+          .where(eq(crossOrgSyncOutbox.id, row.id));
+        continue;
       }
 
       await db
@@ -136,3 +201,6 @@ export async function retryClaimCashProjectionOutbox(
 
   return { scanned: rows.length, applied, failed, skipped };
 }
+
+/** Wave 2 alias — same worker handles claim cash + contract value events. */
+export const retryCrossOrgSyncOutbox = retryClaimCashProjectionOutbox;

@@ -38,6 +38,7 @@ import {
   CommentActionsClient,
   CommentAttachmentsGallery,
 } from './task-comments-client';
+import { CommentBodyDisplay } from './comment-body-display';
 
 // ─── Data Types ───────────────────────────────────────────────────────────────
 
@@ -69,7 +70,7 @@ function CommentRow({
   t,
   locale,
 }: {
-  comment: TaskCommentRow;
+  comment: TaskCommentRow & { mentionLabels?: Readonly<Record<string, string>> };
   taskId: string;
   isOwn: boolean;
   t: Awaited<ReturnType<typeof getTranslations<'tasks'>>>;
@@ -115,7 +116,7 @@ function CommentRow({
 
       {comment.body ? (
         <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">
-          {comment.body}
+          <CommentBodyDisplay body={comment.body} mentionLabels={comment.mentionLabels} />
         </p>
       ) : null}
 

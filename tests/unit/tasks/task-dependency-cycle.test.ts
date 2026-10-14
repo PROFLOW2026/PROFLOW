@@ -25,4 +25,13 @@ describe('detectCycle', () => {
   it('returns false when there are no existing dependencies', () => {
     expect(detectCycle('a', 'b', [])).toBe(false);
   });
+
+  it('returns true for a four-node cycle (A←B←C←D, add D→A)', () => {
+    const deps = [
+      { sourceTaskId: 'b', targetTaskId: 'a' },
+      { sourceTaskId: 'c', targetTaskId: 'b' },
+      { sourceTaskId: 'd', targetTaskId: 'c' },
+    ];
+    expect(detectCycle('a', 'd', deps)).toBe(true);
+  });
 });

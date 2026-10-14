@@ -117,10 +117,18 @@ export default async function ProjectBoardPage({
   } = data;
 
   // Server Actions
-  async function moveTaskAction(taskId: string, newBucketId: string, sortKey?: string) {
+  async function moveTaskAction(
+    taskId: string,
+    newBucketId: string,
+    afterTaskId?: string | null,
+    beforeTaskId?: string | null,
+  ) {
     'use server';
     await withOrgContext(async (ctx) => {
-      await moveTaskToBucket(ctx, taskId, newBucketId, sortKey ? { sortKey } : {});
+      await moveTaskToBucket(ctx, taskId, newBucketId, {
+        ...(afterTaskId != null ? { afterTaskId } : {}),
+        ...(beforeTaskId ? { beforeTaskId } : {}),
+      });
     });
   }
 

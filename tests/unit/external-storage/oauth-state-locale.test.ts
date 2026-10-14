@@ -1,10 +1,21 @@
-import { describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   createOAuthState,
   verifyOAuthState,
 } from '@/modules/external-storage/application/oauth-state';
 
 describe('storage OAuth state locale', () => {
+  const previousOAuthSecret = process.env.OAUTH_STATE_SECRET;
+
+  beforeAll(() => {
+    process.env.OAUTH_STATE_SECRET = 'unit-test-oauth-state-secret-key';
+  });
+
+  afterAll(() => {
+    if (previousOAuthSecret === undefined) delete process.env.OAUTH_STATE_SECRET;
+    else process.env.OAUTH_STATE_SECRET = previousOAuthSecret;
+  });
+
   it('round-trips a supported locale in signed state', () => {
     const state = createOAuthState({
       organizationId: 'org-1',

@@ -9,6 +9,7 @@ import {
   integer,
   pgTable,
   text,
+  timestamp,
   uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
@@ -110,6 +111,16 @@ export const projects = pgTable(
     notes: text('notes'),
     /** Optional brand profile override for project documents (0062). */
     brandProfileId: uuid('brand_profile_id'),
+    /** Project cover image metadata (0191 / U12). Nullable until Gate B apply. */
+    coverImageKey: text('cover_image_key'),
+    coverImageContentType: text('cover_image_content_type'),
+    coverImageWidth: integer('cover_image_width'),
+    coverImageHeight: integer('cover_image_height'),
+    coverImageUpdatedAt: timestamp('cover_image_updated_at', {
+      withTimezone: true,
+      mode: 'date',
+    }),
+    coverImageUpdatedByUserId: uuid('cover_image_updated_by_user_id'),
     archivedAt: archivedAt(),
     ...timestamps(),
   },

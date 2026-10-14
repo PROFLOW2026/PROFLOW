@@ -51,10 +51,14 @@
     "issueCount": "{count, plural, one {פריט פתוח אחד} two {# פריטים פתוחים} many {# פריטים פתוחים} other {# פריטים פתוחים}}",
     "stateOk": "תקין",
     "stateIssue": "דורש טיפול",
-    "stateNa": "לא רלוונטי"
+    "stateInformational": "לידיעה",
+    "stateNa": "לא רלוונטי",
+    "informationalGroupTitle": "עלות מוגדרת: הערכה, ממתינה לסכום אמיתי",
+    "ownerDefinedEstimateHint": "הערכה מותרת; הזינו סכום אמיתי רק כשיש לכם את נתון השכר בפועל."
   },
   "checks": {
     "missing_employer_cost_actual": "עובדים ללא עלות מעסיק בפועל",
+    "owner_manager_defined_estimate_pending_actual": "בעלים/מנהל: עלות מוגדרת (הערכה), ממתינה לסכום אמיתי",
     "unallocated_employee_cost": "עלות עובדים לא מוקצית",
     "vendor_bills_unallocated": "חשבוניות ספק עם יתרה לא מוקצית",
     "open_time_corrections": "תיקוני שעות פתוחים",

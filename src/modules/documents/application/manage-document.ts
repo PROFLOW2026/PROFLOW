@@ -44,6 +44,15 @@ export interface StorageCleanupRetryResult {
   readonly failedIds: readonly string[];
 }
 
+export interface DocumentCleanupPlanRow {
+  readonly documentId: string;
+  readonly storageBackend: DocumentRecord['storageBackend'];
+  readonly storageKey: string | null;
+  readonly attempts: number;
+  readonly lastError: string | null;
+  readonly lastAttemptedAt: Date | null;
+}
+
 export async function finalizeDocumentUpload(
   context: OrgContext,
   rawInput: FinalizeUploadInput,
@@ -306,18 +315,51 @@ export async function softDeleteDocument(
   return result;
 }
 
-export async function retryFailedDocumentCleanups(
+/** Read-only report rows for failed/pending storage cleanup (D03 — no provider calls). */
+export async function planFailedDocumentCleanups(
   context: OrgContext,
   options: { limit?: number } = {},
-): Promise<StorageCleanupRetryResult> {
+): Promise<readonly DocumentCleanupPlanRow[]> {
   assertPermission(context, PERMISSIONS.DOCUMENTS_MANAGE);
-
-  const storage = getStoragePort();
   const candidates = await listDeletedDocumentsNeedingStorageCleanup(
     context.db,
     context.organizationId,
     { limit: options.limit },
   );
+  return candidates.map((document) => {
+    const plan = planDocumentByteRemoval(document);
+    const storageKey =
+      plan.kind === 'external'
+        ? (plan.fileIds[0] ?? null)
+        : plan.kind === 'supabase_legacy'
+          ? plan.storagePath
+          : null;
+    return {
+      documentId: document.id,
+      storageBackend: document.storageBackend,
+      storageKey,
+      attempts: document.storageCleanupAttempts,
+      lastError: document.storageCleanupError,
+      lastAttemptedAt: document.storageCleanupLastAttemptedAt,
+    };
+  });
+}
+
+export async function retryFailedDocumentCleanups(
+  context: OrgContext,
+  options: { readonly documentIds: readonly string[] },
+): Promise<StorageCleanupRetryResult> {
+  assertPermission(context, PERMISSIONS.DOCUMENTS_MANAGE);
+
+  const storage = getStoragePort();
+  const idSet = new Set(options.documentIds);
+  if (idSet.size === 0) {
+    return { attempted: 0, succeeded: 0, failed: 0, succeededIds: [], failedIds: [] };
+  }
+
+  const candidates = (await listDeletedDocumentsNeedingStorageCleanup(context.db, context.organizationId, {
+    limit: Math.min(50, idSet.size + 10),
+  })).filter((row) => idSet.has(row.id));
 
   const succeededIds: string[] = [];
   const failedIds: string[] = [];

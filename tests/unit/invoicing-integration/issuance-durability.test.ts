@@ -220,6 +220,58 @@ function mockSumitClient(options: {
     async listExpenseDocuments() {
       return [];
     },
+    async listAccountingDocuments() {
+      return {
+        documents: [],
+        pagingComplete: true,
+        candidateCapReached: false,
+        candidatesChecked: 0,
+      };
+    },
+    async cancelDocument() {
+      throw new Error('not used');
+    },
+  };
+}
+
+function mockSumitClientMissingDocumentId(): SumitHttpClient {
+  return {
+    async createDocument() {
+      return {
+        documentId: null,
+        documentNumber: null,
+        netAmount: null,
+        vatAmount: null,
+        grossAmount: null,
+        raw: {},
+      };
+    },
+    async getDocumentDetails() {
+      throw new Error('not used');
+    },
+    async getDocumentPdf() {
+      return { bytes: new Uint8Array([0x25, 0x50, 0x44, 0x46]), contentType: 'application/pdf' };
+    },
+    async sendDocument() {
+      return;
+    },
+    async ping() {
+      return true;
+    },
+    async testConnection() {
+      return { ok: true };
+    },
+    async listExpenseDocuments() {
+      return [];
+    },
+    async listAccountingDocuments() {
+      return {
+        documents: [],
+        pagingComplete: true,
+        candidateCapReached: false,
+        candidatesChecked: 0,
+      };
+    },
     async cancelDocument() {
       throw new Error('not used');
     },
@@ -325,6 +377,21 @@ describe('external statutory issuance durability', () => {
     ).rejects.toBeInstanceOf(DomainRuleError);
 
     expect(findExternalDocumentById(ORG_ID, created.id)?.externalId).toBeTruthy();
+  });
+
+  it('create without DocumentID leaves row ambiguous (not confirmed_rejected)', async () => {
+    const provider = new SumitStatutoryProvider({
+      credentials: { companyId: 1, apiKey: 'test-key' },
+      httpClient: mockSumitClientMissingDocumentId(),
+    });
+    setStatutoryInvoicingProviderForTests(provider);
+
+    await expect(
+      requestExternalStatutoryDocumentCommitted(USER_ID, ORG_ID, BILLING_ID),
+    ).rejects.toBeInstanceOf(DomainRuleError);
+
+    const doc = listExternalDocumentsForBilling(ORG_ID, BILLING_ID)[0];
+    expect(doc?.issuanceOutcome).toBe('ambiguous');
   });
 
   it('matched reconciliation when getdetails succeeds', async () => {

@@ -8,17 +8,22 @@ import {
   expenses,
   organizations,
   apBills,
+  apPoMatches,
   projects,
   vendors,
 } from '@drizzle/schema';
+import { listActiveCreditActualReductionsForBills } from '@/modules/ap';
+import { netRecognizedBillAfterCredits } from '@/modules/ap/domain/vendor-credits';
 import { currentYearMonth, yearMonthFromBusinessDate } from '@/modules/month-close';
 import { businessDate, type BusinessDate } from '@/shared/dates';
 import {
   addMoney,
+  compareMoney,
   divideMoney,
   fromNumericString,
   isPositiveMoney,
   isZeroMoney,
+  money,
   multiplyMoney,
   subtractMoney,
   roundMoney,
@@ -40,11 +45,18 @@ import {
   loadVerifiedInstallmentPaymentsByExpenseIds,
 } from '@/modules/expenses';
 import { sqlFirstRow, sqlRows } from './sql-rows';
+import { buildLinkedExpenseDeductions } from '../domain/expense-ap-dedup';
 import {
   recognitionDateForExpenseInYearMonth,
+  scaleExpenseRecognitionSliceForApDeduction,
+  sumExpenseRecognizedNetInYearMonthRange,
   vatFromNetGross,
   zeroVat,
 } from '../domain/recognized-cost-breakdown';
+import {
+  installmentRecognitionEntry,
+  projectInstallmentContributionAmount,
+} from '../domain/installment-project-contribution';
 
 export async function loadProjectExpenseContributions(
   db: DbExecutor,
@@ -407,6 +419,52 @@ export async function sumOrganizationRecognizedCostsInDateRange(
  * NET and GROSS are summed from the stored amounts. Labor has no VAT, so its
  * NET and GROSS are the same stored figure.
  */
+async function loadOrganizationLinkedExpenseDeductions(
+  db: DbExecutor,
+  organizationId: string,
+  currency: string,
+): Promise<Map<string, string>> {
+  const linkedRows = await db
+    .select({
+      expenseId: apPoMatches.expenseId,
+      matchedAmount: apPoMatches.matchedAmount,
+      expenseCurrency: expenses.currency,
+      expenseNetAmount: expenses.netAmount,
+      expenseGrossAmount: expenses.grossAmount,
+    })
+    .from(apPoMatches)
+    .innerJoin(expenses, eq(expenses.id, apPoMatches.expenseId))
+    .innerJoin(apBills, eq(apBills.id, apPoMatches.apBillId))
+    .where(
+      and(
+        eq(apPoMatches.organizationId, organizationId),
+        eq(apPoMatches.status, 'accepted'),
+        isNotNull(apPoMatches.expenseId),
+        eq(expenses.status, 'finalized'),
+        isNull(expenses.archivedAt),
+        inArray(apBills.status, ['open', 'partially_matched', 'matched']),
+        isNull(apBills.archivedAt),
+      ),
+    );
+
+  return buildLinkedExpenseDeductions(
+    linkedRows.flatMap((row) =>
+      row.expenseId
+        ? [
+            {
+              expenseId: row.expenseId,
+              matchedAmount: row.matchedAmount,
+              expenseCurrency: row.expenseCurrency,
+              expenseNetAmount: row.expenseNetAmount,
+              expenseGrossAmount: row.expenseGrossAmount,
+            },
+          ]
+        : [],
+    ),
+    currency,
+  );
+}
+
 async function sumFinalizedExpenseRecognizedPairForDateRange(
   db: DbExecutor,
   organizationId: string,
@@ -428,23 +486,17 @@ async function sumFinalizedExpenseRecognizedPairForDateRange(
       paidGrossAmount: expenses.paidGrossAmount,
       paidAt: expenses.paidAt,
       cashInstallmentSchedule: expenses.cashInstallmentSchedule,
+      categoryKey: costCategories.key,
     })
     .from(expenses)
+    .leftJoin(costCategories, eq(costCategories.id, expenses.costCategoryId))
     .where(
       and(
         eq(expenses.organizationId, organizationId),
         eq(expenses.currency, currency),
         eq(expenses.status, 'finalized'),
         isNull(expenses.archivedAt),
-        sql`NOT EXISTS (
-          SELECT 1 FROM ap_po_matches m
-          INNER JOIN ap_bills b ON b.id = m.ap_bill_id AND b.organization_id = m.organization_id
-          WHERE m.organization_id = ${organizationId}
-            AND m.expense_id = ${expenses.id}
-            AND m.status = 'accepted'
-            AND b.status IN ('open', 'partially_matched', 'matched')
-            AND b.archived_at IS NULL
-        )`,
+        eq(expenses.inventoryStockPurchase, false),
       ),
     );
 
@@ -452,6 +504,11 @@ async function sumFinalizedExpenseRecognizedPairForDateRange(
     db,
     organizationId,
     rows.map((row) => row.id),
+  );
+  const linkedDeductions = await loadOrganizationLinkedExpenseDeductions(
+    db,
+    organizationId,
+    currency,
   );
 
   const fromYm = yearMonthFromBusinessDate(fromDate);
@@ -461,12 +518,26 @@ async function sumFinalizedExpenseRecognizedPairForDateRange(
   for (let y = Number(fromYm.slice(0, 4)), m = Number(fromYm.slice(5, 7)); ; ) {
     const ym = `${y}-${String(m).padStart(2, '0')}`;
     for (const row of rows) {
+      if (isInternalEmployeePayrollCategoryKey(row.categoryKey)) continue;
       const fields = fieldsById.get(row.id);
       if (!fields) continue;
-      const netSlice = recognizedExpenseNetInYearMonth(fields, ym);
-      const grossSlice = recognizedExpenseGrossInYearMonth(fields, ym);
-      if (netSlice) net = addMoney(net, netSlice);
-      if (grossSlice) gross = addMoney(gross, grossSlice);
+      const rawNet = recognizedExpenseNetInYearMonth(fields, ym);
+      const rawGross = recognizedExpenseGrossInYearMonth(fields, ym);
+      const totalInScope = sumExpenseRecognizedNetInYearMonthRange(
+        fields,
+        fromYm,
+        toYm,
+        currency,
+      );
+      const scaled = scaleExpenseRecognitionSliceForApDeduction({
+        currency,
+        rawNet,
+        rawGross,
+        totalRecognizedNetInScope: totalInScope,
+        matchedDeductionNet: linkedDeductions.get(row.id),
+      });
+      if (scaled.net) net = addMoney(net, scaled.net);
+      if (scaled.gross) gross = addMoney(gross, scaled.gross);
     }
     if (ym === toYm) break;
     m += 1;
@@ -476,6 +547,90 @@ async function sumFinalizedExpenseRecognizedPairForDateRange(
     }
   }
   return { net: roundMoney(net), gross: roundMoney(gross) };
+}
+
+async function sumApAndEmcRecognizedPairInDateRange(
+  db: DbExecutor,
+  organizationId: string,
+  currency: string,
+  fromDate: BusinessDate,
+  toDate: BusinessDate,
+): Promise<{ readonly net: MoneyValue; readonly gross: MoneyValue }> {
+  const fromYm = yearMonthFromBusinessDate(fromDate);
+  const toYm = yearMonthFromBusinessDate(toDate);
+
+  const apRows = await db
+    .select({
+      id: apBills.id,
+      netAmount: apBills.netAmount,
+      grossAmount: apBills.grossAmount,
+    })
+    .from(apBills)
+    .where(
+      and(
+        eq(apBills.organizationId, organizationId),
+        eq(apBills.currency, currency),
+        isNull(apBills.archivedAt),
+        inArray(apBills.status, ['open', 'partially_matched', 'matched']),
+        isNotNull(apBills.billDate),
+        gte(apBills.billDate, fromDate),
+        lte(apBills.billDate, toDate),
+      ),
+    );
+
+  const creditsByBill = await listActiveCreditActualReductionsForBills(
+    db,
+    organizationId,
+    apRows.map((row) => row.id),
+  );
+
+  let apNet = zeroMoney(currency);
+  let apGross = zeroMoney(currency);
+  for (const bill of apRows) {
+    const billNet = fromNumericString(bill.netAmount, currency) ?? zeroMoney(currency);
+    const billGross = fromNumericString(bill.grossAmount, currency) ?? billNet;
+    const reductions = (creditsByBill.get(bill.id) ?? []).map((row) => row.amount);
+    const netAfterCredits = netRecognizedBillAfterCredits({
+      currency,
+      billNetAmount: billNet.amount,
+      creditActualReductions: reductions,
+    });
+    if (isZeroMoney(netAfterCredits)) continue;
+    apNet = addMoney(apNet, netAfterCredits);
+    if (compareMoney(billNet, zeroMoney(currency)) <= 0) {
+      apGross = addMoney(apGross, netAfterCredits);
+      continue;
+    }
+    const ratio = Number(netAfterCredits.amount) / Number(billNet.amount);
+    apGross = addMoney(
+      apGross,
+      roundMoney(money(String(Number(billGross.amount) * ratio), currency)),
+    );
+  }
+
+  const emcRows = await db
+    .select({ knownAmount: employeeMonthCosts.knownAmount })
+    .from(employeeMonthCosts)
+    .where(
+      and(
+        eq(employeeMonthCosts.organizationId, organizationId),
+        eq(employeeMonthCosts.currency, currency),
+        inArray(employeeMonthCosts.status, ['applied', 'closed']),
+        gte(employeeMonthCosts.yearMonth, fromYm),
+        lte(employeeMonthCosts.yearMonth, toYm),
+      ),
+    );
+
+  let emcNet = zeroMoney(currency);
+  for (const row of emcRows) {
+    const amount = fromNumericString(row.knownAmount, currency);
+    if (amount && !isZeroMoney(amount)) emcNet = addMoney(emcNet, amount);
+  }
+
+  return {
+    net: roundMoney(addMoney(addMoney(apNet, emcNet), zeroMoney(currency))),
+    gross: roundMoney(addMoney(addMoney(apGross, emcNet), zeroMoney(currency))),
+  };
 }
 
 export async function sumOrganizationRecognizedCostPairInDateRange(
@@ -492,41 +647,17 @@ export async function sumOrganizationRecognizedCostPairInDateRange(
     fromDate,
     toDate,
   );
-  const row = sqlFirstRow<{ net: string; gross: string }>(
-    await db.execute(sql`
-      SELECT
-        coalesce(sum(s.net_amount), 0)::text AS net,
-        coalesce(sum(s.gross_amount), 0)::text AS gross
-      FROM (
-        SELECT b.net_amount::numeric AS net_amount, b.gross_amount::numeric AS gross_amount
-        FROM ap_bills b
-        WHERE b.organization_id = ${organizationId}
-          AND b.currency = ${currency}
-          AND b.status IN ('open', 'partially_matched', 'matched')
-          AND b.archived_at IS NULL
-          AND b.bill_date IS NOT NULL
-          AND b.bill_date >= ${fromDate}
-          AND b.bill_date <= ${toDate}
-
-        UNION ALL
-
-        SELECT emc.known_amount::numeric AS net_amount, emc.known_amount::numeric AS gross_amount
-        FROM employee_month_costs emc
-        WHERE emc.organization_id = ${organizationId}
-          AND emc.currency = ${currency}
-          AND emc.status IN ('draft', 'applied', 'closed')
-          AND emc.year_month >= to_char(${fromDate}::date, 'YYYY-MM')
-          AND emc.year_month <= to_char(${toDate}::date, 'YYYY-MM')
-      ) s
-    `),
+  const apLaborPair = await sumApAndEmcRecognizedPairInDateRange(
+    db,
+    organizationId,
+    currency,
+    fromDate,
+    toDate,
   );
 
-  const apLaborNet = fromNumericString(row?.net ?? '0', currency) ?? zeroMoney(currency);
-  const apLaborGross = fromNumericString(row?.gross ?? '0', currency) ?? zeroMoney(currency);
-
   return {
-    net: roundMoney(addMoney(expensePair.net, apLaborNet)),
-    gross: roundMoney(addMoney(expensePair.gross, apLaborGross)),
+    net: roundMoney(addMoney(expensePair.net, apLaborPair.net)),
+    gross: roundMoney(addMoney(expensePair.gross, apLaborPair.gross)),
   };
 }
 
@@ -535,6 +666,7 @@ export type RecognizedCostBreakdownSourceKind = 'expense' | 'ap_bill' | 'employe
 export interface RecognizedCostBreakdownLine {
   readonly id: string;
   readonly sourceKind: RecognizedCostBreakdownSourceKind;
+  readonly sourceRowId?: string;
   readonly recognitionDate: BusinessDate;
   readonly yearMonth: string;
   readonly description: string;
@@ -546,6 +678,48 @@ export interface RecognizedCostBreakdownLine {
   readonly gross: MoneyValue;
   readonly vat: MoneyValue;
   readonly href: string;
+  /** Draft EMC and similar — excluded from finalized monthly KPI totals (OD-05). */
+  readonly estimate?: boolean;
+  /** AP bills missing bill_date — disclosure only, not in period totals. */
+  readonly undatedApBill?: boolean;
+}
+
+export interface UndatedApBillDisclosure {
+  readonly billId: string;
+  readonly net: MoneyValue;
+  readonly party: string;
+}
+
+/** Open AP bills with no bill date (monthly engine disclosure; F03). */
+export async function listOrganizationUndatedOpenApBillDisclosures(
+  db: DbExecutor,
+  organizationId: string,
+  currency: string,
+): Promise<readonly UndatedApBillDisclosure[]> {
+  const rows = await db
+    .select({
+      id: apBills.id,
+      netAmount: apBills.netAmount,
+      vendorName: vendors.name,
+      reference: apBills.reference,
+    })
+    .from(apBills)
+    .leftJoin(vendors, eq(vendors.id, apBills.vendorId))
+    .where(
+      and(
+        eq(apBills.organizationId, organizationId),
+        eq(apBills.currency, currency),
+        isNull(apBills.archivedAt),
+        inArray(apBills.status, ['open', 'partially_matched', 'matched']),
+        isNull(apBills.billDate),
+      ),
+    );
+
+  return rows.map((row) => ({
+    billId: row.id,
+    net: roundMoney(fromNumericString(row.netAmount, currency) ?? zeroMoney(currency)),
+    party: row.vendorName?.trim() || row.reference?.trim() || '',
+  }));
 }
 
 /** Line-level breakdown using the same recognition rules as `sumOrganizationRecognizedCostPairInDateRange`. */
@@ -575,24 +749,18 @@ export async function listOrganizationRecognizedCostBreakdownInDateRange(
       paidGrossAmount: expenses.paidGrossAmount,
       paidAt: expenses.paidAt,
       cashInstallmentSchedule: expenses.cashInstallmentSchedule,
+      categoryKey: costCategories.key,
     })
     .from(expenses)
     .leftJoin(projects, eq(projects.id, expenses.projectId))
+    .leftJoin(costCategories, eq(costCategories.id, expenses.costCategoryId))
     .where(
       and(
         eq(expenses.organizationId, organizationId),
         eq(expenses.currency, currency),
         eq(expenses.status, 'finalized'),
         isNull(expenses.archivedAt),
-        sql`NOT EXISTS (
-          SELECT 1 FROM ap_po_matches m
-          INNER JOIN ap_bills b ON b.id = m.ap_bill_id AND b.organization_id = m.organization_id
-          WHERE m.organization_id = ${organizationId}
-            AND m.expense_id = ${expenses.id}
-            AND m.status = 'accepted'
-            AND b.status IN ('open', 'partially_matched', 'matched')
-            AND b.archived_at IS NULL
-        )`,
+        eq(expenses.inventoryStockPurchase, false),
       ),
     );
 
@@ -600,6 +768,11 @@ export async function listOrganizationRecognizedCostBreakdownInDateRange(
     db,
     organizationId,
     expenseRows.map((row) => row.id),
+  );
+  const linkedDeductions = await loadOrganizationLinkedExpenseDeductions(
+    db,
+    organizationId,
+    currency,
   );
 
   const lines: RecognizedCostBreakdownLine[] = [];
@@ -609,13 +782,27 @@ export async function listOrganizationRecognizedCostBreakdownInDateRange(
   for (let y = Number(fromYm.slice(0, 4)), m = Number(fromYm.slice(5, 7)); ; ) {
     const ym = `${y}-${String(m).padStart(2, '0')}`;
     for (const row of expenseRows) {
+      if (isInternalEmployeePayrollCategoryKey(row.categoryKey)) continue;
       const fields = fieldsById.get(row.id);
       if (!fields) continue;
-      const netSlice = recognizedExpenseNetInYearMonth(fields, ym);
-      const grossSlice = recognizedExpenseGrossInYearMonth(fields, ym);
-      if (!netSlice && !grossSlice) continue;
-      const net = netSlice ?? zeroMoney(currency);
-      const gross = grossSlice ?? net;
+      const rawNet = recognizedExpenseNetInYearMonth(fields, ym);
+      const rawGross = recognizedExpenseGrossInYearMonth(fields, ym);
+      const totalInScope = sumExpenseRecognizedNetInYearMonthRange(
+        fields,
+        fromYm,
+        toYm,
+        currency,
+      );
+      const scaled = scaleExpenseRecognitionSliceForApDeduction({
+        currency,
+        rawNet,
+        rawGross,
+        totalRecognizedNetInScope: totalInScope,
+        matchedDeductionNet: linkedDeductions.get(row.id),
+      });
+      if (!scaled.net && !scaled.gross) continue;
+      const net = scaled.net ?? zeroMoney(currency);
+      const gross = scaled.gross ?? net;
       const vat = isZeroMoney(subtractMoney(gross, net)) ? zeroVat(currency) : vatFromNetGross(net, gross);
       const recognitionDate =
         recognitionDateForExpenseInYearMonth(fields, ym) ?? (`${ym}-01` as BusinessDate);
@@ -623,6 +810,7 @@ export async function listOrganizationRecognizedCostBreakdownInDateRange(
       lines.push({
         id: `expense:${row.id}:${ym}`,
         sourceKind: 'expense',
+        sourceRowId: row.id,
         recognitionDate,
         yearMonth: ym,
         description: row.description?.trim() || '',
@@ -670,10 +858,30 @@ export async function listOrganizationRecognizedCostBreakdownInDateRange(
       ),
     );
 
+  const creditsByBill = await listActiveCreditActualReductionsForBills(
+    db,
+    organizationId,
+    apRows.map((row) => row.id),
+  );
+
   for (const bill of apRows) {
     if (!bill.billDate) continue;
-    const net = fromNumericString(bill.netAmount, currency) ?? zeroMoney(currency);
-    const gross = fromNumericString(bill.grossAmount, currency) ?? net;
+    const billNet = fromNumericString(bill.netAmount, currency) ?? zeroMoney(currency);
+    const billGross = fromNumericString(bill.grossAmount, currency) ?? billNet;
+    const reductions = (creditsByBill.get(bill.id) ?? []).map((row) => row.amount);
+    const net = netRecognizedBillAfterCredits({
+      currency,
+      billNetAmount: billNet.amount,
+      creditActualReductions: reductions,
+    });
+    if (isZeroMoney(net)) continue;
+    let gross = billGross;
+    if (compareMoney(billNet, zeroMoney(currency)) > 0) {
+      const ratio = Number(net.amount) / Number(billNet.amount);
+      gross = roundMoney(money(String(Number(billGross.amount) * ratio), currency));
+    } else {
+      gross = net;
+    }
     const vat =
       fromNumericString(bill.taxAmount ?? '0', currency) ??
       vatFromNetGross(net, gross);
@@ -681,6 +889,7 @@ export async function listOrganizationRecognizedCostBreakdownInDateRange(
     lines.push({
       id: `ap:${bill.id}`,
       sourceKind: 'ap_bill',
+      sourceRowId: bill.id,
       recognitionDate: businessDate(bill.billDate),
       yearMonth: ym,
       description: bill.reference?.trim() || '',
@@ -708,7 +917,7 @@ export async function listOrganizationRecognizedCostBreakdownInDateRange(
       and(
         eq(employeeMonthCosts.organizationId, organizationId),
         eq(employeeMonthCosts.currency, currency),
-        inArray(employeeMonthCosts.status, ['draft', 'applied', 'closed']),
+        inArray(employeeMonthCosts.status, ['applied', 'closed']),
         gte(employeeMonthCosts.yearMonth, fromYm),
         lte(employeeMonthCosts.yearMonth, toYm),
       ),
@@ -720,6 +929,7 @@ export async function listOrganizationRecognizedCostBreakdownInDateRange(
     lines.push({
       id: `emc:${row.id}`,
       sourceKind: 'employer_cost',
+      sourceRowId: row.id,
       recognitionDate: `${row.yearMonth}-01` as BusinessDate,
       yearMonth: row.yearMonth,
       description: row.yearMonth,
@@ -731,6 +941,47 @@ export async function listOrganizationRecognizedCostBreakdownInDateRange(
       gross: roundMoney(amount),
       vat: zeroVat(currency),
       href: `/workforce/reports/monthly?month=${row.yearMonth}`,
+    });
+  }
+
+  const emcDraftRows = await db
+    .select({
+      id: employeeMonthCosts.id,
+      yearMonth: employeeMonthCosts.yearMonth,
+      knownAmount: employeeMonthCosts.knownAmount,
+      employeeName: employees.name,
+    })
+    .from(employeeMonthCosts)
+    .innerJoin(employees, eq(employees.id, employeeMonthCosts.employeeId))
+    .where(
+      and(
+        eq(employeeMonthCosts.organizationId, organizationId),
+        eq(employeeMonthCosts.currency, currency),
+        eq(employeeMonthCosts.status, 'draft'),
+        gte(employeeMonthCosts.yearMonth, fromYm),
+        lte(employeeMonthCosts.yearMonth, toYm),
+      ),
+    );
+
+  for (const row of emcDraftRows) {
+    const amount = fromNumericString(row.knownAmount, currency) ?? zeroMoney(currency);
+    if (isZeroMoney(amount)) continue;
+    lines.push({
+      id: `emc-estimate:${row.id}`,
+      sourceKind: 'employer_cost',
+      sourceRowId: row.id,
+      recognitionDate: `${row.yearMonth}-01` as BusinessDate,
+      yearMonth: row.yearMonth,
+      description: row.yearMonth,
+      party: row.employeeName?.trim() || '',
+      projectName: null,
+      costFamily: null,
+      installmentCount: 1,
+      net: roundMoney(amount),
+      gross: roundMoney(amount),
+      vat: zeroVat(currency),
+      href: `/workforce/reports/monthly?month=${row.yearMonth}`,
+      estimate: true,
     });
   }
 
@@ -1567,8 +1818,7 @@ async function loadInstallmentRecognitionByExpense(
   for (const [expenseId, fields] of fieldsById) {
     if (fields.installmentCount <= 1) continue;
     const recognized = recognizedExpenseNetThroughYearMonth(fields, throughYearMonth);
-    if (isZeroMoney(recognized)) continue;
-    map.set(expenseId, { hasActiveLines: true, recognizedAmount: recognized.amount });
+    map.set(expenseId, installmentRecognitionEntry(recognized));
   }
   return map;
 }
@@ -1580,12 +1830,11 @@ function contributionAmountWithInstallments(
   parentNet: string,
   recognition: InstallmentRecognition | undefined,
 ): string {
-  if (installmentCount <= 1 || !recognition?.hasActiveLines) return fullAmount;
-  const recognized = fromNumericString(recognition.recognizedAmount, currency);
-  const net = fromNumericString(parentNet, currency);
-  const line = fromNumericString(fullAmount, currency);
-  if (!recognized || !net || !line) return '0';
-  if (isZeroMoney(net)) return '0';
-  if (net.amount === recognized.amount) return fullAmount;
-  return roundMoney(divideMoney(multiplyMoney(line, recognized.amount), net.amount)).amount;
+  return projectInstallmentContributionAmount({
+    fullAmount,
+    currency,
+    installmentCount,
+    parentNet,
+    recognition,
+  });
 }

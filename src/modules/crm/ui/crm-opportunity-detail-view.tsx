@@ -168,6 +168,7 @@ export async function CrmOpportunityDetailView({
             <OpportunityFollowUpForm
               opportunityId={detail.id}
               stage={detail.stage}
+              status={detail.status}
               notes={detail.opportunityNotes}
               expectedStartDate={detail.expectedStartDate}
               nextActionAt={detail.nextActionAt}
@@ -408,7 +409,11 @@ export async function CrmOpportunityDetailView({
             {detail.salesQuotes.length === 0 ? (
               <p className="text-sm text-[var(--pf-text-secondary)]">{t('opportunity.legacyQuotesEmpty')}</p>
             ) : (
-              detail.salesQuotes.map((quote) => (
+              detail.salesQuotes.map((quote) => {
+                const convertedProductQuoteId =
+                  detail.productQuotes.find((pq) => pq.sourceCrmQuoteId === quote.id)?.id ??
+                  null;
+                return (
               <div key={quote.id} className="rounded-md border border-[var(--pf-border-default)] p-3">
                 <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                   <p className="min-w-0 flex-1 text-start font-medium">{quote.title}</p>
@@ -421,6 +426,7 @@ export async function CrmOpportunityDetailView({
                       <ConvertCrmQuoteButton
                         salesQuoteId={quote.id}
                         salesQuoteTitle={quote.title}
+                        convertedProductQuoteId={convertedProductQuoteId}
                       />
                     ) : null}
                   </div>
@@ -451,7 +457,8 @@ export async function CrmOpportunityDetailView({
                   ))}
                 </ul>
               </div>
-              ))
+                );
+              })
             )}
             {canManage && detail.status === 'open' ? (
               <OpportunityQuoteForm opportunityId={detail.id} surface={surface} />

@@ -1,6 +1,5 @@
 /**
- * EXEC proof for FIN-005 — billing lineTotal treated as lineNet in SUMIT payload.
- * AUDIT ONLY.
+ * FIN-005 regression — billing lines must map net subtotal to SUMIT lineNet / TotalPrice.
  */
 import { describe, expect, it } from 'vitest';
 import { buildStatutoryBridgeFromBillingRecord } from '@/modules/invoicing-integration';
@@ -11,8 +10,9 @@ import type { BillingRecordDetail } from '@/modules/billing/domain/types';
 const ORG_ID = '01900000-0000-7000-8000-0000000000aa';
 const BILLING_ID = '01900000-0000-7000-8000-0000000000bb';
 
-describe('audit FIN-005 gross lineTotal → SUMIT (EXEC)', () => {
-  it('maps lineTotal into lineNet and SUMIT TotalPrice without VAT split on line', () => {
+describe('FIN-005 net line → SUMIT mapping', () => {
+  it('exclusive invoice: net line maps to lineNet and SUMIT TotalPrice (VAT added by SUMIT)', () => {
+    const netLine = '48500.000000';
     const grossLine = '57230.000000';
     const detail: BillingRecordDetail = {
       id: BILLING_ID,
@@ -55,7 +55,7 @@ describe('audit FIN-005 gross lineTotal → SUMIT (EXEC)', () => {
         {
           id: 'line-gross',
           description: 'Single gross line',
-          lineTotal: { amount: grossLine, currency: 'ILS' },
+          lineTotal: { amount: netLine, currency: 'ILS' },
           changeOrderId: null,
           sortOrder: 0,
         },
@@ -65,15 +65,16 @@ describe('audit FIN-005 gross lineTotal → SUMIT (EXEC)', () => {
     };
 
     const { bridge } = buildStatutoryBridgeFromBillingRecord({ organizationId: ORG_ID }, detail);
-    expect(bridge.lines[0]?.lineNet.amount).toBe(grossLine);
+    expect(bridge.lines[0]?.lineNet.amount).toBe(netLine);
 
     const sumitLine = mapSumitDocumentItem(bridge.lines[0]!);
-    expect(sumitLine.TotalPrice).toBe(57230);
-    expect(sumitLine.UnitPrice).toBe(57230);
+    expect(sumitLine.TotalPrice).toBe(48500);
+    expect(sumitLine.UnitPrice).toBe(48500);
     expect(bridge.subtotalAmount.amount).toBe('48500.000000');
   });
 
-  it('inclusive VAT: lineTotal still maps to lineNet and SUMIT line totals match bridge', () => {
+  it('inclusive VAT: net line maps to lineNet and SUMIT uses pre-VAT TotalPrice', () => {
+    const netLine = '1000.000000';
     const lineTotal = '1180.000000';
     const detail: BillingRecordDetail = {
       ...baseDetail(),
@@ -86,16 +87,16 @@ describe('audit FIN-005 gross lineTotal → SUMIT (EXEC)', () => {
         {
           id: 'line-inc',
           description: 'Inclusive line',
-          lineTotal: { amount: lineTotal, currency: 'ILS' },
+          lineTotal: { amount: netLine, currency: 'ILS' },
           changeOrderId: null,
           sortOrder: 0,
         },
       ],
     };
     const { bridge } = buildStatutoryBridgeFromBillingRecord({ organizationId: ORG_ID }, detail);
-    expect(bridge.lines[0]?.lineNet.amount).toBe(lineTotal);
+    expect(bridge.lines[0]?.lineNet.amount).toBe(netLine);
     const sumitLine = mapSumitDocumentItem(bridge.lines[0]!);
-    expect(sumitLine.TotalPrice).toBe(1180);
+    expect(sumitLine.TotalPrice).toBe(1000);
   });
 
   it('no-VAT customer: bridge preserves zero tax snapshot on header', () => {

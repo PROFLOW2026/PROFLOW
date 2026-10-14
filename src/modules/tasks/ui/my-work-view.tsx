@@ -18,7 +18,9 @@ import {
   ListChecks,
   User,
 } from 'lucide-react';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { parseWorkTaskListFilters } from '@/modules/tasks/domain/work-task-search-params';
+import { filterTaskCardsByWorkLens } from '@/modules/tasks/domain/filter-task-card-by-work-lens';
 import { useTranslations } from 'next-intl';
 import { useSearchParams } from 'next/navigation';
 import { usePathname, useRouter } from '@/shared/i18n/navigation';
@@ -195,6 +197,7 @@ export interface MyWorkViewProps {
     data: Record<string, unknown>,
   ) => void | Promise<void | { success?: boolean; error?: string }>;
   today?: string;
+  workLensSearchParams?: Record<string, string | string[] | undefined>;
 }
 
 export function MyWorkView({
@@ -206,6 +209,7 @@ export function MyWorkView({
   onLoadTaskDetail,
   onUpdateTask,
   today,
+  workLensSearchParams = {},
 }: MyWorkViewProps) {
   const t = useTranslations('tasks');
   const router = useRouter();
@@ -222,6 +226,21 @@ export function MyWorkView({
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [taskDetail, setTaskDetail] = useState<TaskDetail | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
+
+  useEffect(() => {
+    const taskId = searchParams.get('task');
+    if (!taskId || !onLoadTaskDetail) return;
+    let cancelled = false;
+    void (async () => {
+      setSelectedTaskId(taskId);
+      setSheetOpen(true);
+      const detail = await onLoadTaskDetail(taskId);
+      if (!cancelled && detail) setTaskDetail(detail);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [searchParams, onLoadTaskDetail]);
 
   const updateViewInUrl = useCallback(
     (view: MyWorkViewKey) => {
@@ -257,7 +276,16 @@ export function MyWorkView({
     VIEWS.map((v) => [v.key, tasksByView[v.key]?.length]),
   ) as Partial<Record<MyWorkViewKey, number>>;
 
-  const currentTasks = tasksByView[activeView] ?? [];
+  const workLensFilters = useMemo(
+    () => parseWorkTaskListFilters(workLensSearchParams),
+    [workLensSearchParams],
+  );
+
+  const currentTasks = useMemo(() => {
+    const raw = tasksByView[activeView] ?? [];
+    return filterTaskCardsByWorkLens(raw, workLensFilters, { today });
+  }, [tasksByView, activeView, workLensFilters, today]);
+
   const currentViewDef = VIEWS.find((v) => v.key === activeView)!;
 
   const handleOpenTask = async (taskId: string) => {

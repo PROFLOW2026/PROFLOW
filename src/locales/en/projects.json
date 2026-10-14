@@ -381,6 +381,22 @@
       }
     }
   },
+  "cover": {
+    "title": "Project cover image",
+    "upload": "Upload image",
+    "replace": "Replace image",
+    "remove": "Remove image",
+    "unavailable": "Cover upload will be available after the next database update.",
+    "schemaPending": "Cover upload will be available after the next database update.",
+    "storageNotConfigured": "File storage is not configured for this organization.",
+    "invalidType": "Only PNG, JPEG, and WebP images are allowed.",
+    "tooLarge": "Image must be 5 MB or smaller.",
+    "uploadFailed": "Upload failed. Try again.",
+    "removed": "Cover image removed.",
+    "errors": {
+      "invalidStorageKey": "Invalid storage key for this project."
+    }
+  },
   "details": {
     "title": "Project details",
     "statusLabel": "Status",

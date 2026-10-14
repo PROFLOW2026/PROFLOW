@@ -38,6 +38,8 @@ export interface TaskCreateInput {
   assigneeKeys: string[];
   assignAllProjectTeam: boolean;
   dueDate: string | null;
+  startDate: string | null;
+  estimatedEffortHours: number | null;
   labelIds: string[];
   projectId: string | null;
   workspaceId: string | null;
@@ -158,6 +160,8 @@ export function TaskCreateForm({
   const [assigneeKeys, setAssigneeKeys] = useState<string[]>([]);
   const [assignAllProjectTeam, setAssignAllProjectTeam] = useState(false);
   const [dueDate, setDueDate] = useState<string>('');
+  const [startDate, setStartDate] = useState<string>('');
+  const [estimatedEffortHours, setEstimatedEffortHours] = useState<string>('');
   const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
   const [recurrencePreset, setRecurrencePreset] = useState<RecurrencePreset>('none');
   const [recurrenceInterval, setRecurrenceInterval] = useState(1);
@@ -189,6 +193,9 @@ export function TaskCreateForm({
           assigneeKeys,
           assignAllProjectTeam,
           dueDate: dueDate || null,
+          startDate: startDate || null,
+          estimatedEffortHours:
+            estimatedEffortHours.trim() === '' ? null : Number(estimatedEffortHours),
           labelIds: selectedLabels,
           projectId: defaultProjectId,
           workspaceId: defaultWorkspaceId,
@@ -309,17 +316,46 @@ export function TaskCreateForm({
         </FormField>
       </div>
 
-      {/* Due date */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <FormField>
+          <FormLabel htmlFor="task-start-date">
+            <CalendarIcon aria-hidden className="me-1 inline size-3.5" />
+            {t('task.startDate')}
+          </FormLabel>
+          <input
+            id="task-start-date"
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            className={inputCls}
+          />
+        </FormField>
+
+        <FormField>
+          <FormLabel htmlFor="task-due-date">
+            <CalendarIcon aria-hidden className="me-1 inline size-3.5" />
+            {t('create.dueDateLabel')}
+          </FormLabel>
+          <input
+            id="task-due-date"
+            type="date"
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
+            className={inputCls}
+          />
+        </FormField>
+      </div>
+
       <FormField>
-        <FormLabel htmlFor="task-due-date">
-          <CalendarIcon aria-hidden className="me-1 inline size-3.5" />
-          {t('create.dueDateLabel')}
-        </FormLabel>
+        <FormLabel htmlFor="task-effort">{t('task.estimatedEffort')}</FormLabel>
         <input
-          id="task-due-date"
-          type="date"
-          value={dueDate}
-          onChange={(e) => setDueDate(e.target.value)}
+          id="task-effort"
+          type="number"
+          min={0}
+          step={0.5}
+          value={estimatedEffortHours}
+          onChange={(e) => setEstimatedEffortHours(e.target.value)}
+          placeholder="4"
           className={inputCls}
         />
       </FormField>

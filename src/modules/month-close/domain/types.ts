@@ -19,6 +19,11 @@ export interface MonthCloseProjectOption {
 
 export const COMPLETENESS_CHECK_KEYS = [
   'missing_employer_cost_actual',
+  /**
+   * Owner/manager with OD-36 defined estimate (18k+50%) still on estimated quality.
+   * Informational — does not reduce overall completeness percent.
+   */
+  'owner_manager_defined_estimate_pending_actual',
   'unallocated_employee_cost',
   'vendor_bills_unallocated',
   'open_time_corrections',
@@ -41,6 +46,11 @@ export const COMPLETENESS_CHECK_KEYS = [
 ] as const;
 
 export type CompletenessCheckKey = (typeof COMPLETENESS_CHECK_KEYS)[number];
+
+/** Shown in month-close UI but excluded from pass/fail scoring (OD-36). */
+export const COMPLETENESS_INFORMATIONAL_CHECK_KEYS = [
+  'owner_manager_defined_estimate_pending_actual',
+] as const satisfies readonly CompletenessCheckKey[];
 
 export interface CompletenessCheckItem {
   readonly key: CompletenessCheckKey;

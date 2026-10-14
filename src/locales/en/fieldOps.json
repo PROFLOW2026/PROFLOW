@@ -1,6 +1,13 @@
 {
   "title": "Field operations",
   "description": "Daily logs, punch lists and inspections for projects.",
+  "fieldLogChooser": {
+    "title": "Choose project for daily log",
+    "description": "Pick where today’s log belongs — site log for developer/GC projects, field log for other work.",
+    "empty": "No active projects you can log against.",
+    "siteLogBadge": "Site log",
+    "fieldLogBadge": "Field log"
+  },
   "cockpit": {
     "title": "Field",
     "description": "Today’s work, attendance, and fast capture — less navigation.",

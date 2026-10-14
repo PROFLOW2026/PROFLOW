@@ -37,6 +37,7 @@ import {
 } from '../data/quotes.repository';
 import { convertQuoteSchema, type ConvertQuoteInput } from '../validation/schemas';
 import { recordQuoteClientActivity } from './timeline-events';
+import type { QuoteArtifactRelocateResult } from './quote-artifact';
 import { createProjectBoq, upsertBoqNode } from '@/modules/boq/application/manage-boq';
 import { findActiveBoqForProject } from '@/modules/boq';
 
@@ -48,6 +49,7 @@ export interface ConvertQuoteResult {
   readonly idempotent?: boolean;
   /** IDs of BOQ nodes created from quote line items. Empty when skipped or no lines. */
   readonly seededBoqNodeIds?: readonly string[];
+  readonly quoteArtifactRelocate?: QuoteArtifactRelocateResult;
 }
 
 /**
@@ -324,9 +326,13 @@ export async function convertQuote(
     './quote-artifact'
   );
   await saveApprovedQuoteArtifact(context, updated.id);
-  await relocateApprovedQuoteArtifactsToProject(context, updated.id, projectId);
+  const quoteArtifactRelocate = await relocateApprovedQuoteArtifactsToProject(
+    context,
+    updated.id,
+    projectId,
+  );
 
-  return { quote: updated, projectId, workKind, seededBoqNodeIds };
+  return { quote: updated, projectId, workKind, seededBoqNodeIds, quoteArtifactRelocate };
 }
 
 async function markLinkedOpportunityWon(

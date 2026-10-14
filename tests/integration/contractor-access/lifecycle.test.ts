@@ -109,7 +109,7 @@ describe('contractor account lifecycle (Track C)', () => {
     const s = await scenario();
     const invited = await invite(s);
     expect(invited.username).toBe('dana.volt');
-    expect(invited.activationPath).toMatch(/^\/en\/contractor\/activate\?token=/);
+    expect(invited.activationPath).toMatch(/^\/he-IL\/contractor\/activate\?token=/);
 
     const [principal] = await database.asService((db) =>
       db.select().from(contractorPrincipals).where(eq(contractorPrincipals.id, invited.principalId)),

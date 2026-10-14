@@ -1,12 +1,7 @@
 import type { ExternalGrantView } from '@/shared/external';
 import type { ConnectedProjectMappingView } from './types';
 
-const MAPPING_VISIBLE_STATUSES = new Set<ConnectedProjectMappingView['status']>([
-  'accepted',
-  'provisioning',
-  'active',
-  'sync_degraded',
-]);
+const MAPPING_VISIBLE_STATUSES = new Set<ConnectedProjectMappingView['status']>(['provisioning', 'active']);
 
 export function isConnectedMappingVisible(status: ConnectedProjectMappingView['status']): boolean {
   return MAPPING_VISIBLE_STATUSES.has(status);

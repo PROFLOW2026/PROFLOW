@@ -3,6 +3,7 @@ import {
   addMoney,
   compareMoney,
   fromNumericString,
+  isPositiveMoney,
   minMoney,
   money,
   roundMoney,
@@ -32,8 +33,127 @@ export interface RecognizedVendorBillRollupForDedupe {
 
 export interface LinkedExpenseMatchRow {
   readonly expenseId: string;
+  /** Stored match amount (GROSS per ap_po_matches / matches.ts). */
   readonly matchedAmount: string;
   readonly expenseCurrency: string;
+  readonly expenseNetAmount?: string;
+  readonly expenseGrossAmount?: string;
+}
+
+/** Project NET weights for a split expense (allocations or header-only). */
+export type ExpenseProjectWeight = {
+  readonly projectId: string;
+  readonly weightNet: string;
+};
+
+export function expenseProjectWeightShare(
+  weights: readonly ExpenseProjectWeight[],
+  projectId: string,
+  currency: string,
+): number {
+  if (weights.length === 0) return 0;
+  const normalized = currency.toUpperCase();
+  let total = zeroMoney(normalized);
+  let slice = zeroMoney(normalized);
+  for (const row of weights) {
+    const amount = fromNumericString(row.weightNet, normalized);
+    if (!amount) continue;
+    total = addMoney(total, amount);
+    if (row.projectId === projectId) slice = addMoney(slice, amount);
+  }
+  if (compareMoney(total, zeroMoney(normalized)) <= 0) return 0;
+  return Number(slice.amount) / Number(total.amount);
+}
+
+/** F05 — split accepted match NET (or GROSS when no expense amounts) by expense project weights. */
+export function distributeMatchedAmountByExpenseWeights(input: {
+  readonly matchedAmount: string;
+  readonly currency: string;
+  readonly weights: readonly ExpenseProjectWeight[];
+  readonly projectId: string;
+}): string {
+  const normalized = input.currency.toUpperCase();
+  const share = expenseProjectWeightShare(input.weights, input.projectId, normalized);
+  if (share <= 0) return zeroMoney(normalized).amount;
+  const matched = money(input.matchedAmount, normalized);
+  return roundMoney(money(String(Number(matched.amount) * share), normalized)).amount;
+}
+
+export function scaleAmountByExpenseProjectWeight(input: {
+  readonly amount: string;
+  readonly currency: string;
+  readonly weights: readonly ExpenseProjectWeight[];
+  readonly projectId: string;
+}): string {
+  return distributeMatchedAmountByExpenseWeights({
+    matchedAmount: input.amount,
+    currency: input.currency,
+    weights: input.weights,
+    projectId: input.projectId,
+  });
+}
+
+/** Amount-aware deductions scoped to one project's share of split expenses. */
+export function buildProjectLinkedExpenseDeductions(
+  rows: readonly LinkedExpenseMatchRow[],
+  projectId: string,
+  weightsByExpenseId: ReadonlyMap<string, readonly ExpenseProjectWeight[]>,
+  currency: string,
+): Map<string, string> {
+  const normalized = currency.toUpperCase();
+  const map = new Map<string, string>();
+  for (const row of rows) {
+    if (row.expenseCurrency.toUpperCase() !== normalized) continue;
+    const weights = weightsByExpenseId.get(row.expenseId);
+    const netMatched = matchedNetForDedupeRow(row);
+    let sliceNet = netMatched;
+    if (weights && weights.length > 1) {
+      sliceNet = distributeMatchedAmountByExpenseWeights({
+        matchedAmount: netMatched,
+        currency: normalized,
+        weights,
+        projectId,
+      });
+    } else if (weights && weights.length === 1 && weights[0]!.projectId !== projectId) {
+      sliceNet = zeroMoney(normalized).amount;
+    }
+    const slice = money(sliceNet, normalized);
+    if (!isPositiveMoney(slice)) continue;
+    const prev = map.get(row.expenseId);
+    map.set(row.expenseId, prev ? addMoney(money(prev, normalized), slice).amount : slice.amount);
+  }
+  return map;
+}
+
+/** Convert accepted match GROSS to expense NET for Actual dedupe. */
+export function matchedNetFromGross(
+  expenseNet: string,
+  expenseGross: string,
+  matchedGross: string,
+  currency: string,
+): string {
+  const normalized = currency.toUpperCase();
+  const netTotal = fromNumericString(expenseNet, normalized);
+  const grossTotal = fromNumericString(expenseGross, normalized);
+  const matched = fromNumericString(matchedGross, normalized);
+  if (!netTotal || !grossTotal || !matched) return zeroMoney(normalized).amount;
+  if (compareMoney(grossTotal, zeroMoney(normalized)) <= 0) return zeroMoney(normalized).amount;
+  if (compareMoney(netTotal, grossTotal) === 0) return matched.amount;
+  const ratio = Number(netTotal.amount) / Number(grossTotal.amount);
+  return roundMoney(money(String(Number(matched.amount) * ratio), normalized)).amount;
+}
+
+function matchedNetForDedupeRow(row: LinkedExpenseMatchRow): string {
+  const currency = row.expenseCurrency;
+  if (row.expenseNetAmount && row.expenseGrossAmount) {
+    return matchedNetFromGross(
+      row.expenseNetAmount,
+      row.expenseGrossAmount,
+      row.matchedAmount,
+      currency,
+    );
+  }
+  return row.matchedAmount;
 }
 
 /**
@@ -48,7 +168,7 @@ export function buildLinkedExpenseDeductions(
   const map = new Map<string, string>();
   for (const row of rows) {
     if (row.expenseCurrency.toUpperCase() !== normalized) continue;
-    const slice = money(row.matchedAmount, normalized);
+    const slice = money(matchedNetForDedupeRow(row), normalized);
     const prev = map.get(row.expenseId);
     map.set(
       row.expenseId,
@@ -232,7 +352,7 @@ export function capRecognizedBillAmountsForPartialMatches(input: {
     const billId = input.billIds[index] ?? `bill-${index}`;
     const slice = money(input.billAmounts[index]!, normalized);
     const links = matchesByBill.get(billId) ?? [];
-    let capMatched = zeroMoney(normalized);
+    let hasPartialRemainder = false;
     for (const link of links) {
       const remainder = expenseRemainderOnProject(
         link.expenseId,
@@ -240,10 +360,16 @@ export function capRecognizedBillAmountsForPartialMatches(input: {
         input.linkedExpenseDeductions,
         normalized,
       );
-      if (compareMoney(remainder, zeroMoney(normalized)) <= 0) continue;
-      capMatched = addMoney(capMatched, money(link.matchedAmount, normalized));
+      if (compareMoney(remainder, zeroMoney(normalized)) > 0) {
+        hasPartialRemainder = true;
+        break;
+      }
     }
-    if (compareMoney(capMatched, zeroMoney(normalized)) > 0) {
+    if (hasPartialRemainder) {
+      let capMatched = zeroMoney(normalized);
+      for (const link of links) {
+        capMatched = addMoney(capMatched, money(link.matchedAmount, normalized));
+      }
       capped.push(minMoney(slice, capMatched).amount);
     } else {
       capped.push(slice.amount);

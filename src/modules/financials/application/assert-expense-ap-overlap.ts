@@ -1,8 +1,9 @@
 import type { DbExecutor } from '@/shared/db/types';
 import {
-  assertNoUnlinkedExpenseApOverlap,
+  collectExpenseApOverlapWarnings,
   findSimilarFinalizedExpensesForBill,
   findSimilarOpenApBillsForExpense,
+  type ExpenseApOverlapWarning,
 } from '../domain/expense-ap-overlap';
 import {
   listAcceptedMatchedBillIdsForExpense,
@@ -25,8 +26,8 @@ export async function assertExpenseFinalizeHasNoUnlinkedApOverlap(
     readonly currency: string;
   },
   confirmDistinctCosts = false,
-): Promise<void> {
-  if (confirmDistinctCosts || !expense.vendorId) return;
+): Promise<readonly ExpenseApOverlapWarning[]> {
+  if (confirmDistinctCosts || !expense.vendorId) return [];
 
   const [candidates, linkedBillIds] = await Promise.all([
     listApBillOverlapCandidatesForVendor(db, organizationId, expense.vendorId),
@@ -42,7 +43,7 @@ export async function assertExpenseFinalizeHasNoUnlinkedApOverlap(
     },
     candidates.filter((candidate) => !linked.has(candidate.id)),
   );
-  assertNoUnlinkedExpenseApOverlap({
+  return collectExpenseApOverlapWarnings({
     hitCount: hits.length,
     confirmDistinctCosts,
     messageKey: 'expenses.errors.unlinkedApOverlap',
@@ -65,8 +66,8 @@ export async function assertApBillHasNoUnlinkedExpenseOverlap(
     readonly currency: string;
   },
   confirmDistinctCosts = false,
-): Promise<void> {
-  if (confirmDistinctCosts) return;
+): Promise<readonly ExpenseApOverlapWarning[]> {
+  if (confirmDistinctCosts) return [];
 
   const candidates = await listExpenseOverlapCandidatesForVendor(
     db,
@@ -85,7 +86,7 @@ export async function assertApBillHasNoUnlinkedExpenseOverlap(
     },
     unlinked,
   );
-  assertNoUnlinkedExpenseApOverlap({
+  return collectExpenseApOverlapWarnings({
     hitCount: hits.length,
     confirmDistinctCosts,
     messageKey: 'ap.errors.unlinkedExpenseOverlap',

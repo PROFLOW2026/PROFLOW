@@ -97,6 +97,7 @@ export interface QuoteListItem {
   readonly validityDate: string | null;
   readonly updatedAt: Date;
   readonly convertedProjectId: string | null;
+  readonly sourceCrmQuoteId: string | null;
 }
 
 export const QUOTES_AUDIT_ACTIONS = {

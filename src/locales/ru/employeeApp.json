@@ -432,6 +432,7 @@
     "officeAdmin": "Офис-администратор",
     "readOnlyProject": "Только чтение проекта",
     "externalConsultant": "Внешний консультант",
+    "externalConsultantHint": "Для RFI и субmittals нужно также членство в команде проекта (вкладка команды), а не только график работ.",
     "supervisorInspector": "Супервайзер / инспектор"
   },
   "permissions": {

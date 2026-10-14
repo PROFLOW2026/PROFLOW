@@ -14,6 +14,11 @@ export const inviteVendorSchema = z.object({
   vendorId: z.string().uuid(),
 });
 
+export const closeTenderBiddingSchema = z.object({
+  projectId: z.string().uuid(),
+  packageId: z.string().uuid(),
+});
+
 export const awardTenderSchema = z.object({
   projectId: z.string().uuid(),
   packageId: z.string().uuid(),
@@ -33,5 +38,6 @@ export const submitBidSchema = z.object({
 
 export type CreateTenderPackageInput = z.infer<typeof createTenderPackageSchema>;
 export type InviteVendorInput = z.infer<typeof inviteVendorSchema>;
+export type CloseTenderBiddingInput = z.infer<typeof closeTenderBiddingSchema>;
 export type AwardTenderInput = z.infer<typeof awardTenderSchema>;
 export type SubmitBidInput = z.infer<typeof submitBidSchema>;

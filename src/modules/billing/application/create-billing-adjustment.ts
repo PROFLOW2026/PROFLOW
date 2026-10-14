@@ -114,17 +114,28 @@ export async function createBillingAdjustment(context: OrgContext, rawInput: Cre
     await replaceBillingLines(context.db, context.organizationId, creditNoteId, [
       {
         description: 'Billing adjustment',
-        lineTotal: toNumericString(amounts.totalAmount),
+        lineTotal: toNumericString(amounts.subtotalAmount),
         currency,
         changeOrderId: null,
         sortOrder: 0,
       },
     ]);
 
+    const vatRatePercent =
+      vatModeStored === 'zero'
+        ? 0
+        : (() => {
+            const rateRaw = taxResolution?.resolved?.ratePercent;
+            if (rateRaw == null || rateRaw === '') return null;
+            const parsed = Number(rateRaw);
+            return Number.isFinite(parsed) ? parsed : null;
+          })();
+
     const taxSnapshot = captureTaxSnapshot(
       amounts.subtotalAmount,
       amounts.taxAmount,
       amounts.totalAmount,
+      { vatMode: vatModeStored, vatRatePercent },
     );
 
     await updateBillingRecordRow(context.db, context.organizationId, creditNoteId, {

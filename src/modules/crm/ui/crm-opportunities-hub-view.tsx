@@ -75,7 +75,7 @@ export async function CrmOpportunitiesHubView({
     return (
       <div className="flex flex-col gap-6">
         <PageHeader title={t('title')} description={t('description')} />
-        <p className="text-sm text-[var(--pf-text-secondary)]">{t('empty.opportunities.body')}</p>
+        <EmptyState title={t('noAccess.title')} description={t('noAccess.body')} />
       </div>
     );
   }

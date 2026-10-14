@@ -39,6 +39,7 @@
     "action_required": "דורש טיפול",
     "task_assigned_to_you": "משימה שויכה אליך",
     "task_comment_mention": "תגובה חדשה על משימה שלך",
+    "task_comment_added": "תגובה חדשה על משימה",
     "task_status_updated": "סטטוס משימה עודכן",
     "task_postponed_by_employee": "עובד דחה משימה",
     "capture_needs_review": "קליטה ממתינה לבדיקה",
@@ -123,6 +124,12 @@
       "titleWithReference": "תגובה חדשה על משימה - {reference}",
       "titleDefault": "תגובה חדשה על משימה שלך",
       "bodyDefault": "תגובה נוספה על משימה שאתה מוקצה אליה.",
+      "bodyWithExtra": "{extra}"
+    },
+    "task_comment_added": {
+      "titleWithReference": "תגובה חדשה על משימה - {reference}",
+      "titleDefault": "תגובה חדשה על משימה",
+      "bodyDefault": "נוספה תגובה למשימה שאתה עוקב אחריה או מוקצה אליה.",
       "bodyWithExtra": "{extra}"
     },
     "task_approval_requested": {
@@ -224,6 +231,12 @@
           "bodyWithExtra": "{extra}"
         }
       }
+    },
+    "task_dependency_resolved": {
+      "titleWithReference": "משימה פנויה - {reference}",
+      "titleDefault": "משימה פנויה",
+      "bodyWithExtra": "קודמת הושלמה: {extra}",
+      "bodyDefault": "משימה שבאחריותך מוכנה להתחלה."
     },
     "task_status_updated": {
       "titleWithReference": "משימה עודכנה - {reference}",

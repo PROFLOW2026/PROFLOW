@@ -1,9 +1,12 @@
 import {
   COMPLETENESS_CHECK_KEYS,
+  COMPLETENESS_INFORMATIONAL_CHECK_KEYS,
   type CompletenessCheckItem,
   type CompletenessCheckKey,
   type CompletenessSnapshot,
 } from './types';
+
+const informationalCheckKeys = new Set<string>(COMPLETENESS_INFORMATIONAL_CHECK_KEYS);
 
 export interface CompletenessCheckInput {
   readonly key: CompletenessCheckKey;
@@ -35,7 +38,8 @@ export function buildCompletenessItems(
     const applicable = input?.applicable ?? false;
     const issueCount = clampNonNegative(input?.issueCount ?? 0);
     const sampleEntityIds = (input?.sampleEntityIds ?? []).slice(0, 20);
-    const passed = !applicable || issueCount === 0;
+    const informational = informationalCheckKeys.has(key);
+    const passed = !applicable || issueCount === 0 || informational;
     return {
       key,
       applicable,
@@ -51,7 +55,9 @@ export function scoreCompleteness(
   options: { yearMonth: string; computedAt?: string } ,
 ): CompletenessSnapshot {
   const items = buildCompletenessItems(inputs);
-  const applicable = items.filter((item) => item.applicable);
+  const applicable = items.filter(
+    (item) => item.applicable && !informationalCheckKeys.has(item.key),
+  );
   const passedCount = applicable.filter((item) => item.issueCount === 0).length;
   const applicableCount = applicable.length;
   const percent =

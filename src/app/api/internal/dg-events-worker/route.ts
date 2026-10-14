@@ -16,7 +16,7 @@ export const maxDuration = 60;
  * Authorization: `Bearer $CRON_SECRET` (or OCR_WORKER_SECRET). Safe to call concurrently.
  */
 export async function POST(request: Request): Promise<Response> {
-  if (!isInternalWorkerAuthorized(request)) {
+  if (!isInternalWorkerAuthorized(request, 'dg-events-worker')) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
   const trigger = inferWorkerTrigger(request);

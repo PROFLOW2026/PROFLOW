@@ -1,6 +1,9 @@
 {
   "title": "File storage",
   "description": "Connect your organization's cloud storage for documents, photos, and files in ProjectFlow.",
+  "quickAccess": {
+    "ariaLabel": "Company files quick access"
+  },
   "notConnectedNotice": "Connect organization storage to save files.",
   "connectAction": "Connect storage",
   "providers": {

@@ -123,6 +123,7 @@
     "closeMenu": "إغلاق القائمة",
     "sortAscending": "ترتيب تصاعدي",
     "sortDescending": "ترتيب تنازلي",
-    "navigating": "جاري التنقل"
+    "navigating": "جاري التنقل",
+    "languageSwitcher": "اللغة"
   }
 }

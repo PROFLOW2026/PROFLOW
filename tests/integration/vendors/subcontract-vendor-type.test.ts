@@ -62,7 +62,7 @@ describe('subcontract vendor type guards (application entry points)', () => {
         locale: 'en',
       });
       const detail = await getSubcontractById(context, subcontractId);
-      expect(detail.status).toBe('draft');
+      expect(detail.status).toBe('active');
     });
   });
 

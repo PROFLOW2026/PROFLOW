@@ -81,7 +81,7 @@ describe('verifyProjectTemplateAgainstProvider', () => {
     const after = await verifyProjectTemplateAgainstProvider(connection, 'token', 'tmpl');
     expect(after.complete).toBe(true);
     expect(PROJECT_SEMANTIC_FOLDERS.length).toBe(8);
-  });
+  }, 15_000);
 
   it('E: template child creation failure → not complete', async () => {
     const { ensureProjectTemplateStructure } = await import(

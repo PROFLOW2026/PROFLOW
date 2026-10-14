@@ -51,6 +51,8 @@ export const updateTaskSchema = z.object({
   }, z.number().finite().min(0).max(999999.99).nullable().optional()),
   ownerOrgMemberId: z.string().uuid().nullable().optional(),
   ownerEmployeeId: z.string().uuid().nullable().optional(),
+  confirmDependencyWarning: z.boolean().optional(),
+  dependencyOverrideReason: z.string().trim().min(1).max(2000).nullable().optional(),
 });
 
 export type UpdateTaskSchema = z.infer<typeof updateTaskSchema>;

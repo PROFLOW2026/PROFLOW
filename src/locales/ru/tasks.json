@@ -636,6 +636,23 @@
     "empty": {
       "title": "Нет задач с датами",
       "description": "Задачи со сроком или датой начала отображаются в календаре"
+    },
+    "unscheduled": {
+      "title": "Без даты",
+      "hint": "Перетащите задачу на день в календаре, чтобы задать срок, или выберите дату на мобильном.",
+      "pickDate": "Задать дату"
+    }
+  },
+  "export": {
+    "downloadXlsx": "Экспорт в Excel",
+    "sheetName": "Задачи",
+    "columns": {
+      "title": "Название",
+      "project": "Проект",
+      "status": "Статус",
+      "priority": "Приоритет",
+      "dueDate": "Срок",
+      "startDate": "Начало"
     }
   },
   "timeline": {
@@ -700,12 +717,16 @@
   "priorityLabel": "Приоритет",
   "statusLabel": "Статус",
   "attachmentsLabel": "Вложения",
+  "evidenceSummary": "{count, plural, one {# элемент доказательства} few {# элемента доказательства} many {# элементов доказательства} other {# элемента доказательства}}",
+  "evidenceOpenFull": "Открыть фото и доказательства",
   "attachments": {
     "sectionDescription": "Загрузите файлы или привяжите существующие документы проекта. Файлы хранятся в подключённом хранилище.",
     "linkProjectDocsHint": "Для привязки показываются только документы проекта этой задачи.",
     "documentsPermissionRequired": "Для просмотра или управления вложениями нужны права на документы."
   },
   "list": {
+    "pageTitle": "Все задачи",
+    "pageDescription": "Сводная таблица с фильтрами, редактированием в строке и массовыми обновлениями",
     "columns": {
       "title": "Название",
       "status": "Статус",
@@ -723,8 +744,31 @@
     "notAvailable": "—",
     "openTask": "Открыть задачу: {title}"
   },
+  "table": {
+    "columnsLabel": "Столбцы",
+    "select": "Выбрать",
+    "selectTask": "Выбрать {title}",
+    "selected": "Выбрано: {count}",
+    "bulkStatus": "Задать статус…",
+    "bulkPriority": "Задать приоритет…",
+    "bulkLimit": "Выберите не более {max} задач для массового редактирования",
+    "bulkResult": "Обновлено: {updated}, ошибок: {failed}",
+    "columns": {
+      "title": "Название",
+      "project": "Проект",
+      "status": "Статус",
+      "priority": "Приоритет",
+      "assignees": "Исполнители",
+      "startDate": "Начало",
+      "dueDate": "Срок",
+      "effort": "Трудозатраты"
+    }
+  },
   "errors": {
     "invalidTransition": "Такое изменение статуса не допускается.",
+    "dependencyWarningRequired": "Некоторые задачи-предшественники ещё не завершены. Подтвердите, чтобы продолжить.",
+    "dependencyBlocked": "Смена статуса заблокирована, пока не завершены предшественники.",
+    "dependencyOverrideReasonRequired": "Укажите причину для обхода блокировки зависимости.",
     "dependencyCycle": "Эта зависимость создаст цикл.",
     "maxSubtaskDepth": "Подзадачи можно вкладывать только на один уровень.",
     "subtaskWorkspaceMismatch": "Подзадача должна быть в той же рабочей области.",
@@ -735,13 +779,32 @@
   },
   "actions": {
     "duplicate": "Дублировать задачу",
+    "moveCopy": "Перенести / копировать",
     "saveAsTemplate": "Сохранить как шаблон",
     "createFromTemplate": "Создать из шаблона",
     "duplicateSuccess": "Задача дублирована",
     "saveTemplateSuccess": "Шаблон сохранён",
     "createFromTemplateSuccess": "Задача создана из шаблона",
     "pickTemplate": "Выберите шаблон",
-    "noTemplates": "Нет доступных шаблонов"
+    "noTemplates": "Нет доступных шаблонов",
+    "moveCopyDialog": {
+      "moveTitle": "Перенести задачу в другой проект",
+      "copyTitle": "Копировать задачу в другой проект",
+      "move": "Перенести",
+      "copy": "Копировать",
+      "project": "Целевой проект",
+      "board": "Доска",
+      "column": "Колонка",
+      "pickProject": "Выберите проект",
+      "sameProject": "Выберите проект, отличный от текущего.",
+      "noProjects": "Нет проектов для переноса.",
+      "includeAssignees": "Копировать исполнителей",
+      "copyDates": "Копировать даты начала и срока",
+      "confirmAssignees": "Удалить исполнителей без доступа к целевому проекту",
+      "confirmMove": "Перенести задачу",
+      "confirmCopy": "Копировать задачу",
+      "cancel": "Отмена"
+    }
   },
   "dependencies": {
     "dependsOn": "Зависит от",
@@ -772,6 +835,11 @@
     "placeholder": "Напишите комментарий…",
     "submit": "Опубликовать",
     "loadMore": "Загрузить более ранние комментарии",
+    "mentions": {
+      "pickerLabel": "Упомянуть коллегу",
+      "noMatches": "Никого не найдено",
+      "preview": "Предпросмотр"
+    },
     "attachments": {
       "addFiles": "Прикрепить файлы",
       "pickImages": "Выбрать фото",
@@ -854,6 +922,7 @@
   "reminders": {
     "label": "Напоминания",
     "needsDueDate": "Укажите срок, чтобы включить напоминания.",
+    "externalDeliveryDisconnected": "Email/push для задач — не подключены",
     "type": {
       "on_due": "В день срока",
       "day_before": "За день до срока",

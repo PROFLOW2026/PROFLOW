@@ -69,7 +69,7 @@
     "supplierOutstanding": "יתרת ספקים",
     "retentionHeld": "עיכבון מוחזק",
     "expectedProfit": "יתרת חוזה צפויה",
-    "margin": "מיתרת חוזה לאחר עלויות מוכרות",
+    "margin": "שיעור יתרת החוזה",
     "unavailable": "לא זמין לפי ההרשאות הנוכחיות."
   },
   "actions": {

@@ -336,6 +336,7 @@
     "afterGeneralProfit": "Profit after general costs",
     "contractForecastBalance": "Forecast contract balance",
     "unavailable": "Unavailable",
+    "breakdownUnavailable": "Cost breakdown is temporarily unavailable because line items do not match the project total. The headline recognized cost is unchanged.",
     "breakdownTitle": "What makes up recognized cost?",
     "categories": {
       "employees": "Employees",
@@ -569,7 +570,7 @@
       "companyActual": "Full business actual cost",
       "companyActualHint": "Project direct + allocated overhead + company-only — without double counting general pool.",
       "companyProfit": "Business profit (contractual basis)",
-      "companyProfitHint": "CCV minus full business actual cost.",
+      "companyProfitHint": "Current contract value minus full business actual cost.",
       "apOutstanding": "Open vendor bills",
       "apOutstandingHint": "Unpaid vendor-bill cash outstanding.",
       "openCommitments": "Open commitments",
@@ -579,6 +580,10 @@
       "forecastFinalCost": "Forecast final cost",
       "forecastFinalCostHint": "Estimated total business cost at completion."
     }
+  },
+  "yearBook": {
+    "fxExcludedDisclosure": "{count} billing or receipt lines in a foreign currency were omitted; this workbook shows {currency} only.",
+    "dataTruncatedDisclosure": "Some billing or receipt rows were not loaded (export limit). Totals may be partial."
   },
   "errors": {
     "generalCostRecomputeFailed": "General costs could not be recalculated. The previous allocation was left unchanged."

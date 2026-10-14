@@ -605,69 +605,14 @@ export async function updateEmployeePmTaskStatus(
   const previousStatus = task.status;
   if (previousStatus === newStatus) return;
 
-  const { assertTaskCompletionApprovalSatisfied } = await import(
-    '@/modules/tasks/application/submit-task-approval'
-  );
-  const { isValidTransition, transitionTask } = await import('@/modules/tasks/domain/lifecycle');
-  const { insertTaskActivity } = await import('@/modules/tasks/data/tasks.repository');
+  const { applyTaskStatusChange } = await import('@/modules/tasks/application/apply-task-status-change');
 
-  if (newStatus === 'done') {
-    await assertTaskCompletionApprovalSatisfied(context, taskId);
-  }
-
-  if (!isValidTransition(previousStatus as typeof tasks.$inferSelect.status, newStatus as typeof tasks.$inferSelect.status)) {
-    throw new DomainRuleError(
-      `Invalid status transition: ${previousStatus} → ${newStatus}`,
-      'tasks.errors.invalidTransition',
-      { from: previousStatus, to: newStatus },
-    );
-  }
-
-  const { status, completionDate } = transitionTask(
-    previousStatus as typeof tasks.$inferSelect.status,
-    newStatus as typeof tasks.$inferSelect.status,
-  );
-  const updated = await context.db
-    .update(tasks)
-    .set({
-      status,
-      updatedAt: new Date(),
-      ...(completionDate
-        ? {
-            completionDate,
-            completedByEmployeeId: employeeId,
-            completedByOrgMemberId: null,
-          }
-        : {}),
-    })
-    .where(
-      and(
-        eq(tasks.id, taskId),
-        eq(tasks.organizationId, context.organizationId),
-      ),
-    )
-    .returning({ id: tasks.id });
-
-  if (updated.length === 0) {
-    throw new DomainRuleError('Task update was not permitted', 'employeeApp.errors.notAuthorized');
-  }
-
-  const eventType =
-    status === 'done'
-      ? 'completed'
-      : previousStatus === 'done' || previousStatus === 'cancelled'
-        ? 'reopened'
-        : 'status_changed';
-
-  await insertTaskActivity(context.db, {
+  await applyTaskStatusChange(
+    context,
     taskId,
-    organizationId: context.organizationId,
-    actorOrgMemberId: null,
-    actorEmployeeId: employeeId,
-    actorSystem: false,
-    eventType,
-    payload: { from: previousStatus, to: status },
-  });
+    newStatus as typeof tasks.$inferSelect.status,
+    { kind: 'employee', employeeId },
+  );
 }
 
 export interface EmployeePmTaskPostponementInput {
@@ -755,6 +700,9 @@ export async function updateEmployeePmTaskDueDate(
     .returning({ id: taskActivity.id });
 
   const activityRow = activityRows[0];
+  const { rescheduleTaskReminders } = await import('@/modules/tasks/application/reschedule-task-reminders');
+  await rescheduleTaskReminders(context, taskId, newDueDate);
+
   if (activityRow) {
     const { notifyTaskPostponedByEmployee, loadEmployeeDisplayName } = await import(
       '@/modules/tasks/application/notify-task-postponed-by-employee'

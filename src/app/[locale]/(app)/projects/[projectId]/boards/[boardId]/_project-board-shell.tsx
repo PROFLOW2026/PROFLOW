@@ -7,7 +7,8 @@
  * Task cards show workspace + board breadcrumb context.
  */
 
-import { useState, useTransition } from 'react';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
@@ -22,6 +23,7 @@ import {
   SheetTitle,
   SheetBody,
 } from '@/components/ui/sheet';
+import { useToast } from '@/components/ui/toast';
 import { BoardView } from '@/modules/tasks/ui/board-view';
 import { TaskDetailSheet } from '@/modules/tasks/ui/task-detail-sheet';
 import { TaskCreateForm } from '@/modules/tasks/ui/task-create-form';
@@ -30,6 +32,7 @@ import type {
   Bucket,
   TaskCardData,
   TaskDetail,
+  TaskPriority,
 } from '@/modules/tasks/ui/task-api';
 import type { CreateTaskInput } from '@/modules/tasks';
 import type { TaskAssigneePickerOption } from '@/modules/tasks/ui/task-assignee-picker';
@@ -42,7 +45,12 @@ export interface ProjectBoardShellProps {
   buckets: Bucket[];
   initialTasks: TaskCardData[];
   actions: {
-    moveTask: (taskId: string, bucketId: string, sortKey?: string) => Promise<void>;
+    moveTask: (
+      taskId: string,
+      bucketId: string,
+      afterTaskId?: string | null,
+      beforeTaskId?: string | null,
+    ) => Promise<void>;
     createTask: (data: CreateTaskInput) => Promise<TaskCardData>;
     getTaskDetail: (taskId: string) => Promise<TaskDetail | null>;
     updateTask: (taskId: string, data: Record<string, unknown>) => Promise<void>;
@@ -68,11 +76,18 @@ export function ProjectBoardShell({
   today,
 }: ProjectBoardShellProps & { today: string }) {
   const t = useTranslations('tasks');
-  const [, startTransition] = useTransition();
+  const router = useRouter();
+  const toast = useToast();
+  const [boardTasks, setBoardTasks] = useState(initialTasks);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [taskDetail, setTaskDetail] = useState<TaskDetail | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [createSheetOpen, setCreateSheetOpen] = useState(false);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reset local board state when server props refresh
+    setBoardTasks(initialTasks);
+  }, [initialTasks]);
 
   const handleOpenTask = async (taskId: string) => {
     setSelectedTaskId(taskId);
@@ -81,32 +96,61 @@ export function ProjectBoardShell({
     setTaskDetail(detail);
   };
 
-  const handleAddTask = (title: string, bucketId: string) => {
-    startTransition(async () => {
-      try {
-        await actions.createTask({
-          title,
-          description: '',
-          bucketId,
-          priority: 'medium',
-          dueDate: null,
-          projectId,
-          workspaceId,
-        });
-      } catch {
-        // TODO: surface error toast
-      }
-    });
+  const handleAddTask = async (title: string, bucketId: string) => {
+    try {
+      const card = await actions.createTask({
+        title,
+        description: '',
+        bucketId,
+        boardId: activeBoard.id,
+        priority: 'medium',
+        dueDate: null,
+        projectId,
+        workspaceId,
+      });
+      setBoardTasks((prev) => [...prev, card]);
+      router.refresh();
+    } catch (error) {
+      toast.push(error instanceof Error ? error.message : t('saveFailed'), 'danger');
+    }
   };
 
-  const handleMoveTask = (taskId: string, targetBucketId: string, _afterTaskId: string | null) => {
-    startTransition(async () => {
-      try {
-        await actions.moveTask(taskId, targetBucketId);
-      } catch {
-        // TODO: surface error toast
-      }
-    });
+  const handleMoveTask = async (
+    taskId: string,
+    targetBucketId: string,
+    afterTaskId: string | null,
+    beforeTaskId?: string | null,
+  ) => {
+    try {
+      await actions.moveTask(taskId, targetBucketId, afterTaskId, beforeTaskId);
+      router.refresh();
+    } catch (error) {
+      toast.push(error instanceof Error ? error.message : t('saveFailed'), 'danger');
+      throw error;
+    }
+  };
+
+  const handleReassign = async (taskId: string, assigneeKey: string | null) => {
+    if (!canAssign) return;
+    try {
+      await actions.syncAssignees(taskId, {
+        assigneeKeys: assigneeKey ? [assigneeKey] : [],
+      });
+      router.refresh();
+    } catch (error) {
+      toast.push(error instanceof Error ? error.message : t('saveFailed'), 'danger');
+      throw error;
+    }
+  };
+
+  const handleChangePriority = async (taskId: string, priority: TaskPriority) => {
+    try {
+      await actions.updateTask(taskId, { priority });
+      router.refresh();
+    } catch (error) {
+      toast.push(error instanceof Error ? error.message : t('saveFailed'), 'danger');
+      throw error;
+    }
   };
 
   const handleUpdateTask = async (taskId: string, data: Record<string, unknown>) => {
@@ -114,6 +158,7 @@ export function ProjectBoardShell({
       await actions.updateTask(taskId, data);
       const refreshed = await actions.getTaskDetail(taskId);
       if (refreshed) setTaskDetail(refreshed);
+      router.refresh();
       return { success: true as const };
     } catch (error) {
       return {
@@ -127,7 +172,6 @@ export function ProjectBoardShell({
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Board switcher */}
       {activeBoards.length > 1 && (
         <nav
           aria-label={t('boards.switcherLabel')}
@@ -157,7 +201,6 @@ export function ProjectBoardShell({
         </nav>
       )}
 
-      {/* Board header */}
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-lg font-semibold">{activeBoard.name}</h2>
         <Button
@@ -170,16 +213,16 @@ export function ProjectBoardShell({
         </Button>
       </div>
 
-      {/* Kanban board */}
       <BoardView
         buckets={buckets}
-        initialTasks={initialTasks}
+        initialTasks={boardTasks}
         onOpenTask={handleOpenTask}
         onAddTask={handleAddTask}
         onMoveTask={handleMoveTask}
+        onReassign={canAssign ? handleReassign : undefined}
+        onChangePriority={handleChangePriority}
       />
 
-      {/* Task detail sheet */}
       <TaskDetailSheet
         task={selectedTaskId != null && taskDetail?.id === selectedTaskId ? taskDetail : null}
         open={sheetOpen}
@@ -202,6 +245,7 @@ export function ProjectBoardShell({
             ? async (input) => {
                 if (!selectedTaskId) return;
                 await actions.syncAssignees(selectedTaskId, input);
+                router.refresh();
               }
             : undefined
         }
@@ -210,7 +254,6 @@ export function ProjectBoardShell({
         timeLogBasePath="/workforce/time/new"
       />
 
-      {/* Create task sheet */}
       <Sheet open={createSheetOpen} onOpenChange={setCreateSheetOpen}>
         <SheetContent side="end" className="w-full sm:max-w-lg" closeLabel={t('close')}>
           <SheetHeader>
@@ -223,18 +266,25 @@ export function ProjectBoardShell({
               defaultProjectId={projectId}
               defaultWorkspaceId={workspaceId}
               onSubmit={async (data) => {
-                await actions.createTask({
-                  workspaceId,
-                  title: data.title,
-                  description: data.description,
-                  projectId,
-                  bucketId: data.bucketId,
-                  priority: data.priority,
-                  dueDate: data.dueDate,
-                  assigneeKeys: data.assigneeKeys,
-                  assignAllProjectTeam: data.assignAllProjectTeam,
-                });
-                setCreateSheetOpen(false);
+                try {
+                  const card = await actions.createTask({
+                    workspaceId,
+                    boardId: activeBoard.id,
+                    title: data.title,
+                    description: data.description,
+                    projectId,
+                    bucketId: data.bucketId,
+                    priority: data.priority,
+                    dueDate: data.dueDate,
+                    assigneeKeys: data.assigneeKeys,
+                    assignAllProjectTeam: data.assignAllProjectTeam,
+                  });
+                  setBoardTasks((prev) => [...prev, card]);
+                  setCreateSheetOpen(false);
+                  router.refresh();
+                } catch (error) {
+                  toast.push(error instanceof Error ? error.message : t('saveFailed'), 'danger');
+                }
               }}
               onCancel={() => setCreateSheetOpen(false)}
             />

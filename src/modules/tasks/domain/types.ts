@@ -293,6 +293,8 @@ export interface UpdateTaskInput {
   readonly progressWeight?: number | string | null;
   readonly ownerOrgMemberId?: string | null;
   readonly ownerEmployeeId?: string | null;
+  readonly confirmDependencyWarning?: boolean;
+  readonly dependencyOverrideReason?: string | null;
 }
 
 export interface OrgProjectTaskTemplate {
@@ -320,9 +322,26 @@ export interface OrgProjectTaskTemplateSummary extends OrgProjectTaskTemplate {
   readonly defaultAssigneeInvalid: boolean;
 }
 
+export type TaskListSortField =
+  | 'dueDate'
+  | 'startDate'
+  | 'priority'
+  | 'title'
+  | 'createdAt'
+  | 'status'
+  | 'sortKey';
+
+export type TaskListOrderMode = 'lens_default' | 'board_sort_key';
+
 export interface TaskListFilters {
   readonly status?: TaskStatus | 'all';
   readonly priority?: TaskPriority | 'all';
+  /** Default cross-lens ordering; use board_sort_key only for bucket column ordering. */
+  readonly listOrder?: TaskListOrderMode;
+  readonly sort?: {
+    readonly field: TaskListSortField;
+    readonly direction?: 'asc' | 'desc';
+  };
   readonly assigneeOrgMemberId?: string;
   readonly assigneeEmployeeId?: string;
   readonly labelId?: string;
@@ -330,6 +349,11 @@ export interface TaskListFilters {
   readonly clientId?: string;
   readonly dueBefore?: string;
   readonly dueAfter?: string;
+  /** Inclusive bounds on COALESCE(due_date, start_date) for calendar month grids. */
+  readonly anchorFrom?: string;
+  readonly anchorTo?: string;
+  /** When true, only tasks with no due date (unscheduled pool). */
+  readonly noDueDate?: boolean;
   readonly overdue?: boolean;
   readonly blocked?: boolean;
   readonly noProjectOnly?: boolean;

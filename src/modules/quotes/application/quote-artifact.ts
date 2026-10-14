@@ -10,6 +10,16 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 
 const approvedIdempotencyKey = (quoteId: string) => `quote-approved:${quoteId}`;
 
+export type QuoteArtifactRelocateSkipReason = 'permission' | 'storage' | 'error';
+
+export interface QuoteArtifactRelocateResult {
+  readonly moved: readonly string[];
+  readonly skipped: readonly {
+    readonly documentId: string | null;
+    readonly reason: QuoteArtifactRelocateSkipReason;
+  }[];
+}
+
 /**
  * Persist immutable approved quote PDF under org quotes_root (best-effort).
  * Requires QUOTES_MANAGE; uses quote_estimate save path (no separate DOCUMENTS_MANAGE gate).
@@ -43,15 +53,25 @@ export async function saveApprovedQuoteArtifact(
   }
 }
 
-/** Move generated quote PDFs into the project quotes folder after conversion. */
+/** Move generated quote PDFs into the project quotes folder after conversion (OD-68: QUOTES_MANAGE). */
 export async function relocateApprovedQuoteArtifactsToProject(
   context: OrgContext,
   quoteId: string,
   projectId: string,
-): Promise<void> {
-  if (!hasPermission(context, PERMISSIONS.DOCUMENTS_MANAGE)) return;
+): Promise<QuoteArtifactRelocateResult> {
+  const moved: string[] = [];
+  const skipped: { documentId: string | null; reason: QuoteArtifactRelocateSkipReason }[] = [];
+
+  if (!hasPermission(context, PERMISSIONS.QUOTES_MANAGE)) {
+    skipped.push({ documentId: null, reason: 'permission' });
+    return { moved, skipped };
+  }
+
   const ready = await isOrganizationStorageConfigured(context);
-  if (!ready) return;
+  if (!ready) {
+    skipped.push({ documentId: null, reason: 'storage' });
+    return { moved, skipped };
+  }
 
   const artifacts = await listGeneratedArtifacts(context, {
     ownerType: 'organization',
@@ -68,7 +88,9 @@ export async function relocateApprovedQuoteArtifactsToProject(
         projectId,
         semanticFolderType: 'quotes',
       });
+      moved.push(artifact.documentId);
     } catch (error) {
+      skipped.push({ documentId: artifact.documentId, reason: 'error' });
       console.warn('[quotes] relocate approved artifact failed', {
         organizationId: context.organizationId,
         quoteId,
@@ -78,4 +100,6 @@ export async function relocateApprovedQuoteArtifactsToProject(
       });
     }
   }
+
+  return { moved, skipped };
 }

@@ -4,8 +4,9 @@ import type { DbExecutor } from '@/shared/db/types';
 import type { BusinessProfileKey } from '@/modules/tenancy/domain/business-profiles';
 import {
   PROFILE_TASK_TEMPLATE_SEEDS,
-  type ProfileTaskTemplateSeed,
+  profileTaskTemplateTitle,
 } from '@/modules/tenancy/domain/profile-task-template-seeds';
+import type { Locale } from '@/shared/i18n/config';
 import {
   insertOrgProjectTaskTemplate,
   listOrgProjectTaskTemplates,
@@ -16,13 +17,12 @@ export async function seedProfileTaskTemplates(
   db: DbExecutor,
   organizationId: string,
   profileKey: BusinessProfileKey,
-  locale: 'he-IL' | 'en',
+  locale: Locale,
 ): Promise<void> {
   const seeds = PROFILE_TASK_TEMPLATE_SEEDS[profileKey];
   if (!seeds?.length) return;
 
-  const nameOf = (seed: ProfileTaskTemplateSeed) =>
-    locale === 'he-IL' ? seed.titleHe : seed.titleEn;
+  const nameOf = (seed: (typeof seeds)[number]) => profileTaskTemplateTitle(seed, locale);
 
   const existing = await listOrgProjectTaskTemplates(db, organizationId);
   const titles = new Set(existing.map((row) => row.title.trim().toLowerCase()));

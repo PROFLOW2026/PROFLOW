@@ -33,7 +33,6 @@ export const UNAVAILABLE_AUTOMATION_PRESETS = [
   'task_assigned_to',
   'task_created_from_template',
   'task_approval_rejected',
-  'task_dependency_resolved',
   'project_created',
 ] as const satisfies readonly AutomationPresetKey[];
 

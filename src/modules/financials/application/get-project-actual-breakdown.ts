@@ -10,7 +10,6 @@ import { fromNumericString, isZeroMoney, type MoneyValue } from '@/shared/money'
 import { shouldExcludeLaborExpenseForWorkforce } from '../domain/labor-expense-integrity';
 import { applyLinkedExpenseDeductionsToContributions } from '../domain/expense-ap-dedup';
 import {
-  assertBreakdownReconciles,
   buildProjectActualBreakdown,
   type ProjectActualAtom,
   type ProjectActualBreakdown,
@@ -64,6 +63,8 @@ export interface ProjectActualBreakdownResult {
   readonly financialsActual: MoneyValue;
   readonly sourcePaymentDetails: ReadonlyMap<string, ProjectSourcePaymentDetail>;
   readonly costPaymentSummary: ProjectCostPaymentSummary | null;
+  /** False when atom totals diverge from compose Actual (F11 — show copy, do not hide panel). */
+  readonly reconciles: boolean;
 }
 
 /**
@@ -229,8 +230,6 @@ export async function getProjectActualBreakdown(
     employeesAvailability,
   });
 
-  assertBreakdownReconciles(breakdown);
-
   const canReadExpensePayments = canReadExpenses;
   const paymentPack = canReadExpensePayments
     ? await loadProjectSourcePaymentDetails(
@@ -261,6 +260,7 @@ export async function getProjectActualBreakdown(
     financialsActual: totalActual,
     sourcePaymentDetails: paymentPack?.bySourceId ?? new Map(),
     costPaymentSummary,
+    reconciles: breakdown.reconciles,
   };
 }
 

@@ -449,8 +449,15 @@ async function runProviderAttempt(args: {
     vendors: vendorIndex,
   });
 
-  const duplicateRows = await loadDuplicateIndex(context.db, context.organizationId);
-  const existingJobs = await repo.listJobsForOrg(context.organizationId);
+  const duplicateProbe = {
+    vendorId: vendorMatches[0]?.strength === 'exact_identifier' ? vendorMatches[0].vendorId : null,
+    amount: result.candidates.gross.value ?? result.candidates.net.value,
+    currency: result.candidates.currency.value,
+    date: result.candidates.date.value,
+    checksumSha256,
+  };
+  const duplicateRows = await loadDuplicateIndex(context.db, context.organizationId, duplicateProbe);
+  const existingJobs = await repo.listJobsForOrg(context.organizationId, { limit: 50 });
   const duplicateHits = detectDuplicateHits(
     {
       vendorId: vendorMatches[0]?.strength === 'exact_identifier' ? vendorMatches[0].vendorId : null,

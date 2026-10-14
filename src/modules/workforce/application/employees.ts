@@ -189,11 +189,20 @@ export async function createEmployee(
   }
 
   const input = parsed.data;
-  if (input.baseRate) {
-    assertCanManageWorkforceCost(context);
-  }
   await assertUserLinkAllowed(context, input.userId);
   const currency = (input.currency ?? context.organization.baseCurrency).toUpperCase();
+  const isOwnerManager = (input.compensationClass ?? 'standard') === 'owner_manager';
+  const ownerCompDefaults = isOwnerManager
+    ? (
+        await import('../domain/owner-manager-employer-cost')
+      ).resolveOwnerManagerCreateCompensationDefaults(currency)
+    : null;
+  const effectiveRateUnit = input.rateUnit ?? ownerCompDefaults?.rateUnit ?? 'monthly';
+  const effectiveBaseRate = input.baseRate ?? ownerCompDefaults?.baseRate;
+
+  if (effectiveBaseRate) {
+    assertCanManageWorkforceCost(context);
+  }
   const hireDate = input.hireDate ? coerceBusinessDate(input.hireDate) : null;
   const validFrom =
     resolveInitialCompensationValidFrom({
@@ -220,12 +229,13 @@ export async function createEmployee(
       notes: input.notes ?? null,
       hireDate,
       endDate: input.endDate ? coerceBusinessDate(input.endDate) : null,
-      employmentBasis: input.baseRate ? input.rateUnit : null,
+      employmentBasis: effectiveBaseRate ? effectiveRateUnit : null,
       standardHoursPerDay: standardHours,
       compensationClass: input.compensationClass ?? 'standard',
       defaultLaborAllocationIntent:
-        input.rateUnit === 'monthly'
-          ? (input.defaultLaborAllocationIntent ?? 'auto_pool')
+        effectiveRateUnit === 'monthly'
+          ? (input.defaultLaborAllocationIntent ??
+            (isOwnerManager ? 'company_only' : 'auto_pool'))
           : 'auto_pool',
     });
   } catch (error) {
@@ -238,12 +248,13 @@ export async function createEmployee(
     throw error;
   }
 
-  if (input.baseRate) {
+  if (effectiveBaseRate) {
     const { getLaborCostDefaultsForApply } = await import(
       '@/modules/tenancy/application/labor-cost-defaults'
     );
     const defaults = await getLaborCostDefaultsForApply(context).catch(() => null);
-    const burdenPercent = input.burdenPercent ?? defaults?.burdenPercent ?? null;
+    const burdenPercent =
+      input.burdenPercent ?? ownerCompDefaults?.burdenPercent ?? defaults?.burdenPercent ?? null;
     const components =
       input.components && input.components.length > 0
         ? input.components
@@ -262,13 +273,16 @@ export async function createEmployee(
       organizationId: context.organizationId,
       employeeId: employee.id,
       validFrom,
-      baseRate: input.baseRate,
-      rateUnit: input.rateUnit,
+      baseRate: effectiveBaseRate,
+      rateUnit: effectiveRateUnit,
       currency,
       burdenPercent,
       workingDaysPerMonth:
-        input.rateUnit === 'monthly'
-          ? input.workingDaysPerMonth?.trim() || defaults?.workingDaysPerMonth || null
+        effectiveRateUnit === 'monthly'
+          ? input.workingDaysPerMonth?.trim() ||
+            ownerCompDefaults?.workingDaysPerMonth ||
+            defaults?.workingDaysPerMonth ||
+            null
           : null,
     });
 
@@ -299,11 +313,13 @@ export async function createEmployee(
       name: employee.name,
       hireDate,
       rateUnit: input.rateUnit,
-      ...(input.baseRate ? { baseRate: input.baseRate, currency, validFrom } : {}),
+      ...(effectiveBaseRate
+        ? { baseRate: effectiveBaseRate, currency, validFrom, rateUnit: effectiveRateUnit }
+        : {}),
     },
   });
 
-  if (input.baseRate && input.rateUnit === 'monthly') {
+  if (effectiveBaseRate && effectiveRateUnit === 'monthly') {
     const { recomputeOpenMonthsAfterCompensationChange } = await import(
       './monthly-cost-recompute'
     );

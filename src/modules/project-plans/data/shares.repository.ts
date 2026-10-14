@@ -48,6 +48,10 @@ export async function findDocumentShare(
   return row ?? null;
 }
 
+/**
+ * Portal lookup by share id only. Callers MUST use an RLS-bound executor from
+ * `requireExternalContext` — never invoke with a service-role/admin executor.
+ */
 export async function findVisibleDocumentShare(db: DbExecutor, shareId: string): Promise<DocumentShareRow | null> {
   const [row] = await db.select().from(documentShares).where(eq(documentShares.id, shareId)).limit(1);
   return row ?? null;

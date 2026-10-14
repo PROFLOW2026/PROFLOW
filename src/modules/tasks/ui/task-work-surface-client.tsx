@@ -1,6 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { TaskCalendarView } from './task-calendar-view';
 import { TaskDetailSheet } from './task-detail-sheet';
@@ -26,6 +27,14 @@ export interface TaskWorkSurfaceClientProps {
   showProject?: boolean;
   timelineDateEdit?: boolean;
   hasMore?: boolean;
+  unscheduledTasks?: TaskCardData[];
+  unscheduledHasMore?: boolean;
+  calendarMonthKey?: string;
+  canScheduleTasks?: boolean;
+  loadMoreUnscheduled?: (
+    offset: number,
+    urlParams: Record<string, string>,
+  ) => Promise<{ tasks: TaskCardData[]; hasMore: boolean }>;
   /** When true, filters come from the URL on the server; hide the local filter bar. */
   urlBackedFilters?: boolean;
   /** Work hub lenses: URL filter snapshot for paginated server actions (no inline RSC callbacks). */
@@ -44,6 +53,11 @@ export function TaskWorkSurfaceClient({
   showProject = true,
   timelineDateEdit = false,
   hasMore: initialHasMore = false,
+  unscheduledTasks: initialUnscheduled = [],
+  unscheduledHasMore: initialUnscheduledHasMore = false,
+  calendarMonthKey,
+  canScheduleTasks = false,
+  loadMoreUnscheduled,
   urlBackedFilters = false,
   workLensFilterQuery,
   loadMoreExcludeCancelled = false,
@@ -51,6 +65,9 @@ export function TaskWorkSurfaceClient({
   getTaskDetail,
   updateTask,
 }: TaskWorkSurfaceClientProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const canLoadMore = Boolean(projectId ?? workLensFilterQuery !== undefined);
   const t = useTranslations('tasks');
   const [filters, setFilters] = useState<TaskFilterBarState>(DEFAULT_TASK_FILTER_STATE);
@@ -61,12 +78,38 @@ export function TaskWorkSurfaceClient({
   const [extraTasks, setExtraTasks] = useState<TaskCardData[]>([]);
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [scheduledTasks, setScheduledTasks] = useState<TaskCardData[]>(tasks);
+  const [unscheduledTasks, setUnscheduledTasks] = useState<TaskCardData[]>(initialUnscheduled);
+  const [unscheduledHasMore, setUnscheduledHasMore] = useState(initialUnscheduledHasMore);
+  const [loadingUnscheduled, setLoadingUnscheduled] = useState(false);
 
-  const allTasks = useMemo(() => [...tasks, ...extraTasks], [tasks, extraTasks]);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reset scheduled list when server props refresh
+    setScheduledTasks(tasks);
+  }, [tasks]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reset unscheduled list when server props refresh
+    setUnscheduledTasks(initialUnscheduled);
+    setUnscheduledHasMore(initialUnscheduledHasMore);
+  }, [initialUnscheduled, initialUnscheduledHasMore]);
+
+  const allTasks = useMemo(() => [...scheduledTasks, ...extraTasks], [scheduledTasks, extraTasks]);
 
   const filteredTasks = useMemo(
     () => (useLocalFilters ? applyClientTaskFilters(allTasks, filters, today) : allTasks),
     [allTasks, filters, today, useLocalFilters],
+  );
+
+  const handleMonthKeyChange = useCallback(
+    (monthKey: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('month', monthKey);
+      params.delete('anchorFrom');
+      params.delete('anchorTo');
+      router.push(`${pathname}?${params.toString()}`);
+    },
+    [pathname, router, searchParams],
   );
 
   async function handleLoadMore() {
@@ -88,6 +131,35 @@ export function TaskWorkSurfaceClient({
       setLoadingMore(false);
     }
   }
+
+  async function handleLoadMoreUnscheduled() {
+    if (!loadMoreUnscheduled || loadingUnscheduled) return;
+    setLoadingUnscheduled(true);
+    try {
+      const page = await loadMoreUnscheduled(
+        unscheduledTasks.length,
+        workLensFilterQuery ?? {},
+      );
+      setUnscheduledTasks((prev) => [...prev, ...page.tasks]);
+      setUnscheduledHasMore(page.hasMore);
+    } finally {
+      setLoadingUnscheduled(false);
+    }
+  }
+
+  const handleScheduleTask = useCallback(
+    async (taskId: string, dueDate: string) => {
+      const result = await updateTask(taskId, { dueDate });
+      if (result.error) return result;
+      const moved = unscheduledTasks.find((task) => task.id === taskId);
+      setUnscheduledTasks((prev) => prev.filter((task) => task.id !== taskId));
+      if (moved) {
+        setScheduledTasks((prev) => [...prev, { ...moved, dueDate }]);
+      }
+      return result;
+    },
+    [unscheduledTasks, updateTask],
+  );
 
   const handleOpenTask = async (taskId: string) => {
     setSelectedTaskId(taskId);
@@ -134,7 +206,23 @@ export function TaskWorkSurfaceClient({
       {viewMode === 'calendar' ? (
         <TaskCalendarView
           tasks={filteredTasks}
+          unscheduledTasks={unscheduledTasks}
+          unscheduledHasMore={unscheduledHasMore}
+          onLoadMoreUnscheduled={
+            loadMoreUnscheduled ? async () => handleLoadMoreUnscheduled() : undefined
+          }
+          loadingMoreUnscheduled={loadingUnscheduled}
           today={today}
+          monthKey={calendarMonthKey}
+          onMonthKeyChange={calendarMonthKey ? handleMonthKeyChange : undefined}
+          canScheduleTasks={canScheduleTasks}
+          onScheduleTask={
+            canScheduleTasks
+              ? async (taskId, dueDate) => {
+                  await handleScheduleTask(taskId, dueDate);
+                }
+              : undefined
+          }
           onOpenTask={handleOpenTask}
           showProject={showProject}
         />
@@ -144,6 +232,7 @@ export function TaskWorkSurfaceClient({
           onOpenTask={handleOpenTask}
           onUpdateDueDate={handleUpdateDueDate}
           showProject={showProject}
+          today={today}
         />
       )}
 

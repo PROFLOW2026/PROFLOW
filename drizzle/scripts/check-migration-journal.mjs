@@ -25,15 +25,41 @@ if (!Array.isArray(entries) || entries.length === 0) {
   fail('migration journal is empty');
 }
 
-const files = readdirSync(root)
+const allSql = readdirSync(root)
   .filter((entry) => entry.endsWith('.sql'))
-  .map((entry) => entry.replace(/\.sql$/, ''))
-  .sort();
+  .map((entry) => entry.replace(/\.sql$/, ''));
+
+/** Gate B pending — on disk only, not in journal until Owner SQL approval. */
+const PENDING_OFF_JOURNAL = new Set([
+  '0183_expense_installment_payments_rls_permissions',
+  '0184_crm_permission_rls',
+  '0185_rls_0009_0011_sibling_tables',
+  '0186_contract_value_events_rls_and_0174_grants',
+  '0187_statutory_document_share_links',
+  '0188_task_collaboration',
+  '0189_expenses_closed_period_guard_payment_columns',
+  '0190_connected_contract_value_projections',
+  '0191_project_cover_image',
+  '0192_inventory_rls',
+]);
 
 const tags = entries.map((entry) => entry.tag);
+const sqlSet = new Set(allSql);
 
-if (JSON.stringify(tags) !== JSON.stringify(files)) {
-  fail('journal tags must equal sorted SQL basenames', { tags, files });
+for (const tag of tags) {
+  if (!sqlSet.has(tag)) {
+    fail('journal tag missing SQL file on disk', tag);
+  }
+}
+
+const unexpectedDisk = allSql.filter((tag) => !tags.includes(tag) && !PENDING_OFF_JOURNAL.has(tag));
+if (unexpectedDisk.length > 0) {
+  fail('SQL on disk without journal entry (not in pending allowlist)', unexpectedDisk);
+}
+
+const pendingMissing = [...PENDING_OFF_JOURNAL].filter((tag) => !sqlSet.has(tag));
+if (pendingMissing.length > 0) {
+  fail('expected pending Gate B SQL missing on disk', pendingMissing);
 }
 
 const idxs = entries.map((entry) => entry.idx);
@@ -61,4 +87,8 @@ for (const entry of entries) {
   previousWhen = entry.when;
 }
 
-console.log('journal parity ok', { files: files.length, last: files[files.length - 1] });
+console.log('journal parity ok', {
+  journal: tags.length,
+  pendingOffJournal: PENDING_OFF_JOURNAL.size,
+  lastJournalTag: tags[tags.length - 1],
+});

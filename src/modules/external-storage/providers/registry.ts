@@ -7,6 +7,13 @@ import { dropboxProvider } from './dropbox';
 import { googleDriveProvider } from './google-drive';
 import { oneDriveProvider } from './onedrive';
 
+export const STORAGE_PROVIDER_KEYS = [
+  'onedrive',
+  'google_drive',
+  'dropbox',
+  'box',
+] as const satisfies readonly StorageProviderKey[];
+
 const providers: Record<StorageProviderKey, StorageProviderAdapter> = {
   onedrive: oneDriveProvider,
   google_drive: googleDriveProvider,

@@ -62,4 +62,5 @@ export type { ProjectMemberListItem, ProjectMemberRecord } from './data/project-
 export {
   listActiveMembershipsForUser,
   listActiveProjectMemberUserIdsWithCapability,
+  listProjectMembers,
 } from './data/project-team.repository';

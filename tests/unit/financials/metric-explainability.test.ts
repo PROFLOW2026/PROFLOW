@@ -2,6 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { buildFinancialCoverage } from '@/modules/financials/domain/coverage';
 import { buildProjectFinancialExplainability } from '@/modules/financials/domain/metric-explainability';
 import { composeProjectFinancials } from '@/modules/financials/application/compose-project-financials';
+import {
+  emptyCostPosition,
+  withAllocatedGeneralBusinessCost,
+} from '@/modules/financials/domain/cost-aggregation';
 import { money, zeroMoney } from '@/shared/money';
 import { businessDate } from '@/shared/dates';
 
@@ -251,6 +255,69 @@ describe('buildProjectFinancialExplainability', () => {
     expect(byKey.actual_cost?.role).toBe('total');
     expect(byKey.actual_cost?.amount.amount).toBe('240.000000');
     expect(actual?.sources.some((s) => s.kind === 'month_close')).toBe(true);
+  });
+
+  it('include_general mode uses full forecast in explainability (F11)', () => {
+    let cost = emptyCostPosition(ILS);
+    const directActual = money('60000', ILS);
+    cost = {
+      ...cost,
+      actualCostToDate: directActual,
+      directActualCostToDate: directActual,
+      estimatedFinalCost: directActual,
+    };
+    cost = withAllocatedGeneralBusinessCost(cost, money('10000', ILS));
+    const directForecast = money('60000', ILS);
+    const fullForecast = money('70000', ILS);
+    cost = {
+      ...cost,
+      fullActualCostToDate: fullForecast,
+      directForecastFinalCost: directForecast,
+      fullForecastFinalCost: fullForecast,
+      estimatedFinalCost: directForecast,
+    };
+
+    const financials = composeProjectFinancials({
+      projectId: 'p1',
+      currency: ILS,
+      expectedRemainingCostAmount: null,
+      canReadCommercial: true,
+      canReadBilling: false,
+      canReadProfit: true,
+      commercialData: {
+        currency: ILS,
+        position: {
+          originalContractValue: money('80000', ILS),
+          approvedAdditions: zeroMoney(ILS),
+          approvedReductions: zeroMoney(ILS),
+          currentContractValue: money('80000', ILS),
+          pendingChanges: zeroMoney(ILS),
+        },
+      },
+      billingRows: null,
+      expenseContributions: [],
+      laborInput: null,
+      committed: null,
+      openAp: null,
+      recognizedVendor: null,
+      projectProfitabilityMode: 'include_general',
+    });
+    financials.cost = cost;
+
+    const explain = buildProjectFinancialExplainability({
+      financials,
+      dataConfidence: financials.dataConfidence,
+      canReadCommercial: true,
+      canReadBilling: false,
+      canReadProfit: true,
+      canReadAp: false,
+    });
+
+    const forecast = explain.metrics.find((m) => m.metric === 'forecast');
+    expect(forecast?.total.amount).toBe(fullForecast.amount);
+    expect(forecast?.total.amount).not.toBe(directForecast.amount);
+    const forecastCostLine = forecast?.categories.find((c) => c.key === 'forecast_cost');
+    expect(forecastCostLine?.amount.amount).toBe(fullForecast.amount);
   });
 
   it('explains outstanding AR as original invoiced + post-close revenue + net', () => {

@@ -3,6 +3,7 @@ import type {
   ConnectedProjectProvisioningStatus,
   EngagementConnectionInvitationStatus,
 } from '@drizzle/schema';
+import type { MappingStatus } from './connection-lifecycle';
 
 /** Row aligned with `engagement_connection_invitations`. */
 export interface EngagementConnectionInvitationRow {
@@ -60,17 +61,8 @@ export interface DeveloperEngagementPreview {
   readonly invitationExpiresAt: Date;
 }
 
-export const CONNECTED_PROJECT_STATUSES = [
-  'accepted',
-  'provisioning',
-  'active',
-  'sync_degraded',
-  'suspended',
-  'revoked',
-  'archived',
-] as const;
-
-export type ConnectedProjectStatus = (typeof CONNECTED_PROJECT_STATUSES)[number];
+/** Aligned with `connected_project_mappings.status` (migration 0179). */
+export type ConnectedProjectStatus = MappingStatus;
 
 export interface ConnectedProjectMappingView {
   readonly id: string;

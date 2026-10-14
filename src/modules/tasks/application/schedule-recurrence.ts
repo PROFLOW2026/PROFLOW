@@ -7,12 +7,17 @@ import {
   updateOccurrenceStatus,
   insertTask,
   insertTaskActivity,
+  countNonCancelledOccurrencesForRule,
+  insertTaskAssignee,
+  insertChecklistItem,
+  insertLabelAssignment,
+  upsertTaskReminder,
 } from '../data/tasks.repository';
 import { expandOccurrences } from '../domain/recurrence';
 import { isIdempotentOccurrence } from '../domain/recurrence';
 import { buildSystemCreatorFields, buildSystemActivityActorFields } from '../domain/actor';
-import { generateSortKey } from '../domain/lexorank';
-import type { TaskRecurrenceRule } from '../domain/types';
+import { generateSortKey, appendAfter } from '../domain/lexorank';
+import type { TaskRecurrenceRule, TaskReminderType } from '../domain/types';
 
 /**
  * Generates recurrence occurrences for all active rules in the window [from, to].
@@ -31,7 +36,12 @@ export async function generateOccurrences(
   let skipped = 0;
 
   for (const rule of rules) {
-    const slots = await expandOccurrences(rule, from, to);
+    const existingCount = await countNonCancelledOccurrencesForRule(context.db, rule.id);
+    const remaining =
+      rule.maxOccurrences != null ? Math.max(0, rule.maxOccurrences - existingCount) : null;
+    if (remaining === 0) continue;
+
+    const slots = await expandOccurrences(rule, from, to, { remainingOccurrences: remaining });
     const existing = await listExistingOccurrences(context.db, rule.id, from, to);
 
     for (const slot of slots) {
@@ -40,7 +50,6 @@ export async function generateOccurrences(
         continue;
       }
 
-      // Insert occurrence (UNIQUE constraint prevents duplicates)
       const occurrence = await insertOccurrence(context.db, {
         ruleId: rule.id,
         organizationId: context.organizationId,
@@ -53,6 +62,21 @@ export async function generateOccurrences(
   }
 
   return { generated, skipped };
+}
+
+export interface GeneratedTaskTemplateCopy {
+  readonly assignees: ReadonlyArray<{
+    orgMemberId: string | null;
+    employeeId: string | null;
+  }>;
+  readonly checklistItems: ReadonlyArray<{
+    title: string;
+    dueDate: string | null;
+    assigneeOrgMemberId: string | null;
+    assigneeEmployeeId: string | null;
+  }>;
+  readonly labels: ReadonlyArray<{ id: string }>;
+  readonly reminderCopies: ReadonlyArray<{ reminderType: TaskReminderType; remindAt: Date }>;
 }
 
 /**
@@ -74,6 +98,7 @@ export async function createGeneratedTask(
     bucketId?: string | null;
     dueDate?: string | null;
   },
+  templateCopy?: GeneratedTaskTemplateCopy,
 ) {
   return withTransaction(context.db, async (tx) => {
     const systemCreatorFields = buildSystemCreatorFields();
@@ -95,10 +120,51 @@ export async function createGeneratedTask(
       dueDate: input.dueDate ?? null,
     });
 
-    // Update occurrence to 'generated' and link task
+    if (templateCopy) {
+      for (const assignee of templateCopy.assignees) {
+        await insertTaskAssignee(tx, {
+          taskId: task.id,
+          organizationId: context.organizationId,
+          orgMemberId: assignee.orgMemberId,
+          employeeId: assignee.employeeId,
+          assignedByOrgMemberId: null,
+        });
+      }
+
+      let checklistSortKey = sortKey;
+      for (const item of templateCopy.checklistItems) {
+        await insertChecklistItem(tx, {
+          taskId: task.id,
+          organizationId: context.organizationId,
+          title: item.title,
+          sortKey: checklistSortKey,
+          dueDate: item.dueDate,
+          assigneeOrgMemberId: item.assigneeOrgMemberId,
+          assigneeEmployeeId: item.assigneeEmployeeId,
+        });
+        checklistSortKey = appendAfter(checklistSortKey);
+      }
+
+      for (const label of templateCopy.labels) {
+        await insertLabelAssignment(tx, {
+          taskId: task.id,
+          labelId: label.id,
+          organizationId: context.organizationId,
+        });
+      }
+
+      for (const reminder of templateCopy.reminderCopies) {
+        await upsertTaskReminder(tx, {
+          organizationId: context.organizationId,
+          taskId: task.id,
+          reminderType: reminder.reminderType,
+          remindAt: reminder.remindAt,
+        });
+      }
+    }
+
     await updateOccurrenceStatus(tx, occurrenceId, 'generated', task.id);
 
-    // Record system activity
     const systemActorFields = buildSystemActivityActorFields();
     await insertTaskActivity(tx, {
       taskId: task.id,

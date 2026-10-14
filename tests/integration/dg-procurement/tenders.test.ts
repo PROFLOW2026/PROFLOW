@@ -1,8 +1,9 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { and, eq } from 'drizzle-orm';
-import { contractorTenderOffers, subcontractAgreements } from '@drizzle/schema';
+import { contractorTenderOffers, subcontractAgreements, subcontractValueEvents } from '@drizzle/schema';
 import {
   awardTenderToSubcontract,
+  closeTenderBidding,
   createTenderPackage,
   getTenderPackageDetail,
   inviteVendorToTender,
@@ -112,6 +113,22 @@ describe('Track Q - contractor tenders', () => {
     expect(agreement?.status).toBe('draft');
     expect(agreement?.vendorId).toBe(s.contractorA.vendorId);
 
+    const [moneyRow] = await database.asService((db) =>
+      db
+        .select({ originalAmount: subcontractAgreements.originalAmount })
+        .from(subcontractAgreements)
+        .where(eq(subcontractAgreements.id, awarded.agreementId)),
+    );
+    expect(moneyRow?.originalAmount?.startsWith('250000')).toBe(true);
+
+    const valueEvents = await database.asService((db) =>
+      db
+        .select({ id: subcontractValueEvents.id })
+        .from(subcontractValueEvents)
+        .where(eq(subcontractValueEvents.subcontractId, awarded.agreementId)),
+    );
+    expect(valueEvents).toHaveLength(0);
+
     await expect(
       database.asUser(s.contractorB.authUser.id, (tx) =>
         tx
@@ -125,5 +142,54 @@ describe('Track Q - contractor tenders', () => {
           ),
       ),
     ).resolves.toEqual([]);
+  });
+
+  it('closes bidding to evaluating, blocks new bids, and allows award from evaluating', async () => {
+    const s = await procurementScenario(database);
+    const created = await asInternal(database, s.owner.id, s.orgId, (context) =>
+      createTenderPackage(context, {
+        projectId: s.projectId,
+        tradeKey: 'hvac',
+        title: 'HVAC package',
+      }),
+    );
+    await asInternal(database, s.owner.id, s.orgId, (context) =>
+      inviteVendorToTender(context, {
+        projectId: s.projectId,
+        packageId: created.packageId,
+        vendorId: s.contractorA.vendorId,
+      }),
+    );
+    const offerA = await asExternal(database, s.contractorA, s.orgId, (context) =>
+      submitContractorBid(context, {
+        organizationId: s.orgId,
+        projectId: s.projectId,
+        packageId: created.packageId,
+        bidAmount: '180000.00',
+      }),
+    );
+    await asInternal(database, s.owner.id, s.orgId, (context) =>
+      closeTenderBidding(context, { projectId: s.projectId, packageId: created.packageId }),
+    );
+
+    await expect(
+      asExternal(database, s.contractorA, s.orgId, (context) =>
+        submitContractorBid(context, {
+          organizationId: s.orgId,
+          projectId: s.projectId,
+          packageId: created.packageId,
+          bidAmount: '179000.00',
+        }),
+      ),
+    ).rejects.toMatchObject({ code: 'not_found' });
+
+    const awarded = await asInternal(database, s.owner.id, s.orgId, (context) =>
+      awardTenderToSubcontract(context, {
+        projectId: s.projectId,
+        packageId: created.packageId,
+        offerId: offerA.offerId,
+      }),
+    );
+    expect(awarded.agreementId).toBeTruthy();
   });
 });

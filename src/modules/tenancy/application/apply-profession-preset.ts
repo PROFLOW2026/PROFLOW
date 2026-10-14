@@ -1,5 +1,6 @@
 import { organizationDomains, costCategories } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
+import type { Locale } from '@/shared/i18n/config';
 import { getProfessionPreset, type ProfessionPresetKey } from '../domain/profession-presets';
 
 /**
@@ -13,12 +14,12 @@ export async function applyProfessionPreset(
   db: DbExecutor,
   organizationId: string,
   presetKey: ProfessionPresetKey,
-  locale: 'he-IL' | 'en' = 'he-IL',
+  locale: Locale = 'he-IL',
 ): Promise<{ applied: true; presetKey: ProfessionPresetKey } | { applied: false }> {
   const preset = getProfessionPreset(presetKey);
   if (!preset) return { applied: false };
 
-  const nameOf = (en: string, he: string) => (locale === 'he-IL' ? he : en);
+  const nameOf = (en: string, he: string) => (locale === 'en' ? en : he);
 
   let sort = 0;
   for (const domain of preset.domains) {
@@ -69,11 +70,11 @@ export async function applyProfessionPreset(
 
 export function suggestedWorkPackageNames(
   presetKey: ProfessionPresetKey | null | undefined,
-  locale: 'he-IL' | 'en' = 'he-IL',
+  locale: Locale = 'he-IL',
 ): string[] {
   const preset = getProfessionPreset(presetKey ?? null);
   if (!preset) return [];
   return preset.workPackageNames.map((item) =>
-    locale === 'he-IL' ? item.nameHe : item.nameEn,
+    locale === 'en' ? item.nameEn : item.nameHe,
   );
 }

@@ -12,6 +12,9 @@ next-env.d.ts
 build/
 dist/
 
+# local one-off audit scripts output (use scripts/local-audit + docs/audits/local-tool-artifacts)
+.tools/
+
 # testing
 coverage/
 playwright-report/

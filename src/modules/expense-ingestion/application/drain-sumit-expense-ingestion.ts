@@ -34,20 +34,29 @@ async function listEnabledOrganizationIds(): Promise<string[]> {
     .filter(Boolean);
 }
 
-export async function drainSumitExpenseIngestion(): Promise<{
+export async function drainSumitExpenseIngestion(input?: {
+  readonly deadlineMs?: number;
+}): Promise<{
   readonly organizations: number;
   readonly detected: number;
   readonly queued: number;
   readonly ocrProcessed: number;
   readonly errors: number;
+  readonly deferredOrgs: number;
 }> {
   const orgIds = await listEnabledOrganizationIds();
   const db = getAdminDb();
   let detected = 0;
   let queued = 0;
   let errors = 0;
+  let deferredOrgs = 0;
+  const deadlineMs = input?.deadlineMs;
 
   for (const organizationId of orgIds) {
+    if (deadlineMs !== undefined && Date.now() > deadlineMs - 30_000) {
+      deferredOrgs += 1;
+      continue;
+    }
     const organization = await findOrganizationById(db, organizationId);
     if (!organization) continue;
 
@@ -79,6 +88,7 @@ export async function drainSumitExpenseIngestion(): Promise<{
     queued,
     ocrProcessed: ocr.processed,
     errors,
+    deferredOrgs,
   };
 }
 

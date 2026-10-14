@@ -636,6 +636,23 @@
     "empty": {
       "title": "אין משימות עם תאריך",
       "description": "משימות עם תאריך יעד או התחלה יופיעו בלוח השנה"
+    },
+    "unscheduled": {
+      "title": "ללא תאריך",
+      "hint": "גררו משימה ליום בלוח כדי לקבוע תאריך יעד, או בחרו תאריך במובייל.",
+      "pickDate": "קביעת תאריך"
+    }
+  },
+  "export": {
+    "downloadXlsx": "ייצוא ל-Excel",
+    "sheetName": "משימות",
+    "columns": {
+      "title": "כותרת",
+      "project": "פרויקט",
+      "status": "סטטוס",
+      "priority": "עדיפות",
+      "dueDate": "תאריך יעד",
+      "startDate": "תאריך התחלה"
     }
   },
   "timeline": {
@@ -700,12 +717,16 @@
   "priorityLabel": "עדיפות",
   "statusLabel": "סטטוס",
   "attachmentsLabel": "קבצים מצורפים",
+  "evidenceSummary": "{count, plural, one {פריט ראיה #} other {# פריטי ראיה}}",
+  "evidenceOpenFull": "פתיחת תמונות וראיות",
   "attachments": {
     "sectionDescription": "העלה קבצים או קשר מסמכי פרויקט קיימים. הקבצים נשמרים באחסון המחובר.",
     "linkProjectDocsHint": "לקישור מוצגים רק מסמכים מהפרויקט של המשימה.",
     "documentsPermissionRequired": "נדרשות הרשאות מסמכים לצפייה או ניהול קבצים מצורפים."
   },
   "list": {
+    "pageTitle": "כל המשימות",
+    "pageDescription": "טבלה חוצת פרויקטים עם סינון, עריכה בשורה ועדכונים מרובים",
     "columns": {
       "title": "כותרת",
       "status": "סטטוס",
@@ -723,8 +744,31 @@
     "notAvailable": "-",
     "openTask": "פתיחת משימה: {title}"
   },
+  "table": {
+    "columnsLabel": "עמודות",
+    "select": "בחר",
+    "selectTask": "בחר {title}",
+    "selected": "{count} נבחרו",
+    "bulkStatus": "קבע סטטוס…",
+    "bulkPriority": "קבע עדיפות…",
+    "bulkLimit": "בחר עד {max} משימות לעריכה מרובה",
+    "bulkResult": "{updated} עודכנו, {failed} נכשלו",
+    "columns": {
+      "title": "כותרת",
+      "project": "פרויקט",
+      "status": "סטטוס",
+      "priority": "עדיפות",
+      "assignees": "מוקצים",
+      "startDate": "התחלה",
+      "dueDate": "יעד",
+      "effort": "מאמץ"
+    }
+  },
   "errors": {
     "invalidTransition": "מעבר הסטטוס הזה אינו מותר.",
+    "dependencyWarningRequired": "חלק מהמשימות שתלויות במשימה זו עדיין לא הושלמו. אשר כדי להמשיך.",
+    "dependencyBlocked": "שינוי הסטטוס חסום עד שמשימות קודמות יושלמו.",
+    "dependencyOverrideReasonRequired": "הזן סיבה כדי לעקוף את חסימת התלות.",
     "dependencyCycle": "הוספת תלות זו תיצור מעגל.",
     "maxSubtaskDepth": "ניתן לקנן תת-משימות רק ברמה אחת.",
     "subtaskWorkspaceMismatch": "תת-משימה חייבת להיות באותה סביבת עבודה כמו ההורה.",
@@ -735,13 +779,32 @@
   },
   "actions": {
     "duplicate": "שכפל משימה",
+    "moveCopy": "העבר / העתק",
     "saveAsTemplate": "שמור כתבנית",
     "createFromTemplate": "צור מתבנית",
     "duplicateSuccess": "המשימה שוכפלה",
     "saveTemplateSuccess": "התבנית נשמרה",
     "createFromTemplateSuccess": "המשימה נוצרה מהתבנית",
     "pickTemplate": "בחר תבנית",
-    "noTemplates": "אין תבניות זמינות"
+    "noTemplates": "אין תבניות זמינות",
+    "moveCopyDialog": {
+      "moveTitle": "העבר משימה לפרויקט אחר",
+      "copyTitle": "העתק משימה לפרויקט אחר",
+      "move": "העבר",
+      "copy": "העתק",
+      "project": "פרויקט יעד",
+      "board": "לוח",
+      "column": "עמודה",
+      "pickProject": "בחר פרויקט",
+      "sameProject": "בחר פרויקט שונה מהנוכחי.",
+      "noProjects": "אין פרויקטים זמינים להעברה.",
+      "includeAssignees": "העתק אחראים",
+      "copyDates": "העתק תאריכי התחלה ויעד",
+      "confirmAssignees": "הסר אחראים שאין להם גישה לפרויקט היעד",
+      "confirmMove": "העבר משימה",
+      "confirmCopy": "העתק משימה",
+      "cancel": "ביטול"
+    }
   },
   "dependencies": {
     "dependsOn": "תלוי ב",
@@ -772,6 +835,11 @@
     "placeholder": "כתוב תגובה…",
     "submit": "פרסום תגובה",
     "loadMore": "טען תגובות קודמות",
+    "mentions": {
+      "pickerLabel": "אזכור חבר צוות",
+      "noMatches": "לא נמצאו אנשים",
+      "preview": "תצוגה מקדימה"
+    },
     "attachments": {
       "addFiles": "צרף קבצים",
       "pickImages": "בחר תמונות",
@@ -854,6 +922,7 @@
   "reminders": {
     "label": "תזכורות",
     "needsDueDate": "יש להגדיר תאריך יעד כדי לאפשר תזכורות.",
+    "externalDeliveryDisconnected": "מייל/פוש למשימות: לא מחובר",
     "type": {
       "on_due": "ביום היעד",
       "day_before": "יום לפני",

@@ -1,7 +1,8 @@
 {
   "page": {
     "title": "Project team",
-    "description": "Who works on this project and what each person may do here. Capabilities apply to this project only."
+    "description": "Who works on this project and what each person may do here. Capabilities apply to this project only.",
+    "consultantRosterHint": "People on the work roster who need RFIs or submittals must also be added here as project team members."
   },
   "viewer": {
     "orgAdminTitle": "Full access as organization admin",

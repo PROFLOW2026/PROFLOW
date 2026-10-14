@@ -227,6 +227,7 @@ export async function listFormalProjectTeam(
     .select({
       membershipId: employeeProjectAssignments.id,
       employeeId: employeeProjectAssignments.employeeId,
+      employeeUserId: employees.userId,
       employeeName: employees.name,
       jobTitle: employees.jobTitle,
       role: employeeProjectAssignments.role,
@@ -277,6 +278,7 @@ export async function listFormalProjectTeam(
     return {
       membershipId: member.membershipId,
       employeeId: member.employeeId,
+      userId: member.employeeUserId,
       employeeName: member.employeeName,
       jobTitle: member.jobTitle,
       role: member.role,
@@ -381,6 +383,7 @@ export async function listProjectAssignmentHistory(
     .select({
       membershipId: employeeProjectAssignments.id,
       employeeId: employeeProjectAssignments.employeeId,
+      employeeUserId: employees.userId,
       employeeName: employees.name,
       jobTitle: employees.jobTitle,
       role: employeeProjectAssignments.role,
@@ -403,6 +406,7 @@ export async function listProjectAssignmentHistory(
   return members.map((member) => ({
     membershipId: member.membershipId,
     employeeId: member.employeeId,
+    userId: member.employeeUserId,
     employeeName: member.employeeName,
     jobTitle: member.jobTitle,
     role: member.role,

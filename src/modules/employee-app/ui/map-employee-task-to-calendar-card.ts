@@ -28,6 +28,7 @@ export function mapEmployeeTaskToCalendarCard(task: EmployeeTaskListItem): TaskC
     workspaceName: null,
     boardId: null,
     boardName: null,
+    estimatedEffortMinutes: null,
     createdAt: '',
     updatedAt: '',
   };

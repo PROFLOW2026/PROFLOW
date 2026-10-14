@@ -18,6 +18,7 @@ import {
   updateSalesQuoteById,
   updateSalesQuoteVersionById,
 } from '../data/crm.repository';
+import { assertSalesQuoteNotConverted } from './assert-sales-quote-editable';
 import {
   canAcceptSalesQuoteVersion,
   canIssueSalesQuoteVersion,
@@ -149,6 +150,8 @@ export async function createSalesQuoteVersion(
   const quote = await findSalesQuoteById(context.db, context.organizationId, input.salesQuoteId);
   if (!quote) throw new NotFoundError('Sales quote');
 
+  await assertSalesQuoteNotConverted(context, quote.id);
+
   if (quote.status === 'accepted' || quote.status === 'cancelled') {
     throw new DomainRuleError(
       'Cannot add versions to a finalized sales quote',
@@ -231,6 +234,8 @@ export async function issueSalesQuoteVersion(
   const quote = await findSalesQuoteById(context.db, context.organizationId, version.salesQuoteId);
   if (!quote) throw new NotFoundError('Sales quote');
 
+  await assertSalesQuoteNotConverted(context, quote.id);
+
   await supersedeDraftAndIssuedVersions(
     context.db,
     context.organizationId,
@@ -284,6 +289,8 @@ export async function acceptSalesQuoteVersion(
 
   const quote = await findSalesQuoteById(context.db, context.organizationId, version.salesQuoteId);
   if (!quote) throw new NotFoundError('Sales quote');
+
+  await assertSalesQuoteNotConverted(context, quote.id);
 
   const siblings = await listSalesQuoteVersions(context.db, context.organizationId, quote.id);
   for (const sibling of siblings) {

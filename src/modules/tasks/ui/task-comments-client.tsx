@@ -16,6 +16,7 @@ import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
+import { CommentMentionTextarea } from './comment-mention-textarea';
 import { cn } from '@/shared/ui/cn';
 import {
   finalizeDocumentUploadAction,
@@ -391,12 +392,13 @@ export function CommentFormClient({
     >
       <input type="hidden" name="taskId" value={taskId} />
       <input type="hidden" name="pendingAttachmentCount" value={pendingFiles.length} />
-      <Textarea
-        name="body"
+      <CommentMentionTextarea
+        key={formGeneration}
+        taskId={taskId}
         placeholder={placeholderText}
         rows={3}
         maxLength={20_000}
-        className={cn('min-h-20', textareaClassName)}
+        className={textareaClassName}
         aria-label={placeholderText}
         disabled={busy}
       />

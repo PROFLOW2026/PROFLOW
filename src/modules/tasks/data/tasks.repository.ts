@@ -19,6 +19,8 @@ import {
 } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
 import { clampTaskListLimit, splitTaskListPage } from '../domain/list-window';
+import { resolveTaskListSort } from '../domain/task-list-order';
+import type { TaskListSortField } from '../domain/types';
 import type {
   Task,
   TaskAssignee,
@@ -265,6 +267,8 @@ export async function updateTaskById(
     progressWeight: string | null;
     ownerOrgMemberId: string | null;
     ownerEmployeeId: string | null;
+    projectId?: string | null;
+    workspaceId?: string;
     isArchived: boolean;
     archivedAt: Date | null;
     archivedByOrgMemberId: string | null;
@@ -283,6 +287,52 @@ export async function updateTaskById(
 export interface TaskListPage {
   readonly tasks: Task[];
   readonly hasMore: boolean;
+}
+
+function buildTaskListOrderClauses(
+  filters: TaskListFilters,
+): Array<ReturnType<typeof asc> | ReturnType<typeof desc> | ReturnType<typeof sql>> {
+  const { field, direction } = resolveTaskListSort(filters);
+  const primary = orderClauseForField(field, direction);
+
+  if (field === 'sortKey') {
+    return [primary, desc(tasks.createdAt)];
+  }
+
+  if (field === 'dueDate') {
+    return direction === 'desc'
+      ? [primary, desc(tasks.priority), desc(tasks.id)]
+      : [primary, asc(tasks.priority), asc(tasks.id)];
+  }
+
+  return [primary, asc(tasks.id)];
+}
+
+function orderClauseForField(
+  field: TaskListSortField,
+  direction: 'asc' | 'desc',
+): ReturnType<typeof asc> | ReturnType<typeof desc> | ReturnType<typeof sql> {
+  switch (field) {
+    case 'dueDate':
+      return direction === 'asc'
+        ? sql`${tasks.dueDate} asc nulls last`
+        : sql`${tasks.dueDate} desc nulls first`;
+    case 'startDate':
+      return direction === 'asc'
+        ? sql`${tasks.startDate} asc nulls last`
+        : sql`${tasks.startDate} desc nulls first`;
+    case 'priority':
+      return direction === 'asc' ? asc(tasks.priority) : desc(tasks.priority);
+    case 'title':
+      return direction === 'asc' ? asc(tasks.title) : desc(tasks.title);
+    case 'createdAt':
+      return direction === 'asc' ? asc(tasks.createdAt) : desc(tasks.createdAt);
+    case 'status':
+      return direction === 'asc' ? asc(tasks.status) : desc(tasks.status);
+    case 'sortKey':
+    default:
+      return direction === 'asc' ? asc(tasks.sortKey) : desc(tasks.sortKey);
+  }
 }
 
 export interface TaskListAccessScope {
@@ -401,6 +451,20 @@ export async function listTasksPage(
     conditions.push(gte(tasks.dueDate, filters.dueAfter));
   }
 
+  if (filters.anchorFrom && filters.anchorTo) {
+    conditions.push(
+      sql`COALESCE(${tasks.dueDate}, ${tasks.startDate}) >= ${filters.anchorFrom}`,
+    );
+    conditions.push(
+      sql`COALESCE(${tasks.dueDate}, ${tasks.startDate}) <= ${filters.anchorTo}`,
+    );
+    conditions.push(sql`(${tasks.dueDate} IS NOT NULL OR ${tasks.startDate} IS NOT NULL)`);
+  }
+
+  if (filters.noDueDate) {
+    conditions.push(isNull(tasks.dueDate));
+  }
+
   if (filters.search?.trim()) {
     const term = `%${filters.search.trim()}%`;
     conditions.push(ilike(tasks.title, term));
@@ -419,17 +483,157 @@ export async function listTasksPage(
 
   const limit = clampTaskListLimit(filters.limit);
   const offset = filters.offset ?? 0;
+  const orderClauses = buildTaskListOrderClauses(filters);
 
   const rows = await db
     .select()
     .from(tasks)
     .where(and(...conditions))
-    .orderBy(asc(tasks.sortKey), desc(tasks.createdAt))
+    .orderBy(...orderClauses)
     .limit(limit + 1)
     .offset(offset);
 
   const window = splitTaskListPage(rows, limit);
   return { tasks: window.items.map(mapTaskRow), hasMore: window.hasMore };
+}
+
+export async function countTasksMatching(
+  db: DbExecutor,
+  organizationId: string,
+  workspaceIds: string[],
+  filters: TaskListFilters = {},
+  accessScope: TaskListAccessScope = {},
+): Promise<number> {
+  if (workspaceIds.length === 0) return 0;
+
+  const conditions = [
+    eq(tasks.organizationId, organizationId),
+    inArray(tasks.workspaceId, workspaceIds),
+  ];
+
+  if (!filters.includeArchived) {
+    conditions.push(eq(tasks.isArchived, false));
+  }
+
+  if (filters.status && filters.status !== 'all') {
+    conditions.push(eq(tasks.status, filters.status));
+  }
+
+  if (filters.priority && filters.priority !== 'all') {
+    conditions.push(eq(tasks.priority, filters.priority));
+  }
+
+  if (filters.projectId) {
+    conditions.push(eq(tasks.projectId, filters.projectId));
+  }
+
+  if (filters.clientId) {
+    conditions.push(
+      sql`EXISTS (
+        SELECT 1 FROM ${projects} p
+        WHERE p.id = ${tasks.projectId}
+          AND p.organization_id = ${organizationId}
+          AND p.client_id = ${filters.clientId}
+      )`,
+    );
+  }
+
+  if (filters.noProjectOnly) {
+    conditions.push(isNull(tasks.projectId));
+  }
+
+  if (filters.blocked) {
+    conditions.push(eq(tasks.status, 'blocked'));
+  }
+
+  if (filters.overdue) {
+    conditions.push(isNotNull(tasks.dueDate));
+    conditions.push(lt(tasks.dueDate, sql`CURRENT_DATE`));
+    conditions.push(sql`${tasks.status} NOT IN ('done', 'cancelled')`);
+  }
+
+  if (filters.assigneeOrgMemberId) {
+    conditions.push(
+      sql`EXISTS (
+        SELECT 1 FROM ${taskAssignees} ta
+        WHERE ta.task_id = ${tasks.id}
+          AND ta.organization_id = ${organizationId}
+          AND ta.org_member_id = ${filters.assigneeOrgMemberId}
+      )`,
+    );
+  } else if (filters.assigneeEmployeeId) {
+    conditions.push(
+      sql`EXISTS (
+        SELECT 1 FROM ${taskAssignees} ta
+        WHERE ta.task_id = ${tasks.id}
+          AND ta.organization_id = ${organizationId}
+          AND ta.employee_id = ${filters.assigneeEmployeeId}
+      )`,
+    );
+  }
+
+  if (filters.labelId) {
+    conditions.push(
+      sql`EXISTS (
+        SELECT 1 FROM ${taskLabelAssignments} tla
+        WHERE tla.task_id = ${tasks.id}
+          AND tla.label_id = ${filters.labelId}
+      )`,
+    );
+  }
+
+  if (filters.boardId) {
+    conditions.push(eq(tasks.boardId, filters.boardId));
+  }
+
+  if (filters.bucketId) {
+    conditions.push(eq(tasks.bucketId, filters.bucketId));
+  }
+
+  if (filters.dueBefore) {
+    conditions.push(lte(tasks.dueDate, filters.dueBefore));
+  }
+
+  if (filters.dueAfter) {
+    conditions.push(gte(tasks.dueDate, filters.dueAfter));
+  }
+
+  if (filters.anchorFrom && filters.anchorTo) {
+    conditions.push(
+      sql`COALESCE(${tasks.dueDate}, ${tasks.startDate}) >= ${filters.anchorFrom}`,
+    );
+    conditions.push(
+      sql`COALESCE(${tasks.dueDate}, ${tasks.startDate}) <= ${filters.anchorTo}`,
+    );
+    conditions.push(sql`(${tasks.dueDate} IS NOT NULL OR ${tasks.startDate} IS NOT NULL)`);
+  }
+
+  if (filters.noDueDate) {
+    conditions.push(isNull(tasks.dueDate));
+  }
+
+  if (filters.search?.trim()) {
+    const term = `%${filters.search.trim()}%`;
+    conditions.push(ilike(tasks.title, term));
+  }
+
+  const accessibleProjectIds = accessScope.accessibleProjectIds;
+  if (accessibleProjectIds !== undefined && accessibleProjectIds !== null) {
+    if (accessibleProjectIds.length === 0) {
+      conditions.push(isNull(tasks.projectId));
+    } else {
+      conditions.push(
+        sql`(${tasks.projectId} IS NULL OR ${tasks.projectId} = ANY(${accessibleProjectIds}))`,
+      );
+    }
+  }
+
+  const [row] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(tasks)
+    .where(and(...conditions));
+
+  return row?.count ?? 0;
 }
 
 // ─── Task Detail ──────────────────────────────────────────────────────────────
@@ -1056,6 +1260,41 @@ export async function findActiveRecurrenceRules(
   return rows.map(mapRecurrenceRuleRow);
 }
 
+export async function countNonCancelledOccurrencesForRule(
+  db: DbExecutor,
+  ruleId: string,
+): Promise<number> {
+  const [row] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(taskRecurrenceOccurrences)
+    .where(
+      and(
+        eq(taskRecurrenceOccurrences.ruleId, ruleId),
+        sql`${taskRecurrenceOccurrences.status} <> 'cancelled'`,
+      ),
+    );
+  return row?.count ?? 0;
+}
+
+export async function cancelPendingOccurrencesForRule(
+  db: DbExecutor,
+  organizationId: string,
+  ruleId: string,
+  fromAt?: Date,
+): Promise<void> {
+  await db
+    .update(taskRecurrenceOccurrences)
+    .set({ status: 'cancelled' })
+    .where(
+      and(
+        eq(taskRecurrenceOccurrences.organizationId, organizationId),
+        eq(taskRecurrenceOccurrences.ruleId, ruleId),
+        eq(taskRecurrenceOccurrences.status, 'pending'),
+        ...(fromAt ? [gte(taskRecurrenceOccurrences.occurrenceAt, fromAt)] : []),
+      ),
+    );
+}
+
 export async function listExistingOccurrences(
   db: DbExecutor,
   ruleId: string,
@@ -1206,8 +1445,22 @@ export async function listPendingOccurrencesDue(
   cap: number,
 ): Promise<TaskRecurrenceOccurrence[]> {
   const rows = await db
-    .select()
+    .select({
+      id: taskRecurrenceOccurrences.id,
+      ruleId: taskRecurrenceOccurrences.ruleId,
+      organizationId: taskRecurrenceOccurrences.organizationId,
+      occurrenceAt: taskRecurrenceOccurrences.occurrenceAt,
+      status: taskRecurrenceOccurrences.status,
+      generatedTaskId: taskRecurrenceOccurrences.generatedTaskId,
+    })
     .from(taskRecurrenceOccurrences)
+    .innerJoin(
+      taskRecurrenceRules,
+      and(
+        eq(taskRecurrenceOccurrences.ruleId, taskRecurrenceRules.id),
+        eq(taskRecurrenceRules.isActive, true),
+      ),
+    )
     .where(
       and(
         eq(taskRecurrenceOccurrences.organizationId, organizationId),
@@ -1215,8 +1468,13 @@ export async function listPendingOccurrencesDue(
         lte(taskRecurrenceOccurrences.occurrenceAt, before),
       ),
     )
+    .orderBy(asc(taskRecurrenceOccurrences.occurrenceAt), asc(taskRecurrenceOccurrences.id))
     .limit(cap);
-  return rows.map(mapOccurrenceRow);
+  return rows.map((row) =>
+    mapOccurrenceRow({
+      ...row,
+    } as typeof taskRecurrenceOccurrences.$inferSelect),
+  );
 }
 
 export async function findRecurrenceRuleById(
@@ -1518,4 +1776,83 @@ export async function listLabelIdsForTask(
     .from(taskLabelAssignments)
     .where(eq(taskLabelAssignments.taskId, taskId));
   return rows.map((row) => row.labelId);
+}
+
+/** All dependency edges in the organization (for cycle detection). */
+export async function listAllTaskDependenciesForOrg(
+  db: DbExecutor,
+  organizationId: string,
+): Promise<TaskDependency[]> {
+  const rows = await db
+    .select()
+    .from(taskDependencies)
+    .where(eq(taskDependencies.organizationId, organizationId));
+  return rows.map(mapDependencyRow);
+}
+
+export interface TaskPredecessorRow {
+  readonly taskId: string;
+  readonly title: string;
+  readonly status: TaskStatus;
+}
+
+/** Tasks that `taskId` depends on (must complete first). */
+export async function listOpenPredecessorsForTask(
+  db: DbExecutor,
+  organizationId: string,
+  taskId: string,
+): Promise<TaskPredecessorRow[]> {
+  const rows = await db
+    .select({
+      taskId: tasks.id,
+      title: tasks.title,
+      status: tasks.status,
+    })
+    .from(taskDependencies)
+    .innerJoin(
+      tasks,
+      and(eq(taskDependencies.targetTaskId, tasks.id), eq(tasks.organizationId, organizationId)),
+    )
+    .where(
+      and(
+        eq(taskDependencies.organizationId, organizationId),
+        eq(taskDependencies.sourceTaskId, taskId),
+        eq(tasks.isArchived, false),
+      ),
+    );
+
+  return rows
+    .filter((row) => row.status !== 'done' && row.status !== 'cancelled')
+    .map((row) => ({
+      taskId: row.taskId,
+      title: row.title,
+      status: row.status as TaskStatus,
+    }));
+}
+
+/** Successor task ids that depend on `completedTaskId`. */
+export async function listSuccessorTaskIds(
+  db: DbExecutor,
+  organizationId: string,
+  completedTaskId: string,
+): Promise<string[]> {
+  const rows = await db
+    .select({ sourceTaskId: taskDependencies.sourceTaskId })
+    .from(taskDependencies)
+    .where(
+      and(
+        eq(taskDependencies.organizationId, organizationId),
+        eq(taskDependencies.targetTaskId, completedTaskId),
+      ),
+    );
+  return rows.map((row) => row.sourceTaskId);
+}
+
+export async function areAllPredecessorsComplete(
+  db: DbExecutor,
+  organizationId: string,
+  taskId: string,
+): Promise<boolean> {
+  const open = await listOpenPredecessorsForTask(db, organizationId, taskId);
+  return open.length === 0;
 }

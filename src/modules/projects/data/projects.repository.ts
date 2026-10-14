@@ -15,6 +15,33 @@ import type {
   ProjectSortField,
   SortDirection,
 } from '../domain/types';
+import {
+  isProjectCoverImageSchemaReady,
+  projectsSelectColumns,
+} from './project-cover-image-schema';
+import { ServiceUnavailableError } from '@/shared/errors';
+import { sqlFirstRow } from '@/modules/financials';
+
+type InsertProjectInput = {
+  organizationId: string;
+  name: string;
+  documentNumber?: string | null;
+  status?: ProjectRecord['status'];
+  workKind?: ProjectRecord['workKind'];
+  experienceProfile?: string | null;
+  pricingMode?: ProjectRecord['pricingMode'];
+  clientId?: string | null;
+  primaryContactId?: string | null;
+  currency?: string | null;
+  description?: string | null;
+  location?: string | null;
+  projectRole?: string | null;
+  deliveryMode?: string | null;
+  startDate?: string | null;
+  targetEndDate?: string | null;
+  actualEndDate?: string | null;
+  notes?: string | null;
+};
 
 export function mapProjectRow(row: typeof projects.$inferSelect): ProjectRecord {
   return mapProject(row);
@@ -44,6 +71,10 @@ function mapProject(row: typeof projects.$inferSelect): ProjectRecord {
     progressSource: row.progressSource === 'tasks' ? 'tasks' : 'manual',
     progressStatus: (row.progressStatus as ProjectRecord['progressStatus']) ?? null,
     notes: row.notes,
+    coverImageKey: row.coverImageKey ?? null,
+    coverImageContentType: row.coverImageContentType ?? null,
+    coverImageWidth: row.coverImageWidth ?? null,
+    coverImageHeight: row.coverImageHeight ?? null,
     archivedAt: row.archivedAt,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -68,30 +99,71 @@ function sortDirection(direction: SortDirection) {
   return direction === 'asc' ? asc : desc;
 }
 
+/** Pre-0191 DBs: Drizzle `insert(projects)` references cover columns in SQL. */
+async function insertProjectWithoutCoverColumns(
+  db: DbExecutor,
+  input: InsertProjectInput,
+): Promise<string> {
+  const row = sqlFirstRow<{ id: string }>(
+    await db.execute(sql`
+      INSERT INTO projects (
+        organization_id,
+        name,
+        document_number,
+        status,
+        work_kind,
+        experience_profile,
+        pricing_mode,
+        client_id,
+        primary_contact_id,
+        currency,
+        description,
+        location,
+        project_role,
+        delivery_mode,
+        start_date,
+        target_end_date,
+        actual_end_date,
+        notes
+      ) VALUES (
+        ${input.organizationId}::uuid,
+        ${input.name},
+        ${input.documentNumber ?? null},
+        ${input.status ?? 'active'},
+        ${input.workKind ?? 'project'},
+        ${input.experienceProfile ?? null},
+        ${input.pricingMode ?? null},
+        ${input.clientId ?? null},
+        ${input.primaryContactId ?? null},
+        ${input.currency ?? null},
+        ${input.description ?? null},
+        ${input.location ?? null},
+        ${input.projectRole ?? null},
+        ${input.deliveryMode ?? null},
+        ${input.startDate ?? null},
+        ${input.targetEndDate ?? null},
+        ${input.actualEndDate ?? null},
+        ${input.notes ?? null}
+      )
+      RETURNING id
+    `),
+  );
+  if (!row?.id) throw new Error('Project insert failed');
+  return row.id;
+}
+
 export async function insertProject(
   db: DbExecutor,
-  input: {
-    organizationId: string;
-    name: string;
-    documentNumber?: string | null;
-    status?: ProjectRecord['status'];
-    workKind?: ProjectRecord['workKind'];
-    experienceProfile?: string | null;
-    pricingMode?: ProjectRecord['pricingMode'];
-    clientId?: string | null;
-    primaryContactId?: string | null;
-    currency?: string | null;
-    description?: string | null;
-    location?: string | null;
-    projectRole?: string | null;
-    deliveryMode?: string | null;
-    startDate?: string | null;
-    targetEndDate?: string | null;
-    actualEndDate?: string | null;
-    notes?: string | null;
-  },
+  input: InsertProjectInput,
 ): Promise<ProjectRecord> {
-  const [row] = await db
+  if (!(await isProjectCoverImageSchemaReady(db))) {
+    const projectId = await insertProjectWithoutCoverColumns(db, input);
+    const row = await findProjectById(db, input.organizationId, projectId);
+    if (!row) throw new Error('Project insert succeeded but row not found');
+    return row;
+  }
+
+  const [inserted] = await db
     .insert(projects)
     .values({
       organizationId: input.organizationId,
@@ -113,9 +185,11 @@ export async function insertProject(
       actualEndDate: input.actualEndDate ?? null,
       notes: input.notes ?? null,
     })
-    .returning();
+    .returning({ id: projects.id });
 
-  return mapProject(row!);
+  const row = await findProjectById(db, input.organizationId, inserted!.id);
+  if (!row) throw new Error('Project insert succeeded but row not found');
+  return row;
 }
 
 export async function updateProjectById(
@@ -148,6 +222,35 @@ export async function updateProjectById(
     .update(projects)
     .set({ ...patch, updatedAt: new Date() })
     .where(and(eq(projects.id, projectId), eq(projects.organizationId, organizationId)))
+    .returning(await projectsSelectColumns(db));
+
+  return row ? mapProject(row as typeof projects.$inferSelect) : null;
+}
+
+export async function updateProjectCoverById(
+  db: DbExecutor,
+  organizationId: string,
+  projectId: string,
+  patch: {
+    coverImageKey: string | null;
+    coverImageContentType: string | null;
+    coverImageWidth: number | null;
+    coverImageHeight: number | null;
+    coverImageUpdatedAt: Date | null;
+    coverImageUpdatedByUserId: string | null;
+  },
+): Promise<ProjectRecord | null> {
+  if (!(await isProjectCoverImageSchemaReady(db))) {
+    throw new ServiceUnavailableError(
+      'Project cover image is not available until database migration 0191 is applied',
+      'projects.cover.schemaPending',
+    );
+  }
+
+  const [row] = await db
+    .update(projects)
+    .set({ ...patch, updatedAt: new Date() })
+    .where(and(eq(projects.id, projectId), eq(projects.organizationId, organizationId)))
     .returning();
 
   return row ? mapProject(row) : null;
@@ -158,13 +261,14 @@ export async function findProjectById(
   organizationId: string,
   projectId: string,
 ): Promise<ProjectRecord | null> {
+  const cols = await projectsSelectColumns(db);
   const [row] = await db
-    .select()
+    .select(cols)
     .from(projects)
     .where(and(eq(projects.id, projectId), eq(projects.organizationId, organizationId)))
     .limit(1);
 
-  return row ? mapProject(row) : null;
+  return row ? mapProject(row as typeof projects.$inferSelect) : null;
 }
 
 function buildProjectListConditions(
@@ -285,9 +389,10 @@ export async function listProjects(
   const sortBy = filters.sortBy ?? 'updated_at';
   const sortDir = filters.sortDirection ?? 'desc';
 
+  const projectCols = await projectsSelectColumns(db);
   const rows = await db
     .select({
-      project: projects,
+      ...projectCols,
       clientName: clients.name,
       workPackageCount: sql<number>`(
         select count(*)::int from work_packages wp
@@ -340,14 +445,18 @@ export async function listProjects(
     )
     .offset(resolveListOffset(filters.offset));
 
-  return rows.map((row) => ({
-    ...mapProject(row.project),
-    clientName: row.clientName,
-    workPackageCount: row.workPackageCount,
-    currentContractValue: row.currentContractValue,
-    contractCurrency: row.contractCurrency ?? row.project.currency,
-    expectedRemainingCostAmount: row.project.expectedRemainingCostAmount,
-  }));
+  return rows.map((row) => {
+    const { clientName, workPackageCount, currentContractValue, contractCurrency, ...projectRow } =
+      row;
+    return {
+      ...mapProject(projectRow as typeof projects.$inferSelect),
+      clientName,
+      workPackageCount,
+      currentContractValue,
+      contractCurrency: contractCurrency ?? projectRow.currency,
+      expectedRemainingCostAmount: projectRow.expectedRemainingCostAmount,
+    };
+  });
 }
 
 export async function countProjectsByClientId(

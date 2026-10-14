@@ -343,7 +343,8 @@ export function listJobsForOrg(
     if (options?.batchId && job.batchId !== options.batchId) return false;
     return true;
   });
-  return filtered.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).map(hydrateJob);
+  const sorted = filtered.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).map(hydrateJob);
+  return options?.limit != null ? sorted.slice(0, options.limit) : sorted;
 }
 
 export function seedFixtureJob(input: SeedOcrFixtureInput): ExtractionJob {

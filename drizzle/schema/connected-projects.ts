@@ -330,3 +330,51 @@ export const connectedClaimCashProjections = pgTable(
     }).onDelete('restrict'),
   ],
 );
+
+export const CONNECTED_CONTRACT_VALUE_PROJECTION_STATUSES = ['active', 'superseded', 'void'] as const;
+export type ConnectedContractValueProjectionStatus =
+  (typeof CONNECTED_CONTRACT_VALUE_PROJECTION_STATUSES)[number];
+
+/** Contractor-side contract value mirror from developer org (Wave 2 / K08). Migration 0190. */
+export const connectedContractValueProjections = pgTable(
+  'connected_contract_value_projections',
+  {
+    id: primaryId(),
+    mappingId: uuid('mapping_id').notNull(),
+    contractorOrganizationId: uuid('contractor_organization_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    contractorProjectId: uuid('contractor_project_id').notNull(),
+    sourceKind: text('source_kind').notNull(),
+    sourceId: uuid('source_id').notNull(),
+    amountNet: moneyAmount('amount_net').notNull(),
+    currency: currencyCode().notNull(),
+    effectiveDate: date('effective_date', { mode: 'string' }).notNull(),
+    idempotencyKey: text('idempotency_key').notNull(),
+    status: text('status').$type<ConnectedContractValueProjectionStatus>().notNull().default('active'),
+    ...timestamps(),
+  },
+  (table) => [
+    uniqueIndex('connected_contract_value_projections_idempotency_key_uq').on(table.idempotencyKey),
+    index('connected_contract_value_projections_contractor_idx').on(
+      table.contractorOrganizationId,
+      table.contractorProjectId,
+      table.effectiveDate,
+    ),
+    check(
+      'connected_contract_value_projections_status_known',
+      sql`${table.status} IN ('active', 'superseded', 'void')`,
+    ),
+    check('connected_contract_value_projections_amount_non_negative', sql`${table.amountNet} >= 0`),
+    foreignKey({
+      name: 'connected_contract_value_projections_mapping_contractor_fk',
+      columns: [table.mappingId, table.contractorOrganizationId],
+      foreignColumns: [connectedProjectMappings.id, connectedProjectMappings.contractorOrganizationId],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'connected_contract_value_projections_project_org_fk',
+      columns: [table.contractorProjectId, table.contractorOrganizationId],
+      foreignColumns: [projects.id, projects.organizationId],
+    }).onDelete('cascade'),
+  ],
+);

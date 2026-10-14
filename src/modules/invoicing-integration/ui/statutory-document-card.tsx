@@ -36,10 +36,6 @@ function reconciliationTone(
   return 'neutral';
 }
 
-function pdfUrl(externalDocumentId: string, disposition: 'inline' | 'attachment'): string {
-  return `/api/invoicing/statutory/${externalDocumentId}/pdf?disposition=${disposition}`;
-}
-
 function isDocIssued(doc: ExternalStatutoryDocument): boolean {
   return doc.issuanceOutcome === 'confirmed_created' && Boolean(doc.externalId);
 }
@@ -344,15 +340,6 @@ export function StatutoryDocumentCard({
             onClick={() => onPreview({ externalDocumentId: doc.id, title })}
           >
             {t('actions.viewPdf')}
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            disabled={pending}
-            onClick={() => window.location.assign(pdfUrl(doc.id, 'attachment'))}
-          >
-            {t('actions.downloadPdf')}
           </Button>
           {!isHistorical && canManage ? (
             <>

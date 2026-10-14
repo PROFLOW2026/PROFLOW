@@ -111,6 +111,7 @@ export function BusinessProfilePresetForm({
             <span className="font-medium text-[var(--pf-text-primary)]">{t('previewQuickCreate')}: </span>
             {quickCreateLabels.join(', ')}
           </p>
+          <p className="mt-1 text-xs text-[var(--pf-text-muted)]">{t('previewQuickCreateHint')}</p>
           <p className="mt-1 break-words">
             <span className="font-medium text-[var(--pf-text-primary)]">{t('previewCategories')}: </span>
             {preview.costCategories.map((c) => (he ? c.nameHe : c.nameEn)).join(', ')}

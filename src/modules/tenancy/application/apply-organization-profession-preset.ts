@@ -36,8 +36,7 @@ export async function applyOrganizationProfessionPreset(
     );
   }
 
-  const labelLocale = resolveLabelLocale(context.organization.defaultLocale);
-  const locale = labelLocale === 'he-IL' ? 'he-IL' : 'en';
+  const locale = resolveLabelLocale(context.organization.defaultLocale);
   const profileKey =
     resolveBusinessProfileKey(parsed.data.businessProfile) ??
     resolveBusinessProfileKey(parsed.data.professionPreset);

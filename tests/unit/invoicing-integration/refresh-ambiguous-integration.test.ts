@@ -114,7 +114,7 @@ describe('refreshExternalStatutoryStatus ambiguous recovery (L3)', () => {
     }
   });
 
-  it('ambiguous without external id cannot refresh', async () => {
+  it('ambiguous without external id attempts SUMIT recovery scan (Scripted provider skips scan)', async () => {
     const created = await requestExternalStatutoryDocument(ctx(), {
       billing: finalizedBilling({ externalReference: 'idem-no-ext-id' }),
       kind: 'tax_invoice',
@@ -124,6 +124,7 @@ describe('refreshExternalStatutoryStatus ambiguous recovery (L3)', () => {
     await updateExternalDocument(ctx(), created.id, {
       issuanceOutcome: 'ambiguous',
       externalId: null,
+      idempotencyKey: 'idem-no-ext-id',
     });
 
     await expect(

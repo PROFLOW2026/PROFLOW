@@ -18,6 +18,7 @@ import {
   recurringFinancialDraftRuns,
 } from '@drizzle/schema';
 import { RECOGNIZED_VENDOR_BILL_STATUSES } from '@/modules/ap/domain/vendor-cost-recognition';
+import { matchedNetFromGross } from '../domain/expense-ap-dedup';
 import { addMoney, money } from '@/shared/money';
 import { businessDate, type BusinessDate } from '@/shared/dates';
 import type { DbExecutor } from '@/shared/db/types';
@@ -40,11 +41,17 @@ export async function loadAcceptedApMatchNetByExpenseId(
       expenseId: apPoMatches.expenseId,
       matchedAmount: apPoMatches.matchedAmount,
       currency: apPoMatches.currency,
+      expenseNetAmount: expenses.netAmount,
+      expenseGrossAmount: expenses.grossAmount,
     })
     .from(apPoMatches)
     .innerJoin(
       apBills,
       and(eq(apBills.id, apPoMatches.apBillId), eq(apBills.organizationId, apPoMatches.organizationId)),
+    )
+    .innerJoin(
+      expenses,
+      and(eq(expenses.id, apPoMatches.expenseId), eq(expenses.organizationId, organizationId)),
     )
     .where(
       and(
@@ -60,7 +67,13 @@ export async function loadAcceptedApMatchNetByExpenseId(
   const matchedByExpense = new Map<string, string>();
   for (const row of matchRows) {
     if (!row.expenseId) continue;
-    const slice = money(row.matchedAmount, row.currency);
+    const netSlice = matchedNetFromGross(
+      row.expenseNetAmount,
+      row.expenseGrossAmount,
+      row.matchedAmount,
+      row.currency,
+    );
+    const slice = money(netSlice, row.currency);
     const prev = matchedByExpense.get(row.expenseId);
     matchedByExpense.set(
       row.expenseId,

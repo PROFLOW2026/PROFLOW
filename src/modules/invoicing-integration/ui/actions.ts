@@ -10,16 +10,17 @@ import { requestExternalStatutoryDocumentCommitted } from '../application/reques
 import { resolveStatutoryProviderForOrg } from '../application/resolve-statutory-provider';
 import { saveStatutoryPdfToStorage } from '../application/save-statutory-pdf-to-storage';
 import { sendExternalStatutoryDocument } from '../application/send-external-statutory-document';
-import {
-  buildStatutoryShareUrl,
-  createStatutoryShareToken,
-} from '../application/statutory-share-token';
+import { createStatutoryShareLinkForDocument } from '../application/manage-statutory-share-links';
+import { linkExternalStatutoryDocument } from '../application/link-external-statutory-document';
+import { confirmStatutoryDocumentAbsent } from '../application/confirm-statutory-document-absent';
 import { requireSession, withOrgContext } from '@/shared/auth/session';
 import {
   OrganizationContextRequiredError,
   isAppError,
   mapServerActionError,
 } from '@/shared/errors';
+import { assertPermission } from '@/shared/permissions/assert';
+import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { getTranslations } from 'next-intl/server';
 import { revalidatePath } from 'next/cache';
 
@@ -237,17 +238,55 @@ export async function createStatutoryShareLinkAction(
   externalDocumentId: string,
 ): Promise<{ shareUrl?: string; error?: string }> {
   try {
-    const session = await requireSession();
-    if (!session.activeOrganizationId) {
-      return { error: await mapExternalDocError(new OrganizationContextRequiredError()) };
-    }
-    const token = createStatutoryShareToken({
-      organizationId: session.activeOrganizationId,
-      externalDocumentId,
+    return await withOrgContext(async (context) => {
+      assertPermission(context, PERMISSIONS.BILLING_MANAGE);
+      return createStatutoryShareLinkForDocument(context, externalDocumentId);
     });
-    return { shareUrl: buildStatutoryShareUrl(token) };
   } catch (error) {
     logUnmappedExternalDocError('share', error);
+    return { error: await mapExternalDocError(error) };
+  }
+}
+
+export async function linkExternalStatutoryDocumentAction(
+  externalDocumentId: string,
+  sumitDocumentId: string,
+  billingRecordId: string,
+  allowExternalReferenceMismatch = false,
+): Promise<ExternalStatutoryActionResult> {
+  try {
+    await withOrgContext(async (context) => {
+      await linkExternalStatutoryDocument(context, {
+        externalDocumentId,
+        sumitDocumentId,
+        allowExternalReferenceMismatch,
+      });
+    });
+    revalidateBillingRecordPaths(billingRecordId);
+    return { ok: true };
+  } catch (error) {
+    logUnmappedExternalDocError('manual-link', error);
+    return { error: await mapExternalDocError(error) };
+  }
+}
+
+export async function confirmStatutoryDocumentAbsentAction(
+  externalDocumentId: string,
+  billingRecordId: string,
+  reason: string,
+): Promise<ExternalStatutoryActionResult> {
+  try {
+    await withOrgContext(async (context) => {
+      await confirmStatutoryDocumentAbsent(context, {
+        externalDocumentId,
+        reason,
+        confirmedCheckedInSumit: true,
+      });
+    });
+    revalidateBillingRecordPaths(billingRecordId);
+    return { ok: true };
+  } catch (error) {
+    logUnmappedExternalDocError('confirm-absent', error);
     return { error: await mapExternalDocError(error) };
   }
 }

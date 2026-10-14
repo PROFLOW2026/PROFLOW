@@ -118,6 +118,12 @@ function DispatchRowEditor({
             <Alert tone={state.confirmRequired ? 'warning' : 'danger'}>{state.error}</Alert>
           ) : null}
           {state.success ? <Alert tone="success">{t('workspace.saved')}</Alert> : null}
+          {state.success && state.availabilityWarnings?.includes('on_leave') ? (
+            <Alert tone="warning">{t('dispatch.warningOnLeave')}</Alert>
+          ) : null}
+          {state.success && state.availabilityWarnings?.includes('overlapping_booking') ? (
+            <Alert tone="warning">{t('dispatch.warningOverlappingBooking')}</Alert>
+          ) : null}
         </form>
       ) : null}
     </div>

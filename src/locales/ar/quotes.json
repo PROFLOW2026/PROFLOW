@@ -140,6 +140,9 @@
     "pricingOpen": "سعر مفتوح (بدون عقد بعد)",
     "convertSubmit": "إنشاء عمل"
   },
+  "warnings": {
+    "quoteArtifactRelocateSkipped": "تم إنشاء العمل، لكن {count, plural, one {لم يُنقل ملف PDF # من العرض} other {لم تُنقل # ملفات PDF من العرض}} إلى مجلد المشروع ({reasons})."
+  },
   "errors": {
     "invalidTransition": "تغيير الحالة هذا غير مسموح",
     "notEditable": "يمكن تحرير المسودات أو الجاهزة فقط",

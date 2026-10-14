@@ -123,6 +123,7 @@
     "closeMenu": "Close menu",
     "sortAscending": "Sort ascending",
     "sortDescending": "Sort descending",
-    "navigating": "Navigating"
+    "navigating": "Navigating",
+    "languageSwitcher": "Language"
   }
 }

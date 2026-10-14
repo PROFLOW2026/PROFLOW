@@ -252,11 +252,14 @@ export function createDrizzleOcrRepository(db: DbExecutor): OcrRepository {
       if (statuses) filters.push(inArray(ocrExtractionJobs.status, statuses));
       if (options?.batchId) filters.push(eq(ocrExtractionJobs.batchId, options.batchId));
 
-      const rows = await db
+      const ordered = db
         .select()
         .from(ocrExtractionJobs)
         .where(and(...filters))
         .orderBy(desc(ocrExtractionJobs.updatedAt));
+
+      const rows =
+        options?.limit != null ? await ordered.limit(options.limit) : await ordered;
 
       return rows.map(mapJob);
     },

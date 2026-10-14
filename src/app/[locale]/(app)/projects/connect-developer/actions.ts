@@ -35,7 +35,7 @@ export async function previewConnectionCodeAction(
   if (!parsed.success) return { error: t('errors.validation') };
 
   try {
-    const { preview } = await previewCode(parsed.data.code);
+    const { preview } = await withOrgContext((context) => previewCode(context, parsed.data.code));
     return { preview, code: parsed.data.code };
   } catch (error) {
     return { error: await mapError(error, t) };
@@ -51,6 +51,9 @@ export async function retryProvisioningAction(
   if (!mappingId) return { error: t('errors.validation') };
   try {
     const result = await withOrgContext((context) => retryConnectedProjectProvisioning(context, mappingId));
+    if (result.provisioningFailed) {
+      return { error: t('contractor.provisioningFailedTitle') };
+    }
     return {
       success: t('contractor.retrySuccess'),
       projectId: result.contractorProjectId,
@@ -78,7 +81,13 @@ export async function acceptConnectionCodeAction(
         confirmOrganization: parsed.data.confirmOrganization,
       }),
     );
-    if (!result.idempotentReplay) {
+    if (result.provisioningFailed) {
+      return {
+        error: t('contractor.provisioningFailedTitle'),
+        contractorProjectId: undefined,
+      };
+    }
+    if (!result.idempotentReplay && result.contractorProjectId) {
       redirect(`../projects/${result.contractorProjectId}`);
     }
     return {

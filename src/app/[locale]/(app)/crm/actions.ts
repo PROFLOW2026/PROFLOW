@@ -5,7 +5,6 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import {
   acceptSalesQuoteVersion,
   convertCrmQuoteToProductQuote,
-  convertWonOpportunity,
   createEstimate,
   createLead,
   createOpportunity,
@@ -344,28 +343,6 @@ export async function updateOpportunityAction(
     );
     revalidateCrmOpportunityPaths(opportunityId);
     return {};
-  } catch (error) {
-    return mapError(error, tErrors);
-  }
-}
-
-export async function convertWonOpportunityAction(
-  _prev: CrmFormState,
-  formData: FormData,
-): Promise<CrmFormState> {
-  const tErrors = await getTranslations('errors');
-  const locale = await getLocale();
-  try {
-    const result = await withOrgContext((context) =>
-      convertWonOpportunity(context, {
-        opportunityId: formValue(formData, 'opportunityId') ?? '',
-        projectName: formValue(formData, 'projectName'),
-        salesQuoteVersionId: formValue(formData, 'salesQuoteVersionId'),
-      }),
-    );
-    revalidatePath('/crm');
-    revalidatePath('/projects');
-    redirect({ href: `/projects/${result.projectId}`, locale });
   } catch (error) {
     return mapError(error, tErrors);
   }

@@ -1,6 +1,10 @@
 {
   "title": "Sales",
   "description": "Follow inquiries and opportunities through to a quote and closing the work.",
+  "noAccess": {
+    "title": "No access to opportunities",
+    "body": "You do not have permission to view the sales pipeline. Ask your administrator."
+  },
   "quotesVsCrmBanner": "Quotes are bids. This CRM pipeline is optional and separate from the quotes book.",
   "navLabel": "CRM sections",
   "pipelineAria": "Sales flow: prospect, lead, opportunity, quote",
@@ -64,6 +68,7 @@
     "expectedStartShort": "Expected start",
     "stageLabel": "Stage",
     "stageHint": "Moves the opportunity on the pipeline board. Won convert happens on Quotes, not here.",
+    "wonHint": "Win is set when a product quote is accepted and converted — not from this dropdown.",
     "empty": "No next action, follow-up notes, or expected start stored yet.",
     "save": "Save follow-up"
   },
@@ -195,6 +200,8 @@
     "legacyQuoteReadOnly": "Legacy CRM quote — read-only. Create new bids as Product Quotes.",
     "legacyQuotesEmpty": "No legacy CRM sales quotes on this opportunity.",
     "convertToProductQuote": "Convert to Product Quote",
+    "convertedToProductQuote": "Converted to product quote",
+    "viewProductQuote": "Open product quote",
     "createProductQuote": "Create quote",
     "productQuotesSection": "Quotes (bids)",
     "productQuotesHint": "Customer bids live in Quotes. Accept and convert there - this is not a second quote book.",
@@ -231,6 +238,7 @@
     "useProductQuote": "Create and accept a product quote at /quotes before converting",
     "useProductQuoteConversionForWin": "Do not set status to won manually. Convert via an accepted product quote and the explicit conversion action.",
     "quoteFinalized": "Cannot add versions to a finalized sales quote",
+    "quoteAlreadyConverted": "This CRM quote was already converted. Open the product quote to continue.",
     "cannotIssueVersion": "Only draft sales quote versions can be issued",
     "cannotAcceptVersion": "Only draft or issued sales quote versions can be accepted"
   }

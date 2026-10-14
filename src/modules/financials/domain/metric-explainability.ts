@@ -6,6 +6,10 @@ import type {
   ProfitPosition,
   ProjectFinancials,
 } from '@/modules/financials/domain/types';
+import type { ProjectProfitabilityMode } from '@/modules/tenancy/domain/project-profitability-mode';
+import { DEFAULT_PROJECT_PROFITABILITY_MODE } from '@/modules/tenancy/domain/project-profitability-mode';
+import { resolveForecastCostBasis } from './resolve-forecast-cost-basis';
+import { resolveProjectProfitabilityDisplay } from './project-profitability-display';
 import {
   isNegativeMoney,
   isZeroMoney,
@@ -172,18 +176,27 @@ function buildActual(cost: CostPosition): MetricExplanation {
   };
 }
 
-function buildForecast(cost: CostPosition): MetricExplanation {
+function buildForecast(cost: CostPosition, mode: ProjectProfitabilityMode): MetricExplanation {
+  const forecastBasis = resolveForecastCostBasis(mode, cost);
+  const primaryActual =
+    resolveProjectProfitabilityDisplay(
+      mode,
+      cost,
+      null,
+      false,
+    ).primaryActualCost;
+  const primaryForecast = forecastBasis.primaryForecastFinalCost;
   return {
     metric: 'forecast',
-    total: cost.estimatedFinalCost,
+    total: primaryForecast,
     nature: 'forecast',
     formulaKey: 'forecast',
     basisKey: 'netExVat',
     categories: [
-      line('actual_cost', cost.actualCostToDate, 'add'),
+      line('actual_cost', primaryActual, 'add'),
       line('committed_open', cost.committedOpen, 'add'),
       line('expected_remaining', cost.expectedRemainingCost, 'add'),
-      line('forecast_cost', cost.estimatedFinalCost, 'total'),
+      line('forecast_cost', primaryForecast, 'total'),
       line('open_ap_payable', cost.openApPayable, 'info'),
     ],
     sources: [
@@ -218,7 +231,14 @@ function buildActualMargin(
   commercial: CommercialPosition,
   cost: CostPosition,
   profit: ProfitPosition,
+  mode: ProjectProfitabilityMode,
 ): MetricExplanation {
+  const primaryActual = resolveProjectProfitabilityDisplay(
+    mode,
+    cost,
+    commercial.currentContractValue,
+    false,
+  ).primaryActualCost;
   return {
     metric: 'actual_margin',
     total: profit.actualProfit,
@@ -227,7 +247,7 @@ function buildActualMargin(
     basisKey: 'profitNet',
     categories: [
       line('current_contract', commercial.currentContractValue, 'add'),
-      line('actual_cost', cost.actualCostToDate, 'subtract'),
+      line('actual_cost', primaryActual, 'subtract'),
       line('actual_margin', profit.actualProfit, 'total'),
     ],
     sources: [
@@ -242,7 +262,9 @@ function buildForecastMargin(
   commercial: CommercialPosition,
   cost: CostPosition,
   profit: ProfitPosition,
+  mode: ProjectProfitabilityMode,
 ): MetricExplanation {
+  const primaryForecast = resolveForecastCostBasis(mode, cost).primaryForecastFinalCost;
   return {
     metric: 'forecast_margin',
     total: profit.estimatedProfit,
@@ -251,7 +273,7 @@ function buildForecastMargin(
     basisKey: 'profitNet',
     categories: [
       line('current_contract', commercial.currentContractValue, 'add'),
-      line('forecast_cost', cost.estimatedFinalCost, 'subtract'),
+      line('forecast_cost', primaryForecast, 'subtract'),
       line('forecast_margin', profit.estimatedProfit, 'total'),
     ],
     sources: [
@@ -337,7 +359,7 @@ function buildUnallocated(unallocated: MoneyValue): MetricExplanation {
 export interface BuildExplainabilityInput {
   readonly financials: Pick<
     ProjectFinancials,
-    'commercial' | 'billing' | 'cost' | 'profit' | 'priceNotSet'
+    'commercial' | 'billing' | 'cost' | 'profit' | 'priceNotSet' | 'projectProfitabilityMode'
   >;
   readonly dataConfidence: DataConfidence;
   /** Org-layer disclosure; omit on project compose when unknown. */
@@ -355,10 +377,12 @@ export function buildProjectFinancialExplainability(
   input: BuildExplainabilityInput,
 ): ProjectFinancialExplainability {
   const { financials } = input;
+  const profitabilityMode =
+    financials.projectProfitabilityMode ?? DEFAULT_PROJECT_PROFITABILITY_MODE;
   const metrics: MetricExplanation[] = [];
 
   metrics.push(buildActual(financials.cost));
-  metrics.push(buildForecast(financials.cost));
+  metrics.push(buildForecast(financials.cost, profitabilityMode));
 
   if (input.canReadCommercial && financials.commercial && !financials.priceNotSet) {
     metrics.push(buildCurrentContract(financials.commercial));
@@ -371,10 +395,20 @@ export function buildProjectFinancialExplainability(
     !financials.priceNotSet
   ) {
     metrics.push(
-      buildActualMargin(financials.commercial, financials.cost, financials.profit),
+      buildActualMargin(
+        financials.commercial,
+        financials.cost,
+        financials.profit,
+        profitabilityMode,
+      ),
     );
     metrics.push(
-      buildForecastMargin(financials.commercial, financials.cost, financials.profit),
+      buildForecastMargin(
+        financials.commercial,
+        financials.cost,
+        financials.profit,
+        profitabilityMode,
+      ),
     );
   }
 

@@ -1,17 +1,13 @@
 import type { OrgContext } from '@/shared/auth/context';
-import { withTransaction } from '@/shared/db';
+import { businessDate } from '@/shared/dates';
 import {
   findRecurrenceRuleById,
   listPendingOccurrencesDue,
   getTaskDetail,
-  insertTaskAssignee,
-  insertChecklistItem,
-  insertLabelAssignment,
   listTaskReminders,
-  upsertTaskReminder,
+  updateOccurrenceStatus,
 } from '../data/tasks.repository';
 import { generateOccurrences, createGeneratedTask } from './schedule-recurrence';
-import { generateSortKey, appendAfter } from '../domain/lexorank';
 import { resolveReminderAt } from './manage-reminders';
 import type { TaskReminderType } from '../domain/types';
 
@@ -45,8 +41,15 @@ function addDays(date: Date, days: number): Date {
   return copy;
 }
 
-function formatDueDate(occurrenceAt: Date): string {
-  return occurrenceAt.toISOString().slice(0, 10);
+/** Local calendar due date for a recurrence occurrence instant. */
+export function buildOccurrenceDueDate(occurrenceAt: Date, timezone: string): string {
+  const local = new Intl.DateTimeFormat('en-CA', {
+    timeZone: timezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(occurrenceAt);
+  return businessDate(local);
 }
 
 /**
@@ -75,28 +78,34 @@ export async function processTaskRecurrenceForOrg(
       context.organizationId,
       occurrence.ruleId,
     );
-    if (!rule?.isActive || !rule.templateTaskId) continue;
+    if (!rule?.isActive || !rule.templateTaskId) {
+      await updateOccurrenceStatus(context.db, occurrence.id, 'cancelled');
+      continue;
+    }
 
     const template = await getTaskDetail(
       context.db,
       context.organizationId,
       rule.templateTaskId,
     );
-    if (!template) continue;
+    if (!template) {
+      await updateOccurrenceStatus(context.db, occurrence.id, 'cancelled');
+      continue;
+    }
 
     const templateReminders = await listTaskReminders(
       context.db,
       context.organizationId,
       template.id,
     );
-    const dueDate = formatDueDate(occurrence.occurrenceAt);
+    const dueDate = buildOccurrenceDueDate(occurrence.occurrenceAt, rule.timezone);
     const reminderCopies = buildOccurrenceReminderCopies(
       templateReminders,
       dueDate,
       context.organization.timezone,
     );
 
-    const task = await createGeneratedTask(context, occurrence.id, rule, {
+    await createGeneratedTask(context, occurrence.id, rule, {
       workspaceId: template.workspaceId,
       title: template.title,
       description: template.description,
@@ -104,50 +113,19 @@ export async function processTaskRecurrenceForOrg(
       boardId: template.boardId,
       bucketId: template.bucketId,
       dueDate,
-    });
-
-    await withTransaction(context.db, async (tx) => {
-      for (const assignee of template.assignees) {
-        await insertTaskAssignee(tx, {
-          taskId: task.id,
-          organizationId: context.organizationId,
-          orgMemberId: assignee.orgMemberId,
-          employeeId: assignee.employeeId,
-          assignedByOrgMemberId: null,
-        });
-      }
-
-      let sortKey = generateSortKey();
-      for (const item of template.checklistItems) {
-        await insertChecklistItem(tx, {
-          taskId: task.id,
-          organizationId: context.organizationId,
-          title: item.title,
-          sortKey,
-          dueDate: item.dueDate,
-          assigneeOrgMemberId: item.assigneeOrgMemberId,
-          assigneeEmployeeId: item.assigneeEmployeeId,
-        });
-        sortKey = appendAfter(sortKey);
-      }
-
-      for (const label of template.labels) {
-        await insertLabelAssignment(tx, {
-          taskId: task.id,
-          labelId: label.id,
-          organizationId: context.organizationId,
-        });
-      }
-
-      // Reminder types only. Do NOT copy attachments. Do NOT copy dependencies.
-      for (const reminder of reminderCopies) {
-        await upsertTaskReminder(tx, {
-          organizationId: context.organizationId,
-          taskId: task.id,
-          reminderType: reminder.reminderType,
-          remindAt: reminder.remindAt,
-        });
-      }
+    }, {
+      assignees: template.assignees.map((assignee) => ({
+        orgMemberId: assignee.orgMemberId,
+        employeeId: assignee.employeeId,
+      })),
+      checklistItems: template.checklistItems.map((item) => ({
+        title: item.title,
+        dueDate: item.dueDate,
+        assigneeOrgMemberId: item.assigneeOrgMemberId,
+        assigneeEmployeeId: item.assigneeEmployeeId,
+      })),
+      labels: template.labels.map((label) => ({ id: label.id })),
+      reminderCopies,
     });
 
     materialized += 1;

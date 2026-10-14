@@ -18,6 +18,7 @@ import { buildStatutoryBridgeFromBillingRecord } from './build-statutory-bridge'
 import { resolveStatutoryProviderForOrg } from './resolve-statutory-provider';
 import { resolveIssuanceOutcomeAfterProviderRefresh } from '../domain/resolve-issuance-outcome-after-refresh';
 import { SumitStatutoryProvider } from '../providers/sumit/sumit-statutory-provider';
+import { resolveAmbiguousExternalStatutoryDocument } from './resolve-ambiguous-external-statutory';
 
 function mapProviderStatus(
   status: 'pending' | 'issued' | 'credited' | 'cancelled' | 'failed',
@@ -42,6 +43,13 @@ export async function refreshExternalStatutoryStatus(
   const existing = await findExternalDocument(context, input.externalDocumentId);
   if (!existing) throw new NotFoundError('ExternalStatutoryDocument');
   if (!existing.externalId) {
+    if (
+      existing.issuanceOutcome === 'ambiguous' &&
+      resolvedProvider.id === SUMIT_PROVIDER_ID &&
+      resolvedProvider instanceof SumitStatutoryProvider
+    ) {
+      return resolveAmbiguousExternalStatutoryDocument(context, existing, resolvedProvider);
+    }
     throw new DomainRuleError(
       'External document has no provider id to refresh',
       'invoicingIntegration.errors.missingExternalId',

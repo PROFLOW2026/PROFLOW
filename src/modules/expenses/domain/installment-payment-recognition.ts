@@ -102,15 +102,20 @@ export function recognizedExpenseNetInYearMonth(
   const count = fields.installmentCount;
   if (!Number.isInteger(count) || count <= 1) {
     const paidGross = fromNumericString(fields.paidGrossAmount ?? '0', currency) ?? zeroMoney(currency);
+    const purchaseYm = yearMonthFromBusinessDate(businessDate(fields.expenseDate));
     if (isPositiveMoney(paidGross)) {
       const paidYm = paymentYearMonth(fields.paidAt ? businessDate(fields.paidAt) : null);
-      if (paidYm !== yearMonth) return null;
-      if (Number(paidGross.amount) >= Number(grossTotal.amount)) {
-        return roundMoney(netTotal);
+      const paidNet =
+        Number(paidGross.amount) >= Number(grossTotal.amount)
+          ? netTotal
+          : netFromGrossSlice(paidGross, netTotal, grossTotal);
+      if (paidYm === yearMonth) return roundMoney(paidNet);
+      if (purchaseYm === yearMonth) {
+        const remainder = subtractMoney(netTotal, paidNet);
+        if (isPositiveMoney(remainder)) return roundMoney(remainder);
       }
-      return netFromGrossSlice(paidGross, netTotal, grossTotal);
+      return null;
     }
-    const purchaseYm = yearMonthFromBusinessDate(businessDate(fields.expenseDate));
     if (purchaseYm === yearMonth) return roundMoney(netTotal);
     return null;
   }
@@ -166,12 +171,16 @@ export function recognizedExpenseGrossInYearMonth(
   const count = fields.installmentCount;
   if (!Number.isInteger(count) || count <= 1) {
     const paidGross = fromNumericString(fields.paidGrossAmount ?? '0', currency) ?? zeroMoney(currency);
+    const purchaseYm = yearMonthFromBusinessDate(businessDate(fields.expenseDate));
     if (isPositiveMoney(paidGross)) {
       const paidYm = paymentYearMonth(fields.paidAt ? businessDate(fields.paidAt) : null);
-      if (paidYm !== yearMonth) return null;
-      return roundMoney(paidGross);
+      if (paidYm === yearMonth) return roundMoney(paidGross);
+      if (purchaseYm === yearMonth) {
+        const remainder = subtractMoney(grossTotal, paidGross);
+        if (isPositiveMoney(remainder)) return roundMoney(remainder);
+      }
+      return null;
     }
-    const purchaseYm = yearMonthFromBusinessDate(businessDate(fields.expenseDate));
     if (purchaseYm === yearMonth) return roundMoney(grossTotal);
     return null;
   }

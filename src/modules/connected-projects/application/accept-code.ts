@@ -1,6 +1,6 @@
+import { sql } from 'drizzle-orm';
 import type { OrgContext } from '@/shared/auth/context';
 import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
-import { getAdminDb } from '@/shared/db/client';
 import { asServiceRoleWrite } from '@/shared/db/service-role-write';
 import { ConflictError, DomainRuleError, NotFoundError } from '@/shared/errors';
 import { assertPermission } from '@/shared/permissions/assert';
@@ -19,6 +19,7 @@ import {
   markInvitationConsumed,
   updateMappingProvisioning,
 } from '../data/connection.repository';
+import { loadDeveloperEngagementPreview } from './load-engagement-preview';
 import { previewCode } from './preview-code';
 import { provisionContractorProject } from './provision-contractor-project';
 
@@ -30,8 +31,9 @@ export interface AcceptCodeInput {
 
 export interface AcceptCodeResult {
   readonly mappingId: string;
-  readonly contractorProjectId: string;
+  readonly contractorProjectId?: string;
   readonly idempotentReplay: boolean;
+  readonly provisioningFailed?: boolean;
 }
 
 const err = (key: string) => new DomainRuleError(key, `connectedProjects.errors.${key}`);
@@ -44,8 +46,9 @@ export async function acceptCode(context: OrgContext, input: AcceptCodeInput): P
   if (!isPlausibleConnectionCode(code)) throw err('invalid_code');
 
   const codeHash = hashConnectionCode(code);
-  const adminDb = getAdminDb();
-  const invitation = await findInvitationByCodeHash(adminDb, codeHash);
+  const invitation = await asServiceRoleWrite(context.db, () =>
+    findInvitationByCodeHash(context.db, codeHash),
+  );
   if (!invitation || !connectionCodesEqual(invitation.codeHash, code)) {
     throw new NotFoundError('Connection code');
   }
@@ -80,15 +83,22 @@ export async function acceptCode(context: OrgContext, input: AcceptCodeInput): P
     throw err(state === 'expired' ? 'code_expired' : state === 'consumed' ? 'code_consumed' : 'code_revoked');
   }
 
-  const preview = (await previewCode(code)).preview;
+  const preview = existingByInvitation
+    ? await asServiceRoleWrite(context.db, () =>
+        loadDeveloperEngagementPreview(context.db, invitation),
+      )
+    : (await previewCode(context, code)).preview;
 
   let mappingId = existingByInvitation?.id;
   if (!mappingId) {
     mappingId = await asServiceRoleWrite(context.db, async () => {
-      await markInvitationConsumed(adminDb, invitation.id, {
+      const consumed = await markInvitationConsumed(context.db, invitation.id, {
         consumedByOrganizationId: context.organizationId,
         consumedByUserId: context.userId,
       });
+      if (consumed === 0) {
+        throw new ConflictError('Connection code already consumed', 'connectedProjects.errors.code_consumed');
+      }
       return insertConnectedProjectMapping(context.db, {
         invitationId: invitation.id,
         developerOrganizationId: invitation.developerOrganizationId,
@@ -118,6 +128,8 @@ export async function acceptCode(context: OrgContext, input: AcceptCodeInput): P
     };
   }
 
+  const savepoint = `cp_accept_${mappingRow.id.slice(0, 8)}`;
+  await context.db.execute(sql.raw(`SAVEPOINT "${savepoint}"`));
   try {
     const provisioned = await provisionContractorProject(context, {
       preview,
@@ -145,18 +157,35 @@ export async function acceptCode(context: OrgContext, input: AcceptCodeInput): P
       },
     });
 
+    await context.db.execute(sql.raw(`RELEASE SAVEPOINT "${savepoint}"`));
+
     return {
       mappingId: mappingRow.id,
       contractorProjectId: provisioned.projectId,
       idempotentReplay: false,
     };
   } catch (error) {
+    await context.db.execute(sql.raw(`ROLLBACK TO SAVEPOINT "${savepoint}"`));
     await asServiceRoleWrite(context.db, () =>
       updateMappingProvisioning(context.db, mappingRow.id, context.organizationId, {
         provisioningStatus: 'failed',
         status: 'failed',
       }),
     );
-    throw error;
+    await recordAuditEvent(context, {
+      action: AUDIT_ACTIONS.CONNECTED_PROJECT_PROVISION_FAILED,
+      entityType: 'connected_project_mapping',
+      entityId: mappingRow.id,
+      after: {
+        developerOrganizationId: invitation.developerOrganizationId,
+        developerProjectId: invitation.developerProjectId,
+        error: error instanceof Error ? error.message : 'unknown',
+      },
+    });
+    return {
+      mappingId: mappingRow.id,
+      idempotentReplay: false,
+      provisioningFailed: true,
+    };
   }
 }

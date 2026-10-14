@@ -65,12 +65,9 @@ function paymentConfirmedAudits(audits: readonly ExpensePaymentAuditRow[]): Expe
     return sorted.filter((row) => row.action === 'expense.payment_confirmed');
   }
   const lastVoid = voidAt[voidAt.length - 1]!;
-  return sorted.filter((row) => {
-    if (row.action !== 'expense.payment_confirmed') return false;
-    const slice = readAuditPaymentSlice(row.after);
-    if (slice?.installmentIndex != null) return true;
-    return row.createdAt > lastVoid;
-  });
+  return sorted.filter(
+    (row) => row.action === 'expense.payment_confirmed' && row.createdAt > lastVoid,
+  );
 }
 
 function readAuditPaymentSlice(after: unknown): {
@@ -107,7 +104,7 @@ function slicesFromIndexedAudits(
   const confirmed = audits
     .filter((row) => row.action === 'expense.payment_confirmed')
     .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
-  const out: InstallmentPaymentSlice[] = [];
+  const byIndex = new Map<number, InstallmentPaymentSlice>();
   for (const row of confirmed) {
     const slice = readAuditPaymentSlice(row.after);
     if (!slice) continue;
@@ -117,7 +114,7 @@ function slicesFromIndexedAudits(
     if (index == null) continue;
     if (index < 0 || index >= schedule.length) continue;
     if (!slice.paidAt) continue;
-    out.push({
+    byIndex.set(index, {
       installmentIndex: index,
       dueDate: schedule[index]!.dueDate,
       actualPaidAt: businessDate(slice.paidAt.slice(0, 10)),
@@ -127,7 +124,7 @@ function slicesFromIndexedAudits(
       paymentReference: slice.source,
     });
   }
-  return out;
+  return [...byIndex.values()];
 }
 
 function slicesFromLumpAudits(
@@ -257,6 +254,16 @@ export function resolveInstallmentPaymentState(input: {
     stored: input.cashInstallmentSchedule,
   });
   const expenseDate = businessDate(input.expenseDate);
+  if (!isPositiveMoney(paidGross) && input.installmentsPaidCount <= 0) {
+    return {
+      status: 'UNPAID',
+      slices: [],
+      dateUnknownGross: zeroMoney(currency),
+      verifiedGrossTotal: zeroMoney(currency),
+      paidGrossTotal: zeroMoney(currency),
+      openGross: roundMoney(grossTotal),
+    };
+  }
   const confirmedAudits = paymentConfirmedAudits(input.audits);
   const ledgerSlices = input.ledgerSlices ?? [];
   const ledgerIndices = new Set(

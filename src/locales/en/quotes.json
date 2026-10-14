@@ -140,6 +140,9 @@
     "pricingOpen": "Open price (no contract yet)",
     "convertSubmit": "Create work"
   },
+  "warnings": {
+    "quoteArtifactRelocateSkipped": "Work was created, but {count, plural, one {# quote PDF was} other {# quote PDFs were}} not moved into the project folder ({reasons})."
+  },
   "errors": {
     "invalidTransition": "This status change is not allowed",
     "notEditable": "Only draft or ready estimates can be edited",

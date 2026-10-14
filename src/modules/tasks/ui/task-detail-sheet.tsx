@@ -36,6 +36,7 @@ import {
 import { useCallback, useMemo, useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/shared/i18n/navigation';
+import { TaskEvidenceSummary } from '@/modules/evidence/ui/task-evidence-summary';
 import { Badge } from '@/components/ui/badge';
 import {
   Sheet,
@@ -253,7 +254,9 @@ type TaskEditDraft = {
   description: string;
   status: TaskStatus;
   priority: TaskPriority;
+  startDate: string | null;
   dueDate: string | null;
+  estimatedEffortMinutes: number | null;
   contributesToProgress: boolean;
   progressWeight: string;
   approvalRequired: boolean;
@@ -307,7 +310,9 @@ export function TaskDetailSheet({
       description: task.description ?? '',
       status: task.status,
       priority: task.priority,
+      startDate: task.startDate,
       dueDate: task.dueDate,
+      estimatedEffortMinutes: task.estimatedEffortMinutes ?? null,
       contributesToProgress: task.contributesToProgress === true,
       progressWeight: task.progressWeight ?? '',
       approvalRequired: task.approvalRequired === true,
@@ -409,7 +414,9 @@ export function TaskDetailSheet({
       (draft.description.trim() || null) !== task.description ||
       draft.status !== task.status ||
       draft.priority !== task.priority ||
+      draft.startDate !== task.startDate ||
       draft.dueDate !== task.dueDate ||
+      draft.estimatedEffortMinutes !== (task.estimatedEffortMinutes ?? null) ||
       draft.contributesToProgress !== (task.contributesToProgress === true) ||
       !sameProgressWeight(task.progressWeight, draft.progressWeight) ||
       draft.approvalRequired !== (task.approvalRequired === true)
@@ -462,7 +469,11 @@ export function TaskDetailSheet({
             }
             if (draft.status !== task.status) patch.status = draft.status;
             if (draft.priority !== task.priority) patch.priority = draft.priority;
+            if (draft.startDate !== task.startDate) patch.startDate = draft.startDate;
             if (draft.dueDate !== task.dueDate) patch.dueDate = draft.dueDate;
+            if (draft.estimatedEffortMinutes !== (task.estimatedEffortMinutes ?? null)) {
+              patch.estimatedEffortMinutes = draft.estimatedEffortMinutes;
+            }
             if (draft.contributesToProgress !== (task.contributesToProgress === true)) {
               patch.contributesToProgress = draft.contributesToProgress;
             }
@@ -715,6 +726,44 @@ export function TaskDetailSheet({
                 )}
               </Field>
 
+              <Field label={t('task.startDate')} icon={<Calendar className="size-4" />}>
+                <input
+                  type="date"
+                  value={draft?.startDate ?? task.startDate ?? ''}
+                  onChange={(event) =>
+                    setDraft((current) =>
+                      current
+                        ? { ...current, startDate: event.target.value || null }
+                        : current,
+                    )
+                  }
+                  className="rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--pf-focus-ring)]"
+                />
+              </Field>
+
+              <Field label={t('task.estimatedEffort')} icon={<Calendar className="size-4" />}>
+                <input
+                  type="number"
+                  min={0}
+                  step={0.5}
+                  value={
+                    draft?.estimatedEffortMinutes != null
+                      ? draft.estimatedEffortMinutes / 60
+                      : task.estimatedEffortMinutes != null
+                        ? task.estimatedEffortMinutes / 60
+                        : ''
+                  }
+                  onChange={(event) => {
+                    const raw = event.target.value.trim();
+                    const minutes = raw === '' ? null : Math.round(Number(raw) * 60);
+                    setDraft((current) =>
+                      current ? { ...current, estimatedEffortMinutes: minutes } : current,
+                    );
+                  }}
+                  className="w-28 rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-surface)] px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--pf-focus-ring)]"
+                />
+              </Field>
+
               {/* Due date */}
               <Field label={t('dueDateLabel')} icon={<Calendar className="size-4" />}>
                 <div className="flex flex-wrap items-center gap-2">
@@ -910,6 +959,8 @@ export function TaskDetailSheet({
                   }}
                 />
               )}
+
+              <TaskEvidenceSummary taskId={task.id} />
 
               {/* Attachments */}
               {task.attachments.length > 0 && (

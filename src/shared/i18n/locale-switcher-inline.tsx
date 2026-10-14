@@ -1,6 +1,6 @@
 'use client';
 
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import * as React from 'react';
 import { LOCALE_COOKIE_NAME } from '@/shared/i18n/auth-locale';
 import { LOCALES, LOCALE_METADATA, type Locale } from '@/shared/i18n/config';
@@ -16,6 +16,7 @@ export interface LocaleSwitcherInlineProps {
  */
 export function LocaleSwitcherInline({ className }: LocaleSwitcherInlineProps) {
   const locale = useLocale() as Locale;
+  const t = useTranslations('common.a11y');
   const pathname = usePathname();
   const router = useRouter();
   const [pending, startTransition] = React.useTransition();
@@ -24,7 +25,7 @@ export function LocaleSwitcherInline({ className }: LocaleSwitcherInlineProps) {
     <div
       className={cn('flex flex-wrap items-center justify-center gap-1', className)}
       role="group"
-      aria-label="Language"
+      aria-label={t('languageSwitcher')}
     >
       {LOCALES.map((option) => {
         const active = option === locale;

@@ -112,6 +112,77 @@ describe('expense installment payment evidence', () => {
     expect(state.slices[0]?.actualPaidAt).toBeNull();
   });
 
+  it('clears verified slices when payment void reset expense row to unpaid', () => {
+    const state = resolveInstallmentPaymentState({
+      grossAmount: '14160.000000',
+      currency: 'ILS',
+      installmentCount: 12,
+      installmentStartDate: '2026-01-01',
+      expenseDate: '2026-01-01',
+      cashInstallmentSchedule: null,
+      installmentsPaidCount: 0,
+      paidGrossAmount: null,
+      paidAt: null,
+      audits: [
+        {
+          action: 'expense.payment_confirmed',
+          createdAt: '2026-03-15T10:00:00.000Z',
+          after: {
+            paidAt: '2026-03-15',
+            paidGrossAmount: '1180.000000',
+            installmentIndex: 0,
+            source: 'manual',
+          },
+        },
+        {
+          action: 'expense.payment_confirmation_voided',
+          createdAt: '2026-03-15T11:00:00.000Z',
+          after: null,
+        },
+      ],
+      ledgerSlices: [
+        {
+          installmentIndex: 0,
+          dueDate: businessDate('2026-01-01'),
+          actualPaidAt: businessDate('2026-03-15'),
+          grossPaid: money('1180.000000', 'ILS'),
+          verification: 'verified',
+          source: 'ledger',
+        },
+      ],
+    });
+    expect(state.status).toBe('UNPAID');
+    expect(state.slices).toHaveLength(0);
+    expect(resolveVerifiedInstallmentPayments({
+      grossAmount: '14160.000000',
+      currency: 'ILS',
+      installmentCount: 12,
+      installmentStartDate: '2026-01-01',
+      expenseDate: '2026-01-01',
+      cashInstallmentSchedule: null,
+      installmentsPaidCount: 0,
+      paidGrossAmount: null,
+      paidAt: null,
+      audits: [
+        {
+          action: 'expense.payment_confirmed',
+          createdAt: '2026-03-15T10:00:00.000Z',
+          after: {
+            paidAt: '2026-03-15',
+            paidGrossAmount: '1180.000000',
+            installmentIndex: 0,
+          },
+        },
+        {
+          action: 'expense.payment_confirmation_voided',
+          createdAt: '2026-03-15T11:00:00.000Z',
+          after: null,
+        },
+      ],
+      ledgerSlices: [],
+    })).toHaveLength(0);
+  });
+
   it('resolveVerifiedInstallmentPayments for cellular-like row', () => {
     const resolved = resolveVerifiedInstallmentPayments({
       grossAmount: '8450.000000',

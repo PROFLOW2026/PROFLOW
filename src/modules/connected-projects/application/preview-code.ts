@@ -1,5 +1,8 @@
-import { getAdminDb } from '@/shared/db/client';
+import type { OrgContext } from '@/shared/auth/context';
+import { asServiceRoleWrite } from '@/shared/db/service-role-write';
 import { DomainRuleError, NotFoundError } from '@/shared/errors';
+import { assertPermission } from '@/shared/permissions/assert';
+import { PERMISSIONS } from '@/shared/permissions/catalog';
 import {
   connectionCodesEqual,
   hashConnectionCode,
@@ -19,30 +22,34 @@ export interface PreviewCodeResult {
 const err = (key: string) => new DomainRuleError(key, `connectedProjects.errors.${key}`);
 
 /**
- * Cross-tenant read by code hash (service connection). Does not consume the code.
+ * Cross-tenant read by code hash (service role inside the org transaction). Does not consume the code.
  */
-export async function previewCode(rawCode: string): Promise<PreviewCodeResult> {
+export async function previewCode(context: OrgContext, rawCode: string): Promise<PreviewCodeResult> {
+  assertPermission(context, PERMISSIONS.PROJECTS_CREATE);
+
   const code = rawCode.trim();
   if (!isPlausibleConnectionCode(code)) throw err('invalid_code');
 
   const codeHash = hashConnectionCode(code);
-  const db = getAdminDb();
-  const invitation = await findInvitationByCodeHash(db, codeHash);
-  if (!invitation || !connectionCodesEqual(invitation.codeHash, code)) {
-    throw new NotFoundError('Connection code');
-  }
 
-  const invitationState = invitationRuntimeState(invitation);
-  if (invitationState !== 'valid') {
-    throw err(
-      invitationState === 'expired'
-        ? 'code_expired'
-        : invitationState === 'consumed'
-          ? 'code_consumed'
-          : 'code_revoked',
-    );
-  }
+  return asServiceRoleWrite(context.db, async () => {
+    const invitation = await findInvitationByCodeHash(context.db, codeHash);
+    if (!invitation || !connectionCodesEqual(invitation.codeHash, code)) {
+      throw new NotFoundError('Connection code');
+    }
 
-  const preview = await loadDeveloperEngagementPreview(db, invitation);
-  return { preview, invitationId: invitation.id, invitationState };
+    const invitationState = invitationRuntimeState(invitation);
+    if (invitationState !== 'valid') {
+      throw err(
+        invitationState === 'expired'
+          ? 'code_expired'
+          : invitationState === 'consumed'
+            ? 'code_consumed'
+            : 'code_revoked',
+      );
+    }
+
+    const preview = await loadDeveloperEngagementPreview(context.db, invitation);
+    return { preview, invitationId: invitation.id, invitationState };
+  });
 }

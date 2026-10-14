@@ -8,7 +8,12 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { pressableCardLinkClassName, textNavLinkClassName } from '@/components/ui/pressable';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { countProjectsForOrg, listProjectsForOrg } from '@/modules/projects';
+import {
+  countProjectsForOrg,
+  listProjectsForOrg,
+  resolveProjectCoverViewUrls,
+} from '@/modules/projects';
+import { ProjectListCoverThumb } from '@/modules/projects/ui/project-list-cover-thumb';
 import { QueryPagination } from '@/components/ui/query-pagination';
 import {
   ORG_LIST_PAGE_SIZE,
@@ -91,7 +96,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
   const canCreate = shell?.permissions.has(PERMISSIONS.PROJECTS_CREATE) ?? false;
   const filtersActive = hasActiveFilters({ q: params.q, facet });
 
-  const { projects, readyCloseoutIds, totalCount, currentPage, totalPages } =
+  const { projects, readyCloseoutIds, totalCount, currentPage, totalPages, coverUrls } =
     await withOrgContext(async (context) => {
       const total = await countProjectsForOrg(context, listFilters);
       const page = resolveOrgListPage(total, requestedPage);
@@ -104,8 +109,16 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
         context,
         listed.map((project) => project.id),
       ).catch(() => []);
+      const coverUrls = await resolveProjectCoverViewUrls(
+        context,
+        listed.map((project) => ({
+          projectId: project.id,
+          storageKey: project.coverImageKey,
+        })),
+      ).catch(() => ({} as Record<string, string | null>));
       return {
         projects: listed,
+        coverUrls,
         readyCloseoutIds: new Set(
           statuses.filter((row) => row.status === 'ready').map((row) => row.projectId),
         ),
@@ -200,12 +213,18 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
                   return (
                     <TableRow key={project.id}>
                       <TableCell>
-                        <PrefetchOnIntentLink
-                          href={`/projects/${project.id}`}
-                          className={cn(textNavLinkClassName, 'rounded-sm font-medium')}
-                        >
-                          {titleWithDocumentNumber(project.name, project.documentNumber ?? '')}
-                        </PrefetchOnIntentLink>
+                        <div className="flex min-w-0 items-center gap-3">
+                          <ProjectListCoverThumb
+                            projectName={project.name}
+                            imageUrl={coverUrls[project.id] ?? null}
+                          />
+                          <PrefetchOnIntentLink
+                            href={`/projects/${project.id}`}
+                            className={cn(textNavLinkClassName, 'min-w-0 rounded-sm font-medium')}
+                          >
+                            {titleWithDocumentNumber(project.name, project.documentNumber ?? '')}
+                          </PrefetchOnIntentLink>
+                        </div>
                       </TableCell>
                       <TableCell className="text-[var(--pf-text-secondary)]">
                         {project.clientName ?? t('list.columns.noClient')}
@@ -238,7 +257,12 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
                 href={`/projects/${project.id}`}
                 className={cn(pressableCardLinkClassName, 'min-w-0 max-w-full')}
               >
-                <div className="flex min-w-0 items-start justify-between gap-2">
+                <div className="flex min-w-0 items-start gap-3">
+                  <ProjectListCoverThumb
+                    projectName={project.name}
+                    imageUrl={coverUrls[project.id] ?? null}
+                  />
+                  <div className="flex min-w-0 flex-1 items-start justify-between gap-2">
                   <span className="min-w-0 flex-1 break-words font-semibold">
                     {titleWithDocumentNumber(project.name, project.documentNumber ?? '')}
                   </span>
@@ -247,6 +271,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
                     {readyCloseoutIds.has(project.id) && project.status !== 'completed' ? (
                       <ProjectStatusBadge status="active" label={tCloseout('badge.ready')} />
                     ) : null}
+                  </div>
                   </div>
                 </div>
                 <p className="mt-1 min-w-0 break-words text-sm text-[var(--pf-text-secondary)]">

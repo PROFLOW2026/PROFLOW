@@ -3,7 +3,7 @@
 import { z } from 'zod';
 import { openExternalSharedDocumentFile } from '@/modules/project-plans';
 import { projectFileDeps } from '@/modules/evidence/server';
-import { finalizeDocumentUpload, prepareDocumentUpload } from '@/modules/documents';
+import { finalizeDocumentUpload, prepareDocumentUpload, softDeleteDocument } from '@/modules/documents';
 import { isOrganizationStorageConfigured, uploadDocumentToExternalStorage } from '@/modules/external-storage/server';
 import { EXTERNAL_CAPABILITIES } from '@/shared/external';
 import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
@@ -17,6 +17,9 @@ const inputSchema = z.object({
   shareId: z.string().uuid(),
 });
 
+/** OD-70: cap cross-org copy before reading the full stream into memory. */
+export const CROSS_ORG_COPY_MAX_BYTES = 50 * 1024 * 1024;
+
 export type SaveCopyToMyStorageResult =
   | { readonly ok: true; readonly documentId: string }
   | {
@@ -25,7 +28,8 @@ export type SaveCopyToMyStorageResult =
         | 'storage_not_configured'
         | 'download_not_permitted'
         | 'no_portal_principal'
-        | 'upload_failed';
+        | 'upload_failed'
+        | 'too_large';
     };
 
 /**
@@ -57,21 +61,31 @@ export async function saveCopyToMyStorageAction(
     return { ok: false, reason: 'download_not_permitted' };
   }
 
-  const body = new Uint8Array(await new Response(opened.stream).arrayBuffer());
-  const sizeBytes = opened.sizeBytes ?? body.byteLength;
+  const sizeBytes = opened.sizeBytes;
+  if (sizeBytes != null && sizeBytes > CROSS_ORG_COPY_MAX_BYTES) {
+    return { ok: false, reason: 'too_large' };
+  }
 
+  const body = new Uint8Array(await new Response(opened.stream).arrayBuffer());
+  const resolvedSize = sizeBytes ?? body.byteLength;
+  if (resolvedSize > CROSS_ORG_COPY_MAX_BYTES) {
+    return { ok: false, reason: 'too_large' };
+  }
+
+  let preparedDocumentId: string | null = null;
   try {
     const documentId = await withOrgContext(async (context) => {
       assertPermission(context, PERMISSIONS.DOCUMENTS_MANAGE);
       const prepared = await prepareDocumentUpload(context, {
         fileName: opened.fileName,
         mimeType: opened.mimeType,
-        sizeBytes,
+        sizeBytes: resolvedSize,
         ownerType: 'project',
         ownerId: input.contractorProjectId,
         label: 'developer_shared_copy',
         privacyClass: 'standard',
       });
+      preparedDocumentId = prepared.document.id;
 
       await uploadDocumentToExternalStorage(context, {
         documentId: prepared.document.id,
@@ -81,12 +95,12 @@ export async function saveCopyToMyStorageAction(
         fileName: opened.fileName,
         mimeType: opened.mimeType,
         body,
-        sizeBytes,
+        sizeBytes: resolvedSize,
       });
 
       await finalizeDocumentUpload(context, {
         documentId: prepared.document.id,
-        sizeBytes,
+        sizeBytes: resolvedSize,
       });
 
       await recordAuditEvent(context, {
@@ -105,6 +119,13 @@ export async function saveCopyToMyStorageAction(
 
     return { ok: true, documentId };
   } catch {
+    if (preparedDocumentId) {
+      try {
+        await withOrgContext((context) => softDeleteDocument(context, { documentId: preparedDocumentId! }));
+      } catch {
+        // Best-effort orphan cleanup.
+      }
+    }
     return { ok: false, reason: 'upload_failed' };
   }
 }

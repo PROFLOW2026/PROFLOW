@@ -64,6 +64,8 @@ import type {
 } from '@/modules/tasks';
 import { MY_WORK_VIEW_LIMIT, TASK_LIST_MAX_LIMIT } from '@/modules/tasks/domain/list-window';
 import { listAccessibleWorkLensTasksPage } from '@/modules/tasks/application/work-lens-task-list';
+import { listUnscheduledTasksPage } from '@/modules/tasks/application/list-unscheduled-tasks';
+import { resolveWorkLensCalendarQuery } from '@/modules/tasks/application/work-lens-calendar-filters';
 import { mapTasksToCardDataForOrg } from '@/modules/tasks/application/map-tasks-for-ui';
 import type { TaskCardData } from '@/modules/tasks/ui/task-api';
 import { serializeTaskCardsForClient } from '@/modules/tasks/ui/serialize-task-cards';
@@ -151,6 +153,22 @@ export async function updateTaskFieldsAction(
   }
 }
 
+export async function bulkUpdateTasksAction(
+  taskIds: string[],
+  patch: Record<string, unknown>,
+): Promise<{ updated: number; failed: readonly { id: string; reason: string }[] }> {
+  const { bulkUpdateTasks } = await import('@/modules/tasks/application/bulk-update-tasks');
+  return withOrgContext(async (context) => {
+    const result = await bulkUpdateTasks(context, taskIds, {
+      status: patch.status as TaskStatus | undefined,
+      priority: patch.priority as TaskPriority | undefined,
+      dueDate: patch.dueDate as string | null | undefined,
+      assigneeOrgMemberId: patch.assigneeOrgMemberId as string | null | undefined,
+    });
+    return { updated: result.updated, failed: [...result.failed] };
+  });
+}
+
 export async function loadMoreAccessibleTasksAction(input: {
   offset: number;
   projectId?: string;
@@ -190,7 +208,16 @@ export async function loadMoreWorkLensTasksAction(
 ): Promise<{ tasks: TaskCardData[]; hasMore: boolean; nextOffset: number }> {
   return withOrgContext(async (context) => {
     const today = todayInTimeZone(context.organization.timezone);
-    const page = await listAccessibleWorkLensTasksPage(context, urlParams, {
+    let lensParams: Record<string, string> = urlParams;
+    if (urlParams.month && (!urlParams.anchorFrom || !urlParams.anchorTo)) {
+      const calendar = resolveWorkLensCalendarQuery(urlParams, today);
+      lensParams = {
+        ...urlParams,
+        anchorFrom: calendar.anchorFrom,
+        anchorTo: calendar.anchorTo,
+      };
+    }
+    const page = await listAccessibleWorkLensTasksPage(context, lensParams, {
       limit: TASK_LIST_MAX_LIMIT,
       offset,
       excludeCancelled: options.excludeCancelled,
@@ -200,6 +227,19 @@ export async function loadMoreWorkLensTasksAction(
       tasks: serializeTaskCardsForClient(await mapTasksToCardDataForOrg(context, page.tasks)),
       hasMore: page.hasMore,
       nextOffset: offset + page.tasks.length,
+    };
+  });
+}
+
+export async function loadMoreUnscheduledTasksAction(
+  offset: number,
+  urlParams: Record<string, string> = {},
+): Promise<{ tasks: TaskCardData[]; hasMore: boolean }> {
+  return withOrgContext(async (context) => {
+    const page = await listUnscheduledTasksPage(context, urlParams, { offset });
+    return {
+      tasks: serializeTaskCardsForClient(await mapTasksToCardDataForOrg(context, page.tasks)),
+      hasMore: page.hasMore,
     };
   });
 }
@@ -625,7 +665,11 @@ export async function removeDependencyAction(
 
 export async function duplicateTaskAction(
   taskId: string,
-  options: { includeAssignees?: boolean } = {},
+  options: {
+    includeAssignees?: boolean;
+    targetProjectId?: string | null;
+    copyDates?: boolean;
+  } = {},
 ): Promise<WorkActionState> {
   try {
     const newTask = await withOrgContext(async (context) =>
@@ -828,6 +872,46 @@ export async function linkProviderFileToTaskCommentAction(
       await linkProviderFileToTaskComment(context, taskId, commentId, input);
     });
     return { success: true };
+  } catch (error) {
+    return mapWorkActionError(error);
+  }
+}
+
+export async function searchTaskMentionCandidatesAction(taskId: string, query: string) {
+  return withOrgContext(async (context) => {
+    const { searchTaskMentionCandidates } = await import(
+      '@/modules/tasks/application/search-task-mention-candidates'
+    );
+    return searchTaskMentionCandidates(context, taskId, query);
+  });
+}
+
+export async function listTaskTransferTargetsAction() {
+  return withOrgContext(async (context) => {
+    const { listTaskTransferTargets } = await import(
+      '@/modules/tasks/application/list-task-transfer-targets'
+    );
+    return listTaskTransferTargets(context);
+  });
+}
+
+export async function moveTaskToProjectAction(
+  taskId: string,
+  input: {
+    targetProjectId: string;
+    targetBoardId?: string | null;
+    targetBucketId?: string | null;
+    confirmRemoveInaccessibleAssignees?: boolean;
+  },
+): Promise<WorkActionState & { taskId?: string }> {
+  try {
+    const task = await withOrgContext(async (context) => {
+      const { moveTaskToProject } = await import(
+        '@/modules/tasks/application/move-task-to-project'
+      );
+      return moveTaskToProject(context, taskId, input);
+    });
+    return { success: true, taskId: task.id };
   } catch (error) {
     return mapWorkActionError(error);
   }

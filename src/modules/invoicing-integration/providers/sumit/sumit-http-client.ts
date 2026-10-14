@@ -67,6 +67,24 @@ export interface SumitSendDocumentRequest {
 /** SUMIT expense document types (15–21). Type 22 SupplierPayment must not be batched with these. */
 export const SUMIT_EXPENSE_DOCUMENT_TYPES = [15, 16, 17, 18, 19, 20, 21] as const;
 
+/** Income statutory document types for ambiguous recovery scans. */
+export const SUMIT_INCOME_DOCUMENT_TYPES = [0, 1, 2, 3, 5] as const;
+
+export interface SumitAccountingListDocument {
+  readonly documentId: string;
+  readonly documentType: number | null;
+  readonly externalReference: string | null;
+  readonly isDraft: boolean | null;
+  readonly date: string | null;
+}
+
+export interface SumitListAccountingDocumentsResult {
+  readonly documents: readonly SumitAccountingListDocument[];
+  readonly pagingComplete: boolean;
+  readonly candidateCapReached: boolean;
+  readonly candidatesChecked: number;
+}
+
 export interface SumitExpenseListDocument {
   readonly documentId: string;
   readonly documentType: number | null;
@@ -95,6 +113,14 @@ export interface SumitHttpClient {
     readonly startIndex?: number;
     readonly pageSize?: number;
   }): Promise<readonly SumitExpenseListDocument[]>;
+  listAccountingDocuments(input?: {
+    readonly types?: readonly number[];
+    readonly dateFrom?: string | null;
+    readonly dateTo?: string | null;
+    readonly includeDrafts?: boolean;
+    readonly pageSize?: number;
+    readonly candidateCap?: number;
+  }): Promise<SumitListAccountingDocumentsResult>;
   sendDocument(input: SumitSendDocumentRequest): Promise<void>;
   /** @deprecated Prefer testConnection() for credential verification. */
   ping(): Promise<boolean>;
@@ -241,7 +267,7 @@ export function createSumitHttpClient(
       );
       const mapped = mapDocumentResponse(raw);
       if (!mapped.documentId) {
-        throw new Error('SUMIT create succeeded without DocumentID');
+        throw new SumitAmbiguousError('SUMIT create succeeded without DocumentID');
       }
       return mapped;
     },
@@ -260,6 +286,79 @@ export function createSumitHttpClient(
         DocumentID: Number(documentId),
       });
       return mapDocumentResponse(raw);
+    },
+
+    async listAccountingDocuments(input = {}) {
+      const types = input.types ?? [...SUMIT_INCOME_DOCUMENT_TYPES];
+      const pageSize = Math.min(Math.max(input.pageSize ?? 100, 10), 1000);
+      const candidateCap = input.candidateCap ?? 200;
+      const documents: SumitAccountingListDocument[] = [];
+      let startIndex = 0;
+      let pagingComplete = true;
+      let candidateCapReached = false;
+
+      while (documents.length < candidateCap) {
+        const raw = await postJson<Record<string, unknown>>('/accounting/documents/list/', {
+          DocumentTypes: [...types],
+          DateFrom: input.dateFrom ?? null,
+          DateTo: input.dateTo ?? null,
+          IncludeDrafts: input.includeDrafts ?? true,
+          Paging: {
+            StartIndex: startIndex,
+            PageSize: pageSize,
+          },
+        });
+        const data =
+          raw.Data && typeof raw.Data === 'object'
+            ? (raw.Data as Record<string, unknown>)
+            : raw;
+        const docs = (data.Documents ?? []) as Array<Record<string, unknown>>;
+        if (docs.length === 0) break;
+
+        for (const doc of docs) {
+          if (documents.length >= candidateCap) {
+            candidateCapReached = true;
+            pagingComplete = false;
+            break;
+          }
+          const documentId =
+            typeof doc.DocumentID === 'number'
+              ? String(doc.DocumentID)
+              : typeof doc.DocumentID === 'string'
+                ? doc.DocumentID
+                : '';
+          if (!documentId) continue;
+          documents.push({
+            documentId,
+            documentType: typeof doc.Type === 'number' ? doc.Type : null,
+            externalReference:
+              typeof doc.ExternalReference === 'string'
+                ? doc.ExternalReference
+                : typeof doc.ExternalReference === 'number'
+                  ? String(doc.ExternalReference)
+                  : null,
+            isDraft: typeof doc.IsDraft === 'boolean' ? doc.IsDraft : null,
+            date: typeof doc.Date === 'string' ? doc.Date : null,
+          });
+        }
+
+        if (candidateCapReached || docs.length < pageSize) {
+          if (docs.length >= pageSize && !candidateCapReached) {
+            startIndex += docs.length;
+          } else if (docs.length >= pageSize && candidateCapReached) {
+            pagingComplete = false;
+          }
+          break;
+        }
+        startIndex += docs.length;
+      }
+
+      return {
+        documents,
+        pagingComplete,
+        candidateCapReached,
+        candidatesChecked: documents.length,
+      };
     },
 
     async listExpenseDocuments(input = {}) {

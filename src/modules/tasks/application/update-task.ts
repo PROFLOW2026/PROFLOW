@@ -7,10 +7,11 @@ import {
   updateTaskById,
   insertTaskActivity,
 } from '../data/tasks.repository';
-import { isValidTransition, transitionTask } from '../domain/lifecycle';
 import { buildActivityActorFieldsFromContext } from '../domain/actor';
-import { assertTaskCompletionApprovalSatisfied } from './submit-task-approval';
+import { applyTaskStatusChange } from './apply-task-status-change';
+import { rescheduleTaskReminders } from './reschedule-task-reminders';
 import { updateTaskSchema } from '../validation/task-schema';
+import { assertStartBeforeDue } from '../domain/start-before-due';
 import type { Task, UpdateTaskInput } from '../domain/types';
 
 /**
@@ -44,6 +45,9 @@ export async function updateTask(
   const existing = await findTaskById(context.db, context.organizationId, taskId);
   if (!existing) throw new NotFoundError('Task');
 
+  const nextStart = input.startDate !== undefined ? input.startDate : existing.startDate;
+  const nextDue = input.dueDate !== undefined ? input.dueDate : existing.dueDate;
+  assertStartBeforeDue(nextStart, nextDue);
   if (existing.isArchived) {
     throw new DomainRuleError(
       'Cannot update an archived task',
@@ -87,31 +91,19 @@ export async function updateTask(
   if (input.ownerOrgMemberId !== undefined) patch.ownerOrgMemberId = input.ownerOrgMemberId;
   if (input.ownerEmployeeId !== undefined) patch.ownerEmployeeId = input.ownerEmployeeId;
 
-  // Status transition
+  let statusHandled = false;
   if (input.status !== undefined && input.status !== existing.status) {
-    if (input.status === 'done') {
-      await assertTaskCompletionApprovalSatisfied(context, taskId);
-    }
-    if (!isValidTransition(existing.status, input.status)) {
-      throw new DomainRuleError(
-        `Invalid status transition: ${existing.status} → ${input.status}`,
-        'tasks.errors.invalidTransition',
-        { from: existing.status, to: input.status },
-      );
-    }
-    const { status, completionDate } = transitionTask(existing.status, input.status);
-    patch.status = status;
-    if (completionDate) {
-      patch.completionDate = completionDate;
-      patch.completedByOrgMemberId = context.membershipId;
-    }
-    if (input.status === 'done') {
-      activityEvents.push({ eventType: 'completed', payload: { from: existing.status } });
-    } else if (existing.status === 'done' || existing.status === 'cancelled') {
-      activityEvents.push({ eventType: 'reopened', payload: { from: existing.status, to: input.status } });
-    } else {
-      activityEvents.push({ eventType: 'status_changed', payload: { from: existing.status, to: input.status } });
-    }
+    await applyTaskStatusChange(
+      context,
+      taskId,
+      input.status,
+      { kind: 'member' },
+      {
+        confirmDependencyWarning: input.confirmDependencyWarning,
+        dependencyOverrideReason: input.dependencyOverrideReason,
+      },
+    );
+    statusHandled = true;
   }
 
   // Priority change
@@ -132,7 +124,13 @@ export async function updateTask(
     });
   }
 
-  if (input.startDate !== undefined) patch.startDate = input.startDate;
+  if (input.startDate !== undefined && input.startDate !== existing.startDate) {
+    patch.startDate = input.startDate;
+    activityEvents.push({
+      eventType: 'automation_changed',
+      payload: { field: 'startDate', from: existing.startDate, to: input.startDate },
+    });
+  }
 
   // Bucket change
   if (input.bucketId !== undefined && input.bucketId !== existing.bucketId) {
@@ -145,8 +143,17 @@ export async function updateTask(
 
   if (input.boardId !== undefined) patch.boardId = input.boardId;
 
-  const updated = await updateTaskById(context.db, context.organizationId, taskId, patch);
+  const updated =
+    Object.keys(patch).length > 0
+      ? await updateTaskById(context.db, context.organizationId, taskId, patch)
+      : statusHandled
+        ? await findTaskById(context.db, context.organizationId, taskId)
+        : existing;
   if (!updated) throw new NotFoundError('Task');
+
+  if (input.dueDate !== undefined && input.dueDate !== existing.dueDate) {
+    await rescheduleTaskReminders(context, taskId, input.dueDate);
+  }
 
   // Record all activity events
   for (const event of activityEvents) {
@@ -157,16 +164,6 @@ export async function updateTask(
       eventType: event.eventType,
       payload: event.payload ?? null,
     });
-  }
-
-  // Notify followers when status changes (fire-and-forget)
-  if (input.status !== undefined && input.status !== existing.status) {
-    const { notifyTaskFollowersOfStatusChange } = await import('./notify-task-followers');
-    void notifyTaskFollowersOfStatusChange(context, {
-      taskId,
-      taskTitle: updated.title,
-      newStatus: updated.status,
-    }).catch(() => { /* swallow — notification failure must not surface to caller */ });
   }
 
   return updated;

@@ -104,7 +104,7 @@
     "neverExposed": "לעולם לא נחשף",
     "neverExposedItems": {
       "profit": "יתרת חוזה לאחר עלויות מוכרות",
-      "margin": "מיתרת חוזה לאחר עלויות מוכרות",
+      "margin": "שיעור יתרת החוזה",
       "trueCost": "עלות אמיתית",
       "employeeCost": "עלות עובד",
       "overhead": "הוצאות כלליות",

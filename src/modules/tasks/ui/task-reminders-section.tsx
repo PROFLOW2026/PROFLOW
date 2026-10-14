@@ -36,6 +36,7 @@ export function TaskRemindersSection({
       <p className="text-xs font-semibold uppercase tracking-wide text-[var(--pf-text-muted)]">
         {t('label')}
       </p>
+      <p className="text-xs text-[var(--pf-text-muted)]">{t('externalDeliveryDisconnected')}</p>
       {!hasDueDate ? (
         <p className="text-sm text-[var(--pf-text-muted)]">{t('needsDueDate')}</p>
       ) : (

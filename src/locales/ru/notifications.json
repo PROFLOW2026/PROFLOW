@@ -39,6 +39,7 @@
     "action_required": "Требуется действие",
     "task_assigned_to_you": "Вам назначена задача",
     "task_comment_mention": "Новый комментарий к вашей задаче",
+    "task_comment_added": "Новый комментарий к задаче",
     "task_status_updated": "Статус задачи обновлён",
     "task_postponed_by_employee": "Сотрудник перенёс задачу",
     "capture_needs_review": "Захват ожидает проверки",
@@ -123,6 +124,12 @@
       "titleWithReference": "Новый комментарий к задаче — {reference}",
       "titleDefault": "Новый комментарий к вашей задаче",
       "bodyDefault": "Добавлен комментарий к задаче, в которой вы назначены исполнителем.",
+      "bodyWithExtra": "{extra}"
+    },
+    "task_comment_added": {
+      "titleWithReference": "Новый комментарий к задаче — {reference}",
+      "titleDefault": "Новый комментарий к задаче",
+      "bodyDefault": "Добавлен комментарий к задаче, за которой вы следите или в которой участвуете.",
       "bodyWithExtra": "{extra}"
     },
     "task_approval_requested": {
@@ -224,6 +231,12 @@
           "bodyWithExtra": "{extra}"
         }
       }
+    },
+    "task_dependency_resolved": {
+      "titleWithReference": "Задача разблокирована — {reference}",
+      "titleDefault": "Задача разблокирована",
+      "bodyWithExtra": "Предшественник завершён: {extra}",
+      "bodyDefault": "Ваша задача готова к началу работы."
     },
     "task_status_updated": {
       "titleWithReference": "Задача обновлена — {reference}",

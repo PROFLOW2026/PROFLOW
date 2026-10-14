@@ -6,6 +6,7 @@ export {
   getQuoteDetail,
 } from './application/manage-quotes';
 export { listQuotesForOrg, getQuoteById } from './application/queries';
+export { findProductQuoteBySourceCrmQuoteId } from './data/quotes.repository';
 export { transitionQuoteStatus } from './application/transition-quote';
 export { convertQuote } from './application/convert-quote';
 export type { ConvertQuoteResult } from './application/convert-quote';

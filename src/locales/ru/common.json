@@ -123,6 +123,7 @@
     "closeMenu": "Закрыть меню",
     "sortAscending": "Сортировка по возрастанию",
     "sortDescending": "Сортировка по убыванию",
-    "navigating": "Переход"
+    "navigating": "Переход",
+    "languageSwitcher": "Язык"
   }
 }

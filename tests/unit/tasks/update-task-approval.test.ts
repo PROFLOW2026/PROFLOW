@@ -22,6 +22,23 @@ vi.mock('@/modules/tasks/application/submit-task-approval', () => ({
   assertTaskCompletionApprovalSatisfied: mocks.assertTaskCompletionApprovalSatisfied,
 }));
 
+vi.mock('@/modules/tasks/application/apply-task-status-change', () => ({
+  applyTaskStatusChange: vi.fn(
+    async (
+      context: OrgContext,
+      taskId: string,
+      newStatus: string,
+    ) => {
+      if (newStatus === 'done') {
+        await mocks.assertTaskCompletionApprovalSatisfied(context, taskId);
+      }
+      await mocks.updateTaskById(context.db, context.organizationId, taskId, {
+        status: newStatus,
+      });
+    },
+  ),
+}));
+
 vi.mock('@/modules/tasks/application/notify-task-followers', () => ({
   notifyTaskFollowersOfStatusChange: vi.fn().mockResolvedValue(undefined),
 }));

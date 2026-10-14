@@ -3,7 +3,8 @@
 import { revalidatePath } from 'next/cache';
 import { getLocale } from 'next-intl/server';
 import { z } from 'zod';
-import { requireExternalContext } from '@/modules/contractor-access';
+import { getContractorAccount, requireExternalContext, updateContractorProfile } from '@/modules/contractor-access';
+import { isLocale } from '@/shared/i18n/config';
 import { NotFoundError } from '@/shared/errors';
 import { redirect } from '@/shared/i18n/navigation';
 import { createSupabaseServerClient, isSupabaseConfigured } from '@/shared/supabase/server';
@@ -33,6 +34,19 @@ export async function markPortalNotificationReadAction(notificationId: string): 
     if (!(error instanceof NotFoundError)) throw error;
   }
   revalidatePath(PORTAL_BASE_PATH, 'layout');
+}
+
+/** Persist contractor UI locale on the external principal (U10). */
+export async function persistExternalPrincipalLocaleAction(locale: string): Promise<void> {
+  if (!isLocale(locale)) return;
+  const context = await requireExternalContext();
+  const account = await getContractorAccount(context);
+  const displayName = account.displayName?.trim() || account.username;
+  await updateContractorProfile(context, {
+    displayName,
+    phone: account.phone,
+    locale,
+  });
 }
 
 export async function markAllPortalNotificationsReadAction(): Promise<void> {

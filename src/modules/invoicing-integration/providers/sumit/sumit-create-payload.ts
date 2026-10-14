@@ -1,3 +1,4 @@
+import { toDecimalValue } from '@/shared/money';
 import type { ExternalDocumentKind } from '../../domain/types';
 import type {
   BillingRecordBridgeRef,
@@ -69,9 +70,9 @@ function resolveLineAmounts(line: StatutoryLineItem): {
   unitPrice: number;
   totalPrice: number;
 } {
-  const lineTotal = Number.parseFloat(line.lineNet.amount);
+  const lineTotal = toDecimalValue(line.lineNet).toNumber();
   const parsedQuantity = line.quantity ? Number(line.quantity) : null;
-  const parsedUnitPrice = line.unitPrice ? Number.parseFloat(line.unitPrice) : null;
+  const parsedUnitPrice = line.unitPrice ? toDecimalValue({ amount: line.unitPrice, currency: line.lineNet.currency }).toNumber() : null;
 
   if (parsedQuantity != null && parsedQuantity > 0 && parsedUnitPrice != null) {
     return {
@@ -86,6 +87,12 @@ function resolveLineAmounts(line: StatutoryLineItem): {
     unitPrice: lineTotal,
     totalPrice: lineTotal,
   };
+}
+
+function resolveSumitVatRate(billing: BillingRecordBridgeRef): number | undefined {
+  if (billing.vatMode === 'zero') return 0;
+  if (billing.vatRatePercent == null) return undefined;
+  return billing.vatRatePercent;
 }
 
 /** Maps one PF billing line → SUMIT Accounting_Typed_DocumentItem (OpenAPI + live validation). */
@@ -218,8 +225,9 @@ export function buildSumitCreatePayload(input: BuildSumitCreatePayloadInput): Re
   const payload: Record<string, unknown> = {
     Details: details,
     Items: mapSumitItems(billing),
-    VATIncluded: billing.vatMode === 'inclusive',
-    VATRate: billing.vatRatePercent ?? undefined,
+    /** lineNet is always pre-VAT; SUMIT adds VAT when VATRate is set. */
+    VATIncluded: false,
+    VATRate: resolveSumitVatRate(billing),
   };
 
   if (linkedTaxInvoiceExternalId) {

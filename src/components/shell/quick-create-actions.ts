@@ -147,7 +147,7 @@ export function buildQuickCreateActions(
   }
 
   if (modules.field_ops && permissions.has(PERMISSIONS.FIELD_OPS_MANAGE)) {
-    candidates.push({ key: 'fieldLog', href: '/field-ops/logs/new', labelKey: 'fieldLog' });
+    candidates.push({ key: 'fieldLog', href: '/field/log/new', labelKey: 'fieldLog' });
   }
 
   if (modules.changes && permissions.has(PERMISSIONS.CHANGES_MANAGE)) {

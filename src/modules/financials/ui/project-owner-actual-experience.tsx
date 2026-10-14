@@ -50,6 +50,7 @@ async function loadOwnerStoryCopy(): Promise<OwnerStoryCopy> {
     afterGeneralProfit: t('afterGeneralProfit'),
     contractForecastBalance: t('contractForecastBalance'),
     unavailable: t('unavailable'),
+    breakdownUnavailable: t('breakdownUnavailable'),
     breakdownTitle: t('breakdownTitle'),
     categories: {
       ...categories,
@@ -258,19 +259,25 @@ export async function ProjectOwnerActualExperience({
             <ProjectOwnerStoryPanel copy={copy} metrics={metrics} />
             {breakdownResult ? (
               <div className="border-t border-[var(--pf-border-default)] pt-4">
-                <ProjectActualBreakdownView
-                  breakdown={breakdownResult.breakdown}
-                  laborByEmployee={breakdownResult.laborByEmployee}
-                  copy={copy}
-                  projectId={projectId}
-                  allocatedGeneral={allocatedGeneralProp}
-                  breakdownTotalOverride={
-                    includeGeneralInPrimary ? profitability.fullActualCost : null
-                  }
-                  costComposition={costComposition}
-                  sourcePaymentDetails={breakdownResult.sourcePaymentDetails}
-                  costPaymentSummary={breakdownResult.costPaymentSummary}
-                />
+                {breakdownResult.reconciles ? (
+                  <ProjectActualBreakdownView
+                    breakdown={breakdownResult.breakdown}
+                    laborByEmployee={breakdownResult.laborByEmployee}
+                    copy={copy}
+                    projectId={projectId}
+                    allocatedGeneral={allocatedGeneralProp}
+                    breakdownTotalOverride={
+                      includeGeneralInPrimary ? profitability.fullActualCost : null
+                    }
+                    costComposition={costComposition}
+                    sourcePaymentDetails={breakdownResult.sourcePaymentDetails}
+                    costPaymentSummary={breakdownResult.costPaymentSummary}
+                  />
+                ) : (
+                  <p className="text-sm text-[var(--pf-text-secondary)]">
+                    {copy.breakdownUnavailable ?? copy.unavailable}
+                  </p>
+                )}
               </div>
             ) : null}
           </CardContent>
@@ -332,19 +339,25 @@ export async function ProjectOwnerActualExperience({
       {breakdownResult ? (
         <Card className="min-w-0 max-w-full" data-pf-actual-breakdown-block>
           <CardContent className="pt-6">
-            <ProjectActualBreakdownView
-              breakdown={breakdownResult.breakdown}
-              laborByEmployee={breakdownResult.laborByEmployee}
-              copy={copy}
-              projectId={projectId}
-              allocatedGeneral={allocatedGeneralProp}
-              breakdownTotalOverride={
-                includeGeneralInPrimary ? profitability.fullActualCost : null
-              }
-              costComposition={costComposition}
-              sourcePaymentDetails={breakdownResult.sourcePaymentDetails}
-              costPaymentSummary={breakdownResult.costPaymentSummary}
-            />
+            {breakdownResult.reconciles ? (
+              <ProjectActualBreakdownView
+                breakdown={breakdownResult.breakdown}
+                laborByEmployee={breakdownResult.laborByEmployee}
+                copy={copy}
+                projectId={projectId}
+                allocatedGeneral={allocatedGeneralProp}
+                breakdownTotalOverride={
+                  includeGeneralInPrimary ? profitability.fullActualCost : null
+                }
+                costComposition={costComposition}
+                sourcePaymentDetails={breakdownResult.sourcePaymentDetails}
+                costPaymentSummary={breakdownResult.costPaymentSummary}
+              />
+            ) : (
+              <p className="text-sm text-[var(--pf-text-secondary)]">
+                {copy.breakdownUnavailable ?? copy.unavailable}
+              </p>
+            )}
           </CardContent>
         </Card>
       ) : null}

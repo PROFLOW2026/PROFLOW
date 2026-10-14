@@ -8,6 +8,7 @@ import {
   upsertRecurrenceRule,
   deactivateRecurrenceRule,
   insertTaskActivity,
+  cancelPendingOccurrencesForRule,
 } from '../data/tasks.repository';
 import { buildActivityActorFieldsFromContext } from '../domain/actor';
 import { buildRruleFromPreset, detectPresetFromRrule } from '../domain/recurrence-presets';
@@ -73,6 +74,7 @@ export async function upsertTaskRecurrence(
     );
     if (existing) {
       await deactivateRecurrenceRule(context.db, context.organizationId, existing.id);
+      await cancelPendingOccurrencesForRule(context.db, context.organizationId, existing.id);
       await recordRecurrenceActivity(context, taskId, {
         action: 'disabled',
         preset: 'none',
@@ -81,24 +83,36 @@ export async function upsertTaskRecurrence(
     return null;
   }
 
-  const startsAt = input.startsAt ?? new Date();
-  const rrule = buildRruleFromPreset(input.preset, {
-    interval: input.interval,
-    weekday: input.weekday,
-    startsAt,
-  });
-
   const previous = await findRecurrenceRuleByTemplateTaskId(
     context.db,
     context.organizationId,
     taskId,
   );
 
+  const startsAt = input.startsAt ?? previous?.startsAt ?? new Date();
+  const timezone = context.organization.timezone;
+  const rrule = buildRruleFromPreset(input.preset, {
+    interval: input.interval,
+    weekday: input.weekday,
+    startsAt,
+    timeZone: timezone,
+  });
+
+  const scheduleChanged =
+    previous &&
+    (previous.rrule !== rrule ||
+      previous.startsAt.getTime() !== startsAt.getTime() ||
+      previous.timezone !== timezone);
+
+  if (scheduleChanged) {
+    await cancelPendingOccurrencesForRule(context.db, context.organizationId, previous.id);
+  }
+
   const rule = await upsertRecurrenceRule(context.db, {
     organizationId: context.organizationId,
     templateTaskId: taskId,
     rrule,
-    timezone: context.organization.timezone,
+    timezone,
     startsAt,
     endsAt: input.endsAt ?? null,
     maxOccurrences: input.maxOccurrences ?? null,

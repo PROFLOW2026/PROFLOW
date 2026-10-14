@@ -215,9 +215,7 @@ describe('document versioning', () => {
       expect(version1Path).not.toBe(uploaded.document.storagePath);
 
       const currentDownload = await createDocumentDownloadUrl(context, { documentId: first.id });
-      expect(currentDownload.url).toContain(
-        encodeURIComponent(`test-ext-${first.id}-contract-signed.pdf`),
-      );
+      expect(currentDownload.url).toContain(`/api/org-storage/download/${first.id}`);
 
       const oldDownload = await createDocumentVersionDownloadUrl(context, { versionId: version1Id });
       expect(oldDownload.url).toContain(encodeURIComponent(version1Path));

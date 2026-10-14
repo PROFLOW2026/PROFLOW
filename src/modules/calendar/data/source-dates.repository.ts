@@ -14,6 +14,11 @@ import {
 import { ORG_LIST_HARD_CAP, resolveListLimit } from '@/shared/db/list-limits';
 import type { DbExecutor } from '@/shared/db/types';
 import { toStoredCalendarDate } from '../domain/aggregate';
+import {
+  canIncludeCalendarSourceKind,
+  type CalendarSourceAccess,
+} from '../domain/source-access';
+import { planningSuppressedByLinkedTask } from '../domain/planning-dedupe';
 import type { DatedCalendarSource } from '../domain/types';
 
 const LIST_CAP = { hardCap: ORG_LIST_HARD_CAP };
@@ -30,9 +35,13 @@ export async function listExistingDatedSources(
   db: DbExecutor,
   organizationId: string,
   range: { from: string; to: string },
+  access: CalendarSourceAccess,
 ): Promise<DatedCalendarSource[]> {
   const sources: DatedCalendarSource[] = [];
+  const include = (kind: DatedCalendarSource['kind']) =>
+    canIncludeCalendarSourceKind(access, kind);
 
+  if (include('work_order')) {
   const workOrders = await safeQuery(() =>
     db
       .select({
@@ -64,7 +73,9 @@ export async function listExistingDatedSources(
       notes: row.notes,
     });
   }
+  }
 
+  if (include('inspection')) {
   const inspectionRows = await safeQuery(() =>
     db
       .select({
@@ -98,7 +109,9 @@ export async function listExistingDatedSources(
       notes: row.notes,
     });
   }
+  }
 
+  if (include('milestone')) {
   const milestoneRows = await safeQuery(() =>
     db
       .select({
@@ -132,7 +145,9 @@ export async function listExistingDatedSources(
       notes: row.notes,
     });
   }
+  }
 
+  if (include('milestone') || include('task')) {
   const planningRows = await safeQuery(() =>
     db
       .select({
@@ -144,6 +159,7 @@ export async function listExistingDatedSources(
         kind: planningWorkItems.kind,
         taskId: planningWorkItems.taskId,
         linkedTaskDueDate: tasks.dueDate,
+        linkedTaskStatus: tasks.status,
       })
       .from(planningWorkItems)
       .leftJoin(
@@ -157,14 +173,25 @@ export async function listExistingDatedSources(
         and(
           eq(planningWorkItems.organizationId, organizationId),
           isNull(planningWorkItems.archivedAt),
-          or(isNotNull(planningWorkItems.startDate), isNotNull(planningWorkItems.targetEndDate)),
+          or(
+            and(
+              isNotNull(planningWorkItems.startDate),
+              gte(planningWorkItems.startDate, range.from),
+              lte(planningWorkItems.startDate, range.to),
+            ),
+            and(
+              isNotNull(planningWorkItems.targetEndDate),
+              gte(planningWorkItems.targetEndDate, range.from),
+              lte(planningWorkItems.targetEndDate, range.to),
+            ),
+          ),
         ),
       )
       .limit(resolveListLimit(undefined, LIST_CAP)),
   );
   for (const row of planningRows) {
-    // C1: linked UWM task with a due date is the canonical calendar entry (task:{id}).
-    if (row.taskId && row.linkedTaskDueDate) {
+    // C1: skip planning only when the linked task is the canonical in-range calendar entry.
+    if (planningSuppressedByLinkedTask(row, range)) {
       continue;
     }
     const kind = row.kind === 'milestone' ? 'milestone' : 'task';
@@ -197,7 +224,9 @@ export async function listExistingDatedSources(
       }
     }
   }
+  }
 
+  if (include('assignment')) {
   const assignmentRows = await safeQuery(() =>
     db
       .select({
@@ -237,7 +266,9 @@ export async function listExistingDatedSources(
       });
     }
   }
+  }
 
+  if (include('maintenance')) {
   const maintenanceRows = await safeQuery(() =>
     db
       .select({
@@ -269,7 +300,9 @@ export async function listExistingDatedSources(
       notes: row.notes,
     });
   }
+  }
 
+  if (include('warranty')) {
   const warrantyRows = await safeQuery(() =>
     db
       .select({
@@ -303,7 +336,9 @@ export async function listExistingDatedSources(
       notes: row.notes,
     });
   }
+  }
 
+  if (include('compliance')) {
   const complianceRows = await safeQuery(() =>
     db
       .select({
@@ -335,7 +370,9 @@ export async function listExistingDatedSources(
       notes: row.notes,
     });
   }
+  }
 
+  if (include('follow_up')) {
   const crmRows = await safeQuery(() =>
     db
       .select({
@@ -363,11 +400,13 @@ export async function listExistingDatedSources(
       source: 'existing',
       title: row.nextActionText?.trim() || row.name,
       date,
-      href: `/crm/${row.id}`,
+      href: `/crm/opportunities/${row.id}`,
       notes: row.nextActionText,
     });
   }
+  }
 
+  if (include('task')) {
   // Native tasks with due dates — kind='task', status not done/cancelled.
   const taskRows = await safeQuery(() =>
     db
@@ -402,6 +441,7 @@ export async function listExistingDatedSources(
       href: `/work?task=${row.id}`,
       projectId: row.projectId,
     });
+  }
   }
 
   return sources;

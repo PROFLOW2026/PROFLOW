@@ -5,7 +5,9 @@ import type { OrgContext } from '@/shared/auth/context';
 import { findTaskById, insertTaskComment, insertTaskActivity } from '../data/tasks.repository';
 import { validateCommentAuthor } from '../domain/actor';
 import type { TaskComment } from '../domain/types';
+import { insertTaskCommentMentions } from '../data/task-comment-mentions.repository';
 import { notifyTaskCommentAdded } from './notify-task-comment';
+import { resolveMentionedUserIdsForComment } from './resolve-comment-mentions';
 
 /**
  * Creates a comment on a task.
@@ -42,12 +44,20 @@ export async function createComment(
   const task = await findTaskById(context.db, context.organizationId, taskId);
   if (!task) throw new NotFoundError('Task');
 
+  const mentionedUserIds = await resolveMentionedUserIdsForComment(context, taskId, body);
+
   const comment = await insertTaskComment(context.db, {
     taskId,
     organizationId: context.organizationId,
     authorOrgMemberId,
     authorEmployeeId,
     body,
+  });
+
+  await insertTaskCommentMentions(context.db, {
+    organizationId: context.organizationId,
+    taskCommentId: comment.id,
+    mentionedUserIds,
   });
 
   await insertTaskActivity(context.db, {
@@ -57,18 +67,19 @@ export async function createComment(
     actorEmployeeId: authorEmployeeId,
     actorSystem: false,
     eventType: 'comment_added',
-    payload: { commentId: comment.id },
+    payload: { commentId: comment.id, mentionedUserIds },
   });
 
-  // Notify task assignees (excluding the commenter) — fire-and-forget; never
-  // let notification failure break the comment creation itself.
-  notifyTaskCommentAdded(context, {
-    taskId,
-    taskTitle: task.title,
-    commentId: comment.id,
-  }).catch(() => {
-    // Intentionally swallowed: notification errors must not surface to the user.
-  });
+  try {
+    await notifyTaskCommentAdded(context, {
+      taskId,
+      taskTitle: task.title,
+      commentId: comment.id,
+      mentionedUserIds,
+    });
+  } catch {
+    // Notification errors must not surface to the user.
+  }
 
   return comment;
 }

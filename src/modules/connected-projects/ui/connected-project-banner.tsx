@@ -24,10 +24,10 @@ export async function ConnectedProjectBanner({ connected }: ConnectedProjectBann
       : t('banner.linkedProjectFallback');
 
   const statusKey =
-    connected.mapping.status === 'sync_degraded'
-      ? 'banner.statusDegraded'
-      : connected.mapping.status === 'provisioning'
-        ? 'banner.statusProvisioning'
+    connected.mapping.status === 'provisioning'
+      ? 'banner.statusProvisioning'
+      : connected.mapping.status === 'failed'
+        ? 'banner.statusFailed'
         : null;
 
   return (

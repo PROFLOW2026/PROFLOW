@@ -13,7 +13,10 @@ import {
   listCalendarProviderConnections,
   listNativeCalendarEvents,
 } from '../data/calendar.repository';
+import type { CalendarSourceAccess } from '../domain/source-access';
 import { listExistingDatedSources } from '../data/source-dates.repository';
+import { getModuleVisibility } from '@/modules/tenancy/application/read-module-visibility';
+import { hasPermission } from '@/shared/permissions/assert';
 import { listCalendarSchema, type ListCalendarInput } from '../validation/schemas';
 
 function parseOrThrow<T>(
@@ -58,10 +61,26 @@ export async function listCalendar(
   } catch {
     native = [];
   }
+  let sourceAccess: CalendarSourceAccess | null = null;
   try {
-    existing = await listExistingDatedSources(context.db, context.organizationId, range);
+    sourceAccess = {
+      hasPermission: (permission) => hasPermission(context, permission),
+      modules: await getModuleVisibility(context),
+    };
   } catch {
-    existing = [];
+    // Degraded: only native calendar events; no cross-module dated sources.
+  }
+  if (sourceAccess) {
+    try {
+      existing = await listExistingDatedSources(
+        context.db,
+        context.organizationId,
+        range,
+        sourceAccess,
+      );
+    } catch {
+      existing = [];
+    }
   }
   try {
     providers = await listCalendarProviderConnections(context.db, context.organizationId);

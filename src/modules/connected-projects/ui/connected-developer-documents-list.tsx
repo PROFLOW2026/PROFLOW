@@ -15,7 +15,8 @@ type CopyFeedback =
   | { readonly kind: 'storage_not_configured' }
   | { readonly kind: 'download_not_permitted' }
   | { readonly kind: 'upload_failed' }
-  | { readonly kind: 'no_portal_principal' };
+  | { readonly kind: 'no_portal_principal' }
+  | { readonly kind: 'too_large' };
 
 export function ConnectedDeveloperDocumentsList({
   contractorProjectId,

@@ -1,6 +1,7 @@
 import type { BillingRecordDetail, CustomerSnapshot } from '@/modules/billing/domain/types';
 import { DomainRuleError } from '@/shared/errors';
 import type { OrgContext } from '@/shared/auth/context';
+import { compareMoney, sumMoney } from '@/shared/money';
 import {
   buildStatutoryExternalReference,
   buildStatutoryIdempotencyKey,
@@ -40,7 +41,7 @@ function resolveVatMode(
   return 'exclusive';
 }
 
-function mapLines(billing: BillingRecordDetail): StatutoryLineItem[] {
+function mapStoredLinesToStatutory(billing: BillingRecordDetail): StatutoryLineItem[] {
   if (billing.lines.length === 0) {
     return [
       {
@@ -58,6 +59,54 @@ function mapLines(billing: BillingRecordDetail): StatutoryLineItem[] {
     quantity: null,
     unitPrice: null,
   }));
+}
+
+/**
+ * Read-time guard: legacy drafts stored gross line totals (line_total == invoice total).
+ * Normalizes a single gross line to net; multi-line gross CO rows require manual fix.
+ */
+export function mapBillingLinesForStatutoryBridge(
+  billing: BillingRecordDetail,
+): StatutoryLineItem[] {
+  const lines = mapStoredLinesToStatutory(billing);
+  if (lines.length === 0) return lines;
+
+  const currency = billing.subtotalAmount.currency;
+  const lineSum = sumMoney(
+    lines.map((line) => line.lineNet),
+    currency,
+  );
+  const headerTotal = billing.totalAmount;
+  const headerSubtotal = billing.subtotalAmount;
+
+  const headerIsGross = compareMoney(headerTotal, headerSubtotal) !== 0;
+  if (!headerIsGross) {
+    return lines;
+  }
+
+  const sumMatchesHeaderGross = compareMoney(lineSum, headerTotal) === 0;
+  const multiLineEachFullGross =
+    lines.length > 1 &&
+    lines.every((line) => compareMoney(line.lineNet, headerTotal) === 0);
+
+  if (multiLineEachFullGross) {
+    throw new DomainRuleError(
+      'Legacy billing lines use gross totals and cannot be sent to SUMIT without review',
+      'invoicingIntegration.errors.legacyLinesNeedReview',
+      { billingRecordId: billing.id },
+    );
+  }
+
+  if (sumMatchesHeaderGross && lines.length === 1) {
+    return [
+      {
+        ...lines[0]!,
+        lineNet: headerSubtotal,
+      },
+    ];
+  }
+
+  return lines;
 }
 
 export function assertBillingHasCustomerSnapshot(billing: BillingRecordDetail): CustomerSnapshot {
@@ -96,7 +145,7 @@ export function buildStatutoryBridgeFromBillingRecord(
       totalAmount: billing.totalAmount,
       vatMode,
       vatRatePercent: billing.taxSnapshot?.vatRatePercent ?? null,
-      lines: mapLines(billing),
+      lines: mapBillingLinesForStatutoryBridge(billing),
       issuer: null,
       customer: mapCustomerSnapshot(customerSnapshot),
       issueDate: billing.issueDate,

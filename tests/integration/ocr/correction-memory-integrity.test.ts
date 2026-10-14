@@ -469,6 +469,12 @@ describe('0054 OCR correction memory integrity and RLS', () => {
     const agMem = randomUUID();
 
     await database.asService(async (db) => {
+      // Permission-tier test (not project scoping — see dedicated test below).
+      await db.execute(sql`
+        INSERT INTO organization_settings (organization_id, key, value)
+        VALUES (${graph.orgId}::uuid, 'project_access_mode', '"all"'::jsonb)
+        ON CONFLICT (organization_id, key) DO UPDATE SET value = excluded.value
+      `);
       await db.execute(sql`SET ROLE service_role`);
       await db.execute(sql`
         INSERT INTO ocr_correction_memory (

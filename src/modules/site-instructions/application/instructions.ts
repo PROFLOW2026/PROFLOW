@@ -47,7 +47,6 @@ import {
   type TransitionInstructionInput,
   type UpdateInstructionInput,
 } from '../validation/schemas';
-import { convertWithSubcontracts } from './conversion-port';
 
 const C = PROJECT_CAPABILITIES;
 const ENTITY = 'site_instruction';
@@ -347,40 +346,10 @@ export async function requestInstructionConversion(
   const blocker = transitionBlocker(instruction, 'conversion_requested', 'internal');
   if (blocker) throw new DomainRuleError('Conversion not allowed', `siteOps.errors.${blocker}`);
 
-  const result = await convertWithSubcontracts(context, {
-    organizationId: context.organizationId,
-    projectId: instruction.projectId,
-    instructionId: instruction.id,
-    instructionNumber: instruction.instructionNumber,
-    vendorId: instruction.vendorId,
-    subcontractAgreementId: instruction.subcontractAgreementId,
-    title: instruction.title,
-    description: instruction.description,
+  const updated = await applyInternalEvent(context, instruction, 'conversion_requested', input.note ?? null, {
     target: input.target,
   });
-
-  if (!result) {
-    const updated = await applyInternalEvent(context, instruction, 'conversion_requested', input.note ?? null, {
-      target: input.target,
-    });
-    return { instruction: updated, linked: null };
-  }
-
-  await insertInstructionLink(context.db, {
-    organizationId: context.organizationId,
-    projectId: instruction.projectId,
-    instructionId: instruction.id,
-    targetType: result.targetType,
-    targetId: result.targetId,
-    relation: 'converted_to',
-    actorUserId: context.userId,
-  });
-  const updated = await applyInternalEvent(context, instruction, 'converted', input.note ?? null, {
-    target: input.target,
-    targetType: result.targetType,
-    targetId: result.targetId,
-  });
-  return { instruction: updated, linked: result };
+  return { instruction: updated, linked: null };
 }
 
 /** Links an instruction to an existing change / unpriced-work record created in Track E. */

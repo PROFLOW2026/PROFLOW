@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { RFI_PRIORITIES } from '../domain/types';
-import { useRouter } from '@/shared/i18n/navigation';
+import { Link, useRouter } from '@/shared/i18n/navigation';
 import { createRfiAction } from '../actions/internal-actions';
 import type { RfiFormOptions } from '../application/form-options';
 import { FormError, FormRow, selectClassName } from './form-controls';
@@ -125,11 +125,22 @@ export function RfiCreateForm({
               <select name="assigneeUserId" className={selectClassName()} defaultValue="">
                 <option value="">{t('fields.unassigned')}</option>
                 {options.assignees.map((a) => (
-                  <option key={a.userId} value={a.userId}>
-                    {a.name}
+                  <option key={a.userId} value={a.userId} disabled={!a.selectable}>
+                    {a.selectable ? a.name : t('fields.assigneeRosterOnly', { name: a.name })}
                   </option>
                 ))}
               </select>
+              {options.assignees.some((a) => !a.selectable) ? (
+                <p className="mt-1 text-xs text-[var(--pf-text-muted)]">
+                  {t('fields.assigneeRosterHint')}{' '}
+                  <Link
+                    href={`/projects/${projectId}/team`}
+                    className="font-medium text-[var(--pf-text-brand)] hover:underline"
+                  >
+                    {t('fields.assigneeAddToTeam')}
+                  </Link>
+                </p>
+              ) : null}
             </FormRow>
           </div>
           <div className="flex flex-wrap gap-2">

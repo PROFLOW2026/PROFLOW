@@ -61,6 +61,7 @@ import {
   type CreateChangeInput,
   type ProposeVersionInput,
 } from '../validation/schemas';
+import { enqueueChangeApprovedValueSync } from '@/modules/connected-projects/application/sync-contract-value-projection';
 import { loadAgreementWithAccess, parseOrThrow, requireAccess, requireAnyAccess } from './access';
 
 const E = DOMAIN_EVENTS;
@@ -545,6 +546,16 @@ export async function approveChange(context: OrgContext, rawInput: ChangeDecisio
       entityId: change.id,
       before: { status: change.status },
       after: { status: 'approved', versionNo: version.versionNo, amount: toNumericString(total), valueEventId },
+    });
+
+    await enqueueChangeApprovedValueSync(tx, {
+      developerOrganizationId: context.organizationId,
+      subcontractAgreementId: agreement.id,
+      changeId: change.id,
+      amountNet: toNumericString(total),
+      currency,
+      effectiveDate: todayInTimeZone(context.organization.timezone),
+      sourceVersion: version.versionNo,
     });
   });
 }

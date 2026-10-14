@@ -247,4 +247,5 @@ export {
   withApBillLegacyDefaults,
   withLaborAllocationRunLegacyDefaults,
 } from './data/allocation-intent-schema';
+export { sqlFirstRow, sqlRows } from './data/sql-rows';
 

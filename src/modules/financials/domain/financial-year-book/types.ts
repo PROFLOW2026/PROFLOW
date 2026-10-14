@@ -101,6 +101,10 @@ export interface FinancialYearBookData {
   readonly currency: string;
   readonly generatedAt: string;
   readonly canReadBilling: boolean;
+  /** Billing/receipt rows omitted because currency ≠ book currency (F08). */
+  readonly fxExcludedCount: number;
+  readonly billingRecordsTruncated: boolean;
+  readonly paymentApplicationsTruncated: boolean;
   readonly months: readonly YearBookMonthData[];
   readonly overview: readonly YearBookOverviewRow[];
 }

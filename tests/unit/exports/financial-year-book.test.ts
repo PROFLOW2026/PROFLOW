@@ -57,6 +57,9 @@ function sampleBook(): FinancialYearBookData {
     currency,
     generatedAt: '2026-10-12',
     canReadBilling: true,
+    fxExcludedCount: 0,
+    billingRecordsTruncated: false,
+    paymentApplicationsTruncated: false,
     overview: [
       {
         monthLabel: 'ינואר',
@@ -134,5 +137,18 @@ describe('financial year book helpers', () => {
     expect(overview!.getColumn(2).width).toBeLessThanOrEqual(21);
     expect(overview!.getColumn(2).width).toBeGreaterThanOrEqual(17);
     expect(overview!.getCell(5, 1).value).toBe('ינואר');
+  });
+
+  it('writes FX and truncation disclosure rows on overview when present', async () => {
+    const buffer = await buildFinancialYearBookWorkbook({
+      ...sampleBook(),
+      fxExcludedCount: 2,
+      paymentApplicationsTruncated: true,
+    });
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.load(new Uint8Array(buffer) as unknown as ExcelJS.Buffer);
+    const overview = wb.getWorksheet('סקירה שנתית');
+    expect(String(overview!.getCell(3, 1).value)).toContain('מטבע זר');
+    expect(String(overview!.getCell(4, 1).value)).toContain('מגבלת ייצוא');
   });
 });

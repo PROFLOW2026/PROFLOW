@@ -55,8 +55,14 @@ export interface PaymentApplicationRow {
   readonly billingRecordId: string;
   readonly billingReference: string | null;
   readonly billingKind: BillingKind;
+  readonly billingStatus: BillingRecordStatus;
+  readonly billingSubtotalAmount: MoneyValue | null;
+  readonly billingTaxAmount: MoneyValue | null;
+  readonly billingTotalAmount: MoneyValue | null;
   readonly projectId: string | null;
   readonly projectName: string | null;
+  readonly clientName: string | null;
+  readonly paymentAmountBasis: 'gross' | 'net' | null;
   readonly amount: MoneyValue;
   readonly paymentDate: BusinessDate;
   readonly method: string | null;
@@ -98,6 +104,8 @@ export interface BillingRecordSummary {
   readonly contractName?: string | null;
   /** Billing stamp, else the project's client. */
   readonly clientId?: string | null;
+  /** Customer name from snapshot or client directory (F08 year book). */
+  readonly clientName?: string | null;
   readonly reference: string | null;
   readonly issueDate: BusinessDate;
   readonly dueDate: BusinessDate | null;

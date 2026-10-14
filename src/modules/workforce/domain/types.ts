@@ -217,6 +217,8 @@ export interface ProjectTeamMemberRecord {
 export interface ProjectTeamMemberSummary {
   readonly membershipId: string;
   readonly employeeId: string;
+  /** Linked login user when the employee record is tied to a member account. */
+  readonly userId: string | null;
   readonly employeeName: string;
   readonly jobTitle: string | null;
   readonly role: string | null;

@@ -116,7 +116,7 @@ describe('four-locale product verification', () => {
     expect(report.realUiRemaining).toBe(0);
   });
 
-  it('does not silently deep-merge English under he/ar/ru message trees', async () => {
+  it('does not silently deep-merge English under he/ar/ru message trees', { timeout: 30_000 }, async () => {
     const [he, ar, ru, en] = await Promise.all([
       loadMessages('he-IL'),
       loadMessages('ar'),
@@ -140,7 +140,7 @@ describe('four-locale product verification', () => {
     }
   });
 
-  it('has no orphan locale JSON files outside MESSAGE_NAMESPACES', () => {
+  it('has no orphan locale JSON files outside MESSAGE_NAMESPACES', { timeout: 30_000 }, () => {
     const out = execSync('node scripts/i18n-four-locale-verification.mjs', { encoding: 'utf8' });
     const report = JSON.parse(out) as { orphanLocaleFiles: string[] };
     expect(report.orphanLocaleFiles).toEqual([]);

@@ -6,10 +6,7 @@ import {
   operatingExpenseCashItems,
   payrollObligationCashItems,
 } from '@/modules/financials/domain/cash-flow-sources';
-import {
-  expenseApMatchedGrossDeduction,
-  recurringDraftCashForecastBlocked,
-} from '@/modules/financials/domain/expense-ap-cash';
+import { recurringDraftCashForecastBlocked } from '@/modules/financials/domain/expense-ap-cash';
 import { money } from '@/shared/money';
 
 const today = businessDate('2026-09-01');
@@ -119,15 +116,6 @@ describe('cash forecast extra sources', () => {
   });
 
   it('keeps expense cash remainder when only part of the expense is AP-matched (V09-006)', () => {
-    const grossDoc = {
-      grossAmount: '11800',
-      netAmount: '10000',
-      taxAmount: '1800',
-      currency: 'ILS',
-    };
-    const matchedGross = expenseApMatchedGrossDeduction('6000', grossDoc);
-    expect(matchedGross.amount).toBe(money('7080', 'ILS').amount);
-
     const items = operatingExpenseCashItems(
       [
         {

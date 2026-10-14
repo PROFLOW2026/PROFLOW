@@ -3,6 +3,7 @@ import 'server-only';
 import { getAdminDb, withUserContext } from '@/shared/db/client';
 import { listActiveOrganizationIds, resolveOrgContext } from '@/modules/tenancy';
 import { findActiveOrgOwnerUserId } from '@/modules/recurring-drafts/application/ops-worker';
+import { rotatedOrgOrder } from '@/modules/ops/application/ops-worker-budget';
 import type { OrgContext } from '@/shared/auth/context';
 import { runNotificationScan } from './scan-conditions';
 
@@ -11,6 +12,7 @@ export interface NotificationScanOpsWorkerResult {
   readonly emitted: number;
   readonly resolved: number;
   readonly failed: number;
+  readonly deferredOrgs: number;
   readonly failures: readonly { organizationId: string; error: string }[];
 }
 
@@ -26,22 +28,38 @@ async function withOrgOwnerContext<T>(
   });
 }
 
+function dayOfYear(now: Date): number {
+  const start = Date.UTC(now.getUTCFullYear(), 0, 0);
+  return Math.floor((now.getTime() - start) / 86_400_000);
+}
+
 /**
  * Daily cron path: run the full 22-scanner notification scan across all orgs.
  * Scheduled via /api/internal/ops-worker (vercel.json 06:00 UTC).
- * Orgs are processed sequentially. Dedupe is handled by the SQL upsert in
- * app.emit_notification — no additional deduplication needed here.
  */
-export async function runNotificationScanOpsWorker(): Promise<NotificationScanOpsWorkerResult> {
+export async function runNotificationScanOpsWorker(options?: {
+  readonly deadlineMs?: number;
+  readonly now?: Date;
+}): Promise<NotificationScanOpsWorkerResult> {
+  const now = options?.now ?? new Date();
+  const deadlineMs = options?.deadlineMs;
+  const started = Date.now();
   const db = getAdminDb();
-  const orgRows = await listActiveOrganizationIds(db);
+  const orgRows = rotatedOrgOrder(await listActiveOrganizationIds(db), dayOfYear(now));
 
   let emitted = 0;
   let resolved = 0;
   let failed = 0;
+  let deferredOrgs = 0;
   const failures: { organizationId: string; error: string }[] = [];
 
-  for (const orgRow of orgRows) {
+  for (let index = 0; index < orgRows.length; index += 1) {
+    const orgRow = orgRows[index]!;
+    if (deadlineMs != null && Date.now() - started >= deadlineMs) {
+      deferredOrgs = orgRows.length - index;
+      break;
+    }
+
     try {
       const owner = await findActiveOrgOwnerUserId(db, orgRow.id);
       if (!owner) {
@@ -51,8 +69,9 @@ export async function runNotificationScanOpsWorker(): Promise<NotificationScanOp
       }
 
       const locale = orgRow.defaultLocale || 'he-IL';
+      const remaining = deadlineMs != null ? Math.max(1_000, deadlineMs - (Date.now() - started)) : 8_000;
       const result = await withOrgOwnerContext(owner.userId, orgRow.id, locale, (context) =>
-        runNotificationScan(context, { maxMs: 8000, perScannerCap: 25 }),
+        runNotificationScan(context, { maxMs: Math.min(8_000, remaining), perScannerCap: 25 }),
       );
       emitted += result.emitted;
       resolved += result.resolved;
@@ -65,11 +84,13 @@ export async function runNotificationScanOpsWorker(): Promise<NotificationScanOp
     }
   }
 
+  const scanned = orgRows.length - deferredOrgs;
   return {
-    scanned: orgRows.length,
+    scanned,
     emitted,
     resolved,
     failed,
+    deferredOrgs,
     failures,
   };
 }

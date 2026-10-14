@@ -10,6 +10,9 @@ import {
   type ExternalGrantView,
 } from '@/shared/external';
 import { listProjectTeam } from '@/modules/project-team';
+import { listProjectTeamMembers } from '@/modules/workforce/application/project-team';
+import { hasPermission } from '@/shared/permissions/assert';
+import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { findProjectAgreement } from '../data/project-options.repository';
 
 export function parseOrThrow<T>(
@@ -61,15 +64,35 @@ export async function assertProjectAssignee(
 export interface AssigneeOption {
   readonly userId: string;
   readonly name: string;
+  /** False when the person is on the workforce roster but not project_members (K07 / OD-08). */
+  readonly selectable: boolean;
 }
 
 export async function listAssigneeOptions(context: OrgContext, projectId: string): Promise<AssigneeOption[]> {
   const team = await listProjectTeam(context, projectId);
-  const options = new Map<string, string>();
+  const options = new Map<string, AssigneeOption>();
   for (const member of team) {
-    if (member.status === 'active') options.set(member.userId, member.displayName ?? member.email);
+    if (member.status !== 'active') continue;
+    options.set(member.userId, {
+      userId: member.userId,
+      name: member.displayName ?? member.email,
+      selectable: true,
+    });
   }
-  return [...options].map(([userId, name]) => ({ userId, name })).sort((a, b) => a.name.localeCompare(b.name));
+
+  if (hasPermission(context, PERMISSIONS.WORKFORCE_READ)) {
+    const roster = await listProjectTeamMembers(context, projectId);
+    for (const row of roster) {
+      if (!row.userId || options.has(row.userId)) continue;
+      options.set(row.userId, {
+        userId: row.userId,
+        name: row.employeeName,
+        selectable: false,
+      });
+    }
+  }
+
+  return [...options.values()].sort((a, b) => a.name.localeCompare(b.name));
 }
 
 /**

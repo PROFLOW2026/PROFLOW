@@ -32,15 +32,16 @@ function rowToView(row: MappingRow): ConnectedProjectMappingView {
   };
 }
 
-function isMissingRelationError(error: unknown): boolean {
+function isMissingTableError(error: unknown): boolean {
   if (!error || typeof error !== 'object') return false;
-  const code = (error as { code?: string }).code;
-  return code === '42P01' || code === '42703';
+  return (error as { code?: string }).code === '42P01';
 }
 
 /**
  * Loads the active-ish mapping for a contractor org project.
  * Returns null when the project is not connected or the schema migration is not applied yet.
+ *
+ * Must run on an executor that can read developer agreement rows (admin / service role).
  */
 export async function findConnectedProjectMappingForContractorProject(
   db: DbExecutor,
@@ -55,11 +56,14 @@ export async function findConnectedProjectMappingForContractorProject(
         m.developer_organization_id,
         m.developer_project_id,
         m.subcontract_agreement_id,
-        m.vendor_id,
+        sa.vendor_id,
         m.status,
         dev_org.name as developer_organization_name,
         dev_proj.name as developer_project_name
       from connected_project_mappings m
+      inner join subcontract_agreements_store sa
+        on sa.id = m.subcontract_agreement_id
+        and sa.organization_id = m.developer_organization_id
       left join organizations dev_org
         on dev_org.id = m.developer_organization_id
       left join projects dev_proj
@@ -67,14 +71,18 @@ export async function findConnectedProjectMappingForContractorProject(
         and dev_proj.organization_id = m.developer_organization_id
       where m.contractor_organization_id = ${input.contractorOrganizationId}
         and m.contractor_project_id = ${input.contractorProjectId}
-        and m.status in ('accepted', 'provisioning', 'active', 'sync_degraded')
+        and m.status in ('pending', 'provisioning', 'active')
+        and m.revoked_at is null
       limit 1
     `);
     const rows = (Array.isArray(result) ? result : (result as { rows: MappingRow[] }).rows) as MappingRow[];
     const row = rows[0];
     return row ? rowToView(row) : null;
   } catch (error) {
-    if (isMissingRelationError(error)) return null;
+    if (isMissingTableError(error)) {
+      console.warn('[connected-projects] schema-missing: connected_project_mappings not applied');
+      return null;
+    }
     throw error;
   }
 }

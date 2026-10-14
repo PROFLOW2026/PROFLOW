@@ -3,6 +3,7 @@ import {
   billingLines,
   billingRecords,
   changeOrders,
+  clients,
   contracts,
   externalStatutoryDocuments,
   projects,
@@ -139,6 +140,8 @@ function buildSummary(
     projectId: string | null;
     projectName: string | null;
     clientId: string | null;
+    clientDirectoryName?: string | null;
+    customerSnapshot?: unknown;
     contractId?: string | null;
     contractName?: string | null;
     reference: string | null;
@@ -195,6 +198,10 @@ function buildSummary(
       )
     : null;
 
+  const snapshotName = mapCustomerSnapshot(row.customerSnapshot)?.name?.trim();
+  const clientName =
+    snapshotName || row.clientDirectoryName?.trim() || null;
+
   return {
     id: row.id,
     projectId: row.projectId,
@@ -202,6 +209,7 @@ function buildSummary(
     contractId: row.contractId ?? null,
     contractName: row.contractName ?? null,
     clientId: row.clientId,
+    clientName,
     reference: row.reference,
     issueDate: row.issueDate as BusinessDate,
     dueDate: row.dueDate as BusinessDate | null,
@@ -624,6 +632,8 @@ export async function listBillingRecords(
       projectName: projects.name,
       clientId: billingRecords.clientId,
       projectClientId: projects.clientId,
+      clientDirectoryName: clients.name,
+      customerSnapshot: billingRecords.customerSnapshot,
       contractId: billingRecords.contractId,
       contractName: contracts.name,
       contractNumber: contracts.contractNumber,
@@ -641,6 +651,7 @@ export async function listBillingRecords(
     })
     .from(billingRecords)
     .leftJoin(projects, eq(projects.id, billingRecords.projectId))
+    .leftJoin(clients, eq(clients.id, billingRecords.clientId))
     .leftJoin(contracts, eq(contracts.id, billingRecords.contractId))
     .where(
       and(
@@ -831,8 +842,32 @@ export async function findChangeOrdersInProject(
 ): Promise<{ id: string; reference: string | null }[]> {
   if (changeOrderIds.length === 0) return [];
 
-  return db
-    .select({ id: changeOrders.id, reference: changeOrders.reference })
+  const rows = await findChangeOrdersWithNetInProject(
+    db,
+    organizationId,
+    projectId,
+    changeOrderIds,
+  );
+  return rows.map(({ id, reference }) => ({ id, reference }));
+}
+
+export async function findChangeOrdersWithNetInProject(
+  db: DbExecutor,
+  organizationId: string,
+  projectId: string,
+  changeOrderIds: readonly string[],
+): Promise<
+  { id: string; reference: string | null; netAmount: MoneyValue }[]
+> {
+  if (changeOrderIds.length === 0) return [];
+
+  const rows = await db
+    .select({
+      id: changeOrders.id,
+      reference: changeOrders.reference,
+      amount: changeOrders.amount,
+      currency: changeOrders.currency,
+    })
     .from(changeOrders)
     .where(
       and(
@@ -841,6 +876,21 @@ export async function findChangeOrdersInProject(
         inArray(changeOrders.id, [...changeOrderIds]),
       ),
     );
+
+  const byId = new Map(
+    rows.map((row) => [
+      row.id,
+      {
+        id: row.id,
+        reference: row.reference,
+        netAmount: mapMoney(row.amount, row.currency),
+      },
+    ]),
+  );
+
+  return changeOrderIds
+    .map((id) => byId.get(id))
+    .filter((row): row is NonNullable<typeof row> => row != null);
 }
 
 export { signedBillingAmount };

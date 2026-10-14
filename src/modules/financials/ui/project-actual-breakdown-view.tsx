@@ -51,6 +51,7 @@ export type OwnerStoryCopy = {
   readonly afterGeneralProfit: string;
   readonly contractForecastBalance: string;
   readonly unavailable: string;
+  readonly breakdownUnavailable?: string;
   readonly breakdownTitle: string;
   readonly categories: Record<ProjectActualBreakdownCategoryKey, string> & {
     readonly allocatedGeneral?: string;

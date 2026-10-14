@@ -10,6 +10,7 @@ import {
   QUICK_CREATE_EMPHASIS_SETTING_KEY,
   SUGGESTED_DEFAULTS_SETTING_KEY,
   TERMINOLOGY_SETTING_KEY,
+  defaultManagementModeForProfile,
   getBusinessProfile,
   type BusinessProfileKey,
   type QuickCreateEmphasisKey,
@@ -37,6 +38,7 @@ import {
   resolveExperienceFamily,
 } from '../domain/experience-family';
 import { parseCapabilityCustomizationMode } from '../domain/capability-overrides';
+import type { Locale } from '@/shared/i18n/config';
 import { seedBusinessProfileSetup } from './seed-business-profile-setup';
 
 export type ApplyBusinessProfileOptions = {
@@ -64,14 +66,14 @@ export async function applyBusinessProfileConfig(
   db: DbExecutor,
   organizationId: string,
   profileKey: BusinessProfileKey,
-  locale: 'he-IL' | 'en' = 'he-IL',
+  locale: Locale = 'he-IL',
   options?: ApplyBusinessProfileOptions,
 ): Promise<{ applied: true; profileKey: BusinessProfileKey } | { applied: false }> {
   const profile = getBusinessProfile(profileKey);
   if (!profile) return { applied: false };
 
   const moduleMode: ApplyModulePreferenceMode = options?.moduleMode ?? 'additive';
-  const nameOf = (en: string, he: string) => (locale === 'he-IL' ? he : en);
+  const nameOf = (en: string, he: string) => (locale === 'en' ? en : he);
   const catalogsOnly = options?.catalogsOnly === true;
 
   if (!catalogsOnly) {
@@ -93,7 +95,10 @@ export async function applyBusinessProfileConfig(
       db,
       organizationId,
       SUGGESTED_DEFAULTS_SETTING_KEY,
-      profile.suggestedDefaults,
+      {
+        ...profile.suggestedDefaults,
+        defaultManagementMode: defaultManagementModeForProfile(profileKey),
+      },
     );
 
     const moduleWrites = modulePreferenceWritesForProfile(profileKey, moduleMode);

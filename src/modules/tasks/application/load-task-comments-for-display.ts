@@ -25,6 +25,7 @@ export interface TaskCommentDisplayRow {
   authorActorId: string | null;
   isEmployee: boolean;
   attachments: readonly TaskCommentAttachmentDisplay[];
+  mentionLabels: Readonly<Record<string, string>>;
 }
 
 const PAGE_SIZE = 20;
@@ -78,6 +79,12 @@ export async function loadTaskCommentsForDisplayWithContext(
       slice.map((row) => row.id),
     );
 
+    const { loadMentionLabelsForCommentBodies } = await import('./load-comment-mention-labels');
+    const mentionLabels = await loadMentionLabelsForCommentBodies(
+      context,
+      slice.map((row) => row.body),
+    );
+
     const comments: TaskCommentDisplayRow[] = slice.map((row) => ({
       id: row.id,
       body: row.body,
@@ -88,6 +95,7 @@ export async function loadTaskCommentsForDisplayWithContext(
       authorActorId: row.authorOrgMemberId ?? row.authorEmployeeId ?? null,
       isEmployee: row.authorEmployeeId !== null,
       attachments: attachmentMap.get(row.id) ?? [],
+      mentionLabels,
     }));
 
   return { comments, hasMore, currentMembershipId: context.membershipId };

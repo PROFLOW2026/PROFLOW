@@ -1,7 +1,12 @@
 import 'server-only';
 
 import { listBillingRecords, listPaymentApplications } from '@/modules/billing';
-import type { PaymentApplicationRow } from '@/modules/billing/domain/types';
+import type { BillingRecordSummary, PaymentApplicationRow } from '@/modules/billing/domain/types';
+import {
+  isForeignCurrencyRow,
+  mapBillingSummaryToYearBookRow,
+  mapPaymentApplicationToYearBookReceipt,
+} from '../domain/financial-year-book/billing-mapping';
 import type { OrgContext } from '@/shared/auth/context';
 import { businessDate, endOfMonth, todayInTimeZone } from '@/shared/dates';
 import { hasPermission } from '@/shared/permissions/assert';
@@ -40,7 +45,6 @@ import type {
   YearBookOverheadSlice,
   YearBookOverviewRow,
   YearBookPaymentRow,
-  YearBookReceiptRow,
   YearBookRecognizedCostRow,
 } from '../domain/financial-year-book/types';
 import {
@@ -175,28 +179,62 @@ function buildOverheadSlices(
   return [...buckets.entries()].map(([label, net]) => ({ label, net }));
 }
 
-async function listAllPaymentApplications(context: OrgContext): Promise<PaymentApplicationRow[]> {
+const YEAR_BOOK_ROW_CAP = 5_000;
+
+async function listAllPaymentApplications(context: OrgContext): Promise<{
+  readonly rows: readonly PaymentApplicationRow[];
+  readonly truncated: boolean;
+}> {
   const pageSize = 200;
   const all: PaymentApplicationRow[] = [];
-  for (let offset = 0; offset < 5_000; offset += pageSize) {
+  let truncated = false;
+  for (let offset = 0; ; offset += pageSize) {
     const batch = await listPaymentApplications(context, { limit: pageSize, offset });
     all.push(...batch);
     if (batch.length < pageSize) break;
+    if (all.length >= YEAR_BOOK_ROW_CAP) {
+      truncated = true;
+      break;
+    }
   }
-  return all.filter((row) => row.status !== 'void');
+  return {
+    rows: all.filter((row) => row.status !== 'void'),
+    truncated,
+  };
 }
 
-function receiptFromPayment(row: PaymentApplicationRow, nature: 'actual' | 'expected'): YearBookReceiptRow {
-  const gross = row.amount;
-  return {
-    date: row.paymentDate,
-    client: sanitizeBusinessText(row.projectName ?? row.billingReference ?? ''),
-    project: sanitizeBusinessText(row.projectName ?? ''),
-    net: gross,
-    vat: zeroVat(gross.currency),
-    gross,
-    nature,
-  };
+async function listAllBillingRecords(context: OrgContext): Promise<{
+  readonly rows: readonly BillingRecordSummary[];
+  readonly truncated: boolean;
+}> {
+  const pageSize = 200;
+  const all: BillingRecordSummary[] = [];
+  let truncated = false;
+  for (let offset = 0; ; offset += pageSize) {
+    const batch = await listBillingRecords(context, { filter: 'all', limit: pageSize, offset });
+    all.push(...batch);
+    if (batch.length < pageSize) break;
+    if (all.length >= YEAR_BOOK_ROW_CAP) {
+      truncated = true;
+      break;
+    }
+  }
+  return { rows: all, truncated };
+}
+
+function countFxExcludedRows(
+  billingRows: readonly BillingRecordSummary[],
+  paymentApps: readonly PaymentApplicationRow[],
+  bookCurrency: string,
+): number {
+  let count = 0;
+  for (const row of billingRows) {
+    if (isForeignCurrencyRow(row.totalAmount.currency, bookCurrency)) count += 1;
+  }
+  for (const row of paymentApps) {
+    if (isForeignCurrencyRow(row.amount.currency, bookCurrency)) count += 1;
+  }
+  return count;
 }
 
 async function buildMonthData(
@@ -205,7 +243,7 @@ async function buildMonthData(
   currency: string,
   recognizedByMonth: ReadonlyMap<string, readonly RecognizedCostBreakdownLine[]>,
   paymentApps: readonly PaymentApplicationRow[],
-  billingRows: Awaited<ReturnType<typeof listBillingRecords>>,
+  billingRows: readonly BillingRecordSummary[],
   canReadBilling: boolean,
   cashFlowBundle: MonthCashFlowBundle,
 ): Promise<YearBookMonthData> {
@@ -222,26 +260,22 @@ async function buildMonthData(
       )
     : null;
 
-  const [recognizedPair, netInvoiced, cashFlow] = await Promise.all([
-    sumOrganizationRecognizedCostPairInDateRange(
-      context.db,
-      context.organizationId,
-      currency,
-      period.from,
-      rangeTo,
-    ),
-    canReadBilling
-      ? sumInvoicedInDateRange(context.db, context.organizationId, currency, period.from, rangeTo)
-      : Promise.resolve(null),
-    Promise.resolve(
-      composeMonthCashFlowFromBundle(cashFlowBundle, {
-        from: period.from,
-        to: rangeTo,
-        collectionsActual: collectionTriplet?.gross ?? zeroMoney(currency),
-        collectionsDisplay: collectionTriplet ?? undefined,
-      }),
-    ),
-  ]);
+  const recognizedPair = await sumOrganizationRecognizedCostPairInDateRange(
+    context.db,
+    context.organizationId,
+    currency,
+    period.from,
+    rangeTo,
+  );
+  const netInvoiced = canReadBilling
+    ? await sumInvoicedInDateRange(context.db, context.organizationId, currency, period.from, rangeTo)
+    : null;
+  const cashFlow = composeMonthCashFlowFromBundle(cashFlowBundle, {
+    from: period.from,
+    to: rangeTo,
+    collectionsActual: collectionTriplet?.gross ?? zeroMoney(currency),
+    collectionsDisplay: collectionTriplet ?? undefined,
+  });
 
   const recognizedLines = (recognizedByMonth.get(period.yearMonth) ?? []).filter((line) => {
     if (line.sourceKind === 'employer_cost') return false;
@@ -270,50 +304,38 @@ async function buildMonthData(
       .map(expectedLineToPaymentRow);
   }
 
+  const receiptNature = period.phase === 'future' ? 'expected' : 'actual';
   const receipts = canReadBilling
     ? paymentApps
         .filter((row) => isDateInInclusiveRange(row.paymentDate, period.from, rangeTo))
-        .map((row) => receiptFromPayment(row, period.phase === 'future' ? 'expected' : 'actual'))
+        .map((row) => mapPaymentApplicationToYearBookReceipt(row, currency, receiptNature).row)
+        .filter((row): row is NonNullable<typeof row> => row !== null)
     : [];
 
-  const billings: YearBookBillingRow[] = canReadBilling
-    ? billingRows
-        .filter((row) => row.status !== 'void')
-        .filter((row) => {
-          const issue = row.issueDate;
-          if (period.phase === 'future') {
-            return issue >= period.from && issue <= monthEnd;
-          }
-          return isDateInInclusiveRange(issue, period.from, rangeTo);
-        })
-        .map((row) => {
-          const net = row.subtotalAmount ?? row.totalAmount;
-          const gross = row.totalAmount;
-          const vat = row.taxAmount ?? zeroVat(currency);
-          return {
-            issueDate: row.issueDate,
-            client: sanitizeBusinessText(row.projectName ?? ''),
-            project: sanitizeBusinessText(row.projectName ?? ''),
-            reference: sanitizeBusinessText(row.reference ?? ''),
-            net,
-            vat,
-            gross,
-            status: row.status,
-          };
-        })
-    : [];
+  const billings: YearBookBillingRow[] = [];
+  if (canReadBilling) {
+    for (const summary of billingRows) {
+      const issue = summary.issueDate;
+      const inPeriod =
+        period.phase === 'future'
+          ? issue >= period.from && issue <= monthEnd
+          : isDateInInclusiveRange(issue, period.from, rangeTo);
+      if (!inPeriod) continue;
+      const mapped = mapBillingSummaryToYearBookRow(summary, currency);
+      if (mapped.row) billings.push(mapped.row);
+    }
+  }
 
-  const employerCostNet = employerLines.reduce(
-    (sum, line) => addMoney(sum, line.net),
-    zeroMoney(currency),
-  );
+  const employerCostNet = employerLines
+    .filter((line) => !line.estimate)
+    .reduce((sum, line) => addMoney(sum, line.net), zeroMoney(currency));
 
   const employerCosts: YearBookEmployerCostRow[] = employerLines.map((line) => ({
     yearMonth: line.yearMonth,
     employee: sanitizeBusinessText(line.party),
     project: sanitizeBusinessText(line.projectName ?? 'עלות חברה'),
     net: line.net,
-    nature: 'final',
+    nature: line.estimate ? 'estimate' : 'final',
   }));
 
   const operationalProfitNet =
@@ -366,19 +388,24 @@ export async function loadFinancialYearBookData(
 
   const cashFlowBundle = await loadMonthCashFlowBundle(context, { from: yearStart, to: yearEnd });
 
-  const [recognizedLines, billingRows, paymentApps] = await Promise.all([
-    listOrganizationRecognizedCostBreakdownInDateRange(
-      context.db,
-      context.organizationId,
-      currency,
-      yearStart,
-      effectiveYearEnd,
-    ),
-    canReadBilling
-      ? listBillingRecords(context, { filter: 'all', limit: 5_000 })
-      : Promise.resolve([]),
-    canReadBilling ? listAllPaymentApplications(context) : Promise.resolve([]),
-  ]);
+  const recognizedLines = await listOrganizationRecognizedCostBreakdownInDateRange(
+    context.db,
+    context.organizationId,
+    currency,
+    yearStart,
+    effectiveYearEnd,
+  );
+  const billingLoad = canReadBilling
+    ? await listAllBillingRecords(context)
+    : { rows: [], truncated: false };
+  const paymentLoad = canReadBilling
+    ? await listAllPaymentApplications(context)
+    : { rows: [], truncated: false };
+  const billingRows = billingLoad.rows;
+  const paymentApps = paymentLoad.rows;
+  const fxExcludedCount = canReadBilling
+    ? countFxExcludedRows(billingRows, paymentApps, currency)
+    : 0;
 
   const recognizedByMonth = new Map<string, RecognizedCostBreakdownLine[]>();
   for (const line of recognizedLines) {
@@ -387,9 +414,10 @@ export async function loadFinancialYearBookData(
     recognizedByMonth.set(line.yearMonth, bucket);
   }
 
-  const monthData = await Promise.all(
-    months.map((period) =>
-      buildMonthData(
+  const monthData: YearBookMonthData[] = [];
+  for (const period of months) {
+    monthData.push(
+      await buildMonthData(
         context,
         period,
         currency,
@@ -399,8 +427,8 @@ export async function loadFinancialYearBookData(
         canReadBilling,
         cashFlowBundle,
       ),
-    ),
-  );
+    );
+  }
 
   const overview: YearBookOverviewRow[] = monthData.map((month) => ({
     monthLabel: month.period.sheetTitle.slice(3),
@@ -421,6 +449,9 @@ export async function loadFinancialYearBookData(
     currency,
     generatedAt: today,
     canReadBilling,
+    fxExcludedCount,
+    billingRecordsTruncated: billingLoad.truncated,
+    paymentApplicationsTruncated: paymentLoad.truncated,
     months: monthData,
     overview,
   };

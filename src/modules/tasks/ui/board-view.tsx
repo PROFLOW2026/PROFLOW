@@ -17,7 +17,7 @@
  */
 
 import { GripVertical, LayoutGrid, Plus, User, Tag, BarChart2 } from 'lucide-react';
-import { useCallback, useOptimistic, useState, useTransition } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -28,6 +28,14 @@ import { BoardBucketMoveSelect } from './board-bucket-move-select';
 import type { Bucket, TaskCardData, TaskPriority, TaskStatus } from './task-api';
 import { TaskCard } from './task-card';
 import { useDesktopBoardDrag } from './use-desktop-board-drag';
+import {
+  computeAfterTaskIdForInsert,
+  computeProvisionalSortKey,
+  parseAssigneeColumnKey,
+  parsePriorityColumnKey,
+  resolveBoardGroupDropKind,
+  resolveStatusOnBucketEnter,
+} from './board-drop-position';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -259,18 +267,25 @@ function BoardColumn({
   dragEnabled,
   shellClassName,
   bucketMoveTargets,
+  resolveColumnTasksForDrop,
   showHeader = true,
 }: {
   column: Column;
   groupBy: GroupBy;
   onOpenTask: (taskId: string) => void;
   onAddTask: (title: string, bucketId: string) => void;
-  onDrop: (taskId: string, targetBucketId: string, afterTaskId: string | null) => void;
+  onDrop: (
+    taskId: string,
+    columnKey: string,
+    columnTasks: TaskCardData[],
+    insertBeforeTaskId: string | null,
+  ) => void;
   draggingId: string | null;
   setDraggingId: (id: string | null) => void;
   dragEnabled: boolean;
   shellClassName?: string;
   bucketMoveTargets?: { id: string; label: string }[];
+  resolveColumnTasksForDrop: (columnKey: string) => TaskCardData[];
   showHeader?: boolean;
 }) {
   const t = useTranslations('tasks');
@@ -299,7 +314,7 @@ function BoardColumn({
         e.preventDefault();
         setIsDropTarget(false);
         const taskId = e.dataTransfer.getData('taskId');
-        if (taskId) onDrop(taskId, column.key, null);
+        if (taskId) onDrop(taskId, column.key, column.tasks, null);
       }}
     >
       {showHeader ? (
@@ -357,6 +372,20 @@ function BoardColumn({
             <li
               key={task.id}
               draggable={dragEnabled}
+              onDragOver={(e) => {
+                if (!dragEnabled) return;
+                e.preventDefault();
+              }}
+              onDrop={(e) => {
+                if (!dragEnabled) return;
+                e.preventDefault();
+                e.stopPropagation();
+                setIsDropTarget(false);
+                const taskId = e.dataTransfer.getData('taskId');
+                if (taskId && taskId !== task.id) {
+                  onDrop(taskId, column.key, column.tasks, task.id);
+                }
+              }}
               onDragStart={(e) => {
                 if (!dragEnabled) return;
                 e.dataTransfer.setData('taskId', task.id);
@@ -383,7 +412,9 @@ function BoardColumn({
                 <BoardBucketMoveSelect
                   currentBucketId={task.bucketId}
                   buckets={bucketMoveTargets}
-                  onMove={(bucketId) => onDrop(task.id, bucketId, null)}
+                  onMove={(bucketId) => {
+                    onDrop(task.id, bucketId, resolveColumnTasksForDrop(bucketId), null);
+                  }}
                 />
               ) : null}
             </li>
@@ -461,7 +492,14 @@ export interface BoardViewProps {
    * Called after drag-drop — parent fires moveTaskToBucket Server Action.
    * afterTaskId = the task the dropped task should follow (null = prepend).
    */
-  onMoveTask: (taskId: string, targetBucketId: string, afterTaskId: string | null) => void;
+  onMoveTask: (
+    taskId: string,
+    targetBucketId: string,
+    afterTaskId: string | null,
+    beforeTaskId?: string | null,
+  ) => void | Promise<void>;
+  onReassign?: (taskId: string, assigneeKey: string | null) => void | Promise<void>;
+  onChangePriority?: (taskId: string, priority: TaskPriority) => void | Promise<void>;
 }
 
 export function BoardView({
@@ -470,39 +508,102 @@ export function BoardView({
   onOpenTask,
   onAddTask,
   onMoveTask,
+  onReassign,
+  onChangePriority,
 }: BoardViewProps) {
   const t = useTranslations('tasks');
-  const dragEnabled = useDesktopBoardDrag();
+  const baseDragEnabled = useDesktopBoardDrag();
   const [groupBy, setGroupBy] = useState<GroupBy>('bucket');
   const [filters, setFilters] = useState<FilterState>({});
   const [draggingId, setDraggingId] = useState<string | null>(null);
-  const [, startTransition] = useTransition();
+  const [tasks, setTasks] = useState(initialTasks);
+  const movingIds = useRef(new Set<string>());
 
-  // Optimistic task list (reorder on drag)
-  const [tasks, setOptimisticTasks] = useOptimistic(initialTasks);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reset optimistic board tasks when server props refresh
+    setTasks(initialTasks);
+  }, [initialTasks]);
+
+  const dropKind = resolveBoardGroupDropKind(groupBy);
+  const dragEnabled = baseDragEnabled && dropKind !== 'disabled';
 
   const handleDrop = useCallback(
-    (taskId: string, targetBucketId: string, afterTaskId: string | null) => {
-      // Optimistic update: move task to target bucket locally
-      startTransition(() => {
-        setOptimisticTasks((prev) =>
-          prev.map((t) =>
-            t.id === taskId
-              ? {
-                  ...t,
-                  bucketId: targetBucketId,
-                  bucketName:
-                    buckets.find((b) => b.id === targetBucketId)?.name ?? t.bucketName,
-                }
-              : t,
-          ),
-        );
-      });
+    async (
+      taskId: string,
+      columnKey: string,
+      columnTasks: TaskCardData[],
+      insertBeforeTaskId: string | null,
+    ) => {
+      if (movingIds.current.has(taskId)) return;
+      const snapshot = tasks;
+      const kind = resolveBoardGroupDropKind(groupBy);
 
-      // Call server action (parent owns server action call)
-      onMoveTask(taskId, targetBucketId, afterTaskId);
+      if (kind === 'disabled') return;
+
+      movingIds.current.add(taskId);
+
+      try {
+        if (kind === 'move') {
+          if (columnKey === '__none__') return;
+          const orderedIds = columnTasks.map((task) => task.id);
+          const afterTaskId = computeAfterTaskIdForInsert(
+            orderedIds,
+            taskId,
+            insertBeforeTaskId,
+          );
+          const targetBucket = buckets.find((b) => b.id === columnKey);
+          const neighbors = columnTasks.filter((task) => task.id !== taskId);
+          const sortKey = computeProvisionalSortKey(neighbors, afterTaskId);
+          setTasks((prev) =>
+            prev.map((task) => {
+              if (task.id !== taskId) return task;
+              const nextStatus = resolveStatusOnBucketEnter(
+                task.status,
+                targetBucket?.statusOnEnter,
+              );
+              return {
+                ...task,
+                bucketId: columnKey,
+                bucketName: targetBucket?.name ?? task.bucketName,
+                sortKey,
+                ...(nextStatus ? { status: nextStatus } : {}),
+              };
+            }),
+          );
+          const beforeTaskId =
+            insertBeforeTaskId && afterTaskId === null ? insertBeforeTaskId : undefined;
+          await onMoveTask(taskId, columnKey, afterTaskId, beforeTaskId);
+        } else if (kind === 'reassign') {
+          const assigneeKey = parseAssigneeColumnKey(columnKey);
+          setTasks((prev) =>
+            prev.map((task) =>
+              task.id === taskId
+                ? {
+                    ...task,
+                    assignees:
+                      assigneeKey === null
+                        ? []
+                        : [{ id: assigneeKey, displayName: columnKey, avatarUrl: null }],
+                  }
+                : task,
+            ),
+          );
+          await onReassign?.(taskId, assigneeKey);
+        } else if (kind === 'priority') {
+          const priority = parsePriorityColumnKey(columnKey);
+          if (!priority) return;
+          setTasks((prev) =>
+            prev.map((task) => (task.id === taskId ? { ...task, priority } : task)),
+          );
+          await onChangePriority?.(taskId, priority);
+        }
+      } catch {
+        setTasks(snapshot);
+      } finally {
+        movingIds.current.delete(taskId);
+      }
     },
-    [buckets, onMoveTask, setOptimisticTasks, startTransition],
+    [buckets, groupBy, onChangePriority, onMoveTask, onReassign, tasks],
   );
 
   const filtered = applyFilters(tasks, filters);
@@ -533,6 +634,19 @@ export function BoardView({
 
   const firstOpenKey =
     columns.find((col) => col.tasks.length > 0)?.key ?? columns[0]?.key;
+
+  const resolveColumnTasksForDrop = useCallback(
+    (columnKey: string) => {
+      if (groupBy === 'bucket') {
+        if (columnKey === '__none__') {
+          return filtered.filter((task) => !task.bucketId);
+        }
+        return filtered.filter((task) => task.bucketId === columnKey);
+      }
+      return columns.find((col) => col.key === columnKey)?.tasks ?? [];
+    },
+    [columns, filtered, groupBy],
+  );
 
   return (
     <div className="flex min-w-0 max-w-full flex-col gap-3">
@@ -603,6 +717,7 @@ export function BoardView({
                 setDraggingId={setDraggingId}
                 dragEnabled={dragEnabled}
                 bucketMoveTargets={bucketMoveTargets}
+                resolveColumnTasksForDrop={resolveColumnTasksForDrop}
               />
             ))}
           </div>
@@ -627,6 +742,7 @@ export function BoardView({
                   showHeader={false}
                   shellClassName="w-full min-w-0 max-w-full border-0 bg-transparent p-0"
                   bucketMoveTargets={bucketMoveTargets}
+                  resolveColumnTasksForDrop={resolveColumnTasksForDrop}
                 />
               </CollapsibleSection>
             ))}

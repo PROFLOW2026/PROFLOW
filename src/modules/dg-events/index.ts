@@ -17,6 +17,7 @@ export type { DgEventHandler, DgHandlerDeps } from './application/spec-handler';
 
 export { DG_EVENT_SPECS, dgCopyKey, findDgEventSpec } from './domain/event-catalog';
 export { DG_MAX_ATTEMPTS, retryDelayMs } from './domain/backoff';
+export { countDeadLetteredDomainEvents } from './data/events.repository';
 export type {
   DgEventSpec,
   DgHandlerResult,

@@ -16,7 +16,10 @@ import { LOCALE_COOKIE_NAME } from '@/shared/i18n/auth-locale';
 import { LOCALES, LOCALE_METADATA, type Locale } from '@/shared/i18n/config';
 import { Link, usePathname, useRouter } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
-import { contractorPortalSignOutAction } from '../application/actions';
+import {
+  contractorPortalSignOutAction,
+  persistExternalPrincipalLocaleAction,
+} from '../application/actions';
 import type { PortalShellData, PortalShellProject } from '../application/load-portal-session';
 import { activeContractorMobileTab, contractorMobileTabIconKey } from '../domain/mobile-tabs';
 import {
@@ -224,8 +227,9 @@ function UserMenu({
             disabled={pending}
             onSelect={() => {
               if (option === locale) return;
-              startTransition(() => {
+              startTransition(async () => {
                 document.cookie = `${LOCALE_COOKIE_NAME}=${option}; path=/; max-age=31536000; samesite=lax`;
+                await persistExternalPrincipalLocaleAction(option);
                 router.replace(pathname, { locale: option });
               });
             }}

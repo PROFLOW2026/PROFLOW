@@ -747,10 +747,50 @@ export function parseTerminology(
   return { project, job, workOrder, serviceCall };
 }
 
+export type DefaultProjectManagementMode =
+  | 'standard_project'
+  | 'execution_contractor'
+  | 'developer_gc'
+  | 'project_management';
+
+const MANAGEMENT_MODES = new Set<string>([
+  'standard_project',
+  'execution_contractor',
+  'developer_gc',
+  'project_management',
+]);
+
+/** Default project management mode when creating a project (U11). */
+export function defaultManagementModeForProfile(
+  profileKey: BusinessProfileKey,
+): DefaultProjectManagementMode {
+  switch (profileKey) {
+    case 'GENERAL_CONTRACTOR':
+      return 'developer_gc';
+    case 'SUBCONTRACTOR':
+      return 'execution_contractor';
+    case 'PROJECT_MANAGEMENT':
+      return 'project_management';
+    default:
+      return 'standard_project';
+  }
+}
+
+export function resolveInitialManagementMode(input: {
+  readonly profileKey: BusinessProfileKey | null | undefined;
+  readonly suggestedDefaults: SuggestedBusinessDefaults | null | undefined;
+}): DefaultProjectManagementMode {
+  const fromSettings = input.suggestedDefaults?.defaultManagementMode;
+  if (fromSettings) return fromSettings;
+  if (input.profileKey) return defaultManagementModeForProfile(input.profileKey);
+  return 'standard_project';
+}
+
 export interface SuggestedBusinessDefaults {
   readonly defaultWorkKind: 'project' | 'job' | 'work_order';
   readonly preferServiceSurface: boolean;
   readonly todayEmphasis?: 'field' | 'today' | 'dashboard';
+  readonly defaultManagementMode?: DefaultProjectManagementMode;
 }
 
 export function parseSuggestedDefaults(value: unknown): SuggestedBusinessDefaults | null {
@@ -763,10 +803,16 @@ export function parseSuggestedDefaults(value: unknown): SuggestedBusinessDefault
     emphasis === 'field' || emphasis === 'today' || emphasis === 'dashboard'
       ? emphasis
       : undefined;
+  const modeRaw = v.defaultManagementMode;
+  const defaultManagementMode =
+    typeof modeRaw === 'string' && MANAGEMENT_MODES.has(modeRaw)
+      ? (modeRaw as DefaultProjectManagementMode)
+      : undefined;
   return {
     defaultWorkKind: kind,
     preferServiceSurface: Boolean(v.preferServiceSurface),
     ...(todayEmphasis ? { todayEmphasis } : {}),
+    ...(defaultManagementMode ? { defaultManagementMode } : {}),
   };
 }
 

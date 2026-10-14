@@ -1,7 +1,8 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useActionState, useState } from 'react';
+import { useActionState, useEffect, useState } from 'react';
+import { resolveOwnerManagerCreateCompensationDefaults } from '@/modules/workforce/domain/owner-manager-employer-cost';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -53,6 +54,25 @@ export function EmployeeForm({
     'project_allocate' | 'auto_pool' | 'company_only'
   >('auto_pool');
   const [state, formAction, pending] = useActionState(action, {});
+
+  useEffect(() => {
+    if (compensationClass !== 'owner_manager') return;
+    const defaults = resolveOwnerManagerCreateCompensationDefaults(defaultCurrency);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- apply owner-manager defaults when class or currency changes
+    setRateUnit(defaults.rateUnit);
+    setDefaultLaborAllocationIntent(defaults.defaultLaborAllocationIntent);
+    if (!baseRate.trim()) setBaseRate(defaults.baseRate);
+    if (!burdenPercent.trim()) setBurdenPercent(defaults.burdenPercent);
+    if (!workingDaysPerMonth.trim()) {
+      setWorkingDaysPerMonth(defaults.workingDaysPerMonth);
+    }
+  }, [
+    baseRate,
+    burdenPercent,
+    compensationClass,
+    defaultCurrency,
+    workingDaysPerMonth,
+  ]);
 
   return (
     <form action={formAction} className="mx-auto flex w-full max-w-lg flex-col gap-4">

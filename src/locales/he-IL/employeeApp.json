@@ -641,6 +641,7 @@
     "officeAdmin": "מנהל/ת משרד",
     "readOnlyProject": "צפייה בפרויקט בלבד",
     "externalConsultant": "יועץ חיצוני",
+    "externalConsultantHint": "ל-RFI והגשות נדרשת גם חברות בצוות הפרויקט (לשונית צוות פרויקט), לא רק שיבוץ עבודה.",
     "supervisorInspector": "מפקח / בודק"
   },
   "permissions": {

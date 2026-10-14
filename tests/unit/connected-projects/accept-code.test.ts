@@ -29,11 +29,39 @@ vi.mock('@/shared/db/service-role-write', () => ({
   asServiceRoleWrite: async (_db: unknown, fn: () => Promise<unknown>) => fn(),
 }));
 
-vi.mock('@/shared/audit', () => ({
-  recordAuditEvent: vi.fn(async () => undefined),
-}));
+vi.mock('@/shared/audit', async () => {
+  const { AUDIT_ACTIONS, AUDIT_ACTION_VALUES } = await import('@/shared/audit/actions');
+  return {
+    AUDIT_ACTIONS,
+    AUDIT_ACTION_VALUES,
+    recordAuditEvent: vi.fn(async () => undefined),
+  };
+});
 
 vi.mock('@/modules/connected-projects/data/connection.repository', () => repo);
+
+vi.mock('@/modules/connected-projects/application/preview-code', () => ({
+  previewCode: vi.fn(async () => ({
+    preview: {
+      developerOrganizationId: 'dev-org',
+      developerOrganizationName: 'Developer',
+      developerProjectId: 'dev-proj',
+      developerProjectName: 'Site',
+      subcontractAgreementId: 'agr',
+      agreementTitle: 'Sub',
+      agreementNumber: '1',
+      vendorName: 'Vendor',
+      scopeSummary: null,
+      currency: 'ILS',
+      contractNetAmount: '1000',
+      startDate: null,
+      targetEndDate: null,
+      invitationExpiresAt: new Date('2026-12-01'),
+    },
+    invitationId: INVITATION_ID,
+    invitationState: 'valid' as const,
+  })),
+}));
 
 vi.mock('@/modules/connected-projects/application/load-engagement-preview', () => ({
   loadDeveloperEngagementPreview: vi.fn(async () => ({
@@ -67,7 +95,7 @@ function orgContext(): OrgContext {
     organizationId: CONTRACTOR_ORG,
     membershipId: 'mem-1',
     locale: 'en',
-    db: {} as OrgContext['db'],
+    db: { execute: vi.fn(async () => undefined) } as unknown as OrgContext['db'],
     organization: { id: CONTRACTOR_ORG, name: 'Contractor', timezone: 'Asia/Jerusalem' } as OrgContext['organization'],
     permissions: new Set([PERMISSIONS.PROJECTS_CREATE]),
     roleKeys: ['admin'],
@@ -99,7 +127,7 @@ describe('acceptCode', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     repo.findActiveMappingByAgreementAndContractorOrg.mockResolvedValue(null);
-    repo.markInvitationConsumed.mockResolvedValue(true);
+    repo.markInvitationConsumed.mockResolvedValue(1);
     repo.insertConnectedProjectMapping.mockResolvedValue(MAPPING_ID);
     repo.updateMappingProvisioning.mockResolvedValue(undefined);
   });
@@ -145,5 +173,37 @@ describe('acceptCode', () => {
     });
     expect(repo.insertConnectedProjectMapping).not.toHaveBeenCalled();
     expect(repo.updateMappingProvisioning).not.toHaveBeenCalled();
+  });
+
+  it('consumes the invitation inside the request transaction', async () => {
+    repo.findInvitationByCodeHash.mockResolvedValue(invitation());
+    repo.findMappingByInvitationAndContractorOrg
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({
+        id: MAPPING_ID,
+        invitationId: INVITATION_ID,
+        developerOrganizationId: 'dev-org',
+        developerProjectId: 'dev-proj',
+        subcontractAgreementId: 'agr',
+        contractorOrganizationId: CONTRACTOR_ORG,
+        contractorProjectId: null,
+        contractorClientId: null,
+        status: 'provisioning',
+        connectionVersion: 1,
+        provisioningStatus: 'in_progress',
+        acceptedByUserId: 'user-1',
+        acceptedAt: new Date(),
+        revokedAt: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+    await acceptCode(orgContext(), { code: CODE, confirmOrganization: true });
+
+    expect(repo.markInvitationConsumed).toHaveBeenCalledWith(
+      expect.anything(),
+      INVITATION_ID,
+      expect.objectContaining({ consumedByOrganizationId: CONTRACTOR_ORG }),
+    );
   });
 });

@@ -4,6 +4,7 @@ import {
   employees,
   organizationSettings,
   projectAccessGrants,
+  projectMembers,
   roleAssignments,
 } from '@drizzle/schema';
 import type { DbExecutor } from '@/shared/db/types';
@@ -198,6 +199,18 @@ export async function listAccessibleProjectIdsForUser(
       and(eq(projectAccessGrants.organizationId, organizationId), eq(projectAccessGrants.userId, userId)),
     );
   const ids = new Set(grantRows.map((row) => row.projectId));
+
+  const memberRows = await db
+    .select({ projectId: projectMembers.projectId })
+    .from(projectMembers)
+    .where(
+      and(
+        eq(projectMembers.organizationId, organizationId),
+        eq(projectMembers.userId, userId),
+        eq(projectMembers.status, 'active'),
+      ),
+    );
+  for (const row of memberRows) ids.add(row.projectId);
 
   if (mode === 'selected') return [...ids];
 

@@ -1,4 +1,15 @@
+import arOffline from '@/locales/ar/offline.json';
+import enOffline from '@/locales/en/offline.json';
+import heOffline from '@/locales/he-IL/offline.json';
+import ruOffline from '@/locales/ru/offline.json';
 import { DEFAULT_LOCALE, isLocale, LOCALE_METADATA, type Locale } from '@/shared/i18n/config';
+
+const MANIFEST_DESCRIPTIONS: Record<Locale, string> = {
+  'he-IL': heOffline.manifest.description,
+  en: enOffline.manifest.description,
+  ar: arOffline.manifest.description,
+  ru: ruOffline.manifest.description,
+};
 
 /**
  * Web app manifest body. `start_url` is locale-prefixed so an installed launch
@@ -60,7 +71,7 @@ export function buildWebManifest(locale: Locale): ProjectFlowWebManifest {
     id: '/',
     name: 'ProjectFlow',
     short_name: 'ProjectFlow',
-    description: 'Project and field operations for construction teams',
+    description: MANIFEST_DESCRIPTIONS[locale],
     start_url: `/${locale}`,
     scope: '/',
     display: 'standalone',

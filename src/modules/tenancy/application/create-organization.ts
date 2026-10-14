@@ -13,6 +13,7 @@ import { upsertOrganizationSettingValue } from '../data/organization-settings.re
 import { seedUniversalBusinessCatalogs } from '@/modules/business-catalog/application/seed-catalog';
 import { ensureOrgDefaultPaymentTermKey } from '@/modules/business-catalog/application/payment-term-defaults';
 import { ensureDefaultBranding } from '@/modules/branding';
+import { resolveLabelLocale } from '@/shared/i18n/intl-locale';
 import {
   findOrganizationById,
   insertMembership,
@@ -100,7 +101,7 @@ export async function createOrganization(
       db,
       organization.id,
       profileKey,
-      organization.defaultLocale === 'he-IL' ? 'he-IL' : 'en',
+      resolveLabelLocale(organization.defaultLocale),
       {
         moduleMode,
         extraModules: input.extraModules,

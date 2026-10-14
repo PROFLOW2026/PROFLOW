@@ -8,7 +8,6 @@ import {
   organizationMemberships,
   organizations,
   projects,
-  subcontractAgreements,
   subcontractWorkLines,
   vendors,
 } from '@drizzle/schema';
@@ -117,7 +116,7 @@ describe('contractor sessions - RLS-bound external context (0156)', () => {
     expect(await ctx.db.select({ id: projects.id }).from(projects)).toHaveLength(0);
     expect(await ctx.db.select({ id: vendors.id }).from(vendors)).toHaveLength(0);
     expect(await ctx.db.select({ id: expenses.id }).from(expenses)).toHaveLength(0);
-    expect(await ctx.db.select({ id: subcontractAgreements.id }).from(subcontractAgreements)).toHaveLength(0);
+    // subcontract_agreements is grant-scoped for externals (0158/0168); covered in scoped reads above.
     expect(await ctx.db.select({ id: organizationMemberships.id }).from(organizationMemberships)).toHaveLength(0);
     expect(await ctx.db.select({ id: auditEvents.id }).from(auditEvents)).toHaveLength(0);
   });

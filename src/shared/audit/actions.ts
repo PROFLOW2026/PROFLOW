@@ -45,6 +45,8 @@ export const AUDIT_ACTIONS = {
 
   PROJECT_CREATED: 'project.created',
   PROJECT_UPDATED: 'project.updated',
+  PROJECT_COVER_CHANGED: 'project.cover_changed',
+  PROJECT_COVER_REMOVED: 'project.cover_removed',
   PROJECT_ARCHIVED: 'project.archived',
   PROJECT_RESTORED: 'project.restored',
   PROJECT_TEMPLATE_APPLIED: 'project.template_applied',
@@ -124,6 +126,8 @@ export const AUDIT_ACTIONS = {
   BILLING_RECORD_FINALIZED: 'billing_record.finalized',
   BILLING_RECORD_VOIDED: 'billing_record.voided',
   BILLING_RECORD_ADJUSTMENT_CREATED: 'billing_record.adjustment_created',
+  STATUTORY_DOCUMENT_ABSENCE_CONFIRMED: 'statutory_document.absence_confirmed',
+  STATUTORY_DOCUMENT_MANUALLY_LINKED: 'statutory_document.manually_linked',
   PAYMENT_RECORDED: 'payment.recorded',
   PAYMENT_ALLOCATED: 'payment.allocated',
   PAYMENT_VOIDED: 'payment.voided',
@@ -181,6 +185,8 @@ export const AUDIT_ACTIONS = {
   DOCUMENT_STORAGE_CLEANUP_FAILED: 'document.storage_cleanup_failed',
   DOCUMENT_STORAGE_CLEANUP_COMPLETED: 'document.storage_cleanup_completed',
 
+  OPS_REPLAY_REQUESTED: 'ops.replay_requested',
+
   STORAGE_CONNECTION_CONNECTED: 'storage.connection_connected',
   STORAGE_CONNECTION_DISCONNECTED: 'storage.connection_disconnected',
   STORAGE_PRIMARY_CHANGED: 'storage.primary_changed',
@@ -200,6 +206,7 @@ export const AUDIT_ACTIONS = {
   CRM_SALES_QUOTE_CREATED: 'crm.sales_quote_created',
   CRM_SALES_QUOTE_VERSION_CREATED: 'crm.sales_quote_version_created',
   CRM_SALES_QUOTE_VERSION_ISSUED: 'crm.sales_quote_version_issued',
+  CRM_SALES_QUOTE_CONVERTED: 'crm.sales_quote_converted',
   CRM_QUOTE_ACCEPTED: 'crm.quote_accepted',
 
   COMPLIANCE_ARTIFACT_CREATED: 'compliance.artifact_created',
@@ -396,6 +403,8 @@ export const AUDIT_ACTIONS = {
   AUTOMATION_RULE_CREATED: 'automation_rule.created',
   AUTOMATION_RULE_UPDATED: 'automation_rule.updated',
   AUTOMATION_RULE_RAN: 'automation_rule.ran',
+
+  TASK_DEPENDENCY_GATE_OVERRIDDEN: 'task.dependency_gate_overridden',
 
   ASSISTANT_CONVERSATION_CREATED: 'assistant.conversation_created',
 

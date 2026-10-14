@@ -640,6 +640,7 @@
     "management": "Management",
     "readOnlyProject": "Read-only project access",
     "externalConsultant": "External consultant",
+    "externalConsultantHint": "RFIs and submittals require project team membership (Project team tab), not workforce roster alone.",
     "supervisorInspector": "Supervisor / inspector",
     "custom": "Custom"
   },

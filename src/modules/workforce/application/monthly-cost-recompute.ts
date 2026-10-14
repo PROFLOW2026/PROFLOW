@@ -225,7 +225,11 @@ export async function computeMonthlyEmployeeLaborAllocationDraft(
   if (yearMonth > currentYearMonth) {
     return skip('future_month');
   }
-  const recognizeFullMonth = yearMonth < currentYearMonth || today >= monthEnd;
+  const ownerCompanyOnlyDefinedCost =
+    employee.compensationClass === 'owner_manager' &&
+    employee.defaultLaborAllocationIntent === 'company_only';
+  const recognizeFullMonth =
+    ownerCompanyOnlyDefinedCost || yearMonth < currentYearMonth || today >= monthEnd;
   const asOfDate = recognizeFullMonth ? monthEnd : today;
 
   const coverageStart =

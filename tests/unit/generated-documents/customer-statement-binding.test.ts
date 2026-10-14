@@ -21,7 +21,7 @@ describe('customer_statement generated document binding', () => {
 
   beforeEach(async () => {
     await database.reset();
-  });
+  }, PGLITE_HOOK_TIMEOUT_MS);
 
   it('resolves client-scoped storage binding from client id', async () => {
     await seedSystem(database);

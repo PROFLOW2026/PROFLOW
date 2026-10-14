@@ -28,6 +28,7 @@ describe('OpportunityFollowUpForm stage field', () => {
       <OpportunityFollowUpForm
         opportunityId="01900000-0000-7000-8000-000000000004"
         stage="estimate"
+        status="open"
         notes={null}
         expectedStartDate={null}
         nextActionAt={null}

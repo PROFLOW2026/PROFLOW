@@ -6,6 +6,7 @@ import {
   cloneProjectTemplateForApply,
   getProjectTemplate,
   type ProjectTemplateKey,
+  type TemplateLocale,
   PROJECT_TEMPLATE_KEYS,
 } from '@/modules/projects/domain/templates';
 import type { DbExecutor } from '@/shared/db/types';
@@ -13,6 +14,7 @@ import {
   getOrganizationSettingValue,
   upsertOrganizationSettingValue,
 } from '../data/organization-settings.repository';
+import type { Locale } from '@/shared/i18n/config';
 import type { BusinessProfileKey } from '../domain/business-profiles';
 import {
   TODAY_EMPHASIS_SETTING_KEY,
@@ -32,10 +34,10 @@ export async function seedBusinessProfileSetup(
   db: DbExecutor,
   organizationId: string,
   profileKey: BusinessProfileKey,
-  locale: 'he-IL' | 'en',
+  locale: Locale,
 ): Promise<void> {
   const setup = getBusinessProfileSetup(profileKey);
-  const nameOf = (en: string, he: string) => (locale === 'he-IL' ? he : en);
+  const nameOf = (en: string, he: string) => (locale === 'en' ? en : he);
 
   await upsertOrganizationSettingValue(
     db,
@@ -96,18 +98,20 @@ export async function seedBusinessProfileSetup(
   );
   const bag = parseOrgStructureTemplatesBag(raw);
   const existingTemplateNames = new Set(bag.projectTemplates.map((template) => template.name));
+  const templateLocale: TemplateLocale =
+    locale === 'he-IL' ? 'he-IL' : locale === 'en' ? 'en' : 'he-IL';
 
   for (const key of templateKeys) {
     const catalog = getProjectTemplate(key);
-    const copy = cloneProjectTemplateForApply(key, locale);
+    const copy = cloneProjectTemplateForApply(key, templateLocale);
     if (!catalog || !copy) continue;
-    const name = locale === 'he-IL' ? catalog.nameHe : catalog.nameEn;
+    const name = nameOf(catalog.nameEn, catalog.nameHe);
     if (existingTemplateNames.has(name)) continue;
 
     const candidate = {
       id: randomUUID(),
       name,
-      description: locale === 'he-IL' ? catalog.descriptionHe : catalog.descriptionEn,
+      description: nameOf(catalog.descriptionEn, catalog.descriptionHe),
       workPackages: copy.workPackages.map((pkg) => ({
         name: pkg.name,
         phases: [...pkg.phases],

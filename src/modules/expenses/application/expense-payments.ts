@@ -12,6 +12,7 @@ import {
   addMoney,
   fromNumericString,
   isPositiveMoney,
+  roundMoney,
   subtractMoney,
   toDecimalValue,
   toNumericString,
@@ -44,6 +45,11 @@ import {
   type ExpensePaymentObligationInput,
 } from '../domain/resolve-expense-payment-obligation';
 import { findExpenseById } from '../data/expenses.repository';
+import {
+  recordInstallmentPaymentPaidLedgerRow,
+  voidInstallmentPaymentLedgerForExpense,
+  writeExpensePaymentAuditEvent,
+} from '../data/expense-installment-payments.repository';
 import { resolveExpensePaymentSchedule } from './resolve-expense-payment-schedule';
 
 const EXPENSE_PAYMENT_CONFIRMED = AUDIT_ACTIONS.EXPENSE_PAYMENT_CONFIRMED;
@@ -498,9 +504,10 @@ export async function confirmExpensePaid(
     paymentConfirmationSource: 'manual',
   });
 
-  await recordAuditEvent(context, {
+  const auditEventId = await writeExpensePaymentAuditEvent(context.db, {
+    organizationId: context.organizationId,
+    actorUserId: context.userId,
     action: EXPENSE_PAYMENT_CONFIRMED,
-    entityType: 'expense',
     entityId: expenseId,
     after: {
       paidAt,
@@ -509,6 +516,24 @@ export async function confirmExpensePaid(
       installmentIndex: obligation.currentInstallmentIndex,
       source: 'manual',
     },
+  });
+
+  const installmentIndex =
+    row.installmentCount > 1 ? (obligation.currentInstallmentIndex ?? null) : null;
+  const scheduleDue =
+    installmentIndex != null ? obligation.installmentSchedule[installmentIndex]?.dueDate ?? null : null;
+
+  await recordInstallmentPaymentPaidLedgerRow(context.db, {
+    organizationId: context.organizationId,
+    expenseId,
+    installmentIndex,
+    dueDate: scheduleDue,
+    actualPaidAt: paidAt,
+    grossPaid: roundMoney(paymentAmount),
+    expenseNetAmount: row.netAmount.amount,
+    expenseGrossAmount: row.grossAmount.amount,
+    paymentReference: 'manual',
+    auditEventId,
   });
 }
 
@@ -562,12 +587,19 @@ export async function voidExpensePaymentConfirmation(
     })
     .where(and(eq(expenses.id, expenseId), eq(expenses.organizationId, context.organizationId)));
 
-  await recordAuditEvent(context, {
+  const auditEventId = await writeExpensePaymentAuditEvent(context.db, {
+    organizationId: context.organizationId,
+    actorUserId: context.userId,
     action: EXPENSE_PAYMENT_VOIDED,
-    entityType: 'expense',
     entityId: expenseId,
     before: prior,
     after: { paymentStatus: obligation.paymentStatus },
+  });
+
+  await voidInstallmentPaymentLedgerForExpense(context.db, {
+    organizationId: context.organizationId,
+    expenseId,
+    auditEventId,
   });
 }
 

@@ -24,6 +24,7 @@ import {
 } from './sumit-create-payload';
 import {
   createSumitHttpClient,
+  SUMIT_INCOME_DOCUMENT_TYPES,
   SumitAmbiguousError,
   type SumitCreateDocumentResponse,
   type SumitDocumentPdfResponse,
@@ -153,7 +154,11 @@ export class SumitStatutoryProvider implements StatutoryInvoicingProvider {
         }),
       });
 
-      const documentId = response.documentId!;
+      if (!response.documentId) {
+        throw new SumitAmbiguousCreateError('SUMIT create succeeded without DocumentID');
+      }
+
+      const documentId = response.documentId;
       let externalNumber = response.documentNumber;
       let providerAmounts: ReturnType<SumitStatutoryProvider['mapProviderAmounts']> = null;
 
@@ -179,6 +184,9 @@ export class SumitStatutoryProvider implements StatutoryInvoicingProvider {
         },
       };
     } catch (error) {
+      if (error instanceof SumitAmbiguousCreateError) {
+        throw error;
+      }
       if (error instanceof SumitAmbiguousError) {
         throw new SumitAmbiguousCreateError(error.message, error.partialDocumentId);
       }
@@ -335,6 +343,83 @@ export class SumitStatutoryProvider implements StatutoryInvoicingProvider {
   ): Promise<StatutoryProviderResult<AllocateExternalReferenceOutput>> {
     return unsupported('SUMIT allocation');
   }
+
+  /** Read-only scan for ambiguous recovery — never creates documents. */
+  async findDocumentByExternalReference(input: {
+    readonly externalReference: string;
+    readonly dateFrom: string;
+    readonly dateTo: string;
+  }): Promise<{
+    readonly foundDocumentId: string | null;
+    readonly proofEligible: boolean;
+    readonly inconclusiveReason: string | null;
+  }> {
+    const listResult = await this.client.listAccountingDocuments({
+      types: [...SUMIT_INCOME_DOCUMENT_TYPES],
+      dateFrom: input.dateFrom,
+      dateTo: input.dateTo,
+    });
+
+    if (!listResult.pagingComplete || listResult.candidateCapReached) {
+      return {
+        foundDocumentId: null,
+        proofEligible: false,
+        inconclusiveReason: 'scan_incomplete',
+      };
+    }
+
+    let inconclusiveReason: string | null = null;
+    for (const candidate of listResult.documents) {
+      let externalReference = candidate.externalReference?.trim() || null;
+      if (!externalReference) {
+        try {
+          const details = await this.client.getDocumentDetails(candidate.documentId);
+          externalReference = readSumitExternalReference(details.raw);
+        } catch {
+          inconclusiveReason = 'candidate_detail_failed';
+          continue;
+        }
+      }
+
+      if (externalReference === input.externalReference) {
+        return {
+          foundDocumentId: candidate.documentId,
+          proofEligible: true,
+          inconclusiveReason: null,
+        };
+      }
+    }
+
+    if (inconclusiveReason) {
+      return { foundDocumentId: null, proofEligible: false, inconclusiveReason };
+    }
+
+    return { foundDocumentId: null, proofEligible: true, inconclusiveReason: null };
+  }
+}
+
+function readSumitExternalReference(raw: unknown): string | null {
+  const root = raw as Record<string, unknown>;
+  const dataObj =
+    root.Data && typeof root.Data === 'object'
+      ? (root.Data as Record<string, unknown>)
+      : root;
+  const documentObj =
+    dataObj.Document && typeof dataObj.Document === 'object'
+      ? (dataObj.Document as Record<string, unknown>)
+      : null;
+  const detailsObj =
+    dataObj.Details && typeof dataObj.Details === 'object'
+      ? (dataObj.Details as Record<string, unknown>)
+      : null;
+
+  for (const source of [detailsObj, documentObj, dataObj]) {
+    if (!source) continue;
+    const ref = source.ExternalReference;
+    if (typeof ref === 'string' && ref.trim().length > 0) return ref.trim();
+    if (typeof ref === 'number') return String(ref);
+  }
+  return null;
 }
 
 /**

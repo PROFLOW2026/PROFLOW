@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, isNull } from 'drizzle-orm';
+import { and, asc, desc, eq, isNull, ne } from 'drizzle-orm';
 import { clients } from '@drizzle/schema';
 import { estimateLineItems, estimates } from '@drizzle/schema/next-gen';
 import type { DbExecutor } from '@/shared/db/types';
@@ -84,6 +84,7 @@ export async function listQuotes(
       validityDate: estimates.validityDate,
       updatedAt: estimates.updatedAt,
       convertedProjectId: estimates.convertedProjectId,
+      sourceCrmQuoteId: estimates.sourceCrmQuoteId,
     })
     .from(estimates)
     .leftJoin(
@@ -104,7 +105,29 @@ export async function listQuotes(
     validityDate: row.validityDate,
     updatedAt: row.updatedAt,
     convertedProjectId: row.convertedProjectId,
+    sourceCrmQuoteId: row.sourceCrmQuoteId ?? null,
   }));
+}
+
+/** Active product quote linked to a CRM sales quote (excludes cancelled). */
+export async function findProductQuoteBySourceCrmQuoteId(
+  db: DbExecutor,
+  organizationId: string,
+  crmQuoteId: string,
+): Promise<QuoteRecord | null> {
+  const [row] = await db
+    .select()
+    .from(estimates)
+    .where(
+      and(
+        eq(estimates.organizationId, organizationId),
+        eq(estimates.sourceCrmQuoteId, crmQuoteId),
+        isNull(estimates.archivedAt),
+        ne(estimates.status, 'cancelled'),
+      ),
+    )
+    .limit(1);
+  return row ? mapQuote(row) : null;
 }
 
 export async function findQuoteById(

@@ -91,3 +91,18 @@ export type CreditExternalDocumentInput = z.infer<typeof creditExternalDocumentS
 export type CancelExternalDocumentInput = z.infer<typeof cancelExternalDocumentSchema>;
 export type AllocateExternalReferenceInput = z.infer<typeof allocateExternalReferenceSchema>;
 export type ListExternalDocumentsInput = z.infer<typeof listExternalDocumentsSchema>;
+
+export const linkExternalStatutoryDocumentSchema = z.object({
+  externalDocumentId: z.string().uuid(),
+  sumitDocumentId: z.string().min(1).max(32),
+  allowExternalReferenceMismatch: z.boolean().optional(),
+});
+
+export const confirmStatutoryDocumentAbsentSchema = z.object({
+  externalDocumentId: z.string().uuid(),
+  reason: z.string().trim().min(8).max(500),
+  confirmedCheckedInSumit: z.literal(true),
+});
+
+export type LinkExternalStatutoryDocumentInput = z.infer<typeof linkExternalStatutoryDocumentSchema>;
+export type ConfirmStatutoryDocumentAbsentInput = z.infer<typeof confirmStatutoryDocumentAbsentSchema>;

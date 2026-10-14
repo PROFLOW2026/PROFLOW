@@ -8,13 +8,15 @@ import {
   measureJsonResponseBytes,
 } from '@/shared/observability/runtime-usage-diag';
 
+export const maxDuration = 300;
+
 /**
  * Durable OCR worker. Daily Vercel recovery cron (Hobby: once per day) or an
  * operator calls this with `Authorization: Bearer $CRON_SECRET`. Upload paths
  * enqueue then kick the same drain after the response - they do not bypass the queue.
  */
 export async function POST(request: Request): Promise<Response> {
-  if (!isInternalWorkerAuthorized(request)) {
+  if (!isInternalWorkerAuthorized(request, 'ocr-worker')) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
   const trigger = inferWorkerTrigger(request);

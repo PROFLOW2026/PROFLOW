@@ -432,6 +432,7 @@
     "officeAdmin": "إدارة مكتب",
     "readOnlyProject": "عرض مشروع للقراءة فقط",
     "externalConsultant": "استشاري خارجي",
+    "externalConsultantHint": "طلبات RFI والتسليمات تتطلب أيضًا العضوية في فريق المشروع (تبويب فريق المشروع)، وليس جدول العمل فقط.",
     "supervisorInspector": "مشرف / مفتش"
   },
   "permissions": {

@@ -1,5 +1,8 @@
 {
   "title": "אחסון קבצים",
+  "quickAccess": {
+    "ariaLabel": "גישה מהירה לקבצי החברה"
+  },
   "description": "חברו את שירות הענן של הארגון כדי לשמור מסמכים, תמונות וקבצים ב-ProjectFlow.",
   "notConnectedNotice": "כדי לשמור קבצים יש לחבר שירות אחסון לארגון.",
   "connectAction": "חיבור אחסון",

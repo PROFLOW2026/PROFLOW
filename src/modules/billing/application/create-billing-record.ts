@@ -29,11 +29,12 @@ import {
 } from '../domain/tax';
 import {
   findBillingRecordById,
-  findChangeOrdersInProject,
+  findChangeOrdersWithNetInProject,
   findProjectInOrganization,
   insertBillingRecord,
   replaceBillingLines,
 } from '../data/billing.repository';
+import { buildNetBillingLines } from '../domain/billing-line-split';
 import { findContractById, findPrimaryContractByProject } from '@/modules/projects';
 import { createBillingRecordSchema, type CreateBillingRecordInput } from '../validation/schemas';
 import { finalizeBillingRecordWithPermission } from './finalize-billing-record';
@@ -53,37 +54,6 @@ async function resolveCurrency(
     return inputCurrency.toUpperCase();
   }
   return projectCurrency;
-}
-
-function buildLines(
-  amounts: ReturnType<typeof resolveTaxAmounts>,
-  changeOrders: readonly { id: string; reference: string | null }[],
-): {
-  description: string;
-  lineTotal: string;
-  currency: string;
-  changeOrderId: string | null;
-  sortOrder: number;
-}[] {
-  if (changeOrders.length === 0) {
-    return [
-      {
-        description: 'Billing amount',
-        lineTotal: toNumericString(amounts.totalAmount),
-        currency: amounts.totalAmount.currency,
-        changeOrderId: null,
-        sortOrder: 0,
-      },
-    ];
-  }
-
-  return changeOrders.map((changeOrder, index) => ({
-    description: changeOrder.reference?.trim() || `Change order ${index + 1}`,
-    lineTotal: toNumericString(amounts.totalAmount),
-    currency: amounts.totalAmount.currency,
-    changeOrderId: changeOrder.id,
-    sortOrder: index,
-  }));
 }
 
 export async function createBillingRecord(context: OrgContext, rawInput: CreateBillingRecordInput) {
@@ -165,7 +135,7 @@ export async function createBillingRecordWithPermission(
   }
 
   const changeOrderIds = input.changeOrderIds ?? [];
-  const changeOrders = await findChangeOrdersInProject(
+  const changeOrders = await findChangeOrdersWithNetInProject(
     context.db,
     context.organizationId,
     input.projectId,
@@ -253,7 +223,10 @@ export async function createBillingRecordWithPermission(
     context.db,
     context.organizationId,
     billingRecordId,
-    buildLines(amounts, changeOrders),
+    buildNetBillingLines({
+      subtotal: amounts.subtotalAmount,
+      changeOrders,
+    }),
   );
 
   await noteModuleUsage(context.db, context.organizationId, 'billing');

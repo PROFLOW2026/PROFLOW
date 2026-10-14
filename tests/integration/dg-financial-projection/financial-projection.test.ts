@@ -115,6 +115,21 @@ describe('subcontract financial projection (Track B)', () => {
       return { vendorId: vendor.id, p1, p2, s1: s1.id, s2: s2.id };
     });
 
+    // Default project_access_mode is selected (0176); ops needs explicit project read grants.
+    await database.asService(async (db) => {
+      for (const projectId of [fixture.p1, fixture.p2]) {
+        await db.execute(sql`
+          INSERT INTO project_access_grants (organization_id, user_id, project_id, access_level)
+          VALUES (${orgId}::uuid, ${ops.id}::uuid, ${projectId}::uuid, 'read')
+        `);
+      }
+      // Operational read on p2; financial capability remains p1-only via project_members.
+      await db.execute(sql`
+        INSERT INTO project_access_grants (organization_id, user_id, project_id, access_level)
+        VALUES (${orgId}::uuid, ${pmFinancial.id}::uuid, ${fixture.p2}::uuid, 'read')
+      `);
+    });
+
     return { orgId, owner, ops, finance, pmFinancial, ...fixture };
   }
 

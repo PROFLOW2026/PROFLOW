@@ -33,6 +33,7 @@ export function mapEmployeePmTaskToCardData(
     workspaceName: null,
     boardId: null,
     boardName: null,
+    estimatedEffortMinutes: null,
     createdAt: now,
     updatedAt: now,
   };

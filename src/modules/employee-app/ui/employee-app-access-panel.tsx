@@ -476,6 +476,9 @@ export function EmployeeAppAccessPanel({
           {showPresetRequiresSave ? (
             <p className="text-xs text-[var(--pf-text-secondary)]">{t('presetRequiresSave')}</p>
           ) : null}
+          {selectedPreset === 'external_consultant' ? (
+            <p className="text-xs text-[var(--pf-text-muted)]">{tPresets('externalConsultantHint')}</p>
+          ) : null}
         </div>
         <div className="flex flex-wrap gap-2">
           <Button

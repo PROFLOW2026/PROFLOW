@@ -5,8 +5,8 @@ import {
   updateTaskById,
   insertTaskActivity,
 } from '../data/tasks.repository';
-import { isValidTransition, transitionTask } from '../domain/lifecycle';
 import { buildSystemActivityActorFields } from '../domain/actor';
+import { applyTaskStatusChange } from './apply-task-status-change';
 import type { Task, TaskStatus, TaskPriority } from '../domain/types';
 
 export async function updateTaskAsSystem(
@@ -35,20 +35,9 @@ export async function updateTaskAsSystem(
     events.push({ eventType: 'automation_changed', payload: { field: 'title', auto: true } });
   }
 
+  let statusUpdated: Task | null = null;
   if (input.status !== undefined && input.status !== existing.status) {
-    if (!isValidTransition(existing.status, input.status)) {
-      throw new DomainRuleError(
-        `Invalid status transition: ${existing.status} → ${input.status}`,
-        'tasks.errors.invalidTransition',
-      );
-    }
-    const { status, completionDate } = transitionTask(existing.status, input.status);
-    patch.status = status;
-    if (completionDate) patch.completionDate = completionDate;
-    events.push({
-      eventType: input.status === 'done' ? 'completed' : 'status_changed',
-      payload: { from: existing.status, to: input.status, auto: true },
-    });
+    statusUpdated = await applyTaskStatusChange(context, taskId, input.status, { kind: 'system' });
   }
 
   if (input.priority !== undefined && input.priority !== existing.priority) {
@@ -75,7 +64,13 @@ export async function updateTaskAsSystem(
     });
   }
 
-  const updated = await updateTaskById(context.db, context.organizationId, taskId, patch);
+  let updated = statusUpdated;
+  if (Object.keys(patch).length > 0) {
+    updated = await updateTaskById(context.db, context.organizationId, taskId, patch);
+  }
+  if (!updated) {
+    updated = await findTaskById(context.db, context.organizationId, taskId);
+  }
   if (!updated) throw new NotFoundError('Task');
 
   for (const event of events) {

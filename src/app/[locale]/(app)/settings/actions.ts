@@ -1073,3 +1073,73 @@ export async function deactivatePaymentInstrumentAction(
     throw error;
   }
 }
+
+async function calendarFeedUnavailableMessage(error: unknown): Promise<string> {
+  const t = await getTranslations('settings.profile.calendarFeed');
+  const code =
+    error && typeof error === 'object' && 'code' in error
+      ? String((error as { code?: string }).code)
+      : '';
+  if (code === '42P01') {
+    return t('unavailableMigration');
+  }
+  return t('unavailable');
+}
+
+export async function getCalendarFeedStatusAction(): Promise<{
+  hasActiveToken: boolean;
+  lastAccessedAt: string | null;
+  error?: string;
+}> {
+  try {
+    return await withOrgContext(async (context) => {
+      const { getActiveCalendarFeedToken } = await import(
+        '@/modules/calendar/application/calendar-feed-tokens'
+      );
+      const token = await getActiveCalendarFeedToken(context);
+      return {
+        hasActiveToken: Boolean(token),
+        lastAccessedAt: token?.lastAccessedAt?.toISOString() ?? null,
+      };
+    });
+  } catch (error) {
+    return {
+      hasActiveToken: false,
+      lastAccessedAt: null,
+      error: await calendarFeedUnavailableMessage(error),
+    };
+  }
+}
+
+export async function rotateCalendarFeedAction(): Promise<{
+  rawToken?: string;
+  error?: string;
+}> {
+  try {
+    return await withOrgContext(async (context) => {
+      const { rotateCalendarFeedToken } = await import(
+        '@/modules/calendar/application/calendar-feed-tokens'
+      );
+      const rotated = await rotateCalendarFeedToken(context);
+      revalidatePath('/settings/profile');
+      return { rawToken: rotated.rawToken };
+    });
+  } catch (error) {
+    return { error: await calendarFeedUnavailableMessage(error) };
+  }
+}
+
+export async function revokeCalendarFeedAction(): Promise<{ error?: string }> {
+  try {
+    await withOrgContext(async (context) => {
+      const { revokeCalendarFeedToken } = await import(
+        '@/modules/calendar/application/calendar-feed-tokens'
+      );
+      await revokeCalendarFeedToken(context);
+    });
+    revalidatePath('/settings/profile');
+    return {};
+  } catch (error) {
+    return { error: await calendarFeedUnavailableMessage(error) };
+  }
+}

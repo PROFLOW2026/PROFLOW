@@ -1,4 +1,4 @@
-﻿import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { sql } from 'drizzle-orm';
 import { createProject } from '@/modules/projects';
 import { createClient } from '@/modules/clients';
@@ -13,7 +13,7 @@ import { insertDraftBoqNodeViaRpc } from '../../setup/boq-draft-node';
 import { createTestOrganization, createTestUser, seedSystem } from '../../setup/fixtures';
 
 /**
- * TRUE FINAL CLOSURE adversarial matrix (0035 Â§12).
+ * TRUE FINAL CLOSURE adversarial matrix (0035 §12).
  * Does not rely on the prior PASS suite that missed these cases.
  */
 describe('BOQ true-final integrity closure adversarial', () => {
@@ -579,7 +579,7 @@ describe('BOQ true-final integrity closure adversarial', () => {
     });
   });
 
-  it('preserves measured≠approved in secure progress view for workers', async () => {
+  it('preserves measured?approved in secure progress view for workers', async () => {
     const { owner, worker, orgId, projectId } = await provision();
 
     const lineId = await database.asUser(owner.id, async (tx) => {

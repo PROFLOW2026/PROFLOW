@@ -13,6 +13,8 @@ const { runDailyOpsWorkerMock } = vi.hoisted(() => ({
     materialPressureAlerts: { scanned: 0, emitted: 0, failed: 0, errors: [] },
     marginSnapshots: { scanned: 0, snapshotsWritten: 0, failed: 0, errors: [] },
     dgEvents: { claimed: 0, processed: 0, failed: 0, deadLetterBacklog: 0 },
+    crossOrgOutbox: { scanned: 0, applied: 0, failed: 0, skipped: 0 },
+    documentCleanup: { mode: 'report', orgsScanned: 0, candidates: 0, sample: [] },
   })),
 }));
 
@@ -60,6 +62,8 @@ describe('ops-worker route harness (OPS-005)', () => {
         'sumitRecovery',
         'taskRecurrence',
         'taskReminders',
+        'crossOrgOutbox',
+        'documentCleanup',
       ].sort(),
     );
   });

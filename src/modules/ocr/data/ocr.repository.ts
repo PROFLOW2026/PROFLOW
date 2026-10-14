@@ -75,6 +75,7 @@ export interface OcrBatchPatch {
 export interface ListOcrJobsOptions {
   readonly status?: ExtractionJobStatus | readonly ExtractionJobStatus[];
   readonly batchId?: string;
+  readonly limit?: number;
 }
 
 /**

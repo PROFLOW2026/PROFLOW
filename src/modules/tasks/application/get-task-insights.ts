@@ -8,7 +8,8 @@ import { resolveAccessibleProjectIds } from '@/modules/projects/application/proj
 import { getAccessibleWorkspaceIds } from '@/modules/operations';
 import { tasks, taskAssignees, employees } from '@drizzle/schema';
 import type { TaskStatus } from '../domain/types';
-import { addDays, todayInTimeZone } from '@/shared/dates';
+import { todayInTimeZone } from '@/shared/dates';
+import { upcomingSundayFrom } from '../domain/week-window';
 
 export interface TaskInsightsAssigneeRow {
   readonly assigneeId: string;
@@ -52,7 +53,7 @@ export async function getTaskInsights(context: OrgContext): Promise<TaskInsights
   }
 
   const today = todayInTimeZone(context.organization.timezone);
-  const weekEnd = addDays(today, 7);
+  const weekEnd = upcomingSundayFrom(today);
 
   const baseConditions = [
     eq(tasks.organizationId, context.organizationId),

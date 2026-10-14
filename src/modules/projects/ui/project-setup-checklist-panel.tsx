@@ -1,6 +1,9 @@
 import { listPlansForProject } from '@/modules/billing-plan';
 import { listExpensesForOrg } from '@/modules/expenses';
-import { listProjectTeamMembers } from '@/modules/workforce';
+import {
+  loadUnifiedProjectTeamSources,
+  unifiedTeamHasMembers,
+} from '@/modules/projects/application/unified-project-team';
 import type { ProjectDetail } from '@/modules/projects';
 import { withOrgContext } from '@/shared/auth/session';
 import { ProjectSetupChecklist } from './project-setup-checklist';
@@ -19,15 +22,15 @@ export async function ProjectSetupChecklistPanel({
   if (!canEdit || detail.project.workKind === 'job') return null;
 
   const setup = await withOrgContext(async (context) => {
-    const [team, expenses, plans] = await Promise.all([
-      listProjectTeamMembers(context, projectId).catch(() => []),
+    const [teamSources, expenses, plans] = await Promise.all([
+      loadUnifiedProjectTeamSources(context, projectId),
       listExpensesForOrg(context, { projectId, limit: 1 }).catch(() => ({ items: [], total: 0 })),
       listPlansForProject(context.db, context.organizationId, projectId).catch(() => []),
     ]);
     return {
       hasClient: Boolean(detail.project.clientId),
       hasContract: Boolean(detail.contract),
-      hasTeam: team.length > 0,
+      hasTeam: unifiedTeamHasMembers(teamSources),
       hasLoggedCost: expenses.items.length > 0,
       hasBillingPlan: plans.length > 0,
     };

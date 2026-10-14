@@ -51,10 +51,14 @@
     "issueCount": "{count, plural, one {# open item} other {# open items}}",
     "stateOk": "Clear",
     "stateIssue": "Needs attention",
-    "stateNa": "Not applicable"
+    "stateInformational": "Informational",
+    "stateNa": "Not applicable",
+    "informationalGroupTitle": "Defined estimate — pending actual (no score impact)",
+    "ownerDefinedEstimateHint": "Estimate is allowed; enter an actual amount only when you have the real payroll figure."
   },
   "checks": {
     "missing_employer_cost_actual": "Employees missing actual employer cost",
+    "owner_manager_defined_estimate_pending_actual": "Owner/manager — defined estimate, pending actual",
     "unallocated_employee_cost": "Unallocated employee cost",
     "vendor_bills_unallocated": "Vendor bills with unallocated remainder",
     "open_time_corrections": "Open time corrections",

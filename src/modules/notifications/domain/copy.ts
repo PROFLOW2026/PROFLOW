@@ -216,6 +216,7 @@ export function notificationCopy(
         body: bodyWithExtra(t, type, extra, 'body'),
       };
     case 'task_comment_mention':
+    case 'task_comment_added':
       return {
         title: titleWithReference(t, type, ref),
         body: bodyWithExtra(t, type, extra),

@@ -1,5 +1,6 @@
 import { and, desc, eq, inArray, isNull } from 'drizzle-orm';
 import { connectedProjectMappings, engagementConnectionInvitations } from '@drizzle/schema';
+import { asServiceRoleWrite } from '@/shared/db/service-role-write';
 import type { DbExecutor } from '@/shared/db/types';
 import type { ConnectedProjectMappingRow, EngagementConnectionInvitationRow } from '../domain/types';
 import type { MappingStatus, ProvisioningStatus } from '../domain/connection-lifecycle';
@@ -98,8 +99,8 @@ export async function markInvitationConsumed(
   invitationId: string,
   input: { readonly consumedByOrganizationId: string; readonly consumedByUserId: string | null },
   consumedAt: Date = new Date(),
-): Promise<void> {
-  await db
+): Promise<number> {
+  const rows = await db
     .update(engagementConnectionInvitations)
     .set({
       status: 'consumed',
@@ -114,7 +115,9 @@ export async function markInvitationConsumed(
         eq(engagementConnectionInvitations.status, 'issued'),
         isNull(engagementConnectionInvitations.consumedAt),
       ),
-    );
+    )
+    .returning({ id: engagementConnectionInvitations.id });
+  return rows.length;
 }
 
 export async function revokeInvitationById(
@@ -163,17 +166,19 @@ export async function findMappingByInvitationAndContractorOrg(
   invitationId: string,
   contractorOrganizationId: string,
 ): Promise<ConnectedProjectMappingRow | null> {
-  const [row] = await db
-    .select()
-    .from(connectedProjectMappings)
-    .where(
-      and(
-        eq(connectedProjectMappings.invitationId, invitationId),
-        eq(connectedProjectMappings.contractorOrganizationId, contractorOrganizationId),
-      ),
-    )
-    .limit(1);
-  return row ? mapMapping(row) : null;
+  return asServiceRoleWrite(db, async () => {
+    const [row] = await db
+      .select()
+      .from(connectedProjectMappings)
+      .where(
+        and(
+          eq(connectedProjectMappings.invitationId, invitationId),
+          eq(connectedProjectMappings.contractorOrganizationId, contractorOrganizationId),
+        ),
+      )
+      .limit(1);
+    return row ? mapMapping(row) : null;
+  });
 }
 
 export async function findActiveMappingByAgreementAndContractorOrg(
@@ -181,19 +186,21 @@ export async function findActiveMappingByAgreementAndContractorOrg(
   subcontractAgreementId: string,
   contractorOrganizationId: string,
 ): Promise<ConnectedProjectMappingRow | null> {
-  const [row] = await db
-    .select()
-    .from(connectedProjectMappings)
-    .where(
-      and(
-        eq(connectedProjectMappings.subcontractAgreementId, subcontractAgreementId),
-        eq(connectedProjectMappings.contractorOrganizationId, contractorOrganizationId),
-        inArray(connectedProjectMappings.status, ['pending', 'provisioning', 'active']),
-        isNull(connectedProjectMappings.revokedAt),
-      ),
-    )
-    .limit(1);
-  return row ? mapMapping(row) : null;
+  return asServiceRoleWrite(db, async () => {
+    const [row] = await db
+      .select()
+      .from(connectedProjectMappings)
+      .where(
+        and(
+          eq(connectedProjectMappings.subcontractAgreementId, subcontractAgreementId),
+          eq(connectedProjectMappings.contractorOrganizationId, contractorOrganizationId),
+          inArray(connectedProjectMappings.status, ['pending', 'provisioning', 'active']),
+          isNull(connectedProjectMappings.revokedAt),
+        ),
+      )
+      .limit(1);
+    return row ? mapMapping(row) : null;
+  });
 }
 
 export async function insertConnectedProjectMapping(
@@ -258,17 +265,19 @@ export async function findMappingByIdForContractorOrg(
   mappingId: string,
   contractorOrganizationId: string,
 ): Promise<ConnectedProjectMappingRow | null> {
-  const [row] = await db
-    .select()
-    .from(connectedProjectMappings)
-    .where(
-      and(
-        eq(connectedProjectMappings.id, mappingId),
-        eq(connectedProjectMappings.contractorOrganizationId, contractorOrganizationId),
-      ),
-    )
-    .limit(1);
-  return row ? mapMapping(row) : null;
+  return asServiceRoleWrite(db, async () => {
+    const [row] = await db
+      .select()
+      .from(connectedProjectMappings)
+      .where(
+        and(
+          eq(connectedProjectMappings.id, mappingId),
+          eq(connectedProjectMappings.contractorOrganizationId, contractorOrganizationId),
+        ),
+      )
+      .limit(1);
+    return row ? mapMapping(row) : null;
+  });
 }
 
 export async function listFailedProvisioningMappingsForContractorOrg(
@@ -276,19 +285,21 @@ export async function listFailedProvisioningMappingsForContractorOrg(
   contractorOrganizationId: string,
   limit = 10,
 ): Promise<ConnectedProjectMappingRow[]> {
-  const rows = await db
-    .select()
-    .from(connectedProjectMappings)
-    .where(
-      and(
-        eq(connectedProjectMappings.contractorOrganizationId, contractorOrganizationId),
-        eq(connectedProjectMappings.provisioningStatus, 'failed'),
-        isNull(connectedProjectMappings.revokedAt),
-      ),
-    )
-    .orderBy(desc(connectedProjectMappings.updatedAt))
-    .limit(limit);
-  return rows.map(mapMapping);
+  return asServiceRoleWrite(db, async () => {
+    const rows = await db
+      .select()
+      .from(connectedProjectMappings)
+      .where(
+        and(
+          eq(connectedProjectMappings.contractorOrganizationId, contractorOrganizationId),
+          eq(connectedProjectMappings.provisioningStatus, 'failed'),
+          isNull(connectedProjectMappings.revokedAt),
+        ),
+      )
+      .orderBy(desc(connectedProjectMappings.updatedAt))
+      .limit(limit);
+    return rows.map(mapMapping);
+  });
 }
 
 export async function revokeMappingById(

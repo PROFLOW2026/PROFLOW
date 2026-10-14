@@ -13,3 +13,22 @@ Verify **after** Production deploy with secrets configured. Do not log secret va
 | Task reminders / notifications | Inside ops-worker | via ops auth | No error in ops JSON | emitted ≥ 0 | failures array |
 
 **Manual POST template (operator):** `Authorization: Bearer $CRON_SECRET` to route URL on production origin.
+
+## Ops health (read-only)
+
+| Check | Route | Notes |
+| --- | --- | --- |
+| Worker secrets flag | `GET /api/internal/ops-health` · `CRON_SECRET` | `health.workerSecretsConfigured` boolean only |
+| DG dead letter backlog | same | `health.dgDeadLetter.count` |
+| Cross-org outbox | same | `health.crossOrgOutbox` by status |
+| Storage connection issues | same | `health.storageConnections` (`reconnect_required`, `error`, …) |
+| Document cleanup candidates | same | `health.documentCleanupCandidates` (report-only; cron never deletes) |
+| Legacy Supabase bytes | same | `health.legacyDocuments` read-only count |
+
+## Replay (owner-approved only)
+
+`POST /api/internal/ops-replay` with `{ organizationId, kind: "dg_event" \| "outbox", ids: [...] }` (max 50). Writes audit `ops.replay_requested` per id.
+
+## Worker duration
+
+Internal worker routes export `maxDuration = 300` (OCR, ops, SUMIT, DG events). Inline DG delivery remains primary; outbox is backup (O14-007).

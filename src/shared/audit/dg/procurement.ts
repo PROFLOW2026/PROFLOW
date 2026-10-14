@@ -1,6 +1,7 @@
 /** Audit actions for the 'procurement' track (Developer/GC build). Shape: entity.verb. Labels go in settings.activity.actions (4 locales). */
 export const PROCUREMENT_AUDIT_ACTIONS = {
   TENDER_PACKAGE_CREATED: 'tender_package.created',
+  TENDER_BIDDING_CLOSED: 'tender_package.bidding_closed',
   TENDER_BID_SUBMITTED: 'tender_offer.submitted',
   TENDER_AWARDED: 'tender_package.awarded',
   AGREEMENT_CLOSEOUT_CLOSED: 'agreement_closeout.closed',

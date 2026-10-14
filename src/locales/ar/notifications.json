@@ -39,6 +39,7 @@
     "action_required": "إجراء مطلوب",
     "task_assigned_to_you": "تم إسناد مهمة إليك",
     "task_comment_mention": "تعليق جديد على مهمتك",
+    "task_comment_added": "تعليق جديد على مهمة",
     "task_status_updated": "تم تحديث حالة المهمة",
     "task_postponed_by_employee": "أجل موظف مهمة",
     "capture_needs_review": "التقاط بانتظار المراجعة",
@@ -123,6 +124,12 @@
       "titleWithReference": "تعليق جديد على المهمة - {reference}",
       "titleDefault": "تعليق جديد على مهمتك",
       "bodyDefault": "أُضيف تعليق على مهمة مُسندة إليك.",
+      "bodyWithExtra": "{extra}"
+    },
+    "task_comment_added": {
+      "titleWithReference": "تعليق جديد على المهمة - {reference}",
+      "titleDefault": "تعليق جديد على مهمة",
+      "bodyDefault": "أُضيف تعليق على مهمة تتابعها أو مُسندة إليك.",
       "bodyWithExtra": "{extra}"
     },
     "task_approval_requested": {
@@ -224,6 +231,12 @@
           "bodyWithExtra": "{extra}"
         }
       }
+    },
+    "task_dependency_resolved": {
+      "titleWithReference": "مهمة جاهزة - {reference}",
+      "titleDefault": "مهمة جاهزة",
+      "bodyWithExtra": "اكتملت المهمة السابقة: {extra}",
+      "bodyDefault": "مهمة مسندة إليك جاهزة للبدء."
     },
     "task_status_updated": {
       "titleWithReference": "تم تحديث المهمة - {reference}",

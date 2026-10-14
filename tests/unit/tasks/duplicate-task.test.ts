@@ -29,7 +29,9 @@ vi.mock('@/modules/tasks/data/tasks.repository', () => repo);
 
 describe('duplicateTask', () => {
   const context = {
-    db: {},
+    db: {
+      transaction: async <T>(fn: (tx: unknown) => Promise<T>) => fn({}),
+    },
     organizationId: 'org-1',
     membershipId: 'mem-1',
   } as unknown as OrgContext;
@@ -64,7 +66,7 @@ describe('duplicateTask', () => {
 
     expect(result.id).toBe('task-copy');
     expect(repo.insertTask).toHaveBeenCalledWith(
-      context.db,
+      expect.anything(),
       expect.objectContaining({
         title: 'Install panels (copy)',
         description: 'Main floor',
@@ -76,14 +78,17 @@ describe('duplicateTask', () => {
       }),
     );
     expect(repo.insertChecklistItem).toHaveBeenCalledTimes(1);
-    expect(repo.insertLabelAssignment).toHaveBeenCalledWith(context.db, {
-      taskId: 'task-copy',
-      labelId: 'label-1',
-      organizationId: 'org-1',
-    });
+    expect(repo.insertLabelAssignment).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        taskId: 'task-copy',
+        labelId: 'label-1',
+        organizationId: 'org-1',
+      }),
+    );
     expect(repo.insertTaskAssignee).not.toHaveBeenCalled();
     expect(repo.insertTaskActivity).toHaveBeenCalledWith(
-      context.db,
+      expect.anything(),
       expect.objectContaining({ eventType: 'task_duplicated', taskId: 'task-source' }),
     );
   });
@@ -92,7 +97,7 @@ describe('duplicateTask', () => {
     await duplicateTask(context, 'task-source', { includeAssignees: true });
 
     expect(repo.insertTaskAssignee).toHaveBeenCalledWith(
-      context.db,
+      expect.anything(),
       expect.objectContaining({
         taskId: 'task-copy',
         orgMemberId: 'mem-2',

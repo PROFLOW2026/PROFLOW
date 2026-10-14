@@ -138,7 +138,8 @@ export async function createContractor(
         principalId: principal!.id,
         portalKind: 'contractor',
         vendorId,
-        projectId: options.narrowToProject ? options.projectId : null,
+        projectId:
+          options.narrowToProject || options.narrowToAgreement ? options.projectId : null,
         subcontractAgreementId: options.narrowToAgreement ? agreementId : null,
         scopes: [...(options.capabilities ?? ALL_EXTERNAL_CAPABILITIES)],
         status: 'active',

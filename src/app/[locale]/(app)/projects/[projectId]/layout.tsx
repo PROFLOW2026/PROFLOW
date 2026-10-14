@@ -10,7 +10,7 @@ import {
 import { titleWithDocumentNumber } from '@/modules/tenancy/domain/document-numbers';
 import { resolveProjectExperienceProfile } from '@/modules/tenancy/domain/project-profiles';
 import { loadProjectDetail, loadProjectCloseoutStatus, loadProjectLayoutIdentity } from './load-project-detail';
-import { getShellContextForProject } from '@/shared/auth/session';
+import { getShellContextForProject, withOrgContext, withProjectOrgContext } from '@/shared/auth/session';
 import { fromNumericString } from '@/shared/money';
 import { PERMISSIONS, type PermissionKey } from '@/shared/permissions/catalog';
 import { Link } from '@/shared/i18n/navigation';
@@ -20,13 +20,13 @@ import { ArchiveProjectButton } from './archive-project-button';
 import { ProjectHeaderMetrics } from './project-header-metrics';
 import { ProjectStatusBadge } from '../project-status-badge';
 import { resolveProjectFilesTabVisible } from './project-tab-order';
+import { resolveProjectTeamTabVisible } from '@/modules/projects/application/resolve-project-team-tab-visible';
 import { resolveProjectTabVisibility } from './resolve-project-tab-visibility';
 import {
   resolveProjectHubs,
   type ProjectHubKey,
 } from './project-hub-order';
 import { loadProjectExecutionNav } from '@/modules/project-workspace/application/load-execution-nav';
-import { withOrgContext } from '@/shared/auth/session';
 import { DeveloperGcExecutionEntry } from '@/modules/project-workspace/ui/developer-gc-execution-entry';
 import { ProjectExecutionNav } from '@/modules/project-workspace/ui/project-execution-nav';
 import { ProjectOperationalContextHeader } from '@/modules/project-workspace/ui/project-operational-context-header';
@@ -42,7 +42,8 @@ import {
   loadConnectedProjectForLayout,
 } from '@/modules/connected-projects';
 import { ConnectedProjectBanner } from '@/modules/connected-projects/ui';
-
+import { getProjectCoverDisplayUrl } from '@/modules/projects/application/project-cover-image';
+import { ProjectCoverImage } from '@/modules/projects/ui/project-cover-image';
 interface ProjectLayoutProps {
   children: React.ReactNode;
   params: Promise<{ locale: string; projectId: string }>;
@@ -72,14 +73,25 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
   const showBillingTab = Boolean(modules?.billing) && can(PERMISSIONS.BILLING_READ);
   const showBillingPlanTab = showBillingTab;
   const showBudgetsTab = Boolean(modules?.budgets) && can(PERMISSIONS.BUDGETS_READ);
-  const showTeamTab = can(PERMISSIONS.WORKFORCE_READ);
+  const showTeamTab = resolveProjectTeamTabVisible(can);
   const showScheduleTab = can(PERMISSIONS.PLANNING_READ);
   const showTimeTab = can(PERMISSIONS.WORKFORCE_READ);
   const showDocumentsTab = resolveProjectFilesTabVisible(can(PERMISSIONS.DOCUMENTS_READ));
   const showUsageTab = can(PERMISSIONS.MATERIALS_READ) || can(PERMISSIONS.ASSETS_READ);
 
-  const [identity, locale, executionNav, t, tHubs, tStatus, tCloseout, detail, closeoutStatus, connectedProject] =
-    await Promise.all([
+  const [
+    identity,
+    locale,
+    executionNav,
+    t,
+    tHubs,
+    tStatus,
+    tCloseout,
+    detail,
+    closeoutStatus,
+    connectedProject,
+    coverImageUrl,
+  ] = await Promise.all([
       loadProjectLayoutIdentity(projectId),
       getLocale(),
       withOrgContext((context) => loadProjectExecutionNav(context, projectId)).catch(() => ({
@@ -93,6 +105,9 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
       loadProjectDetail(projectId, false).catch(() => null),
       loadProjectCloseoutStatus(projectId).catch(() => null),
       loadConnectedProjectForLayout(projectId).catch(() => null),
+      withProjectOrgContext(projectId, (context) =>
+        getProjectCoverDisplayUrl(context, projectId),
+      ).catch(() => null),
     ]);
 
   if (!identity || !detail) notFound();
@@ -190,6 +205,7 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
 
   const commercialTop = (
     <>
+      <ProjectCoverImage projectName={detail.project.name} imageUrl={coverImageUrl} />
       <PageHeader
         title={titleWithDocumentNumber(detail.project.name, detail.project.documentNumber ?? '')}
         actions={

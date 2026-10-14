@@ -6,7 +6,7 @@ import {
   findTaskById,
   insertTaskDependency,
   deleteTaskDependency,
-  listTaskDependencies,
+  listAllTaskDependenciesForOrg,
   insertTaskActivity,
 } from '../data/tasks.repository';
 import { detectCycle } from '../domain/dependencies';
@@ -41,12 +41,7 @@ export async function addDependency(
   if (!sourceTask) throw new NotFoundError('Source task');
   if (!targetTask) throw new NotFoundError('Target task');
 
-  // Load all deps for cycle check
-  const allDeps = await listTaskDependencies(
-    context.db,
-    context.organizationId,
-    [sourceTaskId, targetTaskId],
-  );
+  const allDeps = await listAllTaskDependenciesForOrg(context.db, context.organizationId);
 
   // Check for existing edge
   const alreadyExists = allDeps.some(

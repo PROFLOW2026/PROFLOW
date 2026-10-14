@@ -298,6 +298,7 @@
     "previewModules": "Suggested capabilities",
     "previewTerminology": "Display names",
     "previewQuickCreate": "Quick create",
+    "previewQuickCreateHint": "Affects dashboard quick-action card order only — the global + menu stays the same.",
     "previewCategories": "Suggested cost categories",
     "previewFolders": "Suggested document folders",
     "previewForms": "Suggested form templates",
@@ -569,7 +570,9 @@
         "updated": "Project updated",
         "archived": "Project archived",
         "restored": "Project restored",
-        "template_applied": "Project template applied"
+        "template_applied": "Project template applied",
+        "cover_changed": "Project cover image updated",
+        "cover_removed": "Project cover image removed"
       },
       "work_package": {
         "created": "Work area created",
@@ -678,6 +681,10 @@
         "voided": "Billing record voided",
         "adjustment_created": "Billing adjustment added"
       },
+      "statutory_document": {
+        "absence_confirmed": "Statutory document absence confirmed",
+        "manually_linked": "Statutory document manually linked"
+      },
       "billing_plan": {
         "created": "Billing plan created",
         "updated": "Billing plan updated",
@@ -755,6 +762,9 @@
         "storage_cleanup_failed": "Document file cleanup failed",
         "storage_cleanup_completed": "Document file cleanup completed"
       },
+      "ops": {
+        "replay_requested": "Operations queue replay requested"
+      },
       "storage": {
         "connection_connected": "Storage connected",
         "connection_disconnected": "Storage disconnected",
@@ -800,6 +810,7 @@
         "estimate_created": "Estimate created",
         "estimate_updated": "Estimate updated",
         "sales_quote_created": "Sales quote created",
+        "sales_quote_converted": "CRM quote converted to product quote",
         "sales_quote_version_created": "Sales quote version created",
         "sales_quote_version_issued": "Sales quote version issued",
         "quote_accepted": "Sales quote accepted"
@@ -1143,11 +1154,16 @@
         "accepted": "Developer project connected",
         "mapping_revoked": "Connected developer project revoked",
         "provision_retry": "Connected project setup retried",
+        "provision_failed": "Connected project setup failed",
+        "provision_retry_failed": "Connected project setup retry failed",
         "document_copy_saved": "Developer document copied to contractor storage"
       },
       "subcontract_payment_hold": {
         "placed": "Contractor payment hold placed",
         "released": "Contractor payment hold released"
+      },
+      "task": {
+        "dependency_gate_overridden": "Task dependency gate overridden"
       },
       "task_external": {
         "assigned": "Task assigned to a contractor",
@@ -1327,7 +1343,8 @@
       },
       "tender_package": {
         "created": "Tender package created",
-        "awarded": "Tender package awarded"
+        "awarded": "Tender package awarded",
+        "bidding_closed": "Tender bidding closed"
       },
       "tender_offer": {
         "submitted": "Tender offer submitted"
@@ -1419,7 +1436,26 @@
     "title": "Your profile",
     "displayName": "Your name",
     "language": "Interface language",
-    "saved": "Profile updated."
+    "saved": "Profile updated.",
+    "calendarFeed": {
+      "title": "Personal calendar feed (ICS)",
+      "description": "Subscribe in Google Calendar or Outlook to see your assigned tasks. Read-only — changes in the external calendar do not sync back.",
+      "statusActive": "An active feed link exists.",
+      "statusNone": "No active feed link.",
+      "lastSync": "Last fetched {date}",
+      "create": "Create feed link",
+      "rotate": "Regenerate link",
+      "revoke": "Revoke link",
+      "urlLabel": "Subscription URL",
+      "urlHint": "Shown once after you create or regenerate the link. Store it in your calendar app.",
+      "copy": "Copy link",
+      "copied": "Link copied.",
+      "copyFailed": "Could not copy — select the URL manually.",
+      "created": "New feed link ready. Copy it into your calendar app.",
+      "revoked": "Feed link revoked.",
+      "unavailable": "Calendar feed could not be loaded.",
+      "unavailableMigration": "Calendar feed requires database migration 0188 (Gate B)."
+    }
   },
   "numbering": {
     "title": "Document numbering",

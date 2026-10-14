@@ -10,6 +10,7 @@ import { formatBusinessDateMonthDay } from '@/shared/dates/format';
 import { cn } from '@/shared/ui/cn';
 import { uwmListPanelClass, uwmListRowClass, uwmTabBarClass } from '@/shared/ui/uwm-surface-styles';
 import type { TaskCardData, TaskPriority, TaskStatus } from './task-api';
+import { TaskTimelineGantt } from './task-timeline-gantt';
 
 type TimelineGroupBy = 'date' | 'project' | 'status';
 
@@ -103,6 +104,7 @@ export interface TaskTimelineViewProps {
   onUpdateDueDate?: (taskId: string, dueDate: string | null) => Promise<void>;
   showProject?: boolean;
   className?: string;
+  today?: string;
 }
 
 export function TaskTimelineView({
@@ -111,6 +113,7 @@ export function TaskTimelineView({
   onUpdateDueDate,
   showProject = true,
   className,
+  today,
 }: TaskTimelineViewProps) {
   const t = useTranslations('tasks');
   const locale = useLocale();
@@ -131,6 +134,10 @@ export function TaskTimelineView({
 
   return (
     <div className={cn('flex flex-col gap-4', className)}>
+      {today ? (
+        <TaskTimelineGantt tasks={tasks} today={today} onOpenTask={onOpenTask} />
+      ) : null}
+
       <nav aria-label={t('timeline.groupByLabel')} className={cn(uwmTabBarClass, 'w-fit')}>
         {(['date', 'project', 'status'] as const).map((mode) => (
           <button

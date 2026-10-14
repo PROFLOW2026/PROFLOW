@@ -3,6 +3,7 @@ import { EXTERNAL_CAPABILITIES } from '@/shared/external';
 import {
   connectedDeveloperCapabilities,
   grantsCoveringConnectedMapping,
+  isConnectedMappingVisible,
   pickPrimaryCoveringGrant,
 } from '@/modules/connected-projects/domain/grant-bridge';
 import type { ExternalGrantView } from '@/shared/external';
@@ -27,6 +28,14 @@ function grant(partial: Partial<ExternalGrantView> & Pick<ExternalGrantView, 'gr
 }
 
 describe('connected-projects grant bridge', () => {
+  it('shows only provisioning and active mappings', () => {
+    expect(isConnectedMappingVisible('provisioning')).toBe(true);
+    expect(isConnectedMappingVisible('active')).toBe(true);
+    expect(isConnectedMappingVisible('pending')).toBe(false);
+    expect(isConnectedMappingVisible('failed')).toBe(false);
+    expect(isConnectedMappingVisible('revoked')).toBe(false);
+  });
+
   it('ignores org-unrelated grants and expired grants', () => {
     const grants = [
       grant({ grantId: 'g1' }),

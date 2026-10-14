@@ -76,9 +76,9 @@ describe('owner / manager employee create (0084)', () => {
       const created = await createEmployee(context, {
         name: 'Owner Manager Test',
         rateUnit: 'monthly',
-        baseRate: '48000',
+        baseRate: '18000',
         currency: 'ILS',
-        burdenPercent: '25',
+        burdenPercent: '50',
         hireDate: businessDate('2026-01-01'),
         workingDaysPerMonth: '22',
         compensationClass: 'owner_manager',
@@ -123,7 +123,7 @@ describe('owner / manager employee create (0084)', () => {
       expect(monthRows.length).toBeGreaterThan(0);
       expect(monthRows.some((row) => row.yearMonth === currentYearMonth)).toBe(true);
       for (const row of monthRows) {
-        expect(Number(row.knownAmount)).toBeGreaterThan(0);
+        expect(row.knownAmount).toBe('27000.000000');
         expect(row.companyOnlyAmount).toBe(row.knownAmount);
         expect(row.allocatedAmount).toBe('0.000000');
         expect(row.unallocatedAmount).toBe('0.000000');

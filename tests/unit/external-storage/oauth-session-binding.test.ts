@@ -1,7 +1,18 @@
-import { describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createOAuthState, verifyOAuthState } from '@/modules/external-storage/application/oauth-state';
 
 describe('storage OAuth session binding (L7)', () => {
+  const previousOAuthSecret = process.env.OAUTH_STATE_SECRET;
+
+  beforeAll(() => {
+    process.env.OAUTH_STATE_SECRET = 'unit-test-oauth-state-secret-key';
+  });
+
+  afterAll(() => {
+    if (previousOAuthSecret === undefined) delete process.env.OAUTH_STATE_SECRET;
+    else process.env.OAUTH_STATE_SECRET = previousOAuthSecret;
+  });
+
   const base = {
     organizationId: '11111111-1111-4111-8111-111111111111',
     userId: '22222222-2222-4222-8222-222222222222',

@@ -91,6 +91,12 @@ export interface ReconciliationMetadata {
   readonly tolerance: string;
   readonly pdfStorageStatus?: 'pending' | 'saved' | 'failed';
   readonly pdfStorageError?: string | null;
+  readonly absenceProofScans?: readonly {
+    readonly completedAt: string;
+    readonly result: 'empty' | 'found' | 'inconclusive';
+    readonly reason?: string | null;
+  }[];
+  readonly manualAbsenceConfirmedAt?: string | null;
 }
 
 export interface StatutoryPartySnapshot {

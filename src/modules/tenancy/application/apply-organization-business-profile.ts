@@ -38,8 +38,7 @@ export async function applyOrganizationBusinessProfile(
       ? 'replace'
       : (parsed.data.moduleMode ?? 'additive');
 
-  const labelLocale = resolveLabelLocale(context.organization.defaultLocale);
-  const locale = labelLocale === 'he-IL' ? 'he-IL' : 'en';
+  const locale = resolveLabelLocale(context.organization.defaultLocale);
   const result = await applyBusinessProfileConfig(
     context.db,
     context.organizationId,

@@ -1,8 +1,9 @@
 import { loadShellOrgSettings } from './shell-org-settings';
 import type { OrgContext } from '@/shared/auth/context';
 import {
-  ALL_CAPABILITIES_CARD_SUPPLEMENTS,
   resolveDashboardLayout,
+  selectAllCapabilitiesSupplements,
+  type ALL_CAPABILITIES_CARD_SUPPLEMENTS,
   type DashboardLayoutMode,
 } from '../domain/experience-dashboard-layout';
 import { resolveExperienceFamily } from '../domain/experience-family';
@@ -12,6 +13,7 @@ import {
   buildExperienceUiContext,
   isExperienceUiVisible,
   type ExperienceUiContext,
+  type ExperienceUiToggleId,
 } from '../domain/experience-ui-registry';
 
 export type HomeDashboardExperienceSlice = {
@@ -55,8 +57,8 @@ export async function resolveHomeDashboardExperience(
 
   const allCapabilitiesSupplements =
     dashboardLayoutMode === 'all_capabilities'
-      ? ALL_CAPABILITIES_CARD_SUPPLEMENTS.filter((card) =>
-          isExperienceUiVisible(`card.${card}`, experienceUiContext),
+      ? selectAllCapabilitiesSupplements((toggleId) =>
+          isExperienceUiVisible(toggleId as ExperienceUiToggleId, experienceUiContext),
         )
       : [];
 

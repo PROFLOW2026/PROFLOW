@@ -16,6 +16,10 @@ import {
   type CrmFormState,
 } from '@/app/[locale]/(app)/crm/actions';
 import {
+  followUpStageSelectOptions,
+  isFollowUpWonStageDisabled,
+} from '@/modules/crm/domain/follow-up-stage-options';
+import {
   crmQuoteCreateHref,
   crmQuoteDetailHref,
   type CrmUiSurface,
@@ -33,6 +37,7 @@ function toDatetimeLocalValue(value: Date | string | null): string {
 export function OpportunityFollowUpForm({
   opportunityId,
   stage,
+  status,
   notes,
   expectedStartDate,
   nextActionAt,
@@ -40,6 +45,7 @@ export function OpportunityFollowUpForm({
 }: {
   opportunityId: string;
   stage: 'qualify' | 'estimate' | 'quote' | 'negotiation' | 'won' | 'lost';
+  status: 'open' | 'won' | 'lost' | 'cancelled';
   notes: string | null;
   expectedStartDate: string | null;
   nextActionAt: Date | null;
@@ -52,6 +58,8 @@ export function OpportunityFollowUpForm({
     updateOpportunityAction,
     {},
   );
+  const stageOptions = followUpStageSelectOptions(stage, status);
+  const wonDisabled = isFollowUpWonStageDisabled(status);
 
   return (
     <form action={formAction} className="flex flex-col gap-3">
@@ -65,15 +73,21 @@ export function OpportunityFollowUpForm({
             defaultValue={stage}
             className="block min-h-11 w-full rounded-md border border-[var(--pf-border-strong)] bg-[var(--pf-bg-surface)] px-3 py-2 text-sm"
           >
-            <option value="qualify">{tStages('qualify')}</option>
-            <option value="estimate">{tStages('estimate')}</option>
-            <option value="quote">{tStages('quote')}</option>
-            <option value="negotiation">{tStages('negotiation')}</option>
-            <option value="won">{tStages('won')}</option>
-            <option value="lost">{tStages('lost')}</option>
+            {stageOptions.map((value) => (
+              <option
+                key={value}
+                value={value}
+                disabled={value === 'won' && wonDisabled}
+              >
+                {tStages(value)}
+              </option>
+            ))}
           </select>
         )}
       </Field>
+      {wonDisabled ? (
+        <p className="text-xs text-[var(--pf-text-muted)]">{t('wonHint')}</p>
+      ) : null}
       <Field
         label={t('nextActionLabel')}
         optionalLabel={tCommon('labels.optional')}
@@ -290,10 +304,12 @@ export function ConvertWonForm({
 export function ConvertCrmQuoteButton({
   salesQuoteId,
   salesQuoteTitle,
+  convertedProductQuoteId,
   disabled,
 }: {
   salesQuoteId: string;
   salesQuoteTitle: string;
+  convertedProductQuoteId?: string | null;
   disabled?: boolean;
 }) {
   const t = useTranslations('crm.opportunity');
@@ -302,10 +318,20 @@ export function ConvertCrmQuoteButton({
     {},
   );
 
+  if (convertedProductQuoteId) {
+    return (
+      <div className="inline-flex flex-col items-end gap-1 text-xs">
+        <span className="text-[var(--pf-text-secondary)]">{t('convertedToProductQuote')}</span>
+        <Button asChild variant="secondary" size="sm" className="text-xs">
+          <Link href={`/quotes/${convertedProductQuoteId}`}>{t('viewProductQuote')}</Link>
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <form action={formAction} className="inline-flex items-center">
       <input type="hidden" name="salesQuoteId" value={salesQuoteId} />
-      {/* Pre-populate title; user will be able to edit in the product quote. */}
       <input type="hidden" name="titleOverride" value={`${salesQuoteTitle}`} />
       {state.error ? (
         <span className="me-2 text-xs text-[var(--pf-status-danger-fg)]">{state.error}</span>

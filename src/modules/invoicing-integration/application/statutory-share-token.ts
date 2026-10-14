@@ -3,27 +3,31 @@ import 'server-only';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { serverEnv } from '@/shared/env/server';
 import { DomainRuleError } from '@/shared/errors';
+import { statutoryShareSigningKey } from './statutory-share-availability';
 
-const SHARE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+export const STATUTORY_SHARE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 function shareSecret(): string {
-  const env = serverEnv();
-  return (
-    process.env.STORAGE_TOKEN_ENCRYPTION_KEY?.trim() ||
-    env.SUPABASE_SERVICE_ROLE_KEY ||
-    env.DATABASE_URL ||
-    'projectflow.statutory.share.local'
-  );
+  const key = statutoryShareSigningKey();
+  if (!key) {
+    throw new DomainRuleError(
+      'Statutory share unavailable',
+      'invoicingIntegration.errors.shareUnavailable',
+    );
+  }
+  return key;
 }
 
 export function createStatutoryShareToken(input: {
   organizationId: string;
   externalDocumentId: string;
+  linkId: string;
 }): string {
   const payload = JSON.stringify({
     organizationId: input.organizationId,
     externalDocumentId: input.externalDocumentId,
-    exp: Date.now() + SHARE_TTL_MS,
+    linkId: input.linkId,
+    exp: Date.now() + STATUTORY_SHARE_TTL_MS,
   });
   const encoded = Buffer.from(payload, 'utf8').toString('base64url');
   const sig = createHmac('sha256', shareSecret()).update(encoded).digest('base64url');
@@ -33,6 +37,7 @@ export function createStatutoryShareToken(input: {
 export function verifyStatutoryShareToken(token: string): {
   organizationId: string;
   externalDocumentId: string;
+  linkId: string;
 } {
   const [encoded, sig] = token.split('.');
   if (!encoded || !sig) {
@@ -47,9 +52,10 @@ export function verifyStatutoryShareToken(token: string): {
   const parsed = JSON.parse(Buffer.from(encoded, 'base64url').toString('utf8')) as {
     organizationId?: string;
     externalDocumentId?: string;
+    linkId?: string;
     exp?: number;
   };
-  if (!parsed.organizationId || !parsed.externalDocumentId || !parsed.exp) {
+  if (!parsed.organizationId || !parsed.externalDocumentId || !parsed.linkId || !parsed.exp) {
     throw new DomainRuleError('Invalid share link', 'invoicingIntegration.errors.shareInvalid');
   }
   if (Date.now() > parsed.exp) {
@@ -58,6 +64,7 @@ export function verifyStatutoryShareToken(token: string): {
   return {
     organizationId: parsed.organizationId,
     externalDocumentId: parsed.externalDocumentId,
+    linkId: parsed.linkId,
   };
 }
 

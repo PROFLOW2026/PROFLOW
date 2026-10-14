@@ -24,6 +24,7 @@ import {
   taskSourceEnum,
   taskStatusEnum,
 } from './enums';
+import { profiles } from './identity';
 import { organizations, organizationMemberships } from './tenancy';
 import { employees } from './workforce';
 import { projects } from './projects';
@@ -462,6 +463,50 @@ export const taskComments = pgTable(
       'task_comments_exactly_one_author',
       sql`(${t.authorOrgMemberId} IS NOT NULL)::int + (${t.authorEmployeeId} IS NOT NULL)::int = 1`,
     ),
+  ],
+);
+
+export const taskCommentMentions = pgTable(
+  'task_comment_mentions',
+  {
+    id: primaryId(),
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    taskCommentId: uuid('task_comment_id')
+      .notNull()
+      .references(() => taskComments.id, { onDelete: 'cascade' }),
+    mentionedUserId: uuid('mentioned_user_id')
+      .notNull()
+      .references(() => profiles.id, { onDelete: 'cascade' }),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    uniqueIndex('task_comment_mentions_comment_user_uq').on(t.taskCommentId, t.mentionedUserId),
+    index('task_comment_mentions_org_user_idx').on(t.organizationId, t.mentionedUserId),
+  ],
+);
+
+export const calendarFeedTokens = pgTable(
+  'calendar_feed_tokens',
+  {
+    id: primaryId(),
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => profiles.id, { onDelete: 'cascade' }),
+    tokenHash: text('token_hash').notNull(),
+    revokedAt: timestamp('revoked_at', { withTimezone: true, mode: 'date' }),
+    lastAccessedAt: timestamp('last_accessed_at', { withTimezone: true, mode: 'date' }),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    uniqueIndex('calendar_feed_tokens_token_hash_uq').on(t.tokenHash),
+    index('calendar_feed_tokens_org_user_active_idx')
+      .on(t.organizationId, t.userId)
+      .where(sql`${t.revokedAt} IS NULL`),
   ],
 );
 

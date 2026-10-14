@@ -14,6 +14,8 @@ import type { MyWorkItem, TaskCardData } from '@/modules/tasks/ui/task-api';
 import { serializeTaskCardsForClient } from '@/modules/tasks/ui/serialize-task-cards';
 import { MyWorkView as MyWorkViewComponent } from '@/modules/tasks/ui/my-work-view';
 import { MyWorkQuickCreate } from '@/modules/tasks/ui/my-work-quick-create';
+import { WorkLensChrome } from '@/modules/tasks/ui/work-lens-chrome';
+import { listClientsForOrg } from '@/modules/clients';
 import { listWorkspaces } from '@/modules/workspaces';
 import {
   createMyWorkTaskFromFabAction,
@@ -38,7 +40,7 @@ function serializeMyWorkItems(tasks: TaskCardData[]): MyWorkItem[] {
 }
 
 interface MyWorkPageProps {
-  searchParams: Promise<{ view?: string | string[] }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
 /**
@@ -52,7 +54,8 @@ export default async function MyWorkPage({ searchParams }: MyWorkPageProps) {
   }
 
   const t = await getTranslations('tasks');
-  const { view: viewParam } = await searchParams;
+  const params = await searchParams;
+  const { view: viewParam } = params;
   const activeView = resolveMyWorkView(viewParam);
 
   const canCreateTask = shell.permissions.has(PERMISSIONS.TASKS_CREATE);
@@ -66,20 +69,33 @@ export default async function MyWorkPage({ searchParams }: MyWorkPageProps) {
     }
   }
 
-  const { initialTasks, hasMore, today } = await withOrgContext(async (context) => {
-    const todayLocal = todayInTimeZone(context.organization.timezone);
-    const page = await getMyWorkPage(context, {
-      view: activeView,
-      today: todayLocal,
-      limit: MY_WORK_VIEW_LIMIT,
-    });
-    const items = serializeMyWorkItems(await mapTasksToCardDataForOrg(context, page.tasks));
-    return { initialTasks: items, hasMore: page.hasMore, today: todayLocal };
-  });
+  const { initialTasks, hasMore, today, clients, taskCount } = await withOrgContext(
+    async (context) => {
+      const todayLocal = todayInTimeZone(context.organization.timezone);
+      const page = await getMyWorkPage(context, {
+        view: activeView,
+        today: todayLocal,
+        limit: MY_WORK_VIEW_LIMIT,
+      });
+      const items = serializeMyWorkItems(await mapTasksToCardDataForOrg(context, page.tasks));
+      const clientRows = await listClientsForOrg(context, { status: 'active', limit: 500 }).catch(
+        () => [],
+      );
+      return {
+        initialTasks: items,
+        hasMore: page.hasMore,
+        today: todayLocal,
+        clients: clientRows.map((row) => ({ id: row.id, name: row.name })),
+        taskCount: items.length,
+      };
+    },
+  );
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title={t('myWork.pageTitle')} description={t('myWork.pageDescription')} />
+
+      <WorkLensChrome searchParams={params} clients={clients} taskCount={taskCount} />
 
       <MyWorkViewComponent
         key={activeView}
@@ -91,6 +107,7 @@ export default async function MyWorkPage({ searchParams }: MyWorkPageProps) {
         onLoadMore={loadMoreMyWorkAction}
         onFetchView={fetchMyWorkViewAction}
         today={today}
+        workLensSearchParams={params}
       />
 
       {canCreateTask && defaultWorkspaceId ? (

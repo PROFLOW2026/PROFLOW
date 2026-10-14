@@ -1,4 +1,4 @@
-import type { TaskListFilters, TaskPriority, TaskStatus } from './types';
+import type { TaskListFilters, TaskListSortField, TaskPriority, TaskStatus } from './types';
 import { compactWorkTaskQuery } from './work-task-filter-keys';
 
 type WritableTaskListFilters = {
@@ -15,6 +15,24 @@ const STATUS_VALUES: TaskStatus[] = [
 ];
 
 const PRIORITY_VALUES: TaskPriority[] = ['none', 'low', 'medium', 'high', 'urgent'];
+
+const SORT_FIELDS: TaskListSortField[] = [
+  'dueDate',
+  'startDate',
+  'priority',
+  'title',
+  'createdAt',
+  'status',
+];
+
+function readParam(
+  params: Record<string, string | string[] | undefined>,
+  key: string,
+): string | undefined {
+  const raw = params[key];
+  const value = Array.isArray(raw) ? raw[0] : raw;
+  return typeof value === 'string' && value.trim() ? value.trim() : undefined;
+}
 
 function parseBoolFlag(value: string | undefined): boolean | undefined {
   if (value === '1' || value === 'true') return true;
@@ -38,6 +56,13 @@ export function parseWorkTaskListFilters(
   if (q.dueFrom) filters.dueAfter = q.dueFrom;
   if (q.dueTo) filters.dueBefore = q.dueTo;
 
+  const anchorFrom = readParam(params, 'anchorFrom');
+  const anchorTo = readParam(params, 'anchorTo');
+  if (anchorFrom && anchorTo) {
+    filters.anchorFrom = anchorFrom;
+    filters.anchorTo = anchorTo;
+  }
+
   if (q.status && q.status !== 'all') {
     if (STATUS_VALUES.includes(q.status as TaskStatus)) {
       filters.status = q.status as TaskStatus;
@@ -56,6 +81,11 @@ export function parseWorkTaskListFilters(
 
   const noProject = parseBoolFlag(q.noProject);
   if (noProject === true) filters.noProjectOnly = true;
+
+  if (q.sortField && SORT_FIELDS.includes(q.sortField as TaskListSortField)) {
+    const direction = q.sortDir === 'desc' ? 'desc' : 'asc';
+    filters.sort = { field: q.sortField as TaskListSortField, direction };
+  }
 
   return filters as TaskListFilters;
 }

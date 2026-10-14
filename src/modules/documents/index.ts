@@ -18,8 +18,10 @@ export {
   createDocumentDownloadUrl,
   softDeleteDocument,
   retryFailedDocumentCleanups,
+  planFailedDocumentCleanups,
   getDocumentById,
 } from './application/manage-document';
+export type { DocumentCleanupPlanRow } from './application/manage-document';
 export {
   findDocumentById,
   updateDocumentById,

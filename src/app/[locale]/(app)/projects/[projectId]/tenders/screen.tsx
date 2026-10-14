@@ -4,7 +4,9 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { listProjectTenderPackages } from '@/modules/contractor-procurement';
+import { TenderPackageForm } from '@/modules/contractor-procurement/ui/tender-package-form';
 import { PROJECT_CAPABILITIES } from '@/modules/project-team/domain/capabilities';
+import { hasProjectCapability } from '@/modules/project-team';
 import { requireProjectCapabilityPage } from '@/modules/project-team/server';
 import { withOrgContext } from '@/shared/auth/session';
 import { Link } from '@/shared/i18n/navigation';
@@ -17,14 +19,28 @@ export async function ProjectTendersScreen({ surfaceRoot, params }: {
   await requireProjectCapabilityPage(projectId, PROJECT_CAPABILITIES.PROJECT_VIEW);
   const t = await getTranslations('awards');
   const base = `${surfaceRoot ?? ('/projects/' + projectId)}/tenders`;
-  const packages = await withOrgContext((context) => listProjectTenderPackages(context, projectId));
+  const { packages, canManage } = await withOrgContext(async (context) => ({
+    packages: await listProjectTenderPackages(context, projectId),
+    canManage: await hasProjectCapability(context, projectId, PROJECT_CAPABILITIES.CONTRACT_MANAGE),
+  }));
 
   return (
     <WithAppClientMessages extra={['awards']}>
       <div className="flex flex-col gap-6">
         <PageHeader title={t('title')} description={t('description')} />
+        {canManage ? (
+          <section className="rounded-md border border-[var(--pf-border)] p-4">
+            <h2 className="mb-3 text-sm font-medium">{t('forms.newPackageTitle')}</h2>
+            <TenderPackageForm projectId={projectId} />
+            <p className="mt-3 text-xs text-[var(--pf-text-muted)]">{t('empty.directAgreementHint')}</p>
+          </section>
+        ) : null}
         {packages.length === 0 ? (
-          <EmptyState icon={Gavel} title={t('empty.title')} description={t('empty.description')} />
+          <EmptyState
+            icon={Gavel}
+            title={t('empty.title')}
+            description={canManage ? t('empty.descriptionManage') : t('empty.descriptionReadOnly')}
+          />
         ) : (
           <ul className="flex flex-col gap-2">
             {packages.map((pkg) => (

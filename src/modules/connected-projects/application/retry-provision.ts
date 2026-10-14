@@ -1,9 +1,12 @@
 import 'server-only';
 
+import { sql } from 'drizzle-orm';
 import type { OrgContext } from '@/shared/auth/context';
 import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
 import { asServiceRoleWrite } from '@/shared/db/service-role-write';
 import { DomainRuleError, NotFoundError } from '@/shared/errors';
+import { assertPermission } from '@/shared/permissions/assert';
+import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { loadDeveloperEngagementPreview } from './load-engagement-preview';
 import { provisionContractorProject } from './provision-contractor-project';
 import {
@@ -20,6 +23,8 @@ export async function retryConnectedProjectProvisioning(
   context: OrgContext,
   mappingId: string,
 ): Promise<AcceptCodeResult> {
+  assertPermission(context, PERMISSIONS.PROJECTS_CREATE);
+
   const mapping = await findMappingByIdForContractorOrg(context.db, mappingId, context.organizationId);
   if (!mapping) throw new NotFoundError('Connection mapping');
 
@@ -51,6 +56,8 @@ export async function retryConnectedProjectProvisioning(
     }),
   );
 
+  const savepoint = `cp_retry_${mapping.id.slice(0, 8)}`;
+  await context.db.execute(sql.raw(`SAVEPOINT "${savepoint}"`));
   try {
     const provisioned = await provisionContractorProject(context, { preview });
 
@@ -70,18 +77,31 @@ export async function retryConnectedProjectProvisioning(
       after: { contractorProjectId: provisioned.projectId },
     });
 
+    await context.db.execute(sql.raw(`RELEASE SAVEPOINT "${savepoint}"`));
+
     return {
       mappingId: mapping.id,
       contractorProjectId: provisioned.projectId,
       idempotentReplay: false,
     };
   } catch (error) {
+    await context.db.execute(sql.raw(`ROLLBACK TO SAVEPOINT "${savepoint}"`));
     await asServiceRoleWrite(context.db, () =>
       updateMappingProvisioning(context.db, mapping.id, context.organizationId, {
         provisioningStatus: 'failed',
         status: 'failed',
       }),
     );
-    throw error;
+    await recordAuditEvent(context, {
+      action: AUDIT_ACTIONS.CONNECTED_PROJECT_PROVISION_RETRY_FAILED,
+      entityType: 'connected_project_mapping',
+      entityId: mapping.id,
+      after: { error: error instanceof Error ? error.message : 'unknown' },
+    });
+    return {
+      mappingId: mapping.id,
+      idempotentReplay: false,
+      provisioningFailed: true,
+    };
   }
 }

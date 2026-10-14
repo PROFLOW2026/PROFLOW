@@ -11,7 +11,11 @@ import { runQuoteExpiryScan } from '@/modules/quotes';
 import { runMaterialPressureAlertScan } from '@/modules/material-market/application/pressure-alert-ops-worker';
 import { runMarginSnapshotOpsWorker } from '@/modules/ops-finance/application/margin-snapshot-ops-worker';
 import { runDgEventsOpsWorker } from '@/modules/dg-events/application/ops-worker';
-import { retryClaimCashProjectionOutbox } from '@/modules/connected-projects/application/retry-claim-cash-projection-outbox';
+import {
+  retryClaimCashProjectionOutbox,
+  type ClaimCashProjectionOutboxRecoveryResult,
+} from '@/modules/connected-projects/application/retry-claim-cash-projection-outbox';
+import { runDocumentCleanupOpsWorker } from '@/modules/documents/application/document-cleanup-ops-worker';
 import { runWithMaxConcurrency } from '@/shared/async/run-with-concurrency';
 import { logUsageKickFailure } from '@/shared/observability/runtime-usage-diag';
 
@@ -20,6 +24,8 @@ export const OPS_WORKER_MAX_CONCURRENT = 4;
 
 /** Leave headroom under route `maxDuration` (300s) for JSON + logging. */
 export const OPS_WORKER_SAFE_BUDGET_MS = 280_000;
+
+const OUTBOX_RETRY_BUDGET_MS = 30_000;
 
 export interface DailyOpsWorkerPayload {
   readonly expenseRecurrence: Awaited<ReturnType<typeof generateDueRecurringDrafts>>;
@@ -33,6 +39,8 @@ export interface DailyOpsWorkerPayload {
   readonly materialPressureAlerts: Awaited<ReturnType<typeof runMaterialPressureAlertScan>>;
   readonly marginSnapshots: Awaited<ReturnType<typeof runMarginSnapshotOpsWorker>>;
   readonly dgEvents: Awaited<ReturnType<typeof runDgEventsOpsWorker>>;
+  readonly crossOrgOutbox: ClaimCashProjectionOutboxRecoveryResult;
+  readonly documentCleanup: Awaited<ReturnType<typeof runDocumentCleanupOpsWorker>>;
 }
 
 function remainingOpsBudgetMs(startedMs: number): number {
@@ -48,6 +56,15 @@ function logSubWorkerFailure(name: string, error: unknown): void {
   });
 }
 
+async function safeJob<T>(name: string, fallback: T, run: () => Promise<T>): Promise<T> {
+  try {
+    return await run();
+  } catch (error) {
+    logSubWorkerFailure(name, error);
+    return fallback;
+  }
+}
+
 /**
  * Daily ops bundle. Sub-workers run with ≤4 concurrency; each module keeps its own
  * idempotency / bounded scans. Side effects are not duplicated by stagger alone.
@@ -56,137 +73,152 @@ export async function runDailyOpsWorker(startedMs: number = Date.now()): Promise
   const dgMaxMs = Math.min(45_000, remainingOpsBudgetMs(startedMs));
 
   const jobs: readonly {
-    readonly key: keyof DailyOpsWorkerPayload;
+    readonly key: keyof Omit<DailyOpsWorkerPayload, 'crossOrgOutbox' | 'documentCleanup'>;
     readonly run: () => Promise<unknown>;
   }[] = [
-    { key: 'expenseRecurrence', run: () => generateDueRecurringDrafts() },
-    { key: 'taskRecurrence', run: () => runTaskRecurrenceOpsWorker() },
-    { key: 'taskReminders', run: () => runTaskReminderOpsWorker() },
+    {
+      key: 'expenseRecurrence',
+      run: () =>
+        safeJob('expenseRecurrence', {
+          scanned: 0,
+          generated: 0,
+          skipped: 0,
+          failed: 1,
+          paymentsApplied: 0,
+          failures: [{ draftId: 'ops-bundle', error: 'sub_worker_failed' }],
+        }, () => generateDueRecurringDrafts()),
+    },
+    {
+      key: 'taskRecurrence',
+      run: () =>
+        safeJob('taskRecurrence', {
+          scanned: 0,
+          generated: 0,
+          skipped: 0,
+          materialized: 0,
+          failed: 1,
+          failures: [{ organizationId: 'ops-bundle', error: 'sub_worker_failed' }],
+        }, () => runTaskRecurrenceOpsWorker()),
+    },
+    {
+      key: 'taskReminders',
+      run: () =>
+        safeJob('taskReminders', {
+          scanned: 0,
+          emitted: 0,
+          resolved: 0,
+          failed: 1,
+          failures: [{ organizationId: 'ops-bundle', error: 'sub_worker_failed' }],
+        }, () => runTaskReminderOpsWorker()),
+    },
     {
       key: 'notificationScan',
       run: () =>
-        runNotificationScanOpsWorker().catch((error) => {
-          logSubWorkerFailure('notificationScan', error);
-          return {
-            scanned: 0,
-            emitted: 0,
-            resolved: 0,
-            failed: 1,
-            failures: [
-              {
-                organizationId: 'all',
-                error: error instanceof Error ? error.message : String(error),
-              },
-            ],
-          };
-        }),
+        safeJob('notificationScan', {
+          scanned: 0,
+          emitted: 0,
+          resolved: 0,
+          failed: 1,
+          deferredOrgs: 0,
+          failures: [
+            {
+              organizationId: 'all',
+              error: 'sub_worker_failed',
+            },
+          ],
+        }, () => runNotificationScanOpsWorker()),
     },
     {
       key: 'storageProvision',
       run: () =>
-        recoverStorageProvisionViaWorker().catch((error) => {
-          logSubWorkerFailure('storageProvision', error);
-          return {
-            kicked: false as const,
-            detail: error instanceof Error ? error.message : String(error),
-          };
-        }),
+        safeJob('storageProvision', {
+          kicked: false as const,
+          detail: 'sub_worker_failed',
+        }, () => recoverStorageProvisionViaWorker()),
     },
     {
       key: 'materialMarket',
       run: () =>
-        runMaterialMarketRefresh().catch((error) => {
-          logSubWorkerFailure('materialMarket', error);
-          return {
-            sourcesUpdated: 0,
-            observationsUpserted: 0,
-            snapshotsWritten: 0,
-            errors: [error instanceof Error ? error.message : String(error)],
-          };
-        }),
+        safeJob('materialMarket', {
+          sourcesUpdated: 0,
+          observationsUpserted: 0,
+          snapshotsWritten: 0,
+          errors: ['sub_worker_failed'],
+        }, () => runMaterialMarketRefresh()),
     },
     {
       key: 'sumitRecovery',
       run: () =>
-        runSumitRecoveryOpsWorker().catch((error) => {
-          logSubWorkerFailure('sumitRecovery', error);
-          return {
-            scanned: 0,
-            resolved: 0,
-            still_ambiguous: 0,
-            failed: 1,
-            failures: [
-              {
-                organizationId: 'all',
-                error: error instanceof Error ? error.message : String(error),
-              },
-            ],
-          };
-        }),
+        safeJob('sumitRecovery', {
+          scanned: 0,
+          resolved: 0,
+          still_ambiguous: 0,
+          archival_retried: 0,
+          archival_succeeded: 0,
+          failed: 1,
+          failures: [
+            {
+              organizationId: 'all',
+              error: 'sub_worker_failed',
+            },
+          ],
+        }, () => runSumitRecoveryOpsWorker()),
     },
     {
       key: 'quoteExpiry',
       run: () =>
-        runQuoteExpiryScan().catch((error) => {
-          logSubWorkerFailure('quoteExpiry', error);
-          return {
-            expired: 0,
-            notified: 0,
-            errors: [error instanceof Error ? error.message : String(error)],
-          };
-        }),
+        safeJob('quoteExpiry', {
+          orgsScanned: 0,
+          notificationsEmitted: 0,
+          quotesAutoExpired: 0,
+          failed: 1,
+          failures: [{ organizationId: 'ops-bundle', error: 'sub_worker_failed' }],
+        }, () => runQuoteExpiryScan()),
     },
     {
       key: 'materialPressureAlerts',
       run: () =>
-        runMaterialPressureAlertScan().catch((error) => {
-          logSubWorkerFailure('materialPressureAlerts', error);
-          return {
-            scanned: 0,
-            emitted: 0,
-            failed: 1,
-            errors: [error instanceof Error ? error.message : String(error)],
-          };
-        }),
+        safeJob('materialPressureAlerts', {
+          scanned: 0,
+          alertsDetected: 0,
+          emitted: 0,
+          failed: 1,
+          failures: [{ organizationId: 'ops-bundle', error: 'sub_worker_failed' }],
+        }, () => runMaterialPressureAlertScan()),
     },
     {
       key: 'marginSnapshots',
       run: () =>
-        runMarginSnapshotOpsWorker().catch((error) => {
-          logSubWorkerFailure('marginSnapshots', error);
-          return {
-            scanned: 0,
-            snapshotsWritten: 0,
-            failed: 1,
-            errors: [error instanceof Error ? error.message : String(error)],
-          };
-        }),
+        safeJob('marginSnapshots', {
+          snapshotsWritten: 0,
+          projectsScanned: 0,
+          orgsScanned: 0,
+          failed: 1,
+          errors: ['sub_worker_failed'],
+        }, () => runMarginSnapshotOpsWorker()),
     },
     {
       key: 'dgEvents',
       run: () =>
-        runDgEventsOpsWorker({ maxMs: dgMaxMs }).catch((error) => {
-          logSubWorkerFailure('dgEvents', error);
-          return {
-            claimed: 0,
-            processed: 0,
-            ignored: 0,
-            failed: 1,
-            deadLettered: 0,
-            internalNotifications: 0,
-            externalNotifications: 0,
-            resolved: 0,
-            failures: [
-              {
-                eventId: 'ops-bundle',
-                eventType: 'runDgEventsOpsWorker',
-                attempts: 0,
-                error: error instanceof Error ? error.message : String(error),
-              },
-            ],
-            deadLetterBacklog: 0,
-          };
-        }),
+        safeJob('dgEvents', {
+          claimed: 0,
+          processed: 0,
+          ignored: 0,
+          failed: 1,
+          deadLettered: 0,
+          internalNotifications: 0,
+          externalNotifications: 0,
+          resolved: 0,
+          failures: [
+            {
+              eventId: 'ops-bundle',
+              eventType: 'runDgEventsOpsWorker',
+              attempts: 0,
+              error: 'sub_worker_failed',
+            },
+          ],
+          deadLetterBacklog: 0,
+        }, () => runDgEventsOpsWorker({ maxMs: dgMaxMs })),
     },
   ];
 
@@ -195,9 +227,37 @@ export async function runDailyOpsWorker(startedMs: number = Date.now()): Promise
     OPS_WORKER_MAX_CONCURRENT,
   );
 
-  retryClaimCashProjectionOutbox().catch((error) => {
-    logSubWorkerFailure('connectedProjectsCashOutbox', error);
-  });
+  const outboxBudgetMs = Math.min(OUTBOX_RETRY_BUDGET_MS, remainingOpsBudgetMs(startedMs));
+  let crossOrgOutbox: ClaimCashProjectionOutboxRecoveryResult = {
+    scanned: 0,
+    applied: 0,
+    failed: 0,
+    skipped: 0,
+  };
+  if (outboxBudgetMs > 0) {
+    try {
+      crossOrgOutbox = await Promise.race([
+        retryClaimCashProjectionOutbox(),
+        new Promise<ClaimCashProjectionOutboxRecoveryResult>((_, reject) => {
+          setTimeout(() => reject(new Error('cross_org_outbox_retry_timeout')), outboxBudgetMs);
+        }),
+      ]);
+    } catch (error) {
+      logSubWorkerFailure('connectedProjectsCashOutbox', error);
+      crossOrgOutbox = {
+        scanned: 0,
+        applied: 0,
+        failed: 1,
+        skipped: 0,
+      };
+    }
+  }
+
+  const documentCleanup = await safeJob(
+    'documentCleanup',
+    { mode: 'report' as const, orgsScanned: 0, candidates: 0, sample: [] },
+    () => runDocumentCleanupOpsWorker(),
+  );
 
   return {
     expenseRecurrence: results[0] as DailyOpsWorkerPayload['expenseRecurrence'],
@@ -211,5 +271,7 @@ export async function runDailyOpsWorker(startedMs: number = Date.now()): Promise
     materialPressureAlerts: results[8] as DailyOpsWorkerPayload['materialPressureAlerts'],
     marginSnapshots: results[9] as DailyOpsWorkerPayload['marginSnapshots'],
     dgEvents: results[10] as DailyOpsWorkerPayload['dgEvents'],
+    crossOrgOutbox,
+    documentCleanup,
   };
 }

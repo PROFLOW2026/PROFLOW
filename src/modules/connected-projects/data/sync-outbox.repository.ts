@@ -1,6 +1,7 @@
 import 'server-only';
 
 import { crossOrgSyncOutbox } from '@drizzle/schema';
+import { runBestEffortInTransaction } from '@/shared/db/best-effort-savepoint';
 import type { DbExecutor } from '@/shared/db/types';
 
 function isMissingRelationError(error: unknown): boolean {
@@ -19,21 +20,23 @@ export async function enqueueCrossOrgSyncEvent(
     readonly payload: Record<string, unknown>;
   },
 ): Promise<void> {
-  try {
-    await db.insert(crossOrgSyncOutbox).values({
-      mappingId: input.mappingId,
-      developerOrganizationId: input.developerOrganizationId,
-      eventType: input.eventType,
-      idempotencyKey: input.idempotencyKey,
-      payload: input.payload,
-      status: 'pending',
-      attempts: 0,
-      nextAttemptAt: new Date(),
-    });
-  } catch (error) {
-    if (isMissingRelationError(error)) return;
-    const code = (error as { code?: string }).code;
-    if (code === '23505') return;
-    throw error;
-  }
+  await runBestEffortInTransaction(db, async () => {
+    try {
+      await db.insert(crossOrgSyncOutbox).values({
+        mappingId: input.mappingId,
+        developerOrganizationId: input.developerOrganizationId,
+        eventType: input.eventType,
+        idempotencyKey: input.idempotencyKey,
+        payload: input.payload,
+        status: 'pending',
+        attempts: 0,
+        nextAttemptAt: new Date(),
+      });
+    } catch (error) {
+      if (isMissingRelationError(error)) return;
+      const code = (error as { code?: string }).code;
+      if (code === '23505') return;
+      throw error;
+    }
+  });
 }

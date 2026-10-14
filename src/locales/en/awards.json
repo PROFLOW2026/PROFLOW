@@ -1,7 +1,35 @@
 {
   "title": "Contractor tenders",
   "description": "Package, invite, compare and award subcontract work — separate from customer quotes.",
-  "empty": { "title": "No tender packages", "description": "Create a package to invite subcontractor bids." },
+  "empty": {
+    "title": "No tender packages",
+    "description": "Create a package to invite subcontractor bids.",
+    "descriptionManage": "Create your first package using the form above.",
+    "descriptionReadOnly": "No packages yet. Users with contract management can create tenders.",
+    "directAgreementHint": "You can also create a subcontract directly from Contractors without a tender."
+  },
+  "forms": {
+    "newPackageTitle": "New tender package",
+    "createPackage": "Create package",
+    "packageCreated": "Package created",
+    "title": "Package title",
+    "scopeDescription": "Scope (optional)",
+    "inviteSection": "Invite subcontractors",
+    "inviteVendor": "Send invitation",
+    "vendorInvited": "Invitation sent",
+    "vendor": "Subcontractor",
+    "evaluationSection": "Close bidding",
+    "closeBiddingHint": "Stop portal submissions and move offers to evaluation.",
+    "closeBidding": "Close bidding",
+    "biddingClosed": "Bidding closed",
+    "awardSection": "Award subcontract",
+    "awardTender": "Award and create draft agreement",
+    "tenderAwarded": "Tender awarded — draft agreement created",
+    "winningOffer": "Winning bid",
+    "agreementTitle": "Agreement title (optional)",
+    "subcontractNumber": "Subcontract number (optional)",
+    "noAwardableOffers": "No submitted bids to award yet."
+  },
   "fields": { "trade": "Trade" },
   "status": {
     "draft": "Draft",
@@ -15,7 +43,8 @@
     "offers": "Offers",
     "noOffers": "No bids yet.",
     "vendorOffer": "Vendor {vendor}",
-    "amountHidden": "Amount restricted"
+    "amountHidden": "Amount restricted",
+    "vendorUnknown": "Unknown vendor"
   },
   "offerStatus": {
     "draft": "Draft",

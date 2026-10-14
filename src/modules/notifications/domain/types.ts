@@ -30,6 +30,7 @@ export const NOTIFICATION_EVENT_TYPES = [
   // ── Universal Work Management ──────────────────────────────────────────────
   'task_assigned_to_you',
   'task_comment_mention',
+  'task_comment_added',
   'task_due_soon',
   'task_approval_requested',
   'task_approval_decided',
@@ -102,6 +103,7 @@ export const EVENT_DOMAIN: Readonly<Record<NotificationEventType, NotificationDo
   // ── Universal Work Management ──────────────────────────────────────────────
   task_assigned_to_you: 'tasks',
   task_comment_mention: 'tasks',
+  task_comment_added: 'tasks',
   task_due_soon: 'tasks',
   task_approval_requested: 'tasks',
   task_approval_decided: 'tasks',

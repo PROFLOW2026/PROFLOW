@@ -79,6 +79,7 @@ export type TaskCommentsPanelPayload = {
     authorActorId: string | null;
     isEmployee: boolean;
     attachments: readonly TaskCommentAttachmentDisplay[];
+    mentionLabels: Readonly<Record<string, string>>;
   }>;
   canComment: boolean;
   projectId: string | null;
@@ -116,6 +117,7 @@ export async function loadTaskCommentsPanelAction(
           authorActorId: comment.authorActorId,
           isEmployee: comment.isEmployee,
           attachments: [...comment.attachments],
+          mentionLabels: comment.mentionLabels,
         })),
         canComment: hasPermission(context, PERMISSIONS.TASKS_COMMENT),
         projectId: task?.projectId ?? null,

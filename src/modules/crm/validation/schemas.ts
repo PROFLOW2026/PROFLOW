@@ -193,8 +193,6 @@ export const acceptSalesQuoteVersionSchema = z.object({
 
 export const convertWonOpportunitySchema = z.object({
   opportunityId: z.string().uuid(),
-  /** Prefer a specific accepted version; otherwise the opportunity's accepted quote is used. */
-  salesQuoteVersionId: optionalUuid,
   projectName: z.preprocess(emptyToNull, z.string().trim().min(1).max(200).nullable().optional()),
   amountIncludesTax: z.boolean().optional(),
 });

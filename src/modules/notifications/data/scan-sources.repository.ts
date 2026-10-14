@@ -1,4 +1,4 @@
-import { and, eq, gte, isNull, lt, lte, sql } from 'drizzle-orm';
+import { and, asc, eq, gte, inArray, isNull, lt, lte, sql } from 'drizzle-orm';
 import {
   automationRules,
   automationRuns,
@@ -12,6 +12,7 @@ import {
   planningWorkItems,
   tasks,
   taskAssignees,
+  taskFollowers,
   organizationMemberships,
   taskReminders,
   projectCloseouts,
@@ -43,6 +44,8 @@ export interface ScanEntity {
   readonly projectId?: string | null;
   readonly recipientUserId?: string | null;
   readonly excludeUserId?: string | null;
+  /** Assignees, owners, and followers for task overdue fan-out. */
+  readonly recipientUserIds?: readonly string[];
 }
 
 export async function listSubmittedTimesheets(
@@ -116,6 +119,32 @@ export async function listExpiringDocuments(
   }));
 }
 
+function overdueUwmTaskWhere(organizationId: string, today: BusinessDate) {
+  return and(
+    eq(tasks.organizationId, organizationId),
+    eq(tasks.isArchived, false),
+    isNull(tasks.archivedAt),
+    sql`${tasks.status} NOT IN ('done', 'cancelled')`,
+    sql`${tasks.dueDate} IS NOT NULL`,
+    lt(tasks.dueDate, today),
+  );
+}
+
+/** All overdue task ids (resolve set — not capped). */
+export async function listOverdueUwmTaskIdsForScan(
+  db: DbExecutor,
+  organizationId: string,
+  today: BusinessDate,
+): Promise<string[]> {
+  const rows = await db
+    .select({ id: tasks.id })
+    .from(tasks)
+    .where(overdueUwmTaskWhere(organizationId, today))
+    .orderBy(asc(tasks.dueDate), asc(tasks.id));
+
+  return rows.map((row) => row.id);
+}
+
 export async function listOverdueUwmTasksForScan(
   db: DbExecutor,
   organizationId: string,
@@ -130,24 +159,99 @@ export async function listOverdueUwmTasksForScan(
       projectId: tasks.projectId,
     })
     .from(tasks)
-    .where(
-      and(
-        eq(tasks.organizationId, organizationId),
-        eq(tasks.isArchived, false),
-        isNull(tasks.archivedAt),
-        sql`${tasks.status} NOT IN ('done', 'cancelled')`,
-        sql`${tasks.dueDate} IS NOT NULL`,
-        lt(tasks.dueDate, today),
-      ),
-    )
+    .where(overdueUwmTaskWhere(organizationId, today))
+    .orderBy(asc(tasks.dueDate), asc(tasks.id))
     .limit(cap);
 
-  return rows.map((row) => ({
+  const entities = rows.map((row) => ({
     id: row.id,
     reference: row.title,
     extra: row.dueDate,
     deepLink: `/tasks/${row.id}`,
     projectId: row.projectId,
+  }));
+
+  return enrichOverdueUwmTaskRecipientUserIds(db, organizationId, entities);
+}
+
+export async function enrichOverdueUwmTaskRecipientUserIds(
+  db: DbExecutor,
+  organizationId: string,
+  entities: readonly ScanEntity[],
+): Promise<ScanEntity[]> {
+  if (entities.length === 0) return [...entities];
+
+  const taskIds = entities.map((row) => row.id);
+  const byTask = new Map<string, Set<string>>();
+
+  const ownerRows = await db
+    .select({
+      id: tasks.id,
+      ownerMemberUserId: organizationMemberships.userId,
+      ownerEmployeeUserId: employees.userId,
+    })
+    .from(tasks)
+    .leftJoin(
+      organizationMemberships,
+      eq(tasks.ownerOrgMemberId, organizationMemberships.id),
+    )
+    .leftJoin(employees, eq(tasks.ownerEmployeeId, employees.id))
+    .where(and(eq(tasks.organizationId, organizationId), inArray(tasks.id, taskIds)));
+
+  for (const row of ownerRows) {
+    const set = byTask.get(row.id) ?? new Set<string>();
+    if (row.ownerMemberUserId) set.add(row.ownerMemberUserId);
+    if (row.ownerEmployeeUserId) set.add(row.ownerEmployeeUserId);
+    byTask.set(row.id, set);
+  }
+
+  const assigneeRows = await db
+    .select({
+      taskId: taskAssignees.taskId,
+      memberUserId: organizationMemberships.userId,
+      employeeUserId: employees.userId,
+    })
+    .from(taskAssignees)
+    .leftJoin(
+      organizationMemberships,
+      eq(taskAssignees.orgMemberId, organizationMemberships.id),
+    )
+    .leftJoin(employees, eq(taskAssignees.employeeId, employees.id))
+    .where(
+      and(eq(taskAssignees.organizationId, organizationId), inArray(taskAssignees.taskId, taskIds)),
+    );
+
+  for (const row of assigneeRows) {
+    const set = byTask.get(row.taskId) ?? new Set<string>();
+    if (row.memberUserId) set.add(row.memberUserId);
+    if (row.employeeUserId) set.add(row.employeeUserId);
+    byTask.set(row.taskId, set);
+  }
+
+  const followerRows = await db
+    .select({
+      taskId: taskFollowers.taskId,
+      userId: organizationMemberships.userId,
+    })
+    .from(taskFollowers)
+    .innerJoin(
+      organizationMemberships,
+      eq(taskFollowers.orgMemberId, organizationMemberships.id),
+    )
+    .where(
+      and(eq(taskFollowers.organizationId, organizationId), inArray(taskFollowers.taskId, taskIds)),
+    );
+
+  for (const row of followerRows) {
+    if (!row.userId) continue;
+    const set = byTask.get(row.taskId) ?? new Set<string>();
+    set.add(row.userId);
+    byTask.set(row.taskId, set);
+  }
+
+  return entities.map((entity) => ({
+    ...entity,
+    recipientUserIds: [...(byTask.get(entity.id) ?? [])],
   }));
 }
 
@@ -184,6 +288,7 @@ export async function listDueTaskRemindersForScan(
         sql`${tasks.status} NOT IN ('done', 'cancelled')`,
       ),
     )
+    .orderBy(asc(taskReminders.remindAt), asc(taskReminders.id))
     .limit(cap);
 
   return rows.map((row) => ({
@@ -219,6 +324,7 @@ export async function listOverduePlanningTasks(
         sql`(${planningWorkItems.progressPercent})::numeric < 100`,
       ),
     )
+    .orderBy(asc(planningWorkItems.targetEndDate), asc(planningWorkItems.id))
     .limit(cap);
 
   return rows.map((row) => ({

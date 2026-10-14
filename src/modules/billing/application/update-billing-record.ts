@@ -21,11 +21,12 @@ import {
 } from '@/modules/month-close';
 import {
   findBillingRecordById,
-  findChangeOrdersInProject,
+  findChangeOrdersWithNetInProject,
   findProjectInOrganization,
   replaceBillingLines,
   updateBillingRecordRow,
 } from '../data/billing.repository';
+import { buildNetBillingLines } from '../domain/billing-line-split';
 import { updateBillingRecordSchema, type UpdateBillingRecordInput } from '../validation/schemas';
 import { resolveCurrency } from './create-billing-record';
 
@@ -84,17 +85,34 @@ export async function updateBillingRecord(context: OrgContext, rawInput: UpdateB
     }) ?? (existing.vatMode as BillingVatMode | null);
 
   const changeOrderIds = input.changeOrderIds;
+  const amountFieldsTouched =
+    input.amount !== undefined ||
+    input.netAmount !== undefined ||
+    input.taxAmount !== undefined ||
+    input.vatMode !== undefined;
   try {
     await assertMonthOpenForRewrite(context, yearMonthFromBusinessDate(nextIssueDate));
 
-    if (changeOrderIds) {
-      const changeOrders = await findChangeOrdersInProject(
-        context.db,
-        context.organizationId,
-        projectId,
-        changeOrderIds,
-      );
-      if (changeOrderIds.length !== changeOrders.length) {
+    if (changeOrderIds !== undefined || amountFieldsTouched) {
+      const resolvedChangeOrderIds =
+        changeOrderIds ??
+        existing.lines
+          .slice()
+          .sort((left, right) => left.sortOrder - right.sortOrder)
+          .map((line) => line.changeOrderId)
+          .filter((id): id is string => id != null);
+
+      const changeOrders =
+        resolvedChangeOrderIds.length > 0
+          ? await findChangeOrdersWithNetInProject(
+              context.db,
+              context.organizationId,
+              projectId,
+              resolvedChangeOrderIds,
+            )
+          : [];
+
+      if (resolvedChangeOrderIds.length !== changeOrders.length) {
         throw new NotFoundError('Change order');
       }
 
@@ -102,13 +120,10 @@ export async function updateBillingRecord(context: OrgContext, rawInput: UpdateB
         context.db,
         context.organizationId,
         input.billingRecordId,
-        changeOrders.map((changeOrder, index) => ({
-          description: changeOrder.reference?.trim() || `Change order ${index + 1}`,
-          lineTotal: toNumericString(amounts.totalAmount),
-          currency,
-          changeOrderId: changeOrder.id,
-          sortOrder: index,
-        })),
+        buildNetBillingLines({
+          subtotal: amounts.subtotalAmount,
+          changeOrders,
+        }),
       );
     }
 

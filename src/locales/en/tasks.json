@@ -636,6 +636,23 @@
     "empty": {
       "title": "No dated tasks",
       "description": "Tasks with a due date or start date appear on the calendar"
+    },
+    "unscheduled": {
+      "title": "Unscheduled",
+      "hint": "Drag a task onto a day to set its due date, or pick a date on mobile.",
+      "pickDate": "Set date"
+    }
+  },
+  "export": {
+    "downloadXlsx": "Export to Excel",
+    "sheetName": "Tasks",
+    "columns": {
+      "title": "Title",
+      "project": "Project",
+      "status": "Status",
+      "priority": "Priority",
+      "dueDate": "Due date",
+      "startDate": "Start date"
     }
   },
   "timeline": {
@@ -700,12 +717,16 @@
   "priorityLabel": "Priority",
   "statusLabel": "Status",
   "attachmentsLabel": "Attachments",
+  "evidenceSummary": "{count, plural, one {# evidence item} other {# evidence items}}",
+  "evidenceOpenFull": "Open photos and evidence",
   "attachments": {
     "sectionDescription": "Upload files or link existing project documents. Files are stored in your connected storage.",
     "linkProjectDocsHint": "Only documents from this task's project are shown for linking.",
     "documentsPermissionRequired": "You need document permissions to view or manage attachments."
   },
   "list": {
+    "pageTitle": "All tasks",
+    "pageDescription": "Cross-project table with filters, inline edit, and bulk updates",
     "columns": {
       "title": "Title",
       "status": "Status",
@@ -723,9 +744,32 @@
     "notAvailable": "—",
     "openTask": "Open task: {title}"
   },
+  "table": {
+    "columnsLabel": "Columns",
+    "select": "Select",
+    "selectTask": "Select {title}",
+    "selected": "{count} selected",
+    "bulkStatus": "Set status…",
+    "bulkPriority": "Set priority…",
+    "bulkLimit": "Select at most {max} tasks for bulk edit",
+    "bulkResult": "{updated} updated, {failed} failed",
+    "columns": {
+      "title": "Title",
+      "project": "Project",
+      "status": "Status",
+      "priority": "Priority",
+      "assignees": "Assignees",
+      "startDate": "Start",
+      "dueDate": "Due",
+      "effort": "Effort"
+    }
+  },
   "errors": {
     "invalidTransition": "That status change is not allowed.",
     "dependencyCycle": "Adding this dependency would create a cycle.",
+    "dependencyWarningRequired": "Some tasks this one depends on are not finished yet. Confirm to continue.",
+    "dependencyBlocked": "This status change is blocked until predecessor tasks are finished.",
+    "dependencyOverrideReasonRequired": "Enter a reason to override the dependency block.",
     "maxSubtaskDepth": "Subtasks can only be nested one level deep.",
     "subtaskWorkspaceMismatch": "Subtask must use the same workspace as its parent.",
     "subtaskProjectMismatch": "Subtask must use the same project as its parent.",
@@ -735,13 +779,32 @@
   },
   "actions": {
     "duplicate": "Duplicate task",
+    "moveCopy": "Move / copy",
     "saveAsTemplate": "Save as template",
     "createFromTemplate": "Create from template",
     "duplicateSuccess": "Task duplicated",
     "saveTemplateSuccess": "Template saved",
     "createFromTemplateSuccess": "Task created from template",
     "pickTemplate": "Choose a template",
-    "noTemplates": "No templates available"
+    "noTemplates": "No templates available",
+    "moveCopyDialog": {
+      "moveTitle": "Move task to another project",
+      "copyTitle": "Copy task to another project",
+      "move": "Move",
+      "copy": "Copy",
+      "project": "Target project",
+      "board": "Board",
+      "column": "Column",
+      "pickProject": "Choose a project",
+      "sameProject": "Choose a different project than the current one.",
+      "noProjects": "No projects available for transfer.",
+      "includeAssignees": "Copy assignees",
+      "copyDates": "Copy start and due dates",
+      "confirmAssignees": "Remove assignees who cannot access the target project",
+      "confirmMove": "Move task",
+      "confirmCopy": "Copy task",
+      "cancel": "Cancel"
+    }
   },
   "dependencies": {
     "dependsOn": "Depends on",
@@ -772,6 +835,11 @@
     "placeholder": "Write a comment…",
     "submit": "Post comment",
     "loadMore": "Load earlier comments",
+    "mentions": {
+      "pickerLabel": "Mention a teammate",
+      "noMatches": "No matching people",
+      "preview": "Preview"
+    },
     "attachments": {
       "addFiles": "Attach files",
       "pickImages": "Choose photos",
@@ -854,6 +922,7 @@
   "reminders": {
     "label": "Reminders",
     "needsDueDate": "Set a due date to enable reminders.",
+    "externalDeliveryDisconnected": "Email/push for tasks — not connected",
     "type": {
       "on_due": "On due date",
       "day_before": "One day before",

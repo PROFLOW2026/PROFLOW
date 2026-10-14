@@ -6,7 +6,9 @@ import {
   getProjectAccessModeForOrg,
   listProjectAccessGrantsForOrg,
 } from '@/modules/projects';
+import { loadUnifiedProjectTeam } from '@/modules/projects/application/unified-project-team';
 import { ProjectScopedAccessPanel } from '@/modules/projects/ui/project-scoped-access-panel';
+import { ProjectUnifiedTeamSummary } from '@/modules/projects/ui/project-unified-team-summary';
 import { listOrganizationMembers } from '@/modules/tenancy';
 import {
   listEmployeesForOrg,
@@ -41,10 +43,13 @@ export async function ProjectTeamPanel({ projectId }: ProjectTeamPanelProps) {
       return null;
     }
 
+    const canWorkforceRead = hasPermission(context, PERMISSIONS.WORKFORCE_READ);
+    const canProjectsRead = hasPermission(context, PERMISSIONS.PROJECTS_READ);
     const allowManage = canManageWorkforce(context);
     const allowAccessManage = canManageProjectAccess(context);
+    const unifiedTeam = await loadUnifiedProjectTeam(context, projectId);
     const [team, history, employees, accessMode, grants, members] = await Promise.all([
-      listProjectTeamMembers(context, projectId),
+      canWorkforceRead ? listProjectTeamMembers(context, projectId) : Promise.resolve([]),
       listProjectTeamHistory(context, projectId).catch(() => []),
       allowManage ? listEmployeesForOrg(context, { status: 'active' }) : Promise.resolve([]),
       getProjectAccessModeForOrg(context).catch(() => 'all' as const),
@@ -57,6 +62,9 @@ export async function ProjectTeamPanel({ projectId }: ProjectTeamPanelProps) {
     ]);
 
     return {
+      unifiedTeam,
+      canWorkforceRead,
+      canProjectsRead,
       team,
       history,
       candidateEmployees: employees.map((employee) => ({
@@ -81,17 +89,25 @@ export async function ProjectTeamPanel({ projectId }: ProjectTeamPanelProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      <Card className="flex flex-col gap-4 p-4 sm:p-6">
-        <ProjectTeamRoster
-          projectId={projectId}
-          team={data.team}
-          history={data.history}
-          candidateEmployees={data.candidateEmployees}
-          canManage={data.allowManage}
-          defaultStartDate={data.defaultStartDate}
-        />
-        <ProjectLaborActualSummary projectId={projectId} surface="team" />
-      </Card>
+      <ProjectUnifiedTeamSummary
+        projectId={projectId}
+        members={data.unifiedTeam}
+        canManageRoster={data.allowManage}
+        canOpenCapabilities={data.canProjectsRead}
+      />
+      {data.canWorkforceRead ? (
+        <Card className="flex flex-col gap-4 p-4 sm:p-6">
+          <ProjectTeamRoster
+            projectId={projectId}
+            team={data.team}
+            history={data.history}
+            candidateEmployees={data.candidateEmployees}
+            canManage={data.allowManage}
+            defaultStartDate={data.defaultStartDate}
+          />
+          <ProjectLaborActualSummary projectId={projectId} surface="team" />
+        </Card>
+      ) : null}
       <p className="text-start text-sm text-[var(--pf-text-muted)]">{t('projectPanel.assignmentNote')}</p>
       <Link
         href={`/projects/${projectId}/team`}

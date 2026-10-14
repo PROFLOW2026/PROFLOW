@@ -93,10 +93,18 @@ export default async function WorkspaceBoardPage({
   const { workspace: _workspace, boards, activeBoard, buckets, tasks, hasMore } = data;
 
   // Server Actions bound to Agent A's real functions
-  async function moveTaskAction(taskId: string, newBucketId: string, sortKey?: string) {
+  async function moveTaskAction(
+    taskId: string,
+    newBucketId: string,
+    afterTaskId?: string | null,
+    beforeTaskId?: string | null,
+  ) {
     'use server';
     await withOrgContext(async (ctx) => {
-      await moveTaskToBucket(ctx, taskId, newBucketId, sortKey ? { sortKey } : {});
+      await moveTaskToBucket(ctx, taskId, newBucketId, {
+        ...(afterTaskId != null ? { afterTaskId } : {}),
+        ...(beforeTaskId ? { beforeTaskId } : {}),
+      });
     });
   }
 

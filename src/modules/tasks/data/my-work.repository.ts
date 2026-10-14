@@ -17,6 +17,7 @@ import type { DbExecutor } from '@/shared/db/types';
 import { addDays, type BusinessDate } from '@/shared/dates';
 import { clampTaskListLimit, splitTaskListPage } from '../domain/list-window';
 import { taskProjectAccessCondition } from '../domain/task-project-access-filter';
+import { upcomingSundayFrom } from '../domain/week-window';
 import type { Task, TaskStatus, TaskPriority, TaskSource } from '../domain/types';
 
 import type { MyWorkView } from '../domain/my-work-view';
@@ -30,14 +31,6 @@ export interface MyWorkPage {
 
 const EMPTY_MY_WORK_PAGE: MyWorkPage = { tasks: [], hasMore: false };
 const taskColumns = getTableColumns(tasks);
-
-/** Upcoming Sunday from org calendar day (legacy My Work "this week" upper bound). */
-function upcomingSundayFrom(today: BusinessDate): BusinessDate {
-  const [year, month, day] = today.split('-').map(Number) as [number, number, number];
-  const weekday = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
-  const daysUntilSunday = weekday === 0 ? 7 : 7 - weekday;
-  return addDays(today, daysUntilSunday);
-}
 
 function toMyWorkPage(rows: Array<typeof tasks.$inferSelect>, limit: number): MyWorkPage {
   const split = splitTaskListPage(rows, limit);

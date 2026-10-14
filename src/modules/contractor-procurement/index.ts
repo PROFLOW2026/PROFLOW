@@ -3,6 +3,7 @@ export {
   getTenderPackageDetail,
   createTenderPackage,
   inviteVendorToTender,
+  closeTenderBidding,
   awardTenderToSubcontract,
   listPortalTenders,
   getPortalTenderDetail,

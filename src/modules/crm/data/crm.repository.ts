@@ -1,4 +1,4 @@
-import { and, desc, eq, ilike, inArray, isNull, or } from 'drizzle-orm';
+import { and, desc, eq, ilike, inArray, isNull, or, sql } from 'drizzle-orm';
 import {
   crmEstimates,
   crmLeads,
@@ -725,6 +725,21 @@ export async function findSalesQuoteById(
     )
     .limit(1);
   return row ? mapSalesQuote(row) : null;
+}
+
+export async function lockSalesQuoteForUpdate(
+  db: DbExecutor,
+  organizationId: string,
+  salesQuoteId: string,
+): Promise<SalesQuoteRecord | null> {
+  await db.execute(sql`
+    SELECT id
+    FROM crm_sales_quotes
+    WHERE id = ${salesQuoteId}::uuid
+      AND organization_id = ${organizationId}::uuid
+    FOR UPDATE
+  `);
+  return findSalesQuoteById(db, organizationId, salesQuoteId);
 }
 
 export async function listSalesQuotesForOpportunity(

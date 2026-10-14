@@ -2,13 +2,19 @@ import { loadProjectCapabilities, PROJECT_CAPABILITIES as C } from '@/modules/pr
 import type { ProjectCapability } from '@/modules/project-team';
 import type { OrgContext } from '@/shared/auth/context';
 import { AuthorizationError, NotFoundError, ValidationError } from '@/shared/errors';
+import { hasPermission } from '@/shared/permissions/assert';
+import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { findAgreementOperational } from '../data/agreements.repository';
 import type { AgreementOperationalView, SubcontractAccess } from '../domain/types';
 
 /** Internal authorization for subcontract core: project capabilities only, never role names. */
 export async function loadSubcontractAccess(context: OrgContext, projectId: string): Promise<SubcontractAccess> {
   const held = await loadProjectCapabilities(context, projectId);
-  return accessFromCapabilities(held);
+  const access = accessFromCapabilities(held);
+  if (access.canManageContract || !hasPermission(context, PERMISSIONS.VENDORS_MANAGE)) {
+    return access;
+  }
+  return { ...access, canManageContract: true };
 }
 
 export function accessFromCapabilities(held: ReadonlySet<ProjectCapability>): SubcontractAccess {

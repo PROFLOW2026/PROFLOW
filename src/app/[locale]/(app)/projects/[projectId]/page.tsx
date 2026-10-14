@@ -4,6 +4,8 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import { listClientsForOrg, listContactsForClients } from '@/modules/clients';
 import { listCustomFieldValuesForEntity } from '@/modules/custom-fields';
 import {
+  getProjectCoverImageAvailability,
+  getProjectCoverDisplayUrl,
   listProjectsForOrg,
 } from '@/modules/projects';
 import {
@@ -177,6 +179,13 @@ async function ProjectStructuredTabPanel({
     const needsDetailsExtras = activeTab === 'details';
     const needsWorkExtras = canEditProjects && activeTab === 'work';
 
+    const coverAvailability =
+      needsDetailsExtras ? await getProjectCoverImageAvailability(context) : null;
+    const coverPreviewUrl =
+      needsDetailsExtras
+        ? await getProjectCoverDisplayUrl(context, projectId).catch(() => null)
+        : null;
+
     let customFields: Awaited<ReturnType<typeof listCustomFieldValuesForEntity>> = [];
     let orgTemplates: Awaited<ReturnType<typeof listOrgProjectTemplatesForApply>> = [];
     let phasePacks: Awaited<ReturnType<typeof listOrgPhasePacks>> = [];
@@ -262,6 +271,10 @@ async function ProjectStructuredTabPanel({
               canManageContract={canManageContract}
               customFields={customFields}
               taxRatePercent={detail.contract?.taxSnapshot?.ratePercent ?? null}
+              coverPreviewUrl={coverPreviewUrl}
+              coverSchemaReady={coverAvailability?.schemaReady ?? false}
+              coverStorageConfigured={coverAvailability?.storageConfigured ?? false}
+              canEditCover={canEditProjects}
             />
           </div>
         ) : null}

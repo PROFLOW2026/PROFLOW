@@ -5,7 +5,7 @@ import { apiRouteErrorFromUnknown, apiRouteErrorResponse } from '@/shared/errors
 export const runtime = 'nodejs';
 
 export async function GET(
-  request: Request,
+  _request: Request,
   context: { params: Promise<{ externalDocumentId: string }> },
 ) {
   try {
@@ -15,9 +15,6 @@ export async function GET(
     }
 
     const { externalDocumentId } = await context.params;
-    const url = new URL(request.url);
-    const disposition = url.searchParams.get('disposition') === 'attachment' ? 'attachment' : 'inline';
-
     const resolved = await runInOrgContext(
       session.user.id,
       session.activeOrganizationId,
@@ -27,7 +24,7 @@ export async function GET(
     return new Response(Buffer.from(resolved.bytes), {
       headers: {
         'Content-Type': resolved.contentType,
-        'Content-Disposition': `${disposition}; filename="${encodeURIComponent(resolved.fileName)}"`,
+        'Content-Disposition': `inline; filename="${encodeURIComponent(resolved.fileName)}"`,
         'Cache-Control': 'private, no-store',
       },
     });

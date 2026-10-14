@@ -6,21 +6,37 @@ export type RecurrencePreset = 'none' | 'daily' | 'weekly' | 'weekdays' | 'month
 
 const WEEKDAY_CODES = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'] as const;
 
-export function weekdayCodeForDate(date: Date): string {
+const WEEKDAY_SHORT_TO_INDEX: Record<string, number> = {
+  Sun: 0,
+  Mon: 1,
+  Tue: 2,
+  Wed: 3,
+  Thu: 4,
+  Fri: 5,
+  Sat: 6,
+};
+
+export function weekdayCodeForDate(date: Date, timeZone?: string): string {
+  if (timeZone) {
+    const weekday = new Intl.DateTimeFormat('en-US', { timeZone, weekday: 'short' }).format(date);
+    const index = WEEKDAY_SHORT_TO_INDEX[weekday];
+    if (index != null) return WEEKDAY_CODES[index] ?? 'MO';
+  }
   return WEEKDAY_CODES[date.getUTCDay()] ?? 'MO';
 }
 
 export function buildRruleFromPreset(
   preset: Exclude<RecurrencePreset, 'none'>,
-  options: { interval?: number; weekday?: string; startsAt: Date },
+  options: { interval?: number; weekday?: string; startsAt: Date; timeZone?: string },
 ): string {
   const interval = Math.max(1, Math.min(options.interval ?? 1, 365));
+  const timeZone = options.timeZone;
 
   switch (preset) {
     case 'daily':
       return interval === 1 ? 'FREQ=DAILY' : `FREQ=DAILY;INTERVAL=${interval}`;
     case 'weekly': {
-      const day = options.weekday ?? weekdayCodeForDate(options.startsAt);
+      const day = options.weekday ?? weekdayCodeForDate(options.startsAt, timeZone);
       return interval === 1
         ? `FREQ=WEEKLY;BYDAY=${day}`
         : `FREQ=WEEKLY;INTERVAL=${interval};BYDAY=${day}`;

@@ -21,6 +21,8 @@ export interface WorkOrderFormState {
   fieldErrors?: Record<string, string>;
   success?: boolean;
   confirmRequired?: boolean;
+  /** Advisory codes after successful dispatch reschedule (U05). */
+  availabilityWarnings?: readonly ('on_leave' | 'overlapping_booking')[];
 }
 
 function formValue(formData: FormData, key: string): string | undefined {
@@ -206,7 +208,7 @@ export async function rescheduleWorkOrderAction(
   const workOrderId = requiredFormValue(formData, 'workOrderId');
 
   try {
-    await withOrgContext((context) =>
+    const result = await withOrgContext((context) =>
       rescheduleWorkOrder(context, {
         workOrderId,
         scheduledStartAt: formValue(formData, 'scheduledStartAt'),
@@ -228,7 +230,10 @@ export async function rescheduleWorkOrderAction(
     revalidatePath(`/work-orders/${workOrderId}`);
     revalidatePath('/work-orders');
     revalidatePath('/scheduling');
-    return { success: true };
+    return {
+      success: true,
+      availabilityWarnings: result.availabilityWarnings.map((warning) => warning.code),
+    };
   } catch (error) {
     return await mapWorkOrderError(error);
   }

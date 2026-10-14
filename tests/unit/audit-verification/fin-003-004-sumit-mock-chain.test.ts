@@ -105,6 +105,14 @@ describe('audit FIN-003/004 mock SUMIT chain (EXEC)', () => {
       async listExpenseDocuments() {
         return [];
       },
+      async listAccountingDocuments() {
+        return {
+          documents: [],
+          pagingComplete: true,
+          candidateCapReached: false,
+          candidatesChecked: 0,
+        };
+      },
       async cancelDocument() {
         throw new Error('not used');
       },
@@ -153,6 +161,14 @@ describe('audit FIN-003/004 mock SUMIT chain (EXEC)', () => {
       },
       async listExpenseDocuments() {
         return [];
+      },
+      async listAccountingDocuments() {
+        return {
+          documents: [],
+          pagingComplete: true,
+          candidateCapReached: false,
+          candidatesChecked: 0,
+        };
       },
       async cancelDocument() {
         throw new Error('not used');

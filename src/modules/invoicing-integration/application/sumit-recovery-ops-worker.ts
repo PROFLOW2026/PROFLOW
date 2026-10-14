@@ -172,8 +172,12 @@ async function processOrg(
       } else {
         still_ambiguous += 1;
       }
-    } catch {
-      // Individual document failures don't abort the org scan.
+    } catch (error) {
+      console.warn('[sumit-recovery] ambiguous refresh failed', {
+        organizationId: context.organizationId,
+        externalDocumentId: doc.id,
+        message: error instanceof Error ? error.message.slice(0, 200) : String(error).slice(0, 200),
+      });
       still_ambiguous += 1;
     }
   }

@@ -5,6 +5,7 @@
  */
 
 import { DomainRuleError } from '@/shared/errors';
+import { todayInTimeZone, type BusinessDate } from '@/shared/dates';
 import type { TaskStatus } from './types';
 
 /**
@@ -29,7 +30,8 @@ export function isValidTransition(from: TaskStatus, to: TaskStatus): boolean {
 export function transitionTask(
   currentStatus: TaskStatus,
   newStatus: TaskStatus,
-): { status: TaskStatus; completionDate: string | null } {
+  options?: { timeZone?: string; now?: Date },
+): { status: TaskStatus; completionDate: BusinessDate | null; clearCompletion: boolean } {
   if (!isValidTransition(currentStatus, newStatus)) {
     throw new DomainRuleError(
       `Invalid status transition: ${currentStatus} → ${newStatus}`,
@@ -38,10 +40,21 @@ export function transitionTask(
     );
   }
 
-  const completionDate =
-    newStatus === 'done' ? new Date().toISOString().split('T')[0]! : null;
+  const reopening =
+    (currentStatus === 'done' || currentStatus === 'cancelled') && newStatus !== 'done';
 
-  return { status: newStatus, completionDate };
+  const completionDate =
+    newStatus === 'done'
+      ? options?.timeZone
+        ? todayInTimeZone(options.timeZone, options.now)
+        : todayInTimeZone('UTC', options?.now)
+      : null;
+
+  return {
+    status: newStatus,
+    completionDate,
+    clearCompletion: reopening,
+  };
 }
 
 /**

@@ -1,5 +1,6 @@
 import { and, eq, inArray, isNotNull, isNull } from 'drizzle-orm';
 import { rolePermissions, roleAssignments, roles } from '@drizzle/schema';
+import { asServiceRoleWrite } from '@/shared/db/service-role-write';
 import type { DbExecutor } from '@/shared/db/types';
 import { isPermissionKey, type PermissionKey } from '@/shared/permissions/catalog';
 import { ROLE_TEMPLATES, type RoleTemplateKey } from '@/shared/permissions/role-templates';
@@ -180,24 +181,29 @@ export async function loadProjectRolePermissions(
   userId: string,
   projectId: string,
 ): Promise<{ permissions: Set<PermissionKey>; roleKeys: string[] }> {
-  const rows = await db
-    .selectDistinct({
-      permissionKey: rolePermissions.permissionKey,
-      roleKey: roles.key,
-    })
-    .from(roleAssignments)
-    .innerJoin(roles, eq(roles.id, roleAssignments.roleId))
-    .innerJoin(rolePermissions, eq(rolePermissions.roleId, roleAssignments.roleId))
-    .where(
-      and(
-        eq(roleAssignments.organizationId, organizationId),
-        eq(roleAssignments.userId, userId),
-        eq(roleAssignments.projectId, projectId),
-        isNotNull(roleAssignments.projectId),
-      ),
-    );
+  // Mirror `app.has_project_permission` (0174): project-scoped role rows are hidden
+  // from authenticated SELECT when `project_access_mode = selected` and grants are
+  // absent, even though RLS contract checks still use the SECURITY DEFINER helper.
+  return asServiceRoleWrite(db, async () => {
+    const rows = await db
+      .selectDistinct({
+        permissionKey: rolePermissions.permissionKey,
+        roleKey: roles.key,
+      })
+      .from(roleAssignments)
+      .innerJoin(roles, eq(roles.id, roleAssignments.roleId))
+      .innerJoin(rolePermissions, eq(rolePermissions.roleId, roleAssignments.roleId))
+      .where(
+        and(
+          eq(roleAssignments.organizationId, organizationId),
+          eq(roleAssignments.userId, userId),
+          eq(roleAssignments.projectId, projectId),
+          isNotNull(roleAssignments.projectId),
+        ),
+      );
 
-  return collectPermissionRows(rows);
+    return collectPermissionRows(rows);
+  });
 }
 
 /**

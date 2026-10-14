@@ -18,6 +18,7 @@ export interface QuotesFormState {
   error?: string;
   fieldErrors?: Record<string, string>;
   success?: boolean;
+  warning?: string;
 }
 
 function formValue(formData: FormData, key: string): string | undefined {
@@ -185,6 +186,7 @@ export async function convertQuoteAction(
   formData: FormData,
 ): Promise<QuotesFormState> {
   const locale = await getLocale();
+  const tQuotes = await getTranslations('quotes');
   try {
     const result = await withOrgContext((context) =>
       convertQuote(context, {
@@ -199,6 +201,14 @@ export async function convertQuoteAction(
     );
     revalidatePath('/quotes');
     revalidatePath(`/quotes/${result.quote.id}`);
+    const skipped = result.quoteArtifactRelocate?.skipped ?? [];
+    if (skipped.length > 0) {
+      const reasons = [...new Set(skipped.map((row) => row.reason))].join(', ');
+      return {
+        success: true,
+        warning: tQuotes('warnings.quoteArtifactRelocateSkipped', { count: skipped.length, reasons }),
+      };
+    }
     const href =
       result.workKind === 'job'
         ? `/jobs/${result.projectId}`

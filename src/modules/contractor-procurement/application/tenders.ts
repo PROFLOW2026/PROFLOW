@@ -12,6 +12,7 @@ import {
 import { money, toNumericString } from '@/shared/money';
 import { recordExternalAudit } from '@/modules/contractor-compliance';
 import { PROJECT_CAPABILITIES as C, assertProjectCapability, hasProjectCapability } from '@/modules/project-team';
+import { findVendorById } from '@/modules/vendors';
 import { createDraftAgreement } from '@/modules/subcontracts';
 import { assertOfferSelectable, assertPackageAwardable } from '../domain/award-rules';
 import { TENDER_OFFER_ENTITY, TENDER_PACKAGE_ENTITY, type TenderPackageRow } from '../domain/types';
@@ -31,10 +32,12 @@ import {
 } from '../data/tenders.repository';
 import {
   awardTenderSchema,
+  closeTenderBiddingSchema,
   createTenderPackageSchema,
   inviteVendorSchema,
   submitBidSchema,
   type AwardTenderInput,
+  type CloseTenderBiddingInput,
   type CreateTenderPackageInput,
   type InviteVendorInput,
   type SubmitBidInput,
@@ -63,7 +66,18 @@ export async function getTenderPackageDetail(
   const financials = canSeeMoney
     ? await listOfferFinancialsForPackage(context.db, context.organizationId, input.packageId)
     : [];
-  return { pkg, offers, financials, canManage: await hasProjectCapability(context, input.projectId, C.CONTRACT_MANAGE) };
+  const vendorNames = new Map<string, string>();
+  for (const vendorId of new Set(offers.map((offer) => offer.vendorId))) {
+    const vendor = await findVendorById(context.db, context.organizationId, vendorId);
+    if (vendor?.name) vendorNames.set(vendorId, vendor.name);
+  }
+  return {
+    pkg,
+    offers,
+    financials,
+    vendorNames,
+    canManage: await hasProjectCapability(context, input.projectId, C.CONTRACT_MANAGE),
+  };
 }
 
 export async function createTenderPackage(context: OrgContext, raw: CreateTenderPackageInput) {
@@ -106,6 +120,37 @@ export async function inviteVendorToTender(context: OrgContext, raw: InviteVendo
   return { invitationId };
 }
 
+export async function closeTenderBidding(context: OrgContext, raw: CloseTenderBiddingInput) {
+  const input = parse(closeTenderBiddingSchema, raw);
+  await assertProjectCapability(context, input.projectId, C.CONTRACT_MANAGE);
+  const pkg = await findTenderPackage(context.db, context.organizationId, input.packageId);
+  if (!pkg || pkg.projectId !== input.projectId) throw new NotFoundError('Tender package');
+  if (pkg.status !== 'inviting') {
+    throw new DomainRuleError('Only inviting packages can close bidding', 'awards.errors.closeBiddingInvalid');
+  }
+  await withTransaction(context.db, async (tx) => {
+    await updateTenderPackage(tx, context.organizationId, input.packageId, { status: 'evaluating' });
+    await emitDomainEvent(tx, {
+      organizationId: context.organizationId,
+      projectId: input.projectId,
+      type: DOMAIN_EVENTS.PROCUREMENT_TENDER_BIDDING_CLOSED,
+      entityType: TENDER_PACKAGE_ENTITY,
+      entityId: input.packageId,
+      actor: internalActor(context.userId),
+      payload: { packageId: input.packageId },
+    });
+    await writeAuditEvent(tx, {
+      organizationId: context.organizationId,
+      actorUserId: context.userId,
+      action: AUDIT_ACTIONS.TENDER_BIDDING_CLOSED,
+      entityType: TENDER_PACKAGE_ENTITY,
+      entityId: input.packageId,
+      metadata: { projectId: input.projectId },
+    });
+  });
+  return { packageId: input.packageId };
+}
+
 export async function awardTenderToSubcontract(context: OrgContext, raw: AwardTenderInput) {
   const input = parse(awardTenderSchema, raw);
   await assertProjectCapability(context, input.projectId, C.CONTRACT_MANAGE);
@@ -115,6 +160,8 @@ export async function awardTenderToSubcontract(context: OrgContext, raw: AwardTe
   if (!offer || offer.packageId !== input.packageId) throw new NotFoundError('Tender offer');
   assertPackageAwardable(pkg);
   assertOfferSelectable(offer, offer.vendorId);
+  const offerFinancials = await listOfferFinancialsForPackage(context.db, context.organizationId, input.packageId);
+  const winningFinancial = offerFinancials.find((row) => row.offerId === offer.id);
 
   const agreement = await withTransaction(context.db, async (tx) => {
     const txContext = { ...context, db: tx };
@@ -124,6 +171,7 @@ export async function awardTenderToSubcontract(context: OrgContext, raw: AwardTe
       title: input.title ?? pkg.title,
       subcontractNumber: input.subcontractNumber,
       workPackageId: pkg.workPackageId ?? undefined,
+      originalAmount: winningFinancial?.bidAmount ?? '0',
     });
     await updateOffer(tx, context.organizationId, offer.id, { status: 'selected' });
     await updateTenderPackage(tx, context.organizationId, input.packageId, {
@@ -241,7 +289,13 @@ export async function submitContractorBid(context: ExternalContext, raw: SubmitB
   const invitation = await findInvitationForVendor(context.db, input.organizationId, input.packageId, grant.vendorId);
   if (!invitation) throw new NotFoundError('Tender invitation');
   const pkg = await findTenderPackage(context.db, input.organizationId, input.packageId);
-  if (!pkg || pkg.projectId !== input.projectId || pkg.status === 'awarded' || pkg.status === 'cancelled') {
+  if (
+    !pkg ||
+    pkg.projectId !== input.projectId ||
+    pkg.status === 'awarded' ||
+    pkg.status === 'cancelled' ||
+    pkg.status === 'evaluating'
+  ) {
     throw new NotFoundError('Tender package');
   }
   const existingOffers = await listOffersForPackage(context.db, input.organizationId, input.packageId);

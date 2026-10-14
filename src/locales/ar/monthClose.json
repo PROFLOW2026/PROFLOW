@@ -51,10 +51,14 @@
     "issueCount": "{count, plural, one {بند واحد مفتوح} other {# بنود مفتوحة}}",
     "stateOk": "واضح",
     "stateIssue": "يحتاج انتباهاً",
-    "stateNa": "غير قابل للتطبيق"
+    "stateInformational": "للمعلومة",
+    "stateNa": "غير قابل للتطبيق",
+    "informationalGroupTitle": "تكلفة محددة — تقدير بانتظار المبلغ الفعلي",
+    "ownerDefinedEstimateHint": "التقدير مسموح؛ أدخل المبلغ الفعلي فقط عند توفر رقم الرواتب الحقيقي."
   },
   "checks": {
-    "missing_employer_cost_actual": "موظفون بدون تكلفة מעסיק فعلية",
+    "missing_employer_cost_actual": "موظفون بدون تكلفة صاحب العمل الفعلية",
+    "owner_manager_defined_estimate_pending_actual": "المالك/المدير — تقدير محدد، بانتظار المبلغ الفعلي",
     "unallocated_employee_cost": "تكلفة موظف غير مُوزّعة",
     "vendor_bills_unallocated": "حسابات موردين مع باقٍ غير مُوزّع",
     "open_time_corrections": "تصحيحات وقت مفتوحة",

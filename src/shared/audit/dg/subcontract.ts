@@ -22,5 +22,7 @@ export const SUBCONTRACT_AUDIT_ACTIONS = {
   CONNECTED_PROJECT_ACCEPTED: 'connected_project.accepted',
   CONNECTED_PROJECT_MAPPING_REVOKED: 'connected_project.mapping_revoked',
   CONNECTED_PROJECT_PROVISION_RETRY: 'connected_project.provision_retry',
+  CONNECTED_PROJECT_PROVISION_FAILED: 'connected_project.provision_failed',
+  CONNECTED_PROJECT_PROVISION_RETRY_FAILED: 'connected_project.provision_retry_failed',
   CONNECTED_PROJECT_DOCUMENT_COPY_SAVED: 'connected_project.document_copy_saved',
 } as const;

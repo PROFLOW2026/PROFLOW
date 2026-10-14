@@ -257,7 +257,10 @@ describe('Developer/GC foundation (migration 0155)', () => {
       ).rejects.toBeDefined();
     });
     await database.asService(async (db) => {
-      const rows = await db.select().from(domainEvents);
+      const rows = await db
+        .select()
+        .from(domainEvents)
+        .where(eq(domainEvents.entityType, 'foundation_test'));
       expect(rows).toHaveLength(2);
       await expect(
         db.update(domainEvents).set({ payload: { tampered: true } }).where(eq(domainEvents.id, rows[0]!.id)),

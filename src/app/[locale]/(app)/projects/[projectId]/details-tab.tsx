@@ -22,6 +22,7 @@ import { upsertEntityFieldValueAction } from '../../settings/custom-fields/actio
 import { updateProjectAction, type ProjectFormState } from '../actions';
 import { textNavLinkClassName } from '@/components/ui/pressable';
 import { cn } from '@/shared/ui/cn';
+import { ProjectCoverImageControl } from '@/modules/projects/ui/project-cover-image-control';
 
 type ContactMode = 'none' | 'existing' | 'new';
 
@@ -43,6 +44,10 @@ interface DetailsTabProps {
   amountDescription?: string;
   amountPlaceholder?: string;
   taxModeDescription?: string;
+  coverPreviewUrl?: string | null;
+  coverSchemaReady?: boolean;
+  coverStorageConfigured?: boolean;
+  canEditCover?: boolean;
 }
 
 function stripStorageScale(raw: string): string {
@@ -82,6 +87,10 @@ export function DetailsTab({
   amountDescription,
   amountPlaceholder,
   taxModeDescription,
+  coverPreviewUrl = null,
+  coverSchemaReady = false,
+  coverStorageConfigured = false,
+  canEditCover = false,
 }: DetailsTabProps) {
   const t = useTranslations('projects.details');
   const tCreate = useTranslations('projects.create');
@@ -131,6 +140,16 @@ export function DetailsTab({
 
   return (
     <>
+      <div className="mb-6">
+        <ProjectCoverImageControl
+          projectId={project.id}
+          projectName={project.name}
+          previewUrl={coverPreviewUrl}
+          canEdit={canEditCover}
+          schemaReady={coverSchemaReady}
+          storageConfigured={coverStorageConfigured}
+        />
+      </div>
       <form
         action={formAction}
         className="mx-auto flex max-w-xl flex-col gap-4"

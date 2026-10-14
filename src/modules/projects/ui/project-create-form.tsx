@@ -26,7 +26,10 @@ import { ProjectCreateTeamPicker } from '@/modules/projects/ui/project-create-te
 import type { ProjectCreateTeamPickerOption } from '@/modules/projects/domain/project-create-team';
 import { rtlFlipClassName } from '@/shared/i18n/ltr-island';
 import type { ProjectFormState } from '@/app/[locale]/(app)/projects/actions';
-import type { BusinessProfileKey } from '@/modules/tenancy/domain/business-profiles';
+import type {
+  BusinessProfileKey,
+  DefaultProjectManagementMode,
+} from '@/modules/tenancy/domain/business-profiles';
 
 type ClientMode = 'none' | 'new' | 'existing';
 type ContactMode = 'none' | 'existing' | 'new';
@@ -83,6 +86,8 @@ export interface ProjectCreateFormProps {
   submitLabel?: string;
   /** Org business profile — used for in-form guidance only (never auto-sets management mode). */
   businessProfileKey?: BusinessProfileKey | null;
+  /** Initial management mode from org profile defaults (U11). User can change before submit. */
+  initialManagementMode?: DefaultProjectManagementMode;
 }
 
 const DEFAULT_CAPABILITIES: Required<ProjectCreateFormCapabilities> = {
@@ -143,6 +148,7 @@ export function ProjectCreateForm({
   capabilities: capabilitiesInput,
   submitLabel,
   businessProfileKey = null,
+  initialManagementMode = 'standard_project',
 }: ProjectCreateFormProps) {
   const capabilities = { ...DEFAULT_CAPABILITIES, ...capabilitiesInput };
   const t = useTranslations('projects');
@@ -158,7 +164,7 @@ export function ProjectCreateForm({
   const [contactMode, setContactMode] = useState<ContactMode>('none');
   const [selectedContactId, setSelectedContactId] = useState<string>('');
   const [projectName, setProjectName] = useState('');
-  const [managementMode, setManagementMode] = useState('standard_project');
+  const [managementMode, setManagementMode] = useState(initialManagementMode);
   const [newClientName, setNewClientName] = useState('');
   const [showMore, setShowMore] = useState(false);
   const [launchMode, setLaunchMode] = useState<LaunchMode>('none');
@@ -294,7 +300,10 @@ export function ProjectCreateForm({
           {(control) => (
             <>
               <input type="hidden" name="managementMode" value={managementMode} />
-              <Select value={managementMode} onValueChange={setManagementMode}>
+              <Select
+                value={managementMode}
+                onValueChange={(value) => setManagementMode(value as DefaultProjectManagementMode)}
+              >
                 <SelectTrigger {...control}>
                   <SelectValue />
                 </SelectTrigger>

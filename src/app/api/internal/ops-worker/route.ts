@@ -20,7 +20,7 @@ export const maxDuration = 300;
  * Sub-workers run with ≤4 concurrency (OPS-001); dg-events daily safety net included.
  */
 export async function POST(request: Request): Promise<Response> {
-  if (!isInternalWorkerAuthorized(request)) {
+  if (!isInternalWorkerAuthorized(request, 'ops-worker')) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
   const trigger = inferWorkerTrigger(request);

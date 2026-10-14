@@ -54,6 +54,7 @@ export async function gatherCompletenessSignals(
 
   const [
     missingEmployerCost,
+    ownerDefinedEstimatePendingActual,
     unallocatedEmployeeCost,
     vendorBillsUnallocated,
     openTimeCorrections,
@@ -67,6 +68,13 @@ export async function gatherCompletenessSignals(
     pendingAttendanceCorrections,
   ] = await Promise.all([
     countMissingEmployerCostActual(db, organizationId, yearMonth, startDate, endDate),
+    countOwnerManagerDefinedEstimatePendingActual(
+      db,
+      organizationId,
+      yearMonth,
+      startDate,
+      endDate,
+    ),
     countUnallocatedEmployeeCost(db, organizationId, yearMonth),
     countVendorBillsUnallocated(db, organizationId, startDate, endDate),
     countOpenTimeCorrections(db, organizationId, startDate, endDate),
@@ -86,6 +94,12 @@ export async function gatherCompletenessSignals(
       applicable: true,
       issueCount: missingEmployerCost.count,
       sampleEntityIds: missingEmployerCost.ids,
+    },
+    {
+      key: 'owner_manager_defined_estimate_pending_actual',
+      applicable: true,
+      issueCount: ownerDefinedEstimatePendingActual.count,
+      sampleEntityIds: ownerDefinedEstimatePendingActual.ids,
     },
     {
       key: 'unallocated_employee_cost',
@@ -150,17 +164,16 @@ export async function gatherCompletenessSignals(
   ];
 }
 
-/** Active employees with time in month (or a month-cost row) lacking knownQuality=actual. */
-async function countMissingEmployerCostActual(
-  db: DbExecutor,
+/** Shared scope: active employees with recorded time or an EMC row in the month. */
+function employerCostCompletenessCandidatesSql(
   organizationId: string,
   yearMonth: string,
   startDate: string,
   endDate: string,
-): Promise<{ count: number; ids: string[] }> {
-  const result = await db.execute(sql`
+) {
+  return sql`
     WITH candidates AS (
-      SELECT DISTINCT e.id
+      SELECT DISTINCT e.id, e.compensation_class, e.default_labor_allocation_intent
       FROM employees e
       WHERE e.organization_id = ${organizationId}::uuid
         AND e.status = 'active'
@@ -184,6 +197,43 @@ async function countMissingEmployerCostActual(
           )
         )
     )
+  `;
+}
+
+/** OD-36 owner/manager on defined estimate (company_only) with estimated month cost only. */
+function isOwnerDefinedEstimatePendingSql(organizationId: string, yearMonth: string) {
+  return sql`
+    c.compensation_class = 'owner_manager'
+    AND COALESCE(c.default_labor_allocation_intent, 'auto_pool') = 'company_only'
+    AND EXISTS (
+      SELECT 1 FROM employee_month_costs emc_est
+      WHERE emc_est.organization_id = ${organizationId}::uuid
+        AND emc_est.employee_id = c.id
+        AND emc_est.year_month = ${yearMonth}
+        AND emc_est.status IN ('draft', 'applied', 'closed')
+        AND emc_est.known_quality = 'estimated'
+    )
+    AND NOT EXISTS (
+      SELECT 1 FROM employee_month_costs emc_act
+      WHERE emc_act.organization_id = ${organizationId}::uuid
+        AND emc_act.employee_id = c.id
+        AND emc_act.year_month = ${yearMonth}
+        AND emc_act.status IN ('draft', 'applied', 'closed')
+        AND emc_act.known_quality = 'actual'
+    )
+  `;
+}
+
+/** Active employees with time in month (or a month-cost row) lacking knownQuality=actual. */
+async function countMissingEmployerCostActual(
+  db: DbExecutor,
+  organizationId: string,
+  yearMonth: string,
+  startDate: string,
+  endDate: string,
+): Promise<{ count: number; ids: string[] }> {
+  const result = await db.execute(sql`
+    ${employerCostCompletenessCandidatesSql(organizationId, yearMonth, startDate, endDate)}
     SELECT c.id
     FROM candidates c
     WHERE NOT EXISTS (
@@ -194,6 +244,31 @@ async function countMissingEmployerCostActual(
         AND emc.status IN ('draft', 'applied', 'closed')
         AND emc.known_quality = 'actual'
     )
+    AND NOT (${isOwnerDefinedEstimatePendingSql(organizationId, yearMonth)})
+    ORDER BY c.id
+    LIMIT 200
+  `);
+
+  const list = rowsFromExecute<{ id: string }>(result);
+  return {
+    count: list.length,
+    ids: list.slice(0, SAMPLE_LIMIT).map((row) => String(row.id)),
+  };
+}
+
+/** Owner/manager defined estimate waiting for explicit actual entry (OD-36). */
+async function countOwnerManagerDefinedEstimatePendingActual(
+  db: DbExecutor,
+  organizationId: string,
+  yearMonth: string,
+  startDate: string,
+  endDate: string,
+): Promise<{ count: number; ids: string[] }> {
+  const result = await db.execute(sql`
+    ${employerCostCompletenessCandidatesSql(organizationId, yearMonth, startDate, endDate)}
+    SELECT c.id
+    FROM candidates c
+    WHERE ${isOwnerDefinedEstimatePendingSql(organizationId, yearMonth)}
     ORDER BY c.id
     LIMIT 200
   `);

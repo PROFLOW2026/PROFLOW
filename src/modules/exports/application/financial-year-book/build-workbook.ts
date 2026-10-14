@@ -299,7 +299,6 @@ function writeMonthSheet(workbook: ExcelJS.Workbook, month: YearBookMonthData, y
 
 function writeOverviewSheet(workbook: ExcelJS.Workbook, data: FinancialYearBookData): void {
   const sheet = workbook.addWorksheet('סקירה שנתית');
-  applyRtlSheet(sheet, 4);
   sheet.getCell(1, 1).value = `סקירה פיננסית חודשית | ${data.organizationName}`;
   styleTitleCell(sheet.getCell(1, 1));
   sheet.mergeCells(1, 1, 1, OVERVIEW_COLS);
@@ -309,7 +308,28 @@ function writeOverviewSheet(workbook: ExcelJS.Workbook, data: FinancialYearBookD
     { wrap: true },
   );
   sheet.mergeCells(2, 1, 2, OVERVIEW_COLS);
-  writeHeaderCells(sheet, 4, [
+  let disclosureRow = 3;
+  if (data.fxExcludedCount > 0) {
+    writeTextCell(
+      sheet.getCell(disclosureRow, 1),
+      `גילוי: ${data.fxExcludedCount} שורות חיוב/תקבול במטבע זר לא נכללו — הספר מציג ${data.currency} בלבד.`,
+      { wrap: true },
+    );
+    sheet.mergeCells(disclosureRow, 1, disclosureRow, OVERVIEW_COLS);
+    disclosureRow += 1;
+  }
+  if (data.billingRecordsTruncated || data.paymentApplicationsTruncated) {
+    writeTextCell(
+      sheet.getCell(disclosureRow, 1),
+      'גילוי: חלק משורות החיוב או התקבול לא נטענו (מגבלת ייצוא). ייתכן שהסיכומים חלקיים.',
+      { wrap: true },
+    );
+    sheet.mergeCells(disclosureRow, 1, disclosureRow, OVERVIEW_COLS);
+    disclosureRow += 1;
+  }
+  const headerRow = disclosureRow + 1;
+  applyRtlSheet(sheet, headerRow);
+  writeHeaderCells(sheet, headerRow, [
     'חודש',
     'עלות מוכרת נטו',
     'מזומן ששולם ברוטו',
@@ -319,8 +339,8 @@ function writeOverviewSheet(workbook: ExcelJS.Workbook, data: FinancialYearBookD
     'מספר תשלומים',
     'מספר תקבולים',
   ]);
-  sheet.getRow(4).height = 28;
-  let rowNum = 5;
+  sheet.getRow(headerRow).height = 28;
+  let rowNum = headerRow + 1;
   for (const row of data.overview) {
     const excelRow = sheet.getRow(rowNum);
     writeTextCell(excelRow.getCell(1), row.monthLabel);

@@ -20,6 +20,10 @@ import {
 import { seedSystemData } from '@drizzle/seed/system';
 import { loadEffectivePermissions, loadEffectivePermissionsForProject } from '@/modules/rbac';
 import { createTestDatabase, resultRows, type TestDatabase } from '@tests/setup/database';
+import {
+  applyPreparedMigrations,
+  GATE_A_PG_LITE_SCHEMA_PARITY,
+} from '@tests/setup/pending-journal-migrations';
 
 describe('audit SEC-001/SEC-002 RLS permission gaps (EXEC)', () => {
   let database: TestDatabase;
@@ -30,6 +34,7 @@ describe('audit SEC-001/SEC-002 RLS permission gaps (EXEC)', () => {
 
   beforeAll(async () => {
     database = await createTestDatabase();
+    await applyPreparedMigrations(database, GATE_A_PG_LITE_SCHEMA_PARITY);
   });
 
   afterAll(async () => {

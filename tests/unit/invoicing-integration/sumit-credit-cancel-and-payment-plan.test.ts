@@ -172,6 +172,14 @@ describe('SUMIT credit and cancel payloads', () => {
       async listExpenseDocuments() {
         return [];
       },
+      async listAccountingDocuments() {
+        return {
+          documents: [],
+          pagingComplete: true,
+          candidateCapReached: false,
+          candidatesChecked: 0,
+        };
+      },
       async cancelDocument() {
         throw new Error('not used');
       },
@@ -222,6 +230,14 @@ describe('SUMIT credit and cancel payloads', () => {
       },
       async listExpenseDocuments() {
         return [];
+      },
+      async listAccountingDocuments() {
+        return {
+          documents: [],
+          pagingComplete: true,
+          candidateCapReached: false,
+          candidatesChecked: 0,
+        };
       },
       async cancelDocument() {
         throw new Error('not used');

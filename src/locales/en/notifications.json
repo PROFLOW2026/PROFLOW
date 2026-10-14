@@ -39,6 +39,7 @@
     "action_required": "Action required",
     "task_assigned_to_you": "Task assigned to you",
     "task_comment_mention": "New comment on your task",
+    "task_comment_added": "New comment on a task",
     "capture_needs_review": "Capture needs review",
     "task_status_updated": "Task status updated",
     "task_postponed_by_employee": "Employee postponed a task",
@@ -122,7 +123,13 @@
     "task_comment_mention": {
       "titleWithReference": "New comment on task - {reference}",
       "titleDefault": "New comment on your task",
-      "bodyDefault": "A comment was added to a task you are assigned to.",
+      "bodyDefault": "You were mentioned in a task comment.",
+      "bodyWithExtra": "{extra}"
+    },
+    "task_comment_added": {
+      "titleWithReference": "New comment on task - {reference}",
+      "titleDefault": "New comment on a task",
+      "bodyDefault": "A comment was added to a task you follow or are assigned to.",
       "bodyWithExtra": "{extra}"
     },
     "task_approval_requested": {
@@ -224,6 +231,12 @@
           "bodyWithExtra": "{extra}"
         }
       }
+    },
+    "task_dependency_resolved": {
+      "titleWithReference": "Task unblocked - {reference}",
+      "titleDefault": "Task unblocked",
+      "bodyWithExtra": "Predecessor completed: {extra}",
+      "bodyDefault": "A task you own is ready to start."
     },
     "task_status_updated": {
       "titleWithReference": "Task updated - {reference}",

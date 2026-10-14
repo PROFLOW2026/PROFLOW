@@ -13,6 +13,7 @@ import {
   CommentAttachmentsGallery,
   CommentFormClient,
 } from './task-comments-client';
+import { CommentBodyDisplay } from './comment-body-display';
 import {
   addTaskCommentAction,
   deleteTaskCommentAction,
@@ -114,7 +115,7 @@ export function TaskCommentsDrawerPanel({ taskId }: { taskId: string }) {
 
                 {comment.body ? (
                   <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">
-                    {comment.body}
+                    <CommentBodyDisplay body={comment.body} mentionLabels={comment.mentionLabels} />
                   </p>
                 ) : null}
 

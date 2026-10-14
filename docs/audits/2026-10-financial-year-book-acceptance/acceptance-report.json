@@ -1,0 +1,755 @@
+{
+  "org": {
+    "userId": "1abea18f-3d08-44ab-a42a-4509900e6117",
+    "organizationId": "8ef9e353-ca0c-4cad-b0c7-c2de612eb1ec",
+    "orgName": "מתח ח.י הנדסת חשמל בע\"מ"
+  },
+  "currency": "ILS",
+  "year": 2026,
+  "timing": {
+    "loadMs": 22269.328,
+    "buildMs": 129.90439999999944,
+    "totalMs": 22399.2324
+  },
+  "memory": {
+    "heapUsedMb": 0,
+    "rssMb": 222
+  },
+  "xlsx": {
+    "bytes": 46500,
+    "sheets": 14,
+    "sheetNames": [
+      "סקירה שנתית",
+      "הסבר לקריאה",
+      "01 ינואר",
+      "02 פברואר",
+      "03 מרץ",
+      "04 אפריל",
+      "05 מאי",
+      "06 יוני",
+      "07 יולי",
+      "08 אוגוסט",
+      "09 ספטמבר",
+      "10 אוקטובר",
+      "11 נובמבר",
+      "12 דצמבר"
+    ],
+    "allRtl": true,
+    "uuidDetected": false
+  },
+  "monthlyRows": [
+    {
+      "month": "2026-01",
+      "phase": "complete",
+      "recognizedNet": {
+        "book": 44809.83,
+        "engine": 44809.83,
+        "dashboard": 44809.83,
+        "match": true
+      },
+      "recognizedVat": {
+        "book": 534.4,
+        "engine": 534.4000000000015,
+        "match": true
+      },
+      "cashPaidGross": {
+        "book": 4683.23,
+        "engine": 4683.23,
+        "match": true,
+        "paidLinesSum": 4683.23,
+        "paidLinesMatchEngine": true
+      },
+      "collectionsGross": {
+        "book": 41300,
+        "engine": 41300,
+        "dashboard": 41300,
+        "match": true
+      },
+      "netInvoiced": {
+        "book": 35000,
+        "engine": 35000,
+        "dashboard": 35000,
+        "match": true
+      },
+      "employerCostNet": {
+        "book": 40661,
+        "engineLines": 40661,
+        "match": true
+      },
+      "overheadNetSum": 4148.83,
+      "expectedCommitmentsGross": {
+        "book": 724.08,
+        "engine": 724.08,
+        "match": true
+      },
+      "netCash": {
+        "book": 36616.77,
+        "engine": 36616.77,
+        "match": true
+      },
+      "operationalProfitNet": {
+        "book": -9809.83,
+        "derivedFromBookKpis": -9809.830000000002,
+        "match": true,
+        "note": "Not official CCV/contract profit — billing net minus recognized cost only"
+      },
+      "billingVoidCount": 0,
+      "commitmentCount": 1,
+      "receiptCount": 1
+    },
+    {
+      "month": "2026-02",
+      "phase": "complete",
+      "recognizedNet": {
+        "book": 49528.71,
+        "engine": 49528.71,
+        "dashboard": 49528.71,
+        "match": true
+      },
+      "recognizedVat": {
+        "book": 673.52,
+        "engine": 673.5200000000041,
+        "match": true
+      },
+      "cashPaidGross": {
+        "book": 47055.23,
+        "engine": 47055.23,
+        "match": true,
+        "paidLinesSum": 47055.229999999996,
+        "paidLinesMatchEngine": true
+      },
+      "collectionsGross": {
+        "book": 0,
+        "engine": 0,
+        "dashboard": 0,
+        "match": true
+      },
+      "netInvoiced": {
+        "book": 0,
+        "engine": 0,
+        "dashboard": 0,
+        "match": true
+      },
+      "employerCostNet": {
+        "book": 44607,
+        "engineLines": 44607,
+        "match": true
+      },
+      "overheadNetSum": 4921.71,
+      "expectedCommitmentsGross": {
+        "book": 724.08,
+        "engine": 724.08,
+        "match": true
+      },
+      "netCash": {
+        "book": -47055.23,
+        "engine": -47055.23,
+        "match": true
+      },
+      "operationalProfitNet": {
+        "book": -49528.71,
+        "derivedFromBookKpis": -49528.71,
+        "match": true,
+        "note": "Not official CCV/contract profit — billing net minus recognized cost only"
+      },
+      "billingVoidCount": 0,
+      "commitmentCount": 1,
+      "receiptCount": 0
+    },
+    {
+      "month": "2026-03",
+      "phase": "complete",
+      "recognizedNet": {
+        "book": 93327.05,
+        "engine": 93327.05,
+        "dashboard": 93327.05,
+        "match": true
+      },
+      "recognizedVat": {
+        "book": 10723.16,
+        "engine": 10723.160000000003,
+        "match": true
+      },
+      "cashPaidGross": {
+        "book": 116083.21,
+        "engine": 116083.21,
+        "match": true,
+        "paidLinesSum": 116083.21,
+        "paidLinesMatchEngine": true
+      },
+      "collectionsGross": {
+        "book": 176911.5,
+        "engine": 176911.5,
+        "dashboard": 176911.5,
+        "match": true
+      },
+      "netInvoiced": {
+        "book": 83905,
+        "engine": 83905,
+        "dashboard": 83905,
+        "match": true
+      },
+      "employerCostNet": {
+        "book": 32574,
+        "engineLines": 32574,
+        "match": true
+      },
+      "overheadNetSum": 60753.05,
+      "expectedCommitmentsGross": {
+        "book": 724.08,
+        "engine": 724.08,
+        "match": true
+      },
+      "netCash": {
+        "book": 60828.29,
+        "engine": 60828.29,
+        "match": true
+      },
+      "operationalProfitNet": {
+        "book": -9422.05,
+        "derivedFromBookKpis": -9422.050000000003,
+        "match": true,
+        "note": "Not official CCV/contract profit — billing net minus recognized cost only"
+      },
+      "billingVoidCount": 0,
+      "commitmentCount": 1,
+      "receiptCount": 2
+    },
+    {
+      "month": "2026-04",
+      "phase": "complete",
+      "recognizedNet": {
+        "book": 79732.11,
+        "engine": 79732.11,
+        "dashboard": 79732.11,
+        "match": true
+      },
+      "recognizedVat": {
+        "book": 6927.7,
+        "engine": 6927.699999999997,
+        "match": true
+      },
+      "cashPaidGross": {
+        "book": 79168.81,
+        "engine": 79168.81,
+        "match": true,
+        "paidLinesSum": 79168.81,
+        "paidLinesMatchEngine": true
+      },
+      "collectionsGross": {
+        "book": 18691.2,
+        "engine": 18691.2,
+        "dashboard": 18691.2,
+        "match": true
+      },
+      "netInvoiced": {
+        "book": 15840,
+        "engine": 15840,
+        "dashboard": 15840,
+        "match": true
+      },
+      "employerCostNet": {
+        "book": 40065,
+        "engineLines": 40065,
+        "match": true
+      },
+      "overheadNetSum": 39667.11,
+      "expectedCommitmentsGross": {
+        "book": 724.08,
+        "engine": 724.08,
+        "match": true
+      },
+      "netCash": {
+        "book": -60477.61,
+        "engine": -60477.61,
+        "match": true
+      },
+      "operationalProfitNet": {
+        "book": -63892.11,
+        "derivedFromBookKpis": -63892.11,
+        "match": true,
+        "note": "Not official CCV/contract profit — billing net minus recognized cost only"
+      },
+      "billingVoidCount": 0,
+      "commitmentCount": 1,
+      "receiptCount": 1
+    },
+    {
+      "month": "2026-05",
+      "phase": "complete",
+      "recognizedNet": {
+        "book": 88085.38,
+        "engine": 88085.38,
+        "dashboard": 88085.38,
+        "match": true
+      },
+      "recognizedVat": {
+        "book": 6666.93,
+        "engine": 6666.929999999993,
+        "match": true
+      },
+      "cashPaidGross": {
+        "book": 71468.31,
+        "engine": 71468.31,
+        "match": true,
+        "paidLinesSum": 71468.31,
+        "paidLinesMatchEngine": true
+      },
+      "collectionsGross": {
+        "book": 0,
+        "engine": 0,
+        "dashboard": 0,
+        "match": true
+      },
+      "netInvoiced": {
+        "book": 0,
+        "engine": 0,
+        "dashboard": 0,
+        "match": true
+      },
+      "employerCostNet": {
+        "book": 49867,
+        "engineLines": 49867,
+        "match": true
+      },
+      "overheadNetSum": 38218.380000000005,
+      "expectedCommitmentsGross": {
+        "book": 724.08,
+        "engine": 724.08,
+        "match": true
+      },
+      "netCash": {
+        "book": -71468.31,
+        "engine": -71468.31,
+        "match": true
+      },
+      "operationalProfitNet": {
+        "book": -88085.38,
+        "derivedFromBookKpis": -88085.38,
+        "match": true,
+        "note": "Not official CCV/contract profit — billing net minus recognized cost only"
+      },
+      "billingVoidCount": 0,
+      "commitmentCount": 1,
+      "receiptCount": 0
+    },
+    {
+      "month": "2026-06",
+      "phase": "complete",
+      "recognizedNet": {
+        "book": 97814.08,
+        "engine": 97814.08,
+        "dashboard": 97814.08,
+        "match": true
+      },
+      "recognizedVat": {
+        "book": 8895.25,
+        "engine": 8895.25,
+        "match": true
+      },
+      "cashPaidGross": {
+        "book": 98965.33,
+        "engine": 98965.33,
+        "match": true,
+        "paidLinesSum": 98965.33,
+        "paidLinesMatchEngine": true
+      },
+      "collectionsGross": {
+        "book": 0,
+        "engine": 0,
+        "dashboard": 0,
+        "match": true
+      },
+      "netInvoiced": {
+        "book": 0,
+        "engine": 0,
+        "dashboard": 0,
+        "match": true
+      },
+      "employerCostNet": {
+        "book": 47216,
+        "engineLines": 47216,
+        "match": true
+      },
+      "overheadNetSum": 50598.079999999994,
+      "expectedCommitmentsGross": {
+        "book": 724.08,
+        "engine": 724.08,
+        "match": true
+      },
+      "netCash": {
+        "book": -98965.33,
+        "engine": -98965.33,
+        "match": true
+      },
+      "operationalProfitNet": {
+        "book": -97814.08,
+        "derivedFromBookKpis": -97814.08,
+        "match": true,
+        "note": "Not official CCV/contract profit — billing net minus recognized cost only"
+      },
+      "billingVoidCount": 0,
+      "commitmentCount": 1,
+      "receiptCount": 0
+    },
+    {
+      "month": "2026-07",
+      "phase": "complete",
+      "recognizedNet": {
+        "book": 117426.25,
+        "engine": 117426.25,
+        "dashboard": 117426.25,
+        "match": true
+      },
+      "recognizedVat": {
+        "book": 11934.41,
+        "engine": 11934.410000000003,
+        "match": true
+      },
+      "cashPaidGross": {
+        "book": 98402.66,
+        "engine": 98402.66,
+        "match": true,
+        "paidLinesSum": 98402.66,
+        "paidLinesMatchEngine": true
+      },
+      "collectionsGross": {
+        "book": 227455.03,
+        "engine": 227455.03,
+        "dashboard": 227455.03,
+        "match": true
+      },
+      "netInvoiced": {
+        "book": 192758.5,
+        "engine": 192758.5,
+        "dashboard": 192758.5,
+        "match": true
+      },
+      "employerCostNet": {
+        "book": 49944,
+        "engineLines": 49944,
+        "match": true
+      },
+      "overheadNetSum": 67482.25,
+      "expectedCommitmentsGross": {
+        "book": 724.08,
+        "engine": 724.08,
+        "match": true
+      },
+      "netCash": {
+        "book": 129052.37,
+        "engine": 129052.37,
+        "match": true
+      },
+      "operationalProfitNet": {
+        "book": 75332.25,
+        "derivedFromBookKpis": 75332.25,
+        "match": true,
+        "note": "Not official CCV/contract profit — billing net minus recognized cost only"
+      },
+      "billingVoidCount": 0,
+      "commitmentCount": 1,
+      "receiptCount": 3
+    },
+    {
+      "month": "2026-08",
+      "phase": "complete",
+      "recognizedNet": {
+        "book": 166703.67,
+        "engine": 166703.67,
+        "dashboard": 166703.67,
+        "match": true
+      },
+      "recognizedVat": {
+        "book": 20358.31,
+        "engine": 20358.309999999998,
+        "match": true
+      },
+      "cashPaidGross": {
+        "book": 119137.98,
+        "engine": 119137.98,
+        "match": true,
+        "paidLinesSum": 119137.98,
+        "paidLinesMatchEngine": true
+      },
+      "collectionsGross": {
+        "book": 63672.8,
+        "engine": 63672.8,
+        "dashboard": 63672.8,
+        "match": true
+      },
+      "netInvoiced": {
+        "book": 119980,
+        "engine": 119980,
+        "dashboard": 119980,
+        "match": true
+      },
+      "employerCostNet": {
+        "book": 50485,
+        "engineLines": 50485,
+        "match": true
+      },
+      "overheadNetSum": 116218.67,
+      "expectedCommitmentsGross": {
+        "book": 724.08,
+        "engine": 724.08,
+        "match": true
+      },
+      "netCash": {
+        "book": -55465.18,
+        "engine": -55465.18,
+        "match": true
+      },
+      "operationalProfitNet": {
+        "book": -46723.67,
+        "derivedFromBookKpis": -46723.67000000001,
+        "match": true,
+        "note": "Not official CCV/contract profit — billing net minus recognized cost only"
+      },
+      "billingVoidCount": 0,
+      "commitmentCount": 1,
+      "receiptCount": 1
+    },
+    {
+      "month": "2026-09",
+      "phase": "complete",
+      "recognizedNet": {
+        "book": 180480.97,
+        "engine": 180480.97,
+        "dashboard": 180480.97,
+        "match": true
+      },
+      "recognizedVat": {
+        "book": 21957.11,
+        "engine": 21957.109999999986,
+        "match": true
+      },
+      "cashPaidGross": {
+        "book": 124715.08,
+        "engine": 124715.08,
+        "match": true,
+        "paidLinesSum": 124715.08,
+        "paidLinesMatchEngine": true
+      },
+      "collectionsGross": {
+        "book": 178081.47,
+        "engine": 178081.47,
+        "dashboard": 178081.47,
+        "match": true
+      },
+      "netInvoiced": {
+        "book": 150916.5,
+        "engine": 150916.5,
+        "dashboard": 150916.5,
+        "match": true
+      },
+      "employerCostNet": {
+        "book": 58497,
+        "engineLines": 58497,
+        "match": true
+      },
+      "overheadNetSum": 121983.97,
+      "expectedCommitmentsGross": {
+        "book": 724.08,
+        "engine": 724.08,
+        "match": true
+      },
+      "netCash": {
+        "book": 53366.39,
+        "engine": 53366.39,
+        "match": true
+      },
+      "operationalProfitNet": {
+        "book": -29564.47,
+        "derivedFromBookKpis": -29564.47,
+        "match": true,
+        "note": "Not official CCV/contract profit — billing net minus recognized cost only"
+      },
+      "billingVoidCount": 0,
+      "commitmentCount": 1,
+      "receiptCount": 2
+    },
+    {
+      "month": "2026-10",
+      "phase": "partial",
+      "recognizedNet": {
+        "book": 25709.19,
+        "engine": 25709.19,
+        "dashboard": 25709.19,
+        "match": true
+      },
+      "recognizedVat": {
+        "book": 601.14,
+        "engine": 601.140000000003,
+        "match": true
+      },
+      "cashPaidGross": {
+        "book": 61647.4,
+        "engine": 61647.4,
+        "match": true,
+        "paidLinesSum": 61647.4,
+        "paidLinesMatchEngine": true
+      },
+      "collectionsGross": {
+        "book": 0,
+        "engine": 0,
+        "dashboard": 0,
+        "match": true
+      },
+      "netInvoiced": {
+        "book": 0,
+        "engine": 0,
+        "dashboard": 0,
+        "match": true
+      },
+      "employerCostNet": {
+        "book": 20009.53,
+        "engineLines": 20009.53,
+        "match": true
+      },
+      "overheadNetSum": 5699.66,
+      "expectedCommitmentsGross": {
+        "book": 1076.16,
+        "engine": 1076.16,
+        "match": true
+      },
+      "netCash": {
+        "book": -61647.4,
+        "engine": -61647.4,
+        "match": true
+      },
+      "operationalProfitNet": {
+        "book": -25709.19,
+        "derivedFromBookKpis": -25709.19,
+        "match": true,
+        "note": "Not official CCV/contract profit — billing net minus recognized cost only"
+      },
+      "billingVoidCount": 0,
+      "commitmentCount": 2,
+      "receiptCount": 0
+    },
+    {
+      "month": "2026-11",
+      "phase": "future",
+      "recognizedNet": {
+        "book": 0,
+        "engine": 0,
+        "dashboard": 0,
+        "match": true
+      },
+      "recognizedVat": {
+        "book": 0,
+        "engine": 0,
+        "match": true
+      },
+      "cashPaidGross": {
+        "book": 0,
+        "engine": 0,
+        "match": true,
+        "paidLinesSum": 0,
+        "paidLinesMatchEngine": true
+      },
+      "collectionsGross": {
+        "book": 0,
+        "engine": 0,
+        "dashboard": 0,
+        "match": true
+      },
+      "netInvoiced": {
+        "book": 0,
+        "engine": 0,
+        "dashboard": 0,
+        "match": true
+      },
+      "employerCostNet": {
+        "book": null,
+        "engineLines": null,
+        "match": true
+      },
+      "overheadNetSum": 0,
+      "expectedCommitmentsGross": {
+        "book": 62023.69,
+        "engine": 62023.69,
+        "match": true
+      },
+      "netCash": {
+        "book": 0,
+        "engine": 0,
+        "match": true
+      },
+      "operationalProfitNet": {
+        "book": 0,
+        "derivedFromBookKpis": 0,
+        "match": true,
+        "note": "Not official CCV/contract profit — billing net minus recognized cost only"
+      },
+      "billingVoidCount": 0,
+      "commitmentCount": 8,
+      "receiptCount": 0
+    },
+    {
+      "month": "2026-12",
+      "phase": "future",
+      "recognizedNet": {
+        "book": 0,
+        "engine": 0,
+        "dashboard": 0,
+        "match": true
+      },
+      "recognizedVat": {
+        "book": 0,
+        "engine": 0,
+        "match": true
+      },
+      "cashPaidGross": {
+        "book": 0,
+        "engine": 0,
+        "match": true,
+        "paidLinesSum": 0,
+        "paidLinesMatchEngine": true
+      },
+      "collectionsGross": {
+        "book": 0,
+        "engine": 0,
+        "dashboard": 0,
+        "match": true
+      },
+      "netInvoiced": {
+        "book": 0,
+        "engine": 0,
+        "dashboard": 0,
+        "match": true
+      },
+      "employerCostNet": {
+        "book": null,
+        "engineLines": null,
+        "match": true
+      },
+      "overheadNetSum": 0,
+      "expectedCommitmentsGross": {
+        "book": 22431.2,
+        "engine": 22431.2,
+        "match": true
+      },
+      "netCash": {
+        "book": 0,
+        "engine": 0,
+        "match": true
+      },
+      "operationalProfitNet": {
+        "book": 0,
+        "derivedFromBookKpis": 0,
+        "match": true,
+        "note": "Not official CCV/contract profit — billing net minus recognized cost only"
+      },
+      "billingVoidCount": 0,
+      "commitmentCount": 7,
+      "receiptCount": 0
+    }
+  ],
+  "allMonthsMatch": true,
+  "bookMeta": {
+    "organizationName": "מתח ח.י הנדסת חשמל בע\"מ",
+    "generatedAt": "2026-10-12"
+  }
+}

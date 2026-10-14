@@ -79,7 +79,7 @@ describe('founding an organization as an authenticated user', () => {
     const provisioned = await database.asService(async (db) =>
       resultRows(await db.select().from(roles).where(eq(roles.organizationId, organization.id))),
     );
-    expect(provisioned).toHaveLength(4);
+    expect(provisioned).toHaveLength(5);
   });
 
   it('never leaves a member-less organization behind for others to see', async () => {

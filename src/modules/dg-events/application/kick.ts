@@ -1,6 +1,7 @@
 import 'server-only';
 
 import { after } from 'next/server';
+import { resolveInternalWorkerBearer } from '@/shared/http/internal-worker-auth';
 import { logUsageKickFailure, logUsageSelfHttp } from '@/shared/observability/runtime-usage-diag';
 
 let scheduled = false;
@@ -17,7 +18,7 @@ function workerUrl(): string | null {
 }
 
 function kickRemote(): void {
-  const secret = process.env.CRON_SECRET?.trim() || process.env.OCR_WORKER_SECRET?.trim();
+  const secret = resolveInternalWorkerBearer('dg-events-worker');
   const url = workerUrl();
   if (!secret || !url) return;
   const now = Date.now();
@@ -31,14 +32,25 @@ function kickRemote(): void {
   void fetch(url, {
     method: 'POST',
     headers: { Authorization: `Bearer ${secret}` },
-  }).catch((error) => {
-    logUsageKickFailure({
-      fromModule: 'dg-events/kick',
-      toPath: '/api/internal/dg-events-worker',
-      reason: 'emit_domain_event',
-      detail: error instanceof Error ? error.message : String(error),
+  })
+    .then((response) => {
+      if (!response.ok) {
+        logUsageKickFailure({
+          fromModule: 'dg-events/kick',
+          toPath: '/api/internal/dg-events-worker',
+          reason: 'emit_domain_event',
+          detail: `HTTP ${response.status}`,
+        });
+      }
+    })
+    .catch((error) => {
+      logUsageKickFailure({
+        fromModule: 'dg-events/kick',
+        toPath: '/api/internal/dg-events-worker',
+        reason: 'emit_domain_event',
+        detail: error instanceof Error ? error.message : String(error),
+      });
     });
-  });
 }
 
 /**

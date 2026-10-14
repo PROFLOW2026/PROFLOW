@@ -41,14 +41,12 @@ import {
   createTaskApprovalAsSystem,
 } from '@/modules/tasks/application/system-task-actions';
 
-function projectIdsFromMatches(
-  matches: Awaited<ReturnType<typeof collectPresetMatches>>,
-): string[] {
+function projectIdsFromMatches(matches: readonly AutomationMatch[]): string[] {
   return [...new Set(matches.map((match) => match.projectId).filter((id): id is string => Boolean(id)))];
 }
 
 function accessScopeForMatches(
-  matches: Awaited<ReturnType<typeof collectPresetMatches>>,
+  matches: readonly AutomationMatch[],
 ): { projectIds: string[] } {
   return { projectIds: projectIdsFromMatches(matches) };
 }
@@ -102,6 +100,8 @@ function notificationTypeForPreset(presetKey: AutomationPresetKey) {
       return 'billing_plan_retention_held' as const;
     case 'milestone_approaching_days':
       return 'milestone_approaching' as const;
+    case 'task_dependency_resolved':
+      return 'task_dependency_resolved' as const;
     case 'asset_service_due':
       return 'action_required' as const;
     default:
@@ -206,7 +206,7 @@ async function executePlanningFollowup(
 async function executeSystemTaskAction(
   context: OrgContext,
   action: AutomationActionRequest,
-  matches: Awaited<ReturnType<typeof collectPresetMatches>>,
+  matches: readonly AutomationMatch[],
 ): Promise<{ kind: string; count: number }> {
   const payload = (action.payload ?? {}) as Record<string, unknown>;
   let count = 0;
@@ -263,7 +263,7 @@ async function executeSafeAction(
   context: OrgContext,
   presetKey: AutomationPresetKey,
   action: AutomationActionRequest,
-  matches: Awaited<ReturnType<typeof collectPresetMatches>>,
+  matches: readonly AutomationMatch[],
 ): Promise<{ kind: string; count: number }> {
   assertSafeAutomationAction(action.kind);
   if (action.kind === 'notify') {
@@ -426,7 +426,7 @@ export async function runRules(
 
       const executed = [];
       for (const action of allowed) {
-        executed.push(await executeSafeAction(context, rule.presetKey, action, matches));
+        executed.push(await executeSafeAction(context, rule.presetKey, action, [...matches]));
       }
       const ok = await insertAutomationRun(context.db, {
         organizationId: context.organizationId,
@@ -434,7 +434,7 @@ export async function runRules(
         status: 'ok',
         actionsJson: { matches: matches.length, executed },
         errorMessage: null,
-        accessScopeJson: accessScopeForMatches(matches),
+        accessScopeJson: accessScopeForMatches([...matches]),
       });
       runs.push(ok);
       await recordAuditEvent(context, {
@@ -460,4 +460,91 @@ export async function runRules(
   }
 
   return { runs, refusedUnsafe };
+}
+
+async function executeRuleActionsForMatches(
+  context: OrgContext,
+  rule: Awaited<ReturnType<typeof listAutomationRules>>[number],
+  matches: readonly AutomationMatch[],
+): Promise<AutomationRunRecord> {
+  const requested = actionsFromConfig(rule.configJson);
+  if (requested.some((item) => isUnsafeAutomationAction(item.kind))) {
+    const unsafe = requested
+      .filter((item) => isUnsafeAutomationAction(item.kind))
+      .map((item) => item.kind);
+    return insertAutomationRun(context.db, {
+      organizationId: context.organizationId,
+      ruleId: rule.id,
+      status: 'failed',
+      actionsJson: { refused: unsafe },
+      errorMessage: 'Unsafe action refused',
+      accessScopeJson: {},
+    });
+  }
+
+  const { allowed, refused } = filterExecutableActions(requested);
+  if (refused.length > 0) {
+    return insertAutomationRun(context.db, {
+      organizationId: context.organizationId,
+      ruleId: rule.id,
+      status: 'failed',
+      actionsJson: { refused },
+      errorMessage: 'Unsafe action refused',
+      accessScopeJson: {},
+    });
+  }
+
+  if (matches.length === 0) {
+    return insertAutomationRun(context.db, {
+      organizationId: context.organizationId,
+      ruleId: rule.id,
+      status: 'skipped',
+      actionsJson: { matches: 0 },
+      errorMessage: null,
+      accessScopeJson: {},
+    });
+  }
+
+  const executed = [];
+  for (const action of allowed) {
+    executed.push(await executeSafeAction(context, rule.presetKey, action, [...matches]));
+  }
+  const run = await insertAutomationRun(context.db, {
+    organizationId: context.organizationId,
+    ruleId: rule.id,
+    status: 'ok',
+    actionsJson: { matches: matches.length, executed },
+    errorMessage: null,
+    accessScopeJson: accessScopeForMatches([...matches]),
+  });
+  await recordAuditEvent(context, {
+    action: AUDIT_ACTIONS.AUTOMATION_RULE_RAN,
+    entityType: 'automation_rule',
+    entityId: rule.id,
+    after: { presetKey: rule.presetKey, status: 'ok', matchCount: matches.length },
+  });
+  return run;
+}
+
+/**
+ * Runs enabled automation rules for an event-style preset with explicit matches
+ * (for example after `task_dependency_resolved` notifications).
+ */
+export async function runAutomationEventMatches(
+  context: OrgContext,
+  presetKey: AutomationPresetKey,
+  matches: readonly AutomationMatch[],
+): Promise<void> {
+  if (matches.length === 0) return;
+
+  const rules = (await listAutomationRules(context.db, context.organizationId).catch(() => []))
+    .filter((rule) => rule.enabled && rule.presetKey === presetKey);
+
+  for (const rule of rules) {
+    try {
+      await executeRuleActionsForMatches(context, rule, matches);
+    } catch {
+      // Event automations must not block the triggering mutation.
+    }
+  }
 }

@@ -9,6 +9,7 @@ import {
   findOpportunityById,
   findProspectById,
   insertOpportunity,
+  updateLeadById,
   insertOpportunityNote,
   listEstimatesForOpportunity,
   listOpportunities,
@@ -152,9 +153,10 @@ export async function createOpportunity(
     const prospect = await findProspectById(context.db, context.organizationId, input.prospectId);
     if (!prospect) throw new NotFoundError('Prospect');
   }
+  let linkedLead: Awaited<ReturnType<typeof findLeadById>> = null;
   if (input.leadId) {
-    const lead = await findLeadById(context.db, context.organizationId, input.leadId);
-    if (!lead) throw new NotFoundError('Lead');
+    linkedLead = await findLeadById(context.db, context.organizationId, input.leadId);
+    if (!linkedLead) throw new NotFoundError('Lead');
   }
 
   const opportunity = await insertOpportunity(context.db, {
@@ -171,6 +173,21 @@ export async function createOpportunity(
     nextActionAt: input.nextActionAt ?? null,
     nextActionText: input.nextActionText ?? null,
   });
+
+  if (
+    linkedLead &&
+    (linkedLead.status === 'new' || linkedLead.status === 'contacted')
+  ) {
+    await updateLeadById(context.db, context.organizationId, linkedLead.id, {
+      status: 'qualified',
+    });
+    await recordAuditEvent(context, {
+      action: CRM_AUDIT_ACTIONS.LEAD_UPDATED,
+      entityType: 'crm_lead',
+      entityId: linkedLead.id,
+      after: { status: 'qualified', reason: 'opportunity_created' },
+    });
+  }
 
   await noteModuleUsage(context.db, context.organizationId, 'crm');
   await recordAuditEvent(context, {

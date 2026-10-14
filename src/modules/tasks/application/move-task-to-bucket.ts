@@ -5,21 +5,50 @@ import type { OrgContext } from '@/shared/auth/context';
 import { findTaskById, updateTaskById } from '../data/tasks.repository';
 import { findBucketById, countActiveTasksInBucket } from '../data/boards.repository';
 import { isValidTransition } from '../domain/lifecycle';
-import { generateSortKey } from '../domain/lexorank';
+import { resolveMoveSortKeyFromNeighbors } from './resolve-move-sort-key';
 import { updateTask } from './update-task';
 import type { Task, TaskStatus } from '../domain/types';
+
+export type MoveTaskToBucketOptions = {
+  sortKey?: string;
+  afterTaskId?: string | null;
+  beforeTaskId?: string | null;
+};
+
+async function resolveNeighborSortKeys(
+  context: OrgContext,
+  options: MoveTaskToBucketOptions,
+): Promise<{ afterSortKey: string | null; beforeSortKey: string | null }> {
+  let afterSortKey: string | null = null;
+  let beforeSortKey: string | null = null;
+
+  if (options.afterTaskId) {
+    const afterTask = await findTaskById(context.db, context.organizationId, options.afterTaskId);
+    if (!afterTask) throw new NotFoundError('Task');
+    afterSortKey = afterTask.sortKey;
+  }
+
+  if (options.beforeTaskId) {
+    const beforeTask = await findTaskById(context.db, context.organizationId, options.beforeTaskId);
+    if (!beforeTask) throw new NotFoundError('Task');
+    beforeSortKey = beforeTask.sortKey;
+  }
+
+  return { afterSortKey, beforeSortKey };
+}
 
 /**
  * Moves a task to a different bucket.
  *
- * - Updates bucket_id + sort_key
+ * - Updates bucket_id + sort_key (lexorank from neighbors when provided)
+ * - Keeps board_id aligned with the target bucket
  * - If bucket has statusOnEnter set, applies that status via canonical updateTask + activity
  */
 export async function moveTaskToBucket(
   context: OrgContext,
   taskId: string,
   targetBucketId: string,
-  options: { sortKey?: string } = {},
+  options: MoveTaskToBucketOptions = {},
 ): Promise<Task> {
   assertPermission(context, PERMISSIONS.TASKS_UPDATE);
 
@@ -31,8 +60,6 @@ export async function moveTaskToBucket(
   if (!task) throw new NotFoundError('Task');
   if (!bucket) throw new NotFoundError('Bucket');
 
-  // WIP limit check: reject if target bucket is different and over capacity.
-  // Done/cancelled tasks are not counted against the WIP limit.
   if (
     bucket.wipLimit !== null &&
     bucket.wipLimit > 0 &&
@@ -48,7 +75,13 @@ export async function moveTaskToBucket(
     }
   }
 
-  const sortKey = options.sortKey ?? generateSortKey();
+  const { afterSortKey, beforeSortKey } = await resolveNeighborSortKeys(context, options);
+  const sortKey = resolveMoveSortKeyFromNeighbors({
+    explicitSortKey: options.sortKey,
+    afterSortKey,
+    beforeSortKey,
+  });
+
   if (sortKey !== task.sortKey) {
     await updateTaskById(context.db, context.organizationId, taskId, { sortKey });
   }
@@ -60,8 +93,18 @@ export async function moveTaskToBucket(
     }
   }
 
-  return updateTask(context, taskId, {
-    bucketId: targetBucketId,
-    ...(statusToApply ? { status: statusToApply } : {}),
-  });
+  const bucketChanged = task.bucketId !== targetBucketId;
+  const boardChanged = task.boardId !== bucket.boardId;
+
+  if (bucketChanged || boardChanged || statusToApply) {
+    return updateTask(context, taskId, {
+      ...(bucketChanged ? { bucketId: targetBucketId } : {}),
+      ...(boardChanged || bucketChanged ? { boardId: bucket.boardId } : {}),
+      ...(statusToApply ? { status: statusToApply } : {}),
+    });
+  }
+
+  const refreshed = await findTaskById(context.db, context.organizationId, taskId);
+  if (!refreshed) throw new NotFoundError('Task');
+  return refreshed;
 }

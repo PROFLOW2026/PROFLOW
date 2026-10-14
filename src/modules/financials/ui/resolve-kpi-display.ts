@@ -165,3 +165,14 @@ export function resolveProjectKpiDisplay(
 export function moneyKey(value: MoneyValue): string {
   return `${value.currency}:${value.amount}`;
 }
+
+/** F10 — NET vs GROSS basis for project KPI amounts (display only). */
+export const PROJECT_KPI_AMOUNT_BASIS = {
+  actualCost: 'net',
+  billed: 'net',
+  billedGross: 'gross',
+  paid: 'gross',
+  outstanding: 'gross',
+  committed: 'net',
+  forecastCost: 'net',
+} as const satisfies Record<string, 'net' | 'gross'>;

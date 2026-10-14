@@ -1,0 +1,798 @@
+{
+  "preview": [
+    {
+      "id": "actual",
+      "persona": "project_contractor",
+      "layout": "follows org business_profile",
+      "preferServiceSurface": false,
+      "cards": [
+        "attention",
+        "activeWork",
+        "contractValue",
+        "profit",
+        "forecast",
+        "commitments",
+        "billing",
+        "collections"
+      ],
+      "nav": [
+        "dashboard",
+        "projects",
+        "expenses",
+        "clients"
+      ],
+      "modules": [
+        "clients",
+        "vendors",
+        "billing",
+        "changes",
+        "documents",
+        "workforce",
+        "procurement",
+        "budgets",
+        "boq",
+        "approvals",
+        "quotes",
+        "month_close",
+        "command_center",
+        "work_management"
+      ]
+    },
+    {
+      "id": "GENERAL_CONTRACTOR",
+      "persona": "project_contractor",
+      "layout": "Owner",
+      "preferServiceSurface": false,
+      "cards": [
+        "attention",
+        "activeWork",
+        "contractValue",
+        "profit",
+        "forecast",
+        "commitments",
+        "billing",
+        "collections"
+      ],
+      "nav": [
+        "dashboard",
+        "projects",
+        "expenses",
+        "clients"
+      ],
+      "modules": [
+        "clients",
+        "vendors",
+        "billing",
+        "changes",
+        "documents",
+        "workforce",
+        "procurement",
+        "budgets",
+        "boq",
+        "approvals",
+        "quotes",
+        "month_close",
+        "command_center",
+        "work_management"
+      ]
+    },
+    {
+      "id": "ELECTRICAL",
+      "persona": "electrical",
+      "layout": "Card",
+      "preferServiceSurface": false,
+      "cards": [
+        "attention",
+        "activeWork",
+        "quotePipeline",
+        "billing",
+        "collections",
+        "commitments",
+        "profit"
+      ],
+      "nav": [
+        "today",
+        "dashboard",
+        "jobs",
+        "projects",
+        "expenses"
+      ],
+      "modules": [
+        "clients",
+        "vendors",
+        "billing",
+        "workforce",
+        "jobs",
+        "field_ops",
+        "quotes",
+        "materials",
+        "forms",
+        "service",
+        "work_management"
+      ]
+    },
+    {
+      "id": "RENOVATION",
+      "persona": "renovation",
+      "layout": "Owner",
+      "preferServiceSurface": false,
+      "cards": [
+        "attention",
+        "activeWork",
+        "quotePipeline",
+        "profit",
+        "billing",
+        "collections",
+        "commitments"
+      ],
+      "nav": [
+        "today",
+        "dashboard",
+        "projects",
+        "clients",
+        "expenses"
+      ],
+      "modules": [
+        "clients",
+        "vendors",
+        "billing",
+        "changes",
+        "documents",
+        "workforce",
+        "quotes",
+        "jobs",
+        "materials",
+        "boq",
+        "command_center",
+        "work_management"
+      ]
+    },
+    {
+      "id": "SMALL_WORKS",
+      "persona": "small_works",
+      "layout": "Card",
+      "preferServiceSurface": false,
+      "cards": [
+        "attention",
+        "activeWork",
+        "firstActions",
+        "billing",
+        "collections"
+      ],
+      "nav": [
+        "today",
+        "dashboard",
+        "jobs",
+        "clients",
+        "expenses"
+      ],
+      "modules": [
+        "clients",
+        "quotes",
+        "jobs",
+        "billing",
+        "workforce",
+        "documents",
+        "command_center",
+        "work_management"
+      ]
+    },
+    {
+      "id": "FIELD_SERVICE",
+      "persona": "service",
+      "layout": "Card",
+      "preferServiceSurface": true,
+      "cards": [
+        "attention",
+        "serviceToday",
+        "activeWork",
+        "firstActions",
+        "billing",
+        "collections"
+      ],
+      "nav": [
+        "today",
+        "dashboard",
+        "workOrders",
+        "fieldHome",
+        "clients"
+      ],
+      "modules": [
+        "clients",
+        "vendors",
+        "billing",
+        "workforce",
+        "jobs",
+        "service",
+        "field_ops",
+        "forms",
+        "quotes",
+        "command_center"
+      ]
+    },
+    {
+      "id": "ARCHITECT",
+      "persona": "architecture",
+      "layout": "Owner",
+      "preferServiceSurface": false,
+      "cards": [
+        "attention",
+        "activeWork",
+        "timeUtilization",
+        "billing",
+        "collections",
+        "profit"
+      ],
+      "nav": [
+        "today",
+        "dashboard",
+        "projects",
+        "portfolio",
+        "clients"
+      ],
+      "modules": [
+        "clients",
+        "documents",
+        "quotes",
+        "changes",
+        "billing",
+        "work_management"
+      ]
+    },
+    {
+      "id": "ENGINEERING_CONSULTANT",
+      "persona": "consulting",
+      "layout": "Owner",
+      "preferServiceSurface": false,
+      "cards": [
+        "attention",
+        "activeWork",
+        "timeUtilization",
+        "billing",
+        "collections",
+        "profit"
+      ],
+      "nav": [
+        "today",
+        "dashboard",
+        "projects",
+        "portfolio",
+        "myWork"
+      ],
+      "modules": [
+        "clients",
+        "documents",
+        "quotes",
+        "billing",
+        "work_management"
+      ]
+    },
+    {
+      "id": "SAFETY_INSPECTION_CONSULTANT",
+      "persona": "inspection",
+      "layout": "Card",
+      "preferServiceSurface": true,
+      "cards": [
+        "attention",
+        "activeWork",
+        "serviceToday",
+        "billing",
+        "collections"
+      ],
+      "nav": [
+        "today",
+        "dashboard",
+        "fieldOps",
+        "projects",
+        "clients"
+      ],
+      "modules": [
+        "clients",
+        "billing",
+        "safety",
+        "field_ops",
+        "forms",
+        "jobs",
+        "documents"
+      ]
+    },
+    {
+      "id": "MIXED_PROJECT_SERVICE",
+      "persona": "mixed",
+      "layout": "Card",
+      "preferServiceSurface": true,
+      "cards": [
+        "attention",
+        "activeWork",
+        "contractValue",
+        "billing",
+        "collections",
+        "profit",
+        "serviceToday"
+      ],
+      "nav": [
+        "today",
+        "dashboard",
+        "projects",
+        "jobs",
+        "expenses"
+      ],
+      "modules": [
+        "clients",
+        "vendors",
+        "billing",
+        "workforce",
+        "jobs",
+        "service",
+        "quotes",
+        "changes",
+        "documents",
+        "field_ops",
+        "budgets",
+        "approvals",
+        "forms",
+        "command_center",
+        "month_close"
+      ]
+    },
+    {
+      "id": "ALL_CAPABILITIES",
+      "persona": "all",
+      "layout": "Card",
+      "preferServiceSurface": true,
+      "cards": [
+        "attention",
+        "activeWork",
+        "contractValue",
+        "profit",
+        "forecast",
+        "commitments",
+        "billing",
+        "collections",
+        "serviceToday",
+        "timeUtilization",
+        "quotePipeline"
+      ],
+      "nav": [
+        "today",
+        "dashboard",
+        "projects",
+        "jobs",
+        "expenses"
+      ],
+      "modules": [
+        "billing",
+        "workforce",
+        "vendors",
+        "clients",
+        "documents",
+        "changes",
+        "overhead",
+        "crm",
+        "compliance",
+        "api",
+        "procurement",
+        "materials",
+        "field_ops",
+        "assets",
+        "jobs",
+        "quotes",
+        "service",
+        "approvals",
+        "month_close",
+        "budgets",
+        "boq",
+        "forms",
+        "command_center",
+        "safety",
+        "work_management"
+      ]
+    }
+  ],
+  "all": [
+    {
+      "key": "GENERAL_CONTRACTOR",
+      "persona": "project_contractor",
+      "layout": "Owner",
+      "projectProfile": "boq",
+      "modules": [
+        "clients",
+        "vendors",
+        "billing",
+        "changes",
+        "documents",
+        "workforce",
+        "procurement",
+        "budgets",
+        "boq",
+        "approvals",
+        "quotes",
+        "month_close",
+        "command_center",
+        "work_management"
+      ],
+      "workMix": "projects",
+      "preferServiceSurface": false
+    },
+    {
+      "key": "RENOVATION",
+      "persona": "renovation",
+      "layout": "Owner",
+      "projectProfile": "boq",
+      "modules": [
+        "clients",
+        "vendors",
+        "billing",
+        "changes",
+        "documents",
+        "workforce",
+        "quotes",
+        "jobs",
+        "materials",
+        "boq",
+        "command_center",
+        "work_management"
+      ],
+      "workMix": "mixed",
+      "preferServiceSurface": false
+    },
+    {
+      "key": "ELECTRICAL",
+      "persona": "electrical",
+      "layout": "Card",
+      "projectProfile": "full",
+      "modules": [
+        "clients",
+        "vendors",
+        "billing",
+        "workforce",
+        "jobs",
+        "field_ops",
+        "quotes",
+        "materials",
+        "forms",
+        "service",
+        "work_management"
+      ],
+      "workMix": "mixed",
+      "preferServiceSurface": false
+    },
+    {
+      "key": "PLUMBING",
+      "persona": "service",
+      "layout": "Card",
+      "projectProfile": "full",
+      "modules": [
+        "clients",
+        "vendors",
+        "billing",
+        "workforce",
+        "jobs",
+        "field_ops",
+        "service",
+        "quotes",
+        "forms",
+        "materials",
+        "work_management"
+      ],
+      "workMix": "jobs",
+      "preferServiceSurface": true
+    },
+    {
+      "key": "HVAC",
+      "persona": "service",
+      "layout": "Card",
+      "projectProfile": "full",
+      "modules": [
+        "clients",
+        "vendors",
+        "billing",
+        "workforce",
+        "jobs",
+        "service",
+        "field_ops",
+        "quotes",
+        "assets",
+        "forms",
+        "materials",
+        "work_management"
+      ],
+      "workMix": "mixed",
+      "preferServiceSurface": true
+    },
+    {
+      "key": "MAINTENANCE",
+      "persona": "service",
+      "layout": "Card",
+      "projectProfile": "full",
+      "modules": [
+        "clients",
+        "vendors",
+        "billing",
+        "workforce",
+        "jobs",
+        "service",
+        "assets",
+        "field_ops",
+        "forms",
+        "command_center"
+      ],
+      "workMix": "jobs",
+      "preferServiceSurface": true
+    },
+    {
+      "key": "FIELD_SERVICE",
+      "persona": "service",
+      "layout": "Card",
+      "projectProfile": "full",
+      "modules": [
+        "clients",
+        "vendors",
+        "billing",
+        "workforce",
+        "jobs",
+        "service",
+        "field_ops",
+        "forms",
+        "quotes",
+        "command_center"
+      ],
+      "workMix": "jobs",
+      "preferServiceSurface": true
+    },
+    {
+      "key": "FACILITY_MANAGEMENT",
+      "persona": "service",
+      "layout": "Card",
+      "projectProfile": "full",
+      "modules": [
+        "clients",
+        "vendors",
+        "billing",
+        "workforce",
+        "jobs",
+        "service",
+        "assets",
+        "approvals",
+        "forms",
+        "month_close",
+        "command_center"
+      ],
+      "workMix": "jobs",
+      "preferServiceSurface": true
+    },
+    {
+      "key": "LANDSCAPING",
+      "persona": "service",
+      "layout": "Card",
+      "projectProfile": "full",
+      "modules": [
+        "clients",
+        "vendors",
+        "billing",
+        "workforce",
+        "jobs",
+        "quotes",
+        "field_ops",
+        "materials",
+        "service"
+      ],
+      "workMix": "mixed",
+      "preferServiceSurface": false
+    },
+    {
+      "key": "CLEANING",
+      "persona": "service",
+      "layout": "Card",
+      "projectProfile": "full",
+      "modules": [
+        "clients",
+        "vendors",
+        "billing",
+        "workforce",
+        "jobs",
+        "service",
+        "forms",
+        "field_ops"
+      ],
+      "workMix": "jobs",
+      "preferServiceSurface": true
+    },
+    {
+      "key": "INSTALLATION",
+      "persona": "service",
+      "layout": "Card",
+      "projectProfile": "full",
+      "modules": [
+        "clients",
+        "vendors",
+        "billing",
+        "workforce",
+        "jobs",
+        "quotes",
+        "field_ops",
+        "materials",
+        "forms",
+        "service"
+      ],
+      "workMix": "mixed",
+      "preferServiceSurface": false
+    },
+    {
+      "key": "MIXED_PROJECT_SERVICE",
+      "persona": "mixed",
+      "layout": "Card",
+      "projectProfile": "full",
+      "modules": [
+        "clients",
+        "vendors",
+        "billing",
+        "workforce",
+        "jobs",
+        "service",
+        "quotes",
+        "changes",
+        "documents",
+        "field_ops",
+        "budgets",
+        "approvals",
+        "forms",
+        "command_center",
+        "month_close"
+      ],
+      "workMix": "mixed",
+      "preferServiceSurface": true
+    },
+    {
+      "key": "SUBCONTRACTOR",
+      "persona": "project_contractor",
+      "layout": "Owner",
+      "projectProfile": "full",
+      "modules": [
+        "clients",
+        "vendors",
+        "billing",
+        "workforce",
+        "field_ops",
+        "documents"
+      ],
+      "workMix": "projects",
+      "preferServiceSurface": false
+    },
+    {
+      "key": "ARCHITECT",
+      "persona": "architecture",
+      "layout": "Owner",
+      "projectProfile": "consulting",
+      "modules": [
+        "clients",
+        "documents",
+        "quotes",
+        "changes",
+        "billing",
+        "work_management"
+      ],
+      "workMix": "projects",
+      "preferServiceSurface": false
+    },
+    {
+      "key": "DESIGNER",
+      "persona": "architecture",
+      "layout": "Owner",
+      "projectProfile": "consulting",
+      "modules": [
+        "clients",
+        "documents",
+        "quotes",
+        "changes",
+        "billing",
+        "jobs",
+        "work_management"
+      ],
+      "workMix": "mixed",
+      "preferServiceSurface": false
+    },
+    {
+      "key": "ENGINEERING_CONSULTANT",
+      "persona": "consulting",
+      "layout": "Owner",
+      "projectProfile": "consulting",
+      "modules": [
+        "clients",
+        "documents",
+        "quotes",
+        "billing",
+        "work_management"
+      ],
+      "workMix": "projects",
+      "preferServiceSurface": false
+    },
+    {
+      "key": "SAFETY_INSPECTION_CONSULTANT",
+      "persona": "inspection",
+      "layout": "Card",
+      "projectProfile": "full",
+      "modules": [
+        "clients",
+        "billing",
+        "safety",
+        "field_ops",
+        "forms",
+        "jobs",
+        "documents"
+      ],
+      "workMix": "mixed",
+      "preferServiceSurface": true
+    },
+    {
+      "key": "PROJECT_MANAGEMENT",
+      "persona": "project_contractor",
+      "layout": "Owner",
+      "projectProfile": "consulting",
+      "modules": [
+        "clients",
+        "changes",
+        "budgets",
+        "command_center",
+        "documents",
+        "billing",
+        "work_management"
+      ],
+      "workMix": "projects",
+      "preferServiceSurface": false
+    },
+    {
+      "key": "SMALL_WORKS",
+      "persona": "small_works",
+      "layout": "Card",
+      "projectProfile": "simple",
+      "modules": [
+        "clients",
+        "quotes",
+        "jobs",
+        "billing",
+        "workforce",
+        "documents",
+        "command_center",
+        "work_management"
+      ],
+      "workMix": "jobs",
+      "preferServiceSurface": false
+    },
+    {
+      "key": "ALL_CAPABILITIES",
+      "persona": "all",
+      "layout": "Card",
+      "projectProfile": "boq",
+      "modules": [
+        "billing",
+        "workforce",
+        "vendors",
+        "clients",
+        "documents",
+        "changes",
+        "overhead",
+        "crm",
+        "compliance",
+        "api",
+        "procurement",
+        "materials",
+        "field_ops",
+        "assets",
+        "jobs",
+        "quotes",
+        "service",
+        "approvals",
+        "month_close",
+        "budgets",
+        "boq",
+        "forms",
+        "command_center",
+        "safety",
+        "work_management"
+      ],
+      "workMix": "mixed",
+      "preferServiceSurface": true
+    }
+  ]
+}

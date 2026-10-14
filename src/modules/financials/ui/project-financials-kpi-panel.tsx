@@ -534,6 +534,7 @@ export function ProjectFinancialsKpiPanel({
             value={kpis.billed}
             nature={t('metricNature.actual')}
             explanation={t('kpis.billedHint')}
+            surfaceBasis={t('basis.billingNet')}
             basis={t('basis.billingNet')}
             whyLabel={t('explain.whyThisNumber')}
             subtitle={
@@ -562,6 +563,7 @@ export function ProjectFinancialsKpiPanel({
             value={kpis.paid}
             nature={t('metricNature.actual')}
             explanation={t('kpis.paidHint')}
+            surfaceBasis={t('basis.billingCash')}
             basis={t('basis.billingCash')}
             whyLabel={t('explain.whyThisNumber')}
             links={[
@@ -574,6 +576,7 @@ export function ProjectFinancialsKpiPanel({
             value={kpis.outstanding}
             nature={t('metricNature.forecast')}
             explanation={t('kpis.outstandingHint')}
+            surfaceBasis={t('basis.outstandingCash')}
             detail={outstandingArDrill?.detail}
             basis={outstandingArDrill?.basis}
             whyLabel={outstandingArDrill?.whyLabel}

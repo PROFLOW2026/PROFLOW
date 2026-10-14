@@ -9,13 +9,11 @@ import { DomainRuleError } from '@/shared/errors';
 const STATE_TTL_MS = 15 * 60 * 1000;
 
 function stateSecret(): string {
-  const env = serverEnv();
-  return (
-    process.env.STORAGE_TOKEN_ENCRYPTION_KEY?.trim() ||
-    env.SUPABASE_SERVICE_ROLE_KEY ||
-    env.DATABASE_URL ||
-    'projectflow.storage.oauth.local'
-  );
+  const dedicated = process.env.OAUTH_STATE_SECRET?.trim();
+  if (dedicated) return dedicated;
+  const fallback = process.env.STORAGE_TOKEN_ENCRYPTION_KEY?.trim();
+  if (fallback) return fallback;
+  throw new DomainRuleError('OAuth state unavailable', 'externalStorage.errors.oauthUnavailable');
 }
 
 export function buildOAuthRedirectUri(provider: StorageProviderKey): string {

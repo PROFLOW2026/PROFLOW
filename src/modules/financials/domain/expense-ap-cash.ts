@@ -1,16 +1,15 @@
 /**
- * Expense cash vs accepted AP bill matches. Matched NET is converted to a gross
- * cash deduction so partial matches keep the unmatched expense remainder in cash.
+ * Expense cash vs accepted AP bill matches. Matched amounts on ap_po_matches are GROSS.
  */
 
-import { tripletFromNet } from '@/modules/billing/domain/revenue-position';
-import { toDecimalValue } from '@/shared/money';
 import {
   compareMoney,
+  divideMoney,
   fromNumericString,
   isPositiveMoney,
-  isZeroMoney,
   minMoney,
+  multiplyMoney,
+  roundMoney,
   subtractMoney,
   zeroMoney,
   type MoneyValue,
@@ -23,36 +22,45 @@ export interface ExpenseApCashDocument {
   readonly currency: string;
 }
 
-function vatRateFromDocument(document: ExpenseApCashDocument) {
-  const currency = document.currency;
-  const grossDoc = fromNumericString(document.grossAmount, currency);
-  const netDoc = document.netAmount ? fromNumericString(document.netAmount, currency) : null;
-  const taxDoc = document.taxAmount ? fromNumericString(document.taxAmount, currency) : null;
-  if (!grossDoc || !netDoc || !taxDoc || isZeroMoney(taxDoc) || compareMoney(netDoc, grossDoc) === 0) {
-    return null;
-  }
-  if (isZeroMoney(netDoc)) return null;
-  return toDecimalValue(taxDoc).dividedBy(toDecimalValue(netDoc));
-}
-
-/** Gross cash no longer expected on the expense path — AP payment covers this slice. */
+/** Gross cash no longer expected on the expense path — AP match covers this slice. */
 export function expenseApMatchedGrossDeduction(
-  matchedNetAmount: string,
+  matchedGrossAmount: string,
   document: ExpenseApCashDocument,
 ): MoneyValue {
   const currency = document.currency.toUpperCase();
-  const matchedNet = fromNumericString(matchedNetAmount || '0', currency) ?? zeroMoney(currency);
+  const matchedGross =
+    fromNumericString(matchedGrossAmount || '0', currency) ?? zeroMoney(currency);
+  if (!isPositiveMoney(matchedGross)) return zeroMoney(currency);
+
+  const grossDoc = fromNumericString(document.grossAmount, currency);
+  if (!grossDoc) return matchedGross;
+  return minMoney(matchedGross, grossDoc);
+}
+
+/** `acceptedApMatchedNetAmount` is NET matched on the expense; map to gross cash deduction. */
+export function apMatchedGrossDeductionForExpense(
+  document: ExpenseApCashDocument & { readonly acceptedApMatchedNetAmount?: string | null },
+): MoneyValue {
+  const currency = document.currency.toUpperCase();
+  const matchedNet =
+    fromNumericString(document.acceptedApMatchedNetAmount ?? '0', currency) ?? zeroMoney(currency);
   if (!isPositiveMoney(matchedNet)) return zeroMoney(currency);
 
   const grossDoc = fromNumericString(document.grossAmount, currency);
-  if (!grossDoc) return matchedNet;
-
-  const rate = vatRateFromDocument(document);
-  if (!rate) {
+  const netDoc = fromNumericString(document.netAmount ?? document.grossAmount, currency);
+  if (!grossDoc || !netDoc) {
+    return expenseApMatchedGrossDeduction(document.acceptedApMatchedNetAmount ?? '0', {
+      grossAmount: document.grossAmount,
+      currency,
+    });
+  }
+  if (compareMoney(netDoc, grossDoc) === 0) {
     return minMoney(matchedNet, grossDoc);
   }
-  const matchedGross = tripletFromNet(matchedNet, rate).gross;
-  return minMoney(matchedGross, grossDoc);
+  const grossDeduct = roundMoney(
+    divideMoney(multiplyMoney(grossDoc, matchedNet.amount), netDoc.amount),
+  );
+  return minMoney(grossDeduct, grossDoc);
 }
 
 export function expenseGrossAfterApMatches(
@@ -60,7 +68,7 @@ export function expenseGrossAfterApMatches(
 ): MoneyValue {
   const currency = document.currency;
   const gross = fromNumericString(document.grossAmount, currency) ?? zeroMoney(currency);
-  const deduct = expenseApMatchedGrossDeduction(document.acceptedApMatchedNetAmount ?? '0', document);
+  const deduct = apMatchedGrossDeductionForExpense(document);
   const remaining = subtractMoney(gross, deduct);
   if (compareMoney(remaining, zeroMoney(currency)) <= 0) return zeroMoney(currency);
   return remaining;

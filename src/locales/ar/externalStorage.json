@@ -1,6 +1,9 @@
 {
   "title": "تخزين الملفات",
   "description": "اربط التخزين السحابي لمنظمتك للمستندات والصور والملفات في ProjectFlow.",
+  "quickAccess": {
+    "ariaLabel": "وصول سريع إلى ملفات الشركة"
+  },
   "notConnectedNotice": "اربط تخزين المنظمة لحفظ الملفات.",
   "connectAction": "ربط التخزين",
   "providers": {

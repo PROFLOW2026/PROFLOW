@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   buildStorageOAuthSettingsRedirectUrl,
   resolveStorageOAuthCallbackLocale,
@@ -6,6 +6,17 @@ import {
 import { createOAuthState } from '@/modules/external-storage/application/oauth-state';
 
 describe('storage OAuth callback locale redirect', () => {
+  const previousOAuthSecret = process.env.OAUTH_STATE_SECRET;
+
+  beforeAll(() => {
+    process.env.OAUTH_STATE_SECRET = 'unit-test-oauth-state-secret-key';
+  });
+
+  afterAll(() => {
+    if (previousOAuthSecret === undefined) delete process.env.OAUTH_STATE_SECRET;
+    else process.env.OAUTH_STATE_SECRET = previousOAuthSecret;
+  });
+
   it('prefers locale embedded in OAuth state over cookie fallback', () => {
     const state = createOAuthState({
       organizationId: 'org-1',

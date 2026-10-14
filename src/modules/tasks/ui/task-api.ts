@@ -71,6 +71,7 @@ export interface TaskCardData {
   assignees: TaskAssigneeDisplay[];
   startDate: string | null;
   dueDate: string | null; // ISO date string
+  estimatedEffortMinutes: number | null;
   labels: string[];
   checklistTotal: number;
   checklistDone: number;
@@ -222,6 +223,7 @@ export function mapTaskToCardData(
     assignees: enrichment?.assignees ?? [],
     startDate: task.startDate,
     dueDate: task.dueDate,
+    estimatedEffortMinutes: task.estimatedEffortMinutes ?? null,
     labels: enrichment?.labels ?? [],
     checklistTotal: enrichment?.checklistTotal ?? 0,
     checklistDone: enrichment?.checklistDone ?? 0,

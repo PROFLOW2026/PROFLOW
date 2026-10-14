@@ -8,6 +8,7 @@ import {
   getBusinessProfileKeyForOrg,
   getBusinessProfileSetup,
 } from '@/modules/tenancy';
+import { resolveInitialManagementMode } from '@/modules/tenancy/domain/business-profiles';
 import {
   getProjectTemplate,
   type ProjectTemplateKey,
@@ -189,6 +190,10 @@ export default async function NewProjectPage({
         teamCandidates={teamCandidates}
         capabilities={{ showTeamSection }}
         businessProfileKey={shell?.businessProfileKey ?? null}
+        initialManagementMode={resolveInitialManagementMode({
+          profileKey: shell?.businessProfileKey ?? null,
+          suggestedDefaults: shell?.suggestedDefaults ?? null,
+        })}
       />
     </div>
   );

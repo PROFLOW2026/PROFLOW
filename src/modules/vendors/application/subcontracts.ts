@@ -15,15 +15,12 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import type { OrgContext } from '@/shared/auth/context';
 import { linkDocumentToEntity } from '@/modules/documents/application/link-document';
 import {
-  resolveDocumentPaymentTermId,
-} from '@/modules/business-catalog';
-import { resolveOrgDefaultPaymentTermIdForContext } from '@/modules/business-catalog/application/payment-term-defaults';
-import {
   assertCanAccessProject,
   isAccessibleProjectId,
   resolveAccessibleProjectIds,
 } from '@/modules/projects/application/project-access';
 import { findProjectById, findVendorById, updateVendorById } from '../data/vendors.repository';
+import { changeAgreementStatus, createDraftAgreement } from '@/modules/subcontracts';
 import {
   findContractInOrg,
   findDocumentInOrg,
@@ -32,8 +29,8 @@ import {
   findSubcontractAgreementMoneyById,
   findSubcontractAgreementOperationalById,
   findSubcontractAgreementWithMoneyById,
-  insertSubcontractAgreement,
   insertSubcontractValueEvent,
+  withSubcontractAgreementMoney,
   listApBillCashForSubcontractAgreement,
   listLinkableDocuments,
   listParentContractOptions,
@@ -43,7 +40,6 @@ import {
   loadSubcontractFinancialRows,
   updateDocumentRequirementFlags,
   updateSubcontractAgreementById,
-  withSubcontractAgreementMoney,
   type SubcontractListFilters,
 } from '../data/subcontracts.repository';
 import {
@@ -238,17 +234,9 @@ export async function createSubcontract(
   const effectiveDate =
     input.startDate ?? todayInTimeZone(context.organization.timezone);
 
-  const orgDefaultId = await resolveOrgDefaultPaymentTermIdForContext(context);
-  const paymentTermId = resolveDocumentPaymentTermId({
-    explicitId: input.paymentTermId,
-    partyDefaultId: vendor.defaultPaymentTermId ?? null,
-    orgDefaultId,
-  });
-
-  const agreementId = await withTransaction(context.db, async (tx) => {
-    const txContext = { ...context, db: tx };
-
-    if (vendor.type === 'supplier' && input.promoteVendorToBoth) {
+  if (vendor.type === 'supplier' && input.promoteVendorToBoth) {
+    await withTransaction(context.db, async (tx) => {
+      const txContext = { ...context, db: tx };
       const promoted = await updateVendorById(tx, context.organizationId, vendor.id, {
         type: 'both',
       });
@@ -260,64 +248,37 @@ export async function createSubcontract(
         before: { type: vendor.type },
         after: { type: 'both', reason: 'subcontract_create_promote' },
       });
-    }
-
-    let agreement;
-    try {
-      agreement = await insertSubcontractAgreement(tx, {
-        organizationId: context.organizationId,
-        subcontractNumber: input.subcontractNumber ?? null,
-        vendorId: input.vendorId,
-        projectId: input.projectId,
-        parentContractId: input.parentContractId ?? null,
-        title: input.title,
-        originalAmount: toNumericString(original),
-        currency,
-        retentionPercent: input.retentionPercent ?? null,
-        paymentTermId,
-        startDate: input.startDate ?? null,
-        endDate: input.endDate ?? null,
-        notes: input.notes ?? null,
-        createdByUserId: context.userId,
-      });
-    } catch (error) {
-      if (isUniqueViolation(error)) {
-        throw new ConflictError('Subcontract number already exists');
-      }
-      throw error;
-    }
-
-    const locked = await findSubcontractAgreementByIdForUpdate(
-      tx,
-      context.organizationId,
-      agreement.id,
-    );
-    if (!locked) throw new NotFoundError('Subcontract');
-
-    const events = await listSubcontractValueEvents(tx, context.organizationId, locked.id);
-    if (events.some((event) => event.kind === 'original')) {
-      throw new ConflictError('Original subcontract value already recorded');
-    }
-
-    await insertSubcontractValueEvent(tx, {
-      organizationId: context.organizationId,
-      subcontractId: locked.id,
-      kind: 'original',
-      amount: toNumericString(original),
-      currency,
-      effectiveDate,
-      reason: 'Original subcontract amount',
-      actorUserId: context.userId,
     });
+  }
 
-    await recordAuditEvent(txContext, {
-      action: AUDIT_ACTIONS.SUBCONTRACT_CREATED,
-      entityType: 'subcontract_agreement',
-      entityId: locked.id,
-      after: withSubcontractAgreementMoney(locked, agreement),
-    });
+  let agreementId: string;
+  try {
+    ({ agreementId } = await createDraftAgreement(context, {
+      projectId: input.projectId,
+      vendorId: input.vendorId,
+      title: input.title,
+      subcontractNumber: input.subcontractNumber,
+      parentContractId: input.parentContractId ?? undefined,
+      originalAmount: toNumericString(original),
+      retentionPercent: input.retentionPercent ?? undefined,
+      startDate: input.startDate ?? undefined,
+      endDate: input.endDate ?? undefined,
+      notes: input.notes ?? undefined,
+    }));
+  } catch (error) {
+    if (isUniqueViolation(error)) {
+      throw new ConflictError('Subcontract number already exists');
+    }
+    throw error;
+  }
 
-    return locked.id;
+  await changeAgreementStatus(context, { agreementId, action: 'activate' });
+
+  await recordAuditEvent(context, {
+    action: AUDIT_ACTIONS.SUBCONTRACT_CREATED,
+    entityType: 'subcontract_agreement',
+    entityId: agreementId,
+    after: { vendorId: input.vendorId, projectId: input.projectId, effectiveDate },
   });
 
   return loadDetail(context, agreementId);

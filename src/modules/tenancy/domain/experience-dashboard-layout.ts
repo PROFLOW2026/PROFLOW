@@ -54,3 +54,18 @@ export function resolveDashboardLayout(input: ResolveDashboardLayoutInput): Dash
 export function usesOwnerDashboardLayout(mode: DashboardLayoutMode): boolean {
   return mode === 'owner_full' || mode === 'all_capabilities';
 }
+
+/**
+ * Card supplements for `all_capabilities` — hides `firstActions` when owner quick actions
+ * are visible so "Quick actions" is not duplicated on the dashboard (OD-11 / U02).
+ */
+export function selectAllCapabilitiesSupplements(
+  isVisible: (toggleId: string) => boolean,
+): readonly AllCapabilitiesCardSupplement[] {
+  const ownerQuickActionsVisible = isVisible('owner.quickActions');
+  return ALL_CAPABILITIES_CARD_SUPPLEMENTS.filter((card) => {
+    if (!isVisible(`card.${card}`)) return false;
+    if (card === 'firstActions' && ownerQuickActionsVisible) return false;
+    return true;
+  });
+}

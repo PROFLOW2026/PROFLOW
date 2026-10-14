@@ -64,6 +64,7 @@ export async function getRecognizedCostBreakdown(
   let totalGross = zeroMoney(currency);
   let totalVat = zeroMoney(currency);
   for (const line of lines) {
+    if (line.estimate || line.undatedApBill) continue;
     totalNet = addMoney(totalNet, line.net);
     totalGross = addMoney(totalGross, line.gross);
     totalVat = addMoney(totalVat, line.vat);

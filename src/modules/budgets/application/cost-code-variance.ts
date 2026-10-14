@@ -57,7 +57,12 @@ export async function getProjectCostCodeVariance(
         ? loadCommittedAmountsByCostCodeForProject(context.db, context.organizationId, projectId)
         : Promise.resolve([]),
       canReadActual
-        ? loadActualAmountsByCostCodeForProject(context.db, context.organizationId, projectId)
+        ? loadActualAmountsByCostCodeForProject(
+            context.db,
+            context.organizationId,
+            projectId,
+            currency,
+          )
         : Promise.resolve([]),
       listBusinessCatalog(context, 'cost_code').catch(() => []),
       canReadActual

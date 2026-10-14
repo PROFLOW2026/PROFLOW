@@ -120,9 +120,9 @@ describe('audit verification — FINANCE + CRM + PM executable proof (2026-10-09
       expect(src).toMatch(/issueStatutoryCreditForBillingAdjustment/);
     });
 
-    it('FIN-005: default billing lineTotal uses gross totalAmount; bridge→SUMIT sends that as line net', () => {
+    it('FIN-005: billing lines are net; legacy gross lines normalize to subtotal before SUMIT', () => {
       const createSrc = readSrc('src/modules/billing/application/create-billing-record.ts');
-      expect(createSrc).toMatch(/lineTotal: toNumericString\(amounts\.totalAmount\)/);
+      expect(createSrc).toMatch(/buildNetBillingLines/);
 
       const { bridge } = buildStatutoryBridgeFromBillingRecord(
         { organizationId: ORG_ID },
@@ -132,7 +132,7 @@ describe('audit verification — FINANCE + CRM + PM executable proof (2026-10-09
       expect(bridge.subtotalAmount.amount).toBe('48500.000000');
       expect(bridge.taxAmount!.amount).toBe('8730.000000');
       expect(bridge.totalAmount.amount).toBe('57230.000000');
-      expect(bridge.lines[0]?.lineNet.amount).toBe('57230.000000');
+      expect(bridge.lines[0]?.lineNet.amount).toBe('48500.000000');
 
       const payload = buildSumitCreatePayload({ billing: bridge, kind: 'tax_invoice' });
       const body = assembleSumitCreateRequestBody(
@@ -155,8 +155,8 @@ describe('audit verification — FINANCE + CRM + PM executable proof (2026-10-09
           SearchMode: 1,
         },
         Quantity: 1,
-        UnitPrice: 57230,
-        TotalPrice: 57230,
+        UnitPrice: 48500,
+        TotalPrice: 48500,
       });
     });
   });

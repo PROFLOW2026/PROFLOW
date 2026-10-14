@@ -103,7 +103,7 @@
     "noPermission": "يمكنك عرض الموافقة؛ إجراءات الفوترة تتطلب صلاحية إدارة الفوترة.",
     "status": {
       "changeAmount": "مبلغ التغيير",
-      "billed": "{count, plural, =1 {مُفوتر (سجل واحد)} other {مُفوتر ({count} سجلات)}}",
+      "billed": "{count, plural, =1 {مُفوتر قبل VAT (سجل واحد)} other {مُفوتر قبل VAT ({count} سجلات)}}",
       "notBilledYet": "لم يُفوتر بعد",
       "remaining": "المتبقي للفوترة",
       "fullyBilled": "تمت فوترة هذا التغيير بالكامل."

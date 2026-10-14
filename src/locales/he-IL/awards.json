@@ -1,7 +1,35 @@
 {
   "title": "מכרזי קבלנים",
   "description": "חבילות, הזמנות, השוואה והכרעה: נפרד מהצעות מחיר ללקוח.",
-  "empty": { "title": "אין חבילות מכרז", "description": "צור חבילה להזמנת קבלנים." },
+  "empty": {
+    "title": "אין חבילות מכרז",
+    "description": "צור חבילה להזמנת קבלנים.",
+    "descriptionManage": "צור חבילה ראשונה בטופס למעלה.",
+    "descriptionReadOnly": "אין חבילות עדיין. משתמשים עם ניהול חוזים יכולים לפתוח מכרז.",
+    "directAgreementHint": "אפשר גם ליצור הסכם ישירות מקבלנים בלי מכרז."
+  },
+  "forms": {
+    "newPackageTitle": "מכרז חדש",
+    "createPackage": "צור חבילה",
+    "packageCreated": "החבילה נוצרה",
+    "title": "שם החבילה",
+    "scopeDescription": "היקף (אופציונלי)",
+    "inviteSection": "הזמנת קבלנים",
+    "inviteVendor": "שלח הזמנה",
+    "vendorInvited": "ההזמנה נשלחה",
+    "vendor": "קבלן",
+    "evaluationSection": "סגירת הגשות",
+    "closeBiddingHint": "חוסם הגשות בפורטל ומעביר להערכה.",
+    "closeBidding": "סגור הגשות",
+    "biddingClosed": "ההגשות נסגרו",
+    "awardSection": "הכרעה",
+    "awardTender": "הכרע והקם הסכם טיוטה",
+    "tenderAwarded": "המכרז הוכרע. נוצרה טיוטת הסכם",
+    "winningOffer": "הצעה מנצחת",
+    "agreementTitle": "שם הסכם (אופציונלי)",
+    "subcontractNumber": "מספר הסכם (אופציונלי)",
+    "noAwardableOffers": "אין הצעות שהוגשו להכרעה."
+  },
   "fields": { "trade": "מקצוע" },
   "status": {
     "draft": "טיוטה",
@@ -15,7 +43,8 @@
     "offers": "הצעות",
     "noOffers": "אין הצעות עדיין.",
     "vendorOffer": "ספק {vendor}",
-    "amountHidden": "סכום מוגבל"
+    "amountHidden": "סכום מוגבל",
+    "vendorUnknown": "ספק לא ידוע"
   },
   "offerStatus": {
     "draft": "טיוטה",

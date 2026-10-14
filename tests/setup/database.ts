@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { existsSync } from 'node:fs';
-import { mkdir, open, readFile, readdir, rename, unlink, writeFile } from 'node:fs/promises';
+import { mkdir, open, readFile, rename, unlink, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { PGlite } from '@electric-sql/pglite';
@@ -24,6 +24,24 @@ import type { Database, Transaction } from '@/shared/db/types';
 
 const MIGRATIONS_DIR = path.resolve(process.cwd(), 'drizzle/migrations');
 const WIP_MIGRATIONS_DIR = path.resolve(process.cwd(), 'drizzle/migrations-wip');
+const JOURNAL_PATH = path.join(MIGRATIONS_DIR, 'meta/_journal.json');
+
+/** Prepared SQL baked into PGlite snapshots when Drizzle schema leads the journal (Gate A / Gate B prep). */
+export const PG_LITE_SNAPSHOT_PREPARED_MIGRATIONS = ['0191_project_cover_image'] as const;
+
+async function applyPreparedJournalSqlToPglite(
+  client: PGlite,
+  tags: readonly string[],
+): Promise<void> {
+  for (const tag of tags) {
+    const filePath = path.join(MIGRATIONS_DIR, `${tag}.sql`);
+    const raw = await readFile(filePath, 'utf8');
+    const statements = splitSqlStatements(raw.replaceAll('--> statement-breakpoint', ''));
+    for (const statement of statements) {
+      await client.exec(statement);
+    }
+  }
+}
 
 /**
  * Normalises raw `db.execute` results. postgres-js returns an array while
@@ -177,8 +195,9 @@ const openDatabases = new Set<TestDatabase>();
 
 async function readMigrations(): Promise<CachedMigration[]> {
   if (cachedMigrations) return cachedMigrations;
-  const entries = await readdir(MIGRATIONS_DIR);
-  const files = entries.filter((entry) => entry.endsWith('.sql')).sort();
+  const journal = JSON.parse(await readFile(JOURNAL_PATH, 'utf8')) as {
+    entries: { tag: string }[];
+  };
 
   // Parallel-development aid (Developer/GC build): `PF_WIP_FILES=0156_x.sql,0159_y.sql` makes the
   // harness read those reserved migration slots from drizzle/migrations-wip/ instead, so an
@@ -191,11 +210,11 @@ async function readMigrations(): Promise<CachedMigration[]> {
   );
 
   const migrations: CachedMigration[] = [];
-  for (const file of files) {
+  for (const entry of journal.entries) {
+    const file = `${entry.tag}.sql`;
     const wipPath = path.join(WIP_MIGRATIONS_DIR, file);
     const source = wipFiles.has(file) && existsSync(wipPath) ? wipPath : path.join(MIGRATIONS_DIR, file);
     const raw = await readFile(source, 'utf8');
-    // drizzle-kit separates statements with this marker in generated files.
     const normalised = raw.replaceAll('--> statement-breakpoint', '');
     migrations.push({ name: file, statements: splitSqlStatements(normalised) });
   }
@@ -288,6 +307,12 @@ async function snapshotKey(): Promise<string> {
       hash.update('\0');
     }
   }
+  for (const tag of PG_LITE_SNAPSHOT_PREPARED_MIGRATIONS) {
+    hash.update(`prepared:${tag}`);
+    hash.update('\0');
+    hash.update(await readFile(path.join(MIGRATIONS_DIR, `${tag}.sql`), 'utf8'));
+    hash.update('\0');
+  }
   return `migrated-${hash.digest('hex').slice(0, 12)}`;
 }
 
@@ -329,6 +354,7 @@ async function buildSnapshotFile(snapshotFile: string): Promise<Blob> {
   try {
     await builder.waitReady;
     await applySqlMigrations(builder);
+    await applyPreparedJournalSqlToPglite(builder, PG_LITE_SNAPSHOT_PREPARED_MIGRATIONS);
     const dump = await builder.dumpDataDir('gzip');
     const blob = await blobFromDump(dump);
     const tmp = `${snapshotFile}.${process.pid}.tmp`;
@@ -503,7 +529,13 @@ export async function createTestDatabase(): Promise<TestDatabase> {
   try {
     await client.waitReady;
     console.info(`[pglite] cloned in ${Date.now() - started}ms pid=${process.pid}`);
-    return wrapClient(client);
+    const handle = wrapClient(client);
+    // Drizzle `projects` includes Gate B columns (0191) not yet in the journal snapshot.
+    const { applyPendingJournalMigrations, GATE_A_PG_LITE_SCHEMA_PARITY } = await import(
+      './pending-journal-migrations'
+    );
+    await applyPendingJournalMigrations(handle, GATE_A_PG_LITE_SCHEMA_PARITY);
+    return handle;
   } catch (error) {
     if (!client.closed) {
       await client.close().catch(() => undefined);

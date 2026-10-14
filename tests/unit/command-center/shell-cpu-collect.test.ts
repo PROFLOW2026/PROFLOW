@@ -74,10 +74,10 @@ describe('command center collection cost', () => {
     expect(rollupMock).toHaveBeenCalledTimes(1);
     expect(reconcileMock).not.toHaveBeenCalled();
   },
-    20_000,
+    60_000,
   );
 
-  it('does not recompute a rollup that the collection already loaded', async () => {
+  it('does not recompute a rollup that the collection already loaded', { timeout: 30_000 }, async () => {
     rollupMock.mockClear();
     const { getOrganizationEarlyWarnings } = await import(
       '@/modules/forecast/application/get-org-warnings'

@@ -1,7 +1,8 @@
 import 'server-only';
 
 import { loadExternalContext } from '@/modules/contractor-access';
-import { getDb, isDatabaseConfigured } from '@/shared/db/client';
+import { getAdminDb, isDatabaseConfigured } from '@/shared/db/client';
+import type { DbExecutor } from '@/shared/db/types';
 import type { ExternalContext, ExternalGrantView } from '@/shared/external';
 import { findConnectedProjectMappingForContractorProject } from '../data/mapping.repository';
 import {
@@ -35,20 +36,22 @@ export interface ResolveConnectedContextInput {
   readonly authUserId: string;
   readonly fallbackLocale: string;
   readonly sessionAuthenticatedAt?: Date | null;
+  /** Admin (or service) executor scoped by verified contractor org id in the query. */
+  readonly mappingDb?: DbExecutor;
 }
 
 export async function resolveConnectedContext(
   input: ResolveConnectedContextInput,
 ): Promise<ConnectedProjectContext | null> {
-  if (!isDatabaseConfigured()) return null;
-  const db = getDb();
-  const mapping = await findConnectedProjectMappingForContractorProject(db, {
+  const mappingDb = input.mappingDb ?? (isDatabaseConfigured() ? getAdminDb() : null);
+  if (!mappingDb) return null;
+  const mapping = await findConnectedProjectMappingForContractorProject(mappingDb, {
     contractorOrganizationId: input.contractorOrganizationId,
     contractorProjectId: input.contractorProjectId,
   });
   if (!mapping || !isConnectedMappingVisible(mapping.status)) return null;
 
-  const externalLoad = await loadExternalContext(db, {
+  const externalLoad = await loadExternalContext(mappingDb, {
     authUserId: input.authUserId,
     sessionAuthenticatedAt: input.sessionAuthenticatedAt ?? null,
     fallbackLocale: input.fallbackLocale,

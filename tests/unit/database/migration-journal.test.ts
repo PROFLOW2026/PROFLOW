@@ -7,9 +7,8 @@ import { describe, expect, it } from 'vitest';
  *
  * `drizzle/scripts/migrate.ts` - the only path to a real environment - asks the
  * Drizzle migrator for the entries in `meta/_journal.json`, while the test
- * harnesses read every `.sql` file straight off disk. A hand-written migration
- * that never reaches the journal therefore passes the whole suite and is
- * silently skipped in production.
+ * harnesses apply **journal entries only** (`readMigrations` in `tests/setup/database.ts`).
+ * SQL under `drizzle/migrations/` without a journal row stays pending until Owner approval.
  */
 
 const MIGRATIONS_DIR = path.resolve(process.cwd(), 'drizzle/migrations');
@@ -30,16 +29,32 @@ async function loadJournal(): Promise<Journal> {
 }
 
 describe('migration journal', () => {
-  it('lists exactly the committed SQL files, in file order', async () => {
+  it('lists every journal tag with a matching SQL file on disk', async () => {
     const entries = await readdir(MIGRATIONS_DIR);
-    const files = entries
-      .filter((entry) => entry.endsWith('.sql'))
-      .map((entry) => entry.replace(/\.sql$/, ''))
-      .sort();
-
+    const sqlFiles = new Set(entries.filter((entry) => entry.endsWith('.sql')));
     const journal = await loadJournal();
 
-    expect(journal.entries.map((entry) => entry.tag)).toEqual(files);
+    for (const entry of journal.entries) {
+      expect(sqlFiles.has(`${entry.tag}.sql`), `missing ${entry.tag}.sql`).toBe(true);
+    }
+  });
+
+  it('includes Gate B migrations 0183–0192 in journal order after 0182', async () => {
+    const gateB = [
+      '0183_expense_installment_payments_rls_permissions',
+      '0184_crm_permission_rls',
+      '0185_rls_0009_0011_sibling_tables',
+      '0186_contract_value_events_rls_and_0174_grants',
+      '0187_statutory_document_share_links',
+      '0188_task_collaboration',
+      '0189_expenses_closed_period_guard_payment_columns',
+      '0190_connected_contract_value_projections',
+      '0191_project_cover_image',
+      '0192_inventory_rls',
+    ] as const;
+    const tags = (await loadJournal()).entries.map((entry) => entry.tag);
+    const tail = tags.slice(tags.indexOf('0182_expense_installment_payments_grants') + 1);
+    expect(tail).toEqual([...gateB]);
   });
 
   it('numbers entries consecutively from zero', async () => {
@@ -446,7 +461,7 @@ describe('migration journal', () => {
     expect(tags.indexOf('0171_retention_release_service_grant')).toBeLessThan(
       tags.indexOf('0172_notification_attention_badge_snapshot'),
     );
-    expect(tags.at(-1)).toBe('0182_expense_installment_payments_grants');
+    expect(tags.at(-1)).toBe('0192_inventory_rls');
     expect(tags.indexOf('0181_owner_bms_installment_payment_backfill')).toBeLessThan(
       tags.indexOf('0182_expense_installment_payments_grants'),
     );

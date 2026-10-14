@@ -14,6 +14,7 @@ import {
   type BeginExternalEvidenceUploadInput,
 } from './application/upload-evidence';
 import { projectFileDeps } from './server';
+import { getTaskEvidenceSummary, type TaskEvidenceSummary } from './application/task-evidence-summary';
 
 export type EvidenceActionResult =
   | { readonly ok: true; readonly uploadUrl: string; readonly evidenceId: string }
@@ -31,6 +32,10 @@ async function mapEvidenceError(error: unknown): Promise<{ ok: false; error: str
     namespaces: { projectPlans: (key) => tPlans(key as never) },
   });
   return { ok: false, error: mapped.error, ...(mapped.fieldErrors ? { fieldErrors: mapped.fieldErrors } : {}) };
+}
+
+export async function listTaskEvidenceSummaryAction(taskId: string): Promise<TaskEvidenceSummary> {
+  return withOrgContext((context) => getTaskEvidenceSummary(context, taskId));
 }
 
 export async function beginInternalEvidenceUploadAction(

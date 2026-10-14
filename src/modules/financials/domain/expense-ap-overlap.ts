@@ -1,14 +1,15 @@
-import { DomainRuleError } from '@/shared/errors';
 import { compareMoney, money, subtractMoney, zeroMoney } from '@/shared/money';
+import { matchedNetFromGross } from './expense-ap-dedup';
 
 export interface ExpenseOverlapCandidate {
   readonly id: string;
   readonly vendorId: string | null;
   readonly projectId: string | null;
   readonly netAmount: string;
+  readonly grossAmount?: string;
   readonly currency: string;
   readonly description: string | null;
-  /** Sum of accepted match amounts against recognized bills (same currency). */
+  /** Sum of accepted match amounts against recognized bills (GROSS, same currency). */
   readonly matchedAmount: string;
   /** Accepted ap_po_matches bill ids. Guard drops the bill being recognized. */
   readonly acceptedBillIds?: readonly string[];
@@ -73,7 +74,17 @@ function projectMatches(
 export function expenseRemainingAfterMatches(candidate: ExpenseOverlapCandidate): string {
   const currency = candidate.currency;
   const net = money(candidate.netAmount, currency);
-  const matched = money(candidate.matchedAmount || '0', currency);
+  const matchedRaw = candidate.matchedAmount || '0';
+  const matchedNet =
+    candidate.grossAmount && candidate.matchedAmount
+      ? matchedNetFromGross(
+          candidate.netAmount,
+          candidate.grossAmount,
+          candidate.matchedAmount,
+          currency,
+        )
+      : matchedRaw;
+  const matched = money(matchedNet, currency);
   const remaining = subtractMoney(net, matched);
   if (compareMoney(remaining, zeroMoney(currency)) <= 0) return zeroMoney(currency).amount;
   return remaining.amount;
@@ -100,20 +111,30 @@ export function findSimilarFinalizedExpensesForBill(
   });
 }
 
+export interface ExpenseApOverlapWarning {
+  readonly messageKey: string;
+  readonly hitCount: number;
+}
+
+/** OD-01: warn on unlinked lookalikes; do not block finalize/post. */
+export function collectExpenseApOverlapWarnings(input: {
+  readonly hitCount: number;
+  readonly confirmDistinctCosts?: boolean;
+  readonly messageKey: string;
+}): readonly ExpenseApOverlapWarning[] {
+  if (input.confirmDistinctCosts || input.hitCount <= 0) return [];
+  return [{ messageKey: input.messageKey, hitCount: input.hitCount }];
+}
+
 /**
- * Blocks finalize/post when an unlinked lookalike would double-count Actual.
- * `confirmDistinctCosts` keeps separate expense + bill without a canonical match.
+ * @deprecated Prefer collectExpenseApOverlapWarnings (F12 / OD-01).
  */
 export function assertNoUnlinkedExpenseApOverlap(input: {
   readonly hitCount: number;
   readonly confirmDistinctCosts?: boolean;
   readonly messageKey: string;
 }): void {
-  if (input.confirmDistinctCosts || input.hitCount <= 0) return;
-  throw new DomainRuleError(
-    'Similar expense and vendor bill may double-count Actual until linked or confirmed as distinct costs',
-    input.messageKey,
-  );
+  collectExpenseApOverlapWarnings(input);
 }
 
 /** Recognized/open AP bills that may double-count if a similar expense is finalized. */

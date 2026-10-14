@@ -278,8 +278,28 @@ export type {
   UpdateContractInput,
 } from './validation/schemas';
 
+export {
+  confirmProjectCoverUpload,
+  getProjectCoverDisplayUrl,
+  getProjectCoverImageAvailability,
+  getProjectCoverViewUrl,
+  prepareProjectCoverUpload,
+  removeProjectCover,
+  resolveProjectCoverViewUrls,
+} from './application/project-cover-image';
+export {
+  isProjectCoverImageSchemaReady,
+  setProjectCoverImageSchemaReadyForTests,
+} from './data/project-cover-image-schema';
+
 /** Cross-module org-scoped lookups (FK / tenancy guards). */
-export { findProjectById, updateProjectById, mapProjectRow } from './data/projects.repository';
+export {
+  findProjectById,
+  listProjects,
+  updateProjectById,
+  updateProjectCoverById,
+  mapProjectRow,
+} from './data/projects.repository';
 export {
   findContractById,
   findPrimaryContractByProject,

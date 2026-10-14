@@ -1,3 +1,4 @@
+import { alias } from 'drizzle-orm/pg-core';
 import { and, desc, eq, gte, inArray, lte, notExists, or, sql } from 'drizzle-orm';
 import {
   billingRecords,
@@ -11,10 +12,31 @@ import type { DbExecutor } from '@/shared/db/types';
 import { fromNumericString } from '@/shared/money';
 import type {
   BillingKind,
+  BillingRecordStatus,
+  CustomerSnapshot,
   PaymentApplicationFilters,
   PaymentApplicationRow,
   PaymentRecordStatus,
 } from '../domain/types';
+
+function mapCustomerSnapshot(value: unknown): CustomerSnapshot | null {
+  if (!value || typeof value !== 'object') return null;
+  const row = value as CustomerSnapshot;
+  if (typeof row.name !== 'string') return null;
+  return row;
+}
+
+function resolvePaymentApplicationClientName(input: {
+  readonly customerSnapshot: unknown;
+  readonly paymentClientName: string | null;
+  readonly billingClientName: string | null;
+}): string | null {
+  const snapshotName = mapCustomerSnapshot(input.customerSnapshot)?.name?.trim();
+  if (snapshotName) return snapshotName;
+  const paymentName = input.paymentClientName?.trim();
+  if (paymentName) return paymentName;
+  return input.billingClientName?.trim() || null;
+}
 
 export interface PaymentInsertRow {
   readonly billingRecordId: string | null;
@@ -568,6 +590,8 @@ export async function listPaymentApplications(
   const limit = filters.limit ?? 50;
   const offset = filters.offset ?? 0;
   const includeVoided = filters.includeVoided ?? false;
+  const paymentClient = alias(clients, 'payment_client');
+  const billingClient = alias(clients, 'billing_client');
 
   const applicationRows = await db
     .select({
@@ -576,6 +600,15 @@ export async function listPaymentApplications(
       billingRecordId: paymentApplications.billingRecordId,
       billingReference: billingRecords.reference,
       billingKind: billingRecords.kind,
+      billingStatus: billingRecords.status,
+      billingSubtotalAmount: billingRecords.subtotalAmount,
+      billingTaxAmount: billingRecords.taxAmount,
+      billingTotalAmount: billingRecords.totalAmount,
+      billingCurrency: billingRecords.currency,
+      customerSnapshot: billingRecords.customerSnapshot,
+      paymentClientName: paymentClient.name,
+      billingClientName: billingClient.name,
+      paymentAmountBasis: payments.amountBasis,
       projectId: billingRecords.projectId,
       projectName: projects.name,
       amount: paymentApplications.appliedAmount,
@@ -591,6 +624,8 @@ export async function listPaymentApplications(
     .innerJoin(payments, eq(payments.id, paymentApplications.paymentId))
     .innerJoin(billingRecords, eq(billingRecords.id, paymentApplications.billingRecordId))
     .leftJoin(projects, eq(projects.id, billingRecords.projectId))
+    .leftJoin(paymentClient, eq(paymentClient.id, payments.clientId))
+    .leftJoin(billingClient, eq(billingClient.id, billingRecords.clientId))
     .where(
       and(
         eq(paymentApplications.organizationId, organizationId),
@@ -618,6 +653,15 @@ export async function listPaymentApplications(
       billingRecordId: payments.billingRecordId,
       billingReference: billingRecords.reference,
       billingKind: billingRecords.kind,
+      billingStatus: billingRecords.status,
+      billingSubtotalAmount: billingRecords.subtotalAmount,
+      billingTaxAmount: billingRecords.taxAmount,
+      billingTotalAmount: billingRecords.totalAmount,
+      billingCurrency: billingRecords.currency,
+      customerSnapshot: billingRecords.customerSnapshot,
+      paymentClientName: paymentClient.name,
+      billingClientName: billingClient.name,
+      paymentAmountBasis: payments.amountBasis,
       projectId: billingRecords.projectId,
       projectName: projects.name,
       amount: payments.amount,
@@ -632,6 +676,8 @@ export async function listPaymentApplications(
     .from(payments)
     .innerJoin(billingRecords, eq(billingRecords.id, payments.billingRecordId))
     .leftJoin(projects, eq(projects.id, billingRecords.projectId))
+    .leftJoin(paymentClient, eq(paymentClient.id, payments.clientId))
+    .leftJoin(billingClient, eq(billingClient.id, billingRecords.clientId))
     .where(
       and(
         eq(payments.organizationId, organizationId),
@@ -675,19 +721,38 @@ export async function listPaymentApplications(
     })
     .slice(offset, offset + limit);
 
-  return merged.map((row) => ({
-    id: row.id,
-    paymentId: row.paymentId,
-    billingRecordId: row.billingRecordId,
-    billingReference: row.billingReference,
-    billingKind: row.billingKind as BillingKind,
-    projectId: row.projectId,
-    projectName: row.projectName,
-    amount: fromNumericString(row.amount, row.currency)!,
-    paymentDate: row.paymentDate as BusinessDate,
-    method: row.method,
-    reference: row.reference,
-    status: row.status,
-    notes: row.notes,
-  }));
+  return merged.map((row) => {
+    const billingCurrency = row.billingCurrency ?? row.currency;
+    return {
+      id: row.id,
+      paymentId: row.paymentId,
+      billingRecordId: row.billingRecordId,
+      billingReference: row.billingReference,
+      billingKind: row.billingKind as BillingKind,
+      billingStatus: row.billingStatus as BillingRecordStatus,
+      billingSubtotalAmount: row.billingSubtotalAmount
+        ? fromNumericString(row.billingSubtotalAmount, billingCurrency)
+        : null,
+      billingTaxAmount: row.billingTaxAmount
+        ? fromNumericString(row.billingTaxAmount, billingCurrency)
+        : null,
+      billingTotalAmount: row.billingTotalAmount
+        ? fromNumericString(row.billingTotalAmount, billingCurrency)
+        : null,
+      projectId: row.projectId,
+      projectName: row.projectName,
+      clientName: resolvePaymentApplicationClientName({
+        customerSnapshot: row.customerSnapshot,
+        paymentClientName: row.paymentClientName,
+        billingClientName: row.billingClientName,
+      }),
+      paymentAmountBasis: row.paymentAmountBasis ?? null,
+      amount: fromNumericString(row.amount, row.currency)!,
+      paymentDate: row.paymentDate as BusinessDate,
+      method: row.method,
+      reference: row.reference,
+      status: row.status as PaymentRecordStatus,
+      notes: row.notes,
+    };
+  });
 }

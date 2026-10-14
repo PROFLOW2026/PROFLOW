@@ -1,0 +1,206 @@
+{
+  "generatedAt": "2026-10-11T00:00:00+03:00",
+  "commit": "35e2ff0f7f12d0a3ec94ea0aed23b8c97b6bb00e",
+  "environmentNotes": "Lead integrator + Phase 4 prep ran PGlite integration batches locally. Playwright regression and Production smoke were NOT executed. No Production DB reads. Full matrix: resolution/PHASE4_e2e_test_matrix.md.",
+  "phase4PrepBatch": {
+    "preparedAt": "2026-10-11",
+    "matrixDoc": "docs/audits/2026-10-full-system-audit/resolution/PHASE4_e2e_test_matrix.md",
+    "integrationFiles": 14,
+    "testsTotal": 79,
+    "testsPassed": 77,
+    "testsFailed": 2,
+    "failures": [
+      "tests/integration/contractor-access/lifecycle.test.ts (activation path he-IL vs en expected)",
+      "tests/integration/contractor-access/session-security.test.ts (external principal read 1 subcontractAgreements row)"
+    ],
+    "warnings": [
+      "tests/integration/dg-claims/claims.test.ts — claim cash projection delivery stderr without DATABASE_URL (tests still green)"
+    ],
+    "playwrightRegression": "NOT RUN"
+  },
+  "scenarios": [
+    {
+      "id": "SCENARIO_01",
+      "name": "Client → quote → contract → project → billing → payment → profitability",
+      "expected": "Single chain without duplicate revenue; profitability matches financials",
+      "evidence": [
+        "tests/integration/audit-verification/business-flow-chains.test.ts (Flow 1, Flow 4 partial) — PASS Phase 4 batch",
+        "tests/integration/crm/opportunity-quote-conversion-flow.test.ts — PASS Phase 4 batch",
+        "tests/e2e/authenticated/project-centric-money-chain.spec.ts (exists; NOT RUN)"
+      ],
+      "status": "PARTIAL",
+      "environment": "PGlite integration; payment-applications + Playwright not run"
+    },
+    {
+      "id": "SCENARIO_02",
+      "name": "Employee → attendance → project hours → approve → project cost → profitability",
+      "expected": "Approved hours flow to labor cost without auto-filling unallocated gap",
+      "evidence": [
+        "tests/integration/audit-verification/business-flow-chains.test.ts Flow 5 — PASS Phase 4 batch",
+        "tests/integration/workforce/approve-time-sum-project-labor-cost.test.ts — PASS Phase 4 batch",
+        "tests/integration/workforce/employee-actual-employer-cost.test.ts — PASS Phase 4 batch"
+      ],
+      "status": "PARTIAL",
+      "environment": "PGlite integration; browser not verified"
+    },
+    {
+      "id": "SCENARIO_03",
+      "name": "Vendor → PO → supplier invoice → expense → project allocation → profitability",
+      "expected": "Commitment ≠ expense double count; allocation updates margin",
+      "evidence": [
+        "tests/unit/financials/expense-ap-overlap.test.ts",
+        "tests/integration/expenses/expenses.test.ts — PASS Phase 4 batch",
+        "tests/integration/ap/vat-net-actual.test.ts — PASS Phase 4 batch",
+        "V09-001/002 disposition: PHASE1_financial_crossref.md"
+      ],
+      "status": "PARTIAL",
+      "environment": "PGlite integration; po-receiving + E2E overlap UI not run"
+    },
+    {
+      "id": "SCENARIO_04",
+      "name": "Developer → subcontractor → contract → execution → claim → approve → cash forecast",
+      "expected": "Certified NET updates forecast not payment/income",
+      "evidence": [
+        "tests/integration/dg-claims/claims.test.ts — PASS Phase 4 batch (projection delivery warn)",
+        "tests/unit/subcontract-claims/* PASS (55 tests lead run)"
+      ],
+      "status": "PARTIAL",
+      "environment": "PGlite integration; admin DB projection path not proven"
+    },
+    {
+      "id": "SCENARIO_05",
+      "name": "Developer code → registered contractor → connected project → costs → claim → profitability",
+      "expected": "No duplicate project/income; tenant isolation",
+      "evidence": [
+        "tests/unit/connected-projects/* 14/14 PASS",
+        "No tests/integration or e2e for connect-developer flow",
+        "K05-001 schema/code mismatch on mapping.vendor_id"
+      ],
+      "status": "FAIL",
+      "environment": "Unit only; Mode B E2E NOT VERIFIED"
+    },
+    {
+      "id": "SCENARIO_06",
+      "name": "Consultant → plan revision → approve → publish → contractor sees authorized version",
+      "expected": "Version discipline + capability gates",
+      "evidence": [
+        "tests/integration/dg-documents/evidence-and-plans.test.ts — PASS Phase 4 batch (7 tests)"
+      ],
+      "status": "PARTIAL",
+      "environment": "PGlite integration; consultant persona E2E not run"
+    },
+    {
+      "id": "SCENARIO_07",
+      "name": "PM task → assignee update → close → history",
+      "expected": "Consistent across board/list/calendar",
+      "evidence": [
+        "tests/integration/tasks/project-tasks-ux.test.ts — PASS Phase 4 batch (3 tests)",
+        "tests/unit/tasks 58/58 (AGENT_07)"
+      ],
+      "status": "PARTIAL",
+      "environment": "PGlite integration; board/list/calendar browser NOT VERIFIED"
+    },
+    {
+      "id": "SCENARIO_08",
+      "name": "RFI → response → document link → close",
+      "expected": "Status transitions + tenancy",
+      "evidence": [
+        "tests/integration/rfi-submittals/rfi.test.ts — PASS Phase 4 batch (6 tests)"
+      ],
+      "status": "PARTIAL",
+      "environment": "PGlite integration; document link on close — confirm in-file (PHASE4 §6)"
+    },
+    {
+      "id": "SCENARIO_09",
+      "name": "Change request → approve → contract/CCV → budget → billing → profitability",
+      "expected": "Pending vs approved CO handling",
+      "evidence": [
+        "tests/unit/financials/contract-value*.test.ts (AGENT_11 suite 777 tests)",
+        "Integration CO→billing chain not in Phase 4 batch"
+      ],
+      "status": "PARTIAL",
+      "environment": "Unit"
+    },
+    {
+      "id": "SCENARIO_10",
+      "name": "Retro employer cost correction → profitability history",
+      "expected": "Actual month cost updates labor actuals",
+      "evidence": [
+        "tests/integration/workforce/employee-actual-employer-cost.test.ts 6/6 — PASS Phase 4 batch"
+      ],
+      "status": "PASS",
+      "environment": "PGlite integration"
+    },
+    {
+      "id": "SCENARIO_11",
+      "name": "Contractor multi-developer isolation",
+      "expected": "Separate grants; no cross-org leak",
+      "evidence": [
+        "tests/integration/contractor-access/lifecycle.test.ts — FAIL (activation path he-IL vs en)",
+        "tests/integration/contractor-access/session-security.test.ts — FAIL (subcontractAgreements 1 row for external principal)"
+      ],
+      "status": "PARTIAL",
+      "environment": "PGlite integration — 2/2 mapped integration files red (Phase 4 batch)"
+    },
+    {
+      "id": "SCENARIO_12",
+      "name": "Mid-process failure → retry → no duplicate rows",
+      "expected": "Idempotency on billing + connected provision",
+      "evidence": [
+        "tests/unit/connected-projects/accept-code.test.ts",
+        "billing idempotency tests (FIN-001 per Oct audit)"
+      ],
+      "status": "PARTIAL",
+      "environment": "Unit; integration retry harness not run"
+    },
+    {
+      "id": "SCENARIO_13",
+      "name": "Developer storage share → contractor view/copy",
+      "expected": "No unauthorized sync",
+      "evidence": [
+        "tests/integration/external-storage/oauth-callback-binding.test.ts — PASS Phase 4 batch",
+        "tests/integration/dg-documents/evidence-and-plans.test.ts — PASS Phase 4 batch (sharing)"
+      ],
+      "status": "PARTIAL",
+      "environment": "PGlite integration; cross-org copy E2E not run"
+    },
+    {
+      "id": "SCENARIO_14",
+      "name": "Commitment → invoice → partial payment → no double cost",
+      "expected": "FIN2-010 PO receive warn-only preserved",
+      "evidence": [
+        "tests/integration/ap/payments-hardening.test.ts — PASS Phase 4 batch",
+        "tests/integration/procurement/po-receiving.test.ts — NOT in Phase 4 batch",
+        "AGENT_09 procurement audit; FIN2-010 PRESERVE in master plan"
+      ],
+      "status": "PARTIAL",
+      "environment": "PGlite partial; PO receive path not re-run"
+    },
+    {
+      "id": "SCENARIO_15",
+      "name": "Partial contractor claim approval → forecast update without duplicate",
+      "expected": "Forecast only; not cash receipt",
+      "evidence": [
+        "tests/unit/financials/connected-claim-cash-flow.test.ts",
+        "tests/unit/subcontract-claims/certified-receipt-cash-flow.test.ts",
+        "tests/integration/dg-claims/claims.test.ts — PASS Phase 4 batch (projection warn)"
+      ],
+      "status": "PARTIAL",
+      "environment": "Unit + integration; projection table under test DB not proven"
+    }
+  ],
+  "leadDirectTestRuns": {
+    "unit_connected_projects": "14/14 PASS",
+    "unit_profitability_financials": "88/88 PASS",
+    "unit_claims_subcontract": "55/55 PASS",
+    "integration_crm_conversion": "4/4 PASS",
+    "integration_business_flow_chains": "3/3 PASS",
+    "integration_dg_claims_in_batch": "PASS (with 3 other files)",
+    "integration_contractor_lifecycle": "FAIL 1/1 (locale activation path)",
+    "integration_contractor_session_security": "FAIL (subcontractAgreements leak to external principal)",
+    "phase4_ledger_integration_batch": "77/79 PASS (14 files, ~334s)",
+    "integration_workforce_tasks_subset": "14/14 PASS",
+    "playwright_regression": "NOT RUN",
+    "production_smoke": "NOT RUN"
+  }
+}

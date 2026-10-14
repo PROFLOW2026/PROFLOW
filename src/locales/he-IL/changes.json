@@ -103,7 +103,7 @@
     "noPermission": "ניתן לצפות באישור; פעולות חיוב דורשות הרשאת ניהול חיובים.",
     "status": {
       "changeAmount": "סכום השינוי",
-      "billed": "{count, plural, one {חויב (רשומה אחת)} two {חויב ({count} רשומות)} other {חויב ({count} רשומות)}}",
+      "billed": "{count, plural, one {חויב לפני מע״מ (רשומה אחת)} two {חויב לפני מע״מ ({count} רשומות)} other {חויב לפני מע״מ ({count} רשומות)}}",
       "notBilledYet": "טרם חויב",
       "remaining": "נותר לחיוב",
       "fullyBilled": "שינוי זה חויב במלואו."

@@ -159,6 +159,8 @@
     "reschedule": "Reschedule / assign",
     "hideReschedule": "Hide",
     "saveReschedule": "Save schedule",
+    "warningOnLeave": "Saved. This assignee has leave or unavailability overlapping this window.",
+    "warningOverlappingBooking": "Saved. This assignee already has another booking in this time window.",
     "empty": {
       "title": "Nothing scheduled in this window",
       "body": "Schedule a work order with a start time to see it here.",

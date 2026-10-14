@@ -16,6 +16,8 @@ export const WORK_TASK_QUERY_KEYS = [
   'overdue',
   'blocked',
   'noProject',
+  'sortField',
+  'sortDir',
 ] as const;
 
 export type WorkTaskQueryKey = (typeof WORK_TASK_QUERY_KEYS)[number];

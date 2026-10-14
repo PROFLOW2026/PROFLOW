@@ -636,6 +636,23 @@
     "empty": {
       "title": "لا مهام بتاريخ",
       "description": "المهام التي لها تاريخ استحقاق أو بدء تظهر في التقويم"
+    },
+    "unscheduled": {
+      "title": "غير مجدولة",
+      "hint": "اسحب مهمة إلى يوم في التقويم لتعيين تاريخ الاستحقاق، أو اختر تاريخًا على الجوال.",
+      "pickDate": "تعيين تاريخ"
+    }
+  },
+  "export": {
+    "downloadXlsx": "تصدير إلى Excel",
+    "sheetName": "المهام",
+    "columns": {
+      "title": "العنوان",
+      "project": "المشروع",
+      "status": "الحالة",
+      "priority": "الأولوية",
+      "dueDate": "تاريخ الاستحقاق",
+      "startDate": "تاريخ البدء"
     }
   },
   "timeline": {
@@ -700,12 +717,16 @@
   "priorityLabel": "الأولوية",
   "statusLabel": "الحالة",
   "attachmentsLabel": "المرفقات",
+  "evidenceSummary": "{count, plural, one {عنصر دليل #} other {# عناصر دليل}}",
+  "evidenceOpenFull": "فتح الصور والأدلة",
   "attachments": {
     "sectionDescription": "ارفع ملفات أو اربط مستندات المشروع الحالية. تُخزَّن الملفات في التخزين المتصل.",
     "linkProjectDocsHint": "يُعرض للربط مستندات مشروع هذه المهمة فقط.",
     "documentsPermissionRequired": "تحتاج إلى صلاحيات المستندات لعرض المرفقات أو إدارتها."
   },
   "list": {
+    "pageTitle": "جميع المهام",
+    "pageDescription": "جدول عبر المشاريع مع فلاتر وتحرير مضمّن وتحديثات جماعية",
     "columns": {
       "title": "العنوان",
       "status": "الحالة",
@@ -723,8 +744,31 @@
     "notAvailable": "—",
     "openTask": "فتح المهمة: {title}"
   },
+  "table": {
+    "columnsLabel": "الأعمدة",
+    "select": "تحديد",
+    "selectTask": "تحديد {title}",
+    "selected": "تم تحديد {count}",
+    "bulkStatus": "تعيين الحالة…",
+    "bulkPriority": "تعيين الأولوية…",
+    "bulkLimit": "حدّد {max} مهمة كحد أقصى للتحرير الجماعي",
+    "bulkResult": "تم تحديث {updated}، فشل {failed}",
+    "columns": {
+      "title": "العنوان",
+      "project": "المشروع",
+      "status": "الحالة",
+      "priority": "الأولوية",
+      "assignees": "المسؤولون",
+      "startDate": "البداية",
+      "dueDate": "الاستحقاق",
+      "effort": "الجهد"
+    }
+  },
   "errors": {
     "invalidTransition": "تغيير الحالة هذا غير مسموح.",
+    "dependencyWarningRequired": "بعض المهام التي تعتمد عليها هذه المهمة لم تُنجز بعد. أكّد للمتابعة.",
+    "dependencyBlocked": "تغيير الحالة محظور حتى تُنجز المهام السابقة.",
+    "dependencyOverrideReasonRequired": "أدخل سببًا لتجاوز حظر الاعتماد.",
     "dependencyCycle": "إضافة هذا الاعتماد ستُنشئ حلقة.",
     "maxSubtaskDepth": "يمكن تداخل المهام الفرعية بمستوى واحد فقط.",
     "subtaskWorkspaceMismatch": "يجب أن تكون المهمة الفرعية في نفس مساحة العمل.",
@@ -735,13 +779,32 @@
   },
   "actions": {
     "duplicate": "نسخ المهمة",
+    "moveCopy": "نقل / نسخ",
     "saveAsTemplate": "حفظ كقالب",
     "createFromTemplate": "إنشاء من قالب",
     "duplicateSuccess": "تم نسخ المهمة",
     "saveTemplateSuccess": "تم حفظ القالب",
     "createFromTemplateSuccess": "تم إنشاء المهمة من القالب",
     "pickTemplate": "اختر قالباً",
-    "noTemplates": "لا توجد قوالب"
+    "noTemplates": "لا توجد قوالب",
+    "moveCopyDialog": {
+      "moveTitle": "نقل المهمة إلى مشروع آخر",
+      "copyTitle": "نسخ المهمة إلى مشروع آخر",
+      "move": "نقل",
+      "copy": "نسخ",
+      "project": "المشروع الهدف",
+      "board": "اللوحة",
+      "column": "العمود",
+      "pickProject": "اختر مشروعاً",
+      "sameProject": "اختر مشروعاً مختلفاً عن الحالي.",
+      "noProjects": "لا مشاريع متاحة للنقل.",
+      "includeAssignees": "نسخ المكلّفين",
+      "copyDates": "نسخ تاريخي البدء والاستحقاق",
+      "confirmAssignees": "إزالة المكلّفين بلا صلاحية على المشروع الهدف",
+      "confirmMove": "نقل المهمة",
+      "confirmCopy": "نسخ المهمة",
+      "cancel": "إلغاء"
+    }
   },
   "dependencies": {
     "dependsOn": "يعتمد على",
@@ -772,6 +835,11 @@
     "placeholder": "اكتب تعليقاً…",
     "submit": "نشر التعليق",
     "loadMore": "تحميل تعليقات سابقة",
+    "mentions": {
+      "pickerLabel": "إشارة إلى زميل",
+      "noMatches": "لا أشخاص مطابقين",
+      "preview": "معاينة"
+    },
     "attachments": {
       "addFiles": "إرفاق ملفات",
       "pickImages": "اختيار صور",
@@ -854,6 +922,7 @@
   "reminders": {
     "label": "التذكيرات",
     "needsDueDate": "حدّد تاريخ استحقاق لتفعيل التذكيرات.",
+    "externalDeliveryDisconnected": "البريد/الإشعارات للمهام — غير متصل",
     "type": {
       "on_due": "في يوم الاستحقاق",
       "day_before": "قبل يوم واحد",

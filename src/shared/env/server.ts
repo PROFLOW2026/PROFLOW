@@ -53,6 +53,8 @@ const serverEnvSchema = z.object({
     emptyToUndefined,
     z.string().min(1).default('ProjectFlow <no-reply@example.com>'),
   ),
+  /** Planner P05 — task notification email; independent of EMAIL_DRIVER / Resend. */
+  TASK_EMAIL_DELIVERY_ENABLED: z.preprocess(emptyToUndefined, z.string().optional()),
 
   SENTRY_DSN: optionalUrl,
   LOG_LEVEL: z.preprocess(
@@ -92,6 +94,11 @@ const serverEnvSchema = z.object({
 
   /** AES-256-GCM KEK for OAuth tokens at rest (external storage). Required in production. */
   STORAGE_TOKEN_ENCRYPTION_KEY: optionalNonEmpty,
+  STATUTORY_SHARE_SIGNING_KEY: optionalNonEmpty,
+
+  CRON_SECRET: optionalNonEmpty,
+  OCR_WORKER_SECRET: optionalNonEmpty,
+  STORAGE_PROVISION_WORKER_SECRET: optionalNonEmpty,
 
   MICROSOFT_STORAGE_CLIENT_ID: optionalNonEmpty,
   MICROSOFT_STORAGE_CLIENT_SECRET: optionalNonEmpty,
@@ -138,6 +145,19 @@ function assertProductionGuards(env: ServerEnv): void {
   if (env.EMAIL_DRIVER === 'resend' && !env.RESEND_API_KEY) {
     throw new Error('EMAIL_DRIVER=resend requires RESEND_API_KEY');
   }
+
+  if (!process.env.CRON_SECRET?.trim()) {
+    console.error('[env] CRON_SECRET is not configured — daily internal workers will reject cron calls');
+  }
+}
+
+/** Whether any internal worker bearer secret is configured (values never exposed). */
+export function workerSecretsConfigured(): boolean {
+  return Boolean(
+    process.env.CRON_SECRET?.trim() ||
+      process.env.OCR_WORKER_SECRET?.trim() ||
+      process.env.STORAGE_PROVISION_WORKER_SECRET?.trim(),
+  );
 }
 
 export function serverEnv(): ServerEnv {

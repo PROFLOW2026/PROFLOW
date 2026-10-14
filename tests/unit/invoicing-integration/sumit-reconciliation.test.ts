@@ -88,6 +88,31 @@ describe('SUMIT reconciliation invariants', () => {
     expect(reconcileExternalAmounts(billing, null).status).toBe('not_available');
   });
 
+  it('G. matched for demo exclusive invoice 48,500 / 8,730 / 57,230 with net lines', () => {
+    const billing = bridge({
+      subtotalAmount: { amount: '48500.000000', currency: 'ILS' },
+      taxAmount: { amount: '8730.000000', currency: 'ILS' },
+      totalAmount: { amount: '57230.000000', currency: 'ILS' },
+      vatRatePercent: 18,
+      lines: [
+        {
+          description: 'Net line',
+          lineNet: { amount: '48500.000000', currency: 'ILS' },
+          quantity: null,
+          unitPrice: null,
+        },
+      ],
+    });
+    const parsed = parseSumitDocumentAmounts(
+      sumitGetDetailsPayload({
+        items: [{ totalPrice: 48500, vat: 8730 }],
+        companyValue: 57230,
+      }),
+    );
+    const actuals = provider.mapProviderAmounts('ILS', parsed);
+    expect(reconcileExternalAmounts(billing, actuals).status).toBe('matched');
+  });
+
   it('F. never substitutes PF expected values as provider actuals', () => {
     const billing = bridge();
     const parsed = {

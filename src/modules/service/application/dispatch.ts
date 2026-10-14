@@ -16,8 +16,10 @@ import {
   type ListDispatchInput,
   type RescheduleWorkOrderInput,
 } from '../validation/schemas';
+import { evaluateDispatchAssigneeAvailability } from './dispatch-assignee-availability';
 import { upsertWorkOrderDispatchBooking } from './dispatch-booking';
 import { updateWorkOrder } from './update-work-order';
+import type { DispatchAvailabilityWarning } from '../domain/dispatch-availability-warning';
 
 /**
  * Convert a calendar day in the org timezone into an approximate UTC instant
@@ -106,7 +108,7 @@ export async function listDispatchBoard(
 export async function rescheduleWorkOrder(
   context: OrgContext,
   rawInput: RescheduleWorkOrderInput,
-): Promise<void> {
+): Promise<{ readonly availabilityWarnings: readonly DispatchAvailabilityWarning[] }> {
   assertAnyPermission(context, [PERMISSIONS.DISPATCH_MANAGE, PERMISSIONS.SERVICE_MANAGE]);
 
   const parsed = rescheduleWorkOrderSchema.safeParse(rawInput);
@@ -116,31 +118,32 @@ export async function rescheduleWorkOrder(
     );
   }
 
+  const details = await findServiceDetailsByProjectId(
+    context.db,
+    context.organizationId,
+    parsed.data.workOrderId,
+  );
+  const currentAssigneeId = await findWorkOrderAssigneeEmployeeId(
+    context.db,
+    context.organizationId,
+    parsed.data.workOrderId,
+  );
+
+  const nextStart =
+    parsed.data.scheduledStartAt === undefined
+      ? (details?.scheduledStartAt ?? null)
+      : parseOptionalInstant(parsed.data.scheduledStartAt);
+  const nextEnd =
+    parsed.data.scheduledEndAt === undefined
+      ? (details?.scheduledEndAt ?? null)
+      : parseOptionalInstant(parsed.data.scheduledEndAt);
+  const nextAssignee =
+    parsed.data.assigneeEmployeeId === undefined
+      ? currentAssigneeId
+      : parsed.data.assigneeEmployeeId;
+
   await withTransaction(context.db, async (tx) => {
     const txContext = { ...context, db: tx };
-    const details = await findServiceDetailsByProjectId(
-      tx,
-      context.organizationId,
-      parsed.data.workOrderId,
-    );
-    const currentAssigneeId = await findWorkOrderAssigneeEmployeeId(
-      tx,
-      context.organizationId,
-      parsed.data.workOrderId,
-    );
-
-    const nextStart =
-      parsed.data.scheduledStartAt === undefined
-        ? (details?.scheduledStartAt ?? null)
-        : parseOptionalInstant(parsed.data.scheduledStartAt);
-    const nextEnd =
-      parsed.data.scheduledEndAt === undefined
-        ? (details?.scheduledEndAt ?? null)
-        : parseOptionalInstant(parsed.data.scheduledEndAt);
-    const nextAssignee =
-      parsed.data.assigneeEmployeeId === undefined
-        ? currentAssigneeId
-        : parsed.data.assigneeEmployeeId;
 
     await upsertWorkOrderDispatchBooking(txContext, {
       workOrderId: parsed.data.workOrderId,
@@ -158,6 +161,14 @@ export async function rescheduleWorkOrder(
       serviceStatus: parsed.data.serviceStatus,
     });
   });
+
+  const warnings = await evaluateDispatchAssigneeAvailability(context, {
+    workOrderId: parsed.data.workOrderId,
+    assigneeEmployeeId: nextAssignee,
+    scheduledStartAt: nextStart,
+    scheduledEndAt: nextEnd,
+  });
+  return { availabilityWarnings: warnings };
 }
 
 function parseOptionalInstant(value: string | null | undefined): Date | null {

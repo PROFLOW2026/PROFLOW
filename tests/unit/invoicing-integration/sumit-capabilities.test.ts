@@ -15,6 +15,12 @@ const unusedClient: SumitHttpClient = {
     throw new Error('not used');
   },
   listExpenseDocuments: async () => [],
+  listAccountingDocuments: async () => ({
+    documents: [],
+    pagingComplete: true,
+    candidateCapReached: false,
+    candidatesChecked: 0,
+  }),
   cancelDocument: async () => {
     throw new Error('not used');
   },

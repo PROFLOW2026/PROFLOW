@@ -113,5 +113,8 @@
     "outcomeAccepted": "Install started. Open ProjectFlow from your home screen or app list.",
     "outcomeDismissed": "Install was cancelled. You can try again anytime.",
     "outcomeError": "Could not start install. Try again, or use the browser’s install menu."
+  },
+  "manifest": {
+    "description": "Project and field operations for construction teams"
   }
 }

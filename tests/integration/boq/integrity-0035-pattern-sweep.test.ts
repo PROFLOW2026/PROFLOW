@@ -1,4 +1,4 @@
-﻿import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { sql } from 'drizzle-orm';
 import { createProject } from '@/modules/projects';
 import { createClient } from '@/modules/clients';
@@ -14,7 +14,7 @@ import { insertDraftBoqNodeViaRpc } from '../../setup/boq-draft-node';
 import { createTestOrganization, createTestUser, seedSystem } from '../../setup/fixtures';
 
 /**
- * Final adversarial pattern sweep (0035 Â§13).
+ * Final adversarial pattern sweep (0035 §13).
  * Covers reparent bypasses, AR net/VAT/retention, draft/void AR, sub cumulative,
  * approval evidence forgery, mapping lock.
  */
@@ -607,7 +607,7 @@ describe('BOQ final pattern-sweep adversarial', () => {
       return { lineId: line[0]!.id, draftBatchId: draftBatch[0]!.id };
     });
 
-    // Bypass RLS â€” prove trigger blocks reparent from approvedâ†’draft batch.
+    // Bypass RLS — prove trigger blocks reparent from approved→draft batch.
     await database.asService(async (db) => {
       await expect(
         db.execute(sql`
@@ -651,7 +651,7 @@ describe('BOQ final pattern-sweep adversarial', () => {
           organizationId: orgId,
           locale: 'en',
         });
-        // Evidence path: createProgressBilling.ts â€” createBillingRecordWithPermission +
+        // Evidence path: createProgressBilling.ts — createBillingRecordWithPermission +
         // finalizeProgressBillingRpc on context.db inside withUserContext transaction.
         const billing = await createBillingRecordWithPermission(
           context,
@@ -698,7 +698,7 @@ describe('BOQ final pattern-sweep adversarial', () => {
     });
   });
 
-  it('blocks draft approved_at/by forgery and direct draftâ†’approved without RPC', async () => {
+  it('blocks draft approved_at/by forgery and direct draft→approved without RPC', async () => {
     const { owner, orgId, projectId } = await provision();
     const { boqId } = await seedActiveBoq(owner.id, orgId, projectId);
 

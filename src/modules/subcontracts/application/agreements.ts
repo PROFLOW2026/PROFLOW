@@ -3,7 +3,7 @@ import { contracts, entityLinks } from '@drizzle/schema';
 import { internalActor } from '@/shared/actor';
 import { AUDIT_ACTIONS, recordAuditEvent } from '@/shared/audit';
 import type { OrgContext } from '@/shared/auth/context';
-import { todayInTimeZone } from '@/shared/dates';
+import { businessDate, todayInTimeZone } from '@/shared/dates';
 import { withTransaction } from '@/shared/db';
 import type { DbExecutor } from '@/shared/db/types';
 import { DOMAIN_EVENTS, emitDomainEvent, type DomainEventType } from '@/shared/domain-events';
@@ -44,6 +44,7 @@ import {
   type UpdateAgreementInput,
   type UpdateFinancialTermsInput,
 } from '../validation/schemas';
+import { enqueueAgreementValueSync } from '@/modules/connected-projects/application/sync-contract-value-projection';
 import {
   isUniqueViolation,
   loadAgreementWithAccess,
@@ -410,6 +411,23 @@ export async function changeAgreementStatus(context: OrgContext, rawInput: Agree
           actorUserId: context.userId,
         });
       }
+      const effectiveDate = businessDate(
+        agreement.startDate ?? todayInTimeZone(context.organization.timezone),
+      );
+      const eventsAfter = await listAgreementValueEvents(tx, context.organizationId, agreement.id);
+      const valueAfter = approvedContractValue({
+        currency: locked.currency,
+        draftOriginalAmount: financial?.originalAmount ?? '0',
+        events: eventsAfter,
+      });
+      await enqueueAgreementValueSync(tx, {
+        developerOrganizationId: context.organizationId,
+        subcontractAgreementId: agreement.id,
+        amountNet: toNumericString(valueAfter.current),
+        currency: locked.currency,
+        effectiveDate,
+        sourceVersion: now.getTime(),
+      });
     }
 
     if (input.action === 'close') {

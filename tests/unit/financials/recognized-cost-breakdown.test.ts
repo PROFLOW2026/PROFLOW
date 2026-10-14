@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { businessDate } from '@/shared/dates';
 import { money } from '@/shared/money';
-import { recognitionDateForExpenseInYearMonth } from '@/modules/financials/domain/recognized-cost-breakdown';
+import {
+  recognitionDateForExpenseInYearMonth,
+  scaleExpenseRecognitionSliceForApDeduction,
+} from '@/modules/financials/domain/recognized-cost-breakdown';
 import type { ExpensePaymentRecognitionFields } from '@/modules/expenses/domain/installment-payment-recognition';
 
 function fields(
@@ -50,5 +53,19 @@ describe('recognitionDateForExpenseInYearMonth', () => {
       '2026-06',
     );
     expect(date).toBe('2026-06-01');
+  });
+});
+
+describe('scaleExpenseRecognitionSliceForApDeduction (F03)', () => {
+  it('keeps 4k expense slice when 6k of 10k is matched to AP', () => {
+    const currency = 'ILS';
+    const scaled = scaleExpenseRecognitionSliceForApDeduction({
+      currency,
+      rawNet: money('10000', currency),
+      rawGross: money('10000', currency),
+      totalRecognizedNetInScope: money('10000', currency),
+      matchedDeductionNet: '6000',
+    });
+    expect(scaled.net?.amount).toBe('4000.000000');
   });
 });

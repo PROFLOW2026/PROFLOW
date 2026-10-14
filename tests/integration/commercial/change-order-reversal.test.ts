@@ -328,6 +328,10 @@ describe('change order commercial reversal', () => {
           ${role[0]!.id}::uuid
         )
       `);
+      await db.execute(sql`
+        INSERT INTO project_access_grants (organization_id, user_id, project_id, access_level)
+        VALUES (${orgA.organization.id}::uuid, ${approver.id}::uuid, ${seeded.projectId}::uuid, 'read')
+      `);
     });
 
     await database.asUser(approver.id, async (tx) => {

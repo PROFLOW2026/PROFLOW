@@ -3,12 +3,15 @@ import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { ValidationError } from '@/shared/errors';
 import type { OrgContext } from '@/shared/auth/context';
 import { findTaskById, insertTask, insertTaskActivity } from '../data/tasks.repository';
+import { findBucketById, listBucketsForBoard } from '../data/boards.repository';
+import { ensureDefaultProjectBoard } from './ensure-default-project-board';
 import { listProjectWorkspaceLinksByWorkspace } from '@/modules/workspaces';
 import { validateProjectContext } from '../domain/project-context';
 import { buildCreatorFieldsFromContext, buildActivityActorFieldsFromContext } from '../domain/actor';
 import { generateSortKey } from '../domain/lexorank';
 import { assertMaxSubtaskDepth, assertSameWorkspaceContext } from '../domain/subtasks';
 import { createTaskSchema } from '../validation/task-schema';
+import { assertStartBeforeDue } from '../domain/start-before-due';
 import type { Task, CreateTaskInput } from '../domain/types';
 
 /**
@@ -37,6 +40,40 @@ export async function createTask(
   }
 
   const input = parsed.data;
+  assertStartBeforeDue(input.startDate ?? null, input.dueDate ?? null);
+
+  let boardId = input.boardId ?? null;
+  let bucketId = input.bucketId ?? null;
+
+  if (bucketId && !boardId) {
+    const bucket = await findBucketById(context.db, context.organizationId, bucketId);
+    if (!bucket) {
+      throw new ValidationError([{ path: 'bucketId', message: 'Bucket not found' }]);
+    }
+    boardId = bucket.boardId;
+  }
+
+  if (boardId && bucketId) {
+    const bucket = await findBucketById(context.db, context.organizationId, bucketId);
+    if (!bucket || bucket.boardId !== boardId) {
+      throw new ValidationError([
+        { path: 'bucketId', message: 'Bucket does not belong to the selected board' },
+      ]);
+    }
+  }
+
+  if (input.projectId && !boardId) {
+    const board = await ensureDefaultProjectBoard(
+      context,
+      input.workspaceId,
+      input.title.trim().slice(0, 80) || 'Tasks',
+    );
+    boardId = board?.id ?? null;
+    if (boardId && !bucketId) {
+      const buckets = await listBucketsForBoard(context.db, context.organizationId, boardId);
+      bucketId = buckets[0]?.id ?? null;
+    }
+  }
 
   // Validate project context (rule C)
   if (input.projectId) {
@@ -62,8 +99,8 @@ export async function createTask(
     title: input.title,
     description: input.description ?? null,
     projectId: input.projectId ?? null,
-    boardId: input.boardId ?? null,
-    bucketId: input.bucketId ?? null,
+    boardId,
+    bucketId,
     priority: input.priority,
     startDate: input.startDate ?? null,
     dueDate: input.dueDate ?? null,

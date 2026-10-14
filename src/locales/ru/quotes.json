@@ -140,6 +140,9 @@
     "pricingOpen": "Открытая цена (договор пока не задан)",
     "convertSubmit": "Создать работу"
   },
+  "warnings": {
+    "quoteArtifactRelocateSkipped": "Работа создана, но {count, plural, one {# PDF из сметы} other {# PDF из сметы}} не перенесены в папку проекта ({reasons})."
+  },
   "errors": {
     "invalidTransition": "Это изменение статуса не разрешено",
     "notEditable": "Редактировать можно только черновики или готовые сметы",

@@ -1,7 +1,35 @@
 {
   "title": "مناقصات المقاولين",
   "description": "حزم ودعوات ومقارنة وترسية — منفصلة عن عروض العملاء.",
-  "empty": { "title": "لا توجد حزم", "description": "أنشئ حزمة لدعوة المقاولين." },
+  "empty": {
+    "title": "لا توجد حزم",
+    "description": "أنشئ حزمة لدعوة المقاولين.",
+    "descriptionManage": "أنشئ أول حزمة باستخدام النموذج أعلاه.",
+    "descriptionReadOnly": "لا حزم بعد. المستخدمون بصلاحية إدارة العقود يمكنهم إنشاء مناقصات.",
+    "directAgreementHint": "يمكن أيضاً إنشاء عقد مقاول مباشرة من المقاولين دون مناقصة."
+  },
+  "forms": {
+    "newPackageTitle": "حزمة مناقصة جديدة",
+    "createPackage": "إنشاء حزمة",
+    "packageCreated": "تم إنشاء الحزمة",
+    "title": "عنوان الحزمة",
+    "scopeDescription": "النطاق (اختياري)",
+    "inviteSection": "دعوة مقاولين",
+    "inviteVendor": "إرسال دعوة",
+    "vendorInvited": "تم إرسال الدعوة",
+    "vendor": "مقاول",
+    "evaluationSection": "إغلاق التقديم",
+    "closeBiddingHint": "يوقف تقديم العروض في البوابة وينقل إلى التقييم.",
+    "closeBidding": "إغلاق التقديم",
+    "biddingClosed": "تم إغلاق التقديم",
+    "awardSection": "الترسية",
+    "awardTender": "ترسية وإنشاء مسودة عقد",
+    "tenderAwarded": "تمت الترسية — مسودة عقد جاهزة",
+    "winningOffer": "العرض الفائز",
+    "agreementTitle": "عنوان العقد (اختياري)",
+    "subcontractNumber": "رقم العقد (اختياري)",
+    "noAwardableOffers": "لا عروض مقدمة للترسية بعد."
+  },
   "fields": { "trade": "التخصص" },
   "status": {
     "draft": "مسودة",
@@ -15,7 +43,8 @@
     "offers": "العروض",
     "noOffers": "لا عروض بعد.",
     "vendorOffer": "مورد {vendor}",
-    "amountHidden": "المبلغ مقيّد"
+    "amountHidden": "المبلغ مقيّد",
+    "vendorUnknown": "مورد غير معروف"
   },
   "offerStatus": {
     "draft": "مسودة",

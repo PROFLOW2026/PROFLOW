@@ -103,7 +103,10 @@ export default async function ContractorPortalMoreHubPage() {
           {t('hub.more.connectOrgTitle')}
         </h2>
         <p className="text-sm text-[var(--pf-text-secondary)]">{t('hub.more.connectOrgDescription')}</p>
-        <Link href="/projects/connect-developer" className={employeeHubCardClass}>
+        <Link
+          href={`/sign-in?next=${encodeURIComponent('/projects/connect-developer')}`}
+          className={employeeHubCardClass}
+        >
           <span className="text-sm font-medium">{t('hub.more.connectOrgCta')}</span>
         </Link>
       </section>
