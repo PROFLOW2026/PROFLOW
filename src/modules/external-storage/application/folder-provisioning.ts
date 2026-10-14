@@ -41,25 +41,51 @@ async function resolveListFolderParentId(
   return resolveProviderRootFolderId(provider);
 }
 
+async function findChildFoldersByName(
+  accessToken: string,
+  provider: StorageConnectionRecord['provider'],
+  parentId: string | null,
+  name: string,
+): Promise<ProviderFolderItem[]> {
+  const listParentId = await resolveListFolderParentId(accessToken, provider, parentId);
+  const adapter = getStorageProviderAdapter(provider);
+  const listing = await adapter.listFolder(accessToken, listParentId);
+  return listing.folders.filter((folder) => folder.name === name);
+}
+
+function pickCanonicalChildFolder(
+  candidates: readonly ProviderFolderItem[],
+  preferredFolderId?: string | null,
+): ProviderFolderItem {
+  if (preferredFolderId) {
+    const preferred = candidates.find((folder) => folder.id === preferredFolderId);
+    if (preferred) return preferred;
+  }
+  return [...candidates].sort((a, b) => a.id.localeCompare(b.id))[0]!;
+}
+
 async function findChildFolderByName(
   accessToken: string,
   provider: StorageConnectionRecord['provider'],
   parentId: string | null,
   name: string,
+  preferredFolderId?: string | null,
 ): Promise<ProviderFolderItem | null> {
+  const siblings = await findChildFoldersByName(accessToken, provider, parentId, name);
+  if (siblings.length > 0) {
+    return pickCanonicalChildFolder(siblings, preferredFolderId);
+  }
   const adapter = getStorageProviderAdapter(provider);
   if (adapter.getChildFolderByName) {
     return adapter.getChildFolderByName(accessToken, parentId, name);
   }
-  const listParentId = await resolveListFolderParentId(accessToken, provider, parentId);
-  const listing = await adapter.listFolder(accessToken, listParentId);
-  return listing.folders.find((folder) => folder.name === name) ?? null;
+  return null;
 }
 
 async function resolveOrCreateFolder(
   accessToken: string,
   connection: StorageConnectionRecord,
-  input: { name: string; parentId: string | null },
+  input: { name: string; parentId: string | null; preferredFolderId?: string | null },
 ): Promise<ProviderFolderItem> {
   const adapter = getStorageProviderAdapter(connection.provider);
   const existing = await findChildFolderByName(
@@ -67,6 +93,7 @@ async function resolveOrCreateFolder(
     connection.provider,
     input.parentId,
     input.name,
+    input.preferredFolderId,
   );
   if (existing) return existing;
 
@@ -80,6 +107,7 @@ async function resolveOrCreateFolder(
           connection.provider,
           input.parentId,
           input.name,
+          input.preferredFolderId,
         );
         if (existing) return existing;
       }
@@ -88,6 +116,7 @@ async function resolveOrCreateFolder(
         connection.provider,
         input.parentId,
         input.name,
+        input.preferredFolderId,
       );
       if (retry) return retry;
       // Never fall back to the drive root as the ProjectFlow org folder.
@@ -346,6 +375,10 @@ export async function ensureSemanticFolder(
     const created = await resolveOrCreateFolder(input.accessToken, input.connection, {
       name: providerFolderName,
       parentId: input.parentFolderId,
+      preferredFolderId:
+        existing?.externalFolderId && existing.externalFolderId !== 'pending'
+          ? existing.externalFolderId
+          : null,
     });
 
     if (existing) {
@@ -598,7 +631,12 @@ export async function ensureProjectFolderTree(
   if (readyChildCount < PROJECT_SEMANTIC_FOLDERS.length) {
     const { readProjectTemplateCapability } = await import('../domain/project-template');
     const template = readProjectTemplateCapability(input.connection.capabilitiesJson);
-    if (template.externalFolderId) {
+    const providerAlreadyHasSemanticChildren = await projectSemanticChildrenExistInProvider(
+      input.accessToken,
+      input.connection,
+      projectRootId,
+    );
+    if (template.externalFolderId && !providerAlreadyHasSemanticChildren) {
       const { copyProviderFolderContents } = await import('./template-copy');
       await copyProviderFolderContents({
         connection: input.connection,
@@ -632,6 +670,19 @@ export async function ensureProjectFolderTree(
   });
 
   return projectRootId;
+}
+
+async function projectSemanticChildrenExistInProvider(
+  accessToken: string,
+  connection: StorageConnectionRecord,
+  projectRootId: string,
+): Promise<boolean> {
+  for (const semantic of PROJECT_SEMANTIC_FOLDERS) {
+    const name = sanitizeProviderFolderName(resolveSemanticFolderDisplayName(semantic));
+    const found = await findChildFolderByName(accessToken, connection.provider, projectRootId, name);
+    if (!found) return false;
+  }
+  return true;
 }
 
 async function countReadyProjectSemanticChildren(

@@ -631,7 +631,7 @@ export function ProjectFilesTab({
                   icon={<Folder className="size-4 shrink-0 text-[var(--pf-text-secondary)]" aria-hidden />}
                   name={folder.name}
                   kind="folder"
-                  meta={t('sizeMetaUnavailable')}
+                  meta=""
                   canManage={canManage}
                   onOpen={() => openSubfolder(folder)}
                   onRename={() => openRenameDialog(folder.id, 'folder', folder.name)}
