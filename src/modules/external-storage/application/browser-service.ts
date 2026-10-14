@@ -23,7 +23,7 @@ import {
 } from '../data/files.repository';
 import { findFolderMapping, findFolderMappingByExternalFolderId, listFolderMappingsForProject, updateFolderMapping } from '../data/folder-mappings.repository';
 import { isCanonicalProjectRootParent } from '../domain/project-folder-placement';
-import { dedupeProjectRootManagedFolders } from '../domain/project-root-listing';
+import { dedupeProjectRootManagedFoldersPreservingContent } from '../domain/project-root-listing';
 import type {
   FolderMappingRecord,
   ProviderFileItem,
@@ -168,20 +168,18 @@ async function assertSemanticFolderBrowseAccess(
   }
 }
 
-function filterProjectRootListing(
+async function filterProjectRootListing(
   runtime: ProjectBrowserRuntime,
   folderExternalId: string,
   listing: ProviderFolderListing,
-): ProviderFolderListing {
+): Promise<ProviderFolderListing> {
   if (folderExternalId !== runtime.projectRootFolderId) return listing;
-  return {
-    ...listing,
-    folders: dedupeProjectRootManagedFolders(
-      listing.folders,
-      runtime.mappings,
-      isProjectSemanticFolderType,
-    ),
-  };
+  const folders = await dedupeProjectRootManagedFoldersPreservingContent(
+    listing.folders,
+    runtime.mappings,
+    (folderId) => runtime.adapter.listFolder(runtime.accessToken, folderId),
+  );
+  return { ...listing, folders };
 }
 
 function filterListingForSemanticAccess(
@@ -463,7 +461,7 @@ export async function loadProjectFileBrowserInitial(
     runtime.accessToken,
     runtime.projectRootFolderId,
   );
-  const deduped = filterProjectRootListing(runtime, runtime.projectRootFolderId, listing);
+  const deduped = await filterProjectRootListing(runtime, runtime.projectRootFolderId, listing);
   const filtered = filterListingForSemanticAccess(
     context,
     runtime,
@@ -503,7 +501,7 @@ export async function browseProjectStorageFolder(
       ((await runtime.adapter.getFolder(runtime.accessToken, folderExternalId))?.name ?? 'Folder');
 
   const listing = await runtime.adapter.listFolder(runtime.accessToken, folderExternalId);
-  const deduped = filterProjectRootListing(runtime, folderExternalId, listing);
+  const deduped = await filterProjectRootListing(runtime, folderExternalId, listing);
   const filtered = filterListingForSemanticAccess(context, runtime, folderExternalId, deduped);
   return {
     folderExternalId,
