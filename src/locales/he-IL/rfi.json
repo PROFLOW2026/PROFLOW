@@ -63,7 +63,7 @@
     "noWorkPackage": "ללא חבילת עבודה",
     "dueDate": "תשובה נדרשת עד",
     "assignee": "אחראי",
-    "assigneeRosterOnly": "{name} (בשיבוץ בלבד — יש להוסיף לצוות הפרויקט)",
+    "assigneeRosterOnly": "{name} (בשיבוץ בלבד: יש להוסיף לצוות הפרויקט)",
     "assigneeRosterHint": "עובד/ת שמופיע/ה בשיבוץ חייב/ת גם להיות בצוות הפרויקט כדי לקבל RFI.",
     "assigneeAddToTeam": "פתיחת צוות הפרויקט",
     "unassigned": "לא שויך",
