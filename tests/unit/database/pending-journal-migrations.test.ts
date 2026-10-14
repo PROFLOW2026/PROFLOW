@@ -26,10 +26,10 @@ async function loadJournalTags(): Promise<Set<string>> {
 }
 
 describe('drizzle/migrations pending journal files (§9.4 / O02)', () => {
-  it('pending SQL files are not listed in the journal until Owner apply approval', async () => {
+  it('Gate B SQL files 0183–0192 are listed in the journal after Owner apply', async () => {
     const journalTags = await loadJournalTags();
     for (const tag of EXPECTED_PENDING_JOURNAL_TAGS) {
-      expect(journalTags.has(tag), `${tag} must stay out of journal until approved`).toBe(false);
+      expect(journalTags.has(tag), `${tag} must be in journal after Gate B apply`).toBe(true);
     }
   });
 
