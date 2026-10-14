@@ -8,8 +8,13 @@ export function formatGoogleDriveOAuthScope(): string {
   return [GOOGLE_DRIVE_FULL_SCOPE, GOOGLE_DRIVE_EMAIL_SCOPE].join(' ');
 }
 
+/** Full Drive (not drive.file / readonly variants). */
 export function googleDriveGrantedFullScope(scopes: readonly string[]): boolean {
-  return scopes.includes(GOOGLE_DRIVE_FULL_SCOPE);
+  return scopes.some((scope) => {
+    const s = scope.trim();
+    if (s === GOOGLE_DRIVE_FULL_SCOPE) return true;
+    return s.endsWith('/auth/drive') && !s.includes('drive.file') && !s.includes('.readonly');
+  });
 }
 
 export function googleDriveNeedsConsentForReconnect(input: {
@@ -46,6 +51,9 @@ export function resolveGoogleDriveOAuthAuthorizeOptions(input: {
   loginHint: string | null;
 } {
   if (googleDriveNeedsConsentForReconnect(input)) {
+    return { prompt: 'consent', loginHint: null };
+  }
+  if (input.connectionStatus === 'disconnected' || input.priorScopes.length === 0) {
     return { prompt: 'consent', loginHint: null };
   }
   return { prompt: 'select_account', loginHint: null };

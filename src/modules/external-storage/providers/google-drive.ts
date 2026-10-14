@@ -106,6 +106,9 @@ export class GoogleDriveStorageProvider implements StorageProviderAdapter {
     if (input.loginHint) {
       params.set('login_hint', input.loginHint);
     }
+    if ((input.prompt ?? 'select_account') === 'consent') {
+      params.set('include_granted_scopes', 'false');
+    }
     return `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
   }
 
@@ -134,7 +137,7 @@ export class GoogleDriveStorageProvider implements StorageProviderAdapter {
       accessToken: token.access_token,
       refreshToken: token.refresh_token ?? null,
       expiresAt: token.expires_in ? new Date(Date.now() + token.expires_in * 1000) : null,
-      scopes: (token.scope ?? '').split(' ').filter(Boolean),
+      scopes: (token.scope ?? '').split(/[\s,]+/).filter(Boolean),
     };
   }
 
@@ -158,7 +161,7 @@ export class GoogleDriveStorageProvider implements StorageProviderAdapter {
       accessToken: token.access_token,
       refreshToken,
       expiresAt: token.expires_in ? new Date(Date.now() + token.expires_in * 1000) : null,
-      scopes: (token.scope ?? '').split(' ').filter(Boolean),
+      scopes: (token.scope ?? '').split(/[\s,]+/).filter(Boolean),
     };
   }
 

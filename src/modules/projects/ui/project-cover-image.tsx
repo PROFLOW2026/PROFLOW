@@ -4,6 +4,8 @@ export interface ProjectCoverImageProps {
   readonly projectName: string;
   readonly imageUrl?: string | null;
   readonly className?: string;
+  /** When false (default), no image means no DOM — avoids a full-width 16:9 empty block in project chrome. */
+  readonly showInitialWhenEmpty?: boolean;
 }
 
 /**
@@ -13,7 +15,12 @@ export function ProjectCoverImage({
   projectName,
   imageUrl,
   className,
+  showInitialWhenEmpty = false,
 }: ProjectCoverImageProps) {
+  if (!imageUrl && !showInitialWhenEmpty) {
+    return null;
+  }
+
   return (
     <div
       className={cn(

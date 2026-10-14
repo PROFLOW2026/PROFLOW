@@ -131,7 +131,7 @@ export function ProjectCoverImageControl({
 
       {error ? <Alert tone="danger">{error}</Alert> : null}
 
-      <ProjectCoverImage projectName={projectName} imageUrl={previewUrl} />
+      <ProjectCoverImage projectName={projectName} imageUrl={previewUrl} showInitialWhenEmpty />
 
       {canEdit ? (
         <div className="flex flex-wrap gap-2">

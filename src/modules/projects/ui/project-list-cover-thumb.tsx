@@ -12,6 +12,7 @@ export function ProjectListCoverThumb({
       projectName={projectName}
       imageUrl={imageUrl}
       className="h-10 w-[4.5rem] shrink-0 rounded-md"
+      showInitialWhenEmpty
     />
   );
 }

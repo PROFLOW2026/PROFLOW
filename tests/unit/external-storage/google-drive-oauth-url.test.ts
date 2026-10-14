@@ -48,14 +48,14 @@ describe('Google Drive OAuth URL helpers', () => {
     ).toBe(true);
   });
 
-  it('uses select_account for first connect without prior scopes', () => {
+  it('uses consent for first connect so Google grants the full drive scope we request', () => {
     expect(
       resolveGoogleDriveOAuthAuthorizeOptions({
         connectionStatus: 'disconnected',
         priorScopes: [],
         priorRefreshTokenPresent: false,
       }),
-    ).toEqual({ prompt: 'select_account', loginHint: null });
+    ).toEqual({ prompt: 'consent', loginHint: null });
   });
 
   it('uses consent when reconnecting after scope upgrade', () => {
