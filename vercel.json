@@ -1,6 +1,11 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "npm run build",
+  "build": {
+    "env": {
+      "NODE_OPTIONS": "--max-old-space-size=6144"
+    }
+  },
   "regions": ["dub1"],
   "headers": [
     {

@@ -5,6 +5,7 @@ import type { NextConfig } from 'next';
 const withNextIntl = createNextIntlPlugin('./src/shared/i18n/request.ts');
 
 function nextConfig(phase: string): NextConfig {
+  const productionBuild = phase === PHASE_PRODUCTION_BUILD;
   return {
   reactStrictMode: true,
   poweredByHeader: false,
@@ -25,6 +26,17 @@ function nextConfig(phase: string): NextConfig {
       : undefined,
   // package-lock.json lives beside this file, not at the drive root Next infers.
   turbopack: { root: import.meta.dirname },
+  ...(productionBuild
+    ? {
+        experimental: {
+          webpackMemoryOptimizations: true,
+        },
+        webpack: (config) => {
+          config.parallelism = 1;
+          return config;
+        },
+      }
+    : {}),
   async headers() {
     return [
       {

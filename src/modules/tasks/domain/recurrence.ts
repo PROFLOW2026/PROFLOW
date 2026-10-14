@@ -80,30 +80,80 @@ function localClockParts(instant: Date, timeZone: string) {
   };
 }
 
-/** Converts rrule TZID "floating UTC fields" into a real timestamptz instant. */
-function normalizeOccurrenceInstant(raw: Date, timeZone: string): Date {
-  let ts = Date.UTC(
-    raw.getUTCFullYear(),
-    raw.getUTCMonth(),
-    raw.getUTCDate(),
-    raw.getUTCHours(),
-    raw.getUTCMinutes(),
-    raw.getUTCSeconds(),
+function anchorLocalClockFromStartsAt(startsAt: Date, timeZone: string) {
+  const parts = localClockParts(startsAt, timeZone);
+  return { hour: parts.hour, minute: parts.minute, second: parts.second };
+}
+
+function getTimezoneOffsetMs(instant: Date, timeZone: string): number {
+  const parts = localClockParts(instant, timeZone);
+  const wallAsUtcMs = Date.UTC(
+    parts.year,
+    parts.month - 1,
+    parts.day,
+    parts.hour,
+    parts.minute,
+    parts.second,
   );
+  return wallAsUtcMs - instant.getTime();
+}
+
+function wallClockInTimeZoneToInstant(
+  wall: {
+    readonly year: number;
+    readonly month: number;
+    readonly day: number;
+    readonly hour: number;
+    readonly minute: number;
+    readonly second: number;
+  },
+  timeZone: string,
+): Date {
+  const wallAsUtcMs = Date.UTC(
+    wall.year,
+    wall.month - 1,
+    wall.day,
+    wall.hour,
+    wall.minute,
+    wall.second,
+  );
+  let utcMs = wallAsUtcMs - getTimezoneOffsetMs(new Date(wallAsUtcMs), timeZone);
   for (let attempt = 0; attempt < 4; attempt++) {
-    const parts = localClockParts(new Date(ts), timeZone);
-    const desired = Date.UTC(
-      raw.getUTCFullYear(),
-      raw.getUTCMonth(),
-      raw.getUTCDate(),
-      raw.getUTCHours(),
-      raw.getUTCMinutes(),
-      raw.getUTCSeconds(),
-    );
-    const actual = Date.UTC(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute, parts.second);
-    ts += desired - actual;
+    const next = wallAsUtcMs - getTimezoneOffsetMs(new Date(utcMs), timeZone);
+    if (next === utcMs) {
+      return new Date(utcMs);
+    }
+    utcMs = next;
   }
-  return new Date(ts);
+  return new Date(utcMs);
+}
+
+/**
+ * rrule + TZID: on UTC hosts `Date` values are real instants; on local-TZ hosts
+ * UTC fields encode wall-clock in the rule zone. Pick the interpretation that
+ * matches the anchored local time from `startsAt`.
+ */
+function normalizeOccurrenceInstant(raw: Date, rule: TaskRecurrenceRule): Date {
+  const anchor = anchorLocalClockFromStartsAt(rule.startsAt, rule.timezone);
+  const observed = localClockParts(raw, rule.timezone);
+  if (
+    observed.hour === anchor.hour &&
+    observed.minute === anchor.minute &&
+    observed.second === anchor.second
+  ) {
+    return new Date(raw.getTime());
+  }
+  return wallClockInTimeZoneToInstant(
+    {
+      year: raw.getUTCFullYear(),
+      month: raw.getUTCMonth() + 1,
+      day: raw.getUTCDate(),
+      hour: raw.getUTCHours(),
+      minute: raw.getUTCMinutes(),
+      second: raw.getUTCSeconds(),
+    },
+    rule.timezone,
+  );
 }
 
 export interface ExpandOccurrencesOptions {
@@ -139,7 +189,7 @@ export async function expandOccurrences(
 
   return dates.slice(0, cap).map((d: Date) => ({
     ruleId: rule.id,
-    occurrenceAt: normalizeOccurrenceInstant(d, rule.timezone),
+    occurrenceAt: normalizeOccurrenceInstant(d, rule),
   }));
 }
 
@@ -160,7 +210,7 @@ export async function generateNextOccurrences(
   while (results.length < count && results.length < globalCap) {
     const nextRaw = rrule.after(cursorRaw, false);
     if (!nextRaw) break;
-    const occurrenceAt = normalizeOccurrenceInstant(nextRaw, rule.timezone);
+    const occurrenceAt = normalizeOccurrenceInstant(nextRaw, rule);
     if (rule.endsAt && occurrenceAt > rule.endsAt) break;
     results.push({ ruleId: rule.id, occurrenceAt });
     cursorRaw = nextRaw;
