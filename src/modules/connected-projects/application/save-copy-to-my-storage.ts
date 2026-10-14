@@ -11,14 +11,12 @@ import { withOrgContext } from '@/shared/auth/session';
 import { assertPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { requireConnectedDeveloperSession } from './require-connected-developer-context';
+import { CROSS_ORG_COPY_MAX_BYTES } from './save-copy-to-my-storage.constants';
 
 const inputSchema = z.object({
   contractorProjectId: z.string().uuid(),
   shareId: z.string().uuid(),
 });
-
-/** OD-70: cap cross-org copy before reading the full stream into memory. */
-export const CROSS_ORG_COPY_MAX_BYTES = 50 * 1024 * 1024;
 
 export type SaveCopyToMyStorageResult =
   | { readonly ok: true; readonly documentId: string }
