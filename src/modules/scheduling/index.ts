@@ -2,6 +2,7 @@
 
 export { listBoard } from './application/list-board';
 
+export { probeEmployeeScheduleOverlap } from './application/conflicts';
 export { createBooking, updateBooking, cancelBooking } from './application/bookings';
 export type { MutateBookingResult } from './application/bookings';
 

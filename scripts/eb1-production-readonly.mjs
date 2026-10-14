@@ -7,11 +7,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import dotenv from 'dotenv';
 import postgres from 'postgres';
-import {
-  buildJournalTagHashMap,
-  findOutOfOrderSkippedTags,
-  loadJournalEntries,
-} from '../drizzle/scripts/migration-approval-gate.ts';
+import { findOutOfOrderSkippedTags } from '../drizzle/scripts/migration-approval-gate.ts';
 
 dotenv.config();
 dotenv.config({ path: '.env.local', override: true });

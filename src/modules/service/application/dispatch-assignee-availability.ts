@@ -1,10 +1,5 @@
 import type { OrgContext } from '@/shared/auth/context';
-import { bookingOverlapsUnavailability } from '@/modules/scheduling/domain/overlap';
-import { businessDateInTimeZone } from '@/modules/scheduling/domain/windows';
-import {
-  listOverlappingBookings,
-  listOverlappingUnavailability,
-} from '@/modules/scheduling/data/scheduling.repository';
+import { probeEmployeeScheduleOverlap } from '@/modules/scheduling';
 import { findActiveWorkOrderBooking } from '@/modules/scheduling/lookups';
 import {
   dispatchAvailabilityWarnings,
@@ -29,38 +24,24 @@ export async function evaluateDispatchAssigneeAvailability(
     return [];
   }
 
-  const tz = context.organization.timezone;
-  const startDate = businessDateInTimeZone(scheduledStartAt, tz);
-  const endDate = businessDateInTimeZone(new Date(scheduledEndAt.getTime() - 1), tz);
-
-  const unavailability = await listOverlappingUnavailability(context.db, context.organizationId, {
-    employeeId: assigneeEmployeeId,
-    startDate,
-    endDate,
-  });
-  const hasUnavailability = unavailability.some((row) =>
-    bookingOverlapsUnavailability(
-      { startAt: scheduledStartAt, endAt: scheduledEndAt },
-      { startDate: row.startDate, endDate: row.endDate },
-      tz,
-    ),
-  );
-
   const existing = await findActiveWorkOrderBooking(
     context.db,
     context.organizationId,
     workOrderId,
   );
 
-  const overlappingBookings = await listOverlappingBookings(context.db, context.organizationId, {
-    employeeId: assigneeEmployeeId,
-    startAt: scheduledStartAt,
-    endAt: scheduledEndAt,
-    excludeBookingId: existing?.id,
-  });
+  const { hasUnavailability, hasOverlappingBooking } = await probeEmployeeScheduleOverlap(
+    context,
+    {
+      employeeId: assigneeEmployeeId,
+      startAt: scheduledStartAt,
+      endAt: scheduledEndAt,
+      excludeBookingId: existing?.id,
+    },
+  );
 
   return dispatchAvailabilityWarnings({
     hasUnavailability,
-    hasOverlappingBooking: overlappingBookings.length > 0,
+    hasOverlappingBooking,
   });
 }

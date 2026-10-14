@@ -8,6 +8,49 @@ import {
   listOverlappingUnavailability,
 } from '../data/scheduling.repository';
 
+/** Read-only overlap probe for other modules (e.g. dispatch advisory). */
+export async function probeEmployeeScheduleOverlap(
+  context: OrgContext,
+  input: {
+    readonly employeeId: string;
+    readonly startAt: Date;
+    readonly endAt: Date;
+    readonly excludeBookingId?: string;
+  },
+): Promise<{ readonly hasUnavailability: boolean; readonly hasOverlappingBooking: boolean }> {
+  const tz = context.organization.timezone;
+  const startDate = businessDateInTimeZone(input.startAt, tz);
+  const endDate = businessDateInTimeZone(new Date(input.endAt.getTime() - 1), tz);
+  const unavailability = await listOverlappingUnavailability(
+    context.db,
+    context.organizationId,
+    {
+      employeeId: input.employeeId,
+      startDate,
+      endDate,
+    },
+  );
+  const hasUnavailability = unavailability.some((row) =>
+    bookingOverlapsUnavailability(
+      { startAt: input.startAt, endAt: input.endAt },
+      { startDate: row.startDate, endDate: row.endDate },
+      tz,
+    ),
+  );
+
+  const overlappingBookings = await listOverlappingBookings(context.db, context.organizationId, {
+    employeeId: input.employeeId,
+    startAt: input.startAt,
+    endAt: input.endAt,
+    excludeBookingId: input.excludeBookingId,
+  });
+
+  return {
+    hasUnavailability,
+    hasOverlappingBooking: overlappingBookings.length > 0,
+  };
+}
+
 export async function assertBookingSlotAllowed(
   context: OrgContext,
   input: {
