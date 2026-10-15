@@ -1,12 +1,13 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { CadDwgSpaceSelect } from './cad-dwg-space-select';
+import { CadDwgViewerToolbar } from './cad-dwg-viewer-toolbar';
+import { cadViewportDevicePixelRatio } from './cad-viewport-dpr';
 import type { ProviderFileItem } from '@/modules/external-storage/domain/types';
 import type { StorageBrowserScope } from '@/modules/external-storage/client/storage-file-urls';
 import { StorageLoadingOverlay } from '../../storage-loading-overlay';
@@ -19,10 +20,20 @@ import {
 } from './cad-layers';
 import { attachCadViewportInteraction } from './cad-viewport-interaction';
 import { CadEngineClient, type CadLoadTimings, type ParseProgress } from './cad-engine-client';
+import { buildCadDwgBanners } from './cad-ui-messages';
+import {
+  registerCadOverlayFonts,
+  resolveCadTextFontFamily,
+} from './cad-dynamic-font-faces';
+import { drawCadText } from './draw-cad-text';
 import { createCadRenderer, type CadRendererHandle } from './pf-renderer-bridge';
-import { worldToScreen } from './renderer';
+import {
+  mergeMissingFontsIntoReport,
+  resolveCadFontsFromStorage,
+} from './font-resolver';
 import { buildStorageCadFileIndex } from './storage-cad-file-index';
-import type { CompatReport, ScenePayload } from './types';
+import { buildFileIndex, normalizeCadPath, type CadIndexedFile } from './xref-resolver';
+import type { ScenePayload } from './types';
 import type { XrefDepBytes } from './xref-resolver';
 import { yieldToMain } from './yield-to-main';
 
@@ -87,12 +98,8 @@ function scheduleIdleDraw(fn: () => void): void {
   }
 }
 
-function unresolvedXrefCount(report: CompatReport): number {
-  const total = Object.keys(report.xrefs).length;
-  if (total === 0) return 0;
-  const resolved = report.resolvedXrefs ?? 0;
-  return Math.max(0, total - resolved);
-}
+const PF_CAD_HEBREW_FONT_URL = '/pf-cad/fonts/NotoSansHebrew-Regular.ttf';
+const PF_CAD_TEXT_FONT = '"Noto Sans Hebrew", Arial, sans-serif';
 
 export function PfDwgViewer({
   url,
@@ -103,6 +110,7 @@ export function PfDwgViewer({
   siblingFiles,
   scope,
   projectId,
+  devCadIndexedFiles,
 }: {
   url: string;
   fileName: string;
@@ -112,6 +120,8 @@ export function PfDwgViewer({
   siblingFiles?: readonly ProviderFileItem[];
   scope: StorageBrowserScope;
   projectId?: string;
+  /** Dev-only: satisfy XREF/fonts without storage OAuth. */
+  devCadIndexedFiles?: readonly CadIndexedFile[];
 }) {
   return (
     <PfDwgViewerInner
@@ -123,6 +133,7 @@ export function PfDwgViewer({
       siblingFiles={siblingFiles}
       scope={scope}
       projectId={projectId}
+      devCadIndexedFiles={devCadIndexedFiles}
     />
   );
 }
@@ -135,6 +146,7 @@ function PfDwgViewerInner({
   siblingFiles,
   scope,
   projectId,
+  devCadIndexedFiles,
 }: {
   url: string;
   fileName: string;
@@ -143,7 +155,9 @@ function PfDwgViewerInner({
   siblingFiles?: readonly ProviderFileItem[];
   scope: StorageBrowserScope;
   projectId?: string;
+  devCadIndexedFiles?: readonly CadIndexedFile[];
 }) {
+  const locale = useLocale();
   const t = useTranslations('externalStorage.preview');
   const hostRef = useRef<HTMLDivElement>(null);
   const glCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -162,7 +176,12 @@ function PfDwgViewerInner({
   const [error, setError] = useState<string | null>(null);
   const [webglError, setWebglError] = useState<string | null>(null);
   const [uiLayers, setUiLayers] = useState<UiLayer[]>([]);
-  const [compat, setCompat] = useState<CompatReport | null>(null);
+  const [compat, setCompat] = useState<ScenePayload['report'] | null>(null);
+  const resolvedFontsRef = useRef<Awaited<
+    ReturnType<typeof resolveCadFontsFromStorage>
+  > | null>(null);
+  const overlayFontMapRef = useRef<Map<string, string> | null>(null);
+  const drawTextsRef = useRef<() => void>(() => {});
   const [spaces, setSpaces] = useState<string[]>([]);
   const [activeSpace, setActiveSpace] = useState('');
   const loadContextRef = useRef<{
@@ -174,20 +193,26 @@ function PfDwgViewerInner({
   const textSliceRafRef = useRef(0);
   const textScheduleRafRef = useRef(0);
 
-  const fileIndex = useMemo(
-    () =>
-      buildStorageCadFileIndex({
-        siblingFiles: siblingFiles ?? [],
-        scope,
-        projectId,
-      }),
-    [projectId, scope, siblingFiles],
-  );
+  const fileIndex = useMemo(() => {
+    if (devCadIndexedFiles && devCadIndexedFiles.length > 0) {
+      return buildFileIndex([...devCadIndexedFiles]);
+    }
+    return buildStorageCadFileIndex({
+      siblingFiles: siblingFiles ?? [],
+      scope,
+      projectId,
+    });
+  }, [devCadIndexedFiles, projectId, scope, siblingFiles]);
 
   const cancelTextDraw = useCallback(() => {
     cancelAnimationFrame(textSliceRafRef.current);
     cancelAnimationFrame(textScheduleRafRef.current);
     textDrawGenRef.current += 1;
+  }, []);
+
+  const scheduleTextRedraw = useCallback(() => {
+    cancelAnimationFrame(textScheduleRafRef.current);
+    textScheduleRafRef.current = requestAnimationFrame(() => drawTextsRef.current());
   }, []);
 
   const drawTexts = useCallback(() => {
@@ -212,28 +237,27 @@ function PfDwgViewerInner({
     for (const layer of d.scene.layers) {
       if (layer.off || layer.frozen) hidden.add(layer.i);
     }
-    const [ox, oy] = d.scene.origin;
     const texts = d.scene.texts;
     let idx = 0;
     const TEXTS_PER_SLICE = 250;
+    const styleMap = overlayFontMapRef.current;
+    const drawCtx = {
+      ctx,
+      view,
+      viewport,
+      origin: d.scene.origin,
+      fontFamily: PF_CAD_TEXT_FONT,
+      styleFontFamily: (style: string | number | undefined) =>
+        resolveCadTextFontFamily(style, styleMap, PF_CAD_TEXT_FONT),
+    };
 
     const drawSlice = () => {
       if (gen !== textDrawGenRef.current) return;
       const end = Math.min(texts.length, idx + TEXTS_PER_SLICE);
       for (; idx < end; idx += 1) {
         const tx = texts[idx]!;
-        if (hidden.has(tx.layer)) continue;
-        const [sx, sy] = worldToScreen(tx.x - ox, tx.y - oy, view, viewport);
-        const hpx = tx.h * view.zoom;
-        if (hpx < 2) continue;
-        ctx.save();
-        ctx.translate(sx, sy);
-        ctx.rotate(-tx.r);
-        ctx.fillStyle = `#${(tx.c >>> 0).toString(16).padStart(6, '0')}`;
-        ctx.font = `${hpx * 1.35}px "Noto Sans Hebrew", Arial, sans-serif`;
-        ctx.direction = 'ltr';
-        ctx.fillText(tx.t, 0, 0);
-        ctx.restore();
+        if (hidden.has(tx.layer) || tx.invisible) continue;
+        drawCadText(drawCtx, tx, view.zoom);
       }
       if (idx < texts.length && gen === textDrawGenRef.current) {
         textSliceRafRef.current = requestAnimationFrame(drawSlice);
@@ -242,6 +266,18 @@ function PfDwgViewerInner({
     drawSlice();
   }, [cancelTextDraw]);
 
+  drawTextsRef.current = drawTexts;
+
+  useEffect(() => {
+    const styleId = 'pf-cad-noto-hebrew-face';
+    if (!document.getElementById(styleId)) {
+      const style = document.createElement('style');
+      style.id = styleId;
+      style.textContent = `@font-face{font-family:"Noto Sans Hebrew";src:url("${PF_CAD_HEBREW_FONT_URL}") format("truetype");font-weight:400;font-style:normal;font-display:swap;}`;
+      document.head.appendChild(style);
+    }
+  }, []);
+
   useEffect(() => {
     if (!glCanvasRef.current || !hostRef.current) return;
     setWebglError(null);
@@ -249,6 +285,7 @@ function PfDwgViewerInner({
       rendererRef.current = createCadRenderer({
         canvas: glCanvasRef.current,
         onContextLost: () => setWebglError(safePreviewLabel(t, 'cadWebglRequired')),
+        onAfterViewChange: scheduleTextRedraw,
       });
     } catch (e) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- surface WebGL init failure once
@@ -261,17 +298,13 @@ function PfDwgViewerInner({
       const entry = entries[0];
       if (!entry || !rendererRef.current) return;
       const { width, height } = entry.contentRect;
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = cadViewportDevicePixelRatio();
       rendererRef.current.resize(width, height, dpr);
       drawTexts();
     });
     ro.observe(hostRef.current);
 
     const glCv = glCanvasRef.current;
-    const scheduleTextRedraw = () => {
-      cancelAnimationFrame(textScheduleRafRef.current);
-      textScheduleRafRef.current = requestAnimationFrame(() => drawTexts());
-    };
     const detachNav = attachCadViewportInteraction(glCv, {
       panBy: (dx, dy) => rendererRef.current?.panBy(dx, dy),
       zoomAt: (sx, sy, factor) => rendererRef.current?.zoomAt(sx, sy, factor),
@@ -285,7 +318,7 @@ function PfDwgViewerInner({
       rendererRef.current?.dispose();
       rendererRef.current = null;
     };
-  }, [cancelTextDraw, drawTexts, t]);
+  }, [cancelTextDraw, scheduleTextRedraw, t]);
 
   useEffect(() => {
     let cancelled = false;
@@ -351,19 +384,31 @@ function PfDwgViewerInner({
           fileIndex,
         });
         if (cancelled) return;
-        const payload: DrawingPayload = { scene: res.scene, segments: res.segments };
+        const fontResolve = await resolveCadFontsFromStorage({
+          fonts: res.scene.report.fonts,
+          hostPath: normalizeCadPath(fileName),
+          fileIndex,
+        });
+        resolvedFontsRef.current = fontResolve;
+        overlayFontMapRef.current = registerCadOverlayFonts(fontResolve.resolved);
+        const reportWithFonts = mergeMissingFontsIntoReport(
+          res.scene.report,
+          fontResolve.missingFonts,
+        );
+        const scene: ScenePayload = { ...res.scene, report: reportWithFonts };
+        const payload: DrawingPayload = { scene, segments: res.segments };
         drawingRef.current = payload;
-        setSpaces(res.scene.spaces ?? []);
-        setActiveSpace(res.scene.space ?? '');
-        setUiLayers(cadLayersToUi(res.scene.layers));
-        setCompat(res.scene.report);
+        setSpaces(scene.spaces ?? []);
+        setActiveSpace(scene.space ?? '');
+        setUiLayers(cadLayersToUi(scene.layers));
+        setCompat(reportWithFonts);
         cachedDepsRef.current = client.lastDeps;
         await yieldToMain();
         const tGpu0 = performance.now();
         const uiLayersInitial = cadLayersToUi(res.scene.layers);
         await rendererRef.current?.setDrawingAsync(
           res.segments,
-          res.scene.robustExtent,
+          scene.robustExtent,
           uiLayersInitial,
         );
         rendererRef.current?.fit();
@@ -409,22 +454,19 @@ function PfDwgViewerInner({
       loadContextRef.current = null;
       cachedDepsRef.current = [];
     };
-  }, [drawTexts, fileIndex, fileName, t, url]);
+  }, [devCadIndexedFiles, drawTexts, fileIndex, fileName, t, url]);
 
   const handleFitView = useCallback(() => {
     rendererRef.current?.fit();
-    drawTexts();
-  }, [drawTexts]);
+  }, []);
 
   const handleZoomIn = useCallback(() => {
     rendererRef.current?.zoom(1.25);
-    drawTexts();
-  }, [drawTexts]);
+  }, []);
 
   const handleZoomOut = useCallback(() => {
     rendererRef.current?.zoom(1 / 1.25);
-    drawTexts();
-  }, [drawTexts]);
+  }, []);
 
   const handleSpaceChange = useCallback(
     (space: string) => {
@@ -443,13 +485,25 @@ function PfDwgViewerInner({
             skipXrefClosure: true,
             cachedDeps: cachedDepsRef.current,
           });
-          const payload: DrawingPayload = { scene: res.scene, segments: res.segments };
+          const fontResolve =
+            resolvedFontsRef.current ??
+            (await resolveCadFontsFromStorage({
+              fonts: res.scene.report.fonts,
+              hostPath: normalizeCadPath(fileName),
+              fileIndex: ctx.fileIndex,
+            }));
+          const reportWithFonts = mergeMissingFontsIntoReport(
+            res.scene.report,
+            fontResolve.missingFonts,
+          );
+          const scene: ScenePayload = { ...res.scene, report: reportWithFonts };
+          const payload: DrawingPayload = { scene, segments: res.segments };
           drawingRef.current = payload;
-          setActiveSpace(res.scene.space ?? space);
-          setUiLayers(cadLayersToUi(res.scene.layers));
-          setCompat(res.scene.report);
+          setActiveSpace(scene.space ?? space);
+          setUiLayers(cadLayersToUi(scene.layers));
+          setCompat(reportWithFonts);
           await yieldToMain();
-          await rendererRef.current?.setDrawingAsync(res.segments, res.scene.robustExtent);
+          await rendererRef.current?.setDrawingAsync(res.segments, scene.robustExtent);
           rendererRef.current?.fit();
           scheduleIdleDraw(() => drawTexts());
         } finally {
@@ -484,7 +538,10 @@ function PfDwgViewerInner({
     [drawTexts],
   );
 
-  const xrefMissing = compat ? unresolvedXrefCount(compat) : 0;
+  const dwgBanners = useMemo(
+    () => (compat ? buildCadDwgBanners(compat, activeSpace) : []),
+    [activeSpace, compat],
+  );
 
   const layersPanel =
     uiLayers.length > 0 ? (
@@ -531,23 +588,19 @@ function PfDwgViewerInner({
       ) : null}
       <CadPreviewChrome
         hostRef={hostRef}
-        disclaimer={t('cadDwgPartialNotice')}
         layersPanel={layersPanel}
         onFitView={handleFitView}
         onZoomIn={handleZoomIn}
         onZoomOut={handleZoomOut}
       >
         <div className="relative size-full">
-          <div className="absolute inset-x-0 top-0 z-10 flex flex-col gap-1 px-2 py-1">
-            <CadDwgSpaceSelect
-              spaces={spaces}
-              value={activeSpace}
-              onValueChange={handleSpaceChange}
-            />
-            {xrefMissing > 0 ? (
-              <Alert tone="warning">{t('cadXrefMissing', { count: xrefMissing })}</Alert>
-            ) : null}
-          </div>
+          <CadDwgViewerToolbar
+            spaces={spaces}
+            activeSpace={activeSpace}
+            onSpaceChange={handleSpaceChange}
+            banners={dwgBanners}
+            locale={locale}
+          />
           <canvas
             ref={glCanvasRef}
             className="absolute inset-0 size-full touch-none"
@@ -556,6 +609,7 @@ function PfDwgViewerInner({
           <canvas
             ref={textCanvasRef}
             className="pointer-events-none absolute inset-0 size-full"
+            data-testid="pf-cad-text-canvas"
             aria-hidden
           />
         </div>

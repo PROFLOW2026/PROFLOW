@@ -8,6 +8,8 @@ export type CompatReport = {
   resolvedXrefs?: number;
   depthCut: number;
   parserErrors: number;
+  fonts?: Record<string, number>;
+  missingFonts?: string[];
 };
 
 export type CadLayer = {
@@ -25,9 +27,30 @@ export type CadText = {
   c: number;
   layer: number;
   t: string;
+  k?: string;
+  ix?: number;
+  iy?: number;
+  ax?: number;
+  ay?: number;
+  ha?: number;
+  va?: number;
+  wf?: number;
+  obl?: number;
+  /** Mirror in X (WASM emits boolean; legacy may use numeric scale). */
+  bx?: boolean | number;
+  /** Mirror in Y (WASM emits boolean; legacy may use numeric scale). */
+  by?: boolean | number;
+  att?: number;
+  rw?: number;
+  lsf?: number;
+  lines?: string[];
+  /** Text style name from DWG (JSON string from WASM). */
+  style?: string | number;
+  invisible?: boolean;
 };
 
 export type ScenePayload = {
+  schemaVersion?: number;
   space: string;
   origin: [number, number];
   robustExtent: [number, number, number, number];

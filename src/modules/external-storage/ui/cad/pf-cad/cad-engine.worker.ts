@@ -26,6 +26,18 @@ type WasmInitModule = {
 
 let wasm: WasmApi | null = null;
 let wasmInitMs = 0;
+let xrefDepsSig: string | null = null;
+
+function xrefDepsSignature(
+  hostPath: string | undefined,
+  deps: Array<{ path: string; bytes: ArrayBuffer }> | undefined,
+): string {
+  const parts: string[] = [hostPath ?? ''];
+  for (const dep of deps ?? []) {
+    parts.push(`${dep.path}:${dep.bytes.byteLength}`);
+  }
+  return parts.join('\0');
+}
 
 function reply(msg: WorkerOut): void {
   self.postMessage(msg);
@@ -50,18 +62,28 @@ function writeUtf8(w: WasmApi, text: string): { ptr: number; len: number } {
   return { ptr, len: bytes.length };
 }
 
-function applyXrefDeps(
-  w: WasmApi,
-  hostPath: string | undefined,
-  deps: Array<{ path: string; bytes: ArrayBuffer }> | undefined,
-): void {
-  w.clear_xref_deps();
+function setHostPath(w: WasmApi, hostPath: string | undefined): void {
   if (hostPath) {
     const hp = writeUtf8(w, hostPath);
     w.set_host_path(hp.ptr, hp.len);
   } else {
     w.set_host_path(w.alloc(0), 0);
   }
+}
+
+function applyXrefDeps(
+  w: WasmApi,
+  hostPath: string | undefined,
+  deps: Array<{ path: string; bytes: ArrayBuffer }> | undefined,
+): void {
+  const sig = xrefDepsSignature(hostPath, deps);
+  if (sig === xrefDepsSig) {
+    setHostPath(w, hostPath);
+    return;
+  }
+  xrefDepsSig = sig;
+  w.clear_xref_deps();
+  setHostPath(w, hostPath);
   for (const dep of deps ?? []) {
     const pathUtf = writeUtf8(w, dep.path);
     const data = new Uint8Array(dep.bytes);

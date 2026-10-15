@@ -30,12 +30,15 @@ export type CadRendererHandle = {
 export type CreateCadRendererOptions = {
   canvas: HTMLCanvasElement;
   onContextLost?: () => void;
+  /** Called after view-changing draw (pan/zoom/fit/resize) for overlay sync. */
+  onAfterViewChange?: () => void;
 };
 
 export function createCadRenderer(options: CreateCadRendererOptions): CadRendererHandle {
   const renderer = new CadWebGlRenderer(options.canvas, {
     onContextLost: options.onContextLost,
   });
+  const notifyViewChange = () => options.onAfterViewChange?.();
   let extent: CadExtent | null = null;
   const visibleLayers = new Set<number>();
 
@@ -52,6 +55,7 @@ export function createCadRenderer(options: CreateCadRendererOptions): CadRendere
       options.canvas.style.height = `${height}px`;
       renderer.resize(options.canvas.width, options.canvas.height);
       renderer.draw();
+      notifyViewChange();
     },
     setDrawing: (segments, ext) => {
       extent = ext;
@@ -96,6 +100,7 @@ export function createCadRenderer(options: CreateCadRendererOptions): CadRendere
       if (extent) {
         renderer.fitExtent(extent);
         renderer.draw();
+        notifyViewChange();
       }
     },
     zoom: (factor) => {
@@ -104,12 +109,14 @@ export function createCadRenderer(options: CreateCadRendererOptions): CadRendere
       const next = zoomAtScreenPoint(v, viewport, viewport.width * 0.5, viewport.height * 0.5, factor);
       renderer.setView(next);
       renderer.draw();
+      notifyViewChange();
     },
     zoomAt: (sx, sy, factor) => {
       const v = renderer.getView();
       const viewport = renderer.getViewport();
       renderer.setView(zoomAtScreenPoint(v, viewport, sx, sy, factor));
       renderer.draw();
+      notifyViewChange();
     },
     panBy: (dxPx, dyPx) => {
       const v = renderer.getView();
@@ -120,6 +127,7 @@ export function createCadRenderer(options: CreateCadRendererOptions): CadRendere
         panY: v.panY + dyPx / z,
       });
       renderer.draw();
+      notifyViewChange();
     },
     draw: () => renderer.draw(),
     getView: () => renderer.getView(),

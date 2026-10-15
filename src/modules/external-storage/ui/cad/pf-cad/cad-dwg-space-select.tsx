@@ -10,7 +10,7 @@ import {
 import { cn } from '@/shared/ui/cn';
 import { cadSpaceSelectorAriaLabel, formatCadSpaceLabel } from './cad-space-label';
 
-const triggerClass = cn(
+const defaultTriggerClass = cn(
   'h-10 min-h-10 w-full max-w-full sm:max-w-xs',
   'border border-white/30 bg-[#eef2f8] text-sm font-semibold text-[#0b1220]',
   'shadow-md hover:bg-white',
@@ -32,10 +32,12 @@ export function CadDwgSpaceSelect({
   spaces,
   value,
   onValueChange,
+  triggerClassName,
 }: {
   spaces: readonly string[];
   value: string;
   onValueChange: (space: string) => void;
+  triggerClassName?: string;
 }) {
   if (spaces.length <= 1) {
     return null;
@@ -45,7 +47,10 @@ export function CadDwgSpaceSelect({
 
   return (
     <Select value={resolved} onValueChange={onValueChange}>
-      <SelectTrigger className={triggerClass} aria-label={cadSpaceSelectorAriaLabel()}>
+      <SelectTrigger
+        className={cn(defaultTriggerClass, triggerClassName)}
+        aria-label={cadSpaceSelectorAriaLabel()}
+      >
         <SelectValue />
       </SelectTrigger>
       <SelectContent className={contentClass} position="popper">

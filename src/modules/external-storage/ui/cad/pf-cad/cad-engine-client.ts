@@ -5,6 +5,7 @@ import type {
   WorkerParseDep,
   WorkerParseOk,
 } from './types';
+import { cadDepsSignature } from './font-resolver';
 import {
   collectXrefClosure,
   normalizeCadPath,
@@ -95,6 +96,8 @@ function lerpPhase(
 export class CadEngineClient {
   /** Last XREF dependency set from closure (for layout re-parse). */
   lastDeps: XrefDepBytes[] = [];
+  /** Path+length signature last sent to the worker (skips xref re-register when unchanged). */
+  lastDepsSignature = '';
   lastTimings: CadLoadTimings | null = null;
   private worker: Worker | null = null;
   private workerReady: Promise<void> | null = null;
@@ -267,6 +270,7 @@ export class CadEngineClient {
           })());
 
     this.lastDeps = deps;
+    this.lastDepsSignature = cadDepsSignature(hostPath, deps);
     lerpPhase('parse', 0, this.callbacks);
     const id = nextId();
     const wireDeps = depsToWire(deps);
