@@ -1,16 +1,34 @@
 /** Flat segment buffer stride from pf-cad-wasm / contracts. */
-export const SEGMENT_STRIDE = 7;
+export const SEGMENT_STRIDE = 8;
+
+/** Filled triangle stride: 3 vertices + color + layer + lw + draw order. */
+export const TRIANGLE_STRIDE = 10;
 
 export type CadExtent = readonly [number, number, number, number];
 
 /** Number of line segments in a flat buffer. */
-export function segmentCount(segments: Float32Array): number {
-  if (segments.length % SEGMENT_STRIDE !== 0) {
+export function segmentCount(segments: Float32Array, stride = SEGMENT_STRIDE): number {
+  if (segments.length === 0) {
+    return 0;
+  }
+  if (segments.length % stride !== 0) {
     throw new Error(
-      `segments.length ${segments.length} is not a multiple of stride ${SEGMENT_STRIDE}`,
+      `segments.length ${segments.length} is not a multiple of stride ${stride}`,
     );
   }
-  return segments.length / SEGMENT_STRIDE;
+  return segments.length / stride;
+}
+
+export function triangleCount(triangles: Float32Array): number {
+  if (triangles.length === 0) {
+    return 0;
+  }
+  if (triangles.length % TRIANGLE_STRIDE !== 0) {
+    throw new Error(
+      `triangles.length ${triangles.length} is not a multiple of stride ${TRIANGLE_STRIDE}`,
+    );
+  }
+  return triangles.length / TRIANGLE_STRIDE;
 }
 
 /** Read packed 0xRRGGBB color stored as f32 bit pattern (wasm `f32::from_bits`). */

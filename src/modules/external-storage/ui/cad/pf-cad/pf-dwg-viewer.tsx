@@ -48,6 +48,7 @@ import { yieldToMain } from './yield-to-main';
 type DrawingPayload = {
   scene: ScenePayload;
   segments: Float32Array;
+  triangles: Float32Array;
 };
 
 const CAD_PREVIEW_LABELS = {
@@ -439,7 +440,8 @@ function PfDwgViewerInner({
           fontResolve.missingFonts,
         );
         const scene: ScenePayload = { ...res.scene, report: reportWithFonts };
-        const payload: DrawingPayload = { scene, segments: res.segments };
+        const triangles = res.triangles ?? new Float32Array(0);
+        const payload: DrawingPayload = { scene, segments: res.segments, triangles };
         drawingRef.current = payload;
         setSpaces(scene.spaces ?? []);
         setActiveSpace(scene.space ?? '');
@@ -455,6 +457,8 @@ function PfDwgViewerInner({
           fitExtent,
           uiLayersInitial,
           scene.fullExtent,
+          triangles,
+          scene.segmentStride,
         );
         rendererRef.current?.fit();
         rendererRef.current?.draw();
@@ -546,7 +550,8 @@ function PfDwgViewerInner({
             fontResolve.missingFonts,
           );
           const scene: ScenePayload = { ...res.scene, report: reportWithFonts };
-          const payload: DrawingPayload = { scene, segments: res.segments };
+          const triangles = res.triangles ?? new Float32Array(0);
+          const payload: DrawingPayload = { scene, segments: res.segments, triangles };
           drawingRef.current = payload;
           setActiveSpace(scene.space ?? space);
           setUiLayers(cadLayersToUi(scene.layers));
@@ -558,6 +563,8 @@ function PfDwgViewerInner({
             fitExtent,
             cadLayersToUi(scene.layers),
             scene.fullExtent,
+            triangles,
+            scene.segmentStride,
           );
           rendererRef.current?.fit();
           scheduleIdleDraw(() => drawTexts());
@@ -599,7 +606,8 @@ function PfDwgViewerInner({
             fontResolve?.missingFonts ?? [],
           );
           const scene: ScenePayload = { ...res.scene, report: reportWithFonts };
-          drawingRef.current = { scene, segments: res.segments };
+          const triangles = res.triangles ?? new Float32Array(0);
+          drawingRef.current = { scene, segments: res.segments, triangles };
           setUiLayers(cadLayersToUi(scene.layers));
           setCompat(reportWithFonts);
           await yieldToMain();
@@ -609,6 +617,8 @@ function PfDwgViewerInner({
             fitExtent,
             cadLayersToUi(scene.layers),
             scene.fullExtent,
+            triangles,
+            scene.segmentStride,
           );
           rendererRef.current?.draw();
           scheduleIdleDraw(() => drawTexts());

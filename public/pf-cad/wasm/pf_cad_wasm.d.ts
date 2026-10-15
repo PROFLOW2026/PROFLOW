@@ -16,6 +16,8 @@ export interface InitOutput {
     readonly set_plot_ctb: (a: number, b: number) => number;
     readonly set_plot_mode: (a: number) => void;
     readonly set_space: (a: number, b: number) => void;
+    readonly tris_len: () => number;
+    readonly tris_ptr: () => number;
     readonly __externref_table_alloc: () => number;
     readonly __wbindgen_externrefs: WebAssembly.Table;
     readonly __wbindgen_start: () => void;

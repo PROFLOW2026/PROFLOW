@@ -103,7 +103,11 @@ export function PfCadDevHarness() {
         fileIndex,
       });
       client.dispose();
-      rendererRef.current?.setDrawing(res.segments, res.scene.robustExtent);
+      rendererRef.current?.setDrawing(
+        res.segments,
+        res.scene.robustExtent,
+        res.triangles ?? new Float32Array(0),
+      );
       rendererRef.current?.fit();
       const timeToFirstFrameMs = performance.now() - loadStarted;
       const report = res.scene.report;

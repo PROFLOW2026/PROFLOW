@@ -161,7 +161,7 @@ export function drawCadText(
   let blockH: number;
   let descent: number;
   if (shx) {
-    const styleKey = tx.style;
+    const styleKey = tx.style != null ? String(tx.style) : undefined;
     const mapCode = (code: number) => resolveShxGlyphCode(styleKey, code);
     w = 0;
     for (const line of lines) {

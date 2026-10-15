@@ -66,6 +66,8 @@ export type ScenePayload = {
   fullExtent: [number, number, number, number];
   segmentCount: number;
   segmentStride: number;
+  triangleCount?: number;
+  triangleStride?: number;
   texts: CadText[];
   images?: CadRasterImage[];
   layers: CadLayer[];
@@ -74,7 +76,7 @@ export type ScenePayload = {
   error?: string;
 };
 
-export const SEGMENT_STRIDE = 7;
+export const SEGMENT_STRIDE = 8;
 
 export type WorkerParseDep = {
   path: string;
@@ -100,6 +102,7 @@ export type WorkerParseOk = {
   type: 'parse-ok';
   id: number;
   segments: Float32Array;
+  triangles: Float32Array;
   scene: ScenePayload;
   timings: { wasmInitMs: number; parseMs: number };
 };

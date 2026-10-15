@@ -9,6 +9,8 @@ type WasmApi = {
   json_len: () => number;
   json_ptr: () => number;
   segs_ptr: () => number;
+  tris_ptr: () => number;
+  tris_len: () => number;
   set_space: (ptr: number, len: number) => void;
   clear_xref_deps: () => void;
   set_host_path: (ptr: number, len: number) => void;
@@ -147,8 +149,13 @@ self.onmessage = async (event: MessageEvent<WorkerIn>) => {
     const nFloats = w.build_dl(ptr, bytes.length);
     const omitSegments = req.omitSegments === true;
     let segments = new Float32Array(0);
+    let triangles = new Float32Array(0);
     if (!omitSegments && nFloats > 0) {
       segments = new Float32Array(w.memory.buffer, w.segs_ptr(), nFloats).slice();
+      const triLen = w.tris_len();
+      if (triLen > 0) {
+        triangles = new Float32Array(w.memory.buffer, w.tris_ptr(), triLen).slice();
+      }
     }
     const scene = decodeJson(w);
     if (omitSegments) {
@@ -165,11 +172,17 @@ self.onmessage = async (event: MessageEvent<WorkerIn>) => {
       type: 'parse-ok' as const,
       id: req.id,
       segments,
+      triangles,
       scene,
       timings: { wasmInitMs, parseMs },
     };
-    const transfer: Transferable[] =
-      segments.byteLength > 0 ? [segments.buffer] : [];
+    const transfer: Transferable[] = [];
+    if (segments.byteLength > 0) {
+      transfer.push(segments.buffer);
+    }
+    if (triangles.byteLength > 0) {
+      transfer.push(triangles.buffer);
+    }
     if (transfer.length > 0) {
       (self as unknown as Worker).postMessage(payload satisfies WorkerOut, transfer);
     } else {

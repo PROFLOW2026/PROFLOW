@@ -1,10 +1,10 @@
 import {
-  buildColorLineBatches,
-  buildColorLineBatchesAsync,
-  type ColorLineBatch,
-} from './segment-batch';
+  buildOrderedDrawBatches,
+  buildOrderedDrawBatchesAsync,
+  type DrawBatch,
+} from './draw-ordered-batches';
 import { yieldToMain } from '../yield-to-main';
-import { colorBitsToRgb01 } from './segment-format';
+import { colorBitsToRgb01, SEGMENT_STRIDE } from './segment-format';
 import type { CadExtent } from './segment-format';
 import {
   normalizeLayerVisibility,
@@ -23,7 +23,7 @@ export type CadWebGlRendererOptions = {
 export const GL_RESOURCES_LOST_MESSAGE =
   'WebGL context lost — recreate GPU resources after contextrestored';
 
-type GpuBatch = ColorLineBatch & {
+type GpuBatch = DrawBatch & {
   vbo: WebGLBuffer;
 };
 
@@ -72,8 +72,10 @@ export class CadWebGlRenderer {
   } = { pan: null, zoom: null, viewport: null, color: null };
 
   private segments: Float32Array = new Float32Array(0);
+  private triangles: Float32Array = new Float32Array(0);
+  private segmentStride = SEGMENT_STRIDE;
   private layerVisibility: LayerVisibilityState = { mode: 'all' };
-  private cpuBatches: ColorLineBatch[] = [];
+  private cpuBatches: DrawBatch[] = [];
   private gpuBatches: GpuBatch[] = [];
 
   private view: CadView = { panX: 0, panY: 0, zoom: 1 };
@@ -113,14 +115,22 @@ export class CadWebGlRenderer {
     }
   }
 
-  setSegments(segments: Float32Array): void {
+  setSegments(segments: Float32Array, triangles: Float32Array = new Float32Array(0), segmentStride = SEGMENT_STRIDE): void {
     this.segments = segments;
+    this.triangles = triangles;
+    this.segmentStride = segmentStride;
     this.rebuildCpuBatches();
     this.uploadGpuBatches();
   }
 
-  async setSegmentsAsync(segments: Float32Array): Promise<void> {
+  async setSegmentsAsync(
+    segments: Float32Array,
+    triangles: Float32Array = new Float32Array(0),
+    segmentStride = SEGMENT_STRIDE,
+  ): Promise<void> {
     this.segments = segments;
+    this.triangles = triangles;
+    this.segmentStride = segmentStride;
     await this.rebuildCpuBatchesAsync();
     await yieldToMain();
     this.uploadGpuBatches();
@@ -168,17 +178,17 @@ export class CadWebGlRenderer {
     for (const batch of this.gpuBatches) {
       const [r, g, b] = colorBitsToRgb01(batch.colorBits);
       gl.uniform4f(this.uniforms.color, r, g, b, 1);
-      gl.lineWidth(batch.lineWidthPx);
       gl.bindBuffer(gl.ARRAY_BUFFER, batch.vbo);
       gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
       gl.enableVertexAttribArray(0);
-      gl.drawArrays(gl.LINES, 0, batch.vertexCount);
+      gl.drawArrays(gl.TRIANGLES, 0, batch.vertexCount);
     }
   }
 
   destroy(): void {
     this.unbindContextEvents();
     this.segments = new Float32Array(0);
+    this.triangles = new Float32Array(0);
     this.cpuBatches = [];
     this.disposeGpu();
     const gl = this.gl;
@@ -253,25 +263,29 @@ export class CadWebGlRenderer {
   }
 
   private rebuildCpuBatches(): void {
-    if (this.segments.length === 0) {
+    if (this.segments.length === 0 && this.triangles.length === 0) {
       this.cpuBatches = [];
       return;
     }
-    const { batches } = buildColorLineBatches(this.segments, this.layerVisibility, this.view.zoom);
-    this.cpuBatches = batches;
+    this.cpuBatches = buildOrderedDrawBatches(
+      this.segments,
+      this.triangles,
+      this.layerVisibility,
+      this.segmentStride,
+    );
   }
 
   private async rebuildCpuBatchesAsync(): Promise<void> {
-    if (this.segments.length === 0) {
+    if (this.segments.length === 0 && this.triangles.length === 0) {
       this.cpuBatches = [];
       return;
     }
-    const { batches } = await buildColorLineBatchesAsync(
+    this.cpuBatches = await buildOrderedDrawBatchesAsync(
       this.segments,
+      this.triangles,
       this.layerVisibility,
-      this.view.zoom,
+      this.segmentStride,
     );
-    this.cpuBatches = batches;
   }
 
   private uploadGpuBatches(): void {

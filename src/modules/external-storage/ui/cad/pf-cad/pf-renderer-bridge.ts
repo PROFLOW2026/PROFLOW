@@ -10,12 +10,14 @@ import type { UiLayer } from './cad-layers';
 export type CadRendererHandle = {
   dispose: () => void;
   resize: (width: number, height: number, dpr: number) => void;
-  setDrawing: (segments: Float32Array, extent: CadExtent) => void;
+  setDrawing: (segments: Float32Array, extent: CadExtent, triangles?: Float32Array) => void;
   setDrawingAsync: (
     segments: Float32Array,
     extent: CadExtent,
     layers?: readonly UiLayer[],
     fullExtent?: CadExtent,
+    triangles?: Float32Array,
+    segmentStride?: number,
   ) => Promise<void>;
   setLayerVisibility: (layerId: string, visible: boolean) => void;
   applyLayerVisibility: (layers: readonly UiLayer[]) => void;
@@ -62,13 +64,13 @@ export function createCadRenderer(options: CreateCadRendererOptions): CadRendere
       renderer.draw();
       notifyViewChange();
     },
-    setDrawing: (segments, ext) => {
+    setDrawing: (segments, ext, triangles = new Float32Array(0)) => {
       extent = ext;
-      renderer.setSegments(segments);
+      renderer.setSegments(segments, triangles);
       renderer.fitExtent(ext);
       renderer.draw();
     },
-    setDrawingAsync: async (segments, ext, layers, fullExt) => {
+    setDrawingAsync: async (segments, ext, layers, fullExt, triangles = new Float32Array(0), segmentStride) => {
       extent = ext;
       fullExtent = fullExt ?? ext;
       if (layers) {
@@ -80,7 +82,7 @@ export function createCadRenderer(options: CreateCadRendererOptions): CadRendere
         }
         renderer.prepareLayerVisibility(visibleLayers.size > 0 ? visibleLayers : null);
       }
-      await renderer.setSegmentsAsync(segments);
+      await renderer.setSegmentsAsync(segments, triangles, segmentStride);
       renderer.fitExtent(ext);
       renderer.draw();
     },
