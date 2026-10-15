@@ -72,7 +72,7 @@ export type ScenePayload = {
   error?: string;
 };
 
-export const SEGMENT_STRIDE = 6;
+export const SEGMENT_STRIDE = 7;
 
 export type WorkerParseDep = {
   path: string;
@@ -90,6 +90,8 @@ export type WorkerParseRequest = {
   omitSegments?: boolean;
   /** CTB-like plot preview (display only). */
   plotMode?: boolean;
+  /** Optional color-dependent plot style table bytes (from storage folder). */
+  plotCtbBytes?: ArrayBuffer;
 };
 
 export type WorkerParseOk = {

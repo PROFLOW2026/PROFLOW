@@ -17,9 +17,8 @@ describe('proxy static asset exclusions', () => {
     expect(proxyMatches('/sw.js')).toBe(false);
   });
 
-  it('does not locale-redirect CodeCAD and CAD worker assets', () => {
-    expect(proxyMatches('/cad/codecad-v0.1.0/cadview-web.js')).toBe(false);
-    expect(proxyMatches('/cad/codecad-v0.1.0/cadview-web_bg.wasm')).toBe(false);
+  it('does not locale-redirect pf-cad wasm and CAD worker assets', () => {
+    expect(proxyMatches('/pf-cad/wasm/pf_cad_wasm_bg.wasm')).toBe(false);
     expect(proxyMatches('/cad-workers/mtext-renderer-worker.js')).toBe(false);
   });
 

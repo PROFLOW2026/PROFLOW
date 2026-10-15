@@ -23,6 +23,7 @@ describe('pf-cad wasm static assets', () => {
   it('exports set_plot_mode in glue typings', () => {
     const dts = fs.readFileSync(path.join(wasmDir, 'pf_cad_wasm.d.ts'), 'utf8');
     expect(dts).toContain('set_plot_mode');
+    expect(dts).toContain('set_plot_ctb');
   });
 
   it('has a version manifest', () => {

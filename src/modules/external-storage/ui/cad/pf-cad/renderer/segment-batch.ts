@@ -2,6 +2,7 @@ import {
   SEGMENT_STRIDE,
   colorBitsFromSegmentFloat,
   layerIndexFromSegment,
+  lineWeightHundredthsFromSegment,
   segmentCount,
 } from './segment-format';
 import { isLayerVisible, type LayerVisibilityState } from './layer-visibility';
@@ -10,10 +11,22 @@ import { yieldToMain } from '../yield-to-main';
 /** GPU line batch: contiguous vec2 positions for GL.LINES (pairs of endpoints). */
 export type ColorLineBatch = {
   colorBits: number;
+  /** Screen-space line width (CSS px), derived from DWG lineweight. */
+  lineWidthPx: number;
   /** Pairs of x,y per vertex; length is multiple of 4. */
   positions: Float32Array;
   vertexCount: number;
 };
+
+function batchKey(colorBits: number, lwHundredths: number): number {
+  const bucket = Math.min(255, Math.max(1, Math.round(lwHundredths / 5)));
+  return (colorBits & 0xffffff) | (bucket << 24);
+}
+
+function lineWidthPxFromHundredths(hundredths: number, zoom: number): number {
+  const mm = hundredths / 100;
+  return Math.min(8, Math.max(1, mm * zoom * 0.35 + 0.75));
+}
 
 export type SegmentBatchResult = {
   batches: ColorLineBatch[];
@@ -30,9 +43,11 @@ const SEGMENTS_PER_YIELD = 40_000;
 export function buildColorLineBatches(
   segments: Float32Array,
   visibility: LayerVisibilityState,
+  zoom = 1,
 ): SegmentBatchResult {
   const n = segmentCount(segments);
   const floatCounts = new Map<number, number>();
+  const lwByKey = new Map<number, number>();
   let skippedByLayer = 0;
 
   for (let i = 0; i < n; i += 1) {
@@ -43,12 +58,15 @@ export function buildColorLineBatches(
       continue;
     }
     const colorBits = colorBitsFromSegmentFloat(segments[base + 4]!);
-    floatCounts.set(colorBits, (floatCounts.get(colorBits) ?? 0) + 4);
+    const lw = lineWeightHundredthsFromSegment(segments[base + 6]!);
+    const key = batchKey(colorBits, lw);
+    floatCounts.set(key, (floatCounts.get(key) ?? 0) + 4);
+    lwByKey.set(key, lw);
   }
 
   const writers = new Map<number, { positions: Float32Array; offset: number }>();
-  for (const [colorBits, len] of floatCounts) {
-    writers.set(colorBits, { positions: new Float32Array(len), offset: 0 });
+  for (const [key, len] of floatCounts) {
+    writers.set(key, { positions: new Float32Array(len), offset: 0 });
   }
 
   let drawnSegments = 0;
@@ -59,7 +77,9 @@ export function buildColorLineBatches(
       continue;
     }
     const colorBits = colorBitsFromSegmentFloat(segments[base + 4]!);
-    const w = writers.get(colorBits)!;
+    const lw = lineWeightHundredthsFromSegment(segments[base + 6]!);
+    const key = batchKey(colorBits, lw);
+    const w = writers.get(key)!;
     const o = w.offset;
     w.positions[o] = segments[base]!;
     w.positions[o + 1] = segments[base + 1]!;
@@ -70,11 +90,18 @@ export function buildColorLineBatches(
   }
 
   const batches: ColorLineBatch[] = [];
-  for (const [colorBits, w] of writers) {
+  for (const [key, w] of writers) {
     const vertexCount = w.positions.length / 2;
-    batches.push({ colorBits, positions: w.positions, vertexCount });
+    const colorBits = key & 0xffffff;
+    const lw = lwByKey.get(key) ?? 25;
+    batches.push({
+      colorBits,
+      lineWidthPx: lineWidthPxFromHundredths(lw, zoom),
+      positions: w.positions,
+      vertexCount,
+    });
   }
-  batches.sort((a, b) => a.colorBits - b.colorBits);
+  batches.sort((a, b) => a.colorBits - b.colorBits || a.lineWidthPx - b.lineWidthPx);
   return { batches, drawnSegments, skippedByLayer };
 }
 
@@ -82,13 +109,15 @@ export function buildColorLineBatches(
 export async function buildColorLineBatchesAsync(
   segments: Float32Array,
   visibility: LayerVisibilityState,
+  zoom = 1,
 ): Promise<SegmentBatchResult> {
   const n = segmentCount(segments);
   if (n <= SEGMENTS_PER_YIELD) {
-    return buildColorLineBatches(segments, visibility);
+    return buildColorLineBatches(segments, visibility, zoom);
   }
 
   const floatCounts = new Map<number, number>();
+  const lwByKey = new Map<number, number>();
   let skippedByLayer = 0;
 
   for (let start = 0; start < n; start += SEGMENTS_PER_YIELD) {
@@ -101,14 +130,17 @@ export async function buildColorLineBatchesAsync(
         continue;
       }
       const colorBits = colorBitsFromSegmentFloat(segments[base + 4]!);
-      floatCounts.set(colorBits, (floatCounts.get(colorBits) ?? 0) + 4);
+      const lw = lineWeightHundredthsFromSegment(segments[base + 6]!);
+      const key = batchKey(colorBits, lw);
+      floatCounts.set(key, (floatCounts.get(key) ?? 0) + 4);
+      lwByKey.set(key, lw);
     }
     await yieldToMain();
   }
 
   const writers = new Map<number, { positions: Float32Array; offset: number }>();
-  for (const [colorBits, len] of floatCounts) {
-    writers.set(colorBits, { positions: new Float32Array(len), offset: 0 });
+  for (const [key, len] of floatCounts) {
+    writers.set(key, { positions: new Float32Array(len), offset: 0 });
   }
 
   let drawnSegments = 0;
@@ -121,7 +153,9 @@ export async function buildColorLineBatchesAsync(
         continue;
       }
       const colorBits = colorBitsFromSegmentFloat(segments[base + 4]!);
-      const w = writers.get(colorBits)!;
+      const lw = lineWeightHundredthsFromSegment(segments[base + 6]!);
+      const key = batchKey(colorBits, lw);
+      const w = writers.get(key)!;
       const o = w.offset;
       w.positions[o] = segments[base]!;
       w.positions[o + 1] = segments[base + 1]!;
@@ -134,13 +168,16 @@ export async function buildColorLineBatchesAsync(
   }
 
   const batches: ColorLineBatch[] = [];
-  for (const [colorBits, w] of writers) {
+  for (const [key, w] of writers) {
+    const colorBits = key & 0xffffff;
+    const lw = lwByKey.get(key) ?? 25;
     batches.push({
       colorBits,
+      lineWidthPx: lineWidthPxFromHundredths(lw, zoom),
       positions: w.positions,
       vertexCount: w.positions.length / 2,
     });
   }
-  batches.sort((a, b) => a.colorBits - b.colorBits);
+  batches.sort((a, b) => a.colorBits - b.colorBits || a.lineWidthPx - b.lineWidthPx);
   return { batches, drawnSegments, skippedByLayer };
 }

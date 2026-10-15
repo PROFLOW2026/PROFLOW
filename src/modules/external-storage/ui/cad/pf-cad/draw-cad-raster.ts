@@ -12,6 +12,7 @@ export type RasterDrawContext = {
 };
 
 const imageCache = new Map<string, Promise<HTMLImageElement | null>>();
+const blobUrls = new Set<string>();
 
 function loadImage(url: string): Promise<HTMLImageElement | null> {
   let pending = imageCache.get(url);
@@ -21,6 +22,7 @@ function loadImage(url: string): Promise<HTMLImageElement | null> {
       img.crossOrigin = 'anonymous';
       img.onload = () => resolve(img);
       img.onerror = () => resolve(null);
+      if (url.startsWith('blob:')) blobUrls.add(url);
       img.src = url;
     });
     imageCache.set(url, pending);
@@ -68,4 +70,8 @@ export async function drawCadRaster(
 
 export function clearCadRasterCache(): void {
   imageCache.clear();
+  for (const url of blobUrls) {
+    URL.revokeObjectURL(url);
+  }
+  blobUrls.clear();
 }

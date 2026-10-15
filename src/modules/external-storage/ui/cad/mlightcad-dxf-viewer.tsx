@@ -10,6 +10,8 @@ import type { AcApDocManager } from '@mlightcad/cad-simple-viewer';
 import { fetchStoragePreviewBytes } from './fetch-storage-preview-bytes';
 
 const MTEXT_WORKER_URL = '/cad-workers/mtext-renderer-worker.js';
+/** Local font root — blocks default third-party CDN when no files are present yet. */
+const CAD_FONT_BASE_URL = '/pf-cad/fonts/';
 
 export function MlightcadDxfViewer({
   url,
@@ -80,12 +82,14 @@ function MlightcadDxfViewerInner({
           autoResize: true,
           builtinOpenFileDialog: false,
           disableExport: true,
+          baseUrl: CAD_FONT_BASE_URL,
           notificationCenter: { showDefaultUi: false },
           webworkerFileUrls: {
             mtextRender: workerUrl,
           },
           checkWorkersOnInit: true,
         });
+        docManager.baseUrl = CAD_FONT_BASE_URL;
 
         if (!docManager) {
           throw new Error('doc_manager_failed');

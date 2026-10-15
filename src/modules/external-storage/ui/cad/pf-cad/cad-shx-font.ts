@@ -84,6 +84,28 @@ function parseShapesPayload(bytes: Uint8Array, start: number): Map<number, ShxSe
   return glyphs;
 }
 
+/** BIGFONT 1.x: map Unicode / DBCS code → shape number in companion shapes file. */
+export function parseShxBigfontMap(bytes: Uint8Array): Map<number, number> | null {
+  const head = new TextDecoder('latin1').decode(bytes.subarray(0, Math.min(128, bytes.length)));
+  if (!head.includes('bigfont') && !head.includes('BIGFONT')) return null;
+  const map = new Map<number, number>();
+  let i = 0;
+  for (let j = 0; j < bytes.length - 1; j += 1) {
+    if (bytes[j] === 0x1a) {
+      i = j + 1;
+      break;
+    }
+  }
+  while (i + 3 < bytes.length) {
+    const code = bytes[i]! | (bytes[i + 1]! << 8);
+    const shape = bytes[i + 2]!;
+    i += 3;
+    if (code === 0 && shape === 0) break;
+    map.set(code, shape);
+  }
+  return map.size > 0 ? map : null;
+}
+
 export function parseShxFont(name: string, bytes: Uint8Array): ShxFont | null {
   if (bytes.length < 32) return null;
   if (!readHeader(bytes)) return null;
@@ -123,6 +145,7 @@ export function drawShxLine(
   text: string,
   capH: number,
   fillStyle: string,
+  mapCode: (code: number) => number = (c) => c,
 ): { width: number } {
   const scale = capH / font.height;
   ctx.strokeStyle = fillStyle;
@@ -131,7 +154,7 @@ export function drawShxLine(
   ctx.lineJoin = 'round';
   let penX = 0;
   for (const ch of text) {
-    const code = ch.charCodeAt(0);
+    const code = mapCode(ch.charCodeAt(0));
     const glyph = font.glyphs.get(code);
     if (glyph) {
       ctx.beginPath();
@@ -141,7 +164,7 @@ export function drawShxLine(
       }
       ctx.stroke();
     }
-    penX += shxGlyphAdvance(font, code) * scale;
+    penX += shxGlyphAdvance(font, mapCode(ch.charCodeAt(0))) * scale;
   }
   return { width: penX };
 }

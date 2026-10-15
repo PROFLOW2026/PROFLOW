@@ -27,6 +27,7 @@ import {
 } from './cad-dynamic-font-faces';
 import { drawCadText } from './draw-cad-text';
 import { drawCadRaster } from './draw-cad-raster';
+import { findPlotCtbBytes } from './cad-plot-ctb';
 import { clearCadShxFonts, lookupShxFont, registerCadShxFonts } from './cad-shx-registry';
 import { createCadRenderer, type CadRendererHandle } from './pf-renderer-bridge';
 import {
@@ -519,6 +520,8 @@ function PfDwgViewerInner({
       setLoadingLabel(safePreviewLabel(t, 'cadLoadingParse'));
       void (async () => {
         try {
+          const plotCtbBytes =
+            plotView ? await findPlotCtbBytes(ctx.fileIndex, fileName) : undefined;
           const res = await client.parseDwgFromStorage({
             fileName,
             hostBytes: ctx.hostBytes,
@@ -527,6 +530,7 @@ function PfDwgViewerInner({
             skipXrefClosure: true,
             cachedDeps: cachedDepsRef.current,
             plotMode: plotView,
+            plotCtbBytes,
           });
           const fontResolve =
             resolvedFontsRef.current ??
@@ -570,6 +574,7 @@ function PfDwgViewerInner({
       setLoadingLabel(safePreviewLabel(t, 'cadLoadingParse'));
       void (async () => {
         try {
+          const plotCtbBytes = on ? await findPlotCtbBytes(ctx.fileIndex, fileName) : undefined;
           const res = await client.parseDwgFromStorage({
             fileName,
             hostBytes: ctx.hostBytes,
@@ -578,6 +583,7 @@ function PfDwgViewerInner({
             skipXrefClosure: true,
             cachedDeps: cachedDepsRef.current,
             plotMode: on,
+            plotCtbBytes,
           });
           const fontResolve = resolvedFontsRef.current;
           const reportWithFonts = mergeMissingFontsIntoReport(

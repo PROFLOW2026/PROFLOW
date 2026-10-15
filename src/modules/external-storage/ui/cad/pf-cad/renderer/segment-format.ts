@@ -1,5 +1,5 @@
 /** Flat segment buffer stride from pf-cad-wasm / contracts. */
-export const SEGMENT_STRIDE = 6;
+export const SEGMENT_STRIDE = 7;
 
 export type CadExtent = readonly [number, number, number, number];
 
@@ -23,6 +23,11 @@ export function colorBitsFromSegmentFloat(colorField: number): number {
 /** Normalize layer index field (stored as f32). */
 export function layerIndexFromSegment(layerField: number): number {
   return Math.trunc(layerField);
+}
+
+/** Line weight in 1/100 mm (from wasm stride field 6). */
+export function lineWeightHundredthsFromSegment(lwField: number): number {
+  return lwField > 0 ? lwField : 25;
 }
 
 export function colorBitsToRgb01(colorBits: number): [number, number, number] {

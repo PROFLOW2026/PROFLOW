@@ -168,6 +168,7 @@ export class CadWebGlRenderer {
     for (const batch of this.gpuBatches) {
       const [r, g, b] = colorBitsToRgb01(batch.colorBits);
       gl.uniform4f(this.uniforms.color, r, g, b, 1);
+      gl.lineWidth(batch.lineWidthPx);
       gl.bindBuffer(gl.ARRAY_BUFFER, batch.vbo);
       gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
       gl.enableVertexAttribArray(0);
@@ -256,7 +257,7 @@ export class CadWebGlRenderer {
       this.cpuBatches = [];
       return;
     }
-    const { batches } = buildColorLineBatches(this.segments, this.layerVisibility);
+    const { batches } = buildColorLineBatches(this.segments, this.layerVisibility, this.view.zoom);
     this.cpuBatches = batches;
   }
 
@@ -265,7 +266,11 @@ export class CadWebGlRenderer {
       this.cpuBatches = [];
       return;
     }
-    const { batches } = await buildColorLineBatchesAsync(this.segments, this.layerVisibility);
+    const { batches } = await buildColorLineBatchesAsync(
+      this.segments,
+      this.layerVisibility,
+      this.view.zoom,
+    );
     this.cpuBatches = batches;
   }
 

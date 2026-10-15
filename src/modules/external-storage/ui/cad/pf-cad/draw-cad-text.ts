@@ -3,6 +3,7 @@ import type { CadView } from './renderer';
 import { worldToScreen } from './renderer';
 import { maybeDecodeHebrewShxText } from './hebrew-shx-decode';
 import { drawShxLine, measureShxTextWidth, type ShxFont } from './cad-shx-font';
+import { resolveShxGlyphCode } from './cad-shx-registry';
 
 export const CAP_HEIGHT_RATIO = 0.714;
 export const FONT_SIZE_FACTOR = 1 / CAP_HEIGHT_RATIO;
@@ -201,7 +202,9 @@ export function drawCadText(
       const y = i * spacing;
       draw.ctx.save();
       draw.ctx.translate(anchorX, y);
-      drawShxLine(draw.ctx, shx, lines[i]!, capH, fillStyle);
+      const styleKey = tx.style != null ? String(tx.style) : undefined;
+      const mapCode = (code: number) => resolveShxGlyphCode(styleKey, code);
+      drawShxLine(draw.ctx, shx, lines[i]!, capH, fillStyle, mapCode);
       draw.ctx.restore();
     }
   } else {
