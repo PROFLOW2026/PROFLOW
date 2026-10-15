@@ -1,6 +1,5 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
 import {
   Select,
   SelectContent,
@@ -38,7 +37,6 @@ export function CadDwgSpaceSelect({
   value: string;
   onValueChange: (space: string) => void;
 }) {
-  const t = useTranslations('externalStorage.preview');
   if (spaces.length <= 1) {
     return null;
   }
@@ -47,13 +45,13 @@ export function CadDwgSpaceSelect({
 
   return (
     <Select value={resolved} onValueChange={onValueChange}>
-      <SelectTrigger className={triggerClass} aria-label={cadSpaceSelectorAriaLabel(t)}>
+      <SelectTrigger className={triggerClass} aria-label={cadSpaceSelectorAriaLabel()}>
         <SelectValue />
       </SelectTrigger>
       <SelectContent className={contentClass} position="popper">
         {spaces.map((sp) => (
           <SelectItem key={sp} value={sp} className={itemClass}>
-            {formatCadSpaceLabel(sp, t)}
+            {formatCadSpaceLabel(sp)}
           </SelectItem>
         ))}
       </SelectContent>

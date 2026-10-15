@@ -169,6 +169,10 @@ function PfDwgViewerInner({
     hostBytes: Uint8Array;
     fileIndex: ReturnType<typeof buildStorageCadFileIndex>;
   } | null>(null);
+  /** Bumps when a new text pass starts; stale rAF slices exit without drawing. */
+  const textDrawGenRef = useRef(0);
+  const textSliceRafRef = useRef(0);
+  const textScheduleRafRef = useRef(0);
 
   const fileIndex = useMemo(
     () =>
@@ -180,7 +184,15 @@ function PfDwgViewerInner({
     [projectId, scope, siblingFiles],
   );
 
+  const cancelTextDraw = useCallback(() => {
+    cancelAnimationFrame(textSliceRafRef.current);
+    cancelAnimationFrame(textScheduleRafRef.current);
+    textDrawGenRef.current += 1;
+  }, []);
+
   const drawTexts = useCallback(() => {
+    cancelTextDraw();
+    const gen = textDrawGenRef.current;
     const d = drawingRef.current;
     const textCv = textCanvasRef.current;
     const glCv = glCanvasRef.current;
@@ -206,6 +218,7 @@ function PfDwgViewerInner({
     const TEXTS_PER_SLICE = 250;
 
     const drawSlice = () => {
+      if (gen !== textDrawGenRef.current) return;
       const end = Math.min(texts.length, idx + TEXTS_PER_SLICE);
       for (; idx < end; idx += 1) {
         const tx = texts[idx]!;
@@ -222,12 +235,12 @@ function PfDwgViewerInner({
         ctx.fillText(tx.t, 0, 0);
         ctx.restore();
       }
-      if (idx < texts.length) {
-        requestAnimationFrame(drawSlice);
+      if (idx < texts.length && gen === textDrawGenRef.current) {
+        textSliceRafRef.current = requestAnimationFrame(drawSlice);
       }
     };
     drawSlice();
-  }, []);
+  }, [cancelTextDraw]);
 
   useEffect(() => {
     if (!glCanvasRef.current || !hostRef.current) return;
@@ -255,10 +268,9 @@ function PfDwgViewerInner({
     ro.observe(hostRef.current);
 
     const glCv = glCanvasRef.current;
-    let textRaf = 0;
     const scheduleTextRedraw = () => {
-      cancelAnimationFrame(textRaf);
-      textRaf = requestAnimationFrame(() => drawTexts());
+      cancelAnimationFrame(textScheduleRafRef.current);
+      textScheduleRafRef.current = requestAnimationFrame(() => drawTexts());
     };
     const detachNav = attachCadViewportInteraction(glCv, {
       panBy: (dx, dy) => rendererRef.current?.panBy(dx, dy),
@@ -269,11 +281,11 @@ function PfDwgViewerInner({
     return () => {
       ro.disconnect();
       detachNav();
-      cancelAnimationFrame(textRaf);
+      cancelTextDraw();
       rendererRef.current?.dispose();
       rendererRef.current = null;
     };
-  }, [drawTexts, t]);
+  }, [cancelTextDraw, drawTexts, t]);
 
   useEffect(() => {
     let cancelled = false;
