@@ -143,6 +143,14 @@
   "warnings": {
     "quoteArtifactRelocateSkipped": "העבודה נוצרה, אך {count, plural, one {קובץ PDF # מההצעה} other {# קבצי PDF מההצעה}} לא הועברו לתיקיית הפרויקט ({reasons})."
   },
+  "linkedTasks": {
+    "title": "משימות מקושרות",
+    "empty": "אין משימות מקושרות להצעה זו.",
+    "taskPickerLabel": "משימה",
+    "taskPickerPlaceholder": "בחר משימה…",
+    "noTasksAvailable": "אין משימות לקישור",
+    "linkButton": "קשר משימה"
+  },
   "errors": {
     "invalidTransition": "לא ניתן לשנות לסטטוס הזה",
     "notEditable": "ניתן לערוך רק טיוטה או מוכן",

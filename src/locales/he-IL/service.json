@@ -274,5 +274,13 @@
       "ended": "החוזרות הסתיימו.",
       "skipped": "המופע דולג."
     }
+  },
+  "linkedTasks": {
+    "title": "משימות מקושרות",
+    "empty": "אין משימות מקושרות להזמנת עבודה זו.",
+    "taskPickerLabel": "משימה",
+    "taskPickerPlaceholder": "בחר משימה…",
+    "noTasksAvailable": "אין משימות לקישור",
+    "linkButton": "קשר משימה"
   }
 }

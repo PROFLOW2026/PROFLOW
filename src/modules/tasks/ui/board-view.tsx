@@ -500,6 +500,8 @@ export interface BoardViewProps {
   ) => void | Promise<void>;
   onReassign?: (taskId: string, assigneeKey: string | null) => void | Promise<void>;
   onChangePriority?: (taskId: string, priority: TaskPriority) => void | Promise<void>;
+  /** When false, hides duplicate filter chips (URL-backed filters on board pages). */
+  showInlineFilters?: boolean;
 }
 
 export function BoardView({
@@ -510,6 +512,7 @@ export function BoardView({
   onMoveTask,
   onReassign,
   onChangePriority,
+  showInlineFilters = true,
 }: BoardViewProps) {
   const t = useTranslations('tasks');
   const baseDragEnabled = useDesktopBoardDrag();
@@ -654,7 +657,7 @@ export function BoardView({
       <div className="flex min-w-0 max-w-full flex-wrap items-center gap-2">
         <GroupByToggle value={groupBy} onChange={setGroupBy} />
 
-        {/* Filter chips */}
+        {showInlineFilters ? (
         <div className="flex w-full min-w-0 flex-wrap items-center gap-2 md:ms-auto md:w-auto">
           <button
             type="button"
@@ -694,6 +697,7 @@ export function BoardView({
             </button>
           )}
         </div>
+        ) : null}
       </div>
 
       {/* Board columns (horizontal scroll on desktop, single column on mobile) */}

@@ -45,6 +45,9 @@ export default async function WorkListPage({ searchParams }: WorkListPageProps) 
   }
 
   const filterQuery = compactWorkTaskQuery(params);
+  const archivedView = filterQuery.archived === '1' || filterQuery.archived === 'true';
+  const canAssign = shell.permissions.has(PERMISSIONS.TASKS_ASSIGN);
+  const canArchive = shell.permissions.has(PERMISSIONS.TASKS_DELETE);
 
   const { table, clients, today } = await withOrgContext(async (context) => {
     const todayLocal = todayInTimeZone(context.organization.timezone);
@@ -87,6 +90,9 @@ export default async function WorkListPage({ searchParams }: WorkListPageProps) 
         onLoadTaskDetail={getTaskDetailAction}
         onUpdateTask={updateTaskFieldsAction}
         onBulkUpdate={bulkUpdateTasksAction}
+        canAssign={canAssign}
+        canArchive={canArchive}
+        archivedView={archivedView}
       />
     </div>
   );

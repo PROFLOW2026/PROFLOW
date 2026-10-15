@@ -143,6 +143,14 @@
   "warnings": {
     "quoteArtifactRelocateSkipped": "Работа создана, но {count, plural, one {# PDF из сметы} other {# PDF из сметы}} не перенесены в папку проекта ({reasons})."
   },
+  "linkedTasks": {
+    "title": "Связанные задачи",
+    "empty": "К этой смете пока не привязаны задачи.",
+    "taskPickerLabel": "Задача",
+    "taskPickerPlaceholder": "Выберите задачу…",
+    "noTasksAvailable": "Нет задач для привязки",
+    "linkButton": "Привязать задачу"
+  },
   "errors": {
     "invalidTransition": "Это изменение статуса не разрешено",
     "notEditable": "Редактировать можно только черновики или готовые сметы",

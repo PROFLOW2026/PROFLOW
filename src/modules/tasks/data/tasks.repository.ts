@@ -289,6 +289,16 @@ export interface TaskListPage {
   readonly hasMore: boolean;
 }
 
+function pushTaskArchiveFilter(conditions: unknown[], filters: TaskListFilters): void {
+  if (filters.archivedOnly) {
+    conditions.push(eq(tasks.isArchived, true));
+    return;
+  }
+  if (!filters.includeArchived) {
+    conditions.push(eq(tasks.isArchived, false));
+  }
+}
+
 function buildTaskListOrderClauses(
   filters: TaskListFilters,
 ): Array<ReturnType<typeof asc> | ReturnType<typeof desc> | ReturnType<typeof sql>> {
@@ -364,9 +374,7 @@ export async function listTasksPage(
     inArray(tasks.workspaceId, workspaceIds),
   ];
 
-  if (!filters.includeArchived) {
-    conditions.push(eq(tasks.isArchived, false));
-  }
+  pushTaskArchiveFilter(conditions, filters);
 
   if (filters.status && filters.status !== 'all') {
     conditions.push(eq(tasks.status, filters.status));
@@ -511,9 +519,7 @@ export async function countTasksMatching(
     inArray(tasks.workspaceId, workspaceIds),
   ];
 
-  if (!filters.includeArchived) {
-    conditions.push(eq(tasks.isArchived, false));
-  }
+  pushTaskArchiveFilter(conditions, filters);
 
   if (filters.status && filters.status !== 'all') {
     conditions.push(eq(tasks.status, filters.status));

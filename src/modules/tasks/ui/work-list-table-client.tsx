@@ -20,6 +20,9 @@ export interface WorkListTableClientProps {
     taskIds: string[],
     patch: Record<string, unknown>,
   ) => Promise<{ updated: number; failed: readonly { id: string; reason: string }[] }>;
+  canAssign?: boolean;
+  canArchive?: boolean;
+  archivedView?: boolean;
 }
 
 export function WorkListTableClient({
@@ -31,6 +34,9 @@ export function WorkListTableClient({
   onLoadTaskDetail,
   onUpdateTask,
   onBulkUpdate,
+  canAssign = false,
+  canArchive = false,
+  archivedView = false,
 }: WorkListTableClientProps) {
   const [tasks, setTasks] = useState(initialTasks);
   const [hasMore, setHasMore] = useState(initialHasMore);
@@ -44,6 +50,9 @@ export function WorkListTableClient({
       onLoadTaskDetail={onLoadTaskDetail}
       onUpdateTask={onUpdateTask}
       onBulkUpdate={onBulkUpdate}
+      canAssign={canAssign}
+      canArchive={canArchive}
+      archivedView={archivedView}
       onTaskPatched={(taskId, patch) => {
         setTasks((prev) => prev.map((row) => (row.id === taskId ? { ...row, ...patch } : row)));
       }}

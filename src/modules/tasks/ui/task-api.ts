@@ -90,6 +90,7 @@ export interface TaskCardData {
   boardName: string | null;
   createdAt: string;
   updatedAt: string;
+  isArchived?: boolean;
 }
 
 /**
@@ -122,11 +123,19 @@ export interface TaskTemplateUi {
   itemCount: number;
 }
 
+export interface TaskLabelAssignmentUi {
+  readonly id: string;
+  readonly name: string;
+  readonly color: string | null;
+}
+
 export interface TaskDetail extends TaskCardData {
   /** Sum of recorded time_entries.hours where task_id matches (read-only attribution). */
   reportedHours?: string | null;
+  /** Org label assignments (ids for add/remove actions). */
+  labelAssignments: TaskLabelAssignmentUi[];
   /** Checklist items from Agent A's TaskChecklistItem[] */
-  checklist: { id: string; title: string; done: boolean }[];
+  checklist: { id: string; title: string; done: boolean; sortKey: string }[];
   /** Documents linked via document_links(owner_type = task). */
   attachments: { id: string; name: string; url: string; size: number; linkId?: string | null }[];
   /** Placeholder for Agent E's comments component */
@@ -240,6 +249,7 @@ export function mapTaskToCardData(
     boardName: enrichment?.boardName ?? null,
     createdAt: task.createdAt instanceof Date ? task.createdAt.toISOString() : String(task.createdAt),
     updatedAt: task.updatedAt instanceof Date ? task.updatedAt.toISOString() : String(task.updatedAt),
+    isArchived: task.isArchived,
   };
 }
 
@@ -287,13 +297,23 @@ export function mapTaskDetailToUi(
     attachments?: TaskDetail['attachments'];
   },
 ): TaskDetail {
+  const labelAssignments: TaskLabelAssignmentUi[] = detail.labels.map((label) => ({
+    id: label.id,
+    name: label.name,
+    color: label.color,
+  }));
   return {
-    ...mapTaskToCardData(detail, enrichment),
+    ...mapTaskToCardData(detail, {
+      ...enrichment,
+      labels: enrichment?.labels ?? labelAssignments.map((label) => label.name),
+    }),
     reportedHours: enrichment?.reportedHours ?? null,
+    labelAssignments,
     checklist: detail.checklistItems.map((ci) => ({
       id: ci.id,
       title: ci.title,
       done: ci.isDone,
+      sortKey: ci.sortKey,
     })),
     attachments: enrichment?.attachments ?? [],
     comments: [],

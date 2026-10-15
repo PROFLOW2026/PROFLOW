@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { useRouter } from '@/shared/i18n/navigation';
 import { useTranslations } from 'next-intl';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -30,6 +31,7 @@ export function ProjectTasksClient({
   syncAssignees,
   assigneeOptions = [],
   canAssign = false,
+  canArchive = false,
   today,
   initialCreateOpen = false,
 }: {
@@ -45,9 +47,11 @@ export function ProjectTasksClient({
   ) => Promise<void>;
   assigneeOptions?: TaskAssigneePickerOption[];
   canAssign?: boolean;
+  canArchive?: boolean;
   today: string;
   initialCreateOpen?: boolean;
 }) {
+  const router = useRouter();
   const t = useTranslations('tasks');
   const [, startTransition] = useTransition();
   const [tasks, setTasks] = useState(initialTasks);
@@ -144,6 +148,8 @@ export function ProjectTasksClient({
         today={today}
         canPostpone
         timeLogBasePath="/workforce/time/new"
+        canArchive={canArchive}
+        onTaskArchived={() => router.refresh()}
       />
 
       <Sheet open={createSheetOpen} onOpenChange={setCreateSheetOpen}>

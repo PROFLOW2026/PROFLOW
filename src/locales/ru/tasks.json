@@ -11,6 +11,12 @@
       "project_linked": "Проект",
       "org_internal": "Внутреннее",
       "team": "Команда"
+    },
+    "create": {
+      "title": "Создать рабочее пространство",
+      "nameLabel": "Название",
+      "typeLabel": "Тип",
+      "submit": "Создать рабочее пространство"
     }
   },
   "board": {
@@ -145,8 +151,24 @@
     "relations": {
       "follow_up": "Дальнейшие действия",
       "remediation": "Исправление",
-      "schedule_link": "Связь с графиком"
+      "schedule_link": "Связь с графиком",
+      "milestone": "Веха",
+      "related": "Связано"
     }
+  },
+  "detailHub": {
+    "navLabel": "Ярлыки центра задачи",
+    "project": "Проект",
+    "reportedHours": "Учтённые часы",
+    "jumpComments": "Комментарии",
+    "jumpActivity": "Активность"
+  },
+  "boardFilters": {
+    "allBuckets": "Все столбцы",
+    "assignee": "Исполнитель",
+    "allAssignees": "Все исполнители",
+    "label": "Метка",
+    "allLabels": "Все метки"
   },
   "portfolio": {
     "pageTitle": "Портфель проектов",
@@ -556,6 +578,7 @@
   "saveFailed": "Не удалось сохранить изменения",
   "pendingChanges": "Есть несохранённые изменения",
   "close": "Закрыть",
+  "archivedTaskNotice": "Эта задача в архиве. Можно просмотреть детали и восстановить; редактирование недоступно до восстановления.",
   "saving": "Сохранение...",
   "taskEntityLabel": "Задача",
   "unassigned": "Не назначено",
@@ -620,7 +643,8 @@
     "allPriorities": "Все приоритеты",
     "overdueOnly": "Только просроченные",
     "blockedOnly": "Только заблокированные",
-    "noProjectOnly": "Без проекта"
+    "noProjectOnly": "Без проекта",
+    "archivedOnly": "Только архивные задачи"
   },
   "calendar": {
     "pageTitle": "Календарь задач",
@@ -777,7 +801,31 @@
     "approvalRequiredBeforeDone": "Эта задача требует утверждения руководителя перед завершением.",
     "approvalNotRequired": "Эта задача не требует утверждения."
   },
+  "planningVsTasks": {
+    "hint": "Планирование (график, Gantt) отделено от задач UWM (исполнение, исполнители, Kanban).",
+    "openPlanning": "Открыть график",
+    "openTasks": "Открыть задачи проекта",
+    "openTaskList": "Открыть список задач"
+  },
+  "checklistSection": {
+    "moveUp": "Переместить вверх",
+    "moveDown": "Переместить вниз",
+    "removeItem": "Удалить пункт"
+  },
+  "labelsSection": {
+    "add": "Добавить метку",
+    "noneAvailable": "Нет меток для добавления"
+  },
+  "bucketsPanel": {
+    "title": "Столбцы доски",
+    "summary": "Создание, переименование и порядок столбцов",
+    "taskCount": "{count} задач"
+  },
   "actions": {
+    "archiveConfirm": "Архивировать эту задачу?",
+    "archiveSuccess": "Задача архивирована",
+    "unarchive": "Восстановить из архива",
+    "unarchiveSuccess": "Задача восстановлена из архива",
     "duplicate": "Дублировать задачу",
     "moveCopy": "Перенести / копировать",
     "saveAsTemplate": "Сохранить как шаблон",

@@ -87,5 +87,11 @@ export function parseWorkTaskListFilters(
     filters.sort = { field: q.sortField as TaskListSortField, direction };
   }
 
+  const archivedOnly = parseBoolFlag(q.archived);
+  if (archivedOnly === true) {
+    filters.archivedOnly = true;
+    filters.includeArchived = true;
+  }
+
   return filters as TaskListFilters;
 }

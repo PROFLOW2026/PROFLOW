@@ -16,9 +16,12 @@ import type { TaskCardData, TaskDetail } from './task-api';
 import {
   loadMoreAccessibleTasksAction,
   loadMoreWorkLensTasksAction,
+  loadTaskGanttDependenciesAction,
   type WorkActionState,
 } from '@/app/[locale]/(app)/work/actions';
 import { TASK_LIST_MAX_LIMIT } from '@/modules/tasks/domain/list-window';
+import { mergeTaskCardsById } from '../application/merge-task-cards-for-ui';
+import type { TaskGanttDependencyEdge } from './task-timeline-gantt';
 
 export interface TaskWorkSurfaceClientProps {
   tasks: TaskCardData[];
@@ -44,6 +47,8 @@ export interface TaskWorkSurfaceClientProps {
   projectId?: string;
   getTaskDetail: (taskId: string) => Promise<TaskDetail | null>;
   updateTask: (taskId: string, data: Record<string, unknown>) => Promise<WorkActionState>;
+  canAssign?: boolean;
+  canArchive?: boolean;
 }
 
 export function TaskWorkSurfaceClient({
@@ -64,6 +69,8 @@ export function TaskWorkSurfaceClient({
   projectId,
   getTaskDetail,
   updateTask,
+  canAssign = false,
+  canArchive = false,
 }: TaskWorkSurfaceClientProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -82,6 +89,7 @@ export function TaskWorkSurfaceClient({
   const [unscheduledTasks, setUnscheduledTasks] = useState<TaskCardData[]>(initialUnscheduled);
   const [unscheduledHasMore, setUnscheduledHasMore] = useState(initialUnscheduledHasMore);
   const [loadingUnscheduled, setLoadingUnscheduled] = useState(false);
+  const [ganttDependencies, setGanttDependencies] = useState<TaskGanttDependencyEdge[]>([]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- reset scheduled list when server props refresh
@@ -100,6 +108,23 @@ export function TaskWorkSurfaceClient({
     () => (useLocalFilters ? applyClientTaskFilters(allTasks, filters, today) : allTasks),
     [allTasks, filters, today, useLocalFilters],
   );
+
+  useEffect(() => {
+    if (viewMode !== 'timeline') return;
+    const ids = filteredTasks.map((task) => task.id);
+    let cancelled = false;
+    void (async () => {
+      if (ids.length === 0) {
+        if (!cancelled) setGanttDependencies([]);
+        return;
+      }
+      const rows = await loadTaskGanttDependenciesAction(ids);
+      if (!cancelled) setGanttDependencies(rows);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [filteredTasks, viewMode]);
 
   const handleMonthKeyChange = useCallback(
     (monthKey: string) => {
@@ -125,7 +150,7 @@ export function TaskWorkSurfaceClient({
         : await loadMoreWorkLensTasksAction(allTasks.length, workLensFilterQuery ?? {}, {
             excludeCancelled: loadMoreExcludeCancelled,
           });
-      setExtraTasks((prev) => [...prev, ...page.tasks]);
+      setExtraTasks((prev) => mergeTaskCardsById(prev, page.tasks));
       setHasMore(page.hasMore);
     } finally {
       setLoadingMore(false);
@@ -233,6 +258,7 @@ export function TaskWorkSurfaceClient({
           onUpdateDueDate={handleUpdateDueDate}
           showProject={showProject}
           today={today}
+          ganttDependencies={ganttDependencies}
         />
       )}
 
@@ -247,6 +273,13 @@ export function TaskWorkSurfaceClient({
           }
         }}
         onUpdate={handleUpdate}
+        onRefresh={async (taskId) => {
+          const detail = await getTaskDetail(taskId);
+          if (detail) setTaskDetail(detail);
+        }}
+        canAssign={canAssign}
+        canArchive={canArchive}
+        onTaskArchived={() => router.refresh()}
       />
     </div>
   );

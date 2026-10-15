@@ -1,7 +1,7 @@
 import 'server-only';
 
 import { and, eq, isNull } from 'drizzle-orm';
-import { planningWorkItems } from '@drizzle/schema';
+import { planningWorkItems, projectMilestones } from '@drizzle/schema';
 import { listTaskEntityLinks } from '@/modules/collaboration';
 import type { OrgContext } from '@/shared/auth/context';
 import { assertPermission } from '@/shared/permissions/assert';
@@ -31,7 +31,20 @@ export async function listTaskRelatedWork(
 
   const projectId = task.projectId;
 
-  const [links, planningRows] = await Promise.all([
+  const milestonePromise = task.milestoneId
+    ? context.db
+        .select({ id: projectMilestones.id, name: projectMilestones.name, projectId: projectMilestones.projectId })
+        .from(projectMilestones)
+        .where(
+          and(
+            eq(projectMilestones.organizationId, context.organizationId),
+            eq(projectMilestones.id, task.milestoneId),
+          ),
+        )
+        .limit(1)
+    : Promise.resolve([]);
+
+  const [links, planningRows, milestoneRows] = await Promise.all([
     listTaskEntityLinks(context.db, context.organizationId, taskId),
     context.db
       .select({ id: planningWorkItems.id, name: planningWorkItems.name, projectId: planningWorkItems.projectId })
@@ -44,6 +57,7 @@ export async function listTaskRelatedWork(
         ),
       )
       .limit(20),
+    milestonePromise,
   ]);
 
   const entries: TaskRelatedWorkEntry[] = [];
@@ -79,6 +93,21 @@ export async function listTaskRelatedWork(
       href,
       relation: 'schedule_link',
     });
+  }
+
+  const milestone = milestoneRows[0];
+  if (milestone) {
+    const href = hrefForRelatedEntity('project_milestone', milestone.id, milestone.projectId);
+    if (href) {
+      entries.push({
+        id: `milestone:${milestone.id}`,
+        kind: 'entity_link',
+        entityType: 'project_milestone',
+        label: milestone.name,
+        href,
+        relation: 'milestone',
+      });
+    }
   }
 
   return entries;

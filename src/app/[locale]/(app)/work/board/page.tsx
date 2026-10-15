@@ -83,6 +83,8 @@ export default async function GlobalBoardPage({ searchParams }: WorkLensPageProp
         loadMoreExcludeCancelled
         onLoadTaskDetail={getTaskDetailAction}
         onUpdateTask={updateTaskFieldsAction}
+        canAssign={shell.permissions.has(PERMISSIONS.TASKS_ASSIGN)}
+        canArchive={shell.permissions.has(PERMISSIONS.TASKS_DELETE)}
       />
     </div>
   );

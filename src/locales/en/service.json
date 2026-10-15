@@ -274,5 +274,13 @@
       "ended": "Recurrence ended.",
       "skipped": "Occurrence skipped."
     }
+  },
+  "linkedTasks": {
+    "title": "Linked tasks",
+    "empty": "No tasks linked to this work order yet.",
+    "taskPickerLabel": "Task",
+    "taskPickerPlaceholder": "Select a task…",
+    "noTasksAvailable": "No linkable tasks",
+    "linkButton": "Link task"
   }
 }

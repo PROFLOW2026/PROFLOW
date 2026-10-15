@@ -24,7 +24,9 @@ import {
   SheetBody,
 } from '@/components/ui/sheet';
 import { useToast } from '@/components/ui/toast';
+import { BoardBucketsPanel } from '@/modules/tasks/ui/board-buckets-panel';
 import { BoardView } from '@/modules/tasks/ui/board-view';
+import { BoardTaskLoadMore, mergeTaskCardsById } from '@/modules/tasks/ui/board-task-load-more';
 import { TaskDetailSheet } from '@/modules/tasks/ui/task-detail-sheet';
 import { TaskCreateForm } from '@/modules/tasks/ui/task-create-form';
 import type {
@@ -61,6 +63,10 @@ export interface ProjectBoardShellProps {
   };
   assigneeOptions?: TaskAssigneePickerOption[];
   canAssign?: boolean;
+  canArchive?: boolean;
+  canManageBuckets?: boolean;
+  initialHasMore?: boolean;
+  loadMoreBoardTasks?: (offset: number) => Promise<{ tasks: TaskCardData[]; hasMore: boolean }>;
 }
 
 export function ProjectBoardShell({
@@ -73,7 +79,11 @@ export function ProjectBoardShell({
   actions,
   assigneeOptions = [],
   canAssign = false,
+  canArchive = false,
+  canManageBuckets = false,
   today,
+  initialHasMore = false,
+  loadMoreBoardTasks,
 }: ProjectBoardShellProps & { today: string }) {
   const t = useTranslations('tasks');
   const router = useRouter();
@@ -213,6 +223,23 @@ export function ProjectBoardShell({
         </Button>
       </div>
 
+      <BoardBucketsPanel
+        boardId={activeBoard.id}
+        buckets={buckets}
+        canManage={canManageBuckets}
+      />
+
+      {loadMoreBoardTasks ? (
+        <BoardTaskLoadMore
+          initialHasMore={initialHasMore}
+          taskCount={boardTasks.length}
+          onLoadMore={loadMoreBoardTasks}
+          onTasksAppended={(incoming) => {
+            setBoardTasks((prev) => mergeTaskCardsById(prev, incoming));
+          }}
+        />
+      ) : null}
+
       <BoardView
         buckets={buckets}
         initialTasks={boardTasks}
@@ -221,6 +248,7 @@ export function ProjectBoardShell({
         onMoveTask={handleMoveTask}
         onReassign={canAssign ? handleReassign : undefined}
         onChangePriority={handleChangePriority}
+        showInlineFilters={!loadMoreBoardTasks}
       />
 
       <TaskDetailSheet
@@ -252,6 +280,8 @@ export function ProjectBoardShell({
         today={today}
         canPostpone
         timeLogBasePath="/workforce/time/new"
+        canArchive={canArchive}
+        onTaskArchived={() => router.refresh()}
       />
 
       <Sheet open={createSheetOpen} onOpenChange={setCreateSheetOpen}>

@@ -7,24 +7,46 @@ import { mapTaskCardsToGanttWorkItems } from '../domain/task-gantt-source';
 import type { TaskCardData } from './task-api';
 import { cn } from '@/shared/ui/cn';
 
+export interface TaskGanttDependencyEdge {
+  readonly id: string;
+  readonly predecessorId: string;
+  readonly successorId: string;
+  readonly type: 'finish_to_start';
+}
+
 export interface TaskTimelineGanttProps {
   tasks: readonly TaskCardData[];
   today: string;
   onOpenTask: (taskId: string) => void;
+  dependencies?: readonly TaskGanttDependencyEdge[];
   className?: string;
 }
 
-export function TaskTimelineGantt({ tasks, today, onOpenTask, className }: TaskTimelineGanttProps) {
+export function TaskTimelineGantt({
+  tasks,
+  today,
+  onOpenTask,
+  dependencies = [],
+  className,
+}: TaskTimelineGanttProps) {
   const t = useTranslations('tasks');
   const model = useMemo(
     () =>
       buildGanttModel({
         workItems: mapTaskCardsToGanttWorkItems(tasks),
-        dependencies: [],
+        dependencies: dependencies.map((d) => ({
+          id: d.id,
+          organizationId: '',
+          projectId: '',
+          predecessorId: d.predecessorId,
+          successorId: d.successorId,
+          type: d.type,
+          createdAt: new Date(0),
+        })),
         today,
         padDays: 2,
       }),
-    [tasks, today],
+    [tasks, today, dependencies],
   );
 
   if (!model || model.bars.length === 0) {

@@ -143,6 +143,14 @@
   "warnings": {
     "quoteArtifactRelocateSkipped": "Work was created, but {count, plural, one {# quote PDF was} other {# quote PDFs were}} not moved into the project folder ({reasons})."
   },
+  "linkedTasks": {
+    "title": "Linked tasks",
+    "empty": "No tasks linked to this quote yet.",
+    "taskPickerLabel": "Task",
+    "taskPickerPlaceholder": "Select a task…",
+    "noTasksAvailable": "No linkable tasks",
+    "linkButton": "Link task"
+  },
   "errors": {
     "invalidTransition": "This status change is not allowed",
     "notEditable": "Only draft or ready estimates can be edited",

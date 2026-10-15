@@ -198,6 +198,8 @@ export interface MyWorkViewProps {
   ) => void | Promise<void | { success?: boolean; error?: string }>;
   today?: string;
   workLensSearchParams?: Record<string, string | string[] | undefined>;
+  canAssign?: boolean;
+  canArchive?: boolean;
 }
 
 export function MyWorkView({
@@ -210,6 +212,8 @@ export function MyWorkView({
   onUpdateTask,
   today,
   workLensSearchParams = {},
+  canAssign = false,
+  canArchive = false,
 }: MyWorkViewProps) {
   const t = useTranslations('tasks');
   const router = useRouter();
@@ -393,6 +397,9 @@ export function MyWorkView({
         today={today}
         canPostpone={Boolean(today && onUpdateTask)}
         timeLogBasePath="/workforce/time/new"
+        canAssign={canAssign}
+        canArchive={canArchive}
+        onTaskArchived={() => router.refresh()}
       />
 
       {sheetOpen && selectedTaskId && taskDetail == null ? (

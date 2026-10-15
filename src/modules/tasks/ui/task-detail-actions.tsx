@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowRightLeft, Copy, FileStack, Loader2, Save } from 'lucide-react';
+import { Archive, ArchiveRestore, ArrowRightLeft, Copy, FileStack, Loader2, Save } from 'lucide-react';
 import { TaskMoveCopyDialog } from './task-move-copy-dialog';
 import { useState, useTransition } from 'react';
 import { useRouter } from '@/shared/i18n/navigation';
@@ -30,6 +30,12 @@ interface TaskDetailActionsProps {
     },
   ) => Promise<{ success?: boolean; error?: string; newTaskId?: string }>;
   listTemplates: () => Promise<TaskTemplateUi[]>;
+  canArchive?: boolean;
+  onArchive?: () => Promise<{ success?: boolean; error?: string }>;
+  onArchived?: () => void;
+  taskIsArchived?: boolean;
+  onUnarchive?: () => Promise<{ success?: boolean; error?: string }>;
+  onUnarchived?: () => void;
 }
 
 export function TaskDetailActions({
@@ -42,6 +48,12 @@ export function TaskDetailActions({
   onSaveAsTemplate,
   onCreateFromTemplate,
   listTemplates,
+  canArchive = false,
+  onArchive,
+  onArchived,
+  taskIsArchived = false,
+  onUnarchive,
+  onUnarchived,
 }: TaskDetailActionsProps) {
   const t = useTranslations('tasks');
   const router = useRouter();
@@ -90,47 +102,106 @@ export function TaskDetailActions({
   return (
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap gap-2">
-        <button
-          type="button"
-          disabled={isPending}
-          onClick={() => setMoveCopyOpen(true)}
-          className="inline-flex items-center gap-1.5 rounded-md border border-[var(--pf-border-default)] px-3 py-1.5 text-sm hover:bg-[var(--pf-bg-muted)] disabled:opacity-50"
-        >
-          <ArrowRightLeft className="size-3.5" />
-          {t('actions.moveCopy')}
-        </button>
+        {!taskIsArchived ? (
+          <>
+            <button
+              type="button"
+              disabled={isPending}
+              onClick={() => setMoveCopyOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-md border border-[var(--pf-border-default)] px-3 py-1.5 text-sm hover:bg-[var(--pf-bg-muted)] disabled:opacity-50"
+            >
+              <ArrowRightLeft className="size-3.5" />
+              {t('actions.moveCopy')}
+            </button>
 
-        <button
-          type="button"
-          disabled={isPending}
-          onClick={() => runAction(() => onDuplicate(taskId), 'actions.duplicateSuccess')}
-          className="inline-flex items-center gap-1.5 rounded-md border border-[var(--pf-border-default)] px-3 py-1.5 text-sm hover:bg-[var(--pf-bg-muted)] disabled:opacity-50"
-        >
-          {isPending ? <Loader2 className="size-3.5 animate-spin" /> : <Copy className="size-3.5" />}
-          {t('actions.duplicate')}
-        </button>
+            <button
+              type="button"
+              disabled={isPending}
+              onClick={() => runAction(() => onDuplicate(taskId), 'actions.duplicateSuccess')}
+              className="inline-flex items-center gap-1.5 rounded-md border border-[var(--pf-border-default)] px-3 py-1.5 text-sm hover:bg-[var(--pf-bg-muted)] disabled:opacity-50"
+            >
+              {isPending ? <Loader2 className="size-3.5 animate-spin" /> : <Copy className="size-3.5" />}
+              {t('actions.duplicate')}
+            </button>
 
-        <button
-          type="button"
-          disabled={isPending}
-          onClick={() =>
-            runAction(() => onSaveAsTemplate(taskId), 'actions.saveTemplateSuccess')
-          }
-          className="inline-flex items-center gap-1.5 rounded-md border border-[var(--pf-border-default)] px-3 py-1.5 text-sm hover:bg-[var(--pf-bg-muted)] disabled:opacity-50"
-        >
-          {isPending ? <Loader2 className="size-3.5 animate-spin" /> : <Save className="size-3.5" />}
-          {t('actions.saveAsTemplate')}
-        </button>
+            <button
+              type="button"
+              disabled={isPending}
+              onClick={() =>
+                runAction(() => onSaveAsTemplate(taskId), 'actions.saveTemplateSuccess')
+              }
+              className="inline-flex items-center gap-1.5 rounded-md border border-[var(--pf-border-default)] px-3 py-1.5 text-sm hover:bg-[var(--pf-bg-muted)] disabled:opacity-50"
+            >
+              {isPending ? <Loader2 className="size-3.5 animate-spin" /> : <Save className="size-3.5" />}
+              {t('actions.saveAsTemplate')}
+            </button>
 
-        <button
-          type="button"
-          disabled={isPending}
-          onClick={openTemplatePicker}
-          className="inline-flex items-center gap-1.5 rounded-md border border-[var(--pf-border-default)] px-3 py-1.5 text-sm hover:bg-[var(--pf-bg-muted)] disabled:opacity-50"
-        >
-          <FileStack className="size-3.5" />
-          {t('actions.createFromTemplate')}
-        </button>
+            <button
+              type="button"
+              disabled={isPending}
+              onClick={openTemplatePicker}
+              className="inline-flex items-center gap-1.5 rounded-md border border-[var(--pf-border-default)] px-3 py-1.5 text-sm hover:bg-[var(--pf-bg-muted)] disabled:opacity-50"
+            >
+              <FileStack className="size-3.5" />
+              {t('actions.createFromTemplate')}
+            </button>
+          </>
+        ) : null}
+
+        {canArchive && taskIsArchived && onUnarchive ? (
+          <button
+            type="button"
+            disabled={isPending}
+            onClick={() => {
+              startTransition(() => {
+                void (async () => {
+                  setMessage(null);
+                  const result = await onUnarchive();
+                  if (result.error) {
+                    setMessage({ type: 'error', text: result.error });
+                    return;
+                  }
+                  setMessage({ type: 'success', text: t('actions.unarchiveSuccess') });
+                  onUnarchived?.();
+                })();
+              });
+            }}
+            className="inline-flex items-center gap-1.5 rounded-md border border-[var(--pf-border-default)] px-3 py-1.5 text-sm hover:bg-[var(--pf-bg-muted)] disabled:opacity-50"
+          >
+            {isPending ? (
+              <Loader2 className="size-3.5 animate-spin" />
+            ) : (
+              <ArchiveRestore className="size-3.5" />
+            )}
+            {t('actions.unarchive')}
+          </button>
+        ) : null}
+
+        {canArchive && !taskIsArchived && onArchive ? (
+          <button
+            type="button"
+            disabled={isPending}
+            onClick={() => {
+              if (!window.confirm(t('actions.archiveConfirm'))) return;
+              startTransition(() => {
+                void (async () => {
+                  setMessage(null);
+                  const result = await onArchive();
+                  if (result.error) {
+                    setMessage({ type: 'error', text: result.error });
+                    return;
+                  }
+                  setMessage({ type: 'success', text: t('actions.archiveSuccess') });
+                  onArchived?.();
+                })();
+              });
+            }}
+            className="inline-flex items-center gap-1.5 rounded-md border border-[var(--pf-border-default)] px-3 py-1.5 text-sm text-[var(--pf-status-danger-fg)] hover:bg-[var(--pf-bg-muted)] disabled:opacity-50"
+          >
+            {isPending ? <Loader2 className="size-3.5 animate-spin" /> : <Archive className="size-3.5" />}
+            {t('task.archive')}
+          </button>
+        ) : null}
       </div>
 
       {templatePickerOpen ? (

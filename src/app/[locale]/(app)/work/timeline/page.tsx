@@ -79,6 +79,8 @@ export default async function WorkTimelinePage({ searchParams }: WorkLensPagePro
         workLensFilterQuery={filterQuery}
         getTaskDetail={getTaskDetailAction}
         updateTask={updateTaskFieldsAction}
+        canAssign={shell.permissions.has(PERMISSIONS.TASKS_ASSIGN)}
+        canArchive={shell.permissions.has(PERMISSIONS.TASKS_DELETE)}
       />
     </div>
   );

@@ -10,7 +10,9 @@ import { useTranslations } from 'next-intl';
 import { Link } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
 import { Badge } from '@/components/ui/badge';
+import { BoardBucketsPanel } from '@/modules/tasks/ui/board-buckets-panel';
 import { BoardView } from '@/modules/tasks/ui/board-view';
+import { BoardTaskLoadMore, mergeTaskCardsById } from '@/modules/tasks/ui/board-task-load-more';
 import { TaskDetailSheet } from '@/modules/tasks/ui/task-detail-sheet';
 import { TaskCreateForm } from '@/modules/tasks/ui/task-create-form';
 import { Button } from '@/components/ui/button';
@@ -38,6 +40,11 @@ export interface BoardShellProps {
   activeBoard: Board;
   buckets: Bucket[];
   initialTasks: TaskCardData[];
+  canAssign?: boolean;
+  canArchive?: boolean;
+  canManageBuckets?: boolean;
+  initialHasMore?: boolean;
+  loadMoreBoardTasks?: (offset: number) => Promise<{ tasks: TaskCardData[]; hasMore: boolean }>;
   actions: {
     moveTask: (
       taskId: string,
@@ -57,6 +64,11 @@ export function BoardShell({
   activeBoard,
   buckets,
   initialTasks,
+  canAssign = false,
+  canArchive = false,
+  canManageBuckets = false,
+  initialHasMore = false,
+  loadMoreBoardTasks,
   actions,
 }: BoardShellProps) {
   const t = useTranslations('tasks');
@@ -193,6 +205,23 @@ export function BoardShell({
         </Button>
       </div>
 
+      <BoardBucketsPanel
+        boardId={activeBoard.id}
+        buckets={buckets}
+        canManage={canManageBuckets}
+      />
+
+      {loadMoreBoardTasks ? (
+        <BoardTaskLoadMore
+          initialHasMore={initialHasMore}
+          taskCount={boardTasks.length}
+          onLoadMore={loadMoreBoardTasks}
+          onTasksAppended={(incoming) => {
+            setBoardTasks((prev) => mergeTaskCardsById(prev, incoming));
+          }}
+        />
+      ) : null}
+
       <BoardView
         buckets={buckets}
         initialTasks={boardTasks}
@@ -200,6 +229,7 @@ export function BoardShell({
         onAddTask={handleAddTask}
         onMoveTask={handleMoveTask}
         onChangePriority={handleChangePriority}
+        showInlineFilters={!loadMoreBoardTasks}
       />
 
       <TaskDetailSheet
@@ -213,6 +243,13 @@ export function BoardShell({
           }
         }}
         onUpdate={handleUpdateTask}
+        onRefresh={async (taskId) => {
+          const refreshed = await actions.getTaskDetail(taskId);
+          if (refreshed) setTaskDetail(refreshed);
+        }}
+        canAssign={canAssign}
+        canArchive={canArchive}
+        onTaskArchived={() => router.refresh()}
       />
 
       <Sheet open={createSheetOpen} onOpenChange={setCreateSheetOpen}>

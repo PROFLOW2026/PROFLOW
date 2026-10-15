@@ -20,6 +20,7 @@ import { TaskDocumentAttachments } from '@/modules/tasks/ui/task-document-attach
 import { TaskDetailPageClient } from './_task-detail-page-client';
 import { TaskContractorSection } from '@/modules/collaboration/ui';
 import { TaskRelatedWorkSection } from '@/modules/tasks/ui/task-related-work-section';
+import { TaskDetailHubNav } from '@/modules/tasks/ui/task-detail-hub-nav';
 import { EvidenceGallery, EvidenceUploader } from '@/modules/evidence/ui';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -74,11 +75,20 @@ export default async function TaskDetailPage({
         }
       />
 
+      <TaskDetailHubNav
+        taskId={taskId}
+        projectId={detail.projectId}
+        projectName={detail.projectName}
+        reportedHours={detail.reportedHours}
+      />
+
       <TaskDetailPageClient
         initialTask={detail}
         onUpdate={updateTaskFieldsAction}
         getTaskDetail={getTaskDetailAction}
         today={today}
+        canAssign={shell.permissions.has(PERMISSIONS.TASKS_ASSIGN)}
+        canArchive={shell.permissions.has(PERMISSIONS.TASKS_DELETE)}
       />
 
       <TaskDocumentAttachments
@@ -127,13 +137,17 @@ export default async function TaskDetailPage({
         </Suspense>
       ) : null}
 
-      <Suspense fallback={<Skeleton className="h-40 w-full rounded-lg" />}>
-        <TaskComments taskId={taskId} />
-      </Suspense>
+      <div id="comments" className="scroll-mt-6">
+        <Suspense fallback={<Skeleton className="h-40 w-full rounded-lg" />}>
+          <TaskComments taskId={taskId} />
+        </Suspense>
+      </div>
 
-      <Suspense fallback={<TaskActivitySkeleton />}>
-        <TaskActivity taskId={taskId} />
-      </Suspense>
+      <div id="activity" className="scroll-mt-6">
+        <Suspense fallback={<TaskActivitySkeleton />}>
+          <TaskActivity taskId={taskId} />
+        </Suspense>
+      </div>
 
       {detail.projectId ? (
         <Suspense fallback={<Skeleton className="h-32 w-full rounded-lg" />}>

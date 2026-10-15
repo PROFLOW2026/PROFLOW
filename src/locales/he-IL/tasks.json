@@ -11,6 +11,12 @@
       "project_linked": "פרויקט",
       "org_internal": "פנימי",
       "team": "צוות"
+    },
+    "create": {
+      "title": "יצירת סביבת עבודה",
+      "nameLabel": "שם",
+      "typeLabel": "סוג",
+      "submit": "צור סביבת עבודה"
     }
   },
   "board": {
@@ -145,8 +151,24 @@
     "relations": {
       "follow_up": "מעקב",
       "remediation": "תיקון",
-      "schedule_link": "קישור ללוח זמנים"
+      "schedule_link": "קישור ללוח זמנים",
+      "milestone": "אבן דרך",
+      "related": "קשור"
     }
+  },
+  "detailHub": {
+    "navLabel": "קיצורי דרך במרכז המשימה",
+    "project": "פרויקט",
+    "reportedHours": "שעות שדווחו",
+    "jumpComments": "תגובות",
+    "jumpActivity": "פעילות"
+  },
+  "boardFilters": {
+    "allBuckets": "כל העמודות",
+    "assignee": "אחראי",
+    "allAssignees": "כל האחראים",
+    "label": "תגית",
+    "allLabels": "כל התגיות"
   },
   "portfolio": {
     "pageTitle": "תיק פרויקטים",
@@ -550,6 +572,7 @@
   "uncategorized": "ללא קטגוריה",
   "noLabel": "ללא תגית",
   "unknown": "לא ידוע",
+  "archivedTaskNotice": "משימה זו בארכיון. ניתן לצפות בפרטים ולשחזר; עריכה חסומה עד השחזור.",
   "checklist": "רשימת תיוג",
   "saveChanges": "שמור שינויים",
   "saveSuccess": "השינויים נשמרו",
@@ -620,7 +643,8 @@
     "allPriorities": "כל העדיפויות",
     "overdueOnly": "באיחור בלבד",
     "blockedOnly": "חסומות בלבד",
-    "noProjectOnly": "ללא פרויקט"
+    "noProjectOnly": "ללא פרויקט",
+    "archivedOnly": "משימות בארכיון בלבד"
   },
   "calendar": {
     "pageTitle": "לוח שנה משימות",
@@ -777,7 +801,31 @@
     "approvalRequiredBeforeDone": "משימה זו דורשת אישור מנהל לפני שניתן לסמן אותה כהושלמה.",
     "approvalNotRequired": "משימה זו אינה דורשת אישור."
   },
+  "planningVsTasks": {
+    "hint": "תכנון (לוח זמנים, Gantt) מנוהל בנפרד ממשימות UWM (ביצוע, אחראים, Kanban).",
+    "openPlanning": "פתח לוח זמנים",
+    "openTasks": "פתח משימות פרויקט",
+    "openTaskList": "פתח רשימת משימות"
+  },
+  "checklistSection": {
+    "moveUp": "הזז למעלה",
+    "moveDown": "הזז למטה",
+    "removeItem": "הסר פריט"
+  },
+  "labelsSection": {
+    "add": "הוסף תגית",
+    "noneAvailable": "אין תגיות זמינות להוספה"
+  },
+  "bucketsPanel": {
+    "title": "עמודות לוח",
+    "summary": "יצירה, שינוי שם וסידור עמודות",
+    "taskCount": "{count} משימות"
+  },
   "actions": {
+    "archiveConfirm": "להעביר משימה זו לארכיון?",
+    "archiveSuccess": "המשימה הועברה לארכיון",
+    "unarchive": "שחזר מארכיון",
+    "unarchiveSuccess": "המשימה שוחזרה מארכיון",
     "duplicate": "שכפל משימה",
     "moveCopy": "העבר / העתק",
     "saveAsTemplate": "שמור כתבנית",

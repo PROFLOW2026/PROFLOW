@@ -77,6 +77,7 @@ export { createProjectCapabilityTask } from './application/create-project-capabi
 export type { CreateProjectCapabilityTaskInput } from './application/create-project-capability-task';
 export { updateTask } from './application/update-task';
 export { archiveTask } from './application/archive-task';
+export { unarchiveTask } from './application/unarchive-task';
 export { listAccessibleTasks, listAccessibleTasksPage } from './application/list-tasks';
 export type { AccessibleTaskListPage } from './application/list-tasks';
 export { getTaskDetail } from './application/get-task-detail';

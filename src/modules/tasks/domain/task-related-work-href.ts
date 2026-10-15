@@ -27,6 +27,12 @@ export function hrefForRelatedEntity(
       return `/tasks/${entityId}`;
     case 'planning_work_item':
       return projectId ? `/projects/${projectId}?tab=schedule` : null;
+    case 'quote':
+      return `/quotes/${entityId}`;
+    case 'project':
+      return `/projects/${entityId}`;
+    case 'project_milestone':
+      return projectId ? `/projects/${projectId}?tab=milestones` : null;
     default:
       return projectId ? `/projects/${projectId}` : null;
   }

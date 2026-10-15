@@ -274,5 +274,13 @@
       "ended": "انتهى التكرار.",
       "skipped": "تُخطّى occurrence."
     }
+  },
+  "linkedTasks": {
+    "title": "مهام مرتبطة",
+    "empty": "لا مهام مرتبطة بطلب العمل هذا بعد.",
+    "taskPickerLabel": "مهمة",
+    "taskPickerPlaceholder": "اختر مهمة…",
+    "noTasksAvailable": "لا مهام متاحة للربط",
+    "linkButton": "ربط مهمة"
   }
 }

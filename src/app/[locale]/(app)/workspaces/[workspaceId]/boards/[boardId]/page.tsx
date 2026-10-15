@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
-import { withOrgContext } from '@/shared/auth/session';
+import { withOrgContext, getShellContext } from '@/shared/auth/session';
+import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { getWorkspaceDetail } from '@/modules/workspaces';
 // Agent A's real API
 import {
@@ -39,11 +40,20 @@ export async function generateMetadata({
  */
 export default async function WorkspaceBoardPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string; workspaceId: string; boardId: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const { locale, workspaceId, boardId } = await params;
-  const t = await getTranslations({ locale, namespace: 'tasks' });
+  const [{ workspaceId, boardId }, urlParams] = await Promise.all([params, searchParams]);
+  const { parseBoardTaskListFilters } = await import(
+    '@/modules/tasks/application/parse-board-task-list-filters'
+  );
+  const listFilters = parseBoardTaskListFilters(urlParams);
+  const shell = await getShellContext();
+  const canAssign = shell?.permissions.has(PERMISSIONS.TASKS_ASSIGN) ?? false;
+  const canArchive = shell?.permissions.has(PERMISSIONS.TASKS_DELETE) ?? false;
+  const canManageBuckets = shell?.permissions.has(PERMISSIONS.WORKSPACES_MANAGE) ?? false;
 
   const data = await withOrgContext(async (context) => {
     const workspace = await getWorkspaceDetail(context, workspaceId);
@@ -56,6 +66,7 @@ export default async function WorkspaceBoardPage({
         workspaceId,
         boardId,
         limit: TASK_LIST_MAX_LIMIT,
+        ...listFilters,
       }),
     ]);
 
@@ -78,6 +89,14 @@ export default async function WorkspaceBoardPage({
       mapBucketToUiBucket(b, tasksByBucket.get(b.id) ?? []),
     );
 
+    const { listBoardAssigneeFilterOptions, listBoardLabelFilterOptions } = await import(
+      '@/modules/tasks/application/list-board-filter-options'
+    );
+    const [boardFilterAssignees, boardFilterLabels] = await Promise.all([
+      listBoardAssigneeFilterOptions(context, { workspaceId }),
+      listBoardLabelFilterOptions(context),
+    ]);
+
     return {
       workspace,
       boards,
@@ -85,12 +104,23 @@ export default async function WorkspaceBoardPage({
       buckets,
       tasks: taskCards,
       hasMore: taskPage.hasMore,
+      boardFilterAssignees,
+      boardFilterLabels,
     };
   });
 
   if (!data) notFound();
 
-  const { workspace: _workspace, boards, activeBoard, buckets, tasks, hasMore } = data;
+  const {
+    workspace: _workspace,
+    boards,
+    activeBoard,
+    buckets,
+    tasks,
+    hasMore,
+    boardFilterAssignees,
+    boardFilterLabels,
+  } = data;
 
   // Server Actions bound to Agent A's real functions
   async function moveTaskAction(
@@ -134,19 +164,45 @@ export default async function WorkspaceBoardPage({
     });
   }
 
+  async function loadMoreBoardTasksAction(offset: number) {
+    'use server';
+    const { loadMoreAccessibleTasksAction } = await import('@/app/[locale]/(app)/work/actions');
+    const { parseBoardTaskListFilters: parseFilters } = await import(
+      '@/modules/tasks/application/parse-board-task-list-filters'
+    );
+    const filters = parseFilters(urlParams);
+    const page = await loadMoreAccessibleTasksAction({
+      offset,
+      boardId,
+      workspaceId,
+      listFilters: filters,
+    });
+    return { tasks: page.tasks, hasMore: page.hasMore };
+  }
+
+  const { BoardSavedViewsChrome } = await import('@/modules/tasks/ui/board-saved-views-chrome');
+  const { BoardUrlFiltersBar } = await import('@/modules/tasks/ui/board-url-filters-bar');
+
   return (
-    <div className="flex flex-col gap-4">
-      {hasMore ? (
-        <p role="status" className="text-sm text-[var(--pf-text-muted)]">
-          {t('list.hasMore')}
-        </p>
-      ) : null}
+    <div className="flex min-w-0 max-w-full flex-col gap-4">
+      <BoardUrlFiltersBar
+        searchParams={urlParams}
+        buckets={buckets.map((b) => ({ id: b.id, name: b.name }))}
+        assignees={boardFilterAssignees}
+        labels={boardFilterLabels}
+      />
+      <BoardSavedViewsChrome searchParams={urlParams} boardId={boardId} />
     <BoardShell
       workspaceId={workspaceId}
       boards={boards}
       activeBoard={activeBoard}
       buckets={buckets}
       initialTasks={tasks}
+      canAssign={canAssign}
+      canArchive={canArchive}
+      canManageBuckets={canManageBuckets}
+      initialHasMore={hasMore}
+      loadMoreBoardTasks={loadMoreBoardTasksAction}
       actions={{
         moveTask: moveTaskAction,
         createTask: createTaskAction,

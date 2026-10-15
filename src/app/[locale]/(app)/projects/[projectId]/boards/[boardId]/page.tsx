@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { withOrgContext } from '@/shared/auth/session';
+import { hasPermission } from '@/shared/permissions/assert';
+import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { todayInTimeZone } from '@/shared/dates';
 import {
   findWorkspaceIdsByProject,
@@ -41,11 +43,16 @@ export async function generateMetadata({
 
 export default async function ProjectBoardPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string; projectId: string; boardId: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const { projectId, boardId } = await params;
-  const t = await getTranslations('tasks');
+  const [{ projectId, boardId }, urlParams] = await Promise.all([params, searchParams]);
+  const { parseBoardTaskListFilters } = await import(
+    '@/modules/tasks/application/parse-board-task-list-filters'
+  );
+  const listFilters = parseBoardTaskListFilters(urlParams);
 
   const data = await withOrgContext(async (context) => {
     const workspaceIds = await findWorkspaceIdsByProject(context.db, projectId);
@@ -59,7 +66,12 @@ export default async function ProjectBoardPage({
     const [rawBoards, rawBuckets, taskPage] = await Promise.all([
       listBoards(context, primaryWsId),
       listBuckets(context, boardId ?? ''),
-      listAccessibleTasksPage(context, { boardId, projectId, limit: TASK_LIST_MAX_LIMIT }),
+      listAccessibleTasksPage(context, {
+        boardId,
+        projectId,
+        limit: TASK_LIST_MAX_LIMIT,
+        ...listFilters,
+      }),
     ]);
 
     const activeBoard = rawBoards.find((b) => b.id === boardId);
@@ -81,13 +93,23 @@ export default async function ProjectBoardPage({
       mapBucketToUiBucket(b, tasksByBucket.get(b.id) ?? []),
     );
 
-    const assigneeOptions = callerHasTaskAssignGrant(context)
-      ? (await listProjectParticipantAssigneeOptions(context, projectId)).map((option) => ({
-          key: option.key,
-          displayName: option.displayName,
-          jobTitle: option.jobTitle,
-        }))
-      : [];
+    const { listBoardAssigneeFilterOptions, listBoardLabelFilterOptions } = await import(
+      '@/modules/tasks/application/list-board-filter-options'
+    );
+
+    const [assigneeOptions, boardFilterAssignees, boardFilterLabels] = await Promise.all([
+      callerHasTaskAssignGrant(context)
+        ? listProjectParticipantAssigneeOptions(context, projectId).then((rows) =>
+            rows.map((option) => ({
+              key: option.key,
+              displayName: option.displayName,
+              jobTitle: option.jobTitle,
+            })),
+          )
+        : Promise.resolve([]),
+      listBoardAssigneeFilterOptions(context, { projectId }),
+      listBoardLabelFilterOptions(context),
+    ]);
 
     return {
       workspaceId: primaryWsId,
@@ -98,7 +120,11 @@ export default async function ProjectBoardPage({
       hasMore: taskPage.hasMore,
       today: todayInTimeZone(context.organization.timezone),
       assigneeOptions,
+      boardFilterAssignees,
+      boardFilterLabels,
       canAssign: callerHasTaskAssignGrant(context),
+      canArchive: hasPermission(context, PERMISSIONS.TASKS_DELETE),
+      canManageBuckets: hasPermission(context, PERMISSIONS.WORKSPACES_MANAGE),
     };
   });
 
@@ -113,7 +139,11 @@ export default async function ProjectBoardPage({
     hasMore,
     today,
     assigneeOptions,
+    boardFilterAssignees,
+    boardFilterLabels,
     canAssign,
+    canArchive,
+    canManageBuckets,
   } = data;
 
   // Server Actions
@@ -167,13 +197,34 @@ export default async function ProjectBoardPage({
     await syncTaskAssigneesAction(taskId, input);
   }
 
+  async function loadMoreBoardTasksAction(offset: number) {
+    'use server';
+    const { loadMoreAccessibleTasksAction } = await import('@/app/[locale]/(app)/work/actions');
+    const { parseBoardTaskListFilters: parseFilters } = await import(
+      '@/modules/tasks/application/parse-board-task-list-filters'
+    );
+    const filters = parseFilters(urlParams);
+    const page = await loadMoreAccessibleTasksAction({
+      offset,
+      projectId,
+      boardId,
+      listFilters: filters,
+    });
+    return { tasks: page.tasks, hasMore: page.hasMore };
+  }
+
+  const { BoardSavedViewsChrome } = await import('@/modules/tasks/ui/board-saved-views-chrome');
+  const { BoardUrlFiltersBar } = await import('@/modules/tasks/ui/board-url-filters-bar');
+
   return (
-    <div className="flex flex-col gap-4">
-      {hasMore ? (
-        <p role="status" className="text-sm text-[var(--pf-text-muted)]">
-          {t('list.hasMore')}
-        </p>
-      ) : null}
+    <div className="flex min-w-0 max-w-full flex-col gap-4">
+      <BoardUrlFiltersBar
+        searchParams={urlParams}
+        buckets={buckets.map((b) => ({ id: b.id, name: b.name }))}
+        assignees={boardFilterAssignees}
+        labels={boardFilterLabels}
+      />
+      <BoardSavedViewsChrome searchParams={urlParams} boardId={boardId} projectId={projectId} />
     <ProjectBoardShell
       projectId={projectId}
       workspaceId={workspaceId}
@@ -190,7 +241,11 @@ export default async function ProjectBoardPage({
       }}
       assigneeOptions={assigneeOptions}
       canAssign={canAssign}
+      canArchive={canArchive}
+      canManageBuckets={canManageBuckets}
       today={today}
+      initialHasMore={hasMore}
+      loadMoreBoardTasks={loadMoreBoardTasksAction}
     />
     </div>
   );

@@ -14,6 +14,7 @@ import type { MyWorkItem, TaskCardData } from '@/modules/tasks/ui/task-api';
 import { serializeTaskCardsForClient } from '@/modules/tasks/ui/serialize-task-cards';
 import { MyWorkView as MyWorkViewComponent } from '@/modules/tasks/ui/my-work-view';
 import { MyWorkQuickCreate } from '@/modules/tasks/ui/my-work-quick-create';
+import { PlanningVsTasksHint } from '@/modules/tasks/ui/planning-vs-tasks-hint';
 import { WorkLensChrome } from '@/modules/tasks/ui/work-lens-chrome';
 import { listClientsForOrg } from '@/modules/clients';
 import { listWorkspaces } from '@/modules/workspaces';
@@ -59,6 +60,8 @@ export default async function MyWorkPage({ searchParams }: MyWorkPageProps) {
   const activeView = resolveMyWorkView(viewParam);
 
   const canCreateTask = shell.permissions.has(PERMISSIONS.TASKS_CREATE);
+  const canAssign = shell.permissions.has(PERMISSIONS.TASKS_ASSIGN);
+  const canArchive = shell.permissions.has(PERMISSIONS.TASKS_DELETE);
   let defaultWorkspaceId: string | null = null;
   if (canCreateTask) {
     try {
@@ -97,6 +100,8 @@ export default async function MyWorkPage({ searchParams }: MyWorkPageProps) {
 
       <WorkLensChrome searchParams={params} clients={clients} taskCount={taskCount} />
 
+      <PlanningVsTasksHint />
+
       <MyWorkViewComponent
         key={activeView}
         tasksByView={{ [activeView]: initialTasks }}
@@ -108,6 +113,8 @@ export default async function MyWorkPage({ searchParams }: MyWorkPageProps) {
         onFetchView={fetchMyWorkViewAction}
         today={today}
         workLensSearchParams={params}
+        canAssign={canAssign}
+        canArchive={canArchive}
       />
 
       {canCreateTask && defaultWorkspaceId ? (

@@ -364,4 +364,6 @@ export interface TaskListFilters {
   readonly limit?: number;
   readonly offset?: number;
   readonly includeArchived?: boolean;
+  /** When true, list only soft-archived tasks (implies includeArchived for query building). */
+  readonly archivedOnly?: boolean;
 }

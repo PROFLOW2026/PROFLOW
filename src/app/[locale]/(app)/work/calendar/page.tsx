@@ -130,6 +130,8 @@ export default async function WorkCalendarPage({ searchParams }: WorkLensPagePro
         loadMoreUnscheduled={loadMoreUnscheduledTasksAction}
         getTaskDetail={getTaskDetailAction}
         updateTask={updateTaskFieldsAction}
+        canAssign={shell.permissions.has(PERMISSIONS.TASKS_ASSIGN)}
+        canArchive={shell.permissions.has(PERMISSIONS.TASKS_DELETE)}
       />
     </div>
   );

@@ -22,6 +22,8 @@ import { cn } from '@/shared/ui/cn';
 import { WorkOrderDetailForm } from './work-order-detail-form';
 import { WorkOrderStatusForm } from './work-order-status-form';
 import { WorkOrderBillingForm } from './work-order-billing-form';
+import { WorkOrderLinkedTasksSection } from '@/modules/service/ui/work-order-linked-tasks-section';
+import { PROJECT_CAPABILITIES, assertProjectCapability } from '@/modules/project-team';
 
 interface WorkOrderPageProps {
   params: Promise<{ locale: string; id: string }>;
@@ -69,6 +71,17 @@ export default async function WorkOrderDetailPage({ params }: WorkOrderPageProps
   const billingLink = await withOrgContext((context) => getWorkOrderBillingLink(context, id)).catch(
     () => null,
   );
+
+  const canLinkTasks =
+    (shell?.permissions.has(PERMISSIONS.TASKS_READ) ?? false) &&
+    (await withOrgContext(async (context) => {
+      try {
+        await assertProjectCapability(context, id, PROJECT_CAPABILITIES.TASKS_MANAGE);
+        return true;
+      } catch {
+        return false;
+      }
+    }).catch(() => false));
 
   const [checklistState, checklistTemplates] = await withOrgContext(async (context) => {
     const [gate, templates] = await Promise.all([
@@ -132,6 +145,10 @@ export default async function WorkOrderDetailPage({ params }: WorkOrderPageProps
       </div>
 
       <p className="text-sm text-[var(--pf-text-secondary)]">{t('workspace.sameEngineHint')}</p>
+
+      <Suspense fallback={null}>
+        <WorkOrderLinkedTasksSection workOrderId={id} canLink={canLinkTasks} />
+      </Suspense>
 
       {canManage ? (
         <WorkOrderStatusForm

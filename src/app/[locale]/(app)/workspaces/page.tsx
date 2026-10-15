@@ -5,7 +5,9 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { Badge } from '@/components/ui/badge';
 import { listWorkspaces } from '@/modules/workspaces';
-import { withOrgContext } from '@/shared/auth/session';
+import { withOrgContext, getShellContext } from '@/shared/auth/session';
+import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { CreateWorkspaceForm } from './_create-workspace-form';
 import { Link } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';
 import { pressableCardLinkClassName } from '@/components/ui/pressable';
@@ -36,11 +38,13 @@ const VISIBILITY_TONE: Record<
 export default async function WorkspacesPage() {
   const t = await getTranslations('tasks');
 
-  const workspaces = await withOrgContext(async (context) => {
-    return listWorkspaces(context, {});
-  });
+  const [workspaces, shell] = await Promise.all([
+    withOrgContext(async (context) => listWorkspaces(context, {})),
+    getShellContext(),
+  ]);
 
   const activeWorkspaces = workspaces.filter((ws) => !ws.isArchived);
+  const canCreateWorkspace = shell?.permissions.has(PERMISSIONS.WORKSPACES_MANAGE) ?? false;
 
   return (
     <div className="flex flex-col gap-6">
@@ -48,6 +52,8 @@ export default async function WorkspacesPage() {
         title={t('workspaces.pageTitle')}
         description={t('workspaces.pageDescription')}
       />
+
+      {canCreateWorkspace ? <CreateWorkspaceForm /> : null}
 
       {activeWorkspaces.length === 0 ? (
         <EmptyState

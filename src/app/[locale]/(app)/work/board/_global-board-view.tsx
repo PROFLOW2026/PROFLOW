@@ -10,6 +10,7 @@
  */
 
 import { useRef, useState } from 'react';
+import { useRouter } from '@/shared/i18n/navigation';
 import { useTranslations } from 'next-intl';
 import { Badge } from '@/components/ui/badge';
 import { CollapsibleSection } from '@/components/ui/collapsible-section';
@@ -46,6 +47,8 @@ export interface GlobalBoardViewProps {
   workLensFilterQuery?: Record<string, string>;
   loadMoreExcludeCancelled?: boolean;
   onLoadTaskDetail?: (taskId: string) => Promise<TaskDetail | null>;
+  canAssign?: boolean;
+  canArchive?: boolean;
   onUpdateTask?: (
     taskId: string,
     data: Record<string, unknown>,
@@ -60,8 +63,11 @@ export function GlobalBoardView({
   loadMoreExcludeCancelled = false,
   onLoadTaskDetail,
   onUpdateTask,
+  canAssign = false,
+  canArchive = false,
 }: GlobalBoardViewProps) {
   const canLoadMore = workLensFilterQuery !== undefined;
+  const router = useRouter();
   const t = useTranslations('tasks');
   const dragEnabled = useDesktopBoardDrag();
   const [tasks, setTasks] = useState(initialTasks);
@@ -305,6 +311,14 @@ export function GlobalBoardView({
           }
         }}
         onUpdate={(taskId, data) => onUpdateTask?.(taskId, data)}
+        onRefresh={async (taskId) => {
+          if (!onLoadTaskDetail) return;
+          const detail = await onLoadTaskDetail(taskId);
+          if (detail) setTaskDetail(detail);
+        }}
+        canAssign={canAssign}
+        canArchive={canArchive}
+        onTaskArchived={() => router.refresh()}
       />
     </>
   );

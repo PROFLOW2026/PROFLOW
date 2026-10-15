@@ -11,6 +11,12 @@
       "project_linked": "مشروع",
       "org_internal": "داخلي",
       "team": "فريق"
+    },
+    "create": {
+      "title": "إنشاء مساحة عمل",
+      "nameLabel": "الاسم",
+      "typeLabel": "النوع",
+      "submit": "إنشاء مساحة عمل"
     }
   },
   "board": {
@@ -145,8 +151,24 @@
     "relations": {
       "follow_up": "متابعة",
       "remediation": "معالجة",
-      "schedule_link": "رابط الجدول"
+      "schedule_link": "رابط الجدول",
+      "milestone": "معلم",
+      "related": "مرتبط"
     }
+  },
+  "detailHub": {
+    "navLabel": "اختصارات مركز المهمة",
+    "project": "المشروع",
+    "reportedHours": "ساعات مُبلّغ عنها",
+    "jumpComments": "التعليقات",
+    "jumpActivity": "النشاط"
+  },
+  "boardFilters": {
+    "allBuckets": "كل الأعمدة",
+    "assignee": "المكلّف",
+    "allAssignees": "كل المكلّفين",
+    "label": "تسمية",
+    "allLabels": "كل التسميات"
   },
   "portfolio": {
     "pageTitle": "محفظة المشاريع",
@@ -556,6 +578,7 @@
   "saveFailed": "تعذر حفظ التغييرات",
   "pendingChanges": "تغييرات غير محفوظة",
   "close": "إغلاق",
+  "archivedTaskNotice": "هذه المهمة مؤرشفة. يمكنك عرض التفاصيل واستعادتها؛ التعديل محظور حتى الاستعادة.",
   "saving": "جارٍ الحفظ...",
   "taskEntityLabel": "مهمة",
   "unassigned": "غير مسند",
@@ -620,7 +643,8 @@
     "allPriorities": "كل الأولويات",
     "overdueOnly": "المتأخرة فقط",
     "blockedOnly": "المحجوبة فقط",
-    "noProjectOnly": "بدون مشروع"
+    "noProjectOnly": "بدون مشروع",
+    "archivedOnly": "المهام المؤرشفة فقط"
   },
   "calendar": {
     "pageTitle": "تقويم المهام",
@@ -777,7 +801,31 @@
     "approvalRequiredBeforeDone": "تحتاج هذه المهمة إلى موافقة المدير قبل وضع علامة «منجز».",
     "approvalNotRequired": "هذه المهمة لا تتطلب موافقة."
   },
+  "planningVsTasks": {
+    "hint": "التخطيط (الجدول، Gantt) منفصل عن مهام UWM (التنفيذ، المكلّفون، Kanban).",
+    "openPlanning": "فتح الجدول",
+    "openTasks": "فتح مهام المشروع",
+    "openTaskList": "فتح قائمة المهام"
+  },
+  "checklistSection": {
+    "moveUp": "تحريك لأعلى",
+    "moveDown": "تحريك لأسفل",
+    "removeItem": "إزالة عنصر"
+  },
+  "labelsSection": {
+    "add": "إضافة تسمية",
+    "noneAvailable": "لا تسميات متاحة للإضافة"
+  },
+  "bucketsPanel": {
+    "title": "أعمدة اللوحة",
+    "summary": "إنشاء الأعمدة وإعادة تسميتها وترتيبها",
+    "taskCount": "{count} مهام"
+  },
   "actions": {
+    "archiveConfirm": "أرشفة هذه المهمة؟",
+    "archiveSuccess": "تم أرشفة المهمة",
+    "unarchive": "استعادة من الأرشيف",
+    "unarchiveSuccess": "تمت استعادة المهمة من الأرشيف",
     "duplicate": "نسخ المهمة",
     "moveCopy": "نقل / نسخ",
     "saveAsTemplate": "حفظ كقالب",

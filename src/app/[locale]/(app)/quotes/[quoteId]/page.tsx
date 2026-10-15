@@ -20,7 +20,9 @@ import { reportPreviewPath } from '@/modules/reports/domain/paths';
 import { ReportDownloadButtons } from '@/modules/reports/ui';
 import { Button } from '@/components/ui/button';
 import { QuoteEditorForm } from '@/modules/quotes/ui/quote-editor-form';
+import { QuoteLinkedTasksSection } from '@/modules/quotes/ui/quote-linked-tasks-section';
 import { listClientsForOrg } from '@/modules/clients';
+import { Suspense } from 'react';
 
 export async function generateMetadata({
   params,
@@ -314,6 +316,14 @@ export default async function QuoteDetailPage({
           />
         </section>
       ) : null}
+
+      <Suspense fallback={null}>
+        <QuoteLinkedTasksSection
+          quoteId={quote.id}
+          projectId={quote.convertedProjectId}
+          canManage={canManage}
+        />
+      </Suspense>
 
       <QuoteDetailActions
         quoteId={quote.id}

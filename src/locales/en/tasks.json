@@ -11,6 +11,12 @@
       "project_linked": "Project",
       "org_internal": "Internal",
       "team": "Team"
+    },
+    "create": {
+      "title": "Create workspace",
+      "nameLabel": "Name",
+      "typeLabel": "Type",
+      "submit": "Create workspace"
     }
   },
   "board": {
@@ -145,8 +151,24 @@
     "relations": {
       "follow_up": "Follow-up",
       "remediation": "Remediation",
-      "schedule_link": "Schedule link"
+      "schedule_link": "Schedule link",
+      "milestone": "Milestone",
+      "related": "Related"
     }
+  },
+  "detailHub": {
+    "navLabel": "Task hub shortcuts",
+    "project": "Project",
+    "reportedHours": "Reported hours",
+    "jumpComments": "Comments",
+    "jumpActivity": "Activity"
+  },
+  "boardFilters": {
+    "allBuckets": "All buckets",
+    "assignee": "Assignee",
+    "allAssignees": "All assignees",
+    "label": "Label",
+    "allLabels": "All labels"
   },
   "portfolio": {
     "pageTitle": "Portfolio",
@@ -551,6 +573,7 @@
   "noLabel": "No label",
   "unknown": "Unknown",
   "close": "Close",
+  "archivedTaskNotice": "This task is archived. You can view details and restore it; editing is blocked until restored.",
   "checklist": "Checklist",
   "saveChanges": "Save changes",
   "saveSuccess": "Changes saved",
@@ -620,7 +643,8 @@
     "allPriorities": "All priorities",
     "overdueOnly": "Overdue only",
     "blockedOnly": "Blocked only",
-    "noProjectOnly": "No project"
+    "noProjectOnly": "No project",
+    "archivedOnly": "Archived tasks only"
   },
   "calendar": {
     "pageTitle": "Task calendar",
@@ -777,7 +801,31 @@
     "approvalRequiredBeforeDone": "This task needs manager approval before it can be marked done.",
     "approvalNotRequired": "This task does not require approval."
   },
+  "planningVsTasks": {
+    "hint": "Planning (schedule, Gantt) is separate from UWM tasks (execution, assignees, Kanban).",
+    "openPlanning": "Open schedule",
+    "openTasks": "Open project tasks",
+    "openTaskList": "Open task list"
+  },
+  "checklistSection": {
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "removeItem": "Remove item"
+  },
+  "labelsSection": {
+    "add": "Add label",
+    "noneAvailable": "No labels available to add"
+  },
+  "bucketsPanel": {
+    "title": "Board columns",
+    "summary": "Create, rename, and reorder columns",
+    "taskCount": "{count} tasks"
+  },
   "actions": {
+    "archiveConfirm": "Archive this task?",
+    "archiveSuccess": "Task archived",
+    "unarchive": "Restore from archive",
+    "unarchiveSuccess": "Task restored from archive",
     "duplicate": "Duplicate task",
     "moveCopy": "Move / copy",
     "saveAsTemplate": "Save as template",

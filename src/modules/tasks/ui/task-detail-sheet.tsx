@@ -29,11 +29,9 @@ import {
   Flag,
   Loader2,
   Paperclip,
-  Tag,
   User,
-  X,
 } from 'lucide-react';
-import { useCallback, useMemo, useState, useTransition } from 'react';
+import { useCallback, useEffect, useMemo, useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/shared/i18n/navigation';
 import { TaskEvidenceSummary } from '@/modules/evidence/ui/task-evidence-summary';
@@ -58,7 +56,13 @@ import {
   listTaskTemplatesAction,
   removeDependencyAction,
   saveTaskAsTemplateAction,
+  archiveTaskAction,
+  unarchiveTaskAction,
+  listTaskAssigneeOptionsAction,
+  syncTaskAssigneesAction,
 } from '@/app/[locale]/(app)/work/actions';
+import { TaskChecklistSection } from './task-checklist-section';
+import { TaskLabelsSection } from './task-labels-section';
 import { TaskDependenciesSection } from './task-dependencies-section';
 import { TaskSubtasksSection } from './task-subtasks-section';
 import { TaskDetailActions } from './task-detail-actions';
@@ -138,64 +142,6 @@ function Field({
   );
 }
 
-/** Checklist items */
-function ChecklistSection({
-  items,
-  onToggle,
-}: {
-  items: TaskDetail['checklist'];
-  onToggle: (id: string, done: boolean) => void;
-}) {
-  const t = useTranslations('tasks');
-  const done = items.filter((i) => i.done).length;
-
-  return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center justify-between">
-        <SectionLabel>{t('checklist')}</SectionLabel>
-        <span className="text-xs text-[var(--pf-text-muted)]">
-          {done}/{items.length}
-        </span>
-      </div>
-      {/* Progress bar */}
-      <div
-        role="progressbar"
-        aria-valuenow={done}
-        aria-valuemin={0}
-        aria-valuemax={items.length}
-        className="h-1.5 w-full overflow-hidden rounded-full bg-[var(--pf-bg-muted)]"
-      >
-        <div
-          className="h-full rounded-full bg-[var(--pf-action-primary)] transition-[width]"
-          style={{ width: `${items.length > 0 ? (done / items.length) * 100 : 0}%` }}
-        />
-      </div>
-      <ul className="flex flex-col gap-1.5">
-        {items.map((item) => (
-          <li key={item.id} className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id={`checklist-${item.id}`}
-              checked={item.done}
-              onChange={(e) => onToggle(item.id, e.target.checked)}
-              className="size-4 cursor-pointer rounded border-[var(--pf-border-default)] accent-[var(--pf-action-primary)]"
-            />
-            <label
-              htmlFor={`checklist-${item.id}`}
-              className={cn(
-                'cursor-pointer text-sm',
-                item.done && 'line-through text-[var(--pf-text-muted)]',
-              )}
-            >
-              {item.title}
-            </label>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
 // ---------------------------------------------------------------------------
 // Main component
 // ---------------------------------------------------------------------------
@@ -233,6 +179,10 @@ export interface TaskDetailSheetProps {
     assigneeKeys: string[];
     assignAllProjectTeam: boolean;
   }) => void | Promise<void>;
+  /** Soft-archive (TASKS_DELETE). No restore UI unless backend adds it later. */
+  canArchive?: boolean;
+  /** Called after successful archive (close sheet, refresh lists). */
+  onTaskArchived?: () => void;
 }
 
 function resolveAssigneeKeysFromTask(
@@ -295,13 +245,45 @@ export function TaskDetailSheet({
   onRecurrenceChange,
   reminders = [],
   onReminderChange,
-  assigneeOptions = [],
+  assigneeOptions: assigneeOptionsProp = [],
   canAssign = false,
-  onAssigneesChange,
+  onAssigneesChange: onAssigneesChangeProp,
+  canArchive = false,
+  onTaskArchived,
 }: TaskDetailSheetProps) {
   const t = useTranslations('tasks');
   const [isPending, startTransition] = useTransition();
   const taskId = task?.id ?? null;
+  const taskIsArchived = task?.isArchived === true;
+  const [loadedAssigneeOptions, setLoadedAssigneeOptions] = useState<
+    readonly TaskAssigneePickerOption[]
+  >([]);
+
+  useEffect(() => {
+    if (!open || !taskId || !canAssign || assigneeOptionsProp.length > 0) {
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      const rows = await listTaskAssigneeOptionsAction(taskId);
+      if (!cancelled) setLoadedAssigneeOptions(rows);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, taskId, canAssign, assigneeOptionsProp.length]);
+
+  const assigneeOptions =
+    assigneeOptionsProp.length > 0 ? assigneeOptionsProp : loadedAssigneeOptions;
+
+  const onAssigneesChange =
+    onAssigneesChangeProp ??
+    (canAssign
+      ? async (input: { assigneeKeys: string[]; assignAllProjectTeam: boolean }) => {
+          if (!taskId) return;
+          await syncTaskAssigneesAction(taskId, input);
+        }
+      : undefined);
 
   const baselineDraft = useMemo((): TaskEditDraft | null => {
     if (!task) return null;
@@ -613,6 +595,15 @@ export function TaskDetailSheet({
         )}
 
         <SheetBody className={cn('flex flex-col gap-5', embedded && 'px-4 py-4')}>
+              {taskIsArchived ? (
+                <p
+                  role="status"
+                  className="rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-subtle)] px-3 py-2 text-sm text-[var(--pf-text-secondary)]"
+                >
+                  {t('archivedTaskNotice')}
+                </p>
+              ) : null}
+
               {/* Status */}
               <Field label={t('statusLabel')} icon={<CheckSquare className="size-4" />}>
                 <select
@@ -696,7 +687,7 @@ export function TaskDetailSheet({
                     options={assigneeOptions}
                     selectedKeys={assigneeKeys}
                     onChange={setAssigneeKeys}
-                    disabled={isPending}
+                    disabled={isPending || taskIsArchived}
                     allowWholeTeam={Boolean(task.projectId)}
                     wholeTeamSelected={assignAllProjectTeam}
                     onWholeTeamChange={setAssignAllProjectTeam}
@@ -874,28 +865,12 @@ export function TaskDetailSheet({
                 ) : null}
               </Field>
 
-              {/* Labels */}
-              {task.labels.length > 0 && (
-                <Field label={t('labelsLabel')} icon={<Tag className="size-4" />}>
-                  <div className="flex flex-wrap gap-1">
-                    {task.labels.map((label) => (
-                      <Badge key={label} tone="brand" className="text-xs">
-                        {label}
-                        <button
-                          type="button"
-                          onClick={() =>
-                            handleUpdate({ labels: task.labels.filter((l) => l !== label) })
-                          }
-                          aria-label={t('removeLabel', { label })}
-                          className="ms-0.5"
-                        >
-                          <X className="size-2.5" aria-hidden />
-                        </button>
-                      </Badge>
-                    ))}
-                  </div>
-                </Field>
-              )}
+              <TaskLabelsSection
+                taskId={task.id}
+                assignments={task.labelAssignments ?? []}
+                disabled={isPending || taskIsArchived}
+                onRefresh={handleRefresh}
+              />
 
               <TaskDetailActions
                 taskId={task.id}
@@ -907,6 +882,18 @@ export function TaskDetailSheet({
                 onSaveAsTemplate={saveTaskAsTemplateAction}
                 onCreateFromTemplate={createTaskFromTemplateAction}
                 listTemplates={listTaskTemplatesAction}
+                canArchive={canArchive}
+                taskIsArchived={taskIsArchived}
+                onArchive={() => archiveTaskAction(task.id)}
+                onArchived={() => {
+                  onOpenChange(false);
+                  onTaskArchived?.();
+                }}
+                onUnarchive={() => unarchiveTaskAction(task.id)}
+                onUnarchived={async () => {
+                  await handleRefresh();
+                  onTaskArchived?.();
+                }}
               />
 
               <TaskDependenciesSection
@@ -945,20 +932,12 @@ export function TaskDetailSheet({
                 />
               </div>
 
-              {/* Checklist */}
-              {task.checklist.length > 0 && (
-                <ChecklistSection
-                  items={task.checklist}
-                  onToggle={(id, done) => {
-                    // Parent handles optimistic checklist update
-                    handleUpdate({
-                      checklist: task.checklist.map((i) =>
-                        i.id === id ? { ...i, done } : i,
-                      ),
-                    });
-                  }}
-                />
-              )}
+              <TaskChecklistSection
+                taskId={task.id}
+                items={task.checklist}
+                disabled={isPending || taskIsArchived}
+                onRefresh={handleRefresh}
+              />
 
               <TaskEvidenceSummary taskId={task.id} />
 
@@ -1002,7 +981,7 @@ export function TaskDetailSheet({
                   <button
                     type="button"
                     className={uwmPrimaryButtonClass}
-                    disabled={(!isDirty && !assigneesDirty) || isPending}
+                    disabled={taskIsArchived || (!isDirty && !assigneesDirty) || isPending}
                     onClick={handleSaveChanges}
                   >
                     {isPending ? t('saving') : t('saveChanges')}

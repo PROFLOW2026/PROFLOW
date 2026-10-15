@@ -18,6 +18,7 @@ export const WORK_TASK_QUERY_KEYS = [
   'noProject',
   'sortField',
   'sortDir',
+  'archived',
 ] as const;
 
 export type WorkTaskQueryKey = (typeof WORK_TASK_QUERY_KEYS)[number];

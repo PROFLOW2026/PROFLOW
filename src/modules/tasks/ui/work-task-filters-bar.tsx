@@ -32,6 +32,7 @@ interface WorkTaskFilterDraft {
   overdue: boolean;
   blocked: boolean;
   noProject: boolean;
+  archived: boolean;
 }
 
 const FILTER_PARAM_KEYS = new Set<string>(WORK_TASK_QUERY_KEYS);
@@ -46,6 +47,7 @@ const DEFAULT_DRAFT: WorkTaskFilterDraft = {
   overdue: false,
   blocked: false,
   noProject: false,
+  archived: false,
 };
 
 function parseDraft(params: Record<string, string | undefined>): WorkTaskFilterDraft {
@@ -59,6 +61,7 @@ function parseDraft(params: Record<string, string | undefined>): WorkTaskFilterD
     overdue: params.overdue === 'true' || params.overdue === '1',
     blocked: params.blocked === 'true' || params.blocked === '1',
     noProject: params.noProject === 'true' || params.noProject === '1',
+    archived: params.archived === 'true' || params.archived === '1',
   };
 }
 
@@ -72,7 +75,8 @@ function isActive(draft: WorkTaskFilterDraft): boolean {
     draft.dueTo !== DEFAULT_DRAFT.dueTo ||
     draft.overdue !== DEFAULT_DRAFT.overdue ||
     draft.blocked !== DEFAULT_DRAFT.blocked ||
-    draft.noProject !== DEFAULT_DRAFT.noProject
+    draft.noProject !== DEFAULT_DRAFT.noProject ||
+    draft.archived !== DEFAULT_DRAFT.archived
   );
 }
 
@@ -87,6 +91,7 @@ function buildQuery(draft: WorkTaskFilterDraft): URLSearchParams {
   if (draft.overdue) params.set('overdue', 'true');
   if (draft.blocked) params.set('blocked', 'true');
   if (draft.noProject) params.set('noProject', 'true');
+  if (draft.archived) params.set('archived', 'true');
   return params;
 }
 
@@ -101,6 +106,7 @@ function activeCountFromDraft(draft: WorkTaskFilterDraft): number {
     draft.overdue ? 'overdue' : '',
     draft.blocked ? 'blocked' : '',
     draft.noProject ? 'noProject' : '',
+    draft.archived ? 'archived' : '',
   ].filter(Boolean).length;
 }
 
@@ -199,6 +205,7 @@ function WorkTaskFilterControls({
   if (applied.overdue) summary.push(tTasks('filters.overdueOnly'));
   if (applied.blocked) summary.push(tTasks('filters.blockedOnly'));
   if (applied.noProject) summary.push(tTasks('filters.noProjectOnly'));
+  if (applied.archived) summary.push(tTasks('filters.archivedOnly'));
 
   return (
     <div className="space-y-3">
@@ -330,6 +337,17 @@ function WorkTaskFilterControls({
               onClick={() => setDraft((current) => ({ ...current, noProject: !current.noProject }))}
             >
               {draft.noProject ? t('toggleOn') : t('toggleOff')}
+            </button>
+          </OwnerFilterField>
+
+          <OwnerFilterField label={tTasks('filters.archivedOnly')}>
+            <button
+              type="button"
+              aria-pressed={draft.archived}
+              className={cn(uwmFilterInputClass, 'justify-center text-start')}
+              onClick={() => setDraft((current) => ({ ...current, archived: !current.archived }))}
+            >
+              {draft.archived ? t('toggleOn') : t('toggleOff')}
             </button>
           </OwnerFilterField>
         </div>

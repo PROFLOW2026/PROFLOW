@@ -140,4 +140,8 @@ export {
 } from './domain/task-lifecycle';
 export { canSeeEventDetails, financialCapabilitiesFor } from './domain/activity';
 export { listTasksLinkedFrom } from './application/linked-tasks';
-export { listTaskEntityLinks, type TaskLinkRow } from './data/collaboration.repository';
+export {
+  insertEntityLink,
+  listTaskEntityLinks,
+  type TaskLinkRow,
+} from './data/collaboration.repository';

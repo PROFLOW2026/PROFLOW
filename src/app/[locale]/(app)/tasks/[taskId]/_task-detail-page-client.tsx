@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from '@/shared/i18n/navigation';
 import { TaskDetailSheet } from '@/modules/tasks/ui/task-detail-sheet';
 import type { TaskDetail } from '@/modules/tasks/ui/task-api';
 import type { TaskReminderType } from '@/modules/tasks';
@@ -20,6 +21,8 @@ interface TaskDetailPageClientProps {
   onUpdate: (taskId: string, data: Record<string, unknown>) => Promise<WorkActionState>;
   getTaskDetail: (taskId: string) => Promise<TaskDetail | null>;
   today?: string;
+  canAssign?: boolean;
+  canArchive?: boolean;
 }
 
 const REMINDER_TYPES: TaskReminderType[] = ['on_due', 'day_before', 'custom'];
@@ -32,7 +35,10 @@ export function TaskDetailPageClient({
   onUpdate,
   getTaskDetail,
   today,
+  canAssign = false,
+  canArchive = false,
 }: TaskDetailPageClientProps) {
+  const router = useRouter();
   const [task, setTask] = useState(initialTask);
   const [recurrencePreset, setRecurrencePreset] = useState<RecurrencePreset>('none');
   const [recurrenceInterval, setRecurrenceInterval] = useState(1);
@@ -97,6 +103,10 @@ export function TaskDetailPageClient({
           await loadScheduling(task.id);
         }}
         reminders={reminders}
+        canAssign={canAssign}
+        canArchive={canArchive}
+        timeLogBasePath="/workforce/time/new"
+        onTaskArchived={() => router.push('/work')}
         onReminderChange={async (value) => {
           setReminders((current) =>
             current.map((item) =>

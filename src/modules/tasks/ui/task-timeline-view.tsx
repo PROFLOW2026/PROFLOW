@@ -10,7 +10,7 @@ import { formatBusinessDateMonthDay } from '@/shared/dates/format';
 import { cn } from '@/shared/ui/cn';
 import { uwmListPanelClass, uwmListRowClass, uwmTabBarClass } from '@/shared/ui/uwm-surface-styles';
 import type { TaskCardData, TaskPriority, TaskStatus } from './task-api';
-import { TaskTimelineGantt } from './task-timeline-gantt';
+import { TaskTimelineGantt, type TaskGanttDependencyEdge } from './task-timeline-gantt';
 
 type TimelineGroupBy = 'date' | 'project' | 'status';
 
@@ -105,6 +105,7 @@ export interface TaskTimelineViewProps {
   showProject?: boolean;
   className?: string;
   today?: string;
+  ganttDependencies?: readonly TaskGanttDependencyEdge[];
 }
 
 export function TaskTimelineView({
@@ -114,6 +115,7 @@ export function TaskTimelineView({
   showProject = true,
   className,
   today,
+  ganttDependencies = [],
 }: TaskTimelineViewProps) {
   const t = useTranslations('tasks');
   const locale = useLocale();
@@ -135,7 +137,12 @@ export function TaskTimelineView({
   return (
     <div className={cn('flex flex-col gap-4', className)}>
       {today ? (
-        <TaskTimelineGantt tasks={tasks} today={today} onOpenTask={onOpenTask} />
+        <TaskTimelineGantt
+          tasks={tasks}
+          today={today ?? new Date().toISOString().slice(0, 10)}
+          onOpenTask={onOpenTask}
+          dependencies={ganttDependencies}
+        />
       ) : null}
 
       <nav aria-label={t('timeline.groupByLabel')} className={cn(uwmTabBarClass, 'w-fit')}>

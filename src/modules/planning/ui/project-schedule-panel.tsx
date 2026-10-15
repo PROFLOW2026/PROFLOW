@@ -9,6 +9,7 @@ import { todayInTimeZone } from '@/shared/dates';
 import { hasPermission } from '@/shared/permissions/assert';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
 import { resolveLabelLocale } from '@/shared/i18n/intl-locale';
+import { PlanningVsTasksHint } from '@/modules/tasks/ui/planning-vs-tasks-hint';
 import { ProjectPlanningPanel } from './project-planning-panel';
 import { PlanningWritePanel } from './planning-write-panel';
 import {
@@ -104,6 +105,8 @@ export async function ProjectSchedulePanel({ projectId }: ProjectSchedulePanelPr
 
   return (
     <div className="space-y-6">
+      <PlanningVsTasksHint projectId={projectId} />
+
       <ProjectPlanningPanel
         workKind={data.workKind}
         locale={planningLocale}

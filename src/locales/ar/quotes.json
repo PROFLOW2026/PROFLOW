@@ -143,6 +143,14 @@
   "warnings": {
     "quoteArtifactRelocateSkipped": "تم إنشاء العمل، لكن {count, plural, one {لم يُنقل ملف PDF # من العرض} other {لم تُنقل # ملفات PDF من العرض}} إلى مجلد المشروع ({reasons})."
   },
+  "linkedTasks": {
+    "title": "مهام مرتبطة",
+    "empty": "لا مهام مرتبطة بهذا العرض بعد.",
+    "taskPickerLabel": "مهمة",
+    "taskPickerPlaceholder": "اختر مهمة…",
+    "noTasksAvailable": "لا مهام متاحة للربط",
+    "linkButton": "ربط مهمة"
+  },
   "errors": {
     "invalidTransition": "تغيير الحالة هذا غير مسموح",
     "notEditable": "يمكن تحرير المسودات أو الجاهزة فقط",

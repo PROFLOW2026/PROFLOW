@@ -77,6 +77,10 @@ export interface TaskTableViewProps {
     patch: Record<string, unknown>,
   ) => Promise<{ updated: number; failed: readonly { id: string; reason: string }[] }>;
   today?: string;
+  canAssign?: boolean;
+  canArchive?: boolean;
+  /** When true, bulk edit is hidden (archived-only lens). */
+  archivedView?: boolean;
 }
 
 export function TaskTableView({
@@ -88,6 +92,9 @@ export function TaskTableView({
   onBulkUpdate,
   onTaskPatched,
   today,
+  canAssign = false,
+  canArchive = false,
+  archivedView = false,
 }: TaskTableViewProps & {
   onTaskPatched?: (taskId: string, patch: Partial<TaskCardData>) => void;
 }) {
@@ -201,7 +208,7 @@ export function TaskTableView({
         ))}
       </div>
 
-      {selectedIds.length > 0 && onBulkUpdate ? (
+      {selectedIds.length > 0 && onBulkUpdate && !archivedView ? (
         <div className="flex flex-wrap items-center gap-2 rounded-md border border-[var(--pf-border-default)] bg-[var(--pf-bg-subtle)] p-2">
           <span className="text-sm font-medium">{t('table.selected', { count: selectedIds.length })}</span>
           <select
@@ -327,7 +334,7 @@ export function TaskTableView({
                 ) : null}
                 {visibleColumns.includes('status') ? (
                   <td className="px-3 py-2">
-                    {onUpdateTask ? (
+                    {onUpdateTask && !archivedView ? (
                       <select
                         className={INLINE_SELECT}
                         value={task.status}
@@ -352,7 +359,7 @@ export function TaskTableView({
                 ) : null}
                 {visibleColumns.includes('priority') ? (
                   <td className="px-3 py-2">
-                    {onUpdateTask ? (
+                    {onUpdateTask && !archivedView ? (
                       <select
                         className={INLINE_SELECT}
                         value={task.priority}
@@ -383,7 +390,7 @@ export function TaskTableView({
                 ) : null}
                 {visibleColumns.includes('startDate') ? (
                   <td className="px-3 py-2">
-                    {onUpdateTask ? (
+                    {onUpdateTask && !archivedView ? (
                       <input
                         type="date"
                         className={INLINE_SELECT}
@@ -403,7 +410,7 @@ export function TaskTableView({
                 ) : null}
                 {visibleColumns.includes('dueDate') ? (
                   <td className="px-3 py-2">
-                    {onUpdateTask ? (
+                    {onUpdateTask && !archivedView ? (
                       <input
                         type="date"
                         className={INLINE_SELECT}
@@ -423,7 +430,7 @@ export function TaskTableView({
                 ) : null}
                 {visibleColumns.includes('effort') ? (
                   <td className="px-3 py-2">
-                    {onUpdateTask ? (
+                    {onUpdateTask && !archivedView ? (
                       <input
                         type="number"
                         min={0}
@@ -491,7 +498,19 @@ export function TaskTableView({
           open={sheetOpen}
           onOpenChange={setSheetOpen}
           onUpdate={onUpdateTask}
+          onRefresh={async (taskId) => {
+            if (!onLoadTaskDetail) return;
+            const detail = await onLoadTaskDetail(taskId);
+            if (detail) setActiveTask(detail);
+          }}
           today={today}
+          canAssign={canAssign}
+          canArchive={canArchive}
+          onTaskArchived={() => {
+            setSheetOpen(false);
+            setActiveTask(null);
+            router.refresh();
+          }}
         />
       ) : null}
     </div>

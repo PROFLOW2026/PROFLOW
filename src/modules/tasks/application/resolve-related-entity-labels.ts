@@ -1,7 +1,16 @@
 import 'server-only';
 
 import { and, eq } from 'drizzle-orm';
-import { defects, punchListItems, rfis, siteInstructions, submittals } from '@drizzle/schema';
+import {
+  defects,
+  projects,
+  projectMilestones,
+  punchListItems,
+  rfis,
+  siteInstructions,
+  submittals,
+} from '@drizzle/schema';
+import { estimates } from '@drizzle/schema/next-gen';
 import type { DbExecutor } from '@/shared/db/types';
 
 export async function resolveRelatedEntityLabel(
@@ -56,6 +65,39 @@ export async function resolveRelatedEntityLabel(
         .limit(1);
       if (!row) return { label: `Instruction ${entityId.slice(0, 8)}`, projectId: fallbackProjectId };
       return { label: row.title, projectId: row.projectId };
+    }
+    case 'quote': {
+      const [row] = await db
+        .select({ title: estimates.title, convertedProjectId: estimates.convertedProjectId })
+        .from(estimates)
+        .where(and(eq(estimates.organizationId, organizationId), eq(estimates.id, entityId)))
+        .limit(1);
+      if (!row) return { label: `Quote ${entityId.slice(0, 8)}`, projectId: fallbackProjectId };
+      return {
+        label: row.title,
+        projectId: row.convertedProjectId ?? fallbackProjectId,
+      };
+    }
+    case 'project': {
+      const [row] = await db
+        .select({ name: projects.name, workKind: projects.workKind })
+        .from(projects)
+        .where(and(eq(projects.organizationId, organizationId), eq(projects.id, entityId)))
+        .limit(1);
+      if (!row) return { label: `Project ${entityId.slice(0, 8)}`, projectId: entityId };
+      const prefix = row.workKind === 'work_order' ? 'Work order' : 'Project';
+      return { label: `${prefix}: ${row.name}`, projectId: entityId };
+    }
+    case 'project_milestone': {
+      const [row] = await db
+        .select({ name: projectMilestones.name, projectId: projectMilestones.projectId })
+        .from(projectMilestones)
+        .where(
+          and(eq(projectMilestones.organizationId, organizationId), eq(projectMilestones.id, entityId)),
+        )
+        .limit(1);
+      if (!row) return { label: `Milestone ${entityId.slice(0, 8)}`, projectId: fallbackProjectId };
+      return { label: row.name, projectId: row.projectId };
     }
     default:
       return {

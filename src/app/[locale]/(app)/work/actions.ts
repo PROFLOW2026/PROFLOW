@@ -12,6 +12,7 @@ import {
   createTask,
   updateTask,
   archiveTask,
+  unarchiveTask,
   addAssignee,
   removeAssignee,
   syncTaskAssignees,
@@ -26,6 +27,7 @@ import {
   addChecklistItem,
   toggleChecklistItem,
   removeChecklistItem,
+  reorderChecklistItem,
   addDependency,
   removeDependency,
   getTaskDetail,
@@ -172,6 +174,9 @@ export async function bulkUpdateTasksAction(
 export async function loadMoreAccessibleTasksAction(input: {
   offset: number;
   projectId?: string;
+  boardId?: string;
+  workspaceId?: string;
+  listFilters?: TaskListFilters;
   limit?: number;
   excludeCancelled?: boolean;
 }): Promise<{ tasks: TaskCardData[]; hasMore: boolean; nextOffset: number }> {
@@ -181,6 +186,9 @@ export async function loadMoreAccessibleTasksAction(input: {
       limit,
       offset: input.offset,
       ...(input.projectId ? { projectId: input.projectId } : {}),
+      ...(input.boardId ? { boardId: input.boardId } : {}),
+      ...(input.workspaceId ? { workspaceId: input.workspaceId } : {}),
+      ...(input.listFilters ?? {}),
     });
     const visible = input.excludeCancelled
       ? page.tasks.filter((task) => task.status !== 'cancelled')
@@ -195,6 +203,30 @@ export async function loadMoreAccessibleTasksAction(input: {
 
 export async function loadMoreGlobalBoardTasksAction(offset: number) {
   return loadMoreWorkLensTasksAction(offset, {}, { excludeCancelled: true });
+}
+
+export async function loadTaskGanttDependenciesAction(
+  taskIds: string[],
+): Promise<
+  Array<{
+    id: string;
+    predecessorId: string;
+    successorId: string;
+    type: 'finish_to_start';
+  }>
+> {
+  const { listTaskGanttDependencies } = await import(
+    '@/modules/tasks/application/list-task-gantt-dependencies'
+  );
+  return withOrgContext(async (context) => {
+    const rows = await listTaskGanttDependencies(context, taskIds);
+    return rows.map((row) => ({
+      id: row.id,
+      predecessorId: row.predecessorId,
+      successorId: row.successorId,
+      type: 'finish_to_start' as const,
+    }));
+  });
 }
 
 export async function loadMoreWorkSurfaceTasksAction(offset: number) {
@@ -374,6 +406,21 @@ export async function archiveTaskAction(taskId: string): Promise<WorkActionState
   try {
     await withOrgContext(async (context) => {
       await archiveTask(context, taskId);
+    });
+    return { success: true };
+  } catch (error) {
+    return mapServerActionError(error, {
+      tErrors: (key) => tErrors(key as 'unexpected'),
+    });
+  }
+}
+
+export async function unarchiveTaskAction(taskId: string): Promise<WorkActionState> {
+  const tErrors = await getTranslations('errors');
+
+  try {
+    await withOrgContext(async (context) => {
+      await unarchiveTask(context, taskId);
     });
     return { success: true };
   } catch (error) {
@@ -628,6 +675,129 @@ export async function removeChecklistItemAction(itemId: string): Promise<WorkAct
       tErrors: (key) => tErrors(key as 'unexpected'),
     });
   }
+}
+
+export async function reorderChecklistItemAction(
+  itemId: string,
+  afterSortKey: string | null,
+  beforeSortKey: string | null,
+): Promise<WorkActionState> {
+  const tErrors = await getTranslations('errors');
+
+  try {
+    await withOrgContext(async (context) => {
+      await reorderChecklistItem(context, itemId, afterSortKey, beforeSortKey);
+    });
+    return { success: true };
+  } catch (error) {
+    return mapServerActionError(error, {
+      tErrors: (key) => tErrors(key as 'unexpected'),
+    });
+  }
+}
+
+export async function listOrgTaskLabelsAction(): Promise<
+  readonly { id: string; name: string; color: string | null }[]
+> {
+  return withOrgContext(async (context) => {
+    const { listOrgLabels } = await import('@/modules/tasks/data/tasks.repository');
+    const rows = await listOrgLabels(context.db, context.organizationId, false);
+    return rows.map((row) => ({ id: row.id, name: row.name, color: row.color }));
+  });
+}
+
+export async function listTaskAssigneeOptionsAction(taskId: string): Promise<
+  readonly { key: string; displayName: string; jobTitle?: string | null }[]
+> {
+  return withOrgContext(async (context) => {
+    if (!callerHasTaskAssignGrant(context)) return [];
+
+    const { findTaskById } = await import('@/modules/tasks/data/tasks.repository');
+    const task = await findTaskById(context.db, context.organizationId, taskId);
+    if (!task) return [];
+
+    if (task.projectId) {
+      const { listProjectParticipantAssigneeOptions } = await import('@/modules/projects');
+      const options = await listProjectParticipantAssigneeOptions(context, task.projectId);
+      return options.map((option) => ({
+        key: option.key,
+        displayName: option.displayName,
+        jobTitle: option.jobTitle,
+      }));
+    }
+
+    if (!task.workspaceId) return [];
+
+    const { listWorkspaceMembers } = await import('@/modules/workspaces/data/workspaces.repository');
+    const { and, eq, inArray } = await import('drizzle-orm');
+    const { employees, organizationMemberships, profiles } = await import('@drizzle/schema');
+
+    const members = await listWorkspaceMembers(
+      context.db,
+      context.organizationId,
+      task.workspaceId,
+    );
+    if (members.length === 0) return [];
+
+    const employeeIds = members.map((m) => m.employeeId).filter((id): id is string => Boolean(id));
+    const orgMemberIds = members
+      .map((m) => m.orgMemberId)
+      .filter((id): id is string => Boolean(id));
+
+    const employeeNames = new Map<string, string>();
+    if (employeeIds.length > 0) {
+      const rows = await context.db
+        .select({ id: employees.id, name: employees.name })
+        .from(employees)
+        .where(
+          and(
+            eq(employees.organizationId, context.organizationId),
+            inArray(employees.id, employeeIds),
+          ),
+        );
+      for (const row of rows) {
+        if (row.name) employeeNames.set(row.id, row.name);
+      }
+    }
+
+    const memberNames = new Map<string, string>();
+    if (orgMemberIds.length > 0) {
+      const rows = await context.db
+        .select({
+          id: organizationMemberships.id,
+          displayName: profiles.displayName,
+          email: profiles.email,
+        })
+        .from(organizationMemberships)
+        .leftJoin(profiles, eq(profiles.id, organizationMemberships.userId))
+        .where(
+          and(
+            eq(organizationMemberships.organizationId, context.organizationId),
+            inArray(organizationMemberships.id, orgMemberIds),
+          ),
+        );
+      for (const row of rows) {
+        memberNames.set(row.id, row.displayName?.trim() || row.email?.trim() || row.id);
+      }
+    }
+
+    const options: { key: string; displayName: string; jobTitle?: string | null }[] = [];
+    for (const member of members) {
+      if (member.employeeId) {
+        options.push({
+          key: `e:${member.employeeId}`,
+          displayName: employeeNames.get(member.employeeId) ?? member.employeeId,
+        });
+      } else if (member.orgMemberId) {
+        options.push({
+          key: `m:${member.orgMemberId}`,
+          displayName: memberNames.get(member.orgMemberId) ?? member.orgMemberId,
+        });
+      }
+    }
+
+    return options.sort((a, b) => a.displayName.localeCompare(b.displayName));
+  });
 }
 
 // ─── Dependencies ─────────────────────────────────────────────────────────────
