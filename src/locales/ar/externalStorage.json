@@ -128,6 +128,8 @@
     "description": "تصفح وإدارة كل مجلد وملف تحت ProjectFlow في التخزين السحابي.",
     "orgFolders": {
       "clients_root": "عملاء",
+      "projects_root": "مشاريع",
+      "quotes_root": "عروض أسعار",
       "vendors_root": "موردون",
       "employees_root": "موظفون",
       "organization_documents": "مستندات الشركة"
@@ -192,11 +194,13 @@
     "title": "معاينة",
     "loading": "جاري التحميل…",
     "failed": "تعذّرت معاينة هذا الملف",
+    "pdfInvalidStructure": "تعذّر تحليل ملف PDF — قد يكون الملف تالفًا أو أن التحميل من السحابة لم يكتمل. أعد المحاولة أو افتح على الجهاز أو في مزود التخזين.",
     "retry": "حاول مرة أخرى",
     "unsupported": "هذا التنسيق غير مدعوم للمعاينة داخل التطبيق. استخدم فتح على الجهاز أو افتح في مزود التخزين.",
-    "unsupportedWithProvider": "هذا التنسيق غير مدعوم للمعاينة داخل التطبيق. استخدم فتح على الجهاز أو فتح في {{provider}}.",
+    "unsupportedWithProvider": "هذا التنسيق غير مدعوم للمعاينة داخل التطبيق. استخدم فتح على الجهاز أو فتح في {provider}.",
+    "unsupportedWithProviderPrefix": "هذا التنسيق غير مدعوم للمعاينة داخل التطبيق. استخدم فتح على الجهاز أو",
     "openOnDevice": "فتح على الجهاز",
-    "openInProvider": "فتح في {{provider}}",
+    "openInProvider": "فتح في {provider}",
     "openInOneDrive": "فتح في OneDrive",
     "openInGoogleDrive": "فتح في Google Drive",
     "openInDropbox": "فتح في Dropbox",
@@ -220,6 +224,12 @@
     "share": "تنزيل أو فتح",
     "sharePreparing": "جارٍ تجهيز الملف…",
     "shareUnsupported": "هذا المتصفح لا يستطيع مشاركة الملف. سيُنزَّل الملف بدلاً من ذلك.",
-    "shareFailed": "تعذّر تنزيل الملف أو فتحه. حاول مرة أخرى."
+    "shareFailed": "تعذّر تنزيل الملف أو فتحه. حاول مرة أخرى.",
+    "cadLoadingEngine": "جارٍ تحميل عارض CAD…",
+    "cadLoadFailed": "تعذّر عرض ملف CAD. حاول مرة أخرى أو افتح على الجهاز.",
+    "cadEmptyDrawing": "تم تحميل الملف لكن لا يوجد محتوى رسومي للعرض.",
+    "cadDwgPartialNotice": "معاينة DWG جزئية فقط — وليست رسمًا كاملاً. CodeCAD لا يحمّل XREF أو Paper Space/Layouts أو النص العبري وبعض الكيانات. للرسم الكامل افتح في AutoCAD أو مزود التخزين.",
+    "cadLayers": "الطبقات",
+    "cadViewerCanvas": "معاينة رسم CAD"
   }
 }

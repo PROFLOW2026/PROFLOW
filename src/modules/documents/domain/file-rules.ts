@@ -20,6 +20,11 @@ const ALLOWED_MIME_EXACT = new Set([
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   'application/vnd.ms-excel',
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'image/vnd.dwg',
+  'image/vnd.dxf',
+  'application/acad',
+  'model/vnd.dwf',
+  'model/vnd.dwfx',
 ]);
 
 /** Browser-safe inline preview - excludes HEIC/HEIF (often unsupported). */
@@ -110,6 +115,10 @@ const EXT_TO_MIME: Record<string, string> = {
   docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   xls: 'application/vnd.ms-excel',
   xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  dwg: 'image/vnd.dwg',
+  dxf: 'image/vnd.dxf',
+  dwf: 'model/vnd.dwf',
+  dwfx: 'model/vnd.dwfx',
 };
 
 const GENERIC_OR_EMPTY_MIME = new Set([

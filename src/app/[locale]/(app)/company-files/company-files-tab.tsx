@@ -40,10 +40,10 @@ import type {
   SemanticFolderType,
   StorageProviderKey,
 } from '@/modules/external-storage/client';
-import { STORAGE_PROVIDER_LABELS } from '@/modules/external-storage/client';
 import { openFilePicker } from '@/modules/documents/client/open-file-picker';
 import { buildStorageFileDownloadUrl } from '@/modules/external-storage/client/storage-file-urls';
 import { useTranslateStorageApiError } from '@/modules/external-storage/client/use-translate-storage-api-error';
+import { translatePreviewOpenInProvider } from '@/modules/external-storage/ui/preview-open-in-provider-label';
 import { StorageFilePreviewDialog } from '@/modules/external-storage/ui/storage-file-preview-dialog';
 import {
   browseCompanyFolderAction,
@@ -440,9 +440,7 @@ export function CompanyFilesTab({
       : `${browserContext.organizationRootFolderName} / ${browsePath.map((s) => s.name).join(' / ')}`;
 
   const isEmpty = folders.length === 0 && files.length === 0;
-  const providerLabel = browserContext
-    ? STORAGE_PROVIDER_LABELS[browserContext.provider]
-    : null;
+  const storageProvider = browserContext?.provider ?? null;
 
   return (
     <div className="flex flex-col gap-4">
@@ -576,7 +574,7 @@ export function CompanyFilesTab({
                   onOpen={() => openFilePreview(file)}
                   onOpenOnDevice={() => openFileOnDevice(file)}
                   onOpenInProvider={() => void openFileInProvider(file)}
-                  providerLabel={providerLabel}
+                  storageProvider={storageProvider}
                   onShare={() => shareStorageItem(file)}
                   onRename={() => openRenameDialog(file.id, 'file', file.name)}
                   onMove={() => void openMoveDialog(file.id, 'file', file.name)}
@@ -741,7 +739,7 @@ function BrowserRow({
   onOpen,
   onOpenOnDevice,
   onOpenInProvider,
-  providerLabel,
+  storageProvider,
   onShare,
   onRename,
   onMove,
@@ -757,7 +755,7 @@ function BrowserRow({
   onOpen: () => void;
   onOpenOnDevice?: () => void;
   onOpenInProvider?: () => void;
-  providerLabel?: string | null;
+  storageProvider?: StorageProviderKey | null;
   onShare?: () => void;
   onRename: () => void;
   onMove: () => void;
@@ -792,9 +790,9 @@ function BrowserRow({
                   {onOpenOnDevice ? (
                     <DropdownMenuItem onSelect={onOpenOnDevice}>{tPreview('openOnDevice')}</DropdownMenuItem>
                   ) : null}
-                  {onOpenInProvider && providerLabel ? (
+                  {onOpenInProvider && storageProvider ? (
                     <DropdownMenuItem onSelect={onOpenInProvider}>
-                      {tPreview('openInProvider', { provider: providerLabel })}
+                      {translatePreviewOpenInProvider(tPreview, storageProvider)}
                     </DropdownMenuItem>
                   ) : null}
                   {onShare ? (

@@ -128,6 +128,8 @@
     "description": "עיון וניהול של כל התיקיות והקבצים תחת ProjectFlow באחסון הענן.",
     "orgFolders": {
       "clients_root": "לקוחות",
+      "projects_root": "פרויקטים",
+      "quotes_root": "הצעות מחיר",
       "vendors_root": "ספקים",
       "employees_root": "עובדים",
       "organization_documents": "מסמכי חברה"
@@ -192,11 +194,13 @@
     "title": "תצוגה מקדימה",
     "loading": "טוען…",
     "failed": "לא ניתן להציג את הקובץ",
+    "pdfInvalidStructure": "לא ניתן לפענח את קובץ ה-PDF — ייתכן שהקובץ פגום או שההורדה מהענן לא הושלמה. נסו שוב, פתחו במכשיר או אצל ספק האחסון.",
     "retry": "נסה שוב",
     "unsupported": "פורמט זה אינו נתמך לתצוגה מקדימה. השתמשו ב\"פתח במכשיר\" או פתיחה בספק האחסון.",
-    "unsupportedWithProvider": "פורמט זה אינו נתמך לתצוגה מקדימה. השתמשו ב\"פתח במכשיר\" או \"פתח ב-{{provider}}\".",
+    "unsupportedWithProvider": "פורמט זה אינו נתמך לתצוגה מקדימה. השתמשו ב\"פתח במכשיר\" או \"פתח ב-{provider}\".",
+    "unsupportedWithProviderPrefix": "פורמט זה אינו נתמך לתצוגה מקדימה. השתמשו ב\"פתח במכשיר\" או",
     "openOnDevice": "פתח במכשיר",
-    "openInProvider": "פתח ב-{{provider}}",
+    "openInProvider": "פתח ב-{provider}",
     "openInOneDrive": "פתח ב-OneDrive",
     "openInGoogleDrive": "פתח ב-Google Drive",
     "openInDropbox": "פתח ב-Dropbox",
@@ -220,6 +224,12 @@
     "share": "הורדה או פתיחה",
     "sharePreparing": "מכין את הקובץ…",
     "shareUnsupported": "הדפדפן לא יכול לשתף את הקובץ. הקובץ יורד במקום זאת.",
-    "shareFailed": "לא ניתן להוריד או לפתוח את הקובץ. נסו שוב."
+    "shareFailed": "לא ניתן להוריד או לפתוח את הקובץ. נסו שוב.",
+    "cadLoadingEngine": "טוען מנוע CAD…",
+    "cadLoadFailed": "לא ניתן להציג את קובץ ה-CAD. נסו שוב או פתחו במכשיר.",
+    "cadEmptyDrawing": "הקובץ נטען אך לא נמצא תוכן שרטוט להצגה.",
+    "cadDwgPartialNotice": "תצוגת DWG חלקית בלבד — לא שרטוט מלא. CodeCAD אינו טוען XREF (רקע אדריכלי חיצוני), Paper Space/Layouts, טקסט עברי וחלק מהישויות. לצפייה מלאה פתחו ב-AutoCAD או בספק האחסון.",
+    "cadLayers": "שכבות",
+    "cadViewerCanvas": "תצוגת שרטוט CAD"
   }
 }

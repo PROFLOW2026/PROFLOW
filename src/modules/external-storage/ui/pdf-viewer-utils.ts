@@ -67,3 +67,25 @@ export function createPdfPreviewTimings(): PdfPreviewTimings {
 export function elapsedMs(from: number, to = performance.now()): number {
   return Math.round(to - from);
 }
+
+/** PDF files begin with the ASCII signature `%PDF-` (may follow optional BOM/whitespace). */
+export function isPdfFileBytes(data: Uint8Array): boolean {
+  let i = 0;
+  if (data.length >= 3 && data[0] === 0xef && data[1] === 0xbb && data[2] === 0xbf) {
+    i = 3;
+  }
+  while (
+    i < data.length &&
+    (data[i] === 0x09 || data[i] === 0x0a || data[i] === 0x0d || data[i] === 0x20)
+  ) {
+    i += 1;
+  }
+  if (data.length < i + 5) return false;
+  return (
+    data[i] === 0x25 &&
+    data[i + 1] === 0x50 &&
+    data[i + 2] === 0x44 &&
+    data[i + 3] === 0x46 &&
+    data[i + 4] === 0x2d
+  );
+}

@@ -1,0 +1,8 @@
+CodeCAD embed assets (v0.1.0)
+Source: https://github.com/backkem/codecad (release v0.1.0)
+License: MIT (CodeCAD) — see upstream LICENSE
+
+This build includes DWG parsing via acadrust (MPL-2.0).
+MPL-2.0 source for covered files: https://github.com/backkem/acadrust
+
+Roboto Mono (OFL) and other third-party notices: see upstream CodeCAD repository.

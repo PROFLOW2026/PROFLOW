@@ -7,16 +7,24 @@ import { useCallback, useMemo, useState } from 'react';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
+  cadMimeTypeFromFileName,
+  inferCadPreviewKind,
+  isStorageCadPreviewable,
+} from '@/modules/documents/domain/cad-file-rules';
+import {
   isBrowserPreviewableImageMime,
   isBrowserPreviewableMime,
   isBrowserPreviewablePdfMime,
 } from '@/modules/documents/domain/file-rules';
 import type { ProviderFileItem, StorageProviderKey } from '../client';
-import { STORAGE_PROVIDER_LABELS } from '../client';
 import {
   buildStorageFileDownloadUrl,
   type StorageBrowserScope,
 } from '../client/storage-file-urls';
+import {
+  translatePreviewOpenInProvider,
+  translatePreviewUnsupportedWithProvider,
+} from './preview-open-in-provider-label';
 import { StorageFilePreviewShell } from './storage-file-preview-shell';
 import { StorageLoadingOverlay } from './storage-loading-overlay';
 import { useShareStorageFile } from './use-share-storage-file';
@@ -30,21 +38,37 @@ const PdfJsViewer = dynamic(
   },
 );
 
+const StorageCadPreview = dynamic(
+  () => import('./cad/storage-cad-preview').then((module) => module.StorageCadPreview),
+  {
+    ssr: false,
+    loading: () => <div className="relative min-h-0 flex-1" aria-busy="true" />,
+  },
+);
+
 type PreviewTarget = {
   fileId: string;
   filename: string;
   mimeType: string;
 };
 
+/** CAD by extension first; PDF by `.pdf` before generic cloud MIME (e.g. octet-stream). */
 function inferMimeType(filename: string, mimeType?: string | null): string {
-  if (mimeType?.trim()) return mimeType.trim().toLowerCase();
+  const cadMime = cadMimeTypeFromFileName(filename);
+  if (cadMime) return cadMime;
   const ext = filename.split('.').pop()?.toLowerCase();
   if (ext === 'pdf') return 'application/pdf';
+  if (mimeType?.trim()) return mimeType.trim().toLowerCase();
   if (ext === 'jpg' || ext === 'jpeg') return 'image/jpeg';
   if (ext === 'png') return 'image/png';
   if (ext === 'webp') return 'image/webp';
   if (ext === 'gif') return 'image/gif';
   return 'application/octet-stream';
+}
+
+function isDialogPreviewable(filename: string, mimeType: string): boolean {
+  if (isBrowserPreviewableMime(mimeType)) return true;
+  return isStorageCadPreviewable(filename, mimeType);
 }
 
 export function StorageFilePreviewDialog({
@@ -78,7 +102,7 @@ export function StorageFilePreviewDialog({
     () =>
       siblingFiles?.filter((item) => {
         const mime = inferMimeType(item.name, item.mimeType);
-        return isBrowserPreviewableMime(mime);
+        return isDialogPreviewable(item.name, mime);
       }) ?? [],
     [siblingFiles],
   );
@@ -132,11 +156,12 @@ export function StorageFilePreviewDialog({
     : null;
 
   const mime = activeFile ? inferMimeType(activeFile.filename, activeFile.mimeType) : '';
-  const showImage = isBrowserPreviewableImageMime(mime);
-  const showPdf = isBrowserPreviewablePdfMime(mime);
-  const isPreviewable = showImage || showPdf;
+  const cadKind = activeFile ? inferCadPreviewKind(activeFile.filename, mime) : null;
+  const showCad = cadKind !== null;
+  const showImage = !showCad && isBrowserPreviewableImageMime(mime);
+  const showPdf = !showCad && isBrowserPreviewablePdfMime(mime);
+  const isPreviewable = showImage || showPdf || showCad;
   const canNavigate = previewableSiblings.length > 1;
-  const providerLabel = provider ? STORAGE_PROVIDER_LABELS[provider] : null;
 
   const [mediaAnchor, setMediaAnchor] = useState('');
   const activeMediaId = open && activeFile ? activeFile.fileId : '';
@@ -199,8 +224,8 @@ export function StorageFilePreviewDialog({
       {!isPreviewable ? (
         <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 p-6 text-center">
           <Alert tone="info">
-            {providerLabel
-              ? t('unsupportedWithProvider', { provider: providerLabel })
+            {provider
+              ? translatePreviewUnsupportedWithProvider(t, provider)
               : t('unsupported')}
           </Alert>
           <div className="flex flex-wrap items-center justify-center gap-2">
@@ -212,9 +237,9 @@ export function StorageFilePreviewDialog({
                 {t('openOnDevice')}
               </Button>
             ) : null}
-            {onOpenInProvider && providerLabel ? (
+            {onOpenInProvider && provider ? (
               <Button type="button" variant="secondary" onClick={() => onOpenInProvider(activeFile)}>
-                {t('openInProvider', { provider: providerLabel })}
+                {translatePreviewOpenInProvider(t, provider)}
               </Button>
             ) : null}
             <Button type="button" variant="ghost" onClick={handleClose}>
@@ -225,7 +250,29 @@ export function StorageFilePreviewDialog({
       ) : null}
 
       {isPreviewable && showPdf && previewUrl ? (
-        <PdfJsViewer url={previewUrl} reloadKey={reloadKey} onRetry={handleRetry} />
+        <PdfJsViewer
+          url={previewUrl}
+          reloadKey={reloadKey}
+          onRetry={handleRetry}
+          onOpenOnDevice={onOpenOnDevice ? () => onOpenOnDevice(activeFile) : undefined}
+          onOpenInProvider={
+            onOpenInProvider && provider ? () => onOpenInProvider(activeFile) : undefined
+          }
+          openInProviderLabel={
+            provider ? translatePreviewOpenInProvider(t, provider) : null
+          }
+        />
+      ) : null}
+
+      {isPreviewable && showCad && cadKind && previewUrl ? (
+        <StorageCadPreview
+          kind={cadKind}
+          url={previewUrl}
+          fileName={activeFile.filename}
+          reloadKey={reloadKey}
+          onRetry={handleRetry}
+          onOpenOnDevice={onOpenOnDevice ? () => onOpenOnDevice(activeFile) : undefined}
+        />
       ) : null}
 
       {isPreviewable && showImage && previewUrlWithReload ? (

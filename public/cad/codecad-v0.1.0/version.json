@@ -1,0 +1,5 @@
+{
+  "codecad": "v0.1.0",
+  "source": "https://backkem.github.io/codecad/embed",
+  "mtextWorker": "mtext-renderer-worker.js"
+}

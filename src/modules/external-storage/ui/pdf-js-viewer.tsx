@@ -59,22 +59,44 @@ export function PdfJsViewer({
   url,
   reloadKey,
   onRetry,
+  onOpenOnDevice,
+  onOpenInProvider,
+  openInProviderLabel,
 }: {
   url: string;
   reloadKey: number;
   onRetry: () => void;
+  onOpenOnDevice?: () => void;
+  onOpenInProvider?: () => void;
+  openInProviderLabel?: string | null;
 }) {
-  return <PdfJsViewerInner key={`${url}:${reloadKey}`} url={url} reloadKey={reloadKey} onRetry={onRetry} />;
+  return (
+    <PdfJsViewerInner
+      key={`${url}:${reloadKey}`}
+      url={url}
+      reloadKey={reloadKey}
+      onRetry={onRetry}
+      onOpenOnDevice={onOpenOnDevice}
+      onOpenInProvider={onOpenInProvider}
+      openInProviderLabel={openInProviderLabel}
+    />
+  );
 }
 
 function PdfJsViewerInner({
   url,
   reloadKey,
   onRetry,
+  onOpenOnDevice,
+  onOpenInProvider,
+  openInProviderLabel,
 }: {
   url: string;
   reloadKey: number;
   onRetry: () => void;
+  onOpenOnDevice?: () => void;
+  onOpenInProvider?: () => void;
+  openInProviderLabel?: string | null;
 }) {
   const t = useTranslations('externalStorage.preview');
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -293,9 +315,30 @@ function PdfJsViewerInner({
   };
 
   const onDocumentLoadError = (error: Error) => {
-    console.error('[PdfJsViewer] document load failed', error);
-    failLoad(t('failed'));
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('[PdfJsViewer] document load failed', error);
+    }
+    const invalidPdf = /InvalidPDF|Invalid PDF structure/i.test(error.message);
+    failLoad(invalidPdf ? t('pdfInvalidStructure') : t('failed'));
   };
+
+  const loadErrorActions = (
+    <>
+      <Button type="button" variant="secondary" onClick={onRetry}>
+        {t('retry')}
+      </Button>
+      {onOpenOnDevice ? (
+        <Button type="button" variant="primary" onClick={onOpenOnDevice}>
+          {t('openOnDevice')}
+        </Button>
+      ) : null}
+      {onOpenInProvider && openInProviderLabel ? (
+        <Button type="button" variant="secondary" onClick={onOpenInProvider}>
+          {openInProviderLabel}
+        </Button>
+      ) : null}
+    </>
+  );
 
   const onFirstPageRendered = useCallback(() => {
     const timings = timingsRef.current;
@@ -566,9 +609,7 @@ function PdfJsViewerInner({
         {loadError ? (
           <div className="flex h-full min-h-[40vh] flex-col items-center justify-center gap-3 p-4">
             <Alert tone="danger">{loadError}</Alert>
-            <Button type="button" variant="secondary" onClick={onRetry}>
-              {t('retry')}
-            </Button>
+            <div className="flex flex-wrap justify-center gap-2">{loadErrorActions}</div>
           </div>
         ) : (
           <Document
@@ -578,10 +619,8 @@ function PdfJsViewerInner({
             loading={<span className="sr-only">{t('loading')}</span>}
             error={
               <div className="flex h-full min-h-[40vh] flex-col items-center justify-center gap-3 p-4">
-                <Alert tone="danger">{t('failed')}</Alert>
-                <Button type="button" variant="secondary" onClick={onRetry}>
-                  {t('retry')}
-                </Button>
+                <Alert tone="danger">{t('pdfInvalidStructure')}</Alert>
+                <div className="flex flex-wrap justify-center gap-2">{loadErrorActions}</div>
               </div>
             }
             onLoadSuccess={onDocumentLoadSuccess}

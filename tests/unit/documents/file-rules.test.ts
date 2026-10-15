@@ -77,6 +77,14 @@ describe('document upload constraints', () => {
     expect(storageObjectExtension('file')).toBe('bin');
   });
 
+  it('allows CAD uploads by extension when browser type is generic', () => {
+    expect(normalizeUploadMime('application/octet-stream', 'plan.dwg')).toEqual({
+      ok: true,
+      mimeType: 'image/vnd.dwg',
+      inferredFromExtension: true,
+    });
+  });
+
   it('allows browser-safe image preview mimes only', () => {
     expect(isBrowserPreviewableImageMime('image/jpeg')).toBe(true);
     expect(isBrowserPreviewableImageMime('image/png')).toBe(true);

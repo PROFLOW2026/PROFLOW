@@ -12,6 +12,17 @@ function nextConfig(phase: string): NextConfig {
   allowedDevOrigins: ['127.0.0.1', 'localhost'],
   // exceljs is large and export/import only — keep it out of the client graph.
   serverExternalPackages: ['postgres', 'exceljs', 'drizzle-orm', 'pdf-lib', '@pdf-lib/fontkit', 'bidi-js'],
+  // Pre-bundled dist is used; transpile peers if Turbopack resolves TypeScript sources.
+  transpilePackages: [
+    '@mlightcad/cad-simple-viewer',
+    '@mlightcad/data-model',
+    '@mlightcad/three-renderer',
+    '@mlightcad/mtext-renderer',
+    '@mlightcad/mtext-parser',
+    '@mlightcad/common',
+    '@mlightcad/geometry-engine',
+    '@mlightcad/graphic-interface',
+  ],
   // Hebrew PDF font is read via fs at runtime — include it in every serverless trace.
   outputFileTracingIncludes: {
     '/*': ['./src/modules/reports/fonts/**/*'],
