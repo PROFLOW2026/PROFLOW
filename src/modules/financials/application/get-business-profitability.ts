@@ -20,6 +20,9 @@ export interface BusinessProfitabilityData {
   readonly currency: string;
   readonly canReadCommercial: boolean;
   readonly canReadBilling: boolean;
+  /** Project financial rollups (costs, CCV-related actuals) — not profit KPIs. */
+  readonly canReadProjectFinancials: boolean;
+  /** Contractual / forecast profit KPIs (H2). */
   readonly canReadProfit: boolean;
   readonly canReadAp: boolean;
   /** CCV — contractual revenue basis, not cash. */
@@ -55,17 +58,18 @@ function kpi(value: MoneyValue | null, href: string): BusinessProfitabilityKpi {
 export async function getBusinessProfitability(context: OrgContext): Promise<BusinessProfitabilityData | null> {
   const canReadCommercial = hasPermission(context, PERMISSIONS.CONTRACTS_READ);
   const canReadBilling = hasPermission(context, PERMISSIONS.BILLING_READ);
-  const canReadProfit = hasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ);
+  const canReadProjectFinancials = hasPermission(context, PERMISSIONS.PROJECT_FINANCIALS_READ);
+  const canReadProfit = hasPermission(context, PERMISSIONS.PROJECT_PROFIT_READ);
   const canReadAp = hasPermission(context, PERMISSIONS.AP_READ);
 
-  if (!canReadProfit && !canReadCommercial && !canReadBilling) {
+  if (!canReadProjectFinancials && !canReadCommercial && !canReadBilling) {
     return null;
   }
 
   const currency = context.organization.baseCurrency.toUpperCase();
   const [dashboard, generalPoolTotals] = await Promise.all([
     getHomeDashboard(context, { workKindFilter: 'all' }),
-    canReadProfit
+    canReadProjectFinancials
       ? sumOrganizationGeneralPoolTotals(context.db, context.organizationId, currency)
       : Promise.resolve(null),
   ]);
@@ -75,7 +79,7 @@ export async function getBusinessProfitability(context: OrgContext): Promise<Bus
       ? (fromNumericString(generalPoolTotals.unallocatable, currency) ?? zeroMoney(currency))
       : null;
   const companyComposition =
-    canReadProfit && generalPoolTotals != null
+    canReadProjectFinancials && generalPoolTotals != null
       ? composeCompanyActual({
           currency,
           directProjectActual: dashboard.totalActualCost ?? zeroMoney(currency),
@@ -87,10 +91,14 @@ export async function getBusinessProfitability(context: OrgContext): Promise<Bus
       : null;
   const staysWithCompany = companyComposition?.unallocatableGeneral ?? unallocatableGeneral;
 
+  const profitKpi = (value: MoneyValue | null): MoneyValue | null =>
+    canReadProfit ? value : null;
+
   return {
     currency,
     canReadCommercial,
     canReadBilling,
+    canReadProjectFinancials,
     canReadProfit,
     canReadAp,
     currentContractValue: kpi(dashboard.totalContractValue, '/reports?section=commercial'),
@@ -105,9 +113,9 @@ export async function getBusinessProfitability(context: OrgContext): Promise<Bus
     openCommitments: kpi(forecast?.totalRemainingCommitments ?? null, '/procurement'),
     forecastFinalCost: kpi(forecast?.totalForecastFinalCost ?? null, '/reports?section=profitability'),
     expectedRemainingCost: kpi(forecast?.totalExpectedRemaining ?? null, '/projects'),
-    contractualCurrentProfit: kpi(dashboard.actualProfitTotal, '/reports?section=profitability'),
-    forecastProfit: kpi(forecast?.totalForecastMargin ?? null, '/reports?section=profitability'),
-    companyProfit: kpi(forecast?.companyProfit ?? null, '/reports?section=profitability'),
+    contractualCurrentProfit: kpi(profitKpi(dashboard.actualProfitTotal), '/reports?section=profitability'),
+    forecastProfit: kpi(profitKpi(forecast?.totalForecastMargin ?? null), '/reports?section=profitability'),
+    companyProfit: kpi(profitKpi(forecast?.companyProfit ?? null), '/reports?section=profitability'),
     apOutstanding: kpi(dashboard.apOutstanding, '/procurement/ap?outstanding=1'),
     reconcilesCompanyActual: companyComposition?.reconciles ?? null,
   };

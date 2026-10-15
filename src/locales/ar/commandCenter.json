@@ -1,6 +1,8 @@
 {
   "title": "اليوم",
   "description": "كل ما يحتاج معالجة الآن.",
+  "accessDeniedTitle": "صفحة «اليوم» غير متاحة لدورك",
+  "accessDeniedDescription": "يتطلب مركز القيادة إذن command_center.read. استخدم لوحة البداية أو اطلب تعديل الأذونات.",
   "listLabel": "للمعالجة",
   "summary": "{count, plural, =0 {لا شيء يحتاج انتباهاً الآن} =1 {بند واحد للمعالجة} other {# بنود للمعالجة}}",
   "fields": {

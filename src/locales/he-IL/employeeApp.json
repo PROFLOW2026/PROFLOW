@@ -127,7 +127,9 @@
     "teamAttendanceSection": "נוכחות צוות",
     "teamAttendanceEmpty": "אין נוכחות צוות להיום",
     "approveSection": "שעות ממתינות לאישור",
-    "approveEmpty": "אין שעות ממתינות לאישור"
+    "approveEmpty": "אין שעות ממתינות לאישור",
+    "noAccessTitle": "שעות ונוכחות לא מופעלות",
+    "noAccessDescription": "לחשבון שלך אין הרשאה לדיווח שעות, נוכחות או אישור שעות. פנה למנהל אם נדרשת גישה."
   },
   "team": {
     "intro": "תצוגת צוות תפעולית בהיקף ההרשאות שלך.",

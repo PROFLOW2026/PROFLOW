@@ -5,7 +5,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/shared/i18n/navigation';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/shared/i18n/navigation';
 import { cn } from '@/shared/ui/cn';

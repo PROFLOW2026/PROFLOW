@@ -127,7 +127,9 @@
     "teamAttendanceSection": "Team attendance",
     "teamAttendanceEmpty": "No team attendance records for today",
     "approveSection": "Hours awaiting approval",
-    "approveEmpty": "No hours awaiting approval"
+    "approveEmpty": "No hours awaiting approval",
+    "noAccessTitle": "Time and attendance are not enabled",
+    "noAccessDescription": "Your account has no permission to clock in, report hours, or approve time. Contact your administrator if you need access."
   },
   "team": {
     "intro": "Operational team visibility for your permitted scope.",

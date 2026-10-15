@@ -12,27 +12,46 @@ import { WithPortalClientMessages } from '@/shared/i18n/with-client-messages';
 export default async function ContractorDocumentsPage({ params }: { params: Promise<{ projectId: string }> }) {
   const { projectId } = await params;
   const context = await requireExternalContext();
-  const grant = context.grants.find(
+  const documentGrants = context.grants.filter(
     (g) =>
       g.capabilities.has(EXTERNAL_CAPABILITIES.DOCUMENT_VIEW) &&
       (g.projectId === projectId || g.projectId === null),
   );
-  if (!grant) notFound();
+  if (documentGrants.length === 0) notFound();
 
-  const listed = await listContractorSharedDocuments(context, {
-    organizationId: grant.organizationId,
-    projectId,
-  });
+  const organizationIds = [...new Set(documentGrants.map((g) => g.organizationId))];
+  const sections = await Promise.all(
+    organizationIds.map(async (organizationId) => {
+      const listed = await listContractorSharedDocuments(context, {
+        organizationId,
+        projectId,
+      });
+      return { organizationId, items: listed.items };
+    }),
+  );
+
+  const totalItems = sections.reduce((n, section) => n + section.items.length, 0);
   const t = await getTranslations('projectPlans.portal.documents');
 
   return (
     <div className="flex flex-col gap-4 pb-6">
       <PageHeader title={t('pageTitle')} description={t('pageDescription')} />
-      {listed.items.length === 0 ? (
+      {totalItems === 0 ? (
         <EmptyState icon={FileText} title={t('emptyTitle')} size="sm" />
       ) : (
         <WithPortalClientMessages extra={['projectPlans']}>
-          <ContractorDocumentsList organizationId={grant.organizationId} projectId={projectId} items={listed.items} />
+          <div className="flex flex-col gap-6">
+            {sections.map((section) =>
+              section.items.length === 0 ? null : (
+                <ContractorDocumentsList
+                  key={section.organizationId}
+                  organizationId={section.organizationId}
+                  projectId={projectId}
+                  items={section.items}
+                />
+              ),
+            )}
+          </div>
         </WithPortalClientMessages>
       )}
     </div>

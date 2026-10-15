@@ -113,6 +113,8 @@ async function loadExternalClaim(
 export interface ContractorClaimDetail extends InternalClaimDetail {
   readonly organizationId: string;
   readonly draftWorkLines: readonly ClaimDraftWorkLine[];
+  /** NET figures when grant includes contract value visibility. */
+  readonly canViewContractValue: boolean;
 }
 
 export async function listContractorProjectClaims(
@@ -146,6 +148,7 @@ export async function getContractorClaimDetail(
     organizationId,
     detail: toDetailView(claim, state, bases),
     draftWorkLines: buildClaimDraftWorkLines(state, claim.currency),
+    canViewContractValue: hasExternalScope(context, scopeOf(claim), X.CONTRACT_VIEW_VALUE),
     can: {
       edit: canSubmit && isEditableStatus(claim.status),
       review: false,

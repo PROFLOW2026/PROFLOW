@@ -24,7 +24,9 @@ export function PortalClaimDetail({
   deductions?: readonly DeductionView[];
 }) {
   const t = useTranslations('subcontractClaims');
-  const { detail, can } = view;
+  const tCommon = useTranslations('common');
+  const { detail, can, canViewContractValue } = view;
+  const hiddenAmount = tCommon('labels.none');
   const { header } = detail;
   return (
     <div className="flex flex-col gap-4 pb-6">
@@ -57,8 +59,11 @@ export function PortalClaimDetail({
             <div key={line.claimLineId} className="rounded-md border border-[var(--pf-border-subtle)] p-3 text-sm">
               <p className="font-medium">{line.code ?? line.description}</p>
               <p className="tabular-nums">
-                {t('list.submitted')}: {bidiIsolate(line.figures.currentSubmitted)}
-                {line.figures.currentCertified ? ` · ${t('list.certified')}: ${bidiIsolate(line.figures.currentCertified)}` : null}
+                {t('list.submitted')}:{' '}
+                {canViewContractValue ? bidiIsolate(line.figures.currentSubmitted) : hiddenAmount}
+                {canViewContractValue && line.figures.currentCertified
+                  ? ` · ${t('list.certified')}: ${bidiIsolate(line.figures.currentCertified)}`
+                  : null}
               </p>
             </div>
           ))}

@@ -1,6 +1,8 @@
 {
   "title": "היום",
   "description": "כל מה שדורש טיפול עכשיו.",
+  "accessDeniedTitle": "מסך \"היום\" אינו זמין לתפקיד שלך",
+  "accessDeniedDescription": "מרכז הפיקוד דורש הרשאת command_center.read. השתמש בדשבורד הבית או בקש מהמנהל להתאים הרשאות.",
   "listLabel": "לטיפול",
   "summary": "{count, plural, =0 {אין כרגע מה לטפל בו} one {פריט אחד לטיפול} two {שני פריטים לטיפול} other {# פריטים לטיפול}}",
   "fields": {

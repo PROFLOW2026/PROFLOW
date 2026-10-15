@@ -200,6 +200,8 @@ const SECRETARY = preset(
     { permissionKey: PERMISSIONS.EXPENSES_CREATE, scope: 'all_organization' },
     { permissionKey: PERMISSIONS.MEETINGS_READ, scope: 'all_organization' },
     { permissionKey: PERMISSIONS.MEETINGS_MANAGE, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.QUOTES_READ, scope: 'all_organization' },
+    { permissionKey: PERMISSIONS.QUOTES_MANAGE, scope: 'all_organization' },
   ],
   ['receipt', 'invoice', 'photo', 'other'],
 );

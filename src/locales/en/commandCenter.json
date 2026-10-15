@@ -1,6 +1,8 @@
 {
   "title": "Today",
   "description": "Approvals, overdue collections, expenses needing action, document review, and other items waiting on you — not the notification bell.",
+  "accessDeniedTitle": "Today is not available for your role",
+  "accessDeniedDescription": "The command center requires command_center.read. Use the home dashboard or ask an administrator to adjust your permissions.",
   "listLabel": "To handle",
   "summary": "{count, plural, =0 {Nothing needs attention right now} =1 {1 item to handle} other {# items to handle}}",
   "fields": {

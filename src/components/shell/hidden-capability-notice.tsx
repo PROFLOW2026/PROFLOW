@@ -1,6 +1,6 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
+import { usePathname } from '@/shared/i18n/navigation';
 import { useTranslations } from 'next-intl';
 import type { ModuleVisibility } from '@/modules/tenancy/domain/types';
 import { capabilityForPath } from '@/modules/tenancy/domain/route-capability';

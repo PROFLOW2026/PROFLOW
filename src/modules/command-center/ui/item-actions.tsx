@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/shared/i18n/navigation';
 import { useTransition } from 'react';
 import { Button } from '@/components/ui/button';
 import { ConfirmPaymentButton } from '@/components/ui/confirm-payment-button';

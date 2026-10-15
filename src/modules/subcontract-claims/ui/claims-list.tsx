@@ -10,7 +10,9 @@ function formatClaimAmount(amount: string, currency: string, locale: string): st
   return bidiIsolate(formatMoneyString(amount, currency, locale));
 }
 
-export function ClaimsList({ items, basePath }: { items: readonly ClaimListItem[]; basePath: string }) {
+export type ClaimsListItem = ClaimListItem & { readonly showAmounts?: boolean };
+
+export function ClaimsList({ items, basePath }: { items: readonly ClaimsListItem[]; basePath: string }) {
   const t = useTranslations('subcontractClaims');
   const tCommon = useTranslations('common');
   const locale = useLocale();
@@ -48,12 +50,16 @@ export function ClaimsList({ items, basePath }: { items: readonly ClaimListItem[
                   <ClaimStatusBadge status={item.status} label={t(`status.${item.status}`)} />
                 </td>
                 <td className="px-3 py-2 text-end tabular-nums">
-                  {formatClaimAmount(item.currentSubmitted, item.currency, locale)}
+                  {item.showAmounts === false
+                    ? missingValue
+                    : formatClaimAmount(item.currentSubmitted, item.currency, locale)}
                 </td>
                 <td className="px-3 py-2 text-end tabular-nums">
-                  {item.currentCertified
-                    ? formatClaimAmount(item.currentCertified, item.currency, locale)
-                    : missingValue}
+                  {item.showAmounts === false
+                    ? missingValue
+                    : item.currentCertified
+                      ? formatClaimAmount(item.currentCertified, item.currency, locale)
+                      : missingValue}
                 </td>
               </tr>
             ))}
@@ -76,8 +82,11 @@ export function ClaimsList({ items, basePath }: { items: readonly ClaimListItem[
               {t('list.period')}: {bidiIsolate(item.periodStart)} – {bidiIsolate(item.periodEnd)}
             </p>
             <p className="text-sm tabular-nums">
-              {t('list.submitted')}: {formatClaimAmount(item.currentSubmitted, item.currency, locale)}
-              {item.currentCertified
+              {t('list.submitted')}:{' '}
+              {item.showAmounts === false
+                ? missingValue
+                : formatClaimAmount(item.currentSubmitted, item.currency, locale)}
+              {item.showAmounts !== false && item.currentCertified
                 ? ` · ${t('list.certified')}: ${formatClaimAmount(item.currentCertified, item.currency, locale)}`
                 : null}
             </p>

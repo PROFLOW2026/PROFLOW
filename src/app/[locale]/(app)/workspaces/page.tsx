@@ -4,6 +4,7 @@ import { Layers } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 import { Badge } from '@/components/ui/badge';
+import { notFound } from 'next/navigation';
 import { listWorkspaces } from '@/modules/workspaces';
 import { withOrgContext, getShellContext } from '@/shared/auth/session';
 import { PERMISSIONS } from '@/shared/permissions/catalog';
@@ -38,10 +39,12 @@ const VISIBILITY_TONE: Record<
 export default async function WorkspacesPage() {
   const t = await getTranslations('tasks');
 
-  const [workspaces, shell] = await Promise.all([
-    withOrgContext(async (context) => listWorkspaces(context, {})),
-    getShellContext(),
-  ]);
+  const shell = await getShellContext();
+  if (!shell?.permissions.has(PERMISSIONS.TASKS_READ) || !shell.modules.work_management) {
+    notFound();
+  }
+
+  const workspaces = await withOrgContext(async (context) => listWorkspaces(context, {}));
 
   const activeWorkspaces = workspaces.filter((ws) => !ws.isArchived);
   const canCreateWorkspace = shell?.permissions.has(PERMISSIONS.WORKSPACES_MANAGE) ?? false;

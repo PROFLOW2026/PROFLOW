@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter } from '@/shared/i18n/navigation';
 import { useTranslations } from 'next-intl';
 import {
   OwnerFilterField,

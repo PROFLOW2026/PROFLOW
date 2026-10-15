@@ -1,23 +1,30 @@
+import { getTranslations } from 'next-intl/server';
+import { Alert } from '@/components/ui/alert';
+import { PageHeader } from '@/components/ui/page-header';
 import { redirect } from '@/shared/i18n/navigation';
 import { withOrgContext } from '@/shared/auth/session';
 import { hasAnyPermission, hasPermission } from '@/shared/permissions/assert';
-import { PERMISSIONS } from '@/shared/permissions/catalog';
+import { resolveWorkforceHubHref } from '@/modules/workforce/domain/workforce-hub-entry';
 
 export default async function WorkforcePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
-  const href = await withOrgContext(async (context) => {
-    if (hasPermission(context, PERMISSIONS.WORKFORCE_READ)) return '/workforce/employees';
-    if (hasPermission(context, PERMISSIONS.TIME_MANAGE)) return '/workforce/time';
-    if (
-      hasAnyPermission(context, [
-        PERMISSIONS.ATTENDANCE_SELF,
-        PERMISSIONS.ATTENDANCE_READ,
-        PERMISSIONS.ATTENDANCE_MANAGE,
-      ])
-    ) {
-      return '/workforce/attendance';
-    }
-    return '/workforce/employees';
-  });
-  redirect({ href, locale });
+  const t = await getTranslations('workforce.hubAccess');
+
+  const href = await withOrgContext(async (context) =>
+    resolveWorkforceHubHref(
+      (key) => hasPermission(context, key),
+      (keys) => hasAnyPermission(context, keys),
+    ),
+  );
+
+  if (href) {
+    redirect({ href, locale });
+  }
+
+  return (
+    <div className="flex flex-col gap-6">
+      <PageHeader title={t('title')} description={t('description')} />
+      <Alert tone="info">{t('noPermission')}</Alert>
+    </div>
+  );
 }

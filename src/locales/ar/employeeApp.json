@@ -127,7 +127,9 @@
     "teamAttendanceSection": "حضور الفريق",
     "teamAttendanceEmpty": "لا يوجد حضور فريق لليوم",
     "approveSection": "ساعات بانتظار الموافقة",
-    "approveEmpty": "لا توجد ساعات بانتظار الموافقة"
+    "approveEmpty": "لا توجد ساعات بانتظار الموافقة",
+    "noAccessTitle": "الوقت والحضور غير مفعّلين",
+    "noAccessDescription": "حسابك لا يملك إذن تسجيل حضور أو ساعات أو الموافقة عليها. تواصل مع المسؤول إذا كنت بحاجة للوصول."
   },
   "tasks": {
     "tabs": {

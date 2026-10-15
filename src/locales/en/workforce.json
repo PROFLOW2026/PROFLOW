@@ -1,6 +1,11 @@
 {
   "title": "Employees",
   "description": "Manage employees, project assignments, and time entries.",
+  "hubAccess": {
+    "title": "Workforce",
+    "description": "Employees, time, attendance, and labor reporting.",
+    "noPermission": "You do not have permission to open workforce screens. Ask an administrator to grant workforce read, time manage, or attendance access."
+  },
   "nav": {
     "employees": "Employees",
     "time": "Time entries",

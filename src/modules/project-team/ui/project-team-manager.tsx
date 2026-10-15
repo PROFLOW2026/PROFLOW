@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/shared/i18n/navigation';
 import { useTranslations } from 'next-intl';
 import { ShieldCheck, UserPlus, Users } from 'lucide-react';
 import * as React from 'react';

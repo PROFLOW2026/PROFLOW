@@ -59,7 +59,10 @@
       "name": "Organization Manager",
       "description": "Runs organization-wide operations and projects. Profit is hidden unless you turn it on."
     },
-    "finance": { "name": "Finance", "description": "Billing, payments, expenses and tax." },
+    "finance": {
+      "name": "Finance",
+      "description": "Billing, payments, expenses and tax. Vendor bill posting uses ap.manage — grant it on a role under Settings → Roles when a user must post or void AP."
+    },
     "worker": { "name": "Worker", "description": "Records expenses and hours. No financial totals." }
   },
   "permissions": {

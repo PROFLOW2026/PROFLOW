@@ -37,6 +37,8 @@ import { cn } from '@/shared/ui/cn';
 import { EmployeePendingTimeApprovalRow } from '@/modules/employee-app/ui/employee-pending-time-approval-row';
 import { BulkApproveEntriesForm } from '@/modules/workforce/ui/timesheet-actions';
 import { AttendanceCorrectionSubmitSection } from '@/modules/workforce/ui/attendance-correction-submit-section';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Clock } from 'lucide-react';
 
 interface EmployeeRecentTimeEntry {
   readonly id: string;
@@ -168,6 +170,23 @@ export default async function EmployeeTimePage() {
       linkedEmployeeId,
     };
   });
+
+  const hasTimeSurface =
+    payload.canAttendance ||
+    payload.canHours ||
+    payload.canTeamAttendance ||
+    payload.canTimeApprove;
+
+  if (!hasTimeSurface) {
+    return (
+      <EmptyState
+        icon={Clock}
+        title={t('time.noAccessTitle')}
+        description={t('time.noAccessDescription')}
+        size="sm"
+      />
+    );
+  }
 
   return (
     <div className={employeePageStackClass}>

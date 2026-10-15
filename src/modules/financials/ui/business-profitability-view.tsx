@@ -119,28 +119,28 @@ export async function BusinessProfitabilityView({
             title={t('kpis.directProjectCost')}
             hint={t('kpis.directProjectCostHint')}
             kpi={data.directProjectCost}
-            unavailable={!data.canReadProfit}
+            unavailable={!data.canReadProjectFinancials}
             unavailableLabel={t('unavailable')}
           />
           <KpiCard
             title={t('kpis.allocatedOverhead')}
             hint={t('kpis.allocatedOverheadHint')}
             kpi={data.allocatedOverhead}
-            unavailable={!data.canReadProfit}
+            unavailable={!data.canReadProjectFinancials}
             unavailableLabel={t('unavailable')}
           />
           <KpiCard
             title={t('kpis.companyOnlyCost')}
             hint={t('kpis.companyOnlyCostHint')}
             kpi={data.companyOnlyCost}
-            unavailable={!data.canReadProfit}
+            unavailable={!data.canReadProjectFinancials}
             unavailableLabel={t('unavailable')}
           />
           <KpiCard
             title={t('kpis.companyActual')}
             hint={t('kpis.companyActualHint')}
             kpi={data.companyActual}
-            unavailable={!data.canReadProfit}
+            unavailable={!data.canReadProjectFinancials}
             unavailableLabel={t('unavailable')}
           />
           <KpiCard
@@ -168,21 +168,21 @@ export async function BusinessProfitabilityView({
             title={t('kpis.openCommitments')}
             hint={t('kpis.openCommitmentsHint')}
             kpi={data.openCommitments}
-            unavailable={!data.canReadProfit}
+            unavailable={!data.canReadProjectFinancials}
             unavailableLabel={t('unavailable')}
           />
           <KpiCard
             title={t('kpis.expectedRemainingCost')}
             hint={t('kpis.expectedRemainingCostHint')}
             kpi={data.expectedRemainingCost}
-            unavailable={!data.canReadProfit}
+            unavailable={!data.canReadProjectFinancials}
             unavailableLabel={t('unavailable')}
           />
           <KpiCard
             title={t('kpis.forecastFinalCost')}
             hint={t('kpis.forecastFinalCostHint')}
             kpi={data.forecastFinalCost}
-            unavailable={!data.canReadProfit}
+            unavailable={!data.canReadProjectFinancials}
             unavailableLabel={t('unavailable')}
           />
         </div>

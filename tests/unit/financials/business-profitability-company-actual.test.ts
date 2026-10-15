@@ -59,11 +59,27 @@ describe('getBusinessProfitability company actual', () => {
     });
 
     const data = await getBusinessProfitability(context);
+    expect(data?.canReadProfit).toBe(false);
     expect(data?.companyOnlyCost.value).toEqual(money('10.000000', 'ILS'));
     expect(data?.unallocatableGeneral.value).toEqual(money('10.000000', 'ILS'));
     expect(data?.allocatedOverhead.value).toEqual(money('40', 'ILS'));
     expect(data?.companyActual.value).toEqual(money('180', 'ILS'));
     expect(data?.reconcilesCompanyActual).toBe(true);
+  });
+
+  it('withholds profit KPIs when project_profit.read is missing', async () => {
+    getHomeDashboardMock.mockResolvedValue(dashboard(money('180', 'ILS')) as never);
+    sumPoolMock.mockResolvedValue({
+      pool: '80.000000',
+      allocated: '40.000000',
+      unallocatable: '10.000000',
+    });
+
+    const data = await getBusinessProfitability(context);
+    expect(data?.canReadProjectFinancials).toBe(true);
+    expect(data?.canReadProfit).toBe(false);
+    expect(data?.contractualCurrentProfit.value).toBeNull();
+    expect(data?.directProjectCost.value).not.toBeNull();
   });
 
   it('reports reconcile true when the pool conserves even if company actual is withheld', async () => {

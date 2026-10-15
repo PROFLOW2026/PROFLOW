@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { getLocale, getTranslations } from 'next-intl/server';
+import { Alert } from '@/components/ui/alert';
 import { PageHeader } from '@/components/ui/page-header';
 import { getTodayInbox } from '@/modules/command-center';
 import { TodayInboxPanel } from '@/modules/command-center/ui/today-inbox';
@@ -61,8 +62,21 @@ async function TodayInboxBody() {
   if (result.kind === 'employee') {
     redirect({ href: '/employee', locale });
   }
+  if (result.kind === 'forbidden') {
+    return (
+      <Alert tone="info">
+        <p className="font-medium">{t('accessDeniedTitle')}</p>
+        <p className="mt-1 text-sm">{t('accessDeniedDescription')}</p>
+      </Alert>
+    );
+  }
   if (result.kind !== 'ok') {
-    redirect({ href: '/', locale });
+    return (
+      <Alert tone="info">
+        <p className="font-medium">{t('accessDeniedTitle')}</p>
+        <p className="mt-1 text-sm">{t('accessDeniedDescription')}</p>
+      </Alert>
+    );
   }
 
   return (

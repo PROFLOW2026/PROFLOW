@@ -148,6 +148,7 @@ const WORKER_PERMISSIONS: readonly PermissionKey[] = [
   PERMISSIONS.ASSISTANT_USE,
 ];
 
+/** Finance: AP posting is intentionally read-only here; grant `AP_MANAGE` per role in Settings → Roles. */
 const FINANCE_PERMISSIONS: readonly PermissionKey[] = [
   PERMISSIONS.ORG_READ,
   PERMISSIONS.MEMBERS_READ,
