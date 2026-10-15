@@ -272,6 +272,9 @@ export function StorageFilePreviewDialog({
           reloadKey={reloadKey}
           onRetry={handleRetry}
           onOpenOnDevice={onOpenOnDevice ? () => onOpenOnDevice(activeFile) : undefined}
+          siblingFiles={siblingFiles}
+          scope={scope}
+          projectId={projectId}
         />
       ) : null}
 

@@ -1,9 +1,13 @@
 'use client';
 
+import type { ProviderFileItem } from '@/modules/external-storage/domain/types';
+import type { StorageBrowserScope } from '@/modules/external-storage/client/storage-file-urls';
 import type { CadPreviewKind } from '@/modules/documents/domain/cad-file-rules';
 import { AutodeskDwfViewer } from './autodesk-dwf-viewer';
-import { CodecadDwgViewer } from './codecad-dwg-viewer';
 import { MlightcadDxfViewer } from './mlightcad-dxf-viewer';
+import { PfDwgViewer } from './pf-cad/pf-dwg-viewer';
+
+export { CodecadDwgViewer } from './codecad-dwg-viewer';
 
 export function StorageCadPreview({
   kind,
@@ -12,6 +16,9 @@ export function StorageCadPreview({
   reloadKey,
   onRetry,
   onOpenOnDevice,
+  siblingFiles,
+  scope,
+  projectId,
 }: {
   kind: CadPreviewKind;
   url: string;
@@ -19,14 +26,21 @@ export function StorageCadPreview({
   reloadKey: number;
   onRetry: () => void;
   onOpenOnDevice?: () => void;
+  siblingFiles?: readonly ProviderFileItem[];
+  scope: StorageBrowserScope;
+  projectId?: string;
 }) {
   if (kind === 'dwg') {
     return (
-      <CodecadDwgViewer
+      <PfDwgViewer
         url={url}
+        fileName={fileName}
         reloadKey={reloadKey}
         onRetry={onRetry}
         onOpenOnDevice={onOpenOnDevice}
+        siblingFiles={siblingFiles}
+        scope={scope}
+        projectId={projectId}
       />
     );
   }

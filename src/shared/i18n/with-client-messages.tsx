@@ -1,6 +1,6 @@
-import { NextIntlClientProvider } from 'next-intl';
-import { getMessages } from 'next-intl/server';
+import { getLocale, getMessages } from 'next-intl/server';
 import type { ReactNode } from 'react';
+import { IntlClientProvider } from '@/shared/i18n/intl-client-provider';
 import {
   CONTRACTOR_PORTAL_CLIENT_MESSAGE_NAMESPACES,
   type MessageNamespace,
@@ -22,11 +22,11 @@ export async function WithClientMessages({
   namespaces: readonly MessageNamespace[];
   children: ReactNode;
 }) {
-  const messages = await getMessages();
+  const [messages, locale] = await Promise.all([getMessages(), getLocale()]);
   return (
-    <NextIntlClientProvider messages={pickClientMessages(messages, namespaces)}>
+    <IntlClientProvider locale={locale} messages={pickClientMessages(messages, namespaces)}>
       {children}
-    </NextIntlClientProvider>
+    </IntlClientProvider>
   );
 }
 
@@ -41,13 +41,14 @@ export async function WithAppClientMessages({
   extra?: readonly MessageNamespace[];
   children: ReactNode;
 }) {
-  const messages = await getMessages();
+  const [messages, locale] = await Promise.all([getMessages(), getLocale()]);
   return (
-    <NextIntlClientProvider
+    <IntlClientProvider
+      locale={locale}
       messages={pickClientMessages(messages, appClientMessageNamespaces(...extra))}
     >
       {children}
-    </NextIntlClientProvider>
+    </IntlClientProvider>
   );
 }
 
@@ -59,15 +60,16 @@ export async function WithPortalClientMessages({
   extra?: readonly MessageNamespace[];
   children: ReactNode;
 }) {
-  const messages = await getMessages();
+  const [messages, locale] = await Promise.all([getMessages(), getLocale()]);
   return (
-    <NextIntlClientProvider
+    <IntlClientProvider
+      locale={locale}
       messages={pickClientMessages(
         messages,
         mergeClientMessageNamespaces(CONTRACTOR_PORTAL_CLIENT_MESSAGE_NAMESPACES, ...extra),
       )}
     >
       {children}
-    </NextIntlClientProvider>
+    </IntlClientProvider>
   );
 }

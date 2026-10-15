@@ -226,10 +226,20 @@
     "shareUnsupported": "הדפדפן לא יכול לשתף את הקובץ. הקובץ יורד במקום זאת.",
     "shareFailed": "לא ניתן להוריד או לפתוח את הקובץ. נסו שוב.",
     "cadLoadingEngine": "טוען מנוע CAD…",
+    "cadLoadingDownload": "מוריד שרטוט…",
+    "cadLoadingWasm": "טוען מנוע DWG…",
+    "cadLoadingXref": "פותר הפניות חיצוניות (XREF)…",
+    "cadLoadingParse": "מכין תצוגת שרטוט…",
     "cadLoadFailed": "לא ניתן להציג את קובץ ה-CAD. נסו שוב או פתחו במכשיר.",
     "cadEmptyDrawing": "הקובץ נטען אך לא נמצא תוכן שרטוט להצגה.",
-    "cadDwgPartialNotice": "תצוגת DWG חלקית בלבד — לא שרטוט מלא. CodeCAD אינו טוען XREF (רקע אדריכלי חיצוני), Paper Space/Layouts, טקסט עברי וחלק מהישויות. לצפייה מלאה פתחו ב-AutoCAD או בספק האחסון.",
+    "cadDwgPartialNotice": "תצוגת DWG חלקית — לא AutoCAD מלא. XREF נטען כשקבצי אחים מופיעים באותה רשימת תיקייה; Paper Space/Layouts וחלק מהישויות עדיין עלולים להיות חסרים. לצפייה מלאה פתחו ב-AutoCAD או בספק האחסון.",
+    "cadXrefMissing": "{count, plural, one {הפניה חיצונית אחת (#) לא נטענה מתיקייה זו — ייתכן שהשרטוט ייראה חלקי.} two {# הפניות חיצוניות לא נטענו מתיקייה זו — ייתכן שהשרטוט ייראה חלקי.} many {# הפניות חיצוניות לא נטענו מתיקייה זו — ייתכן שהשרטוט ייראה חלקי.} other {# הפניות חיצוניות לא נטענו מתיקייה זו — ייתכן שהשרטוט ייראה חלקי.}}",
+    "cadWebglRequired": "נדרש WebGL2 להצגת DWG בדפדפן.",
+    "cadLayerFrozen": "קפוא",
     "cadLayers": "שכבות",
+    "cadSpaceModel": "מודל",
+    "cadSpaceLayout": "פריסה {name}",
+    "cadSpaceSelector": "מודל או פריסה",
     "cadViewerCanvas": "תצוגת שרטוט CAD"
   }
 }

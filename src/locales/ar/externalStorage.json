@@ -226,10 +226,20 @@
     "shareUnsupported": "هذا المتصفح لا يستطيع مشاركة الملف. سيُنزَّل الملف بدلاً من ذلك.",
     "shareFailed": "تعذّر تنزيل الملف أو فتحه. حاول مرة أخرى.",
     "cadLoadingEngine": "جارٍ تحميل عارض CAD…",
+    "cadLoadingDownload": "جارٍ تنزيل الرسم…",
+    "cadLoadingWasm": "جارٍ تحميل محرك DWG…",
+    "cadLoadingXref": "جارٍ حل مراجع الرسم (XREF)…",
+    "cadLoadingParse": "جارٍ تجهيز عرض الرسم…",
     "cadLoadFailed": "تعذّر عرض ملف CAD. حاول مرة أخرى أو افتح على الجهاز.",
     "cadEmptyDrawing": "تم تحميل الملف لكن لا يوجد محتوى رسومي للعرض.",
-    "cadDwgPartialNotice": "معاينة DWG جزئية فقط — وليست رسمًا كاملاً. CodeCAD لا يحمّل XREF أو Paper Space/Layouts أو النص العبري وبعض الكيانات. للرسم الكامل افتح في AutoCAD أو مزود التخزين.",
+    "cadDwgPartialNotice": "معاينة DWG جزئية — ليست جلسة AutoCAD كاملة. تُحمَّل XREF عندما تكون الملفات المرتبطة في نفس قائمة المجلد؛ قد تُستثنى Paper Space/Layouts وبعض الكيانات. للرسم الكامل افتح في AutoCAD أو مزود التخزين.",
+    "cadXrefMissing": "{count, plural, one {تعذّر تحميل مرجع خارجي واحد (#) من هذا المجلد — قد يبدو الرسم ناقصًا.} other {تعذّر تحميل # مراجع خارجية من هذا المجلد — قد يبدو الرسم ناقصًا.}}",
+    "cadWebglRequired": "يلزم WebGL2 لمعاينة DWG في المتصفح.",
+    "cadLayerFrozen": "مجمدة",
     "cadLayers": "الطبقات",
+    "cadSpaceModel": "النموذج",
+    "cadSpaceLayout": "تخطيط {name}",
+    "cadSpaceSelector": "النموذج أو التخطيط",
     "cadViewerCanvas": "معاينة رسم CAD"
   }
 }

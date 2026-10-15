@@ -108,6 +108,6 @@ export const config = {
     // (email confirmation / reset callback) stay outside next-intl so they are
     // not rewritten to `/en/...` via Accept-Language.
     // PWA shell, PDF.js worker, and CAD static assets must stay unprefixed or preview breaks.
-    '/((?!api|auth|_next/static|_next/image|favicon.ico|robots\\.txt|sitemap\\.xml|sw\\.js|manifest\\.webmanifest|employee\\.webmanifest|offline\\.html|pdf\\.worker\\.min\\.mjs|pdf\\.worker\\.version\\.json|cad/|cad-workers/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?|mjs|wasm)$).*)',
+    '/((?!api|auth|_next/static|_next/image|favicon.ico|robots\\.txt|sitemap\\.xml|sw\\.js|manifest\\.webmanifest|employee\\.webmanifest|offline\\.html|pdf\\.worker\\.min\\.mjs|pdf\\.worker\\.version\\.json|cad/|cad-workers/|pf-cad/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?|mjs|wasm|js)$).*)',
   ],
 };

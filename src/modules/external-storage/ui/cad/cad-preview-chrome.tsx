@@ -1,6 +1,6 @@
 'use client';
 
-import { Layers, Maximize, Minimize, Scan } from 'lucide-react';
+import { Layers, Maximize, Minimize, Scan, ZoomIn, ZoomOut } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
@@ -11,12 +11,16 @@ export function CadPreviewChrome({
   disclaimer,
   layersPanel,
   onFitView,
+  onZoomIn,
+  onZoomOut,
   children,
 }: {
   hostRef: React.RefObject<HTMLElement | null>;
   disclaimer?: string | null;
   layersPanel?: ReactNode;
   onFitView?: () => void;
+  onZoomIn?: () => void;
+  onZoomOut?: () => void;
   children: ReactNode;
 }) {
   const t = useTranslations('externalStorage.preview');
@@ -53,6 +57,18 @@ export function CadPreviewChrome({
             <Button type="button" size="sm" variant="secondary" onClick={onFitView} aria-label={t('fitPage')}>
               <Scan className="size-4" aria-hidden />
               <span className="hidden sm:inline">{t('fitPage')}</span>
+            </Button>
+          ) : null}
+          {onZoomOut ? (
+            <Button type="button" size="sm" variant="secondary" onClick={onZoomOut} aria-label={t('zoomOut')}>
+              <ZoomOut className="size-4" aria-hidden />
+              <span className="hidden sm:inline">{t('zoomOut')}</span>
+            </Button>
+          ) : null}
+          {onZoomIn ? (
+            <Button type="button" size="sm" variant="secondary" onClick={onZoomIn} aria-label={t('zoomIn')}>
+              <ZoomIn className="size-4" aria-hidden />
+              <span className="hidden sm:inline">{t('zoomIn')}</span>
             </Button>
           ) : null}
           {layersPanel ? (

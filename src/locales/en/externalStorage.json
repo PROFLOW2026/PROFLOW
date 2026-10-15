@@ -226,10 +226,20 @@
     "shareUnsupported": "This browser cannot share the file. It will download instead.",
     "shareFailed": "Could not download or open this file. Try again.",
     "cadLoadingEngine": "Loading CAD viewer…",
+    "cadLoadingDownload": "Downloading drawing…",
+    "cadLoadingWasm": "Loading DWG engine…",
+    "cadLoadingXref": "Resolving drawing references (XREF)…",
+    "cadLoadingParse": "Building drawing view…",
     "cadLoadFailed": "Could not display this CAD file. Try again or open on device.",
     "cadEmptyDrawing": "The file loaded but contains no displayable drawing content.",
-    "cadDwgPartialNotice": "Partial DWG preview only — not a full drawing. CodeCAD does not load XREF underlays, Paper Space/layouts, Hebrew text, or some entity types. For the full drawing, open in AutoCAD or your storage provider.",
+    "cadDwgPartialNotice": "Partial DWG preview — not a full AutoCAD session. XREF underlays load when sibling files are in the same folder listing; Paper Space/layouts and some entity types may still be omitted. For the full drawing, open in AutoCAD or your storage provider.",
+    "cadXrefMissing": "{count, plural, one {# external reference could not be loaded from this folder — the drawing may look incomplete.} other {# external references could not be loaded from this folder — the drawing may look incomplete.}}",
+    "cadWebglRequired": "WebGL2 is required to preview this DWG in the browser.",
+    "cadLayerFrozen": "frozen",
     "cadLayers": "Layers",
+    "cadSpaceModel": "Model",
+    "cadSpaceLayout": "Layout {name}",
+    "cadSpaceSelector": "Model or layout",
     "cadViewerCanvas": "CAD drawing preview"
   }
 }

@@ -10,10 +10,22 @@ import { DEFAULT_LOCALE, isLocale, type Locale } from './config';
  */
 export type BarePathLocalization = 'passthrough' | 'rewrite-root' | 'redirect';
 
+/** `public/` roots that must not receive a locale prefix (workers, WASM, CAD bundles). */
+const PUBLIC_ASSET_ROOTS = new Set([
+  'pf-cad',
+  'cad',
+  'cad-workers',
+  'icons',
+  'pdf.worker.min.mjs',
+  'sw.js',
+  'manifest.webmanifest',
+]);
+
 export function barePathLocalization(pathname: string): BarePathLocalization {
   const segment = pathname.split('/').filter(Boolean)[0];
   if (isLocale(segment)) return 'passthrough';
   if (pathname === '/' || pathname === '') return 'rewrite-root';
+  if (segment && PUBLIC_ASSET_ROOTS.has(segment)) return 'passthrough';
   return 'redirect';
 }
 
