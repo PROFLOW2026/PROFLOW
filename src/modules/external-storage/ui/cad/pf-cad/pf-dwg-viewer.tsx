@@ -449,10 +449,12 @@ function PfDwgViewerInner({
         await yieldToMain();
         const tGpu0 = performance.now();
         const uiLayersInitial = cadLayersToUi(res.scene.layers);
+        const fitExtent = scene.contentExtent ?? scene.robustExtent;
         await rendererRef.current?.setDrawingAsync(
           res.segments,
-          scene.robustExtent,
+          fitExtent,
           uiLayersInitial,
+          scene.fullExtent,
         );
         rendererRef.current?.fit();
         rendererRef.current?.draw();
@@ -500,7 +502,7 @@ function PfDwgViewerInner({
   }, [devCadIndexedFiles, drawTexts, fileIndex, fileName, t, url]);
 
   const handleFitView = useCallback(() => {
-    rendererRef.current?.fit();
+    rendererRef.current?.fitFull();
   }, []);
 
   const handleZoomIn = useCallback(() => {
@@ -550,7 +552,13 @@ function PfDwgViewerInner({
           setUiLayers(cadLayersToUi(scene.layers));
           setCompat(reportWithFonts);
           await yieldToMain();
-          await rendererRef.current?.setDrawingAsync(res.segments, scene.robustExtent);
+          const fitExtent = scene.contentExtent ?? scene.robustExtent;
+          await rendererRef.current?.setDrawingAsync(
+            res.segments,
+            fitExtent,
+            cadLayersToUi(scene.layers),
+            scene.fullExtent,
+          );
           rendererRef.current?.fit();
           scheduleIdleDraw(() => drawTexts());
         } finally {
@@ -595,7 +603,13 @@ function PfDwgViewerInner({
           setUiLayers(cadLayersToUi(scene.layers));
           setCompat(reportWithFonts);
           await yieldToMain();
-          await rendererRef.current?.setDrawingAsync(res.segments, scene.robustExtent);
+          const fitExtent = scene.contentExtent ?? scene.robustExtent;
+          await rendererRef.current?.setDrawingAsync(
+            res.segments,
+            fitExtent,
+            cadLayersToUi(scene.layers),
+            scene.fullExtent,
+          );
           rendererRef.current?.draw();
           scheduleIdleDraw(() => drawTexts());
         } finally {

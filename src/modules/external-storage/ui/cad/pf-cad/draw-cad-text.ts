@@ -161,9 +161,11 @@ export function drawCadText(
   let blockH: number;
   let descent: number;
   if (shx) {
+    const styleKey = tx.style;
+    const mapCode = (code: number) => resolveShxGlyphCode(styleKey, code);
     w = 0;
     for (const line of lines) {
-      w = Math.max(w, measureShxTextWidth(shx, line, capH));
+      w = Math.max(w, measureShxTextWidth(shx, line, capH, mapCode));
     }
     blockH = lines.length <= 1 ? capH : capH + (lines.length - 1) * lineSpacingPx(capH, tx.lsf);
     descent = capH * 0.22;

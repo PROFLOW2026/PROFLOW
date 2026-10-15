@@ -130,11 +130,16 @@ export function shxGlyphAdvance(font: ShxFont, code: number): number {
   return Math.max(maxX + font.height * 0.15, font.height * 0.45);
 }
 
-export function measureShxTextWidth(font: ShxFont, text: string, capH: number): number {
+export function measureShxTextWidth(
+  font: ShxFont,
+  text: string,
+  capH: number,
+  mapCode: (code: number) => number = (c) => c,
+): number {
   const scale = capH / font.height;
   let penX = 0;
   for (const ch of text) {
-    penX += shxGlyphAdvance(font, ch.charCodeAt(0)) * scale;
+    penX += shxGlyphAdvance(font, mapCode(ch.charCodeAt(0))) * scale;
   }
   return penX;
 }

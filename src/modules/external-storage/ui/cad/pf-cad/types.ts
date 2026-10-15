@@ -60,6 +60,8 @@ export type ScenePayload = {
   schemaVersion?: number;
   space: string;
   origin: [number, number];
+  /** Initial fit: main drawing content without distant outliers. */
+  contentExtent?: [number, number, number, number];
   robustExtent: [number, number, number, number];
   fullExtent: [number, number, number, number];
   segmentCount: number;

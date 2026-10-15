@@ -15,10 +15,14 @@ export type CadRendererHandle = {
     segments: Float32Array,
     extent: CadExtent,
     layers?: readonly UiLayer[],
+    fullExtent?: CadExtent,
   ) => Promise<void>;
   setLayerVisibility: (layerId: string, visible: boolean) => void;
   applyLayerVisibility: (layers: readonly UiLayer[]) => void;
+  /** Fit to main content extent (default on load). */
   fit: () => void;
+  /** Fit entire drawing including distant geometry. */
+  fitFull: () => void;
   zoom: (factor: number) => void;
   zoomAt: (sx: number, sy: number, factor: number) => void;
   panBy: (dxPx: number, dyPx: number) => void;
@@ -40,6 +44,7 @@ export function createCadRenderer(options: CreateCadRendererOptions): CadRendere
   });
   const notifyViewChange = () => options.onAfterViewChange?.();
   let extent: CadExtent | null = null;
+  let fullExtent: CadExtent | null = null;
   const visibleLayers = new Set<number>();
 
   const syncLayerMask = () => {
@@ -63,8 +68,9 @@ export function createCadRenderer(options: CreateCadRendererOptions): CadRendere
       renderer.fitExtent(ext);
       renderer.draw();
     },
-    setDrawingAsync: async (segments, ext, layers) => {
+    setDrawingAsync: async (segments, ext, layers, fullExt) => {
       extent = ext;
+      fullExtent = fullExt ?? ext;
       if (layers) {
         visibleLayers.clear();
         for (const layer of layers) {
@@ -99,6 +105,13 @@ export function createCadRenderer(options: CreateCadRendererOptions): CadRendere
     fit: () => {
       if (extent) {
         renderer.fitExtent(extent);
+        renderer.draw();
+        notifyViewChange();
+      }
+    },
+    fitFull: () => {
+      if (fullExtent) {
+        renderer.fitExtent(fullExtent);
         renderer.draw();
         notifyViewChange();
       }
