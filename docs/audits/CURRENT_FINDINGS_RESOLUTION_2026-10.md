@@ -16,9 +16,9 @@
 | UX | 4 | **FIXED** |
 | ROLE / GAP | 5 | 2 **INTENTIONAL**, 1 **VERIFIED**, 2 **FIXED** (G03, G05 תיעוד) |
 
-**Git (לאחר תיקונים):** שינויים ב-`src/`, `tests/unit/`, `src/locales/*` — **לא** commit/push. Production עדיין על `4a4763f7` עד אישור Owner.
+**Git:** commit `3867a5404f726cc7dbac74fc02a8198b96379218` — pushed ל-`main`.
 
-**מוכנות לשחרור:** **READY FOR OWNER REVIEW** — preflight מלא לפני push לפי `docs/RELEASE-PREFLIGHT.md`.
+**Production (15.10.2026):** Vercel `proflow` deployment `dpl_BjQcFRe45cuaRhCqn6oAvBedHMYd` — **READY**, SHA `3867a5404f726cc7dbac74fc02a8198b96379218`.
 
 ---
 
@@ -147,22 +147,22 @@ npx vitest run tests/unit/financials/business-profitability-company-actual.test.
 
 ## F. מעקב ממצאים (13/13)
 
-**מקרא:** **קוד** = אומת ב-repo לפני push · **Production** = עדיין baseline `4a4763f7` עד deploy.
+**מקרא:** **קוד** = אומת לפני push · **Production** = קוד נפרס (`3867a540`); **לא** smoke/E2E בדפדפן.
 
 | ID | סגירה | קוד | Production |
 |----|--------|-----|------------|
-| FCA-2026-001 | FIXED | VERIFIED (unit) | לא |
-| FCA-2026-002 | FIXED | VERIFIED (קוד) | לא |
-| FCA-2026-003 | FIXED | VERIFIED (קוד) | לא |
-| FCA-2026-004 | FIXED | VERIFIED (unit) | לא |
-| FCA-2026-005 | VERIFIED (doc) | VERIFIED | לא (תיעוד בלבד) |
-| FCA-2026-006 | FIXED | VERIFIED (קוד) | לא |
-| FCA-2026-007 | FIXED | VERIFIED (קוד) | לא |
-| FCA-2026-008 | FIXED | VERIFIED (API nav) | לא |
-| FCA-2026-009 | FIXED | VERIFIED (קוד) | לא |
+| FCA-2026-001 | FIXED | VERIFIED (unit) | DEPLOYED (לא smoke) |
+| FCA-2026-002 | FIXED | VERIFIED (קוד) | DEPLOYED (לא smoke) |
+| FCA-2026-003 | FIXED | VERIFIED (קוד) | DEPLOYED (לא smoke) |
+| FCA-2026-004 | FIXED | VERIFIED (unit) | DEPLOYED (לא smoke) |
+| FCA-2026-005 | VERIFIED (doc) | VERIFIED | DEPLOYED (doc) |
+| FCA-2026-006 | FIXED | VERIFIED (קוד) | DEPLOYED (לא smoke) |
+| FCA-2026-007 | FIXED | VERIFIED (קוד) | DEPLOYED (לא smoke) |
+| FCA-2026-008 | FIXED | VERIFIED (API nav) | DEPLOYED (לא smoke) |
+| FCA-2026-009 | FIXED | VERIFIED (קוד) | DEPLOYED (לא smoke) |
 | FCA-2026-G01 | INTENTIONAL | — | — |
-| FCA-2026-G02 | VERIFIED | VERIFIED | לא (UX message) |
-| FCA-2026-G03 | FIXED | VERIFIED (preset) | לא |
+| FCA-2026-G02 | VERIFIED | VERIFIED | DEPLOYED (לא smoke) |
+| FCA-2026-G03 | FIXED | VERIFIED (preset) | DEPLOYED (לא smoke) |
 | FCA-2026-G04 | INTENTIONAL | — | — |
 
 ---
@@ -179,9 +179,9 @@ npx vitest run tests/unit/financials/business-profitability-company-actual.test.
 | פרמטר | ערך |
 |--------|-----|
 | **Baseline SHA** | `4a4763f723355a882376008c5b509c0464e3a1c9` |
-| **Production (נוכחי)** | עדיין baseline — **לא deploy** |
-| **Push/Deploy** | **BLOCKED** — ממתין לאישור Owner |
-| **המלצה** | commit ממוקד → preflight CI מקומי → push → verify Vercel SHA |
+| **Production (נוכחי)** | `3867a5404f726cc7dbac74fc02a8198b96379218` READY |
+| **Push/Deploy** | **DONE** (15.10.2026) |
+| **Vercel** | `dpl_BjQcFRe45cuaRhCqn6oAvBedHMYd` |
 
 ---
 
