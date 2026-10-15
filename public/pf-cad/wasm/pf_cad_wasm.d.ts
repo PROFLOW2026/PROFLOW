@@ -13,6 +13,7 @@ export interface InitOutput {
     readonly json_ptr: () => number;
     readonly segs_ptr: () => number;
     readonly set_host_path: (a: number, b: number) => void;
+    readonly set_plot_mode: (a: number) => void;
     readonly set_space: (a: number, b: number) => void;
     readonly __externref_table_alloc: () => number;
     readonly __wbindgen_externrefs: WebAssembly.Table;

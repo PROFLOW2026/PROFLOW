@@ -20,6 +20,11 @@ describe('pf-cad wasm static assets', () => {
     expect(size).toBeGreaterThan(1_000_000);
   });
 
+  it('exports set_plot_mode in glue typings', () => {
+    const dts = fs.readFileSync(path.join(wasmDir, 'pf_cad_wasm.d.ts'), 'utf8');
+    expect(dts).toContain('set_plot_mode');
+  });
+
   it('has a version manifest', () => {
     expect(fs.existsSync(manifestPath)).toBe(true);
     const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8')) as {

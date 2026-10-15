@@ -18,7 +18,7 @@ type WasmApi = {
     dataPtr: number,
     dataLen: number,
   ) => number;
-  set_plot_mode?: (on: number) => void;
+  set_plot_mode: (on: number) => void;
 };
 
 type WasmInitModule = {
@@ -117,11 +117,8 @@ self.onmessage = async (event: MessageEvent<WorkerIn>) => {
     const w = await ensureWasm();
     const t0 = performance.now();
     applyXrefDeps(w, req.hostPath, req.deps);
-    const nextPlot = req.plotMode === true;
-    if (nextPlot !== plotMode) {
-      plotMode = nextPlot;
-      w.set_plot_mode?.(plotMode ? 1 : 0);
-    }
+    plotMode = req.plotMode === true;
+    w.set_plot_mode(plotMode ? 1 : 0);
     const bytes = new Uint8Array(req.bytes);
     const space = req.space ?? '';
     if (space) {
