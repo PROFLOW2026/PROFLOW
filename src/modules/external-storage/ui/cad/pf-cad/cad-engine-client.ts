@@ -225,6 +225,7 @@ export class CadEngineClient {
     space?: string;
     skipXrefClosure?: boolean;
     cachedDeps?: XrefDepBytes[];
+    plotMode?: boolean;
   }): Promise<WorkerParseOk> {
     const hostPath = normalizeCadPath(input.fileName);
     const hostBytes = input.hostBytes;
@@ -287,6 +288,7 @@ export class CadEngineClient {
         hostPath,
         deps: wireDeps,
         space: input.space ?? '',
+        plotMode: input.plotMode ?? false,
       },
       transfer,
       true,

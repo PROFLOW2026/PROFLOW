@@ -26,13 +26,20 @@ import {
   resolveCadTextFontFamily,
 } from './cad-dynamic-font-faces';
 import { drawCadText } from './draw-cad-text';
+import { drawCadRaster } from './draw-cad-raster';
+import { clearCadShxFonts, lookupShxFont, registerCadShxFonts } from './cad-shx-registry';
 import { createCadRenderer, type CadRendererHandle } from './pf-renderer-bridge';
 import {
   mergeMissingFontsIntoReport,
   resolveCadFontsFromStorage,
 } from './font-resolver';
 import { buildStorageCadFileIndex } from './storage-cad-file-index';
-import { buildFileIndex, normalizeCadPath, type CadIndexedFile } from './xref-resolver';
+import {
+  buildFileIndex,
+  lookupInIndex,
+  normalizeCadPath,
+  type CadIndexedFile,
+} from './xref-resolver';
 import type { ScenePayload } from './types';
 import type { XrefDepBytes } from './xref-resolver';
 import { yieldToMain } from './yield-to-main';
@@ -184,6 +191,7 @@ function PfDwgViewerInner({
   const drawTextsRef = useRef<() => void>(() => {});
   const [spaces, setSpaces] = useState<string[]>([]);
   const [activeSpace, setActiveSpace] = useState('');
+  const [plotView, setPlotView] = useState(false);
   const loadContextRef = useRef<{
     hostBytes: Uint8Array;
     fileIndex: ReturnType<typeof buildStorageCadFileIndex>;
@@ -249,6 +257,7 @@ function PfDwgViewerInner({
       fontFamily: PF_CAD_TEXT_FONT,
       styleFontFamily: (style: string | number | undefined) =>
         resolveCadTextFontFamily(style, styleMap, PF_CAD_TEXT_FONT),
+      shxFont: (style: string | number | undefined) => lookupShxFont(style),
     };
 
     const drawSlice = () => {
@@ -261,10 +270,41 @@ function PfDwgViewerInner({
       }
       if (idx < texts.length && gen === textDrawGenRef.current) {
         textSliceRafRef.current = requestAnimationFrame(drawSlice);
+        return;
       }
+      const images = d.scene.images ?? [];
+      if (images.length === 0 || gen !== textDrawGenRef.current) return;
+      const hostPath = normalizeCadPath(fileName);
+      void (async () => {
+        for (const img of images) {
+          if (gen !== textDrawGenRef.current) return;
+          if (hidden.has(img.layer)) continue;
+          await drawCadRaster(
+            {
+              ctx,
+              view,
+              viewport,
+              origin: d.scene.origin,
+              resolveImageUrl: async (path) => {
+                const hit = lookupInIndex(fileIndex, hostPath, path);
+                if (!hit) return null;
+                try {
+                  const bytes = await hit.getBytes();
+                  const blob = new Blob([bytes], { type: 'image/png' });
+                  return URL.createObjectURL(blob);
+                } catch {
+                  return null;
+                }
+              },
+            },
+            img,
+            view.zoom,
+          );
+        }
+      })();
     };
     drawSlice();
-  }, [cancelTextDraw]);
+  }, [cancelTextDraw, fileIndex, fileName]);
 
   drawTextsRef.current = drawTexts;
 
@@ -391,6 +431,8 @@ function PfDwgViewerInner({
         });
         resolvedFontsRef.current = fontResolve;
         overlayFontMapRef.current = registerCadOverlayFonts(fontResolve.resolved);
+        clearCadShxFonts();
+        registerCadShxFonts(fontResolve.resolved);
         const reportWithFonts = mergeMissingFontsIntoReport(
           res.scene.report,
           fontResolve.missingFonts,
@@ -484,6 +526,7 @@ function PfDwgViewerInner({
             space,
             skipXrefClosure: true,
             cachedDeps: cachedDepsRef.current,
+            plotMode: plotView,
           });
           const fontResolve =
             resolvedFontsRef.current ??
@@ -511,7 +554,50 @@ function PfDwgViewerInner({
         }
       })();
     },
-    [drawTexts, fileName, t],
+    [drawTexts, fileName, plotView, t],
+  );
+
+  const handlePlotViewChange = useCallback(
+    (on: boolean) => {
+      const ctx = loadContextRef.current;
+      const client = clientRef.current;
+      if (!ctx || !client) {
+        setPlotView(on);
+        return;
+      }
+      setPlotView(on);
+      setLoading(true);
+      setLoadingLabel(safePreviewLabel(t, 'cadLoadingParse'));
+      void (async () => {
+        try {
+          const res = await client.parseDwgFromStorage({
+            fileName,
+            hostBytes: ctx.hostBytes,
+            fileIndex: ctx.fileIndex,
+            space: activeSpace,
+            skipXrefClosure: true,
+            cachedDeps: cachedDepsRef.current,
+            plotMode: on,
+          });
+          const fontResolve = resolvedFontsRef.current;
+          const reportWithFonts = mergeMissingFontsIntoReport(
+            res.scene.report,
+            fontResolve?.missingFonts ?? [],
+          );
+          const scene: ScenePayload = { ...res.scene, report: reportWithFonts };
+          drawingRef.current = { scene, segments: res.segments };
+          setUiLayers(cadLayersToUi(scene.layers));
+          setCompat(reportWithFonts);
+          await yieldToMain();
+          await rendererRef.current?.setDrawingAsync(res.segments, scene.robustExtent);
+          rendererRef.current?.draw();
+          scheduleIdleDraw(() => drawTexts());
+        } finally {
+          setLoading(false);
+        }
+      })();
+    },
+    [activeSpace, drawTexts, fileName, t],
   );
 
   const toggleLayer = useCallback(
@@ -582,7 +668,10 @@ function PfDwgViewerInner({
   }
 
   return (
-    <div ref={hostRef} className="relative flex min-h-0 flex-1 flex-col bg-[#0a0e14]">
+    <div
+      ref={hostRef}
+      className={`relative flex min-h-0 flex-1 flex-col ${plotView ? 'bg-white' : 'bg-[#0a0e14]'}`}
+    >
       {loading ? (
         <StorageLoadingOverlay label={loadingLabel} progress={loadingProgress} blocking />
       ) : null}
@@ -600,6 +689,8 @@ function PfDwgViewerInner({
             onSpaceChange={handleSpaceChange}
             banners={dwgBanners}
             locale={locale}
+            plotView={plotView}
+            onPlotViewChange={handlePlotViewChange}
           />
           <canvas
             ref={glCanvasRef}

@@ -178,14 +178,7 @@ export function formatCadDwgBannerLabel(
   return formatCadDwgBannerDetail(banner, locale);
 }
 
-const UNSUPPORTED_ENTITY_KEYS = [
-  'Hatch',
-  'Spline',
-  'Image',
-  'Table',
-  'RasterImage',
-  'MLeader',
-] as const;
+const UNSUPPORTED_ENTITY_KEYS = ['Spline', 'Table', 'Image'] as const;
 
 function skippedEntries(report: CompatReport): [string, number][] {
   return Object.entries(report.skipped ?? {}).filter(

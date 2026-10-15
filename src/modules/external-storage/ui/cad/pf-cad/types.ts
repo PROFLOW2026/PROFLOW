@@ -19,6 +19,13 @@ export type CadLayer = {
   frozen: boolean;
 };
 
+export type CadRasterImage = {
+  path: string;
+  layer: number;
+  c: number;
+  corners: [number, number][];
+};
+
 export type CadText = {
   x: number;
   y: number;
@@ -58,6 +65,7 @@ export type ScenePayload = {
   segmentCount: number;
   segmentStride: number;
   texts: CadText[];
+  images?: CadRasterImage[];
   layers: CadLayer[];
   spaces: string[];
   report: CompatReport;
@@ -80,6 +88,8 @@ export type WorkerParseRequest = {
   deps?: WorkerParseDep[];
   /** XREF probe: skip segment buffer transfer (report-only). */
   omitSegments?: boolean;
+  /** CTB-like plot preview (display only). */
+  plotMode?: boolean;
 };
 
 export type WorkerParseOk = {

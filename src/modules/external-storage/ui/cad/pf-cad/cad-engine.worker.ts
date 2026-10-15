@@ -18,6 +18,7 @@ type WasmApi = {
     dataPtr: number,
     dataLen: number,
   ) => number;
+  set_plot_mode?: (on: number) => void;
 };
 
 type WasmInitModule = {
@@ -27,6 +28,10 @@ type WasmInitModule = {
 let wasm: WasmApi | null = null;
 let wasmInitMs = 0;
 let xrefDepsSig: string | null = null;
+let cachedHostBuffer: ArrayBuffer | null = null;
+let cachedHostPtr = 0;
+let cachedHostLen = 0;
+let plotMode = false;
 
 function xrefDepsSignature(
   hostPath: string | undefined,
@@ -112,6 +117,11 @@ self.onmessage = async (event: MessageEvent<WorkerIn>) => {
     const w = await ensureWasm();
     const t0 = performance.now();
     applyXrefDeps(w, req.hostPath, req.deps);
+    const nextPlot = req.plotMode === true;
+    if (nextPlot !== plotMode) {
+      plotMode = nextPlot;
+      w.set_plot_mode?.(plotMode ? 1 : 0);
+    }
     const bytes = new Uint8Array(req.bytes);
     const space = req.space ?? '';
     if (space) {
@@ -122,8 +132,14 @@ self.onmessage = async (event: MessageEvent<WorkerIn>) => {
     } else {
       w.set_space(w.alloc(0), 0);
     }
-    const ptr = w.alloc(bytes.length);
-    new Uint8Array(w.memory.buffer, ptr, bytes.length).set(bytes);
+    let ptr = cachedHostPtr;
+    if (req.bytes !== cachedHostBuffer || bytes.length !== cachedHostLen) {
+      ptr = w.alloc(bytes.length);
+      new Uint8Array(w.memory.buffer, ptr, bytes.length).set(bytes);
+      cachedHostBuffer = req.bytes;
+      cachedHostPtr = ptr;
+      cachedHostLen = bytes.length;
+    }
     const nFloats = w.build_dl(ptr, bytes.length);
     const omitSegments = req.omitSegments === true;
     let segments = new Float32Array(0);

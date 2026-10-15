@@ -7,8 +7,6 @@ import { AutodeskDwfViewer } from './autodesk-dwf-viewer';
 import { MlightcadDxfViewer } from './mlightcad-dxf-viewer';
 import { PfDwgViewer } from './pf-cad/pf-dwg-viewer';
 
-export { CodecadDwgViewer } from './codecad-dwg-viewer';
-
 export function StorageCadPreview({
   kind,
   url,

@@ -2,6 +2,7 @@ import type { CadText } from './types';
 import type { CadView } from './renderer';
 import { worldToScreen } from './renderer';
 import { maybeDecodeHebrewShxText } from './hebrew-shx-decode';
+import { drawShxLine, measureShxTextWidth, type ShxFont } from './cad-shx-font';
 
 export const CAP_HEIGHT_RATIO = 0.714;
 export const FONT_SIZE_FACTOR = 1 / CAP_HEIGHT_RATIO;
@@ -17,6 +18,8 @@ export type TextDrawContext = {
   fontFamily: string;
   /** Optional map from DWG text style → @font-face family (customer TTF/OTF from storage). */
   styleFontFamily?: (style: string | number | undefined) => string;
+  /** Optional SHX stroke fonts keyed by style name. */
+  shxFont?: (style: string | number | undefined) => ShxFont | undefined;
 };
 
 /** Map MTEXT attachment point 1–9 (numpad) to horizontal / vertical alignment indices. */
@@ -146,13 +149,27 @@ export function drawCadText(
   const lines = rawLines.map((line) => maybeDecodeHebrewShxText(line, tx.style));
   if (lines.length === 0 || (lines.length === 1 && !lines[0]?.trim())) return;
 
+  const shx = draw.shxFont?.(tx.style);
+  const fillStyle = `#${(tx.c >>> 0).toString(16).padStart(6, '0')}`;
   const fontPx = capH * FONT_SIZE_FACTOR;
   const family = draw.styleFontFamily?.(tx.style) ?? draw.fontFamily;
   draw.ctx.save();
-  draw.ctx.font = `${fontPx}px ${family}, ${draw.fontFamily}`;
   draw.ctx.direction = 'ltr';
 
-  const { w, blockH, descent } = measureBlock(draw.ctx, lines, capH, tx.lsf);
+  let w: number;
+  let blockH: number;
+  let descent: number;
+  if (shx) {
+    w = 0;
+    for (const line of lines) {
+      w = Math.max(w, measureShxTextWidth(shx, line, capH));
+    }
+    blockH = lines.length <= 1 ? capH : capH + (lines.length - 1) * lineSpacingPx(capH, tx.lsf);
+    descent = capH * 0.22;
+  } else {
+    draw.ctx.font = `${fontPx}px ${family}, ${draw.fontFamily}`;
+    ({ w, blockH, descent } = measureBlock(draw.ctx, lines, capH, tx.lsf));
+  }
   if (isCulled(sx, sy, w, blockH, draw.viewport)) {
     draw.ctx.restore();
     return;
@@ -174,14 +191,24 @@ export function drawCadText(
   applyTextMatrix(draw.ctx, tx);
   draw.ctx.translate(dx, dy);
 
-  draw.ctx.fillStyle = `#${(tx.c >>> 0).toString(16).padStart(6, '0')}`;
+  draw.ctx.fillStyle = fillStyle;
   draw.ctx.textAlign = mapCanvasTextAlign(ha);
   draw.ctx.textBaseline = 'alphabetic';
 
   const anchorX = ha === 1 ? w / 2 : ha === 2 ? w : 0;
-  for (let i = 0; i < lines.length; i += 1) {
-    const y = i * spacing;
-    draw.ctx.fillText(lines[i]!, anchorX, y);
+  if (shx) {
+    for (let i = 0; i < lines.length; i += 1) {
+      const y = i * spacing;
+      draw.ctx.save();
+      draw.ctx.translate(anchorX, y);
+      drawShxLine(draw.ctx, shx, lines[i]!, capH, fillStyle);
+      draw.ctx.restore();
+    }
+  } else {
+    for (let i = 0; i < lines.length; i += 1) {
+      const y = i * spacing;
+      draw.ctx.fillText(lines[i]!, anchorX, y);
+    }
   }
 
   draw.ctx.restore();
