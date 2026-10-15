@@ -44,14 +44,15 @@ export function buildColorLineBatches(
   segments: Float32Array,
   visibility: LayerVisibilityState,
   zoom = 1,
+  segStride = SEGMENT_STRIDE,
 ): SegmentBatchResult {
-  const n = segmentCount(segments);
+  const n = segmentCount(segments, segStride);
   const floatCounts = new Map<number, number>();
   const lwByKey = new Map<number, number>();
   let skippedByLayer = 0;
 
   for (let i = 0; i < n; i += 1) {
-    const base = i * SEGMENT_STRIDE;
+    const base = i * segStride;
     const layer = layerIndexFromSegment(segments[base + 5]!);
     if (!isLayerVisible(visibility, layer)) {
       skippedByLayer += 1;
@@ -71,7 +72,7 @@ export function buildColorLineBatches(
 
   let drawnSegments = 0;
   for (let i = 0; i < n; i += 1) {
-    const base = i * SEGMENT_STRIDE;
+    const base = i * segStride;
     const layer = layerIndexFromSegment(segments[base + 5]!);
     if (!isLayerVisible(visibility, layer)) {
       continue;
@@ -110,10 +111,11 @@ export async function buildColorLineBatchesAsync(
   segments: Float32Array,
   visibility: LayerVisibilityState,
   zoom = 1,
+  segStride = SEGMENT_STRIDE,
 ): Promise<SegmentBatchResult> {
-  const n = segmentCount(segments);
+  const n = segmentCount(segments, segStride);
   if (n <= SEGMENTS_PER_YIELD) {
-    return buildColorLineBatches(segments, visibility, zoom);
+    return buildColorLineBatches(segments, visibility, zoom, segStride);
   }
 
   const floatCounts = new Map<number, number>();
@@ -123,7 +125,7 @@ export async function buildColorLineBatchesAsync(
   for (let start = 0; start < n; start += SEGMENTS_PER_YIELD) {
     const end = Math.min(n, start + SEGMENTS_PER_YIELD);
     for (let i = start; i < end; i += 1) {
-      const base = i * SEGMENT_STRIDE;
+      const base = i * segStride;
       const layer = layerIndexFromSegment(segments[base + 5]!);
       if (!isLayerVisible(visibility, layer)) {
         skippedByLayer += 1;
@@ -147,7 +149,7 @@ export async function buildColorLineBatchesAsync(
   for (let start = 0; start < n; start += SEGMENTS_PER_YIELD) {
     const end = Math.min(n, start + SEGMENTS_PER_YIELD);
     for (let i = start; i < end; i += 1) {
-      const base = i * SEGMENT_STRIDE;
+      const base = i * segStride;
       const layer = layerIndexFromSegment(segments[base + 5]!);
       if (!isLayerVisible(visibility, layer)) {
         continue;

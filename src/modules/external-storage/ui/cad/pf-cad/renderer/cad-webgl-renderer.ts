@@ -1,8 +1,14 @@
 import {
+  buildColorLineBatches,
+  buildColorLineBatchesAsync,
+  type ColorLineBatch,
+} from './segment-batch';
+import {
   buildOrderedDrawBatches,
   buildOrderedDrawBatchesAsync,
   type DrawBatch,
 } from './draw-ordered-batches';
+import { PF_CAD_EXPERIMENTAL_GPU_FILLS_AND_QUADS } from '../pf-cad-config';
 import { yieldToMain } from '../yield-to-main';
 import { colorBitsToRgb01, SEGMENT_STRIDE } from './segment-format';
 import type { CadExtent } from './segment-format';
@@ -23,9 +29,8 @@ export type CadWebGlRendererOptions = {
 export const GL_RESOURCES_LOST_MESSAGE =
   'WebGL context lost — recreate GPU resources after contextrestored';
 
-type GpuBatch = DrawBatch & {
-  vbo: WebGLBuffer;
-};
+type GpuLineBatch = ColorLineBatch & { vbo: WebGLBuffer };
+type GpuExpBatch = DrawBatch & { vbo: WebGLBuffer };
 
 function compileShader(gl: WebGL2RenderingContext, type: number, source: string): WebGLShader {
   const shader = gl.createShader(type);
@@ -75,8 +80,11 @@ export class CadWebGlRenderer {
   private triangles: Float32Array = new Float32Array(0);
   private segmentStride = SEGMENT_STRIDE;
   private layerVisibility: LayerVisibilityState = { mode: 'all' };
-  private cpuBatches: DrawBatch[] = [];
-  private gpuBatches: GpuBatch[] = [];
+  private cpuLineBatches: ColorLineBatch[] = [];
+  private cpuExpBatches: DrawBatch[] = [];
+  private gpuLineBatches: GpuLineBatch[] = [];
+  private gpuExpBatches: GpuExpBatch[] = [];
+  private lastBatchZoom = -1;
 
   private view: CadView = { panX: 0, panY: 0, zoom: 1 };
   private viewport: ViewportSize = { width: 1, height: 1 };
@@ -115,11 +123,15 @@ export class CadWebGlRenderer {
     }
   }
 
-  setSegments(segments: Float32Array, triangles: Float32Array = new Float32Array(0), segmentStride = SEGMENT_STRIDE): void {
+  setSegments(
+    segments: Float32Array,
+    triangles: Float32Array = new Float32Array(0),
+    segmentStride = SEGMENT_STRIDE,
+  ): void {
     this.segments = segments;
     this.triangles = triangles;
     this.segmentStride = segmentStride;
-    this.rebuildCpuBatches();
+    this.rebuildCpuBatches(true);
     this.uploadGpuBatches();
   }
 
@@ -131,19 +143,18 @@ export class CadWebGlRenderer {
     this.segments = segments;
     this.triangles = triangles;
     this.segmentStride = segmentStride;
-    await this.rebuildCpuBatchesAsync();
+    await this.rebuildCpuBatchesAsync(true);
     await yieldToMain();
     this.uploadGpuBatches();
   }
 
-  /** Set layer mask before {@link setSegmentsAsync} to avoid a second full batch rebuild. */
   prepareLayerVisibility(visibility: LayerVisibilityInput): void {
     this.layerVisibility = normalizeLayerVisibility(visibility);
   }
 
   setLayerVisibility(visibility: LayerVisibilityInput): void {
     this.layerVisibility = normalizeLayerVisibility(visibility);
-    this.rebuildCpuBatches();
+    this.rebuildCpuBatches(true);
     this.uploadGpuBatches();
   }
 
@@ -167,6 +178,13 @@ export class CadWebGlRenderer {
     if (this.contextLost || !this.gl || !this.program) {
       return;
     }
+    if (
+      !PF_CAD_EXPERIMENTAL_GPU_FILLS_AND_QUADS &&
+      Math.abs(this.lastBatchZoom - this.view.zoom) > 1e-6
+    ) {
+      this.rebuildCpuBatches(false);
+      this.uploadGpuBatches();
+    }
     const gl = this.gl;
     gl.clearColor(...this.clearColor);
     gl.clear(gl.COLOR_BUFFER_BIT);
@@ -175,13 +193,26 @@ export class CadWebGlRenderer {
     gl.uniform1f(this.uniforms.zoom, this.view.zoom);
     gl.uniform2f(this.uniforms.viewport, this.viewport.width, this.viewport.height);
 
-    for (const batch of this.gpuBatches) {
+    if (PF_CAD_EXPERIMENTAL_GPU_FILLS_AND_QUADS) {
+      for (const batch of this.gpuExpBatches) {
+        const [r, g, b] = colorBitsToRgb01(batch.colorBits);
+        gl.uniform4f(this.uniforms.color, r, g, b, 1);
+        gl.bindBuffer(gl.ARRAY_BUFFER, batch.vbo);
+        gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(0);
+        gl.drawArrays(gl.TRIANGLES, 0, batch.vertexCount);
+      }
+      return;
+    }
+
+    for (const batch of this.gpuLineBatches) {
       const [r, g, b] = colorBitsToRgb01(batch.colorBits);
       gl.uniform4f(this.uniforms.color, r, g, b, 1);
+      gl.lineWidth(batch.lineWidthPx);
       gl.bindBuffer(gl.ARRAY_BUFFER, batch.vbo);
       gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
       gl.enableVertexAttribArray(0);
-      gl.drawArrays(gl.TRIANGLES, 0, batch.vertexCount);
+      gl.drawArrays(gl.LINES, 0, batch.vertexCount);
     }
   }
 
@@ -189,7 +220,8 @@ export class CadWebGlRenderer {
     this.unbindContextEvents();
     this.segments = new Float32Array(0);
     this.triangles = new Float32Array(0);
-    this.cpuBatches = [];
+    this.cpuLineBatches = [];
+    this.cpuExpBatches = [];
     this.disposeGpu();
     const gl = this.gl;
     if (gl && this.program) {
@@ -262,30 +294,60 @@ export class CadWebGlRenderer {
     gl.bindVertexArray(null);
   }
 
-  private rebuildCpuBatches(): void {
+  private rebuildCpuBatches(force: boolean): void {
     if (this.segments.length === 0 && this.triangles.length === 0) {
-      this.cpuBatches = [];
+      this.cpuLineBatches = [];
+      this.cpuExpBatches = [];
       return;
     }
-    this.cpuBatches = buildOrderedDrawBatches(
+    if (PF_CAD_EXPERIMENTAL_GPU_FILLS_AND_QUADS) {
+      this.cpuExpBatches = buildOrderedDrawBatches(
+        this.segments,
+        this.triangles,
+        this.layerVisibility,
+        this.segmentStride,
+      );
+      return;
+    }
+    if (!force && this.lastBatchZoom === this.view.zoom) {
+      return;
+    }
+    const { batches } = buildColorLineBatches(
       this.segments,
-      this.triangles,
       this.layerVisibility,
+      this.view.zoom,
       this.segmentStride,
     );
+    this.cpuLineBatches = batches;
+    this.lastBatchZoom = this.view.zoom;
   }
 
-  private async rebuildCpuBatchesAsync(): Promise<void> {
+  private async rebuildCpuBatchesAsync(force: boolean): Promise<void> {
     if (this.segments.length === 0 && this.triangles.length === 0) {
-      this.cpuBatches = [];
+      this.cpuLineBatches = [];
+      this.cpuExpBatches = [];
       return;
     }
-    this.cpuBatches = await buildOrderedDrawBatchesAsync(
+    if (PF_CAD_EXPERIMENTAL_GPU_FILLS_AND_QUADS) {
+      this.cpuExpBatches = await buildOrderedDrawBatchesAsync(
+        this.segments,
+        this.triangles,
+        this.layerVisibility,
+        this.segmentStride,
+      );
+      return;
+    }
+    if (!force && this.lastBatchZoom === this.view.zoom) {
+      return;
+    }
+    const { batches } = await buildColorLineBatchesAsync(
       this.segments,
-      this.triangles,
       this.layerVisibility,
+      this.view.zoom,
       this.segmentStride,
     );
+    this.cpuLineBatches = batches;
+    this.lastBatchZoom = this.view.zoom;
   }
 
   private uploadGpuBatches(): void {
@@ -294,7 +356,20 @@ export class CadWebGlRenderer {
     if (!gl || this.contextLost) {
       return;
     }
-    this.gpuBatches = this.cpuBatches.map((batch) => {
+    if (PF_CAD_EXPERIMENTAL_GPU_FILLS_AND_QUADS) {
+      this.gpuExpBatches = this.cpuExpBatches.map((batch) => {
+        const vbo = gl.createBuffer();
+        if (!vbo) {
+          throw new Error('createBuffer failed');
+        }
+        gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+        gl.bufferData(gl.ARRAY_BUFFER, batch.positions, gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        return { ...batch, vbo };
+      });
+      return;
+    }
+    this.gpuLineBatches = this.cpuLineBatches.map((batch) => {
       const vbo = gl.createBuffer();
       if (!vbo) {
         throw new Error('createBuffer failed');
@@ -309,10 +384,14 @@ export class CadWebGlRenderer {
   private disposeGpu(): void {
     const gl = this.gl;
     if (gl) {
-      for (const batch of this.gpuBatches) {
+      for (const batch of this.gpuLineBatches) {
+        gl.deleteBuffer(batch.vbo);
+      }
+      for (const batch of this.gpuExpBatches) {
         gl.deleteBuffer(batch.vbo);
       }
     }
-    this.gpuBatches = [];
+    this.gpuLineBatches = [];
+    this.gpuExpBatches = [];
   }
 }
