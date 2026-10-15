@@ -17,6 +17,10 @@ const config = [
       '.tmp/**',
       'next-env.d.ts',
       'public/pdf.worker.min.mjs',
+      // Vendor / generated CAD runtime assets (not maintained source; served as static files)
+      'public/pf-cad/**',
+      'public/cad-workers/**',
+      'public/cad/**',
       'scripts/.**',
       '.tools/**',
       'docs/**/scripts/**',

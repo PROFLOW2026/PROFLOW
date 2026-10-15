@@ -6,6 +6,7 @@ import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { StorageLoadingOverlay } from '../storage-loading-overlay';
 import { CadPreviewChrome } from './cad-preview-chrome';
+import type { AcApDocManager } from '@mlightcad/cad-simple-viewer';
 import { fetchStoragePreviewBytes } from './fetch-storage-preview-bytes';
 
 const MTEXT_WORKER_URL = '/cad-workers/mtext-renderer-worker.js';
@@ -56,7 +57,7 @@ function MlightcadDxfViewerInner({
     if (!canvasHost) return;
 
     let cancelled = false;
-    let docManager: import('@mlightcad/cad-simple-viewer').AcApDocManager | undefined;
+    let docManager: AcApDocManager | undefined;
 
     void (async () => {
       try {
