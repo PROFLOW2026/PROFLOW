@@ -33,20 +33,21 @@ export function CadDwgViewerToolbar({
   onViewerVersionChange?: (version: CadViewerVersion) => void;
 }) {
   const showSpace = spaces.length > 1;
+  const visibleBanners = banners.filter((banner) => banner.key !== 'cadDwgFontsMissing');
 
   return (
     <div
       dir="ltr"
-      className="pointer-events-none absolute inset-x-0 top-0 z-10 grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2 px-2 py-1.5 sm:gap-3"
+      className="pointer-events-none absolute inset-x-0 top-0 z-10 grid grid-cols-[auto_minmax(0,1fr)] items-start gap-2 px-2 py-1.5 sm:gap-3"
     >
-      <div className="pointer-events-auto min-w-0 justify-self-start pt-0.5">
-        <CadDwgCompactAlerts banners={banners} locale={locale} />
+      <div className="pointer-events-auto flex min-w-0 items-center justify-self-start gap-1">
+        <CadAlternateFontsButton />
+        <CadDwgCompactAlerts banners={visibleBanners} locale={locale} />
       </div>
-      <div className="pointer-events-auto flex max-w-full flex-wrap items-center justify-end gap-1.5 sm:gap-2">
+      <div className="pointer-events-auto flex min-w-0 max-w-full flex-wrap items-center justify-end gap-1.5 sm:gap-2">
         {viewerVersion && onViewerVersionChange ? (
           <CadViewerVersionSelect value={viewerVersion} onChange={onViewerVersionChange} />
         ) : null}
-        <CadAlternateFontsButton />
         <Button
           type="button"
           size="sm"
