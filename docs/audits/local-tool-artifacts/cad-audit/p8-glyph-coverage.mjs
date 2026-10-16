@@ -33,7 +33,6 @@ const {
   registerCadShxFonts,
   registerCadShxStyleTable,
   registerCadShxTextStyleAliases,
-  registerCadShxEntityStyleHeuristics,
   clearCadShxFonts,
   lookupShxFont,
 } =
@@ -297,7 +296,6 @@ if (storageDir && fs.existsSync(storageDir)) {
   });
   registerCadShxFonts(fontResolve.resolved);
   const styleLinked = registerCadShxStyleTable(json.textStyleTable);
-  const entityLinked = registerCadShxEntityStyleHeuristics(texts, json.textStyleTable);
   registerCadShxTextStyleAliases(texts);
   const shxResolvable = texts.filter((t) => lookupShxFont(t.style)).length;
   storageFonts = {
@@ -306,7 +304,7 @@ if (storageDir && fs.existsSync(storageDir)) {
     missingFonts: fontResolve.missingFonts.length,
     textStyleTableRows: json.textStyleTable?.length ?? 0,
     styleAliasesLinked: styleLinked,
-    entityHeuristicsLinked: entityLinked,
+    entityHeuristicsLinked: 0,
     shxResolvableTextRecords: shxResolvable,
   };
 }
@@ -318,11 +316,10 @@ let metricsAfterLoad = shxHandoffMetrics(texts, origin);
 
 if (shxNames.length > 0 || storageFonts?.resolvedShx > 0) {
   let styleAliasesLinked = storageFonts?.styleAliasesLinked ?? 0;
-  let entityHeuristicsLinked = storageFonts?.entityHeuristicsLinked ?? 0;
+  const entityHeuristicsLinked = 0;
   let textStyleAliasesLinked = 0;
   if (shxNames.length > 0 && !storageFonts) {
     styleAliasesLinked = registerCadShxStyleTable(json.textStyleTable);
-    entityHeuristicsLinked = registerCadShxEntityStyleHeuristics(texts, json.textStyleTable);
     textStyleAliasesLinked = registerCadShxTextStyleAliases(texts);
   } else if (storageFonts) {
     textStyleAliasesLinked = registerCadShxTextStyleAliases(texts);
@@ -414,10 +411,27 @@ if (shxNames.length > 0 || storageFonts?.resolvedShx > 0) {
 
 const syntheticProof = runSyntheticProof(origin, texts);
 
+/** Proprietary customer SHX — never committed; synthetic/fixture bytes are not verification. */
+const PROPRIETARY_CUSTOMER_FONT_MARKERS = ['MIRYL', 'HEBTXT'];
+const reportFontKeys = Object.keys(json.report?.fonts ?? {});
+const proprietaryReferencedInDrawing = reportFontKeys.filter((key) =>
+  PROPRIETARY_CUSTOMER_FONT_MARKERS.some((m) => key.toUpperCase().includes(m)),
+);
+const proprietaryResolvedFromStorage =
+  storageFonts != null &&
+  storageFonts.resolvedShx > 0 &&
+  storageFonts.missingFonts === 0 &&
+  proprietaryReferencedInDrawing.length > 0;
+const customerProprietaryFontsStatus = proprietaryResolvedFromStorage
+  ? 'RESOLVED_FROM_STORAGE'
+  : 'MISSING_IN_CORPUS';
+
 console.log(
   JSON.stringify(
     {
       host: path.basename(host),
+      customerProprietaryFontsStatus,
+      proprietaryReferencedInDrawing,
       textTotal: texts.length,
       wasmGpuMarked: texts.filter((t) => t.gpu === true).length,
       opaqueArgbTexts: opaquePacked,

@@ -1,0 +1,388 @@
+﻿{
+  "host": "3096-EL.dwg",
+  "customerProprietaryFontsStatus": "MISSING_IN_CORPUS",
+  "proprietaryReferencedInDrawing": [
+    "HEBTXT",
+    "HEBTXT.SHX",
+    "MIRYL",
+    "MIRYL.SHX",
+    "hebtxt",
+    "miryl",
+    "miryl.shx"
+  ],
+  "textTotal": 3266,
+  "wasmGpuMarked": 1756,
+  "opaqueArgbTexts": 3266,
+  "opaqueNotBrokenCssPaint": 3266,
+  "mirrorFlagRecords": 230,
+  "canvasFallbackRecords": 1510,
+  "textStyleTableRows": 23,
+  "entityTextStyles": [
+    {
+      "style": "TRHEBTXT",
+      "count": 813,
+      "inTextStyleTable": false,
+      "embeddedTableRows": [
+        "HEB",
+        "TXT"
+      ],
+      "prefixVariants": [
+        "HEBTXT"
+      ],
+      "likelySource": "xref_or_block_style"
+    },
+    {
+      "style": "Arial_5",
+      "count": 688,
+      "inTextStyleTable": false,
+      "embeddedTableRows": [
+        "Arial"
+      ],
+      "prefixVariants": [],
+      "likelySource": "xref_or_block_style"
+    },
+    {
+      "style": "HANIT_TEXT",
+      "count": 228,
+      "inTextStyleTable": false,
+      "embeddedTableRows": [],
+      "prefixVariants": [],
+      "likelySource": "unknown"
+    },
+    {
+      "style": "S",
+      "count": 207,
+      "inTextStyleTable": true,
+      "embeddedTableRows": [],
+      "prefixVariants": [],
+      "likelySource": "host_table"
+    },
+    {
+      "style": "R",
+      "count": 117,
+      "inTextStyleTable": true,
+      "embeddedTableRows": [],
+      "prefixVariants": [],
+      "likelySource": "host_table"
+    },
+    {
+      "style": "HEBTEXT",
+      "count": 116,
+      "inTextStyleTable": false,
+      "embeddedTableRows": [
+        "HEB"
+      ],
+      "prefixVariants": [],
+      "likelySource": "xref_or_block_style"
+    },
+    {
+      "style": "O",
+      "count": 110,
+      "inTextStyleTable": true,
+      "embeddedTableRows": [],
+      "prefixVariants": [],
+      "likelySource": "host_table"
+    },
+    {
+      "style": "Arial_1",
+      "count": 96,
+      "inTextStyleTable": false,
+      "embeddedTableRows": [
+        "Arial"
+      ],
+      "prefixVariants": [],
+      "likelySource": "xref_or_block_style"
+    },
+    {
+      "style": "HEBTXT",
+      "count": 88,
+      "inTextStyleTable": false,
+      "embeddedTableRows": [
+        "HEB",
+        "TXT"
+      ],
+      "prefixVariants": [],
+      "likelySource": "xref_or_block_style"
+    },
+    {
+      "style": "Standard",
+      "count": 79,
+      "inTextStyleTable": true,
+      "embeddedTableRows": [],
+      "prefixVariants": [],
+      "likelySource": "host_table"
+    },
+    {
+      "style": "Arial_7",
+      "count": 67,
+      "inTextStyleTable": false,
+      "embeddedTableRows": [
+        "Arial"
+      ],
+      "prefixVariants": [],
+      "likelySource": "xref_or_block_style"
+    },
+    {
+      "style": "DIM",
+      "count": 63,
+      "inTextStyleTable": true,
+      "embeddedTableRows": [],
+      "prefixVariants": [],
+      "likelySource": "host_table"
+    },
+    {
+      "style": "Arial_11",
+      "count": 53,
+      "inTextStyleTable": false,
+      "embeddedTableRows": [
+        "Arial"
+      ],
+      "prefixVariants": [],
+      "likelySource": "xref_or_block_style"
+    },
+    {
+      "style": "Arial_8",
+      "count": 52,
+      "inTextStyleTable": false,
+      "embeddedTableRows": [
+        "Arial"
+      ],
+      "prefixVariants": [],
+      "likelySource": "xref_or_block_style"
+    },
+    {
+      "style": "Arial_4",
+      "count": 51,
+      "inTextStyleTable": false,
+      "embeddedTableRows": [
+        "Arial"
+      ],
+      "prefixVariants": [],
+      "likelySource": "xref_or_block_style"
+    }
+  ],
+  "storageFonts": null,
+  "styleBinding": {
+    "styleAliasesLinked": 11,
+    "entityHeuristicsLinked": 0,
+    "textStyleAliasesLinked": 0,
+    "textStyleTableSample": [
+      {
+        "name": "Standard",
+        "font": "arial.ttf",
+        "ttf": "Arial"
+      },
+      {
+        "name": "R",
+        "font": "TXT.shx"
+      },
+      {
+        "name": "S",
+        "font": "sivan_m.shx"
+      },
+      {
+        "name": "ROMANS",
+        "font": "romans.shx"
+      },
+      {
+        "name": "Arial",
+        "font": "arial.ttf",
+        "ttf": "Arial"
+      },
+      {
+        "name": "TECHNO_M",
+        "font": "techno_m"
+      },
+      {
+        "name": "H2",
+        "font": "heb"
+      },
+      {
+        "name": "{18b73a54-fa43-428c-adcb-c1c7bbdf2c84}",
+        "font": "Simplex.shx"
+      }
+    ],
+    "reportFontKeysSample": [
+      "Arial",
+      "CAES-K",
+      "Calibri",
+      "HEB.shx",
+      "HEBREW.shx",
+      "HEBTXT",
+      "HEBTXT.SHX",
+      "MIRYL",
+      "MIRYL.SHX",
+      "MIRYM.SHX",
+      "ORON.shx",
+      "Revit_HEB_SHX"
+    ],
+    "topTextStyles": [
+      {
+        "style": "TRHEBTXT",
+        "count": 813,
+        "lookupShxFont": false
+      },
+      {
+        "style": "Arial_5",
+        "count": 688,
+        "lookupShxFont": false
+      },
+      {
+        "style": "HANIT_TEXT",
+        "count": 228,
+        "lookupShxFont": false
+      },
+      {
+        "style": "S",
+        "count": 207,
+        "lookupShxFont": false
+      },
+      {
+        "style": "R",
+        "count": 117,
+        "lookupShxFont": true
+      },
+      {
+        "style": "HEBTEXT",
+        "count": 116,
+        "lookupShxFont": false
+      },
+      {
+        "style": "O",
+        "count": 110,
+        "lookupShxFont": false
+      },
+      {
+        "style": "Arial_1",
+        "count": 96,
+        "lookupShxFont": false
+      },
+      {
+        "style": "HEBTXT",
+        "count": 88,
+        "lookupShxFont": true
+      },
+      {
+        "style": "Standard",
+        "count": 79,
+        "lookupShxFont": false
+      },
+      {
+        "style": "Arial_7",
+        "count": 67,
+        "lookupShxFont": false
+      },
+      {
+        "style": "DIM",
+        "count": 63,
+        "lookupShxFont": true
+      }
+    ]
+  },
+  "shxHandoff": {
+    "shxStyleResolvable": 336,
+    "shxGpuEligible": 21,
+    "wasmGpuClientShxIncomplete": 136,
+    "shxSegmentsAdded": 1088
+  },
+  "syntheticProof": {
+    "ok": true,
+    "synthFonts": [
+      "MIRYL.SHX (minimal inline)"
+    ],
+    "proofs": [
+      {
+        "label": "inline-miryl-shx",
+        "style": "MIRYL.SHX",
+        "shxSegmentsAdded": 8,
+        "shxGpuCount": 1,
+        "gpuComplete": true
+      },
+      {
+        "label": "style-table-trhebtxt",
+        "style": "TRHEBTXT",
+        "shxSegmentsAdded": 8,
+        "shxGpuCount": 1,
+        "gpuComplete": true
+      },
+      {
+        "label": "3096-latin-filtered",
+        "style": "HEBTXT",
+        "shxSegmentsAdded": 0,
+        "shxGpuCount": 1,
+        "gpuComplete": false
+      }
+    ],
+    "appendDirect": {
+      "shxSegmentsAdded": 8,
+      "shxGpuCount": 1
+    }
+  },
+  "shxMerge": {
+    "shxFilesLoaded": 5,
+    "shxFileNames": [
+      "HEB.shx",
+      "hebtxt.shx",
+      "miryl.shx",
+      "mirylb.shx",
+      "TXT.shx"
+    ],
+    "wasmSegmentFloats": 2848104,
+    "mergedSegmentFloats": 2849192,
+    "shxSegmentsAdded": 1088,
+    "shxGpuCount": 1620,
+    "gpuMarkedAfterMerge": 1620,
+    "canvasDrawBefore": 1510,
+    "canvasDrawAfter": 1646,
+    "canvasSkippedByGpu": -136,
+    "shxStyleResolvable": 336,
+    "shxGpuEligible": 21,
+    "wasmGpuClientShxIncomplete": 0
+  },
+  "glyphCoverage": {
+    "shxRecordsAudited": 279,
+    "recordComplete": 0,
+    "recordIncomplete": 279,
+    "sumExpectedGlyphs": 300,
+    "sumSegmentStrokes": 68,
+    "drawableGlyphEstimate": 1713,
+    "samples": [
+      {
+        "t": "9-guneh auju, vchuc",
+        "style": "M",
+        "expectedGlyphs": 3,
+        "segmentCount": 3
+      },
+      {
+        "t": " bnssu gk hsh ",
+        "style": "M",
+        "expectedGlyphs": 1,
+        "segmentCount": 0
+      },
+      {
+        "t": "nvbsx vuugsv cg, vfb, ,he vnhsg",
+        "style": "M",
+        "expectedGlyphs": 1,
+        "segmentCount": 3
+      },
+      {
+        "t": "8-euuh vcbhhi vu,uu fph av,ecku ",
+        "style": "M",
+        "expectedGlyphs": 3,
+        "segmentCount": 4
+      },
+      {
+        "t": "7-eu vvpegv vdcuk htuar gk hsh n",
+        "style": "M",
+        "expectedGlyphs": 3,
+        "segmentCount": 5
+      },
+      {
+        "t": "1-ha keck thaur vuugsv k,fbui uc",
+        "style": "M",
+        "expectedGlyphs": 3,
+        "segmentCount": 4
+      }
+    ]
+  }
+}

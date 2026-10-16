@@ -54,10 +54,10 @@ todos:
     content: "Phase 7: layout viewports (center/height/twist/clip, per-viewport frozen layers), XCLIP for XREFs"
     status: completed
   - id: p8-engine-text
-    content: "Phase 8: pf-fonts inside wasm, glyph mesh / SDF text in WebGL replacing Canvas2D overlay"
+    content: "Phase 8: pf-fonts inside wasm, glyph mesh / SDF text in WebGL replacing Canvas2D overlay — PARTIAL: handoff + SHX merge wired; 3096 shxGpuEligible=0; customerProprietaryFontsStatus MISSING_IN_CORPUS (MIRYL/HEBTXT); §11 corpus proof not met"
     status: pending
   - id: p9-secondary
-    content: "Phase 9: full MLeader, raster images fetched from storage folder as textures"
+    content: "Phase 9: full MLeader, raster images fetched from storage folder as textures — PARTIAL: clip/WebGL unit tests only; no storage-folder E2E; MLeader GPU not done"
     status: pending
   - id: p10-licensing
     content: "Phase 10: in-app open-source notices page, proprietary license field for own crates, CADCraft NOTICE verbatim, remove dead CodeCAD bundle, CI denylist for proprietary fonts/patterns"
@@ -143,7 +143,7 @@ The full list is in section 11 of the audit.
 | p6-plot-look | **completed** | CTB + plot mode + ACI 7 דינמי; visual gate pending |
 | text regression guards | **completed** | `cad-text-canvas-color`, `cad-gpu-text-policy`, vitest + `p-text-normal-plot.mjs` |
 | p7-paperspace | **completed** | viewports + XCLIP; compat ללא skip viewport |
-| p8-engine-text | **pending** | Handoff chain + `registerCadShxEntityStyleHeuristics` (TRHEBTXT→HEBTXT table); 3096 audit **1287** `shxStyleResolvable`; **`shxGpuEligible: 0`** until proprietary SHX bytes from storage (synthetic ≠ proof); WASM pf-fonts `gpu` נשאר לטקסט TTF/שלם |
-| p9-secondary | **pending** | MLeader + raster WebGL + `clip` JSON + viewport raster ב-engine; vitest `cad-raster-clip`; אימות end-to-end עם תמונות מהאחסון — לא ב-fixtures |
+| p8-engine-text | **pending** | Handoff + heuristics; 3096 **`shxGpuEligible: 0`**; `customerProprietaryFontsStatus: MISSING_IN_CORPUS` (MIRYL/HEBTXT); synthetic MIRYL ≠ Owner verification |
+| p9-secondary | **pending** | MLeader + raster WebGL + clip JSON; vitest only — no storage-folder E2E; MLeader GPU not done |
 | p10-licensing | **completed** | OPEN_SOURCE_NOTICES + engine LICENSE + denylist CI |
 | gate-visual | **pending** | Owner PDFs |
